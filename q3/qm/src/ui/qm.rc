@@ -838,6 +838,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_ERROR_CREATEFOLDER  "Could not create folder."
     IDS_ERROR_EXECUTEATTACHMENT "Could not execute attachment file."
+    IDS_ERROR_DIALUP        "Error occured while dialing up"
 END
 
 STRINGTABLE DISCARDABLE 

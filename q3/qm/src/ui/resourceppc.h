@@ -183,6 +183,7 @@
 #define IDS_ADDRESSBOOK_COMMENT         2203
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
+#define IDS_ERROR_DIALUP                10002
 #define IDM_EDIT_CLEARDELETED           40001
 #define IDM_EDIT_COPY                   40002
 #define IDM_EDIT_CUT                    40003

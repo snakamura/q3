@@ -1,5 +1,5 @@
 /*
- * $Id: syncdialog.cpp,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -467,11 +467,16 @@ QSTATUS qm::SyncStatusWindow::setMessage(
 {
 	DECLARE_QSTATUS();
 	
-	Lock<CriticalSection> lock(cs_);
-	ItemList::iterator it = getItem(nId);
-	status = (*it)->setMessage(pwszMessage);
-	CHECK_QSTATUS();
-	invalidate(false);
+	if (nId == -1) {
+		// TODO
+	}
+	else {
+		Lock<CriticalSection> lock(cs_);
+		ItemList::iterator it = getItem(nId);
+		status = (*it)->setMessage(pwszMessage);
+		CHECK_QSTATUS();
+		invalidate(false);
+	}
 	
 	return QSTATUS_SUCCESS;
 }
@@ -481,40 +486,54 @@ QSTATUS qm::SyncStatusWindow::addError(
 {
 	DECLARE_QSTATUS();
 	
-	StringBuffer<WSTRING> buf(L"[", &status);
+	// TODO
+	// Account, SubAccount, Code and Descriptions may be null
+	
+	StringBuffer<WSTRING> buf(&status);
 	CHECK_QSTATUS();
 	
-	status = buf.append(info.getAccount()->getName());
-	CHECK_QSTATUS();
-	
-	SubAccount* pSubAccount = info.getSubAccount();
-	if (*pSubAccount->getName()) {
-		status = buf.append(L'/');
+	Account* pAccount = info.getAccount();
+	if (pAccount) {
+		status = buf.append(L"[");
 		CHECK_QSTATUS();
-		status = buf.append(pSubAccount->getName());
+		status = buf.append(pAccount->getName());
+		CHECK_QSTATUS();
+		
+		SubAccount* pSubAccount = info.getSubAccount();
+		if (*pSubAccount->getName()) {
+			status = buf.append(L'/');
+			CHECK_QSTATUS();
+			status = buf.append(pSubAccount->getName());
+			CHECK_QSTATUS();
+		}
+		
+		NormalFolder* pFolder = info.getFolder();
+		if (pFolder) {
+			string_ptr<WSTRING> wstrName;
+			status = pFolder->getFullName(&wstrName);
+			CHECK_QSTATUS();
+			status = buf.append(L" - ");
+			CHECK_QSTATUS();
+			status = buf.append(wstrName.get());
+			CHECK_QSTATUS();
+		}
+		
+		status = buf.append(L"] ");
 		CHECK_QSTATUS();
 	}
-	
-	NormalFolder* pFolder = info.getFolder();
-	if (pFolder) {
-		string_ptr<WSTRING> wstrName;
-		status = pFolder->getFullName(&wstrName);
-		CHECK_QSTATUS();
-		status = buf.append(L" - ");
-		CHECK_QSTATUS();
-		status = buf.append(wstrName.get());
-		CHECK_QSTATUS();
-	}
-	
-	status = buf.append(L"] ");
-	CHECK_QSTATUS();
 	
 	status = buf.append(info.getMessage());
 	CHECK_QSTATUS();
 	
-	WCHAR wszCode[32];
-	swprintf(wszCode, L" (0x%08X)\r\n", info.getCode());
-	status = buf.append(wszCode);
+	unsigned int nCode = info.getCode();
+	if (nCode != 0) {
+		WCHAR wszCode[32];
+		swprintf(wszCode, L" (0x%08X)", info.getCode());
+		status = buf.append(wszCode);
+		CHECK_QSTATUS();
+	}
+	
+	status = buf.append(L"\r\n");
 	CHECK_QSTATUS();
 	
 	for (size_t n = 0; n < info.getDescriptionCount(); ++n) {
@@ -537,15 +556,20 @@ QSTATUS qm::SyncStatusWindow::addError(
 
 bool qm::SyncStatusWindow::isCanceled(unsigned int nId, bool bForce)
 {
-	Lock<CriticalSection> lock(cs_);
-	ItemList::iterator it = getItem(nId);
-	unsigned int nCanceledTime = (*it)->getCanceledTime();
-	if (nCanceledTime == 0)
-		return false;
-	else if (!bForce)
-		return true;
-	else
-		return ::GetTickCount() - nCanceledTime > 10*1000;
+	if (nId == -1) {
+		// TODO
+	}
+	else {
+		Lock<CriticalSection> lock(cs_);
+		ItemList::iterator it = getItem(nId);
+		unsigned int nCanceledTime = (*it)->getCanceledTime();
+		if (nCanceledTime == 0)
+			return false;
+		else if (!bForce)
+			return true;
+		else
+			return ::GetTickCount() - nCanceledTime > 10*1000;
+	}
 }
 
 LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)

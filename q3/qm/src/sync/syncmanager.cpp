@@ -22,6 +22,7 @@
 #include <functional>
 
 #include "syncmanager.h"
+#include "../ui/resource.h"
 
 #pragma warning(disable:4786)
 
@@ -1076,8 +1077,7 @@ qm::SyncManager::RasConnectionCallbackImpl::~RasConnectionCallbackImpl()
 
 bool qm::SyncManager::RasConnectionCallbackImpl::isCanceled()
 {
-	// TODO
-	return false;
+	return pCallback_->isCanceled(-1, false);
 }
 
 QSTATUS qm::SyncManager::RasConnectionCallbackImpl::preConnect(
@@ -1096,17 +1096,20 @@ QSTATUS qm::SyncManager::RasConnectionCallbackImpl::preConnect(
 QSTATUS qm::SyncManager::RasConnectionCallbackImpl::setMessage(
 	const WCHAR* pwszMessage)
 {
-	DECLARE_QSTATUS();
-	
-	// TODO
-	
-	return QSTATUS_SUCCESS;
+	return pCallback_->setMessage(-1, pwszMessage);
 }
 
 QSTATUS qm::SyncManager::RasConnectionCallbackImpl::error(const WCHAR* pwszMessage)
 {
-	// TODO
-	return QSTATUS_SUCCESS;
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrMessage;
+	status = loadString(Application::getApplication().getResourceHandle(),
+		IDS_ERROR_DIALUP, &wstrMessage);
+	CHECK_QSTATUS();
+	
+	SessionErrorInfo info(0, 0, 0, wstrMessage.get(), 0, &pwszMessage, 1);
+	return pCallback_->addError(-1, info);
 }
 
 
