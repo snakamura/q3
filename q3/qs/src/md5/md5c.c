@@ -26,7 +26,7 @@ documentation and/or software.
 #ifndef _WIN32_WCE
 	#include <memory.h>
 #else
-	#include <stdlib.h>
+//	#include <stdlib.h>
 #endif
 #include "global.h"
 #include "md5.h"
