@@ -9,11 +9,11 @@
 #     clean.wce
 
 BINDIR					= d:/util/cygwin/bin
-#VSDIR					= d:/dev/msvs
-#VCDIR					= d:/dev/msvs/vc98
-VSDIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
-VCDIR					= d:/dev/msvs2003/vc7
-VC7						= 1
+VSDIR					= d:/dev/msvs
+VCDIR					= d:/dev/msvs/vc98
+#VSDIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
+#VCDIR					= d:/dev/msvs2003/vc7
+VC7						= 0
 EVCDIR					= d:/dev/msevc4/evc
 EVC4					= 1
 PLATFORMSDKDIR			= d:/dev/mssdk
