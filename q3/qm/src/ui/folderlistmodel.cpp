@@ -142,7 +142,24 @@ QSTATUS qm::FolderListModel::folderSelected(const FolderModelEvent& event)
 
 QSTATUS qm::FolderListModel::folderListChanged(const FolderListChangedEvent& event)
 {
-	return fireFolderListChanged();
+	DECLARE_QSTATUS();
+	
+	switch (event.getType()) {
+	case FolderListChangedEvent::TYPE_ALL:
+	case FolderListChangedEvent::TYPE_ADD:
+	case FolderListChangedEvent::TYPE_REMOVE:
+	case FolderListChangedEvent::TYPE_RENAME:
+		status = fireFolderListChanged();
+		CHECK_QSTATUS();
+		break;
+	case FolderListChangedEvent::TYPE_SHOW:
+	case FolderListChangedEvent::TYPE_HIDE:
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderListModel::fireAccountChanged()

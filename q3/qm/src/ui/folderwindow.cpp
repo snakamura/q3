@@ -343,6 +343,12 @@ QSTATUS qm::FolderWindowImpl::folderListChanged(
 		status = refreshFolderList(event.getAccount());
 		CHECK_QSTATUS();
 		break;
+	case FolderListChangedEvent::TYPE_SHOW:
+	case FolderListChangedEvent::TYPE_HIDE:
+		// TODO
+		status = refreshFolderList(event.getAccount());
+		CHECK_QSTATUS();
+		break;
 	default:
 		assert(false);
 		return QSTATUS_FAIL;

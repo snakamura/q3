@@ -727,7 +727,9 @@ QSTATUS qm::Account::showFolder(Folder* pFolder, bool bShow)
 	if (pFolder->isFlag(Folder::FLAG_HIDE) == bShow) {
 		pFolder->setFlags(bShow ? 0 : Folder::FLAG_HIDE, Folder::FLAG_HIDE);
 		
-		FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_ALL, 0);
+		FolderListChangedEvent::Type type = bShow ?
+			FolderListChangedEvent::TYPE_SHOW : FolderListChangedEvent::TYPE_HIDE;
+		FolderListChangedEvent event(this, type, pFolder);
 		status = pImpl_->fireFolderListChanged(event);
 		CHECK_QSTATUS();
 	}

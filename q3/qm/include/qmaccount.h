@@ -1,5 +1,5 @@
 /*
- * $Id: qmaccount.h,v 1.6 2003/05/31 08:04:51 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -297,7 +297,9 @@ public:
 		TYPE_ALL,
 		TYPE_ADD,
 		TYPE_REMOVE,
-		TYPE_RENAME
+		TYPE_RENAME,
+		TYPE_SHOW,
+		TYPE_HIDE
 	};
 
 public:

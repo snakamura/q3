@@ -56,6 +56,9 @@ public:
 	virtual qs::QSTATUS folderListChanged(const FolderListModelEvent& event);
 
 private:
+	LRESULT onItemChanged(NMHDR* pnmhdr, bool* pbHandled);
+
+private:
 	QSTATUS setCurrentAccount(Account* pAccount);
 	QSTATUS updateFolderListModel();
 
@@ -171,29 +174,10 @@ Folder* qm::FolderListWindowImpl::getFolder(int nItem) const
 
 LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 {
-	DECLARE_QSTATUS();
-	
-	if (pnmhdr->idFrom != nId_)
-		return 0;
-	
-	switch (pnmhdr->code) {
-	case LVN_ITEMCHANGED:
-		if (!bInserting_) {
-			NMLISTVIEW* pnmlv = reinterpret_cast<NMLISTVIEW*>(pnmhdr);
-			if (pnmlv->iItem != -1 &&
-				(pnmlv->uOldState & 0x3000) != (pnmlv->uNewState & 0x3000)) {
-				Folder* pFolder = getFolder(pnmlv->iItem);
-				pFolder->getAccount()->showFolder(pFolder,
-					(pnmlv->uNewState & 0x1000) == 0);
-			}
-		}
-		
-		updateFolderListModel();
-		
-		break;
-	}
-	
-	return 0;
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(LVN_ITEMCHANGED, nId_, onItemChanged);
+	END_NOTIFY_HANDLER()
+	return 1;
 }
 
 QSTATUS qm::FolderListWindowImpl::accountChanged(const FolderListModelEvent& event)
@@ -204,6 +188,23 @@ QSTATUS qm::FolderListWindowImpl::accountChanged(const FolderListModelEvent& eve
 QSTATUS qm::FolderListWindowImpl::folderListChanged(const FolderListModelEvent& event)
 {
 	return setCurrentAccount(pFolderListModel_->getAccount());
+}
+
+LRESULT qm::FolderListWindowImpl::onItemChanged(NMHDR* pnmhdr, bool* pbHandled)
+{
+	if (!bInserting_) {
+		NMLISTVIEW* pnmlv = reinterpret_cast<NMLISTVIEW*>(pnmhdr);
+		if (pnmlv->iItem != -1 &&
+			(pnmlv->uOldState & 0x3000) != (pnmlv->uNewState & 0x3000)) {
+			Folder* pFolder = getFolder(pnmlv->iItem);
+			pFolder->getAccount()->showFolder(pFolder,
+				(pnmlv->uNewState & 0x1000) == 0);
+		}
+	}
+	
+	updateFolderListModel();
+	
+	return 0;
 }
 
 QSTATUS qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount)
