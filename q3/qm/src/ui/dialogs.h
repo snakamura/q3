@@ -1422,6 +1422,7 @@ class MoveMessageDialog :
 {
 public:
 	MoveMessageDialog(Document* pDocument,
+					  Account* pAccount,
 					  qs::Profile* pProfile);
 	virtual ~MoveMessageDialog();
 
@@ -1451,10 +1452,14 @@ private:
 							   bool* pbHandled);
 
 private:
-	bool update();
-	bool insertAccount(Account* pAccount);
-	bool insertFolders(HTREEITEM hItem,
-					   Account* pAccount);
+	bool update(Folder* pFolderSelected);
+	bool insertAccount(HWND hwnd,
+					   Account* pAccount,
+					   Folder* pFolderSelected);
+	bool insertFolders(HWND hwnd,
+					   HTREEITEM hItem,
+					   Account* pAccount,
+					   Folder* pFolderSelected);
 	void updateState();
 
 private:
@@ -1463,6 +1468,7 @@ private:
 
 private:
 	Document* pDocument_;
+	Account* pAccount_;
 	qs::Profile* pProfile_;
 	NormalFolder* pFolder_;
 	bool bCopy_;

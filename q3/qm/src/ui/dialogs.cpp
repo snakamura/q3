@@ -4124,9 +4124,11 @@ void qm::MailFolderDialog::updateState()
  */
 
 qm::MoveMessageDialog::MoveMessageDialog(Document* pDocument,
+										 Account* pAccount,
 										 Profile* pProfile) :
 	DefaultDialog(IDD_MOVEMESSAGE),
 	pDocument_(pDocument),
+	pAccount_(pAccount),
 	pProfile_(pProfile),
 	pFolder_(0),
 	bCopy_(false),
@@ -4180,7 +4182,12 @@ LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus,
 	if (bShowHidden_)
 		sendDlgItemMessage(IDC_SHOWHIDDEN, BM_SETCHECK, BST_CHECKED);
 	
-	update();
+	Folder* pFolderSelected = 0;
+	wstring_ptr wstrFolder(pAccount_->getProperty(L"UI", L"FolderTo", L""));
+	if (*wstrFolder.get())
+		pFolderSelected = pDocument_->getFolder(0, wstrFolder.get());
+	
+	update(pFolderSelected);
 	updateState();
 	addNotifyHandler(this);
 	
@@ -4219,6 +4226,16 @@ LRESULT qm::MoveMessageDialog::onOk()
 	
 	bCopy_ = sendDlgItemMessage(IDC_COPY, BM_GETCHECK) == BST_CHECKED;
 	
+	wstring_ptr wstrFolderName(pFolder_->getFullName());
+	ConcatW c[] = {
+		{ L"//",								2	},
+		{ pFolder_->getAccount()->getName(),	-1	},
+		{ L"/",									1	},
+		{ wstrFolderName.get(),					-1	}
+	};
+	wstring_ptr wstrName(concat(c, countof(c)));
+	pAccount_->setProperty(L"UI", L"FolderTo", wstrName.get());
+	
 	return DefaultDialog::onOk();
 }
 
@@ -4227,7 +4244,21 @@ LRESULT qm::MoveMessageDialog::onShowHidden()
 	bool bShowHidden = sendDlgItemMessage(IDC_SHOWHIDDEN, BM_GETCHECK) == BST_CHECKED;
 	if (bShowHidden != bShowHidden_) {
 		bShowHidden_ = bShowHidden;
-		update();
+		
+		Folder* pFolderSelected = 0;
+		
+		HWND hwndFolder = getDlgItem(IDC_FOLDER);
+		HTREEITEM hItem = TreeView_GetSelection(hwndFolder);
+		if (hItem && TreeView_GetParent(hwndFolder, hItem)) {
+			TVITEM item = {
+				TVIF_HANDLE | TVIF_PARAM,
+				hItem
+			};
+			TreeView_GetItem(hwndFolder, &item);
+			pFolderSelected = reinterpret_cast<Folder*>(item.lParam);
+		}
+		
+		update(pFolderSelected);
 	}
 	return 0;
 }
@@ -4239,23 +4270,31 @@ LRESULT qm::MoveMessageDialog::onFolderSelChanged(NMHDR* pnmhdr, bool* pbHandled
 	return 0;
 }
 
-bool qm::MoveMessageDialog::update()
+bool qm::MoveMessageDialog::update(Folder* pFolderSelected)
 {
-	HWND hwnd = getDlgItem(IDC_FOLDER);
-	DisableRedraw disable(hwnd);
-	
-	TreeView_DeleteAllItems(hwnd);
-	
-	const Document::AccountList& listAccount = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
-		if (!insertAccount(*it))
-			return false;
+	HWND hwndFolder = getDlgItem(IDC_FOLDER);
+	{
+		DisableRedraw disable(hwndFolder);
+		
+		TreeView_DeleteAllItems(hwndFolder);
+		
+		const Document::AccountList& listAccount = pDocument_->getAccounts();
+		for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+			if (!insertAccount(hwndFolder, *it, pFolderSelected))
+				return false;
+		}
 	}
+	
+	HTREEITEM hItem = TreeView_GetSelection(hwndFolder);
+	if (hItem)
+		TreeView_EnsureVisible(hwndFolder, hItem);
 	
 	return true;
 }
 
-bool qm::MoveMessageDialog::insertAccount(Account* pAccount)
+bool qm::MoveMessageDialog::insertAccount(HWND hwnd,
+										  Account* pAccount,
+										  Folder* pFolderSelected)
 {
 	assert(pAccount);
 	
@@ -4277,19 +4316,20 @@ bool qm::MoveMessageDialog::insertAccount(Account* pAccount)
 			reinterpret_cast<LPARAM>(pAccount)
 		}
 	};
-	HTREEITEM hItemAccount = TreeView_InsertItem(
-		getDlgItem(IDC_FOLDER), &tvisAccount);
+	HTREEITEM hItemAccount = TreeView_InsertItem(hwnd, &tvisAccount);
 	if (!hItemAccount)
 		return false;
 	
-	if (!insertFolders(hItemAccount, pAccount))
+	if (!insertFolders(hwnd, hItemAccount, pAccount, pFolderSelected))
 		return false;
 	
 	return true;
 }
 
-bool qm::MoveMessageDialog::insertFolders(HTREEITEM hItem,
-										  Account* pAccount)
+bool qm::MoveMessageDialog::insertFolders(HWND hwnd,
+										  HTREEITEM hItem,
+										  Account* pAccount,
+										  Folder* pFolderSelected)
 {
 	assert(hItem);
 	assert(pAccount);
@@ -4335,10 +4375,12 @@ bool qm::MoveMessageDialog::insertFolders(HTREEITEM hItem,
 		assert(!stack.empty());
 		tvisFolder.hParent = stack.back().second;
 		
-		HTREEITEM hItemFolder = TreeView_InsertItem(
-			getDlgItem(IDC_FOLDER), &tvisFolder);
+		HTREEITEM hItemFolder = TreeView_InsertItem(hwnd, &tvisFolder);
 		if (!hItemFolder)
 			return false;
+		
+		if (pFolder == pFolderSelected)
+			TreeView_SelectItem(hwnd, hItemFolder);
 		
 		stack.push_back(Stack::value_type(pFolder, hItemFolder));
 	}

@@ -3617,27 +3617,30 @@ qm::MessageMoveOtherAction::~MessageMoveOtherAction()
 
 void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 {
-	MoveMessageDialog dialog(pDocument_, pProfile_);
-	if (dialog.doModal(hwnd_) == IDOK) {
-		NormalFolder* pFolderTo = dialog.getFolder();
-		if (pFolderTo) {
-			AccountLock lock;
-			Folder* pFolderFrom = 0;
-			MessageHolderList l;
-			pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
-			
-			if (!l.empty()) {
-				Account* pAccount = lock.get();
-				bool bMove = !dialog.isCopy();
-				
-				UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
-				ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-				if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
-					ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
-					return;
-				}
-			}
-		}
+	AccountLock lock;
+	Folder* pFolderFrom = 0;
+	MessageHolderList l;
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
+	if (l.empty())
+		return;
+	
+	Account* pAccount = lock.get();
+	
+	MoveMessageDialog dialog(pDocument_, pAccount, pProfile_);
+	if (dialog.doModal(hwnd_) != IDOK)
+		return;
+	
+	NormalFolder* pFolderTo = dialog.getFolder();
+	if (!pFolderTo)
+		return;
+	
+	bool bMove = !dialog.isCopy();
+	
+	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
+	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback)) {
+		ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
+		return;
 	}
 }
 
