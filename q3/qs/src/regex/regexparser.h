@@ -562,10 +562,13 @@ private:
 	std::auto_ptr<RegexCharGroupAtom> parseCharGroup();
 	std::auto_ptr<RegexQuantifier> parseQuantity();
 	RegexQuantifier::Option parseQuantifierOption();
+	int parseHexEscapedChar();
+	int parseOctEscapedChar();
 	bool checkReference(unsigned int nGroup) const;
 
 private:
 	static WCHAR getSingleEscapedChar(WCHAR c);
+	static std::auto_ptr<RegexMultiEscapeAtom> getMultiEscapedAtom(WCHAR c);
 	static int getHex(WCHAR c);
 	static int getOct(WCHAR c);
 
@@ -585,6 +588,7 @@ private:
 
 private:
 	static const WCHAR wszSingleEscapeChar__[];
+	static const WCHAR wszMultiEscapeChar__[];
 	static const WCHAR wszSpecialChar__[];
 };
 

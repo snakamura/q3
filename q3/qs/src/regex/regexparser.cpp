@@ -575,6 +575,7 @@ qs::RegexMatchCallback::~RegexMatchCallback()
  */
 
 const WCHAR qs::RegexParser::wszSingleEscapeChar__[] = L"nrt\\|.-^?*+{}()[]$";
+const WCHAR qs::RegexParser::wszMultiEscapeChar__[] = L"sSwWdD";
 const WCHAR qs::RegexParser::wszSpecialChar__[] = L"\\|.-^?*+{}()[]$";
 
 qs::RegexParser::RegexParser(const WCHAR* pwszPattern,
@@ -723,17 +724,8 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		if (wcschr(wszSingleEscapeChar__, *p_)) {
 			pAtom.reset(new RegexCharAtom(getSingleEscapedChar(*p_)));
 		}
-		else if (*p_ == L's' || *p_ == L'S') {
-			pAtom.reset(new RegexMultiEscapeAtom(
-				RegexMultiEscapeAtom::TYPE_WHITESPACE, *p_ == L'S'));
-		}
-		else if (*p_ == L'w' || *p_ == L'W') {
-			pAtom.reset(new RegexMultiEscapeAtom(
-				RegexMultiEscapeAtom::TYPE_WORD, *p_ == L'W'));
-		}
-		else if (*p_ == L'd' || *p_ == L'D') {
-			pAtom.reset(new RegexMultiEscapeAtom(
-				RegexMultiEscapeAtom::TYPE_NUMBER, *p_ == L'D'));
+		else if (wcschr(wszMultiEscapeChar__, *p_)) {
+			pAtom = getMultiEscapedAtom(*p_);
 		}
 		else if (*p_ == L'b') {
 			pAtom.reset(new RegexAnchorAtom(RegexAnchorAtom::TYPE_WORDBOUNDARY));
@@ -751,25 +743,15 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 			pAtom.reset(new RegexAnchorAtom(RegexAnchorAtom::TYPE_ENDSTRICT));
 		}
 		else if (*p_ == L'x' || *p_ == L'u') {
-			unsigned int nValue = 0;
-			for (int nDigit = *p_ == L'x' ? 2 : 4; nDigit > 0; --nDigit) {
-				++p_;
-				int n = getHex(*p_);
-				if (n == -1)
-					return std::auto_ptr<RegexPieceNode>(0);
-				nValue = nValue*16 + n;
-			}
+			int nValue = parseHexEscapedChar();
+			if (nValue == -1)
+				return std::auto_ptr<RegexPieceNode>(0);
 			pAtom.reset(new RegexCharAtom(static_cast<WCHAR>(nValue)));
 		}
 		else if (*p_ == L'0') {
-			unsigned int nValue = 0;
-			for (int nDigit = 3; nDigit > 0; --nDigit) {
-				++p_;
-				int n = getOct(*p_);
-				if (n == -1 || (nDigit == 3 && n > 3))
-					return std::auto_ptr<RegexPieceNode>(0);
-				nValue = nValue*8 + n;
-			}
+			int nValue = parseOctEscapedChar();
+			if (nValue == -1)
+				return std::auto_ptr<RegexPieceNode>(0);
 			pAtom.reset(new RegexCharAtom(static_cast<WCHAR>(nValue)));
 		}
 		else if (L'1' <= *p_ && *p_ <= L'9') {
@@ -859,10 +841,20 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 			if (wcschr(wszSingleEscapeChar__, *p_)) {
 				cStart = getSingleEscapedChar(*p_);
 			}
-			else if (*p_ == L's' || *p_ == L'S') {
-				std::auto_ptr<RegexMultiEscapeAtom> pAtom(new RegexMultiEscapeAtom(
-					RegexMultiEscapeAtom::TYPE_WHITESPACE, *p_ == L'S'));
-				pCharGroupAtom->addAtomCharGroup(pAtom);
+			else if (wcschr(wszMultiEscapeChar__, *p_)) {
+				pCharGroupAtom->addAtomCharGroup(getMultiEscapedAtom(*p_));
+			}
+			else if (*p_ == L'x' || *p_ == L'u') {
+				int nValue = parseHexEscapedChar();
+				if (nValue == -1)
+					return std::auto_ptr<RegexCharGroupAtom>(0);
+				cStart = static_cast<WCHAR>(nValue);
+			}
+			else if (*p_ == L'0') {
+				int nValue = parseOctEscapedChar();
+				if (nValue == -1)
+					return std::auto_ptr<RegexCharGroupAtom>(0);
+				cStart = static_cast<WCHAR>(nValue);
 			}
 			else {
 				return std::auto_ptr<RegexCharGroupAtom>(0);
@@ -894,10 +886,28 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 				}
 				else if (*p_ == L'\\' && !bDash) {
 					++p_;
-					if (wcschr(wszSingleEscapeChar__, *p_))
-						pCharGroupAtom->addRangeCharGroup(cStart, getSingleEscapedChar(*p_));
-					else
+					
+					WCHAR cEnd = L'\0';
+					if (wcschr(wszSingleEscapeChar__, *p_)) {
+						cEnd = getSingleEscapedChar(*p_);
+					}
+					else if (*p_ == L'x' || *p_ == L'u') {
+						int nValue = parseHexEscapedChar();
+						if (nValue == -1)
+							return std::auto_ptr<RegexCharGroupAtom>(0);
+						cEnd = static_cast<WCHAR>(nValue);
+					}
+					else if (*p_ == L'0') {
+						int nValue = parseOctEscapedChar();
+						if (nValue == -1)
+							return std::auto_ptr<RegexCharGroupAtom>(0);
+						cEnd = static_cast<WCHAR>(nValue);
+					}
+					else {
 						return std::auto_ptr<RegexCharGroupAtom>(0);
+					}
+					pCharGroupAtom->addRangeCharGroup(cStart, cEnd);
+					
 					++p_;
 				}
 				else if (!bDash) {
@@ -988,6 +998,36 @@ RegexQuantifier::Option qs::RegexParser::parseQuantifierOption()
 	}
 }
 
+int qs::RegexParser::parseHexEscapedChar()
+{
+	assert(*p_ == L'x' || *p_ == L'u');
+	
+	int nValue = 0;
+	for (int nDigit = *p_ == L'x' ? 2 : 4; nDigit > 0; --nDigit) {
+		++p_;
+		int n = getHex(*p_);
+		if (n == -1)
+			return -1;
+		nValue = nValue*16 + n;
+	}
+	return nValue;
+}
+
+int qs::RegexParser::parseOctEscapedChar()
+{
+	assert(*p_ == L'0');
+	
+	int nValue = 0;
+	for (int nDigit = 3; nDigit > 0; --nDigit) {
+		++p_;
+		int n = getOct(*p_);
+		if (n == -1 || (nDigit == 3 && n > 3))
+			return -1;
+		nValue = nValue*8 + n;
+	}
+	return nValue;
+}
+
 bool qs::RegexParser::checkReference(unsigned int nGroup) const
 {
 	return std::find(stackGroup_.begin(), stackGroup_.end(), nGroup) == stackGroup_.end();
@@ -1007,6 +1047,34 @@ WCHAR qs::RegexParser::getSingleEscapedChar(WCHAR c)
 	default:
 		return c;
 	}
+}
+
+std::auto_ptr<RegexMultiEscapeAtom> qs::RegexParser::getMultiEscapedAtom(WCHAR c)
+{
+	assert(wcschr(wszMultiEscapeChar__, c));
+	
+	std::auto_ptr<RegexMultiEscapeAtom> pAtom;
+	switch (c) {
+	case L's':
+	case L'S':
+		pAtom.reset(new RegexMultiEscapeAtom(
+			RegexMultiEscapeAtom::TYPE_WHITESPACE, c == L'S'));
+		break;
+	case L'w':
+	case L'W':
+		pAtom.reset(new RegexMultiEscapeAtom(
+			RegexMultiEscapeAtom::TYPE_WORD, c == L'W'));
+		break;
+	case L'd':
+	case L'D':
+		pAtom.reset(new RegexMultiEscapeAtom(
+			RegexMultiEscapeAtom::TYPE_NUMBER, c == L'D'));
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return pAtom;
 }
 
 int qs::RegexParser::getHex(WCHAR c)
