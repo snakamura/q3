@@ -41,7 +41,7 @@ copy)
 	done
 	;;
 
-run|run.unicode|debug|debug.unicode|purify|purify.unicode)
+run|run.unicode|run.debug|run.debug.unicode|debug|debug.unicode|purify|purify.unicode)
 	case $COMMAND in
 	run)
 		CODE=ansi
@@ -53,6 +53,18 @@ run|run.unicode|debug|debug.unicode|purify|purify.unicode)
 		CODE=unicode
 		DEBUG=release
 		SUFFIX=u
+		EXEC=
+		;;
+	run.debug)
+		CODE=ansi
+		DEBUG=debug
+		SUFFIX=d
+		EXEC=
+		;;
+	run.debug.unicode)
+		CODE=unicode
+		DEBUG=debug
+		SUFFIX=ud
 		EXEC=
 		;;
 	debug)
