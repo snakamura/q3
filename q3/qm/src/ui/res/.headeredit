@@ -26,8 +26,10 @@
 	<line hideIfNoFocus="true">
 		<static width="6em" style="bold">Attac&amp;hment:</static>
 		<attachment number="6"/>
-		<static width="4.5em" style="bold">Acco&amp;unt:</static>
-		<account width="5em" number="7"/>
+	</line>
+	<line>
+		<static width="6em" style="bold">Acco&amp;unt:</static>
+		<account number="7"/>
 		<static width="5em" style="bold">S&amp;ignature:</static>
 		<signature width="5em" number="8"/>
 	</line>

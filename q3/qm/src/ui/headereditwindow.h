@@ -539,6 +539,9 @@ public:
 	virtual void releaseEditMessage(EditMessage* pEditMessage);
 
 public:
+	void setShowFrom(bool bShow);
+
+public:
 	virtual qs::QSTATUS accountChanged(const EditMessageEvent& event);
 
 protected:
@@ -549,6 +552,7 @@ private:
 	AccountHeaderEditItem& operator=(const AccountHeaderEditItem&);
 
 private:
+	bool bShowFrom_;
 	EditMessage* pEditMessage_;
 };
 

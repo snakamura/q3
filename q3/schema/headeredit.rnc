@@ -16,7 +16,10 @@ start = element headerEdit {
 				item
 			} |
 			element account {
-				item
+				item,
+				attribute showFrom {
+					xsd:boolean
+				}?
 			} |
 			element signature {
 				item

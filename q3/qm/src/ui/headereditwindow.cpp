@@ -1691,6 +1691,7 @@ QSTATUS qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
 qm::AccountHeaderEditItem::AccountHeaderEditItem(
 	EditWindowFocusController* pController, QSTATUS* pstatus) :
 	ComboBoxHeaderEditItem(pController, pstatus),
+	bShowFrom_(true),
 	pEditMessage_(0)
 {
 }
@@ -1735,6 +1736,21 @@ QSTATUS qm::AccountHeaderEditItem::setEditMessage(
 				else {
 					pwszName = pAccount->getName();
 				}
+				
+				if (bShowFrom_) {
+					AddressParser address(pSubAccount->getSenderName(),
+						pSubAccount->getSenderAddress(), &status);
+					CHECK_QSTATUS();
+					string_ptr<WSTRING> wstrValue;
+					status = address.getValue(&wstrValue);
+					CHECK_QSTATUS();
+					
+					wstrName.reset(concat(pwszName, L" - ", wstrValue.get()));
+					if (!wstrName.get())
+						return QSTATUS_OUTOFMEMORY;
+					pwszName = wstrName.get();
+				}
+				
 				W2T(pwszName, ptszName);
 				int nItem = combo.sendMessage(CB_ADDSTRING, 0,
 					reinterpret_cast<LPARAM>(ptszName));
@@ -1771,6 +1787,11 @@ void qm::AccountHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
 {
 	pEditMessage->removeEditMessageHandler(this);
 	pEditMessage_ = 0;
+}
+
+void qm::AccountHeaderEditItem::setShowFrom(bool bShow)
+{
+	bShowFrom_ = bShow;
 }
 
 QSTATUS qm::AccountHeaderEditItem::accountChanged(const EditMessageEvent& event)
@@ -1946,8 +1967,7 @@ QSTATUS qm::HeaderEditWindowContentHandler::startElement(
 		state_ = STATE_ITEM;
 	}
 	else if (wcscmp(pwszLocalName, L"attachment") == 0 ||
-		wcscmp(pwszLocalName, L"signature") == 0 ||
-		wcscmp(pwszLocalName, L"account") == 0) {
+		wcscmp(pwszLocalName, L"signature") == 0) {
 		if (state_ != STATE_LINE)
 			return QSTATUS_FAIL;
 		
@@ -1968,10 +1988,7 @@ QSTATUS qm::HeaderEditWindowContentHandler::startElement(
 			pItem.reset(p.release());
 		}
 		else {
-			std::auto_ptr<AccountHeaderEditItem> p;
-			status = newQsObject(pController_, &p);
-			CHECK_QSTATUS();
-			pItem.reset(p.release());
+			assert(false);
 		}
 		
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -1986,6 +2003,43 @@ QSTATUS qm::HeaderEditWindowContentHandler::startElement(
 			}
 			else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
 				pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
+			}
+			else {
+				return QSTATUS_FAIL;
+			}
+		}
+		
+		status = pCurrentLine_->addItem(pItem.get());
+		CHECK_QSTATUS();
+		pCurrentItem_ = pItem.release();
+		
+		state_ = STATE_ITEM;
+	}
+	else if (wcscmp(pwszLocalName, L"account") == 0) {
+		if (state_ != STATE_LINE)
+			return QSTATUS_FAIL;
+		
+		assert(pCurrentLine_);
+		
+		std::auto_ptr<AccountHeaderEditItem> pItem;
+		status = newQsObject(pController_, &pItem);
+		CHECK_QSTATUS();
+		
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrLocalName, L"width") == 0) {
+				status = pItem->setWidth(attributes.getValue(n));
+				CHECK_QSTATUS();
+			}
+			else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
+				status = pItem->setNumber(attributes.getValue(n));
+				CHECK_QSTATUS();
+			}
+			else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
+				pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
+			}
+			else if (wcscmp(pwszAttrLocalName, L"showFrom") == 0) {
+				pItem->setShowFrom(wcscmp(attributes.getValue(n), L"true") == 0);
 			}
 			else {
 				return QSTATUS_FAIL;
