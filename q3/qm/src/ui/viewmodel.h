@@ -44,6 +44,7 @@ class ViewDataItem;
 class ViewDataContentHandler;
 class ViewDataWriter;
 
+class ColorList;
 class ColorManager;
 class ColorSet;
 class Document;
@@ -432,7 +433,7 @@ private:
 	Document* pDocument_;
 	HWND hwnd_;
 	SecurityModel* pSecurityModel_;
-	const ColorSet* pColorSet_;
+	std::auto_ptr<ColorList> pColorList_;
 	ItemList listItem_;
 	unsigned int nUnseenCount_;
 	unsigned int nSort_;

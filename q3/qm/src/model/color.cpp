@@ -51,17 +51,21 @@ void qm::ColorManager::setColorSets(ColorSetList& listColorSet)
 	listColorSet_.swap(listColorSet);
 }
 
-const ColorSet* qm::ColorManager::getColorSet(Folder* pFolder) const
+std::auto_ptr<ColorList> qm::ColorManager::getColorList(Folder* pFolder) const
 {
 	assert(pFolder);
 	
+	ColorList::List listColor;
+	
 	for (ColorSetList::const_iterator it = listColorSet_.begin(); it != listColorSet_.end(); ++it) {
-		const ColorSet* pColor = *it;
-		if (pColor->match(pFolder))
-			return pColor;
+		const ColorSet* pSet = *it;
+		if (pSet->match(pFolder)) {
+			const ColorSet::ColorList& l = pSet->getColors();
+			std::copy(l.begin(), l.end(), std::back_inserter(listColor));
+		}
 	}
 	
-	return 0;
+	return std::auto_ptr<ColorList>(new ColorList(listColor));
 }
 
 bool qm::ColorManager::save() const
@@ -228,19 +232,6 @@ bool qm::ColorSet::match(Folder* pFolder) const
 	return true;
 }
 
-COLORREF qm::ColorSet::getColor(MacroContext* pContext) const
-{
-	assert(pContext);
-	
-	for (ColorList::const_iterator it = listColor_.begin(); it != listColor_.end(); ++it) {
-		const ColorEntry* pEntry = *it;
-		if (pEntry->match(pContext))
-			return pEntry->getColor();
-	}
-	
-	return 0xff000000;
-}
-
 void qm::ColorSet::addEntry(std::auto_ptr<ColorEntry> pEntry)
 {
 	listColor_.push_back(pEntry.get());
@@ -310,6 +301,35 @@ COLORREF qm::ColorEntry::getColor() const
 void qm::ColorEntry::setColor(COLORREF cr)
 {
 	cr_ = cr;
+}
+
+
+/****************************************************************************
+ *
+ * ColorList
+ *
+ */
+
+qm::ColorList::ColorList(List& list)
+{
+	list_.swap(list);
+}
+
+qm::ColorList::~ColorList()
+{
+}
+
+COLORREF qm::ColorList::getColor(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+		const ColorEntry* pEntry = *it;
+		if (pEntry->match(pContext))
+			return pEntry->getColor();
+	}
+	
+	return 0xff000000;
 }
 
 

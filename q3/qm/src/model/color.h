@@ -23,6 +23,7 @@ namespace qm {
 class ColorManager;
 class ColorSet;
 class ColorEntry;
+class ColorList;
 class ColorContentHandler;
 
 class Folder;
@@ -49,7 +50,7 @@ public:
 public:
 	const ColorSetList& getColorSets();
 	void setColorSets(ColorSetList& listColorSet);
-	const ColorSet* getColorSet(Folder* pFolder) const;
+	std::auto_ptr<ColorList> getColorList(Folder* pFolder) const;
 	bool save() const;
 
 public:
@@ -98,7 +99,6 @@ public:
 	const ColorList& getColors() const;
 	void setColors(ColorList& listColor);
 	bool match(Folder* pFolder) const;
-	COLORREF getColor(MacroContext* pContext) const;
 
 public:
 	void addEntry(std::auto_ptr<ColorEntry> pEntry);
@@ -146,6 +146,33 @@ private:
 private:
 	std::auto_ptr<Macro> pCondition_;
 	COLORREF cr_;
+};
+
+
+/****************************************************************************
+ *
+ * ColorList
+ *
+ */
+
+class ColorList
+{
+public:
+	typedef std::vector<const ColorEntry*> List;
+
+public:
+	ColorList(List& list);
+	~ColorList();
+
+public:
+	COLORREF getColor(MacroContext* pContext) const;
+
+private:
+	ColorList(const ColorList&);
+	ColorList& operator=(const ColorList&);
+
+private:
+	List list_;
 };
 
 

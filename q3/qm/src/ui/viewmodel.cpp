@@ -415,7 +415,6 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pSecurityModel_(pSecurityModel),
-	pColorSet_(0),
 	nUnseenCount_(0),
 	nSort_(SORT_ASCENDING | SORT_NOTHREAD),
 	nLastSelection_(0),
@@ -432,7 +431,7 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	nLock_ = 0;
 #endif
 	
-	pColorSet_ = pColorManager->getColorSet(pFolder_);
+	pColorList_ = pColorManager->getColorList(pFolder_);
 	
 	nSort_ = pDataItem_->getSort();
 	nFocused_ = pDataItem_->getFocus();
@@ -534,12 +533,12 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 		pItem->getMessageFlags() != pmh->getFlags()) {
 		COLORREF cr = 0xff000000;
 		pItem->setMessageFlags(pmh->getFlags());
-		if (pColorSet_) {
+		if (pColorList_.get()) {
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
 				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, true,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
-			cr = pColorSet_->getColor(&context);
+			cr = pColorList_->getColor(&context);
 		}
 		pItem->setColor(cr);
 	}
@@ -815,7 +814,7 @@ void qm::ViewModel::invalidateColors(const ColorManager* pColorManager)
 {
 	Lock<ViewModel> lock(*this);
 	
-	pColorSet_ = pColorManager->getColorSet(pFolder_);
+	pColorList_ = pColorManager->getColorList(pFolder_);
 	
 	std::for_each(listItem_.begin(), listItem_.end(),
 		std::mem_fun(&ViewModelItem::invalidateColor));
