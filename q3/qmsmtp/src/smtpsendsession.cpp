@@ -123,27 +123,31 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	PartUtil util(*pMessage);
 	bool bResent = util.isResent();
 	
-	wstring_ptr wstrEnvelopeFrom;
-	AddressParser envelopeFrom(0);
-	if (pMessage->getField(L"X-QMAIL-EnvelopeFrom", &envelopeFrom) == Part::FIELD_EXIST) {
-		wstrEnvelopeFrom = envelopeFrom.getAddress();
-	}
-	else {
-		const WCHAR* pwszNormalFields[] = {
-			L"Sender",
-			L"From"
-		};
-		const WCHAR* pwszResentFields[] = {
-			L"Resent-Sender",
-			L"Resent-From"
-		};
-		const WCHAR** ppwszFields = bResent ? pwszResentFields : pwszNormalFields;
-		for (int n = 0; n < 2 && !wstrEnvelopeFrom.get(); ++n) {
-			AddressListParser address(AddressListParser::FLAG_DISALLOWGROUP);
-			if (pMessage->getField(*(ppwszFields + n), &address) == Part::FIELD_EXIST) {
-				const AddressListParser::AddressList& l = address.getAddressList();
-				if (!l.empty())
-					wstrEnvelopeFrom = l.front()->getAddress();
+	wstring_ptr wstrEnvelopeFrom = pSubAccount_->getProperty(L"Smtp", L"EnvelopeFrom", L"");
+	if (!*wstrEnvelopeFrom.get()) {
+		wstrEnvelopeFrom.reset(0);
+		
+		AddressParser envelopeFrom(0);
+		if (pMessage->getField(L"X-QMAIL-EnvelopeFrom", &envelopeFrom) == Part::FIELD_EXIST) {
+			wstrEnvelopeFrom = envelopeFrom.getAddress();
+		}
+		else {
+			const WCHAR* pwszNormalFields[] = {
+				L"Sender",
+				L"From"
+			};
+			const WCHAR* pwszResentFields[] = {
+				L"Resent-Sender",
+				L"Resent-From"
+			};
+			const WCHAR** ppwszFields = bResent ? pwszResentFields : pwszNormalFields;
+			for (int n = 0; n < 2 && !wstrEnvelopeFrom.get(); ++n) {
+				AddressListParser address(AddressListParser::FLAG_DISALLOWGROUP);
+				if (pMessage->getField(*(ppwszFields + n), &address) == Part::FIELD_EXIST) {
+					const AddressListParser::AddressList& l = address.getAddressList();
+					if (!l.empty())
+						wstrEnvelopeFrom = l.front()->getAddress();
+				}
 			}
 		}
 	}
