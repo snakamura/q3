@@ -281,6 +281,8 @@ QSTATUS qm::SyncData::addFolders(Account* pAccount, SubAccount* pSubAccount,
 {
 	DECLARE_QSTATUS();
 	
+	Account::FolderList listFolder;
+	
 	const Account::FolderList& l = pAccount->getFolders();
 	Account::FolderList::const_iterator it = l.begin();
 	while (it != l.end()) {
@@ -289,9 +291,6 @@ QSTATUS qm::SyncData::addFolders(Account* pAccount, SubAccount* pSubAccount,
 			!pFolder->isFlag(Folder::FLAG_NOSELECT) &&
 			!pFolder->isHidden() &&
 			pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
-			// TODO
-			// Check if this is sync folder or not.
-			
 			bool bAdd = true;
 			if (pFolderNamePattern) {
 				string_ptr<WSTRING> wstrFolderName;
@@ -301,13 +300,22 @@ QSTATUS qm::SyncData::addFolders(Account* pAccount, SubAccount* pSubAccount,
 				CHECK_QSTATUS();
 			}
 			if (bAdd) {
-				status = addFolder(pAccount, pSubAccount,
-					static_cast<NormalFolder*>(pFolder), pwszFilterName);
+				status = STLWrapper<Account::FolderList>(listFolder).push_back(pFolder);
 				CHECK_QSTATUS();
 			}
 		}
 		++it;
 	}
+	
+	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+	it = listFolder.begin();
+	while (it != listFolder.end()) {
+		status = addFolder(pAccount, pSubAccount,
+			static_cast<NormalFolder*>(*it), pwszFilterName);
+		CHECK_QSTATUS();
+		++it;
+	}
+	
 	
 	return QSTATUS_SUCCESS;
 }
