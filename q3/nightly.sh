@@ -1,7 +1,5 @@
 #!/bin/sh
 
-CVSROOT=/cygdrive/d/home/cvs
-#WEBFTPUSER=d:/home/wince/q3/webftpuser
 CGIFTPUSER=d:/home/wince/q3/cgiftpuser
 FTPSCRIPT=d:/home/wince/q3/ftpscript
 
@@ -30,7 +28,7 @@ if [ ! -d $ZIPDIR ]; then
 fi
 
 cd $BUILDDIR
-CVSROOT=$CVSROOT cvs checkout q3
+svn checkout file:///home/svn/q3/trunk/q3
 cd q3
 
 make all
