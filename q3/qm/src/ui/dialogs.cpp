@@ -24,6 +24,7 @@
 #include <commdlg.h>
 #include <tchar.h>
 
+#include "actionid.h"
 #include "dialogs.h"
 #include "propertypages.h"
 #include "uimanager.h"

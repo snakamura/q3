@@ -13,7 +13,7 @@
 
 #include <qskeymap.h>
 
-#include "resourceinc.h"
+#include "actionid.h"
 
 
 namespace qm {

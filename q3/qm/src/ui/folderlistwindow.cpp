@@ -25,6 +25,7 @@
 #include "folderlistwindow.h"
 #include "foldermodel.h"
 #include "keymap.h"
+#include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
 

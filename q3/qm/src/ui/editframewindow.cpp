@@ -20,12 +20,12 @@
 #	include <aygshell.h>
 #endif
 
+#include "actionid.h"
 #include "dialogs.h"
 #include "editframewindow.h"
 #include "editwindow.h"
 #include "keymap.h"
 #include "menus.h"
-#include "resourceinc.h"
 #include "statusbar.h"
 #include "uimanager.h"
 #include "uiutil.h"

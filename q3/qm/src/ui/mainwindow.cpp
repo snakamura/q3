@@ -39,6 +39,7 @@
 #	include <aygshell.h>
 #endif
 
+#include "actionid.h"
 #include "attachmentselectionmodel.h"
 #include "editframewindow.h"
 #include "encodingmodel.h"

@@ -25,8 +25,8 @@
 
 #include <tchar.h>
 
+#include "actionid.h"
 #include "headerwindow.h"
-#include "resourceinc.h"
 #include "../model/dataobject.h"
 #include "../model/uri.h"
 

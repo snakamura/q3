@@ -11,6 +11,7 @@
 
 #include <qsaction.h>
 
+#include "actionid.h"
 #include "resourceinc.h"
 
 

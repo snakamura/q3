@@ -21,6 +21,7 @@
 
 #include <tchar.h>
 
+#include "actionid.h"
 #include "foldermodel.h"
 #include "menus.h"
 #include "resourceinc.h"

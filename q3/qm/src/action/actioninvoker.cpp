@@ -13,7 +13,7 @@
 #include <algorithm>
 
 #include "action.h"
-#include "../ui/resourceinc.h"
+#include "../ui/actionid.h"
 
 using namespace qm;
 using namespace qs;

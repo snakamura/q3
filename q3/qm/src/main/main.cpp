@@ -20,8 +20,8 @@
 #include <windows.h>
 
 #include "main.h"
+#include "../ui/actionid.h"
 #include "../ui/dialogs.h"
-#include "../ui/resourceinc.h"
 
 using namespace qm;
 using namespace qs;

@@ -21,6 +21,7 @@
 #	include <aygshell.h>
 #endif
 
+#include "actionid.h"
 #include "encodingmodel.h"
 #include "keymap.h"
 #include "menus.h"
