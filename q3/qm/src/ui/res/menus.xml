@@ -45,7 +45,7 @@
 			<menuitem text="&amp;Next Message" action="ViewNextMessage"/>
 			<menuitem text="&amp;Previous Message" action="ViewPrevMessage"/>
 			<menuitem text="Next &amp;Unseen Message" action="ViewNextUnseenMessage"/>
-			<menuitem text="&amp;Select Message" action="ViewSelectMessage"/>
+			<menuitem text="Se&amp;lect Message" action="ViewSelectMessage"/>
 			<separator/>
 			<menuitem text="&amp;Refresh" action="ViewRefresh"/>
 			<separator/>
@@ -140,7 +140,6 @@
 			<menuitem text="&amp;Next Message" action="ViewNextMessage"/>
 			<menuitem text="&amp;Previous Message" action="ViewPrevMessage"/>
 			<menuitem text="Next &amp;Unseen Message" action="ViewNextUnseenMessage"/>
-			<menuitem text="&amp;Select Message" action="ViewSelectMessage"/>
 			<separator/>
 			<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
 			<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
@@ -314,7 +313,6 @@
 		<menuitem text="&amp;Next Message" action="ViewNextMessage"/>
 		<menuitem text="&amp;Previous Message" action="ViewPrevMessage"/>
 		<menuitem text="Next &amp;Unseen Message" action="ViewNextUnseenMessage"/>
-		<menuitem text="&amp;Select Message" action="ViewSelectMessage"/>
 		<separator/>
 		<menuitem text="&amp;Delete" action="EditDelete"/>
 		<menuitem text="&amp;Copy" action="EditCopy"/>

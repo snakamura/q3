@@ -124,7 +124,6 @@
 			<menuitem text="Next Message" action="ViewNextMessage"/>
 			<menuitem text="Previous Message" action="ViewPrevMessage"/>
 			<menuitem text="Next Unseen Message" action="ViewNextUnseenMessage"/>
-			<menuitem text="Select Message" action="ViewSelectMessage"/>
 			<separator/>
 			<menuitem text="Raw Mode" action="ViewRawMode"/>
 			<separator/>
@@ -292,7 +291,6 @@
 		<menuitem text="Next Message" action="ViewNextMessage"/>
 		<menuitem text="Previous Message" action="ViewPrevMessage"/>
 		<menuitem text="Next Unseen Message" action="ViewNextUnseenMessage"/>
-		<menuitem text="Select Message" action="ViewSelectMessage"/>
 		<separator/>
 		<menuitem text="Delete" action="EditDelete"/>
 		<menuitem text="Copy" action="EditCopy"/>

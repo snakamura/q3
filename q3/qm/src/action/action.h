@@ -91,6 +91,7 @@ class ViewRefreshAction;
 class ViewSecurityAction;
 class ViewScrollAction;
 class ViewSelectModeAction;
+class ViewSelectMessageAction;
 template<class WindowX> class ViewShowControlAction;
 	class ViewShowFolderAction;
 	class ViewShowHeaderAction;
@@ -2259,6 +2260,34 @@ private:
 	HWND hwnd_;
 	UINT nMsg_;
 	int nRequest_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewSelectMessageAction
+ *
+ */
+
+class ViewSelectMessageAction : public qs::AbstractAction
+{
+public:
+	ViewSelectMessageAction(ViewModelManager* pViewModelManager,
+							FolderModel* pFolderModel,
+							MessageSelectionModel* pMessageSelectionModel);
+	virtual ~ViewSelectMessageAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ViewSelectMessageAction(const ViewSelectMessageAction&);
+	ViewSelectMessageAction& operator=(const ViewSelectMessageAction&);
+
+private:
+	ViewModelManager* pViewModelManager_;
+	FolderModel* pFolderModel_;
+	MessageSelectionModel* pMessageSelectionModel_;
 };
 
 

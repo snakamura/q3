@@ -833,6 +833,11 @@ void qm::MainWindowImpl::initActions()
 			scrolls[n].scroll_);
 	}
 	
+	ADD_ACTION3(ViewSelectMessageAction,
+		IDM_VIEW_SELECTMESSAGE,
+		pViewModelManager_.get(),
+		pFolderModel_.get(),
+		pMessageSelectionModel_.get());
 	ADD_ACTION1(ViewSelectModeAction,
 		IDM_VIEW_SELECTMODE,
 		pMessageWindow_);

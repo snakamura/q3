@@ -3944,7 +3944,7 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	Lock<ViewModel> lock(*pViewModel);
 	
 	unsigned int nCount = pViewModel->getCount();
-	unsigned int nIndex = static_cast<unsigned int>(-1);
+	unsigned int nIndex = -1;
 	if (bPreview) {
 		if (nCount != 0)
 			nIndex = pViewModel->getFocused();
@@ -3955,20 +3955,19 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			nIndex = pViewModel->getIndex(mpl);
 	}
 	
-	if (nIndex != static_cast<unsigned int>(-1) ||
-		(bPreview && type == TYPE_NEXTUNSEEN)) {
+	if (nIndex != -1 || (bPreview && type == TYPE_NEXTUNSEEN)) {
 		ViewModel* pNewViewModel = pViewModel;
 		
 		switch (type) {
 		case TYPE_NEXT:
 			if (nIndex == nCount - 1)
-				nIndex = static_cast<unsigned int>(-1);
+				nIndex = -1;
 			else
 				++nIndex;
 			break;
 		case TYPE_PREV:
 			if (nIndex == 0)
-				nIndex = static_cast<unsigned int>(-1);
+				nIndex = -1;
 			else
 				--nIndex;
 			break;
@@ -3991,8 +3990,7 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 		
 		if (pNewViewModel != pViewModel) {
 			if (bPreview)
-				pFolderModel_->setCurrent(0, 
-					pNewViewModel->getFolder(), false);
+				pFolderModel_->setCurrent(0, pNewViewModel->getFolder(), false);
 			else
 				pViewModelHolder_->setViewModel(pNewViewModel);
 			pViewModel = pNewViewModel;
@@ -4000,12 +3998,12 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 		
 		if (!bPreview || type == TYPE_SELF) {
 			MessageHolder* pmh = 0;
-			if (nIndex != static_cast<unsigned int>(-1))
+			if (nIndex != -1)
 				pmh = pViewModel->getMessageHolder(nIndex);
 			pMessageModel->setMessage(pmh);
 		}
 		
-		if (nIndex != static_cast<unsigned int>(-1) && type != TYPE_SELF) {
+		if (nIndex != -1 && type != TYPE_SELF) {
 			pViewModel->setFocused(nIndex);
 			pViewModel->setSelection(nIndex);
 			pViewModel->setLastSelection(nIndex);
@@ -4258,6 +4256,54 @@ qm::ViewScrollAction::~ViewScrollAction()
 void qm::ViewScrollAction::invoke(const ActionEvent& event)
 {
 	Window(hwnd_).sendMessage(nMsg_, MAKEWPARAM(nRequest_, 0));
+}
+
+
+/****************************************************************************
+ *
+ * ViewSelectMessageAction
+ *
+ */
+
+qm::ViewSelectMessageAction::ViewSelectMessageAction(ViewModelManager* pViewModelManager,
+													 FolderModel* pFolderModel,
+													 MessageSelectionModel* pMessageSelectionModel) :
+													 pViewModelManager_(pViewModelManager),
+													 pFolderModel_(pFolderModel),
+													 pMessageSelectionModel_(pMessageSelectionModel)
+{
+}
+
+qm::ViewSelectMessageAction::~ViewSelectMessageAction()
+{
+}
+
+void qm::ViewSelectMessageAction::invoke(const qs::ActionEvent& event)
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (!pViewModel)
+		return;
+	
+	Lock<ViewModel> lock(*pViewModel);
+	
+	MessagePtr ptr(pMessageSelectionModel_->getFocusedMessage());
+	MessagePtrLock mpl(ptr);
+	if (mpl) {
+		NormalFolder* pFolder = mpl->getFolder();
+		if (pFolder != pViewModel->getFolder()) {
+			pFolderModel_->setCurrent(0, pFolder, false);
+			
+			pViewModel = pViewModelManager_->getViewModel(pFolder);
+			Lock<ViewModel> lock(*pViewModel);
+			unsigned int nIndex = pViewModel->getIndex(mpl);
+			if (nIndex != -1) {
+				pViewModel->setFocused(nIndex);
+				pViewModel->setSelection(nIndex);
+				pViewModel->setLastSelection(nIndex);
+				pViewModel->payAttention(nIndex);
+			}
+		}
+	}
 }
 
 
