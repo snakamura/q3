@@ -121,6 +121,8 @@ bool qmnntp::Nntp::connect(const WCHAR* pwszHost,
 			NNTP_ERROR_OR(NNTP_ERROR_AUTHINFO);
 		else if (nCode != 281)
 			NNTP_ERROR(NNTP_ERROR_AUTHINFO | NNTP_ERROR_RESPONSE);
+		
+		pNntpCallback_->setPassword(wstrPassword.get());
 	}
 	
 	return true;
