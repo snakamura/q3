@@ -22,6 +22,7 @@
 #include "messagecomposer.h"
 #include "securitymodel.h"
 #include "../model/addressbook.h"
+#include "../model/recentaddress.h"
 
 using namespace qm;
 using namespace qs;
@@ -163,6 +164,9 @@ bool qm::MessageComposer::compose(Account* pAccount,
 			MacroValuePtr pValue(pMacro->value(&context));
 		}
 	}
+	
+	RecentAddress* pRecentAddress = pDocument_->getRecentAddress();
+	pRecentAddress->add(*pMessage);
 	
 	return true;
 }

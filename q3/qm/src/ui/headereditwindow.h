@@ -38,6 +38,7 @@ class HeaderEditWindowContentHandler;
 
 class AddressBook;
 class AddressBookEntry;
+class RecentAddress;
 
 
 /****************************************************************************
@@ -294,7 +295,7 @@ class EditHeaderEditItem :
 	public qs::CommandHandler
 {
 public:
-	EditHeaderEditItem(EditWindowFocusController* pController);
+	explicit EditHeaderEditItem(EditWindowFocusController* pController);
 	virtual ~EditHeaderEditItem();
 
 public:
@@ -366,7 +367,7 @@ public:
 	};
 
 public:
-	AddressHeaderEditItem(EditWindowFocusController* pController);
+	explicit AddressHeaderEditItem(EditWindowFocusController* pController);
 	virtual ~AddressHeaderEditItem();
 
 public:
@@ -376,6 +377,7 @@ public:
 public:
 	virtual void setEditMessage(EditMessage* pEditMessage,
 								bool bReset);
+	virtual void releaseEditMessage(EditMessage* pEditMessage);
 
 public:
 	virtual bool create(qs::WindowBase* pParent,
@@ -395,7 +397,13 @@ public:
 
 private:
 	static void getCandidates(const WCHAR* pwszInput,
+							  const AddressBook* pAddressBook,
+							  CandidateList* pList);
+	static void getCandidates(const WCHAR* pwszInput,
 							  const AddressBookEntry* pEntry,
+							  CandidateList* pList);
+	static void getCandidates(const WCHAR* pwszInput,
+							  const RecentAddress* pRecentAddress,
 							  CandidateList* pList);
 	static bool isMatchName(const WCHAR* pwszName,
 							const WCHAR* pwszInput,
@@ -408,6 +416,7 @@ private:
 private:
 	unsigned int nFlags_;
 	AddressBook* pAddressBook_;
+	RecentAddress* pRecentAddress_;
 	std::auto_ptr<AutoComplete> pAutoComplete_;
 };
 

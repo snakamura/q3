@@ -28,6 +28,7 @@
 #include "account.h"
 #include "addressbook.h"
 #include "fixedformtext.h"
+#include "recentaddress.h"
 #include "rule.h"
 #include "signature.h"
 #include "templatemanager.h"
@@ -70,6 +71,7 @@ struct qm::DocumentImpl
 	std::auto_ptr<SignatureManager> pSignatureManager_;
 	std::auto_ptr<FixedFormTextManager> pFixedFormTextManager_;
 	std::auto_ptr<AddressBook> pAddressBook_;
+	std::auto_ptr<RecentAddress> pRecentAddress_;
 	std::auto_ptr<Security> pSecurity_;
 	std::auto_ptr<Recents> pRecents_;
 	std::auto_ptr<UndoManager> pUndoManager_;
@@ -131,6 +133,7 @@ qm::Document::Document(Profile* pProfile,
 	pImpl_->pSignatureManager_.reset(new SignatureManager(app.getProfilePath(FileNames::SIGNATURES_XML).get()));
 	pImpl_->pFixedFormTextManager_.reset(new FixedFormTextManager(app.getProfilePath(FileNames::TEXTS_XML).get()));
 	pImpl_->pAddressBook_.reset(new AddressBook(app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(), pProfile, true));
+	pImpl_->pRecentAddress_.reset(new RecentAddress(pImpl_->pAddressBook_.get(), pProfile));
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
 	pImpl_->pRecents_.reset(new Recents(this, pProfile));
 	pImpl_->pUndoManager_.reset(new UndoManager());
@@ -453,6 +456,11 @@ AddressBook* qm::Document::getAddressBook() const
 	return pImpl_->pAddressBook_.get();
 }
 
+RecentAddress* qm::Document::getRecentAddress() const
+{
+	return pImpl_->pRecentAddress_.get();
+}
+
 const Security* qm::Document::getSecurity() const
 {
 	return pImpl_->pSecurity_.get();
@@ -508,6 +516,9 @@ bool qm::Document::save()
 		if (!(*it)->save())
 			return false;
 	}
+	
+	if (!pImpl_->pRecentAddress_->save())
+		return false;
 	
 	if (pImpl_->pJunkFilter_.get()) {
 		if (!pImpl_->pJunkFilter_->save())

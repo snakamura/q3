@@ -32,6 +32,7 @@ class Folder;
 class MessageHolder;
 class MessagePtr;
 class PasswordManager;
+class RecentAddress;
 class Recents;
 class RuleManager;
 class ScriptManager;
@@ -80,6 +81,7 @@ public:
 	SignatureManager* getSignatureManager() const;
 	FixedFormTextManager* getFixedFormTextManager() const;
 	AddressBook* getAddressBook() const;
+	RecentAddress* getRecentAddress() const;
 	const Security* getSecurity() const;
 	Recents* getRecents() const;
 	UndoManager* getUndoManager() const;

@@ -27,6 +27,7 @@
 #include "../model/addressbook.h"
 #include "../model/dataobject.h"
 #include "../model/editmessage.h"
+#include "../model/recentaddress.h"
 #include "../model/signature.h"
 #include "../model/uri.h"
 #include "../util/util.h"
@@ -957,7 +958,8 @@ LRESULT qm::EditHeaderEditItem::onKillFocus()
 qm::AddressHeaderEditItem::AddressHeaderEditItem(EditWindowFocusController* pController) :
 	EditHeaderEditItem(pController),
 	nFlags_(FLAG_EXPANDALIAS | FLAG_AUTOCOMPLETE),
-	pAddressBook_(0)
+	pAddressBook_(0),
+	pRecentAddress_(0)
 {
 	setType(TYPE_ADDRESSLIST);
 }
@@ -985,8 +987,17 @@ void qm::AddressHeaderEditItem::setAutoComplete(bool bAutoComplete)
 void qm::AddressHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 											   bool bReset)
 {
-	pAddressBook_ = pEditMessage->getDocument()->getAddressBook();
+	Document* pDocument = pEditMessage->getDocument();
+	pAddressBook_ = pDocument->getAddressBook();
+	pRecentAddress_ = pDocument->getRecentAddress();
 	EditHeaderEditItem::setEditMessage(pEditMessage, bReset);
+}
+
+void qm::AddressHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
+{
+	pAddressBook_ = 0;
+	pRecentAddress_ = 0;
+	EditHeaderEditItem::releaseEditMessage(pEditMessage);
 }
 
 bool qm::AddressHeaderEditItem::create(qs::WindowBase* pParent,
@@ -1011,7 +1022,7 @@ void qm::AddressHeaderEditItem::destroy()
 
 LRESULT qm::AddressHeaderEditItem::onKillFocus()
 {
-	if (nFlags_ & FLAG_EXPANDALIAS) {
+	if (nFlags_ & FLAG_EXPANDALIAS && pAddressBook_) {
 		Window wnd(getHandle());
 		wstring_ptr wstrText(wnd.getWindowText());
 		if (*wstrText.get()) {
@@ -1055,10 +1066,18 @@ std::pair<size_t, size_t> qm::AddressHeaderEditItem::getInput(const WCHAR* pwszT
 void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 											  CandidateList* pList)
 {
-	const AddressBook::EntryList& listEntry = pAddressBook_->getEntries();
+	getCandidates(pwszInput, pAddressBook_, pList);
+	getCandidates(pwszInput, pRecentAddress_, pList);
+	std::sort(pList->begin(), pList->end(), string_less_i<WCHAR>());
+}
+
+void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+											  const AddressBook* pAddressBook,
+											  CandidateList* pList)
+{
+	const AddressBook::EntryList& listEntry = pAddressBook->getEntries();
 	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it)
 		getCandidates(pwszInput, *it, pList);
-	std::sort(pList->begin(), pList->end(), string_less_i<WCHAR>());
 }
 
 void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
@@ -1081,10 +1100,36 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 	}
 }
 
+void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+											  const RecentAddress* pRecentAddress,
+											  CandidateList* pList)
+{
+	size_t nLen = wcslen(pwszInput);
+	
+	const RecentAddress::AddressList& l = pRecentAddress->getAddresses();
+	for (RecentAddress::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		const AddressParser* pAddress = *it;
+		
+		const WCHAR* pwszPhrase = pAddress->getPhrase();
+		bool bMatchName = isMatchName(pwszPhrase, pwszInput, nLen);
+		wstring_ptr wstrAddress(pAddress->getAddress());
+		bool bMatchAddress = _wcsnicmp(wstrAddress.get(), pwszInput, nLen) == 0;
+		if ((bMatchName || bMatchAddress) &&
+			((pwszPhrase && *pwszPhrase) || !bMatchAddress || wcslen(wstrAddress.get()) != nLen)) {
+			wstring_ptr wstrValue(pAddress->getValue());
+			pList->push_back(wstrValue.get());
+			wstrValue.release();
+		}
+	}
+}
+
 bool qm::AddressHeaderEditItem::isMatchName(const WCHAR* pwszName,
 											const WCHAR* pwszInput,
 											size_t nInputLen)
 {
+	if (!pwszName)
+		return false;
+	
 	if (_wcsnicmp(pwszName, pwszInput, nInputLen) == 0)
 		return true;
 	
