@@ -869,7 +869,7 @@ QSTATUS qm::Account::save() const
 		pImpl_->pCurrentSubAccount_->getName());
 	CHECK_QSTATUS();
 	
-	status = pImpl_->pMessageStore_->flush();
+	status = flushMessageStore();
 	CHECK_QSTATUS();
 	
 	FolderList::const_iterator it = pImpl_->listFolder_.begin();
@@ -889,6 +889,11 @@ QSTATUS qm::Account::save() const
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::Account::flushMessageStore() const
+{
+	return pImpl_->pMessageStore_->flush();
 }
 
 QSTATUS qm::Account::importMessage(NormalFolder* pFolder,

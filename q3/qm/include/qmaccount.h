@@ -121,6 +121,7 @@ public:
 	qs::QSTATUS setOffline(bool bOffline);
 	qs::QSTATUS compact();
 	qs::QSTATUS save() const;
+	qs::QSTATUS flushMessageStore() const;
 	qs::QSTATUS importMessage(NormalFolder* pFolder,
 		const CHAR* pszMessage, unsigned int nFlags);
 	

@@ -68,9 +68,6 @@ qmpop3::Pop3ReceiveSession::Pop3ReceiveSession(QSTATUS* pstatus) :
 
 qmpop3::Pop3ReceiveSession::~Pop3ReceiveSession()
 {
-	if (pUIDList_)
-		saveUIDList(pUIDList_);
-	
 	delete pPop3_;
 	delete pCallback_;
 	delete pUIDList_;
@@ -169,7 +166,16 @@ QSTATUS qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder)
 QSTATUS qmpop3::Pop3ReceiveSession::closeFolder()
 {
 	assert(pFolder_);
+	
+	DECLARE_QSTATUS();
+	
 	pFolder_ = 0;
+	
+	if (pUIDList_) {
+		status = saveUIDList(pUIDList_);
+		CHECK_QSTATUS();
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 

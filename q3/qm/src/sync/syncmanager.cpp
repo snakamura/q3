@@ -615,10 +615,13 @@ QSTATUS qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	status = pSession->downloadMessages(item.getFilterSet());
 	CHECK_QSTATUS();
 	
-	status = pSession->closeFolder();
+	status = pFolder->getAccount()->flushMessageStore();
 	CHECK_QSTATUS();
 	
 	status = pFolder->saveMessageHolders();
+	CHECK_QSTATUS();
+	
+	status = pSession->closeFolder();
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
