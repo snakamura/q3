@@ -93,12 +93,13 @@ QSTATUS qs::TextUtil::fold(const WCHAR* pwszText, size_t nLen,
 				if (isBreakSelf(cBreak)) {
 					++pNext;
 				}
-				else if (isBreakBefore(cBreak)) {
-					;
-				}
-				else if (isBreakAfter(cBreak)) {
+				else if (isBreakAfter(cBreak) &&
+					(pBreak != p || nCurrentLen + nCharLen <= nLineWidth)) {
 					++pEnd;
 					++pNext;
+				}
+				else if (isBreakBefore(cBreak)) {
+					;
 				}
 				else {
 					assert(false);
