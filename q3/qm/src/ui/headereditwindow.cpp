@@ -1023,9 +1023,7 @@ bool qm::AttachmentHeaderEditItem::isFocusItem() const
 unsigned int qm::AttachmentHeaderEditItem::getHeight(unsigned int nWidth,
 													 unsigned int nFontHeight) const
 {
-	unsigned int nHeight = nFontHeight*4 + 7;
-	DWORD dwSize = ListView_ApproximateViewRect(wnd_.getHandle(), nWidth, nHeight, -1);
-	return QSMIN(unsigned int(HIWORD(dwSize)), nHeight);
+	return QSMIN(ListView_GetItemCount(wnd_.getHandle())*(nFontHeight + 2), nFontHeight*4 + 7);
 }
 
 bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
@@ -1034,8 +1032,8 @@ bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
 {
 	assert(!wnd_.getHandle());
 	
-	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_SMALLICON |
-		LVS_NOLABELWRAP | LVS_SHAREIMAGELISTS;
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_SMALLICON | LVS_NOLABELWRAP |
+		LVS_SHAREIMAGELISTS | LVS_ALIGNLEFT | LVS_AUTOARRANGE;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	dwStyle |= WS_BORDER;
 #endif
