@@ -269,8 +269,17 @@ QSTATUS qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			CHECK_QSTATUS();
 		}
 		else {
-			status = util.getBodyText(0, pwszEncoding, &wstrText);
+			const Part* pPart = 0;
+			status = util.getAlternativePart(L"text", L"plain", &pPart);
 			CHECK_QSTATUS();
+			if (pPart) {
+				status = PartUtil(*pPart).getBodyText(0, pwszEncoding, &wstrText);
+				CHECK_QSTATUS();
+			}
+			else {
+				status = util.getBodyText(0, pwszEncoding, &wstrText);
+				CHECK_QSTATUS();
+			}
 		}
 		
 		std::auto_ptr<StringReader> pReader;
