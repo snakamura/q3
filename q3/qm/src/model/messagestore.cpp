@@ -199,7 +199,7 @@ QSTATUS qm::SingleMessageStore::save(const CHAR* pszMessage,
 	
 	unsigned char* pData = 0;
 	size_t nDataLen = 0;
-	status = pMessageCache->createData(header, &pData, &nDataLen);
+	status = MessageCache::createData(header, &pData, &nDataLen);
 	CHECK_QSTATUS();
 	malloc_ptr<unsigned char> pDelete(pData);
 	
@@ -656,7 +656,7 @@ QSTATUS qm::MultiMessageStore::save(const CHAR* pszMessage,
 	
 	unsigned char* pData = 0;
 	size_t nDataLen = 0;
-	status = pMessageCache->createData(header, &pData, &nDataLen);
+	status = MessageCache::createData(header, &pData, &nDataLen);
 	CHECK_QSTATUS();
 	malloc_ptr<unsigned char> pDelete(pData);
 	

@@ -66,88 +66,6 @@ qm::MessageCache::~MessageCache()
 	delete pNewLast_;
 }
 
-QSTATUS qm::MessageCache::createData(const Message& msg,
-	unsigned char** ppData, size_t* pnLen)
-{
-	assert(ppData);
-	assert(pnLen);
-	
-	DECLARE_QSTATUS();
-	
-	ByteOutputStream stream(&status);
-	CHECK_QSTATUS();
-	
-	Part::Field field;
-	
-	const WCHAR* pwszFields[] = {
-		L"From",
-		L"To"
-	};
-	for (int n = 0; n < countof(pwszFields); ++n) {
-		AddressListParser address(0, &status);
-		CHECK_QSTATUS();
-		status = msg.getField(pwszFields[n], &address, &field);
-		CHECK_QSTATUS();
-		if (field == Part::FIELD_EXIST) {
-			string_ptr<WSTRING> wstrNames;
-			status = address.getNames(&wstrNames);
-			CHECK_QSTATUS();
-			status = writeToStream(&stream, wstrNames.get());
-			CHECK_QSTATUS();
-		}
-		else {
-			status = writeToStream(&stream, 0);
-			CHECK_QSTATUS();
-		}
-	}
-	
-	UnstructuredParser subject(&status);
-	CHECK_QSTATUS();
-	status = msg.getField(L"Subject", &subject, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		status = writeToStream(&stream, subject.getValue());
-		CHECK_QSTATUS();
-	}
-	else {
-		status = writeToStream(&stream, 0);
-		CHECK_QSTATUS();
-	}
-	
-	MessageIdParser messageId(&status);
-	CHECK_QSTATUS();
-	status = msg.getField(L"Message-Id", &messageId, &field);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		status = writeToStream(&stream, messageId.getMessageId());
-		CHECK_QSTATUS();
-	}
-	else {
-		status = writeToStream(&stream, 0);
-		CHECK_QSTATUS();
-	}
-	
-	string_ptr<WSTRING> wstrReference;
-	status = PartUtil(msg).getReference(&wstrReference);
-	CHECK_QSTATUS();
-	if (field == Part::FIELD_EXIST) {
-		status = writeToStream(&stream, wstrReference.get());
-		CHECK_QSTATUS();
-	}
-	else {
-		status = writeToStream(&stream, 0);
-		CHECK_QSTATUS();
-	}
-	
-	status = stream.write(reinterpret_cast<const unsigned char*>("\r\n"), 2);
-	CHECK_QSTATUS();
-	
-	*pnLen = stream.getLength();
-	*ppData = stream.releaseBuffer();
-	
-	return QSTATUS_SUCCESS;
-}
-
 QSTATUS qm::MessageCache::getData(MessageCacheKey key,
 	MessageCacheItem item, WSTRING* pwstrData)
 {
@@ -251,34 +169,91 @@ QSTATUS qm::MessageCache::getData(MessageCacheKey key,
 
 void qm::MessageCache::removeData(MessageCacheKey key)
 {
+	Lock<CriticalSection> lock(cs_);
+	
 	ItemMap::iterator it = map_.find(key);
 	if (it != map_.end())
 		remove(it);
 }
 
-QSTATUS qm::MessageCache::writeToStream(
-	OutputStream* pStream, const WCHAR* pwsz)
+QSTATUS qm::MessageCache::createData(const Message& msg,
+	unsigned char** ppData, size_t* pnLen)
 {
-	assert(pStream);
+	assert(ppData);
+	assert(pnLen);
 	
 	DECLARE_QSTATUS();
 	
-	if (!pwsz)
-		pwsz = L"";
+	ByteOutputStream stream(&status);
+	CHECK_QSTATUS();
 	
-	UTF8Converter converter(&status);
+	Part::Field field;
+	
+	const WCHAR* pwszFields[] = {
+		L"From",
+		L"To"
+	};
+	for (int n = 0; n < countof(pwszFields); ++n) {
+		AddressListParser address(0, &status);
+		CHECK_QSTATUS();
+		status = msg.getField(pwszFields[n], &address, &field);
+		CHECK_QSTATUS();
+		if (field == Part::FIELD_EXIST) {
+			string_ptr<WSTRING> wstrNames;
+			status = address.getNames(&wstrNames);
+			CHECK_QSTATUS();
+			status = writeToStream(&stream, wstrNames.get());
+			CHECK_QSTATUS();
+		}
+		else {
+			status = writeToStream(&stream, 0);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	UnstructuredParser subject(&status);
 	CHECK_QSTATUS();
-	size_t nLen = wcslen(pwsz);
-	string_ptr<STRING> str;
-	size_t nEncodedLen = 0;
-	status = converter.encode(pwsz, &nLen, &str, &nEncodedLen);
+	status = msg.getField(L"Subject", &subject, &field);
 	CHECK_QSTATUS();
-	status = pStream->write(reinterpret_cast<unsigned char*>(&nEncodedLen),
-		sizeof(nEncodedLen));
+	if (field == Part::FIELD_EXIST) {
+		status = writeToStream(&stream, subject.getValue());
+		CHECK_QSTATUS();
+	}
+	else {
+		status = writeToStream(&stream, 0);
+		CHECK_QSTATUS();
+	}
+	
+	MessageIdParser messageId(&status);
 	CHECK_QSTATUS();
-	status = pStream->write(reinterpret_cast<unsigned char*>(str.get()),
-		nEncodedLen);
+	status = msg.getField(L"Message-Id", &messageId, &field);
 	CHECK_QSTATUS();
+	if (field == Part::FIELD_EXIST) {
+		status = writeToStream(&stream, messageId.getMessageId());
+		CHECK_QSTATUS();
+	}
+	else {
+		status = writeToStream(&stream, 0);
+		CHECK_QSTATUS();
+	}
+	
+	string_ptr<WSTRING> wstrReference;
+	status = PartUtil(msg).getReference(&wstrReference);
+	CHECK_QSTATUS();
+	if (field == Part::FIELD_EXIST) {
+		status = writeToStream(&stream, wstrReference.get());
+		CHECK_QSTATUS();
+	}
+	else {
+		status = writeToStream(&stream, 0);
+		CHECK_QSTATUS();
+	}
+	
+	status = stream.write(reinterpret_cast<const unsigned char*>("\r\n"), 2);
+	CHECK_QSTATUS();
+	
+	*pnLen = stream.getLength();
+	*ppData = stream.releaseBuffer();
 	
 	return QSTATUS_SUCCESS;
 }
@@ -314,6 +289,33 @@ void qm::MessageCache::remove(ItemMap::iterator it)
 		pLastGotten_ = 0;
 	
 	delete pItem;
+}
+
+QSTATUS qm::MessageCache::writeToStream(
+	OutputStream* pStream, const WCHAR* pwsz)
+{
+	assert(pStream);
+	
+	DECLARE_QSTATUS();
+	
+	if (!pwsz)
+		pwsz = L"";
+	
+	UTF8Converter converter(&status);
+	CHECK_QSTATUS();
+	size_t nLen = wcslen(pwsz);
+	string_ptr<STRING> str;
+	size_t nEncodedLen = 0;
+	status = converter.encode(pwsz, &nLen, &str, &nEncodedLen);
+	CHECK_QSTATUS();
+	status = pStream->write(reinterpret_cast<unsigned char*>(&nEncodedLen),
+		sizeof(nEncodedLen));
+	CHECK_QSTATUS();
+	status = pStream->write(reinterpret_cast<unsigned char*>(str.get()),
+		nEncodedLen);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
 }
 
 

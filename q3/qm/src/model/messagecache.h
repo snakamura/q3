@@ -1,5 +1,5 @@
 /*
- * $Id: messagecache.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -45,16 +45,20 @@ public:
 	~MessageCache();
 
 public:
-	qs::QSTATUS createData(const Message& msg,
-		unsigned char** ppData, size_t* pnLen);
 	qs::QSTATUS getData(MessageCacheKey key,
 		MessageCacheItem item, qs::WSTRING* pwstrData);
 	void removeData(MessageCacheKey key);
 
+public:
+	static qs::QSTATUS createData(const Message& msg,
+		unsigned char** ppData, size_t* pnLen);
+
 private:
-	qs::QSTATUS writeToStream(qs::OutputStream* pStream, const WCHAR* pwsz);
 	void insert(CacheItem* pItem);
 	void remove(ItemMap::iterator it);
+
+private:
+	static qs::QSTATUS writeToStream(qs::OutputStream* pStream, const WCHAR* pwsz);
 
 private:
 	MessageCache(const MessageCache&);
