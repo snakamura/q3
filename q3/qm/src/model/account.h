@@ -1,5 +1,5 @@
 /*
- * $Id: account.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -81,6 +81,7 @@ private:
 		STATE_NAME,
 		STATE_VALIDITY,
 		STATE_DOWNLOADCOUNT,
+		STATE_DELETEDCOUNT,
 		STATE_MACRO
 	};
 
@@ -123,6 +124,7 @@ private:
 	qs::WSTRING wstrName_;
 	unsigned int nValidity_;
 	unsigned int nDownloadCount_;
+	unsigned int nDeletedCount_;
 	qs::WSTRING wstrMacro_;
 	qs::StringBuffer<qs::WSTRING>* pBuffer_;
 };

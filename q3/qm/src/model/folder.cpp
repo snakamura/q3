@@ -427,6 +427,7 @@ public:
 	unsigned int nCount_;
 	unsigned int nUnseenCount_;
 	unsigned int nDownloadCount_;
+	unsigned int nDeletedCount_;
 	unsigned int nLastSyncTime_;
 	MessageHolderList listMessageHolder_;
 	bool bLoad_;
@@ -466,6 +467,7 @@ qm::NormalFolder::NormalFolder(const Init& init, QSTATUS* pstatus) :
 	pImpl_->nCount_ = init.nCount_;
 	pImpl_->nUnseenCount_ = init.nUnseenCount_;
 	pImpl_->nDownloadCount_ = init.nDownloadCount_;
+	pImpl_->nDeletedCount_ = init.nDeletedCount_;
 	pImpl_->nLastSyncTime_ = 0;
 	pImpl_->bLoad_ = false;
 }
@@ -504,6 +506,12 @@ unsigned int qm::NormalFolder::getDownloadCount() const
 {
 	Lock<Folder> lock(*this);
 	return pImpl_->nDownloadCount_;
+}
+
+unsigned int qm::NormalFolder::getDeletedCount() const
+{
+	Lock<Folder> lock(*this);
+	return pImpl_->nDeletedCount_;
 }
 
 unsigned int qm::NormalFolder::getLastSyncTime() const
@@ -760,6 +768,7 @@ QSTATUS qm::NormalFolder::loadMessageHolders()
 	
 	pImpl_->nUnseenCount_ = 0;
 	pImpl_->nDownloadCount_ = 0;
+	pImpl_->nDeletedCount_ = 0;
 	
 	string_ptr<WSTRING> wstrPath;
 	status = pImpl_->getPath(&wstrPath);
@@ -794,6 +803,8 @@ QSTATUS qm::NormalFolder::loadMessageHolders()
 			if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
 				pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
 				++pImpl_->nDownloadCount_;
+			if (pmh->isFlag(MessageHolder::FLAG_DELETED))
+				++pImpl_->nDeletedCount_;
 		}
 	}
 	
@@ -915,6 +926,8 @@ QSTATUS qm::NormalFolder::appendMessage(MessageHolder* pmh)
 	if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
 		pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
 		++pImpl_->nDownloadCount_;
+	if (pmh->isFlag(MessageHolder::FLAG_DELETED))
+		++pImpl_->nDeletedCount_;
 	
 	status = getImpl()->fireMessageAdded(pmh);
 	CHECK_QSTATUS();
@@ -946,6 +959,8 @@ QSTATUS qm::NormalFolder::removeMessage(MessageHolder* pmh)
 	if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
 		pmh->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
 		--pImpl_->nDownloadCount_;
+	if (pmh->isFlag(MessageHolder::FLAG_DELETED))
+		--pImpl_->nDeletedCount_;
 	
 	std::auto_ptr<MessageHolder> p(pmh);
 	status = getImpl()->fireMessageRemoved(pmh);
@@ -1048,6 +1063,10 @@ QSTATUS qm::NormalFolder::moveMessages(
 			--pImpl_->nDownloadCount_;
 			++pFolder->pImpl_->nDownloadCount_;
 		}
+		if (pmh->isFlag(MessageHolder::FLAG_DELETED)) {
+			--pImpl_->nDeletedCount_;
+			++pFolder->pImpl_->nDeletedCount_;
+		}
 		
 		status = getImpl()->fireMessageRemoved(pmh);
 		CHECK_QSTATUS();
@@ -1096,6 +1115,12 @@ QSTATUS qm::NormalFolder::fireMessageFlagChanged(MessageHolder* pmh,
 		(!(nNewFlags & MessageHolder::FLAG_DOWNLOAD) &&
 		!(nNewFlags & MessageHolder::FLAG_DOWNLOADTEXT)))
 		--pImpl_->nDownloadCount_;
+	if (!(nOldFlags & MessageHolder::FLAG_DELETED) &&
+		(nNewFlags & MessageHolder::FLAG_DELETED))
+		++pImpl_->nDeletedCount_;
+	else if ((nOldFlags & MessageHolder::FLAG_DELETED) &&
+		!(nNewFlags & MessageHolder::FLAG_DELETED))
+		--pImpl_->nDeletedCount_;
 	
 	MessageEvent event(this, pmh, nOldFlags, nNewFlags);
 	

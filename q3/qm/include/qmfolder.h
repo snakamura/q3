@@ -169,6 +169,7 @@ public:
 	{
 		unsigned int nValidity_;
 		unsigned int nDownloadCount_;
+		unsigned int nDeletedCount_;
 	};
 
 public:
@@ -182,6 +183,7 @@ public:
 	unsigned int getValidity() const;
 	qs::QSTATUS setValidity(unsigned int nValidity);
 	unsigned int getDownloadCount() const;
+	unsigned int getDeletedCount() const;
 	unsigned int getLastSyncTime() const;
 	void setLastSyncTime(unsigned int nTime);
 	qs::QSTATUS getMessageById(unsigned int nId, MessageHolder** ppmh);

@@ -334,6 +334,54 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		CHECK_QSTATUS();
 	}
 	
+	typedef std::vector<std::pair<bool, MessagePtr> > DeleteList;
+	DeleteList listDelete;
+	status = STLWrapper<DeleteList>(listDelete).resize(pUIDList_->getCount());
+	CHECK_QSTATUS();
+	
+	const Account::FolderList& listFolder = pAccount_->getFolders();
+	Account::FolderList::const_iterator it = listFolder.begin();
+	while (it != listFolder.end()) {
+		if ((*it)->getType() == Folder::TYPE_NORMAL) {
+			NormalFolder* pFolder = static_cast<NormalFolder*>(*it);
+			if (pFolder->getDeletedCount() != 0) {
+				Lock<Folder> lock(*pFolder);
+				
+				status = pFolder->loadMessageHolders();
+				CHECK_QSTATUS();
+				
+				for (unsigned int n = 0; n < pFolder->getCount(); ++n) {
+					MessageHolder* pmh = pFolder->getMessage(n);
+					if (pmh->isFlag(MessageHolder::FLAG_DELETED)) {
+						Message msg(&status);
+						CHECK_QSTATUS();
+						status = pmh->getMessage(
+							Account::GETMESSAGEFLAG_HEADER, L"X-UIDL", &msg);
+						CHECK_QSTATUS();
+						UnstructuredParser uid(&status);
+						CHECK_QSTATUS();
+						Part::Field f;
+						status = msg.getField(L"X-UIDL", &uid, &f);
+						CHECK_QSTATUS();
+						
+						size_t nIndex = -1;
+						if (f == Part::FIELD_EXIST) {
+							nIndex = pUIDList_->getIndex(uid.getValue());
+							if (nIndex != -1) {
+								DeleteList::value_type& v = listDelete[nIndex];
+								v.first = true;
+								v.second = MessagePtr(pmh);
+							}
+						}
+						if (nIndex == -1)
+							pmh->setFlags(0, MessageHolder::FLAG_DELETED);
+					}
+				}
+			}
+		}
+		++it;
+	}
+	
 	int nDeleteOnServer = 0;
 	status = pSubAccount_->getProperty(
 		L"Pop3", L"DeleteOnServer", 0, &nDeleteOnServer);
@@ -343,15 +391,8 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		L"Pop3", L"DeleteBefore", 0, &nDeleteBefore);
 	CHECK_QSTATUS();
 	
-	// TODO
-	// Treat messages reserved to be deleted
 	if (nDeleteOnServer || nDeleteBefore != 0) {
 		status = pCallback_->setMessage(IDS_DELETEMESSAGE);
-		CHECK_QSTATUS();
-		
-		UIDList::IndexList listDelete;
-		status = STLWrapper<UIDList::IndexList>(
-			listDelete).reserve(pUIDList_->getCount());
 		CHECK_QSTATUS();
 		
 		for (n = 0; n < pUIDList_->getCount(); ++n) {
@@ -369,23 +410,41 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 			}
 			
 			if (bDelete)
-				listDelete.push_back(n);
+				listDelete[n].first = true;
+		}
+	}
+	
+	if (!listDelete.empty()) {
+		UIDList::IndexList l;
+		status = STLWrapper<UIDList::IndexList>(l).reserve(listDelete.size());
+		CHECK_QSTATUS();
+		for (DeleteList::size_type n = 0; n < listDelete.size(); ++n) {
+			if (listDelete[n].first)
+				l.push_back(n);
 		}
 		
-		status = pSessionCallback_->setRange(0, listDelete.size());
-		CHECK_QSTATUS();
-		status = pSessionCallback_->setPos(0);
-		CHECK_QSTATUS();
-		
-		for (n = 0; n < listDelete.size(); ++n) {
-			status = pSessionCallback_->setPos(n + 1);
+		if (l.size()) {
+			status = pSessionCallback_->setRange(0, l.size());
+			CHECK_QSTATUS();
+			status = pSessionCallback_->setPos(0);
 			CHECK_QSTATUS();
 			
-			status = pPop3_->deleteMessage(listDelete[n]);
-			CHECK_QSTATUS_ERROR();
+			for (n = 0; n < listDelete.size(); ++n) {
+				if (listDelete[n].first) {
+					status = pSessionCallback_->setPos(n + 1);
+					CHECK_QSTATUS();
+					
+					status = pPop3_->deleteMessage(n);
+					CHECK_QSTATUS_ERROR();
+					
+					MessagePtrLock mpl(listDelete[n].second);
+					if (mpl)
+						mpl->setFlags(0, MessageHolder::FLAG_DELETED);
+				}
+			}
+			
+			pUIDList_->remove(l);
 		}
-		
-		pUIDList_->remove(listDelete);
 	}
 	
 	return QSTATUS_SUCCESS;

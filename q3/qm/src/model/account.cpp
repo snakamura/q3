@@ -1692,6 +1692,7 @@ qm::FolderContentHandler::FolderContentHandler(Account* pAccount,
 	wstrName_(0),
 	nValidity_(0),
 	nDownloadCount_(0),
+	nDeletedCount_(0),
 	wstrMacro_(0),
 	pBuffer_(0)
 {
@@ -1728,6 +1729,7 @@ QSTATUS qm::FolderContentHandler::startElement(
 		{ L"name",			STATE_NORMALFOLDER | STATE_QUERYFOLDER,	STATE_NAME			},
 		{ L"validity",		STATE_NORMALFOLDER,						STATE_VALIDITY		},
 		{ L"downloadCount",	STATE_NORMALFOLDER,						STATE_DOWNLOADCOUNT	},
+		{ L"deletedCount",	STATE_NORMALFOLDER,						STATE_DELETEDCOUNT	},
 		{ L"macro",			STATE_QUERYFOLDER,						STATE_MACRO			}
 	};
 	
@@ -1790,7 +1792,9 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"normalFolder") == 0) {
 		assert(state_ == STATE_NORMALFOLDER);
 		
-		if (nItem_ != 9)
+		// TODO
+		// Don't allow nItem_ == 9 in the future.
+		if (nItem_ != 9 && nItem_ != 10)
 			return QSTATUS_FAIL;
 		
 		NormalFolder::Init init;
@@ -1806,6 +1810,7 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 			init.pParentFolder_ = getFolder(nParentId_);
 		init.nValidity_ = nValidity_;
 		init.nDownloadCount_ = nDownloadCount_;
+		init.nDeletedCount_ = nDeletedCount_;
 		
 		std::auto_ptr<NormalFolder> pFolder;
 		status = newQsObject(init, &pFolder);
@@ -1932,6 +1937,15 @@ QSTATUS qm::FolderContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_NORMALFOLDER;
 	}
+	else if (wcscmp(pwszLocalName, L"deletedCount") == 0) {
+		assert(state_ == STATE_DELETEDCOUNT);
+		assert(bNormal_);
+		
+		status = getNumber(&nDeletedCount_);
+		CHECK_QSTATUS();
+		
+		state_ = STATE_NORMALFOLDER;
+	}
 	else if (wcscmp(pwszLocalName, L"macro") == 0) {
 		assert(state_ == STATE_MACRO);
 		assert(!bNormal_);
@@ -1962,6 +1976,7 @@ QSTATUS qm::FolderContentHandler::characters(
 		state_ == STATE_NAME ||
 		state_ == STATE_VALIDITY ||
 		state_ == STATE_DOWNLOADCOUNT ||
+		state_ == STATE_DELETEDCOUNT ||
 		state_ == STATE_MACRO) {
 		status = pBuffer_->append(pwsz + nStart, nLength);
 		CHECK_QSTATUS();
@@ -2090,6 +2105,8 @@ QSTATUS qm::FolderWriter::write(const Account::FolderList& l)
 			CHECK_QSTATUS();
 			status = writeNumber(L"downloadCount",
 				static_cast<NormalFolder*>(pFolder)->getDownloadCount());
+			status = writeNumber(L"deletedCount",
+				static_cast<NormalFolder*>(pFolder)->getDeletedCount());
 			break;
 		case Folder::TYPE_QUERY:
 			status = writeString(L"macro",
