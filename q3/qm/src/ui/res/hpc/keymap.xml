@@ -179,9 +179,6 @@
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
 		</action>
-		<action name="ViewLockPreview">
-			<key key="J"/>
-		</action>
 		<action name="ViewNextMessage">
 			<key key="N"/>
 		</action>
@@ -214,6 +211,9 @@
 		</action>
 		<action name="ViewScrollTop">
 			<key key="P" ctrl="true" alt="true"/>
+		</action>
+		<action name="ViewShowPreview">
+			<key key="J"/>
 		</action>
 		<action name="ViewSortThread">
 			<key key="K"/>
