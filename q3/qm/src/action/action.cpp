@@ -2449,7 +2449,8 @@ QSTATUS qm::ToolOptionsAction::isEnabled(
 	// TODO
 	// Check wether syncing or not
 	assert(pbEnabled);
-	*pbEnabled = true;
+//	*pbEnabled = true;
+	*pbEnabled = false;
 	return QSTATUS_SUCCESS;
 }
 
