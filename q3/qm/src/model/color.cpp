@@ -155,7 +155,7 @@ bool qm::ColorEntry::match(MacroContext* pContext) const
 	assert(pContext->getMessageHolder());
 	
 	MacroValuePtr pValue(pMacro_->value(pContext));
-	return pValue->boolean();
+	return pValue.get() && pValue->boolean();
 }
 
 COLORREF qm::ColorEntry::getColor() const
