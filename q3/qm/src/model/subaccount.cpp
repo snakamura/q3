@@ -725,7 +725,10 @@ QSTATUS qm::SubAccount::setSyncFilterName(const WCHAR* pwszName)
 	string_ptr<WSTRING> wstrName(allocWString(pwszName));
 	if (!wstrName.get())
 		return QSTATUS_OUTOFMEMORY;
+	
+	freeWString(pImpl_->wstrSyncFilterName_);
 	pImpl_->wstrSyncFilterName_ = wstrName.release();
+	
 	return QSTATUS_SUCCESS;
 }
 
