@@ -57,6 +57,11 @@ protected:
 						  const POINT& pt);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
+#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+	LRESULT onMouseWheel(UINT nFlags,
+						 short nDelta,
+						 const POINT& pt);
+#endif
 	LRESULT onDeselectTemporary(WPARAM wParam,
 								LPARAM lParam);
 

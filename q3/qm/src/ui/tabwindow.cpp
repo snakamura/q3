@@ -617,6 +617,9 @@ LRESULT qm::TabCtrlWindow::windowProc(UINT uMsg,
 		HANDLE_CONTEXTMENU()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
+#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+		HANDLE_MOUSEWHEEL()
+#endif
 		HANDLE_MESSAGE(WM_TABCTRLWINDOW_DESELECTTEMPORARY, onDeselectTemporary)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
@@ -674,6 +677,27 @@ LRESULT qm::TabCtrlWindow::onDestroy()
 	
 	return DefaultWindowHandler::onDestroy();
 }
+
+#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+LRESULT qm::TabCtrlWindow::onMouseWheel(UINT nFlags,
+										short nDelta,
+										const POINT& pt)
+{
+#ifdef _WIN32_WCE
+#	define WHEEL_DELTA 120
+#endif
+	
+	if (pTabModel_->getCount() != 0) {
+		int nTab = nDelta/WHEEL_DELTA;
+		int nItem = (pTabModel_->getCurrent() - nTab)%pTabModel_->getCount();
+		if (nItem < 0)
+			nItem = pTabModel_->getCount() + nItem;
+		pTabModel_->setCurrent(nItem);
+	}
+	
+	return DefaultWindowHandler::onMouseWheel(nFlags, nDelta, pt);
+}
+#endif
 
 LRESULT qm::TabCtrlWindow::onDeselectTemporary(WPARAM wParam,
 											   LPARAM lParam)
