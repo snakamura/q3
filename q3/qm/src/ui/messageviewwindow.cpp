@@ -232,8 +232,11 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 		else if (pTemplate) {
 			// TODO
 			// Performance up.
-			TemplateContext context(pmh, pMessage, pmh->getFolder()->getAccount(),
-				pDocument_, getHandle(), (nFlags & FLAG_DECRYPTVERIFY) != 0,
+			// TODO
+			// Get selected messages
+			TemplateContext context(pmh, pMessage, MessageHolderList(),
+				pmh->getFolder()->getAccount(), pDocument_,
+				getHandle(), (nFlags & FLAG_DECRYPTVERIFY) != 0,
 				pProfile_, 0, TemplateContext::ArgumentList());
 			wstring_ptr wstr(pTemplate->getValue(context));
 			wstrText = allocWXString(wstr.get());

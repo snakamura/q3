@@ -80,6 +80,7 @@ public:
 public:
 	TemplateContext(MessageHolderBase* pmh,
 					Message* pMessage,
+					const MessageHolderList& listSelected,
 					Account* pAccount,
 					Document* pDocument,
 					HWND hwnd,
@@ -92,6 +93,7 @@ public:
 public:
 	MessageHolderBase* getMessageHolder() const;
 	Message* getMessage() const;
+	const MessageHolderList& getSelectedMessageHolders() const;
 	Account* getAccount() const;
 	Document* getDocument() const;
 	HWND getWindow() const;
@@ -107,6 +109,7 @@ private:
 private:
 	MessageHolderBase* pmh_;
 	Message* pMessage_;
+	const MessageHolderList& listSelected_;
 	Account* pAccount_;
 	Document* pDocument_;
 	HWND hwnd_;

@@ -585,7 +585,7 @@ std::auto_ptr<MacroContext> qmnntp::NntpSyncFilterCallback::getMacroContext()
 	if (!pmh_.get())
 		pmh_.reset(new NntpMessageHolder(this, pFolder_, pMessage_, nSize_));
 	
-	return new MacroContext(pmh_.get(), pMessage_, pAccount_,
+	return new MacroContext(pmh_.get(), pMessage_, MessageHolderList(), pAccount_,
 		pDocument_, hwnd_, pProfile_, false, false, 0, pGlobalVariable_);
 }
 

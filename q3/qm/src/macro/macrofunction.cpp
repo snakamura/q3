@@ -2476,8 +2476,8 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		TemplateContext context(pContext->getMessageHolder(),
-			pContext->getMessage(), pContext->getAccount(),
-			pContext->getDocument(), pContext->getWindow(),
+			pContext->getMessage(), pContext->getSelectedMessageHolders(),
+			pContext->getAccount(), pContext->getDocument(), pContext->getWindow(),
 			pContext->isDecryptVerify(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());
 		wstr = pTemplate->getValue(context);
@@ -2597,8 +2597,7 @@ MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		if (nSize > 1) {
-			MessagePtr ptr(static_cast<NormalFolder*>(pFolder)->getMessageById(nId));
-			l.push_back(ptr);
+			l.push_back(static_cast<NormalFolder*>(pFolder)->getMessageById(nId));
 		}
 		else {
 			Lock<Account> lock(*pFolder->getAccount());
@@ -3690,6 +3689,42 @@ const WCHAR* MacroFunctionScript::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionSelected
+ *
+ */
+
+qm::MacroFunctionSelected::MacroFunctionSelected()
+{
+}
+
+qm::MacroFunctionSelected::~MacroFunctionSelected()
+{
+}
+
+MacroValuePtr qm::MacroFunctionSelected::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	if (!checkArgSize(pContext, 0))
+		return 0;
+	
+	MacroValueMessageList::MessageList l;
+	const MessageHolderList& listSelected = pContext->getSelectedMessageHolders();
+	l.reserve(listSelected.size());
+	for (MessageHolderList::const_iterator it = listSelected.begin(); it != listSelected.end(); ++it)
+		l.push_back(MessagePtr(*it));
+	
+	return MacroValueFactory::getFactory().newMessageList(l);
+}
+
+const WCHAR* qm::MacroFunctionSelected::getName() const
+{
+	return L"Selected";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionSet
  *
  */
@@ -4256,6 +4291,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 		DECLARE_FUNCTION1(		Flag,				L"seen",			MessageHolder::FLAG_SEEN			)
 		DECLARE_FUNCTION1(		Flag,				L"sent",			MessageHolder::FLAG_SENT			)
 		DECLARE_FUNCTION0(		Script,				L"script"												)
+		DECLARE_FUNCTION_TYPE0(	Selected,			L"selected",										T	)
 		DECLARE_FUNCTION0(		Set,				L"set"													)
 		DECLARE_FUNCTION0(		Size,				L"size"													)
 		DECLARE_FUNCTION0(		SubAccount,			L"subaccount"											)

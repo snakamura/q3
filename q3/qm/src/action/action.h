@@ -774,7 +774,8 @@ public:
 private:
 	bool print(Account* pAccount,
 			   Folder* pFolder,
-			   MessageHolder* pmh);
+			   MessageHolder* pmh,
+			   const MessageHolderList& listSelected);
 
 private:
 	FilePrintAction(const FilePrintAction&);

@@ -1368,7 +1368,7 @@ void qm::FilePrintAction::invoke(const ActionEvent& event)
 	Account* pAccount = lock.get();
 	if (!l.empty()) {
 		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			if (!print(pAccount, pFolder, *it)) {
+			if (!print(pAccount, pFolder, *it, l)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_PRINT);
 				return;
 			}
@@ -1383,7 +1383,8 @@ bool qm::FilePrintAction::isEnabled(const ActionEvent& event)
 
 bool qm::FilePrintAction::print(Account* pAccount,
 								Folder* pFolder,
-								MessageHolder* pmh)
+								MessageHolder* pmh,
+								const MessageHolderList& listSelected)
 {
 	const Template* pTemplate = pDocument_->getTemplateManager()->getTemplate(
 		pAccount, pFolder, L"print");
@@ -1391,8 +1392,8 @@ bool qm::FilePrintAction::print(Account* pAccount,
 		return false;
 	
 	Message msg;
-	TemplateContext context(pmh, &msg, pAccount, pDocument_,
-		hwnd_, pSecurityModel_->isDecryptVerify(),
+	TemplateContext context(pmh, &msg, listSelected, pAccount,
+		pDocument_, hwnd_, pSecurityModel_->isDecryptVerify(),
 		pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wstring_ptr wstrValue(pTemplate->getValue(context));

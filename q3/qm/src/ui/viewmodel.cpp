@@ -443,8 +443,8 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 		pItem->setMessageFlags(pmh->getFlags());
 		if (pColorSet_) {
 			Message msg;
-			MacroContext context(pmh, &msg, pFolder_->getAccount(),
-				pDocument_, hwnd_, pProfile_, true,
+			MacroContext context(pmh, &msg, MessageHolderList(),
+				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, true,
 				/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
 			cr = pColorSet_->getColor(&context);
 		}
@@ -770,8 +770,8 @@ void qm::ViewModel::messageAdded(const FolderEvent& event)
 	bool bAdd = true;
 	if (pFilter_) {
 		Message msg;
-		MacroContext context(pmh, &msg, pFolder_->getAccount(),
-			pDocument_, hwnd_, pProfile_, false,
+		MacroContext context(pmh, &msg, MessageHolderList(),
+			pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
 			/*pSecurityModel_->isDecryptVerify()*/false, 0, 0);
 		bAdd = pFilter_->match(&context);
 	}
@@ -1154,8 +1154,8 @@ void qm::ViewModel::update(bool bRestoreSelection)
 		bool bAdd = true;
 		if (pFilter_) {
 			Message msg;
-			MacroContext context(pmh, &msg, pFolder_->getAccount(),
-				pDocument_, hwnd_, pProfile_, false,
+			MacroContext context(pmh, &msg, MessageHolderList(),
+				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
 				/*pSecurityModel_->isDecryptVerify()*/false, 0, &globalVariable);
 			bAdd = pFilter_->match(&context);
 		}

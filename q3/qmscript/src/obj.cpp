@@ -976,7 +976,9 @@ STDMETHODIMP qmscript::MacroImpl::evaluate(IMessageHolder* pMessageHolder,
 		variable.setVariable((*it).first, pValue.get());
 	}
 	
-	MacroContext context(pmh, pmh ? &msg : 0,
+	// TODO
+	// Get selected?
+	MacroContext context(pmh, pmh ? &msg : 0, MessageHolderList(),
 		static_cast<AccountObj*>(pAccount)->getAccount(),
 		pDocument_, hwnd_, pProfile_, false, true, 0, &variable);
 	MacroValuePtr pValue(pMacro_->value(&context));

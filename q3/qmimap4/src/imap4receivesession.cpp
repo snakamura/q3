@@ -1724,7 +1724,7 @@ std::auto_ptr<MacroContext> qmimap4::Imap4SyncFilterCallback::getMacroContext()
 		pmh_.reset(new Imap4MessageHolder(this, pFolder_,
 			pMessage_, nUid_, nSize_, nTextSize_));
 	
-	return new MacroContext(pmh_.get(), pMessage_, pAccount_,
+	return new MacroContext(pmh_.get(), pMessage_, MessageHolderList(), pAccount_,
 		pDocument_, hwnd_, pProfile_, false, false, 0, pGlobalVariable_);
 }
 

@@ -213,6 +213,7 @@ public:
 public:
 	MacroContext(MessageHolderBase* pmh,
 				 Message* pMessage,
+				 const MessageHolderList& listSelected,
 				 Account* pAccount,
 				 Document* pDocument,
 				 HWND hwnd,
@@ -231,6 +232,7 @@ public:
 	Message* getMessage() const;
 	Message* getMessage(MessageType type,
 						const WCHAR* pwszField) const;
+	const MessageHolderList& getSelectedMessageHolders() const;
 	Account* getAccount() const;
 	Document* getDocument() const;
 	HWND getWindow() const;

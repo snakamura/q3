@@ -54,9 +54,9 @@ wstring_ptr qm::Template::getValue(const TemplateContext& context) const
 		
 		if ((*itV).second) {
 			MacroContext c(context.getMessageHolder(), context.getMessage(),
-				context.getAccount(), context.getDocument(), context.getWindow(),
-				context.getProfile(), false, context.isDecryptVerify(),
-				context.getErrorHandler(), &globalVariable);
+				context.getSelectedMessageHolders(), context.getAccount(),
+				context.getDocument(), context.getWindow(), context.getProfile(),
+				false, context.isDecryptVerify(), context.getErrorHandler(), &globalVariable);
 			MacroValuePtr pValue((*itV).second->value(&c));
 			if (!pValue.get())
 				return 0;
@@ -77,6 +77,7 @@ wstring_ptr qm::Template::getValue(const TemplateContext& context) const
 
 qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 									 Message* pMessage,
+									 const MessageHolderList& listSelected,
 									 Account* pAccount,
 									 Document* pDocument,
 									 HWND hwnd,
@@ -86,6 +87,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 									 const ArgumentList& listArgument) :
 	pmh_(pmh),
 	pMessage_(pMessage),
+	listSelected_(listSelected),
 	pAccount_(pAccount),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
@@ -108,6 +110,11 @@ MessageHolderBase* qm::TemplateContext::getMessageHolder() const
 Message* qm::TemplateContext::getMessage() const
 {
 	return pMessage_;
+}
+
+const MessageHolderList& qm::TemplateContext::getSelectedMessageHolders() const
+{
+	return listSelected_;
 }
 
 Account* qm::TemplateContext::getAccount() const

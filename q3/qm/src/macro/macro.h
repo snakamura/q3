@@ -92,6 +92,7 @@ class MacroExpr;
 		class MacroFunctionRemove;
 		class MacroFunctionSave;
 		class MacroFunctionScript;
+		class MacroFunctionSelected;
 		class MacroFunctionSet;
 		class MacroFunctionSize;
 		class MacroFunctionSubAccount;
@@ -158,7 +159,8 @@ private:
 class MacroGlobalContext
 {
 public:
-	MacroGlobalContext(Document* pDocument,
+	MacroGlobalContext(const MessageHolderList& listSelected,
+					   Document* pDocument,
 					   HWND hwnd,
 					   qs::Profile* pProfile,
 					   bool bGetMessageAsPossible,
@@ -168,6 +170,7 @@ public:
 	~MacroGlobalContext();
 
 public:
+	const MessageHolderList& getSelectedMessageHolders() const;
 	Document* getDocument() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
@@ -191,6 +194,7 @@ private:
 	MacroGlobalContext& operator=(const MacroGlobalContext&);
 
 private:
+	const MessageHolderList& listSelected_;
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
@@ -2046,6 +2050,30 @@ protected:
 private:
 	MacroFunctionScript(const MacroFunctionScript&);
 	MacroFunctionScript& operator=(const MacroFunctionScript&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionSelected
+ *
+ */
+
+class MacroFunctionSelected : public MacroFunction
+{
+public:
+	MacroFunctionSelected();
+	virtual ~MacroFunctionSelected();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionSelected(const MacroFunctionSelected&);
+	MacroFunctionSelected& operator=(const MacroFunctionSelected&);
 };
 
 

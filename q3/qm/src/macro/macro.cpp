@@ -167,13 +167,15 @@ const WCHAR* qm::MacroTokenizer::getLastPosition() const
  *
  */
 
-qm::MacroGlobalContext::MacroGlobalContext(Document* pDocument,
+qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected,
+										   Document* pDocument,
 										   HWND hwnd,
 										   Profile* pProfile,
 										   bool bGetMessageAsPossible,
 										   bool bDecryptVerify,
 										   MacroErrorHandler* pErrorHandler,
 										   MacroVariableHolder* pGlobalVariable) :
+	listSelected_(listSelected),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
@@ -192,6 +194,11 @@ qm::MacroGlobalContext::MacroGlobalContext(Document* pDocument,
 
 qm::MacroGlobalContext::~MacroGlobalContext()
 {
+}
+
+const MessageHolderList& qm::MacroGlobalContext::getSelectedMessageHolders() const
+{
+	return listSelected_;
 }
 
 Document* qm::MacroGlobalContext::getDocument() const
@@ -1108,6 +1115,7 @@ bool qm::MacroVariableHolder::setVariable(const WCHAR* pwszName,
 
 qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 							   Message* pMessage,
+							   const MessageHolderList& listSelected,
 							   Account* pAccount,
 							   Document* pDocument,
 							   HWND hwnd,
@@ -1130,7 +1138,7 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	assert(hwnd);
 	assert(pProfile);
 	
-	pGlobalContext_ = new MacroGlobalContext(pDocument, hwnd, pProfile,
+	pGlobalContext_ = new MacroGlobalContext(listSelected, pDocument, hwnd, pProfile,
 		bGetMessageAsPossible, bDecryptVerify, pErrorHandler, pGlobalVariable);
 }
 
@@ -1203,6 +1211,11 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	}
 	
 	return pMessage_;
+}
+
+const MessageHolderList& qm::MacroContext::getSelectedMessageHolders() const
+{
+	return pGlobalContext_->getSelectedMessageHolders();
 }
 
 Account* qm::MacroContext::getAccount() const

@@ -97,12 +97,14 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	
 	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
 	
-	Lock<Account> lock(*pAccount);
+	AccountLock lock;
+	MessageHolderList listSelected;
+	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &listSelected);
 	
 	MacroErrorHandlerImpl handler;
 	Message msg;
-	TemplateContext context(mpl, mpl ? &msg : 0, pAccount, pDocument_, hwnd_,
-		pSecurityModel_->isDecryptVerify(), pProfile_, &handler, listArgument);
+	TemplateContext context(mpl, mpl ? &msg : 0, listSelected, pAccount, pDocument_,
+		hwnd_, pSecurityModel_->isDecryptVerify(), pProfile_, &handler, listArgument);
 	
 	wstring_ptr wstrValue(pTemplate->getValue(context));
 	if (!wstrValue.get())

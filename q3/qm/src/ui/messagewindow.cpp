@@ -185,8 +185,10 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	if (bShowHeaderWindow_) {
 		if (pAccount) {
-			TemplateContext context(pmh, &msg, pAccount, pDocument_,
-				pThis_->getHandle(), pSecurityModel_->isDecryptVerify(),
+			// TODO
+			// Get selected
+			TemplateContext context(pmh, &msg, MessageHolderList(), pAccount,
+				pDocument_, pThis_->getHandle(), pSecurityModel_->isDecryptVerify(),
 				pProfile_, 0, TemplateContext::ArgumentList());
 			pHeaderWindow_->setMessage(&context);
 		}

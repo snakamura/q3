@@ -180,8 +180,8 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		if (!pMacro.get())
 			return false;
 		
-		MacroContext context(0, 0, pAccount, pDocument_, hwnd_, pProfile_,
-			false, pSecurityModel_->isDecryptVerify(), 0, 0);
+		MacroContext context(0, 0, MessageHolderList(), pAccount, pDocument_,
+			hwnd_, pProfile_, false, pSecurityModel_->isDecryptVerify(), 0, 0);
 		MacroValuePtr pValue(pMacro->value(&context));
 	}
 	
