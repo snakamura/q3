@@ -58,6 +58,8 @@ public:
 											 const WCHAR* pwszPassphrase,
 											 unsigned int* pnVerify,
 											 qs::wstring_ptr* pwstrUserId) const = 0;
+	virtual bool getAlternatives(const WCHAR* pwszUserId,
+								 UserIdList* pList) const = 0;
 };
 
 }

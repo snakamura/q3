@@ -332,6 +332,53 @@ xstring_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 	}
 }
 
+bool qmpgp::PGPUtilityImpl::checkUserId(const qs::Part& part,
+										const WCHAR* pwszUserId) const
+{
+	return checkUserId(part, pwszUserId, true);
+}
+
+bool qmpgp::PGPUtilityImpl::checkUserId(const qs::Part& part,
+										const WCHAR* pwszUserId,
+										bool bCheckAlternative) const
+{
+	if (!pwszUserId)
+		return false;
+	
+	const WCHAR* pStart = wcsrchr(pwszUserId, L'<');
+	if (!pStart)
+		return false;
+	const WCHAR* pEnd = wcsrchr(pwszUserId, L'>');
+	if (!pEnd || pStart > pEnd)
+		return false;
+	
+	wstring_ptr wstrAddress(allocWString(pStart + 1, pEnd - pStart - 1));
+	
+	AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
+	if (part.getField(L"From", &from) == Part::FIELD_EXIST &&
+		contains(from, wstrAddress.get()))
+		return true;
+	
+	AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
+	if (part.getField(L"Sender", &sender) == Part::FIELD_EXIST &&
+		contains(sender, wstrAddress.get()))
+		return true;
+	
+	if (bCheckAlternative) {
+		Driver::UserIdList listUserId;
+		StringListFree<Driver::UserIdList> free(listUserId);
+		if (!pDriver_->getAlternatives(pwszUserId, &listUserId))
+			return false;
+		
+		for (Driver::UserIdList::const_iterator it = listUserId.begin(); it != listUserId.end(); ++it) {
+			if (checkUserId(part, *it, false))
+				return true;
+		}
+	}
+	
+	return false;
+}
+
 void qmpgp::PGPUtilityImpl::getRecipients(const Part& part,
 										  Driver::UserIdList* pListUserId)
 {
@@ -354,34 +401,6 @@ void qmpgp::PGPUtilityImpl::getRecipients(const Part& part,
 			}
 		}
 	}
-}
-
-bool qmpgp::PGPUtilityImpl::checkUserId(const qs::Part& part,
-										const WCHAR* pwszUserId)
-{
-	if (!pwszUserId)
-		return false;
-	
-	const WCHAR* pStart = wcsrchr(pwszUserId, L'<');
-	if (!pStart)
-		return false;
-	const WCHAR* pEnd = wcsrchr(pwszUserId, L'>');
-	if (!pEnd || pStart > pEnd)
-		return false;
-	
-	wstring_ptr wstrUserId(allocWString(pStart + 1, pEnd - pStart - 1));
-	
-	AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
-	if (part.getField(L"From", &from) == Part::FIELD_EXIST &&
-		contains(from, wstrUserId.get()))
-		return true;
-	
-	AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
-	if (part.getField(L"Sender", &sender) == Part::FIELD_EXIST &&
-		contains(sender, wstrUserId.get()))
-		return true;
-	
-	return false;
 }
 
 bool qmpgp::PGPUtilityImpl::contains(const AddressListParser& addressList,

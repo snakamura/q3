@@ -57,10 +57,15 @@ public:
 											 unsigned int* pnVerify) const;
 
 private:
+	bool checkUserId(const qs::Part& part,
+					 const WCHAR* pwszUserId) const;
+	bool checkUserId(const qs::Part& part,
+					 const WCHAR* pwszUserId,
+					 bool bCheckAlternative) const;
+
+private:
 	static void getRecipients(const qs::Part& part,
 							  Driver::UserIdList* pListUserId);
-	static bool checkUserId(const qs::Part& part,
-							const WCHAR* pwszUserId);
 	static bool contains(const qs::AddressListParser& addressList,
 						 const WCHAR* pwszAddress);
 	static bool contains(const qs::AddressParser& address,

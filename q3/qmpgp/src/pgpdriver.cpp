@@ -186,6 +186,28 @@ xstring_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
 }
 
+bool qmpgp::PGPDriver::getAlternatives(const WCHAR* pwszUserId,
+									   UserIdList* pList) const
+{
+	wstring_ptr wstrPGP(getCommand());
+	
+	StringBuffer<WSTRING> command;
+	command.append(wstrPGP.get());
+	command.append(L" -kv \"");
+	command.append(pwszUserId);
+	command.append(L"\"");
+	
+	ByteOutputStream stdout;
+	
+	int nCode = Process::exec(command.getCharArray(), 0, &stdout, 0);
+	if (nCode != 0)
+		return false;
+	
+	// TODO
+	
+	return true;
+}
+
 wstring_ptr qmpgp::PGPDriver::getCommand() const
 {
 	return pProfile_->getString(L"PGP", L"Command", L"pgp.exe");

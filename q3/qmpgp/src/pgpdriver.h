@@ -49,6 +49,8 @@ public:
 											 const WCHAR* pwszPassphrase,
 											 unsigned int* pnVerify,
 											 qs::wstring_ptr* pwstrUserId) const;
+	virtual bool getAlternatives(const WCHAR* pwszUserId,
+								 UserIdList* pList) const;
 
 private:
 	qs::wstring_ptr getCommand() const;

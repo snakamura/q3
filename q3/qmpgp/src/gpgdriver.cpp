@@ -207,6 +207,48 @@ xstring_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	return allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength());
 }
 
+bool qmpgp::GPGDriver::getAlternatives(const WCHAR* pwszUserId,
+									   UserIdList* pList) const
+{
+	wstring_ptr wstrGPG(getCommand());
+	
+	StringBuffer<WSTRING> command;
+	command.append(wstrGPG.get());
+	command.append(L" --list-keys \"=");
+	command.append(pwszUserId);
+	command.append(L"\" --batch");
+	
+	ByteOutputStream stdout;
+	
+	int nCode = Process::exec(command.getCharArray(), 0, &stdout, 0);
+	if (nCode != 0)
+		return false;
+	
+	const CHAR* p = reinterpret_cast<const CHAR*>(stdout.getBuffer());
+	size_t nLen = stdout.getLength();
+	while (nLen > 3) {
+		if (strncmp(p, "uid", 3) == 0) {
+			const CHAR* pStart = p + 3;
+			while (*pStart == ' ')
+				++pStart;
+			const CHAR* pEnd = pStart;
+			while (*pEnd != '\r' && *pEnd != '\n')
+				++pEnd;
+			wstring_ptr wstrUserId(mbs2wcs(pStart, pEnd - pStart));
+			pList->push_back(wstrUserId.get());
+			wstrUserId.release();
+		}
+		while (*p != '\n') {
+			++p;
+			--nLen;
+		}
+		++p;
+		--nLen;
+	}
+	
+	return true;
+}
+
 wstring_ptr qmpgp::GPGDriver::getCommand() const
 {
 	return pProfile_->getString(L"GPG", L"Command", L"gpg.exe");
