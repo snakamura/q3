@@ -566,6 +566,8 @@ private:
 
 private:
 	static WCHAR getSingleEscapedChar(WCHAR c);
+	static int getHex(WCHAR c);
+	static int getOct(WCHAR c);
 
 private:
 	RegexParser(const RegexParser&);

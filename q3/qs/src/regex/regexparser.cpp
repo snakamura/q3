@@ -750,6 +750,28 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		else if (*p_ == L'z') {
 			pAtom.reset(new RegexAnchorAtom(RegexAnchorAtom::TYPE_ENDSTRICT));
 		}
+		else if (*p_ == L'x' || *p_ == L'u') {
+			unsigned int nValue = 0;
+			for (int nDigit = *p_ == L'x' ? 2 : 4; nDigit > 0; --nDigit) {
+				++p_;
+				int n = getHex(*p_);
+				if (n == -1)
+					return std::auto_ptr<RegexPieceNode>(0);
+				nValue = nValue*16 + n;
+			}
+			pAtom.reset(new RegexCharAtom(static_cast<WCHAR>(nValue)));
+		}
+		else if (*p_ == L'0') {
+			unsigned int nValue = 0;
+			for (int nDigit = 3; nDigit > 0; --nDigit) {
+				++p_;
+				int n = getOct(*p_);
+				if (n == -1 || (nDigit == 3 && n > 3))
+					return std::auto_ptr<RegexPieceNode>(0);
+				nValue = nValue*8 + n;
+			}
+			pAtom.reset(new RegexCharAtom(static_cast<WCHAR>(nValue)));
+		}
 		else if (L'1' <= *p_ && *p_ <= L'9') {
 			unsigned int n = *p_ - L'0';
 			if (!checkReference(n))
@@ -985,6 +1007,26 @@ WCHAR qs::RegexParser::getSingleEscapedChar(WCHAR c)
 	default:
 		return c;
 	}
+}
+
+int qs::RegexParser::getHex(WCHAR c)
+{
+	if (L'0' <= c && c <= L'9')
+		return c - L'0';
+	else if (L'a' <= c && c <= L'f')
+		return c - L'a' + 10;
+	else if (L'A' <= c && c <= L'F')
+		return c - L'A' + 10;
+	else
+		return -1;
+}
+
+int qs::RegexParser::getOct(WCHAR c)
+{
+	if (L'0' <= c && c <= L'7')
+		return c - L'0';
+	else
+		return -1;
 }
 
 
