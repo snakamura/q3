@@ -24,6 +24,7 @@
 #define IDC_HANDLESTATUS                1009
 #define IDS_DOWNLOADRESERVEDMESSAGES    1010
 #define IDC_SKIPDUPLICATEDUID           1010
+#define IDC_DELETELOCAL                 1011
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_APOP                  11001
@@ -69,7 +70,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        101
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1011
+#define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

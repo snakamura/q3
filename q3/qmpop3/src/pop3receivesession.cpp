@@ -407,6 +407,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 		
 		if (listIndex.size()) {
+			bool bDeleteLocal = pSubAccount_->getProperty(L"Pop3", L"DeleteLocal", 0) != 0;
+			
 			pCallback_->setMessage(IDS_DELETEMESSAGE);
 			pSessionCallback_->setRange(0, listIndex.size());
 			pSessionCallback_->setPos(0);
@@ -420,8 +422,12 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 						HANDLE_ERROR();
 					
 					MessagePtrLock mpl(l[n].second);
-					if (mpl)
+					if (mpl) {
 						mpl->setFlags(0, MessageHolder::FLAG_DELETED);
+						if (bDeleteLocal)
+							pAccount_->removeMessages(MessageHolderList(1, mpl),
+								pFolder_, false, 0);
+					}
 				}
 			}
 			

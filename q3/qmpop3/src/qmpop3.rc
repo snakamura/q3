@@ -65,15 +65,17 @@ BEGIN
     EDITTEXT        IDC_DELETEBEFORE,105,25,20,14,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
     LTEXT           "days",IDC_STATIC,127,29,25,8
+    CONTROL         "Delete &local messages after deleting from server",
+                    IDC_DELETELOCAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    40,175,10
     CONTROL         "&Make seen if Status: is RO",IDC_HANDLESTATUS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,105,10
-    LTEXT           "&Noop Interval",IDC_STATIC,5,57,40,8
-    EDITTEXT        IDC_NOOPINTERVAL,50,55,40,14,ES_AUTOHSCROLL
-    LTEXT           "&Get All",IDC_STATIC,5,74,22,8
-    EDITTEXT        IDC_GETALL,50,70,40,14,ES_AUTOHSCROLL
-    CONTROL         "&Force skip duplicated UID",
-                    IDC_SKIPDUPLICATEDUID,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,85,120,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,55,105,10
+    LTEXT           "&Noop Interval",IDC_STATIC,5,73,40,8
+    EDITTEXT        IDC_NOOPINTERVAL,50,71,40,14,ES_AUTOHSCROLL
+    LTEXT           "&Get All",IDC_STATIC,5,89,22,8
+    EDITTEXT        IDC_GETALL,50,85,40,14,ES_AUTOHSCROLL
+    CONTROL         "&Force skip duplicated UID",IDC_SKIPDUPLICATEDUID,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,101,120,10
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 223, 145

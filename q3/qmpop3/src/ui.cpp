@@ -37,6 +37,7 @@ LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus,
 	bool bApop = pSubAccount_->getProperty(L"Pop3", L"Apop", 0) != 0;
 	bool bDeleteOnServer = pSubAccount_->getProperty(L"Pop3", L"DeleteOnServer", 0) != 0;
 	int nDeleteBefore = pSubAccount_->getProperty(L"Pop3", L"DeleteBefore", 0);
+	bool bDeleteLocal = pSubAccount_->getProperty(L"Pop3", L"DeleteLocal", 0) != 0;
 	bool bHandleStatus = pSubAccount_->getProperty(L"Pop3", L"HandleStatus", 0) != 0;
 	int nNoopInterval = pSubAccount_->getProperty(L"Pop3", L"NoopInterval", 100);
 	int nGetAll = pSubAccount_->getProperty(L"Pop3", L"GetAll", 20);
@@ -46,6 +47,8 @@ LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus,
 	sendDlgItemMessage(IDC_DELETEONSERVER, BM_SETCHECK,
 		bDeleteOnServer ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemInt(IDC_DELETEBEFORE, nDeleteBefore);
+	sendDlgItemMessage(IDC_DELETELOCAL, BM_SETCHECK,
+		bDeleteLocal ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_HANDLESTATUS, BM_SETCHECK,
 		bHandleStatus ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemInt(IDC_NOOPINTERVAL, nNoopInterval);
@@ -63,6 +66,8 @@ LRESULT qmpop3::ReceivePage::onOk()
 	pSubAccount_->setProperty(L"Pop3", L"DeleteOnServer",
 		sendDlgItemMessage(IDC_DELETEONSERVER, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setProperty(L"Pop3", L"DeleteBefore", getDlgItemInt(IDC_DELETEBEFORE));
+	pSubAccount_->setProperty(L"Pop3", L"DeleteLocal",
+		sendDlgItemMessage(IDC_DELETELOCAL, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setProperty(L"Pop3", L"HandleStatus",
 		sendDlgItemMessage(IDC_HANDLESTATUS, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	pSubAccount_->setProperty(L"Pop3", L"NoopInterval",
