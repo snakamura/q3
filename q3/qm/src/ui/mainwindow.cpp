@@ -1227,38 +1227,35 @@ void qm::MainWindowImpl::StatusBarInfo::update(Document* pDocument,
 	if (pViewModel) {
 		Lock<ViewModel> lock(*pViewModel);
 		
-		unsigned int nCount = pViewModel->getCount();
-		unsigned int nUnseenCount = pViewModel->getUnseenCount();
-		unsigned int nSelectedCount = pViewModel->getSelectedCount();
+		unsigned int nCount = nCount_;
+		unsigned int nUnseenCount = nUnseenCount_;
+		unsigned int nSelectedCount = nSelectedCount_;
+		nCount_ = pViewModel->getCount();
+		nUnseenCount_ = pViewModel->getUnseenCount();
+		nSelectedCount_ = pViewModel->getSelectedCount();
 		if (nCount != nCount_ ||
 			nUnseenCount != nUnseenCount_ ||
 			nSelectedCount != nSelectedCount_) {
-			nCount_ = nCount;
-			nUnseenCount_ = nUnseenCount;
-			nSelectedCount_ = nSelectedCount;
-			
 			wstring_ptr wstrTemplate(loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE));
 			WCHAR wsz[256];
 			swprintf(wsz, wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
 			pStatusBar->setText(0, wsz);
 		}
 		
-		wstring_ptr wstrFilter;
+		wstring_ptr wstrFilter(wstrFilter_);
 		const Filter* pFilter = pViewModel->getFilter();
 		if (pFilter) {
 			const WCHAR* pwszName = pFilter->getName();
 			if (*pwszName)
-				wstrFilter = allocWString(pwszName);
+				wstrFilter_ = allocWString(pwszName);
 			else
-				wstrFilter = loadString(hInst, IDS_CUSTOM);
+				wstrFilter_ = loadString(hInst, IDS_CUSTOM);
 		}
 		else {
-			wstrFilter = loadString(hInst, IDS_NONE);
+			wstrFilter_ = loadString(hInst, IDS_NONE);
 		}
-		if (!wstrFilter_.get() || wcscmp(wstrFilter.get(), wstrFilter_.get()) != 0) {
-			wstrFilter_ = wstrFilter;
+		if (!wstrFilter.get() || wcscmp(wstrFilter.get(), wstrFilter_.get()) != 0)
 			pStatusBar->setText(2, wstrFilter_.get());
-		}
 	}
 	else {
 		nCount_ = -1;
@@ -1270,10 +1267,9 @@ void qm::MainWindowImpl::StatusBarInfo::update(Document* pDocument,
 		pStatusBar->setText(2, L"");
 	}
 	
-	bool bOffline = pDocument->isOffline();
+	bool bOffline = bOffline_;
+	bOffline_ = pDocument->isOffline();
 	if (bOffline != bOffline_) {
-		bOffline_ = bOffline;
-		
 		UINT nOnlineId = bOffline_ ? IDS_OFFLINE : IDS_ONLINE;
 		wstring_ptr wstrOnline(loadString(hInst, nOnlineId));
 		pStatusBar->setText(1, wstrOnline.get());
