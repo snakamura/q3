@@ -794,7 +794,7 @@ bool qmimap4::Buffer::receive(size_t n,
 		p += nLen;
 		
 		if (pCallback)
-			pCallback->setPos(buf_.getLength() - nStart);
+			pCallback->setPos((buf_.getLength() - nStart) + (p - pLock));
 	} while (buf_.getLength() + (p - pLock) <= n);
 	
 	lock.unlock(p - pLock);
