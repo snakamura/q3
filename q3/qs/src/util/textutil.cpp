@@ -154,9 +154,10 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 				for (size_t n = 0; n < nSchemaCount; ++n) {
 					if (ppwszSchemas[n][0] == *p) {
 						size_t nSchemaLen = wcslen(ppwszSchemas[n]);
-						if (nLen > nSchemaLen &&
+						if (nLen > nSchemaLen + 1 &&
 							wcsncmp(p, ppwszSchemas[n], nSchemaLen) == 0 &&
-							*(p + nSchemaLen) == L':') {
+							*(p + nSchemaLen) == L':' &&
+							isURLChar(*(p + nSchemaLen + 1))) {
 							bFound = true;
 							break;
 						}
