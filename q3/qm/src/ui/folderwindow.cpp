@@ -89,6 +89,7 @@ public:
 	Folder* getSelectedFolder() const;
 	HTREEITEM getHandleFromAccount(Account* pAccount) const;
 	HTREEITEM getHandleFromFolder(Folder* pFolder) const;
+	void clearFolderMap(Account* pAccount);
 	void getItems(ItemList* pList) const;
 	void getDescendantItems(HTREEITEM hItem,
 							ItemList* pList) const;
@@ -248,9 +249,7 @@ HTREEITEM qm::FolderWindowImpl::getHandleFromAccount(Account* pAccount) const
 			return hItem;
 		hItem = TreeView_GetNextSibling(pThis_->getHandle(), hItem);
 	}
-	
 	assert(false);
-	
 	return 0;
 }
 
@@ -258,10 +257,27 @@ HTREEITEM qm::FolderWindowImpl::getHandleFromFolder(Folder* pFolder) const
 {
 	FolderMap::const_iterator it = std::find_if(
 		mapFolder_.begin(), mapFolder_.end(),
-		std::bind2nd(binary_compose_f_gx_hy(std::equal_to<Folder*>(),
-			std::select1st<FolderMap::value_type>(),
-			std::identity<Folder*>()), pFolder));
-	return it != mapFolder_.end() ? (*it).second : 0;
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Folder*>(),
+				std::select1st<FolderMap::value_type>(),
+				std::identity<Folder*>()),
+			pFolder));
+	assert(it != mapFolder_.end());
+	return (*it).second;
+}
+
+void qm::FolderWindowImpl::clearFolderMap(Account* pAccount)
+{
+	for (FolderMap::iterator it = mapFolder_.begin(); it != mapFolder_.end(); ) {
+		if ((*it).first->getAccount() == pAccount) {
+			(*it).first->removeFolderHandler(this);
+			it = mapFolder_.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
 }
 
 void qm::FolderWindowImpl::getItems(ItemList* pList) const
@@ -817,15 +833,7 @@ void qm::FolderWindowImpl::updateAccountList()
 
 void qm::FolderWindowImpl::refreshFolderList(Account* pAccount)
 {
-	for (FolderMap::iterator it = mapFolder_.begin(); it != mapFolder_.end(); ) {
-		if ((*it).first->getAccount() == pAccount) {
-			(*it).first->removeFolderHandler(this);
-			it = mapFolder_.erase(it);
-		}
-		else {
-			++it;
-		}
-	}
+	clearFolderMap(pAccount);
 	
 	HTREEITEM hItem = getHandleFromAccount(pAccount);
 	assert(hItem);
@@ -873,6 +881,9 @@ void qm::FolderWindowImpl::addAccount(Account* pAccount)
 
 void qm::FolderWindowImpl::removeAccount(Account* pAccount)
 {
+	clearFolderMap(pAccount);
+	pAccount->removeAccountHandler(this);
+	
 	HTREEITEM hItem = getHandleFromAccount(pAccount);
 	assert(hItem);
 	TreeView_DeleteItem(pThis_->getHandle(), hItem);
@@ -919,8 +930,7 @@ void qm::FolderWindowImpl::insertFolders(HTREEITEM hItem,
 			assert(tvisFolder.hParent);
 		}
 		
-		HTREEITEM hItemFolder = TreeView_InsertItem(
-			pThis_->getHandle(), &tvisFolder);
+		HTREEITEM hItemFolder = TreeView_InsertItem(pThis_->getHandle(), &tvisFolder);
 		if (!hItemFolder)
 			return;
 		mapFolder_.push_back(std::make_pair(pFolder, hItemFolder));

@@ -396,6 +396,8 @@ void qm::FolderComboBoxImpl::addAccount(Account* pAccount,
 
 void qm::FolderComboBoxImpl::removeAccount(Account* pAccount)
 {
+	pAccount->removeAccountHandler(this);
+	
 	int nIndex = getIndexFromAccount(pAccount);
 	assert(nIndex != -1);
 	ComboBox_DeleteString(pThis_->getHandle(), nIndex);
@@ -404,6 +406,8 @@ void qm::FolderComboBoxImpl::removeAccount(Account* pAccount)
 		Folder* pFolder = getFolder(nIndex);
 		if (!pFolder)
 			break;
+		
+		pFolder->removeFolderHandler(this);
 		ComboBox_DeleteString(pThis_->getHandle(), nIndex);
 	}
 	ComboBox_SetCurSel(pThis_->getHandle(), -1);
