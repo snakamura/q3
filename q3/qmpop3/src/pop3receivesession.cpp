@@ -434,9 +434,10 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 			status = pSessionCallback_->setPos(0);
 			CHECK_QSTATUS();
 			
+			int nPos = 0;
 			for (DeleteList::List::size_type n = 0; n < l.size(); ++n) {
 				if (l[n].first) {
-					status = pSessionCallback_->setPos(n + 1);
+					status = pSessionCallback_->setPos(++nPos);
 					CHECK_QSTATUS();
 					
 					status = pPop3_->deleteMessage(n);
