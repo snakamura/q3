@@ -776,7 +776,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						nFormatWidth - nLineWidth, &nFit, 0, &size);
 					if (nFit != p - pBegin || p == pEnd ||
 						static_cast<unsigned int>(size.cx) == nFormatWidth - nLineWidth) {
-						if (bWordWrap_) {
+						if (bWordWrap_ && nFit != p - pBegin) {
 							bool bBreakBefore = false;
 							int m = nFit;
 							while (m > 0) {
