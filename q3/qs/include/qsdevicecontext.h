@@ -216,7 +216,7 @@ public:
 
 public:
 	static QSTATUS createLogFont(HDC hdc, const WCHAR* pwszFaceName,
-		int nPointSize, unsigned int nStyle, LOGFONT* plf);
+		int nPointSize, unsigned int nStyle, unsigned int nCharset, LOGFONT* plf);
 };
 
 }

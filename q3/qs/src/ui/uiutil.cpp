@@ -51,12 +51,15 @@ QSTATUS qs::UIUtil::createFontFromProfile(Profile* pProfile,
 	int nFontStyle = 0;
 	status = pProfile->getInt(pwszSection, L"FontStyle", 0, &nFontStyle);
 	CHECK_QSTATUS();
+	int nFontCharset = 0;
+	status = pProfile->getInt(pwszSection, L"FontCharset", 0, &nFontCharset);
+	CHECK_QSTATUS();
 	
 	ClientDeviceContext dc(0, &status);
 	CHECK_QSTATUS();
 	LOGFONT lf;
-	status = FontHelper::createLogFont(dc,
-		wstrFontFace.get(), nFontSize, nFontStyle, &lf);
+	status = FontHelper::createLogFont(dc, wstrFontFace.get(),
+		nFontSize, nFontStyle, nFontCharset, &lf);
 	CHECK_QSTATUS();
 	*phfont = ::CreateFontIndirect(&lf);
 	

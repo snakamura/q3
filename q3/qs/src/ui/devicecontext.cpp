@@ -121,7 +121,7 @@ CompatibleDeviceContext::~CompatibleDeviceContext()
 int CALLBACK enumFontFamProc(ENUMLOGFONT*, NEWTEXTMETRIC*, int, LPARAM);
 
 QSTATUS qs::FontHelper::createLogFont(HDC hdc, const WCHAR* pwszFaceName,
-	int nPointSize, unsigned int nStyle, LOGFONT* plf)
+	int nPointSize, unsigned int nStyle, unsigned int nCharset, LOGFONT* plf)
 {
 	DECLARE_QSTATUS();
 	
@@ -142,6 +142,8 @@ QSTATUS qs::FontHelper::createLogFont(HDC hdc, const WCHAR* pwszFaceName,
 	plf->lfItalic = (nStyle & STYLE_ITALIC) != 0;
 	plf->lfUnderline = (nStyle & STYLE_UNDERLINE) != 0;
 	plf->lfStrikeOut = (nStyle & STYLE_STRIKEOUT) != 0;
+	if (nCharset)
+		plf->lfCharSet = nCharset;
 	
 	return QSTATUS_SUCCESS;
 }
