@@ -425,6 +425,7 @@ bool qmrss::Rss10Handler::endElement(const WCHAR* pwszNamespaceURI,
 			if (wcscmp(pwszLocalName, L"encoded") == 0) {
 				if (!pCurrentItem_->getDescription())
 					pCurrentItem_->setDescription(buffer_.getString());
+				buffer_.remove();
 			}
 			else {
 				assert(false);
