@@ -52,6 +52,9 @@ public:
 	bool isShowPreviewWindow() const;
 	qs::QSTATUS setShowPreviewWindow(bool bShow);
 
+public:
+	virtual qs::QSTATUS processIdle();
+
 protected:
 	virtual qs::QSTATUS getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar);
 	virtual qs::QSTATUS createToolbarButtons(void* pCreateParam, HWND hwndToolbar);
@@ -86,9 +89,6 @@ protected:
 	LRESULT onQueryEndSession(int nOption);
 #endif
 	LRESULT onSize(UINT nFlags, int cx, int cy);
-	LRESULT onItemAdded(WPARAM wParam, LPARAM lParam);
-	LRESULT onItemRemoved(WPARAM wParam, LPARAM lParam);
-	LRESULT onItemChanged(WPARAM wParam, LPARAM lParam);
 
 private:
 	MainWindow(const MainWindow&);

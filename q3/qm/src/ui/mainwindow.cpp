@@ -81,8 +81,6 @@ class qm::MainWindowImpl :
 	public FolderModelHandler,
 	public FolderSelectionModel,
 	public MessageWindowHandler,
-	public ViewModelManagerHandler,
-	public DefaultViewModelHandler,
 	public DefaultDocumentHandler
 {
 public:
@@ -100,12 +98,6 @@ public:
 		ID_COMMANDBARMENU		= 1011,
 		ID_COMMANDBARBUTTON		= 1012,
 		ID_SYNCNOTIFICATION		= 1013
-	};
-	
-	enum {
-		WM_MAINWINDOW_ITEMADDED		= WM_APP + 1101,
-		WM_MAINWINDOW_ITEMREMOVED	= WM_APP + 1102,
-		WM_MAINWINDOW_ITEMCHANGED	= WM_APP + 1103
 	};
 
 public:
@@ -161,18 +153,6 @@ public:
 	virtual QSTATUS messageChanged(const MessageWindowEvent& event);
 
 public:
-	virtual qs::QSTATUS viewModelSelected(
-		const ViewModelManagerEvent& event);
-
-public:
-	virtual qs::QSTATUS itemAdded(const ViewModelEvent& event);
-	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
-	virtual qs::QSTATUS itemChanged(const ViewModelEvent& event);
-	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event);
-	virtual qs::QSTATUS updated(const ViewModelEvent& event);
-
-public:
-	virtual qs::QSTATUS offlineStatusChanged(const DocumentEvent& event);
 	virtual qs::QSTATUS accountListChanged(const AccountListChangedEvent& event);
 
 public:
@@ -1125,62 +1105,6 @@ QSTATUS qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qm::MainWindowImpl::viewModelSelected(
-	const ViewModelManagerEvent& event)
-{
-	DECLARE_QSTATUS();
-	
-	ViewModel* pOldViewModel = event.getOldViewModel();
-	if (pOldViewModel) {
-		status = pOldViewModel->removeViewModelHandler(this);
-		CHECK_QSTATUS();
-	}
-	
-	ViewModel* pNewViewModel = event.getNewViewModel();
-	if (pNewViewModel) {
-		status = pNewViewModel->addViewModelHandler(this);
-		CHECK_QSTATUS();
-	}
-	
-	status = updateStatusBar();
-	CHECK_QSTATUS();
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MainWindowImpl::itemAdded(const ViewModelEvent& event)
-{
-	pThis_->postMessage(WM_MAINWINDOW_ITEMADDED);
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MainWindowImpl::itemRemoved(const ViewModelEvent& event)
-{
-	pThis_->postMessage(WM_MAINWINDOW_ITEMREMOVED);
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MainWindowImpl::itemChanged(const ViewModelEvent& event)
-{
-	pThis_->postMessage(WM_MAINWINDOW_ITEMCHANGED);
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::MainWindowImpl::itemStateChanged(const ViewModelEvent& event)
-{
-	return updateStatusBar();
-}
-
-QSTATUS qm::MainWindowImpl::updated(const ViewModelEvent& event)
-{
-	return updateStatusBar();
-}
-
-QSTATUS qm::MainWindowImpl::offlineStatusChanged(const DocumentEvent& event)
-{
-	return updateStatusBar();
-}
-
 QSTATUS qm::MainWindowImpl::accountListChanged(
 	const AccountListChangedEvent& event)
 {
@@ -1667,6 +1591,18 @@ QSTATUS qm::MainWindow::setShowPreviewWindow(bool bShow)
 	return status;
 }
 
+QSTATUS qm::MainWindow::processIdle()
+{
+	DECLARE_QSTATUS();
+	
+	status = FrameWindow::processIdle();
+	CHECK_QSTATUS();
+	status = pImpl_->updateStatusBar();
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MainWindow::getToolbarButtons(Toolbar* pToolbar, bool* pbToolbar)
 {
 	assert(pToolbar);
@@ -1815,9 +1751,6 @@ LRESULT qm::MainWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_QUERYENDSESSION()
 #endif
 		HANDLE_SIZE()
-		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_ITEMADDED, onItemAdded)
-		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_ITEMREMOVED, onItemRemoved)
-		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_ITEMCHANGED, onItemChanged)
 	END_MESSAGE_HANDLER()
 	return FrameWindow::windowProc(uMsg, wParam, lParam);
 }
@@ -2140,8 +2073,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	status = pImpl_->pDocument_->addDocumentHandler(pImpl_);
 	CHECK_QSTATUS_VALUE(-1);
-	status = pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
-	CHECK_QSTATUS_VALUE(-1);
 	status = pImpl_->pMessageWindow_->addMessageWindowHandler(pImpl_);
 	CHECK_QSTATUS_VALUE(-1);
 	
@@ -2156,7 +2087,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 LRESULT qm::MainWindow::onDestroy()
 {
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
-	pImpl_->pViewModelManager_->removeViewModelManagerHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_);
 	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
@@ -2289,36 +2219,6 @@ LRESULT qm::MainWindow::onSize(UINT nFlags, int cx, int cy)
 		(nFlags == SIZE_RESTORED || nFlags == SIZE_MAXIMIZED))
 		pImpl_->layoutChildren(cx, cy);
 	return FrameWindow::onSize(nFlags, cx, cy);
-}
-
-LRESULT qm::MainWindow::onItemAdded(WPARAM wParam, LPARAM lParam)
-{
-	MSG msg;
-	while (::PeekMessage(&msg, getHandle(),
-		MainWindowImpl::WM_MAINWINDOW_ITEMADDED,
-		MainWindowImpl::WM_MAINWINDOW_ITEMADDED, PM_REMOVE));
-	pImpl_->updateStatusBar();
-	return 0;
-}
-
-LRESULT qm::MainWindow::onItemRemoved(WPARAM wParam, LPARAM lParam)
-{
-	MSG msg;
-	while (::PeekMessage(&msg, getHandle(),
-		MainWindowImpl::WM_MAINWINDOW_ITEMREMOVED,
-		MainWindowImpl::WM_MAINWINDOW_ITEMREMOVED, PM_REMOVE));
-	pImpl_->updateStatusBar();
-	return 0;
-}
-
-LRESULT qm::MainWindow::onItemChanged(WPARAM wParam, LPARAM lParam)
-{
-	MSG msg;
-	while (::PeekMessage(&msg, getHandle(),
-		MainWindowImpl::WM_MAINWINDOW_ITEMCHANGED,
-		MainWindowImpl::WM_MAINWINDOW_ITEMCHANGED, PM_REMOVE));
-	pImpl_->updateStatusBar();
-	return 0;
 }
 
 
