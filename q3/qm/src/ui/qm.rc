@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// “ú–{Œê resources
+// Japanese resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 #ifdef _WIN32
@@ -500,7 +500,7 @@ BEGIN
     EDITTEXT        IDC_TIMEOUT,45,50,40,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "&Connect receive host before send",
                     IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,125,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,140,10
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 179, 155
@@ -621,33 +621,33 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,130,20,50,14
 END
 
-IDD_FOLDERPROPERTY DIALOG DISCARDABLE  0, 0, 174, 135
+IDD_FOLDERPROPERTY DIALOG DISCARDABLE  0, 0, 224, 135
 STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "General"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
     LTEXT           "Name",IDC_STATIC,5,5,25,8
-    LTEXT           "",IDC_NAME,35,5,135,8
+    LTEXT           "",IDC_NAME,35,5,185,8
     LTEXT           "ID",IDC_STATIC,5,20,25,8
-    LTEXT           "",IDC_ID,35,20,135,8
+    LTEXT           "",IDC_ID,35,20,185,8
     LTEXT           "Type",IDC_STATIC,5,35,25,8
-    LTEXT           "",IDC_TYPE,35,35,135,8
+    LTEXT           "",IDC_TYPE,35,35,185,8
     CONTROL         "&Sync when opened",IDC_SYNCWHENOPEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,70,70,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,70,90,10
     CONTROL         "&Cache when read",IDC_CACHEWHENREAD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,80,70,10
-    GROUPBOX        "Flag",IDC_STATIC,5,55,80,75
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,80,90,10
+    GROUPBOX        "Flag",IDC_STATIC,5,55,105,75
     CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    95,70,40,10
+                    120,70,45,10
     CONTROL         "&Outbox",IDC_OUTBOX,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,95,80,40,10
+                    WS_TABSTOP,120,80,45,10
     CONTROL         "&Sentbox",IDC_SENTBOX,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,95,90,40,10
+                    WS_TABSTOP,120,90,45,10
     CONTROL         "&Draftbox",IDC_DRAFTBOX,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,95,100,40,10
+                    WS_TABSTOP,120,100,45,10
     CONTROL         "&Trashbox",IDC_TRASHBOX,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,95,110,43,10
-    GROUPBOX        "Box Type",IDC_STATIC,90,55,80,75
+                    WS_TABSTOP,120,110,45,10
+    GROUPBOX        "Box Type",IDC_STATIC,115,55,105,75
 END
 
 
@@ -846,7 +846,7 @@ BEGIN
     IDD_FOLDERPROPERTY, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 167
+        RIGHTMARGIN, 217
         TOPMARGIN, 7
         BOTTOMMARGIN, 128
     END
@@ -982,7 +982,7 @@ BEGIN
     IDS_FOLDERTYPETEMPLATE  "%s (%s)"
 END
 
-#endif    // “ú–{Œê resources
+#endif    // Japanese resources
 /////////////////////////////////////////////////////////////////////////////
 
 
