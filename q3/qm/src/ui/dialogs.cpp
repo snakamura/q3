@@ -418,7 +418,7 @@ LRESULT qm::AccountDialog::onProperty()
 		
 		sheet.doModal(getHandle());
 		
-		if (bAccountAdded_) {
+		if (bAccountAdded_ && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER)) {
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
 			if (messageBox(hInst, IDS_UPDATEFOLDER, MB_YESNO | MB_ICONQUESTION, getHandle()) == IDYES) {
 				if (!pAccount->updateFolders())
