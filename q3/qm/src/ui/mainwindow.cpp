@@ -1446,14 +1446,14 @@ qm::MainWindow::~MainWindow()
 {
 	if (pImpl_) {
 		delete pImpl_->pAccelerator_;
+		delete pImpl_->pMessageFrameWindowManager_;
+		delete pImpl_->pEditFrameWindowManager_;
 		delete pImpl_->pPreviewModel_;
 		delete pImpl_->pMessageSelectionModel_;
 		delete pImpl_->pListOnlyMessageSelectionModel_;
 		delete pImpl_->pViewModelManager_;
 		delete pImpl_->pFolderListModel_;
 		delete pImpl_->pFolderModel_;
-		delete pImpl_->pMessageFrameWindowManager_;
-		delete pImpl_->pEditFrameWindowManager_;
 		delete pImpl_->pActionMap_;
 		delete pImpl_->pActionInvoker_;
 		delete pImpl_->pFindReplaceManager_;
