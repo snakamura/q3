@@ -102,14 +102,12 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		TokenizerCallbackImpl(DEPOT* pDepotToken,
 							  const volatile unsigned int& nCleanCount,
 							  const volatile unsigned int& nJunkCount,
-							  CriticalSection& cs,
-							  bool bSaveToken) :
+							  CriticalSection& cs) :
 			pDepotToken_(pDepotToken),
 			nCleanCount_(nCleanCount),
 			nJunkCount_(nJunkCount),
 			cs_(cs),
-			nMax_(15),
-			bSaveToken_(bSaveToken)
+			nMax_(15)
 		{
 			listTokenRate_.reserve(nMax_);
 		}
@@ -179,10 +177,9 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 				}
 			};
 			
-			wstring_ptr wstrToken;
-			if (bSaveToken_)
-				wstrToken = allocWString(pwszToken);
-			listTokenRate_.push_back(std::make_pair(wstrToken.release(), dRate));
+			wstring_ptr wstrToken(allocWString(pwszToken));
+			listTokenRate_.push_back(std::make_pair(wstrToken.get(), dRate));
+			wstrToken.release();
 			std::random_shuffle(listTokenRate_.begin(), listTokenRate_.end());
 			std::sort(listTokenRate_.begin(), listTokenRate_.end(), &RateLess::comp);
 			if (listTokenRate_.size() > nMax_) {
@@ -204,10 +201,9 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		const volatile unsigned int& nCleanCount_;
 		const volatile unsigned int& nJunkCount_;
 		CriticalSection& cs_;
-		bool bSaveToken_;
 		TokenRateList listTokenRate_;
 		const unsigned int nMax_;
-	} callback(pDepotToken_, nCleanCount_, nJunkCount_, cs_, log.isInfoEnabled());
+	} callback(pDepotToken_, nCleanCount_, nJunkCount_, cs_);
 	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
 		return -1.0F;
 	
