@@ -1065,25 +1065,33 @@ int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 										 bool bExpanded)
 {
 	int nImage = UIUtil::getFolderImage(pFolder, bSelected);
+	
+	bool bMessage = false;
 	bool bUnseen = false;
 	if (bExpanded) {
+		bMessage = pFolder->getCount() != 0;
 		bUnseen = pFolder->getUnseenCount() != 0;
 	}
 	else {
-		const unsigned int nIgnore =
-			(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
-			Folder::FLAG_IGNOREUNSEEN;
+		const unsigned int nIgnore = Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX;
 		
 		const Account::FolderList& l = pFolder->getAccount()->getFolders();
 		for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && !bUnseen; ++it) {
 			Folder* p = *it;
-			if (p == pFolder ||
-				((p->getFlags() & nIgnore) == 0 && pFolder->isAncestorOf(p)))
-				bUnseen = p->getUnseenCount() != 0;
+			if (p == pFolder || ((p->getFlags() & nIgnore) == 0 && pFolder->isAncestorOf(p))) {
+				bMessage = p->getCount() != 0;
+				if (!p->isFlag(Folder::FLAG_IGNOREUNSEEN))
+					bUnseen = p->getUnseenCount() != 0;
+			}
 		}
 	}
 	
-	return bUnseen ? nImage + 1 : nImage;
+	if (bUnseen)
+		nImage += 2;
+	else if (bMessage)
+		nImage += 1;
+	
+	return nImage;
 }
 
 int qm::FolderWindowImpl::getAccountImage(Account* pAccount,

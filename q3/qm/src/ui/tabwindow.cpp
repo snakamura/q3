@@ -420,7 +420,12 @@ wstring_ptr qm::TabWindowImpl::getTitle(const TabItem* pItem) const
 
 int qm::TabWindowImpl::getFolderImage(Folder* pFolder)
 {
-	return UIUtil::getFolderImage(pFolder, false) + (pFolder->getUnseenCount() ? 1 : 0);
+	int nImage = UIUtil::getFolderImage(pFolder, false);
+	if (pFolder->getUnseenCount() != 0)
+		nImage += 2;
+	else if (pFolder->getCount() != 0)
+		nImage += 1;
+	return nImage;
 }
 
 

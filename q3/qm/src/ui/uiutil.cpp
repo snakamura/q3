@@ -182,24 +182,24 @@ int qm::UIUtil::getFolderImage(Folder* pFolder,
 		{
 			unsigned int nFlags = pFolder->getFlags();
 			if (nFlags & Folder::FLAG_INBOX)
-				nImage = 6;
+				nImage = 8;
 			else if ((nFlags & Folder::FLAG_OUTBOX) ||
 				(nFlags & Folder::FLAG_SENTBOX) ||
 				(nFlags & Folder::FLAG_DRAFTBOX))
-				nImage = 8;
+				nImage = 11;
 			else if (nFlags & Folder::FLAG_TRASHBOX ||
 				nFlags & Folder::FLAG_JUNKBOX)
-				nImage = 10;
+				nImage = 14;
 			else if (nFlags & Folder::FLAG_NOSELECT)
-				nImage = bSelected ? 16 : 14;
+				nImage = bSelected ? 29 : 26;
 			else if (nFlags & Folder::FLAG_LOCAL)
-				nImage = bSelected ? 4 : 2;
+				nImage = bSelected ? 5 : 2;
 			else
-				nImage = bSelected ? 20 : 18;
+				nImage = bSelected ? 23 : 20;
 		}
 		break;
 	case Folder::TYPE_QUERY:
-		nImage = 12;
+		nImage = 17;
 		break;
 	default:
 		assert(false);
