@@ -4,8 +4,8 @@
 
 
 SVNDIR=d:/home/svn
-CGIFTPUSER=d:/home/wince/q3/cgiftpuser
-FTPSCRIPT=d:/home/wince/q3/ftpscript
+CGIFTPSCRIPT=d:/home/wince/q3/cgiftpscript
+WEBFTPSCRIPT=d:/home/wince/q3/webftpscript
 
 svnadmin dump $SVNDIR/q3 | gzip -c > $SVNDIR/q3-`date +%Y%m%d`.gz
 
@@ -55,7 +55,8 @@ done
 
 
 #ncftpput -f $WEBFTPUSER /omega/snak/software/q3/nightly $ZIPDIR/*
-(cd $ZIPDIR; ftp -i -s:$FTPSCRIPT)
+(cd $ZIPDIR; ftp -i -s:$WEBFTPSCRIPT)
 
 echo $VERSION-$DATE > nightly
-ncftpput -f $CGIFTPUSER /public_html/q3 nightly
+#ncftpput -f $CGIFTPUSER /public_html/q3 nightly
+ftp -s:$CGIFTPSCRIPT
