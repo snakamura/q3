@@ -285,6 +285,9 @@ bool qmimap4::Imap4::checkConnection()
 	if (!pSocket_.get())
 		return false;
 	
+	if (bDisconnected_)
+		return false;
+	
 	int nSelect = pSocket_->select(Socket::SELECT_READ, 0);
 	if (nSelect == -1)
 		IMAP4_ERROR_SOCKET(IMAP4_ERROR_SELECTSOCKET);
@@ -292,11 +295,14 @@ bool qmimap4::Imap4::checkConnection()
 		return true;
 	
 	char c = 0;
-	size_t nLen = pSocket_->recv(&c, 1, MSG_PEEK);
-	if (nLen != 1)
+	if (pSocket_->recv(&c, 1, MSG_PEEK) != 1)
 		return false;
 	
-	return true;
+	Imap4ParserCallback callback(pImap4Callback_);
+	if (!receive("", false, &callback))
+		return false;
+	
+	return !bDisconnected_;
 }
 
 bool qmimap4::Imap4::select(const WCHAR* pwszFolderName)
@@ -897,8 +903,28 @@ bool qmimap4::Imap4::receive(const CHAR* pszTag,
 	Buffer buf(strOverBuf_.get(), pSocket_.get());
 	strOverBuf_.reset(0);
 	
+	struct ParserCallbackImpl : public ParserCallback
+	{
+		ParserCallbackImpl(ParserCallback* pCallback) :
+			pCallback_(pCallback),
+			bDisconnected_(false)
+		{
+		}
+		
+		virtual bool response(std::auto_ptr<Response> pResponse)
+		{
+			if (pResponse->getType() == Response::TYPE_STATE &&
+				static_cast<ResponseState*>(pResponse.get())->getFlag() == ResponseState::FLAG_BYE)
+				bDisconnected_ = true;
+			return pCallback_->response(pResponse);
+		}
+		
+		ParserCallback* pCallback_;
+		bool bDisconnected_;
+	} callback(pCallback);
+	
 	Parser parser(&buf, pImap4Callback_);
-	if (!parser.parse(pszTag, bAcceptContinue, pCallback)) {
+	if (!parser.parse(pszTag, bAcceptContinue, &callback)) {
 		bDisconnected_ = true;
 		// TODO
 		// Log
@@ -909,6 +935,7 @@ bool qmimap4::Imap4::receive(const CHAR* pszTag,
 		
 		return false;
 	}
+	bDisconnected_ = callback.bDisconnected_;
 	// TODO
 	// Log
 	strOverBuf_ = parser.getUnprocessedString();

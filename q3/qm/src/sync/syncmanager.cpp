@@ -592,7 +592,8 @@ bool qm::SyncManager::syncSlotData(const SyncData* pData,
 			}
 			
 			if (bSync || item.isConnectReceiveBeforeSend()) {
-				if (pSubAccount != item.getSubAccount()) {
+				if (pSubAccount != item.getSubAccount() ||
+					(pReceiveSession.get() && !pReceiveSession->isConnected())) {
 					pSubAccount = 0;
 					if (pReceiveSession.get())
 						pReceiveSession->disconnect();

@@ -125,6 +125,11 @@ void qmpop3::Pop3ReceiveSession::disconnect()
 	log.debug(L"Disconnected from the server.");
 }
 
+bool qmpop3::Pop3ReceiveSession::isConnected()
+{
+	return true;
+}
+
 bool qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder)
 {
 	assert(pFolder);

@@ -116,6 +116,11 @@ void qmnntp::NntpReceiveSession::disconnect()
 	log.debug(L"Disconnected from the server.");
 }
 
+bool qmnntp::NntpReceiveSession::isConnected()
+{
+	return true;
+}
+
 bool qmnntp::NntpReceiveSession::selectFolder(NormalFolder* pFolder)
 {
 	pCallback_->setMessage(IDS_SELECTGROUP);

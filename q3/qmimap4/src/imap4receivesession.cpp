@@ -235,6 +235,11 @@ void qmimap4::Imap4ReceiveSession::disconnect()
 	log.debug(L"Disconnected from the server.");
 }
 
+bool qmimap4::Imap4ReceiveSession::isConnected()
+{
+	return pImap4_->checkConnection();
+}
+
 bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder)
 {
 	assert(pFolder);
@@ -1350,41 +1355,48 @@ bool qmimap4::Imap4ReceiveSession::processSearchResponse(ResponseSearch* pSearch
 
 bool qmimap4::Imap4ReceiveSession::processStateResponse(ResponseState* pState)
 {
-	State* p = pState->getState();
-	switch (p->getCode()) {
-	case State::CODE_NONE:
-		break;
-	case State::CODE_ALERT:
-		break;
-	case State::CODE_NEWNAME:
-		break;
-	case State::CODE_PARSE:
-		break;
-	case State::CODE_PERMANENTFLAGS:
-		break;
-	case State::CODE_READONLY:
-		bReadOnly_ = true;
-		break;
-	case State::CODE_READWRITE:
-		bReadOnly_ = false;
-		break;
-	case State::CODE_TRYCREATE:
-		break;
-	case State::CODE_UIDVALIDITY:
-		nUidValidity_ = p->getArgNumber();
-		break;
-	case State::CODE_UNSEEN:
-		break;
-	case State::CODE_UIDNEXT:
-		break;
-	case State::CODE_OTHER:
+	switch (pState->getFlag()) {
+	case ResponseState::FLAG_OK:
+		{
+			State* p = pState->getState();
+			switch (p->getCode()) {
+			case State::CODE_NONE:
+				break;
+			case State::CODE_ALERT:
+				break;
+			case State::CODE_NEWNAME:
+				break;
+			case State::CODE_PARSE:
+				break;
+			case State::CODE_PERMANENTFLAGS:
+				break;
+			case State::CODE_READONLY:
+				bReadOnly_ = true;
+				break;
+			case State::CODE_READWRITE:
+				bReadOnly_ = false;
+				break;
+			case State::CODE_TRYCREATE:
+				break;
+			case State::CODE_UIDVALIDITY:
+				nUidValidity_ = p->getArgNumber();
+				break;
+			case State::CODE_UNSEEN:
+				break;
+			case State::CODE_UIDNEXT:
+				break;
+			case State::CODE_OTHER:
+				break;
+			default:
+				assert(false);
+				return false;
+			}
+		}
 		break;
 	default:
-		assert(false);
-		return false;
+		break;
 	}
 	
-	// TODO
 	return true;
 }
 

@@ -59,6 +59,7 @@ public:
 					  qm::ReceiveSessionCallback* pCallback);
 	virtual bool connect();
 	virtual void disconnect();
+	virtual bool isConnected();
 	virtual bool selectFolder(qm::NormalFolder* pFolder);
 	virtual bool closeFolder();
 	virtual bool updateMessages();

@@ -89,6 +89,7 @@ public:
 					  ReceiveSessionCallback* pCallback) = 0;
 	virtual bool connect() = 0;
 	virtual void disconnect() = 0;
+	virtual bool isConnected() = 0;
 	virtual bool selectFolder(NormalFolder* pFolder) = 0;
 	virtual bool closeFolder() = 0;
 	virtual bool updateMessages() = 0;
