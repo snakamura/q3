@@ -748,7 +748,10 @@ QSTATUS qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 			pDocument_, pNormalFolder, flag, &callback);
 		CHECK_QSTATUS();
 #ifdef _WIN32_WCE
-		// TODO
+		Clipboard clipboard(0, &status);
+		CHECK_QSTATUS();
+		status = clipboard.empty();
+		CHECK_QSTATUS();
 #else
 		::OleSetClipboard(0);
 #endif
@@ -769,10 +772,8 @@ QSTATUS qm::EditPasteMessageAction::isEnabled(
 	Folder* pFolder = pModel_->getCurrentFolder();
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
 		!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
-		ComPtr<IDataObject> pDataObject;
-		status = MessageDataObject::getClipboard(pDocument_, &pDataObject);
+		status = MessageDataObject::queryClipboard(pbEnabled);
 		CHECK_QSTATUS();
-		*pbEnabled = MessageDataObject::canPasteMessage(pDataObject.get());
 	}
 	
 	return QSTATUS_SUCCESS;

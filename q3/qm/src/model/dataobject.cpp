@@ -469,6 +469,29 @@ QSTATUS qm::MessageDataObject::getClipboard(
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qm::MessageDataObject::queryClipboard(bool* pbData)
+{
+	assert(pbData);
+	
+	DECLARE_QSTATUS();
+	
+	*pbData = false;
+	
+#ifdef _WIN32_WCE
+	status = Clipboard::isFormatAvailable(
+		nFormats__[FORMAT_MESSAGEHOLDERLIST], pbData);
+	CHECK_QSTATUS();
+#else
+	ComPtr<IDataObject> pDataObject;
+	HRESULT hr = ::OleGetClipboard(&pDataObject);
+	if (hr != S_OK)
+		return QSTATUS_FAIL;
+	*pbData = canPasteMessage(pDataObject.get());
+#endif
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 	Document* pDocument, NormalFolder* pFolderTo,
 	Flag flag, MessageOperationCallback* pCallback)

@@ -80,6 +80,7 @@ public:
 public:
 	static qs::QSTATUS setClipboard(IDataObject* pDataObject);
 	static qs::QSTATUS getClipboard(Document* pDocument, IDataObject** ppDataObject);
+	static qs::QSTATUS queryClipboard(bool* pbData);
 	static qs::QSTATUS pasteMessages(IDataObject* pDataObject,
 		Document* pDocument, NormalFolder* pFolderTo,
 		Flag flag, MessageOperationCallback* pCallback);
