@@ -1,0 +1,221 @@
+diff -uNr STLport-4.6.2.orig/stlport/config/stl_msvc.h STLport-4.6.2/stlport/config/stl_msvc.h
+--- STLport-4.6.2.orig/stlport/config/stl_msvc.h	2004-03-11 06:35:06.000000000 +0900
++++ STLport-4.6.2/stlport/config/stl_msvc.h	2004-04-21 15:12:04.513911000 +0900
+@@ -106,7 +106,7 @@
+ #  endif
+ # endif /* (_MSC_VER <= 1310) */
+ 
+-# if (_MSC_VER <= 1200)  // including MSVC 6.0
++# if (_MSC_VER <= 1210)  // including MSVC 6.0
+ //  these work, as long they are inline
+ #  define _STLP_INLINE_MEMBER_TEMPLATES 1
+ #  define _STLP_NO_MEMBER_TEMPLATE_KEYWORD 1
+diff -uNr STLport-4.6.2.orig/stlport/config/stl_wince.h STLport-4.6.2/stlport/config/stl_wince.h
+--- STLport-4.6.2.orig/stlport/config/stl_wince.h	2003-11-02 17:59:12.000000000 +0900
++++ STLport-4.6.2/stlport/config/stl_wince.h	2004-04-21 15:12:04.560786000 +0900
+@@ -15,25 +15,29 @@
+ #endif
+ 
+ #define _STLP_NO_NATIVE_MBSTATE_T
+-#define _STLP_NO_TYPEINFO
+-#define _STLP_NO_BAD_ALLOC
+-#define _STLP_NO_NEW_NEW_HEADER
++#if _WIN32_WCE < 400
++  #define _STLP_NO_TYPEINFO
++//  #define _STLP_NO_BAD_ALLOC
++  #define _STLP_NO_NEW_NEW_HEADER
++#endif
+ #define _STLP_OWN_IOSTREAMS
+ 
+ // tell other parts no threads are there
+ #   define _STLP_NO_THREADS 1
+ 
+ // not all new-style headers are available...
+-# define _STLP_HAS_NO_NEW_C_HEADERS
++#if _WIN32_WCE < 400
++  # define _STLP_HAS_NO_NEW_C_HEADERS
+ 
+-#     undef _STLP_HAS_NO_EXCEPTIONS
+-#     define _STLP_HAS_NO_EXCEPTIONS
+-#     undef _STLP_NO_EXCEPTION_HEADER
+-#     define _STLP_NO_EXCEPTION_HEADER
++  #     undef _STLP_HAS_NO_EXCEPTIONS
++  #     define _STLP_HAS_NO_EXCEPTIONS
++  #     undef _STLP_NO_EXCEPTION_HEADER
++  #     define _STLP_NO_EXCEPTION_HEADER
++#endif
+ 
+ // we have to use malloc instead of new
+-# undef  _STLP_USE_NEWALLOC
+-# define _STLP_USE_MALLOC
++//# undef  _STLP_USE_NEWALLOC
++//# define _STLP_USE_MALLOC
+ 
+ //# ifdef _STLP_MSVC
+ //#     pragma warning (disable: 4786)
+@@ -111,10 +115,12 @@
+ #ifdef __cplusplus
+ }
+ 
++#if _WIN32_WCE < 400
+ #ifndef __PLACEMENT_NEW_INLINE
+ inline void *__cdecl operator new(size_t, void *_P) { return (_P); }
+ #define __PLACEMENT_NEW_INLINE
+ #endif
++#endif
+ 
+ // Only defined as macros in Windows CE SDK
+ #include _STLP_NATIVE_C_HEADER(ctype.h)
+diff -uNr STLport-4.6.2.orig/stlport/stl/_alloc.h STLport-4.6.2/stlport/stl/_alloc.h
+--- STLport-4.6.2.orig/stlport/stl/_alloc.h	2003-11-02 17:59:08.000000000 +0900
++++ STLport-4.6.2/stlport/stl/_alloc.h	2004-04-21 15:12:04.560786000 +0900
+@@ -253,6 +253,12 @@
+   static void _STLP_CALL deallocate(void *__p, size_t __n) { if (__n > (size_t)_MAX_BYTES) __stl_delete(__p); else _M_deallocate(__p, __n); }
+ };
+ 
++#ifdef _STLP_EXPORT_NODE_ALLOC
++template class __declspec(dllexport) __node_alloc<true, 0>;
++#elif defined _STLP_IMPORT_NODE_ALLOC
++extern template class __declspec(dllimport) __node_alloc<true, 0>;
++#endif
++
+ # if defined (_STLP_USE_TEMPLATE_EXPORT)
+ _STLP_EXPORT_TEMPLATE_CLASS __malloc_alloc<0>;
+ _STLP_EXPORT_TEMPLATE_CLASS __node_alloc<_STLP_NODE_ALLOCATOR_THREADS, 0>;
+diff -uNr STLport-4.6.2.orig/stlport/stl/_config.h STLport-4.6.2/stlport/stl/_config.h
+--- STLport-4.6.2.orig/stlport/stl/_config.h	2004-02-05 08:29:55.000000000 +0900
++++ STLport-4.6.2/stlport/stl/_config.h	2004-04-21 15:12:04.576411000 +0900
+@@ -153,6 +153,7 @@
+ 
+ # if defined (_STLP_USE_NO_IOSTREAMS)
+ #  undef _STLP_USE_NEW_IOSTREAMS
++#  undef _STLP_OWN_IOSTREAMS
+ # endif
+ 
+ # if ( defined (_STLP_OWN_IOSTREAMS) || ! defined (_STLP_HAS_NO_NEW_IOSTREAMS)) \
+diff -uNr STLport-4.6.2.orig/stlport/stl/_function_adaptors.h STLport-4.6.2/stlport/stl/_function_adaptors.h
+--- STLport-4.6.2.orig/stlport/stl/_function_adaptors.h	2003-11-02 17:59:07.000000000 +0900
++++ STLport-4.6.2/stlport/stl/_function_adaptors.h	2004-04-21 15:12:04.576411000 +0900
+@@ -115,7 +115,7 @@
+ };
+ 
+ template<class _Result, class _Tp>
+-class _Mem_fun0_ref : public unary_function<_Tp&,_Result> {
++class _Mem_fun0_ref : public unary_function<_Tp,_Result> {
+ protected:
+   typedef _Result (_Tp::*__fun_type) ();
+   explicit _Mem_fun0_ref(__fun_type __f) : _M_f(__f) {}
+@@ -128,7 +128,7 @@
+ };
+ 
+ template<class _Result, class _Tp, class _Arg>
+-class _Mem_fun1_ref : public binary_function<_Tp&,_Arg,_Result> {
++class _Mem_fun1_ref : public binary_function<_Tp,_Arg,_Result> {
+ protected:
+   typedef _Result (_Tp::*__fun_type) (_Arg);
+   explicit _Mem_fun1_ref(__fun_type __f) : _M_f(__f) {}
+@@ -141,7 +141,7 @@
+ };
+ 
+ template<class _Result, class _Tp>
+-class _Const_mem_fun0_ref : public unary_function<const _Tp&,_Result> {
++class _Const_mem_fun0_ref : public unary_function<_Tp,_Result> {
+ protected:
+   typedef _Result (_Tp::*__fun_type) () const;
+   explicit _Const_mem_fun0_ref(__fun_type __f) : _M_f(__f) {}
+@@ -154,7 +154,7 @@
+ };
+ 
+ template<class _Result, class _Tp, class _Arg>
+-class _Const_mem_fun1_ref : public binary_function<const _Tp&,_Arg,_Result> {
++class _Const_mem_fun1_ref : public binary_function<_Tp,_Arg,_Result> {
+ protected:
+   typedef _Result (_Tp::*__fun_type) (_Arg) const;
+   explicit _Const_mem_fun1_ref(__fun_type __f) : _M_f(__f) {}
+@@ -277,7 +277,7 @@
+ };
+ 
+ template<class _Tp>
+-class _Void_mem_fun0_ref : public unary_function<_Tp&,void> {
++class _Void_mem_fun0_ref : public unary_function<_Tp,void> {
+ protected:
+   typedef void (_Tp::*__fun_type) ();
+   explicit _Void_mem_fun0_ref(__fun_type __f) : _M_f(__f) {}
+@@ -290,7 +290,7 @@
+ };
+ 
+ template<class _Tp, class _Arg>
+-class _Void_mem_fun1_ref : public binary_function<_Tp&,_Arg,void> {
++class _Void_mem_fun1_ref : public binary_function<_Tp,_Arg,void> {
+ protected:
+   typedef void (_Tp::*__fun_type) (_Arg);
+   explicit _Void_mem_fun1_ref(__fun_type __f) : _M_f(__f) {}
+@@ -303,7 +303,7 @@
+ };
+ 
+ template<class _Tp>
+-class _Void_const_mem_fun0_ref : public unary_function<const _Tp&,void> {
++class _Void_const_mem_fun0_ref : public unary_function<_Tp,void> {
+ protected:
+   typedef void (_Tp::*__fun_type) () const;
+   explicit _Void_const_mem_fun0_ref(__fun_type __f) : _M_f(__f) {}
+@@ -316,7 +316,7 @@
+ };
+ 
+ template<class _Tp, class _Arg>
+-class _Void_const_mem_fun1_ref : public binary_function<const _Tp&,_Arg,void> {
++class _Void_const_mem_fun1_ref : public binary_function<_Tp,_Arg,void> {
+ protected:
+   typedef void (_Tp::*__fun_type) (_Arg) const;
+   explicit _Void_const_mem_fun1_ref(__fun_type __f) : _M_f(__f) {}
+diff -uNr STLport-4.6.2.orig/stlport/stl/_new.h STLport-4.6.2/stlport/stl/_new.h
+--- STLport-4.6.2.orig/stlport/stl/_new.h	2003-11-02 17:59:06.000000000 +0900
++++ STLport-4.6.2/stlport/stl/_new.h	2004-04-21 15:12:04.576411000 +0900
+@@ -2,10 +2,10 @@
+ #ifndef _STLP_NEW_H_HEADER
+ # define _STLP_NEW_H_HEADER
+ 
+-# ifdef _STLP_NO_BAD_ALLOC
+-
+-# ifndef _STLP_NEW_DONT_THROW
+-#   define _STLP_NEW_DONT_THROW 1
++# ifdef _STLP_NO_BAD_ALLOC
++
++# ifndef _STLP_NEW_DONT_THROW
++#   define _STLP_NEW_DONT_THROW 1
+ # endif /* _STLP_NEW_DONT_THROW */
+ 
+ #  include <exception>
+@@ -45,6 +45,32 @@
+ }
+ _STLP_END_NAMESPACE
+ 
++#include <new>
++
++#if _WIN32_WCE >= 400
++# ifndef _STLP_NO_BAD_ALLOC
++#  ifdef _STLP_USE_OWN_NAMESPACE
++
++    _STLP_BEGIN_NAMESPACE
++    using _STLP_VENDOR_EXCEPT_STD::bad_alloc;
++    using _STLP_VENDOR_EXCEPT_STD::nothrow_t;
++    using _STLP_VENDOR_EXCEPT_STD::nothrow;
++
++#  if defined (_STLP_GLOBAL_NEW_HANDLER)
++    using ::new_handler;
++    using ::set_new_handler;
++#  else
++    using _STLP_VENDOR_EXCEPT_STD::new_handler;
++    using _STLP_VENDOR_EXCEPT_STD::set_new_handler;
++#  endif
++    
++    _STLP_END_NAMESPACE
++
++#  endif /* _STLP_OWN_NAMESPACE */
++
++# endif /* _STLP_NO_BAD_ALLOC */
++#endif
++
+ #else /* _STLP_WINCE */
+ 
+ #include <new>
