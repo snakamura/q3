@@ -977,6 +977,9 @@ private:
 class FileImportAction : public qs::AbstractAction
 {
 public:
+	typedef std::vector<qs::WSTRING> PathList;
+
+public:
 	FileImportAction(FolderModel* pFolderModel,
 					 Document* pDocument,
 					 SyncManager* pSyncManager,
@@ -990,6 +993,12 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 public:
+	static bool import(NormalFolder* pFolder,
+					   const PathList& listPath,
+					   bool bMultipleMessagesInFile,
+					   const WCHAR* pwszEncoding,
+					   unsigned int nFlags,
+					   HWND hwnd);
 	static bool readMessage(NormalFolder* pFolder,
 							const WCHAR* pwszPath,
 							bool bMultiple,

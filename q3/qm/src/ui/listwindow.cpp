@@ -706,19 +706,24 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 				if (stm.tymed == TYMED_HGLOBAL) {
 					HDROP hDrop = reinterpret_cast<HDROP>(stm.hGlobal);
 					int nCount = ::DragQueryFile(hDrop, 0xffffffff, 0, 0);
+					
+					FileImportAction::PathList listPath;
+					listPath.reserve(nCount);
+					StringListFree<FileImportAction::PathList> free(listPath);
+					
 					for (int n = 0; n < nCount; ++n) {
 						TCHAR tszPath[MAX_PATH];
 						::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
 						DWORD dwFileAttributes = ::GetFileAttributes(tszPath);
 						if (dwFileAttributes != 0xffffffff &&
-							!(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-							T2W(tszPath, pwszPath);
-							if (!FileImportAction::readMessage(
-								static_cast<NormalFolder*>(pFolder), pwszPath,
-								false, Account::IMPORTFLAG_NORMALFLAGS, 0, 0, 0)) {
-								// TODO MSG
-							}
-						}
+							!(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+							listPath.push_back(tcs2wcs(tszPath).release());
+					}
+					
+					if (!FileImportAction::import(static_cast<NormalFolder*>(pFolder),
+						listPath, false, 0, Account::IMPORTFLAG_NORMALFLAGS,
+						pThis_->getParentFrame())) {
+						// TODO MSG
 					}
 					
 					if (!pDocument_->isOffline() &&

@@ -1579,6 +1579,49 @@ bool qm::FileImportAction::isEnabled(const ActionEvent& event)
 	return pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
 }
 
+bool qm::FileImportAction::import(NormalFolder* pFolder,
+								  const PathList& listPath,
+								  bool bMultipleMessagesInFile,
+								  const WCHAR* pwszEncoding,
+								  unsigned int nFlags,
+								  HWND hwnd)
+{
+	if (pwszEncoding)
+		bMultipleMessagesInFile = false;
+	
+	unsigned int nCount = listPath.size();
+	if (bMultipleMessagesInFile)
+		nCount = 100;
+	
+	ProgressDialog progressDialog(IDS_IMPORT);
+	ProgressDialogInit init(&progressDialog, hwnd,
+		IDS_IMPORT, IDS_IMPORT, 0, nCount, 0);
+	
+	if (pwszEncoding) {
+		for (PathList::size_type n = 0; n < listPath.size(); ++n) {
+			if (!readMessage(pFolder, listPath[n], pwszEncoding, nFlags))
+				return false;
+			
+			if (progressDialog.isCanceled())
+				break;
+			progressDialog.setPos(n);
+		}
+	}
+	else {
+		int nPos = 0;
+		for (PathList::size_type n = 0; n < listPath.size(); ++n) {
+			bool bCanceled = false;
+			if (!readMessage(pFolder, listPath[n], bMultipleMessagesInFile,
+				nFlags, &progressDialog, &nPos, &bCanceled))
+				return false;
+			if (bCanceled)
+				break;
+		}
+	}
+	
+	return true;
+}
+
 bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 									   const WCHAR* pwszPath,
 									   bool bMultiple,
@@ -1700,7 +1743,7 @@ bool qm::FileImportAction::readMessage(NormalFolder* pFolder,
 				*pbCanceled = true;
 				return true;
 			}
-			pDialog->setPos((*pnPos)++ % 100);
+			pDialog->setPos((*pnPos)++);
 		}
 		
 		if (!pFolder->getAccount()->importMessage(
@@ -1759,35 +1802,16 @@ bool qm::FileImportAction::import(NormalFolder* pFolder)
 {
 	ImportDialog dialog(pProfile_);
 	if (dialog.doModal(hwnd_) == IDOK) {
-		ProgressDialog progressDialog(IDS_IMPORT);
-		ProgressDialogInit init(&progressDialog, hwnd_,
-			IDS_IMPORT, IDS_IMPORT, 0, 100, 0);
-		int nPos = 0;
+		PathList listPath;
+		StringListFree<PathList> free(listPath);
 		
 		const WCHAR* pwszPath = dialog.getPath();
-		const WCHAR* pwszEncoding = dialog.getEncoding();
 		const WCHAR* pBegin = pwszPath;
 		while (true) {
 			const WCHAR* pEnd = wcschr(pBegin, L';');
 			wstring_ptr wstrPath(allocWString(pBegin, pEnd ? pEnd - pBegin : -1));
-			
-			if (pwszEncoding) {
-				if (!readMessage(static_cast<NormalFolder*>(pFolder),
-					wstrPath.get(), pwszEncoding, dialog.getFlags()))
-					return false;
-			}
-			else {
-				bool bCanceled = false;
-				if (!readMessage(static_cast<NormalFolder*>(pFolder),
-					wstrPath.get(), dialog.isMultiple(), dialog.getFlags(),
-					&progressDialog, &nPos, &bCanceled))
-					return false;
-				if (bCanceled)
-					break;
-			}
-			
-			if (progressDialog.isCanceled())
-				break;
+			listPath.push_back(wstrPath.get());
+			wstrPath.release();
 			
 			if (!pEnd)
 				break;
@@ -1795,6 +1819,10 @@ bool qm::FileImportAction::import(NormalFolder* pFolder)
 			if (!*pBegin)
 				break;
 		}
+		
+		if (!import(pFolder, listPath, dialog.isMultiple(),
+			dialog.getEncoding(), dialog.getFlags(), hwnd_))
+			return false;
 	}
 	
 	return true;
