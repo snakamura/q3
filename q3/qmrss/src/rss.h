@@ -83,9 +83,9 @@ public:
 	void setTitle(qs::wstring_ptr wstrTitle);
 	void setLink(qs::wstring_ptr wstrLink);
 	void setDescription(qs::wstring_ptr wstrDescription);
-	void setCategory(qs::wstring_ptr wstrCategory);
-	void setSubject(qs::wstring_ptr wstrSubject);
-	void setCreator(qs::wstring_ptr wstrCreator);
+	void addCategory(qs::wstring_ptr wstrCategory);
+	void addSubject(qs::wstring_ptr wstrSubject);
+	void addCreator(qs::wstring_ptr wstrCreator);
 	void setPubDate(const qs::Time& time);
 
 private:

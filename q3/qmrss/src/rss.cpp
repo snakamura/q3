@@ -116,19 +116,28 @@ void qmrss::Item::setDescription(wstring_ptr wstrDescription)
 	wstrDescription_ = wstrDescription;
 }
 
-void qmrss::Item::setCategory(wstring_ptr wstrCategory)
+void qmrss::Item::addCategory(wstring_ptr wstrCategory)
 {
-	wstrCategory_ = wstrCategory;
+	if (wstrCategory_.get())
+		wstrCategory_ = concat(wstrCategory_.get(), L", ", wstrCategory.get());
+	else
+		wstrCategory_ = wstrCategory;
 }
 
-void qmrss::Item::setSubject(wstring_ptr wstrSubject)
+void qmrss::Item::addSubject(wstring_ptr wstrSubject)
 {
-	wstrSubject_ = wstrSubject;
+	if (wstrSubject_.get())
+		wstrSubject_ = concat(wstrSubject_.get(), L", ", wstrSubject.get());
+	else
+		wstrSubject_ = wstrSubject;
 }
 
-void qmrss::Item::setCreator(wstring_ptr wstrCreator)
+void qmrss::Item::addCreator(wstring_ptr wstrCreator)
 {
-	wstrCreator_ = wstrCreator;
+	if (wstrCreator_.get())
+		wstrCreator_ = concat(wstrCreator_.get(), L", ", wstrCreator.get());
+	else
+		wstrCreator_ = wstrCreator;
 }
 
 void qmrss::Item::setPubDate(const Time& time)
@@ -398,7 +407,7 @@ bool qmrss::Rss10Handler::endElement(const WCHAR* pwszNamespaceURI,
 				pCurrentItem_->setDescription(buffer_.getString());
 			}
 			else if (wcscmp(pwszLocalName, L"category") == 0) {
-				pCurrentItem_->setCategory(buffer_.getString());
+				pCurrentItem_->addCategory(buffer_.getString());
 			}
 			else {
 				assert(false);
@@ -406,10 +415,10 @@ bool qmrss::Rss10Handler::endElement(const WCHAR* pwszNamespaceURI,
 		}
 		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
 			if (wcscmp(pwszLocalName, L"subject") == 0) {
-				pCurrentItem_->setSubject(buffer_.getString());
+				pCurrentItem_->addSubject(buffer_.getString());
 			}
 			else if (wcscmp(pwszLocalName, L"creator") == 0) {
-				pCurrentItem_->setCreator(buffer_.getString());
+				pCurrentItem_->addCreator(buffer_.getString());
 			}
 			else if (wcscmp(pwszLocalName, L"date") == 0) {
 				Time date;
@@ -606,7 +615,7 @@ bool qmrss::Rss20Handler::endElement(const WCHAR* pwszNamespaceURI,
 				pCurrentItem_->setDescription(buffer_.getString());
 			}
 			else if (wcscmp(pwszLocalName, L"category") == 0) {
-				pCurrentItem_->setCategory(buffer_.getString());
+				pCurrentItem_->addCategory(buffer_.getString());
 			}
 			else if (wcscmp(pwszLocalName, L"pubDate") == 0) {
 				Time date;
@@ -621,10 +630,10 @@ bool qmrss::Rss20Handler::endElement(const WCHAR* pwszNamespaceURI,
 		}
 		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
 			if (wcscmp(pwszLocalName, L"subject") == 0) {
-				pCurrentItem_->setSubject(buffer_.getString());
+				pCurrentItem_->addSubject(buffer_.getString());
 			}
 			else if (wcscmp(pwszLocalName, L"creator") == 0) {
-				pCurrentItem_->setCreator(buffer_.getString());
+				pCurrentItem_->addCreator(buffer_.getString());
 			}
 			else if (wcscmp(pwszLocalName, L"date") == 0) {
 				Time date;
