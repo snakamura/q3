@@ -3240,8 +3240,11 @@ const WCHAR* qm::ParameterDialog::getValue() const
 LRESULT qm::ParameterDialog::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
+	init(false);
+	
 	setDlgItemText(IDC_NAME, wstrName_.get());
 	setDlgItemText(IDC_VALUE, wstrValue_.get());
+	
 	return TRUE;
 }
 

@@ -241,6 +241,10 @@ public:
 						size_t nParamCount);
 	virtual ~FolderParameterPage();
 
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
@@ -253,8 +257,12 @@ public:
 							 bool* pbHandled);
 
 private:
+	LRESULT onEdit();
 	LRESULT onParameterDblClk(NMHDR* pnmhdr,
 							  bool* pbHandled);
+
+private:
+	void edit();
 
 private:
 	FolderParameterPage(const FolderParameterPage&);

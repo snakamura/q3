@@ -536,6 +536,15 @@ qm::FolderParameterPage::~FolderParameterPage()
 {
 }
 
+LRESULT qm::FolderParameterPage::onCommand(WORD nCode,
+										   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
+	END_COMMAND_HANDLER()
+	return DefaultPropertyPage::onCommand(nCode, nId);
+}
+
 LRESULT qm::FolderParameterPage::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
@@ -615,8 +624,21 @@ LRESULT qm::FolderParameterPage::onNotify(NMHDR* pnmhdr,
 	return DefaultPropertyPage::onNotify(pnmhdr, pbHandled);
 }
 
+LRESULT qm::FolderParameterPage::onEdit()
+{
+	edit();
+	return 0;
+}
+
 LRESULT qm::FolderParameterPage::onParameterDblClk(NMHDR* pnmhdr,
 												   bool* pbHandled)
+{
+	edit();
+	*pbHandled = true;
+	return 0;
+}
+
+void qm::FolderParameterPage::edit()
 {
 	HWND hwndList = getDlgItem(IDC_PARAMETER);
 	
@@ -634,10 +656,6 @@ LRESULT qm::FolderParameterPage::onParameterDblClk(NMHDR* pnmhdr,
 			ListView_SetItemText(hwndList, nItem, 1, const_cast<LPTSTR>(ptszValue));
 		}
 	}
-	
-	*pbHandled = true;
-	
-	return 0;
 }
 
 
