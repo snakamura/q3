@@ -78,12 +78,15 @@
 			<separator/>
 			<popupmenu text="Mar&amp;k">
 				<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
-				<menuitem text="Mark &amp;Uneen" action="MessageMarkUnseen"/>
+				<menuitem text="Mark &amp;Uneen" action="MessageUnmarkSeen"/>
 				<separator/>
 				<menuitem text="&amp;Mark" action="MessageMark"/>
 				<menuitem text="Unmar&amp;k" action="MessageUnmark"/>
 				<separator/>
 				<menuitem text="Mark &amp;Download" action="MessageMarkDownload"/>
+				<menuitem text="Mark Download &amp;Text" action="MessageMarkDownloadText"/>
+				<separator/>
+				<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 			</popupmenu>
 			<separator/>
 			<popupmenu text="&amp;Move" action="MessageMove"/>
@@ -161,12 +164,15 @@
 			<separator/>
 			<popupmenu text="Mar&amp;k">
 				<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
-				<menuitem text="Mark &amp;Uneen" action="MessageMarkUnseen"/>
+				<menuitem text="Mark &amp;Uneen" action="MessageUnmarkSeen"/>
 				<separator/>
 				<menuitem text="&amp;Mark" action="MessageMark"/>
 				<menuitem text="Unmar&amp;k" action="MessageUnmark"/>
 				<separator/>
 				<menuitem text="Mark &amp;Download" action="MessageMarkDownload"/>
+				<menuitem text="Mark Download &amp;Text" action="MessageMarkDownloadText"/>
+				<separator/>
+				<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 			</popupmenu>
 			<separator/>
 			<popupmenu text="&amp;Move" action="MessageMove"/>
@@ -290,12 +296,15 @@
 		<separator/>
 		<popupmenu text="Mar&amp;k">
 			<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
-			<menuitem text="Mark &amp;Uneen" action="MessageMarkUnseen"/>
+			<menuitem text="Mark &amp;Uneen" action="MessageUnmarkSeen"/>
 			<separator/>
 			<menuitem text="&amp;Mark" action="MessageMark"/>
 			<menuitem text="Unmar&amp;k" action="MessageUnmark"/>
 			<separator/>
 			<menuitem text="Mark &amp;Download" action="MessageMarkDownload"/>
+			<menuitem text="Mark Download &amp;Text" action="MessageMarkDownloadText"/>
+			<separator/>
+			<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 		</popupmenu>
 		<separator/>
 		<menuitem text="&amp;Property..." action="MessageProperty"/>
@@ -318,12 +327,15 @@
 		<separator/>
 		<popupmenu text="Mar&amp;k">
 			<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
-			<menuitem text="Mark &amp;Uneen" action="MessageMarkUnseen"/>
+			<menuitem text="Mark &amp;Uneen" action="MessageUnmarkSeen"/>
 			<separator/>
 			<menuitem text="&amp;Mark" action="MessageMark"/>
 			<menuitem text="Unmar&amp;k" action="MessageUnmark"/>
 			<separator/>
 			<menuitem text="Mark &amp;Download" action="MessageMarkDownload"/>
+			<menuitem text="Mark Download &amp;Text" action="MessageMarkDownloadText"/>
+			<separator/>
+			<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 		</popupmenu>
 		<separator/>
 		<menuitem text="&amp;Property..." action="MessageProperty"/>

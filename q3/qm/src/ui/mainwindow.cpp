@@ -493,8 +493,18 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
 		unsigned int, unsigned int>(
+		pActionMap_, IDM_MESSAGE_MARKDELETED, pMessageSelectionModel_,
+		MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
+	CHECK_QSTATUS();
+	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
+		unsigned int, unsigned int>(
 		pActionMap_, IDM_MESSAGE_MARKDOWNLOAD, pMessageSelectionModel_,
 		MessageHolder::FLAG_DOWNLOAD, MessageHolder::FLAG_DOWNLOAD);
+	CHECK_QSTATUS();
+	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
+		unsigned int, unsigned int>(
+		pActionMap_, IDM_MESSAGE_MARKDOWNLOADTEXT, pMessageSelectionModel_,
+		MessageHolder::FLAG_DOWNLOADTEXT, MessageHolder::FLAG_DOWNLOADTEXT);
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
 		unsigned int, unsigned int>(
@@ -508,7 +518,22 @@ QSTATUS qm::MainWindowImpl::initActions()
 	CHECK_QSTATUS();
 	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
 		unsigned int, unsigned int>(
-		pActionMap_, IDM_MESSAGE_MARKUNSEEN, pMessageSelectionModel_,
+		pActionMap_, IDM_MESSAGE_UNMARKDELETED, pMessageSelectionModel_,
+		0, MessageHolder::FLAG_DELETED);
+	CHECK_QSTATUS();
+	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
+		unsigned int, unsigned int>(
+		pActionMap_, IDM_MESSAGE_UNMARKDOWNLOAD, pMessageSelectionModel_,
+		0, MessageHolder::FLAG_DOWNLOAD);
+	CHECK_QSTATUS();
+	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
+		unsigned int, unsigned int>(
+		pActionMap_, IDM_MESSAGE_UNMARKDOWNLOADTEXT, pMessageSelectionModel_,
+		0, MessageHolder::FLAG_DOWNLOADTEXT);
+	CHECK_QSTATUS();
+	status = InitAction3<MessageMarkAction, MessageSelectionModel*,
+		unsigned int, unsigned int>(
+		pActionMap_, IDM_MESSAGE_UNMARKSEEN, pMessageSelectionModel_,
 		0, MessageHolder::FLAG_SEEN);
 	CHECK_QSTATUS();
 	status = InitActionRange3<MessageMoveAction,

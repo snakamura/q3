@@ -83,6 +83,9 @@
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>
 		</action>
+		<action name="MessageMarkDeleted">
+			<key key="D" ctrl="true"/>
+		</action>
 		<action name="MessageMarkDownload">
 			<key key="O"/>
 		</action>
