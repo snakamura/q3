@@ -28,6 +28,7 @@ struct MainWindowCreateContext;
 
 class AutoPilot;
 class Document;
+class FilterMenu;
 class FolderListWindow;
 class GoRound;
 class ListWindow;
@@ -165,16 +166,15 @@ public:
 						EncodingModel* pEncodingModel,
 						int nOffset,
 						EncodingMenu* pEncodingMenu,
-						ViewTemplateMenu* pViewTemplateMenu);
+						ViewTemplateMenu* pViewTemplateMenu,
+						FilterMenu* pFilterMenu);
 	virtual ~MainWindowStatusBar();
 
 public:
 	void updateListParts(const WCHAR* pwszText);
 
-public:
-	virtual LRESULT windowProc(UINT uMsg,
-							   WPARAM wParam,
-							   LPARAM lParam);
+protected:
+	virtual HMENU getMenu(int nPart);
 
 private:
 	virtual Account* getAccount();
@@ -187,6 +187,7 @@ private:
 	Document* pDocument_;
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
+	FilterMenu* pFilterMenu_;
 	unsigned int nCount_;
 	unsigned int nUnseenCount_;
 	unsigned int nSelectedCount_;

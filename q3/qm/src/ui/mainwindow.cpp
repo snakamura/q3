@@ -2311,7 +2311,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pDocument_, pImpl_->pViewModelManager_.get(),
 		pImpl_->pFolderModel_.get(), pImpl_->pMessageWindow_,
 		pImpl_->pEncodingModel_.get(), 2, pImpl_->pEncodingMenu_.get(),
-		pImpl_->pViewTemplateMenu_.get()));
+		pImpl_->pViewTemplateMenu_.get(), pImpl_->pFilterMenu_.get()));
 	if (!pStatusBar->create(L"QmStatusBarWindow", 0, dwStatusBarStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(),
 		0, STATUSCLASSNAMEW, MainWindowImpl::ID_STATUSBAR, 0))
@@ -2700,11 +2700,13 @@ qm::MainWindowStatusBar::MainWindowStatusBar(Document* pDocument,
 											 EncodingModel* pEncodingModel,
 											 int nOffset,
 											 EncodingMenu* pEncodingMenu,
-											 ViewTemplateMenu* pViewTemplateMenu) :
+											 ViewTemplateMenu* pViewTemplateMenu,
+											 FilterMenu* pFilterMenu) :
 	MessageStatusBar(pMessageWindow, pEncodingModel, nOffset, pEncodingMenu, pViewTemplateMenu),
 	pDocument_(pDocument),
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
+	pFilterMenu_(pFilterMenu),
 	nCount_(-1),
 	nUnseenCount_(-1),
 	nSelectedCount_(-1),
@@ -2791,11 +2793,18 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 	}
 }
 
-LRESULT qm::MainWindowStatusBar::windowProc(UINT uMsg,
-											WPARAM wParam,
-											LPARAM lParam)
+HMENU qm::MainWindowStatusBar::getMenu(int nPart)
 {
-	return MessageStatusBar::windowProc(uMsg, wParam, lParam);
+	HMENU hmenu = 0;
+	if (nPart == 2) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		hmenu = ::LoadMenu(hInst, MAKEINTRESOURCE(IDR_VIEWFILTER));
+		pFilterMenu_->createMenu(::GetSubMenu(hmenu, 0));
+	}
+	else {
+		hmenu = MessageStatusBar::getMenu(nPart);
+	}
+	return hmenu;
 }
 
 Account* qm::MainWindowStatusBar::getAccount()

@@ -103,6 +103,9 @@ protected:
 				   UINT nIcon);
 #endif
 
+protected:
+	virtual HMENU getMenu(int nPart);
+
 private:
 	virtual Account* getAccount() = 0;
 

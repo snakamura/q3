@@ -181,26 +181,19 @@ LRESULT qm::MessageStatusBar::onContextMenu(HWND hwnd,
 											const POINT& pt)
 {
 #ifndef _WIN32_WCE_PSPC
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	POINT ptClient = pt;
 	screenToClient(&ptClient);
 	int nPart = getPart(ptClient);
-	if (nOffset_ + 1 <= nPart && nPart <= nOffset_ + 2) {
-		UINT nId = nPart == nOffset_ + 1 ? IDR_VIEWENCODING : IDR_VIEWTEMPLATE;
-		HMENU hmenu = ::LoadMenu(hInst, MAKEINTRESOURCE(nId));
-		HMENU hmenuSub = ::GetSubMenu(hmenu, 0);
-		if (nPart == nOffset_ + 1)
-			pEncodingMenu_->createMenu(hmenuSub);
-		else if (nPart == nOffset_ + 2)
-			pViewTemplateMenu_->createMenu(hmenuSub, getAccount());
-		
-		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+	if (nPart != -1) {
+		AutoMenuHandle hmenu(getMenu(nPart));
+		if (hmenu.get()) {
+			HMENU hmenuSub = ::GetSubMenu(hmenu.get(), 0);
+			UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
-		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+			nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-		::TrackPopupMenu(hmenuSub, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
-		::DestroyMenu(hmenu);
+			::TrackPopupMenu(hmenuSub, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+		}
 	}
 #endif
 	
@@ -245,3 +238,18 @@ void qm::MessageStatusBar::setIconId(int nPart,
 	setIcon(nPart, hIcon);
 }
 #endif
+
+HMENU qm::MessageStatusBar::getMenu(int nPart)
+{
+	HMENU hmenu = 0;
+	if (nOffset_ + 1 <= nPart && nPart <= nOffset_ + 2) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		UINT nId = nPart == nOffset_ + 1 ? IDR_VIEWENCODING : IDR_VIEWTEMPLATE;
+		hmenu = ::LoadMenu(hInst, MAKEINTRESOURCE(nId));
+		if (nPart == nOffset_ + 1)
+			pEncodingMenu_->createMenu(::GetSubMenu(hmenu, 0));
+		else if (nPart == nOffset_ + 2)
+			pViewTemplateMenu_->createMenu(::GetSubMenu(hmenu, 0), getAccount());
+	}
+	return hmenu;
+}
