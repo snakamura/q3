@@ -123,16 +123,16 @@ bool qmnntp::LastIdList::save()
 	FileOutputStream stream(renamer.getPath());
 	if (!stream)
 		return false;
-	OutputStreamWriter writer(&stream, false, L"utf-8");
+	BufferedOutputStream bufferedStream(&stream, false);
+	OutputStreamWriter writer(&bufferedStream, false, L"utf-8");
 	if (!writer)
 		return false;
-	BufferedWriter bufferedWriter(&writer, false);
 	
-	LastIdWriter w(&bufferedWriter);
+	LastIdWriter w(&writer);
 	if (!w.write(*this))
 		return false;
 	
-	if (!bufferedWriter.close())
+	if (!writer.close())
 		return false;
 	
 	if (!renamer.rename())

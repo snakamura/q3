@@ -2041,19 +2041,19 @@ bool qm::ViewData::save() const
 {
 	TemporaryFileRenamer renamer(wstrPath_.get());
 	
-	FileOutputStream os(renamer.getPath());
-	if (!os)
+	FileOutputStream stream(renamer.getPath());
+	if (!stream)
 		return false;
-	OutputStreamWriter writer(&os, false, L"utf-8");
+	BufferedOutputStream bufferedStream(&stream, false);
+	OutputStreamWriter writer(&bufferedStream, false, L"utf-8");
 	if (!writer)
 		return false;
-	BufferedWriter bufferedWriter(&writer, false);
 	
-	ViewDataWriter viewDataWriter(&bufferedWriter);
+	ViewDataWriter viewDataWriter(&writer);
 	if (!viewDataWriter.write(this))
 		return false;
 	
-	if (!bufferedWriter.close())
+	if (!writer.close())
 		return false;
 	
 	if (!renamer.rename())

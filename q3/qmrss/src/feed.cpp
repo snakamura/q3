@@ -109,16 +109,16 @@ bool qmrss::FeedList::save()
 	FileOutputStream stream(renamer.getPath());
 	if (!stream)
 		return false;
-	OutputStreamWriter writer(&stream, false, L"utf-8");
+	BufferedOutputStream bufferedStream(&stream, false);
+	OutputStreamWriter writer(&bufferedStream, false, L"utf-8");
 	if (!writer)
 		return false;
-	BufferedWriter bufferedWriter(&writer, false);
 	
-	FeedWriter w(&bufferedWriter);
+	FeedWriter w(&writer);
 	if (!w.write(*this))
 		return false;
 	
-	if (!bufferedWriter.close())
+	if (!writer.close())
 		return false;
 	
 	if (!renamer.rename())

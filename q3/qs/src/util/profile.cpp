@@ -670,7 +670,8 @@ bool qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
 	if (!outputStream)
 		return false;
 	FileRemover fileRemover(ptszPath);
-	OutputStreamWriter writer(&outputStream, false, L"utf-8");
+	BufferedOutputStream bufferedStream(&outputStream, false);
+	OutputStreamWriter writer(&bufferedStream, false, L"utf-8");
 	if (!writer)
 		return false;
 	BufferedWriter bufferedWriter(&writer, false);
@@ -798,12 +799,12 @@ bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 	FileOutputStream outputStream(renamer.getPath());
 	if (!outputStream)
 		return false;
-	OutputStreamWriter writer(&outputStream, false, L"utf-8");
+	BufferedOutputStream bufferedStream(&outputStream, false);
+	OutputStreamWriter writer(&bufferedStream, false, L"utf-8");
 	if (!writer)
 		return false;
-	BufferedWriter bufferedWriter(&writer, false);
 	
-	OutputHandler handler(&bufferedWriter);
+	OutputHandler handler(&writer);
 	
 	if (!handler.startDocument())
 		return false;
@@ -856,7 +857,7 @@ bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 	if (!handler.endDocument())
 		return false;
 	
-	if (!bufferedWriter.close())
+	if (!writer.close())
 		return false;
 	
 	return renamer.rename();

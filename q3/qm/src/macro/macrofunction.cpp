@@ -3872,13 +3872,13 @@ MacroValuePtr qm::MacroFunctionSave::value(MacroContext* pContext) const
 	FileOutputStream stream(wstrAbsolutePath.get());
 	if (!stream)
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
-	OutputStreamWriter writer(&stream, false, wstrEncoding.get());
+	BufferedOutputStream bufferedStream(&stream, false);
+	OutputStreamWriter writer(&bufferedStream, false, wstrEncoding.get());
 	if (!writer)
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
-	BufferedWriter bufferedWriter(&writer, false);
-	if (bufferedWriter.write(wstrContent.get(), wcslen(wstrContent.get())) == -1)
+	if (writer.write(wstrContent.get(), wcslen(wstrContent.get())) == -1)
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
-	if (!bufferedWriter.close())
+	if (!writer.close())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	return MacroValueFactory::getFactory().newBoolean(true);

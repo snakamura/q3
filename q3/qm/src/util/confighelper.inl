@@ -26,19 +26,19 @@ bool qm::ConfigSaver<T, Writer>::save(T t,
 {
 	qs::TemporaryFileRenamer renamer(pwszPath);
 	
-	qs::FileOutputStream os(renamer.getPath());
-	if (!os)
+	qs::FileOutputStream stream(renamer.getPath());
+	if (!stream)
 		return false;
-	qs::OutputStreamWriter streamWriter(&os, false, L"utf-8");
-	if (!streamWriter)
-		return false;
-	qs::BufferedWriter bufferedWriter(&streamWriter, false);
-	
-	Writer writer(&bufferedWriter);
-	if (!writer.write(t))
+	qs::BufferedOutputStream bufferedStream(&stream, false);
+	qs::OutputStreamWriter writer(&bufferedStream, false, L"utf-8");
+	if (!writer)
 		return false;
 	
-	if (!bufferedWriter.close())
+	Writer w(&writer);
+	if (!w.write(t))
+		return false;
+	
+	if (!writer.close())
 		return false;
 	
 	if (!renamer.rename())
