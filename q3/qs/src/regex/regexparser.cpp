@@ -213,28 +213,25 @@ qs::RegexMultiEscapeAtom::~RegexMultiEscapeAtom()
 
 bool qs::RegexMultiEscapeAtom::match(WCHAR c) const
 {
+	bool bMatch = false;
 	switch (type_) {
 	case TYPE_DOT:
-		return true;
+		bMatch = true;
+		break;
 	case TYPE_WHITESPACE:
-		if (bNegative_)
-			return c != L' ' && c != L'\t' && c != L'\r' && c != L'\n';
-		else
-			return c == L' ' || c == L'\t' || c == L'\r' || c == L'\n';
+		bMatch = c == L' ' || c == L'\t' || c == L'\r' || c == L'\n';
+		break;
 	case TYPE_WORD:
-		if (bNegative_)
-			return (c < L'a' || L'z' < c) && (c < L'A' || L'Z' < c) && (c < L'0' || L'9' < c);
-		else
-			return (L'a' <= c && c <= L'z') || (L'A' <= c && c <= L'Z') || (L'0' <= c && c <= L'9');
+		bMatch = (L'a' <= c && c <= L'z') || (L'A' <= c && c <= L'Z') || (L'0' <= c && c <= L'9') || c == L'_';
+		break;
 	case TYPE_NUMBER:
-		if (bNegative_)
-			return c < L'0' || L'9' < c;
-		else
-			return L'0' <= c && c <= L'9';
+		bMatch = L'0' <= c && c <= L'9';
+		break;
 	default:
 		assert(false);
 		return false;
 	}
+	return bNegative_ ? !bMatch : bMatch;
 }
 
 
