@@ -1,5 +1,5 @@
 /*
- * $Id: $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -254,17 +254,19 @@ QSTATUS qm::ExternalEditorManager::createMessage(const WCHAR* pwszPath)
 	status = reader.close();
 	CHECK_QSTATUS();
 	
-	Message* p = 0;
-	MessageCreator creator;
-	status = creator.createMessage(&buffer[0], nSize, &p);
-	CHECK_QSTATUS();
-	std::auto_ptr<Message> pMessage(p);
-	
-	unsigned int nFlags = 0;
-	// TODO
-	// Set flags
-	status = composer_.compose(0, 0, pMessage.get(), nFlags);
-	CHECK_QSTATUS();
+	if (nSize != 0) {
+		Message* p = 0;
+		MessageCreator creator;
+		status = creator.createMessage(&buffer[0], nSize, &p);
+		CHECK_QSTATUS();
+		std::auto_ptr<Message> pMessage(p);
+		
+		unsigned int nFlags = 0;
+		// TODO
+		// Set flags
+		status = composer_.compose(0, 0, pMessage.get(), nFlags);
+		CHECK_QSTATUS();
+	}
 	
 	return QSTATUS_SUCCESS;
 }
