@@ -102,8 +102,9 @@ public:
 
 private:
 	LRESULT onRClick(NMHDR* pnmhdr, bool* pbHandled);
-	LRESULT onSelChanged(NMHDR* pnmhdr, bool* pbHandled);
 	LRESULT onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onItemExpanded(NMHDR* pnmhdr, bool* pbHandled);
+	LRESULT onSelChanged(NMHDR* pnmhdr, bool* pbHandled);
 
 private:
 	QSTATUS clearAccountList();
@@ -251,8 +252,9 @@ LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(NM_RCLICK, nId_, onRClick)
-		HANDLE_NOTIFY(TVN_SELCHANGED, nId_, onSelChanged)
 		HANDLE_NOTIFY(TVN_GETDISPINFO, nId_, onGetDispInfo)
+		HANDLE_NOTIFY(TVN_ITEMEXPANDED, nId_, onItemExpanded)
+		HANDLE_NOTIFY(TVN_SELCHANGED, nId_, onSelChanged)
 	END_NOTIFY_HANDLER()
 	return 1;
 }
@@ -463,19 +465,6 @@ LRESULT qm::FolderWindowImpl::onRClick(NMHDR* pnmhdr, bool* pbHandled)
 		reinterpret_cast<WPARAM>(pnmhdr->hwndFrom), ::GetMessagePos());
 }
 
-LRESULT qm::FolderWindowImpl::onSelChanged(NMHDR* pnmhdr, bool* pbHandled)
-{
-	DECLARE_QSTATUS();
-	
-	Folder* pFolder = getSelectedFolder();
-	if (pFolder)
-		status = pFolderModel_->setCurrentFolder(pFolder);
-	else
-		status = pFolderModel_->setCurrentAccount(getSelectedAccount());
-	
-	return 0;
-}
-
 LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled)
 {
 	DECLARE_QSTATUS();
@@ -520,6 +509,31 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled)
 			item.iSelectedImage = getAccountImage(pAccount,
 				true, (item.state & TVIS_EXPANDED) != 0);
 	}
+	
+	return 0;
+}
+
+LRESULT qm::FolderWindowImpl::onItemExpanded(NMHDR* pnmhdr, bool* pbHandled)
+{
+	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
+	
+	RECT rect;
+	if (TreeView_GetItemRect(pThis_->getHandle(),
+		pnmtv->itemNew.hItem, &rect, FALSE))
+		pThis_->invalidateRect(rect);
+	
+	return 0;
+}
+
+LRESULT qm::FolderWindowImpl::onSelChanged(NMHDR* pnmhdr, bool* pbHandled)
+{
+	DECLARE_QSTATUS();
+	
+	Folder* pFolder = getSelectedFolder();
+	if (pFolder)
+		status = pFolderModel_->setCurrentFolder(pFolder);
+	else
+		status = pFolderModel_->setCurrentAccount(getSelectedAccount());
 	
 	return 0;
 }
