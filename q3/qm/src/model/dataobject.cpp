@@ -410,7 +410,7 @@ ComPtr<IDataObject> qm::MessageDataObject::getClipboard(Document* pDocument)
 	
 	Clipboard clipboard(0);
 	if (!clipboard)
-		return 0;
+		return ComPtr<IDataObject>();
 	
 	for (int n = 0; n < countof(formats__); ++n) {
 		FORMATETC etc = formats__[n];
@@ -418,10 +418,10 @@ ComPtr<IDataObject> qm::MessageDataObject::getClipboard(Document* pDocument)
 		medium.tymed = TYMED_HGLOBAL;
 		medium.hGlobal = clipboard.getData(etc.cfFormat);
 		if (!medium.hGlobal)
-			return 0;
+			return ComPtr<IDataObject>();
 		HRESULT hr = pDataObject->SetData(&etc, &medium, FALSE);
 		if (hr != S_OK)
-			return 0;
+			return ComPtr<IDataObject>();
 	}
 	
 	pDataObject->AddRef();
@@ -430,7 +430,7 @@ ComPtr<IDataObject> qm::MessageDataObject::getClipboard(Document* pDocument)
 	ComPtr<IDataObject> pDataObject;
 	HRESULT hr = ::OleGetClipboard(&pDataObject);
 	if (hr != S_OK)
-		return 0;
+		return ComPtr<IDataObject>();
 	return pDataObject;
 #endif
 }
