@@ -248,6 +248,7 @@ public:
 	std::auto_ptr<MessageSelectionModelImpl> pMessageSelectionModel_;
 	std::auto_ptr<MessageSelectionModelImpl> pListOnlyMessageSelectionModel_;
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
+	MessageViewModeHolder* pMessageViewModeHolder_;
 	std::auto_ptr<MessageFrameWindowManager> pMessageFrameWindowManager_;
 	std::auto_ptr<EditFrameWindowManager> pEditFrameWindowManager_;
 	std::auto_ptr<ActionMap> pActionMap_;
@@ -881,12 +882,12 @@ void qm::MainWindowImpl::initActions()
 		false);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
-		pPreviewModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTML,
 		true);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLONLINEMODE,
-		pPreviewModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTMLONLINE,
 		true);
 	
@@ -933,12 +934,12 @@ void qm::MainWindowImpl::initActions()
 	
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_QUOTEMODE,
-		pPreviewModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_QUOTE,
 		true);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_RAWMODE,
-		pPreviewModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_RAW,
 		true);
 	ADD_ACTION7(ViewRefreshAction,
@@ -976,7 +977,7 @@ void qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_.get());
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
-		pPreviewModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_SELECT,
 		true);
 	ADD_ACTION1(ViewShowFolderAction,
@@ -1547,6 +1548,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pMessageWindow_ = 0;
 	pImpl_->pStatusBar_ = 0;
 	pImpl_->pSyncNotificationWindow_ = 0;
+	pImpl_->pMessageViewModeHolder_ = 0;
 	pImpl_->bCreated_ = false;
 	pImpl_->pToolbarCookie_ = 0;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
@@ -2018,10 +2020,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	std::auto_ptr<MessageWindow> pMessageWindow(new MessageWindow(
 		pImpl_->pPreviewModel_.get(), pImpl_->pProfile_, L"PreviewWindow"));
+	pImpl_->pMessageViewModeHolder_ = pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder", 1) != 0 ?
+		pImpl_->pPreviewModel_.get() : pMessageWindow->getMessageViewModeHolder();
 	MessageWindowCreateContext messageContext = {
 		pContext->pDocument_,
 		pContext->pUIManager_,
-		pImpl_->pPreviewModel_.get(),
+		pImpl_->pMessageViewModeHolder_,
 		pImpl_->pSecurityModel_.get(),
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow",

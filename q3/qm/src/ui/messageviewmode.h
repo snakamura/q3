@@ -140,7 +140,7 @@ public:
 	virtual ~MessageViewModeHolder();
 
 public:
-	virtual MessageViewMode* getMessageViewMode() const = 0;
+	virtual MessageViewMode* getMessageViewMode() = 0;
 	virtual void addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler) = 0;
 	virtual void removeMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler) = 0;
 };

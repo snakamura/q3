@@ -87,7 +87,7 @@ public:
 	virtual void setViewModel(ViewModel* pViewModel);
 
 public:
-	virtual MessageViewMode* getMessageViewMode() const;
+	virtual MessageViewMode* getMessageViewMode();
 
 public:
 	virtual void itemRemoved(const ViewModelEvent& event);

@@ -114,7 +114,7 @@ void qm::AbstractMessageModel::setViewModel(ViewModel* pViewModel)
 	fireMessageViewModeChanged(pViewModel_, pOld);
 }
 
-MessageViewMode* qm::AbstractMessageModel::getMessageViewMode() const
+MessageViewMode* qm::AbstractMessageModel::getMessageViewMode()
 {
 	return pViewModel_;
 }

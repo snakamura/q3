@@ -108,6 +108,7 @@ public:
 	ExternalEditorManager* pExternalEditorManager_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
+	MessageViewModeHolder* pMessageViewModeHolder_;
 	std::auto_ptr<MoveMenu> pMoveMenu_;
 	std::auto_ptr<AttachmentMenu> pAttachmentMenu_;
 	std::auto_ptr<ViewTemplateMenu> pViewTemplateMenu_;
@@ -349,12 +350,12 @@ void qm::MessageFrameWindowImpl::initActions()
 		Security::isEnabled());
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
-		pMessageModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTML,
 		true);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_HTMLONLINEMODE,
-		pMessageModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTMLONLINE,
 		true);
 	
@@ -379,12 +380,12 @@ void qm::MessageFrameWindowImpl::initActions()
 	
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_QUOTEMODE,
-		pMessageModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_QUOTE,
 		true);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_RAWMODE,
-		pMessageModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_RAW,
 		true);
 	ADD_ACTION1(ViewOpenLinkAction,
@@ -392,7 +393,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageWindow_);
 	ADD_ACTION3(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
-		pMessageModel_.get(),
+		pMessageViewModeHolder_,
 		MessageViewMode::MODE_SELECT,
 		true);
 	ADD_ACTION1(ViewShowHeaderAction,
@@ -809,10 +810,12 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	std::auto_ptr<MessageWindow> pMessageWindow(new MessageWindow(
 		pImpl_->pMessageModel_.get(), pImpl_->pProfile_, L"MessageWindow"));
+	pImpl_->pMessageViewModeHolder_ = pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder", 1) != 0 ?
+		pImpl_->pMessageModel_.get() : pMessageWindow->getMessageViewModeHolder();
 	MessageWindowCreateContext context = {
 		pContext->pDocument_,
 		pContext->pUIManager_,
-		pImpl_->pMessageModel_.get(),
+		pImpl_->pMessageViewModeHolder_,
 		pImpl_->pSecurityModel_.get()
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle, CW_USEDEFAULT,

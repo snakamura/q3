@@ -43,6 +43,8 @@ using namespace qs;
  */
 
 class qm::MessageWindowImpl :
+	public AbstractMessageViewMode,
+	public MessageViewModeHolder,
 	public MessageModelHandler,
 	public MessageViewModeHandler,
 	public MessageViewModeHolderHandler,
@@ -69,6 +71,16 @@ public:
 						int cy);
 	bool setMessage(MessageHolder* pmh,
 					bool bResetEncoding);
+
+public:
+	virtual bool isMode(Mode mode) const;
+	virtual void setMode(Mode mode,
+						 bool b);
+
+public:
+	virtual MessageViewMode* getMessageViewMode();
+	virtual void addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler);
+	virtual void removeMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler);
 
 public:
 	virtual void messageChanged(const MessageModelEvent& event);
@@ -111,6 +123,7 @@ public:
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
 	
+	unsigned int nMode_;
 	wstring_ptr wstrEncoding_;
 	wstring_ptr wstrTemplate_;
 	unsigned int nSeenWait_;
@@ -263,6 +276,37 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	return true;
 }
 
+bool qm::MessageWindowImpl::isMode(Mode mode) const
+{
+	return (nMode_ & mode) != 0;
+}
+
+void qm::MessageWindowImpl::setMode(Mode mode,
+									bool b)
+{
+	unsigned int nMode = nMode_;
+	if (b)
+		nMode_ |= mode;
+	else
+		nMode_ &= ~mode;
+	
+	if (nMode_ != nMode)
+		fireMessageViewModeChanged(mode, b);
+}
+
+MessageViewMode* qm::MessageWindowImpl::getMessageViewMode()
+{
+	return this;
+}
+
+void qm::MessageWindowImpl::addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler)
+{
+}
+
+void qm::MessageWindowImpl::removeMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler)
+{
+}
+
 void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 {
 	MessageHolder* pmh = event.getMessageHolder();
@@ -365,6 +409,7 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->bLayouting_ = false;
 	pImpl_->nSeenTimerId_ = 0;
 	pImpl_->pMessageModel_ = pMessageModel;
+	pImpl_->nMode_ = pProfile->getInt(pwszSection, L"ViewMode", MessageViewMode::MODE_QUOTE);
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
 	pImpl_->nSeenWait_ = pProfile->getInt(pwszSection, L"SeenWait", 0);
 	
@@ -466,6 +511,11 @@ MessageModel* qm::MessageWindow::getMessageModel() const
 	return pImpl_->pMessageModel_;
 }
 
+MessageViewModeHolder* qm::MessageWindow::getMessageViewModeHolder() const
+{
+	return pImpl_;
+}
+
 AttachmentSelectionModel* qm::MessageWindow::getAttachmentSelectionModel() const
 {
 	return pImpl_->pHeaderWindow_->getAttachmentSelectionModel();
@@ -476,6 +526,7 @@ bool qm::MessageWindow::save()
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
+	pProfile->setInt(pImpl_->pwszSection_, L"ViewMode", pImpl_->nMode_);
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
 	
@@ -557,6 +608,10 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->layoutChildren();
 	pImpl_->pMessageViewWindow_->getWindow().showWindow(SW_SHOW);
 	
+	MessageViewMode* pMode = pImpl_->pMessageViewModeHolder_->getMessageViewMode();
+	if (pMode)
+		pMode->addMessageViewModeHandler(pImpl_);
+	
 	pImpl_->bCreated_ = true;
 	pImpl_->bLayouting_ = false;
 	
@@ -565,9 +620,14 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MessageWindow::onDestroy()
 {
+	MessageViewMode* pMode = pImpl_->pMessageViewModeHolder_->getMessageViewMode();
+	if (pMode)
+		pMode->removeMessageViewModeHandler(pImpl_);
+	
 	pImpl_->pMessageViewModeHolder_->removeMessageViewModeHolderHandler(pImpl_);
 	pImpl_->pSecurityModel_->removeSecurityModelHandler(pImpl_);
 	pImpl_->pMessageModel_->removeMessageModelHandler(pImpl_);
+	
 	return DefaultWindowHandler::onDestroy();
 }
 

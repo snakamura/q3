@@ -35,6 +35,7 @@ class MessageFrameWindowManager;
 class MessageHolder;
 class MessageMessageModel;
 class MessageModel;
+class MessageViewModeHolder;
 class MessageWindowItem;
 class ViewModel;
 class ViewModelManager;
@@ -151,6 +152,7 @@ public:
 	MessageWindowItem* getFocusedItem() const;
 	
 	MessageModel* getMessageModel() const;
+	MessageViewModeHolder* getMessageViewModeHolder() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	
 	bool save();
