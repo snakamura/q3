@@ -1035,7 +1035,11 @@ QSTATUS qm::MessageFrameWindowManager::open(
 void qm::MessageFrameWindowManager::close(
 	MessageFrameWindow* pMessageFrameWindow)
 {
-	assert(!pCachedFrame_);
+	assert(pMessageFrameWindow);
+	assert(!pCachedFrame_ || pMessageFrameWindow == pCachedFrame_);
+	
+	if (pMessageFrameWindow == pCachedFrame_)
+		return;
 	
 	if (listFrame_.size() == 1) {
 		pMessageFrameWindow->showWindow(SW_HIDE);

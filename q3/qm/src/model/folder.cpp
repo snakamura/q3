@@ -60,6 +60,7 @@ struct qm::FolderImpl
 #ifndef NDEBUG
 	unsigned int nLock_;
 #endif
+	bool bDestroyed_;
 };
 
 QSTATUS qm::FolderImpl::getMessages(const MessagePtrList& l,
@@ -110,6 +111,9 @@ QSTATUS qm::FolderImpl::fireMessageRemoved(MessageHolder* pmh)
 	assert(pmh);
 	
 	DECLARE_QSTATUS();
+	
+	if (bDestroyed_)
+		return QSTATUS_SUCCESS;
 	
 	FolderEvent event(pThis_, pmh);
 	
@@ -181,6 +185,7 @@ qm::Folder::Folder(const Init& init, QSTATUS* pstatus)
 #ifndef NDEBUG
 	pImpl_->nLock_ = 0;
 #endif
+	pImpl_->bDestroyed_ = false;
 }
 
 qm::Folder::~Folder()
@@ -828,7 +833,16 @@ QSTATUS qm::NormalFolder::deletePermanent()
 {
 	DECLARE_QSTATUS();
 	
-	// TODO
+	getImpl()->bDestroyed_ = true;
+	
+	status = deleteAllMessages();
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrPath;
+	status = pImpl_->getPath(&wstrPath);
+	CHECK_QSTATUS();
+	W2T(wstrPath.get(), ptszPath);
+	::DeleteFile(ptszPath);
 	
 	status = getImpl()->fireFolderDestroyed();
 	CHECK_QSTATUS();
