@@ -29,7 +29,7 @@ qm::AddressBookModel::AddressBookModel() :
 	bModified_(false)
 {
 	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::ADDRESSBOOK_XML));
-	pAddressBook_.reset(new AddressBook(wstrPath.get(), false));
+	pAddressBook_.reset(new AddressBook(wstrPath.get(), 0, false));
 	
 	initEntries();
 	

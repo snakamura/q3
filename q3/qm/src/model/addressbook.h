@@ -37,7 +37,9 @@ class AddressBookContentHandler;
 class AddressBookWriter;
 class ExternalAddressBook;
 #ifndef _WIN32_WCE
-	class WindowsAddressBook;
+	class MAPIAddressBook;
+		class WindowsAddressBook;
+		class OutlookAddressBook;
 #else
 	class PocketOutlookAddressBook;
 #endif
@@ -68,6 +70,7 @@ public:
 
 public:
 	AddressBook(const WCHAR* pwszPath,
+				qs::Profile* pProfile,
 				bool bLoadExternal);
 	~AddressBook();
 
@@ -86,7 +89,7 @@ public:
 	const AddressBookCategory* getCategory(const WCHAR* pwszCategory);
 
 private:
-	void initExternal();
+	void initExternal(qs::Profile* pProfile);
 	bool load();
 	bool loadExternal();
 	void clear(unsigned int nType);
@@ -342,12 +345,15 @@ public:
 class ExternalAddressBookManager
 {
 public:
-	ExternalAddressBookManager();
+	explicit ExternalAddressBookManager(qs::Profile* pProfile);
 	~ExternalAddressBookManager();
 
 public:
 	bool load(AddressBook* pAddressBook);
 	bool isModified() const;
+
+private:
+	void init(std::auto_ptr<ExternalAddressBook> pAddressBook);
 
 private:
 	ExternalAddressBookManager(const ExternalAddressBookManager&);
@@ -365,21 +371,26 @@ private:
 
 /****************************************************************************
  *
- * WindowsAddressBook
+ * MAPIAddressBook
  *
  */
 
-class WindowsAddressBook : public ExternalAddressBook
+class MAPIAddressBook : public ExternalAddressBook
 {
-public:
-	WindowsAddressBook();
-	virtual ~WindowsAddressBook();
+protected:
+	MAPIAddressBook();
+	virtual ~MAPIAddressBook();
 
 public:
-	virtual bool init();
 	virtual void term();
 	virtual bool load(AddressBook* pAddressBook);
 	virtual bool isModified();
+
+protected:
+	bool init(IAddrBook* pAddrBook);
+
+protected:
+	virtual void freeBuffer(void* pBuffer) const = 0;
 
 private:
 	qs::wstring_ptr expandDistList(IDistList* pDistList) const;
@@ -388,7 +399,7 @@ private:
 	class IMAPIAdviseSinkImpl : public IMAPIAdviseSink
 	{
 	public:
-		explicit IMAPIAdviseSinkImpl(WindowsAddressBook* pAddressBook);
+		explicit IMAPIAdviseSinkImpl(MAPIAddressBook* pAddressBook);
 		~IMAPIAdviseSinkImpl();
 	
 	public:
@@ -407,14 +418,14 @@ private:
 	
 	private:
 		ULONG nRef_;
-		WindowsAddressBook* pAddressBook_;
+		MAPIAddressBook* pAddressBook_;
 	};
 	friend class IMAPIAdviseSinkImpl;
 	
 	class RowSetDeleter
 	{
 	public:
-		RowSetDeleter(IWABObject* pWABObject,
+		RowSetDeleter(const MAPIAddressBook* pAddressBook,
 					  SRowSet* pSRowSet);
 		~RowSetDeleter();
 	
@@ -423,9 +434,39 @@ private:
 		RowSetDeleter& operator=(const RowSetDeleter&);
 	
 	private:
-		IWABObject* pWABObject_;
+		const MAPIAddressBook* pAddressBook_;
 		SRowSet* pSRowSet_;
 	};
+
+private:
+	MAPIAddressBook(const MAPIAddressBook&);
+	MAPIAddressBook& operator=(const MAPIAddressBook&);
+
+private:
+	IAddrBook* pAddrBook_;
+	ULONG nConnection_;
+	bool bModified_;
+};
+
+
+/****************************************************************************
+ *
+ * WindowsAddressBook
+ *
+ */
+
+class WindowsAddressBook : public MAPIAddressBook
+{
+public:
+	WindowsAddressBook();
+	virtual ~WindowsAddressBook();
+
+public:
+	virtual bool init();
+	virtual void term();
+
+protected:
+	virtual void freeBuffer(void* pBuffer) const;
 
 private:
 	WindowsAddressBook(const WindowsAddressBook&);
@@ -433,10 +474,35 @@ private:
 
 private:
 	HINSTANCE hInstWAB_;
-	IAddrBook* pAddrBook_;
 	IWABObject* pWABObject_;
-	ULONG nConnection_;
-	bool bModified_;
+};
+
+
+/****************************************************************************
+ *
+ * OutlookAddressBook
+ *
+ */
+
+class OutlookAddressBook : public MAPIAddressBook
+{
+public:
+	OutlookAddressBook();
+	virtual ~OutlookAddressBook();
+
+public:
+	virtual bool init();
+	virtual void term();
+
+protected:
+	virtual void freeBuffer(void* pBuffer) const;
+
+private:
+	OutlookAddressBook(const OutlookAddressBook&);
+	OutlookAddressBook& operator=(const OutlookAddressBook&);
+
+private:
+	HINSTANCE hInst_;
 };
 
 #else // _WIN32_WCE
