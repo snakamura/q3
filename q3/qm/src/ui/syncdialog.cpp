@@ -146,7 +146,11 @@ unsigned int qm::SyncDialog::getCanceledTime() const
 void qm::SyncDialog::resetCanceledTime()
 {
 	nCanceledTime_ = 0;
-	Window(getDlgItem(IDC_CANCEL)).enableWindow(true);
+}
+
+void qm::SyncDialog::enableCancel(bool bEnable)
+{
+	sendMessage(WM_SYNCDIALOG_ENABLECANCEL, bEnable);
 }
 
 QSTATUS qm::SyncDialog::addError(const WCHAR* pwszError)
@@ -183,6 +187,7 @@ INT_PTR qm::SyncDialog::dialogProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HANDLE_DESTROY()
 		HANDLE_INITDIALOG()
 		HANDLE_SIZE()
+		HANDLE_MESSAGE(WM_SYNCDIALOG_ENABLECANCEL, onEnableCancel)
 		HANDLE_MESSAGE(WM_SYNCDIALOG_SHOWDIALUPDIALOG, onShowDialupDialog)
 	END_DIALOG_HANDLER()
 	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
@@ -265,6 +270,22 @@ LRESULT qm::SyncDialog::onSize(UINT nFlags, int cx, int cy)
 	return DefaultDialogHandler::onSize(nFlags, cx, cy);
 }
 
+LRESULT qm::SyncDialog::onEnableCancel(WPARAM wParam, LPARAM lParam)
+{
+	bool bEnable = wParam != 0;
+	
+	Window(getDlgItem(IDC_CANCEL)).enableWindow(bEnable);
+	
+	UINT nOldId = bEnable ? IDCANCEL : IDC_CANCEL;
+	UINT nNewId = bEnable ? IDC_CANCEL : IDCANCEL;
+	Window(getDlgItem(nNewId)).setFocus();
+	sendDlgItemMessage(nOldId, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
+	sendMessage(DM_SETDEFID, nNewId);
+	sendDlgItemMessage(nNewId, BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+	
+	return 0;
+}
+
 LRESULT qm::SyncDialog::onShowDialupDialog(WPARAM wParam, LPARAM lParam)
 {
 	bool bCancel = false;
@@ -276,7 +297,7 @@ LRESULT qm::SyncDialog::onCancel()
 {
 	if (nCanceledTime_ == 0)
 		nCanceledTime_ = ::GetTickCount();
-	Window(getDlgItem(IDC_CANCEL)).enableWindow(false);
+	enableCancel(false);
 	return 0;
 }
 
@@ -441,6 +462,7 @@ QSTATUS qm::SyncStatusWindow::start()
 {
 	pSyncDialog_->resetCanceledTime();
 	pSyncDialog_->setMessage(L"");
+	pSyncDialog_->enableCancel(true);
 	pSyncDialog_->show();
 	return QSTATUS_SUCCESS;
 }
@@ -454,6 +476,7 @@ void qm::SyncStatusWindow::end()
 	}
 	
 	pSyncDialog_->setMessage(L"");
+	pSyncDialog_->enableCancel(false);
 	
 	if (bEmpty && !pSyncDialog_->hasError())
 		pSyncDialog_->hide();
@@ -650,12 +673,23 @@ bool qm::SyncStatusWindow::isCanceled(unsigned int nId, bool bForce)
 		return ::GetTickCount() - nCanceledTime > 10*1000;
 }
 
+QSTATUS qm::SyncStatusWindow::selectDialupEntry(WSTRING* pwstrEntry)
+{
+	assert(pwstrEntry);
+	
+	DECLARE_QSTATUS();
+	
+	// TODO
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qm::SyncStatusWindow::showDialupDialog(
 	RASDIALPARAMS* prdp, bool* pbCancel)
 {
 	*pbCancel = pSyncDialog_->sendMessage(
 		SyncDialog::WM_SYNCDIALOG_SHOWDIALUPDIALOG,
-		0, reinterpret_cast<LPARAM>(prdp));
+		0, reinterpret_cast<LPARAM>(prdp)) != 0;
 	return QSTATUS_SUCCESS;
 }
 

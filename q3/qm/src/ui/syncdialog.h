@@ -66,7 +66,8 @@ class SyncDialog :
 {
 public:
 	enum {
-		WM_SYNCDIALOG_SHOWDIALUPDIALOG = WM_APP + 1001
+		WM_SYNCDIALOG_ENABLECANCEL		= WM_APP + 1001,
+		WM_SYNCDIALOG_SHOWDIALUPDIALOG	= WM_APP + 1002
 	};
 
 public:
@@ -82,6 +83,7 @@ public:
 	void setMessage(const WCHAR* pwszMessage);
 	unsigned int getCanceledTime() const;
 	void resetCanceledTime();
+	void enableCancel(bool bEnable);
 	qs::QSTATUS addError(const WCHAR* pwszError);
 	bool hasError() const;
 
@@ -96,6 +98,7 @@ protected:
 	LRESULT onDestroy();
 	LRESULT onInitDialog(HWND hwndFocus, LPARAM lParam);
 	LRESULT onSize(UINT nFlags, int cx, int cy);
+	LRESULT onEnableCancel(WPARAM wParam, LPARAM lParam);
 	LRESULT onShowDialupDialog(WPARAM wParam, LPARAM lParam);
 
 private:
@@ -199,8 +202,8 @@ public:
 	virtual qs::QSTATUS setMessage(unsigned int nId, const WCHAR* pwszMessage);
 	virtual qs::QSTATUS addError(unsigned int nId, const SessionErrorInfo& info);
 	virtual bool isCanceled(unsigned int nId, bool bForce);
-	virtual qs::QSTATUS showDialupDialog(
-		RASDIALPARAMS* prdp, bool* pbCancel);
+	virtual qs::QSTATUS selectDialupEntry(qs::WSTRING* pwstrEntry);
+	virtual qs::QSTATUS showDialupDialog(RASDIALPARAMS* prdp, bool* pbCancel);
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
