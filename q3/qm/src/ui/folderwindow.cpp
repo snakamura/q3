@@ -34,6 +34,7 @@
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../action/action.h"
 #include "../model/dataobject.h"
 #include "../uimodel/foldermodel.h"
 #include "../util/util.h"
@@ -670,9 +671,16 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
 				(!pTarget || !pFolder->isAncestorOf(pTarget))) {
-				if (!pAccount->moveFolder(pFolder, pTarget, 0))
-					messageBox(Application::getApplication().getResourceHandle(),
-						IDS_ERROR_MOVEFOLDER, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
+				if (pTarget && pTarget->isFlag(Folder::FLAG_TRASHBOX)) {
+					if (!FolderDeleteAction::deleteFolder(pFolderModel_, pFolder))
+						messageBox(Application::getApplication().getResourceHandle(),
+							IDS_ERROR_MOVEFOLDER, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
+				}
+				else {
+					if (!pAccount->moveFolder(pFolder, pTarget, 0))
+						messageBox(Application::getApplication().getResourceHandle(),
+							IDS_ERROR_MOVEFOLDER, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
+				}
 				
 				dwEffect = DROPEFFECT_MOVE;
 			}

@@ -1219,8 +1219,9 @@ public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
-private:
-	bool deleteFolder(Folder* pFolder) const;
+public:
+	static bool deleteFolder(FolderModel* pFolderModel,
+							 Folder* pFolder);
 
 private:
 	FolderDeleteAction(const FolderDeleteAction&);

@@ -2462,7 +2462,7 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 		return;
 	
 	if (l.size() == 1) {
-		if (!deleteFolder(l[0])) {
+		if (!deleteFolder(pFolderModel_, l[0])) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DELETEFOLDER);
 			return;
 		}
@@ -2484,7 +2484,7 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 		
 		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* pFolder = *it;
-			if (!deleteFolder(pFolder)) {
+			if (!deleteFolder(pFolderModel_, pFolder)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_DELETEFOLDER);
 				return;
 			}
@@ -2497,7 +2497,8 @@ bool qm::FolderDeleteAction::isEnabled(const ActionEvent& event)
 	return FolderActionUtil::hasSelected(pFolderSelectionModel_);
 }
 
-bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
+bool qm::FolderDeleteAction::deleteFolder(FolderModel* pFolderModel,
+										  Folder* pFolder)
 {
 	Account* pAccount = pFolder->getAccount();
 	
@@ -2517,12 +2518,12 @@ bool qm::FolderDeleteAction::deleteFolder(Folder* pFolder) const
 		return pAccount->moveFolder(pFolder, pTrash, wstrName.get());
 	}
 	else {
-		if (pFolderModel_->getCurrent().second == pFolder) {
+		if (pFolderModel->getCurrent().second == pFolder) {
 			Folder* pParent = pFolder->getParentFolder();
 			if (pParent)
-				pFolderModel_->setCurrent(0, pParent, false);
+				pFolderModel->setCurrent(0, pParent, false);
 			else
-				pFolderModel_->setCurrent(pAccount, 0, false);
+				pFolderModel->setCurrent(pAccount, 0, false);
 		}
 		return pAccount->removeFolder(pFolder);
 	}
