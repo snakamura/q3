@@ -125,7 +125,11 @@ public:
 	bool isLocked() const;
 #endif
 
+// These methods are intended to be called from Account class.
 public:
+	qs::QSTATUS setName(const WCHAR* pwszName);
+
+protected:
 	struct FolderImpl* getImpl() const;
 
 public:

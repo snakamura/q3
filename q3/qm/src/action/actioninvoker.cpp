@@ -74,6 +74,7 @@ struct ActionNameMap
 	{ L"FolderDelete",					IDM_FOLDER_DELETE						},
 	{ L"FolderEmpty",					IDM_FOLDER_EMPTY						},
 	{ L"FolderProperty",				IDM_FOLDER_PROPERTY						},
+	{ L"FolderRename",					IDM_FOLDER_RENAME						},
 	{ L"FolderShowSize",				IDM_FOLDER_SHOWSIZE						},
 	{ L"FolderUpdate",					IDM_FOLDER_UPDATE						},
 	{ L"HeaderEditItem0",				IDM_FOCUS_HEADEREDITITEM				},

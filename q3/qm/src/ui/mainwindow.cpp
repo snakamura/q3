@@ -394,6 +394,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 	status = InitAction2<FolderPropertyAction, FolderSelectionModel*, HWND>(
 		pActionMap_, IDM_FOLDER_PROPERTY, this, pThis_->getHandle());
 	CHECK_QSTATUS();
+	status = InitAction2<FolderRenameAction, FolderSelectionModel*, HWND>(
+		pActionMap_, IDM_FOLDER_RENAME, this, pThis_->getHandle());
+	CHECK_QSTATUS();
 	status = InitAction1<FolderUpdateAction, FolderModel*>(
 		pActionMap_, IDM_FOLDER_UPDATE, pFolderModel_);
 	CHECK_QSTATUS();

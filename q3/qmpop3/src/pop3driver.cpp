@@ -81,6 +81,13 @@ QSTATUS qmpop3::Pop3Driver::removeFolder(
 	return QSTATUS_FAIL;
 }
 
+QSTATUS qmpop3::Pop3Driver::renameFolder(SubAccount* pSubAccount,
+	NormalFolder* pFolder, const WCHAR* pwszName)
+{
+	assert(false);
+	return QSTATUS_FAIL;
+}
+
 QSTATUS qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 {
 	assert(pList);

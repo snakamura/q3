@@ -67,6 +67,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"FolderDelete",					IDM_FOLDER_DELETE,						0 },
 	{ L"FolderEmpty",					IDM_FOLDER_EMPTY,						0 },
 	{ L"FolderProperty",				IDM_FOLDER_PROPERTY,					0 },
+	{ L"FolderRename",					IDM_FOLDER_RENAME,						0 },
 	{ L"FolderShowSize",				IDM_FOLDER_SHOWSIZE,					0 },
 	{ L"FolderUpdate",					IDM_FOLDER_UPDATE,						0 },
 	{ L"HeaderEditItem0",				IDM_FOCUS_HEADEREDITITEM,				0 },

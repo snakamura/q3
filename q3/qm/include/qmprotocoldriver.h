@@ -52,6 +52,8 @@ public:
 		const WCHAR* pwszName, Folder* pParent, NormalFolder** ppFolder) = 0;
 	virtual qs::QSTATUS removeFolder(
 		SubAccount* pSubAccount, NormalFolder* pFolder) = 0;
+	virtual qs::QSTATUS renameFolder(SubAccount* pSubAccount,
+		NormalFolder* pFolder, const WCHAR* pwszName) = 0;
 	virtual qs::QSTATUS createDefaultFolders(Account::FolderList* pList) = 0;
 	virtual qs::QSTATUS getRemoteFolders(
 		SubAccount* pSubAccount, RemoteFolderList* pList) = 0;

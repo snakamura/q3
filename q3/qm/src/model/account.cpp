@@ -830,7 +830,25 @@ QSTATUS qm::Account::removeFolder(Folder* pFolder)
 
 QSTATUS qm::Account::renameFolder(Folder* pFolder, const WCHAR* pwszName)
 {
-	// TODO
+	assert(pFolder);
+	assert(pwszName);
+	
+	DECLARE_QSTATUS();
+	
+	if (pFolder->getType() == Folder::TYPE_NORMAL &&
+		!pFolder->isFlag(Folder::FLAG_LOCAL)) {
+		status = pImpl_->pProtocolDriver_->renameFolder(getCurrentSubAccount(),
+			static_cast<NormalFolder*>(pFolder), pwszName);
+		CHECK_QSTATUS();
+	}
+	
+	status = pFolder->setName(pwszName);
+	CHECK_QSTATUS();
+	
+	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_RENAME, pFolder);
+	status = pImpl_->fireFolderListChanged(event);
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 

@@ -401,6 +401,16 @@ bool qm::Folder::isLocked() const
 }
 #endif
 
+QSTATUS qm::Folder::setName(const WCHAR* pwszName)
+{
+	string_ptr<WSTRING> wstrName(allocWString(pwszName));
+	if (!wstrName.get())
+		return QSTATUS_OUTOFMEMORY;
+	freeWString(pImpl_->wstrName_);
+	pImpl_->wstrName_ = wstrName.release();
+	return QSTATUS_SUCCESS;
+}
+
 FolderImpl* qm::Folder::getImpl() const
 {
 	return pImpl_;

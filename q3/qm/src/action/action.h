@@ -46,6 +46,7 @@ class FolderCompactAction;
 class FolderCreateAction;
 class FolderDeleteAction;
 class FolderPropertyAction;
+class FolderRenameAction;
 class FolderShowSizeAction;
 class FolderUpdateAction;
 class MessageApplyRuleAction;
@@ -820,6 +821,33 @@ private:
 
 private:
 	FolderSelectionModel* pModel_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderRenameAction
+ *
+ */
+
+class FolderRenameAction : public qs::AbstractAction
+{
+public:
+	FolderRenameAction(FolderSelectionModel* pFolderSelectionModel,
+		HWND hwnd, qs::QSTATUS* pstatus);
+	virtual ~FolderRenameAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	FolderRenameAction(const FolderRenameAction&);
+	FolderRenameAction& operator=(const FolderRenameAction&);
+
+private:
+	FolderSelectionModel* pFolderSelectionModel_;
 	HWND hwnd_;
 };
 

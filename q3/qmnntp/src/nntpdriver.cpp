@@ -111,6 +111,12 @@ QSTATUS qmnntp::NntpDriver::removeFolder(
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qmnntp::NntpDriver::renameFolder(SubAccount* pSubAccount,
+	NormalFolder* pFolder, const WCHAR* pwszName)
+{
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 {
 	assert(pList);

@@ -271,6 +271,44 @@ QSTATUS qmimap4::Imap4Driver::removeFolder(
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qmimap4::Imap4Driver::renameFolder(SubAccount* pSubAccount,
+	NormalFolder* pFolder, const WCHAR* pwszName)
+{
+	assert(pSubAccount);
+	assert(pFolder);
+	assert(pwszName);
+	
+	DECLARE_QSTATUS();
+	
+	Lock<CriticalSection> lock(cs_);
+	
+	status = prepareSessionCache(pSubAccount);
+	CHECK_QSTATUS();
+	
+	Imap4* pImap4 = 0;
+	SessionCacher cacher(pSessionCache_, 0, &pImap4, &status);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrOldName;
+	status = Util::getFolderName(pFolder, &wstrOldName);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrNewName(allocWString(wstrOldName.get(),
+		wcslen(wstrOldName.get()) + wcslen(pwszName) + 1));
+	if (!wstrNewName.get())
+		return QSTATUS_OUTOFMEMORY;
+	WCHAR* p = wcsrchr(wstrNewName.get(), pFolder->getSeparator());
+	p = p ? p + 1 : wstrNewName.get();
+	wcscpy(p, pwszName);
+	
+	status = pImap4->rename(wstrOldName.get(), wstrNewName.get());
+	CHECK_QSTATUS();
+	
+	cacher.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qmimap4::Imap4Driver::createDefaultFolders(Account::FolderList* pList)
 {
 	assert(pList);

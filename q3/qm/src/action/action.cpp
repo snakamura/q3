@@ -1775,6 +1775,86 @@ QSTATUS qm::FolderPropertyAction::isEnabled(const ActionEvent& event, bool* pbEn
 
 /****************************************************************************
  *
+ * FolderRenameAction
+ *
+ */
+
+qm::FolderRenameAction::FolderRenameAction(
+	FolderSelectionModel* pFolderSelectionModel,
+	HWND hwnd, qs::QSTATUS* pstatus) :
+	pFolderSelectionModel_(pFolderSelectionModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::FolderRenameAction::~FolderRenameAction()
+{
+}
+
+QSTATUS qm::FolderRenameAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	Folder* pFolder = pFolderSelectionModel_->getFocusedFolder();
+	if (pFolder) {
+		RenameDialog dialog(pFolder->getName(), &status);
+		CHECK_QSTATUS();
+		int nRet = 0;
+		status = dialog.doModal(hwnd_, 0, &nRet);
+		CHECK_QSTATUS();
+		if (nRet == IDOK) {
+			const WCHAR* pwszName = dialog.getName();
+			if (wcscmp(pFolder->getName(), pwszName) != 0) {
+				Account* pAccount = pFolder->getAccount();
+				status = pAccount->renameFolder(pFolder, pwszName);
+				CHECK_QSTATUS();
+			}
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::FolderRenameAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	*pbEnabled = pFolderSelectionModel_->getFocusedFolder() != 0;
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
+ * FolderShowSizeAction
+ *
+ */
+
+qm::FolderShowSizeAction::FolderShowSizeAction(
+	FolderListWindow* pFolderListWindow, QSTATUS* pstatus) :
+	pFolderListWindow_(pFolderListWindow)
+{
+}
+
+qm::FolderShowSizeAction::~FolderShowSizeAction()
+{
+}
+
+QSTATUS qm::FolderShowSizeAction::invoke(const ActionEvent& event)
+{
+	return pFolderListWindow_->showSize();
+}
+
+QSTATUS qm::FolderShowSizeAction::isEnabled(
+	const ActionEvent& event, bool* pbEnabled)
+{
+	*pbEnabled = pFolderListWindow_->isShow() &&
+		!pFolderListWindow_->isSizeShown();
+	return QSTATUS_SUCCESS;
+}
+
+
+/****************************************************************************
+ *
  * FolderUpdateAction
  *
  */
@@ -1830,36 +1910,6 @@ QSTATUS qm::FolderUpdateAction::isEnabled(const ActionEvent& event, bool* pbEnab
 	}
 	*pbEnabled = pAccount && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER);
 	
-	return QSTATUS_SUCCESS;
-}
-
-
-/****************************************************************************
- *
- * FolderShowSizeAction
- *
- */
-
-qm::FolderShowSizeAction::FolderShowSizeAction(
-	FolderListWindow* pFolderListWindow, QSTATUS* pstatus) :
-	pFolderListWindow_(pFolderListWindow)
-{
-}
-
-qm::FolderShowSizeAction::~FolderShowSizeAction()
-{
-}
-
-QSTATUS qm::FolderShowSizeAction::invoke(const ActionEvent& event)
-{
-	return pFolderListWindow_->showSize();
-}
-
-QSTATUS qm::FolderShowSizeAction::isEnabled(
-	const ActionEvent& event, bool* pbEnabled)
-{
-	*pbEnabled = pFolderListWindow_->isShow() &&
-		!pFolderListWindow_->isSizeShown();
 	return QSTATUS_SUCCESS;
 }
 
