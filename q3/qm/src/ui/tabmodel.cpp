@@ -166,13 +166,17 @@ void qm::DefaultTabModel::setLocked(int nItem,
 
 void qm::DefaultTabModel::open(Account* pAccount)
 {
-	int nItem = addAccount(pAccount, false);
+	int nItem = getItem(pAccount);
+	if (nItem == -1)
+		nItem = addAccount(pAccount, false);
 	setCurrent(nItem);
 }
 
 void qm::DefaultTabModel::open(Folder* pFolder)
 {
-	int nItem = addFolder(pFolder, false);
+	int nItem = getItem(pFolder);
+	if (nItem == -1)
+		nItem = addFolder(pFolder, false);
 	setCurrent(nItem);
 }
 
@@ -461,6 +465,36 @@ void qm::DefaultTabModel::removeItem(int nItem)
 		nCurrent = -1;
 	}
 	setCurrent(nCurrent, true);
+}
+
+int qm::DefaultTabModel::getItem(Account* pAccount) const
+{
+	ItemList::const_iterator it = std::find_if(
+		listItem_.begin(), listItem_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Account*>(),
+				unary_compose_f_gx(
+					std::select1st<std::pair<Account*, Folder*> >(),
+					std::mem_fun(&TabItem::get)),
+				std::identity<Account*>()),
+			pAccount));
+	return it != listItem_.end() ? it - listItem_.begin() : -1;
+}
+
+int qm::DefaultTabModel::getItem(Folder* pFolder) const
+{
+	ItemList::const_iterator it = std::find_if(
+		listItem_.begin(), listItem_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Folder*>(),
+				unary_compose_f_gx(
+					std::select2nd<std::pair<Account*, Folder*> >(),
+					std::mem_fun(&TabItem::get)),
+				std::identity<Folder*>()),
+			pFolder));
+	return it != listItem_.end() ? it - listItem_.begin() : -1;
 }
 
 void qm::DefaultTabModel::resetHandlers(Account* pOldAccount,

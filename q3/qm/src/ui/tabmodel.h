@@ -157,6 +157,8 @@ private:
 	int addFolder(Folder* pFolder,
 				  bool bLocked);
 	void removeItem(int nItem);
+	int getItem(Account* pAccount) const;
+	int getItem(Folder* pFolder) const;
 	void resetHandlers(Account* pOldAccount,
 					   Folder* pOldFolder,
 					   Account* pNewAccount,
