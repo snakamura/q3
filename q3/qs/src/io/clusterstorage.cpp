@@ -150,10 +150,8 @@ unsigned int qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
 	assert(nSize%CLUSTER_SIZE == 0);
 	nSize /= CLUSTER_SIZE;
 	
-	unsigned int nOrgCurrentOffset = nCurrentOffset;
-	if (nCurrentOffset != 0xffffffff)
-		nCurrentOffset /= BYTE_SIZE;
-	
+	unsigned int nCurrentBlock = nCurrentOffset != 0xffffffff ?
+		nCurrentOffset / BYTE_SIZE : 0xffffffff;
 	unsigned int nBegin = 0;
 	unsigned int nBeginBit = 0;
 	unsigned int nEnd = 0;
@@ -166,8 +164,8 @@ unsigned int qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
 	else if (nSearchBegin < map_.size())
 		it += nSearchBegin;
 	for (; it != map_.end() && nFindSize < nSize; ++it) {
-		if (static_cast<unsigned int>(it - map_.begin()) >= nCurrentOffset)
-			return nOrgCurrentOffset;
+		if (static_cast<unsigned int>(it - map_.begin()) >= nCurrentBlock)
+			return nCurrentOffset;
 		
 		if (*it == 0xff) {
 			if (nFindSize != 0)

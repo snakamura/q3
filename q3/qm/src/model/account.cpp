@@ -1316,17 +1316,27 @@ void  qm::Account::setOffline(bool bOffline)
 	pImpl_->pProtocolDriver_->setOffline(bOffline);
 }
 
-bool qm::Account::compact()
+bool qm::Account::compact(MessageOperationCallback* pCallback)
 {
 	Lock<Account> lock(*this);
 	
-	MessageStore::ReferList listRefer;
-	
+	unsigned int nCount = 0;
 	for (Account::FolderList::iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL) {
 			if (!pFolder->loadMessageHolders())
 				return false;
+			nCount += pFolder->getCount();
+		}
+	}
+	pCallback->setCount(nCount);
+	pCallback->show();
+	
+	unsigned int nStep = 0;
+	MessageStore::ReferList listRefer;
+	for (Account::FolderList::iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL) {
 			unsigned int nCount = pFolder->getCount();
 			for (unsigned n = 0; n < nCount; ++n) {
 				MessageHolder* pmh = pFolder->getMessage(n);
@@ -1346,6 +1356,8 @@ bool qm::Account::compact()
 					cacheKey
 				};
 				listRefer.push_back(refer);
+				
+				pCallback->step(++nStep);
 			}
 		}
 	}
@@ -1359,9 +1371,12 @@ bool qm::Account::compact()
 	return true;
 }
 
-bool qm::Account::salvage(NormalFolder* pFolder)
+bool qm::Account::salvage(NormalFolder* pFolder,
+						  MessageOperationCallback* pCallback)
 {
 	Lock<Account> lock(*this);
+	
+	pCallback->show();
 	
 	MessageStore::ReferList listRefer;
 	
@@ -1388,8 +1403,10 @@ bool qm::Account::salvage(NormalFolder* pFolder)
 	class CallbackImpl : public MessageStoreSalvageCallback
 	{
 	public:
-		CallbackImpl(NormalFolder* pFolder) :
-			pFolder_(pFolder)
+		CallbackImpl(NormalFolder* pFolder,
+					 MessageOperationCallback* pCallback) :
+			pFolder_(pFolder),
+			pCallback_(pCallback)
 		{
 		}
 		
@@ -1398,6 +1415,16 @@ bool qm::Account::salvage(NormalFolder* pFolder)
 		}
 	
 	public:
+		virtual void setCount(unsigned int nCount)
+		{
+			pCallback_->setCount(nCount);
+		}
+		
+		virtual void step(unsigned int nStep)
+		{
+			pCallback_->step(nStep);
+		}
+		
 		virtual bool salvage(const Message& msg)
 		{
 			Account* pAccount = pFolder_->getAccount();
@@ -1406,7 +1433,8 @@ bool qm::Account::salvage(NormalFolder* pFolder)
 	
 	private:
 		NormalFolder* pFolder_;
-	} callback(pFolder);
+		MessageOperationCallback* pCallback_;
+	} callback(pFolder, pCallback);
 	
 	if (!pImpl_->pMessageStore_->salvage(listRefer, &callback))
 		return false;

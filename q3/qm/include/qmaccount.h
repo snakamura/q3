@@ -145,8 +145,9 @@ public:
 	bool updateFolders();
 	
 	void setOffline(bool bOffline);
-	bool compact();
-	bool salvage(NormalFolder* pFolder);
+	bool compact(MessageOperationCallback* pCallback);
+	bool salvage(NormalFolder* pFolder,
+				 MessageOperationCallback* pCallback);
 	bool save() const;
 	bool flushMessageStore() const;
 	bool importMessage(NormalFolder* pFolder,

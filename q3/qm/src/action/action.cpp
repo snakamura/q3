@@ -761,7 +761,9 @@ void qm::FileCompactAction::invoke(const ActionEvent& event)
 			pAccount = pFolder->getAccount();
 	}
 	if (pAccount) {
-		if (!pAccount->compact()) {
+		ProgressDialogMessageOperationCallback callback(
+			hwnd_, IDS_COMPACT, IDS_COMPACT);
+		if (!pAccount->compact(&callback)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_COMPACT);
 			return;
 		}
@@ -1461,7 +1463,9 @@ void qm::FileSalvageAction::invoke(const ActionEvent& event)
 		return;
 	
 	Account* pAccount = pFolder->getAccount();
-	if (!pAccount->salvage(static_cast<NormalFolder*>(pFolder))) {
+	ProgressDialogMessageOperationCallback callback(
+		hwnd_, IDS_SALVAGE, IDS_SALVAGE);
+	if (!pAccount->salvage(static_cast<NormalFolder*>(pFolder), &callback)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_SALVAGE);
 		return;
 	}

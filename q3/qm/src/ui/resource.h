@@ -169,7 +169,9 @@
 #define IDC_ACCOUNT                     1063
 #define IDS_SYNCHRONIZING               1063
 #define IDC_ADDACCOUNT                  1064
+#define IDS_COMPACT                     1064
 #define IDC_ADDSUBACCOUNT               1065
+#define IDS_SALVAGE                     1065
 #define IDC_PROPERTY                    1068
 #define IDC_RECEIVEHOST                 1069
 #define IDC_SENDHOST                    1070

@@ -234,7 +234,7 @@ unsigned int qm::MessageHolder::getMessageIdHash() const
 		Lock<Account> lock(*getAccount());
 		if (nMessageIdHash_ == -1) {
 			wstring_ptr wstrMessageId(getMessageId());
-			if (*wstrMessageId.get())
+			if (wstrMessageId.get() && *wstrMessageId.get())
 				nMessageIdHash_ = MessageHolderImpl::hash(wstrMessageId.get());
 			else
 				nMessageIdHash_ = 0;
@@ -255,7 +255,7 @@ unsigned int qm::MessageHolder::getReferenceHash() const
 		Lock<Account> lock(*getAccount());
 		if (nReferenceHash_ == -1) {
 			wstring_ptr wstrReference(getReference());
-			if (*wstrReference.get())
+			if (wstrReference.get() && *wstrReference.get())
 				nReferenceHash_ = MessageHolderImpl::hash(wstrReference.get());
 			else
 				nReferenceHash_ = 0;

@@ -679,6 +679,7 @@ bool qm::MultiMessageStore::salvage(const ReferList& listRefer,
 	List::const_iterator it = l.begin();
 	
 	unsigned int nOffset = pImpl_->getOffset(false);
+	pCallback->setCount(nOffset);
 	for (unsigned int n = 0; n <= nOffset; ++n) {
 		if (it != l.end() && *it == n) {
 			++it;
@@ -700,6 +701,7 @@ bool qm::MultiMessageStore::salvage(const ReferList& listRefer,
 				::DeleteFile(ptszPath);
 			}
 		}
+		pCallback->step(n);
 	}
 	
 	return true;
