@@ -2513,7 +2513,7 @@ bool qm::FolderDeleteAction::deleteFolder(FolderModel* pFolderModel,
 		if (pAccount->getFolder(pTrash, pFolder->getName())) {
 			wstrName = allocWString(pFolder->getName(), wcslen(pFolder->getName()) + 32);
 			for (int n = 1; pAccount->getFolder(pTrash, wstrName.get()); ++n)
-				wsprintf(wstrName.get(), L"%s(%d)", pFolder->getName(), n);
+				swprintf(wstrName.get(), L"%s(%d)", pFolder->getName(), n);
 		}
 		return pAccount->moveFolder(pFolder, pTrash, wstrName.get());
 	}
