@@ -2716,6 +2716,11 @@ void qs::TextWindow::moveCaret(MoveCaret moveCaret,
 	}
 }
 
+void qs::TextWindow::deselectAll()
+{
+	pImpl_->clearSelection();
+}
+
 bool qs::TextWindow::openLink()
 {
 	if (pImpl_->pLinkHandler_) {

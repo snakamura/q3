@@ -343,6 +343,7 @@ public:
 				   bool bRepeat,
 				   Select select,
 				   bool bScroll);
+	void deselectAll();
 	bool openLink();
 	TextWindowLinkHandler* getLinkHandler() const;
 	void setLinkHandler(TextWindowLinkHandler* pLinkHandler);

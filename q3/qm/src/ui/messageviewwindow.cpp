@@ -282,6 +282,7 @@ void qm::TextMessageViewWindow::setSelectMode(bool bSelectMode)
 	setShowNewLine(bSelectMode);
 	setShowTab(bSelectMode);
 	setShowCaret(bSelectMode);
+	deselectAll();
 }
 
 bool qm::TextMessageViewWindow::find(const WCHAR* pwszFind,
