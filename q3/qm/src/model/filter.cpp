@@ -33,8 +33,6 @@ qm::FilterManager::FilterManager()
 	SYSTEMTIME st;
 	::GetSystemTime(&st);
 	::SystemTimeToFileTime(&st, &ft_);
-	
-	load();
 }
 
 qm::FilterManager::~FilterManager()
@@ -44,7 +42,7 @@ qm::FilterManager::~FilterManager()
 
 const FilterManager::FilterList& qm::FilterManager::getFilters()
 {
-//	load();
+	load();
 	return listFilter_;
 }
 
