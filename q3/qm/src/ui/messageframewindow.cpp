@@ -513,17 +513,24 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 	
 #ifdef _WIN32_WCE_PSPC
 	int nWidth[] = {
-		cx - 70,
-		cx - 50,
-		cx - 30,
+		cx - 40,
+		cx - 20,
+		-1
+	};
+#elif defined _WIN32_WCE
+	int nWidth[] = {
+		cx - 200,
+		cx - 120,
+		cx - 40,
+		cx - 20,
 		-1
 	};
 #else
 	int nWidth[] = {
-		cx - 230,
-		cx - 150,
-		cx - 70,
-		cx - 50,
+		cx - 238,
+		cx - 158,
+		cx - 78,
+		cx - 54,
 		cx - 30,
 		-1
 	};

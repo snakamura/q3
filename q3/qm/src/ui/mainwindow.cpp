@@ -1314,18 +1314,27 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 		if (bShowPreviewWindow_) {
 #ifdef _WIN32_WCE_PSPC
 			int nWidth[] = {
-				cx - 110,
-				cx - 78,
-				cx - 54,
-				cx - 30,
+				cx - 60,
+				cx - 40,
+				cx - 20,
+				-1
+			};
+#elif defined _WIN32_WCE
+			int nWidth[] = {
+				cx - 300,
+				cx - 280,
+				cx - 200,
+				cx - 120,
+				cx - 40,
+				cx - 20,
 				-1
 			};
 #else
 			int nWidth[] = {
-				cx - 334,
-				cx - 310,
-				cx - 230,
-				cx - 150,
+				cx - 342,
+				cx - 318,
+				cx - 238,
+				cx - 158,
 				cx - 78,
 				cx - 54,
 				cx - 30,
@@ -1337,13 +1346,20 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 		else {
 #ifdef _WIN32_WCE_PSPC
 			int nWidth[] = {
-				cx - 40,
+				cx - 20,
 				-1
+			};
+#elif defined _WIN32_WCE
+			int nWidth[] = {
+				cx - 100,
+				cx - 80,
+				-1,
 			};
 #else
 			int nWidth[] = {
-				cx - 120,
-				cx - 80,
+				cx - 134,
+				cx - 110,
+				cx - 30,
 				-1
 			};
 #endif

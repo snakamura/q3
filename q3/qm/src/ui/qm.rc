@@ -1727,8 +1727,8 @@ BEGIN
     IDS_DELETE              "Deleting messages..."
     IDS_CUSTOM              "(Custom)"
     IDS_VIEWMODELSTATUSTEMPLATE "%u Message(s), %u Unseen, %u Selected"
-    IDS_ONLINE              "Online"
-    IDS_OFFLINE             "Offline"
+    IDS_ONLINE              "O"
+    IDS_OFFLINE             "F"
     IDS_CONFIRMREMOVEACCOUNT "Are you sure to remove this account?\n %s"
 END
 
