@@ -1848,7 +1848,8 @@ QSTATUS qm::FolderEmptyAction::invoke(const ActionEvent& event)
 		
 		// TODO
 		// This can be done if the folder is a query folder.
-		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			!pFolder->isFlag(Folder::FLAG_TRASHBOX)) {
 			status = static_cast<NormalFolder*>(pFolder)->removeAllMessages(0);
 			CHECK_QSTATUS();
 		}
