@@ -85,6 +85,7 @@ BOOL WINAPI DllMain(HANDLE hInst,
 #endif
 		break;
 	case DLL_PROCESS_DETACH:
+		ERR_remove_state(0);
 		CRYPTO_set_locking_callback(0);
 		ENGINE_cleanup();
 		CONF_modules_unload(1);
