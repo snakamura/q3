@@ -723,16 +723,14 @@ bool qm::MessageCreator::setField(Part* pPart,
 		break;
 	case FIELDTYPE_SINGLEUNSTRUCTURED:
 		{
-			const WCHAR* pwszCharset = Part::getDefaultCharset();
-			UnstructuredParser field(pwszValue, pwszCharset);
+			UnstructuredParser field(pwszValue);
 			if (!pPart->replaceField(pwszName, field))
 				return false;
 		}
 		break;
 	case FIELDTYPE_MULTIUNSTRUCTURED:
 		{
-			const WCHAR* pwszCharset = Part::getDefaultCharset();
-			UnstructuredParser field(pwszValue, pwszCharset);
+			UnstructuredParser field(pwszValue);
 			if (!pPart->setField(pwszName, field, true))
 				return false;
 		}
