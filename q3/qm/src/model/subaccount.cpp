@@ -71,7 +71,7 @@ struct qm::SubAccountImpl
 void qm::SubAccountImpl::load()
 {
 #define LOAD_STRING(section, key, default, name) \
-	this->##name = pProfile_->getString(section, key, default);
+	this->name = pProfile_->getString(section, key, default);
 	
 	LOAD_STRING(L"Global",	L"Identity",		0,	wstrIdentity_						);
 	LOAD_STRING(L"Global",	L"SenderName",		0,	wstrSenderName_						);
@@ -88,7 +88,7 @@ void qm::SubAccountImpl::load()
 #pragma warning(disable:4800)
 #define LOAD_INT(section, key, default, name, type, tempname) \
 	int _##tempname##_ = pProfile_->getInt(section, key, default); \
-	##name = static_cast<type>(_##tempname##_)
+	name = static_cast<type>(_##tempname##_)
 	
 	LOAD_INT(L"Send",		L"Port",						25,		nPort_[Account::HOST_SEND],		short,					nSendPort					);
 	LOAD_INT(L"Receive",	L"Port",						110,	nPort_[Account::HOST_RECEIVE],	short,					nReceivePort				);
@@ -593,7 +593,7 @@ bool qm::SubAccount::isSelf(const Message& msg) const
 bool qm::SubAccount::save() const
 {
 #define SAVE_STRING(section, key, name) \
-	pImpl_->pProfile_->setString(section, key, pImpl_->##name.get());
+	pImpl_->pProfile_->setString(section, key, pImpl_->name.get());
 	
 	SAVE_STRING(L"Global",	L"Identity",		wstrIdentity_						);
 	SAVE_STRING(L"Global",	L"SenderName",		wstrSenderName_						);
@@ -606,7 +606,7 @@ bool qm::SubAccount::save() const
 	SAVE_STRING(L"Dialup",	L"Entry",			wstrDialupEntry_					);
 	
 #define SAVE_INT(section, key, name) \
-	pImpl_->pProfile_->setInt(section, key, pImpl_->##name);
+	pImpl_->pProfile_->setInt(section, key, pImpl_->name);
 	
 	SAVE_INT(L"Send",		L"Port",						nPort_[Account::HOST_SEND]		);
 	SAVE_INT(L"Receive",	L"Port",						nPort_[Account::HOST_RECEIVE]	);
