@@ -105,13 +105,17 @@ QSTATUS qmnntp::NntpDriver::createFolder(SubAccount* pSubAccount,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::createDefaultFolders(
-	Folder*** pppFolder, size_t* pnCount)
+QSTATUS qmnntp::NntpDriver::removeFolder(
+	SubAccount* pSubAccount, NormalFolder* pFolder)
 {
-	DECLARE_QSTATUS();
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
+{
+	assert(pList);
 	
-	*pppFolder = 0;
-	*pnCount = 0;
+	DECLARE_QSTATUS();
 	
 	struct {
 		const WCHAR* pwszName_;
@@ -122,10 +126,8 @@ QSTATUS qmnntp::NntpDriver::createDefaultFolders(
 		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							}
 	};
 	
-	malloc_ptr<Folder*> pFolder(static_cast<Folder**>(
-		malloc(countof(folders)*sizeof(Folder*))));
-	if (!pFolder.get())
-		return QSTATUS_OUTOFMEMORY;
+	status = STLWrapper<Account::FolderList>(*pList).reserve(countof(folders));
+	CHECK_QSTATUS();
 	
 	for (int n = 0; n < countof(folders); ++n) {
 		NormalFolder::Init init;
@@ -143,17 +145,14 @@ QSTATUS qmnntp::NntpDriver::createDefaultFolders(
 		NormalFolder* p = 0;
 		status = newQsObject(init, &p);
 		CHECK_QSTATUS();
-		*(pFolder.get() + n) = p;
+		pList->push_back(p);
 	}
-	
-	*pppFolder = pFolder.release();
-	*pnCount = countof(folders);
 	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmnntp::NntpDriver::getRemoteFolders(SubAccount* pSubAccount,
-	std::pair<Folder*, bool>** ppFolder, size_t* pnCount)
+QSTATUS qmnntp::NntpDriver::getRemoteFolders(
+	SubAccount* pSubAccount, RemoteFolderList* pList)
 {
 	// TODO
 	return QSTATUS_SUCCESS;

@@ -779,7 +779,7 @@ private:
 class FolderDeleteAction : public qs::AbstractAction
 {
 public:
-	FolderDeleteAction(FolderSelectionModel* pFolderSelectionModel, qs::QSTATUS* pstatus);
+	FolderDeleteAction(FolderModel* pFolderModel, qs::QSTATUS* pstatus);
 	virtual ~FolderDeleteAction();
 
 public:
@@ -791,7 +791,7 @@ private:
 	FolderDeleteAction& operator=(const FolderDeleteAction&);
 
 private:
-	FolderSelectionModel* pFolderSelectionModel_;
+	FolderModel* pFolderModel_;
 };
 
 

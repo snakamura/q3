@@ -632,6 +632,18 @@ QSTATUS qm::FolderWindowImpl::refreshFolderList(Account* pAccount)
 	
 	TreeView_Expand(pThis_->getHandle(), hItem, TVE_EXPAND);
 	
+	Account* pCurrentAccount = pFolderModel_->getCurrentAccount();
+	if (pCurrentAccount) {
+		TreeView_SelectItem(pThis_->getHandle(),
+			getHandleFromAccount(pCurrentAccount));
+	}
+	else {
+		Folder* pCurrentFolder = pFolderModel_->getCurrentFolder();
+		if (pCurrentFolder)
+			TreeView_SelectItem(pThis_->getHandle(),
+				getHandleFromFolder(pCurrentFolder));
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -685,6 +697,8 @@ QSTATUS qm::FolderWindowImpl::insertFolders(HTREEITEM hItem, Account* pAccount)
 	assert(pAccount);
 	
 	DECLARE_QSTATUS();
+	
+	DisableRedraw disable(pThis_->getHandle());
 	
 	STLWrapper<FolderMap> wrapper(mapFolder_);
 	

@@ -31,7 +31,7 @@ using namespace qs;
  *
  */
 
-QSTATUS qmimap4::Util::getFolderName(Folder* pFolder, WSTRING* pwstrName)
+QSTATUS qmimap4::Util::getFolderName(NormalFolder* pFolder, WSTRING* pwstrName)
 {
 	assert(pFolder);
 	assert(pwstrName);

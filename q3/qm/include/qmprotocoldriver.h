@@ -37,6 +37,9 @@ class Security;
 class QMEXPORTCLASS ProtocolDriver
 {
 public:
+	typedef std::vector<std::pair<Folder*, bool> > RemoteFolderList;
+
+public:
 	virtual ~ProtocolDriver();
 
 public:
@@ -47,10 +50,11 @@ public:
 	
 	virtual qs::QSTATUS createFolder(SubAccount* pSubAccount,
 		const WCHAR* pwszName, Folder* pParent, NormalFolder** ppFolder) = 0;
-	virtual qs::QSTATUS createDefaultFolders(
-		Folder*** pppFolder, size_t* pnCount) = 0;
-	virtual qs::QSTATUS getRemoteFolders(SubAccount* pSubAccount,
-		std::pair<Folder*, bool>** ppFolder, size_t* pnCount) = 0;
+	virtual qs::QSTATUS removeFolder(
+		SubAccount* pSubAccount, NormalFolder* pFolder) = 0;
+	virtual qs::QSTATUS createDefaultFolders(Account::FolderList* pList) = 0;
+	virtual qs::QSTATUS getRemoteFolders(
+		SubAccount* pSubAccount, RemoteFolderList* pList) = 0;
 	
 	virtual qs::QSTATUS getMessage(SubAccount* pSubAccount,
 		MessageHolder* pmh, unsigned int nFlags,

@@ -201,10 +201,6 @@ QSTATUS qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,
 		{
 			DECLARE_QSTATUS();
 			
-//			if (wcscmp(pList->getMailbox(), pwszName_) == 0 ||
-//				(_wcsnicmp(pList->getMailbox(), L"Inbox", 5) == 0 &&
-//				_wcsnicmp(pwszName_, L"Inbox", 5) == 0 &&
-//				wcscmp(pList->getMailbox() + 5, pwszName_ + 5) == 0)) {
 			if (Util::isEqualFolderName(pList->getMailbox(), pwszName_, pList->getSeparator())) {
 				bFound_ = true;
 				string_ptr<WSTRING> wstrName;
@@ -246,34 +242,54 @@ QSTATUS qmimap4::Imap4Driver::createFolder(SubAccount* pSubAccount,
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::Imap4Driver::createDefaultFolders(
-	Folder*** pppFolder, size_t* pnCount)
+QSTATUS qmimap4::Imap4Driver::removeFolder(
+	SubAccount* pSubAccount, NormalFolder* pFolder)
 {
-	assert(pppFolder);
-	assert(pnCount);
+	assert(pSubAccount);
+	assert(pFolder);
 	
-	*pppFolder = 0;
-	*pnCount = 0;
+	DECLARE_QSTATUS();
+	
+	Lock<CriticalSection> lock(cs_);
+	
+	status = prepareSessionCache(pSubAccount);
+	CHECK_QSTATUS();
+	
+	Imap4* pImap4 = 0;
+	SessionCacher cacher(pSessionCache_, 0, &pImap4, &status);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrName;
+	status = Util::getFolderName(pFolder, &wstrName);
+	CHECK_QSTATUS();
+	
+	status = pImap4->remove(wstrName.get());
+	CHECK_QSTATUS();
+	
+	cacher.release();
 	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::Imap4Driver::getRemoteFolders(SubAccount* pSubAccount,
-	std::pair<Folder*, bool>** ppFolder, size_t* pnCount)
+QSTATUS qmimap4::Imap4Driver::createDefaultFolders(Account::FolderList* pList)
 {
-	assert(ppFolder);
-	assert(pnCount);
+	assert(pList);
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmimap4::Imap4Driver::getRemoteFolders(
+	SubAccount* pSubAccount, RemoteFolderList* pList)
+{
+	assert(pSubAccount);
+	assert(pList);
 	
 	DECLARE_QSTATUS();
-	
-	*ppFolder = 0;
-	*pnCount = 0;
 	
 	Lock<CriticalSection> lock(cs_);
 	
 	FolderListGetter getter(pAccount_, pSubAccount, pSecurity_, &status);
 	CHECK_QSTATUS();
-	status = getter.getFolders(ppFolder, pnCount);
+	status = getter.getFolders(pList);
 	CHECK_QSTATUS();
 	
 	return QSTATUS_SUCCESS;
@@ -1405,21 +1421,16 @@ qmimap4::FolderListGetter::~FolderListGetter()
 }
 
 QSTATUS qmimap4::FolderListGetter::getFolders(
-	std::pair<Folder*, bool>** ppFolder, size_t* pnCount)
+	Imap4Driver::RemoteFolderList* pList)
 {
-	assert(ppFolder);
-	assert(pnCount);
+	assert(pList);
 	
-	malloc_ptr<std::pair<Folder*, bool> > pFolder(
-		static_cast<std::pair<Folder*, bool>*>(
-			malloc(listFolder_.size()*sizeof(std::pair<Folder*, bool>))));
-	if (!pFolder.get())
-		return QSTATUS_OUTOFMEMORY;
+	DECLARE_QSTATUS();
 	
-	std::copy(listFolder_.begin(), listFolder_.end(), pFolder.get());
-	
-	*ppFolder = pFolder.release();
-	*pnCount = listFolder_.size();
+	status = STLWrapper<Imap4Driver::RemoteFolderList>(
+		*pList).resize(listFolder_.size());
+	CHECK_QSTATUS();
+	std::copy(listFolder_.begin(), listFolder_.end(), pList->begin());
 	
 	listFolder_.clear();
 	

@@ -384,7 +384,17 @@ QSTATUS qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount, bool bDropD
 	status = insertFolders(nIndex - 1, pAccount, bDropDown);
 	CHECK_QSTATUS();
 	
-	ComboBox_SetCurSel(pThis_->getHandle(), nIndex - 1);
+	Account* pCurrentAccount = pFolderModel_->getCurrentAccount();
+	if (pCurrentAccount) {
+		ComboBox_SetCurSel(pThis_->getHandle(),
+			getIndexFromAccount(pCurrentAccount));
+	}
+	else {
+		Folder* pCurrentFolder = pFolderModel_->getCurrentFolder();
+		if (pCurrentFolder)
+			ComboBox_SetCurSel(pThis_->getHandle(),
+				getIndexFromFolder(pCurrentFolder));
+	}
 	
 	return QSTATUS_SUCCESS;
 }

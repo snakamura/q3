@@ -1649,8 +1649,8 @@ QSTATUS qm::FolderCreateAction::isEnabled(const ActionEvent& event, bool* pbEnab
  */
 
 qm::FolderDeleteAction::FolderDeleteAction(
-	FolderSelectionModel* pFolderSelectionModel, QSTATUS* pstatus) :
-	pFolderSelectionModel_(pFolderSelectionModel)
+	FolderModel* pFolderModel, QSTATUS* pstatus) :
+	pFolderModel_(pFolderModel)
 {
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -1662,14 +1662,33 @@ qm::FolderDeleteAction::~FolderDeleteAction()
 
 QSTATUS qm::FolderDeleteAction::invoke(const ActionEvent& event)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	Folder* pFolder = pFolderModel_->getCurrentFolder();
+	if (pFolder) {
+		Account* pAccount = pFolder->getAccount();
+		Folder* pParent = pFolder->getParentFolder();
+		if (pParent) {
+			status = pFolderModel_->setCurrent(0, pParent, false);
+			CHECK_QSTATUS();
+		}
+		else {
+			status = pFolderModel_->setCurrent(pAccount, 0, false);
+			CHECK_QSTATUS();
+		}
+		
+		status = pAccount->removeFolder(pFolder);
+		CHECK_QSTATUS();
+	}
+	
 	return QSTATUS_SUCCESS;
 }
 
 QSTATUS qm::FolderDeleteAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
 {
 	assert(pbEnabled);
-	return pFolderSelectionModel_->hasSelectedFolder(pbEnabled);
+	*pbEnabled = pFolderModel_->getCurrentFolder() != 0;
+	return QSTATUS_SUCCESS;
 }
 
 

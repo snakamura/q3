@@ -52,8 +52,8 @@ public:
 	qs::QSTATUS apply(qm::Account* pAccount, Imap4* pImap4,
 		qm::ReceiveSessionCallback* pCallback);
 	qs::QSTATUS save(const WCHAR* pwszPath) const;
-	qs::QSTATUS copyJobs(qm::Folder* pFolderFrom,
-		qm::Folder* pFolderTo, const UidList& listUid, bool bMove);
+	qs::QSTATUS copyJobs(qm::NormalFolder* pFolderFrom,
+		qm::NormalFolder* pFolderTo, const UidList& listUid, bool bMove);
 
 private:
 	qs::QSTATUS load(const WCHAR* pwszPath);

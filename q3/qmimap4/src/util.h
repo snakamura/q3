@@ -62,7 +62,7 @@ public:
 
 public:
 	static qs::QSTATUS getFolderName(
-		qm::Folder* pFolder, qs::WSTRING* pwstrName);
+		qm::NormalFolder* pFolder, qs::WSTRING* pwstrName);
 	static unsigned int getFolderFlagsFromAttributes(unsigned int nAttributes);
 	static unsigned int getMessageFlagsFromImap4Flags(unsigned int nSystemFlags,
 		const FetchDataFlags::FlagList& listCustomFlag);

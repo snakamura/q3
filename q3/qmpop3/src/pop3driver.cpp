@@ -74,13 +74,18 @@ QSTATUS qmpop3::Pop3Driver::createFolder(SubAccount* pSubAccount,
 	return QSTATUS_FAIL;
 }
 
-QSTATUS qmpop3::Pop3Driver::createDefaultFolders(
-	Folder*** pppFolder, size_t* pnCount)
+QSTATUS qmpop3::Pop3Driver::removeFolder(
+	SubAccount* pSubAccount, NormalFolder* pFolder)
 {
-	DECLARE_QSTATUS();
+	assert(false);
+	return QSTATUS_FAIL;
+}
+
+QSTATUS qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
+{
+	assert(pList);
 	
-	*pppFolder = 0;
-	*pnCount = 0;
+	DECLARE_QSTATUS();
 	
 	struct {
 		const WCHAR* pwszName_;
@@ -92,10 +97,8 @@ QSTATUS qmpop3::Pop3Driver::createDefaultFolders(
 		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							}
 	};
 	
-	malloc_ptr<Folder*> pFolder(static_cast<Folder**>(
-		malloc(countof(folders)*sizeof(Folder*))));
-	if (!pFolder.get())
-		return QSTATUS_OUTOFMEMORY;
+	status = STLWrapper<Account::FolderList>(*pList).reserve(countof(folders));
+	CHECK_QSTATUS();
 	
 	for (int n = 0; n < countof(folders); ++n) {
 		NormalFolder::Init init;
@@ -113,24 +116,17 @@ QSTATUS qmpop3::Pop3Driver::createDefaultFolders(
 		NormalFolder* p = 0;
 		status = newQsObject(init, &p);
 		CHECK_QSTATUS();
-		*(pFolder.get() + n) = p;
+		pList->push_back(p);
 	}
-	
-	*pppFolder = pFolder.release();
-	*pnCount = countof(folders);
 	
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmpop3::Pop3Driver::getRemoteFolders(SubAccount* pSubAccount,
-	std::pair<Folder*, bool>** ppFolder, size_t* pnCount)
+QSTATUS qmpop3::Pop3Driver::getRemoteFolders(
+	SubAccount* pSubAccount, RemoteFolderList* pList)
 {
 	assert(pSubAccount);
-	assert(ppFolder);
-	assert(pnCount);
-	
-	*ppFolder = 0;
-	*pnCount = 0;
+	assert(pList);
 	
 	return QSTATUS_SUCCESS;
 }

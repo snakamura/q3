@@ -359,17 +359,14 @@ QSTATUS qm::AccountImpl::createDefaultFolders()
 {
 	DECLARE_QSTATUS();
 	
-	Folder** ppFolder = 0;
-	size_t nCount = 0;
-	status = pProtocolDriver_->createDefaultFolders(&ppFolder, &nCount);
+	Account::FolderList l;
+	status = pProtocolDriver_->createDefaultFolders(&l);
 	CHECK_QSTATUS();
-	malloc_ptr<Folder*> p(ppFolder);
 	
-	STLWrapper<Account::FolderList> wrapper(listFolder_);
-	for (size_t n = 0; n < nCount; ++n) {
-		status = wrapper.push_back(*(ppFolder + n));
-		CHECK_QSTATUS();
-	}
+	status = STLWrapper<Account::FolderList>(
+		listFolder_).reserve(listFolder_.size() + l.size());
+	CHECK_QSTATUS();
+	std::copy(l.begin(), l.end(), std::back_inserter(listFolder_));
 	
 	return QSTATUS_SUCCESS;
 }
@@ -796,7 +793,38 @@ QSTATUS qm::Account::createQueryFolder(const WCHAR* pwszName,
 
 QSTATUS qm::Account::removeFolder(Folder* pFolder)
 {
-	// TODO
+	DECLARE_QSTATUS();
+	
+	while (true) {
+		FolderList::iterator it = std::find(pImpl_->listFolder_.begin(),
+			pImpl_->listFolder_.end(), pFolder);
+		assert(it != pImpl_->listFolder_.end());
+		++it;
+		if (it == pImpl_->listFolder_.end() || !pFolder->isAncestorOf(*it))
+			break;
+		status = removeFolder(*it);
+		CHECK_QSTATUS();
+	}
+	
+	if (pFolder->getType() == Folder::TYPE_NORMAL &&
+		!pFolder->isFlag(Folder::FLAG_LOCAL)) {
+		status = pImpl_->pProtocolDriver_->removeFolder(
+			getCurrentSubAccount(), static_cast<NormalFolder*>(pFolder));
+		CHECK_QSTATUS();
+	}
+	
+	FolderList::iterator it = std::find(pImpl_->listFolder_.begin(),
+		pImpl_->listFolder_.end(), pFolder);
+	assert(it != pImpl_->listFolder_.end());
+	pImpl_->listFolder_.erase(it);
+	status = pFolder->deletePermanent();
+	CHECK_QSTATUS();
+	std::auto_ptr<Folder> p(pFolder);
+	
+	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_REMOVE, pFolder);
+	status = pImpl_->fireFolderListChanged(event);
+	CHECK_QSTATUS();
+	
 	return QSTATUS_SUCCESS;
 }
 
@@ -827,16 +855,14 @@ QSTATUS qm::Account::updateFolders()
 {
 	DECLARE_QSTATUS();
 	
-	std::pair<Folder*, bool>* pFolder = 0;
-	size_t nCount = 0;
+	ProtocolDriver::RemoteFolderList l;
 	status = pImpl_->pProtocolDriver_->getRemoteFolders(
-		getCurrentSubAccount(), &pFolder, &nCount);
+		getCurrentSubAccount(), &l);
 	CHECK_QSTATUS();
 	struct Deleter
 	{
-		Deleter(std::pair<Folder*, bool>* pFolder, size_t nCount) :
-			pFolder_(pFolder),
-			nCount_(nCount),
+		Deleter(const ProtocolDriver::RemoteFolderList& l) :
+			l_(l),
 			bReleased_(false)
 		{
 		}
@@ -844,12 +870,13 @@ QSTATUS qm::Account::updateFolders()
 		~Deleter()
 		{
 			if (!bReleased_) {
-				for (size_t n = 0; n < nCount_; ++n) {
-					if (pFolder_[n].second)
-						delete pFolder_[n].first;
+				ProtocolDriver::RemoteFolderList::const_iterator it = l_.begin();
+				while (it != l_.end()) {
+					if ((*it).second)
+						delete (*it).first;
+					++it;
 				}
 			}
-			free(pFolder_);
 		}
 		
 		void release()
@@ -857,22 +884,19 @@ QSTATUS qm::Account::updateFolders()
 			bReleased_ = true;
 		}
 		
-		std::pair<Folder*, bool>* pFolder_;
-		size_t nCount_;
+		const ProtocolDriver::RemoteFolderList& l_;
 		bool bReleased_;
-	} deleter(pFolder, nCount);
+	} deleter(l);
 	
-	size_t nNewCount = 0;
-	for (size_t n = 0; n < nCount; ++n)
-		nNewCount += (*(pFolder + n)).second ? 1 : 0;
 	status = STLWrapper<FolderList>(pImpl_->listFolder_).reserve(
-		pImpl_->listFolder_.size() + nNewCount);
+		pImpl_->listFolder_.size() + l.size());
 	CHECK_QSTATUS();
 	
-	for (n = 0; n < nCount; ++n) {
-		const std::pair<Folder*, bool>& f = *(pFolder + n);
-		if (f.second)
-			pImpl_->listFolder_.push_back(f.first);
+	ProtocolDriver::RemoteFolderList::const_iterator itR = l.begin();
+	while (itR != l.end()) {
+		if ((*itR).second)
+			pImpl_->listFolder_.push_back((*itR).first);
+		++itR;
 	}
 	deleter.release();
 	
@@ -892,26 +916,26 @@ QSTATUS qm::Account::updateFolders()
 		const FolderList& l_;
 	} deleter2(listDelete);
 	
-	FolderList::iterator it = pImpl_->listFolder_.begin();
-	while (it != pImpl_->listFolder_.end()) {
-		std::pair<Folder*, bool>* p = std::find_if(
-			&pFolder[0], &pFolder[nCount],
+	FolderList::iterator itF = pImpl_->listFolder_.begin();
+	while (itF != pImpl_->listFolder_.end()) {
+		ProtocolDriver::RemoteFolderList::const_iterator itR = std::find_if(
+			l.begin(), l.end(),
 			std::bind2nd(
 				binary_compose_f_gx_hy(
 					std::equal_to<Folder*>(),
-					std::select1st<std::pair<Folder*, bool> >(),
+					std::select1st<ProtocolDriver::RemoteFolderList::value_type>(),
 					std::identity<Folder*>()),
-				*it));
-		if (p != &pFolder[nCount]) {
-			++it;
+				*itF));
+		if (itR != l.end()) {
+			++itF;
 		}
-		else if ((*it)->getType() == Folder::TYPE_NORMAL &&
-			!((*it)->getFlags() & Folder::FLAG_LOCAL)) {
-			status = (*it)->deletePermanent();
+		else if ((*itF)->getType() == Folder::TYPE_NORMAL &&
+			!((*itF)->getFlags() & Folder::FLAG_LOCAL)) {
+			status = (*itF)->deletePermanent();
 			CHECK_QSTATUS();
-			status = STLWrapper<FolderList>(listDelete).push_back(*it);
+			status = STLWrapper<FolderList>(listDelete).push_back(*itF);
 			CHECK_QSTATUS();
-			it = pImpl_->listFolder_.erase(it);
+			itF = pImpl_->listFolder_.erase(itF);
 		}
 	}
 	

@@ -146,7 +146,8 @@ QSTATUS qmimap4::OfflineJobManager::apply(Account* pAccount,
 			if (pFolder && pFolder != pPrevFolder &&
 				pFolder->getType() == Folder::TYPE_NORMAL) {
 				string_ptr<WSTRING> wstrName;
-				status = Util::getFolderName(pFolder, &wstrName);
+				status = Util::getFolderName(
+					static_cast<NormalFolder*>(pFolder), &wstrName);
 				CHECK_QSTATUS();
 				status = pImap4->select(wstrName.get());
 				CHECK_QSTATUS();
@@ -203,8 +204,8 @@ QSTATUS qmimap4::OfflineJobManager::save(const WCHAR* pwszPath) const
 	return QSTATUS_SUCCESS;
 }
 
-QSTATUS qmimap4::OfflineJobManager::copyJobs(Folder* pFolderFrom,
-	Folder* pFolderTo, const UidList& listUid, bool bMove)
+QSTATUS qmimap4::OfflineJobManager::copyJobs(NormalFolder* pFolderFrom,
+	NormalFolder* pFolderTo, const UidList& listUid, bool bMove)
 {
 	assert(pFolderFrom);
 	assert(pFolderTo);

@@ -51,10 +51,11 @@ public:
 	virtual qs::QSTATUS createFolder(qm::SubAccount* pSubAccount,
 		const WCHAR* pwszName, qm::Folder* pParent,
 		qm::NormalFolder** ppFolder);
-	virtual qs::QSTATUS createDefaultFolders(
-		qm::Folder*** pppFolder, size_t* pnCount);
-	virtual qs::QSTATUS getRemoteFolders(qm::SubAccount* pSubAccount,
-		std::pair<qm::Folder*, bool>** pFolder, size_t* pnCount);
+	virtual qs::QSTATUS removeFolder(qm::SubAccount* pSubAccount,
+		qm::NormalFolder* pFolder);
+	virtual qs::QSTATUS createDefaultFolders(qm::Account::FolderList* pList);
+	virtual qs::QSTATUS getRemoteFolders(
+		qm::SubAccount* pSubAccount, RemoteFolderList* pList);
 	
 	virtual qs::QSTATUS getMessage(qm::SubAccount* pSubAccount,
 		qm::MessageHolder* pmh, unsigned int nFlags,
@@ -234,7 +235,7 @@ public:
 	~FolderListGetter();
 
 public:
-	qs::QSTATUS getFolders(std::pair<qm::Folder*, bool>** ppFolder, size_t* pnCount);
+	qs::QSTATUS getFolders(Imap4Driver::RemoteFolderList* pList);
 
 private:
 	qs::QSTATUS connect();
@@ -264,7 +265,7 @@ private:
 private:
 	typedef std::vector<std::pair<qs::WSTRING, WCHAR> > NamespaceList;
 	typedef std::vector<FolderData> FolderDataList;
-	typedef std::vector<std::pair<qm::Folder*, bool> > FolderList;
+	typedef Imap4Driver::RemoteFolderList FolderList;
 
 private:
 	class CallbackImpl : public AbstractCallback
