@@ -1438,10 +1438,6 @@ QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
 			status = pFolderTo->appendMessage(msg,
 				pmh->getFlags() & MessageHolder::FLAG_USER_MASK);
 			CHECK_QSTATUS();
-			if (bMove) {
-				status = pFolderFrom->removeMessage(pmh);
-				CHECK_QSTATUS();
-			}
 			
 			if (pCallback) {
 				if (n % 10 == 0 && pCallback->isCanceled())
@@ -1449,6 +1445,10 @@ QSTATUS qm::Account::copyMessages(const Folder::MessageHolderList& l,
 				status = pCallback->step(1);
 				CHECK_QSTATUS();
 			}
+		}
+		if (bMove) {
+			status = pFolderFrom->removeMessages(l, true, 0);
+			CHECK_QSTATUS();
 		}
 	}
 	else {
