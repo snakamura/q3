@@ -29,6 +29,9 @@
 #define IDC_SEARCHBODY                  1013
 #define IDS_IMAP4SEARCH                 1013
 #define IDC_IMAP4COMMAND                1014
+#define IDC_PERSONAL                    1015
+#define IDC_OTHERS                      1016
+#define IDC_SHARED                      1017
 #define IDC_CONDITION                   1127
 #define IDC_CURRENT                     1128
 #define IDC_RECURSIVE                   1129
@@ -87,7 +90,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1015
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

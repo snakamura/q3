@@ -35,6 +35,16 @@ protected:
 protected:
 	virtual LRESULT onOk();
 
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+private:
+	LRESULT onNamespace();
+
+private:
+	void updateState();
+
 private:
 	ReceivePage(const ReceivePage&);
 	ReceivePage& operator=(const ReceivePage&);

@@ -69,10 +69,16 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,115,10
     CONTROL         "&Trust BODYSTRUCTURE",IDC_TRUSTBODYSTRUCTURE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,75,105,10
+    CONTROL         "Send &CLOSE",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,85,60,10
     CONTROL         "Use &NAMESPACE",IDC_NAMESPACE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,85,75,10
-    CONTROL         "&Close folder",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,95,60,10
+                    WS_TABSTOP,5,95,75,10
+    CONTROL         "&Personal",IDC_PERSONAL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,15,105,45,10
+    CONTROL         "&Others",IDC_OTHERS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,15,115,40,10
+    CONTROL         "&Shared",IDC_SHARED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,15,125,45,10
 END
 
 IDD_SEARCH DIALOG DISCARDABLE  0, 0, 137, 153

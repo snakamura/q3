@@ -1341,10 +1341,11 @@ bool qmimap4::FolderListGetter::connect()
 
 bool qmimap4::FolderListGetter::listNamespaces()
 {
-	int nUseNamespace = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 1);
-	
 	pCallback_->setNamespaceList(&listNamespace_);
-	if (nUseNamespace && pImap4_->getCapability() & Imap4::CAPABILITY_NAMESPACE) {
+	
+	bool bUseNamespace = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 1) &&
+		pImap4_->getCapability() & Imap4::CAPABILITY_NAMESPACE;
+	if (bUseNamespace) {
 		if (!pImap4_->namespaceList())
 			return false;
 	}
@@ -1566,20 +1567,27 @@ bool qmimap4::FolderListGetter::CallbackImpl::processNamespace(ResponseNamespace
 			&pNamespace->getOthers(),
 			&pNamespace->getShared()
 		};
+		bool bUse[] = {
+			pGetter_->pSubAccount_->getProperty(L"Imap4", L"UsePersonal", 1) != 0,
+			pGetter_->pSubAccount_->getProperty(L"Imap4", L"UseOthers", 1) != 0,
+			pGetter_->pSubAccount_->getProperty(L"Imap4", L"UseShared", 1) != 0
+		};
 		for (int n = 0; n < countof(pLists); ++n) {
-			const NSList& l = (*pLists)[n];
-			for (NSList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				wstring_ptr wstr;
-				const WCHAR* pwsz = (*it).first;
-				if (!*pwsz && *pwszRootFolder) {
-					WCHAR wsz[] = { (*it).second, L'\0' };
-					wstr = concat(pwszRootFolder, wsz);
+			if (bUse[n]) {
+				const NSList& l = (*pLists)[n];
+				for (NSList::const_iterator it = l.begin(); it != l.end(); ++it) {
+					wstring_ptr wstr;
+					const WCHAR* pwsz = (*it).first;
+					if (!*pwsz && *pwszRootFolder) {
+						WCHAR wsz[] = { (*it).second, L'\0' };
+						wstr = concat(pwszRootFolder, wsz);
+					}
+					else {
+						wstr = allocWString(pwsz);
+					}
+					pListNamespace_->push_back(std::make_pair(wstr.get(), (*it).second));
+					wstr.release();
 				}
-				else {
-					wstr = allocWString(pwsz);
-				}
-				pListNamespace_->push_back(std::make_pair(wstr.get(), (*it).second));
-				wstr.release();
 			}
 		}
 	}
