@@ -1285,6 +1285,11 @@ LRESULT qm::AbstractOptionTextWindowDialog::onWrapChange(UINT nId)
  *
  */
 
+DialogUtil::BoolProperty qm::OptionEditWindowDialog::boolProperties__[] = {
+	{ L"ShowTab",		IDC_SHOWTAB,		true	},
+	{ L"ShowNewLine",	IDC_SHOWNEWLINE,	true	}
+};
+
 qm::OptionEditWindowDialog::OptionEditWindowDialog(EditFrameWindowManager* pEditFrameWindowManager,
 												   Profile* pProfile) :
 	AbstractOptionTextWindowDialog(IDD_OPTIONEDITWINDOW, pProfile, L"EditWindow"),
@@ -1310,6 +1315,9 @@ LRESULT qm::OptionEditWindowDialog::onCommand(WORD nCode,
 LRESULT qm::OptionEditWindowDialog::onInitDialog(HWND hwndFocus,
 												 LPARAM lParam)
 {
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"EditWindow", boolProperties__, countof(boolProperties__));
+	
 	return AbstractOptionTextWindowDialog::onInitDialog(hwndFocus, lParam);
 }
 
@@ -1318,6 +1326,8 @@ bool qm::OptionEditWindowDialog::save(OptionDialogContext* pContext)
 	if (!AbstractOptionTextWindowDialog::save(pContext))
 		return false;
 	
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"EditWindow", boolProperties__, countof(boolProperties__));
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"HeaderEditWindow", lfHeader_);
 	
 	pEditFrameWindowManager_->reloadProfiles();

@@ -1555,9 +1555,13 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,75,70,10
     CONTROL         "Show &H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,85,70,10
+    CONTROL         "Show Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,95,50,10
+    CONTROL         "Show &New Line",IDC_SHOWNEWLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,105,65,10
     PUSHBUTTON      "&Font...",IDC_FONT,82,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,82,65,50,12
-    PUSHBUTTON      "&Header Font...",IDC_HEADERFONT,82,80,50,12
+    PUSHBUTTON      "H&eader Font...",IDC_HEADERFONT,82,80,50,12
 END
 
 IDD_OPTIONHEADERWINDOW DIALOG DISCARDABLE  0, 0, 137, 119

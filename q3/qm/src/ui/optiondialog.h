@@ -678,6 +678,9 @@ private:
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	qs::Profile* pProfile_;
 	LOGFONT lfHeader_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
 };
 
 
