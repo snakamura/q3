@@ -40,6 +40,9 @@ public:
 	virtual ~ScriptImpl();
 
 public:
+	bool operator!() const;
+
+public:
 	virtual bool run(VARIANT* pvarArgs,
 					 size_t nArgCount,
 					 VARIANT* pvarResult);

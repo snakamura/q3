@@ -26,9 +26,7 @@ using namespace qs;
 qmscript::ScriptImpl::ScriptImpl(const ScriptFactory::Init& init) :
 	pActiveScript_(0)
 {
-	if (!load(init)) {
-		// TODO
-	}
+	load(init);
 }
 
 qmscript::ScriptImpl::~ScriptImpl()
@@ -37,6 +35,11 @@ qmscript::ScriptImpl::~ScriptImpl()
 		pActiveScript_->Close();
 		pActiveScript_->Release();
 	}
+}
+
+bool qmscript::ScriptImpl::operator!() const
+{
+	return !pActiveScript_;
 }
 
 bool qmscript::ScriptImpl::run(VARIANT* pvarArgs,
@@ -187,7 +190,10 @@ std::auto_ptr<Script> qmscript::ScriptFactoryImpl::createScript(const Init& init
 	assert(init.hwnd_);
 	assert(init.pModalHandler_);
 	
-	return std::auto_ptr<Script>(new ScriptImpl(init));
+	std::auto_ptr<ScriptImpl> pScript(new ScriptImpl(init));
+	if (!*pScript.get())
+		return std::auto_ptr<Script>();
+	return pScript;
 }
 
 
