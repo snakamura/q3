@@ -14,6 +14,8 @@
 #include <qsstl.h>
 #include <qswindow.h>
 
+#include <commdlg.h>
+
 #include "attachmenthelper.h"
 #include "../model/tempfilecleaner.h"
 #include "../ui/dialogs.h"
