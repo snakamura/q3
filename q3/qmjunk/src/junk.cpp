@@ -234,38 +234,39 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 			return false;
 		
 		string_ptr strId(getId(msg));
-		int nId = 0;
+		int nStatus = 0;
 		if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
-			0, sizeof(nId), reinterpret_cast<char*>(&nId)) == -1)
-			nId = 0;
-		if (nId > 0) {
+			0, sizeof(nStatus), reinterpret_cast<char*>(&nStatus)) == -1)
+			nStatus = STATUS_NONE;
+		if (nStatus > 0) {
 			nOperation &= ~(JunkFilter::OPERATION_ADDCLEAN | JunkFilter::OPERATION_REMOVEJUNK);
 			if (nOperation & JunkFilter::OPERATION_ADDJUNK) {
 				nOperation |= JunkFilter::OPERATION_REMOVECLEAN;
-				nId = -1;
+				nStatus = STATUS_JUNK;
 			}
 			else if (nOperation & JunkFilter::OPERATION_REMOVECLEAN) {
-				nId = 0;
+				nStatus = STATUS_NONE;
 			}
 		}
-		else if (nId < 0) {
+		else if (nStatus < 0) {
 			nOperation &= ~(JunkFilter::OPERATION_ADDJUNK | JunkFilter::OPERATION_REMOVECLEAN);
 			if (nOperation & JunkFilter::OPERATION_ADDCLEAN) {
 				nOperation |= JunkFilter::OPERATION_REMOVEJUNK;
-				nId = 1;
+				nStatus = STATUS_CLEAN;
 			}
 			else if (nOperation & JunkFilter::OPERATION_REMOVEJUNK) {
-				nId = 0;
+				nStatus = STATUS_NONE;
 			}
 		}
 		else {
 			nOperation &= ~(JunkFilter::OPERATION_REMOVECLEAN | JunkFilter::OPERATION_REMOVEJUNK);
 			if (nOperation & JunkFilter::OPERATION_ADDCLEAN)
-				nId = 1;
+				nStatus = STATUS_CLEAN;
 			else if (nOperation & JunkFilter::OPERATION_ADDJUNK)
-				nId = -1;
+				nStatus = STATUS_JUNK;
 		}
-		dpput(pDepotId_, strId.get(), strlen(strId.get()), reinterpret_cast<char*>(&nId), sizeof(nId), DP_DOVER);
+		dpput(pDepotId_, strId.get(), strlen(strId.get()),
+			reinterpret_cast<char*>(&nStatus), sizeof(nStatus), DP_DOVER);
 	}
 	
 	if (nOperation == 0)
@@ -342,6 +343,32 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	}
 	
 	return true;
+}
+
+JunkFilter::Status qmjunk::JunkFilterImpl::getStatus(const WCHAR* pwszId)
+{
+	assert(pwszId);
+	
+	if (!*pwszId)
+		return STATUS_NONE;
+	
+	Lock<CriticalSection> lock(cs_);
+	
+	if (!init())
+		return STATUS_NONE;
+	
+	string_ptr strId(wcs2mbs(pwszId));
+	
+	int nStatus = 0;
+	if (dpgetwb(pDepotId_, strId.get(), strlen(strId.get()),
+		0, sizeof(nStatus), reinterpret_cast<char*>(&nStatus)) == -1)
+		return STATUS_NONE;
+	else if (nStatus > 0)
+		return STATUS_CLEAN;
+	else if (nStatus < 0)
+		return STATUS_JUNK;
+	else
+		return STATUS_NONE;
 }
 
 float qmjunk::JunkFilterImpl::getThresholdScore()

@@ -1067,6 +1067,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 							if (fScore > pJunkFilter->getThresholdScore()) {
 								listJunk.push_back(mpl->getId());
 								mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
+								pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
 							}
 							else if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
 								pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDCLEAN);
@@ -1097,9 +1098,13 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
 						MessagePtrLock mpl(listMessageData[n].getMessagePtr());
 						Message msg;
-						if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED) &&
-							mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
-							pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
+						if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
+							wstring_ptr wstrId(mpl->getMessageId());
+							if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
+								if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+									pJunkFilter->manage(msg, JunkFilter::OPERATION_ADDJUNK);
+							}
+						}
 						
 						pSessionCallback_->setPos(n);
 					}

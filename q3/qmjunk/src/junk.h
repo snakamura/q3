@@ -43,6 +43,7 @@ public:
 	virtual float getScore(const qm::Message& msg);
 	virtual bool manage(const qm::Message& msg,
 						unsigned int nOperation);
+	virtual Status getStatus(const WCHAR* pwszId);
 	virtual float getThresholdScore();
 	virtual unsigned int getFlags();
 	virtual bool save();

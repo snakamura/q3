@@ -3888,9 +3888,29 @@ void qm::MessageManageJunkAction::invoke(const ActionEvent& event)
 	
 	for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
 		MessageHolder* pmh = l[n];
-		Message msg;
-		if (pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
-			pJunkFilter_->manage(msg, operation_);
+		
+		wstring_ptr wstrId(pmh->getMessageId());
+		bool b = true;
+		switch (pJunkFilter_->getStatus(wstrId.get())) {
+		case JunkFilter::STATUS_NONE:
+			break;
+		case JunkFilter::STATUS_CLEAN:
+			b = operation_ == JunkFilter::OPERATION_REMOVECLEAN ||
+				operation_ == JunkFilter::OPERATION_ADDJUNK;
+			break;
+		case JunkFilter::STATUS_JUNK:
+			b = operation_ == JunkFilter::OPERATION_ADDCLEAN ||
+				operation_ == JunkFilter::OPERATION_REMOVEJUNK;
+			break;
+		default:
+			assert(false);
+			break;
+		}
+		if (b) {
+			Message msg;
+			if (pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+				pJunkFilter_->manage(msg, operation_);
+		}
 		
 		if (progressDialog.isCanceled())
 			break;

@@ -45,6 +45,12 @@ public:
 		FLAG_AUTOLEARN		= 0x01,
 		FLAG_MANUALLEARN	= 0x02
 	};
+	
+	enum Status {
+		STATUS_NONE			= 0,
+		STATUS_CLEAN		= 1,
+		STATUS_JUNK			= -1
+	};
 
 public:
 	virtual ~JunkFilter();
@@ -53,6 +59,7 @@ public:
 	virtual float getScore(const Message& msg) = 0;
 	virtual bool manage(const Message& msg,
 						unsigned int nOperation) = 0;
+	virtual Status getStatus(const WCHAR* pwszId) = 0;
 	virtual float getThresholdScore() = 0;
 	virtual unsigned int getFlags() = 0;
 	virtual bool save() = 0;
