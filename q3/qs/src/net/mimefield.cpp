@@ -2159,7 +2159,7 @@ const WCHAR* qs::AddressParser::getMailbox() const
 
 const WCHAR* qs::AddressParser::getHost() const
 {
-	return wstrHost_;
+	return wstrHost_ ? wstrHost_ : L"";
 }
 
 AddressListParser* qs::AddressParser::getGroup() const
