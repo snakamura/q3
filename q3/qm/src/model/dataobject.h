@@ -22,11 +22,15 @@
 namespace qm {
 
 class MessageDataObject;
+#ifndef _WIN32_WCE
+class URIDataObject;
+#endif
 
 class Account;
-class MessageOperationCallback;
 class Document;
 class MessageHolder;
+class MessageOperationCallback;
+class URI;
 
 
 /****************************************************************************
@@ -110,36 +114,6 @@ private:
 	MessageDataObject& operator=(const MessageDataObject&);
 
 private:
-	class IEnumFORMATETCImpl : public IEnumFORMATETC
-	{
-	public:
-		IEnumFORMATETCImpl();
-		~IEnumFORMATETCImpl();
-	
-	public:
-		STDMETHOD_(ULONG, AddRef)();
-		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid,
-								  void** ppv);
-	
-	public:
-		STDMETHOD(Next)(ULONG celt,
-						FORMATETC* rgelt,
-						ULONG* pceltFetched);
-		STDMETHOD(Skip)(ULONG celt);
-		STDMETHOD(Reset)();
-		STDMETHOD(Clone)(IEnumFORMATETC** ppEnum);
-	
-	private:
-		IEnumFORMATETCImpl(const IEnumFORMATETCImpl&);
-		IEnumFORMATETCImpl& operator=(const IEnumFORMATETCImpl&);
-	
-	private:
-		ULONG nRef_;
-		int nCurrent_;
-	};
-
-private:
 	ULONG nRef_;
 	Document* pDocument_;
 	Account* pAccount_;
@@ -150,6 +124,120 @@ public:
 	static UINT nFormats__[];
 	static FORMATETC formats__[];
 };
+
+
+#ifndef _WIN32_WCE
+
+/****************************************************************************
+ *
+ * URIDataObject
+ *
+ */
+
+class URIDataObject : public IDataObject
+{
+public:
+	enum Format {
+		FORMAT_FILEDESCRIPTOR,
+		FORMAT_FILECONTENTS
+	};
+
+public:
+	typedef std::vector<URI*> URIList;
+
+public:
+	URIDataObject(Document* pDocument,
+				  bool bDecryptVerify,
+				  URIList& listURI);
+	~URIDataObject();
+
+public:
+	STDMETHOD_(ULONG, AddRef)();
+	STDMETHOD_(ULONG, Release)();
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
+
+public:
+	STDMETHOD(GetData)(FORMATETC* pFormat,
+					   STGMEDIUM* pMedium);
+	STDMETHOD(GetDataHere)(FORMATETC* pFormat,
+						   STGMEDIUM* pMedium);
+	STDMETHOD(QueryGetData)(FORMATETC* pFormat);
+	STDMETHOD(GetCanonicalFormatEtc)(FORMATETC* pFormatIn,
+									 FORMATETC* pFormatOut);
+	STDMETHOD(SetData)(FORMATETC* pFormat,
+					   STGMEDIUM* pMedium,
+					   BOOL bRelease);
+	STDMETHOD(EnumFormatEtc)(DWORD dwDirection,
+							 IEnumFORMATETC** ppEnum);
+	STDMETHOD(DAdvise)(FORMATETC* pFormat,
+					   DWORD advf,
+					   IAdviseSink* pSink,
+					   DWORD* pdwConnection);
+	STDMETHOD(DUnadvise)(DWORD dwConnection);
+	STDMETHOD(EnumDAdvise)(IEnumSTATDATA** ppEnum);
+
+private:
+	const qs::Part* getPart(URIList::size_type n,
+							bool bBody,
+							Message* pMessage);
+
+private:
+	URIDataObject(const URIDataObject&);
+	URIDataObject& operator=(const URIDataObject&);
+
+private:
+	ULONG nRef_;
+	Document* pDocument_;
+	bool bDecryptVerify_;
+	URIList listURI_;
+
+public:
+	static UINT nFormats__[];
+	static FORMATETC formats__[];
+};
+
+#endif
+
+
+/****************************************************************************
+ *
+ * IEnumFORMATETCImpl
+ *
+ */
+
+class IEnumFORMATETCImpl : public IEnumFORMATETC
+{
+public:
+	IEnumFORMATETCImpl(FORMATETC* pFormatEtc,
+					   size_t nCount);
+	~IEnumFORMATETCImpl();
+
+public:
+	STDMETHOD_(ULONG, AddRef)();
+	STDMETHOD_(ULONG, Release)();
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
+
+public:
+	STDMETHOD(Next)(ULONG celt,
+					FORMATETC* rgelt,
+					ULONG* pceltFetched);
+	STDMETHOD(Skip)(ULONG celt);
+	STDMETHOD(Reset)();
+	STDMETHOD(Clone)(IEnumFORMATETC** ppEnum);
+
+private:
+	IEnumFORMATETCImpl(const IEnumFORMATETCImpl&);
+	IEnumFORMATETCImpl& operator=(const IEnumFORMATETCImpl&);
+
+private:
+	ULONG nRef_;
+	FORMATETC* pFormatEtc_;
+	size_t nCount_;
+	size_t nCurrent_;
+};
+
 
 }
 

@@ -11,6 +11,7 @@
 
 #include <qm.h>
 
+#include <qsdragdrop.h>
 #include <qsmenu.h>
 #include <qsregex.h>
 #include <qssax.h>
@@ -245,9 +246,15 @@ private:
 class AttachmentHeaderItem :
 	public HeaderItem,
 	public AttachmentSelectionModel
+#ifndef _WIN32_WCE
+	,
+	public qs::NotifyHandler,
+	public qs::DragSourceHandler
+#endif
 {
 public:
-	explicit AttachmentHeaderItem(qs::MenuManager* pMenuManager);
+	AttachmentHeaderItem(SecurityModel* pSecurityModel,
+						 qs::MenuManager* pMenuManager);
 	virtual ~AttachmentHeaderItem();
 
 public:
@@ -270,6 +277,22 @@ public:
 	virtual bool hasAttachment();
 	virtual bool hasSelectedAttachment();
 	virtual void getSelectedAttachment(NameList* pList);
+
+#ifndef _WIN32_WCE
+public:
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
+
+private:
+	LRESULT onBeginDrag(NMHDR* pnmhdr,
+						bool* pbHandled);
+
+public:
+	virtual void dragDropEnd(const qs::DragSourceDropEvent& event);
+#endif
+
+private:
+	void clear();
 
 private:
 	AttachmentHeaderItem(const AttachmentHeaderItem&);
@@ -308,7 +331,10 @@ private:
 
 private:
 	AttachmentWindow wnd_;
+	SecurityModel* pSecurityModel_;
 	qs::MenuManager* pMenuManager_;
+	Document* pDocument_;
+	qs::WindowBase* pParent_;
 };
 
 
@@ -322,6 +348,7 @@ class HeaderWindowContentHandler : public qs::DefaultHandler
 {
 public:
 	HeaderWindowContentHandler(LineLayout* pLayout,
+							   SecurityModel* pSecurityModel,
 							   qs::MenuManager* pMenuManager);
 	virtual ~HeaderWindowContentHandler();
 
@@ -358,6 +385,7 @@ private:
 
 private:
 	LineLayout* pLayout_;
+	SecurityModel* pSecurityModel_;
 	qs::MenuManager* pMenuManager_;
 	HeaderLine* pCurrentLine_;
 	HeaderItem* pCurrentItem_;
@@ -377,6 +405,7 @@ struct HeaderWindowCreateContext
 {
 	Document* pDocument_;
 	qs::MenuManager* pMenuManager_;
+	SecurityModel* pSecurityModel_;
 };
 
 }

@@ -351,7 +351,7 @@ STDMETHODIMP qm::MessageDataObject::EnumFormatEtc(DWORD dwDirection,
 	if (dwDirection != DATADIR_GET)
 		return E_NOTIMPL;
 	
-	IEnumFORMATETCImpl* pEnum = new IEnumFORMATETCImpl();
+	IEnumFORMATETCImpl* pEnum = new IEnumFORMATETCImpl(formats__, countof(formats__));
 	pEnum->AddRef();
 	
 	*ppEnum = pEnum;
@@ -594,28 +594,57 @@ wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
 }
 
 
+#ifndef _WIN32_WCE
+
 /****************************************************************************
  *
- * MessageDataObject::IEnumFORMATETCImpl
+ * URIDataObject
  *
  */
 
-qm::MessageDataObject::IEnumFORMATETCImpl::IEnumFORMATETCImpl() :
+UINT qm::URIDataObject::nFormats__[] = {
+	::RegisterClipboardFormat(CFSTR_FILEDESCRIPTOR),
+	::RegisterClipboardFormat(CFSTR_FILECONTENTS)
+};
+
+FORMATETC qm::URIDataObject::formats__[] = {
+	{
+		URIDataObject::nFormats__[FORMAT_FILEDESCRIPTOR],
+		0,
+		DVASPECT_CONTENT,
+		-1,
+		TYMED_HGLOBAL
+	},
+	{
+		URIDataObject::nFormats__[FORMAT_FILECONTENTS],
+		0,
+		DVASPECT_CONTENT,
+		-1,
+		TYMED_HGLOBAL
+	}
+};
+
+qm::URIDataObject::URIDataObject(Document* pDocument,
+								 bool bDecryptVerify,
+								 URIList& listURI) :
 	nRef_(0),
-	nCurrent_(0)
+	pDocument_(pDocument),
+	bDecryptVerify_(bDecryptVerify)
 {
+	listURI_.swap(listURI);
 }
 
-qm::MessageDataObject::IEnumFORMATETCImpl::~IEnumFORMATETCImpl()
+qm::URIDataObject::~URIDataObject()
 {
+	std::for_each(listURI_.begin(), listURI_.end(), qs::deleter<URI>());
 }
 
-STDMETHODIMP_(ULONG) qm::MessageDataObject::IEnumFORMATETCImpl::AddRef()
+STDMETHODIMP_(ULONG) qm::URIDataObject::AddRef()
 {
 	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
 }
 
-STDMETHODIMP_(ULONG) qm::MessageDataObject::IEnumFORMATETCImpl::Release()
+STDMETHODIMP_(ULONG) qm::URIDataObject::Release()
 {
 	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
 	if (nRef == 0)
@@ -623,8 +652,220 @@ STDMETHODIMP_(ULONG) qm::MessageDataObject::IEnumFORMATETCImpl::Release()
 	return nRef;
 }
 
-STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::QueryInterface(REFIID riid,
-																	   void** ppv)
+STDMETHODIMP qm::URIDataObject::QueryInterface(REFIID riid,
+											   void** ppv)
+{
+	*ppv = 0;
+	
+	if (riid == IID_IUnknown || riid == IID_IDataObject) {
+		AddRef();
+		*ppv = static_cast<IDataObject*>(this);
+	}
+	
+	return *ppv ? S_OK : E_NOINTERFACE;
+}
+
+STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
+										STGMEDIUM* pMedium)
+{
+	HRESULT hr = QueryGetData(pFormat);
+	if (hr != S_OK)
+		return hr;
+	
+	HGLOBAL hGlobal = 0;
+	if (pFormat->cfFormat == nFormats__[FORMAT_FILECONTENTS]) {
+		if (pFormat->lindex < 0 ||
+			static_cast<LONG>(listURI_.size()) <= pFormat->lindex)
+			return E_FAIL;
+		
+		Message msg;
+		const Part* pPart = getPart(pFormat->lindex, true, &msg);
+		if (!pPart)
+			return E_FAIL;
+		
+		malloc_size_ptr<unsigned char> pBody(pPart->getBodyData());
+		if (!pBody.get())
+			return E_FAIL;
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, pBody.size());
+		if (!hGlobal)
+			return E_OUTOFMEMORY;
+		CHAR* p = reinterpret_cast<CHAR*>(GlobalLock(hGlobal));
+		memcpy(p, pBody.get(), pBody.size());
+		GlobalUnlock(hGlobal);
+	}
+	else if (pFormat->cfFormat == nFormats__[FORMAT_FILEDESCRIPTOR]) {
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
+			sizeof(FILEGROUPDESCRIPTOR) +
+			(listURI_.size() - 1)*sizeof(FILEDESCRIPTOR));
+		if (!hGlobal)
+			return E_OUTOFMEMORY;
+		FILEGROUPDESCRIPTOR* pfgd =
+			reinterpret_cast<FILEGROUPDESCRIPTOR*>(GlobalLock(hGlobal));
+		pfgd->cItems = listURI_.size();
+		URIList::size_type n = 0;
+		while (n < listURI_.size()) {
+			Message msg;
+			const Part* pPart = getPart(n, false, &msg);
+			if (!pPart)
+				break;
+			
+			pfgd->fgd[n].dwFlags = 0;
+			
+			wstring_ptr wstrName(AttachmentParser(*pPart).getName());
+			if (!wstrName.get())
+				wstrName = allocWString(L"Untitled");
+			W2T(wstrName.get(), ptszName);
+			_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
+			
+			++n;
+		}
+		GlobalUnlock(hGlobal);
+		
+		if (n != listURI_.size()) {
+			GlobalFree(hGlobal);
+			return E_FAIL;
+		}
+	}
+	else {
+		assert(false);
+	}
+	
+	pMedium->tymed = TYMED_HGLOBAL;
+	pMedium->hGlobal = hGlobal;
+	pMedium->pUnkForRelease = 0;
+	
+	return S_OK;
+}
+
+STDMETHODIMP qm::URIDataObject::GetDataHere(FORMATETC* pFormat,
+											STGMEDIUM* pMedium)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::URIDataObject::QueryGetData(FORMATETC* pFormat)
+{
+	int n = 0;
+	while (n < countof(nFormats__)) {
+		if (pFormat->cfFormat == nFormats__[n])
+			break;
+		++n;
+	}
+	if (n == countof(nFormats__) || pFormat->ptd)
+		return DV_E_FORMATETC;
+	else if (pFormat->cfFormat != nFormats__[FORMAT_FILECONTENTS] && pFormat->lindex != -1)
+		return DV_E_LINDEX;
+	else if (pFormat->cfFormat == nFormats__[FORMAT_FILECONTENTS] &&
+		(pFormat->lindex < 0 || static_cast<LONG>(listURI_.size()) <= pFormat->lindex))
+		return DV_E_LINDEX;
+	else if (!(pFormat->tymed & TYMED_HGLOBAL))
+		return DV_E_TYMED;
+	else if (pFormat->dwAspect != DVASPECT_CONTENT)
+		return DV_E_DVASPECT;
+	else
+		return S_OK;
+}
+
+STDMETHODIMP qm::URIDataObject::GetCanonicalFormatEtc(FORMATETC* pFormatIn,
+													  FORMATETC* pFormatOut)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::URIDataObject::SetData(FORMATETC* pFormat,
+										STGMEDIUM* pMedium,
+										BOOL bRelease)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::URIDataObject::EnumFormatEtc(DWORD dwDirection,
+											  IEnumFORMATETC** ppEnum)
+{
+	if (dwDirection != DATADIR_GET)
+		return E_NOTIMPL;
+	
+	IEnumFORMATETCImpl* pEnum = new IEnumFORMATETCImpl(formats__, countof(formats__));
+	pEnum->AddRef();
+	
+	*ppEnum = pEnum;
+	
+	return S_OK;
+}
+
+STDMETHODIMP qm::URIDataObject::DAdvise(FORMATETC* pFormat,
+										DWORD advf,
+										IAdviseSink* pSink,
+										DWORD* pdwConnection)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::URIDataObject::DUnadvise(DWORD dwConnection)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::URIDataObject::EnumDAdvise(IEnumSTATDATA** ppEnum)
+{
+	return E_NOTIMPL;
+}
+
+const Part* qm::URIDataObject::getPart(URIList::size_type n,
+									   bool bBody,
+									   Message* pMessage)
+{
+	URI* pURI = listURI_[n];
+	MessagePtrLock mpl(pDocument_->getMessage(*pURI));
+	if (!mpl)
+		return 0;
+	
+	unsigned int nFlags =
+		(bBody ? Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT) |
+		(bDecryptVerify_ ? 0 : Account::GETMESSAGEFLAG_NOSECURITY);
+	if (!mpl->getMessage(nFlags, 0, pMessage))
+		return 0;
+	
+	return pURI->getFragment().getPart(pMessage);
+}
+
+#endif
+
+
+/****************************************************************************
+ *
+ * IEnumFORMATETCImpl
+ *
+ */
+
+qm::IEnumFORMATETCImpl::IEnumFORMATETCImpl(FORMATETC* pFormatEtc,
+										   size_t nCount) :
+	nRef_(0),
+	pFormatEtc_(pFormatEtc),
+	nCount_(nCount),
+	nCurrent_(0)
+{
+}
+
+qm::IEnumFORMATETCImpl::~IEnumFORMATETCImpl()
+{
+}
+
+STDMETHODIMP_(ULONG) qm::IEnumFORMATETCImpl::AddRef()
+{
+	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
+}
+
+STDMETHODIMP_(ULONG) qm::IEnumFORMATETCImpl::Release()
+{
+	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
+	if (nRef == 0)
+		delete this;
+	return nRef;
+}
+
+STDMETHODIMP qm::IEnumFORMATETCImpl::QueryInterface(REFIID riid,
+													void** ppv)
 {
 	*ppv = 0;
 	
@@ -636,13 +877,13 @@ STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::QueryInterface(REFIID ri
 	return *ppv ? S_OK : E_NOINTERFACE;
 }
 
-STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Next(ULONG celt,
-															 FORMATETC* rgelt,
-															 ULONG* pceltFetched)
+STDMETHODIMP qm::IEnumFORMATETCImpl::Next(ULONG celt,
+										  FORMATETC* rgelt,
+										  ULONG* pceltFetched)
 {
 	int nCount = 0;
-	while (celt > 0 && nCurrent_ < countof(MessageDataObject::formats__)) {
-		rgelt[nCount++] = MessageDataObject::formats__[nCurrent_++];
+	while (celt > 0 && nCurrent_ < nCount_) {
+		rgelt[nCount++] = pFormatEtc_[nCurrent_++];
 		--celt;
 	}
 	if (pceltFetched)
@@ -651,21 +892,21 @@ STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Next(ULONG celt,
 	return nCount != 0 ? S_OK : S_FALSE;
 }
 
-STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Skip(ULONG celt)
+STDMETHODIMP qm::IEnumFORMATETCImpl::Skip(ULONG celt)
 {
 	nCurrent_ += celt;
-	return nCurrent_ > countof(MessageDataObject::formats__) ? S_FALSE : S_OK;
+	return nCurrent_ > nCount_ ? S_FALSE : S_OK;
 }
 
-STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Reset()
+STDMETHODIMP qm::IEnumFORMATETCImpl::Reset()
 {
 	nCurrent_ = 0;
 	return S_OK;
 }
 
-STDMETHODIMP qm::MessageDataObject::IEnumFORMATETCImpl::Clone(IEnumFORMATETC** ppEnum)
+STDMETHODIMP qm::IEnumFORMATETCImpl::Clone(IEnumFORMATETC** ppEnum)
 {
-	IEnumFORMATETCImpl* pEnum = new IEnumFORMATETCImpl();
+	IEnumFORMATETCImpl* pEnum = new IEnumFORMATETCImpl(pFormatEtc_, nCount_);
 	pEnum->nCurrent_ = nCurrent_;
 	pEnum->AddRef();
 	

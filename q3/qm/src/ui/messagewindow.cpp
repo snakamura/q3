@@ -520,6 +520,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	HeaderWindowCreateContext context = {
 		pContext->pDocument_,
 		pContext->pUIManager_->getMenuManager(),
+		pContext->pSecurityModel_
 	};
 	if (!pHeaderWindow->create(L"QmHeaderWindow", 0, WS_VISIBLE | WS_CHILD,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

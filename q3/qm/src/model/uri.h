@@ -54,6 +54,7 @@ public:
 	URIFragment(Message* pMessage,
 				const qs::Part* pPart,
 				Type type);
+	URIFragment(const URIFragment& fragment);
 	~URIFragment();
 
 public:
@@ -63,7 +64,6 @@ public:
 	const qs::Part* getPart(const Message* pMessage) const;
 
 private:
-	URIFragment(const URIFragment&);
 	URIFragment& operator=(const URIFragment&);
 
 private:
@@ -92,6 +92,7 @@ public:
 		Message* pMessage,
 		const qs::Part* pPart,
 		URIFragment::Type type);
+	URI(const URI& uri);
 	~URI();
 
 public:
@@ -107,7 +108,6 @@ public:
 	static std::auto_ptr<URI> parse(const WCHAR* pwszURI);
 
 private:
-	URI(const URI&);
 	URI& operator=(const URI&);
 
 private:

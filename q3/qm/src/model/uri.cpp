@@ -81,6 +81,12 @@ qm::URIFragment::URIFragment(Message* pMessage,
 	std::reverse(section_.begin(), section_.end());
 }
 
+qm::URIFragment::URIFragment(const URIFragment& fragment) :
+	section_(fragment.section_),
+	type_(fragment.type_)
+{
+}
+
 qm::URIFragment::~URIFragment()
 {
 }
@@ -225,6 +231,15 @@ qm::URI::URI(MessageHolder* pmh,
 	wstrFolder_ = pFolder->getFullName();
 	nValidity_ = pFolder->getValidity();
 	nId_ = pmh->getId();
+}
+
+qm::URI::URI(const URI& uri) :
+	nValidity_(uri.nValidity_),
+	nId_(uri.nId_),
+	fragment_(uri.fragment_)
+{
+	wstrAccount_ = allocWString(uri.wstrAccount_.get());
+	wstrFolder_ = allocWString(uri.wstrFolder_.get());
 }
 
 qm::URI::~URI()
