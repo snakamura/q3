@@ -4268,14 +4268,31 @@ MacroValuePtr qm::MacroFunctionURI::value(MacroContext* pContext) const
 	
 	LOG(URI);
 	
-	if (!checkArgSize(pContext, 0))
+	if (!checkArgSizeRange(pContext, 0, 1))
 		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh || !pmh->getMessageHolder())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
-	wstring_ptr wstrURI(URI(pmh->getMessageHolder()).toString());
+	wstring_ptr wstrURI;
+	if (nSize > 0) {
+		const Part* pPart = getPart(pContext, 0);
+		if (!pPart)
+			return MacroValuePtr();
+		
+		Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_ALL, 0);
+		if (!pMessage)
+			return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
+		
+		wstrURI = URI(pmh->getMessageHolder(), pMessage, pPart, URIFragment::TYPE_NONE).toString();
+	}
+	else {
+		wstrURI = URI(pmh->getMessageHolder()).toString();
+	}
+	
 	return MacroValueFactory::getFactory().newString(wstrURI.get());
 }
 
