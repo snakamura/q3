@@ -62,6 +62,7 @@ public:
 		FileType type, qs::PasswordCallback* pCallback);
 	virtual qs::QSTATUS load(qs::InputStream* pStream,
 		FileType type, qs::PasswordCallback* pCallback);
+	virtual qs::QSTATUS getText(qs::WSTRING* pwstrText) const;
 	virtual qs::QSTATUS getSubject(qs::Name** ppName) const;
 	virtual qs::QSTATUS getIssuer(qs::Name** ppName) const;
 

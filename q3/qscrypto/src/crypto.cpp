@@ -146,6 +146,29 @@ QSTATUS qscrypto::CertificateImpl::load(InputStream* pStream,
 	return QSTATUS_SUCCESS;
 }
 
+QSTATUS qscrypto::CertificateImpl::getText(WSTRING* pwstrText) const
+{
+	assert(pwstrText);
+	
+	DECLARE_QSTATUS();
+	
+	*pwstrText = 0;
+	
+	BIOPtr pOut(BIO_new(BIO_s_mem()));
+	if (X509_print(pOut.get(), pX509_) == 0)
+		return QSTATUS_FAIL;
+	
+	char* pBuf = 0;
+	int nLen = BIO_get_mem_data(pOut.get(), &pBuf);
+	
+	string_ptr<WSTRING> wstrText(mbs2wcs(pBuf, nLen));
+	if (!wstrText.get())
+		return QSTATUS_OUTOFMEMORY;
+	*pwstrText = wstrText.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
 QSTATUS qscrypto::CertificateImpl::getSubject(Name** ppName) const
 {
 	DECLARE_QSTATUS();

@@ -69,6 +69,7 @@ public:
 		FileType type, PasswordCallback* pCallback) = 0;
 	virtual QSTATUS load(InputStream* pStream,
 		FileType type, PasswordCallback* pCallback) = 0;
+	virtual QSTATUS getText(WSTRING* pwstrText) const = 0;
 	virtual QSTATUS getSubject(Name** ppName) const = 0;
 	virtual QSTATUS getIssuer(Name** ppName) const = 0;
 

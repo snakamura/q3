@@ -243,6 +243,14 @@ QSTATUS qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	X509* pX509 = SSL_get_peer_certificate(pSSL_);
 	CertificateImpl cert(pX509);
+	if (log.isDebugEnabled()) {
+		string_ptr<WSTRING> wstrCert;
+		status = cert.getText(&wstrCert);
+		CHECK_QSTATUS();
+		status = log.debug(wstrCert.get());
+		CHECK_QSTATUS();
+	}
+	
 	status = pCallback_->checkCertificate(cert, bVerified);
 	if (status != QSTATUS_SUCCESS) {
 		status = log.debug(L"Failed to check server certificate");
