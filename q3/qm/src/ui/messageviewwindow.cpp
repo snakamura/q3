@@ -1,5 +1,5 @@
 /*
- * $Id: messageviewwindow.cpp,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -16,15 +16,10 @@
 #include <qsnew.h>
 #include <qsstream.h>
 
-#undef T2W
-#undef W2T
-#undef T2A
-#undef A2T
-
 #include <exdispid.h>
 #include <tchar.h>
 #ifdef QMHTMLVIEW
-#include <mshtmcid.h>
+#	include <mshtmcid.h>
 #endif
 
 #include "messageviewwindow.h"

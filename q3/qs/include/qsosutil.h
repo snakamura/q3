@@ -1,5 +1,5 @@
 /*
- * $Id: qsosutil.h,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -27,6 +27,7 @@ class BSTRPtr;
 class Variant;
 class SafeArrayPtr;
 class StgMedium;
+class Library;
 class Registry;
 class Clipboard;
 
@@ -268,6 +269,31 @@ public:
 private:
 	StgMedium(const StgMedium&);
 	StgMedium& operator=(const StgMedium&);
+};
+
+
+/****************************************************************************
+ *
+ * Library
+ *
+ */
+
+class QSEXPORTCLASS Library
+{
+public:
+	Library(const WCHAR* pwszPath, QSTATUS* pstatus);
+	~Library();
+
+public:
+	bool operator!() const;
+	operator HINSTANCE() const;
+
+private:
+	Library(const Library&);
+	Library& operator=(const Library&);
+
+private:
+	HINSTANCE hInst_;
 };
 
 

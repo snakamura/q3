@@ -1,5 +1,5 @@
 /*
- * $Id: messageviewwindow.h,v 1.1.1.1 2003/04/29 08:07:32 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -19,11 +19,15 @@
 #include <qswindow.h>
 
 #ifdef QMHTMLVIEW
-#include <atlbase.h>
-#include <atliface.h>
-#include <exdisp.h>
-#include <mshtml.h>
-#include <mshtmhst.h>
+#	undef T2W
+#	undef W2T
+#	undef T2A
+#	undef A2T
+#	include <atlbase.h>
+#	include <atliface.h>
+#	include <exdisp.h>
+#	include <mshtml.h>
+#	include <mshtmhst.h>
 #endif
 
 #include "messagewindow.h"

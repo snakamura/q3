@@ -59,6 +59,7 @@ public:
 
 private:
 	qs::QSTATUS load();
+	qs::QSTATUS loadWAB();
 	void clear();
 
 private:

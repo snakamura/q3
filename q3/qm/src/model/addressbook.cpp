@@ -17,6 +17,12 @@
 
 #include <algorithm>
 
+#ifdef _WIN32_WCE
+#	include <addrmapi.h>
+#else
+#	include <wab.h>
+#endif
+
 #include "addressbook.h"
 #include "security.h"
 
@@ -189,6 +195,8 @@ QSTATUS qm::AddressBook::load()
 		Extensions::ADDRESSBOOK, &wstrPath);
 	CHECK_QSTATUS();
 	
+	bool bCleared = true;
+	
 	W2T(wstrPath.get(), ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
@@ -210,9 +218,17 @@ QSTATUS qm::AddressBook::load()
 			
 			ft_ = ft;
 		}
+		else {
+			bCleared = false;
+		}
 	}
 	else {
 		clear();
+	}
+	
+	if (bCleared) {
+		status = loadWAB();
+		CHECK_QSTATUS();
 	}
 	
 	EntryList::iterator itE = listEntry_.begin();
@@ -241,6 +257,329 @@ QSTATUS qm::AddressBook::load()
 		++itE;
 	}
 	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AddressBook::loadWAB()
+{
+	DECLARE_QSTATUS();
+	
+#ifndef _WIN32_WCE
+	Registry reg(HKEY_LOCAL_MACHINE,
+		L"Software\\Microsoft\\WAB\\DLLPath", &status);
+	CHECK_QSTATUS();
+	if (!reg)
+		return QSTATUS_FAIL;
+	
+	string_ptr<WSTRING> wstrPath;
+	status = reg.getValue(L"", &wstrPath);
+	CHECK_QSTATUS();
+	
+	Library lib(wstrPath.get(), &status);
+	CHECK_QSTATUS();
+	if (!lib)
+		return QSTATUS_FAIL;
+	
+	LPWABOPEN pfnWABOpen = reinterpret_cast<LPWABOPEN>(
+		::GetProcAddress(lib, "WABOpen"));
+	if (!pfnWABOpen)
+		return QSTATUS_FAIL;
+	
+	ComPtr<IAddrBook> pAddrBook;
+	ComPtr<IWABObject> pWABObject;
+	WAB_PARAM param = { sizeof(param) };
+	if ((*pfnWABOpen)(&pAddrBook, &pWABObject, &param, 0) != S_OK)
+		return QSTATUS_FAIL;
+	
+	ULONG nSize = 0;
+	ENTRYID* pEntryId = 0;
+	if (pAddrBook->GetPAB(&nSize, &pEntryId) != S_OK)
+		return QSTATUS_FAIL;
+	
+	ULONG nType = 0;
+	ComPtr<IABContainer> pABC;
+	if (pAddrBook->OpenEntry(nSize, pEntryId,
+		0, 0, &nType, reinterpret_cast<IUnknown**>(&pABC)) != S_OK)
+		return QSTATUS_FAIL;
+	
+	IMAPITable* pTable = 0;
+	if (pABC->GetContentsTable(0, &pTable) != S_OK)
+		return QSTATUS_FAIL;
+	
+	LONG nRowsSought = 0;
+	if (pTable->SeekRow(BOOKMARK_BEGINNING, 0, &nRowsSought) == S_OK) {
+		while (true) {
+			SRowSet* pSRowSet = 0;
+			if (pTable->QueryRows(1, 0, &pSRowSet) != S_OK)
+				break;
+			struct Deleter
+			{
+				Deleter(IWABObject* pWABObject, SRowSet* pSRowSet) :
+					pWABObject_(pWABObject),
+					pSRowSet_(pSRowSet)
+				{
+				}
+				
+				~Deleter()
+				{
+					for (ULONG n = 0; n < pSRowSet_->cRows; ++n)
+						pWABObject_->FreeBuffer(pSRowSet_->aRow[n].lpProps);
+					pWABObject_->FreeBuffer(pSRowSet_);
+				}
+				
+				IWABObject* pWABObject_;
+				SRowSet* pSRowSet_;
+			} deleter(pWABObject.get(), pSRowSet);
+			if (pSRowSet->cRows == 0)
+				break;
+			
+			for (ULONG nRow = 0; nRow < pSRowSet->cRows; ++nRow) {
+				std::auto_ptr<AddressBookEntry> pEntry;
+				status = newQsObject(&pEntry);
+				CHECK_QSTATUS();
+				for (ULONG nValue = 0; nValue < pSRowSet->aRow[nRow].cValues; ++nValue) {
+					switch (pSRowSet->aRow[nRow].lpProps[nValue].ulPropTag) {
+					case PR_DISPLAY_NAME:
+						{
+#ifdef UNICODE
+							string_ptr<WSTRING> wstrName(allocWString(
+								pSRowSet->aRow[nRow].lpProps[nValue].Value.lpszW));
+#else
+							string_ptr<WSTRING> wstrName(mbs2wcs(
+								pSRowSet->aRow[nRow].lpProps[nValue].Value.lpszA));
+#endif
+							if (!wstrName.get())
+								return QSTATUS_OUTOFMEMORY;
+							pEntry->setName(wstrName.release());
+						}
+						break;
+					case PR_EMAIL_ADDRESS:
+						{
+#ifdef UNICODE
+							string_ptr<WSTRING> wstrAddress(allocWString(
+								pSRowSet->aRow[nRow].lpProps[nValue].Value.lpszW));
+#else
+							string_ptr<WSTRING> wstrAddress(mbs2wcs(
+								pSRowSet->aRow[nRow].lpProps[nValue].Value.lpszA));
+#endif
+							if (!wstrAddress.get())
+								return QSTATUS_OUTOFMEMORY;
+							std::auto_ptr<AddressBookAddress> pAddress;
+							status = newQsObject(pEntry.get(),
+								static_cast<const WCHAR*>(0),
+								static_cast<const WCHAR*>(0),
+								static_cast<const WCHAR*>(0),
+								static_cast<const WCHAR*>(0),
+								false, &pAddress);
+							CHECK_QSTATUS();
+							pAddress->setAddress(wstrAddress.release());
+							status = pEntry->addAddress(pAddress.get());
+							CHECK_QSTATUS();
+							pAddress.release();
+						}
+						break;
+					default:
+						break;
+					}
+				}
+				
+				status = addEntry(pEntry.get());
+				CHECK_QSTATUS();
+				pEntry.release();
+			}
+		}
+	}
+#else
+	typedef std::vector<std::pair<unsigned int, WSTRING> > CategoryMap;
+	CategoryMap mapCategory;
+	struct Deleter
+	{
+		typedef CategoryMap Map;
+		Deleter(Map& m) : m_(m) {}
+		~Deleter()
+		{
+			std::for_each(m_.begin(), m_.end(),
+				unary_compose_f_gx(
+					string_free<WSTRING>(),
+					std::select2nd<Map::value_type>()));
+		}
+		Map& m_;
+	} deleter(mapCategory);
+	
+	struct LocalFreeCaller
+	{
+		LocalFreeCaller(LPBYTE p) : p_(p) {}
+		~LocalFreeCaller() { ::LocalFree(p_); }
+		LPBYTE p_;
+	};
+	
+	CEOID oidCategory = 0;
+	AutoHandle hdbCategory(::CeOpenDatabase(&oidCategory,
+		L"\\Categories Database", 0, CEDB_AUTOINCREMENT, 0));
+	if (hdbCategory.get()) {
+		static CEPROPID cepropid[] = {
+			0x40020002,		// ID
+			0x4001001f,		// Name
+			0x40040002		// Count
+		};
+		while (true) {
+			WORD wProps = sizeof(cepropid)/sizeof(cepropid[0]);
+			LPBYTE pBuffer = 0;
+			DWORD dwSize = 0;
+			CEOID oid = ::CeReadRecordProps(hdbCategory.get(),
+				CEDB_ALLOWREALLOC, &wProps, cepropid, &pBuffer, &dwSize);
+			if (!oid)
+				break;
+			if (!pBuffer)
+				continue;
+			
+			LocalFreeCaller free(pBuffer);
+			
+			CEPROPVAL* pVal = reinterpret_cast<CEPROPVAL*>(pBuffer);
+			if (pVal[0].wFlags != CEDB_PROPNOTFOUND &&
+				pVal[1].wFlags != CEDB_PROPNOTFOUND &&
+				pVal[2].wFlags != CEDB_PROPNOTFOUND &&
+				pVal[2].val.iVal != 0) {
+				unsigned int nId = pVal[0].val.iVal;
+				string_ptr<WSTRING> wstrCategory(
+					allocWString(pVal[1].val.lpwstr));
+				if (!wstrCategory.get())
+					return QSTATUS_OUTOFMEMORY;
+				
+				status = STLWrapper<CategoryMap>(mapCategory).push_back(
+					CategoryMap::value_type(nId, wstrCategory.get()));
+				CHECK_QSTATUS();
+				wstrCategory.release();
+			}
+		}
+	}
+	
+	std::sort(mapCategory.begin(), mapCategory.end(),
+		binary_compose_f_gx_hy(
+			std::less<unsigned int>(),
+			std::select1st<CategoryMap::value_type>(),
+			std::select1st<CategoryMap::value_type>()));
+	
+	CEOID oidContact = 0;
+	AutoHandle hdbContact(::CeOpenDatabase(&oidContact,
+		L"Contacts Database", 0, CEDB_AUTOINCREMENT, 0));
+	if (!hdbContact.get())
+		return QSTATUS_FAIL;
+	
+	static CEPROPID cepropid[] = {
+		HHPR_SURNAME,
+		HHPR_GIVEN_NAME,
+		HHPR_EMAIL1_EMAIL_ADDRESS,
+		HHPR_EMAIL2_EMAIL_ADDRESS,
+		HHPR_EMAIL3_EMAIL_ADDRESS,
+//		HHPR_CATEGORY,
+		0x160041,
+#ifdef JAPAN
+		HHPR_YOMI_FIRSTNAME,
+		HHPR_YOMI_LASTNAME
+#endif // JAPAN
+	};
+	while (true) {
+		WORD wProps = sizeof(cepropid)/sizeof(cepropid[0]);
+		LPBYTE pBuffer = 0;
+		DWORD dwSize = 0;
+		CEOID oid = ::CeReadRecordProps(hdbContact.get(),
+			CEDB_ALLOWREALLOC, &wProps, cepropid, &pBuffer, &dwSize);
+		if (!oid)
+			break;
+		if (!pBuffer)
+			continue;
+		
+		LocalFreeCaller free(pBuffer);
+		
+		CEPROPVAL* pVal = reinterpret_cast<CEPROPVAL*>(pBuffer);
+		
+		const WCHAR* pwszGivenName = L"";
+		if (pVal[1].wFlags != CEDB_PROPNOTFOUND)
+			pwszGivenName = pVal[1].val.lpwstr;
+		const WCHAR* pwszSurName = L"";
+		if (pVal[0].wFlags != CEDB_PROPNOTFOUND)
+			pwszSurName = pVal[0].val.lpwstr;
+/*		
+#ifdef JAPAN
+		const WCHAR* pwszYomiLastName = L"";
+		if (pVal[7].wFlags != CEDB_PROPNOTFOUND)
+			pwszYomiLastName = pVal[7].val.lpwstr;
+		const WCHAR* pwszYomiFirstName = L"";
+		if (pVal[6].wFlags != CEDB_PROPNOTFOUND)
+			pwszYomiFirstName = pVal[6].val.lpwstr;
+		string_ptr<WSTRING> wstrSortKey(concat(
+			pwszYomiLastName, L" ", pwszYomiFirstName));
+#else
+		string_ptr<WSTRING> wstrSortKey(concat(
+			wstrSurName.get(), L" ", wstrGivenName()));
+		if (!wstrSortKey.get())
+			return QSTATUS_OUTOFMEMORY;
+#endif
+*/		
+#ifdef JAPAN
+		string_ptr<WSTRING> wstrName(concat(
+			pwszSurName, L" ", pwszGivenName));
+#else
+		string_ptr<WSTRING> wstrName(concat(
+			pwszGivenName, L" ", pwszSurName));
+#endif
+		if (!wstrName.get())
+			return QSTATUS_OUTOFMEMORY;
+		
+		const WCHAR* pwszCategory = 0;
+		if (pVal[5].wFlags != CEDB_PROPNOTFOUND) {
+			BYTE* pCategory = pVal[5].val.blob.lpb;
+			for (DWORD dwCat = 0; dwCat < pVal[5].val.blob.dwCount; ++dwCat) {
+				BYTE b = *(pCategory + dwCat);
+				if (b) {
+					for (int n = 0; n < 8; ++n) {
+						if ((b >> n) & 0x01) {
+							unsigned int nId = dwCat*8 + n;
+							CategoryMap::const_iterator it = std::lower_bound(
+								mapCategory.begin(), mapCategory.end(),
+								CategoryMap::value_type(nId, 0),
+								binary_compose_f_gx_hy(
+									std::less<unsigned int>(),
+									std::select1st<CategoryMap::value_type>(),
+									std::select1st<CategoryMap::value_type>()));
+							if (it != mapCategory.end() && (*it).first == nId)
+								pwszCategory = (*it).second;
+						}
+					}
+				}
+			}
+		}
+		
+		std::auto_ptr<AddressBookEntry> pEntry;
+		status = newQsObject(&pEntry);
+		CHECK_QSTATUS();
+		pEntry->setName(wstrName.release());
+		
+		for (int nAddress = 2; nAddress < 5; ++nAddress) {
+			if (pVal[nAddress].wFlags != CEDB_PROPNOTFOUND) {
+				std::auto_ptr<AddressBookAddress> pAddress;
+				status = newQsObject(pEntry.get(),
+					static_cast<const WCHAR*>(0), pwszCategory,
+					static_cast<const WCHAR*>(0),
+					static_cast<const WCHAR*>(0), false, &pAddress);
+				CHECK_QSTATUS();
+				string_ptr<WSTRING> wstrAddress(
+					allocWString(pVal[nAddress].val.lpwstr));
+				if (!wstrAddress.get())
+					return QSTATUS_OUTOFMEMORY;
+				pAddress->setAddress(wstrAddress.release());
+				status = pEntry->addAddress(pAddress.get());
+				CHECK_QSTATUS();
+				pAddress.release();
+			}
+		}
+		
+		status = addEntry(pEntry.get());
+		CHECK_QSTATUS();
+		pEntry.release();
+	}
+#endif
 	return QSTATUS_SUCCESS;
 }
 

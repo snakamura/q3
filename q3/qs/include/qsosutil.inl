@@ -9,6 +9,8 @@
 #ifndef __QSOSUTIL_INL__
 #define __QSOSUTIL_INL__
 
+#include <qsconv.h>
+
 
 /****************************************************************************
  *
@@ -349,6 +351,39 @@ inline qs::StgMedium::~StgMedium()
 {
 	if (tymed != TYMED_NULL)
 		::ReleaseStgMedium(this);
+}
+
+
+/****************************************************************************
+ *
+ * Library
+ *
+ */
+
+inline qs::Library::Library(const WCHAR* pwszPath, QSTATUS* pstatus) :
+	hInst_(0)
+{
+	DECLARE_QSTATUS();
+	
+	W2T_STATUS(pwszPath, ptszPath);
+	CHECK_QSTATUS_SET(pstatus);
+	hInst_ = ::LoadLibrary(ptszPath);
+}
+
+inline qs::Library::~Library()
+{
+	if (hInst_)
+		::FreeLibrary(hInst_);
+}
+
+inline bool qs::Library::operator!() const
+{
+	return !hInst_;
+}
+
+inline qs::Library::operator HINSTANCE() const
+{
+	return hInst_;
 }
 
 #endif // __QSOSUTIL_INL__
