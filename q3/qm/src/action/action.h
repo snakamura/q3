@@ -1117,11 +1117,15 @@ public:
 					   bool bMultipleMessagesInFile,
 					   const WCHAR* pwszEncoding,
 					   unsigned int nFlags,
-					   HWND hwnd);
+					   HWND hwnd,
+					   qs::wstring_ptr* pwstrErrorPath,
+					   unsigned int* pnErrorLine);
 	static bool importShowDialog(NormalFolder* pFolder,
 								 const PathList& listPath,
 								 qs::Profile* pProfile,
-								 HWND hwnd);
+								 HWND hwnd,
+								 qs::wstring_ptr* pwstrErrorPath,
+								 unsigned int* pnErrorLine);
 	static bool readSingleMessage(NormalFolder* pFolder,
 								  const WCHAR* pwszPath,
 								  const WCHAR* pwszEncoding,
@@ -1132,10 +1136,13 @@ public:
 									 unsigned int nFlags,
 									 ProgressDialog* pDialog,
 									 int* pnPos,
-									 bool* pbCanceled);
+									 bool* pbCanceled,
+									 unsigned int* pnErrorLine);
 
 private:
-	bool import(NormalFolder* pFolder);
+	bool import(NormalFolder* pFolder,
+				qs::wstring_ptr* pwstrErrorPath,
+				unsigned int* pnErrorLine);
 
 private:
 	static bool readLine(qs::InputStream* pStream,
@@ -3571,6 +3578,8 @@ public:
 					 UINT nMessage);
 	static void error(HWND hwnd,
 					  UINT nMessage);
+	static void error(HWND hwnd,
+					  const WCHAR* pwszMessage);
 };
 
 

@@ -749,14 +749,14 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 					NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
 					if (event.getKeyState() & MK_ALT) {
 						if (!FileImportAction::importShowDialog(pNormalFolder,
-							listPath, pProfile_, pThis_->getParentFrame())) {
+							listPath, pProfile_, pThis_->getParentFrame(), 0, 0)) {
 							// TODO MSG
 						}
 					}
 					else {
 						if (!FileImportAction::import(pNormalFolder,
 							listPath, false, 0, Account::IMPORTFLAG_NORMALFLAGS,
-							pThis_->getParentFrame())) {
+							pThis_->getParentFrame(), 0, 0)) {
 							// TODO MSG
 						}
 					}

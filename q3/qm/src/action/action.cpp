@@ -1634,8 +1634,25 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 {
 	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
-		if (!import(static_cast<NormalFolder*>(pFolder))) {
-			ActionUtil::error(hwnd_, IDS_ERROR_IMPORT);
+		wstring_ptr wstrErrorPath;
+		unsigned int nErrorLine = -1;
+		if (!import(static_cast<NormalFolder*>(pFolder), &wstrErrorPath, &nErrorLine)) {
+			HINSTANCE hInst = Application::getApplication().getResourceHandle();
+			wstring_ptr wstrMessage(loadString(hInst, IDS_ERROR_IMPORT));
+			if (wstrErrorPath.get()) {
+				StringBuffer<WSTRING> buf(wstrMessage.get());
+				buf.append(L'\n');
+				buf.append(wstrErrorPath.get());
+				if (nErrorLine != -1) {
+					buf.append(L" (");
+					WCHAR wszLine[32];
+					swprintf(wszLine, L"%u", nErrorLine);
+					buf.append(wszLine);
+					buf.append(L")");
+				}
+				wstrMessage = buf.getString();
+			}
+			ActionUtil::error(hwnd_, wstrMessage.get());
 			return;
 		}
 		if (!pDocument_->isOffline() &&
@@ -1665,7 +1682,9 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 								  bool bMultipleMessagesInFile,
 								  const WCHAR* pwszEncoding,
 								  unsigned int nFlags,
-								  HWND hwnd)
+								  HWND hwnd,
+								  wstring_ptr* pwstrErrorPath,
+								  unsigned int* pnErrorLine)
 {
 	unsigned int nCount = listPath.size();
 	if (bMultipleMessagesInFile)
@@ -1680,16 +1699,22 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 		for (PathList::size_type n = 0; n < listPath.size(); ++n) {
 			bool bCanceled = false;
 			if (!readMultipleMessages(pFolder, listPath[n], pwszEncoding,
-				nFlags, &progressDialog, &nPos, &bCanceled))
+				nFlags, &progressDialog, &nPos, &bCanceled, pnErrorLine)) {
+				if (pwstrErrorPath)
+					*pwstrErrorPath = allocWString(listPath[n]);
 				return false;
+			}
 			if (bCanceled)
 				break;
 		}
 	}
 	else {
 		for (PathList::size_type n = 0; n < listPath.size(); ++n) {
-			if (!readSingleMessage(pFolder, listPath[n], pwszEncoding, nFlags))
+			if (!readSingleMessage(pFolder, listPath[n], pwszEncoding, nFlags)) {
+				if (pwstrErrorPath)
+					*pwstrErrorPath = allocWString(listPath[n]);
 				return false;
+			}
 			
 			if (progressDialog.isCanceled())
 				break;
@@ -1703,7 +1728,9 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 bool qm::FileImportAction::importShowDialog(NormalFolder* pFolder,
 											const PathList& listPath,
 											qs::Profile* pProfile,
-											HWND hwnd)
+											HWND hwnd,
+											wstring_ptr* pwstrErrorPath,
+											unsigned int* pnErrorLine)
 {
 	StringBuffer<WSTRING> bufPath;
 	for (PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it) {
@@ -1758,8 +1785,8 @@ bool qm::FileImportAction::importShowDialog(NormalFolder* pFolder,
 				break;
 		}
 		
-		if (!import(pFolder, listPath, dialog.isMultiple(),
-			dialog.getEncoding(), dialog.getFlags(), hwnd))
+		if (!import(pFolder, listPath, dialog.isMultiple(), dialog.getEncoding(),
+			dialog.getFlags(), hwnd, pwstrErrorPath, pnErrorLine))
 			return false;
 	}
 	
@@ -1873,7 +1900,8 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 												unsigned int nFlags,
 												ProgressDialog* pDialog,
 												int* pnPos,
-												bool* pbCanceled)
+												bool* pbCanceled,
+												unsigned int* pnErrorLine)
 {
 	assert(pFolder);
 	assert(pwszPath);
@@ -1889,12 +1917,16 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 	const CHAR* pszNewLine = pwszEncoding ? "\n" : "\r\n";
 	CHAR cPrev = '\0';
 	bool bNewLine = true;
+	unsigned int nLine = 0;
+	unsigned int nStartLine = 0;
+	unsigned int& nErrorLine = pnErrorLine ? *pnErrorLine : nStartLine;
 	while (bNewLine) {
 		xstring_ptr strLine;
 		CHAR cNext = '\0';
 		if (!readLine(&stream, cPrev, &strLine, &cNext, &bNewLine))
 			return false;
 		cPrev = cNext;
+		++nLine;
 		
 		if (!bNewLine || strncmp(strLine.get(), "From ", 5) == 0) {
 			if (!bNewLine) {
@@ -1921,7 +1953,7 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 					if (!wstrMessage.get())
 						return false;
 					
-					MessageCreator creator(MessageCreator::FLAG_RECOVER, SECURITYMODE_NONE);
+					MessageCreator creator(/*MessageCreator::FLAG_RECOVER*/0, SECURITYMODE_NONE);
 					std::auto_ptr<Message> pMessage(creator.createMessage(
 						0, wstrMessage.get(), wstrMessage.size()));
 					if (!pMessage.get())
@@ -1938,6 +1970,7 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 					return false;
 				
 				buf.remove();
+				nErrorLine = nLine;
 			}
 		}
 		else {
@@ -1959,9 +1992,11 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 	return true;
 }
 
-bool qm::FileImportAction::import(NormalFolder* pFolder)
+bool qm::FileImportAction::import(NormalFolder* pFolder,
+								  wstring_ptr* pwstrErrorPath,
+								  unsigned int* pnErrorLine)
 {
-	return importShowDialog(pFolder, PathList(), pProfile_, hwnd_);
+	return importShowDialog(pFolder, PathList(), pProfile_, hwnd_, pwstrErrorPath, pnErrorLine);
 }
 
 bool qm::FileImportAction::readLine(InputStream* pStream,
@@ -6362,6 +6397,12 @@ void qm::ActionUtil::error(HWND hwnd,
 {
 	messageBox(Application::getApplication().getResourceHandle(),
 		nMessage, MB_OK | MB_ICONERROR, hwnd);
+}
+
+void qm::ActionUtil::error(HWND hwnd,
+						   const WCHAR* pwszMessage)
+{
+	messageBox(pwszMessage, MB_OK | MB_ICONERROR, hwnd);
 }
 
 
