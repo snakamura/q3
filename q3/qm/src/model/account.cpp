@@ -771,24 +771,24 @@ bool qm::AccountImpl::createTemporaryMessage(MessageHolder* pmh, Message* pMessa
 	struct {
 		const WCHAR* pwszName_;
 		wstring_ptr (MessageHolder::*pfn_)() const;
-		WCHAR cPrefix_;
-		WCHAR cSuffix_;
+		const WCHAR* pwszPrefix_;
+		const WCHAR* pwszSuffix_;
 	} fields[] = {
-		{ L"From",			&MessageHolder::getFrom,		L'\0',	L'\0'	},
-		{ L"To",			&MessageHolder::getTo,			L'\0',	L'\0'	},
-		{ L"Subject",		&MessageHolder::getSubject,		L'\0',	L'\0'	},
-		{ L"Message-Id",	&MessageHolder::getMessageId,	L'<',	L'>'	}
+		{ L"From",			&MessageHolder::getFrom,		0,		L" <unknown@unknown-host.unknown-domain>"	},
+		{ L"To",			&MessageHolder::getTo,			0,		L" <unknown@unknown-host.unknown-domain>"	},
+		{ L"Subject",		&MessageHolder::getSubject,		0,		0											},
+		{ L"Message-Id",	&MessageHolder::getMessageId,	L"<",	L">"										}
 	};
 	for (int n = 0; n < countof(fields); ++n) {
 		wstring_ptr wstrValue((pmh->*fields[n].pfn_)());
 		if (*wstrValue.get()) {
 			buf.append(fields[n].pwszName_);
 			buf.append(L": ");
-			if (fields[n].cPrefix_)
-				buf.append(fields[n].cPrefix_);
+			if (fields[n].pwszPrefix_)
+				buf.append(fields[n].pwszPrefix_);
 			buf.append(wstrValue.get());
-			if (fields[n].cSuffix_)
-				buf.append(fields[n].cSuffix_);
+			if (fields[n].pwszSuffix_)
+				buf.append(fields[n].pwszSuffix_);
 			buf.append(L"\n");
 		}
 	}
