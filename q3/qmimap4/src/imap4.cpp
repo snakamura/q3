@@ -442,23 +442,18 @@ QSTATUS qmimap4::Imap4::search(const WCHAR* pwszSearch,
 	
 	DECLARE_QSTATUS();
 	
-	std::auto_ptr<Converter> pConverter;
-	status = ConverterFactory::getInstance(pwszCharset, &pConverter);
+	string_ptr<STRING> strSearch;
+	status = encodeSearchString(pwszSearch, pwszCharset, &strSearch);
 	CHECK_QSTATUS_ERROR(IMAP4_ERROR_OTHER | IMAP4_ERROR_SEARCH);
-	if (!pConverter.get()) {
-		status = ConverterFactory::getInstance(L"utf-8", &pConverter);
-		CHECK_QSTATUS_ERROR(IMAP4_ERROR_OTHER | IMAP4_ERROR_SEARCH);
-	}
-	assert(pConverter.get());
 	
 	CommandToken tokens[] = {
-		{ "UID SEARCH ",	0,				0,					false,	bUid		},
-		{ "SEARCH ",		0,				0,					false,	!bUid		},
-		{ "CHARSET ",		0,				0,					false,	bUseCharset	},
-		{ 0,				pwszCharset,	0,					false,	bUseCharset	},
-		{ " ",				0,				0,					false,	bUseCharset	},
-		{ 0,				pwszSearch,		pConverter.get(),	false,	true		},
-		{ "\r\n",			0,				0,					false,	true		}
+		{ "UID SEARCH ",	0,				0,	false,	bUid		},
+		{ "SEARCH ",		0,				0,	false,	!bUid		},
+		{ "CHARSET ",		0,				0,	false,	bUseCharset	},
+		{ 0,				pwszCharset,	0,	false,	bUseCharset	},
+		{ " ",				0,				0,	false,	bUseCharset	},
+		{ strSearch.get(),	0,				0,	false,	true		},
+		{ "\r\n",			0,				0,	false,	true		}
 	};
 	
 	status = sendCommandTokens(tokens, countof(tokens));
@@ -1260,6 +1255,58 @@ QSTATUS qmimap4::Imap4::getQuotedString(const CHAR* psz, STRING* pstrQuoted)
 	CHECK_QSTATUS();
 	
 	*pstrQuoted = buf.getString();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmimap4::Imap4::encodeSearchString(
+	const WCHAR* pwsz, const WCHAR* pwszCharset, STRING* pstr)
+{
+	assert(pwsz);
+	assert(pwszCharset);
+	assert(pstr);
+	
+	DECLARE_QSTATUS();
+	
+	std::auto_ptr<Converter> pConverter;
+	status = ConverterFactory::getInstance(pwszCharset, &pConverter);
+	CHECK_QSTATUS();
+	if (!pConverter.get()) {
+		status = ConverterFactory::getInstance(L"utf-8", &pConverter);
+		CHECK_QSTATUS();
+	}
+	assert(pConverter.get());
+	
+	StringBuffer<STRING> buf(&status);
+	CHECK_QSTATUS();
+	
+	const WCHAR* pBegin = pwsz;
+	for (const WCHAR* p = pwsz; ; ++p) {
+		if (*p == L'\"' || *p == L'\\' || *p == L'\0') {
+			if (pBegin != p) {
+				string_ptr<STRING> str;
+				size_t nLen = p - pBegin;
+				status = pConverter->encode(pBegin, &nLen, &str, 0);
+				CHECK_QSTATUS();
+				
+				for (CHAR* p = str.get(); *p; ++p) {
+					if (*p == '\"' || *p == '\\') {
+						status = buf.append('\\');
+						CHECK_QSTATUS();
+					}
+					status = buf.append(*p);
+					CHECK_QSTATUS();
+				}
+			}
+			if (!*p)
+				break;
+			status = buf.append(static_cast<CHAR>(*p));
+			CHECK_QSTATUS();
+			pBegin = p + 1;
+		}
+	}
+	
+	*pstr = buf.getString();
 	
 	return QSTATUS_SUCCESS;
 }

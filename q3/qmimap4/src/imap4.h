@@ -222,6 +222,8 @@ private:
 
 private:
 	static qs::QSTATUS getQuotedString(const CHAR* psz, qs::STRING* pstrQuoted);
+	static qs::QSTATUS encodeSearchString(const WCHAR* pwsz,
+		const WCHAR* pwszCharset, qs::STRING* pstr);
 
 private:
 	Imap4(const Imap4&);
