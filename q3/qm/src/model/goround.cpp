@@ -68,6 +68,7 @@ qm::GoRound::GoRound() :
 qm::GoRound::~GoRound()
 {
 	clear();
+	delete pImpl_;
 }
 
 const GoRound::CourseList& qm::GoRound::getCourses() const
