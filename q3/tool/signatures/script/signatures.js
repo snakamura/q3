@@ -14,12 +14,8 @@ function load() {
 	doc = new ActiveXObject("MSXML2.DOMDocument.4.0");
 	doc.async = false;
 	
-	try {
-		doc.load(path);
-	}
-	catch (e) {
+	if (!doc.load(path))
 		doc.appendChild(doc.createElement("signatures"));
-	}
 	
 	update();
 }
