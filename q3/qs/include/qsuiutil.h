@@ -43,6 +43,9 @@ public:
 								int nStateId,
 								COLORREF crBackground);
 #endif
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+	static void getWorkArea(RECT* pRect);
+#endif
 };
 
 }

@@ -18,6 +18,9 @@
 #ifndef _WIN32_WCE
 #	include <shlobj.h>
 #endif
+#ifdef _WIN32_WCE_PSPC
+#	include <aygshell.h>
+#endif
 
 using namespace qs;
 
@@ -139,5 +142,23 @@ bool qs::UIUtil::drawThemeBorder(Theme* pTheme,
 	dc.excludeClipRect(nBorderWidth, nBorderHeight,
 		rect.right - nBorderWidth, rect.bottom - nBorderHeight);
 	return pTheme->drawBackground(dc.getHandle(), nPartId, nStateId, rect, 0);
+}
+#endif
+
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+void qs::UIUtil::getWorkArea(RECT* pRect)
+{
+	assert(pRect);
+	
+	const int nDefaultMenuHeight = 26;
+	ClientDeviceContext dc(0);
+	int nMenuHeight = static_cast<int>(nDefaultMenuHeight*(dc.getDeviceCaps(LOGPIXELSY)/96.0));
+	
+	SIPINFO si = { sizeof(si) };
+	::SHSipInfo(SPI_GETSIPINFO, 0, &si, 0);
+	
+	*pRect = si.rcVisibleDesktop;
+	if ((si.fdwFlags & SIPF_ON) == 0)
+		pRect->bottom -= nMenuHeight;
 }
 #endif

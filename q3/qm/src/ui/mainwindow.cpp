@@ -2009,12 +2009,12 @@ bool qm::MainWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 		return false;
 	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-#define MENU_HEIGHT 26
-	SIPINFO si = { sizeof(si) };
-	::SHSipInfo(SPI_GETSIPINFO, 0, &si, 0);
-	pCreateStruct->cx = si.rcVisibleDesktop.right - si.rcVisibleDesktop.left;
-	pCreateStruct->cy = si.rcVisibleDesktop.bottom -
-		si.rcVisibleDesktop.top - (si.fdwFlags & SIPF_ON ? 0 : MENU_HEIGHT);
+	RECT rect;
+	qs::UIUtil::getWorkArea(&rect);
+	pCreateStruct->x = rect.left;
+	pCreateStruct->y = rect.top;
+	pCreateStruct->cx = rect.right - rect.left;
+	pCreateStruct->cy = rect.bottom - rect.top;
 #elif !defined _WIN32_WCE
 	pImpl_->nInitialShow_ = UIUtil::loadWindowPlacement(
 		pImpl_->pProfile_, L"MainWindow", pCreateStruct);
