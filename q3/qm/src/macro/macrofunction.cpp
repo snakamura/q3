@@ -3988,12 +3988,24 @@ QSTATUS qm::MacroFunctionRegexFind::value(
 	status = pValue->string(&wstrValue);
 	CHECK_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPattern;
+	const RegexPattern* pPattern = 0;
+	std::auto_ptr<RegexPattern> apPattern;
 	MacroValuePtr pValuePattern;
 	status = getArg(1)->value(pContext, &pValuePattern);
 	CHECK_QSTATUS();
-	status = pValuePattern->string(&wstrPattern);
-	CHECK_QSTATUS();
+	if (pValuePattern->getType() == MacroValue::TYPE_REGEX) {
+		pPattern = static_cast<MacroValueRegex*>(pValuePattern.get())->getPattern();
+	}
+	else {
+		string_ptr<WSTRING> wstrPattern;
+		status = pValuePattern->string(&wstrPattern);
+		CHECK_QSTATUS();
+		RegexPattern* p = 0;
+		status = RegexCompiler().compile(wstrPattern.get(), &p);
+		CHECK_QSTATUS();
+		apPattern.reset(p);
+		pPattern = p;
+	}
 	
 	unsigned int nIndex = 0;
 	if (nSize > 2) {
@@ -4002,11 +4014,6 @@ QSTATUS qm::MacroFunctionRegexFind::value(
 		CHECK_QSTATUS();
 		nIndex = pValue->number();
 	}
-	
-	RegexPattern* p = 0;
-	status = RegexCompiler().compile(wstrPattern.get(), &p);
-	CHECK_QSTATUS();
-	std::auto_ptr<RegexPattern> pPattern(p);
 	
 	const WCHAR* pStart = 0;
 	const WCHAR* pEnd = 0;
@@ -4059,17 +4066,24 @@ QSTATUS qm::MacroFunctionRegexMatch::value(
 	status = pValue->string(&wstrValue);
 	CHECK_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPattern;
+	const RegexPattern* pPattern = 0;
+	std::auto_ptr<RegexPattern> apPattern;
 	MacroValuePtr pValuePattern;
 	status = getArg(1)->value(pContext, &pValuePattern);
 	CHECK_QSTATUS();
-	status = pValuePattern->string(&wstrPattern);
-	CHECK_QSTATUS();
-	
-	RegexPattern* p = 0;
-	status = RegexCompiler().compile(wstrPattern.get(), &p);
-	CHECK_QSTATUS();
-	std::auto_ptr<RegexPattern> pPattern(p);
+	if (pValuePattern->getType() == MacroValue::TYPE_REGEX) {
+		pPattern = static_cast<MacroValueRegex*>(pValuePattern.get())->getPattern();
+	}
+	else {
+		string_ptr<WSTRING> wstrPattern;
+		status = pValuePattern->string(&wstrPattern);
+		CHECK_QSTATUS();
+		RegexPattern* p = 0;
+		status = RegexCompiler().compile(wstrPattern.get(), &p);
+		CHECK_QSTATUS();
+		apPattern.reset(p);
+		pPattern = p;
+	}
 	
 	bool bMatch = false;
 	status = pPattern->match(wstrValue.get(), &bMatch);
@@ -4121,12 +4135,24 @@ QSTATUS qm::MacroFunctionRegexReplace::value(
 	status = pValue->string(&wstrValue);
 	CHECK_QSTATUS();
 	
-	string_ptr<WSTRING> wstrPattern;
+	const RegexPattern* pPattern = 0;
+	std::auto_ptr<RegexPattern> apPattern;
 	MacroValuePtr pValuePattern;
 	status = getArg(1)->value(pContext, &pValuePattern);
 	CHECK_QSTATUS();
-	status = pValuePattern->string(&wstrPattern);
-	CHECK_QSTATUS();
+	if (pValuePattern->getType() == MacroValue::TYPE_REGEX) {
+		pPattern = static_cast<MacroValueRegex*>(pValuePattern.get())->getPattern();
+	}
+	else {
+		string_ptr<WSTRING> wstrPattern;
+		status = pValuePattern->string(&wstrPattern);
+		CHECK_QSTATUS();
+		RegexPattern* p = 0;
+		status = RegexCompiler().compile(wstrPattern.get(), &p);
+		CHECK_QSTATUS();
+		apPattern.reset(p);
+		pPattern = p;
+	}
 	
 	string_ptr<WSTRING> wstrReplace;
 	MacroValuePtr pValueReplace;
@@ -4142,11 +4168,6 @@ QSTATUS qm::MacroFunctionRegexReplace::value(
 		CHECK_QSTATUS();
 		bGlobal = pValueGlobal->boolean();
 	}
-	
-	RegexPattern* p = 0;
-	status = RegexCompiler().compile(wstrPattern.get(), &p);
-	CHECK_QSTATUS();
-	std::auto_ptr<RegexPattern> pPattern(p);
 	
 	StringBuffer<WSTRING> buf(&status);
 	CHECK_QSTATUS();

@@ -28,6 +28,7 @@ class MacroExpr;
 	class MacroFieldCache;
 	class MacroLiteral;
 	class MacroNumber;
+	class MacroRegex;
 	class MacroVariable;
 	class MacroFunction;
 		class MacroFunctionAccount;
@@ -117,6 +118,7 @@ public:
 	{
 		TOKEN_TEXT,
 		TOKEN_LITERAL,
+		TOKEN_REGEX,
 		TOKEN_AT,
 		TOKEN_DOLLAR,
 		TOKEN_PERCENT,
@@ -400,6 +402,33 @@ private:
 
 private:
 	long nValue_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroRegex
+ *
+ */
+
+class MacroRegex : public MacroExpr
+{
+public:
+	MacroRegex(const WCHAR* pwszPattern, qs::QSTATUS* pstatus);
+	virtual ~MacroRegex();
+
+public:
+	virtual qs::QSTATUS value(MacroContext* pContext,
+		MacroValue** ppValue) const;
+	virtual qs::QSTATUS getString(qs::WSTRING* pwstrExpr) const;
+
+private:
+	MacroRegex(const MacroRegex&);
+	MacroRegex& operator=(const MacroRegex&);
+
+private:
+	qs::WSTRING wstrPattern_;
+	qs::RegexPattern* pPattern_;
 };
 
 

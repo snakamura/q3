@@ -52,6 +52,8 @@ QSTATUS qm::MacroTokenizer::getToken(Token* pToken, WSTRING* pwstrToken)
 	assert(pToken);
 	assert(pwstrToken);
 	
+	DECLARE_QSTATUS();
+	
 	*pwstrToken = 0;
 	
 	while (*p_ == L' ' || *p_ == L'\t' || *p_ == L'\n')
@@ -78,25 +80,70 @@ QSTATUS qm::MacroTokenizer::getToken(Token* pToken, WSTRING* pwstrToken)
 	
 	WCHAR c = *p_;
 	if (c == L'\"' || c == L'\'') {
-		const WCHAR* pBegin = p_ + 1;
+		StringBuffer<WSTRING> buf(&status);
+		CHECK_QSTATUS();
 		for (++p_; *p_ && *p_ != c; ++p_) {
 			if (*p_ == L'\\') {
 				++p_;
-				if (!*p_) {
+				switch (*p_) {
+				case L'n':
+					status = buf.append(L'\n');
+					CHECK_QSTATUS();
+					break;
+				case L't':
+					status = buf.append(L'\t');
+					CHECK_QSTATUS();
+					break;
+				case L'\\':
+				case L'\'':
+				case L'\"':
+					status = buf.append(*p_);
+					CHECK_QSTATUS();
+					break;
+				case L'\0':
 					*pToken = TOKEN_ERROR;
 					return QSTATUS_SUCCESS;
+					break;
+				default:
+					status = buf.append(*p_);
+					CHECK_QSTATUS();
+					break;
 				}
+			}
+			else {
+				status = buf.append(*p_);
+				CHECK_QSTATUS();
 			}
 		}
 		if (!*p_) {
 			*pToken = TOKEN_ERROR;
 			return QSTATUS_SUCCESS;
 		}
-		*pwstrToken = allocWString(pBegin, p_ - pBegin);
-		if (!*pwstrToken)
-			return QSTATUS_OUTOFMEMORY;
+		*pwstrToken = buf.getString();
 		++p_;
 		*pToken = TOKEN_LITERAL;
+	}
+	else if (c == L'/') {
+		StringBuffer<WSTRING> buf(&status);
+		CHECK_QSTATUS();
+		for (++p_; *p_ && *p_ != L'/'; ++p_) {
+			if (*p_ == L'\\') {
+				if (*(p_ + 1) != L'/') {
+					status = buf.append(*p_);
+					CHECK_QSTATUS();
+				}
+				++p_;
+			}
+			status = buf.append(*p_);
+			CHECK_QSTATUS();
+		}
+		if (!*p_) {
+			*pToken = TOKEN_ERROR;
+			return QSTATUS_SUCCESS;
+		}
+		*pwstrToken = buf.getString();
+		++p_;
+		*pToken = TOKEN_REGEX;
 	}
 	else if (c == L'@') {
 		++p_;
@@ -661,42 +708,11 @@ qm::MacroLiteral::MacroLiteral(const WCHAR* pwszValue, QSTATUS* pstatus) :
 	
 	*pstatus = QSTATUS_SUCCESS;
 	
-	wstrValue_ = allocWString(wcslen(pwszValue));
+	wstrValue_ = allocWString(pwszValue);
 	if (!wstrValue_) {
 		*pstatus = QSTATUS_OUTOFMEMORY;
 		return;
 	}
-	WCHAR* pDst = wstrValue_;
-	for (const WCHAR* pSrc = pwszValue; *pSrc; ++pSrc) {
-		if (*pSrc == L'\\') {
-			++pSrc;
-			switch (*pSrc) {
-			case L'n':
-				*pDst++ = L'\n';
-				break;
-			case L't':
-				*pDst++ = L'\t';
-				break;
-			case L'\\':
-				*pDst++ = L'\\';
-				break;
-			case L'\'':
-				*pDst++ = L'\'';
-				break;
-			case L'\"':
-				*pDst++ = L'\"';
-				break;
-			default:
-				*pDst++ = L'\\';
-				--pSrc;
-				break;
-			}
-		}
-		else {
-			*pDst++ = *pSrc;
-		}
-	}
-	*pDst = L'\0';
 }
 
 qm::MacroLiteral::~MacroLiteral()
@@ -753,6 +769,7 @@ QSTATUS qm::MacroLiteral::getString(WSTRING* pwstrExpr) const
 		default:
 			status = buf.append(*p);
 			CHECK_QSTATUS();
+			break;
 		}
 	}
 	
@@ -797,6 +814,78 @@ QSTATUS qm::MacroNumber::getString(WSTRING* pwstrExpr) const
 	swprintf(wsz, L"%ld", nValue_);
 	*pwstrExpr = allocWString(wsz);
 	return *pwstrExpr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+}
+
+
+/****************************************************************************
+ *
+ * MacroRegex
+ *
+ */
+
+qm::MacroRegex::MacroRegex(const WCHAR* pwszRegex, qs::QSTATUS* pstatus) :
+	wstrPattern_(0),
+	pPattern_(0)
+{
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrPattern(allocWString(pwszRegex));
+	if (!wstrPattern.get()) {
+		*pstatus = QSTATUS_OUTOFMEMORY;
+		return;
+	}
+	
+	status = RegexCompiler().compile(pwszRegex, &pPattern_);
+	CHECK_QSTATUS_SET(pstatus);
+	wstrPattern_ = wstrPattern.release();
+}
+
+qm::MacroRegex::~MacroRegex()
+{
+	freeWString(wstrPattern_);
+	delete pPattern_;
+}
+
+QSTATUS qm::MacroRegex::value(MacroContext* pContext, MacroValue** ppValue) const
+{
+	assert(pContext);
+	assert(ppValue);
+	
+	return MacroValueFactory::getFactory().newRegex(wstrPattern_,
+		pPattern_, reinterpret_cast<MacroValueRegex**>(ppValue));
+}
+
+QSTATUS qm::MacroRegex::getString(qs::WSTRING* pwstrExpr) const
+{
+	assert(pwstrExpr);
+	
+	DECLARE_QSTATUS();
+	
+	*pwstrExpr = 0;
+	
+	StringBuffer<WSTRING> buf(&status);
+	CHECK_QSTATUS();
+	
+	status = buf.append(L'/');
+	CHECK_QSTATUS();
+	
+	for (const WCHAR* p = wstrPattern_; *p; ++p) {
+		if (*p == L'/') {
+			status = buf.append(L"\\/");
+			CHECK_QSTATUS();
+		}
+		else {
+			status = buf.append(*p);
+			CHECK_QSTATUS();
+		}
+	}
+	
+	status = buf.append(L'/');
+	CHECK_QSTATUS();
+	
+	*pwstrExpr = buf.getString();
+	
+	return QSTATUS_SUCCESS;
 }
 
 
@@ -1037,6 +1126,14 @@ QSTATUS qm::MacroParser::parse(const WCHAR* pwszMacro,
 					status = newQsObject(wstrToken.get(), &pLiteral);
 					CHECK_QSTATUS();
 					pExpr.reset(pLiteral.release());
+				}
+				break;
+			case MacroTokenizer::TOKEN_REGEX:
+				{
+					std::auto_ptr<MacroRegex> pRegex;
+					status = newQsObject(wstrToken.get(), &pRegex);
+					CHECK_QSTATUS();
+					pExpr.reset(pRegex.release());
 				}
 				break;
 			case MacroTokenizer::TOKEN_AT:

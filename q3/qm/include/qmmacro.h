@@ -15,6 +15,7 @@
 #include <qs.h>
 #include <qsmime.h>
 #include <qsprofile.h>
+#include <qsregex.h>
 #include <qsstring.h>
 #include <qsthread.h>
 #include <qsutil.h>
@@ -33,6 +34,7 @@ class MacroValue;
 	class MacroValueBoolean;
 	class MacroValueString;
 	class MacroValueNumber;
+	class MacroValueRegex;
 	class MacroValueField;
 	class MacroValueAddress;
 	class MacroValueTime;
@@ -267,6 +269,7 @@ public:
 		TYPE_BOOLEAN,
 		TYPE_STRING,
 		TYPE_NUMBER,
+		TYPE_REGEX,
 		TYPE_FIELD,
 		TYPE_ADDRESS,
 		TYPE_TIME,
@@ -386,6 +389,42 @@ private:
 
 private:
 	unsigned int n_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroValueRegex
+ *
+ */
+
+class MacroValueRegex : public MacroValue
+{
+public:
+	MacroValueRegex(qs::QSTATUS* pstatus);
+	virtual ~MacroValueRegex();
+
+public:
+	qs::QSTATUS init(const WCHAR* pwszPattern,
+		const qs::RegexPattern* pPattern);
+	void term();
+
+public:
+	const qs::RegexPattern* getPattern() const;
+
+public:
+	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
+	virtual bool boolean() const;
+	virtual unsigned int number() const;
+	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
+
+private:
+	MacroValueRegex(const MacroValueRegex&);
+	MacroValueRegex& operator=(const MacroValueRegex&);
+
+private:
+	const WCHAR* pwszPattern_;
+	const qs::RegexPattern* pPattern_;
 };
 
 
@@ -623,6 +662,9 @@ public:
 	void deleteString(MacroValueString* pmvs);
 	qs::QSTATUS newNumber(unsigned int n, MacroValueNumber** ppmvn);
 	void deleteNumber(MacroValueNumber* pmvn);
+	qs::QSTATUS newRegex(const WCHAR* pwszPattern,
+		const qs::RegexPattern* pPattern, MacroValueRegex** ppmvr);
+	void deleteRegex(MacroValueRegex* pmvr);
 	qs::QSTATUS newField(const WCHAR* pwszName,
 		const CHAR* pszField, MacroValueField** ppmvf);
 	void deleteField(MacroValueField* pmvf);

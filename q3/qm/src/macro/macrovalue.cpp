@@ -216,6 +216,73 @@ QSTATUS qm::MacroValueNumber::clone(MacroValue** ppValue) const
 
 /****************************************************************************
  *
+ * MacroValueRegex
+ *
+ */
+
+qm::MacroValueRegex::MacroValueRegex(QSTATUS* pstatus) :
+	MacroValue(TYPE_REGEX, pstatus),
+	pwszPattern_(0),
+	pPattern_(0)
+{
+}
+
+qm::MacroValueRegex::~MacroValueRegex()
+{
+}
+
+QSTATUS qm::MacroValueRegex::init(const WCHAR* pwszPattern,
+	const RegexPattern* pPattern)
+{
+	pwszPattern_ = pwszPattern;
+	pPattern_ = pPattern;
+	return QSTATUS_SUCCESS;
+}
+
+void qm::MacroValueRegex::term()
+{
+	pwszPattern_ = 0;
+	pPattern_ = 0;
+}
+
+const RegexPattern* qm::MacroValueRegex::getPattern() const
+{
+	return pPattern_;
+}
+
+QSTATUS qm::MacroValueRegex::string(WSTRING* pwstr) const
+{
+	assert(pwstr);
+	*pwstr = allocWString(pwszPattern_);
+	return *pwstr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
+}
+
+bool qm::MacroValueRegex::boolean() const
+{
+	return *pwszPattern_ != L'\0';
+}
+
+unsigned int qm::MacroValueRegex::number() const
+{
+	if (MacroParser::isNumber(pwszPattern_)) {
+		WCHAR* pEnd = 0;
+		return wcstol(pwszPattern_, &pEnd, 10);
+	}
+	else {
+		return 0;
+	}
+}
+
+QSTATUS qm::MacroValueRegex::clone(MacroValue** ppValue) const
+{
+	assert(ppValue);
+	return MacroValueFactory::getFactory().newRegex(pwszPattern_,
+		pPattern_, reinterpret_cast<MacroValueRegex**>(ppValue));
+}
+
+
+/****************************************************************************
+ *
  * MacroValueField
  *
  */
@@ -831,6 +898,7 @@ public:
 	typedef std::vector<MacroValueBoolean*> BooleanList;
 	typedef std::vector<MacroValueString*> StringList;
 	typedef std::vector<MacroValueNumber*> NumberList;
+	typedef std::vector<MacroValueRegex*> RegexList;
 	typedef std::vector<MacroValueField*> FieldList;
 	typedef std::vector<MacroValueAddress*> AddressList;
 	typedef std::vector<MacroValueTime*> TimeList;
@@ -844,6 +912,8 @@ public:
 	unsigned int nString_;
 	NumberList listNumber_;
 	unsigned int nNumber_;
+	RegexList listRegex_;
+	unsigned int nRegex_;
 	FieldList listField_;
 	unsigned int nField_;
 	AddressList listAddress_;
@@ -911,6 +981,7 @@ qm::MacroValueFactory::MacroValueFactory() :
 	pImpl_->nBoolean_ = 0;
 	pImpl_->nString_ = 0;
 	pImpl_->nNumber_ = 0;
+	pImpl_->nRegex_ = 0;
 	pImpl_->nField_ = 0;
 	pImpl_->nAddress_ = 0;
 	pImpl_->nTime_ = 0;
@@ -927,6 +998,8 @@ qm::MacroValueFactory::~MacroValueFactory()
 			pImpl_->listString_.end(), deleter<MacroValueString>());
 		std::for_each(pImpl_->listNumber_.begin(),
 			pImpl_->listNumber_.end(), deleter<MacroValueNumber>());
+		std::for_each(pImpl_->listRegex_.begin(),
+			pImpl_->listRegex_.end(), deleter<MacroValueRegex>());
 		std::for_each(pImpl_->listField_.begin(),
 			pImpl_->listField_.end(), deleter<MacroValueField>());
 		std::for_each(pImpl_->listAddress_.begin(),
@@ -992,6 +1065,23 @@ QSTATUS qm::MacroValueFactory::newNumber(unsigned int n, MacroValueNumber** ppmv
 void qm::MacroValueFactory::deleteNumber(MacroValueNumber* pmvn)
 {
 	::deleteValue<MacroValueNumber>(pImpl_->lock_, pImpl_->listNumber_, pmvn);
+}
+
+QSTATUS qm::MacroValueFactory::newRegex(const WCHAR* pwszPattern,
+	const qs::RegexPattern* pPattern, MacroValueRegex** ppmvr)
+{
+	DECLARE_QSTATUS();
+	
+	status = newValue<MacroValueRegex>(pImpl_->lock_,
+		pImpl_->listRegex_, pImpl_->nRegex_, ppmvr);
+	CHECK_QSTATUS();
+	
+	return (*ppmvr)->init(pwszPattern, pPattern);
+}
+
+void qm::MacroValueFactory::deleteRegex(MacroValueRegex* pmvr)
+{
+	::deleteValue<MacroValueRegex>(pImpl_->lock_, pImpl_->listRegex_, pmvr);
 }
 
 QSTATUS qm::MacroValueFactory::newField(const WCHAR* pwszName,
@@ -1090,6 +1180,9 @@ void qm::MacroValueFactory::deleteValue(MacroValue* pmv)
 		break;
 	case MacroValue::TYPE_NUMBER:
 		deleteNumber(static_cast<MacroValueNumber*>(pmv));
+		break;
+	case MacroValue::TYPE_REGEX:
+		deleteRegex(static_cast<MacroValueRegex*>(pmv));
 		break;
 	case MacroValue::TYPE_FIELD:
 		deleteField(static_cast<MacroValueField*>(pmv));
