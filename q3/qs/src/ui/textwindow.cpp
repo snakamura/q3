@@ -186,6 +186,7 @@ public:
 	void showCaret();
 	void hideCaret();
 	void updateCaret(bool bScroll);
+	void updateCaret(bool bScroll, const RECT& rectMargin);
 	
 	void invalidate(unsigned int nStartLine, unsigned int nStartChar,
 		unsigned int nEndLine, unsigned int nEndChar);
@@ -1112,6 +1113,16 @@ void qs::TextWindowImpl::hideCaret()
 
 void qs::TextWindowImpl::updateCaret(bool bScroll)
 {
+	updateCaret(bScroll, Rect(-1, -1, -1, -1));
+}
+
+void qs::TextWindowImpl::updateCaret(bool bScroll, const RECT& rectMargin)
+{
+	int nMarginTop = rectMargin.top != -1 ? rectMargin.top : 3;
+	int nMarginBottom = rectMargin.bottom != -1 ? rectMargin.bottom : 3;
+	int nMarginLeft = rectMargin.left != -1 ? rectMargin.left : 20;
+	int nMarginRight = rectMargin.right != -1 ? rectMargin.right : 20;
+	
 	unsigned int nLineHeight = getLineHeight();
 	unsigned int nLineInWindow = getLineInWindow();
 	
@@ -1119,19 +1130,19 @@ void qs::TextWindowImpl::updateCaret(bool bScroll)
 		RECT rect;
 		getClientRectWithoutMargin(&rect);
 		
-		if (static_cast<int>(caret_.nLine_) < scrollPos_.nLine_ + 3)
+		if (static_cast<int>(caret_.nLine_) < scrollPos_.nLine_ + nMarginTop)
 			pThis_->scroll(TextWindow::SCROLL_VERTICALPOS,
 				caret_.nLine_ - 3, false);
-		else if (caret_.nLine_ > scrollPos_.nLine_ + nLineInWindow - 3)
+		else if (caret_.nLine_ > scrollPos_.nLine_ + nLineInWindow - nMarginBottom)
 			pThis_->scroll(TextWindow::SCROLL_VERTICALPOS,
 				caret_.nLine_ - nLineInWindow + 3, false);
 		else
 			bScroll = false;
 		
-		if (caret_.nPos_ < scrollPos_.nPos_ + 20)
+		if (caret_.nPos_ < scrollPos_.nPos_ + nMarginLeft)
 			pThis_->scroll(TextWindow::SCROLL_HORIZONTALPOS,
 				caret_.nPos_ - 20, false);
-		else if (caret_.nPos_ > scrollPos_.nPos_ + (rect.right - rect.left) - 20)
+		else if (caret_.nPos_ > scrollPos_.nPos_ + (rect.right - rect.left) - nMarginRight)
 			pThis_->scroll(TextWindow::SCROLL_HORIZONTALPOS,
 				caret_.nPos_ - (rect.right - rect.left) + 20, false);
 		else
@@ -2495,6 +2506,8 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 		unsigned int nLineCount = pImpl_->listLine_.size();
 		unsigned int nLineInWindow = pImpl_->getLineInWindow();
 		
+		RECT rectMargin = { -1, -1, -1, -1 };
+		
 		switch (moveCaret) {
 		case MOVECARET_CHARLEFT:
 			if (pImpl_->caret_.nLine_ != 0 || pImpl_->caret_.nChar_ != 0) {
@@ -2505,6 +2518,10 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 					pImpl_->caret_.nChar_ =
 						pImpl_->listLine_[pImpl_->caret_.nLine_]->nLength_ - 1;
 				}
+				else {
+					rectMargin.top = 0;
+				}
+				rectMargin.bottom = 0;
 				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
 					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
 				CHECK_QSTATUS();
@@ -2520,6 +2537,10 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 					++pImpl_->caret_.nLine_;
 					pImpl_->caret_.nChar_ = 0;
 				}
+				else {
+					rectMargin.bottom = 0;
+				}
+				rectMargin.top = 0;
 				status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
 					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
 				CHECK_QSTATUS();
@@ -2531,6 +2552,8 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 			status = pImpl_->getPosFromChar(pImpl_->caret_.nLine_,
 				pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
 			pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
+			rectMargin.top = 0;
+			rectMargin.bottom = 0;
 			break;
 		case MOVECARET_LINEEND:
 			pImpl_->caret_.nChar_ = pLine->nLength_ -
@@ -2539,6 +2562,8 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 				pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
 			CHECK_QSTATUS();
 			pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
+			rectMargin.top = 0;
+			rectMargin.bottom = 0;
 			break;
 		case MOVECARET_LINEUP:
 			if (pImpl_->caret_.nLine_ != 0) {
@@ -2552,6 +2577,7 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
 				CHECK_QSTATUS();
 			}
+			rectMargin.bottom = 0;
 			break;
 		case MOVECARET_LINEDOWN:
 			if (pImpl_->caret_.nLine_ != nLineCount - 1) {
@@ -2565,6 +2591,7 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 					pImpl_->caret_.nChar_, &pImpl_->caret_.nPos_);
 				CHECK_QSTATUS();
 			}
+			rectMargin.top = 0;
 			break;
 		case MOVECARET_PAGEUP:
 			if (pImpl_->caret_.nLine_ != 0) {
@@ -2628,7 +2655,7 @@ QSTATUS qs::TextWindow::moveCaret(MoveCaret moveCaret, unsigned int nLine,
 		else if (select == SELECT_CLEAR)
 			pImpl_->clearSelection();
 		
-		pImpl_->updateCaret(bScroll);
+		pImpl_->updateCaret(bScroll, rectMargin);
 	}
 	return QSTATUS_SUCCESS;
 }
