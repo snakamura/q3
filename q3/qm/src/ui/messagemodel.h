@@ -23,6 +23,8 @@
 namespace qm {
 
 class MessageModel;
+	class MessageMessageModel;
+		class PreviewMessageModel;
 class MessageModelHandler;
 class MessageModelEvent;
 
@@ -36,41 +38,20 @@ class Message;
  *
  */
 
-class MessageModel :
-	public ViewModelManagerHandler,
-	public DefaultViewModelHandler,
-	public qs::TimerHandler
+class MessageModel
 {
 public:
-	MessageModel(ViewModelManager* pViewModelManager,
-		bool bConnectToViewModel, qs::QSTATUS* pstatus);
 	MessageModel(qs::QSTATUS* pstatus);
-	~MessageModel();
+	virtual ~MessageModel();
 
 public:
 	Account* getCurrentAccount() const;
+	void setCurrentAccount(Account* pAccount);
 	MessagePtr getCurrentMessage() const;
 	qs::QSTATUS setMessage(MessageHolder* pmh);
-	ViewModel* getViewModel() const;
-	qs::QSTATUS setViewModel(ViewModel* pViewModel);
-	qs::QSTATUS updateToViewModel();
-	qs::QSTATUS connectToViewModel();
-	qs::QSTATUS disconnectFromViewModel();
-	bool isConnectedToViewModel() const;
 	
 	qs::QSTATUS addMessageModelHandler(MessageModelHandler* pHandler);
 	qs::QSTATUS removeMessageModelHandler(MessageModelHandler* pHandler);
-
-public:
-	virtual qs::QSTATUS viewModelSelected(const ViewModelManagerEvent& event);
-
-public:
-	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
-	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event);
-	virtual qs::QSTATUS destroyed(const ViewModelEvent& event);
-
-public:
-	virtual qs::QSTATUS timerTimeout(unsigned int nId);
 
 private:
 	qs::QSTATUS fireMessageChanged(MessageHolder* pmh) const;
@@ -80,21 +61,110 @@ private:
 	MessageModel& operator=(const MessageModel&);
 
 private:
+	typedef std::vector<MessageModelHandler*> HandlerList;
+
+private:
+	Account* pAccount_;
+	MessagePtr ptr_;
+	HandlerList listHandler_;
+};
+
+
+/****************************************************************************
+ *
+ * AbstractMessageModel
+ *
+ */
+
+class AbstractMessageModel :
+	public MessageModel,
+	public ViewModelHolder,
+	public DefaultViewModelHandler
+{
+protected:
+	AbstractMessageModel(qs::QSTATUS* pstatus);
+
+public:
+	virtual ~AbstractMessageModel();
+
+public:
+	virtual ViewModel* getViewModel() const;
+	virtual qs::QSTATUS setViewModel(ViewModel* pViewModel);
+
+public:
+	virtual qs::QSTATUS itemRemoved(const ViewModelEvent& event);
+	virtual qs::QSTATUS destroyed(const ViewModelEvent& event);
+
+private:
+	AbstractMessageModel(const AbstractMessageModel&);
+	AbstractMessageModel& operator=(const AbstractMessageModel&);
+
+private:
+	ViewModel* pViewModel_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageMessageModel
+ *
+ */
+
+class MessageMessageModel : public AbstractMessageModel
+{
+public:
+	MessageMessageModel(qs::QSTATUS* pstatus);
+	virtual ~MessageMessageModel();
+
+private:
+	MessageMessageModel(const MessageMessageModel&);
+	MessageMessageModel& operator=(const MessageMessageModel&);
+};
+
+
+/****************************************************************************
+ *
+ * PreviewMessageModel
+ *
+ */
+
+class PreviewMessageModel :
+	public AbstractMessageModel,
+	public ViewModelManagerHandler,
+	public qs::TimerHandler
+{
+public:
+	PreviewMessageModel(ViewModelManager* pViewModelManager,
+		bool bConnectToViewModel, qs::QSTATUS* pstatus);
+	virtual ~PreviewMessageModel();
+
+public:
+	qs::QSTATUS updateToViewModel();
+	qs::QSTATUS connectToViewModel();
+	qs::QSTATUS disconnectFromViewModel();
+	bool isConnectedToViewModel() const;
+
+public:
+	virtual qs::QSTATUS itemStateChanged(const ViewModelEvent& event);
+
+public:
+	virtual qs::QSTATUS viewModelSelected(const ViewModelManagerEvent& event);
+
+public:
+	virtual qs::QSTATUS timerTimeout(unsigned int nId);
+
+private:
+	PreviewMessageModel(const PreviewMessageModel&);
+	PreviewMessageModel& operator=(const PreviewMessageModel&);
+
+private:
 	enum {
 		TIMER_ITEMSTATECHANGED	= 10,
 		TIMEOUT					= 300
 	};
 
 private:
-	typedef std::vector<MessageModelHandler*> HandlerList;
-
-private:
-	bool bPreview_;
-	Account* pAccount_;
-	MessagePtr ptr_;
 	ViewModelManager* pViewModelManager_;
-	ViewModel* pViewModel_;
-	HandlerList listHandler_;
 	qs::Timer* pTimer_;
 	unsigned int nTimerId_;
 	bool bConnectedToViewModel_;

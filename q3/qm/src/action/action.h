@@ -119,6 +119,7 @@ class MessageSelectionModel;
 class MessageWindow;
 class MoveMenu;
 class NormalFolder;
+class PreviewMessageModel;
 class ProgressDialog;
 class RuleManager;
 class ScriptMenu;
@@ -132,6 +133,7 @@ class Template;
 class TemplateMenu;
 class View;
 class ViewModel;
+class ViewModelHolder;
 class ViewModelManager;
 
 
@@ -372,6 +374,7 @@ public:
 	EditDeleteMessageAction(MessageSelectionModel* pModel,
 		bool bDirect, HWND hwndFrame, qs::QSTATUS* pstatus);
 	EditDeleteMessageAction(MessageModel* pModel,
+		ViewModelHolder* pViewModelHolder,
 		bool bDirect, qs::QSTATUS* pstatus);
 	virtual ~EditDeleteMessageAction();
 
@@ -386,6 +389,7 @@ private:
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	MessageModel* pMessageModel_;
+	ViewModelHolder* pViewModelHolder_;
 	bool bDirect_;
 	HWND hwndFrame_;
 };
@@ -1606,7 +1610,7 @@ private:
 class ViewLockPreviewAction : public qs::AbstractAction
 {
 public:
-	ViewLockPreviewAction(MessageModel* pMessageModel, qs::QSTATUS* pstatus);
+	ViewLockPreviewAction(PreviewMessageModel* pPreviewModel, qs::QSTATUS* pstatus);
 	virtual ~ViewLockPreviewAction();
 
 public:
@@ -1617,7 +1621,7 @@ private:
 	ViewLockPreviewAction& operator=(const ViewLockPreviewAction&);
 
 private:
-	MessageModel* pMessageModel_;
+	PreviewMessageModel* pPreviewModel_;
 };
 
 
@@ -1713,6 +1717,9 @@ public:
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
 		FolderModel* pFolderModel, MessageWindow* pMessageWindow,
 		Type type, qs::QSTATUS* pstatus);
+	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
+		ViewModelHolder* pViewModelHolder, MessageWindow* pMessageWindow,
+		Type type, qs::QSTATUS* pstatus);
 	virtual ~ViewNavigateMessageAction();
 
 public:
@@ -1730,6 +1737,7 @@ private:
 private:
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
+	ViewModelHolder* pViewModelHolder_;
 	MessageWindow* pMessageWindow_;
 	Type type_;
 };

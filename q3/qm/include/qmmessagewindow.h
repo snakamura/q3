@@ -31,6 +31,7 @@ class Document;
 class Message;
 class MessageFrameWindowManager;
 class MessageHolder;
+class MessageMessageModel;
 class MessageModel;
 class MessageWindowItem;
 class ViewModel;
@@ -48,12 +49,12 @@ class QMEXPORTCLASS MessageFrameWindow : public qs::FrameWindow
 {
 public:
 	MessageFrameWindow(MessageFrameWindowManager* pMessageFrameWindowManager,
-		qs::Profile* pProfile, ViewModelManager* pViewModelManager,
-		qs::QSTATUS* pstatus);
+		ViewModelManager* pViewModelManager,
+		qs::Profile* pProfile, qs::QSTATUS* pstatus);
 	virtual ~MessageFrameWindow();
 
 public:
-	MessageModel* getMessageModel() const;
+	MessageMessageModel* getMessageModel() const;
 	const ActionInvoker* getActionInvoker() const;
 	void initialShow();
 	qs::QSTATUS save() const;
@@ -111,9 +112,8 @@ class MessageWindow :
 	public View
 {
 public:
-	MessageWindow(bool bPreview, bool bShowPreview,
-		ViewModelManager* pViewModelManager,
-		qs::Profile* pProfile, qs::QSTATUS* pstatus);
+	MessageWindow(MessageModel* pMessageModel, qs::Profile* pProfile,
+		const WCHAR* pwszSection, qs::QSTATUS* pstatus);
 	virtual ~MessageWindow();
 
 public:
@@ -153,6 +153,7 @@ public:
 
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
+	LRESULT onDestroy();
 	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
 	LRESULT onSize(UINT nFlags, int cx, int cy);
 	

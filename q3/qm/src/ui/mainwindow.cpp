@@ -206,6 +206,7 @@ public:
 	FolderModel* pFolderModel_;
 	FolderListModel* pFolderListModel_;
 	ViewModelManager* pViewModelManager_;
+	PreviewMessageModel* pPreviewModel_;
 	MessageSelectionModelImpl* pMessageSelectionModel_;
 	MessageSelectionModelImpl* pListOnlyMessageSelectionModel_;
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
@@ -255,19 +256,19 @@ QSTATUS qm::MainWindowImpl::initActions()
 	
 	status = InitAction5<AttachmentOpenAction, MessageModel*,
 		AttachmentSelectionModel*, Profile*, TempFileCleaner*, HWND>(
-		pActionMap_, IDM_ATTACHMENT_OPEN, pMessageWindow_->getMessageModel(),
+		pActionMap_, IDM_ATTACHMENT_OPEN, pPreviewModel_,
 		pMessageWindow_->getAttachmentSelectionModel(), pProfile_,
 		pTempFileCleaner_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction5<AttachmentSaveAction, MessageModel*,
 		AttachmentSelectionModel*, bool, Profile*, HWND>(
-		pActionMap_, IDM_ATTACHMENT_SAVE, pMessageWindow_->getMessageModel(),
+		pActionMap_, IDM_ATTACHMENT_SAVE, pPreviewModel_,
 		pMessageWindow_->getAttachmentSelectionModel(),
 		false, pProfile_, pThis_->getHandle());
 	CHECK_QSTATUS();
 	status = InitAction5<AttachmentSaveAction, MessageModel*,
 		AttachmentSelectionModel*, bool, Profile*, HWND>(
-		pActionMap_, IDM_ATTACHMENT_SAVEALL, pMessageWindow_->getMessageModel(),
+		pActionMap_, IDM_ATTACHMENT_SAVEALL, pPreviewModel_,
 		pMessageWindow_->getAttachmentSelectionModel(),
 		true, pProfile_, pThis_->getHandle());
 	CHECK_QSTATUS();
@@ -580,8 +581,8 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pFolderModel_, pSyncDialogManager_,
 		ToolSyncAction::SYNC_SEND, pThis_->getHandle());
 	CHECK_QSTATUS();
-	status = InitAction1<ViewLockPreviewAction, MessageModel*>(
-		pActionMap_, IDM_VIEW_LOCKPREVIEW, pMessageWindow_->getMessageModel());
+	status = InitAction1<ViewLockPreviewAction, PreviewMessageModel*>(
+		pActionMap_, IDM_VIEW_LOCKPREVIEW, pPreviewModel_);
 	CHECK_QSTATUS();
 	status = InitAction4<ViewMessageModeAction, MessageWindow*,
 		ViewMessageModeAction::PFN_IS, ViewMessageModeAction::PFN_SET, bool>(
@@ -1170,8 +1171,7 @@ QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		MessageModel* pModel = pMainWindowImpl_->pMessageWindow_->getMessageModel();
-		MessagePtr ptr(pModel->getCurrentMessage());
+		MessagePtr ptr(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
 		pFolder = ptr.getFolder();
 		if (pFolder) {
 			status = STLWrapper<MessagePtrList>(*pList).push_back(ptr);
@@ -1199,8 +1199,7 @@ QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::hasSelectedMessage(bool* 
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		MessageModel* pModel = pMainWindowImpl_->pMessageWindow_->getMessageModel();
-		MessagePtrLock mpl(pModel->getCurrentMessage());
+		MessagePtrLock mpl(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
 		*pbHas = mpl != 0;
 	}
 	
@@ -1224,8 +1223,7 @@ QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::getFocusedMessage(Message
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		MessageModel* pModel = pMainWindowImpl_->pMessageWindow_->getMessageModel();
-		*pptr = pModel->getCurrentMessage();
+		*pptr = pMainWindowImpl_->pPreviewModel_->getCurrentMessage();
 	}
 	
 	return QSTATUS_SUCCESS;
@@ -1247,8 +1245,7 @@ QSTATUS qm::MainWindowImpl::MessageSelectionModelImpl::hasFocusedMessage(bool* p
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		MessageModel* pModel = pMainWindowImpl_->pMessageWindow_->getMessageModel();
-		MessagePtrLock mpl(pModel->getCurrentMessage());
+		MessagePtrLock mpl(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
 		*pbHas = mpl != 0;
 	}
 	
@@ -1366,6 +1363,7 @@ qm::MainWindow::MainWindow(Profile* pProfile, QSTATUS* pstatus) :
 	pImpl_->pFolderModel_ = 0;
 	pImpl_->pFolderListModel_ = 0;
 	pImpl_->pViewModelManager_ = 0;
+	pImpl_->pPreviewModel_ = 0;
 	pImpl_->pMessageSelectionModel_ = 0;
 	pImpl_->pListOnlyMessageSelectionModel_ = 0;
 	pImpl_->pMessageFrameWindowManager_ = 0;
@@ -1402,6 +1400,7 @@ qm::MainWindow::~MainWindow()
 		delete pImpl_->pFolderListModel_;
 		delete pImpl_->pFolderModel_;
 		delete pImpl_->pViewModelManager_;
+		delete pImpl_->pPreviewModel_;
 		delete pImpl_->pMessageSelectionModel_;
 		delete pImpl_->pListOnlyMessageSelectionModel_;
 		delete pImpl_->pMessageFrameWindowManager_;
@@ -1585,13 +1584,12 @@ QSTATUS qm::MainWindow::setShowPreviewWindow(bool bShow)
 		pImpl_->bShowPreviewWindow_ = bShow;
 		status = pImpl_->layoutChildren();
 		
-		MessageModel* pMessageModel = pImpl_->pMessageWindow_->getMessageModel();
 		if (bShow) {
-			status = pMessageModel->connectToViewModel();
+			status = pImpl_->pPreviewModel_->connectToViewModel();
 			CHECK_QSTATUS();
 		}
 		else {
-			status = pMessageModel->disconnectFromViewModel();
+			status = pImpl_->pPreviewModel_->disconnectFromViewModel();
 			CHECK_QSTATUS();
 		}
 	}
@@ -1837,6 +1835,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		getHandle(), pImpl_->pFolderModel_, &pImpl_->pViewModelManager_);
 	CHECK_QSTATUS_VALUE(-1);
 	
+	status = newQsObject(pImpl_->pViewModelManager_,
+		true, &pImpl_->pPreviewModel_);
+	CHECK_QSTATUS();
+	
 	status = newQsObject(pImpl_->pDocument_, pImpl_->pSyncManager_,
 		pImpl_->pSyncDialogManager_, pContext->pKeyMap_,
 		pImpl_->pProfile_, pContext->pMenuManager_,
@@ -1961,8 +1963,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pListContainerWindow_->setListWindow(pImpl_->pListWindow_);
 	
 	std::auto_ptr<MessageWindow> pMessageWindow;
-	status = newQsObject(true, pImpl_->bShowPreviewWindow_,
-		pImpl_->pViewModelManager_, pImpl_->pProfile_, &pMessageWindow);
+	status = newQsObject(pImpl_->pPreviewModel_, pImpl_->pProfile_,
+		L"PreviewWindow", &pMessageWindow);
 	CHECK_QSTATUS_VALUE(-1);
 	MessageWindowCreateContext messageContext = {
 		pContext->pDocument_,

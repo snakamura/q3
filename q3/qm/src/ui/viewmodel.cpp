@@ -1669,6 +1669,17 @@ unsigned int qm::ViewModelEvent::getItem() const
 
 /****************************************************************************
  *
+ * ViewModelHolder
+ *
+ */
+
+qm::ViewModelHolder::~ViewModelHolder()
+{
+}
+
+
+/****************************************************************************
+ *
  * ViewModelManager
  *
  */

@@ -508,9 +508,11 @@ qm::EditDeleteMessageAction::EditDeleteMessageAction(
 }
 
 qm::EditDeleteMessageAction::EditDeleteMessageAction(
-	MessageModel* pModel, bool bDirect, QSTATUS* pstatus) :
+	MessageModel* pModel, ViewModelHolder* pViewModelHolder,
+	bool bDirect, QSTATUS* pstatus) :
 	pMessageSelectionModel_(0),
 	pMessageModel_(pModel),
+	pViewModelHolder_(pViewModelHolder),
 	bDirect_(bDirect),
 	hwndFrame_(0)
 {
@@ -539,7 +541,7 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 		}
 	}
 	else {
-		ViewModel* pViewModel = pMessageModel_->getViewModel();
+		ViewModel* pViewModel = pViewModelHolder_->getViewModel();
 		
 		Lock<ViewModel> lock(*pViewModel);
 		
@@ -3349,8 +3351,8 @@ QSTATUS qm::ViewFocusAction::invoke(const ActionEvent& event)
  */
 
 qm::ViewLockPreviewAction::ViewLockPreviewAction(
-	MessageModel* pMessageModel, QSTATUS* pstatus) :
-	pMessageModel_(pMessageModel)
+	PreviewMessageModel* pPreviewModel, QSTATUS* pstatus) :
+	pPreviewModel_(pPreviewModel)
 {
 }
 
@@ -3362,16 +3364,16 @@ QSTATUS qm::ViewLockPreviewAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	if (pMessageModel_->isConnectedToViewModel()) {
-		status = pMessageModel_->disconnectFromViewModel();
+	if (pPreviewModel_->isConnectedToViewModel()) {
+		status = pPreviewModel_->disconnectFromViewModel();
 		CHECK_QSTATUS();
-		status = pMessageModel_->setMessage(0);
+		status = pPreviewModel_->setMessage(0);
 		CHECK_QSTATUS();
 	}
 	else {
-		status = pMessageModel_->connectToViewModel();
+		status = pPreviewModel_->connectToViewModel();
 		CHECK_QSTATUS();
-		status = pMessageModel_->updateToViewModel();
+		status = pPreviewModel_->updateToViewModel();
 		CHECK_QSTATUS();
 	}
 	
@@ -3561,6 +3563,22 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
 	MessageWindow* pMessageWindow, Type type, QSTATUS* pstatus) :
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
+	pViewModelHolder_(0),
+	pMessageWindow_(pMessageWindow),
+	type_(type)
+{
+	assert(pViewModelManager);
+	assert(pMessageWindow);
+	assert(pstatus);
+	*pstatus = QSTATUS_SUCCESS;
+}
+
+qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
+	ViewModelManager* pViewModelManager, ViewModelHolder* pViewModelHolder,
+	MessageWindow* pMessageWindow, Type type, QSTATUS* pstatus) :
+	pViewModelManager_(pViewModelManager),
+	pFolderModel_(0),
+	pViewModelHolder_(pViewModelHolder),
 	pMessageWindow_(pMessageWindow),
 	type_(type)
 {
@@ -3616,7 +3634,7 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			return QSTATUS_SUCCESS;
 	}
 	else {
-		pViewModel = pMessageModel->getViewModel();
+		pViewModel = pViewModelHolder_->getViewModel();
 	}
 	
 	Lock<ViewModel> lock(*pViewModel);
@@ -3670,7 +3688,8 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 				CHECK_QSTATUS();
 			}
 			else {
-				pMessageModel->setViewModel(pNewViewModel);
+				status = pViewModelHolder_->setViewModel(pNewViewModel);
+				CHECK_QSTATUS();
 			}
 			pViewModel = pNewViewModel;
 		}

@@ -308,8 +308,8 @@ QSTATUS qm::MessageWindowImpl::fireMessageChanged(
  *
  */
 
-qm::MessageWindow::MessageWindow(bool bPreview, bool bShowPreview,
-	ViewModelManager* pViewModelManager, Profile* pProfile, QSTATUS* pstatus) :
+qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
+	Profile* pProfile, const WCHAR* pwszSection, QSTATUS* pstatus) :
 	WindowBase(true, pstatus),
 	DefaultWindowHandler(pstatus),
 	pImpl_(0)
@@ -318,8 +318,6 @@ qm::MessageWindow::MessageWindow(bool bPreview, bool bShowPreview,
 		return;
 	
 	DECLARE_QSTATUS();
-	
-	const WCHAR* pwszSection = bPreview ? L"PreviewWindow" : L"MessageWindow";
 	
 	int nShowHeaderWindow = 0;
 	status = pProfile->getInt(pwszSection, L"ShowHeaderWindow",
@@ -337,13 +335,6 @@ qm::MessageWindow::MessageWindow(bool bPreview, bool bShowPreview,
 		L"DecryptVerifyMode", 0, &nDecryptVerifyMode);
 	CHECK_QSTATUS_SET(pstatus);
 	
-	std::auto_ptr<MessageModel> pMessageModel;
-	if (pViewModelManager)
-		status = newQsObject(pViewModelManager, bShowPreview, &pMessageModel);
-	else
-		status = newQsObject(&pMessageModel);
-	CHECK_QSTATUS_SET(pstatus);
-	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
 	pImpl_->pThis_ = this;
@@ -359,7 +350,7 @@ qm::MessageWindow::MessageWindow(bool bPreview, bool bShowPreview,
 	pImpl_->pHeaderWindow_ = 0;
 	pImpl_->pMessageViewWindow_ = 0;
 	pImpl_->bCreated_ = false;
-	pImpl_->pMessageModel_ = pMessageModel.release();
+	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->pFactory_ = 0;
 	pImpl_->wstrEncoding_ = 0;
 	pImpl_->wstrTemplate_ = 0;
@@ -375,7 +366,6 @@ qm::MessageWindow::~MessageWindow()
 {
 	if (pImpl_) {
 		delete pImpl_->pFactory_;
-		delete pImpl_->pMessageModel_;
 		delete pImpl_->pAccelerator_;
 		freeWString(pImpl_->wstrEncoding_);
 		freeWString(pImpl_->wstrTemplate_);
@@ -635,6 +625,7 @@ LRESULT qm::MessageWindow::windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
+		HANDLE_DESTROY()
 		HANDLE_LBUTTONDOWN()
 		HANDLE_SIZE()
 		HANDLE_MESSAGE(MessageWindowImpl::WM_MESSAGEMODEL_MESSAGECHANGED, onMessageModelMessageChanged)
@@ -687,6 +678,12 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->bCreated_ = true;
 	
 	return 0;
+}
+
+LRESULT qm::MessageWindow::onDestroy()
+{
+	pImpl_->pMessageModel_->removeMessageModelHandler(pImpl_);
+	return DefaultWindowHandler::onDestroy();
 }
 
 LRESULT qm::MessageWindow::onLButtonDown(UINT nFlags, const POINT& pt)

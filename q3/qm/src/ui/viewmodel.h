@@ -29,6 +29,7 @@ class ViewModel;
 class ViewModelHandler;
 class ViewModelEvent;
 class ViewModelFolderComp;
+class ViewModelHolder;
 class ViewModelManager;
 class ViewModelManagerHandler;
 class ViewModelManagerEvent;
@@ -417,6 +418,23 @@ public:
 
 private:
 	Folder* pFolder_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewModelHolder
+ *
+ */
+
+class ViewModelHolder
+{
+public:
+	virtual ~ViewModelHolder();
+
+public:
+	virtual ViewModel* getViewModel() const = 0;
+	virtual qs::QSTATUS setViewModel(ViewModel* pViewModel) = 0;
 };
 
 
