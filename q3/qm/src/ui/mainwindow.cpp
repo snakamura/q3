@@ -2164,10 +2164,8 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu,
 			pImpl_->pSubAccountMenu_->createMenu(hmenu);
 		}
 		else if (nIdFirst == IDM_MESSAGE_DETACH) {
-			AccountLock lock;
-			MessageHolderList l;
-			pImpl_->pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-			pImpl_->pAttachmentMenu_->createMenu(hmenu, l);
+			pImpl_->pAttachmentMenu_->createMenu(hmenu,
+				pImpl_->pMessageSelectionModel_->getFocusedMessage());
 		}
 		else if (nIdFirst == IDM_VIEW_TEMPLATENONE) {
 			if (pAccount)

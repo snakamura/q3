@@ -885,10 +885,7 @@ LRESULT qm::MessageFrameWindow::onInitMenuPopup(HMENU hmenu,
 				::GetKeyState(VK_SHIFT) < 0, *pImpl_->pActionMap_);
 		}
 		else if (nIdFirst == IDM_MESSAGE_DETACH) {
-			AccountLock lock;
-			MessageHolderList l;
-			pImpl_->getSelectedMessages(&lock, 0, &l);
-			pImpl_->pAttachmentMenu_->createMenu(hmenu, l);
+			pImpl_->pAttachmentMenu_->createMenu(hmenu, pImpl_->getFocusedMessage());
 		}
 		else if (nIdFirst == IDM_VIEW_TEMPLATENONE) {
 			pImpl_->pViewTemplateMenu_->createMenu(hmenu, pAccount);

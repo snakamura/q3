@@ -74,7 +74,7 @@ public:
 				 qs::wstring_ptr* pwstrName,
 				 const qs::Part** ppPart) const;
 	bool createMenu(HMENU hmenu,
-					const MessageHolderList& l);
+					const MessagePtr& ptr);
 
 private:
 	AttachmentMenu(const AttachmentMenu&);

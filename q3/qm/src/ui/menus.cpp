@@ -93,7 +93,7 @@ bool qm::AttachmentMenu::getPart(unsigned int nId,
 }
 
 bool qm::AttachmentMenu::createMenu(HMENU hmenu,
-									const MessageHolderList& l)
+									const MessagePtr& ptr)
 {
 	assert(hmenu);
 	
@@ -110,17 +110,16 @@ bool qm::AttachmentMenu::createMenu(HMENU hmenu,
 	}
 	
 	UINT nId = IDM_MESSAGE_ATTACHMENT;
-	for (MessageHolderList::const_iterator itM = l.begin();
-		itM != l.end() && nId < IDM_MESSAGE_ATTACHMENT + MAX_ATTACHMENT; ++itM) {
-		MessageHolder* pmh = *itM;
-		
-		list_.push_back(List::value_type(nId, pmh));
+	
+	MessagePtrLock mpl(ptr);
+	if (mpl) {
+		list_.push_back(List::value_type(nId, mpl));
 		
 		Message msg;
 		unsigned int nFlags = Account::GETMESSAGEFLAG_TEXT;
 		if (!pSecurityModel_->isDecryptVerify())
 			nFlags |= Account::GETMESSAGEFLAG_NOSECURITY;
-		if (!pmh->getMessage(nFlags, 0, &msg))
+		if (!mpl->getMessage(nFlags, 0, &msg))
 			return false;
 		
 		AttachmentParser parser(msg);
@@ -134,9 +133,10 @@ bool qm::AttachmentMenu::createMenu(HMENU hmenu,
 			W2T(wstrName.get(), ptszName);
 			::InsertMenu(hmenu, nIdNext, MF_BYCOMMAND | MF_STRING, nId++, ptszName);
 		}
+		
+		if (nId != IDM_MESSAGE_ATTACHMENT)
+			::InsertMenu(hmenu, nIdNext, MF_BYCOMMAND | MF_SEPARATOR, -1, 0);
 	}
-	if (nId != IDM_MESSAGE_ATTACHMENT)
-		::InsertMenu(hmenu, nIdNext, MF_BYCOMMAND | MF_SEPARATOR, -1, 0);
 	
 	return true;
 }
