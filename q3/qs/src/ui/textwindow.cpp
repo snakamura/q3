@@ -3261,8 +3261,11 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags, const POINT& pt)
 
 LRESULT qs::TextWindow::onMouseMove(UINT nFlags, const POINT& pt)
 {
-	if (getCapture())
-		pImpl_->updateSelection(pt, true);
+	if (getCapture()) {
+		if (pt.x != pImpl_->ptLastButtonDown_.x ||
+			pt.y != pImpl_->ptLastButtonDown_.y)
+			pImpl_->updateSelection(pt, true);
+	}
 	
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
 }
@@ -3506,8 +3509,14 @@ LRESULT qs::TextWindow::onTimer(UINT nId)
 		pImpl_->nTimerDragScroll_ = 0;
 		
 		POINT pt;
+#ifdef _WIN32_WCE
+		DWORD dwPos = ::GetMessagePos();
+		pt.x = static_cast<int>(dwPos & 0x0000ffff);
+		pt.y = static_cast<int>(dwPos & 0xffff0000) >> 16;
+#else
 		::GetCursorPos(&pt);
 		screenToClient(&pt);
+#endif
 		
 		RECT rect;
 		pImpl_->getClientRectWithoutMargin(&rect);
