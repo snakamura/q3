@@ -288,7 +288,7 @@ void qm::TabWindowImpl::getChildRect(RECT* pRect)
 	RECT rect;
 	pThis_->getClientRect(&rect);
 	*pRect = rect;
-	if (bShowTab_) {
+	if (bShowTab_ && TabCtrl_GetItemCount(pTabCtrl_->getHandle()) != 0) {
 		TabCtrl_AdjustRect(pTabCtrl_->getHandle(), FALSE, &rect);
 		pRect->top = rect.top - 4;
 	}
@@ -510,6 +510,7 @@ LRESULT qm::TabWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	addNotifyHandler(pImpl_);
 	
 	pImpl_->bCreated_ = true;
+	pImpl_->bLayouting_ = false;
 	
 	return 0;
 }
