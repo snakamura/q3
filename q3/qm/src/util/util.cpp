@@ -112,8 +112,11 @@ unsigned int qm::Util::getMessageCount(Account* pAccount)
 	unsigned int nCount = 0;
 	
 	const Account::FolderList& l = pAccount->getFolders();
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-		nCount += (*it)->getCount();
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL)
+			nCount += pFolder->getCount();
+	}
 	
 	return nCount;
 }
@@ -128,7 +131,8 @@ unsigned int qm::Util::getUnseenMessageCount(Account* pAccount)
 	const Account::FolderList& l = pAccount->getFolders();
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
-		if ((pFolder->getFlags() & nIgnore) == 0)
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			(pFolder->getFlags() & nIgnore) == 0)
 			nCount += pFolder->getUnseenCount();
 	}
 	
