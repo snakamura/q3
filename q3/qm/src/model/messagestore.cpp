@@ -15,8 +15,8 @@
 #include <stdio.h>
 #include <tchar.h>
 
+#include "messageindex.h"
 #include "messagestore.h"
-#include "messagecache.h"
 
 #pragma warning(disable:4786)
 
@@ -48,10 +48,10 @@ struct qm::SingleMessageStoreImpl
 	};
 	
 	wstring_ptr wstrPath_;
-	wstring_ptr wstrCachePath_;
-	unsigned int nCacheBlockSize_;
+	wstring_ptr wstrIndexPath_;
+	unsigned int nIndexBlockSize_;
 	std::auto_ptr<ClusterStorage> pStorage_;
-	std::auto_ptr<ClusterStorage> pCacheStorage_;
+	std::auto_ptr<ClusterStorage> pIndexStorage_;
 	CriticalSection cs_;
 	
 	static const unsigned char szUsedSeparator__[];
@@ -70,23 +70,23 @@ const unsigned char qm::SingleMessageStoreImpl::szUnusedSeparator__[] = "\n\nFro
 
 qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
 										   unsigned int nBlockSize,
-										   const WCHAR* pwszCachePath,
-										   unsigned int nCacheBlockSize)
+										   const WCHAR* pwszIndexPath,
+										   unsigned int nIndexBlockSize)
 {
 	wstring_ptr wstrPath(allocWString(pwszPath));
-	wstring_ptr wstrCachePath(allocWString(pwszCachePath));
+	wstring_ptr wstrIndexPath(allocWString(pwszIndexPath));
 	
 	std::auto_ptr<ClusterStorage> pStorage(new ClusterStorage(pwszPath,
-		L"msg", FileNames::BOX_EXT, FileNames::MAP_EXT, nBlockSize));
-	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(pwszCachePath,
-		L"cache", FileNames::BOX_EXT, FileNames::MAP_EXT, nCacheBlockSize));
+		FileNames::MSG, FileNames::BOX_EXT, FileNames::MAP_EXT, nBlockSize));
+	std::auto_ptr<ClusterStorage> pIndexStorage(new ClusterStorage(pwszIndexPath,
+		FileNames::INDEX, FileNames::BOX_EXT, FileNames::MAP_EXT, nIndexBlockSize));
 	
 	pImpl_ = new SingleMessageStoreImpl();
 	pImpl_->wstrPath_ = wstrPath;
-	pImpl_->wstrCachePath_ = wstrCachePath;
-	pImpl_->nCacheBlockSize_ = nCacheBlockSize;
+	pImpl_->wstrIndexPath_ = wstrIndexPath;
+	pImpl_->nIndexBlockSize_ = nIndexBlockSize;
 	pImpl_->pStorage_ = pStorage;
-	pImpl_->pCacheStorage_ = pCacheStorage;
+	pImpl_->pIndexStorage_ = pIndexStorage;
 }
 
 qm::SingleMessageStore::~SingleMessageStore()
@@ -102,13 +102,13 @@ qm::SingleMessageStore::~SingleMessageStore()
 bool qm::SingleMessageStore::close()
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	return pImpl_->pStorage_->close() && pImpl_->pCacheStorage_->close();
+	return pImpl_->pStorage_->close() && pImpl_->pIndexStorage_->close();
 }
 
 bool qm::SingleMessageStore::flush()
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	return pImpl_->pStorage_->close() && pImpl_->pCacheStorage_->close();
+	return pImpl_->pStorage_->close() && pImpl_->pIndexStorage_->close();
 }
 
 bool qm::SingleMessageStore::load(unsigned int nOffset,
@@ -132,17 +132,18 @@ bool qm::SingleMessageStore::load(unsigned int nOffset,
 
 bool qm::SingleMessageStore::save(const CHAR* pszMessage,
 								  const Message& header,
-								  MessageCache* pMessageCache,
 								  bool bIndexOnly,
 								  unsigned int* pnOffset,
 								  unsigned int* pnLength,
 								  unsigned int* pnHeaderLength,
-								  MessageCacheKey* pKey)
+								  unsigned int* pnIndexKey,
+								  unsigned int* pnIndexLength)
 {
 	assert(pnOffset);
 	assert(pnLength);
 	assert(pnHeaderLength);
-	assert(pKey);
+	assert(pnIndexKey);
+	assert(pnIndexLength);
 	
 	const CHAR* pszHeader = header.getHeader();
 	size_t nHeaderLen = strlen(pszHeader);
@@ -155,8 +156,8 @@ bool qm::SingleMessageStore::save(const CHAR* pszMessage,
 		*pnLength = nHeaderLen + nBodyLen + 2;
 	}
 	
-	malloc_size_ptr<unsigned char> pData(MessageCache::createData(header));
-	if (!pData.get())
+	malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header));
+	if (!pIndex.get())
 		return false;
 	
 	const unsigned char* pMsg[] = {
@@ -174,24 +175,18 @@ bool qm::SingleMessageStore::save(const CHAR* pszMessage,
 		SingleMessageStoreImpl::SEPARATOR_SIZE
 	};
 	
-	size_t nDataLen = pData.size();
-	const unsigned char* pCache[] = {
-		reinterpret_cast<const unsigned char*>(&nDataLen),
-		pData.get(),
-	};
-	size_t nCacheLen[] = {
-		sizeof(nDataLen),
-		nDataLen,
-	};
-	
 	Lock<CriticalSection> lock(pImpl_->cs_);
+	
 	if (!bIndexOnly) {
 		*pnOffset = pImpl_->pStorage_->save(pMsg, nMsgLen, countof(pMsg));
 		if (*pnOffset == -1)
 			return false;
 	}
-	*pKey = pImpl_->pCacheStorage_->save(pCache, nCacheLen, countof(pCache));
-	if (*pKey == -1)
+	
+	const unsigned char* p = pIndex.get();
+	*pnIndexLength = pIndex.size();
+	*pnIndexKey = pImpl_->pIndexStorage_->save(&p, pnIndexLength, 1);
+	if (*pnIndexKey == -1)
 		return false;
 	
 	return true;
@@ -199,16 +194,13 @@ bool qm::SingleMessageStore::save(const CHAR* pszMessage,
 
 bool qm::SingleMessageStore::free(unsigned int nOffset,
 								  unsigned int nLength,
-								  MessageCacheKey key)
+								  unsigned int nIndexKey,
+								  unsigned int nIndexLength)
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	if (key != -1) {
-		size_t nDataLen = 0;
-		if (pImpl_->pCacheStorage_->load(reinterpret_cast<unsigned char*>(&nDataLen),
-			key, sizeof(nDataLen)) != sizeof(nDataLen))
-			return false;
-		if (!pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen)))
+	if (nIndexKey != -1) {
+		if (!pImpl_->pIndexStorage_->free(nIndexKey, nIndexLength))
 			return false;
 	}
 	
@@ -232,22 +224,17 @@ bool qm::SingleMessageStore::compact(DataList* pListData,
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(
-		pImpl_->wstrCachePath_.get(), L"compact",
-		FileNames::BOX_EXT, FileNames::MAP_EXT, pImpl_->nCacheBlockSize_));
-	ClusterStorage* pOldCacheStorage = pImpl_->pCacheStorage_.get();
+	std::auto_ptr<ClusterStorage> pIndexStorage(new ClusterStorage(
+		pImpl_->wstrIndexPath_.get(), FileNames::COMPACT,
+		FileNames::BOX_EXT, FileNames::MAP_EXT, pImpl_->nIndexBlockSize_));
+	ClusterStorage* pOldIndexStorage = pImpl_->pIndexStorage_.get();
 	
 	for (DataList::iterator it = pListData->begin(); it != pListData->end(); ++it) {
 		Data& data = *it;
 		
-		size_t nDataLen = 0;
-		unsigned int nLoad = pImpl_->pCacheStorage_->load(
-			reinterpret_cast<unsigned char*>(&nDataLen), data.key_, sizeof(nDataLen));
-		if (nLoad != sizeof(nDataLen))
-			return false;
-		data.key_ = pCacheStorage->compact(data.key_,
-			nDataLen + sizeof(nDataLen), pOldCacheStorage);
-		if (data.key_ == -1)
+		data.nIndexKey_ = pIndexStorage->compact(data.nIndexKey_,
+			data.nIndexLength_, pOldIndexStorage);
+		if (data.nIndexKey_ == -1)
 			return false;
 		
 		if (data.nOffset_ != -1) {
@@ -260,11 +247,11 @@ bool qm::SingleMessageStore::compact(DataList* pListData,
 		pCallback->step(1);
 	}
 	
-	if (!pImpl_->pCacheStorage_->close())
+	if (!pImpl_->pIndexStorage_->close())
 		return false;
-	if (!pCacheStorage->rename(pImpl_->wstrCachePath_.get(), L"cache"))
+	if (!pIndexStorage->rename(pImpl_->wstrIndexPath_.get(), FileNames::INDEX))
 		return false;
-	pImpl_->pCacheStorage_ = pCacheStorage;
+	pImpl_->pIndexStorage_ = pIndexStorage;
 	
 	MessageStoreUtil::freeUnrefered(pImpl_->pStorage_.get(),
 		*pListData, SingleMessageStoreImpl::SEPARATOR_SIZE*2);
@@ -281,13 +268,13 @@ bool qm::SingleMessageStore::salvage(const DataList& listData,
 
 bool qm::SingleMessageStore::check(MessageStoreCheckCallback* pCallback)
 {
-	std::auto_ptr<ClusterStorage> pCacheStorage(MessageStoreUtil::checkCache(
-		pImpl_->pCacheStorage_.get(), pImpl_->wstrCachePath_.get(),
-		pImpl_->nCacheBlockSize_, pCallback));
-	if (!pCacheStorage.get())
+	std::auto_ptr<ClusterStorage> pIndexStorage(MessageStoreUtil::checkIndex(
+		pImpl_->pIndexStorage_.get(), pImpl_->wstrIndexPath_.get(),
+		pImpl_->nIndexBlockSize_, pCallback));
+	if (!pIndexStorage.get())
 		return false;
 	
-	pImpl_->pCacheStorage_ = pCacheStorage;
+	pImpl_->pIndexStorage_ = pIndexStorage;
 	
 	return true;
 }
@@ -297,33 +284,10 @@ bool qm::SingleMessageStore::freeUnused()
 	return pImpl_->pStorage_->freeUnused() && pImpl_->pStorage_->flush();
 }
 
-malloc_ptr<unsigned char> qm::SingleMessageStore::readCache(MessageCacheKey key)
+malloc_ptr<unsigned char> qm::SingleMessageStore::readIndex(unsigned int nKey,
+															unsigned int nLength)
 {
-	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	const size_t nDefaultSize = 1024;
-	malloc_ptr<unsigned char> p(static_cast<unsigned char*>(malloc(nDefaultSize)));
-	if (!p.get())
-		return malloc_ptr<unsigned char>(0);
-	
-	unsigned int nLoad = pImpl_->pCacheStorage_->load(p.get(), key, nDefaultSize);
-	if (nLoad == -1 || nLoad < sizeof(size_t))
-		return malloc_ptr<unsigned char>(0);
-	
-	size_t nSize = *reinterpret_cast<size_t*>(p.get());
-	if (nSize + sizeof(nSize) > nDefaultSize) {
-		unsigned char* p2 = static_cast<unsigned char*>(
-			realloc(p.get(), nSize + sizeof(nSize)));
-		if (!p2)
-			return malloc_ptr<unsigned char>(0);
-		p.release();
-		p.reset(p2);
-		
-		if (pImpl_->pCacheStorage_->load(p.get(), key, nSize + sizeof(nSize)) == -1)
-			return malloc_ptr<unsigned char>(0);
-	}
-	
-	return p;
+	return MessageStoreUtil::readIndex(pImpl_->pIndexStorage_.get(), nKey, nLength);
 }
 
 
@@ -347,9 +311,9 @@ public:
 
 public:
 	wstring_ptr wstrPath_;
-	wstring_ptr wstrCachePath_;
-	unsigned int nCacheBlockSize_;
-	std::auto_ptr<ClusterStorage> pCacheStorage_;
+	wstring_ptr wstrIndexPath_;
+	unsigned int nIndexBlockSize_;
+	std::auto_ptr<ClusterStorage> pIndexStorage_;
 	unsigned int nOffset_;
 	CriticalSection cs_;
 	mutable DirList listDir_;
@@ -481,19 +445,19 @@ void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& list
  */
 
 qm::MultiMessageStore::MultiMessageStore(const WCHAR* pwszPath,
-										 const WCHAR* pwszCachePath,
-										 unsigned int nCacheBlockSize)
+										 const WCHAR* pwszIndexPath,
+										 unsigned int nIndexBlockSize)
 {
 	wstring_ptr wstrPath(allocWString(pwszPath));
-	wstring_ptr wstrCachePath(allocWString(pwszCachePath));
-	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(pwszCachePath,
-		L"cache", FileNames::BOX_EXT, FileNames::MAP_EXT, nCacheBlockSize));
+	wstring_ptr wstrIndexPath(allocWString(pwszIndexPath));
+	std::auto_ptr<ClusterStorage> pIndexStorage(new ClusterStorage(pwszIndexPath,
+		FileNames::INDEX, FileNames::BOX_EXT, FileNames::MAP_EXT, nIndexBlockSize));
 	
 	pImpl_ = new MultiMessageStoreImpl();
 	pImpl_->wstrPath_ = wstrPath;
-	pImpl_->wstrCachePath_ = wstrCachePath;
-	pImpl_->nCacheBlockSize_ = nCacheBlockSize;
-	pImpl_->pCacheStorage_ = pCacheStorage;
+	pImpl_->wstrIndexPath_ = wstrIndexPath;
+	pImpl_->nIndexBlockSize_ = nIndexBlockSize;
+	pImpl_->pIndexStorage_ = pIndexStorage;
 	pImpl_->nOffset_ = -1;
 	
 	if (!pImpl_->init()) {
@@ -514,13 +478,13 @@ qm::MultiMessageStore::~MultiMessageStore()
 bool qm::MultiMessageStore::close()
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	return pImpl_->pCacheStorage_->close();
+	return pImpl_->pIndexStorage_->close();
 }
 
 bool qm::MultiMessageStore::flush()
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
-	return pImpl_->pCacheStorage_->close();
+	return pImpl_->pIndexStorage_->close();
 }
 
 bool qm::MultiMessageStore::load(unsigned int nOffset,
@@ -550,17 +514,18 @@ bool qm::MultiMessageStore::load(unsigned int nOffset,
 
 bool qm::MultiMessageStore::save(const CHAR* pszMessage,
 								 const Message& header,
-								 MessageCache* pMessageCache,
 								 bool bIndexOnly,
 								 unsigned int* pnOffset,
 								 unsigned int* pnLength,
 								 unsigned int* pnHeaderLength,
-								 MessageCacheKey* pKey)
+								 unsigned int* pnIndexKey,
+								 unsigned int* pnIndexLength)
 {
 	assert(pnOffset);
 	assert(pnLength);
 	assert(pnHeaderLength);
-	assert(pKey);
+	assert(pnIndexKey);
+	assert(pnIndexLength);
 	
 	const CHAR* pszHeader = header.getHeader();
 	size_t nHeaderLen = strlen(pszHeader);
@@ -573,19 +538,9 @@ bool qm::MultiMessageStore::save(const CHAR* pszMessage,
 		*pnLength = nHeaderLen + nBodyLen + 2;
 	}
 	
-	malloc_size_ptr<unsigned char> pData(MessageCache::createData(header));
-	if (!pData.get())
+	malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header));
+	if (!pIndex.get())
 		return false;
-	
-	size_t nDataLen = pData.size();
-	const unsigned char* pCache[] = {
-		reinterpret_cast<const unsigned char*>(&nDataLen),
-		pData.get(),
-	};
-	size_t nCacheLen[] = {
-		sizeof(nDataLen),
-		nDataLen,
-	};
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
@@ -604,8 +559,11 @@ bool qm::MultiMessageStore::save(const CHAR* pszMessage,
 			!bufferedStream.close())
 			return false;
 	}
-	*pKey = pImpl_->pCacheStorage_->save(pCache, nCacheLen, countof(pCache));
-	if (*pKey == -1)
+	
+	const unsigned char* p = pIndex.get();
+	*pnIndexLength = pIndex.size();
+	*pnIndexKey = pImpl_->pIndexStorage_->save(&p, pnIndexLength, 1);
+	if (*pnIndexKey == -1)
 		return false;
 	
 	return true;
@@ -613,17 +571,13 @@ bool qm::MultiMessageStore::save(const CHAR* pszMessage,
 
 bool qm::MultiMessageStore::free(unsigned int nOffset,
 								 unsigned int nLength,
-								 MessageCacheKey key)
+								 unsigned int nIndexKey,
+								 unsigned int nIndexLength)
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	if (key != -1) {
-		size_t nDataLen = 0;
-		unsigned int nLoad = pImpl_->pCacheStorage_->load(
-			reinterpret_cast<unsigned char*>(&nDataLen), key, sizeof(nDataLen));
-		if (nLoad != sizeof(nDataLen))
-			return false;
-		if (!pImpl_->pCacheStorage_->free(key, nDataLen + sizeof(nDataLen)))
+	if (nIndexKey != -1) {
+		if (!pImpl_->pIndexStorage_->free(nIndexKey, nIndexLength))
 			return false;
 	}
 	
@@ -647,32 +601,27 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(
-		pImpl_->wstrCachePath_.get(), L"compact",
-		FileNames::BOX_EXT, FileNames::MAP_EXT, pImpl_->nCacheBlockSize_));
-	ClusterStorage* pOldCacheStorage = pImpl_->pCacheStorage_.get();
+	std::auto_ptr<ClusterStorage> pIndexStorage(new ClusterStorage(
+		pImpl_->wstrIndexPath_.get(), FileNames::COMPACT,
+		FileNames::BOX_EXT, FileNames::MAP_EXT, pImpl_->nIndexBlockSize_));
+	ClusterStorage* pOldIndexStorage = pImpl_->pIndexStorage_.get();
 	
 	for (DataList::iterator it = pListData->begin(); it != pListData->end(); ++it) {
 		Data& data = *it;
 		
-		size_t nDataLen = 0;
-		unsigned int nLoad = pImpl_->pCacheStorage_->load(
-			reinterpret_cast<unsigned char*>(&nDataLen), data.key_, sizeof(nDataLen));
-		if (nLoad != sizeof(nDataLen))
-			return false;
-		data.key_ = pCacheStorage->compact(data.key_,
-			nDataLen + sizeof(nDataLen), pOldCacheStorage);
-		if (data.key_ == -1)
+		data.nIndexKey_ = pIndexStorage->compact(data.nIndexKey_,
+			data.nIndexLength_, pOldIndexStorage);
+		if (data.nIndexKey_ == -1)
 			return false;
 		
 		pCallback->step(1);
 	}
 	
-	if (!pImpl_->pCacheStorage_->close())
+	if (!pImpl_->pIndexStorage_->close())
 		return false;
-	if (!pCacheStorage->rename(pImpl_->wstrCachePath_.get(), L"cache"))
+	if (!pIndexStorage->rename(pImpl_->wstrIndexPath_.get(), FileNames::INDEX))
 		return false;
-	pImpl_->pCacheStorage_ = pCacheStorage;
+	pImpl_->pIndexStorage_ = pIndexStorage;
 	
 	pImpl_->freeUnrefered(*pListData);
 	
@@ -727,44 +676,21 @@ bool qm::MultiMessageStore::salvage(const DataList& listData,
 
 bool qm::MultiMessageStore::check(MessageStoreCheckCallback* pCallback)
 {
-	std::auto_ptr<ClusterStorage> pCacheStorage(MessageStoreUtil::checkCache(
-		pImpl_->pCacheStorage_.get(), pImpl_->wstrCachePath_.get(),
-		pImpl_->nCacheBlockSize_, pCallback));
-	if (!pCacheStorage.get())
+	std::auto_ptr<ClusterStorage> pIndexStorage(MessageStoreUtil::checkIndex(
+		pImpl_->pIndexStorage_.get(), pImpl_->wstrIndexPath_.get(),
+		pImpl_->nIndexBlockSize_, pCallback));
+	if (!pIndexStorage.get())
 		return false;
 	
-	pImpl_->pCacheStorage_ = pCacheStorage;
+	pImpl_->pIndexStorage_ = pIndexStorage;
 	
 	return true;
 }
 
-malloc_ptr<unsigned char> qm::MultiMessageStore::readCache(MessageCacheKey key)
+malloc_ptr<unsigned char> qm::MultiMessageStore::readIndex(unsigned int nKey,
+														   unsigned int nLength)
 {
-	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	const size_t nDefaultSize = 1024;
-	malloc_ptr<unsigned char> p(
-		static_cast<unsigned char*>(malloc(nDefaultSize)));
-	if (!p.get())
-		return malloc_ptr<unsigned char>(0);
-	unsigned int nLoad = pImpl_->pCacheStorage_->load(p.get(), key, nDefaultSize);
-	if (nLoad == -1 || nLoad < sizeof(size_t))
-		return malloc_ptr<unsigned char>(0);
-	
-	size_t nSize = *reinterpret_cast<size_t*>(p.get());
-	if (nSize + sizeof(nSize) > nDefaultSize) {
-		unsigned char* p2 = static_cast<unsigned char*>(
-			realloc(p.get(), nSize + sizeof(nSize)));
-		if (!p2)
-			return malloc_ptr<unsigned char>(0);
-		p.release();
-		p.reset(p2);
-		
-		if (pImpl_->pCacheStorage_->load(p.get(), key, nSize + sizeof(nSize)) == -1)
-			return malloc_ptr<unsigned char>(0);
-	}
-	
-	return p;
+	return MessageStoreUtil::readIndex(pImpl_->pIndexStorage_.get(), nKey, nLength);
 }
 
 
@@ -813,7 +739,7 @@ void qm::MessageStoreUtil::freeUnrefered(ClusterStorage* pStorage,
 	pStorage->freeUnrefered(l);
 }
 
-std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkCache(ClusterStorage* pStorage,
+std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkIndex(ClusterStorage* pStorage,
 															   const WCHAR* pwszPath,
 															   unsigned int nBlockSize,
 															   MessageStoreCheckCallback* pCallback)
@@ -823,43 +749,50 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkCache(ClusterStorage* p
 	if (!pStorage->close())
 		return std::auto_ptr<ClusterStorage>(0);
 	
-	std::auto_ptr<ClusterStorage> pCacheStorage(new ClusterStorage(
-		pwszPath, L"check", FileNames::BOX_EXT, FileNames::MAP_EXT, nBlockSize));
+	std::auto_ptr<ClusterStorage> pIndexStorage(new ClusterStorage(
+		pwszPath, FileNames::CHECK, FileNames::BOX_EXT, FileNames::MAP_EXT, nBlockSize));
 	
 	unsigned int nCount = pCallback->getCount();
 	for (unsigned int n = 0; n < nCount; ++n) {
 		Message header;
 		if (pCallback->getHeader(n, &header)) {
-			malloc_size_ptr<unsigned char> pData(MessageCache::createData(header));
-			if (!pData.get())
+			malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header));
+			if (!pIndex.get())
 				return std::auto_ptr<ClusterStorage>(0);
 			
-			size_t nDataLen = pData.size();
-			const unsigned char* pCache[] = {
-				reinterpret_cast<const unsigned char*>(&nDataLen),
-				pData.get(),
-			};
-			size_t nCacheLen[] = {
-				sizeof(nDataLen),
-				nDataLen,
-			};
-			
-			MessageCacheKey key = pCacheStorage->save(pCache, nCacheLen, countof(pCache));
-			if (key == -1)
+			const unsigned char* p = pIndex.get();
+			unsigned int nLength = pIndex.size();
+			unsigned int nKey = pIndexStorage->save(&p, &nLength, 1);
+			if (nKey == -1)
 				return std::auto_ptr<ClusterStorage>(0);
 			
-			pCallback->setKey(n, key);
+			pCallback->setKey(n, nKey, nLength);
 		}
 		else {
 			if (pCallback->isIgnoreError(n))
-				pCallback->setKey(n, -1);
+				pCallback->setKey(n, -1, -1);
 			else
 				return std::auto_ptr<ClusterStorage>(0);
 		}
 	}
 	
-	if (!pCacheStorage->rename(pwszPath, L"cache"))
+	if (!pIndexStorage->rename(pwszPath, FileNames::INDEX))
 		return std::auto_ptr<ClusterStorage>(0);
 	
-	return pCacheStorage;
+	return pIndexStorage;
+}
+
+malloc_ptr<unsigned char> qm::MessageStoreUtil::readIndex(ClusterStorage* pStorage,
+														  unsigned int nKey,
+														  unsigned int nLength)
+{
+	malloc_ptr<unsigned char> p(static_cast<unsigned char*>(malloc(nLength)));
+	if (!p.get())
+		return malloc_ptr<unsigned char>(0);
+	
+	unsigned int nLoad = pStorage->load(p.get(), nKey, nLength);
+	if (nLoad != nLength)
+		return malloc_ptr<unsigned char>(0);
+	
+	return p;
 }

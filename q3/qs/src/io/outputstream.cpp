@@ -115,7 +115,8 @@ size_t qs::FileOutputStream::write(const unsigned char* p,
 
 bool qs::FileOutputStream::flush()
 {
-	return ::FlushFileBuffers(pImpl_->hFile_) != 0;
+//	return ::FlushFileBuffers(pImpl_->hFile_) != 0;
+	return true;
 }
 
 /****************************************************************************

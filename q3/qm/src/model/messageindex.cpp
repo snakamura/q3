@@ -1,17 +1,12 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2004 Satoshi Nakamura
+ * Copyright(C) 1998-2004 Satoshi Nakamura.
  * All rights reserved.
  *
  */
 
-#include <qsconv.h>
-#include <qsstream.h>
-
-#include <algorithm>
-
-#include "messagecache.h"
+#include "messageindex.h"
 #include "messagestore.h"
 
 #pragma warning(disable:4786)
@@ -22,11 +17,11 @@ using namespace qs;
 
 /****************************************************************************
  *
- * MessageCache
+ * MessageIndex
  *
  */
 
-qm::MessageCache::MessageCache(MessageStore* pMessageStore) :
+qm::MessageIndex::MessageIndex(MessageStore* pMessageStore) :
 	pMessageStore_(pMessageStore),
 	nMaxSize_(-1),
 	nSize_(0),
@@ -34,13 +29,13 @@ qm::MessageCache::MessageCache(MessageStore* pMessageStore) :
 	pNewLast_(0),
 	pLastGotten_(0)
 {
-	pNewFirst_ = new CacheItem(-1);
+	pNewFirst_ = new MessageIndexItem(-1);
 	pNewFirst_->pNewNext_ = pNewFirst_;
 	pNewFirst_->pNewPrev_ = pNewFirst_;
 	pNewLast_ = pNewFirst_;
 }
 
-qm::MessageCache::~MessageCache()
+qm::MessageIndex::~MessageIndex()
 {
 #if defined _WIN32_WCE && _MSC_VER == 1202 && defined MIPS
 	for (ItemMap::const_iterator it = map_.begin(); it != map_.end(); ++it)
@@ -48,36 +43,38 @@ qm::MessageCache::~MessageCache()
 #else
 	std::for_each(map_.begin(), map_.end(),
 		unary_compose_f_gx(
-			deleter<CacheItem>(),
+			deleter<MessageIndexItem>(),
 			std::select2nd<ItemMap::value_type>()));
 #endif
 	delete pNewLast_;
 }
 
-wstring_ptr qm::MessageCache::getData(MessageCacheKey key,
-									  MessageCacheItem item)
+wstring_ptr qm::MessageIndex::get(unsigned int nKey,
+								  unsigned int nLength,
+								  MessageIndexName name)
 {
 	Lock<CriticalSection> lock(cs_);
 	
-	wstring_ptr wstrData;
+	wstring_ptr wstrValue;
 	
-	CacheItem* pItem = 0;
-	if (pLastGotten_ && pLastGotten_->getKey() == key)
+	MessageIndexItem* pItem = 0;
+	if (pLastGotten_ && pLastGotten_->getKey() == nKey)
 		pItem = pLastGotten_;
 	if (!pItem) {
-		ItemMap::iterator it = map_.find(key);
+		ItemMap::iterator it = map_.find(nKey);
 		if (it != map_.end())
 			pItem = (*it).second;
 	}
 	if (pItem) {
-		wstrData = allocWString(pItem->getItem(item));
+		const WCHAR* pwszValue = pItem->getValue(name);
+		wstrValue = allocWString(pwszValue ? pwszValue : L"");
 		if (pItem != pNewFirst_) {
-			CacheItem* pNext = pItem->pNewNext_;
-			CacheItem* pPrev = pItem->pNewPrev_;
+			MessageIndexItem* pNext = pItem->pNewNext_;
+			MessageIndexItem* pPrev = pItem->pNewPrev_;
 			pNext->pNewPrev_ = pPrev;
 			pPrev->pNewNext_ = pNext;
 			
-			CacheItem* pFirst = pNewFirst_;
+			MessageIndexItem* pFirst = pNewFirst_;
 			pNewFirst_ = pItem;
 			pItem->pNewPrev_ = pNewLast_;
 			pItem->pNewNext_ = pFirst;
@@ -85,78 +82,53 @@ wstring_ptr qm::MessageCache::getData(MessageCacheKey key,
 		}
 	}
 	else {
-		malloc_ptr<unsigned char> pData(pMessageStore_->readCache(key));
+		malloc_ptr<unsigned char> pData(pMessageStore_->readIndex(nKey, nLength));
 		if (!pData.get())
 			return 0;
-		unsigned char* p = pData.get();
+		WCHAR* p = reinterpret_cast<WCHAR*>(pData.get());
 		
-		p += sizeof(size_t);
+		const WCHAR* pwszValues[NAME_MAX] = { 0 };
+		int nValue = 0;
+		const WCHAR* pStart = p;
+		for (unsigned int n = 0; n < nLength/sizeof(WCHAR) && nValue < NAME_MAX; ++n, ++p) {
+			if (*p == L'\n') {
+				*p = L'\0';
+				pwszValues[nValue++] = pStart;
+				pStart = p + 1;
+			}
+		}
 		
-		UTF8Converter converter;
 		if (nMaxSize_ != 0) {
-			unsigned char* pOrg = p;
-			for (int n = 0; n < ITEM_MAX; ++n) {
-				size_t nLen = 0;
-				memcpy(&nLen, p, sizeof(nLen));
-				for (int m = 0; m < sizeof(size_t); ++m)
-					*p++ = 0;
-				p += nLen;
-			}
-			size_t nDecode = p - pOrg;
-			wxstring_size_ptr strDecoded(converter.decode(
-				reinterpret_cast<CHAR*>(pOrg), &nDecode));
-			const WCHAR* pw = strDecoded.get();
-			const WCHAR* pwszItem[ITEM_MAX];
-			for (int n = 0; n < ITEM_MAX; ++n) {
-				while (*pw != L'\0')
-					++pw;
-				for (int m = 0; m < sizeof(size_t); ++m)
-					++pw;
-				pwszItem[n] = pw;
-			}
-			pItem = new CacheItem(key, strDecoded.release(), pwszItem);
+			pItem = new MessageIndexItem(nKey, pData, pwszValues);
 			
 			insert(pItem);
 			
 			if (nSize_ >= nMaxSize_)
-				removeData(pNewLast_->pNewPrev_->getKey());
+				remove(pNewLast_->pNewPrev_->getKey());
 			else
 				++nSize_;
-			
-			wstrData = allocWString(pItem->getItem(item));
 		}
 		else {
-			for (int n = 0; n < item; ++n) {
-				size_t nLen = 0;
-				memcpy(&nLen, p, sizeof(nLen));
-				p += sizeof(size_t) + nLen;
-			}
-			size_t nLen = 0;
-			memcpy(&nLen, p, sizeof(nLen));
-			p += sizeof(size_t);
-			wxstring_size_ptr strDecoded(converter.decode(
-				reinterpret_cast<CHAR*>(p), &nLen));
-			if (!strDecoded.get())
-				return 0;
-			wstrData.reset(strDecoded.release());
 		}
+		const WCHAR* pwszValue = pwszValues[name];
+		wstrValue = allocWString(pwszValue ? pwszValue : L"");
 	}
 	if (pItem)
 		pLastGotten_ = pItem;
 	
-	return wstrData;
+	return wstrValue;
 }
 
-void qm::MessageCache::removeData(MessageCacheKey key)
+void qm::MessageIndex::remove(unsigned int nKey)
 {
 	Lock<CriticalSection> lock(cs_);
 	
-	ItemMap::iterator it = map_.find(key);
+	ItemMap::iterator it = map_.find(nKey);
 	if (it != map_.end())
 		remove(it);
 }
 
-malloc_size_ptr<unsigned char> qm::MessageCache::createData(const Message& msg)
+malloc_size_ptr<unsigned char> qm::MessageIndex::createIndex(const Message& msg)
 {
 	ByteOutputStream stream;
 	
@@ -207,14 +179,11 @@ malloc_size_ptr<unsigned char> qm::MessageCache::createData(const Message& msg)
 			return malloc_size_ptr<unsigned char>();
 	}
 	
-	if (stream.write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
-		return malloc_size_ptr<unsigned char>();
-	
 	size_t nLen = stream.getLength();
 	return malloc_size_ptr<unsigned char>(stream.releaseBuffer(), nLen);
 }
 
-void qm::MessageCache::insert(CacheItem* pItem)
+void qm::MessageIndex::insert(MessageIndexItem* pItem)
 {
 	map_.insert(std::make_pair(pItem->getKey(), pItem));
 	
@@ -223,11 +192,11 @@ void qm::MessageCache::insert(CacheItem* pItem)
 	pNewFirst_ = pItem;
 }
 
-void qm::MessageCache::remove(ItemMap::iterator it)
+void qm::MessageIndex::remove(ItemMap::iterator it)
 {
 	assert(it != map_.end());
 	
-	CacheItem* pItem = (*it).second;
+	MessageIndexItem* pItem = (*it).second;
 	
 #if defined _WIN32_WCE && _MSC_VER == 1202 && defined MIPS
 	map_.erase((*it).first);
@@ -247,23 +216,18 @@ void qm::MessageCache::remove(ItemMap::iterator it)
 	delete pItem;
 }
 
-bool qm::MessageCache::writeToStream(OutputStream* pStream,
+bool qm::MessageIndex::writeToStream(OutputStream* pStream,
 									 const WCHAR* pwsz)
 {
 	assert(pStream);
 	
-	if (!pwsz)
-		pwsz = L"";
-	
-	UTF8Converter converter;
-	size_t nLen = wcslen(pwsz);
-	xstring_size_ptr str(converter.encode(pwsz, &nLen));
-	if (!str.get())
-		return false;
-	size_t nEncodedLen = str.size();
-	if (pStream->write(reinterpret_cast<unsigned char*>(&nEncodedLen), sizeof(nEncodedLen)) == -1)
-		return false;
-	if (pStream->write(reinterpret_cast<unsigned char*>(str.get()), nEncodedLen) == -1)
+	if (pwsz && *pwsz) {
+		const unsigned char* p = reinterpret_cast<const unsigned char*>(pwsz);
+		size_t nLen = wcslen(pwsz)*sizeof(WCHAR);
+		if (pStream->write(p, nLen) == -1)
+			return false;
+	}
+	if (pStream->write(reinterpret_cast<const unsigned char*>(L"\n"), sizeof(WCHAR)) == -1)
 		return false;
 	
 	return true;
@@ -272,40 +236,40 @@ bool qm::MessageCache::writeToStream(OutputStream* pStream,
 
 /****************************************************************************
  *
- * CacheItem
+ * MessageIndexItem
  *
  */
 
-qm::CacheItem::CacheItem(MessageCacheKey key) :
-	key_(key),
+qm::MessageIndexItem::MessageIndexItem(unsigned int nKey) :
+	nKey_(nKey),
 	pNewNext_(0),
 	pNewPrev_(0)
 {
-	memset(pwszItem_, 0, sizeof(pwszItem_));
+	memset(pwszValues_, 0, sizeof(pwszValues_));
 }
 
-qm::CacheItem::CacheItem(MessageCacheKey key,
-						 wxstring_ptr wstr,
-						 const WCHAR* pwszItem[]) :
-	key_(key),
-	wstr_(wstr),
+qm::MessageIndexItem::MessageIndexItem(unsigned int nKey,
+									   malloc_ptr<unsigned char> pData,
+									   const WCHAR* pwszValues[]) :
+	nKey_(nKey),
+	pData_(pData),
 	pNewNext_(0),
 	pNewPrev_(0)
 {
-	memcpy(pwszItem_, pwszItem, sizeof(pwszItem_));
+	memcpy(pwszValues_, pwszValues, sizeof(pwszValues_));
 }
 
-qm::CacheItem::~CacheItem()
+qm::MessageIndexItem::~MessageIndexItem()
 {
 }
 
-MessageCacheKey qm::CacheItem::getKey() const
+unsigned int qm::MessageIndexItem::getKey() const
 {
-	return key_;
+	return nKey_;
 }
 
-const WCHAR* qm::CacheItem::getItem(MessageCacheItem item) const
+const WCHAR* qm::MessageIndexItem::getValue(MessageIndexName name) const
 {
-	assert(item < ITEM_MAX);
-	return pwszItem_[item];
+	assert(name < NAME_MAX);
+	return pwszValues_[name];
 }

@@ -24,7 +24,7 @@
 #include <algorithm>
 
 #include "account.h"
-#include "messagecache.h"
+#include "messageindex.h"
 #include "messagestore.h"
 
 #pragma warning(disable:4786)
@@ -112,7 +112,7 @@ public:
 	SubAccount* pCurrentSubAccount_;
 	Account::FolderList listFolder_;
 	std::auto_ptr<MessageStore> pMessageStore_;
-	std::auto_ptr<MessageCache> pMessageCache_;
+	std::auto_ptr<MessageIndex> pMessageIndex_;
 	std::auto_ptr<ProtocolDriver> pProtocolDriver_;
 	AccountHandlerList listAccountHandler_;
 	MessageHolderHandlerList listMessageHolderHandler_;
@@ -606,11 +606,13 @@ bool qm::AccountImpl::getDataList(MessageStore::DataList* pList) const
 			pList->reserve(pList->size() + nCount);
 			for (unsigned int n = 0; n < nCount; ++n) {
 				MessageHolder* pmh = pFolder->getMessage(n);
+				const MessageHolder::MessageIndexKey& indexKey = pmh->getMessageIndexKey();
 				const MessageHolder::MessageBoxKey& boxKey = pmh->getMessageBoxKey();
 				MessageStore::Data data = {
 					boxKey.nOffset_,
 					boxKey.nLength_,
-					pmh->getMessageCacheKey()
+					indexKey.nKey_,
+					indexKey.nLength_
 				};
 				pList->push_back(data);
 			}
@@ -781,11 +783,11 @@ qm::Account::Account(const WCHAR* pwszPath,
 	if (nBlockSize != -1)
 		nBlockSize *= 1024*1024;
 	
-	int nCacheBlockSize = pProfile->getInt(L"Global", L"CacheBlockSize", -1);
-	if (nCacheBlockSize == 0)
-		nCacheBlockSize = -1;
-	else if (nCacheBlockSize != -1)
-		nCacheBlockSize *= 1024*1024;
+	int nIndexBlockSize = pProfile->getInt(L"Global", L"IndexBlockSize", -1);
+	if (nIndexBlockSize == 0)
+		nIndexBlockSize = -1;
+	else if (nIndexBlockSize != -1)
+		nIndexBlockSize *= 1024*1024;
 	
 	wstring_ptr wstrMessageStorePath(
 		pProfile->getString(L"Global", L"MessageStorePath", L""));
@@ -798,13 +800,13 @@ qm::Account::Account(const WCHAR* pwszPath,
 	if (pImpl_->bMultiMessageStore_)
 		pImpl_->pMessageStore_.reset(new MultiMessageStore(
 			pImpl_->wstrMessageStorePath_.get(),
-			pwszPath, nCacheBlockSize));
+			pwszPath, nIndexBlockSize));
 	else
 		pImpl_->pMessageStore_.reset(new SingleMessageStore(
 			pImpl_->wstrMessageStorePath_.get(),
-			nBlockSize, pwszPath, nCacheBlockSize));
+			nBlockSize, pwszPath, nIndexBlockSize));
 	
-	pImpl_->pMessageCache_.reset(new MessageCache(pImpl_->pMessageStore_.get()));
+	pImpl_->pMessageIndex_.reset(new MessageIndex(pImpl_->pMessageStore_.get()));
 	
 	pImpl_->wstrClass_ = pProfile->getString(L"Global", L"Class", L"mail");
 	pImpl_->wstrType_[HOST_SEND] = pProfile->getString(L"Send", L"Type", L"smtp");
@@ -1441,12 +1443,16 @@ bool qm::Account::compact(MessageOperationCallback* pCallback)
 				const MessageStore::Data& data = listData[d++];
 				
 				MessageHolder* pmh = pFolder->getMessage(n);
-				MessageCacheKey cacheKey = pmh->getMessageCacheKey();
-				if (cacheKey != data.key_)
-					pImpl_->pMessageCache_->removeData(cacheKey);
+				
+				MessageHolder::MessageIndexKey indexKey = pmh->getMessageIndexKey();
+				if (indexKey.nKey_ != data.nIndexKey_)
+					pImpl_->pMessageIndex_->remove(indexKey.nKey_);
+				indexKey.nKey_ = data.nIndexKey_;
+				
 				MessageHolder::MessageBoxKey boxKey = pmh->getMessageBoxKey();
 				boxKey.nOffset_ = data.nOffset_;
-				pmh->setKeys(data.key_, boxKey);
+				
+				pmh->setKeys(indexKey, boxKey);
 			}
 		}
 	}
@@ -1540,13 +1546,13 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 	class CallbackImpl : public MessageStoreCheckCallback
 	{
 	public:
-		typedef std::vector<MessageCacheKey> KeyList;
+		typedef std::vector<MessageHolder::MessageIndexKey> KeyList;
 	
 	public:
-		CallbackImpl(MessageCache* pMessageCache,
+		CallbackImpl(MessageIndex* pMessageIndex,
 					 const MessageHolderList& listMessageHolder,
 					 AccountCheckCallback* pCallback) :
-			pMessageCache_(pMessageCache),
+			pMessageIndex_(pMessageIndex),
 			listMessageHolder_(listMessageHolder),
 			listKey_(listMessageHolder.size()),
 			pCallback_(pCallback),
@@ -1559,15 +1565,17 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 		{
 			for (KeyList::size_type n = 0; n < listKey_.size(); ++n) {
 				MessageHolder* pmh = listMessageHolder_[n];
-				MessageCacheKey cacheKey = pmh->getMessageCacheKey();
-				if (listKey_[n] != -1) {
-					if (cacheKey != listKey_[n]) {
-						pMessageCache_->removeData(cacheKey);
-						pmh->setKeys(listKey_[n], pmh->getMessageBoxKey());
+				const MessageHolder::MessageIndexKey& indexKey = pmh->getMessageIndexKey();
+				const MessageHolder::MessageIndexKey& newIndexKey = listKey_[n];
+				if (newIndexKey.nKey_ != -1) {
+					if (newIndexKey.nKey_ != indexKey.nKey_ ||
+						newIndexKey.nLength_ != indexKey.nLength_) {
+						pMessageIndex_->remove(indexKey.nKey_);
+						pmh->setKeys(newIndexKey, pmh->getMessageBoxKey());
 					}
 				}
 				else {
-					pMessageCache_->removeData(cacheKey);
+					pMessageIndex_->remove(indexKey.nKey_);
 					pmh->getFolder()->removeMessages(MessageHolderList(1, pmh));
 				}
 			}
@@ -1588,10 +1596,12 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 		}
 		
 		virtual void setKey(unsigned int n,
-							MessageCacheKey key)
+							unsigned int nKey,
+							unsigned int nLength)
 		{
 			assert(n < listKey_.size());
-			listKey_[n] = key;
+			listKey_[n].nKey_ = nKey;
+			listKey_[n].nLength_ = nLength;
 			
 			pCallback_->step(1);
 		}
@@ -1621,12 +1631,12 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 		}
 	
 	private:
-		MessageCache* pMessageCache_;
+		MessageIndex* pMessageIndex_;
 		const MessageHolderList& listMessageHolder_;
 		KeyList listKey_;
 		AccountCheckCallback* pCallback_;
 		bool bIgnoreError_;
-	} callback(pImpl_->pMessageCache_.get(), listMessageHolder, pCallback);
+	} callback(pImpl_->pMessageIndex_.get(), listMessageHolder, pCallback);
 	
 	if (!pImpl_->pMessageStore_->check(&callback))
 		return false;
@@ -1866,14 +1876,14 @@ bool qm::Account::deleteMessagesCache(const MessageHolderList& l)
 		if (!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL)) {
 			MessageHolder::MessageBoxKey key = pmh->getMessageBoxKey();
 			if (key.nOffset_ != -1) {
-				if (!pImpl_->pMessageStore_->free(
-					key.nOffset_, key.nLength_, -1))
+				if (!pImpl_->pMessageStore_->free(key.nOffset_, key.nLength_, -1, 0))
 					return false;
 				
 				key.nOffset_ = -1;
 				key.nLength_ = -1;
 				key.nHeaderLength_ = -1;
-				pmh->setKeys(-1, key);
+				MessageHolder::MessageIndexKey indexKey = { -1, 0 };
+				pmh->setKeys(indexKey, key);
 				pmh->setFlags(MessageHolder::FLAG_INDEXONLY,
 					MessageHolder::FLAG_PARTIAL_MASK);
 			}
@@ -1952,7 +1962,7 @@ unsigned int qm::Account::getLockCount() const
 void qm::Account::deletePermanent(bool bDeleteContent)
 {
 	if (bDeleteContent) {
-		pImpl_->pMessageCache_.reset(0);
+		pImpl_->pMessageIndex_.reset(0);
 		pImpl_->pMessageStore_.reset(0);
 		pImpl_->pProtocolDriver_.reset(0);
 		
@@ -1972,10 +1982,11 @@ void qm::Account::deletePermanent(bool bDeleteContent)
 	pImpl_->fireAccountDestroyed();
 }
 
-wstring_ptr qm::Account::getData(MessageCacheKey key,
-								 MessageCacheItem item) const
+wstring_ptr qm::Account::getIndex(unsigned int nKey,
+								  unsigned int nLength,
+								  MessageIndexName name) const
 {
-	return pImpl_->pMessageCache_->getData(key, item);
+	return pImpl_->pMessageIndex_->get(nKey, nLength, name);
 }
 
 bool qm::Account::getMessage(MessageHolder* pmh,
@@ -2125,10 +2136,10 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	unsigned int nOffset = -1;
 	unsigned int nLength = 0;
 	unsigned int nHeaderLength = 0;
-	MessageCacheKey key;
-	if (!pImpl_->pMessageStore_->save(pszMessage, *pHeader,
-		pImpl_->pMessageCache_.get(), bIndexOnly, &nOffset,
-		&nLength, &nHeaderLength, &key))
+	unsigned int nIndexKey = -1;
+	unsigned int nIndexLength = 0;
+	if (!pImpl_->pMessageStore_->save(pszMessage, *pHeader, bIndexOnly,
+		&nOffset, &nLength, &nHeaderLength, &nIndexKey, &nIndexLength))
 		return 0;
 	
 	SubAccount* pSubAccount = getCurrentSubAccount();
@@ -2173,7 +2184,8 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 		MessageHolder::getDate(*pTime),
 		MessageHolder::getTime(*pTime),
 		nSize,
-		key,
+		nIndexKey,
+		nIndexLength,
 		nOffset,
 		nLength,
 		nHeaderLength
@@ -2193,7 +2205,7 @@ bool qm::Account::unstoreMessages(const MessageHolderList& l)
 	
 	NormalFolder* pFolder = l.front()->getFolder();
 	
-	typedef std::vector<std::pair<MessageHolder::MessageBoxKey, MessageCacheKey> > KeyList;
+	typedef std::vector<std::pair<MessageHolder::MessageBoxKey, MessageHolder::MessageIndexKey> > KeyList;
 	KeyList listKey;
 	listKey.reserve(l.size());
 	
@@ -2202,18 +2214,19 @@ bool qm::Account::unstoreMessages(const MessageHolderList& l)
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessageHolder* pmh = *it;
 		assert(pmh->getFolder() == pFolder);
-		listKey.push_back(std::make_pair(pmh->getMessageBoxKey(), pmh->getMessageCacheKey()));
+		listKey.push_back(std::make_pair(pmh->getMessageBoxKey(), pmh->getMessageIndexKey()));
 	}
 	
 	pFolder->removeMessages(l);
 	
 	for (KeyList::const_iterator it = listKey.begin(); it != listKey.end(); ++it) {
 		const MessageHolder::MessageBoxKey& boxKey = (*it).first;
-		MessageCacheKey cacheKey = (*it).second;
-		if (!pImpl_->pMessageStore_->free(boxKey.nOffset_, boxKey.nLength_, cacheKey)) {
+		const MessageHolder::MessageIndexKey& indexKey = (*it).second;
+		if (!pImpl_->pMessageStore_->free(boxKey.nOffset_,
+			boxKey.nLength_, indexKey.nKey_, indexKey.nLength_)) {
 			// TODO LOG
 		}
-		pImpl_->pMessageCache_->removeData(cacheKey);
+		pImpl_->pMessageIndex_->remove(indexKey.nKey_);
 	}
 	
 	return true;
@@ -2268,22 +2281,22 @@ bool qm::Account::updateMessage(MessageHolder* pmh,
 	if (!header.create(pszMessage, -1, Message::FLAG_NONE))
 		return false;
 	
-	MessageHolder::MessageBoxKey boxKey = pmh->getMessageBoxKey();
-	unsigned int nOldOffset = boxKey.nOffset_;
-	unsigned int nOldLength = boxKey.nLength_;
-	
-	MessageCacheKey key;
-	if (!pImpl_->pMessageStore_->save(pszMessage, header,
-		pImpl_->pMessageCache_.get(), false, &boxKey.nOffset_,
-		&boxKey.nLength_, &boxKey.nHeaderLength_, &key))
+	MessageHolder::MessageBoxKey boxKey;
+	MessageHolder::MessageIndexKey indexKey;
+	if (!pImpl_->pMessageStore_->save(pszMessage, header, false,
+		&boxKey.nOffset_, &boxKey.nLength_, &boxKey.nHeaderLength_,
+		&indexKey.nKey_, &indexKey.nLength_))
 		return false;
 	
-	MessageCacheKey keyOld = pmh->getMessageCacheKey();
-	if (key != keyOld)
-		pImpl_->pMessageCache_->removeData(keyOld);
-	pmh->setKeys(key, boxKey);
+	MessageHolder::MessageIndexKey oldIndexKey = pmh->getMessageIndexKey();
+	pImpl_->pMessageIndex_->remove(oldIndexKey.nKey_);
 	
-	if (!pImpl_->pMessageStore_->free(nOldOffset, nOldLength, keyOld))
+	MessageHolder::MessageBoxKey oldBoxKey = pmh->getMessageBoxKey();
+	
+	pmh->setKeys(indexKey, boxKey);
+	
+	if (!pImpl_->pMessageStore_->free(oldBoxKey.nOffset_,
+		oldBoxKey.nLength_, oldIndexKey.nKey_, oldIndexKey.nLength_))
 		return false;
 	
 	return true;

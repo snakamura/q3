@@ -34,6 +34,7 @@
 #include <windows.h>
 #include <tchar.h>
 
+#include "convert.h"
 #include "main.h"
 #include "resourcefile.h"
 #ifndef DEPENDCHECK
@@ -509,6 +510,11 @@ qm::Application::~Application()
 
 bool qm::Application::initialize()
 {
+	// TODO
+	// Just for compatibility.
+	if (!Convert::convert(pImpl_->wstrMailFolder_.get()))
+		return false;
+	
 	pImpl_->pWinSock_.reset(new Winsock());
 	
 	Part::setDefaultCharset(Init::getInit().getMailEncoding());

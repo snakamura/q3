@@ -10,7 +10,6 @@
 #define __QMMESSAGEHOLDER_H__
 
 #include <qm.h>
-#include <qmmessagecache.h>
 
 #include <qs.h>
 #include <qsstring.h>
@@ -108,6 +107,12 @@ public:
 class QMEXPORTCLASS MessageHolder : public MessageHolderBase
 {
 public:
+	struct MessageIndexKey
+	{
+		unsigned int nKey_;
+		unsigned int nLength_;
+	};
+	
 	struct MessageBoxKey
 	{
 		unsigned int nOffset_;
@@ -122,7 +127,8 @@ public:
 		unsigned int nDate_;
 		unsigned int nTime_;
 		unsigned int nSize_;
-		unsigned int nCacheKey_;
+		unsigned int nIndexKey_;
+		unsigned int nIndexLength_;
 		unsigned int nOffset_;
 		unsigned int nLength_;
 		unsigned int nHeaderLength_;
@@ -160,7 +166,7 @@ public:
 	unsigned int getMessageIdHash() const;
 	qs::wstring_ptr getReference() const;
 	unsigned int getReferenceHash() const;
-	MessageCacheKey getMessageCacheKey() const;
+	const MessageIndexKey& getMessageIndexKey() const;
 	const MessageBoxKey& getMessageBoxKey() const;
 
 public:
@@ -178,7 +184,7 @@ public:
 
 // These methods are intended to be called from Account class
 public:
-	void setKeys(MessageCacheKey messageCacheKey,
+	void setKeys(const MessageIndexKey& messageIndexKey,
 				 const MessageBoxKey& messageBoxKey);
 
 private:
@@ -193,7 +199,7 @@ private:
 	unsigned int nDate_;
 	unsigned int nTime_;
 	unsigned int nSize_;
-	MessageCacheKey messageCacheKey_;
+	MessageIndexKey messageIndexKey_;
 	MessageBoxKey messageBoxKey_;
 	NormalFolder* pFolder_;
 };

@@ -9,6 +9,7 @@
 #include <qmaccount.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmmessageindex.h>
 #include <qmfolder.h>
 
 #include <qsassert.h>
@@ -17,8 +18,6 @@
 #include <qsutil.h>
 
 #include <cstdio>
-
-#include "messagecache.h"
 
 using namespace qm;
 using namespace qs;
@@ -58,7 +57,7 @@ unsigned int MessageHolderImpl::hash(const WCHAR* pwsz)
 	
 	while (*pwsz)
 		nHash += static_cast<unsigned int>(*pwsz++);
-	if (nHash == static_cast<unsigned int>(-1))
+	if (nHash == -1)
 		nHash = 1;
 	
 	return nHash;
@@ -81,7 +80,8 @@ qm::MessageHolder::MessageHolder(NormalFolder* pFolder,
 	nDate_ = init.nDate_;
 	nTime_ = init.nTime_;
 	nSize_ = init.nSize_;
-	messageCacheKey_ = init.nCacheKey_;
+	messageIndexKey_.nKey_ = init.nIndexKey_;
+	messageIndexKey_.nLength_ = init.nIndexLength_;
 	messageBoxKey_.nOffset_ = init.nOffset_;
 	messageBoxKey_.nLength_ = init.nLength_;
 	messageBoxKey_.nHeaderLength_ = init.nHeaderLength_;
@@ -117,13 +117,15 @@ unsigned int qm::MessageHolder::getFlags() const
 wstring_ptr qm::MessageHolder::getFrom() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_FROM);
+	return getAccount()->getIndex(messageIndexKey_.nKey_,
+		messageIndexKey_.nLength_, NAME_FROM);
 }
 
 wstring_ptr qm::MessageHolder::getTo() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_TO);
+	return getAccount()->getIndex(messageIndexKey_.nKey_,
+		messageIndexKey_.nLength_, NAME_TO);
 }
 
 wstring_ptr qm::MessageHolder::getFromTo() const
@@ -152,7 +154,8 @@ void qm::MessageHolder::getDate(Time* pTime) const
 wstring_ptr qm::MessageHolder::getSubject() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_SUBJECT);
+	return getAccount()->getIndex(messageIndexKey_.nKey_,
+		messageIndexKey_.nLength_, NAME_SUBJECT);
 }
 
 unsigned int qm::MessageHolder::getSize() const
@@ -225,7 +228,8 @@ bool qm::MessageHolder::isFlag(Flag flag) const
 wstring_ptr qm::MessageHolder::getMessageId() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_MESSAGEID);
+	return getAccount()->getIndex(messageIndexKey_.nKey_,
+		messageIndexKey_.nLength_, NAME_MESSAGEID);
 }
 
 unsigned int qm::MessageHolder::getMessageIdHash() const
@@ -246,7 +250,8 @@ unsigned int qm::MessageHolder::getMessageIdHash() const
 wstring_ptr qm::MessageHolder::getReference() const
 {
 	Lock<Account> lock(*getAccount());
-	return getAccount()->getData(messageCacheKey_, ITEM_REFERENCE);
+	return getAccount()->getIndex(messageIndexKey_.nKey_,
+		messageIndexKey_.nLength_, NAME_REFERENCE);
 }
 
 unsigned int qm::MessageHolder::getReferenceHash() const
@@ -264,9 +269,9 @@ unsigned int qm::MessageHolder::getReferenceHash() const
 	return nReferenceHash_;
 }
 
-MessageCacheKey qm::MessageHolder::getMessageCacheKey() const
+const MessageHolder::MessageIndexKey& qm::MessageHolder::getMessageIndexKey() const
 {
-	return messageCacheKey_;
+	return messageIndexKey_;
 }
 
 const MessageHolder::MessageBoxKey& qm::MessageHolder::getMessageBoxKey() const
@@ -296,7 +301,8 @@ void qm::MessageHolder::getInit(Init* pInit) const
 	pInit->nDate_ = nDate_;
 	pInit->nTime_ = nTime_;
 	pInit->nSize_ = nSize_;
-	pInit->nCacheKey_ = messageCacheKey_;
+	pInit->nIndexKey_ = messageIndexKey_.nKey_;
+	pInit->nIndexLength_ = messageIndexKey_.nLength_;
 	pInit->nOffset_ = messageBoxKey_.nOffset_;
 	pInit->nLength_ = messageBoxKey_.nLength_;
 	pInit->nHeaderLength_ = messageBoxKey_.nHeaderLength_;
@@ -334,16 +340,16 @@ void qm::MessageHolder::destroy()
 	getAccount()->fireMessageHolderDestroyed(this);
 }
 
-void qm::MessageHolder::setKeys(MessageCacheKey messageCacheKey,
+void qm::MessageHolder::setKeys(const MessageIndexKey& messageIndexKey,
 								const MessageBoxKey& messageBoxKey)
 {
 	Lock<Account> lock(*getAccount());
 	
-	if (messageCacheKey != -1) {
-		messageCacheKey_ = messageCacheKey;
+	if (messageIndexKey.nKey_ != -1) {
+		messageIndexKey_ = messageIndexKey;
 		
-		nMessageIdHash_ = static_cast<unsigned int>(-1);
-		nReferenceHash_ = static_cast<unsigned int>(-1);
+		nMessageIdHash_ = -1;
+		nReferenceHash_ = -1;
 	}
 	messageBoxKey_ = messageBoxKey;
 	

@@ -10,7 +10,7 @@
 #define __MESSAGESTORE_H__
 
 #include <qmmessage.h>
-#include <qmmessagecache.h>
+#include <qmmessageindex.h>
 #include <qmmessageoperation.h>
 
 #include <qs.h>
@@ -27,8 +27,6 @@ class MessageStoreSalvageCallback;
 class MessageStoreCheckCallback;
 class MessageStoreUtil;
 
-class MessageCache;
-
 
 /****************************************************************************
  *
@@ -43,7 +41,8 @@ public:
 	{
 		unsigned int nOffset_;
 		unsigned int nLength_;
-		MessageCacheKey key_;
+		unsigned int nIndexKey_;
+		unsigned int nIndexLength_;
 	};
 
 public:
@@ -60,22 +59,24 @@ public:
 					  Message* pMessage) = 0;
 	virtual bool save(const CHAR* pszMessage,
 					  const Message& header,
-					  MessageCache* pMessageCache,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,
 					  unsigned int* pnHeaderLength,
-					  MessageCacheKey* pKey) = 0;
+					  unsigned int* pnIndexKey,
+					  unsigned int* pnIndexLength) = 0;
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
-					  MessageCacheKey key) = 0;
+					  unsigned int nIndexKey,
+					  unsigned int nIndexLength) = 0;
 	virtual bool compact(DataList* pListData,
 						 MessageOperationCallback* pCallback) = 0;
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback) = 0;
 	virtual bool check(MessageStoreCheckCallback* pCallback) = 0;
 	virtual bool freeUnused() = 0;
-	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key) = 0;
+	virtual qs::malloc_ptr<unsigned char> readIndex(unsigned int nKey,
+													unsigned int nLength) = 0;
 };
 
 
@@ -90,8 +91,8 @@ class SingleMessageStore : public MessageStore
 public:
 	SingleMessageStore(const WCHAR* pwszPath,
 					   unsigned int nBlockSize,
-					   const WCHAR* pwszCachePath,
-					   unsigned int nCacheBlockSize);
+					   const WCHAR* pwszIndexPath,
+					   unsigned int nIndexBlockSize);
 	virtual ~SingleMessageStore();
 
 public:
@@ -102,22 +103,24 @@ public:
 					  Message* pMessage);
 	virtual bool save(const CHAR* pszMessage,
 					  const Message& header,
-					  MessageCache* pMessageCache,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,
 					  unsigned int* pnHeaderLength,
-					  MessageCacheKey* pKey);
+					  unsigned int* pnIndexKey,
+					  unsigned int* pnIndexLength);
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
-					  MessageCacheKey key);
+					  unsigned int nIndexKey,
+					  unsigned int nIndexLength);
 	virtual bool compact(DataList* pListData,
 						 MessageOperationCallback* pCallback);
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback);
 	virtual bool check(MessageStoreCheckCallback* pCallback);
 	virtual bool freeUnused();
-	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key);
+	virtual qs::malloc_ptr<unsigned char> readIndex(unsigned int nKey,
+													unsigned int nLength);
 
 private:
 	SingleMessageStore(const SingleMessageStore&);
@@ -138,8 +141,8 @@ class MultiMessageStore : public MessageStore
 {
 public:
 	MultiMessageStore(const WCHAR* pwszPath,
-					  const WCHAR* pwszCachePath,
-					  unsigned int nCacheBlockSize);
+					  const WCHAR* pwszIndexPath,
+					  unsigned int nIndexBlockSize);
 	virtual ~MultiMessageStore();
 
 public:
@@ -150,22 +153,24 @@ public:
 					  Message* pMessage);
 	virtual bool save(const CHAR* pszMessage,
 					  const Message& header,
-					  MessageCache* pMessageCache,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,
 					  unsigned int* pnHeaderLength,
-					  MessageCacheKey* pKey);
+					  unsigned int* pnIndexKey,
+					  unsigned int* pnIndexLength);
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
-					  MessageCacheKey key);
+					  unsigned int nIndexKey,
+					  unsigned int nIndexLength);
 	virtual bool compact(DataList* pListData,
 						 MessageOperationCallback* pCallback);
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback);
 	virtual bool check(MessageStoreCheckCallback* pCallback);
 	virtual bool freeUnused();
-	virtual qs::malloc_ptr<unsigned char> readCache(MessageCacheKey key);
+	virtual qs::malloc_ptr<unsigned char> readIndex(unsigned int nKey,
+													unsigned int nLength);
 
 private:
 	MultiMessageStore(const MultiMessageStore&);
@@ -210,7 +215,8 @@ public:
 	virtual bool getHeader(unsigned int n,
 						   Message* pMessage) = 0;
 	virtual void setKey(unsigned int n,
-						MessageCacheKey key) = 0;
+						unsigned int nKey,
+						unsigned int nLength) = 0;
 	virtual bool isIgnoreError(unsigned int n) = 0;
 };
 
@@ -227,10 +233,13 @@ public:
 	static void freeUnrefered(qs::ClusterStorage* pStorage,
 							  const MessageStore::DataList& listData,
 							  unsigned int nSeparatorSize);
-	static std::auto_ptr<qs::ClusterStorage> checkCache(qs::ClusterStorage* pStorage,
+	static std::auto_ptr<qs::ClusterStorage> checkIndex(qs::ClusterStorage* pStorage,
 														const WCHAR* pwszPath,
 														unsigned int nBlockSize,
 														MessageStoreCheckCallback* pCallback);
+	static qs::malloc_ptr<unsigned char> readIndex(qs::ClusterStorage* pStorage,
+												   unsigned int nKey,
+												   unsigned int nLength);
 };
 
 }

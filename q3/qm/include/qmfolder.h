@@ -10,7 +10,6 @@
 #define __QMFOLDER_H__
 
 #include <qm.h>
-#include <qmmessagecache.h>
 #include <qmmessageholder.h>
 
 #include <qs.h>

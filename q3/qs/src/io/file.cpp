@@ -430,7 +430,8 @@ bool qs::BinaryFile::flush()
 	if (!pImpl_->flushBuffer())
 		return false;
 	
-	return ::FlushFileBuffers(pImpl_->hFile_) != 0;
+//	return ::FlushFileBuffers(pImpl_->hFile_) != 0;
+	return true;
 }
 
 int qs::BinaryFile::getPosition()

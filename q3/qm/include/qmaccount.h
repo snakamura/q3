@@ -11,7 +11,7 @@
 
 #include <qm.h>
 #include <qmfolder.h>
-#include <qmmessagecache.h>
+#include <qmmessageindex.h>
 #include <qmmessageoperation.h>
 
 #include <qs.h>
@@ -206,8 +206,9 @@ public:
 
 // These methods are intended to be called from MessageHolder class
 public:
-	qs::wstring_ptr getData(MessageCacheKey key,
-							MessageCacheItem item) const;
+	qs::wstring_ptr getIndex(unsigned int nKey,
+							 unsigned int nLength,
+							 MessageIndexName name) const;
 	bool getMessage(MessageHolder* pmh,
 					unsigned int nFlags,
 					Message* pMessage);
