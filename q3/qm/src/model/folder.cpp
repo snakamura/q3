@@ -1121,46 +1121,60 @@ int qm::FolderLess::compare(const Folder* pFolderLhs, const Folder* pFolderRhs)
 	status = getFolderPath(pFolderRhs, &pathRhs);
 	CHECK_QSTATUS_VALUE(false);
 	
-	const Folder* pRootLhs = pathLhs.front();
-	const Folder* pRootRhs = pathRhs.front();
-	
-	if (pRootLhs->isFlag(Folder::FLAG_INBOX)) {
-		if (!pRootRhs->isFlag(Folder::FLAG_INBOX))
-			return -1;
-	}
-	else if (pRootRhs->isFlag(Folder::FLAG_INBOX)) {
-		return 1;
-	}
-	else if (pRootLhs->isFlag(Folder::FLAG_OUTBOX)) {
-		if (!pRootRhs->isFlag(Folder::FLAG_OUTBOX))
-			return -1;
-	}
-	else if (pRootRhs->isFlag(Folder::FLAG_OUTBOX)) {
-		return 1;
-	}
-	else if (pRootLhs->isFlag(Folder::FLAG_SENTBOX)) {
-		if (!pRootRhs->isFlag(Folder::FLAG_SENTBOX))
-			return -1;
-	}
-	else if (pRootRhs->isFlag(Folder::FLAG_SENTBOX)) {
-		return 1;
-	}
-	else if (pRootLhs->isFlag(Folder::FLAG_TRASHBOX)) {
-		if (!pRootRhs->isFlag(Folder::FLAG_TRASHBOX))
-			return 1;
-	}
-	else if (pRootRhs->isFlag(Folder::FLAG_TRASHBOX)) {
-		return -1;
-	}
-	
 	FolderPath::size_type nSize = QSMIN(pathLhs.size(), pathRhs.size());
 	for (FolderPath::size_type n = 0; n < nSize; ++n) {
-		int nComp = _wcsicmp(pathLhs[n]->getName(), pathRhs[n]->getName());
+		int nComp = compareSingle(pathLhs[n], pathRhs[n]);
 		if (nComp != 0)
 			return nComp;
 	}
 	return pathLhs.size() == pathRhs.size() ? 0 :
 		pathLhs.size() < pathRhs.size() ? -1 : 1;
+}
+
+int qm::FolderLess::compareSingle(
+	const Folder* pFolderLhs, const Folder* pFolderRhs)
+{
+	assert(pFolderLhs);
+	assert(pFolderRhs);
+	assert(pFolderLhs->getLevel() == pFolderRhs->getLevel());
+	
+	if (pFolderLhs->isFlag(Folder::FLAG_INBOX)) {
+		if (!pFolderRhs->isFlag(Folder::FLAG_INBOX))
+			return -1;
+	}
+	else if (pFolderRhs->isFlag(Folder::FLAG_INBOX)) {
+		return 1;
+	}
+	else if (pFolderLhs->isFlag(Folder::FLAG_OUTBOX)) {
+		if (!pFolderRhs->isFlag(Folder::FLAG_OUTBOX))
+			return -1;
+	}
+	else if (pFolderRhs->isFlag(Folder::FLAG_OUTBOX)) {
+		return 1;
+	}
+	else if (pFolderLhs->isFlag(Folder::FLAG_DRAFTBOX)) {
+		if (!pFolderRhs->isFlag(Folder::FLAG_DRAFTBOX))
+			return -1;
+	}
+	else if (pFolderRhs->isFlag(Folder::FLAG_DRAFTBOX)) {
+		return 1;
+	}
+	else if (pFolderLhs->isFlag(Folder::FLAG_SENTBOX)) {
+		if (!pFolderRhs->isFlag(Folder::FLAG_SENTBOX))
+			return -1;
+	}
+	else if (pFolderRhs->isFlag(Folder::FLAG_SENTBOX)) {
+		return 1;
+	}
+	else if (pFolderLhs->isFlag(Folder::FLAG_TRASHBOX)) {
+		if (!pFolderRhs->isFlag(Folder::FLAG_TRASHBOX))
+			return 1;
+	}
+	else if (pFolderRhs->isFlag(Folder::FLAG_TRASHBOX)) {
+		return -1;
+	}
+	
+	return _wcsicmp(pFolderLhs->getName(), pFolderRhs->getName());
 }
 
 QSTATUS qm::FolderLess::getFolderPath(const Folder* pFolder, FolderPath* pPath)

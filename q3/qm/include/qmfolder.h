@@ -290,6 +290,7 @@ private:
 	typedef std::vector<const Folder*> FolderPath;
 
 private:
+	static int compareSingle(const Folder* pFolderLhs, const Folder* pFolderRhs);
 	static qs::QSTATUS getFolderPath(const Folder* pFolder, FolderPath* pPath);
 };
 
