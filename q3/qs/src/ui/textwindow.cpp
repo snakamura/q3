@@ -198,7 +198,7 @@ public:
 	void calcLines(unsigned int nStartLine,
 				   unsigned int nOldEndLine,
 				   unsigned int nNewEndLine);
-	void recalcLines();
+	void recalcLines(bool bKeepSelection);
 	
 	int paintBlock(DeviceContext* pdc,
 				   const POINT& pt,
@@ -296,7 +296,8 @@ private:
 	class PositionRestorer
 	{
 	public:
-		PositionRestorer(TextWindowImpl* pImpl);
+		PositionRestorer(TextWindowImpl* pImpl,
+						 bool bRestore);
 		~PositionRestorer();
 	
 	private:
@@ -974,9 +975,9 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 	}
 }
 
-void qs::TextWindowImpl::recalcLines()
+void qs::TextWindowImpl::recalcLines(bool bKeepSelection)
 {
-	PositionRestorer restorer(this);
+	PositionRestorer restorer(this, bKeepSelection);
 	calcLines(-1, -1, -1);
 }
 
@@ -1634,7 +1635,7 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 		pRuler_->showWindow(bShowRuler_ ? SW_SHOW : SW_HIDE);
 		if (bShowRuler_)
 			updateRuler();
-		recalcLines();
+		recalcLines(true);
 		updateScrollBar();
 		pThis_->setWindowPos(0, 0, 0, 0, 0,
 			SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER |
@@ -1651,7 +1652,7 @@ void qs::TextWindowImpl::textUpdated(const TextModelEvent& event)
 
 void qs::TextWindowImpl::textSet(const TextModelEvent& event)
 {
-	recalcLines();
+	recalcLines(false);
 	caret_.nLine_ = 0;
 	caret_.nChar_ = 0;
 	caret_.nPos_ = listLine_.empty() ? 0 : getPosFromChar(caret_.nLine_, caret_.nChar_);
@@ -1934,16 +1935,22 @@ void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
  *
  */
 
-qs::TextWindowImpl::PositionRestorer::PositionRestorer(TextWindowImpl* pImpl) :
-	pImpl_(pImpl)
+qs::TextWindowImpl::PositionRestorer::PositionRestorer(TextWindowImpl* pImpl,
+													   bool bRestore) :
+	pImpl_(bRestore ? pImpl : 0)
 {
-	caret_ = getLogical(pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
-	selectionStart_ = getLogical(pImpl_->selection_.nStartLine_, pImpl_->selection_.nStartChar_);
-	selectionEnd_ = getLogical(pImpl_->selection_.nEndLine_, pImpl_->selection_.nEndChar_);
+	if (bRestore) {
+		caret_ = getLogical(pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
+		selectionStart_ = getLogical(pImpl_->selection_.nStartLine_, pImpl_->selection_.nStartChar_);
+		selectionEnd_ = getLogical(pImpl_->selection_.nEndLine_, pImpl_->selection_.nEndChar_);
+	}
 }
 
 qs::TextWindowImpl::PositionRestorer::~PositionRestorer()
 {
+	if (!pImpl_)
+		return;
+	
 	if (caret_.first != -1 && caret_.second != -1) {
 		std::pair<unsigned int, unsigned int> caret(pImpl_->getPhysicalLine(
 			caret_.first, caret_.second));
@@ -3047,7 +3054,7 @@ unsigned int qs::TextWindow::getCharInLine() const
 void qs::TextWindow::setCharInLine(unsigned int nCharInLine)
 {
 	pImpl_->nCharInLine_ = nCharInLine;
-	pImpl_->recalcLines();
+	pImpl_->recalcLines(true);
 }
 
 unsigned int qs::TextWindow::getTabWidth() const
@@ -3058,7 +3065,7 @@ unsigned int qs::TextWindow::getTabWidth() const
 void qs::TextWindow::setTabWidth(unsigned int nTabWidth)
 {
 	pImpl_->nTabWidth_ = nTabWidth;
-	pImpl_->recalcLines();
+	pImpl_->recalcLines(true);
 }
 
 void qs::TextWindow::getMargin(unsigned int* pnTop,
@@ -3081,7 +3088,7 @@ void qs::TextWindow::setMargin(unsigned int nTop,
 	pImpl_->nMarginBottom_ = nBottom;
 	pImpl_->nMarginLeft_ = nLeft;
 	pImpl_->nMarginRight_ = nRight;
-	pImpl_->recalcLines();
+	pImpl_->recalcLines(true);
 }
 
 bool qs::TextWindow::isShowNewLine() const
@@ -3126,7 +3133,7 @@ void qs::TextWindow::setShowScrollBar(bool bHorizontal,
 	}
 	setStyle(bShowScrollBar ? dwStyle : 0, dwStyle);
 	
-	pImpl_->recalcLines();
+	pImpl_->recalcLines(true);
 }
 
 bool qs::TextWindow::isShowCaret() const
@@ -3193,7 +3200,7 @@ bool qs::TextWindow::isLineQuote() const
 void qs::TextWindow::setLineQuote(bool bLineQuote)
 {
 	pImpl_->bLineQuote_ = bLineQuote;
-	pImpl_->recalcLines();
+	pImpl_->recalcLines(true);
 }
 
 bool qs::TextWindow::isWordWrap() const
@@ -3204,7 +3211,7 @@ bool qs::TextWindow::isWordWrap() const
 void qs::TextWindow::setWordWrap(bool bWordWrap)
 {
 	pImpl_->bWordWrap_ = bWordWrap;
-	pImpl_->recalcLines();
+	pImpl_->recalcLines(true);
 }
 
 unsigned int qs::TextWindow::getReformLineLength() const
@@ -3906,7 +3913,7 @@ LRESULT qs::TextWindow::onSize(UINT nFlags,
 	pImpl_->nLineInWindow_ = 0;
 	
 	if (pImpl_->nCharInLine_ == 0 && cx != pImpl_->nLastWindowWidth_)
-		pImpl_->recalcLines();
+		pImpl_->recalcLines(true);
 	pImpl_->nLastWindowWidth_ = cx;
 	
 	pImpl_->updateScrollBar();
