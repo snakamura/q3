@@ -57,6 +57,9 @@ public:
 	virtual qs::QSTATUS folderListChanged(const FolderListModelEvent& event);
 
 private:
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+	LRESULT onRecognizeGesture(NMHDR* pnmhdr, bool* pbHandled);
+#endif
 	LRESULT onItemChanged(NMHDR* pnmhdr, bool* pbHandled);
 
 private:
@@ -268,6 +271,9 @@ Folder* qm::FolderListWindowImpl::getFolder(int nItem) const
 LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+		HANDLE_NOTIFY(NM_RECOGNIZEGESTURE, nId_, onRecognizeGesture)
+#endif
 		HANDLE_NOTIFY(LVN_ITEMCHANGED, nId_, onItemChanged)
 	END_NOTIFY_HANDLER()
 	return 1;
@@ -282,6 +288,14 @@ QSTATUS qm::FolderListWindowImpl::folderListChanged(const FolderListModelEvent& 
 {
 	return setCurrentAccount(pFolderListModel_->getAccount(), false);
 }
+
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+LRESULT qm::FolderListWindowImpl::onRecognizeGesture(NMHDR* pnmhdr, bool* pbHandled)
+{
+	*pbHandled = true;
+	return TRUE;
+}
+#endif
 
 LRESULT qm::FolderListWindowImpl::onItemChanged(NMHDR* pnmhdr, bool* pbHandled)
 {

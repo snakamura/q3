@@ -16,9 +16,9 @@
 #include <qsnew.h>
 #include <qsstream.h>
 
-#include <exdispid.h>
 #include <tchar.h>
 #ifdef QMHTMLVIEW
+#	include <exdispid.h>
 #	include <mshtmcid.h>
 #	include <mshtmdid.h>
 #endif

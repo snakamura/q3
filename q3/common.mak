@@ -12,6 +12,8 @@ BINDIR					= d:/util/cygwin/bin
 VCDIR					= d:/dev/msvs/vc98
 EVCDIR					= d:/dev/msevc4/evc
 PLATFORMSDKDIR			= d:/dev/mssdk
+CESDKPPC2003JADIR		= d:/dev/msevc4/wce420/pocket pc 2003
+CESDKPPC2003ENDIR		= d:/dev/msevc4/wce420/pocket pc 2003
 CESDKPPC2002JADIR		= d:/dev/msevt/wce300/pocket pc 2002
 CESDKPPC2002ENDIR		= d:/dev/msevt/wce300/pocket pc 2002
 CESDKHPC2000JADIR		= d:/dev/msevt/wce300/hpc2000
@@ -55,6 +57,16 @@ ifeq ($(PLATFORM),desktop)
 	#########################################################################
 else
 	# WINCE #################################################################
+	ifeq ($(PLATFORM),ppc2003)
+		# PPC2003 ###########################################################
+		ifeq ($(BASELANG),ja)
+			SDKDIR		= $(CESDKPPC2003JADIR)
+		else
+			SDKDIR		= $(CESDKPPC2003ENDIR)
+		endif
+		BASEPLATFORM	= ppc
+		#####################################################################
+	endif
 	ifeq ($(PLATFORM),ppc2002)
 		# PPC2002 ###########################################################
 		ifeq ($(BASELANG),ja)
@@ -110,7 +122,11 @@ else
 	COMMONBINDIR		= $(COMPILERDIR)/../common/evc/bin
 	
 	ifeq ($(SDKINCLUDEDIR),)
-		SDKINCLUDEDIR		= $(SDKDIR)/include
+#		ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
+			SDKINCLUDEDIR		= $(SDKDIR)/include
+#		else
+#			SDKINCLUDEDIR		= $(SDKDIR)/include/$(CPU)
+#		endif
 	endif
 	ifeq ($(SDKLIBDIR),)
 		SDKLIBDIR			= $(SDKDIR)/lib/$(LIBCPU)
@@ -159,6 +175,9 @@ else
 		CCC				= clarm
 	endif
 	ifeq ($(CPU),xscale)
+		CCC				= clarm
+	endif
+	ifeq ($(CPU),armv4)
 		CCC				= clarm
 	endif
 	ifeq ($(CPU),armv4i)
@@ -297,6 +316,11 @@ else
 		DEFINES			+= -DARM -D_ARM_
 		LDFLAGS			+= -MACHINE:ARM
 		LIBCPU			= arm
+		EXLIBCPU		= arm
+	endif
+	ifeq ($(CPU),armv4)
+		DEFINES			+= -DARM -D_ARM_ -DARMV4
+		LDFLAGS			+= -MACHINE:ARM
 		EXLIBCPU		= arm
 	endif
 	ifeq ($(CPU),armv4i)
@@ -466,7 +490,7 @@ clean.desktop:
 
 clean.wce:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
-		for p in ppc2002 hpc2000 ppc hpcpro; do \
+		for p in ppc2003 ppc2002 hpc2000 ppc hpcpro sig3; do \
 			if [ -d $$d/$$p ]; then rm -rf $$d/$$p; fi \
 		done \
 	done

@@ -107,6 +107,9 @@ public:
 
 private:
 	LRESULT onRClick(NMHDR* pnmhdr, bool* pbHandled);
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+	LRESULT onRecognizeGesture(NMHDR* pnmhdr, bool* pbHandled);
+#endif
 	LRESULT onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled);
 	LRESULT onItemExpanded(NMHDR* pnmhdr, bool* pbHandled);
 	LRESULT onSelChanged(NMHDR* pnmhdr, bool* pbHandled);
@@ -276,6 +279,9 @@ LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr, bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(NM_RCLICK, nId_, onRClick)
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+		HANDLE_NOTIFY(NM_RECOGNIZEGESTURE, nId_, onRecognizeGesture)
+#endif
 		HANDLE_NOTIFY(TVN_GETDISPINFO, nId_, onGetDispInfo)
 		HANDLE_NOTIFY(TVN_ITEMEXPANDED, nId_, onItemExpanded)
 		HANDLE_NOTIFY(TVN_SELCHANGED, nId_, onSelChanged)
@@ -509,6 +515,14 @@ LRESULT qm::FolderWindowImpl::onRClick(NMHDR* pnmhdr, bool* pbHandled)
 	return pThis_->sendMessage(WM_CONTEXTMENU,
 		reinterpret_cast<WPARAM>(pnmhdr->hwndFrom), ::GetMessagePos());
 }
+
+#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+LRESULT qm::FolderWindowImpl::onRecognizeGesture(NMHDR* pnmhdr, bool* pbHandled)
+{
+	*pbHandled = true;
+	return TRUE;
+}
+#endif
 
 LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr, bool* pbHandled)
 {
