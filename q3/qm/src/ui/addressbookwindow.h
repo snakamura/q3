@@ -45,6 +45,7 @@ public:
 public:
 	void open();
 	bool closeAll();
+	void reloadProfiles();
 
 public:
 	void close(AddressBookFrameWindow* pFrameWindow);

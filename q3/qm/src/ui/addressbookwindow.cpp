@@ -298,6 +298,11 @@ void qm::AddressBookFrameWindow::setShowStatusBar(bool bShow)
 	}
 }
 
+void qm::AddressBookFrameWindow::reloadProfiles()
+{
+	pImpl_->pListWindow_->reloadProfiles();
+}
+
 bool qm::AddressBookFrameWindow::getToolbarButtons(Toolbar* pToolbar)
 {
 	pToolbar->nId_ = AddressBookFrameWindowImpl::ID_TOOLBAR;
@@ -610,6 +615,28 @@ bool qm::AddressBookFrameWindowManager::closeAll()
 	return true;
 }
 
+void qm::AddressBookFrameWindowManager::reloadProfiles()
+{
+	if (!pFrameWindow_)
+		return;
+	
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(AddressBookFrameWindow* pFrameWindow) :
+			pFrameWindow_(pFrameWindow)
+		{
+		}
+		
+		virtual void run()
+		{
+			pFrameWindow_->reloadProfiles();
+		}
+		
+		AddressBookFrameWindow* pFrameWindow_;
+	} runnable(pFrameWindow_);
+	pFrameWindow_->getInitThread()->getSynchronizer()->syncExec(&runnable);
+}
+
 void qm::AddressBookFrameWindowManager::close(AddressBookFrameWindow* pFrameWindow)
 {
 	Lock<CriticalSection> lock(cs_);
@@ -658,6 +685,7 @@ public:
 	void saveColumns();
 	void refresh();
 	void open(int nItem);
+	void reloadProfiles(bool bInitialize);
 
 public:
 	virtual void getSelectedItems(ItemList* pList);
@@ -798,6 +826,22 @@ void qm::AddressBookListWindowImpl::open(int nItem)
 	AddressBookEntryDialog dialog(pAddressBookModel_->getAddressBook(), pEntry.get());
 	if (dialog.doModal(pThis_->getParentFrame()) == IDOK)
 		pAddressBookModel_->edit(nItem, pEntry);
+}
+
+void qm::AddressBookListWindowImpl::reloadProfiles(bool bInitialize)
+{
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"AddressBookListWindow", false);
+	if (!bInitialize) {
+		assert(hfont_);
+		pThis_->setFont(hfont);
+		::DeleteObject(hfont_);
+	}
+	hfont_ = hfont;
+	
+	if (!bInitialize) {
+		pThis_->invalidate();
+		Window(ListView_GetHeader(pThis_->getHandle())).invalidate();
+	}
 }
 
 void qm::AddressBookListWindowImpl::getSelectedItems(ItemList* pList)
@@ -1043,6 +1087,8 @@ qm::AddressBookListWindow::AddressBookListWindow(WindowBase* pParentWindow,
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
 	
+	pImpl_->reloadProfiles(true);
+	
 	setWindowHandler(this, false);
 	
 	pParentWindow->addNotifyHandler(pImpl_);
@@ -1057,6 +1103,11 @@ qm::AddressBookListWindow::~AddressBookListWindow()
 AddressBookSelectionModel* qm::AddressBookListWindow::getSelectionModel() const
 {
 	return pImpl_;
+}
+
+void qm::AddressBookListWindow::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
 }
 
 wstring_ptr qm::AddressBookListWindow::getSuperClass()
@@ -1125,8 +1176,6 @@ LRESULT qm::AddressBookListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	ListView_SetExtendedListViewStyle(getHandle(), LVS_EX_FULLROWSELECT);
 	
-	pImpl_->hfont_ = qs::UIUtil::createFontFromProfile(
-		pImpl_->pProfile_, L"AddressBookListWindow", false);
 	setFont(pImpl_->hfont_);
 	
 	pImpl_->loadColumns();

@@ -1508,6 +1508,20 @@ BEGIN
     PUSHBUTTON      "&Font...",IDC_FONT,5,25,50,14
 END
 
+IDD_OPTIONADDRESSBOOK DIALOG DISCARDABLE  0, 0, 232, 151
+STYLE WS_CHILD
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    GROUPBOX        "External Address Book",IDC_STATIC,5,5,135,55
+    CONTROL         "&Windows Address Book",IDC_WAB,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,15,20,95,10
+    CONTROL         "&Outlook",IDC_OUTLOOK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,15,30,45,10
+    CONTROL         "Load address &only",IDC_ADDRESSONLY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,45,70,10
+    PUSHBUTTON      "&Font...",IDC_FONT,5,65,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1647,6 +1661,14 @@ BEGIN
     END
 
     IDD_OPTIONLISTWINDOW, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 144
+    END
+
+    IDD_OPTIONADDRESSBOOK, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 225
@@ -1943,6 +1965,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_PANEL_ADDRESSBOOK   "Address Book"
     IDS_PANEL_AUTOPILOT     "Auto Pilot"
     IDS_PANEL_COLORS        "Colors"
     IDS_PANEL_FILTERS       "Filters"
@@ -1953,6 +1976,10 @@ BEGIN
     IDS_PANEL_LISTWINDOW    "List Window"
     IDS_PANEL_RULES         "Rules"
     IDS_PANEL_SIGNATURES    "Signatures"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     IDS_PANEL_SYNCFILTERS   "Sync Filters"
 END
 

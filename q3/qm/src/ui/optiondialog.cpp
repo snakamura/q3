@@ -18,6 +18,7 @@
 #include <commdlg.h>
 #include <tchar.h>
 
+#include "addressbookwindow.h"
 #include "optiondialog.h"
 #include "resourceinc.h"
 #include "../sync/syncmanager.h"
@@ -45,6 +46,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   FolderWindow* pFolderWindow,
 							   FolderComboBox* pFolderComboBox,
 							   ListWindow* pListWindow,
+							   AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 							   Profile* pProfile,
 							   Panel panel) :
 	DefaultDialog(IDD_OPTION),
@@ -58,6 +60,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pFolderWindow_(pFolderWindow),
 	pFolderComboBox_(pFolderComboBox),
 	pListWindow_(pListWindow),
+	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pProfile_(pProfile),
 	panel_(panel),
 	pCurrentPanel_(0),
@@ -151,6 +154,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FOLDERWINDOW,	IDS_PANEL_FOLDERWINDOW		},
 		{ PANEL_FOLDERCOMBOBOX,	IDS_PANEL_FOLDERCOMBOBOX	},
 		{ PANEL_LISTWINDOW,		IDS_PANEL_LISTWINDOW		},
+		{ PANEL_ADDRESSBOOK,	IDS_PANEL_ADDRESSBOOK		},
 		{ PANEL_RULES,			IDS_PANEL_RULES				},
 		{ PANEL_COLORS,			IDS_PANEL_COLORS			},
 		{ PANEL_GOROUND,		IDS_PANEL_GOROUND			},
@@ -389,6 +393,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 			PANEL2(PANEL_FOLDERWINDOW, OptionFolderWindow, pFolderWindow_, pProfile_);
 			PANEL2(PANEL_FOLDERCOMBOBOX, OptionFolderComboBox, pFolderComboBox_, pProfile_);
 			PANEL2(PANEL_LISTWINDOW, OptionListWindow, pListWindow_, pProfile_);
+			PANEL3(PANEL_ADDRESSBOOK, OptionAddressBook, pDocument_->getAddressBook(), pAddressBookFrameWindowManager_, pProfile_);
 			PANEL3(PANEL_RULES, RuleSets, pDocument_->getRuleManager(), pDocument_, pProfile_);
 			PANEL3(PANEL_COLORS, ColorSets, pColorManager_, pDocument_, pProfile_);
 			PANEL4(PANEL_GOROUND, GoRound, pGoRound_, pDocument_, pSyncFilterManager_, pProfile_);
@@ -702,7 +707,8 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pMainWindow_(0),
 	pFolderWindow_(0),
 	pFolderComboBox_(0),
-	pListWindow_(0)
+	pListWindow_(0),
+	pAddressBookFrameWindowManager_(0)
 {
 }
 
@@ -713,12 +719,14 @@ qm::OptionDialogManager::~OptionDialogManager()
 void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 									  FolderWindow* pFolderWindow,
 									  FolderComboBox* pFolderComboBox,
-									  ListWindow* pListWindow)
+									  ListWindow* pListWindow,
+									  AddressBookFrameWindowManager* pAddressBookFrameWindowManager)
 {
 	pMainWindow_ = pMainWindow;
 	pFolderWindow_ = pFolderWindow;
 	pFolderComboBox_ = pFolderComboBox;
 	pListWindow_ = pListWindow;
+	pAddressBookFrameWindowManager_ = pAddressBookFrameWindowManager;
 }
 
 int qm::OptionDialogManager::showDialog(HWND hwndParent,
@@ -735,17 +743,113 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	assert(pFolderWindow_);
 	assert(pFolderComboBox_);
 	assert(pListWindow_);
+	assert(pAddressBookFrameWindowManager_);
 	
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
 		pColorManager_, pSyncManager_->getSyncFilterManager(),
-		pAutoPilotManager_, pMainWindow_, pFolderWindow_,
-		pFolderComboBox_, pListWindow_, pProfile_, panel);
+		pAutoPilotManager_, pMainWindow_, pFolderWindow_, pFolderComboBox_,
+		pListWindow_, pAddressBookFrameWindowManager_, pProfile_, panel);
 	return dialog.doModal(hwndParent);
 }
 
 bool qm::OptionDialogManager::canShowDialog() const
 {
 	return !pSyncManager_->isSyncing();
+}
+
+
+/****************************************************************************
+ *
+ * OptionAddressBookDialog
+ *
+ */
+
+namespace {
+struct {
+	UINT nId_;
+	const WCHAR* pwszName_;
+} externalAddressBooks[] = {
+#ifndef _WIN32_WCE
+	{ IDC_WAB,				L"WAB"				},
+	{ IDC_OUTLOOK,			L"Outlook"			}
+#else
+	{ IDC_POCKETOUTLOOK,	L"PocketOutlook"	}
+#endif
+};
+}
+
+qm::OptionAddressBookDialog::OptionAddressBookDialog(AddressBook* pAddressBook,
+													 AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
+													 Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONADDRESSBOOK),
+	pAddressBook_(pAddressBook),
+	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
+	pProfile_(pProfile)
+{
+	UIUtil::getLogFontFromProfile(pProfile_, L"AddressBookListWindow", false, &lf_);
+}
+
+qm::OptionAddressBookDialog::~OptionAddressBookDialog()
+{
+}
+
+LRESULT qm::OptionAddressBookDialog::onCommand(WORD nCode,
+											   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionAddressBookDialog::onInitDialog(HWND hwndFocus,
+												  LPARAM lParam)
+{
+	wstring_ptr wstrExternals(pProfile_->getString(L"AddressBook",
+		L"Externals", L"WAB Outlook PocketOutlook"));
+	const WCHAR* p = wcstok(wstrExternals.get(), L" ");
+	while (p) {
+		for (int n = 0; n < countof(externalAddressBooks); ++n) {
+			if (wcscmp(p, externalAddressBooks[n].pwszName_) == 0) {
+				sendDlgItemMessage(externalAddressBooks[n].nId_, BM_SETCHECK, BST_CHECKED);
+				break;
+			}
+		}
+		p = wcstok(0, L" ");
+	}
+	
+	if (pProfile_->getInt(L"AddressBook", L"AddressOnly", 0))
+		sendDlgItemMessage(IDC_ADDRESSONLY, BM_SETCHECK, BST_CHECKED);
+	
+	return FALSE;
+}
+
+bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
+{
+	StringBuffer<WSTRING> buf;
+	for (int n = 0; n < countof(externalAddressBooks); ++n) {
+		if (sendDlgItemMessage(externalAddressBooks[n].nId_, BM_GETCHECK) == BST_CHECKED) {
+			if (buf.getLength() != 0)
+				buf.append(L" ");
+			buf.append(externalAddressBooks[n].pwszName_);
+		}
+	}
+	pProfile_->setString(L"AddressBook", L"Externals", buf.getCharArray());
+	
+	UIUtil::setLogFontToProfile(pProfile_, L"AddressBookListWindow", lf_);
+	
+	pAddressBookFrameWindowManager_->reloadProfiles();
+	
+	// TODO
+	// Reload addressbook.
+	
+	return true;
+}
+
+LRESULT qm::OptionAddressBookDialog::onFont()
+{
+	UIUtil::browseFont(getParentPopup(), &lf_);
+	return 0;
 }
 
 

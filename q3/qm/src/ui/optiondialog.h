@@ -33,6 +33,7 @@ class OptionDialogPanel;
 	template<class Dialog> class AbstractOptionDialogPanel;
 class OptionDialogContext;
 class OptionDialogManager;
+class OptionAddressBookDialog;
 class OptionFolderComboBoxDialog;
 class OptionFolderWindowDialog;
 class OptionListWindowDialog;
@@ -63,6 +64,8 @@ class SyncFiltersDialog;
 class SyncFilterDialog;
 class LayoutUtil;
 
+class AddressBook;
+class AddressBookFrameWindowManager;
 class Document;
 class FolderComboBox;
 class FolderWindow;
@@ -87,6 +90,7 @@ public:
 		PANEL_FOLDERWINDOW,
 		PANEL_FOLDERCOMBOBOX,
 		PANEL_LISTWINDOW,
+		PANEL_ADDRESSBOOK,
 		PANEL_RULES,
 		PANEL_COLORS,
 		PANEL_GOROUND,
@@ -110,6 +114,7 @@ public:
 				 FolderWindow* pFolderWindow,
 				 FolderComboBox* pFolderComboBox,
 				 ListWindow* pListWindow,
+				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 				 qs::Profile* pProfile,
 				 Panel panel);
 	~OptionDialog();
@@ -186,6 +191,7 @@ private:
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
 	ListWindow* pListWindow_;
+	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	qs::Profile* pProfile_;
 	Panel panel_;
 	PanelList listPanel_;
@@ -283,7 +289,8 @@ public:
 	void initUIs(MainWindow* pMainWindow,
 				 FolderWindow* pFolderWindow,
 				 FolderComboBox* pFolderComboBox,
-				 ListWindow* pListWindow);
+				 ListWindow* pListWindow,
+				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager);
 	int showDialog(HWND hwndParent,
 				   OptionDialog::Panel panel) const;
 	bool canShowDialog() const;
@@ -304,6 +311,50 @@ private:
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
 	ListWindow* pListWindow_;
+	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
+};
+
+
+/****************************************************************************
+ *
+ * OptionAddressBookDialog
+ *
+ */
+
+class OptionAddressBookDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionAddressBookDialog>
+{
+public:
+	OptionAddressBookDialog(AddressBook* pAddressBook,
+							AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
+							qs::Profile* pProfile);
+	~OptionAddressBookDialog();
+
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onFont();
+
+private:
+	OptionAddressBookDialog(const OptionAddressBookDialog&);
+	OptionAddressBookDialog& operator=(const OptionAddressBookDialog&);
+
+private:
+	AddressBook* pAddressBook_;
+	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
+	qs::Profile* pProfile_;
+	LOGFONT lf_;
 };
 
 

@@ -49,6 +49,8 @@ public:
 	void setShowToolbar(bool bShow);
 	bool isShowStatusBar() const;
 	void setShowStatusBar(bool bShow);
+	
+	void reloadProfiles();
 
 protected:
 	virtual bool getToolbarButtons(Toolbar* pToolbar);
@@ -113,6 +115,8 @@ public:
 
 public:
 	AddressBookSelectionModel* getSelectionModel() const;
+	
+	void reloadProfiles();
 
 public:
 	virtual qs::wstring_ptr getSuperClass();
