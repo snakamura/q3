@@ -215,6 +215,7 @@ public:
 	void scrollHorizontal(int nPos);
 	void scrollVertical(int nLine);
 	void updateScrollBar();
+	void updateRuler();
 	
 	void showCaret();
 	void hideCaret();
@@ -1098,12 +1099,11 @@ void qs::TextWindowImpl::scrollHorizontal(int nPos)
 		pThis_->scrollWindow(scrollPos_.nPos_ - nPos, 0,
 			&rectClip, &rectClip, 0, 0, SW_INVALIDATE);
 		
-		if (bShowRuler_)
-			pRuler_->setWindowPos(0, -nPos, 0, 0, 0,
-				SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-		
 		scrollPos_.nPos_ = nPos;
 		updateScrollBar();
+		
+		if (bShowRuler_)
+			updateRuler();
 	}
 }
 
@@ -1172,6 +1172,23 @@ void qs::TextWindowImpl::updateScrollBar()
 		}
 	}
 	bHorizontalScrollable_ = nWidth > rect.right - rect.left;
+}
+
+void qs::TextWindowImpl::updateRuler()
+{
+	unsigned int nCharInLine = pThis_->getCharInLine();
+	int nWidth = 0;
+	if (nCharInLine == 0) {
+		RECT rect;
+		pThis_->getClientRect(&rect);
+		nWidth = rect.right - rect.left;
+	}
+	else {
+		nWidth = nMarginLeft_ + getAverageCharWidth()*nCharInLine;
+	}
+	
+	pRuler_->setWindowPos(0, -pThis_->getScrollPos(SB_HORZ), 0, nWidth,
+		TextWindowImpl::RULER_HEIGHT, SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 void qs::TextWindowImpl::showCaret()
@@ -1611,8 +1628,17 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 	
 	if (!bInitialize) {
 		updateBitmaps();
+		DWORD dwStyle = (bShowVerticalScrollBar_ ? WS_VSCROLL : 0) |
+			(bShowHorizontalScrollBar_ ? WS_HSCROLL : 0);
+		pThis_->setStyle(dwStyle, WS_VSCROLL | WS_HSCROLL);
+		pRuler_->showWindow(bShowRuler_ ? SW_SHOW : SW_HIDE);
+		if (bShowRuler_)
+			updateRuler();
 		recalcLines();
 		updateScrollBar();
+		pThis_->setWindowPos(0, 0, 0, 0, 0,
+			SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER |
+			SWP_NOACTIVATE | SWP_FRAMECHANGED);
 	}
 }
 
@@ -3089,10 +3115,17 @@ bool qs::TextWindow::isShowScrollBar(bool bHorizontal) const
 void qs::TextWindow::setShowScrollBar(bool bHorizontal,
 									  bool bShowScrollBar)
 {
-	if (bHorizontal)
+	DWORD dwStyle = 0;
+	if (bHorizontal) {
 		pImpl_->bShowHorizontalScrollBar_ = bShowScrollBar;
-	else
+		dwStyle = WS_HSCROLL;
+	}
+	else {
 		pImpl_->bShowVerticalScrollBar_ = bShowScrollBar;
+		dwStyle = WS_VSCROLL;
+	}
+	setStyle(bShowScrollBar ? dwStyle : 0, dwStyle);
+	
 	pImpl_->recalcLines();
 }
 
@@ -3867,17 +3900,8 @@ LRESULT qs::TextWindow::onSize(UINT nFlags,
 							   int cx,
 							   int cy)
 {
-	if (pImpl_->bShowRuler_) {
-		unsigned int nCharInLine = getCharInLine();
-		int nWidth = 0;
-		if (nCharInLine == 0)
-			nWidth = cx;
-		else
-			nWidth = pImpl_->nMarginLeft_ +
-				pImpl_->getAverageCharWidth()*nCharInLine;
-		pImpl_->pRuler_->setWindowPos(0, 0, 0, nWidth,
-			TextWindowImpl::RULER_HEIGHT, SWP_NOZORDER);
-	}
+	if (pImpl_->bShowRuler_)
+		pImpl_->updateRuler();
 	
 	pImpl_->nLineInWindow_ = 0;
 	
