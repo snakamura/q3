@@ -11,6 +11,7 @@
 
 #include <qm.h>
 #include <qmfolder.h>
+#include <qmmessageholder.h>
 
 #include <qs.h>
 

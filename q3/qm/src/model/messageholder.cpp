@@ -27,6 +27,31 @@ namespace qm {
 struct MessageHolderImpl;
 }
 
+
+/****************************************************************************
+ *
+ * MessageDate
+ *
+ */
+
+void qm::MessageDate::getTime(unsigned int nDate,
+							  unsigned int nTime,
+							  qs::Time* pTime)
+{
+	assert(pTime);
+	
+	pTime->wYear = (nDate >> 16) & 0xffff;
+	pTime->wMonth = (nDate >> 8) & 0xff;
+	pTime->wDay = nDate & 0xff;
+	pTime->wHour = (nTime >> 25) & 0x3f;
+	pTime->wMinute = (nTime >> 19) & 0x3f;
+	pTime->wSecond = (nTime >> 13) & 0x3f;
+	int nTimeZone = ((nTime & 0x1000) ? -1 : 1)*
+		(((nTime >> 6) & 0x3f)*100 + (nTime & 0x3f));
+	pTime->setTimeZone(nTimeZone);
+}
+
+
 /****************************************************************************
  *
  * MessageHolderBase
@@ -77,8 +102,7 @@ qm::MessageHolder::MessageHolder(NormalFolder* pFolder,
 	nFlags_ = init.nFlags_;
 	nMessageIdHash_ = -1;
 	nReferenceHash_ = -1;
-	nDate_ = init.nDate_;
-	nTime_ = init.nTime_;
+	date_ = MessageDate(init.nDate_, init.nTime_);
 	nSize_ = init.nSize_;
 	messageIndexKey_.nKey_ = init.nIndexKey_;
 	messageIndexKey_.nLength_ = init.nIndexLength_;
@@ -101,82 +125,6 @@ void* qm::MessageHolder::operator new(size_t n)
 void qm::MessageHolder::operator delete(void* p)
 {
 	std::__sgi_alloc::deallocate(p, sizeof(MessageHolder));
-}
-
-unsigned int qm::MessageHolder::getId() const
-{
-	return nId_;
-}
-
-unsigned int qm::MessageHolder::getFlags() const
-{
-	Lock<Account> lock(*getAccount());
-	return nFlags_;
-}
-
-wstring_ptr qm::MessageHolder::getFrom() const
-{
-	Lock<Account> lock(*getAccount());
-	return getAccount()->getIndex(messageIndexKey_.nKey_,
-		messageIndexKey_.nLength_, NAME_FROM);
-}
-
-wstring_ptr qm::MessageHolder::getTo() const
-{
-	Lock<Account> lock(*getAccount());
-	return getAccount()->getIndex(messageIndexKey_.nKey_,
-		messageIndexKey_.nLength_, NAME_TO);
-}
-
-wstring_ptr qm::MessageHolder::getFromTo() const
-{
-	if (isFlag(FLAG_SENT))
-		return getTo();
-	else
-		return getFrom();
-}
-
-void qm::MessageHolder::getDate(Time* pTime) const
-{
-	assert(pTime);
-	
-	pTime->wYear = (nDate_ >> 16) & 0xffff;
-	pTime->wMonth = (nDate_ >> 8) & 0xff;
-	pTime->wDay = nDate_ & 0xff;
-	pTime->wHour = (nTime_ >> 25) & 0x3f;
-	pTime->wMinute = (nTime_ >> 19) & 0x3f;
-	pTime->wSecond = (nTime_ >> 13) & 0x3f;
-	int nTimeZone = ((nTime_ & 0x1000) ? -1 : 1)*
-		(((nTime_ >> 6) & 0x3f)*100 + (nTime_ & 0x3f));
-	pTime->setTimeZone(nTimeZone);
-}
-
-wstring_ptr qm::MessageHolder::getSubject() const
-{
-	Lock<Account> lock(*getAccount());
-	return getAccount()->getIndex(messageIndexKey_.nKey_,
-		messageIndexKey_.nLength_, NAME_SUBJECT);
-}
-
-unsigned int qm::MessageHolder::getSize() const
-{
-	return nSize_;
-}
-
-unsigned int qm::MessageHolder::getTextSize() const
-{
-	// TODO
-	return nSize_;
-}
-
-NormalFolder* qm::MessageHolder::getFolder() const
-{
-	return pFolder_;
-}
-
-Account* qm::MessageHolder::getAccount() const
-{
-	return pFolder_->getAccount();
 }
 
 bool qm::MessageHolder::getMessage(unsigned int nFlags,
@@ -215,24 +163,6 @@ bool qm::MessageHolder::getMessage(unsigned int nFlags,
 	return getAccount()->getMessage(this, nFlags, nSecurityMode, pMessage);
 }
 
-MessageHolder* qm::MessageHolder::getMessageHolder()
-{
-	return this;
-}
-
-bool qm::MessageHolder::isFlag(Flag flag) const
-{
-	Lock<Account> lock(*getAccount());
-	return (nFlags_ & flag) != 0;
-}
-
-wstring_ptr qm::MessageHolder::getMessageId() const
-{
-	Lock<Account> lock(*getAccount());
-	return getAccount()->getIndex(messageIndexKey_.nKey_,
-		messageIndexKey_.nLength_, NAME_MESSAGEID);
-}
-
 unsigned int qm::MessageHolder::getMessageIdHash() const
 {
 	if (nMessageIdHash_ == -1) {
@@ -246,13 +176,6 @@ unsigned int qm::MessageHolder::getMessageIdHash() const
 		}
 	}
 	return nMessageIdHash_;
-}
-
-wstring_ptr qm::MessageHolder::getReference() const
-{
-	Lock<Account> lock(*getAccount());
-	return getAccount()->getIndex(messageIndexKey_.nKey_,
-		messageIndexKey_.nLength_, NAME_REFERENCE);
 }
 
 unsigned int qm::MessageHolder::getReferenceHash() const
@@ -270,37 +193,14 @@ unsigned int qm::MessageHolder::getReferenceHash() const
 	return nReferenceHash_;
 }
 
-const MessageHolder::MessageIndexKey& qm::MessageHolder::getMessageIndexKey() const
-{
-	return messageIndexKey_;
-}
-
-const MessageHolder::MessageBoxKey& qm::MessageHolder::getMessageBoxKey() const
-{
-	return messageBoxKey_;
-}
-
-unsigned int qm::MessageHolder::getDate(const qs::Time& time)
-{
-	return time.wYear << 16 | time.wMonth << 8 | time.wDay;
-}
-
-unsigned int qm::MessageHolder::getTime(const qs::Time& time)
-{
-	int nTimeZone = time.getTimeZone();
-	int nAbsTimeZone = nTimeZone > 0 ? nTimeZone : -nTimeZone;
-	return time.wHour << 25 | time.wMinute << 19 | time.wSecond << 13 |
-		(nTimeZone < 0 ? 1 : 0) << 12 | (nAbsTimeZone/100) << 6 | nAbsTimeZone%100;
-}
-
 void qm::MessageHolder::getInit(Init* pInit) const
 {
 	Lock<Account> lock(*getAccount());
 	
 	pInit->nId_ = nId_;
 	pInit->nFlags_ = nFlags_;
-	pInit->nDate_ = nDate_;
-	pInit->nTime_ = nTime_;
+	pInit->nDate_ = date_.getDate();
+	pInit->nTime_ = date_.getTime();
 	pInit->nSize_ = nSize_;
 	pInit->nIndexKey_ = messageIndexKey_.nKey_;
 	pInit->nIndexLength_ = messageIndexKey_.nLength_;
@@ -381,32 +281,6 @@ qm::AbstractMessageHolder::~AbstractMessageHolder()
 {
 }
 
-unsigned int qm::AbstractMessageHolder::getId() const
-{
-	return nId_;
-}
-
-unsigned int qm::AbstractMessageHolder::getFlags() const
-{
-	// TODO
-	return 0;
-}
-
-wstring_ptr qm::AbstractMessageHolder::getFrom() const
-{
-	return getAddress(L"From");
-}
-
-wstring_ptr qm::AbstractMessageHolder::getTo() const
-{
-	return getAddress(L"To");
-}
-
-wstring_ptr qm::AbstractMessageHolder::getFromTo() const
-{
-	return getFrom();
-}
-
 wstring_ptr qm::AbstractMessageHolder::getSubject() const
 {
 	UnstructuredParser subject;
@@ -425,36 +299,6 @@ void qm::AbstractMessageHolder::getDate(Time* pTime) const
 		*pTime = date.getTime();
 	else
 		*pTime = Time::getCurrentTime();
-}
-
-unsigned int qm::AbstractMessageHolder::getSize() const
-{
-	return nSize_;
-}
-
-unsigned int qm::AbstractMessageHolder::getTextSize() const
-{
-	return nTextSize_;
-}
-
-NormalFolder* qm::AbstractMessageHolder::getFolder() const
-{
-	return pFolder_;
-}
-
-Account* qm::AbstractMessageHolder::getAccount() const
-{
-	return pFolder_->getAccount();
-}
-
-MessageHolder* qm::AbstractMessageHolder::getMessageHolder()
-{
-	return 0;
-}
-
-Message* qm::AbstractMessageHolder::getMessage() const
-{
-	return pMessage_;
 }
 
 wstring_ptr qm::AbstractMessageHolder::getAddress(const WCHAR* pwszName) const
@@ -616,32 +460,4 @@ void qm::MessagePtr::reset(MessageHolder* pmh)
 	
 	if (bLock)
 		lock();
-}
-
-
-/****************************************************************************
- *
- * MessagePtrLock
- *
- */
-
-qm::MessagePtrLock::MessagePtrLock(const MessagePtr& ptr) :
-	ptr_(ptr)
-{
-	pmh_ = ptr_.lock();
-}
-
-qm::MessagePtrLock::~MessagePtrLock()
-{
-	ptr_.unlock();
-}
-
-MessagePtrLock::operator qm::MessageHolder*() const
-{
-	return pmh_;
-}
-
-MessageHolder* qm::MessagePtrLock::operator->() const
-{
-	return pmh_;
 }

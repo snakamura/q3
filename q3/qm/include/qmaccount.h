@@ -37,6 +37,7 @@ class AccountCheckCallback;
 
 class Message;
 class MessageHolder;
+class MessageHolderHandler;
 class MessageOperationCallback;
 class PasswordManager;
 class ProtocolDriver;

@@ -256,6 +256,7 @@ unsigned int qm::ViewColumn::getNumber(const ViewModel* pViewModel,
 
 void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 							 const ViewModelItem* pItem,
+							 bool bLatest,
 							 Time* pTime) const
 {
 	assert(pItem);
@@ -272,7 +273,10 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 		bCurrent = true;
 		break;
 	case ViewColumn::TYPE_DATE:
-		pmh->getDate(pTime);
+		if (bLatest)
+			pItem->getLatest().getTime(pTime);
+		else
+			pmh->getDate(pTime);
 		break;
 	case ViewColumn::TYPE_FROM:
 	case ViewColumn::TYPE_TO:
@@ -561,9 +565,7 @@ unsigned int qm::ViewModel::getIndex(MessageHolder* pmh) const
 	ViewModelItemPtr pItem(pmh, nCacheCount_);
 	ItemList::const_iterator it = std::lower_bound(
 		listItem_.begin(), listItem_.end(), pItem.get(),
-		ViewModelItemComp(this, getColumn(nSort_ & SORT_INDEX_MASK),
-			(nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING,
-			(nSort_ & SORT_THREAD_MASK) == SORT_THREAD));
+		getComparator(nSort_));
 	while (it != listItem_.end() && (*it)->getMessageHolder() != pmh)
 		++it;
 	if (it == listItem_.end()) {
@@ -596,7 +598,9 @@ void qm::ViewModel::setSort(unsigned int nSort)
 	assert(nSort & SORT_THREAD_MASK);
 	assert((nSort & SORT_INDEX_MASK) < getColumnCount());
 	
-	sort(nSort, true, true);
+	bool bUpdateParentLink = (nSort & (SORT_THREAD_MASK | SORT_FLOATTHREAD)) !=
+		(nSort_ & (SORT_THREAD_MASK | SORT_FLOATTHREAD));
+	sort(nSort, true, bUpdateParentLink);
 	
 	nSort_ = nSort;
 	
@@ -906,8 +910,8 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 	
 	bool bAdded = false;
 	const MessageHolderList& l = event.getMessageHolders();
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		MessageHolder* pmh = *it;
+	for (MessageHolderList::const_iterator itM = l.begin(); itM != l.end(); ++itM) {
+		MessageHolder* pmh = *itM;
 		
 		bool bAdd = true;
 		if (pFilter_.get()) {
@@ -922,17 +926,49 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 			ViewModelItemPtr pItem(pmh, nCacheCount_);
 			
 			if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
+				ItemList::iterator itParent = listItem_.end();
+				
 				unsigned int nReferenceHash = pmh->getReferenceHash();
 				if (nReferenceHash != 0) {
 					wstring_ptr wstrReference(pmh->getReference());
 					
-					for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
-						MessageHolder* pmhParent = (*it)->getMessageHolder();
+					for (itParent = listItem_.begin(); itParent != listItem_.end(); ++itParent) {
+						MessageHolder* pmhParent = (*itParent)->getMessageHolder();
 						if (pmhParent->getMessageIdHash() == nReferenceHash) {
 							wstring_ptr wstrMessageId(pmhParent->getMessageId());
-							if (wcscmp(wstrReference.get(), wstrMessageId.get()) == 0) {
-								pItem->setParentItem(*it);
+							if (wcscmp(wstrReference.get(), wstrMessageId.get()) == 0)
 								break;
+						}
+					}
+				}
+				
+				if (itParent != listItem_.end()) {
+					ViewModelItem* pParentItem = *itParent;
+					pItem->setParentItem(pParentItem);
+					if (isFloatThread(nSort_)) {
+						if (pParentItem->updateLatest(pItem->getLatest())) {
+							ItemList::iterator itThreadBegin = itParent;
+							while ((*itThreadBegin)->getParentItem())
+								--itThreadBegin;
+							ItemList::iterator itThreadEnd = itParent + 1;
+							while (itThreadEnd != listItem_.end() && (*itThreadEnd)->getParentItem())
+								++itThreadEnd;
+							
+							ViewModelItemComp comp(getComparator(nSort_));
+							ItemList::iterator itInsert = itThreadEnd;
+							while (itInsert != listItem_.end()) {
+								if (!(*itInsert)->getParentItem() &&
+									comp(*itThreadBegin, *itInsert))
+									break;
+								++itInsert;
+							}
+							
+							if (itInsert != itThreadEnd) {
+								SelectionRestorer restorer(this, false, false);
+								ItemList l(itThreadBegin, itThreadEnd);
+								std::copy(l.begin(), l.end(),
+									std::copy(itThreadEnd, itInsert, itThreadBegin));
+								restorer.restore();
 							}
 						}
 					}
@@ -941,9 +977,7 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 			
 			ItemList::iterator it = std::lower_bound(
 				listItem_.begin(), listItem_.end(), pItem.get(),
-				ViewModelItemComp(this, getColumn(nSort_ & SORT_INDEX_MASK),
-					(nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING,
-					(nSort_ & SORT_THREAD_MASK) == SORT_THREAD));
+				getComparator(nSort_));
 			
 			ItemList::iterator itInsert = listItem_.insert(it, pItem.get());
 			pItem.release();
@@ -980,107 +1014,149 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 	
 	Lock<ViewModel> lock(*this);
 	
-	bool bRemoved = false;
 	bool bSort = false;
 	const MessageHolderList& l = event.getMessageHolders();
+	
+	typedef std::vector<unsigned int> IndexList;
+	IndexList listIndex;
+	listIndex.reserve(l.size());
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		MessageHolder* pmh = *it;
+		unsigned int nIndex = getIndex(*it);
+		if (nIndex != -1)
+			listIndex.push_back(nIndex);
+	}
+	if (listIndex.empty())
+		return;
+	std::sort(listIndex.begin(), listIndex.end(), std::greater<unsigned int>());
+	
+	typedef std::vector<int> ThreadList;
+	ThreadList listThread;
+	if (isFloatThread(nSort_)) {
+		listThread.resize(listItem_.size());
+		for (IndexList::size_type n = 0; n < listIndex.size(); ++n) {
+			unsigned int nIndex = listIndex[n];
+			
+			unsigned int nBegin = nIndex;
+			while (nBegin != 0 && listItem_[nBegin]->getParentItem())
+				--nBegin;
+			
+			unsigned int nEnd = nIndex + 1;
+			while (nEnd < listItem_.size() && listItem_[nEnd]->getParentItem())
+				++nEnd;
+			
+			while (nBegin < nEnd)
+				listThread[nBegin++] = 1;
+		}
 		
-		unsigned int nIndex = getIndex(pmh);
-		if (nIndex != -1) {
-			ItemList::iterator it = listItem_.begin() + nIndex;
+		for (IndexList::size_type n = 0; n < listIndex.size(); ++n)
+			listThread.erase(listThread.begin() + listIndex[n]);
+	}
+	
+	for (IndexList::const_iterator itI = listIndex.begin(); itI != listIndex.end(); ++itI) {
+		unsigned int nIndex = *itI;
+		ItemList::iterator it = listItem_.begin() + nIndex;
+		
+		MessageHolder* pmh = (*it)->getMessageHolder();
+		bool bHasFocus = ((*it)->getFlags() & ViewModelItem::FLAG_FOCUSED) != 0;
+		bool bSelected = ((*it)->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
+		
+		if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
+			ViewModelItem* pItem = *it;
+			unsigned int nLevel = pItem->getLevel();
 			
-			bool bHasFocus = ((*it)->getFlags() & ViewModelItem::FLAG_FOCUSED) != 0;
-			bool bSelected = ((*it)->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
+			ItemList::const_iterator itEnd = it + 1;
+			while (itEnd != listItem_.end() && (*itEnd)->getLevel() > nLevel)
+				++itEnd;
 			
-			if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
-				ViewModelItem* pItem = *it;
-				unsigned int nLevel = pItem->getLevel();
-				
-				ItemList::const_iterator itEnd = it + 1;
-				while (itEnd != listItem_.end() && (*itEnd)->getLevel() > nLevel)
-					++itEnd;
-				
-				ItemList::const_iterator itC = it + 1;
-				while (itC != itEnd) {
-					if ((*itC)->getParentItem() == pItem) {
-						(*itC)->setParentItem(0);
-						bSort = true;
-					}
-					++itC;
+			for (ItemList::const_iterator itC = it + 1; itC != itEnd; ++itC) {
+				if ((*itC)->getParentItem() == pItem) {
+					(*itC)->setParentItem(0);
+					bSort = true;
 				}
-				assert(std::find_if(listItem_.begin(), listItem_.end(),
-					std::bind2nd(
-						binary_compose_f_gx_hy(
-							std::equal_to<ViewModelItem*>(),
-							std::mem_fun(&ViewModelItem::getParentItem),
-							std::identity<ViewModelItem*>()),
-						pItem)) == listItem_.end());
 			}
-			
-			ViewModelItem::deleteItem(*it, nCacheCount_);
-			it = listItem_.erase(it);
-			
-			if (bHasFocus) {
-				assert(nFocused_ == nIndex);
-				if (it == listItem_.end()) {
-					if (listItem_.empty())
-						nFocused_ = 0;
-					else
-						--nFocused_;
-				}
+			assert(std::find_if(listItem_.begin(), listItem_.end(),
+				std::bind2nd(
+					binary_compose_f_gx_hy(
+						std::equal_to<ViewModelItem*>(),
+						std::mem_fun(&ViewModelItem::getParentItem),
+						std::identity<ViewModelItem*>()),
+					pItem)) == listItem_.end());
+		}
+		
+		ViewModelItem::deleteItem(*it, nCacheCount_);
+		it = listItem_.erase(it);
+		
+		if (bHasFocus) {
+			assert(nFocused_ == nIndex);
+			if (it == listItem_.end()) {
+				if (listItem_.empty())
+					nFocused_ = 0;
+				else
+					--nFocused_;
+			}
+			if (!listItem_.empty())
+				listItem_[nFocused_]->setFlags(ViewModelItem::FLAG_FOCUSED,
+					ViewModelItem::FLAG_FOCUSED);
+		}
+		else if (nFocused_ > nIndex) {
+			--nFocused_;
+			assert(!listItem_.empty());
+			assert(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
+		}
+		
+		if (bSelected) {
+			if (it == listItem_.end()) {
 				if (!listItem_.empty())
-					listItem_[nFocused_]->setFlags(ViewModelItem::FLAG_FOCUSED,
-						ViewModelItem::FLAG_FOCUSED);
+					listItem_.back()->setFlags(ViewModelItem::FLAG_SELECTED,
+						ViewModelItem::FLAG_SELECTED);
 			}
-			else if (nFocused_ > nIndex) {
-				--nFocused_;
-				assert(!listItem_.empty());
-				assert(listItem_[nFocused_]->getFlags() & ViewModelItem::FLAG_FOCUSED);
+			else {
+				(*it)->setFlags(ViewModelItem::FLAG_SELECTED,
+					ViewModelItem::FLAG_SELECTED);
 			}
-			
-			if (bSelected) {
-				if (it == listItem_.end()) {
-					if (!listItem_.empty())
-						listItem_.back()->setFlags(ViewModelItem::FLAG_SELECTED,
-							ViewModelItem::FLAG_SELECTED);
+		}
+		if (nLastSelection_ == nIndex) {
+			if (it == listItem_.end()) {
+				if (listItem_.empty()) {
+					nLastSelection_ = 0;
 				}
 				else {
-					(*it)->setFlags(ViewModelItem::FLAG_SELECTED,
+					nLastSelection_ = listItem_.size() - 1;
+					listItem_[nLastSelection_]->setFlags(
+						ViewModelItem::FLAG_SELECTED,
 						ViewModelItem::FLAG_SELECTED);
 				}
 			}
-			if (nLastSelection_ == nIndex) {
-				if (it == listItem_.end()) {
-					if (listItem_.empty()) {
-						nLastSelection_ = 0;
-					}
-					else {
-						nLastSelection_ = listItem_.size() - 1;
-						listItem_[nLastSelection_]->setFlags(
-							ViewModelItem::FLAG_SELECTED,
-							ViewModelItem::FLAG_SELECTED);
-					}
-				}
+		}
+		else if (nLastSelection_ > nIndex) {
+			--nLastSelection_;
+			assert(!listItem_.empty());
+		}
+		
+		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			--nUnseenCount_;
+	}
+	
+	if (isFloatThread(nSort_)) {
+		assert(listThread.size() == listItem_.size());
+		
+		for (ThreadList::size_type n = 0; n < listThread.size(); ++n) {
+			if (listThread[n]) {
+				ViewModelItem* pItem = listItem_[n];
+				pItem->clearLatest();
+				ViewModelItem* pParentItem = pItem->getParentItem();
+				if (pParentItem)
+					pParentItem->updateLatest(pItem->getLatest());
+				
+				bSort = true;
 			}
-			else if (nLastSelection_ > nIndex) {
-				--nLastSelection_;
-				assert(!listItem_.empty());
-			}
-			
-			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
-				--nUnseenCount_;
-			
-			bRemoved = true;
 		}
 	}
 	
-	if (bRemoved) {
-		if (bSort)
-			sort(nSort_, true, false);
-		
-		fireItemRemoved();
-	}
+	if (bSort)
+		sort(nSort_, true, false);
+	
+	fireItemRemoved();
 }
 
 void qm::ViewModel::messageRefreshed(const FolderEvent& event)
@@ -1185,18 +1261,31 @@ void qm::ViewModel::sort(unsigned int nSort,
 	SelectionRestorer restorer(this, false, !bRestoreSelection);
 	
 	if (bUpdateParentLink && (nSort & SORT_THREAD_MASK) == SORT_THREAD)
-		makeParentLink();
+		makeParentLink(isFloatThread(nSort));
 	
-	std::stable_sort(listItem_.begin(), listItem_.end(),
-		ViewModelItemComp(this, getColumn(nSort & SORT_INDEX_MASK),
-			(nSort & SORT_DIRECTION_MASK) == SORT_ASCENDING,
-			(nSort & SORT_THREAD_MASK) == SORT_THREAD));
+	std::stable_sort(listItem_.begin(), listItem_.end(), getComparator(nSort));
 	
 	if (bRestoreSelection)
 		restorer.restore();
 }
 
-void qm::ViewModel::makeParentLink()
+ViewModelItemComp qm::ViewModel::getComparator(unsigned int nSort) const
+{
+	return ViewModelItemComp(this, getColumn(nSort & SORT_INDEX_MASK),
+		(nSort & SORT_DIRECTION_MASK) == SORT_ASCENDING,
+		(nSort & SORT_THREAD_MASK) == SORT_THREAD, isFloatThread(nSort));
+}
+
+bool qm::ViewModel::isFloatThread(unsigned int nSort) const
+{
+	if ((nSort & SORT_THREAD_MASK) != SORT_THREAD || !(nSort & SORT_FLOATTHREAD))
+		return false;
+	
+	const ViewColumn& column = getColumn(nSort & SORT_INDEX_MASK);
+	return column.getType() == ViewColumn::TYPE_DATE;
+}
+
+void qm::ViewModel::makeParentLink(bool bUpdateLatest)
 {
 	Lock<ViewModel> lock(*this);
 	
@@ -1216,8 +1305,20 @@ void qm::ViewModel::makeParentLink()
 	std::sort(listItemSortedByPointer.begin(),
 		listItemSortedByPointer.end());
 	
-	for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it)
-		makeParentLink(listItemSortedByMessageIdHash, listItemSortedByPointer, *it);
+	for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
+		ViewModelItem* pItem = *it;
+		makeParentLink(listItemSortedByMessageIdHash, listItemSortedByPointer, pItem);
+		if (bUpdateLatest)
+			pItem->clearLatest();
+	}
+	if (bUpdateLatest) {
+		for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
+			ViewModelItem* pItem = *it;
+			ViewModelItem* pParentItem = pItem->getParentItem();
+			if (pParentItem)
+				pParentItem->updateLatest(pItem->getLatest());
+		}
+	}
 }
 
 void qm::ViewModel::makeParentLink(const ItemList& listItemSortedByMessageIdHash,
@@ -1752,11 +1853,13 @@ ViewModel* qm::ViewModelManagerEvent::getOldViewModel() const
 qm::ViewModelItemComp::ViewModelItemComp(const ViewModel* pViewModel,
 										 const ViewColumn& column,
 										 bool bAscending,
-										 bool bThread) :
+										 bool bThread,
+										 bool bFloat) :
 	pViewModel_(pViewModel),
 	column_(column),
 	bAscending_(bAscending),
-	bThread_(bThread)
+	bThread_(bThread),
+	bFloat_(bFloat)
 {
 }
 
@@ -1769,6 +1872,7 @@ bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
 {
 	bool bLess = false;
 	bool bFixed = false;
+	unsigned int nLevel = -1;
 	if (bThread_) {
 		unsigned int nLevelLhs = pLhs->getLevel();
 		unsigned int nLevelRhs = pRhs->getLevel();
@@ -1801,6 +1905,8 @@ bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
 				pParentLhs = pParentLhs->getParentItem();
 				pParentRhs = pParentRhs->getParentItem();
 			}
+			if (bFloat_)
+				nLevel = pLhs->getLevel();
 		}
 	}
 	
@@ -1816,10 +1922,11 @@ bool qm::ViewModelItemComp::operator()(const ViewModelItem* pLhs,
 			nComp = nLhs < nRhs ? -1 : nLhs > nRhs ? 1 : 0;
 		}
 		else if ((nFlags & ViewColumn::FLAG_SORT_MASK) == ViewColumn::FLAG_SORT_DATE) {
+			bool bLatest = bThread_ && bFloat_ && nLevel == 0;
 			Time timeLhs;
-			column_.getTime(pViewModel_, pLhs, &timeLhs);
+			column_.getTime(pViewModel_, pLhs, bLatest, &timeLhs);
 			Time timeRhs;
-			column_.getTime(pViewModel_, pRhs, &timeRhs);
+			column_.getTime(pViewModel_, pRhs, bLatest, &timeRhs);
 			nComp = timeLhs < timeRhs ? -1 : timeLhs > timeRhs ? 1 : 0;
 		}
 		else {
@@ -2344,6 +2451,9 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else if (wcscmp(pwszAttrLocalName, L"thread") == 0)
 				nSort |= wcscmp(attributes.getValue(n), L"true") == 0 ?
 					ViewModel::SORT_THREAD : ViewModel::SORT_NOTHREAD;
+			else if (wcscmp(pwszAttrLocalName, L"floatthread") == 0)
+				nSort |= wcscmp(attributes.getValue(n), L"true") == 0 ?
+					ViewModel::SORT_FLOATTHREAD : 0;
 			else
 				return false;
 		}
@@ -2755,8 +2865,9 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 	
 	unsigned int nSort = pItem->getSort();
 	const SimpleAttributes::Item sortItems[] = {
-		{ L"direction",	(nSort & ViewModel::SORT_DIRECTION_MASK) == ViewModel::SORT_ASCENDING ? L"ascending" : L"descending"	},
-		{ L"thread",	(nSort & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD ? L"true" : L"false"					}
+		{ L"direction",		(nSort & ViewModel::SORT_DIRECTION_MASK) == ViewModel::SORT_ASCENDING ? L"ascending" : L"descending"	},
+		{ L"thread",		(nSort & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD ? L"true" : L"false"					},
+		{ L"floatthread",	nSort & ViewModel::SORT_FLOATTHREAD ? L"true" : L"false"												}
 	};
 	SimpleAttributes sortAttrs(sortItems, countof(sortItems));
 	if (!handler_.startElement(0, 0, L"sort", sortAttrs))

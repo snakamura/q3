@@ -20,6 +20,7 @@
 
 namespace qm {
 
+class MessageDate;
 class MessageHolderBase;
 	class MessageHolder;
 	class AbstractMessageHolder;
@@ -31,6 +32,41 @@ class MessagePtrLock;
 class Account;
 class NormalFolder;
 class Message;
+
+
+/****************************************************************************
+ *
+ * MessageDate
+ *
+ */
+
+class QMEXPORTCLASS MessageDate
+{
+public:
+	MessageDate();
+	MessageDate(unsigned int nDate,
+				unsigned int nTime);
+	MessageDate(const MessageDate& date);
+	~MessageDate();
+
+public:
+	MessageDate& operator=(const MessageDate& date);
+
+public:
+	unsigned int getDate() const;
+	unsigned int getTime() const;
+	void getTime(qs::Time* pTime) const;
+
+public:
+	static unsigned int getDate(const qs::Time& time);
+	static unsigned int getTime(const qs::Time& time);
+	static void getTime(unsigned int nDate,
+						unsigned int nTime,
+						qs::Time* pTime);
+private:
+	unsigned int nDate_;
+	unsigned int nTime_;
+};
 
 
 /****************************************************************************
@@ -170,10 +206,7 @@ public:
 	unsigned int getReferenceHash() const;
 	const MessageIndexKey& getMessageIndexKey() const;
 	const MessageBoxKey& getMessageBoxKey() const;
-
-public:
-	static unsigned int getDate(const qs::Time& time);
-	static unsigned int getTime(const qs::Time& time);
+	MessageDate getDate() const;
 
 // These methods are intended to be called from Folder class
 public:
@@ -198,15 +231,12 @@ private:
 	volatile unsigned int nFlags_;
 	volatile mutable unsigned int nMessageIdHash_;
 	volatile mutable unsigned int nReferenceHash_;
-	unsigned int nDate_;
-	unsigned int nTime_;
+	MessageDate date_;
 	unsigned int nSize_;
 	MessageIndexKey messageIndexKey_;
 	MessageBoxKey messageBoxKey_;
 	NormalFolder* pFolder_;
 };
-
-typedef std::vector<MessageHolder*> MessageHolderList;
 
 
 /****************************************************************************
@@ -366,5 +396,7 @@ private:
 };
 
 }
+
+#include <qmmessageholder.inl>
 
 #endif // __QMMESSAGEHOLDER_H__

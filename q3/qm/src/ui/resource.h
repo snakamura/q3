@@ -592,8 +592,9 @@
 #define IDM_VIEW_SMIMEMODE              45039
 #define IDM_VIEW_SORTASCENDING          45040
 #define IDM_VIEW_SORTDESCENDING         45041
-#define IDM_VIEW_SORTTHREAD             45042
-#define IDM_VIEW_TEMPLATENONE           45043
+#define IDM_VIEW_SORTFLOATTHREAD        45042
+#define IDM_VIEW_SORTTHREAD             45043
+#define IDM_VIEW_TEMPLATENONE           45044
 #define IDM_VIEW_ENCODING               45100
 #define IDM_VIEW_FILTER                 45200
 #define IDM_VIEW_SORT                   45300

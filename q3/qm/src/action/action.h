@@ -118,6 +118,7 @@ template<class WindowX> class ViewShowControlAction;
 class ViewShowSyncDialogAction;
 class ViewSortAction;
 class ViewSortDirectionAction;
+class ViewSortFloatThreadAction;
 class ViewSortThreadAction;
 class ViewTemplateAction;
 class ActionUtil;
@@ -3071,6 +3072,32 @@ private:
 private:
 	ViewModelManager* pViewModelManager_;
 	bool bAscending_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewSortFloatThreadAction
+ *
+ */
+
+class ViewSortFloatThreadAction : public qs::AbstractAction
+{
+public:
+	explicit ViewSortFloatThreadAction(ViewModelManager* pViewModelManager);
+	virtual ~ViewSortFloatThreadAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	ViewSortFloatThreadAction(const ViewSortFloatThreadAction&);
+	ViewSortFloatThreadAction& operator=(const ViewSortFloatThreadAction&);
+
+private:
+	ViewModelManager* pViewModelManager_;
 };
 
 

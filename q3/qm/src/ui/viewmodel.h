@@ -38,6 +38,9 @@ class ViewModelHolder;
 class ViewModelManager;
 class ViewModelManagerHandler;
 class ViewModelManagerEvent;
+class ViewModelItemComp;
+class ViewModelItemEqual;
+class ViewModelParentItemComp;
 class ViewData;
 class DefaultViewData;
 class ViewDataItem;
@@ -123,6 +126,7 @@ public:
 						   const ViewModelItem* pItem) const;
 	void getTime(const ViewModel* pViewModel,
 				 const ViewModelItem* pItem,
+				 bool bLatest,
 				 qs::Time* pTime) const;
 
 public:
@@ -200,6 +204,9 @@ public:
 	void setMessageFlags(unsigned int nFlags);
 	unsigned int getLevel() const;
 	unsigned int getMessageIdHash() const;
+	const MessageDate& getLatest() const;
+	bool updateLatest(const MessageDate& dateLatest);
+	void clearLatest();
 	const MacroValue* getCache(unsigned int n) const;
 	void setCache(unsigned int n,
 				  MacroValue* pValue) const;
@@ -220,6 +227,7 @@ private:
 	unsigned int nFlags_;
 	COLORREF cr_;
 	unsigned int nMessageFlags_;
+	MessageDate dateLatest_;
 };
 
 
@@ -274,7 +282,9 @@ public:
 		
 		SORT_THREAD			= 0x00010000,
 		SORT_NOTHREAD		= 0x00020000,
-		SORT_THREAD_MASK	= 0x00030000
+		SORT_THREAD_MASK	= 0x00030000,
+		
+		SORT_FLOATTHREAD	= 0x00040000
 	};
 
 public:
@@ -374,7 +384,9 @@ private:
 	void sort(unsigned int nSort,
 			  bool bRestoreSelection,
 			  bool bUpdateParentLink);
-	void makeParentLink();
+	ViewModelItemComp getComparator(unsigned int nSort) const;
+	bool isFloatThread(unsigned int nSort) const;
+	void makeParentLink(bool bUpdateLatest);
 	void makeParentLink(const ItemList& listItemSortedByMessageIdHash,
 						const ItemList& listItemSortedByPointer,
 						ViewModelItem* pItem);
@@ -677,7 +689,8 @@ public:
 	ViewModelItemComp(const ViewModel* pViewModel,
 					  const ViewColumn& column,
 					  bool bAscending,
-					  bool bThread);
+					  bool bThread,
+					  bool bFloat);
 	~ViewModelItemComp();
 
 public:
@@ -689,6 +702,7 @@ private:
 	const ViewColumn& column_;
 	bool bAscending_;
 	bool bThread_;
+	bool bFloat_;
 };
 
 

@@ -61,6 +61,7 @@ BEGIN
         MENUITEM "D&escending",                 IDM_VIEW_SORTDESCENDING
         MENUITEM SEPARATOR
         MENUITEM "&Thread",                     IDM_VIEW_SORTTHREAD
+        MENUITEM "F&loat Thread",               IDM_VIEW_SORTFLOATTHREAD
     END
 END
 

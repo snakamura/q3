@@ -25,6 +25,7 @@ inline qm::ViewModelItem::ViewModelItem(MessageHolder* pmh) :
 	cr_(0xffffffff),
 	nMessageFlags_(pmh->getFlags())
 {
+	clearLatest();
 }
 
 inline qm::ViewModelItem::ViewModelItem(unsigned int nMessageIdHash) :
@@ -126,6 +127,32 @@ inline unsigned int qm::ViewModelItem::getLevel() const
 inline unsigned int qm::ViewModelItem::getMessageIdHash() const
 {
 	return pmh_ ? pmh_->getMessageIdHash() : nMessageFlags_;
+}
+
+inline const qm::MessageDate& qm::ViewModelItem::getLatest() const
+{
+	return dateLatest_;
+}
+
+inline bool qm::ViewModelItem::updateLatest(const MessageDate& dateLatest)
+{
+	qs::Time timeOld;
+	dateLatest_.getTime(&timeOld);
+	qs::Time timeNew;
+	dateLatest.getTime(&timeNew);
+	if (timeOld >= timeNew)
+		return false;
+	
+	dateLatest_ = dateLatest;
+	if (pParentItem_)
+		pParentItem_->updateLatest(dateLatest);
+	
+	return true;
+}
+
+inline void qm::ViewModelItem::clearLatest()
+{
+	dateLatest_ = pmh_->getDate();
 }
 
 inline const qm::MacroValue* qm::ViewModelItem::getCache(unsigned int n) const

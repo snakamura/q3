@@ -281,6 +281,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ViewSort9",						IDM_VIEW_SORT + 9,						0 },
 	{ L"ViewSortAscending",				IDM_VIEW_SORTASCENDING,					0 },
 	{ L"ViewSortDescending",			IDM_VIEW_SORTDESCENDING,				0 },
+	{ L"ViewSortFloatThread",			IDM_VIEW_SORTFLOATTHREAD,				0 },
 	{ L"ViewSortThread",				IDM_VIEW_SORTTHREAD,					0 },
 	{ L"ViewTemplate0",					IDM_VIEW_TEMPLATE,						0 },
 	{ L"ViewTemplate1",					IDM_VIEW_TEMPLATE + 1,					0 },

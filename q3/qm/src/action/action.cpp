@@ -5660,6 +5660,47 @@ bool qm::ViewSortDirectionAction::isChecked(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ViewSortFloatThreadAction
+ *
+ */
+
+qm::ViewSortFloatThreadAction::ViewSortFloatThreadAction(ViewModelManager* pViewModelManager) :
+	pViewModelManager_(pViewModelManager)
+{
+}
+
+qm::ViewSortFloatThreadAction::~ViewSortFloatThreadAction()
+{
+}
+
+void qm::ViewSortFloatThreadAction::invoke(const ActionEvent& event)
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		unsigned int nSort = pViewModel->getSort();
+		bool bFloat = (nSort & ViewModel::SORT_FLOATTHREAD) != 0;
+		if (nSort & ViewModel::SORT_FLOATTHREAD)
+			nSort &= ~ViewModel::SORT_FLOATTHREAD;
+		else
+			nSort |= ViewModel::SORT_FLOATTHREAD;
+		pViewModel->setSort(nSort);
+	}
+}
+
+bool qm::ViewSortFloatThreadAction::isEnabled(const ActionEvent& event)
+{
+	return pViewModelManager_->getCurrentViewModel() != 0;
+}
+
+bool qm::ViewSortFloatThreadAction::isChecked(const ActionEvent& event)
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	return pViewModel && pViewModel->getSort() & ViewModel::SORT_FLOATTHREAD;
+}
+
+
+/****************************************************************************
+ *
  * ViewSortThreadAction
  *
  */

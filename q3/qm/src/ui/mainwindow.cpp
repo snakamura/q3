@@ -1051,6 +1051,9 @@ void qm::MainWindowImpl::initActions()
 		IDM_VIEW_SORTDESCENDING,
 		pViewModelManager_.get(),
 		false);
+	ADD_ACTION1(ViewSortFloatThreadAction,
+		IDM_VIEW_SORTFLOATTHREAD,
+		pViewModelManager_.get());
 	ADD_ACTION1(ViewSortThreadAction,
 		IDM_VIEW_SORTTHREAD,
 		pViewModelManager_.get());
@@ -2279,7 +2282,7 @@ LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu,
 			else
 				::EnableMenuItem(hmenu, nIndex, MF_GRAYED | MF_BYPOSITION);
 		}
-		else if (nIdLast == IDM_VIEW_SORTTHREAD) {
+		else if (nIdLast == IDM_VIEW_SORTFLOATTHREAD) {
 			pImpl_->pSortMenu_->createMenu(hmenu);
 		}
 		else if (nIdFirst == IDM_VIEW_FILTERNONE) {

@@ -10,7 +10,7 @@
 #define __QMFOLDER_H__
 
 #include <qm.h>
-#include <qmmessageholder.h>
+#include <qmmessageholderlist.h>
 
 #include <qs.h>
 #include <qsprofile.h>
@@ -33,6 +33,7 @@ class Account;
 class Document;
 class Message;
 class MessageHolder;
+class MessagePtr;
 
 
 /****************************************************************************

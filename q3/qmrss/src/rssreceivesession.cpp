@@ -9,6 +9,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmmessage.h>
+#include <qmmessageholder.h>
 
 #include <qsthread.h>
 

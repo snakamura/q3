@@ -12,6 +12,7 @@
 #include <qm.h>
 #include <qmaccount.h>
 #include <qmfolder.h>
+#include <qmmessageholder.h>
 
 #include <qs.h>
 #include <qsaction.h>

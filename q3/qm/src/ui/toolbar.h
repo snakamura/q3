@@ -264,6 +264,7 @@ const qs::ActionItem toolbarItems[] = {
 	{ L"ViewSort9",						IDM_VIEW_SORT + 9							},
 	{ L"ViewSortAscending",				IDM_VIEW_SORTASCENDING						},
 	{ L"ViewSortDescending",			IDM_VIEW_SORTDESCENDING						},
+	{ L"ViewSortFloatThread",			IDM_VIEW_SORTFLOATTHREAD					},
 	{ L"ViewSortThread",				IDM_VIEW_SORTTHREAD							},
 	{ L"ViewTemplate0",					IDM_VIEW_TEMPLATE							},
 	{ L"ViewTemplate1",					IDM_VIEW_TEMPLATE + 1						},
