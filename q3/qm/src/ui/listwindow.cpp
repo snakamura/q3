@@ -800,6 +800,8 @@ HIMAGELIST qm::ListWindowImpl::createDragImage(const POINT& ptCursor,
 			nEnd = n;
 		}
 	}
+	if (nStart == -1)
+		return 0;
 	unsigned int nHeight = nLineHeight_*(nEnd - nStart + 1);
 	
 	ClientDeviceContext dc(pThis_->getHandle());
@@ -1065,6 +1067,8 @@ LRESULT qm::ListWindow::windowProc(UINT uMsg,
 		HANDLE_MOUSEWHEEL()
 #endif
 		HANDLE_PAINT()
+		HANDLE_RBUTTONDOWN()
+		HANDLE_RBUTTONUP()
 		HANDLE_SETFOCUS()
 		HANDLE_SIZE()
 		HANDLE_VSCROLL()
@@ -1478,6 +1482,52 @@ LRESULT qm::ListWindow::onPaint()
 	}
 	
 	return 0;
+}
+
+LRESULT qm::ListWindow::onRButtonDown(UINT nFlags,
+									  const POINT& pt)
+{
+	setFocus();
+	
+	ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		Lock<ViewModel> lock(*pViewModel);
+		
+		unsigned int nLine = pImpl_->getLineFromPoint(pt);
+		if (nLine != static_cast<unsigned int>(-1)) {
+			bool bSelected = pViewModel->isSelected(nLine);
+			
+			if ((nFlags & MK_SHIFT) == 0 && (nFlags & MK_CONTROL) == 0) {
+				if (!bSelected)
+					pViewModel->setSelection(nLine);
+				
+				pViewModel->setFocused(nLine);
+				pViewModel->setLastSelection(nLine);
+				pImpl_->ensureVisible(nLine);
+			}
+		}
+	}
+	
+	return 0;
+}
+
+LRESULT qm::ListWindow::onRButtonUp(UINT nFlags,
+									const POINT& pt)
+{
+	ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		Lock<ViewModel> lock(*pViewModel);
+		
+		unsigned int nLine = pImpl_->getLineFromPoint(pt);
+		if (nLine != static_cast<unsigned int>(-1)) {
+			bool bSelected = pViewModel->isSelected(nLine);
+			
+			if (!bSelected && nFlags & MK_SHIFT)
+				pViewModel->setSelection(nLine);
+		}
+	}
+	
+	return DefaultWindowHandler::onRButtonUp(nFlags, pt);
 }
 
 LRESULT qm::ListWindow::onSetFocus(HWND hwnd)

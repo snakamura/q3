@@ -101,6 +101,10 @@ protected:
 						 const POINT& pt);
 #endif
 	LRESULT onPaint();
+	LRESULT onRButtonDown(UINT nFlags,
+						  const POINT& pt);
+	LRESULT onRButtonUp(UINT nFlags,
+						const POINT& pt);
 	LRESULT onSetFocus(HWND hwnd);
 	LRESULT onSize(UINT nFlags,
 				   int cx,
