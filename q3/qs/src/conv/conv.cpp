@@ -888,7 +888,7 @@ Converter::Decoded qs::ShiftJISConverter::decode(const CHAR* psz,
  *
  */
 
-qs::ShiftJISConverterFactory::ShiftJISConverterFactory() QTHROW1(std::bad_alloc)
+qs::ShiftJISConverterFactory::ShiftJISConverterFactory()
 {
 	registerFactory(this);
 }
@@ -906,7 +906,6 @@ bool qs::ShiftJISConverterFactory::isSupported(const WCHAR* pwszName)
 }
 
 std::auto_ptr<Converter> qs::ShiftJISConverterFactory::createInstance(const WCHAR* pwszName)
-																	  QTHROW1(std::bad_alloc)
 {
 	return new ShiftJISConverter();
 }
@@ -1048,7 +1047,7 @@ bool qs::ISO2022JPConverterImpl::isHankakuKana(unsigned char b)
  *
  */
 
-qs::ISO2022JPConverter::ISO2022JPConverter() QTHROW1(std::bad_alloc)
+qs::ISO2022JPConverter::ISO2022JPConverter()
 {
 	pImpl_ = new ISO2022JPConverterImpl();
 	pImpl_->mode_ = ISO2022JPConverterImpl::MODE_ASCII;
@@ -1224,7 +1223,7 @@ Converter::Decoded qs::ISO2022JPConverter::decode(const CHAR* psz,
  *
  */
 
-qs::ISO2022JPConverterFactory::ISO2022JPConverterFactory() QTHROW1(std::bad_alloc)
+qs::ISO2022JPConverterFactory::ISO2022JPConverterFactory()
 {
 	registerFactory(this);
 }
@@ -1240,7 +1239,6 @@ bool qs::ISO2022JPConverterFactory::isSupported(const WCHAR* pwszName)
 }
 
 std::auto_ptr<Converter> qs::ISO2022JPConverterFactory::createInstance(const WCHAR* pwszName)
-																	   QTHROW1(std::bad_alloc)
 {
 	return new ISO2022JPConverter();
 }
@@ -1366,7 +1364,7 @@ Converter::Decoded qs::EUCJPConverter::decode(const CHAR* psz,
  *
  */
 
-qs::EUCJPConverterFactory::EUCJPConverterFactory() QTHROW1(std::bad_alloc)
+qs::EUCJPConverterFactory::EUCJPConverterFactory()
 {
 	registerFactory(this);
 }
@@ -1382,7 +1380,6 @@ bool qs::EUCJPConverterFactory::isSupported(const WCHAR* pwszName)
 }
 
 std::auto_ptr<Converter> qs::EUCJPConverterFactory::createInstance(const WCHAR* pwszName)
-																   QTHROW1(std::bad_alloc)
 {
 	return new EUCJPConverter();
 }
@@ -1400,6 +1397,7 @@ struct qs::MLangConverterImpl
 {
 	IMultiLanguage* pMultiLanguage_;
 	DWORD dwEncoding_;
+	DWORD dwMode_;
 };
 
 
@@ -1418,6 +1416,7 @@ qs::MLangConverter::MLangConverter(IMultiLanguage* pMultiLanguage,
 	pImpl_ = new MLangConverterImpl();
 	pImpl_->pMultiLanguage_ = pMultiLanguage;
 	pImpl_->dwEncoding_ = dwEncoding;
+	pImpl_->dwMode_ = 0;
 	pImpl_->pMultiLanguage_->AddRef();
 }
 
@@ -1443,7 +1442,7 @@ size_t qs::MLangConverter::encodeImpl(const WCHAR* pwsz,
 	
 	HRESULT hr = S_OK;
 	
-	DWORD dwMode = 0;
+	DWORD dwMode = pImpl_->dwMode_;
 	UINT nSrcLen = nLen;
 	UINT nDstLen = 0;
 	hr = pImpl_->pMultiLanguage_->ConvertStringFromUnicode(&dwMode,
@@ -1458,13 +1457,15 @@ size_t qs::MLangConverter::encodeImpl(const WCHAR* pwsz,
 	if (!pLock)
 		return -1;
 	
-	dwMode = 0;
+	dwMode = pImpl_->dwMode_;
 	hr = pImpl_->pMultiLanguage_->ConvertStringFromUnicode(&dwMode,
 		pImpl_->dwEncoding_, const_cast<WCHAR*>(pwsz), &nSrcLen, pLock, &nDstLen);
 	if (hr != S_OK)
 		return -1;
+	pImpl_->dwMode_ = dwMode;
 	
 	lock.unlock(nDstLen);
+	
 	
 	return nSrcLen;
 }
@@ -1482,7 +1483,7 @@ size_t qs::MLangConverter::decodeImpl(const CHAR* psz,
 	
 	HRESULT hr = S_OK;
 	
-	DWORD dwMode = 0;
+	DWORD dwMode = pImpl_->dwMode_;
 	UINT nSrcLen = nLen;
 	UINT nDstLen = 0;
 	hr = pImpl_->pMultiLanguage_->ConvertStringToUnicode(&dwMode,
@@ -1498,11 +1499,12 @@ size_t qs::MLangConverter::decodeImpl(const CHAR* psz,
 		return -1;
 	
 	if (hr == S_OK) {
-		dwMode = 0;
+		dwMode = pImpl_->dwMode_;
 		hr = pImpl_->pMultiLanguage_->ConvertStringToUnicode(&dwMode,
 			pImpl_->dwEncoding_, const_cast<CHAR*>(psz), &nSrcLen, pLock, &nDstLen);
 		if (hr != S_OK)
 			return -1;
+		pImpl_->dwMode_ = dwMode;
 	}
 	
 	lock.unlock(nDstLen);
