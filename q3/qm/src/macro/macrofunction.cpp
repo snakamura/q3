@@ -3408,6 +3408,9 @@ QSTATUS qm::MacroFunctionParseURL::decode(
 	
 	DECLARE_QSTATUS();
 	
+	UTF8Converter converter(&status);
+	CHECK_QSTATUS();
+	
 	StringBuffer<STRING> buf(&status);
 	CHECK_QSTATUS();
 	for (; nLen > 0; --nLen, ++p) {
@@ -3426,10 +3429,16 @@ QSTATUS qm::MacroFunctionParseURL::decode(
 			status = buf.append(static_cast<CHAR>(*p));
 			CHECK_QSTATUS();
 		}
+		else {
+			size_t nLen = 1;
+			string_ptr<STRING> str;
+			status = converter.encode(p, &nLen, &str, 0);
+			CHECK_QSTATUS();
+			status = buf.append(str.get());
+			CHECK_QSTATUS();
+		}
 	}
 	
-	UTF8Converter converter(&status);
-	CHECK_QSTATUS();
 	size_t n = buf.getLength();
 	status = converter.decode(buf.getCharArray(), &n, pwstr, 0);
 	CHECK_QSTATUS();
