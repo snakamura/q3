@@ -1224,8 +1224,10 @@ bool qm::AddressBookWriter::write(const AddressBook* pAddressBook)
 	const AddressBook::EntryList& listEntry = pAddressBook->getEntries();
 	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
 		const AddressBookEntry* pEntry = *it;
-		if (!write(pEntry))
-			return false;
+		if (!pEntry->isWAB()) {
+			if (!write(pEntry))
+				return false;
+		}
 	}
 	
 	if (!handler_.endElement(0, 0, L"addressBook"))
