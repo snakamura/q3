@@ -99,6 +99,7 @@ public:
 
 public:
 	const WCHAR* getName() const;
+	unsigned int getFlags() const;
 
 public:
 	void setName(const WCHAR* pwszName);

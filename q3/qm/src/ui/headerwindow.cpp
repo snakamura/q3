@@ -385,6 +385,11 @@ const WCHAR* qm::HeaderItem::getName() const
 	return wstrName_.get();
 }
 
+unsigned int qm::HeaderItem::getFlags() const
+{
+	return nFlags_;
+}
+
 void qm::HeaderItem::setName(const WCHAR* pwszName)
 {
 	wstrName_ = allocWString(pwszName);
@@ -599,10 +604,12 @@ unsigned int qm::TextHeaderItem::parseStyle(const WCHAR* pwszStyle)
 void qm::TextHeaderItem::updateColor(const TemplateContext& context)
 {
 	COLORREF crBackground = 0xffffffff;
-	if (pBackground_.get()) {
-		wstring_ptr wstrBackground;
-		if (pBackground_->getValue(context, &wstrBackground) == Template::RESULT_SUCCESS)
-			crBackground = Color(wstrBackground.get()).getColor();
+	if (context.getMessageHolder() || (getFlags() & FLAG_SHOWALWAYS)) {
+		if (pBackground_.get()) {
+			wstring_ptr wstrBackground;
+			if (pBackground_->getValue(context, &wstrBackground) == Template::RESULT_SUCCESS)
+				crBackground = Color(wstrBackground.get()).getColor();
+		}
 	}
 	
 	if (crBackground != crBackground_) {

@@ -245,7 +245,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		if (pAccount) {
 			// TODO
 			// Get selected
-			TemplateContext context(pmh, &msg, MessageHolderList(), pAccount,
+			TemplateContext context(pmh, pmh ? &msg : 0, MessageHolderList(), pAccount,
 				pDocument_, pThis_->getHandle(), pEncodingModel_->getEncoding(),
 				pSecurityModel_->getSecurityMode(),
 				pProfile_, 0, TemplateContext::ArgumentList());
