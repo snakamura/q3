@@ -748,7 +748,8 @@ LRESULT qm::AddressBookAddressDialog::onInitDialog(HWND hwndFocus,
 	init(false);
 	
 	setDlgItemText(IDC_ADDRESS, pAddress_->getAddress());
-	sendDlgItemMessage(IDC_RFC2822, pAddress_->isRFC2822());
+	sendDlgItemMessage(IDC_RFC2822, BM_SETCHECK,
+		pAddress_->isRFC2822() ? BST_CHECKED : BST_UNCHECKED);
 	if (pAddress_->getAlias())
 		setDlgItemText(IDC_ALIAS, pAddress_->getAlias());
 	
