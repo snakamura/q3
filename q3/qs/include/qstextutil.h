@@ -1,5 +1,5 @@
 /*
- * $Id: qstextutil.h,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -39,6 +39,9 @@ public:
 	static std::pair<size_t, size_t> findURL(const WCHAR* pwszText,
 		size_t nLen, const WCHAR* const* ppwszSchemas, size_t nSchemaCount);
 	static bool isURLChar(WCHAR c);
+	
+	static QSTATUS encodePassword(const WCHAR* pwsz, WSTRING* pwstr);
+	static QSTATUS decodePassword(const WCHAR* pwsz, WSTRING* pwstr);
 };
 
 }

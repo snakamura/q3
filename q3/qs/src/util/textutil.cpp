@@ -1,11 +1,13 @@
 /*
- * $Id: textutil.cpp,v 1.1.1.1 2003/04/29 08:07:37 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
  *
  */
 
+#include <qsencoder.h>
+#include <qsstl.h>
 #include <qstextutil.h>
 
 using namespace qs;
@@ -214,4 +216,76 @@ bool qs::TextUtil::isURLChar(WCHAR c)
 		c == L',' ||
 		c == L'(' ||
 		c == L')';
+}
+
+QSTATUS qs::TextUtil::encodePassword(const WCHAR* pwsz, WSTRING* pwstr)
+{
+	assert(pwsz);
+	assert(pwstr);
+	
+	DECLARE_QSTATUS();
+	
+	Base64Encoder encoder(false, &status);
+	CHECK_QSTATUS();
+	unsigned char* p = 0;
+	size_t nLen = 0;
+	status = encoder.encode(reinterpret_cast<const unsigned char*>(pwsz),
+		wcslen(pwsz)*sizeof(WCHAR), &p, &nLen);
+	CHECK_QSTATUS();
+	malloc_ptr<unsigned char> pBuffer(p);
+	
+	string_ptr<WSTRING> wstr(allocWString(nLen*2 + 1));
+	if (!wstr.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	WCHAR* pDst = wstr.get();
+	for (size_t n = 0; n < nLen; ++n) {
+		swprintf(pDst, L"%02x", *(p + n) ^ 'q');
+		pDst += 2;
+	}
+	*pDst = L'\0';
+	
+	*pwstr = wstr.release();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qs::TextUtil::decodePassword(const WCHAR* pwsz, WSTRING* pwstr)
+{
+	assert(pwsz);
+	assert(pwstr);
+	
+	DECLARE_QSTATUS();
+	
+	size_t nLen = wcslen(pwsz);
+	
+	malloc_ptr<unsigned char> pBuf(
+		static_cast<unsigned char*>(malloc(nLen/2 + 1)));
+	if (!pBuf.get())
+		return QSTATUS_OUTOFMEMORY;
+	unsigned char* p = pBuf.get();
+	
+	for (size_t n = 0; n < nLen; n += 2) {
+		WCHAR wsz[3] = L"";
+		wcsncpy(wsz, pwsz + n, 2);
+		unsigned int m = 0;
+		swscanf(wsz, L"%02x", &m);
+		*p++ = m ^= 'q';
+	}
+	
+	Base64Encoder encoder(false, &status);
+	CHECK_QSTATUS();
+	unsigned char* pDecode = 0;
+	size_t nDecodeLen = 0;
+	status = encoder.decode(pBuf.get(), p - pBuf.get(), &pDecode, &nDecodeLen);
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstr(allocWString(
+		reinterpret_cast<WCHAR*>(pDecode), nDecodeLen/sizeof(WCHAR)));
+	if (!wstr.get())
+		return QSTATUS_OUTOFMEMORY;
+	
+	*pwstr = wstr.release();
+	
+	return QSTATUS_SUCCESS;
 }

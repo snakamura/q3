@@ -11,16 +11,17 @@
 #include <qmextensions.h>
 #include <qmmessage.h>
 
-#include <qsnew.h>
 #include <qserror.h>
-#include <qsstl.h>
-#include <qsprofile.h>
 #include <qsmime.h>
+#include <qsnew.h>
+#include <qsprofile.h>
+#include <qsstl.h>
+#include <qstextutil.h>
 
-#include <memory>
-#include <vector>
-#include <utility>
 #include <algorithm>
+#include <memory>
+#include <utility>
+#include <vector>
 
 #include "security.h"
 
@@ -40,6 +41,9 @@ struct qm::SubAccountImpl
 {
 	typedef std::vector<WSTRING> AddressList;
 	
+	QSTATUS load();
+	
+	SubAccount* pThis_;
 	Account* pAccount_;
 	WSTRING wstrName_;
 	WSTRING wstrIdentity_;
@@ -63,6 +67,118 @@ struct qm::SubAccountImpl
 	Profile* pProfile_;
 	WSTRING wstrSyncFilterName_;
 };
+
+QSTATUS qm::SubAccountImpl::load()
+{
+	DECLARE_QSTATUS();
+	
+#define LOAD_STRING(section, key, default, name) \
+	status = pProfile_->getString(section, key, default, &##name); \
+	CHECK_QSTATUS()
+	
+	LOAD_STRING(L"Global",	L"Identity",		0,	wstrIdentity_						);
+	LOAD_STRING(L"Global",	L"SenderName",		0,	wstrSenderName_						);
+	LOAD_STRING(L"Global",	L"SenderAddress",	0,	wstrSenderAddress_					);
+	LOAD_STRING(L"Send",	L"Host",			0,	wstrHost_[Account::HOST_SEND]		);
+	LOAD_STRING(L"Receive",	L"Host",			0,	wstrHost_[Account::HOST_RECEIVE]	);
+	LOAD_STRING(L"Send",	L"UserName",		0,	wstrUserName_[Account::HOST_SEND]	);
+	LOAD_STRING(L"Receive",	L"UserName",		0,	wstrUserName_[Account::HOST_RECEIVE]);
+	LOAD_STRING(L"Send",	L"Password",		0,	wstrPassword_[Account::HOST_SEND]	);
+	LOAD_STRING(L"Receive",	L"Password",		0,	wstrPassword_[Account::HOST_RECEIVE]);
+	LOAD_STRING(L"Receive",	L"SyncFilterName",	0,	wstrSyncFilterName_					);
+	LOAD_STRING(L"Dialup",	L"Entry",			0,	wstrDialupEntry_					);
+
+#pragma warning(disable:4800)
+#define LOAD_INT(section, key, default, name, type, tempname) \
+	int _##tempname##_ = 0; \
+	status = pProfile_->getInt(section, key, default, &_##tempname##_); \
+	CHECK_QSTATUS(); \
+	##name = static_cast<type>(_##tempname##_)
+	
+	LOAD_INT(L"Send",		L"Port",						25,		nPort_[Account::HOST_SEND],		short,					nSendPort					);
+	LOAD_INT(L"Receive",	L"Port",						110,	nPort_[Account::HOST_RECEIVE],	short,					nReceivePort				);
+	LOAD_INT(L"Send",		L"Ssl",							0,		bSsl_[Account::HOST_SEND],		bool,					nSendSsl					);
+	LOAD_INT(L"Receive",	L"Ssl",							0,		bSsl_[Account::HOST_RECEIVE],	bool,					nReceiveSsl					);
+	LOAD_INT(L"Send",		L"Log",							0,		bLog_[Account::HOST_SEND],		bool,					nSendLog					);
+	LOAD_INT(L"Receive",	L"Log",							0,		bLog_[Account::HOST_RECEIVE],	bool,					nReceiveLog					);
+	LOAD_INT(L"Global",		L"Timeout",						60,		nTimeout_,						long,					nTimeout					);
+	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	0,		bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
+	LOAD_INT(L"Dialup",		L"Type",						0,		dialupType_,					SubAccount::DialupType,	dialupType					);
+	LOAD_INT(L"Dialup",		L"ShowDialog",					0,		bDialupShowDialog_,				bool,					bDialupShowDialog			);
+	LOAD_INT(L"Dialup",		L"DisconnectWait",				0,		nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
+#pragma warning(default:4800)
+	
+	struct {
+		Account::Host host_;
+		const WCHAR* pwszSection_;
+	} entries[] = {
+		{ Account::HOST_SEND,		L"Send"		},
+		{ Account::HOST_RECEIVE,	L"Receive"	}
+	};
+	for (int n = 0; n < countof(entries); ++n) {
+		WSTRING& wstrPassword = wstrPassword_[entries[n].host_];
+		if (!*wstrPassword) {
+			string_ptr<WSTRING> wstrEncodedPassword;
+			status = pProfile_->getString(entries[n].pwszSection_,
+				L"EncodedPassword", 0, &wstrEncodedPassword);
+			CHECK_QSTATUS();
+			string_ptr<WSTRING> wstr;
+			status = TextUtil::decodePassword(
+				wstrEncodedPassword.get(), &wstr);
+			CHECK_QSTATUS();
+			freeWString(wstrPassword);
+			wstrPassword = wstr.release();
+		}
+	}
+	
+	string_ptr<WSTRING> wstrMyAddress;
+	status = pProfile_->getString(L"Global", L"MyAddress", 0, &wstrMyAddress);
+	CHECK_QSTATUS();
+	status = pThis_->setMyAddress(wstrMyAddress.get());
+	CHECK_QSTATUS();
+	
+	if (Security::isEnabled()) {
+		{
+			std::auto_ptr<PrivateKey> pPrivateKey;
+			status = CryptoUtil<PrivateKey>::getInstance(&pPrivateKey);
+			CHECK_QSTATUS();
+			ConcatW c[] = {
+				{ pAccount_->getPath(),	-1	},
+				{ L"\\",				1	},
+				{ wstrName_,			-1	},
+				{ Extensions::KEY,		-1	}
+			};
+			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
+			if (!wstrPath.get())
+				return QSTATUS_OUTOFMEMORY;
+			status = pPrivateKey->load(wstrPath.get(),
+				PrivateKey::FILETYPE_PEM, 0);
+			if (status == QSTATUS_SUCCESS)
+				pPrivateKey_ = pPrivateKey.release();
+		}
+		
+		{
+			std::auto_ptr<Certificate> pCertificate;
+			status = CryptoUtil<Certificate>::getInstance(&pCertificate);
+			CHECK_QSTATUS();
+			ConcatW c[] = {
+				{ pAccount_->getPath(),	-1	},
+				{ L"\\",				1	},
+				{ wstrName_,			-1	},
+				{ Extensions::CERT,		-1	}
+			};
+			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
+			if (!wstrPath.get())
+				return QSTATUS_OUTOFMEMORY;
+			status = pCertificate->load(wstrPath.get(),
+				Certificate::FILETYPE_PEM, 0);
+			if (status == QSTATUS_SUCCESS)
+				pCertificate_ = pCertificate.release();
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
 
 
 /****************************************************************************
@@ -91,6 +207,7 @@ qm::SubAccount::SubAccount(Account* pAccount, Profile* pProfile,
 	
 	status = newObject(&pImpl_);
 	CHECK_QSTATUS_SET(pstatus);
+	pImpl_->pThis_ = this;
 	pImpl_->pAccount_ = pAccount;
 	pImpl_->wstrName_ = wstrName.release();
 	pImpl_->wstrIdentity_ = 0;
@@ -119,91 +236,8 @@ qm::SubAccount::SubAccount(Account* pAccount, Profile* pProfile,
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->wstrSyncFilterName_ = 0;
 	
-#define LOAD_STRING(section, key, default, name) \
-	status = pProfile->getString(section, key, default, &pImpl_->##name); \
-	CHECK_QSTATUS_SET(pstatus)
-	
-	LOAD_STRING(L"Global",	L"Identity",		0,	wstrIdentity_						);
-	LOAD_STRING(L"Global",	L"SenderName",		0,	wstrSenderName_						);
-	LOAD_STRING(L"Global",	L"SenderAddress",	0,	wstrSenderAddress_					);
-	LOAD_STRING(L"Send",	L"Host",			0,	wstrHost_[Account::HOST_SEND]		);
-	LOAD_STRING(L"Receive",	L"Host",			0,	wstrHost_[Account::HOST_RECEIVE]	);
-	LOAD_STRING(L"Send",	L"UserName",		0,	wstrUserName_[Account::HOST_SEND]	);
-	LOAD_STRING(L"Receive",	L"UserName",		0,	wstrUserName_[Account::HOST_RECEIVE]);
-	LOAD_STRING(L"Send",	L"Password",		0,	wstrPassword_[Account::HOST_SEND]	);
-	LOAD_STRING(L"Receive",	L"Password",		0,	wstrPassword_[Account::HOST_RECEIVE]);
-	LOAD_STRING(L"Receive",	L"SyncFilterName",	0,	wstrSyncFilterName_					);
-	LOAD_STRING(L"Dialup",	L"Entry",			0,	wstrDialupEntry_					);
-
-#pragma warning(disable:4800)
-#define LOAD_INT(section, key, default, name, type, tempname) \
-	int _##tempname##_ = 0; \
-	status = pProfile->getInt(section, key, default, &_##tempname##_); \
-	CHECK_QSTATUS_SET(pstatus); \
-	pImpl_->##name = static_cast<type>(_##tempname##_)
-	
-	LOAD_INT(L"Send",		L"Port",						25,		nPort_[Account::HOST_SEND],		short,					nSendPort					);
-	LOAD_INT(L"Receive",	L"Port",						110,	nPort_[Account::HOST_RECEIVE],	short,					nReceivePort				);
-	LOAD_INT(L"Send",		L"Ssl",							0,		bSsl_[Account::HOST_SEND],		bool,					nSendSsl					);
-	LOAD_INT(L"Receive",	L"Ssl",							0,		bSsl_[Account::HOST_RECEIVE],	bool,					nReceiveSsl					);
-	LOAD_INT(L"Send",		L"Log",							0,		bLog_[Account::HOST_SEND],		bool,					nSendLog					);
-	LOAD_INT(L"Receive",	L"Log",							0,		bLog_[Account::HOST_RECEIVE],	bool,					nReceiveLog					);
-	LOAD_INT(L"Global",		L"Timeout",						60,		nTimeout_,						long,					nTimeout					);
-	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	0,		bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
-	LOAD_INT(L"Dialup",		L"Type",						0,		dialupType_,					SubAccount::DialupType,	dialupType					);
-	LOAD_INT(L"Dialup",		L"ShowDialog",					0,		bDialupShowDialog_,				bool,					bDialupShowDialog			);
-	LOAD_INT(L"Dialup",		L"DisconnectWait",				0,		nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
-#pragma warning(default:4800)
-	
-	string_ptr<WSTRING> wstrMyAddress;
-	status = pProfile->getString(L"Global", L"MyAddress", 0, &wstrMyAddress);
+	status = pImpl_->load();
 	CHECK_QSTATUS_SET(pstatus);
-	status = setMyAddress(wstrMyAddress.get());
-	CHECK_QSTATUS_SET(pstatus);
-	
-	if (Security::isEnabled()) {
-		{
-			std::auto_ptr<PrivateKey> pPrivateKey;
-			status = CryptoUtil<PrivateKey>::getInstance(&pPrivateKey);
-			CHECK_QSTATUS_SET(pstatus);
-			ConcatW c[] = {
-				{ pAccount->getPath(),	-1	},
-				{ L"\\",				1	},
-				{ pwszName,				-1	},
-				{ Extensions::KEY,		-1	}
-			};
-			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-			if (!wstrPath.get()) {
-				*pstatus = QSTATUS_OUTOFMEMORY;
-				return;
-			}
-			status = pPrivateKey->load(wstrPath.get(),
-				PrivateKey::FILETYPE_PEM, 0);
-			if (status == QSTATUS_SUCCESS)
-				pImpl_->pPrivateKey_ = pPrivateKey.release();
-		}
-		
-		{
-			std::auto_ptr<Certificate> pCertificate;
-			status = CryptoUtil<Certificate>::getInstance(&pCertificate);
-			CHECK_QSTATUS_SET(pstatus);
-			ConcatW c[] = {
-				{ pAccount->getPath(),	-1	},
-				{ L"\\",				1	},
-				{ pwszName,				-1	},
-				{ Extensions::CERT,		-1	}
-			};
-			string_ptr<WSTRING> wstrPath(concat(c, countof(c)));
-			if (!wstrPath.get()) {
-				*pstatus = QSTATUS_OUTOFMEMORY;
-				return;
-			}
-			status = pCertificate->load(wstrPath.get(),
-				Certificate::FILETYPE_PEM, 0);
-			if (status == QSTATUS_SUCCESS)
-				pImpl_->pCertificate_ = pCertificate.release();
-		}
-	}
 }
 
 qm::SubAccount::~SubAccount()
@@ -719,8 +753,8 @@ QSTATUS qm::SubAccount::save() const
 	SAVE_STRING(L"Receive",	L"Host",			wstrHost_[Account::HOST_RECEIVE]	);
 	SAVE_STRING(L"Send",	L"UserName",		wstrUserName_[Account::HOST_SEND]	);
 	SAVE_STRING(L"Receive",	L"UserName",		wstrUserName_[Account::HOST_RECEIVE]);
-	SAVE_STRING(L"Send",	L"Password",		wstrPassword_[Account::HOST_SEND]	);
-	SAVE_STRING(L"Receive",	L"Password",		wstrPassword_[Account::HOST_RECEIVE]);
+//	SAVE_STRING(L"Send",	L"Password",		wstrPassword_[Account::HOST_SEND]	);
+//	SAVE_STRING(L"Receive",	L"Password",		wstrPassword_[Account::HOST_RECEIVE]);
 	SAVE_STRING(L"Receive",	L"SyncFilterName",	wstrSyncFilterName_					);
 	SAVE_STRING(L"Dialup",	L"Entry",			wstrDialupEntry_					);
 	
@@ -739,6 +773,27 @@ QSTATUS qm::SubAccount::save() const
 	SAVE_INT(L"Dialup",		L"Type",						dialupType_						);
 	SAVE_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_				);
 	SAVE_INT(L"Dialup",		L"DisconnectWait",				nDialupDisconnectWait_			);
+	
+	struct {
+		Account::Host host_;
+		const WCHAR* pwszSection_;
+	} entries[] = {
+		{ Account::HOST_SEND,		L"Send"		},
+		{ Account::HOST_RECEIVE,	L"Receive"	}
+	};
+	for (int n = 0; n < countof(entries); ++n) {
+		string_ptr<WSTRING> wstrEncodedPassword;
+		status = TextUtil::encodePassword(
+			pImpl_->wstrPassword_[entries[n].host_],
+			&wstrEncodedPassword);
+		CHECK_QSTATUS();
+		status = pImpl_->pProfile_->setString(entries[n].pwszSection_,
+			L"EncodedPassword", wstrEncodedPassword.get());
+		CHECK_QSTATUS();
+		status = pImpl_->pProfile_->setString(
+			entries[n].pwszSection_, L"Password", L"");
+		CHECK_QSTATUS();
+	}
 	
 	string_ptr<WSTRING> wstrMyAddress;
 	status = getMyAddress(&wstrMyAddress);
