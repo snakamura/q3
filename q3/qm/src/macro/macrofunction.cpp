@@ -4520,132 +4520,177 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 	assert(pwszName);
 	
 #define BEGIN_DECLARE_FUNCTION() \
-	if (false) { \
-	} \
+	switch (*pwszName) { \
 
 #define END_DECLARE_FUNCTION() \
-	else { \
-		return std::auto_ptr<MacroFunction>(new MacroFunctionFunction(pwszName)); \
 	} \
+	return std::auto_ptr<MacroFunction>(new MacroFunctionFunction(pwszName)); \
+
+#define BEGIN_BLOCK(c0, c1) \
+	case c0: \
+	case c1: \
+		if (false) { \
+		} \
+
+#define END_BLOCK() \
+	break; \
 
 #define DECLARE_FUNCTION0(classname, name) \
-	else if (_wcsicmp(pwszName, name) == 0) { \
-		return std::auto_ptr<MacroFunction>(new MacroFunction##classname()); \
-	} \
+		else if (_wcsicmp(pwszName, name) == 0) { \
+			return std::auto_ptr<MacroFunction>(new MacroFunction##classname()); \
+		} \
 	
 #define DECLARE_FUNCTION1(classname, name, arg1) \
-	else if (_wcsicmp(pwszName, name) == 0) { \
-		return std::auto_ptr<MacroFunction>(new MacroFunction##classname(arg1)); \
-	} \
+		else if (_wcsicmp(pwszName, name) == 0) { \
+			return std::auto_ptr<MacroFunction>(new MacroFunction##classname(arg1)); \
+		} \
 	
 #define DECLARE_FUNCTION_TYPE0(classname, name, typename) \
-	else if (_wcsicmp(pwszName, name) == 0 && (type & typename)) { \
-		return std::auto_ptr<MacroFunction>(new MacroFunction##classname()); \
-	} \
+		else if (_wcsicmp(pwszName, name) == 0 && (type & typename)) { \
+			return std::auto_ptr<MacroFunction>(new MacroFunction##classname()); \
+		} \
 	
 #define DECLARE_FUNCTION_TYPE1(classname, name, arg1, typename) \
-	else if (_wcsicmp(pwszName, name) == 0 && (type & typename)) { \
-		return std::auto_ptr<MacroFunction>(new MacroFunction##classname(arg1)); \
-	} \
+		else if (_wcsicmp(pwszName, name) == 0 && (type & typename)) { \
+			return std::auto_ptr<MacroFunction>(new MacroFunction##classname(arg1)); \
+		} \
 
 #define M MacroParser::TYPE_MESSAGE
 #define RT MacroParser::TYPE_RULE | MacroParser::TYPE_TEMPLATE
 #define T MacroParser::TYPE_TEMPLATE
 	
 	BEGIN_DECLARE_FUNCTION()
-		DECLARE_FUNCTION0(		Account,			L"account"												)
-		DECLARE_FUNCTION0(		AccountDirectory,	L"accountdirectory"										)
-		DECLARE_FUNCTION1(		Address,			L"address",			false								)
-		DECLARE_FUNCTION_TYPE0(	AddressBook,		L"addressbook",										T	)
-		DECLARE_FUNCTION1(		Additive,			L"add",				true								)
-		DECLARE_FUNCTION0(		And,				L"and"													)
-		DECLARE_FUNCTION0(		Attachment,			L"attachment"											)
-		DECLARE_FUNCTION0(		Body,				L"body"													)
-		DECLARE_FUNCTION1(		Contain,			L"beginwith",		true								)
-		DECLARE_FUNCTION0(		Clipboard,			L"clipboard"											)
-		DECLARE_FUNCTION0(		ComputerName,		L"computername"											)
-		DECLARE_FUNCTION0(		Concat,				L"concat"												)
-		DECLARE_FUNCTION1(		Contain,			L"contain",			false								)
-		DECLARE_FUNCTION_TYPE1(	Copy,				L"copy",			false,							M	)
-		DECLARE_FUNCTION0(		Date,				L"date"													)
-		DECLARE_FUNCTION0(		Decode,				L"decode"												)
-		DECLARE_FUNCTION0(		Defun,				L"defun"												)
-		DECLARE_FUNCTION_TYPE0(	Delete,				L"delete",											M	)
-		DECLARE_FUNCTION1(		Flag,				L"deleted",			MessageHolder::FLAG_DELETED			)
-		DECLARE_FUNCTION1(		Flag,				L"download",		MessageHolder::FLAG_DOWNLOAD		)
-		DECLARE_FUNCTION1(		Flag,				L"downloadtext",	MessageHolder::FLAG_DOWNLOADTEXT	)
-		DECLARE_FUNCTION1(		Flag,				L"draft",			MessageHolder::FLAG_DRAFT			)
-		DECLARE_FUNCTION0(		Equal, 				L"equal"												)
-		DECLARE_FUNCTION1(		Eval, 				L"eval",			type								)
-		DECLARE_FUNCTION0(		Execute, 			L"execute"												)
-		DECLARE_FUNCTION0(		Exist, 				L"exist"												)
-		DECLARE_FUNCTION0(		Exit, 				L"exit"													)
-		DECLARE_FUNCTION1(		Boolean,			L"false",			false								)
-		DECLARE_FUNCTION0(		Field, 				L"field"												)
-		DECLARE_FUNCTION0(		FieldParameter,		L"fieldparameter"										)
-		DECLARE_FUNCTION0(		Find, 				L"find"													)
-		DECLARE_FUNCTION0(		Flag,				L"flag"													)
-		DECLARE_FUNCTION0(		Folder, 			L"folder"												)
-		DECLARE_FUNCTION0(		ForEach,			L"foreach"												)
-		DECLARE_FUNCTION1(		Flag,				L"forwarded",		MessageHolder::FLAG_FORWARDED		)
-		DECLARE_FUNCTION_TYPE0(	FormatAddress, 		L"formataddress",									T	)
-		DECLARE_FUNCTION0(		FormatDate, 		L"formatdate"											)
-		DECLARE_FUNCTION1(		Relative,			L"greater",			false								)
-		DECLARE_FUNCTION0(		Header, 			L"header"												)
-		DECLARE_FUNCTION0(		HtmlEscape, 		L"htmlescape"											)
-		DECLARE_FUNCTION0(		I, 					L"i"													)
-		DECLARE_FUNCTION0(		Id, 				L"id"													)
-		DECLARE_FUNCTION0(		Identity, 			L"identity"												)
-		DECLARE_FUNCTION0(		If, 				L"if"													)
-		DECLARE_FUNCTION1(		Include,			L"include",			type								)
-		DECLARE_FUNCTION_TYPE0(	InputBox,	 		L"inputbox",										RT	)
-		DECLARE_FUNCTION0(		Length,				L"length"												)
-		DECLARE_FUNCTION1(		Relative,			L"less",			true								)
-		DECLARE_FUNCTION0(		Load,				L"load"													)
-		DECLARE_FUNCTION1(		Flag,				L"marked",			MessageHolder::FLAG_MARKED			)
-		DECLARE_FUNCTION_TYPE0(	MessageBox,			L"messagebox",										RT	)
-		DECLARE_FUNCTION0(		Messages,			L"messages"												)
-		DECLARE_FUNCTION1(		Additive,			L"minus",			false								)
-		DECLARE_FUNCTION_TYPE1(	Copy,				L"move",			true,							M	)
-		DECLARE_FUNCTION1(		Flag,				L"multipart",		MessageHolder::FLAG_MULTIPART		)
-		DECLARE_FUNCTION1(		Address,			L"name",			true								)
-		DECLARE_FUNCTION0(		Not,				L"not"													)
-		DECLARE_FUNCTION0(		Or,					L"or"													)
-		DECLARE_FUNCTION0(		OSVersion,			L"osversion"											)
-		DECLARE_FUNCTION0(		ParseURL,			L"parseurl"												)
-		DECLARE_FUNCTION0(		Part,				L"part"													)
-		DECLARE_FUNCTION0(		Passed,				L"passed"												)
-		DECLARE_FUNCTION1(		Flag,				L"partial",			MessageHolder::FLAG_PARTIAL_MASK	)
-		DECLARE_FUNCTION0(		ProcessId,			L"processid"											)
-		DECLARE_FUNCTION0(		Profile,			L"profile"												)
-		DECLARE_FUNCTION0(		ProfileName,		L"profilename"											)
-		DECLARE_FUNCTION0(		Progn,				L"progn"												)
-		DECLARE_FUNCTION0(		References,			L"references"											)
-		DECLARE_FUNCTION0(		RegexFind,			L"regexfind"											)
-		DECLARE_FUNCTION0(		RegexMatch,			L"regexmatch"											)
-		DECLARE_FUNCTION0(		RegexReplace,		L"regexreplace"											)
-		DECLARE_FUNCTION0(		Remove,				L"remove"												)
-		DECLARE_FUNCTION1(		Flag,				L"replied",			MessageHolder::FLAG_REPLIED			)
-		DECLARE_FUNCTION0(		Save,				L"save"													)
-		DECLARE_FUNCTION1(		Flag,				L"seen",			MessageHolder::FLAG_SEEN			)
-		DECLARE_FUNCTION1(		Flag,				L"sent",			MessageHolder::FLAG_SENT			)
-		DECLARE_FUNCTION0(		Script,				L"script"												)
-		DECLARE_FUNCTION_TYPE0(	Selected,			L"selected",										T	)
-		DECLARE_FUNCTION0(		Set,				L"set"													)
-		DECLARE_FUNCTION0(		Size,				L"size"													)
-		DECLARE_FUNCTION0(		SpecialFolder,		L"specialfolder"										)
-		DECLARE_FUNCTION0(		SubAccount,			L"subaccount"											)
-		DECLARE_FUNCTION0(		Subject,			L"subject"												)
-		DECLARE_FUNCTION0(		Substring,			L"substring"											)
-		DECLARE_FUNCTION1(		SubstringSep,		L"substringafter",	true								)
-		DECLARE_FUNCTION1(		SubstringSep,		L"substringbefore",	false								)
-		DECLARE_FUNCTION1(		Boolean,			L"true",			true								)
-		DECLARE_FUNCTION0(		URI,				L"uri"													)
-		DECLARE_FUNCTION0(		Variable,			L"variable"												)
-		DECLARE_FUNCTION0(		While,				L"while"												)
+		BEGIN_BLOCK(L'a', L'A')
+			DECLARE_FUNCTION0(		Account,			L"account"												)
+			DECLARE_FUNCTION0(		AccountDirectory,	L"accountdirectory"										)
+			DECLARE_FUNCTION1(		Address,			L"address",			false								)
+			DECLARE_FUNCTION_TYPE0(	AddressBook,		L"addressbook",										T	)
+			DECLARE_FUNCTION1(		Additive,			L"add",				true								)
+			DECLARE_FUNCTION0(		And,				L"and"													)
+			DECLARE_FUNCTION0(		Attachment,			L"attachment"											)
+		END_BLOCK()
+		BEGIN_BLOCK(L'b', L'B')
+			DECLARE_FUNCTION0(		Body,				L"body"													)
+			DECLARE_FUNCTION1(		Contain,			L"beginwith",		true								)
+		END_BLOCK()
+		BEGIN_BLOCK(L'c', L'C')
+			DECLARE_FUNCTION0(		Clipboard,			L"clipboard"											)
+			DECLARE_FUNCTION0(		ComputerName,		L"computername"											)
+			DECLARE_FUNCTION0(		Concat,				L"concat"												)
+			DECLARE_FUNCTION1(		Contain,			L"contain",			false								)
+			DECLARE_FUNCTION_TYPE1(	Copy,				L"copy",			false,							M	)
+		END_BLOCK()
+		BEGIN_BLOCK(L'd', L'D')
+			DECLARE_FUNCTION0(		Date,				L"date"													)
+			DECLARE_FUNCTION0(		Decode,				L"decode"												)
+			DECLARE_FUNCTION0(		Defun,				L"defun"												)
+			DECLARE_FUNCTION_TYPE0(	Delete,				L"delete",											M	)
+			DECLARE_FUNCTION1(		Flag,				L"deleted",			MessageHolder::FLAG_DELETED			)
+			DECLARE_FUNCTION1(		Flag,				L"download",		MessageHolder::FLAG_DOWNLOAD		)
+			DECLARE_FUNCTION1(		Flag,				L"downloadtext",	MessageHolder::FLAG_DOWNLOADTEXT	)
+			DECLARE_FUNCTION1(		Flag,				L"draft",			MessageHolder::FLAG_DRAFT			)
+		END_BLOCK()
+		BEGIN_BLOCK(L'e', L'E')
+			DECLARE_FUNCTION0(		Equal, 				L"equal"												)
+			DECLARE_FUNCTION1(		Eval, 				L"eval",			type								)
+			DECLARE_FUNCTION0(		Execute, 			L"execute"												)
+			DECLARE_FUNCTION0(		Exist, 				L"exist"												)
+			DECLARE_FUNCTION0(		Exit, 				L"exit"													)
+		END_BLOCK()
+		BEGIN_BLOCK(L'f', L'F')
+			DECLARE_FUNCTION1(		Boolean,			L"false",			false								)
+			DECLARE_FUNCTION0(		Field, 				L"field"												)
+			DECLARE_FUNCTION0(		FieldParameter,		L"fieldparameter"										)
+			DECLARE_FUNCTION0(		Find, 				L"find"													)
+			DECLARE_FUNCTION0(		Flag,				L"flag"													)
+			DECLARE_FUNCTION0(		Folder, 			L"folder"												)
+			DECLARE_FUNCTION0(		ForEach,			L"foreach"												)
+			DECLARE_FUNCTION1(		Flag,				L"forwarded",		MessageHolder::FLAG_FORWARDED		)
+			DECLARE_FUNCTION_TYPE0(	FormatAddress, 		L"formataddress",									T	)
+			DECLARE_FUNCTION0(		FormatDate, 		L"formatdate"											)
+		END_BLOCK()
+		BEGIN_BLOCK(L'g', L'G')
+			DECLARE_FUNCTION1(		Relative,			L"greater",			false								)
+		END_BLOCK()
+		BEGIN_BLOCK(L'h', L'H')
+			DECLARE_FUNCTION0(		Header, 			L"header"												)
+			DECLARE_FUNCTION0(		HtmlEscape, 		L"htmlescape"											)
+		END_BLOCK()
+		BEGIN_BLOCK(L'i', L'I')
+			DECLARE_FUNCTION0(		I, 					L"i"													)
+			DECLARE_FUNCTION0(		Id, 				L"id"													)
+			DECLARE_FUNCTION0(		Identity, 			L"identity"												)
+			DECLARE_FUNCTION0(		If, 				L"if"													)
+			DECLARE_FUNCTION1(		Include,			L"include",			type								)
+			DECLARE_FUNCTION_TYPE0(	InputBox,	 		L"inputbox",										RT	)
+		END_BLOCK()
+		BEGIN_BLOCK(L'l', L'L')
+			DECLARE_FUNCTION0(		Length,				L"length"												)
+			DECLARE_FUNCTION1(		Relative,			L"less",			true								)
+			DECLARE_FUNCTION0(		Load,				L"load"													)
+		END_BLOCK()
+		BEGIN_BLOCK(L'm', L'M')
+			DECLARE_FUNCTION1(		Flag,				L"marked",			MessageHolder::FLAG_MARKED			)
+			DECLARE_FUNCTION_TYPE0(	MessageBox,			L"messagebox",										RT	)
+			DECLARE_FUNCTION0(		Messages,			L"messages"												)
+			DECLARE_FUNCTION1(		Additive,			L"minus",			false								)
+			DECLARE_FUNCTION_TYPE1(	Copy,				L"move",			true,							M	)
+			DECLARE_FUNCTION1(		Flag,				L"multipart",		MessageHolder::FLAG_MULTIPART		)
+		END_BLOCK()
+		BEGIN_BLOCK(L'n', L'N')
+			DECLARE_FUNCTION1(		Address,			L"name",			true								)
+			DECLARE_FUNCTION0(		Not,				L"not"													)
+		END_BLOCK()
+		BEGIN_BLOCK(L'o', L'O')
+			DECLARE_FUNCTION0(		Or,					L"or"													)
+			DECLARE_FUNCTION0(		OSVersion,			L"osversion"											)
+		END_BLOCK()
+		BEGIN_BLOCK(L'p', L'P')
+			DECLARE_FUNCTION0(		ParseURL,			L"parseurl"												)
+			DECLARE_FUNCTION0(		Part,				L"part"													)
+			DECLARE_FUNCTION0(		Passed,				L"passed"												)
+			DECLARE_FUNCTION1(		Flag,				L"partial",			MessageHolder::FLAG_PARTIAL_MASK	)
+			DECLARE_FUNCTION0(		ProcessId,			L"processid"											)
+			DECLARE_FUNCTION0(		Profile,			L"profile"												)
+			DECLARE_FUNCTION0(		ProfileName,		L"profilename"											)
+			DECLARE_FUNCTION0(		Progn,				L"progn"												)
+		END_BLOCK()
+		BEGIN_BLOCK(L'r', L'R')
+			DECLARE_FUNCTION0(		References,			L"references"											)
+			DECLARE_FUNCTION0(		RegexFind,			L"regexfind"											)
+			DECLARE_FUNCTION0(		RegexMatch,			L"regexmatch"											)
+			DECLARE_FUNCTION0(		RegexReplace,		L"regexreplace"											)
+			DECLARE_FUNCTION0(		Remove,				L"remove"												)
+			DECLARE_FUNCTION1(		Flag,				L"replied",			MessageHolder::FLAG_REPLIED			)
+		END_BLOCK()
+		BEGIN_BLOCK(L's', L'S')
+			DECLARE_FUNCTION0(		Save,				L"save"													)
+			DECLARE_FUNCTION1(		Flag,				L"seen",			MessageHolder::FLAG_SEEN			)
+			DECLARE_FUNCTION1(		Flag,				L"sent",			MessageHolder::FLAG_SENT			)
+			DECLARE_FUNCTION0(		Script,				L"script"												)
+			DECLARE_FUNCTION_TYPE0(	Selected,			L"selected",										T	)
+			DECLARE_FUNCTION0(		Set,				L"set"													)
+			DECLARE_FUNCTION0(		Size,				L"size"													)
+			DECLARE_FUNCTION0(		SpecialFolder,		L"specialfolder"										)
+			DECLARE_FUNCTION0(		SubAccount,			L"subaccount"											)
+			DECLARE_FUNCTION0(		Subject,			L"subject"												)
+			DECLARE_FUNCTION0(		Substring,			L"substring"											)
+			DECLARE_FUNCTION1(		SubstringSep,		L"substringafter",	true								)
+			DECLARE_FUNCTION1(		SubstringSep,		L"substringbefore",	false								)
+		END_BLOCK()
+		BEGIN_BLOCK(L't', L'T')
+			DECLARE_FUNCTION1(		Boolean,			L"true",			true								)
+		END_BLOCK()
+		BEGIN_BLOCK(L'u', L'U')
+			DECLARE_FUNCTION0(		URI,				L"uri"													)
+		END_BLOCK()
+		BEGIN_BLOCK(L'v', L'V')
+			DECLARE_FUNCTION0(		Variable,			L"variable"												)
+		END_BLOCK()
+		BEGIN_BLOCK(L'w', L'W')
+			DECLARE_FUNCTION0(		While,				L"while"												)
+		END_BLOCK()
 	END_DECLARE_FUNCTION()
-	
-	return std::auto_ptr<MacroFunction>(0);
 }
 
 const MacroFunctionFactory& qm::MacroFunctionFactory::getFactory()
