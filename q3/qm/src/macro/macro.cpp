@@ -191,6 +191,7 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 	bDecryptVerify_(bDecryptVerify),
 	pErrorHandler_(pErrorHandler),
 	pGlobalVariable_(pGlobalVariable),
+	returnType_(MacroContext::RETURNTYPE_NONE),
 	nRegexResultCount_(0)
 {
 	assert(pDocument_);
