@@ -235,7 +235,8 @@ ifeq ($(PLATFORM),desktop)
 						  ole32.lib \
 						  oleaut32.lib \
 						  uuid.lib \
-						  urlmon.lib
+						  urlmon.lib \
+						  mapiw32.lib
 	ifdef KCTRL
 		LIBS			+= $(KCTRLDIR)/lib/x86uni/kctrl.lib
 	endif

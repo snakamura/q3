@@ -15,9 +15,15 @@
 #include <qscrypto.h>
 #include <qssax.h>
 #include <qsstring.h>
+#ifdef _WIN32_WCE
+#	include <qswindow.h>
+#endif
 
 #include <vector>
 
+#ifndef _WIN32_WCE
+#	include <wab.h>
+#endif
 
 namespace qm {
 
@@ -37,6 +43,13 @@ class Security;
 
 class AddressBook
 {
+public:
+	enum Type {
+		TYPE_ADDRESSBOOK	= 0x01,
+		TYPE_WAB			= 0x02,
+		TYPE_BOTH			= 0x03
+	};
+
 public:
 	typedef std::vector<AddressBookEntry*> EntryList;
 	typedef std::vector<qs::WSTRING> CategoryList;
@@ -58,9 +71,10 @@ public:
 	qs::QSTATUS addEntry(AddressBookEntry* pEntry);
 
 private:
+	qs::QSTATUS initWAB();
 	qs::QSTATUS load();
 	qs::QSTATUS loadWAB();
-	void clear();
+	void clear(unsigned int nType);
 
 private:
 	AddressBook(const AddressBook&);
@@ -87,11 +101,72 @@ private:
 	friend class SMIMECallbackImpl;
 
 private:
+#ifndef _WIN32_WCE
+	class IMAPIAdviseSinkImpl : public IMAPIAdviseSink
+	{
+	public:
+		IMAPIAdviseSinkImpl(AddressBook* pAddressBook, qs::QSTATUS* pstatus);
+		~IMAPIAdviseSinkImpl();
+	
+	public:
+		STDMETHOD(QueryInterface)(REFIID riid, void** ppv);
+		STDMETHOD_(ULONG, AddRef)();
+		STDMETHOD_(ULONG, Release)();
+	
+	public:
+		STDMETHOD_(ULONG, OnNotify)(ULONG cNotif, LPNOTIFICATION lpNotifications);
+	
+	private:
+		IMAPIAdviseSinkImpl(const IMAPIAdviseSinkImpl&);
+		IMAPIAdviseSinkImpl& operator=(const IMAPIAdviseSinkImpl&);
+	
+	private:
+		ULONG nRef_;
+		AddressBook* pAddressBook_;
+	};
+	friend class IMAPIAdviseSinkImpl;
+#else
+	class NotificationWindow :
+		public qs::WindowBase,
+		public qs::DefaultWindowHandler
+	{
+	public:
+		NotificationWindow(AddressBook* pAddressBook, qs::QSTATUS* pstatus);
+		virtual ~NotificationWindow();
+	
+	public:
+		virtual LRESULT windowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	
+	protected:
+		LRESULT onDBNotification(WPARAM wParam, LPARAM lParam);
+	
+	private:
+		NotificationWindow(const NotificationWindow&);
+		NotificationWindow& operator=(const NotificationWindow&);
+	
+	private:
+		AddressBook* pAddressBook_;
+	};
+	friend class NotificationWindow;
+#endif
+
+private:
 	const Security* pSecurity_;
 	FILETIME ft_;
 	EntryList listEntry_;
 	CategoryList listCategory_;
 	SMIMECallbackImpl* pSMIMECallback_;
+	bool bContactChanged_;
+#ifndef _WIN32_WCE
+	HINSTANCE hInstWAB_;
+	IAddrBook* pAddrBook_;
+	IWABObject* pWABObject_;
+	ULONG nConnection_;
+#else
+	HANDLE hCategoryDB_;
+	HANDLE hContactsDB_;
+	NotificationWindow* pNotificationWindow_;
+#endif
 };
 
 
@@ -107,10 +182,11 @@ public:
 	typedef std::vector<AddressBookAddress*> AddressList;
 
 public:
-	explicit AddressBookEntry(qs::QSTATUS* pstatus);
+	AddressBookEntry(bool bWAB, qs::QSTATUS* pstatus);
 	~AddressBookEntry();
 
 public:
+	bool isWAB() const;
 	const WCHAR* getName() const;
 	const AddressList& getAddresses() const;
 
@@ -123,6 +199,7 @@ private:
 	AddressBookEntry& operator=(const AddressBookEntry&);
 
 private:
+	bool bWAB_;
 	qs::WSTRING wstrName_;
 	AddressList listAddress_;
 };

@@ -17,10 +17,10 @@
 
 #include <algorithm>
 
-#ifdef _WIN32_WCE
-#	include <addrmapi.h>
+#ifndef _WIN32_WCE
+#	include <mapiguid.h>
 #else
-#	include <wab.h>
+#	include <addrmapi.h>
 #endif
 
 #include "addressbook.h"
@@ -38,7 +38,18 @@ using namespace qs;
 
 qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
 	pSecurity_(pSecurity),
-	pSMIMECallback_(0)
+	pSMIMECallback_(0),
+	bContactChanged_(true),
+#ifndef _WIN32_WCE
+	hInstWAB_(0),
+	pAddrBook_(0),
+	pWABObject_(0),
+	nConnection_(0)
+#else
+	hCategoryDB_(0),
+	hContactsDB_(0),
+	pNotificationWindow_(0)
+#endif
 {
 	DECLARE_QSTATUS();
 	
@@ -48,12 +59,33 @@ qm::AddressBook::AddressBook(const Security* pSecurity, QSTATUS* pstatus) :
 	
 	status = newQsObject(this, &pSMIMECallback_);
 	CHECK_QSTATUS_SET(pstatus);
+	
+	status = initWAB();
+	CHECK_QSTATUS_SET(pstatus);
 }
 
 qm::AddressBook::~AddressBook()
 {
-	clear();
+	clear(TYPE_BOTH);
 	delete pSMIMECallback_;
+	
+#ifndef _WIN32_WCE
+	if (pAddrBook_) {
+		if (nConnection_ != 0)
+			pAddrBook_->Unadvise(nConnection_);
+		pAddrBook_->Release();
+		pWABObject_->Release();
+	}
+	if (hInstWAB_)
+		::FreeLibrary(hInstWAB_);
+#else
+	if (hCategoryDB_)
+		::CloseHandle(hCategoryDB_);
+	if (hContactsDB_)
+		::CloseHandle(hContactsDB_);
+	if (pNotificationWindow_)
+		pNotificationWindow_->destroyWindow();
+#endif
 }
 
 QSTATUS qm::AddressBook::getEntries(const EntryList** ppList)
@@ -186,81 +218,7 @@ QSTATUS qm::AddressBook::addEntry(AddressBookEntry* pEntry)
 	return STLWrapper<EntryList>(listEntry_).push_back(pEntry);
 }
 
-QSTATUS qm::AddressBook::load()
-{
-	DECLARE_QSTATUS();
-	
-	string_ptr<WSTRING> wstrPath;
-	status = Application::getApplication().getProfilePath(
-		Extensions::ADDRESSBOOK, &wstrPath);
-	CHECK_QSTATUS();
-	
-	bool bCleared = true;
-	
-	W2T(wstrPath.get(), ptszPath);
-	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (hFile.get()) {
-		FILETIME ft;
-		::GetFileTime(hFile.get(), 0, 0, &ft);
-		hFile.close();
-		
-		if (::CompareFileTime(&ft, &ft_) != 0) {
-			clear();
-			
-			XMLReader reader(&status);
-			CHECK_QSTATUS();
-			AddressBookContentHandler handler(this, &status);
-			CHECK_QSTATUS();
-			reader.setContentHandler(&handler);
-			status = reader.parse(wstrPath.get());
-			CHECK_QSTATUS();
-			
-			ft_ = ft;
-		}
-		else {
-			bCleared = false;
-		}
-	}
-	else {
-		clear();
-	}
-	
-	if (bCleared) {
-		status = loadWAB();
-		CHECK_QSTATUS();
-	}
-	
-	EntryList::iterator itE = listEntry_.begin();
-	while (itE != listEntry_.end()) {
-		const AddressBookEntry::AddressList& l = (*itE)->getAddresses();
-		AddressBookEntry::AddressList::const_iterator itA = l.begin();
-		while (itA != l.end()) {
-			const WCHAR* pwszCategory = (*itA)->getCategory();
-			if (pwszCategory) {
-				CategoryList::iterator itC = std::lower_bound(
-					listCategory_.begin(), listCategory_.end(),
-					pwszCategory, string_less<WCHAR>());
-				if (itC == listCategory_.end() || wcscmp(*itC, pwszCategory) != 0) {
-					string_ptr<WSTRING> wstrCategory(allocWString(pwszCategory));
-					if (!wstrCategory.get())
-						return QSTATUS_OUTOFMEMORY;
-					CategoryList::iterator p;
-					status = STLWrapper<CategoryList>(listCategory_).insert(
-						itC, wstrCategory.get(), &p);
-					CHECK_QSTATUS();
-					wstrCategory.release();
-				}
-			}
-			++itA;
-		}
-		++itE;
-	}
-	
-	return QSTATUS_SUCCESS;
-}
-
-QSTATUS qm::AddressBook::loadWAB()
+QSTATUS qm::AddressBook::initWAB()
 {
 	DECLARE_QSTATUS();
 	
@@ -275,13 +233,13 @@ QSTATUS qm::AddressBook::loadWAB()
 	status = reg.getValue(L"", &wstrPath);
 	CHECK_QSTATUS();
 	
-	Library lib(wstrPath.get(), &status);
-	CHECK_QSTATUS();
-	if (!lib)
+	W2T(wstrPath.get(), ptszPath);
+	hInstWAB_ = ::LoadLibrary(ptszPath);
+	if (!hInstWAB_)
 		return QSTATUS_FAIL;
 	
 	LPWABOPEN pfnWABOpen = reinterpret_cast<LPWABOPEN>(
-		::GetProcAddress(lib, "WABOpen"));
+		::GetProcAddress(hInstWAB_, "WABOpen"));
 	if (!pfnWABOpen)
 		return QSTATUS_FAIL;
 	
@@ -296,9 +254,130 @@ QSTATUS qm::AddressBook::loadWAB()
 	if (pAddrBook->GetPAB(&nSize, &pEntryId) != S_OK)
 		return QSTATUS_FAIL;
 	
+	std::auto_ptr<IMAPIAdviseSinkImpl> pAdviseSink;
+	status = newQsObject(this, &pAdviseSink);
+	CHECK_QSTATUS();
+	if (pAddrBook->Advise(sizeof(ENTRYID), pEntryId,
+		0xffffffff, pAdviseSink.get(), &nConnection_) != S_OK)
+		return QSTATUS_FAIL;
+	pAdviseSink.release();
+	
+	pAddrBook_ = pAddrBook.release();
+	pWABObject_ = pWABObject.release();
+#else
+	std::auto_ptr<NotificationWindow> pWindow;
+	status = newQsObject(this, &pWindow);
+	CHECK_QSTATUS();
+	status = pWindow->create(L"QmAddressBookNotificationWindow",
+		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	CHECK_QSTATUS();
+	pNotificationWindow_ = pWindow.release();
+	
+	CEOID oidCategory = 0;
+	hCategoryDB_ = ::CeOpenDatabase(&oidCategory,
+		L"\\Categories Database", 0, CEDB_AUTOINCREMENT,
+		pNotificationWindow_->getHandle());
+	
+	CEOID oidContact = 0;
+	hContactsDB_ = ::CeOpenDatabase(&oidContact,
+		L"Contacts Database", 0, CEDB_AUTOINCREMENT,
+		pNotificationWindow_->getHandle());
+#endif
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AddressBook::load()
+{
+	DECLARE_QSTATUS();
+	
+	string_ptr<WSTRING> wstrPath;
+	status = Application::getApplication().getProfilePath(
+		Extensions::ADDRESSBOOK, &wstrPath);
+	CHECK_QSTATUS();
+	
+	bool bCleared = false;
+	
+	W2T(wstrPath.get(), ptszPath);
+	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
+	if (hFile.get()) {
+		FILETIME ft;
+		::GetFileTime(hFile.get(), 0, 0, &ft);
+		hFile.close();
+		
+		if (::CompareFileTime(&ft, &ft_) != 0) {
+			clear(TYPE_ADDRESSBOOK);
+			bCleared = true;
+			
+			XMLReader reader(&status);
+			CHECK_QSTATUS();
+			AddressBookContentHandler handler(this, &status);
+			CHECK_QSTATUS();
+			reader.setContentHandler(&handler);
+			status = reader.parse(wstrPath.get());
+			CHECK_QSTATUS();
+			
+			ft_ = ft;
+		}
+	}
+	else {
+		clear(TYPE_ADDRESSBOOK);
+		bCleared = true;
+	}
+	
+	if (bContactChanged_) {
+		clear(TYPE_WAB);
+		bCleared = true;
+		
+		status = loadWAB();
+		CHECK_QSTATUS();
+	}
+	
+	if (bCleared) {
+		EntryList::iterator itE = listEntry_.begin();
+		while (itE != listEntry_.end()) {
+			const AddressBookEntry::AddressList& l = (*itE)->getAddresses();
+			AddressBookEntry::AddressList::const_iterator itA = l.begin();
+			while (itA != l.end()) {
+				const WCHAR* pwszCategory = (*itA)->getCategory();
+				if (pwszCategory) {
+					CategoryList::iterator itC = std::lower_bound(
+						listCategory_.begin(), listCategory_.end(),
+						pwszCategory, string_less<WCHAR>());
+					if (itC == listCategory_.end() || wcscmp(*itC, pwszCategory) != 0) {
+						string_ptr<WSTRING> wstrCategory(allocWString(pwszCategory));
+						if (!wstrCategory.get())
+							return QSTATUS_OUTOFMEMORY;
+						CategoryList::iterator p;
+						status = STLWrapper<CategoryList>(listCategory_).insert(
+							itC, wstrCategory.get(), &p);
+						CHECK_QSTATUS();
+						wstrCategory.release();
+					}
+				}
+				++itA;
+			}
+			++itE;
+		}
+	}
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::AddressBook::loadWAB()
+{
+	DECLARE_QSTATUS();
+	
+#ifndef _WIN32_WCE
+	ULONG nSize = 0;
+	ENTRYID* pEntryId = 0;
+	if (pAddrBook_->GetPAB(&nSize, &pEntryId) != S_OK)
+		return QSTATUS_FAIL;
+	
 	ULONG nType = 0;
 	ComPtr<IABContainer> pABC;
-	if (pAddrBook->OpenEntry(nSize, pEntryId,
+	if (pAddrBook_->OpenEntry(nSize, pEntryId,
 		0, 0, &nType, reinterpret_cast<IUnknown**>(&pABC)) != S_OK)
 		return QSTATUS_FAIL;
 	
@@ -329,7 +408,7 @@ QSTATUS qm::AddressBook::loadWAB()
 				
 				IWABObject* pWABObject_;
 				SRowSet* pSRowSet_;
-			} deleter(pWABObject.get(), pSRowSet);
+			} deleter(pWABObject_, pSRowSet);
 			if (pSRowSet->cRows == 0)
 				break;
 			
@@ -337,7 +416,7 @@ QSTATUS qm::AddressBook::loadWAB()
 				SRow* pRow = pSRowSet->aRow + nRow;
 				
 				std::auto_ptr<AddressBookEntry> pEntry;
-				status = newQsObject(&pEntry);
+				status = newQsObject(true, &pEntry);
 				CHECK_QSTATUS();
 				
 				for (ULONG nValue = 0; nValue < pRow->cValues; ++nValue) {
@@ -415,10 +494,10 @@ QSTATUS qm::AddressBook::loadWAB()
 		LPBYTE p_;
 	};
 	
-	CEOID oidCategory = 0;
-	AutoHandle hdbCategory(::CeOpenDatabase(&oidCategory,
-		L"\\Categories Database", 0, CEDB_AUTOINCREMENT, 0));
-	if (hdbCategory.get()) {
+	if (hCategoryDB_) {
+		DWORD dwIndex = 0;
+		::CeSeekDatabase(hCategoryDB_, CEDB_SEEK_BEGINNING, 0, &dwIndex);
+		
 		static CEPROPID cepropid[] = {
 			0x40020002,		// ID
 			0x4001001f,		// Name
@@ -428,7 +507,7 @@ QSTATUS qm::AddressBook::loadWAB()
 			WORD wProps = sizeof(cepropid)/sizeof(cepropid[0]);
 			LPBYTE pBuffer = 0;
 			DWORD dwSize = 0;
-			CEOID oid = ::CeReadRecordProps(hdbCategory.get(),
+			CEOID oid = ::CeReadRecordProps(hCategoryDB_,
 				CEDB_ALLOWREALLOC, &wProps, cepropid, &pBuffer, &dwSize);
 			if (!oid)
 				break;
@@ -462,11 +541,11 @@ QSTATUS qm::AddressBook::loadWAB()
 			std::select1st<CategoryMap::value_type>(),
 			std::select1st<CategoryMap::value_type>()));
 	
-	CEOID oidContact = 0;
-	AutoHandle hdbContact(::CeOpenDatabase(&oidContact,
-		L"Contacts Database", 0, CEDB_AUTOINCREMENT, 0));
-	if (!hdbContact.get())
+	if (!hContactsDB_)
 		return QSTATUS_FAIL;
+	
+	DWORD dwIndex = 0;
+	::CeSeekDatabase(hContactsDB_, CEDB_SEEK_BEGINNING, 0, &dwIndex);
 	
 	static CEPROPID cepropid[] = {
 		HHPR_SURNAME,
@@ -485,7 +564,7 @@ QSTATUS qm::AddressBook::loadWAB()
 		WORD wProps = sizeof(cepropid)/sizeof(cepropid[0]);
 		LPBYTE pBuffer = 0;
 		DWORD dwSize = 0;
-		CEOID oid = ::CeReadRecordProps(hdbContact.get(),
+		CEOID oid = ::CeReadRecordProps(hContactsDB_,
 			CEDB_ALLOWREALLOC, &wProps, cepropid, &pBuffer, &dwSize);
 		if (!oid)
 			break;
@@ -554,7 +633,7 @@ QSTATUS qm::AddressBook::loadWAB()
 		}
 		
 		std::auto_ptr<AddressBookEntry> pEntry;
-		status = newQsObject(&pEntry);
+		status = newQsObject(true, &pEntry);
 		CHECK_QSTATUS();
 		pEntry->setName(wstrName.release());
 		
@@ -582,14 +661,26 @@ QSTATUS qm::AddressBook::loadWAB()
 		pEntry.release();
 	}
 #endif
+	
+	bContactChanged_ = false;
+	
 	return QSTATUS_SUCCESS;
 }
 
-void qm::AddressBook::clear()
+void qm::AddressBook::clear(unsigned int nType)
 {
-	std::for_each(listEntry_.begin(),
-		listEntry_.end(), deleter<AddressBookEntry>());
-	listEntry_.clear();
+	EntryList::iterator it = listEntry_.begin();
+	while (it != listEntry_.end()) {
+		bool bWAB = (*it)->isWAB();
+		if ((nType & TYPE_ADDRESSBOOK && !bWAB) ||
+			(nType & TYPE_WAB && bWAB)) {
+			delete *it;
+			it = listEntry_.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
 	
 	std::for_each(listCategory_.begin(),
 		listCategory_.end(), string_free<WSTRING>());
@@ -656,13 +747,109 @@ QSTATUS qm::AddressBook::SMIMECallbackImpl::getCertificate(
 }
 
 
+#ifndef _WIN32_WCE
+
+/****************************************************************************
+ *
+ * AddressBook::IMAPIAdviseSinkImpl
+ *
+ */
+
+qm::AddressBook::IMAPIAdviseSinkImpl::IMAPIAdviseSinkImpl(
+	AddressBook* pAddressBook, qs::QSTATUS* pstatus) :
+	nRef_(0),
+	pAddressBook_(pAddressBook)
+{
+}
+
+qm::AddressBook::IMAPIAdviseSinkImpl::~IMAPIAdviseSinkImpl()
+{
+}
+
+STDMETHODIMP qm::AddressBook::IMAPIAdviseSinkImpl::QueryInterface(
+	REFIID riid, void** ppv)
+{
+	if (riid == IID_IUnknown || riid == IID_IMAPIAdviseSink)
+		*ppv = static_cast<IMAPIAdviseSink*>(this);
+	else
+		return E_NOINTERFACE;
+	
+	AddRef();
+	
+	return S_OK;
+}
+
+STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::AddRef()
+{
+	return ++nRef_;
+}
+
+STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::Release()
+{
+	if (--nRef_ == 0) {
+		delete this;
+		return 0;
+	}
+	return nRef_;
+}
+
+STDMETHODIMP_(ULONG) qm::AddressBook::IMAPIAdviseSinkImpl::OnNotify(
+	ULONG cNotif, LPNOTIFICATION lpNotifications)
+{
+	pAddressBook_->bContactChanged_ = true;
+	return S_OK;
+}
+
+#else
+
+/****************************************************************************
+ *
+ * AddressBook::NotificationWindow
+ *
+ */
+
+qm:: AddressBook::NotificationWindow::NotificationWindow(
+	AddressBook* pAddressBook, qs::QSTATUS* pstatus) :
+	WindowBase(true, pstatus),
+	DefaultWindowHandler(pstatus),
+	pAddressBook_(pAddressBook)
+{
+	setWindowHandler(this, false);
+}
+
+qm:: AddressBook::NotificationWindow::~NotificationWindow()
+{
+}
+
+LRESULT qm:: AddressBook::NotificationWindow::windowProc(
+	UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_MESSAGE(DB_CEOID_CREATED, onDBNotification)
+		HANDLE_MESSAGE(DB_CEOID_RECORD_DELETED, onDBNotification)
+		HANDLE_MESSAGE(DB_CEOID_CHANGED, onDBNotification)
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm:: AddressBook::NotificationWindow::onDBNotification(
+	WPARAM wParam, LPARAM lParam)
+{
+	pAddressBook_->bContactChanged_ = true;
+	return 0;
+}
+
+#endif
+
+
 /****************************************************************************
  *
  * AddressBookEntry
  *
  */
 
-qm::AddressBookEntry::AddressBookEntry(QSTATUS* pstatus) :
+qm::AddressBookEntry::AddressBookEntry(bool bWAB, QSTATUS* pstatus) :
+	bWAB_(bWAB),
 	wstrName_(0)
 {
 }
@@ -672,6 +859,11 @@ qm::AddressBookEntry::~AddressBookEntry()
 	freeWString(wstrName_);
 	std::for_each(listAddress_.begin(), listAddress_.end(),
 		deleter<AddressBookAddress>());
+}
+
+bool qm::AddressBookEntry::isWAB() const
+{
+	return bWAB_;
 }
 
 const WCHAR* qm::AddressBookEntry::getName() const
@@ -874,7 +1066,7 @@ QSTATUS qm::AddressBookContentHandler::startElement(
 			return QSTATUS_FAIL;
 		
 		std::auto_ptr<AddressBookEntry> pEntry;
-		status = newQsObject(&pEntry);
+		status = newQsObject(false, &pEntry);
 		CHECK_QSTATUS();
 		status = pAddressBook_->addEntry(pEntry.get());
 		CHECK_QSTATUS();
