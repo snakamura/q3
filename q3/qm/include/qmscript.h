@@ -9,8 +9,6 @@
 #ifndef __QMSCRIPT_H__
 #define __QMSCRIPT_H__
 
-#include <qmscriptconfig.h>
-
 #include <qmeditwindow.h>
 #include <qmdocument.h>
 #include <qmmainwindow.h>
@@ -22,7 +20,7 @@
 #include <qswindow.h>
 
 
-namespace qmscript {
+namespace qm {
 
 /****************************************************************************
  *
@@ -30,7 +28,7 @@ namespace qmscript {
  *
  */
 
-class Script
+class QMEXPORTCLASS Script
 {
 public:
 	virtual ~Script();
@@ -48,7 +46,7 @@ public:
  *
  */
 
-class ScriptFactory
+class QMEXPORTCLASS ScriptFactory
 {
 public:
 	enum Type {
@@ -75,24 +73,27 @@ public:
 		} window_;
 	};
 
+protected:
+	ScriptFactory();
+
 public:
 	virtual ~ScriptFactory();
 
 public:
-	virtual std::auto_ptr<Script> newScript(const Init& init) = 0;
-	virtual void deleteScript(Script* pScript) = 0;
+	virtual std::auto_ptr<Script> createScript(const Init& init) = 0;
+
+public:
+	static ScriptFactory* getFactory();
+
+protected:
+	static void registerFactory(ScriptFactory* pFactory);
+	static void unregisterFactory(ScriptFactory* pFactory);
+
+private:
+	ScriptFactory(const ScriptFactory&);
+	ScriptFactory& operator=(const ScriptFactory&);
 };
 
 }
-
-
-/****************************************************************************
- *
- * Global functions
- *
- */
-
-extern "C" qmscript::ScriptFactory* newScriptFactory();
-extern "C" void deleteScriptFactory(qmscript::ScriptFactory* pFactory);
 
 #endif // __QMSCRIPT_H__

@@ -1,5 +1,3 @@
-	newScriptFactory
-	deleteScriptFactory
 	DllCanUnloadNow			PRIVATE
 	DllGetClassObject		PRIVATE
 	DllRegisterServer		PRIVATE

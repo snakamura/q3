@@ -17,7 +17,6 @@
 #include "scriptmanager.h"
 
 using namespace qm;
-using namespace qmscript;
 using namespace qs;
 
 
@@ -27,46 +26,13 @@ using namespace qs;
  *
  */
 
-qm::ScriptManager::ScriptManager(const WCHAR* pwszPath) :
-	hInst_(0),
-	pFactory_(0)
+qm::ScriptManager::ScriptManager(const WCHAR* pwszPath)
 {
 	wstrPath_ = allocWString(pwszPath);
-	
-#ifdef NDEBUG
-#	ifdef UNICODE
-#		define SUFFIX _T("u")
-#	else
-#		define SUFFIX _T("")
-#	endif
-#else
-#	ifdef UNICODE
-#		define SUFFIX _T("ud")
-#	else
-#		define SUFFIX _T("d")
-#	endif
-#endif
-	hInst_ = ::LoadLibrary(_T("qmscript") SUFFIX _T(".dll"));
-	if (hInst_) {
-		typedef ScriptFactory* (*PFN_NEW)();
-		PFN_NEW pfnNew = reinterpret_cast<PFN_NEW>(
-			::GetProcAddress(hInst_, WCE_T("newScriptFactory")));
-		if (pfnNew)
-			pFactory_ = (*pfnNew)();
-	}
 }
 
 qm::ScriptManager::~ScriptManager()
 {
-	if (hInst_) {
-		typedef void (*PFN_DELETE)(ScriptFactory*);
-		PFN_DELETE pfnDelete = reinterpret_cast<PFN_DELETE>(
-			::GetProcAddress(hInst_, WCE_T("deleteScriptFactory")));
-		if (pfnDelete)
-			(*pfnDelete)(pFactory_);
-		
-		::FreeLibrary(hInst_);
-	}
 }
 
 std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
@@ -79,7 +45,8 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 	assert(pDocument);
 	assert(pModalHandler);
 	
-	if (!pFactory_)
+	ScriptFactory* pFactory = ScriptFactory::getFactory();
+	if (!pFactory)
 		return std::auto_ptr<Script>(0);
 	
 	ConcatW c[] = {
@@ -159,12 +126,13 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 		break;
 	}
 	
-	return pFactory_->newScript(init);
+	return pFactory->createScript(init);
 }
 
 void qm::ScriptManager::getScriptNames(NameList* pList) const
 {
-	if (!pFactory_)
+	ScriptFactory* pFactory = ScriptFactory::getFactory();
+	if (!pFactory)
 		return;
 	
 	NameList l;
@@ -199,7 +167,8 @@ std::auto_ptr<Script> qm::ScriptManager::createScript(const WCHAR* pwszScript,
 													  HWND hwnd,
 													  ModalHandler* pModalHandler) const
 {
-	if (!pFactory_)
+	ScriptFactory* pFactory = ScriptFactory::getFactory();
+	if (!pFactory)
 		return std::auto_ptr<Script>(0);
 	
 	StringReader reader(pwszScript, false);
@@ -214,5 +183,5 @@ std::auto_ptr<Script> qm::ScriptManager::createScript(const WCHAR* pwszScript,
 		pModalHandler,
 		ScriptFactory::TYPE_NONE
 	};
-	return pFactory_->newScript(init);
+	return pFactory->createScript(init);
 }

@@ -5,7 +5,6 @@
 PROJECTNAME		= qm
 PROJECTTYPE		= dll
 LIBRARIES		= qs
-EXTRAINCLUDES	= qmscript
 
 CPROJS			= -DQMEXPORT
 ifeq ($(PLATFORM),desktop)

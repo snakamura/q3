@@ -10,7 +10,6 @@
 #define __SCRIPTMANAGER_H__
 
 #include <qm.h>
-
 #include <qmscript.h>
 
 #include <qs.h>
@@ -55,18 +54,18 @@ public:
 	~ScriptManager();
 
 public:
-	std::auto_ptr<qmscript::Script> getScript(const WCHAR* pwszName,
-											  Document* pDocument,
-											  qs::Profile* pProfile,
-											  qs::ModalHandler* pModalHandler,
-											  const WindowInfo& info) const;
+	std::auto_ptr<Script> getScript(const WCHAR* pwszName,
+									Document* pDocument,
+									qs::Profile* pProfile,
+									qs::ModalHandler* pModalHandler,
+									const WindowInfo& info) const;
 	void getScriptNames(NameList* pList) const;
-	std::auto_ptr<qmscript::Script> createScript(const WCHAR* pwszScript,
-												 const WCHAR* pwszLanguage,
-												 Document* pDocument,
-												 qs::Profile* pProfile,
-												 HWND hwnd,
-												 qs::ModalHandler* pModalHandler) const;
+	std::auto_ptr<Script> createScript(const WCHAR* pwszScript,
+									   const WCHAR* pwszLanguage,
+									   Document* pDocument,
+									   qs::Profile* pProfile,
+									   HWND hwnd,
+									   qs::ModalHandler* pModalHandler) const;
 
 private:
 	ScriptManager(const ScriptManager&);
@@ -74,8 +73,6 @@ private:
 
 private:
 	qs::wstring_ptr wstrPath_;
-	HINSTANCE hInst_;
-	qmscript::ScriptFactory* pFactory_;
 };
 
 }

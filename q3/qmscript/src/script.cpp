@@ -19,45 +19,6 @@ using namespace qs;
 
 /****************************************************************************
  *
- * Script
- *
- */
-
-qmscript::Script::~Script()
-{
-}
-
-
-/****************************************************************************
- *
- * ScriptFactory
- *
- */
-
-qmscript::ScriptFactory::~ScriptFactory()
-{
-}
-
-
-/****************************************************************************
- *
- * Global functions
- *
- */
-
-extern "C" ScriptFactory* newScriptFactory()
-{
-	return new ScriptFactoryImpl();
-}
-
-extern "C" void deleteScriptFactory(ScriptFactory* pFactory)
-{
-	delete pFactory;
-}
-
-
-/****************************************************************************
- *
  * ScriptImpl
  *
  */
@@ -205,15 +166,19 @@ bool qmscript::ScriptImpl::load(const ScriptFactory::Init& init)
  *
  */
 
+ScriptFactoryImpl qmscript::ScriptFactoryImpl::factory__;
+
 qmscript::ScriptFactoryImpl::ScriptFactoryImpl()
 {
+	registerFactory(this);
 }
 
 qmscript::ScriptFactoryImpl::~ScriptFactoryImpl()
 {
+	unregisterFactory(this);
 }
 
-std::auto_ptr<Script> qmscript::ScriptFactoryImpl::newScript(const Init& init)
+std::auto_ptr<Script> qmscript::ScriptFactoryImpl::createScript(const Init& init)
 {
 	assert(init.pwszLanguage_);
 	assert(init.pReader_);
@@ -222,13 +187,7 @@ std::auto_ptr<Script> qmscript::ScriptFactoryImpl::newScript(const Init& init)
 	assert(init.hwnd_);
 	assert(init.pModalHandler_);
 	
-	std::auto_ptr<ScriptImpl> pScript(new ScriptImpl(init));
-	return pScript;
-}
-
-void qmscript::ScriptFactoryImpl::deleteScript(Script* pScript)
-{
-	delete pScript;
+	return std::auto_ptr<Script>(new ScriptImpl(init));
 }
 
 

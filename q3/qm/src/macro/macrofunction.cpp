@@ -13,9 +13,8 @@
 #include <qmmacro.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
-#include <qmtemplate.h>
-
 #include <qmscript.h>
+#include <qmtemplate.h>
 
 #include <qsconv.h>
 #include <qsinit.h>
@@ -38,7 +37,6 @@
 #pragma warning(disable:4786)
 
 using namespace qm;
-using namespace qmscript;
 using namespace qs;
 
 #define VALUE(name, expr) \

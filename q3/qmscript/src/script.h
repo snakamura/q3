@@ -9,9 +9,8 @@
 #ifndef __SCRIPT_H__
 #define __SCRIPT_H__
 
-#include <qmscript.h>
-
 #include <qmdocument.h>
+#include <qmscript.h>
 
 #include <qs.h>
 
@@ -34,10 +33,10 @@ class ReaderIStream;
  *
  */
 
-class ScriptImpl : public Script
+class ScriptImpl : public qm::Script
 {
 public:
-	explicit ScriptImpl(const ScriptFactory::Init& init);
+	explicit ScriptImpl(const qm::ScriptFactory::Init& init);
 	virtual ~ScriptImpl();
 
 public:
@@ -46,7 +45,7 @@ public:
 					 VARIANT* pvarResult);
 
 private:
-	bool load(const ScriptFactory::Init& init);
+	bool load(const qm::ScriptFactory::Init& init);
 
 private:
 	ScriptImpl(const ScriptImpl&);
@@ -63,19 +62,21 @@ private:
  *
  */
 
-class ScriptFactoryImpl : public ScriptFactory
+class ScriptFactoryImpl : public qm::ScriptFactory
 {
 public:
 	ScriptFactoryImpl();
 	virtual ~ScriptFactoryImpl();
 
 public:
-	virtual std::auto_ptr<Script> newScript(const Init& init);
-	virtual void deleteScript(Script* pScript);
+	virtual std::auto_ptr<qm::Script> createScript(const Init& init);
 
 private:
 	ScriptFactoryImpl(const ScriptFactoryImpl&);
 	ScriptFactoryImpl& operator=(const ScriptFactoryImpl&);
+
+private:
+	static ScriptFactoryImpl factory__;
 };
 
 
@@ -90,7 +91,7 @@ class ActiveScriptSite :
 	public IActiveScriptSiteWindow
 {
 public:
-	ActiveScriptSite(const ScriptFactory::Init& init);
+	ActiveScriptSite(const qm::ScriptFactory::Init& init);
 	~ActiveScriptSite();
 
 public:

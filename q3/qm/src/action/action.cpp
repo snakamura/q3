@@ -21,11 +21,10 @@
 #include <qmmessageholder.h>
 #include <qmmessagewindow.h>
 #include <qmrecents.h>
+#include <qmscript.h>
 #include <qmsearch.h>
 #include <qmtabwindow.h>
 #include <qmtemplate.h>
-
-#include <qmscript.h>
 
 #include <qsconv.h>
 #include <qsfile.h>
@@ -77,7 +76,6 @@
 #pragma warning(disable:4786)
 
 using namespace qm;
-using namespace qmscript;
 using namespace qs;
 
 

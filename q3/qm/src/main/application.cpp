@@ -627,6 +627,7 @@ bool qm::Application::initialize()
 		L"imap4",
 		L"nntp",
 		L"rss",
+		L"script",
 		L"junk"
 	};
 	for (int n = 0; n < countof(pwszLibraries); ++n)
