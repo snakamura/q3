@@ -57,20 +57,23 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "POP3"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Get All",IDC_STATIC,5,7,22,8
-    EDITTEXT        IDC_GETALL,50,5,40,12,ES_AUTOHSCROLL
-    LTEXT           "&Noop Interval",IDC_STATIC,5,22,40,8
-    EDITTEXT        IDC_NOOPINTERVAL,50,20,40,12,ES_AUTOHSCROLL
-    CONTROL         "&Delete messages on server",IDC_DELETEONSERVER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,105,10
-    LTEXT           "D&elete messages on server after",IDC_STATIC,5,53,100,8
-    EDITTEXT        IDC_DELETEBEFORE,65,62,20,12,ES_RIGHT | ES_AUTOHSCROLL | 
-                    ES_NUMBER
-    LTEXT           "days",IDC_STATIC,87,63,25,8
-    CONTROL         "&Make seen if Status: is RO",IDC_HANDLESTATUS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,105,10
     CONTROL         "Use AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,85,55,10
+                    WS_TABSTOP,5,5,55,10
+    CONTROL         "&Delete messages on server",IDC_DELETEONSERVER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,105,10
+    LTEXT           "D&elete messages on server after",IDC_STATIC,5,28,100,8
+    EDITTEXT        IDC_DELETEBEFORE,65,37,20,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "days",IDC_STATIC,87,38,25,8
+    CONTROL         "&Make seen if Status: is RO",IDC_HANDLESTATUS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,105,10
+    LTEXT           "&Noop Interval",IDC_STATIC,5,67,45,8
+    EDITTEXT        IDC_NOOPINTERVAL,55,65,40,12,ES_AUTOHSCROLL
+    LTEXT           "&Get All",IDC_STATIC,5,82,45,8
+    EDITTEXT        IDC_GETALL,55,80,40,12,ES_AUTOHSCROLL
+    CONTROL         "&Force skip duplicated UID (Slow)",
+                    IDC_SKIPDUPLICATEDUID,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,95,125,10
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 137, 153

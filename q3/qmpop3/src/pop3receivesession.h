@@ -159,6 +159,7 @@ private:
 	bool bCacheAll_;
 	unsigned int nStart_;
 	std::auto_ptr<UIDList> pUIDList_;
+	std::auto_ptr<UIDList> pOldUIDList_;
 	Pop3::UidList listUID_;
 	Pop3::MessageSizeList listSize_;
 };

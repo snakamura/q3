@@ -140,8 +140,7 @@ bool qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder,
 	assert(pFolder);
 	assert(nFlags == 0);
 	
-	if (!prepare() ||
-		!downloadReservedMessages())
+	if (!prepare() || !downloadReservedMessages())
 		return false;
 	
 	pFolder_ = pFolder;
@@ -174,6 +173,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	pSessionCallback_->setPos(nStart_);
 	
 	bool bHandleStatus = pSubAccount_->getProperty(L"Pop3", L"HandleStatus", 0) != 0;
+	bool bSkipDuplicatedUID = pSubAccount_->getProperty(L"Pop3", L"SkipDuplicatedUID", 0) != 0;
 	
 	const WCHAR* pwszIdentity = pSubAccount_->getIdentity();
 	UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
@@ -194,13 +194,28 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			return true;
 		pSessionCallback_->setPos(n + 1);
 		
+		const WCHAR* pwszUID = 0;
+		wstring_ptr wstrUID;
 		unsigned int nSize = 0;
 		if (bCacheAll_) {
+			pwszUID = listUID_[n];
 			nSize = listSize_[n];
 		}
 		else {
+			if (!pPop3_->getUid(n, &wstrUID))
+				HANDLE_ERROR();
+			pwszUID = wstrUID.get();
 			if (!pPop3_->getMessageSize(n, &nSize))
 				HANDLE_ERROR();
+		}
+		
+		if (bSkipDuplicatedUID && pOldUIDList_.get()) {
+			size_t nIndex = pOldUIDList_->getIndex(pwszUID);
+			if (nIndex != -1) {
+				std::auto_ptr<UID> pUID(pOldUIDList_->remove(nIndex));
+				pUIDList_->add(pUID);
+				continue;
+			}
 		}
 		
 		xstring_ptr strMessage;
@@ -252,17 +267,6 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 		
 		bool bPartial = bIgnore || (nMaxLine != 0xffffffff && nSize > nGetSize);
-		
-		const WCHAR* pwszUID = 0;
-		wstring_ptr wstrUID;
-		if (bCacheAll_) {
-			pwszUID = listUID_[n];
-		}
-		else {
-			if (!pPop3_->getUid(n, &wstrUID))
-				HANDLE_ERROR();
-			pwszUID = wstrUID.get();
-		}
 		
 		if (!bIgnore) {
 			UnstructuredParser uid(pwszUID, L"utf-8");
@@ -420,6 +424,7 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 	assert(!bCacheAll_);
 	assert(nStart_ == 0);
 	assert(!pUIDList_.get());
+	assert(!pOldUIDList_.get());
 	assert(listUID_.empty());
 	assert(listSize_.empty());
 	
@@ -492,10 +497,13 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 		}
 	}
 	
-	if (pNewUIDList.get())
+	if (pNewUIDList.get()) {
 		pUIDList_ = pNewUIDList;
-	else
+		pOldUIDList_ = pUIDList;
+	}
+	else {
 		pUIDList_ = pUIDList;
+	}
 	
 	return true;
 }

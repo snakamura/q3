@@ -96,14 +96,12 @@ size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID) const
 {
 	assert(pwszUID);
 	
-	List::const_iterator it = std::find_if(list_.begin(), list_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&UID::getUID),
-				std::identity<const WCHAR*>()),
-			pwszUID));
-	return it != list_.end() ? it - list_.begin() : -1;
+	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+		const UID* pUID = *it;
+		if (pUID && wcscmp(pUID->getUID(), pwszUID) == 0)
+			return it - list_.begin();
+	}
+	return -1;
 }
 
 size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID,
