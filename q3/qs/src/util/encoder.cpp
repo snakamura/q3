@@ -486,20 +486,29 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 	size_t nSpaceBufSize = 0;
 	size_t nSpaceLen = 0;
 	int nLine = 0;
+	unsigned char cNext = 0;
+	bool bNext = false;
 	while (true) {
+		unsigned char c = 0;
+		if (bNext) {
+			c = cNext;
+			bNext = false;
+		}
+		else {
+			size_t nRead = pInputStream->read(&c, 1);
+			if (nRead == -1)
+				return false;
+			else if (nRead == 0)
+				break;
+		}
+		
 		if (nLine + nSpaceLen*3 >= 72) {
-			if (pOutputStream->write(reinterpret_cast<unsigned char*>("=\n"), 3) != 3)
+			if (pOutputStream->write(reinterpret_cast<const unsigned char*>("=\r\n"), 3) != 3)
 				return false;
 			nLine = 0;
 		}
 		
-		unsigned char c = 0;
-		size_t nRead = pInputStream->read(&c, 1);
-		if (nRead == -1)
-			return false;
-		else if (nRead == 0)
-			break;
-		
+		bool bProcessed = true;
 		if ((33 <= c && c <= 60) || (62 <= c && c <= 126)) {
 			if (nSpaceLen != 0) {
 				if (pOutputStream->write(pSpace.get(), nSpaceLen) != nSpaceLen)
@@ -532,26 +541,35 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 			}
 		}
 		else if (c == '\r') {
-		}
-		else if (c == '\n') {
-			if (nSpaceLen != 0) {
-				for (size_t nSpace = 0; nSpace < nSpaceLen; ++nSpace) {
-					const unsigned char* p = 0;
-					if (pSpace[nSpace] == '\t')
-						p = reinterpret_cast<const unsigned char*>("=09");
-					else
-						p = reinterpret_cast<const unsigned char*>("=20");
-					if (pOutputStream->write(p, 3) != 3)
-						return false;
-					nLine += 3;
-				}
-				nSpaceLen = 0;
-			}
-			if (pOutputStream->write(&c, 1) != 1)
+			size_t nRead = pInputStream->read(&cNext, 1);
+			if (nRead == -1)
 				return false;
-			nLine = 0;
+			
+			if (nRead != 0 && cNext == '\n') {
+				if (nSpaceLen != 0) {
+					for (size_t nSpace = 0; nSpace < nSpaceLen; ++nSpace) {
+						const unsigned char* p = 0;
+						if (pSpace[nSpace] == '\t')
+							p = reinterpret_cast<const unsigned char*>("=09");
+						else
+							p = reinterpret_cast<const unsigned char*>("=20");
+						if (pOutputStream->write(p, 3) != 3)
+							return false;
+						nLine += 3;
+					}
+					nSpaceLen = 0;
+				}
+				if (pOutputStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) != 2)
+					return false;
+				nLine = 0;
+			}
+			else {
+				bProcessed = false;
+				if (nRead != 0)
+					bNext = true;
+			}
 		}
-		else {
+		if (!bProcessed) {
 			if (nSpaceLen != 0) {
 				if (pOutputStream->write(pSpace.get(), nSpaceLen) != nSpaceLen)
 					return false;
@@ -599,11 +617,8 @@ bool qs::QuotedPrintableEncoder::decodeImpl(InputStream* pInputStream,
 				return false;
 			
 			size_t nCopy = 2;
-			if (nRead > 0 && buf[0] == '\n') {
-				nCopy = 1;
-			}
-			else if (nRead > 0 && buf[0] == '\r') {
-				nCopy = nRead > 1 && buf[1] == '\n' ? 0 : 1;
+			if (nRead > 1 && buf[0] == '\r' && buf[1] == '\n') {
+				nCopy = 0;
 			}
 			else if (nRead > 1 &&
 				QuotedPrintableEncoderImpl::isEncodedChar(buf[0]) &&
