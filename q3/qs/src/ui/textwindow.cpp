@@ -735,7 +735,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					getTextExtent(dc, pBegin, p - pBegin,
 						nWidth - nLineWidth, &nFit, 0, &size);
 					if (nFit != p - pBegin || p == pEnd ||
-						size.cx == nWidth - nLineWidth) {
+						static_cast<unsigned int>(size.cx) == nWidth - nLineWidth) {
 						size_t nOffset = pLine - line.getText();
 						size_t nLength = pBegin + nFit - pLine;
 						status = convertLogicalLinksToPhysicalLinks(
@@ -753,7 +753,7 @@ QSTATUS qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						CHECK_QSTATUS();
 						ptr.release();
 						
-						bFull = size.cx == nWidth - nLineWidth;
+						bFull = static_cast<unsigned int>(size.cx) == nWidth - nLineWidth;
 						pBegin += nFit;
 						pLine = pBegin;
 						nLineWidth = 0;
