@@ -55,9 +55,6 @@ LRESULT qmrss::ReceivePage::onInitDialog(HWND hwndFocus,
 	setDlgItemText(IDC_HOST, wstrHost.get());
 	setDlgItemInt(IDC_PORT, pSubAccount_->getProperty(L"Http", L"ProxyPort", 8080));
 	
-	sendDlgItemMessage(IDC_MAKEMULTIPART, BM_SETCHECK,
-		pSubAccount_->getProperty(L"Rss", L"MakeMultipart", 1) ? BST_CHECKED : BST_UNCHECKED);
-	
 	updateState();
 	
 	return TRUE;
@@ -78,8 +75,6 @@ LRESULT qmrss::ReceivePage::onOk()
 	if (wstrHost.get())
 		pSubAccount_->setProperty(L"Http", L"ProxyHost", wstrHost.get());
 	pSubAccount_->setProperty(L"Http", L"ProxyPort", getDlgItemInt(IDC_PORT));
-	pSubAccount_->setProperty(L"Rss", L"MakeMultipart",
-		sendDlgItemMessage(IDC_MAKEMULTIPART, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	
 	return DefaultPropertyPage::onOk();
 }

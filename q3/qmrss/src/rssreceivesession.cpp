@@ -216,7 +216,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	std::auto_ptr<Feed> pFeedNew(new Feed(pwszURL, timeLastModified));
 	
 	Content content = CONTENT_NONE;
-	if (pSubAccount_->getProperty(L"Rss", L"MakeMultipart", 1)) {
+	const WCHAR* pwszMakeMultipart = pFolder_->getParam(L"MakeMultipart");
+	if (!pwszMakeMultipart || wcscmp(pwszMakeMultipart, L"false") != 0) {
 		const WCHAR* pwsz = pFolder_->getParam(L"UseDescriptionAsContent");
 		if (pwsz && wcscmp(pwsz, L"true") == 0)
 			content = CONTENT_DESCRIPTION;

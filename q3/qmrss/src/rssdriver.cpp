@@ -28,6 +28,7 @@ const WCHAR* qmrss::RssDriver::pwszParams__[] = {
 	L"URL",
 	L"UserName",
 	L"Password",
+	L"MakeMultipart",
 	L"UseDescriptionAsContent",
 	L"UpdateIfModified"
 };
