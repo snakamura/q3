@@ -691,6 +691,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				(nOption & OPTION_USEBODYSTRUCTUREALWAYS) != 0, strAdditionalFields.get()))
 				HANDLE_ERROR();
 		}
+		pSessionCallback_->setPos(nExists_);
 	}
 	
 	if (!listMakeSeen.empty() || !listMakeDeleted.empty()) {

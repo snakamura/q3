@@ -289,6 +289,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				pLastIdList_->setLastId(pNntp_->getGroup(), item.nId_);
 			}
 		}
+		pSessionCallback_->setPos(pNntp_->getLast());
 	}
 	else {
 		for (unsigned int n = nStart; n <= pNntp_->getLast(); ++n) {
