@@ -123,7 +123,15 @@ QSTATUS qm::main(const WCHAR* pwszCommandLine)
 		if (!wstrMailFolder.get()) {
 			status = reg.getValue(L"MailFolder", &wstrMailFolder);
 			CHECK_QSTATUS();
-			if (!wstrMailFolder.get()) {
+			
+			bool bSelect = !wstrMailFolder.get();
+			if (!bSelect) {
+				W2T(wstrMailFolder.get(), ptszMailFolder);
+				DWORD dwAttributes = ::GetFileAttributes(ptszMailFolder);
+				bSelect = dwAttributes == -1 ||
+					(dwAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+			}
+			if (bSelect) {
 				// TODO
 				// Use resource handle
 				MailFolderDialog dialog(g_hInstDll, &status);
