@@ -83,6 +83,11 @@ void qscrypto::SSLSocketImpl::setLastError(unsigned int nError)
 
 bool qscrypto::SSLSocketImpl::close()
 {
+	if (!pSocket_)
+		return true;
+	
+	assert(pSSL_);
+	
 	Log log(pLogger_, L"qscrypto::SSLSocketImpl");
 	
 	log.debug(L"Shuting down SSL connection...");
@@ -91,7 +96,7 @@ bool qscrypto::SSLSocketImpl::close()
 	
 	log.debug(L"SSL connection shut down.");
 	
-	if (bDeleteSocket_ && pSocket_) {
+	if (bDeleteSocket_) {
 		if (!pSocket_->close())
 			return false;
 	}
