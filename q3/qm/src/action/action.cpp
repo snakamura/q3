@@ -495,7 +495,18 @@ QSTATUS qm::EditCutMessageAction::isEnabled(
 
 qm::EditDeleteMessageAction::EditDeleteMessageAction(
 	MessageSelectionModel* pModel, bool bDirect, QSTATUS* pstatus) :
-	pModel_(pModel),
+	pMessageSelectionModel_(pModel),
+	pMessageModel_(0),
+	bDirect_(bDirect)
+{
+	assert(pstatus);
+	*pstatus = QSTATUS_SUCCESS;
+}
+
+qm::EditDeleteMessageAction::EditDeleteMessageAction(
+	MessageModel* pModel, bool bDirect, QSTATUS* pstatus) :
+	pMessageSelectionModel_(0),
+	pMessageModel_(pModel),
 	bDirect_(bDirect)
 {
 	assert(pstatus);
@@ -510,12 +521,37 @@ QSTATUS qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 {
 	DECLARE_QSTATUS();
 	
-	Folder* pFolder = 0;
-	MessagePtrList l;
-	status = pModel_->getSelectedMessages(&pFolder, &l);
-	CHECK_QSTATUS();
-	if (!l.empty()) {
-		status = pFolder->removeMessages(l, bDirect_);
+	if (pMessageSelectionModel_) {
+		Folder* pFolder = 0;
+		MessagePtrList l;
+		status = pMessageSelectionModel_->getSelectedMessages(&pFolder, &l);
+		CHECK_QSTATUS();
+		if (!l.empty()) {
+			status = pFolder->removeMessages(l, bDirect_);
+			CHECK_QSTATUS();
+		}
+	}
+	else {
+		ViewModel* pViewModel = pMessageModel_->getViewModel();
+		
+		Lock<ViewModel> lock(*pViewModel);
+		
+		MessageHolder* pmh = 0;
+		
+		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+		if (mpl) {
+			unsigned int nIndex = pViewModel->getIndex(mpl);
+			if (nIndex < pViewModel->getCount() - 1)
+				pmh = pViewModel->getMessageHolder(nIndex + 1);
+			
+			Folder::MessageHolderList l;
+			status = STLWrapper<Folder::MessageHolderList>(l).push_back(mpl);
+			CHECK_QSTATUS();
+			status = mpl->getFolder()->removeMessages(l, bDirect_);
+			CHECK_QSTATUS();
+		}
+		
+		status = pMessageModel_->setMessage(pmh);
 		CHECK_QSTATUS();
 	}
 	
@@ -526,7 +562,19 @@ QSTATUS qm::EditDeleteMessageAction::isEnabled(
 	const ActionEvent& event, bool* pbEnabled)
 {
 	assert(pbEnabled);
-	return pModel_->hasSelectedMessage(pbEnabled);
+	
+	DECLARE_QSTATUS();
+	
+	if (pMessageSelectionModel_) {
+		status = pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+		CHECK_QSTATUS();
+	}
+	else {
+		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+		*pbEnabled = mpl != 0;
+	}
+	
+	return QSTATUS_SUCCESS;
 }
 
 

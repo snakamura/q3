@@ -147,11 +147,11 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		pActionMap_, IDM_EDIT_COPY, pMessageWindow_,
 		&MessageWindowItem::copy, &MessageWindowItem::canCopy);
 	CHECK_QSTATUS();
-	status = InitAction2<EditDeleteMessageAction, MessageSelectionModel*, bool>(
-		pActionMap_, IDM_EDIT_DELETE, this, false);
+	status = InitAction2<EditDeleteMessageAction, MessageModel*, bool>(
+		pActionMap_, IDM_EDIT_DELETE, pMessageWindow_->getMessageModel(), false);
 	CHECK_QSTATUS();
-	status = InitAction2<EditDeleteMessageAction, MessageSelectionModel*, bool>(
-		pActionMap_, IDM_EDIT_DELETEDIRECT, this, true);
+	status = InitAction2<EditDeleteMessageAction, MessageModel*, bool>(
+		pActionMap_, IDM_EDIT_DELETEDIRECT, pMessageWindow_->getMessageModel(), true);
 	CHECK_QSTATUS();
 	status = InitAction3<EditFindAction, MessageWindow*, Profile*, FindReplaceManager*>(
 		pActionMap_, IDM_EDIT_FIND, pMessageWindow_, pProfile_, pFindReplaceManager_);

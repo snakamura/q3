@@ -359,6 +359,8 @@ class EditDeleteMessageAction : public qs::AbstractAction
 public:
 	EditDeleteMessageAction(MessageSelectionModel* pModel,
 		bool bDirect, qs::QSTATUS* pstatus);
+	EditDeleteMessageAction(MessageModel* pModel,
+		bool bDirect, qs::QSTATUS* pstatus);
 	virtual ~EditDeleteMessageAction();
 
 public:
@@ -370,7 +372,8 @@ private:
 	EditDeleteMessageAction& operator=(const EditDeleteMessageAction&);
 
 private:
-	MessageSelectionModel* pModel_;
+	MessageSelectionModel* pMessageSelectionModel_;
+	MessageModel* pMessageModel_;
 	bool bDirect_;
 };
 
