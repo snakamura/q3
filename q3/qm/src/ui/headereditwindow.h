@@ -405,6 +405,7 @@ private:
 	
 	protected:
 		LRESULT onContextMenu(HWND hwnd, const POINT& pt);
+		LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
 	
 	private:
 		AttachmentEditWindow(const AttachmentEditWindow&);

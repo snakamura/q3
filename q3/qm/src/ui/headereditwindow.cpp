@@ -1392,6 +1392,7 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::windowProc(
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
+		HANDLE_LBUTTONDOWN()
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -1412,6 +1413,16 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onContextMenu(
 		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
 	}
 	return DefaultWindowHandler::onContextMenu(hwnd, pt);
+}
+
+LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onLButtonDown(
+	UINT nFlags, const POINT& pt)
+{
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE_PSPC
+	if (tapAndHold(pt))
+		return 0;
+#endif
+	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
 
