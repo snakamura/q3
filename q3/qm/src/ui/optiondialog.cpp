@@ -634,7 +634,7 @@ void qm::OptionDialog::setFocus(HWND hwnd)
 	Window wnd(hwnd);
 	
 	int nCode = wnd.sendMessage(WM_GETDLGCODE);
-	if (nCode & DLGC_BUTTON) {
+	if (nCode & DLGC_DEFPUSHBUTTON || nCode & DLGC_UNDEFPUSHBUTTON) {
 		Window parent(wnd.getParent());
 		parent.sendMessage(DM_SETDEFID, wnd.getWindowLong(GWL_ID));
 		
