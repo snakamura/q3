@@ -53,6 +53,7 @@ struct qs::ClusterStorageImpl
 	std::auto_ptr<File> pFile_;
 	Map map_;
 	SearchBegin searchBegin_;
+	mutable bool bModified_;
 };
 
 bool qs::ClusterStorageImpl::loadMap()
@@ -83,6 +84,9 @@ bool qs::ClusterStorageImpl::loadMap()
 
 bool qs::ClusterStorageImpl::saveMap() const
 {
+	if (!bModified_)
+		return true;
+	
 	wstring_ptr wstrPath(concat(wstrPath_.get(), wstrMapExt_.get()));
 	
 	TemporaryFileRenamer renamer(wstrPath.get());
@@ -92,12 +96,10 @@ bool qs::ClusterStorageImpl::saveMap() const
 		return false;
 	BufferedOutputStream stream(&fileStream, false);
 	
-	Map::const_iterator it = map_.begin();
-	while (it != map_.end()) {
+	for (Map::const_iterator it = map_.begin(); it != map_.end(); ++it) {
 		unsigned char c = *it;
 		if (stream.write(&c, sizeof(c)) != sizeof(c))
 			return false;
-		++it;
 	}
 	
 	if (!stream.close())
@@ -105,6 +107,8 @@ bool qs::ClusterStorageImpl::saveMap() const
 	
 	if (!renamer.rename())
 		return false;
+	
+	bModified_ = false;
 	
 	return true;
 }
@@ -140,6 +144,8 @@ unsigned int qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize)
 unsigned int qs::ClusterStorageImpl::getFreeOffset(unsigned int nSize,
 												   unsigned int nCurrentOffset)
 {
+	bModified_ = true;
+	
 	nSize = nSize + (CLUSTER_SIZE - nSize%CLUSTER_SIZE);
 	assert(nSize%CLUSTER_SIZE == 0);
 	nSize /= CLUSTER_SIZE;
@@ -312,6 +318,7 @@ qs::ClusterStorage::ClusterStorage(const Init& init)
 	pImpl->wstrMapExt_ = wstrMapExt;
 	pImpl->nBlockSize_ = init.nBlockSize_;
 	pImpl->searchBegin_.swap(searchBegin);
+	pImpl->bModified_ = false;
 	
 	if (!pImpl->loadMap())
 		return;
@@ -440,6 +447,8 @@ bool qs::ClusterStorage::free(unsigned int nOffset,
 	if (!pImpl_->reopen())
 		return false;
 	
+	pImpl_->bModified_ = true;
+	
 	nLength = nLength + (ClusterStorageImpl::CLUSTER_SIZE -
 		nLength%ClusterStorageImpl::CLUSTER_SIZE);
 	assert(nLength%ClusterStorageImpl::CLUSTER_SIZE == 0);
@@ -525,6 +534,8 @@ bool qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
 	if (!pImpl_->reopen())
 		return false;
 	
+	pImpl_->bModified_ = true;
+	
 	ClusterStorageImpl::Map m;
 	m.resize(pImpl_->map_.size());
 	
@@ -576,6 +587,8 @@ bool qs::ClusterStorage::freeUnused()
 {
 	if (!pImpl_->reopen())
 		return false;
+	
+	pImpl_->bModified_ = true;
 	
 	ClusterStorageImpl::Map& m = pImpl_->map_;
 	ClusterStorageImpl::Map::reverse_iterator it = m.rbegin();
