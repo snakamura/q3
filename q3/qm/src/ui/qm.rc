@@ -640,7 +640,7 @@ BEGIN
     LTEXT           "",IDC_ID,35,20,185,8
     LTEXT           "Type",IDC_STATIC,5,35,25,8
     LTEXT           "",IDC_TYPE,35,35,185,8
-    CONTROL         "&Sync when opened",IDC_SYNCWHENOPEN,"Button",
+    CONTROL         "S&ync when opened",IDC_SYNCWHENOPEN,"Button",
                     BS_AUTO3STATE | WS_TABSTOP,10,70,90,10
     CONTROL         "&Cache when read",IDC_CACHEWHENREAD,"Button",
                     BS_AUTO3STATE | WS_TABSTOP,10,80,90,10

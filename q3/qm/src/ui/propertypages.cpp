@@ -408,14 +408,16 @@ struct
 {
 	Folder::Flag flag_;
 	UINT nId_;
+	Folder::Flag enableFlag_;
+	bool bReverse_;
 } folderFlags[] = {
-	{ Folder::FLAG_SYNCWHENOPEN,	IDC_SYNCWHENOPEN	},
-	{ Folder::FLAG_CACHEWHENREAD,	IDC_CACHEWHENREAD	},
-	{ Folder::FLAG_INBOX,			IDC_INBOX			},
-	{ Folder::FLAG_OUTBOX,			IDC_OUTBOX			},
-	{ Folder::FLAG_SENTBOX,			IDC_SENTBOX			},
-	{ Folder::FLAG_DRAFTBOX,		IDC_DRAFTBOX		},
-	{ Folder::FLAG_TRASHBOX,		IDC_TRASHBOX		},
+	{ Folder::FLAG_SYNCWHENOPEN,	IDC_SYNCWHENOPEN,	Folder::FLAG_SYNCABLE,	false	},
+	{ Folder::FLAG_CACHEWHENREAD,	IDC_CACHEWHENREAD,	Folder::FLAG_SYNCABLE,	false	},
+	{ Folder::FLAG_INBOX,			IDC_INBOX,			Folder::FLAG_NOSELECT,	true	},
+	{ Folder::FLAG_OUTBOX,			IDC_OUTBOX,			Folder::FLAG_NOSELECT,	true	},
+	{ Folder::FLAG_SENTBOX,			IDC_SENTBOX,		Folder::FLAG_NOSELECT,	true	},
+	{ Folder::FLAG_DRAFTBOX,		IDC_DRAFTBOX,		Folder::FLAG_NOSELECT,	true	},
+	{ Folder::FLAG_TRASHBOX,		IDC_TRASHBOX,		Folder::FLAG_NOSELECT,	true	}
 };
 };
 
@@ -481,20 +483,36 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus, LPARAM lParam)
 				nFlags & folderFlags[n].flag_ ? BST_CHECKED : BST_UNCHECKED);
 			Window(getDlgItem(folderFlags[n].nId_)).setStyle(
 				BS_AUTOCHECKBOX, BS_AUTOCHECKBOX | BS_AUTO3STATE);
+			
+			bool bEnable = pFolder->isFlag(folderFlags[n].enableFlag_);
+			bEnable = folderFlags[n].bReverse_ ? !bEnable : bEnable;
+			if (!bEnable)
+				Window(getDlgItem(folderFlags[n].nId_)).enableWindow(false);
 		}
 	}
 	else {
 		for (int n = 0; n < countof(folderFlags); ++n) {
 			unsigned int nCount = 0;
+			bool bEnable = false;
 			Account::FolderList::const_iterator it = listFolder_.begin();
 			while (it != listFolder_.end()) {
-				if ((*it)->getFlags() & folderFlags[n].flag_)
+				Folder* pFolder = *it;
+				if (pFolder->getFlags() & folderFlags[n].flag_)
 					++nCount;
+				
+				bool b = pFolder->isFlag(folderFlags[n].enableFlag_);
+				b = folderFlags[n].bReverse_ ? !b : b;
+				if (b)
+					bEnable = true;
+				
 				++it;
 			}
 			sendDlgItemMessage(folderFlags[n].nId_, BM_SETCHECK,
 				nCount == 0 ? BST_UNCHECKED :
 				nCount == listFolder_.size() ? BST_CHECKED : BST_INDETERMINATE);
+			
+			if (!bEnable)
+				Window(getDlgItem(folderFlags[n].nId_)).enableWindow(false);
 		}
 	}
 	

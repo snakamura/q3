@@ -1767,7 +1767,18 @@ QSTATUS qm::FolderPropertyAction::invoke(const ActionEvent& event)
 	if (nRet == IDOK) {
 		Account::FolderList::const_iterator it = listFolder.begin();
 		while (it != listFolder.end()) {
-			(*it)->setFlags(page.getFlags(), page.getMask());
+			Folder* pFolder = *it;
+			
+			unsigned int nFlags = page.getFlags();
+			unsigned int nMask = page.getMask();
+			if (!pFolder->isFlag(Folder::FLAG_SYNCABLE))
+				nMask &= ~(Folder::FLAG_SYNCWHENOPEN | Folder::FLAG_CACHEWHENREAD);
+			if (pFolder->isFlag(Folder::FLAG_NOSELECT))
+				nMask &= ~(Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
+					Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);
+			
+			pFolder->setFlags(nFlags, nMask);
+			
 			++it;
 		}
 	}
