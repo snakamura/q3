@@ -83,7 +83,7 @@ bool qm::MacroValueBoolean::boolean() const
 	return b_;
 }
 
-long qm::MacroValueBoolean::number() const
+unsigned int qm::MacroValueBoolean::number() const
 {
 	return b_ ? 1 : 0;
 }
@@ -141,7 +141,7 @@ bool qm::MacroValueString::boolean() const
 	return *wstr_ != L'\0';
 }
 
-long qm::MacroValueString::number() const
+unsigned int qm::MacroValueString::number() const
 {
 	if (MacroParser::isNumber(wstr_)) {
 		WCHAR* pEnd = 0;
@@ -191,7 +191,7 @@ QSTATUS qm::MacroValueNumber::string(WSTRING* pwstr) const
 {
 	assert(pwstr);
 	WCHAR wsz[32];
-	swprintf(wsz, L"%ld", n_);
+	swprintf(wsz, L"%lu", n_);
 	*pwstr = allocWString(wsz);
 	return *pwstr ? QSTATUS_SUCCESS : QSTATUS_OUTOFMEMORY;
 }
@@ -201,7 +201,7 @@ bool qm::MacroValueNumber::boolean() const
 	return n_ != 0;
 }
 
-long qm::MacroValueNumber::number() const
+unsigned int qm::MacroValueNumber::number() const
 {
 	return n_;
 }
@@ -416,7 +416,7 @@ bool qm::MacroValueField::boolean() const
 	return strField_ != 0;
 }
 
-long qm::MacroValueField::number() const
+unsigned int qm::MacroValueField::number() const
 {
 	DECLARE_QSTATUS();
 	
@@ -561,7 +561,7 @@ bool qm::MacroValueAddress::boolean() const
 	return !listAddress_.empty();
 }
 
-long qm::MacroValueAddress::number() const
+unsigned int qm::MacroValueAddress::number() const
 {
 	return listAddress_.size();
 }
@@ -616,7 +616,7 @@ bool qm::MacroValueTime::boolean() const
 	return true;
 }
 
-long qm::MacroValueTime::number() const
+unsigned int qm::MacroValueTime::number() const
 {
 	return 0;
 }
@@ -682,7 +682,7 @@ bool qm::MacroValuePart::boolean() const
 	return pPart_ != 0;
 }
 
-long qm::MacroValuePart::number() const
+unsigned int qm::MacroValuePart::number() const
 {
 	return pPart_ ? 1 : 0;
 }
@@ -744,7 +744,7 @@ bool qm::MacroValueMessageList::boolean() const
 	return !list_.empty();
 }
 
-long qm::MacroValueMessageList::number() const
+unsigned int qm::MacroValueMessageList::number() const
 {
 	return list_.size();
 }
@@ -968,7 +968,7 @@ void qm::MacroValueFactory::deleteString(MacroValueString* pmvs)
 	::deleteValue<MacroValueString>(pImpl_->lock_, pImpl_->listString_, pmvs);
 }
 
-QSTATUS qm::MacroValueFactory::newNumber(long n, MacroValueNumber** ppmvn)
+QSTATUS qm::MacroValueFactory::newNumber(unsigned int n, MacroValueNumber** ppmvn)
 {
 	DECLARE_QSTATUS();
 	

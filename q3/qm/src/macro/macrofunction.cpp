@@ -311,7 +311,7 @@ QSTATUS qm::MacroFunctionAdditive::value(
 	status = getArg(1)->value(pContext, &pValueRhs);
 	CHECK_QSTATUS();
 	
-	long nValue = 0;
+	unsigned int nValue = 0;
 	if (bAdd_)
 		nValue = pValueLhs->number() + pValueRhs->number();
 	else
@@ -1759,14 +1759,12 @@ QSTATUS qm::MacroFunctionFind::value(
 		bCase = pValue->boolean();
 	}
 	
-	long nIndex = 0;
+	unsigned int nIndex = 0;
 	if (nSize > 2) {
 		MacroValuePtr pValue;
 		status = getArg(2)->value(pContext, &pValue);
 		CHECK_QSTATUS();
 		nIndex = pValue->number();
-		if (nIndex < 0)
-			nIndex = 0;
 	}
 	
 	MacroValuePtr pValue;
@@ -2057,8 +2055,8 @@ QSTATUS qm::MacroFunctionFormatDate::value(
 		status = getArg(2)->value(pContext, &pValue);
 		CHECK_QSTATUS();
 		
-		long n = pValue->number();
-		if (n < 0 || 2 < n)
+		unsigned int n = pValue->number();
+		if (n > 2)
 			return error(*pContext, MacroErrorHandler::CODE_INVALIDARGVALUE);
 		
 		format = static_cast<Time::Format>(n);
@@ -3161,8 +3159,8 @@ QSTATUS qm::MacroFunctionPart::value(
 	status = getArg(0)->value(pContext, &pValue);
 	CHECK_QSTATUS();
 	
-	long nPart = pValue->number();
-	if (0 <= nPart && nPart < static_cast<long>(pPart->getPartCount()))
+	unsigned int nPart = pValue->number();
+	if (nPart < pPart->getPartCount())
 		pPart = pPart->getPart(nPart);
 	else
 		pPart = 0;
@@ -3213,7 +3211,7 @@ QSTATUS qm::MacroFunctionPassed::value(
 	status = getArg(0)->value(pContext, &pValue);
 	CHECK_QSTATUS();
 	
-	long nDay = pValue->number();
+	unsigned int nDay = pValue->number();
 	
 	Time time;
 	status = pmh->getDate(&time);
@@ -4255,10 +4253,7 @@ QSTATUS qm::MacroFunctionSubstring::value(
 	status = getArg(1)->value(pContext, &pValueBegin);
 	CHECK_QSTATUS();
 	
-	long nBegin = pValueBegin->number();
-	if (nBegin < 0)
-		nBegin = 0;
-	
+	unsigned int nBegin = pValueBegin->number();
 	const WCHAR* pwsz = 0;
 	if (static_cast<size_t>(nBegin) >= nLen) {
 		pwsz = L"";

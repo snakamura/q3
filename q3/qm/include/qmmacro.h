@@ -1,5 +1,5 @@
 /*
- * $Id: qmmacro.h,v 1.1.1.1 2003/04/29 08:07:31 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -284,7 +284,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const = 0;
 	virtual bool boolean() const = 0;
-	virtual long number() const = 0;
+	virtual unsigned int number() const = 0;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const = 0;
 
 private:
@@ -315,7 +315,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
 	virtual bool boolean() const;
-	virtual long number() const;
+	virtual unsigned int number() const;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
 
 private:
@@ -346,7 +346,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
 	virtual bool boolean() const;
-	virtual long number() const;
+	virtual unsigned int number() const;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
 
 private:
@@ -377,7 +377,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
 	virtual bool boolean() const;
-	virtual long number() const;
+	virtual unsigned int number() const;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
 
 private:
@@ -385,7 +385,7 @@ private:
 	MacroValueNumber& operator=(const MacroValueNumber&);
 
 private:
-	long n_;
+	unsigned int n_;
 };
 
 
@@ -412,7 +412,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
 	virtual bool boolean() const;
-	virtual long number() const;
+	virtual unsigned int number() const;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
 
 private:
@@ -454,7 +454,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
 	virtual bool boolean() const;
-	virtual long number() const;
+	virtual unsigned int number() const;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
 
 private:
@@ -488,7 +488,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
 	virtual bool boolean() const;
-	virtual long number() const;
+	virtual unsigned int number() const;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
 
 private:
@@ -522,7 +522,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
 	virtual bool boolean() const;
-	virtual long number() const;
+	virtual unsigned int number() const;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
 
 private:
@@ -559,7 +559,7 @@ public:
 public:
 	virtual qs::QSTATUS string(qs::WSTRING* pwstr) const;
 	virtual bool boolean() const;
-	virtual long number() const;
+	virtual unsigned int number() const;
 	virtual qs::QSTATUS clone(MacroValue** ppValue) const;
 
 private:
@@ -619,7 +619,7 @@ public:
 	qs::QSTATUS newString(const WCHAR* pwsz, size_t nLen,
 		MacroValueString** ppmvs);
 	void deleteString(MacroValueString* pmvs);
-	qs::QSTATUS newNumber(long n, MacroValueNumber** ppmvn);
+	qs::QSTATUS newNumber(unsigned int n, MacroValueNumber** ppmvn);
 	void deleteNumber(MacroValueNumber* pmvn);
 	qs::QSTATUS newField(const WCHAR* pwszName,
 		const CHAR* pszField, MacroValueField** ppmvf);
