@@ -40,6 +40,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"EditDelete",				IDM_EDIT_DELETE					},
 	{ L"EditDeleteCache",			IDM_EDIT_DELETECACHE			},
 	{ L"EditDeleteDirect",			IDM_EDIT_DELETEDIRECT			},
+	{ L"EditDeleteJunk",			IDM_EDIT_DELETEJUNK				},
 	{ L"EditFind",					IDM_EDIT_FIND					},
 	{ L"EditFindNext",				IDM_EDIT_FINDNEXT				},
 	{ L"EditFindPrev",				IDM_EDIT_FINDPREV				},

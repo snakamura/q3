@@ -137,6 +137,10 @@
 			<key code="2e" shift="true"/>
 			<key key="D" shift="true"/>
 		</action>
+		<action name="EditDeleteJunk">
+			<key code="2e" ctrl="true"/>
+			<key key="D" ctrl="true"/>
+		</action>
 		<action name="FileSave">
 			<key key="W"/>
 		</action>
@@ -227,6 +231,10 @@
 		<action name="EditDeleteDirect">
 			<key code="2e" shift="true"/>
 			<key key="D" shift="true"/>
+		</action>
+		<action name="EditDeleteJunk">
+			<key code="2e" ctrl="true"/>
+			<key key="D" ctrl="true"/>
 		</action>
 		<action name="MessageDetach">
 			<key key="X"/>
@@ -322,6 +330,10 @@
 		<action name="EditDeleteDirect">
 			<key code="2e" shift="true"/>
 			<key key="D" shift="true"/>
+		</action>
+		<action name="EditDeleteJunk">
+			<key code="2e" ctrl="true"/>
+			<key key="D" ctrl="true"/>
 		</action>
 		<action name="EditFind">
 			<key key="F" ctrl="true"/>

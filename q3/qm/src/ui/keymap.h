@@ -44,6 +44,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"EditDeleteCache",				IDM_EDIT_DELETECACHE,					0 },
 	{ L"EditDeleteChar",				IDM_EDIT_DELETECHAR,					0 },
 	{ L"EditDeleteDirect",				IDM_EDIT_DELETEDIRECT,					0 },
+	{ L"EditDeleteJunk",				IDM_EDIT_DELETEJUNK,					0 },
 	{ L"EditDeleteWord",				IDM_EDIT_DELETEWORD,					0 },
 	{ L"EditFind",						IDM_EDIT_FIND,							0 },
 	{ L"EditFindNext",					IDM_EDIT_FINDNEXT,						0 },

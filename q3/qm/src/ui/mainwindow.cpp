@@ -426,19 +426,20 @@ void qm::MainWindowImpl::initActions()
 	
 	struct {
 		UINT nId_;
-		bool bDirect_;
+		EditDeleteMessageAction::Type type_;
 	} deletes[] = {
-		{ IDM_EDIT_DELETE,			false	},
-		{ IDM_EDIT_DELETEDIRECT,	true	}
+		{ IDM_EDIT_DELETE,			EditDeleteMessageAction::TYPE_NORMAL	},
+		{ IDM_EDIT_DELETEDIRECT,	EditDeleteMessageAction::TYPE_DIRECT	},
+		{ IDM_EDIT_DELETEJUNK,		EditDeleteMessageAction::TYPE_JUNK		}
 	};
 	for (int n = 0; n < countof(deletes); ++n) {
 		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction1(
 			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
-				this, 0, deletes[n].bDirect_, true,
+				this, 0, deletes[n].type_, true,
 				pDocument_->getUndoManager(), pThis_->getHandle(), pProfile_));
 		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction2(
 			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
-				this, pPreviewModel_.get(), deletes[n].bDirect_, false,
+				this, pPreviewModel_.get(), deletes[n].type_, false,
 				pDocument_->getUndoManager(), pThis_->getHandle(), pProfile_));
 		Action* pEditDeleteMessageActions[] = {
 			0,
@@ -1619,7 +1620,6 @@ void qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(AccountL
 																		MessageHolderList* pList)
 {
 	assert(pAccountLock);
-	assert(pList);
 	
 	if (ppFolder)
 		*ppFolder = 0;
@@ -1631,7 +1631,8 @@ void qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(AccountL
 			pAccountLock->set(pViewModel->getFolder()->getAccount());
 			if (ppFolder)
 				*ppFolder = pViewModel->getFolder();
-			pViewModel->getSelection(pList);
+			if (pList)
+				pViewModel->getSelection(pList);
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
@@ -1640,7 +1641,8 @@ void qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(AccountL
 			pAccountLock->set(mpl->getAccount());
 			if (ppFolder)
 				*ppFolder = mpl->getFolder();
-			pList->push_back(mpl);
+			if (pList)
+				pList->push_back(mpl);
 		}
 	}
 }

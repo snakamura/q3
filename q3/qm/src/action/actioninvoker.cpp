@@ -51,6 +51,7 @@ struct ActionNameMap
 	{ L"EditDeleteCache",				IDM_EDIT_DELETECACHE					},
 	{ L"EditDeleteChar",				IDM_EDIT_DELETECHAR,					},
 	{ L"EditDeleteDirect",				IDM_EDIT_DELETEDIRECT					},
+	{ L"EditDeleteJunk",				IDM_EDIT_DELETEJUNK						},
 	{ L"EditDeleteWord",				IDM_EDIT_DELETEWORD,					},
 	{ L"EditFind",						IDM_EDIT_FIND							},
 	{ L"EditFindNext",					IDM_EDIT_FINDNEXT						},

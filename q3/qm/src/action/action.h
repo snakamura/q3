@@ -750,10 +750,17 @@ private:
 class EditDeleteMessageAction : public qs::AbstractAction
 {
 public:
+	enum Type {
+		TYPE_NORMAL,
+		TYPE_DIRECT,
+		TYPE_JUNK
+	};
+
+public:
 	EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
 							ViewModelHolder* pViewModelHolder,
 							MessageModel* pMessageModel,
-							bool bDirect,
+							Type type,
 							bool bDontSelectNextIfDeletedFlag,
 							UndoManager* pUndoManager,
 							HWND hwnd,
@@ -775,7 +782,7 @@ private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	ViewModelHolder* pViewModelHolder_;
 	MessageModel* pMessageModel_;
-	bool bDirect_;
+	Type type_;
 	bool bDontSelectNextIfDeletedFlag_;
 	UndoManager* pUndoManager_;
 	HWND hwnd_;

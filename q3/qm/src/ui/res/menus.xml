@@ -44,6 +44,7 @@
 			<menuitem text="Select &amp;All" action="EditSelectAll"/>
 			<separator/>
 			<menuitem text="&amp;Delete" action="EditDelete"/>
+			<menuitem text="Delete as &amp;Junk" action="EditDeleteJunk"/>
 			<menuitem text="C&amp;lear Deleted" action="EditClearDeleted"/>
 			<menuitem text="D&amp;elete Cache" action="EditDeleteCache"/>
 			<separator/>
@@ -167,6 +168,7 @@
 			<menuitem text="Select &amp;All" action="EditSelectAll"/>
 			<separator/>
 			<menuitem text="&amp;Delete" action="EditDelete"/>
+			<menuitem text="Delete as &amp;Junk" action="EditDeleteJunk"/>
 			<separator/>
 			<menuitem text="&amp;Find..." action="EditFind"/>
 			<menuitem text="Find &amp;Next" action="EditFindNext"/>
@@ -370,6 +372,7 @@
 		<popupmenu text="&amp;Template" action="MessageApplyTemplate"/>
 		<separator/>
 		<menuitem text="&amp;Delete" action="EditDelete"/>
+		<menuitem text="Delete as &amp;Junk" action="EditDeleteJunk"/>
 		<menuitem text="Se&amp;lect All" action="EditSelectAll"/>
 		<separator/>
 		<popupmenu text="&amp;Move" action="MessageMove"/>
@@ -399,6 +402,7 @@
 		<menuitem text="Next &amp;Unseen Message" action="ViewNextUnseenMessage"/>
 		<separator/>
 		<menuitem text="&amp;Delete" action="EditDelete"/>
+		<menuitem text="Delete as &amp;Junk" action="EditDeleteJunk"/>
 		<menuitem text="&amp;Copy" action="EditCopy"/>
 		<menuitem text="Select &amp;All" action="EditSelectAll"/>
 		<separator/>

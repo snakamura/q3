@@ -167,7 +167,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
-		false,
+		EditDeleteMessageAction::TYPE_NORMAL,
 		false,
 		pDocument_->getUndoManager(),
 		pThis_->getHandle(),
@@ -177,7 +177,17 @@ void qm::MessageFrameWindowImpl::initActions()
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
-		true,
+		EditDeleteMessageAction::TYPE_DIRECT,
+		false,
+		pDocument_->getUndoManager(),
+		pThis_->getHandle(),
+		pProfile_);
+	ADD_ACTION8(EditDeleteMessageAction,
+		IDM_EDIT_DELETEJUNK,
+		this,
+		pMessageModel_.get(),
+		pMessageModel_.get(),
+		EditDeleteMessageAction::TYPE_JUNK,
 		false,
 		pDocument_->getUndoManager(),
 		pThis_->getHandle(),
@@ -592,7 +602,6 @@ void qm::MessageFrameWindowImpl::getSelectedMessages(AccountLock* pAccountLock,
 													 MessageHolderList* pList)
 {
 	assert(pAccountLock);
-	assert(pList);
 	
 	if (ppFolder)
 		*ppFolder = 0;
@@ -602,7 +611,8 @@ void qm::MessageFrameWindowImpl::getSelectedMessages(AccountLock* pAccountLock,
 		pAccountLock->set(mpl->getAccount());
 		if (ppFolder)
 			*ppFolder = mpl->getFolder();
-		pList->push_back(mpl);
+		if (pList)
+			pList->push_back(mpl);
 	}
 }
 

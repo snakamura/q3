@@ -772,7 +772,7 @@ bool qm::EditDeleteCacheAction::isEnabled(const ActionEvent& event)
 qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMessageSelectionModel,
 													 ViewModelHolder* pViewModelHolder,
 													 MessageModel* pMessageModel,
-													 bool bDirect,
+													 Type type,
 													 bool bDontSelectNextIfDeletedFlag,
 													 UndoManager* pUndoManager,
 													 HWND hwnd,
@@ -780,7 +780,7 @@ qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMes
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pViewModelHolder_(pViewModelHolder),
 	pMessageModel_(pMessageModel),
-	bDirect_(bDirect),
+	type_(type),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pUndoManager_(pUndoManager),
 	hwnd_(hwnd),
@@ -828,16 +828,39 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 	ProgressDialogMessageOperationCallback callback(
 		hwnd_, IDS_DELETE, IDS_DELETE);
 	UndoItemList undo;
-	if (!pAccount->removeMessages(l, pFolder, bDirect_, &callback, &undo)) {
-		ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
-		return;
+	if (type_ != TYPE_JUNK) {
+		if (!pAccount->removeMessages(l, pFolder, type_ == TYPE_DIRECT, &callback, &undo)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
+			return;
+		}
+	}
+	else {
+		NormalFolder* pJunk = static_cast<NormalFolder*>(
+			pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
+		if (pJunk) {
+			if (!pAccount->copyMessages(l, pFolder, pJunk, true, &callback, &undo)) {
+				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
+				return;
+			}
+		}
 	}
 	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	if (!pMessageSelectionModel_->hasSelectedMessage())
+		return false;
+	
+	if (type_ == TYPE_JUNK) {
+		AccountLock lock;
+		pMessageSelectionModel_->getSelectedMessages(&lock, 0, 0);
+		Account* pAccount = lock.get();
+		if (!pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX))
+			return false;
+	}
+	
+	return true;
 }
 
 bool qm::EditDeleteMessageAction::confirm() const
