@@ -59,9 +59,14 @@ QSTATUS qmimap4::Imap4SearchDriver::search(
 	CHECK_QSTATUS();
 	SearchContext::FolderList::const_iterator it = listFolder.begin();
 	while (it != listFolder.end()) {
-		status = pDriver->search(pSubAccount, *it, context.getCondition(),
-			wstrCharset.get(), nUseCharset != 0, pList);
-		CHECK_QSTATUS();
+		NormalFolder* pFolder = *it;
+		if (pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+			!pFolder->isFlag(Folder::FLAG_NOSELECT) &&
+			!pFolder->isFlag(Folder::FLAG_LOCAL)) {
+			status = pDriver->search(pSubAccount, pFolder, context.getCondition(),
+				wstrCharset.get(), nUseCharset != 0, pList);
+			CHECK_QSTATUS();
+		}
 		++it;
 	}
 	
