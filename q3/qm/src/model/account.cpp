@@ -1090,7 +1090,35 @@ QSTATUS qm::Account::importMessage(NormalFolder* pFolder,
 		case Account::IMPORTFLAG_IGNOREFLAGS:
 			break;
 		case Account::IMPORTFLAG_QMAIL20FLAGS:
-			// TODO
+			{
+				enum OldFlag {
+					SEEN		= 0x00000001,
+					REPLIED		= 0x00000002,
+					FORWARDED	= 0x00000004,
+					SENT		= 0x00000010,
+					DRAFT		= 0x00000020,
+					MARKED		= 0x00000080,
+					TOME		= 0x00002000,
+					CCME		= 0x00004000
+				};
+				struct {
+					OldFlag oldFlag_;
+					MessageHolder::Flag flag_;
+				} map[] = {
+					{ SEEN,			MessageHolder::FLAG_SEEN		},
+					{ REPLIED,		MessageHolder::FLAG_REPLIED		},
+					{ FORWARDED,	MessageHolder::FLAG_FORWARDED	},
+					{ SENT,			MessageHolder::FLAG_SENT		},
+					{ DRAFT,		MessageHolder::FLAG_DRAFT		},
+					{ MARKED,		MessageHolder::FLAG_MARKED		},
+					{ TOME,			MessageHolder::FLAG_TOME		},
+					{ CCME,			MessageHolder::FLAG_CCME		}
+				};
+				for (int n = 0; n < countof(map); ++n) {
+					if (flags.getValue() & map[n].oldFlag_)
+						nMessageFlags |= map[n].flag_;
+				}
+			}
 			break;
 		}
 	}
