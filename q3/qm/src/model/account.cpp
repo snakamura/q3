@@ -435,9 +435,13 @@ qm::Account::Account(const WCHAR* pwszPath, QSTATUS* pstatus) :
 	status = pImpl_->loadFolders();
 	CHECK_QSTATUS_SET(pstatus);
 	
-	// TODO
-	// Load current sub account from profile
-	pImpl_->pCurrentSubAccount_ = pImpl_->listSubAccount_.front();
+	string_ptr<WSTRING> wstrSubAccount;
+	status = pImpl_->pProfile_->getString(L"Global",
+		L"SubAccount", L"", &wstrSubAccount);
+	CHECK_QSTATUS_SET(pstatus);
+	pImpl_->pCurrentSubAccount_ = getSubAccount(wstrSubAccount.get());
+	if (!pImpl_->pCurrentSubAccount_)
+		pImpl_->pCurrentSubAccount_ = pImpl_->listSubAccount_.front();
 }
 
 qm::Account::~Account()
@@ -858,6 +862,10 @@ QSTATUS qm::Account::compact()
 QSTATUS qm::Account::save() const
 {
 	DECLARE_QSTATUS();
+	
+	status = pImpl_->pProfile_->setString(L"Global", L"SubAccount",
+		pImpl_->pCurrentSubAccount_->getName());
+	CHECK_QSTATUS();
 	
 	status = pImpl_->pMessageStore_->flush();
 	CHECK_QSTATUS();
