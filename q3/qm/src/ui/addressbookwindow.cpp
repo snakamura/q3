@@ -838,19 +838,6 @@ void qm::AddressBookListWindowImpl::reloadProfiles(bool bInitialize)
 		::DeleteObject(hfont_);
 	}
 	hfont_ = hfont;
-	
-	if (!bInitialize) {
-		RECT rect;
-		pThis_->getClientRect(&rect);
-		WINDOWPOS wp;
-		HDLAYOUT layout = {
-			&rect,
-			&wp
-		};
-		Window header(ListView_GetHeader(pThis_->getHandle()));
-		Header_Layout(header.getHandle(), &layout);
-		header.setWindowPos(0, wp.x, wp.y, wp.cx, wp.cy, SWP_NOZORDER | SWP_NOACTIVATE);
-	}
 }
 
 void qm::AddressBookListWindowImpl::getSelectedItems(ItemList* pList)
