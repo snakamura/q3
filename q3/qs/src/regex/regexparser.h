@@ -570,6 +570,10 @@ private:
 private:
 	static WCHAR getSingleEscapedChar(WCHAR c);
 	static std::auto_ptr<RegexMultiEscapeAtom> getMultiEscapedAtom(WCHAR c);
+	static bool isSingleEscapeChar(WCHAR c);
+	static bool isMultiEscapeChar(WCHAR c);
+	static bool isSpecialChar(WCHAR c);
+	static bool isQuantifierChar(WCHAR c);
 	static int getHex(WCHAR c);
 	static int getOct(WCHAR c);
 
@@ -591,6 +595,7 @@ private:
 	static const WCHAR wszSingleEscapeChar__[];
 	static const WCHAR wszMultiEscapeChar__[];
 	static const WCHAR wszSpecialChar__[];
+	static const WCHAR wszQuantifierChar__[];
 };
 
 

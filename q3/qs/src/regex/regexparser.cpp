@@ -577,6 +577,7 @@ qs::RegexMatchCallback::~RegexMatchCallback()
 const WCHAR qs::RegexParser::wszSingleEscapeChar__[] = L"nrt\\|.-^?*+{}()[]$";
 const WCHAR qs::RegexParser::wszMultiEscapeChar__[] = L"sSwWdD";
 const WCHAR qs::RegexParser::wszSpecialChar__[] = L"\\|.-^?*+{}()[]$";
+const WCHAR qs::RegexParser::wszQuantifierChar__[] = L"*+?{";
 
 qs::RegexParser::RegexParser(const WCHAR* pwszPattern,
 							 unsigned int nMode) :
@@ -726,7 +727,7 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		if (c != L'\0') {
 			pAtom.reset(new RegexCharAtom(c));
 		}
-		else if (wcschr(wszMultiEscapeChar__, *p_)) {
+		else if (isMultiEscapeChar(*p_)) {
 			pAtom = getMultiEscapedAtom(*p_);
 		}
 		else if (*p_ == L'b') {
@@ -770,7 +771,7 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		const WCHAR* p = p_;
 		do {
 			++p_;
-		} while (!wcschr(wszSpecialChar__, *p_));
+		} while (*p_ && !isSpecialChar(*p_) && (!*(p_ + 1) || !isQuantifierChar(*(p_ + 1))));
 		if (p_ == p + 1)
 			pAtom.reset(new RegexCharAtom(*p));
 		else
@@ -831,7 +832,7 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 			
 			cStart = parseEscapedChar();
 			if (cStart == L'\0') {
-				if (wcschr(wszMultiEscapeChar__, *p_))
+				if (isMultiEscapeChar(*p_))
 					pCharGroupAtom->addAtomCharGroup(getMultiEscapedAtom(*p_));
 				else
 					return std::auto_ptr<RegexCharGroupAtom>(0);
@@ -961,7 +962,7 @@ RegexQuantifier::Option qs::RegexParser::parseQuantifierOption()
 
 WCHAR qs::RegexParser::parseEscapedChar()
 {
-	if (wcschr(wszSingleEscapeChar__, *p_))
+	if (isSingleEscapeChar(*p_))
 		return getSingleEscapedChar(*p_);
 	else if (*p_ == L'x' || *p_ == L'u')
 		return parseHexEscapedChar();
@@ -1008,7 +1009,7 @@ bool qs::RegexParser::checkReference(unsigned int nGroup) const
 
 WCHAR qs::RegexParser::getSingleEscapedChar(WCHAR c)
 {
-	assert(wcschr(wszSingleEscapeChar__, c));
+	assert(isSingleEscapeChar(c));
 	
 	switch (c) {
 	case L'n':
@@ -1024,7 +1025,7 @@ WCHAR qs::RegexParser::getSingleEscapedChar(WCHAR c)
 
 std::auto_ptr<RegexMultiEscapeAtom> qs::RegexParser::getMultiEscapedAtom(WCHAR c)
 {
-	assert(wcschr(wszMultiEscapeChar__, c));
+	assert(isMultiEscapeChar(c));
 	
 	std::auto_ptr<RegexMultiEscapeAtom> pAtom;
 	switch (c) {
@@ -1048,6 +1049,30 @@ std::auto_ptr<RegexMultiEscapeAtom> qs::RegexParser::getMultiEscapedAtom(WCHAR c
 		break;
 	}
 	return pAtom;
+}
+
+bool qs::RegexParser::isSingleEscapeChar(WCHAR c)
+{
+	const WCHAR* pEnd = wszSingleEscapeChar__ + countof(wszSingleEscapeChar__);
+	return std::find(wszSingleEscapeChar__, pEnd, c) != pEnd;
+}
+
+bool qs::RegexParser::isMultiEscapeChar(WCHAR c)
+{
+	const WCHAR* pEnd = wszMultiEscapeChar__ + countof(wszMultiEscapeChar__);
+	return std::find(wszMultiEscapeChar__, pEnd, c) != pEnd;
+}
+
+bool qs::RegexParser::isSpecialChar(WCHAR c)
+{
+	const WCHAR* pEnd = wszSpecialChar__ + countof(wszSpecialChar__);
+	return std::find(wszSpecialChar__, pEnd, c) != pEnd;
+}
+
+bool qs::RegexParser::isQuantifierChar(WCHAR c)
+{
+	const WCHAR* pEnd = wszQuantifierChar__ + countof(wszQuantifierChar__);
+	return std::find(wszQuantifierChar__, pEnd, c) != pEnd;
 }
 
 int qs::RegexParser::getHex(WCHAR c)
