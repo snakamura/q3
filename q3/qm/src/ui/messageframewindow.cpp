@@ -265,34 +265,29 @@ QSTATUS qm::MessageFrameWindowImpl::initActions()
 		pActionMap_, IDM_VIEW_HTMLMODE, pMessageWindow_,
 		&MessageWindow::isHtmlMode, &MessageWindow::setHtmlMode, true);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		MessageModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTMESSAGE, pViewModelManager_,
-		pMessageWindow_->getMessageModel(), pMessageWindow_,
+	status = InitAction2<ViewNavigateMessageAction,
+		MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTMESSAGE, pMessageWindow_,
 		ViewNavigateMessageAction::TYPE_NEXT);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		MessageModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_PREVMESSAGE, pViewModelManager_,
-		pMessageWindow_->getMessageModel(), pMessageWindow_,
+	status = InitAction2<ViewNavigateMessageAction,
+		MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_PREVMESSAGE, pMessageWindow_,
 		ViewNavigateMessageAction::TYPE_PREV);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		MessageModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTUNSEENMESSAGE, pViewModelManager_,
-		pMessageWindow_->getMessageModel(), pMessageWindow_,
+	status = InitAction2<ViewNavigateMessageAction,
+		MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTUNSEENMESSAGE, pMessageWindow_,
 		ViewNavigateMessageAction::TYPE_NEXTUNSEEN);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		MessageModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_NEXTMESSAGEPAGE, pViewModelManager_,
-		pMessageWindow_->getMessageModel(), pMessageWindow_,
+	status = InitAction2<ViewNavigateMessageAction,
+		MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_NEXTMESSAGEPAGE, pMessageWindow_,
 		ViewNavigateMessageAction::TYPE_NEXTPAGE);
 	CHECK_QSTATUS();
-	status = InitAction4<ViewNavigateMessageAction, ViewModelManager*,
-		MessageModel*, MessageWindow*, ViewNavigateMessageAction::Type>(
-		pActionMap_, IDM_VIEW_PREVMESSAGEPAGE, pViewModelManager_,
-		pMessageWindow_->getMessageModel(), pMessageWindow_,
+	status = InitAction2<ViewNavigateMessageAction,
+		MessageWindow*, ViewNavigateMessageAction::Type>(
+		pActionMap_, IDM_VIEW_PREVMESSAGEPAGE, pMessageWindow_,
 		ViewNavigateMessageAction::TYPE_PREVPAGE);
 	CHECK_QSTATUS();
 	status = InitAction4<ViewMessageModeAction, MessageWindow*,

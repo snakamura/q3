@@ -1430,14 +1430,14 @@ public:
 		TYPE_PREV,
 		TYPE_NEXTUNSEEN,
 		TYPE_NEXTPAGE,
-		TYPE_PREVPAGE
+		TYPE_PREVPAGE,
+		TYPE_SELF
 	};
 
 public:
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
 		MessageWindow* pMessageWindow, Type type, qs::QSTATUS* pstatus);
-	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
-		MessageModel* pMessageModel, MessageWindow* pMessageWindow,
+	ViewNavigateMessageAction(MessageWindow* pMessageWindow,
 		Type type, qs::QSTATUS* pstatus);
 	virtual ~ViewNavigateMessageAction();
 
@@ -1451,7 +1451,6 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
-	MessageModel* pMessageModel_;
 	MessageWindow* pMessageWindow_;
 	Type type_;
 };

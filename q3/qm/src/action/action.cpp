@@ -3134,7 +3134,6 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
 	ViewModelManager* pViewModelManager, MessageWindow* pMessageWindow,
 	Type type, QSTATUS* pstatus) :
 	pViewModelManager_(pViewModelManager),
-	pMessageModel_(0),
 	pMessageWindow_(pMessageWindow),
 	type_(type)
 {
@@ -3145,15 +3144,11 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
 }
 
 qm::ViewNavigateMessageAction::ViewNavigateMessageAction(
-	ViewModelManager* pViewModelManager, MessageModel* pMessageModel,
 	MessageWindow* pMessageWindow, Type type, QSTATUS* pstatus) :
-	pViewModelManager_(pViewModelManager),
-	pMessageModel_(pMessageModel),
+	pViewModelManager_(0),
 	pMessageWindow_(pMessageWindow),
 	type_(type)
 {
-	assert(pViewModelManager);
-	assert(pMessageModel);
 	assert(pMessageWindow);
 	assert(pstatus);
 	*pstatus = QSTATUS_SUCCESS;
@@ -3169,8 +3164,18 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	
 	Type type = type_;
 	
+	bool bPreview = pViewModelManager_ != 0;
+	
+	MessageModel* pMessageModel = pMessageWindow_->getMessageModel();
+	
+	if (bPreview && (type_ == TYPE_NEXTPAGE || type_ == TYPE_PREVPAGE)) {
+		MessagePtrLock lock(pMessageModel->getCurrentMessage());
+		if (!lock)
+			type = TYPE_SELF;
+	}
+	
 	bool bScrolled = true;
-	switch (type_) {
+	switch (type) {
 	case TYPE_NEXTPAGE:
 		status = pMessageWindow_->scrollPage(false, &bScrolled);
 		CHECK_QSTATUS();
@@ -3190,25 +3195,25 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	}
 	
 	ViewModel* pViewModel = 0;
-	if (!pMessageModel_) {
+	if (bPreview) {
 		pViewModel = pViewModelManager_->getCurrentViewModel();
 		if (!pViewModel)
 			return QSTATUS_SUCCESS;
 	}
 	else {
-		pViewModel = pMessageModel_->getViewModel();
+		pViewModel = pMessageModel->getViewModel();
 	}
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
 	unsigned int nCount = pViewModel->getCount();
 	unsigned int nIndex = static_cast<unsigned int>(-1);
-	if (!pMessageModel_) {
+	if (bPreview) {
 		if (nCount != 0)
 			nIndex = pViewModel->getFocused();
 	}
 	else {
-		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+		MessagePtrLock mpl(pMessageModel->getCurrentMessage());
 		if (mpl)
 			nIndex = pViewModel->getIndex(mpl);
 	}
@@ -3249,20 +3254,22 @@ QSTATUS qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 				}
 			}
 			break;
+		case TYPE_SELF:
+			break;
 		default:
 			assert(false);
 			break;
 		}
 		
-		if (pMessageModel_) {
+		if (!bPreview || type == TYPE_SELF) {
 			MessageHolder* pmh = 0;
 			if (nIndex != static_cast<unsigned int>(-1))
 				pmh = pViewModel->getMessageHolder(nIndex);
-			status = pMessageModel_->setMessage(pmh);
+			status = pMessageModel->setMessage(pmh);
 			CHECK_QSTATUS();
 		}
 		
-		if (nIndex != static_cast<unsigned int>(-1)) {
+		if (nIndex != static_cast<unsigned int>(-1) && type != TYPE_SELF) {
 			status = pViewModel->setFocused(nIndex);
 			CHECK_QSTATUS();
 			status = pViewModel->setSelection(nIndex);
