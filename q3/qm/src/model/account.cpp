@@ -1275,27 +1275,28 @@ QSTATUS qm::Account::getMessage(MessageHolder* pmh,
 		status = pImpl_->pProtocolDriver_->getMessage(getCurrentSubAccount(),
 			pmh, nFlags, &strMessage, &msgFlag, &bGet, &bMadeSeen);
 		CHECK_QSTATUS();
-		
-		status = pMessage->create(strMessage.get(), -1, msgFlag);
-		CHECK_QSTATUS();
-		
-		if (bGet && pmh->getFolder()->isFlag(Folder::FLAG_CACHEWHENREAD)) {
-			status = updateMessage(pmh, strMessage.get());
+		if (bGet) {
+			status = pMessage->create(strMessage.get(), -1, msgFlag);
 			CHECK_QSTATUS();
 			
-			unsigned int nMessageFlag = 0;
-			switch (msgFlag) {
-			case Message::FLAG_HEADERONLY:
-				nMessageFlag = MessageHolder::FLAG_HEADERONLY;
-				break;
-			case Message::FLAG_TEXTONLY:
-				nMessageFlag = MessageHolder::FLAG_TEXTONLY;
-				break;
-			case Message::FLAG_HTMLONLY:
-				nMessageFlag = MessageHolder::FLAG_HTMLONLY;
-				break;
+			if (pmh->getFolder()->isFlag(Folder::FLAG_CACHEWHENREAD)) {
+				status = updateMessage(pmh, strMessage.get());
+				CHECK_QSTATUS();
+				
+				unsigned int nMessageFlag = 0;
+				switch (msgFlag) {
+				case Message::FLAG_HEADERONLY:
+					nMessageFlag = MessageHolder::FLAG_HEADERONLY;
+					break;
+				case Message::FLAG_TEXTONLY:
+					nMessageFlag = MessageHolder::FLAG_TEXTONLY;
+					break;
+				case Message::FLAG_HTMLONLY:
+					nMessageFlag = MessageHolder::FLAG_HTMLONLY;
+					break;
+				}
+				pmh->setFlags(nMessageFlag, MessageHolder::FLAG_PARTIAL_MASK);
 			}
-			pmh->setFlags(nMessageFlag, MessageHolder::FLAG_PARTIAL_MASK);
 		}
 	}
 	
