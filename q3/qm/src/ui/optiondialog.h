@@ -682,7 +682,12 @@ public:
 	virtual bool save(OptionDialogContext* pContext);
 
 private:
+	LRESULT onColors();
 	LRESULT onFont();
+	LRESULT onWrapChange(UINT nId);
+
+private:
+	void updateState();
 
 private:
 	OptionPreviewWindowDialog(const OptionPreviewWindowDialog&);

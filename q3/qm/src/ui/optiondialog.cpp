@@ -1313,6 +1313,19 @@ LRESULT qm::OptionMessageWindowDialog::onFont()
  *
  */
 
+namespace {
+struct {
+	const WCHAR* pwszKey_;
+	UINT nId_;
+	bool bDefault_;
+} previewWindowFlags[] = {
+	{ L"WordWrap",					IDC_WORDWRAP,					false	},
+	{ L"ShowRuler",					IDC_SHOWRULER,					false	},
+	{ L"ShowVerticalScrollBar",		IDC_SHOWVERTICALSCROLLBAR,		true	},
+	{ L"ShowHorizontalScrollBar",	IDC_SHOWHORIZONTALSCROLLBAR,	false	}
+};
+}
+
 qm::OptionPreviewWindowDialog::OptionPreviewWindowDialog(MessageWindow* pPreviewWindow,
 														 Profile* pProfile) :
 	DefaultDialog(IDD_OPTIONPREVIEWWINDOW),
@@ -1330,7 +1343,10 @@ LRESULT qm::OptionPreviewWindowDialog::onCommand(WORD nCode,
 												WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_COLORS, onColors)
 		HANDLE_COMMAND_ID(IDC_FONT, onFont)
+		HANDLE_COMMAND_ID_RANGE_CODE(IDC_WRAPWINDOWWIDTH,
+			IDC_WRAPCOLUMN, BN_CLICKED, onWrapChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -1338,11 +1354,52 @@ LRESULT qm::OptionPreviewWindowDialog::onCommand(WORD nCode,
 LRESULT qm::OptionPreviewWindowDialog::onInitDialog(HWND hwndFocus,
 												   LPARAM lParam)
 {
+	unsigned int nCharInLine = pProfile_->getInt(L"PreviewWindow", L"CharInLine", 0);
+	if (nCharInLine == 0) {
+		sendDlgItemMessage(IDC_WRAPWINDOWWIDTH, BM_SETCHECK, BST_CHECKED);
+		setDlgItemInt(IDC_CHARINLINE, 80);
+	}
+	else {
+		sendDlgItemMessage(IDC_WRAPCOLUMN, BM_SETCHECK, BST_CHECKED);
+		setDlgItemInt(IDC_CHARINLINE, nCharInLine, false);
+	}
+	
+	unsigned int nTabWidth = pProfile_->getInt(L"PreviewWindow", L"TabWidth", 4);
+	setDlgItemInt(IDC_TABWIDTH, nTabWidth, false);
+	
+	for (int n = 0; n < countof(previewWindowFlags); ++n) {
+		bool b = pProfile_->getInt(L"PreviewWindow",
+			previewWindowFlags[n].pwszKey_, previewWindowFlags[n].bDefault_) != 0;
+		sendDlgItemMessage(previewWindowFlags[n].nId_,
+			BM_SETCHECK, b ? BST_CHECKED : BST_UNCHECKED);
+	}
+	
+	unsigned int nSeenWait = pProfile_->getInt(L"PreviewWindow", L"SeenWait", 0);
+	setDlgItemInt(IDC_SEENWAIT, nSeenWait, false);
+	
+	updateState();
+	
 	return FALSE;
 }
 
 bool qm::OptionPreviewWindowDialog::save(OptionDialogContext* pContext)
 {
+	unsigned int nCharInLine = 0;
+	if (sendDlgItemMessage(IDC_WRAPCOLUMN, BM_GETCHECK) == BST_CHECKED)
+		nCharInLine = getDlgItemInt(IDC_CHARINLINE);
+	pProfile_->setInt(L"PreviewWindow", L"CharInLine", nCharInLine);
+	
+	unsigned int nTabWidth = getDlgItemInt(IDC_TABWIDTH);
+	pProfile_->setInt(L"PreviewWindow", L"TabWidth", nTabWidth);
+	
+	for (int n = 0; n < countof(previewWindowFlags); ++n) {
+		bool b = sendDlgItemMessage(previewWindowFlags[n].nId_, BM_GETCHECK) == BST_CHECKED;
+		pProfile_->setInt(L"PreviewWindow", previewWindowFlags[n].pwszKey_, b);
+	}
+	
+	unsigned int nSeenWait = getDlgItemInt(IDC_SEENWAIT);
+	pProfile_->setInt(L"PreviewWindow", L"SeenWait", nSeenWait);
+	
 	UIUtil::setLogFontToProfile(pProfile_, L"PreviewWindow", lf_);
 	
 	pPreviewWindow_->reloadProfiles();
@@ -1350,10 +1407,28 @@ bool qm::OptionPreviewWindowDialog::save(OptionDialogContext* pContext)
 	return true;
 }
 
+LRESULT qm::OptionPreviewWindowDialog::onColors()
+{
+	// TODO
+	return 0;
+}
+
 LRESULT qm::OptionPreviewWindowDialog::onFont()
 {
 	UIUtil::browseFont(getParentPopup(), &lf_);
 	return 0;
+}
+
+LRESULT qm::OptionPreviewWindowDialog::onWrapChange(UINT nId)
+{
+	updateState();
+	return 0;
+}
+
+void qm::OptionPreviewWindowDialog::updateState()
+{
+	bool bEnable = sendDlgItemMessage(IDC_WRAPCOLUMN, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_CHARINLINE)).enableWindow(bEnable);
 }
 
 

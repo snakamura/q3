@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by qm.rc
 //
 #define IDI_MAINFRAME                   102
@@ -436,6 +436,16 @@
 #define IDC_SOUNDLABEL                  1325
 #define IDC_SOUND                       1326
 #define IDC_ONLYWHENCONNECTED           1327
+#define IDC_WRAPWINDOWWIDTH             1329
+#define IDC_WRAPCOLUMN                  1330
+#define IDC_CHARINLINE                  1331
+#define IDC_WORDWRAP                    1332
+#define IDC_TABWIDTH                    1333
+#define IDC_SHOWRULER                   1334
+#define IDC_SHOWVERTICALSCROLLBAR       1337
+#define IDC_SHOWHORIZONTALSCROLLBAR     1338
+#define IDC_COLORS                      1339
+#define IDC_SEENWAIT                    1340
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -522,9 +532,10 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        203
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1329
+#define _APS_NEXT_CONTROL_VALUE         1341
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
