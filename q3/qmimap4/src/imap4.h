@@ -1,5 +1,5 @@
 /*
- * $Id: imap4.h,v 1.1.1.1 2003/04/29 08:07:33 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -125,8 +125,11 @@ public:
 	
 	enum Capability {
 		CAPABILITY_NAMESPACE	= 0x0001,
-		
-		CAPABILITY_AUTH_CRAMMD5	= 0x0100
+	};
+	
+	enum Auth {
+		AUTH_LOGIN		= 0x01,
+		AUTH_CRAMMD5	= 0x02
 	};
 
 public:
@@ -204,7 +207,9 @@ private:
 		const CHAR* pszTag, bool bAcceptContinue, ParserCallback* pCallback);
 	qs::QSTATUS sendCommandTokens(const CommandToken* pTokens, size_t nCount);
 	qs::QSTATUS getTag(qs::STRING* pstrTag);
-	
+	qs::QSTATUS getAuthMethods(unsigned int* pnAuth);
+
+private:
 	static qs::QSTATUS getQuotedString(const CHAR* psz, qs::STRING* pstrQuoted);
 
 private:
@@ -229,6 +234,7 @@ private:
 	qs::Socket* pSocket_;
 	qs::STRING strOverBuf_;
 	unsigned int nCapability_;
+	unsigned int nAuth_;
 	bool bDisconnected_;
 	unsigned int nTag_;
 	unsigned int nError_;
@@ -251,6 +257,7 @@ public:
 	virtual qs::QSTATUS getUserInfo(qs::WSTRING* pwstrUserName,
 		qs::WSTRING* pwstrPassword) = 0;
 	virtual qs::QSTATUS setPassword(const WCHAR* pwszPassword) = 0;
+	virtual qs::QSTATUS getAuthMethods(qs::WSTRING* pwstrAuthMethods) = 0;
 	
 	virtual qs::QSTATUS authenticating() = 0;
 	virtual qs::QSTATUS setRange(unsigned int nMin, unsigned int nMax) = 0;

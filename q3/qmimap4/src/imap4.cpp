@@ -1,5 +1,5 @@
 /*
- * $Id: imap4.cpp,v 1.1.1.1 2003/04/29 08:07:33 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -191,6 +191,7 @@ qmimap4::Imap4::Imap4(const Option& option, qs::QSTATUS* pstatus) :
 	pSocket_(0),
 	strOverBuf_(0),
 	nCapability_(0),
+	nAuth_(AUTH_LOGIN),
 	bDisconnected_(false),
 	nTag_(0),
 	nError_(IMAP4_ERROR_SUCCESS)
@@ -846,7 +847,7 @@ QSTATUS qmimap4::Imap4::processCapability()
 	if (pCapability->isSupport("NAMESPACE"))
 		nCapability_ |= CAPABILITY_NAMESPACE;
 	if (pCapability->isSupportAuth("CRAM-MD5"))
-		nCapability_ |= CAPABILITY_AUTH_CRAMMD5;
+		nAuth_ |= AUTH_CRAMMD5;
 	
 	return QSTATUS_SUCCESS;
 }
@@ -869,8 +870,14 @@ QSTATUS qmimap4::Imap4::processLogin()
 	status = pImap4Callback_->authenticating();
 	CHECK_QSTATUS();
 	
+	unsigned int nAllowedMethods = 0;
+	status = getAuthMethods(&nAllowedMethods);
+	CHECK_QSTATUS();
+	unsigned int nAuth = nAuth_ & nAllowedMethods;
+	CHECK_ERROR(nAuth == 0, QSTATUS_FAIL, IMAP4_ERROR_AUTHENTICATE);
+	
 	bool bLogin = true;
-	if (nCapability_ & CAPABILITY_AUTH_CRAMMD5) {
+	if (nAuth & AUTH_CRAMMD5) {
 		ListParserCallback callback;
 		string_ptr<STRING> strTag;
 		status = sendCommand("AUTHENTICATE CRAM-MD5\r\n", &strTag, &callback);
@@ -1139,6 +1146,43 @@ QSTATUS qmimap4::Imap4::getTag(STRING* pstrTag)
 	if (!*pstrTag)
 		return QSTATUS_FAIL;
 	sprintf(*pstrTag, "q%04lu", nTag_++);
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmimap4::Imap4::getAuthMethods(unsigned int* pnAuth)
+{
+	assert(pnAuth);
+	
+	DECLARE_QSTATUS();
+	
+	*pnAuth = 0;
+	
+	string_ptr<WSTRING> wstrAuthMethods;
+	status = pImap4Callback_->getAuthMethods(&wstrAuthMethods);
+	CHECK_QSTATUS();
+	
+	struct {
+		const WCHAR* pwsz_;
+		Auth auth_;
+	} methods[] = {
+		{ L"LOGIN",		AUTH_LOGIN		},
+		{ L"CRAM-MD5",	AUTH_CRAMMD5	}
+	};
+	
+	const WCHAR* p = wcstok(wstrAuthMethods.get(), L" ");
+	while (p) {
+		for (int n = 0; n < countof(methods); ++n) {
+			if (wcscmp(p, methods[n].pwsz_) == 0) {
+				*pnAuth |= methods[n].auth_;
+				break;
+			}
+		}
+		p = wcstok(0, L" ");
+	}
+	
+	if (*pnAuth == 0)
+		*pnAuth = 0xffffffff;
 	
 	return QSTATUS_SUCCESS;
 }

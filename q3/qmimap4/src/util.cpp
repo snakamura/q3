@@ -1,5 +1,5 @@
 /*
- * $Id: util.cpp,v 1.2 2003/05/20 07:27:00 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -890,4 +890,11 @@ QSTATUS qmimap4::AbstractCallback::setPassword(const WCHAR* pwszPassword)
 {
 	// TODO
 	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qmimap4::AbstractCallback::getAuthMethods(qs::WSTRING* pwstrAuthMethods)
+{
+	assert(pwstrAuthMethods);
+	return pSubAccount_->getProperty(L"Imap4",
+		L"AuthMethods", L"", pwstrAuthMethods);
 }
