@@ -322,6 +322,65 @@ HANDLE qs::Event::getHandle() const
 
 /****************************************************************************
  *
+ * Mutex
+ *
+ */
+
+qs::Mutex::Mutex(QSTATUS* pstatus) :
+	hMutex_(0)
+{
+	*pstatus = init(false, 0);
+}
+
+qs::Mutex::Mutex(bool bOwner, QSTATUS* pstatus) :
+	hMutex_(0)
+{
+	*pstatus = init(bOwner, 0);
+}
+
+qs::Mutex::Mutex(bool bOwner, const WCHAR* pwszName, QSTATUS* pstatus) :
+	hMutex_(0)
+{
+	*pstatus = init(bOwner, pwszName);
+}
+
+qs::Mutex::~Mutex()
+{
+	if (hMutex_)
+		::CloseHandle(hMutex_);
+}
+
+QSTATUS qs::Mutex::acquire()
+{
+	assert(hMutex_);
+	return ::WaitForSingleObject(hMutex_, INFINITE) != WAIT_FAILED ?
+		QSTATUS_SUCCESS : QSTATUS_FAIL;
+}
+
+QSTATUS qs::Mutex::release()
+{
+	assert(hMutex_);
+	return ::ReleaseMutex(hMutex_) ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+}
+
+QSTATUS qs::Mutex::init(bool bOwner, const WCHAR* pwszName)
+{
+	DECLARE_QSTATUS();
+	
+	if (pwszName) {
+		W2T(pwszName, ptszName);
+		hMutex_ = ::CreateMutex(0, bOwner, ptszName);
+	}
+	else {
+		hMutex_ = ::CreateMutex(0, bOwner, 0);
+	}
+	
+	return hMutex_ ? QSTATUS_SUCCESS : QSTATUS_FAIL;
+}
+
+
+/****************************************************************************
+ *
  * Synchronizer
  *
  */

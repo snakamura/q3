@@ -238,6 +238,36 @@ private:
 
 /****************************************************************************
  *
+ * Mutex
+ *
+ */
+
+class QSEXPORTCLASS Mutex
+{
+public:
+	Mutex(QSTATUS* pstatus);
+	Mutex(bool bOwner, QSTATUS* pstatus);
+	Mutex(bool bOwner, const WCHAR* pwszName, QSTATUS* pstatus);
+	~Mutex();
+
+public:
+	QSTATUS acquire();
+	QSTATUS release();
+
+private:
+	QSTATUS init(bool bOwner, const WCHAR* pwszName);
+
+private:
+	Mutex(const Mutex&);
+	Mutex& operator=(const Mutex&);
+
+private:
+	HANDLE hMutex_;
+};
+
+
+/****************************************************************************
+ *
  * Synchronizer
  *
  */
