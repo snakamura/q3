@@ -1644,7 +1644,7 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			SHELLEXECUTEINFO sei = {
 				sizeof(sei),
 				0,
-				0,
+				pHtmlMessageViewWindow_->getParentFrame(),
 				_T("open"),
 				tstrURL.get(),
 				0,
