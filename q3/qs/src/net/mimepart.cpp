@@ -735,6 +735,7 @@ bool qs::Part::getBodyText(const WCHAR* pwszCharset,
 			if (!decoded.get())
 				return false;
 			pszDecodedBody = reinterpret_cast<CHAR*>(decoded.get());
+			nDecodedBodyLen = decoded.size();
 		}
 		else {
 			nDecodedBodyLen = strlen(pszDecodedBody);
