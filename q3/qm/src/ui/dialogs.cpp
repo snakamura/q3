@@ -11,6 +11,7 @@
 #include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmgoround.h>
+#include <qmpassword.h>
 #include <qmsession.h>
 #include <qmuiutil.h>
 
@@ -255,6 +256,10 @@ LRESULT qm::AccountDialog::onRemove()
 		TreeView_GetItem(hwnd, &item);
 		
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		Account::Host hosts[] = {
+			Account::HOST_RECEIVE,
+			Account::HOST_SEND
+		};
 		
 		if (TreeView_GetParent(hwnd, hItem)) {
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
@@ -263,6 +268,13 @@ LRESULT qm::AccountDialog::onRemove()
 				MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
 				Account* pAccount = pSubAccount->getAccount();
+				
+				for (int n = 0; n < countof(hosts); ++n) {
+					AccountPasswordCondition condition(pAccount->getName(),
+						pSubAccount->getName(), hosts[n]);
+					pPasswordManager_->removePassword(condition);
+				}
+				
 				pAccount->removeSubAccount(pSubAccount);
 				pSubAccount_ = pAccount->getCurrentSubAccount();
 				
@@ -271,6 +283,16 @@ LRESULT qm::AccountDialog::onRemove()
 		}
 		else {
 			Account* pAccount = reinterpret_cast<Account*>(item.lParam);
+			
+			const Account::SubAccountList& l = pAccount->getSubAccounts();
+			for (Account::SubAccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				SubAccount* pSubAccount = *it;
+				for (int n = 0; n < countof(hosts); ++n) {
+					AccountPasswordCondition condition(pAccount->getName(),
+						pSubAccount->getName(), hosts[n]);
+					pPasswordManager_->removePassword(condition);
+				}
+			}
 			
 			int nRet = messageBox(hInst, IDS_CONFIRMREMOVEACCOUNT,
 				MB_YESNO | MB_DEFBUTTON2, getHandle());
