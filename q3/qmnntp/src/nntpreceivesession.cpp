@@ -325,8 +325,10 @@ QSTATUS qmnntp::NntpReceiveSession::downloadMessages(
 					CHECK_QSTATUS();
 				}
 				
-				status = pSessionCallback_->notifyNewMessage();
-				CHECK_QSTATUS();
+				if ((nFlags & MessageHolder::FLAG_SEEN) == 0) {
+					status = pSessionCallback_->notifyNewMessage();
+					CHECK_QSTATUS();
+				}
 				
 				status = pLastIdList_->setLastId(pNntp_->getGroup(), item.nId_);
 				CHECK_QSTATUS();

@@ -355,8 +355,10 @@ QSTATUS qmpop3::Pop3ReceiveSession::downloadMessages(
 		CHECK_QSTATUS();
 		pUID.release();
 		
-		status = pSessionCallback_->notifyNewMessage();
-		CHECK_QSTATUS();
+		if ((nFlags & MessageHolder::FLAG_SEEN) == 0) {
+			status = pSessionCallback_->notifyNewMessage();
+			CHECK_QSTATUS();
+		}
 	}
 	
 	const Account::FolderList& listFolder = pAccount_->getFolders();

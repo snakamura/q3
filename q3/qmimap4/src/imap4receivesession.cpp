@@ -714,8 +714,10 @@ QSTATUS qmimap4::Imap4ReceiveSession::downloadMessages(
 					break;
 				}
 				
-				status = pSessionCallback_->notifyNewMessage();
-				CHECK_QSTATUS();
+				if ((nFlags & MessageHolder::FLAG_SEEN) == 0) {
+					status = pSessionCallback_->notifyNewMessage();
+					CHECK_QSTATUS();
+				}
 				
 				*pbProcessed = true;
 			}
