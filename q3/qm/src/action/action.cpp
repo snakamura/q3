@@ -196,13 +196,13 @@ bool qm::AttachmentSaveAction::isEnabled(const ActionEvent& event)
  */
 
 qm::DispatchAction::DispatchAction(View* pViews[],
-								   std::auto_ptr<Action> pActions[],
+								   Action* pActions[],
 								   size_t nCount)
 {
 	listItem_.resize(nCount);
 	for (size_t n = 0; n < nCount; ++n) {
 		listItem_[n].pView_ = *(pViews + n);
-		listItem_[n].pAction_ = (pActions + n)->release();
+		listItem_[n].pAction_ = *(pActions + n);
 	}
 }
 

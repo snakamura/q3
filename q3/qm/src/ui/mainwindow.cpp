@@ -261,33 +261,36 @@ void qm::MainWindowImpl::initActions()
 		pDocument_, pFolderModel_.get(), pMessageSelectionModel_.get(), pThis_->getHandle()));
 	std::auto_ptr<EditCommandAction> pCopyAction(new EditCommandAction(
 		pMessageWindow_, &MessageWindowItem::copy, &MessageWindowItem::canCopy));
-	std::auto_ptr<Action> pEditCopyActions[] = {
-		std::auto_ptr<Action>(0),
-		std::auto_ptr<Action>(0),
-		std::auto_ptr<Action>(0),
-		pCopyMessageAction,
-		pCopyAction
+	Action* pEditCopyActions[] = {
+		0,
+		0,
+		0,
+		pCopyMessageAction.get(),
+		pCopyAction.get()
 	};
 	ADD_ACTION3(DispatchAction,
 		IDM_EDIT_COPY,
 		pViews,
 		pEditCopyActions,
 		countof(pViews));
+	pCopyMessageAction.release();
+	pCopyAction.release();
 	
 	std::auto_ptr<EditCutMessageAction> pCutMessageAction(new EditCutMessageAction(
 		pDocument_, pFolderModel_.get(), pMessageSelectionModel_.get(), pThis_->getHandle()));
-	std::auto_ptr<Action> pEditCutActions[] = {
-		std::auto_ptr<Action>(0),
-		std::auto_ptr<Action>(0),
-		std::auto_ptr<Action>(0),
-		pCutMessageAction,
-		std::auto_ptr<Action>(0)
+	Action* pEditCutActions[] = {
+		0,
+		0,
+		0,
+		pCutMessageAction.get(),
+		0
 	};
 	ADD_ACTION3(DispatchAction,
 		IDM_EDIT_CUT,
 		pViews,
 		pEditCutActions,
 		countof(pViews));
+	pCutMessageAction.release();
 	
 	ADD_ACTION2(EditDeleteCacheAction,
 		IDM_EDIT_DELETECACHE,
@@ -321,35 +324,38 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<EditPasteMessageAction> pPasteMessageAction(new EditPasteMessageAction(
 		pDocument_, pFolderModel_.get(), pThis_->getHandle()));
-	std::auto_ptr<Action> pEditPasteActions[] = {
-		pPasteMessageAction,
-		pPasteMessageAction,
-		std::auto_ptr<Action>(0),
-		pPasteMessageAction,
-		std::auto_ptr<Action>(0)
+	Action* pEditPasteActions[] = {
+		pPasteMessageAction.get(),
+		pPasteMessageAction.get(),
+		0,
+		pPasteMessageAction.get(),
+		0
 	};
 	ADD_ACTION3(DispatchAction,
 		IDM_EDIT_PASTE,
 		pViews,
 		pEditPasteActions,
 		countof(pViews));
+	pPasteMessageAction.release();
 	
 	std::auto_ptr<EditSelectAllMessageAction> pSelectAllMessageAction(
 		new EditSelectAllMessageAction(pMessageSelectionModel_.get()));
 	std::auto_ptr<EditCommandAction> pSelectAllAction(new EditCommandAction(
 		pMessageWindow_, &MessageWindowItem::selectAll, &MessageWindowItem::canSelectAll));
-	std::auto_ptr<Action> pEditSelectAllActions[] = {
-		std::auto_ptr<Action>(0),
-		std::auto_ptr<Action>(0),
-		std::auto_ptr<Action>(0),
-		pSelectAllMessageAction,
-		pSelectAllAction
+	Action* pEditSelectAllActions[] = {
+		0,
+		0,
+		0,
+		pSelectAllMessageAction.get(),
+		pSelectAllAction.get()
 	};
 	ADD_ACTION3(DispatchAction,
 		IDM_EDIT_SELECTALL,
 		pViews,
 		pEditSelectAllActions,
 		countof(pViews));
+	pSelectAllMessageAction.release();
+	pSelectAllAction.release();
 	
 	ADD_ACTION2(FileCompactAction,
 		IDM_FILE_COMPACT,

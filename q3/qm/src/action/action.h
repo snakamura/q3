@@ -234,7 +234,7 @@ class DispatchAction : public qs::AbstractAction
 {
 public:
 	DispatchAction(View* pViews[],
-				   std::auto_ptr<qs::Action> pActions[],
+				   qs::Action* pActions[],
 				   size_t nCount);
 	virtual ~DispatchAction();
 
