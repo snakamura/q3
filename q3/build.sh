@@ -6,6 +6,7 @@
 MAKE=${MAKE:=make}
 MSDEV=${MSDEV:=d:/dev/msvs/common/msdev98/bin/msdev.exe}
 PURIFY=${PURIFY:=d:/dev/rational/purify/purify.exe}
+DOXYGEN=${DOXYGEN:=d:/dev/doxygen/doxygen.exe}
 
 PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qmpgp q3"
 DESKTOPTARGETS="desktop.ansi.release desktop.unicode.release"
@@ -156,6 +157,10 @@ zip)
 			*/bin/`printf $t | tr . /`/release/*.exe \
 			*/lib/`printf $t | tr . /`/release/*.dll
 	done
+	;;
+
+doc)
+	$DOXYGEN
 	;;
 
 *)
