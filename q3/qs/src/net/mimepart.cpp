@@ -1,5 +1,5 @@
 /*
- * $Id: mimepart.cpp,v 1.1.1.1 2003/04/29 08:07:35 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -651,6 +651,10 @@ QSTATUS qs::Part::removeField(const WCHAR* pwszName,
 				size_t nLen = strlen(pEnd);
 				memmove(pBegin, pEnd, nLen);
 				*(pBegin + nLen) = '\0';
+				if (*strHeader_ == '\0') {
+					freeString(strHeader_);
+					strHeader_ = 0;
+				}
 				clearHeaderLower();
 				if (_wcsicmp(pwszName, L"Content-Type") == 0) {
 					status = updateContentType();
