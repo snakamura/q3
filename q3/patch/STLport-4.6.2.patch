@@ -1,7 +1,46 @@
 diff -uNr STLport-4.6.2.orig/stlport/config/stl_msvc.h STLport-4.6.2/stlport/config/stl_msvc.h
 --- STLport-4.6.2.orig/stlport/config/stl_msvc.h	2004-03-11 06:35:06.000000000 +0900
-+++ STLport-4.6.2/stlport/config/stl_msvc.h	2004-04-21 15:12:04.513911000 +0900
-@@ -106,7 +106,7 @@
++++ STLport-4.6.2/stlport/config/stl_msvc.h	2004-08-13 14:51:07.173366100 +0900
+@@ -12,11 +12,33 @@
+ #  define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../crt/##header>
+ #  define _STLP_GLOBAL_NEW_HANDLER
+ # else
+-#  define _STLP_NATIVE_HEADER(x) <../include/##x>
+-#  define _STLP_NATIVE_C_HEADER(x) <../include/##x>
+-#  define _STLP_NATIVE_CPP_C_HEADER(x) <../include/##x>
+-#  define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../include/##x>
+-#  define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../include/##header>
++#  if defined(UNDER_CE) && UNDER_CE >= 400
++#   if defined(_X86_)
++#       define _STLP_NATIVE_HEADER(x) <../Emulator/##x>
++#       define _STLP_NATIVE_C_HEADER(x) <../Emulator/##x>
++#       define _STLP_NATIVE_CPP_C_HEADER(x) <../Emulator/##x>
++#       define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../Emulator/##x>
++#       define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../Emulator/##header>
++#   elif defined(ARMV4I)
++#       define _STLP_NATIVE_HEADER(x) <../Armv4i/##x>
++#       define _STLP_NATIVE_C_HEADER(x) <../Armv4i/##x>
++#       define _STLP_NATIVE_CPP_C_HEADER(x) <../Armv4i/##x>
++#       define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../Armv4i/##x>
++#       define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../Armv4i/##header>
++#   elif defined(_ARM_)
++#       define _STLP_NATIVE_HEADER(x) <../Armv4/##x>
++#       define _STLP_NATIVE_C_HEADER(x) <../Armv4/##x>
++#       define _STLP_NATIVE_CPP_C_HEADER(x) <../Armv4/##x>
++#       define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../Armv4/##x>
++#       define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../Armv4/##header>
++#   endif
++#  else
++#   define _STLP_NATIVE_HEADER(x) <../include/##x>
++#   define _STLP_NATIVE_C_HEADER(x) <../include/##x>
++#   define _STLP_NATIVE_CPP_C_HEADER(x) <../include/##x>
++#   define _STLP_NATIVE_OLD_STREAMS_HEADER(x) <../include/##x>
++#   define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../include/##header>
++#  endif
+ # endif
+ 
+ # define _STLP_CALL __cdecl
+@@ -106,7 +128,7 @@
  #  endif
  # endif /* (_MSC_VER <= 1310) */
  

@@ -140,11 +140,11 @@ else
 	COMMONBINDIR		= $(COMPILERDIR)/../common/evc/bin
 	
 	ifeq ($(SDKINCLUDEDIR),)
-#		ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
+		ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
 			SDKINCLUDEDIR		= $(SDKDIR)/include
-#		else
-#			SDKINCLUDEDIR		= $(SDKDIR)/include/$(CPU)
-#		endif
+		else
+			SDKINCLUDEDIR		= $(SDKDIR)/include/$(CPU)
+		endif
 	endif
 	ifeq ($(SDKLIBDIR),)
 		SDKLIBDIR			= $(SDKDIR)/lib/$(LIBCPU)
