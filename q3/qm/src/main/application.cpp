@@ -84,6 +84,7 @@ public:
 public:
 	bool ensureDirectory(const WCHAR* pwszPath,
 						 const WCHAR* pwszName);
+	bool ensureParentDirectory(const WCHAR* pwszPath);
 	bool ensureFile(const WCHAR* pwszPath,
 					const WCHAR* pwszDir,
 					const WCHAR* pwszFileName,
@@ -103,6 +104,10 @@ public:
 
 public:
 	static void loadLibrary(const WCHAR* pwszName);
+
+private:
+	static qs::wstring_ptr getResourcePath(const Resource& resource,
+										   bool bProfile);
 
 public:
 	HINSTANCE hInst_;
@@ -141,6 +146,17 @@ bool qm::ApplicationImpl::ensureDirectory(const WCHAR* pwszPath,
 	}
 	
 	return File::createDirectory(pwszPath);
+}
+
+bool qm::ApplicationImpl::ensureParentDirectory(const WCHAR* pwszPath)
+{
+	const WCHAR* p = wcsrchr(pwszPath, L'\\');
+	if (p) {
+		wstring_ptr wstrDir(allocWString(pwszPath, p - pwszPath));
+		if (!ensureDirectory(wstrDir.get(), 0))
+			return false;
+	}
+	return true;
 }
 
 bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
@@ -214,49 +230,34 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 			baseDir.append(L'\\');
 		}
 		
-		p->state_ = RS_NOTEXIST;
 		unsigned int nRevision = pProfile_->getInt(
 			L"Resource", p->pwszResourceName_, 0);
-		if (nRevision != p->nRevision_) {
-			if (p->pwszProfile_) {
-				ConcatW c[] = {
-					{ baseDir.getCharArray(),		baseDir.getLength()	},
-					{ p->pwszProfile_,				-1					},
-					{ L"\\",						1					},
-					{ p->pwszFileName_,				-1					}
-				};
-				wstring_ptr wstrPath(concat(c, countof(c)));
+		p->state_ = RS_NOTEXIST;
+		
+		struct {
+			bool bTry_;
+			bool bProfile_;
+			ResourceState state_;
+		} tries[] = {
+			{ p->pwszProfile_ != 0,	true,	RS_EXISTPROFILE	},
+			{ true,					false,	RS_EXIST		}
+		};
+		for (int m = 0; m < countof(tries); ++m) {
+			if (tries[m].bTry_) {
+				wstring_ptr wstrPath(getResourcePath(*p, tries[m].bProfile_));
 				W2T(wstrPath.get(), ptszPath);
 				if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-					p->state_ = RS_EXISTPROFILE;
-					
-					if (p->bOverwrite_) {
+					if (p->bOverwrite_ && nRevision != p->nRevision_) {
+						p->state_ = tries[m].state_;
 						wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
 						listResource.push_back(std::make_pair(wstr.get(), true));
 						wstr.release();
 					}
-				}
-			}
-			if (p->state_ == RS_NOTEXIST) {
-				ConcatW c[] = {
-					{ baseDir.getCharArray(),		baseDir.getLength()	},
-					{ p->pwszFileName_,				-1					}
-				};
-				wstring_ptr wstrPath(concat(c, countof(c)));
-				W2T(wstrPath.get(), ptszPath);
-				if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-					p->state_ = RS_EXIST;
-					
-					if (p->bOverwrite_) {
-						wstring_ptr wstr(allocWString(wstrPath.get() + nMailFolderLen));
-						listResource.push_back(std::make_pair(wstr.get(), true));
-						wstr.release();
+					else {
+						p->state_ = RS_SAMEREVISION;
 					}
 				}
 			}
-		}
-		else {
-			p->state_ = RS_SAMEREVISION;
 		}
 	}
 	
@@ -266,18 +267,18 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 		if (dialog.doModal(0) != IDOK)
 			return false;
 		
-		int nResource = 0;
+		size_t nResource = 0;
 		for (size_t n = 0; n < nCount; ++n) {
 			Resource* p = pResource + n;
 			
-			if (p->state_ == RS_EXIST ||
-				p->state_ == RS_EXISTPROFILE) {
+			if (p->state_ == RS_EXIST || p->state_ == RS_EXISTPROFILE) {
 				if (listResource[nResource].second)
 					p->state_ = p->state_ == RS_EXIST ?
 						RS_OVERWRITE : RS_OVERWRITEPROFILE;
 				++nResource;
 			}
 		}
+		assert(nResource == listResource.size());
 		
 		bBackup = dialog.isBackup();
 	}
@@ -288,26 +289,14 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 		if (p->state_ == RS_NOTEXIST ||
 			p->state_ == RS_OVERWRITE ||
 			p->state_ == RS_OVERWRITEPROFILE) {
-			StringBuffer<WSTRING> buf;
-			buf.append(p->pwszDir_);
-			if (p->pwszSubDir_) {
-				buf.append(L'\\');
-				buf.append(p->pwszSubDir_);
-			}
+			wstring_ptr wstrPath(getResourcePath(*p, p->state_ == RS_OVERWRITEPROFILE));
 			
-			if (!ensureDirectory(buf.getCharArray(), 0))
+			if (!ensureParentDirectory(wstrPath.get()))
 				return false;
 			
-			buf.append(L'\\');
-			if (p->state_ == RS_OVERWRITEPROFILE) {
-				buf.append(p->pwszProfile_);
-				buf.append(L'\\');
-			}
-			buf.append(p->pwszFileName_);
-			
 			if (bBackup && (p->state_ == RS_OVERWRITE || p->state_ == RS_OVERWRITEPROFILE)) {
-				wstring_ptr wstrBackupPath(concat(buf.getCharArray(), L".bak"));
-				W2T(buf.getCharArray(), ptszOld);
+				wstring_ptr wstrBackupPath(concat(wstrPath.get(), L".bak"));
+				W2T(wstrPath.get(), ptszOld);
 				W2T(wstrBackupPath.get(), ptszNew);
 				if (::GetFileAttributes(ptszNew) != 0xffffffff) {
 					if (!::DeleteFile(ptszNew))
@@ -317,8 +306,7 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 					return false;
 			}
 			
-			if (!detachResource(buf.getCharArray(),
-				p->pwszResourceType_, p->pwszResourceName_))
+			if (!detachResource(wstrPath.get(), p->pwszResourceType_, p->pwszResourceName_))
 				return false;
 		}
 		
@@ -431,6 +419,27 @@ void qm::ApplicationImpl::loadLibrary(const WCHAR* pwszName)
 	wstring_ptr wstrLib(concat(L"qm", pwszName, SUFFIX L".dll"));
 	W2T(wstrLib.get(), ptszLib);
 	::LoadLibrary(ptszLib);
+}
+
+wstring_ptr qm::ApplicationImpl::getResourcePath(const Resource& resource,
+												 bool bProfile)
+{
+	StringBuffer<WSTRING> buf;
+	buf.append(resource.pwszDir_);
+	buf.append(L'\\');
+	if (resource.pwszSubDir_) {
+		buf.append(resource.pwszSubDir_);
+		buf.append(L'\\');
+	}
+	
+	if (bProfile && resource.pwszProfile_) {
+		buf.append(resource.pwszProfile_);
+		buf.append(L'\\');
+	}
+	
+	buf.append(resource.pwszFileName_);
+	
+	return buf.getString();
 }
 
 
