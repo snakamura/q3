@@ -14,7 +14,10 @@
 
 #include "feed.h"
 
+#pragma warning(disable:4786)
+
 using namespace qmrss;
+using namespace qm;
 using namespace qs;
 
 
@@ -41,11 +44,14 @@ qmrss::FeedList::~FeedList()
 
 const FeedList::List& qmrss::FeedList::getFeeds() const
 {
+	assert(isLocked());
 	return list_;
 }
 
 const Feed* qmrss::FeedList::getFeed(const WCHAR* pwszURL) const
 {
+	Lock<FeedList> lock(*this);
+	
 	List::const_iterator it = std::find_if(list_.begin(), list_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
@@ -58,6 +64,8 @@ const Feed* qmrss::FeedList::getFeed(const WCHAR* pwszURL) const
 
 void qmrss::FeedList::setFeed(std::auto_ptr<Feed> pFeed)
 {
+	Lock<FeedList> lock(*this);
+	
 	List::iterator it = std::find_if(list_.begin(), list_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
@@ -79,6 +87,8 @@ void qmrss::FeedList::setFeed(std::auto_ptr<Feed> pFeed)
 
 void qmrss::FeedList::removeFeed(const Feed* pFeed)
 {
+	assert(isLocked());
+	
 	List::iterator it = std::find(list_.begin(), list_.end(), pFeed);
 	if (it != list_.end()) {
 		delete *it;
@@ -87,13 +97,13 @@ void qmrss::FeedList::removeFeed(const Feed* pFeed)
 	}
 }
 
-bool qmrss::FeedList::isModified() const
+bool qmrss::FeedList::save()
 {
-	return bModified_;
-}
-
-bool qmrss::FeedList::save() const
-{
+	Lock<FeedList> lock(*this);
+	
+	if (!bModified_)
+		return true;
+	
 	TemporaryFileRenamer renamer(wstrPath_.get());
 	
 	FileOutputStream stream(renamer.getPath());
@@ -118,6 +128,29 @@ bool qmrss::FeedList::save() const
 	
 	return true;
 }
+
+void qmrss::FeedList::lock() const
+{
+	cs_.lock();
+#ifndef NDEBUG
+	++nLock_;
+#endif
+}
+
+void qmrss::FeedList::unlock() const
+{
+#ifndef NDEBUG
+	--nLock_;
+#endif
+	cs_.unlock();
+}
+
+#ifndef NDEBUG
+bool qmrss::FeedList::isLocked() const
+{
+	return nLock_ != 0;
+}
+#endif
 
 bool qmrss::FeedList::load()
 {
@@ -207,6 +240,45 @@ qmrss::FeedItem::~FeedItem()
 const WCHAR* qmrss::FeedItem::getHash() const
 {
 	return wstrHash_.get();
+}
+
+
+/****************************************************************************
+ *
+ * FeedManager
+ *
+ */
+
+qmrss::FeedManager::FeedManager()
+{
+}
+
+qmrss::FeedManager::~FeedManager()
+{
+	std::for_each(map_.begin(), map_.end(),
+		unary_compose_f_gx(
+			qs::deleter<FeedList>(),
+			std::select2nd<Map::value_type>()));
+}
+
+FeedList* qmrss::FeedManager::get(qm::Account* pAccount)
+{
+	Lock<CriticalSection> lock(cs_);
+	
+	Map::iterator it = std::find_if(map_.begin(), map_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Account*>(),
+				std::select1st<Map::value_type>(),
+				std::identity<Account*>()),
+			pAccount));
+	if (it != map_.end())
+		return (*it).second;
+	
+	wstring_ptr wstrPath(concat(pAccount->getPath(), L"\\feed.xml"));
+	std::auto_ptr<FeedList> pFeedList(new FeedList(wstrPath.get()));
+	map_.push_back(std::make_pair(pAccount, pFeedList.get()));
+	return pFeedList.release();
 }
 
 

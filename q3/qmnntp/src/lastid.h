@@ -50,6 +50,7 @@ public:
 				   unsigned int nId);
 	void removeLastId(const WCHAR* pwszName);
 	bool save();
+	
 	void lock() const;
 	void unlock() const;
 #ifndef NDEBUG

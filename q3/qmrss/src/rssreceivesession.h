@@ -22,6 +22,7 @@ class RssReceiveSessionUI;
 class RssReceiveSessionFactory;
 
 class FeedList;
+class FeedManager;
 class Item;
 
 
@@ -34,7 +35,7 @@ class Item;
 class RssReceiveSession : public qm::ReceiveSession
 {
 public:
-	RssReceiveSession();
+	explicit RssReceiveSession(FeedManager* pFeedManager);
 	virtual ~RssReceiveSession();
 
 public:
@@ -114,7 +115,8 @@ private:
 	qs::Profile* pProfile_;
 	qs::Logger* pLogger_;
 	qm::ReceiveSessionCallback* pSessionCallback_;
-	std::auto_ptr<FeedList> pFeedList_;
+	FeedManager* pFeedManager_;
+	FeedList* pFeedList_;
 };
 
 
@@ -164,6 +166,9 @@ protected:
 private:
 	RssReceiveSessionFactory(const RssReceiveSessionFactory&);
 	RssReceiveSessionFactory& operator=(const RssReceiveSessionFactory&);
+
+private:
+	std::auto_ptr<FeedManager> pFeedManager_;
 
 private:
 	static RssReceiveSessionFactory factory__;

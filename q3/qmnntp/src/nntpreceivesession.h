@@ -47,7 +47,7 @@ public:
 	};
 
 public:
-	NntpReceiveSession(LastIdManager* pLastIdManager);
+	explicit NntpReceiveSession(LastIdManager* pLastIdManager);
 	virtual ~NntpReceiveSession();
 
 public:

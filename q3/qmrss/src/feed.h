@@ -11,7 +11,10 @@
 
 #include <qssax.h>
 #include <qsstring.h>
+#include <qsthread.h>
 #include <qsutil.h>
+
+#include <qmaccount.h>
 
 #include <vector>
 
@@ -21,6 +24,9 @@ namespace qmrss {
 class FeedList;
 class Feed;
 class FeedItem;
+class FeedManager;
+class FeedContentHandler;
+class FeedWriter;
 
 
 /****************************************************************************
@@ -43,8 +49,13 @@ public:
 	const Feed* getFeed(const WCHAR* pwszURL) const;
 	void setFeed(std::auto_ptr<Feed> pFeed);
 	void removeFeed(const Feed* pFeed);
-	bool isModified() const;
-	bool save() const;
+	bool save();
+	
+	void lock() const;
+	void unlock() const;
+#ifndef NDEBUG
+	bool isLocked() const;
+#endif
 
 private:
 	bool load();
@@ -56,7 +67,11 @@ private:
 private:
 	qs::wstring_ptr wstrPath_;
 	List list_;
-	mutable bool bModified_;
+	bool bModified_;
+	qs::CriticalSection cs_;
+#ifndef NDEBUG
+	mutable unsigned int nLock_;
+#endif
 };
 
 
@@ -115,6 +130,34 @@ private:
 
 private:
 	qs::wstring_ptr wstrHash_;
+};
+
+
+/****************************************************************************
+ *
+ * FeedManager
+ *
+ */
+
+class FeedManager
+{
+public:
+	FeedManager();
+	~FeedManager();
+
+public:
+	FeedList* get(qm::Account* pAccount);
+
+private:
+	FeedManager(const FeedManager&);
+	FeedManager& operator=(const FeedManager&);
+
+private:
+	typedef std::vector<std::pair<qm::Account*, FeedList*> > Map;
+
+private:
+	Map map_;
+	qs::CriticalSection cs_;
 };
 
 

@@ -30,7 +30,7 @@ using namespace qs;
  *
  */
 
-qmrss::RssReceiveSession::RssReceiveSession() :
+qmrss::RssReceiveSession::RssReceiveSession(FeedManager* pFeedManager) :
 	pDocument_(0),
 	pAccount_(0),
 	pSubAccount_(0),
@@ -38,7 +38,9 @@ qmrss::RssReceiveSession::RssReceiveSession() :
 	hwnd_(0),
 	pProfile_(0),
 	pLogger_(0),
-	pSessionCallback_(0)
+	pSessionCallback_(0),
+	pFeedManager_(pFeedManager),
+	pFeedList_(0)
 {
 }
 
@@ -75,14 +77,13 @@ bool qmrss::RssReceiveSession::init(Document* pDocument,
 void qmrss::RssReceiveSession::term()
 {
 	clearFeeds();
-	if (pFeedList_.get() && pFeedList_->isModified())
+	if (pFeedList_)
 		pFeedList_->save();
 }
 
 bool qmrss::RssReceiveSession::connect()
 {
-	wstring_ptr wstrPath(concat(pAccount_->getPath(), L"\\feed.xml"));
-	pFeedList_.reset(new FeedList(wstrPath.get()));
+	pFeedList_ = pFeedManager_->get(pAccount_);
 	return true;
 }
 
@@ -270,8 +271,10 @@ bool qmrss::RssReceiveSession::applyOfflineJobs()
 
 void qmrss::RssReceiveSession::clearFeeds()
 {
-	if (!pFeedList_.get())
+	if (!pFeedList_)
 		return;
+	
+	Lock<FeedList> lock(*pFeedList_);
 	
 	FeedList::List listRemove;
 	const FeedList::List& listFeed = pFeedList_->getFeeds();
@@ -546,6 +549,8 @@ RssReceiveSessionFactory qmrss::RssReceiveSessionFactory::factory__;
 
 qmrss::RssReceiveSessionFactory::RssReceiveSessionFactory()
 {
+	pFeedManager_.reset(new FeedManager());
+	
 	registerFactory(L"rss", this);
 }
 
@@ -556,7 +561,7 @@ qmrss::RssReceiveSessionFactory::~RssReceiveSessionFactory()
 
 std::auto_ptr<ReceiveSession> qmrss::RssReceiveSessionFactory::createSession()
 {
-	return std::auto_ptr<ReceiveSession>(new RssReceiveSession());
+	return std::auto_ptr<ReceiveSession>(new RssReceiveSession(pFeedManager_.get()));
 }
 
 std::auto_ptr<ReceiveSessionUI> qmrss::RssReceiveSessionFactory::createUI()
