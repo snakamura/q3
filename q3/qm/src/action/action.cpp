@@ -5587,8 +5587,10 @@ qm::ViewSortAction::~ViewSortAction()
 void qm::ViewSortAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel)
-		pViewModel->setSort(pSortMenu_->getSort(event.getId()));
+	if (pViewModel) {
+		unsigned int nColumn = pSortMenu_->getSort(event.getId());
+		pViewModel->setSort(nColumn, ViewModel::SORT_INDEX_MASK);
+	}
 }
 
 bool qm::ViewSortAction::isEnabled(const ActionEvent& event)
@@ -5628,10 +5630,9 @@ void qm::ViewSortDirectionAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		unsigned int nSort = pViewModel->getSort();
-		nSort &= ~ViewModel::SORT_DIRECTION_MASK;
-		nSort |= bAscending_ ? ViewModel::SORT_ASCENDING : ViewModel::SORT_DESCENDING;
-		pViewModel->setSort(nSort);
+		unsigned int nSort = bAscending_ ?
+			ViewModel::SORT_ASCENDING : ViewModel::SORT_DESCENDING;
+		pViewModel->setSort(nSort, ViewModel::SORT_DIRECTION_MASK);
 	}
 }
 
@@ -5677,13 +5678,9 @@ void qm::ViewSortFloatThreadAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		unsigned int nSort = pViewModel->getSort();
-		bool bFloat = (nSort & ViewModel::SORT_FLOATTHREAD) != 0;
-		if (nSort & ViewModel::SORT_FLOATTHREAD)
-			nSort &= ~ViewModel::SORT_FLOATTHREAD;
-		else
-			nSort |= ViewModel::SORT_FLOATTHREAD;
-		pViewModel->setSort(nSort);
+		bool bFloat = (pViewModel->getSort() & ViewModel::SORT_FLOATTHREAD) != 0;
+		unsigned int nSort = bFloat ? 0 : ViewModel::SORT_FLOATTHREAD;
+		pViewModel->setSort(nSort, ViewModel::SORT_FLOATTHREAD);
 	}
 }
 
@@ -5718,11 +5715,9 @@ void qm::ViewSortThreadAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		unsigned int nSort = pViewModel->getSort();
-		bool bThread = (nSort & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD;
-		nSort &= ~ViewModel::SORT_THREAD_MASK;
-		nSort |= bThread ? ViewModel::SORT_NOTHREAD : ViewModel::SORT_THREAD;
-		pViewModel->setSort(nSort);
+		bool bThread = (pViewModel->getSort() & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD;
+		unsigned int nSort = bThread ? ViewModel::SORT_NOTHREAD : ViewModel::SORT_THREAD;
+		pViewModel->setSort(nSort, ViewModel::SORT_THREAD_MASK);
 	}
 }
 

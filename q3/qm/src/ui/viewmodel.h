@@ -317,7 +317,8 @@ public:
 	MessageHolder* getMessageHolder(unsigned int n) const;
 	unsigned int getIndex(MessageHolder* pmh) const;
 	
-	void setSort(unsigned int nSort);
+	void setSort(unsigned int nSort,
+				 unsigned int nMask);
 	unsigned int getSort() const;
 	
 	void setFilter(const Filter* pFilter);

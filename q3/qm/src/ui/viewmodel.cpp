@@ -576,23 +576,15 @@ unsigned int qm::ViewModel::getIndex(MessageHolder* pmh) const
 	return it == listItem_.end() ? -1 : it - listItem_.begin();
 }
 
-void qm::ViewModel::setSort(unsigned int nSort)
+void qm::ViewModel::setSort(unsigned int nSort,
+							unsigned int nMask)
 {
 	assert(nSort_ & SORT_DIRECTION_MASK);
 	assert(nSort_ & SORT_THREAD_MASK);
 	
 	Lock<ViewModel> lock(*this);
 	
-	if ((nSort & SORT_DIRECTION_MASK) == 0) {
-		if ((nSort & SORT_INDEX_MASK) == (nSort_ & SORT_INDEX_MASK))
-			nSort |= (nSort_ & SORT_DIRECTION_MASK) == SORT_ASCENDING ?
-				SORT_DESCENDING : SORT_ASCENDING;
-		else
-			nSort |= SORT_ASCENDING;
-	}
-	
-	if ((nSort & SORT_THREAD_MASK) == 0)
-		nSort |= nSort_ & SORT_THREAD_MASK;
+	nSort = (nSort & nMask) | (nSort_ & ~nMask);
 	
 	assert(nSort & SORT_DIRECTION_MASK);
 	assert(nSort & SORT_THREAD_MASK);

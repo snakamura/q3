@@ -1640,7 +1640,18 @@ LRESULT qm::ListHeaderColumnImpl::onItemClick(NMHDR* pnmhdr,
 											  bool* pbHandled)
 {
 	NMHEADER* pHeader = reinterpret_cast<NMHEADER*>(pnmhdr);
-	pViewModel_->setSort(pHeader->iItem);
+	
+	unsigned int nColumn = pHeader->iItem;
+	unsigned int nSort = pViewModel_->getSort();
+	if ((nSort & ViewModel::SORT_INDEX_MASK) == nColumn) {
+		bool bAscending = (nSort & ViewModel::SORT_DIRECTION_MASK) ==
+			ViewModel::SORT_ASCENDING;
+		pViewModel_->setSort(bAscending ? ViewModel::SORT_DESCENDING :
+			ViewModel::SORT_ASCENDING, ViewModel::SORT_DIRECTION_MASK);
+	}
+	else {
+		pViewModel_->setSort(nColumn, ViewModel::SORT_INDEX_MASK);
+	}
 	return 0;
 }
 
