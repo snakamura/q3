@@ -515,12 +515,12 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Single file",IDC_SINGLEFILE,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP,10,65,55,10
+    CONTROL         "&File per message",IDC_MULTIPLEFILE,"Button",
+                    BS_AUTORADIOBUTTON,10,95,80,10
     LTEXT           "&Block Size",IDC_STATIC,20,78,40,8
     EDITTEXT        IDC_BLOCKSIZE,65,75,25,14,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
     LTEXT           "MB",IDC_STATIC,90,78,11,8
-    CONTROL         "&File per message",IDC_MULTIPLEFILE,"Button",
-                    BS_AUTORADIOBUTTON,10,95,80,10
     GROUPBOX        "Message Box",IDC_STATIC,5,55,130,55
     LTEXT           "&Cache Block Size",IDC_STATIC,5,118,60,8
     EDITTEXT        IDC_CACHEBLOCKSIZE,65,115,25,14,ES_RIGHT | 
