@@ -435,10 +435,13 @@ bool qmimap4::Util::isInlineTextPart(const FetchDataBodyStructure* pBodyStructur
 	const CHAR* pszDisposition = pBodyStructure->getDisposition();
 	const CHAR* pszContentType = pBodyStructure->getContentType();
 	const CHAR* pszSubType = pBodyStructure->getContentSubType();
-	return (!pszDisposition || _stricmp(pszDisposition, "attachment") != 0) &&
-		(!pszContentType || _stricmp(pszContentType, "text") == 0 ||
-			(_stricmp(pszContentType, "message") == 0 &&
-				pszSubType && _stricmp(pszSubType, "rfc822") == 0));
+	if (!pszContentType || _stricmp(pszContentType, "text") == 0)
+		return !pszDisposition || _stricmp(pszDisposition, "inline") == 0;
+	else if (_stricmp(pszContentType, "message") == 0 &&
+		_stricmp(pszSubType, "rfc822") == 0)
+		return true;
+	else
+		return false;
 }
 
 bool qmimap4::Util::isInlineHtmlPart(const FetchDataBodyStructure* pBodyStructure)

@@ -2790,10 +2790,10 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 						return std::auto_ptr<FetchDataBodyStructure>(0);
 				}
 				if (nCount == 6) {
-					if (strcmp(strContentType.get(), "MESSAGE") == 0 &&
-						strcmp(strContentSubType.get(), "RFC822") == 0) {
+					if (_stricmp(strContentType.get(), "MESSAGE") == 0 &&
+						_stricmp(strContentSubType.get(), "RFC822") == 0) {
 					}
-					else if (strcmp(strContentType.get(), "TEXT") == 0) {
+					else if (_stricmp(strContentType.get(), "TEXT") == 0) {
 						nCount = 8;
 					}
 					else {
