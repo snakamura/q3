@@ -668,13 +668,13 @@ bool qm::EditMessage::applyFields()
 			
 			if (!MessageCreator::setField(pPart, field.wstrName_, field.wstrValue_, type))
 				return false;
-			
-			freeWString(field.wstrName_);
-			freeWString(field.wstrValue_);
 		}
 		else {
 			pPart->removeField(field.wstrName_);
 		}
+		
+		freeWString(field.wstrName_);
+		freeWString(field.wstrValue_);
 		
 		it = listField_.erase(it);
 	}
