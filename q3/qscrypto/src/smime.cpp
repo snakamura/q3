@@ -66,8 +66,7 @@ SMIMEUtilityImpl::Type qscrypto::SMIMEUtilityImpl::getType(
 		}
 	}
 	else if (wcscmp(pwszMediaType, L"application") == 0 &&
-		(wcscmp(pwszSubType, L"pkcs7-mime") == 0 ||
-		wcscmp(pwszSubType, L"x-pkcs7-mime") == 0)) {
+		wcscmp(pwszSubType, L"pkcs7-mime") == 0) {
 		string_ptr<WSTRING> wstrType;
 		status = pContentType->getParameter(L"smime-type", &wstrType);
 		CHECK_QSTATUS_VALUE(TYPE_NONE);
@@ -76,6 +75,18 @@ SMIMEUtilityImpl::Type qscrypto::SMIMEUtilityImpl::getType(
 		else if (wcscmp(wstrType.get(), L"signed-data") == 0)
 			return TYPE_SIGNED;
 		else if (wcscmp(wstrType.get(), L"enveloped-data") == 0)
+			return TYPE_ENVELOPED;
+	}
+	else if (wcscmp(pwszMediaType, L"application") == 0 &&
+		wcscmp(pwszSubType, L"x-pkcs7-mime") == 0) {
+		string_ptr<WSTRING> wstrName;
+		status = pContentType->getParameter(L"name", &wstrName);
+		CHECK_QSTATUS_VALUE(TYPE_NONE);
+		if (!wstrName.get())
+			return TYPE_NONE;
+		else if (wcscmp(wstrName.get(), L"smime.p7s") == 0)
+			return TYPE_SIGNED;
+		else if (wcscmp(wstrName.get(), L"smime.p7m") == 0)
 			return TYPE_ENVELOPED;
 	}
 	
