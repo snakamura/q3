@@ -401,6 +401,8 @@ struct qs::UTF7ConverterImpl
 	bool decode(const CHAR* p,
 				const CHAR* pEnd,
 				WCHAR** ppDst);
+	bool isEncodedChar(CHAR c) const;
+	bool isEncodingNeeded(WCHAR c) const;
 	
 	static Type getType(WCHAR c);
 	
@@ -438,6 +440,19 @@ bool qs::UTF7ConverterImpl::decode(const CHAR* p,
 	*ppDst = pDst;
 	
 	return true;
+}
+
+bool qs::UTF7ConverterImpl::isEncodedChar(CHAR c) const
+{
+	return bModified_ ? c != '&' : Base64Encoder::isEncodedChar(c);
+}
+
+bool qs::UTF7ConverterImpl::isEncodingNeeded(WCHAR c) const
+{
+	if (bModified_)
+		return c <= 0x1f || 0x7f <= c;
+	else
+		return getType(c) == TYPE_E && c != L' ' && c != L'\t' && c != L'\n' && c != L'\r';
 }
 
 UTF7ConverterImpl::Type qs::UTF7ConverterImpl::getType(WCHAR c)
@@ -502,7 +517,7 @@ size_t qs::UTF7Converter::encodeImpl(const WCHAR* pwsz,
 	const WCHAR* pEncodeBegin = 0;
 	do {
 		if (pEncodeBegin) {
-			if (pSrc == pSrcEnd || UTF7ConverterImpl::getType(*pSrc) != UTF7ConverterImpl::TYPE_E) {
+			if (pSrc == pSrcEnd || !pImpl_->isEncodingNeeded(*pSrc)) {
 				size_t n = 0;
 				*p++ = cIn;
 				size_t nEncodeLen = pSrc - pEncodeBegin;
@@ -532,8 +547,7 @@ size_t qs::UTF7Converter::encodeImpl(const WCHAR* pwsz,
 				*p++ = cIn;
 				*p++ = cOut;
 			}
-			else if (UTF7ConverterImpl::getType(*pSrc) != UTF7ConverterImpl::TYPE_E ||
-				*pSrc == ' ' || *pSrc == '\t' || *pSrc == '\r' || *pSrc == '\n') {
+			else if (!pImpl_->isEncodingNeeded(*pSrc)) {
 				*p++ = static_cast<char>(*pSrc);
 			}
 			else {
@@ -573,7 +587,7 @@ size_t qs::UTF7Converter::decodeImpl(const CHAR* psz,
 	
 	while (pSrc != pSrcEnd) {
 		if (pEncodeBegin) {
-			if (*pSrc == cOut || !Base64Encoder::isEncodedChar(*pSrc)) {
+			if (*pSrc == cOut || !pImpl_->isEncodedChar(*pSrc)) {
 				if (!pImpl_->decode(pEncodeBegin, pSrc, &pDst))
 					return -1;
 				if (*pSrc != cOut)
