@@ -1,5 +1,5 @@
 /*
- * $Id: smtpsendsession.cpp,v 1.1.1.1 2003/04/29 08:07:34 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -214,7 +214,7 @@ QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 			AddressListParser::AddressList::const_iterator it = l.begin();
 			while (it != l.end()) {
 				AddressParser* pAddress = *it;
-				const AddressListParser* pGroup = pAddress->getGroup();
+				AddressListParser* pGroup = pAddress->getGroup();
 				if (pGroup) {
 					const AddressListParser::AddressList& groups = pGroup->getAddressList();
 					AddressListParser::AddressList::const_iterator itG = groups.begin();
@@ -231,7 +231,7 @@ QSTATUS qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 						strAddress.release();
 						++itG;
 					}
-					pAddress->releaseGroup();
+					pGroup->removeAllAddresses();
 					bReplace = true;
 				}
 				else {

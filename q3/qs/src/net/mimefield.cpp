@@ -1,5 +1,5 @@
 /*
- * $Id: mimefield.cpp,v 1.3 2003/05/20 16:06:07 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -2122,7 +2122,7 @@ const WCHAR* qs::AddressParser::getHost() const
 	return wstrHost_;
 }
 
-const AddressListParser* qs::AddressParser::getGroup() const
+AddressListParser* qs::AddressParser::getGroup() const
 {
 	return pGroup_;
 }
@@ -2212,13 +2212,6 @@ QSTATUS qs::AddressParser::getValue(WSTRING* pwstrValue) const
 	*pwstrValue = buf.getString();
 	
 	return QSTATUS_SUCCESS;
-}
-
-void qs::AddressParser::releaseGroup()
-{
-	assert(pGroup_);
-	delete pGroup_;
-	pGroup_ = 0;
 }
 
 QSTATUS qs::AddressParser::parse(const Part& part,
@@ -2848,8 +2841,7 @@ qs::AddressListParser::AddressListParser(unsigned int nFlags, QSTATUS* pstatus) 
 
 qs::AddressListParser::~AddressListParser()
 {
-	std::for_each(listAddress_.begin(), listAddress_.end(),
-		deleter<AddressParser>());
+	removeAllAddresses();
 }
 
 QSTATUS qs::AddressListParser::getValue(WSTRING* pwstrValue) const
@@ -2995,6 +2987,13 @@ QSTATUS qs::AddressListParser::removeAddress(AddressParser* pAddress)
 		return QSTATUS_FAIL;
 	listAddress_.erase(it);
 	return QSTATUS_SUCCESS;
+}
+
+void qs::AddressListParser::removeAllAddresses()
+{
+	std::for_each(listAddress_.begin(), listAddress_.end(),
+		deleter<AddressParser>());
+	listAddress_.clear();
 }
 
 QSTATUS qs::AddressListParser::replaceAddress(

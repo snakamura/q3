@@ -1,5 +1,5 @@
 /*
- * $Id: qsmime.h,v 1.3 2003/05/20 16:05:46 snakamura Exp $
+ * $Id$
  *
  * Copyright(C) 1998-2003 Satoshi Nakamura
  * All rights reserved.
@@ -538,10 +538,9 @@ public:
 	const WCHAR* getPhrase() const;
 	const WCHAR* getMailbox() const;
 	const WCHAR* getHost() const;
-	const AddressListParser* getGroup() const;
+	AddressListParser* getGroup() const;
 	QSTATUS getAddress(WSTRING* pwstrAddress) const;
 	QSTATUS getValue(WSTRING* pwstrValue) const;
-	void releaseGroup();
 
 public:
 	virtual QSTATUS parse(const Part& part,
@@ -623,6 +622,7 @@ public:
 	QSTATUS insertAddress(AddressParser* pAddressRef,
 		AddressParser* pAddress);
 	QSTATUS removeAddress(AddressParser* pAddress);
+	void removeAllAddresses();
 	QSTATUS replaceAddress(AddressParser* pAddressOld,
 		AddressParser* pAddressNew);
 
