@@ -1005,6 +1005,8 @@ void qm::QueryFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event
 	MessageHolderList::iterator it = std::lower_bound(
 		listMessageHolder_.begin(), listMessageHolder_.end(), pmh);
 	if (it != listMessageHolder_.end() && *it == pmh) {
+		if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+			--nUnseenCount_;
 		listMessageHolder_.erase(it);
 		pThis_->getImpl()->fireMessageRemoved(MessageHolderList(1, pmh));
 	}
@@ -1189,9 +1191,12 @@ void qm::QueryFolder::removeMessages(const MessageHolderList& l)
 	
 	MessageHolderList::iterator itS = pImpl_->listMessageHolder_.begin();
 	for (MessageHolderList::iterator itR = listRemove.begin(); itR != listRemove.end(); ) {
-		itS = std::lower_bound(itS, pImpl_->listMessageHolder_.end(), *itR);
-		if (itS != pImpl_->listMessageHolder_.end() && *itS == *itR) {
+		MessageHolder* pmh = *itR;
+		itS = std::lower_bound(itS, pImpl_->listMessageHolder_.end(), pmh);
+		if (itS != pImpl_->listMessageHolder_.end() && *itS == pmh) {
 			itS = pImpl_->listMessageHolder_.erase(itS);
+			if (!pmh->isFlag(MessageHolder::FLAG_SEEN))
+				--pImpl_->nUnseenCount_;
 			++itR;
 		}
 		else {
