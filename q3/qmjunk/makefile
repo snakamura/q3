@@ -9,11 +9,11 @@ PROJECTNAME		= qmjunk
 PROJECTTYPE		= dll
 LIBRARIES		= qs qm
 
-EXTERNALINCS	= -I$(QDBMDIR)/include
+EXTERNALINCS	= -I"$(QDBMDIR)/include"
 ifeq ($(PLATFORM),desktop)
-	EXTERNALLIBS= $(QDBMDIR)/lib/desktop/qdbm_t$(DSUFFIX).lib
+	EXTERNALLIBS= "$(QDBMDIR)/lib/desktop/qdbm_t$(DSUFFIX).lib"
 else
-	EXTERNALLIBS= $(QDBMDIR)/lib/wce/$(EXLIBCPU)/qdbm_t$(DSUFFIX).lib
+	EXTERNALLIBS= "$(QDBMDIR)/lib/wce/$(EXLIBCPU)/qdbm_t$(DSUFFIX).lib"
 endif
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*.cpp))

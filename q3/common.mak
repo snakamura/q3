@@ -475,7 +475,7 @@ TARGET					= $(TARGETBASE).$(EXTENSION)
 
 
 # STLPORT ###################################################################
-INCLUDES				= -I$(STLPORTDIR)
+INCLUDES				= -I"$(STLPORTDIR)"
 
 STLPORTFLAGS			= -D_STLP_NO_IOSTREAMS
 ifdef DEBUG
