@@ -562,8 +562,9 @@ private:
 	std::auto_ptr<RegexCharGroupAtom> parseCharGroup();
 	std::auto_ptr<RegexQuantifier> parseQuantity();
 	RegexQuantifier::Option parseQuantifierOption();
-	int parseHexEscapedChar();
-	int parseOctEscapedChar();
+	WCHAR parseEscapedChar();
+	WCHAR parseHexEscapedChar();
+	WCHAR parseOctEscapedChar();
 	bool checkReference(unsigned int nGroup) const;
 
 private:

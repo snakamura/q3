@@ -721,8 +721,10 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 	}
 	else if (*p_ == L'\\') {
 		++p_;
-		if (wcschr(wszSingleEscapeChar__, *p_)) {
-			pAtom.reset(new RegexCharAtom(getSingleEscapedChar(*p_)));
+		
+		WCHAR c = parseEscapedChar();
+		if (c != L'\0') {
+			pAtom.reset(new RegexCharAtom(c));
 		}
 		else if (wcschr(wszMultiEscapeChar__, *p_)) {
 			pAtom = getMultiEscapedAtom(*p_);
@@ -741,18 +743,6 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		}
 		else if (*p_ == L'z') {
 			pAtom.reset(new RegexAnchorAtom(RegexAnchorAtom::TYPE_ENDSTRICT));
-		}
-		else if (*p_ == L'x' || *p_ == L'u') {
-			int nValue = parseHexEscapedChar();
-			if (nValue == -1)
-				return std::auto_ptr<RegexPieceNode>(0);
-			pAtom.reset(new RegexCharAtom(static_cast<WCHAR>(nValue)));
-		}
-		else if (*p_ == L'0') {
-			int nValue = parseOctEscapedChar();
-			if (nValue == -1)
-				return std::auto_ptr<RegexPieceNode>(0);
-			pAtom.reset(new RegexCharAtom(static_cast<WCHAR>(nValue)));
 		}
 		else if (L'1' <= *p_ && *p_ <= L'9') {
 			unsigned int n = *p_ - L'0';
@@ -838,26 +828,13 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 		}
 		else if (*p_ == L'\\') {
 			++p_;
-			if (wcschr(wszSingleEscapeChar__, *p_)) {
-				cStart = getSingleEscapedChar(*p_);
-			}
-			else if (wcschr(wszMultiEscapeChar__, *p_)) {
-				pCharGroupAtom->addAtomCharGroup(getMultiEscapedAtom(*p_));
-			}
-			else if (*p_ == L'x' || *p_ == L'u') {
-				int nValue = parseHexEscapedChar();
-				if (nValue == -1)
+			
+			cStart = parseEscapedChar();
+			if (cStart == L'\0') {
+				if (wcschr(wszMultiEscapeChar__, *p_))
+					pCharGroupAtom->addAtomCharGroup(getMultiEscapedAtom(*p_));
+				else
 					return std::auto_ptr<RegexCharGroupAtom>(0);
-				cStart = static_cast<WCHAR>(nValue);
-			}
-			else if (*p_ == L'0') {
-				int nValue = parseOctEscapedChar();
-				if (nValue == -1)
-					return std::auto_ptr<RegexCharGroupAtom>(0);
-				cStart = static_cast<WCHAR>(nValue);
-			}
-			else {
-				return std::auto_ptr<RegexCharGroupAtom>(0);
 			}
 		}
 		else if (*p_ == L'-') {
@@ -887,25 +864,9 @@ std::auto_ptr<RegexCharGroupAtom> qs::RegexParser::parseCharGroup()
 				else if (*p_ == L'\\' && !bDash) {
 					++p_;
 					
-					WCHAR cEnd = L'\0';
-					if (wcschr(wszSingleEscapeChar__, *p_)) {
-						cEnd = getSingleEscapedChar(*p_);
-					}
-					else if (*p_ == L'x' || *p_ == L'u') {
-						int nValue = parseHexEscapedChar();
-						if (nValue == -1)
-							return std::auto_ptr<RegexCharGroupAtom>(0);
-						cEnd = static_cast<WCHAR>(nValue);
-					}
-					else if (*p_ == L'0') {
-						int nValue = parseOctEscapedChar();
-						if (nValue == -1)
-							return std::auto_ptr<RegexCharGroupAtom>(0);
-						cEnd = static_cast<WCHAR>(nValue);
-					}
-					else {
+					WCHAR cEnd = parseEscapedChar();
+					if (cEnd == L'\0')
 						return std::auto_ptr<RegexCharGroupAtom>(0);
-					}
 					pCharGroupAtom->addRangeCharGroup(cStart, cEnd);
 					
 					++p_;
@@ -998,7 +959,19 @@ RegexQuantifier::Option qs::RegexParser::parseQuantifierOption()
 	}
 }
 
-int qs::RegexParser::parseHexEscapedChar()
+WCHAR qs::RegexParser::parseEscapedChar()
+{
+	if (wcschr(wszSingleEscapeChar__, *p_))
+		return getSingleEscapedChar(*p_);
+	else if (*p_ == L'x' || *p_ == L'u')
+		return parseHexEscapedChar();
+	else if (*p_ == L'0')
+		return parseOctEscapedChar();
+	else
+		return L'\0';
+}
+
+WCHAR qs::RegexParser::parseHexEscapedChar()
 {
 	assert(*p_ == L'x' || *p_ == L'u');
 	
@@ -1007,13 +980,13 @@ int qs::RegexParser::parseHexEscapedChar()
 		++p_;
 		int n = getHex(*p_);
 		if (n == -1)
-			return -1;
+			return L'\0';
 		nValue = nValue*16 + n;
 	}
-	return nValue;
+	return static_cast<WCHAR>(nValue);
 }
 
-int qs::RegexParser::parseOctEscapedChar()
+WCHAR qs::RegexParser::parseOctEscapedChar()
 {
 	assert(*p_ == L'0');
 	
@@ -1022,10 +995,10 @@ int qs::RegexParser::parseOctEscapedChar()
 		++p_;
 		int n = getOct(*p_);
 		if (n == -1 || (nDigit == 3 && n > 3))
-			return -1;
+			return L'\0';
 		nValue = nValue*8 + n;
 	}
-	return nValue;
+	return static_cast<WCHAR>(nValue);
 }
 
 bool qs::RegexParser::checkReference(unsigned int nGroup) const
