@@ -2,7 +2,7 @@
 #
 # Makefile for qmpgp
 
-QDBMDIR			= d:/dev/qdbm/qdbm
+QDBMDIR			= ../lib/qdbm
 
 
 PROJECTNAME		= qmjunk
@@ -11,7 +11,7 @@ LIBRARIES		= qs qm
 
 EXTERNALINCS	= -I"$(QDBMDIR)/include"
 ifeq ($(PLATFORM),desktop)
-	EXTERNALLIBS= "$(QDBMDIR)/lib/desktop/qdbm_t$(DSUFFIX).lib"
+	EXTERNALLIBS= "$(QDBMDIR)/lib/win/qdbm_t$(DSUFFIX).lib"
 else
 	EXTERNALLIBS= "$(QDBMDIR)/lib/wce/$(EXLIBCPU)/qdbm_t$(DSUFFIX).lib"
 endif

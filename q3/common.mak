@@ -27,9 +27,9 @@ CESDKPPCJADIR			= d:/dev/msevt/wce300/ms pocket pc
 CESDKPPCENDIR			= d:/dev/msevt/wce300/ms pocket pc
 CESDKHPCPROJADIR		= d:/dev/msevt/wce211/ms hpc pro
 CESDKHPCPROENDIR		= d:/dev/msevt/wce211/ms hpc pro
-STLPORTDIR				= d:/dev/stlport/STLport-4.6.2/stlport
 SVNDIR					= d:/dev/subversion
-KCTRLDIR				= d:/home/wince/kctrl
+STLPORTDIR				= ../lib/stlport
+KCTRLDIR				= ../lib/kctrl
 
 
 ifeq ($(PROJECTNAME),)
@@ -327,7 +327,7 @@ ifeq ($(PLATFORM),desktop)
 		LIBS			+= msvcirt$(DSUFFIX).lib
 	endif
 	ifdef KCTRL
-		LIBS			+= $(KCTRLDIR)/lib/x86uni/kctrl.lib
+		LIBS			+= $(KCTRLDIR)/lib/win/kctrl.lib
 	endif
 	#########################################################################
 else
@@ -428,7 +428,7 @@ else
 		LIBS			+= crypt32.lib
 	endif
 	ifdef KCTRL
-		LIBS			+= $(KCTRLDIR)/lib/$(LIBCPU)/kctrl.lib
+		LIBS			+= $(KCTRLDIR)/lib/wce/$(LIBCPU)/kctrl.lib
 	endif
 	#########################################################################
 endif
