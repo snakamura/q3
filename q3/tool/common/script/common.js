@@ -5,6 +5,7 @@ function getMailFolder() {
 }
 
 function loadAccounts(mailfolder) {
+	var fso = new ActiveXObject("Scripting.FileSystemObject");
 	var accounts = new ActiveXObject("MSXML2.DOMDocument.4.0");
 	accounts.appendChild(accounts.createElement("accounts"));
 	var accountfolder = fso.GetFolder(mailfolder + "\\accounts");

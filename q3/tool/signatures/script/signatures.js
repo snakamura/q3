@@ -1,5 +1,3 @@
-var fso = new ActiveXObject("Scripting.FileSystemObject");
-
 var mailfolder = getMailFolder();
 var path = mailfolder + "\\profiles\\signatures.xml";
 var accounts = loadAccounts(mailfolder);
@@ -17,7 +15,6 @@ function load() {
 	doc.async = false;
 	
 	try {
-		var file = fso.GetFile(path);
 		doc.load(path);
 	}
 	catch (e) {
@@ -58,6 +55,22 @@ function edit(position) {
 function remove(position) {
 	var element = doc.selectSingleNode("signatures/signature[" + position + "]");
 	element.parentNode.removeChild(element);
+	update();
+}
+
+function up(position) {
+	var element = doc.selectSingleNode("signatures/signature[" + position + "]");
+	var before = doc.selectSingleNode("signatures/signature[" + (position - 1) + "]");
+	if (before != null) {
+		element.parentNode.insertBefore(element, before);
+		update();
+	}
+}
+
+function down(position) {
+	var element = doc.selectSingleNode("signatures/signature[" + position + "]");
+	var before = doc.selectSingleNode("signatures/signature[" + (position - 0 + 2) + "]");
+	element.parentNode.insertBefore(element, before);
 	update();
 }
 

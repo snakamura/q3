@@ -8,14 +8,25 @@
 				<td><strong>Account</strong></td>
 				<td><strong>Default</strong></td>
 				<td colspan="2"></td>
+				<td colspan="2"></td>
 			</tr>
 			<xsl:for-each select="signature">
 				<tr>
 					<td><xsl:value-of select="@name"/></td>
 					<td><xsl:value-of select="@account"/></td>
 					<td><xsl:value-of select="@default"/></td>
-					<td><input type="button" value="Edit" onclick="edit('{position()}')"/></td>
-					<td><input type="button" value="Delete" onclick="remove('{position()}')"/></td>
+					<td><a href="#" onclick="edit('{position()}')">Edit</a></td>
+					<td><a href="#" onclick="remove('{position()}')">Delete</a></td>
+					<td>
+						<xsl:if test="position() != 1">
+							<a href="#" onclick="up('{position()}')">Up</a>
+						</xsl:if>
+					</td>
+					<td>
+						<xsl:if test="position() != last()">
+							<a href="#" onclick="down('{position()}')">Down</a>
+						</xsl:if>
+					</td>
 				</tr>
 			</xsl:for-each>
 		</table>
