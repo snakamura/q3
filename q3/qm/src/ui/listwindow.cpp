@@ -714,7 +714,8 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 						}
 					}
 					
-					if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+					if (!pDocument_->isOffline() &&
+						!pFolder->isFlag(Folder::FLAG_LOCAL) &&
 						pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 						pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 						SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,

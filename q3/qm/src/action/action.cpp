@@ -830,7 +830,8 @@ void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 			return;
 		}
 		
-		if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+		if (!pDocument_->isOffline() &&
+			!pFolder->isFlag(Folder::FLAG_LOCAL) &&
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
@@ -1480,7 +1481,8 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 			ActionUtil::error(hwnd_, IDS_ERROR_IMPORT);
 			return;
 		}
-		if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+		if (!pDocument_->isOffline() &&
+			!pFolder->isFlag(Folder::FLAG_LOCAL) &&
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
