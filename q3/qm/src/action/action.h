@@ -1418,11 +1418,17 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 public:
+	static void emptyAllTrash(Document* pDocument,
+							  SyncManager* pSyncManager,
+							  SyncDialogManager* pSyncDialogManager,
+							  FolderModel* pFolderModel,
+							  HWND hwnd,
+							  qs::Profile* pProfile);
 	static void emptyTrash(Account* pAccount,
-						   FolderModel* pFolderModel,
 						   Document* pDocument,
 						   SyncManager* pSyncManager,
 						   SyncDialogManager* pSyncDialogManager,
+						   FolderModel* pFolderModel,
 						   HWND hwnd,
 						   bool bConfirm);
 	static bool hasTrash(Account* pAccount);

@@ -1335,29 +1335,9 @@ bool qm::FileExitAction::exit(bool bDestroy)
 		return false;
 	
 	bool bEmptyTrash = pProfile_->getInt(L"Global", L"EmptyTrashOnExit", 0) != 0;
-	if (bEmptyTrash) {
-		bool bHasTrash = false;
-		const Document::AccountList& listAccount = pDocument_->getAccounts();
-		for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end() && !bHasTrash; ++it)
-			bHasTrash = FolderEmptyTrashAction::hasTrash(*it);
-		
-		if (bHasTrash) {
-			bool bConfirm = pProfile_->getInt(L"Global", L"ConfirmEmptyTrash", 1) != 0;
-			if (bConfirm)
-				bEmptyTrash = messageBox(Application::getApplication().getResourceHandle(),
-					IDS_CONFIRMEMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
-		}
-		else {
-			bEmptyTrash = false;
-		}
-		
-		if (bEmptyTrash) {
-			const Document::AccountList& listAccount = pDocument_->getAccounts();
-			for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it)
-				FolderEmptyTrashAction::emptyTrash(*it, pFolderModel_,
-					pDocument_, pSyncManager_, pSyncDialogManager_, hwnd_, false);
-		}
-	}
+	if (bEmptyTrash)
+		FolderEmptyTrashAction::emptyAllTrash(pDocument_, pSyncManager_,
+			pSyncDialogManager_, pFolderModel_, hwnd_, pProfile_);
 	
 	{
 		WaitCursor cursor;
@@ -2697,8 +2677,8 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 {
 	Account* pAccount = getAccount();
 	if (pAccount)
-		emptyTrash(pAccount, pFolderModel_, pDocument_,
-			pSyncManager_, pSyncDialogManager_, hwnd_, bConfirm_);
+		emptyTrash(pAccount, pDocument_, pSyncManager_,
+			pSyncDialogManager_, pFolderModel_, hwnd_, bConfirm_);
 }
 
 bool qm::FolderEmptyTrashAction::isEnabled(const ActionEvent& event)
@@ -2706,11 +2686,34 @@ bool qm::FolderEmptyTrashAction::isEnabled(const ActionEvent& event)
 	return getTrash() != 0;
 }
 
+void qm::FolderEmptyTrashAction::emptyAllTrash(Document* pDocument,
+											   SyncManager* pSyncManager,
+											   SyncDialogManager* pSyncDialogManager,
+											   FolderModel* pFolderModel,
+											   HWND hwnd,
+											   Profile* pProfile)
+{
+	const Document::AccountList& listAccount = pDocument->getAccounts();
+	if (std::find_if(listAccount.begin(), listAccount.end(),
+		&FolderEmptyTrashAction::hasTrash) == listAccount.end())
+		return;
+	
+	bool bConfirm = pProfile->getInt(L"Global", L"ConfirmEmptyTrash", 1) != 0;
+	if (bConfirm) {
+		if (messageBox(Application::getApplication().getResourceHandle(),
+			IDS_CONFIRMEMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
+			return;
+	}
+	
+	for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it)
+		emptyTrash(*it, pDocument, pSyncManager, pSyncDialogManager, pFolderModel, hwnd, false);
+}
+
 void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
-											FolderModel* pFolderModel,
 											Document* pDocument,
 											SyncManager* pSyncManager,
 											SyncDialogManager* pSyncDialogManager,
+											FolderModel* pFolderModel,
 											HWND hwnd,
 											bool bConfirm)
 {
