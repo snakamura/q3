@@ -120,15 +120,15 @@ zip)
 	
 	mkdir -p $ZIPDIR
 	
-	zip -j $ZIPDIR/q3-desktop-x86-ja-$VERSION-$DATE.zip \
+	zip -j $ZIPDIR/q3-desktop-x86-ja-`printf $VERSION | tr . _`-$DATE.zip \
 		*/bin/desktop/ansi/release/*.exe \
 		*/lib/desktop/ansi/release/*.dll
-	zip -j $ZIPDIR/q3u-desktop-x86-ja-$VERSION-$DATE.zip \
+	zip -j $ZIPDIR/q3u-desktop-x86-ja-`printf $VERSION | tr . _`-$DATE.zip \
 		*/bin/desktop/unicode/release/*.exe \
 		*/lib/desktop/unicode/release/*.dll
 	
 	for t in $CETARGETS; do
-		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-$VERSION-$DATE.zip \
+		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-`printf $VERSION | tr . _`-$DATE.zip \
 			*/bin/`printf $t | tr . /`/release/*.exe \
 			*/lib/`printf $t | tr . /`/release/*.dll
 	done
