@@ -51,7 +51,7 @@ qm::MessageCache::MessageCache(
 
 qm::MessageCache::~MessageCache()
 {
-#if _MSC_VER == 1202 && defined MIPS
+#if defined _WIN32_WCE && _MSC_VER == 1202 && defined MIPS
 	ItemMap::const_iterator it = map_.begin();
 	while (it != map_.end()) {
 		delete (*it).second;
@@ -305,7 +305,7 @@ void qm::MessageCache::remove(ItemMap::iterator it)
 	
 	CacheItem* pItem = (*it).second;
 	
-#if _MSC_VER == 1202 && defined MIPS
+#if defined _WIN32_WCE && _MSC_VER == 1202 && defined MIPS
 	map_.erase((*it).first);
 #else
 	map_.erase(it);
