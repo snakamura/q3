@@ -12,10 +12,17 @@
 #include <qs.h>
 #include <qswindow.h>
 
+#include "uiutil.h"
+
+#ifdef _WIN32_WCE
+#	define	QS_CUSTOMDRAGDROP
+#endif
 
 namespace qs {
 
 class DragDropManager;
+	class SystemDragDropManager;
+	class CustomDragDropManager;
 class DragGestureRecognizerWindow;
 
 
@@ -27,32 +34,196 @@ class DragGestureRecognizerWindow;
 
 class DragDropManager
 {
-private:
-	DragDropManager();
+public:
+	virtual ~DragDropManager();
 
 public:
-	~DragDropManager();
+	virtual bool doDragDrop(HWND hwnd,
+							const POINT& pt,
+							IDataObject* pDataObject,
+							DragSource* pDragSource,
+							DWORD dwEffect,
+							DWORD* pdwEffect,
+							bool* pbCanceled) = 0;
+	virtual bool registerDragDrop(HWND hwnd,
+								  DropTarget* pDropTarget) = 0;
+	virtual bool revokeDragDrop(HWND hwnd) = 0;
 
 public:
-	bool doDragDrop(IDataObject* pDataObject,
-					DragSource* pDragSource,
-					DWORD dwEffect,
-					DWORD* pdwEffect,
-					bool* pbCanceled);
-	bool registerDragDrop(HWND hwnd,
-						  DropTarget* pDropTarget);
-	bool revokeDragDrop(HWND hwnd);
+	static DragDropManager* getInstance();
 
-public:
-	static DragDropManager& getInstance();
+protected:
+	static void registerManager(DragDropManager* pManager);
+	static void unregisterManager(DragDropManager* pManager);
 
 private:
-	DragDropManager(const DragDropManager&);
-	DragDropManager& operator=(const DragDropManager&);
-
-private:
-	static DragDropManager instance__;
+	static DragDropManager* pManager__;
 };
+
+
+#ifndef QS_CUSTOMDRAGDROP
+/****************************************************************************
+ *
+ * SystemDragDropManager
+ *
+ */
+
+class SystemDragDropManager : public DragDropManager
+{
+private:
+	SystemDragDropManager();
+
+public:
+	virtual ~SystemDragDropManager();
+
+public:
+	virtual bool doDragDrop(HWND hwnd,
+							const POINT& pt,
+							IDataObject* pDataObject,
+							DragSource* pDragSource,
+							DWORD dwEffect,
+							DWORD* pdwEffect,
+							bool* pbCanceled);
+	virtual bool registerDragDrop(HWND hwnd,
+								  DropTarget* pDropTarget);
+	virtual bool revokeDragDrop(HWND hwnd);
+
+private:
+	SystemDragDropManager(const SystemDragDropManager&);
+	SystemDragDropManager& operator=(const SystemDragDropManager&);
+
+private:
+	static SystemDragDropManager instance__;
+};
+#endif
+
+
+#ifdef QS_CUSTOMDRAGDROP
+/****************************************************************************
+ *
+ * CustomDragDropManager
+ *
+ */
+
+class CustomDragDropManager : public DragDropManager
+{
+private:
+	CustomDragDropManager();
+
+public:
+	virtual ~CustomDragDropManager();
+
+public:
+	virtual bool doDragDrop(HWND hwnd,
+							const POINT& pt,
+							IDataObject* pDataObject,
+							DragSource* pDragSource,
+							DWORD dwEffect,
+							DWORD* pdwEffect,
+							bool* pbCanceled);
+	virtual bool registerDragDrop(HWND hwnd,
+								  DropTarget* pDropTarget);
+	virtual bool revokeDragDrop(HWND hwnd);
+
+private:
+	DropTarget* getDropTarget(HWND hwnd) const;
+
+private:
+	CustomDragDropManager(const CustomDragDropManager&);
+	CustomDragDropManager& operator=(const CustomDragDropManager&);
+
+private:
+	class DragDropWindow :
+		public WindowBase,
+		public DefaultWindowHandler
+	{
+	public:
+		DragDropWindow(const CustomDragDropManager* pManager,
+					   HWND hwnd,
+					   const POINT& pt,
+					   IDataObject* pDataObject,
+					   IDropSource* pDropSource,
+					   DWORD dwAllowedEffects);
+		virtual ~DragDropWindow();
+	
+	public:
+		bool isFinished() const;
+		DWORD getEffect() const;
+		bool isCanceled() const;
+	
+	public:
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
+	
+	protected:
+		LRESULT onKeyDown(UINT nKey,
+						  UINT nRepeat,
+						  UINT nFlags);
+		LRESULT onKeyUp(UINT nKey,
+						UINT nRepeat,
+						UINT nFlags);
+		LRESULT onLButtonDown(UINT nFlags,
+							  const POINT& pt);
+		LRESULT onLButtonUp(UINT nFlags,
+							const POINT& pt);
+		LRESULT onMouseMove(UINT nFlags,
+							const POINT& pt);
+		LRESULT onRButtonDown(UINT nFlags,
+							  const POINT& pt);
+		LRESULT onRButtonUp(UINT nFlags,
+							const POINT& pt);
+		LRESULT onTimer(UINT nId);
+	
+	private:
+		void setCurrentMousePosition(const POINT& pt,
+									 DWORD dwKeyState);
+		void setCurrentTarget(DropTarget* pDropTarget,
+							  const POINT& ptScreen,
+							  DWORD dwKeyState);
+		void updateEffect(DWORD dwKeyState);
+		void queryContinue(bool bEscape,
+						   DWORD dwKeyState);
+		void handleMouseEvent(UINT nFlags,
+							  const POINT& pt);
+	
+	private:
+		static DWORD getKeyState();
+	
+	private:
+		DragDropWindow(const DragDropWindow&);
+		DragDropWindow& operator=(const DragDropWindow&);
+	
+	private:
+		enum {
+			TIMER_ID		= 1001,
+			TIMER_INTERVAL	= 200
+		};
+	
+	private:
+		const CustomDragDropManager* pManager_;
+		IDataObject* pDataObject_;
+		IDropSource* pDropSource_;
+		DWORD dwAllowedEffects_;
+		bool bFinished_;
+		DWORD dwEffect_;
+		bool bCanceled_;
+		UINT nTimerId_;
+		DropTarget* pCurrentDropTarget_;
+		POINT ptCurrent_;
+	};
+	friend class DragDropWindow;
+
+private:
+	typedef std::hash_map<HWND, DropTarget*, hash_hwnd> DropTargetMap;
+
+private:
+	DropTargetMap mapDropTarget_;
+
+private:
+	static CustomDragDropManager instance__;
+};
+#endif
 
 
 /****************************************************************************

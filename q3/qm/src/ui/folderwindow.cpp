@@ -538,13 +538,14 @@ void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 	HTREEITEM hItem = TreeView_HitTest(pThis_->getHandle(), &info);
 	HTREEITEM hSelectItem = 0;
 	
+	DWORD dwEffect = DROPEFFECT_NONE;
+	
 	IDataObject* pDataObject = event.getDataObject();
 	if (MessageDataObject::canPasteMessage(pDataObject)) {
 		if (hItem && TreeView_GetParent(pThis_->getHandle(), hItem)) {
 			Folder* pFolder = getFolder(hItem);
 			if (pFolder->getType() == Folder::TYPE_NORMAL &&
 				!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
-				DWORD dwEffect = DROPEFFECT_NONE;
 				DWORD dwKeyState = event.getKeyState();
 				if (dwKeyState & MK_CONTROL) {
 					dwEffect = DROPEFFECT_COPY;
@@ -559,7 +560,6 @@ void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 					dwEffect = flag == MessageDataObject::FLAG_COPY ?
 						DROPEFFECT_COPY : DROPEFFECT_MOVE;
 				}
-				event.setEffect(dwEffect);
 				
 				hSelectItem = hItem;
 			}
@@ -577,16 +577,15 @@ void qm::FolderWindowImpl::dragOver(const DropTargetDragEvent& event)
 				pAccount = getAccount(hItem);
 			}
 			
-			DWORD dwEffect = DROPEFFECT_NONE;
 			Folder* pFolder = FolderDataObject::getFolder(pDataObject, pDocument_);
 			if (pFolder && pFolder->getAccount() == pAccount &&
 				(!pTarget || !pFolder->isAncestorOf(pTarget)))
 				dwEffect = DROPEFFECT_MOVE;
-			event.setEffect(dwEffect);
 		}
 		
 		hSelectItem = hItem;
 	}
+	event.setEffect(dwEffect);
 	
 	TreeView_SelectDropTarget(pThis_->getHandle(), hSelectItem);
 	
@@ -725,7 +724,8 @@ LRESULT qm::FolderWindowImpl::onBeginDrag(NMHDR* pnmhdr,
 	
 	DragSource source;
 	source.setDragSourceHandler(this);
-	source.startDrag(pDataObject.get(), DROPEFFECT_MOVE);
+	DragGestureEvent event(pThis_->getHandle(), pnmtv->ptDrag);
+	source.startDrag(event, pDataObject.get(), DROPEFFECT_MOVE);
 	
 	return 0;
 }

@@ -13,6 +13,8 @@
 
 #include "dragdrop.h"
 
+#pragma warning(disable:4786)
+
 using namespace qs;
 
 
@@ -145,7 +147,8 @@ qs::DragSource::~DragSource()
 	}
 }
 
-bool qs::DragSource::startDrag(IDataObject* pDataObject,
+bool qs::DragSource::startDrag(const DragGestureEvent& event,
+							   IDataObject* pDataObject,
 							   DWORD dwEffect)
 {
 	if (::GetKeyState(VK_LBUTTON) < 0) {
@@ -157,10 +160,11 @@ bool qs::DragSource::startDrag(IDataObject* pDataObject,
 		pImpl_->dwCancelButton_ = MK_LBUTTON;
 	}
 	
-	DragDropManager& manager = DragDropManager::getInstance();
+	DragDropManager* pManager = DragDropManager::getInstance();
 	DWORD dwResultEffect = DROPEFFECT_NONE;
 	bool bCanceled = false;
-	if (!manager.doDragDrop(pDataObject, this, dwEffect, &dwResultEffect, &bCanceled))
+	if (!pManager->doDragDrop(event.getWindow(), event.getPoint(),
+		pDataObject, this, dwEffect, &dwResultEffect, &bCanceled))
 		return false;
 	if (pImpl_->pHandler_)
 		pImpl_->pHandler_->dragDropEnd(DragSourceDropEvent(
@@ -352,8 +356,8 @@ STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragEnter(IDataObject* pDataOb
 	pDataObject_->AddRef();
 	
 	if (pDropTarget_->pHandler_) {
-		DropTargetDragEvent event(pDropTarget_->pThis_,
-			pDataObject, dwKeyState, reinterpret_cast<POINT&>(pt));
+		DropTargetDragEvent event(pDropTarget_->pThis_, pDataObject,
+			dwKeyState, reinterpret_cast<POINT&>(pt), *pdwEffect);
 		pDropTarget_->pHandler_->dragEnter(event);
 		*pdwEffect = event.getEffect();
 	}
@@ -366,8 +370,8 @@ STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::DragOver(DWORD dwKeyState,
 														   DWORD* pdwEffect)
 {
 	if (pDropTarget_->pHandler_) {
-		DropTargetDragEvent event(pDropTarget_->pThis_,
-			pDataObject_, dwKeyState, reinterpret_cast<POINT&>(pt));
+		DropTargetDragEvent event(pDropTarget_->pThis_, pDataObject_,
+			dwKeyState, reinterpret_cast<POINT&>(pt), *pdwEffect);
 		pDropTarget_->pHandler_->dragOver(event);
 		*pdwEffect = event.getEffect();
 	}
@@ -394,8 +398,8 @@ STDMETHODIMP qs::DropTargetImpl::IDropTargetImpl::Drop(IDataObject* pDataObject,
 													   DWORD* pdwEffect)
 {
 	if (pDropTarget_->pHandler_) {
-		DropTargetDropEvent event(pDropTarget_->pThis_,
-			pDataObject, dwKeyState, reinterpret_cast<POINT&>(pt));
+		DropTargetDropEvent event(pDropTarget_->pThis_, pDataObject,
+			dwKeyState, reinterpret_cast<POINT&>(pt), *pdwEffect);
 		pDropTarget_->pHandler_->drop(event);
 		*pdwEffect = event.getEffect();
 	}
@@ -429,8 +433,8 @@ qs::DropTarget::DropTarget(HWND hwnd) :
 	p->AddRef();
 	pImpl_->pDropTarget_ = p;
 	
-	DragDropManager& manager = DragDropManager::getInstance();
-	manager.registerDragDrop(hwnd, this);
+	DragDropManager* pManager = DragDropManager::getInstance();
+	pManager->registerDragDrop(hwnd, this);
 	pImpl_->hwnd_ = hwnd;
 }
 
@@ -438,8 +442,8 @@ qs::DropTarget::~DropTarget()
 {
 	if (pImpl_) {
 		if (pImpl_->hwnd_) {
-			DragDropManager& manager = DragDropManager::getInstance();
-			manager.revokeDragDrop(pImpl_->hwnd_);
+			DragDropManager* pManager = DragDropManager::getInstance();
+			pManager->revokeDragDrop(pImpl_->hwnd_);
 		}
 		
 		if (pImpl_->pDropTarget_)
@@ -505,12 +509,13 @@ DropTarget* qs::DropTargetEvent::getDropTarget() const
 qs::DropTargetDragEvent::DropTargetDragEvent(DropTarget* pDropTarget,
 											 IDataObject* pDataObject,
 											 DWORD dwKeyState,
-											 const POINT& pt) :
+											 const POINT& pt,
+											 DWORD dwEffect) :
 	DropTargetEvent(pDropTarget),
 	pDataObject_(pDataObject),
 	dwKeyState_(dwKeyState),
 	pt_(pt),
-	dwEffect_(DROPEFFECT_NONE)
+	dwEffect_(dwEffect)
 {
 	if (pDataObject_)
 		pDataObject_->AddRef();
@@ -616,13 +621,25 @@ qs::DragGestureHandler::~DragGestureHandler()
  *
  */
 
-qs::DragGestureEvent::DragGestureEvent(const POINT& pt) :
+qs::DragGestureEvent::DragGestureEvent(HWND hwnd,
+									   const POINT& pt) :
+	hwnd_(hwnd),
 	pt_(pt)
 {
 }
 
 qs::DragGestureEvent::~DragGestureEvent()
 {
+}
+
+HWND qs::DragGestureEvent::getWindow() const
+{
+	return hwnd_;
+}
+
+const POINT& qs::DragGestureEvent::getPoint() const
+{
+	return pt_;
 }
 
 
@@ -632,22 +649,59 @@ qs::DragGestureEvent::~DragGestureEvent()
  *
  */
 
-DragDropManager qs::DragDropManager::instance__;
-
-qs::DragDropManager::DragDropManager()
-{
-}
+DragDropManager* qs::DragDropManager::pManager__;
 
 qs::DragDropManager::~DragDropManager()
 {
 }
 
-bool qs::DragDropManager::doDragDrop(IDataObject* pDataObject,
-									 DragSource* pDragSource,
-									 DWORD dwEffect,
-									 DWORD* pdwEffect,
-									 bool* pbCanceled)
+DragDropManager* qs::DragDropManager::getInstance()
 {
+	assert(pManager__);
+	return pManager__;
+}
+
+void qs::DragDropManager::registerManager(DragDropManager* pManager)
+{
+	assert(!pManager__);
+	pManager__ = pManager;
+}
+
+void qs::DragDropManager::unregisterManager(DragDropManager* pManager)
+{
+	assert(pManager__);
+	pManager__ = 0;
+}
+
+
+#ifndef QS_CUSTOMDRAGDROP
+/****************************************************************************
+ *
+ * SystemDragDropManager
+ *
+ */
+
+SystemDragDropManager qs::SystemDragDropManager::instance__;
+
+qs::SystemDragDropManager::SystemDragDropManager()
+{
+	registerManager(this);
+}
+
+qs::SystemDragDropManager::~SystemDragDropManager()
+{
+	unregisterManager(this);
+}
+
+bool qs::SystemDragDropManager::doDragDrop(HWND hwnd,
+										   const POINT& pt,
+										   IDataObject* pDataObject,
+										   DragSource* pDragSource,
+										   DWORD dwEffect,
+										   DWORD* pdwEffect,
+										   bool* pbCanceled)
+{
+	assert(hwnd);
 	assert(pDataObject);
 	assert(pDragSource);
 	assert(pdwEffect);
@@ -656,29 +710,354 @@ bool qs::DragDropManager::doDragDrop(IDataObject* pDataObject,
 	HRESULT hr = ::DoDragDrop(pDataObject,
 		pDragSource->getDropSource(), dwEffect, pdwEffect);
 	*pbCanceled = hr == DRAGDROP_S_CANCEL;
-	return hr == S_OK;
+	return hr == DRAGDROP_S_DROP;
 }
 
-bool qs::DragDropManager::registerDragDrop(HWND hwnd,
-										   DropTarget* pDropTarget)
+bool qs::SystemDragDropManager::registerDragDrop(HWND hwnd,
+												 DropTarget* pDropTarget)
 {
 	assert(hwnd);
 	assert(pDropTarget);
-
+	
 	return ::RegisterDragDrop(hwnd, pDropTarget->getDropTarget()) == S_OK;
 }
 
-bool qs::DragDropManager::revokeDragDrop(HWND hwnd)
+bool qs::SystemDragDropManager::revokeDragDrop(HWND hwnd)
 {
 	assert(hwnd);
 	
 	return ::RevokeDragDrop(hwnd) == S_OK;
 }
+#endif
 
-DragDropManager& qs::DragDropManager::getInstance()
+
+#ifdef QS_CUSTOMDRAGDROP
+/****************************************************************************
+ *
+ * CustomDragDropManager
+ *
+ */
+
+CustomDragDropManager qs::CustomDragDropManager::instance__;
+
+qs::CustomDragDropManager::CustomDragDropManager()
 {
-	return instance__;
+	registerManager(this);
 }
+
+qs::CustomDragDropManager::~CustomDragDropManager()
+{
+	unregisterManager(this);
+}
+
+bool qs::CustomDragDropManager::doDragDrop(HWND hwnd,
+										   const POINT& pt,
+										   IDataObject* pDataObject,
+										   DragSource* pDragSource,
+										   DWORD dwEffect,
+										   DWORD* pdwEffect,
+										   bool* pbCanceled)
+{
+	assert(hwnd);
+	assert(pDataObject);
+	assert(pDragSource);
+	assert(pdwEffect);
+	assert(pbCanceled);
+	
+	DragDropWindow wnd(this, hwnd, pt, pDataObject, pDragSource->getDropSource(), dwEffect);
+	
+	MSG msg;
+	while (::GetMessage(&msg, 0, 0, 0)) {
+		::TranslateMessage(&msg);
+		::DispatchMessage(&msg);
+		
+		if (wnd.isFinished())
+			break;
+	}
+	
+	*pdwEffect = wnd.getEffect();
+	*pbCanceled = wnd.isCanceled();
+	
+	return true;
+}
+
+bool qs::CustomDragDropManager::registerDragDrop(HWND hwnd,
+												 DropTarget* pDropTarget)
+{
+	assert(hwnd);
+	assert(pDropTarget);
+	
+	return mapDropTarget_.insert(DropTargetMap::value_type(hwnd, pDropTarget)).second;
+}
+
+bool qs::CustomDragDropManager::revokeDragDrop(HWND hwnd)
+{
+	assert(hwnd);
+	
+	mapDropTarget_.erase(hwnd);
+	
+	return true;
+}
+
+DropTarget* qs::CustomDragDropManager::getDropTarget(HWND hwnd) const
+{
+	DropTargetMap::const_iterator it = mapDropTarget_.find(hwnd);
+	return it != mapDropTarget_.end() ? (*it).second : 0;
+}
+
+
+/****************************************************************************
+ *
+ * CustomDragDropManager::DragDropWindow
+ *
+ */
+
+qs::CustomDragDropManager::DragDropWindow::DragDropWindow(const CustomDragDropManager* pManager,
+														  HWND hwnd,
+														  const POINT& pt,
+														  IDataObject* pDataObject,
+														  IDropSource* pDropSource,
+														  DWORD dwAllowedEffects) :
+	WindowBase(false),
+	pManager_(pManager),
+	pDataObject_(pDataObject),
+	pDropSource_(pDropSource),
+	dwAllowedEffects_(dwAllowedEffects),
+	bFinished_(false),
+	dwEffect_(DROPEFFECT_NONE),
+	bCanceled_(false),
+	nTimerId_(-1),
+	pCurrentDropTarget_(0),
+	ptCurrent_(pt)
+{
+	setWindowHandler(this, false);
+	
+	subclassWindow(hwnd);
+	setCapture();
+	
+	nTimerId_ = setTimer(TIMER_ID, TIMER_INTERVAL);
+	
+	setCurrentMousePosition(pt, getKeyState());
+}
+
+qs::CustomDragDropManager::DragDropWindow::~DragDropWindow()
+{
+	killTimer(nTimerId_);
+	releaseCapture();
+	unsubclassWindow();
+}
+
+bool qs::CustomDragDropManager::DragDropWindow::isFinished() const
+{
+	return bFinished_;
+}
+
+DWORD qs::CustomDragDropManager::DragDropWindow::getEffect() const
+{
+	return dwEffect_;
+}
+
+bool qs::CustomDragDropManager::DragDropWindow::isCanceled() const
+{
+	return bCanceled_;
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::windowProc(UINT uMsg,
+															  WPARAM wParam,
+															  LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_KEYDOWN()
+		HANDLE_KEYUP()
+		HANDLE_LBUTTONDOWN()
+		HANDLE_LBUTTONUP()
+		HANDLE_MOUSEMOVE()
+		HANDLE_RBUTTONDOWN()
+		HANDLE_RBUTTONUP()
+		HANDLE_TIMER()
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::onKeyDown(UINT nKey,
+															 UINT nRepeat,
+															 UINT nFlags)
+{
+	if (nKey == VK_ESCAPE)
+		queryContinue(true, getKeyState());
+	else
+		updateEffect(getKeyState());
+	return 0;
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::onKeyUp(UINT nKey,
+														   UINT nRepeat,
+														   UINT nFlags)
+{
+	updateEffect(getKeyState());
+	return 0;
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::onLButtonDown(UINT nFlags,
+																 const POINT& pt)
+{
+	handleMouseEvent(nFlags, pt);
+	return 0;
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::onLButtonUp(UINT nFlags,
+															   const POINT& pt)
+{
+	handleMouseEvent(nFlags, pt);
+	return 0;
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::onMouseMove(UINT nFlags,
+															   const POINT& pt)
+{
+	setCurrentMousePosition(pt, nFlags);
+	return 0;
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::onRButtonDown(UINT nFlags,
+																 const POINT& pt)
+{
+	handleMouseEvent(nFlags, pt);
+	return 0;
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::onRButtonUp(UINT nFlags,
+															   const POINT& pt)
+{
+	handleMouseEvent(nFlags, pt);
+	return 0;
+}
+
+LRESULT qs::CustomDragDropManager::DragDropWindow::onTimer(UINT nId)
+{
+	if (nId == nTimerId_) {
+		killTimer(nTimerId_);
+		updateEffect(getKeyState());
+		nTimerId_ = setTimer(TIMER_ID, TIMER_INTERVAL);
+	}
+	return DefaultWindowHandler::onTimer(nId);
+}
+
+void qs::CustomDragDropManager::DragDropWindow::setCurrentMousePosition(const POINT& pt,
+																		DWORD dwKeyState)
+{
+	POINT ptScreen = pt;
+	clientToScreen(&ptScreen);
+	
+	HWND hwnd = ::WindowFromPoint(ptScreen);
+	DropTarget* pDropTarget = pManager_->getDropTarget(hwnd);
+	if (pDropTarget == pCurrentDropTarget_)
+		updateEffect(dwKeyState);
+	else
+		setCurrentTarget(pDropTarget, ptScreen, dwKeyState);
+	
+	ptCurrent_ = ptScreen;
+}
+
+void qs::CustomDragDropManager::DragDropWindow::setCurrentTarget(DropTarget* pDropTarget,
+																 const POINT& ptScreen,
+																 DWORD dwKeyState)
+{
+	if (pCurrentDropTarget_) {
+		DropTargetHandler* pHandler = pCurrentDropTarget_->getDropTargetHandler();
+		if (pHandler)
+			pHandler->dragExit(DropTargetEvent(pCurrentDropTarget_));
+	}
+	if (pDropTarget) {
+		DropTargetHandler* pHandler = pDropTarget->getDropTargetHandler();
+		if (pHandler) {
+			DropTargetDragEvent event(pDropTarget,
+				pDataObject_, dwKeyState, ptScreen, dwEffect_);
+			pHandler->dragEnter(event);
+			dwEffect_ = event.getEffect() & dwAllowedEffects_;
+		}
+	}
+	pCurrentDropTarget_ = pDropTarget;
+}
+
+void qs::CustomDragDropManager::DragDropWindow::updateEffect(DWORD dwKeyState)
+{
+	if (pCurrentDropTarget_) {
+		DropTargetHandler* pHandler = pCurrentDropTarget_->getDropTargetHandler();
+		if (pHandler) {
+			DropTargetDragEvent event(pCurrentDropTarget_,
+				pDataObject_, dwKeyState, ptCurrent_, dwEffect_);
+			pHandler->dragOver(event);
+			dwEffect_ = event.getEffect() & dwAllowedEffects_;
+		}
+	}
+}
+
+void qs::CustomDragDropManager::DragDropWindow::queryContinue(bool bEscape,
+															  DWORD dwKeyState)
+{
+	HRESULT hr = pDropSource_->QueryContinueDrag(bEscape, getKeyState());
+	if (hr == S_OK) {
+		return;
+	}
+	else if (hr == DRAGDROP_S_DROP) {
+		if (pCurrentDropTarget_) {
+			DropTargetHandler* pHandler = pCurrentDropTarget_->getDropTargetHandler();
+			if (pHandler) {
+				DropTargetDropEvent event(pCurrentDropTarget_,
+					pDataObject_, dwKeyState, ptCurrent_, dwEffect_);
+				pHandler->drop(event);
+				dwEffect_ = event.getEffect() & dwAllowedEffects_;
+			}
+		}
+		
+		bFinished_ = true;
+		pCurrentDropTarget_ = 0;
+	}
+	else if (hr == DRAGDROP_S_CANCEL) {
+		if (pCurrentDropTarget_) {
+			DropTargetHandler* pHandler = pCurrentDropTarget_->getDropTargetHandler();
+			if (pHandler)
+				pHandler->dragExit(DropTargetEvent(pCurrentDropTarget_));
+		}
+		
+		dwEffect_ = DROPEFFECT_NONE;
+		bCanceled_ = true;
+		bFinished_ = true;
+		pCurrentDropTarget_ = 0;
+	}
+}
+
+void qs::CustomDragDropManager::DragDropWindow::handleMouseEvent(UINT nFlags,
+																 const POINT& pt)
+{
+	setCurrentMousePosition(pt, nFlags);
+	queryContinue(false, nFlags);
+}
+
+DWORD qs::CustomDragDropManager::DragDropWindow::getKeyState()
+{
+	DWORD dwKeyState = 0;
+	
+	struct {
+		UINT nVirtualKey_;
+		DWORD dwKey_;
+	} keys[] = {
+		{ VK_SHIFT,		MK_SHIFT	},
+		{ VK_CONTROL,	MK_CONTROL	},
+		{ VK_MENU,		MK_ALT		},
+		{ VK_LBUTTON,	MK_LBUTTON	},
+		{ VK_MBUTTON,	MK_MBUTTON	},
+		{ VK_RBUTTON,	MK_RBUTTON	}
+	};
+	for (int n = 0; n < countof(keys); ++n) {
+		if (::GetKeyState(keys[n].nVirtualKey_) < 0)
+			dwKeyState |= keys[n].dwKey_;
+	}
+	
+	return dwKeyState;
+}
+#endif
 
 
 /****************************************************************************
@@ -755,12 +1134,9 @@ LRESULT qs::DragGestureRecognizerWindow::onMouseMove(UINT nFlags,
 		nState_ == STATE_RBUTTONDOWN) {
 		if (abs(pt.x - pt_.x) > delta_.cx ||
 			abs(pt.y - pt_.y) > delta_.cy) {
-			DragGestureHandler* pHandler =
-				pRecognizer_->getDragGestureHandler();
-			if (pHandler) {
-				DragGestureEvent event(pt_);
-				pHandler->dragGestureRecognized(event);
-			}
+			DragGestureHandler* pHandler = pRecognizer_->getDragGestureHandler();
+			if (pHandler)
+				pHandler->dragGestureRecognized(DragGestureEvent(getHandle(), pt_));
 			nState_ = STATE_NONE;
 			releaseCapture();
 		}

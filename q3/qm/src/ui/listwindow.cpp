@@ -635,7 +635,7 @@ void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 	
 	DragSource source;
 	source.setDragSourceHandler(this);
-	source.startDrag(pDataObject.get(), DROPEFFECT_COPY | DROPEFFECT_MOVE);
+	source.startDrag(event, pDataObject.get(), DROPEFFECT_COPY | DROPEFFECT_MOVE);
 }
 
 void qm::ListWindowImpl::dragDropEnd(const DragSourceDropEvent& event)
@@ -671,14 +671,12 @@ void qm::ListWindowImpl::dragEnter(const DropTargetDragEvent& event)
 	}
 #endif
 	
-	if (bCanDrop_)
-		event.setEffect(DROPEFFECT_COPY);
+	event.setEffect(bCanDrop_ ? DROPEFFECT_COPY : DROPEFFECT_NONE);
 }
 
 void qm::ListWindowImpl::dragOver(const DropTargetDragEvent& event)
 {
-	if (bCanDrop_) 
-		event.setEffect(DROPEFFECT_COPY);
+	event.setEffect(bCanDrop_ ? DROPEFFECT_COPY : DROPEFFECT_NONE);
 }
 
 void qm::ListWindowImpl::dragExit(const DropTargetEvent& event)

@@ -17,26 +17,11 @@
 
 #include <windows.h>
 
+#include "uiutil.h"
+
 #pragma warning(disable:4786)
 
 namespace qs {
-
-/****************************************************************************
- *
- * hash_hwnd
- *
- */
-
-struct hash_hwnd
-{
-	size_t operator()(HWND hwnd) const;
-};
-
-inline size_t qs::hash_hwnd::operator()(HWND hwnd) const
-{
-	return reinterpret_cast<int>(hwnd)/8;
-}
-
 
 /****************************************************************************
  *

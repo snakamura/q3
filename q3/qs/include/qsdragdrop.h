@@ -42,7 +42,8 @@ public:
 	~DragSource();
 
 public:
-	bool startDrag(IDataObject* pDataObject,
+	bool startDrag(const DragGestureEvent& event,
+				   IDataObject* pDataObject,
 				   DWORD dwEffect);
 	DragSourceHandler* getDragSourceHandler() const;
 	void setDragSourceHandler(DragSourceHandler* pHandler);
@@ -210,7 +211,8 @@ public:
 	DropTargetDragEvent(DropTarget* pDropTarget,
 						IDataObject* pDataObject,
 						DWORD dwKeyState,
-						const POINT& pt);
+						const POINT& pt,
+						DWORD dwEffect);
 	~DropTargetDragEvent();
 
 public:
@@ -282,14 +284,20 @@ public:
 class QSEXPORTCLASS DragGestureEvent
 {
 public:
-	explicit DragGestureEvent(const POINT& pt);
+	DragGestureEvent(HWND hwnd,
+					 const POINT& pt);
 	~DragGestureEvent();
+
+public:
+	HWND getWindow() const;
+	const POINT& getPoint() const;
 
 private:
 	DragGestureEvent(const DragGestureEvent&);
 	DragGestureEvent& operator=(const DragGestureEvent&);
 
 private:
+	HWND hwnd_;
 	POINT pt_;
 };
 

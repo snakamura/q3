@@ -774,6 +774,8 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 {
 	assert(pDocument_);
 	
+	NMLISTVIEW* pnmlv = reinterpret_cast<NMLISTVIEW*>(pnmhdr);
+	
 	URIDataObject::URIList listURI;
 	
 	HWND hwnd = wnd_.getHandle();
@@ -792,7 +794,8 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 	
 	DragSource source;
 	source.setDragSourceHandler(this);
-	source.startDrag(pDataObject.get(), DROPEFFECT_COPY);
+	DragGestureEvent event(wnd_.getHandle(), pnmlv->ptAction);
+	source.startDrag(event, pDataObject.get(), DROPEFFECT_COPY);
 	
 	return 0;
 }
