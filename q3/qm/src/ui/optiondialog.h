@@ -130,7 +130,9 @@ public:
 		PANEL_AUTOPILOT,
 		
 		PANEL_MISC,
+#ifndef _WIN32_WCE
 		PANEL_JUNK,
+#endif
 		PANEL_SECURITY,
 		
 		MAX_PANEL
@@ -199,7 +201,8 @@ private:
 
 private:
 	void layout();
-	void setCurrentPanel(Panel panel);
+	void setCurrentPanel(Panel panel,
+						 bool bForce);
 
 private:
 	bool processDialogMessage(const MSG& msg);

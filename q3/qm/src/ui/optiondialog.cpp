@@ -227,7 +227,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 #endif
 	}
 	
-	setCurrentPanel(panel_);
+	setCurrentPanel(panel_, true);
 	
 #ifdef _WIN32_WCE
 	RECT rectWorkArea;
@@ -304,8 +304,10 @@ LRESULT qm::OptionDialog::onSelectorSelChanged(NMHDR* pnmhdr,
 {
 	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
 	
-	Panel panel = static_cast<Panel>(pnmtv->itemNew.lParam);
-	setCurrentPanel(panel);
+	if (pnmtv->itemNew.hItem && pnmtv->itemNew.state & TVIS_SELECTED) {
+		Panel panel = static_cast<Panel>(pnmtv->itemNew.lParam);
+		setCurrentPanel(panel, false);
+	}
 	
 	return 1;
 }
@@ -315,7 +317,7 @@ LRESULT qm::OptionDialog::onSelectorSelChange()
 	Window selector(getDlgItem(IDC_SELECTOR));
 	int nItem = selector.sendMessage(CB_GETCURSEL);
 	Panel panel = static_cast<Panel>(selector.sendMessage(CB_GETITEMDATA, nItem));
-	setCurrentPanel(panel);
+	setCurrentPanel(panel, false);
 	
 	return 0;
 }
@@ -380,8 +382,12 @@ void qm::OptionDialog::layout()
 #endif
 }
 
-void qm::OptionDialog::setCurrentPanel(Panel panel)
+void qm::OptionDialog::setCurrentPanel(Panel panel,
+									   bool bForce)
 {
+	if (!bForce && panel == panel_)
+		return;
+	
 #define BEGIN_PANEL() \
 	switch (panel) {
 
@@ -457,10 +463,10 @@ void qm::OptionDialog::setCurrentPanel(Panel panel)
 	
 	HWND hwndSelector = getDlgItem(IDC_SELECTOR);
 #ifndef _WIN32_WCE_PSPC
-	HTREEITEM hItem = TreeView_GetChild(hwndSelector, TVI_ROOT);
+	HTREEITEM hItem = TreeView_GetRoot(hwndSelector);
 	while (hItem) {
 		TVITEM item = {
-			TVIF_PARAM,
+			TVIF_HANDLE | TVIF_PARAM,
 			hItem
 		};
 		TreeView_GetItem(hwndSelector, &item);
