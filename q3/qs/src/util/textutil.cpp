@@ -144,11 +144,13 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 	
 	std::pair<size_t, size_t> url(-1, 0);
 	if (nSchemaCount != 0) {
+		bool bQuote = false;
 		bool bEmail = false;
 		const WCHAR* p = pwszText;
 		while (nLen > 0) {
-			if (p == pwszText || !isURLChar(*(p - 1))) {
+			if (p == pwszText || !isURLChar(*(p - 1)) || *(p - 1) == L'(') {
 				bool bFound = false;
+				bQuote = p != pwszText && *(p - 1) == L'(';
 				for (size_t n = 0; n < nSchemaCount; ++n) {
 					if (ppwszSchemas[n][0] == *p) {
 						size_t nSchemaLen = wcslen(ppwszSchemas[n]);
@@ -186,7 +188,9 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 			}
 			if (p != pwszText + url.first) {
 				WCHAR c = *(p - 1);
-				if (c == L'.' || c == L',' || (bEmail && (c == L';' || c == L')')))
+				if (c == L'.' || c == L',' ||
+					(bQuote && c == L')') ||
+					(bEmail && (c == L';' || c == L')')))
 					--p;
 			}
 			url.second = p - (pwszText + url.first);
