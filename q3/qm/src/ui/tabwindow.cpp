@@ -617,6 +617,10 @@ LRESULT qm::TabCtrlWindow::windowProc(UINT uMsg,
 		HANDLE_CONTEXTMENU()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
+#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+		HANDLE_MBUTTONDOWN()
+		HANDLE_MBUTTONUP()
+#endif
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
 		HANDLE_MOUSEWHEEL()
 #endif
@@ -677,6 +681,27 @@ LRESULT qm::TabCtrlWindow::onDestroy()
 	
 	return DefaultWindowHandler::onDestroy();
 }
+
+#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+LRESULT qm::TabCtrlWindow::onMButtonDown(UINT nFlags,
+										 const POINT& pt)
+{
+	return 0;
+}
+
+LRESULT qm::TabCtrlWindow::onMButtonUp(UINT nFlags,
+									   const POINT& pt)
+{
+	TCHITTESTINFO info = {
+		{ pt.x, pt.y }
+	};
+	int nItem = TabCtrl_HitTest(getHandle(), &info);
+	if (nItem != -1)
+		pTabModel_->close(nItem);
+	
+	return 0;
+}
+#endif
 
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
 LRESULT qm::TabCtrlWindow::onMouseWheel(UINT nFlags,
