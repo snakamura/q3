@@ -431,6 +431,9 @@ QSTATUS qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_, pEditFrameWindowManager_,
 		pExternalEditorManager_, pThis_->getHandle(), pProfile_, true);
 	CHECK_QSTATUS();
+	status = InitAction2<MessageCombineAction, MessageSelectionModel*, HWND>(
+		pActionMap_, IDM_MESSAGE_COMBINE, pMessageSelectionModel_, pThis_->getHandle());
+	CHECK_QSTATUS();
 	
 	struct {
 		UINT nId_;

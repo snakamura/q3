@@ -2080,6 +2080,218 @@ QSTATUS qm::MessageApplyTemplateAction::isEnabled(
 
 /****************************************************************************
  *
+ * MessageCombineAction
+ *
+ */
+
+qm::MessageCombineAction::MessageCombineAction(
+	MessageSelectionModel* pMessageSelectionModel, HWND hwnd, QSTATUS* pstatus) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageCombineAction::~MessageCombineAction()
+{
+}
+
+QSTATUS qm::MessageCombineAction::invoke(const ActionEvent& event)
+{
+	DECLARE_QSTATUS();
+	
+	// TODO
+	Folder* pFolder = 0;
+	MessagePtrList l;
+	status = pMessageSelectionModel_->getSelectedMessages(&pFolder, &l);
+	CHECK_QSTATUS();
+	if (pFolder->getType() != Folder::TYPE_NORMAL)
+		return QSTATUS_SUCCESS;
+	
+	Message msg(&status);
+	CHECK_QSTATUS();
+	status = combine(l, &msg);
+	CHECK_QSTATUS();
+	
+	// TODO
+	unsigned int nFlags = 0;
+	status = static_cast<NormalFolder*>(pFolder)->appendMessage(msg, nFlags);
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+QSTATUS qm::MessageCombineAction::isEnabled(const ActionEvent& event, bool* pbEnabled)
+{
+	assert(pbEnabled);
+	return pMessageSelectionModel_->hasSelectedMessage(pbEnabled);
+}
+
+QSTATUS qm::MessageCombineAction::combine(
+	const MessagePtrList& l, Message* pMessage)
+{
+	assert(pMessage);
+	
+	DECLARE_QSTATUS();
+	
+	MessagePtrList listMessagePtr;
+	status = STLWrapper<MessagePtrList>(listMessagePtr).resize(l.size());
+	CHECK_QSTATUS();
+	
+	string_ptr<WSTRING> wstrIdAll;
+	unsigned int nTotal = 0;
+	MessagePtrList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		MessagePtrLock mpl(*it);
+		if (!mpl)
+			return QSTATUS_FAIL;
+		
+		Message msg(&status);
+		CHECK_QSTATUS();
+		status = mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"Content-Type", &msg);
+		CHECK_QSTATUS();
+		
+		const ContentTypeParser* pContentType = msg.getContentType();
+		if (!PartUtil::isContentType(pContentType, L"message", L"partial"))
+			return QSTATUS_FAIL;
+		
+		string_ptr<WSTRING> wstrId;
+		status = pContentType->getParameter(L"id", &wstrId);
+		CHECK_QSTATUS();
+		if (!wstrId.get())
+			return QSTATUS_FAIL;
+		else if (!wstrIdAll.get())
+			wstrIdAll.reset(wstrId.release());
+		else if (wcscmp(wstrId.get(), wstrIdAll.get()) != 0)
+			return QSTATUS_FAIL;
+		
+		if (nTotal == 0) {
+			string_ptr<WSTRING> wstrTotal;
+			status = pContentType->getParameter(L"total", &wstrTotal);
+			CHECK_QSTATUS();
+			if (wstrTotal.get()) {
+				WCHAR* pEnd = 0;
+				nTotal = wcstol(wstrTotal.get(), &pEnd, 10);
+				if (*pEnd || nTotal != l.size())
+					return QSTATUS_FAIL;
+			}
+		}
+		
+		string_ptr<WSTRING> wstrNumber;
+		status = pContentType->getParameter(L"number", &wstrNumber);
+		CHECK_QSTATUS();
+		WCHAR* pEnd = 0;
+		unsigned int nNumber = wcstol(wstrNumber.get(), &pEnd, 10);
+		if (*pEnd || nNumber == 0 || nNumber > l.size())
+			return QSTATUS_FAIL;
+		listMessagePtr[nNumber - 1] = *it;
+		// TODO
+		// Check duplicated number
+		
+		++it;
+	}
+	if (nTotal == 0)
+		return QSTATUS_FAIL;
+	
+	StringBuffer<STRING> buf(&status);
+	CHECK_QSTATUS();
+	
+	Part::FieldList listField;
+	struct Deleter
+	{
+		Deleter(Part::FieldList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			clear();
+		}
+		
+		void clear()
+		{
+			Part::FieldList::iterator it = l_.begin();
+			while (it != l_.end()) {
+				freeString((*it).first);
+				freeString((*it).second);
+				++it;
+			}
+			l_.clear();
+		}
+		
+		Part::FieldList& l_;
+	} deleter(listField);
+	
+	it = listMessagePtr.begin();
+	while (it != listMessagePtr.end()) {
+		MessagePtrLock mpl(*it);
+		if (!mpl)
+			return QSTATUS_FAIL;
+		
+		Message msg(&status);
+		CHECK_QSTATUS();
+		status = mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, &msg);
+		CHECK_QSTATUS();
+		
+		if (it == listMessagePtr.begin()) {
+			status = msg.getFields(&listField);
+			CHECK_QSTATUS();
+		}
+		
+		status = buf.append(msg.getBody());
+		CHECK_QSTATUS();
+		
+		++it;
+	}
+	
+	status = pMessage->create(buf.getCharArray(),
+		buf.getLength(), Message::FLAG_NONE);
+	CHECK_QSTATUS();
+	buf.remove();
+	
+	Part::FieldList::const_iterator itF = listField.begin();
+	while (itF != listField.end()) {
+		if (!isSpecialField((*itF).first)) {
+			status = buf.append((*itF).second);
+			CHECK_QSTATUS();
+			status = buf.append("\r\n");
+			CHECK_QSTATUS();
+		}
+		++itF;
+	}
+	
+	deleter.clear();
+	status = pMessage->getFields(&listField);
+	CHECK_QSTATUS();
+	itF = listField.begin();
+	while (itF != listField.end()) {
+		if (isSpecialField((*itF).first)) {
+			status = buf.append((*itF).second);
+			CHECK_QSTATUS();
+			status = buf.append("\r\n");
+			CHECK_QSTATUS();
+		}
+		++itF;
+	}
+	
+	status = pMessage->setHeader(buf.getCharArray());
+	CHECK_QSTATUS();
+	
+	return QSTATUS_SUCCESS;
+}
+
+bool qm::MessageCombineAction::isSpecialField(const CHAR* pszField)
+{
+	return strncmp(pszField, "content-", 8) == 0 ||
+		strcmp(pszField, "subject") == 0 ||
+		strcmp(pszField, "message-id") == 0 ||
+		strcmp(pszField, "encrypted") == 0 ||
+		strcmp(pszField, "mime-version") == 0;
+}
+
+
+/****************************************************************************
+ *
  * MessageCreateAction
  *
  */

@@ -51,6 +51,7 @@ class FolderShowSizeAction;
 class FolderUpdateAction;
 class MessageApplyRuleAction;
 class MessageApplyTemplateAction;
+class MessageCombineAction;
 class MessageCreateAction;
 class MessageCreateFromClipboardAction;
 class MessageDeleteAttachmentAction;
@@ -965,6 +966,37 @@ private:
 private:
 	TemplateProcessor processor_;
 	TemplateMenu* pTemplateMenu_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageCombineAction
+ *
+ */
+
+class MessageCombineAction : public qs::AbstractAction
+{
+public:
+	MessageCombineAction(MessageSelectionModel* pMessageSelectionModel,
+		HWND hwnd, qs::QSTATUS* pstatus);
+	virtual ~MessageCombineAction();
+
+public:
+	virtual qs::QSTATUS invoke(const qs::ActionEvent& event);
+	virtual qs::QSTATUS isEnabled(const qs::ActionEvent& event, bool* pbEnabled);
+
+private:
+	static qs::QSTATUS combine(const MessagePtrList& l, Message* pMessage);
+	static bool isSpecialField(const CHAR* pszField);
+
+private:
+	MessageCombineAction(const MessageCombineAction&);
+	MessageCombineAction& operator=(const MessageCombineAction&);
+
+private:
+	MessageSelectionModel* pMessageSelectionModel_;
+	HWND hwnd_;
 };
 
 
