@@ -578,9 +578,8 @@ qm::EditDeleteMessageAction::EditDeleteMessageAction(MessageSelectionModel* pMes
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pUndoManager_(pUndoManager),
 	hwnd_(hwnd),
-	bConfirm_(false)
+	pProfile_(pProfile)
 {
-	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmDeleteMessage", 0) != 0;
 }
 
 qm::EditDeleteMessageAction::~EditDeleteMessageAction()
@@ -659,7 +658,7 @@ bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
 
 bool qm::EditDeleteMessageAction::confirm() const
 {
-	if (bConfirm_)
+	if (pProfile_->getInt(L"Global", L"ConfirmDeleteMessage", 0))
 		return messageBox(Application::getApplication().getResourceHandle(),
 			IDS_CONFIRMDELETEMESSAGE, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
 	else
@@ -2543,9 +2542,8 @@ qm::FolderEmptyAction::FolderEmptyAction(FolderSelectionModel* pFolderSelectionM
 	pFolderSelectionModel_(pFolderSelectionModel),
 	pUndoManager_(pUndoManager),
 	hwnd_(hwnd),
-	bConfirm_(true)
+	pProfile_(pProfile)
 {
-	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmEmptyFolder", 1) != 0;
 }
 
 qm::FolderEmptyAction::~FolderEmptyAction()
@@ -2559,7 +2557,7 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 	if (l.empty())
 		return;
 	
-	if (bConfirm_) {
+	if (pProfile_->getInt(L"Global", L"ConfirmEmptyFolder", 1)) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMEMPTYFOLDER));
 		wstring_ptr wstrName(Util::formatFolders(l, L", "));
@@ -2614,9 +2612,8 @@ qm::FolderEmptyTrashAction::FolderEmptyTrashAction(SyncManager* pSyncManager,
 	pFolderModel_(pFolderModel),
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(hwnd),
-	bConfirm_(true)
+	pProfile_(pProfile)
 {
-	bConfirm_ = pProfile->getInt(L"Global", L"ConfirmEmptyTrash", 1) != 0;
 }
 
 qm::FolderEmptyTrashAction::~FolderEmptyTrashAction()
@@ -2628,7 +2625,8 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 	Account* pAccount = getAccount();
 	if (pAccount)
 		emptyTrash(pAccount, pDocument_, pSyncManager_,
-			pSyncDialogManager_, pFolderModel_, hwnd_, bConfirm_);
+			pSyncDialogManager_, pFolderModel_, hwnd_,
+			pProfile_->getInt(L"Global", L"ConfirmEmptyTrash", 1) != 0);
 }
 
 bool qm::FolderEmptyTrashAction::isEnabled(const ActionEvent& event)
@@ -2648,8 +2646,7 @@ void qm::FolderEmptyTrashAction::emptyAllTrash(Document* pDocument,
 		&FolderEmptyTrashAction::hasTrash) == listAccount.end())
 		return;
 	
-	bool bConfirm = pProfile->getInt(L"Global", L"ConfirmEmptyTrash", 1) != 0;
-	if (bConfirm) {
+	if (pProfile->getInt(L"Global", L"ConfirmEmptyTrash", 1)) {
 		if (messageBox(Application::getApplication().getResourceHandle(),
 			IDS_CONFIRMEMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
 			return;

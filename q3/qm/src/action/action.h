@@ -556,7 +556,7 @@ private:
 	bool bDontSelectNextIfDeletedFlag_;
 	UndoManager* pUndoManager_;
 	HWND hwnd_;
-	bool bConfirm_;
+	qs::Profile* pProfile_;
 };
 
 
@@ -1261,7 +1261,7 @@ private:
 	FolderSelectionModel* pFolderSelectionModel_;
 	UndoManager* pUndoManager_;
 	HWND hwnd_;
-	bool bConfirm_;
+	qs::Profile* pProfile_;
 };
 
 
@@ -1319,7 +1319,7 @@ private:
 	FolderModel* pFolderModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
-	bool bConfirm_;
+	qs::Profile* pProfile_;
 };
 
 
