@@ -206,19 +206,22 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 				}
 			};
 			
-			wstring_ptr wstrToken(allocWString(pwszToken, nLen));
-			listTokenRate_.push_back(std::make_pair(wstrToken.get(), dRate));
-			wstrToken.release();
-			std::random_shuffle(listTokenRate_.begin(), listTokenRate_.end());
-			std::sort(listTokenRate_.begin(), listTokenRate_.end(), &RateLess::comp);
-			if (listTokenRate_.size() > nMax_) {
-				double d = listTokenRate_[nMax_].second;
-				TokenRateList::iterator itD = listTokenRate_.begin() + nMax_ + 1;
-				while (itD != listTokenRate_.end() && (*itD).second == d)
-					++itD;
-				for (TokenRateList::iterator it = itD; it != listTokenRate_.end(); ++it)
-					freeWString((*it).first);
-				listTokenRate_.erase(itD, listTokenRate_.end());
+			if (listTokenRate_.size() < nMax_ ||
+				!RateLess::comp(listTokenRate_.back(), std::pair<WSTRING, double>(0, dRate))) {
+				wstring_ptr wstrToken(allocWString(pwszToken, nLen));
+				listTokenRate_.push_back(std::make_pair(wstrToken.get(), dRate));
+				wstrToken.release();
+				std::random_shuffle(listTokenRate_.begin(), listTokenRate_.end());
+				std::sort(listTokenRate_.begin(), listTokenRate_.end(), &RateLess::comp);
+				if (listTokenRate_.size() > nMax_) {
+					double d = listTokenRate_[nMax_].second;
+					TokenRateList::iterator itD = listTokenRate_.begin() + nMax_ + 1;
+					while (itD != listTokenRate_.end() && (*itD).second == d)
+						++itD;
+					for (TokenRateList::iterator it = itD; it != listTokenRate_.end(); ++it)
+						freeWString((*it).first);
+					listTokenRate_.erase(itD, listTokenRate_.end());
+				}
 			}
 			
 			return true;
