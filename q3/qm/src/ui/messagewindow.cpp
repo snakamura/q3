@@ -493,6 +493,16 @@ unsigned int qm::MessageWindow::getSupportedFindFlags() const
 	return pImpl_->pMessageViewWindow_->getSupportedFindFlags();
 }
 
+std::auto_ptr<MessageWindow::Mark> qm::MessageWindow::mark() const
+{
+	return pImpl_->pMessageViewWindow_->mark();
+}
+
+void qm::MessageWindow::reset(const Mark& mark)
+{
+	pImpl_->pMessageViewWindow_->reset(mark);
+}
+
 bool qm::MessageWindow::openLink()
 {
 	return pImpl_->pMessageViewWindow_->openLink();
@@ -703,6 +713,17 @@ void qm::MessageWindow::setActive()
 		pImpl_->pMessageViewWindow_->setActive();
 	else
 		setFocus();
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindow::Mark
+ *
+ */
+
+qm::MessageWindow::Mark::~Mark()
+{
 }
 
 

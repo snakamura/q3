@@ -333,6 +333,9 @@ public:
 	bool replace(const WCHAR* pwszFind,
 				 const WCHAR* pwszReplace,
 				 unsigned int nFlags);
+	void getFindPosition(bool bPrev,
+						 unsigned int* pnLine,
+						 unsigned int* pnChar) const;
 	void reform();
 	void scroll(Scroll scroll,
 				int nPos,

@@ -2142,10 +2142,12 @@ void qm::ExportDialog::updateState()
  */
 
 qm::FindDialog::FindDialog(Profile* pProfile,
-						   bool bSupportRegex) :
+						   bool bSupportRegex,
+						   Callback* pCallback) :
 	DefaultDialog(IDD_FIND),
 	pProfile_(pProfile),
 	bSupportRegex_(bSupportRegex),
+	pCallback_(pCallback),
 	bMatchCase_(false),
 	bRegex_(false),
 	bPrev_(false)
@@ -2183,6 +2185,7 @@ LRESULT qm::FindDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID_RANGE(IDC_FINDNEXT, IDC_FINDPREV, onFind)
 		HANDLE_COMMAND_ID_CODE(IDC_FIND, CBN_EDITCHANGE, onFindChange)
 		HANDLE_COMMAND_ID_CODE(IDC_FIND, CBN_SELCHANGE, onFindSelChange)
+		HANDLE_COMMAND_ID(IDC_MATCHCASE, onMatchCaseChange)
 		HANDLE_COMMAND_ID(IDC_REGEX, onRegexChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
@@ -2222,10 +2225,8 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::FindDialog::onFind(UINT nId)
 {
-	Window edit(Window(getDlgItem(IDC_FIND)).getWindow(GW_CHILD));
-	wstrFind_ = edit.getWindowText();
-	if (wstrFind_.get())
-		History(pProfile_, L"Find").addValue(wstrFind_.get());
+	wstrFind_ = getDlgItemText(IDC_FIND);
+	History(pProfile_, L"Find").addValue(wstrFind_.get());
 	
 	bMatchCase_ = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
 	pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
@@ -2243,6 +2244,7 @@ LRESULT qm::FindDialog::onFind(UINT nId)
 LRESULT qm::FindDialog::onFindChange()
 {
 	updateState();
+	notifyCallback();
 	return 0;
 }
 
@@ -2252,9 +2254,16 @@ LRESULT qm::FindDialog::onFindSelChange()
 	return 0;
 }
 
+LRESULT qm::FindDialog::onMatchCaseChange()
+{
+	notifyCallback();
+	return 0;
+}
+
 LRESULT qm::FindDialog::onRegexChange()
 {
 	updateState();
+	notifyCallback();
 	return 0;
 }
 
@@ -2269,6 +2278,27 @@ void qm::FindDialog::updateState()
 	bool bEnable = edit.getWindowTextLength() != 0;
 	Window(getDlgItem(IDC_FINDNEXT)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_FINDPREV)).enableWindow(bEnable);
+}
+
+void qm::FindDialog::notifyCallback()
+{
+	if (pCallback_) {
+		wstring_ptr wstrFind(getDlgItemText(IDC_FIND));
+		bool bMatchCase = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
+		bool bRegex = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+		pCallback_->statusChanged(wstrFind.get(), bMatchCase, bRegex);
+	}
+}
+
+
+/****************************************************************************
+ *
+ * FindDialog::Callback
+ *
+ */
+
+qm::FindDialog::Callback::~Callback()
+{
 }
 
 
@@ -3250,8 +3280,7 @@ LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 		{ IDC_REPLACE,	&wstrReplace_,	L"Replace"	}
 	};
 	for (int m = 0; m < countof(items); ++m) {
-		Window edit(Window(getDlgItem(items[m].nId_)).getWindow(GW_CHILD));
-		wstring_ptr wstrText(edit.getWindowText());
+		wstring_ptr wstrText(getDlgItemText(items[m].nId_));
 		if (wstrText.get()) {
 			for (int n = HISTORY_SIZE - 1; n > 0; --n) {
 				WCHAR wszFromKey[32];

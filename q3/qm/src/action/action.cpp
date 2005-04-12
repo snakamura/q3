@@ -702,8 +702,43 @@ void qm::EditFindAction::invoke(const ActionEvent& event)
 	
 	bool bFound = false;
 	if (type_ == TYPE_NORMAL) {
-		bool bSupportRegex = (pMessageWindow_->getSupportedFindFlags() & MessageWindow::FIND_REGEX) != 0;
-		FindDialog dialog(pProfile_, bSupportRegex);
+		struct CallbackImpl : public FindDialog::Callback
+		{
+			CallbackImpl(MessageWindow* pMessageWindow,
+						 bool& bFound) :
+				pMessageWindow_(pMessageWindow),
+				bFound_(bFound),
+				bSearched_(false)
+			{
+				pMark_ = pMessageWindow_->mark();
+			}
+			
+			virtual void statusChanged(const WCHAR* pwszFind,
+									   bool bMatchCase,
+									   bool bRegex)
+			{
+				if (bSearched_)
+					pMessageWindow_->reset(*pMark_.get());
+				
+				unsigned int nFlags =
+					(bMatchCase ? MessageWindow::FIND_MATCHCASE : 0) |
+					(bRegex ? MessageWindow::FIND_REGEX : 0);
+				bFound_ = pMessageWindow_->find(pwszFind, nFlags);
+				
+				bSearched_ = true;
+			}
+			
+			MessageWindow* pMessageWindow_;
+			bool& bFound_;
+			std::auto_ptr<MessageWindow::Mark> pMark_;
+			bool bSearched_;
+		} callback(pMessageWindow_, bFound);
+		
+		unsigned int nSupportedFlags = pMessageWindow_->getSupportedFindFlags();
+		bool bIncremental = nSupportedFlags & MessageWindow::FIND_INCREMENTAL &&
+			pProfile_->getInt(L"Global", L"IncrementalSearch", 0) != 0;
+		bool bSupportRegex = (nSupportedFlags & MessageWindow::FIND_REGEX) != 0;
+		FindDialog dialog(pProfile_, bSupportRegex, bIncremental ? &callback: 0);
 		if (dialog.doModal(hwndFrame) != IDOK)
 			return;
 		
@@ -711,11 +746,13 @@ void qm::EditFindAction::invoke(const ActionEvent& event)
 			(dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0) |
 			(dialog.isRegex() ? FindReplaceData::FLAG_REGEX : 0));
 		
-		unsigned int nFlags =
-			(dialog.isMatchCase() ? MessageWindow::FIND_MATCHCASE : 0) |
-			(dialog.isRegex() ? MessageWindow::FIND_REGEX : 0) |
-			(dialog.isPrev() ? MessageWindow::FIND_PREVIOUS : 0);
-		bFound = pMessageWindow_->find(dialog.getFind(), nFlags);
+		if (!bIncremental || !callback.bSearched_) {
+			unsigned int nFlags =
+				(dialog.isMatchCase() ? MessageWindow::FIND_MATCHCASE : 0) |
+				(dialog.isRegex() ? MessageWindow::FIND_REGEX : 0) |
+				(dialog.isPrev() ? MessageWindow::FIND_PREVIOUS : 0);
+			bFound = pMessageWindow_->find(dialog.getFind(), nFlags);
+		}
 	}
 	else {
 		const FindReplaceData* pData = pFindReplaceManager_->getData();

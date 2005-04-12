@@ -86,6 +86,8 @@ public:
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags) = 0;
 	virtual unsigned int getSupportedFindFlags() const = 0;
+	virtual std::auto_ptr<MessageWindow::Mark> mark() const = 0;
+	virtual void reset(const MessageWindow::Mark& mark) = 0;
 	virtual bool openLink() = 0;
 };
 
@@ -203,6 +205,8 @@ public:
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;
+	virtual std::auto_ptr<MessageWindow::Mark> mark() const;
+	virtual void reset(const MessageWindow::Mark& mark);
 	virtual bool openLink();
 
 public:
@@ -214,6 +218,19 @@ public:
 private:
 	TextMessageViewWindow(const TextMessageViewWindow&);
 	TextMessageViewWindow& operator=(const TextMessageViewWindow&);
+
+private:
+	class MarkImpl : public MessageWindow::Mark
+	{
+	public:
+		MarkImpl(unsigned int nLine,
+				 unsigned int nChar);
+		virtual ~MarkImpl();
+	
+	public:
+		unsigned int nLine_;
+		unsigned int nChar_;
+	};
 
 private:
 	std::auto_ptr<qs::ReadOnlyTextModel> pTextModel_;
@@ -275,6 +292,8 @@ public:
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;
+	virtual std::auto_ptr<MessageWindow::Mark> mark() const;
+	virtual void reset(const MessageWindow::Mark& mark);
 	virtual bool openLink();
 
 public:

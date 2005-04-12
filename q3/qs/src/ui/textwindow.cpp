@@ -2322,16 +2322,7 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 	
 	unsigned int nLine = -1;
 	unsigned int nChar = -1;
-	if (isSelected()) {
-		if (nFlags & FIND_PREVIOUS)
-			pImpl_->getSelection(&nLine, &nChar, 0, 0, 0);
-		else
-			pImpl_->getSelection(0, 0, &nLine, &nChar, 0);
-	}
-	else if (isShowCaret()) {
-		nLine = pImpl_->caret_.nLine_;
-		nChar = pImpl_->caret_.nChar_;
-	}
+	getFindPosition((nFlags & FIND_PREVIOUS) != 0, &nLine, &nChar);
 	
 	bool bRegex = (nFlags & FIND_REGEX) != 0;
 	std::auto_ptr<RegexPattern> pPattern;
@@ -2464,6 +2455,25 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 	}
 	
 	return bFound;
+}
+
+void qs::TextWindow::getFindPosition(bool bPrev,
+									 unsigned int* pnLine,
+									 unsigned int* pnChar) const
+{
+	assert(pnLine);
+	assert(pnChar);
+	
+	if (isSelected()) {
+		if (bPrev)
+			pImpl_->getSelection(pnLine, pnChar, 0, 0, 0);
+		else
+			pImpl_->getSelection(0, 0, pnLine, pnChar, 0);
+	}
+	else {
+		*pnLine = pImpl_->caret_.nLine_;
+		*pnChar = pImpl_->caret_.nChar_;
+	}
 }
 
 void qs::TextWindow::reform()

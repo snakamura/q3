@@ -367,7 +367,23 @@ unsigned int qm::TextMessageViewWindow::getSupportedFindFlags() const
 {
 	return MessageWindow::FIND_MATCHCASE |
 		MessageWindow::FIND_REGEX |
-		MessageWindow::FIND_PREVIOUS;
+		MessageWindow::FIND_PREVIOUS |
+		MessageWindow::FIND_INCREMENTAL;
+}
+
+std::auto_ptr<MessageWindow::Mark> qm::TextMessageViewWindow::mark() const
+{
+	unsigned int nLine = -1;
+	unsigned int nChar = -1;
+	getFindPosition(false, &nLine, &nChar);
+	return std::auto_ptr<MessageWindow::Mark>(new MarkImpl(
+		nLine != -1 ? nLine : 0, nChar != -1 ? nChar : 0));
+}
+
+void qm::TextMessageViewWindow::reset(const MessageWindow::Mark& mark)
+{
+	const MarkImpl& impl = static_cast<const MarkImpl&>(mark);
+	moveCaret(MOVECARET_POS, impl.nLine_, impl.nChar_, false, SELECT_CLEAR, false);
 }
 
 bool qm::TextMessageViewWindow::openLink()
@@ -397,6 +413,24 @@ void qm::TextMessageViewWindow::selectAll()
 bool qm::TextMessageViewWindow::canSelectAll()
 {
 	return TextWindow::canSelectAll();
+}
+
+
+/****************************************************************************
+ *
+ * TextMessageViewWindow::MarkImpl
+ *
+ */
+
+qm::TextMessageViewWindow::MarkImpl::MarkImpl(unsigned int nLine,
+											  unsigned int nChar) :
+	nLine_(nLine),
+	nChar_(nChar)
+{
+}
+
+qm::TextMessageViewWindow::MarkImpl::~MarkImpl()
+{
 }
 
 
@@ -910,11 +944,20 @@ unsigned int qm::HtmlMessageViewWindow::getSupportedFindFlags() const
 	return MessageWindow::FIND_MATCHCASE | MessageWindow::FIND_PREVIOUS;
 }
 
+std::auto_ptr<MessageWindow::Mark> qm::HtmlMessageViewWindow::mark() const
+{
+	return std::auto_ptr<MessageWindow::Mark>();
+}
+
+void qm::HtmlMessageViewWindow::reset(const MessageWindow::Mark& mark)
+{
+	assert(false);
+}
+
 bool qm::HtmlMessageViewWindow::openLink()
 {
 	return true;
 }
-
 void qm::HtmlMessageViewWindow::copy()
 {
 	pWebBrowser_->ExecWB(OLECMDID_COPY, OLECMDEXECOPT_DONTPROMPTUSER, 0, 0);

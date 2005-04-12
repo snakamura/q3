@@ -214,7 +214,44 @@ void qm::EditEditFindAction::invoke(const ActionEvent& event)
 	
 	bool bFound = false;
 	if (type_ == TYPE_NORMAL) {
-		FindDialog dialog(pProfile_, true);
+		struct CallbackImpl : public FindDialog::Callback
+		{
+			CallbackImpl(TextWindow* pTextWindow,
+						 bool& bFound) :
+				pTextWindow_(pTextWindow),
+				bFound_(bFound),
+				nLine_(-1),
+				nChar_(-1),
+				bSearched_(false)
+			{
+				pTextWindow_->getFindPosition(false, &nLine_, &nChar_);
+			}
+			
+			virtual void statusChanged(const WCHAR* pwszFind,
+									   bool bMatchCase,
+									   bool bRegex)
+			{
+				if (bSearched_)
+					pTextWindow_->moveCaret(TextWindow::MOVECARET_POS,
+						nLine_, nChar_, false, TextWindow::SELECT_CLEAR, false);
+				
+				unsigned int nFlags =
+					(bMatchCase ? TextWindow::FIND_MATCHCASE : 0) |
+					(bRegex ? TextWindow::FIND_REGEX : 0);
+				bFound_ = pTextWindow_->find(pwszFind, nFlags);
+				
+				bSearched_ = true;
+			}
+			
+			TextWindow* pTextWindow_;
+			bool& bFound_;
+			unsigned int nLine_;
+			unsigned int nChar_;
+			bool bSearched_;
+		} callback(pTextWindow_, bFound);
+		
+		bool bIncremental = pProfile_->getInt(L"Global", L"IncrementalSearch", 0) != 0;
+		FindDialog dialog(pProfile_, true, bIncremental ? &callback : 0);
 		if (dialog.doModal(hwnd) != IDOK)
 			return;
 		
@@ -222,15 +259,13 @@ void qm::EditEditFindAction::invoke(const ActionEvent& event)
 			(dialog.isMatchCase() ? FindReplaceData::FLAG_MATCHCASE : 0) |
 			(dialog.isRegex() ? FindReplaceData::FLAG_REGEX : 0));
 		
-		unsigned int nFlags = 0;
-		if (dialog.isMatchCase())
-			nFlags |= TextWindow::FIND_MATCHCASE;
-		if (dialog.isRegex())
-			nFlags |= TextWindow::FIND_REGEX;
-		if (dialog.isPrev())
-			nFlags |= TextWindow::FIND_PREVIOUS;
-		
-		bFound = pTextWindow_->find(dialog.getFind(), nFlags);
+		if (!bIncremental || !callback.bSearched_) {
+			unsigned int nFlags =
+				(dialog.isMatchCase() ? TextWindow::FIND_MATCHCASE : 0) |
+				(dialog.isRegex() ? TextWindow::FIND_REGEX : 0) |
+				(dialog.isPrev() ? TextWindow::FIND_PREVIOUS : 0);
+			bFound = pTextWindow_->find(dialog.getFind(), nFlags);
+		}
 	}
 	else {
 		const FindReplaceData* pData = pFindReplaceManager_->getData();

@@ -864,8 +864,21 @@ private:
 class FindDialog : public DefaultDialog
 {
 public:
+	class Callback
+	{
+	public:
+		virtual ~Callback();
+	
+	public:
+		virtual void statusChanged(const WCHAR* pwszFind,
+								   bool bMatchCase,
+								   bool bRegex) = 0;
+	};
+
+public:
 	FindDialog(qs::Profile* pProfile,
-			   bool bSupportRegex);
+			   bool bSupportRegex,
+			   Callback* pCallback);
 	virtual ~FindDialog();
 
 public:
@@ -883,17 +896,15 @@ protected:
 								 LPARAM lParam);
 
 private:
-	LRESULT onUpdateState(WPARAM wParam,
-						  LPARAM lParam);
-
-private:
 	LRESULT onFind(UINT nId);
 	LRESULT onFindChange();
 	LRESULT onFindSelChange();
+	LRESULT onMatchCaseChange();
 	LRESULT onRegexChange();
 
 private:
 	void updateState();
+	void notifyCallback();
 
 private:
 	FindDialog(const FindDialog&);
@@ -902,6 +913,7 @@ private:
 private:
 	qs::Profile* pProfile_;
 	bool bSupportRegex_;
+	Callback* pCallback_;
 	qs::wstring_ptr wstrFind_;
 	bool bMatchCase_;
 	bool bRegex_;

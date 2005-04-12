@@ -128,9 +128,16 @@ class MessageWindow :
 {
 public:
 	enum Find {
-		FIND_MATCHCASE	= 0x01,
-		FIND_REGEX		= 0x02,
-		FIND_PREVIOUS	= 0x04
+		FIND_MATCHCASE		= 0x01,
+		FIND_REGEX			= 0x02,
+		FIND_PREVIOUS		= 0x04,
+		FIND_INCREMENTAL	= 0x08
+	};
+	
+	class Mark
+	{
+	public:
+		virtual ~Mark();
 	};
 
 public:
@@ -148,6 +155,8 @@ public:
 	bool find(const WCHAR* pwszFind,
 			  unsigned int nFlags);
 	unsigned int getSupportedFindFlags() const;
+	std::auto_ptr<Mark> mark() const;
+	void reset(const Mark& mark);
 	bool openLink();
 	MessageWindowItem* getFocusedItem() const;
 	
