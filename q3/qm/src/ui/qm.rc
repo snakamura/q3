@@ -1786,17 +1786,19 @@ IDD_OPTIONMISC2 DIALOG DISCARDABLE  0, 0, 231, 170
 STYLE WS_CHILD
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
+    CONTROL         "&Incremental search",IDC_INCREMENTALSEARCH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,75,10
     CONTROL         "&Bcc to myself",IDC_BCC,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,5,60,10
+                    WS_TABSTOP,5,20,60,10
     CONTROL         "Don't bcc if the original message seems from &ML",
                     IDC_NOBCCFORML,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
-                    15,160,10
+                    30,160,10
     CONTROL         "Use message/rfc822 for &forwarding",IDC_FORWARDRFC822,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,120,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,40,120,10
     CONTROL         "Open &address book when compose",IDC_OPENADDRESSBOOK,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,35,120,10
-    LTEXT           "&Quote",IDC_STATIC,5,53,20,8
-    EDITTEXT        IDC_QUOTE,30,50,40,14,ES_AUTOHSCROLL
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,50,120,10
+    LTEXT           "&Quote",IDC_STATIC,5,68,20,8
+    EDITTEXT        IDC_QUOTE,30,65,40,14,ES_AUTOHSCROLL
 END
 
 

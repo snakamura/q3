@@ -1370,6 +1370,7 @@ LRESULT qm::OptionMiscDialog::onBrowse()
  */
 
 DialogUtil::BoolProperty qm::OptionMisc2Dialog::boolProperties__[] = {
+	{ L"IncrementalSearch",	IDC_INCREMENTALSEARCH,	false	},
 	{ L"Bcc",				IDC_BCC,				true	},
 	{ L"NoBccForML",		IDC_NOBCCFORML,			false	},
 	{ L"ForwardRfc822",		IDC_FORWARDRFC822,		false	},
