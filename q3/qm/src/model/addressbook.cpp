@@ -155,6 +155,7 @@ void qm::AddressBook::reloadProfiles()
 {
 	if (pExternalManager_.get())
 		initExternal();
+	reload();
 }
 
 bool qm::AddressBook::save() const
