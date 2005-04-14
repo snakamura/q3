@@ -600,15 +600,14 @@ bool qm::Application::initialize()
 	if (!pImpl_->ensureResources(resources, countof(resources)))
 		return false;
 	
+	Init& init = Init::getInit();
+	wstring_ptr wstrLogDir(concat(pImpl_->wstrMailFolder_.get(), L"\\logs"));
+	init.setLogDirectory(wstrLogDir.get());
 	int nLog = pImpl_->pProfile_->getInt(L"Global", L"Log", -1);
 	if (nLog >= 0) {
-		Init& init = Init::getInit();
 		if (nLog > Logger::LEVEL_DEBUG)
 			nLog = Logger::LEVEL_DEBUG;
 		init.setLogLevel(static_cast<Logger::Level>(nLog));
-		wstring_ptr wstrLogDir(concat(
-			pImpl_->wstrMailFolder_.get(), L"\\logs"));
-		init.setLogDirectory(wstrLogDir.get());
 		init.setLogEnabled(true);
 	}
 	
