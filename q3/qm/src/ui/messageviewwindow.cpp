@@ -1899,7 +1899,8 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			pWebBrowser.get() == pWebBrowser_ &&
 			(wcsncmp(bstrURL, L"http:", 5) == 0 ||
 			wcsncmp(bstrURL, L"https:", 6) == 0 ||
-			wcsncmp(bstrURL, L"ftp:", 4) == 0)) {
+			wcsncmp(bstrURL, L"ftp:", 4) == 0) ||
+			wcsncmp(bstrURL, L"mailto:", 7) == 0) {
 			tstring_ptr tstrURL(wcs2tcs(bstrURL));
 			SHELLEXECUTEINFO sei = {
 				sizeof(sei),
