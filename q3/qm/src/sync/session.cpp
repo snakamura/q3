@@ -410,44 +410,65 @@ bool qm::AbstractSSLSocketCallback::checkCertificate(const Certificate& cert,
 		return false;
 	
 	if ((nSslOption & SubAccount::SSLOPTION_ALLOWDIFFERENTHOST) == 0) {
-		std::auto_ptr<Name> pName(cert.getSubject());
-		wstring_ptr wstrCommonName(pName->getCommonName());
-		
-		const WCHAR* pwszCommonName = wstrCommonName.get();
 		const WCHAR* pwszHost = getHost();
-		while (pwszCommonName && pwszHost) {
-			const WCHAR* pCN = wcschr(pwszCommonName, L'.');
-			const WCHAR* pHost = wcschr(pwszHost, L'.');
-			if (pCN) {
-				if (pHost) {
-					if (pCN - pwszCommonName != 1 || *pwszCommonName != L'*') {
-						if (pCN - pwszCommonName != pHost - pwszHost ||
-							wcsncmp(pwszCommonName, pwszHost, pCN - pwszCommonName) != 0)
-							return false;
-					}
-				}
-				else {
-					return false;
-				}
+		
+		std::auto_ptr<GeneralNames> pSubjectAltName(cert.getSubjectAltNames());
+		int nAltNameCount = pSubjectAltName.get() ? pSubjectAltName->getCount() : 0;
+		if (nAltNameCount != 0) {
+			int n = 0;
+			for (n = 0; n < nAltNameCount; ++n) {
+				std::auto_ptr<GeneralName> pName(pSubjectAltName->getGeneralName(n));
+				if (pName->getType() == GeneralName::TYPE_DNS &&
+					checkHostName(pwszHost, pName->getValue().get()))
+					break;
 			}
-			else {
-				if (pHost) {
-					return false;
-				}
-				else {
-					if (wcscmp(pwszCommonName, pwszHost) != 0)
-						return false;
-					else
-						break;
-				}
-			}
-			
-			assert(pCN && pHost);
-			pwszCommonName = pCN + 1;
-			pwszHost = pHost + 1;
+			if (n == nAltNameCount)
+				return false;
+		}
+		else {
+			std::auto_ptr<Name> pSubject(cert.getSubject());
+			if (!checkHostName(pwszHost, pSubject->getCommonName().get()))
+				return false;
 		}
 	}
 	
+	return true;
+}
+
+bool qm::AbstractSSLSocketCallback::checkHostName(const WCHAR* pwszHostName,
+												  const WCHAR* pwszCertName)
+{
+	while (pwszCertName && pwszHostName) {
+		const WCHAR* pCert = wcschr(pwszCertName, L'.');
+		const WCHAR* pHost = wcschr(pwszHostName, L'.');
+		if (pCert) {
+			if (pHost) {
+				if (pCert - pwszCertName != 1 || *pwszCertName != L'*') {
+					if (pCert - pwszCertName != pHost - pwszHostName ||
+						wcsncmp(pwszCertName, pwszHostName, pCert - pwszCertName) != 0)
+						return false;
+				}
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			if (pHost) {
+				return false;
+			}
+			else {
+				if (wcscmp(pwszCertName, pwszHostName) != 0)
+					return false;
+				else
+					break;
+			}
+		}
+		
+		assert(pCert && pHost);
+		pwszCertName = pCert + 1;
+		pwszHostName = pHost + 1;
+	}
 	return true;
 }
 

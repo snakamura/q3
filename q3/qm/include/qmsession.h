@@ -380,6 +380,10 @@ protected:
 	virtual const WCHAR* getHost() = 0;
 
 private:
+	static bool checkHostName(const WCHAR* pwszHostName,
+							  const WCHAR* pwszCertName);
+
+private:
 	AbstractSSLSocketCallback(const AbstractSSLSocketCallback&);
 	AbstractSSLSocketCallback& operator=(const AbstractSSLSocketCallback&);
 
