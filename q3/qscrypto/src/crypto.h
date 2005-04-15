@@ -12,6 +12,7 @@
 #include <qscrypto.h>
 
 #include <openssl/x509.h>
+#include <openssl/x509v3.h>
 
 
 namespace qscrypto {
@@ -47,6 +48,56 @@ private:
 
 /****************************************************************************
  *
+ * GeneralNameImpl
+ *
+ */
+
+class GeneralNameImpl : public qs::GeneralName
+{
+public:
+	explicit GeneralNameImpl(GENERAL_NAME* pGeneralName);
+	virtual ~GeneralNameImpl();
+
+public:
+	virtual Type getType() const;
+	virtual qs::wstring_ptr getValue() const;
+
+private:
+	GeneralNameImpl(const GeneralNameImpl&);
+	GeneralNameImpl& operator=(const GeneralNameImpl&);
+
+private:
+	GENERAL_NAME* pGeneralName_;
+};
+
+
+/****************************************************************************
+ *
+ * GeneralNamesImpl
+ *
+ */
+
+class GeneralNamesImpl : public qs::GeneralNames
+{
+public:
+	explicit GeneralNamesImpl(GENERAL_NAMES* pGeneralNames);
+	virtual ~GeneralNamesImpl();
+
+public:
+	virtual int getCount() const;
+	virtual std::auto_ptr<qs::GeneralName> getGeneralName(int nIndex) const;
+
+private:
+	GeneralNamesImpl(const GeneralNamesImpl&);
+	GeneralNamesImpl& operator=(const GeneralNamesImpl&);
+
+private:
+	GENERAL_NAMES* pGeneralNames_;
+};
+
+
+/****************************************************************************
+ *
  * CertificateImpl
  *
  */
@@ -72,6 +123,7 @@ public:
 	virtual qs::wstring_ptr getText() const;
 	virtual std::auto_ptr<qs::Name> getSubject() const;
 	virtual std::auto_ptr<qs::Name> getIssuer() const;
+	virtual std::auto_ptr<qs::GeneralNames> getSubjectAltNames() const;
 
 private:
 	CertificateImpl(const CertificateImpl&);

@@ -89,6 +89,76 @@ wstring_ptr qscrypto::NameImpl::getText(int nid) const
 
 /****************************************************************************
  *
+ * GeneralNameImpl
+ *
+ */
+
+qscrypto::GeneralNameImpl::GeneralNameImpl(GENERAL_NAME* pGeneralName) :
+	pGeneralName_(pGeneralName)
+{
+}
+
+qscrypto::GeneralNameImpl::~GeneralNameImpl()
+{
+}
+
+qs::GeneralName::Type qscrypto::GeneralNameImpl::getType() const
+{
+	switch (pGeneralName_->type) {
+	case GEN_DNS:
+		return TYPE_DNS;
+	case GEN_EMAIL:
+		return TYPE_EMAIL;
+	default:
+		return TYPE_OTHER;
+	}
+}
+
+wstring_ptr qscrypto::GeneralNameImpl::getValue() const
+{
+	switch (pGeneralName_->type) {
+	case GEN_DNS:
+		return mbs2wcs(reinterpret_cast<char*>(pGeneralName_->d.dNSName->data),
+			pGeneralName_->d.dNSName->length);
+	case GEN_EMAIL:
+		return mbs2wcs(reinterpret_cast<char*>(pGeneralName_->d.rfc822Name->data),
+			pGeneralName_->d.rfc822Name->length);
+	default:
+		return 0;
+	}
+}
+
+
+/****************************************************************************
+ *
+ * GeneralNamesImpl
+ *
+ */
+
+qscrypto::GeneralNamesImpl::GeneralNamesImpl(GENERAL_NAMES* pGeneralNames) :
+	pGeneralNames_(pGeneralNames)
+{
+}
+
+qscrypto::GeneralNamesImpl::~GeneralNamesImpl()
+{
+	sk_GENERAL_NAME_pop_free(pGeneralNames_, GENERAL_NAME_free);
+}
+
+int qscrypto::GeneralNamesImpl::getCount() const
+{
+	return sk_GENERAL_NAME_num(pGeneralNames_);
+}
+
+std::auto_ptr<GeneralName> qscrypto::GeneralNamesImpl::getGeneralName(int nIndex) const
+{
+	GENERAL_NAME* pGeneralName = sk_GENERAL_NAME_value(pGeneralNames_, nIndex);
+	return std::auto_ptr<GeneralName>(new GeneralNameImpl(pGeneralName));
+}
+
+
+/****************************************************************************
+ *
  * CertificateImpl
  *
  */
@@ -190,6 +260,15 @@ std::auto_ptr<Name> qscrypto::CertificateImpl::getIssuer() const
 	if (!pX509Name)
 		return std::auto_ptr<Name>(0);
 	return std::auto_ptr<Name>(new NameImpl(pX509Name));
+}
+
+std::auto_ptr<GeneralNames> qscrypto::CertificateImpl::getSubjectAltNames() const
+{
+	GENERAL_NAMES* pGeneralNames = static_cast<GENERAL_NAMES*>(
+		X509_get_ext_d2i(pX509_, NID_subject_alt_name, 0, 0));
+	if (!pGeneralNames)
+		return std::auto_ptr<GeneralNames>();
+	return std::auto_ptr<GeneralNames>(new GeneralNamesImpl(pGeneralNames));
 }
 
 

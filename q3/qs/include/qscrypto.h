@@ -66,6 +66,47 @@ public:
 
 /****************************************************************************
  *
+ * GeneralName
+ *
+ */
+
+class QSEXPORTCLASS GeneralName
+{
+public:
+	enum Type {
+		TYPE_DNS,
+		TYPE_EMAIL,
+		TYPE_OTHER
+	};
+
+public:
+	virtual ~GeneralName();
+
+public:
+	virtual Type getType() const = 0;
+	virtual wstring_ptr getValue() const = 0;
+};
+
+
+/****************************************************************************
+ *
+ * GeneralNames
+ *
+ */
+
+class QSEXPORTCLASS GeneralNames
+{
+public:
+	virtual ~GeneralNames();
+
+public:
+	virtual int getCount() const = 0;
+	virtual std::auto_ptr<GeneralName> getGeneralName(int nIndex) const = 0;
+};
+
+
+/****************************************************************************
+ *
  * Certificate
  *
  */
@@ -129,6 +170,13 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual std::auto_ptr<Name> getIssuer() const = 0;
+	
+	/**
+	 * Get the subject alt names.
+	 *
+	 * @return Subject alt names
+	 */
+	virtual std::auto_ptr<GeneralNames> getSubjectAltNames() const = 0;
 
 public:
 	/**
