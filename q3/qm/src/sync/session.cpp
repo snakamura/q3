@@ -427,7 +427,8 @@ bool qm::AbstractSSLSocketCallback::checkCertificate(const Certificate& cert,
 		}
 		else {
 			std::auto_ptr<Name> pSubject(cert.getSubject());
-			if (!checkHostName(pwszHost, pSubject->getCommonName().get()))
+			if (!pSubject.get() ||
+				!checkHostName(pwszHost, pSubject->getCommonName().get()))
 				return false;
 		}
 	}
