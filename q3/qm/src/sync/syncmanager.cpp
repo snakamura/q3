@@ -698,10 +698,13 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 		bool bConnected_;
 	};
 	
+	
 	std::auto_ptr<Logger> pLogger;
 	ReceiveSessionTerm session;
 	std::auto_ptr<ReceiveSessionCallback> pReceiveCallback;
 	SubAccount* pSubAccount = 0;
+	typedef std::vector<SubAccount*> SubAccountList;
+	SubAccountList listConnectFailed;
 	const SyncData::ItemList& l = pData->getItems();
 	for (SyncData::ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		const SyncItem* pItem = *it;
@@ -718,6 +721,9 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 					pReceiveCallback.reset(0);
 					pLogger.reset(0);
 					
+					if (std::find(listConnectFailed.begin(), listConnectFailed.end(), pItem->getSubAccount()) != listConnectFailed.end())
+						continue;
+					
 					std::auto_ptr<ReceiveSession> pReceiveSession;
 					if (!openReceiveSession(pData->getDocument(), pData->getWindow(),
 						pCallback, pItem, pData->isAuto(),
@@ -727,8 +733,10 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 					if (pCallback->isCanceled(pItem->getSlot(), false))
 						break;
 					
-					if (!session.get()->connect())
+					if (!session.get()->connect()) {
+						listConnectFailed.push_back(pItem->getSubAccount());
 						continue;
+					}
 					session.setConnected();
 					if (pCallback->isCanceled(pItem->getSlot(), false))
 						break;
