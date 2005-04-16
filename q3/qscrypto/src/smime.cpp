@@ -207,15 +207,10 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 		
 		for (int n = 0; n < sk_X509_num(certs.get()) && !bMatch; ++n) {
 			CertificateImpl cert(sk_X509_value(certs.get(), n));
-			std::auto_ptr<Name> pName(cert.getSubject());
-			if (pName.get()) {
-				wstring_ptr wstrAddress = pName->getEmailAddress();
-				if (wstrAddress.get()) {
-					bMatch = (fieldFrom == Part::FIELD_EXIST && contains(from, wstrAddress.get())) ||
-						(fieldSender == Part::FIELD_EXIST && contains(sender, wstrAddress.get()));
-					*pwstrSignedBy = pName->getText();
-				}
-			}
+			bMatch = match(&cert, fieldFrom == Part::FIELD_EXIST ? &from : 0,
+				fieldSender == Part::FIELD_EXIST ? &sender : 0);
+			if (bMatch)
+				*pwstrSignedBy = cert.getSubject()->getText();
 		}
 	}
 	if (!bMatch)
@@ -501,6 +496,40 @@ bool qscrypto::SMIMEUtilityImpl::getCertificates(const qs::AddressParser& addres
 		sk_X509_push(pCertificates, pX509);
 	}
 	return true;
+}
+
+bool qscrypto::SMIMEUtilityImpl::match(const Certificate* pCertificate,
+									   const AddressListParser* pFrom,
+									   const AddressListParser* pSender)
+{
+	std::auto_ptr<Name> pName(pCertificate->getSubject());
+	if (pName.get()) {
+		wstring_ptr wstrAddress = pName->getEmailAddress();
+		if (wstrAddress.get()) {
+			if (contains(pFrom, pSender, wstrAddress.get()))
+				return true;
+		}
+	}
+	
+	std::auto_ptr<GeneralNames> pSubjectAltNames(pCertificate->getSubjectAltNames());
+	if (pSubjectAltNames.get()) {
+		for (int n = 0; n < pSubjectAltNames->getCount(); ++n) {
+			std::auto_ptr<GeneralName> pGeneralName(pSubjectAltNames->getGeneralName(n));
+			if (pGeneralName->getType() == GeneralName::TYPE_EMAIL &&
+				contains(pFrom, pSender, pGeneralName->getValue().get()))
+				return true;
+		}
+	}
+	
+	return false;
+}
+
+bool qscrypto::SMIMEUtilityImpl::contains(const qs::AddressListParser* pFrom,
+										  const qs::AddressListParser* pSender,
+										  const WCHAR* pwszAddress)
+{
+	return (pFrom && contains(*pFrom, pwszAddress)) ||
+		(pSender && contains(*pSender, pwszAddress));
 }
 
 bool qscrypto::SMIMEUtilityImpl::contains(const AddressListParser& addressList,

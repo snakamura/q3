@@ -64,6 +64,12 @@ private:
 	static bool getCertificates(const qs::AddressParser& address,
 								qs::SMIMECallback* pCallback,
 								STACK_OF(X509)* pCertificates);
+	static bool match(const qs::Certificate* pCertificate,
+					  const qs::AddressListParser* pFrom,
+					  const qs::AddressListParser* pSender);
+	static bool contains(const qs::AddressListParser* pFrom,
+						 const qs::AddressListParser* pSender,
+						 const WCHAR* pwszAddress);
 	static bool contains(const qs::AddressListParser& addressList,
 						 const WCHAR* pwszAddress);
 	static bool contains(const qs::AddressParser& address,
