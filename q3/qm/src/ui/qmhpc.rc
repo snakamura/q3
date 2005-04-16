@@ -1656,7 +1656,7 @@ BEGIN
     CONTROL         "Use &multipart/signed when signinig a message",
                     IDC_SMIMEMULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,30,155,8
-    CONTROL         "&Encrypt a message for myself",IDC_SMIMEENCRYPTFORSELF,
+    CONTROL         "En&crypt a message for myself",IDC_SMIMEENCRYPTFORSELF,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,110,8
     GROUPBOX        "S/MIME",IDC_STATIC,5,0,175,55
 END
