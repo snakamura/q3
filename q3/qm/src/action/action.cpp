@@ -3123,6 +3123,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 				Folder* pFolder = *it;
 				if (pFolder->getType() == Folder::TYPE_NORMAL &&
 					!pFolder->isFlag(Folder::FLAG_TRASHBOX) &&
+					!pFolder->isFlag(Folder::FLAG_JUNKBOX) &&
 					!pFolder->isHidden()) {
 					if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_, pProfile_,
 						pSecurityModel_->getSecurityMode(), &callback)) {
