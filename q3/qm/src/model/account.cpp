@@ -1013,7 +1013,8 @@ qm::Account::Account(const WCHAR* pwszPath,
 			pImpl_->wstrMessageStorePath_.get(),
 			nBlockSize, pwszPath, nIndexBlockSize));
 	
-	pImpl_->pMessageIndex_.reset(new MessageIndex(pImpl_->pMessageStore_.get()));
+	size_t nIndexMaxSize = pProfile->getInt(L"Global", L"IndexMaxSize", -1);
+	pImpl_->pMessageIndex_.reset(new MessageIndex(pImpl_->pMessageStore_.get(), nIndexMaxSize));
 	
 	pImpl_->wstrClass_ = pProfile->getString(L"Global", L"Class", L"mail");
 	pImpl_->wstrType_[HOST_SEND] = pProfile->getString(L"Send", L"Type", L"smtp");

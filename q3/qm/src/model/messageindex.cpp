@@ -21,9 +21,10 @@ using namespace qs;
  *
  */
 
-qm::MessageIndex::MessageIndex(MessageStore* pMessageStore) :
+qm::MessageIndex::MessageIndex(MessageStore* pMessageStore,
+							   size_t nMaxSize) :
 	pMessageStore_(pMessageStore),
-	nMaxSize_(-1),
+	nMaxSize_(nMaxSize),
 	nSize_(0),
 	pNewFirst_(0),
 	pNewLast_(0),
@@ -105,8 +106,6 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 				remove(pNewLast_->pNewPrev_->getKey());
 			else
 				++nSize_;
-		}
-		else {
 		}
 		const WCHAR* pwszValue = pwszValues[name];
 		wstrValue = allocWString(pwszValue ? pwszValue : L"");

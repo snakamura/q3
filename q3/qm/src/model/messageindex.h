@@ -40,7 +40,8 @@ public:
 	typedef std::hash_map<unsigned int, MessageIndexItem*> ItemMap;
 
 public:
-	explicit MessageIndex(MessageStore* pMessageStore);
+	MessageIndex(MessageStore* pMessageStore,
+				 size_t nMaxSize);
 	~MessageIndex();
 
 public:
