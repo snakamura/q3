@@ -153,6 +153,15 @@ Section "Script" Script
 SectionEnd
 
 
+Section "Zip" Zip
+
+  SetOutPath $INSTDIR
+  
+  File ..\lib\zip\lib\win\zip32.dll
+  
+SectionEnd
+
+
 Section "Uninstall"
   
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3"  
@@ -196,6 +205,7 @@ Section "Uninstall"
   Delete $INSTDIR\qscrypto${POSTFIX}.dll
   Delete $INSTDIR\libeay32.dll
   Delete $INSTDIR\ssleay32.dll
+  Delete $INSTDIR\zip32.dll
   Delete $INSTDIR\uninstall.exe
   
   RMDir "$INSTDIR"
@@ -247,6 +257,7 @@ LangString DESC_SecCrypto ${LANG_ENGLISH} "SSL and S/MIME support."
 LangString DESC_SecPgp ${LANG_ENGLISH} "PGP and GnuPG support."
 LangString DESC_SecJunk ${LANG_ENGLISH} "Junk filter support."
 LangString DESC_SecScript ${LANG_ENGLISH} "Script support."
+LangString DESC_SecZip ${LANG_ENGLISH} "Enable archiving attachments."
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${Core} $(DESC_SecCore)
@@ -257,4 +268,5 @@ LangString DESC_SecScript ${LANG_ENGLISH} "Script support."
   !insertmacro MUI_DESCRIPTION_TEXT ${Pgp} $(DESC_SecPgp)
   !insertmacro MUI_DESCRIPTION_TEXT ${Junk} $(DESC_SecJunk)
   !insertmacro MUI_DESCRIPTION_TEXT ${Script} $(DESC_SecScript)
+  !insertmacro MUI_DESCRIPTION_TEXT ${Zip} $(DESC_SecZip)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
