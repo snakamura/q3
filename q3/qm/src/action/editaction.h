@@ -33,7 +33,9 @@ class EditFileOpenAction;
 class EditFileSaveAction;
 class EditFileSendAction;
 class EditFocusItemAction;
+#ifdef QMZIP
 class EditToolArchiveAttachmentAction;
+#endif
 class EditToolAttachmentAction;
 class EditToolEncodingAction;
 class EditToolFlagAction;
@@ -462,6 +464,7 @@ private:
 };
 
 
+#ifdef QMZIP
 /****************************************************************************
  *
  * EditToolArchiveAttachmentAction
@@ -485,6 +488,7 @@ private:
 private:
 	EditMessageHolder* pEditMessageHolder_;
 };
+#endif
 
 
 /****************************************************************************

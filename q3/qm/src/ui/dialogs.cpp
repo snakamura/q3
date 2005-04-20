@@ -934,7 +934,7 @@ LRESULT qm::AddressBookEntryDialog::onNameChange()
 }
 
 
-#ifndef _WIN32_WCE
+#ifdef QMZIP
 /****************************************************************************
  *
  * ArchiveDialog
@@ -996,7 +996,7 @@ void qm::ArchiveDialog::updateState()
 	bool bEnable = Window(getDlgItem(IDC_FILENAME)).getWindowTextLength() != 0;
 	Window(getDlgItem(IDOK)).enableWindow(bEnable);
 }
-#endif
+#endif // QMZIP
 
 
 /****************************************************************************

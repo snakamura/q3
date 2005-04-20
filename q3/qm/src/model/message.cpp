@@ -435,9 +435,10 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 				pPart = pParent;
 			}
 			
+#ifdef QMZIP
 			const WCHAR* pwszArchive = 0;
 			UnstructuredParser archive;
-			if (pPart->getField(L"X-QMAIL-AttachmentArchive", &archive) == Part::FIELD_EXIST)
+			if (pPart->getField(L"X-QMAIL-ArchiveAttachment", &archive) == Part::FIELD_EXIST)
 				pwszArchive = archive.getValue();
 			if (pwszArchive && *pwszArchive) {
 				// TODO
@@ -447,10 +448,15 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 					return std::auto_ptr<Part>();
 			}
 			else {
+#else
+			{
+#endif
 				if (!attachFileOrURI(pPart.get(), l, pAccountManager, nSecurityMode_))
 					return std::auto_ptr<Part>(0);
 			}
-			pPart->removeField(L"X-QMAIL-AttachmentArchive");
+#ifdef QMZIP
+			pPart->removeField(L"X-QMAIL-ArchiveAttachment");
+#endif
 		}
 		pPart->removeField(L"X-QMAIL-Attachment");
 	}
@@ -881,6 +887,7 @@ bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 	return true;
 }
 
+#ifdef QMZIP
 bool qm::MessageCreator::attachArchivedFile(Part* pPart,
 											const WCHAR* pwszFileName,
 											const AttachmentList& l,
@@ -892,7 +899,6 @@ bool qm::MessageCreator::attachArchivedFile(Part* pPart,
 	assert(!l.empty());
 	assert(pwszTempDir);
 	
-#ifdef QMZIP
 	ZipFile::PathList listPath;
 	listPath.resize(l.size());
 	std::copy(l.begin(), l.end(), listPath.begin());
@@ -908,10 +914,8 @@ bool qm::MessageCreator::attachArchivedFile(Part* pPart,
 	pPart->addPart(pChildPart);
 	
 	return true;
-#else
-	return false;
-#endif
 }
+#endif
 
 std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath)
 {

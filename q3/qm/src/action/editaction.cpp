@@ -780,7 +780,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	
-#ifndef _WIN32_WCE
+#ifdef QMZIP
 	if (pEditMessage->isArchiveAttachments()) {
 		EditMessage::AttachmentList l;
 		EditMessage::AttachmentListFree free(l);
@@ -892,6 +892,7 @@ void qm::EditFocusItemAction::invoke(const ActionEvent& event)
 }
 
 
+#ifdef QMZIP
 /****************************************************************************
  *
  * EditToolArchiveAttachmentAction
@@ -918,6 +919,7 @@ bool qm::EditToolArchiveAttachmentAction::isChecked(const qs::ActionEvent& event
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	return pEditMessage->isArchiveAttachments();
 }
+#endif
 
 
 /****************************************************************************

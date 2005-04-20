@@ -2030,7 +2030,7 @@ DialogUtil::BoolProperty qm::OptionEdit2Dialog::globalBoolProperties__[] = {
 
 DialogUtil::BoolProperty qm::OptionEdit2Dialog::editBoolProperties__[] = {
 	{ L"AutoReform",			IDC_AUTOREFORM,			true	},
-#ifndef _WIN32_WCE
+#ifdef QMZIP
 	{ L"ArchiveAttachments",	IDC_ARCHIVEATTACHMENTS,	false	}
 #endif
 };

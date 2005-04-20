@@ -281,9 +281,11 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_FOCUS_HEADEREDITITEM,
 		IDM_FOCUS_HEADEREDITITEM + 10,
 		pEditWindow_);
+#ifdef QMZIP
 	ADD_ACTION1(EditToolArchiveAttachmentAction,
 		IDM_TOOL_ARCHIVEATTACHMENT,
 		pEditWindow_->getEditMessageHolder());
+#endif
 	ADD_ACTION2(EditToolAttachmentAction,
 		IDM_TOOL_ATTACHMENT,
 		pEditWindow_->getEditMessageHolder(),

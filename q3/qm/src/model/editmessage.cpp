@@ -45,11 +45,15 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	wstrTempDir_(allocWString(pwszTempDir)),
 	pMessage_(0),
 	pBodyPart_(0),
+#ifdef QMZIP
 	bArchiveAttachments_(false),
+#endif
 	bAutoReform_(true),
 	nMessageSecurity_(0)
 {
+#ifdef QMZIP
 	bArchiveAttachments_ = pProfile_->getInt(L"EditWindow", L"ArchiveAttachments", 0) != 0;
+#endif
 	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
 	nMessageSecurity_ = pProfile_->getInt(L"Security",
 		L"DefaultMessageSecurity", MESSAGESECURITY_PGPMIME);
@@ -142,6 +146,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		if (!pMessage.get())
 			return std::auto_ptr<Message>();
 		
+#ifdef QMZIP
 		const WCHAR* pwszArchive = getArchiveName();
 		if (pwszArchive) {
 			if (!MessageCreator::attachArchivedFile(pMessage.get(),
@@ -149,6 +154,9 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 				return std::auto_ptr<Message>();
 		}
 		else {
+#else
+		{
+#endif
 			if (!MessageCreator::attachFileOrURI(pMessage.get(),
 				listAttachmentPath_, pDocument_, nSecurityMode_))
 				return std::auto_ptr<Message>();
@@ -589,6 +597,7 @@ void qm::EditMessage::removeAttachment(const WCHAR* pwszPath)
 	fireAttachmentsChanged();
 }
 
+#ifdef QMZIP
 bool qm::EditMessage::isArchiveAttachments() const
 {
 	return bArchiveAttachments_;
@@ -609,6 +618,7 @@ void qm::EditMessage::setArchiveName(const WCHAR* pwszName)
 	assert(pwszName);
 	wstrArchiveName_ = allocWString(pwszName);
 }
+#endif
 
 const WCHAR* qm::EditMessage::getEncoding() const
 {
