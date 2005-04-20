@@ -110,6 +110,7 @@
 #define IDD_OPTIONEDIT2                 211
 #define IDD_SECURITY                    212
 #define IDD_OPTIONMISC2                 213
+#define IDD_ARCHIVE                     214
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -506,6 +507,7 @@
 #define IDC_OPENADDRESSBOOK             1398
 #define IDC_QUOTE                       1399
 #define IDC_INCREMENTALSEARCH           1400
+#define IDC_FILENAME                    1401
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -597,9 +599,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        213
+#define _APS_NEXT_RESOURCE_VALUE        215
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1401
+#define _APS_NEXT_CONTROL_VALUE         1402
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

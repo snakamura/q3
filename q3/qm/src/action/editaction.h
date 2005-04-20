@@ -33,6 +33,7 @@ class EditFileOpenAction;
 class EditFileSaveAction;
 class EditFileSendAction;
 class EditFocusItemAction;
+class EditToolArchiveAttachmentAction;
 class EditToolAttachmentAction;
 class EditToolEncodingAction;
 class EditToolFlagAction;
@@ -458,6 +459,31 @@ private:
 
 private:
 	EditWindow* pEditWindow_;
+};
+
+
+/****************************************************************************
+ *
+ * EditToolArchiveAttachmentAction
+ *
+ */
+
+class EditToolArchiveAttachmentAction : public qs::AbstractAction
+{
+public:
+	explicit EditToolArchiveAttachmentAction(EditMessageHolder* pEditMessageHolder);
+	virtual ~EditToolArchiveAttachmentAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	EditToolArchiveAttachmentAction(const EditToolArchiveAttachmentAction&);
+	EditToolArchiveAttachmentAction& operator=(const EditToolArchiveAttachmentAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
 };
 
 

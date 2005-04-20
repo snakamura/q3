@@ -1801,6 +1801,17 @@ BEGIN
     EDITTEXT        IDC_QUOTE,30,65,40,14,ES_AUTOHSCROLL
 END
 
+IDD_ARCHIVE DIALOG DISCARDABLE  0, 0, 185, 54
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Archive"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    LTEXT           "&File name",IDC_STATIC,5,5,30,8
+    EDITTEXT        IDC_FILENAME,5,15,175,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,75,35,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,130,35,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1854,6 +1865,14 @@ BEGIN
         RIGHTMARGIN, 178
         TOPMARGIN, 7
         BOTTOMMARGIN, 127
+    END
+
+    IDD_ARCHIVE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 47
     END
 END
 #endif    // APSTUDIO_INVOKED

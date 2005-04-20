@@ -936,6 +936,69 @@ LRESULT qm::AddressBookEntryDialog::onNameChange()
 
 /****************************************************************************
  *
+ * ArchiveDialog
+ *
+ */
+
+qm::ArchiveDialog::ArchiveDialog(const WCHAR* pwszFileName) :
+	DefaultDialog(IDD_ARCHIVE)
+{
+	if (pwszFileName)
+		wstrFileName_ = allocWString(pwszFileName);
+}
+
+qm::ArchiveDialog::~ArchiveDialog()
+{
+}
+
+const WCHAR* qm::ArchiveDialog::getFileName() const
+{
+	return wstrFileName_.get();
+}
+
+LRESULT qm::ArchiveDialog::onCommand(WORD nCode,
+									 WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_FILENAME, EN_CHANGE, onFileNameChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::ArchiveDialog::onInitDialog(HWND hwndFocus,
+										LPARAM lParam)
+{
+	init(false);
+	
+	if (wstrFileName_.get())
+		setDlgItemText(IDC_FILENAME, wstrFileName_.get());
+	
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::ArchiveDialog::onOk()
+{
+	wstrFileName_ = getDlgItemText(IDC_FILENAME);
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::ArchiveDialog::onFileNameChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::ArchiveDialog::updateState()
+{
+	bool bEnable = Window(getDlgItem(IDC_FILENAME)).getWindowTextLength() != 0;
+	Window(getDlgItem(IDOK)).enableWindow(bEnable);
+}
+
+
+/****************************************************************************
+ *
  * AttachmentDialog
  *
  */

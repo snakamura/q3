@@ -45,6 +45,7 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	wstrTempDir_(allocWString(pwszTempDir)),
 	pMessage_(0),
 	pBodyPart_(0),
+	bArchiveAttachments_(false),
 	bAutoReform_(true),
 	nMessageSecurity_(0)
 {
@@ -140,11 +141,8 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		if (!pMessage.get())
 			return std::auto_ptr<Message>();
 		
-		const WCHAR* pwszArchive = 0;
-		UnstructuredParser archive;
-		if (pMessage->getField(L"X-QMAIL-AttachmentArchive", &archive) == Part::FIELD_EXIST)
-			pwszArchive = archive.getValue();
-		if (pwszArchive && *pwszArchive) {
+		const WCHAR* pwszArchive = getArchiveName();
+		if (pwszArchive) {
 			if (!MessageCreator::attachArchivedFile(pMessage.get(),
 				pwszArchive, listAttachmentPath_, wstrTempDir_.get()))
 				return std::auto_ptr<Message>();
@@ -154,7 +152,6 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 				listAttachmentPath_, pDocument_, nSecurityMode_))
 				return std::auto_ptr<Message>();
 		}
-		pMessage->removeField(L"X-QMAIL-AttachmentArchive");
 	}
 	
 	if (!normalize(pBodyPart))
@@ -589,6 +586,27 @@ void qm::EditMessage::removeAttachment(const WCHAR* pwszPath)
 	}
 	
 	fireAttachmentsChanged();
+}
+
+bool qm::EditMessage::isArchiveAttachments() const
+{
+	return bArchiveAttachments_;
+}
+
+void qm::EditMessage::setArchiveAttachments(bool bArchive)
+{
+	bArchiveAttachments_ = bArchive;
+}
+
+const WCHAR* qm::EditMessage::getArchiveName() const
+{
+	return wstrArchiveName_.get();
+}
+
+void qm::EditMessage::setArchiveName(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	wstrArchiveName_ = allocWString(pwszName);
 }
 
 const WCHAR* qm::EditMessage::getEncoding() const

@@ -31,6 +31,7 @@ class DefaultDialog;
 	class AddAddressDialog;
 	class AddressBookAddressDialog;
 	class AddressBookEntryDialog;
+	class ArchiveDialog;
 	class AttachmentDialog;
 	class ConditionDialog;
 	class ConfirmSendDialog;
@@ -346,13 +347,54 @@ private:
 
 /****************************************************************************
  *
+ * ArchiveDialog
+ *
+ */
+
+class ArchiveDialog : public DefaultDialog
+{
+public:
+	ArchiveDialog(const WCHAR* pwszFileName);
+	virtual ~ArchiveDialog();
+
+public:
+	const WCHAR* getFileName() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onFileNameChange();
+
+private:
+	void updateState();
+
+private:
+	ArchiveDialog(const ArchiveDialog&);
+	ArchiveDialog& operator=(const ArchiveDialog&);
+
+private:
+	qs::wstring_ptr wstrFileName_;
+};
+
+
+/****************************************************************************
+ *
  * AttachmentDialog
  *
  */
 
 class AttachmentDialog :
 	public DefaultDialog,
-	qs::NotifyHandler
+	public qs::NotifyHandler
 {
 public:
 	explicit AttachmentDialog(EditMessage::AttachmentList& listAttachment);

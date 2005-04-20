@@ -192,6 +192,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"ToolAccount",					IDM_TOOL_ACCOUNT,						0 },
 	{ L"ToolAddAddress",				IDM_TOOL_ADDADDRESS,					0 },
 	{ L"ToolAddressBook",				IDM_TOOL_ADDRESSBOOK,					0 },
+	{ L"ToolArchiveAttachment",			IDM_TOOL_ARCHIVEATTACHMENT,				0 },
 	{ L"ToolAttachment",				IDM_TOOL_ATTACHMENT,					0 },
 	{ L"ToolAutoPilot",					IDM_TOOL_AUTOPILOT,						0 },
 	{ L"ToolCancel",					IDM_TOOL_CANCEL,						0 },

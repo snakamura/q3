@@ -133,6 +133,7 @@ const qs::ActionItem menuItems[] = {
 	{ L"ToolAccount",				IDM_TOOL_ACCOUNT				},
 	{ L"ToolAddAddress",			IDM_TOOL_ADDADDRESS				},
 	{ L"ToolAddressBook",			IDM_TOOL_ADDRESSBOOK			},
+	{ L"ToolArchiveAttachment",		IDM_TOOL_ARCHIVEATTACHMENT		},
 	{ L"ToolAttachment",			IDM_TOOL_ATTACHMENT				},
 	{ L"ToolAutoPilot",				IDM_TOOL_AUTOPILOT,				},
 	{ L"ToolCancel",				IDM_TOOL_CANCEL					},

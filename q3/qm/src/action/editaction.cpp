@@ -779,6 +779,37 @@ qm::EditFileSendAction::~EditFileSendAction()
 void qm::EditFileSendAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	
+	if (pEditMessage->isArchiveAttachments()) {
+		EditMessage::AttachmentList l;
+		EditMessage::AttachmentListFree free(l);
+		pEditMessage->getAttachments(&l);
+		EditMessage::AttachmentList::const_iterator it = std::find_if(
+			l.begin(), l.end(),
+			mem_data_ref(&EditMessage::Attachment::bNew_));
+		if (it != l.end()) {
+			const WCHAR* pwszArchive = pEditMessage->getArchiveName();
+			wstring_ptr wstrArchive;
+			if (!pwszArchive) {
+				wstrArchive = allocWString((*it).wstrName_);
+				WCHAR* pFileName = wcsrchr(wstrArchive.get(), L'\\');
+				if (pFileName)
+					*pFileName++ = L'\0';
+				else
+					pFileName = wstrArchive.get();
+				WCHAR* pExt = wcsrchr(pFileName, L'.');
+				if (pExt)
+					*pExt = L'\0';
+				wstrArchive = concat(*pFileName ? pFileName : L"attachment", L".zip");
+				pwszArchive = wstrArchive.get();
+			}
+			ArchiveDialog dialog(pwszArchive);
+			if (dialog.doModal(pEditFrameWindow_->getHandle()) != IDOK)
+				return;
+			pEditMessage->setArchiveName(dialog.getFileName());
+		}
+	}
+	
 	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(type_ == TYPE_SEND));
 	if (!pMessage.get()) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
@@ -856,6 +887,34 @@ void qm::EditFocusItemAction::invoke(const ActionEvent& event)
 		event.getId() - IDM_FOCUS_HEADEREDITITEM);
 	if (pItem)
 		pItem->setFocus();
+}
+
+
+/****************************************************************************
+ *
+ * EditToolArchiveAttachmentAction
+ *
+ */
+
+qm::EditToolArchiveAttachmentAction::EditToolArchiveAttachmentAction(EditMessageHolder* pEditMessageHolder) :
+	pEditMessageHolder_(pEditMessageHolder)
+{
+}
+
+qm::EditToolArchiveAttachmentAction::~EditToolArchiveAttachmentAction()
+{
+}
+
+void qm::EditToolArchiveAttachmentAction::invoke(const ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	pEditMessage->setArchiveAttachments(!pEditMessage->isArchiveAttachments());
+}
+
+bool qm::EditToolArchiveAttachmentAction::isChecked(const qs::ActionEvent& event)
+{
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	return pEditMessage->isArchiveAttachments();
 }
 
 

@@ -130,6 +130,10 @@ public:
 	void setAttachments(const AttachmentList& listAttachment);
 	void addAttachment(const WCHAR* pwszPath);
 	void removeAttachment(const WCHAR* pwszPath);
+	bool isArchiveAttachments() const;
+	void setArchiveAttachments(bool bArchive);
+	const WCHAR* getArchiveName() const;
+	void setArchiveName(const WCHAR* pwszName);
 	const WCHAR* getEncoding() const;
 	void setEncoding(const WCHAR* pwszEncoding);
 	const WCHAR* getSignature() const;
@@ -198,6 +202,8 @@ private:
 	qs::wxstring_size_ptr wstrBody_;
 	AttachmentParser::AttachmentList listAttachment_;
 	AttachmentPathList listAttachmentPath_;
+	bool bArchiveAttachments_;
+	qs::wstring_ptr wstrArchiveName_;
 	qs::wstring_ptr wstrEncoding_;
 	qs::wstring_ptr wstrSignature_;
 	bool bAutoReform_;
