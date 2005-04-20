@@ -49,6 +49,7 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	bAutoReform_(true),
 	nMessageSecurity_(0)
 {
+	bArchiveAttachments_ = pProfile_->getInt(L"EditWindow", L"ArchiveAttachments", 0) != 0;
 	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
 	nMessageSecurity_ = pProfile_->getInt(L"Security",
 		L"DefaultMessageSecurity", MESSAGESECURITY_PGPMIME);

@@ -1753,6 +1753,8 @@ BEGIN
     CONTROL         "Create a new message after the editor exits",
                     IDC_AUTOCREATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,
                     110,146,10
+    CONTROL         "&Archive attachments",IDC_ARCHIVEATTACHMENTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,130,75,10
     PUSHBUTTON      "&Security...",IDC_SECURITY,125,130,50,14
 END
 
