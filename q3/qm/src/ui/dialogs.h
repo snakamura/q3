@@ -31,7 +31,9 @@ class DefaultDialog;
 	class AddAddressDialog;
 	class AddressBookAddressDialog;
 	class AddressBookEntryDialog;
+#ifndef _WIN32_WCE
 	class ArchiveDialog;
+#endif
 	class AttachmentDialog;
 	class ConditionDialog;
 	class ConfirmSendDialog;
@@ -345,6 +347,7 @@ private:
 };
 
 
+#ifndef _WIN32_WCE
 /****************************************************************************
  *
  * ArchiveDialog
@@ -384,6 +387,7 @@ private:
 private:
 	qs::wstring_ptr wstrFileName_;
 };
+#endif
 
 
 /****************************************************************************

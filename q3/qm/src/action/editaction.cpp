@@ -780,6 +780,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	
+#ifndef _WIN32_WCE
 	if (pEditMessage->isArchiveAttachments()) {
 		EditMessage::AttachmentList l;
 		EditMessage::AttachmentListFree free(l);
@@ -809,6 +810,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 			pEditMessage->setArchiveName(dialog.getFileName());
 		}
 	}
+#endif
 	
 	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(type_ == TYPE_SEND));
 	if (!pMessage.get()) {
