@@ -97,7 +97,8 @@ public:
 	EditMessage(qs::Profile* pProfile,
 				Document* pDocument,
 				Account* pAccount,
-				unsigned int nSecurityMode);
+				unsigned int nSecurityMode,
+				const WCHAR* pwszTempDir);
 	~EditMessage();
 
 public:
@@ -167,7 +168,6 @@ private:
 	static bool normalize(qs::Part* pPart);
 	static std::auto_ptr<Message> makeMultipartMixed(std::auto_ptr<Message> pMessage);
 
-
 private:
 	EditMessage(const EditMessage&);
 	EditMessage& operator=(const EditMessage&);
@@ -191,6 +191,7 @@ private:
 	Account* pAccount_;
 	SubAccount* pSubAccount_;
 	unsigned int nSecurityMode_;
+	qs::wstring_ptr wstrTempDir_;
 	std::auto_ptr<Message> pMessage_;
 	qs::Part* pBodyPart_;
 	FieldList listField_;

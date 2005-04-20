@@ -3204,7 +3204,8 @@ qm::MessageApplyTemplateAction::MessageApplyTemplateAction(TemplateMenu* pTempla
 														   bool bExternalEditor) :
 	processor_(pDocument, pFolderModel, pMessageSelectionModel,
 		pEncodingModel, pSecurityModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor,
+		Application::getApplication().getTemporaryFolder()),
 	pTemplateMenu_(pTemplateMenu),
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
@@ -3441,7 +3442,8 @@ qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
 											 bool bExternalEditor) :
 	processor_(pDocument, pFolderModel, pMessageSelectionModel,
 		pEncodingModel, pSecurityModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor,
+		Application::getApplication().getTemporaryFolder()),
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
 {
@@ -4179,7 +4181,8 @@ qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
 											   bool bExternalEditor) :
 	processor_(pDocument, pFolderModel, pMessageSelectionModel,
 		0, pSecurityModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor),
+		pExternalEditorManager, hwnd, pProfile, bExternalEditor,
+		Application::getApplication().getTemporaryFolder()),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pProfile_(pProfile),

@@ -7,7 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmmessage.h>
 #include <qmsecurity.h>
@@ -36,12 +35,14 @@ using namespace qs;
 qm::EditMessage::EditMessage(Profile* pProfile,
 							 Document* pDocument,
 							 Account* pAccount,
-							 unsigned int nSecurityMode) :
+							 unsigned int nSecurityMode,
+							 const WCHAR* pwszTempDir) :
 	pProfile_(pProfile),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pSubAccount_(pAccount->getCurrentSubAccount()),
 	nSecurityMode_(nSecurityMode),
+	wstrTempDir_(allocWString(pwszTempDir)),
 	pMessage_(0),
 	pBodyPart_(0),
 	bAutoReform_(true),
@@ -138,9 +139,22 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		pMessage = makeMultipartMixed(pMessage);
 		if (!pMessage.get())
 			return std::auto_ptr<Message>();
-		if (!MessageCreator::attachFileOrURI(pMessage.get(),
-			listAttachmentPath_, pDocument_, nSecurityMode_))
-			return std::auto_ptr<Message>();
+		
+		const WCHAR* pwszArchive = 0;
+		UnstructuredParser archive;
+		if (pMessage->getField(L"X-QMAIL-AttachmentArchive", &archive) == Part::FIELD_EXIST)
+			pwszArchive = archive.getValue();
+		if (pwszArchive && *pwszArchive) {
+			if (!MessageCreator::attachArchivedFile(pMessage.get(),
+				pwszArchive, listAttachmentPath_, wstrTempDir_.get()))
+				return std::auto_ptr<Message>();
+		}
+		else {
+			if (!MessageCreator::attachFileOrURI(pMessage.get(),
+				listAttachmentPath_, pDocument_, nSecurityMode_))
+				return std::auto_ptr<Message>();
+		}
+		pMessage->removeField(L"X-QMAIL-AttachmentArchive");
 	}
 	
 	if (!normalize(pBodyPart))

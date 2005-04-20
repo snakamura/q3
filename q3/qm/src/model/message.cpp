@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmapplication.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmsecurity.h>
@@ -23,6 +24,7 @@
 
 #include "message.h"
 #include "uri.h"
+#include "zip.h"
 
 #pragma warning(disable:4786)
 
@@ -421,7 +423,9 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 		assert(pAccountManager);
 		
 		XQMAILAttachmentParser attachment;
-		if (pPart->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST) {
+		if (pPart->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST &&
+			!attachment.getAttachments().empty()) {
+			const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
 			assert(pContentType);
 			if (wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
 				wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
@@ -431,9 +435,22 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 				pPart = pParent;
 			}
 			
-			const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
-			if (!attachFileOrURI(pPart.get(), l, pAccountManager, nSecurityMode_))
-				return std::auto_ptr<Part>(0);
+			const WCHAR* pwszArchive = 0;
+			UnstructuredParser archive;
+			if (pPart->getField(L"X-QMAIL-AttachmentArchive", &archive) == Part::FIELD_EXIST)
+				pwszArchive = archive.getValue();
+			if (pwszArchive && *pwszArchive) {
+				// TODO
+				// Get the temporary folder from application is ugly.
+				if (!attachArchivedFile(pPart.get(), pwszArchive, l,
+					Application::getApplication().getTemporaryFolder()))
+					return std::auto_ptr<Part>();
+			}
+			else {
+				if (!attachFileOrURI(pPart.get(), l, pAccountManager, nSecurityMode_))
+					return std::auto_ptr<Part>(0);
+			}
+			pPart->removeField(L"X-QMAIL-AttachmentArchive");
 		}
 		pPart->removeField(L"X-QMAIL-Attachment");
 	}
@@ -858,10 +875,42 @@ bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 			pChildPart = createPartFromFile(pwszAttachment);
 		}
 		if (!pChildPart.get())
-			return 0;
+			return false;
 		pPart->addPart(pChildPart);
 	}
 	return true;
+}
+
+bool qm::MessageCreator::attachArchivedFile(Part* pPart,
+											const WCHAR* pwszFileName,
+											const AttachmentList& l,
+											const WCHAR* pwszTempDir)
+{
+	assert(pPart);
+	assert(pPart->isMultipart());
+	assert(pwszFileName);
+	assert(!l.empty());
+	assert(pwszTempDir);
+	
+#ifdef QMZIP
+	ZipFile::PathList listPath;
+	listPath.resize(l.size());
+	std::copy(l.begin(), l.end(), listPath.begin());
+	
+	ZipFile zip(pwszFileName, listPath, pwszTempDir);
+	const WCHAR* pwszPath = zip.getPath();
+	if (!pwszPath)
+		return false;
+	
+	std::auto_ptr<Part> pChildPart(createPartFromFile(pwszPath));
+	if (!pChildPart.get())
+		return false;
+	pPart->addPart(pChildPart);
+	
+	return true;
+#else
+	return false;
+#endif
 }
 
 std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath)

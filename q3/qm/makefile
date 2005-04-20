@@ -2,13 +2,15 @@
 #
 # Makefile for qm
 
+ZIPDIR			= ../lib/zip
+
 PROJECTNAME		= qm
 PROJECTTYPE		= dll
 LIBRARIES		= qs
 
 CPROJS			= -DQMEXPORT
 ifeq ($(PLATFORM),win)
-	CPROJS		+= -DQMHTMLVIEW -DQMTABWINDOW
+	CPROJS		+= -DQMHTMLVIEW -DQMTABWINDOW -DQMZIP
 endif
 ifeq ($(PLATFORM),sig3)
 	CPROJS		+= -DQMHTMLVIEW -DQMTABWINDOW
@@ -16,6 +18,8 @@ endif
 ifeq ($(findstring hpc, $(PLATFORM)),hpc)
 	CPROJS		+= -DQMTABWINDOW
 endif
+
+EXTERNALINCS	= -I"$(ZIPDIR)/include"
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*/*.cpp))
 RESES			= $(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res

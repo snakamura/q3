@@ -7,7 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
 #include <qmmessage.h>
@@ -46,7 +45,8 @@ qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 										 ExternalEditorManager* pExternalEditorManager,
 										 HWND hwnd,
 										 Profile* pProfile,
-										 bool bExternalEditor) :
+										 bool bExternalEditor,
+										 const WCHAR* pwszTempDir) :
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
@@ -56,7 +56,8 @@ qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 	pExternalEditorManager_(pExternalEditorManager),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
-	bExternalEditor_(bExternalEditor)
+	bExternalEditor_(bExternalEditor),
+	wstrTempDir_(allocWString(pwszTempDir))
 {
 	assert(pDocument_);
 	assert(pFolderModel);
@@ -149,7 +150,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 			return false;
 		
 		std::auto_ptr<EditMessage> pEditMessage(new EditMessage(pProfile_,
-			pDocument_, pAccount, pSecurityModel_->getSecurityMode()));
+			pDocument_, pAccount, pSecurityModel_->getSecurityMode(), wstrTempDir_.get()));
 		if (!pEditMessage->setMessage(pMessage))
 			return false;
 		

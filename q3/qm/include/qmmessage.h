@@ -181,6 +181,10 @@ public:
 								const AttachmentList& l,
 								AccountManager* pAccountManager,
 								unsigned int nSecurityMode);
+	static bool attachArchivedFile(qs::Part* pPart,
+								   const WCHAR* pwszFileName,
+								   const AttachmentList& l,
+								   const WCHAR* pwszTempDir);
 	static std::auto_ptr<qs::Part> createPartFromFile(const WCHAR* pwszPath);
 	static std::auto_ptr<qs::Part> createRfc822Part(const qs::Part& part,
 													bool bHeaderOnly);

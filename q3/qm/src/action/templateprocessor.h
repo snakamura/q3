@@ -49,7 +49,8 @@ public:
 					  ExternalEditorManager* pExternalEditorManager,
 					  HWND hwnd,
 					  qs::Profile* pProfile,
-					  bool bExternalEditor);
+					  bool bExternalEditor,
+					  const WCHAR* pwszTempDir);
 	~TemplateProcessor();
 
 public:
@@ -93,6 +94,7 @@ private:
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	bool bExternalEditor_;
+	qs::wstring_ptr wstrTempDir_;
 };
 
 }
