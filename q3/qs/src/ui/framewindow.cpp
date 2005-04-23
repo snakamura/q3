@@ -350,8 +350,8 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 				cbri.cbSize = sizeof(cbri);
 				cbri.wID = getBarId(1);
 				cbri.fStyle = RBBS_NOGRIPPER;
-				cbri.cxRestored = 320;
-				cbri.fMaximized = true;
+				cbri.cxRestored = 1;
+				cbri.fMaximized = TRUE;
 			}
 			REBARBANDINFO rbbi;
 			rbbi.cbSize = sizeof(REBARBANDINFO);
@@ -360,12 +360,15 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			rbbi.wID = cbri.wID;
 			rbbi.cx = cbri.cxRestored;
 #if _WIN32_WCE >= 421
-			const int nDefaultBarHeight = 24;
-			rbbi.fMask |= RBBIM_CHILDSIZE;
-			rbbi.fStyle |= RBBS_VARIABLEHEIGHT;
-			rbbi.cyChild = 16 + static_cast<int>((nDefaultBarHeight - 16)*(UIUtil::getLogPixel()/96.0));
-			rbbi.cyMaxChild = rbbi.cyChild;
-			rbbi.cyIntegral = 1;
+			int nLogPixel = UIUtil::getLogPixel();
+			if (nLogPixel != 96) {
+				const int nDefaultBarHeight = 24;
+				rbbi.fMask |= RBBIM_CHILDSIZE;
+				rbbi.fStyle |= RBBS_VARIABLEHEIGHT;
+				rbbi.cyChild = 16 + static_cast<int>((nDefaultBarHeight - 16)*(nLogPixel/96.0));
+				rbbi.cyMaxChild = rbbi.cyChild;
+				rbbi.cyIntegral = 1;
+			}
 #endif
 			CommandBands_AddBands(pImpl_->hwndBands_, getInstanceHandle(), 1, &rbbi);
 			
@@ -401,7 +404,7 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 					cbri[n].wID = getBarId(n);
 					cbri[n].fStyle = n == 0 ? RBBS_NOGRIPPER : 0;
 					cbri[n].cxRestored = n == 0 ? 320 : 370;
-					cbri[n].fMaximized = false;
+					cbri[n].fMaximized = FALSE;
 				}
 			}
 			REBARBANDINFO rbbi[2];
