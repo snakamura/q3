@@ -467,17 +467,48 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			
 			CommandBar_AddAdornments(pImpl_->hwndBands_, 0, 0);
 #else // _WIN32_WCE
-			pImpl_->hwndBands_ = ::CreateToolbarEx(getHandle(),
-				WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
-				TBSTYLE_FLAT | TBSTYLE_TOOLTIPS | CCS_TOP,
-				toolbar.nId_, toolbar.nBitmapCount_, pImpl_->hInstResource_,
-				toolbar.nBitmapId_, toolbar.ptbButton_, toolbar.nSize_,
-				16, 16, 16, 16, sizeof(TBBUTTON));
+			pImpl_->hwndBands_ = ::CreateWindowEx(WS_EX_TOOLWINDOW, REBARCLASSNAME,
+				0, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |
+				CCS_TOP | RBS_BANDBORDERS | RBS_AUTOSIZE | RBS_VARHEIGHT,
+				0, 0, 0, 0, getHandle(), 0, pImpl_->hInstResource_, 0);
 			if (!pImpl_->hwndBands_)
 				return -1;
 			
-			if (!createToolbarButtons(pCreateStruct->lpCreateParams, pImpl_->hwndBands_))
+			HWND hwndToolbar = ::CreateToolbarEx(pImpl_->hwndBands_,
+				WS_CHILD | WS_VISIBLE | CCS_NOPARENTALIGN | CCS_NORESIZE |
+				TBSTYLE_FLAT | TBSTYLE_TOOLTIPS,
+				toolbar.nId_, toolbar.nBitmapCount_, pImpl_->hInstResource_,
+				toolbar.nBitmapId_, toolbar.ptbButton_, toolbar.nSize_,
+				16, 16, 16, 16, sizeof(TBBUTTON));
+			if (!hwndToolbar)
 				return -1;
+			if (!createToolbarButtons(pCreateStruct->lpCreateParams, hwndToolbar))
+				return -1;
+			::SendMessage(hwndToolbar, TB_AUTOSIZE, 0, 0);
+			
+			SIZE sizeToolbar;
+			::SendMessage(hwndToolbar, TB_GETMAXSIZE, 0, reinterpret_cast<LPARAM>(&sizeToolbar));
+			
+			REBARBANDINFO rbbi = {
+				sizeof(rbbi),
+				RBBIM_STYLE | RBBIM_CHILD | RBBIM_CHILDSIZE,
+				RBBS_VARIABLEHEIGHT,
+				0,
+				0,
+				0,
+				0,
+				0,
+				hwndToolbar,
+				0,
+				0,
+				0,
+				0,
+				0,
+				sizeToolbar.cy + 2,
+				sizeToolbar.cy + 2,
+				1
+			};
+			::SendMessage(pImpl_->hwndBands_, RB_INSERTBAND, -1, reinterpret_cast<LPARAM>(&rbbi));
 #endif // _WIN32_WCE
 		}
 		
