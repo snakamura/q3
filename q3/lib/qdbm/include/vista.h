@@ -69,6 +69,7 @@ extern "C" {
 #define vlputlist      vstputlist
 #define vloutlist      vstoutlist
 #define vlgetlist      vstgetlist
+#define vlgetcat       vstgetcat
 #define vlcurfirst     vstcurfirst
 #define vlcurlast      vstcurlast
 #define vlcurprev      vstcurprev
@@ -99,6 +100,17 @@ extern "C" {
 #ifndef _VISTA_C
 #include <villa.h>
 #endif
+
+
+
+/*************************************************************************************************
+ * features for experts
+ *************************************************************************************************/
+
+
+/* Number of division of the database. */
+extern int vscrdnum;
+
 
 
 #if defined(__cplusplus)                 /* export for C++ */

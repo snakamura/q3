@@ -392,6 +392,7 @@ clock_t _qdbm_times(struct tms *buf);
 #undef ftruncate
 #undef fsync
 #undef mkdir
+#undef rename
 
 #define F_WRLCK        0
 #define F_RDLCK        1
@@ -421,6 +422,10 @@ struct flock {
 #define \
   mkdir(pathname, mode) \
   mkdir(pathname)
+
+#define \
+  rename(oldpath, newpath) \
+  (unlink(newpath), rename(oldpath, newpath))
 
 int _qdbm_win32_fcntl(int fd, int cmd, struct flock *lock);
 
@@ -500,7 +505,7 @@ extern const char *(*_qdbm_encname)(const char *, int);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.22"
+#define _QDBM_VERSION  "1.8.24"
 
 #undef TRUE
 #define TRUE           1

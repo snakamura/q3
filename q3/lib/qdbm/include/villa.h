@@ -244,6 +244,22 @@ int vloutlist(VILLA *villa, const char *kbuf, int ksiz);
 CBLIST *vlgetlist(VILLA *villa, const char *kbuf, int ksiz);
 
 
+/* Retrieve concatenated values of all records corresponding a key.
+   `villa' specifies a database handle.
+   `kbuf' specifies the pointer to the region of a key.
+   `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
+   with `strlen(kbuf)'.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the concatenated values of
+   the corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds
+   to the specified key.  Because an additional zero code is appended at the end of the region of
+   the return value, the return value can be treated as a character string.  Because the region
+   of the return value is allocated with the `malloc' call, it should be released with the `free'
+   call if it is no longer in use. */
+char *vlgetcat(VILLA *villa, const char *kbuf, int ksiz, int *sp);
+
+
 /* Move the cursor to the first record.
    `villa' specifies a database handle.
    If successful, the return value is true, else, it is false.  False is returned if there is

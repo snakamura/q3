@@ -219,10 +219,16 @@ char *cbstrtoupper(char *str);
 char *cbstrtolower(char *str);
 
 
-/* Cut the space characters at head or tail of a string.
+/* Cut space characters at head or tail of a string.
    `str' specifies the pointer of a string to convert.
    The return value is the pointer to the string. */
 char *cbstrtrim(char *str);
+
+
+/* Squeeze space characters in a string and trim it.
+   `str' specifies the pointer of a string to convert.
+   The return value is the pointer to the string. */
+char *cbstrsqzspc(char *str);
 
 
 /* Get a datum handle.
@@ -981,8 +987,8 @@ char *cbdatestrwww(time_t t, int jl);
 char *cbdatestrhttp(time_t t, int jl);
 
 
-/* Get the time value of a date string in decimal, W3CDTF, or RFC 1123.
-   `str' specifies a date string in decimal, W3CDTF, or RFC 1123.
+/* Get the time value of a date string in decimal, hexadecimal, W3CDTF, or RFC 822 (1123).
+   `str' specifies a date string in decimal, hexadecimal, W3CDTF, or RFC 822 (1123).
    The return value is the time value of the date or -1 if the format is invalid. */
 time_t cbstrmktime(const char *str);
 
@@ -1027,6 +1033,12 @@ CBMAP *cbmapopenex(int bnum);
 /* Alias of `cblistval'.
    However, `sp' is ignored. */
 #define CB_LISTVAL(list,index,sp) ((const char *)(list->array[list->start+index].dptr))
+
+
+/* Alias of `cblistval'.
+   However, `sp' is needed. */
+#define CB_LISTVAL2(list,index,sp) (*sp = list->array[list->start+index].dsize,\
+  (const char *)(list->array[list->start+index].dptr))
 
 
 
