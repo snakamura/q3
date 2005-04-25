@@ -379,7 +379,12 @@ void qm::EditFrameWindowImpl::layoutChildren(int cx,
 	RECT rectToolbar;
 	Window wndToolbar(hwndToolbar);
 	wndToolbar.getWindowRect(&rectToolbar);
+#ifndef _WIN32_WCE
+	pThis_->screenToClient(&rectToolbar);
+	int nToolbarHeight = rectToolbar.bottom;
+#else
 	int nToolbarHeight = rectToolbar.bottom - rectToolbar.top;
+#endif
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	int nTopBarHeight = 0;
 	int nBottomBarHeight = bShowToolbar_ ? nToolbarHeight : 0;
