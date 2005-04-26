@@ -1865,6 +1865,9 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 																   EXCEPINFO* pExcepInfo,
 																   unsigned int* pnArgErr)
 {
+#ifndef DISPID_NEWWINDOW3
+#	define DISPID_NEWWINDOW3 273
+#endif
 	if (dispId == DISPID_BEFORENAVIGATE2) {
 		if (!pDispParams || pDispParams->cArgs != 7)
 			return E_INVALIDARG;
@@ -1879,8 +1882,7 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			return hr;
 		
 		VARIANT* pVarURL = pDispParams->rgvarg + 5;
-		if (pVarURL->vt != (VT_VARIANT | VT_BYREF) ||
-			pVarURL->pvarVal->vt != VT_BSTR)
+		if (pVarURL->vt != (VT_VARIANT | VT_BYREF))
 			return E_INVALIDARG;
 		BSTR bstrURL = pVarURL->pvarVal->bstrVal;
 		bool bAllow = pWebBrowser.get() != pWebBrowser_ ||
@@ -1900,24 +1902,24 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			(wcsncmp(bstrURL, L"http:", 5) == 0 ||
 			wcsncmp(bstrURL, L"https:", 6) == 0 ||
 			wcsncmp(bstrURL, L"ftp:", 4) == 0) ||
-			wcsncmp(bstrURL, L"mailto:", 7) == 0) {
-			tstring_ptr tstrURL(wcs2tcs(bstrURL));
-			SHELLEXECUTEINFO sei = {
-				sizeof(sei),
-				0,
-				pHtmlMessageViewWindow_->getParentFrame(),
-#ifdef _WIN32_WCE
-				_T("open"),
-#else
-				0,
-#endif
-				tstrURL.get(),
-				0,
-				0,
-				SW_SHOW,
-			};
-			::ShellExecuteEx(&sei);
-		}
+			wcsncmp(bstrURL, L"mailto:", 7) == 0)
+			UIUtil::openURL(pHtmlMessageViewWindow_->getParentFrame(), bstrURL);
+	}
+	else if (dispId == DISPID_NEWWINDOW3) {
+		if (!pDispParams || pDispParams->cArgs != 5)
+			return E_INVALIDARG;
+		
+		VARIANT* pVarURL = pDispParams->rgvarg;
+		if (pVarURL->vt != VT_BSTR)
+			return E_INVALIDARG;
+		BSTR bstrURL = pVarURL->bstrVal;
+		
+		VARIANT* pVarCancel = pDispParams->rgvarg + 3;
+		if (pVarCancel->vt != (VT_BOOL | VT_BYREF))
+			return E_INVALIDARG;
+		*pVarCancel->pboolVal = VARIANT_TRUE;
+		
+		UIUtil::openURL(pHtmlMessageViewWindow_->getParentFrame(), bstrURL);
 	}
 	else if (dispId == DISPID_DOCUMENTCOMPLETE) {
 		if (!pDispParams || pDispParams->cArgs != 2)
