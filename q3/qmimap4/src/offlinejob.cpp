@@ -635,7 +635,13 @@ bool qmimap4::SetFlagsOfflineJob::apply(Account* pAccount,
 	MultipleRange range(&listUid_[0], listUid_.size(), true);
 	Flags flags(Util::getImap4FlagsFromMessageFlags(nFlags_));
 	Flags mask(Util::getImap4FlagsFromMessageFlags(nMask_));
-	return pImap4->setFlags(range, flags, mask);
+	if (!pImap4->setFlags(range, flags, mask)) {
+		// Because some servers return NO response when I try
+		// storing flags to UID that doesn't exist, I ignore this.
+		return (pImap4->getLastError() & Imap4::IMAP4_ERROR_MASK_LOWLEVEL) ==
+			Imap4::IMAP4_ERROR_RESPONSE;
+	}
+	return true;
 }
 
 bool qmimap4::SetFlagsOfflineJob::write(OutputStream* pStream) const
