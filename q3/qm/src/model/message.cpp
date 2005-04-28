@@ -1131,8 +1131,8 @@ wstring_ptr qm::PartUtil::getNames(const WCHAR* pwszField) const
 wstring_ptr qm::PartUtil::getReference() const
 {
 	const WCHAR* pwszFields[] = {
-		L"In-Reply-To",
-		L"References"
+		L"References",
+		L"In-Reply-To"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
 		ReferencesParser references;
