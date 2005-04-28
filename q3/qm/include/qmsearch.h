@@ -21,6 +21,7 @@ namespace qm {
 
 class SearchDriver;
 class SearchUI;
+class SearchPropertyData;
 class SearchPropertyPage;
 class SearchDriverFactory;
 class SearchContext;
@@ -63,7 +64,37 @@ public:
 	virtual int getIndex() = 0;
 	virtual const WCHAR* getName() = 0;
 	virtual qs::wstring_ptr getDisplayName() = 0;
-	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(bool bAllFolder) = 0;
+	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(bool bAllFolder,
+																 SearchPropertyData* pData) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * SearchPropertyData
+ *
+ */
+
+class QMEXPORTCLASS SearchPropertyData
+{
+public:
+	SearchPropertyData();
+	~SearchPropertyData();
+
+public:
+	const WCHAR* getCondition() const;
+	bool isAllFolder() const;
+	bool isRecursive() const;
+	void set(const WCHAR* pwszCondition,
+			 bool bAllFolder,
+			 bool bRecursive);
+
+private:
+	SearchPropertyData(const SearchPropertyData&);
+	SearchPropertyData& operator=(const SearchPropertyData&);
+
+private:
+	struct SearchPropertyDataImpl* pImpl_;
 };
 
 
@@ -77,10 +108,15 @@ class QMEXPORTCLASS SearchPropertyPage : public qs::DefaultPropertyPage
 {
 protected:
 	SearchPropertyPage(HINSTANCE hInst,
-					   UINT nId);
+					   UINT nId,
+					   SearchPropertyData* pData);
 
 public:
 	virtual ~SearchPropertyPage();
+
+public:
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 public:
 	virtual const WCHAR* getDriver() const = 0;
@@ -88,9 +124,22 @@ public:
 	virtual bool isAllFolder() const = 0;
 	virtual bool isRecursive() const = 0;
 
+protected:
+	virtual void updateData(SearchPropertyData* pData) = 0;
+	virtual void updateUI(const SearchPropertyData* pData) = 0;
+
+private:
+	LRESULT onKillActive(NMHDR* pnmhdr,
+						 bool* pbHandled);
+	LRESULT onSetActive(NMHDR* pnmhdr,
+						bool* pbHandled);
+
 private:
 	SearchPropertyPage(const SearchPropertyPage&);
 	SearchPropertyPage& operator=(const SearchPropertyPage&);
+
+private:
+	SearchPropertyData* pData_;
 };
 
 

@@ -176,10 +176,11 @@ wstring_ptr qm::FullTextSearchUI::getDisplayName()
 	return loadString(Application::getApplication().getResourceHandle(), IDS_FULLTEXTSEARCH);
 }
 
-std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(bool bAllFolder)
+std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(bool bAllFolder,
+																		   SearchPropertyData* pData)
 {
-	return std::auto_ptr<SearchPropertyPage>(
-		new FullTextSearchPage(pAccount_, pProfile_, bAllFolder));
+	return std::auto_ptr<SearchPropertyPage>(new FullTextSearchPage(
+		pAccount_, pProfile_, bAllFolder, pData));
 }
 
 
@@ -191,8 +192,9 @@ std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(bool 
 
 qm::FullTextSearchPage::FullTextSearchPage(Account* pAccount,
 										   Profile* pProfile,
-										   bool bAllFolder) :
-	SearchPropertyPage(Application::getApplication().getResourceHandle(), IDD_FULLTEXTSEARCH),
+										   bool bAllFolder,
+										   SearchPropertyData* pData) :
+	SearchPropertyPage(Application::getApplication().getResourceHandle(), IDD_FULLTEXTSEARCH, pData),
 	pAccount_(pAccount),
 	pProfile_(pProfile),
 	bAllFolder_(bAllFolder),
@@ -222,6 +224,25 @@ bool qm::FullTextSearchPage::isAllFolder() const
 bool qm::FullTextSearchPage::isRecursive() const
 {
 	return bRecursive_;
+}
+
+void qm::FullTextSearchPage::updateData(SearchPropertyData* pData)
+{
+	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
+	pData->set(wstrCondition.get(),
+		sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED,
+		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED);
+}
+
+void qm::FullTextSearchPage::updateUI(const SearchPropertyData* pData)
+{
+	if (pData->getCondition()) {
+		setDlgItemText(IDC_CONDITION, pData->getCondition());
+		UINT nId = pData->isAllFolder() ? IDC_ALLFOLDER :
+			pData->isRecursive() ? IDC_RECURSIVE : IDC_CURRENT;
+		for (UINT n = IDC_CURRENT; n < IDC_CURRENT + 3; ++n)
+			sendDlgItemMessage(n, BM_SETCHECK, n == nId ? BST_CHECKED : BST_UNCHECKED);
+	}
 }
 
 LRESULT qm::FullTextSearchPage::onCommand(WORD nCode,

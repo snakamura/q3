@@ -115,9 +115,10 @@ wstring_ptr qm::MacroSearchUI::getDisplayName()
 	return loadString(Application::getApplication().getResourceHandle(), IDS_MACROSEARCH);
 }
 
-std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(bool bAllFolder)
+std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(bool bAllFolder,
+																		SearchPropertyData* pData)
 {
-	return std::auto_ptr<SearchPropertyPage>(new MacroSearchPage(pProfile_, bAllFolder));
+	return std::auto_ptr<SearchPropertyPage>(new MacroSearchPage(pProfile_, bAllFolder, pData));
 }
 
 
@@ -128,8 +129,9 @@ std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(bool bAl
  */
 
 qm::MacroSearchPage::MacroSearchPage(Profile* pProfile,
-									 bool bAllFolder) :
-	SearchPropertyPage(Application::getApplication().getResourceHandle(), IDD_MACROSEARCH),
+									 bool bAllFolder,
+									 SearchPropertyData* pData) :
+	SearchPropertyPage(Application::getApplication().getResourceHandle(), IDD_MACROSEARCH, pData),
 	pProfile_(pProfile),
 	bAllFolder_(bAllFolder),
 	bRecursive_(false)
@@ -158,6 +160,25 @@ bool qm::MacroSearchPage::isAllFolder() const
 bool qm::MacroSearchPage::isRecursive() const
 {
 	return bRecursive_;
+}
+
+void qm::MacroSearchPage::updateData(SearchPropertyData* pData)
+{
+	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
+	pData->set(wstrCondition.get(),
+		sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED,
+		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED);
+}
+
+void qm::MacroSearchPage::updateUI(const SearchPropertyData* pData)
+{
+	if (pData->getCondition()) {
+		setDlgItemText(IDC_CONDITION, pData->getCondition());
+		UINT nId = pData->isAllFolder() ? IDC_ALLFOLDER :
+			pData->isRecursive() ? IDC_RECURSIVE : IDC_CURRENT;
+		for (UINT n = IDC_CURRENT; n < IDC_CURRENT + 3; ++n)
+			sendDlgItemMessage(n, BM_SETCHECK, n == nId ? BST_CHECKED : BST_UNCHECKED);
+	}
 }
 
 LRESULT qm::MacroSearchPage::onCommand(WORD nCode,
@@ -221,8 +242,7 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::MacroSearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		Window edit(Window(getDlgItem(IDC_CONDITION)).getWindow(GW_CHILD));
-		wstring_ptr wstrSearch = edit.getWindowText();
+		wstring_ptr wstrSearch = getDlgItemText(IDC_CONDITION);
 		if (wstrSearch.get())
 			History(pProfile_, L"Search").addValue(wstrSearch.get());
 		bool bMacro = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) == BST_CHECKED;

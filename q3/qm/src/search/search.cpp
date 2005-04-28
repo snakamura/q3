@@ -44,18 +44,100 @@ qm::SearchUI::~SearchUI()
 
 /****************************************************************************
  *
+ * SearchPropertyDataImpl
+ *
+ */
+
+struct qm::SearchPropertyDataImpl
+{
+	wstring_ptr wstrCondition_;
+	bool bAllFolder_;
+	bool bRecursive_;
+};
+
+
+/****************************************************************************
+ *
+ * SearchPropertyData
+ *
+ */
+
+qm::SearchPropertyData::SearchPropertyData() :
+	pImpl_(0)
+{
+	pImpl_ = new SearchPropertyDataImpl();
+}
+
+qm::SearchPropertyData::~SearchPropertyData()
+{
+	delete pImpl_;
+}
+
+const WCHAR* qm::SearchPropertyData::getCondition() const
+{
+	return pImpl_->wstrCondition_.get();
+}
+
+bool qm::SearchPropertyData::isAllFolder() const
+{
+	return pImpl_->bAllFolder_;
+}
+
+bool qm::SearchPropertyData::isRecursive() const
+{
+	return pImpl_->bRecursive_;
+}
+
+void qm::SearchPropertyData::set(const WCHAR* pwszCondition,
+								 bool bAllFolder,
+								 bool bRecursive)
+{
+	pImpl_->wstrCondition_ = allocWString(pwszCondition);
+	pImpl_->bAllFolder_ = bAllFolder;
+	pImpl_->bRecursive_ = bRecursive;
+}
+
+
+/****************************************************************************
+ *
  * SearchPropertyPage
  *
  */
 
 qm::SearchPropertyPage::SearchPropertyPage(HINSTANCE hInst,
-										   UINT nId) :
-	DefaultPropertyPage(hInst, nId)
+										   UINT nId,
+										   SearchPropertyData* pData) :
+	DefaultPropertyPage(hInst, nId),
+	pData_(pData)
 {
 }
 
 qm::SearchPropertyPage::~SearchPropertyPage()
 {
+}
+
+LRESULT qm::SearchPropertyPage::onNotify(NMHDR* pnmhdr,
+										 bool* pbHandled)
+{
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY_CODE(PSN_KILLACTIVE, onKillActive)
+		HANDLE_NOTIFY_CODE(PSN_SETACTIVE, onSetActive)
+	END_NOTIFY_HANDLER()
+	return DefaultPropertyPage::onNotify(pnmhdr, pbHandled);
+}
+
+LRESULT qm::SearchPropertyPage::onKillActive(NMHDR* pnmhdr,
+											 bool* pbHandled)
+{
+	updateData(pData_);
+	return 0;
+}
+
+LRESULT qm::SearchPropertyPage::onSetActive(NMHDR* pnmhdr,
+											bool* pbHandled)
+{
+	updateUI(pData_);
+	return 0;
 }
 
 

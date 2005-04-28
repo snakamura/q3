@@ -63,7 +63,8 @@ public:
 	virtual int getIndex();
 	virtual const WCHAR* getName();
 	virtual qs::wstring_ptr getDisplayName();
-	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(bool bAllFolder);
+	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(bool bAllFolder,
+																 SearchPropertyData* pData);
 
 private:
 	MacroSearchUI(const MacroSearchUI&);
@@ -84,7 +85,8 @@ class MacroSearchPage : public SearchPropertyPage
 {
 public:
 	MacroSearchPage(qs::Profile* pProfile,
-					bool bAllFolder);
+					bool bAllFolder,
+					SearchPropertyData* pData);
 	virtual ~MacroSearchPage();
 
 public:
@@ -92,6 +94,10 @@ public:
 	virtual const WCHAR* getCondition() const;
 	virtual bool isAllFolder() const;
 	virtual bool isRecursive() const;
+
+protected:
+	virtual void updateData(SearchPropertyData* pData);
+	virtual void updateUI(const SearchPropertyData* pData);
 
 public:
 	virtual LRESULT onCommand(WORD nCode,

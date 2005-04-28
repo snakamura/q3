@@ -95,10 +95,11 @@ wstring_ptr qmimap4::Imap4SearchUI::getDisplayName()
 	return loadString(getResourceHandle(), IDS_IMAP4SEARCH);
 }
 
-std::auto_ptr<SearchPropertyPage> qmimap4::Imap4SearchUI::createPropertyPage(bool bAllFolder)
+std::auto_ptr<SearchPropertyPage> qmimap4::Imap4SearchUI::createPropertyPage(bool bAllFolder,
+																			 SearchPropertyData* pData)
 {
-	return std::auto_ptr<SearchPropertyPage>(
-		new Imap4SearchPage(pAccount_, pProfile_, bAllFolder));
+	return std::auto_ptr<SearchPropertyPage>(new Imap4SearchPage(
+		pAccount_, pProfile_, bAllFolder, pData));
 }
 
 
@@ -110,8 +111,9 @@ std::auto_ptr<SearchPropertyPage> qmimap4::Imap4SearchUI::createPropertyPage(boo
 
 qmimap4::Imap4SearchPage::Imap4SearchPage(Account* pAccount,
 										  Profile* pProfile,
-										  bool bAllFolder) :
-	SearchPropertyPage(getResourceHandle(), IDD_SEARCH),
+										  bool bAllFolder,
+										  SearchPropertyData* pData) :
+	SearchPropertyPage(getResourceHandle(), IDD_SEARCH, pData),
 	pAccount_(pAccount),
 	pProfile_(pProfile),
 	bAllFolder_(bAllFolder),
@@ -141,6 +143,25 @@ bool qmimap4::Imap4SearchPage::isAllFolder() const
 bool qmimap4::Imap4SearchPage::isRecursive() const
 {
 	return bRecursive_;
+}
+
+void qmimap4::Imap4SearchPage::updateData(SearchPropertyData* pData)
+{
+	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
+	pData->set(wstrCondition.get(),
+		sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED,
+		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED);
+}
+
+void qmimap4::Imap4SearchPage::updateUI(const SearchPropertyData* pData)
+{
+	if (pData->getCondition()) {
+		setDlgItemText(IDC_CONDITION, pData->getCondition());
+		UINT nId = pData->isAllFolder() ? IDC_ALLFOLDER :
+			pData->isRecursive() ? IDC_RECURSIVE : IDC_CURRENT;
+		for (UINT n = IDC_CURRENT; n < IDC_CURRENT + 3; ++n)
+			sendDlgItemMessage(n, BM_SETCHECK, n == nId ? BST_CHECKED : BST_UNCHECKED);
+	}
 }
 
 LRESULT qmimap4::Imap4SearchPage::onCommand(WORD nCode,

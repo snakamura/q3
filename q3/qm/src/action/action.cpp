@@ -4374,11 +4374,12 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	
 	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page", 0));
 	
+	SearchPropertyData data;
 	int nStartPage = 0;
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 	for (UIList::size_type n = 0; n < listUI.size(); ++n) {
 		std::auto_ptr<SearchPropertyPage> pPage(
-			listUI[n].first->createPropertyPage(pFolder == 0));
+			listUI[n].first->createPropertyPage(pFolder == 0, &data));
 		listUI[n].second = pPage.release();
 		sheet.add(listUI[n].second);
 		if (wcscmp(listUI[n].second->getDriver(), wstrStartName.get()) == 0)
