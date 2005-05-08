@@ -354,6 +354,19 @@ public:
 	
 	/**
 	 * Create instance with the specified key and the specified
+	 * name of the sub key.
+	 * Call operator! to check if success or not.
+	 *
+	 * @param hkey [in] Key.
+	 * @param pwszSubKey [in] Sub key name.
+	 * @param bReadOnly [in] Readonly or not.
+	 */
+	Registry(HKEY hkey,
+			 const WCHAR* pwszSubKey,
+			 bool bReadOnly);
+	
+	/**
+	 * Create instance with the specified key and the specified
 	 * name of the sub key, the class.
 	 * Call operator! to check if success or not.
 	 *
@@ -364,6 +377,7 @@ public:
 	Registry(HKEY hkey,
 			 const WCHAR* pwszSubKey,
 			 const WCHAR* pwszClass);
+	
 	~Registry();
 
 public:
@@ -466,7 +480,8 @@ public:
 private:
 	void init(HKEY hkey,
 			  const WCHAR* pwszSubKey,
-			  const WCHAR* pwszClass);
+			  const WCHAR* pwszClass,
+			  bool bReadOnly);
 
 private:
 	Registry(const Registry&);

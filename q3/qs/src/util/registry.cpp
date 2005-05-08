@@ -24,7 +24,15 @@ qs::Registry::Registry(HKEY hkey,
 					   const WCHAR* pwszSubKey) :
 	hkey_(0)
 {
-	init(hkey, pwszSubKey, 0);
+	init(hkey, pwszSubKey, 0, false);
+}
+
+qs::Registry::Registry(HKEY hkey,
+					   const WCHAR* pwszSubKey,
+					   bool bReadOnly) :
+	hkey_(0)
+{
+	init(hkey, pwszSubKey, 0, bReadOnly);
 }
 
 qs::Registry::Registry(HKEY hkey,
@@ -32,7 +40,7 @@ qs::Registry::Registry(HKEY hkey,
 					   const WCHAR* pwszClass) :
 	hkey_(0)
 {
-	init(hkey, pwszSubKey, pwszClass);
+	init(hkey, pwszSubKey, pwszClass, false);
 }
 
 qs::Registry::~Registry()
@@ -155,7 +163,8 @@ bool qs::Registry::deleteKey(HKEY hkey,
 
 void qs::Registry::init(HKEY hkey,
 						const WCHAR* pwszSubKey,
-						const WCHAR* pwszClass)
+						const WCHAR* pwszClass,
+						bool bReadOnly)
 {
 	W2T(pwszSubKey, ptszSubKey);
 	
@@ -164,12 +173,19 @@ void qs::Registry::init(HKEY hkey,
 		tstrClass = wcs2tcs(pwszClass);
 	
 	DWORD dw = 0;
+	LONG nRet = ERROR_SUCCESS;
 #ifdef _WIN32_WCE
-	LONG nRet = ::RegCreateKeyEx(hkey, ptszSubKey,
-		0, tstrClass.get(), 0, 0, 0, &hkey_, &dw);
+	if (bReadOnly)
+		nRet = ::RegOpenKeyEx(hkey, ptszSubKey, 0, 0, &hkey_);
+	else
+		nRet = ::RegCreateKeyEx(hkey, ptszSubKey,
+			0, tstrClass.get(), 0, 0, 0, &hkey_, &dw);
 #else // _WIN32_WCE
-	LONG nRet = ::RegCreateKeyEx(hkey, ptszSubKey, 0, tstrClass.get(),
-		REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hkey_, &dw);
+	if (bReadOnly)
+		nRet = ::RegOpenKeyEx(hkey, ptszSubKey, 0, KEY_READ, &hkey_);
+	else
+		nRet = ::RegCreateKeyEx(hkey, ptszSubKey, 0, tstrClass.get(),
+			REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &hkey_, &dw);
 #endif // _WIN32_WCE
 	if (nRet != ERROR_SUCCESS)
 		hkey_ = 0;
