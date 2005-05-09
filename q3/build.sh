@@ -140,20 +140,21 @@ wce)
 
 zip)
 	VERSION=`cat version`
+	REVISION=`cat revision`
 	DATE=`date +%Y%m%d`
 	ZIPDIR=./zip
 	
 	mkdir -p $ZIPDIR
 	
-	zip -j $ZIPDIR/q3-win-x86-ja-`printf $VERSION | tr . _`-$DATE.zip \
+	zip -j $ZIPDIR/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \
 		*/bin/win/ansi/release/*.exe \
 		*/lib/win/ansi/release/*.dll
-	zip -j $ZIPDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`-$DATE.zip \
+	zip -j $ZIPDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \
 		*/bin/win/unicode/release/*.exe \
 		*/lib/win/unicode/release/*.dll
 	
 	for t in $WCETARGETS; do
-		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-`printf $VERSION | tr . _`-$DATE.zip \
+		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \
 			*/bin/`printf $t | tr . /`/release/*.exe \
 			*/lib/`printf $t | tr . /`/release/*.dll
 	done
