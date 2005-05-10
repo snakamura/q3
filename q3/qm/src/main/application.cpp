@@ -504,6 +504,7 @@ bool qm::Application::initialize()
 	
 	Part::setDefaultCharset(Init::getInit().getMailEncoding());
 	Part::setGlobalOptions(Part::O_USE_COMMENT_AS_PHRASE |
+		Part::O_INTERPRET_FORMAT_FLOWED |
 		Part::O_ALLOW_ENCODED_QSTRING |
 		Part::O_ALLOW_ENCODED_PARAMETER |
 		Part::O_ALLOW_PARAMETER_INVALID_SEMICOLON |

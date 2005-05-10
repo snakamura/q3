@@ -61,6 +61,7 @@ public:
 		O_RFC2231								= 0x00000001,
 		O_USE_COMMENT_AS_PHRASE					= 0x00000002,
 		O_FORCE_QSTRING_PARAMETER				= 0x00000004,
+		O_INTERPRET_FORMAT_FLOWED				= 0x00000008,
 		
 		O_ALLOW_ENCODED_QSTRING					= 0x00000100,
 		O_ALLOW_ENCODED_PARAMETER				= 0x00000200,
@@ -80,6 +81,12 @@ public:
 		FIELD_EXIST,
 		FIELD_NOTEXIST,
 		FIELD_ERROR
+	};
+	
+	enum Format {
+		FORMAT_NONE,
+		FORMAT_FLOWED,
+		FORMAT_FLOWED_DELSP
 	};
 
 public:
@@ -169,6 +176,7 @@ public:
 	bool isMultipart() const;
 	bool isText() const;
 	bool isAttachment() const;
+	Format getFormat() const;
 	
 	string_ptr getRawField(const WCHAR* pwszName,
 						   unsigned int nIndex) const;
@@ -220,6 +228,11 @@ private:
 	CHAR* getFieldPos(const CHAR* pszName,
 					  unsigned int nIndex) const;
 	CHAR* getFieldEndPos(const CHAR* pBegin) const;
+
+private:
+	static bool interpretFlowedFormat(const WCHAR* pwszText,
+									  bool bDelSp,
+									  XStringBuffer<WXSTRING>* pBuf);
 
 private:
 	Part(const Part&);

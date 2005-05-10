@@ -713,6 +713,26 @@ bool qs::Part::isAttachment() const
 	return false;
 }
 
+Part::Format qs::Part::getFormat() const
+{
+	if (!isOption(O_INTERPRET_FORMAT_FLOWED))
+		return FORMAT_NONE;
+	else if (!isText())
+		return FORMAT_NONE;
+	else if (!pContentType_.get())
+		return FORMAT_NONE;
+	
+	wstring_ptr wstrFormat(pContentType_->getParameter(L"format"));
+	if (!wstrFormat.get() || _wcsicmp(wstrFormat.get(), L"flowed") != 0)
+		return FORMAT_NONE;
+	
+	wstring_ptr wstrDelSp(pContentType_->getParameter(L"delsp"));
+	if (wstrDelSp.get() && _wcsicmp(wstrDelSp.get(), L"yes") == 0)
+		return FORMAT_FLOWED_DELSP;
+	
+	return FORMAT_FLOWED;
+}
+
 string_ptr qs::Part::getRawField(const WCHAR* pwszName,
 								 unsigned int nIndex) const
 {
@@ -823,10 +843,6 @@ bool qs::Part::getBodyText(const WCHAR* pwszCharset,
 	assert(pBuf);
 	
 	if (strBody_.get()) {
-		const ContentTypeParser* pContentType = getContentType();
-		if (pContentType && _wcsicmp(pContentType->getMediaType(), L"text") != 0)
-			return true;
-		
 		if (!isText())
 			return true;
 		
@@ -878,8 +894,16 @@ bool qs::Part::getBodyText(const WCHAR* pwszCharset,
 		wxstring_size_ptr converted(pConverter->decode(strDecode.get(), &nLen));
 		if (!converted.get())
 			return false;
-		if (!pBuf->append(converted.get(), converted.size()))
-			return false;
+		
+		Format format = getFormat();
+		if (format != FORMAT_NONE) {
+			if (!interpretFlowedFormat(converted.get(), format == FORMAT_FLOWED_DELSP, pBuf))
+				return false;
+		}
+		else {
+			if (!pBuf->append(converted.get(), converted.size()))
+				return false;
+		}
 	}
 	
 	return true;
@@ -1153,6 +1177,59 @@ CHAR* qs::Part::getFieldEndPos(const CHAR* pBegin) const
 	assert(*p != ' ' && *p != '\t');
 	
 	return const_cast<CHAR*>(p);
+}
+
+bool qs::Part::interpretFlowedFormat(const WCHAR* pwszText,
+									 bool bDelSp,
+									 XStringBuffer<WXSTRING>* pBuf)
+{
+	size_t nPrevQuoteDepth = 0;
+	bool bPrevSoftBreak = false;
+	const WCHAR* pBegin = pwszText;
+	while (true) {
+		const WCHAR* pEnd = wcschr(pBegin, L'\n');
+		if (!pEnd)
+			pEnd = pBegin + wcslen(pBegin);
+		
+		const WCHAR* p = pBegin;
+		size_t nQuoteDepth = 0;
+		while (*p == L'>') {
+			++p;
+			++nQuoteDepth;
+		}
+		if (*p == L' ')
+			++p;
+		
+		bool bSoftBreak = pEnd > p && *(pEnd - 1) == L' ';
+		if (bSoftBreak) {
+			if (pEnd - p == 3 && *p == '-' && *(p + 1) == L'-')
+				bSoftBreak = false;
+		}
+		
+		if (bPrevSoftBreak && nPrevQuoteDepth == nQuoteDepth) {
+			if (!pBuf->append(p, pEnd - p - (bSoftBreak && bDelSp ? 1 : 0)))
+				return false;
+		}
+		else {
+			if (pBegin != pwszText) {
+				if (!pBuf->append(L'\n'))
+					return false;
+			}
+			if (!pBuf->append(pBegin, pEnd - pBegin - (bSoftBreak && bDelSp ? 1 : 0)))
+				return false;
+		}
+		
+		if (!*pEnd)
+			break;
+		
+		nPrevQuoteDepth = nQuoteDepth;
+		bPrevSoftBreak = bSoftBreak;
+		pBegin = pEnd + 1;
+	}
+	if (!pBuf->append(L'\n'))
+		return false;
+	
+	return true;
 }
 
 
