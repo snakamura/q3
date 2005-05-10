@@ -170,9 +170,10 @@ inst)
     makensis /DANSI installer/q3.nsi
 	
 	VERSION=`cat version`
+	REVISION=`cat revision`
 	DATE=`date +%Y%m%d`
-	mv installer/q3u-win-x86-ja.exe installer/q3u-win-x86-ja-`printf $VERSION | tr . _`-$DATE.exe
-	mv installer/q3-win-x86-ja.exe installer/q3-win-x86-ja-`printf $VERSION | tr . _`-$DATE.exe
+	mv installer/q3u-win-x86-ja.exe installer/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
+	mv installer/q3-win-x86-ja.exe installer/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
     ;;
 
 *)
