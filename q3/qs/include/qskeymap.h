@@ -48,7 +48,6 @@ class QSEXPORTCLASS KeyMap
 public:
 	/**
 	 * Create instance.
-	 * Call operator! to check if success or not.
 	 *
 	 * @param pwszPath [in] Path to the file which keymap is loaded from.
 	 * @exception std::bad_alloc Out of memory.
@@ -57,7 +56,6 @@ public:
 	
 	/**
 	 * Create instance.
-	 * Call operator! to check if success or not.
 	 *
 	 * @param pInputStream [in] Stream which keymap is loaded from.
 	 * @exception std::bad_alloc Out of memory.
@@ -65,14 +63,6 @@ public:
 	KeyMap(InputStream* pInputStream);
 	
 	~KeyMap();
-
-public:
-	/**
-	 * Check if keymap was loaded successfully or not.
-	 *
-	 * @return true if success, false otherwise.
-	 */
-	bool operator!() const;
 
 public:
 	/**

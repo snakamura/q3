@@ -7,7 +7,9 @@
  */
 
 #include <qsaccelerator.h>
+#include <qsinit.h>
 #include <qskeymap.h>
+#include <qslog.h>
 #include <qsstl.h>
 #include <qsstream.h>
 
@@ -34,6 +36,7 @@ struct qs::KeyMapImpl
 	typedef std::vector<ACCEL> AccelList;
 	
 	bool load(InputStream* pInputStream);
+	void clear();
 	void loadAccelerator(const WCHAR* pwszName,
 						 const KeyNameToId* pKeyNameToId,
 						 int nMapSize,
@@ -52,7 +55,22 @@ bool qs::KeyMapImpl::load(InputStream* pInputStream)
 	KeyMapContentHandler handler(&mapAccel_);
 	reader.setContentHandler(&handler);
 	InputSource source(pInputStream);
-	return reader.parse(&source);
+	if (!reader.parse(&source)) {
+		clear();
+		return false;
+	}
+	return true;
+}
+
+void qs::KeyMapImpl::clear()
+{
+	std::for_each(mapAccel_.begin(), mapAccel_.end(),
+		unary_compose_f_gx(
+			unary_compose_fx_gx(
+				string_free<WSTRING>(),
+				string_free<WSTRING>()),
+			std::select1st<AccelMap::value_type>()));
+	mapAccel_.clear();
 }
 
 void qs::KeyMapImpl::loadAccelerator(const WCHAR* pwszName,
@@ -154,16 +172,17 @@ qs::KeyMap::KeyMap(const WCHAR* pwszPath) :
 {
 	assert(pwszPath);
 	
+	pImpl_ = new KeyMapImpl();
+	
 	FileInputStream fileStream(pwszPath);
 	if (!fileStream)
 		return;
 	BufferedInputStream stream(&fileStream, false);
 	
-	std::auto_ptr<KeyMapImpl> pImpl(new KeyMapImpl());
-	if (!pImpl->load(&stream))
-		return;
-	
-	pImpl_ = pImpl.release();
+	if (!pImpl_->load(&stream)) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::KeyMap");
+		log.error(L"Could not load keymap.");
+	}
 }
 
 qs::KeyMap::KeyMap(InputStream* pInputStream) :
@@ -171,31 +190,20 @@ qs::KeyMap::KeyMap(InputStream* pInputStream) :
 {
 	assert(pInputStream);
 	
-	std::auto_ptr<KeyMapImpl> pImpl(new KeyMapImpl());
-	if (!pImpl->load(pInputStream))
-		return;
+	pImpl_ = new KeyMapImpl();
 	
-	pImpl_ = pImpl.release();
+	if (!pImpl_->load(pInputStream)) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::KeyMap");
+		log.error(L"Could not load keymap.");
+	}
 }
 
 qs::KeyMap::~KeyMap()
 {
 	if (pImpl_) {
-		std::for_each(pImpl_->mapAccel_.begin(), pImpl_->mapAccel_.end(),
-			unary_compose_f_gx(
-				unary_compose_fx_gx(
-					string_free<WSTRING>(),
-					string_free<WSTRING>()),
-				std::select1st<KeyMapImpl::AccelMap::value_type>()));
-		
+		pImpl_->clear();
 		delete pImpl_;
-		pImpl_ = 0;
 	}
-}
-
-bool qs::KeyMap::operator!() const
-{
-	return pImpl_ == 0;
 }
 
 std::auto_ptr<Accelerator> qs::KeyMap::createAccelerator(AcceleratorFactory* pFactory,
