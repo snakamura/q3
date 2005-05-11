@@ -5071,8 +5071,8 @@ qm::ToolScriptAction::~ToolScriptAction()
 
 void qm::ToolScriptAction::invoke(const ActionEvent& event)
 {
-	const WCHAR* pwszName = pScriptMenu_->getScript(event.getId());
-	if (!pwszName)
+	wstring_ptr wstrName = pScriptMenu_->getScript(event.getId());
+	if (!wstrName.get())
 		return;
 	
 	ScriptManager::WindowInfo info;
@@ -5094,7 +5094,7 @@ void qm::ToolScriptAction::invoke(const ActionEvent& event)
 	
 	ScriptManager* pScriptManager = pScriptMenu_->getScriptManager();
 	std::auto_ptr<Script> pScript(pScriptManager->getScript(
-		pwszName, pDocument_, pProfile_, getModalHandler(), info));
+		wstrName.get(), pDocument_, pProfile_, getModalHandler(), info));
 	if (pScript.get())
 		pScript->run(0, 0, 0);
 }

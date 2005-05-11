@@ -644,13 +644,16 @@ qm::ScriptMenu::ScriptMenu(ScriptManager* pScriptManager) :
 
 qm::ScriptMenu::~ScriptMenu()
 {
-	clear();
 }
 
-const WCHAR* qm::ScriptMenu::getScript(unsigned int nId) const
+wstring_ptr qm::ScriptMenu::getScript(unsigned int nId) const
 {
-	if (IDM_TOOL_SCRIPT <= nId && nId < IDM_TOOL_SCRIPT + list_.size())
-		return list_[nId - IDM_TOOL_SCRIPT];
+	ScriptManager::NameList l;
+	StringListFree<ScriptManager::NameList> free(l);
+	pScriptManager_->getScriptNames(&l);
+	
+	if (IDM_TOOL_SCRIPT <= nId && nId < IDM_TOOL_SCRIPT + l.size())
+		return allocWString(l[nId - IDM_TOOL_SCRIPT]);
 	else
 		return 0;
 }
@@ -666,21 +669,16 @@ bool qm::ScriptMenu::createMenu(HMENU hmenu)
 	
 	while (::DeleteMenu(hmenu, 0, MF_BYPOSITION));
 	
-	clear();
-	
 	ScriptManager::NameList l;
 	StringListFree<ScriptManager::NameList> free(l);
 	pScriptManager_->getScriptNames(&l);
 	
 	UINT nId = IDM_TOOL_SCRIPT;
 	
-	for (ScriptManager::NameList::iterator it = l.begin();
-		it != l.end() && list_.size() < MAX_SCRIPT; ++it, ++nId) {
-		wstring_ptr wstrMenu(UIUtil::formatMenu(*it));
+	for (ScriptManager::NameList::size_type n = 0; n < l.size() && n < MAX_SCRIPT; ++n, ++nId) {
+		wstring_ptr wstrMenu(UIUtil::formatMenu(l[n]));
 		W2T(wstrMenu.get(), ptszMenu);
 		::AppendMenu(hmenu, MF_STRING, nId, ptszMenu);
-		list_.push_back(*it);
-		*it = 0;
 	}
 	
 	if (l.empty()) {
@@ -691,12 +689,6 @@ bool qm::ScriptMenu::createMenu(HMENU hmenu)
 	}
 	
 	return true;
-}
-
-void qm::ScriptMenu::clear()
-{
-	std::for_each(list_.begin(), list_.end(), string_free<WSTRING>());
-	list_.clear();
 }
 
 

@@ -335,23 +335,16 @@ public:
 	~ScriptMenu();
 
 public:
-	const WCHAR* getScript(unsigned int nId) const;
+	qs::wstring_ptr getScript(unsigned int nId) const;
 	ScriptManager* getScriptManager() const;
 	bool createMenu(HMENU hmenu);
-
-private:
-	void clear();
 
 private:
 	ScriptMenu(const ScriptMenu&);
 	ScriptMenu& operator=(const ScriptMenu&);
 
 private:
-	typedef std::vector<qs::WSTRING> List;
-
-private:
 	ScriptManager* pScriptManager_;
-	List list_;
 };
 
 
