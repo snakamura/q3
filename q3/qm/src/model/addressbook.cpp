@@ -1445,7 +1445,7 @@ qm::WindowsAddressBook::~WindowsAddressBook()
 
 bool qm::WindowsAddressBook::init(bool bAddressOnly)
 {
-	Registry reg(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\WAB\\DLLPath");
+	Registry reg(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\WAB\\DLLPath", true);
 	if (!reg)
 		return false;
 	
@@ -1517,7 +1517,7 @@ bool qm::OutlookAddressBook::init(bool bAddressOnly)
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qm::OutlookAddressBook");
 	
-	Registry reg(HKEY_LOCAL_MACHINE, L"Software\\Clients\\Mail\\Microsoft Outlook");
+	Registry reg(HKEY_LOCAL_MACHINE, L"Software\\Clients\\Mail\\Microsoft Outlook", true);
 	if (!reg) {
 		log.info(L"Registry key for Outlook is not found.");
 		return false;

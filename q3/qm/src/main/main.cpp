@@ -354,7 +354,7 @@ bool qm::MailFolderLock::setWindow(HWND hwnd)
 	
 	wstring_ptr wstrName;
 #ifdef _WIN32_WCE
-	Registry reg(HKEY_LOCAL_MACHINE, L"Ident");
+	Registry reg(HKEY_LOCAL_MACHINE, L"Ident", true);
 	if (reg)
 		reg.getValue(L"Name", &wstrName);
 #else

@@ -1045,7 +1045,7 @@ wstring_ptr qm::MessageCreator::getContentTypeFromExtension(const WCHAR* pwszExt
 	wstring_ptr wstrExt(concat(L".", pwszExtension));
 	wstring_ptr wstrContentType;
 	
-	Registry reg(HKEY_CLASSES_ROOT, wstrExt.get());
+	Registry reg(HKEY_CLASSES_ROOT, wstrExt.get(), true);
 	if (reg) {
 		if (reg.getValue(L"Content Type", &wstrContentType)) {
 			if (wstrContentType.get() &&

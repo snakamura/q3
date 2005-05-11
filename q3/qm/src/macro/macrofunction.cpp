@@ -773,7 +773,7 @@ MacroValuePtr qm::MacroFunctionComputerName::value(MacroContext* pContext) const
 	
 	wstring_ptr wstrName;
 #ifdef _WIN32_WCE
-	Registry reg(HKEY_LOCAL_MACHINE, L"Ident");
+	Registry reg(HKEY_LOCAL_MACHINE, L"Ident", true);
 	if (!reg)
 		return MacroValuePtr();
 	if (!reg.getValue(L"Name", &wstrName))
