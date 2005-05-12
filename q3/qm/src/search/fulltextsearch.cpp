@@ -45,7 +45,7 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 									  MessageHolderList* pList)
 {
 	wstring_ptr wstrCommand(pProfile_->getString(L"FullTextSearch",
-		L"Command", L"namazu -l \"$condition\" \"$index\""));
+		L"Command", L"namazu -l -a \"$condition\" \"$index\""));
 	
 	wstrCommand = FullTextSearchUtil::replace(
 		wstrCommand.get(), L"$condition", context.getCondition());
