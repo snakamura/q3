@@ -983,6 +983,11 @@ bool qm::SyncManager::send(Document* pDocument,
 		pCallback->setPos(m + 1);
 	}
 	
+	if (!pAccount->flushMessageStore() ||
+		!pOutbox->saveMessageHolders() ||
+		!pSentbox->saveMessageHolders())
+		return false;
+	
 	return true;
 }
 
