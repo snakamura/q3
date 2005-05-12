@@ -1012,10 +1012,29 @@ void cbstdiobin(void);
  *************************************************************************************************/
 
 
+/* Add an allocated element at the end of a list.
+   `list' specifies a list handle.
+   `ptr' specifies the pointer to the region of an element.  The region should be allocated with
+   malloc and it is released by the function.
+   `size' specifies the size of the region. */
+void cblistpushbuf(CBLIST *list, char *ptr, int size);
+
+
 /* Get a map handle with specifying the number of buckets.
    `bnum' specifies the number of buckets.
    The return value is a map handle. */
 CBMAP *cbmapopenex(int bnum);
+
+
+/* Store a record with an allocated region.
+   `map' specifies a map handle.
+   `kbuf' specifies the pointer to the region of a key.
+   `ksiz' specifies the size of the region of the key.
+   `vbuf' specifies the pointer to the region of a value.  The region should be allocated with
+   malloc and it is released by the function.
+   `vsiz' specifies the size of the region of the value.
+   If the key overlaps, the existing record is overwritten. */
+void cbmapputvbuf(CBMAP *map, const char *kbuf, int ksiz, char *vbuf, int vsiz);
 
 
 /* Alias of `cbdatumptr'. */

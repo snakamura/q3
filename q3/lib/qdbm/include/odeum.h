@@ -49,6 +49,7 @@ typedef struct {                         /* type of structure for a database han
   int dmax;                              /* max number of the document ID */
   int dnum;                              /* number of the documents */
   int ldid;                              /* ID number of the last registered document */
+  char statechars[256];                  /* state of single byte characters */
 } ODEUM;
 
 typedef struct {                         /* type of structure for a document handle */
@@ -471,6 +472,25 @@ double odvectorcosine(const int *avec, const int *bvec, int vnum);
    The default setting is equivalent to `odsettuning(32749, 7, 262139, 8388608)'.  This function
    should be called before opening a handle. */
 void odsettuning(int ibnum, int idnum, int cbnum, int csiz);
+
+
+/* Break a text into words and store appearance forms and normalized form into lists.
+   `odeum' specifies a database handle.
+   `text' specifies the string of a text.
+   `awords' specifies a list handle into which appearance form is store.
+   `nwords' specifies a list handle into which normalized form is store.  If it is `NULL', it is
+   ignored.
+   Words are separated with space characters and such delimiters as period, comma and so on. */
+void odanalyzetext(ODEUM *odeum, const char *text, CBLIST *awords, CBLIST *nwords);
+
+
+/* Set the classes of characters used by `odanalyzetext'.
+   `odeum' specifies a database handle.
+   `spacechars' spacifies a string contains space characters.
+   `delimchars' spacifies a string contains delimiter characters.
+   `gluechars' spacifies a string contains glue characters. */
+void odsetcharclass(ODEUM *odeum, const char *spacechars, const char *delimchars,
+                    const char *gluechars);
 
 
 
