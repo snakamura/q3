@@ -1106,8 +1106,10 @@ void qm::HtmlMessageViewWindow::ContentManager::prepareRelatedContent(HtmlMessag
 				pwszSubType = pContentType->getSubType();
 				wstrCharset = pContentType->getParameter(L"charset");
 			}
-			if (pwszEncoding)
-				wstrCharset = allocWString(pwszEncoding);
+			
+			bool bText = _wcsicmp(pwszMediaType, L"text") == 0;
+			if (bText && pwszEncoding)
+				wstrCharset = allocWString(L"utf-16");
 			
 			size_t nMimeTypeLen = wcslen(pwszMediaType) + wcslen(pwszSubType) +
 				(wstrCharset.get() ? wcslen(wstrCharset.get()) + 12 : 0) + 2;
@@ -1122,14 +1124,30 @@ void qm::HtmlMessageViewWindow::ContentManager::prepareRelatedContent(HtmlMessag
 			}
 			assert(wcslen(wstrMimeType.get()) < nMimeTypeLen);
 			
-			malloc_size_ptr<unsigned char> pData(part.getBodyData());
-			if (!pData.get())
-				return;
+			malloc_size_ptr<unsigned char> pData;
+			if (bText && pwszEncoding) {
+				wxstring_size_ptr wstrBody(part.getBodyText(pwszEncoding));
+				if (!wstrBody.get())
+					return;
+				malloc_ptr<WCHAR> p(static_cast<WCHAR*>(
+					malloc((wstrBody.size() + 2)*sizeof(WCHAR))));
+				if (!p.get())
+					return;
+				*p = 0xfeff;
+				wcscpy(p.get() + 1, wstrBody.get());
+				pData.reset(reinterpret_cast<unsigned char*>(p.release()),
+					(wstrBody.size() + 1)*sizeof(WCHAR));
+			}
+			else {
+				pData = part.getBodyData();
+				if (!pData.get())
+					return;
+			}
 			Content content = {
 				pHtmlMessageViewWindow,
 				wstrId.get(),
 				wstrMimeType.get(),
-				pData.get(),
+				pData.release(),
 				pData.size()
 			};
 			listContent_.push_back(content);
