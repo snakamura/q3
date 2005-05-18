@@ -493,6 +493,23 @@ void odsetcharclass(ODEUM *odeum, const char *spacechars, const char *delimchars
                     const char *gluechars);
 
 
+/* Query a database using a small boolean query language.
+   `odeum' specifies a database handle.
+   'query' specifies the text of the query.
+   `np' specifies the pointer to a variable to which the number of the elements of the return
+   value is assigned.
+   `errors' specifies a list handle into which error messages are stored.  If it is `NULL', it
+   is ignored.
+   If successful, the return value is the pointer to an array, else, it is `NULL'.  Each
+   element of the array is a pair of the ID number and the score of a document, and sorted in
+   descending order of their scores.  Even if no document corresponds to the specified condition,
+   it is not error but returns an dummy array.
+   Because the region of the return value is allocated with the `malloc' call, it should be
+   released with the `free' call if it is no longer in use.  Note that each element of the array
+   of the return value can be data of a deleted document. */
+ODPAIR *odquery(ODEUM *odeum, const char *query, int *np, CBLIST *errors);
+
+
 
 /*************************************************************************************************
  * features for experts
