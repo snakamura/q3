@@ -2940,12 +2940,15 @@ class ViewNavigateMessageAction : public qs::AbstractAction
 {
 public:
 	enum Type {
-		TYPE_NEXT,
-		TYPE_PREV,
-		TYPE_NEXTUNSEEN,
-		TYPE_NEXTPAGE,
-		TYPE_PREVPAGE,
-		TYPE_SELF
+		TYPE_NEXT			= 0x01,
+		TYPE_PREV			= 0x02,
+		TYPE_NEXTUNSEEN		= 0x03,
+		TYPE_NEXTPAGE		= 0x04,
+		TYPE_PREVPAGE		= 0x05,
+		TYPE_SELF			= 0x06,
+		TYPE_TYPE_MASK		= 0x0f,
+		
+		TYPE_NEXTPAGEUNSEEN	= 0x10
 	};
 
 public:
@@ -2953,10 +2956,12 @@ public:
 							  FolderModel* pFolderModel,
 							  MainWindow* pMainWindow,
 							  MessageWindow* pMessageWindow,
+							  qs::Profile* pProfile,
 							  Type type);
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
 							  ViewModelHolder* pViewModelHolder,
 							  MessageWindow* pMessageWindow,
+							  qs::Profile* pProfile,
 							  Type type);
 	virtual ~ViewNavigateMessageAction();
 
@@ -2965,6 +2970,7 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	void init(qs::Profile* pProfile);
 	std::pair<ViewModel*, unsigned int> getNextUnseen(ViewModel* pViewModel,
 													  unsigned int nIndex) const;
 	bool isUnseenFolder(const Folder* pFolder) const;
@@ -2979,7 +2985,7 @@ private:
 	ViewModelHolder* pViewModelHolder_;
 	MainWindow* pMainWindow_;
 	MessageWindow* pMessageWindow_;
-	Type type_;
+	unsigned int nType_;
 };
 
 

@@ -5689,31 +5689,37 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pView
 														 FolderModel* pFolderModel,
 														 MainWindow* pMainWindow,
 														 MessageWindow* pMessageWindow,
+														 Profile* pProfile,
 														 Type type) :
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
 	pViewModelHolder_(0),
 	pMainWindow_(pMainWindow),
 	pMessageWindow_(pMessageWindow),
-	type_(type)
+	nType_(type)
 {
 	assert(pViewModelManager);
 	assert(pMessageWindow);
+	
+	init(pProfile);
 }
 
 qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
 														 ViewModelHolder* pViewModelHolder,
 														 MessageWindow* pMessageWindow,
+														 Profile* pProfile,
 														 Type type) :
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(0),
 	pViewModelHolder_(pViewModelHolder),
 	pMainWindow_(0),
 	pMessageWindow_(pMessageWindow),
-	type_(type)
+	nType_(type)
 {
 	assert(pViewModelManager);
 	assert(pMessageWindow);
+	
+	init(pProfile);
 }
 
 qm::ViewNavigateMessageAction::~ViewNavigateMessageAction()
@@ -5722,7 +5728,7 @@ qm::ViewNavigateMessageAction::~ViewNavigateMessageAction()
 
 void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 {
-	Type type = type_;
+	Type type = static_cast<Type>(nType_ & TYPE_TYPE_MASK);
 	bool bPreview = pFolderModel_ != 0;
 	assert((bPreview && pFolderModel_ && pMainWindow_) ||
 		(!bPreview && !pFolderModel_ && !pMainWindow_));
@@ -5730,8 +5736,8 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	MessageModel* pMessageModel = pMessageWindow_->getMessageModel();
 	
 	if (bPreview && (type == TYPE_NEXTPAGE || type == TYPE_PREVPAGE)) {
-		MessagePtrLock lock(pMessageModel->getCurrentMessage());
-		if (!lock)
+		MessagePtrLock mpl(pMessageModel->getCurrentMessage());
+		if (!mpl)
 			type = TYPE_SELF;
 	}
 	
@@ -5746,7 +5752,7 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	case TYPE_NEXTPAGE:
 		if (pMessageWindow_->scrollPage(false))
 			return;
-		type = TYPE_NEXT;
+		type = nType_ & TYPE_NEXTPAGEUNSEEN ? TYPE_NEXTUNSEEN : TYPE_NEXT;
 		break;
 	case TYPE_PREVPAGE:
 		if (pMessageWindow_->scrollPage(true))
@@ -5845,6 +5851,13 @@ bool qm::ViewNavigateMessageAction::isEnabled(const ActionEvent& event)
 {
 	// TODO
 	return true;
+}
+
+void qm::ViewNavigateMessageAction::init(qs::Profile* pProfile)
+{
+	if (nType_ == TYPE_NEXTPAGE &&
+		pProfile->getInt(L"Global", L"NextUnseenWhenScrollEnd", 0))
+		nType_ |= TYPE_NEXTPAGEUNSEEN;
 }
 
 std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen(ViewModel* pViewModel,
