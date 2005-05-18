@@ -35,6 +35,7 @@ class OptionDialogPanel;
 class OptionDialogContext;
 class OptionDialogManager;
 class OptionAddressBookDialog;
+class OptionConfirmDialog;
 class OptionFolderDialog;
 class OptionHeaderDialog;
 #ifndef _WIN32_WCE
@@ -133,6 +134,7 @@ public:
 		PANEL_SYNCFILTERS,
 		PANEL_AUTOPILOT,
 		
+		PANEL_CONFIRM,
 		PANEL_MISC,
 		PANEL_MISC2,
 #ifndef _WIN32_WCE
@@ -444,6 +446,39 @@ private:
 
 private:
 	static External externals__[];
+};
+
+
+/****************************************************************************
+ *
+ * OptionConfirmDialog
+ *
+ */
+
+class OptionConfirmDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionConfirmDialog>
+{
+public:
+	explicit OptionConfirmDialog(qs::Profile* pProfile);
+	virtual ~OptionConfirmDialog();
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	OptionConfirmDialog(const OptionConfirmDialog&);
+	OptionConfirmDialog& operator=(const OptionConfirmDialog&);
+
+private:
+	qs::Profile* pProfile_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
 };
 
 

@@ -108,6 +108,7 @@
 #define IDD_OPTIONEDIT2                 211
 #define IDD_SECURITY                    212
 #define IDD_OPTIONMISC2                 213
+#define IDD_OPTIONCONFIRM               215
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -493,6 +494,7 @@
 #define IDC_OPENADDRESSBOOK             1398
 #define IDC_QUOTE                       1399
 #define IDC_INCREMENTALSEARCH           1400
+#define IDC_SHOWNEXTUNSEENWHENSCROLLEND 1403
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -508,23 +510,24 @@
 #define IDS_PANEL_ADDRESSBOOK           2501
 #define IDS_PANEL_AUTOPILOT             2502
 #define IDS_PANEL_COLORS                2503
-#define IDS_PANEL_EDIT                  2504
-#define IDS_PANEL_EDIT2                 2505
-#define IDS_PANEL_FILTERS               2506
-#define IDS_PANEL_FIXEDFORMTEXTS        2507
-#define IDS_PANEL_FOLDER                2508
-#define IDS_PANEL_GOROUND               2509
-#define IDS_PANEL_HEADER                2510
-#define IDS_PANEL_LIST                  2512
-#define IDS_PANEL_MESSAGE               2513
-#define IDS_PANEL_MISC                  2514
-#define IDS_PANEL_MISC2                 2515
-#define IDS_PANEL_PREVIEW               2516
-#define IDS_PANEL_RULES                 2517
-#define IDS_PANEL_SECURITY              2518
-#define IDS_PANEL_SIGNATURES            2519
-#define IDS_PANEL_SYNCFILTERS           2520
-#define IDS_PANEL_TAB                   2521
+#define IDS_PANEL_CONFIRM               2504
+#define IDS_PANEL_EDIT                  2505
+#define IDS_PANEL_EDIT2                 2506
+#define IDS_PANEL_FILTERS               2507
+#define IDS_PANEL_FIXEDFORMTEXTS        2508
+#define IDS_PANEL_FOLDER                2509
+#define IDS_PANEL_GOROUND               2510
+#define IDS_PANEL_HEADER                2511
+#define IDS_PANEL_LIST                  2513
+#define IDS_PANEL_MESSAGE               2514
+#define IDS_PANEL_MISC                  2515
+#define IDS_PANEL_MISC2                 2516
+#define IDS_PANEL_PREVIEW               2517
+#define IDS_PANEL_RULES                 2518
+#define IDS_PANEL_SECURITY              2519
+#define IDS_PANEL_SIGNATURES            2520
+#define IDS_PANEL_SYNCFILTERS           2521
+#define IDS_PANEL_TAB                   2522
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -585,7 +588,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        215
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1403
+#define _APS_NEXT_CONTROL_VALUE         1404
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -1640,27 +1640,23 @@ IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 137, 119
 STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
-    CONTROL         "Confirm before deleting &messages",
-                    IDC_CONFIRMDELETEMESSAGE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,5,120,8
-    CONTROL         "Confirm before emptying &folder",IDC_CONFIRMEMPTYFOLDER,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,15,110,8
-    CONTROL         "Confirm before emptying &trash",IDC_CONFIRMEMPTYTRASH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,115,8
+    CONTROL         "Show next unseen when scroll to end(*)",
+                    IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,5,5,125,17
     CONTROL         "&Empty trash on exit",IDC_EMPTYTRASHONEXIT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,75,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,75,8
     CONTROL         "Sa&ve message mode per folder(*)",
                     IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,120,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,120,8
     CONTROL         "&Save when window is deactivated",IDC_SAVEONDEACTIVATE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,55,125,8
-    LTEXT           "Tem&p folder",IDC_STATIC,5,65,40,8
-    EDITTEXT        IDC_TEMPORARYFOLDER,5,75,82,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Browse...",IDC_BROWSE,92,75,40,12
-    LTEXT           "En&codings(*)",IDC_STATIC,5,92,45,8
-    EDITTEXT        IDC_ENCODING,50,90,82,12,ES_AUTOHSCROLL
-    LTEXT           "&Log",IDC_STATIC,5,107,25,8
-    COMBOBOX        IDC_LOG,50,105,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,125,8
+    LTEXT           "Tem&p folder",IDC_STATIC,5,55,40,8
+    EDITTEXT        IDC_TEMPORARYFOLDER,5,65,82,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,92,65,40,12
+    LTEXT           "En&codings(*)",IDC_STATIC,5,82,45,8
+    EDITTEXT        IDC_ENCODING,50,81,82,12,ES_AUTOHSCROLL
+    LTEXT           "&Log",IDC_STATIC,5,97,25,8
+    COMBOBOX        IDC_LOG,50,96,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
 END
 
@@ -1722,6 +1718,19 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,125,8
     LTEXT           "&Quote",IDC_STATIC,5,77,20,8
     EDITTEXT        IDC_QUOTE,30,75,40,12,ES_AUTOHSCROLL
+END
+
+IDD_OPTIONCONFIRM DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Confirm before deleting &messages",
+                    IDC_CONFIRMDELETEMESSAGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,120,8
+    CONTROL         "Confirm before emptying &folder",IDC_CONFIRMEMPTYFOLDER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,15,110,8
+    CONTROL         "Confirm before emptying &trash",IDC_CONFIRMEMPTYTRASH,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,115,8
 END
 
 
@@ -2306,6 +2315,7 @@ BEGIN
     IDS_PANEL_ADDRESSBOOK   "Address Book"
     IDS_PANEL_AUTOPILOT     "Auto Pilot"
     IDS_PANEL_COLORS        "Colors"
+    IDS_PANEL_CONFIRM       "Confirmation"
     IDS_PANEL_EDIT          "Edit"
     IDS_PANEL_EDIT2         "Edit2"
     IDS_PANEL_FILTERS       "Filters"

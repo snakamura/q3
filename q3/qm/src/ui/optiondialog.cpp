@@ -195,6 +195,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FILTERS,		IDS_PANEL_FILTERS			},
 		{ PANEL_SYNCFILTERS,	IDS_PANEL_SYNCFILTERS		},
 		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
+		{ PANEL_CONFIRM,		IDS_PANEL_CONFIRM			},
 		{ PANEL_MISC,			IDS_PANEL_MISC				},
 		{ PANEL_MISC2,			IDS_PANEL_MISC2				},
 #ifndef _WIN32_WCE
@@ -483,6 +484,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
 			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
+			PANEL1(PANEL_CONFIRM, OptionConfirm, pProfile_);
 			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
 			PANEL1(PANEL_MISC2, OptionMisc2, pProfile_);
 #ifndef _WIN32_WCE
@@ -975,6 +977,46 @@ LRESULT qm::OptionAddressBookDialog::onFont()
 
 /****************************************************************************
  *
+ * OptionConfirmDialog
+ *
+ */
+
+DialogUtil::BoolProperty qm::OptionConfirmDialog::boolProperties__[] = {
+	{ L"ConfirmDeleteMessage",			IDC_CONFIRMDELETEMESSAGE,			false	},
+	{ L"ConfirmEmptyFolder",			IDC_CONFIRMEMPTYFOLDER,				true	},
+	{ L"ConfirmEmptyTrash",				IDC_CONFIRMEMPTYTRASH,				true	}
+};
+
+qm::OptionConfirmDialog::OptionConfirmDialog(Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONCONFIRM),
+	pProfile_(pProfile)
+{
+}
+
+qm::OptionConfirmDialog::~OptionConfirmDialog()
+{
+}
+
+LRESULT qm::OptionConfirmDialog::onInitDialog(HWND hwndFocus,
+											  LPARAM lParam)
+{
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"Global", boolProperties__, countof(boolProperties__));
+	
+	return FALSE;
+}
+
+bool qm::OptionConfirmDialog::save(OptionDialogContext* pContext)
+{
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"Global", boolProperties__, countof(boolProperties__));
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
  * OptionFolderDialog
  *
  */
@@ -1259,9 +1301,7 @@ LRESULT qm::OptionListDialog::onFont()
  */
 
 DialogUtil::BoolProperty qm::OptionMiscDialog::boolProperties__[] = {
-	{ L"ConfirmDeleteMessage",			IDC_CONFIRMDELETEMESSAGE,			false	},
-	{ L"ConfirmEmptyFolder",			IDC_CONFIRMEMPTYFOLDER,				true	},
-	{ L"ConfirmEmptyTrash",				IDC_CONFIRMEMPTYTRASH,				true	},
+	{ L"NextUnseenWhenScrollEnd",		IDC_SHOWNEXTUNSEENWHENSCROLLEND,	false	},
 	{ L"EmptyTrashOnExit",				IDC_EMPTYTRASHONEXIT,				false	},
 	{ L"SaveMessageViewModePerFolder",	IDC_SAVEMESSAGEVIEWMODEPERFOLDER,	true	},
 	{ L"SaveOnDeactivate",				IDC_SAVEONDEACTIVATE,				false	},
