@@ -487,7 +487,8 @@ void qm::RuleSet::clear()
  *
  */
 
-qm::Rule::Rule()
+qm::Rule::Rule() :
+	nUse_(USE_MANUAL | USE_AUTO)
 {
 }
 
