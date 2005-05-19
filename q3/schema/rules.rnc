@@ -8,7 +8,14 @@ start = element rules {
 			## ルールが適用される条件（マクロ）
 			attribute match {
 				xsd:string
-			}
+			},
+			# ルールが適用される場面
+			# manualの時には手動時のみ
+			# autoの時には自動時のみ
+			# 指定されない場合には両方
+			attribute use {
+				"manual" | "auto"
+			}?
 		}*,
 		## ルールが適用されるアカウント（正規表現）
 		## 指定されない場合、全てのアカウント
