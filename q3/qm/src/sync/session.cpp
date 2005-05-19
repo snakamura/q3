@@ -6,10 +6,13 @@
  *
  */
 
+#include <qmapplication.h>
 #include <qmsecurity.h>
 #include <qmsession.h>
 
 #include <qsstl.h>
+
+#include "../ui/resourceinc.h"
 
 #pragma warning(disable:4786)
 
@@ -501,4 +504,57 @@ unsigned int qm::DefaultSSLSocketCallback::getOption()
 const WCHAR* qm::DefaultSSLSocketCallback::getHost()
 {
 	return pSubAccount_->getHost(host_);
+}
+
+
+/****************************************************************************
+ *
+ * DefaultReceiveSessionRuleCallback
+ *
+ */
+
+qm::DefaultReceiveSessionRuleCallback::DefaultReceiveSessionRuleCallback(ReceiveSessionCallback* pCallback) :
+	pCallback_(pCallback)
+{
+}
+
+qm::DefaultReceiveSessionRuleCallback::~DefaultReceiveSessionRuleCallback()
+{
+}
+
+bool qm::DefaultReceiveSessionRuleCallback::isCanceled()
+{
+	return pCallback_->isCanceled(false);
+}
+
+void qm::DefaultReceiveSessionRuleCallback::checkingMessages(Folder* pFolder)
+{
+	wstring_ptr wstrMessage(getMessage(IDS_APPLYRULE_CHECKINGMESSAGES, pFolder));
+	pCallback_->setMessage(wstrMessage.get());
+}
+
+void qm::DefaultReceiveSessionRuleCallback::applyingRule(Folder* pFolder)
+{
+	wstring_ptr wstrMessage(getMessage(IDS_APPLYRULE_APPLYINGRULE, pFolder));
+	pCallback_->setMessage(wstrMessage.get());
+}
+
+void qm::DefaultReceiveSessionRuleCallback::setRange(unsigned int nMin,
+													 unsigned int nMax)
+{
+	pCallback_->setRange(nMin, nMax);
+}
+
+void qm::DefaultReceiveSessionRuleCallback::setPos(unsigned int nPos)
+{
+	pCallback_->setPos(nPos);
+}
+
+wstring_ptr qm::DefaultReceiveSessionRuleCallback::getMessage(UINT nId,
+															  Folder* pFolder)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrMessage(loadString(hInst, nId));
+	wstring_ptr wstrName(pFolder->getFullName());
+	return concat(wstrMessage.get(), L" : ", wstrName.get());
 }

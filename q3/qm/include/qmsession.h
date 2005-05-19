@@ -13,6 +13,7 @@
 #include <qmaccount.h>
 #include <qmfolder.h>
 #include <qmpassword.h>
+#include <qmrule.h>
 
 #include <qs.h>
 #include <qsdialog.h>
@@ -39,6 +40,7 @@ class SendSessionFactory;
 class SessionErrorInfo;
 class AbstractSSLSocketCallback;
 	class DefaultSSLSocketCallback;
+class DefaultReceiveSessionRuleCallback;
 
 class Account;
 class Document;
@@ -114,7 +116,6 @@ public:
 	virtual bool init(Document* pDocument,
 					  Account* pAccount,
 					  SubAccount* pSubAccount,
-					  HWND hwnd,
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  ReceiveSessionCallback* pCallback) = 0;
@@ -417,6 +418,35 @@ private:
 private:
 	SubAccount* pSubAccount_;
 	Account::Host host_;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultReceiveSessionRuleCallback
+ *
+ */
+
+class QMEXPORTCLASS DefaultReceiveSessionRuleCallback : public RuleCallback
+{
+public:
+	DefaultReceiveSessionRuleCallback(ReceiveSessionCallback* pCallback);
+	virtual ~DefaultReceiveSessionRuleCallback();
+
+public:
+	virtual bool isCanceled();
+	virtual void checkingMessages(Folder* pFolder);
+	virtual void applyingRule(Folder* pFolder);
+	virtual void setRange(unsigned int nMin,
+						  unsigned int nMax);
+	virtual void setPos(unsigned int nPos);
+
+private:
+	qs::wstring_ptr getMessage(UINT nId,
+							   Folder* pFolder);
+
+private:
+	ReceiveSessionCallback* pCallback_;
 };
 
 }

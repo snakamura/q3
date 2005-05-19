@@ -95,6 +95,8 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 		pSubAccount_->isTreatAsSent() ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_ADDMESSAGEID, BM_SETCHECK,
 		pSubAccount_->isAddMessageId() ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_AUTOAPPLYRULES, BM_SETCHECK,
+		pSubAccount_->isAutoApplyRules() ? BST_CHECKED : BST_UNCHECKED);
 #ifndef _WIN32_WCE
 	sendDlgItemMessage(IDC_JUNKFILTER, BM_SETCHECK,
 		pSubAccount_->isJunkFilterEnabled() ? BST_CHECKED : BST_UNCHECKED);
@@ -126,6 +128,8 @@ LRESULT qm::AccountAdvancedPage::onOk()
 		sendDlgItemMessage(IDC_TREATASSENT, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->setAddMessageId(
 		sendDlgItemMessage(IDC_ADDMESSAGEID, BM_GETCHECK) == BST_CHECKED);
+	pSubAccount_->setAutoApplyRules(
+		sendDlgItemMessage(IDC_AUTOAPPLYRULES, BM_GETCHECK) == BST_CHECKED);
 #ifndef _WIN32_WCE
 	pSubAccount_->setJunkFilterEnabled(
 		sendDlgItemMessage(IDC_JUNKFILTER, BM_GETCHECK) == BST_CHECKED);

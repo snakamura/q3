@@ -369,7 +369,7 @@ void qm::EditClearDeletedAction::invoke(const ActionEvent& event)
 	
 	if (!l.empty()) {
 		if (!SyncUtil::syncFolders(pSyncManager_, pDocument_, pSyncDialogManager_,
-			hwnd_, SyncDialog::FLAG_NONE, l, ReceiveSyncItem::FLAG_EXPUNGE)) {
+			SyncDialog::FLAG_NONE, l, ReceiveSyncItem::FLAG_EXPUNGE)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
 			return;
 		}
@@ -828,7 +828,7 @@ void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				hwnd_, SyncDialog::FLAG_NONE, pNormalFolder, 0);
+				SyncDialog::FLAG_NONE, pNormalFolder, 0);
 		}
 #ifdef _WIN32_WCE
 		Clipboard clipboard(0);
@@ -1404,9 +1404,9 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 {
 	Message msg;
 	TemplateContext context(pmh, &msg, MessageHolderList(),
-		pmh->getFolder()->getAccount(), pDocument_, hwnd_,
-		pEncodingModel_->getEncoding(), pSecurityModel_->getSecurityMode(),
-		pProfile_, 0, TemplateContext::ArgumentList());
+		pmh->getFolder()->getAccount(), pDocument_, hwnd_, pEncodingModel_->getEncoding(),
+		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wstring_ptr wstrValue;
 	if (pTemplate->getValue(context, &wstrValue) != Template::RESULT_SUCCESS)
@@ -1540,7 +1540,7 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				hwnd_, SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0);
+				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0);
 		}
 		else {
 			if (!pFolder->getAccount()->save()) {
@@ -2196,8 +2196,8 @@ bool qm::FilePrintAction::print(Account* pAccount,
 	
 	Message msg;
 	TemplateContext context(pmh, &msg, listSelected, pAccount, pDocument_, hwnd_,
-		pEncodingModel_->getEncoding(), pSecurityModel_->getSecurityMode(),
-		pProfile_, 0, TemplateContext::ArgumentList());
+		pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wstring_ptr wstrValue;
 	switch (pTemplate->getValue(context, &wstrValue)) {
@@ -2751,7 +2751,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 	}
 	else if (pTrash->isFlag(Folder::FLAG_SYNCABLE)) {
 		if (!SyncUtil::syncFolder(pSyncManager, pDocument,
-			pSyncDialogManager, hwnd, SyncDialog::FLAG_NONE, pTrash,
+			pSyncDialogManager, SyncDialog::FLAG_NONE, pTrash,
 			ReceiveSyncItem::FLAG_EMPTY | ReceiveSyncItem::FLAG_EXPUNGE)) {
 			ActionUtil::error(hwnd, IDS_ERROR_EMPTYTRASH);
 			return;
@@ -3097,7 +3097,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		}
 		
 		wstring_ptr getMessage(UINT nId,
-							   Folder* pFolder) {
+							   Folder* pFolder)
+		{
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
 			wstring_ptr wstrMessage(loadString(hInst, nId));
 			wstring_ptr wstrName(pFolder->getFullName());
@@ -3125,7 +3126,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 					!pFolder->isFlag(Folder::FLAG_TRASHBOX) &&
 					!pFolder->isFlag(Folder::FLAG_JUNKBOX) &&
 					!pFolder->isHidden()) {
-					if (!pRuleManager_->apply(pFolder, 0, pDocument_, hwnd_, pProfile_,
+					if (!pRuleManager_->apply(pFolder, pDocument_, hwnd_, pProfile_,
 						pSecurityModel_->getSecurityMode(), &callback)) {
 						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 						return;
@@ -3147,7 +3148,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 					l[n] = pViewModel->getMessageHolder(n);
 				
 				ProgressDialogInit init(&dialog, hwnd_);
-				if (!pRuleManager_->apply(pFolder, &l, pDocument_, hwnd_, pProfile_,
+				if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
 					pSecurityModel_->getSecurityMode(), &callback)) {
 					ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 					return;
@@ -3162,7 +3163,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		if (!l.empty()) {
 			ProgressDialogInit init(&dialog, hwnd_);
-			if (!pRuleManager_->apply(pFolder, &l, pDocument_, hwnd_, pProfile_,
+			if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
 				pSecurityModel_->getSecurityMode(), &callback)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 				return;
@@ -4894,7 +4895,7 @@ void qm::ToolDialupAction::invoke(const ActionEvent& event)
 {
 	if (!isConnected()) {
 		std::auto_ptr<SyncData> pData(new SyncData(pSyncManager_,
-			pDocument_, hwnd_, false, SyncDialog::FLAG_SHOWDIALOG));
+			pDocument_, false, SyncDialog::FLAG_SHOWDIALOG));
 		
 		std::auto_ptr<SyncDialup> pDialup(new SyncDialup(
 			static_cast<const WCHAR*>(0),
@@ -4983,7 +4984,7 @@ void qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 	}
 	
 	if (!SyncUtil::goRound(pSyncManager_, pDocument_,
-		pSyncDialogManager_, hwnd_, SyncDialog::FLAG_SHOWDIALOG, pCourse)) {
+		pSyncDialogManager_, SyncDialog::FLAG_SHOWDIALOG, pCourse)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_GOROUND);
 		return;
 	}
@@ -5363,7 +5364,7 @@ void qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 		}
 		CustomFilterDialog dialog(pwszCondition);
 		if (dialog.doModal(hwnd_) == IDOK) {
-			MacroParser parser(MacroParser::TYPE_FILTER);
+			MacroParser parser;
 			std::auto_ptr<Macro> pCondition(parser.parse(dialog.getCondition()));
 			if (!pCondition.get()) {
 				// TODO
@@ -5996,7 +5997,7 @@ void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 	case Folder::TYPE_NORMAL:
 		if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
 			if (!SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				hwnd_, SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0)) {
+				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
 				return;
 			}

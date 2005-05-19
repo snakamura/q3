@@ -215,14 +215,12 @@ public:
 public:
 	SyncData(SyncManager* pManager,
 			 Document* pDocument,
-			 HWND hwnd,
 			 bool bAuto,
 			 unsigned int nCallbackParam);
 	~SyncData();
 
 public:
 	Document* getDocument() const;
-	HWND getWindow() const;
 	bool isAuto() const;
 	unsigned int getCallbackParam() const;
 	const SyncDialup* getDialup() const;
@@ -254,7 +252,6 @@ private:
 private:
 	SyncManager* pManager_;
 	Document* pDocument_;
-	HWND hwnd_;
 	bool bAuto_;
 	unsigned int nCallbackParam_;
 	SyncManagerCallback* pCallback_;
@@ -302,7 +299,6 @@ private:
 			  SyncManagerCallback* pSyncManagerCallback,
 			  const SendSyncItem* pItem);
 	bool openReceiveSession(Document* pDocument,
-							HWND hwnd,
 							SyncManagerCallback* pSyncManagerCallback,
 							const SyncItem* pItem,
 							bool bAuto,

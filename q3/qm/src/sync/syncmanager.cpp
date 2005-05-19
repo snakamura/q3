@@ -237,12 +237,10 @@ unsigned int qm::SyncDialup::getDisconnectWait() const
 
 qm::SyncData::SyncData(SyncManager* pManager,
 					   Document* pDocument,
-					   HWND hwnd,
 					   bool bAuto,
 					   unsigned int nCallbackParam) :
 	pManager_(pManager),
 	pDocument_(pDocument),
-	hwnd_(hwnd),
 	bAuto_(bAuto),
 	nCallbackParam_(nCallbackParam),
 	pCallback_(0),
@@ -258,11 +256,6 @@ qm::SyncData::~SyncData()
 Document* qm::SyncData::getDocument() const
 {
 	return pDocument_;
-}
-
-HWND qm::SyncData::getWindow() const
-{
-	return hwnd_;
 }
 
 bool qm::SyncData::isAuto() const
@@ -725,7 +718,7 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 						continue;
 					
 					std::auto_ptr<ReceiveSession> pReceiveSession;
-					if (!openReceiveSession(pData->getDocument(), pData->getWindow(),
+					if (!openReceiveSession(pData->getDocument(),
 						pCallback, pItem, pData->isAuto(),
 						&pReceiveSession, &pReceiveCallback, &pLogger))
 						continue;
@@ -992,7 +985,6 @@ bool qm::SyncManager::send(Document* pDocument,
 }
 
 bool qm::SyncManager::openReceiveSession(Document* pDocument,
-										 HWND hwnd,
 										 SyncManagerCallback* pSyncManagerCallback,
 										 const SyncItem* pItem,
 										 bool bAuto,
@@ -1023,7 +1015,7 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(new ReceiveSessionCallbackImpl(
 		pSyncManagerCallback, pDocument->getRecents(), bAuto));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
-		hwnd, pProfile_, pLogger.get(), pCallback.get()))
+		pProfile_, pLogger.get(), pCallback.get()))
 		return false;
 	
 	*ppSession = pSession;

@@ -218,11 +218,12 @@ MacroValuePtr qm::MacroFunctionAccount::value(MacroContext* pContext) const
 		bSub = pValue->boolean();
 	}
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (bSub && !pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
+	
 	Account* pAccount = pContext->getAccount();
-	assert(pAccount);
-	if (pmh)
-		pAccount = pmh->getFolder()->getAccount();
+	if (!pAccount)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
 	
 	const WCHAR* pwszName = 0;
 	if (bSub) {
@@ -279,11 +280,9 @@ MacroValuePtr qm::MacroFunctionAccountDirectory::value(MacroContext* pContext) c
 			return error(*pContext, MacroErrorHandler::CODE_UNKNOWNACCOUNT);
 	}
 	else {
-		MessageHolderBase* pmh = pContext->getMessageHolder();
-		Account* pAccount = pContext->getAccount();
-		assert(pAccount);
-		if (pmh)
-			pAccount = pmh->getFolder()->getAccount();
+		pAccount = pContext->getAccount();
+		if (!pAccount)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
 	}
 	
 	return MacroValueFactory::getFactory().newString(pAccount->getPath());
@@ -404,6 +403,11 @@ MacroValuePtr qm::MacroFunctionAddressBook::value(MacroContext* pContext) const
 	assert(pContext);
 	
 	LOG(AddressBook);
+	
+	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
+	else if (!pContext->isFlag(MacroContext::FLAG_UI))
+		return error(*pContext, MacroErrorHandler::CODE_NOUI);
 	
 	if (!checkArgSizeRange(pContext, 0, 3))
 		return MacroValuePtr();
@@ -919,6 +923,9 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 	
 	LOG(Copy);
 	
+	if (!pContext->isFlag(MacroContext::FLAG_MODIFY))
+		return error(*pContext, MacroErrorHandler::CODE_NOTMODIFIABLE);
+	
 	if (!checkArgSize(pContext, 1))
 		return MacroValuePtr();
 	
@@ -1098,6 +1105,9 @@ MacroValuePtr qm::MacroFunctionDelete::value(MacroContext* pContext) const
 	
 	LOG(Delete);
 	
+	if (!pContext->isFlag(MacroContext::FLAG_MODIFY))
+		return error(*pContext, MacroErrorHandler::CODE_NOTMODIFIABLE);
+	
 	if (!checkArgSize(pContext, 0))
 		return MacroValuePtr();
 	
@@ -1189,8 +1199,7 @@ const WCHAR* qm::MacroFunctionEqual::getName() const
  *
  */
 
-qm::MacroFunctionEval::MacroFunctionEval(MacroParser::Type type) :
-	type_(type)
+qm::MacroFunctionEval::MacroFunctionEval()
 {
 }
 
@@ -1210,8 +1219,7 @@ MacroValuePtr qm::MacroFunctionEval::value(MacroContext* pContext) const
 	ARG(pValue, 0);
 	wstring_ptr wstrExpr(pValue->string());
 	
-	MacroParser parser(type_);
-	
+	MacroParser parser;
 	std::auto_ptr<Macro> pMacro(parser.parse(wstrExpr.get()));
 	if (!pMacro.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
@@ -1856,6 +1864,9 @@ MacroValuePtr qm::MacroFunctionFormatAddress::value(MacroContext* pContext) cons
 	
 	LOG(FormatAddress);
 	
+	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
+	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return MacroValuePtr();
 	
@@ -2230,6 +2241,9 @@ MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 	
 	LOG(I);
 	
+	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
+	
 	if (!checkArgSizeRange(pContext, 0, 2))
 		return MacroValuePtr();
 	
@@ -2241,7 +2255,7 @@ MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 		wstrSubAccount = pValue->string();
 	}
 	
-	Account* pAccount = pContext->getAccount();
+	Account* pAccount = 0;
 	if (nSize > 0) {
 		ARG(pValue, 0);
 		wstring_ptr wstrAccount(pValue->string());
@@ -2249,7 +2263,11 @@ MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 		if (!pAccount)
 			return error(*pContext, MacroErrorHandler::CODE_UNKNOWNACCOUNT);
 	}
-	assert(pAccount);
+	else {
+		pAccount = pContext->getAccount();
+		if (!pAccount)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
+	}
 	
 	SubAccount* pSubAccount = 0;
 	if (wstrSubAccount.get())
@@ -2329,13 +2347,16 @@ MacroValuePtr qm::MacroFunctionIdentity::value(MacroContext* pContext) const
 	
 	LOG(Identity);
 	
+	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
+	
 	if (!checkArgSize(pContext, 0))
 		return MacroValuePtr();
 	
 	Account* pAccount = pContext->getAccount();
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (pmh)
-		pAccount = pmh->getFolder()->getAccount();
+	if (!pAccount)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
+	
 	const WCHAR* pwszIdentity = pAccount->getCurrentSubAccount()->getIdentity();
 	if (!pwszIdentity)
 		pwszIdentity = L"";
@@ -2395,8 +2416,7 @@ const WCHAR* qm::MacroFunctionIf::getName() const
  *
  */
 
-qm::MacroFunctionInclude::MacroFunctionInclude(MacroParser::Type type) :
-	type_(type)
+qm::MacroFunctionInclude::MacroFunctionInclude()
 {
 }
 
@@ -2436,7 +2456,7 @@ MacroValuePtr qm::MacroFunctionInclude::value(MacroContext* pContext) const
 		buf.append(wsz, nRead);
 	}
 	
-	MacroParser parser(type_);
+	MacroParser parser;
 	std::auto_ptr<Macro> pMacro(parser.parse(buf.getCharArray()));
 	if (!pMacro.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
@@ -2468,6 +2488,9 @@ MacroValuePtr qm::MacroFunctionInputBox::value(MacroContext* pContext) const
 	assert(pContext);
 	
 	LOG(InputBox);
+	
+	if (!pContext->isFlag(MacroContext::FLAG_UI))
+		return error(*pContext, MacroErrorHandler::CODE_NOUI);
 	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return MacroValuePtr();
@@ -2612,10 +2635,10 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		if (!pTemplate.get())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
-		TemplateContext context(pContext->getMessageHolder(),
-			pContext->getMessage(), pContext->getSelectedMessageHolders(),
-			pContext->getAccount(), pContext->getDocument(), pContext->getWindow(),
-			pContext->getBodyCharset(), pContext->getSecurityMode(), pContext->getProfile(),
+		TemplateContext context(pContext->getMessageHolder(), pContext->getMessage(),
+			pContext->getSelectedMessageHolders(), pContext->getAccount(),
+			pContext->getDocument(), pContext->getWindow(), pContext->getBodyCharset(),
+			pContext->getFlags(), pContext->getSecurityMode(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());
 		switch (pTemplate->getValue(context, &wstr)) {
 		case Template::RESULT_SUCCESS:
@@ -2672,6 +2695,9 @@ MacroValuePtr qm::MacroFunctionMessageBox::value(MacroContext* pContext) const
 	assert(pContext);
 	
 	LOG(MessageBox);
+	
+	if (!pContext->isFlag(MacroContext::FLAG_UI))
+		return error(*pContext, MacroErrorHandler::CODE_NOUI);
 	
 	if (!checkArgSizeRange(pContext, 1, 2))
 		return MacroValuePtr();
@@ -2743,7 +2769,7 @@ MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 	if (wstrFolder.get()) {
 		Folder* pFolder = pContext->getDocument()->getFolder(
 			pContext->getAccount(), wstrFolder.get());
-		if (pFolder->getType() != Folder::TYPE_NORMAL)
+		if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		if (nSize > 1) {
@@ -4140,7 +4166,7 @@ MacroValuePtr qm::MacroFunctionSpecialFolder::value(MacroContext* pContext) cons
 	
 	size_t nSize = getArgSize();
 	
-	Account* pAccount = pContext->getAccount();
+	Account* pAccount = 0;
 	if (nSize > 1) {
 		ARG(pValue, 1);
 		wstring_ptr wstrAccount(pValue->string());
@@ -4148,7 +4174,11 @@ MacroValuePtr qm::MacroFunctionSpecialFolder::value(MacroContext* pContext) cons
 		if (!pAccount)
 			return error(*pContext, MacroErrorHandler::CODE_UNKNOWNACCOUNT);
 	}
-	assert(pAccount);
+	else {
+		pAccount = pContext->getAccount();
+		if (!pAccount)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
+	}
 	
 	ARG(pValue, 0);
 	wstring_ptr wstrName(pValue->string());
@@ -4210,13 +4240,15 @@ MacroValuePtr qm::MacroFunctionSubAccount::value(MacroContext* pContext) const
 	
 	LOG(SubAccount);
 	
+	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
+	
 	if (!checkArgSize(pContext, 0))
 		return MacroValuePtr();
 	
 	Account* pAccount = pContext->getAccount();
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (pmh)
-		pAccount = pmh->getFolder()->getAccount();
+	if (!pAccount)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
 	
 	return MacroValueFactory::getFactory().newString(
 		pAccount->getCurrentSubAccount()->getName());
@@ -4620,8 +4652,7 @@ qm::MacroFunctionFactory::~MacroFunctionFactory()
 {
 }
 
-std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::Type type,
-																   const WCHAR* pwszName) const
+std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* pwszName) const
 {
 	assert(pwszName);
 	
@@ -4651,26 +4682,12 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 			return std::auto_ptr<MacroFunction>(new MacroFunction##classname(arg1)); \
 		} \
 	
-#define DECLARE_FUNCTION_TYPE0(classname, name, typename) \
-		else if (_wcsicmp(pwszName, name) == 0 && (type & typename)) { \
-			return std::auto_ptr<MacroFunction>(new MacroFunction##classname()); \
-		} \
-	
-#define DECLARE_FUNCTION_TYPE1(classname, name, arg1, typename) \
-		else if (_wcsicmp(pwszName, name) == 0 && (type & typename)) { \
-			return std::auto_ptr<MacroFunction>(new MacroFunction##classname(arg1)); \
-		} \
-
-#define M MacroParser::TYPE_MESSAGE
-#define RT MacroParser::TYPE_RULE | MacroParser::TYPE_TEMPLATE
-#define T MacroParser::TYPE_TEMPLATE
-	
 	BEGIN_DECLARE_FUNCTION()
 		BEGIN_BLOCK(L'a', L'A')
 			DECLARE_FUNCTION0(		Account,			L"account"												)
 			DECLARE_FUNCTION0(		AccountDirectory,	L"accountdirectory"										)
 			DECLARE_FUNCTION1(		Address,			L"address",			false								)
-			DECLARE_FUNCTION_TYPE0(	AddressBook,		L"addressbook",										T	)
+			DECLARE_FUNCTION0(		AddressBook,		L"addressbook"											)
 			DECLARE_FUNCTION1(		Additive,			L"add",				true								)
 			DECLARE_FUNCTION0(		And,				L"and"													)
 			DECLARE_FUNCTION0(		Attachment,			L"attachment"											)
@@ -4684,13 +4701,13 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 			DECLARE_FUNCTION0(		ComputerName,		L"computername"											)
 			DECLARE_FUNCTION0(		Concat,				L"concat"												)
 			DECLARE_FUNCTION1(		Contain,			L"contain",			false								)
-			DECLARE_FUNCTION_TYPE1(	Copy,				L"copy",			false,							M	)
+			DECLARE_FUNCTION1(		Copy,				L"copy",			false								)
 		END_BLOCK()
 		BEGIN_BLOCK(L'd', L'D')
 			DECLARE_FUNCTION0(		Date,				L"date"													)
 			DECLARE_FUNCTION0(		Decode,				L"decode"												)
 			DECLARE_FUNCTION0(		Defun,				L"defun"												)
-			DECLARE_FUNCTION_TYPE0(	Delete,				L"delete",											M	)
+			DECLARE_FUNCTION0(		Delete,				L"delete"												)
 			DECLARE_FUNCTION1(		Flag,				L"deleted",			MessageHolder::FLAG_DELETED			)
 			DECLARE_FUNCTION1(		Flag,				L"download",		MessageHolder::FLAG_DOWNLOAD		)
 			DECLARE_FUNCTION1(		Flag,				L"downloadtext",	MessageHolder::FLAG_DOWNLOADTEXT	)
@@ -4698,7 +4715,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 		END_BLOCK()
 		BEGIN_BLOCK(L'e', L'E')
 			DECLARE_FUNCTION0(		Equal, 				L"equal"												)
-			DECLARE_FUNCTION1(		Eval, 				L"eval",			type								)
+			DECLARE_FUNCTION0(		Eval, 				L"eval"													)
 			DECLARE_FUNCTION0(		Execute, 			L"execute"												)
 			DECLARE_FUNCTION0(		Exist, 				L"exist"												)
 			DECLARE_FUNCTION0(		Exit, 				L"exit"													)
@@ -4712,7 +4729,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 			DECLARE_FUNCTION0(		Folder, 			L"folder"												)
 			DECLARE_FUNCTION0(		ForEach,			L"foreach"												)
 			DECLARE_FUNCTION1(		Flag,				L"forwarded",		MessageHolder::FLAG_FORWARDED		)
-			DECLARE_FUNCTION_TYPE0(	FormatAddress, 		L"formataddress",									T	)
+			DECLARE_FUNCTION0(		FormatAddress, 		L"formataddress"										)
 			DECLARE_FUNCTION0(		FormatDate, 		L"formatdate"											)
 		END_BLOCK()
 		BEGIN_BLOCK(L'g', L'G')
@@ -4727,8 +4744,8 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 			DECLARE_FUNCTION0(		Id, 				L"id"													)
 			DECLARE_FUNCTION0(		Identity, 			L"identity"												)
 			DECLARE_FUNCTION0(		If, 				L"if"													)
-			DECLARE_FUNCTION1(		Include,			L"include",			type								)
-			DECLARE_FUNCTION_TYPE0(	InputBox,	 		L"inputbox",										RT	)
+			DECLARE_FUNCTION0(		Include,			L"include"												)
+			DECLARE_FUNCTION0(		InputBox,	 		L"inputbox"												)
 		END_BLOCK()
 		BEGIN_BLOCK(L'l', L'L')
 			DECLARE_FUNCTION0(		Length,				L"length"												)
@@ -4737,10 +4754,10 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 		END_BLOCK()
 		BEGIN_BLOCK(L'm', L'M')
 			DECLARE_FUNCTION1(		Flag,				L"marked",			MessageHolder::FLAG_MARKED			)
-			DECLARE_FUNCTION_TYPE0(	MessageBox,			L"messagebox",										RT	)
+			DECLARE_FUNCTION0(		MessageBox,			L"messagebox"											)
 			DECLARE_FUNCTION0(		Messages,			L"messages"												)
 			DECLARE_FUNCTION1(		Additive,			L"minus",			false								)
-			DECLARE_FUNCTION_TYPE1(	Copy,				L"move",			true,							M	)
+			DECLARE_FUNCTION1(		Copy,				L"move",			true								)
 			DECLARE_FUNCTION1(		Flag,				L"multipart",		MessageHolder::FLAG_MULTIPART		)
 		END_BLOCK()
 		BEGIN_BLOCK(L'n', L'N')
@@ -4778,7 +4795,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(MacroParser::
 			DECLARE_FUNCTION1(		Flag,				L"seen",			MessageHolder::FLAG_SEEN			)
 			DECLARE_FUNCTION1(		Flag,				L"sent",			MessageHolder::FLAG_SENT			)
 			DECLARE_FUNCTION0(		Script,				L"script"												)
-			DECLARE_FUNCTION_TYPE0(	Selected,			L"selected",										T	)
+			DECLARE_FUNCTION0(		Selected,			L"selected"												)
 			DECLARE_FUNCTION0(		Set,				L"set"													)
 			DECLARE_FUNCTION0(		Size,				L"size"													)
 			DECLARE_FUNCTION0(		SpecialFolder,		L"specialfolder"										)

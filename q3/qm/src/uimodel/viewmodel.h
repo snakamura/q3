@@ -294,7 +294,6 @@ public:
 			  const Filter* pFilter,
 			  qs::Profile* pProfile,
 			  Document* pDocument,
-			  HWND hwnd,
 			  SecurityModel* pSecurityModel,
 			  const ColorManager* pColorManager);
 	~ViewModel();
@@ -442,7 +441,6 @@ private:
 	ViewDataItem* pDataItem_;
 	qs::Profile* pProfile_;
 	Document* pDocument_;
-	HWND hwnd_;
 	SecurityModel* pSecurityModel_;
 	std::auto_ptr<ColorList> pColorList_;
 	ItemList listItem_;
@@ -568,7 +566,6 @@ public:
 public:
 	ViewModelManager(Document* pDocument,
 					 qs::Profile* pProfile,
-					 HWND hwnd,
 					 SecurityModel* pSecurityModel);
 	~ViewModelManager();
 
@@ -621,7 +618,6 @@ private:
 private:
 	Document* pDocument_;
 	qs::Profile* pProfile_;
-	HWND hwnd_;
 	SecurityModel* pSecurityModel_;
 	Account* pCurrentAccount_;
 	ViewModelList listViewModel_;
@@ -920,7 +916,6 @@ private:
 	unsigned int nWidth_;
 	unsigned int nSort_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
-	MacroParser parser_;
 };
 
 

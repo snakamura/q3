@@ -79,7 +79,11 @@ public:
 		CODE_UNKNOWNFUNCTION,
 		CODE_INVALIDPART,
 		CODE_UNKNOWNACCOUNT,
-		CODE_GETMESSAGE
+		CODE_GETMESSAGE,
+		CODE_INVALIDTHREAD,
+		CODE_NOCONTEXTACCOUNT,
+		CODE_NOUI,
+		CODE_NOTMODIFIABLE
 	};
 
 public:
@@ -130,19 +134,7 @@ private:
 class QMEXPORTCLASS MacroParser
 {
 public:
-	enum Type {
-		TYPE_COLOR			= 0x01,
-		TYPE_COLUMN			= 0x02,
-		TYPE_FILTER			= 0x04,
-		TYPE_HEADER			= 0x08,
-		TYPE_MESSAGE		= 0x10,
-		TYPE_RULE			= 0x20,
-		TYPE_SYNCFILTER		= 0x40,
-		TYPE_TEMPLATE		= 0x80
-	};
-
-public:
-	explicit MacroParser(Type type);
+	MacroParser();
 	~MacroParser();
 
 public:
@@ -164,7 +156,6 @@ private:
 	MacroParser& operator=(const MacroParser&);
 
 private:
-	Type type_;
 	MacroErrorHandler* pErrorHandler_;
 };
 
@@ -216,6 +207,14 @@ public:
 		RETURNTYPE_CANCEL,
 		RETURNTYPE_EXIT
 	};
+	
+	enum Flag {
+		FLAG_NONE					= 0x00,
+		FLAG_UITHREAD				= 0x01,
+		FLAG_UI						= 0x02,
+		FLAG_MODIFY					= 0x04,
+		FLAG_GETMESSAGEASPOSSIBLE	= 0x10
+	};
 
 public:
 	MacroContext(MessageHolderBase* pmh,
@@ -225,8 +224,8 @@ public:
 				 Document* pDocument,
 				 HWND hwnd,
 				 qs::Profile* pProfile,
-				 bool bGetMessageAsPossible,
 				 const WCHAR* pwszBodyCharset,
+				 unsigned int nFlags,
 				 unsigned int nSecurityMode,
 				 MacroErrorHandler* pErrorHandler,
 				 MacroVariableHolder* pGlobalVariable);
@@ -245,8 +244,9 @@ public:
 	Document* getDocument() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
-	bool isGetMessageAsPossible() const;
 	const WCHAR* getBodyCharset() const;
+	unsigned int getFlags() const;
+	bool isFlag(Flag flag) const;
 	unsigned int getSecurityMode() const;
 	MacroErrorHandler* getErrorHandler() const;
 	ReturnType getReturnType() const;

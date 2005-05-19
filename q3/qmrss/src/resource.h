@@ -22,6 +22,7 @@
 #define IDS_ERROR_URL                   11000
 #define IDS_ERROR_GET                   11001
 #define IDS_ERROR_PARSE                 11002
+#define IDS_ERROR_APPLYRULES            11003
 
 // Next default values for new objects
 // 

@@ -96,7 +96,7 @@ bool qm::FilterManager::load()
 qm::Filter::Filter()
 {
 	wstrName_ = allocWString(L"");
-	pCondition_ = MacroParser(MacroParser::TYPE_FILTER).parse(L"@True()");
+	pCondition_ = MacroParser().parse(L"@True()");
 	assert(pCondition_.get());
 }
 
@@ -112,8 +112,7 @@ qm::Filter::Filter(const Filter& filter)
 	wstrName_ = allocWString(filter.wstrName_.get());
 	
 	wstring_ptr wstrCondition(filter.pCondition_->getString());
-	MacroParser parser(MacroParser::TYPE_FILTER);
-	pCondition_ = parser.parse(wstrCondition.get());
+	pCondition_ = MacroParser().parse(wstrCondition.get());
 	assert(pCondition_.get());
 }
 
@@ -221,8 +220,7 @@ bool qm::FilterContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_FILTER);
 		
 		const WCHAR* pwszMacro = buffer_.getCharArray();
-		MacroParser parser(MacroParser::TYPE_FILTER);
-		std::auto_ptr<Macro> pMacro(parser.parse(pwszMacro));
+		std::auto_ptr<Macro> pMacro(MacroParser().parse(pwszMacro));
 		if (!pMacro.get())
 			return false;
 		std::auto_ptr<Filter> pFilter(new Filter(wstrName_.get(), pMacro));

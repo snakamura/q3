@@ -36,7 +36,6 @@ qmrss::RssReceiveSession::RssReceiveSession(FeedManager* pFeedManager) :
 	pAccount_(0),
 	pSubAccount_(0),
 	pFolder_(0),
-	hwnd_(0),
 	pProfile_(0),
 	pLogger_(0),
 	pSessionCallback_(0),
@@ -52,7 +51,6 @@ qmrss::RssReceiveSession::~RssReceiveSession()
 bool qmrss::RssReceiveSession::init(Document* pDocument,
 									Account* pAccount,
 									SubAccount* pSubAccount,
-									HWND hwnd,
 									Profile* pProfile,
 									Logger* pLogger,
 									ReceiveSessionCallback* pCallback)
@@ -60,14 +58,12 @@ bool qmrss::RssReceiveSession::init(Document* pDocument,
 	assert(pDocument);
 	assert(pAccount);
 	assert(pSubAccount);
-	assert(hwnd);
 	assert(pProfile);
 	assert(pCallback);
 	
 	pDocument_ = pDocument;
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
-	hwnd_ = hwnd;
 	pProfile_ = pProfile;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
@@ -236,6 +232,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	const WCHAR* pwszUpdateIfModified = pFolder_->getParam(L"UpdateIfModified");
 	bool bUpdateIfModified = pwszUpdateIfModified && wcscmp(pwszUpdateIfModified, L"true") == 0;
 	
+	MessagePtrList listDownloaded;
+	
 	const Channel::ItemList& listItem = pChannel->getItems();
 	pSessionCallback_->setRange(0, listItem.size());
 	pSessionCallback_->setPos(0);
@@ -290,6 +288,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				if (!pmh)
 					return false;
 				
+				listDownloaded.push_back(MessagePtr(pmh));
+				
 				pSessionCallback_->notifyNewMessage(pmh);
 			}
 			
@@ -305,6 +305,11 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	// TODO
 	// Check trackbacks.
+	
+	if (pSubAccount_->isAutoApplyRules()) {
+		if (!applyRules(listDownloaded))
+			reportError(IDS_ERROR_APPLYRULES, 0);
+	}
 	
 	return true;
 }
@@ -332,6 +337,24 @@ void qmrss::RssReceiveSession::clearFeeds()
 	}
 	for (FeedList::List::const_iterator it = listRemove.begin(); it != listRemove.end(); ++it)
 		pFeedList_->removeFeed(*it);
+}
+
+bool qmrss::RssReceiveSession::applyRules(const MessagePtrList& l)
+{
+	Lock<Account> lock(*pAccount_);
+	
+	MessageHolderList listMessageHolder;
+	listMessageHolder.reserve(l.size());
+	for (MessagePtrList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessagePtrLock mpl(*it);
+		if (mpl)
+			listMessageHolder.push_back(mpl);
+	}
+	
+	RuleManager* pRuleManager = pDocument_->getRuleManager();
+	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
+	return pRuleManager->apply(pFolder_, listMessageHolder,
+		pDocument_, pProfile_, &callback);
 }
 
 void qmrss::RssReceiveSession::reportError(UINT nId,

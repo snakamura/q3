@@ -4812,7 +4812,7 @@ LRESULT qm::ViewsColumnDialog::onOk()
 	std::auto_ptr<Macro> pMacro;
 	if (type == ViewColumn::TYPE_OTHER) {
 		wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
-		pMacro = MacroParser(MacroParser::TYPE_COLUMN).parse(wstrMacro.get());
+		pMacro = MacroParser().parse(wstrMacro.get());
 		if (!pMacro.get()) {
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
 			messageBox(hInst, IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());

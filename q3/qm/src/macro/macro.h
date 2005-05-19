@@ -168,8 +168,8 @@ public:
 					   Document* pDocument,
 					   HWND hwnd,
 					   qs::Profile* pProfile,
-					   bool bGetMessageAsPossible,
 					   const WCHAR* pwszBodyCharset,
+					   unsigned int nFlags,
 					   unsigned int nSecurityMode,
 					   MacroErrorHandler* pErrorHandler,
 					   MacroVariableHolder* pGlobalVariable);
@@ -180,8 +180,8 @@ public:
 	Document* getDocument() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
-	bool isGetMessageAsPossible() const;
 	const WCHAR* getBodyCharset() const;
+	unsigned int getFlags() const;
 	unsigned int getSecurityMode() const;
 	MacroErrorHandler* getErrorHandler() const;
 	MacroContext::ReturnType getReturnType() const;
@@ -211,8 +211,8 @@ private:
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
-	bool bGetMessageAsPossible_;
 	qs::wstring_ptr wstrBodyCharset_;
+	unsigned int nFlags_;
 	unsigned int nSecurityMode_;
 	MacroErrorHandler* pErrorHandler_;
 	MacroVariableHolder* pGlobalVariable_;
@@ -1014,7 +1014,7 @@ private:
 class MacroFunctionEval : public MacroFunction
 {
 public:
-	explicit MacroFunctionEval(MacroParser::Type type);
+	MacroFunctionEval();
 	virtual ~MacroFunctionEval();
 
 public:
@@ -1026,9 +1026,6 @@ protected:
 private:
 	MacroFunctionEval(const MacroFunctionEval&);
 	MacroFunctionEval& operator=(const MacroFunctionEval&);
-
-private:
-	MacroParser::Type type_;
 };
 
 
@@ -1489,7 +1486,7 @@ private:
 class MacroFunctionInclude : public MacroFunction
 {
 public:
-	explicit MacroFunctionInclude(MacroParser::Type type);
+	MacroFunctionInclude();
 	virtual ~MacroFunctionInclude();
 
 public:
@@ -1501,9 +1498,6 @@ protected:
 private:
 	MacroFunctionInclude(const MacroFunctionInclude&);
 	MacroFunctionInclude& operator=(const MacroFunctionInclude&);
-
-private:
-	MacroParser::Type type_;
 };
 
 
@@ -2428,8 +2422,7 @@ public:
 	~MacroFunctionFactory();
 
 public:
-	std::auto_ptr<MacroFunction> newFunction(MacroParser::Type type,
-											 const WCHAR* pwszName) const;
+	std::auto_ptr<MacroFunction> newFunction(const WCHAR* pwszName) const;
 
 public:
 	static const MacroFunctionFactory& getFactory();

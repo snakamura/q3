@@ -86,13 +86,14 @@
 #define IDS_ERROR_SOCKET_UNKNOWN        13010
 #define IDS_ERROR_FILTERJUNK            14000
 #define IDS_ERROR_MANAGEJUNK            14001
+#define IDS_ERROR_APPLYRULES            14002
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
-#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_COMMAND_VALUE         40002
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

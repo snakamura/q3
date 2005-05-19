@@ -94,6 +94,7 @@ public:
 					HWND hwnd,
 					const WCHAR* pwszBodyCharset,
 					unsigned int nSecurityMode,
+					unsigned int nMacroFlags,
 					qs::Profile* pProfile,
 					MacroErrorHandler* pErrorHandler,
 					const ArgumentList& listArgument);
@@ -107,6 +108,7 @@ public:
 	Document* getDocument() const;
 	HWND getWindow() const;
 	const WCHAR* getBodyCharset() const;
+	unsigned int getMacroFlags() const;
 	unsigned int getSecurityMode() const;
 	qs::Profile* getProfile() const;
 	MacroErrorHandler* getErrorHandler() const;
@@ -124,6 +126,7 @@ private:
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::wstring_ptr wstrBodyCharset_;
+	unsigned int nMacroFlags_;
 	unsigned int nSecurityMode_;
 	qs::Profile* pProfile_;
 	MacroErrorHandler* pErrorHandler_;

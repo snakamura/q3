@@ -113,7 +113,7 @@ std::auto_ptr<ViewColumn> qm::ViewColumn::clone() const
 	std::auto_ptr<Macro> pMacro;
 	if (pMacro_.get()) {
 		wstring_ptr wstrMacro(pMacro_->getString());
-		pMacro = MacroParser(MacroParser::TYPE_COLUMN).parse(wstrMacro.get());
+		pMacro = MacroParser().parse(wstrMacro.get());
 		assert(pMacro.get());
 	}
 	
@@ -405,7 +405,6 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 						 const Filter* pFilter,
 						 Profile* pProfile,
 						 Document* pDocument,
-						 HWND hwnd,
 						 SecurityModel* pSecurityModel,
 						 const ColorManager* pColorManager) :
 	pViewModelManager_(pViewModelManager),
@@ -413,7 +412,6 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	pDataItem_(pDataItem),
 	pProfile_(pProfile),
 	pDocument_(pDocument),
-	hwnd_(hwnd),
 	pSecurityModel_(pSecurityModel),
 	nUnseenCount_(0),
 	nSort_(SORT_ASCENDING | SORT_NOTHREAD),
@@ -536,8 +534,9 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 		if (pColorList_.get()) {
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
-				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, true,
-				0, /*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
+				pFolder_->getAccount(), pDocument_, 0, pProfile_, 0,
+				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
+				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 			cr = pColorList_->getColor(&context);
 		}
 		pItem->setColor(cr);
@@ -869,8 +868,9 @@ MacroValuePtr qm::ViewModel::getValue(const Macro* pMacro,
 {
 	Message msg;
 	MacroContext context(pmh, &msg, MessageHolderList(),
-		pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, true,
-		0, /*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
+		pFolder_->getAccount(), pDocument_, 0, pProfile_, 0,
+		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
+		/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 	return pMacro->value(&context);
 }
 
@@ -910,8 +910,9 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 		if (pFilter_.get()) {
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
-				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
-				0, /*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
+				pFolder_->getAccount(), pDocument_, 0, pProfile_, 0,
+				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
+				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 			bAdd = pFilter_->match(&context);
 		}
 		
@@ -1239,8 +1240,9 @@ void qm::ViewModel::update(bool bRestoreSelection,
 		if (pFilter_.get()) {
 			Message msg;
 			MacroContext context(pmh, &msg, MessageHolderList(),
-				pFolder_->getAccount(), pDocument_, hwnd_, pProfile_, false,
-				0, /*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, &globalVariable);
+				pFolder_->getAccount(), pDocument_, 0, pProfile_, 0,
+				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
+				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, &globalVariable);
 			bAdd = pFilter_->match(&context);
 		}
 		if (bAdd) {
@@ -1559,11 +1561,9 @@ qm::ViewModelHolder::~ViewModelHolder()
 
 qm::ViewModelManager::ViewModelManager(Document* pDocument,
 									   Profile* pProfile,
-									   HWND hwnd,
 									   SecurityModel* pSecurityModel) :
 	pDocument_(pDocument),
 	pProfile_(pProfile),
-	hwnd_(hwnd),
 	pSecurityModel_(pSecurityModel),
 	pCurrentAccount_(0),
 	pCurrentViewModel_(0)
@@ -1637,9 +1637,9 @@ ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 	if (pViewDataItem->getFilter())
 		pFilter = pFilterManager_->getFilter(pViewDataItem->getFilter());
 	
-	std::auto_ptr<ViewModel> pViewModel(new ViewModel(this,
-		pFolder, pViewDataItem, pFilter, pProfile_, pDocument_,
-		hwnd_, pSecurityModel_, pColorManager_.get()));
+	std::auto_ptr<ViewModel> pViewModel(new ViewModel(
+		this, pFolder, pViewDataItem, pFilter, pProfile_,
+		pDocument_, pSecurityModel_, pColorManager_.get()));
 	listViewModel_.push_back(pViewModel.get());
 	
 	return pViewModel.release();
@@ -2340,8 +2340,7 @@ qm::ViewDataContentHandler::ViewDataContentHandler(ViewData* pData) :
 	type_(ViewColumn::TYPE_NONE),
 	nFlags_(-1),
 	nWidth_(-1),
-	nSort_(-1),
-	parser_(MacroParser::TYPE_COLUMN)
+	nSort_(-1)
 {
 }
 
@@ -2352,8 +2351,7 @@ qm::ViewDataContentHandler::ViewDataContentHandler(DefaultViewData* pDefaultData
 	type_(ViewColumn::TYPE_NONE),
 	nFlags_(-1),
 	nWidth_(-1),
-	nSort_(-1),
-	parser_(MacroParser::TYPE_COLUMN)
+	nSort_(-1)
 {
 }
 
@@ -2623,7 +2621,7 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 			}
 		}
 		if (type_ == ViewColumn::TYPE_NONE) {
-			pMacro_ = parser_.parse(pwszMacro);
+			pMacro_ = MacroParser().parse(pwszMacro);
 			if (!pMacro_.get())
 				return false;
 			type_ = ViewColumn::TYPE_OTHER;

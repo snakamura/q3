@@ -20,6 +20,9 @@ class ThreadLocal;
 class CriticalSection;
 class SpinLock;
 class NoLock;
+class ReadWriteLock;
+class ReadWriteReadLock;
+class ReadWriteWriteLock;
 template<class Object> class Lock;
 class Event;
 class Synchronizer;
@@ -155,7 +158,7 @@ private:
 	SpinLock& operator=(const SpinLock&);
 
 private:
-	volatile mutable unsigned long nLock_;
+	volatile mutable LONG nLock_;
 
 private:
 	static unsigned int nMax__;
@@ -182,6 +185,84 @@ public:
 private:
 	NoLock(const NoLock&);
 	NoLock& operator=(const NoLock&);
+};
+
+
+/****************************************************************************
+ *
+ * ReadWriteLock
+ *
+ */
+
+class QSEXPORTCLASS ReadWriteLock
+{
+public:
+	ReadWriteLock();
+	~ReadWriteLock();
+
+public:
+	void readLock() const;
+	void writeLock() const;
+	void unlock() const;
+
+private:
+	ReadWriteLock(const ReadWriteLock&);
+	ReadWriteLock& operator=(const ReadWriteLock&);
+
+private:
+	HANDLE hMutexWrite_;
+	HANDLE hEventRead_;
+	volatile mutable LONG nReader_;
+};
+
+
+/****************************************************************************
+ *
+ * ReadWriteReadLock
+ *
+ */
+
+class QSEXPORTCLASS ReadWriteReadLock
+{
+public:
+	explicit ReadWriteReadLock(const ReadWriteLock& lock);
+	~ReadWriteReadLock();
+
+public:
+	void lock() const;
+	void unlock() const;
+
+private:
+	ReadWriteReadLock(const ReadWriteReadLock&);
+	ReadWriteReadLock& operator=(const ReadWriteReadLock&);
+
+private:
+	const ReadWriteLock& lock_;
+};
+
+
+/****************************************************************************
+ *
+ * ReadWriteWriteLock
+ *
+ */
+
+class QSEXPORTCLASS ReadWriteWriteLock
+{
+public:
+	explicit ReadWriteWriteLock(const ReadWriteLock& lock);
+	~ReadWriteWriteLock();
+
+public:
+	void lock() const;
+	void unlock() const;
+
+private:
+	ReadWriteWriteLock(const ReadWriteWriteLock&);
+	ReadWriteWriteLock& operator=(const ReadWriteWriteLock&);
+
+private:
+	const ReadWriteLock& lock_;
 };
 
 

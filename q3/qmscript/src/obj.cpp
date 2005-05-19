@@ -979,11 +979,15 @@ STDMETHODIMP qmscript::MacroImpl::evaluate(IMessageHolder* pMessageHolder,
 		variable.setVariable((*it).first, pValue);
 	}
 	
+	Account* pAccountObj = 0;
+	if (pAccount)
+		pAccountObj = static_cast<AccountObj*>(pAccount)->getAccount();
+	
 	// TODO
 	// Get selected?
 	MacroContext context(pmh, pmh ? &msg : 0, MessageHolderList(),
-		static_cast<AccountObj*>(pAccount)->getAccount(), pDocument_, hwnd_,
-		pProfile_, false, 0, SECURITYMODE_NONE, 0, &variable);
+		pAccountObj, pDocument_, hwnd_, pProfile_, 0,
+		MacroContext::FLAG_UI, SECURITYMODE_NONE, 0, &variable);
 	MacroValuePtr pValue(pMacro_->value(&context));
 	if (!pValue.get())
 		return E_FAIL;
@@ -1145,10 +1149,7 @@ HRESULT qmscript::MacroParserImpl::internalQueryInterface(REFIID riid,
 STDMETHODIMP qmscript::MacroParserImpl::parse(BSTR bstrMacro,
 											  IMacro** ppMacro)
 {
-	// TODO
-	// Type ?
-	MacroParser parser(MacroParser::TYPE_TEMPLATE);
-	std::auto_ptr<Macro> pMacro(parser.parse(bstrMacro));
+	std::auto_ptr<Macro> pMacro(MacroParser().parse(bstrMacro));
 	
 	std::auto_ptr<MacroObj> pMacroObj(new MacroObj());
 	pMacroObj->init(pMacro, pDocument_, pProfile_, hwnd_);

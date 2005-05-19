@@ -1499,8 +1499,7 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				pThis_->getHandle(), SyncDialog::FLAG_NONE,
-				static_cast<NormalFolder*>(pFolder), 0);
+				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0);
 		}
 	}
 	
@@ -2184,7 +2183,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
 		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode", 0)));
 	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pDocument_,
-		pImpl_->pProfile_, getHandle(), pImpl_->pSecurityModel_.get()));
+		pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
 	pImpl_->pOptionDialogManager_.reset(new OptionDialogManager(pImpl_->pDocument_,

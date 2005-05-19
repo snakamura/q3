@@ -58,6 +58,7 @@ struct qm::SubAccountImpl
 	bool bConnectReceiveBeforeSend_;
 	bool bTreatAsSent_;
 	bool bAddMessageId_;
+	bool bAutoApplyRules_;
 	unsigned int nSslOption_;
 	SubAccount::DialupType dialupType_;
 	wstring_ptr wstrDialupEntry_;
@@ -99,6 +100,7 @@ void qm::SubAccountImpl::load()
 	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	0,		bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
 	LOAD_INT(L"Global",		L"TreatAsSent",					1,		bTreatAsSent_,					bool,					nTreatAsSent				);
 	LOAD_INT(L"Global",		L"AddMessageId",				1,		bAddMessageId_,					bool,					nAddMessageId				);
+	LOAD_INT(L"Global",		L"AutoApplyRules",				0,		bAutoApplyRules_,				bool,					nAutoApplyRules				);
 	LOAD_INT(L"Global",		L"SslOption",					0,		nSslOption_,					unsigned int,			nSslOption					);
 	LOAD_INT(L"Dialup",		L"Type",						0,		dialupType_,					SubAccount::DialupType,	dialupType					);
 	LOAD_INT(L"Dialup",		L"ShowDialog",					0,		bDialupShowDialog_,				bool,					bDialupShowDialog			);
@@ -373,6 +375,16 @@ void qm::SubAccount::setAddMessageId(bool bAddMessageId)
 	pImpl_->bAddMessageId_ = bAddMessageId;
 }
 
+bool qm::SubAccount::isAutoApplyRules() const
+{
+	return pImpl_->bAutoApplyRules_;
+}
+
+void qm::SubAccount::setAutoApplyRules(bool bAutoApplyRules)
+{
+	pImpl_->bAutoApplyRules_ = bAutoApplyRules;
+}
+
 unsigned int qm::SubAccount::getSslOption() const
 {
 	return pImpl_->nSslOption_;
@@ -643,6 +655,7 @@ bool qm::SubAccount::save() const
 	SAVE_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_		);
 	SAVE_INT(L"Global",		L"TreatAsSent",					bTreatAsSent_					);
 	SAVE_INT(L"Global",		L"AddMessageId",				bAddMessageId_					);
+	SAVE_INT(L"Global",		L"AutoApplyRules",				bAutoApplyRules_				);
 	SAVE_INT(L"Global",		L"SslOption",					nSslOption_						);
 	SAVE_INT(L"Dialup",		L"Type",						dialupType_						);
 	SAVE_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_				);

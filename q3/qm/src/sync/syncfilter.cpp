@@ -265,7 +265,7 @@ qm::SyncFilter::SyncFilter() :
 	pImpl_(0)
 {
 	pImpl_ = new SyncFilterImpl();
-	pImpl_->pCondition_ = MacroParser(MacroParser::TYPE_SYNCFILTER).parse(L"@True()");
+	pImpl_->pCondition_ = MacroParser().parse(L"@True()");
 }
 
 qm::SyncFilter::SyncFilter(const WCHAR* pwszFolder,
@@ -292,7 +292,7 @@ qm::SyncFilter::SyncFilter(const SyncFilter& filter) :
 	}
 	
 	wstring_ptr wstrCondition(filter.pImpl_->pCondition_->getString());
-	pImpl_->pCondition_ = MacroParser(MacroParser::TYPE_SYNCFILTER).parse(wstrCondition.get());
+	pImpl_->pCondition_ = MacroParser().parse(wstrCondition.get());
 	
 	const SyncFilter::ActionList& l = filter.pImpl_->listAction_;
 	pImpl_->listAction_.resize(l.size());
@@ -484,7 +484,6 @@ qm::SyncFilterContentHandler::SyncFilterContentHandler(SyncFilterManager* pManag
 	pCurrentFilter_(0),
 	pCurrentAction_(0)
 {
-	pParser_.reset(new MacroParser(MacroParser::TYPE_SYNCFILTER));
 }
 
 qm::SyncFilterContentHandler::~SyncFilterContentHandler()
@@ -552,7 +551,7 @@ bool qm::SyncFilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		std::auto_ptr<Macro> pCondition;
 		if (pwszMatch) {
-			pCondition = pParser_->parse(pwszMatch);
+			pCondition = MacroParser().parse(pwszMatch);
 			if (!pCondition.get())
 				return false;
 		}

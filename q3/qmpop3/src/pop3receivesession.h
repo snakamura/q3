@@ -53,6 +53,9 @@ public:
 	};
 
 public:
+	typedef std::vector<qm::MessagePtr> MessagePtrList;
+
+public:
 	Pop3ReceiveSession();
 	virtual ~Pop3ReceiveSession();
 
@@ -60,7 +63,6 @@ public:
 	virtual bool init(qm::Document* pDocument,
 					  qm::Account* pAccount,
 					  qm::SubAccount* pSubAccount,
-					  HWND hwnd,
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  qm::ReceiveSessionCallback* pCallback);
@@ -80,6 +82,7 @@ private:
 	bool downloadReservedMessages();
 	bool downloadReservedMessages(qm::NormalFolder* pFolder,
 								  unsigned int* pnPos);
+	bool applyRules(const MessagePtrList& l);
 	std::auto_ptr<UIDList> loadUIDList() const;
 	bool saveUIDList(const UIDList* pUIDList) const;
 	qs::wstring_ptr getUIDListPath() const;
@@ -151,7 +154,6 @@ private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	qm::NormalFolder* pFolder_;
-	HWND hwnd_;
 	qs::Profile* pProfile_;
 	qs::Logger* pLogger_;
 	qm::ReceiveSessionCallback* pSessionCallback_;
@@ -231,7 +233,6 @@ public:
 						   qm::NormalFolder* pFolder,
 						   qm::Message* pMessage,
 						   unsigned int nSize,
-						   HWND hwnd,
 						   qs::Profile* pProfile,
 						   qm::MacroVariableHolder* pGlobalVariable,
 						   Pop3* pPop3,
@@ -257,7 +258,6 @@ private:
 	qm::NormalFolder* pFolder_;
 	qm::Message* pMessage_;
 	unsigned int nSize_;
-	HWND hwnd_;
 	qs::Profile* pProfile_;
 	qm::MacroVariableHolder* pGlobalVariable_;
 	Pop3* pPop3_;

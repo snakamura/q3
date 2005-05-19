@@ -282,7 +282,7 @@ qm::ColorEntry::ColorEntry(std::auto_ptr<Macro> pCondition,
 qm::ColorEntry::ColorEntry(const ColorEntry& color)
 {
 	wstring_ptr wstrCondition(color.pCondition_->getString());
-	pCondition_ = MacroParser(MacroParser::TYPE_COLOR).parse(wstrCondition.get());
+	pCondition_ = MacroParser().parse(wstrCondition.get());
 	cr_ = color.cr_;
 }
 
@@ -358,8 +358,7 @@ COLORREF qm::ColorList::getColor(MacroContext* pContext) const
 qm::ColorContentHandler::ColorContentHandler(ColorManager* pManager) :
 	pManager_(pManager),
 	state_(STATE_ROOT),
-	pColorSet_(0),
-	parser_(MacroParser::TYPE_COLOR)
+	pColorSet_(0)
 {
 }
 
@@ -436,7 +435,7 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		
 		assert(!pCondition_.get());
-		pCondition_ = parser_.parse(pwszMatch);
+		pCondition_ = MacroParser().parse(pwszMatch);
 		if (!pCondition_.get())
 			return false;
 		

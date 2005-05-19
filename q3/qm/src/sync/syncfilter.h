@@ -67,7 +67,6 @@ private:
 	SyncFilterAction* pCurrentAction_;
 	qs::wstring_ptr wstrCurrentParamName_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
-	std::auto_ptr<MacroParser> pParser_;
 };
 
 

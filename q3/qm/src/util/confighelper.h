@@ -12,6 +12,7 @@
 #include <qm.h>
 
 #include <qsstring.h>
+#include <qsthread.h>
 
 
 namespace qm {
@@ -37,11 +38,13 @@ public:
  *
  */
 
-template<class Config, class Handler, class Writer>
+template<class Config, class Handler, class Writer, class LoadLock = qs::NoLock>
 class ConfigHelper
 {
 public:
-	ConfigHelper(const WCHAR* pwszPath);
+	explicit ConfigHelper(const WCHAR* pwszPath);
+	ConfigHelper(const WCHAR* pwszPath,
+				 const LoadLock& lock);
 	~ConfigHelper();
 
 public:
@@ -50,12 +53,16 @@ public:
 	bool save(const Config* pConfig) const;
 
 private:
+	void init(const WCHAR* pwszPath);
+
+private:
 	ConfigHelper(const ConfigHelper&);
 	ConfigHelper& operator=(const ConfigHelper&);
 
 private:
 	qs::wstring_ptr wstrPath_;
 	FILETIME ft_;
+	const LoadLock* pLock_;
 };
 
 }

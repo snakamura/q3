@@ -8,10 +8,11 @@
 
 #include <qmaccount.h>
 #include <qmfolder.h>
+#include <qmjunk.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
+#include <qmrule.h>
 #include <qmsecurity.h>
-#include <qmjunk.h>
 
 #include <qsconv.h>
 #include <qsstream.h>
@@ -53,7 +54,6 @@ qmpop3::Pop3ReceiveSession::Pop3ReceiveSession() :
 	pAccount_(0),
 	pSubAccount_(0),
 	pFolder_(0),
-	hwnd_(0),
 	pLogger_(0),
 	pSessionCallback_(0),
 	bReservedDownload_(false),
@@ -70,7 +70,6 @@ qmpop3::Pop3ReceiveSession::~Pop3ReceiveSession()
 bool qmpop3::Pop3ReceiveSession::init(Document* pDocument,
 									  Account* pAccount,
 									  SubAccount* pSubAccount,
-									  HWND hwnd,
 									  Profile* pProfile,
 									  Logger* pLogger,
 									  ReceiveSessionCallback* pCallback)
@@ -78,14 +77,12 @@ bool qmpop3::Pop3ReceiveSession::init(Document* pDocument,
 	assert(pDocument);
 	assert(pAccount);
 	assert(pSubAccount);
-	assert(hwnd);
 	assert(pProfile);
 	assert(pCallback);
 	
 	pDocument_ = pDocument;
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
-	hwnd_ = hwnd;
 	pProfile_ = pProfile;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
@@ -207,6 +204,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	
 	DeleteList listDelete;
 	
+	MessagePtrList listDownloaded;
+	
 	for (unsigned int n = nStart_; n < nCount; ++n) {
 		if (pSessionCallback_->isCanceled(false))
 			return true;
@@ -243,7 +242,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		bool bIgnore = false;
 		if (pSyncFilterSet) {
 			Pop3SyncFilterCallback callback(pDocument_, pAccount_,
-				pFolder_, &msg, nSize, hwnd_, pProfile_, &globalVariable,
+				pFolder_, &msg, nSize, pProfile_, &globalVariable,
 				pPop3_.get(), n, &strMessage, &state);
 			const SyncFilter* pFilter = pSyncFilterSet->getFilter(&callback);
 			if (pFilter) {
@@ -326,6 +325,9 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					strMessage.get(), strMessage.size(), &msg, -1, nFlags, nSize, false);
 				if (!pmh)
 					return false;
+				
+				if (!bJunk)
+					listDownloaded.push_back(MessagePtr(pmh));
 				
 				if (!bJunk && !pAccount_->isSeen(nFlags))
 					pSessionCallback_->notifyNewMessage(pmh);
@@ -450,6 +452,12 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			
 			pUIDList_->remove(listIndex);
 		}
+	}
+	
+	if (pSubAccount_->isAutoApplyRules()) {
+		if (!applyRules(listDownloaded))
+			Util::reportError(0, pSessionCallback_, pAccount_,
+				pSubAccount_, pFolder_, POP3ERROR_APPLYRULES);
 	}
 	
 	return true;
@@ -648,6 +656,24 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 	}
 	
 	return true;
+}
+
+bool qmpop3::Pop3ReceiveSession::applyRules(const MessagePtrList& l)
+{
+	Lock<Account> lock(*pAccount_);
+	
+	MessageHolderList listMessageHolder;
+	listMessageHolder.reserve(l.size());
+	for (MessagePtrList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessagePtrLock mpl(*it);
+		if (mpl)
+			listMessageHolder.push_back(mpl);
+	}
+	
+	RuleManager* pRuleManager = pDocument_->getRuleManager();
+	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
+	return pRuleManager->apply(pFolder_, listMessageHolder,
+		pDocument_, pProfile_, &callback);
 }
 
 std::auto_ptr<UIDList> qmpop3::Pop3ReceiveSession::loadUIDList() const
@@ -876,7 +902,6 @@ qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(Document* pDocument,
 													   NormalFolder* pFolder,
 													   Message* pMessage,
 													   unsigned int nSize,
-													   HWND hwnd,
 													   Profile* pProfile,
 													   MacroVariableHolder* pGlobalVariable,
 													   Pop3* pPop3,
@@ -888,7 +913,6 @@ qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(Document* pDocument,
 	pFolder_(pFolder),
 	pMessage_(pMessage),
 	nSize_(nSize),
-	hwnd_(hwnd),
 	pProfile_(pProfile),
 	pGlobalVariable_(pGlobalVariable),
 	pPop3_(pPop3),
@@ -947,9 +971,10 @@ std::auto_ptr<MacroContext> qmpop3::Pop3SyncFilterCallback::getMacroContext()
 	if (!pmh_.get())
 		pmh_.reset(new Pop3MessageHolder(this, pFolder_, pMessage_, nSize_));
 	
-	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
-		pMessage_, MessageHolderList(), pAccount_, pDocument_,
-		hwnd_, pProfile_, false, 0, SECURITYMODE_NONE, 0, pGlobalVariable_));
+	return std::auto_ptr<MacroContext>(new MacroContext(
+		pmh_.get(), pMessage_, MessageHolderList(), pAccount_,
+		pDocument_, 0, pProfile_, 0, MacroContext::FLAG_NONE,
+		SECURITYMODE_NONE, 0, pGlobalVariable_));
 }
 
 

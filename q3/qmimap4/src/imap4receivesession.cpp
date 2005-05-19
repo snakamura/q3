@@ -42,114 +42,6 @@ using namespace qs;
 	} while (false) \
 
 
-namespace qmimap4 {
-class MessageData;
-typedef std::vector<MessageData> MessageDataList;
-}
-
-/****************************************************************************
- *
- * MessageData
- *
- */
-
-class qmimap4::MessageData
-{
-public:
-	enum Type {
-		TYPE_NONE,
-		TYPE_HEADER,
-		TYPE_TEXT,
-		TYPE_HTML,
-		TYPE_ALL
-	};
-
-public:
-	MessageData(MessageHolder* pmh,
-				Type type,
-				FetchDataBodyStructure* pBodyStructure);
-	MessageData(const MessageData& data);
-	~MessageData();
-
-public:
-	MessageData& operator=(const MessageData& data);
-
-public:
-	const MessagePtr& getMessagePtr() const;
-	unsigned long getId() const;
-	Type getType() const;
-	FetchDataBodyStructure* getBodyStructure() const;
-	void setBodyStructure(FetchDataBodyStructure* pBodyStructure);
-
-private:
-	MessagePtr ptr_;
-	unsigned long nId_;
-	Type type_;
-	FetchDataBodyStructure* pBodyStructure_;
-};
-
-qmimap4::MessageData::MessageData(MessageHolder* pmh,
-								  Type type,
-								  FetchDataBodyStructure* pBodyStructure) :
-	ptr_(pmh),
-	nId_(pmh->getId()),
-	type_(type),
-	pBodyStructure_(pBodyStructure)
-{
-}
-
-qmimap4::MessageData::MessageData(const MessageData& data) :
-	ptr_(data.ptr_),
-	nId_(data.nId_),
-	type_(data.type_),
-	pBodyStructure_(data.pBodyStructure_)
-{
-}
-
-qmimap4::MessageData::~MessageData()
-{
-}
-
-MessageData& qmimap4::MessageData::operator=(const MessageData& data)
-{
-	if (&data != this) {
-		ptr_ = data.ptr_;
-		nId_ = data.nId_;
-		type_ = data.type_;
-		pBodyStructure_ = data.pBodyStructure_;
-	}
-	return *this;
-}
-
-const MessagePtr& qmimap4::MessageData::getMessagePtr() const
-{
-	return ptr_;
-}
-
-unsigned long qmimap4::MessageData::getId() const
-{
-	return nId_;
-}
-
-MessageData::Type qmimap4::MessageData::getType() const
-{
-	return type_;
-}
-
-FetchDataBodyStructure* qmimap4::MessageData::getBodyStructure() const
-{
-	return pBodyStructure_;
-}
-
-void qmimap4::MessageData::setBodyStructure(FetchDataBodyStructure* pBodyStructure)
-{
-	assert(pBodyStructure);
-	assert(!pBodyStructure_);
-	assert(type_ == TYPE_TEXT);
-	pBodyStructure_ = pBodyStructure;
-}
-
-
 /****************************************************************************
  *
  * Imap4ReceiveSession
@@ -161,7 +53,6 @@ qmimap4::Imap4ReceiveSession::Imap4ReceiveSession() :
 	pAccount_(0),
 	pSubAccount_(0),
 	pFolder_(0),
-	hwnd_(0),
 	pLogger_(0),
 	pSessionCallback_(0),
 	pProcessHook_(0),
@@ -180,7 +71,6 @@ qmimap4::Imap4ReceiveSession::~Imap4ReceiveSession()
 bool qmimap4::Imap4ReceiveSession::init(Document* pDocument,
 										Account* pAccount,
 										SubAccount* pSubAccount,
-										HWND hwnd,
 										Profile* pProfile,
 										Logger* pLogger,
 										ReceiveSessionCallback* pCallback)
@@ -188,14 +78,12 @@ bool qmimap4::Imap4ReceiveSession::init(Document* pDocument,
 	assert(pDocument);
 	assert(pAccount);
 	assert(pSubAccount);
-	assert(hwnd);
 	assert(pProfile);
 	assert(pCallback);
 	
 	pDocument_ = pDocument;
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
-	hwnd_ = hwnd;
 	pProfile_ = pProfile;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
@@ -447,7 +335,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 								  Account* pAccount,
 								  SubAccount* pSubAccount,
 								  NormalFolder* pFolder,
-								  HWND hwnd,
 								  Profile* pProfile,
 								  ReceiveSessionCallback* pSessionCallback,
 								  const SyncFilterSet* pFilterSet,
@@ -465,7 +352,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			pAccount_(pAccount),
 			pSubAccount_(pSubAccount),
 			pFolder_(pFolder),
-			hwnd_(hwnd),
 			pProfile_(pProfile),
 			pSessionCallback_(pSessionCallback),
 			pFilterSet_(pFilterSet),
@@ -583,7 +469,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			const SyncFilter* pFilter = 0;
 			if (pFilterSet_) {
 				Imap4SyncFilterCallback callback(pDocument_, pAccount_,
-					pFolder_, &msg, nUid, nSize, nTextSize, hwnd_,
+					pFolder_, &msg, nUid, nSize, nTextSize,
 					pProfile_, pGlobalVariable_, pSession_);
 				pFilter = pFilterSet_->getFilter(&callback);
 				if (pFilter) {
@@ -681,7 +567,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		Account* pAccount_;
 		SubAccount* pSubAccount_;
 		NormalFolder* pFolder_;
-		HWND hwnd_;
 		Profile* pProfile_;
 		ReceiveSessionCallback* pSessionCallback_;
 		const SyncFilterSet* pFilterSet_;
@@ -708,7 +593,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			(!pJunkFilter || !pFolder_->isFlag(Folder::FLAG_INBOX));
 		MacroVariableHolder globalVariable;
 		GetMessageDataProcessHook hook(pDocument_, pAccount_, pSubAccount_,
-			pFolder_, hwnd_, pProfile_, pSessionCallback_, pSyncFilterSet,
+			pFolder_, pProfile_, pSessionCallback_, pSyncFilterSet,
 			nOption, nUidStart_, listMessageData, listMakeSeen, listMakeDeleted,
 			listBodyStructure, pImap4_.get(), &globalVariable, this, bNotifyNewMessage);
 		Hook h(this, &hook);
@@ -795,7 +680,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 										  FetchDataBodyStructure* pBodyStructure,
 										  bool* pbSet)
 			{
-				MessageDataList::iterator it = std::find_if(
+				Imap4ReceiveSession::MessageDataList::iterator it = std::find_if(
 					listMessageData_.begin(), listMessageData_.end(),
 					std::bind2nd(
 						binary_compose_f_gx_hy(
@@ -885,7 +770,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		
 		virtual MessagePtr getMessagePtr(unsigned long nUid)
 		{
-			MessageDataList::const_iterator m = std::find_if(
+			Imap4ReceiveSession::MessageDataList::const_iterator m = std::find_if(
 				it_, listMessageData_.end(),
 				std::bind2nd(
 					binary_compose_f_gx_hy(
@@ -985,7 +870,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			
 			virtual MessagePtr getMessagePtr(unsigned long nUid)
 			{
-				MessageDataList::const_iterator m = std::find_if(
+				Imap4ReceiveSession::MessageDataList::const_iterator m = std::find_if(
 					it_, listMessageData_.end(),
 					std::bind2nd(
 						binary_compose_f_gx_hy(
@@ -1071,89 +956,13 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	}
 	
 	if (pJunkFilter) {
-		if (pFolder_->isFlag(Folder::FLAG_INBOX)) {
-			pCallback_->setMessage(IDS_FILTERJUNK);
-			pSessionCallback_->setRange(0, listMessageData.size());
-			pSessionCallback_->setPos(0);
-			
-			UidList listJunk;
-			for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
-				Message msg;
-				unsigned int nOperation = 0;
-				{
-					MessagePtrLock mpl(listMessageData[n].getMessagePtr());
-					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
-						bool bSeen = pAccount_->isSeen(mpl);
-						bool bNotify = !bSeen;
-						if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
-							if (bSeen) {
-								nOperation = JunkFilter::OPERATION_ADDCLEAN;
-							}
-							else {
-								float fScore = pJunkFilter->getScore(msg);
-								if (fScore < 0) {
-									reportError(0, IMAP4ERROR_FILTERJUNK);
-								}
-								else if (fScore > pJunkFilter->getThresholdScore()) {
-									listJunk.push_back(mpl->getId());
-									mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
-									nOperation = JunkFilter::OPERATION_ADDJUNK;
-									bNotify = false;
-								}
-								else {
-									nOperation = JunkFilter::OPERATION_ADDCLEAN;
-								}
-							}
-						}
-						if (bNotify)
-							pSessionCallback_->notifyNewMessage(mpl);
-					}
-				}
-				if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN && nOperation != 0) {
-					if (!pJunkFilter->manage(msg, nOperation))
-						reportError(0, IMAP4ERROR_MANAGEJUNK);
-				}
-				
-				pSessionCallback_->setPos(n);
-			}
-			
-			if (!listJunk.empty()) {
-				wstring_ptr wstrFolder(Util::getFolderName(pJunkbox));
-				MultipleRange range(&listJunk[0], listJunk.size(), true);
-				if (!pImap4_->copy(range, wstrFolder.get()))
-					HANDLE_ERROR();
-				Flags flags(Imap4::FLAG_DELETED);
-				Flags mask(Imap4::FLAG_DELETED);
-				if (!pImap4_->setFlags(range, flags, mask))
-					HANDLE_ERROR();
-			}
-		}
-		else if (pFolder_->isFlag(Folder::FLAG_JUNKBOX)) {
-			if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
-				pCallback_->setMessage(IDS_FILTERJUNK);
-				pSessionCallback_->setRange(0, listMessageData.size());
-				pSessionCallback_->setPos(0);
-				
-				for (MessageDataList::size_type n = 0; n < listMessageData.size(); ++n) {
-					Message msg;
-					unsigned int nOperation = 0;
-					{
-						MessagePtrLock mpl(listMessageData[n].getMessagePtr());
-						if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
-							wstring_ptr wstrId(mpl->getMessageId());
-							if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
-								if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
-									nOperation = JunkFilter::OPERATION_ADDJUNK;
-							}
-						}
-					}
-					if (nOperation != 0)
-						pJunkFilter->manage(msg, nOperation);
-					
-					pSessionCallback_->setPos(n);
-				}
-			}
-		}
+		if (!applyJunkFilter(pJunkFilter, listMessageData))
+			return false;
+	}
+	
+	if (pSubAccount_->isAutoApplyRules()) {
+		if (!applyRules(listMessageData))
+			reportError(0, IMAP4ERROR_APPLYRULES);
 	}
 	
 	return true;
@@ -1428,6 +1237,122 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 	return true;
 }
 
+bool qmimap4::Imap4ReceiveSession::applyJunkFilter(JunkFilter* pJunkFilter,
+												   const MessageDataList& l)
+{
+	assert(pJunkFilter);
+	
+	unsigned int nJunkFilterFlags = pJunkFilter->getFlags();
+	
+	if (pFolder_->isFlag(Folder::FLAG_INBOX)) {
+		pCallback_->setMessage(IDS_FILTERJUNK);
+		pSessionCallback_->setRange(0, l.size());
+		pSessionCallback_->setPos(0);
+		
+		typedef std::vector<unsigned long> UidList;
+		UidList listJunk;
+		for (MessageDataList::size_type n = 0; n < l.size(); ++n) {
+			Message msg;
+			unsigned int nOperation = 0;
+			{
+				MessagePtrLock mpl(l[n].getMessagePtr());
+				if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
+					bool bSeen = pAccount_->isSeen(mpl);
+					bool bNotify = !bSeen;
+					if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
+						if (bSeen) {
+							nOperation = JunkFilter::OPERATION_ADDCLEAN;
+						}
+						else {
+							float fScore = pJunkFilter->getScore(msg);
+							if (fScore < 0) {
+								reportError(0, IMAP4ERROR_FILTERJUNK);
+							}
+							else if (fScore > pJunkFilter->getThresholdScore()) {
+								listJunk.push_back(mpl->getId());
+								mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
+								nOperation = JunkFilter::OPERATION_ADDJUNK;
+								bNotify = false;
+							}
+							else {
+								nOperation = JunkFilter::OPERATION_ADDCLEAN;
+							}
+						}
+					}
+					if (bNotify)
+						pSessionCallback_->notifyNewMessage(mpl);
+				}
+			}
+			if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN && nOperation != 0) {
+				if (!pJunkFilter->manage(msg, nOperation))
+					reportError(0, IMAP4ERROR_MANAGEJUNK);
+			}
+			
+			pSessionCallback_->setPos(n);
+		}
+		
+		if (!listJunk.empty()) {
+			NormalFolder* pJunkbox = pJunkFilter ? static_cast<NormalFolder*>(
+				pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX)) : 0;
+			assert(pJunkbox);
+			wstring_ptr wstrFolder(Util::getFolderName(pJunkbox));
+			MultipleRange range(&listJunk[0], listJunk.size(), true);
+			if (!pImap4_->copy(range, wstrFolder.get()))
+				HANDLE_ERROR();
+			Flags flags(Imap4::FLAG_DELETED);
+			Flags mask(Imap4::FLAG_DELETED);
+			if (!pImap4_->setFlags(range, flags, mask))
+				HANDLE_ERROR();
+		}
+	}
+	else if (pFolder_->isFlag(Folder::FLAG_JUNKBOX)) {
+		if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
+			pCallback_->setMessage(IDS_FILTERJUNK);
+			pSessionCallback_->setRange(0, l.size());
+			pSessionCallback_->setPos(0);
+			
+			for (MessageDataList::size_type n = 0; n < l.size(); ++n) {
+				Message msg;
+				unsigned int nOperation = 0;
+				{
+					MessagePtrLock mpl(l[n].getMessagePtr());
+					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
+						wstring_ptr wstrId(mpl->getMessageId());
+						if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
+							if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+								nOperation = JunkFilter::OPERATION_ADDJUNK;
+						}
+					}
+				}
+				if (nOperation != 0)
+					pJunkFilter->manage(msg, nOperation);
+				
+				pSessionCallback_->setPos(n);
+			}
+		}
+	}
+	
+	return true;
+}
+
+bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l)
+{
+	Lock<Account> lock(*pAccount_);
+	
+	MessageHolderList listMessageHolder;
+	listMessageHolder.reserve(l.size());
+	for (MessageDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessagePtrLock mpl((*it).getMessagePtr());
+		if (mpl)
+			listMessageHolder.push_back(mpl);
+	}
+	
+	RuleManager* pRuleManager = pDocument_->getRuleManager();
+	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
+	return pRuleManager->apply(pFolder_, listMessageHolder,
+		pDocument_, pProfile_, &callback);
+}
+
 bool qmimap4::Imap4ReceiveSession::processCapabilityResponse(ResponseCapability* pCapability)
 {
 	// TODO
@@ -1558,7 +1483,8 @@ void qmimap4::Imap4ReceiveSession::reportError(Imap4* pImap4,
 	} maps[][23] = {
 		{
 			{ IMAP4ERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	},
-			{ IMAP4ERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	}
+			{ IMAP4ERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	},
+			{ IMAP4ERROR_APPLYRULES,	IDS_ERROR_APPLYRULES	}
 		},
 		{
 			{ Imap4::IMAP4_ERROR_GREETING,		IDS_ERROR_GREETING		},
@@ -1848,7 +1774,6 @@ qmimap4::Imap4SyncFilterCallback::Imap4SyncFilterCallback(Document* pDocument,
 														  unsigned int nUid,
 														  unsigned int nSize,
 														  unsigned int nTextSize,
-														  HWND hwnd,
 														  Profile* pProfile,
 														  MacroVariableHolder* pGlobalVariable,
 														  Imap4ReceiveSession* pSession) :
@@ -1859,7 +1784,6 @@ qmimap4::Imap4SyncFilterCallback::Imap4SyncFilterCallback(Document* pDocument,
 	nUid_(nUid),
 	nSize_(nSize),
 	nTextSize_(nTextSize),
-	hwnd_(hwnd),
 	pProfile_(pProfile),
 	pGlobalVariable_(pGlobalVariable),
 	pSession_(pSession)
@@ -1890,7 +1814,8 @@ std::auto_ptr<MacroContext> qmimap4::Imap4SyncFilterCallback::getMacroContext()
 	
 	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
 		pMessage_, MessageHolderList(), pAccount_, pDocument_,
-		hwnd_, pProfile_, false, 0, SECURITYMODE_NONE, 0, pGlobalVariable_));
+		0, pProfile_, 0, MacroContext::FLAG_NONE,
+		SECURITYMODE_NONE, 0, pGlobalVariable_));
 }
 
 
@@ -1941,4 +1866,72 @@ bool qmimap4::Imap4MessageHolder::getMessage(unsigned int nFlags,
 	}
 	
 	return pCallback_->getMessage(nFlags);
+}
+
+
+/****************************************************************************
+ *
+ * MessageData
+ *
+ */
+
+qmimap4::MessageData::MessageData(MessageHolder* pmh,
+								  Type type,
+								  FetchDataBodyStructure* pBodyStructure) :
+	ptr_(pmh),
+	nId_(pmh->getId()),
+	type_(type),
+	pBodyStructure_(pBodyStructure)
+{
+}
+
+qmimap4::MessageData::MessageData(const MessageData& data) :
+	ptr_(data.ptr_),
+	nId_(data.nId_),
+	type_(data.type_),
+	pBodyStructure_(data.pBodyStructure_)
+{
+}
+
+qmimap4::MessageData::~MessageData()
+{
+}
+
+MessageData& qmimap4::MessageData::operator=(const MessageData& data)
+{
+	if (&data != this) {
+		ptr_ = data.ptr_;
+		nId_ = data.nId_;
+		type_ = data.type_;
+		pBodyStructure_ = data.pBodyStructure_;
+	}
+	return *this;
+}
+
+const MessagePtr& qmimap4::MessageData::getMessagePtr() const
+{
+	return ptr_;
+}
+
+unsigned long qmimap4::MessageData::getId() const
+{
+	return nId_;
+}
+
+MessageData::Type qmimap4::MessageData::getType() const
+{
+	return type_;
+}
+
+FetchDataBodyStructure* qmimap4::MessageData::getBodyStructure() const
+{
+	return pBodyStructure_;
+}
+
+void qmimap4::MessageData::setBodyStructure(FetchDataBodyStructure* pBodyStructure)
+{
+	assert(pBodyStructure);
+	assert(!pBodyStructure_);
+	assert(type_ == TYPE_TEXT);
+	pBodyStructure_ = pBodyStructure;
 }

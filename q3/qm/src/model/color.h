@@ -271,7 +271,6 @@ private:
 	ColorSet* pColorSet_;
 	std::auto_ptr<Macro> pCondition_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
-	MacroParser parser_;
 };
 
 

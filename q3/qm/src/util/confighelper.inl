@@ -54,25 +54,48 @@ bool qm::ConfigSaver<T, Writer>::save(T t,
  *
  */
 
-template<class Config, class Handler, class Writer>
-qm::ConfigHelper<Config, Handler, Writer>::ConfigHelper(const WCHAR* pwszPath)
+template<class Config, class Handler, class Writer, class LoadLock>
+qm::ConfigHelper<Config, Handler, Writer, LoadLock>::ConfigHelper(const WCHAR* pwszPath) :
+	pLock_(0)
 {
-	wstrPath_ = allocWString(pwszPath);
+	init(pwszPath);
+}
+
+template<class Config, class Handler, class Writer, class LoadLock>
+qm::ConfigHelper<Config, Handler, Writer, LoadLock>::ConfigHelper(const WCHAR* pwszPath,
+																  const LoadLock& lock) :
+	pLock_(&lock)
+{
+	init(pwszPath);
+}
+
+template<class Config, class Handler, class Writer, class LoadLock>
+qm::ConfigHelper<Config, Handler, Writer, LoadLock>::~ConfigHelper()
+{
+}
+
+template<class Config, class Handler, class Writer, class LoadLock>
+bool qm::ConfigHelper<Config, Handler, Writer, LoadLock>::load(Config* pConfig,
+															   Handler* pHandler)
+{
+	struct Lock
+	{
+		Lock(const LoadLock* pLock) :
+			pLock_(pLock)
+		{
+			if (pLock_)
+				pLock_->lock();
+		}
+		
+		~Lock()
+		{
+			if (pLock_)
+				pLock_->unlock();
+		}
+		
+		const LoadLock* pLock_;
+	};
 	
-	SYSTEMTIME st;
-	::GetSystemTime(&st);
-	::SystemTimeToFileTime(&st, &ft_);
-}
-
-template<class Config, class Handler, class Writer>
-qm::ConfigHelper<Config, Handler, Writer>::~ConfigHelper()
-{
-}
-
-template<class Config, class Handler, class Writer>
-bool qm::ConfigHelper<Config, Handler, Writer>::load(Config* pConfig,
-													 Handler* pHandler)
-{
 	W2T(wstrPath_.get(), ptszPath);
 	qs::AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
@@ -82,6 +105,8 @@ bool qm::ConfigHelper<Config, Handler, Writer>::load(Config* pConfig,
 		hFile.close();
 		
 		if (::CompareFileTime(&ft, &ft_) != 0) {
+			Lock lock(pLock_);
+			
 			pConfig->clear();
 			
 			XMLReader reader;
@@ -93,6 +118,8 @@ bool qm::ConfigHelper<Config, Handler, Writer>::load(Config* pConfig,
 		}
 	}
 	else {
+		Lock lock(pLock_);
+		
 		pConfig->clear();
 		
 		SYSTEMTIME st;
@@ -103,10 +130,20 @@ bool qm::ConfigHelper<Config, Handler, Writer>::load(Config* pConfig,
 	return true;
 }
 
-template<class Config, class Handler, class Writer>
-bool qm::ConfigHelper<Config, Handler, Writer>::save(const Config* pConfig) const
+template<class Config, class Handler, class Writer, class LoadLock>
+bool qm::ConfigHelper<Config, Handler, Writer, LoadLock>::save(const Config* pConfig) const
 {
 	return ConfigSaver<const Config*, Writer>::save(pConfig, wstrPath_.get());
+}
+
+template<class Config, class Handler, class Writer, class LoadLock>
+void qm::ConfigHelper<Config, Handler, Writer, LoadLock>::init(const WCHAR* pwszPath)
+{
+	wstrPath_ = allocWString(pwszPath);
+	
+	SYSTEMTIME st;
+	::GetSystemTime(&st);
+	::SystemTimeToFileTime(&st, &ft_);
 }
 
 #endif // __CONFIGHELPER_INL__

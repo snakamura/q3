@@ -371,6 +371,8 @@ public:
 	void setTreatAsSent(bool bTreatAsSent);
 	bool isAddMessageId() const;
 	void setAddMessageId(bool bAddMessageId);
+	bool isAutoApplyRules() const;
+	void setAutoApplyRules(bool bAutoApplyRules);
 	unsigned int getSslOption() const;
 	void setSslOption(unsigned int nSslOption);
 	

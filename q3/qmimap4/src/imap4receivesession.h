@@ -30,6 +30,7 @@ class Imap4ReceiveSession;
 class Imap4ReceiveSessionFactory;
 class Imap4SyncFilterCallback;
 class Imap4MessageHolder;
+class MessageData;
 
 class ProcessHook;
 
@@ -43,6 +44,9 @@ class ProcessHook;
 class Imap4ReceiveSession : public qm::ReceiveSession
 {
 public:
+	typedef std::vector<MessageData> MessageDataList;
+
+public:
 	Imap4ReceiveSession();
 	virtual ~Imap4ReceiveSession();
 
@@ -50,7 +54,6 @@ public:
 	virtual bool init(qm::Document* pDocument,
 					  qm::Account* pAccount,
 					  qm::SubAccount* pSubAccount,
-					  HWND hwnd,
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  qm::ReceiveSessionCallback* pCallback);
@@ -67,6 +70,9 @@ public:
 
 private:
 	bool downloadReservedMessages(qm::NormalFolder* pFolder);
+	bool applyJunkFilter(qm::JunkFilter* pJunkFilter,
+						 const MessageDataList& l);
+	bool applyRules(const MessageDataList& l);
 
 private:
 	bool processCapabilityResponse(ResponseCapability* pCapability);
@@ -151,7 +157,6 @@ private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	qm::NormalFolder* pFolder_;
-	HWND hwnd_;
 	qs::Profile* pProfile_;
 	qs::Logger* pLogger_;
 	qm::ReceiveSessionCallback* pSessionCallback_;
@@ -235,7 +240,6 @@ public:
 							unsigned int nUid,
 							unsigned int nSize,
 							unsigned int nTextSize,
-							HWND hwnd,
 							qs::Profile* pProfile,
 							qm::MacroVariableHolder* pGlobalVariable,
 							Imap4ReceiveSession* pSession);
@@ -260,7 +264,6 @@ private:
 	unsigned int nUid_;
 	unsigned int nSize_;
 	unsigned int nTextSize_;
-	HWND hwnd_;
 	qs::Profile* pProfile_;
 	qm::MacroVariableHolder* pGlobalVariable_;
 	Imap4ReceiveSession* pSession_;
@@ -297,6 +300,48 @@ private:
 
 private:
 	Imap4SyncFilterCallback* pCallback_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageData
+ *
+ */
+
+class MessageData
+{
+public:
+	enum Type {
+		TYPE_NONE,
+		TYPE_HEADER,
+		TYPE_TEXT,
+		TYPE_HTML,
+		TYPE_ALL
+	};
+
+public:
+	MessageData(qm::MessageHolder* pmh,
+				Type type,
+				FetchDataBodyStructure* pBodyStructure);
+	MessageData(const MessageData& data);
+	~MessageData();
+
+public:
+	MessageData& operator=(const MessageData& data);
+
+public:
+	const qm::MessagePtr& getMessagePtr() const;
+	unsigned long getId() const;
+	Type getType() const;
+	FetchDataBodyStructure* getBodyStructure() const;
+	void setBodyStructure(FetchDataBodyStructure* pBodyStructure);
+
+private:
+	qm::MessagePtr ptr_;
+	unsigned long nId_;
+	Type type_;
+	FetchDataBodyStructure* pBodyStructure_;
 };
 
 }

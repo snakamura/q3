@@ -12,6 +12,7 @@
 #include <qm.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
+#include <qmrule.h>
 
 #include <qs.h>
 #include <qsprofile.h>
@@ -26,8 +27,6 @@
 
 namespace qm {
 
-class RuleManager;
-class RuleCallback;
 class RuleSet;
 class Rule;
 class RuleAction;
@@ -46,75 +45,6 @@ class Macro;
 class MacroContext;
 class MacroParser;
 class NormalFolder;
-
-
-/****************************************************************************
- *
- * RuleManager
- *
- */
-
-class RuleManager
-{
-public:
-	typedef std::vector<RuleSet*> RuleSetList;
-	typedef std::vector<Rule*> RuleList;
-
-public:
-	explicit RuleManager(const WCHAR* pwszPath);
-	~RuleManager();
-
-public:
-	const RuleSetList& getRuleSets();
-	const RuleSetList& getRuleSets(bool bReload);
-	void setRuleSets(RuleSetList& listRuleSet);
-	bool apply(Folder* pFolder,
-			   const MessageHolderList* pList,
-			   Document* pDocument,
-			   HWND hwnd,
-			   qs::Profile* pProfile,
-			   unsigned int nSecurityMode,
-			   RuleCallback* pCallback);
-	bool save() const;
-
-public:
-	void addRuleSet(std::auto_ptr<RuleSet> pRuleSet);
-	void clear();
-
-private:
-	bool load();
-	void getRules(const Folder* pFolder,
-				  RuleList* pList) const;
-
-private:
-	RuleManager(const RuleManager&);
-	RuleManager& operator=(const RuleManager&);
-
-private:
-	RuleSetList listRuleSet_;
-	ConfigHelper<RuleManager, RuleContentHandler, RuleWriter> helper_;
-};
-
-
-/****************************************************************************
- *
- * RuleCallback
- *
- */
-
-class RuleCallback
-{
-public:
-	virtual ~RuleCallback();
-
-public:
-	virtual bool isCanceled() = 0;
-	virtual void checkingMessages(Folder* pFolder) = 0;
-	virtual void applyingRule(Folder* pFolder) = 0;
-	virtual void setRange(unsigned int nMin,
-						  unsigned int nMax) = 0;
-	virtual void setPos(unsigned int nPos) = 0;
-};
 
 
 /****************************************************************************
@@ -175,9 +105,16 @@ private:
 class Rule
 {
 public:
+	enum Use {
+		USE_MANUAL	= 0x01,
+		USE_AUTO	= 0x02
+	};
+
+public:
 	Rule();
 	Rule(std::auto_ptr<Macro> pCondition,
-		 std::auto_ptr<RuleAction> pAction);
+		 std::auto_ptr<RuleAction> pAction,
+		 unsigned int nUse);
 	Rule(const Rule& rule);
 	virtual ~Rule();
 
@@ -186,6 +123,9 @@ public:
 	void setCondition(std::auto_ptr<Macro> pCondition);
 	RuleAction* getAction() const;
 	void setAction(std::auto_ptr<RuleAction> pAction);
+	bool isUse(Use use) const;
+	unsigned int getUse() const;
+	void setUse(unsigned int nUse);
 	bool match(MacroContext* pContext) const;
 	bool apply(const RuleContext& context) const;
 
@@ -195,6 +135,7 @@ private:
 private:
 	std::auto_ptr<Macro> pCondition_;
 	std::auto_ptr<RuleAction> pAction_;
+	unsigned int nUse_;
 };
 
 
@@ -388,6 +329,7 @@ public:
 				HWND hwnd,
 				qs::Profile* pProfile,
 				MacroVariableHolder* pGlobalVariable,
+				bool bAuto,
 				unsigned int nSecurityMode,
 				UndoItemList* pUndoItemList);
 	~RuleContext();
@@ -400,6 +342,7 @@ public:
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	MacroVariableHolder* getGlobalVariable() const;
+	bool isAuto() const;
 	unsigned int getSecurityMode() const;
 	UndoItemList* getUndoItemList() const;
 
@@ -415,6 +358,7 @@ private:
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	MacroVariableHolder* pGlobalVariable_;
+	bool bAuto_;
 	unsigned int nSecurityMode_;
 	UndoItemList* pUndoItemList_;
 };
@@ -469,7 +413,7 @@ private:
 	CopyRuleAction* pCurrentCopyRuleAction_;
 	qs::wstring_ptr wstrTemplateArgumentName_;
 	std::auto_ptr<Macro> pCondition_;
-	MacroParser parser_;
+	unsigned int nUse_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 

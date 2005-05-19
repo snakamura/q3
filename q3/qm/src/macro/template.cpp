@@ -61,8 +61,8 @@ Template::Result qm::Template::getValue(const TemplateContext& context,
 			MacroContext c(context.getMessageHolder(), context.getMessage(),
 				context.getSelectedMessageHolders(), context.getAccount(),
 				context.getDocument(), context.getWindow(), context.getProfile(),
-				false, context.getBodyCharset(), context.getSecurityMode(),
-				context.getErrorHandler(), &globalVariable);
+				context.getBodyCharset(), context.getMacroFlags(),
+				context.getSecurityMode(), context.getErrorHandler(), &globalVariable);
 			MacroValuePtr pValue((*itV).second->value(&c));
 			if (!pValue.get()) {
 				if (c.getReturnType() == MacroContext::RETURNTYPE_NONE)
@@ -94,6 +94,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 									 Document* pDocument,
 									 HWND hwnd,
 									 const WCHAR* pwszBodyCharset,
+									 unsigned int nMacroFlags,
 									 unsigned int nSecurityMode,
 									 Profile* pProfile,
 									 MacroErrorHandler* pErrorHandler,
@@ -104,6 +105,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 	pAccount_(pAccount),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
+	nMacroFlags_(nMacroFlags),
 	nSecurityMode_(nSecurityMode),
 	pProfile_(pProfile),
 	pErrorHandler_(pErrorHandler),
@@ -150,6 +152,11 @@ HWND qm::TemplateContext::getWindow() const
 const WCHAR* qm::TemplateContext::getBodyCharset() const
 {
 	return wstrBodyCharset_.get();
+}
+
+unsigned int qm::TemplateContext::getMacroFlags() const
+{
+	return nMacroFlags_;
 }
 
 unsigned int qm::TemplateContext::getSecurityMode() const
@@ -217,7 +224,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 		Template::ValueList* p_;
 	} deleter(listValue);
 	
-	MacroParser parser(MacroParser::TYPE_TEMPLATE);
+	MacroParser parser;
 	
 	StringBuffer<WSTRING> bufText;
 	StringBuffer<WSTRING> bufMacro;

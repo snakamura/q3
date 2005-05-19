@@ -250,8 +250,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			// Get selected
 			TemplateContext context(pmh, pmh ? &msg : 0, MessageHolderList(), pAccount,
 				pDocument_, pThis_->getHandle(), pEncodingModel_->getEncoding(),
-				pSecurityModel_->getSecurityMode(),
-				pProfile_, 0, TemplateContext::ArgumentList());
+				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 			pHeaderWindow_->setMessage(&context);
 		}
 		else {

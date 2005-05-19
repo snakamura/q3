@@ -381,8 +381,8 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
 		if (pTemplate) {
 			TemplateContext context(mpl, &msg, MessageHolderList(), pAccount,
-				pDocument_, hwnd_, 0, pSecurityModel_->getSecurityMode(),
-				pProfile_, 0, TemplateContext::ArgumentList());
+				pDocument_, hwnd_, 0, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 			switch (pTemplate->getValue(context, &wstrMessage)) {
 			case Template::RESULT_SUCCESS:
 				break;
@@ -835,7 +835,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		if (pMessage->getField(L"Message-Id", &messageId) == Part::FIELD_EXIST)
 			pwszMessageId = messageId.getMessageId();
 		if (!SyncUtil::send(pSyncManager_, pDocument_, pSyncDialogManager_,
-			pEditFrameWindow_->getHandle(), 0, pAccount, pSubAccount, pwszMessageId)) {
+			0, pAccount, pSubAccount, pwszMessageId)) {
 			ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 			return;
 		}

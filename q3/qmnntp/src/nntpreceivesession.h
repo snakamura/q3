@@ -48,6 +48,9 @@ public:
 	};
 
 public:
+	typedef std::vector<qm::MessagePtr> MessagePtrList;
+
+public:
 	explicit NntpReceiveSession(LastIdManager* pLastIdManager);
 	virtual ~NntpReceiveSession();
 
@@ -55,7 +58,6 @@ public:
 	virtual bool init(qm::Document* pDocument,
 					  qm::Account* pAccount,
 					  qm::SubAccount* pSubAccount,
-					  HWND hwnd,
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  qm::ReceiveSessionCallback* pCallback);
@@ -82,7 +84,9 @@ private:
 					  unsigned int nSize,
 					  qm::JunkFilter* pJunkFilter,
 					  unsigned int nJunkFilterFlags,
-					  qm::NormalFolder* pJunkbox);
+					  qm::NormalFolder* pJunkbox,
+					  MessagePtrList* pListDownloaded);
+	bool applyRules(const MessagePtrList& l);
 
 private:
 	NntpReceiveSession(const NntpReceiveSession&);
@@ -128,7 +132,6 @@ private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	qm::NormalFolder* pFolder_;
-	HWND hwnd_;
 	qs::Profile* pProfile_;
 	qs::Logger* pLogger_;
 	qm::ReceiveSessionCallback* pSessionCallback_;
@@ -206,7 +209,6 @@ public:
 						   qm::NormalFolder* pFolder,
 						   qm::Message* pMessage,
 						   unsigned int nSize,
-						   HWND hwnd,
 						   qs::Profile* pProfile,
 						   qm::MacroVariableHolder* pGlobalVariable,
 						   Nntp* pNntp,
@@ -232,7 +234,6 @@ private:
 	qm::NormalFolder* pFolder_;
 	qm::Message* pMessage_;
 	unsigned int nSize_;
-	HWND hwnd_;
 	qs::Profile* pProfile_;
 	qm::MacroVariableHolder* pGlobalVariable_;
 	Nntp* pNntp_;

@@ -187,7 +187,6 @@ std::auto_ptr<Script> qmscript::ScriptFactoryImpl::createScript(const Init& init
 	assert(init.pReader_);
 	assert(init.pDocument_);
 	assert(init.pProfile_);
-	assert(init.hwnd_);
 	assert(init.pModalHandler_);
 	
 	std::auto_ptr<ScriptImpl> pScript(new ScriptImpl(init));
@@ -306,7 +305,7 @@ STDMETHODIMP qmscript::ActiveScriptSite::QueryInterface(REFIID riid,
 	
 	if (riid == IID_IUnknown || riid == IID_IActiveScriptSite)
 		*ppv = static_cast<IActiveScriptSite*>(this);
-	else if (riid == IID_IActiveScriptSiteWindow)
+	else if (riid == IID_IActiveScriptSiteWindow && hwnd_)
 		*ppv = static_cast<IActiveScriptSiteWindow*>(this);
 	else
 		return E_NOINTERFACE;

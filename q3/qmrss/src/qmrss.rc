@@ -138,6 +138,7 @@ BEGIN
     IDS_ERROR_URL           "URL is not specified."
     IDS_ERROR_GET           "Error occured while getting RSS."
     IDS_ERROR_PARSE         "Error occured while parsing RSS."
+    IDS_ERROR_APPLYRULES    "Error occured while applying rules."
 END
 
 #endif    // “ú–{Œê resources

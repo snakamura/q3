@@ -2405,7 +2405,7 @@ LRESULT qm::ColorDialog::onInitDialog(HWND hwndFocus,
 LRESULT qm::ColorDialog::onOk()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	std::auto_ptr<Macro> pCondition(MacroParser(MacroParser::TYPE_COLOR).parse(wstrCondition.get()));
+	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
 		// TODO MSG
 		return 0;
@@ -2647,6 +2647,10 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	}
 	sendDlgItemMessage(IDC_ACTION, CB_SETCURSEL, nItem);
 	
+	unsigned int nUse = pRule_->getUse();
+	sendDlgItemMessage(IDC_MANUAL, BM_SETCHECK, nUse & Rule::USE_MANUAL ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_AUTO, BM_SETCHECK, nUse & Rule::USE_AUTO ? BST_CHECKED : BST_UNCHECKED);
+	
 	bInit_ = true;
 	
 	init(false);
@@ -2658,7 +2662,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 LRESULT qm::RuleDialog::onOk()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	std::auto_ptr<Macro> pCondition(MacroParser(MacroParser::TYPE_RULE).parse(wstrCondition.get()));
+	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
 		// TODO MSG
 		return 0;
@@ -2702,7 +2706,7 @@ LRESULT qm::RuleDialog::onOk()
 	case 5:
 		{
 			wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
-			std::auto_ptr<Macro> pMacro(MacroParser(MacroParser::TYPE_RULE).parse(wstrMacro.get()));
+			std::auto_ptr<Macro> pMacro(MacroParser().parse(wstrMacro.get()));
 			if (!pMacro.get()) {
 				// TODO MSG
 				return 0;
@@ -2715,6 +2719,13 @@ LRESULT qm::RuleDialog::onOk()
 		break;
 	}
 	pRule_->setAction(pAction);
+	
+	unsigned int nUse = 0;
+	if (sendDlgItemMessage(IDC_MANUAL, BM_GETCHECK) == BST_CHECKED)
+		nUse |= Rule::USE_MANUAL;
+	if (sendDlgItemMessage(IDC_AUTO, BM_GETCHECK) == BST_CHECKED)
+		nUse |= Rule::USE_AUTO;
+	pRule_->setUse(nUse);
 	
 	return DefaultDialog::onOk();
 }
@@ -3546,7 +3557,7 @@ LRESULT qm::FilterDialog::onInitDialog(HWND hwndFocus,
 LRESULT qm::FilterDialog::onOk()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	std::auto_ptr<Macro> pCondition(MacroParser(MacroParser::TYPE_FILTER).parse(wstrCondition.get()));
+	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
 		// TODO MSG
 		return 0;
@@ -5201,7 +5212,7 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 LRESULT qm::SyncFilterDialog::onOk()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	std::auto_ptr<Macro> pCondition(MacroParser(MacroParser::TYPE_SYNCFILTER).parse(wstrCondition.get()));
+	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
 		// TODO MSG
 		return 0;

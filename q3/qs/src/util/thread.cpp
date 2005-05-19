@@ -19,6 +19,12 @@
 
 #include "thread.h"
 
+#ifdef _WIN32_WCE
+#	define UNVOLATILE(type) const_cast<type>
+#else
+#	define UNVOLATILE(type)
+#endif
+
 using namespace qs;
 
 
@@ -186,7 +192,7 @@ unsigned int qs::SpinLock::nLast__ = 0;
 
 void qs::SpinLock::lock() const
 {
-	if (::InterlockedExchange(reinterpret_cast<long*>(const_cast<unsigned long*>(&nLock_)), 1) != 0) {
+	if (::InterlockedExchange(UNVOLATILE(LONG*)(&nLock_), 1) != 0) {
 		unsigned int nSpinMax = nMax__;
 		unsigned int nSpinLast = nLast__;
 		unsigned int nJunk = 17;
@@ -199,7 +205,7 @@ void qs::SpinLock::lock() const
 				nJunk *= nJunk;
 			}
 			else {
-				if (::InterlockedExchange(reinterpret_cast<long*>(const_cast<unsigned long*>(&nLock_)), 1) == 0) {
+				if (::InterlockedExchange(UNVOLATILE(LONG*)(&nLock_), 1) == 0) {
 					nLast__ = n;
 					nMax__ = HIGH_MAX;
 					return;
@@ -211,10 +217,55 @@ void qs::SpinLock::lock() const
 			int nSec = n + 6;
 			if (nSec > 27)
 				nSec = 27;
-			if (::InterlockedExchange(reinterpret_cast<long*>(const_cast<unsigned long*>(&nLock_)), 1) == 0)
+			if (::InterlockedExchange(UNVOLATILE(LONG*)(&nLock_), 1) == 0)
 				break;
 			::Sleep(nSec);
 		}
+	}
+}
+
+
+/****************************************************************************
+ *
+ * ReadWriteLock
+ *
+ */
+
+qs::ReadWriteLock::ReadWriteLock() :
+	hMutexWrite_(0),
+	hEventRead_(0),
+	nReader_(0)
+{
+	hMutexWrite_ = ::CreateMutex(0, FALSE, 0);
+	hEventRead_ = ::CreateEvent(0, TRUE, FALSE, 0);
+}
+
+qs::ReadWriteLock::~ReadWriteLock()
+{
+	::CloseHandle(hMutexWrite_);
+	::CloseHandle(hEventRead_);
+}
+
+void qs::ReadWriteLock::readLock() const
+{
+	::WaitForSingleObject(hMutexWrite_, INFINITE);
+	::InterlockedIncrement(UNVOLATILE(LONG*)(&nReader_));
+	::ResetEvent(hEventRead_);
+	::ReleaseMutex(hMutexWrite_);
+}
+
+void qs::ReadWriteLock::writeLock() const
+{
+	::WaitForSingleObject(hMutexWrite_, INFINITE);
+	if (::InterlockedCompareExchange(UNVOLATILE(LONG*)(&nReader_), 0, 0) != 0)
+		::WaitForSingleObject(hEventRead_, INFINITE);
+}
+
+void qs::ReadWriteLock::unlock() const
+{
+	if (!::ReleaseMutex(hMutexWrite_) && ::GetLastError() == ERROR_NOT_OWNER) {
+		if (::InterlockedDecrement(UNVOLATILE(LONG*)(&nReader_)) == 0)
+			::SetEvent(hEventRead_);
 	}
 }
 

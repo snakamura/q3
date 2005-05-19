@@ -38,14 +38,12 @@ public:
 	static bool syncFolder(SyncManager* pSyncManager,
 						   Document* pDocument,
 						   SyncDialogManager* pSyncDialogManager,
-						   HWND hwnd,
 						   unsigned int nCallbackParam,
 						   NormalFolder* pFolder,
 						   unsigned int nFlags);
 	static bool syncFolders(SyncManager* pSyncManager,
 							Document* pDocument,
 							SyncDialogManager* pSyncDialogManager,
-							HWND hwnd,
 							unsigned int nCallbackParam,
 							const Account::NormalFolderList& listFolder,
 							unsigned int nFlags);
@@ -61,7 +59,6 @@ public:
 	static bool send(SyncManager* pSyncManager,
 					 Document* pDocument,
 					 SyncDialogManager* pSyncDialogManager,
-					 HWND hwnd,
 					 unsigned int nCallbackParam,
 					 Account* pAccount,
 					 SubAccount* pSubAccount,
@@ -69,7 +66,6 @@ public:
 	static bool goRound(SyncManager* pSyncManager,
 						Document* pDocument,
 						SyncDialogManager* pSyncDialogManager,
-						HWND hwnd,
 						unsigned int nCallbackParam,
 						const GoRoundCourse* pCourse);
 };

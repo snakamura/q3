@@ -180,8 +180,8 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 										   Document* pDocument,
 										   HWND hwnd,
 										   Profile* pProfile,
-										   bool bGetMessageAsPossible,
 										   const WCHAR* pwszBodyCharset,
+										   unsigned int nFlags,
 										   unsigned int nSecurityMode,
 										   MacroErrorHandler* pErrorHandler,
 										   MacroVariableHolder* pGlobalVariable) :
@@ -189,15 +189,14 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
-	bGetMessageAsPossible_(bGetMessageAsPossible),
 	nSecurityMode_(nSecurityMode),
+	nFlags_(nFlags),
 	pErrorHandler_(pErrorHandler),
 	pGlobalVariable_(pGlobalVariable),
 	returnType_(MacroContext::RETURNTYPE_NONE),
 	nRegexResultCount_(0)
 {
 	assert(pDocument_);
-	assert(hwnd_);
 	
 	if (pwszBodyCharset)
 		wstrBodyCharset_ = allocWString(pwszBodyCharset);
@@ -231,14 +230,14 @@ Profile* qm::MacroGlobalContext::getProfile() const
 	return pProfile_;
 }
 
-bool qm::MacroGlobalContext::isGetMessageAsPossible() const
-{
-	return bGetMessageAsPossible_;
-}
-
 const WCHAR* qm::MacroGlobalContext::getBodyCharset() const
 {
 	return wstrBodyCharset_.get();
+}
+
+unsigned int qm::MacroGlobalContext::getFlags() const
+{
+	return nFlags_;
 }
 
 unsigned int qm::MacroGlobalContext::getSecurityMode() const
@@ -953,8 +952,7 @@ wstring_ptr qm::Macro::getString() const
  *
  */
 
-qm::MacroParser::MacroParser(Type type) :
-	type_(type),
+qm::MacroParser::MacroParser() :
 	pErrorHandler_(0)
 {
 }
@@ -1043,8 +1041,7 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 						return error(MacroErrorHandler::CODE_FUNCTIONWITHOUTPARENTHESIS, pLast);
 					
 					std::auto_ptr<MacroFunction> pFunction(
-						MacroFunctionFactory::getFactory().newFunction(
-							type_, wstrFunction.get()));
+						MacroFunctionFactory::getFactory().newFunction(wstrFunction.get()));
 					stackFunction.push_back(pFunction.get());
 					pFunction.release();
 				}
@@ -1276,8 +1273,8 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 							   Document* pDocument,
 							   HWND hwnd,
 							   Profile* pProfile,
-							   bool bGetMessageAsPossible,
 							   const WCHAR* pwszBodyCharset,
+							   unsigned int nFlags,
 							   unsigned int nSecurityMode,
 							   MacroErrorHandler* pErrorHandler,
 							   MacroVariableHolder* pGlobalVariable) :
@@ -1290,14 +1287,13 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	assert((!pmh && !pMessage) || (pmh && pMessage));
 	assert(!pmh || pmh->getAccount() == pAccount);
 	assert(!pmh || pmh->getAccount()->isLocked());
-	assert(pAccount);
+	assert(!pmh || pAccount);
 	assert(pDocument);
-	assert(hwnd);
+	assert(hwnd || !(nFlags & FLAG_UI));
 	assert(pProfile);
 	
-	pGlobalContext_ = new MacroGlobalContext(listSelected, pDocument,
-		hwnd, pProfile, bGetMessageAsPossible, pwszBodyCharset,
-		nSecurityMode, pErrorHandler, pGlobalVariable);
+	pGlobalContext_ = new MacroGlobalContext(listSelected, pDocument, hwnd, pProfile,
+		pwszBodyCharset, nFlags, nSecurityMode, pErrorHandler, pGlobalVariable);
 }
 
 qm::MacroContext::MacroContext(MessageHolderBase* pmh,
@@ -1360,7 +1356,7 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	}
 	
 	if (nFlags) {
-		if (isGetMessageAsPossible())
+		if (isFlag(FLAG_GETMESSAGEASPOSSIBLE))
 			nFlags = Account::GETMESSAGEFLAG_POSSIBLE;
 		
 		if (!pmh_->getMessage(nFlags, pwszField, getSecurityMode(), pMessage_))
@@ -1395,14 +1391,19 @@ Profile* qm::MacroContext::getProfile() const
 	return pGlobalContext_->getProfile();
 }
 
-bool qm::MacroContext::isGetMessageAsPossible() const
-{
-	return pGlobalContext_->isGetMessageAsPossible();
-}
-
 const WCHAR* qm::MacroContext::getBodyCharset() const
 {
 	return pGlobalContext_->getBodyCharset();
+}
+
+unsigned int qm::MacroContext::getFlags() const
+{
+	return pGlobalContext_->getFlags();
+}
+
+bool qm::MacroContext::isFlag(Flag flag) const
+{
+	return (getFlags() & flag) != 0;
 }
 
 unsigned int qm::MacroContext::getSecurityMode() const

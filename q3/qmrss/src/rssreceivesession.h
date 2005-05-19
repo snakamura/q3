@@ -42,6 +42,9 @@ private:
 	};
 
 public:
+	typedef std::vector<qm::MessagePtr> MessagePtrList;
+
+public:
 	explicit RssReceiveSession(FeedManager* pFeedManager);
 	virtual ~RssReceiveSession();
 
@@ -49,7 +52,6 @@ public:
 	virtual bool init(qm::Document* pDocument,
 					  qm::Account* pAccount,
 					  qm::SubAccount* pSubAccount,
-					  HWND hwnd,
 					  qs::Profile* pProfile,
 					  qs::Logger* pLogger,
 					  qm::ReceiveSessionCallback* pCallback);
@@ -66,6 +68,7 @@ public:
 
 private:
 	void clearFeeds();
+	bool applyRules(const MessagePtrList& l);
 	void reportError(UINT nId,
 					 HttpMethod* pMethod);
 
@@ -127,7 +130,6 @@ private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	qm::NormalFolder* pFolder_;
-	HWND hwnd_;
 	qs::Profile* pProfile_;
 	qs::Logger* pLogger_;
 	qm::ReceiveSessionCallback* pSessionCallback_;

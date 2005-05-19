@@ -84,6 +84,58 @@ inline void qs::NoLock::unlock() const
 
 /****************************************************************************
  *
+ * ReadWriteReadLock
+ *
+ */
+
+inline qs::ReadWriteReadLock::ReadWriteReadLock(const ReadWriteLock& lock) :
+	lock_(lock)
+{
+}
+
+inline qs::ReadWriteReadLock::~ReadWriteReadLock()
+{
+}
+
+inline void qs::ReadWriteReadLock::lock() const
+{
+	lock_.readLock();
+}
+
+inline void qs::ReadWriteReadLock::unlock() const
+{
+	lock_.unlock();
+}
+
+
+/****************************************************************************
+ *
+ * ReadWriteWriteLock
+ *
+ */
+
+inline qs::ReadWriteWriteLock::ReadWriteWriteLock(const ReadWriteLock& lock) :
+	lock_(lock)
+{
+}
+
+inline qs::ReadWriteWriteLock::~ReadWriteWriteLock()
+{
+}
+
+inline void qs::ReadWriteWriteLock::lock() const
+{
+	lock_.writeLock();
+}
+
+inline void qs::ReadWriteWriteLock::unlock() const
+{
+	lock_.unlock();
+}
+
+
+/****************************************************************************
+ *
  * Lock
  *
  */

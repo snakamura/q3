@@ -290,8 +290,9 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			// TODO
 			// Get selected messages
 			TemplateContext context(pmh, pMessage, MessageHolderList(),
-				pmh->getFolder()->getAccount(), pDocument_, getHandle(),
-				pwszEncoding, nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
+				pmh->getFolder()->getAccount(), pDocument_, getHandle(), pwszEncoding,
+				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 			wstring_ptr wstr;
 			if (pTemplate->getValue(context, &wstr) != Template::RESULT_SUCCESS)
 				return false;

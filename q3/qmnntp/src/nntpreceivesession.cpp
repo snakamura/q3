@@ -44,7 +44,6 @@ qmnntp::NntpReceiveSession::NntpReceiveSession(LastIdManager* pLastIdManager) :
 	pAccount_(0),
 	pSubAccount_(0),
 	pFolder_(0),
-	hwnd_(0),
 	pLogger_(0),
 	pSessionCallback_(0),
 	pLastIdManager_(pLastIdManager),
@@ -59,7 +58,6 @@ qmnntp::NntpReceiveSession::~NntpReceiveSession()
 bool qmnntp::NntpReceiveSession::init(Document* pDocument,
 									  Account* pAccount,
 									  SubAccount* pSubAccount,
-									  HWND hwnd,
 									  Profile* pProfile,
 									  Logger* pLogger,
 									  ReceiveSessionCallback* pCallback)
@@ -67,14 +65,12 @@ bool qmnntp::NntpReceiveSession::init(Document* pDocument,
 	assert(pDocument);
 	assert(pAccount);
 	assert(pSubAccount);
-	assert(hwnd);
 	assert(pProfile);
 	assert(pCallback);
 	
 	pDocument_ = pDocument;
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
-	hwnd_ = hwnd;
 	pProfile_ = pProfile;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
@@ -212,6 +208,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	
 	MacroVariableHolder globalVariable;
 	
+	MessagePtrList listDownloaded;
+	
 	if (bUseXOver) {
 		unsigned int nStep = pSubAccount_->getProperty(L"Nntp", L"XOVERStep", 100);
 		
@@ -265,7 +263,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					
 					State state = STATE_NONE;
 					NntpSyncFilterCallback callback(pDocument_, pAccount_,
-						pFolder_, &msg, item.nBytes_, hwnd_, pProfile_, &globalVariable,
+						pFolder_, &msg, item.nBytes_, pProfile_, &globalVariable,
 						pNntp_.get(), item.nId_, &strMessage, &state);
 					const SyncFilter* pFilter = pSyncFilterSet->getFilter(&callback);
 					if (pFilter) {
@@ -294,8 +292,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				}
 				
 				if (!bIgnore) {
-					if (!storeMessage(pszMessage, nLen, item.nId_, nFlags,
-						item.nBytes_, pJunkFilter, nJunkFilterFlags, pJunkbox))
+					if (!storeMessage(pszMessage, nLen, item.nId_, nFlags, item.nBytes_,
+						pJunkFilter, nJunkFilterFlags, pJunkbox, &listDownloaded))
 						return false;
 				}
 				
@@ -319,13 +317,19 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				// Process sync filter ?
 				
 				if (!storeMessage(strMessage.get(), strMessage.size(),
-					n, MessageHolder::FLAG_HEADERONLY, -1,
-					pJunkFilter, nJunkFilterFlags, pJunkbox))
+					n, MessageHolder::FLAG_HEADERONLY, -1, pJunkFilter,
+					nJunkFilterFlags, pJunkbox, &listDownloaded))
 					return false;
 				
 				pLastIdList_->setLastId(pNntp_->getGroup(), n);
 			}
 		}
+	}
+	
+	if (pSubAccount_->isAutoApplyRules()) {
+		if (!applyRules(listDownloaded))
+			Util::reportError(0, pSessionCallback_, pAccount_,
+				pSubAccount_, pFolder_, NNTPERROR_APPLYRULES);
 	}
 	
 	return true;
@@ -452,7 +456,8 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 											  unsigned int nSize,
 											  JunkFilter* pJunkFilter,
 											  unsigned int nJunkFilterFlags,
-											  NormalFolder* pJunkbox)
+											  NormalFolder* pJunkbox,
+											  MessagePtrList* pListDownloaded)
 {
 	bool bJunk = false;
 	Message msgJunk;
@@ -477,8 +482,10 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 		if (!pmh)
 			return false;
 		
-		if (!bJunk)
+		if (!bJunk) {
+			pListDownloaded->push_back(MessagePtr(pmh));
 			pSessionCallback_->notifyNewMessage(pmh);
+		}
 	}
 	
 	if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
@@ -490,6 +497,24 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 	}
 	
 	return true;
+}
+
+bool qmnntp::NntpReceiveSession::applyRules(const MessagePtrList& l)
+{
+	Lock<Account> lock(*pAccount_);
+	
+	MessageHolderList listMessageHolder;
+	listMessageHolder.reserve(l.size());
+	for (MessagePtrList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessagePtrLock mpl(*it);
+		if (mpl)
+			listMessageHolder.push_back(mpl);
+	}
+	
+	RuleManager* pRuleManager = pDocument_->getRuleManager();
+	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
+	return pRuleManager->apply(pFolder_, listMessageHolder,
+		pDocument_, pProfile_, &callback);
 }
 
 
@@ -641,7 +666,6 @@ qmnntp::NntpSyncFilterCallback::NntpSyncFilterCallback(Document* pDocument,
 													   NormalFolder* pFolder,
 													   Message* pMessage,
 													   unsigned int nSize,
-													   HWND hwnd,
 													   Profile* pProfile,
 													   MacroVariableHolder* pGlobalVariable,
 													   Nntp* pNntp,
@@ -653,7 +677,6 @@ qmnntp::NntpSyncFilterCallback::NntpSyncFilterCallback(Document* pDocument,
 	pFolder_(pFolder),
 	pMessage_(pMessage),
 	nSize_(nSize),
-	hwnd_(hwnd),
 	pProfile_(pProfile),
 	pGlobalVariable_(pGlobalVariable),
 	pNntp_(pNntp),
@@ -714,7 +737,8 @@ std::auto_ptr<MacroContext> qmnntp::NntpSyncFilterCallback::getMacroContext()
 	
 	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
 		pMessage_, MessageHolderList(), pAccount_, pDocument_,
-		hwnd_, pProfile_, false, 0, SECURITYMODE_NONE, 0, pGlobalVariable_));
+		0, pProfile_, 0, MacroContext::FLAG_NONE,
+		SECURITYMODE_NONE, 0, pGlobalVariable_));
 }
 
 
