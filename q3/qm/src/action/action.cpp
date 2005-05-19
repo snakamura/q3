@@ -5753,6 +5753,13 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 	case TYPE_NEXTPAGE:
 		if (pMessageWindow_->scrollPage(false))
 			return;
+		if (bPreview) {
+			MessagePtrLock mpl(pMessageModel->getCurrentMessage());
+			assert(mpl);
+			if (!mpl->isFlag(MessageHolder::FLAG_SEEN))
+				mpl->getAccount()->setMessagesFlags(MessageHolderList(1, mpl),
+					MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
+		}
 		type = nType_ & TYPE_NEXTPAGEUNSEEN ? TYPE_NEXTUNSEEN : TYPE_NEXT;
 		break;
 	case TYPE_PREVPAGE:
