@@ -25,6 +25,11 @@
 #	define UNVOLATILE(type)
 #endif
 
+#if defined _WIN32_WCE && _WIN32_WCE < 300
+#	define InterlockedCompareExchange(ptr, newval, oldval) \
+	((PVOID)InterlockedTestExchange((LPLONG)ptr, (LONG)oldval, (LONG)newval))  
+#endif
+
 using namespace qs;
 
 
