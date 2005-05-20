@@ -96,7 +96,7 @@ public:
 					Account* pAccount,
 					SubAccount* pSubAccount,
 					NormalFolder* pFolder,
-					const SyncFilterSet* pFilterSet,
+					std::auto_ptr<SyncFilterSet> pFilterSet,
 					unsigned int nFlags);
 	virtual ~ReceiveSyncItem();
 
@@ -114,7 +114,7 @@ private:
 
 private:
 	NormalFolder* pFolder_;
-	const SyncFilterSet* pFilterSet_;
+	std::auto_ptr<SyncFilterSet> pFilterSet_;
 	unsigned int nFlags_;
 };
 

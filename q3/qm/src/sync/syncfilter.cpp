@@ -87,12 +87,12 @@ const SyncFilterManager::FilterSetList& qm::SyncFilterManager::getFilterSets(boo
 	return pImpl_->listFilterSet_;
 }
 
-const SyncFilterSet* qm::SyncFilterManager::getFilterSet(const WCHAR* pwszName) const
+std::auto_ptr<SyncFilterSet> qm::SyncFilterManager::getFilterSet(const WCHAR* pwszName) const
 {
 	assert(pwszName);
 	
 	if (!pImpl_->load())
-		return 0;
+		return std::auto_ptr<SyncFilterSet>();
 	
 	FilterSetList::const_iterator it = std::find_if(
 		pImpl_->listFilterSet_.begin(), pImpl_->listFilterSet_.end(),
@@ -102,7 +102,10 @@ const SyncFilterSet* qm::SyncFilterManager::getFilterSet(const WCHAR* pwszName) 
 				std::mem_fun(&SyncFilterSet::getName),
 				std::identity<const WCHAR*>()),
 			pwszName));
-	return it != pImpl_->listFilterSet_.end() ? *it : 0;
+	if (it == pImpl_->listFilterSet_.end())
+		return std::auto_ptr<SyncFilterSet>();
+	
+	return std::auto_ptr<SyncFilterSet>(new SyncFilterSet(**it));
 }
 
 void qm::SyncFilterManager::setFilterSets(FilterSetList& listFilterSet)

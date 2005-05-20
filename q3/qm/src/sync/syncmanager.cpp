@@ -79,7 +79,7 @@ qm::ReceiveSyncItem::ReceiveSyncItem(unsigned int nSlot,
 									 Account* pAccount,
 									 SubAccount* pSubAccount,
 									 NormalFolder* pFolder,
-									 const SyncFilterSet* pFilterSet,
+									 std::auto_ptr<SyncFilterSet> pFilterSet,
 									 unsigned int nFlags) :
 	SyncItem(nSlot, pAccount, pSubAccount),
 	pFolder_(pFolder),
@@ -94,7 +94,7 @@ qm::ReceiveSyncItem::~ReceiveSyncItem()
 
 const SyncFilterSet* qm::ReceiveSyncItem::getFilterSet() const
 {
-	return pFilterSet_;
+	return pFilterSet_.get();
 }
 
 bool qm::ReceiveSyncItem::isFlag(Flag flag) const
@@ -316,7 +316,7 @@ void qm::SyncData::addFolder(Account* pAccount,
 							 unsigned int nFlags)
 {
 	SyncFilterManager* pManager = pManager_->getSyncFilterManager();
-	const SyncFilterSet* pFilterSet = pManager->getFilterSet(pwszFilterName);
+	std::auto_ptr<SyncFilterSet> pFilterSet(pManager->getFilterSet(pwszFilterName));
 	std::auto_ptr<ReceiveSyncItem> pItem(new ReceiveSyncItem(
 		nSlot_, pAccount, pSubAccount, pFolder, pFilterSet, nFlags));
 	listItem_.push_back(pItem.get());

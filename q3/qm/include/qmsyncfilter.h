@@ -49,7 +49,7 @@ public:
 public:
 	const FilterSetList& getFilterSets();
 	const FilterSetList& getFilterSets(bool bReload);
-	const SyncFilterSet* getFilterSet(const WCHAR* pwszName) const;
+	std::auto_ptr<SyncFilterSet> getFilterSet(const WCHAR* pwszName) const;
 	void setFilterSets(FilterSetList& listFilterSet);
 	bool save() const;
 	void clear();
