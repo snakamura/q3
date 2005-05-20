@@ -832,9 +832,12 @@ bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
 				stackState_.push_back(STATE_TITLE);
 			}
 			else if (wcscmp(pwszLocalName, L"link") == 0) {
-				const WCHAR* pwszHref = attributes.getValue(L"href");
-				if (pwszHref)
-					pChannel_->setLink(allocWString(pwszHref));
+				const WCHAR* pwszRel = attributes.getValue(L"rel");
+				if (!pwszRel || wcscmp(pwszRel, L"alternative") == 0) {
+					const WCHAR* pwszHref = attributes.getValue(L"href");
+					if (pwszHref)
+						pChannel_->setLink(allocWString(pwszHref));
+				}
 				stackState_.push_back(STATE_UNKNOWN);
 			}
 			else if (wcscmp(pwszLocalName, L"modified") == 0) {
