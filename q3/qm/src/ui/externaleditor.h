@@ -84,6 +84,7 @@ private:
 	
 	private:
 		ExternalEditorManager* pManager_;
+		qs::Synchronizer* pSynchronizer_;
 		volatile bool bStop_;
 	};
 	friend class WaitThread;

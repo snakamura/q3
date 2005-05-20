@@ -183,6 +183,7 @@ wstring_ptr qm::ExternalEditorManager::createParam(const WCHAR* pwszTemplate,
 
 qm::ExternalEditorManager::WaitThread::WaitThread(ExternalEditorManager* pManager) :
 	pManager_(pManager),
+	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
 	bStop_(false)
 {
 }
@@ -258,11 +259,28 @@ void qm::ExternalEditorManager::WaitThread::run()
 			WIN32_FIND_DATA fd;
 			AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
 			if (hFind.get() && ::CompareFileTime(&ft, &fd.ftLastWriteTime) != 0) {
-				unsigned int nFlags = 0;
-				// TODO
-				if (!pManager_->composer_.compose(0, 0, wstrPath.get(), nFlags)) {
-					// TODO MSG
-				}
+				struct RunnableImpl : public Runnable
+				{
+					RunnableImpl(const MessageComposer& composer,
+								 const WCHAR* pwszPath) :
+						composer_(composer),
+						pwszPath_(pwszPath)
+					{
+					}
+					
+					virtual void run() {
+						unsigned int nFlags = 0;
+						// TODO
+						if (!composer_.compose(0, 0, pwszPath_, nFlags)) {
+							// TODO MSG
+						}
+					}
+					
+					const MessageComposer& composer_;
+					const WCHAR* pwszPath_;
+				} runnable(pManager_->composer_, wstrPath.get());
+				pSynchronizer_->syncExec(&runnable);
+				
 				::DeleteFile(ptszPath);
 			}
 		}
