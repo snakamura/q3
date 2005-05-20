@@ -436,30 +436,12 @@ std::auto_ptr<Encoder> qs::BEncoderFactory::createInstance()
 struct qs::QuotedPrintableEncoderImpl
 {
 	static bool isEncodedChar(unsigned char c);
-	static unsigned char decode(unsigned char* p);
-	
-	class Buffer
-	{
-	public:
-		Buffer(InputStream* pInputStream);
-		~Buffer();
-	
-	public:
-		size_t read(unsigned char* p,
-					size_t nLen);
-		bool unread(const unsigned char* p,
-					size_t nLen);
-	
-	private:
-		Buffer(const Buffer&);
-		Buffer& operator=(const Buffer&);
-	
-	private:
-		InputStream* pInputStream_;
-		malloc_ptr<unsigned char> pPeek_;
-		size_t nPeekBufSize_;
-		size_t nPeekLen_;
-	};
+	static unsigned char decode(const unsigned char* p);
+	static size_t readLine(InputStream* pInputStream,
+						   malloc_size_ptr<unsigned char>* ppBuf);
+	static bool append(unsigned char c,
+					   unsigned char** pp,
+					   malloc_size_ptr<unsigned char>* ppBuf);
 };
 
 
@@ -470,7 +452,7 @@ inline bool qs::QuotedPrintableEncoderImpl::isEncodedChar(unsigned char c)
 		('A' <= c && c <= 'F');
 }
 
-inline unsigned char qs::QuotedPrintableEncoderImpl::decode(unsigned char* p)
+inline unsigned char qs::QuotedPrintableEncoderImpl::decode(const unsigned char* p)
 {
 	unsigned char b = 0;
 	for (int m = 0; m < 2; m++, ++p) {
@@ -486,63 +468,44 @@ inline unsigned char qs::QuotedPrintableEncoderImpl::decode(unsigned char* p)
 	return b;
 }
 
-
-/****************************************************************************
- *
- * QuotedPrintableEncoderImpl
- *
- */
-
-qs::QuotedPrintableEncoderImpl::Buffer::Buffer(InputStream* pInputStream) :
-	pInputStream_(pInputStream),
-	nPeekBufSize_(0),
-	nPeekLen_(0)
+size_t qs::QuotedPrintableEncoderImpl::readLine(InputStream* pInputStream,
+												malloc_size_ptr<unsigned char>* ppBuf)
 {
-}
-
-qs::QuotedPrintableEncoderImpl::Buffer::~Buffer()
-{
-}
-
-size_t qs::QuotedPrintableEncoderImpl::Buffer::read(unsigned char* p,
-													size_t nLen)
-{
-	size_t nRead = 0;
-	
-	size_t nPeekCopy = QSMIN(nPeekLen_, nLen);
-	if (nPeekCopy != 0) {
-		memcpy(p, pPeek_.get(), nPeekCopy);
-		nPeekLen_ -= nPeekCopy;
-		if (nPeekLen_ != 0)
-			memmove(pPeek_.get(), pPeek_.get() + nPeekCopy, nPeekLen_);
-		nLen -= nPeekCopy;
-		p += nPeekCopy;
-		nRead += nPeekCopy;
-	}
-	if (nLen != 0) {
-		size_t n = pInputStream_->read(p, nLen);
+	unsigned char* p = ppBuf->get();
+	bool bCr = false;
+	while (true) {
+		unsigned char c = 0;
+		size_t n = pInputStream->read(&c, 1);
 		if (n == -1)
 			return -1;
-		nRead += n;
+		else if (n == 0)
+			break;
+		
+		if (!append(c, &p, ppBuf))
+			return -1;
+		
+		if (bCr && c == '\n')
+			break;
+		bCr = c == '\r';
 	}
-	
-	return nRead;
+	return p - ppBuf->get();
 }
 
-bool qs::QuotedPrintableEncoderImpl::Buffer::unread(const unsigned char* p,
-													size_t nLen)
+bool qs::QuotedPrintableEncoderImpl::append(unsigned char c,
+											unsigned char** pp,
+											malloc_size_ptr<unsigned char>* ppBuf)
 {
-	if (nPeekLen_ + nLen > nPeekBufSize_) {
-		nPeekBufSize_ = nPeekBufSize_ == 0 ? 10 : nPeekBufSize_*2;
-		malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
-			realloc(pPeek_.get(), nPeekBufSize_)));
-		if (!pNew.get())
+	if (!*pp || static_cast<size_t>(*pp - ppBuf->get()) == ppBuf->size()) {
+		size_t nSize = ppBuf->size() == 0 ? 128 : ppBuf->size()*2;
+		malloc_size_ptr<unsigned char> p(
+			static_cast<unsigned char*>(realloc(ppBuf->get(), nSize)), nSize);
+		if (!p.get())
 			return false;
-		pPeek_.release();
-		pPeek_ = pNew;
+		*pp = p.get() + ppBuf->size();
+		*ppBuf = p;
 	}
-	memcpy(pPeek_.get() + nPeekLen_, p, nLen);
-	nPeekLen_ += nLen;
+	**pp = c;
+	++(*pp);
 	
 	return true;
 }
@@ -586,7 +549,12 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 				break;
 		}
 		
-		if (nLine + nSpaceLen*3 >= 72) {
+		if (nLine + nSpaceLen + 2 >= 72) {
+			if (nSpaceLen != 0) {
+				if (pOutputStream->write(pSpace.get(), nSpaceLen) != nSpaceLen)
+					return false;
+				nSpaceLen = 0;
+			}
 			if (pOutputStream->write(reinterpret_cast<const unsigned char*>("=\r\n"), 3) != 3)
 				return false;
 			nLine = 0;
@@ -631,16 +599,16 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 			
 			if (nRead != 0 && cNext == '\n') {
 				if (nSpaceLen != 0) {
-					for (size_t nSpace = 0; nSpace < nSpaceLen; ++nSpace) {
-						const unsigned char* p = 0;
-						if (pSpace[nSpace] == '\t')
-							p = reinterpret_cast<const unsigned char*>("=09");
-						else
-							p = reinterpret_cast<const unsigned char*>("=20");
-						if (pOutputStream->write(p, 3) != 3)
+					if (nSpaceLen > 1) {
+						if (pOutputStream->write(pSpace.get(), nSpaceLen - 1) != nSpaceLen - 1)
 							return false;
-						nLine += 3;
+						nLine += nSpaceLen - 1;
 					}
+					const unsigned char* p = reinterpret_cast<const unsigned char*>(
+						pSpace[nSpaceLen - 1] == '\t' ? "=09" : "=20");
+					if (pOutputStream->write(p, 3) != 3)
+						return false;
+					nLine += 3;
 					nSpaceLen = 0;
 				}
 				if (pOutputStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) != 2)
@@ -678,48 +646,52 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 bool qs::QuotedPrintableEncoder::decodeImpl(InputStream* pInputStream,
 											OutputStream* pOutputStream)
 {
-	QuotedPrintableEncoderImpl::Buffer buffer(pInputStream);
-	
+	malloc_size_ptr<unsigned char> pBuf(0, 0);
 	while (true) {
-		unsigned char c = 0;
-		size_t nRead = buffer.read(&c, 1);
+		size_t nRead = QuotedPrintableEncoderImpl::readLine(pInputStream, &pBuf);
 		if (nRead == -1)
 			return false;
 		else if (nRead == 0)
 			break;
 		
-		if (c == '=') {
-			unsigned char buf[2];
-			size_t nRead = buffer.read(buf, 2);
-			
-			bool bUnread = false;
-			if (nRead > 1 && buf[0] == '\r' && buf[1] == '\n') {
+		bool bNewLine = nRead > 1 && pBuf[nRead - 2] == '\r' && pBuf[nRead - 1] == '\n';
+		const unsigned char* pEnd = pBuf.get() + nRead - (bNewLine ? 2 : 0);
+		while (pEnd > pBuf.get() && (*(pEnd - 1) == ' ' || *(pEnd - 1) == '\t'))
+			--pEnd;
+		assert(pEnd >= pBuf.get());
+		bool bSoftBreak = pEnd > pBuf.get() && *(pEnd - 1) == '=';
+		if (bSoftBreak)
+			--pEnd;
+		
+		for (const unsigned char* p = pBuf.get(); p < pEnd; ++p) {
+			if (*p == '=') {
+				if (p + 2 < pEnd &&
+					QuotedPrintableEncoderImpl::isEncodedChar(*(p + 1)) &&
+					QuotedPrintableEncoderImpl::isEncodedChar(*(p + 2))) {
+					unsigned char c = QuotedPrintableEncoderImpl::decode(p + 1);
+					if (pOutputStream->write(&c, 1) != 1)
+						return false;
+					p += 2;
+				}
+				else {
+					if (pOutputStream->write(p, 1) != 1)
+						return false;
+				}
 			}
-			else if (nRead > 1 &&
-				QuotedPrintableEncoderImpl::isEncodedChar(buf[0]) &&
-				QuotedPrintableEncoderImpl::isEncodedChar(buf[1])) {
-				unsigned char cDecode = QuotedPrintableEncoderImpl::decode(buf);
-				if (pOutputStream->write(&cDecode, 1) != 1)
+			else if (bQ_ && *p == '_') {
+				unsigned char c = ' ';
+				if (pOutputStream->write(&c, 1) != 1)
 					return false;
 			}
 			else {
-				if (pOutputStream->write(&c, 1) != 1)
-					return false;
-				bUnread = true;
-			}
-			
-			if (bUnread) {
-				if (!buffer.unread(buf, 2))
+				if (pOutputStream->write(p, 1) != 1)
 					return false;
 			}
 		}
-		else if (bQ_ && c == '_') {
-			unsigned char cDecode = ' ';
-			if (pOutputStream->write(&cDecode, 1) != 1)
-				return false;
-		}
-		else {
-			if (pOutputStream->write(&c, 1) != 1)
+		
+		if (bNewLine && !bSoftBreak) {
+			const unsigned char* pNewLine = reinterpret_cast<const unsigned char*>("\r\n");
+			if (pOutputStream->write(pNewLine, 2) != 2)
 				return false;
 		}
 	}
