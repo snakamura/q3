@@ -328,6 +328,12 @@ public:
 							size_t nLength);
 
 private:
+	static void escape(const WCHAR* pwsz,
+					   size_t nLen,
+					   bool bAttribute,
+					   qs::StringBuffer<qs::WSTRING>* pBuf);
+
+private:
 	AtomHandler(const AtomHandler&);
 	AtomHandler& operator=(const AtomHandler&);
 
@@ -342,6 +348,8 @@ private:
 		STATE_AUTHOR,
 		STATE_NAME,
 		STATE_EMAIL,
+		STATE_CONTENT,
+		STATE_CONTENTCHILD,
 		STATE_UNKNOWN
 	};
 

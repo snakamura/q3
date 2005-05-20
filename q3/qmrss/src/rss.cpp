@@ -860,9 +860,15 @@ bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
 			if (wcscmp(pwszLocalName, L"title") == 0 ||
 				wcscmp(pwszLocalName, L"modified") == 0 ||
 				wcscmp(pwszLocalName, L"summary") == 0 ||
-				wcscmp(pwszLocalName, L"content") == 0 ||
 				wcscmp(pwszLocalName, L"id") == 0) {
 				stackState_.push_back(STATE_PROPERTY);
+			}
+			else if (wcscmp(pwszLocalName, L"content") == 0) {
+				const WCHAR* pwszMode = attributes.getValue(L"mode");
+				if (pwszMode && wcscmp(pwszMode, L"escaped") == 0)
+					stackState_.push_back(STATE_PROPERTY);
+				else
+					stackState_.push_back(STATE_CONTENT);
 			}
 			else if (wcscmp(pwszLocalName, L"link") == 0) {
 				const WCHAR* pwszHref = attributes.getValue(L"href");
@@ -902,6 +908,20 @@ bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
 		break;
 	case STATE_EMAIL:
 		stackState_.push_back(STATE_UNKNOWN);
+		break;
+	case STATE_CONTENT:
+	case STATE_CONTENTCHILD:
+		buffer_.append(L"<");
+		buffer_.append(pwszQName);
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			buffer_.append(L" ");
+			buffer_.append(attributes.getQName(n));
+			buffer_.append(L"=\"");
+			escape(attributes.getValue(n), -1, true, &buffer_);
+			buffer_.append(L"\"");
+		}
+		buffer_.append(L">");
+		stackState_.push_back(STATE_CONTENTCHILD);
 		break;
 	case STATE_UNKNOWN:
 		stackState_.push_back(STATE_UNKNOWN);
@@ -998,6 +1018,16 @@ bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
 	case STATE_EMAIL:
 		wstrEmail_ = buffer_.getString();
 		break;
+	case STATE_CONTENT:
+		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+			wcscmp(pwszLocalName, L"content") == 0);
+		pCurrentItem_->setContentEncoded(buffer_.getString());
+		break;
+	case STATE_CONTENTCHILD:
+		buffer_.append(L"</");
+		buffer_.append(pwszQName);
+		buffer_.append(L">");
+		break;
 	case STATE_UNKNOWN:
 		break;
 	default:
@@ -1023,8 +1053,31 @@ bool qmrss::AtomHandler::characters(const WCHAR* pwsz,
 		state == STATE_NAME ||
 		state == STATE_EMAIL)
 		buffer_.append(pwsz + nStart, nLength);
+	else if (state == STATE_CONTENT ||
+		state == STATE_CONTENTCHILD)
+		escape(pwsz + nStart, nLength, false, &buffer_);
 	
 	return true;
+}
+
+void qmrss::AtomHandler::escape(const WCHAR* pwsz,
+								size_t nLen,
+								bool bAttribute,
+								qs::StringBuffer<qs::WSTRING>* pBuf)
+{
+	if (nLen == -1)
+		nLen = wcslen(pwsz);
+	
+	for (const WCHAR* p = pwsz; p < pwsz + nLen; ++p) {
+		if (*p == L'<')
+			pBuf->append(L"&lt;");
+		else if (*p == L'&')
+			pBuf->append(L"&amp;");
+		else if (*p == L'\"' && bAttribute)
+			pBuf->append(L"&quot;");
+		else
+			pBuf->append(*p);
+	}
 }
 
 
