@@ -257,7 +257,7 @@ void qs::ReadWriteLock::readLock() const
 void qs::ReadWriteLock::writeLock() const
 {
 	::WaitForSingleObject(hMutexWrite_, INFINITE);
-	if (::InterlockedCompareExchange(UNVOLATILE(LONG*)(&nReader_), 0, 0) != 0)
+	if (InterlockedCompareExchange(UNVOLATILE(LONG*)(&nReader_), 0, 0) != 0)
 		::WaitForSingleObject(hEventRead_, INFINITE);
 }
 
