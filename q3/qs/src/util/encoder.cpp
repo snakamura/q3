@@ -549,7 +549,7 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 				break;
 		}
 		
-		if (nLine + nSpaceLen + 2 >= 72) {
+		if (!bQ_ && nLine + nSpaceLen + 2 >= 72) {
 			if (nSpaceLen != 0) {
 				if (pOutputStream->write(pSpace.get(), nSpaceLen) != nSpaceLen)
 					return false;
