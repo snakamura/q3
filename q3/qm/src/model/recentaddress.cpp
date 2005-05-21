@@ -101,7 +101,7 @@ void qm::RecentAddress::add(const qs::AddressListParser& addressList)
 
 void qm::RecentAddress::add(const AddressParser& address)
 {
-	AddressListParser* pGroup = address.getGroup();
+	const AddressListParser* pGroup = address.getGroup();
 	if (pGroup) {
 		add(*pGroup);
 	}
