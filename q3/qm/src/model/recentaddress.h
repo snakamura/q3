@@ -48,6 +48,7 @@ public:
 
 private:
 	void load();
+	void add(const qs::AddressListParser& addressList);
 	void add(const qs::AddressParser& address);
 
 private:

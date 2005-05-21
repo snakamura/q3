@@ -56,11 +56,8 @@ void qm::RecentAddress::add(const Message& msg)
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
 		AddressListParser addressList(0);
-		if (msg.getField(pwszFields[n], &addressList) == Part::FIELD_EXIST) {
-			const AddressListParser::AddressList& l = addressList.getAddressList();
-			for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it)
-				add(**it);
-		}
+		if (msg.getField(pwszFields[n], &addressList) == Part::FIELD_EXIST)
+			add(addressList);
 	}
 }
 
@@ -95,24 +92,37 @@ void qm::RecentAddress::load()
 	}
 }
 
+void qm::RecentAddress::add(const qs::AddressListParser& addressList)
+{
+	const AddressListParser::AddressList& l = addressList.getAddressList();
+	for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it)
+		add(**it);
+}
+
 void qm::RecentAddress::add(const AddressParser& address)
 {
-	wstring_ptr wstrAddress(address.getAddress());
-	if (pAddressBook_->getEntry(wstrAddress.get()))
-		return;
-	
-	for (AddressList::const_iterator it = listAddress_.begin(); it != listAddress_.end(); ++it) {
-		if (_wcsicmp(address.getMailbox(), (*it)->getMailbox()) == 0 &&
-			_wcsicmp(address.getHost(), (*it)->getHost()) == 0)
+	AddressListParser* pGroup = address.getGroup();
+	if (pGroup) {
+		add(*pGroup);
+	}
+	else {
+		wstring_ptr wstrAddress(address.getAddress());
+		if (pAddressBook_->getEntry(wstrAddress.get()))
 			return;
+		
+		for (AddressList::const_iterator it = listAddress_.begin(); it != listAddress_.end(); ++it) {
+			if (_wcsicmp(address.getMailbox(), (*it)->getMailbox()) == 0 &&
+				_wcsicmp(address.getHost(), (*it)->getHost()) == 0)
+				return;
+		}
+		
+		std::auto_ptr<AddressParser> pAddress(new AddressParser(
+			address.getPhrase(), address.getMailbox(), address.getHost()));
+		if (listAddress_.size() >= nMax_) {
+			std::for_each(listAddress_.begin() + nMax_ - 1,
+				listAddress_.end(), qs::deleter<AddressParser>());
+			listAddress_.resize(nMax_ - 1);
+		}
+		listAddress_.insert(listAddress_.begin(), pAddress.release());
 	}
-	
-	std::auto_ptr<AddressParser> pAddress(new AddressParser(
-		address.getPhrase(), address.getMailbox(), address.getHost()));
-	if (listAddress_.size() >= nMax_) {
-		std::for_each(listAddress_.begin() + nMax_ - 1,
-			listAddress_.end(), qs::deleter<AddressParser>());
-		listAddress_.resize(nMax_ - 1);
-	}
-	listAddress_.insert(listAddress_.begin(), pAddress.release());
 }
