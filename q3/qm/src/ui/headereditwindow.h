@@ -37,6 +37,7 @@ class HeaderEditItemCallback;
 class HeaderEditWindowContentHandler;
 
 class AddressBook;
+class AddressBookAddress;
 class AddressBookEntry;
 class RecentAddress;
 
@@ -403,13 +404,24 @@ private:
 	static void getCandidates(const WCHAR* pwszInput,
 							  const AddressBookEntry* pEntry,
 							  CandidateList* pList);
+	static bool isMatch(const WCHAR* pwszInput,
+						const AddressBookAddress* pAddress);
 	static void getCandidates(const WCHAR* pwszInput,
 							  const RecentAddress* pRecentAddress,
 							  const AddressBook* pAddressBook,
 							  CandidateList* pList);
-	static bool isMatchName(const WCHAR* pwszName,
-							const WCHAR* pwszInput,
-							size_t nInputLen);
+	static bool match(const WCHAR* pwszInput,
+					  size_t nLen,
+					  const AddressBookAddress* pAddress);
+	static bool match(const WCHAR* pwszInput,
+					  size_t nLen,
+					  const qs::AddressListParser& addressList);
+	static bool match(const WCHAR* pwszInput,
+					  size_t nLen,
+					  const qs::AddressParser& address);
+	static bool matchName(const WCHAR* pwszName,
+						  const WCHAR* pwszInput,
+						  size_t nInputLen);
 
 private:
 	AddressHeaderEditItem(const AddressHeaderEditItem&);

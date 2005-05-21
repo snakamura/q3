@@ -1111,14 +1111,12 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 											  CandidateList* pList)
 {
 	size_t nLen = wcslen(pwszInput);
-	bool bMatchName = isMatchName(pEntry->getName(), pwszInput, nLen);
+	bool bMatchName = matchName(pEntry->getName(), pwszInput, nLen);
 	
 	const AddressBookEntry::AddressList& listAddress = pEntry->getAddresses();
 	for (AddressBookEntry::AddressList::const_iterator it = listAddress.begin(); it != listAddress.end(); ++it) {
 		const AddressBookAddress* pAddress = *it;
-		bool bMatchAddress = _wcsnicmp(pAddress->getAddress(), pwszInput, nLen) == 0;
-		if ((bMatchName || bMatchAddress) &&
-			(!pAddress->isRFC2822() || !bMatchAddress || wcslen(pAddress->getAddress()) != nLen)) {
+		if (bMatchName || match(pwszInput, nLen, pAddress)) {
 			wstring_ptr wstrValue(pAddress->getValue());
 			pList->push_back(wstrValue.get());
 			wstrValue.release();
@@ -1136,14 +1134,8 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 	const RecentAddress::AddressList& l = pRecentAddress->getAddresses();
 	for (RecentAddress::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		const AddressParser* pAddress = *it;
-		
-		const WCHAR* pwszPhrase = pAddress->getPhrase();
-		bool bMatchName = isMatchName(pwszPhrase, pwszInput, nLen);
-		wstring_ptr wstrAddress(pAddress->getAddress());
-		bool bMatchAddress = _wcsnicmp(wstrAddress.get(), pwszInput, nLen) == 0;
-		if ((bMatchName || bMatchAddress) &&
-			((pwszPhrase && *pwszPhrase) || !bMatchAddress || wcslen(wstrAddress.get()) != nLen) &&
-			!pAddressBook->getEntry(wstrAddress.get())) {
+		if (match(pwszInput, nLen, *pAddress) &&
+			!pAddressBook->getEntry(pAddress->getAddress().get())) {
 			wstring_ptr wstrValue(pAddress->getValue());
 			pList->push_back(wstrValue.get());
 			wstrValue.release();
@@ -1151,9 +1143,57 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 	}
 }
 
-bool qm::AddressHeaderEditItem::isMatchName(const WCHAR* pwszName,
-											const WCHAR* pwszInput,
-											size_t nInputLen)
+bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
+									  size_t nLen,
+									  const AddressBookAddress* pAddress)
+{
+	if (pAddress->isRFC2822()) {
+		AddressListParser addressList(0);
+		if (MessageCreator::getAddressList(pAddress->getAddress(), &addressList)) {
+			if (match(pwszInput, nLen, addressList))
+				return true;
+		}
+	}
+	else {
+		if (_wcsnicmp(pAddress->getAddress(), pwszInput, nLen) == 0)
+			return true;
+	}
+	return false;
+}
+
+bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
+									  size_t nLen,
+									  const AddressListParser& addressList)
+{
+	const AddressListParser::AddressList& addresses = addressList.getAddressList();
+	for (AddressListParser::AddressList::const_iterator it = addresses.begin(); it != addresses.end(); ++it) {
+		if (match(pwszInput, nLen, **it))
+			return true;
+	}
+	return false;
+}
+
+bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
+									  size_t nLen,
+									  const AddressParser& address)
+{
+	const AddressListParser* pGroup = address.getGroup();
+	if (pGroup) {
+		return match(pwszInput, nLen, *pGroup);
+	}
+	else {
+		const WCHAR* pwszPhrase = address.getPhrase();
+		bool bMatchName = matchName(pwszPhrase, pwszInput, nLen);
+		wstring_ptr wstrAddress(address.getAddress());
+		bool bMatchAddress = _wcsnicmp(wstrAddress.get(), pwszInput, nLen) == 0;
+		return (bMatchName || bMatchAddress) &&
+			((pwszPhrase && *pwszPhrase) || !bMatchAddress || wcslen(wstrAddress.get()) != nLen);
+	}
+}
+
+bool qm::AddressHeaderEditItem::matchName(const WCHAR* pwszName,
+										  const WCHAR* pwszInput,
+										  size_t nInputLen)
 {
 	if (!pwszName)
 		return false;
