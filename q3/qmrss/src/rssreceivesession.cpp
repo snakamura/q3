@@ -289,8 +289,6 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 					return false;
 				
 				listDownloaded.push_back(MessagePtr(pmh));
-				
-				pSessionCallback_->notifyNewMessage(pmh);
 			}
 			
 			std::auto_ptr<FeedItem> pItem(new FeedItem(pwszKey));
@@ -309,6 +307,13 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	if (pSubAccount_->isAutoApplyRules()) {
 		if (!applyRules(listDownloaded))
 			reportError(IDS_ERROR_APPLYRULES, 0);
+	}
+	else {
+		for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
+			MessagePtrLock mpl(*it);
+			if (mpl && !pAccount_->isSeen(mpl))
+				pSessionCallback_->notifyNewMessage(mpl);
+		}
 	}
 	
 	return true;
@@ -353,8 +358,16 @@ bool qmrss::RssReceiveSession::applyRules(const MessagePtrList& l)
 	
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->apply(pFolder_, listMessageHolder,
-		pDocument_, pProfile_, &callback);
+	if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
+		return false;
+	
+	for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
+		MessageHolder* pmh = *it;
+		if (pmh && !pAccount_->isSeen(pmh))
+			pSessionCallback_->notifyNewMessage(pmh);
+	}
+	
+	return true;
 }
 
 void qmrss::RssReceiveSession::reportError(UINT nId,

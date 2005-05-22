@@ -72,7 +72,8 @@ private:
 	bool downloadReservedMessages(qm::NormalFolder* pFolder);
 	bool applyJunkFilter(qm::JunkFilter* pJunkFilter,
 						 const MessageDataList& l);
-	bool applyRules(const MessageDataList& l);
+	bool applyRules(const MessageDataList& l,
+					bool bNotifyNewMessage);
 
 private:
 	bool processCapabilityResponse(ResponseCapability* pCapability);

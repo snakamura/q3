@@ -331,6 +331,13 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			Util::reportError(0, pSessionCallback_, pAccount_,
 				pSubAccount_, pFolder_, NNTPERROR_APPLYRULES);
 	}
+	else {
+		for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
+			MessagePtrLock mpl(*it);
+			if (mpl && !pAccount_->isSeen(mpl))
+				pSessionCallback_->notifyNewMessage(mpl);
+		}
+	}
 	
 	return true;
 }
@@ -482,10 +489,8 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 		if (!pmh)
 			return false;
 		
-		if (!bJunk) {
+		if (!bJunk)
 			pListDownloaded->push_back(MessagePtr(pmh));
-			pSessionCallback_->notifyNewMessage(pmh);
-		}
 	}
 	
 	if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
@@ -513,8 +518,16 @@ bool qmnntp::NntpReceiveSession::applyRules(const MessagePtrList& l)
 	
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->apply(pFolder_, listMessageHolder,
-		pDocument_, pProfile_, &callback);
+	if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
+		return false;
+	
+	for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
+		MessageHolder* pmh = *it;
+		if (pmh && !pAccount_->isSeen(pmh))
+			pSessionCallback_->notifyNewMessage(pmh);
+	}
+	
+	return true;
 }
 
 

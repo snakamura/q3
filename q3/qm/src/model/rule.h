@@ -128,6 +128,7 @@ public:
 	void setUse(unsigned int nUse);
 	bool match(MacroContext* pContext) const;
 	bool apply(const RuleContext& context) const;
+	bool isMessageDestroyed() const;
 
 private:
 	Rule& operator=(const Rule&);
@@ -162,6 +163,7 @@ public:
 public:
 	virtual Type getType() const = 0;
 	virtual bool apply(const RuleContext& context) const = 0;
+	virtual bool isMessageDestroyed() const = 0;
 	virtual std::auto_ptr<RuleAction> clone() const = 0;
 };
 
@@ -197,6 +199,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
+	virtual bool isMessageDestroyed() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
 public:
@@ -243,6 +246,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
+	virtual bool isMessageDestroyed() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
 private:
@@ -273,6 +277,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
+	virtual bool isMessageDestroyed() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
 private:
@@ -303,6 +308,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
+	virtual bool isMessageDestroyed() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
 private:

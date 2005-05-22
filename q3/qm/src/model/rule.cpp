@@ -55,7 +55,8 @@ public:
 				  bool bAuto,
 				  RuleList* pList) const;
 	bool apply(Folder* pFolder,
-			   const MessageHolderList* pList,
+			   MessageHolderList* pList,
+			   const MessageHolderList* pConstList,
 			   Document* pDocument,
 			   HWND hwnd,
 			   Profile* pProfile,
@@ -105,7 +106,8 @@ void qm::RuleManagerImpl::getRules(const Folder* pFolder,
 }
 
 bool qm::RuleManagerImpl::apply(Folder* pFolder,
-								const MessageHolderList* pList,
+								MessageHolderList* pList,
+								const MessageHolderList* pConstList,
 								Document* pDocument,
 								HWND hwnd,
 								Profile* pProfile,
@@ -141,9 +143,6 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 		return true;
 	}
 	
-	typedef std::vector<MessageHolderList> ListList;
-	ListList ll(listRule.size());
-	
 	struct Accessor
 	{
 		virtual unsigned int getCount() const = 0;
@@ -172,27 +171,27 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	
 	struct ListAccessor : public Accessor
 	{
-		ListAccessor(const MessageHolderList& l) :
-			l_(l)
+		ListAccessor(const MessageHolderList* p) :
+			p_(p)
 		{
 		}
 		
 		virtual unsigned int getCount() const
 		{
-			return l_.size();
+			return p_->size();
 		}
 		
 		virtual MessageHolder* getMessage(unsigned int n) const
 		{
-			return l_[n];
+			return (*p_)[n];
 		}
 		
-		const MessageHolderList& l_;
+		const MessageHolderList* p_;
 	};
 	
 	FolderAccessor folderAccessor(pFolder);
-	ListAccessor listAccessor(*pList);
-	const Accessor& accessor = pList ?
+	ListAccessor listAccessor(pList ? pList : pConstList);
+	const Accessor& accessor = pList || pConstList ?
 		static_cast<const Accessor&>(listAccessor) :
 		static_cast<const Accessor&>(folderAccessor);
 	
@@ -203,6 +202,12 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	
 	pCallback->checkingMessages(pFolder);
 	pCallback->setRange(0, accessor.getCount());
+	
+	typedef std::vector<MessageHolderList> ListList;
+	ListList ll(listRule.size());
+	
+	typedef std::vector<unsigned int> IndexList;
+	IndexList listDestroyed;
 	
 	int nMatch = 0;
 	MacroVariableHolder globalVariable;
@@ -224,6 +229,8 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 			if (bMatch) {
 				ll[m].push_back(pmh);
 				++nMatch;
+				if (pList && pRule->isMessageDestroyed())
+					listDestroyed.push_back(n);
 				log.debugf(L"Id=%u matches rule=%u.", pmh->getId(), m);
 				break;
 			}
@@ -256,6 +263,10 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 		}
 	}
 	pDocument->getUndoManager()->pushUndoItem(undo.getUndoItem());
+	
+	assert(pList || listDestroyed.empty());
+	for (IndexList::const_iterator it = listDestroyed.begin(); it != listDestroyed.end(); ++it)
+		(*pList)[*it] = 0;
 	
 	return true;
 }
@@ -304,7 +315,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 							unsigned int nSecurityMode,
 							RuleCallback* pCallback)
 {
-	return pImpl_->apply(pFolder, 0, pDocument, hwnd,
+	return pImpl_->apply(pFolder, 0, 0, pDocument, hwnd,
 		pProfile, false, nSecurityMode, pCallback);
 }
 
@@ -316,17 +327,17 @@ bool qm::RuleManager::apply(Folder* pFolder,
 							unsigned int nSecurityMode,
 							RuleCallback* pCallback)
 {
-	return pImpl_->apply(pFolder, &l, pDocument, hwnd,
+	return pImpl_->apply(pFolder, 0, &l, pDocument, hwnd,
 		pProfile, false, nSecurityMode, pCallback);
 }
 
 bool qm::RuleManager::apply(Folder* pFolder,
-							const MessageHolderList& l,
+							MessageHolderList* pList,
 							Document* pDocument,
 							Profile* pProfile,
 							RuleCallback* pCallback)
 {
-	return pImpl_->apply(pFolder, &l, pDocument, 0,
+	return pImpl_->apply(pFolder, pList, 0, pDocument, 0,
 		pProfile, true, SECURITYMODE_NONE, pCallback);
 }
 
@@ -560,6 +571,11 @@ bool qm::Rule::apply(const RuleContext& context) const
 	return pAction_.get() ? pAction_->apply(context) : true;
 }
 
+bool qm::Rule::isMessageDestroyed() const
+{
+	return pAction_.get() ? pAction_->isMessageDestroyed() : false;
+}
+
 
 /****************************************************************************
  *
@@ -712,6 +728,11 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 	}
 }
 
+bool qm::CopyRuleAction::isMessageDestroyed() const
+{
+	return false;
+}
+
 std::auto_ptr<RuleAction> qm::CopyRuleAction::clone() const
 {
 	return std::auto_ptr<RuleAction>(new CopyRuleAction(*this));
@@ -783,6 +804,11 @@ bool qm::DeleteRuleAction::apply(const RuleContext& context) const
 		context.getFolder(), bDirect_, 0, context.getUndoItemList());
 }
 
+bool qm::DeleteRuleAction::isMessageDestroyed() const
+{
+	return bDirect_;
+}
+
 std::auto_ptr<RuleAction> qm::DeleteRuleAction::clone() const
 {
 	return std::auto_ptr<RuleAction>(new DeleteRuleAction(*this));
@@ -816,6 +842,11 @@ bool qm::DeleteCacheRuleAction::apply(const RuleContext& context) const
 {
 	return context.getAccount()->deleteMessagesCache(
 		context.getMessageHolderList());
+}
+
+bool qm::DeleteCacheRuleAction::isMessageDestroyed() const
+{
+	return false;
 }
 
 std::auto_ptr<RuleAction> qm::DeleteCacheRuleAction::clone() const
@@ -869,6 +900,11 @@ bool qm::ApplyRuleAction::apply(const RuleContext& context) const
 			return false;
 	}
 	return true;
+}
+
+bool qm::ApplyRuleAction::isMessageDestroyed() const
+{
+	return false;
 }
 
 std::auto_ptr<RuleAction> qm::ApplyRuleAction::clone() const

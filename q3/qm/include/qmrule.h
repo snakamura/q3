@@ -59,7 +59,7 @@ public:
 			   unsigned int nSecurityMode,
 			   RuleCallback* pCallback);
 	bool apply(Folder* pFolder,
-			   const MessageHolderList& l,
+			   MessageHolderList* pList,
 			   Document* pDocument,
 			   qs::Profile* pProfile,
 			   RuleCallback* pCallback);

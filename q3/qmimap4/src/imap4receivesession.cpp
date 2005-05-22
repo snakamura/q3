@@ -346,8 +346,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 								  BodyStructureList& listBodyStructure,
 								  Imap4* pImap4,
 								  MacroVariableHolder* pGlobalVariable,
-								  Imap4ReceiveSession* pSession,
-								  bool bNotifyNewMessage) :
+								  Imap4ReceiveSession* pSession) :
 			pDocument_(pDocument),
 			pAccount_(pAccount),
 			pSubAccount_(pSubAccount),
@@ -363,8 +362,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			listBodyStructure_(listBodyStructure),
 			pImap4_(pImap4),
 			pGlobalVariable_(pGlobalVariable),
-			pSession_(pSession),
-			bNotifyNewMessage_(bNotifyNewMessage)
+			pSession_(pSession)
 		{
 		}
 		
@@ -557,9 +555,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				break;
 			}
 			
-			if (bNotifyNewMessage_ && !pAccount_->isSeen(nFlags))
-				pSessionCallback_->notifyNewMessage(pmh);
-			
 			return RESULT_PROCESSED;
 		}
 		
@@ -579,23 +574,16 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		Imap4* pImap4_;
 		MacroVariableHolder* pGlobalVariable_;
 		Imap4ReceiveSession* pSession_;
-		bool bNotifyNewMessage_;
 	};
 	
 	if (nIdStart_ < nExists_) {
 		pCallback_->setMessage(IDS_DOWNLOADMESSAGESDATA);
 		
-		bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
-			!pFolder_->isFlag(Folder::FLAG_SENTBOX) &&
-			!pFolder_->isFlag(Folder::FLAG_TRASHBOX) &&
-			!pFolder_->isFlag(Folder::FLAG_DRAFTBOX) &&
-			!pFolder_->isFlag(Folder::FLAG_JUNKBOX) &&
-			(!pJunkFilter || !pFolder_->isFlag(Folder::FLAG_INBOX));
 		MacroVariableHolder globalVariable;
 		GetMessageDataProcessHook hook(pDocument_, pAccount_, pSubAccount_,
 			pFolder_, pProfile_, pSessionCallback_, pSyncFilterSet,
 			nOption, nUidStart_, listMessageData, listMakeSeen, listMakeDeleted,
-			listBodyStructure, pImap4_.get(), &globalVariable, this, bNotifyNewMessage);
+			listBodyStructure, pImap4_.get(), &globalVariable, this);
 		Hook h(this, &hook);
 		for (unsigned int nId = nIdStart_ + 1; nId <= nExists_; nId += nFetchCount) {
 			unsigned long nEnd = QSMIN(static_cast<unsigned long>(nId + nFetchCount - 1), nExists_);
@@ -960,9 +948,23 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			return false;
 	}
 	
+	bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
+		!pFolder_->isFlag(Folder::FLAG_SENTBOX) &&
+		!pFolder_->isFlag(Folder::FLAG_TRASHBOX) &&
+		!pFolder_->isFlag(Folder::FLAG_DRAFTBOX) &&
+		!pFolder_->isFlag(Folder::FLAG_JUNKBOX);
 	if (pSubAccount_->isAutoApplyRules()) {
-		if (!applyRules(listMessageData))
+		if (!applyRules(listMessageData, bNotifyNewMessage))
 			reportError(0, IMAP4ERROR_APPLYRULES);
+	}
+	else {
+		if (bNotifyNewMessage) {
+			for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
+				MessagePtrLock mpl((*it).getMessagePtr());
+				if (mpl && !pAccount_->isSeen(mpl))
+					pSessionCallback_->notifyNewMessage(mpl);
+			}
+		}
 	}
 	
 	return true;
@@ -1258,7 +1260,6 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(JunkFilter* pJunkFilter,
 				MessagePtrLock mpl(l[n].getMessagePtr());
 				if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
 					bool bSeen = pAccount_->isSeen(mpl);
-					bool bNotify = !bSeen;
 					if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
 						if (bSeen) {
 							nOperation = JunkFilter::OPERATION_ADDCLEAN;
@@ -1272,15 +1273,12 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(JunkFilter* pJunkFilter,
 								listJunk.push_back(mpl->getId());
 								mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
 								nOperation = JunkFilter::OPERATION_ADDJUNK;
-								bNotify = false;
 							}
 							else {
 								nOperation = JunkFilter::OPERATION_ADDCLEAN;
 							}
 						}
 					}
-					if (bNotify)
-						pSessionCallback_->notifyNewMessage(mpl);
 				}
 			}
 			if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN && nOperation != 0) {
@@ -1335,7 +1333,8 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(JunkFilter* pJunkFilter,
 	return true;
 }
 
-bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l)
+bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
+											  bool bNotifyNewMessage)
 {
 	Lock<Account> lock(*pAccount_);
 	
@@ -1349,8 +1348,18 @@ bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l)
 	
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->apply(pFolder_, listMessageHolder,
-		pDocument_, pProfile_, &callback);
+	if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
+		return false;
+	
+	if (bNotifyNewMessage) {
+		for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
+			MessageHolder* pmh = *it;
+			if (pmh && !pAccount_->isSeen(pmh))
+				pSessionCallback_->notifyNewMessage(pmh);
+		}
+	}
+	
+	return true;
 }
 
 bool qmimap4::Imap4ReceiveSession::processCapabilityResponse(ResponseCapability* pCapability)
