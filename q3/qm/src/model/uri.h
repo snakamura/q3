@@ -79,6 +79,13 @@ private:
 	qs::wstring_ptr wstrName_;
 };
 
+bool operator==(const URIFragment& lhs,
+				const URIFragment& rhs);
+bool operator!=(const URIFragment& lhs,
+				const URIFragment& rhs);
+bool operator<(const URIFragment& lhs,
+			   const URIFragment& rhs);
+
 
 /****************************************************************************
  *
@@ -126,6 +133,13 @@ private:
 	unsigned int nId_;
 	URIFragment fragment_;
 };
+
+bool operator==(const URI& lhs,
+				const URI& rhs);
+bool operator!=(const URI& lhs,
+				const URI& rhs);
+bool operator<(const URI& lhs,
+			   const URI& rhs);
 
 }
 

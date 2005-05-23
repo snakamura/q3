@@ -257,6 +257,52 @@ wstring_ptr qm::URIFragment::unescape(const WCHAR* pwsz)
 	return buf.getString();
 }
 
+bool qm::operator==(const URIFragment& lhs,
+					const URIFragment& rhs)
+{
+	return lhs.getSection() == rhs.getSection() &&
+		lhs.getType() == rhs.getType() &&
+		wcscmp(lhs.getName(), rhs.getName()) == 0;
+}
+
+bool qm::operator!=(const URIFragment& lhs,
+					const URIFragment& rhs)
+{
+	return !(lhs == rhs);
+}
+
+bool qm::operator<(const URIFragment& lhs,
+				   const URIFragment& rhs)
+{
+	const URIFragment::Section& sectionLhs = lhs.getSection();
+	const URIFragment::Section& sectionRhs = rhs.getSection();
+	URIFragment::Section::size_type nSize = QSMIN(sectionLhs.size(), sectionRhs.size());
+	for (URIFragment::Section::size_type n = 0; n < nSize; ++n) {
+		if (sectionLhs[n] < sectionRhs[n])
+			return true;
+		else if (sectionLhs[n] > sectionRhs[n])
+			return false;
+	}
+	if (sectionLhs.size() < sectionRhs.size())
+		return true;
+	else if (sectionLhs.size() > sectionRhs.size())
+		return false;
+	
+	if (lhs.getType() < rhs.getType())
+		return true;
+	else if (lhs.getType() > rhs.getType())
+		return false;
+	
+	if (lhs.getName() && rhs.getName())
+		return wcscmp(lhs.getName(), rhs.getName()) < 0;
+	else if (lhs.getName())
+		return false;
+	else if (rhs.getName())
+		return true;
+	else
+		return false;
+}
+
 
 /****************************************************************************
  *
@@ -474,4 +520,40 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 	
 	return std::auto_ptr<URI>(new URI(pwszAccount, pwszFolder,
 		nValidity, nId, section, type, wstrName.get()));
+}
+
+bool qm::operator==(const URI& lhs,
+					const URI& rhs)
+{
+	return wcscmp(lhs.getAccount(), rhs.getAccount()) == 0 &&
+		wcscmp(lhs.getFolder(), rhs.getFolder()) == 0 &&
+		lhs.getValidity() == rhs.getValidity() &&
+		lhs.getId() == rhs.getId() &&
+		lhs.getFragment() == rhs.getFragment();
+}
+
+bool qm::operator!=(const URI& lhs,
+					const URI& rhs)
+{
+	return !(lhs == rhs);
+}
+
+bool qm::operator<(const URI& lhs,
+				   const URI& rhs)
+{
+	int nComp = wcscmp(lhs.getAccount(), rhs.getAccount());
+	if (nComp != 0)
+		return nComp < 0;
+	nComp = wcscmp(lhs.getFolder(), rhs.getFolder());
+	if (nComp != 0)
+		return nComp < 0;
+	if (lhs.getValidity() < rhs.getValidity())
+		return true;
+	else if (lhs.getValidity() > rhs.getValidity())
+		return false;
+	if (lhs.getId() < rhs.getId())
+		return true;
+	else if (lhs.getId() > rhs.getId())
+		return false;
+	return lhs.getFragment() < rhs.getFragment();
 }
