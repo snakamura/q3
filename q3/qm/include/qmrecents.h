@@ -25,6 +25,7 @@ class RecentsHandler;
 class RecentsEvent;
 
 class AccountManager;
+class URI;
 
 
 /****************************************************************************
@@ -42,10 +43,10 @@ public:
 
 public:
 	unsigned int getCount() const;
-	const WCHAR* get(unsigned int n) const;
-	void add(const WCHAR* pwszURI,
+	const URI* get(unsigned int n) const;
+	void add(std::auto_ptr<URI> pURI,
 			 bool bAuto);
-	void remove(const WCHAR* pwszURI);
+	void remove(const URI* pURI);
 	void clear();
 	void removeSeens();
 	

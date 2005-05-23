@@ -532,7 +532,7 @@ qm::RecentsMenu::~RecentsMenu()
 	clear();
 }
 
-const WCHAR* qm::RecentsMenu::getURI(unsigned int nId) const
+const URI* qm::RecentsMenu::getURI(unsigned int nId) const
 {
 	if (IDM_MESSAGE_OPENRECENT <= nId && nId < IDM_MESSAGE_OPENRECENT + listURI_.size())
 		return listURI_[nId - IDM_MESSAGE_OPENRECENT];
@@ -548,7 +548,21 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 	clear();
 	
 	URIList listURI;
-	StringListFree<URIList> free(listURI);
+	struct Deleter
+	{
+		Deleter(URIList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			std::for_each(l_.begin(), l_.end(), qs::deleter<URI>());
+			l_.clear();
+		}
+		
+		URIList& l_;
+	} deleter(listURI);
 	{
 		pRecents_->removeSeens();
 		
@@ -559,7 +573,7 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 		
 		listURI.reserve(nCount - nOffset);
 		for (unsigned int n = nOffset; n < nCount; ++n)
-			listURI.push_back(allocWString(pRecents_->get(n)).release());
+			listURI.push_back(new URI(*pRecents_->get(n)));
 		std::sort(listURI.begin(), listURI.end(), URIComp());
 	}
 	
@@ -567,26 +581,23 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 	nId = IDM_MESSAGE_OPENRECENT;
 	Account* pAccount = 0;
 	for (URIList::iterator it = listURI.begin(); it != listURI.end(); ++it) {
-		wstring_ptr wstrURI(*it);
+		std::auto_ptr<URI> pURI(*it);
 		*it = 0;
 		
-		std::auto_ptr<URI> pURI(URI::parse(wstrURI.get()));
-		if (pURI.get()) {
-			MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
-			if (mpl) {
-				if (pAccount != mpl->getFolder()->getAccount()) {
-					if (pAccount != 0)
-						::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
-					pAccount = mpl->getFolder()->getAccount();
-				}
-				
-				wstring_ptr wstrSubject(mpl->getSubject());
-				wstring_ptr wstrTitle(UIUtil::formatMenu(wstrSubject.get()));
-				W2T(wstrTitle.get(), ptszTitle);
-				::AppendMenu(hmenu, MF_STRING, nId++, ptszTitle);
-				
-				listURI_.push_back(wstrURI.release());
+		MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
+		if (mpl) {
+			if (pAccount != mpl->getFolder()->getAccount()) {
+				if (pAccount != 0)
+					::AppendMenu(hmenu, MF_SEPARATOR, -1, 0);
+				pAccount = mpl->getFolder()->getAccount();
 			}
+			
+			wstring_ptr wstrSubject(mpl->getSubject());
+			wstring_ptr wstrTitle(UIUtil::formatMenu(wstrSubject.get()));
+			W2T(wstrTitle.get(), ptszTitle);
+			::AppendMenu(hmenu, MF_STRING, nId++, ptszTitle);
+			
+			listURI_.push_back(pURI.release());
 		}
 	}
 	if (nId != IDM_MESSAGE_OPENRECENT)
@@ -602,32 +613,14 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 
 void qm::RecentsMenu::clear()
 {
-	std::for_each(listURI_.begin(), listURI_.end(), string_free<WSTRING>());
+	std::for_each(listURI_.begin(), listURI_.end(), qs::deleter<URI>());
 	listURI_.clear();
 }
 
-bool RecentsMenu::URIComp::operator()(const WCHAR* pwszLhs,
-									  const WCHAR* pwszRhs)
+bool RecentsMenu::URIComp::operator()(const URI* pLhs,
+									  const URI* pRhs)
 {
-#ifndef NDEBUG
-	wstring_ptr wstrPrefix(concat(URI::getScheme(), L"://"));
-	size_t nPrefixLen = wcslen(wstrPrefix.get());
-	assert(nPrefixLen == 12);
-	assert(wcslen(pwszLhs) > nPrefixLen && wcsncmp(pwszLhs, wstrPrefix.get(), nPrefixLen) == 0);
-	assert(wcslen(pwszRhs) > nPrefixLen && wcsncmp(pwszRhs, wstrPrefix.get(), nPrefixLen) == 0);
-#endif
-	const WCHAR* pLhs = pwszLhs + 12;
-	const WCHAR* pLhsEnd = wcschr(pLhs, L'/');
-	assert(pLhsEnd);
-	size_t nLhsLen = pLhsEnd - pLhs;
-	
-	const WCHAR* pRhs = pwszRhs + 12;
-	const WCHAR* pRhsEnd = wcschr(pRhs, L'/');
-	assert(pRhsEnd);
-	size_t nRhsLen = pRhsEnd - pRhs;
-	
-	int nComp = wcsncmp(pLhs, pRhs, QSMIN(nLhsLen, nRhsLen));
-	return nComp < 0 ? true : nComp > 0 ? false : nLhsLen < nRhsLen;
+	return *pLhs < *pRhs;
 }
 
 

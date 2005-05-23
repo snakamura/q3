@@ -4147,21 +4147,18 @@ qm::MessageOpenRecentAction::~MessageOpenRecentAction()
 
 void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 {
-	const WCHAR* pwszURI = pRecentsMenu_->getURI(event.getId());
-	if (!pwszURI)
+	const URI* pURI = pRecentsMenu_->getURI(event.getId());
+	if (!pURI)
 		return;
 	
-	std::auto_ptr<URI> pURI(URI::parse(pwszURI));
-	if (pURI.get()) {
-		MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
-		if (mpl) {
-			ViewModel* pViewModel = pViewModelManager_->getViewModel(mpl->getFolder());
-			if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {
-				// TODO MSG
-			}
+	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI));
+	if (mpl) {
+		ViewModel* pViewModel = pViewModelManager_->getViewModel(mpl->getFolder());
+		if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {
+			// TODO MSG
 		}
 	}
-	pRecents_->remove(pwszURI);
+	pRecents_->remove(pURI);
 }
 
 

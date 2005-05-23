@@ -1189,8 +1189,8 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessageHolder
 {
 	pCallback_->notifyNewMessage(nId_);
 	
-	wstring_ptr wstrURI(URI(pmh).toString());
-	pRecents_->add(wstrURI.get(), bAuto_);
+	std::auto_ptr<URI> pURI(new URI(pmh));
+	pRecents_->add(pURI, bAuto_);
 }
 
 

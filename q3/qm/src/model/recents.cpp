@@ -26,7 +26,7 @@ using namespace qs;
 
 struct qm::RecentsImpl
 {
-	typedef std::vector<qs::WSTRING> URIList;
+	typedef std::vector<URI*> URIList;
 	typedef std::vector<RecentsHandler*> HandlerList;
 	
 	void fireRecentsChanged();
@@ -92,23 +92,26 @@ unsigned int qm::Recents::getCount() const
 	return pImpl_->list_.size();
 }
 
-const WCHAR* qm::Recents::get(unsigned int n) const
+const URI* qm::Recents::get(unsigned int n) const
 {
 	assert(isLocked());
 	assert(n < pImpl_->list_.size());
 	return pImpl_->list_[n];
 }
 
-void qm::Recents::add(const WCHAR* pwszURI,
+void qm::Recents::add(std::auto_ptr<URI> pURI,
 					  bool bAuto)
 {
+	assert(pURI.get());
+	
 	if (!bAuto && pImpl_->bAddAutoOnly_)
 		return;
 	
 	if (pImpl_->pFilter_.get()) {
+		wstring_ptr wstrURI(pURI->toString());
 		const WCHAR* pStart = 0;
 		const WCHAR* pEnd = 0;
-		pImpl_->pFilter_->search(pwszURI, -1, pwszURI, false, &pStart, &pEnd, 0);
+		pImpl_->pFilter_->search(wstrURI.get(), -1, wstrURI.get(), false, &pStart, &pEnd, 0);
 		if (!pStart)
 			return;
 	}
@@ -117,27 +120,28 @@ void qm::Recents::add(const WCHAR* pwszURI,
 	
 	RecentsImpl::URIList& l = pImpl_->list_;
 	
-	wstring_ptr wstrURI(allocWString(pwszURI));
-	l.push_back(wstrURI.get());
-	wstrURI.release();
+	l.push_back(pURI.get());
+	pURI.release();
 	
 	while (l.size() > pImpl_->nMax_) {
-		freeWString(l.front());
+		delete l.front();
 		l.erase(l.begin());
 	}
 	
 	pImpl_->fireRecentsChanged();
 }
 
-void qm::Recents::remove(const WCHAR* pwszURI)
+void qm::Recents::remove(const URI* pURI)
 {
+	assert(pURI);
+	
 	Lock<Recents> lock(*this);
 	
-	RecentsImpl::URIList::iterator it = std::find_if(
-		pImpl_->list_.begin(), pImpl_->list_.end(),
-		std::bind2nd(string_equal<WCHAR>(), pwszURI));
+	RecentsImpl::URIList::iterator it = pImpl_->list_.begin();
+	while (it != pImpl_->list_.end() && **it != *pURI)
+		++it;
 	if (it != pImpl_->list_.end()) {
-		freeWString(*it);
+		delete *it;
 		pImpl_->list_.erase(it);
 	}
 	
@@ -151,7 +155,7 @@ void qm::Recents::clear()
 	if (pImpl_->list_.empty())
 		return;
 	
-	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(), string_free<WSTRING>());
+	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(), qs::deleter<URI>());
 	pImpl_->list_.clear();
 	
 	pImpl_->fireRecentsChanged();
@@ -164,17 +168,11 @@ void qm::Recents::removeSeens()
 	bool bChanged = false;
 	
 	for (RecentsImpl::URIList::iterator it = pImpl_->list_.begin(); it != pImpl_->list_.end(); ) {
-		bool bRemove = true;
+		const URI* pURI = *it;
 		
-		std::auto_ptr<URI> pURI(URI::parse(*it));
-		if (pURI.get()) {
-			MessagePtrLock mpl(pImpl_->pAccountManager_->getMessage(*pURI.get()));
-			if (mpl)
-				bRemove = mpl->isSeen();
-		}
-		
-		if (bRemove) {
-			freeWString(*it);
+		MessagePtrLock mpl(pImpl_->pAccountManager_->getMessage(*pURI));
+		if (!mpl || mpl->isSeen()) {
+			delete *it;
 			it = pImpl_->list_.erase(it);
 			bChanged = true;
 		}

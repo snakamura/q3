@@ -53,6 +53,7 @@ class Recents;
 class ScriptManager;
 class SecurityModel;
 class TemplateManager;
+class URI;
 class ViewModelManager;
 
 
@@ -290,17 +291,17 @@ public:
 	~RecentsMenu();
 
 public:
-	const WCHAR* getURI(unsigned int nId) const;
+	const URI* getURI(unsigned int nId) const;
 	bool createMenu(HMENU hmenu);
 
 private:
 	void clear();
 
 private:
-	struct URIComp : public std::binary_function<const WCHAR*, const WCHAR*, bool>
+	struct URIComp : public std::binary_function<const URI*, const URI*, bool>
 	{
-		bool operator()(const WCHAR* pwszLhs,
-						const WCHAR* pwszRhs);
+		bool operator()(const URI* pLhs,
+						const URI* pRhs);
 	};
 
 private:
@@ -308,7 +309,7 @@ private:
 	RecentsMenu& operator=(const RecentsMenu&);
 
 private:
-	typedef std::vector<qs::WSTRING> URIList;
+	typedef std::vector<URI*> URIList;
 
 private:
 	Recents* pRecents_;
