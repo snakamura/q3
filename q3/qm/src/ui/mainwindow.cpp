@@ -1955,6 +1955,7 @@ void qm::MainWindow::processIdle()
 {
 	FrameWindow::processIdle();
 	pImpl_->updateStatusBar();
+	pImpl_->pDocument_->getRecents()->removeSeens();
 }
 
 bool qm::MainWindow::getToolbarButtons(Toolbar* pToolbar)

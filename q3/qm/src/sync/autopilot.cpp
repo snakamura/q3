@@ -9,7 +9,6 @@
 #include <qmaccount.h>
 #include <qmdocument.h>
 #include <qmgoround.h>
-#include <qmrecents.h>
 
 #include <qsras.h>
 
@@ -112,9 +111,6 @@ void qm::AutoPilot::timerTimeout(unsigned int nId)
 				}
 			}
 		}
-		
-		Recents* pRecents = pDocument_->getRecents();
-		pRecents->removeSeens();
 		
 #ifndef _WIN32_WCE
 		unseenCountUpdater_.update();
