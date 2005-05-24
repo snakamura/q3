@@ -125,6 +125,7 @@ public:
 	wstring_ptr wstrType_[Account::HOST_SIZE];
 	wstring_ptr wstrMessageStorePath_;
 	bool bMultiMessageStore_;
+	bool bStoreDecodedMessage_;
 	Profile* pProfile_;
 	const Security* pSecurity_;
 	PasswordManager* pPasswordManager_;
@@ -1013,6 +1014,9 @@ qm::Account::Account(const WCHAR* pwszPath,
 			pImpl_->wstrMessageStorePath_.get(),
 			nBlockSize, pwszPath, nIndexBlockSize));
 	
+	pImpl_->bStoreDecodedMessage_ = pImpl_->bMultiMessageStore_ &&
+		pProfile->getInt(L"Global", L"StoreDecodedMessage", 0) != 0;
+	
 	size_t nIndexMaxSize = pProfile->getInt(L"Global", L"IndexMaxSize", -1);
 	pImpl_->pMessageIndex_.reset(new MessageIndex(pImpl_->pMessageStore_.get(), nIndexMaxSize));
 	
@@ -1085,6 +1089,16 @@ const WCHAR* qm::Account::getMessageStorePath() const
 bool qm::Account::isMultiMessageStore() const
 {
 	return pImpl_->bMultiMessageStore_;
+}
+
+bool qm::Account::isStoreDecodedMessage() const
+{
+	return pImpl_->bStoreDecodedMessage_;
+}
+
+void qm::Account::setStoreDecodedMessage(bool bStore) const
+{
+	pImpl_->bStoreDecodedMessage_ = bStore;
 }
 
 int qm::Account::getProperty(const WCHAR* pwszSection,
@@ -1876,6 +1890,7 @@ bool qm::Account::save() const
 	
 	pImpl_->pProfile_->setString(L"Global", L"SubAccount",
 		pImpl_->pCurrentSubAccount_->getName());
+	pImpl_->pProfile_->setInt(L"Global", L"StoreDecodedMessage", pImpl_->bStoreDecodedMessage_);
 	
 	if (!flushMessageStore())
 		return false;
@@ -2255,6 +2270,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 	if (!pImpl_->getMessage(pmh, nFlags, pMessage))
 		return false;
 	
+	bool bProcessed = false;
 	if (bSMIME) {
 		const SMIMEUtility* pSMIMEUtility = pImpl_->pSecurity_->getSMIMEUtility();
 		SMIMEUtility::Type type = pSMIMEUtility->getType(pMessage->getContentType());
@@ -2271,6 +2287,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 			if (!pImpl_->processSMIME(pSMIMEUtility, type, pMessage))
 				break;
 			type = pSMIMEUtility->getType(*pMessage);
+			bProcessed = true;
 		}
 	}
 	if (bPGP) {
@@ -2298,6 +2315,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 				if (!pImpl_->processPGP(pPGPUtility, type, pMessage))
 					break;
 				type = pPGPUtility->getType(*pMessage, false);
+				bProcessed = true;
 			}
 		}
 	}
@@ -2311,6 +2329,12 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 		WCHAR wsz[32];
 		swprintf(wsz, L"%d", n);
 		pMessage->setParam(L"Verification", wsz);
+	}
+	
+	if (bProcessed && pImpl_->bStoreDecodedMessage_) {
+		unsigned int nOffset = pmh->getMessageBoxKey().nOffset_;
+		if (nOffset != -1)
+			pImpl_->pMessageStore_->saveDecoded(nOffset, *pMessage);
 	}
 	
 	return true;

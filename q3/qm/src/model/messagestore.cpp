@@ -229,6 +229,12 @@ bool qm::SingleMessageStore::save(const Message& header,
 	return true;
 }
 
+bool qm::SingleMessageStore::saveDecoded(unsigned int nOffset,
+										 const Message& msg)
+{
+	return false;
+}
+
 bool qm::SingleMessageStore::free(unsigned int nOffset,
 								  unsigned int nLength,
 								  unsigned int nIndexKey,
@@ -299,8 +305,7 @@ bool qm::SingleMessageStore::compact(DataList* pListData,
 bool qm::SingleMessageStore::salvage(const DataList& listData,
 									 MessageStoreSalvageCallback* pCallback)
 {
-	// TODO
-	return true;
+	return false;
 }
 
 bool qm::SingleMessageStore::check(MessageStoreCheckCallback* pCallback)
@@ -339,7 +344,9 @@ struct qm::MultiMessageStoreImpl
 public:
 	bool init();
 	unsigned int getOffset(bool bIncrement);
-	wstring_ptr getPath(unsigned int nOffset) const;
+	wstring_ptr getPath(unsigned int nOffset,
+						bool bEncoded) const;
+	void deleteFiles(unsigned int nOffset) const;
 	bool ensureDirectory(unsigned int nOffset) const;
 	void freeUnrefered(const MessageStore::DataList& listData);
 
@@ -423,11 +430,23 @@ unsigned int qm::MultiMessageStoreImpl::getOffset(bool bIncrement)
 	return nOffset_;
 }
 
-wstring_ptr qm::MultiMessageStoreImpl::getPath(unsigned int nOffset) const
+wstring_ptr qm::MultiMessageStoreImpl::getPath(unsigned int nOffset,
+											   bool bEncoded) const
 {
 	WCHAR wsz[64];
-	swprintf(wsz, L"\\msg\\%08d\\%08d.msg", nOffset/1000, nOffset);
+	swprintf(wsz, L"\\msg\\%08d\\%08d.%s", nOffset/1000,
+		nOffset, bEncoded ? L"d.msg" : L"msg");
 	return concat(wstrPath_.get(), wsz);
+}
+
+void qm::MultiMessageStoreImpl::deleteFiles(unsigned int nOffset) const
+{
+	bool b[] = { false, true };
+	for (int n = 0; n < countof(b); ++n) {
+		wstring_ptr wstrPath(getPath(nOffset, b[n]));
+		W2T(wstrPath.get(), ptszPath);
+		::DeleteFile(ptszPath);
+	}
 }
 
 bool qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
@@ -462,15 +481,10 @@ void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& list
 	List::const_iterator it = l.begin();
 	unsigned int nOffset = getOffset(false);
 	for (unsigned int n = 0; n <= nOffset; ++n) {
-		if (it != l.end() && *it == n) {
+		if (it != l.end() && *it == n)
 			++it;
-		}
-		else {
-			wstring_ptr wstrPath(getPath(n));
-			W2T(wstrPath.get(), ptszPath);
-			if (::GetFileAttributes(ptszPath) != 0xffffffff)
-				::DeleteFile(ptszPath);
-		}
+		else
+			deleteFiles(n);
 	}
 }
 
@@ -532,17 +546,16 @@ bool qm::MultiMessageStore::load(unsigned int nOffset,
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	wstring_ptr wstrPath(pImpl_->getPath(nOffset));
+	wstring_ptr wstrPath(pImpl_->getPath(nOffset, false));
 	FileInputStream stream(wstrPath.get());
 	if (!stream)
 		return false;
-	BufferedInputStream bufferedStream(&stream, false);
 	
 	malloc_ptr<unsigned char> pBuf(static_cast<unsigned char*>(malloc(nLength)));
 	if (!pBuf.get())
 		return false;
 	
-	size_t nRead = bufferedStream.read(pBuf.get(), nLength);
+	size_t nRead = stream.read(pBuf.get(), nLength);
 	if (nRead != nLength)
 		return false;
 	
@@ -583,15 +596,14 @@ bool qm::MultiMessageStore::save(const Message& header,
 		*pnOffset = pImpl_->getOffset(true);
 		if (!pImpl_->ensureDirectory(*pnOffset))
 			return false;
-		wstring_ptr wstrPath(pImpl_->getPath(*pnOffset));
+		wstring_ptr wstrPath(pImpl_->getPath(*pnOffset, false));
 		FileOutputStream stream(wstrPath.get());
 		if (!stream)
 			return false;
-		BufferedOutputStream bufferedStream(&stream, false);
-		if (bufferedStream.write(reinterpret_cast<const unsigned char*>(pszHeader), nHeaderLen) == -1 ||
-			bufferedStream.write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1 ||
-			bufferedStream.write(reinterpret_cast<const unsigned char*>(pszBody), nBodyLen) == -1 ||
-			!bufferedStream.close())
+		if (stream.write(reinterpret_cast<const unsigned char*>(pszHeader), nHeaderLen) == -1 ||
+			stream.write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1 ||
+			stream.write(reinterpret_cast<const unsigned char*>(pszBody), nBodyLen) == -1 ||
+			!stream.close())
 			return false;
 	}
 	
@@ -599,6 +611,29 @@ bool qm::MultiMessageStore::save(const Message& header,
 	*pnIndexLength = pIndex.size();
 	*pnIndexKey = pImpl_->pIndexStorage_->save(&p, pnIndexLength, 1);
 	if (*pnIndexKey == -1)
+		return false;
+	
+	return true;
+}
+
+bool qm::MultiMessageStore::saveDecoded(unsigned int nOffset,
+										const Message& msg)
+{
+	assert(nOffset);
+	
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	
+	xstring_size_ptr strContent(msg.getContent());
+	if (!strContent.get())
+		return false;
+	
+	wstring_ptr wstrPath(pImpl_->getPath(nOffset, true));
+	FileOutputStream stream(wstrPath.get());
+	if (!stream)
+		return false;
+	
+	if (stream.write(reinterpret_cast<const unsigned char*>(strContent.get()), strContent.size()) == -1 ||
+		!stream.close())
 		return false;
 	
 	return true;
@@ -616,11 +651,8 @@ bool qm::MultiMessageStore::free(unsigned int nOffset,
 			return false;
 	}
 	
-	if (nOffset != -1) {
-		wstring_ptr wstrPath(pImpl_->getPath(nOffset));
-		W2T(wstrPath.get(), ptszPath);
-		::DeleteFile(ptszPath);
-	}
+	if (nOffset != -1)
+		pImpl_->deleteFiles(nOffset);
 	
 	return true;
 }
@@ -687,7 +719,7 @@ bool qm::MultiMessageStore::salvage(const DataList& listData,
 			++it;
 		}
 		else {
-			wstring_ptr wstrPath(pImpl_->getPath(n));
+			wstring_ptr wstrPath(pImpl_->getPath(n, false));
 			W2T(wstrPath.get(), ptszPath);
 			
 			WIN32_FIND_DATA fd;
@@ -700,7 +732,7 @@ bool qm::MultiMessageStore::salvage(const DataList& listData,
 					return false;
 				if (!pCallback->salvage(msg))
 					return false;
-				::DeleteFile(ptszPath);
+				pImpl_->deleteFiles(n);
 			}
 		}
 		pCallback->step(1);

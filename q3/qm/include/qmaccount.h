@@ -113,6 +113,8 @@ public:
 	bool isSupport(Support support) const;
 	const WCHAR* getMessageStorePath() const;
 	bool isMultiMessageStore() const;
+	bool isStoreDecodedMessage() const;
+	void setStoreDecodedMessage(bool bStore) const;
 	
 	int getProperty(const WCHAR* pwszSection,
 					const WCHAR* pwszKey,

@@ -66,6 +66,8 @@ public:
 					  unsigned int* pnHeaderLength,
 					  unsigned int* pnIndexKey,
 					  unsigned int* pnIndexLength) = 0;
+	virtual bool saveDecoded(unsigned int nOffset,
+							 const Message& msg) = 0;
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  unsigned int nIndexKey,
@@ -122,6 +124,8 @@ public:
 					  unsigned int* pnHeaderLength,
 					  unsigned int* pnIndexKey,
 					  unsigned int* pnIndexLength);
+	virtual bool saveDecoded(unsigned int nOffset,
+							 const Message& msg);
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  unsigned int nIndexKey,
@@ -173,6 +177,8 @@ public:
 					  unsigned int* pnHeaderLength,
 					  unsigned int* pnIndexKey,
 					  unsigned int* pnIndexLength);
+	virtual bool saveDecoded(unsigned int nOffset,
+							 const Message& msg);
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  unsigned int nIndexKey,
