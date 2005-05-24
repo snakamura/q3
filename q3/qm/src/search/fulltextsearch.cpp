@@ -89,6 +89,7 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	}
 	if (listOffset.empty())
 		return true;
+	std::sort(listOffset.begin(), listOffset.end());
 	
 	SearchContext::FolderList listFolder;
 	context.getTargetFolders(pAccount_, &listFolder);
@@ -117,8 +118,11 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	
 	pList->reserve(listOffset.size());
 	
+	unsigned int nPrevOffset = -1;
 	for (OffsetList::const_iterator itO = listOffset.begin(); itO != listOffset.end(); ++itO) {
 		unsigned int nOffset = *itO;
+		if (nOffset == nPrevOffset)
+			continue;
 		
 		MessageHolder::Init init = { 0 };
 		init.nOffset_ = nOffset;
@@ -138,6 +142,8 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 		if (itM != listMessageHolder.end() &&
 			(*itM)->getMessageBoxKey().nOffset_ == nOffset)
 			pList->push_back(*itM);
+		
+		nPrevOffset = nOffset;
 	}
 	
 	return true;
