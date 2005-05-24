@@ -623,11 +623,15 @@ bool qm::MultiMessageStore::saveDecoded(unsigned int nOffset,
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
+	wstring_ptr wstrPath(pImpl_->getPath(nOffset, true));
+	W2T(wstrPath.get(), ptszPath);
+	if (::GetFileAttributes(ptszPath) != 0xffffffff)
+		return true;
+	
 	xstring_size_ptr strContent(msg.getContent());
 	if (!strContent.get())
 		return false;
 	
-	wstring_ptr wstrPath(pImpl_->getPath(nOffset, true));
 	FileOutputStream stream(wstrPath.get());
 	if (!stream)
 		return false;
