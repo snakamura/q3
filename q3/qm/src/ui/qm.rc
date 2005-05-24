@@ -548,6 +548,9 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,95,95,10
     CONTROL         "Enable &junk filter",IDC_JUNKFILTER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,105,80,10
+    CONTROL         "Cache decr&ypted messages for full text search",
+                    IDC_STOREDECODED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    115,155,10
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 179, 169

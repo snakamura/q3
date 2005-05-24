@@ -102,6 +102,8 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 		pSubAccount_->isJunkFilterEnabled() ? BST_CHECKED : BST_UNCHECKED);
 	if (!pJunkFilter_ || !pSubAccount_->getAccount()->isSupport(Account::SUPPORT_JUNKFILTER))
 		Window(getDlgItem(IDC_JUNKFILTER)).enableWindow(false);
+	sendDlgItemMessage(IDC_STOREDECODED, BM_SETCHECK,
+		pSubAccount_->getAccount()->isStoreDecodedMessage() ? BST_CHECKED : BST_UNCHECKED);
 #endif
 	
 	return TRUE;
@@ -133,6 +135,8 @@ LRESULT qm::AccountAdvancedPage::onOk()
 #ifndef _WIN32_WCE
 	pSubAccount_->setJunkFilterEnabled(
 		sendDlgItemMessage(IDC_JUNKFILTER, BM_GETCHECK) == BST_CHECKED);
+	pSubAccount_->getAccount()->setStoreDecodedMessage(
+		sendDlgItemMessage(IDC_STOREDECODED, BM_GETCHECK) == BST_CHECKED);
 #endif
 	
 	return DefaultPropertyPage::onOk();
