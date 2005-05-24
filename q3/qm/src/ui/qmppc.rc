@@ -529,12 +529,13 @@ BEGIN
     CONTROL         "&Connect receive host before send",
                     IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,70,125,10
-    CONTROL         "T&reat as sent",IDC_TREATASSENT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,80,60,10
+    CONTROL         "T&reat messages from my address as sent",
+                    IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,5,80,120,17
     CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,90,125,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,100,125,10
     CONTROL         "App&ly rules automatically",IDC_AUTOAPPLYRULES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,100,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,110,95,10
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 137, 153

@@ -540,8 +540,9 @@ BEGIN
     CONTROL         "&Connect receive host before send",
                     IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,65,140,10
-    CONTROL         "T&reat as sent",IDC_TREATASSENT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,70,10
+    CONTROL         "T&reat messages from my address as sent",
+                    IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    75,140,10
     CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,85,140,10
     CONTROL         "App&ly rules automatically",IDC_AUTOAPPLYRULES,"Button",

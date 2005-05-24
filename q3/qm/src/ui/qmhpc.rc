@@ -524,8 +524,9 @@ BEGIN
     CONTROL         "&Connect receive host before send",
                     IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,65,125,10
-    CONTROL         "T&reat as sent",IDC_TREATASSENT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,100,10
+    CONTROL         "T&reat messages from my address as sent",
+                    IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    75,145,10
     CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,85,125,10
     CONTROL         "App&ly rules automatically",IDC_AUTOAPPLYRULES,"Button",
@@ -1114,7 +1115,7 @@ BEGIN
     PUSHBUTTON      "&Down",IDC_DOWN,140,92,50,12
 END
 
-IDD_RULE DIALOGEX 0, 0, 211, 104
+IDD_RULE DIALOG DISCARDABLE  0, 0, 211, 104
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE 0x80000000L
 CAPTION "Rule"
