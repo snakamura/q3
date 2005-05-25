@@ -2309,6 +2309,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 		if (type == PGPUtility::TYPE_INLINEENCRYPTED ||
 			type == PGPUtility::TYPE_INLINESIGNED) {
 			pImpl_->processPGP(pPGPUtility, type, pMessage);
+			bProcessed = true;
 		}
 		else {
 			while  (type != PGPUtility::TYPE_NONE) {
