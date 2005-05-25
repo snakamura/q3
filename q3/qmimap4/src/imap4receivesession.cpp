@@ -960,9 +960,13 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	else {
 		if (bNotifyNewMessage) {
 			for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
-				MessagePtrLock mpl((*it).getMessagePtr());
-				if (mpl && !pAccount_->isSeen(mpl))
-					pSessionCallback_->notifyNewMessage(mpl);
+				bool bNotify = false;
+				{
+					MessagePtrLock mpl((*it).getMessagePtr());
+					bNotify = mpl && !pAccount_->isSeen(mpl);
+				}
+				if (bNotify)
+					pSessionCallback_->notifyNewMessage((*it).getMessagePtr());
 			}
 		}
 	}
@@ -1336,28 +1340,36 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(JunkFilter* pJunkFilter,
 bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
 											  bool bNotifyNewMessage)
 {
-	Lock<Account> lock(*pAccount_);
+	MessagePtrList listNotify;
 	
-	MessageHolderList listMessageHolder;
-	listMessageHolder.reserve(l.size());
-	for (MessageDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		MessagePtrLock mpl((*it).getMessagePtr());
-		if (mpl)
-			listMessageHolder.push_back(mpl);
-	}
-	
-	RuleManager* pRuleManager = pDocument_->getRuleManager();
-	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
-		return false;
-	
-	if (bNotifyNewMessage) {
-		for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
-			MessageHolder* pmh = *it;
-			if (pmh && !pAccount_->isSeen(pmh))
-				pSessionCallback_->notifyNewMessage(pmh);
+	{
+		Lock<Account> lock(*pAccount_);
+		
+		MessageHolderList listMessageHolder;
+		listMessageHolder.reserve(l.size());
+		for (MessageDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessagePtrLock mpl((*it).getMessagePtr());
+			if (mpl)
+				listMessageHolder.push_back(mpl);
 		}
+		
+		RuleManager* pRuleManager = pDocument_->getRuleManager();
+		DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
+		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
+			return false;
+		
+		if (bNotifyNewMessage) {
+			for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
+				MessageHolder* pmh = *it;
+				if (pmh && !pAccount_->isSeen(pmh))
+					listNotify.push_back(MessagePtr(pmh));
+			}
+		}
+		
 	}
+	
+	for (MessagePtrList::const_iterator it = listNotify.begin(); it != listNotify.end(); ++it)
+		pSessionCallback_->notifyNewMessage(*it);
 	
 	return true;
 }

@@ -310,9 +310,13 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	}
 	else {
 		for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
-			MessagePtrLock mpl(*it);
-			if (mpl && !pAccount_->isSeen(mpl))
-				pSessionCallback_->notifyNewMessage(mpl);
+			bool bNotify = false;
+			{
+				MessagePtrLock mpl(*it);
+				bNotify = mpl && !pAccount_->isSeen(mpl);
+			}
+			if (bNotify)
+				pSessionCallback_->notifyNewMessage(*it);
 		}
 	}
 	
@@ -346,26 +350,33 @@ void qmrss::RssReceiveSession::clearFeeds()
 
 bool qmrss::RssReceiveSession::applyRules(const MessagePtrList& l)
 {
-	Lock<Account> lock(*pAccount_);
+	MessagePtrList listNotify;
 	
-	MessageHolderList listMessageHolder;
-	listMessageHolder.reserve(l.size());
-	for (MessagePtrList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		MessagePtrLock mpl(*it);
-		if (mpl)
-			listMessageHolder.push_back(mpl);
+	{
+		Lock<Account> lock(*pAccount_);
+		
+		MessageHolderList listMessageHolder;
+		listMessageHolder.reserve(l.size());
+		for (MessagePtrList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessagePtrLock mpl(*it);
+			if (mpl)
+				listMessageHolder.push_back(mpl);
+		}
+		
+		RuleManager* pRuleManager = pDocument_->getRuleManager();
+		DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
+		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
+			return false;
+		
+		for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
+			MessageHolder* pmh = *it;
+			if (pmh && !pAccount_->isSeen(pmh))
+				listNotify.push_back(MessagePtr(pmh));
+		}
 	}
 	
-	RuleManager* pRuleManager = pDocument_->getRuleManager();
-	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
-		return false;
-	
-	for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
-		MessageHolder* pmh = *it;
-		if (pmh && !pAccount_->isSeen(pmh))
-			pSessionCallback_->notifyNewMessage(pmh);
-	}
+	for (MessagePtrList::const_iterator it = listNotify.begin(); it != listNotify.end(); ++it)
+		pSessionCallback_->notifyNewMessage(*it);
 	
 	return true;
 }

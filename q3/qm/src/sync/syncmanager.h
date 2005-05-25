@@ -382,7 +382,7 @@ private:
 		virtual void addError(const SessionErrorInfo& info);
 	
 	public:
-		virtual void notifyNewMessage(MessageHolder* pmh);
+		virtual void notifyNewMessage(MessagePtr ptr);
 	
 	private:
 		ReceiveSessionCallbackImpl(const ReceiveSessionCallbackImpl&);

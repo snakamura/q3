@@ -144,7 +144,7 @@ public:
 	virtual ~ReceiveSessionCallback();
 
 public:
-	virtual void notifyNewMessage(MessageHolder* pmh) = 0;
+	virtual void notifyNewMessage(MessagePtr ptr) = 0;
 };
 
 

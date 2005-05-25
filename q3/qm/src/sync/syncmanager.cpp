@@ -1185,12 +1185,18 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::addError(const SessionErrorInf
 	pCallback_->addError(nId_, info);
 }
 
-void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessageHolder* pmh)
+void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr ptr)
 {
 	pCallback_->notifyNewMessage(nId_);
 	
-	std::auto_ptr<URI> pURI(new URI(pmh));
-	pRecents_->add(pURI, bAuto_);
+	std::auto_ptr<URI> pURI;
+	{
+		MessagePtrLock mpl(ptr);
+		if (mpl)
+			pURI.reset(new URI(mpl));
+	}
+	if (pURI.get())
+		pRecents_->add(pURI, bAuto_);
 }
 
 
