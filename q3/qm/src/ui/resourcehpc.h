@@ -498,6 +498,7 @@
 #define IDC_AUTOAPPLYRULES              1404
 #define IDC_MANUAL                      1405
 #define IDC_AUTO                        1406
+#define IDC_ADDTORECENTS                1408
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -591,7 +592,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        215
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1408
+#define _APS_NEXT_CONTROL_VALUE         1409
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

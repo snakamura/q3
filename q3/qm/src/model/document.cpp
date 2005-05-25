@@ -517,6 +517,9 @@ bool qm::Document::save()
 			return false;
 	}
 	
+	if (!pImpl_->pRecents_->save())
+		return false;
+	
 	if (!pImpl_->pRecentAddress_->save())
 		return false;
 	

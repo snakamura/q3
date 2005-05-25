@@ -15,6 +15,7 @@
 #include <qmlistwindow.h>
 #include <qmmainwindow.h>
 #include <qmmessagewindow.h>
+#include <qmrecents.h>
 #include <qmsecurity.h>
 #include <qmtabwindow.h>
 
@@ -483,7 +484,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL2(PANEL_FIXEDFORMTEXTS, FixedFormTexts, pDocument_->getFixedFormTextManager(), pProfile_);
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
-			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
+			PANEL4(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pDocument_->getRecents(), pProfile_);
 			PANEL1(PANEL_CONFIRM, OptionConfirm, pProfile_);
 			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
 			PANEL1(PANEL_MISC2, OptionMisc2, pProfile_);
@@ -3192,10 +3193,12 @@ void qm::ArgumentDialog::updateState()
 
 qm::AutoPilotDialog::AutoPilotDialog(AutoPilotManager* pManager,
 									 GoRound* pGoRound,
+									 Recents* pRecents,
 									 Profile* pProfile) :
 	AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>(IDD_AUTOPILOT, IDC_ENTRIES, false),
 	pManager_(pManager),
 	pGoRound_(pGoRound),
+	pRecents_(pRecents),
 	pProfile_(pProfile)
 {
 	const AutoPilotManager::EntryList& l = pManager->getEntries();
@@ -3236,6 +3239,8 @@ LRESULT qm::AutoPilotDialog::onInitDialog(HWND hwndFocus,
 	
 	if (pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected", 0))
 		sendDlgItemMessage(IDC_ONLYWHENCONNECTED, BM_SETCHECK, BST_CHECKED);
+	if (pRecents_->isEnabled())
+		sendDlgItemMessage(IDC_ADDTORECENTS, BM_SETCHECK, BST_CHECKED);
 	
 	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onInitDialog(hwndFocus, lParam);
 }
@@ -3272,6 +3277,8 @@ bool qm::AutoPilotDialog::save(OptionDialogContext* pContext)
 	
 	bool bConnected = sendDlgItemMessage(IDC_ONLYWHENCONNECTED, BM_GETCHECK) == BST_CHECKED;
 	pProfile_->setInt(L"AutoPilot", L"OnlyWhenConnected", bConnected);
+	
+	pRecents_->setEnabled(sendDlgItemMessage(IDC_ADDTORECENTS, BM_GETCHECK) == BST_CHECKED);
 	
 	return true;
 }
@@ -3322,7 +3329,11 @@ void qm::AutoPilotDialog::layout()
 	screenToClient(&rectConnected);
 	int nConnectedHeight = rectConnected.bottom - rectConnected.top;
 	
-	HDWP hdwp = beginDeferWindowPos(10);
+	RECT rectRecents;
+	Window(getDlgItem(IDC_ADDTORECENTS)).getWindowRect(&rectRecents);
+	screenToClient(&rectRecents);
+	
+	HDWP hdwp = beginDeferWindowPos(11);
 	
 	hdwp = LayoutUtil::layout(this, IDC_ENTRIES, hdwp, 0,
 		nSoundHeight + nConnectedHeight + 10);
@@ -3344,6 +3355,9 @@ void qm::AutoPilotDialog::layout()
 		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 	hdwp = Window(getDlgItem(IDC_ONLYWHENCONNECTED)).deferWindowPos(hdwp, 0,
 		rectConnected.left, rect.bottom - nConnectedHeight - 5,
+		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_ADDTORECENTS)).deferWindowPos(hdwp, 0,
+		rectRecents.left, rect.bottom - nConnectedHeight - 5,
 		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 	
 	endDeferWindowPos(hdwp);

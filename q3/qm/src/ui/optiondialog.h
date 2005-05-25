@@ -94,6 +94,7 @@ class ListWindow;
 class MainWindow;
 class MessageFrameWindowManager;
 class MessageWindow;
+class Recents;
 class Security;
 #ifdef QMTABWINDOW
 class TabWindow;
@@ -1534,7 +1535,8 @@ class AutoPilotDialog :
 public:
 	AutoPilotDialog(AutoPilotManager* pManager,
 					GoRound* pGoRound,
-					qs::Profile* pProfile_);
+					Recents* pRecents,
+					qs::Profile* pProfile);
 	virtual ~AutoPilotDialog();
 
 public:
@@ -1576,6 +1578,7 @@ private:
 private:
 	AutoPilotManager* pManager_;
 	GoRound* pGoRound_;
+	Recents* pRecents_;
 	qs::Profile* pProfile_;
 };
 

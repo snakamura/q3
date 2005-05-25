@@ -42,6 +42,8 @@ public:
 	~Recents();
 
 public:
+	bool isEnabled() const;
+	void setEnabled(bool bEnabled);
 	unsigned int getCount() const;
 	const URI* get(unsigned int n) const;
 	void add(std::auto_ptr<URI> pURI,
@@ -49,6 +51,7 @@ public:
 	void remove(const URI* pURI);
 	void clear();
 	void removeSeens();
+	bool save() const;
 	
 	void lock() const;
 	void unlock() const;

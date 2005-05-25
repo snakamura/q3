@@ -1290,6 +1290,8 @@ BEGIN
     PUSHBUTTON      "&Browse...",IDC_BROWSE,150,80,50,12
     CONTROL         "&Only when connected",IDC_ONLYWHENCONNECTED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,95,86,10
+    CONTROL         "Add to recent &messages list",IDC_ADDTORECENTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,100,95,100,10
 END
 
 IDD_AUTOPILOTENTRY DIALOG DISCARDABLE  0, 0, 155, 37

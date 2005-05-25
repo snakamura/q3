@@ -33,6 +33,7 @@ struct qm::RecentsImpl
 	
 	Recents* pThis_;
 	AccountManager* pAccountManager_;
+	Profile* pProfile_;
 	unsigned int nMax_;
 	bool bAddAutoOnly_;
 	std::auto_ptr<qs::RegexPattern> pFilter_;
@@ -70,6 +71,7 @@ qm::Recents::Recents(AccountManager* pAccountManager,
 	pImpl_ = new RecentsImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pAccountManager_ = pAccountManager;
+	pImpl_->pProfile_ = pProfile;
 	pImpl_->nMax_ = pProfile->getInt(L"Recents", L"Max", 20);
 	pImpl_->bAddAutoOnly_ = pProfile->getInt(L"Recents", L"AddAutoOnly", 1) != 0;
 	pImpl_->pFilter_ = pFilter;
@@ -84,6 +86,19 @@ qm::Recents::~Recents()
 		clear();
 		delete pImpl_;
 	}
+}
+
+bool qm::Recents::isEnabled() const
+{
+	Lock<Recents> lock(*this);
+	return pImpl_->nMax_ != 0;
+}
+
+void qm::Recents::setEnabled(bool bEnabled)
+{
+	Lock<Recents> lock(*this);
+	if (bEnabled != isEnabled())
+		pImpl_->nMax_ = bEnabled ? 20 : 0;
 }
 
 unsigned int qm::Recents::getCount() const
@@ -104,7 +119,7 @@ void qm::Recents::add(std::auto_ptr<URI> pURI,
 {
 	assert(pURI.get());
 	
-	if (!bAuto && pImpl_->bAddAutoOnly_)
+	if (pImpl_->nMax_ == 0 || (!bAuto && pImpl_->bAddAutoOnly_))
 		return;
 	
 	if (pImpl_->pFilter_.get()) {
@@ -183,6 +198,12 @@ void qm::Recents::removeSeens()
 	
 	if (bChanged)
 		pImpl_->fireRecentsChanged();
+}
+
+bool qm::Recents::save() const
+{
+	pImpl_->pProfile_->setInt(L"Recents", L"Max", pImpl_->nMax_);
+	return true;
 }
 
 void qm::Recents::lock() const
