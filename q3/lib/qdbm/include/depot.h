@@ -391,6 +391,10 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
+#define _QDBM_VERSION  "1.8.28"
+#define _QDBM_LIBVER   11
+
+
 /* Name of the operating system. */
 extern char *dpsysname;
 

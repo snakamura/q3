@@ -505,8 +505,6 @@ extern const char *(*_qdbm_encname)(const char *, int);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.27"
-
 #undef TRUE
 #define TRUE           1
 #undef FALSE
