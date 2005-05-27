@@ -107,7 +107,8 @@ enum {                                   /* enumeration for open modes */
   VL_OCREAT = 1 << 2,                    /* a writer creating */
   VL_OTRUNC = 1 << 3,                    /* a writer truncating */
   VL_ONOLCK = 1 << 4,                    /* open without locking */
-  VL_OZCOMP = 1 << 5                     /* compress leaves */
+  VL_OLCKNB = 1 << 5,                    /* lock without blocking */
+  VL_OZCOMP = 1 << 6                     /* compress leaves */
 };
 
 enum {                                   /* enumeration for write modes */
@@ -129,7 +130,8 @@ enum {                                   /* enumeration for jump modes */
    means it creates a new database if not exist, `VL_OTRUNC', which means it creates a new
    database regardless if one exists, `VL_OZCOMP', which means leaves in the database are
    compressed.  Both of `VL_OREADER' and `VL_OWRITER' can be added to by bitwise or:
-   `VL_ONOLCK', which means it opens a database file without file locking.
+   `VL_ONOLCK', which means it opens a database file without file locking, or `VL_OLCKNB',
+   which means locking is performed without blocking.
    `cmp' specifies a comparing function: `VL_CMPLEX' comparing keys in lexical order,
    `VL_CMPINT' comparing keys as objects of `int' in native byte order, `VL_CMPNUM' comparing
    keys as numbers of big endian, `VL_CMPDEC' comparing keys as decimal strings.  Any function

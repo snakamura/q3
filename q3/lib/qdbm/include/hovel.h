@@ -74,11 +74,12 @@ typedef struct {                         /* type of structure for a key or a val
 
 enum {                                   /* enumeration for open modes */
   GDBM_READER = 1 << 0,                  /* open as a reader */
-  GDBM_WRITER = 1 << 2,                  /* open as a writer */
-  GDBM_WRCREAT = 1 << 3,                 /* a writer creating */
-  GDBM_NEWDB = 1 << 4,                   /* a writer creating and truncating */
-  GDBM_SYNC = 1 << 5,                    /* syncronous mode */
-  GDBM_NOLOCK = 1 << 6,                  /* no lock mode */
+  GDBM_WRITER = 1 << 1,                  /* open as a writer */
+  GDBM_WRCREAT = 1 << 2,                 /* a writer creating */
+  GDBM_NEWDB = 1 << 3,                   /* a writer creating and truncating */
+  GDBM_SYNC = 1 << 4,                    /* syncronous mode */
+  GDBM_NOLOCK = 1 << 5,                  /* no lock mode */
+  GDBM_LOCKNB = 1 << 6,                  /* non-blocking lock mode */
   GDBM_FAST = 1 << 7,                    /* fast mode */
   GDBM_SPARSE = 1 << 8                   /* create as sparse file */
 };
@@ -118,10 +119,10 @@ char *gdbm_strerror(gdbm_error gdbmerrno);
    `GDBM_WRCREAT' and `GDBM_NEWDB' as a writer.  `GDBM_WRCREAT' makes a database file or
    directory if it does not exist.  `GDBM_NEWDB' makes a new database even if it exists.
    You can add the following to writer modes by bitwise or: `GDBM_SYNC', `GDBM_NOLOCK',
-   `GDBM_FAST', and `GDBM_SPARSE'.  `GDBM_SYNC' means a database is synchronized after every
-   updating method.  `GDBM_NOLOCK' means a database is opened without file locking.
-   `GDBM_FAST' is ignored.  `GDBM_SPARSE' is an original mode of QDBM and makes database a
-   sparse file.
+   `GDBM_LCKNB', `GDBM_FAST', and `GDBM_SPARSE'.  `GDBM_SYNC' means a database is synchronized
+   after every updating method.  `GDBM_NOLOCK' means a database is opened without file locking.
+   `GDBM_LOCKNB' means file locking is performed without blocking.  `GDBM_FAST' is ignored.
+   `GDBM_SPARSE' is an original mode of QDBM and makes database a sparse file.
    `mode' specifies a mode of a database file or a database directory as the one of `open'
    or `mkdir' call does.
    `bnum' specifies the number of elements of each bucket array.  If it is not more than 0,
@@ -141,10 +142,10 @@ GDBM_FILE gdbm_open(char *name, int block_size, int read_write, int mode,
    `GDBM_WRCREAT' and `GDBM_NEWDB' as a writer.  `GDBM_WRCREAT' makes a database file or
    directory if it does not exist.  `GDBM_NEWDB' makes a new database even if it exists.
    You can add the following to writer modes by bitwise or: `GDBM_SYNC', `GDBM_NOLOCK',
-   `GDBM_FAST', and `GDBM_SPARSE'.  `GDBM_SYNC' means a database is synchronized after every
-   updating method.  `GDBM_NOLOCK' means a database is opened without file locking.
-   `GDBM_FAST' is ignored.  `GDBM_SPARSE' is an original mode of QDBM and makes database
-   sparse files.
+   `GDBM_LOCKNB', `GDBM_FAST', and `GDBM_SPARSE'.  `GDBM_SYNC' means a database is synchronized
+   after every updating method.  `GDBM_NOLOCK' means a database is opened without file locking.
+   `GDBM_LOCKNB' means file locking is performed without blocking.  `GDBM_FAST' is ignored.
+   `GDBM_SPARSE' is an original mode of QDBM and makes database sparse files.
    `mode' specifies a mode of a database file as the one of `open' or `mkdir' call does.
    `bnum' specifies the number of elements of each bucket array.  If it is not more than 0,
    the default value is specified.

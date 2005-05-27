@@ -70,7 +70,8 @@ enum {                                   /* enumeration for open modes */
   OD_OWRITER = 1 << 1,                   /* open as a writer */
   OD_OCREAT = 1 << 2,                    /* a writer creating */
   OD_OTRUNC = 1 << 3,                    /* a writer truncating */
-  OD_ONOLCK = 1 << 4                     /* open without locking */
+  OD_ONOLCK = 1 << 4,                    /* open without locking */
+  OD_OLCKNB = 1 << 5                     /* lock without blocking */
 };
 
 
@@ -80,7 +81,8 @@ enum {                                   /* enumeration for open modes */
    If the mode is `OD_OWRITER', the following may be added by bitwise or: `OD_OCREAT', which
    means it creates a new database if not exist, `OD_OTRUNC', which means it creates a new
    database regardless if one exists.  Both of `OD_OREADER' and `OD_OWRITER' can be added to by
-   bitwise or: `OD_ONOLCK', which means it opens a database directory without file locking.
+   bitwise or: `OD_ONOLCK', which means it opens a database directory without file locking, or
+   `OD_OLCKNB', which means locking is performed without blocking.
    The return value is the database handle or `NULL' if it is not successful.
    While connecting as a writer, an exclusive lock is invoked to the database directory.
    While connecting as a reader, a shared lock is invoked to the database directory.

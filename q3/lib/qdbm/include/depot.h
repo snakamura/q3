@@ -80,7 +80,8 @@ enum {                                   /* enumeration for open modes */
   DP_OCREAT = 1 << 2,                    /* a writer creating */
   DP_OTRUNC = 1 << 3,                    /* a writer truncating */
   DP_ONOLCK = 1 << 4,                    /* open without locking */
-  DP_OSPARSE = 1 << 5                    /* create as a sparse file */
+  DP_OLCKNB = 1 << 5,                    /* lock without blocking */
+  DP_OSPARSE = 1 << 6                    /* create as a sparse file */
 };
 
 enum {                                   /* enumeration for write modes */
@@ -111,9 +112,9 @@ const char *dperrmsg(int ecode);
    If the mode is `DP_OWRITER', the following may be added by bitwise or: `DP_OCREAT', which
    means it creates a new database if not exist, `DP_OTRUNC', which means it creates a new
    database regardless if one exists.  Both of `DP_OREADER' and `DP_OWRITER' can be added to by
-   bitwise or: `DP_ONOLCK', which means it opens a database file without file locking.
-   `DP_OCREAT' can be added to by bitwise or: `DP_OSPARSE', which means it creates a database
-   file as a sparse file.
+   bitwise or: `DP_ONOLCK', which means it opens a database file without file locking, or
+   `DP_OLCKNB', which means locking is performed without blocking.  `DP_OCREAT' can be added to
+   by bitwise or: `DP_OSPARSE', which means it creates a database file as a sparse file.
    `bnum' specifies the number of elements of the bucket array.  If it is not more than 0,
    the default value is specified.  The size of a bucket array is determined on creating,
    and can not be changed except for by optimization of the database.  Suggested size of a
@@ -396,6 +397,10 @@ extern char *dpsysname;
 
 /* File descriptor for debugging output. */
 extern int dpdbgfd;
+
+
+/* Whether this build is reentrant. */
+extern const int dpisreentrant;
 
 
 /* Set the last happened error code.

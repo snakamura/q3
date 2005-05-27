@@ -51,6 +51,7 @@ extern "C" {
 #define VL_OCREAT      VST_OCREAT
 #define VL_OTRUNC      VST_OTRUNC
 #define VL_ONOLCK      VST_ONOLCK
+#define VL_OLCKNB      VST_OLCKNB
 #define VL_OZCOMP      VST_OZCOMP
 
 #define VL_DOVER       VST_DOVER
