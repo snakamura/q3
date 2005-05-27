@@ -807,7 +807,7 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 					if (nFit != p - pBegin || p == pEnd ||
 						static_cast<unsigned int>(size.cx) == nFormatWidth - nLineWidth) {
 						if (bWordWrap_ &&
-							(nFit != p - pBegin || (p != pBegin && TextUtil::isLineEndProhibited(*(p - 1))))) {
+							(nFit != p - pBegin || (p != pBegin && p != pEnd && TextUtil::isLineEndProhibited(*(p - 1))))) {
 							bool bBreakBefore = false;
 							int m = nFit;
 							while (m > 0) {
