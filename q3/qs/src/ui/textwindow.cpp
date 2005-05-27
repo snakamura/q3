@@ -806,32 +806,10 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 						nFormatWidth - nLineWidth, &nFit, 0, &size);
 					if (nFit != p - pBegin || p == pEnd ||
 						static_cast<unsigned int>(size.cx) == nFormatWidth - nLineWidth) {
-						if (bWordWrap_ &&
-							(nFit != p - pBegin || (p != pBegin && p != pEnd && TextUtil::isLineEndProhibited(*(p - 1))))) {
-							bool bBreakBefore = false;
-							int m = nFit;
-							while (m > 0) {
-								WCHAR c = *(pBegin + m);
-								if (TextUtil::isDangling(c) &&
-									(pBegin + m + 1 == pEnd || !TextUtil::isLineStartProhibited(*(pBegin + m + 1)))) {
-									break;
-								}
-								else if (m != nFit &&
-									(TextUtil::isBreakSelf(c) ||
-									(TextUtil::isBreakAfter(c) && !TextUtil::isLineEndProhibited(c))) &&
-									!TextUtil::isLineStartProhibited(*(pBegin + m + 1))) {
-									break;
-								}
-								else if (TextUtil::isBreakBefore(c) &&
-									!TextUtil::isLineStartProhibited(c) &&
-									!TextUtil::isLineEndProhibited(*(pBegin + m - 1))) {
-									bBreakBefore = true;
-									break;
-								}
-								--m;
-							}
-							if (m != 0) {
-								nFit = bBreakBefore ? m : m + 1;
+						if (bWordWrap_ && nFit != p - pBegin) {
+							const WCHAR* pBreak = TextUtil::getBreak(pBegin, pEnd, pBegin + nFit);
+							if (pBreak - pBegin != nFit) {
+								nFit = pBreak - pBegin;
 								getTextExtent(dc, pBegin, nFit, nFormatWidth - nLineWidth, 0, 0, &size);
 							}
 						}

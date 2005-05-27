@@ -169,7 +169,6 @@ wxstring_ptr qs::TextUtil::fold(const WCHAR* pwszText,
 	
 	size_t nCurrentLen = 0;
 	const WCHAR* pLine = pwszText;
-	const WCHAR* pBreak = 0;
 	const WCHAR* p = pwszText;
 	while (p < pwszText + nLen) {
 		WCHAR c = *p;
@@ -179,68 +178,37 @@ wxstring_ptr qs::TextUtil::fold(const WCHAR* pwszText,
 		else if (!isHalfWidth(c))
 			nCharLen = 2;
 		
-		if (p != pLine && (isBreakSelf(c) || isBreakBefore(c)))
-			pBreak = p;
-		
-		bool bFlushed = true;
 		if (c == L'\n') {
 			if (!buf.append(pwszQuote, nQuoteLen) ||
 				!buf.append(pLine, p - pLine + 1))
 				return 0;
 			nCurrentLen = 0;
 			pLine = p + 1;
-			pBreak = 0;
 		}
 		else if (nCurrentLen + nCharLen > nLineWidth) {
-			if (!pBreak) {
-				if (pwszQuote) {
-					if (!buf.append(pwszQuote, nQuoteLen))
-						return 0;
-				}
-				if (!buf.append(pLine, p - pLine) ||
-					!buf.append(L'\n'))
+			const WCHAR* pEnd = wcschr(p, L'\n');
+			if (!pEnd)
+				pEnd = p + wcslen(p);
+			const WCHAR* pBreak = getBreak(pLine, pEnd, p);
+			
+			p = pBreak - 1;
+			
+			if (TextUtil::isBreakSelf(*(pBreak - 1)))
+				--pBreak;
+			
+			if (pwszQuote) {
+				if (!buf.append(pwszQuote, nQuoteLen))
 					return 0;
-				nCurrentLen = nCharLen;
-				pLine = p;
 			}
-			else {
-				WCHAR cBreak = *pBreak;
-				const WCHAR* pEnd = pBreak;
-				const WCHAR* pNext = pBreak;
-				if (isBreakSelf(cBreak)) {
-					++pNext;
-				}
-				else if (isBreakAfter(cBreak) &&
-					(pBreak != p || nCurrentLen + nCharLen <= nLineWidth)) {
-					++pEnd;
-					++pNext;
-				}
-				else if (isBreakBefore(cBreak)) {
-					;
-				}
-				else {
-					assert(false);
-				}
-				if (pwszQuote) {
-					if (!buf.append(pwszQuote, nQuoteLen))
-						return 0;
-				}
-				if (!buf.append(pLine, pEnd - pLine) ||
-					!buf.append(L'\n'))
-					return 0;
-				pLine = pNext;
-				nCurrentLen = 0;
-				pBreak = 0;
-				p = pNext - 1;
-			}
+			if (!buf.append(pLine, pBreak - pLine) || !buf.append(L'\n'))
+				return 0;
+			
+			nCurrentLen = 0;
+			pLine = p + 1;
 		}
 		else {
 			nCurrentLen += nCharLen;
-			bFlushed = false;
 		}
-		
-		if (!bFlushed && isBreakChar(c) && p != pLine)
-			pBreak = p;
 		
 		++p;
 	}
@@ -254,6 +222,39 @@ wxstring_ptr qs::TextUtil::fold(const WCHAR* pwszText,
 	}
 	
 	return buf.getXString();
+}
+
+const WCHAR* qs::TextUtil::getBreak(const WCHAR* pBegin,
+									const WCHAR* pEnd,
+									const WCHAR* p)
+{
+	assert(pBegin < p && p <= pEnd);
+	
+	int nFit = p - pBegin;
+	for (int n = nFit; n > 0; --n) {
+		WCHAR c = *(pBegin + n);
+		if (isDangling(c) &&
+			(pBegin + n + 1 == pEnd ||
+			!isLineStartProhibited(*(pBegin + n + 1)))) {
+			nFit = n + 1;
+			break;
+		}
+		else if (n != nFit &&
+			(isBreakSelf(c) ||
+			(isBreakAfter(c) && !isLineEndProhibited(c))) &&
+			!isLineStartProhibited(*(pBegin + n + 1))) {
+			nFit = n + 1;
+			break;
+		}
+		else if (isBreakBefore(c) &&
+			!isLineStartProhibited(c) &&
+			!isLineEndProhibited(*(pBegin + n - 1))) {
+			nFit = n;
+			break;
+		}
+	}
+	
+	return pBegin + nFit;
 }
 
 std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,

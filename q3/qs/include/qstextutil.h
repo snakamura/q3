@@ -33,6 +33,9 @@ public:
 							 const WCHAR* pwszQuote,
 							 size_t nQuoteLen,
 							 size_t nTabWidth);
+	static const WCHAR* getBreak(const WCHAR* pBegin,
+								 const WCHAR* pEnd,
+								 const WCHAR* p);
 	static bool isHalfWidth(WCHAR c);
 	static bool isBreakChar(WCHAR c);
 	static bool isBreakSelf(WCHAR c);
