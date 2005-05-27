@@ -57,15 +57,15 @@ inline bool qs::TextUtil::isBreakAfter(WCHAR c)
 
 inline bool qs::TextUtil::isLineStartProhibited(WCHAR c)
 {
-	return wcschr(wszLineStartProhibited__, c) != 0;
+	return c != L'\0' && wcschr(wszLineStartProhibited__, c) != 0;
 }
 
 inline bool qs::TextUtil::isLineEndProhibited(WCHAR c)
 {
-	return wcschr(wszLineEndProhibited__, c) != 0;
+	return c != L'\0' && wcschr(wszLineEndProhibited__, c) != 0;
 }
 
 inline bool qs::TextUtil::isDangling(WCHAR c)
 {
-	return wcschr(wszDangling__, c) != 0;
+	return c != L'\0' && wcschr(wszDangling__, c) != 0;
 }
