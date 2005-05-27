@@ -19,6 +19,127 @@ using namespace qs;
  *
  */
 
+const WCHAR qs::TextUtil::wszLineStartProhibited__[] = {
+	L'!',
+	L')',
+	L',',
+	L'.',
+	L':',
+	L';',
+	L'?',
+	L']',
+	L'}',
+	0x3001,	// Ideographic Comma
+	0x3002,	// Ideographic Full Stop
+	0xff0c,	// Fullwidth Comma
+	0xff0e,	// Fullwidth Full Stop
+	0x30fb,	// Katakana Middle Dot
+	0xff1f,	// Fullwidth Question Mark
+	0xff01,	// Fullwidth Exclamation Mark
+	0x309b,	// Katakana-Hiragana Voiced Sound Mark
+	0x309c,	// Katakana-Hiragana Semi-Voiced Sound Mark
+	0x30fd,	// Katakana Iteration Mark
+	0x30fe,	// Katakana Voiced iteration Mark
+	0x309d,	// Hiragana Iteration Mark
+	0x309e,	// Hiragana Voiced Iteration Mark
+	0x3005,	// Ideographic Iteration Mark
+	0x30fc,	// Katakana-Hiragana Prolonged Sound Mark
+	0xff09,	// Fullwidth Right Parenthesis
+	0xff3d,	// Fullwidth Left Square Bracket
+	0xff5d,	// Fullwidth Right Curly Bracket
+	0x300d,	// Right Corner Bracket
+	0x300f,	// Right White Corner Bracket
+	0xff61,	// Halfwidth Ideographic Full Stop
+	0xff63,	// Halfwidth Right Corner Bracket
+	0xff64,	// Halfwidth Ideographic Comma
+	0xff65,	// Halfwidth Katakana Middle Dot
+	0xff70,	// Halfwidth Katakana-Hiragana Prolonged Sound Mark
+	0xff9e,	// Halfwidth Katakana Voiced Sound Mark
+	0xff9f,	// Halfwidth Katakana Semi-Voiced Sound Mark
+	
+	L'%',
+	0xff0a,	// Fullwidth Colon
+	0xff1b,	// Fullwidth Semicolon
+	0x2019,	// Right Single Quotation Mark
+	0x201d,	// Right Double Quotation Mark
+	0x3015,	// Right Tortoise Shell Bracket
+	0x3009,	// Right Angle Bracket
+	0x300b,	// Right Double Angle Bracket
+	0x3011,	// Right Black Lenticular Bracket
+	0x00b0,	// Degree Sign
+	0x2032,	// Prime
+	0x2033,	// Double Prime
+	0x2103,	// Degree Celsius
+	0xffe0,	// Fullwidth Cent Sign
+	0xff05,	// Fullwidth Percent Sign
+	0x3041,	// Hiragana Letter Small A
+	0x3043,	// Hiragana Letter Small I
+	0x3045,	// Hiragana Letter Small U
+	0x3047,	// Hiragana Letter Small E
+	0x3049,	// Hiragana Letter Small O
+	0x3063,	// Hiragana Letter Small Tu
+	0x3083,	// Hiragana Letter Small Ya
+	0x3085,	// Hiragana Letter Small Yu
+	0x3087,	// Hiragana Letter Small Yo
+	0x308e,	// Hiragana Letter Small Wa
+	0x30a1,	// Katakana Letter Small A
+	0x30a3,	// Katakana Letter Small I
+	0x30a5,	// Katakana Letter Small U
+	0x30a7,	// Katakana Letter Small E
+	0x30a9,	// Katakana Letter Small O
+	0x30c3,	// Katakana Letter Small Tu
+	0x30e3,	// Katakana Letter Small Ya
+	0x30e5,	// Katakana Letter Small Yu
+	0x30e7,	// Katakana Letter Small Yo
+	0x30ee,	// Katakana Letter Small Wa
+	0x30f5,	// Katakana Letter Small Ka
+	0x30f6,	// Katakana Letter Small Ke
+	0xff67,	// Halfwidth Katakana Letter Small A
+	0xff68,	// Halfwidth Katakana Letter Small I
+	0xff69,	// Halfwidth Katakana Letter Small U
+	0xff6a,	// Halfwidth Katakana Letter Small E
+	0xff6b,	// Halfwidth Katakana Letter Small O
+	0xff6c,	// Halfwidth Katakana Letter Small Ya
+	0xff6d,	// Halfwidth Katakana Letter Small Yu
+	0xff6e,	// Halfwidth Katakana Letter Small Yo
+	0xff6f,	// Halfwidth Katakana Letter Small Tu
+	0
+};
+
+const WCHAR qs::TextUtil::wszLineEndProhibited__[] = {
+	L'(',
+	L'[',
+	L'{',
+	0xff08,	// Fullwidth Left Parenthesis
+	0xff3b,	// Fullwidth Left Square Bracket
+	0xff5b,	// Fullwidth Left Curly Bracket
+	0x300c,	// Left Corner Bracket
+	0x300e,	// Left White Corner Bracket
+	0xff62,	// Halfwidth Left Corner Bracket
+	
+	L'$',
+	L'\\',
+	0x2018,	// Left Single Quotation Mark
+	0x201c,	// Left Double Quotation Mark
+	0x3014,	// Left Tortoise Shell Bracket
+	0x3008,	// Left Angle Bracket
+	0x300a,	// Left Double Angle Bracket
+	0x3010,	// Left Black Lenticular Bracket
+	0xffe5,	// Fullwidth Yen Sign
+	0xff04,	// Fullwidth Dollar Sign
+	0
+};
+
+const WCHAR qs::TextUtil::wszDangling__[] = {
+	L',',
+	L'.',
+	0x3001,	// Ideographic Comma
+	0x3002,	// Ideographic Full Stop
+	0xff0c,	// Fullwidth Comma
+	0xff0e,	// Fullwidth Full Stop
+	0
+};
+
 wxstring_ptr qs::TextUtil::fold(const WCHAR* pwszText,
 								size_t nLen,
 								size_t nLineWidth,

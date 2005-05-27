@@ -54,3 +54,18 @@ inline bool qs::TextUtil::isBreakAfter(WCHAR c)
 		c == L'-' ||
 		c >= 0x500;
 }
+
+inline bool qs::TextUtil::isLineStartProhibited(WCHAR c)
+{
+	return wcschr(wszLineStartProhibited__, c) != 0;
+}
+
+inline bool qs::TextUtil::isLineEndProhibited(WCHAR c)
+{
+	return wcschr(wszLineEndProhibited__, c) != 0;
+}
+
+inline bool qs::TextUtil::isDangling(WCHAR c)
+{
+	return wcschr(wszDangling__, c) != 0;
+}

@@ -38,6 +38,9 @@ public:
 	static bool isBreakSelf(WCHAR c);
 	static bool isBreakBefore(WCHAR c);
 	static bool isBreakAfter(WCHAR c);
+	static bool isLineStartProhibited(WCHAR c);
+	static bool isLineEndProhibited(WCHAR c);
+	static bool isDangling(WCHAR c);
 	
 	static std::pair<size_t, size_t> findURL(const WCHAR* pwszText,
 											 size_t nLen,
@@ -47,6 +50,11 @@ public:
 	
 	static wstring_ptr encodePassword(const WCHAR* pwsz);
 	static wstring_ptr decodePassword(const WCHAR* pwsz);
+
+private:
+	static const WCHAR wszLineStartProhibited__[];
+	static const WCHAR wszLineEndProhibited__[];
+	static const WCHAR wszDangling__[];
 };
 
 }
