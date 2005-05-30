@@ -12,10 +12,10 @@
 			<key key="F" ctrl="true"/>
 		</action>
 		<action name="EditFindNext">
-			<key key="L" ctrl="true"/>
+			<key code="72"/>
 		</action>
 		<action name="EditFindPrev">
-			<key key="L" shift="true" ctrl="true"/>
+			<key code="72" shift="true"/>
 		</action>
 		<action name="EditPaste">
 			<key key="V" ctrl="true"/>
@@ -336,10 +336,10 @@
 			<key key="F" ctrl="true"/>
 		</action>
 		<action name="EditFindNext">
-			<key key="L" ctrl="true"/>
+			<key code="72"/>
 		</action>
 		<action name="EditFindPrev">
-			<key key="L" shift="true" ctrl="true"/>
+			<key code="72" shift="true"/>
 		</action>
 		<action name="MessageDetach">
 			<key key="X"/>
@@ -422,9 +422,11 @@
 			<key key="F" ctrl="true"/>
 		</action>
 		<action name="EditFindNext">
+			<key code="72"/>
 			<key key="L" ctrl="true"/>
 		</action>
 		<action name="EditFindPrev">
+			<key code="72" shift="true"/>
 			<key key="L" shift="true" ctrl="true"/>
 		</action>
 		<action name="EditPaste">
