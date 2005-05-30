@@ -5746,6 +5746,7 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 		return;
 	
 	bool bScrolled = true;
+	bool bDelay = true;
 	switch (type) {
 	case TYPE_NEXTPAGE:
 		if (pMessageWindow_->scrollPage(false))
@@ -5758,11 +5759,13 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 					MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
 		}
 		type = nType_ & TYPE_NEXTPAGEUNSEEN ? TYPE_NEXTUNSEEN : TYPE_NEXT;
+		bDelay = false;
 		break;
 	case TYPE_PREVPAGE:
 		if (pMessageWindow_->scrollPage(true))
 			return;
 		type = TYPE_PREV;
+		bDelay = false;
 		break;
 	default:
 		break;
@@ -5841,7 +5844,7 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 		}
 		
 		if (nIndex != -1 && type != TYPE_SELF) {
-			pViewModel->setFocused(nIndex);
+			pViewModel->setFocused(nIndex, bDelay);
 			pViewModel->setSelection(nIndex);
 			pViewModel->setLastSelection(nIndex);
 			pViewModel->payAttention(nIndex);
@@ -6150,7 +6153,7 @@ void qm::ViewSelectMessageAction::invoke(const ActionEvent& event)
 			Lock<ViewModel> lock(*pViewModel);
 			unsigned int nIndex = pViewModel->getIndex(mpl);
 			if (nIndex != -1) {
-				pViewModel->setFocused(nIndex);
+				pViewModel->setFocused(nIndex, false);
 				pViewModel->setSelection(nIndex);
 				pViewModel->setLastSelection(nIndex);
 				pViewModel->payAttention(nIndex);
@@ -6613,7 +6616,7 @@ void qm::MessageActionUtil::select(ViewModel* pViewModel,
 		pMessageModel->setMessage(pmh);
 	}
 	
-	pViewModel->setFocused(nIndex);
+	pViewModel->setFocused(nIndex, true);
 	pViewModel->setSelection(nIndex);
 	pViewModel->setLastSelection(nIndex);
 	pViewModel->payAttention(nIndex);

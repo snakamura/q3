@@ -334,7 +334,8 @@ public:
 	bool isSelected(unsigned int n) const;
 	unsigned int getLastSelection() const;
 	void setLastSelection(unsigned int n);
-	void setFocused(unsigned int n);
+	void setFocused(unsigned int n,
+					bool bDelay);
 	unsigned int getFocused() const;
 	bool isFocused(unsigned int n) const;
 	unsigned int getScroll() const;
@@ -394,7 +395,8 @@ private:
 	void fireItemAdded() const;
 	void fireItemRemoved() const;
 	void fireItemChanged(unsigned int nItem) const;
-	void fireItemStateChanged(unsigned int nItem) const;
+	void fireItemStateChanged(unsigned int nItem,
+							  bool bDelay) const;
 	void fireItemAttentionPaid(unsigned int nItem) const;
 	void fireUpdated() const;
 	void fireSorted() const;
@@ -497,11 +499,15 @@ public:
 	ViewModelEvent(const ViewModel* pViewModel);
 	ViewModelEvent(const ViewModel* pViewModel,
 				   unsigned int nItem);
+	ViewModelEvent(const ViewModel* pViewModel,
+				   unsigned int nItem,
+				   bool bDelay);
 	~ViewModelEvent();
 
 public:
 	const ViewModel* getViewModel() const;
 	unsigned int getItem() const;
+	bool isDelay() const;
 
 private:
 	ViewModelEvent(const ViewModelEvent&);
@@ -510,6 +516,7 @@ private:
 private:
 	const ViewModel* pViewModel_;
 	unsigned int nItem_;
+	bool bDelay_;
 };
 
 

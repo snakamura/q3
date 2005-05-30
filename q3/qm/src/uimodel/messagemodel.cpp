@@ -243,7 +243,10 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 			pTimer_->killTimer(nTimerId_);
 			nTimerId_ = 0;
 		}
-		nTimerId_ = pTimer_->setTimer(TIMER_ITEMSTATECHANGED, TIMEOUT, this);
+		if (event.isDelay())
+			nTimerId_ = pTimer_->setTimer(TIMER_ITEMSTATECHANGED, TIMEOUT, this);
+		else
+			updateToViewModel();
 	}
 }
 
