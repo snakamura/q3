@@ -126,15 +126,15 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 		return false;
 	}
 	
-	ReadWriteReadLock readLock(lock_);
-	Lock<ReadWriteReadLock> ruleLock(readLock);
-	
 	Account* pAccount = pFolder->getAccount();
 	
 	Lock<Account> lock(*pAccount);
 	
 	if (!pFolder->loadMessageHolders())
 		return false;
+	
+	ReadWriteReadLock readLock(lock_);
+	Lock<ReadWriteReadLock> ruleLock(readLock);
 	
 	RuleManagerImpl::RuleList listRule;
 	getRules(pFolder, bAuto, &listRule);
