@@ -1702,7 +1702,7 @@ qs::AddressParser::AddressParser(const WCHAR* pwszPhrase,
 {
 	assert(pwszAddress);
 	
-	if (pwszPhrase)
+	if (pwszPhrase && *pwszPhrase)
 		wstrPhrase_ = allocWString(pwszPhrase);
 	
 	const WCHAR* p = wcsrchr(pwszAddress, L'@');
@@ -1722,7 +1722,7 @@ qs::AddressParser::AddressParser(const WCHAR* pwszPhrase,
 {
 	assert(pwszMailbox);
 	
-	if (pwszPhrase)
+	if (pwszPhrase && *pwszPhrase)
 		wstrPhrase_ = allocWString(pwszPhrase);
 	
 	wstrMailbox_ = allocWString(pwszMailbox);
