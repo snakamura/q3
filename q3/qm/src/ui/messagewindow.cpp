@@ -321,8 +321,10 @@ void qm::MessageWindowImpl::removeMessageViewModeHolderHandler(MessageViewModeHo
 
 void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 {
+	bool bUIThread = ::GetCurrentThreadId() == ::GetWindowThreadProcessId(pThis_->getHandle(), 0);
 	MessageHolder* pmh = event.getMessageHolder();
-	if (pmh)
+	assert(!pmh || bUIThread);
+	if (bUIThread)
 		setMessage(pmh, true);
 	else
 		pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED, 0,
