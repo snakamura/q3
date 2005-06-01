@@ -497,11 +497,12 @@ bool qs::QuotedPrintableEncoderImpl::append(unsigned char c,
 {
 	if (!*pp || static_cast<size_t>(*pp - ppBuf->get()) == ppBuf->size()) {
 		size_t nSize = ppBuf->size() == 0 ? 128 : ppBuf->size()*2;
-		malloc_size_ptr<unsigned char> p(
-			static_cast<unsigned char*>(realloc(ppBuf->get(), nSize)), nSize);
+		malloc_size_ptr<unsigned char> p(static_cast<unsigned char*>(
+			realloc(ppBuf->get(), nSize)), nSize);
 		if (!p.get())
 			return false;
 		*pp = p.get() + ppBuf->size();
+		ppBuf->release();
 		*ppBuf = p;
 	}
 	**pp = c;
