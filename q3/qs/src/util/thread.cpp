@@ -25,7 +25,23 @@
 #	define UNVOLATILE(type)
 #endif
 
-#if defined _WIN32_WCE && _WIN32_WCE < 300
+#if !defined _WIN32_WCE && (!defined _WIN32_WINNT || WINVER <= 0x400) && (defined x86 || defined _X86_)
+#pragma warning(push)
+#pragma warning(disable:4035)
+inline LONG WINAPI InterlockedCompareExchange_(LONG volatile* Destination,
+											   LONG Exchange,
+											   LONG Comperand) {
+	__asm {
+		mov eax, Comperand
+		mov ecx, Destination
+		mov edx, Exchange
+		cmpxchg [ecx], edx
+	}
+}
+#pragma warning(pop)
+#	define InterlockedCompareExchange(ptr, newval, oldval) \
+		InterlockedCompareExchange_(ptr, newval, oldval)
+#elif defined _WIN32_WCE && _WIN32_WCE < 300
 #	define InterlockedCompareExchange(ptr, newval, oldval) \
 	((PVOID)InterlockedTestExchange((LPLONG)ptr, (LONG)oldval, (LONG)newval))  
 #endif
