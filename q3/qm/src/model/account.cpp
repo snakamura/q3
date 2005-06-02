@@ -1892,6 +1892,20 @@ bool qm::Account::save() const
 		pImpl_->pCurrentSubAccount_->getName());
 	pImpl_->pProfile_->setInt(L"Global", L"StoreDecodedMessage", pImpl_->bStoreDecodedMessage_);
 	
+	if (!saveMessages())
+		return false;
+	if (!pImpl_->saveFolders())
+		return false;
+	if (!pImpl_->saveSubAccounts())
+		return false;
+	if (!pImpl_->pProtocolDriver_->save())
+		return false;
+	
+	return true;
+}
+
+bool qm::Account::saveMessages() const
+{
 	if (!flushMessageStore())
 		return false;
 	
@@ -1899,13 +1913,6 @@ bool qm::Account::save() const
 		if (!(*it)->saveMessageHolders())
 			return false;
 	}
-	
-	if (!pImpl_->saveFolders())
-		return false;
-	if (!pImpl_->saveSubAccounts())
-		return false;
-	if (!pImpl_->pProtocolDriver_->save())
-		return false;
 	
 	return true;
 }

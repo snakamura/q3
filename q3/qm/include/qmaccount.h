@@ -178,6 +178,7 @@ public:
 				 MessageOperationCallback* pCallback);
 	bool check(AccountCheckCallback* pCallback);
 	bool save() const;
+	bool saveMessages() const;
 	bool flushMessageStore() const;
 	bool importMessage(NormalFolder* pFolder,
 					   const CHAR* pszMessage,

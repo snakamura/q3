@@ -804,8 +804,7 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
 		return true;
 	
-	if (!pFolder->getAccount()->flushMessageStore() ||
-		!pFolder->saveMessageHolders())
+	if (!pFolder->getAccount()->saveMessages())
 		return false;
 	
 	if (!pSession->closeFolder())
@@ -976,9 +975,7 @@ bool qm::SyncManager::send(Document* pDocument,
 		pCallback->setPos(m + 1);
 	}
 	
-	if (!pAccount->flushMessageStore() ||
-		!pOutbox->saveMessageHolders() ||
-		!pSentbox->saveMessageHolders())
+	if (!pAccount->saveMessages())
 		return false;
 	
 	return true;
