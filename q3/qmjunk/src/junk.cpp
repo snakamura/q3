@@ -544,7 +544,10 @@ DepotPtr qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 	string_ptr strPath(wcs2mbs(wstrPath.get()));
 	DepotPtr pDepot(dpopen(strPath.get(), DP_OWRITER | DP_OCREAT, -1));
 	if (!pDepot.get()) {
-		log.errorf(L"Could not open a database: %s.", pwszName);
+		if (log.isErrorEnabled()) {
+			wstring_ptr wstrError(mbs2wcs(dperrmsg(dpecode)));
+			log.errorf(L"Could not open a database: %s : %s.", pwszName, wstrError.get());
+		}
 		return DepotPtr(0);
 	}
 	
