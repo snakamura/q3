@@ -316,6 +316,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 				pConverter = ConverterFactory::getInstance(wstrCharset.get());
 			
 			if (!pConverter.get()) {
+				bool bDefault = true;
 				const WCHAR* pwszCharset = Part::getDefaultCharset();
 				size_t n = 0;
 				while (n < nBodyLen && *(pBody + n) < 0x80)
@@ -327,15 +328,18 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 					SimpleParser charset(0);
 					if (pPart->getField(L"X-QMAIL-OriginalCharset", &charset) == Part::FIELD_EXIST &&
 						_wcsicmp(charset.getValue(), L"us-ascii") != 0 &&
-						_wcsicmp(charset.getValue(), pwszCharset) != 0)
+						_wcsicmp(charset.getValue(), pwszCharset) != 0) {
+						bDefault = false;
 						pwszCharset = L"utf-8";
+					}
 				}
 				wstrCharset = allocWString(pwszCharset);
 				pPart->removeField(L"X-QMAIL-OriginalCharset");
 				
 				pConverter = ConverterFactory::getInstance(wstrCharset.get());
 				
-				if (nFlags_ & FLAG_ADDCONTENTTYPE) {
+				if (nFlags_ & FLAG_ADDCONTENTTYPE ||
+					(nFlags_ & FLAG_ADDNODEFAULTCONTENTTYPE && !bDefault)) {
 					ContentTypeParser contentType(L"text", L"plain");
 					contentType.setParameter(L"charset", wstrCharset.get());
 					if (!pPart->replaceField(L"Content-Type", contentType))
@@ -423,7 +427,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 		}
 	}
 	
-	if (nFlags_ & FLAG_ADDCONTENTTYPE && bMessage) {
+	if ((nFlags_ & FLAG_ADDCONTENTTYPE || nFlags_ & FLAG_ADDNODEFAULTCONTENTTYPE) && bMessage) {
 		SimpleParser mimeVersion(L"1.0", 0);
 		if (!pPart->replaceField(L"MIME-Version", mimeVersion))
 			return std::auto_ptr<Part>(0);
