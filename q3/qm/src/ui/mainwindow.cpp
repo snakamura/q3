@@ -171,6 +171,7 @@ public:
 	void layoutChildren(int cx,
 						int cy);
 	void updateStatusBar();
+	void reloadProfiles(bool bInitialize);
 #ifndef _WIN32_WCE_PSPC
 	void showRecentsMenu();
 #endif
@@ -1414,6 +1415,11 @@ void qm::MainWindowImpl::updateStatusBar()
 		pStatusBar_->updateListParts(0);
 }
 
+void qm::MainWindowImpl::reloadProfiles(bool bInitialize)
+{
+	bSaveOnDeactivate_ = pProfile_->getInt(L"Global", L"SaveOnDeactivate", 1) != 0;
+}
+
 #ifndef _WIN32_WCE_PSPC
 void qm::MainWindowImpl::showRecentsMenu()
 {
@@ -1767,7 +1773,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->bVerticalFolderWindow_ = pProfile->getInt(L"FolderWindow", L"Vertical", 0) != 0;
 	pImpl_->bShowPreviewWindow_ = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow", 1) != 0;
 	pImpl_->nListWindowHeight_ = pProfile->getInt(L"MainWindow", L"ListWindowHeight", 200);
-	pImpl_->bSaveOnDeactivate_ = pProfile->getInt(L"Global", L"SaveOnDeactivate", 0) != 0;
+	pImpl_->bSaveOnDeactivate_ = true;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pUIManager_ = 0;
@@ -1801,6 +1807,8 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->bNotifyIcon_ = false;
 #endif
 	
+	pImpl_->reloadProfiles(false);
+	
 	setModalHandler(pImpl_);
 }
 
@@ -1833,6 +1841,11 @@ void qm::MainWindow::layout()
 {
 	pImpl_->layoutChildren();
 	pImpl_->pMessageWindow_->layout();
+}
+
+void qm::MainWindow::reloadProfiles()
+{
+	pImpl_->reloadProfiles(false);
 }
 
 bool qm::MainWindow::save()

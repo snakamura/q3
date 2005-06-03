@@ -42,6 +42,7 @@ public:
 	bool isShowingModalDialog() const;
 	void initialShow();
 	void layout();
+	void reloadProfiles();
 	bool save();
 	
 	bool isShowToolbar() const;

@@ -267,6 +267,8 @@ LRESULT qm::OptionDialog::onOk()
 	}
 	
 	unsigned int nFlags = context.getFlags();
+	if (nFlags & OptionDialogContext::FLAG_RELOADMAIN)
+		pMainWindow_->reloadProfiles();
 	if (nFlags & OptionDialogContext::FLAG_RELOADFOLDER) {
 		pFolderWindow_->reloadProfiles();
 		pFolderComboBox_->reloadProfiles();
@@ -1305,7 +1307,7 @@ DialogUtil::BoolProperty qm::OptionMiscDialog::boolProperties__[] = {
 	{ L"NextUnseenWhenScrollEnd",		IDC_SHOWNEXTUNSEENWHENSCROLLEND,	false	},
 	{ L"EmptyTrashOnExit",				IDC_EMPTYTRASHONEXIT,				false	},
 	{ L"SaveMessageViewModePerFolder",	IDC_SAVEMESSAGEVIEWMODEPERFOLDER,	true	},
-	{ L"SaveOnDeactivate",				IDC_SAVEONDEACTIVATE,				false	},
+	{ L"SaveOnDeactivate",				IDC_SAVEONDEACTIVATE,				true	},
 #ifndef _WIN32_WCE
 	{ L"ShowUnseenCountOnWelcome",		IDC_SHOWUNSEENCOUNTONWELCOME,		false	},
 #endif
@@ -1387,6 +1389,8 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 	if (bLogEnabled != init.isLogEnabled() ||
 		logLevel != init.getLogLevel())
 		InitThread::getInitThread().resetLogger();
+	
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADMAIN);
 	
 	return true;
 }
