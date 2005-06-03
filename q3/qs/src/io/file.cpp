@@ -254,11 +254,13 @@ bool qs::BinaryFileImpl::flushBuffer()
 		bWritten_ = false;
 	}
 	
-	DWORD dwNewPos = ::SetFilePointer(hFile_,
-		dwPosition_ + (pCurrent_ - pBuf_.get()), 0, FILE_BEGIN);
-	if (dwNewPos == INVALID_SET_FILE_POINTER)
-		return false;
-	dwPosition_ = dwNewPos;
+	if (pCurrent_ != pBuf_.get()) {
+		DWORD dwNewPos = ::SetFilePointer(hFile_,
+			dwPosition_ + (pCurrent_ - pBuf_.get()), 0, FILE_BEGIN);
+		if (dwNewPos == INVALID_SET_FILE_POINTER)
+			return false;
+		dwPosition_ = dwNewPos;
+	}
 	
 	pCurrent_ = pBuf_.get();
 	pBufEnd_ = pBuf_.get();
