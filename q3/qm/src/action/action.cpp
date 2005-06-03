@@ -3001,6 +3001,11 @@ void qm::FolderUpdateAction::invoke(const ActionEvent& event)
 		ActionUtil::error(hwnd_, IDS_ERROR_UPDATEFOLDER);
 		return;
 	}
+	
+	if (!pAccount->save()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+		return;
+	}
 }
 
 bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
@@ -3111,23 +3116,24 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 	ProgressDialog dialog(IDS_APPLYMESSAGERULES);
 	RuleCallbackImpl callback(&dialog);
 	
+	Account* pAccount = 0;
 	if (pViewModelManager_) {
 		if (bAll_) {
-			Account* pAccount = pViewModelManager_->getCurrentAccount();
-			if (!pAccount)
-				return;
-			Account::FolderList l(pAccount->getFolders());
-			std::sort(l.begin(), l.end(), FolderLess());
-			
-			ProgressDialogInit init(&dialog, hwnd_);
-			for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				Folder* pFolder = *it;
-				if (pFolder->getType() == Folder::TYPE_NORMAL &&
-					!pFolder->isHidden()) {
-					if (!pRuleManager_->apply(pFolder, pDocument_, hwnd_, pProfile_,
-						pSecurityModel_->getSecurityMode(), &callback)) {
-						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
-						return;
+			pAccount = pViewModelManager_->getCurrentAccount();
+			if (pAccount) {
+				Account::FolderList l(pAccount->getFolders());
+				std::sort(l.begin(), l.end(), FolderLess());
+				
+				ProgressDialogInit init(&dialog, hwnd_);
+				for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+					Folder* pFolder = *it;
+					if (pFolder->getType() == Folder::TYPE_NORMAL &&
+						!pFolder->isHidden()) {
+						if (!pRuleManager_->apply(pFolder, pDocument_, hwnd_, pProfile_,
+							pSecurityModel_->getSecurityMode(), &callback)) {
+							ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
+							return;
+						}
 					}
 				}
 			}
@@ -3140,16 +3146,19 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 				Folder* pFolder = pViewModel->getFolder();
 				
 				unsigned int nCount = pViewModel->getCount();
-				MessageHolderList l;
-				l.resize(nCount);
-				for (unsigned int n = 0; n < pViewModel->getCount(); ++n)
-					l[n] = pViewModel->getMessageHolder(n);
-				
-				ProgressDialogInit init(&dialog, hwnd_);
-				if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
-					pSecurityModel_->getSecurityMode(), &callback)) {
-					ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
-					return;
+				if (nCount != 0) {
+					MessageHolderList l;
+					l.resize(nCount);
+					for (unsigned int n = 0; n < pViewModel->getCount(); ++n)
+						l[n] = pViewModel->getMessageHolder(n);
+					
+					ProgressDialogInit init(&dialog, hwnd_);
+					if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
+						pSecurityModel_->getSecurityMode(), &callback)) {
+						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
+						return;
+					}
+					pAccount = pFolder->getAccount();
 				}
 			}
 		}
@@ -3166,6 +3175,14 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
 				return;
 			}
+			pAccount = lock.get();
+		}
+	}
+	
+	if (pAccount) {
+		if (!pAccount->save()) {
+			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+			return;
 		}
 	}
 }
@@ -4721,6 +4738,9 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 		pDocument_->getJunkFilter(), pOptionDialogManager_, pProfile_);
 	dialog.doModal(hwnd_, 0);
 	
+	if (!Application::getApplication().save())
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+	
 	if (!bOffline)
 		pDocument_->setOffline(false);
 }
@@ -5008,6 +5028,9 @@ qm::ToolOptionsAction::~ToolOptionsAction()
 void qm::ToolOptionsAction::invoke(const ActionEvent& event)
 {
 	pOptionDialogManager_->showDialog(hwnd_, panel_);
+	
+	if (!Application::getApplication().save())
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 }
 
 bool qm::ToolOptionsAction::isEnabled(const ActionEvent& event)
