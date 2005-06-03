@@ -423,7 +423,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 		}
 	}
 	
-	if (nFlags_ & FLAG_ADDCONTENTTYPE) {
+	if (nFlags_ & FLAG_ADDCONTENTTYPE && bMessage) {
 		SimpleParser mimeVersion(L"1.0", 0);
 		if (!pPart->replaceField(L"MIME-Version", mimeVersion))
 			return std::auto_ptr<Part>(0);
@@ -661,7 +661,8 @@ xstring_size_ptr qm::MessageCreator::convertBody(Converter* pConverter,
 
 MessageCreator qm::MessageCreator::getCreatorForChild() const
 {
-	return MessageCreator(nFlags_ & (FLAG_ENCODETEXT | FLAG_RECOVER), SECURITYMODE_NONE);
+	unsigned int nFlags = nFlags_ & (FLAG_ADDCONTENTTYPE | FLAG_ENCODETEXT | FLAG_RECOVER);
+	return MessageCreator(nFlags, SECURITYMODE_NONE);
 }
 
 bool qm::MessageCreator::setField(Part* pPart,
