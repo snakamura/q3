@@ -15,6 +15,7 @@ X-QMAIL-Account: {@Account()}{
       '')
 }
 X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Replied(@True()))
+X-QMAIL-OriginalCharset: {@BodyCharset(1)}
 
 At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', 2)} {@Name(From)} wrote:
 {@Body(@Profile('', 'Global', 'Quote', '> '), 1)}

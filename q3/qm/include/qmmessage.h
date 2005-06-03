@@ -240,6 +240,7 @@ public:
 					const WCHAR* pwszCharset,
 					bool bBodyOnly,
 					qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
+	qs::wstring_ptr getAllTextCharset() const;
 	qs::wxstring_size_ptr getBodyText(const WCHAR* pwszQuote,
 									  const WCHAR* pwszCharset,
 									  bool bForceRfc822Inline) const;
@@ -247,6 +248,7 @@ public:
 					 const WCHAR* pwszCharset,
 					 bool bForceRfc288Inline,
 					 qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
+	qs::wstring_ptr getBodyTextCharset(bool bForceRfc822Inline) const;
 	qs::wxstring_size_ptr getFormattedText(bool bUseSendersTimeZone,
 										   const WCHAR* pwszCharset,
 										   bool bForceRfc822Inline) const;

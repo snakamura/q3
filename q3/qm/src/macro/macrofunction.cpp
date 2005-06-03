@@ -610,7 +610,7 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	size_t nSize = getArgSize();
-
+	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
@@ -666,6 +666,84 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 const WCHAR* qm::MacroFunctionBody::getName() const
 {
 	return L"Body";
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionBodyCharset
+ *
+ */
+
+qm::MacroFunctionBodyCharset::MacroFunctionBodyCharset()
+{
+}
+
+qm::MacroFunctionBodyCharset::~MacroFunctionBodyCharset()
+{
+}
+
+MacroValuePtr qm::MacroFunctionBodyCharset::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(BodyCharset);
+	
+	if (!checkArgSizeRange(pContext, 0, 2))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (!pmh)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	
+	const Part* pPart = 0;
+	if (nSize > 1) {
+		pPart = getPart(pContext, 1);
+		if (!pPart)
+			return MacroValuePtr();
+	}
+	
+	enum View {
+		VIEW_NONE,
+		VIEW_FORCERFC822INLINE,
+		VIEW_INLINE
+	};
+	unsigned int nView = 0;
+	if (nSize > 0) {
+		ARG(pValue, 0);
+		nView = pValue->number();
+	}
+	if (nView > 2)
+		nView = 0;
+	
+	Message* pMessage = getMessage(pContext,
+		nView != VIEW_NONE ? MacroContext::MESSAGETYPE_TEXT :
+		MacroContext::MESSAGETYPE_ALL, 0);
+	if (!pMessage)
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
+	
+	if (!pPart)
+		pPart = pMessage;
+	
+	const WCHAR* pwszCharset = pContext->getBodyCharset();
+	wstring_ptr wstrCharset;
+	if (!pwszCharset) {
+		PartUtil util(*pPart);
+		if (nView == VIEW_NONE)
+			wstrCharset = util.getAllTextCharset();
+		else
+			wstrCharset = util.getBodyTextCharset(nView == VIEW_FORCERFC822INLINE);
+		pwszCharset = wstrCharset.get();
+	}
+	
+	return MacroValueFactory::getFactory().newString(wstrCharset.get());
+}
+
+const WCHAR* qm::MacroFunctionBodyCharset::getName() const
+{
+	return L"BodyCharset";
 }
 
 
@@ -4694,6 +4772,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 		END_BLOCK()
 		BEGIN_BLOCK(L'b', L'B')
 			DECLARE_FUNCTION0(		Body,				L"body"													)
+			DECLARE_FUNCTION0(		BodyCharset,		L"bodycharset"											)
 			DECLARE_FUNCTION1(		Contain,			L"beginwith",		true								)
 		END_BLOCK()
 		BEGIN_BLOCK(L'c', L'C')

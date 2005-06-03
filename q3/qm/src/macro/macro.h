@@ -39,6 +39,7 @@ class MacroExpr;
 		class MacroFunctionAnd;
 		class MacroFunctionAttachment;
 		class MacroFunctionBody;
+		class MacroFunctionBodyCharset;
 		class MacroFunctionBoolean;
 		class MacroFunctionClipboard;
 		class MacroFunctionComputerName;
@@ -729,6 +730,30 @@ protected:
 private:
 	MacroFunctionBody(const MacroFunctionBody&);
 	MacroFunctionBody& operator=(const MacroFunctionBody&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionBodyCharset
+ *
+ */
+
+class MacroFunctionBodyCharset : public MacroFunction
+{
+public:
+	MacroFunctionBodyCharset();
+	virtual ~MacroFunctionBodyCharset();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionBodyCharset(const MacroFunctionBodyCharset&);
+	MacroFunctionBodyCharset& operator=(const MacroFunctionBodyCharset&);
 };
 
 

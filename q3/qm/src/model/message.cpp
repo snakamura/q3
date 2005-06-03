@@ -316,12 +316,22 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 				pConverter = ConverterFactory::getInstance(wstrCharset.get());
 			
 			if (!pConverter.get()) {
+				const WCHAR* pwszCharset = Part::getDefaultCharset();
 				size_t n = 0;
 				while (n < nBodyLen && *(pBody + n) < 0x80)
 					++n;
-				const WCHAR* pwszCharset = n == nBodyLen ?
-					L"us-ascii" : Part::getDefaultCharset();
+				if (n == nBodyLen) {
+					pwszCharset = L"us-ascii";
+				}
+				else {
+					SimpleParser charset(0);
+					if (pPart->getField(L"X-QMAIL-OriginalCharset", &charset) == Part::FIELD_EXIST &&
+						_wcsicmp(charset.getValue(), L"us-ascii") != 0 &&
+						_wcsicmp(charset.getValue(), pwszCharset) != 0)
+						pwszCharset = L"utf-8";
+				}
 				wstrCharset = allocWString(pwszCharset);
+				pPart->removeField(L"X-QMAIL-OriginalCharset");
 				
 				pConverter = ConverterFactory::getInstance(wstrCharset.get());
 				
@@ -1239,6 +1249,37 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 	return true;
 }
 
+qs::wstring_ptr qm::PartUtil::getAllTextCharset() const
+{
+	wstring_ptr wstrAllCharset;
+	if (part_.isMultipart()) {
+		const Part::PartList& l = part_.getPartList();
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			wstring_ptr wstrCharset(PartUtil(**it).getAllTextCharset());
+			if (wstrAllCharset.get()) {
+				if (_wcsicmp(wstrAllCharset.get(), L"us-ascii") == 0) {
+					wstrAllCharset = wstrCharset;
+				}
+				else if (_wcsicmp(wstrCharset.get(), L"us-ascii") != 0 &&
+					_wcsicmp(wstrAllCharset.get(), wstrCharset.get()) != 0) {
+					wstrAllCharset = allocWString(L"utf-8");
+					break;
+				}
+			}
+			else {
+				wstrAllCharset = wstrCharset;
+			}
+		}
+	}
+	else if (part_.getEnclosedPart()) {
+		wstrAllCharset = PartUtil(*part_.getEnclosedPart()).getAllTextCharset();
+	}
+	else {
+		wstrAllCharset = part_.getCharset();
+	}
+	return wstrAllCharset.get() ? wstrAllCharset : allocWString(L"us-ascii");
+}
+
 wxstring_size_ptr qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 											const WCHAR* pwszCharset,
 											bool bForceRfc822Inline) const
@@ -1327,6 +1368,43 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 	}
 	
 	return true;
+}
+
+qs::wstring_ptr qm::PartUtil::getBodyTextCharset(bool bForceRfc822Inline) const
+{
+	wstring_ptr wstrAllCharset;
+	if (part_.isMultipart()) {
+		const ContentTypeParser* pContentType = part_.getContentType();
+		assert(pContentType);
+		bool bAlternative = _wcsicmp(pContentType->getSubType(), L"alternative") == 0;
+		const Part::PartList& l = part_.getPartList();
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			wstring_ptr wstrCharset = PartUtil(**it).getBodyTextCharset(bForceRfc822Inline);
+			if (wstrAllCharset.get()) {
+				if (_wcsicmp(wstrAllCharset.get(), L"us-ascii") == 0) {
+					wstrAllCharset = wstrCharset;
+				}
+				else if (_wcsicmp(wstrCharset.get(), L"us-ascii") != 0 &&
+					_wcsicmp(wstrAllCharset.get(), wstrCharset.get()) != 0) {
+					wstrAllCharset = allocWString(L"utf-8");
+					break;
+				}
+			}
+			else {
+				wstrAllCharset = wstrCharset;
+			}
+			if (bAlternative)
+				break;
+		}
+	}
+	else {
+		bool bAttachment = part_.isAttachment();
+		if (part_.getEnclosedPart() && (!bAttachment || bForceRfc822Inline))
+			wstrAllCharset = PartUtil(*part_.getEnclosedPart()).getBodyTextCharset(bForceRfc822Inline);
+		else if (!bAttachment)
+			wstrAllCharset = part_.getCharset();
+	}
+	return wstrAllCharset.get() ? wstrAllCharset : allocWString(L"us-ascii");
 }
 
 wxstring_size_ptr qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
