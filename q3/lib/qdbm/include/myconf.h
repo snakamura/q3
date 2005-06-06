@@ -397,7 +397,7 @@ clock_t _qdbm_times(struct tms *buf);
 #define F_WRLCK        0
 #define F_RDLCK        1
 #define F_SETLK        0
-#define F_SETLKW       0
+#define F_SETLKW       1
 
 struct flock {
   int l_type;
