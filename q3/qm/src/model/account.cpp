@@ -2437,7 +2437,7 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 		MessageHolder::FLAG_CCME
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		AddressListParser address(0);
+		AddressListParser address;
 		Part::Field field = pHeader->getField(pwszFields[n], &address);
 		if (field == Part::FIELD_EXIST) {
 			if (pSubAccount->isMyAddress(address))

@@ -239,7 +239,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 		L"Bcc"
 	};
 	for (int n = 0; n < countof(pwszAddresses); ++n) {
-		AddressListParser addressList(0);
+		AddressListParser addressList;
 		Part::Field f = pPart->getField(pwszAddresses[n], &addressList);
 		if (f == Part::FIELD_EXIST) {
 			if (!getCertificates(addressList, pCallback, pCertificates.get()))

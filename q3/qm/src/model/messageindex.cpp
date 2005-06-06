@@ -132,7 +132,7 @@ malloc_size_ptr<unsigned char> qm::MessageIndex::createIndex(const Message& msg)
 		L"To"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		AddressListParser address(0);
+		AddressListParser address;
 		if (msg.getField(pwszFields[n], &address) == Part::FIELD_EXIST) {
 			wstring_ptr wstrNames(address.getNames());
 			if (!writeToStream(&stream, wstrNames.get()))

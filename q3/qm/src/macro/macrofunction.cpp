@@ -1990,7 +1990,7 @@ MacroValuePtr qm::MacroFunctionFormatAddress::value(MacroContext* pContext) cons
 		Part part;
 		if (!part.create(0, pszField, -1))
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		AddressListParser address(0);
+		AddressListParser address;
 		Part::Field field = part.getField(pValueField->getName(), &address);
 		if (field == Part::FIELD_EXIST) {
 			if (lookup != LOOKUP_NONE) {
@@ -3887,7 +3887,7 @@ MacroValuePtr qm::MacroFunctionRemove::value(MacroContext* pContext) const
 	if (!MessageCreator::setField(&part, L"Dummy", wstrValue.get(),
 		MessageCreator::FIELDTYPE_ADDRESSLIST))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
-	AddressListParser addressList(0);
+	AddressListParser addressList;
 	Part::Field f = part.getField(L"Dummy", &addressList);
 	if (f != Part::FIELD_EXIST) {
 		return pValue;

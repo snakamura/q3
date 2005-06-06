@@ -670,6 +670,7 @@ private:
 	typedef std::vector<std::pair<STRING, bool> > Phrases;
 
 public:
+	AddressParser();
 	explicit AddressParser(unsigned int nFlags);
 	AddressParser(const WCHAR* pwszPhrase,
 				  const WCHAR* pwszAddress);
@@ -764,6 +765,7 @@ public:
 	typedef std::vector<AddressParser*> AddressList;
 
 public:
+	AddressListParser();
 	explicit AddressListParser(unsigned int nFlags);
 	virtual ~AddressListParser();
 

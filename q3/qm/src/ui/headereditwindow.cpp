@@ -1148,7 +1148,7 @@ bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
 									  const AddressBookAddress* pAddress)
 {
 	if (pAddress->isRFC2822()) {
-		AddressListParser addressList(0);
+		AddressListParser addressList;
 		if (MessageCreator::getAddressList(pAddress->getAddress(), &addressList)) {
 			if (match(pwszInput, nLen, addressList))
 				return true;

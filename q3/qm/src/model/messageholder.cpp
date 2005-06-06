@@ -305,7 +305,7 @@ wstring_ptr qm::AbstractMessageHolder::getAddress(const WCHAR* pwszName) const
 {
 	assert(pwszName);
 	
-	AddressListParser address(0);
+	AddressListParser address;
 	if (pMessage_->getField(pwszName, &address) == Part::FIELD_EXIST)
 		return address.getNames();
 	else

@@ -4779,7 +4779,7 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 	Message msg;
 	if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"From", SECURITYMODE_NONE, &msg))
 		return;
-	AddressListParser from(0);
+	AddressListParser from;
 	if (msg.getField(L"From", &from) != Part::FIELD_EXIST || from.getAddressList().empty())
 		return;
 	AddressParser* pFrom = from.getAddressList().front();

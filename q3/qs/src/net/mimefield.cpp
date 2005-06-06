@@ -1691,6 +1691,11 @@ bool qs::DateParser::isDigit(const CHAR* psz)
  *
  */
 
+qs::AddressParser::AddressParser() :
+	nFlags_(0)
+{
+}
+
 qs::AddressParser::AddressParser(unsigned int nFlags) :
 	nFlags_(nFlags)
 {
@@ -2393,6 +2398,11 @@ string_ptr qs::AddressParser::getMailboxFromPhrases(const Phrases& phrases,
  * AddressListParser
  *
  */
+
+qs::AddressListParser::AddressListParser() :
+	nFlags_(0)
+{
+}
 
 qs::AddressListParser::AddressListParser(unsigned int nFlags) :
 	nFlags_(nFlags)

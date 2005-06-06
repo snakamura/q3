@@ -135,7 +135,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	if (!*wstrEnvelopeFrom.get()) {
 		wstrEnvelopeFrom.reset(0);
 		
-		AddressParser envelopeFrom(0);
+		AddressParser envelopeFrom;
 		if (pMessage->getField(L"X-QMAIL-EnvelopeFrom", &envelopeFrom) == Part::FIELD_EXIST) {
 			wstrEnvelopeFrom = envelopeFrom.getAddress();
 		}
@@ -189,7 +189,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	};
 	const WCHAR** ppwszFields = bResent ? pwszResentFields : pwszNormalFields;
 	for (int n = 0; n < 3; ++n) {
-		AddressListParser address(0);
+		AddressListParser address;
 		if (pMessage->getField(*(ppwszFields + n), &address) == Part::FIELD_EXIST) {
 			bool bReplace = false;
 			

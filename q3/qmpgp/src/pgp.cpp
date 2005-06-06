@@ -397,7 +397,7 @@ void qmpgp::PGPUtilityImpl::getRecipients(const Part& part,
 		L"Bcc"
 	};
 	for (int n = 0; n < countof(pwszAddresses); ++n) {
-		AddressListParser addressList(0);
+		AddressListParser addressList;
 		Part::Field f = part.getField(pwszAddresses[n], &addressList);
 		if (f == Part::FIELD_EXIST) {
 			wstring_ptr wstrAddresses(addressList.getAddresses());

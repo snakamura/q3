@@ -291,7 +291,7 @@ void qm::AddressBook::prepareEntryMap() const
 			
 			wstring_ptr wstrAddress;
 			if (pAddress->isRFC2822()) {
-				AddressParser address(0);
+				AddressParser address;
 				if (MessageCreator::getAddress(pAddress->getAddress(), &address))
 					wstrAddress = address.getAddress();
 			}

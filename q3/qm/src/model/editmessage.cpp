@@ -332,7 +332,7 @@ wstring_ptr qm::EditMessage::getField(const WCHAR* pwszName,
 			break;
 		case FIELDTYPE_ADDRESSLIST:
 			{
-				AddressListParser field(0);
+				AddressListParser field;
 				if (pMessage_->getField(pwszName, &field) == Part::FIELD_EXIST)
 					wstrValue = field.getValue();
 			}

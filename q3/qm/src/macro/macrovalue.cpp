@@ -309,7 +309,7 @@ bool qm::MacroValueField::getAddresses(std::vector<WSTRING>* pAddresses) const
 	Part part;
 	if (!part.create(0, strField_.get(), -1))
 		return false;
-	AddressListParser address(0);
+	AddressListParser address;
 	Part::Field field = part.getField(wstrName_.get(), &address);
 	if (field == Part::FIELD_EXIST) {
 		typedef AddressListParser::AddressList List;
@@ -347,7 +347,7 @@ bool qm::MacroValueField::getNames(std::vector<WSTRING>* pNames) const
 	Part part;
 	if (!part.create(0, strField_.get(), -1))
 		return false;
-	AddressListParser address(0);
+	AddressListParser address;
 	Part::Field field = part.getField(wstrName_.get(), &address);
 	if (field == Part::FIELD_EXIST) {
 		typedef AddressListParser::AddressList List;
@@ -373,7 +373,7 @@ wstring_ptr qm::MacroValueField::string() const
 		if (!part.create(0, strField_.get(), -1))
 			return 0;
 		if (isAddress()) {
-			AddressListParser address(0);
+			AddressListParser address;
 			if (part.getField(wstrName_.get(), &address) == Part::FIELD_EXIST)
 				return address.getValue();
 		}

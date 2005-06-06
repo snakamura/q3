@@ -1124,7 +1124,7 @@ wstring_ptr qm::PartUtil::getNames(const WCHAR* pwszField) const
 	
 	StringBuffer<WSTRING> buf;
 	
-	AddressListParser address(0);
+	AddressListParser address;
 	if (part_.getField(pwszField, &address) == Part::FIELD_EXIST) {
 		const AddressListParser::AddressList& l = address.getAddressList();
 		for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -1439,7 +1439,7 @@ bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 	};
 	
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		AddressListParser address(0);
+		AddressListParser address;
 		if (part_.getField(pwszFields[n], &address) == Part::FIELD_EXIST) {
 			if (!address.getAddressList().empty()) {
 				if (!pBuf->append(pwszFieldNames[n]))
@@ -1525,10 +1525,10 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 	if (mode == DIGEST_NONE)
 		return true;
 	
-	AddressListParser to(0);
+	AddressListParser to;
 	Part::Field fieldTo = part_.getField(L"To", &to);
 	
-	AddressListParser replyTo(0);
+	AddressListParser replyTo;
 	Part::Field fieldReplyTo = part_.getField(L"Reply-To", &replyTo);
 	
 	switch (mode) {

@@ -55,7 +55,7 @@ void qm::RecentAddress::add(const Message& msg)
 		L"Bcc"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		AddressListParser addressList(0);
+		AddressListParser addressList;
 		if (msg.getField(pwszFields[n], &addressList) == Part::FIELD_EXIST)
 			add(addressList);
 	}
