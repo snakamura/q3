@@ -85,7 +85,7 @@ void qm::RecentAddress::load()
 		swprintf(wszKey, L"Address%u", n);
 		wstring_ptr wstrAddress(pProfile_->getString(L"RecentAddress", wszKey, L""));
 		if (*wstrAddress.get()) {
-			std::auto_ptr<AddressParser> pAddress(new AddressParser(0));
+			std::auto_ptr<AddressParser> pAddress(new AddressParser());
 			if (MessageCreator::getAddress(wstrAddress.get(), pAddress.get()))
 				listAddress_.push_back(pAddress.release());
 		}
