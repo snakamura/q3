@@ -2722,7 +2722,15 @@ string_ptr qs::MessageIdParser::unparse(const Part& part) const
  *
  */
 
-qs::ReferencesParser::ReferencesParser()
+size_t qs::ReferencesParser::nMax__ = 100;
+
+qs::ReferencesParser::ReferencesParser() :
+	nMax_(nMax__)
+{
+}
+
+qs::ReferencesParser::ReferencesParser(size_t nMax) :
+	nMax_(nMax)
 {
 }
 
@@ -2842,6 +2850,9 @@ Part::Field qs::ReferencesParser::parse(const Part& part,
 		case S_END:
 			break;
 		}
+		
+		if (listReference_.size() >= nMax_)
+			break;
 	}
 	
 	return Part::FIELD_EXIST;
@@ -2877,6 +2888,16 @@ string_ptr qs::ReferencesParser::unparse(const Part& part) const
 	}
 	
 	return buf.getString();
+}
+
+size_t qs::ReferencesParser::getMaxReferences()
+{
+	return nMax__;
+}
+
+void qs::ReferencesParser::setMaxReferences(size_t nMax)
+{
+	nMax__ = nMax;
 }
 
 

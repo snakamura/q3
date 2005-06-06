@@ -860,6 +860,7 @@ public:
 
 public:
 	ReferencesParser();
+	explicit ReferencesParser(size_t nMax);
 	virtual ~ReferencesParser();
 
 public:
@@ -870,6 +871,10 @@ public:
 	virtual Part::Field parse(const Part& part,
 							  const WCHAR* pwszName);
 	virtual string_ptr unparse(const Part& part) const;
+
+public:
+	static size_t getMaxReferences();
+	static void setMaxReferences(size_t nMax);
 
 private:
 	ReferencesParser(const ReferencesParser&);
@@ -884,6 +889,10 @@ private:
 
 private:
 	ReferenceList listReference_;
+	size_t nMax_;
+
+private:
+	static size_t nMax__;
 };
 
 
