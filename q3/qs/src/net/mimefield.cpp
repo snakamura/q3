@@ -2722,7 +2722,7 @@ string_ptr qs::MessageIdParser::unparse(const Part& part) const
  *
  */
 
-size_t qs::ReferencesParser::nMax__ = 100;
+size_t qs::ReferencesParser::nMax__ = 32;
 
 qs::ReferencesParser::ReferencesParser() :
 	nMax_(nMax__)
@@ -2907,7 +2907,10 @@ void qs::ReferencesParser::setMaxReferences(size_t nMax)
  *
  */
 
-qs::ParameterFieldParser::ParameterFieldParser()
+size_t qs::ParameterFieldParser::nMax__ = 32;
+
+qs::ParameterFieldParser::ParameterFieldParser(size_t nMax) :
+	nMax_(nMax)
 {
 }
 
@@ -3080,6 +3083,9 @@ Part::Field qs::ParameterFieldParser::parseParameter(const Part& part,
 		case S_END:
 			break;
 		}
+		
+		if (listParameter_.size() >= nMax_)
+			break;
 	}
 	
 	return Part::FIELD_EXIST;
@@ -3328,6 +3334,16 @@ void qs::ParameterFieldParser::encodeHex(unsigned char c,
 	}
 }
 
+size_t qs::ParameterFieldParser::getMaxParameters()
+{
+	return nMax__;
+}
+
+void qs::ParameterFieldParser::setMaxParameters(size_t nMax)
+{
+	nMax__ = nMax;
+}
+
 
 /****************************************************************************
  *
@@ -3335,7 +3351,13 @@ void qs::ParameterFieldParser::encodeHex(unsigned char c,
  *
  */
 
-qs::SimpleParameterParser::SimpleParameterParser()
+qs::SimpleParameterParser::SimpleParameterParser() :
+	ParameterFieldParser(getMaxParameters())
+{
+}
+
+qs::SimpleParameterParser::SimpleParameterParser(size_t nMax) :
+	ParameterFieldParser(nMax)
 {
 }
 
@@ -3406,12 +3428,19 @@ string_ptr qs::SimpleParameterParser::unparse(const Part& part) const
  *
  */
 
-qs::ContentTypeParser::ContentTypeParser()
+qs::ContentTypeParser::ContentTypeParser() :
+	ParameterFieldParser(getMaxParameters())
+{
+}
+
+qs::ContentTypeParser::ContentTypeParser(size_t nMax) :
+	ParameterFieldParser(nMax)
 {
 }
 
 qs::ContentTypeParser::ContentTypeParser(const WCHAR* pwszMediaType,
-										 const WCHAR* pwszSubType)
+										 const WCHAR* pwszSubType) :
+	ParameterFieldParser(getMaxParameters())
 {
 	wstrMediaType_ = allocWString(pwszMediaType);
 	wstrSubType_ = allocWString(pwszSubType);
@@ -3507,11 +3536,18 @@ string_ptr qs::ContentTypeParser::unparse(const Part& part) const
  *
  */
 
-qs::ContentDispositionParser::ContentDispositionParser()
+qs::ContentDispositionParser::ContentDispositionParser() :
+	ParameterFieldParser(getMaxParameters())
 {
 }
 
-qs::ContentDispositionParser::ContentDispositionParser(const WCHAR* pwszDispositionType)
+qs::ContentDispositionParser::ContentDispositionParser(size_t nMax) :
+	ParameterFieldParser(nMax)
+{
+}
+
+qs::ContentDispositionParser::ContentDispositionParser(const WCHAR* pwszDispositionType) :
+	ParameterFieldParser(getMaxParameters())
 {
 	wstrDispositionType_ = allocWString(pwszDispositionType);
 }

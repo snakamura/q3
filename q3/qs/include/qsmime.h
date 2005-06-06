@@ -915,7 +915,7 @@ protected:
 	};
 
 public:
-	ParameterFieldParser();
+	explicit ParameterFieldParser(size_t nMax);
 	virtual ~ParameterFieldParser();
 
 public:
@@ -944,6 +944,10 @@ public:
 	static unsigned char decodeHex(const WCHAR* pwszValue);
 	static void encodeHex(unsigned char c, CHAR* pszEncoded);
 
+public:
+	static size_t getMaxParameters();
+	static void setMaxParameters(size_t nMax);
+
 private:
 	ParameterFieldParser(const ParameterFieldParser&);
 	ParameterFieldParser& operator=(const ParameterFieldParser&);
@@ -953,6 +957,10 @@ private:
 
 private:
 	ParameterList listParameter_;
+	size_t nMax_;
+
+private:
+	static size_t nMax__;
 };
 
 
@@ -966,6 +974,7 @@ class QSEXPORTCLASS SimpleParameterParser : public ParameterFieldParser
 {
 public:
 	SimpleParameterParser();
+	explicit SimpleParameterParser(size_t nMax);
 	virtual ~SimpleParameterParser();
 
 public:
@@ -995,6 +1004,7 @@ class QSEXPORTCLASS ContentTypeParser : public ParameterFieldParser
 {
 public:
 	ContentTypeParser();
+	explicit ContentTypeParser(size_t nMax);
 	ContentTypeParser(const WCHAR* pwszMediaType,
 					  const WCHAR* pwszSubType);
 	virtual ~ContentTypeParser();
@@ -1036,6 +1046,7 @@ class QSEXPORTCLASS ContentDispositionParser : public ParameterFieldParser
 {
 public:
 	ContentDispositionParser();
+	explicit ContentDispositionParser(size_t nMax);
 	explicit ContentDispositionParser(const WCHAR* pwszDispositionType);
 	virtual ~ContentDispositionParser();
 
