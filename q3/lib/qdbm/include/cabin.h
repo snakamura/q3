@@ -580,6 +580,21 @@ char *cbmapdump(CBMAP *map, int *sp);
 CBMAP *cbmapload(const char *ptr, int size);
 
 
+/* Extract a record from a serialized map.
+   `ptr' specifies the pointer to a byte array.
+   `size' specifies the size of the region.
+   `kbuf' specifies the pointer to the region of a key.
+   `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
+   with `strlen(kbuf)'.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the value of the
+   corresponding record.  `NULL' is returned when no record corresponds.
+   Because an additional zero code is appended at the end of the region of the return value,
+   the return value can be treated as a character string. */
+char *cbmaploadone(const char *ptr, int size, const char *kbuf, int ksiz, int *sp);
+
+
 /* Allocate a formatted string on memory.
    `format' specifies a printf-like format string.  The conversion character `%' can be used
    with such flag characters as `d', `o', `u', `x', `X', `e', `E', `f', `g', `G', `c', `s', and
