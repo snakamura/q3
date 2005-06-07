@@ -216,6 +216,8 @@ public:
 	static void setDefaultCharset(const WCHAR* pwszCharset);
 	static bool isGlobalOption(Option option);
 	static void setGlobalOptions(unsigned int nOptions);
+	static size_t getMaxHeaderLength();
+	static void setMaxHeaderLength(size_t nMax);
 
 public:
 	static const CHAR* getBody(const CHAR* pszContent,
@@ -251,6 +253,7 @@ private:
 private:
 	static wstring_ptr wstrDefaultCharset__;
 	static unsigned int nGlobalOptions__;
+	static size_t nMaxHeaderLength__;
 };
 
 

@@ -85,6 +85,7 @@ bool FieldComparator::operator()(const std::pair<STRING, STRING>& lhs,
 
 wstring_ptr qs::Part::wstrDefaultCharset__;
 unsigned int qs::Part::nGlobalOptions__ = 0;
+size_t qs::Part::nMaxHeaderLength__ = 32*1024;
 
 qs::Part::Part() :
 	pParent_(0),
@@ -115,22 +116,23 @@ bool qs::Part::create(const Part* pParent,
 		nLen = strlen(pszContent);
 	
 	const CHAR* pBody = getBody(pszContent, nLen);
-	if (!pBody) {
-		strHeader_ = allocXString(nLen + 2);
+	size_t nHeaderLen = 0;
+	if (!pBody)
+		nHeaderLen = nLen;
+	else if (pBody != pszContent + 2)
+		nHeaderLen = pBody - pszContent - 2;
+	if (nHeaderLen != 0) {
+		if (nHeaderLen > nMaxHeaderLength__)
+			nHeaderLen = nMaxHeaderLength__;
+		
+		strHeader_ = allocXString(nHeaderLen + 2);
 		if (!strHeader_.get())
 			return false;
-		strncpy(strHeader_.get(), pszContent, nLen);
-		if (strncmp(pszContent + nLen - 2, "\r\n", 2) != 0)
-			strcpy(strHeader_.get() + nLen, "\r\n");
+		strncpy(strHeader_.get(), pszContent, nHeaderLen);
+		if (strncmp(strHeader_.get() + nHeaderLen - 2, "\r\n", 2) != 0)
+			strcpy(strHeader_.get() + nHeaderLen, "\r\n");
 		else
-			*(strHeader_.get() + nLen) = '\0';
-		pBody = 0;
-	}
-	else if (pBody != pszContent + 2) {
-		strHeader_ = allocXString(pszContent, pBody - pszContent - 2);
-		if (!strHeader_.get())
-			return false;
-		assert(strncmp(strHeader_.get() + strlen(strHeader_.get()) - 2, "\r\n", 2) == 0);
+			*(strHeader_.get() + nHeaderLen) = '\0';
 	}
 	
 	updateContentType();
@@ -1036,6 +1038,16 @@ bool qs::Part::isGlobalOption(Option option)
 void qs::Part::setGlobalOptions(unsigned int nOptions)
 {
 	nGlobalOptions__ = nOptions;
+}
+
+size_t qs::Part::getMaxHeaderLength()
+{
+	return nMaxHeaderLength__;
+}
+
+void qs::Part::setMaxHeaderLength(size_t nMax)
+{
+	nMaxHeaderLength__ = nMax;
 }
 
 const CHAR* qs::Part::getBody(const CHAR* pszContent,
