@@ -254,7 +254,12 @@ bool qs::XMLParser::parseXmlDecl(InputStream* pInputStream,
 	if (!pwszEncoding)
 		pwszEncoding = L"utf-8";
 	
-	ppReader->reset(new InputStreamReader(pStream.get(), true, pwszEncoding));
+	std::auto_ptr<InputStreamReader> pReader(
+		new InputStreamReader(pStream.get(), true, pwszEncoding));
+	if (!*pReader.get())
+		return false;
+	
+	*ppReader = pReader;
 	pStream.release();
 	
 	return true;
