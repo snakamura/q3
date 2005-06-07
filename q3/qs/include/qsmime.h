@@ -767,6 +767,8 @@ public:
 public:
 	AddressListParser();
 	explicit AddressListParser(unsigned int nFlags);
+	AddressListParser(unsigned int nFlags,
+					  size_t nMax);
 	virtual ~AddressListParser();
 
 public:
@@ -788,6 +790,10 @@ public:
 							  const WCHAR* pwszName);
 	virtual string_ptr unparse(const Part& part) const;
 
+public:
+	static size_t getMaxAddresses();
+	static void setMaxAddresses(size_t nMax);
+
 private:
 	Part::Field parseAddressList(const Part& part,
 								 Tokenizer& t);
@@ -799,6 +805,10 @@ private:
 private:
 	unsigned int nFlags_;
 	AddressList listAddress_;
+	size_t nMax_;
+
+private:
+	static size_t nMax__;
 
 friend class AddressParser;
 };

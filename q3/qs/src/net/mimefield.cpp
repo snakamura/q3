@@ -2399,13 +2399,24 @@ string_ptr qs::AddressParser::getMailboxFromPhrases(const Phrases& phrases,
  *
  */
 
+size_t qs::AddressListParser::nMax__ = 128;
+
 qs::AddressListParser::AddressListParser() :
-	nFlags_(0)
+	nFlags_(0),
+	nMax_(getMaxAddresses())
 {
 }
 
 qs::AddressListParser::AddressListParser(unsigned int nFlags) :
-	nFlags_(nFlags)
+	nFlags_(nFlags),
+	nMax_(getMaxAddresses())
+{
+}
+
+qs::AddressListParser::AddressListParser(unsigned int nFlags,
+										 size_t nMax) :
+	nFlags_(nFlags),
+	nMax_(nMax)
 {
 }
 
@@ -2571,6 +2582,16 @@ string_ptr qs::AddressListParser::unparse(const Part& part) const
 	return buf.getString();
 }
 
+size_t qs::AddressListParser::getMaxAddresses()
+{
+	return nMax__;
+}
+
+void qs::AddressListParser::setMaxAddresses(size_t nMax)
+{
+	nMax__ = nMax;
+}
+
 Part::Field qs::AddressListParser::parseAddressList(const Part& part,
 													Tokenizer& t)
 {
@@ -2616,6 +2637,9 @@ Part::Field qs::AddressListParser::parseAddressList(const Part& part,
 		
 		listAddress_.push_back(pParser.get());
 		pParser.release();
+		
+		if (listAddress_.size() >= nMax_)
+			break;
 		
 		if (bEnd)
 			break;
