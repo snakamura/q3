@@ -473,7 +473,9 @@ void qm::FolderWindowImpl::accountListChanged(const AccountManagerEvent& event)
 
 void qm::FolderWindowImpl::documentInitialized(const DocumentEvent& event)
 {
-	DisableRedraw disable(pThis_->getHandle());
+	HWND hwnd = pThis_->getHandle();
+	
+	DisableRedraw disable(hwnd);
 	
 	Profile::StringList listFolders;
 	StringListFree<Profile::StringList> free(listFolders);
@@ -486,8 +488,10 @@ void qm::FolderWindowImpl::documentInitialized(const DocumentEvent& event)
 		else if (p.second)
 			hItem = getHandleFromFolder(p.second);
 		if (hItem)
-			TreeView_Expand(pThis_->getHandle(), hItem, TVE_EXPAND);
+			TreeView_Expand(hwnd, hItem, TVE_EXPAND);
 	}
+	
+	TreeView_EnsureVisible(hwnd, TreeView_GetSelection(hwnd));
 }
 
 void qm::FolderWindowImpl::currentSubAccountChanged(const AccountEvent& event)
