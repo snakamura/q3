@@ -218,12 +218,18 @@ public:
 	static void setGlobalOptions(unsigned int nOptions);
 	static size_t getMaxHeaderLength();
 	static void setMaxHeaderLength(size_t nMax);
+	static size_t getMaxPartCount();
+	static void setMaxPartCount(size_t nMax);
 
 public:
 	static const CHAR* getBody(const CHAR* pszContent,
 							   size_t nLen);
 
 private:
+	bool create(const Part* pParent,
+				const CHAR* pszContent,
+				size_t nLen,
+				size_t* pnMaxPartCount);
 	const CHAR* getHeaderLower() const;
 	void clearHeaderLower() const;
 	void updateContentType();
@@ -254,6 +260,7 @@ private:
 	static wstring_ptr wstrDefaultCharset__;
 	static unsigned int nGlobalOptions__;
 	static size_t nMaxHeaderLength__;
+	static size_t nMaxPartCount__;
 };
 
 

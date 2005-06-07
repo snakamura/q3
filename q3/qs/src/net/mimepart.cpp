@@ -86,6 +86,7 @@ bool FieldComparator::operator()(const std::pair<STRING, STRING>& lhs,
 wstring_ptr qs::Part::wstrDefaultCharset__;
 unsigned int qs::Part::nGlobalOptions__ = 0;
 size_t qs::Part::nMaxHeaderLength__ = 32*1024;
+size_t qs::Part::nMaxPartCount__ = 64;
 
 qs::Part::Part() :
 	pParent_(0),
@@ -108,99 +109,8 @@ bool qs::Part::create(const Part* pParent,
 					  const CHAR* pszContent,
 					  size_t nLen)
 {
-	assert(pszContent);
-	
-	clear();
-	
-	if (nLen == static_cast<size_t>(-1))
-		nLen = strlen(pszContent);
-	
-	const CHAR* pBody = getBody(pszContent, nLen);
-	size_t nHeaderLen = 0;
-	if (!pBody)
-		nHeaderLen = nLen;
-	else if (pBody != pszContent + 2)
-		nHeaderLen = pBody - pszContent - 2;
-	if (nHeaderLen != 0) {
-		if (nHeaderLen > nMaxHeaderLength__)
-			nHeaderLen = nMaxHeaderLength__;
-		
-		strHeader_ = allocXString(nHeaderLen + 2);
-		if (!strHeader_.get())
-			return false;
-		strncpy(strHeader_.get(), pszContent, nHeaderLen);
-		if (strncmp(strHeader_.get() + nHeaderLen - 2, "\r\n", 2) != 0)
-			strcpy(strHeader_.get() + nHeaderLen, "\r\n");
-		else
-			*(strHeader_.get() + nHeaderLen) = '\0';
-	}
-	
-	updateContentType();
-	
-	if (pBody) {
-		bool bProcessed = false;
-		const ContentTypeParser* pContentType = getContentType();
-		const WCHAR* pwszMediaType = L"text";
-		wstring_ptr strMediaType;
-		if (pContentType) {
-			assert(pContentType->getMediaType());
-			strMediaType = tolower(pContentType->getMediaType());
-			pwszMediaType = strMediaType.get();
-		}
-		if (wcscmp(pwszMediaType, L"multipart") == 0) {
-			wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
-			if (wstrBoundary.get()) {
-				bProcessed = true;
-				
-				string_ptr strBoundary(wcs2mbs(wstrBoundary.get()));
-				BoundaryFinder<CHAR, STRING> finder(pBody - 2,
-					nLen - (pBody - 2 - pszContent), strBoundary.get(),
-					"\r\n", isOption(O_ALLOW_INCOMPLETE_MULTIPART));
-				
-				while (true) {
-					const CHAR* pBegin = 0;
-					const CHAR* pEnd = 0;
-					bool bEnd = false;
-					if (!finder.getNext(&pBegin, &pEnd, &bEnd))
-						return false;
-					if (pBegin) {
-						std::auto_ptr<Part> pChildPart(new Part(nOptions_));
-						if (!pChildPart->create(this, pBegin, pEnd - pBegin))
-							return false;
-						addPart(pChildPart);
-					}
-					if (bEnd)
-						break;
-				}
-			}
-		}
-		else {
-			bool bRFC822 = _wcsicmp(pwszMediaType, L"message") == 0 &&
-				_wcsicmp(pContentType->getSubType(), L"rfc822") == 0;
-			if (!bRFC822 && !pContentType && pParent) {
-				const ContentTypeParser* pContentTypeParent = pParent->getContentType();
-				bRFC822 = pContentTypeParent &&
-					_wcsicmp(pContentTypeParent->getMediaType(), L"multipart") == 0 &&
-					_wcsicmp(pContentTypeParent->getSubType(), L"digest") == 0;
-			}
-			if (bRFC822) {
-				bProcessed = true;
-				pPartEnclosed_.reset(new Part(nOptions_));
-				if (!pPartEnclosed_->create(0, pBody, nLen - (pBody - pszContent)))
-					return false;
-			}
-		}
-		if (!bProcessed) {
-			strBody_ = allocXString(pBody, nLen - (pBody - pszContent));
-			if (!strBody_.get())
-				return false;
-		}
-	}
-	else {
-		strBody_ = allocXString("");
-	}
-	
-	return true;
+	size_t nMaxPartCount = nMaxPartCount__;
+	return create(pParent, pszContent, nLen, &nMaxPartCount);
 }
 
 void qs::Part::clear()
@@ -1050,6 +960,16 @@ void qs::Part::setMaxHeaderLength(size_t nMax)
 	nMaxHeaderLength__ = nMax;
 }
 
+size_t qs::Part::getMaxPartCount()
+{
+	return nMaxPartCount__;
+}
+
+void qs::Part::setMaxPartCount(size_t nMax)
+{
+	nMaxPartCount__ = nMax;
+}
+
 const CHAR* qs::Part::getBody(const CHAR* pszContent,
 							  size_t nLen)
 {
@@ -1071,6 +991,117 @@ const CHAR* qs::Part::getBody(const CHAR* pszContent,
 	assert(!pBody || (pszContent <= pBody && pBody <= pszContent + nLen));
 	
 	return pBody;
+}
+
+bool qs::Part::create(const Part* pParent,
+					  const CHAR* pszContent,
+					  size_t nLen,
+					  size_t* pnMaxPartCount)
+{
+	assert(pszContent);
+	assert(pnMaxPartCount);
+	
+	if (nLen == static_cast<size_t>(-1))
+		nLen = strlen(pszContent);
+	
+	clear();
+	
+	const CHAR* pBody = getBody(pszContent, nLen);
+	size_t nHeaderLen = 0;
+	if (!pBody)
+		nHeaderLen = nLen;
+	else if (pBody != pszContent + 2)
+		nHeaderLen = pBody - pszContent - 2;
+	if (nHeaderLen != 0) {
+		if (nHeaderLen > nMaxHeaderLength__)
+			nHeaderLen = nMaxHeaderLength__;
+		
+		strHeader_ = allocXString(nHeaderLen + 2);
+		if (!strHeader_.get())
+			return false;
+		strncpy(strHeader_.get(), pszContent, nHeaderLen);
+		if (strncmp(strHeader_.get() + nHeaderLen - 2, "\r\n", 2) != 0)
+			strcpy(strHeader_.get() + nHeaderLen, "\r\n");
+		else
+			*(strHeader_.get() + nHeaderLen) = '\0';
+	}
+	
+	updateContentType();
+	
+	if (pBody) {
+		bool bProcessed = false;
+		const ContentTypeParser* pContentType = getContentType();
+		const WCHAR* pwszMediaType = L"text";
+		wstring_ptr strMediaType;
+		if (pContentType) {
+			assert(pContentType->getMediaType());
+			strMediaType = tolower(pContentType->getMediaType());
+			pwszMediaType = strMediaType.get();
+		}
+		if (wcscmp(pwszMediaType, L"multipart") == 0) {
+			wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
+			if (wstrBoundary.get()) {
+				bProcessed = true;
+				
+				string_ptr strBoundary(wcs2mbs(wstrBoundary.get()));
+				BoundaryFinder<CHAR, STRING> finder(pBody - 2,
+					nLen - (pBody - 2 - pszContent), strBoundary.get(),
+					"\r\n", isOption(O_ALLOW_INCOMPLETE_MULTIPART));
+				
+				while (true) {
+					if (*pnMaxPartCount == 0)
+						break;
+					--*pnMaxPartCount;
+					
+					const CHAR* pBegin = 0;
+					const CHAR* pEnd = 0;
+					bool bEnd = false;
+					if (!finder.getNext(&pBegin, &pEnd, &bEnd))
+						return false;
+					if (pBegin) {
+						std::auto_ptr<Part> pChildPart(new Part(nOptions_));
+						if (!pChildPart->create(this, pBegin, pEnd - pBegin, pnMaxPartCount))
+							return false;
+						addPart(pChildPart);
+					}
+					
+					if (bEnd)
+						break;
+				}
+			}
+		}
+		else {
+			bool bRFC822 = _wcsicmp(pwszMediaType, L"message") == 0 &&
+				_wcsicmp(pContentType->getSubType(), L"rfc822") == 0;
+			if (!bRFC822 && !pContentType && pParent) {
+				const ContentTypeParser* pContentTypeParent = pParent->getContentType();
+				bRFC822 = pContentTypeParent &&
+					_wcsicmp(pContentTypeParent->getMediaType(), L"multipart") == 0 &&
+					_wcsicmp(pContentTypeParent->getSubType(), L"digest") == 0;
+			}
+			if (bRFC822) {
+				if (*pnMaxPartCount == 0)
+					bRFC822 = false;
+				--*pnMaxPartCount;
+			}
+			if (bRFC822) {
+				bProcessed = true;
+				pPartEnclosed_.reset(new Part(nOptions_));
+				if (!pPartEnclosed_->create(0, pBody, nLen - (pBody - pszContent), pnMaxPartCount))
+					return false;
+			}
+		}
+		if (!bProcessed) {
+			strBody_ = allocXString(pBody, nLen - (pBody - pszContent));
+			if (!strBody_.get())
+				return false;
+		}
+	}
+	else {
+		strBody_ = allocXString("");
+	}
+	
+	return true;
 }
 
 const CHAR* qs::Part::getHeaderLower() const
