@@ -496,23 +496,29 @@ bool qscrypto::StoreImpl::load(const WCHAR* pwszPath,
 bool qscrypto::StoreImpl::loadSystem()
 {
 #if !defined _WIN32_WCE || _WIN32_WCE > 300 || defined PLATFORM_PPC2002
-	HCERTSTORE hStore = ::CertOpenSystemStore(0, _T("ROOT"));
-	if (!hStore)
-		return false;
-	
-	const CERT_CONTEXT* pContext = 0;
-	while (true) {
-		pContext = ::CertEnumCertificatesInStore(hStore, pContext);
-		if (!pContext)
-			break;
+	const TCHAR* ptszNames[] = {
+		_T("ROOT"),
+		_T("CA")
+	};
+	for (int n = 0; n < countof(ptszNames); ++n) {
+		HCERTSTORE hStore = ::CertOpenSystemStore(0, ptszNames[n]);
+		if (!hStore)
+			return false;
 		
-		unsigned char* p = pContext->pbCertEncoded;
-		X509Ptr x509(d2i_X509(0, &p, pContext->cbCertEncoded));
-		if (x509.get())
-			X509_STORE_add_cert(pStore_, x509.get());
+		const CERT_CONTEXT* pContext = 0;
+		while (true) {
+			pContext = ::CertEnumCertificatesInStore(hStore, pContext);
+			if (!pContext)
+				break;
+			
+			unsigned char* p = pContext->pbCertEncoded;
+			X509Ptr x509(d2i_X509(0, &p, pContext->cbCertEncoded));
+			if (x509.get())
+				X509_STORE_add_cert(pStore_, x509.get());
+		}
+		::CertFreeCertificateContext(pContext);
+		::CertCloseStore(hStore, 0);
 	}
-	::CertFreeCertificateContext(pContext);
-	::CertCloseStore(hStore, 0);
 #endif
 	
 	return true;
