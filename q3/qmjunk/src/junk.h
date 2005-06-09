@@ -35,18 +35,18 @@ class TokenizerCallback;
 class DepotPtr
 {
 public:
+	DepotPtr();
 	explicit DepotPtr(DEPOT* pDepot);
 	DepotPtr(DepotPtr& ptr);
 	~DepotPtr();
 
 public:
 	DEPOT* operator->() const;
+	DepotPtr& operator=(DepotPtr& ptr);
 
 public:
 	DEPOT* get() const;
-
-private:
-	DepotPtr& operator=(const DepotPtr&);
+	DEPOT* release();
 
 private:
 	DEPOT* pDepot_;
@@ -83,8 +83,8 @@ public:
 private:
 	bool init();
 	bool flush() const;
-	DepotPtr openToken() const;
-	DepotPtr openId() const;
+	DEPOT* getTokenDepot();
+	DEPOT* getIdDepot();
 	DepotPtr open(const WCHAR* pwszName) const;
 
 private:
@@ -97,6 +97,8 @@ private:
 private:
 	qs::wstring_ptr wstrPath_;
 	qs::Profile* pProfile_;
+	DepotPtr pDepotToken_;
+	DepotPtr pDepotId_;
 	volatile unsigned int nCleanCount_;
 	volatile unsigned int nJunkCount_;
 	float fThresholdScore_;

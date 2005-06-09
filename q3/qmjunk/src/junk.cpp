@@ -32,6 +32,11 @@ using namespace qs;
  *
  */
 
+qmjunk::DepotPtr::DepotPtr() :
+	pDepot_(0)
+{
+}
+
 qmjunk::DepotPtr::DepotPtr(DEPOT* pDepot) :
 	pDepot_(pDepot)
 {
@@ -54,9 +59,27 @@ DEPOT* qmjunk::DepotPtr::operator->() const
 	return pDepot_;
 }
 
+DepotPtr& qmjunk::DepotPtr::operator=(DepotPtr& ptr)
+{
+	if (&ptr != this && ptr.pDepot_ != pDepot_) {
+		if (pDepot_)
+			dpclose(pDepot_);
+		pDepot_ = ptr.pDepot_;
+		ptr.pDepot_ = 0;
+	}
+	return *this;
+}
+
 DEPOT* qmjunk::DepotPtr::get() const
 {
 	return pDepot_;
+}
+
+DEPOT* qmjunk::DepotPtr::release()
+{
+	DEPOT* pDepot = pDepot_;
+	pDepot_ = 0;
+	return pDepot;
 }
 
 
@@ -109,13 +132,13 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 			return 0.0F;
 		}
 		
-		DepotPtr pDepotId(openId());
-		if (!pDepotId.get())
+		DEPOT* pDepotId = getIdDepot();
+		if (!pDepotId)
 			return -1.0F;
 		
 		string_ptr strId(getId(msg));
 		int nId = 0;
-		if (dpgetwb(pDepotId.get(), strId.get(), strlen(strId.get()),
+		if (dpgetwb(pDepotId, strId.get(), strlen(strId.get()),
 			0, sizeof(nId), reinterpret_cast<char*>(&nId)) != -1) {
 			if (nId > 0) {
 				log.info(L"Filter a message as clean because it has already been learned as clean.");
@@ -237,11 +260,11 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		const unsigned int nMax_;
 	};
 	
-	DepotPtr pDepotToken(openToken());
-	if (!pDepotToken.get())
+	DEPOT* pDepotToken = getTokenDepot();
+	if (!pDepotToken)
 		return -1.0F;
 	
-	TokenizerCallbackImpl callback(pDepotToken.get(), nCleanCount_, nJunkCount_, cs_);
+	TokenizerCallbackImpl callback(pDepotToken, nCleanCount_, nJunkCount_, cs_);
 	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
 		return -1.0F;
 	
@@ -282,15 +305,15 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	{
 		Lock<CriticalSection> lock(cs_);
 		
-		DepotPtr pDepotId(openId());
-		if (!pDepotId.get())
+		DEPOT* pDepotId = getIdDepot();
+		if (!pDepotId)
 			return false;
 		
 		bModified_ = true;
 		
 		string_ptr strId(getId(msg));
 		int nStatus = 0;
-		if (dpgetwb(pDepotId.get(), strId.get(), strlen(strId.get()),
+		if (dpgetwb(pDepotId, strId.get(), strlen(strId.get()),
 			0, sizeof(nStatus), reinterpret_cast<char*>(&nStatus)) == -1)
 			nStatus = STATUS_NONE;
 		if (nStatus > 0) {
@@ -320,7 +343,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 			else if (nOperation & JunkFilter::OPERATION_ADDJUNK)
 				nStatus = STATUS_JUNK;
 		}
-		dpput(pDepotId.get(), strId.get(), strlen(strId.get()),
+		dpput(pDepotId, strId.get(), strlen(strId.get()),
 			reinterpret_cast<char*>(&nStatus), sizeof(nStatus), DP_DOVER);
 	}
 	
@@ -383,11 +406,11 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 		Log& log_;
 	};
 	
-	DepotPtr pDepotToken(openToken());
-	if (!pDepotToken.get())
+	DEPOT* pDepotToken = getTokenDepot();
+	if (!pDepotToken)
 		return false;
 	
-	TokenizerCallbackImpl callback(nOperation, pDepotToken.get(), cs_, log);
+	TokenizerCallbackImpl callback(nOperation, pDepotToken, cs_, log);
 	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
 		return false;
 	
@@ -416,14 +439,14 @@ JunkFilter::Status qmjunk::JunkFilterImpl::getStatus(const WCHAR* pwszId)
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	DepotPtr pDepotId(openId());
-	if (!pDepotId.get())
+	DEPOT* pDepotId = getIdDepot();
+	if (!pDepotId)
 		return STATUS_NONE;
 	
 	string_ptr strId(wcs2mbs(pwszId));
 	
 	int nStatus = 0;
-	if (dpgetwb(pDepotId.get(), strId.get(), strlen(strId.get()),
+	if (dpgetwb(pDepotId, strId.get(), strlen(strId.get()),
 		0, sizeof(nStatus), reinterpret_cast<char*>(&nStatus)) == -1)
 		return STATUS_NONE;
 	else if (nStatus > 0)
@@ -510,6 +533,11 @@ bool qmjunk::JunkFilterImpl::flush() const
 	if (!bModified_)
 		return true;
 	
+	if (pDepotToken_.get())
+		dpsync(pDepotToken_.get());
+	if (pDepotId_.get())
+		dpsync(pDepotId_.get());
+	
 	if (nCleanCount_ != -1 && nJunkCount_ != -1) {
 		wstring_ptr wstrProfilePath(concat(wstrPath_.get(), L"\\junk.xml"));
 		XMLProfile profile(wstrProfilePath.get());
@@ -526,14 +554,24 @@ bool qmjunk::JunkFilterImpl::flush() const
 	return true;
 }
 
-DepotPtr qmjunk::JunkFilterImpl::openToken() const
+DEPOT* qmjunk::JunkFilterImpl::getTokenDepot()
 {
-	return open(L"token");
+	Lock<CriticalSection> lock(cs_);
+	
+	if (!pDepotToken_.get())
+		pDepotToken_ = open(L"token");
+	
+	return pDepotToken_.get();
 }
 
-DepotPtr qmjunk::JunkFilterImpl::openId() const
+DEPOT* qmjunk::JunkFilterImpl::getIdDepot()
 {
-	return open(L"id");
+	Lock<CriticalSection> lock(cs_);
+	
+	if (!pDepotId_.get())
+		pDepotId_ = open(L"id");
+	
+	return pDepotId_.get();
 }
 
 DepotPtr qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
