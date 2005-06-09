@@ -738,7 +738,7 @@ MacroValuePtr qm::MacroFunctionBodyCharset::value(MacroContext* pContext) const
 		pwszCharset = wstrCharset.get();
 	}
 	
-	return MacroValueFactory::getFactory().newString(wstrCharset.get());
+	return MacroValueFactory::getFactory().newString(pwszCharset);
 }
 
 const WCHAR* qm::MacroFunctionBodyCharset::getName() const
