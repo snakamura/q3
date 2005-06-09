@@ -278,8 +278,12 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 		if (nExists_ != 0) {
 			Hook h(this, &hook);
 			ContinuousRange range(1, nUidStart_, true);
-			if (!pImap4_->getFlags(range))
-				HANDLE_ERROR();
+			if (!pImap4_->getFlags(range)) {
+				// Because some servers return NO response when I try
+				// getting flags of UID that doesn't exist, I ignore this.
+				if ((pImap4_->getLastError() & Imap4::IMAP4_ERROR_MASK_LOWLEVEL) != Imap4::IMAP4_ERROR_RESPONSE)
+					HANDLE_ERROR();
+			}
 			pSessionCallback_->setPos(hook.nLastId_);
 		}
 		
