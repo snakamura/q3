@@ -177,6 +177,14 @@ public:
 	 * @return Subject alt names
 	 */
 	virtual std::auto_ptr<GeneralNames> getSubjectAltNames() const = 0;
+	
+	/**
+	 * Check wheather certificate is valid. That means
+	 * not after notAfter nor before notBefore.
+	 *
+	 * @return true if valid, false otherwise.
+	 */
+	virtual bool checkValidity() const = 0;
 
 public:
 	/**

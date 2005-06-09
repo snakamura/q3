@@ -271,6 +271,12 @@ std::auto_ptr<GeneralNames> qscrypto::CertificateImpl::getSubjectAltNames() cons
 	return std::auto_ptr<GeneralNames>(new GeneralNamesImpl(pGeneralNames));
 }
 
+bool qscrypto::CertificateImpl::checkValidity() const
+{
+	return X509_cmp_current_time(X509_get_notBefore(pX509_)) < 0 &&
+		X509_cmp_current_time(X509_get_notAfter(pX509_)) > 0;
+}
+
 
 /****************************************************************************
  *
@@ -453,7 +459,7 @@ bool qscrypto::StoreImpl::load(const WCHAR* pwszPath,
 				return false;
 			for (int n = 0; n < sk_X509_INFO_num(pStackInfo); ++n) {
 				X509_INFO* pInfo = sk_X509_INFO_value(pStackInfo, n);
-				if (pInfo->x509)
+				if (pInfo->x509 && CertificateImpl(pInfo->x509).checkValidity())
 					X509_STORE_add_cert(pStore_, pInfo->x509);
 				if (pInfo->crl)
 					X509_STORE_add_crl(pStore_, pInfo->crl);
@@ -513,7 +519,7 @@ bool qscrypto::StoreImpl::loadSystem()
 			
 			unsigned char* p = pContext->pbCertEncoded;
 			X509Ptr x509(d2i_X509(0, &p, pContext->cbCertEncoded));
-			if (x509.get())
+			if (x509.get() && CertificateImpl(x509.get()).checkValidity())
 				X509_STORE_add_cert(pStore_, x509.get());
 		}
 		::CertFreeCertificateContext(pContext);

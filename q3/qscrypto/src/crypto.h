@@ -124,6 +124,7 @@ public:
 	virtual std::auto_ptr<qs::Name> getSubject() const;
 	virtual std::auto_ptr<qs::Name> getIssuer() const;
 	virtual std::auto_ptr<qs::GeneralNames> getSubjectAltNames() const;
+	virtual bool checkValidity() const;
 
 private:
 	CertificateImpl(const CertificateImpl&);
