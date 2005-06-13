@@ -1028,8 +1028,9 @@ void cbstdiobin(void);
 
 
 /* Show error message on the standard error output and exit.
-   `message' specifies an error message. */
-void cbmyfatal(const char *message);
+   `message' specifies an error message.
+   This function does not return. */
+void *cbmyfatal(const char *message);
 
 
 /* Add an allocated element at the end of a list.
@@ -1059,14 +1060,12 @@ void cbmapputvbuf(CBMAP *map, const char *kbuf, int ksiz, char *vbuf, int vsiz);
 
 /* Alias of `cbmalloc'. */
 #define CB_MALLOC(ptr, size) \
-  (((ptr) = malloc(size)) ? (ptr) : \
-    ((cbfatalfunc ? cbfatalfunc("out of memory") : cbmyfatal("out of memory")), NULL))
+  (((ptr) = malloc(size)) ? (ptr) : cbmyfatal("out of memory"))
 
 
 /* Alias of `cbrealloc'. */
 #define CB_REALLOC(ptr, size) \
-  (((ptr) = realloc((ptr), (size))) ? (ptr) : \
-    ((cbfatalfunc ? cbfatalfunc("out of memory") : cbmyfatal("out of memory")), NULL))
+  (((ptr) = realloc((ptr), (size))) ? (ptr) : cbmyfatal("out of memory"))
 
 
 /* Alias of `cbdatumptr'. */
