@@ -40,8 +40,9 @@
 #define IDS_ERROR_SOCKET_RECVTIMEOUT    13006
 #define IDS_ERROR_SOCKET_SEND           13007
 #define IDS_ERROR_SOCKET_SENDTIMEOUT    13008
-#define IDS_ERROR_SOCKET_CANCEL         13009
-#define IDS_ERROR_SOCKET_UNKNOWN        13010
+#define IDS_ERROR_SOCKET_SELECT         13009
+#define IDS_ERROR_SOCKET_CANCEL         13010
+#define IDS_ERROR_SOCKET_UNKNOWN        13011
 
 // Next default values for new objects
 // 

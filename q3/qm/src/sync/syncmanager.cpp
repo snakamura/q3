@@ -693,8 +693,8 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 	
 	
 	std::auto_ptr<Logger> pLogger;
-	ReceiveSessionTerm session;
 	std::auto_ptr<ReceiveSessionCallback> pReceiveCallback;
+	ReceiveSessionTerm session;
 	SubAccount* pSubAccount = 0;
 	typedef std::vector<SubAccount*> SubAccountList;
 	SubAccountList listConnectFailed;

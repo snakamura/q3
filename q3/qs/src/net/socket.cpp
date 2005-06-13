@@ -58,6 +58,8 @@ struct qs::SocketImpl
 			  Logger* pLogger);
 	bool connect(const WCHAR* pwszHost,
 				 short nPort);
+	int select(int nSelect,
+			   long nTimeout);
 	
 	SOCKET socket_;
 	long nTimeout_;
@@ -210,6 +212,50 @@ bool qs::SocketImpl::connect(const WCHAR* pwszHost,
 	}
 	
 	return true;
+}
+
+int qs::SocketImpl::select(int nSelect,
+						   long nTimeout)
+{
+	int nSelected = 0;
+	
+	if (!bDebug_) {
+		int nSelects[] = {
+			Socket::SELECT_READ,
+			Socket::SELECT_WRITE,
+			Socket::SELECT_EXCEPT
+		};
+		fd_set fdset[3];
+		for (int n = 0; n < 3; ++n) {
+			FD_ZERO(&fdset[n]);
+			if (nSelect & nSelects[n])
+				FD_SET(socket_, &fdset[n]);
+		}
+		timeval tvTimeout = { nTimeout, 0 };
+		int nRet = ::select(socket_,
+			nSelect & Socket::SELECT_READ ? &fdset[0] : 0,
+			nSelect & Socket::SELECT_WRITE ? &fdset[1] : 0,
+			nSelect & Socket::SELECT_EXCEPT ? &fdset[2] : 0,
+			&tvTimeout);
+		if (nRet == SOCKET_ERROR) {
+			nError_ = Socket::SOCKET_ERROR_SELECT;
+			return -1;
+		}
+		else if (nRet != 0) {
+			for (int n = 0; n < 3; ++n) {
+				if (FD_ISSET(socket_, &fdset[n]))
+					nSelected |= nSelects[n];
+			}
+		}
+	}
+	else {
+		if (nSelect & Socket::SELECT_WRITE)
+			nSelected = Socket::SELECT_WRITE;
+		else if (nSelect & Socket::SELECT_READ)
+			nSelected = Socket::SELECT_READ;
+	}
+	
+	return nSelected;
 }
 
 
@@ -400,40 +446,27 @@ int qs::Socket::select(int nSelect)
 int qs::Socket::select(int nSelect,
 					   long nTimeout)
 {
-	int nSelected = 0;
+	Log log(pImpl_->pLogger_, L"qs::Socket");
 	
-	if (!pImpl_->bDebug_) {
-		int nSelects[] = { SELECT_READ, SELECT_WRITE, SELECT_EXCEPT };
-		fd_set fdset[3];
-		for (int n = 0; n < 3; ++n) {
-			FD_ZERO(&fdset[n]);
-			if (nSelect & nSelects[n])
-				FD_SET(pImpl_->socket_, &fdset[n]);
-		}
-		timeval tvTimeout = { nTimeout, 0 };
-		int nRet = ::select(pImpl_->socket_,
-			nSelect & SELECT_READ ? &fdset[0] : 0,
-			nSelect & SELECT_WRITE ? &fdset[1] : 0,
-			nSelect & SELECT_EXCEPT ? &fdset[2] : 0,
-			&tvTimeout);
-		if (nRet == SOCKET_ERROR) {
-			return -1;
-		}
-		else if (nRet != 0) {
-			for (int n = 0; n < 3; ++n) {
-				if (FD_ISSET(pImpl_->socket_, &fdset[n]))
-					nSelected |= nSelects[n];
+	if (pImpl_->pSocketCallback_) {
+		while (nTimeout > 0) {
+			if (pImpl_->pSocketCallback_->isCanceled(true)) {
+				log.debug(L"Canceled while selecting.");
+				pImpl_->nError_ = SOCKET_ERROR_CANCEL;
+				return -1;
 			}
+			
+			int n = pImpl_->select(nSelect, nSelect);
+			if (n != 0)
+				return n;
+			--nTimeout;
 		}
+		pImpl_->nError_ = SOCKET_ERROR_SELECT;
+		return 0;
 	}
 	else {
-		if (nSelect & SELECT_WRITE)
-			nSelected = SELECT_WRITE;
-		else if (nSelect & SELECT_READ)
-			nSelected = SELECT_READ;
+		return pImpl_->select(nSelect, nTimeout);
 	}
-	
-	return nSelected;
 }
 
 InputStream* qs::Socket::getInputStream()

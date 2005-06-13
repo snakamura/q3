@@ -833,7 +833,7 @@ bool qm::SyncStatusWindow::isCanceled(unsigned int nId,
 	else if (!bForce)
 		return true;
 	else
-		return ::GetTickCount() - nCanceledTime > 10*1000;
+		return ::GetTickCount() - nCanceledTime > 5*1000;
 }
 
 PasswordState qm::SyncStatusWindow::getPassword(SubAccount* pSubAccount,
