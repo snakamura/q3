@@ -307,10 +307,10 @@ void qm::AddressBook::prepareEntryMap() const
 						string_less_i<WCHAR>(),
 						std::select1st<EntryMap::value_type>(),
 						std::select1st<EntryMap::value_type>()));
-				if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0)
+				if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0) {
 					mapEntry_.insert(itM, v);
-				
-				wstrAddress.release();
+					wstrAddress.release();
+				}
 			}
 		}
 	}
