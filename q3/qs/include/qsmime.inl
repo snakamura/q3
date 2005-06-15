@@ -267,13 +267,12 @@ void qs::BoundaryFinder<Char, String>::getNextBoundary(const Char* p,
 		while (pEnd < p + nLen && (*pEnd == ' ' || *pEnd == '\t'))
 			++pEnd;
 		
-		if (bEnd) {
+		if ((bEnd && pEnd == p + nLen) ||
+			(pEnd + nNewLineLen <= p + nLen &&
+			CharTraits<Char>::compare(pEnd, pszNewLine_, nNewLineLen) == 0)) {
 			*ppBegin = pBegin;
-		}
-		else if (pEnd + nNewLineLen <= p + nLen &&
-			CharTraits<Char>::compare(pEnd, pszNewLine_, nNewLineLen) == 0) {
-			*ppBegin = pBegin;
-			*ppEnd = pEnd + nNewLineLen;
+			if (!bEnd)
+				*ppEnd = pEnd + nNewLineLen;
 		}
 		
 		p = pBegin + 1;
