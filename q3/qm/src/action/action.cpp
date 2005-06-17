@@ -4139,7 +4139,7 @@ bool qm::MessageOpenLinkAction::isEnabled(const qs::ActionEvent& event)
 
 /****************************************************************************
  *
- * MessageOpenRecent
+ * MessageOpenRecentAction
  *
  */
 
@@ -4172,9 +4172,13 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 	
 	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI));
 	if (mpl) {
+		bool bOpenInPreview = pProfile_->getInt(L"Global", L"OpenRecentInPreview", 0) != 0;
+		if (event.getModifier() & ActionEvent::MODIFIER_SHIFT)
+			bOpenInPreview = !bOpenInPreview;
+		
 		NormalFolder* pFolder = mpl->getFolder();
 		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
-		if (pProfile_->getInt(L"Global", L"OpenRecentInPreview", 0)) {
+		if (bOpenInPreview) {
 			pFolderModel_->setCurrent(0, pFolder, false);
 			
 			Lock<ViewModel> lock(*pViewModel);
