@@ -896,14 +896,16 @@ void qm::MainWindowImpl::initActions()
 	pMessageMoveOtherAction1.release();
 	pMessageMoveOtherAction2.release();
 	
-	ADD_ACTION_RANGE5(MessageOpenRecentAction,
+	ADD_ACTION_RANGE7(MessageOpenRecentAction,
 		IDM_MESSAGE_OPENRECENT,
 		IDM_MESSAGE_OPENRECENT + RecentsMenu::MAX_RECENTS,
 		pDocument_->getRecents(),
 		pDocument_,
 		pRecentsMenu_.get(),
 		pViewModelManager_.get(),
-		pMessageFrameWindowManager_.get());
+		pFolderModel_.get(),
+		pMessageFrameWindowManager_.get(),
+		pProfile_);
 	ADD_ACTION2(MessageOpenLinkAction,
 		IDM_MESSAGE_OPENLINK,
 		pMessageSelectionModel_.get(),

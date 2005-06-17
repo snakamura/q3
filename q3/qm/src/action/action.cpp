@@ -4147,12 +4147,16 @@ qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
 													 AccountManager* pAccountManager,
 													 RecentsMenu* pRecentsMenu,
 													 ViewModelManager* pViewModelManager,
-													 MessageFrameWindowManager* pMessageFrameWindowManager) :
+													 FolderModel* pFolderModel,
+													 MessageFrameWindowManager* pMessageFrameWindowManager,
+													 Profile* pProfile) :
 	pRecents_(pRecents),
 	pAccountManager_(pAccountManager),
 	pRecentsMenu_(pRecentsMenu),
 	pViewModelManager_(pViewModelManager),
-	pMessageFrameWindowManager_(pMessageFrameWindowManager)
+	pFolderModel_(pFolderModel),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	pProfile_(pProfile)
 {
 }
 
@@ -4168,9 +4172,20 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 	
 	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI));
 	if (mpl) {
-		ViewModel* pViewModel = pViewModelManager_->getViewModel(mpl->getFolder());
-		if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {
-			// TODO MSG
+		NormalFolder* pFolder = mpl->getFolder();
+		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
+		if (pProfile_->getInt(L"Global", L"OpenRecentInPreview", 0)) {
+			pFolderModel_->setCurrent(0, pFolder, false);
+			
+			Lock<ViewModel> lock(*pViewModel);
+			unsigned int nIndex = pViewModel->getIndex(mpl);
+			if (nIndex != -1)
+				MessageActionUtil::select(pViewModel, nIndex, false);
+		}
+		else {
+			if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {
+				// TODO MSG
+			}
 		}
 	}
 	pRecents_->remove(pURI);
@@ -5864,12 +5879,8 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			pMessageModel->setMessage(pmh);
 		}
 		
-		if (nIndex != -1 && type != TYPE_SELF) {
-			pViewModel->setFocused(nIndex, bDelay);
-			pViewModel->setSelection(nIndex);
-			pViewModel->setLastSelection(nIndex);
-			pViewModel->payAttention(nIndex);
-		}
+		if (nIndex != -1 && type != TYPE_SELF)
+			MessageActionUtil::select(pViewModel, nIndex, bDelay);
 	}
 	else {
 		pMessageModel->setMessage(0);
@@ -6173,12 +6184,8 @@ void qm::ViewSelectMessageAction::invoke(const ActionEvent& event)
 			pViewModel = pViewModelManager_->getViewModel(pFolder);
 			Lock<ViewModel> lock(*pViewModel);
 			unsigned int nIndex = pViewModel->getIndex(mpl);
-			if (nIndex != -1) {
-				pViewModel->setFocused(nIndex, false);
-				pViewModel->setSelection(nIndex);
-				pViewModel->setLastSelection(nIndex);
-				pViewModel->payAttention(nIndex);
-			}
+			if (nIndex != -1)
+				MessageActionUtil::select(pViewModel, nIndex, false);
 		}
 	}
 }
@@ -6637,7 +6644,18 @@ void qm::MessageActionUtil::select(ViewModel* pViewModel,
 		pMessageModel->setMessage(pmh);
 	}
 	
-	pViewModel->setFocused(nIndex, true);
+	select(pViewModel, nIndex, true);
+}
+
+void qm::MessageActionUtil::select(ViewModel* pViewModel,
+								   unsigned int nIndex,
+								   bool bDelay)
+{
+	assert(pViewModel);
+	assert(pViewModel->isLocked());
+	assert(nIndex < pViewModel->getCount());
+	
+	pViewModel->setFocused(nIndex, bDelay);
 	pViewModel->setSelection(nIndex);
 	pViewModel->setLastSelection(nIndex);
 	pViewModel->payAttention(nIndex);

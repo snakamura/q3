@@ -2037,7 +2037,9 @@ public:
 							AccountManager* pAccountManager,
 							RecentsMenu* pRecentsMenu,
 							ViewModelManager* pViewModelManager,
-							MessageFrameWindowManager* pMessageFrameWindowManager);
+							FolderModel* pFolderModel,
+							MessageFrameWindowManager* pMessageFrameWindowManager,
+							qs::Profile* pProfile);
 	virtual ~MessageOpenRecentAction();
 
 public:
@@ -2052,7 +2054,9 @@ private:
 	AccountManager* pAccountManager_;
 	RecentsMenu* pRecentsMenu_;
 	ViewModelManager* pViewModelManager_;
+	FolderModel* pFolderModel_;
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
+	qs::Profile* pProfile_;
 };
 
 
@@ -3518,6 +3522,9 @@ public:
 	static void select(ViewModel* pViewModel,
 					   unsigned int nIndex,
 					   MessageModel* pMessageModel);
+	static void select(ViewModel* pViewModel,
+					   unsigned int nIndex,
+					   bool bDelay);
 };
 
 
