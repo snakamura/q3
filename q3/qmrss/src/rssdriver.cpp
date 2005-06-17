@@ -30,7 +30,8 @@ const WCHAR* qmrss::RssDriver::pwszParams__[] = {
 	L"Password",
 	L"MakeMultipart",
 	L"UseDescriptionAsContent",
-	L"UpdateIfModified"
+	L"UpdateIfModified",
+	L"Cookie"
 };
 
 qmrss::RssDriver::RssDriver(Account* pAccount) :

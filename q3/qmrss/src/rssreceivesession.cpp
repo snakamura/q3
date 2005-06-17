@@ -183,6 +183,10 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	wstring_ptr wstrUserAgent(Application::getApplication().getVersion(L'/', false));
 	method.setRequestHeader(L"User-Agent", wstrUserAgent.get());
 	
+	const WCHAR* pwszCookie = pFolder_->getParam(L"Cookie");
+	if (pwszCookie && *pwszCookie)
+		method.setRequestHeader(L"Cookie", pwszCookie);
+	
 	unsigned int nCode = http.invoke(&method);
 	if (nCode == 304) {
 		return true;
