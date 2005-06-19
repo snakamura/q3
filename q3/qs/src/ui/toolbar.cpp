@@ -219,11 +219,6 @@ ToolbarCookie* qs::Toolbar::create(HWND hwnd,
 								   const MenuManager* pMenuManager,
 								   HIMAGELIST hImageList) const
 {
-	HIMAGELIST hImageListCopy = ImageList_Duplicate(hImageList);
-	if (!hImageListCopy)
-		return 0;
-	::SendMessage(hwnd, TB_SETIMAGELIST, 0, reinterpret_cast<LPARAM>(hImageListCopy));
-	
 #ifndef _WIN32_WCE
 	::SendMessage(hwnd, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 #endif
@@ -245,7 +240,11 @@ ToolbarCookie* qs::Toolbar::create(HWND hwnd,
 	}
 	
 	::SendMessage(hwnd, TB_AUTOSIZE, 0, 0);
-
+	
+	HIMAGELIST hImageListCopy = ImageList_Duplicate(hImageList);
+	if (hImageListCopy)
+		::SendMessage(hwnd, TB_SETIMAGELIST, 0, reinterpret_cast<LPARAM>(hImageListCopy));
+	
 	UINT nId = Window(hwnd).getWindowLong(GWL_ID);
 	std::auto_ptr<NotifyHandler> pNotifyHandler(new ToolbarNotifyHandler(
 		this, pMenuManager, pParent->getParentFrame()));
