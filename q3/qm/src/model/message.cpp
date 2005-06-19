@@ -308,8 +308,11 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 		}
 		else if (_wcsicmp(pwszMediaType, L"text") == 0) {
 			wstring_ptr wstrCharset;
-			if (pContentType)
+			if (pContentType) {
 				wstrCharset = pContentType->getParameter(L"charset");
+				if (!wstrCharset.get())
+					wstrCharset = allocWString(L"us-ascii");
+			}
 			
 			std::auto_ptr<Converter> pConverter;
 			if (wstrCharset.get())
