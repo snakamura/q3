@@ -1449,7 +1449,26 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 		return false;
 	
 	if (nFlags & FLAG_WRITESEPARATOR) {
-		if (pStream->write(reinterpret_cast<const unsigned char*>("From \r\n"), 7) == -1)
+		string_ptr strFrom;
+		AddressListParser from;
+		if (msg.getField(L"From", &from) == Part::FIELD_EXIST) {
+			const AddressListParser::AddressList& l = from.getAddressList();
+			if (!l.empty() && !l.front()->getGroup())
+				strFrom = wcs2mbs(l.front()->getAddress().get());
+		}
+		const CHAR* pszFrom = strFrom.get();
+		if (!pszFrom || !*pszFrom)
+			pszFrom = "-";
+		
+		Time date;
+		pmh->getDate(&date);
+		string_ptr strDate(wcs2mbs(date.format(L"%W %M1 %D %h:%m:%s %Y4", Time::FORMAT_LOCAL).get()));
+		
+		if (pStream->write(reinterpret_cast<const unsigned char*>("From "), 5) == -1 ||
+			pStream->write(reinterpret_cast<const unsigned char*>(pszFrom), strlen(pszFrom)) == -1 ||
+			pStream->write(reinterpret_cast<const unsigned char*>(" "), 1) == -1 ||
+			pStream->write(reinterpret_cast<const unsigned char*>(strDate.get()), strlen(strDate.get())) == -1 ||
+			pStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
 			return false;
 		
 		const CHAR* p = strContent.get();
@@ -1475,6 +1494,8 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 			if (pStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
 				return false;
 		}
+		if (pStream->write(reinterpret_cast<const unsigned char*>("\r\n"), 2) == -1)
+			return false;
 	}
 	else {
 		if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()), strContent.size()) == -1)
@@ -1821,6 +1842,13 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 					}
 					pDialog->setPos((*pnPos)++ % 100);
 				}
+				
+				size_t nLen = buf.getLength();
+				size_t nNewLineLen = strlen(pszNewLine);
+				if (nLen >=  nNewLineLen*2 &&
+					strncmp(buf.getCharArray() + nLen - nNewLineLen, pszNewLine, nNewLineLen) == 0 &&
+					strncmp(buf.getCharArray() + nLen - nNewLineLen*2, pszNewLine, nNewLineLen) == 0)
+					buf.remove(nLen - nNewLineLen, nLen);
 				
 				xstring_size_ptr strContent;
 				if (pwszEncoding) {
