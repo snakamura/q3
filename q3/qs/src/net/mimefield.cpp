@@ -1933,7 +1933,7 @@ string_ptr qs::AddressParser::getAddrSpec(const CHAR* pszMailbox,
 		buf.append(pszMailbox);
 	}
 	
-	if (pszHost) {
+	if (pszHost && *pszHost) {
 		buf.append('@');
 		buf.append(pszHost);
 	}
