@@ -98,11 +98,13 @@ class qm::MainWindowImpl :
 	public FolderSelectionModel,
 	public ViewModelHolder,
 	public MessageWindowHandler,
-	public AccountManagerHandler,
+	public AccountManagerHandler
 #ifndef _WIN32_WCE_PSPC
-	public ShellIconCallback,
+	,
+	public ShellIconCallback
 #endif
 #ifdef QMTABWINDOW
+	,
 	public ViewModelManagerHandler,
 	public DefaultTabModelHandler
 #endif
