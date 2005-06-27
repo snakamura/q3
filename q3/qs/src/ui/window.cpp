@@ -368,6 +368,7 @@ public:
 	typedef ControllerMap<WindowBase> WindowMap;
 
 public:
+	Action* getAction(UINT nId) const;
 	LRESULT notifyCommandHandlers(WORD wCode,
 								  WORD wId) const;
 	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr,
@@ -419,6 +420,14 @@ friend LRESULT CALLBACK windowProc(HWND,
 
 WindowBaseImpl::WindowMap* qs::WindowBaseImpl::pMap__;
 WindowBaseImpl::InitializerImpl qs::WindowBaseImpl::init__;
+
+Action* qs::WindowBaseImpl::getAction(UINT nId) const
+{
+	Action* pAction = pWindowHandler_->getAction(nId);
+	if (!pAction && pOrgWindowBase_)
+		pAction = pOrgWindowBase_->pImpl_->getAction(nId);
+	return pAction;
+}
 
 LRESULT qs::WindowBaseImpl::notifyCommandHandlers(WORD wCode,
 												  WORD wId) const
@@ -483,7 +492,7 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 			Action* pAction = 0;
 			if ((ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX) ||
 				nId == IDOK || nId == IDCANCEL)
-				pAction = pWindowHandler_->getAction(nId);
+				pAction = getAction(nId);
 			if (pAction) {
 				unsigned int nModifier = 0;
 				
