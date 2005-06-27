@@ -9,6 +9,8 @@
 #ifndef __MAINWINDOW_H__
 #define __MAINWINDOW_H__
 
+#include <qmrecents.h>
+
 #include <qskeymap.h>
 #include <qsmenu.h>
 #include <qstheme.h>
@@ -24,6 +26,8 @@ namespace qm {
 class ListContainerWindow;
 class SyncNotificationWindow;
 class MainWindowStatusBar;
+class ShellIcon;
+class ShellIconCallback;
 struct MainWindowCreateContext;
 
 class AutoPilot;
@@ -33,6 +37,7 @@ class FolderListWindow;
 class GoRound;
 class ListWindow;
 class PasswordManager;
+class Recents;
 class SyncDialogManager;
 class SyncManager;
 class TempFileCleaner;
@@ -213,6 +218,90 @@ private:
 	qs::wstring_ptr wstrFilter_;
 	qs::wstring_ptr wstrText_;
 };
+
+
+#ifndef _WIN32_WCE_PSPC
+
+/****************************************************************************
+ *
+ * ShellIcon
+ *
+ */
+
+class ShellIcon :
+	public qs::WindowBase,
+	public qs::DefaultWindowHandler,
+	public RecentsHandler
+{
+public:
+	enum {
+		WM_SHELLICON_NOTIFYICON		= WM_APP + 1001,
+		WM_SHELLICON_RECENTSCHANGED	= WM_APP + 1002
+	};
+	
+	enum {
+		ID_NOTIFYICON	= 1500
+	};
+	
+	enum {
+		HOTKEY_RECENTS	= 0xC000
+	};
+
+public:
+	ShellIcon(MainWindow* pMainWindow,
+			  Recents* pRecents,
+			  qs::Profile* pProfile,
+			  ShellIconCallback* pCallback);
+	virtual ~ShellIcon();
+
+public:
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+#ifndef _WIN32_WCE_PSPC
+protected:
+	LRESULT onHotKey(UINT nId,
+					 UINT nModifier,
+					 UINT nKey);
+	LRESULT onNotifyIcon(WPARAM wParam,
+						 LPARAM lParam);
+	LRESULT onRecentsChanged(WPARAM wParam,
+							 LPARAM lParam);
+#endif
+
+public:
+	virtual void recentsChanged(const RecentsEvent& event);
+
+private:
+	ShellIcon(const ShellIcon&);
+	ShellIcon& operator=(const ShellIcon&);
+
+private:
+	Recents* pRecents_;
+	qs::Profile* pProfile_;
+	ShellIconCallback* pCallback_;
+	NOTIFYICONDATA notifyIcon_;
+	bool bNotifyIcon_;
+};
+
+
+/****************************************************************************
+ *
+ * ShellIconCallback
+ *
+ */
+
+class ShellIconCallback
+{
+public:
+	virtual ~ShellIconCallback();
+
+public:
+	virtual void showRecentsMenu() = 0;
+};
+
+#endif // _WIN32_WCE_PSPC
 
 
 /****************************************************************************

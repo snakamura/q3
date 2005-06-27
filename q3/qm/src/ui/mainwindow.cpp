@@ -17,7 +17,6 @@
 #include <qmmainwindow.h>
 #include <qmmessage.h>
 #include <qmmessagewindow.h>
-#include <qmrecents.h>
 #include <qmsecurity.h>
 #include <qmtabwindow.h>
 
@@ -100,12 +99,12 @@ class qm::MainWindowImpl :
 	public ViewModelHolder,
 	public MessageWindowHandler,
 	public AccountManagerHandler,
+#ifndef _WIN32_WCE_PSPC
+	public ShellIconCallback,
+#endif
 #ifdef QMTABWINDOW
-	public RecentsHandler,
 	public ViewModelManagerHandler,
 	public DefaultTabModelHandler
-#else
-	public RecentsHandler
 #endif
 {
 public:
@@ -124,19 +123,7 @@ public:
 		ID_COMMANDBARMENU		= 1012,
 		ID_COMMANDBARBUTTON		= 1013,
 		ID_SYNCNOTIFICATION		= 1014,
-		ID_NOTIFYICON			= 1015,
 	};
-	
-	enum {
-		WM_MAINWINDOW_NOTIFYICON		= WM_APP + 1001,
-		WM_MAINWINDOW_RECENTSCHANGED	= WM_APP + 1002
-	};
-	
-#ifndef _WIN32_WCE_PSPC
-	enum {
-		HOTKEY_RECENTS	= 0xC000
-	};
-#endif
 
 public:
 	class MessageSelectionModelImpl : public MessageSelectionModel
@@ -172,9 +159,6 @@ public:
 						int cy);
 	void updateStatusBar();
 	void reloadProfiles(bool bInitialize);
-#ifndef _WIN32_WCE_PSPC
-	void showRecentsMenu();
-#endif
 
 public:
 	virtual void preModalDialog(HWND hwndParent);
@@ -205,8 +189,10 @@ public:
 public:
 	virtual void accountListChanged(const AccountManagerEvent& event);
 
+#ifndef _WIN32_WCE_PSPC
 public:
-	virtual void recentsChanged(const RecentsEvent& event);
+	virtual void showRecentsMenu();
+#endif
 
 #ifdef QMTABWINDOW
 public:
@@ -252,6 +238,9 @@ public:
 	MessageWindow* pMessageWindow_;
 	MainWindowStatusBar* pStatusBar_;
 	SyncNotificationWindow* pSyncNotificationWindow_;
+#ifndef _WIN32_WCE_PSPC
+	std::auto_ptr<ShellIcon> pShellIcon_;
+#endif
 	std::auto_ptr<FolderModel> pFolderModel_;
 #ifdef QMTABWINDOW
 	std::auto_ptr<DefaultTabModel> pTabModel_;
@@ -291,10 +280,6 @@ public:
 	bool bLayouting_;
 	int nShowingModalDialog_;
 	HWND hwndLastFocused_;
-#ifndef _WIN32_WCE_PSPC
-	NOTIFYICONDATA notifyIcon_;
-	bool bNotifyIcon_;
-#endif
 };
 
 void qm::MainWindowImpl::initActions()
@@ -1422,30 +1407,6 @@ void qm::MainWindowImpl::reloadProfiles(bool bInitialize)
 	bSaveOnDeactivate_ = pProfile_->getInt(L"Global", L"SaveOnDeactivate", 1) != 0;
 }
 
-#ifndef _WIN32_WCE_PSPC
-void qm::MainWindowImpl::showRecentsMenu()
-{
-	AutoMenuHandle hmenu(::CreatePopupMenu());
-	if (pRecentsMenu_->createMenu(hmenu.get())) {
-		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
-#ifndef _WIN32_WCE
-		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
-#endif
-		POINT pt;
-#ifdef _WIN32_WCE
-		DWORD dwPos = ::GetMessagePos();
-		pt.x = static_cast<int>(dwPos & 0x0000ffff);
-		pt.y = static_cast<int>(dwPos & 0xffff0000) >> 16;
-#else
-		::GetCursorPos(&pt);
-#endif
-		pThis_->setForegroundWindow();
-		::TrackPopupMenu(hmenu.get(), nFlags, pt.x, pt.y, 0, pThis_->getHandle(), 0);
-		pThis_->postMessage(WM_NULL);
-	}
-}
-#endif
-
 void qm::MainWindowImpl::preModalDialog(HWND hwndParent)
 {
 	if (nShowingModalDialog_++ == 0) {
@@ -1597,12 +1558,29 @@ void qm::MainWindowImpl::accountListChanged(const AccountManagerEvent& event)
 	pViewModelManager_->setCurrentAccount(0);
 }
 
-void qm::MainWindowImpl::recentsChanged(const RecentsEvent& event)
-{
 #ifndef _WIN32_WCE_PSPC
-	pThis_->postMessage(WM_MAINWINDOW_RECENTSCHANGED);
+void qm::MainWindowImpl::showRecentsMenu()
+{
+	AutoMenuHandle hmenu(::CreatePopupMenu());
+	if (pRecentsMenu_->createMenu(hmenu.get())) {
+		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+#ifndef _WIN32_WCE
+		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
+		POINT pt;
+#ifdef _WIN32_WCE
+		DWORD dwPos = ::GetMessagePos();
+		pt.x = static_cast<int>(dwPos & 0x0000ffff);
+		pt.y = static_cast<int>(dwPos & 0xffff0000) >> 16;
+#else
+		::GetCursorPos(&pt);
+#endif
+		pThis_->setForegroundWindow();
+		::TrackPopupMenu(hmenu.get(), nFlags, pt.x, pt.y, 0, pThis_->getHandle(), 0);
+		pThis_->postMessage(WM_NULL);
+	}
 }
+#endif
 
 #ifdef QMTABWINDOW
 void qm::MainWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
@@ -1805,9 +1783,6 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->bLayouting_ = false;
 	pImpl_->nShowingModalDialog_ = 0;
 	pImpl_->hwndLastFocused_ = 0;
-#ifndef _WIN32_WCE_PSPC
-	pImpl_->bNotifyIcon_ = false;
-#endif
 	
 	pImpl_->reloadProfiles(false);
 	
@@ -2089,18 +2064,11 @@ LRESULT qm::MainWindow::windowProc(UINT uMsg,
 #ifndef _WIN32_WCE
 		HANDLE_ENDSESSION()
 #endif
-#ifndef _WIN32_WCE_PSPC
-		HANDLE_HOTKEY()
-#endif
 		HANDLE_INITMENUPOPUP()
 #ifndef _WIN32_WCE
 		HANDLE_QUERYENDSESSION()
 #endif
 		HANDLE_SIZE()
-#ifndef _WIN32_WCE_PSPC
-		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_NOTIFYICON, onNotifyIcon)
-		HANDLE_MESSAGE(MainWindowImpl::WM_MAINWINDOW_RECENTSCHANGED, onRecentsChanged)
-#endif
 	END_MESSAGE_HANDLER()
 	return FrameWindow::windowProc(uMsg, wParam, lParam);
 }
@@ -2437,7 +2405,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
-	pImpl_->pDocument_->getRecents()->addRecentsHandler(pImpl_);
 #ifdef QMTABWINDOW
 	pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
 	pImpl_->pTabModel_->addTabModelHandler(pImpl_);
@@ -2447,20 +2414,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->initActions();
 	
 #ifndef _WIN32_WCE_PSPC
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	pImpl_->notifyIcon_.cbSize = sizeof(pImpl_->notifyIcon_);
-	pImpl_->notifyIcon_.hWnd = getHandle();
-	pImpl_->notifyIcon_.uID = MainWindowImpl::ID_NOTIFYICON;
-	pImpl_->notifyIcon_.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-	pImpl_->notifyIcon_.uCallbackMessage = MainWindowImpl::WM_MAINWINDOW_NOTIFYICON;
-	pImpl_->notifyIcon_.hIcon = reinterpret_cast<HICON>(::LoadImage(hInst,
-		MAKEINTRESOURCE(IDI_MAINFRAME), IMAGE_ICON, 16, 16, 0));
-	_tcscpy(pImpl_->notifyIcon_.szTip, _T("QMAIL"));
-	
-	UINT nHotKeyModifier = pImpl_->pProfile_->getInt(
-		L"Recents", L"HotKeyModifiers", MOD_ALT | MOD_SHIFT);
-	UINT nHotKey = pImpl_->pProfile_->getInt(L"Recents", L"HotKey", 'A');
-	::RegisterHotKey(getHandle(), MainWindowImpl::HOTKEY_RECENTS, nHotKeyModifier, nHotKey);
+	pImpl_->pShellIcon_.reset(new ShellIcon(this,
+		pImpl_->pDocument_->getRecents(), pImpl_->pProfile_, pImpl_));
 #endif
 	
 	pImpl_->bCreated_ = true;
@@ -2471,17 +2426,13 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 LRESULT qm::MainWindow::onDestroy()
 {
 #ifndef _WIN32_WCE_PSPC
-	::UnregisterHotKey(getHandle(), MainWindowImpl::HOTKEY_RECENTS);
-	
-	if (pImpl_->bNotifyIcon_)
-		Shell_NotifyIcon(NIM_DELETE, &pImpl_->notifyIcon_);
+	pImpl_->pShellIcon_.reset(0);
 #endif
 	
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->removeAccountManagerHandler(pImpl_);
-	pImpl_->pDocument_->getRecents()->removeRecentsHandler(pImpl_);
 #ifdef QMTABWINDOW
 	pImpl_->pViewModelManager_->removeViewModelManagerHandler(pImpl_);
 	pImpl_->pTabModel_->removeTabModelHandler(pImpl_);
@@ -2501,17 +2452,6 @@ LRESULT qm::MainWindow::onEndSession(bool bEnd,
 {
 	if (bEnd)
 		Application::getApplication().uninitialize();
-	return 0;
-}
-#endif
-
-#ifndef _WIN32_WCE_PSPC
-LRESULT qm::MainWindow::onHotKey(UINT nId,
-								 UINT nModifier,
-								 UINT nKey)
-{
-	if (nId == MainWindowImpl::HOTKEY_RECENTS)
-		pImpl_->showRecentsMenu();
 	return 0;
 }
 #endif
@@ -2609,38 +2549,6 @@ LRESULT qm::MainWindow::onSize(UINT nFlags,
 		pImpl_->layoutChildren(cx, cy);
 	return FrameWindow::onSize(nFlags, cx, cy);
 }
-
-#ifndef _WIN32_WCE_PSPC
-LRESULT qm::MainWindow::onNotifyIcon(WPARAM wParam,
-									 LPARAM lParam)
-{
-	if (wParam == MainWindowImpl::ID_NOTIFYICON) {
-		if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN)
-			pImpl_->showRecentsMenu();
-	}
-	return 0;
-}
-
-LRESULT qm::MainWindow::onRecentsChanged(WPARAM wParam,
-										 LPARAM lParam)
-{
-	Recents* pRecents = pImpl_->pDocument_->getRecents();
-	
-	Lock<Recents> lock(*pRecents);
-	
-	unsigned int nCount = pRecents->getCount();
-	if (nCount != 0 && !pImpl_->bNotifyIcon_) {
-		Shell_NotifyIcon(NIM_ADD, &pImpl_->notifyIcon_);
-		pImpl_->bNotifyIcon_ = true;
-	}
-	else if (nCount == 0 && pImpl_->bNotifyIcon_) {
-		Shell_NotifyIcon(NIM_DELETE, &pImpl_->notifyIcon_);
-		pImpl_->bNotifyIcon_ = false;
-	}
-	
-	return 0;
-}
-#endif
 
 
 /****************************************************************************
@@ -3022,3 +2930,123 @@ Account* qm::MainWindowStatusBar::getAccount()
 	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
 	return p.first ? p.first : p.second ? p.second->getAccount() : 0;
 }
+
+
+#ifndef _WIN32_WCE_PSPC
+
+/****************************************************************************
+ *
+ * ShellIcon
+ *
+ */
+
+qm::ShellIcon::ShellIcon(MainWindow* pMainWindow,
+						 Recents* pRecents,
+						 Profile* pProfile,
+						 ShellIconCallback* pCallback) :
+	WindowBase(false),
+	pRecents_(pRecents),
+	pProfile_(pProfile),
+	pCallback_(pCallback),
+	bNotifyIcon_(false)
+{
+	HWND hwnd = pMainWindow->getHandle();
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	notifyIcon_.cbSize = sizeof(notifyIcon_);
+	notifyIcon_.hWnd = hwnd;
+	notifyIcon_.uID = ID_NOTIFYICON;
+	notifyIcon_.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+	notifyIcon_.uCallbackMessage = WM_SHELLICON_NOTIFYICON;
+	notifyIcon_.hIcon = reinterpret_cast<HICON>(::LoadImage(hInst,
+		MAKEINTRESOURCE(IDI_MAINFRAME), IMAGE_ICON, 16, 16, 0));
+	_tcscpy(notifyIcon_.szTip, _T("QMAIL"));
+	
+	setWindowHandler(this, false);
+	
+	subclassWindow(hwnd);
+	
+	pRecents->addRecentsHandler(this);
+	
+	UINT nHotKeyModifier = pProfile->getInt(
+		L"Recents", L"HotKeyModifiers", MOD_ALT | MOD_SHIFT);
+	UINT nHotKey = pProfile->getInt(L"Recents", L"HotKey", 'A');
+	::RegisterHotKey(hwnd, HOTKEY_RECENTS, nHotKeyModifier, nHotKey);
+}
+
+qm::ShellIcon::~ShellIcon()
+{
+	::UnregisterHotKey(getHandle(), HOTKEY_RECENTS);
+	
+	pRecents_->removeRecentsHandler(this);
+	unsubclassWindow();
+	if (bNotifyIcon_)
+		Shell_NotifyIcon(NIM_DELETE, &notifyIcon_);
+}
+
+LRESULT qm::ShellIcon::windowProc(UINT uMsg,
+								  WPARAM wParam,
+								  LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_HOTKEY()
+		HANDLE_MESSAGE(WM_SHELLICON_NOTIFYICON, onNotifyIcon)
+		HANDLE_MESSAGE(WM_SHELLICON_RECENTSCHANGED, onRecentsChanged)
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::ShellIcon::onHotKey(UINT nId,
+								UINT nModifier,
+								UINT nKey)
+{
+	if (nId == HOTKEY_RECENTS)
+		pCallback_->showRecentsMenu();
+	return 0;
+}
+
+LRESULT qm::ShellIcon::onNotifyIcon(WPARAM wParam,
+									LPARAM lParam)
+{
+	if (wParam == ID_NOTIFYICON) {
+		if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN)
+			pCallback_->showRecentsMenu();
+	}
+	return 0;
+}
+
+LRESULT qm::ShellIcon::onRecentsChanged(WPARAM wParam,
+										LPARAM lParam)
+{
+	Lock<Recents> lock(*pRecents_);
+	
+	unsigned int nCount = pRecents_->getCount();
+	if (nCount != 0 && !bNotifyIcon_) {
+		Shell_NotifyIcon(NIM_ADD, &notifyIcon_);
+		bNotifyIcon_ = true;
+	}
+	else if (nCount == 0 && bNotifyIcon_) {
+		Shell_NotifyIcon(NIM_DELETE, &notifyIcon_);
+		bNotifyIcon_ = false;
+	}
+	
+	return 0;
+}
+
+void qm::ShellIcon::recentsChanged(const RecentsEvent& event)
+{
+	postMessage(WM_SHELLICON_RECENTSCHANGED);
+}
+
+
+/****************************************************************************
+ *
+ * ShellIconCallback
+ *
+ */
+
+qm::ShellIconCallback::~ShellIconCallback()
+{
+}
+
+#endif // _WIN32_WCE_PSPC
