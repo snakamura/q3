@@ -208,6 +208,7 @@ IDI_VERIFIED            ICON    DISCARDABLE     "res\\verified.ico"
 IDI_UNVERIFIED          ICON    DISCARDABLE     "res\\unverified.ico"
 IDI_OFFLINE             ICON    DISCARDABLE     "res\\offline.ico"
 IDI_ONLINE              ICON    DISCARDABLE     "res\\online.ico"
+IDI_NEWMAIL             ICON    DISCARDABLE     "res\\newmail.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

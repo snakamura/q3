@@ -3004,7 +3004,7 @@ qm::ShellIcon::ShellIcon(MainWindow* pMainWindow,
 	hIconHidden_ = reinterpret_cast<HICON>(::LoadImage(hInst,
 		MAKEINTRESOURCE(IDI_MAINFRAME), IMAGE_ICON, 16, 16, 0));
 	hIconRecent_ = reinterpret_cast<HICON>(::LoadImage(hInst,
-		MAKEINTRESOURCE(IDI_MAINFRAME), IMAGE_ICON, 16, 16, 0));
+		MAKEINTRESOURCE(IDI_NEWMAIL), IMAGE_ICON, 16, 16, 0));
 	
 	HWND hwnd = pMainWindow->getHandle();
 	
