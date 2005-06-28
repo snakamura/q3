@@ -45,6 +45,12 @@ public:
 	void reloadProfiles();
 	bool save();
 	
+#ifndef _WIN32_WCE_PSPC
+	void show();
+	void hide();
+	bool isHidden() const;
+#endif
+	
 	bool isShowToolbar() const;
 	void setShowToolbar(bool bShow);
 	bool isShowStatusBar() const;

@@ -56,6 +56,7 @@ const qs::ActionItem toolbarItems[] = {
 	{ L"FileDump",						IDM_FILE_DUMP								},
 	{ L"FileExit",						IDM_FILE_EXIT								},
 	{ L"FileExport",					IDM_FILE_EXPORT								},
+	{ L"FileHide",						IDM_FILE_HIDE								},
 	{ L"FileImport",					IDM_FILE_IMPORT								},
 	{ L"FileInsert",					IDM_FILE_INSERT								},
 	{ L"FileLoad",						IDM_FILE_LOAD								},

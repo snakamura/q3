@@ -2338,6 +2338,42 @@ void qm::FileSaveAction::invoke(const ActionEvent& event)
 }
 
 
+#ifndef _WIN32_WCE_PSPC
+/****************************************************************************
+ *
+ * FileShowAction
+ *
+ */
+
+qm::FileShowAction::FileShowAction(MainWindow* pMainWindow,
+								   bool bShow) :
+	pMainWindow_(pMainWindow),
+	bShow_(bShow)
+{
+}
+
+qm::FileShowAction::~FileShowAction()
+{
+}
+
+void qm::FileShowAction::invoke(const ActionEvent& event)
+{
+	if (bShow_)
+		pMainWindow_->show();
+	else
+		pMainWindow_->hide();
+}
+
+bool qm::FileShowAction::isEnabled(const ActionEvent& event)
+{
+	if (bShow_)
+		return pMainWindow_->isHidden();
+	else
+		return !pMainWindow_->isHidden();
+}
+#endif // _WIN32_WCE_PSPC
+
+
 /****************************************************************************
  *
  * FileUninstallAction
@@ -4176,6 +4212,7 @@ qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
 													 RecentsMenu* pRecentsMenu,
 													 ViewModelManager* pViewModelManager,
 													 FolderModel* pFolderModel,
+													 MainWindow* pMainWindow,
 													 MessageFrameWindowManager* pMessageFrameWindowManager,
 													 Profile* pProfile) :
 	pRecents_(pRecents),
@@ -4183,6 +4220,7 @@ qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
 	pRecentsMenu_(pRecentsMenu),
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
+	pMainWindow_(pMainWindow),
 	pMessageFrameWindowManager_(pMessageFrameWindowManager),
 	pProfile_(pProfile)
 {
@@ -4207,6 +4245,11 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 		NormalFolder* pFolder = mpl->getFolder();
 		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
 		if (bOpenInPreview) {
+#ifndef _WIN32_WCE_PSPC
+			if (pMainWindow_->isHidden())
+				pMainWindow_->show();
+#endif
+			
 			pFolderModel_->setCurrent(0, pFolder, false);
 			
 			Lock<ViewModel> lock(*pViewModel);

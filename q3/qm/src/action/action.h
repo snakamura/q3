@@ -49,12 +49,16 @@ class FileCompactAction;
 class FileDumpAction;
 class FileExitAction;
 class FileExportAction;
+class FileHideAction;
 class FileImportAction;
 class FileLoadAction;
 class FileOfflineAction;
 class FilePrintAction;
 class FileSalvageAction;
 class FileSaveAction;
+#ifndef _WIN32_WCE_PSPC
+class FileShowAction;
+#endif
 class FileUninstallAction;
 class FolderCreateAction;
 class FolderDeleteAction;
@@ -1151,6 +1155,35 @@ private:
 };
 
 
+#ifndef _WIN32_WCE_PSPC
+/****************************************************************************
+ *
+ * FileShowAction
+ *
+ */
+
+class FileShowAction : public qs::AbstractAction
+{
+public:
+	FileShowAction(MainWindow* pMainWindow,
+				   bool bShow);
+	virtual ~FileShowAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	FileShowAction(const FileShowAction&);
+	FileShowAction& operator=(const FileShowAction&);
+
+private:
+	MainWindow* pMainWindow_;
+	bool bShow_;
+};
+#endif
+
+
 /****************************************************************************
  *
  * FileUninstallAction
@@ -2038,6 +2071,7 @@ public:
 							RecentsMenu* pRecentsMenu,
 							ViewModelManager* pViewModelManager,
 							FolderModel* pFolderModel,
+							MainWindow* pMainWindow,
 							MessageFrameWindowManager* pMessageFrameWindowManager,
 							qs::Profile* pProfile);
 	virtual ~MessageOpenRecentAction();
@@ -2055,6 +2089,7 @@ private:
 	RecentsMenu* pRecentsMenu_;
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
+	MainWindow* pMainWindow_;
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	qs::Profile* pProfile_;
 };

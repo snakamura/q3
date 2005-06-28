@@ -137,6 +137,9 @@
 			<key code="2e" shift="true"/>
 			<key key="D" shift="true"/>
 		</action>
+		<action name="FileHide">
+			<key key="Q"/>
+		</action>
 		<action name="FileSave">
 			<key key="W"/>
 		</action>

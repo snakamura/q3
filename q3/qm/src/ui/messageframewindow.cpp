@@ -1150,6 +1150,13 @@ void qm::MessageFrameWindowManager::close(MessageFrameWindow* pMessageFrameWindo
 	listFrame_.erase(it, listFrame_.end());
 }
 
+void qm::MessageFrameWindowManager::closeAll()
+{
+	FrameList l(listFrame_);
+	for (FrameList::const_iterator it = l.begin(); it != l.end(); ++it)
+		close(*it);
+}
+
 void qm::MessageFrameWindowManager::preModalDialog(HWND hwndParent)
 {
 	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it) {

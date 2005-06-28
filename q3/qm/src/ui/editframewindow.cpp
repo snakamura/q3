@@ -911,6 +911,18 @@ bool qm::EditFrameWindowManager::closeAll()
 	return listFrame_.empty();
 }
 
+void qm::EditFrameWindowManager::showAll()
+{
+	for (FrameList::const_iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
+		(*it)->showWindow();
+}
+
+void qm::EditFrameWindowManager::hideAll()
+{
+	for (FrameList::const_iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
+		(*it)->showWindow(SW_HIDE);
+}
+
 void qm::EditFrameWindowManager::preModalDialog(HWND hwndParent)
 {
 	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it) {

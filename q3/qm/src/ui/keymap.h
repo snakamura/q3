@@ -73,6 +73,7 @@ const qs::KeyNameToId mapKeyNameToId[] = {
 	{ L"FileDump",						IDM_FILE_DUMP,							0 },
 	{ L"FileExit",						IDM_FILE_EXIT,							0 },
 	{ L"FileExport",					IDM_FILE_EXPORT,						0 },
+	{ L"FileHide",						IDM_FILE_HIDE,							0 },
 	{ L"FileImport",					IDM_FILE_IMPORT,						0 },
 	{ L"FileInsert",					IDM_FILE_INSERT,						0 },
 	{ L"FileLoad",						IDM_FILE_LOAD,							0 },

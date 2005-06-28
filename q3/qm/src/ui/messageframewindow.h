@@ -59,6 +59,7 @@ public:
 	bool open(ViewModel* pViewModel,
 			  MessageHolder* pmh);
 	void close(MessageFrameWindow* pMessageFrameWindow);
+	void closeAll();
 	void preModalDialog(HWND hwndParent);
 	void postModalDialog(HWND hwndParent);
 	void layout();

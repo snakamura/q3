@@ -255,6 +255,10 @@ public:
 	virtual ~ShellIcon();
 
 public:
+	void showHiddenIcon();
+	void hideHiddenIcon();
+
+public:
 	virtual LRESULT windowProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);
@@ -278,11 +282,21 @@ private:
 	ShellIcon& operator=(const ShellIcon&);
 
 private:
+	enum State {
+		STATE_NONE		= 0x00,
+		STATE_HIDDEN	= 0x01,
+		STATE_RECENT	= 0x02
+	};
+
+private:
+	MainWindow* pMainWindow_;
 	Recents* pRecents_;
 	qs::Profile* pProfile_;
 	ShellIconCallback* pCallback_;
 	NOTIFYICONDATA notifyIcon_;
-	bool bNotifyIcon_;
+	HICON hIconHidden_;
+	HICON hIconRecent_;
+	unsigned int nState_;
 };
 
 

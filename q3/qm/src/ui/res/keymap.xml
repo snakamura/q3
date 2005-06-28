@@ -140,6 +140,9 @@
 		<action name="EditDeleteJunk">
 			<key key="J" ctrl="true"/>
 		</action>
+		<action name="FileHide">
+			<key key="Q"/>
+		</action>
 		<action name="FileSave">
 			<key key="W"/>
 		</action>

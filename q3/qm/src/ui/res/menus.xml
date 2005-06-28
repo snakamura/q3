@@ -1,6 +1,7 @@
 <menus>
 	<menubar name="mainframe">
 		<popupmenu text="&amp;File">
+			<menuitem text="&amp;Hide" action="FileHide"/>
 			<menuitem text="&amp;Save" action="FileSave"/>
 			<menuitem text="&amp;Print" action="FilePrint"/>
 			<separator/>

@@ -416,8 +416,13 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 			return;
 		
 		HWND hwnd = 0;
-		if (read(hFileRead.get(), &hwnd, 0))
+		if (read(hFileRead.get(), &hwnd, 0)) {
+#ifndef _WIN32_WCE_PSPC
+			COPYDATASTRUCT data = { IDM_FILE_SHOW };
+			::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
+#endif
 			::SetForegroundWindow(hwnd);
+		}
 		*phwnd = hwnd;
 	}
 	else if (::GetLastError() == ERROR_ALREADY_EXISTS) {
