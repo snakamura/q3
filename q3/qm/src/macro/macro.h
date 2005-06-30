@@ -71,6 +71,7 @@ class MacroExpr;
 		class MacroFunctionIdentity;
 		class MacroFunctionIf;
 		class MacroFunctionInputBox;
+		class MacroFunctionJunk;
 		class MacroFunctionLength;
 		class MacroFunctionLoad;
 		class MacroFunctionMessageBox;
@@ -1547,6 +1548,36 @@ protected:
 private:
 	MacroFunctionInputBox(const MacroFunctionInputBox&);
 	MacroFunctionInputBox& operator=(const MacroFunctionInputBox&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionJunk
+ *
+ */
+
+class MacroFunctionJunk : public MacroFunction
+{
+public:
+	MacroFunctionJunk();
+	virtual ~MacroFunctionJunk();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	static bool contains(const qs::AddressListParser& addresses,
+						 const WCHAR* pwsz);
+	static bool contains(const qs::AddressParser& address,
+						 const WCHAR* pwsz);
+
+private:
+	MacroFunctionJunk(const MacroFunctionJunk&);
+	MacroFunctionJunk& operator=(const MacroFunctionJunk&);
 };
 
 

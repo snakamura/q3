@@ -10,6 +10,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
+#include <qmjunk.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
@@ -2607,6 +2608,101 @@ const WCHAR* qm::MacroFunctionInputBox::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionJunk
+ *
+ */
+
+qm::MacroFunctionJunk::MacroFunctionJunk()
+{
+}
+
+qm::MacroFunctionJunk::~MacroFunctionJunk()
+{
+}
+
+MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(Junk);
+	
+	if (!checkArgSizeRange(pContext, 0, 1))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (!pmh)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	
+	Message* pMessage = getMessage(pContext,
+		MacroContext::MESSAGETYPE_TEXT, 0);
+	if (!pMessage)
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
+	
+	bool bWhite = false;
+	if (nSize > 0) {
+		AddressListParser from;
+		if (pMessage->getField(L"From", &from) == Part::FIELD_EXIST) {
+			ARG(pValueWhiteList, 0);
+			wstring_ptr wstrWhiteList(tolower(pValueWhiteList->string().get()));
+			if (*wstrWhiteList.get()) {
+				WCHAR* p = wcstok(wstrWhiteList.get(), L" \r\n\t");
+				while (p && !bWhite) {
+					bWhite = contains(from, p);
+					p = wcstok(0, L" \r\n\t");
+				}
+			}
+		}
+	}
+	
+	bool bJunk = false;
+	if (!bWhite) {
+		JunkFilter* pJunkFilter = pContext->getDocument()->getJunkFilter();
+		if (pJunkFilter) {
+			float fScore = pJunkFilter->getScore(*pMessage);
+			bJunk = fScore > pJunkFilter->getThresholdScore();
+			if (pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
+				unsigned int nOperation = bJunk ?
+					JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
+				pJunkFilter->manage(*pMessage, nOperation);
+			}
+		}
+	}
+	
+	return MacroValueFactory::getFactory().newBoolean(bJunk);
+}
+
+const WCHAR* qm::MacroFunctionJunk::getName() const
+{
+	return L"Junk";
+}
+
+bool qm::MacroFunctionJunk::contains(const AddressListParser& addresses,
+									 const WCHAR* pwsz)
+{
+	typedef AddressListParser::AddressList List;
+	const List& l = addresses.getAddressList();
+	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (contains(**it, pwsz))
+			return true;
+	}
+	return false;
+}
+
+bool qm::MacroFunctionJunk::contains(const qs::AddressParser& address,
+									 const WCHAR* pwsz)
+{
+	const AddressListParser* pGroup = address.getGroup();
+	if (pGroup)
+		return contains(*pGroup, pwsz);
+	else
+		return wcsstr(tolower(address.getAddress().get()).get(), pwsz) != 0;
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionLength
  *
  */
@@ -4825,6 +4921,9 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		If, 				L"if"													)
 			DECLARE_FUNCTION0(		Include,			L"include"												)
 			DECLARE_FUNCTION0(		InputBox,	 		L"inputbox"												)
+		END_BLOCK()
+		BEGIN_BLOCK(L'j', L'J')
+			DECLARE_FUNCTION0(		Junk, 				L"junk"													)
 		END_BLOCK()
 		BEGIN_BLOCK(L'l', L'L')
 			DECLARE_FUNCTION0(		Length,				L"length"												)
