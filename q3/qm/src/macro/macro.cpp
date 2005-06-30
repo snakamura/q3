@@ -746,17 +746,22 @@ qm::MacroRegex::MacroRegex(const WCHAR* pwszPattern,
 	wstrPattern_ = allocWString(pwszPattern);
 	wstrMode_ = allocWString(pwszMode);
 	
+	struct Mode
+	{
+		WCHAR c_;
+		RegexCompiler::Mode mode_;
+	} modes[] = {
+		{ L'm',	RegexCompiler::MODE_MULTILINE		},
+		{ L's',	RegexCompiler::MODE_DOTALL			},
+		{ L'i',	RegexCompiler::MODE_CASEINSENSITIVE	}
+	};
 	unsigned int nMode = 0;
 	for (const WCHAR* p = pwszMode; *p; ++p) {
-		switch (*p) {
-		case L'm':
-			nMode |= RegexCompiler::MODE_MULTILINE;
-			break;
-		case L's':
-			nMode |= RegexCompiler::MODE_DOTALL;
-			break;
-		default:
-			break;
+		for (int n = 0; n < countof(modes); ++n) {
+			if (*p == modes[n].c_) {
+				nMode |= modes[n].mode_;
+				break;
+			}
 		}
 	}
 	pPattern_ = RegexCompiler().compile(pwszPattern, nMode);
