@@ -227,7 +227,8 @@ protected:
 class RegexCharAtom : public RegexAtom
 {
 public:
-	explicit RegexCharAtom(WCHAR c);
+	RegexCharAtom(WCHAR c,
+				  bool bCaseInsensitive);
 	virtual ~RegexCharAtom();
 
 protected:
@@ -239,6 +240,7 @@ private:
 
 private:
 	WCHAR c_;
+	bool bCaseInsensitive_;
 };
 
 
@@ -252,7 +254,8 @@ class RegexCharsAtom : public RegexAtom
 {
 public:
 	RegexCharsAtom(const WCHAR* pStart,
-				   const WCHAR* pEnd);
+				   const WCHAR* pEnd,
+				   bool bCaseInsensitive);
 	virtual ~RegexCharsAtom();
 
 public:
@@ -268,6 +271,7 @@ private:
 private:
 	wstring_ptr wstr_;
 	size_t nLen_;
+	bool bCaseInsensitive_;
 };
 
 

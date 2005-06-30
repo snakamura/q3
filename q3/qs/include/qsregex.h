@@ -151,8 +151,9 @@ class QSEXPORTCLASS RegexCompiler
 {
 public:
 	enum Mode {
-		MODE_MULTILINE	= 0x01,
-		MODE_DOTALL		= 0x02
+		MODE_MULTILINE			= 0x01,
+		MODE_DOTALL				= 0x02,
+		MODE_CASEINSENSITIVE	= 0x04
 	};
 
 public:

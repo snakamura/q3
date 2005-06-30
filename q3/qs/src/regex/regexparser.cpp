@@ -220,8 +220,10 @@ bool qs::RegexAtom::matchChar(WCHAR c) const
  *
  */
 
-qs::RegexCharAtom::RegexCharAtom(WCHAR c) :
-	c_(c)
+qs::RegexCharAtom::RegexCharAtom(WCHAR c,
+								 bool bCaseInsensitive) :
+	c_(bCaseInsensitive ? towlower(c) : c),
+	bCaseInsensitive_(bCaseInsensitive)
 {
 }
 
@@ -231,7 +233,7 @@ qs::RegexCharAtom::~RegexCharAtom()
 
 bool qs::RegexCharAtom::matchChar(WCHAR c) const
 {
-	return c == c_;
+	return (bCaseInsensitive_ ? towlower(c) : c) == c_;
 }
 
 
@@ -242,8 +244,10 @@ bool qs::RegexCharAtom::matchChar(WCHAR c) const
  */
 
 qs::RegexCharsAtom::RegexCharsAtom(const WCHAR* pStart,
-								   const WCHAR* pEnd) :
-	nLen_(pEnd - pStart)
+								   const WCHAR* pEnd,
+								   bool bCaseInsensitive) :
+	nLen_(pEnd - pStart),
+	bCaseInsensitive_(bCaseInsensitive)
 {
 	wstr_ = allocWString(pStart, pEnd - pStart);
 }
@@ -257,10 +261,15 @@ const WCHAR* qs::RegexCharsAtom::match(const WCHAR* pStart,
 									   const WCHAR* p,
 									   RegexMatchCallback* pCallback) const
 {
-	if (nLen_ <= static_cast<size_t>(pEnd - p))
-		return wcsncmp(wstr_.get(), p, nLen_) == 0 ? p + nLen_ : 0;
-	else
+	if (nLen_ <= static_cast<size_t>(pEnd - p)) {
+		int nComp = bCaseInsensitive_ ?
+			_wcsnicmp(wstr_.get(), p, nLen_) :
+			wcsncmp(wstr_.get(), p, nLen_);
+		return nComp == 0 ? p + nLen_ : 0;
+	}
+	else {
 		return 0;
+	}
 }
 
 
@@ -725,7 +734,7 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 		
 		WCHAR c = parseEscapedChar();
 		if (c != L'\0') {
-			pAtom.reset(new RegexCharAtom(c));
+			pAtom.reset(new RegexCharAtom(c, (nMode_ & RegexCompiler::MODE_CASEINSENSITIVE) != 0));
 		}
 		else if (isMultiEscapeChar(*p_)) {
 			pAtom = getMultiEscapedAtom(*p_);
@@ -773,9 +782,9 @@ std::auto_ptr<RegexPieceNode> qs::RegexParser::parsePiece()
 			++p_;
 		} while (*p_ && !isSpecialChar(*p_) && (!*(p_ + 1) || !isQuantifierChar(*(p_ + 1))));
 		if (p_ == p + 1)
-			pAtom.reset(new RegexCharAtom(*p));
+			pAtom.reset(new RegexCharAtom(*p, (nMode_ & RegexCompiler::MODE_CASEINSENSITIVE) != 0));
 		else
-			pAtom.reset(new RegexCharsAtom(p, p_));
+			pAtom.reset(new RegexCharsAtom(p, p_, (nMode_ & RegexCompiler::MODE_CASEINSENSITIVE) != 0));
 	}
 	
 	std::auto_ptr<RegexQuantifier> pQuantifier;
