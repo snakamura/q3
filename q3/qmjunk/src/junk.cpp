@@ -110,6 +110,10 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags", FLAG_AUTOLEARN | FLAG_MANUALLEARN);
 	nMaxTextLen_ = pProfile->getInt(L"JunkFilter", L"MaxTextLen", 32*1024);
 	
+	wstring_ptr wstrWhiteList(pProfile->getString(L"JunkFilter", L"WhiteList", L""));
+	if (*wstrWhiteList.get())
+		pWhiteList_.reset(new WhiteList(wstrWhiteList.get()));
+	
 	init();
 }
 
@@ -117,7 +121,8 @@ qmjunk::JunkFilterImpl::~JunkFilterImpl()
 {
 }
 
-float qmjunk::JunkFilterImpl::getScore(const Message& msg)
+float qmjunk::JunkFilterImpl::getScore(const Message& msg,
+									   const WCHAR* pwszWhiteList)
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
@@ -149,6 +154,11 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 				return 1.0F;
 			}
 		}
+	}
+	
+	if (isWhite(msg, pwszWhiteList)) {
+		log.info(L"A message matches against white list.");
+		return 0.0F;
 	}
 	
 	struct TokenizerCallbackImpl : public TokenizerCallback
@@ -488,6 +498,20 @@ void qmjunk::JunkFilterImpl::setMaxTextLength(unsigned int nMaxTextLength)
 	nMaxTextLen_ = nMaxTextLength;
 }
 
+wstring_ptr qmjunk::JunkFilterImpl::getWhiteList()
+{
+	wstring_ptr wstrWhiteList(pWhiteList_.get() ? pWhiteList_->toString() : 0);
+	return wstrWhiteList.get() ? wstrWhiteList : allocWString(L"");
+}
+
+void qmjunk::JunkFilterImpl::setWhiteList(const WCHAR* pwszWhiteList)
+{
+	if (pwszWhiteList && *pwszWhiteList)
+		pWhiteList_.reset(new WhiteList(pwszWhiteList));
+	else
+		pWhiteList_.reset(0);
+}
+
 bool qmjunk::JunkFilterImpl::save()
 {
 	if (!flush())
@@ -499,6 +523,9 @@ bool qmjunk::JunkFilterImpl::save()
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
 	pProfile_->setInt(L"JunkFilter", L"MaxTextLen", nMaxTextLen_);
+	
+	wstring_ptr wstrWhiteList(getWhiteList());
+	pProfile_->setString(L"JunkFilter", L"WhiteList", wstrWhiteList.get());
 	
 	return true;
 }
@@ -600,6 +627,21 @@ DepotPtr qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 	}
 	
 	return pDepot;
+}
+
+bool qmjunk::JunkFilterImpl::isWhite(const qm::Message& msg,
+									 const WCHAR* pwszWhiteList) const
+{
+	std::auto_ptr<WhiteList> p;
+	WhiteList* pWhiteList = 0;
+	if (pwszWhiteList) {
+		p.reset(new WhiteList(pwszWhiteList));
+		pWhiteList = p.get();
+	}
+	else {
+		pWhiteList = pWhiteList_.get();
+	}
+	return pWhiteList ? pWhiteList->isWhite(msg) : false;
 }
 
 string_ptr qmjunk::JunkFilterImpl::getId(const qs::Part& part)
@@ -808,3 +850,80 @@ qmjunk::TokenizerCallback::~TokenizerCallback()
 }
 
 
+/****************************************************************************
+ *
+ * WhiteList
+ *
+ */
+
+qmjunk::WhiteList::WhiteList(const WCHAR* pwszWhiteList)
+{
+	if (pwszWhiteList && *pwszWhiteList) {
+		wstring_ptr wstrWhiteList(tolower(pwszWhiteList));
+		WCHAR* p = wcstok(wstrWhiteList.get(), L" \r\n\t");
+		while (p) {
+			wstring_ptr wstr(allocWString(p));
+			list_.push_back(wstr.get());
+			wstr.release();
+			p = wcstok(0, L" \r\n\t");
+		}
+	}
+}
+
+qmjunk::WhiteList::~WhiteList()
+{
+	std::for_each(list_.begin(), list_.end(), string_free<WSTRING>());
+}
+
+bool qmjunk::WhiteList::isWhite(const qm::Message& msg) const
+{
+	if (list_.empty())
+		return false;
+	
+	AddressListParser from;
+	if (msg.getField(L"From", &from) != Part::FIELD_EXIST)
+		return false;
+	
+	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+		if (contains(from, *it))
+			return true;
+	}
+	
+	return false;
+}
+
+wstring_ptr qmjunk::WhiteList::toString() const
+{
+	if (list_.empty())
+		return 0;
+	
+	StringBuffer<WSTRING> buf;
+	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+		if (buf.getLength() != 0)
+			buf.append(L' ');
+		buf.append(*it);
+	}
+	return buf.getString();
+}
+
+bool qmjunk::WhiteList::contains(const AddressListParser& addresses,
+								 const WCHAR* pwsz)
+{
+	typedef AddressListParser::AddressList List;
+	const List& l = addresses.getAddressList();
+	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (contains(**it, pwsz))
+			return true;
+	}
+	return false;
+}
+
+bool qmjunk::WhiteList::contains(const AddressParser& address,
+								 const WCHAR* pwsz)
+{
+	const AddressListParser* pGroup = address.getGroup();
+	if (pGroup)
+		return contains(*pGroup, pwsz);
+	else
+		return wcsstr(tolower(address.getAddress().get()).get(), pwsz) != 0;
+}

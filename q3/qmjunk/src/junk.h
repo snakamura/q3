@@ -24,6 +24,7 @@ class JunkFilterImpl;
 class JunkFilterFactoryImpl;
 class Tokenizer;
 class TokenizerCallback;
+class WhiteList;
 
 
 /****************************************************************************
@@ -67,7 +68,8 @@ public:
 	virtual ~JunkFilterImpl();
 
 public:
-	virtual float getScore(const qm::Message& msg);
+	virtual float getScore(const qm::Message& msg,
+						   const WCHAR* pwszWhiteList);
 	virtual bool manage(const qm::Message& msg,
 						unsigned int nOperation);
 	virtual Status getStatus(const WCHAR* pwszId);
@@ -78,6 +80,8 @@ public:
 						  unsigned int nMask);
 	virtual unsigned int getMaxTextLength();
 	virtual void setMaxTextLength(unsigned int nMaxTextLength);
+	virtual qs::wstring_ptr getWhiteList();
+	virtual void setWhiteList(const WCHAR* pwszWhiteList);
 	virtual bool save();
 
 private:
@@ -86,6 +90,8 @@ private:
 	DEPOT* getTokenDepot();
 	DEPOT* getIdDepot();
 	DepotPtr open(const WCHAR* pwszName) const;
+	bool isWhite(const qm::Message& msg,
+				 const WCHAR* pwszWhiteList) const;
 
 private:
 	static qs::string_ptr getId(const qs::Part& part);
@@ -104,6 +110,7 @@ private:
 	float fThresholdScore_;
 	unsigned int nFlags_;
 	unsigned int nMaxTextLen_;
+	std::auto_ptr<WhiteList> pWhiteList_;
 	mutable bool bModified_;
 	qs::CriticalSection cs_;
 };
@@ -189,6 +196,40 @@ public:
 public:
 	virtual bool token(const WCHAR* pwszToken,
 					   size_t nLen) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * WhiteList
+ *
+ */
+
+class WhiteList
+{
+public:
+	WhiteList(const WCHAR* pwszWhiteList);
+	~WhiteList();
+
+public:
+	bool isWhite(const qm::Message& msg) const;
+	qs::wstring_ptr toString() const;
+
+private:
+	static bool contains(const qs::AddressListParser& addresses,
+						 const WCHAR* pwsz);
+	static bool contains(const qs::AddressParser& address,
+						 const WCHAR* pwsz);
+
+private:
+	WhiteList(const WhiteList&);
+	WhiteList& operator=(const WhiteList&);
+
+private:
+	typedef std::vector<qs::WSTRING> List;
+
+private:
+	List list_;
 };
 
 

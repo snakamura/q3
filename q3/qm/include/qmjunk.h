@@ -56,7 +56,8 @@ public:
 	virtual ~JunkFilter();
 
 public:
-	virtual float getScore(const Message& msg) = 0;
+	virtual float getScore(const Message& msg,
+						   const WCHAR* pwszWhiteList) = 0;
 	virtual bool manage(const Message& msg,
 						unsigned int nOperation) = 0;
 	virtual Status getStatus(const WCHAR* pwszId) = 0;
@@ -67,6 +68,8 @@ public:
 						  unsigned int nMask) = 0;
 	virtual unsigned int getMaxTextLength() = 0;
 	virtual void setMaxTextLength(unsigned int nMaxTextLength) = 0;
+	virtual qs::wstring_ptr getWhiteList() = 0;
+	virtual void setWhiteList(const WCHAR* pwszWhiteList) = 0;
 	virtual bool save() = 0;
 
 public:

@@ -2640,33 +2640,21 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 	if (!pMessage)
 		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
-	bool bWhite = false;
+	wstring_ptr wstrWhiteList;
 	if (nSize > 0) {
-		AddressListParser from;
-		if (pMessage->getField(L"From", &from) == Part::FIELD_EXIST) {
-			ARG(pValueWhiteList, 0);
-			wstring_ptr wstrWhiteList(tolower(pValueWhiteList->string().get()));
-			if (*wstrWhiteList.get()) {
-				WCHAR* p = wcstok(wstrWhiteList.get(), L" \r\n\t");
-				while (p && !bWhite) {
-					bWhite = contains(from, p);
-					p = wcstok(0, L" \r\n\t");
-				}
-			}
-		}
+		ARG(pValueWhiteList, 0);
+		wstrWhiteList = pValueWhiteList->string();
 	}
 	
 	bool bJunk = false;
-	if (!bWhite) {
-		JunkFilter* pJunkFilter = pContext->getDocument()->getJunkFilter();
-		if (pJunkFilter) {
-			float fScore = pJunkFilter->getScore(*pMessage);
-			bJunk = fScore > pJunkFilter->getThresholdScore();
-			if (pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
-				unsigned int nOperation = bJunk ?
-					JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
-				pJunkFilter->manage(*pMessage, nOperation);
-			}
+	JunkFilter* pJunkFilter = pContext->getDocument()->getJunkFilter();
+	if (pJunkFilter) {
+		float fScore = pJunkFilter->getScore(*pMessage, wstrWhiteList.get());
+		bJunk = fScore > pJunkFilter->getThresholdScore();
+		if (pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
+			unsigned int nOperation = bJunk ?
+				JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
+			pJunkFilter->manage(*pMessage, nOperation);
 		}
 	}
 	
@@ -2676,28 +2664,6 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 const WCHAR* qm::MacroFunctionJunk::getName() const
 {
 	return L"Junk";
-}
-
-bool qm::MacroFunctionJunk::contains(const AddressListParser& addresses,
-									 const WCHAR* pwsz)
-{
-	typedef AddressListParser::AddressList List;
-	const List& l = addresses.getAddressList();
-	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (contains(**it, pwsz))
-			return true;
-	}
-	return false;
-}
-
-bool qm::MacroFunctionJunk::contains(const qs::AddressParser& address,
-									 const WCHAR* pwsz)
-{
-	const AddressListParser* pGroup = address.getGroup();
-	if (pGroup)
-		return contains(*pGroup, pwsz);
-	else
-		return wcsstr(tolower(address.getAddress().get()).get(), pwsz) != 0;
 }
 
 

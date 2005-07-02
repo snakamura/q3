@@ -1570,12 +1570,6 @@ protected:
 	virtual const WCHAR* getName() const;
 
 private:
-	static bool contains(const qs::AddressListParser& addresses,
-						 const WCHAR* pwsz);
-	static bool contains(const qs::AddressParser& address,
-						 const WCHAR* pwsz);
-
-private:
 	MacroFunctionJunk(const MacroFunctionJunk&);
 	MacroFunctionJunk& operator=(const MacroFunctionJunk&);
 };
