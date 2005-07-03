@@ -80,7 +80,7 @@ public:
 						  unsigned int nMask);
 	virtual unsigned int getMaxTextLength();
 	virtual void setMaxTextLength(unsigned int nMaxTextLength);
-	virtual qs::wstring_ptr getWhiteList();
+	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator);
 	virtual void setWhiteList(const WCHAR* pwszWhiteList);
 	virtual bool save();
 
@@ -213,7 +213,7 @@ public:
 
 public:
 	bool isWhite(const qm::Message& msg) const;
-	qs::wstring_ptr toString() const;
+	qs::wstring_ptr toString(const WCHAR* pwszSeparator) const;
 
 private:
 	static bool contains(const qs::AddressListParser& addresses,

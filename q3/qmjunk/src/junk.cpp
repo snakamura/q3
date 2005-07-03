@@ -498,9 +498,9 @@ void qmjunk::JunkFilterImpl::setMaxTextLength(unsigned int nMaxTextLength)
 	nMaxTextLen_ = nMaxTextLength;
 }
 
-wstring_ptr qmjunk::JunkFilterImpl::getWhiteList()
+wstring_ptr qmjunk::JunkFilterImpl::getWhiteList(const WCHAR* pwszSeparator)
 {
-	wstring_ptr wstrWhiteList(pWhiteList_.get() ? pWhiteList_->toString() : 0);
+	wstring_ptr wstrWhiteList(pWhiteList_.get() ? pWhiteList_->toString(pwszSeparator) : 0);
 	return wstrWhiteList.get() ? wstrWhiteList : allocWString(L"");
 }
 
@@ -524,7 +524,7 @@ bool qmjunk::JunkFilterImpl::save()
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
 	pProfile_->setInt(L"JunkFilter", L"MaxTextLen", nMaxTextLen_);
 	
-	wstring_ptr wstrWhiteList(getWhiteList());
+	wstring_ptr wstrWhiteList(getWhiteList(L" "));
 	pProfile_->setString(L"JunkFilter", L"WhiteList", wstrWhiteList.get());
 	
 	return true;
@@ -892,15 +892,18 @@ bool qmjunk::WhiteList::isWhite(const qm::Message& msg) const
 	return false;
 }
 
-wstring_ptr qmjunk::WhiteList::toString() const
+wstring_ptr qmjunk::WhiteList::toString(const WCHAR* pwszSeparator) const
 {
 	if (list_.empty())
 		return 0;
 	
+	if (!pwszSeparator)
+		pwszSeparator = L" ";
+	
 	StringBuffer<WSTRING> buf;
 	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
 		if (buf.getLength() != 0)
-			buf.append(L' ');
+			buf.append(pwszSeparator);
 		buf.append(*it);
 	}
 	return buf.getString();

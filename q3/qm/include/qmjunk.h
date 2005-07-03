@@ -68,7 +68,7 @@ public:
 						  unsigned int nMask) = 0;
 	virtual unsigned int getMaxTextLength() = 0;
 	virtual void setMaxTextLength(unsigned int nMaxTextLength) = 0;
-	virtual qs::wstring_ptr getWhiteList() = 0;
+	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator) = 0;
 	virtual void setWhiteList(const WCHAR* pwszWhiteList) = 0;
 	virtual bool save() = 0;
 
