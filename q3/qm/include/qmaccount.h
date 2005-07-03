@@ -83,6 +83,12 @@ public:
 		GETMESSAGEFLAG_NOFALLBACK	= 0x20
 	};
 	
+	enum CopyFlag {
+		COPYFLAG_NONE		= 0x00,
+		COPYFLAG_MOVE		= 0x01,
+		COPYFLAG_MANAGEJUNK	= 0x02
+	};
+	
 	enum Support {
 		SUPPORT_REMOTEFOLDER			= 0x01,
 		SUPPORT_LOCALFOLDERSYNC			= 0x02,
@@ -198,7 +204,7 @@ public:
 	bool copyMessages(const MessageHolderList& l,
 					  Folder* pFolderFrom,
 					  NormalFolder* pFolderTo,
-					  bool bMove,
+					  unsigned int nFlags,
 					  MessageOperationCallback* pCallback,
 					  UndoItemList* pUndoItemList);
 	bool setMessagesFlags(const MessageHolderList& l,

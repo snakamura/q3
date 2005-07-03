@@ -1025,7 +1025,8 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 	assert(pAccount->isLocked());
 	
 	MessageHolderList l(1, pmh->getMessageHolder());
-	if (!pAccount->copyMessages(l, 0, static_cast<NormalFolder*>(pFolderTo), bMove_, 0, 0))
+	unsigned int nFlags = bMove_ ? Account::COPYFLAG_MOVE : Account::COPYFLAG_NONE;
+	if (!pAccount->copyMessages(l, 0, static_cast<NormalFolder*>(pFolderTo), nFlags, 0, 0))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	return MacroValueFactory::getFactory().newBoolean(true);

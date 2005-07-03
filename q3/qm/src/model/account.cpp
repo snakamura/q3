@@ -85,7 +85,7 @@ public:
 	bool copyMessages(NormalFolder* pFolderFrom,
 					  NormalFolder* pFolderTo,
 					  const MessageHolderList& l,
-					  bool bMove,
+					  unsigned int nFlags,
 					  MessageOperationCallback* pCallback,
 					  UndoItemList* pUndoItemList);
 	bool setMessagesFlags(NormalFolder* pFolder,
@@ -497,7 +497,7 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 			pThis_->getFolderByBoxFlag(Folder::FLAG_TRASHBOX));
 	
 	if (pTrash) {
-		if (!copyMessages(pFolder, pTrash, l, true, pCallback, pUndoItemList))
+		if (!copyMessages(pFolder, pTrash, l, Account::COPYFLAG_MOVE, pCallback, pUndoItemList))
 			return false;
 	}
 	else {
@@ -528,7 +528,7 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 								   NormalFolder* pFolderTo,
 								   const MessageHolderList& l,
-								   bool bMove,
+								   unsigned int nFlags,
 								   MessageOperationCallback* pCallback,
 								   UndoItemList* pUndoItemList)
 {
@@ -545,10 +545,13 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 				pFolderFrom))) == l.end());
 	assert(pFolderFrom->getAccount() == pThis_);
 	
+	bool bMove = (nFlags & Account::COPYFLAG_MOVE) != 0;
 	if (l.empty() || (bMove && pFolderFrom == pFolderTo))
 		return true;
 	
-	if (pJunkFilter_ && pJunkFilter_->getFlags() & JunkFilter::FLAG_MANUALLEARN) {
+	if (nFlags & Account::COPYFLAG_MANAGEJUNK &&
+		pJunkFilter_ &&
+		pJunkFilter_->getFlags() & JunkFilter::FLAG_MANUALLEARN) {
 		unsigned int nJunkOperation = 0;
 		if (pFolderTo->isFlag(Folder::FLAG_JUNKBOX) &&
 			!pFolderFrom->isFlag(Folder::FLAG_JUNKBOX))
@@ -2046,7 +2049,7 @@ bool qm::Account::removeMessages(const MessageHolderList& l,
 bool qm::Account::copyMessages(const MessageHolderList& l,
 							   Folder* pFolderFrom,
 							   NormalFolder* pFolderTo,
-							   bool bMove,
+							   unsigned int nFlags,
 							   MessageOperationCallback* pCallback,
 							   UndoItemList* pUndoItemList)
 {
@@ -2057,12 +2060,12 @@ bool qm::Account::copyMessages(const MessageHolderList& l,
 	{
 		CallByFolderCallbackImpl(AccountImpl* pImpl,
 								 NormalFolder* pFolderTo,
-								 bool bMove,
+								 unsigned int nFlags,
 								 MessageOperationCallback* pCallback,
 								 UndoItemList* pUndoItemList) :
 			pImpl_(pImpl),
 			pFolderTo_(pFolderTo),
-			bMove_(bMove),
+			nFlags_(nFlags),
 			pCallback_(pCallback),
 			pUndoItemList_(pUndoItemList)
 		{
@@ -2072,20 +2075,21 @@ bool qm::Account::copyMessages(const MessageHolderList& l,
 							  const MessageHolderList& l)
 		{
 			return pImpl_->copyMessages(pFolder, pFolderTo_,
-				l, bMove_, pCallback_, pUndoItemList_);
+				l, nFlags_, pCallback_, pUndoItemList_);
 		}
 		
 		AccountImpl* pImpl_;
 		NormalFolder* pFolderTo_;
-		bool bMove_;
+		unsigned int nFlags_;
 		MessageOperationCallback* pCallback_;
 		UndoItemList* pUndoItemList_;
-	} callback(pImpl_, pFolderTo, bMove, pCallback, pUndoItemList);
+	} callback(pImpl_, pFolderTo, nFlags, pCallback, pUndoItemList);
 	
 	if (!AccountImpl::callByFolder(l, &callback))
 		return false;
 	
-	if (bMove && pFolderFrom && pFolderFrom->getType() == Folder::TYPE_QUERY)
+	if (nFlags & COPYFLAG_MOVE &&
+		pFolderFrom && pFolderFrom->getType() == Folder::TYPE_QUERY)
 		static_cast<QueryFolder*>(pFolderFrom)->removeMessages(l);
 	
 	return true;

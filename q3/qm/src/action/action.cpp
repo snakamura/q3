@@ -631,7 +631,8 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 		NormalFolder* pJunk = static_cast<NormalFolder*>(
 			pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
 		if (pJunk) {
-			if (!pAccount->copyMessages(l, pFolder, pJunk, true, &callback, &undo)) {
+			unsigned int nFlags = Account::COPYFLAG_MOVE | Account::COPYFLAG_MANAGEJUNK;
+			if (!pAccount->copyMessages(l, pFolder, pJunk, nFlags, &callback, &undo)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
 				return;
 			}
@@ -4021,7 +4022,8 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 	UndoItemList undo;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback, &undo)) {
+	unsigned int nFlags = (bMove ? Account::COPYFLAG_MOVE : 0) | Account::COPYFLAG_MANAGEJUNK;
+	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, nFlags, &callback, &undo)) {
 		ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
 		return;
 	}
@@ -4107,7 +4109,8 @@ void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
 	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
 	UndoItemList undo;
-	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, bMove, &callback, &undo)) {
+	unsigned int nFlags = (bMove ? Account::COPYFLAG_MOVE : 0) | Account::COPYFLAG_MANAGEJUNK;
+	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, nFlags, &callback, &undo)) {
 		ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
 		return;
 	}

@@ -722,9 +722,10 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 		return true;
 	}
 	else {
+		unsigned int nFlags = bMove_ ? Account::COPYFLAG_MOVE : Account::COPYFLAG_NONE;
 		return context.getAccount()->copyMessages(context.getMessageHolderList(),
 			context.getFolder(), static_cast<NormalFolder*>(pFolderTo),
-			bMove_, 0, context.getUndoItemList());
+			nFlags, 0, context.getUndoItemList());
 	}
 }
 

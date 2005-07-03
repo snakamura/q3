@@ -967,7 +967,7 @@ bool qm::SyncManager::send(Document* pDocument,
 				l[0] = mpl;
 				if (!pAccount->setMessagesFlags(l,
 					MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT, 0) ||
-					!pAccount->copyMessages(l, pOutbox, pSentbox, true, 0, 0))
+					!pAccount->copyMessages(l, pOutbox, pSentbox, Account::COPYFLAG_MOVE, 0, 0))
 					return false;
 			}
 		}
