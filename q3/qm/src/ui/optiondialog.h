@@ -589,12 +589,25 @@ public:
 	explicit OptionJunkDialog(JunkFilter* pJunkFilter);
 	virtual ~OptionJunkDialog();
 
+public:
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
+
+protected:
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
+
+private:
+	void layout();
 
 private:
 	OptionJunkDialog(const OptionJunkDialog&);

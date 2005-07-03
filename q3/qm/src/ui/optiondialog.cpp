@@ -1174,6 +1174,16 @@ qm::OptionJunkDialog::~OptionJunkDialog()
 {
 }
 
+INT_PTR qm::OptionJunkDialog::dialogProc(UINT uMsg,
+										 WPARAM wParam,
+										 LPARAM lParam)
+{
+	BEGIN_DIALOG_HANDLER()
+		HANDLE_SIZE()
+	END_DIALOG_HANDLER()
+	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
+}
+
 LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 										   LPARAM lParam)
 {
@@ -1191,13 +1201,17 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 		
 		unsigned int nMaxSize = pJunkFilter_->getMaxTextLength();
 		setDlgItemInt(IDC_MAXSIZE, nMaxSize);
+		
+		wstring_ptr wstrWhiteList(pJunkFilter_->getWhiteList(L"\r\n"));
+		setDlgItemText(IDC_WHITELIST, wstrWhiteList.get());
 	}
 	else {
 		UINT nIds[] = {
 			IDC_MANUALLEARN,
 			IDC_AUTOLEARN,
 			IDC_THRESHOLD,
-			IDC_MAXSIZE
+			IDC_MAXSIZE,
+			IDC_WHITELIST
 		};
 		for (int n = 0; n < countof(nIds); ++n)
 			Window(getDlgItem(nIds[n])).enableWindow(false);
@@ -1224,9 +1238,34 @@ bool qm::OptionJunkDialog::save(OptionDialogContext* pContext)
 		
 		unsigned int nMaxSize = getDlgItemInt(IDC_MAXSIZE);
 		pJunkFilter_->setMaxTextLength(nMaxSize);
+		
+		wstring_ptr wstrWhiteList(getDlgItemText(IDC_WHITELIST));
+		pJunkFilter_->setWhiteList(wstrWhiteList.get());
 	}
 	
 	return true;
+}
+
+LRESULT qm::OptionJunkDialog::onSize(UINT nFlags,
+									 int cx,
+									 int cy)
+{
+	layout();
+	return DefaultDialog::onSize(nFlags, cx, cy);
+}
+
+void qm::OptionJunkDialog::layout()
+{
+	RECT rect;
+	getClientRect(&rect);
+	
+	RECT rectWhiteList;
+	Window(getDlgItem(IDC_WHITELIST)).getWindowRect(&rectWhiteList);
+	screenToClient(&rectWhiteList);
+	
+	Window(getDlgItem(IDC_WHITELIST)).setWindowPos(0, 0, 0,
+		rect.right - rectWhiteList.left - 5, rectWhiteList.bottom - rectWhiteList.top,
+		SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 }
 #endif // _WIN32_WCE
 
@@ -3292,7 +3331,7 @@ LRESULT qm::AutoPilotDialog::onSize(UINT nFlags,
 									int cy)
 {
 	layout();
-	return DefaultDialog::onSize(nFlags, cx, cy);
+	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onSize(nFlags, cx, cy);
 }
 
 LRESULT qm::AutoPilotDialog::onBrowse()
