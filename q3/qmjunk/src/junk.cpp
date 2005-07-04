@@ -126,6 +126,25 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg,
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
+	if (log.isInfoEnabled()) {
+		StringBuffer<WSTRING> buf(L"Processing a message");
+		
+		buf.append(L", Subject: ");
+		UnstructuredParser subject;
+		if (msg.getField(L"Subject", &subject) == Part::FIELD_EXIST)
+			buf.append(subject.getValue());
+		
+		buf.append(L", Message-Id: ");
+		MessageIdParser messageId;
+		if (msg.getField(L"Message-Id", &messageId) == Part::FIELD_EXIST) {
+			buf.append(L'<');
+			buf.append(messageId.getMessageId());
+			buf.append(L'>');
+		}
+		
+		log.info(buf.getCharArray());
+	}
+	
 	{
 		Lock<CriticalSection> lock(cs_);
 		
@@ -304,13 +323,13 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg,
 bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 									unsigned int nOperation)
 {
-	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
-	
 	assert(nOperation != 0);
 	assert((nOperation & OPERATION_ADDCLEAN) == 0 || (nOperation & OPERATION_ADDJUNK) == 0);
 	assert((nOperation & OPERATION_REMOVECLEAN) == 0 || (nOperation & OPERATION_REMOVEJUNK) == 0);
 	assert((nOperation & OPERATION_ADDCLEAN) == 0 || (nOperation & OPERATION_REMOVECLEAN) == 0);
 	assert((nOperation & OPERATION_ADDJUNK) == 0 || (nOperation & OPERATION_REMOVEJUNK) == 0);
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
 	{
 		Lock<CriticalSection> lock(cs_);
@@ -358,7 +377,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	}
 	
 	if (nOperation == 0) {
-		log.debug(L"Ignoring an message already learned.");
+		log.debug(L"Ignoring a message already learned.");
 		return true;
 	}
 	
