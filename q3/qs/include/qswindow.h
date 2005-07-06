@@ -37,6 +37,7 @@ class DefWindowProcHolder;
 	class WindowBase;
 		class FrameWindow;
 		class SplitterWindow;
+		class ImeWindow;
 #ifdef QS_KANJIIN
 		class KanjiinWindow;
 #endif
@@ -71,6 +72,7 @@ class WaitCursor;
 
 class Action;
 class InitThread;
+class Profile;
 
 
 /****************************************************************************
@@ -1521,6 +1523,46 @@ private:
 
 private:
 	SplitterWindow* pSplitterWindow_;
+};
+
+
+/****************************************************************************
+ *
+ * ImeWindow
+ *
+ */
+
+class QSEXPORTCLASS ImeWindow :
+	public WindowBase,
+	public DefaultWindowHandler
+{
+public:
+	ImeWindow(Profile* pProfile,
+			  const WCHAR* pwszSection,
+			  const WCHAR* pwszKey,
+			  bool bDeleteThis);
+	virtual ~ImeWindow();
+
+public:
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+protected:
+	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
+	LRESULT onDestroy();
+	LRESULT onKillFocus(HWND hwnd);
+	LRESULT onSetFocus(HWND hwnd);
+
+private:
+	ImeWindow(const ImeWindow&);
+	ImeWindow& operator=(const ImeWindow&);
+
+private:
+	Profile* pProfile_;
+	const WCHAR* pwszSection_;
+	const WCHAR* pwszKey_;
+	bool bIme_;
 };
 
 
