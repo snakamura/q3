@@ -771,7 +771,8 @@ bool qs::WindowBase::create(const WCHAR* pwszClassName,
 		W2T(pwszSuperClass, ptszSuperClass);
 		if (!::GetClassInfo(getInstanceHandle(), ptszSuperClass, &wc))
 			return false;
-		pImpl_->pWindowHandler_->preSubclassWindow();
+		if (!pImpl_->pWindowHandler_->preSubclassWindow())
+			return false;
 		pImpl_->procSubclass_ = wc.lpfnWndProc;
 	}
 	
@@ -791,7 +792,8 @@ bool qs::WindowBase::create(const WCHAR* pwszClassName,
 
 bool qs::WindowBase::subclassWindow(HWND hwnd)
 {
-	pImpl_->pWindowHandler_->preSubclassWindow();
+	if (!pImpl_->pWindowHandler_->preSubclassWindow())
+		return false;
 	
 	pImpl_->procSubclass_ = reinterpret_cast<WNDPROC>(
 		::SetWindowLong(hwnd, GWL_WNDPROC,
@@ -808,6 +810,8 @@ bool qs::WindowBase::subclassWindow(HWND hwnd)
 	pMap->setThis(this);
 	Window(hwnd).sendMessage(WM_NULL);
 	assert(getHandle() == hwnd);
+	
+	pImpl_->pWindowHandler_->postSubclassWindow();
 	
 	return true;
 }
@@ -1627,7 +1631,8 @@ bool qs::DefaultWindowHandler::getWindowClass(const WCHAR* pwszSuperClass,
 		W2T(pwszSuperClass, ptszSuperClass);
 		if (!::GetClassInfo(getInstanceHandle(), ptszSuperClass, pwc))
 			return false;
-		preSubclassWindow();
+		if (!preSubclassWindow())
+			return false;
 		*pproc = pwc->lpfnWndProc;
 		pwc->lpfnWndProc = qs::windowProc;
 	}
@@ -1645,6 +1650,10 @@ bool qs::DefaultWindowHandler::preCreateWindow(CREATESTRUCT* pCreateStruct)
 bool qs::DefaultWindowHandler::preSubclassWindow()
 {
 	return true;
+}
+
+void qs::DefaultWindowHandler::postSubclassWindow()
+{
 }
 
 Action* qs::DefaultWindowHandler::getAction(UINT nId)

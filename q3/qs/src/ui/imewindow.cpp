@@ -40,6 +40,12 @@ qs::ImeWindow::~ImeWindow()
 {
 }
 
+void qs::ImeWindow::postSubclassWindow()
+{
+	if (hasFocus())
+		restore();
+}
+
 LRESULT qs::ImeWindow::windowProc(UINT uMsg,
 								  WPARAM wParam,
 								  LPARAM lParam)
@@ -61,20 +67,30 @@ LRESULT qs::ImeWindow::onDestroy()
 
 LRESULT qs::ImeWindow::onKillFocus(HWND hwnd)
 {
+	save();
+	return DefaultWindowHandler::onKillFocus(hwnd);
+}
+
+LRESULT qs::ImeWindow::onSetFocus(HWND hwnd)
+{
+	restore();
+	return DefaultWindowHandler::onSetFocus(hwnd);
+}
+
+void qs::ImeWindow::save()
+{
 	HIMC hImc = ::ImmGetContext(getHandle());
 	if (hImc) {
 		bIme_ = ::ImmGetOpenStatus(hImc) != 0;
 		::ImmReleaseContext(getHandle(), hImc);
 	}
-	return DefaultWindowHandler::onKillFocus(hwnd);
 }
 
-LRESULT qs::ImeWindow::onSetFocus(HWND hwnd)
+void qs::ImeWindow::restore()
 {
 	HIMC hImc = ::ImmGetContext(getHandle());
 	if (hImc) {
 		::ImmSetOpenStatus(hImc, bIme_);
 		::ImmReleaseContext(getHandle(), hImc);
 	}
-	return DefaultWindowHandler::onSetFocus(hwnd);
 }

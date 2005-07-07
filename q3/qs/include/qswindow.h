@@ -723,6 +723,7 @@ public:
 	
 	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct) = 0;
 	virtual bool preSubclassWindow() = 0;
+	virtual void postSubclassWindow() = 0;
 	
 	virtual Action* getAction(UINT nId) = 0;
 	virtual Accelerator* getAccelerator() = 0;
@@ -1297,6 +1298,7 @@ public:
 								WNDPROC* pproc);
 	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
 	virtual bool preSubclassWindow();
+	virtual void postSubclassWindow();
 	virtual Action* getAction(UINT nId);
 	virtual Accelerator* getAccelerator();
 	virtual bool preTranslateAccelerator(const MSG& msg);
@@ -1544,6 +1546,7 @@ public:
 	virtual ~ImeWindow();
 
 public:
+	virtual void postSubclassWindow();
 	virtual LRESULT windowProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);
@@ -1552,6 +1555,10 @@ protected:
 	LRESULT onDestroy();
 	LRESULT onKillFocus(HWND hwnd);
 	LRESULT onSetFocus(HWND hwnd);
+
+private:
+	void save();
+	void restore();
 
 private:
 	ImeWindow(const ImeWindow&);
