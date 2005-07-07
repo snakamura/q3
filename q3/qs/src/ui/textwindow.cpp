@@ -1243,11 +1243,13 @@ void qs::TextWindowImpl::updateCaret(bool bScroll,
 		};
 		pThis_->setCaretPos(pt);
 		
-		pt.y += nLineSpacing_;
-		COMPOSITIONFORM cf = { 0 };
-		cf.dwStyle = CFS_POINT;
-		cf.ptCurrentPos = pt;
-		::ImmSetCompositionWindow(hImc_, &cf);
+		if (hImc_) {
+			pt.y += nLineSpacing_;
+			COMPOSITIONFORM cf = { 0 };
+			cf.dwStyle = CFS_POINT;
+			cf.ptCurrentPos = pt;
+			::ImmSetCompositionWindow(hImc_, &cf);
+		}
 	}
 	
 	if (bShowRuler_)
@@ -3353,12 +3355,14 @@ LRESULT qs::TextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->hImc_ = ::ImmGetContext(getHandle());
 	
 #ifdef _WIN32_WCE
-	Registry reg(HKEY_LOCAL_MACHINE,
-		L"System\\CurrentControlSet\\Control\\Layouts\\e0010411");
-	if (reg) {
-		wstring_ptr wstrIme;
-		if (reg.getValue(L"Ime File", &wstrIme))
-			pImpl_->bAtok_ = wstrIme.get() && wcsstr(wstrIme.get(), L"atok");
+	if (pImpl_->hImc_) {
+		Registry reg(HKEY_LOCAL_MACHINE,
+			L"System\\CurrentControlSet\\Control\\Layouts\\e0010411");
+		if (reg) {
+			wstring_ptr wstrIme;
+			if (reg.getValue(L"Ime File", &wstrIme))
+				pImpl_->bAtok_ = wstrIme.get() && wcsstr(wstrIme.get(), L"atok");
+		}
 	}
 #endif
 	
@@ -3379,7 +3383,8 @@ LRESULT qs::TextWindow::onCut()
 
 LRESULT qs::TextWindow::onDestroy()
 {
-	::ImmReleaseContext(getHandle(), pImpl_->hImc_);
+	if (pImpl_->hImc_)
+		::ImmReleaseContext(getHandle(), pImpl_->hImc_);
 	
 	::DeleteObject(pImpl_->hfont_);
 	pImpl_->hfont_ = 0;
@@ -3453,7 +3458,7 @@ LRESULT qs::TextWindow::onImeChar(UINT nChar,
 LRESULT qs::TextWindow::onImeComposition(UINT nChar,
 										 UINT nFlags)
 {
-	if (pImpl_->pTextModel_->isEditable() && nFlags & GCS_RESULTSTR) {
+	if (pImpl_->pTextModel_->isEditable() && nFlags & GCS_RESULTSTR && pImpl_->hImc_) {
 		int nLen = ::ImmGetCompositionString(pImpl_->hImc_, GCS_RESULTSTR, 0, 0);
 		tstring_ptr tstr(allocTString(nLen/sizeof(TCHAR) + 1));
 		::ImmGetCompositionString(pImpl_->hImc_, GCS_RESULTSTR, tstr.get(), nLen);
@@ -3473,7 +3478,7 @@ LRESULT qs::TextWindow::onImeEndComposition()
 
 LRESULT qs::TextWindow::onImeStartComposition()
 {
-	if (pImpl_->pTextModel_->isEditable()) {
+	if (pImpl_->pTextModel_->isEditable() && pImpl_->hImc_) {
 		LOGFONT lf;
 		::GetObject(pImpl_->hfont_, sizeof(lf), &lf);
 		::ImmSetCompositionFont(pImpl_->hImc_, &lf);

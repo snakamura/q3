@@ -886,8 +886,10 @@ LRESULT qm::MessageFrameWindow::onActivate(UINT nFlags,
 		pImpl_->pMessageWindow_->setActive();
 		
 		HIMC hImc = ::ImmGetContext(getHandle());
-		::ImmSetOpenStatus(hImc, FALSE);
-		::ImmReleaseContext(getHandle(), hImc);
+		if (hImc) {
+			::ImmSetOpenStatus(hImc, FALSE);
+			::ImmReleaseContext(getHandle(), hImc);
+		}
 	}
 	
 	return 0;

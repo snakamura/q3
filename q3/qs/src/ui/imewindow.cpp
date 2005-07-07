@@ -62,15 +62,19 @@ LRESULT qs::ImeWindow::onDestroy()
 LRESULT qs::ImeWindow::onKillFocus(HWND hwnd)
 {
 	HIMC hImc = ::ImmGetContext(getHandle());
-	bIme_ = ::ImmGetOpenStatus(hImc) != 0;
-	::ImmReleaseContext(getHandle(), hImc);
+	if (hImc) {
+		bIme_ = ::ImmGetOpenStatus(hImc) != 0;
+		::ImmReleaseContext(getHandle(), hImc);
+	}
 	return DefaultWindowHandler::onKillFocus(hwnd);
 }
 
 LRESULT qs::ImeWindow::onSetFocus(HWND hwnd)
 {
 	HIMC hImc = ::ImmGetContext(getHandle());
-	::ImmSetOpenStatus(hImc, bIme_);
-	::ImmReleaseContext(getHandle(), hImc);
+	if (hImc) {
+		::ImmSetOpenStatus(hImc, bIme_);
+		::ImmReleaseContext(getHandle(), hImc);
+	}
 	return DefaultWindowHandler::onSetFocus(hwnd);
 }

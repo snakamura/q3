@@ -2150,8 +2150,10 @@ LRESULT qm::MainWindow::onActivate(UINT nFlags,
 		::SetFocus(hwndFocus);
 		
 		HIMC hImc = ::ImmGetContext(getHandle());
-		::ImmSetOpenStatus(hImc, FALSE);
-		::ImmReleaseContext(getHandle(), hImc);
+		if (hImc) {
+			::ImmSetOpenStatus(hImc, FALSE);
+			::ImmReleaseContext(getHandle(), hImc);
+		}
 	}
 	
 	return 0;
