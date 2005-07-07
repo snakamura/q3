@@ -960,6 +960,7 @@ private:
 	qs::Profile* pProfile_;
 	bool bSupportRegex_;
 	Callback* pCallback_;
+	qs::ImeWindow wndFind_;
 	qs::wstring_ptr wstrFind_;
 	bool bMatchCase_;
 	bool bRegex_;

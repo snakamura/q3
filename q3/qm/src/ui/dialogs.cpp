@@ -2213,6 +2213,7 @@ qm::FindDialog::FindDialog(Profile* pProfile,
 	pProfile_(pProfile),
 	bSupportRegex_(bSupportRegex),
 	pCallback_(pCallback),
+	wndFind_(pProfile, L"Find", L"", false),
 	bMatchCase_(false),
 	bRegex_(false),
 	bPrev_(false)
@@ -2282,6 +2283,8 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus,
 		sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
 			nRegex ? BST_CHECKED : BST_UNCHECKED);
 	}
+	
+	wndFind_.subclassWindow(::GetWindow(getDlgItem(IDC_FIND), GW_CHILD));
 	
 	updateState();
 	
