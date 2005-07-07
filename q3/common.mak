@@ -592,11 +592,11 @@ $(TLBDIR)/%.tlb: $(SRCDIR)/%.idl
 
 $(OBJDIR)/%.d: $(SRCDIR)/%.cpp
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(GCC) $(DEFINES) $(PROJECTINCLUDES) -DDEPENDCHECK -MM -MG -nostdinc $< 2>/dev/null | sed -e 's#.*:#$(@:.d=.obj) $@ :#g' >$@
+	$(GCC) $(DEFINES) $(PROJECTINCLUDES) -DDEPENDCHECK -MM -MG -MT $(@:.d=.obj) -MT $@ -nostdinc $< 2>/dev/null | gawk -f ../dep.awk > $@
 
 $(OBJDIR)/%.d: $(SRCDIR)/%.c
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(GCC) $(DEFINES) $(PROJECTINCLUDES) -DDEPENDCHECK -MM -MG -nostdinc $< 2>/dev/null | sed -e 's#.*:#$(@:.d=.obj) $@ :#g' >$@
+	$(GCC) $(DEFINES) $(PROJECTINCLUDES) -DDEPENDCHECK -MM -MG -MT $(@:.d=.obj) -MT $@ -nostdinc $< 2>/dev/null | gawk -f ../dep.awk > $@
 
 $(TARGETDIR)/$(TARGETBASE).exe: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
