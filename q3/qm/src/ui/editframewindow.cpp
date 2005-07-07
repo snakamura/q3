@@ -676,18 +676,10 @@ LRESULT qm::EditFrameWindow::onActivate(UINT nFlags,
 {
 	FrameWindow::onActivate(nFlags, hwnd, bMinimized);
 	
-	HIMC hImc = ::ImmGetContext(getHandle());
-	
-	if (nFlags == WA_INACTIVE) {
+	if (nFlags == WA_INACTIVE)
 		pImpl_->pEditWindow_->saveFocusedItem();
-		pImpl_->bIme_ = ::ImmGetOpenStatus(hImc) != 0;
-	}
-	else {
+	else
 		pImpl_->pEditWindow_->restoreFocusedItem();
-		::ImmSetOpenStatus(hImc, pImpl_->bIme_);
-	}
-	
-	::ImmReleaseContext(getHandle(), hImc);
 	
 	return 0;
 }

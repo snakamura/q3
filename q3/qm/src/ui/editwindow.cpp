@@ -556,8 +556,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pContext->pUIManager_->getMenuManager(),
 		pImpl_
 	};
-	std::auto_ptr<EditTextWindow> pTextWindow(
-		new EditTextWindow(pImpl_->pProfile_, L"EditWindow"));
+	std::auto_ptr<EditTextWindow> pTextWindow(new EditTextWindow(pImpl_->pProfile_));
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
@@ -701,11 +700,11 @@ qm::EditWindowFocusController::~EditWindowFocusController()
  *
  */
 
-qm::EditTextWindow::EditTextWindow(Profile* pProfile,
-								   const WCHAR* pwszSection) :
-	TextWindow(0, pProfile, pwszSection, true),
+qm::EditTextWindow::EditTextWindow(Profile* pProfile) :
+	TextWindow(0, pProfile, L"EditWindow", true),
 	pMenuManager_(0),
-	pCallback_(0)
+	pCallback_(0),
+	wndIme_(pProfile, L"EditWindow", L"", false)
 {
 	std::auto_ptr<EditableTextModel> pTextModel(new EditableTextModel());
 	setTextModel(pTextModel.release());
@@ -760,6 +759,8 @@ LRESULT qm::EditTextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<EditTextWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pMenuManager_ = pContext->pMenuManager_;
 	pCallback_ = pContext->pCallback_;
+	
+	wndIme_.subclassWindow(getHandle());
 	
 	return 0;
 }

@@ -297,7 +297,8 @@ class EditHeaderEditItem :
 	public qs::CommandHandler
 {
 public:
-	explicit EditHeaderEditItem(EditWindowFocusController* pController);
+	EditHeaderEditItem(EditWindowFocusController* pController,
+					   qs::Profile* pProfile);
 	virtual ~EditHeaderEditItem();
 
 public:
@@ -346,9 +347,11 @@ private:
 	EditHeaderEditItem& operator=(const EditHeaderEditItem&);
 
 private:
+	qs::Profile* pProfile_;
 	EditMessage* pEditMessage_;
 	qs::WindowBase* pParent_;
 	unsigned int nId_;
+	std::auto_ptr<qs::ImeWindow> pImeWindow_;
 };
 
 
@@ -369,7 +372,8 @@ public:
 	};
 
 public:
-	explicit AddressHeaderEditItem(EditWindowFocusController* pController);
+	AddressHeaderEditItem(EditWindowFocusController* pController,
+						  qs::Profile* pProfile);
 	virtual ~AddressHeaderEditItem();
 
 public:
@@ -743,6 +747,7 @@ public:
 								   const WCHAR* pwszClass,
 								   EditWindowFocusController* pController,
 								   qs::MenuManager* pMenuManager,
+								   qs::Profile* pProfile,
 								   HeaderEditLineCallback* pLineCallback,
 								   HeaderEditItemCallback* pItemCallback);
 	virtual ~HeaderEditWindowContentHandler();
@@ -785,6 +790,7 @@ private:
 	const WCHAR* pwszClass_;
 	EditWindowFocusController* pController_;
 	qs::MenuManager* pMenuManager_;
+	qs::Profile* pProfile_;
 	HeaderEditLineCallback* pLineCallback_;
 	HeaderEditItemCallback* pItemCallback_;
 	HeaderEditLine* pCurrentLine_;

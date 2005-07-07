@@ -146,8 +146,7 @@ class EditTextWindow :
 	public qs::TextWindowLinkHandler
 {
 public:
-	EditTextWindow(qs::Profile* pProfile,
-				   const WCHAR* pwszSection);
+	explicit EditTextWindow(qs::Profile* pProfile);
 	virtual ~EditTextWindow();
 
 public:
@@ -177,6 +176,7 @@ private:
 private:
 	qs::MenuManager* pMenuManager_;
 	EditTextWindowCallback* pCallback_;
+	qs::ImeWindow wndIme_;
 };
 
 

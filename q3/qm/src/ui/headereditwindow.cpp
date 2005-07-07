@@ -86,8 +86,8 @@ bool qm::HeaderEditWindowImpl::load(const WCHAR* pwszClass,
 	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::HEADEREDIT_XML));
 	
 	XMLReader reader;
-	HeaderEditWindowContentHandler contentHandler(pLayout_.get(),
-		pwszClass, pController_, pMenuManager, pLineCallback, pItemCallback);
+	HeaderEditWindowContentHandler contentHandler(pLayout_.get(), pwszClass,
+		pController_, pMenuManager, pProfile_, pLineCallback, pItemCallback);
 	reader.setContentHandler(&contentHandler);
 	if (!reader.parse(wstrPath.get()))
 		return false;
@@ -800,8 +800,10 @@ UINT qm::StaticHeaderEditItem::getWindowExStyle() const
  *
  */
 
-qm::EditHeaderEditItem::EditHeaderEditItem(EditWindowFocusController* pController) :
+qm::EditHeaderEditItem::EditHeaderEditItem(EditWindowFocusController* pController,
+										   Profile* pProfile) :
 	TextHeaderEditItem(pController),
+	pProfile_(pProfile),
 	pEditMessage_(0),
 	pParent_(0),
 	nId_(0)
@@ -864,6 +866,12 @@ bool qm::EditHeaderEditItem::create(qs::WindowBase* pParent,
 	
 	pParent_ = pParent;
 	nId_ = nId;
+	
+	const WCHAR* pwszField = getField();
+	if (pwszField) {
+		pImeWindow_.reset(new ImeWindow(pProfile_, L"HeaderEditWindow", pwszField, false));
+		pImeWindow_->subclassWindow(getHandle());
+	}
 	
 	return true;
 }
@@ -981,8 +989,9 @@ LRESULT qm::EditHeaderEditItem::onKillFocus()
  *
  */
 
-qm::AddressHeaderEditItem::AddressHeaderEditItem(EditWindowFocusController* pController) :
-	EditHeaderEditItem(pController),
+qm::AddressHeaderEditItem::AddressHeaderEditItem(EditWindowFocusController* pController,
+												 Profile* pProfile) :
+	EditHeaderEditItem(pController, pProfile),
 	nFlags_(FLAG_EXPANDALIAS | FLAG_AUTOCOMPLETE),
 	pAddressBook_(0),
 	pRecentAddress_(0)
@@ -1956,12 +1965,14 @@ qm::HeaderEditWindowContentHandler::HeaderEditWindowContentHandler(LineLayout* p
 																   const WCHAR* pwszClass,
 																   EditWindowFocusController* pController,
 																   MenuManager* pMenuManager,
+																   Profile* pProfile,
 																   HeaderEditLineCallback* pLineCallback,
 																   HeaderEditItemCallback* pItemCallback) :
 	pLayout_(pLayout),
 	pwszClass_(pwszClass),
 	pController_(pController),
 	pMenuManager_(pMenuManager),
+	pProfile_(pProfile),
 	pLineCallback_(pLineCallback),
 	pItemCallback_(pItemCallback),
 	pCurrentLine_(0),
@@ -2052,10 +2063,10 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 				pItem.reset(new StaticHeaderEditItem(pController_));
 				break;
 			case TYPE_EDIT:
-				pItem.reset(new EditHeaderEditItem(pController_));
+				pItem.reset(new EditHeaderEditItem(pController_, pProfile_));
 				break;
 			case TYPE_ADDRESS:
-				pItem.reset(new AddressHeaderEditItem(pController_));
+				pItem.reset(new AddressHeaderEditItem(pController_, pProfile_));
 				break;
 			}
 			
