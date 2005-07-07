@@ -1539,7 +1539,7 @@ class QSEXPORTCLASS ImeWindow :
 public:
 	ImeWindow(Profile* pProfile,
 			  const WCHAR* pwszSection,
-			  const WCHAR* pwszKey,
+			  const WCHAR* pwszKeySuffix,
 			  bool bDeleteThis);
 	virtual ~ImeWindow();
 
@@ -1549,7 +1549,6 @@ public:
 							   LPARAM lParam);
 
 protected:
-	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
 	LRESULT onKillFocus(HWND hwnd);
 	LRESULT onSetFocus(HWND hwnd);
@@ -1561,7 +1560,7 @@ private:
 private:
 	Profile* pProfile_;
 	const WCHAR* pwszSection_;
-	const WCHAR* pwszKey_;
+	const WCHAR* pwszKeySuffix_;
 	bool bIme_;
 };
 

@@ -18,14 +18,21 @@
 
 qs::ImeWindow::ImeWindow(Profile* pProfile,
 						 const WCHAR* pwszSection,
-						 const WCHAR* pwszKey,
+						 const WCHAR* pwszKeySuffix,
 						 bool bDeleteThis) :
 	WindowBase(bDeleteThis),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
-	pwszKey_(pwszKey),
+	pwszKeySuffix_(pwszKeySuffix),
 	bIme_(false)
 {
+	assert(pProfile);
+	assert(pwszSection);
+	assert(pwszKeySuffix);
+	
+	wstring_ptr wstrKey(concat(L"Ime", pwszKeySuffix_));
+	bIme_ = pProfile_->getInt(pwszSection_, wstrKey.get(), 0) != 0;
+	
 	setWindowHandler(this, false);
 }
 
@@ -38,7 +45,6 @@ LRESULT qs::ImeWindow::windowProc(UINT uMsg,
 								  LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
-		HANDLE_CREATE()
 		HANDLE_DESTROY()
 		HANDLE_KILLFOCUS()
 		HANDLE_SETFOCUS()
@@ -46,19 +52,10 @@ LRESULT qs::ImeWindow::windowProc(UINT uMsg,
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::ImeWindow::onCreate(CREATESTRUCT* pCreateStruct)
-{
-	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
-		return -1;
-	
-	bIme_ = pProfile_->getInt(pwszSection_, pwszKey_, 0) != 0;
-	
-	return 0;
-}
-
 LRESULT qs::ImeWindow::onDestroy()
 {
-	pProfile_->setInt(pwszSection_, pwszKey_, bIme_);
+	wstring_ptr wstrKey(concat(L"Ime", pwszKeySuffix_));
+	pProfile_->setInt(pwszSection_, wstrKey.get(), bIme_);
 	return DefaultWindowHandler::onDestroy();
 }
 
