@@ -379,6 +379,7 @@ public:
 					   WPARAM wParam,
 					   LPARAM lParam);
 	void destroy();
+	void destroy(WindowBase* pWindowBase);
 
 public:
 	static WindowMap* getWindowMap();
@@ -598,8 +599,16 @@ void qs::WindowBaseImpl::destroy()
 	assert(listCommandHandler_.size() == 0);
 	assert(listNotifyHandler_.size() == 0);
 	assert(listOwnerDrawHandler_.size() == 0);
-	if (bDeleteThis_)
-		delete pThis_;
+	destroy(pThis_);
+}
+
+void qs::WindowBaseImpl::destroy(WindowBase* pWindowBase)
+{
+	WindowBase* pOrgWindowBase = pWindowBase->pImpl_->pOrgWindowBase_;
+	if (pWindowBase->pImpl_->bDeleteThis_)
+		delete pWindowBase;
+	if (pOrgWindowBase)
+		destroy(pOrgWindowBase);
 }
 
 WindowBaseImpl::WindowMap* qs::WindowBaseImpl::getWindowMap()
