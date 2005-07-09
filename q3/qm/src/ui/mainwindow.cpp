@@ -2148,12 +2148,7 @@ LRESULT qm::MainWindow::onActivate(UINT nFlags,
 		if (!hwndFocus)
 			hwndFocus = pImpl_->pListWindow_->getHandle();
 		::SetFocus(hwndFocus);
-		
-		HIMC hImc = ::ImmGetContext(getHandle());
-		if (hImc) {
-			::ImmSetOpenStatus(hImc, FALSE);
-			::ImmReleaseContext(getHandle(), hImc);
-		}
+		qs::UIUtil::setImeEnabled(getHandle(), false);
 	}
 	
 	return 0;

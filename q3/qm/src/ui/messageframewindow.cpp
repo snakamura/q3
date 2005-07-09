@@ -884,12 +884,7 @@ LRESULT qm::MessageFrameWindow::onActivate(UINT nFlags,
 	
 	if (nFlags != WA_INACTIVE) {
 		pImpl_->pMessageWindow_->setActive();
-		
-		HIMC hImc = ::ImmGetContext(getHandle());
-		if (hImc) {
-			::ImmSetOpenStatus(hImc, FALSE);
-			::ImmReleaseContext(getHandle(), hImc);
-		}
+		qs::UIUtil::setImeEnabled(getHandle(), false);
 	}
 	
 	return 0;

@@ -106,6 +106,29 @@ void qs::UIUtil::setLogFontToProfile(Profile* pProfile,
 		pProfile->setInt(pwszSection, L"FontCharset", lf.lfCharSet);
 }
 
+bool qs::UIUtil::isImeEnabled(HWND hwnd)
+{
+	bool bEnabled = false;
+	
+	HIMC hImc = ::ImmGetContext(hwnd);
+	if (hImc) {
+		bEnabled = ::ImmGetOpenStatus(hImc) != 0;
+		::ImmReleaseContext(hwnd, hImc);
+	}
+	
+	return bEnabled;
+}
+
+void qs::UIUtil::setImeEnabled(HWND hwnd,
+							   bool bEnabled)
+{
+	HIMC hImc = ::ImmGetContext(hwnd);
+	if (hImc) {
+		::ImmSetOpenStatus(hImc, bEnabled);
+		::ImmReleaseContext(hwnd, hImc);
+	}
+}
+
 bool qs::UIUtil::browseFont(HWND hwnd,
 							LOGFONT* pLogFont)
 {

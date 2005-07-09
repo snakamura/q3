@@ -7,6 +7,7 @@
  */
 
 #include <qsprofile.h>
+#include <qsuiutil.h>
 #include <qswindow.h>
 
 
@@ -79,18 +80,10 @@ LRESULT qs::ImeWindow::onSetFocus(HWND hwnd)
 
 void qs::ImeWindow::save()
 {
-	HIMC hImc = ::ImmGetContext(getHandle());
-	if (hImc) {
-		bIme_ = ::ImmGetOpenStatus(hImc) != 0;
-		::ImmReleaseContext(getHandle(), hImc);
-	}
+	bIme_ = UIUtil::isImeEnabled(getHandle());
 }
 
 void qs::ImeWindow::restore()
 {
-	HIMC hImc = ::ImmGetContext(getHandle());
-	if (hImc) {
-		::ImmSetOpenStatus(hImc, bIme_);
-		::ImmReleaseContext(getHandle(), hImc);
-	}
+	UIUtil::setImeEnabled(getHandle(), bIme_);
 }

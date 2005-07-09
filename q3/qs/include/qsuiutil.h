@@ -40,6 +40,9 @@ public:
 	static void setLogFontToProfile(Profile* pProfile,
 									const WCHAR* pwszSection,
 									const LOGFONT& lf);
+	static bool isImeEnabled(HWND hwnd);
+	static void setImeEnabled(HWND hwnd,
+							  bool bEnabled);
 	static bool browseFont(HWND hwnd,
 						   LOGFONT* pLogFont);
 	static wstring_ptr browseFolder(HWND hwnd,
