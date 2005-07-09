@@ -78,7 +78,8 @@ public:
 class QMEXPORTCLASS SearchPropertyData
 {
 public:
-	explicit SearchPropertyData(qs::Profile* pProfile);
+	SearchPropertyData(qs::Profile* pProfile,
+					   bool bAllFolderOnly);
 	~SearchPropertyData();
 
 public:
@@ -90,6 +91,7 @@ public:
 			 bool bAllFolder,
 			 bool bRecursive,
 			 bool bIme);
+	void save() const;
 
 private:
 	SearchPropertyData(const SearchPropertyData&);
@@ -123,8 +125,6 @@ public:
 public:
 	virtual const WCHAR* getDriver() const = 0;
 	virtual const WCHAR* getCondition() const = 0;
-	virtual bool isAllFolder() const = 0;
-	virtual bool isRecursive() const = 0;
 
 protected:
 	virtual void updateData(SearchPropertyData* pData) = 0;

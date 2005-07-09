@@ -113,13 +113,12 @@ std::auto_ptr<SearchPropertyPage> qmimap4::Imap4SearchUI::createPropertyPage(boo
 
 qmimap4::Imap4SearchPage::Imap4SearchPage(Account* pAccount,
 										  Profile* pProfile,
-										  bool bAllFolder,
+										  bool bAllFolderOnly,
 										  SearchPropertyData* pData) :
 	SearchPropertyPage(getResourceHandle(), IDD_SEARCH, pData),
 	pAccount_(pAccount),
 	pProfile_(pProfile),
-	bAllFolder_(bAllFolder),
-	bRecursive_(false)
+	bAllFolderOnly_(bAllFolderOnly)
 {
 }
 
@@ -135,16 +134,6 @@ const WCHAR* qmimap4::Imap4SearchPage::getDriver() const
 const WCHAR* qmimap4::Imap4SearchPage::getCondition() const
 {
 	return wstrCondition_.get();
-}
-
-bool qmimap4::Imap4SearchPage::isAllFolder() const
-{
-	return bAllFolder_;
-}
-
-bool qmimap4::Imap4SearchPage::isRecursive() const
-{
-	return bRecursive_;
 }
 
 void qmimap4::Imap4SearchPage::updateData(SearchPropertyData* pData)
@@ -204,18 +193,10 @@ LRESULT qmimap4::Imap4SearchPage::onInitDialog(HWND hwndFocus,
 			sendDlgItemMessage(items[n].nId_, BM_SETCHECK, BST_CHECKED);
 	}
 	
-	int nFolder = 0;
-	if (bAllFolder_) {
+	if (bAllFolderOnly_) {
 		Window(getDlgItem(IDC_CURRENT)).enableWindow(false);
 		Window(getDlgItem(IDC_RECURSIVE)).enableWindow(false);
-		nFolder = 2;
 	}
-	else {
-		nFolder = pProfile_->getInt(L"Search", L"Folder", 0);
-		if (nFolder < 0 || 3 < nFolder)
-			nFolder = 0;
-	}
-	sendDlgItemMessage(IDC_CURRENT + nFolder, BM_SETCHECK, BST_CHECKED);
 	
 	updateState();
 	
@@ -225,8 +206,7 @@ LRESULT qmimap4::Imap4SearchPage::onInitDialog(HWND hwndFocus,
 LRESULT qmimap4::Imap4SearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		Window edit(Window(getDlgItem(IDC_CONDITION)).getWindow(GW_CHILD));
-		wstring_ptr wstrSearch = edit.getWindowText();
+		wstring_ptr wstrSearch = getDlgItemText(IDC_CONDITION);
 		if (wstrSearch.get())
 			History(pProfile_, L"Search").addValue(wstrSearch.get());
 		bool bCommand = sendDlgItemMessage(IDC_IMAP4COMMAND, BM_GETCHECK) == BST_CHECKED;
@@ -259,15 +239,8 @@ LRESULT qmimap4::Imap4SearchPage::onOk()
 			wstrCondition_ = buf.getString();
 		}
 		
-		bAllFolder_ = sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED;
-		bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
-		
-		pProfile_->setString(L"Search", L"Condition",
-			bCommand ? wstrCondition_.get() : wstrSearch.get());
 		pProfile_->setInt(L"Imap4Search", L"Command", bCommand);
 		pProfile_->setInt(L"Imap4Search", L"SearchBody", bSearchBody);
-		pProfile_->setInt(L"Search", L"Folder",
-			bAllFolder_ ? 2 : bRecursive_ ? 1 : 0);
 	}
 	return SearchPropertyPage::onOk();
 }

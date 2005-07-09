@@ -82,15 +82,13 @@ class Imap4SearchPage : public qm::SearchPropertyPage
 public:
 	Imap4SearchPage(qm::Account* pAccount,
 					qs::Profile* pProfile,
-					bool bAllFolder,
+					bool bAllFolderOnly,
 					qm::SearchPropertyData* pData);
 	virtual ~Imap4SearchPage();
 
 public:
 	virtual const WCHAR* getDriver() const;
 	virtual const WCHAR* getCondition() const;
-	virtual bool isAllFolder() const;
-	virtual bool isRecursive() const;
 
 protected:
 	virtual void updateData(qm::SearchPropertyData* pData);
@@ -124,8 +122,7 @@ private:
 	qm::Account* pAccount_;
 	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrCondition_;
-	bool bAllFolder_;
-	bool bRecursive_;
+	bool bAllFolderOnly_;
 };
 
 

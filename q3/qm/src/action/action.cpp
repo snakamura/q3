@@ -4480,12 +4480,13 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	
 	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page", 0));
 	
-	SearchPropertyData data(pProfile_);
+	bool bAllFolderOnly = pFolder == 0;
+	SearchPropertyData data(pProfile_, bAllFolderOnly);
 	int nStartPage = 0;
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 	for (UIList::size_type n = 0; n < listUI.size(); ++n) {
 		std::auto_ptr<SearchPropertyPage> pPage(
-			listUI[n].first->createPropertyPage(pFolder == 0, &data));
+			listUI[n].first->createPropertyPage(bAllFolderOnly, &data));
 		listUI[n].second = pPage.release();
 		sheet.add(listUI[n].second);
 		if (wcscmp(listUI[n].second->getDriver(), wstrStartName.get()) == 0)
@@ -4507,11 +4508,11 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 				WaitCursor cursor;
 				
 				wstring_ptr wstrFolder;
-				if (!pPage->isAllFolder())
+				if (!data.isAllFolder())
 					wstrFolder = pFolder->getFullName();
 				
 				pSearch->set(pPage->getDriver(), pwszCondition,
-					wstrFolder.get(), pPage->isRecursive());
+					wstrFolder.get(), data.isRecursive());
 				
 				if (pFolder != pSearch)
 					pFolderModel_->setCurrent(0, pSearch, false);
@@ -4525,6 +4526,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 				}
 			}
 			pProfile_->setString(L"Search", L"Page", pPage->getDriver());
+			data.save();
 		}
 	}
 }

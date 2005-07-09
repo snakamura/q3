@@ -130,12 +130,11 @@ std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(bool bAl
  */
 
 qm::MacroSearchPage::MacroSearchPage(Profile* pProfile,
-									 bool bAllFolder,
+									 bool bAllFolderOnly,
 									 SearchPropertyData* pData) :
 	SearchPropertyPage(Application::getApplication().getResourceHandle(), IDD_MACROSEARCH, pData),
 	pProfile_(pProfile),
-	bAllFolder_(bAllFolder),
-	bRecursive_(false)
+	bAllFolderOnly_(bAllFolderOnly)
 {
 }
 
@@ -151,16 +150,6 @@ const WCHAR* qm::MacroSearchPage::getDriver() const
 const WCHAR* qm::MacroSearchPage::getCondition() const
 {
 	return wstrCondition_.get();
-}
-
-bool qm::MacroSearchPage::isAllFolder() const
-{
-	return bAllFolder_;
-}
-
-bool qm::MacroSearchPage::isRecursive() const
-{
-	return bRecursive_;
 }
 
 void qm::MacroSearchPage::updateData(SearchPropertyData* pData)
@@ -224,18 +213,10 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
 			sendDlgItemMessage(items[n].nId_, BM_SETCHECK, BST_CHECKED);
 	}
 	
-	int nFolder = 0;
-	if (bAllFolder_) {
+	if (bAllFolderOnly_) {
 		Window(getDlgItem(IDC_CURRENT)).enableWindow(false);
 		Window(getDlgItem(IDC_RECURSIVE)).enableWindow(false);
-		nFolder = 2;
 	}
-	else {
-		nFolder = pProfile_->getInt(L"Search", L"Folder", 0);
-		if (nFolder < 0 || 3 < nFolder)
-			nFolder = 0;
-	}
-	sendDlgItemMessage(IDC_CURRENT + nFolder, BM_SETCHECK, BST_CHECKED);
 	
 	updateState();
 	
@@ -276,16 +257,9 @@ LRESULT qm::MacroSearchPage::onOk()
 			wstrCondition_ = buf.getString();
 		}
 		
-		bAllFolder_ = sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED;
-		bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
-		
-		pProfile_->setString(L"Search", L"Condition",
-			bMacro ? wstrCondition_.get() : wstrSearch.get());
 		pProfile_->setInt(L"MacroSearch", L"Macro", bMacro);
 		pProfile_->setInt(L"MacroSearch", L"MatchCase", bCase);
 		pProfile_->setInt(L"MacroSearch", L"SearchBody", bSearchBody);
-		pProfile_->setInt(L"Search", L"Folder",
-			bAllFolder_ ? 2 : bRecursive_ ? 1 : 0);
 	}
 	return SearchPropertyPage::onOk();
 }

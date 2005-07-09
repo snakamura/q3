@@ -90,15 +90,13 @@ class FullTextSearchPage : public SearchPropertyPage
 public:
 	FullTextSearchPage(Account* pAccount,
 					   qs::Profile* pProfile,
-					   bool bAllFolder,
+					   bool bAllFolderOnly,
 					   SearchPropertyData* pData);
 	virtual ~FullTextSearchPage();
 
 public:
 	virtual const WCHAR* getDriver() const;
 	virtual const WCHAR* getCondition() const;
-	virtual bool isAllFolder() const;
-	virtual bool isRecursive() const;
 
 protected:
 	virtual void updateData(SearchPropertyData* pData);
@@ -129,8 +127,7 @@ private:
 	Account* pAccount_;
 	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrCondition_;
-	bool bAllFolder_;
-	bool bRecursive_;
+	bool bAllFolderOnly_;
 };
 
 

@@ -85,15 +85,13 @@ class MacroSearchPage : public SearchPropertyPage
 {
 public:
 	MacroSearchPage(qs::Profile* pProfile,
-					bool bAllFolder,
+					bool bAllFolderOnly,
 					SearchPropertyData* pData);
 	virtual ~MacroSearchPage();
 
 public:
 	virtual const WCHAR* getDriver() const;
 	virtual const WCHAR* getCondition() const;
-	virtual bool isAllFolder() const;
-	virtual bool isRecursive() const;
 
 protected:
 	virtual void updateData(SearchPropertyData* pData);
@@ -132,8 +130,7 @@ private:
 private:
 	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrCondition_;
-	bool bAllFolder_;
-	bool bRecursive_;
+	bool bAllFolderOnly_;
 };
 
 

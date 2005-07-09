@@ -199,13 +199,12 @@ std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(bool 
 
 qm::FullTextSearchPage::FullTextSearchPage(Account* pAccount,
 										   Profile* pProfile,
-										   bool bAllFolder,
+										   bool bAllFolderOnly,
 										   SearchPropertyData* pData) :
 	SearchPropertyPage(Application::getApplication().getResourceHandle(), IDD_FULLTEXTSEARCH, pData),
 	pAccount_(pAccount),
 	pProfile_(pProfile),
-	bAllFolder_(bAllFolder),
-	bRecursive_(false)
+	bAllFolderOnly_(bAllFolderOnly)
 {
 }
 
@@ -221,16 +220,6 @@ const WCHAR* qm::FullTextSearchPage::getDriver() const
 const WCHAR* qm::FullTextSearchPage::getCondition() const
 {
 	return wstrCondition_.get();
-}
-
-bool qm::FullTextSearchPage::isAllFolder() const
-{
-	return bAllFolder_;
-}
-
-bool qm::FullTextSearchPage::isRecursive() const
-{
-	return bRecursive_;
 }
 
 void qm::FullTextSearchPage::updateData(SearchPropertyData* pData)
@@ -278,18 +267,10 @@ LRESULT qm::FullTextSearchPage::onInitDialog(HWND hwndFocus,
 	if (sendDlgItemMessage(IDC_CONDITION, CB_GETCOUNT) != 0)
 		sendDlgItemMessage(IDC_CONDITION, CB_SETCURSEL, 0);
 	
-	int nFolder = 0;
-	if (bAllFolder_) {
+	if (bAllFolderOnly_) {
 		Window(getDlgItem(IDC_CURRENT)).enableWindow(false);
 		Window(getDlgItem(IDC_RECURSIVE)).enableWindow(false);
-		nFolder = 2;
 	}
-	else {
-		nFolder = pProfile_->getInt(L"Search", L"Folder", 0);
-		if (nFolder < 0 || 3 < nFolder)
-			nFolder = 0;
-	}
-	sendDlgItemMessage(IDC_CURRENT + nFolder, BM_SETCHECK, BST_CHECKED);
 	
 	return TRUE;
 }
@@ -297,15 +278,9 @@ LRESULT qm::FullTextSearchPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::FullTextSearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		Window edit(Window(getDlgItem(IDC_CONDITION)).getWindow(GW_CHILD));
-		wstrCondition_ = edit.getWindowText();
+		wstrCondition_ = getDlgItemText(IDC_CONDITION);
 		if (wstrCondition_.get())
 			History(pProfile_, L"Search").addValue(wstrCondition_.get());
-		bAllFolder_ = sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED;
-		bRecursive_ = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
-		
-		pProfile_->setString(L"Search", L"Condition", wstrCondition_.get());
-		pProfile_->setInt(L"Search", L"Folder", bAllFolder_ ? 2 : bRecursive_ ? 1 : 0);
 	}
 	return SearchPropertyPage::onOk();
 }
