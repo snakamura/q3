@@ -4480,7 +4480,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	
 	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page", 0));
 	
-	SearchPropertyData data;
+	SearchPropertyData data(pProfile_);
 	int nStartPage = 0;
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 	for (UIList::size_type n = 0; n < listUI.size(); ++n) {

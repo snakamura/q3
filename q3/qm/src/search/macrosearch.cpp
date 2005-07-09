@@ -13,6 +13,7 @@
 #include <qmuiutil.h>
 
 #include <qsstl.h>
+#include <qsuiutil.h>
 
 #include "macrosearch.h"
 #include "../ui/resourceinc.h"
@@ -167,7 +168,8 @@ void qm::MacroSearchPage::updateData(SearchPropertyData* pData)
 	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
 	pData->set(wstrCondition.get(),
 		sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED,
-		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED);
+		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED,
+		UIUtil::isImeEnabled(getHandle()));
 }
 
 void qm::MacroSearchPage::updateUI(const SearchPropertyData* pData)
@@ -179,6 +181,7 @@ void qm::MacroSearchPage::updateUI(const SearchPropertyData* pData)
 		for (UINT n = IDC_CURRENT; n < IDC_CURRENT + 3; ++n)
 			sendDlgItemMessage(n, BM_SETCHECK, n == nId ? BST_CHECKED : BST_UNCHECKED);
 	}
+	UIUtil::setImeEnabled(getHandle(), pData->isIme());
 }
 
 LRESULT qm::MacroSearchPage::onCommand(WORD nCode,

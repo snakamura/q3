@@ -14,6 +14,7 @@
 #include <qsfile.h>
 #include <qsosutil.h>
 #include <qsstl.h>
+#include <qsuiutil.h>
 
 #include "fulltextsearch.h"
 #include "../ui/resourceinc.h"
@@ -237,7 +238,8 @@ void qm::FullTextSearchPage::updateData(SearchPropertyData* pData)
 	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
 	pData->set(wstrCondition.get(),
 		sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED,
-		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED);
+		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED,
+		UIUtil::isImeEnabled(getHandle()));
 }
 
 void qm::FullTextSearchPage::updateUI(const SearchPropertyData* pData)
@@ -249,6 +251,7 @@ void qm::FullTextSearchPage::updateUI(const SearchPropertyData* pData)
 		for (UINT n = IDC_CURRENT; n < IDC_CURRENT + 3; ++n)
 			sendDlgItemMessage(n, BM_SETCHECK, n == nId ? BST_CHECKED : BST_UNCHECKED);
 	}
+	UIUtil::setImeEnabled(getHandle(), pData->isIme());
 }
 
 LRESULT qm::FullTextSearchPage::onCommand(WORD nCode,

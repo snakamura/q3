@@ -78,16 +78,18 @@ public:
 class QMEXPORTCLASS SearchPropertyData
 {
 public:
-	SearchPropertyData();
+	explicit SearchPropertyData(qs::Profile* pProfile);
 	~SearchPropertyData();
 
 public:
 	const WCHAR* getCondition() const;
 	bool isAllFolder() const;
 	bool isRecursive() const;
+	bool isIme() const;
 	void set(const WCHAR* pwszCondition,
 			 bool bAllFolder,
-			 bool bRecursive);
+			 bool bRecursive,
+			 bool bIme);
 
 private:
 	SearchPropertyData(const SearchPropertyData&);

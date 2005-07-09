@@ -9,6 +9,8 @@
 #include <qmaccount.h>
 #include <qmuiutil.h>
 
+#include <qsuiutil.h>
+
 #include "imap4driver.h"
 #include "main.h"
 #include "resourceinc.h"
@@ -150,7 +152,8 @@ void qmimap4::Imap4SearchPage::updateData(SearchPropertyData* pData)
 	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
 	pData->set(wstrCondition.get(),
 		sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED,
-		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED);
+		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED,
+		UIUtil::isImeEnabled(getHandle()));
 }
 
 void qmimap4::Imap4SearchPage::updateUI(const SearchPropertyData* pData)
@@ -162,6 +165,7 @@ void qmimap4::Imap4SearchPage::updateUI(const SearchPropertyData* pData)
 		for (UINT n = IDC_CURRENT; n < IDC_CURRENT + 3; ++n)
 			sendDlgItemMessage(n, BM_SETCHECK, n == nId ? BST_CHECKED : BST_UNCHECKED);
 	}
+	UIUtil::setImeEnabled(getHandle(), pData->isIme());
 }
 
 LRESULT qmimap4::Imap4SearchPage::onCommand(WORD nCode,
