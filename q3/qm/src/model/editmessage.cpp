@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmdocument.h>
 #include <qmmessage.h>
@@ -19,8 +21,6 @@
 #include "editmessage.h"
 #include "signature.h"
 #include "uri.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

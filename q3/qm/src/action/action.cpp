@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmaddressbookwindow.h>
 #include <qmapplication.h>
@@ -75,8 +77,6 @@
 #include "../uimodel/tabmodel.h"
 #include "../uimodel/viewmodel.h"
 #include "../util/util.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmmessage.h>
 
 #include <qsconv.h>
@@ -18,8 +20,6 @@
 #include <algorithm>
 
 #include "junk.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmjunk;
 using namespace qm;

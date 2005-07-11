@@ -6,14 +6,14 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsassert.h>
 #include <qsstl.h>
 
 #include "imap4.h"
 #include "option.h"
 #include "processhook.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmimap4;
 using namespace qm;

@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 
 #include <qsstl.h>
@@ -16,8 +18,6 @@
 #include "undo.h"
 #include "uri.h"
 #include "../util/util.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

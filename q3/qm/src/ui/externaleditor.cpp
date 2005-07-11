@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmapplication.h>
 #include <qmmessage.h>
 
@@ -19,8 +21,6 @@
 #include "externaleditor.h"
 #include "uiutil.h"
 #include "../uimodel/securitymodel.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsassert.h>
 #include <qsregex.h>
 

@@ -9,14 +9,13 @@
 #ifndef __QSSTL_H__
 #define __QSSTL_H__
 
+#pragma warning(disable:4284)
+
 #include <qs.h>
 #include <qsassert.h>
 
 #include <vector>
 #include <hash_map>
-
-#pragma warning(disable:4284)
-#pragma warning(disable:4786)
 
 namespace qs {
 
@@ -525,7 +524,5 @@ std::pair<OutIt1, OutIt2> transform2(InIt first, InIt last,
 }
 
 }
-
-#pragma warning(default:4786)
 
 #endif // __QSSTL_H__

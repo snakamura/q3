@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmtemplate.h>
 
@@ -18,8 +20,6 @@
 #include <algorithm>
 
 #include "templatemanager.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

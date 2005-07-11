@@ -6,13 +6,13 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsconv.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 
 #include "tempfilecleaner.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

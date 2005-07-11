@@ -6,10 +6,10 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include "messageindex.h"
 #include "messagestore.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

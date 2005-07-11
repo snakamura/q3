@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
@@ -35,8 +37,6 @@
 #include "undo.h"
 #include "uri.h"
 #include "../script/scriptmanager.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

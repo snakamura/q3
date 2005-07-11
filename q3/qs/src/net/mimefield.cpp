@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsmime.h>
 #include <qsconv.h>
 #include <qsstl.h>
@@ -17,8 +19,6 @@
 #include <cstdio>
 
 #include "mime.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

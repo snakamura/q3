@@ -19,8 +19,6 @@
 
 #include "uiutil.h"
 
-#pragma warning(disable:4786)
-
 namespace qs {
 
 /****************************************************************************
@@ -151,7 +149,5 @@ friend class InitializerImpl;
 }
 
 #include "window.inl"
-
-#pragma warning(default:4786)
 
 #endif // __WINDOW_H__

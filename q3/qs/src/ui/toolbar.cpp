@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsaction.h>
 #include <qsconv.h>
 #include <qsmenu.h>

@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmfolder.h>
 #include <qmmessageholder.h>
 
@@ -15,8 +17,6 @@
 #include <cstdio>
 
 #include "util.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmimap4;
 using namespace qm;

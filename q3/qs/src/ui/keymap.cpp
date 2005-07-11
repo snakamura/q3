@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsaccelerator.h>
 #include <qsinit.h>
 #include <qskeymap.h>
@@ -19,8 +21,6 @@
 #include <windows.h>
 
 #include "keymap.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

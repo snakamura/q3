@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsconv.h>
 #include <qsstream.h>
 
@@ -13,8 +15,6 @@
 
 #include "sax.h"
 #include "xmlparser.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

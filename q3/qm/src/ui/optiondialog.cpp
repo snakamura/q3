@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmdocument.h>
 #include <qmeditwindow.h>
 #include <qmfoldercombobox.h>
@@ -35,8 +37,6 @@
 #include "../sync/syncmanager.h"
 #include "../uimodel/tabmodel.h"
 #include "../util/util.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

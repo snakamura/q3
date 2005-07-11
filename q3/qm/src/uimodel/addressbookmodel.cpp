@@ -6,13 +6,13 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmapplication.h>
 #include <qmfilenames.h>
 
 #include "addressbookmodel.h"
 #include "../model/addressbook.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

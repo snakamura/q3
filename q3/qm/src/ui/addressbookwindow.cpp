@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaction.h>
 #include <qmaddressbookwindow.h>
 
@@ -32,8 +34,6 @@
 #include "../model/addressbook.h"
 #include "../uimodel/addressbookmodel.h"
 #include "../uimodel/addressbookselectionmodel.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

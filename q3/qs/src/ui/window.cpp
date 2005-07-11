@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsaccelerator.h>
 #include <qsaction.h>
 #include <qsconv.h>
@@ -28,8 +30,6 @@
 
 #include "dialog.h"
 #include "window.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

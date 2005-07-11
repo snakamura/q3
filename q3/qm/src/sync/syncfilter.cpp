@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmfolder.h>
 #include <qmsyncfilter.h>
@@ -20,8 +22,6 @@
 
 #include "syncfilter.h"
 #include "../util/confighelper.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

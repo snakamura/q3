@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmgoround.h>
 
 #include <qsconv.h>

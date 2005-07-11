@@ -6,10 +6,10 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qstimer.h>
 #include <qswindow.h>
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

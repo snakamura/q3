@@ -6,14 +6,14 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmmessage.h>
 
 #include <algorithm>
 
 #include "addressbook.h"
 #include "recentaddress.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

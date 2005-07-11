@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmmacro.h>
@@ -22,8 +24,6 @@
 #include <vector>
 
 #include "macro.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

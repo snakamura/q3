@@ -8,6 +8,8 @@
 
 #ifdef QMTABWINDOW
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
@@ -22,8 +24,6 @@
 #include "uiutil.h"
 #include "../model/dataobject.h"
 #include "../uimodel/tabmodel.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

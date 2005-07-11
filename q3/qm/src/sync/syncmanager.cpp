@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
@@ -27,8 +29,6 @@
 #include "syncmanager.h"
 #include "../model/uri.h"
 #include "../ui/resourceinc.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

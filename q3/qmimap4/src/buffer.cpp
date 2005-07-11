@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include "buffer.h"
 #include "error.h"
 #include "imap4.h"

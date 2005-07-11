@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmfilenames.h>
 
 #include <qsconv.h>
@@ -17,8 +19,6 @@
 
 #include "messageindex.h"
 #include "messagestore.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

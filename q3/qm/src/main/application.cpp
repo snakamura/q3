@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qm.h>
 #include <qmaccount.h>
 #include <qmapplication.h>

@@ -6,14 +6,14 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsaccelerator.h>
 #include <qsstl.h>
 
 #include <algorithm>
 #include <utility>
 #include <vector>
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

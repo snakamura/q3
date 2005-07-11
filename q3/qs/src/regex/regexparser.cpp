@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsassert.h>
 #include <qsregex.h>
 #include <qsstl.h>
@@ -13,8 +15,6 @@
 #include <algorithm>
 
 #include "regexparser.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

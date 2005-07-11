@@ -6,14 +6,14 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsassert.h>
 #include <qsdragdrop.h>
 
 #include <algorithm>
 
 #include "dragdrop.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

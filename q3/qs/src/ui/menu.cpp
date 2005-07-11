@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsaction.h>
 #include <qsconv.h>
 #include <qsmenu.h>
@@ -14,8 +16,6 @@
 #include <algorithm>
 
 #include "menu.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

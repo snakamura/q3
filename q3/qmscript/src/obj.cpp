@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmapplication.h>
 #include <qmsecurity.h>
 
@@ -19,8 +21,6 @@
 #ifndef DEPENDCHECK
 #	include "qmobj_i.c"
 #endif
-
-#pragma warning(disable:4786)
 
 
 using namespace qmscript;

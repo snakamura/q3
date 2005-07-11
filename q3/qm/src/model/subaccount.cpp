@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmdocument.h>
 #include <qmfilenames.h>
@@ -24,8 +26,6 @@
 #include <vector>
 
 #include "security.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

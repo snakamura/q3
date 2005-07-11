@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmmacro.h>
 #include <qmtemplate.h>
 
@@ -13,8 +15,6 @@
 #include <qsstream.h>
 
 #include <algorithm>
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #ifndef _WIN32_WCE
 #	define INITGUID
 #endif
@@ -36,8 +38,6 @@
 
 #include "addressbook.h"
 #include "../util/confighelper.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

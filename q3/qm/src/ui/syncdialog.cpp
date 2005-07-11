@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmfolder.h>
@@ -21,8 +23,6 @@
 #include "dialogs.h"
 #include "resourceinc.h"
 #include "syncdialog.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

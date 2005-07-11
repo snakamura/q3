@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmmessage.h>
@@ -38,8 +40,6 @@
 #include "../uimodel/messagemodel.h"
 #include "../uimodel/messageselectionmodel.h"
 #include "../uimodel/securitymodel.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

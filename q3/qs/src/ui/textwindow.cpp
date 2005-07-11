@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsconv.h>
 #include <qsdevicecontext.h>
 #include <qsinit.h>
@@ -26,8 +28,6 @@
 
 #include "resourceinc.h"
 #include "textwindow.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

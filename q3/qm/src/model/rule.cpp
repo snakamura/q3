@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
@@ -27,8 +29,6 @@
 #include "rule.h"
 #include "templatemanager.h"
 #include "undo.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

@@ -6,12 +6,12 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsaction.h>
 #include <qsstl.h>
 
 #include <algorithm>
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

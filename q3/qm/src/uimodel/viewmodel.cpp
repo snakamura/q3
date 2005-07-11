@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmfilenames.h>
@@ -26,8 +28,6 @@
 #include "../model/color.h"
 #include "../model/filter.h"
 #include "../util/confighelper.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

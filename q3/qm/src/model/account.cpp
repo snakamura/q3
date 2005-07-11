@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
@@ -32,8 +34,6 @@
 #include "undo.h"
 #include "../junk/junk.h"
 #include "../util/confighelper.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

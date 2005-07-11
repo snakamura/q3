@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmprotocoldriver.h>
 #include <qmsession.h>
 
@@ -15,8 +17,6 @@
 
 #include <algorithm>
 #include <vector>
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

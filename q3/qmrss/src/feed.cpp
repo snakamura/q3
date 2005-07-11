@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsconv.h>
 #include <qsfile.h>
 #include <qsmime.h>
@@ -13,8 +15,6 @@
 #include <qsstream.h>
 
 #include "feed.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmrss;
 using namespace qm;

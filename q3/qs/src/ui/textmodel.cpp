@@ -6,14 +6,14 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsstream.h>
 #include <qstextwindow.h>
 #include <qstimer.h>
 
 #include <algorithm>
 #include <vector>
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

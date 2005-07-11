@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsconv.h>
 #include <qsfile.h>
 #include <qsosutil.h>
@@ -17,8 +19,6 @@
 #include <algorithm>
 
 #include "profile.h"
-
-#pragma warning(disable:4786)
 
 using namespace qs;
 

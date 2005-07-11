@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmfolder.h>
 #include <qmmessage.h>
@@ -28,8 +30,6 @@
 #include "processhook.h"
 #include "resourceinc.h"
 #include "ui.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmimap4;
 using namespace qm;

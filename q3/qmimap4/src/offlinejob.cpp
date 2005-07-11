@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmsecurity.h>
@@ -21,8 +23,6 @@
 #include "imap4.h"
 #include "offlinejob.h"
 #include "util.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmimap4;
 using namespace qm;

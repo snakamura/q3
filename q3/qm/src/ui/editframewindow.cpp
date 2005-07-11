@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaction.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
@@ -37,8 +39,6 @@
 #include "../action/editaction.h"
 #include "../action/findreplace.h"
 #include "../model/editmessage.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

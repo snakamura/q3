@@ -6,10 +6,10 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qswindow.h>
 #include <qsstl.h>
-
-#pragma warning(disable:4786)
 
 #include <vector>
 

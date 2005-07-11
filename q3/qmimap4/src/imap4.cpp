@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsconv.h>
 #include <qsencoder.h>
 #include <qsmd5.h>
@@ -17,8 +19,6 @@
 #include "error.h"
 #include "imap4.h"
 #include "parser.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmimap4;
 using namespace qs;

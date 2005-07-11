@@ -6,14 +6,14 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsconv.h>
 #include <qsfile.h>
 #include <qsstl.h>
 #include <qsstream.h>
 
 #include "lastid.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmnntp;
 using namespace qm;

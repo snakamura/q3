@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmfolder.h>
 #include <qmjunk.h>
@@ -27,8 +29,6 @@
 #include "ui.h"
 #include "uid.h"
 #include "util.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmpop3;
 using namespace qm;

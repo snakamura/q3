@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qm.h>
 #include <qmapplication.h>
 #include <qmmain.h>
@@ -23,8 +25,6 @@
 #include "main.h"
 #include "../ui/actionid.h"
 #include "../ui/dialogs.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

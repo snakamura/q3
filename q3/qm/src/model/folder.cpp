@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
@@ -23,8 +25,6 @@
 
 #include <memory>
 #include <algorithm>
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

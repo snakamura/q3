@@ -6,11 +6,11 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include "error.h"
 #include "imap4.h"
 #include "parser.h"
-
-#pragma warning(disable:4786)
 
 using namespace qmimap4;
 using namespace qs;

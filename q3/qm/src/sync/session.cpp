@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmapplication.h>
 #include <qmsecurity.h>
 #include <qmsession.h>
@@ -13,8 +15,6 @@
 #include <qsstl.h>
 
 #include "../ui/resourceinc.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;

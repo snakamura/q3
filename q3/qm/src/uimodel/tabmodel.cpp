@@ -8,6 +8,8 @@
 
 #ifdef QMTABWINDOW
 
+#pragma warning(disable:4786)
+
 #include <qmaccount.h>
 #include <qmdocument.h>
 
@@ -17,8 +19,6 @@
 
 #include "tabmodel.h"
 #include "../util/confighelper.h"
-
-#pragma warning(disable:4786)
 
 using namespace qm;
 using namespace qs;
