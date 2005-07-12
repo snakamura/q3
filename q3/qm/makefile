@@ -31,7 +31,7 @@ include ../common.mak
 $(SRCDIR)/main/version.h: version revision
 	( \
 		getRevision() { \
-			svn info $$1 | grep "Last Changed Rev" | cut -f 4 -d ' '; \
+			LC_MESSAGES=C svn info $$1 | grep "Last Changed Rev" | cut -f 4 -d ' '; \
 		}; \
 		getNewestRevision() { \
 			rev=`getRevision $$1`; \

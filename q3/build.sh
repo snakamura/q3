@@ -177,7 +177,7 @@ inst)
     ;;
 
 *)
-	REVISION=`svn info | grep Revision | cut -d ' ' -f 2`
+	REVISION=`LC_MESSAGES=C svn info | grep Revision | cut -d ' ' -f 2`
 	if [ -f revision ]; then
 		OLDREVISION=`cat revision`
 	fi
