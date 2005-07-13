@@ -518,6 +518,7 @@
 #define IDC_STOREDECODED                1407
 #define IDC_ADDTORECENTS                1408
 #define IDC_WHITELIST                   1409
+#define IDC_BLACKLIST                   1410
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -612,7 +613,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        217
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1410
+#define _APS_NEXT_CONTROL_VALUE         1411
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

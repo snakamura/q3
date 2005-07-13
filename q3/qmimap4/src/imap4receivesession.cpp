@@ -1273,7 +1273,7 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(JunkFilter* pJunkFilter,
 							nOperation = JunkFilter::OPERATION_ADDCLEAN;
 						}
 						else {
-							float fScore = pJunkFilter->getScore(msg, 0);
+							float fScore = pJunkFilter->getScore(msg, 0, 0);
 							if (fScore < 0) {
 								reportError(0, IMAP4ERROR_FILTERJUNK);
 							}

@@ -1204,6 +1204,9 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 		
 		wstring_ptr wstrWhiteList(pJunkFilter_->getWhiteList(L"\r\n"));
 		setDlgItemText(IDC_WHITELIST, wstrWhiteList.get());
+		
+		wstring_ptr wstrBlackList(pJunkFilter_->getBlackList(L"\r\n"));
+		setDlgItemText(IDC_BLACKLIST, wstrBlackList.get());
 	}
 	else {
 		UINT nIds[] = {
@@ -1211,7 +1214,8 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 			IDC_AUTOLEARN,
 			IDC_THRESHOLD,
 			IDC_MAXSIZE,
-			IDC_WHITELIST
+			IDC_WHITELIST,
+			IDC_BLACKLIST
 		};
 		for (int n = 0; n < countof(nIds); ++n)
 			Window(getDlgItem(nIds[n])).enableWindow(false);
@@ -1241,6 +1245,9 @@ bool qm::OptionJunkDialog::save(OptionDialogContext* pContext)
 		
 		wstring_ptr wstrWhiteList(getDlgItemText(IDC_WHITELIST));
 		pJunkFilter_->setWhiteList(wstrWhiteList.get());
+		
+		wstring_ptr wstrBlackList(getDlgItemText(IDC_BLACKLIST));
+		pJunkFilter_->setBlackList(wstrBlackList.get());
 	}
 	
 	return true;
@@ -1259,13 +1266,14 @@ void qm::OptionJunkDialog::layout()
 	RECT rect;
 	getClientRect(&rect);
 	
-	RECT rectWhiteList;
-	Window(getDlgItem(IDC_WHITELIST)).getWindowRect(&rectWhiteList);
-	screenToClient(&rectWhiteList);
-	
-	Window(getDlgItem(IDC_WHITELIST)).setWindowPos(0, 0, 0,
-		rect.right - rectWhiteList.left - 5, rectWhiteList.bottom - rectWhiteList.top,
-		SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+	for (UINT nId = IDC_WHITELIST; nId <= IDC_BLACKLIST; ++nId) {
+		Window wnd(getDlgItem(nId));
+		RECT r;
+		wnd.getWindowRect(&r);
+		screenToClient(&r);
+		wnd.setWindowPos(0, 0, 0, rect.right - r.left - 5, r.bottom - r.top,
+			SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+	}
 }
 #endif // _WIN32_WCE
 

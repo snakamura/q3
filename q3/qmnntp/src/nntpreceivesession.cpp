@@ -474,7 +474,7 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 	Message msgJunk;
 	if (pJunkFilter) {
 		if (msgJunk.create(pszMessage, nLen, Message::FLAG_NONE)) {
-			float fScore = pJunkFilter->getScore(msgJunk, 0);
+			float fScore = pJunkFilter->getScore(msgJunk, 0, 0);
 			if (fScore < 0)
 				Util::reportError(0, pSessionCallback_, pAccount_,
 					pSubAccount_, pFolder_, NNTPERROR_FILTERJUNK);

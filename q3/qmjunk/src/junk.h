@@ -24,7 +24,7 @@ class JunkFilterImpl;
 class JunkFilterFactoryImpl;
 class Tokenizer;
 class TokenizerCallback;
-class WhiteList;
+class AddressList;
 
 
 /****************************************************************************
@@ -69,7 +69,8 @@ public:
 
 public:
 	virtual float getScore(const qm::Message& msg,
-						   const WCHAR* pwszWhiteList);
+						   const WCHAR* pwszWhiteList,
+						   const WCHAR* pwszBlackList);
 	virtual bool manage(const qm::Message& msg,
 						unsigned int nOperation);
 	virtual Status getStatus(const WCHAR* pwszId);
@@ -82,6 +83,8 @@ public:
 	virtual void setMaxTextLength(unsigned int nMaxTextLength);
 	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator);
 	virtual void setWhiteList(const WCHAR* pwszWhiteList);
+	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator);
+	virtual void setBlackList(const WCHAR* pwszBlackList);
 	virtual bool save();
 
 private:
@@ -90,10 +93,11 @@ private:
 	DEPOT* getTokenDepot();
 	DEPOT* getIdDepot();
 	DepotPtr open(const WCHAR* pwszName) const;
-	bool isWhite(const qm::Message& msg,
-				 const WCHAR* pwszWhiteList) const;
 
 private:
+	static bool match(const AddressList* pAddressList,
+					  const qm::Message& msg,
+					  const WCHAR* pwszAlternativeList);
 	static qs::string_ptr getId(const qs::Part& part);
 
 private:
@@ -110,7 +114,8 @@ private:
 	float fThresholdScore_;
 	unsigned int nFlags_;
 	unsigned int nMaxTextLen_;
-	std::auto_ptr<WhiteList> pWhiteList_;
+	std::auto_ptr<AddressList> pWhiteList_;
+	std::auto_ptr<AddressList> pBlackList_;
 	mutable bool bModified_;
 	qs::CriticalSection cs_;
 };
@@ -201,18 +206,18 @@ public:
 
 /****************************************************************************
  *
- * WhiteList
+ * AddressList
  *
  */
 
-class WhiteList
+class AddressList
 {
 public:
-	WhiteList(const WCHAR* pwszWhiteList);
-	~WhiteList();
+	AddressList(const WCHAR* pwszAddressList);
+	~AddressList();
 
 public:
-	bool isWhite(const qm::Message& msg) const;
+	bool match(const qm::Message& msg) const;
 	qs::wstring_ptr toString(const WCHAR* pwszSeparator) const;
 
 private:
@@ -222,8 +227,8 @@ private:
 						 const WCHAR* pwsz);
 
 private:
-	WhiteList(const WhiteList&);
-	WhiteList& operator=(const WhiteList&);
+	AddressList(const AddressList&);
+	AddressList& operator=(const AddressList&);
 
 private:
 	typedef std::vector<qs::WSTRING> List;

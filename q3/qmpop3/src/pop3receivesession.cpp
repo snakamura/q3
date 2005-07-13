@@ -308,7 +308,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			Message msgJunk;
 			if (pJunkFilter) {
 				if (msgJunk.create(strMessage.get(), -1, Message::FLAG_NONE)) {
-					float fScore = pJunkFilter->getScore(msgJunk, 0);
+					float fScore = pJunkFilter->getScore(msgJunk, 0, 0);
 					if (fScore < 0)
 						Util::reportError(0, pSessionCallback_, pAccount_,
 							pSubAccount_, pFolder_, POP3ERROR_FILTERJUNK);

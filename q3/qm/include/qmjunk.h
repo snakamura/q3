@@ -57,7 +57,8 @@ public:
 
 public:
 	virtual float getScore(const Message& msg,
-						   const WCHAR* pwszWhiteList) = 0;
+						   const WCHAR* pwszWhiteList,
+						   const WCHAR* pwszBlackList) = 0;
 	virtual bool manage(const Message& msg,
 						unsigned int nOperation) = 0;
 	virtual Status getStatus(const WCHAR* pwszId) = 0;
@@ -70,6 +71,8 @@ public:
 	virtual void setMaxTextLength(unsigned int nMaxTextLength) = 0;
 	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator) = 0;
 	virtual void setWhiteList(const WCHAR* pwszWhiteList) = 0;
+	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator) = 0;
+	virtual void setBlackList(const WCHAR* pwszBlackList) = 0;
 	virtual bool save() = 0;
 
 public:
