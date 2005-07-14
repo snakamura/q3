@@ -491,7 +491,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
 			PANEL1(PANEL_MISC2, OptionMisc2, pProfile_);
 #ifndef _WIN32_WCE
-			PANEL1(PANEL_JUNK, OptionJunk, pDocument_->getJunkFilter());
+			PANEL2(PANEL_JUNK, OptionJunk, pDocument_->getJunkFilter(), pProfile_);
 #endif
 			PANEL2(PANEL_SECURITY, OptionSecurity, pDocument_->getSecurity(), pProfile_);
 		END_PANEL()
@@ -1164,9 +1164,11 @@ LRESULT qm::OptionHeaderDialog::onFont()
  *
  */
 
-qm::OptionJunkDialog::OptionJunkDialog(JunkFilter* pJunkFilter) :
+qm::OptionJunkDialog::OptionJunkDialog(JunkFilter* pJunkFilter,
+									   Profile* pProfile) :
 	DefaultDialog(IDD_OPTIONJUNK),
-	pJunkFilter_(pJunkFilter)
+	pJunkFilter_(pJunkFilter),
+	pProfile_(pProfile)
 {
 }
 
@@ -1202,11 +1204,11 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 		unsigned int nMaxSize = pJunkFilter_->getMaxTextLength();
 		setDlgItemInt(IDC_MAXSIZE, nMaxSize);
 		
-		wstring_ptr wstrWhiteList(pJunkFilter_->getWhiteList(L"\r\n"));
-		setDlgItemText(IDC_WHITELIST, wstrWhiteList.get());
+		wstring_ptr wstrWhiteList(pProfile_->getString(L"JunkFilter", L"WhiteList", L""));
+		setDlgItemText(IDC_WHITELIST, replaceWhitespace(wstrWhiteList.get(), L"\r\n").get());
 		
-		wstring_ptr wstrBlackList(pJunkFilter_->getBlackList(L"\r\n"));
-		setDlgItemText(IDC_BLACKLIST, wstrBlackList.get());
+		wstring_ptr wstrBlackList(pProfile_->getString(L"JunkFilter", L"BlackList", L""));
+		setDlgItemText(IDC_BLACKLIST, replaceWhitespace(wstrBlackList.get(), L"\r\n").get());
 	}
 	else {
 		UINT nIds[] = {
@@ -1244,10 +1246,12 @@ bool qm::OptionJunkDialog::save(OptionDialogContext* pContext)
 		pJunkFilter_->setMaxTextLength(nMaxSize);
 		
 		wstring_ptr wstrWhiteList(getDlgItemText(IDC_WHITELIST));
-		pJunkFilter_->setWhiteList(wstrWhiteList.get());
+		pProfile_->setString(L"JunkFilter", L"WhiteList",
+			replaceWhitespace(wstrWhiteList.get(), L" ").get());
 		
 		wstring_ptr wstrBlackList(getDlgItemText(IDC_BLACKLIST));
-		pJunkFilter_->setBlackList(wstrBlackList.get());
+		pProfile_->setString(L"JunkFilter", L"BlackList",
+			replaceWhitespace(wstrBlackList.get(), L" ").get());
 	}
 	
 	return true;
@@ -1274,6 +1278,27 @@ void qm::OptionJunkDialog::layout()
 		wnd.setWindowPos(0, 0, 0, rect.right - r.left - 5, r.bottom - r.top,
 			SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 	}
+}
+
+wstring_ptr qm::OptionJunkDialog::replaceWhitespace(const WCHAR* pwsz,
+													const WCHAR* pwszSeparator)
+{
+	StringBuffer<WSTRING> buf;
+	bool bSpace = false;
+	while (*pwsz) {
+		if (*pwsz == L' ' || *pwsz == L'\t' || *pwsz == L'\r' || *pwsz == L'\n') {
+			bSpace = true;
+		}
+		else {
+			if (bSpace) {
+				buf.append(pwszSeparator);
+				bSpace = false;
+			}
+			buf.append(*pwsz);
+		}
+		++pwsz;
+	}
+	return buf.getString();
 }
 #endif // _WIN32_WCE
 
