@@ -2643,24 +2643,28 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 	wstring_ptr wstrBlackList;
 	struct {
 		size_t nArg_;
+		const WCHAR* pwszKey_;
 		wstring_ptr* pwstr_;
 	} lists[] = {
-		{ 0, &wstrWhiteList },
-		{ 1, &wstrBlackList }
+		{ 0, L"WhiteList", &wstrWhiteList },
+		{ 1, L"BlackList", &wstrBlackList }
 	};
+	Profile* pProfile = pContext->getProfile();
 	for (int n = 0; n < countof(lists); ++n) {
+		wstring_ptr* pwstr = lists[n].pwstr_;
 		if (nSize > lists[n].nArg_) {
 			ARG(pValue, lists[n].nArg_);
-			wstring_ptr wstr(pValue->string());
-			if (*wstr.get())
-				*lists[n].pwstr_ = wstr;
+			*pwstr = pValue->string();
 		}
+		if (!pwstr->get() || !*pwstr->get())
+			*pwstr = pProfile->getString(L"JunkFilter", lists[n].pwszKey_, L"");
 	}
 	
 	bool bJunk = false;
 	JunkFilter* pJunkFilter = pContext->getDocument()->getJunkFilter();
 	if (pJunkFilter) {
-		float fScore = pJunkFilter->getScore(*pMessage, wstrWhiteList.get(), wstrBlackList.get());
+		float fScore = pJunkFilter->getScore(*pMessage,
+			wstrWhiteList.get(), wstrBlackList.get());
 		bJunk = fScore > pJunkFilter->getThresholdScore();
 		if (pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
 			unsigned int nOperation = bJunk ?
