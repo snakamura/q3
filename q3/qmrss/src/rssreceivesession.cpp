@@ -369,7 +369,8 @@ bool qmrss::RssReceiveSession::applyRules(const MessagePtrList& l)
 		
 		RuleManager* pRuleManager = pDocument_->getRuleManager();
 		DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
+		if (!pRuleManager->apply(pFolder_, &listMessageHolder,
+			pDocument_, pProfile_, false, false, &callback))
 			return false;
 		
 		for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {

@@ -82,11 +82,10 @@ private:
 					  unsigned int nId,
 					  unsigned int nFlags,
 					  unsigned int nSize,
-					  qm::JunkFilter* pJunkFilter,
-					  unsigned int nJunkFilterFlags,
-					  qm::NormalFolder* pJunkbox,
 					  MessagePtrList* pListDownloaded);
-	bool applyRules(const MessagePtrList& l);
+	bool applyRules(const MessagePtrList& l,
+					bool bJunkFilter,
+					bool bJunkFilterOnly);
 
 private:
 	NntpReceiveSession(const NntpReceiveSession&);

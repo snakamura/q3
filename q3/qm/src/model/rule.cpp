@@ -43,6 +43,14 @@ using namespace qs;
 class qm::RuleManagerImpl
 {
 public:
+	enum Flag {
+		FLAG_NONE		= 0x00,
+		FLAG_AUTO		= 0x01,
+		FLAG_JUNK		= 0x02,
+		FLAG_JUNKONLY	= 0x04
+	};
+
+public:
 	typedef std::vector<Rule*> RuleList;
 
 public:
@@ -60,9 +68,12 @@ public:
 			   Document* pDocument,
 			   HWND hwnd,
 			   Profile* pProfile,
-			   bool bAuto,
+			   unsigned int nFlags,
 			   unsigned int nSecurityMode,
 			   RuleCallback* pCallback);
+
+private:
+	static std::auto_ptr<Rule> createJunkRule(Account* pAccount);
 
 public:
 	RuleManager* pThis_;
@@ -111,13 +122,13 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 								Document* pDocument,
 								HWND hwnd,
 								Profile* pProfile,
-								bool bAuto,
+								unsigned int nFlags,
 								unsigned int nSecurityMode,
 								RuleCallback* pCallback)
 {
 	assert(pFolder);
 	assert(pDocument);
-	assert(hwnd || bAuto);
+	assert(hwnd || nFlags & FLAG_AUTO);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qm::RuleManagerImpl");
 	
@@ -136,8 +147,19 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	ReadWriteReadLock readLock(lock_);
 	Lock<ReadWriteReadLock> ruleLock(readLock);
 	
+	bool bAuto = (nFlags & FLAG_AUTO) != 0;
+	
 	RuleManagerImpl::RuleList listRule;
-	getRules(pFolder, bAuto, &listRule);
+	if (!(nFlags & FLAG_JUNKONLY))
+		getRules(pFolder, bAuto, &listRule);
+	
+	std::auto_ptr<Rule> pRuleJunk;
+	if (nFlags & FLAG_JUNK) {
+		pRuleJunk = createJunkRule(pAccount);
+		if (pRuleJunk.get())
+			listRule.insert(listRule.begin(), pRuleJunk.get());
+	}
+	
 	if (listRule.empty()) {
 		log.debug(L"No rule for this folder was found.");
 		return true;
@@ -271,6 +293,22 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	return true;
 }
 
+std::auto_ptr<Rule> RuleManagerImpl::createJunkRule(Account* pAccount)
+{
+	const NormalFolder* pJunk = static_cast<NormalFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
+	if (!pJunk)
+		return std::auto_ptr<Rule>();
+	wstring_ptr wstrJunk(pJunk->getFullName());
+	
+	const WCHAR* pwszCondition = pAccount->isSupport(Account::SUPPORT_DELETEDMESSAGE) ?
+		L"@And(@Not(@Deleted()), @Junk(@Profile('', 'JunkFilter', 'WhiteList'), @Profile('', 'JunkFilter', 'BlackList')))" :
+		L"@Junk(@Profile('', 'JunkFilter', 'WhiteList'), @Profile('', 'JunkFilter', 'BlackList'))";
+	std::auto_ptr<Macro> pCondition(MacroParser().parse(pwszCondition));
+	std::auto_ptr<RuleAction> pAction(new CopyRuleAction(0, wstrJunk.get(), true));
+	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO));
+}
+
 
 /****************************************************************************
  *
@@ -316,7 +354,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 							RuleCallback* pCallback)
 {
 	return pImpl_->apply(pFolder, 0, 0, pDocument, hwnd,
-		pProfile, false, nSecurityMode, pCallback);
+		pProfile, RuleManagerImpl::FLAG_NONE, nSecurityMode, pCallback);
 }
 
 bool qm::RuleManager::apply(Folder* pFolder,
@@ -328,17 +366,24 @@ bool qm::RuleManager::apply(Folder* pFolder,
 							RuleCallback* pCallback)
 {
 	return pImpl_->apply(pFolder, 0, &l, pDocument, hwnd,
-		pProfile, false, nSecurityMode, pCallback);
+		pProfile, RuleManagerImpl::FLAG_NONE, nSecurityMode, pCallback);
 }
 
 bool qm::RuleManager::apply(Folder* pFolder,
 							MessageHolderList* pList,
 							Document* pDocument,
 							Profile* pProfile,
+							bool bJunkFilter,
+							bool bJunkFilterOnly,
 							RuleCallback* pCallback)
 {
+	unsigned int nFlags = RuleManagerImpl::FLAG_AUTO;
+	if (bJunkFilter)
+		nFlags |= RuleManagerImpl::FLAG_JUNK;
+	if (bJunkFilterOnly)
+		nFlags |= RuleManagerImpl::FLAG_JUNKONLY;
 	return pImpl_->apply(pFolder, pList, 0, pDocument, 0,
-		pProfile, true, SECURITYMODE_NONE, pCallback);
+		pProfile, nFlags, SECURITYMODE_NONE, pCallback);
 }
 
 bool qm::RuleManager::save() const

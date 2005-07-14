@@ -90,12 +90,6 @@ void qmnntp::NntpReceiveSession::term()
 		if (!pLastIdList_->save())
 			log.error(L"Failed to save last id list.");
 	}
-	
-	JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
-	if (pJunkFilter) {
-		if (!pJunkFilter->save())
-			log.error(L"Failed to save junk filter.");
-	}
 }
 
 bool qmnntp::NntpReceiveSession::connect()
@@ -198,14 +192,6 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	
 	bool bUseXOver = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1) != 0;
 	
-	JunkFilter* pJunkFilter = pSubAccount_->isJunkFilterEnabled() ?
-		pDocument_->getJunkFilter() : 0;
-	NormalFolder* pJunkbox = pJunkFilter ? static_cast<NormalFolder*>(
-		pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX)) : 0;
-	if (!pJunkbox)
-		pJunkFilter = 0;
-	unsigned int nJunkFilterFlags = pJunkFilter ? pJunkFilter->getFlags() : 0;
-	
 	MacroVariableHolder globalVariable;
 	
 	MessagePtrList listDownloaded;
@@ -292,8 +278,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				}
 				
 				if (!bIgnore) {
-					if (!storeMessage(pszMessage, nLen, item.nId_, nFlags, item.nBytes_,
-						pJunkFilter, nJunkFilterFlags, pJunkbox, &listDownloaded))
+					if (!storeMessage(pszMessage, nLen, item.nId_,
+						nFlags, item.nBytes_, &listDownloaded))
 						return false;
 				}
 				
@@ -317,8 +303,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				// Process sync filter ?
 				
 				if (!storeMessage(strMessage.get(), strMessage.size(),
-					n, MessageHolder::FLAG_HEADERONLY, -1, pJunkFilter,
-					nJunkFilterFlags, pJunkbox, &listDownloaded))
+					n, MessageHolder::FLAG_HEADERONLY, -1, &listDownloaded))
 					return false;
 				
 				pLastIdList_->setLastId(pNntp_->getGroup(), n);
@@ -326,8 +311,10 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 	}
 	
-	if (pSubAccount_->isAutoApplyRules()) {
-		if (!applyRules(listDownloaded))
+	bool bApplyRules = pSubAccount_->isAutoApplyRules();
+	bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
+	if (bApplyRules || bJunkFilter) {
+		if (!applyRules(listDownloaded, bJunkFilter, !bApplyRules))
 			Util::reportError(0, pSessionCallback_, pAccount_,
 				pSubAccount_, pFolder_, NNTPERROR_APPLYRULES);
 	}
@@ -465,50 +452,23 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 											  unsigned int nId,
 											  unsigned int nFlags,
 											  unsigned int nSize,
-											  JunkFilter* pJunkFilter,
-											  unsigned int nJunkFilterFlags,
-											  NormalFolder* pJunkbox,
 											  MessagePtrList* pListDownloaded)
 {
-	bool bJunk = false;
-	Message msgJunk;
-	if (pJunkFilter) {
-		if (msgJunk.create(pszMessage, nLen, Message::FLAG_NONE)) {
-			float fScore = pJunkFilter->getScore(msgJunk, 0, 0);
-			if (fScore < 0)
-				Util::reportError(0, pSessionCallback_, pAccount_,
-					pSubAccount_, pFolder_, NNTPERROR_FILTERJUNK);
-			else
-				bJunk =  fScore > pJunkFilter->getThresholdScore();
-		}
-	}
+	Lock<Account> lock(*pAccount_);
 	
-	{
-		Lock<Account> lock(*pAccount_);
-		
-		NormalFolder* pFolder = bJunk ? pJunkbox : pFolder_;
-		MessageHolder* pmh = pAccount_->storeMessage(
-			pFolder, pszMessage, nLen, 0, nId, nFlags, nSize,
-			nFlags == MessageHolder::FLAG_INDEXONLY);
-		if (!pmh)
-			return false;
-		
-		if (!bJunk)
-			pListDownloaded->push_back(MessagePtr(pmh));
-	}
+	MessageHolder* pmh = pAccount_->storeMessage(pFolder_, pszMessage, nLen,
+		0, nId, nFlags, nSize, nFlags == MessageHolder::FLAG_INDEXONLY);
+	if (!pmh)
+		return false;
 	
-	if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
-		unsigned int nJunkOperation = bJunk ?
-			JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
-		if (!pJunkFilter->manage(msgJunk, nJunkOperation))
-			Util::reportError(0, pSessionCallback_, pAccount_,
-				pSubAccount_, pFolder_, NNTPERROR_MANAGEJUNK);
-	}
+	pListDownloaded->push_back(MessagePtr(pmh));
 	
 	return true;
 }
 
-bool qmnntp::NntpReceiveSession::applyRules(const MessagePtrList& l)
+bool qmnntp::NntpReceiveSession::applyRules(const MessagePtrList& l,
+											bool bJunkFilter,
+											bool bJunkFilterOnly)
 {
 	MessagePtrList listNotify;
 	
@@ -525,7 +485,8 @@ bool qmnntp::NntpReceiveSession::applyRules(const MessagePtrList& l)
 		
 		RuleManager* pRuleManager = pDocument_->getRuleManager();
 		DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
+		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_,
+			pProfile_, bJunkFilter, bJunkFilterOnly, &callback))
 			return false;
 		
 		for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {

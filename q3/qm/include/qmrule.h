@@ -62,6 +62,8 @@ public:
 			   MessageHolderList* pList,
 			   Document* pDocument,
 			   qs::Profile* pProfile,
+			   bool bJunkFilter,
+			   bool bJunkFilterOnly,
 			   RuleCallback* pCallback);
 	bool save() const;
 

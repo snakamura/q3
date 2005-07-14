@@ -82,7 +82,9 @@ private:
 	bool downloadReservedMessages();
 	bool downloadReservedMessages(qm::NormalFolder* pFolder,
 								  unsigned int* pnPos);
-	bool applyRules(const MessagePtrList& l);
+	bool applyRules(const MessagePtrList& l,
+					bool bJunkFilter,
+					bool bJunkFilterOnly);
 	std::auto_ptr<UIDList> loadUIDList() const;
 	bool saveUIDList(const UIDList* pUIDList) const;
 	qs::wstring_ptr getUIDListPath() const;

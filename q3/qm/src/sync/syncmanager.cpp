@@ -13,6 +13,7 @@
 #include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
+#include <qmjunk.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmrecents.h>
@@ -465,6 +466,8 @@ void qm::SyncManager::fireStatusChanged() const
 
 bool qm::SyncManager::syncData(const SyncData* pData)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::SyncManager::syncData");
+	
 	SyncManagerCallback* pCallback = pData->getCallback();
 	assert(pCallback);
 	
@@ -617,6 +620,11 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 		syncSlotData(pData, 0);
 	}
 	
+	JunkFilter* pJunkFilter = pData->getDocument()->getJunkFilter();
+	if (pJunkFilter) {
+		if (!pJunkFilter->save())
+			log.error(L"Failed to save junk filter.");
+	}
 	return true;
 }
 

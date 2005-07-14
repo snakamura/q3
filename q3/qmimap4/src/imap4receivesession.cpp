@@ -10,9 +10,9 @@
 
 #include <qmaccount.h>
 #include <qmfolder.h>
+#include <qmjunk.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
-#include <qmjunk.h>
 
 #include <qsthread.h>
 
@@ -96,13 +96,6 @@ bool qmimap4::Imap4ReceiveSession::init(Document* pDocument,
 
 void qmimap4::Imap4ReceiveSession::term()
 {
-	Log log(pLogger_, L"qmimap4::Imap4ReceiveSession");
-	
-	JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
-	if (pJunkFilter) {
-		if (!pJunkFilter->save())
-			log.error(L"Failed to save junk filter.");
-	}
 }
 
 bool qmimap4::Imap4ReceiveSession::connect()
@@ -321,14 +314,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	
 	MessageDataList listMessageData;
 	listMessageData.reserve(nExists_ - nIdStart_);
-	
-	JunkFilter* pJunkFilter = pSubAccount_->isJunkFilterEnabled() ?
-		pDocument_->getJunkFilter() : 0;
-	NormalFolder* pJunkbox = pJunkFilter ? static_cast<NormalFolder*>(
-		pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX)) : 0;
-	if (!pJunkbox)
-		pJunkFilter = 0;
-	unsigned int nJunkFilterFlags = pJunkFilter ? pJunkFilter->getFlags() : 0;
 	
 	struct GetMessageDataProcessHook : public ProcessHook
 	{
@@ -947,18 +932,21 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			HANDLE_ERROR();
 	}
 	
-	if (pJunkFilter) {
-		if (!applyJunkFilter(pJunkFilter, listMessageData))
+	bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
+	if (bJunkFilter) {
+		if (!applyJunkFilter(listMessageData))
 			return false;
+		bJunkFilter = pFolder_->isFlag(Folder::FLAG_INBOX);
 	}
 	
+	bool bApplyRules = pSubAccount_->isAutoApplyRules();
 	bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
 		!pFolder_->isFlag(Folder::FLAG_SENTBOX) &&
 		!pFolder_->isFlag(Folder::FLAG_TRASHBOX) &&
 		!pFolder_->isFlag(Folder::FLAG_DRAFTBOX) &&
 		!pFolder_->isFlag(Folder::FLAG_JUNKBOX);
-	if (pSubAccount_->isAutoApplyRules()) {
-		if (!applyRules(listMessageData, bNotifyNewMessage))
+	if (bApplyRules || bJunkFilter) {
+		if (!applyRules(listMessageData, bJunkFilter, !bApplyRules, bNotifyNewMessage))
 			reportError(0, IMAP4ERROR_APPLYRULES);
 	}
 	else {
@@ -1247,94 +1235,35 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 	return true;
 }
 
-bool qmimap4::Imap4ReceiveSession::applyJunkFilter(JunkFilter* pJunkFilter,
-												   const MessageDataList& l)
+bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 {
-	assert(pJunkFilter);
+	JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
+	if (!pJunkFilter)
+		return true;
 	
-	unsigned int nJunkFilterFlags = pJunkFilter->getFlags();
-	
-	if (pFolder_->isFlag(Folder::FLAG_INBOX)) {
+	if (pFolder_->isFlag(Folder::FLAG_JUNKBOX) &&
+		pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
 		pCallback_->setMessage(IDS_FILTERJUNK);
 		pSessionCallback_->setRange(0, l.size());
 		pSessionCallback_->setPos(0);
 		
-		typedef std::vector<unsigned long> UidList;
-		UidList listJunk;
 		for (MessageDataList::size_type n = 0; n < l.size(); ++n) {
 			Message msg;
 			unsigned int nOperation = 0;
 			{
 				MessagePtrLock mpl(l[n].getMessagePtr());
 				if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
-					bool bSeen = pAccount_->isSeen(mpl);
-					if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
-						if (bSeen) {
-							nOperation = JunkFilter::OPERATION_ADDCLEAN;
-						}
-						else {
-							float fScore = pJunkFilter->getScore(msg, 0, 0);
-							if (fScore < 0) {
-								reportError(0, IMAP4ERROR_FILTERJUNK);
-							}
-							else if (fScore > pJunkFilter->getThresholdScore()) {
-								listJunk.push_back(mpl->getId());
-								mpl->setFlags(MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
-								nOperation = JunkFilter::OPERATION_ADDJUNK;
-							}
-							else {
-								nOperation = JunkFilter::OPERATION_ADDCLEAN;
-							}
-						}
+					wstring_ptr wstrId(mpl->getMessageId());
+					if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
+						if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+							nOperation = JunkFilter::OPERATION_ADDJUNK;
 					}
 				}
 			}
-			if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN && nOperation != 0) {
-				if (!pJunkFilter->manage(msg, nOperation))
-					reportError(0, IMAP4ERROR_MANAGEJUNK);
-			}
+			if (nOperation != 0)
+				pJunkFilter->manage(msg, nOperation);
 			
 			pSessionCallback_->setPos(n);
-		}
-		
-		if (!listJunk.empty()) {
-			NormalFolder* pJunkbox = pJunkFilter ? static_cast<NormalFolder*>(
-				pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX)) : 0;
-			assert(pJunkbox);
-			wstring_ptr wstrFolder(Util::getFolderName(pJunkbox));
-			MultipleRange range(&listJunk[0], listJunk.size(), true);
-			if (!pImap4_->copy(range, wstrFolder.get()))
-				HANDLE_ERROR();
-			Flags flags(Imap4::FLAG_DELETED);
-			Flags mask(Imap4::FLAG_DELETED);
-			if (!pImap4_->setFlags(range, flags, mask))
-				HANDLE_ERROR();
-		}
-	}
-	else if (pFolder_->isFlag(Folder::FLAG_JUNKBOX)) {
-		if (nJunkFilterFlags & JunkFilter::FLAG_AUTOLEARN) {
-			pCallback_->setMessage(IDS_FILTERJUNK);
-			pSessionCallback_->setRange(0, l.size());
-			pSessionCallback_->setPos(0);
-			
-			for (MessageDataList::size_type n = 0; n < l.size(); ++n) {
-				Message msg;
-				unsigned int nOperation = 0;
-				{
-					MessagePtrLock mpl(l[n].getMessagePtr());
-					if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
-						wstring_ptr wstrId(mpl->getMessageId());
-						if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
-							if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
-								nOperation = JunkFilter::OPERATION_ADDJUNK;
-						}
-					}
-				}
-				if (nOperation != 0)
-					pJunkFilter->manage(msg, nOperation);
-				
-				pSessionCallback_->setPos(n);
-			}
 		}
 	}
 	
@@ -1342,6 +1271,8 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(JunkFilter* pJunkFilter,
 }
 
 bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
+											  bool bJunkFilter,
+											  bool bJunkFilterOnly,
 											  bool bNotifyNewMessage)
 {
 	MessagePtrList listNotify;
@@ -1359,7 +1290,8 @@ bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
 		
 		RuleManager* pRuleManager = pDocument_->getRuleManager();
 		DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_, pProfile_, &callback))
+		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_,
+			pProfile_, bJunkFilter, bJunkFilterOnly, &callback))
 			return false;
 		
 		if (bNotifyNewMessage) {

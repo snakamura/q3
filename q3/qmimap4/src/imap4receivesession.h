@@ -70,9 +70,10 @@ public:
 
 private:
 	bool downloadReservedMessages(qm::NormalFolder* pFolder);
-	bool applyJunkFilter(qm::JunkFilter* pJunkFilter,
-						 const MessageDataList& l);
+	bool applyJunkFilter(const MessageDataList& l);
 	bool applyRules(const MessageDataList& l,
+					bool bJunkFilter,
+					bool bJunkFilterOnly,
 					bool bNotifyNewMessage);
 
 private:
