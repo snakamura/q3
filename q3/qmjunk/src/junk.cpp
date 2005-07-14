@@ -110,6 +110,14 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags", FLAG_AUTOLEARN | FLAG_MANUALLEARN);
 	nMaxTextLen_ = pProfile->getInt(L"JunkFilter", L"MaxTextLen", 32*1024);
 	
+	wstring_ptr wstrWhiteList(pProfile->getString(L"JunkFilter", L"WhiteList", L""));
+	if (*wstrWhiteList.get())
+		pWhiteList_.reset(new AddressList(wstrWhiteList.get()));
+	
+	wstring_ptr wstrBlackList(pProfile->getString(L"JunkFilter", L"BlackList", L""));
+	if (*wstrBlackList.get())
+		pBlackList_.reset(new AddressList(wstrBlackList.get()));
+	
 	init();
 }
 
@@ -172,11 +180,11 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg,
 		}
 	}
 	
-	if (match(msg, pwszWhiteList)) {
+	if (match(pWhiteList_.get(), msg, pwszWhiteList)) {
 		log.info(L"A message matches against white list.");
 		return 0.0F;
 	}
-	if (match(msg, pwszBlackList)) {
+	if (match(pBlackList_.get(), msg, pwszBlackList)) {
 		log.info(L"A message matches against black list.");
 		return 1.0F;
 	}
@@ -518,6 +526,34 @@ void qmjunk::JunkFilterImpl::setMaxTextLength(unsigned int nMaxTextLength)
 	nMaxTextLen_ = nMaxTextLength;
 }
 
+wstring_ptr qmjunk::JunkFilterImpl::getWhiteList(const WCHAR* pwszSeparator)
+{
+	wstring_ptr wstrWhiteList(pWhiteList_.get() ? pWhiteList_->toString(pwszSeparator) : 0);
+	return wstrWhiteList.get() ? wstrWhiteList : allocWString(L"");
+}
+
+void qmjunk::JunkFilterImpl::setWhiteList(const WCHAR* pwszWhiteList)
+{
+	if (pwszWhiteList && *pwszWhiteList)
+		pWhiteList_.reset(new AddressList(pwszWhiteList));
+	else
+		pWhiteList_.reset(0);
+}
+
+wstring_ptr qmjunk::JunkFilterImpl::getBlackList(const WCHAR* pwszSeparator)
+{
+	wstring_ptr wstrBlackList(pBlackList_.get() ? pBlackList_->toString(pwszSeparator) : 0);
+	return wstrBlackList.get() ? wstrBlackList : allocWString(L"");
+}
+
+void qmjunk::JunkFilterImpl::setBlackList(const WCHAR* pwszBlackList)
+{
+	if (pwszBlackList && *pwszBlackList)
+		pBlackList_.reset(new AddressList(pwszBlackList));
+	else
+		pBlackList_.reset(0);
+}
+
 bool qmjunk::JunkFilterImpl::save()
 {
 	if (!flush())
@@ -529,6 +565,12 @@ bool qmjunk::JunkFilterImpl::save()
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
 	pProfile_->setInt(L"JunkFilter", L"MaxTextLen", nMaxTextLen_);
+	
+	wstring_ptr wstrWhiteList(getWhiteList(L" "));
+	pProfile_->setString(L"JunkFilter", L"WhiteList", wstrWhiteList.get());
+	
+	wstring_ptr wstrBlackList(getBlackList(L" "));
+	pProfile_->setString(L"JunkFilter", L"BlackList", wstrBlackList.get());
 	
 	return true;
 }
@@ -632,14 +674,16 @@ DepotPtr qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 	return pDepot;
 }
 
-bool qmjunk::JunkFilterImpl::match(const qm::Message& msg,
-								   const WCHAR* pwszAddressList)
+bool qmjunk::JunkFilterImpl::match(const AddressList* pAddressList,
+								   const qm::Message& msg,
+								   const WCHAR* pwszAlternativeList)
 {
-	if (!pwszAddressList || !*pwszAddressList)
-		return false;
-	
-	std::auto_ptr<AddressList> pAddressList(new AddressList(pwszAddressList));
-	return pAddressList->match(msg);
+	std::auto_ptr<AddressList> p;
+	if (pwszAlternativeList) {
+		p.reset(new AddressList(pwszAlternativeList));
+		pAddressList = p.get();
+	}
+	return pAddressList ? pAddressList->match(msg) : false;
 }
 
 string_ptr qmjunk::JunkFilterImpl::getId(const qs::Part& part)

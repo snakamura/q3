@@ -586,8 +586,7 @@ class OptionJunkDialog :
 	public AbstractOptionDialogPanel<OptionJunkDialog>
 {
 public:
-	OptionJunkDialog(JunkFilter* pJunkFilter,
-					 qs::Profile* pProfile);
+	explicit OptionJunkDialog(JunkFilter* pJunkFilter);
 	virtual ~OptionJunkDialog();
 
 public:
@@ -611,16 +610,11 @@ private:
 	void layout();
 
 private:
-	static qs::wstring_ptr replaceWhitespace(const WCHAR* pwsz,
-											 const WCHAR* pwszSeparator);
-
-private:
 	OptionJunkDialog(const OptionJunkDialog&);
 	OptionJunkDialog& operator=(const OptionJunkDialog&);
 
 private:
 	JunkFilter* pJunkFilter_;
-	qs::Profile* pProfile_;
 };
 #endif
 

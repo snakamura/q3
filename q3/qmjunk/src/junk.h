@@ -81,6 +81,10 @@ public:
 						  unsigned int nMask);
 	virtual unsigned int getMaxTextLength();
 	virtual void setMaxTextLength(unsigned int nMaxTextLength);
+	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator);
+	virtual void setWhiteList(const WCHAR* pwszWhiteList);
+	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator);
+	virtual void setBlackList(const WCHAR* pwszBlackList);
 	virtual bool save();
 
 private:
@@ -91,8 +95,9 @@ private:
 	DepotPtr open(const WCHAR* pwszName) const;
 
 private:
-	static bool match(const qm::Message& msg,
-					  const WCHAR* pwszAddressList);
+	static bool match(const AddressList* pAddressList,
+					  const qm::Message& msg,
+					  const WCHAR* pwszAlternativeList);
 	static qs::string_ptr getId(const qs::Part& part);
 
 private:
@@ -109,6 +114,8 @@ private:
 	float fThresholdScore_;
 	unsigned int nFlags_;
 	unsigned int nMaxTextLen_;
+	std::auto_ptr<AddressList> pWhiteList_;
+	std::auto_ptr<AddressList> pBlackList_;
 	mutable bool bModified_;
 	qs::CriticalSection cs_;
 };

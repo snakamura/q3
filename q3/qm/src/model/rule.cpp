@@ -302,7 +302,8 @@ std::auto_ptr<Rule> RuleManagerImpl::createJunkRule(Account* pAccount)
 	wstring_ptr wstrJunk(pJunk->getFullName());
 	
 	const WCHAR* pwszCondition = pAccount->isSupport(Account::SUPPORT_DELETEDMESSAGE) ?
-		L"@And(@Not(@Deleted()), @Junk())" : L"@Junk()";
+		L"@And(@Not(@Deleted()), @Junk(@Profile('', 'JunkFilter', 'WhiteList'), @Profile('', 'JunkFilter', 'BlackList')))" :
+		L"@Junk(@Profile('', 'JunkFilter', 'WhiteList'), @Profile('', 'JunkFilter', 'BlackList'))";
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(pwszCondition));
 	std::auto_ptr<RuleAction> pAction(new CopyRuleAction(0, wstrJunk.get(), true));
 	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO));
