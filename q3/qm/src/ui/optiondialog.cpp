@@ -535,30 +535,44 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 bool qm::OptionDialog::processDialogMessage(const MSG& msg)
 {
 	if (msg.message == WM_KEYDOWN) {
+		Window wndFocus(Window::getFocus());
+		int nCode = 0;
+		if (wndFocus.getHandle())
+			nCode = wndFocus.sendMessage(WM_GETDLGCODE);
+			
 		int nKey = msg.wParam;
-		if (nKey == VK_TAB) {
-			bool bShift = ::GetKeyState(VK_SHIFT) < 0;
-			processTab(bShift);
-			return true;
-		}
-		else if (nKey == VK_RETURN) {
-			int nDefId = 0;
-			if (pCurrentPanel_)
-				nDefId = Window(pCurrentPanel_->getWindow()).sendMessage(DM_GETDEFID);
-			if (HIWORD(nDefId) == DC_HASDEFID && LOWORD(nDefId) != IDOK && LOWORD(nDefId) != IDCANCEL)
-				Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND, MAKEWPARAM(LOWORD(nDefId), 0), 0);
-			else
-				postMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), 0);
-			return true;
-		}
-		else if (nKey == VK_ESCAPE) {
+		switch (nKey) {
+		case VK_TAB:
+			if (!(nCode & DLGC_WANTTAB)) {
+				bool bShift = ::GetKeyState(VK_SHIFT) < 0;
+				processTab(bShift);
+				return true;
+			}
+			break;
+		case VK_RETURN:
+			if (!(nCode & DLGC_WANTALLKEYS)) {
+				int nDefId = 0;
+				if (pCurrentPanel_)
+					nDefId = Window(pCurrentPanel_->getWindow()).sendMessage(DM_GETDEFID);
+				if (HIWORD(nDefId) == DC_HASDEFID && LOWORD(nDefId) != IDOK && LOWORD(nDefId) != IDCANCEL)
+					Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND, MAKEWPARAM(LOWORD(nDefId), 0), 0);
+				else
+					postMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), 0);
+				return true;
+			}
+			break;
+		case VK_ESCAPE:
 			postMessage(WM_COMMAND, MAKEWPARAM(IDCANCEL, 0), 0);
 			return true;
-		}
-		else if (nKey == VK_LEFT || nKey == VK_RIGHT || nKey == VK_UP || nKey == VK_DOWN) {
-			HWND hwnd = getFocus();
-			if (hwnd && Window(hwnd).sendMessage(WM_GETDLGCODE) & DLGC_BUTTON)
+		case VK_LEFT:
+		case VK_RIGHT:
+		case VK_UP:
+		case VK_DOWN:
+			if (!(nCode & DLGC_WANTARROWS) && nCode & DLGC_BUTTON) {
 				processTab(nKey == VK_LEFT || nKey == VK_UP);
+				return true;
+			}
+			break;
 		}
 	}
 	else if (msg.message == WM_SYSKEYDOWN) {
