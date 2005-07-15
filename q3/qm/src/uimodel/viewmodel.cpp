@@ -613,6 +613,17 @@ const Filter* qm::ViewModel::getFilter() const
 	return pFilter_.get();
 }
 
+void qm::ViewModel::setMode(unsigned int nMode,
+							unsigned int nMask)
+{
+	nMode_ = (nMode & nMask) | (nMode_ & ~nMask);
+}
+
+unsigned int qm::ViewModel::getMode() const
+{
+	return nMode_;
+}
+
 void qm::ViewModel::addSelection(unsigned int n)
 {
 	assert(isLocked());

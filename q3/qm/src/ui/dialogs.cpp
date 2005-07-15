@@ -4873,7 +4873,9 @@ qm::ViewsDialog::ViewsDialog(ViewModelManager* pViewModelManager,
 							 ViewModel* pViewModel) :
 	DefaultDialog(IDD_VIEWS),
 	pViewModelManager_(pViewModelManager),
-	pViewModel_(pViewModel)
+	pViewModel_(pViewModel),
+	nSort_(pViewModel->getSort()),
+	nMode_(pViewModel->getMode())
 {
 	const ViewColumnList& listColumn = pViewModel->getColumns();
 	listColumn_.reserve(listColumn.size());
@@ -4972,6 +4974,8 @@ LRESULT qm::ViewsDialog::onOk()
 {
 	pViewModel_->setColumns(listColumn_);
 	listColumn_.clear();
+	pViewModel_->setSort(nSort_, 0xffffffff);
+	pViewModel_->setMode(nMode_, 0xffffffff);
 	return DefaultDialog::onOk();
 }
 
@@ -5065,6 +5069,8 @@ LRESULT qm::ViewsDialog::onAsDefault()
 	ViewColumnList listColumn;
 	cloneColumns(listColumn_, &listColumn);
 	pItem->setColumns(listColumn);
+	pItem->setSort(nSort_);
+	pItem->setMode(nMode_);
 	return 0;
 }
 
@@ -5072,6 +5078,8 @@ LRESULT qm::ViewsDialog::onApplyDefault()
 {
 	ViewDataItem* pItem = getDefaultItem();
 	setColumns(pItem->getColumns());
+	nSort_ = pItem->getSort();
+	nMode_ = pItem->getMode();
 	update();
 	return 0;
 }
@@ -5082,6 +5090,8 @@ LRESULT qm::ViewsDialog::onInherit()
 	if (pFolder) {
 		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
 		setColumns(pViewModel->getColumns());
+		nSort_ = pViewModel->getSort();
+		nMode_ = pViewModel->getMode();
 		update();
 	}
 	return 0;
@@ -5097,6 +5107,8 @@ LRESULT qm::ViewsDialog::onApplyToAll()
 		ViewColumnList listColumn;
 		cloneColumns(listColumn_, &listColumn);
 		pViewModel->setColumns(listColumn);
+		pViewModel->setSort(nSort_, 0xffffffff);
+		pViewModel->setMode(nMode_, 0xffffffff);
 	}
 	
 	Window(getDlgItem(IDCANCEL)).enableWindow(false);
@@ -5116,6 +5128,8 @@ LRESULT qm::ViewsDialog::onApplyToChildren()
 			ViewColumnList listColumn;
 			cloneColumns(listColumn_, &listColumn);
 			pViewModel->setColumns(listColumn);
+			pViewModel->setSort(nSort_, 0xffffffff);
+			pViewModel->setMode(nMode_, 0xffffffff);
 		}
 	}
 	return 0;

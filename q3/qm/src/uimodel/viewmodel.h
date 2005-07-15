@@ -320,6 +320,10 @@ public:
 	void setFilter(const Filter* pFilter);
 	const Filter* getFilter() const;
 	
+	void setMode(unsigned int nMode,
+				 unsigned int nMask);
+	unsigned int getMode() const;
+	
 	void addSelection(unsigned int n);
 	void addSelection(unsigned int nStart,
 					  unsigned int nEnd);

@@ -1843,6 +1843,8 @@ private:
 	ViewModelManager* pViewModelManager_;
 	ViewModel* pViewModel_;
 	ViewColumnList listColumn_;
+	unsigned int nSort_;
+	unsigned int nMode_;
 };
 
 }
