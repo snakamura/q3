@@ -174,9 +174,6 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	bool bHandleStatus = pSubAccount_->getProperty(L"Pop3", L"HandleStatus", 0) != 0;
 	bool bSkipDuplicatedUID = pSubAccount_->getProperty(L"Pop3", L"SkipDuplicatedUID", 0) != 0;
 	
-	const WCHAR* pwszIdentity = pSubAccount_->getIdentity();
-	UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
-	
 	Time time(Time::getCurrentTime());
 	UID::Date date = {
 		time.wYear,
@@ -264,17 +261,10 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		bool bPartial = bIgnore || (nMaxLine != 0xffffffff && nSize > strMessage.size());
 		
 		if (!bIgnore) {
-			UnstructuredParser uid(pwszUID, L"utf-8");
-			if (!msg.replaceField(L"X-UIDL", uid))
+			if (!setUid(&msg, pwszUID))
 				return false;
-			
-			if (*pwszIdentity) {
-				if (!msg.replaceField(L"X-QMAIL-SubAccount", subaccount))
-					return false;
-			}
-			else {
-				msg.removeField(L"X-QMAIL-SubAccount");
-			}
+			if (!setSubAccount(&msg, pSubAccount_))
+				return false;
 			
 			unsigned int nFlags = (bPartial ? MessageHolder::FLAG_HEADERONLY : 0);
 			
@@ -319,22 +309,10 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					if (pmh->isFlag(MessageHolder::FLAG_DELETED)) {
 						Message msg;
 						if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
-							L"X-UIDL", SECURITYMODE_NONE, &msg))
+							0, SECURITYMODE_NONE, &msg))
 							return false;
 						
-						bool bSkip = false;
-						if (*pwszIdentity) {
-							UnstructuredParser subaccount;
-							if (msg.getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
-								SubAccount* pSubAccount = pAccount_->getSubAccount(subaccount.getValue());
-								bSkip = !pSubAccount || wcscmp(pSubAccount->getIdentity(), pwszIdentity) != 0;
-							}
-							else {
-								bSkip = true;
-							}
-						}
-						
-						if (!bSkip) {
+						if (isSameIdentity(msg, pSubAccount_)) {
 							size_t nIndex = -1;
 							UnstructuredParser uid;
 							if (msg.getField(L"X-UIDL", &uid) == Part::FIELD_EXIST) {
@@ -554,7 +532,8 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages()
 	unsigned int nPos = 0;
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL) {
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			static_cast<NormalFolder*>(pFolder)->getDownloadCount() != 0) {
 			if (!downloadReservedMessages(static_cast<NormalFolder*>(pFolder), &nPos))
 				return false;
 		}
@@ -568,6 +547,7 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 {
 	assert(pFolder);
 	assert(pFolder->getAccount() == pAccount_);
+	assert(pFolder->getDownloadCount() != 0);
 	assert(pnPos);
 	assert(bCacheAll_);
 	
@@ -603,26 +583,35 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
 				0, SECURITYMODE_NONE, &msg))
 				return false;
-			UnstructuredParser uidl;
-			if (msg.getField(L"X-UIDL", &uidl) == Part::FIELD_EXIST) {
-				size_t nIndex = pUIDList_->getIndex(uidl.getValue());
-				if (nIndex != -1) {
-					xstring_size_ptr strMessage;
-					if (!pPop3_->getMessage(nIndex, 0xffffffff, &strMessage, listSize_[nIndex]))
-						HANDLE_ERROR();
-					if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size()))
-						return false;
-					
-					UID* pUID = pUIDList_->getUID(nIndex);
-					pUID->update(UID::FLAG_NONE,
-						time.wYear, time.wMonth, time.wDay);
+			
+			if (isSameIdentity(msg, pSubAccount_)) {
+				UnstructuredParser uid;
+				if (msg.getField(L"X-UIDL", &uid) == Part::FIELD_EXIST) {
+					size_t nIndex = pUIDList_->getIndex(uid.getValue());
+					if (nIndex != -1) {
+						xstring_size_ptr strMessage;
+						if (!pPop3_->getMessage(nIndex, 0xffffffff, &strMessage, listSize_[nIndex]))
+							HANDLE_ERROR();
+						
+						if (!setUid(&msg, uid.getValue()))
+							return false;
+						if (!setSubAccount(&msg, pSubAccount_))
+							return false;
+						
+						if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size()))
+							return false;
+						
+						UID* pUID = pUIDList_->getUID(nIndex);
+						pUID->update(UID::FLAG_NONE,
+							time.wYear, time.wMonth, time.wDay);
+					}
 				}
+				mpl->setFlags(0,
+					MessageHolder::FLAG_SEEN |
+					MessageHolder::FLAG_DOWNLOAD |
+					MessageHolder::FLAG_DOWNLOADTEXT |
+					MessageHolder::FLAG_PARTIAL_MASK);
 			}
-			mpl->setFlags(0,
-				MessageHolder::FLAG_SEEN |
-				MessageHolder::FLAG_DOWNLOAD |
-				MessageHolder::FLAG_DOWNLOADTEXT |
-				MessageHolder::FLAG_PARTIAL_MASK);
 		}
 	}
 	
@@ -700,6 +689,44 @@ wstring_ptr qmpop3::Pop3ReceiveSession::getUIDListPath() const
 		{ L".xml",						-1	}
 	};
 	return concat(c, countof(c));
+}
+
+bool qmpop3::Pop3ReceiveSession::isSameIdentity(const Message& msg,
+												SubAccount* pSubAccount)
+{
+	const WCHAR* pwszIdentity = pSubAccount->getIdentity();
+	if (!*pwszIdentity)
+		return true;
+	
+	UnstructuredParser subaccount;
+	if (msg.getField(L"X-QMAIL-SubAccount", &subaccount) != Part::FIELD_EXIST)
+		return false;
+	
+	Account* pAccount = pSubAccount->getAccount();
+	SubAccount* pMessageSubAccount = pAccount->getSubAccount(subaccount.getValue());
+	return pMessageSubAccount && wcscmp(pMessageSubAccount->getIdentity(), pwszIdentity) == 0;
+}
+
+bool qmpop3::Pop3ReceiveSession::setUid(Message* pMessage,
+										const WCHAR* pwszUid)
+{
+	UnstructuredParser uid(pwszUid, L"utf-8");
+	return pMessage->replaceField(L"X-UIDL", uid);
+}
+
+bool qmpop3::Pop3ReceiveSession::setSubAccount(Message* pMessage,
+											   SubAccount* pSubAccount)
+{
+	const WCHAR* pwszIdentity = pSubAccount->getIdentity();
+	if (*pwszIdentity) {
+		UnstructuredParser subaccount(pSubAccount->getName(), L"utf-8");
+		if (!pMessage->replaceField(L"X-QMAIL-SubAccount", subaccount))
+			return false;
+	}
+	else {
+		pMessage->removeField(L"X-QMAIL-SubAccount");
+	}
+	return true;
 }
 
 

@@ -53,9 +53,6 @@ public:
 	};
 
 public:
-	typedef std::vector<qm::MessagePtr> MessagePtrList;
-
-public:
 	Pop3ReceiveSession();
 	virtual ~Pop3ReceiveSession();
 
@@ -82,12 +79,20 @@ private:
 	bool downloadReservedMessages();
 	bool downloadReservedMessages(qm::NormalFolder* pFolder,
 								  unsigned int* pnPos);
-	bool applyRules(const MessagePtrList& l,
+	bool applyRules(const qm::MessagePtrList& l,
 					bool bJunkFilter,
 					bool bJunkFilterOnly);
 	std::auto_ptr<UIDList> loadUIDList() const;
 	bool saveUIDList(const UIDList* pUIDList) const;
 	qs::wstring_ptr getUIDListPath() const;
+
+private:
+	static bool isSameIdentity(const qm::Message& msg,
+							   qm::SubAccount* pSubAccount);
+	static bool setUid(qm::Message* pMessage,
+					   const WCHAR* pwszUid);
+	static bool setSubAccount(qm::Message* pMessage,
+							  qm::SubAccount* pSubAccount);
 
 private:
 	Pop3ReceiveSession(const Pop3ReceiveSession&);
