@@ -29,7 +29,7 @@
 #define IDC_SEARCHBODY                  1013
 #define IDS_IMAP4SEARCH                 1013
 #define IDC_IMAP4COMMAND                1014
-#define IDS_FILTERJUNK                  1014
+#define IDS_MANAGEJUNK                  1014
 #define IDC_PERSONAL                    1015
 #define IDC_OTHERS                      1016
 #define IDC_SHARED                      1017
