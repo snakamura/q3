@@ -35,7 +35,7 @@ extern "C" {
  *************************************************************************************************/
 
 
-typedef enum {                           /* type of enumeration for error codes */
+enum {                                   /* enumeration for error codes */
   GDBM_NO_ERROR,                         /* no error */
   GDBM_MALLOC_ERROR,                     /* malloc error */
   GDBM_BLOCK_SIZE_ERROR,                 /* block size error */
@@ -57,7 +57,9 @@ typedef enum {                           /* type of enumeration for error codes 
   GDBM_ILLEGAL_DATA,                     /* illegal data */
   GDBM_OPT_ALREADY_SET,                  /* option already set */
   GDBM_OPT_ILLEGAL                       /* option illegal */
-} gdbm_error;
+};
+
+typedef int gdbm_error;                  /* type of error codes */
 
 typedef struct {                         /* type of structure for a database handle */
   DEPOT *depot;                          /* internal database handle of Depot */
