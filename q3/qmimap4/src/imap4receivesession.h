@@ -73,8 +73,7 @@ private:
 	bool applyJunkFilter(const MessageDataList& l);
 	bool applyRules(const MessageDataList& l,
 					bool bJunkFilter,
-					bool bJunkFilterOnly,
-					bool bNotifyNewMessage);
+					bool bJunkFilterOnly);
 
 private:
 	bool processCapabilityResponse(ResponseCapability* pCapability);

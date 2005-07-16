@@ -393,20 +393,18 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	bool bApplyRules = pSubAccount_->isAutoApplyRules();
 	bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
 	if (bApplyRules || bJunkFilter) {
-		if (!applyRules(listDownloaded, bJunkFilter, !bApplyRules))
+		if (!applyRules(&listDownloaded, bJunkFilter, !bApplyRules))
 			Util::reportError(0, pSessionCallback_, pAccount_,
 				pSubAccount_, pFolder_, POP3ERROR_APPLYRULES);
 	}
-	else {
-		for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
-			bool bNotify = false;
-			{
-				MessagePtrLock mpl(*it);
-				bNotify = mpl && !pAccount_->isSeen(mpl);
-			}
-			if (bNotify)
-				pSessionCallback_->notifyNewMessage(*it);
+	for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
+		bool bNotify = false;
+		{
+			MessagePtrLock mpl(*it);
+			bNotify = mpl && !pAccount_->isSeen(mpl);
 		}
+		if (bNotify)
+			pSessionCallback_->notifyNewMessage(*it);
 	}
 	
 	return true;
@@ -618,40 +616,14 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 	return true;
 }
 
-bool qmpop3::Pop3ReceiveSession::applyRules(const MessagePtrList& l,
+bool qmpop3::Pop3ReceiveSession::applyRules(MessagePtrList* pList,
 											bool bJunkFilter,
 											bool bJunkFilterOnly)
 {
-	MessagePtrList listNotify;
-	
-	{
-		Lock<Account> lock(*pAccount_);
-		
-		MessageHolderList listMessageHolder;
-		listMessageHolder.reserve(l.size());
-		for (MessagePtrList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			MessagePtrLock mpl(*it);
-			if (mpl)
-				listMessageHolder.push_back(mpl);
-		}
-		
-		RuleManager* pRuleManager = pDocument_->getRuleManager();
-		DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_,
-			pProfile_, bJunkFilter, bJunkFilterOnly, &callback))
-			return false;
-		
-		for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
-			MessageHolder* pmh = *it;
-			if (pmh && !pAccount_->isSeen(pmh))
-				listNotify.push_back(MessagePtr(pmh));
-		}
-	}
-	
-	for (MessagePtrList::const_iterator it = listNotify.begin(); it != listNotify.end(); ++it)
-		pSessionCallback_->notifyNewMessage(*it);
-	
-	return true;
+	RuleManager* pRuleManager = pDocument_->getRuleManager();
+	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
+	return pRuleManager->apply(pFolder_, pList, pDocument_,
+		pProfile_, bJunkFilter, bJunkFilterOnly, &callback);
 }
 
 std::auto_ptr<UIDList> qmpop3::Pop3ReceiveSession::loadUIDList() const

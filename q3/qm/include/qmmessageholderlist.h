@@ -14,8 +14,10 @@
 namespace qm {
 
 class MessageHolder;
+class MessagePtr;
 
 typedef std::vector<MessageHolder*> MessageHolderList;
+typedef std::vector<MessagePtr> MessagePtrList;
 
 }
 

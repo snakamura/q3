@@ -51,6 +51,21 @@ public:
 	};
 
 public:
+	class Accessor
+	{
+	public:
+		virtual ~Accessor();
+	
+	public:
+		virtual unsigned int getCount() const = 0;
+		virtual MessagePtr getMessagePtr(unsigned int n) const = 0;
+		virtual MessageHolder* getMessageHolder(unsigned int n) const = 0;
+		virtual bool isRequestResult() const = 0;
+		virtual void setMessageHolder(unsigned int n,
+									  MessageHolder* pmh) = 0;
+	};
+
+public:
 	typedef std::vector<Rule*> RuleList;
 
 public:
@@ -63,8 +78,7 @@ public:
 				  bool bAuto,
 				  RuleList* pList) const;
 	bool apply(Folder* pFolder,
-			   MessageHolderList* pList,
-			   const MessageHolderList* pConstList,
+			   Accessor* pAccessor,
 			   Document* pDocument,
 			   HWND hwnd,
 			   Profile* pProfile,
@@ -117,8 +131,7 @@ void qm::RuleManagerImpl::getRules(const Folder* pFolder,
 }
 
 bool qm::RuleManagerImpl::apply(Folder* pFolder,
-								MessageHolderList* pList,
-								const MessageHolderList* pConstList,
+								Accessor* pAccessor,
 								Document* pDocument,
 								HWND hwnd,
 								Profile* pProfile,
@@ -127,6 +140,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 								RuleCallback* pCallback)
 {
 	assert(pFolder);
+	assert(pAccessor);
 	assert(pDocument);
 	assert(hwnd || nFlags & FLAG_AUTO);
 	
@@ -138,11 +152,6 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	}
 	
 	Account* pAccount = pFolder->getAccount();
-	
-	Lock<Account> lock(*pAccount);
-	
-	if (!pFolder->loadMessageHolders())
-		return false;
 	
 	ReadWriteReadLock readLock(lock_);
 	Lock<ReadWriteReadLock> ruleLock(readLock);
@@ -165,96 +174,43 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 		return true;
 	}
 	
-	struct Accessor
-	{
-		virtual unsigned int getCount() const = 0;
-		virtual MessageHolder* getMessage(unsigned int n) const = 0;
-	};
-	
-	struct FolderAccessor : public Accessor
-	{
-		FolderAccessor(const Folder* pFolder) :
-			pFolder_(pFolder)
-		{
-		}
-		
-		virtual unsigned int getCount() const
-		{
-			return pFolder_->getCount();
-		}
-		
-		virtual MessageHolder* getMessage(unsigned int n) const
-		{
-			return pFolder_->getMessage(n);
-		}
-		
-		const Folder* pFolder_;
-	};
-	
-	struct ListAccessor : public Accessor
-	{
-		ListAccessor(const MessageHolderList* p) :
-			p_(p)
-		{
-		}
-		
-		virtual unsigned int getCount() const
-		{
-			return p_->size();
-		}
-		
-		virtual MessageHolder* getMessage(unsigned int n) const
-		{
-			return (*p_)[n];
-		}
-		
-		const MessageHolderList* p_;
-	};
-	
-	FolderAccessor folderAccessor(pFolder);
-	ListAccessor listAccessor(pList ? pList : pConstList);
-	const Accessor& accessor = pList || pConstList ?
-		static_cast<const Accessor&>(listAccessor) :
-		static_cast<const Accessor&>(folderAccessor);
-	
-	unsigned int nCount = accessor.getCount();
+	unsigned int nCount = pAccessor->getCount();
 	log.debugf(L"%u messages are to be processed.", nCount);
 	if (nCount == 0)
 		return true;
 	
 	pCallback->checkingMessages(pFolder);
-	pCallback->setRange(0, accessor.getCount());
-	
-	typedef std::vector<MessageHolderList> ListList;
-	ListList ll(listRule.size());
+	pCallback->setRange(0, nCount);
 	
 	typedef std::vector<unsigned int> IndexList;
-	IndexList listDestroyed;
+	typedef std::vector<IndexList> ListList;
+	ListList ll(listRule.size());
 	
 	int nMatch = 0;
 	MacroVariableHolder globalVariable;
-	for (unsigned int n = 0; n < accessor.getCount(); ++n) {
-		if (n % 10 == 0 && pCallback->isCanceled())
+	for (unsigned int nMessage = 0; nMessage < nCount; ++nMessage) {
+		if (nMessage % 10 == 0 && pCallback->isCanceled())
 			return true;
 		
-		pCallback->setPos(n);
+		pCallback->setPos(nMessage);
 		
-		MessageHolder* pmh = accessor.getMessage(n);
-		Message msg;
-		for (RuleList::size_type m = 0; m < listRule.size(); ++m) {
-			const Rule* pRule = listRule[m];
-			MacroContext context(pmh, &msg, MessageHolderList(),
-				pAccount, pDocument, hwnd, pProfile, 0,
-				bAuto ? MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
-				nSecurityMode, 0, &globalVariable);
-			bool bMatch = pRule->match(&context);
-			if (bMatch) {
-				ll[m].push_back(pmh);
-				++nMatch;
-				if (pList && pRule->isMessageDestroyed())
-					listDestroyed.push_back(n);
-				log.debugf(L"Id=%u matches rule=%u.", pmh->getId(), m);
-				break;
+		MessagePtrLock mpl(pAccessor->getMessagePtr(nMessage));
+		MessageHolder* pmh = mpl ? mpl : pAccessor->getMessageHolder(nMessage);
+		if (pmh) {
+			Message msg;
+			for (RuleList::size_type nRule = 0; nRule < listRule.size(); ++nRule) {
+				const Rule* pRule = listRule[nRule];
+				unsigned int nFlags = bAuto ? MacroContext::FLAG_NONE :
+					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI;
+				MacroContext context(pmh, &msg, MessageHolderList(), pAccount, pDocument,
+					hwnd, pProfile, 0, nFlags, nSecurityMode, 0, &globalVariable);
+				bool bMatch = pRule->match(&context);
+				if (bMatch) {
+					ll[nRule].push_back(nMessage);
+					++nMatch;
+					log.debugf(L"Id=%u matches rule=%u.", pmh->getId(), nRule);
+					break;
+				}
 			}
 		}
 	}
@@ -266,29 +222,45 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	pCallback->setRange(0, nMatch);
 	pCallback->setPos(0);
 	
+	bool bRequestResult = pAccessor->isRequestResult();
 	UndoItemList undo;
 	int nMessage = 0;
-	for (RuleList::size_type m = 0; m < listRule.size(); ++m) {
+	for (RuleList::size_type nRule = 0; nRule < listRule.size(); ++nRule) {
 		if (pCallback->isCanceled())
 			return true;
 		
-		const MessageHolderList& l = ll[m];
-		if (!l.empty()) {
-			const Rule* pRule = listRule[m];
-			RuleContext context(l, pDocument, pAccount, pFolder, hwnd,
-				pProfile, &globalVariable, bAuto, nSecurityMode, &undo);
-			if (!pRule->apply(context))
-				return false;
+		const IndexList& listIndex = ll[nRule];
+		if (!listIndex.empty()) {
+			const Rule* pRule = listRule[nRule];
 			
-			nMessage += l.size();
+			{
+				Lock<Account> lock(*pAccount);
+				
+				MessageHolderList l;
+				l.reserve(listIndex.size());
+				for (IndexList::const_iterator it = listIndex.begin(); it != listIndex.end(); ++it) {
+					MessagePtrLock mpl(pAccessor->getMessagePtr(*it));
+					MessageHolder* pmh = mpl ? mpl : pAccessor->getMessageHolder(*it);
+					l.push_back(pmh);
+				}
+				
+				RuleContext context(l, pDocument, pAccount, pFolder, hwnd,
+					pProfile, &globalVariable, bAuto, nSecurityMode, &undo);
+				if (!pRule->apply(context))
+					return false;
+				
+				if (bRequestResult) {
+					bool bDestroyed = pRule->isMessageDestroyed();
+					for (IndexList::size_type n = 0; n < listIndex.size(); ++n)
+						pAccessor->setMessageHolder(listIndex[n], bDestroyed ? 0 : l[n]);
+				}
+			}
+			
+			nMessage += listIndex.size();
 			pCallback->setPos(nMessage);
 		}
 	}
 	pDocument->getUndoManager()->pushUndoItem(undo.getUndoItem());
-	
-	assert(pList || listDestroyed.empty());
-	for (IndexList::const_iterator it = listDestroyed.begin(); it != listDestroyed.end(); ++it)
-		(*pList)[*it] = 0;
 	
 	return true;
 }
@@ -302,11 +274,21 @@ std::auto_ptr<Rule> RuleManagerImpl::createJunkRule(Account* pAccount)
 	wstring_ptr wstrJunk(pJunk->getFullName());
 	
 	const WCHAR* pwszCondition = pAccount->isSupport(Account::SUPPORT_DELETEDMESSAGE) ?
-		L"@And(@Not(@Deleted()), @Junk(@Profile('', 'JunkFilter', 'WhiteList'), @Profile('', 'JunkFilter', 'BlackList')))" :
-		L"@Junk(@Profile('', 'JunkFilter', 'WhiteList'), @Profile('', 'JunkFilter', 'BlackList'))";
+		L"@And(@Not(@Deleted()), @Junk())" : L"@Junk()";
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(pwszCondition));
 	std::auto_ptr<RuleAction> pAction(new CopyRuleAction(0, wstrJunk.get(), true));
 	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO));
+}
+
+
+/****************************************************************************
+ *
+ * RuleManagerImpl::Accessor
+ *
+ */
+
+qm::RuleManagerImpl::Accessor::~Accessor()
+{
 }
 
 
@@ -353,7 +335,53 @@ bool qm::RuleManager::apply(Folder* pFolder,
 							unsigned int nSecurityMode,
 							RuleCallback* pCallback)
 {
-	return pImpl_->apply(pFolder, 0, 0, pDocument, hwnd,
+	if (!pFolder->loadMessageHolders())
+		return false;
+	
+	class FolderAccessor : public RuleManagerImpl::Accessor
+	{
+	public:
+		FolderAccessor(const Folder* pFolder) :
+			pFolder_(pFolder)
+		{
+		}
+		
+		virtual ~FolderAccessor()
+		{
+		}
+	
+	public:
+		virtual unsigned int getCount() const
+		{
+			return pFolder_->getCount();
+		}
+		
+		virtual MessagePtr getMessagePtr(unsigned int n) const
+		{
+			return MessagePtr();
+		}
+		
+		virtual MessageHolder* getMessageHolder(unsigned int n) const
+		{
+			return pFolder_->getMessage(n);
+		}
+		
+		virtual bool isRequestResult() const
+		{
+			return false;
+		}
+		
+		virtual void setMessageHolder(unsigned int n,
+									  MessageHolder* pmh)
+		{
+			assert(false);
+		}
+	
+	private:
+		const Folder* pFolder_;
+	} accessor(pFolder);
+	
+	return pImpl_->apply(pFolder, &accessor, pDocument, hwnd,
 		pProfile, RuleManagerImpl::FLAG_NONE, nSecurityMode, pCallback);
 }
 
@@ -365,12 +393,55 @@ bool qm::RuleManager::apply(Folder* pFolder,
 							unsigned int nSecurityMode,
 							RuleCallback* pCallback)
 {
-	return pImpl_->apply(pFolder, 0, &l, pDocument, hwnd,
+	class ConstListAccessor : public RuleManagerImpl::Accessor
+	{
+	public:
+		ConstListAccessor(const MessageHolderList& l) :
+			l_(l)
+		{
+		}
+		
+		virtual ~ConstListAccessor()
+		{
+		}
+	
+	public:
+		virtual unsigned int getCount() const
+		{
+			return l_.size();
+		}
+		
+		virtual MessagePtr getMessagePtr(unsigned int n) const
+		{
+			return MessagePtr();
+		}
+		
+		virtual MessageHolder* getMessageHolder(unsigned int n) const
+		{
+			return l_[n];
+		}
+		
+		virtual bool isRequestResult() const
+		{
+			return false;
+		}
+		
+		virtual void setMessageHolder(unsigned int n,
+									  MessageHolder* pmh)
+		{
+			assert(false);
+		}
+	
+	private:
+		const MessageHolderList& l_;
+	} accessor(l);
+	
+	return pImpl_->apply(pFolder, &accessor, pDocument, hwnd,
 		pProfile, RuleManagerImpl::FLAG_NONE, nSecurityMode, pCallback);
 }
 
 bool qm::RuleManager::apply(Folder* pFolder,
-							MessageHolderList* pList,
+							MessagePtrList* pList,
 							Document* pDocument,
 							Profile* pProfile,
 							bool bJunkFilter,
@@ -382,7 +453,51 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		nFlags |= RuleManagerImpl::FLAG_JUNK;
 	if (bJunkFilterOnly)
 		nFlags |= RuleManagerImpl::FLAG_JUNKONLY;
-	return pImpl_->apply(pFolder, pList, 0, pDocument, 0,
+	
+	class ListAccessor : public RuleManagerImpl::Accessor
+	{
+	public:
+		ListAccessor(MessagePtrList& l) :
+			l_(l)
+		{
+		}
+		
+		virtual ~ListAccessor()
+		{
+		}
+	
+	public:
+		virtual unsigned int getCount() const
+		{
+			return l_.size();
+		}
+		
+		virtual MessagePtr getMessagePtr(unsigned int n) const
+		{
+			return l_[n];
+		}
+		
+		virtual MessageHolder* getMessageHolder(unsigned int n) const
+		{
+			return 0;
+		}
+		
+		virtual bool isRequestResult() const
+		{
+			return true;
+		}
+		
+		virtual void setMessageHolder(unsigned int n,
+									  MessageHolder* pmh)
+		{
+			l_[n] = pmh;
+		}
+	
+	private:
+		MessagePtrList& l_;
+	} accessor(*pList);
+	
+	return pImpl_->apply(pFolder, &accessor, pDocument, 0,
 		pProfile, nFlags, SECURITYMODE_NONE, pCallback);
 }
 

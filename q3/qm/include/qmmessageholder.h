@@ -368,8 +368,6 @@ private:
 	mutable bool bLock_;
 };
 
-typedef std::vector<MessagePtr> MessagePtrList;
-
 
 /****************************************************************************
  *

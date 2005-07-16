@@ -59,7 +59,7 @@ public:
 			   unsigned int nSecurityMode,
 			   RuleCallback* pCallback);
 	bool apply(Folder* pFolder,
-			   MessageHolderList* pList,
+			   MessagePtrList* pList,
 			   Document* pDocument,
 			   qs::Profile* pProfile,
 			   bool bJunkFilter,

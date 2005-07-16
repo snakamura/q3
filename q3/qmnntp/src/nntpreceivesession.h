@@ -83,7 +83,7 @@ private:
 					  unsigned int nFlags,
 					  unsigned int nSize,
 					  MessagePtrList* pListDownloaded);
-	bool applyRules(const MessagePtrList& l,
+	bool applyRules(MessagePtrList* pList,
 					bool bJunkFilter,
 					bool bJunkFilterOnly);
 

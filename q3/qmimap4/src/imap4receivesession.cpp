@@ -940,26 +940,25 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	}
 	
 	bool bApplyRules = pSubAccount_->isAutoApplyRules();
+	if (bApplyRules || bJunkFilter) {
+		if (!applyRules(listMessageData, bJunkFilter, !bApplyRules))
+			reportError(0, IMAP4ERROR_APPLYRULES);
+	}
+	
 	bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
 		!pFolder_->isFlag(Folder::FLAG_SENTBOX) &&
 		!pFolder_->isFlag(Folder::FLAG_TRASHBOX) &&
 		!pFolder_->isFlag(Folder::FLAG_DRAFTBOX) &&
 		!pFolder_->isFlag(Folder::FLAG_JUNKBOX);
-	if (bApplyRules || bJunkFilter) {
-		if (!applyRules(listMessageData, bJunkFilter, !bApplyRules, bNotifyNewMessage))
-			reportError(0, IMAP4ERROR_APPLYRULES);
-	}
-	else {
-		if (bNotifyNewMessage) {
-			for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
-				bool bNotify = false;
-				{
-					MessagePtrLock mpl((*it).getMessagePtr());
-					bNotify = mpl && !pAccount_->isSeen(mpl);
-				}
-				if (bNotify)
-					pSessionCallback_->notifyNewMessage((*it).getMessagePtr());
+	if (bNotifyNewMessage) {
+		for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
+			bool bNotify = false;
+			{
+				MessagePtrLock mpl((*it).getMessagePtr());
+				bNotify = mpl && !pAccount_->isSeen(mpl);
 			}
+			if (bNotify)
+				pSessionCallback_->notifyNewMessage((*it).getMessagePtr());
 		}
 	}
 	
@@ -1272,42 +1271,17 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 
 bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
 											  bool bJunkFilter,
-											  bool bJunkFilterOnly,
-											  bool bNotifyNewMessage)
+											  bool bJunkFilterOnly)
 {
-	MessagePtrList listNotify;
+	MessagePtrList listMessagePtr;
+	listMessagePtr.resize(l.size());
+	std::transform(l.begin(), l.end(), listMessagePtr.begin(),
+		std::mem_fun_ref(&MessageData::getMessagePtr));
 	
-	{
-		Lock<Account> lock(*pAccount_);
-		
-		MessageHolderList listMessageHolder;
-		listMessageHolder.reserve(l.size());
-		for (MessageDataList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			MessagePtrLock mpl((*it).getMessagePtr());
-			if (mpl)
-				listMessageHolder.push_back(mpl);
-		}
-		
-		RuleManager* pRuleManager = pDocument_->getRuleManager();
-		DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-		if (!pRuleManager->apply(pFolder_, &listMessageHolder, pDocument_,
-			pProfile_, bJunkFilter, bJunkFilterOnly, &callback))
-			return false;
-		
-		if (bNotifyNewMessage) {
-			for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
-				MessageHolder* pmh = *it;
-				if (pmh && !pAccount_->isSeen(pmh))
-					listNotify.push_back(MessagePtr(pmh));
-			}
-		}
-		
-	}
-	
-	for (MessagePtrList::const_iterator it = listNotify.begin(); it != listNotify.end(); ++it)
-		pSessionCallback_->notifyNewMessage(*it);
-	
-	return true;
+	RuleManager* pRuleManager = pDocument_->getRuleManager();
+	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
+	return pRuleManager->apply(pFolder_, &listMessagePtr, pDocument_,
+		pProfile_, bJunkFilter, bJunkFilterOnly, &callback);
 }
 
 bool qmimap4::Imap4ReceiveSession::processCapabilityResponse(ResponseCapability* pCapability)

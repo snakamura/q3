@@ -68,7 +68,7 @@ public:
 
 private:
 	void clearFeeds();
-	bool applyRules(const MessagePtrList& l);
+	bool applyRules(MessagePtrList* pList);
 	void reportError(UINT nId,
 					 HttpMethod* pMethod);
 
