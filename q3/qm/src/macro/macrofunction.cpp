@@ -2660,7 +2660,7 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 			bJunk = true;
 		}
 		else {
-			float fScore = pJunkFilter->getScore(*pMessage, 0, 0);
+			float fScore = pJunkFilter->getScore(*pMessage);
 			if (fScore != -1.0F)
 				bJunk = fScore > pJunkFilter->getThresholdScore();
 		}

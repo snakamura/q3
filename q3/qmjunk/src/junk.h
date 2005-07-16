@@ -68,9 +68,7 @@ public:
 	virtual ~JunkFilterImpl();
 
 public:
-	virtual float getScore(const qm::Message& msg,
-						   const WCHAR* pwszWhiteList,
-						   const WCHAR* pwszBlackList);
+	virtual float getScore(const qm::Message& msg);
 	virtual bool manage(const qm::Message& msg,
 						unsigned int nOperation);
 	virtual Status getStatus(const WCHAR* pwszId);
@@ -95,9 +93,6 @@ private:
 	DepotPtr open(const WCHAR* pwszName) const;
 
 private:
-	static bool match(const AddressList* pAddressList,
-					  const qm::Message& msg,
-					  const WCHAR* pwszAlternativeList);
 	static qs::string_ptr getId(const qs::Part& part);
 
 private:

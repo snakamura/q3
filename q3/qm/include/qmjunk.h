@@ -56,9 +56,7 @@ public:
 	virtual ~JunkFilter();
 
 public:
-	virtual float getScore(const Message& msg,
-						   const WCHAR* pwszWhiteList,
-						   const WCHAR* pwszBlackList) = 0;
+	virtual float getScore(const Message& msg) = 0;
 	virtual bool manage(const Message& msg,
 						unsigned int nOperation) = 0;
 	virtual Status getStatus(const WCHAR* pwszId) = 0;

@@ -125,9 +125,7 @@ qmjunk::JunkFilterImpl::~JunkFilterImpl()
 {
 }
 
-float qmjunk::JunkFilterImpl::getScore(const Message& msg,
-									   const WCHAR* pwszWhiteList,
-									   const WCHAR* pwszBlackList)
+float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
@@ -180,11 +178,11 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg,
 		}
 	}
 	
-	if (match(pWhiteList_.get(), msg, pwszWhiteList)) {
+	if (pWhiteList_.get() && pWhiteList_->match(msg)) {
 		log.info(L"A message matches against white list.");
 		return 0.0F;
 	}
-	if (match(pBlackList_.get(), msg, pwszBlackList)) {
+	if (pBlackList_.get() && pBlackList_->match(msg)) {
 		log.info(L"A message matches against black list.");
 		return 1.0F;
 	}
@@ -672,18 +670,6 @@ DepotPtr qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 	}
 	
 	return pDepot;
-}
-
-bool qmjunk::JunkFilterImpl::match(const AddressList* pAddressList,
-								   const qm::Message& msg,
-								   const WCHAR* pwszAlternativeList)
-{
-	std::auto_ptr<AddressList> p;
-	if (pwszAlternativeList) {
-		p.reset(new AddressList(pwszAlternativeList));
-		pAddressList = p.get();
-	}
-	return pAddressList ? pAddressList->match(msg) : false;
 }
 
 string_ptr qmjunk::JunkFilterImpl::getId(const qs::Part& part)
