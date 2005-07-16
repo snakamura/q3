@@ -42,8 +42,6 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 		UINT nId_;
 	} maps[][12] = {
 		{
-			{ NNTPERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	},
-			{ NNTPERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	},
 			{ NNTPERROR_APPLYRULES,	IDS_ERROR_APPLYRULES	}
 		},
 		{

@@ -210,8 +210,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_FILTERJUNK    "Error occuered while filtering junks."
-    IDS_ERROR_MANAGEJUNK    "Error occuered while managing junks."
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
 END
 

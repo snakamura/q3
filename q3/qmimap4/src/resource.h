@@ -29,7 +29,7 @@
 #define IDC_SEARCHBODY                  1013
 #define IDS_IMAP4SEARCH                 1013
 #define IDC_IMAP4COMMAND                1014
-#define IDS_FILTERJUNK                  1014
+#define IDS_MANAGEJUNK                  1014
 #define IDC_PERSONAL                    1015
 #define IDC_OTHERS                      1016
 #define IDC_SHARED                      1017
@@ -85,9 +85,7 @@
 #define IDS_ERROR_SOCKET_SELECT         13009
 #define IDS_ERROR_SOCKET_CANCEL         13010
 #define IDS_ERROR_SOCKET_UNKNOWN        13011
-#define IDS_ERROR_FILTERJUNK            14000
-#define IDS_ERROR_MANAGEJUNK            14001
-#define IDS_ERROR_APPLYRULES            14002
+#define IDS_ERROR_APPLYRULES            14000
 
 // Next default values for new objects
 // 

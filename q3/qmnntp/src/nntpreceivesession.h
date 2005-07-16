@@ -9,7 +9,6 @@
 #ifndef __NNTPRECEIVESESSION_H__
 #define __NNTPRECEIVESESSION_H__
 
-#include <qmjunk.h>
 #include <qmmacro.h>
 #include <qmsession.h>
 #include <qmsyncfilter.h>

@@ -155,7 +155,7 @@ BEGIN
     IDS_APPLYOFFLINEJOBS    "Applying offline jobs..."
     IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages..."
     IDS_IMAP4SEARCH         "IMAP4"
-    IDS_FILTERJUNK          "Filtering junk messages..."
+    IDS_MANAGEJUNK          "Managing junk messages..."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -237,8 +237,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_FILTERJUNK    "Error occuered while filtering junks."
-    IDS_ERROR_MANAGEJUNK    "Error occuered while managing junks."
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
 END
 

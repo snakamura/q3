@@ -40,8 +40,6 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 		UINT nId_;
 	} maps[][13] = {
 		{
-			{ POP3ERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	},
-			{ POP3ERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	},
 			{ POP3ERROR_APPLYRULES,	IDS_ERROR_APPLYRULES	}
 		},
 		{

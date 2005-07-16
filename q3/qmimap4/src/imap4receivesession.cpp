@@ -1242,7 +1242,7 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 	
 	if (pFolder_->isFlag(Folder::FLAG_JUNKBOX) &&
 		pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
-		pCallback_->setMessage(IDS_FILTERJUNK);
+		pCallback_->setMessage(IDS_MANAGEJUNK);
 		pSessionCallback_->setRange(0, l.size());
 		pSessionCallback_->setPos(0);
 		
@@ -1413,8 +1413,6 @@ void qmimap4::Imap4ReceiveSession::reportError(Imap4* pImap4,
 		UINT nId_;
 	} maps[][23] = {
 		{
-			{ IMAP4ERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	},
-			{ IMAP4ERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	},
 			{ IMAP4ERROR_APPLYRULES,	IDS_ERROR_APPLYRULES	}
 		},
 		{
