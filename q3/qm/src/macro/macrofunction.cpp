@@ -2639,29 +2639,32 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 	if (!pMessage)
 		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
-	wstring_ptr wstrWhiteList;
-	wstring_ptr wstrBlackList;
-	struct {
-		size_t nArg_;
-		wstring_ptr* pwstr_;
-	} lists[] = {
-		{ 0, &wstrWhiteList },
-		{ 1, &wstrBlackList }
-	};
-	for (int n = 0; n < countof(lists); ++n) {
-		if (nSize > lists[n].nArg_) {
-			ARG(pValue, lists[n].nArg_);
-			wstring_ptr wstr(pValue->string());
-			if (*wstr.get())
-				*lists[n].pwstr_ = wstr;
-		}
-	}
-	
 	bool bJunk = false;
 	JunkFilter* pJunkFilter = pContext->getDocument()->getJunkFilter();
 	if (pJunkFilter) {
-		float fScore = pJunkFilter->getScore(*pMessage, wstrWhiteList.get(), wstrBlackList.get());
-		bJunk = fScore > pJunkFilter->getThresholdScore();
+		bool bWhite = false;
+		if (nSize > 0) {
+			ARG(pValue, 0);
+			bWhite = pValue->boolean();
+		}
+		bool bBlack = false;
+		if (!bWhite && nSize > 1) {
+			ARG(pValue, 1);
+			bBlack = pValue->boolean();
+		}
+		
+		if (bWhite) {
+			bJunk = false;
+		}
+		else if (bBlack) {
+			bJunk = true;
+		}
+		else {
+			float fScore = pJunkFilter->getScore(*pMessage, 0, 0);
+			if (fScore != -1.0F)
+				bJunk = fScore > pJunkFilter->getThresholdScore();
+		}
+		
 		if (pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
 			unsigned int nOperation = bJunk ?
 				JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
