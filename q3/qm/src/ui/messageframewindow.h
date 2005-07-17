@@ -64,7 +64,7 @@ public:
 	void postModalDialog(HWND hwndParent);
 	void layout();
 	void reloadProfiles();
-	bool save() const;
+	void save() const;
 
 private:
 	MessageFrameWindow* create();

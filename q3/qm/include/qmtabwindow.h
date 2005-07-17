@@ -45,7 +45,7 @@ public:
 	bool isShowTab() const;
 	void setShowTab(bool bShow);
 	void reloadProfiles();
-	bool save() const;
+	void save() const;
 	void setControl(HWND hwnd);
 
 public:

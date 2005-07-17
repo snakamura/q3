@@ -622,7 +622,7 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 	
 	JunkFilter* pJunkFilter = pData->getDocument()->getJunkFilter();
 	if (pJunkFilter) {
-		if (!pJunkFilter->save())
+		if (!pJunkFilter->save(false))
 			log.error(L"Failed to save junk filter.");
 	}
 	return true;
@@ -812,7 +812,7 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
 		return true;
 	
-	if (!pFolder->getAccount()->saveMessages())
+	if (!pFolder->getAccount()->saveMessages(false))
 		return false;
 	
 	if (!pSession->closeFolder())
@@ -983,7 +983,7 @@ bool qm::SyncManager::send(Document* pDocument,
 		pCallback->setPos(m + 1);
 	}
 	
-	if (!pAccount->saveMessages())
+	if (!pAccount->saveMessages(false))
 		return false;
 	
 	return true;

@@ -825,13 +825,12 @@ void qm::ViewModel::invalidateColors(const ColorManager* pColorManager)
 	fireColorChanged();
 }
 
-bool qm::ViewModel::save() const
+void qm::ViewModel::save() const
 {
 	pDataItem_->setSort(nSort_);
 	pDataItem_->setFocus(nFocused_);
 	pDataItem_->setFilter(pFilter_.get() ? pFilter_->getName() : 0);
 	pDataItem_->setMode(nMode_);
-	return true;
 }
 
 void qm::ViewModel::destroy()
@@ -1674,19 +1673,17 @@ ViewModel* qm::ViewModelManager::getViewModel(Folder* pFolder)
 	return pViewModel.release();
 }
 
-bool qm::ViewModelManager::save() const
+bool qm::ViewModelManager::save(bool bForce) const
 {
-	for (ViewModelList::const_iterator it = listViewModel_.begin(); it != listViewModel_.end(); ++it) {
-		if (!(*it)->save())
-			return false;
-	}
+	for (ViewModelList::const_iterator it = listViewModel_.begin(); it != listViewModel_.end(); ++it)
+		(*it)->save();
 	
 	for (ViewDataMap::const_iterator it = mapViewData_.begin(); it != mapViewData_.end(); ++it) {
-		if (!(*it).second->save())
+		if (!(*it).second->save() && !bForce)
 			return false;
 	}
 	
-	if (!pDefaultViewData_->save())
+	if (!pDefaultViewData_->save() && !bForce)
 		return false;
 	
 	return true;

@@ -44,7 +44,7 @@ public:
 public:
 	const AddressList& getAddresses() const;
 	void add(const Message& msg);
-	bool save() const;
+	void save() const;
 
 private:
 	void load();

@@ -71,7 +71,7 @@ public:
 	virtual void setWhiteList(const WCHAR* pwszWhiteList) = 0;
 	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator) = 0;
 	virtual void setBlackList(const WCHAR* pwszBlackList) = 0;
-	virtual bool save() = 0;
+	virtual bool save(bool bForce) = 0;
 
 public:
 	static std::auto_ptr<JunkFilter> getInstance(const WCHAR* pwszPath,

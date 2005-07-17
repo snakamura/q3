@@ -67,7 +67,7 @@ public:
 	bool isShowHeaderColumn() const;
 	void setShowHeaderColumn(bool bShow);
 	void reloadProfiles();
-	bool save();
+	void save() const;
 
 public:
 	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
@@ -157,7 +157,7 @@ public:
 	void setViewModel(ViewModel* pViewModel);
 	bool isShow() const;
 	void setShow(bool bShow);
-	bool save();
+	void save() const;
 
 public:
 	virtual qs::wstring_ptr getSuperClass();

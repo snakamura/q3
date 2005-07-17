@@ -43,7 +43,7 @@ public:
 	void initialShow();
 	void layout();
 	void reloadProfiles();
-	bool save();
+	bool save(bool bForce);
 	
 #ifndef _WIN32_WCE_PSPC
 	void show();

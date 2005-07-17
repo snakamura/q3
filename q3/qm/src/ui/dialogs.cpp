@@ -210,7 +210,7 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 				return 0;
 			}
 			
-			if (!pAccount->save()) {
+			if (!pAccount->save(false)) {
 				// TODO MSG
 				return 0;
 			}

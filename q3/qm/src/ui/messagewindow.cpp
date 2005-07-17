@@ -546,7 +546,7 @@ void qm::MessageWindow::reloadProfiles()
 	pImpl_->pFactory_->reloadProfiles();
 }
 
-bool qm::MessageWindow::save()
+void qm::MessageWindow::save() const
 {
 	Profile* pProfile = pImpl_->pProfile_;
 	
@@ -554,8 +554,6 @@ bool qm::MessageWindow::save()
 	pProfile->setInt(pImpl_->pwszSection_, L"ViewMode", pImpl_->nMode_);
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
-	
-	return true;
 }
 
 void qm::MessageWindow::addMessageWindowHandler(MessageWindowHandler* pHandler)

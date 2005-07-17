@@ -131,7 +131,7 @@ public:
 public:
 	unsigned int getReuse() const;
 	void setReuse(unsigned int nReuse);
-	bool save() const;
+	bool save(bool bForce) const;
 	const ItemList& getItems() const;
 
 public:

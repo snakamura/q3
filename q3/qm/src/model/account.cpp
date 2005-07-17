@@ -64,7 +64,7 @@ public:
 	bool saveFolders() const;
 	
 	bool loadSubAccounts();
-	bool saveSubAccounts() const;
+	bool saveSubAccounts(bool bForce) const;
 	
 	bool getMessage(MessageHolder* pmh,
 					unsigned int nFlags,
@@ -242,10 +242,10 @@ bool qm::AccountImpl::loadSubAccounts()
 	return true;
 }
 
-bool qm::AccountImpl::saveSubAccounts() const
+bool qm::AccountImpl::saveSubAccounts(bool bForce) const
 {
 	for (Account::SubAccountList::const_iterator it = listSubAccount_.begin(); it != listSubAccount_.end(); ++it) {
-		if (!(*it)->save())
+		if (!(*it)->save(bForce))
 			return false;
 	}
 	return true;
@@ -564,7 +564,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		if (nJunkOperation != 0) {
 			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
 				JunkFilterUtil::manage(pJunkFilter_, *it, nJunkOperation);
-			pJunkFilter_->save();
+			pJunkFilter_->save(false);
 		}
 	}
 	
@@ -1664,7 +1664,7 @@ bool qm::Account::compact(MessageOperationCallback* pCallback)
 	
 	Lock<Account> lock(*this);
 	
-	if (!save())
+	if (!save(false))
 		return false;
 	
 	MessageStore::DataList listData;
@@ -1697,7 +1697,7 @@ bool qm::Account::compact(MessageOperationCallback* pCallback)
 		}
 	}
 	
-	if (!save())
+	if (!save(false))
 		return false;
 	
 	if (!pImpl_->pMessageStore_->freeUnused())
@@ -1754,7 +1754,7 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 	
 	if (!pImpl_->pMessageStore_->salvage(listData, &callback))
 		return false;
-	if (!save())
+	if (!save(false))
 		return false;
 	
 	return true;
@@ -1881,13 +1881,13 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 	if (!pImpl_->pMessageStore_->check(&callback))
 		return false;
 	callback.apply();
-	if (!save())
+	if (!save(false))
 		return false;
 	
 	return true;
 }
 
-bool qm::Account::save() const
+bool qm::Account::save(bool bForce) const
 {
 	Lock<Account> lock(*this);
 	
@@ -1895,25 +1895,25 @@ bool qm::Account::save() const
 		pImpl_->pCurrentSubAccount_->getName());
 	pImpl_->pProfile_->setInt(L"Global", L"StoreDecodedMessage", pImpl_->bStoreDecodedMessage_);
 	
-	if (!saveMessages())
+	if (!saveMessages(bForce))
 		return false;
-	if (!pImpl_->saveFolders())
+	if (!pImpl_->saveFolders() && !bForce)
 		return false;
-	if (!pImpl_->saveSubAccounts())
+	if (!pImpl_->saveSubAccounts(bForce))
 		return false;
-	if (!pImpl_->pProtocolDriver_->save())
+	if (!pImpl_->pProtocolDriver_->save(bForce))
 		return false;
 	
 	return true;
 }
 
-bool qm::Account::saveMessages() const
+bool qm::Account::saveMessages(bool bForce) const
 {
-	if (!flushMessageStore())
+	if (!flushMessageStore() && !bForce)
 		return false;
 	
 	for (FolderList::const_iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
-		if (!(*it)->saveMessageHolders())
+		if (!(*it)->saveMessageHolders() && !bForce)
 			return false;
 	}
 	

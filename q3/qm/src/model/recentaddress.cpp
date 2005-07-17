@@ -61,7 +61,7 @@ void qm::RecentAddress::add(const Message& msg)
 	}
 }
 
-bool qm::RecentAddress::save() const
+void qm::RecentAddress::save() const
 {
 	for (unsigned int n = 0; n < nMax_; ++n) {
 		WCHAR wszKey[32];
@@ -74,7 +74,6 @@ bool qm::RecentAddress::save() const
 		}
 		pProfile_->setString(L"RecentAddress", wszKey, pwszValue);
 	}
-	return true;
 }
 
 void qm::RecentAddress::load()

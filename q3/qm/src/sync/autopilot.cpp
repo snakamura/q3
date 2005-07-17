@@ -86,10 +86,9 @@ void qm::AutoPilot::setEnabled(bool bEnabled)
 	bEnabled_ = bEnabled;
 }
 
-bool qm::AutoPilot::save() const
+void qm::AutoPilot::save() const
 {
 	pProfile_->setInt(L"AutoPilot", L"Enabled", bEnabled_);
-	return true;
 }
 
 void qm::AutoPilot::timerTimeout(unsigned int nId)
@@ -229,9 +228,9 @@ void qm::AutoPilotManager::setEntries(EntryList& listEntry)
 	listEntry_.swap(listEntry);
 }
 
-bool qm::AutoPilotManager::save() const
+bool qm::AutoPilotManager::save(bool bForce) const
 {
-	return helper_.save(this);
+	return helper_.save(this) || bForce;
 }
 
 void qm::AutoPilotManager::clear()

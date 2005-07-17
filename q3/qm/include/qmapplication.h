@@ -42,7 +42,7 @@ public:
 	bool initialize();
 	void uninitialize();
 	void run();
-	bool save();
+	bool save(bool bForce);
 	void startShutdown();
 	
 	HINSTANCE getResourceHandle() const;

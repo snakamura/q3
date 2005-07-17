@@ -45,7 +45,7 @@ public:
 
 public:
 	SyncDialog* open();
-	bool save() const;
+	void save() const;
 
 private:
 	SyncDialogManager(const SyncDialogManager&);
@@ -103,7 +103,7 @@ public:
 	bool showDialupDialog(RASDIALPARAMS* prdp);
 	qs::wstring_ptr selectDialupEntry();
 	void notifyNewMessage() const;
-	bool save() const;
+	void save() const;
 
 public:
 	virtual INT_PTR dialogProc(UINT uMsg,

@@ -62,7 +62,7 @@ public:
 	void initialShow();
 	void layout();
 	void reloadProfiles();
-	bool save();
+	void save();
 	
 	bool isShowToolbar() const;
 	void setShowToolbar(bool bShow);
@@ -166,7 +166,7 @@ public:
 	
 	void layout();
 	void reloadProfiles();
-	bool save();
+	void save() const;
 	
 	void addMessageWindowHandler(MessageWindowHandler* pHandler);
 	void removeMessageWindowHandler(MessageWindowHandler* pHandler);

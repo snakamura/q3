@@ -136,9 +136,9 @@ void qm::DefaultTabModel::setReuse(unsigned int nReuse)
 	nReuse_ = nReuse;
 }
 
-bool qm::DefaultTabModel::save() const
+bool qm::DefaultTabModel::save(bool bForce) const
 {
-	if (!ConfigSaver<const DefaultTabModel*, TabModelWriter>::save(this, wstrPath_.get()))
+	if (!ConfigSaver<const DefaultTabModel*, TabModelWriter>::save(this, wstrPath_.get()) && !bForce)
 		return false;
 	
 	pProfile_->setInt(L"TabWindow", L"CurrentTab", nCurrent_);

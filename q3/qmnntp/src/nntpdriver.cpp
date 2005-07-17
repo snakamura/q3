@@ -68,7 +68,7 @@ bool qmnntp::NntpDriver::init()
 	return true;
 }
 
-bool qmnntp::NntpDriver::save()
+bool qmnntp::NntpDriver::save(bool bForce)
 {
 	return true;
 }

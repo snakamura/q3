@@ -2139,6 +2139,7 @@ BEGIN
     IDS_PROCESSING          "Processing..."
     IDS_UPDATEFOLDER        "Would you like to update a folder list now?"
     IDS_TEMPORARYFOLDER     "Temporary Folder"
+    IDS_CONFIRM_EXIT        "Error occured while saving. Would you like to continue?\nSelect Yes to continue, No to retry, Cancel to cancel."
     IDS_FILTER_EXPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_IMPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_INSERT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"

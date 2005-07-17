@@ -1058,9 +1058,9 @@ void qm::ListWindow::reloadProfiles()
 	pImpl_->reloadProfiles(false);
 }
 
-bool qm::ListWindow::save()
+void qm::ListWindow::save() const
 {
-	return pImpl_->pHeaderColumn_->save();
+	pImpl_->pHeaderColumn_->save();
 }
 
 bool qm::ListWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
@@ -1857,10 +1857,9 @@ void qm::ListHeaderColumn::setShow(bool bShow)
 	pImpl_->bShow_ = bShow;
 }
 
-bool qm::ListHeaderColumn::save()
+void qm::ListHeaderColumn::save() const
 {
 	pImpl_->pProfile_->setInt(L"ListWindow", L"ShowHeaderColumn", pImpl_->bShow_ ? 1 : 0);
-	return true;
 }
 
 wstring_ptr qm::ListHeaderColumn::getSuperClass()

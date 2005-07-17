@@ -63,7 +63,7 @@ public:
 	void start(HWND hwnd);
 	bool isEnabled() const;
 	void setEnabled(bool bEnabled);
-	bool save() const;
+	void save() const;
 
 public:
 	virtual void timerTimeout(unsigned int nId);
@@ -155,7 +155,7 @@ public:
 	const EntryList& getEntries();
 	const EntryList& getEntries(bool bReload);
 	void setEntries(EntryList& listEntry);
-	bool save() const;
+	bool save(bool bForce) const;
 	void clear();
 
 public:

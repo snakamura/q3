@@ -508,10 +508,9 @@ void qm::TabWindow::reloadProfiles()
 	pImpl_->reloadProfiles(false);
 }
 
-bool qm::TabWindow::save() const
+void qm::TabWindow::save() const
 {
 	pImpl_->pProfile_->setInt(L"TabWindow", L"Show", pImpl_->bShowTab_);
-	return true;
 }
 
 void qm::TabWindow::setControl(HWND hwnd)

@@ -58,7 +58,7 @@ public:
 
 public:
 	virtual bool init() = 0;
-	virtual bool save() = 0;
+	virtual bool save(bool bForce) = 0;
 	virtual bool isSupport(Account::Support support) = 0;
 	virtual void setOffline(bool bOffline) = 0;
 	virtual void setSubAccount(SubAccount* pSubAccount) = 0;

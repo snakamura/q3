@@ -131,9 +131,9 @@ void qm::PasswordManager::removePassword(const PasswordCondition& condition)
 	}
 }
 
-bool qm::PasswordManager::save() const
+bool qm::PasswordManager::save(bool bForce) const
 {
-	return pImpl_->helper_.save(this);
+	return pImpl_->helper_.save(this) || bForce;
 }
 
 void qm::PasswordManager::clear()

@@ -3333,7 +3333,7 @@ bool qm::AutoPilotDialog::edit(AutoPilotEntry* p) const
 bool qm::AutoPilotDialog::save(OptionDialogContext* pContext)
 {
 	pManager_->setEntries(getList());
-	if (!pManager_->save())
+	if (!pManager_->save(false))
 		return false;
 	
 	wstring_ptr wstrSound(getDlgItemText(IDC_SOUND));

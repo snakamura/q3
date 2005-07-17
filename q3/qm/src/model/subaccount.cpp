@@ -627,7 +627,7 @@ bool qm::SubAccount::isSelf(const Message& msg) const
 	return bSelf;
 }
 
-bool qm::SubAccount::save() const
+bool qm::SubAccount::save(bool bForce) const
 {
 #define SAVE_STRING(section, key, name) \
 	pImpl_->pProfile_->setString(section, key, pImpl_->name.get());
@@ -665,7 +665,7 @@ bool qm::SubAccount::save() const
 	wstring_ptr wstrMyAddress(getMyAddress());
 	pImpl_->pProfile_->setString(L"Global", L"MyAddress", wstrMyAddress.get());
 	
-	return pImpl_->pProfile_->save();
+	return pImpl_->pProfile_->save() || bForce;
 }
 
 bool qm::SubAccount::setName(const WCHAR* pwszName)

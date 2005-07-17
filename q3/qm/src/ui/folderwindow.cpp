@@ -1219,7 +1219,7 @@ void qm::FolderWindow::reloadProfiles()
 	pImpl_->reloadProfiles(false);
 }
 
-bool qm::FolderWindow::save()
+void qm::FolderWindow::save() const
 {
 	HWND hwnd = getHandle();
 	
@@ -1249,8 +1249,6 @@ bool qm::FolderWindow::save()
 	}
 	
 	pImpl_->pProfile_->setStringList(L"FolderWindow", L"ExpandedFolders", listValue);
-	
-	return true;
 }
 
 void qm::FolderWindow::expand(bool bExpand)

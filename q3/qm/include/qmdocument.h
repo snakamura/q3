@@ -91,7 +91,7 @@ public:
 	void setOffline(bool bOffline);
 	void incrementInternalOnline();
 	void decrementInternalOnline();
-	bool save();
+	bool save(bool bForce);
 	
 	void addDocumentHandler(DocumentHandler* pHandler);
 	void removeDocumentHandler(DocumentHandler* pHandler);

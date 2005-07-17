@@ -713,10 +713,9 @@ void qm::MessageFrameWindow::reloadProfiles()
 	pImpl_->pMessageWindow_->reloadProfiles();
 }
 
-bool qm::MessageFrameWindow::save()
+void qm::MessageFrameWindow::save()
 {
-	if (!pImpl_->pMessageWindow_->save())
-		return false;
+	pImpl_->pMessageWindow_->save();
 	
 	Profile* pProfile = pImpl_->pProfile_;
 	pProfile->setInt(L"MessageFrameWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
@@ -726,10 +725,7 @@ bool qm::MessageFrameWindow::save()
 	
 	pProfile->setInt(L"MainWindow", L"SecurityMode", pImpl_->pSecurityModel_->getSecurityMode());
 	
-	if (!FrameWindow::save())
-		return false;
-	
-	return true;
+	FrameWindow::save();
 }
 
 bool qm::MessageFrameWindow::isShowToolbar() const
@@ -1187,7 +1183,7 @@ void qm::MessageFrameWindowManager::reloadProfiles()
 		(*it)->reloadProfiles();
 }
 
-bool qm::MessageFrameWindowManager::save() const
+void qm::MessageFrameWindowManager::save() const
 {
 	MessageFrameWindow* pFrame = 0;
 	
@@ -1196,12 +1192,8 @@ bool qm::MessageFrameWindowManager::save() const
 	else if (!listFrame_.empty())
 		pFrame = listFrame_.back();
 	
-	if (pFrame) {
-		if (!pFrame->save())
-			return false;
-	}
-	
-	return true;
+	if (pFrame)
+		pFrame->save();
 }
 
 MessageFrameWindow* qm::MessageFrameWindowManager::create()

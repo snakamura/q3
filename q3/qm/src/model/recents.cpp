@@ -200,10 +200,9 @@ void qm::Recents::removeSeens()
 		pImpl_->fireRecentsChanged();
 }
 
-bool qm::Recents::save() const
+void qm::Recents::save() const
 {
 	pImpl_->pProfile_->setInt(L"Recents", L"Max", pImpl_->nMax_);
-	return true;
 }
 
 void qm::Recents::lock() const

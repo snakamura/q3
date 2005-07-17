@@ -219,7 +219,7 @@ bool qm::Document::renameAccount(Account* pAccount,
 	assert(pAccount);
 	assert(pwszName);
 	
-	if (!pAccount->save())
+	if (!pAccount->save(false))
 		return false;
 	
 	wstring_ptr wstrOldPath(allocWString(pAccount->getPath()));
@@ -510,21 +510,19 @@ void qm::Document::decrementInternalOnline()
 		pImpl_->setOffline(true);
 }
 
-bool qm::Document::save()
+bool qm::Document::save(bool bForce)
 {
-	for (AccountList::iterator it = pImpl_->listAccount_.begin(); it != pImpl_->listAccount_.end(); ++it) {
-		if (!(*it)->save())
+	const AccountList& l = pImpl_->listAccount_;
+	for (AccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		if (!(*it)->save(bForce))
 			return false;
 	}
 	
-	if (!pImpl_->pRecents_->save())
-		return false;
-	
-	if (!pImpl_->pRecentAddress_->save())
-		return false;
+	pImpl_->pRecents_->save();
+	pImpl_->pRecentAddress_->save();
 	
 	if (pImpl_->pJunkFilter_.get()) {
-		if (!pImpl_->pJunkFilter_->save())
+		if (!pImpl_->pJunkFilter_->save(bForce))
 			return false;
 	}
 	

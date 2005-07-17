@@ -46,7 +46,7 @@ public:
 
 public:
 	virtual bool init();
-	virtual bool save();
+	virtual bool save(bool bForce);
 	virtual bool isSupport(qm::Account::Support support);
 	virtual void setOffline(bool bOffline);
 	virtual void setSubAccount(qm::SubAccount* pSubAccount);

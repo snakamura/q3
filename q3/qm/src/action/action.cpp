@@ -1210,10 +1210,25 @@ bool qm::FileExitAction::exit(bool bDestroy)
 	{
 		WaitCursor cursor;
 		Application& app = Application::getApplication();
-		if (!app.save()) {
-			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
-			return false;
-		}
+		bool bForce = false;
+		do {
+			if (app.save(bForce))
+				break;
+			assert(!bForce);
+			
+			int nId = messageBox(app.getResourceHandle(), IDS_CONFIRM_EXIT,
+				MB_YESNOCANCEL | MB_ICONERROR | MB_DEFBUTTON3, hwnd_);
+			switch (nId) {
+			case IDYES:
+				bForce = true;
+				break;
+			case IDNO:
+				break;
+			case IDCANCEL:
+			default:
+				return false;
+			}
+		} while (true);
 		app.startShutdown();
 		pDocument_->setOffline(true);
 		pSyncManager_->dispose();
@@ -1565,7 +1580,7 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0);
 		}
 		else {
-			if (!pFolder->getAccount()->save()) {
+			if (!pFolder->getAccount()->save(false)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 				return;
 			}
@@ -2332,7 +2347,7 @@ qm::FileSaveAction::~FileSaveAction()
 void qm::FileSaveAction::invoke(const ActionEvent& event)
 {
 	WaitCursor cursor;
-	if (!Application::getApplication().save()) {
+	if (!Application::getApplication().save(false)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 		return;
 	}
@@ -2808,7 +2823,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 				return;
 			}
 			
-			if (!pAccount->save()) {
+			if (!pAccount->save(false)) {
 				ActionUtil::error(hwnd, IDS_ERROR_SAVE);
 				return;
 			}
@@ -3067,7 +3082,7 @@ void qm::FolderUpdateAction::invoke(const ActionEvent& event)
 		return;
 	}
 	
-	if (!pAccount->save()) {
+	if (!pAccount->save(false)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 		return;
 	}
@@ -3245,7 +3260,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 	}
 	
 	if (pAccount) {
-		if (!pAccount->save()) {
+		if (!pAccount->save(false)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 			return;
 		}
@@ -4833,7 +4848,7 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 		pDocument_->getJunkFilter(), pOptionDialogManager_, pProfile_);
 	dialog.doModal(hwnd_, 0);
 	
-	if (!Application::getApplication().save())
+	if (!Application::getApplication().save(false))
 		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 	
 	if (!bOffline)
@@ -5124,7 +5139,7 @@ void qm::ToolOptionsAction::invoke(const ActionEvent& event)
 {
 	pOptionDialogManager_->showDialog(hwnd_, panel_);
 	
-	if (!Application::getApplication().save())
+	if (!Application::getApplication().save(false))
 		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 }
 

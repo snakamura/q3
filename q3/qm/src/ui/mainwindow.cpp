@@ -1840,18 +1840,18 @@ void qm::MainWindow::reloadProfiles()
 	pImpl_->reloadProfiles(false);
 }
 
-bool qm::MainWindow::save()
+bool qm::MainWindow::save(bool bForce)
 {
-	if (!pImpl_->pMessageFrameWindowManager_->save() ||
-		!pImpl_->pViewModelManager_->save() ||
-		!pImpl_->pListWindow_->save() ||
-		!pImpl_->pMessageWindow_->save() ||
-		!pImpl_->pFolderWindow_->save() ||
-		!pImpl_->pFolderListWindow_->save())
+	pImpl_->pMessageFrameWindowManager_->save();
+	pImpl_->pFolderWindow_->save();
+	pImpl_->pFolderListWindow_->save();
+	pImpl_->pListWindow_->save();
+	pImpl_->pMessageWindow_->save();
+	if (!pImpl_->pViewModelManager_->save(bForce))
 		return false;
 #ifdef QMTABWINDOW
-	if (!pImpl_->pTabModel_->save() ||
-		!pImpl_->pTabWindow_->save())
+	pImpl_->pTabWindow_->save();
+	if (!pImpl_->pTabModel_->save(bForce))
 		return false;
 #endif
 	
@@ -1878,8 +1878,7 @@ bool qm::MainWindow::save()
 	
 	pProfile->setInt(L"MainWindow", L"SecurityMode", pImpl_->pSecurityModel_->getSecurityMode());
 	
-	if (!FrameWindow::save())
-		return false;
+	FrameWindow::save();
 	
 	return true;
 }
@@ -2140,7 +2139,7 @@ LRESULT qm::MainWindow::onActivate(UINT nFlags,
 				bSave = dwId != ::GetCurrentProcessId();
 			}
 			if (bSave)
-				Application::getApplication().save();
+				Application::getApplication().save(false);
 		}
 	}
 	else {

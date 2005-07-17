@@ -45,7 +45,7 @@ public:
 
 public:
 	void reloadProfiles();
-	bool save() const;
+	void save() const;
 	bool isSizeShown() const;
 	void showSize();
 

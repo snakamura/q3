@@ -48,7 +48,7 @@ bool qmrss::RssDriver::init()
 	return true;
 }
 
-bool qmrss::RssDriver::save()
+bool qmrss::RssDriver::save(bool bForce)
 {
 	return true;
 }

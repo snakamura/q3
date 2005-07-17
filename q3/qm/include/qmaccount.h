@@ -183,8 +183,8 @@ public:
 	bool salvage(NormalFolder* pFolder,
 				 MessageOperationCallback* pCallback);
 	bool check(AccountCheckCallback* pCallback);
-	bool save() const;
-	bool saveMessages() const;
+	bool save(bool bForce) const;
+	bool saveMessages(bool bForce) const;
 	bool flushMessageStore() const;
 	bool importMessage(NormalFolder* pFolder,
 					   const CHAR* pszMessage,
@@ -418,7 +418,7 @@ public:
 	
 	bool isSelf(const Message& msg) const;
 	
-	bool save() const;
+	bool save(bool bForce) const;
 
 // These methods are intended to be call from Account class.
 public:

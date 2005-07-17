@@ -44,7 +44,7 @@ public:
 
 public:
 	void reloadProfiles();
-	bool save();
+	void save() const;
 	void expand(bool bExpand);
 
 public:

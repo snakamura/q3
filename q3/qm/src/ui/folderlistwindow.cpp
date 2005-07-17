@@ -388,10 +388,9 @@ void qm::FolderListWindow::reloadProfiles()
 	pImpl_->reloadProfiles(false);
 }
 
-bool qm::FolderListWindow::save() const
+void qm::FolderListWindow::save() const
 {
 	pImpl_->saveColumns();
-	return true;
 }
 
 bool qm::FolderListWindow::isSizeShown() const

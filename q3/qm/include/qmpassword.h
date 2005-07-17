@@ -71,7 +71,7 @@ public:
 					 const WCHAR* pwszPassword,
 					 bool bPermanent);
 	void removePassword(const PasswordCondition& condition);
-	bool save() const;
+	bool save(bool bForce) const;
 	void clear();
 
 public:

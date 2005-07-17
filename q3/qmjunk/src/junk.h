@@ -83,7 +83,7 @@ public:
 	virtual void setWhiteList(const WCHAR* pwszWhiteList);
 	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator);
 	virtual void setBlackList(const WCHAR* pwszBlackList);
-	virtual bool save();
+	virtual bool save(bool bForce);
 
 private:
 	bool init();

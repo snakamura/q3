@@ -63,31 +63,25 @@ SyncDialog* qm::SyncDialogManager::open()
 	return pThread_->getDialog();
 }
 
-bool qm::SyncDialogManager::save() const
+void qm::SyncDialogManager::save() const
 {
 	if (pThread_.get()) {
 		SyncDialog* pSyncDialog = pThread_->getDialog();
 		struct RunnableImpl : public Runnable
 		{
 			RunnableImpl(SyncDialog* pSyncDialog) :
-				pSyncDialog_(pSyncDialog),
-				bSave_(false)
+				pSyncDialog_(pSyncDialog)
 			{
 			}
 			
 			virtual void run()
 			{
-				bSave_ = pSyncDialog_->save();
+				pSyncDialog_->save();
 			}
 			
 			SyncDialog* pSyncDialog_;
-			bool bSave_;
 		} runnable(pSyncDialog);
 		pSyncDialog->getInitThread()->getSynchronizer()->syncExec(&runnable);
-		return runnable.bSave_;
-	}
-	else {
-		return true;
 	}
 }
 
@@ -332,7 +326,7 @@ void qm::SyncDialog::notifyNewMessage() const
 	}
 }
 
-bool qm::SyncDialog::save() const
+void qm::SyncDialog::save() const
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
 	
@@ -344,8 +338,6 @@ bool qm::SyncDialog::save() const
 	pProfile_->setInt(L"SyncDialog", L"Width", rect.right - rect.left);
 	pProfile_->setInt(L"SyncDialog", L"Height", rect.bottom - rect.top);
 #endif
-	
-	return true;
 }
 
 INT_PTR qm::SyncDialog::dialogProc(UINT uMsg,

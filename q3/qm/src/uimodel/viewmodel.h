@@ -348,7 +348,7 @@ public:
 	void payAttention(unsigned int n);
 	
 	void invalidateColors(const ColorManager* pColorManager);
-	bool save() const;
+	void save() const;
 	
 	void destroy();
 	
@@ -591,7 +591,7 @@ public:
 	ViewModel* getCurrentViewModel() const;
 	ViewModel* getViewModel(Folder* pFolder);
 	
-	bool save() const;
+	bool save(bool bForce) const;
 	
 	void addViewModelManagerHandler(ViewModelManagerHandler* pHandler);
 	void removeViewModelManagerHandler(ViewModelManagerHandler* pHandler);

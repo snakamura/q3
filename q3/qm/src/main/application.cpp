@@ -790,24 +790,23 @@ void qm::Application::run()
 	MessageLoop::getMessageLoop().run();
 }
 
-bool qm::Application::save()
+bool qm::Application::save(bool bForce)
 {
 	if (pImpl_->bShutdown_)
 		return true;
 	
-	if (!pImpl_->pDocument_->save())
+	if (!pImpl_->pDocument_->save(bForce))
 		return false;
-	if (!pImpl_->pPasswordManager_->save())
+	if (!pImpl_->pPasswordManager_->save(bForce))
 		return false;
-	if (!pImpl_->pMainWindow_->save())
+	if (!pImpl_->pMainWindow_->save(bForce))
 		return false;
-	if (!pImpl_->pSyncDialogManager_->save())
-		return false;
-	if (!pImpl_->pAutoPilot_->save())
-		return false;
+	pImpl_->pSyncDialogManager_->save();
+	pImpl_->pAutoPilot_->save();
 	pImpl_->saveCurrentFolder();
-	if (!pImpl_->pProfile_->save())
+	if (!pImpl_->pProfile_->save() && !bForce)
 		return false;
+	
 	return true;
 }
 

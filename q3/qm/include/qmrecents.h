@@ -51,7 +51,7 @@ public:
 	void remove(const URI* pURI);
 	void clear();
 	void removeSeens();
-	bool save() const;
+	void save() const;
 	
 	void lock() const;
 	void unlock() const;

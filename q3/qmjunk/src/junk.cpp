@@ -552,9 +552,9 @@ void qmjunk::JunkFilterImpl::setBlackList(const WCHAR* pwszBlackList)
 		pBlackList_.reset(0);
 }
 
-bool qmjunk::JunkFilterImpl::save()
+bool qmjunk::JunkFilterImpl::save(bool bForce)
 {
-	if (!flush())
+	if (!flush() && !bForce)
 		return false;
 	
 	WCHAR wszThresholdScore[64];

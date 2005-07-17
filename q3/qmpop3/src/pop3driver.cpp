@@ -52,7 +52,7 @@ bool qmpop3::Pop3Driver::init()
 	return true;
 }
 
-bool qmpop3::Pop3Driver::save()
+bool qmpop3::Pop3Driver::save(bool bForce)
 {
 	return true;
 }

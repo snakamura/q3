@@ -283,6 +283,7 @@
 #define IDC_REPLACE                     1091
 #define IDS_TEMPORARYFOLDER             1091
 #define IDC_REPLACENEXT                 1092
+#define IDS_CONFIRM_EXIT                1092
 #define IDC_REPLACEPREV                 1093
 #define IDC_REPLACEALL                  1094
 #define IDC_NEVER                       1095
