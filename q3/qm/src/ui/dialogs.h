@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __DIALOG_H__
-#define __DIALOG_H__
+#ifndef __DIALOGS_H__
+#define __DIALOGS_H__
 
 #include <qm.h>
 #include <qmfolder.h>
@@ -27,7 +27,6 @@ namespace qm {
 
 class DefaultDialog;
 	template<class T, class List> class AbstractListDialog;
-	class AccountDialog;
 	class AddAddressDialog;
 	class AddressBookAddressDialog;
 	class AddressBookEntryDialog;
@@ -37,9 +36,6 @@ class DefaultDialog;
 	class AttachmentDialog;
 	class ConditionDialog;
 	class ConfirmSendDialog;
-	class CreateAccountDialog;
-	class CreateFolderDialog;
-	class CreateSubAccountDialog;
 	class CustomFilterDialog;
 	class DetachDialog;
 	class DialupDialog;
@@ -50,7 +46,6 @@ class DefaultDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
 	class PasswordDialog;
-	class ParameterDialog;
 	class ProgressDialog;
 	class RenameDialog;
 	class ReplaceDialog;
@@ -65,10 +60,6 @@ class DefaultDialog;
 	class ViewsDialog;
 
 class Account;
-class JunkFilter;
-class OptionDialogManager;
-class PasswordManager;
-class Security;
 class SyncFilterManager;
 class TemplateManager;
 
@@ -141,74 +132,6 @@ private:
 	UINT nListId_;
 	bool bFocus_;
 	List list_;
-};
-
-
-/****************************************************************************
- *
- * AccountDialog
- *
- */
-
-class AccountDialog :
-	public DefaultDialog,
-	public qs::NotifyHandler
-{
-public:
-	AccountDialog(AccountManager* pAccountManager,
-				  Account* pAccount,
-				  PasswordManager* pPasswordManager,
-				  SyncFilterManager* pSyncFilterManager,
-				  const Security* pSecurity,
-				  JunkFilter* pJunkFilter,
-				  OptionDialogManager* pOptionDialogManager,
-				  qs::Profile* pProfile);
-	virtual ~AccountDialog();
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-public:
-	virtual LRESULT onNotify(NMHDR* pnmhdr,
-							 bool* pbHandled);
-
-private:
-	LRESULT onAddAccount();
-	LRESULT onAddSubAccount();
-	LRESULT onRemove();
-	LRESULT onRename();
-	LRESULT onProperty();
-	LRESULT onAccountSelChanged(NMHDR* pnmhdr,
-								bool* pbHandled);
-
-private:
-	void update();
-	void updateState();
-
-private:
-	static void initProfileForClass(const WCHAR* pwszClass,
-									qs::Profile* pProfile);
-
-private:
-	AccountDialog(const AccountDialog&);
-	AccountDialog& operator=(const AccountDialog&);
-
-private:
-	AccountManager* pAccountManager_;
-	SubAccount* pSubAccount_;
-	PasswordManager* pPasswordManager_;
-	SyncFilterManager* pSyncFilterManager_;
-	const Security* pSecurity_;
-	JunkFilter* pJunkFilter_;
-	OptionDialogManager* pOptionDialogManager_;
-	qs::Profile* pProfile_;
-	bool bAccountAdded_;
 };
 
 
@@ -506,179 +429,6 @@ private:
 private:
 	ConfirmSendDialog(const ConfirmSendDialog&);
 	ConfirmSendDialog& operator=(const ConfirmSendDialog&);
-};
-
-
-/****************************************************************************
- *
- * CreateAccountDialog
- *
- */
-
-class CreateAccountDialog : public DefaultDialog
-{
-public:
-	explicit CreateAccountDialog(qs::Profile* pProfile);
-	virtual ~CreateAccountDialog();
-
-public:
-	const WCHAR* getName() const;
-	const WCHAR* getClass() const;
-	const WCHAR* getReceiveProtocol() const;
-	short getReceivePort() const;
-	const WCHAR* getSendProtocol() const;
-	short getSendPort() const;
-	unsigned int getBlockSize() const;
-	unsigned int getIndexBlockSize() const;
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onNameChange();
-	LRESULT onClassChange();
-	LRESULT onProtocolChange();
-	LRESULT onTypeChange();
-
-private:
-	void updateProtocols();
-	void clearProtocols();
-	void updateState();
-
-private:
-	CreateAccountDialog(const CreateAccountDialog&);
-	CreateAccountDialog& operator=(const CreateAccountDialog&);
-
-private:
-	struct Protocol
-	{
-		qs::WSTRING wstrName_;
-		short nPort_;
-	};
-
-private:
-	typedef std::vector<Protocol> ProtocolList;
-
-private:
-	qs::Profile* pProfile_;
-	ProtocolList listReceiveProtocol_;
-	ProtocolList listSendProtocol_;
-	qs::wstring_ptr wstrName_;
-	qs::wstring_ptr wstrClass_;
-	int nReceiveProtocol_;
-	int nSendProtocol_;
-	unsigned int nBlockSize_;
-	unsigned int nIndexBlockSize_;
-};
-
-
-/****************************************************************************
- *
- * CreateFolderDialog
- *
- */
-
-class CreateFolderDialog : public DefaultDialog
-{
-public:
-	enum Type {
-		TYPE_LOCALFOLDER,
-		TYPE_REMOTEFOLDER,
-		TYPE_QUERYFOLDER
-	};
-	
-	enum Flag {
-		FLAG_ALLOWREMOTE	= 0x01,
-		FLAG_ALLOWLOCALSYNC	= 0x02
-	};
-
-public:
-	CreateFolderDialog(Type type,
-					   unsigned int nFlags);
-	virtual ~CreateFolderDialog();
-
-public:
-	Type getType() const;
-	const WCHAR* getName() const;
-	bool isSyncable() const;
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onNameChange();
-	LRESULT onTypeChange(UINT nId);
-
-private:
-	void updateState();
-
-private:
-	CreateFolderDialog(const CreateFolderDialog&);
-	CreateFolderDialog& operator=(const CreateFolderDialog&);
-
-private:
-	Type type_;
-	unsigned int nFlags_;
-	qs::wstring_ptr wstrName_;
-	bool bSyncable_;
-};
-
-
-/****************************************************************************
- *
- * CreateSubAccountDialog
- *
- */
-
-class CreateSubAccountDialog : public DefaultDialog
-{
-public:
-	explicit CreateSubAccountDialog(AccountManager* pAccountManager);
-	virtual ~CreateSubAccountDialog();
-
-public:
-	const WCHAR* getName() const;
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onNameChanged();
-
-private:
-	void updateState();
-
-private:
-	CreateSubAccountDialog(const CreateSubAccountDialog&);
-	CreateSubAccountDialog& operator=(const CreateSubAccountDialog&);
-
-private:
-	AccountManager* pAccountManager_;
-	qs::wstring_ptr wstrName_;
 };
 
 
@@ -1204,39 +954,6 @@ private:
 	qs::wstring_ptr wstrHint_;
 	qs::wstring_ptr wstrPassword_;
 	PasswordState state_;
-};
-
-
-/****************************************************************************
- *
- * ParameterDialog
- *
- */
-
-class ParameterDialog : public DefaultDialog
-{
-public:
-	ParameterDialog(const WCHAR* pwszName,
-					const WCHAR* pwszValue);
-	virtual ~ParameterDialog();
-
-public:
-	const WCHAR* getValue() const;
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	ParameterDialog(const ParameterDialog&);
-	ParameterDialog& operator=(const ParameterDialog&);
-
-private:
-	qs::wstring_ptr wstrName_;
-	qs::wstring_ptr wstrValue_;
 };
 
 
@@ -1851,4 +1568,4 @@ private:
 
 #include "dialogs.inl"
 
-#endif // __DIALOG_H__
+#endif // __DIALOGS_H__
