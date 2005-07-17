@@ -34,6 +34,7 @@
 #include "../model/templatemanager.h"
 #include "../model/uri.h"
 #include "../ui/actionid.h"
+#include "../ui/addressbookdialog.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
 #include "../ui/menus.h"

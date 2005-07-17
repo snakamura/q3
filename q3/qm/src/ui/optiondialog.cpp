@@ -34,6 +34,7 @@
 #include "messageframewindow.h"
 #include "optiondialog.h"
 #include "resourceinc.h"
+#include "../model/addressbook.h"
 #include "../sync/syncmanager.h"
 #include "../uimodel/tabmodel.h"
 #include "../util/util.h"

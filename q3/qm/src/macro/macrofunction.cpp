@@ -35,6 +35,7 @@
 #include "../model/addressbook.h"
 #include "../model/uri.h"
 #include "../script/scriptmanager.h"
+#include "../ui/addressbookdialog.h"
 #include "../ui/dialogs.h"
 
 using namespace qm;

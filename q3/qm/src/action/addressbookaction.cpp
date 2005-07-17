@@ -11,6 +11,7 @@
 #include "action.h"
 #include "addressbookaction.h"
 #include "../model/addressbook.h"
+#include "../ui/addressbookdialog.h"
 #include "../ui/dialogs.h"
 #include "../ui/resourceinc.h"
 #include "../uimodel/addressbookselectionmodel.h"

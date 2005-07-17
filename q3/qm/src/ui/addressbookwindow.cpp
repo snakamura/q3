@@ -21,6 +21,7 @@
 #endif
 #include <tchar.h>
 
+#include "addressbookdialog.h"
 #include "addressbookwindow.h"
 #include "dialogs.h"
 #include "keymap.h"

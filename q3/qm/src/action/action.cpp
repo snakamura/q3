@@ -57,6 +57,7 @@
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
 #include "../ui/accountdialog.h"
+#include "../ui/addressbookdialog.h"
 #include "../ui/addressbookwindow.h"
 #include "../ui/dialogs.h"
 #include "../ui/editframewindow.h"
