@@ -619,10 +619,15 @@ std::pair<const WCHAR*, size_t> qs::ReadOnlyTextModel::getText() const
 bool qs::ReadOnlyTextModel::setText(const WCHAR* pwszText,
 									size_t nLen)
 {
+	cancelLoad();
+	
 	pImpl_->clearText(false);
+	
 	if (!pImpl_->appendText(pwszText, nLen, false))
 		return false;
+	
 	fireTextSet();
+	
 	return true;
 }
 
