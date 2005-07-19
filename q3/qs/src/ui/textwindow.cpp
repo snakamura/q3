@@ -3019,8 +3019,10 @@ COLORREF qs::TextWindow::getForegroundColor() const
 
 void qs::TextWindow::setForegroundColor(COLORREF cr)
 {
-	pImpl_->crForeground_ = cr;
-	invalidate();
+	if (cr != pImpl_->crForeground_) {
+		pImpl_->crForeground_ = cr;
+		invalidate();
+	}
 }
 
 COLORREF qs::TextWindow::getBackgroundColor() const
@@ -3030,8 +3032,10 @@ COLORREF qs::TextWindow::getBackgroundColor() const
 
 void qs::TextWindow::setBackgroundColor(COLORREF cr)
 {
-	pImpl_->crBackground_ = cr;
-	invalidate();
+	if (cr != pImpl_->crBackground_) {
+		pImpl_->crBackground_ = cr;
+		invalidate();
+	}
 }
 
 unsigned int qs::TextWindow::getLineSpacing() const
@@ -3041,8 +3045,10 @@ unsigned int qs::TextWindow::getLineSpacing() const
 
 void qs::TextWindow::setLineSpacing(unsigned int nLineSpacing)
 {
-	pImpl_->nLineSpacing_ = nLineSpacing;
-	invalidate();
+	if (nLineSpacing != pImpl_->nLineSpacing_) {
+		pImpl_->nLineSpacing_ = nLineSpacing;
+		invalidate();
+	}
 }
 
 unsigned int qs::TextWindow::getCharInLine() const
@@ -3052,8 +3058,10 @@ unsigned int qs::TextWindow::getCharInLine() const
 
 void qs::TextWindow::setCharInLine(unsigned int nCharInLine)
 {
-	pImpl_->nCharInLine_ = nCharInLine;
-	pImpl_->recalcLines(true);
+	if (nCharInLine != pImpl_->nCharInLine_) {
+		pImpl_->nCharInLine_ = nCharInLine;
+		pImpl_->recalcLines(true);
+	}
 }
 
 unsigned int qs::TextWindow::getTabWidth() const
@@ -3063,14 +3071,16 @@ unsigned int qs::TextWindow::getTabWidth() const
 
 void qs::TextWindow::setTabWidth(unsigned int nTabWidth)
 {
-	pImpl_->nTabWidth_ = nTabWidth;
-	pImpl_->recalcLines(true);
+	if (nTabWidth != pImpl_->nTabWidth_) {
+		pImpl_->nTabWidth_ = nTabWidth;
+		pImpl_->recalcLines(true);
+	}
 }
 
-void qs::TextWindow::getMargin(unsigned int* pnTop,
-							   unsigned int* pnBottom,
-							   unsigned int* pnLeft,
-							   unsigned int* pnRight) const
+void qs::TextWindow::getMargin(int* pnTop,
+							   int* pnBottom,
+							   int* pnLeft,
+							   int* pnRight) const
 {
 	*pnTop = pImpl_->nMarginTop_;
 	*pnBottom = pImpl_->nMarginBottom_;
@@ -3078,16 +3088,21 @@ void qs::TextWindow::getMargin(unsigned int* pnTop,
 	*pnRight = pImpl_->nMarginRight_;
 }
 
-void qs::TextWindow::setMargin(unsigned int nTop,
-							   unsigned int nBottom,
-							   unsigned int nLeft,
-							   unsigned int nRight)
+void qs::TextWindow::setMargin(int nTop,
+							   int nBottom,
+							   int nLeft,
+							   int nRight)
 {
-	pImpl_->nMarginTop_ = nTop;
-	pImpl_->nMarginBottom_ = nBottom;
-	pImpl_->nMarginLeft_ = nLeft;
-	pImpl_->nMarginRight_ = nRight;
-	pImpl_->recalcLines(true);
+	if (nTop != pImpl_->nMarginTop_ ||
+		nBottom != pImpl_->nMarginBottom_ ||
+		nLeft != pImpl_->nMarginLeft_ ||
+		nRight != pImpl_->nMarginRight_) {
+		pImpl_->nMarginTop_ = nTop;
+		pImpl_->nMarginBottom_ = nBottom;
+		pImpl_->nMarginLeft_ = nLeft;
+		pImpl_->nMarginRight_ = nRight;
+		pImpl_->recalcLines(true);
+	}
 }
 
 bool qs::TextWindow::isShowNewLine() const
@@ -3097,8 +3112,10 @@ bool qs::TextWindow::isShowNewLine() const
 
 void qs::TextWindow::setShowNewLine(bool bShowNewLine)
 {
-	pImpl_->bShowNewLine_ = bShowNewLine;
-	invalidate();
+	if (bShowNewLine != pImpl_->bShowNewLine_) {
+		pImpl_->bShowNewLine_ = bShowNewLine;
+		invalidate();
+	}
 }
 
 bool qs::TextWindow::isShowTab() const
@@ -3108,8 +3125,10 @@ bool qs::TextWindow::isShowTab() const
 
 void qs::TextWindow::setShowTab(bool bShowTab)
 {
-	pImpl_->bShowTab_ = bShowTab;
-	invalidate();
+	if (bShowTab != pImpl_->bShowTab_) {
+		pImpl_->bShowTab_ = bShowTab;
+		invalidate();
+	}
 }
 
 bool qs::TextWindow::isShowScrollBar(bool bHorizontal) const
@@ -3123,16 +3142,21 @@ void qs::TextWindow::setShowScrollBar(bool bHorizontal,
 {
 	DWORD dwStyle = 0;
 	if (bHorizontal) {
-		pImpl_->bShowHorizontalScrollBar_ = bShowScrollBar;
-		dwStyle = WS_HSCROLL;
+		if (bShowScrollBar != pImpl_->bShowHorizontalScrollBar_) {
+			pImpl_->bShowHorizontalScrollBar_ = bShowScrollBar;
+			dwStyle = WS_HSCROLL;
+		}
 	}
 	else {
-		pImpl_->bShowVerticalScrollBar_ = bShowScrollBar;
-		dwStyle = WS_VSCROLL;
+		if (bShowScrollBar != pImpl_->bShowVerticalScrollBar_) {
+			pImpl_->bShowVerticalScrollBar_ = bShowScrollBar;
+			dwStyle = WS_VSCROLL;
+		}
 	}
-	setStyle(bShowScrollBar ? dwStyle : 0, dwStyle);
-	
-	pImpl_->recalcLines(true);
+	if (dwStyle != 0) {
+		setStyle(bShowScrollBar ? dwStyle : 0, dwStyle);
+		pImpl_->recalcLines(true);
+	}
 }
 
 bool qs::TextWindow::isShowCaret() const
@@ -3173,8 +3197,10 @@ void qs::TextWindow::setQuote(unsigned int n,
 {
 	assert(n < 2);
 	assert(pwszQuote);
-	pImpl_->wstrQuote_[n] = allocWString(pwszQuote);
-	invalidate();
+	if (wcscmp(pwszQuote, pImpl_->wstrQuote_[n].get()) != 0) {
+		pImpl_->wstrQuote_[n] = allocWString(pwszQuote);
+		invalidate();
+	}
 }
 
 COLORREF qs::TextWindow::getQuoteColor(unsigned int n) const
@@ -3187,8 +3213,10 @@ void qs::TextWindow::setQuoteColor(unsigned int n,
 								   COLORREF cr)
 {
 	assert(n < 2);
-	pImpl_->crQuote_[n] = cr;
-	invalidate();
+	if (cr != pImpl_->crQuote_[n]) {
+		pImpl_->crQuote_[n] = cr;
+		invalidate();
+	}
 }
 
 bool qs::TextWindow::isLineQuote() const
@@ -3198,8 +3226,10 @@ bool qs::TextWindow::isLineQuote() const
 
 void qs::TextWindow::setLineQuote(bool bLineQuote)
 {
-	pImpl_->bLineQuote_ = bLineQuote;
-	pImpl_->recalcLines(true);
+	if (pImpl_->bLineQuote_ != bLineQuote) {
+		pImpl_->bLineQuote_ = bLineQuote;
+		pImpl_->recalcLines(true);
+	}
 }
 
 bool qs::TextWindow::isWordWrap() const
@@ -3209,8 +3239,10 @@ bool qs::TextWindow::isWordWrap() const
 
 void qs::TextWindow::setWordWrap(bool bWordWrap)
 {
-	pImpl_->bWordWrap_ = bWordWrap;
-	pImpl_->recalcLines(true);
+	if (bWordWrap != pImpl_->bWordWrap_) {
+		pImpl_->bWordWrap_ = bWordWrap;
+		pImpl_->recalcLines(true);
+	}
 }
 
 unsigned int qs::TextWindow::getReformLineLength() const

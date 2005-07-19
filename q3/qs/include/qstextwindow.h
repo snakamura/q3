@@ -361,14 +361,14 @@ public:
 	void setCharInLine(unsigned int nCharInLine);
 	unsigned int getTabWidth() const;
 	void setTabWidth(unsigned int nTabWidth);
-	void getMargin(unsigned int* pnTop,
-				   unsigned int* pnBottom,
-				   unsigned int* pnLeft,
-				   unsigned int* pnRight) const;
-	void setMargin(unsigned int nTop,
-				   unsigned int nBottom,
-				   unsigned int nLeft,
-				   unsigned int nRight);
+	void getMargin(int* pnTop,
+				   int* pnBottom,
+				   int* pnLeft,
+				   int* pnRight) const;
+	void setMargin(int nTop,
+				   int nBottom,
+				   int nLeft,
+				   int nRight);
 	bool isShowNewLine() const;
 	void setShowNewLine(bool bShowNewLine);
 	bool isShowTab() const;
