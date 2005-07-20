@@ -13,6 +13,8 @@
 
 #include <qsthread.h>
 
+#include <wininet.h>
+
 #include "feed.h"
 #include "main.h"
 #include "resourceinc.h"
@@ -184,6 +186,11 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	method.setRequestHeader(L"User-Agent", wstrUserAgent.get());
 	
 	const WCHAR* pwszCookie = pFolder_->getParam(L"Cookie");
+	wstring_ptr wstrCookie;
+	if (!pwszCookie || !*pwszCookie) {
+		wstrCookie = getInternetCookie(pwszURL);
+		pwszCookie = wstrCookie.get();
+	}
 	if (pwszCookie && *pwszCookie)
 		method.setRequestHeader(L"Cookie", pwszCookie);
 	
@@ -578,6 +585,20 @@ bool qmrss::RssReceiveSession::getInternetProxySetting(wstring_ptr* pwstrProxyHo
 		return false;
 	
 	return true;
+}
+
+wstring_ptr qmrss::RssReceiveSession::getInternetCookie(const WCHAR* pwszURL)
+{
+	W2T(pwszURL, ptszURL);
+	DWORD dwSize = 0;
+	if (!::InternetGetCookie(ptszURL, 0, 0, &dwSize))
+		return 0;
+	
+	tstring_ptr tstrCookie(allocTString(dwSize));
+	if (!::InternetGetCookie(ptszURL, 0, tstrCookie.get(), &dwSize))
+		return 0;
+	
+	return tcs2wcs(tstrCookie.get());
 }
 
 

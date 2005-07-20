@@ -334,7 +334,8 @@ ifeq ($(PLATFORM),win)
 						  oleaut32.lib \
 						  uuid.lib \
 						  urlmon.lib \
-						  crypt32.lib
+						  crypt32.lib \
+						  wininet.lib
 	ifneq ($(VC7),1)
 		LIBS			+= msvcirt$(DSUFFIX).lib
 	endif
@@ -426,7 +427,8 @@ else
 						  uuid.lib \
 						  commctrl.lib \
 						  ceshell.lib \
-						  commdlg.lib
+						  commdlg.lib \
+						  wininet.lib
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif

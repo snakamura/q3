@@ -83,6 +83,7 @@ private:
 								  qm::Message* pMessage);
 	static bool getInternetProxySetting(qs::wstring_ptr* pwstrProxyHost,
 										unsigned short* pnProxyPort);
+	static qs::wstring_ptr getInternetCookie(const WCHAR* pwszURL);
 
 private:
 	RssReceiveSession(const RssReceiveSession&);
