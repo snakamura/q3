@@ -2012,7 +2012,13 @@ void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
 			
 			WCHAR wsz[32];
 			swprintf(wsz, L"[%d]", n++);
-			wstrName = concat(wstrOrigName.get(), wsz);
+			const WCHAR* pExt = wcsrchr(wstrOrigName.get(), L'.');
+			StringBuffer<WSTRING> buf;
+			buf.append(wstrOrigName.get(), pExt ? pExt - wstrOrigName.get() : -1);
+			buf.append(wsz);
+			if (pExt)
+				buf.append(pExt);
+			wstrName = buf.getString();
 		}
 		pList->push_back(AttachmentList::value_type(
 			wstrName.get(), const_cast<Part*>(&part_)));
