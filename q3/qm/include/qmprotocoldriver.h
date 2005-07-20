@@ -74,6 +74,7 @@ public:
 	virtual bool createDefaultFolders(Account::FolderList* pList) = 0;
 	virtual bool getRemoteFolders(RemoteFolderList* pList) = 0;
 	virtual std::pair<const WCHAR**, size_t> getFolderParamNames() = 0;
+	virtual void setDefaultFolderParams(NormalFolder* pFolder) = 0;
 	
 	virtual bool getMessage(MessageHolder* pmh,
 							unsigned int nFlags,

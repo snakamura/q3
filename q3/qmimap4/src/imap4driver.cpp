@@ -320,6 +320,10 @@ std::pair<const WCHAR**, size_t> qmimap4::Imap4Driver::getFolderParamNames()
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
+void qmimap4::Imap4Driver::setDefaultFolderParams(NormalFolder* pFolder)
+{
+}
+
 bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 									  unsigned int nFlags,
 									  GetMessageCallback* pCallback)

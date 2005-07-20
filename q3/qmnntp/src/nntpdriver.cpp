@@ -161,6 +161,10 @@ std::pair<const WCHAR**, size_t> qmnntp::NntpDriver::getFolderParamNames()
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
+void qmnntp::NntpDriver::setDefaultFolderParams(NormalFolder* pFolder)
+{
+}
+
 bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 									unsigned int nFlags,
 									GetMessageCallback* pCallback)

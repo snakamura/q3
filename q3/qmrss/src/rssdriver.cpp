@@ -24,7 +24,7 @@ const unsigned int qmrss::RssDriver::nSupport__ =
 	Account::SUPPORT_LOCALFOLDERDOWNLOAD |
 	Account::SUPPORT_EXTERNALLINK;
 
-const WCHAR* qmrss::RssDriver::pwszParams__[] = {
+const WCHAR* qmrss::RssDriver::pwszParamNames__[] = {
 	L"URL",
 	L"UserName",
 	L"Password",
@@ -32,6 +32,16 @@ const WCHAR* qmrss::RssDriver::pwszParams__[] = {
 	L"UseDescriptionAsContent",
 	L"UpdateIfModified",
 	L"Cookie"
+};
+
+const WCHAR* qmrss::RssDriver::pwszParamValues__[] = {
+	L"",
+	L"",
+	L"",
+	L"true",
+	L"false",
+	L"false",
+	L""
 };
 
 qmrss::RssDriver::RssDriver(Account* pAccount) :
@@ -127,7 +137,13 @@ bool qmrss::RssDriver::getRemoteFolders(RemoteFolderList* pList)
 
 std::pair<const WCHAR**, size_t> qmrss::RssDriver::getFolderParamNames()
 {
-	return std::pair<const WCHAR**, size_t>(pwszParams__, countof(pwszParams__));
+	return std::pair<const WCHAR**, size_t>(pwszParamNames__, countof(pwszParamNames__));
+}
+
+void qmrss::RssDriver::setDefaultFolderParams(NormalFolder* pFolder)
+{
+	for (int n = 0; n < countof(pwszParamNames__); ++n)
+		pFolder->setParam(pwszParamNames__[n], pwszParamValues__[n]);
 }
 
 bool qmrss::RssDriver::getMessage(MessageHolder* pmh,

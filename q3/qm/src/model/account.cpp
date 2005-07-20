@@ -941,7 +941,13 @@ bool qm::AccountImpl::createDefaultFolders()
 		return false;
 	
 	listFolder_.reserve(listFolder_.size() + l.size());
-	std::copy(l.begin(), l.end(), std::back_inserter(listFolder_));
+	
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL)
+			pProtocolDriver_->setDefaultFolderParams(static_cast<NormalFolder*>(pFolder));
+		listFolder_.push_back(pFolder);
+	}
 	
 	return true;
 }
@@ -1405,6 +1411,7 @@ NormalFolder* qm::Account::createNormalFolder(const WCHAR* pwszName,
 	if (!pNormalFolder.get())
 		return 0;
 	
+	pImpl_->pProtocolDriver_->setDefaultFolderParams(pNormalFolder.get());
 	pImpl_->listFolder_.push_back(pNormalFolder.get());
 	NormalFolder* pFolder = pNormalFolder.release();
 	
@@ -1600,8 +1607,11 @@ bool qm::Account::updateFolders()
 	
 	pImpl_->listFolder_.reserve(pImpl_->listFolder_.size() + l.size());
 	for (List::const_iterator itR = l.begin(); itR != l.end(); ++itR) {
-		if ((*itR).second)
-			pImpl_->listFolder_.push_back((*itR).first);
+		if ((*itR).second) {
+			NormalFolder* pFolder = static_cast<NormalFolder*>((*itR).first);
+			pImpl_->pProtocolDriver_->setDefaultFolderParams(pFolder);
+			pImpl_->listFolder_.push_back(pFolder);
+		}
 	}
 	deleter.release();
 	

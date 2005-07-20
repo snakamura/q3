@@ -137,6 +137,10 @@ std::pair<const WCHAR**, size_t> qmpop3::Pop3Driver::getFolderParamNames()
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
+void qmpop3::Pop3Driver::setDefaultFolderParams(NormalFolder* pFolder)
+{
+}
+
 bool qmpop3::Pop3Driver::getMessage(MessageHolder* pmh,
 									unsigned int nFlags,
 									GetMessageCallback* pCallback)
