@@ -224,7 +224,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	
 	bool bRequestResult = pAccessor->isRequestResult();
 	UndoItemList undo;
-	int nMessage = 0;
+	int nPos = 0;
 	for (RuleList::size_type nRule = 0; nRule < listRule.size(); ++nRule) {
 		if (pCallback->isCanceled())
 			return true;
@@ -256,8 +256,8 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 				}
 			}
 			
-			nMessage += listIndex.size();
-			pCallback->setPos(nMessage);
+			nPos += listIndex.size();
+			pCallback->setPos(nPos);
 		}
 	}
 	pDocument->getUndoManager()->pushUndoItem(undo.getUndoItem());
