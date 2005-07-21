@@ -204,7 +204,7 @@ bool qm::SingleMessageStore::save(const Message& header,
 		reinterpret_cast<const unsigned char*>(pszBody),
 		SingleMessageStoreImpl::szUnusedSeparator__
 	};
-	size_t nMsgLen[] = {
+	unsigned int nMsgLen[] = {
 		SingleMessageStoreImpl::SEPARATOR_SIZE,
 		nHeaderLen,
 		2,
