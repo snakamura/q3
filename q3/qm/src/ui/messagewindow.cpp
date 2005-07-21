@@ -223,7 +223,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 				l.begin(), l.end(),
 				std::bind1st(
 					std::mem_fun(
-						MessageViewWindowFactory::isSupported),
+						&MessageViewWindowFactory::isSupported),
 					pFactory_.get()));
 			pContentType = it != l.end() ? *it : 0;
 			

@@ -315,8 +315,8 @@ xstring_size_ptr qmimap4::Util::getContentFromBodyStructureAndBodies(const PartL
 	BodyList::const_iterator itH = std::find_if(
 		listBody.begin(), listBody.end(),
 		unary_compose_f_gx(
-			std::mem_fun_ref(FetchDataBody::PartPath::empty),
-			std::mem_fun(FetchDataBody::getPartPath)));
+			std::mem_fun_ref(&FetchDataBody::PartPath::empty),
+			std::mem_fun(&FetchDataBody::getPartPath)));
 	if (itH == listBody.end())
 		return xstring_size_ptr();
 	
