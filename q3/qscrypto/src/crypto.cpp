@@ -517,7 +517,7 @@ bool qscrypto::StoreImpl::loadSystem()
 			if (!pContext)
 				break;
 			
-			unsigned char* p = pContext->pbCertEncoded;
+			const unsigned char* p = pContext->pbCertEncoded;
 			X509Ptr x509(d2i_X509(0, &p, pContext->cbCertEncoded));
 			if (x509.get() && CertificateImpl(x509.get()).checkValidity())
 				X509_STORE_add_cert(pStore_, x509.get());

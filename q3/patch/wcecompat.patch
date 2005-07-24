@@ -1,6 +1,18 @@
+diff -uNr wcecompat.orig/include/errno.h wcecompat/include/errno.h
+--- wcecompat.orig/include/errno.h	2002-11-16 19:45:26.000000000 +0900
++++ wcecompat/include/errno.h	2005-07-24 18:23:08.471844500 +0900
+@@ -32,6 +32,8 @@
+ 
+ #define ENOENT	(2)
+ #define EBADF	(9)
++#define EAGAIN	(11)
++#define ENOMEM	(12)
+ #define EINVAL	(22)
+ 
+ 
 diff -uNr wcecompat.orig/include/time.h wcecompat/include/time.h
---- wcecompat.orig/include/time.h	2002-11-16 02:45:44.000000000 -0800
-+++ wcecompat/include/time.h	2003-12-20 12:56:19.840411200 -0800
+--- wcecompat.orig/include/time.h	2002-11-16 19:45:44.000000000 +0900
++++ wcecompat/include/time.h	2003-12-21 05:56:19.840411200 +0900
 @@ -31,12 +31,16 @@
  #include <stdlib.h>		// time_t defined there
  //typedef int time_t;
@@ -28,8 +40,8 @@ diff -uNr wcecompat.orig/include/time.h wcecompat/include/time.h
  struct tm* localtime(const time_t* clock);
  struct tm * __cdecl gmtime(const time_t *clock);
 diff -uNr wcecompat.orig/src/wce211_string.c wcecompat/src/wce211_string.c
---- wcecompat.orig/src/wce211_string.c	2002-12-03 02:20:08.000000000 -0800
-+++ wcecompat/src/wce211_string.c	2003-04-15 02:00:32.484688000 -0700
+--- wcecompat.orig/src/wce211_string.c	2002-12-03 19:20:08.000000000 +0900
++++ wcecompat/src/wce211_string.c	2003-04-15 18:00:32.484688000 +0900
 @@ -21,6 +21,7 @@
  
  #include <string.h>

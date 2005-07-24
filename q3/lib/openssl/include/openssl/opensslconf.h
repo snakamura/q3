@@ -2,18 +2,30 @@
 /* WARNING: Generated automatically from opensslconf.h.in by Configure. */
 
 /* OpenSSL was configured with the following options: */
-#ifndef OPENSSL_SYSNAME_WINCE
-# define OPENSSL_SYSNAME_WINCE
+#ifndef OPENSSL_SYSNAME_WIN32
+# define OPENSSL_SYSNAME_WIN32
 #endif
 #ifndef OPENSSL_DOING_MAKEDEPEND
 
+#ifndef OPENSSL_NO_GMP
+# define OPENSSL_NO_GMP
+#endif
 #ifndef OPENSSL_NO_KRB5
 # define OPENSSL_NO_KRB5
+#endif
+#ifndef OPENSSL_NO_MDC2
+# define OPENSSL_NO_MDC2
+#endif
+#ifndef OPENSSL_NO_RC5
+# define OPENSSL_NO_RC5
 #endif
 
 #endif /* OPENSSL_DOING_MAKEDEPEND */
 #ifndef OPENSSL_THREADS
 # define OPENSSL_THREADS
+#endif
+#ifndef OPENSSL_NO_DYNAMIC_ENGINE
+# define OPENSSL_NO_DYNAMIC_ENGINE
 #endif
 
 /* The OPENSSL_NO_* macros are also defined as NO_* if the application
@@ -21,8 +33,17 @@
    who haven't had the time to do the appropriate changes in their
    applications.  */
 #ifdef OPENSSL_ALGORITHM_DEFINES
+# if defined(OPENSSL_NO_GMP) && !defined(NO_GMP)
+#  define NO_GMP
+# endif
 # if defined(OPENSSL_NO_KRB5) && !defined(NO_KRB5)
 #  define NO_KRB5
+# endif
+# if defined(OPENSSL_NO_MDC2) && !defined(NO_MDC2)
+#  define NO_MDC2
+# endif
+# if defined(OPENSSL_NO_RC5) && !defined(NO_RC5)
+#  define NO_RC5
 # endif
 #endif
 
@@ -33,6 +54,7 @@
 
 #if !(defined(VMS) || defined(__VMS)) /* VMS uses logical names instead */
 #if defined(HEADER_CRYPTLIB_H) && !defined(OPENSSLDIR)
+#define ENGINESDIR "/usr/local/ssl/lib/engines"
 #define OPENSSLDIR "/usr/local/ssl"
 #endif
 #endif
