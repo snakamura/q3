@@ -72,7 +72,7 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual std::auto_ptr<Accelerator> createAccelerator(const ACCEL* pAccel,
-														 int nSize) = 0;
+														 size_t nSize) = 0;
 };
 
 
@@ -86,7 +86,7 @@ class QSEXPORTCLASS AbstractAccelerator : public Accelerator
 {
 protected:
 	AbstractAccelerator(const ACCEL* pAccel,
-						int nSize);
+						size_t nSize);
 
 public:
 	virtual ~AbstractAccelerator();
@@ -113,7 +113,7 @@ class QSEXPORTCLASS SystemAccelerator : public AbstractAccelerator
 {
 public:
 	SystemAccelerator(const ACCEL* pAccel,
-					  int nSize);
+					  size_t nSize);
 	virtual ~SystemAccelerator();
 
 public:
@@ -143,7 +143,7 @@ public:
 
 public:
 	virtual std::auto_ptr<Accelerator> createAccelerator(const ACCEL* pAccel,
-														 int nSize);
+														 size_t nSize);
 
 private:
 	SystemAcceleratorFactory(const SystemAcceleratorFactory&);
@@ -161,7 +161,7 @@ class QSEXPORTCLASS CustomAccelerator : public AbstractAccelerator
 {
 public:
 	CustomAccelerator(const ACCEL* pAccel,
-					  int nSize);
+					  size_t nSize);
 	virtual ~CustomAccelerator();
 
 public:
@@ -191,7 +191,7 @@ public:
 
 public:
 	virtual std::auto_ptr<Accelerator> createAccelerator(const ACCEL* pAccel,
-														 int nSize);
+														 size_t nSize);
 
 private:
 	CustomAcceleratorFactory(const CustomAcceleratorFactory&);

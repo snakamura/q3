@@ -190,13 +190,13 @@ qs::PropertySheetBase::~PropertySheetBase()
 	}
 }
 
-int qs::PropertySheetBase::doModal(HWND hwndParent)
+INT_PTR qs::PropertySheetBase::doModal(HWND hwndParent)
 {
 	return doModal(hwndParent, 0);
 }
 
-int qs::PropertySheetBase::doModal(HWND hwndParent,
-								   ModalHandler* pModalHandler)
+INT_PTR qs::PropertySheetBase::doModal(HWND hwndParent,
+									   ModalHandler* pModalHandler)
 {
 	if (pModalHandler)
 		pModalHandler = getModalHandler();

@@ -461,9 +461,9 @@ qm::ProgressDialogInit::ProgressDialogInit(ProgressDialog* pDialog,
 										   HWND hwnd,
 										   UINT nTitle,
 										   UINT nMessage,
-										   unsigned int nMin,
-										   unsigned int nMax,
-										   unsigned int nPos) :
+										   size_t nMin,
+										   size_t nMax,
+										   size_t nPos) :
 	pDialog_(0)
 {
 	pDialog->init(hwnd);

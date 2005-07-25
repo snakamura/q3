@@ -96,7 +96,7 @@ public:
 protected:
 	LRESULT onDestroy();
 	LRESULT onKillFocus(HWND hwnd);
-	LRESULT onTimer(UINT nId);
+	LRESULT onTimer(UINT_PTR nId);
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -125,7 +125,7 @@ private:
 	qs::WindowBase* pParent_;
 	AutoCompleteCallback* pCallback_;
 	UINT nId_;
-	UINT nTimerId_;
+	UINT_PTR nTimerId_;
 	std::pair<size_t, size_t> input_;
 	AutoCompleteListWindow* pListWindow_;
 };

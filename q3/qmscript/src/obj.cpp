@@ -251,7 +251,7 @@ STDMETHODIMP qmscript::AccountListImpl::get_item(VARIANT varIndexOrName,
 
 STDMETHODIMP qmscript::AccountListImpl::get_length(unsigned int* pnLength)
 {
-	*pnLength = pDocument_->getAccounts().size();
+	*pnLength = static_cast<int>(pDocument_->getAccounts().size());
 	return S_OK;
 }
 
@@ -523,7 +523,7 @@ STDMETHODIMP qmscript::FolderListImpl::get_item(VARIANT varIndexOrName,
 
 STDMETHODIMP qmscript::FolderListImpl::get_length(unsigned int* pnLength)
 {
-	*pnLength = pAccount_->getFolders().size();
+	*pnLength = static_cast<unsigned int>(pAccount_->getFolders().size());
 	return S_OK;
 }
 
@@ -768,7 +768,7 @@ STDMETHODIMP qmscript::MessageImpl::get_content(VARIANT* pvarContent)
 		return E_FAIL;
 	size_t nLen = strContent.size();
 	
-	SAFEARRAY* psa = ::SafeArrayCreateVector(VT_UI1, 0, nLen);
+	SAFEARRAY* psa = ::SafeArrayCreateVector(VT_UI1, 0, static_cast<ULONG>(nLen));
 	if (!psa)
 		return E_OUTOFMEMORY;
 	void* pData = 0;
@@ -805,7 +805,7 @@ STDMETHODIMP qmscript::MessageImpl::get_bodyText(BSTR bstrQuote,
 	if (!wstrBody.get())
 		return E_FAIL;
 	
-	*pbstrBody = ::SysAllocStringLen(wstrBody.get(), wstrBody.size());
+	*pbstrBody = ::SysAllocStringLen(wstrBody.get(), static_cast<UINT>(wstrBody.size()));
 	
 	return *pbstrBody ? S_OK : E_OUTOFMEMORY;
 }
@@ -1213,7 +1213,7 @@ STDMETHODIMP qmscript::ArgumentListImpl::get_item(unsigned int nIndex,
 
 STDMETHODIMP qmscript::ArgumentListImpl::get_length(unsigned int* pnLength)
 {
-	*pnLength = listArgument_.size();
+	*pnLength = static_cast<unsigned int>(listArgument_.size());
 	return S_OK;
 }
 

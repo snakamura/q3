@@ -260,7 +260,7 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 	setMessage(0);
 }
 
-void qm::PreviewMessageModel::timerTimeout(unsigned int nId)
+void qm::PreviewMessageModel::timerTimeout(Timer::Id nId)
 {
 	assert(nId == nTimerId_);
 	pTimer_->killTimer(nTimerId_);

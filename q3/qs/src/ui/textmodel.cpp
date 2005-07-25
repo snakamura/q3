@@ -112,9 +112,9 @@ void qs::AbstractTextModel::removeTextModelHandler(TextModelHandler* pHandler)
 	pImpl_->listHandler_.erase(it, pImpl_->listHandler_.end());
 }
 
-void qs::AbstractTextModel::fireTextUpdated(unsigned int nStartLine,
-											unsigned int nOldEndLine,
-											unsigned int nNewEndLine)
+void qs::AbstractTextModel::fireTextUpdated(size_t nStartLine,
+											size_t nOldEndLine,
+											size_t nNewEndLine)
 {
 	pImpl_->fireEvent(&TextModelHandler::textUpdated,
 		TextModelEvent(this, nStartLine, nOldEndLine, nNewEndLine));
@@ -145,10 +145,10 @@ public:
 	public:
 		const WCHAR* getText() const;
 		size_t getLength() const;
-		void insertText(unsigned int nChar,
+		void insertText(size_t nChar,
 						const WCHAR* pwsz,
 						size_t nLen);
-		void deleteText(unsigned int nChar,
+		void deleteText(size_t nChar,
 						size_t nLen);
 	
 	private:
@@ -161,8 +161,8 @@ public:
 
 public:
 	void clear();
-	void clearLines(unsigned int nStart,
-					unsigned int nEnd);
+	void clearLines(size_t nStart,
+					size_t nEnd);
 
 public:
 	typedef std::vector<EditLine*> LineList;
@@ -179,8 +179,8 @@ void qs::EditableTextModelImpl::clear()
 	listLine_.clear();
 }
 
-void qs::EditableTextModelImpl::clearLines(unsigned int nStart,
-										   unsigned int nEnd)
+void qs::EditableTextModelImpl::clearLines(size_t nStart,
+										   size_t nEnd)
 {
 	LineList::iterator begin = listLine_.begin() + nStart;
 	LineList::iterator end = listLine_.begin() + nEnd;
@@ -216,7 +216,7 @@ size_t qs::EditableTextModelImpl::EditLine::getLength() const
 	return buf_.getLength();
 }
 
-void qs::EditableTextModelImpl::EditLine::insertText(unsigned int nChar,
+void qs::EditableTextModelImpl::EditLine::insertText(size_t nChar,
 													 const WCHAR* pwsz,
 													 size_t nLen)
 {
@@ -226,7 +226,7 @@ void qs::EditableTextModelImpl::EditLine::insertText(unsigned int nChar,
 	buf_.insert(nChar, pwsz, nLen);
 }
 
-void qs::EditableTextModelImpl::EditLine::deleteText(unsigned int nChar,
+void qs::EditableTextModelImpl::EditLine::deleteText(size_t nChar,
 													 size_t nLen)
 {
 	buf_.remove(nChar, nLen == -1 ? -1 : nChar + nLen);
@@ -315,14 +315,14 @@ bool qs::EditableTextModel::isEditable() const
 	return true;
 }
 
-void qs::EditableTextModel::update(unsigned int nStartLine,
-								   unsigned int nStartChar,
-								   unsigned int nEndLine,
-								   unsigned int nEndChar,
+void qs::EditableTextModel::update(size_t nStartLine,
+								   size_t nStartChar,
+								   size_t nEndLine,
+								   size_t nEndChar,
 								   const WCHAR* pwsz,
 								   size_t nLen,
-								   unsigned int* pnLine,
-								   unsigned int* pnChar)
+								   size_t* pnLine,
+								   size_t* pnChar)
 {
 	assert(nStartLine < pImpl_->listLine_.size());
 	assert(pnLine);
@@ -425,7 +425,7 @@ void qs::EditableTextModel::update(unsigned int nStartLine,
 		pLastLine.release();
 		
 		LineList::const_iterator it = l.begin();
-		unsigned int n = nStartLine + 1;
+		size_t n = nStartLine + 1;
 		if (nStartLine != nEndLine) {
 			while (n <= nEndLine && it != l.end()) {
 				delete pImpl_->listLine_[n];
@@ -476,7 +476,7 @@ public:
 	void clearText(bool bFireEvent);
 
 public:
-	virtual void timerTimeout(unsigned int nId);
+	virtual void timerTimeout(Timer::Id nId);
 
 private:
 	void updateLines(bool bClear,
@@ -492,7 +492,7 @@ public:
 	
 	std::auto_ptr<Timer> pTimer_;
 	std::auto_ptr<Reader> pReader_;
-	unsigned int nTimerLoad_;
+	Timer::Id nTimerLoad_;
 };
 
 bool qs::ReadOnlyTextModelImpl::appendText(const WCHAR* pwszText,
@@ -519,7 +519,7 @@ void qs::ReadOnlyTextModelImpl::clearText(bool bFireEvent)
 	updateLines(true, bFireEvent);
 }
 
-void qs::ReadOnlyTextModelImpl::timerTimeout(unsigned int nId)
+void qs::ReadOnlyTextModelImpl::timerTimeout(Timer::Id nId)
 {
 	if (nId == nTimerLoad_) {
 		assert(pReader_.get());
@@ -548,9 +548,9 @@ void qs::ReadOnlyTextModelImpl::timerTimeout(unsigned int nId)
 void qs::ReadOnlyTextModelImpl::updateLines(bool bClear,
 											bool bFireEvent)
 {
-	unsigned int nStartLine = bClear ? 0 :
+	size_t nStartLine = bClear ? 0 :
 		listLine_.empty() ? 0 : listLine_.size() - 1;
-	unsigned int nOldEndLine = bClear ?
+	size_t nOldEndLine = bClear ?
 		listLine_.empty() ? 0 : listLine_.size() - 1 : nStartLine;
 	
 	if (bClear)
@@ -694,14 +694,14 @@ bool qs::ReadOnlyTextModel::isEditable() const
 	return false;
 }
 
-void qs::ReadOnlyTextModel::update(unsigned int nStartLine,
-								   unsigned int nStartChar,
-								   unsigned int nEndLine,
-								   unsigned int nEndChar,
+void qs::ReadOnlyTextModel::update(size_t nStartLine,
+								   size_t nStartChar,
+								   size_t nEndLine,
+								   size_t nEndChar,
 								   const WCHAR* pwsz,
 								   size_t nLen,
-								   unsigned int* pnLine,
-								   unsigned int* pnChar)
+								   size_t* pnLine,
+								   size_t* pnChar)
 {
 	assert(false);
 }
@@ -725,9 +725,9 @@ qs::TextModelHandler::~TextModelHandler()
  */
 
 qs::TextModelEvent::TextModelEvent(TextModel* pTextModel,
-								   unsigned int nStartLine,
-								   unsigned int nOldEndLine,
-								   unsigned int nNewEndLine) :
+								   size_t nStartLine,
+								   size_t nOldEndLine,
+								   size_t nNewEndLine) :
 	pTextModel_(pTextModel),
 	nStartLine_(nStartLine),
 	nOldEndLine_(nOldEndLine),
@@ -744,17 +744,17 @@ TextModel* qs::TextModelEvent::getTextModel() const
 	return pTextModel_;
 }
 
-unsigned int qs::TextModelEvent::getStartLine() const
+size_t qs::TextModelEvent::getStartLine() const
 {
 	return nStartLine_;
 }
 
-unsigned int qs::TextModelEvent::getOldEndLine() const
+size_t qs::TextModelEvent::getOldEndLine() const
 {
 	return nOldEndLine_;
 }
 
-unsigned int qs::TextModelEvent::getNewEndLine() const
+size_t qs::TextModelEvent::getNewEndLine() const
 {
 	return nNewEndLine_;
 }

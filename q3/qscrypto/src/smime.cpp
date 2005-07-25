@@ -55,7 +55,7 @@ SMIMEUtility::Type qscrypto::SMIMEUtilityImpl::getType(const Part& part) const
 		
 		malloc_size_ptr<unsigned char> buf(part.getBodyData());
 		if (buf.get()) {
-			BIOPtr pIn(BIO_new_mem_buf(buf.get(), buf.size()));
+			BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 			PKCS7Ptr pPKCS7(d2i_PKCS7_bio(pIn.get(), 0));
 			if (pPKCS7.get()) {
 				if (PKCS7_type_is_signed(pPKCS7.get()))
@@ -129,7 +129,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 	if (!strContent.get())
 		return xstring_size_ptr();
 	
-	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), strContent.size()));
+	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), static_cast<int>(strContent.size())));
 	PKCS7Ptr pPKCS7(PKCS7_sign(pX509, pKey, 0, pIn.get(), bMultipart ? PKCS7_DETACHED : 0));
 	if (!pPKCS7.get())
 		return xstring_size_ptr();
@@ -168,7 +168,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	if (!pBody.get())
 		return xstring_size_ptr();
 	
-	BIOPtr pIn(BIO_new_mem_buf(pBody.get(), pBody.size()));
+	BIOPtr pIn(BIO_new_mem_buf(pBody.get(), static_cast<int>(pBody.size())));
 	PKCS7Ptr pPKCS7(d2i_PKCS7_bio(pIn.get(), 0));
 	if (!pPKCS7.get())
 		return xstring_size_ptr();
@@ -177,17 +177,17 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	BIOPtr pOut(BIO_new(BIO_s_mem()));
 	
 	xstring_size_ptr strContent;
-	int nLen = 0;
+	size_t nLen = 0;
 	if (bMultipart) {
 		strContent = part.getPart(0)->getContent();
 		nLen = strContent.size();
 	}
-	BIOPtr pContent(bMultipart ? BIO_new_mem_buf(strContent.get(), nLen) : 0);
+	BIOPtr pContent(bMultipart ? BIO_new_mem_buf(strContent.get(), static_cast<int>(nLen)) : 0);
 	
 	if (PKCS7_verify(pPKCS7.get(), 0, pStore, pContent.get(), pOut.get(), 0) != 1) {
 		*pnVerify |= VERIFY_FAILED;
 		if (bMultipart) {
-			if (BIO_write(pOut.get(), strContent.get(), nLen) != nLen)
+			if (BIO_write(pOut.get(), strContent.get(), static_cast<int>(nLen)) != static_cast<int>(nLen))
 				return xstring_size_ptr();
 		}
 		else {
@@ -267,7 +267,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 	if (!strContent.get())
 		return xstring_size_ptr();
 	
-	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), strContent.size()));
+	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), static_cast<int>(strContent.size())));
 	PKCS7Ptr pPKCS7(PKCS7_encrypt(pCertificates.get(), pIn.get(),
 		static_cast<const CipherImpl*>(pCipher)->getCipher(), 0));
 	if (!pPKCS7.get())
@@ -289,7 +289,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 	if (!buf.get())
 		return xstring_size_ptr();
 	
-	BIOPtr pIn(BIO_new_mem_buf(buf.get(), buf.size()));
+	BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 	PKCS7Ptr pPKCS7(d2i_PKCS7_bio(pIn.get(), 0));
 	if (!pPKCS7.get())
 		return xstring_size_ptr();

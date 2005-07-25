@@ -28,22 +28,22 @@ public:
 	class Item
 	{
 	public:
-		Item(unsigned int nStartLine,
-			 unsigned int nStartChar,
-			 unsigned int nEndLine,
-			 unsigned int nEndChar,
-			 unsigned int nCharLine,
-			 unsigned int nCaretPos,
+		Item(size_t nStartLine,
+			 size_t nStartChar,
+			 size_t nEndLine,
+			 size_t nEndChar,
+			 size_t nCharLine,
+			 size_t nCaretPos,
 			 wstring_ptr wstrText);
 		~Item();
 	
 	public:
-		unsigned int getStartLine() const;
-		unsigned int getStartChar() const;
-		unsigned int getEndLine() const;
-		unsigned int getEndChar() const;
-		unsigned int getCaretLine() const;
-		unsigned int getCaretChar() const;
+		size_t getStartLine() const;
+		size_t getStartChar() const;
+		size_t getEndLine() const;
+		size_t getEndChar() const;
+		size_t getCaretLine() const;
+		size_t getCaretChar() const;
 		const WCHAR* getText() const;
 	
 	private:
@@ -51,12 +51,12 @@ public:
 		Item& operator=(const Item&);
 	
 	private:
-		unsigned int nStartLine_;
-		unsigned int nStartChar_;
-		unsigned int nEndLine_;
-		unsigned int nEndChar_;
-		unsigned int nCaretLine_;
-		unsigned int nCaretChar_;
+		size_t nStartLine_;
+		size_t nStartChar_;
+		size_t nEndLine_;
+		size_t nEndChar_;
+		size_t nCaretLine_;
+		size_t nCaretChar_;
 		wstring_ptr wstrText_;
 	};
 
@@ -65,22 +65,22 @@ public:
 	~TextWindowUndoManager();
 
 public:
-	void pushUndoItem(unsigned int nStartLine,
-					  unsigned int nStartChar,
-					  unsigned int nEndLine,
-					  unsigned int nEndChar,
-					  unsigned int nCaretLine,
-					  unsigned int nCaretChar,
+	void pushUndoItem(size_t nStartLine,
+					  size_t nStartChar,
+					  size_t nEndLine,
+					  size_t nEndChar,
+					  size_t nCaretLine,
+					  size_t nCaretChar,
 					  wstring_ptr wstrText,
 					  bool bClearRedo);
 	Item* popUndoItem();
 	bool hasUndoItem() const;
-	void pushRedoItem(unsigned int nStartLine,
-					  unsigned int nStartChar,
-					  unsigned int nEndLine,
-					  unsigned int nEndChar,
-					  unsigned int nCaretLine,
-					  unsigned int nCaretChar,
+	void pushRedoItem(size_t nStartLine,
+					  size_t nStartChar,
+					  size_t nEndLine,
+					  size_t nEndChar,
+					  size_t nCaretLine,
+					  size_t nCaretChar,
 					  wstring_ptr wstrText);
 	Item* popRedoItem();
 	bool hasRedoItem() const;

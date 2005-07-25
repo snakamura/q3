@@ -91,7 +91,7 @@ bool qs::Clipboard::setText(HWND hwnd,
 	if (!clipboard.empty())
 		return false;
 	
-	int nTextLen = wcslen(pwszText);
+	size_t nTextLen = wcslen(pwszText);
 	size_t nCount = std::count(pwszText, pwszText + nTextLen, L'\n');
 	
 #ifdef UNICODE

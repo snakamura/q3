@@ -1299,7 +1299,7 @@ public:
 	 *
 	 * @return Token count.
 	 */
-	unsigned int getCount() const;
+	size_t getCount() const;
 	
 	/**
 	 * Get the token of the specified position.

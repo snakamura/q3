@@ -60,14 +60,14 @@ public:
 	virtual size_t getLineCount() const = 0;
 	virtual Line getLine(size_t nLine) const = 0;
 	virtual bool isEditable() const = 0;
-	virtual void update(unsigned int nStartLine,
-						unsigned int nStartChar,
-						unsigned int nEndLine,
-						unsigned int nEndChar,
+	virtual void update(size_t nStartLine,
+						size_t nStartChar,
+						size_t nEndLine,
+						size_t nEndChar,
 						const WCHAR* pwsz,
 						size_t nLen,
-						unsigned int* pnLine,
-						unsigned int* pnChar) = 0;
+						size_t* pnLine,
+						size_t* pnChar) = 0;
 	virtual void addTextModelHandler(TextModelHandler* pHandler) = 0;
 	virtual void removeTextModelHandler(TextModelHandler* pHandler) = 0;
 };
@@ -90,9 +90,9 @@ public:
 	virtual void removeTextModelHandler(TextModelHandler* pHandler);
 
 public:
-	void fireTextUpdated(unsigned int nStartLine,
-						 unsigned int nOldEndLine,
-						 unsigned int nNewEndLine);
+	void fireTextUpdated(size_t nStartLine,
+						 size_t nOldEndLine,
+						 size_t nNewEndLine);
 	void fireTextSet();
 
 private:
@@ -125,14 +125,14 @@ public:
 	virtual size_t getLineCount() const;
 	virtual Line getLine(size_t nLine) const;
 	virtual bool isEditable() const;
-	virtual void update(unsigned int nStartLine,
-						unsigned int nStartChar,
-						unsigned int nEndLine,
-						unsigned int nEndChar,
+	virtual void update(size_t nStartLine,
+						size_t nStartChar,
+						size_t nEndLine,
+						size_t nEndChar,
 						const WCHAR* pwsz,
 						size_t nLen,
-						unsigned int* pnLine,
-						unsigned int* pnChar);
+						size_t* pnLine,
+						size_t* pnChar);
 
 private:
 	EditableTextModel(const EditableTextModel&);
@@ -167,14 +167,14 @@ public:
 	virtual size_t getLineCount() const;
 	virtual Line getLine(size_t nLine) const;
 	virtual bool isEditable() const;
-	virtual void update(unsigned int nStartLine,
-						unsigned int nStartChar,
-						unsigned int nEndLine,
-						unsigned int nEndChar,
+	virtual void update(size_t nStartLine,
+						size_t nStartChar,
+						size_t nEndLine,
+						size_t nEndChar,
 						const WCHAR* pwsz,
 						size_t nLen,
-						unsigned int* pnLine,
-						unsigned int* pnChar);
+						size_t* pnLine,
+						size_t* pnChar);
 
 private:
 	ReadOnlyTextModel(const ReadOnlyTextModel&);
@@ -212,16 +212,16 @@ class QSEXPORTCLASS TextModelEvent
 {
 public:
 	TextModelEvent(TextModel* pTextModel,
-				   unsigned int nStartLine,
-				   unsigned int nOldEndLine,
-				   unsigned int nNewEndLine);
+				   size_t nStartLine,
+				   size_t nOldEndLine,
+				   size_t nNewEndLine);
 	~TextModelEvent();
 
 public:
 	TextModel* getTextModel() const;
-	unsigned int getStartLine() const;
-	unsigned int getOldEndLine() const;
-	unsigned int getNewEndLine() const;
+	size_t getStartLine() const;
+	size_t getOldEndLine() const;
+	size_t getNewEndLine() const;
 
 private:
 	TextModelEvent(const TextModelEvent&);
@@ -229,9 +229,9 @@ private:
 
 private:
 	TextModel* pTextModel_;
-	unsigned int nStartLine_;
-	unsigned int nOldEndLine_;
-	unsigned int nNewEndLine_;
+	size_t nStartLine_;
+	size_t nOldEndLine_;
+	size_t nNewEndLine_;
 };
 
 
@@ -334,15 +334,15 @@ public:
 				 const WCHAR* pwszReplace,
 				 unsigned int nFlags);
 	void getFindPosition(bool bPrev,
-						 unsigned int* pnLine,
-						 unsigned int* pnChar) const;
+						 size_t* pnLine,
+						 size_t* pnChar) const;
 	void reform();
 	void scroll(Scroll scroll,
 				int nPos,
 				bool bRepeat);
 	void moveCaret(MoveCaret moveCaret,
-				   unsigned int nLine,
-				   unsigned int nChar,
+				   size_t nLine,
+				   size_t nChar,
 				   bool bRepeat,
 				   Select select,
 				   bool bScroll);
@@ -453,7 +453,7 @@ protected:
 #ifndef _WIN32_WCE
 	LRESULT onThemeChanged();
 #endif
-	LRESULT onTimer(UINT nId);
+	LRESULT onTimer(UINT_PTR nId);
 	LRESULT onVScroll(UINT nCode,
 					  UINT nPos,
 					  HWND hwnd);

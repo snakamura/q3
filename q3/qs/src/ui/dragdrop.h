@@ -173,7 +173,7 @@ private:
 							  const POINT& pt);
 		LRESULT onRButtonUp(UINT nFlags,
 							const POINT& pt);
-		LRESULT onTimer(UINT nId);
+		LRESULT onTimer(UINT_PTR nId);
 	
 	private:
 		void setCurrentMousePosition(const POINT& pt,

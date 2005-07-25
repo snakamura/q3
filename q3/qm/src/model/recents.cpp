@@ -104,7 +104,7 @@ void qm::Recents::setEnabled(bool bEnabled)
 unsigned int qm::Recents::getCount() const
 {
 	assert(isLocked());
-	return pImpl_->list_.size();
+	return static_cast<unsigned int>(pImpl_->list_.size());
 }
 
 const URI* qm::Recents::get(unsigned int n) const

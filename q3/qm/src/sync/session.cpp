@@ -539,13 +539,13 @@ void qm::DefaultReceiveSessionRuleCallback::applyingRule(Folder* pFolder)
 	pCallback_->setMessage(wstrMessage.get());
 }
 
-void qm::DefaultReceiveSessionRuleCallback::setRange(unsigned int nMin,
-													 unsigned int nMax)
+void qm::DefaultReceiveSessionRuleCallback::setRange(size_t nMin,
+													 size_t nMax)
 {
 	pCallback_->setRange(nMin, nMax);
 }
 
-void qm::DefaultReceiveSessionRuleCallback::setPos(unsigned int nPos)
+void qm::DefaultReceiveSessionRuleCallback::setPos(size_t nPos)
 {
 	pCallback_->setPos(nPos);
 }

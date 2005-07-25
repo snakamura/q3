@@ -447,7 +447,7 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	update(false, -1);
 	
 	if (nFocused_ >= listItem_.size())
-		nFocused_ = listItem_.empty() ? 0 : listItem_.size() - 1;
+		nFocused_ = listItem_.empty() ? 0 : static_cast<unsigned int>(listItem_.size() - 1);
 	if (!listItem_.empty()) {
 		nLastSelection_ = nFocused_;
 		listItem_[nFocused_]->setFlags(
@@ -493,7 +493,7 @@ void qm::ViewModel::setColumns(const ViewColumnList& listColumn)
 
 unsigned int qm::ViewModel::getColumnCount() const
 {
-	return pDataItem_->getColumns().size();
+	return static_cast<unsigned int>(pDataItem_->getColumns().size());
 }
 
 const ViewColumn& qm::ViewModel::getColumn(unsigned int n) const
@@ -511,7 +511,7 @@ ViewColumn& qm::ViewModel::getColumn(unsigned int n)
 unsigned int qm::ViewModel::getCount() const
 {
 	assert(isLocked());
-	return listItem_.size();
+	return static_cast<unsigned int>(listItem_.size());
 }
 
 unsigned int qm::ViewModel::getUnseenCount() const
@@ -568,7 +568,7 @@ unsigned int qm::ViewModel::getIndex(MessageHolder* pmh) const
 		while (it != listItem_.end() && (*it)->getMessageHolder() != pmh)
 			++it;
 	}
-	return it == listItem_.end() ? -1 : it - listItem_.begin();
+	return it == listItem_.end() ? -1 : static_cast<unsigned int>(it - listItem_.begin());
 }
 
 void qm::ViewModel::setSort(unsigned int nSort,
@@ -703,7 +703,7 @@ void qm::ViewModel::clearSelection()
 	assert(isLocked());
 	
 	for (ItemList::size_type n = 0; n < listItem_.size(); ++n)
-		removeSelection(n);
+		removeSelection(static_cast<unsigned int>(n));
 }
 
 void qm::ViewModel::getSelection(MessageHolderList* pList) const
@@ -733,10 +733,11 @@ unsigned int qm::ViewModel::getSelectedCount() const
 {
 	assert(isLocked());
 	
-	return std::count_if(listItem_.begin(), listItem_.end(),
+	return static_cast<unsigned int>(std::count_if(
+		listItem_.begin(), listItem_.end(),
 		std::bind2nd(
 			std::mem_fun(&ViewModelItem::isFlag),
-			ViewModelItem::FLAG_SELECTED));
+			ViewModelItem::FLAG_SELECTED)));
 }
 
 bool qm::ViewModel::isSelected(unsigned int n) const
@@ -1008,7 +1009,7 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 			ItemList::iterator itInsert = listItem_.insert(it, pItem.get());
 			pItem.release();
 			
-			unsigned int nPos = itInsert - listItem_.begin();
+			unsigned int nPos = static_cast<unsigned int>(itInsert - listItem_.begin());
 			if (nLastSelection_ >= nPos && nLastSelection_ < listItem_.size() - 1)
 				++nLastSelection_;
 			if (nFocused_ >= nPos && nFocused_ < listItem_.size() - 1)
@@ -1147,7 +1148,7 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 					nLastSelection_ = 0;
 				}
 				else {
-					nLastSelection_ = listItem_.size() - 1;
+					nLastSelection_ = static_cast<unsigned int>(listItem_.size() - 1);
 					listItem_[nLastSelection_]->setFlags(
 						ViewModelItem::FLAG_SELECTED,
 						ViewModelItem::FLAG_SELECTED);

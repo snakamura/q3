@@ -1346,7 +1346,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
-	pImpl_->nId_ = getWindowLong(GWL_ID);
+	pImpl_->nId_ = getId();
 	
 	setFont(pImpl_->hfont_, false);
 	

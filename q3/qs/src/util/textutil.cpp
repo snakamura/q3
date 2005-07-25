@@ -230,8 +230,8 @@ const WCHAR* qs::TextUtil::getBreak(const WCHAR* pBegin,
 {
 	assert(pBegin < p && p <= pEnd);
 	
-	int nFit = p - pBegin;
-	for (int n = nFit; n > 0; --n) {
+	ssize_t nFit = p - pBegin;
+	for (ssize_t n = nFit; n > 0; --n) {
 		WCHAR c = *(pBegin + n);
 		if (isDangling(c) &&
 			(pBegin + n + 1 == pEnd ||

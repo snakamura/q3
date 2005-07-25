@@ -125,7 +125,7 @@ bool qm::ZipFile::zip(const WCHAR* pwszPath,
 	
 	string_ptr strPath(wcs2mbs(pwszPath));
 	ZCL zcl = {
-		listPath.size(),
+		static_cast<int>(listPath.size()),
 		strPath.get(),
 		reinterpret_cast<char**>(pBuf.get())
 	};

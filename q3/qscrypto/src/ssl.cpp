@@ -194,7 +194,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	if (!pSSL_)
 		return false;
 	
-	SSL_set_fd(pSSL_, pSocket->getSocket());
+	SSL_set_fd(pSSL_, static_cast<int>(pSocket->getSocket()));
 	
 	log.debug(L"Starting SSL handshake...");
 	

@@ -413,13 +413,13 @@ void qmsmtp::SmtpSendSession::CallbackImpl::authenticating()
 	setMessage(IDS_AUTHENTICATING);
 }
 
-void qmsmtp::SmtpSendSession::CallbackImpl::setRange(unsigned int nMin,
-													 unsigned int nMax)
+void qmsmtp::SmtpSendSession::CallbackImpl::setRange(size_t nMin,
+													 size_t nMax)
 {
 	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-void qmsmtp::SmtpSendSession::CallbackImpl::setPos(unsigned int nPos)
+void qmsmtp::SmtpSendSession::CallbackImpl::setPos(size_t nPos)
 {
 	pSessionCallback_->setSubPos(nPos);
 }

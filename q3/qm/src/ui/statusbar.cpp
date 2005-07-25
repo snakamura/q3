@@ -38,8 +38,8 @@ qm::StatusBar::~StatusBar()
 int qm::StatusBar::getParts(int nParts,
 							int* pnWidth) const
 {
-	return const_cast<StatusBar*>(this)->sendMessage(
-		SB_GETPARTS, nParts, reinterpret_cast<LPARAM>(pnWidth));
+	return static_cast<int>(const_cast<StatusBar*>(this)->sendMessage(
+		SB_GETPARTS, nParts, reinterpret_cast<LPARAM>(pnWidth)));
 }
 
 bool qm::StatusBar::setParts(int* pnWidth,
@@ -205,7 +205,7 @@ int qm::MessageStatusBar::getPart(const POINT& pt) const
 	typedef std::vector<int> PartList;
 	PartList listPart;
 	listPart.resize(10);
-	int nParts = getParts(listPart.size(), &listPart[0]);
+	int nParts = getParts(static_cast<int>(listPart.size()), &listPart[0]);
 	for (int n = 0; n < nParts; ++n) {
 		RECT rect;
 		getRect(n, &rect);

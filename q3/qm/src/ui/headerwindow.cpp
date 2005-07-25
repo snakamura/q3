@@ -838,7 +838,7 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 						SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
 					LVITEM item = {
 						LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM,
-						n,
+						static_cast<int>(n),
 						0,
 						0,
 						0,

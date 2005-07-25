@@ -283,7 +283,8 @@ bool qm::GoRoundMenu::createMenu(HMENU hmenu)
 			GoRoundCourse* pCourse = l[n];
 			wstring_ptr wstrName(UIUtil::formatMenu(pCourse->getName()));
 			W2T(wstrName.get(), ptszName);
-			::InsertMenu(hmenu, n, MF_STRING | MF_BYPOSITION, IDM_TOOL_GOROUND + n, ptszName);
+			::InsertMenu(hmenu, static_cast<UINT>(n),
+				MF_STRING | MF_BYPOSITION, IDM_TOOL_GOROUND + n, ptszName);
 		}
 	}
 	else {
@@ -336,7 +337,8 @@ bool qm::InsertTextMenu::createMenu(HMENU hmenu)
 			const FixedFormText* pText = l[n];
 			wstring_ptr wstrName(UIUtil::formatMenu(pText->getName()));
 			W2T(wstrName.get(), ptszName);
-			::InsertMenu(hmenu, n, MF_STRING | MF_BYPOSITION, IDM_TOOL_INSERTTEXT + n, ptszName);
+			::InsertMenu(hmenu, static_cast<UINT>(n), MF_STRING | MF_BYPOSITION,
+				IDM_TOOL_INSERTTEXT + static_cast<UINT>(n), ptszName);
 		}
 	}
 	else {

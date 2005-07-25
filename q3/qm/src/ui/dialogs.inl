@@ -57,10 +57,9 @@ LRESULT qm::AbstractListDialog<T, List>::onInitDialog(HWND hwndFocus,
 		const T* p = *it;
 		wstring_ptr wstrLabel(getLabel(p));
 		W2T(wstrLabel.get(), ptszLabel);
-		sendDlgItemMessage(nListId_, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszLabel));
+		ListBox_AddString(getDlgItem(nListId_), ptszLabel);
 	}
-	sendDlgItemMessage(nListId_, LB_SETCURSEL, 0);
+	ListBox_SetCurSel(getDlgItem(nListId_), 0);
 	
 	updateState();
 	
@@ -76,12 +75,12 @@ List& qm::AbstractListDialog<T, List>::getList()
 template<class T, class List>
 void qm::AbstractListDialog<T, List>::updateState()
 {
-	int n = sendDlgItemMessage(nListId_, LB_GETCURSEL);
+	int n = ListBox_GetCurSel(getDlgItem(nListId_));
 	Window(getDlgItem(IDC_REMOVE)).enableWindow(n != LB_ERR);
 	Window(getDlgItem(IDC_EDIT)).enableWindow(n != LB_ERR);
 	Window(getDlgItem(IDC_UP)).enableWindow(n != LB_ERR && n != 0);
 	Window(getDlgItem(IDC_DOWN)).enableWindow(n != LB_ERR &&
-		n != sendDlgItemMessage(nListId_, LB_GETCOUNT) - 1);
+		n != ListBox_GetCount(getDlgItem(nListId_)) - 1);
 }
 
 template<class T, class List>
@@ -94,10 +93,9 @@ LRESULT qm::AbstractListDialog<T, List>::onAdd()
 		
 		wstring_ptr wstrLabel(getLabel(p));
 		W2T(wstrLabel.get(), ptszLabel);
-		int nItem = sendDlgItemMessage(nListId_, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszLabel));
+		int nItem = ListBox_AddString(getDlgItem(nListId_), ptszLabel);
 		if (nItem != LB_ERR)
-			sendDlgItemMessage(nListId_, LB_SETCURSEL, nItem);
+			ListBox_SetCurSel(getDlgItem(nListId_), nItem);
 	}
 	
 	updateState();
@@ -108,19 +106,19 @@ LRESULT qm::AbstractListDialog<T, List>::onAdd()
 template<class T, class List>
 LRESULT qm::AbstractListDialog<T, List>::onRemove()
 {
-	int n = sendDlgItemMessage(nListId_, LB_GETCURSEL);
+	int n = ListBox_GetCurSel(getDlgItem(nListId_));
 	if (n == LB_ERR)
 		return 0;
 	
 	delete list_[n];
 	list_.erase(list_.begin() + n);
 	
-	int nCount = sendDlgItemMessage(nListId_, LB_DELETESTRING, n);
+	int nCount = ListBox_DeleteString(getDlgItem(nListId_), n);
 	if (nCount != LB_ERR && nCount != 0) {
 		if (n < nCount)
-			sendDlgItemMessage(nListId_, LB_SETCURSEL, n);
+			ListBox_SetCurSel(getDlgItem(nListId_), n);
 		else
-			sendDlgItemMessage(nListId_, LB_SETCURSEL, nCount - 1);
+			ListBox_SetCurSel(getDlgItem(nListId_), nCount - 1);
 	}
 	
 	updateState();
@@ -131,18 +129,17 @@ LRESULT qm::AbstractListDialog<T, List>::onRemove()
 template<class T, class List>
 LRESULT qm::AbstractListDialog<T, List>::onEdit()
 {
-	int n = sendDlgItemMessage(nListId_, LB_GETCURSEL);
+	int n = ListBox_GetCurSel(getDlgItem(nListId_));
 	if (n == LB_ERR)
 		return 0;
 	
 	T* p = list_[n];
 	if (edit(p)) {
-		sendDlgItemMessage(nListId_, LB_DELETESTRING, n);
+		ListBox_DeleteString(getDlgItem(nListId_), n);
 		wstring_ptr wstrLabel(getLabel(p));
 		W2T(wstrLabel.get(), ptszLabel);
-		sendDlgItemMessage(nListId_, LB_INSERTSTRING,
-			n, reinterpret_cast<LPARAM>(ptszLabel));
-		sendDlgItemMessage(nListId_, LB_SETCURSEL, n);
+		ListBox_InsertString(getDlgItem(nListId_), n, ptszLabel);
+		ListBox_SetCurSel(getDlgItem(nListId_), n);
 	}
 	
 	updateState();
@@ -153,19 +150,18 @@ LRESULT qm::AbstractListDialog<T, List>::onEdit()
 template<class T, class List>
 LRESULT qm::AbstractListDialog<T, List>::onUp()
 {
-	int n = sendDlgItemMessage(nListId_, LB_GETCURSEL);
+	int n = ListBox_GetCurSel(getDlgItem(nListId_));
 	if (n == LB_ERR || n == 0)
 		return 0;
 	
 	T* p = list_[n];
 	std::swap(list_[n], list_[n - 1]);
 	
-	sendDlgItemMessage(nListId_, LB_DELETESTRING, n);
+	ListBox_DeleteString(getDlgItem(nListId_), n);
 	wstring_ptr wstrLabel(getLabel(p));
 	W2T(wstrLabel.get(), ptszLabel);
-	sendDlgItemMessage(nListId_, LB_INSERTSTRING,
-		n - 1, reinterpret_cast<LPARAM>(ptszLabel));
-	sendDlgItemMessage(nListId_, LB_SETCURSEL, n - 1);
+	ListBox_InsertString(getDlgItem(nListId_), n - 1, ptszLabel);
+	ListBox_SetCurSel(getDlgItem(nListId_), n - 1);
 	
 	updateState();
 	
@@ -175,19 +171,18 @@ LRESULT qm::AbstractListDialog<T, List>::onUp()
 template<class T, class List>
 LRESULT qm::AbstractListDialog<T, List>::onDown()
 {
-	int n = sendDlgItemMessage(nListId_, LB_GETCURSEL);
-	if (n == LB_ERR || n == sendDlgItemMessage(nListId_, LB_GETCOUNT) - 1)
+	int n = ListBox_GetCurSel(getDlgItem(nListId_));
+	if (n == LB_ERR || n == ListBox_GetCount(getDlgItem(nListId_)) - 1)
 		return 0;
 	
 	T* p = list_[n];
 	std::swap(list_[n], list_[n + 1]);
 	
-	sendDlgItemMessage(nListId_, LB_DELETESTRING, n);
+	ListBox_DeleteString(getDlgItem(nListId_), n);
 	wstring_ptr wstrLabel(getLabel(p));
 	W2T(wstrLabel.get(), ptszLabel);
-	sendDlgItemMessage(nListId_, LB_INSERTSTRING,
-		n + 1, reinterpret_cast<LPARAM>(ptszLabel));
-	sendDlgItemMessage(nListId_, LB_SETCURSEL, n + 1);
+	ListBox_InsertString(getDlgItem(nListId_), n + 1, ptszLabel);
+	ListBox_SetCurSel(getDlgItem(nListId_), n + 1);
 	
 	updateState();
 	

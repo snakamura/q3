@@ -539,9 +539,9 @@ bool qm::OptionDialog::processDialogMessage(const MSG& msg)
 		Window wndFocus(Window::getFocus());
 		int nCode = 0;
 		if (wndFocus.getHandle())
-			nCode = wndFocus.sendMessage(WM_GETDLGCODE);
+			nCode = static_cast<int>(wndFocus.sendMessage(WM_GETDLGCODE));
 			
-		int nKey = msg.wParam;
+		UINT nKey = static_cast<UINT>(msg.wParam);
 		switch (nKey) {
 		case VK_TAB:
 			if (!(nCode & DLGC_WANTTAB)) {
@@ -552,11 +552,11 @@ bool qm::OptionDialog::processDialogMessage(const MSG& msg)
 			break;
 		case VK_RETURN:
 			if (!(nCode & DLGC_WANTALLKEYS)) {
-				int nDefId = 0;
+				DWORD dwDefId = 0;
 				if (pCurrentPanel_)
-					nDefId = Window(pCurrentPanel_->getWindow()).sendMessage(DM_GETDEFID);
-				if (HIWORD(nDefId) == DC_HASDEFID && LOWORD(nDefId) != IDOK && LOWORD(nDefId) != IDCANCEL)
-					Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND, MAKEWPARAM(LOWORD(nDefId), 0), 0);
+					dwDefId = static_cast<DWORD>(Window(pCurrentPanel_->getWindow()).sendMessage(DM_GETDEFID));
+				if (HIWORD(dwDefId) == DC_HASDEFID && LOWORD(dwDefId) != IDOK && LOWORD(dwDefId) != IDCANCEL)
+					Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND, MAKEWPARAM(LOWORD(dwDefId), 0), 0);
 				else
 					postMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), 0);
 				return true;
@@ -577,7 +577,7 @@ bool qm::OptionDialog::processDialogMessage(const MSG& msg)
 		}
 	}
 	else if (msg.message == WM_SYSKEYDOWN) {
-		int nKey = msg.wParam;
+		UINT nKey = static_cast<UINT>(msg.wParam);
 		if ((('A' <= nKey && nKey <= 'Z') || ('0' <= nKey && nKey <= '9')) &&
 			::GetKeyState(VK_MENU) < 0) {
 			processMnemonic(static_cast<char>(nKey));
@@ -594,7 +594,7 @@ void qm::OptionDialog::processTab(bool bShift)
 	if (!hwnd)
 		return;
 	
-	UINT nId = Window(hwnd).getWindowLong(GWL_ID);
+	UINT nId = Window(hwnd).getId();
 	if (nId == IDC_SELECTOR) {
 		if (bShift) {
 #ifndef _WIN32_WCE
@@ -684,10 +684,10 @@ void qm::OptionDialog::processMnemonic(char c)
 		if (Window(hwnd).sendMessage(WM_GETDLGCODE) & DLGC_STATIC)
 			hwnd = Window(hwnd).getWindow(GW_HWNDNEXT);
 		if (hwnd) {
-			int nCode = Window(hwnd).sendMessage(WM_GETDLGCODE);
+			int nCode = static_cast<int>(Window(hwnd).sendMessage(WM_GETDLGCODE));
 			if (nCode & DLGC_DEFPUSHBUTTON || nCode & DLGC_UNDEFPUSHBUTTON)
 				Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND,
-					MAKEWPARAM(Window(hwnd).getWindowLong(GWL_ID), BN_CLICKED),
+					MAKEWPARAM(Window(hwnd).getId(), BN_CLICKED),
 					reinterpret_cast<LPARAM>(hwnd));
 			else if (nCode & DLGC_BUTTON)
 				Window(hwnd).sendMessage(BM_CLICK);
@@ -701,10 +701,10 @@ void qm::OptionDialog::setFocus(HWND hwnd)
 {
 	Window wnd(hwnd);
 	
-	int nCode = wnd.sendMessage(WM_GETDLGCODE);
+	int nCode = static_cast<int>(wnd.sendMessage(WM_GETDLGCODE));
 	if (nCode & DLGC_DEFPUSHBUTTON || nCode & DLGC_UNDEFPUSHBUTTON) {
 		Window parent(wnd.getParent());
-		parent.sendMessage(DM_SETDEFID, wnd.getWindowLong(GWL_ID));
+		parent.sendMessage(DM_SETDEFID, wnd.getId());
 		
 		if (parent.getHandle() == getHandle())
 			clearDefaultButton(pCurrentPanel_->getWindow());
@@ -745,9 +745,9 @@ WCHAR qm::OptionDialog::getMnemonic(WCHAR c)
 void qm::OptionDialog::clearDefaultButton(HWND hwnd)
 {
 	Window wnd(hwnd);
-	int nDefId = wnd.sendMessage(DM_GETDEFID);
-	if (HIWORD(nDefId) == DC_HASDEFID) {
-		wnd.sendDlgItemMessage(LOWORD(nDefId), BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
+	DWORD dwDefId = static_cast<DWORD>(wnd.sendMessage(DM_GETDEFID));
+	if (HIWORD(dwDefId) == DC_HASDEFID) {
+		wnd.sendDlgItemMessage(LOWORD(dwDefId), BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
 		wnd.sendMessage(DM_SETDEFID, IDOK);
 	}
 }
@@ -951,7 +951,7 @@ LRESULT qm::OptionAddressBookDialog::onInitDialog(HWND hwndFocus,
 	while (p) {
 		for (int n = 0; n < countof(externals__); ++n) {
 			if (wcscmp(p, externals__[n].pwszName_) == 0) {
-				sendDlgItemMessage(externals__[n].nId_, BM_SETCHECK, BST_CHECKED);
+				Button_SetCheck(getDlgItem(externals__[n].nId_), BST_CHECKED);
 				break;
 			}
 		}
@@ -959,7 +959,7 @@ LRESULT qm::OptionAddressBookDialog::onInitDialog(HWND hwndFocus,
 	}
 	
 	if (pProfile_->getInt(L"AddressBook", L"AddressOnly", 0))
-		sendDlgItemMessage(IDC_ADDRESSONLY, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_ADDRESSONLY), BST_CHECKED);
 	
 	return FALSE;
 }
@@ -968,7 +968,7 @@ bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
 {
 	StringBuffer<WSTRING> buf;
 	for (int n = 0; n < countof(externals__); ++n) {
-		if (sendDlgItemMessage(externals__[n].nId_, BM_GETCHECK) == BST_CHECKED) {
+		if (Button_GetCheck(getDlgItem(externals__[n].nId_)) == BST_CHECKED) {
 			if (buf.getLength() != 0)
 				buf.append(L" ");
 			buf.append(externals__[n].pwszName_);
@@ -976,7 +976,7 @@ bool qm::OptionAddressBookDialog::save(OptionDialogContext* pContext)
 	}
 	pProfile_->setString(L"AddressBook", L"Externals", buf.getCharArray());
 	
-	bool bAddressOnly = sendDlgItemMessage(IDC_ADDRESSONLY, BM_GETCHECK) == BST_CHECKED;
+	bool bAddressOnly = Button_GetCheck(getDlgItem(IDC_ADDRESSONLY)) == BST_CHECKED;
 	pProfile_->setInt(L"AddressBook", L"AddressOnly", bAddressOnly);
 	
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"AddressBookListWindow", lf_);
@@ -1205,9 +1205,9 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 	if (pJunkFilter_) {
 		unsigned int nFlags = pJunkFilter_->getFlags();
 		if (nFlags & JunkFilter::FLAG_MANUALLEARN)
-			sendDlgItemMessage(IDC_MANUALLEARN, BM_SETCHECK, BST_CHECKED);
+			Button_SetCheck(getDlgItem(IDC_MANUALLEARN), BST_CHECKED);
 		if (nFlags & JunkFilter::FLAG_AUTOLEARN)
-			sendDlgItemMessage(IDC_AUTOLEARN, BM_SETCHECK, BST_CHECKED);
+			Button_SetCheck(getDlgItem(IDC_AUTOLEARN), BST_CHECKED);
 		
 		float fThreshold = pJunkFilter_->getThresholdScore();
 		WCHAR wszThreshold[32];
@@ -1243,9 +1243,9 @@ bool qm::OptionJunkDialog::save(OptionDialogContext* pContext)
 {
 	if (pJunkFilter_) {
 		unsigned int nFlags = 0;
-		if (sendDlgItemMessage(IDC_MANUALLEARN, BM_GETCHECK) == BST_CHECKED)
+		if (Button_GetCheck(getDlgItem(IDC_MANUALLEARN)) == BST_CHECKED)
 			nFlags |= JunkFilter::FLAG_MANUALLEARN;
-		if (sendDlgItemMessage(IDC_AUTOLEARN, BM_GETCHECK) == BST_CHECKED)
+		if (Button_GetCheck(getDlgItem(IDC_AUTOLEARN)) == BST_CHECKED)
 			nFlags |= JunkFilter::FLAG_AUTOLEARN;
 		pJunkFilter_->setFlags(nFlags, JunkFilter::FLAG_MANUALLEARN | JunkFilter::FLAG_AUTOLEARN);
 		
@@ -1439,7 +1439,7 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 	wstring_ptr wstrEncodings(getDlgItemText(IDC_ENCODING));
 	pProfile_->setString(L"Global", L"Encodings", wstrEncodings.get());
 	
-	int nLog = sendDlgItemMessage(IDC_LOG, CB_GETCURSEL);
+	int nLog = ComboBox_GetCurSel(getDlgItem(IDC_LOG));
 	pProfile_->setInt(L"Global", L"Log", nLog - 1);
 	
 	Init& init = Init::getInit();
@@ -1548,7 +1548,7 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 	
 #ifndef _WIN32_WCE
 	bool bGPG = pProfile_->getInt(L"PGP", L"UseGPG", 1) != 0;
-	sendDlgItemMessage(bGPG ? IDC_GNUPG : IDC_PGP, BM_SETCHECK, BST_CHECKED);
+	Button_SetCheck(getDlgItem(bGPG ? IDC_GNUPG : IDC_PGP), BST_CHECKED);
 #endif
 	
 	if (!Security::isSSLEnabled() && !Security::isSMIMEEnabled())
@@ -1573,7 +1573,7 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
 		L"Security", boolProperties__, countof(boolProperties__));
 	
 #ifndef _WIN32_WCE
-	bool bGPG = sendDlgItemMessage(IDC_GNUPG, BM_GETCHECK) == BST_CHECKED;
+	bool bGPG = Button_GetCheck(getDlgItem(IDC_GNUPG)) == BST_CHECKED;
 	pProfile_->setInt(L"PGP", L"UseGPG", bGPG);
 #endif
 	
@@ -1641,8 +1641,7 @@ LRESULT qm::TextColorDialog::onDestroy()
 LRESULT qm::TextColorDialog::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
-	sendDlgItemMessage(data_.bSystemColor_ ? IDC_SYSTEMCOLOR : IDC_CUSTOMCOLOR,
-		BM_SETCHECK, BST_CHECKED);
+	Button_SetCheck(getDlgItem(data_.bSystemColor_ ? IDC_SYSTEMCOLOR : IDC_CUSTOMCOLOR), BST_CHECKED);
 	setDlgItemText(IDC_COLOR, L"Sample");
 	setDlgItemText(IDC_QUOTE1, data_.wstrQuote_[0].get());
 	setDlgItemText(IDC_QUOTE2, data_.wstrQuote_[1].get());
@@ -1664,10 +1663,10 @@ LRESULT qm::TextColorDialog::onCtlColorEdit(HDC hdc,
 LRESULT qm::TextColorDialog::onCtlColorStatic(HDC hdc,
 											  HWND hwnd)
 {
-	bool bSystemColor = sendDlgItemMessage(IDC_SYSTEMCOLOR, BM_GETCHECK) == BST_CHECKED;
+	bool bSystemColor = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
 	
 	COLORREF crForeground;
-	switch (Window(hwnd).getWindowLong(GWL_ID)) {
+	switch (Window(hwnd).getId()) {
 	case IDC_COLOR:
 		crForeground = bSystemColor ? ::GetSysColor(COLOR_WINDOWTEXT) : data_.crForeground_;
 		break;
@@ -1694,7 +1693,7 @@ LRESULT qm::TextColorDialog::onCtlColorStatic(HDC hdc,
 
 LRESULT qm::TextColorDialog::onOk()
 {
-	data_.bSystemColor_ = sendDlgItemMessage(IDC_SYSTEMCOLOR, BM_GETCHECK) == BST_CHECKED;
+	data_.bSystemColor_ = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
 	
 	return DefaultDialog::onOk();
 }
@@ -1744,7 +1743,7 @@ LRESULT qm::TextColorDialog::onColor(UINT nId)
 
 void qm::TextColorDialog::updateState()
 {
-	bool bEnable = sendDlgItemMessage(IDC_CUSTOMCOLOR, BM_GETCHECK) == BST_CHECKED;
+	bool bEnable = Button_GetCheck(getDlgItem(IDC_CUSTOMCOLOR)) == BST_CHECKED;
 	Window(getDlgItem(IDC_CHOOSEFOREGROUND)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_CHOOSEBACKGROUND)).enableWindow(bEnable);
 }
@@ -1754,7 +1753,7 @@ void qm::TextColorDialog::updateBackgroundBrush()
 	if (hbrBackground_)
 		::DeleteObject(hbrBackground_);
 	
-	bool bSystemColor = sendDlgItemMessage(IDC_SYSTEMCOLOR, BM_GETCHECK) == BST_CHECKED;
+	bool bSystemColor = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
 	COLORREF crBackground = bSystemColor ? ::GetSysColor(COLOR_WINDOW) : data_.crBackground_;
 	hbrBackground_ = ::CreateSolidBrush(crBackground);
 	
@@ -1921,11 +1920,11 @@ LRESULT qm::AbstractOptionTextDialog::onInitDialog(HWND hwndFocus,
 {
 	unsigned int nCharInLine = pProfile_->getInt(pwszSection_, L"CharInLine", 0);
 	if (nCharInLine == 0) {
-		sendDlgItemMessage(IDC_WRAPWINDOWWIDTH, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_WRAPWINDOWWIDTH), BST_CHECKED);
 		setDlgItemInt(IDC_CHARINLINE, 80);
 	}
 	else {
-		sendDlgItemMessage(IDC_WRAPCOLUMN, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_WRAPCOLUMN), BST_CHECKED);
 		setDlgItemInt(IDC_CHARINLINE, nCharInLine, false);
 	}
 	
@@ -1942,7 +1941,7 @@ LRESULT qm::AbstractOptionTextDialog::onInitDialog(HWND hwndFocus,
 bool qm::AbstractOptionTextDialog::save(OptionDialogContext* pContext)
 {
 	unsigned int nCharInLine = 0;
-	if (sendDlgItemMessage(IDC_WRAPCOLUMN, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_WRAPCOLUMN)) == BST_CHECKED)
 		nCharInLine = getDlgItemInt(IDC_CHARINLINE);
 	pProfile_->setInt(pwszSection_, L"CharInLine", nCharInLine);
 	
@@ -1959,7 +1958,7 @@ bool qm::AbstractOptionTextDialog::save(OptionDialogContext* pContext)
 
 void qm::AbstractOptionTextDialog::updateState()
 {
-	bool bEnable = sendDlgItemMessage(IDC_WRAPCOLUMN, BM_GETCHECK) == BST_CHECKED;
+	bool bEnable = Button_GetCheck(getDlgItem(IDC_WRAPCOLUMN)) == BST_CHECKED;
 	Window(getDlgItem(IDC_CHARINLINE)).enableWindow(bEnable);
 }
 
@@ -2091,7 +2090,7 @@ LRESULT qm::SecurityDialog::onInitDialog(HWND hwndFocus,
 {
 	for (int n = 0; n < countof(items__); ++n) {
 		if (nMessageSecurity_ & items__[n].security_)
-			sendDlgItemMessage(items__[n].nId_, BM_SETCHECK, BST_CHECKED);
+			Button_SetCheck(getDlgItem(items__[n].nId_), BST_CHECKED);
 	}
 	
 	if (!Security::isSMIMEEnabled()) {
@@ -2115,7 +2114,7 @@ LRESULT qm::SecurityDialog::onOk()
 {
 	unsigned int nMessageSecurity = 0;
 	for (int n = 0; n < countof(items__); ++n) {
-		if (sendDlgItemMessage(items__[n].nId_, BM_GETCHECK) == BST_CHECKED)
+		if (Button_GetCheck(getDlgItem(items__[n].nId_)) == BST_CHECKED)
 			nMessageSecurity |= items__[n].security_;
 	}
 	nMessageSecurity_ = nMessageSecurity;
@@ -2350,9 +2349,9 @@ LRESULT qm::OptionTabDialog::onInitDialog(HWND hwndFocus,
 	DefaultTabModel* pTabModel = static_cast<DefaultTabModel*>(pTabWindow_->getTabModel());
 	unsigned int nReuse = pTabModel->getReuse();
 	if (nReuse & DefaultTabModel::REUSE_OPEN)
-		sendDlgItemMessage(IDC_REUSEOPEN, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_REUSEOPEN), BST_CHECKED);
 	if (nReuse & DefaultTabModel::REUSE_CHANGE)
-		sendDlgItemMessage(IDC_REUSECHANGE, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_REUSECHANGE), BST_CHECKED);
 	
 	return FALSE;
 }
@@ -2364,9 +2363,9 @@ bool qm::OptionTabDialog::save(OptionDialogContext* pContext)
 	
 	DefaultTabModel* pTabModel = static_cast<DefaultTabModel*>(pTabWindow_->getTabModel());
 	unsigned int nReuse = DefaultTabModel::REUSE_NONE;
-	if (sendDlgItemMessage(IDC_REUSEOPEN, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_REUSEOPEN)) == BST_CHECKED)
 		nReuse |= DefaultTabModel::REUSE_OPEN;
-	if (sendDlgItemMessage(IDC_REUSECHANGE, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_REUSECHANGE)) == BST_CHECKED)
 		nReuse |= DefaultTabModel::REUSE_CHANGE;
 	pTabModel->setReuse(nReuse);
 	
@@ -2692,8 +2691,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 				nItem = 3;
 				
 				bool bDirect = static_cast<DeleteRuleAction*>(pAction)->isDirect();
-				sendDlgItemMessage(IDC_DIRECT, BM_SETCHECK,
-					bDirect ? BST_CHECKED : BST_UNCHECKED);
+				Button_SetCheck(getDlgItem(IDC_DIRECT), bDirect ? BST_CHECKED : BST_UNCHECKED);
 			}
 			break;
 		case RuleAction::TYPE_DELETECACHE:
@@ -2715,8 +2713,8 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	sendDlgItemMessage(IDC_ACTION, CB_SETCURSEL, nItem);
 	
 	unsigned int nUse = pRule_->getUse();
-	sendDlgItemMessage(IDC_MANUAL, BM_SETCHECK, nUse & Rule::USE_MANUAL ? BST_CHECKED : BST_UNCHECKED);
-	sendDlgItemMessage(IDC_AUTO, BM_SETCHECK, nUse & Rule::USE_AUTO ? BST_CHECKED : BST_UNCHECKED);
+	Button_SetCheck(getDlgItem(IDC_MANUAL), nUse & Rule::USE_MANUAL ? BST_CHECKED : BST_UNCHECKED);
+	Button_SetCheck(getDlgItem(IDC_AUTO), nUse & Rule::USE_AUTO ? BST_CHECKED : BST_UNCHECKED);
 	
 	bInit_ = true;
 	
@@ -2737,7 +2735,7 @@ LRESULT qm::RuleDialog::onOk()
 	pRule_->setCondition(pCondition);
 	
 	std::auto_ptr<RuleAction> pAction;
-	int nItem = sendDlgItemMessage(IDC_ACTION, CB_GETCURSEL);
+	int nItem = ComboBox_GetCurSel(getDlgItem(IDC_ACTION));
 	switch (nItem) {
 	case 0:
 		break;
@@ -2763,7 +2761,7 @@ LRESULT qm::RuleDialog::onOk()
 		break;
 	case 3:
 		{
-			bool bDirect = sendDlgItemMessage(IDC_DIRECT, BM_GETCHECK) == BST_CHECKED;
+			bool bDirect = Button_GetCheck(getDlgItem(IDC_DIRECT)) == BST_CHECKED;
 			pAction.reset(new DeleteRuleAction(bDirect));
 		}
 		break;
@@ -2788,9 +2786,9 @@ LRESULT qm::RuleDialog::onOk()
 	pRule_->setAction(pAction);
 	
 	unsigned int nUse = 0;
-	if (sendDlgItemMessage(IDC_MANUAL, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_MANUAL)) == BST_CHECKED)
 		nUse |= Rule::USE_MANUAL;
-	if (sendDlgItemMessage(IDC_AUTO, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_AUTO)) == BST_CHECKED)
 		nUse |= Rule::USE_AUTO;
 	pRule_->setUse(nUse);
 	
@@ -3027,7 +3025,7 @@ LRESULT qm::CopyRuleTemplateDialog::onInitDialog(HWND hwndFocus,
 		
 		LVITEM item = {
 			LVIF_TEXT,
-			n,
+			static_cast<int>(n),
 			0,
 			0,
 			0,
@@ -3304,9 +3302,9 @@ LRESULT qm::AutoPilotDialog::onInitDialog(HWND hwndFocus,
 	setDlgItemText(IDC_SOUND, wstrSound.get());
 	
 	if (pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected", 0))
-		sendDlgItemMessage(IDC_ONLYWHENCONNECTED, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_ONLYWHENCONNECTED), BST_CHECKED);
 	if (pRecents_->isEnabled())
-		sendDlgItemMessage(IDC_ADDTORECENTS, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_ADDTORECENTS), BST_CHECKED);
 	
 	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onInitDialog(hwndFocus, lParam);
 }
@@ -3341,10 +3339,10 @@ bool qm::AutoPilotDialog::save(OptionDialogContext* pContext)
 	if (wstrSound.get())
 		pProfile_->setString(L"AutoPilot", L"Sound", wstrSound.get());
 	
-	bool bConnected = sendDlgItemMessage(IDC_ONLYWHENCONNECTED, BM_GETCHECK) == BST_CHECKED;
+	bool bConnected = Button_GetCheck(getDlgItem(IDC_ONLYWHENCONNECTED)) == BST_CHECKED;
 	pProfile_->setInt(L"AutoPilot", L"OnlyWhenConnected", bConnected);
 	
-	pRecents_->setEnabled(sendDlgItemMessage(IDC_ADDTORECENTS, BM_GETCHECK) == BST_CHECKED);
+	pRecents_->setEnabled(Button_GetCheck(getDlgItem(IDC_ADDTORECENTS)) == BST_CHECKED);
 	
 	return true;
 }
@@ -4054,17 +4052,17 @@ LRESULT qm::GoRoundCourseDialog::onInitDialog(HWND hwndFocus,
 	
 	switch (pCourse_->getType()) {
 	case GoRoundCourse::TYPE_SEQUENTIAL:
-		sendDlgItemMessage(IDC_SEQUENTIAL, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SEQUENTIAL), BST_CHECKED);
 		break;
 	case GoRoundCourse::TYPE_PARALLEL:
-		sendDlgItemMessage(IDC_PARALLEL, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_PARALLEL), BST_CHECKED);
 		break;
 	default:
 		assert(false);
 		break;
 	}
 	
-	sendDlgItemMessage(IDC_CONFIRM, BM_SETCHECK,
+	Button_SetCheck(getDlgItem(IDC_CONFIRM),
 		pCourse_->isFlag(GoRoundCourse::FLAG_CONFIRM) ? BST_CHECKED : BST_UNCHECKED);
 	
 #ifdef _WIN32_WCE
@@ -4092,9 +4090,9 @@ LRESULT qm::GoRoundCourseDialog::onOk()
 	
 	pCourse_->setEntries(getList());
 	
-	pCourse_->setType(sendDlgItemMessage(IDC_SEQUENTIAL, BM_GETCHECK) == BST_CHECKED ?
+	pCourse_->setType(Button_GetCheck(getDlgItem(IDC_SEQUENTIAL)) == BST_CHECKED ?
 		GoRoundCourse::TYPE_SEQUENTIAL : GoRoundCourse::TYPE_PARALLEL);
-	pCourse_->setFlags(sendDlgItemMessage(IDC_CONFIRM, BM_GETCHECK) == BST_CHECKED ?
+	pCourse_->setFlags(Button_GetCheck(getDlgItem(IDC_CONFIRM)) == BST_CHECKED ?
 		GoRoundCourse::FLAG_CONFIRM : 0);
 	
 	return AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>::onOk();
@@ -4313,7 +4311,7 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	}
 	
 	if (pEntry_->isFlag(GoRoundEntry::FLAG_SELECTFOLDER))
-		sendDlgItemMessage(IDC_SELECTFOLDER, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SELECTFOLDER), BST_CHECKED);
 	
 	const WCHAR* pwszFilter = pEntry_->getFilter();
 	if (pwszFilter)
@@ -4322,14 +4320,14 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	
 	if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND) &&
 		pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
-		sendDlgItemMessage(IDC_SENDRECEIVE, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SENDRECEIVE), BST_CHECKED);
 	else if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND))
-		sendDlgItemMessage(IDC_SEND, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SEND), BST_CHECKED);
 	else if (pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
-		sendDlgItemMessage(IDC_RECEIVE, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_RECEIVE), BST_CHECKED);
 	
 	if (pEntry_->getConnectReceiveBeforeSend() == GoRoundEntry::CRBS_TRUE)
-		sendDlgItemMessage(IDC_CONNECTRECEIVEBEFORESEND, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_CONNECTRECEIVEBEFORESEND), BST_CHECKED);
 	
 	init(false);
 	updateState();
@@ -4367,13 +4365,13 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	}
 	
 	unsigned int nFlags = 0;
-	if (sendDlgItemMessage(IDC_SELECTFOLDER, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_SELECTFOLDER)) == BST_CHECKED)
 		nFlags |= GoRoundEntry::FLAG_SELECTFOLDER;
-	if (sendDlgItemMessage(IDC_SENDRECEIVE, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_SENDRECEIVE)) == BST_CHECKED)
 		nFlags |= GoRoundEntry::FLAG_SEND | GoRoundEntry::FLAG_RECEIVE;
-	else if (sendDlgItemMessage(IDC_RECEIVE, BM_GETCHECK) == BST_CHECKED)
+	else if (Button_GetCheck(getDlgItem(IDC_RECEIVE)) == BST_CHECKED)
 		nFlags |= GoRoundEntry::FLAG_RECEIVE;
-	else if (sendDlgItemMessage(IDC_SEND, BM_GETCHECK) == BST_CHECKED)
+	else if (Button_GetCheck(getDlgItem(IDC_SEND)) == BST_CHECKED)
 		nFlags |= GoRoundEntry::FLAG_SEND;
 	
 	wstring_ptr wstrFilter(getDlgItemText(IDC_SYNCFILTER));
@@ -4382,7 +4380,7 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 		pwszFilter = 0;
 	
 	GoRoundEntry::ConnectReceiveBeforeSend crbs =
-		sendDlgItemMessage(IDC_CONNECTRECEIVEBEFORESEND, BM_GETCHECK) == BST_CHECKED ?
+		Button_GetCheck(getDlgItem(IDC_CONNECTRECEIVEBEFORESEND)) == BST_CHECKED ?
 		GoRoundEntry::CRBS_TRUE : GoRoundEntry::CRBS_NONE;
 	
 	pEntry_->setAccount(wstrAccount.get());
@@ -4434,7 +4432,7 @@ void qm::GoRoundEntryDialog::updateState()
 	updateFilter();
 	
 	Window(getDlgItem(IDC_FOLDER)).enableWindow(
-		sendDlgItemMessage(IDC_SELECTFOLDER, BM_GETCHECK) != BST_CHECKED);
+		Button_GetCheck(getDlgItem(IDC_SELECTFOLDER)) != BST_CHECKED);
 	Window(getDlgItem(IDOK)).enableWindow(*wstrAccount.get() != L'\0');
 }
 
@@ -4564,17 +4562,17 @@ LRESULT qm::GoRoundDialupDialog::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
 	if (bNoDialup_)
-		sendDlgItemMessage(IDC_NEVER, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_NEVER), BST_CHECKED);
 	else if (pDialup_->isFlag(GoRoundDialup::FLAG_WHENEVERNOTCONNECTED))
-		sendDlgItemMessage(IDC_WHENEVERNOTCONNECTED, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_WHENEVERNOTCONNECTED), BST_CHECKED);
 	else
-		sendDlgItemMessage(IDC_CONNECT, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_CONNECT), BST_CHECKED);
 	
 	if (pDialup_->getName())
 		setDlgItemText(IDC_ENTRY, pDialup_->getName());
 	if (pDialup_->getDialFrom())
 		setDlgItemText(IDC_DIALFROM, pDialup_->getDialFrom());
-	sendDlgItemMessage(IDC_SHOWDIALOG, BM_SETCHECK,
+	Button_SetCheck(getDlgItem(IDC_SHOWDIALOG),
 		pDialup_->isFlag(GoRoundDialup::FLAG_SHOWDIALOG) ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemInt(IDC_WAITBEFOREDISCONNECT, pDialup_->getDisconnectWait());
 	
@@ -4595,7 +4593,7 @@ LRESULT qm::GoRoundDialupDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::GoRoundDialupDialog::onOk()
 {
-	bNoDialup_ = sendDlgItemMessage(IDC_NEVER, BM_GETCHECK) == BST_CHECKED;
+	bNoDialup_ = Button_GetCheck(getDlgItem(IDC_NEVER)) == BST_CHECKED;
 	if (!bNoDialup_) {
 		wstring_ptr wstrEntry(getDlgItemText(IDC_ENTRY));
 		pDialup_->setName(*wstrEntry.get() ? wstrEntry.get() : 0);
@@ -4604,9 +4602,9 @@ LRESULT qm::GoRoundDialupDialog::onOk()
 		pDialup_->setDialFrom(*wstrDialFrom.get() ? wstrDialFrom.get() : 0);
 		
 		unsigned int nFlags = 0;
-		if (sendDlgItemMessage(IDC_WHENEVERNOTCONNECTED, BM_GETCHECK) == BST_CHECKED)
+		if (Button_GetCheck(getDlgItem(IDC_WHENEVERNOTCONNECTED)) == BST_CHECKED)
 			nFlags |= GoRoundDialup::FLAG_WHENEVERNOTCONNECTED;
-		if (sendDlgItemMessage(IDC_SHOWDIALOG, BM_GETCHECK) == BST_CHECKED)
+		if (Button_GetCheck(getDlgItem(IDC_SHOWDIALOG)) == BST_CHECKED)
 			nFlags |= GoRoundDialup::FLAG_SHOWDIALOG;
 		pDialup_->setFlags(nFlags);
 		
@@ -4623,7 +4621,7 @@ LRESULT qm::GoRoundDialupDialog::onTypeSelect(UINT nId)
 
 void qm::GoRoundDialupDialog::updateState()
 {
-	bool bEnable = sendDlgItemMessage(IDC_NEVER, BM_GETCHECK) != BST_CHECKED;
+	bool bEnable = Button_GetCheck(getDlgItem(IDC_NEVER)) != BST_CHECKED;
 	
 	UINT nIds[] = {
 		IDC_ENTRY,
@@ -4786,7 +4784,7 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 		setDlgItemText(IDC_ACCOUNT, pSignature_->getAccount());
 	
 	if (pSignature_->isDefault())
-		sendDlgItemMessage(IDC_DEFAULT, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_DEFAULT), BST_CHECKED);
 	
 	wstring_ptr wstrSignature(Util::convertLFtoCRLF(pSignature_->getSignature()));
 	setDlgItemText(IDC_SIGNATURE, wstrSignature.get());
@@ -4824,7 +4822,7 @@ LRESULT qm::SignatureDialog::onOk()
 		pwszAccount = wstrAccount.get();
 	}
 	
-	bool bDefault = sendDlgItemMessage(IDC_DEFAULT, BM_GETCHECK) == BST_CHECKED;
+	bool bDefault = Button_GetCheck(getDlgItem(IDC_DEFAULT)) == BST_CHECKED;
 	
 	wstring_ptr wstrSignature(getDlgItemText(IDC_SIGNATURE));
 	wstrSignature = Util::convertCRLFtoLF(wstrSignature.get());
@@ -5310,7 +5308,7 @@ LRESULT qm::SyncFilterDialog::onOk()
 		pwszFolder = wstrFolder.get();
 	}
 	
-	int nAction = sendDlgItemMessage(IDC_ACTION, CB_GETCURSEL);
+	int nAction = ComboBox_GetCurSel(getDlgItem(IDC_ACTION));
 	if (nAction == CB_ERR) {
 		// TODO MSG
 		return 0;
@@ -5347,7 +5345,7 @@ LRESULT qm::SyncFilterDialog::onOk()
 		break;
 	case 1:
 		{
-			int nType = sendDlgItemMessage(IDC_TYPE, CB_GETCURSEL);
+			int nType = ComboBox_GetCurSel(getDlgItem(IDC_TYPE));
 			if (nType == CB_ERR) {
 				// TODO MSG
 				return 0;
@@ -5397,7 +5395,7 @@ LRESULT qm::SyncFilterDialog::onActionSelChange()
 
 void qm::SyncFilterDialog::updateState()
 {
-	int nItem = sendDlgItemMessage(IDC_ACTION, CB_GETCURSEL);
+	int nItem = ComboBox_GetCurSel(getDlgItem(IDC_ACTION));
 	Window(getDlgItem(IDC_MAXLINELABEL)).showWindow(nItem == 0 ? SW_SHOW : SW_HIDE);
 	Window(getDlgItem(IDC_MAXLINE)).showWindow(nItem == 0 ? SW_SHOW : SW_HIDE);
 	Window(getDlgItem(IDC_TYPELABEL)).showWindow(nItem == 1 ? SW_SHOW : SW_HIDE);

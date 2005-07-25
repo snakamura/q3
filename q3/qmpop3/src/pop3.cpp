@@ -646,7 +646,7 @@ bool qmpop3::Pop3::send(const SendData* pSendData,
 				POP3_ERROR(POP3_ERROR_TIMEOUT);
 			
 			size_t nSend = pSocket_->send(data.psz_ + nTotal,
-				QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal), 0);
+				static_cast<int>(QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal)), 0);
 			if (nSend == -1)
 				POP3_ERROR_SOCKET(POP3_ERROR_SEND);
 			nTotal += nSend;

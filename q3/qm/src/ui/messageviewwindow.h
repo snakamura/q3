@@ -223,13 +223,13 @@ private:
 	class MarkImpl : public MessageWindow::Mark
 	{
 	public:
-		MarkImpl(unsigned int nLine,
-				 unsigned int nChar);
+		MarkImpl(size_t nLine,
+				 size_t nChar);
 		virtual ~MarkImpl();
 	
 	public:
-		unsigned int nLine_;
-		unsigned int nChar_;
+		size_t nLine_;
+		size_t nChar_;
 	};
 
 private:

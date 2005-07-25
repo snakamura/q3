@@ -1701,7 +1701,7 @@ MacroValuePtr qm::MacroFunctionFind::value(MacroContext* pContext) const
 					bCase ? 0 : BMFindString<WSTRING>::FLAG_IGNORECASE);
 				p = bmfs.find(wstr.get() + nIndex);
 			}
-			nResult = p ? p - wstr.get() : -1;
+			nResult = p ? static_cast<unsigned int>(p - wstr.get()) : -1;
 		}
 	}
 	
@@ -2716,7 +2716,7 @@ MacroValuePtr qm::MacroFunctionLength::value(MacroContext* pContext) const
 	ARG(pValue, 0);
 	wstring_ptr wstrValue(pValue->string());
 	
-	long nLen = 0;
+	size_t nLen = 0;
 	if (bByte) {
 		string_ptr str(wcs2mbs(wstrValue.get()));
 		nLen = strlen(str.get());
@@ -2725,7 +2725,7 @@ MacroValuePtr qm::MacroFunctionLength::value(MacroContext* pContext) const
 		nLen = wcslen(wstrValue.get());
 	}
 	
-	return MacroValueFactory::getFactory().newNumber(nLen);
+	return MacroValueFactory::getFactory().newNumber(static_cast<unsigned int>(nLen));
 }
 
 const WCHAR* qm::MacroFunctionLength::getName() const
@@ -3704,7 +3704,7 @@ MacroValuePtr qm::MacroFunctionRegexFind::value(MacroContext* pContext) const
 	}
 	
 	return MacroValueFactory::getFactory().newNumber(
-		pStart ? pStart - wstrValue.get() : -1);
+		pStart ? static_cast<unsigned int>(pStart - wstrValue.get()) : -1);
 }
 
 const WCHAR* qm::MacroFunctionRegexFind::getName() const

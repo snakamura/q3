@@ -666,9 +666,9 @@ LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus,
 	ReceiveSessionFactory::getClasses(&listClasses);
 	for (ClassList::iterator it = listClasses.begin(); it != listClasses.end(); ++it) {
 		W2T(*it, ptsz);
-		sendDlgItemMessage(IDC_CLASS, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptsz));
+		ComboBox_AddString(getDlgItem(IDC_CLASS), ptsz);
 	}
-	sendDlgItemMessage(IDC_CLASS, CB_SETCURSEL, 0);
+	ComboBox_SetCurSel(getDlgItem(IDC_CLASS), 0);
 	
 	updateProtocols();
 	
@@ -684,8 +684,8 @@ LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus,
 LRESULT qm::CreateAccountDialog::onOk()
 {
 	wstrName_ = getDlgItemText(IDC_NAME);
-	nReceiveProtocol_ = sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_GETCURSEL);
-	nSendProtocol_ = sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_GETCURSEL);
+	nReceiveProtocol_ = ComboBox_GetCurSel(getDlgItem(IDC_INCOMINGPROTOCOL));
+	nSendProtocol_ = ComboBox_GetCurSel(getDlgItem(IDC_OUTGOINGPROTOCOL));
 	
 	if (sendDlgItemMessage(IDC_SINGLEFILE, BM_GETCHECK) == BST_CHECKED) {
 		nBlockSize_ = getDlgItemInt(IDC_BLOCKSIZE);
@@ -711,11 +711,10 @@ LRESULT qm::CreateAccountDialog::onNameChange()
 
 LRESULT qm::CreateAccountDialog::onClassChange()
 {
-	int nItem = sendDlgItemMessage(IDC_CLASS, CB_GETCURSEL);
-	int nLen = sendDlgItemMessage(IDC_CLASS, CB_GETLBTEXTLEN, nItem);
+	int nItem = ComboBox_GetCurSel(getDlgItem(IDC_CLASS));
+	int nLen = ComboBox_GetLBTextLen(getDlgItem(IDC_CLASS), nItem);
 	tstring_ptr tstrClass(allocTString(nLen + 1));
-	sendDlgItemMessage(IDC_CLASS, CB_GETLBTEXT,
-		nItem, reinterpret_cast<LPARAM>(tstrClass.get()));
+	ComboBox_GetLBText(getDlgItem(IDC_CLASS), nItem, tstrClass.get());
 	
 	wstring_ptr wstrClass(tcs2wcs(tstrClass.get()));
 	if (wcscmp(wstrClass_.get(), wstrClass.get()) != 0) {
@@ -741,8 +740,8 @@ LRESULT qm::CreateAccountDialog::onTypeChange()
 void qm::CreateAccountDialog::updateProtocols()
 {
 	clearProtocols();
-	sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_RESETCONTENT);
-	sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_RESETCONTENT);
+	ComboBox_ResetContent(getDlgItem(IDC_INCOMINGPROTOCOL));
+	ComboBox_ResetContent(getDlgItem(IDC_OUTGOINGPROTOCOL));
 	
 	ReceiveSessionFactory::NameList listReceiveName;
 	StringListFree<ReceiveSessionFactory::NameList> freeReceive(listReceiveName);
@@ -762,11 +761,10 @@ void qm::CreateAccountDialog::updateProtocols()
 			
 			wstring_ptr wstrDisplayName(pUI->getDisplayName());
 			W2T(wstrDisplayName.get(), ptszDisplayName);
-			sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszDisplayName));
+			ComboBox_AddString(getDlgItem(IDC_INCOMINGPROTOCOL), ptszDisplayName);
 		}
 	}
-	sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_SETCURSEL, 0);
+	ComboBox_SetCurSel(getDlgItem(IDC_INCOMINGPROTOCOL), 0);
 	
 	SendSessionFactory::NameList listSendName;
 	StringListFree<SendSessionFactory::NameList> freeSend(listSendName);
@@ -786,11 +784,10 @@ void qm::CreateAccountDialog::updateProtocols()
 			
 			wstring_ptr wstrDisplayName(pUI->getDisplayName());
 			W2T(wstrDisplayName.get(), ptszDisplayName);
-			sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszDisplayName));
+			ComboBox_AddString(getDlgItem(IDC_OUTGOINGPROTOCOL), ptszDisplayName);
 		}
 	}
-	sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_SETCURSEL, 0);
+	ComboBox_SetCurSel(getDlgItem(IDC_OUTGOINGPROTOCOL), 0);
 	
 	updateState();
 }
@@ -812,8 +809,8 @@ void qm::CreateAccountDialog::clearProtocols()
 void qm::CreateAccountDialog::updateState()
 {
 	bool bEnableOk = Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0 &&
-		sendDlgItemMessage(IDC_INCOMINGPROTOCOL, CB_GETCURSEL) != CB_ERR &&
-		sendDlgItemMessage(IDC_OUTGOINGPROTOCOL, CB_GETCURSEL) != CB_ERR;
+		ComboBox_GetCurSel(getDlgItem(IDC_INCOMINGPROTOCOL)) != CB_ERR &&
+		ComboBox_GetCurSel(getDlgItem(IDC_OUTGOINGPROTOCOL)) != CB_ERR;
 	Window(getDlgItem(IDOK)).enableWindow(bEnableOk);
 	
 	bool bEnableBlockSize = sendDlgItemMessage(
@@ -868,8 +865,7 @@ LRESULT qm::CreateSubAccountDialog::onInitDialog(HWND hwndFocus,
 			const WCHAR* pwszName = pSubAccount->getName();
 			if (*pwszName) {
 				W2T(pwszName, ptszName);
-				sendDlgItemMessage(IDC_NAME, CB_ADDSTRING, 0,
-					reinterpret_cast<LPARAM>(ptszName));
+				ComboBox_AddString(getDlgItem(IDC_NAME), ptszName);
 			}
 		}
 	}
@@ -1013,16 +1009,14 @@ void qm::AccountAdvancedPage::updateFilter()
 {
 	wstring_ptr wstrFilter(getDlgItemText(IDC_SYNCFILTER));
 	
-	sendDlgItemMessage(IDC_SYNCFILTER, CB_RESETCONTENT);
+	ComboBox_ResetContent(getDlgItem(IDC_SYNCFILTER));
 	
-	sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
-		0, reinterpret_cast<LPARAM>(_T("")));
+	ComboBox_AddString(getDlgItem(IDC_SYNCFILTER), _T(""));
 	const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
 	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		SyncFilterSet* pSet = *it;
 		W2T(pSet->getName(), ptszName);
-		sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(getDlgItem(IDC_SYNCFILTER), ptszName);
 	}
 	
 	setDlgItemText(IDC_SYNCFILTER, wstrFilter.get());
@@ -1234,15 +1228,13 @@ LRESULT qm::AccountDialupPage::onInitDialog(HWND hwndFocus,
 		RasConnection::EntryList::const_iterator it = listEntry.begin();
 		while (it != listEntry.end()) {
 			W2T(*it, ptszName);
-			sendDlgItemMessage(IDC_ENTRY, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszName));
+			ComboBox_AddString(getDlgItem(IDC_ENTRY), ptszName);
 			++it;
 		}
 		
 		W2T(pSubAccount_->getDialupEntry(), ptszEntry);
-		if (sendDlgItemMessage(IDC_ENTRY, CB_SELECTSTRING,
-			-1, reinterpret_cast<LPARAM>(ptszEntry)) == CB_ERR)
-			sendDlgItemMessage(IDC_ENTRY, CB_SETCURSEL, 0);
+		if (ComboBox_SelectString(getDlgItem(IDC_ENTRY), -1, ptszEntry) == CB_ERR)
+			ComboBox_SetCurSel(getDlgItem(IDC_ENTRY), 0);
 	}
 	
 	sendDlgItemMessage(IDC_SHOWDIALOG, BM_SETCHECK,
@@ -1263,14 +1255,13 @@ LRESULT qm::AccountDialupPage::onOk()
 		}
 	}
 	
-	int nIndex = sendDlgItemMessage(IDC_ENTRY, CB_GETCURSEL);
+	int nIndex = ComboBox_GetCurSel(getDlgItem(IDC_ENTRY));
 	if (nIndex != CB_ERR) {
-		int nLen = sendDlgItemMessage(IDC_ENTRY, CB_GETLBTEXTLEN, nIndex);
+		int nLen = ComboBox_GetLBTextLen(getDlgItem(IDC_ENTRY), nIndex);
 		if (nLen != CB_ERR) {
 			tstring_ptr tstrEntry(allocTString(nLen + 1));
 			if (tstrEntry.get()) {
-				sendDlgItemMessage(IDC_ENTRY, CB_GETLBTEXT,
-					nIndex, reinterpret_cast<LPARAM>(tstrEntry.get()));
+				ComboBox_GetLBText(getDlgItem(IDC_ENTRY), nIndex, tstrEntry.get());
 				T2W(tstrEntry.get(), ptszEntry);
 				pSubAccount_->setDialupEntry(ptszEntry);
 			}

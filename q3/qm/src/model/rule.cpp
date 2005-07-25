@@ -57,11 +57,11 @@ public:
 		virtual ~Accessor();
 	
 	public:
-		virtual unsigned int getCount() const = 0;
-		virtual MessagePtr getMessagePtr(unsigned int n) const = 0;
-		virtual MessageHolder* getMessageHolder(unsigned int n) const = 0;
+		virtual size_t getCount() const = 0;
+		virtual MessagePtr getMessagePtr(size_t n) const = 0;
+		virtual MessageHolder* getMessageHolder(size_t n) const = 0;
 		virtual bool isRequestResult() const = 0;
-		virtual void setMessageHolder(unsigned int n,
+		virtual void setMessageHolder(size_t n,
 									  MessageHolder* pmh) = 0;
 	};
 
@@ -174,7 +174,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 		return true;
 	}
 	
-	unsigned int nCount = pAccessor->getCount();
+	size_t nCount = pAccessor->getCount();
 	log.debugf(L"%u messages are to be processed.", nCount);
 	if (nCount == 0)
 		return true;
@@ -182,13 +182,13 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	pCallback->checkingMessages(pFolder);
 	pCallback->setRange(0, nCount);
 	
-	typedef std::vector<unsigned int> IndexList;
+	typedef std::vector<size_t> IndexList;
 	typedef std::vector<IndexList> ListList;
 	ListList ll(listRule.size());
 	
-	int nMatch = 0;
+	size_t nMatch = 0;
 	MacroVariableHolder globalVariable;
-	for (unsigned int nMessage = 0; nMessage < nCount; ++nMessage) {
+	for (size_t nMessage = 0; nMessage < nCount; ++nMessage) {
 		if (nMessage % 10 == 0 && pCallback->isCanceled())
 			return true;
 		
@@ -224,7 +224,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	
 	bool bRequestResult = pAccessor->isRequestResult();
 	UndoItemList undo;
-	int nPos = 0;
+	size_t nPos = 0;
 	for (RuleList::size_type nRule = 0; nRule < listRule.size(); ++nRule) {
 		if (pCallback->isCanceled())
 			return true;
@@ -351,19 +351,19 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		}
 	
 	public:
-		virtual unsigned int getCount() const
+		virtual size_t getCount() const
 		{
 			return pFolder_->getCount();
 		}
 		
-		virtual MessagePtr getMessagePtr(unsigned int n) const
+		virtual MessagePtr getMessagePtr(size_t n) const
 		{
 			return MessagePtr();
 		}
 		
-		virtual MessageHolder* getMessageHolder(unsigned int n) const
+		virtual MessageHolder* getMessageHolder(size_t n) const
 		{
-			return pFolder_->getMessage(n);
+			return pFolder_->getMessage(static_cast<unsigned int>(n));
 		}
 		
 		virtual bool isRequestResult() const
@@ -371,7 +371,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 			return false;
 		}
 		
-		virtual void setMessageHolder(unsigned int n,
+		virtual void setMessageHolder(size_t n,
 									  MessageHolder* pmh)
 		{
 			assert(false);
@@ -406,17 +406,17 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		}
 	
 	public:
-		virtual unsigned int getCount() const
+		virtual size_t getCount() const
 		{
 			return l_.size();
 		}
 		
-		virtual MessagePtr getMessagePtr(unsigned int n) const
+		virtual MessagePtr getMessagePtr(size_t n) const
 		{
 			return MessagePtr();
 		}
 		
-		virtual MessageHolder* getMessageHolder(unsigned int n) const
+		virtual MessageHolder* getMessageHolder(size_t n) const
 		{
 			return l_[n];
 		}
@@ -426,7 +426,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 			return false;
 		}
 		
-		virtual void setMessageHolder(unsigned int n,
+		virtual void setMessageHolder(size_t n,
 									  MessageHolder* pmh)
 		{
 			assert(false);
@@ -467,17 +467,17 @@ bool qm::RuleManager::apply(Folder* pFolder,
 		}
 	
 	public:
-		virtual unsigned int getCount() const
+		virtual size_t getCount() const
 		{
 			return l_.size();
 		}
 		
-		virtual MessagePtr getMessagePtr(unsigned int n) const
+		virtual MessagePtr getMessagePtr(size_t n) const
 		{
 			return l_[n];
 		}
 		
-		virtual MessageHolder* getMessageHolder(unsigned int n) const
+		virtual MessageHolder* getMessageHolder(size_t n) const
 		{
 			return 0;
 		}
@@ -487,7 +487,7 @@ bool qm::RuleManager::apply(Folder* pFolder,
 			return true;
 		}
 		
-		virtual void setMessageHolder(unsigned int n,
+		virtual void setMessageHolder(size_t n,
 									  MessageHolder* pmh)
 		{
 			l_[n] = pmh;

@@ -66,7 +66,7 @@ public:
 	void save() const;
 
 public:
-	virtual void timerTimeout(unsigned int nId);
+	virtual void timerTimeout(qs::Timer::Id nId);
 
 private:
 	AutoPilot(const AutoPilot&);
@@ -111,7 +111,7 @@ private:
 	HWND hwnd_;
 	AutoPilotCallback* pCallback_;
 	std::auto_ptr<qs::Timer> pTimer_;
-	unsigned int nId_;
+	qs::Timer::Id nId_;
 	bool bEnabled_;
 	unsigned int nCount_;
 #ifndef _WIN32_WCE

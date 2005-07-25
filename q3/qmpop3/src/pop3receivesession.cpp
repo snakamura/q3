@@ -208,7 +208,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 		
 		if (bSkipDuplicatedUID && pOldUIDList_.get()) {
-			size_t nIndex = pOldUIDList_->getIndex(pwszUID);
+			unsigned int nIndex = pOldUIDList_->getIndex(pwszUID);
 			if (nIndex != -1) {
 				std::auto_ptr<UID> pUID(pOldUIDList_->remove(nIndex));
 				pUIDList_->add(pUID);
@@ -333,7 +333,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	int nDeleteBefore = pSubAccount_->getProperty(L"Pop3", L"DeleteBefore", 0);
 	
 	if (bDeleteOnServer || nDeleteBefore != 0) {
-		for (size_t n = 0; n < pUIDList_->getCount(); ++n) {
+		for (unsigned int n = 0; n < pUIDList_->getCount(); ++n) {
 			UID* pUID = pUIDList_->getUID(n);
 			
 			bool bDelete = false;
@@ -358,7 +358,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		listIndex.reserve(l.size());
 		for (DeleteList::List::size_type m = 0; m < l.size(); ++m) {
 			if (l[m].first)
-				listIndex.push_back(m);
+				listIndex.push_back(static_cast<unsigned int>(m));
 		}
 		
 		if (listIndex.size()) {
@@ -373,7 +373,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				if (l[n].first) {
 					pSessionCallback_->setPos(++nPos);
 					
-					if (!pPop3_->deleteMessage(n))
+					if (!pPop3_->deleteMessage(static_cast<unsigned int>(n)))
 						HANDLE_ERROR();
 					
 					MessagePtrLock mpl(l[n].second);
@@ -477,7 +477,7 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 			pNewUIDList.reset(new UIDList());
 			pNewUIDList->setModified(true);
 			
-			size_t nIndex = -1;
+			unsigned int nIndex = -1;
 			Pop3::UidList::size_type n = 0;
 			while (n < listUID_.size()) {
 				const WCHAR* pwszUID = listUID_[n];
@@ -490,7 +490,7 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 				
 				++n;
 			}
-			nStart_ = n;
+			nStart_ = static_cast<unsigned int>(n);
 		}
 	}
 	
@@ -585,7 +585,7 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 			if (isSameIdentity(msg, pSubAccount_)) {
 				UnstructuredParser uid;
 				if (msg.getField(L"X-UIDL", &uid) == Part::FIELD_EXIST) {
-					size_t nIndex = pUIDList_->getIndex(uid.getValue());
+					unsigned int nIndex = pUIDList_->getIndex(uid.getValue());
 					if (nIndex != -1) {
 						xstring_size_ptr strMessage;
 						if (!pPop3_->getMessage(nIndex, 0xffffffff, &strMessage, listSize_[nIndex]))
@@ -772,13 +772,13 @@ void qmpop3::Pop3ReceiveSession::CallbackImpl::authenticating()
 	setMessage(IDS_AUTHENTICATING);
 }
 
-void qmpop3::Pop3ReceiveSession::CallbackImpl::setRange(unsigned int nMin,
-														unsigned int nMax)
+void qmpop3::Pop3ReceiveSession::CallbackImpl::setRange(size_t nMin,
+														size_t nMax)
 {
 	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-void qmpop3::Pop3ReceiveSession::CallbackImpl::setPos(unsigned int nPos)
+void qmpop3::Pop3ReceiveSession::CallbackImpl::setPos(size_t nPos)
 {
 	pSessionCallback_->setSubPos(nPos);
 }

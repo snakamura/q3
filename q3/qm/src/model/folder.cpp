@@ -673,7 +673,7 @@ unsigned int qm::NormalFolder::getCount() const
 {
 	Lock<Account> lock(*getAccount());
 	if (pImpl_->bLoad_)
-		return pImpl_->listMessageHolder_.size();
+		return static_cast<unsigned int>(pImpl_->listMessageHolder_.size());
 	else
 		return pImpl_->nCount_;
 }
@@ -1122,10 +1122,11 @@ bool qm::QueryFolder::search(Document* pDocument,
 	std::sort(pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end());
 	
 	bool (MessageHolder::*pfn)() const = &MessageHolder::isSeen;
-	pImpl_->nUnseenCount_ = std::count_if(
-		pImpl_->listMessageHolder_.begin(),
-		pImpl_->listMessageHolder_.end(),
-		std::not1(std::mem_fun(pfn)));
+	pImpl_->nUnseenCount_ = static_cast<unsigned int>(
+		std::count_if(
+			pImpl_->listMessageHolder_.begin(),
+			pImpl_->listMessageHolder_.end(),
+			std::not1(std::mem_fun(pfn))));
 	
 	getImpl()->fireMessageRefreshed();
 	
@@ -1140,7 +1141,7 @@ Folder::Type qm::QueryFolder::getType() const
 unsigned int qm::QueryFolder::getCount() const
 {
 	Lock<Account> lock(*getAccount());
-	return pImpl_->listMessageHolder_.size();
+	return static_cast<unsigned int>(pImpl_->listMessageHolder_.size());
 }
 
 unsigned int qm::QueryFolder::getUnseenCount() const

@@ -294,7 +294,7 @@ void qmimap4::Util::getPartsFromBodyStructure(const FetchDataBodyStructure* pBod
 		for (FetchDataBodyStructure::ChildList::size_type n = 0; n < l.size(); ++n) {
 			auto_ptr_array<unsigned int> pPath(new unsigned int[nBaseLen + 2]);
 			std::copy(pBasePath, pBasePath + nBaseLen, pPath.get());
-			*(pPath.get() + nBaseLen) = n + 1;
+			*(pPath.get() + nBaseLen) = static_cast<unsigned int>(n + 1);
 			*(pPath.get() + nBaseLen + 1) = 0;
 			
 			if (isMultipart(l[n])) {

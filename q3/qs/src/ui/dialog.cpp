@@ -355,13 +355,13 @@ qs::Dialog::~Dialog()
 	delete pImpl_;
 }
 
-int qs::Dialog::doModal(HWND hwndParent)
+INT_PTR qs::Dialog::doModal(HWND hwndParent)
 {
 	return doModal(hwndParent, 0);
 }
 
-int qs::Dialog::doModal(HWND hwndParent,
-						ModalHandler* pModalHandler)
+INT_PTR qs::Dialog::doModal(HWND hwndParent,
+							ModalHandler* pModalHandler)
 {
 	if (!pModalHandler)
 		pModalHandler = getModalHandler();

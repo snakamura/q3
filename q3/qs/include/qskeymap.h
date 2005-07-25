@@ -78,7 +78,7 @@ public:
 	std::auto_ptr<Accelerator> createAccelerator(AcceleratorFactory* pFactory,
 												 const WCHAR* pwszName,
 												 const KeyNameToId* pKeyNameToId,
-												 int nMapSize) const;
+												 size_t nMapSize) const;
 
 private:
 	KeyMap(const KeyMap&);

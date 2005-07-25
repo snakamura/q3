@@ -104,7 +104,7 @@ size_t qs::FileOutputStream::write(const unsigned char* p,
 	
 	while (nWrite != 0) {
 		DWORD dwWritten = 0;
-		if (!::WriteFile(pImpl_->hFile_, p, nWrite, &dwWritten, 0))
+		if (!::WriteFile(pImpl_->hFile_, p, static_cast<DWORD>(nWrite), &dwWritten, 0))
 			return -1;
 		nWrite -= dwWritten;
 		p += dwWritten;

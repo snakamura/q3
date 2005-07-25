@@ -185,7 +185,7 @@ protected:
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
-	LRESULT onTimer(UINT nId);
+	LRESULT onTimer(UINT_PTR nId);
 	LRESULT onMessageModelMessageChanged(WPARAM wParam,
 										 LPARAM lParam);
 

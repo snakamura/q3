@@ -836,10 +836,10 @@ public:
 	void setTitle(UINT nId);
 	void setMessage(UINT nId);
 	void setMessage(const WCHAR* pwszMessage);
-	void setRange(unsigned int nMin,
-				  unsigned int nMax);
-	void setPos(unsigned int n);
-	void setStep(unsigned int n);
+	void setRange(size_t nMin,
+				  size_t nMax);
+	void setPos(size_t n);
+	void setStep(size_t n);
 	void step();
 
 protected:

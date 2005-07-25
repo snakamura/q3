@@ -43,7 +43,7 @@ public:
 							   LPARAM lParam);
 
 protected:
-	LRESULT onTimer(UINT nId);
+	LRESULT onTimer(UINT_PTR nId);
 	LRESULT onRasDialEvent(WPARAM wParam,
 						   LPARAM lParam);
 
@@ -57,7 +57,7 @@ private:
 private:
 	RasConnection* pConnection_;
 	RasConnectionCallback* pCallback_;
-	UINT nTimerId_;
+	UINT_PTR nTimerId_;
 	bool bEnd_;
 	bool bCanceled_;
 

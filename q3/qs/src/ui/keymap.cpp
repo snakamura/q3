@@ -39,7 +39,7 @@ struct qs::KeyMapImpl
 	void clear();
 	void loadAccelerator(const WCHAR* pwszName,
 						 const KeyNameToId* pKeyNameToId,
-						 int nMapSize,
+						 size_t nMapSize,
 						 AccelList* pListAccel) const;
 	void getAccel(const WCHAR* pwszAccel,
 				  unsigned int nCommand,
@@ -75,14 +75,14 @@ void qs::KeyMapImpl::clear()
 
 void qs::KeyMapImpl::loadAccelerator(const WCHAR* pwszName,
 									 const KeyNameToId* pKeyNameToId,
-									 int nMapSize,
+									 size_t nMapSize,
 									 AccelList* pListAccel) const
 {
 	assert(pwszName);
 	assert(pKeyNameToId);
 	assert(pListAccel);
 	
-	for (int n = 0; n < nMapSize; ++n, ++pKeyNameToId) {
+	for (size_t n = 0; n < nMapSize; ++n, ++pKeyNameToId) {
 		bool bAdd = false;
 		ACCEL accel = { 0, 0, 0 };
 		AccelMap::value_type value(std::make_pair(
@@ -209,7 +209,7 @@ qs::KeyMap::~KeyMap()
 std::auto_ptr<Accelerator> qs::KeyMap::createAccelerator(AcceleratorFactory* pFactory,
 														 const WCHAR* pwszName,
 														 const KeyNameToId* pKeyNameToId,
-														 int nMapSize) const
+														 size_t nMapSize) const
 {
 	assert(pFactory);
 	assert(pwszName);

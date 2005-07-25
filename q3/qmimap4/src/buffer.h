@@ -63,7 +63,7 @@ private:
 	bool receive(size_t n,
 				 Imap4Callback* pCallback,
 				 size_t nStart);
-	void adjustTokens(int nOffset);
+	void adjustTokens(ssize_t nOffset);
 
 private:
 	Buffer(const Buffer&);

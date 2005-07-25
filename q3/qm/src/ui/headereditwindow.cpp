@@ -1450,7 +1450,7 @@ void qm::AttachmentHeaderEditItem::update(EditMessage* pEditMessage)
 		W2T(wstrName.get(), ptszName);
 		LVITEM item = {
 			LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM,
-			n,
+			static_cast<int>(n),
 			0,
 			0,
 			0,
@@ -1758,11 +1758,10 @@ void qm::SignatureHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
 
 void qm::SignatureHeaderEditItem::updateEditMessage(EditMessage* pEditMessage)
 {
-	Window combo(getHandle());
-	int nItem = combo.sendMessage(CB_GETCURSEL);
-	int nLen = combo.sendMessage(CB_GETLBTEXTLEN, nItem);
+	int nItem = ComboBox_GetCurSel(getHandle());
+	int nLen = ComboBox_GetLBTextLen(getHandle(), nItem);
 	tstring_ptr tstrName(allocTString(nLen + 1));
-	combo.sendMessage(CB_GETLBTEXT, nItem, reinterpret_cast<LPARAM>(tstrName.get()));
+	ComboBox_GetLBText(getHandle(), nItem, tstrName.get());
 	T2W(tstrName.get(), pwszName);
 	pEditMessage->setSignature(pwszName);
 }
@@ -1778,11 +1777,10 @@ void qm::SignatureHeaderEditItem::signatureChanged(const EditMessageEvent& event
 	const WCHAR* pwszName = pEditMessage->getSignature();
 	if (pwszName) {
 		W2T(pwszName, ptszName);
-		Window(getHandle()).sendMessage(CB_SELECTSTRING, 0,
-			reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_SelectString(getHandle(), -1, ptszName);
 	}
 	else {
-		Window(getHandle()).sendMessage(CB_SETCURSEL);
+		ComboBox_SetCurSel(getHandle(), 0);
 	}
 }
 
@@ -1802,8 +1800,8 @@ void qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
 	pSignatureManager->getSignatures(pEditMessage->getAccount(), &l);
 	
 	Window combo(getHandle());
-	combo.sendMessage(CB_RESETCONTENT);
-	combo.sendMessage(CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(_T("None")));
+	ComboBox_ResetContent(getHandle());
+	ComboBox_AddString(getHandle(), _T("None"));
 	
 	int nSelect = 0;
 	int nDefault = -1;
@@ -1811,8 +1809,7 @@ void qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
 		const Signature* pSignature = *it;
 		const WCHAR* pwszName = pSignature->getName();
 		W2T(pwszName, ptszName);
-		int nItem = combo.sendMessage(CB_ADDSTRING, 0,
-			reinterpret_cast<LPARAM>(ptszName));
+		int nItem = ComboBox_AddString(getHandle(), ptszName);
 		if (nSelect == 0 && pwszSignature) {
 			if (wcscmp(pwszName, pwszSignature) == 0)
 				nSelect = nItem;
@@ -1823,7 +1820,7 @@ void qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
 	if (pwszSignature && nSelect == 0 && nDefault != -1)
 		nSelect = nDefault;
 	
-	combo.sendMessage(CB_SETCURSEL, nSelect);
+	ComboBox_SetCurSel(getHandle(), nSelect);
 }
 
 
@@ -1847,12 +1844,10 @@ qm::AccountHeaderEditItem::~AccountHeaderEditItem()
 void qm::AccountHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 											   bool bReset)
 {
-	Window combo(getHandle());
-	
 	const WCHAR* pwszClass = pEditMessage->getAccount()->getClass();
 	SubAccount* pCurrentSubAccount = pEditMessage->getSubAccount();
 	
-	combo.sendMessage(CB_RESETCONTENT);
+	ComboBox_ResetContent(getHandle());
 	
 	int nCurrentItem = -1;
 	const Document::AccountList& listAccount = pEditMessage->getDocument()->getAccounts();
@@ -1881,10 +1876,8 @@ void qm::AccountHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 				}
 				
 				W2T(pwszName, ptszName);
-				int nItem = combo.sendMessage(CB_ADDSTRING, 0,
-					reinterpret_cast<LPARAM>(ptszName));
-				combo.sendMessage(CB_SETITEMDATA, nItem,
-					reinterpret_cast<LPARAM>(pSubAccount));
+				int nItem = ComboBox_AddString(getHandle(), ptszName);
+				ComboBox_SetItemData(getHandle(), nItem, pSubAccount);
 				
 				if (pSubAccount == pCurrentSubAccount)
 					nCurrentItem = nItem;
@@ -1892,7 +1885,7 @@ void qm::AccountHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 		}
 	}
 	
-	combo.sendMessage(CB_SETCURSEL, nCurrentItem);
+	ComboBox_SetCurSel(getHandle(), nCurrentItem);
 	
 	if (!bReset)
 		pEditMessage->addEditMessageHandler(this);
@@ -1916,29 +1909,26 @@ void qm::AccountHeaderEditItem::setShowFrom(bool bShow)
 
 void qm::AccountHeaderEditItem::accountChanged(const EditMessageEvent& event)
 {
-	Window combo(getHandle());
-	
 	SubAccount* pCurrentSubAccount = event.getEditMessage()->getSubAccount();
 	
-	int nCount = combo.sendMessage(CB_GETCOUNT);
+	int nCount = ComboBox_GetCount(getHandle());
 	int n = 0;
 	while (n < nCount) {
 		SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(
-			combo.sendMessage(CB_GETITEMDATA, n));
+			ComboBox_GetItemData(getHandle(), n));
 		if (pSubAccount == pCurrentSubAccount)
 			break;
 		++n;
 	}
-	combo.sendMessage(CB_SETCURSEL, n);
+	ComboBox_SetCurSel(getHandle(), n);
 }
 
 LRESULT qm::AccountHeaderEditItem::onChange()
 {
 	if (pEditMessage_) {
-		Window combo(getHandle());
-		int nItem = combo.sendMessage(CB_GETCURSEL);
+		int nItem = ComboBox_GetCurSel(getHandle());
 		SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(
-			combo.sendMessage(CB_GETITEMDATA, nItem));
+			ComboBox_GetItemData(getHandle(), nItem));
 		pEditMessage_->setAccount(pSubAccount->getAccount(), pSubAccount);
 	}
 	return 0;

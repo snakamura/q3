@@ -460,7 +460,7 @@ qs::RegexNfa::~RegexNfa()
 
 unsigned int qs::RegexNfa::getStateCount() const
 {
-	return listState_.size();
+	return static_cast<unsigned int>(listState_.size());
 }
 
 const RegexNfaState* qs::RegexNfa::getState(unsigned int n) const
@@ -471,7 +471,7 @@ const RegexNfaState* qs::RegexNfa::getState(unsigned int n) const
 
 unsigned int qs::RegexNfa::createState()
 {
-	unsigned int n = listState_.size();
+	unsigned int n = static_cast<unsigned int>(listState_.size());
 	listState_.push_back(StateList::value_type(0, 0));
 	return n;
 }

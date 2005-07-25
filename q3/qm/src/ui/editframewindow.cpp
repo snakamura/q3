@@ -489,8 +489,7 @@ bool qm::EditFrameWindow::tryClose()
 	bool bCancel = true;
 	
 	ConfirmSendDialog dialog;
-	int nId = dialog.doModal(getHandle());
-	switch (nId) {
+	switch (dialog.doModal(getHandle())) {
 	case ConfirmSendDialog::ID_SEND:
 		{
 			Action* pAction = pImpl_->pActionMap_->getAction(IDM_FILE_SEND);

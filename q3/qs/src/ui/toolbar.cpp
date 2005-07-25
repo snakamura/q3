@@ -247,7 +247,6 @@ ToolbarCookie* qs::Toolbar::create(HWND hwnd,
 	if (hImageListCopy)
 		::SendMessage(hwnd, TB_SETIMAGELIST, 0, reinterpret_cast<LPARAM>(hImageListCopy));
 	
-	UINT nId = Window(hwnd).getWindowLong(GWL_ID);
 	std::auto_ptr<NotifyHandler> pNotifyHandler(new ToolbarNotifyHandler(
 		this, pMenuManager, pParent->getParentFrame()));
 	pParent->addNotifyHandler(pNotifyHandler.get());
@@ -341,8 +340,8 @@ bool qs::ToolbarButton::create(HWND hwnd,
 		tstring_ptr tstrText(allocTString(nLen + 2));
 		_tcscpy(tstrText.get(), ptszText);
 		*(tstrText.get() + nLen + 1) = _T('\0');
-		nTextIndex = ::SendMessage(hwnd, TB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(tstrText.get()));
+		nTextIndex = static_cast<int>(::SendMessage(hwnd,
+			TB_ADDSTRING, 0, reinterpret_cast<LPARAM>(tstrText.get())));
 	}
 	
 	TBBUTTON button = { 0 };
@@ -695,7 +694,7 @@ LRESULT qs::ToolbarNotifyHandler::onGetDispInfo(NMHDR* pnmhdr,
 {
 	NMTTDISPINFO* pDispInfo = reinterpret_cast<NMTTDISPINFO*>(pnmhdr);
 	
-	const ToolbarItem* pItem = pToolbar_->getItem(pnmhdr->idFrom);
+	const ToolbarItem* pItem = pToolbar_->getItem(static_cast<UINT>(pnmhdr->idFrom));
 	if (pItem) {
 		const WCHAR* pwszToolTip = pItem->getToolTip();
 		if (pwszToolTip) {

@@ -7,12 +7,17 @@
   !define CODE unicode
   !define POSTFIX u
 !endif
+!ifdef x64
+  !define CPU x64
+!else
+  !define CPU x86
+!endif
 
 !include "MUI.nsh"
   
 Name "QMAIL3"
 
-OutFile "q3${POSTFIX}-win-x86-ja.exe"
+OutFile "q3${POSTFIX}-win-${CPU}-ja.exe"
 XPStyle on
 
 Var STARTMENU_FOLDER
@@ -53,11 +58,11 @@ Section "Core (required)" Core
   
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CODE}\release\q3${POSTFIX}.exe
-  File ..\bin\win\${CODE}\release\qm${POSTFIX}.dll
-  File ..\bin\win\${CODE}\release\qs${POSTFIX}.dll
-  File ..\bin\win\${CODE}\release\qmpop3${POSTFIX}.dll
-  File ..\bin\win\${CODE}\release\qmsmtp${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\q3${POSTFIX}.exe
+  File ..\bin\win\${CPU}\${CODE}\release\qm${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qs${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmpop3${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${POSTFIX}.dll
   
   WriteRegStr HKCU "SOFTWARE\sn\q3\Setting" "MailFolder" "$MAILBOX_FOLDER"
   CreateDirectory "$MAILBOX_FOLDER"
@@ -92,7 +97,7 @@ Section "IMAP4" Imap4
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CODE}\release\qmimap4${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmimap4${POSTFIX}.dll
   
 SectionEnd
 
@@ -101,7 +106,7 @@ Section "NNTP" Nntp
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CODE}\release\qmnntp${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmnntp${POSTFIX}.dll
   
 SectionEnd
 
@@ -110,7 +115,7 @@ Section "RSS, Atom" Rss
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CODE}\release\qmrss${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmrss${POSTFIX}.dll
   
 SectionEnd
 
@@ -119,9 +124,9 @@ Section "SSL, S/MIME" Crypto
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CODE}\release\qscrypto${POSTFIX}.dll
-  File ..\lib\openssl\lib\win\libeay32.dll
-  File ..\lib\openssl\lib\win\ssleay32.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qscrypto${POSTFIX}.dll
+  File ..\lib\openssl\lib\win\${CPU}\libeay32.dll
+  File ..\lib\openssl\lib\win\${CPU}\ssleay32.dll
   
 SectionEnd
 
@@ -130,7 +135,7 @@ Section "PGP, GnuPG" Pgp
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CODE}\release\qmpgp${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmpgp${POSTFIX}.dll
   
 SectionEnd
 
@@ -139,7 +144,7 @@ Section "Junk Filter" Junk
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CODE}\release\qmjunk${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmjunk${POSTFIX}.dll
   
 SectionEnd
 
@@ -148,7 +153,7 @@ Section "Script" Script
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CODE}\release\qmscript${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmscript${POSTFIX}.dll
   
 SectionEnd
 
@@ -157,7 +162,7 @@ Section "Zip" Zip
 
   SetOutPath $INSTDIR
   
-  File ..\lib\zip\lib\win\zip32.dll
+  File ..\lib\zip\lib\win\${CPU}\zip32.dll
   
 SectionEnd
 

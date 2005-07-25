@@ -406,7 +406,7 @@ void qm::SyncManager::dispose()
 	}
 	
 	if (!handles.empty()) {
-		::WaitForMultipleObjects(handles.size(), &handles[0], TRUE, INFINITE);
+		::WaitForMultipleObjects(static_cast<DWORD>(handles.size()), &handles[0], TRUE, INFINITE);
 		std::for_each(listThread_.begin(), listThread_.end(), deleter<SyncThread>());
 		listThread_.clear();
 	}
@@ -940,7 +940,7 @@ bool qm::SyncManager::send(Document* pDocument,
 	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
 		return true;
 	
-	pCallback->setRange(0, listMessagePtr.size());
+	pCallback->setRange(0, static_cast<unsigned int>(listMessagePtr.size()));
 	
 	MessageHolderList l;
 	l.resize(1);
@@ -980,7 +980,7 @@ bool qm::SyncManager::send(Document* pDocument,
 			}
 		}
 		
-		pCallback->setPos(m + 1);
+		pCallback->setPos(static_cast<unsigned int>(m + 1));
 	}
 	
 	if (!pAccount->saveMessages(false))
@@ -1158,24 +1158,24 @@ bool qm::SyncManager::ReceiveSessionCallbackImpl::isCanceled(bool bForce)
 	return pCallback_->isCanceled(nId_, bForce);
 }
 
-void qm::SyncManager::ReceiveSessionCallbackImpl::setPos(unsigned int n)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setPos(size_t n)
 {
 	pCallback_->setPos(nId_, false, n);
 }
 
-void qm::SyncManager::ReceiveSessionCallbackImpl::setRange(unsigned int nMin,
-														   unsigned int nMax)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setRange(size_t nMin,
+														   size_t nMax)
 {
 	pCallback_->setRange(nId_, false, nMin, nMax);
 }
 
-void qm::SyncManager::ReceiveSessionCallbackImpl::setSubPos(unsigned int n)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setSubPos(size_t n)
 {
 	pCallback_->setPos(nId_, true, n);
 }
 
-void qm::SyncManager::ReceiveSessionCallbackImpl::setSubRange(unsigned int nMin,
-															  unsigned int nMax)
+void qm::SyncManager::ReceiveSessionCallbackImpl::setSubRange(size_t nMin,
+															  size_t nMax)
 {
 	pCallback_->setRange(nId_, true, nMin, nMax);
 }
@@ -1241,24 +1241,24 @@ bool qm::SyncManager::SendSessionCallbackImpl::isCanceled(bool bForce)
 	return pCallback_->isCanceled(nId_, bForce);
 }
 
-void qm::SyncManager::SendSessionCallbackImpl::setPos(unsigned int n)
+void qm::SyncManager::SendSessionCallbackImpl::setPos(size_t n)
 {
 	pCallback_->setPos(nId_, false, n);
 }
 
-void qm::SyncManager::SendSessionCallbackImpl::setRange(unsigned int nMin,
-														unsigned int nMax)
+void qm::SyncManager::SendSessionCallbackImpl::setRange(size_t nMin,
+														size_t nMax)
 {
 	pCallback_->setRange(nId_, false, nMin, nMax);
 }
 
-void qm::SyncManager::SendSessionCallbackImpl::setSubPos(unsigned int n)
+void qm::SyncManager::SendSessionCallbackImpl::setSubPos(size_t n)
 {
 	pCallback_->setPos(nId_, true, n);
 }
 
-void qm::SyncManager::SendSessionCallbackImpl::setSubRange(unsigned int nMin,
-														   unsigned int nMax)
+void qm::SyncManager::SendSessionCallbackImpl::setSubRange(size_t nMin,
+														   size_t nMax)
 {
 	pCallback_->setRange(nId_, true, nMin, nMax);
 }

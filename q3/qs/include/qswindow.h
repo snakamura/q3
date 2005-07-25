@@ -14,6 +14,7 @@
 #include <qsosutil.h>
 
 #include <windows.h>
+#include <windowsx.h>
 #include <commctrl.h>
 
 #ifndef _WIN32_WCE
@@ -144,6 +145,7 @@ public:
 	DWORD getStyle() const;
 	DWORD setStyle(DWORD dwStyle,
 				   DWORD dwMask);
+	UINT getId() const;
 	bool enableWindow();
 	bool enableWindow(bool bEnable);
 	bool isWindowEnabled() const;
@@ -286,16 +288,16 @@ public:
 	bool setWindowText(const WCHAR* pwszText);
 	int getWindowTextLength() const;
 	
-	long getWindowLong(int n) const;
-	long setWindowLong(int n,
-					   long l);
+	LONG_PTR getWindowLong(int n) const;
+	LONG_PTR setWindowLong(int n,
+						   LONG_PTR l);
 	
-	UINT setTimer(UINT nId,
-				  UINT nTimeout);
-	UINT setTimer(UINT nId,
-				  UINT nTimeout,
-				  TIMERPROC proc);
-	bool killTimer(UINT nId);
+	UINT_PTR setTimer(UINT_PTR nId,
+					  UINT nTimeout);
+	UINT_PTR setTimer(UINT_PTR nId,
+					  UINT nTimeout,
+					  TIMERPROC proc);
+	bool killTimer(UINT_PTR nId);
 	
 #ifndef _WIN32_WCE
 	HMENU getMenu() const;
@@ -763,7 +765,9 @@ public:
 
 #define HANDLE_CHAR() \
 	case WM_CHAR: \
-		lResult = onChar(wParam, lParam & 0xffff, lParam); \
+		lResult = onChar(static_cast<UINT>(wParam), \
+			static_cast<UINT>(lParam & 0xffff), \
+			static_cast<UINT>(lParam)); \
 		break; \
 
 #define HANDLE_CLOSE() \
@@ -779,8 +783,7 @@ public:
 #define HANDLE_CONTEXTMENU() \
 	case WM_CONTEXTMENU: \
 		lResult = onContextMenu(reinterpret_cast<HWND>(wParam), \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #define HANDLE_COPY() \
@@ -829,7 +832,7 @@ public:
 
 #define HANDLE_ENDSESSION() \
 	case WM_ENDSESSION: \
-		lResult = onEndSession(wParam != 0, lParam); \
+		lResult = onEndSession(wParam != 0, static_cast<int>(lParam)); \
 		break; \
 
 #endif
@@ -841,7 +844,7 @@ public:
 
 #define HANDLE_HOTKEY() \
 	case WM_HOTKEY: \
-		lResult = onHotKey(wParam, LOWORD(lParam), HIWORD(lParam)); \
+		lResult = onHotKey(static_cast<UINT>(wParam), LOWORD(lParam), HIWORD(lParam)); \
 		break; \
 
 #define HANDLE_HSCROLL() \
@@ -852,12 +855,15 @@ public:
 
 #define HANDLE_IME_CHAR() \
 	case WM_IME_CHAR: \
-		lResult = onImeChar(wParam, lParam & 0xffff, lParam); \
+		lResult = onImeChar(static_cast<UINT>(wParam), \
+			static_cast<UINT>(lParam & 0xffff), \
+			static_cast<UINT>(lParam)); \
 		break; \
 
 #define HANDLE_IME_COMPOSITION() \
 	case WM_IME_COMPOSITION: \
-		lResult = onImeComposition(wParam, lParam); \
+		lResult = onImeComposition(static_cast<UINT>(wParam), \
+			static_cast<UINT>(lParam)); \
 		break; \
 
 #define HANDLE_IME_ENDCOMPOSITION() \
@@ -891,12 +897,16 @@ public:
 
 #define HANDLE_KEYDOWN() \
 	case WM_KEYDOWN: \
-		lResult = onKeyDown(wParam, lParam & 0xffff, lParam); \
+		lResult = onKeyDown(static_cast<UINT>(wParam), \
+			static_cast<UINT>(lParam & 0xffff), \
+			static_cast<UINT>(lParam)); \
 		break; \
 
 #define HANDLE_KEYUP() \
 	case WM_KEYUP: \
-		lResult = onKeyUp(wParam, lParam & 0xffff, lParam); \
+		lResult = onKeyUp(static_cast<UINT>(wParam), \
+			static_cast<UINT>(lParam & 0xffff), \
+			static_cast<UINT>(lParam)); \
 		break; \
 
 #define HANDLE_KILLFOCUS() \
@@ -906,45 +916,39 @@ public:
 
 #define HANDLE_LBUTTONDBLCLK() \
 	case WM_LBUTTONDBLCLK: \
-		lResult = onLButtonDblClk(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onLButtonDblClk(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #define HANDLE_LBUTTONDOWN() \
 	case WM_LBUTTONDOWN: \
-		lResult = onLButtonDown(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onLButtonDown(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #define HANDLE_LBUTTONUP() \
 	case WM_LBUTTONUP: \
-		lResult = onLButtonUp(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onLButtonUp(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #if !defined _WIN32_WCE || _WIN32_WCE >= 400
 #define HANDLE_MBUTTONDBLCLK() \
 	case WM_MBUTTONDBLCLK: \
-		lResult = onMButtonDblClk(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onMButtonDblClk(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #define HANDLE_MBUTTONDOWN() \
 	case WM_MBUTTONDOWN: \
-		lResult = onMButtonDown(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onMButtonDown(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #define HANDLE_MBUTTONUP() \
 	case WM_MBUTTONUP: \
-		lResult = onMButtonUp(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onMButtonUp(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #endif
@@ -957,17 +961,15 @@ public:
 
 #define HANDLE_MOUSEMOVE() \
 	case WM_MOUSEMOVE: \
-		lResult = onMouseMove(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onMouseMove(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #if !defined _WIN32_WCE || _WIN32_WCE >= 211
 #define HANDLE_MOUSEWHEEL() \
 	case WM_MOUSEWHEEL: \
 		lResult = onMouseWheel(LOWORD(wParam), HIWORD(wParam), \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #endif
@@ -999,30 +1001,27 @@ public:
 #ifndef _WIN32_WCE
 #define HANDLE_QUERYENDSESSION() \
 	case WM_QUERYENDSESSION: \
-		lResult = onQueryEndSession(lParam); \
+		lResult = onQueryEndSession(static_cast<int>(lParam)); \
 		break; \
 
 #endif
 
 #define HANDLE_RBUTTONDBLCLK() \
 	case WM_RBUTTONDBLCLK: \
-		lResult = onRButtonDblClk(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onRButtonDblClk(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #define HANDLE_RBUTTONDOWN() \
 	case WM_RBUTTONDOWN: \
-		lResult = onRButtonDown(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onRButtonDown(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #define HANDLE_RBUTTONUP() \
 	case WM_RBUTTONUP: \
-		lResult = onRButtonUp(wParam, \
-			Point(static_cast<short>(LOWORD(lParam)), \
-				static_cast<short>(HIWORD(lParam)))); \
+		lResult = onRButtonUp(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
 #define HANDLE_SETCURSOR() \
@@ -1048,22 +1047,28 @@ public:
 
 #define HANDLE_SIZE() \
 	case WM_SIZE: \
-		lResult = onSize(wParam, LOWORD(lParam), HIWORD(lParam)); \
+		lResult = onSize(static_cast<UINT>(wParam), LOWORD(lParam), HIWORD(lParam)); \
 		break; \
 
 #define HANDLE_SYSCHAR() \
 	case WM_SYSCHAR: \
-		lResult = onSysChar(wParam, lParam & 0xffff, lParam); \
+		lResult = onSysChar(static_cast<UINT>(wParam), \
+			static_cast<UINT>(lParam & 0xffff), \
+			static_cast<UINT>(lParam)); \
 		break; \
 
 #define HANDLE_SYSKEYDOWN() \
 	case WM_SYSKEYDOWN: \
-		lResult = onSysKeyDown(wParam, lParam & 0xffff, lParam); \
+		lResult = onSysKeyDown(static_cast<UINT>(wParam), \
+			static_cast<UINT>(lParam & 0xffff), \
+			static_cast<UINT>(lParam)); \
 		break; \
 
 #define HANDLE_SYSKEYUP() \
 	case WM_SYSKEYUP: \
-		lResult = onSysKeyUp(wParam, lParam & 0xffff, lParam); \
+		lResult = onSysKeyUp(static_cast<UINT>(wParam), \
+			static_cast<UINT>(lParam & 0xffff), \
+			static_cast<UINT>(lParam)); \
 		break; \
 
 #ifndef _WIN32_WCE
@@ -1261,7 +1266,7 @@ protected:
 #ifndef _WIN32_WCE
 	LRESULT onThemeChanged();
 #endif
-	LRESULT onTimer(UINT nId);
+	LRESULT onTimer(UINT_PTR nId);
 	LRESULT onVScroll(UINT nCode,
 					  UINT nPos,
 					  HWND hwnd);

@@ -372,7 +372,7 @@ QSEXPORTPROC string_ptr qs::concat(const Concat* pConcat,
 								   size_t nSize)
 {
 	size_t n = 0;
-	int nLen = 0;
+	size_t nLen = 0;
 	for (n = 0; n < nSize; ++n) {
 		if (pConcat[n].nLen_ == -1)
 			nLen += strlen(pConcat[n].p_);
@@ -440,7 +440,7 @@ QSEXPORTPROC wstring_ptr qs::concat(const ConcatW* pConcat,
 									size_t nSize)
 {
 	size_t n = 0;
-	int nLen = 0;
+	size_t nLen = 0;
 	for (n = 0; n < nSize; ++n) {
 		if (pConcat[n].nLen_ == -1)
 			nLen += wcslen(pConcat[n].p_);
@@ -536,7 +536,7 @@ qs::StringTokenizer::~StringTokenizer()
 	delete pImpl_;
 }
 
-unsigned int qs::StringTokenizer::getCount() const
+size_t qs::StringTokenizer::getCount() const
 {
 	return pImpl_->listToken_.size();
 }

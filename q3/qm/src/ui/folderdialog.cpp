@@ -243,7 +243,7 @@ LRESULT qm::FolderPropertyPage::onOk()
 	unsigned int nMask = 0;
 	
 	for (int n = 0; n < countof(folderFlags); ++n) {
-		int nCheck = sendDlgItemMessage(folderFlags[n].nId_, BM_GETCHECK);
+		int nCheck = Button_GetCheck(getDlgItem(folderFlags[n].nId_));
 		switch (nCheck) {
 		case BST_CHECKED:
 			nFlags |= folderFlags[n].flag_;
@@ -323,13 +323,13 @@ LRESULT qm::FolderConditionPage::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::FolderConditionPage::onOk()
 {
-	int nDriver = sendDlgItemMessage(IDC_DRIVER, CB_GETCURSEL);
+	int nDriver = ComboBox_GetCurSel(getDlgItem(IDC_DRIVER));
 	const WCHAR* pwszDriver = listUI_[nDriver]->getName();
 	
 	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
 	
 	wstring_ptr wstrTargetFolder;
-	int nFolder = sendDlgItemMessage(IDC_FOLDER, CB_GETCURSEL);
+	int nFolder = ComboBox_GetCurSel(getDlgItem(IDC_FOLDER));
 	if (nFolder != 0)
 		wstrTargetFolder = listFolder_[nFolder - 1]->getFullName();
 	
@@ -363,12 +363,11 @@ void qm::FolderConditionPage::initDriver()
 		SearchUI* pUI = listUI_[n];
 		wstring_ptr wstrName(pUI->getDisplayName());
 		W2T(wstrName.get(), ptszName);
-		sendDlgItemMessage(IDC_DRIVER, CB_ADDSTRING, 0,
-			reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(getDlgItem(IDC_DRIVER), ptszName);
 		if (wcscmp(pUI->getName(), pFolder_->getDriver()) == 0)
-			nIndex = n;
+			nIndex = static_cast<int>(n);
 	}
-	sendDlgItemMessage(IDC_DRIVER, CB_SETCURSEL, nIndex);
+	ComboBox_SetCurSel(getDlgItem(IDC_DRIVER), nIndex);
 }
 
 void qm::FolderConditionPage::initFolder()
@@ -376,8 +375,7 @@ void qm::FolderConditionPage::initFolder()
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrAllFolder(loadString(hInst, IDS_ALLFOLDER));
 	W2T(wstrAllFolder.get(), ptszAllFolder);
-	sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING, 0,
-		reinterpret_cast<LPARAM>(ptszAllFolder));
+	ComboBox_AddString(getDlgItem(IDC_FOLDER), ptszAllFolder);
 	
 	Account* pAccount = pFolder_->getAccount();
 	const Account::FolderList& l = pAccount->getFolders();
@@ -402,13 +400,12 @@ void qm::FolderConditionPage::initFolder()
 		buf.append(pFolder->getName());
 		
 		W2T(buf.getCharArray(), ptszName);
-		sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING, 0,
-			reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(getDlgItem(IDC_FOLDER), ptszName);
 		
 		if (pTargetFolder == pFolder)
-			nIndex = n + 1;
+			nIndex = static_cast<int>(n) + 1;
 	}
-	sendDlgItemMessage(IDC_FOLDER, CB_SETCURSEL, nIndex);
+	ComboBox_SetCurSel(getDlgItem(IDC_FOLDER), nIndex);
 }
 
 
@@ -478,7 +475,7 @@ LRESULT qm::FolderParameterPage::onInitDialog(HWND hwndFocus,
 		W2T(pwszName, ptszName);
 		LVITEM item = {
 			LVIF_TEXT,
-			n,
+			static_cast<int>(n),
 			0,
 			0,
 			0,

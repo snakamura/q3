@@ -374,8 +374,8 @@ unsigned int qm::TextMessageViewWindow::getSupportedFindFlags() const
 
 std::auto_ptr<MessageWindow::Mark> qm::TextMessageViewWindow::mark() const
 {
-	unsigned int nLine = -1;
-	unsigned int nChar = -1;
+	size_t nLine = -1;
+	size_t nChar = -1;
 	getFindPosition(false, &nLine, &nChar);
 	return std::auto_ptr<MessageWindow::Mark>(new MarkImpl(
 		nLine != -1 ? nLine : 0, nChar != -1 ? nChar : 0));
@@ -423,8 +423,8 @@ bool qm::TextMessageViewWindow::canSelectAll()
  *
  */
 
-qm::TextMessageViewWindow::MarkImpl::MarkImpl(unsigned int nLine,
-											  unsigned int nChar) :
+qm::TextMessageViewWindow::MarkImpl::MarkImpl(size_t nLine,
+											  size_t nChar) :
 	nLine_(nLine),
 	nChar_(nChar)
 {
@@ -1420,7 +1420,7 @@ STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Read(void* pv,
 	*pcbRead = 0;
 	
 	if (cb > content_.nDataLen_ - (pCurrent_ - content_.pData_))
-		cb = content_.nDataLen_ - (pCurrent_ - content_.pData_);
+		cb = static_cast<ULONG>(content_.nDataLen_ - (pCurrent_ - content_.pData_));
 	
 	if (cb == 0)
 		return S_FALSE;

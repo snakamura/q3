@@ -10,6 +10,7 @@
 #define __QSWINDOW_INL__
 
 #include <qsassert.h>
+#include <qswce.h>
 
 
 /****************************************************************************
@@ -100,7 +101,12 @@ inline bool qs::Window::isIconic() const
 
 inline DWORD qs::Window::getStyle() const
 {
-	return getWindowLong(GWL_STYLE);
+	return static_cast<DWORD>(getWindowLong(GWL_STYLE));
+}
+
+inline UINT qs::Window::getId() const
+{
+	return static_cast<UINT>(getWindowLong(GWLP_ID));
 }
 
 inline bool qs::Window::enableWindow()
@@ -542,34 +548,34 @@ inline int qs::Window::getWindowTextLength() const
 	return ::GetWindowTextLength(hwnd_);
 }
 
-inline long qs::Window::getWindowLong(int n) const
+inline LONG_PTR qs::Window::getWindowLong(int n) const
 {
 	assert(hwnd_);
-	return ::GetWindowLong(hwnd_, n);
+	return ::GetWindowLongPtr(hwnd_, n);
 }
 
-inline long qs::Window::setWindowLong(int n,
-									  long l)
+inline LONG_PTR qs::Window::setWindowLong(int n,
+										  LONG_PTR l)
 {
 	assert(hwnd_);
-	return ::SetWindowLong(hwnd_, n, l);
+	return ::SetWindowLongPtr(hwnd_, n, l);
 }
 
-inline UINT qs::Window::setTimer(UINT nId,
-								 UINT nTimeout)
+inline UINT_PTR qs::Window::setTimer(UINT_PTR nId,
+									 UINT nTimeout)
 {
 	return setTimer(nId, nTimeout, 0);
 }
 
-inline UINT qs::Window::setTimer(UINT nId,
-								 UINT nTimeout,
-								 TIMERPROC proc)
+inline UINT_PTR qs::Window::setTimer(UINT_PTR nId,
+									 UINT nTimeout,
+									 TIMERPROC proc)
 {
 	assert(hwnd_);
 	return ::SetTimer(hwnd_, nId, nTimeout, proc);
 }
 
-inline bool qs::Window::killTimer(UINT nId)
+inline bool qs::Window::killTimer(UINT_PTR nId)
 {
 	assert(hwnd_);
 	return ::KillTimer(hwnd_, nId) != 0;
@@ -920,7 +926,7 @@ IMPLEMENT_DEFAULTPROC0(ThemeChanged,
 	WM_THEMECHANGED, 0, 0)
 #endif
 
-IMPLEMENT_DEFAULTPROC1(Timer, UINT,
+IMPLEMENT_DEFAULTPROC1(Timer, UINT_PTR,
 	WM_TIMER, arg1, 0)
 
 IMPLEMENT_DEFAULTPROC3(VScroll, UINT, UINT, HWND,

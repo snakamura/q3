@@ -232,7 +232,7 @@ int qs::SocketImpl::select(int nSelect,
 				FD_SET(socket_, &fdset[n]);
 		}
 		timeval tvTimeout = { nTimeout, 0 };
-		int nRet = ::select(socket_,
+		int nRet = ::select(0,
 			nSelect & Socket::SELECT_READ ? &fdset[0] : 0,
 			nSelect & Socket::SELECT_WRITE ? &fdset[1] : 0,
 			nSelect & Socket::SELECT_EXCEPT ? &fdset[2] : 0,
@@ -631,7 +631,8 @@ size_t qs::SocketInputStream::read(unsigned char* p,
 			return nSize;
 		}
 		
-		int nLen = pSocket_->recv(reinterpret_cast<char*>(p), nRead, 0);
+		int nLen = pSocket_->recv(reinterpret_cast<char*>(p),
+			static_cast<int>(nRead), 0);
 		if (nLen == -1)
 			return -1;
 		else if (nLen == 0)
@@ -693,7 +694,8 @@ size_t SocketOutputStream::write(const unsigned char* p,
 			return nSize;
 		}
 		
-		int nLen = pSocket_->send(reinterpret_cast<const char*>(p), nWrite, 0);
+		int nLen = pSocket_->send(reinterpret_cast<const char*>(p),
+			static_cast<int>(nWrite), 0);
 		if (nLen == -1)
 			return -1;
 		nSize += nLen;

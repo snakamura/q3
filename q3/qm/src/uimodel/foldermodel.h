@@ -152,7 +152,7 @@ public:
 	virtual void folderSelected(const FolderModelEvent& event);
 
 public:
-	virtual void timerTimeout(unsigned int nId);
+	virtual void timerTimeout(qs::Timer::Id nId);
 
 private:
 	void set(Account* pAccount,
@@ -171,7 +171,7 @@ private:
 private:
 	FolderModelHandler* pHandler_;
 	std::auto_ptr<qs::Timer> pTimer_;
-	unsigned int nTimerId_;
+	qs::Timer::Id nTimerId_;
 	Account* pAccount_;
 	Folder* pFolder_;
 };

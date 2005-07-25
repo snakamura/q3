@@ -54,31 +54,46 @@ endif
 
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
-	SDKDIR				= $(PLATFORMSDKDIR)
+	SDKDIR					= $(PLATFORMSDKDIR)
 	ifeq ($(VC7),1)
-		COMPILERDIR		= $(VC7DIR)
-		COMMONBINDIR	= $(VS7DIR)/common7/ide
+		COMPILERDIR			= $(VC7DIR)
+		COMMONBINDIR		= $(VS7DIR)/common7/ide
 	else
-		COMPILERDIR		= $(VC6DIR)
-		COMMONBINDIR	= $(VS6DIR)/common/msdev98/bin
+		COMPILERDIR			= $(VC6DIR)
+		COMMONBINDIR		= $(VS6DIR)/common/msdev98/bin
 	endif
-	COMPILERBINDIR		= $(COMPILERDIR)/bin
-	
-	SDKINCLUDEDIR		= $(SDKDIR)/include
-	SDKLIBDIR			= $(SDKDIR)/lib
-	ifeq ($(VC7),1)
-		MFCINCLUDEDIR	= $(COMPILERDIR)/atlmfc/include
-		MFCLIBDIR		= $(COMPILERDIR)/atlmfc/lib
-		ATLINCLUDEDIR	= $(COMPILERDIR)/atlmfc/include
-		ATLLIBDIR		= $(COMPILERDIR)/atlmfc/lib
-	else
-		MFCINCLUDEDIR	= $(COMPILERDIR)/mfc/include
-		MFCLIBDIR		= $(COMPILERDIR)/mfc/lib
-		ATLINCLUDEDIR	= $(COMPILERDIR)/atl/include
-		ATLLIBDIR		= $(COMPILERDIR)/atl/lib
+	COMPILERBINDIR			= $(COMPILERDIR)/bin
+	ifeq ($(CPU),x86)
+		SDKBINDIR			= $(SDKDIR)/bin
+		
+		SDKINCLUDEDIR		= $(SDKDIR)/include
+		SDKLIBDIR			= $(SDKDIR)/lib
+		ifeq ($(VC7),1)
+			MFCINCLUDEDIR	= $(COMPILERDIR)/atlmfc/include
+			MFCLIBDIR		= $(COMPILERDIR)/atlmfc/lib
+			ATLINCLUDEDIR	= $(COMPILERDIR)/atlmfc/include
+			ATLLIBDIR		= $(COMPILERDIR)/atlmfc/lib
+		else
+			MFCINCLUDEDIR	= $(COMPILERDIR)/mfc/include
+			MFCLIBDIR		= $(COMPILERDIR)/mfc/lib
+			ATLINCLUDEDIR	= $(COMPILERDIR)/atl/include
+			ATLLIBDIR		= $(COMPILERDIR)/atl/lib
+		endif
+		COMPILERINCLUDEDIR	= $(COMPILERDIR)/include
+		COMPILERLIBDIR		= $(COMPILERDIR)/lib
 	endif
-	COMPILERINCLUDEDIR	= $(COMPILERDIR)/include
-	COMPILERLIBDIR		= $(COMPILERDIR)/lib
+	ifeq ($(CPU),x64)
+		SDKBINDIR			= $(SDKDIR)/bin/win64/x86/amd64
+		
+		SDKINCLUDEDIR		= $(SDKDIR)/include
+		SDKLIBDIR			= $(SDKDIR)/lib/amd64
+		MFCINCLUDEDIR		= $(SDKDIR)/include/mfc
+		MFCLIBDIR			= $(SDKDIR)/lib/amd64/atlmfc
+		ATLINCLUDEDIR		= $(SDKDIR)/include/atl
+		ATLLIBDIR			= $(SDKDIR)/lib/amd64/atlmfc
+		COMPILERINCLUDEDIR	= $(SDKDIR)/include/crt
+		COMPILERLIBDIR		= $(SDKDIR)/lib/amd64
+	endif
 	
 	BASEPLATFORM		=
 	#########################################################################
@@ -147,6 +162,7 @@ else
 		COMPILERBINDIR	= $(COMPILERDIR)/wce300/bin
 	endif
 	COMMONBINDIR		= $(COMPILERDIR)/../common/evc/bin
+	SDKBINDIR			= $(SDKDIR)/bin
 	
 	ifeq ($(SDKINCLUDEDIR),)
 		ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
@@ -184,7 +200,6 @@ else
 	endif
 	#########################################################################
 endif
-SDKBINDIR				= $(SDKDIR)/bin
 
 
 ifeq ($(PLATFORM),win)
@@ -245,7 +260,13 @@ ifdef DEBUG
 	DSUFFIX				= d
 	CCFLAGS				= -Od
 ifeq ($(PLATFORM),win)
+	ifeq ($(VC7),1)
+		ifneq ($(CPU),x64)
+			CCFLAGS		+= -RTC1
+		endif
+	else
 		CCFLAGS			+= -GZ
+	endif
 endif
 	DEFINES				= -D_DEBUG
 	RCFLAGS				= -d _DEBUG
@@ -289,7 +310,12 @@ SUFFIX					= $(USUFFIX)$(DSUFFIX)
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
 	SUBSYSTEM			= WINDOWS
-	SUBSYSVER			= 4.0
+	ifeq ($(CPU),x86)
+		SUBSYSVER		= 4.0
+	endif
+	ifeq ($(CPU),x64)
+		SUBSYSVER		= 5.10
+	endif
 	#########################################################################
 else
 	# WINCE #################################################################
@@ -303,19 +329,30 @@ else
 	#########################################################################
 endif
 
-CCFLAGS					+= -nologo -W3 -GF -Gy -Zp8 -X
+CCFLAGS					+= -nologo -W3 -WX -GF -Gy -Zp8 -X
 DEFINES					+= -DWIN32 -D_WIN32 -D_MT -DSTRICT
 LDFLAGS					+= -NOLOGO -INCREMENTAL:NO -SUBSYSTEM:$(SUBSYSTEM),$(SUBSYSVER)
 RCFLAGS					+= -l 0x411
 MIDLFLAGS				= -Oicf
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
-	CCFLAGS				+= -GX -GB -MD$(DSUFFIX)
-	DEFINES				+= -DMT -D_DLL -DWINVER=0x400 -D_WIN32_WINNT=0x400 -D_WIN32_IE=0x600 -DTAPI_CURRENT_VERSION=0x00010004 -Dx86 -D_X86_
+	CCFLAGS				+= -EHsc -MD$(DSUFFIX)
+	DEFINES				+= -DMT -D_DLL -DWINVER=0x400 -D_WIN32_WINNT=0x400 -D_WIN32_IE=0x600 -DTAPI_CURRENT_VERSION=0x00010004
 	ifeq ($(CODE),unicode)
 		DEFINES			+= -DUNICODE -D_UNICODE
 	endif
-	LDFLAGS				+= -MACHINE:I386
+	ifeq ($(CPU),x86)
+		CCFLAGS			+= -GB
+		DEFINES			+= -Dx86 -D_X86_
+		LDFLAGS			+= -MACHINE:I386
+	endif
+	ifeq ($(CPU),x64)
+		DEFINES			+= -D_AMD64_
+		LDFLAGS			+= -MACHINE:AMD64
+	endif
+	
+	LIBCPU				= $(CPU)
+	EXLIBCPU			= $(CPU)
 	
 	LIBS				= msvcrt$(DSUFFIX).lib \
 						  user32.lib \
@@ -339,8 +376,11 @@ ifeq ($(PLATFORM),win)
 	ifneq ($(VC7),1)
 		LIBS			+= msvcirt$(DSUFFIX).lib
 	endif
+	ifeq ($(CPU),x64)
+		LIBS			+= bufferoverflowu.lib
+	endif
 	ifdef KCTRL
-		LIBS			+= $(KCTRLDIR)/lib/win/kctrl.lib
+		LIBS			+= $(KCTRLDIR)/lib/win/$(CPU)/kctrl.lib
 	endif
 	#########################################################################
 else
@@ -474,8 +514,8 @@ TLBDIRBASE				= tlb
 
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
-	OBJDIR				= $(OBJDIRBASE)/$(PLATFORM)/$(CODE)/$(BASENAME)
-	TARGETDIR			= $(TARGETDIRBASE)/$(PLATFORM)/$(CODE)/$(BASENAME)
+	OBJDIR				= $(OBJDIRBASE)/$(PLATFORM)/$(CPU)/$(CODE)/$(BASENAME)
+	TARGETDIR			= $(TARGETDIRBASE)/$(PLATFORM)/$(CPU)/$(CODE)/$(BASENAME)
 	#########################################################################
 else
 	# WINCE #################################################################
@@ -536,7 +576,7 @@ PROJECTINCLUDES			+= $(foreach L,$(LIBRARIES),-I../$(L)/include)
 PROJECTINCLUDES			+= $(foreach I,$(EXTRAINCLUDES),-I../$(I)/include)
 INCLUDES				+= $(PROJECTINCLUDES)
 ifeq ($(PLATFORM),win)
-	LIBDIRBASE			= $(PLATFORM)/$(CODE)/$(BASENAME)
+	LIBDIRBASE			= $(PLATFORM)/$(CPU)/$(CODE)/$(BASENAME)
 else
 	LIBDIRBASE			= $(PLATFORM)/$(CPU)/$(BASELANG)/$(BASENAME)
 endif

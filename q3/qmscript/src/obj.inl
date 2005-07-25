@@ -252,7 +252,7 @@ STDMETHODIMP qmscript::EnumBase<I, piid, T, Traits>::Next(ULONG nElem,
 {
 	HRESULT hrReturn = S_OK;
 	if (n_ + nElem > list_.size()) {
-		nElem = list_.size() - n_;
+		nElem = static_cast<ULONG>(list_.size() - n_);
 		hrReturn = S_FALSE;
 	}
 	

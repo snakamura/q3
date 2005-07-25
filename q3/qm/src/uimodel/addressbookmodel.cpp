@@ -47,7 +47,7 @@ AddressBook* qm::AddressBookModel::getAddressBook() const
 
 unsigned int qm::AddressBookModel::getCount() const
 {
-	return listEntry_.size();
+	return static_cast<unsigned int>(listEntry_.size());
 }
 
 const AddressBookEntry* qm::AddressBookModel::getEntry(unsigned int nItem) const
@@ -62,7 +62,7 @@ void qm::AddressBookModel::add(std::auto_ptr<AddressBookEntry> pEntry)
 	
 	EntryList::iterator it = std::lower_bound(listEntry_.begin(),
 		listEntry_.end(), p, EntryLess(nSort_));
-	unsigned int nItem = it - listEntry_.begin();
+	unsigned int nItem = static_cast<unsigned int>(it - listEntry_.begin());
 	listEntry_.insert(it, p);
 	bModified_ = true;
 	

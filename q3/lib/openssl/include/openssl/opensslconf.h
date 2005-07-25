@@ -2,8 +2,18 @@
 /* WARNING: Generated automatically from opensslconf.h.in by Configure. */
 
 /* OpenSSL was configured with the following options: */
-#ifndef OPENSSL_SYSNAME_WIN32
-# define OPENSSL_SYSNAME_WIN32
+#ifdef _WIN32_WCE
+# ifndef OPENSSL_SYSNAME_WINCE
+#  define OPENSSL_SYSNAME_WINCE
+# endif
+#elif defined _WIN64 && defined _M_AMD64
+# ifndef OPENSSL_SYSNAME_WIN64A
+#  define OPENSSL_SYSNAME_WIN64A
+# endif
+#else
+# ifndef OPENSSL_SYSNAME_WIN32
+#  define OPENSSL_SYSNAME_WIN32
+# endif
 #endif
 #ifndef OPENSSL_DOING_MAKEDEPEND
 
@@ -94,7 +104,11 @@
  * This enables code handling data aligned at natural CPU word
  * boundary. See crypto/rc4/rc4_enc.c for further details.
  */
+#ifdef _WIN64
+#define RC4_CHUNK unsigned long long
+#else
 #undef RC4_CHUNK
+#endif
 #endif
 #endif
 
@@ -102,13 +116,21 @@
 /* If this is set to 'unsigned int' on a DEC Alpha, this gives about a
  * %20 speed up (longs are 8 bytes, int's are 4). */
 #ifndef DES_LONG
+#ifdef _WIN64
+#define DES_LONG unsigned int
+#else
 #define DES_LONG unsigned long
+#endif
 #endif
 #endif
 
 #if defined(HEADER_BN_H) && !defined(CONFIG_HEADER_BN_H)
 #define CONFIG_HEADER_BN_H
+#ifdef _WIN64
+#undef BN_LLONG
+#else
 #define BN_LLONG
+#endif
 
 /* Should we define BN_DIV2W here? */
 
@@ -117,8 +139,13 @@
  * EIGHT_BIT but I don't care since I've only used this mode
  * for debuging the bignum libraries */
 #undef SIXTY_FOUR_BIT_LONG
+#ifdef _WIN64
+#define SIXTY_FOUR_BIT
+#undef THIRTY_TWO_BIT
+#else
 #undef SIXTY_FOUR_BIT
 #define THIRTY_TWO_BIT
+#endif
 #undef SIXTEEN_BIT
 #undef EIGHT_BIT
 #endif
@@ -127,7 +154,11 @@
 #define CONFIG_HEADER_RC4_LOCL_H
 /* if this is defined data[i] is used instead of *data, this is a %20
  * speedup on x86 */
+#ifdef _WIN64
+#undef RC4_INDEX
+#else
 #define RC4_INDEX
+#endif
 #endif
 
 #if defined(HEADER_BF_LOCL_H) && !defined(CONFIG_HEADER_BF_LOCL_H)
@@ -207,4 +238,3 @@ YOU SHOULD NOT HAVE BOTH DES_RISC1 AND DES_RISC2 DEFINED!!!!!
 
 #endif /* DES_DEFAULT_OPTIONS */
 #endif /* HEADER_DES_LOCL_H */
-

@@ -35,7 +35,7 @@ qm::LineLayout::~LineLayout()
 
 unsigned int qm::LineLayout::getLineCount() const
 {
-	return listLine_.size();
+	return static_cast<unsigned int>(listLine_.size());
 }
 
 LineLayoutLine* qm::LineLayout::getLine(unsigned int n) const
@@ -135,7 +135,7 @@ qm::LineLayoutLine::~LineLayoutLine()
 
 unsigned int qm::LineLayoutLine::getItemCount() const
 {
-	return listItem_.size();
+	return static_cast<unsigned int>(listItem_.size());
 }
 
 LineLayoutItem* qm::LineLayoutLine::getItem(unsigned int n) const
@@ -170,7 +170,8 @@ HDWP qm::LineLayoutLine::layout(HDWP hdwp,
 	assert(pnHeight);
 	assert(!isHidden());
 	
-	int nWidth = rect.right - rect.left - (listItem_.size() - 1)*2 - 10;
+	int nWidth = rect.right - rect.left -
+		(static_cast<unsigned int>(listItem_.size()) - 1)*2 - 10;
 	
 	typedef std::vector<int> WidthList;
 	WidthList listWidth;

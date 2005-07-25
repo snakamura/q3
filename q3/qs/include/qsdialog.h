@@ -106,9 +106,9 @@ public:
 	~Dialog();
 
 public:
-	int doModal(HWND hwndParent);
-	int doModal(HWND hwndParent,
-				ModalHandler* pModalHandler);
+	INT_PTR doModal(HWND hwndParent);
+	INT_PTR doModal(HWND hwndParent,
+					ModalHandler* pModalHandler);
 	bool create(HWND hwndParent);
 	bool endDialog(int nCode);
 
@@ -168,7 +168,7 @@ public:
 		case WM_VKEYTOITEM: \
 			return lResult; \
 		default: \
-			getDialogBase()->setWindowLong(DWL_MSGRESULT, lResult); \
+			getDialogBase()->setWindowLong(DWLP_MSGRESULT, lResult); \
 			return getProcResult(); \
 		} \
 	} \
@@ -273,9 +273,9 @@ public:
 	~PropertySheetBase();
 
 public:
-	int doModal(HWND hwndParent);
-	int doModal(HWND hwndParent,
-				ModalHandler* pModalHandler);
+	INT_PTR doModal(HWND hwndParent);
+	INT_PTR doModal(HWND hwndParent,
+					ModalHandler* pModalHandler);
 	
 	void add(PropertyPage* pPage);
 	void setStartPage(int nPage);

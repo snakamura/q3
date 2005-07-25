@@ -879,9 +879,9 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	bool export(Account* pAccount,
-				Folder* pFolder,
-				const MessageHolderList& l);
+	bool exportMessages(Account* pAccount,
+						Folder* pFolder,
+						const MessageHolderList& l);
 	bool writeMessage(qs::OutputStream* pStream,
 					  const Template* pTemplate,
 					  MessageHolder* pmh,

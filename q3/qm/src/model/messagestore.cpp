@@ -189,8 +189,8 @@ bool qm::SingleMessageStore::save(const Message& header,
 	size_t nHeaderLen = strlen(pszHeader);
 	
 	if (!bIndexOnly) {
-		*pnHeaderLength = nHeaderLen;
-		*pnLength = nHeaderLen + nBodyLen + 2;
+		*pnHeaderLength = static_cast<unsigned int>(nHeaderLen);
+		*pnLength = static_cast<unsigned int>(nHeaderLen + nBodyLen + 2);
 	}
 	
 	malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header));
@@ -204,7 +204,7 @@ bool qm::SingleMessageStore::save(const Message& header,
 		reinterpret_cast<const unsigned char*>(pszBody),
 		SingleMessageStoreImpl::szUnusedSeparator__
 	};
-	unsigned int nMsgLen[] = {
+	size_t nMsgLen[] = {
 		SingleMessageStoreImpl::SEPARATOR_SIZE,
 		nHeaderLen,
 		2,
@@ -215,16 +215,19 @@ bool qm::SingleMessageStore::save(const Message& header,
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	if (!bIndexOnly) {
-		*pnOffset = pImpl_->pStorage_->save(pMsg, nMsgLen, countof(pMsg));
+		*pnOffset = static_cast<unsigned int>(
+			pImpl_->pStorage_->save(pMsg, nMsgLen, countof(pMsg)));
 		if (*pnOffset == -1)
 			return false;
 	}
 	
 	const unsigned char* p = pIndex.get();
-	*pnIndexLength = pIndex.size();
-	*pnIndexKey = pImpl_->pIndexStorage_->save(&p, pnIndexLength, 1);
+	size_t nIndexLength = pIndex.size();
+	*pnIndexKey = static_cast<unsigned int>(
+		pImpl_->pIndexStorage_->save(&p, &nIndexLength, 1));
 	if (*pnIndexKey == -1)
 		return false;
+	*pnIndexLength = static_cast<unsigned int>(nIndexLength);
 	
 	return true;
 }
@@ -262,7 +265,7 @@ bool qm::SingleMessageStore::compact(DataList* pListData,
 	assert(pListData);
 	assert(pCallback);
 	
-	pCallback->setCount(pListData->size());
+	pCallback->setCount(static_cast<int>(pListData->size()));
 	pCallback->show();
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
@@ -275,14 +278,15 @@ bool qm::SingleMessageStore::compact(DataList* pListData,
 	for (DataList::iterator it = pListData->begin(); it != pListData->end(); ++it) {
 		Data& data = *it;
 		
-		data.nIndexKey_ = pIndexStorage->compact(data.nIndexKey_,
-			data.nIndexLength_, pOldIndexStorage);
+		data.nIndexKey_ = static_cast<unsigned int>(pIndexStorage->compact(
+			data.nIndexKey_, data.nIndexLength_, pOldIndexStorage));
 		if (data.nIndexKey_ == -1)
 			return false;
 		
 		if (data.nOffset_ != -1) {
 			size_t nLen = data.nLength_ + SingleMessageStoreImpl::SEPARATOR_SIZE*2;
-			data.nOffset_ = pImpl_->pStorage_->compact(data.nOffset_, nLen, 0);
+			data.nOffset_ = static_cast<unsigned int>(
+				pImpl_->pStorage_->compact(data.nOffset_, nLen, 0));
 			if (data.nOffset_ == -1)
 				return false;
 		}
@@ -582,8 +586,8 @@ bool qm::MultiMessageStore::save(const Message& header,
 	size_t nHeaderLen = strlen(pszHeader);
 	
 	if (!bIndexOnly) {
-		*pnHeaderLength = nHeaderLen;
-		*pnLength = nHeaderLen + nBodyLen + 2;
+		*pnHeaderLength = static_cast<unsigned int>(nHeaderLen);
+		*pnLength = static_cast<unsigned int>(nHeaderLen + nBodyLen + 2);
 	}
 	
 	malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header));
@@ -608,10 +612,12 @@ bool qm::MultiMessageStore::save(const Message& header,
 	}
 	
 	const unsigned char* p = pIndex.get();
-	*pnIndexLength = pIndex.size();
-	*pnIndexKey = pImpl_->pIndexStorage_->save(&p, pnIndexLength, 1);
+	size_t nIndexLength = pIndex.size();
+	*pnIndexKey = static_cast<unsigned int>(
+		pImpl_->pIndexStorage_->save(&p, &nIndexLength, 1));
 	if (*pnIndexKey == -1)
 		return false;
+	*pnIndexLength = static_cast<unsigned int>(nIndexLength);
 	
 	return true;
 }
@@ -667,7 +673,7 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 	assert(pListData);
 	assert(pCallback);
 	
-	pCallback->setCount(pListData->size());
+	pCallback->setCount(static_cast<unsigned int>(pListData->size()));
 	pCallback->show();
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
@@ -680,8 +686,8 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 	for (DataList::iterator it = pListData->begin(); it != pListData->end(); ++it) {
 		Data& data = *it;
 		
-		data.nIndexKey_ = pIndexStorage->compact(data.nIndexKey_,
-			data.nIndexLength_, pOldIndexStorage);
+		data.nIndexKey_ = static_cast<unsigned int>(pIndexStorage->compact(
+			data.nIndexKey_, data.nIndexLength_, pOldIndexStorage));
 		if (data.nIndexKey_ == -1)
 			return false;
 		
@@ -832,12 +838,13 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkIndex(ClusterStorage* p
 				return std::auto_ptr<ClusterStorage>(0);
 			
 			const unsigned char* p = pIndex.get();
-			unsigned int nLength = pIndex.size();
-			unsigned int nKey = pIndexStorage->save(&p, &nLength, 1);
+			size_t nLength = pIndex.size();
+			unsigned int nKey = static_cast<unsigned int>(
+				pIndexStorage->save(&p, &nLength, 1));
 			if (nKey == -1)
 				return std::auto_ptr<ClusterStorage>(0);
 			
-			pCallback->setKey(n, nKey, nLength);
+			pCallback->setKey(n, nKey, static_cast<unsigned int>(nLength));
 		}
 		else {
 			if (pCallback->isIgnoreError(n))
@@ -861,7 +868,7 @@ malloc_ptr<unsigned char> qm::MessageStoreUtil::readIndex(ClusterStorage* pStora
 	if (!p.get())
 		return malloc_ptr<unsigned char>(0);
 	
-	unsigned int nLoad = pStorage->load(p.get(), nKey, nLength);
+	size_t nLoad = pStorage->load(p.get(), nKey, nLength);
 	if (nLoad != nLength)
 		return malloc_ptr<unsigned char>(0);
 	

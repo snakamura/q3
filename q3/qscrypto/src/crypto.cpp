@@ -217,7 +217,7 @@ bool qscrypto::CertificateImpl::load(InputStream* pStream,
 	if (!buf.get())
 		return false;
 	
-	BIOPtr pIn(BIO_new_mem_buf(buf.get(), buf.size()));
+	BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 	
 	switch (type) {
 	case FILETYPE_PEM:
@@ -324,7 +324,7 @@ bool qscrypto::PrivateKeyImpl::load(InputStream* pStream,
 	if (!buf.get())
 		return false;
 	
-	BIOPtr pIn(BIO_new_mem_buf(buf.get(), buf.size()));
+	BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 	
 	switch (type) {
 	case FILETYPE_PEM:
@@ -388,7 +388,7 @@ bool qscrypto::PublicKeyImpl::load(InputStream* pStream,
 	if (!buf.get())
 		return false;
 	
-	BIOPtr pIn(BIO_new_mem_buf(buf.get(), buf.size()));
+	BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 	
 	switch (type) {
 	case FILETYPE_PEM:
@@ -451,7 +451,7 @@ bool qscrypto::StoreImpl::load(const WCHAR* pwszPath,
 			if (!buf.get())
 				return false;
 			
-			BIOPtr pIn(BIO_new_mem_buf(buf.get(), buf.size()));
+			BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 			
 			STACK_OF(X509_INFO)* pStackInfo =
 				PEM_X509_INFO_read_bio(pIn.get(), 0, 0, 0);
@@ -625,7 +625,7 @@ extern "C" int passwordCallback(char* pBuf,
 	QTRY {
 		wstring_ptr wstrPassword(pCallback->getPassword());
 		string_ptr strPassword(wcs2mbs(wstrPassword.get()));
-		int nLen = strlen(strPassword.get());
+		int nLen = static_cast<int>(strlen(strPassword.get()));
 		if (nLen >= nSize)
 			return 0;
 		strcpy(pBuf, strPassword.get());

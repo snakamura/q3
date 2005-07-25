@@ -154,7 +154,7 @@ const DefaultTabModel::ItemList& qm::DefaultTabModel::getItems() const
 
 int qm::DefaultTabModel::getCount()
 {
-	return listItem_.size();
+	return static_cast<int>(listItem_.size());
 }
 
 int qm::DefaultTabModel::getCurrent()
@@ -352,7 +352,7 @@ void qm::DefaultTabModel::accountListChanged(const AccountManagerEvent& event)
 		
 		Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 		if (std::find(listAccount.begin(), listAccount.end(), pAccount) == listAccount.end())
-			removeItem(it.base() - 1 - listItem_.begin());
+			removeItem(static_cast<int>(it.base() - 1 - listItem_.begin()));
 	}
 }
 
@@ -367,7 +367,7 @@ void qm::DefaultTabModel::folderListChanged(const FolderListChangedEvent& event)
 		
 		if (p.second && p.second->getAccount() == pAccount) {
 			if (std::find(listFolder.begin(), listFolder.end(), p.second) == listFolder.end())
-				removeItem(it.base() - 1 - listItem_.begin());
+				removeItem(static_cast<int>(it.base() - 1 - listItem_.begin()));
 		}
 	}
 }
@@ -477,7 +477,7 @@ int qm::DefaultTabModel::addAccount(Account* pAccount,
 	listItem_.push_back(pItem.get());
 	listItemOrder_.push_back(pItem.get());
 	resetHandlers(0, 0, pAccount, 0);
-	int nItem = listItem_.size() - 1;
+	int nItem = static_cast<int>(listItem_.size()) - 1;
 	fireItemAdded(nItem, pItem.release());
 	return nItem;
 }
@@ -490,7 +490,7 @@ int qm::DefaultTabModel::addFolder(Folder* pFolder,
 	listItem_.push_back(pItem.get());
 	listItemOrder_.push_back(pItem.get());
 	resetHandlers(0, 0, 0, pFolder);
-	int nItem = listItem_.size() - 1;
+	int nItem = static_cast<int>(listItem_.size()) - 1;
 	fireItemAdded(nItem, pItem.release());
 	return nItem;
 }
@@ -511,7 +511,7 @@ void qm::DefaultTabModel::removeItem(int nItem)
 		ItemList::const_iterator it = std::find(listItem_.begin(),
 			listItem_.end(), listItemOrder_.front());
 		assert(it != listItem_.end());
-		nCurrent = it - listItem_.begin();
+		nCurrent = static_cast<int>(it - listItem_.begin());
 	}
 	else {
 		nCurrent = -1;
@@ -564,7 +564,7 @@ int qm::DefaultTabModel::getItem(Account* pAccount) const
 					std::mem_fun(&TabItem::get)),
 				std::identity<Account*>()),
 			pAccount));
-	return it != listItem_.end() ? it - listItem_.begin() : -1;
+	return it != listItem_.end() ? static_cast<int>(it - listItem_.begin()) : -1;
 }
 
 int qm::DefaultTabModel::getItem(Folder* pFolder) const
@@ -579,7 +579,7 @@ int qm::DefaultTabModel::getItem(Folder* pFolder) const
 					std::mem_fun(&TabItem::get)),
 				std::identity<Folder*>()),
 			pFolder));
-	return it != listItem_.end() ? it - listItem_.begin() : -1;
+	return it != listItem_.end() ? static_cast<int>(it - listItem_.begin()) : -1;
 }
 
 int qm::DefaultTabModel::getReusableItem() const
@@ -589,7 +589,7 @@ int qm::DefaultTabModel::getReusableItem() const
 		std::not1(std::mem_fun(&TabItem::isLocked)));
 	if (it == listItem_.rend())
 		return -1;
-	return it.base() - listItem_.begin() - 1;
+	return static_cast<int>(it.base() - listItem_.begin() - 1);
 }
 
 void qm::DefaultTabModel::resetHandlers(Account* pOldAccount,

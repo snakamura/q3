@@ -177,7 +177,7 @@ void qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount,
 			
 			LVITEM item = {
 				LVIF_IMAGE | LVIF_INDENT | LVIF_TEXT | LVIF_PARAM,
-				n,
+				static_cast<int>(n),
 				0,
 				0,
 				0,
@@ -467,7 +467,7 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
-	pImpl_->nId_ = getWindowLong(GWL_ID);
+	pImpl_->nId_ = getId();
 	
 	setFont(pImpl_->hfont_, false);
 	

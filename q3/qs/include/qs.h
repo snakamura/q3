@@ -18,6 +18,7 @@
 #if defined _WIN32_WCE && _WIN32_WCE <= 211
 	typedef int INT_PTR;
 #endif
+typedef SSIZE_T ssize_t;
 
 namespace qs {
 
@@ -138,7 +139,6 @@ QSEXPORTPROC const WCHAR* getSystemEncoding();
 #	define QSMIN std::min
 #	define QSMAX std::max
 #endif
-
 
 }
 

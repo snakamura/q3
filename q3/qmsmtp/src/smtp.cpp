@@ -484,7 +484,7 @@ bool qmsmtp::Smtp::send(const SendData* pSendData,
 				SMTP_ERROR(SMTP_ERROR_TIMEOUT);
 			
 			size_t nSend = pSocket_->send(data.psz_ + nTotal,
-				QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal), 0);
+				static_cast<int>(QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal)), 0);
 			if (nSend == -1)
 				SMTP_ERROR_SOCKET(SMTP_ERROR_SEND);
 			nTotal += nSend;

@@ -216,8 +216,8 @@ void qm::ExternalEditorManager::WaitThread::run()
 				mem_data_ref(&Item::hProcess_));
 		}
 		
-		DWORD dw = ::WaitForMultipleObjects(
-			listHandle.size(), &listHandle[0], FALSE, INFINITE);
+		DWORD dw = ::WaitForMultipleObjects(static_cast<DWORD>(listHandle.size()),
+			&listHandle[0], FALSE, INFINITE);
 		HANDLE handle = 0;
 		if (WAIT_OBJECT_0 <= dw && dw < WAIT_OBJECT_0 + listHandle.size()) {
 			handle = listHandle[dw - WAIT_OBJECT_0];

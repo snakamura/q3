@@ -166,9 +166,9 @@ private:
 	public:
 		struct Progress
 		{
-			unsigned int nMin_;
-			unsigned int nMax_;
-			unsigned int nPos_;
+			size_t nMin_;
+			size_t nMax_;
+			size_t nPos_;
 		};
 	
 	public:
@@ -184,10 +184,10 @@ private:
 	
 	public:
 		void setPos(bool bSub,
-					unsigned int nPos);
+					size_t nPos);
 		void setRange(bool bSub,
-					  unsigned int nMin,
-					  unsigned int nMax);
+					  size_t nMin,
+					  size_t nMax);
 		void setAccount(Account* pAccount,
 						SubAccount* pSubAccount);
 		void setFolder(Folder* pFolder);
@@ -229,11 +229,11 @@ public:
 	virtual void endThread(unsigned int nId);
 	virtual void setPos(unsigned int nId,
 						bool bSub,
-						unsigned int nPos);
+						size_t nPos);
 	virtual void setRange(unsigned int nId,
 						  bool bSub,
-						  unsigned int nMin,
-						  unsigned int nMax);
+						  size_t nMin,
+						  size_t nMax);
 	virtual void setAccount(unsigned int nId,
 							Account* pAccount,
 							SubAccount* pSubAccount);
@@ -243,7 +243,8 @@ public:
 							const WCHAR* pwszMessage);
 	virtual void addError(unsigned int nId,
 						  const SessionErrorInfo& info);
-	virtual bool isCanceled(unsigned int nId, bool bForce);
+	virtual bool isCanceled(unsigned int nId,
+							bool bForce);
 	virtual PasswordState getPassword(SubAccount* pSubAccount,
 									  Account::Host host,
 									  qs::wstring_ptr* pwstrPassword);

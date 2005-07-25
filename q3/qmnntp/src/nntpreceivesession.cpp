@@ -529,13 +529,13 @@ void qmnntp::NntpReceiveSession::CallbackImpl::authenticating()
 	setMessage(IDS_AUTHENTICATING);
 }
 
-void qmnntp::NntpReceiveSession::CallbackImpl::setRange(unsigned int nMin,
-														unsigned int nMax)
+void qmnntp::NntpReceiveSession::CallbackImpl::setRange(size_t nMin,
+														size_t nMax)
 {
 	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-void qmnntp::NntpReceiveSession::CallbackImpl::setPos(unsigned int nPos)
+void qmnntp::NntpReceiveSession::CallbackImpl::setPos(size_t nPos)
 {
 	pSessionCallback_->setSubPos(nPos);
 }

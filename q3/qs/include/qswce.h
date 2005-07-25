@@ -21,6 +21,7 @@ typedef long LONG_PTR, *PLONG_PTR;
 typedef unsigned long ULONG_PTR, *PULONG_PTR;
 typedef unsigned short UHALF_PTR, *PUHALF_PTR;
 typedef short HALF_PTR, *PHALF_PTR;
+typedef ULONG_PTR DWORD_PTR, *PDWORD_PTR;
 
 #	define GMEM_FIXED          LMEM_FIXED
 #	define GMEM_MOVEABLE       LMEM_MOVEABLE
@@ -66,6 +67,13 @@ extern "C" QSEXPORTPROC int isdigit(int c);
 #endif
 
 #endif // _WIN32_WCE < 300
+
+#define GetWindowLongPtr GetWindowLong
+#define SetWindowLongPtr SetWindowLong
+
+#define GWLP_ID   GWL_ID
+#define GWLP_WNDPROC   GWL_WNDPROC
+#define DWLP_MSGRESULT DWL_MSGRESULT
 
 #endif // _WIN32_WCE
 

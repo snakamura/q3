@@ -4,7 +4,7 @@
 
 
 // Common features for VC++ 4.0 and higher
-# ifdef _M_IA64
+# if defined _M_IA64 || defined _M_AMD64
 #  define _STLP_NATIVE_HEADER(x) <../crt/##x>
 #  define _STLP_NATIVE_C_HEADER(x) <../crt/##x>
 #  define _STLP_NATIVE_CPP_C_HEADER(x) <../crt/##x>
@@ -117,7 +117,7 @@
 
 # endif /* _STLP_MSVC */
 
-# if (_MSC_VER <= 1310) 
+# if (_MSC_VER <= 1400) 
 #  define _STLP_VENDOR_GLOBAL_CSTD
 // They included the necessary coding,
 // but the beta still has an issue with template classes

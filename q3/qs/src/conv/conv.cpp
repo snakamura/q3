@@ -83,10 +83,11 @@ QSEXPORTPROC string_ptr qs::wcs2mbs(const WCHAR* pwszSrc,
 		*pnLen = p - str.get();
 	return str;
 #else
-	int nSize = ::WideCharToMultiByte(CP_ACP, 0, pwszSrc, nLen, 0, 0, 0, 0);
+	int nSize = ::WideCharToMultiByte(CP_ACP, 0,
+		pwszSrc, static_cast<int>(nLen), 0, 0, 0, 0);
 	string_ptr str(allocString(nSize + 1));
-	nSize = ::WideCharToMultiByte(CP_ACP, 0,
-		pwszSrc, nLen, str.get(), nSize, 0, 0);
+	nSize = ::WideCharToMultiByte(CP_ACP, 0, pwszSrc,
+		static_cast<int>(nLen), str.get(), nSize, 0, 0);
 	str[nSize] = '\0';
 	if (pnLen)
 		*pnLen = nSize;
@@ -152,9 +153,11 @@ QSEXPORTPROC wstring_ptr qs::mbs2wcs(const CHAR* pszSrc,
 		*pnLen = p - wstr.get();
 	return wstr;
 #else
-	int nSize = ::MultiByteToWideChar(CP_ACP, 0, pszSrc, nLen, 0, 0);
+	int nSize = ::MultiByteToWideChar(CP_ACP, 0,
+		pszSrc, static_cast<int>(nLen), 0, 0);
 	wstring_ptr wstr(allocWString(nSize + 1));
-	nSize = ::MultiByteToWideChar(CP_ACP, 0, pszSrc, nLen, wstr.get(), nSize);
+	nSize = ::MultiByteToWideChar(CP_ACP, 0, pszSrc,
+		static_cast<int>(nLen), wstr.get(), nSize);
 	wstr[nSize] = L'\0';
 	if (pnLen)
 		*pnLen = nSize;
@@ -1443,7 +1446,7 @@ size_t qs::MLangConverter::encodeImpl(const WCHAR* pwsz,
 	HRESULT hr = S_OK;
 	
 	DWORD dwMode = pImpl_->dwMode_;
-	UINT nSrcLen = nLen;
+	UINT nSrcLen = static_cast<UINT>(nLen);
 	UINT nDstLen = 0;
 	hr = pImpl_->pMultiLanguage_->ConvertStringFromUnicode(&dwMode,
 		pImpl_->dwEncoding_, const_cast<WCHAR*>(pwsz), &nSrcLen, 0, &nDstLen);
@@ -1484,7 +1487,7 @@ size_t qs::MLangConverter::decodeImpl(const CHAR* psz,
 	HRESULT hr = S_OK;
 	
 	DWORD dwMode = pImpl_->dwMode_;
-	UINT nSrcLen = nLen;
+	UINT nSrcLen = static_cast<UINT>(nLen);
 	UINT nDstLen = 0;
 	hr = pImpl_->pMultiLanguage_->ConvertStringToUnicode(&dwMode,
 		pImpl_->dwEncoding_, const_cast<CHAR*>(psz), &nSrcLen, 0, &nDstLen);

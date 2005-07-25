@@ -125,7 +125,7 @@ public:
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
 	bool bLayouting_;
-	unsigned int nSeenTimerId_;
+	UINT_PTR nSeenTimerId_;
 	
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
@@ -671,7 +671,7 @@ LRESULT qm::MessageWindow::onSize(UINT nFlags,
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
-LRESULT qm::MessageWindow::onTimer(UINT nId)
+LRESULT qm::MessageWindow::onTimer(UINT_PTR nId)
 {
 	if (nId == pImpl_->nSeenTimerId_) {
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());

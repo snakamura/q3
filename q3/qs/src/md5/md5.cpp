@@ -29,7 +29,7 @@ void qs::MD5::md5(const unsigned char* p,
 {
 	MD5_CTX context;
 	MD5Init(&context);
-	MD5Update(&context, const_cast<unsigned char*>(p), nLen);
+	MD5Update(&context, const_cast<unsigned char*>(p), static_cast<unsigned int>(nLen));
 	MD5Final(pDigest, &context);
 }
 
@@ -51,8 +51,8 @@ void qs::MD5::hmac(const unsigned char* p,
 				   size_t nKeyLen,
 				   unsigned char* pDigest)
 {
-	hmac_md5(const_cast<unsigned char*>(p), nLen,
-		const_cast<unsigned char*>(pKey), nKeyLen, pDigest);
+	hmac_md5(const_cast<unsigned char*>(p), static_cast<unsigned int>(nLen),
+		const_cast<unsigned char*>(pKey), static_cast<unsigned int>(nKeyLen), pDigest);
 }
 
 void qs::MD5::hmacToString(const unsigned char* p,

@@ -162,7 +162,7 @@ public:
 	virtual void viewModelSelected(const ViewModelManagerEvent& event);
 
 public:
-	virtual void timerTimeout(unsigned int nId);
+	virtual void timerTimeout(qs::Timer::Id nId);
 
 private:
 	PreviewMessageModel(const PreviewMessageModel&);
@@ -177,7 +177,7 @@ private:
 private:
 	ViewModelManager* pViewModelManager_;
 	std::auto_ptr<qs::Timer> pTimer_;
-	unsigned int nTimerId_;
+	qs::Timer::Id nTimerId_;
 	bool bConnectedToViewModel_;
 };
 

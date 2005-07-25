@@ -37,7 +37,7 @@ DWORD WINAPI writeProc(void* pParam)
 			return 1;
 		
 		DWORD dwWritten = 0;
-		if (!::WriteFile(hInput, buf, nLen, &dwWritten, 0) || dwWritten != nLen)
+		if (!::WriteFile(hInput, buf, static_cast<DWORD>(nLen), &dwWritten, 0) || dwWritten != nLen)
 			return 1;
 	}
 	::CloseHandle(hInput);

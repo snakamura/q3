@@ -247,7 +247,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 			POINT pt = { r.left + HORIZONTAL_BORDER, r.top + LINE_SPACING/2 };
 			if (pColumn->isFlag(ViewColumn::FLAG_RIGHTALIGN)) {
 				SIZE size;
-				pdc->getTextExtent(wstrText.get(), nLen, &size);
+				pdc->getTextExtent(wstrText.get(), static_cast<int>(nLen), &size);
 				pt.x = r.right - size.cx - HORIZONTAL_BORDER;
 			}
 			else {
@@ -255,7 +255,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 			}
 			
 			pdc->extTextOut(pt.x, pt.y, ETO_CLIPPED | ETO_OPAQUE,
-				r, wstrText.get(), nLen, 0);
+				r, wstrText.get(), static_cast<UINT>(nLen), 0);
 			
 			if (rectFocus.left == -1)
 				rectFocus.left = r.left;
@@ -1889,7 +1889,7 @@ LRESULT qm::ListHeaderColumn::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	pImpl_->nId_ = getWindowLong(GWL_ID);
+	pImpl_->nId_ = getId();
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
 		Application::getApplication().getResourceHandle(),

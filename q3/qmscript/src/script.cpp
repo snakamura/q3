@@ -498,7 +498,7 @@ STDMETHODIMP qmscript::ReaderIStream::Read(void* pv,
 	if (nRead == -1)
 		return E_FAIL;
 	
-	*pcbRead = nRead*sizeof(WCHAR);
+	*pcbRead = static_cast<ULONG>(nRead*sizeof(WCHAR));
 	
 	return S_OK;
 }

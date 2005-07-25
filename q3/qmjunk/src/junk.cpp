@@ -165,7 +165,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		
 		string_ptr strId(getId(msg));
 		int nId = 0;
-		if (dpgetwb(pDepotId, strId.get(), strlen(strId.get()),
+		if (dpgetwb(pDepotId, strId.get(), static_cast<int>(strlen(strId.get())),
 			0, sizeof(nId), reinterpret_cast<char*>(&nId)) != -1) {
 			if (nId > 0) {
 				log.info(L"Filter a message as clean because it has already been learned as clean.");
@@ -228,7 +228,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 			
 			{
 				Lock<CriticalSection> lock(cs_);
-				dpgetwb(pDepotToken_, pKey, nKeyLen, 0, nValueLen, pValue);
+				dpgetwb(pDepotToken_, pKey, static_cast<int>(nKeyLen), 0, static_cast<int>(nValueLen), pValue);
 			}
 			
 			double dRate = 0.4;
@@ -349,7 +349,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 		
 		string_ptr strId(getId(msg));
 		int nStatus = 0;
-		if (dpgetwb(pDepotId, strId.get(), strlen(strId.get()),
+		if (dpgetwb(pDepotId, strId.get(), static_cast<int>(strlen(strId.get())),
 			0, sizeof(nStatus), reinterpret_cast<char*>(&nStatus)) == -1)
 			nStatus = STATUS_NONE;
 		if (nStatus > 0) {
@@ -379,7 +379,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 			else if (nOperation & JunkFilter::OPERATION_ADDJUNK)
 				nStatus = STATUS_JUNK;
 		}
-		dpput(pDepotId, strId.get(), strlen(strId.get()),
+		dpput(pDepotId, strId.get(), static_cast<int>(strlen(strId.get())),
 			reinterpret_cast<char*>(&nStatus), sizeof(nStatus), DP_DOVER);
 	}
 	
@@ -414,7 +414,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 			{
 				Lock<CriticalSection> lock(cs_);
 				
-				dpgetwb(pDepotToken_, pKey, nKeyLen, 0, nValueLen, pValue);
+				dpgetwb(pDepotToken_, pKey, static_cast<int>(nKeyLen), 0, static_cast<int>(nValueLen), pValue);
 				
 				if (nOperation_ & JunkFilter::OPERATION_ADDCLEAN)
 					++nCount[0];
@@ -425,7 +425,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 				if (nOperation_ & JunkFilter::OPERATION_REMOVEJUNK && nCount[1] > 0)
 					--nCount[1];
 				
-				dpput(pDepotToken_, pKey, nKeyLen, pValue, nValueLen, DP_DOVER);
+				dpput(pDepotToken_, pKey, static_cast<int>(nKeyLen), pValue, static_cast<int>(nValueLen), DP_DOVER);
 			}
 			
 			if (log_.isDebugEnabled()) {
@@ -482,7 +482,7 @@ JunkFilter::Status qmjunk::JunkFilterImpl::getStatus(const WCHAR* pwszId)
 	string_ptr strId(wcs2mbs(pwszId));
 	
 	int nStatus = 0;
-	if (dpgetwb(pDepotId, strId.get(), strlen(strId.get()),
+	if (dpgetwb(pDepotId, strId.get(), static_cast<int>(strlen(strId.get())),
 		0, sizeof(nStatus), reinterpret_cast<char*>(&nStatus)) == -1)
 		return STATUS_NONE;
 	else if (nStatus > 0)

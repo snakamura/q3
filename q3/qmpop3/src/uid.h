@@ -74,25 +74,25 @@ private:
 class UIDList
 {
 public:
-	typedef std::vector<size_t> IndexList;
+	typedef std::vector<unsigned int> IndexList;
 
 public:
 	UIDList();
 	~UIDList();
 
 public:
-	size_t getCount() const;
-	UID* getUID(size_t n) const;
-	size_t getIndex(const WCHAR* pwszUID) const;
-	size_t getIndex(const WCHAR* pwszUID,
-					size_t nStart) const;
+	unsigned int getCount() const;
+	UID* getUID(unsigned int n) const;
+	unsigned int getIndex(const WCHAR* pwszUID) const;
+	unsigned int getIndex(const WCHAR* pwszUID,
+						  unsigned int nStart) const;
 
 public:
 	bool load(const WCHAR* pwszPath);
 	bool save(const WCHAR* pwszPath) const;
 	void add(std::auto_ptr<UID> pUID);
 	void remove(const IndexList& l);
-	UID* remove(size_t n);
+	UID* remove(unsigned int n);
 	void setModified(bool bModified);
 	bool isModified() const;
 

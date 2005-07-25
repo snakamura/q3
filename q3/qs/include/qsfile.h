@@ -78,7 +78,7 @@ public:
 	 *
 	 * @return Current seek position.
 	 */
-	virtual int getPosition() = 0;
+	virtual ssize_t getPosition() = 0;
 	
 	/**
 	 * Set current seek position.
@@ -87,8 +87,8 @@ public:
 	 * @param seekOrigin [in] Seek origin.
 	 * @return New seek position. -1 if fail.
 	 */
-	virtual int setPosition(int nPosition,
-							SeekOrigin seekOrigin) = 0;
+	virtual ssize_t setPosition(ssize_t nPosition,
+								SeekOrigin seekOrigin) = 0;
 	
 	/**
 	 * Set end of file at the current seek position.
@@ -181,9 +181,9 @@ public:
 	virtual size_t write(const unsigned char* p,
 						 size_t nWrite);
 	virtual bool flush();
-	virtual int getPosition();
-	virtual int setPosition(int nPosition,
-							SeekOrigin seekOrigin);
+	virtual ssize_t getPosition();
+	virtual ssize_t setPosition(ssize_t nPosition,
+								SeekOrigin seekOrigin);
 	virtual bool setEndOfFile();
 	virtual size_t getSize();
 
@@ -229,9 +229,9 @@ public:
 	virtual size_t write(const unsigned char* p,
 						 size_t nWrite);
 	virtual bool flush();
-	virtual int getPosition();
-	virtual int setPosition(int nPosition,
-							SeekOrigin seekOrigin);
+	virtual ssize_t getPosition();
+	virtual ssize_t setPosition(ssize_t nPosition,
+								SeekOrigin seekOrigin);
 	virtual bool setEndOfFile();
 	virtual size_t getSize();
 

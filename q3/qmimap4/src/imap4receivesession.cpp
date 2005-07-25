@@ -1557,13 +1557,13 @@ void qmimap4::Imap4ReceiveSession::CallbackImpl::authenticating()
 	setMessage(IDS_AUTHENTICATING);
 }
 
-void qmimap4::Imap4ReceiveSession::CallbackImpl::setRange(unsigned int nMin,
-														  unsigned int nMax)
+void qmimap4::Imap4ReceiveSession::CallbackImpl::setRange(size_t nMin,
+														  size_t nMax)
 {
 	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-void qmimap4::Imap4ReceiveSession::CallbackImpl::setPos(unsigned int nPos)
+void qmimap4::Imap4ReceiveSession::CallbackImpl::setPos(size_t nPos)
 {
 	pSessionCallback_->setSubPos(nPos);
 }

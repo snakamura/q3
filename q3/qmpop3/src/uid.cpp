@@ -80,32 +80,32 @@ qmpop3::UIDList::~UIDList()
 	std::for_each(list_.begin(), list_.end(), deleter<UID>());
 }
 
-size_t qmpop3::UIDList::getCount() const
+unsigned int qmpop3::UIDList::getCount() const
 {
-	return list_.size();
+	return static_cast<unsigned int>(list_.size());
 }
 
-UID* qmpop3::UIDList::getUID(size_t n) const
+UID* qmpop3::UIDList::getUID(unsigned int n) const
 {
 	assert(n < list_.size());
 	assert(list_[n]);
 	return list_[n];
 }
 
-size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID) const
+unsigned int qmpop3::UIDList::getIndex(const WCHAR* pwszUID) const
 {
 	assert(pwszUID);
 	
 	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
 		const UID* pUID = *it;
 		if (pUID && wcscmp(pUID->getUID(), pwszUID) == 0)
-			return it - list_.begin();
+			return static_cast<unsigned int>(it - list_.begin());
 	}
 	return -1;
 }
 
-size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID,
-								 size_t nStart) const
+unsigned int qmpop3::UIDList::getIndex(const WCHAR* pwszUID,
+									   unsigned int nStart) const
 {
 	assert(pwszUID);
 	assert(nStart != -1);
@@ -116,7 +116,7 @@ size_t qmpop3::UIDList::getIndex(const WCHAR* pwszUID,
 			return nStart;
 	}
 	
-	for (size_t n = nStart; n > 0 && nStart - n < 10; ) {
+	for (unsigned int n = nStart; n > 0 && nStart - n < 10; ) {
 		--n;
 		UID* pUID = list_[n];
 		if (pUID && wcscmp(pUID->getUID(), pwszUID) == 0)
@@ -200,7 +200,7 @@ void qmpop3::UIDList::remove(const IndexList& l)
 	bModified_ = true;
 }
 
-UID* qmpop3::UIDList::remove(size_t n)
+UID* qmpop3::UIDList::remove(unsigned int n)
 {
 	assert(n < list_.size());
 	
@@ -362,7 +362,7 @@ bool qmpop3::UIDListWriter::write(const UIDList& l)
 		return false;
 	
 	for (size_t n = 0; n < l.getCount(); ++n) {
-		UID* pUID = l.getUID(n);
+		UID* pUID = l.getUID(static_cast<unsigned int>(n));
 		
 		WCHAR wszFlags[32];
 		swprintf(wszFlags, L"%d", pUID->getFlags());

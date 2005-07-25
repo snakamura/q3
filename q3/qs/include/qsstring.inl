@@ -1157,10 +1157,10 @@ const typename qs::BMFindString<String>::Char* qs::BMFindString<String>::find(co
 	if (nLen == -1)
 		nLen = CharTraits<Char>::getLength(psz);
 	
-	int nPatternLen = CharTraits<Char>::getLength(strPattern_.get());
-	int n = nPatternLen - 1;
-	while (n < static_cast<int>(nLen)) {
-		int m = nPatternLen - 1;
+	ssize_t nPatternLen = CharTraits<Char>::getLength(strPattern_.get());
+	ssize_t n = nPatternLen - 1;
+	while (n < static_cast<ssize_t>(nLen)) {
+		ssize_t m = nPatternLen - 1;
 		while (m >= 0 && isEqual(getChar(psz, nLen, n), strPattern_.get()[m])) {
 			--n;
 			--m;
@@ -1169,7 +1169,7 @@ const typename qs::BMFindString<String>::Char* qs::BMFindString<String>::find(co
 			break;
 		n += QSMAX(*(skip_ + (getChar(psz, nLen, n) & 0xff)), *(pNext_.get() + m));
 	}
-	return n < static_cast<int>(nLen) ? nFlags_ & FLAG_REVERSE ?
+	return n < static_cast<ssize_t>(nLen) ? nFlags_ & FLAG_REVERSE ?
 		psz + nLen - (n + nPatternLen + 1) : psz + (n + 1) : 0;
 }
 
@@ -1218,7 +1218,7 @@ qs::auto_ptr_array<size_t> qs::BMFindString<String>::createNextTable(const Char*
 	for (n = 0; n < nLen; ++n)
 		*(pNext.get() + n) = nLen*2 - n - 1;
 	auto_ptr_array<size_t> pTemp(new size_t[nLen]);
-	for (int m = nLen - 1; m >= 0; --m) {
+	for (ssize_t m = nLen - 1; m >= 0; --m) {
 		*(pTemp.get() + m) = n;
 		while (n != nLen && pszPattern[n] != pszPattern[m]) {
 			*(pNext.get() + n) = QSMIN(*(pNext.get() + n), nLen - m - 1);

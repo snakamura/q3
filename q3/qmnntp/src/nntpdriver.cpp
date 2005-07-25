@@ -330,12 +330,12 @@ void qmnntp::NntpDriver::CallbackImpl::authenticating()
 {
 }
 
-void qmnntp::NntpDriver::CallbackImpl::setRange(unsigned int nMin,
-												unsigned int nMax)
+void qmnntp::NntpDriver::CallbackImpl::setRange(size_t nMin,
+												size_t nMax)
 {
 }
 
-void qmnntp::NntpDriver::CallbackImpl::setPos(unsigned int nPos)
+void qmnntp::NntpDriver::CallbackImpl::setPos(size_t nPos)
 {
 }
 

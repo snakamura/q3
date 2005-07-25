@@ -60,12 +60,12 @@ struct qs::AbstractAcceleratorImpl
  */
 
 qs::AbstractAccelerator::AbstractAccelerator(const ACCEL* pAccel,
-											 int nSize) :
+											 size_t nSize) :
 	pImpl_(0)
 {
 	pImpl_ = new AbstractAcceleratorImpl();
 	
-	for (int n = 0; n < nSize; ++n, ++pAccel)
+	for (size_t n = 0; n < nSize; ++n, ++pAccel)
 		pImpl_->mapIdToKey_.push_back(
 			AbstractAcceleratorImpl::IdKeyMap::value_type(
 				pAccel->cmd, MAKELONG(pAccel->key, pAccel->fVirt)));
@@ -165,11 +165,12 @@ wstring_ptr qs::AbstractAccelerator::getKeyFromId(UINT nId)
  */
 
 qs::SystemAccelerator::SystemAccelerator(const ACCEL* pAccel,
-										 int nSize) :
+										 size_t nSize) :
 	AbstractAccelerator(pAccel, nSize),
 	haccel_(0)
 {
-	haccel_ = ::CreateAcceleratorTable(const_cast<ACCEL*>(pAccel), nSize);
+	haccel_ = ::CreateAcceleratorTable(
+		const_cast<ACCEL*>(pAccel), static_cast<int>(nSize));
 }
 
 qs::SystemAccelerator::~SystemAccelerator()
@@ -200,7 +201,7 @@ qs::SystemAcceleratorFactory::~SystemAcceleratorFactory()
 }
 
 std::auto_ptr<Accelerator> qs::SystemAcceleratorFactory::createAccelerator(const ACCEL* pAccel,
-																		   int nSize)
+																		   size_t nSize)
 {
 	return std::auto_ptr<Accelerator>(new SystemAccelerator(pAccel, nSize));
 }
@@ -233,13 +234,13 @@ struct qs::CustomAcceleratorImpl
  */
 
 qs::CustomAccelerator::CustomAccelerator(const ACCEL* pAccel,
-										 int nSize) :
+										 size_t nSize) :
 	AbstractAccelerator(pAccel, nSize),
 	pImpl_(0)
 {
 	pImpl_ = new CustomAcceleratorImpl();
 	
-	for (int n = 0; n < nSize; ++n, ++pAccel) {
+	for (size_t n = 0; n < nSize; ++n, ++pAccel) {
 		unsigned int nKey = pAccel->key;
 		BYTE b = pAccel->fVirt;
 		if (b & FALT)
@@ -275,7 +276,7 @@ bool qs::CustomAccelerator::translateAccelerator(HWND hwnd,
 		msg.message != WM_SYSCHAR)
 		return false;
 	
-	unsigned int nKey = msg.wParam;
+	unsigned int nKey = static_cast<int>(msg.wParam);
 	if (::GetKeyState(VK_MENU) < 0)
 		nKey |= CustomAcceleratorImpl::ALT;
 	if (::GetKeyState(VK_CONTROL) < 0)
@@ -317,7 +318,7 @@ qs::CustomAcceleratorFactory::~CustomAcceleratorFactory()
 }
 
 std::auto_ptr<Accelerator> qs::CustomAcceleratorFactory::createAccelerator(const ACCEL* pAccel,
-																		   int nSize)
+																		   size_t nSize)
 {
 	return std::auto_ptr<Accelerator>(new CustomAccelerator(pAccel, nSize));
 }

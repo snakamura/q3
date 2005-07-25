@@ -246,8 +246,8 @@ void qm::EditEditFindAction::invoke(const ActionEvent& event)
 			
 			TextWindow* pTextWindow_;
 			bool& bFound_;
-			unsigned int nLine_;
-			unsigned int nChar_;
+			size_t nLine_;
+			size_t nChar_;
 			bool bSearched_;
 		} callback(pTextWindow_, bFound);
 		

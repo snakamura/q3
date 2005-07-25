@@ -98,21 +98,21 @@ bool qs::Registry::getValue(const WCHAR* pwszName,
 
 bool qs::Registry::getValue(const WCHAR* pwszName,
 							BYTE* pByte,
-							size_t* pnSize)
+							DWORD* pdwSize)
 {
 	assert(pByte);
-	assert(pnSize);
+	assert(pdwSize);
 	
 	if (!hkey_)
 		return false;
 	
 	W2T(pwszName, ptszName);
 	
-	DWORD dwSize = *pnSize;
+	DWORD dwSize = *pdwSize;
 	DWORD dwType = REG_BINARY;
 	if (!::RegQueryValueEx(hkey_, ptszName, 0, &dwType, pByte, &dwSize) != ERROR_SUCCESS)
 		return false;
-	*pnSize = dwSize;
+	*pdwSize = dwSize;
 	
 	return true;
 }
@@ -136,20 +136,20 @@ bool qs::Registry::setValue(const WCHAR* pwszName,
 	
 	W2T(pwszName, ptszName);
 	W2T(pwszValue, ptszValue);
+	DWORD dwSize = static_cast<DWORD>((_tcslen(ptszValue) + 1)*sizeof(TCHAR));
 	return ::RegSetValueEx(hkey_, ptszName, 0, REG_SZ,
-		reinterpret_cast<const BYTE*>(ptszValue),
-		(_tcslen(ptszValue) + 1)*sizeof(TCHAR)) == ERROR_SUCCESS;
+		reinterpret_cast<const BYTE*>(ptszValue), dwSize) == ERROR_SUCCESS;
 }
 
 bool qs::Registry::setValue(const WCHAR* pwszName,
 							const BYTE* pByte,
-							size_t nSize)
+							DWORD dwSize)
 {
 	if (!hkey_)
 		return false;
 	
 	W2T(pwszName, ptszName);
-	return ::RegSetValueEx(hkey_, ptszName, 0, REG_BINARY, pByte, nSize) == ERROR_SUCCESS;
+	return ::RegSetValueEx(hkey_, ptszName, 0, REG_BINARY, pByte, dwSize) == ERROR_SUCCESS;
 }
 
 bool qs::Registry::deleteKey(HKEY hkey,

@@ -110,7 +110,7 @@ size_t qmimap4::Buffer::free(size_t n)
 		return n;
 	
 	buf_.remove(0, n);
-	adjustTokens(-static_cast<int>(n));
+	adjustTokens(-static_cast<ssize_t>(n));
 	
 	return 0;
 }
@@ -162,7 +162,7 @@ bool qmimap4::Buffer::receive(size_t n,
 	return true;
 }
 
-void qmimap4::Buffer::adjustTokens(int nOffset)
+void qmimap4::Buffer::adjustTokens(ssize_t nOffset)
 {
 	for (TokenList::iterator it = listToken_.begin(); it != listToken_.end(); ++it)
 		(*it).first += nOffset;

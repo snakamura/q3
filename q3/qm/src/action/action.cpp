@@ -1298,7 +1298,7 @@ void qm::FileExportAction::invoke(const ActionEvent& event)
 	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 	
 	if (!l.empty()) {
-		if (!export(lock.get(), pFolder, l)) {
+		if (!exportMessages(lock.get(), pFolder, l)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_EXPORT);
 			return;
 		}
@@ -1310,9 +1310,9 @@ bool qm::FileExportAction::isEnabled(const ActionEvent& event)
 	return pMessageSelectionModel_->hasSelectedMessage();
 }
 
-bool qm::FileExportAction::export(Account* pAccount,
-								  Folder* pFolder,
-								  const MessageHolderList& l)
+bool qm::FileExportAction::exportMessages(Account* pAccount,
+										  Folder* pFolder,
+										  const MessageHolderList& l)
 {
 	const TemplateManager* pTemplateManager = pDocument_->getTemplateManager();
 	
@@ -1606,7 +1606,7 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 								  wstring_ptr* pwstrErrorPath,
 								  unsigned int* pnErrorLine)
 {
-	unsigned int nCount = listPath.size();
+	size_t nCount = listPath.size();
 	if (bMultipleMessagesInFile)
 		nCount = 100;
 	
@@ -3173,13 +3173,13 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 			pDialog_->setMessage(wstrMessage.get());
 		}
 		
-		virtual void setRange(unsigned int nMin,
-							  unsigned int nMax)
+		virtual void setRange(size_t nMin,
+							  size_t nMax)
 		{
 			pDialog_->setRange(nMin, nMax);
 		}
 		
-		virtual void setPos(unsigned int nPos)
+		virtual void setPos(size_t nPos)
 		{
 			pDialog_->setPos(nPos);
 		}
@@ -4508,7 +4508,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 		listUI[n].second = pPage.release();
 		sheet.add(listUI[n].second);
 		if (wcscmp(listUI[n].second->getDriver(), wstrStartName.get()) == 0)
-			nStartPage = n;
+			nStartPage = static_cast<int>(n);
 	}
 	sheet.setStartPage(nStartPage);
 	
@@ -5583,7 +5583,7 @@ qm::ViewFocusAction::~ViewFocusAction()
 
 void qm::ViewFocusAction::invoke(const ActionEvent& event)
 {
-	int nViewCount = listView_.size();
+	int nViewCount = static_cast<int>(listView_.size());
 	
 	int nView = 0;
 	for (nView = 0; nView < nViewCount; ++nView) {

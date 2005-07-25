@@ -586,7 +586,7 @@ bool qmnntp::Nntp::send(const SendData* pSendData,
 				NNTP_ERROR(NNTP_ERROR_TIMEOUT);
 			
 			size_t nSend = pSocket_->send(data.psz_ + nTotal,
-				QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal), 0);
+				static_cast<int>(QSMIN(size_t(SEND_BLOCK_SIZE), data.nLength_ - nTotal)), 0);
 			if (nSend == -1)
 				NNTP_ERROR_SOCKET(NNTP_ERROR_SEND);
 			nTotal += nSend;

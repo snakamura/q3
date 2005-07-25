@@ -423,14 +423,14 @@ public:
 	 *
 	 * @param pwszName [in] Value name, null if getting default value.
 	 * @param pByte [in] Buffer.
-	 * @param pnSize [in] Buffer size.
-	 *               [out] Size written.
+	 * @param pdwSize [in] Buffer size.
+	 *                [out] Size written.
 	 * @return true if success, false otherwise.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	bool getValue(const WCHAR* pwszName,
 				  BYTE* pByte,
-				  size_t* pnSize);
+				  DWORD* pdwSize);
 	
 	/**
 	 * Set number value.
@@ -459,13 +459,13 @@ public:
 	 *
 	 * @param pwszName [in] Value name, null if getting default value.
 	 * @param pByte [in] Buffer.
-	 * @param nSize [in] Buffer size.
+	 * @param dwSize [in] Buffer size.
 	 * @return true if success, false otherwise.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	bool setValue(const WCHAR* pwszName,
 				  const BYTE* pByte,
-				  size_t nSize);
+				  DWORD dwSize);
 
 public:
 	/**

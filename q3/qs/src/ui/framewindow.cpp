@@ -158,7 +158,7 @@ void qs::FrameWindow::processIdle()
 #endif
 	Window wnd(hwnd);
 	if (wnd.getHandle() && wnd.isVisible()) {
-		int nCount = wnd.sendMessage(TB_BUTTONCOUNT);
+		int nCount = static_cast<int>(wnd.sendMessage(TB_BUTTONCOUNT));
 		for (int n = 0; n < nCount; ++n) {
 			TBBUTTON button;
 			wnd.sendMessage(TB_GETBUTTON, n, reinterpret_cast<LPARAM>(&button));

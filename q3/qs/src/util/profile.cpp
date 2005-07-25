@@ -195,8 +195,11 @@ size_t qs::RegistryProfile::getBinary(const WCHAR* pwszSection,
 	
 	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
 	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
-	if (reg)
-		reg.getValue(pwszKey, pValue, &nSize);
+	if (reg) {
+		DWORD dwSize = static_cast<DWORD>(nSize);
+		reg.getValue(pwszKey, pValue, &dwSize);
+		nSize = dwSize;
+	}
 	
 	return nSize;
 }

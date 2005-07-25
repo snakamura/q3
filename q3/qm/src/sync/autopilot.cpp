@@ -91,7 +91,7 @@ void qm::AutoPilot::save() const
 	pProfile_->setInt(L"AutoPilot", L"Enabled", bEnabled_);
 }
 
-void qm::AutoPilot::timerTimeout(unsigned int nId)
+void qm::AutoPilot::timerTimeout(Timer::Id nId)
 {
 	if (nId == nId_) {
 		bool bOnlyWhenConnected = pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected", 0) != 0;

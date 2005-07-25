@@ -344,7 +344,7 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 			T2W(fd.cFileName, pwszName);
 			wstring_ptr wstrPath(concat(pwszPath, L"\\", pwszName));
 			
-			int nFileNameLen = _tcslen(fd.cFileName);
+			size_t nFileNameLen = _tcslen(fd.cFileName);
 			if (nFileNameLen > 4 &&
 				_tcscmp(fd.cFileName + nFileNameLen - 4, _T(".lnk")) == 0) {
 #ifndef _WIN32_WCE

@@ -162,7 +162,7 @@ int qm::main(const WCHAR* pwszCommandLine)
 				wstrMailFolder = allocWString(dialog.getMailFolder());
 				reg.setValue(L"MailFolder", wstrMailFolder.get());
 			}
-			int nLen = wcslen(wstrMailFolder.get());
+			size_t nLen = wcslen(wstrMailFolder.get());
 			if (*(wstrMailFolder.get() + nLen - 1) == L'\\')
 				*(wstrMailFolder.get() + nLen - 1) = L'\0';
 		}
@@ -252,7 +252,7 @@ void qm::MainCommandLineHandler::invoke(HWND hwnd)
 		if (commands[n].nAction_ == nAction_) {
 			if (commands[n].pwsz_) {
 				data.dwData = commands[n].nAction_;
-				data.cbData = (wcslen(commands[n].pwsz_) + 1)*sizeof(WCHAR);
+				data.cbData = static_cast<DWORD>((wcslen(commands[n].pwsz_) + 1)*sizeof(WCHAR));
 				data.lpData = commands[n].pwsz_;
 			}
 			else {
@@ -372,8 +372,9 @@ bool qm::MailFolderLock::setWindow(HWND hwnd)
 		wstrName.get()
 	};
 	for (int n = 0; n < countof(pwsz); ++n) {
+		DWORD dwSize = static_cast<DWORD>(wcslen(pwsz[n])*sizeof(WCHAR));
 		DWORD dw = 0;
-		if (!::WriteFile(hFile_, pwsz[n], wcslen(pwsz[n])*sizeof(WCHAR), &dw, 0))
+		if (!::WriteFile(hFile_, pwsz[n], dwSize, &dw, 0))
 			return false;
 	}
 	if (!::FlushFileBuffers(hFile_))

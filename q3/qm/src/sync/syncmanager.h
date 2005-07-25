@@ -372,12 +372,12 @@ private:
 	
 	public:
 		virtual bool isCanceled(bool bForce);
-		virtual void setPos(unsigned int n);
-		virtual void setRange(unsigned int nMin,
-							  unsigned int nMax);
-		virtual void setSubPos(unsigned int n);
-		virtual void setSubRange(unsigned int nMin,
-								 unsigned int nMax);
+		virtual void setPos(size_t n);
+		virtual void setRange(size_t nMin,
+							  size_t nMax);
+		virtual void setSubPos(size_t n);
+		virtual void setSubRange(size_t nMin,
+								 size_t nMax);
 		virtual void setMessage(const WCHAR* pwszMessage);
 		virtual void addError(const SessionErrorInfo& info);
 	
@@ -412,12 +412,12 @@ private:
 	
 	public:
 		virtual bool isCanceled(bool bForce);
-		virtual void setPos(unsigned int n);
-		virtual void setRange(unsigned int nMin,
-							  unsigned int nMax);
-		virtual void setSubPos(unsigned int n);
-		virtual void setSubRange(unsigned int nMin,
-								 unsigned int nMax);
+		virtual void setPos(size_t n);
+		virtual void setRange(size_t nMin,
+							  size_t nMax);
+		virtual void setSubPos(size_t n);
+		virtual void setSubRange(size_t nMin,
+								 size_t nMax);
 		virtual void setMessage(const WCHAR* pwszMessage);
 		virtual void addError(const SessionErrorInfo& info);
 	
@@ -505,11 +505,11 @@ public:
 	virtual void endThread(unsigned int nId) = 0;
 	virtual void setPos(unsigned int nId,
 						bool bSub,
-						unsigned int nPos) = 0;
+						size_t nPos) = 0;
 	virtual void setRange(unsigned int nId,
 						  bool bSub,
-						  unsigned int nMin,
-						  unsigned int nMax) = 0;
+						  size_t nMin,
+						  size_t nMax) = 0;
 	virtual void setAccount(unsigned int nId,
 							Account* pAccount,
 							SubAccount* pSubAccount) = 0;

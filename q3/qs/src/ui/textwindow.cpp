@@ -109,18 +109,18 @@ public:
 	
 	struct Caret
 	{
-		unsigned int nLine_;
-		unsigned int nChar_;
+		size_t nLine_;
+		size_t nChar_;
 		int nPos_;
 		int nOldPos_;
 	};
 	
 	struct Selection
 	{
-		unsigned int nStartLine_;
-		unsigned int nStartChar_;
-		unsigned int nEndLine_;
-		unsigned int nEndChar_;
+		size_t nStartLine_;
+		size_t nStartChar_;
+		size_t nEndLine_;
+		size_t nEndChar_;
 	};
 	
 	class PhysicalLinePtr
@@ -169,35 +169,35 @@ public:
 	
 	void getClientRectWithoutMargin(RECT* pRect) const;
 	
-	unsigned int getCharFromPos(unsigned int nLine,
-								unsigned int nPos) const;
-	int getPosFromChar(unsigned int nLine,
-					   unsigned int nChar) const;
-	std::pair<unsigned int, unsigned int> getPositionFromPoint(const POINT& pt) const;
-	int getLineFromPos(int nY) const;
+	size_t getCharFromPos(size_t nLine,
+						  unsigned int nPos) const;
+	int getPosFromChar(size_t nLine,
+					   size_t nChar) const;
+	std::pair<size_t, size_t> getPositionFromPoint(const POINT& pt) const;
+	size_t getLineFromPos(int nY) const;
 	
-	std::pair<unsigned int, unsigned int> getPhysicalLine(unsigned int nLogicalLine,
-														  unsigned int nChar) const;
+	std::pair<size_t, size_t> getPhysicalLine(size_t nLogicalLine,
+											  size_t nChar) const;
 	
-	void getSelection(unsigned int* pnStartLine,
-					  unsigned int* pnStartChar,
-					  unsigned int* pnEndLine,
-					  unsigned int* pnEndChar,
+	void getSelection(size_t* pnStartLine,
+					  size_t* pnStartChar,
+					  size_t* pnEndLine,
+					  size_t* pnEndChar,
 					  bool* pbReverse) const;
-	void expandSelection(unsigned int nStartLine,
-						 unsigned int nStartChar,
-						 unsigned int nEndLine,
-						 unsigned int nEndChar);
+	void expandSelection(size_t nStartLine,
+						 size_t nStartChar,
+						 size_t nEndLine,
+						 size_t nEndChar);
 	void startSelection(const POINT& pt,
 						bool bScroll);
 	void updateSelection(const POINT& pt,
 						 bool bScroll);
 	void clearSelection();
-	std::pair<unsigned int, unsigned int> getSelection(unsigned int nLine) const;
+	std::pair<size_t, size_t> getSelection(size_t nLine) const;
 	
-	void calcLines(unsigned int nStartLine,
-				   unsigned int nOldEndLine,
-				   unsigned int nNewEndLine);
+	void calcLines(size_t nStartLine,
+				   size_t nOldEndLine,
+				   size_t nNewEndLine);
 	void recalcLines(bool bKeepSelection);
 	
 	int paintBlock(DeviceContext* pdc,
@@ -223,10 +223,10 @@ public:
 	void updateCaret(bool bScroll,
 					 const RECT& rectMargin);
 	
-	void invalidate(unsigned int nStartLine,
-					unsigned int nStartChar,
-					unsigned int nEndLine,
-					unsigned int nEndChar);
+	void invalidate(size_t nStartLine,
+					size_t nStartChar,
+					size_t nEndLine,
+					size_t nEndChar);
 	
 	bool insertText(const WCHAR* pwsz,
 					size_t nLen,
@@ -236,11 +236,11 @@ public:
 	size_t getReformQuoteLength(const WCHAR* pwszLine,
 								size_t nLen) const;
 	
-	const LinkItem* getLinkItem(unsigned int nLine,
-								unsigned int nChar);
-	std::pair<int, const LinkItem*> getLinkItemFromPoint(const POINT& pt) const;
+	const LinkItem* getLinkItem(size_t nLine,
+								size_t nChar);
+	std::pair<size_t, const LinkItem*> getLinkItemFromPoint(const POINT& pt) const;
 	bool openLink(const POINT& pt);
-	wstring_ptr getURL(int nLine,
+	wstring_ptr getURL(size_t nLine,
 					   const LinkItem* pLinkItem) const;
 	
 	void reloadProfiles(Profile* pProfile,
@@ -271,7 +271,7 @@ private:
 					   int* pnFit,
 					   int* pnDx,
 					   SIZE* pSize) const;
-	void getLineExtent(unsigned int nLine,
+	void getLineExtent(size_t nLine,
 					   Extent* pExtent,
 					   bool* pbNewLine) const;
 	void getLineExtent(const DeviceContext& dc,
@@ -301,8 +301,8 @@ private:
 		~PositionRestorer();
 	
 	private:
-		std::pair<size_t, size_t> getLogical(unsigned int nLine,
-											 unsigned int nChar) const;
+		std::pair<size_t, size_t> getLogical(size_t nLine,
+											 size_t nChar) const;
 	
 	private:
 		TextWindowImpl* pImpl_;
@@ -351,7 +351,7 @@ public:
 	ScrollPos scrollPos_;
 	Caret caret_;
 	Selection selection_;
-	unsigned int nTimerDragScroll_;
+	UINT_PTR nTimerDragScroll_;
 	POINT ptLastButtonDown_;
 	mutable int nLastWindowWidth_;
 	HIMC hImc_;
@@ -366,7 +366,7 @@ public:
 	mutable unsigned int nAverageCharWidth_;
 	mutable bool bHorizontalScrollable_;
 	mutable Extent extent_;
-	mutable unsigned int nExtentLine_;
+	mutable size_t nExtentLine_;
 	mutable bool bExtentNewLine_;
 	mutable int nDx_[1024];
 };
@@ -505,10 +505,10 @@ void qs::TextWindowImpl::getClientRectWithoutMargin(RECT* pRect) const
 		pRect->bottom = pRect->top;
 }
 
-unsigned int qs::TextWindowImpl::getCharFromPos(unsigned int nLine,
-												unsigned int nPos) const
+size_t qs::TextWindowImpl::getCharFromPos(size_t nLine,
+										  unsigned int nPos) const
 {
-	unsigned int nChar = 0;
+	size_t nChar = 0;
 	
 	unsigned int nQuoteWidth = listLine_[nLine]->nQuoteDepth_*getQuoteWidth();
 	if (nPos > nQuoteWidth) {
@@ -531,8 +531,8 @@ unsigned int qs::TextWindowImpl::getCharFromPos(unsigned int nLine,
 	return nChar;
 }
 
-int qs::TextWindowImpl::getPosFromChar(unsigned int nLine,
-									   unsigned int nChar) const
+int qs::TextWindowImpl::getPosFromChar(size_t nLine,
+									   size_t nChar) const
 {
 	int nPos = listLine_[nLine]->nQuoteDepth_*getQuoteWidth();
 	
@@ -548,10 +548,10 @@ int qs::TextWindowImpl::getPosFromChar(unsigned int nLine,
 	return nPos;
 }
 
-std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPositionFromPoint(const POINT& pt) const
+std::pair<size_t, size_t> qs::TextWindowImpl::getPositionFromPoint(const POINT& pt) const
 {
-	int nLine = getLineFromPos(pt.y);
-	unsigned int nChar = 0;
+	size_t nLine = getLineFromPos(pt.y);
+	size_t nChar = 0;
 	if (nLine < 0) {
 		nLine = 0;
 		nChar = 0;
@@ -571,13 +571,13 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPositionFromPoint(c
 	return std::make_pair(nLine, nChar);
 }
 
-int qs::TextWindowImpl::getLineFromPos(int nY) const
+size_t qs::TextWindowImpl::getLineFromPos(int nY) const
 {
 	return scrollPos_.nLine_ + (nY < nMarginTop_ ? 0 : (nY - nMarginTop_)/getLineHeight());
 }
 
-std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(unsigned int nLogicalLine,
-																		  unsigned int nChar) const
+std::pair<size_t, size_t> qs::TextWindowImpl::getPhysicalLine(size_t nLogicalLine,
+															  size_t nChar) const
 {
 	assert(!listLine_.empty());
 	
@@ -605,15 +605,15 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getPhysicalLine(unsign
 	assert(it == itD);
 #endif
 	
-	unsigned int nPhysicalChar = nChar > (*it)->nPosition_ ?
+	size_t nPhysicalChar = nChar > (*it)->nPosition_ ?
 		nChar - (*it)->nPosition_ : 0;
 	return std::make_pair(it - listLine_.begin(), nPhysicalChar);
 }
 
-void qs::TextWindowImpl::getSelection(unsigned int* pnStartLine,
-									  unsigned int* pnStartChar,
-									  unsigned int* pnEndLine,
-									  unsigned int* pnEndChar,
+void qs::TextWindowImpl::getSelection(size_t* pnStartLine,
+									  size_t* pnStartChar,
+									  size_t* pnEndLine,
+									  size_t* pnEndChar,
 									  bool* pbReverse) const
 {
 	assert((pnStartLine && pnStartChar) || (!pnStartLine && !pnStartChar));
@@ -647,10 +647,10 @@ void qs::TextWindowImpl::getSelection(unsigned int* pnStartLine,
 		*pbReverse = bReverse;
 }
 
-void qs::TextWindowImpl::expandSelection(unsigned int nStartLine,
-										 unsigned int nStartChar,
-										 unsigned int nEndLine,
-										 unsigned int nEndChar)
+void qs::TextWindowImpl::expandSelection(size_t nStartLine,
+										 size_t nStartChar,
+										 size_t nEndLine,
+										 size_t nEndChar)
 {
 	if (!pThis_->isSelected()) {
 		selection_.nStartLine_ = nStartLine;
@@ -667,7 +667,7 @@ void qs::TextWindowImpl::startSelection(const POINT& pt,
 {
 	clearSelection();
 	
-	std::pair<unsigned int, unsigned int> pos(getPositionFromPoint(pt));
+	std::pair<size_t, size_t> pos(getPositionFromPoint(pt));
 	selection_.nStartLine_ = pos.first;
 	selection_.nStartChar_ = pos.second;
 	selection_.nEndLine_ = pos.first;
@@ -680,7 +680,7 @@ void qs::TextWindowImpl::startSelection(const POINT& pt,
 void qs::TextWindowImpl::updateSelection(const POINT& pt,
 										 bool bScroll)
 {
-	std::pair<unsigned int, unsigned int> pos(getPositionFromPoint(pt));
+	std::pair<size_t, size_t> pos(getPositionFromPoint(pt));
 	invalidate(selection_.nEndLine_, selection_.nEndChar_, pos.first, pos.second);
 	selection_.nEndLine_ = pos.first;
 	selection_.nEndChar_ = pos.second;
@@ -702,10 +702,10 @@ void qs::TextWindowImpl::clearSelection()
 	}
 }
 
-std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getSelection(unsigned int nLine) const
+std::pair<size_t, size_t> qs::TextWindowImpl::getSelection(size_t nLine) const
 {
 	if (!pThis_->isSelected())
-		return std::pair<unsigned int, unsigned int>(0, 0);
+		return std::pair<size_t, size_t>(0, 0);
 	
 	Selection s = selection_;
 	if (s.nStartLine_ > s.nEndLine_) {
@@ -718,23 +718,20 @@ std::pair<unsigned int, unsigned int> qs::TextWindowImpl::getSelection(unsigned 
 	}
 	
 	if (nLine < s.nStartLine_ || s.nEndLine_ < nLine)
-		return std::pair<unsigned int, unsigned int>(0, 0);
+		return std::pair<size_t, size_t>(0, 0);
 	else if (nLine == s.nStartLine_ && nLine == s.nEndLine_)
-		return std::pair<unsigned int, unsigned int>(
-			s.nStartChar_, s.nEndChar_);
+		return std::pair<size_t, size_t>(s.nStartChar_, s.nEndChar_);
 	else if (nLine == s.nStartLine_)
-		return std::pair<unsigned int, unsigned int>(
-			s.nStartChar_, listLine_[nLine]->nLength_);
+		return std::pair<size_t, size_t>(s.nStartChar_, listLine_[nLine]->nLength_);
 	else if (nLine == s.nEndLine_)
-		return std::pair<unsigned int, unsigned int>(0, s.nEndChar_);
+		return std::pair<size_t, size_t>(0, s.nEndChar_);
 	else
-		return std::pair<unsigned int, unsigned int>(
-			0, listLine_[nLine]->nLength_);
+		return std::pair<size_t, size_t>(0, listLine_[nLine]->nLength_);
 }
 
-void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
-								   unsigned int nOldEndLine,
-								   unsigned int nNewEndLine)
+void qs::TextWindowImpl::calcLines(size_t nStartLine,
+								   size_t nOldEndLine,
+								   size_t nNewEndLine)
 {
 	ClientDeviceContext dc(pThis_->getHandle());
 	ObjectSelector<HFONT> fontSelector(dc, hfont_);
@@ -762,8 +759,8 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 	LogicalLinkItemList listLogicalLinkItem;
 	LinkItemList listPhysicalLinkItem;
 	
-	unsigned int nStart = nStartLine == -1 ? 0 : nStartLine;
-	unsigned int nEnd = nStartLine == -1 ?
+	size_t nStart = nStartLine == -1 ? 0 : nStartLine;
+	size_t nEnd = nStartLine == -1 ?
 		pTextModel_->getLineCount() : nNewEndLine + 1;
 	
 	for (size_t n = nStart; n < nEnd; ++n) {
@@ -802,14 +799,14 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 				bool bFull = false;
 				do {
 					SIZE size;
-					getTextExtent(dc, pBegin, p - pBegin,
+					getTextExtent(dc, pBegin, static_cast<int>(p - pBegin),
 						nFormatWidth - nLineWidth, &nFit, 0, &size);
 					if (nFit != p - pBegin || p == pEnd ||
 						static_cast<unsigned int>(size.cx) == nFormatWidth - nLineWidth) {
 						if (bWordWrap_ && nFit != p - pBegin) {
 							const WCHAR* pBreak = TextUtil::getBreak(pBegin, pEnd, pBegin + nFit);
 							if (pBreak - pBegin != nFit) {
-								nFit = pBreak - pBegin;
+								nFit = static_cast<int>(pBreak - pBegin);
 								getTextExtent(dc, pBegin, nFit, nFormatWidth - nLineWidth, 0, 0, &size);
 							}
 						}
@@ -924,9 +921,9 @@ void qs::TextWindowImpl::calcLines(unsigned int nStartLine,
 	}
 	
 	if (nStartLine != -1) {
-		std::pair<unsigned int, unsigned int> start = getPhysicalLine(nStartLine, 0);
+		std::pair<size_t, size_t> start = getPhysicalLine(nStartLine, 0);
 		assert(start.first == 0 || listLine_[start.first - 1]->nLogicalLine_ != nStartLine);
-		std::pair<unsigned int, unsigned int> end = getPhysicalLine(nOldEndLine, 0);
+		std::pair<size_t, size_t> end = getPhysicalLine(nOldEndLine, 0);
 		while (end.first + 1 < listLine_.size() &&
 			listLine_[end.first]->nLogicalLine_ == listLine_[end.first + 1]->nLogicalLine_)
 			++end.first;
@@ -987,20 +984,20 @@ int qs::TextWindowImpl::paintBlock(DeviceContext* pdc,
 			SIZE size;
 			int* pnDx = 0;
 			if (bAdjustExtent_) {
-				getTextExtent(*pdc, pBegin, nLen, 0, 0, nDx_, &size);
+				getTextExtent(*pdc, pBegin, static_cast<int>(nLen), 0, 0, nDx_, &size);
 				for (size_t n = nLen; n > 0; --n)
 					nDx_[n] -= nDx_[n - 1];
 				pnDx = nDx_;
 			}
 			else {
-				getTextExtent(*pdc, pBegin, nLen, 0, 0, 0, &size);
+				getTextExtent(*pdc, pBegin, static_cast<int>(nLen), 0, 0, 0, &size);
 			}
 			
 			r.left = pt.x + x;
 			r.right = r.left + size.cx;
 			
-			pdc->extTextOut(pt.x + x, pt.y + nLineSpacing_,
-				ETO_CLIPPED | ETO_OPAQUE, r, pBegin, nLen, pnDx);
+			pdc->extTextOut(pt.x + x, pt.y + nLineSpacing_, ETO_CLIPPED | ETO_OPAQUE,
+				r, pBegin, static_cast<int>(nLen), pnDx);
 			
 			x += size.cx;
 		}
@@ -1068,7 +1065,7 @@ std::pair<unsigned char, unsigned char> qs::TextWindowImpl::getLineQuoteDepth(co
 				break;
 			}
 		}
-		quote.second = pLastQuote - line.getText() + 1;
+		quote.second = static_cast<unsigned char>(pLastQuote - line.getText() + 1);
 	}
 	
 	return quote;
@@ -1120,12 +1117,12 @@ void qs::TextWindowImpl::updateScrollBar()
 		
 		unsigned int nPage = getLineInWindow();
 		if (nPage > listLine_.size())
-			nPage = listLine_.size();
+			nPage = static_cast<unsigned int>(listLine_.size());
 		if (si.nMin != 0 || si.nMax != static_cast<int>(listLine_.size() - 1) ||
 			si.nPage != nPage || si.nPos != scrollPos_.nLine_) {
 			si.fMask = SIF_PAGE | SIF_POS | SIF_RANGE | SIF_DISABLENOSCROLL;
 			si.nMin = 0;
-			si.nMax = listLine_.size() - 1;
+			si.nMax = static_cast<int>(listLine_.size() - 1);
 			si.nPage = nPage;
 			si.nPos = scrollPos_.nLine_;
 			pThis_->setScrollInfo(SB_VERT, si, true);
@@ -1184,8 +1181,8 @@ void qs::TextWindowImpl::showCaret()
 	int nLineHeight = getLineHeight();
 	pThis_->createCaret(2, nLineHeight);
 	POINT pt = {
-		caret_.nPos_ + nMarginLeft_ - scrollPos_.nPos_,
-		(caret_.nLine_ - scrollPos_.nLine_)*nLineHeight + nMarginTop_
+		static_cast<LONG>(caret_.nPos_ + nMarginLeft_ - scrollPos_.nPos_),
+		static_cast<LONG>((caret_.nLine_ - scrollPos_.nLine_)*nLineHeight + nMarginTop_)
 	};
 	pThis_->setCaretPos(pt);
 	pThis_->showCaret();
@@ -1219,10 +1216,10 @@ void qs::TextWindowImpl::updateCaret(bool bScroll,
 		
 		if (static_cast<int>(caret_.nLine_) < scrollPos_.nLine_ + nMarginTop)
 			pThis_->scroll(TextWindow::SCROLL_VERTICALPOS,
-				caret_.nLine_ - 3, false);
+				static_cast<int>(caret_.nLine_ - 3), false);
 		else if (caret_.nLine_ > scrollPos_.nLine_ + nLineInWindow - nMarginBottom)
 			pThis_->scroll(TextWindow::SCROLL_VERTICALPOS,
-				caret_.nLine_ - nLineInWindow + 3, false);
+				static_cast<int>(caret_.nLine_ - nLineInWindow + 3), false);
 		else
 			bScroll = false;
 		
@@ -1238,8 +1235,8 @@ void qs::TextWindowImpl::updateCaret(bool bScroll,
 	
 	if (bShowCaret_ && !bScroll) {
 		POINT pt = {
-			caret_.nPos_ + nMarginLeft_ - scrollPos_.nPos_,
-			(caret_.nLine_ - scrollPos_.nLine_)*nLineHeight + nMarginTop_
+			static_cast<LONG>(caret_.nPos_ + nMarginLeft_ - scrollPos_.nPos_),
+			static_cast<LONG>((caret_.nLine_ - scrollPos_.nLine_)*nLineHeight + nMarginTop_)
 		};
 		pThis_->setCaretPos(pt);
 		
@@ -1256,10 +1253,10 @@ void qs::TextWindowImpl::updateCaret(bool bScroll,
 		pRuler_->update();
 }
 
-void qs::TextWindowImpl::invalidate(unsigned int nStartLine,
-									unsigned int nStartChar,
-									unsigned int nEndLine,
-									unsigned int nEndChar)
+void qs::TextWindowImpl::invalidate(size_t nStartLine,
+									size_t nStartChar,
+									size_t nEndLine,
+									size_t nEndChar)
 {
 	if (nStartLine > nEndLine)
 		std::swap(nStartLine, nEndLine);
@@ -1267,9 +1264,9 @@ void qs::TextWindowImpl::invalidate(unsigned int nStartLine,
 	RECT rect;
 	pThis_->getClientRect(&rect);
 	unsigned int nLineHeight = getLineHeight();
-	rect.top = nMarginTop_ + (nStartLine - scrollPos_.nLine_)*nLineHeight;
+	rect.top = static_cast<LONG>(nMarginTop_ + (nStartLine - scrollPos_.nLine_)*nLineHeight);
 	if (nEndLine != -1)
-		rect.bottom = nMarginTop_ + (nEndLine + 1 - scrollPos_.nLine_)*nLineHeight;
+		rect.bottom = static_cast<LONG>(nMarginTop_ + (nEndLine + 1 - scrollPos_.nLine_)*nLineHeight);
 	
 	pThis_->invalidateRect(rect);
 }
@@ -1282,10 +1279,10 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 		if (nLen == static_cast<size_t>(-1))
 			nLen = wcslen(pwsz);
 		
-		unsigned int nStartLine = 0;
-		unsigned int nStartChar = 0;
-		unsigned int nEndLine = -1;
-		unsigned int nEndChar = -1;
+		size_t nStartLine = 0;
+		size_t nStartChar = 0;
+		size_t nEndLine = -1;
+		size_t nEndChar = -1;
 		bool bReverse = true;
 		
 		wstring_ptr wstrSelected;
@@ -1302,8 +1299,8 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 			nStartChar = caret_.nChar_;
 		}
 		
-		unsigned int nLine = 0;
-		unsigned int nChar = 0;
+		size_t nLine = 0;
+		size_t nChar = 0;
 		const PhysicalLine* pStart = listLine_[nStartLine];
 		if (bSelected) {
 			const PhysicalLine* pEnd = listLine_[nEndLine];
@@ -1318,7 +1315,7 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 		}
 		nExtentLine_ = -1;
 		
-		std::pair<unsigned int, unsigned int> line = getPhysicalLine(nLine, nChar);
+		std::pair<size_t, size_t> line = getPhysicalLine(nLine, nChar);
 		caret_.nLine_ = line.first;
 		caret_.nChar_ = line.second;
 		caret_.nPos_ = getPosFromChar(caret_.nLine_, caret_.nChar_);
@@ -1395,8 +1392,8 @@ size_t qs::TextWindowImpl::getReformQuoteLength(const WCHAR* pwszLine,
 	return p - pwszLine;
 }
 
-const TextWindowImpl::LinkItem* qs::TextWindowImpl::getLinkItem(unsigned int nLine,
-																unsigned int nChar)
+const TextWindowImpl::LinkItem* qs::TextWindowImpl::getLinkItem(size_t nLine,
+																size_t nChar)
 {
 	const PhysicalLine* pLine = listLine_[nLine];
 	if (pLine->items_.nCount_ != 0) {
@@ -1409,11 +1406,11 @@ const TextWindowImpl::LinkItem* qs::TextWindowImpl::getLinkItem(unsigned int nLi
 	return 0;
 }
 
-std::pair<int, const TextWindowImpl::LinkItem*> qs::TextWindowImpl::getLinkItemFromPoint(const POINT& pt) const
+std::pair<size_t, const TextWindowImpl::LinkItem*> qs::TextWindowImpl::getLinkItemFromPoint(const POINT& pt) const
 {
-	std::pair<int, const LinkItem*> i(-1, 0);
+	std::pair<size_t, const LinkItem*> i(-1, 0);
 	
-	int nLine = getLineFromPos(pt.y);
+	size_t nLine = getLineFromPos(pt.y);
 	if (0 <= nLine && static_cast<LineList::size_type>(nLine) < listLine_.size()) {
 		const PhysicalLine* pLine = listLine_[nLine];
 		if (pLine->items_.nCount_ != 0) {
@@ -1433,7 +1430,7 @@ std::pair<int, const TextWindowImpl::LinkItem*> qs::TextWindowImpl::getLinkItemF
 bool qs::TextWindowImpl::openLink(const POINT& pt)
 {
 	if (pLinkHandler_) {
-		std::pair<int, const LinkItem*> item(getLinkItemFromPoint(pt));
+		std::pair<size_t, const LinkItem*> item(getLinkItemFromPoint(pt));
 		if (item.second) {
 			wstring_ptr wstrURL(getURL(item.first, item.second));
 			if (!pLinkHandler_->openLink(wstrURL.get()))
@@ -1444,7 +1441,7 @@ bool qs::TextWindowImpl::openLink(const POINT& pt)
 	return true;
 }
 
-wstring_ptr qs::TextWindowImpl::getURL(int nLine,
+wstring_ptr qs::TextWindowImpl::getURL(size_t nLine,
 									   const LinkItem* pLinkItem) const
 {
 	assert(0 <= nLine && nLine < static_cast<int>(listLine_.size()));
@@ -1755,7 +1752,7 @@ bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
 	return true;
 }
 
-void qs::TextWindowImpl::getLineExtent(unsigned int nLine,
+void qs::TextWindowImpl::getLineExtent(size_t nLine,
 									   Extent* pExtent,
 									   bool* pbNewLine) const
 {
@@ -1789,8 +1786,8 @@ void qs::TextWindowImpl::getLineExtent(const DeviceContext& dc,
 		if (p == pEnd || *p == L'\t') {
 			if (p != pBegin) {
 				SIZE size;
-				getTextExtent(dc, pBegin, p - pBegin, 0, 0,
-					&(*pExtent)[pBegin - pwsz], &size);
+				getTextExtent(dc, pBegin, static_cast<int>(p - pBegin),
+					0, 0, &(*pExtent)[pBegin - pwsz], &size);
 				if (pBegin != pwsz) {
 					int nOffset = (*pExtent)[pBegin - pwsz - 1];
 					for (Extent::size_type n = pBegin - pwsz; n < static_cast<Extent::size_type>(p - pwsz); ++n)
@@ -1941,16 +1938,15 @@ qs::TextWindowImpl::PositionRestorer::~PositionRestorer()
 		return;
 	
 	if (caret_.first != -1 && caret_.second != -1) {
-		std::pair<unsigned int, unsigned int> caret(pImpl_->getPhysicalLine(
-			caret_.first, caret_.second));
+		std::pair<size_t, size_t> caret(pImpl_->getPhysicalLine(caret_.first, caret_.second));
 		pImpl_->pThis_->moveCaret(TextWindow::MOVECARET_POS,
 			caret.first, caret.second, false, TextWindow::SELECT_NONE, false);
 	}
 	
 	if (pImpl_->pThis_->isSelected()) {
-		std::pair<unsigned int, unsigned int> start(pImpl_->getPhysicalLine(
+		std::pair<size_t, size_t> start(pImpl_->getPhysicalLine(
 			selectionStart_.first, selectionStart_.second));
-		std::pair<unsigned int, unsigned int> end(pImpl_->getPhysicalLine(
+		std::pair<size_t, size_t> end(pImpl_->getPhysicalLine(
 			selectionEnd_.first, selectionEnd_.second));
 		pImpl_->selection_.nStartLine_ = start.first;
 		pImpl_->selection_.nStartChar_ = start.second;
@@ -1959,8 +1955,8 @@ qs::TextWindowImpl::PositionRestorer::~PositionRestorer()
 	}
 }
 
-std::pair<size_t, size_t> qs::TextWindowImpl::PositionRestorer::getLogical(unsigned int nLine,
-																		   unsigned int nChar) const
+std::pair<size_t, size_t> qs::TextWindowImpl::PositionRestorer::getLogical(size_t nLine,
+																		   size_t nChar) const
 {
 	if (pImpl_->listLine_.size() == 0)
 		return std::pair<size_t, size_t>(-1, -1);
@@ -2144,19 +2140,19 @@ bool qs::TextWindow::isSelected() const
 
 wstring_ptr qs::TextWindow::getSelectedText() const
 {
-	unsigned int nStartLine = 0;
-	unsigned int nStartChar = 0;
-	unsigned int nEndLine = 0;
-	unsigned int nEndChar = 0;
+	size_t nStartLine = 0;
+	size_t nStartChar = 0;
+	size_t nEndLine = 0;
+	size_t nEndChar = 0;
 	pImpl_->getSelection(&nStartLine, &nStartChar, &nEndLine, &nEndChar, 0);
 	
 	StringBuffer<WSTRING> buf;
 	
-	for (unsigned int n = nStartLine; n <= nEndLine; ++n) {
+	for (size_t n = nStartLine; n <= nEndLine; ++n) {
 		const TextWindowImpl::PhysicalLine* pLine = pImpl_->listLine_[n];
 		TextModel::Line l = pImpl_->pTextModel_->getLine(pLine->nLogicalLine_);
-		unsigned int nStart = n == nStartLine ? nStartChar : 0;
-		unsigned int nEnd = n == nEndLine ? nEndChar : pLine->nLength_;
+		size_t nStart = n == nStartLine ? nStartChar : 0;
+		size_t nEnd = n == nEndLine ? nEndChar : pLine->nLength_;
 		if (nStart == 0 && pLine->nPosition_ == pLine->nQuoteLength_)
 			buf.append(l.getText(), pLine->nQuoteLength_);
 		buf.append(l.getText() + pLine->nPosition_ + nStart, nEnd - nStart);
@@ -2309,8 +2305,8 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 	// TODO
 	// Treat FLAG_REFORMED
 	
-	unsigned int nLine = -1;
-	unsigned int nChar = -1;
+	size_t nLine = -1;
+	size_t nChar = -1;
 	getFindPosition((nFlags & FIND_PREVIOUS) != 0, &nLine, &nChar);
 	
 	bool bRegex = (nFlags & FIND_REGEX) != 0;
@@ -2322,8 +2318,8 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 	}
 	RegexRangeList listRange;
 	
-	std::pair<unsigned int, unsigned int> start(0, 0);
-	std::pair<unsigned int, unsigned int> end(0, 0);
+	std::pair<size_t, size_t> start(0, 0);
+	std::pair<size_t, size_t> end(0, 0);
 	
 	size_t nLen = wcslen(pwszFind);
 	if (nFlags & FIND_PREVIOUS) {
@@ -2332,8 +2328,8 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 		if (nChar == -1)
 			nChar = pImpl_->listLine_[nLine]->nLength_;
 		
-		unsigned int nLogicalLine = pImpl_->listLine_[nLine]->nLogicalLine_;
-		unsigned int nLogicalChar = pImpl_->listLine_[nLine]->nPosition_ + nChar;
+		size_t nLogicalLine = pImpl_->listLine_[nLine]->nLogicalLine_;
+		size_t nLogicalChar = pImpl_->listLine_[nLine]->nPosition_ + nChar;
 		if (bRegex) {
 			while (nLogicalLine != -1) {
 				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
@@ -2381,8 +2377,8 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 		if (nChar == -1)
 			nChar = 0;
 		
-		unsigned int nLogicalLine = pImpl_->listLine_[nLine]->nLogicalLine_;
-		unsigned int nLogicalChar = pImpl_->listLine_[nLine]->nPosition_ + nChar;
+		size_t nLogicalLine = pImpl_->listLine_[nLine]->nLogicalLine_;
+		size_t nLogicalChar = pImpl_->listLine_[nLine]->nPosition_ + nChar;
 		if (bRegex) {
 			while (nLogicalLine < pImpl_->pTextModel_->getLineCount()) {
 				TextModel::Line line = pImpl_->pTextModel_->getLine(nLogicalLine);
@@ -2447,8 +2443,8 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 }
 
 void qs::TextWindow::getFindPosition(bool bPrev,
-									 unsigned int* pnLine,
-									 unsigned int* pnChar) const
+									 size_t* pnLine,
+									 size_t* pnChar) const
 {
 	assert(pnLine);
 	assert(pnChar);
@@ -2471,10 +2467,10 @@ void qs::TextWindow::reform()
 	size_t nEnd = 0;
 	
 	if (isSelected()) {
-		unsigned int nStartLine = 0;
-		unsigned int nStartChar = 0;
-		unsigned int nEndLine = 0;
-		unsigned int nEndChar = 0;
+		size_t nStartLine = 0;
+		size_t nStartChar = 0;
+		size_t nEndLine = 0;
+		size_t nEndChar = 0;
 		pImpl_->getSelection(&nStartLine, &nStartChar, &nEndLine, &nEndChar, 0);
 		
 		nStart = pImpl_->listLine_[nStartLine]->nLogicalLine_;
@@ -2570,8 +2566,7 @@ void qs::TextWindow::reform()
 		buf.getLength(), pImpl_->nReformLineLength_, wstrQuote.get(),
 		nQuoteLen, pImpl_->nTabWidth_));
 	
-	std::pair<unsigned int, unsigned int> l;
-	l = pImpl_->getPhysicalLine(nStart, 0);
+	std::pair<size_t, size_t> l(pImpl_->getPhysicalLine(nStart, 0));
 	pImpl_->selection_.nStartLine_ = l.first;
 	pImpl_->selection_.nStartChar_ = l.second;
 	TextModel::Line line = pImpl_->pTextModel_->getLine(nEnd);
@@ -2601,7 +2596,7 @@ void qs::TextWindow::scroll(Scroll scroll,
 	if (scroll & SCROLL_VERTICAL_MASK) {
 		unsigned int nLineInWindow = pImpl_->getLineInWindow();
 		
-		int nEnd = pImpl_->listLine_.size() - nLineInWindow;
+		int nEnd = static_cast<int>(pImpl_->listLine_.size() - nLineInWindow);
 		if (nEnd < 0)
 			nEnd = 0;
 		
@@ -2686,8 +2681,8 @@ void qs::TextWindow::scroll(Scroll scroll,
 }
 
 void qs::TextWindow::moveCaret(MoveCaret moveCaret,
-							   unsigned int nLine,
-							   unsigned int nChar,
+							   size_t nLine,
+							   size_t nChar,
 							   bool bRepeat,
 							   Select select,
 							   bool bScroll)
@@ -2698,7 +2693,7 @@ void qs::TextWindow::moveCaret(MoveCaret moveCaret,
 		const TextWindowImpl::PhysicalLine* pLine =
 			pImpl_->listLine_[pImpl_->caret_.nLine_];
 		
-		unsigned int nLineCount = pImpl_->listLine_.size();
+		size_t nLineCount = pImpl_->listLine_.size();
 		unsigned int nLineInWindow = pImpl_->getLineInWindow();
 		
 		RECT rectMargin = { -1, -1, -1, -1 };
@@ -2742,8 +2737,8 @@ void qs::TextWindow::moveCaret(MoveCaret moveCaret,
 			break;
 		case MOVECARET_WORDLEFT:
 			if (pImpl_->caret_.nLine_ != 0 || pImpl_->caret_.nChar_ != 0) {
-				unsigned int nLine = pImpl_->caret_.nLine_;
-				unsigned int nChar = pImpl_->caret_.nChar_;
+				size_t nLine = pImpl_->caret_.nLine_;
+				size_t nChar = pImpl_->caret_.nChar_;
 				TextWindowImpl::CharType firstType = TextWindowImpl::CHARTYPE_NONE;
 				bool bBreak = false;
 				while (!bBreak) {
@@ -2753,7 +2748,7 @@ void qs::TextWindow::moveCaret(MoveCaret moveCaret,
 						pLine->nLogicalLine_);
 					if (nChar == -1)
 						nChar = pLine->nLength_ + 1;
-					for (unsigned int n = nChar; n > 0 && !bBreak; --n) {
+					for (size_t n = nChar; n > 0 && !bBreak; --n) {
 						if (n == 1 && pLine->nPosition_ == 0) {
 							bBreak = true;
 							nChar = 0;
@@ -2810,8 +2805,8 @@ void qs::TextWindow::moveCaret(MoveCaret moveCaret,
 		case MOVECARET_WORDRIGHT:
 			if (pImpl_->caret_.nLine_ != nLineCount - 1 ||
 				pImpl_->caret_.nChar_ != pLine->nLength_) {
-				unsigned int nLine = pImpl_->caret_.nLine_;
-				unsigned int nChar = pImpl_->caret_.nChar_;
+				size_t nLine = pImpl_->caret_.nLine_;
+				size_t nChar = pImpl_->caret_.nChar_;
 				TextWindowImpl::CharType firstType = TextWindowImpl::CHARTYPE_NONE;
 				bool bBreak = false;
 				while (nLine < pImpl_->listLine_.size()) {
@@ -2819,7 +2814,7 @@ void qs::TextWindow::moveCaret(MoveCaret moveCaret,
 						pImpl_->listLine_[nLine];
 					TextModel::Line line = pImpl_->pTextModel_->getLine(
 						pLine->nLogicalLine_);
-					for (unsigned int n = nChar; n < pLine->nLength_ && !bBreak; ++n) {
+					for (size_t n = nChar; n < pLine->nLength_ && !bBreak; ++n) {
 						WCHAR c = *(line.getText() + pLine->nPosition_ + n);
 						TextWindowImpl::CharType type = TextWindowImpl::getCharType(c);
 						if (firstType == TextWindowImpl::CHARTYPE_NONE) {
@@ -3763,15 +3758,14 @@ LRESULT qs::TextWindow::onPaint()
 	rect.bottom = pImpl_->nMarginTop_;
 	dc.fillSolidRect(rect, pImpl_->crBackground_);
 	
-	unsigned int nStartLine = pImpl_->scrollPos_.nLine_;
-	unsigned int nEndLine = QSMIN(pImpl_->listLine_.size(),
-		nStartLine + nLineInWindow + 2);
+	size_t nStartLine = pImpl_->scrollPos_.nLine_;
+	size_t nEndLine = QSMIN(pImpl_->listLine_.size(), nStartLine + nLineInWindow + 2);
 	
 	POINT pt = {
 		pImpl_->nMarginLeft_ - pImpl_->scrollPos_.nPos_,
 		pImpl_->nMarginTop_
 	};
-	unsigned int n = nStartLine;
+	size_t n = nStartLine;
 	while (n < nEndLine) {
 		rect.top = pt.y;
 		rect.bottom = rect.top + nLineHeight;
@@ -3801,7 +3795,7 @@ LRESULT qs::TextWindow::onPaint()
 				dc.fillSolidRect(r, pImpl_->crBackground_);
 				
 				ObjectSelector<HPEN> penSelector(dc, hpenQuote.get());
-				for (size_t n = 0; n < pPhysicalLine->nQuoteDepth_; ++n) {
+				for (unsigned char n = 0; n < pPhysicalLine->nQuoteDepth_; ++n) {
 					POINT ptQuote[] = {
 						{ pt.x + nQuoteWidth*n + nQuoteWidth/2,	rect.top },
 						{ pt.x + nQuoteWidth*n + nQuoteWidth/2,	rect.bottom }
@@ -3870,7 +3864,7 @@ LRESULT qs::TextWindow::onPaint()
 				dc.bitBlt(pt.x + x, pt.y, nAverageCharWidth,
 					nLineHeight, dcNewLine, 0, 0, SRCCOPY);
 			
-			std::pair<unsigned int, unsigned int> s = pImpl_->getSelection(n);
+			std::pair<size_t, size_t> s = pImpl_->getSelection(n);
 			if (s.first != s.second) {
 				assert(s.first < s.second);
 				int nStartPos = pImpl_->getPosFromChar(n, s.first);
@@ -3917,7 +3911,7 @@ LRESULT qs::TextWindow::onSetCursor(HWND hwnd,
 		::GetCursorPos(&pt);
 		screenToClient(&pt);
 		
-		std::pair<int, const TextWindowImpl::LinkItem*> item(
+		std::pair<size_t, const TextWindowImpl::LinkItem*> item(
 			pImpl_->getLinkItemFromPoint(pt));
 		if (item.second) {
 			::SetCursor(pImpl_->hCursorLink_);
@@ -3966,7 +3960,7 @@ LRESULT qs::TextWindow::onThemeChanged()
 }
 #endif
 
-LRESULT qs::TextWindow::onTimer(UINT nId)
+LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 {
 	if (nId == pImpl_->nTimerDragScroll_) {
 		killTimer(pImpl_->nTimerDragScroll_);
@@ -4081,12 +4075,12 @@ qs::TextWindowUndoManager::~TextWindowUndoManager()
 	clear();
 }
 
-void qs::TextWindowUndoManager::pushUndoItem(unsigned int nStartLine,
-											 unsigned int nStartChar,
-											 unsigned int nEndLine,
-											 unsigned int nEndChar,
-											 unsigned int nCaretLine,
-											 unsigned int nCaretChar,
+void qs::TextWindowUndoManager::pushUndoItem(size_t nStartLine,
+											 size_t nStartChar,
+											 size_t nEndLine,
+											 size_t nEndChar,
+											 size_t nCaretLine,
+											 size_t nCaretChar,
 											 wstring_ptr wstrText,
 											 bool bClearRedo)
 {
@@ -4112,12 +4106,12 @@ bool qs::TextWindowUndoManager::hasUndoItem() const
 	return !listUndo_.empty();
 }
 
-void qs::TextWindowUndoManager::pushRedoItem(unsigned int nStartLine,
-											 unsigned int nStartChar,
-											 unsigned int nEndLine,
-											 unsigned int nEndChar,
-											 unsigned int nCaretLine,
-											 unsigned int nCaretChar,
+void qs::TextWindowUndoManager::pushRedoItem(size_t nStartLine,
+											 size_t nStartChar,
+											 size_t nEndLine,
+											 size_t nEndChar,
+											 size_t nCaretLine,
+											 size_t nCaretChar,
 											 wstring_ptr wstrText)
 {
 	std::auto_ptr<Item> pItem(new Item(nStartLine, nStartChar,
@@ -4164,12 +4158,12 @@ void qs::TextWindowUndoManager::clear()
  *
  */
 
-qs::TextWindowUndoManager::Item::Item(unsigned int nStartLine,
-									  unsigned int nStartChar,
-									  unsigned int nEndLine,
-									  unsigned int nEndChar,
-									  unsigned int nCaretLine,
-									  unsigned int nCaretChar,
+qs::TextWindowUndoManager::Item::Item(size_t nStartLine,
+									  size_t nStartChar,
+									  size_t nEndLine,
+									  size_t nEndChar,
+									  size_t nCaretLine,
+									  size_t nCaretChar,
 									  wstring_ptr wstrText) :
 	nStartLine_(nStartLine),
 	nStartChar_(nStartChar),
@@ -4185,32 +4179,32 @@ qs::TextWindowUndoManager::Item::~Item()
 {
 }
 
-unsigned int qs::TextWindowUndoManager::Item::getStartLine() const
+size_t qs::TextWindowUndoManager::Item::getStartLine() const
 {
 	return nStartLine_;
 }
 
-unsigned int qs::TextWindowUndoManager::Item::getStartChar() const
+size_t qs::TextWindowUndoManager::Item::getStartChar() const
 {
 	return nStartChar_;
 }
 
-unsigned int qs::TextWindowUndoManager::Item::getEndLine() const
+size_t qs::TextWindowUndoManager::Item::getEndLine() const
 {
 	return nEndLine_;
 }
 
-unsigned int qs::TextWindowUndoManager::Item::getEndChar() const
+size_t qs::TextWindowUndoManager::Item::getEndChar() const
 {
 	return nEndChar_;
 }
 
-unsigned int qs::TextWindowUndoManager::Item::getCaretLine() const
+size_t qs::TextWindowUndoManager::Item::getCaretLine() const
 {
 	return nCaretLine_;
 }
 
-unsigned int qs::TextWindowUndoManager::Item::getCaretChar() const
+size_t qs::TextWindowUndoManager::Item::getCaretChar() const
 {
 	return nCaretChar_;
 }

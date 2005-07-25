@@ -1169,7 +1169,7 @@ LRESULT qm::AddressBookListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
-	pImpl_->nId_ = getWindowLong(GWL_ID);
+	pImpl_->nId_ = getId();
 	
 	ListView_SetExtendedListViewStyle(getHandle(), LVS_EX_FULLROWSELECT);
 	

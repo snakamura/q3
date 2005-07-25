@@ -2165,15 +2165,16 @@ LRESULT qm::MainWindow::onClose()
 LRESULT qm::MainWindow::onCopyData(HWND hwnd,
 								   COPYDATASTRUCT* pData)
 {
+	UINT nId = static_cast<UINT>(pData->dwData);
 	if (pData->lpData) {
 		Variant v(::SysAllocString(static_cast<WCHAR*>(pData->lpData)));
 		if (v.bstrVal) {
 			VARIANT* pvars[] = { &v };
-			pImpl_->pActionInvoker_->invoke(pData->dwData, pvars, countof(pvars));
+			pImpl_->pActionInvoker_->invoke(nId, pvars, countof(pvars));
 		}
 	}
 	else {
-		pImpl_->pActionInvoker_->invoke(pData->dwData, 0, 0);
+		pImpl_->pActionInvoker_->invoke(nId, 0, 0);
 	}
 	return 1;
 }

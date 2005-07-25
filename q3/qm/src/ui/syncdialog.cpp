@@ -669,7 +669,7 @@ void qm::SyncStatusWindow::endThread(unsigned int nId)
 
 void qm::SyncStatusWindow::setPos(unsigned int nId,
 								  bool bSub,
-								  unsigned int nPos)
+								  size_t nPos)
 {
 	Lock<CriticalSection> lock(cs_);
 	ItemList::iterator it = getItem(nId);
@@ -685,8 +685,8 @@ void qm::SyncStatusWindow::setPos(unsigned int nId,
 
 void qm::SyncStatusWindow::setRange(unsigned int nId,
 									bool bSub,
-									unsigned int nMin,
-									unsigned int nMax)
+									size_t nMin,
+									size_t nMax)
 {
 	Lock<CriticalSection> lock(cs_);
 	ItemList::iterator it = getItem(nId);
@@ -962,7 +962,7 @@ LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	nFontHeight_ = tm.tmHeight + tm.tmExternalLeading;
 	
 	SIZE size;
-	dc.getTextExtent(wstrCancel_.get(), wcslen(wstrCancel_.get()), &size);
+	dc.getTextExtent(wstrCancel_.get(), static_cast<int>(wcslen(wstrCancel_.get())), &size);
 	nCancelWidth_ = size.cx;
 	
 	return 0;
@@ -1072,7 +1072,7 @@ void qm::SyncStatusWindow::updateScrollBar()
 	int nItemCount = 0;
 	{
 		Lock<CriticalSection> lock(cs_);
-		nItemCount = listItem_.size();
+		nItemCount = static_cast<int>(listItem_.size());
 	}
 	
 	int nItemHeight = getItemHeight();
@@ -1159,17 +1159,17 @@ void qm::SyncStatusWindow::paintItem(DeviceContext* pdc,
 	pdc->setTextColor(::GetSysColor(COLOR_BTNTEXT));
 	pdc->setBkColor(::GetSysColor(COLOR_BTNFACE));
 	pdc->extTextOut(rectClip.left + 5, rectClip.top,
-		ETO_CLIPPED | ETO_OPAQUE, rectClip,
-		pwszMessage, wcslen(pwszMessage), 0);
+		ETO_CLIPPED | ETO_OPAQUE, rectClip, pwszMessage,
+		static_cast<UINT>(wcslen(pwszMessage)), 0);
 }
 
 void qm::SyncStatusWindow::paintProgress(qs::DeviceContext* pdc,
 										 const RECT& rect,
 										 const Item::Progress& progress)
 {
-	int nMin = progress.nMin_;
-	int nMax = progress.nMax_;
-	int nPos = progress.nPos_;
+	size_t nMin = progress.nMin_;
+	size_t nMax = progress.nMax_;
+	size_t nPos = progress.nPos_;
 	if (nPos < nMin)
 		nPos = nMin;
 	else if (nPos > nMax)
@@ -1213,20 +1213,21 @@ void qm::SyncStatusWindow::paintProgress(qs::DeviceContext* pdc,
 	
 	WCHAR wsz[128] = { L'\0' };
 	if (nMin != 0 || nMax != 0)
-		swprintf(wsz, L"%d/%d", nPos - nMin, nMax - nMin);
+		swprintf(wsz, L"%u/%u", static_cast<unsigned int>(nPos - nMin),
+			static_cast<unsigned int>(nMax - nMin));
 	
 	SIZE size;
-	pdc->getTextExtent(wsz, wcslen(wsz), &size);
+	pdc->getTextExtent(wsz, static_cast<int>(wcslen(wsz)), &size);
 	int nLeft = rect.left + ((rect.right - rect.left) - size.cx)/2;
 	int nTop = rect.top;
 	
 	pdc->setBkMode(TRANSPARENT);
 	pdc->setTextColor(::GetSysColor(COLOR_CAPTIONTEXT));
-	pdc->extTextOut(nLeft, nTop, ETO_CLIPPED,
-		rectHighlight, wsz, wcslen(wsz), 0);
+	pdc->extTextOut(nLeft, nTop, ETO_CLIPPED, rectHighlight,
+		wsz, static_cast<UINT>(wcslen(wsz)), 0);
 	pdc->setTextColor(::GetSysColor(COLOR_BTNTEXT));
-	pdc->extTextOut(nLeft, nTop, ETO_CLIPPED,
-		rectUnHighlight, wsz, wcslen(wsz), 0);
+	pdc->extTextOut(nLeft, nTop, ETO_CLIPPED, rectUnHighlight,
+		wsz, static_cast<UINT>(wcslen(wsz)), 0);
 }
 
 SyncStatusWindow::ItemList::iterator qm::SyncStatusWindow::getItem(unsigned int nId)
@@ -1286,15 +1287,15 @@ const WCHAR* qm::SyncStatusWindow::Item::getMessage() const
 }
 
 void qm::SyncStatusWindow::Item::setPos(bool bSub,
-										unsigned int nPos)
+										size_t nPos)
 {
 	Progress& p = bSub ? sub_ : main_;
 	p.nPos_ = nPos;
 }
 
 void qm::SyncStatusWindow::Item::setRange(bool bSub,
-										  unsigned int nMin,
-										  unsigned int nMax)
+										  size_t nMin,
+										  size_t nMax)
 {
 	Progress& p = bSub ? sub_ : main_;
 	p.nMin_ = nMin;

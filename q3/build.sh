@@ -9,7 +9,7 @@ PURIFY=${PURIFY:=d:/dev/rational/purify/purify.exe}
 DOXYGEN=${DOXYGEN:=d:/dev/doxygen/doxygen.exe}
 
 PROJECTS="qs qscrypto qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qmpgp qmjunk q3"
-WINTARGETS="win.ansi.release win.unicode.release"
+WINTARGETS="win.x86.ansi.release win.x86.unicode.release win.x64.unicode.release"
 WCETARGETS="ppc2003se.armv4.ja ppc2003.armv4.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
 TARGETS="$WINTARGETS $WCETARGETS"
 
@@ -96,10 +96,10 @@ run|run.unicode|run.debug|run.debug.unicode|debug|debug.unicode|purify|purify.un
 	
 	RUNPATH=`pwd`/lib
 	for p in $PROJECTS; do
-		RUNPATH="$RUNPATH:`pwd`/$p/lib/win/$CODE/$DEBUG"
+		RUNPATH="$RUNPATH:`pwd`/$p/lib/win/x86/$CODE/$DEBUG"
 	done
 	
-	PATH="$PATH:$RUNPATH" $EXEC q3/bin/win/$CODE/$DEBUG/q3$SUFFIX.exe &
+	PATH="$PATH:$RUNPATH" $EXEC q3/bin/win/x86/$CODE/$DEBUG/q3$SUFFIX.exe &
 	;;
 
 countline)
@@ -147,11 +147,11 @@ zip)
 	mkdir -p $ZIPDIR
 	
 	zip -j $ZIPDIR/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \
-		*/bin/win/ansi/release/*.exe \
-		*/lib/win/ansi/release/*.dll
+		*/bin/win/x86/ansi/release/*.exe \
+		*/lib/win/x86/ansi/release/*.dll
 	zip -j $ZIPDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \
-		*/bin/win/unicode/release/*.exe \
-		*/lib/win/unicode/release/*.dll
+		*/bin/win/x86/unicode/release/*.exe \
+		*/lib/win/x86/unicode/release/*.dll
 	
 	for t in $WCETARGETS; do
 		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \

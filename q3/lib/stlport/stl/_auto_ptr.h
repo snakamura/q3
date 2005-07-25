@@ -110,9 +110,9 @@ public:
   template<class _Tp1> operator auto_ptr_ref<_Tp1>() {
     return auto_ptr_ref<_Tp1>(*this, this->get());
   }
-  template<class _Tp1> operator auto_ptr<_Tp1>() {
-    return auto_ptr<_Tp1>(release());
-  }
+//  template<class _Tp1> operator auto_ptr<_Tp1>() {
+//    return auto_ptr<_Tp1>(release());
+//  }
 # else
   operator auto_ptr_ref<_Tp>()
   { return auto_ptr_ref<_Tp>(*this, this->get()); }

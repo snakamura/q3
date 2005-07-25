@@ -104,7 +104,7 @@ void qm::AddressBookEntryDialog::updateState()
 	AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::updateState();
 	
 	bool bEnable = Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0 &&
-		sendDlgItemMessage(IDC_ADDRESSES, LB_GETCOUNT) != 0;
+		ListBox_GetCount(getDlgItem(IDC_ADDRESSES)) != 0;
 	Window(getDlgItem(IDOK)).enableWindow(bEnable);
 }
 
@@ -290,12 +290,10 @@ LRESULT qm::AddAddressDialog::onInitDialog(HWND hwndFocus,
 	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
 		const AddressBookEntry* pEntry = *it;
 		W2T(pEntry->getName(), ptszName);
-		int nItem = sendDlgItemMessage(IDC_ENTRIES, LB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
-		sendDlgItemMessage(IDC_ENTRIES, LB_SETITEMDATA,
-			nItem, reinterpret_cast<LPARAM>(pEntry));
+		int nItem = ListBox_AddString(getDlgItem(IDC_ENTRIES), ptszName);
+		ListBox_SetItemData(getDlgItem(IDC_ENTRIES), nItem, pEntry);
 	}
-	sendDlgItemMessage(IDC_ENTRIES, LB_SETCURSEL, 0);
+	ListBox_SetCurSel(getDlgItem(IDC_ENTRIES), 0);
 	
 	updateState();
 	
@@ -307,11 +305,11 @@ LRESULT qm::AddAddressDialog::onOk()
 	if (sendDlgItemMessage(IDC_NEWADDRESS, BM_GETCHECK) == BST_CHECKED) {
 		type_ = TYPE_NEWADDRESS;
 		
-		int nItem = sendDlgItemMessage(IDC_ENTRIES, LB_GETCURSEL);
+		int nItem = ListBox_GetCurSel(getDlgItem(IDC_ENTRIES));
 		if (nItem == LB_ERR)
 			return 0;
 		pEntry_ = reinterpret_cast<AddressBookEntry*>(
-			sendDlgItemMessage(IDC_ENTRIES, LB_GETITEMDATA, nItem));
+			ListBox_GetItemData(getDlgItem(IDC_ENTRIES), nItem));
 	}
 	else {
 		type_ = TYPE_NEWENTRY;
@@ -343,7 +341,7 @@ void qm::AddAddressDialog::updateState()
 	bool bNewAddress = sendDlgItemMessage(IDC_NEWADDRESS, BM_GETCHECK) == BST_CHECKED;
 	Window(getDlgItem(IDC_ENTRIES)).enableWindow(bNewAddress);
 	Window(getDlgItem(IDOK)).enableWindow(!bNewAddress ||
-		sendDlgItemMessage(IDC_ENTRIES, LB_GETCURSEL) != LB_ERR);
+		ListBox_GetCurSel(getDlgItem(IDC_ENTRIES)) != LB_ERR);
 }
 
 

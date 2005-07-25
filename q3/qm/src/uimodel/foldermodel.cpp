@@ -172,7 +172,7 @@ void qm::DelayedFolderModelHandler::folderSelected(const FolderModelEvent& event
 		pHandler_->folderSelected(event);
 }
 
-void qm::DelayedFolderModelHandler::timerTimeout(unsigned int nId)
+void qm::DelayedFolderModelHandler::timerTimeout(Timer::Id nId)
 {
 	assert(nId == nTimerId_);
 	assert((pAccount_ && !pFolder_) || (!pAccount_ && pFolder_));
@@ -191,7 +191,6 @@ void qm::DelayedFolderModelHandler::set(Account* pAccount,
 	pAccount_ = pAccount;
 	pFolder_ = pFolder;
 	
-	nTimerId_ = TIMERID;
 	nTimerId_ = pTimer_->setTimer(TIMERID, TIMEOUT, this);
 }
 

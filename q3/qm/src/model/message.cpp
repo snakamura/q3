@@ -1843,8 +1843,6 @@ bool qm::PartUtil::w2a(const WCHAR* pwsz,
 	if (nLen == -1)
 		nLen = wcslen(pwsz);
 	
-	int nCount = std::count(pwsz, pwsz + nLen, L'\n');
-	
 	for (size_t n = 0; n < nLen; ++n) {
 		WCHAR c = *(pwsz + n);
 		if (c >= 0x80)

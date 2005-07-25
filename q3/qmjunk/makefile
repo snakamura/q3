@@ -11,7 +11,7 @@ LIBRARIES		= qs qm
 
 EXTERNALINCS	= -I"$(QDBMDIR)/include"
 ifeq ($(PLATFORM),win)
-	EXTERNALLIBS= "$(QDBMDIR)/lib/win/qdbm_t$(DSUFFIX).lib"
+	EXTERNALLIBS= "$(QDBMDIR)/lib/win/$(EXLIBCPU)/qdbm_t$(DSUFFIX).lib"
 else
 	EXTERNALLIBS= "$(QDBMDIR)/lib/wce/$(EXLIBCPU)/qdbm_t$(DSUFFIX).lib"
 endif

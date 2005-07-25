@@ -27,6 +27,9 @@ class TimerHandler;
 class QSEXPORTCLASS Timer
 {
 public:
+	typedef UINT_PTR Id;
+
+public:
 	/**
 	 * Create instance.
 	 *
@@ -46,16 +49,16 @@ public:
 	 * @return Timer ID. -1 if fail.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	unsigned int setTimer(unsigned int nId,
-						  unsigned int nTimeout,
-						  TimerHandler* pHandler);
+	Id setTimer(Id nId,
+				unsigned int nTimeout,
+				TimerHandler* pHandler);
 	
 	/**
 	 * Kill timer.
 	 *
 	 * @param nId [in] Timer ID.
 	 */
-	void killTimer(unsigned int nId);
+	void killTimer(Id nId);
 
 private:
 	Timer(const Timer&);
@@ -83,7 +86,7 @@ public:
 	 *
 	 * @param nId [in] Timer ID.
 	 */
-	virtual void timerTimeout(unsigned int nId) = 0;
+	virtual void timerTimeout(Timer::Id nId) = 0;
 };
 
 }

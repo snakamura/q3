@@ -95,9 +95,9 @@ public:
 	virtual bool isCanceled() = 0;
 	virtual void checkingMessages(Folder* pFolder) = 0;
 	virtual void applyingRule(Folder* pFolder) = 0;
-	virtual void setRange(unsigned int nMin,
-						  unsigned int nMax) = 0;
-	virtual void setPos(unsigned int nPos) = 0;
+	virtual void setRange(size_t nMin,
+						  size_t nMax) = 0;
+	virtual void setPos(size_t nPos) = 0;
 };
 
 }

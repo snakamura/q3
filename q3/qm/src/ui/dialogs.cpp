@@ -260,7 +260,7 @@ void qm::AttachmentDialog::update()
 		W2T(wstrName.get(), ptszName);
 		LVITEM item = {
 			LVIF_TEXT | LVIF_IMAGE,
-			n,
+			static_cast<int>(n),
 			0,
 			0,
 			0,
@@ -491,7 +491,7 @@ LRESULT qm::DetachDialog::onInitDialog(HWND hwndFocus,
 		W2T(list_[n].wstrName_, ptszName);
 		LVITEM item = {
 			LVIF_TEXT,
-			n,
+			static_cast<int>(n),
 			0,
 			0,
 			0,
@@ -782,25 +782,25 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
 	W2T(wstrNone.get(), ptszNone);
-	sendDlgItemMessage(IDC_TEMPLATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszNone));
+	ComboBox_AddString(getDlgItem(IDC_TEMPLATE), ptszNone);
 	
 	TemplateManager::NameList listTemplate;
 	StringListFree<TemplateManager::NameList> freeTemplate(listTemplate);
 	pTemplateManager_->getTemplateNames(pAccount_, L"export", &listTemplate);
 	for (TemplateManager::NameList::const_iterator it = listTemplate.begin(); it != listTemplate.end(); ++it) {
 		W2T(*it + 7, ptszTemplate);
-		sendDlgItemMessage(IDC_TEMPLATE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszTemplate));
+		ComboBox_AddString(getDlgItem(IDC_TEMPLATE), ptszTemplate);
 	}
-	sendDlgItemMessage(IDC_TEMPLATE, CB_SETCURSEL, 0);
+	ComboBox_SetCurSel(getDlgItem(IDC_TEMPLATE), 0);
 	
 	UIUtil::EncodingList listEncoding;
 	StringListFree<UIUtil::EncodingList> freeEncoding(listEncoding);
 	UIUtil::loadEncodings(pProfile_, &listEncoding);
 	for (UIUtil::EncodingList::const_iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
 		W2T(*it, ptszEncoding);
-		sendDlgItemMessage(IDC_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszEncoding));
+		ComboBox_AddString(getDlgItem(IDC_ENCODING), ptszEncoding);
 	}
-	sendDlgItemMessage(IDC_ENCODING, CB_SETCURSEL, 0);
+	ComboBox_SetCurSel(getDlgItem(IDC_ENCODING), 0);
 	
 	updateState();
 	
@@ -820,16 +820,15 @@ LRESULT qm::ExportDialog::onOk()
 		{ IDC_EXPORTFLAGS,			FLAG_EXPORTFLAGS	}
 	};
 	for (int n = 0; n < countof(flags); ++n) {
-		if (sendDlgItemMessage(flags[n].nId_, BM_GETCHECK) == BST_CHECKED)
+		if (Button_GetCheck(getDlgItem(flags[n].nId_)) == BST_CHECKED)
 			nFlags_ |= flags[n].flag_;
 	}
 	
-	int nIndex = sendDlgItemMessage(IDC_TEMPLATE, CB_GETCURSEL);
+	int nIndex = ComboBox_GetCurSel(getDlgItem(IDC_TEMPLATE));
 	if (nIndex != CB_ERR && nIndex != 0) {
-		int nLen = sendDlgItemMessage(IDC_TEMPLATE, CB_GETLBTEXTLEN, nIndex);
+		int nLen = ComboBox_GetLBTextLen(getDlgItem(IDC_TEMPLATE), nIndex);
 		tstring_ptr tstrTemplate(allocTString(nLen + 1));
-		sendDlgItemMessage(IDC_TEMPLATE, CB_GETLBTEXT,
-			nIndex, reinterpret_cast<LPARAM>(tstrTemplate.get()));
+		ComboBox_GetLBText(getDlgItem(IDC_TEMPLATE), nIndex, tstrTemplate.get());
 		wstring_ptr wstrTemplate(tcs2wcs(tstrTemplate.get()));
 		wstrTemplate_ = concat(L"export_", wstrTemplate.get());
 		
@@ -881,7 +880,7 @@ LRESULT qm::ExportDialog::onEncodingSelChange()
 
 void qm::ExportDialog::updateState()
 {
-	int nIndex = sendDlgItemMessage(IDC_TEMPLATE, CB_GETCURSEL);
+	int nIndex = ComboBox_GetCurSel(getDlgItem(IDC_TEMPLATE));
 	Window(getDlgItem(IDC_ENCODING)).enableWindow(nIndex != 0 && nIndex != CB_ERR);
 	
 	bool bEnable = sendDlgItemMessage(IDC_PATH, WM_GETTEXTLENGTH) != 0 &&
@@ -957,21 +956,18 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus,
 		wstring_ptr wstr(history.getValue(n));
 		if (*wstr.get()) {
 			W2T(wstr.get(), ptsz);
-			sendDlgItemMessage(IDC_FIND, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptsz));
+			ComboBox_AddString(getDlgItem(IDC_FIND), ptsz);
 		}
 	}
-	if (sendDlgItemMessage(IDC_FIND, CB_GETCOUNT) != 0)
-		sendDlgItemMessage(IDC_FIND, CB_SETCURSEL, 0);
+	if (ComboBox_GetCount(getDlgItem(IDC_FIND)) != 0)
+		ComboBox_SetCurSel(getDlgItem(IDC_FIND), 0);
 	
 	int nMatchCase = pProfile_->getInt(L"Find", L"MatchCase", 0);
-	sendDlgItemMessage(IDC_MATCHCASE, BM_SETCHECK,
-		nMatchCase ? BST_CHECKED : BST_UNCHECKED);
+	Button_SetCheck(getDlgItem(IDC_MATCHCASE), nMatchCase ? BST_CHECKED : BST_UNCHECKED);
 	
 	if (bSupportRegex_) {
 		int nRegex = pProfile_->getInt(L"Find", L"Regex", 0);
-		sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
-			nRegex ? BST_CHECKED : BST_UNCHECKED);
+		Button_SetCheck(getDlgItem(IDC_REGEX), nRegex ? BST_CHECKED : BST_UNCHECKED);
 	}
 	
 	wndFind_.subclassWindow(::GetWindow(getDlgItem(IDC_FIND), GW_CHILD));
@@ -986,10 +982,10 @@ LRESULT qm::FindDialog::onFind(UINT nId)
 	wstrFind_ = getDlgItemText(IDC_FIND);
 	History(pProfile_, L"Find").addValue(wstrFind_.get());
 	
-	bMatchCase_ = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
+	bMatchCase_ = Button_GetCheck(getDlgItem(IDC_MATCHCASE)) == BST_CHECKED;
 	pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
 	
-	bRegex_ = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+	bRegex_ = Button_GetCheck(getDlgItem(IDC_REGEX)) == BST_CHECKED;
 	pProfile_->setInt(L"Find", L"Regex", bRegex_ ? 1 : 0);
 	
 	bPrev_ = nId == IDC_FINDPREV;
@@ -1029,7 +1025,7 @@ void qm::FindDialog::updateState()
 {
 	Window(getDlgItem(IDC_REGEX)).enableWindow(bSupportRegex_);
 	bool bRegex = bSupportRegex_ &&
-		sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+		Button_GetCheck(getDlgItem(IDC_REGEX)) == BST_CHECKED;
 	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(!bRegex);
 	
 	Window edit(Window(getDlgItem(IDC_FIND)).getWindow(GW_CHILD));
@@ -1042,8 +1038,8 @@ void qm::FindDialog::notifyCallback()
 {
 	if (pCallback_) {
 		wstring_ptr wstrFind(getDlgItemText(IDC_FIND));
-		bool bMatchCase = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
-		bool bRegex = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+		bool bMatchCase = Button_GetCheck(getDlgItem(IDC_MATCHCASE)) == BST_CHECKED;
+		bool bRegex = Button_GetCheck(getDlgItem(IDC_REGEX)) == BST_CHECKED;
 		pCallback_->statusChanged(wstrFind.get(), bMatchCase, bRegex);
 	}
 }
@@ -1119,17 +1115,17 @@ LRESULT qm::ImportDialog::onInitDialog(HWND hwndFocus,
 	if (wstrPath_.get())
 		setDlgItemText(IDC_PATH, wstrPath_.get());
 	
-	sendDlgItemMessage(IDC_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(_T("")));
+	ComboBox_AddString(getDlgItem(IDC_ENCODING), _T(""));
 	UIUtil::EncodingList listEncoding;
 	StringListFree<UIUtil::EncodingList> freeEncoding(listEncoding);
 	UIUtil::loadEncodings(pProfile_, &listEncoding);
 	for (UIUtil::EncodingList::const_iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
 		W2T(*it, ptszEncoding);
-		sendDlgItemMessage(IDC_ENCODING, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszEncoding));
+		ComboBox_AddString(getDlgItem(IDC_ENCODING), ptszEncoding);
 	}
-	sendDlgItemMessage(IDC_ENCODING, CB_SETCURSEL, 0);
+	ComboBox_SetCurSel(getDlgItem(IDC_ENCODING), 0);
 	
-	sendDlgItemMessage(IDC_NORMAL, BM_SETCHECK, BST_CHECKED);
+	Button_SetCheck(getDlgItem(IDC_NORMAL), BST_CHECKED);
 	
 	updateState();
 	
@@ -1140,7 +1136,7 @@ LRESULT qm::ImportDialog::onOk()
 {
 	wstrPath_ = getDlgItemText(IDC_PATH);
 	
-	bMultiple_ = sendDlgItemMessage(IDC_MULTIMESSAGES, BM_GETCHECK) == BST_CHECKED;
+	bMultiple_ = Button_GetCheck(getDlgItem(IDC_MULTIMESSAGES)) == BST_CHECKED;
 	
 	wstrEncoding_ = getDlgItemText(IDC_ENCODING);
 	
@@ -1154,7 +1150,7 @@ LRESULT qm::ImportDialog::onOk()
 		{ IDC_IGNORE,				Account::IMPORTFLAG_IGNOREFLAGS		}
 	};
 	for (int n = 0; n < countof(flags); ++n) {
-		if (sendDlgItemMessage(flags[n].nId_, BM_GETCHECK) == BST_CHECKED)
+		if (Button_GetCheck(getDlgItem(flags[n].nId_)) == BST_CHECKED)
 			nFlags_ |= flags[n].flag_;
 	}
 	
@@ -1423,7 +1419,7 @@ LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus,
 	TreeView_SetImageList(getDlgItem(IDC_FOLDER), hImageList, TVSIL_NORMAL);
 	
 	if (bShowHidden_)
-		sendDlgItemMessage(IDC_SHOWHIDDEN, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SHOWHIDDEN), BST_CHECKED);
 	
 	Folder* pFolderSelected = 0;
 	wstring_ptr wstrFolder(pAccount_->getProperty(L"UI", L"FolderTo", L""));
@@ -1467,7 +1463,7 @@ LRESULT qm::MoveMessageDialog::onOk()
 		return 0;
 	pFolder_ = static_cast<NormalFolder*>(pFolder);
 	
-	bCopy_ = sendDlgItemMessage(IDC_COPY, BM_GETCHECK) == BST_CHECKED;
+	bCopy_ = Button_GetCheck(getDlgItem(IDC_COPY)) == BST_CHECKED;
 	
 	wstring_ptr wstrFolderName(pFolder_->getFullName());
 	ConcatW c[] = {
@@ -1484,7 +1480,7 @@ LRESULT qm::MoveMessageDialog::onOk()
 
 LRESULT qm::MoveMessageDialog::onShowHidden()
 {
-	bool bShowHidden = sendDlgItemMessage(IDC_SHOWHIDDEN, BM_GETCHECK) == BST_CHECKED;
+	bool bShowHidden = Button_GetCheck(getDlgItem(IDC_SHOWHIDDEN)) == BST_CHECKED;
 	if (bShowHidden != bShowHidden_) {
 		bShowHidden_ = bShowHidden;
 		
@@ -1695,7 +1691,7 @@ LRESULT qm::PasswordDialog::onInitDialog(HWND hwndFocus,
 	init(false);
 	
 	setDlgItemText(IDC_HINT, wstrHint_.get());
-	sendDlgItemMessage(IDC_SESSION, BM_SETCHECK, BST_CHECKED);
+	Button_SetCheck(getDlgItem(IDC_SESSION), BST_CHECKED);
 	
 	return TRUE;
 }
@@ -1704,11 +1700,11 @@ LRESULT qm::PasswordDialog::onOk()
 {
 	wstrPassword_ = getDlgItemText(IDC_PASSWORD);
 	
-	if (sendDlgItemMessage(IDC_DONTSAVE, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_DONTSAVE)) == BST_CHECKED)
 		state_ = PASSWORDSTATE_ONETIME;
-	else if (sendDlgItemMessage(IDC_SESSION, BM_GETCHECK) == BST_CHECKED)
+	else if (Button_GetCheck(getDlgItem(IDC_SESSION)) == BST_CHECKED)
 		state_ = PASSWORDSTATE_SESSION;
-	else if (sendDlgItemMessage(IDC_SAVE, BM_GETCHECK) == BST_CHECKED)
+	else if (Button_GetCheck(getDlgItem(IDC_SAVE)) == BST_CHECKED)
 		state_ = PASSWORDSTATE_SAVE;
 	
 	return DefaultDialog::onOk();
@@ -1793,18 +1789,18 @@ void qm::ProgressDialog::setMessage(const WCHAR* pwszMessage)
 	setDlgItemText(IDC_MESSAGE, pwszMessage);
 }
 
-void qm::ProgressDialog::setRange(unsigned int nMin,
-								  unsigned int nMax)
+void qm::ProgressDialog::setRange(size_t nMin,
+								  size_t nMax)
 {
 	sendDlgItemMessage(IDC_PROGRESS, PBM_SETRANGE32, nMin, nMax);
 }
 
-void qm::ProgressDialog::setPos(unsigned int n)
+void qm::ProgressDialog::setPos(size_t n)
 {
 	sendDlgItemMessage(IDC_PROGRESS, PBM_SETPOS, n);
 }
 
-void qm::ProgressDialog::setStep(unsigned int n)
+void qm::ProgressDialog::setStep(size_t n)
 {
 	sendDlgItemMessage(IDC_PROGRESS, PBM_SETSTEP, n);
 }
@@ -1967,18 +1963,17 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus,
 			wstring_ptr wstr(pProfile_->getString(items[m].pwszSection_, wszKey, L""));
 			if (*wstr.get()) {
 				W2T(wstr.get(), ptsz);
-				sendDlgItemMessage(items[m].nId_, CB_ADDSTRING, 0,
-					reinterpret_cast<LPARAM>(ptsz));
+				ComboBox_AddString(getDlgItem(items[m].nId_), ptsz);
 			}
 		}
 	}
 	
 	int nMatchCase = pProfile_->getInt(L"Find", L"MatchCase", 0);
-	sendDlgItemMessage(IDC_MATCHCASE, BM_SETCHECK,
+	Button_SetCheck(getDlgItem(IDC_MATCHCASE),
 		nMatchCase ? BST_CHECKED : BST_UNCHECKED);
 	
 	int nRegex = pProfile_->getInt(L"Find", L"Regex", 0);
-	sendDlgItemMessage(IDC_REGEX, BM_SETCHECK,
+	Button_SetCheck(getDlgItem(IDC_REGEX),
 		nRegex ? BST_CHECKED : BST_UNCHECKED);
 	
 	updateState();
@@ -2014,10 +2009,10 @@ LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 		*items[m].pwstr_ = wstrText;
 	}
 	
-	bMatchCase_ = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
+	bMatchCase_ = Button_GetCheck(getDlgItem(IDC_MATCHCASE)) == BST_CHECKED;
 	pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
 	
-	bRegex_ = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+	bRegex_ = Button_GetCheck(getDlgItem(IDC_REGEX)) == BST_CHECKED;
 	pProfile_->setInt(L"Find", L"Regex", bRegex_ ? 1 : 0);
 	
 	type_ = nId == IDC_REPLACEPREV ? TYPE_PREV :
@@ -2048,7 +2043,7 @@ LRESULT qm::ReplaceDialog::onRegexChange()
 
 void qm::ReplaceDialog::updateState()
 {
-	bool bRegex = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
+	bool bRegex = Button_GetCheck(getDlgItem(IDC_REGEX)) == BST_CHECKED;
 	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(!bRegex);
 	
 	Window edit(Window(getDlgItem(IDC_FIND)).getWindow(GW_CHILD));
@@ -2120,7 +2115,7 @@ LRESULT qm::ResourceDialog::onInitDialog(HWND hwndFocus,
 		
 		LVITEM item = {
 			LVIF_TEXT,
-			n,
+			static_cast<int>(n),
 			0,
 			0,
 			0,
@@ -2130,7 +2125,7 @@ LRESULT qm::ResourceDialog::onInitDialog(HWND hwndFocus,
 		ListView_SetCheckState(hwnd, n, TRUE);
 	}
 	
-	sendDlgItemMessage(IDC_BACKUP, BM_SETCHECK, BST_CHECKED);
+	Button_SetCheck(getDlgItem(IDC_BACKUP), BST_CHECKED);
 	
 	return TRUE;
 }
@@ -2142,7 +2137,7 @@ LRESULT qm::ResourceDialog::onOk()
 	for (ResourceList::size_type n = 0; n < listResource_.size(); ++n)
 		listResource_[n].second = ListView_GetCheckState(hwnd, n) != 0;
 	
-	bBackup_ = sendDlgItemMessage(IDC_BACKUP, BM_GETCHECK) == BST_CHECKED;
+	bBackup_ = Button_GetCheck(getDlgItem(IDC_BACKUP)) == BST_CHECKED;
 	
 	return DefaultDialog::onOk();
 }
@@ -2210,14 +2205,12 @@ LRESULT qm::SelectDialupEntryDialog::onInitDialog(HWND hwndFocus,
 	
 	for (List::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
 		W2T(*it, ptszEntry);
-		sendDlgItemMessage(IDC_ENTRY, LB_ADDSTRING, 0,
-			reinterpret_cast<LPARAM>(ptszEntry));
+		ListBox_AddString(getDlgItem(IDC_ENTRY), ptszEntry);
 	}
 	
 	wstring_ptr wstrEntry(pProfile_->getString(L"Dialup", L"Entry", 0));
 	W2T(wstrEntry.get(), ptszEntry);
-	sendDlgItemMessage(IDC_ENTRY, LB_SELECTSTRING, -1,
-		reinterpret_cast<LPARAM>(ptszEntry));
+	ListBox_SelectString(getDlgItem(IDC_ENTRY), -1, ptszEntry);
 	
 	updateState();
 	
@@ -2226,17 +2219,16 @@ LRESULT qm::SelectDialupEntryDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::SelectDialupEntryDialog::onOk()
 {
-	int nIndex = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL);
+	int nIndex = ListBox_GetCurSel(getDlgItem(IDC_ENTRY));
 	if (nIndex == LB_ERR)
 		return 0;
 	
-	int nLen = sendDlgItemMessage(IDC_ENTRY, LB_GETTEXTLEN, nIndex);
+	int nLen = ListBox_GetTextLen(getDlgItem(IDC_ENTRY), nIndex);
 	if (nLen == LB_ERR)
 		return 0;
 	
 	tstring_ptr tstrEntry(allocTString(nLen + 1));
-	sendDlgItemMessage(IDC_ENTRY, LB_GETTEXT, nIndex,
-		reinterpret_cast<LPARAM>(tstrEntry.get()));
+	ListBox_GetText(getDlgItem(IDC_ENTRY), nIndex, tstrEntry.get());
 	
 	wstrEntry_ = tcs2wcs(tstrEntry.get());
 	pProfile_->setString(L"Dialup", L"Entry", wstrEntry_.get());
@@ -2252,7 +2244,7 @@ LRESULT qm::SelectDialupEntryDialog::onSelChange()
 
 void qm::SelectDialupEntryDialog::updateState()
 {
-	bool bEnable = sendDlgItemMessage(IDC_ENTRY, LB_GETCURSEL) != LB_ERR;
+	bool bEnable = ListBox_GetCurSel(getDlgItem(IDC_ENTRY)) != LB_ERR;
 	Window(getDlgItem(IDOK)).enableWindow(bEnable);
 }
 
@@ -2295,16 +2287,14 @@ LRESULT qm::SelectSyncFilterDialog::onInitDialog(HWND hwndFocus,
 		typedef SyncFilterManager::FilterSetList List;
 		for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
 			W2T((*it)->getName(), ptszName);
-			sendDlgItemMessage(IDC_FILTERSETLIST, LB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszName));
+			ListBox_AddString(getDlgItem(IDC_FILTERSETLIST), ptszName);
 		}
 		if (wstrName_.get()) {
 			W2T(wstrName_.get(), ptszName);
-			sendDlgItemMessage(IDC_FILTERSETLIST, LB_SELECTSTRING,
-				-1, reinterpret_cast<LPARAM>(ptszName));
+			ListBox_SelectString(getDlgItem(IDC_FILTERSETLIST), -1, ptszName);
 		}
 		else {
-			sendDlgItemMessage(IDC_FILTERSETLIST, LB_SETCURSEL, 0);
+			ListBox_SetCurSel(getDlgItem(IDC_FILTERSETLIST), 0);
 		}
 	}
 	
@@ -2313,14 +2303,13 @@ LRESULT qm::SelectSyncFilterDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::SelectSyncFilterDialog::onOk()
 {
-	unsigned int nItem = sendDlgItemMessage(IDC_FILTERSETLIST, LB_GETCURSEL);
+	int nItem = ListBox_GetCurSel(getDlgItem(IDC_FILTERSETLIST));
 	if (nItem == LB_ERR)
 		return onCancel();
 	
-	int nLen = sendDlgItemMessage(IDC_FILTERSETLIST, LB_GETTEXTLEN, nItem);
+	int nLen = ListBox_GetTextLen(getDlgItem(IDC_FILTERSETLIST), nItem);
 	tstring_ptr tstrName(allocTString(nLen + 10));
-	sendDlgItemMessage(IDC_FILTERSETLIST, LB_GETTEXT,
-		nItem, reinterpret_cast<LPARAM>(tstrName.get()));
+	ListBox_GetText(getDlgItem(IDC_FILTERSETLIST), nItem, tstrName.get());
 	
 	wstrName_ = tcs2wcs(tstrName.get());
 	
@@ -2418,9 +2407,9 @@ LRESULT qm::ViewsColumnDialog::onInitDialog(HWND hwndFocus,
 	for (int n = 0; n < countof(nTypes); ++n) {
 		wstring_ptr wstrType(loadString(hInst, nTypes[n]));
 		W2T(wstrType.get(), ptszType);
-		sendDlgItemMessage(IDC_TYPE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszType));
+		ComboBox_AddString(getDlgItem(IDC_TYPE), ptszType);
 	}
-	sendDlgItemMessage(IDC_TYPE, CB_SETCURSEL, pColumn_->getType() - 1);
+	ComboBox_SetCurSel(getDlgItem(IDC_TYPE), pColumn_->getType() - 1);
 	
 	setDlgItemInt(IDC_WIDTH, pColumn_->getWidth());
 	
@@ -2431,31 +2420,31 @@ LRESULT qm::ViewsColumnDialog::onInitDialog(HWND hwndFocus,
 	
 	unsigned int nFlags = pColumn_->getFlags();
 	if (nFlags & ViewColumn::FLAG_INDENT)
-		sendDlgItemMessage(IDC_INDENT, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_INDENT), BST_CHECKED);
 	if (nFlags & ViewColumn::FLAG_LINE)
-		sendDlgItemMessage(IDC_LINE, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_LINE), BST_CHECKED);
 	if (nFlags & ViewColumn::FLAG_ICON)
-		sendDlgItemMessage(IDC_ASICON, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_ASICON), BST_CHECKED);
 	if (nFlags & ViewColumn::FLAG_CACHE)
-		sendDlgItemMessage(IDC_CACHE, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_CACHE), BST_CHECKED);
 	
 	if (nFlags & ViewColumn::FLAG_RIGHTALIGN)
-		sendDlgItemMessage(IDC_RIGHTALIGN, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_RIGHTALIGN), BST_CHECKED);
 	else
-		sendDlgItemMessage(IDC_LEFTALIGN, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_LEFTALIGN), BST_CHECKED);
 	
 	switch (nFlags & ViewColumn::FLAG_SORT_MASK) {
 	case ViewColumn::FLAG_SORT_TEXT:
-		sendDlgItemMessage(IDC_SORTTEXT, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SORTTEXT), BST_CHECKED);
 		break;
 	case ViewColumn::FLAG_SORT_NUMBER:
-		sendDlgItemMessage(IDC_SORTNUMBER, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SORTNUMBER), BST_CHECKED);
 		break;
 	case ViewColumn::FLAG_SORT_DATE:
-		sendDlgItemMessage(IDC_SORTDATE, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SORTDATE), BST_CHECKED);
 		break;
 	default:
-		sendDlgItemMessage(IDC_SORTTEXT, BM_SETCHECK, BST_CHECKED);
+		Button_SetCheck(getDlgItem(IDC_SORTTEXT), BST_CHECKED);
 		break;
 	}
 	
@@ -2468,7 +2457,7 @@ LRESULT qm::ViewsColumnDialog::onOk()
 {
 	wstring_ptr wstrTitle(getDlgItemText(IDC_TITLE));
 	ViewColumn::Type type = static_cast<ViewColumn::Type>(
-		sendDlgItemMessage(IDC_TYPE, CB_GETCURSEL) + 1);
+		ComboBox_GetCurSel(getDlgItem(IDC_TYPE)) + 1);
 	std::auto_ptr<Macro> pMacro;
 	if (type == ViewColumn::TYPE_OTHER) {
 		wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
@@ -2483,19 +2472,19 @@ LRESULT qm::ViewsColumnDialog::onOk()
 	unsigned int nWidth = getDlgItemInt(IDC_WIDTH);
 	
 	unsigned int nFlags = 0;
-	if (sendDlgItemMessage(IDC_INDENT, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_INDENT)) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_INDENT;
-	if (sendDlgItemMessage(IDC_LINE, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_LINE)) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_LINE;
-	if (sendDlgItemMessage(IDC_ASICON, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_ASICON)) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_ICON;
-	if (sendDlgItemMessage(IDC_CACHE, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_CACHE)) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_CACHE;
-	if (sendDlgItemMessage(IDC_RIGHTALIGN, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_RIGHTALIGN)) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_RIGHTALIGN;
-	if (sendDlgItemMessage(IDC_SORTNUMBER, BM_GETCHECK) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_SORTNUMBER)) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_SORT_NUMBER;
-	else if (sendDlgItemMessage(IDC_SORTDATE, BM_GETCHECK) == BST_CHECKED)
+	else if (Button_GetCheck(getDlgItem(IDC_SORTDATE)) == BST_CHECKED)
 		nFlags |= ViewColumn::FLAG_SORT_DATE;
 	else
 		nFlags |= ViewColumn::FLAG_SORT_TEXT;
@@ -2513,8 +2502,8 @@ LRESULT qm::ViewsColumnDialog::onTypeSelChange()
 
 void qm::ViewsColumnDialog::updateState()
 {
-	bool bEnable = sendDlgItemMessage(IDC_TYPE, CB_GETCURSEL) ==
-		sendDlgItemMessage(IDC_TYPE, CB_GETCOUNT) - 1;
+	bool bEnable = ComboBox_GetCurSel(getDlgItem(IDC_TYPE)) ==
+		ComboBox_GetCount(getDlgItem(IDC_TYPE)) - 1;
 	Window(getDlgItem(IDC_MACRO)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_CACHE)).enableWindow(bEnable);
 }
@@ -2837,7 +2826,7 @@ void qm::ViewsDialog::update()
 		
 		LVITEM item = {
 			LVIF_TEXT | LVIF_PARAM,
-			n,
+			static_cast<int>(n),
 			0,
 			0,
 			0,

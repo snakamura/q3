@@ -231,7 +231,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			return E_OUTOFMEMORY;
 		LockGlobal lock(hGlobal);
 		FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
-		pfgd->cItems = listMessagePtr_.size();
+		pfgd->cItems = static_cast<UINT>(listMessagePtr_.size());
 		MessagePtrList::size_type n = 0;
 		while (n < listMessagePtr_.size()) {
 			MessagePtrLock mpl(listMessagePtr_[n]);
@@ -483,7 +483,7 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 		
 		if (!listMessagePtr.empty()) {
 			if (pCallback)
-				pCallback->setCount(listMessagePtr.size());
+				pCallback->setCount(static_cast<unsigned int>(listMessagePtr.size()));
 			
 			UndoItemList undo;
 			while (true) {
@@ -924,7 +924,7 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 			return E_OUTOFMEMORY;
 		LockGlobal lock(hGlobal);
 		FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
-		pfgd->cItems = listURI_.size();
+		pfgd->cItems = static_cast<UINT>(listURI_.size());
 		URIList::size_type n = 0;
 		while (n < listURI_.size()) {
 			Message msg;

@@ -125,9 +125,9 @@ private:
 								 qs::wstring_ptr* pwstrPassword);
 		virtual void setPassword(const WCHAR* pwszPassword);
 		virtual void authenticating();
-		virtual void setRange(unsigned int nMin,
-							  unsigned int nMax);
-		virtual void setPos(unsigned int nPos);
+		virtual void setRange(size_t nMin,
+							  size_t nMax);
+		virtual void setPos(size_t nPos);
 	
 	private:
 		CallbackImpl(const CallbackImpl&);

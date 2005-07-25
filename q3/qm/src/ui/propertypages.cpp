@@ -156,7 +156,7 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::MessagePropertyPage::onOk()
 {
 	for (int n = 0; n < countof(flags); ++n) {
-		int nCheck = sendDlgItemMessage(flags[n].nId_, BM_GETCHECK);
+		int nCheck = Button_GetCheck(getDlgItem(flags[n].nId_));
 		switch (nCheck) {
 		case BST_CHECKED:
 			nFlags_ |= flags[n].flag_;

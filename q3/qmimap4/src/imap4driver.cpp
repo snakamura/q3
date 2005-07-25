@@ -1062,12 +1062,12 @@ void qmimap4::Imap4Driver::CallbackImpl::authenticating()
 {
 }
 
-void qmimap4::Imap4Driver::CallbackImpl::setRange(unsigned int nMin,
-												  unsigned int nMax)
+void qmimap4::Imap4Driver::CallbackImpl::setRange(size_t nMin,
+												  size_t nMax)
 {
 }
 
-void qmimap4::Imap4Driver::CallbackImpl::setPos(unsigned int nPos)
+void qmimap4::Imap4Driver::CallbackImpl::setPos(size_t nPos)
 {
 }
 
@@ -1596,13 +1596,13 @@ void qmimap4::FolderListGetter::CallbackImpl::authenticating()
 	// TODO
 }
 
-void qmimap4::FolderListGetter::CallbackImpl::setRange(unsigned int nMin,
-													   unsigned int nMax)
+void qmimap4::FolderListGetter::CallbackImpl::setRange(size_t nMin,
+													   size_t nMax)
 {
 	// TODO
 }
 
-void qmimap4::FolderListGetter::CallbackImpl::setPos(unsigned int nPos)
+void qmimap4::FolderListGetter::CallbackImpl::setPos(size_t nPos)
 {
 	// TODO
 }

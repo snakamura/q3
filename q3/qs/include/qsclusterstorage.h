@@ -84,9 +84,9 @@ public:
 	 * @param nLength [in] Length to load.
 	 * @return Length read. -1 if error occured.
 	 */
-	unsigned int load(unsigned char* p,
-					  unsigned int nOffset,
-					  unsigned int nLength);
+	size_t load(unsigned char* p,
+				size_t nOffset,
+				size_t nLength);
 	
 	/**
 	 * Save data.
@@ -96,9 +96,9 @@ public:
 	 * @param nCount [in] Size of array.
 	 * @return Length written. -1 if error occured.
 	 */
-	unsigned int save(const unsigned char* p[],
-					  unsigned int nLength[],
-					  size_t nCount);
+	size_t save(const unsigned char* p[],
+				size_t nLength[],
+				size_t nCount);
 	
 	/**
 	 * Free storage.
@@ -107,8 +107,8 @@ public:
 	 * @param nLength [in] Length.
 	 * @return true if success, false otherwise.
 	 */
-	bool free(unsigned int nOffset,
-			  unsigned int nLength);
+	bool free(size_t nOffset,
+			  size_t nLength);
 	
 	/**
 	 * Compact storage.
@@ -119,9 +119,9 @@ public:
 	 *                    If null, data will be loaded from this storage.
 	 * @return New offset. -1 if error occured.
 	 */
-	unsigned int compact(unsigned int nOffset,
-						 unsigned int nLength,
-						 ClusterStorage* pcsOld);
+	size_t compact(size_t nOffset,
+				   size_t nLength,
+				   ClusterStorage* pcsOld);
 	
 	/**
 	 * Free unrefered storage.

@@ -7,7 +7,8 @@ MAKE=${MAKE:=make}
 TARGET=$1
 
 PLATFORMS="win ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3"
-CPUS="sh3 sh4 mips arm xscale armv4 armv4i x86em"
+WINCPUS="x86 x64"
+WCECPUS="sh3 sh4 mips arm xscale armv4 armv4i x86em"
 BASELANGS="ja en"
 CODES="ansi unicode"
 DEBUGS="release debug"
@@ -28,14 +29,16 @@ PLATFORM=`echo $TARGET | cut -d . -f 1`
 checkValue "$PLATFORM" "$PLATFORMS" PLATFORM
 
 if [ "$PLATFORM" = "win" ]; then
+	CPU=`echo $TARGET | cut -d . -f 2`
+	checkValue "$CPU" "$WINCPUS" CPU
 	BASELANG=ja
-	CODE=`echo $TARGET | cut -d . -f 2`
+	CODE=`echo $TARGET | cut -d . -f 3`
 	checkValue "$CODE" "$CODES" CODE
-	DEBUG=`echo $TARGET | cut -d . -f 3`
+	DEBUG=`echo $TARGET | cut -d . -f 4`
 	checkValue "$DEBUG" "$DEBUGS" DEBUG
 else
 	CPU=`echo $TARGET | cut -d . -f 2`
-	checkValue "$CPU" "$CPUS" CPU
+	checkValue "$CPU" "$WCECPUS" CPU
 	BASELANG=`echo $TARGET | cut -d . -f 3`
 	checkValue "$BASELANG" "$BASELANGS" BASELANG
 	case $PLATFORM in

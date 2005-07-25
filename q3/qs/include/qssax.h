@@ -570,7 +570,7 @@ public:
 	SimpleAttributes(const WCHAR* pwszQName,
 					 const WCHAR* pwszValue);
 	SimpleAttributes(const Item* pItems,
-					 size_t nSize);
+					 int nSize);
 	virtual ~SimpleAttributes();
 
 public:
@@ -584,8 +584,8 @@ private:
 
 private:
 	const Item* pItems_;
-	size_t nSize_;
-	size_t nCount_;
+	int nSize_;
+	int nCount_;
 	Item item_;
 };
 

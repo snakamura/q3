@@ -189,13 +189,13 @@ void qmpop3::Pop3SendSession::CallbackImpl::authenticating()
 	setMessage(IDS_AUTHENTICATING);
 }
 
-void qmpop3::Pop3SendSession::CallbackImpl::setRange(unsigned int nMin,
-													 unsigned int nMax)
+void qmpop3::Pop3SendSession::CallbackImpl::setRange(size_t nMin,
+													 size_t nMax)
 {
 	pSessionCallback_->setSubRange(nMin, nMax);
 }
 
-void qmpop3::Pop3SendSession::CallbackImpl::setPos(unsigned int nPos)
+void qmpop3::Pop3SendSession::CallbackImpl::setPos(size_t nPos)
 {
 	pSessionCallback_->setSubPos(nPos);
 }

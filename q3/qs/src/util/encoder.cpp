@@ -533,7 +533,7 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 	malloc_ptr<unsigned char> pSpace;
 	size_t nSpaceBufSize = 0;
 	size_t nSpaceLen = 0;
-	int nLine = 0;
+	size_t nLine = 0;
 	unsigned char cNext = 0;
 	bool bNext = false;
 	while (true) {

@@ -146,9 +146,9 @@ public:
 					   HWND hwnd,
 					   UINT nTitle,
 					   UINT nMessage,
-					   unsigned int nMin,
-					   unsigned int nMax,
-					   unsigned int nPos);
+					   size_t nMin,
+					   size_t nMax,
+					   size_t nPos);
 	~ProgressDialogInit();
 
 private:

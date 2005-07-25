@@ -28,10 +28,10 @@ public:
 							   LPARAM lParam);
 
 protected:
-	LRESULT onTimer(UINT nId);
+	LRESULT onTimer(UINT_PTR nId);
 
 public:
-	typedef std::vector<std::pair<unsigned int, TimerHandler*> > HandlerMap;
+	typedef std::vector<std::pair<Timer::Id, TimerHandler*> > HandlerMap;
 
 public:
 	WindowBase* pWindow_;
@@ -48,15 +48,15 @@ LRESULT qs::TimerImpl::windowProc(UINT uMsg,
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::TimerImpl::onTimer(UINT nId)
+LRESULT qs::TimerImpl::onTimer(UINT_PTR nId)
 {
 	TimerImpl::HandlerMap::iterator it = std::find_if(
 		mapHandler_.begin(), mapHandler_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
-				std::equal_to<unsigned int>(),
+				std::equal_to<Timer::Id>(),
 				std::select1st<HandlerMap::value_type>(),
-				std::identity<unsigned int>()),
+				std::identity<Timer::Id>()),
 			nId));
 	if (it != mapHandler_.end())
 		(*it).second->timerTimeout(nId);
@@ -94,15 +94,15 @@ qs::Timer::~Timer()
 	}
 }
 
-unsigned int qs::Timer::setTimer(unsigned int nId,
-								 unsigned int nTimeout,
-								 TimerHandler* pHandler)
+Timer::Id qs::Timer::setTimer(Id nId,
+							  unsigned int nTimeout,
+							  TimerHandler* pHandler)
 {
 	assert(pHandler);
 	
 	TimerImpl::HandlerMap& m = pImpl_->mapHandler_;
 	
-	unsigned int nTimerId = pImpl_->pWindow_->setTimer(nId, nTimeout);
+	Id nTimerId = pImpl_->pWindow_->setTimer(nId, nTimeout);
 	if (nTimerId == 0)
 		return 0;
 	
@@ -111,16 +111,16 @@ unsigned int qs::Timer::setTimer(unsigned int nId,
 	return nTimerId;
 }
 
-void qs::Timer::killTimer(unsigned int nId)
+void qs::Timer::killTimer(Id nId)
 {
 	TimerImpl::HandlerMap& m = pImpl_->mapHandler_;
 	TimerImpl::HandlerMap::iterator it = std::find_if(
 		m.begin(), m.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
-				std::equal_to<unsigned int>(),
+				std::equal_to<Id>(),
 				std::select1st<TimerImpl::HandlerMap::value_type>(),
-				std::identity<unsigned int>()),
+				std::identity<Id>()),
 			nId));
 	assert(it != m.end());
 	m.erase(it);

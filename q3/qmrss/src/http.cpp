@@ -720,7 +720,7 @@ bool qmrss::HttpUtil::write(SocketBase* pSocket,
 			return false;
 		else if (nSelect == 0)
 			return false;
-		int n = pSocket->send(reinterpret_cast<const char*>(p), nLen, 0);
+		int n = pSocket->send(reinterpret_cast<const char*>(p), static_cast<int>(nLen), 0);
 		if (n == -1)
 			return false;
 		nLen -= n;

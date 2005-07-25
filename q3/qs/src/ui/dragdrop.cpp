@@ -933,7 +933,7 @@ LRESULT qs::CustomDragDropManager::DragDropWindow::onRButtonUp(UINT nFlags,
 	return 0;
 }
 
-LRESULT qs::CustomDragDropManager::DragDropWindow::onTimer(UINT nId)
+LRESULT qs::CustomDragDropManager::DragDropWindow::onTimer(UINT_PTR nId)
 {
 	if (nId == nTimerId_) {
 		killTimer(nTimerId_);

@@ -225,7 +225,7 @@ bool qs::BinaryFileImpl::mapBuffer()
 	while (pBufEnd_ != pBuf_.get() + BUFFER_SIZE) {
 		DWORD dwRead = 0;
 		if (!::ReadFile(hFile_, pBufEnd_,
-			pBuf_.get() + BUFFER_SIZE - pBufEnd_, &dwRead, 0))
+			static_cast<DWORD>(pBuf_.get() + BUFFER_SIZE - pBufEnd_), &dwRead, 0))
 			return false;
 		if (dwRead == 0)
 			break;
@@ -247,7 +247,7 @@ bool qs::BinaryFileImpl::flushBuffer()
 		unsigned char* p = pBuf_.get();
 		while (p != pBufEnd_) {
 			DWORD dwWritten = 0;
-			if (!::WriteFile(hFile_, p, pBufEnd_ - p, &dwWritten, 0))
+			if (!::WriteFile(hFile_, p, static_cast<DWORD>(pBufEnd_ - p), &dwWritten, 0))
 				return false;
 			p += dwWritten;
 		}
@@ -256,7 +256,7 @@ bool qs::BinaryFileImpl::flushBuffer()
 	
 	if (pCurrent_ != pBuf_.get()) {
 		DWORD dwNewPos = ::SetFilePointer(hFile_,
-			dwPosition_ + (pCurrent_ - pBuf_.get()), 0, FILE_BEGIN);
+			static_cast<LONG>(dwPosition_ + (pCurrent_ - pBuf_.get())), 0, FILE_BEGIN);
 		if (dwNewPos == INVALID_SET_FILE_POINTER)
 			return false;
 		dwPosition_ = dwNewPos;
@@ -349,7 +349,7 @@ size_t qs::BinaryFile::read(unsigned char* p,
 			
 			while (nRead != 0) {
 				DWORD dwRead = 0;
-				if (!::ReadFile(pImpl_->hFile_, p, nRead, &dwRead, 0))
+				if (!::ReadFile(pImpl_->hFile_, p, static_cast<DWORD>(nRead), &dwRead, 0))
 					return -1;
 				if (dwRead == 0)
 					break;
@@ -406,7 +406,7 @@ size_t qs::BinaryFile::write(const unsigned char* p,
 			size_t n = nWrite;
 			while (n != 0) {
 				DWORD dwWritten = 0;
-				if (!::WriteFile(pImpl_->hFile_, p, n, &dwWritten, 0))
+				if (!::WriteFile(pImpl_->hFile_, p, static_cast<DWORD>(n), &dwWritten, 0))
 					return -1;
 				p += dwWritten;
 				n -= dwWritten;
@@ -436,31 +436,31 @@ bool qs::BinaryFile::flush()
 	return true;
 }
 
-int qs::BinaryFile::getPosition()
+ssize_t qs::BinaryFile::getPosition()
 {
 	return pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get());
 }
 
-int qs::BinaryFile::setPosition(int nPosition,
-								SeekOrigin seekOrigin)
+ssize_t qs::BinaryFile::setPosition(ssize_t nPosition,
+									SeekOrigin seekOrigin)
 {
 	if (pImpl_->pBuf_.get() != pImpl_->pBufEnd_) {
 		DWORD dwNewPos = 0;
 		switch (seekOrigin) {
 		case SEEKORIGIN_BEGIN:
-			dwNewPos = nPosition;
+			dwNewPos = static_cast<DWORD>(nPosition);
 			break;
 		case SEEKORIGIN_END:
 			{
 				size_t nSize = getSize();
 				if (nSize == -1)
 					return -1;
-				dwNewPos = nSize + nPosition;
+				dwNewPos = static_cast<DWORD>(nSize + nPosition);
 			}
 			break;
 		case SEEKORIGIN_CURRENT:
-			dwNewPos = pImpl_->dwPosition_ +
-				(pImpl_->pCurrent_ - pImpl_->pBuf_.get()) + nPosition;
+			dwNewPos = static_cast<DWORD>(pImpl_->dwPosition_ +
+				(pImpl_->pCurrent_ - pImpl_->pBuf_.get()) + nPosition);
 			break;
 		default:
 			assert(false);
@@ -479,7 +479,8 @@ int qs::BinaryFile::setPosition(int nPosition,
 		return -1;
 	assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
 	assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
-	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_, nPosition, 0, dwMethod);
+	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_,
+		static_cast<DWORD>(nPosition), 0, dwMethod);
 	if (dwNewPos == INVALID_SET_FILE_POINTER)
 		return -1;
 	pImpl_->dwPosition_ = dwNewPos;
@@ -489,14 +490,15 @@ int qs::BinaryFile::setPosition(int nPosition,
 
 bool qs::BinaryFile::setEndOfFile()
 {
-	int nPosition = getPosition();
+	ssize_t nPosition = getPosition();
 	
 	if (!pImpl_->flushBuffer())
 		return false;
 	assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
 	assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
 	
-	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_, nPosition, 0, FILE_BEGIN);
+	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_,
+		static_cast<DWORD>(nPosition), 0, FILE_BEGIN);
 	if (dwNewPos == INVALID_SET_FILE_POINTER)
 		return false;
 	pImpl_->dwPosition_ = dwNewPos;
@@ -523,18 +525,18 @@ struct qs::DividedFileImpl
 {
 	typedef std::vector<BinaryFile*> FileList;
 	
-	BinaryFile* getFile(unsigned int n);
-	wstring_ptr getPath(unsigned int n) const;
+	BinaryFile* getFile(size_t n);
+	wstring_ptr getPath(size_t n) const;
 	
 	wstring_ptr wstrPath_;
 	size_t nBlockSize_;
 	unsigned int nMode_;
 	size_t nBufferSize_;
 	FileList listFile_;
-	int nPosition_;
+	ssize_t nPosition_;
 };
 
-BinaryFile* qs::DividedFileImpl::getFile(unsigned int n)
+BinaryFile* qs::DividedFileImpl::getFile(size_t n)
 {
 	if (listFile_.size() <= n)
 		listFile_.resize(n + 1);
@@ -552,7 +554,7 @@ BinaryFile* qs::DividedFileImpl::getFile(unsigned int n)
 	return pFile;
 }
 
-wstring_ptr qs::DividedFileImpl::getPath(unsigned int n) const
+wstring_ptr qs::DividedFileImpl::getPath(size_t n) const
 {
 	const WCHAR* pFileName = wcsrchr(wstrPath_.get(), L'\\');
 	if (!pFileName)
@@ -562,7 +564,7 @@ wstring_ptr qs::DividedFileImpl::getPath(unsigned int n) const
 		pExt = pFileName + wcslen(pFileName);
 	
 	WCHAR wsz[16];
-	swprintf(wsz, L"%03u", n);
+	swprintf(wsz, L"%03u", static_cast<unsigned int>(n));
 	
 	return concat(wstrPath_.get(), pExt - wstrPath_.get(), wsz, -1, pExt, -1);
 }
@@ -623,16 +625,16 @@ size_t qs::DividedFile::read(unsigned char* p,
 	if (nRead == 0)
 		return 0;
 	
-	unsigned int nStart = pImpl_->nPosition_/pImpl_->nBlockSize_;
-	unsigned int nEnd = (pImpl_->nPosition_ + nRead - 1)/pImpl_->nBlockSize_;
+	size_t nStart = pImpl_->nPosition_/pImpl_->nBlockSize_;
+	size_t nEnd = (pImpl_->nPosition_ + nRead - 1)/pImpl_->nBlockSize_;
 	size_t nReadAll = 0;
-	for (unsigned int n = nStart; n <= nEnd; ++n) {
+	for (size_t n = nStart; n <= nEnd; ++n) {
 		BinaryFile* pFile = pImpl_->getFile(n);
 		if (!pFile)
 			return -1;
 		
 		size_t nReadSize = pImpl_->nBlockSize_;
-		int nPosition = 0;
+		ssize_t nPosition = 0;
 		if (n == nStart) {
 			nReadSize = QSMIN((n + 1)*pImpl_->nBlockSize_ - pImpl_->nPosition_, nRead);
 			nPosition = pImpl_->nPosition_ - nStart*pImpl_->nBlockSize_;
@@ -663,16 +665,16 @@ size_t qs::DividedFile::write(const unsigned char* p,
 {
 	assert(p);
 	
-	unsigned int nStart = pImpl_->nPosition_/pImpl_->nBlockSize_;
-	unsigned int nEnd = (pImpl_->nPosition_ + nWrite - 1)/pImpl_->nBlockSize_;
-	unsigned int nWriteAll = 0;
-	for (unsigned int n = nStart; n <= nEnd; ++n) {
+	size_t nStart = pImpl_->nPosition_/pImpl_->nBlockSize_;
+	size_t nEnd = (pImpl_->nPosition_ + nWrite - 1)/pImpl_->nBlockSize_;
+	size_t nWriteAll = 0;
+	for (size_t n = nStart; n <= nEnd; ++n) {
 		BinaryFile* pFile = pImpl_->getFile(n);
 		if (!pFile)
 			return -1;
 		
 		size_t nWriteSize = pImpl_->nBlockSize_;
-		int nPosition = 0;
+		ssize_t nPosition = 0;
 		if (n == nStart) {
 			nWriteSize = QSMIN((n + 1)*pImpl_->nBlockSize_ - pImpl_->nPosition_, nWrite);
 			nPosition = pImpl_->nPosition_ - nStart*pImpl_->nBlockSize_;
@@ -706,13 +708,13 @@ bool qs::DividedFile::flush()
 	return !bFail;
 }
 
-int qs::DividedFile::getPosition()
+ssize_t qs::DividedFile::getPosition()
 {
 	return pImpl_->nPosition_;
 }
 
-int qs::DividedFile::setPosition(int nPosition,
-								 SeekOrigin seekOrigin)
+ssize_t qs::DividedFile::setPosition(ssize_t nPosition,
+									 SeekOrigin seekOrigin)
 {
 	assert(seekOrigin == SEEKORIGIN_BEGIN);
 	pImpl_->nPosition_ = nPosition;
@@ -721,7 +723,7 @@ int qs::DividedFile::setPosition(int nPosition,
 
 bool qs::DividedFile::setEndOfFile()
 {
-	unsigned int nFile = pImpl_->nPosition_/pImpl_->nBlockSize_;
+	size_t nFile = pImpl_->nPosition_/pImpl_->nBlockSize_;
 	
 	BinaryFile* pFile = pImpl_->getFile(nFile);
 	if (!pFile)
@@ -734,11 +736,11 @@ bool qs::DividedFile::setEndOfFile()
 		return false;
 	
 	DividedFileImpl::FileList& l = pImpl_->listFile_;
-	for (unsigned int n = nFile + 1; n < l.size(); ++n)
+	for (size_t n = nFile + 1; n < l.size(); ++n)
 		delete l[n];
 	l.erase(l.begin() + nFile + 1, l.end());
 	
-	for (unsigned int n = nFile + 1; ; ++n) {
+	for (size_t n = nFile + 1; ; ++n) {
 		wstring_ptr wstrPath(pImpl_->getPath(n));
 		W2T(wstrPath.get(), ptszPath);
 		if (::GetFileAttributes(ptszPath) == 0xffffffff)

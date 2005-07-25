@@ -336,10 +336,10 @@ void qs::RasConnectionImpl::setMessage(RasConnectionCallback* pCallback,
 
 static void CALLBACK lineProc(DWORD hDevice,
 							  DWORD dwMsg,
-							  DWORD dwCallbackInstance,
-							  DWORD dwParam1,
-							  DWORD dwParam2,
-							  DWORD dwParam3);
+							  DWORD_PTR dwCallbackInstance,
+							  DWORD_PTR dwParam1,
+							  DWORD_PTR dwParam2,
+							  DWORD_PTR dwParam3);
 
 qs::RasConnection::RasConnection(RasConnectionCallback* pCallback) :
 	pImpl_(0)
@@ -705,10 +705,10 @@ bool qs::RasConnection::isNetworkConnected()
 
 static void CALLBACK lineProc(DWORD hDevice,
 							  DWORD dwMsg,
-							  DWORD dwCallbackInstance,
-							  DWORD dwParam1,
-							  DWORD dwParam2,
-							  DWORD dwParam3)
+							  DWORD_PTR dwCallbackInstance,
+							  DWORD_PTR dwParam1,
+							  DWORD_PTR dwParam2,
+							  DWORD_PTR dwParam3)
 {
 }
 
@@ -771,7 +771,7 @@ LRESULT qs::RasWindow::windowProc(UINT uMsg,
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qs::RasWindow::onTimer(UINT nId)
+LRESULT qs::RasWindow::onTimer(UINT_PTR nId)
 {
 	if (nId == nTimerId_) {
 		if (pCallback_->isCanceled()) {
@@ -789,17 +789,17 @@ LRESULT qs::RasWindow::onRasDialEvent(WPARAM wParam,
 {
 	QTRY {
 		RASCONNSTATE rcs = static_cast<RASCONNSTATE>(wParam);
-		DWORD dwError = lParam;
+		UINT nError = static_cast<UINT>(lParam);
 		
 		if (nTimerId_ == 0)
 			nTimerId_ = setTimer(TIMER_RAS, TIMEOUT);
 		
 		bool bDisconnect = false;
 		
-		if (dwError != 0) {
+		if (nError != 0) {
 			if (!bCanceled_) {
 				TCHAR szMessage[256];
-				if (RasAPI::rasGetErrorString(dwError, szMessage, countof(szMessage)) == 0) {
+				if (RasAPI::rasGetErrorString(nError, szMessage, countof(szMessage)) == 0) {
 					T2W(szMessage, pwszMessage);
 					pCallback_->error(pwszMessage);
 				}

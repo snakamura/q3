@@ -84,12 +84,12 @@ public:
 
 public:
 	virtual bool isCanceled(bool bForce) = 0;
-	virtual void setPos(unsigned int n) = 0;
-	virtual void setRange(unsigned int nMin,
-						  unsigned int nMax) = 0;
-	virtual void setSubPos(unsigned int n) = 0;
-	virtual void setSubRange(unsigned int nMin,
-							 unsigned int nMax) = 0;
+	virtual void setPos(size_t n) = 0;
+	virtual void setRange(size_t nMin,
+						  size_t nMax) = 0;
+	virtual void setSubPos(size_t n) = 0;
+	virtual void setSubRange(size_t nMin,
+							 size_t nMax) = 0;
 	virtual void setMessage(const WCHAR* pwszMessage) = 0;
 	virtual void addError(const SessionErrorInfo& info) = 0;
 };
@@ -437,9 +437,9 @@ public:
 	virtual bool isCanceled();
 	virtual void checkingMessages(Folder* pFolder);
 	virtual void applyingRule(Folder* pFolder);
-	virtual void setRange(unsigned int nMin,
-						  unsigned int nMax);
-	virtual void setPos(unsigned int nPos);
+	virtual void setRange(size_t nMin,
+						  size_t nMax);
+	virtual void setPos(size_t nPos);
 
 private:
 	qs::wstring_ptr getMessage(UINT nId,

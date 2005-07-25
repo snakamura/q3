@@ -512,7 +512,7 @@ bool qm::MacroValueAddress::boolean() const
 
 unsigned int qm::MacroValueAddress::number() const
 {
-	return listAddress_.size();
+	return static_cast<unsigned int>(listAddress_.size());
 }
 
 MacroValuePtr qm::MacroValueAddress::clone() const
@@ -678,7 +678,7 @@ bool qm::MacroValueMessageList::boolean() const
 
 unsigned int qm::MacroValueMessageList::number() const
 {
-	return list_.size();
+	return static_cast<unsigned int>(list_.size());
 }
 
 MacroValuePtr qm::MacroValueMessageList::clone() const

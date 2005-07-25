@@ -81,7 +81,7 @@ qm::URIFragment::URIFragment(Message* pMessage,
 			const Part::PartList& l = pParentPart->getPartList();
 			Part::PartList::const_iterator it = std::find(l.begin(), l.end(), pPart);
 			assert(it != l.end());
-			section_.push_back(it - l.begin() + 1);
+			section_.push_back(static_cast<unsigned int>(it - l.begin() + 1));
 			pPart = pParentPart;
 		}
 		else {

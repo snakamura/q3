@@ -1,4 +1,8 @@
-win.ansi.release
-win.unicode.release
-win.ansi.debug
-win.unicode.debug
+win.x86.ansi.release
+win.x86.unicode.release
+win.x86.ansi.debug
+win.x86.unicode.debug
+win.x64.ansi.release
+win.x64.unicode.release
+win.x64.ansi.debug
+win.x64.unicode.debug

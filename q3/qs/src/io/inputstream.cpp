@@ -107,7 +107,7 @@ size_t qs::FileInputStream::read(unsigned char* p,
 	
 	while (nRead != 0) {
 		DWORD dwRead = 0;
-		if (!::ReadFile(pImpl_->hFile_, p, nRead, &dwRead, 0))
+		if (!::ReadFile(pImpl_->hFile_, p, static_cast<DWORD>(nRead), &dwRead, 0))
 			return -1;
 		if (dwRead == 0) {
 			break;

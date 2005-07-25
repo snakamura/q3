@@ -63,7 +63,7 @@ qm::AutoCompleteEditSubclassWindow::AutoCompleteEditSubclassWindow(HWND hwnd,
 {
 	setWindowHandler(this, false);
 	
-	nId_ = Window(hwnd).getWindowLong(GWL_ID);
+	nId_ = Window(hwnd).getId();
 	
 	subclassWindow(hwnd);
 	
@@ -145,7 +145,7 @@ LRESULT qm::AutoCompleteEditSubclassWindow::onKillFocus(HWND hwnd)
 	return DefaultWindowHandler::onKillFocus(hwnd);
 }
 
-LRESULT qm::AutoCompleteEditSubclassWindow::onTimer(UINT nId)
+LRESULT qm::AutoCompleteEditSubclassWindow::onTimer(UINT_PTR nId)
 {
 	if (nId == nTimerId_) {
 		killTimer(nTimerId_);
@@ -274,7 +274,7 @@ void qm::AutoCompleteListWindow::showCandidates(CandidateList& listCandidate,
 	
 	setScrollPos(SB_VERT, 0);
 	
-	unsigned int nCount = listCandidate_.size();
+	unsigned int nCount = static_cast<unsigned int>(listCandidate_.size());
 	if (nCount > 10)
 		nCount = 10;
 	RECT rect;
@@ -300,7 +300,7 @@ void qm::AutoCompleteListWindow::select(Select select)
 	switch (select) {
 	case SELECT_PREV:
 		if (nSelect_ == 0)
-			nSelect_ = listCandidate_.size() - 1;
+			nSelect_ = static_cast<int>(listCandidate_.size()) - 1;
 		else
 			--nSelect_;
 		break;
@@ -318,7 +318,7 @@ void qm::AutoCompleteListWindow::select(Select select)
 	case SELECT_NEXTPAGE:
 		nSelect_ += nLineInPage;
 		if (nSelect_ >= static_cast<int>(listCandidate_.size()))
-			nSelect_ = listCandidate_.size() - 1;
+			nSelect_ = static_cast<int>(listCandidate_.size()) - 1;
 		break;
 	default:
 		break;
@@ -589,7 +589,7 @@ void qm::AutoCompleteListWindow::updateScrollBar()
 	RECT rect;
 	getClientRect(&rect);
 	
-	unsigned int nCount = listCandidate_.size();
+	unsigned int nCount = static_cast<unsigned int>(listCandidate_.size());
 	unsigned int nPage = (rect.bottom - rect.top)/nLineHeight_;
 	if (nPage > nCount)
 		nPage = nCount;
@@ -634,9 +634,10 @@ void qm::AutoCompleteListWindow::paintText(DeviceContext* pdc,
 		return;
 	
 	ObjectSelector<HFONT> selector(*pdc, hfont);
-	pdc->extTextOut(pRect->left, pRect->top, ETO_CLIPPED, *pRect, pwsz, nLen, 0);
+	pdc->extTextOut(pRect->left, pRect->top, ETO_CLIPPED,
+		*pRect, pwsz, static_cast<UINT>(nLen), 0);
 	
 	SIZE size;
-	pdc->getTextExtent(pwsz, nLen, &size);
+	pdc->getTextExtent(pwsz, static_cast<int>(nLen), &size);
 	pRect->left += size.cx;
 }

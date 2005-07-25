@@ -141,7 +141,7 @@ DWORD qs::Window::setStyle(DWORD dwStyle,
 	DWORD dw = getStyle();
 	dw &= ~dwMask;
 	dw |= dwStyle & dwMask;
-	return setWindowLong(GWL_STYLE, dw);
+	return static_cast<DWORD>(setWindowLong(GWL_STYLE, dw));
 }
 
 bool qs::Window::screenToClient(RECT* pRect) const
@@ -304,7 +304,7 @@ wstring_ptr qs::Window::getDlgItemText(int nDlgItem) const
 {
 	assert(hwnd_);
 	
-	int nLen = ::SendDlgItemMessage(hwnd_, nDlgItem, WM_GETTEXTLENGTH, 0, 0);
+	int nLen = getWindowTextLength();
 	tstring_ptr tstr(allocTString(nLen + 1));
 	::GetDlgItemText(hwnd_, nDlgItem, tstr.get(), nLen + 1);
 #ifdef UNICODE
@@ -481,6 +481,8 @@ void qs::WindowBaseImpl::measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureIte
 		pOrgWindowBase_->pImpl_->measureOwnerDrawHandlers(pMeasureItem);
 }
 
+#pragma warning(disable:4060)
+
 LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 									   WPARAM wParam,
 									   LPARAM lParam)
@@ -589,12 +591,14 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 	return lResult;
 }
 
+#pragma warning(default:4060)
+
 void qs::WindowBaseImpl::destroy()
 {
 	WindowMap* pMap = getWindowMap();
 	
 	if (procSubclass_)
-		pThis_->setWindowLong(GWL_WNDPROC, reinterpret_cast<LONG>(procSubclass_));
+		pThis_->setWindowLong(GWLP_WNDPROC, reinterpret_cast<LONG>(procSubclass_));
 	pMap->removeController(pThis_->getHandle());
 	assert(listCommandHandler_.size() == 0);
 	assert(listNotifyHandler_.size() == 0);
@@ -796,7 +800,7 @@ bool qs::WindowBase::subclassWindow(HWND hwnd)
 		return false;
 	
 	pImpl_->procSubclass_ = reinterpret_cast<WNDPROC>(
-		::SetWindowLong(hwnd, GWL_WNDPROC,
+		::SetWindowLong(hwnd, GWLP_WNDPROC,
 			reinterpret_cast<LONG>(&qs::windowProc)));
 	if (!pImpl_->procSubclass_)
 		return false;
@@ -821,7 +825,7 @@ bool qs::WindowBase::unsubclassWindow()
 	if (!pImpl_->procSubclass_)
 		return false;
 	
-	if (::SetWindowLong(getHandle(), GWL_WNDPROC,
+	if (::SetWindowLong(getHandle(), GWLP_WNDPROC,
 		reinterpret_cast<LONG>(pImpl_->procSubclass_)) == 0)
 		return false;
 	
@@ -1437,23 +1441,23 @@ UINT qs::CommandUpdateToolbar::getId() const
 void qs::CommandUpdateToolbar::setEnable(bool bEnable)
 {
 	Window wnd(hwnd_);
-	int nState = wnd.sendMessage(TB_GETSTATE, nId_);
+	DWORD_PTR dwState = wnd.sendMessage(TB_GETSTATE, nId_);
 	if (bEnable)
-		nState |= TBSTATE_ENABLED;
+		dwState |= TBSTATE_ENABLED;
 	else
-		nState &= ~TBSTATE_ENABLED;
-	wnd.sendMessage(TB_SETSTATE, nId_, nState);
+		dwState &= ~TBSTATE_ENABLED;
+	wnd.sendMessage(TB_SETSTATE, nId_, dwState);
 }
 
 void qs::CommandUpdateToolbar::setCheck(bool bCheck)
 {
 	Window wnd(hwnd_);
-	int nState = wnd.sendMessage(TB_GETSTATE, nId_);
+	DWORD_PTR dwState = wnd.sendMessage(TB_GETSTATE, nId_);
 	if (bCheck)
-		nState |= TBSTATE_CHECKED;
+		dwState |= TBSTATE_CHECKED;
 	else
-		nState &= ~TBSTATE_CHECKED;
-	wnd.sendMessage(TB_SETSTATE, nId_, nState);
+		dwState &= ~TBSTATE_CHECKED;
+	wnd.sendMessage(TB_SETSTATE, nId_, dwState);
 }
 
 void qs::CommandUpdateToolbar::setText(const WCHAR* pwszText,
