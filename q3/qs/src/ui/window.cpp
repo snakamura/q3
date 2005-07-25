@@ -276,7 +276,11 @@ wstring_ptr qs::Window::getWindowText() const
 	int nLen = getWindowTextLength() + 1;
 	tstring_ptr tstrText(allocTString(nLen));
 	::GetWindowText(hwnd_, tstrText.get(), nLen);
+#ifdef UNICODE
+	return tstrText;
+#else
 	return tcs2wcs(tstrText.get());
+#endif
 }
 
 bool qs::Window::setWindowText(const WCHAR* pwszText)
@@ -304,7 +308,8 @@ wstring_ptr qs::Window::getDlgItemText(int nDlgItem) const
 {
 	assert(hwnd_);
 	
-	int nLen = getWindowTextLength();
+	int nLen = static_cast<int>(::SendDlgItemMessage(
+		hwnd_, nDlgItem, WM_GETTEXTLENGTH, 0, 0));
 	tstring_ptr tstr(allocTString(nLen + 1));
 	::GetDlgItemText(hwnd_, nDlgItem, tstr.get(), nLen + 1);
 #ifdef UNICODE
