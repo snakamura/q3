@@ -589,6 +589,7 @@ bool qmrss::RssReceiveSession::getInternetProxySetting(wstring_ptr* pwstrProxyHo
 
 wstring_ptr qmrss::RssReceiveSession::getInternetCookie(const WCHAR* pwszURL)
 {
+#if !defined _WIN32_WCE || _WIN32_WCE >= 300
 	W2T(pwszURL, ptszURL);
 	DWORD dwSize = 0;
 	if (!::InternetGetCookie(ptszURL, 0, 0, &dwSize))
@@ -599,6 +600,9 @@ wstring_ptr qmrss::RssReceiveSession::getInternetCookie(const WCHAR* pwszURL)
 		return 0;
 	
 	return tcs2wcs(tstrCookie.get());
+#else
+	return 0;
+#endif
 }
 
 
