@@ -30,6 +30,10 @@
 #		include <exdisp.h>
 #		include <mshtml.h>
 #		include <mshtmhst.h>
+#		undef T2W
+#		undef W2T
+#		undef T2A
+#		undef A2T
 #	elif defined QMHTMLVIEWHTMLCTRL
 #		include <webvw.h>
 #		define HANDLE_PTR DWORD
