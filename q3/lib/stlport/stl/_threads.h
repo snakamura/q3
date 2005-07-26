@@ -152,7 +152,7 @@ static inline void __dec_and_fetch(volatile __stl_atomic_t* __x)
 #  endif // !_STLP_USE_PTHREAD_SPINLOCK 
 
 # elif defined(_STLP_WIN32THREADS)
-#  if !defined (_STLP_WINDOWS_H_INCLUDED) && ! defined (_WINDOWS_H)
+#  if !defined (_STLP_WINDOWS_H_INCLUDED) && ! defined (_WINDOWS_H) && !defined (__WINDOWS__) && !defined (_INC_WINDOWS)
 #   if ! (defined ( _STLP_MSVC ) || defined (__BORLANDC__) || defined (__ICL) || defined (__WATCOMC__) || defined (__MINGW32__) || defined (__DMC__))
 #    ifdef _STLP_USE_MFC
 #     include <afx.h>
