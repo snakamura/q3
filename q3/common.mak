@@ -99,7 +99,7 @@ ifeq ($(PLATFORM),win)
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003),)
+	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se ]; then echo 0; else echo 1; fi),0)
 		# PPC2003SE PPC2003 #################################################
 		ifeq ($(BASELANG),ja)
 			SDKDIR		= $(CESDKPPC2003JADIR)
@@ -473,13 +473,13 @@ else
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif
-	ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003),)
+	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se ]; then echo 0; else echo 1; fi),0)
 		LIBS			+= ccrtrtti.lib
 	endif
-	ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003 ppc2002 sig3),)
+	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se -o "$(PLATFORM)" = ppc2002 -o "$(PLATFORM)" = sig3 ]; then echo 0; else echo 1; fi),0)
 		LIBS			+= urlmon.lib
 	endif
-	ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003 ppc2002),)
+	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se -o "$(PLATFORM)" = ppc2002 ]; then echo 0; else echo 1; fi),0)
 		LIBS			+= wvuuid.lib
 	endif
 	ifeq ($(shell if [ "$(PLATFORM)" = ppc2002 ]; then echo 0; elif [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -ge 400 ]; then echo 0; else echo 1; fi),0)

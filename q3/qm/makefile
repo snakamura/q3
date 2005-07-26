@@ -18,7 +18,7 @@ endif
 ifeq ($(findstring hpc, $(PLATFORM)),hpc)
 	CPROJS		+= -DQMTABWINDOW
 endif
-ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003 ppc2002),)
+ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se -o "$(PLATFORM)" = ppc2002 ]; then echo 0; else echo 1; fi),0)
 	CPROJS		+= -DQMHTMLVIEW -DQMHTMLVIEWHTMLCTRL
 endif
 
