@@ -46,11 +46,11 @@ endif
 
 SHELL					= /bin/bash
 
-cever					= $(if $(CEVER), $(shell test "$(CEVER)" $(1) "$(2)"; echo $?),1)
-platform				= $(if $(filter $(1), $(PLATFORM)), $(PLATFORM), )
+cever					= $(if $(CEVER),$(shell test "$(CEVER)" $(1) "$(2)"; echo $$?),1)
+platform				= $(if $(filter $(1),$(PLATFORM)),$(PLATFORM),)
 
 ifdef EMULATION
-	ifeq ($(call cever, -lt, 400),0)
+	ifeq ($(call cever,-lt,400),0)
 		OLDEMULATION	= 1
 	endif
 endif
@@ -102,7 +102,7 @@ ifeq ($(PLATFORM),win)
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifneq ($(call platform, ppc2003 ppc2003se),)
+	ifneq ($(call platform,ppc2003 ppc2003se),)
 		# PPC2003SE PPC2003 #################################################
 		ifeq ($(BASELANG),ja)
 			SDKDIR		= $(CESDKPPC2003JADIR)
@@ -168,7 +168,7 @@ else
 	SDKBINDIR			= $(SDKDIR)/bin
 	
 	ifeq ($(SDKINCLUDEDIR),)
-		ifeq ($(call cever, -lt, 400),0)
+		ifeq ($(call cever,-lt,400),0)
 			SDKINCLUDEDIR		= $(SDKDIR)/include
 		else
 			ifndef EMULATION
@@ -179,7 +179,7 @@ else
 		endif
 	endif
 	ifeq ($(SDKLIBDIR),)
-		ifeq ($(call cever, -lt, 400),0)
+		ifeq ($(call cever,-lt,400),0)
 			SDKLIBDIR		= $(SDKDIR)/lib/$(LIBCPU)
 		else
 			ifndef EMULATION
@@ -388,7 +388,7 @@ ifeq ($(PLATFORM),win)
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifeq ($(call cever, -ge, 400),0)
+	ifeq ($(call cever,-ge,400),0)
 		# WINCE >= 400 ######################################################
 #		CCFLAGS			+= -GX
 		#####################################################################
@@ -476,16 +476,16 @@ else
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif
-	ifneq ($(call platform, ppc2003 ppc2003se),)
+	ifneq ($(call platform,ppc2003 ppc2003se),)
 		LIBS			+= ccrtrtti.lib
 	endif
-	ifneq ($(call platform, ppc2003 ppc2003se ppc2002 sig3),)
+	ifneq ($(call platform,ppc2003 ppc2003se ppc2002 sig3),)
 		LIBS			+= urlmon.lib
 	endif
-	ifneq ($(call platform, ppc2003 ppc2003se ppc2002),)
+	ifneq ($(call platform,ppc2003 ppc2003se ppc2002),)
 		LIBS			+= wvuuid.lib
 	endif
-	ifeq ($(if $(call platform, ppc2002), 0, $(call cever, -ge, 400)),0)
+	ifeq ($(if $(call platform,ppc2002),0,$(call cever,-ge,400)),0)
 		LIBS			+= crypt32.lib
 	endif
 	ifdef KCTRL
@@ -567,7 +567,7 @@ SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(REVISION)
 RCDEFINES				= -DNVERSION="$(NVERSION)" -DSVERSION="\"$(SVERSION)\"" -DSUFFIX="\"$(SUFFIX)\""
 RCDEFINES				+= $(CPROJS)
 
-RCHEADER				= $(dir $(subst $(OBJDIR), $(SRCDIR), $(RESES)))resource$(shell echo $(RESES) | sed -e 's/\(.*\($(BASEPLATFORM)\)\|.*\)\.res/\2/').h
+RCHEADER				= $(dir $(subst $(OBJDIR),$(SRCDIR),$(RESES)))resource$(shell echo $(RESES) | sed -e 's/\(.*\($(BASEPLATFORM)\)\|.*\)\.res/\2/').h
 
 ifneq ($(TLBS),)
 	INCLUDES			+= -I$(TLBDIR)
@@ -637,7 +637,7 @@ $(OBJDIR)/%.res: $(SRCDIR)/%.rcx $(RCHEADER) $(TLBS) version revision
 
 $(TLBDIR)/%.tlb: $(SRCDIR)/%.idl
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(MIDL) $(MIDLFLAGS) -out $(TLBDIR) -h $(notdir $(patsubst %.idl, %.h, $<)) -tlb $(notdir $(patsubst %.idl, %.tlb, $<)) $<
+	$(MIDL) $(MIDLFLAGS) -out $(TLBDIR) -h $(notdir $(patsubst %.idl,%.h,$<)) -tlb $(notdir $(patsubst %.idl,%.tlb,$<)) $<
 
 $(OBJDIR)/%.d: $(SRCDIR)/%.cpp
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
