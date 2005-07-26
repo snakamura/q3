@@ -6,7 +6,7 @@
  *
  */
 
-#include <qswce.h>
+#include <qs.h>
 
 #include <cstdlib>
 

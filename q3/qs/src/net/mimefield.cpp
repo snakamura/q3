@@ -12,7 +12,6 @@
 #include <qsconv.h>
 #include <qsstl.h>
 #include <qsencoder.h>
-#include <qswce.h>
 
 #include <algorithm>
 #include <memory>

@@ -9,8 +9,6 @@
 #ifndef __QSWCE_H__
 #define __QSWCE_H__
 
-#include <qs.h>
-
 #ifdef _WIN32_WCE
 
 #if _WIN32_WCE < 300
@@ -22,6 +20,8 @@ typedef unsigned long ULONG_PTR, *PULONG_PTR;
 typedef unsigned short UHALF_PTR, *PUHALF_PTR;
 typedef short HALF_PTR, *PHALF_PTR;
 typedef ULONG_PTR DWORD_PTR, *PDWORD_PTR;
+typedef ULONG_PTR SIZE_T, *PSIZE_T;
+typedef LONG_PTR SSIZE_T, *PSSIZE_T;
 
 #	define GMEM_FIXED          LMEM_FIXED
 #	define GMEM_MOVEABLE       LMEM_MOVEABLE

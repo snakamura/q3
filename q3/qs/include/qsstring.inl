@@ -10,7 +10,6 @@
 #define __QSSTRING_INL__
 
 #include <qsassert.h>
-#include <qswce.h>
 
 #include <algorithm>
 

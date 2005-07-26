@@ -10,14 +10,12 @@
 #define __QS_H__
 
 #include <qsconfig.h>
+#include <qswce.h>
 
 #include <windows.h>
 
 #include <memory>
 
-#if defined _WIN32_WCE && _WIN32_WCE <= 211
-	typedef int INT_PTR;
-#endif
 typedef SSIZE_T ssize_t;
 
 namespace qs {

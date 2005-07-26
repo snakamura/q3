@@ -10,7 +10,6 @@
 #define __QSWINDOW_INL__
 
 #include <qsassert.h>
-#include <qswce.h>
 
 
 /****************************************************************************

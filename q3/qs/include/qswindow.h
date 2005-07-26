@@ -30,6 +30,10 @@
 #	endif
 #endif
 
+#if defined _WIN32_WCE && _WIN32_WCE <= 211
+#	define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
+#	define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
+#endif
 
 namespace qs {
 
