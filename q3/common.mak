@@ -46,8 +46,11 @@ endif
 
 SHELL					= /bin/bash
 
+cever					= $(if $(CEVER), $(shell test "$(CEVER)" $(1) "$(2)"; echo $?),1)
+platform				= $(if $(filter $(1), $(PLATFORM)), $(PLATFORM), )
+
 ifdef EMULATION
-	ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
+	ifeq ($(call cever, -lt, 400),0)
 		OLDEMULATION	= 1
 	endif
 endif
@@ -99,7 +102,7 @@ ifeq ($(PLATFORM),win)
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se ]; then echo 0; else echo 1; fi),0)
+	ifneq ($(call platform, ppc2003 ppc2003se),)
 		# PPC2003SE PPC2003 #################################################
 		ifeq ($(BASELANG),ja)
 			SDKDIR		= $(CESDKPPC2003JADIR)
@@ -165,7 +168,7 @@ else
 	SDKBINDIR			= $(SDKDIR)/bin
 	
 	ifeq ($(SDKINCLUDEDIR),)
-		ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
+		ifeq ($(call cever, -lt, 400),0)
 			SDKINCLUDEDIR		= $(SDKDIR)/include
 		else
 			ifndef EMULATION
@@ -176,7 +179,7 @@ else
 		endif
 	endif
 	ifeq ($(SDKLIBDIR),)
-		ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -lt 400 ]; then echo 0; else echo 1; fi),0)
+		ifeq ($(call cever, -lt, 400),0)
 			SDKLIBDIR		= $(SDKDIR)/lib/$(LIBCPU)
 		else
 			ifndef EMULATION
@@ -385,7 +388,7 @@ ifeq ($(PLATFORM),win)
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifeq ($(shell if [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -ge 400 ]; then echo 0; else echo 1; fi),0)
+	ifeq ($(call cever, -ge, 400),0)
 		# WINCE >= 400 ######################################################
 #		CCFLAGS			+= -GX
 		#####################################################################
@@ -473,16 +476,16 @@ else
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif
-	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se ]; then echo 0; else echo 1; fi),0)
+	ifneq ($(call platform, ppc2003 ppc2003se),)
 		LIBS			+= ccrtrtti.lib
 	endif
-	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se -o "$(PLATFORM)" = ppc2002 -o "$(PLATFORM)" = sig3 ]; then echo 0; else echo 1; fi),0)
+	ifneq ($(call platform, ppc2003 ppc2003se ppc2002 sig3),)
 		LIBS			+= urlmon.lib
 	endif
-	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se -o "$(PLATFORM)" = ppc2002 ]; then echo 0; else echo 1; fi),0)
+	ifneq ($(call platform, ppc2003 ppc2003se ppc2002),)
 		LIBS			+= wvuuid.lib
 	endif
-	ifeq ($(shell if [ "$(PLATFORM)" = ppc2002 ]; then echo 0; elif [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -ge 400 ]; then echo 0; else echo 1; fi),0)
+	ifeq ($(if $(call platform, ppc2002), 0, $(call cever, -ge, 400)),0)
 		LIBS			+= crypt32.lib
 	endif
 	ifdef KCTRL
