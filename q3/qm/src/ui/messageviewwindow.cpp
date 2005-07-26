@@ -22,9 +22,16 @@
 
 #include <tchar.h>
 #ifdef QMHTMLVIEW
-#	include <exdispid.h>
-#	include <mshtmcid.h>
-#	include <mshtmdid.h>
+#	ifdef QMHTMLVIEWWEBBROWSER
+#		include <exdispid.h>
+#		include <mshtmcid.h>
+#		include <mshtmdid.h>
+#	elif defined QMHTMLVIEWHTMLCTRL
+#		include <htmlctrl.h>
+#		include <wvdispid.h>
+#	else
+#		error "Unknown HTMLVIEW"
+#	endif
 #endif
 #ifndef _WIN32_WCE
 #	include <tmschema.h>
@@ -67,13 +74,15 @@ qm::MessageViewWindowCallback::~MessageViewWindowCallback()
  *
  */
 
-qm::MessageViewWindowFactory::MessageViewWindowFactory(Document* pDocument,
+qm::MessageViewWindowFactory::MessageViewWindowFactory(MessageWindow* pMessageWindow,
+													   Document* pDocument,
 													   Profile* pProfile,
 													   const WCHAR* pwszSection,
 													   MessageModel* pMessageModel,
 													   MenuManager* pMenuManager,
 													   MessageViewWindowCallback* pCallback,
 													   bool bTextOnly) :
+	pMessageWindow_(pMessageWindow),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
@@ -96,19 +105,18 @@ qm::MessageViewWindowFactory::~MessageViewWindowFactory()
 {
 }
 
-bool qm::MessageViewWindowFactory::create(HWND hwnd)
+bool qm::MessageViewWindowFactory::create()
 {
-	assert(hwnd);
-	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
 #endif
 	RECT rect;
-	Window(hwnd).getClientRect(&rect);
+	pMessageWindow_->getClientRect(&rect);
 	return pText_->create(L"QmTextMessageViewWindow", 0, WS_CHILD,
-		0, 0, rect.right, rect.bottom, hwnd, dwExStyle, 0, 1002, 0);
+		0, 0, rect.right, rect.bottom, pMessageWindow_->getHandle(),
+		dwExStyle, 0, ID_TEXTMESSAGEVIEWWINDOW, 0);
 }
 
 MessageViewWindow* qm::MessageViewWindowFactory::getMessageViewWindow(const ContentTypeParser* pContentType)
@@ -119,7 +127,7 @@ MessageViewWindow* qm::MessageViewWindowFactory::getMessageViewWindow(const Cont
 		_wcsicmp(pContentType->getMediaType(), L"text") == 0 &&
 		_wcsicmp(pContentType->getSubType(), L"html") == 0;
 	
-	if (bHtml && !pHtml_ && Application::getApplication().getAtlHandle()) {
+	if (bHtml && !pHtml_ && isHtmlViewSupported()) {
 		if (!createHtmlView())
 			bHtml = false;
 	}
@@ -142,7 +150,7 @@ TextMessageViewWindow* qm::MessageViewWindowFactory::getTextMessageViewWindow()
 MessageViewWindow* qm::MessageViewWindowFactory::getLinkMessageViewWindow()
 {
 #ifdef QMHTMLVIEW
-	if (!pHtml_ && Application::getApplication().getAtlHandle()) {
+	if (!pHtml_ && isHtmlViewSupported()) {
 		if (!createHtmlView())
 			return pText_;
 	}
@@ -163,20 +171,38 @@ void qm::MessageViewWindowFactory::reloadProfiles()
 }
 
 #ifdef QMHTMLVIEW
+bool qm::MessageViewWindowFactory::isHtmlViewSupported() const
+{
+#ifdef QMHTMLVIEWWEBBROWSER
+	return Application::getApplication().getAtlHandle() != 0;
+#else
+	return InitHTMLControl(getInstanceHandle()) != 0;
+#endif
+}
+
 bool qm::MessageViewWindowFactory::createHtmlView()
 {
-	std::auto_ptr<HtmlMessageViewWindow> pHtml(new HtmlMessageViewWindow(
-		pProfile_, pwszSection_, pMessageModel_, pMenuManager_, pCallback_));
-	HWND hwnd = pText_->getParent();
+	std::auto_ptr<HtmlMessageViewWindow> pHtml(new HtmlMessageViewWindow(pProfile_,
+		pwszSection_, pMessageWindow_, pMessageModel_, pMenuManager_, pCallback_));
+#ifdef QMHTMLVIEWWEBBROWSER
 #ifdef _WIN32_WCE
 	const WCHAR* pwszId = L"{8856F961-340A-11D0-A96B-00C04FD705A2}";
 #else
 	const WCHAR* pwszId = L"Shell.Explorer";
 #endif
+	DWORD dwStyle = WS_CHILD;
+	DWORD dwExStyle = WS_EX_CLIENTEDGE;
+#else
+	const WCHAR* pwszId = 0;
+	DWORD dwStyle = WS_CHILD | HS_CONTEXTMENU |
+		HS_CLEARTYPE | HS_NOSCRIPTING | HS_NOACTIVEX;
+	DWORD dwExStyle = 0;
+#endif
 	RECT rect;
-	Window(hwnd).getClientRect(&rect);
-	if (!pHtml->create(L"QmHtmlMessageViewWindow", pwszId, WS_CHILD,
-		0, 0, rect.right, rect.bottom, hwnd, WS_EX_CLIENTEDGE, 0, 1003, 0))
+	pMessageWindow_->getClientRect(&rect);
+	if (!pHtml->create(L"QmHtmlMessageViewWindow", pwszId, dwStyle,
+		0, 0, rect.right, rect.bottom, pMessageWindow_->getHandle(),
+		dwExStyle, 0, ID_HTMLMESSAGEVIEWWINDOW, 0))
 		return false;
 	pHtml_ = pHtml.release();
 	
@@ -330,7 +356,7 @@ bool qm::TextMessageViewWindow::scrollPage(bool bPrev)
 		sizeof(info),
 		SIF_ALL
 	};
-	::GetScrollInfo(getHandle(), SB_VERT, &info);
+	getScrollInfo(SB_VERT, &info);
 	if ((bPrev && info.nPos != 0) ||
 		(!bPrev && info.nPos < static_cast<int>(info.nMax - info.nPage + 1))) {
 		scroll(bPrev ? SCROLL_PAGEUP : SCROLL_PAGEDOWN, 0, false);
@@ -439,12 +465,496 @@ qm::TextMessageViewWindow::MarkImpl::~MarkImpl()
 
 /****************************************************************************
  *
+ * HtmlContent
+ *
+ */
+
+qm::HtmlContent::HtmlContent(const WCHAR* pwszContentId,
+							 const WCHAR* pwszMimeType,
+							 qs::malloc_size_ptr<unsigned char> pData,
+							 const void* pCookie) :
+	pData_(pData),
+	pCookie_(pCookie)
+{
+	assert(pwszContentId);
+	assert(pwszMimeType);
+	
+	wstrContentId_ = allocWString(pwszContentId);
+	wstrMimeType_ = allocWString(pwszMimeType);
+}
+
+qm::HtmlContent::~HtmlContent()
+{
+}
+
+const WCHAR* qm::HtmlContent::getContentId() const
+{
+	return wstrContentId_.get();
+}
+
+const WCHAR* qm::HtmlContent::getMimeType() const
+{
+	return wstrMimeType_.get();
+}
+
+const unsigned char* qm::HtmlContent::getData() const
+{
+	return pData_.get();
+}
+
+size_t qm::HtmlContent::getDataSize() const
+{
+	return pData_.size();
+}
+
+const void* qm::HtmlContent::getCookie() const
+{
+	return pCookie_;
+}
+
+
+/****************************************************************************
+ *
+ * HtmlContentManager
+ *
+ */
+
+qm::HtmlContentManager::HtmlContentManager()
+{
+}
+
+qm::HtmlContentManager::~HtmlContentManager()
+{
+	std::for_each(listContent_.begin(), listContent_.end(), qs::deleter<HtmlContent>());
+	listContent_.clear();
+}
+
+const HtmlContent* qm::HtmlContentManager::get(const WCHAR* pwszContentId) const
+{
+	ContentList::const_iterator it = std::find_if(
+		listContent_.begin(), listContent_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::mem_fun(&HtmlContent::getContentId),
+				std::identity<const WCHAR*>()),
+			pwszContentId));
+	return it != listContent_.end() ? *it : 0;
+}
+
+wstring_ptr qm::HtmlContentManager::prepare(const Message& msg,
+											const Part& partHtml,
+											const WCHAR* pwszEncoding,
+											const void* pCookie)
+{
+	clear(pCookie);
+	
+	Time time(Time::getCurrentTime());
+	WCHAR wszId[256];
+	swprintf(wszId, L"%u%04d%02d%02d%02d%02d%02d%03d@local",
+		::GetCurrentProcessId(), time.wYear, time.wMonth, time.wDay,
+		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
+	
+	prepare(partHtml, wszId, pwszEncoding, pCookie);
+	
+	wstring_ptr wstrId(allocWString(wszId));
+	
+	prepare(msg, 0, 0, pCookie);
+	
+	return wstrId;
+}
+
+void qm::HtmlContentManager::clear(const void* pCookie)
+{
+	for (ContentList::iterator it = listContent_.begin(); it != listContent_.end(); ) {
+		HtmlContent* pContent = *it;
+		if (pContent->getCookie() == pCookie) {
+			delete pContent;
+			it = listContent_.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+}
+
+void qm::HtmlContentManager::prepare(const qs::Part& part,
+									 const WCHAR* pwszId,
+									 const WCHAR* pwszEncoding,
+									 const void* pCookie)
+{
+	if (part.isMultipart()) {
+		const Part::PartList& l = part.getPartList();
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
+			prepare(**it, 0, 0, pCookie);
+	}
+	else {
+		wstring_ptr wstrId;
+		if (pwszId) {
+			wstrId = allocWString(pwszId);
+		}
+		else {
+			MessageIdParser contentId;
+			if (part.getField(L"Content-Id", &contentId) == Part::FIELD_EXIST)
+				wstrId = allocWString(contentId.getMessageId());
+		}
+		
+		if (wstrId.get()) {
+			wstring_ptr wstrMimeType;
+			const WCHAR* pwszMediaType = L"text";
+			const WCHAR* pwszSubType = L"plain";
+			wstring_ptr wstrCharset;
+			const ContentTypeParser* pContentType = part.getContentType();
+			if (pContentType) {
+				pwszMediaType = pContentType->getMediaType();
+				pwszSubType = pContentType->getSubType();
+				wstrCharset = pContentType->getParameter(L"charset");
+			}
+			
+			bool bText = _wcsicmp(pwszMediaType, L"text") == 0;
+			if (bText && pwszEncoding)
+				wstrCharset = allocWString(L"utf-16");
+			
+			size_t nMimeTypeLen = wcslen(pwszMediaType) + wcslen(pwszSubType) +
+				(wstrCharset.get() ? wcslen(wstrCharset.get()) + 12 : 0) + 2;
+			wstrMimeType = allocWString(nMimeTypeLen);
+			wcscpy(wstrMimeType.get(), pwszMediaType);
+			wcscat(wstrMimeType.get(), L"/");
+			wcscat(wstrMimeType.get(), pwszSubType);
+			if (wstrCharset.get()) {
+				wcscat(wstrMimeType.get(), L"; charset=\"");
+				wcscat(wstrMimeType.get(), wstrCharset.get());
+				wcscat(wstrMimeType.get(), L"\"");
+			}
+			assert(wcslen(wstrMimeType.get()) < nMimeTypeLen);
+			
+			malloc_size_ptr<unsigned char> pData;
+			if (bText && pwszEncoding) {
+				wxstring_size_ptr wstrBody(part.getBodyText(pwszEncoding));
+				if (!wstrBody.get())
+					return;
+				malloc_ptr<WCHAR> p(static_cast<WCHAR*>(
+					malloc((wstrBody.size() + 2)*sizeof(WCHAR))));
+				if (!p.get())
+					return;
+				*p = 0xfeff;
+				wcscpy(p.get() + 1, wstrBody.get());
+				pData.reset(reinterpret_cast<unsigned char*>(p.release()),
+					(wstrBody.size() + 1)*sizeof(WCHAR));
+			}
+			else {
+				pData = part.getBodyData();
+				if (!pData.get())
+					return;
+			}
+			std::auto_ptr<HtmlContent> pContent(new HtmlContent(
+				wstrId.get(), wstrMimeType.get(), pData, pCookie));
+			listContent_.push_back(pContent.get());
+			pContent.release();
+		}
+	}
+}
+
+
+/****************************************************************************
+ *
+ * InternetProtocol
+ *
+ */
+
+qm::InternetProtocol::InternetProtocol(const HtmlContentManager& contentManager) :
+	nRef_(0),
+	contentManager_(contentManager),
+	pContent_(0),
+	pCurrent_(0),
+	pSink_(0)
+{
+}
+
+qm::InternetProtocol::~InternetProtocol()
+{
+}
+
+STDMETHODIMP_(ULONG) qm::InternetProtocol::AddRef()
+{
+	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
+}
+
+STDMETHODIMP_(ULONG) qm::InternetProtocol::Release()
+{
+	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
+	if (nRef == 0)
+		delete this;
+	return nRef;
+}
+
+STDMETHODIMP qm::InternetProtocol::QueryInterface(REFIID riid,
+												  void** ppv)
+{
+	*ppv = 0;
+	
+	if (riid == IID_IUnknown ||
+		riid == IID_IInternetProtocol ||
+		riid == IID_IInternetProtocolRoot) {
+		AddRef();
+		*ppv = static_cast<IInternetProtocol*>(this);
+	}
+	else if (riid == IID_IInternetProtocolInfo) {
+		AddRef();
+		*ppv = static_cast<IInternetProtocolInfo*>(this);
+	}
+	
+	return *ppv ? S_OK : E_NOINTERFACE;
+}
+
+STDMETHODIMP qm::InternetProtocol::Abort(HRESULT hrReason,
+										 DWORD dwOptions)
+{
+	return S_OK;
+}
+
+STDMETHODIMP qm::InternetProtocol::Continue(PROTOCOLDATA* pProtocolData)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::InternetProtocol::Resume()
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::InternetProtocol::Start(LPCWSTR pwszUrl,
+										 IInternetProtocolSink* pSink,
+										 IInternetBindInfo* pBindInfo,
+										 DWORD dwFlags,
+										 HANDLE_PTR dwReserved)
+{
+	if (wcsncmp(pwszUrl, L"cid:", 4) != 0)
+		return E_FAIL;
+	
+	pContent_ = contentManager_.get(pwszUrl + 4);
+	if (!pContent_)
+		return E_FAIL;
+	
+	pCurrent_ = pContent_->getData();
+	
+	pSink_ = pSink;
+	
+	HRESULT hr = S_OK;
+	
+	hr = pSink_->ReportProgress(BINDSTATUS_MIMETYPEAVAILABLE, pContent_->getMimeType());
+	if (FAILED(hr))
+		return hr;
+	
+	hr = pSink->ReportData(BSCF_LASTDATANOTIFICATION, 0, 0);
+	if (FAILED(hr))
+		return hr;
+	
+	hr = pSink->ReportResult(S_OK, 0, 0);
+	if (FAILED(hr))
+		return hr;
+	
+	return S_OK;
+}
+
+STDMETHODIMP qm::InternetProtocol::Suspend()
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::InternetProtocol::Terminate(DWORD dwOptions)
+{
+	return S_OK;
+}
+
+STDMETHODIMP qm::InternetProtocol::LockRequest(DWORD dwOptions)
+{
+	return S_OK;
+}
+
+STDMETHODIMP qm::InternetProtocol::Read(void* pv,
+										ULONG cb,
+										ULONG* pcbRead)
+{
+	assert(pv);
+	assert(pcbRead);
+	
+	*pcbRead = 0;
+	
+	if (cb > pContent_->getDataSize() - (pCurrent_ - pContent_->getData()))
+		cb = static_cast<ULONG>(pContent_->getDataSize() - (pCurrent_ - pContent_->getData()));
+	
+	if (cb == 0)
+		return S_FALSE;
+	
+	memcpy(pv, pCurrent_, cb);
+	*pcbRead = cb;
+	pCurrent_ += cb;
+	
+	return S_OK;
+}
+
+STDMETHODIMP qm::InternetProtocol::Seek(LARGE_INTEGER move,
+										DWORD dwOrigin,
+										ULARGE_INTEGER* pNewPos)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::InternetProtocol::UnlockRequest()
+{
+	return S_OK;
+}
+
+STDMETHODIMP qm::InternetProtocol::CombineUrl(LPCWSTR pwszBaseUrl,
+											  LPCWSTR pwszRelativeUrl,
+											  DWORD dwCombineFlags,
+											  LPWSTR pwszResult,
+											  DWORD cchResult,
+											  DWORD* pcchResult,
+											  DWORD dwReserved)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::InternetProtocol::CompareUrl(LPCWSTR pwszUrl1,
+											  LPCWSTR pwszUrl2,
+											  DWORD dwCompareFlags)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::InternetProtocol::ParseUrl(LPCWSTR pwszUrl,
+											PARSEACTION action,
+											DWORD dwParseFlags,
+											LPWSTR pwszResult,
+											DWORD cchResult,
+											DWORD* pcchResult,
+											DWORD dwReserved)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP qm::InternetProtocol::QueryInfo(LPCWSTR pwszUrl,
+											 QUERYOPTION option,
+											 DWORD dwQueryFlags,
+											 LPVOID pBuffer,
+											 DWORD cbBuffer,
+											 DWORD* pcbBuffer,
+											 DWORD dwReserved)
+{
+	return E_NOTIMPL;
+}
+
+
+/****************************************************************************
+ *
+ * InternetProtocolFactory
+ *
+ */
+
+qm::InternetProtocolFactory::InternetProtocolFactory(const HtmlContentManager& contentManager) :
+	nRef_(0),
+	contentManager_(contentManager)
+{
+}
+
+qm::InternetProtocolFactory::~InternetProtocolFactory()
+{
+}
+
+STDMETHODIMP_(ULONG) qm::InternetProtocolFactory::AddRef()
+{
+	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
+}
+
+STDMETHODIMP_(ULONG) qm::InternetProtocolFactory::Release()
+{
+	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
+	if (nRef == 0)
+		delete this;
+	return nRef;
+}
+
+STDMETHODIMP qm::InternetProtocolFactory::QueryInterface(REFIID riid,
+														 void** ppv)
+{
+	*ppv = 0;
+	
+	if (riid == IID_IUnknown || riid == IID_IClassFactory) {
+		AddRef();
+		*ppv = static_cast<IClassFactory*>(this);
+	}
+	
+	return *ppv ? S_OK : E_NOINTERFACE;
+}
+
+STDMETHODIMP qm::InternetProtocolFactory::CreateInstance(IUnknown* pUnkOuter,
+														 REFIID riid,
+														 void** ppvObj)
+{
+	if (pUnkOuter)
+		return CLASS_E_NOAGGREGATION;
+	
+	if (riid != IID_IInternetProtocol)
+		return E_NOINTERFACE;
+	
+	InternetProtocol* pInternetProtocol = new InternetProtocol(contentManager_);
+	pInternetProtocol->AddRef();
+	*ppvObj = static_cast<IInternetProtocol*>(pInternetProtocol);
+	
+	return S_OK;
+}
+
+STDMETHODIMP qm::InternetProtocolFactory::LockServer(BOOL bLock)
+{
+	return E_NOTIMPL;
+}
+
+
+/****************************************************************************
+ *
+ * InternetSessionInit
+ *
+ */
+
+InternetSessionInit qm::InternetSessionInit::instance__;
+
+qm::InternetSessionInit::InternetSessionInit()
+{
+	if (::CoInternetGetSession(0, &pInternetSession_, 0) == S_OK) {
+		ComPtr<IClassFactory> pClassFactory(new InternetProtocolFactory(contentManager_));
+		pClassFactory->AddRef();
+		
+		CLSID clsid = { 0x3646a74a, 0x7908, 0x4bed, { 0xb7, 0x6a, 0xab, 0x1a, 0x6f, 0x6b, 0xcf, 0x10 } };
+		if (pInternetSession_->RegisterNameSpace(pClassFactory.get(), clsid, L"cid", 0, 0, 0) == S_OK)
+			pClassFactory_ = pClassFactory;
+	}
+}
+
+qm::InternetSessionInit::~InternetSessionInit()
+{
+	if (pInternetSession_.get() && pClassFactory_.get())
+		pInternetSession_->UnregisterNameSpace(pClassFactory_.get(), L"cid");
+}
+
+HtmlContentManager& qm::InternetSessionInit::getContentManager()
+{
+	return instance__.contentManager_;
+}
+
+
+/****************************************************************************
+ *
  * HtmlMessageViewWindow
  *
  */
 
+#ifdef QMHTMLVIEWWEBBROWSER
+
 qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
 												 const WCHAR* pwszSection,
+												 MessageWindow* pMessageWindow,
 												 MessageModel* pMessageModel,
 												 MenuManager* pMenuManager,
 												 MessageViewWindowCallback* pCallback) :
@@ -467,8 +977,7 @@ qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
 
 qm::HtmlMessageViewWindow::~HtmlMessageViewWindow()
 {
-	ContentManager& manager = ContentManager::getInstance();
-	manager.clearRelatedContent(this);
+	InternetSessionInit::getContentManager().clear(this);
 }
 
 wstring_ptr qm::HtmlMessageViewWindow::getSuperClass()
@@ -761,9 +1270,8 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		const Part* pPart = util.getAlternativePart(L"text", L"html");
 		assert(pPart);
 		
-		ContentManager& manager = ContentManager::getInstance();
-		wstring_ptr wstrId(manager.prepareRelatedContent(
-			this, *pMessage, *pPart, pwszEncoding));
+		wstring_ptr wstrId(InternetSessionInit::getContentManager().prepare(
+			*pMessage, *pPart, pwszEncoding, this));
 		wstrURL = concat(L"cid:", wstrId.get());
 		bAllowExternal_ = false;
 	}
@@ -988,185 +1496,6 @@ bool qm::HtmlMessageViewWindow::canSelectAll()
 
 /****************************************************************************
  *
- * HtmlMessageViewWindow::Content
- *
- */
-
-void HtmlMessageViewWindow::Content::destroy()
-{
-	freeWString(wstrContentId_);
-	wstrContentId_ = 0;
-	freeWString(wstrMimeType_);
-	wstrMimeType_ = 0;
-	free(pData_);
-	pData_ = 0;
-}
-
-
-/****************************************************************************
- *
- * HtmlMessageViewWindow::ContentManager
- *
- */
-
-HtmlMessageViewWindow::ContentManager qm::HtmlMessageViewWindow::ContentManager::instance__;
-
-qm::HtmlMessageViewWindow::ContentManager::ContentManager()
-{
-	if (::CoInternetGetSession(0, &pInternetSession_, 0) == S_OK) {
-		ComPtr<IClassFactory> pClassFactory(new InternetProtocolFactory());
-		pClassFactory->AddRef();
-		
-		CLSID clsid = { 0x3646a74a, 0x7908, 0x4bed, { 0xb7, 0x6a, 0xab, 0x1a, 0x6f, 0x6b, 0xcf, 0x10 } };
-		if (pInternetSession_->RegisterNameSpace(pClassFactory.get(), clsid, L"cid", 0, 0, 0) == S_OK)
-			pClassFactory_ = pClassFactory;
-	}
-}
-
-qm::HtmlMessageViewWindow::ContentManager::~ContentManager()
-{
-	if (pInternetSession_.get() && pClassFactory_.get())
-		pInternetSession_->UnregisterNameSpace(pClassFactory_.get(), L"cid");
-}
-
-HtmlMessageViewWindow::Content qm::HtmlMessageViewWindow::ContentManager::getContent(const WCHAR* pwszContentId) const
-{
-	for (ContentList::const_iterator it = listContent_.begin(); it != listContent_.end(); ++it) {
-		if ((*it).wstrContentId_ && wcscmp((*it).wstrContentId_, pwszContentId) == 0)
-			return *it;
-	}
-	
-	Content content = { 0, 0, 0, 0, 0 };
-	return content;
-}
-
-wstring_ptr qm::HtmlMessageViewWindow::ContentManager::prepareRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow,
-																			 const Message& msg,
-																			 const qs::Part& partHtml,
-																			 const WCHAR* pwszEncoding)
-{
-	clearRelatedContent(pHtmlMessageViewWindow);
-	
-	Time time(Time::getCurrentTime());
-	WCHAR wszId[256];
-	swprintf(wszId, L"%u%04d%02d%02d%02d%02d%02d%03d@local",
-		::GetCurrentProcessId(), time.wYear, time.wMonth, time.wDay,
-		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-	
-	prepareRelatedContent(pHtmlMessageViewWindow, partHtml, wszId, pwszEncoding);
-	
-	wstring_ptr wstrId(allocWString(wszId));
-	
-	prepareRelatedContent(pHtmlMessageViewWindow, msg, 0, 0);
-	
-	return wstrId;
-}
-
-void qm::HtmlMessageViewWindow::ContentManager::clearRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow)
-{
-	for (ContentList::iterator it = listContent_.begin(); it != listContent_.end(); ) {
-		if ((*it).pHtmlMessageViewWindow_ == pHtmlMessageViewWindow) {
-			(*it).destroy();
-			it = listContent_.erase(it);
-		}
-		else {
-			++it;
-		}
-	}
-}
-
-void qm::HtmlMessageViewWindow::ContentManager::prepareRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow,
-																	  const qs::Part& part,
-																	  const WCHAR* pwszId,
-																	  const WCHAR* pwszEncoding)
-{
-	if (part.isMultipart()) {
-		const Part::PartList& l = part.getPartList();
-		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
-			prepareRelatedContent(pHtmlMessageViewWindow, **it, 0, 0);
-	}
-	else {
-		wstring_ptr wstrId;
-		if (pwszId) {
-			wstrId = allocWString(pwszId);
-		}
-		else {
-			MessageIdParser contentId;
-			if (part.getField(L"Content-Id", &contentId) == Part::FIELD_EXIST)
-				wstrId = allocWString(contentId.getMessageId());
-		}
-		
-		if (wstrId.get()) {
-			wstring_ptr wstrMimeType;
-			const WCHAR* pwszMediaType = L"text";
-			const WCHAR* pwszSubType = L"plain";
-			wstring_ptr wstrCharset;
-			const ContentTypeParser* pContentType = part.getContentType();
-			if (pContentType) {
-				pwszMediaType = pContentType->getMediaType();
-				pwszSubType = pContentType->getSubType();
-				wstrCharset = pContentType->getParameter(L"charset");
-			}
-			
-			bool bText = _wcsicmp(pwszMediaType, L"text") == 0;
-			if (bText && pwszEncoding)
-				wstrCharset = allocWString(L"utf-16");
-			
-			size_t nMimeTypeLen = wcslen(pwszMediaType) + wcslen(pwszSubType) +
-				(wstrCharset.get() ? wcslen(wstrCharset.get()) + 12 : 0) + 2;
-			wstrMimeType = allocWString(nMimeTypeLen);
-			wcscpy(wstrMimeType.get(), pwszMediaType);
-			wcscat(wstrMimeType.get(), L"/");
-			wcscat(wstrMimeType.get(), pwszSubType);
-			if (wstrCharset.get()) {
-				wcscat(wstrMimeType.get(), L"; charset=\"");
-				wcscat(wstrMimeType.get(), wstrCharset.get());
-				wcscat(wstrMimeType.get(), L"\"");
-			}
-			assert(wcslen(wstrMimeType.get()) < nMimeTypeLen);
-			
-			malloc_size_ptr<unsigned char> pData;
-			if (bText && pwszEncoding) {
-				wxstring_size_ptr wstrBody(part.getBodyText(pwszEncoding));
-				if (!wstrBody.get())
-					return;
-				malloc_ptr<WCHAR> p(static_cast<WCHAR*>(
-					malloc((wstrBody.size() + 2)*sizeof(WCHAR))));
-				if (!p.get())
-					return;
-				*p = 0xfeff;
-				wcscpy(p.get() + 1, wstrBody.get());
-				pData.reset(reinterpret_cast<unsigned char*>(p.release()),
-					(wstrBody.size() + 1)*sizeof(WCHAR));
-			}
-			else {
-				pData = part.getBodyData();
-				if (!pData.get())
-					return;
-			}
-			Content content = {
-				pHtmlMessageViewWindow,
-				wstrId.get(),
-				wstrMimeType.get(),
-				pData.release(),
-				pData.size()
-			};
-			listContent_.push_back(content);
-			wstrId.release();
-			wstrMimeType.release();
-			pData.release();
-		}
-	}
-}
-
-HtmlMessageViewWindow::ContentManager& qm::HtmlMessageViewWindow::ContentManager::getInstance()
-{
-	return instance__;
-}
-
-
-/****************************************************************************
- *
  * HtmlMessageViewWindow::IInternetSecurityManagerImpl
  *
  */
@@ -1292,260 +1621,6 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IInternetSecurityManagerImpl::GetZoneMap
 																					  DWORD dwFlags)
 {
 	return INET_E_DEFAULT_ACTION;
-}
-
-
-/****************************************************************************
- *
- * InternetProtocol
- *
- */
-
-qm::HtmlMessageViewWindow::InternetProtocol::InternetProtocol() :
-	nRef_(0),
-	pCurrent_(0),
-	pSink_(0)
-{
-}
-
-qm::HtmlMessageViewWindow::InternetProtocol::~InternetProtocol()
-{
-}
-
-STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::InternetProtocol::AddRef()
-{
-	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
-}
-
-STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::InternetProtocol::Release()
-{
-	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
-	if (nRef == 0)
-		delete this;
-	return nRef;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInterface(REFIID riid,
-																		 void** ppv)
-{
-	*ppv = 0;
-	
-	if (riid == IID_IUnknown ||
-		riid == IID_IInternetProtocol ||
-		riid == IID_IInternetProtocolRoot) {
-		AddRef();
-		*ppv = static_cast<IInternetProtocol*>(this);
-	}
-	else if (riid == IID_IInternetProtocolInfo) {
-		AddRef();
-		*ppv = static_cast<IInternetProtocolInfo*>(this);
-	}
-	
-	return *ppv ? S_OK : E_NOINTERFACE;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Abort(HRESULT hrReason,
-																DWORD dwOptions)
-{
-	return S_OK;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Continue(PROTOCOLDATA* pProtocolData)
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Resume()
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Start(LPCWSTR pwszUrl,
-																IInternetProtocolSink* pSink,
-																IInternetBindInfo* pBindInfo,
-																DWORD dwFlags,
-																HANDLE_PTR dwReserved)
-{
-	if (wcsncmp(pwszUrl, L"cid:", 4) != 0)
-		return E_FAIL;
-	
-	ContentManager& manager = ContentManager::getInstance();
-	content_ = manager.getContent(pwszUrl + 4);
-	if (!content_.wstrContentId_)
-		return E_FAIL;
-	
-	pCurrent_ = content_.pData_;
-	
-	pSink_ = pSink;
-	
-	HRESULT hr = S_OK;
-	
-	hr = pSink_->ReportProgress(BINDSTATUS_MIMETYPEAVAILABLE, content_.wstrMimeType_);
-	if (FAILED(hr))
-		return hr;
-	
-	hr = pSink->ReportData(BSCF_LASTDATANOTIFICATION, 0, 0);
-	if (FAILED(hr))
-		return hr;
-	
-	hr = pSink->ReportResult(S_OK, 0, 0);
-	if (FAILED(hr))
-		return hr;
-	
-	return S_OK;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Suspend()
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Terminate(DWORD dwOptions)
-{
-	return S_OK;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::LockRequest(DWORD dwOptions)
-{
-	return S_OK;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Read(void* pv,
-															   ULONG cb,
-															   ULONG* pcbRead)
-{
-	assert(pv);
-	assert(pcbRead);
-	
-	*pcbRead = 0;
-	
-	if (cb > content_.nDataLen_ - (pCurrent_ - content_.pData_))
-		cb = static_cast<ULONG>(content_.nDataLen_ - (pCurrent_ - content_.pData_));
-	
-	if (cb == 0)
-		return S_FALSE;
-	
-	memcpy(pv, pCurrent_, cb);
-	*pcbRead = cb;
-	pCurrent_ += cb;
-	
-	return S_OK;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::Seek(LARGE_INTEGER move,
-															   DWORD dwOrigin,
-															   ULARGE_INTEGER* pNewPos)
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::UnlockRequest()
-{
-	return S_OK;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::CombineUrl(LPCWSTR pwszBaseUrl,
-																	 LPCWSTR pwszRelativeUrl,
-																	 DWORD dwCombineFlags,
-																	 LPWSTR pwszResult,
-																	 DWORD cchResult,
-																	 DWORD* pcchResult,
-																	 DWORD dwReserved)
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::CompareUrl(LPCWSTR pwszUrl1,
-																	 LPCWSTR pwszUrl2,
-																	 DWORD dwCompareFlags)
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::ParseUrl(LPCWSTR pwszUrl,
-																   PARSEACTION action,
-																   DWORD dwParseFlags,
-																   LPWSTR pwszResult,
-																   DWORD cchResult,
-																   DWORD* pcchResult,
-																   DWORD dwReserved)
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocol::QueryInfo(LPCWSTR pwszUrl,
-																	QUERYOPTION option,
-																	DWORD dwQueryFlags,
-																	LPVOID pBuffer,
-																	DWORD cbBuffer,
-																	DWORD* pcbBuffer,
-																	DWORD dwReserved)
-{
-	return E_NOTIMPL;
-}
-
-
-/****************************************************************************
- *
- * HtmlMessageViewWindow::InternetProtocolFactory
- *
- */
-
-qm::HtmlMessageViewWindow::InternetProtocolFactory::InternetProtocolFactory() :
-	nRef_(0)
-{
-}
-
-qm::HtmlMessageViewWindow::InternetProtocolFactory::~InternetProtocolFactory()
-{
-}
-
-STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::InternetProtocolFactory::AddRef()
-{
-	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
-}
-
-STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::InternetProtocolFactory::Release()
-{
-	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
-	if (nRef == 0)
-		delete this;
-	return nRef;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocolFactory::QueryInterface(REFIID riid,
-																				void** ppv)
-{
-	*ppv = 0;
-	
-	if (riid == IID_IUnknown || riid == IID_IClassFactory) {
-		AddRef();
-		*ppv = static_cast<IClassFactory*>(this);
-	}
-	
-	return *ppv ? S_OK : E_NOINTERFACE;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocolFactory::CreateInstance(IUnknown* pUnkOuter,
-																				REFIID riid,
-																				void** ppvObj)
-{
-	if (pUnkOuter)
-		return CLASS_E_NOAGGREGATION;
-	
-	if (riid != IID_IInternetProtocol)
-		return E_NOINTERFACE;
-	
-	InternetProtocol* pInternetProtocol = new InternetProtocol();
-	pInternetProtocol->AddRef();
-	*ppvObj = static_cast<IInternetProtocol*>(pInternetProtocol);
-	
-	return S_OK;
-}
-
-STDMETHODIMP qm::HtmlMessageViewWindow::InternetProtocolFactory::LockServer(BOOL bLock)
-{
-	return E_NOTIMPL;
 }
 
 
@@ -1920,8 +1995,8 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			pWebBrowser.get() == pWebBrowser_ &&
 			(wcsncmp(bstrURL, L"http:", 5) == 0 ||
 			wcsncmp(bstrURL, L"https:", 6) == 0 ||
-			wcsncmp(bstrURL, L"ftp:", 4) == 0) ||
-			wcsncmp(bstrURL, L"mailto:", 7) == 0)
+			wcsncmp(bstrURL, L"ftp:", 4) == 0 ||
+			wcsncmp(bstrURL, L"mailto:", 7) == 0))
 			UIUtil::openURL(pHtmlMessageViewWindow_->getParentFrame(), bstrURL);
 	}
 	else if (dispId == DISPID_NEWWINDOW3) {
@@ -2245,5 +2320,503 @@ HtmlMessageViewWindow::AmbientDispatchHook* qm::HtmlMessageViewWindow::AmbientDi
 	assert(it != map__.end());
 	return (*it).second;
 }
+
+#elif defined QMHTMLVIEWHTMLCTRL
+
+qm::HtmlMessageViewWindow::HtmlMessageViewWindow(qs::Profile* pProfile,
+												 const WCHAR* pwszSection,
+												 MessageWindow* pMessageWindow,
+												 MessageModel* pMessageModel,
+												 qs::MenuManager* pMenuManager,
+												 MessageViewWindowCallback* pCallback) :
+	WindowBase(true),
+	pProfile_(pProfile),
+	pwszSection_(pwszSection),
+	pMessageWindow_(pMessageWindow),
+	pMessageModel_(pMessageModel),
+	pMenuManager_(pMenuManager),
+	pCallback_(pCallback),
+	nId_(0),
+	pWebBrowser_(0),
+#if 0
+	pWebBrowserEvents_(0),
+	dwConnectionPointCookie_(0),
+#endif
+	bAllowExternal_(false),
+	bOnlineMode_(false)
+{
+	setWindowHandler(this, false);
+}
+
+qm::HtmlMessageViewWindow::~HtmlMessageViewWindow()
+{
+}
+
+wstring_ptr qm::HtmlMessageViewWindow::getSuperClass()
+{
+	return WC_HTML;
+}
+
+LRESULT qm::HtmlMessageViewWindow::windowProc(UINT uMsg,
+											  WPARAM wParam,
+											  LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_CREATE()
+		HANDLE_DESTROY()
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
+{
+	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
+		return -1;
+	
+	nId_ = getWindowLong(GWL_ID);
+	
+	pMessageWindow_->addNotifyHandler(this);
+	
+	ComPtr<IDispatch> pDispBrowser;
+	sendMessage(DTM_BROWSERDISPATCH, 0, reinterpret_cast<LPARAM>(&pDispBrowser));
+	if (!pDispBrowser.get())
+		return -1;
+	HRESULT hr = pDispBrowser->QueryInterface(IID_IBrowser2,
+		reinterpret_cast<void**>(&pWebBrowser_));
+	if (FAILED(hr))
+		return -1;
+	
+#if 0
+	pWebBrowserEvents_ = new DWebBrowserEvents2Impl(this, pWebBrowser_);
+	pWebBrowserEvents_->AddRef();
+	ComPtr<IConnectionPointContainer> pConnectionPointContainer;
+	hr = pWebBrowser_->QueryInterface(IID_IConnectionPointContainer,
+		reinterpret_cast<void**>(&pConnectionPointContainer));
+	if (FAILED(hr))
+		return -1;
+	
+	ComPtr<IEnumConnectionPoints> pEnum;
+	hr = pConnectionPointContainer->EnumConnectionPoints(&pEnum);
+	if (FAILED(hr))
+		return -1;
+	
+	ComPtr<IConnectionPoint> pConnectionPoint;
+	hr = pConnectionPointContainer->FindConnectionPoint(
+		IID_IDispatch/*DIID__DPIEWebBrowserEvents2*/, &pConnectionPoint);
+	if (FAILED(hr))
+		return -1;
+	hr = pConnectionPoint->Advise(pWebBrowserEvents_, &dwConnectionPointCookie_);
+	if (FAILED(hr))
+		return -1;
+#endif
+	
+	return 0;
+}
+
+LRESULT qm::HtmlMessageViewWindow::onDestroy()
+{
+	pMessageWindow_->removeNotifyHandler(this);
+	
+	if (pWebBrowser_) {
+#if 0
+		if (dwConnectionPointCookie_ != 0) {
+			ComPtr<IConnectionPointContainer> pConnectionPointContainer;
+			ComPtr<IConnectionPoint> pConnectionPoint;
+			HRESULT hr = pWebBrowser_->QueryInterface(IID_IConnectionPointContainer,
+				reinterpret_cast<void**>(&pConnectionPointContainer));
+			if (SUCCEEDED(hr))
+				hr = pConnectionPointContainer->FindConnectionPoint(
+					IID_IDispatch/*DIID__DPIEWebBrowserEvents2*/, &pConnectionPoint);
+			if (SUCCEEDED(hr))
+				hr = pConnectionPoint->Unadvise(dwConnectionPointCookie_);
+		}
+#endif
+		pWebBrowser_->Release();
+		pWebBrowser_ = 0;
+	}
+#if 0
+	if (pWebBrowserEvents_) {
+		pWebBrowserEvents_->Release();
+		pWebBrowserEvents_ = 0;
+	}
+#endif
+	
+	return DefaultWindowHandler::onDestroy();
+}
+
+LRESULT qm::HtmlMessageViewWindow::onNotify(NMHDR* pnmhdr,
+											bool* pbHandled)
+{
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(NM_CONTEXTMENU, 0xffffffff, onContextMenu)
+		HANDLE_NOTIFY(NM_HOTSPOT, nId_, onHotSpot)
+		HANDLE_NOTIFY(NM_INLINE_IMAGE, nId_, onInlineImage)
+		HANDLE_NOTIFY(NM_INLINE_SOUND, nId_, onInline)
+		HANDLE_NOTIFY(NM_INLINE_XML, nId_, onInline)
+		HANDLE_NOTIFY(NM_META, nId_, onMeta)
+	END_NOTIFY_HANDLER()
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
+}
+
+Window& qm::HtmlMessageViewWindow::getWindow()
+{
+	return *this;
+}
+
+bool qm::HtmlMessageViewWindow::isActive()
+{
+	HWND hwnd = ::GetFocus();
+	while (hwnd) {
+		if (hwnd == getHandle())
+			return true;
+		hwnd = ::GetParent(hwnd);
+	}
+	return false;
+}
+
+void qm::HtmlMessageViewWindow::setActive()
+{
+	setFocus();
+}
+
+bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
+										   Message* pMessage,
+										   const Template* pTemplate,
+										   const WCHAR* pwszEncoding,
+										   unsigned int nFlags,
+										   unsigned int nSecurityMode)
+{
+	assert(pmh && pMessage);
+	
+	Account* pAccount = pmh->getFolder()->getAccount();
+	
+	HRESULT hr = S_OK;
+	
+	bOnlineMode_ = (nFlags & FLAG_ONLINEMODE) != 0;
+	
+	sendMessage(DTM_ENABLESCRIPTING, 0, (nFlags & FLAG_INTERNETZONE) != 0);
+	
+	wstring_ptr wstrURL;
+	bool bClear = true;
+	
+	UnstructuredParser link;
+	if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
+		!pMessage->isMultipart() &&
+		pMessage->getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST) {
+		wstrURL = allocWString(link.getValue());
+		bAllowExternal_ = true;
+		
+		BSTRPtr bstrPrevURL;
+		if (pWebBrowser_->get_LocationURL(&bstrPrevURL) == S_OK) {
+			const WCHAR* p1 = wcsrchr(wstrURL.get(), L'#');
+			size_t nLen1 = p1 ? p1 - wstrURL.get() : wcslen(wstrURL.get());
+			const WCHAR* p2 = wcsrchr(bstrPrevURL.get(), L'#');
+			size_t nLen2 = p2 ? p2 - bstrPrevURL.get() : wcslen(bstrPrevURL.get());
+			bClear = nLen1 != nLen2 || _wcsnicmp(wstrURL.get(), bstrPrevURL.get(), nLen1) != 0;
+		}
+	}
+	else {
+		PartUtil util(*pMessage);
+		const Part* pPart = util.getAlternativePart(L"text", L"html");
+		assert(pPart);
+		
+		wstring_ptr wstrId(InternetSessionInit::getContentManager().prepare(
+			*pMessage, *pPart, pwszEncoding, this));
+		wstrURL = concat(L"cid:", wstrId.get());
+		bAllowExternal_ = false;
+	}
+	
+	if (bClear)
+		sendMessage(DTM_CLEAR);
+	
+	sendMessage(DTM_NAVIGATE, 0, reinterpret_cast<LPARAM>(wstrURL.get()));
+	
+	return true;
+}
+
+bool qm::HtmlMessageViewWindow::scrollPage(bool bPrev)
+{
+	Window wnd(Window::getWindow(GW_CHILD));
+	SCROLLINFO info = {
+		sizeof(info),
+		SIF_ALL
+	};
+	wnd.getScrollInfo(SB_VERT, &info);
+	if ((bPrev && info.nPos != 0) ||
+		(!bPrev && info.nPos < static_cast<int>(info.nMax - info.nPage + 1))) {
+		wnd.sendMessage(WM_VSCROLL, bPrev ? SB_PAGEUP : SB_PAGEDOWN);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
+{
+}
+
+void qm::HtmlMessageViewWindow::setQuoteMode(bool bQuoteMode)
+{
+}
+
+bool qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
+									 unsigned int nFlags)
+{
+	return false;
+}
+
+unsigned int qm::HtmlMessageViewWindow::getSupportedFindFlags() const
+{
+	return -1;
+}
+
+std::auto_ptr<MessageWindow::Mark> qm::HtmlMessageViewWindow::mark() const
+{
+	return std::auto_ptr<MessageWindow::Mark>();
+}
+
+void qm::HtmlMessageViewWindow::reset(const MessageWindow::Mark& mark)
+{
+	assert(false);
+}
+
+bool qm::HtmlMessageViewWindow::openLink()
+{
+	return true;
+}
+
+void qm::HtmlMessageViewWindow::copy()
+{
+	HWND hwnd = Window::getWindow(GW_CHILD);
+	if (hwnd)
+		Window(hwnd).sendMessage(WM_COMMAND, 0x000156BA);
+	else
+		sendMessage(WM_COPY);
+}
+
+bool qm::HtmlMessageViewWindow::canCopy()
+{
+	return sendMessage(DTM_ISSELECTION) != 0;
+}
+
+void qm::HtmlMessageViewWindow::selectAll()
+{
+	sendMessage(DTM_SELECTALL);
+}
+
+bool qm::HtmlMessageViewWindow::canSelectAll()
+{
+	return true;
+}
+
+LRESULT qm::HtmlMessageViewWindow::onContextMenu(NMHDR* pnmhdr,
+												 bool* pbHandled)
+{
+	*pbHandled = true;
+	
+	NM_HTMLCONTEXT* pContext = reinterpret_cast<NM_HTMLCONTEXT*>(pnmhdr);
+	
+	setActive();
+	
+	HMENU hmenu = pMenuManager_->getMenu(L"message", false, false);
+	if (hmenu) {
+		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+#ifndef _WIN32_WCE
+		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+#endif
+		::TrackPopupMenu(hmenu, nFlags, pContext->pt.x, pContext->pt.y, 0, getParentFrame(), 0);
+	}
+	
+	return 1;
+}
+
+LRESULT qm::HtmlMessageViewWindow::onHotSpot(NMHDR* pnmhdr,
+											 bool* pbHandled)
+{
+	*pbHandled = true;
+	
+	wstring_ptr wstrURL(getTarget(pnmhdr));
+	if (wcsncmp(wstrURL.get(), L"http:", 5) == 0 ||
+		wcsncmp(wstrURL.get(), L"https:", 6) == 0 ||
+		wcsncmp(wstrURL.get(), L"ftp:", 4) == 0 ||
+		wcsncmp(wstrURL.get(), L"mailto:", 7) == 0)
+		UIUtil::openURL(getParentFrame(), wstrURL.get());
+	return 1;
+}
+
+LRESULT qm::HtmlMessageViewWindow::onInlineImage(NMHDR* pnmhdr,
+												 bool* pbHandled)
+{
+	*pbHandled = true;
+	
+	wstring_ptr wstrURL(getTarget(pnmhdr));
+	if (bOnlineMode_ || wcsncmp(wstrURL.get(), L"cid:", 4) == 0)
+		return 0;
+	
+	sendMessage(DTM_IMAGEFAIL, 0, reinterpret_cast<NM_HTMLVIEW*>(pnmhdr)->dwCookie);
+	
+	return 1;
+}
+
+LRESULT qm::HtmlMessageViewWindow::onInline(NMHDR* pnmhdr,
+											bool* pbHandled)
+{
+	*pbHandled = true;
+	
+	wstring_ptr wstrURL(getTarget(pnmhdr));
+	if (bOnlineMode_ || wcsncmp(wstrURL.get(), L"cid:", 4) == 0)
+		return 0;
+	else
+		return 1;
+}
+
+LRESULT qm::HtmlMessageViewWindow::onMeta(NMHDR* pnmhdr,
+										  bool* pbHandled)
+{
+	*pbHandled = true;
+	
+	wstring_ptr wstrHttpEquiv(getTarget(pnmhdr));
+	if (_wcsicmp(wstrHttpEquiv.get(), L"content-type") == 0 ||
+		_wcsicmp(wstrHttpEquiv.get(), L"refresh") == 0)
+		return 1;
+	else
+		return 0;
+}
+
+wstring_ptr qm::HtmlMessageViewWindow::getTarget(NMHDR* pnmhdr) const
+{
+	// TODO
+	bool bUnicode = false;
+	if (bUnicode) {
+		NM_HTMLVIEWW* pHtmlView = reinterpret_cast<NM_HTMLVIEWW*>(pnmhdr);
+		return allocWString(pHtmlView->szTarget);
+	}
+	else {
+		NM_HTMLVIEWA* pHtmlView = reinterpret_cast<NM_HTMLVIEWA*>(pnmhdr);
+		return mbs2wcs(pHtmlView->szTarget);
+	}
+}
+
+
+#if 0
+/****************************************************************************
+ *
+ * HtmlMessageViewWindow::DWebBrowserEvents2Impl
+ *
+ */
+
+qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::DWebBrowserEvents2Impl(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+																		  IBrowser2* pWebBrowser) :
+	nRef_(0),
+	pHtmlMessageViewWindow_(pHtmlMessageViewWindow),
+	pWebBrowser_(pWebBrowser)
+{
+}
+
+qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::~DWebBrowserEvents2Impl()
+{
+}
+
+STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::AddRef()
+{
+	return ::InterlockedIncrement(reinterpret_cast<LONG*>(&nRef_));
+}
+
+STDMETHODIMP_(ULONG) qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::Release()
+{
+	ULONG nRef = ::InterlockedDecrement(reinterpret_cast<LONG*>(&nRef_));
+	if (nRef == 0)
+		delete this;
+	return nRef;
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::DWebBrowserEvents2Impl::QueryInterface(REFIID riid,
+																			   void** ppv)
+{
+	*ppv = 0;
+	
+	if (riid == IID_IUnknown ||
+		riid == IID_IDispatch ||
+		riid == DIID__DPIEWebBrowserEvents2) {
+		AddRef();
+		*ppv = static_cast<_DPIEWebBrowserEvents2*>(this);
+	}
+	
+	return *ppv ? S_OK : E_NOINTERFACE;
+}
+
+STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetIDsOfNames(REFIID riid,
+																		  OLECHAR** rgszNames,
+																		  unsigned int cNames,
+																		  LCID lcid,
+																		  DISPID* pDispId)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetTypeInfo(unsigned int nTypeInfo,
+																		LCID lcid,
+																		ITypeInfo** ppTypeInfo)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::GetTypeInfoCount(unsigned int* pcTypeInfo)
+{
+	return E_NOTIMPL;
+}
+
+STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId,
+																   REFIID riid,
+																   LCID lcid,
+																   WORD wFlags,
+																   DISPPARAMS* pDispParams,
+																   VARIANT* pVarResult,
+																   EXCEPINFO* pExcepInfo,
+																   unsigned int* pnArgErr)
+{
+	if (dispId == DISPID_BEFORENAVIGATE) {
+		if (!pDispParams || pDispParams->cArgs != 6)
+			return E_INVALIDARG;
+		
+		VARIANT* pVarURL = pDispParams->rgvarg + 5;
+		if (pVarURL->vt != VT_BSTR)
+			return E_INVALIDARG;
+		BSTR bstrURL = pVarURL->bstrVal;
+		bool bAllow = pHtmlMessageViewWindow_->bAllowExternal_ ||
+			wcsncmp(bstrURL, L"cid:", 4) == 0;
+		pHtmlMessageViewWindow_->bAllowExternal_ = false;
+		
+		if (!bAllow)
+			pWebBrowser_->Stop();
+		
+		if (!bAllow &&
+			(wcsncmp(bstrURL, L"http:", 5) == 0 ||
+			wcsncmp(bstrURL, L"https:", 6) == 0 ||
+			wcsncmp(bstrURL, L"ftp:", 4) == 0) ||
+			wcsncmp(bstrURL, L"mailto:", 7) == 0)
+			UIUtil::openURL(pHtmlMessageViewWindow_->getParentFrame(), bstrURL);
+	}
+	else if (dispId == DISPID_STATUSTEXTCHANGE) {
+		if (!pDispParams || pDispParams->cArgs != 1)
+			return E_INVALIDARG;
+		
+		if (pHtmlMessageViewWindow_->pCallback_) {
+			VARIANT* pVarText = pDispParams->rgvarg;
+			if (pVarText->vt != VT_BSTR)
+				return E_INVALIDARG;
+			pHtmlMessageViewWindow_->pCallback_->statusTextChanged(pVarText->bstrVal);
+		}
+	}
+	else {
+		return E_NOTIMPL;
+	}
+	
+	return S_OK;
+}
+#endif
+
+#endif // QMHTMLVIEWHTMLCTRL
 
 #endif // QMHTMLVIEW

@@ -20,15 +20,22 @@
 #include <qswindow.h>
 
 #ifdef QMHTMLVIEW
-#	undef T2W
-#	undef W2T
-#	undef T2A
-#	undef A2T
-#	include <atlbase.h>
-#	include <atliface.h>
-#	include <exdisp.h>
-#	include <mshtml.h>
-#	include <mshtmhst.h>
+#	ifdef QMHTMLVIEWWEBBROWSER
+#		undef T2W
+#		undef W2T
+#		undef T2A
+#		undef A2T
+#		include <atlbase.h>
+#		include <atliface.h>
+#		include <exdisp.h>
+#		include <mshtml.h>
+#		include <mshtmhst.h>
+#	elif defined QMHTMLVIEWHTMLCTRL
+#		include <webvw.h>
+#		define HANDLE_PTR DWORD
+#	else
+#		error "Unknown HTMLVIEW"
+#	endif
 #	include <urlmon.h>
 #endif
 
@@ -117,7 +124,8 @@ public:
 class MessageViewWindowFactory
 {
 public:
-	MessageViewWindowFactory(Document* pDocument,
+	MessageViewWindowFactory(MessageWindow* pMessageWindow,
+							 Document* pDocument,
 							 qs::Profile* pProfile,
 							 const WCHAR* pwszSection,
 							 MessageModel* pMessageModel,
@@ -127,7 +135,7 @@ public:
 	~MessageViewWindowFactory();
 
 public:
-	bool create(HWND hwnd);
+	bool create();
 	MessageViewWindow* getMessageViewWindow(const qs::ContentTypeParser* pContentType);
 	TextMessageViewWindow* getTextMessageViewWindow();
 	MessageViewWindow* getLinkMessageViewWindow();
@@ -136,6 +144,7 @@ public:
 
 private:
 #ifdef QMHTMLVIEW
+	bool isHtmlViewSupported() const;
 	bool createHtmlView();
 #endif
 
@@ -144,6 +153,13 @@ private:
 	MessageViewWindowFactory& operator=(const MessageViewWindowFactory&);
 
 private:
+	enum {
+		ID_TEXTMESSAGEVIEWWINDOW	= 1002,
+		ID_HTMLMESSAGEVIEWWINDOW	= 1003
+	};
+
+private:
+	MessageWindow* pMessageWindow_;
 	Document* pDocument_;
 	qs::Profile* pProfile_;
 	const WCHAR* pwszSection_;
@@ -245,9 +261,230 @@ private:
 
 /****************************************************************************
  *
+ * HtmlContent
+ *
+ */
+
+class HtmlContent
+{
+public:
+	HtmlContent(const WCHAR* pwszContentId,
+				const WCHAR* pwszMimeType,
+				qs::malloc_size_ptr<unsigned char> pData,
+				const void* pCookie);
+	~HtmlContent();
+
+public:
+	const WCHAR* getContentId() const;
+	const WCHAR* getMimeType() const;
+	const unsigned char* getData() const;
+	size_t getDataSize() const;
+	const void* getCookie() const;
+
+private:
+	HtmlContent(const HtmlContent&);
+	HtmlContent& operator=(const HtmlContent&);
+	
+private:
+	qs::wstring_ptr wstrContentId_;
+	qs::wstring_ptr wstrMimeType_;
+	qs::malloc_size_ptr<unsigned char> pData_;
+	const void* pCookie_;
+};
+
+
+/****************************************************************************
+ *
+ * HtmlContentManager
+ *
+ */
+
+class HtmlContentManager
+{
+public:
+	HtmlContentManager();
+	~HtmlContentManager();
+
+public:
+	const HtmlContent* get(const WCHAR* pwszContentId) const;
+	qs::wstring_ptr prepare(const Message& msg,
+							const qs::Part& partHtml,
+							const WCHAR* pwszEncoding,
+							const void* pCookie);
+	void clear(const void* pCookie);
+
+private:
+	void prepare(const qs::Part& part,
+				 const WCHAR* pwszId,
+				 const WCHAR* pwszEncoding,
+				 const void* pCookie);
+
+private:
+	HtmlContentManager(const HtmlContentManager&);
+	HtmlContentManager& operator=(const HtmlContentManager&);
+
+private:
+	typedef std::vector<HtmlContent*> ContentList;
+
+private:
+	ContentList listContent_;
+};
+
+
+/****************************************************************************
+ *
+ * InternetProtocol
+ *
+ */
+
+class InternetProtocol :
+	public IInternetProtocol,
+	public IInternetProtocolInfo
+{
+public:
+	explicit InternetProtocol(const HtmlContentManager& contentManager);
+	~InternetProtocol();
+
+public:
+	STDMETHOD_(ULONG, AddRef)();
+	STDMETHOD_(ULONG, Release)();
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
+
+public:
+	STDMETHOD(Abort)(HRESULT hrReason,
+					 DWORD dwOptions);
+	STDMETHOD(Continue)(PROTOCOLDATA* pProtocolData);
+	STDMETHOD(Resume)();
+	STDMETHOD(Start)(LPCWSTR pwszUrl,
+					 IInternetProtocolSink* pSink,
+					 IInternetBindInfo* pBindInfo,
+					 DWORD dwFlags,
+					 HANDLE_PTR dwReserved);
+	STDMETHOD(Suspend)();
+	STDMETHOD(Terminate)(DWORD dwOptions);
+
+public:
+	STDMETHOD(LockRequest)(DWORD dwOptions);
+	STDMETHOD(Read)(void* pv,
+					ULONG cb,
+					ULONG* pcbRead);
+	STDMETHOD(Seek)(LARGE_INTEGER move,
+					DWORD dwOrigin,
+					ULARGE_INTEGER* pNewPos);
+	STDMETHOD(UnlockRequest)();
+
+public:
+	STDMETHOD(CombineUrl)(LPCWSTR pwszBaseUrl,
+						  LPCWSTR pwszRelativeUrl,
+						  DWORD dwCombineFlags,
+						  LPWSTR pwszResult,
+						  DWORD cchResult,
+						  DWORD* pcchResult,
+						  DWORD dwReserved);
+	STDMETHOD(CompareUrl)(LPCWSTR pwszUrl1,
+						  LPCWSTR pwszUrl2,
+						  DWORD dwCompareFlags);
+	STDMETHOD(ParseUrl)(LPCWSTR pwszUrl,
+						PARSEACTION action,
+						DWORD dwParseFlags,
+						LPWSTR pwszResult,
+						DWORD cchResult,
+						DWORD* pcchResult,
+						DWORD dwReserved);
+	STDMETHOD(QueryInfo)(LPCWSTR pwszUrl,
+						 QUERYOPTION option,
+						 DWORD dwQueryFlags,
+						 LPVOID pBuffer,
+						 DWORD cbBuffer,
+						 DWORD* pcbBuffer,
+						 DWORD dwReserved);
+
+private:
+	InternetProtocol(const InternetProtocol&);
+	InternetProtocol& operator=(const InternetProtocol&);
+
+private:
+	ULONG nRef_;
+	const HtmlContentManager& contentManager_;
+	const HtmlContent* pContent_;
+	const unsigned char* pCurrent_;
+	IInternetProtocolSink* pSink_;
+};
+
+
+/****************************************************************************
+ *
+ * InternetProtocolFactory
+ *
+ */
+
+class InternetProtocolFactory : public IClassFactory
+{
+public:
+	explicit InternetProtocolFactory(const HtmlContentManager& contentManager);
+	~InternetProtocolFactory();
+
+public:
+	STDMETHOD_(ULONG, AddRef)();
+	STDMETHOD_(ULONG, Release)();
+	STDMETHOD(QueryInterface)(REFIID riid,
+							  void** ppv);
+
+public:
+	STDMETHOD(CreateInstance)(IUnknown* pUnkOuter,
+							  REFIID riid,
+							  void** ppvObj);
+	STDMETHOD(LockServer)(BOOL bLock);
+
+private:
+	InternetProtocolFactory(const InternetProtocolFactory&);
+	InternetProtocolFactory& operator=(const InternetProtocolFactory&);
+
+private:
+	ULONG nRef_;
+	const HtmlContentManager& contentManager_;
+};
+
+
+/****************************************************************************
+ *
+ * InternetSessionInit
+ *
+ */
+
+class InternetSessionInit
+{
+private:
+	InternetSessionInit();
+
+public:
+	~InternetSessionInit();
+
+public:
+	static HtmlContentManager& getContentManager();
+
+private:
+	InternetSessionInit(const InternetSessionInit&);
+	InternetSessionInit& operator=(const InternetSessionInit&);
+
+private:
+	HtmlContentManager contentManager_;
+	qs::ComPtr<IInternetSession> pInternetSession_;
+	qs::ComPtr<IClassFactory> pClassFactory_;
+
+private:
+	static InternetSessionInit instance__;
+};
+
+
+/****************************************************************************
+ *
  * HtmlMessageViewWindow
  *
  */
+
+#ifdef QMHTMLVIEWWEBBROWSER
 
 class HtmlMessageViewWindow :
 	public qs::WindowBase,
@@ -257,6 +494,7 @@ class HtmlMessageViewWindow :
 public:
 	HtmlMessageViewWindow(qs::Profile* pProfile,
 						  const WCHAR* pwszSection,
+						  MessageWindow* pMessageWindow,
 						  MessageModel* pMessageModel,
 						  qs::MenuManager* pMenuManager,
 						  MessageViewWindowCallback* pCallback);
@@ -307,59 +545,6 @@ private:
 	HtmlMessageViewWindow& operator=(const HtmlMessageViewWindow&);
 
 private:
-	struct Content
-	{
-		void destroy();
-		
-		HtmlMessageViewWindow* pHtmlMessageViewWindow_;
-		qs::WSTRING wstrContentId_;
-		qs::WSTRING wstrMimeType_;
-		unsigned char* pData_;
-		size_t nDataLen_;
-	};
-	
-	class ContentManager
-	{
-	private:
-		ContentManager();
-	
-	public:
-		~ContentManager();
-	
-	public:
-		Content getContent(const WCHAR* pwszContentId) const;
-		qs::wstring_ptr prepareRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow,
-											  const Message& msg,
-											  const qs::Part& partHtml,
-											  const WCHAR* pwszEncoding);
-		void clearRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow);
-	
-	private:
-		void prepareRelatedContent(HtmlMessageViewWindow* pHtmlMessageViewWindow,
-								   const qs::Part& part,
-								   const WCHAR* pwszId,
-								   const WCHAR* pwszEncoding);
-	
-	public:
-		static ContentManager& getInstance();
-	
-	private:
-		ContentManager(const ContentManager&);
-		ContentManager& operator=(const ContentManager&);
-	
-	private:
-		typedef std::vector<Content> ContentList;
-	
-	private:
-		ContentList listContent_;
-		qs::ComPtr<IInternetSession> pInternetSession_;
-		qs::ComPtr<IClassFactory> pClassFactory_;
-	
-	private:
-		static ContentManager instance__;
-	};
-	friend class ContentManager;
-	
 	class IInternetSecurityManagerImpl : public IInternetSecurityManager
 	{
 	public:
@@ -416,108 +601,6 @@ private:
 		ULONG nRef_;
 		bool bInternetZone_;
 	};
-	
-	class InternetProtocol :
-		public IInternetProtocol,
-		public IInternetProtocolInfo
-	{
-	public:
-		InternetProtocol();
-		~InternetProtocol();
-	
-	public:
-		STDMETHOD_(ULONG, AddRef)();
-		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid,
-								  void** ppv);
-	
-	public:
-		STDMETHOD(Abort)(HRESULT hrReason,
-						 DWORD dwOptions);
-		STDMETHOD(Continue)(PROTOCOLDATA* pProtocolData);
-		STDMETHOD(Resume)();
-		STDMETHOD(Start)(LPCWSTR pwszUrl,
-						 IInternetProtocolSink* pSink,
-						 IInternetBindInfo* pBindInfo,
-						 DWORD dwFlags,
-						 HANDLE_PTR dwReserved);
-		STDMETHOD(Suspend)();
-		STDMETHOD(Terminate)(DWORD dwOptions);
-	
-	public:
-		STDMETHOD(LockRequest)(DWORD dwOptions);
-		STDMETHOD(Read)(void* pv,
-						ULONG cb,
-						ULONG* pcbRead);
-		STDMETHOD(Seek)(LARGE_INTEGER move,
-						DWORD dwOrigin,
-						ULARGE_INTEGER* pNewPos);
-		STDMETHOD(UnlockRequest)();
-	
-	public:
-		STDMETHOD(CombineUrl)(LPCWSTR pwszBaseUrl,
-							  LPCWSTR pwszRelativeUrl,
-							  DWORD dwCombineFlags,
-							  LPWSTR pwszResult,
-							  DWORD cchResult,
-							  DWORD* pcchResult,
-							  DWORD dwReserved);
-		STDMETHOD(CompareUrl)(LPCWSTR pwszUrl1,
-							  LPCWSTR pwszUrl2,
-							  DWORD dwCompareFlags);
-		STDMETHOD(ParseUrl)(LPCWSTR pwszUrl,
-							PARSEACTION action,
-							DWORD dwParseFlags,
-							LPWSTR pwszResult,
-							DWORD cchResult,
-							DWORD* pcchResult,
-							DWORD dwReserved);
-		STDMETHOD(QueryInfo)(LPCWSTR pwszUrl,
-							 QUERYOPTION option,
-							 DWORD dwQueryFlags,
-							 LPVOID pBuffer,
-							 DWORD cbBuffer,
-							 DWORD* pcbBuffer,
-							 DWORD dwReserved);
-	
-	private:
-		InternetProtocol(const InternetProtocol&);
-		InternetProtocol& operator=(const InternetProtocol&);
-	
-	private:
-		ULONG nRef_;
-		Content content_;
-		const unsigned char* pCurrent_;
-		IInternetProtocolSink* pSink_;
-	};
-	friend class InternetProtocol;
-	
-	class InternetProtocolFactory : public IClassFactory
-	{
-	public:
-		InternetProtocolFactory();
-		~InternetProtocolFactory();
-	
-	public:
-		STDMETHOD_(ULONG, AddRef)();
-		STDMETHOD_(ULONG, Release)();
-		STDMETHOD(QueryInterface)(REFIID riid,
-								  void** ppv);
-	
-	public:
-		STDMETHOD(CreateInstance)(IUnknown* pUnkOuter,
-								  REFIID riid,
-								  void** ppvObj);
-		STDMETHOD(LockServer)(BOOL bLock);
-	
-	private:
-		InternetProtocolFactory(const InternetProtocolFactory&);
-		InternetProtocolFactory& operator=(const InternetProtocolFactory&);
-	
-	private:
-		ULONG nRef_;
-	};
-	friend class InternetProtocolFactory;
 	
 	class IServiceProviderImpl : public IServiceProvider
 	{
@@ -873,6 +956,147 @@ private:
 	std::auto_ptr<qs::Theme> pTheme_;
 #endif
 };
+
+#elif defined QMHTMLVIEWHTMLCTRL
+
+class HtmlMessageViewWindow :
+	public qs::WindowBase,
+	public qs::DefaultWindowHandler,
+	public qs::NotifyHandler,
+	public MessageViewWindow
+{
+public:
+	HtmlMessageViewWindow(qs::Profile* pProfile,
+						  const WCHAR* pwszSection,
+						  MessageWindow* pMessageWindow,
+						  MessageModel* pMessageModel,
+						  qs::MenuManager* pMenuManager,
+						  MessageViewWindowCallback* pCallback);
+	virtual ~HtmlMessageViewWindow();
+
+public:
+	virtual qs::wstring_ptr getSuperClass();
+	virtual LRESULT windowProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+protected:
+	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
+	LRESULT onDestroy();
+
+public:
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
+
+public:
+	virtual qs::Window& getWindow();
+	virtual bool isActive();
+	virtual void setActive();
+	virtual bool setMessage(MessageHolder* pmh,
+							Message* pMessage,
+							const Template* pTemplate,
+							const WCHAR* pwszEncoding,
+							unsigned int nFlags,
+							unsigned int nSecurityMode);
+	virtual bool scrollPage(bool bPrev);
+	virtual void setSelectMode(bool bSelectMode);
+	virtual void setQuoteMode(bool bQuoteMode);
+	virtual bool find(const WCHAR* pwszFind,
+					  unsigned int nFlags);
+	virtual unsigned int getSupportedFindFlags() const;
+	virtual std::auto_ptr<MessageWindow::Mark> mark() const;
+	virtual void reset(const MessageWindow::Mark& mark);
+	virtual bool openLink();
+
+public:
+	virtual void copy();
+	virtual bool canCopy();
+	virtual void selectAll();
+	virtual bool canSelectAll();
+
+private:
+	LRESULT onContextMenu(NMHDR* pnmhdr,
+						  bool* pbHandled);
+	LRESULT onHotSpot(NMHDR* pnmhdr,
+					  bool* pbHandled);
+	LRESULT onInlineImage(NMHDR* pnmhdr,
+						  bool* pbHandled);
+	LRESULT onInline(NMHDR* pnmhdr,
+					 bool* pbHandled);
+	LRESULT onMeta(NMHDR* pnmhdr,
+				   bool* pbHandled);
+
+private:
+	qs::wstring_ptr getTarget(NMHDR* pnmhdr) const;
+
+private:
+#if 0
+	class DWebBrowserEvents2Impl : public _DPIEWebBrowserEvents2
+	{
+	public:
+		DWebBrowserEvents2Impl(HtmlMessageViewWindow* pHtmlMessageViewWindow,
+							   IBrowser2* pWebBrowser);
+		~DWebBrowserEvents2Impl();
+	
+	public:
+		STDMETHOD_(ULONG, AddRef)();
+		STDMETHOD_(ULONG, Release)();
+		STDMETHOD(QueryInterface)(REFIID riid,
+								  void** pv);
+	
+	public:
+		STDMETHOD(GetIDsOfNames)(REFIID riid,
+								 OLECHAR** rgszNames,
+								 unsigned int cNames,
+								 LCID lcid,
+								 DISPID* pDispId);
+		STDMETHOD(GetTypeInfo)(unsigned int nTypeInfo,
+							   LCID lcid,
+							   ITypeInfo** ppTypeInfo);
+		STDMETHOD(GetTypeInfoCount)(unsigned int* pcTypeInfo);
+		STDMETHOD(Invoke)(DISPID dispId,
+						  REFIID riid,
+						  LCID lcid,
+						  WORD wFlags,
+						  DISPPARAMS* pDispParams,
+						  VARIANT* pVarResult,
+						  EXCEPINFO* pExcepInfo,
+						  unsigned int* pnArgErr);
+	
+	private:
+		DWebBrowserEvents2Impl(const DWebBrowserEvents2Impl&);
+		DWebBrowserEvents2Impl& operator=(const DWebBrowserEvents2Impl&);
+	
+	private:
+		ULONG nRef_;
+		HtmlMessageViewWindow* pHtmlMessageViewWindow_;
+		IBrowser2* pWebBrowser_;
+	};
+	friend class DWebBrowserEvents2Impl;
+#endif
+
+private:
+	HtmlMessageViewWindow(const HtmlMessageViewWindow&);
+	HtmlMessageViewWindow& operator=(const HtmlMessageViewWindow&);
+
+private:
+	qs::Profile* pProfile_;
+	const WCHAR* pwszSection_;
+	MessageWindow* pMessageWindow_;
+	MessageModel* pMessageModel_;
+	qs::MenuManager* pMenuManager_;
+	MessageViewWindowCallback* pCallback_;
+	UINT nId_;
+	IBrowser2* pWebBrowser_;
+#if 0
+	DWebBrowserEvents2Impl* pWebBrowserEvents_;
+	DWORD dwConnectionPointCookie_;
+#endif
+	bool bAllowExternal_;
+	bool bOnlineMode_;
+};
+
+#endif // QMHTMLVIEWHTMLCTRL
 
 #endif // QMHTMLVIEW
 

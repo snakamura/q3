@@ -702,6 +702,10 @@ qm::EditFindAction::~EditFindAction()
 
 void qm::EditFindAction::invoke(const ActionEvent& event)
 {
+	unsigned int nSupportedFlags = pMessageWindow_->getSupportedFindFlags();
+	if (nSupportedFlags == -1)
+		return;
+	
 	HWND hwndFrame = pMessageWindow_->getParentFrame();
 	
 	bool bFound = false;
@@ -738,7 +742,6 @@ void qm::EditFindAction::invoke(const ActionEvent& event)
 			bool bSearched_;
 		} callback(pMessageWindow_, bFound);
 		
-		unsigned int nSupportedFlags = pMessageWindow_->getSupportedFindFlags();
 		bool bIncremental = nSupportedFlags & MessageWindow::FIND_INCREMENTAL &&
 			pProfile_->getInt(L"Global", L"IncrementalSearch", 0) != 0;
 		bool bSupportRegex = (nSupportedFlags & MessageWindow::FIND_REGEX) != 0;
@@ -775,6 +778,8 @@ void qm::EditFindAction::invoke(const ActionEvent& event)
 bool qm::EditFindAction::isEnabled(const ActionEvent& event)
 {
 	if (!pMessageWindow_->isActive())
+		return false;
+	else if (type_ == TYPE_NORMAL && pMessageWindow_->getSupportedFindFlags() == -1)
 		return false;
 	else if (type_ != TYPE_NORMAL && !pFindReplaceManager_->getData())
 		return false;

@@ -99,7 +99,7 @@ ifeq ($(PLATFORM),win)
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se ]; then echo 0; else echo 1; fi),0)
+	ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003),)
 		# PPC2003SE PPC2003 #################################################
 		ifeq ($(BASELANG),ja)
 			SDKDIR		= $(CESDKPPC2003JADIR)
@@ -468,15 +468,19 @@ else
 						  commctrl.lib \
 						  ceshell.lib \
 						  commdlg.lib \
-						  wininet.lib
+						  wininet.lib \
+						  htmlview.lib
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif
-	ifeq ($(shell if [ "$(PLATFORM)" = ppc2003 -o "$(PLATFORM)" = ppc2003se ]; then echo 0; else echo 1; fi),0)
+	ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003),)
 		LIBS			+= ccrtrtti.lib
 	endif
-	ifeq ($(PLATFORM),sig3)
+	ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003 ppc2002 sig3),)
 		LIBS			+= urlmon.lib
+	endif
+	ifneq ($(findstring $(PLATFORM), ppc2003se ppc2003 ppc2002),)
+		LIBS			+= wvuuid.lib
 	endif
 	ifeq ($(shell if [ "$(PLATFORM)" = ppc2002 ]; then echo 0; elif [ -z "$(CEVER)" ]; then echo 1; elif [ $(CEVER) -ge 400 ]; then echo 0; else echo 1; fi),0)
 		LIBS			+= crypt32.lib

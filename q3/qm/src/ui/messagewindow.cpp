@@ -620,12 +620,12 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pHeaderWindow_ = pHeaderWindow.release();
 	
 	std::auto_ptr<MessageViewWindowFactory> pFactory(
-		new MessageViewWindowFactory(pImpl_->pDocument_, pImpl_->pProfile_,
-			pImpl_->pwszSection_, pImpl_->pMessageModel_,
+		new MessageViewWindowFactory(this, pImpl_->pDocument_,
+			pImpl_->pProfile_, pImpl_->pwszSection_, pImpl_->pMessageModel_,
 			pContext->pUIManager_->getMenuManager(), pImpl_, false));
 	pImpl_->pFactory_ = pFactory;
 	
-	if (!pImpl_->pFactory_->create(getHandle()))
+	if (!pImpl_->pFactory_->create())
 		return -1;
 	pImpl_->pMessageViewWindow_ = pImpl_->pFactory_->getTextMessageViewWindow();
 	pImpl_->layoutChildren();

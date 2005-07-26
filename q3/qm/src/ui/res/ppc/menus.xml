@@ -50,6 +50,9 @@
 				<menuitem text="Raw Mode" action="ViewRawMode"/>
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
+				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="HTML &amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
 				<separator/>
 				<menuitem text="S/MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
@@ -152,6 +155,9 @@
 				<menuitem text="Raw Mode" action="ViewRawMode"/>
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
+				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="HTML &amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
 				<separator/>
 				<menuitem text="S/MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
