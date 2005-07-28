@@ -521,7 +521,7 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 		if (!pHtmlPart->setField(L"Content-Type", contentType))
 			return false;
 		
-		string_ptr strBaseURL(wcs2mbs(pChannel->getURL()));
+		string_ptr strBaseURL(wcs2mbs(pwszLink));
 		
 		XStringBuffer<XSTRING> body;
 		if (!body.append("<html>\r\n") ||
