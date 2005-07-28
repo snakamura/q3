@@ -45,7 +45,7 @@ bool qm::ProgressDialogMessageOperationCallbackBase<Callback>::isCanceled()
 }
 
 template<class Callback>
-void qm::ProgressDialogMessageOperationCallbackBase<Callback>::setCount(unsigned int nCount)
+void qm::ProgressDialogMessageOperationCallbackBase<Callback>::setCount(size_t nCount)
 {
 	if (nCount_ == -1) {
 		nCount_ = nCount;
@@ -55,7 +55,7 @@ void qm::ProgressDialogMessageOperationCallbackBase<Callback>::setCount(unsigned
 }
 
 template<class Callback>
-void qm::ProgressDialogMessageOperationCallbackBase<Callback>::step(unsigned int nStep)
+void qm::ProgressDialogMessageOperationCallbackBase<Callback>::step(size_t nStep)
 {
 	nPos_ += nStep;
 	if (pDialog_.get())

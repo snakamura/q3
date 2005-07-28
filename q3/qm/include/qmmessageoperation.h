@@ -29,8 +29,8 @@ public:
 
 public:
 	virtual bool isCanceled() = 0;
-	virtual void setCount(unsigned int nCount) = 0;
-	virtual void step(unsigned int nStep) = 0;
+	virtual void setCount(size_t nCount) = 0;
+	virtual void step(size_t nStep) = 0;
 	virtual void show() = 0;
 };
 

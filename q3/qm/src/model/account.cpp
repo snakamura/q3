@@ -502,7 +502,7 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 	}
 	else {
 		if (pCallback)
-			pCallback->setCount(static_cast<unsigned int>(l.size()));
+			pCallback->setCount(l.size());
 		
 		if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
 			if (pCallback && l.size() > 1)
@@ -516,7 +516,7 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 				return false;
 			
 			if (pCallback)
-				pCallback->step(static_cast<unsigned int>(l.size()));
+				pCallback->step(l.size());
 		}
 		if (pUndoItemList)
 			pUndoItemList->add(std::auto_ptr<UndoItem>());
@@ -572,7 +572,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 	// Take care of local messages in remote folder
 	
 	if (pCallback)
-		pCallback->setCount(static_cast<unsigned int>(l.size()));
+		pCallback->setCount(l.size());
 	
 	Account* pAccountTo = pFolderTo->getAccount();
 	
@@ -623,7 +623,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 			pUndoItemList->add(pUndoItem);
 		
 		if (pCallback)
-			pCallback->step(static_cast<unsigned int>(l.size()));
+			pCallback->step(l.size());
 	}
 	
 	return true;
@@ -1741,12 +1741,12 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 		}
 		
 	public:
-		virtual void setCount(unsigned int nCount)
+		virtual void setCount(size_t nCount)
 		{
 			pCallback_->setCount(nCount);
 		}
 		
-		virtual void step(unsigned int nStep)
+		virtual void step(size_t nStep)
 		{
 			pCallback_->step(nStep);
 		}
@@ -1790,7 +1790,7 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 		}
 	}
 	
-	pCallback->setCount(static_cast<unsigned int>(listMessageHolder.size()));
+	pCallback->setCount(listMessageHolder.size());
 	pCallback->show();
 	
 	class CallbackImpl : public MessageStoreCheckCallback

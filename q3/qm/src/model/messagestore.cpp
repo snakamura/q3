@@ -673,7 +673,7 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 	assert(pListData);
 	assert(pCallback);
 	
-	pCallback->setCount(static_cast<unsigned int>(pListData->size()));
+	pCallback->setCount(pListData->size());
 	pCallback->show();
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);

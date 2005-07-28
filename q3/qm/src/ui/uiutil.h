@@ -177,8 +177,8 @@ public:
 
 public:
 	virtual bool isCanceled();
-	virtual void setCount(unsigned int nCount);
-	virtual void step(unsigned int nStep);
+	virtual void setCount(size_t nCount);
+	virtual void step(size_t nStep);
 	virtual void show();
 
 protected:
@@ -193,8 +193,8 @@ private:
 	UINT nTitle_;
 	UINT nMessage_;
 	std::auto_ptr<ProgressDialog> pDialog_;
-	unsigned int nCount_;
-	unsigned int nPos_;
+	size_t nCount_;
+	size_t nPos_;
 };
 
 typedef ProgressDialogMessageOperationCallbackBase<MessageOperationCallback> ProgressDialogMessageOperationCallback;
