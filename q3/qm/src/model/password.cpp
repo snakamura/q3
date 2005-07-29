@@ -31,6 +31,7 @@ struct qm::PasswordManagerImpl
 	PasswordManager* pThis_;
 	PasswordManagerCallback* pCallback_;
 	PasswordManager::PasswordList listPassword_;
+	bool bModified_;
 	qs::CriticalSection cs_;
 	ConfigHelper<PasswordManager, PasswordContentHandler, PasswordWriter> helper_;
 };
@@ -60,6 +61,7 @@ qm::PasswordManager::PasswordManager(const WCHAR* pwszPath,
 	pImpl_ = new PasswordManagerImpl(pwszPath);
 	pImpl_->pThis_ = this;
 	pImpl_->pCallback_ = pCallback;
+	pImpl_->bModified_ = false;
 	pImpl_->load();
 }
 
@@ -116,6 +118,8 @@ void qm::PasswordManager::setPassword(const PasswordCondition& condition,
 	else {
 		(*it)->set(pwszPassword, bPermanent);
 	}
+	
+	pImpl_->bModified_ = true;
 }
 
 void qm::PasswordManager::removePassword(const PasswordCondition& condition)
@@ -129,17 +133,32 @@ void qm::PasswordManager::removePassword(const PasswordCondition& condition)
 		delete *it;
 		pImpl_->listPassword_.erase(it);
 	}
+	
+	pImpl_->bModified_ = true;
 }
 
 bool qm::PasswordManager::save(bool bForce) const
 {
-	return pImpl_->helper_.save(this) || bForce;
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	
+	if (!pImpl_->bModified_)
+		return true;
+	
+	if (!pImpl_->helper_.save(this))
+		return bForce;
+	
+	pImpl_->bModified_ = false;
+	
+	return true;
 }
 
 void qm::PasswordManager::clear()
 {
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	
 	std::for_each(pImpl_->listPassword_.begin(),
 		pImpl_->listPassword_.end(), qs::deleter<Password>());
+	pImpl_->bModified_ = true;
 }
 
 const PasswordManager::PasswordList& qm::PasswordManager::getPasswords() const
