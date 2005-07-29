@@ -23,7 +23,7 @@
 			<menuitem text="Exit" action="FileExit"/>
 		</popupmenu>
 		<popupmenu text="Edit">
-			<menuitem text="&amp;Undo" action="EditUndo"/>
+			<menuitem text="Undo" action="EditUndo"/>
 			<separator/>
 			<menuitem text="Cut" action="EditCut"/>
 			<menuitem text="Copy" action="EditCopy"/>
@@ -50,9 +50,9 @@
 				<menuitem text="Raw Mode" action="ViewRawMode"/>
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
-				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
-				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
-				<menuitem text="HTML &amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
+				<menuitem text="HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="HTML Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="HTML Internet Zone" action="ViewHtmlInternetZoneMode"/>
 				<separator/>
 				<menuitem text="S/MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
@@ -133,7 +133,7 @@
 			<menuitem text="Close" action="FileClose"/>
 		</popupmenu>
 		<popupmenu text="Edit">
-			<menuitem text="&amp;Undo" action="EditUndo"/>
+			<menuitem text="Undo" action="EditUndo"/>
 			<separator/>
 			<menuitem text="Cut" action="EditCut"/>
 			<menuitem text="Copy" action="EditCopy"/>
@@ -155,9 +155,9 @@
 				<menuitem text="Raw Mode" action="ViewRawMode"/>
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
-				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
-				<menuitem text="HTML &amp;Online Mode" action="ViewHtmlOnlineMode"/>
-				<menuitem text="HTML &amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
+				<menuitem text="HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="HTML Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="HTML Internet Zone" action="ViewHtmlInternetZoneMode"/>
 				<separator/>
 				<menuitem text="S/MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
@@ -241,7 +241,7 @@
 			<menuitem text="Attachment..." action="ToolAttachment"/>
 			<popupmenu text="Insert Text" action="ToolInsertText"/>
 			<menuitem text="Insert Signature" action="ToolInsertSignature"/>
-			<popupmenu text="&amp;Encoding" action="ToolEncoding"/>
+			<popupmenu text="Encoding" action="ToolEncoding"/>
 			<separator/>
 			<menuitem text="Reform" action="ToolReform"/>
 			<menuitem text="Reform All" action="ToolReformAll"/>
@@ -397,8 +397,8 @@
 		<menuitem text="Delete" action="AttachmentEditDelete"/>
 	</menu>
 	<menu name="addressbooklist">
-		<menuitem text="&amp;New..." action="AddressNew"/>
-		<menuitem text="&amp;Edit..." action="AddressEdit"/>
-		<menuitem text="&amp;Delete" action="AddressDelete"/>
+		<menuitem text="New..." action="AddressNew"/>
+		<menuitem text="Edit..." action="AddressEdit"/>
+		<menuitem text="Delete" action="AddressDelete"/>
 	</menu>
 </menus>
