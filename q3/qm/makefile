@@ -2,6 +2,8 @@
 #
 # Makefile for qm
 
+include ../function.mak
+
 ZIPDIR			= ../lib/zip
 
 PROJECTNAME		= qm
