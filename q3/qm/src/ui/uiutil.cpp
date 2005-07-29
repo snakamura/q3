@@ -501,12 +501,26 @@ PasswordState qm::DefaultPasswordManagerCallback::getPassword(const PasswordCond
 															  wstring_ptr* pwstrPassword)
 {
 	HWND hwnd = Window::getForegroundWindow();
-	if (::GetWindowThreadProcessId(hwnd, 0) != ::GetCurrentThreadId())
-		hwnd = getMainWindow()->getHandle();
+	HWND hwndMain = getMainWindow()->getHandle();
+	if (::GetCurrentThreadId() != ::GetWindowThreadProcessId(hwndMain, 0))
+		hwnd = 0;
+	else if (::GetWindowThreadProcessId(hwnd, 0) != ::GetCurrentThreadId())
+		hwnd = hwndMain;
+	
+	struct ModalHandlerImpl : public ModalHandler
+	{
+		virtual void preModalDialog(HWND hwndParent)
+		{
+		}
+		
+		virtual void postModalDialog(HWND hwndParent)
+		{
+		}
+	} modelHandler;
 	
 	wstring_ptr wstrHint(condition.getHint());
 	PasswordDialog dialog(wstrHint.get());
-	if (dialog.doModal(hwnd) != IDOK)
+	if (dialog.doModal(hwnd, hwnd ? 0 : &modelHandler) != IDOK)
 		return PASSWORDSTATE_NONE;
 	
 	*pwstrPassword = allocWString(dialog.getPassword());
