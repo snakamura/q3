@@ -2337,7 +2337,9 @@ qm::HtmlMessageViewWindow::HtmlMessageViewWindow(qs::Profile* pProfile,
 	pMenuManager_(pMenuManager),
 	pCallback_(pCallback),
 	nId_(0),
+#if _WIN32_WCE >= 420
 	pWebBrowser_(0),
+#endif
 #if 0
 	pWebBrowserEvents_(0),
 	dwConnectionPointCookie_(0),
@@ -2377,6 +2379,7 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pMessageWindow_->addNotifyHandler(this);
 	
+#if _WIN32_WCE >= 420
 	ComPtr<IDispatch> pDispBrowser;
 	sendMessage(DTM_BROWSERDISPATCH, 0, reinterpret_cast<LPARAM>(&pDispBrowser));
 	if (!pDispBrowser.get())
@@ -2385,6 +2388,7 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		reinterpret_cast<void**>(&pWebBrowser_));
 	if (FAILED(hr))
 		return -1;
+#endif
 	
 #if 0
 	pWebBrowserEvents_ = new DWebBrowserEvents2Impl(this, pWebBrowser_);
@@ -2417,6 +2421,7 @@ LRESULT qm::HtmlMessageViewWindow::onDestroy()
 {
 	pMessageWindow_->removeNotifyHandler(this);
 	
+#if _WIN32_WCE >= 420
 	if (pWebBrowser_) {
 #if 0
 		if (dwConnectionPointCookie_ != 0) {
@@ -2434,6 +2439,7 @@ LRESULT qm::HtmlMessageViewWindow::onDestroy()
 		pWebBrowser_->Release();
 		pWebBrowser_ = 0;
 	}
+#endif
 #if 0
 	if (pWebBrowserEvents_) {
 		pWebBrowserEvents_->Release();
@@ -2506,6 +2512,7 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		wstrURL = allocWString(link.getValue());
 		bAllowExternal_ = true;
 		
+#if _WIN32_WCE >= 420
 		BSTRPtr bstrPrevURL;
 		if (pWebBrowser_->get_LocationURL(&bstrPrevURL) == S_OK) {
 			const WCHAR* p1 = wcsrchr(wstrURL.get(), L'#');
@@ -2514,6 +2521,7 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 			size_t nLen2 = p2 ? p2 - bstrPrevURL.get() : wcslen(bstrPrevURL.get());
 			bClear = nLen1 != nLen2 || _wcsnicmp(wstrURL.get(), bstrPrevURL.get(), nLen1) != 0;
 		}
+#endif
 	}
 	else {
 		PartUtil util(*pMessage);

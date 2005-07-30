@@ -1091,7 +1091,9 @@ private:
 	qs::MenuManager* pMenuManager_;
 	MessageViewWindowCallback* pCallback_;
 	UINT nId_;
+#if _WIN32_WCE >= 420
 	IBrowser2* pWebBrowser_;
+#endif
 #if 0
 	DWebBrowserEvents2Impl* pWebBrowserEvents_;
 	DWORD dwConnectionPointCookie_;
