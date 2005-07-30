@@ -47,7 +47,7 @@ endif
 include ../function.mak
 
 ifdef EMULATION
-	ifeq ($(call cever,-lt,400),0)
+	ifeq ($(if $(call platform,ppc2002),1,$(call cever,-lt,400)),0)
 		OLDEMULATION	= 1
 	endif
 endif
@@ -176,12 +176,12 @@ else
 		endif
 	endif
 	ifeq ($(SDKLIBDIR),)
-		ifeq ($(call cever,-lt,400),0)
-			SDKLIBDIR		= $(SDKDIR)/lib/$(LIBCPU)
-		else
-			ifndef EMULATION
-				SDKLIBDIR	= $(SDKDIR)/lib/$(LIBCPU)
-			else
+		SDKLIBDIR			= $(SDKDIR)/lib/$(LIBCPU)
+		ifdef EMULATION
+			ifeq ($(PLATFORM),ppc2002)
+				SDKLIBDIR	= $(SDKDIR)/lib/x86
+			endif
+			ifeq ($(call cever,-ge,400),0)
 				SDKLIBDIR	= $(SDKDIR)/lib/Emulator
 			endif
 		endif
