@@ -3117,14 +3117,11 @@ LRESULT qm::ShellIcon::onRecentsChanged(WPARAM wParam,
 	
 	unsigned int nCount = pRecents_->getCount();
 	if (nCount != 0 && !(nState_ & STATE_RECENT)) {
-		if (nState_ & STATE_HIDDEN) {
-			notifyIcon_.hIcon = hIconHidden_;
+		notifyIcon_.hIcon = hIconRecent_;
+		if (nState_ & STATE_HIDDEN)
 			Shell_NotifyIcon(NIM_MODIFY, &notifyIcon_);
-		}
-		else {
-			notifyIcon_.hIcon = hIconRecent_;
+		else
 			Shell_NotifyIcon(NIM_ADD, &notifyIcon_);
-		}
 		nState_ |= STATE_RECENT;
 	}
 	else if (nCount == 0 && nState_ & STATE_RECENT) {
