@@ -63,6 +63,7 @@ ifeq ($(PLATFORM),win)
 		COMMONBINDIR		= $(VS6DIR)/common/msdev98/bin
 	endif
 	COMPILERBINDIR			= $(COMPILERDIR)/bin
+	SDKCOMMONBINDIR			= $(SDKDIR)/bin
 	ifeq ($(CPU),x86)
 		SDKBINDIR			= $(SDKDIR)/bin
 		
@@ -590,7 +591,7 @@ LIBS					+= $(DEPENDLIBS)
 INCLUDES				+= $(EXTERNALINCS)
 LIBS					+= $(EXTERNALLIBS)
 
-export PATH				= $(shell cygpath -u "$(BINDIR)"):$(shell cygpath -u "$(SDKBINDIR)"):$(shell cygpath -u "$(COMPILERBINDIR)"):$(shell cygpath -u "$(COMMONBINDIR)"):$(shell cygpath -u "$(SVNDIR)/bin")
+export PATH				= $(call win2unix,$(BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(SVNDIR)/bin)
 export INCLUDE			= $(SDKINCLUDEDIR);$(MFCINCLUDEDIR);$(ATLINCLUDEDIR);$(COMPILERINCLUDEDIR)
 export LIB				= $(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR);$(COMPILERLIBDIR)
 
