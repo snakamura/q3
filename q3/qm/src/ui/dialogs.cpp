@@ -26,6 +26,7 @@
 #include <commdlg.h>
 #include <tchar.h>
 
+#include "conditiondialog.h"
 #include "dialogs.h"
 #include "uimanager.h"
 #include "uiutil.h"
@@ -281,51 +282,6 @@ void qm::AttachmentDialog::updateState()
 
 /****************************************************************************
  *
- * ConditionDialog
- *
- */
-
-qm::ConditionDialog::ConditionDialog(const WCHAR* pwszCondition) :
-	DefaultDialog(IDD_CONDITION)
-{
-	wstrCondition_ = allocWString(pwszCondition);
-}
-
-qm::ConditionDialog::~ConditionDialog()
-{
-}
-
-const WCHAR* qm::ConditionDialog::getCondition() const
-{
-	return wstrCondition_.get();
-}
-
-LRESULT qm::ConditionDialog::onCommand(WORD nCode,
-									   WORD nId)
-{
-	// TODO
-	return DefaultDialog::onCommand(nCode, nId);
-}
-
-LRESULT qm::ConditionDialog::onInitDialog(HWND hwndFocus,
-										  LPARAM lParam)
-{
-	init(false);
-	
-	// TODO
-	
-	return TRUE;
-}
-
-LRESULT qm::ConditionDialog::onOk()
-{
-	// TODO
-	return DefaultDialog::onOk();
-}
-
-
-/****************************************************************************
- *
  * ConfirmSendDialog
  *
  */
@@ -334,7 +290,7 @@ qm::ConfirmSendDialog::ConfirmSendDialog() :
 	DefaultDialog(IDD_CONFIRMSEND)
 {
 }
-
+	
 qm::ConfirmSendDialog::~ConfirmSendDialog()
 {
 }
@@ -426,14 +382,22 @@ LRESULT qm::CustomFilterDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::CustomFilterDialog::onOk()
 {
-	wstrCondition_ = getDlgItemText(IDC_CONDITION);
+	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
+	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
+	if (!pCondition.get()) {
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+		return 0;
+	}
+	wstrCondition_ = wstrCondition;
+	
 	return DefaultDialog::onOk();
 }
 
 LRESULT qm::CustomFilterDialog::onEdit()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	ConditionDialog dialog(wstrCondition.get());
+	ConditionsDialog dialog(wstrCondition.get());
 	if (dialog.doModal(getHandle()) == IDOK)
 		setDlgItemText(IDC_CONDITION, dialog.getCondition());
 	return 0;
@@ -2463,8 +2427,8 @@ LRESULT qm::ViewsColumnDialog::onOk()
 		wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
 		pMacro = MacroParser().parse(wstrMacro.get());
 		if (!pMacro.get()) {
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			messageBox(hInst, IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+			messageBox(Application::getApplication().getResourceHandle(),
+				IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
 			return 0;
 		}
 	}

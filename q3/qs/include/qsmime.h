@@ -16,6 +16,7 @@
 
 #include <vector>
 
+#pragma warning(push)
 #pragma warning(disable:4251)
 
 
@@ -1192,6 +1193,6 @@ private:
 
 #include <qsmime.inl>
 
-#pragma warning(default:4251)
+#pragma warning(pop)
 
 #endif // __QSMIME_H__

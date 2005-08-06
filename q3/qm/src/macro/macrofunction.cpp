@@ -97,6 +97,16 @@ wstring_ptr qm::MacroFunction::getString() const
 	return concat(c, countof(c));
 }
 
+void qm::MacroFunction::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitFunction(*this);
+}
+
+const WCHAR* qm::MacroFunction::getFunctionName() const
+{
+	return getName();
+}
+
 size_t qm::MacroFunction::getArgSize() const
 {
 	return listArg_.size();

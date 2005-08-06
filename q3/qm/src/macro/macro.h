@@ -107,6 +107,7 @@ class MacroExpr;
 		class MacroFunctionURI;
 		class MacroFunctionVariable;
 		class MacroFunctionWhile;
+class MacroExprVisitor;
 class MacroExprPtr;
 class MacroFunctionFactory;
 
@@ -300,6 +301,7 @@ public:
 	virtual MacroValuePtr value(MacroContext* pContext) const = 0;
 	virtual qs::wstring_ptr getString() const = 0;
 	virtual void release();
+	virtual void visit(MacroExprVisitor* pVisitor) const = 0;
 
 protected:
 	MacroValuePtr error(const MacroContext& context,
@@ -320,8 +322,12 @@ public:
 	virtual ~MacroField();
 
 public:
+	const WCHAR* getName() const;
+
+public:
 	virtual MacroValuePtr value(MacroContext* pContext) const;
 	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 private:
 	MacroField(const MacroField&);
@@ -360,8 +366,12 @@ public:
 	bool operator!() const;
 
 public:
+	Type getType() const;
+
+public:
 	virtual MacroValuePtr value(MacroContext* pContext) const;
 	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 public:
 	static Type getType(const WCHAR* pwszType);
@@ -388,8 +398,12 @@ public:
 	virtual ~MacroLiteral();
 
 public:
+	const WCHAR* getValue() const;
+
+public:
 	virtual MacroValuePtr value(MacroContext* pContext) const;
 	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 private:
 	MacroLiteral(const MacroLiteral&);
@@ -413,8 +427,12 @@ public:
 	virtual ~MacroNumber();
 
 public:
+	unsigned int getValue() const;
+
+public:
 	virtual MacroValuePtr value(MacroContext* pContext) const;
 	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 private:
 	MacroNumber(const MacroNumber&);
@@ -442,8 +460,13 @@ public:
 	bool operator!() const;
 
 public:
+	const WCHAR* getPattern() const;
+	const WCHAR* getMode() const;
+
+public:
 	virtual MacroValuePtr value(MacroContext* pContext) const;
 	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 private:
 	MacroRegex(const MacroRegex&);
@@ -469,8 +492,13 @@ public:
 	virtual ~MacroVariable();
 
 public:
+	const WCHAR* getName() const;
+	unsigned int getIndex() const;
+
+public:
 	virtual MacroValuePtr value(MacroContext* pContext) const;
 	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 private:
 	MacroVariable(const MacroVariable&);
@@ -501,13 +529,17 @@ public:
 
 public:
 	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 protected:
 	virtual const WCHAR* getName() const = 0;
 
-protected:
+public:
+	const WCHAR* getFunctionName() const;
 	size_t getArgSize() const;
 	const MacroExpr* getArg(size_t n) const;
+
+protected:
 	bool checkArgSize(MacroContext* pContext,
 					  size_t n) const;
 	bool checkArgSizeRange(MacroContext* pContext,
@@ -2427,6 +2459,28 @@ protected:
 private:
 	MacroFunctionWhile(const MacroFunctionWhile&);
 	MacroFunctionWhile& operator=(const MacroFunctionWhile&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroExprVisitor
+ *
+ */
+
+class MacroExprVisitor
+{
+public:
+	virtual ~MacroExprVisitor();
+
+public:
+	virtual void visitField(const MacroField& field) = 0;
+	virtual void visitFieldCache(const MacroFieldCache& fieldCache) = 0;
+	virtual void visitLiteral(const MacroLiteral& literal) = 0;
+	virtual void visitNumber(const MacroNumber& number) = 0;
+	virtual void visitRegex(const MacroRegex& regex) = 0;
+	virtual void visitVariable(const MacroVariable& variable) = 0;
+	virtual void visitFunction(const MacroFunction& function) = 0;
 };
 
 

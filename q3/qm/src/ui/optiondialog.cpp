@@ -30,6 +30,7 @@
 #include <tchar.h>
 
 #include "addressbookwindow.h"
+#include "conditiondialog.h"
 #include "editframewindow.h"
 #include "messageframewindow.h"
 #include "optiondialog.h"
@@ -2473,7 +2474,8 @@ LRESULT qm::ColorDialog::onOk()
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -2493,7 +2495,7 @@ LRESULT qm::ColorDialog::onOk()
 LRESULT qm::ColorDialog::onEdit()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	ConditionDialog dialog(wstrCondition.get());
+	ConditionsDialog dialog(wstrCondition.get());
 	if (dialog.doModal(getHandle()) == IDOK)
 		setDlgItemText(IDC_CONDITION, dialog.getCondition());
 	return 0;
@@ -2729,7 +2731,8 @@ LRESULT qm::RuleDialog::onOk()
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	pRule_->setCondition(pCondition);
@@ -2773,7 +2776,8 @@ LRESULT qm::RuleDialog::onOk()
 			wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
 			std::auto_ptr<Macro> pMacro(MacroParser().parse(wstrMacro.get()));
 			if (!pMacro.get()) {
-				// TODO MSG
+				messageBox(Application::getApplication().getResourceHandle(),
+					IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			pAction.reset(new ApplyRuleAction(pMacro));
@@ -2798,7 +2802,7 @@ LRESULT qm::RuleDialog::onOk()
 LRESULT qm::RuleDialog::onEdit()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	ConditionDialog dialog(wstrCondition.get());
+	ConditionsDialog dialog(wstrCondition.get());
 	if (dialog.doModal(getHandle()) == IDOK)
 		setDlgItemText(IDC_CONDITION, dialog.getCondition());
 	return 0;
@@ -3323,10 +3327,12 @@ std::auto_ptr<AutoPilotEntry> qm::AutoPilotDialog::create() const
 	return pEntry;
 }
 
-bool qm::AutoPilotDialog::edit(AutoPilotEntry* p) const
+AutoPilotEntry* qm::AutoPilotDialog::edit(AutoPilotEntry* p) const
 {
 	AutoPilotEntryDialog dialog(p, pGoRound_);
-	return dialog.doModal(getParentPopup()) == IDOK;
+	if (dialog.doModal(getParentPopup()) != IDOK)
+		return 0;
+	return p;
 }
 
 bool qm::AutoPilotDialog::save(OptionDialogContext* pContext)
@@ -3563,10 +3569,12 @@ std::auto_ptr<Filter> qm::FiltersDialog::create() const
 	return pFilter;
 }
 
-bool qm::FiltersDialog::edit(Filter* p) const
+Filter* qm::FiltersDialog::edit(Filter* p) const
 {
 	FilterDialog dialog(p);
-	return dialog.doModal(getParentPopup()) == IDOK;
+	if (dialog.doModal(getParentPopup()) != IDOK)
+		return 0;
+	return p;
 }
 
 bool qm::FiltersDialog::save(OptionDialogContext* pContext)
@@ -3637,7 +3645,8 @@ LRESULT qm::FilterDialog::onOk()
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	pFilter_->setCondition(pCondition);
@@ -3651,7 +3660,7 @@ LRESULT qm::FilterDialog::onOk()
 LRESULT qm::FilterDialog::onEdit()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	ConditionDialog dialog(wstrCondition.get());
+	ConditionsDialog dialog(wstrCondition.get());
 	if (dialog.doModal(getHandle()) == IDOK)
 		setDlgItemText(IDC_CONDITION, dialog.getCondition());
 	return 0;
@@ -3724,10 +3733,12 @@ std::auto_ptr<FixedFormText> qm::FixedFormTextsDialog::create() const
 	return pText;
 }
 
-bool qm::FixedFormTextsDialog::edit(FixedFormText* p) const
+FixedFormText* qm::FixedFormTextsDialog::edit(FixedFormText* p) const
 {
 	FixedFormTextDialog dialog(p, pProfile_);
-	return dialog.doModal(getParentPopup()) == IDOK;
+	if (dialog.doModal(getParentPopup()) != IDOK)
+		return 0;
+	return p;
 }
 
 bool qm::FixedFormTextsDialog::save(OptionDialogContext* pContext)
@@ -3958,10 +3969,12 @@ std::auto_ptr<GoRoundCourse> qm::GoRoundDialog::create() const
 	return pCourse;
 }
 
-bool qm::GoRoundDialog::edit(GoRoundCourse* p) const
+GoRoundCourse* qm::GoRoundDialog::edit(GoRoundCourse* p) const
 {
 	GoRoundCourseDialog dialog(p, pAccountManager_, pSyncFilterManager_, pProfile_);
-	return dialog.doModal(getParentPopup()) == IDOK;
+	if (dialog.doModal(getParentPopup()) != IDOK)
+		return 0;
+	return p;
 }
 
 bool qm::GoRoundDialog::save(OptionDialogContext* pContext)
@@ -4122,10 +4135,12 @@ std::auto_ptr<GoRoundEntry> qm::GoRoundCourseDialog::create() const
 	return pEntry;
 }
 
-bool qm::GoRoundCourseDialog::edit(GoRoundEntry* p) const
+GoRoundEntry* qm::GoRoundCourseDialog::edit(GoRoundEntry* p) const
 {
 	GoRoundEntryDialog dialog(p, pAccountManager_, pSyncFilterManager_);
-	return dialog.doModal(getHandle()) == IDOK;
+	if (dialog.doModal(getHandle()) != IDOK)
+		return 0;
+	return p;
 }
 
 void qm::GoRoundCourseDialog::updateState()
@@ -4691,10 +4706,12 @@ std::auto_ptr<Signature> qm::SignaturesDialog::create() const
 	return pSignature;
 }
 
-bool qm::SignaturesDialog::edit(Signature* p) const
+Signature* qm::SignaturesDialog::edit(Signature* p) const
 {
 	SignatureDialog dialog(p, pAccountManager_, pProfile_);
-	return dialog.doModal(getParentPopup()) == IDOK;
+	if (dialog.doModal(getParentPopup()) != IDOK)
+		return 0;
+	return p;
 }
 
 bool qm::SignaturesDialog::save(OptionDialogContext* pContext)
@@ -4954,10 +4971,12 @@ std::auto_ptr<SyncFilterSet> qm::SyncFilterSetsDialog::create() const
 	return pFilterSet;
 }
 
-bool qm::SyncFilterSetsDialog::edit(SyncFilterSet* p) const
+SyncFilterSet* qm::SyncFilterSetsDialog::edit(SyncFilterSet* p) const
 {
 	SyncFiltersDialog dialog(p, pProfile_);
-	return dialog.doModal(getParentPopup()) == IDOK;
+	if (dialog.doModal(getParentPopup()) != IDOK)
+		return 0;
+	return p;
 }
 
 bool qm::SyncFilterSetsDialog::save(OptionDialogContext* pContext)
@@ -5093,10 +5112,12 @@ std::auto_ptr<SyncFilter> qm::SyncFiltersDialog::create() const
 	return pFilter;
 }
 
-bool qm::SyncFiltersDialog::edit(SyncFilter* p) const
+SyncFilter* qm::SyncFiltersDialog::edit(SyncFilter* p) const
 {
 	SyncFilterDialog dialog(p);
-	return dialog.doModal(getHandle()) == IDOK;
+	if (dialog.doModal(getHandle()) != IDOK)
+		return 0;
+	return p;
 }
 
 void qm::SyncFiltersDialog::updateState()
@@ -5292,7 +5313,8 @@ LRESULT qm::SyncFilterDialog::onOk()
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -5381,7 +5403,7 @@ LRESULT qm::SyncFilterDialog::onOk()
 LRESULT qm::SyncFilterDialog::onEdit()
 {
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
-	ConditionDialog dialog(wstrCondition.get());
+	ConditionsDialog dialog(wstrCondition.get());
 	if (dialog.doModal(getHandle()) == IDOK)
 		setDlgItemText(IDC_CONDITION, dialog.getCondition());
 	return 0;

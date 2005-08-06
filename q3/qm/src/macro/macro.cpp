@@ -522,6 +522,11 @@ qm::MacroField::~MacroField()
 {
 }
 
+const WCHAR* qm::MacroField::getName() const
+{
+	return wstrName_.get();
+}
+
 MacroValuePtr qm::MacroField::value(MacroContext* pContext) const
 {
 	assert(pContext);
@@ -544,6 +549,11 @@ wstring_ptr qm::MacroField::getString() const
 	return allocWString(wstrName_.get());
 }
 
+void qm::MacroField::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitField(*this);
+}
+
 
 /****************************************************************************
  *
@@ -558,6 +568,11 @@ qm::MacroFieldCache::MacroFieldCache(Type type) :
 
 qm::MacroFieldCache::~MacroFieldCache()
 {
+}
+
+MacroFieldCache::Type qm::MacroFieldCache::getType() const
+{
+	return type_;
 }
 
 MacroValuePtr qm::MacroFieldCache::value(MacroContext* pContext) const
@@ -630,6 +645,11 @@ wstring_ptr qm::MacroFieldCache::getString() const
 	return concat(L"%", pwszNames[type_]);
 }
 
+void qm::MacroFieldCache::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitFieldCache(*this);
+}
+
 MacroFieldCache::Type qm::MacroFieldCache::getType(const WCHAR* pwszType)
 {
 	struct {
@@ -665,6 +685,11 @@ qm::MacroLiteral::MacroLiteral(const WCHAR* pwszValue)
 
 qm::MacroLiteral::~MacroLiteral()
 {
+}
+
+const WCHAR* qm::MacroLiteral::getValue() const
+{
+	return wstrValue_.get();
 }
 
 MacroValuePtr qm::MacroLiteral::value(MacroContext* pContext) const
@@ -704,6 +729,11 @@ wstring_ptr qm::MacroLiteral::getString() const
 	return buf.getString();
 }
 
+void qm::MacroLiteral::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitLiteral(*this);
+}
+
 
 /****************************************************************************
  *
@@ -720,6 +750,11 @@ qm::MacroNumber::~MacroNumber()
 {
 }
 
+unsigned int qm::MacroNumber::getValue() const
+{
+	return nValue_;
+}
+
 MacroValuePtr qm::MacroNumber::value(MacroContext* pContext) const
 {
 	assert(pContext);
@@ -731,6 +766,11 @@ wstring_ptr qm::MacroNumber::getString() const
 	WCHAR wsz[32];
 	swprintf(wsz, L"%u", nValue_);
 	return allocWString(wsz);
+}
+
+void qm::MacroNumber::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitNumber(*this);
 }
 
 
@@ -776,6 +816,16 @@ bool qm::MacroRegex::operator!() const
 	return pPattern_.get() == 0;
 }
 
+const WCHAR* qm::MacroRegex::getPattern() const
+{
+	return wstrPattern_.get();
+}
+
+const WCHAR* qm::MacroRegex::getMode() const
+{
+	return wstrMode_.get();
+}
+
 MacroValuePtr qm::MacroRegex::value(MacroContext* pContext) const
 {
 	assert(pContext);
@@ -799,6 +849,11 @@ wstring_ptr qm::MacroRegex::getString() const
 	buf.append(wstrMode_.get());
 	
 	return buf.getString();
+}
+
+void qm::MacroRegex::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitRegex(*this);
 }
 
 
@@ -831,6 +886,16 @@ qm::MacroVariable::~MacroVariable()
 {
 }
 
+const WCHAR* qm::MacroVariable::getName() const
+{
+	return wstrName_.get();
+}
+
+unsigned int qm::MacroVariable::getIndex() const
+{
+	return n_;
+}
+
 MacroValuePtr qm::MacroVariable::value(MacroContext* pContext) const
 {
 	assert(pContext);
@@ -855,6 +920,22 @@ wstring_ptr qm::MacroVariable::getString() const
 	else {
 		return concat(L"$", wstrName_.get());
 	}
+}
+
+void qm::MacroVariable::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitVariable(*this);
+}
+
+
+/****************************************************************************
+ *
+ * MacroExprVisitor
+ *
+ */
+
+qm::MacroExprVisitor::~MacroExprVisitor()
+{
 }
 
 
@@ -948,6 +1029,11 @@ MacroValuePtr qm::Macro::value(MacroContext* pContext) const
 wstring_ptr qm::Macro::getString() const
 {
 	return pExpr_->getString();
+}
+
+const MacroExpr* qm::Macro::getExpr() const
+{
+	return pExpr_;
 }
 
 

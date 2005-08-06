@@ -52,17 +52,8 @@ LRESULT qm::AbstractListDialog<T, List>::onInitDialog(HWND hwndFocus,
 													  LPARAM lParam)
 {
 	init(false);
-	
-	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
-		const T* p = *it;
-		wstring_ptr wstrLabel(getLabel(p));
-		W2T(wstrLabel.get(), ptszLabel);
-		ListBox_AddString(getDlgItem(nListId_), ptszLabel);
-	}
-	ListBox_SetCurSel(getDlgItem(nListId_), 0);
-	
+	refresh();
 	updateState();
-	
 	return bFocus_ ? TRUE : FALSE;
 }
 
@@ -70,6 +61,19 @@ template<class T, class List>
 List& qm::AbstractListDialog<T, List>::getList()
 {
 	return list_;
+}
+
+template<class T, class List>
+void qm::AbstractListDialog<T, List>::refresh()
+{
+	sendDlgItemMessage(nListId_, LB_RESETCONTENT);
+	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+		const T* p = *it;
+		wstring_ptr wstrLabel(getLabel(p));
+		W2T(wstrLabel.get(), ptszLabel);
+		ListBox_AddString(getDlgItem(nListId_), ptszLabel);
+	}
+	ListBox_SetCurSel(getDlgItem(nListId_), 0);
 }
 
 template<class T, class List>
@@ -134,9 +138,15 @@ LRESULT qm::AbstractListDialog<T, List>::onEdit()
 		return 0;
 	
 	T* p = list_[n];
-	if (edit(p)) {
+	T* pNew = edit(p);
+	if (pNew) {
+		if (pNew != p) {
+			delete p;
+			list_[n] = pNew;
+		}
+		
 		ListBox_DeleteString(getDlgItem(nListId_), n);
-		wstring_ptr wstrLabel(getLabel(p));
+		wstring_ptr wstrLabel(getLabel(pNew));
 		W2T(wstrLabel.get(), ptszLabel);
 		ListBox_InsertString(getDlgItem(nListId_), n, ptszLabel);
 		ListBox_SetCurSel(getDlgItem(nListId_), n);

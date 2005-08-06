@@ -114,6 +114,9 @@ public:
 	MacroValuePtr value(MacroContext* pContext) const;
 	qs::wstring_ptr getString() const;
 
+public:
+	const MacroExpr* getExpr() const;
+
 private:
 	Macro(const Macro&);
 	Macro& operator=(const Macro&);

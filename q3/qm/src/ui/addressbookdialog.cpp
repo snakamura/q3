@@ -93,10 +93,12 @@ std::auto_ptr<AddressBookAddress> qm::AddressBookEntryDialog::create() const
 	return pAddress;
 }
 
-bool qm::AddressBookEntryDialog::edit(AddressBookAddress* p) const
+AddressBookAddress* qm::AddressBookEntryDialog::edit(AddressBookAddress* p) const
 {
 	AddressBookAddressDialog dialog(pAddressBook_, p);
-	return dialog.doModal(getHandle()) == IDOK;
+	if (dialog.doModal(getHandle()) != IDOK)
+		return 0;
+	return p;
 }
 
 void qm::AddressBookEntryDialog::updateState()

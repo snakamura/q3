@@ -52,7 +52,7 @@ protected:
 protected:
 	virtual qs::wstring_ptr getLabel(const AddressBookAddress* p) const;
 	virtual std::auto_ptr<AddressBookAddress> create() const;
-	virtual bool edit(AddressBookAddress* p) const;
+	virtual AddressBookAddress* edit(AddressBookAddress* p) const;
 	virtual void updateState();
 
 private:

@@ -1178,7 +1178,7 @@ protected:
 protected:
 	virtual qs::wstring_ptr getLabel(const T* p) const;
 	virtual std::auto_ptr<T> create() const;
-	virtual bool edit(T* p) const;
+	virtual T* edit(T* p) const;
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
@@ -1246,7 +1246,7 @@ protected:
 protected:
 	virtual qs::wstring_ptr getLabel(const T* p) const;
 	virtual std::auto_ptr<T> create() const;
-	virtual bool edit(T* p) const;
+	virtual T* edit(T* p) const;
 	virtual void updateState();
 
 private:
@@ -1569,7 +1569,7 @@ protected:
 protected:
 	virtual qs::wstring_ptr getLabel(const AutoPilotEntry* p) const;
 	virtual std::auto_ptr<AutoPilotEntry> create() const;
-	virtual bool edit(AutoPilotEntry* p) const;
+	virtual AutoPilotEntry* edit(AutoPilotEntry* p) const;
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
@@ -1661,7 +1661,7 @@ public:
 protected:
 	virtual qs::wstring_ptr getLabel(const Filter* p) const;
 	virtual std::auto_ptr<Filter> create() const;
-	virtual bool edit(Filter* p) const;
+	virtual Filter* edit(Filter* p) const;
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
@@ -1746,7 +1746,7 @@ public:
 protected:
 	virtual qs::wstring_ptr getLabel(const FixedFormText* p) const;
 	virtual std::auto_ptr<FixedFormText> create() const;
-	virtual bool edit(FixedFormText* p) const;
+	virtual FixedFormText* edit(FixedFormText* p) const;
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
@@ -1846,7 +1846,7 @@ public:
 protected:
 	virtual qs::wstring_ptr getLabel(const GoRoundCourse* p) const;
 	virtual std::auto_ptr<GoRoundCourse> create() const;
-	virtual bool edit(GoRoundCourse* p) const;
+	virtual GoRoundCourse* edit(GoRoundCourse* p) const;
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
@@ -1906,7 +1906,7 @@ protected:
 protected:
 	virtual qs::wstring_ptr getLabel(const GoRoundEntry* p) const;
 	virtual std::auto_ptr<GoRoundEntry> create() const;
-	virtual bool edit(GoRoundEntry* p) const;
+	virtual GoRoundEntry* edit(GoRoundEntry* p) const;
 	virtual void updateState();
 
 protected:
@@ -2048,7 +2048,7 @@ public:
 protected:
 	virtual qs::wstring_ptr getLabel(const Signature* p) const;
 	virtual std::auto_ptr<Signature> create() const;
-	virtual bool edit(Signature* p) const;
+	virtual Signature* edit(Signature* p) const;
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
@@ -2149,7 +2149,7 @@ public:
 protected:
 	virtual qs::wstring_ptr getLabel(const SyncFilterSet* p) const;
 	virtual std::auto_ptr<SyncFilterSet> create() const;
-	virtual bool edit(SyncFilterSet* p) const;
+	virtual SyncFilterSet* edit(SyncFilterSet* p) const;
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
@@ -2205,7 +2205,7 @@ protected:
 protected:
 	virtual qs::wstring_ptr getLabel(const SyncFilter* p) const;
 	virtual std::auto_ptr<SyncFilter> create() const;
-	virtual bool edit(SyncFilter* p) const;
+	virtual SyncFilter* edit(SyncFilter* p) const;
 	virtual void updateState();
 
 protected:

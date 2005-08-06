@@ -17,6 +17,9 @@ namespace qs {
 
 class Observer;
 class Observable;
+class Time;
+class Color;
+class MessageFormat;
 class CommandLine;
 class CommandLineHandler;
 
@@ -196,6 +199,47 @@ public:
 private:
 	COLORREF cr_;
 };
+
+
+/****************************************************************************
+ *
+ * MessageFormat
+ *
+ */
+
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS MessageFormat
+{
+public:
+	typedef std::vector<const WCHAR*> ArgumentList;
+
+public:
+	MessageFormat(const WCHAR* pwszTemplate);
+	~MessageFormat();
+
+public:
+	wstring_ptr format(const ArgumentList& listArgument) const;
+
+public:
+	static wstring_ptr format(const WCHAR* pwszTemplate,
+							  const WCHAR* pwszArg0);
+	static wstring_ptr format(const WCHAR* pwszTemplate,
+							  const WCHAR* pwszArg0,
+							  const WCHAR* pwszArg1);
+	static wstring_ptr format(const WCHAR* pwszTemplate,
+							  const ArgumentList& listArgument);
+
+private:
+	MessageFormat(const MessageFormat&);
+	MessageFormat& operator=(const MessageFormat&);
+
+private:
+	wstring_ptr wstrTemplate_;
+};
+
+#pragma warning(pop)
 
 
 /****************************************************************************

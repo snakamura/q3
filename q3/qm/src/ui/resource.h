@@ -74,7 +74,7 @@
 #define IDD_COLOR                       176
 #define IDD_COPYRULETEMPLATE            177
 #define IDD_ARGUMENT                    178
-#define IDD_CONDITION                   179
+#define IDD_CONDITIONS                  179
 #define IDR_ADDRESSBOOK                 180
 #define IDD_FILTERS                     180
 #define IDD_FILTER                      181
@@ -113,6 +113,8 @@
 #define IDD_ARCHIVE                     214
 #define IDD_OPTIONCONFIRM               215
 #define IDI_NEWMAIL                     216
+#define IDD_CONDITION                   217
+#define IDD_CONDITIONARGUMENT           218
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -520,6 +522,13 @@
 #define IDC_ADDTORECENTS                1408
 #define IDC_WHITELIST                   1409
 #define IDC_BLACKLIST                   1410
+#define IDC_CONDITIONS                  1411
+#define IDC_AND                         1414
+#define IDC_OR                          1415
+#define IDC_CUSTOM                      1416
+#define IDC_ARGUMENTS                   1418
+#define IDC_FIELD                       1420
+#define IDC_NUMBER                      1422
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -554,6 +563,32 @@
 #define IDS_PANEL_SIGNATURES            2520
 #define IDS_PANEL_SYNCFILTERS           2521
 #define IDS_PANEL_TAB                   2522
+#define IDS_CONDITION_SEEN_DESCRIPTION  9000
+#define IDS_CONDITION_UNSEEN_DESCRIPTION 9001
+#define IDS_CONDITION_MARKED_DESCRIPTION 9002
+#define IDS_CONDITION_UNMARKED_DESCRIPTION 9003
+#define IDS_CONDITION_DELETED_DESCRIPTION 9004
+#define IDS_CONDITION_MULTIPART_DESCRIPTION 9005
+#define IDS_CONDITION_JUNK_DESCRIPTION  9006
+#define IDS_CONDITION_TRUE_DESCRIPTION  9007
+#define IDS_CONDITION_CONTAIN_DESCRIPTION 9008
+#define IDS_CONDITION_CONTAIN_FIELD     9009
+#define IDS_CONDITION_CONTAIN_VALUE     9010
+#define IDS_CONDITION_BEGINWITH_DESCRIPTION 9011
+#define IDS_CONDITION_BEGINWITH_FIELD   9012
+#define IDS_CONDITION_BEGINWITH_VALUE   9013
+#define IDS_CONDITION_EQUAL_DESCRIPTION 9014
+#define IDS_CONDITION_EQUAL_FIELD       9015
+#define IDS_CONDITION_EQUAL_VALUE       9016
+#define IDS_CONDITION_MATCH_DESCRIPTION 9017
+#define IDS_CONDITION_MATCH_FIELD       9018
+#define IDS_CONDITION_MATCH_VALUE       9019
+#define IDS_CONDITION_LARGER_DESCRIPTION 9020
+#define IDS_CONDITION_LARGER_VALUE      9021
+#define IDS_CONDITION_SMALLER_DESCRIPTION 9022
+#define IDS_CONDITION_SMALLER_VALUE     9023
+#define IDS_CONDITION_PASSED_DESCRIPTION 9024
+#define IDS_CONDITION_PASSED_VALUE      9025
 #define IDS_ERROR_CREATEFOLDER          10000
 #define IDS_ERROR_EXECUTEATTACHMENT     10001
 #define IDS_ERROR_DIALUP                10002
@@ -606,15 +641,16 @@
 #define IDS_ERROR_MOVEFOLDER            10049
 #define IDS_ERROR_SAVEADDRESSBOOK       10050
 #define IDS_ERROR_UNDO                  10051
+#define IDS_ERROR_COMPLEXMACRO          10052
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        217
+#define _APS_NEXT_RESOURCE_VALUE        219
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1411
+#define _APS_NEXT_CONTROL_VALUE         1423
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

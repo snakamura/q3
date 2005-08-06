@@ -30,7 +30,6 @@ class DefaultDialog;
 	class ArchiveDialog;
 #endif
 	class AttachmentDialog;
-	class ConditionDialog;
 	class ConfirmSendDialog;
 	class CustomFilterDialog;
 	class DetachDialog;
@@ -104,11 +103,12 @@ protected:
 
 protected:
 	List& getList();
+	void refresh();
 
 protected:
 	virtual qs::wstring_ptr getLabel(const T* p) const = 0;
 	virtual std::auto_ptr<T> create() const = 0;
-	virtual bool edit(T* p) const = 0;
+	virtual T* edit(T* p) const = 0;
 	virtual void updateState();
 
 private:
@@ -216,41 +216,6 @@ private:
 
 private:
 	EditMessage::AttachmentList& listAttachment_;
-};
-
-
-/****************************************************************************
- *
- * ConditionDialog
- *
- */
-
-class ConditionDialog : public DefaultDialog
-{
-public:
-	explicit ConditionDialog(const WCHAR* pwszCondition);
-	virtual ~ConditionDialog();
-
-public:
-	const WCHAR* getCondition() const;
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	ConditionDialog(const ConditionDialog&);
-	ConditionDialog& operator=(const ConditionDialog&);
-
-private:
-	qs::wstring_ptr wstrCondition_;
 };
 
 
