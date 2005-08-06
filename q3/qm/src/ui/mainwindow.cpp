@@ -2165,6 +2165,9 @@ LRESULT qm::MainWindow::onClose()
 LRESULT qm::MainWindow::onCopyData(HWND hwnd,
 								   COPYDATASTRUCT* pData)
 {
+	if (Application::getApplication().isShutdown())
+		return 0;
+	
 	UINT nId = static_cast<UINT>(pData->dwData);
 	if (pData->lpData) {
 		Variant v(::SysAllocString(static_cast<WCHAR*>(pData->lpData)));

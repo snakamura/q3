@@ -815,6 +815,11 @@ void qm::Application::startShutdown()
 	pImpl_->bShutdown_ = true;
 }
 
+bool qm::Application::isShutdown() const
+{
+	return pImpl_->bShutdown_;
+}
+
 HINSTANCE qm::Application::getResourceHandle() const
 {
 	return pImpl_->hInstResource_;

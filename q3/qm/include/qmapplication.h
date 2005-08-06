@@ -44,6 +44,7 @@ public:
 	void run();
 	bool save(bool bForce);
 	void startShutdown();
+	bool isShutdown() const;
 	
 	HINSTANCE getResourceHandle() const;
 	HINSTANCE getAtlHandle() const;
