@@ -442,7 +442,7 @@ void qm::ConditionDialog::updateArguments()
 		W2T(wstrName.get(), ptszName);
 		LVITEM item = {
 			LVIF_TEXT | LVIF_PARAM,
-			n,
+			static_cast<int>(n),
 			0,
 			0,
 			0,

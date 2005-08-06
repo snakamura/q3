@@ -178,7 +178,7 @@ public:
 				  UINT nValueId,
 				  UINT nDescriptionId,
 				  const WCHAR* pwszMacro,
-				  size_t nSize);
+				  unsigned int nSize);
 	virtual ~SizeCondition();
 
 public:

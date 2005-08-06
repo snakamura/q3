@@ -292,7 +292,7 @@ qm::SizeCondition::SizeCondition(const WCHAR* pwszName,
 								 UINT nValueId,
 								 UINT nDescriptionId,
 								 const WCHAR* pwszMacro,
-								 size_t nSize) :
+								 unsigned int nSize) :
 	Condition(pwszName),
 	nValueId_(nValueId),
 	nDescriptionId_(nDescriptionId),
