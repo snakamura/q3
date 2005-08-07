@@ -702,6 +702,7 @@ qm::EditWindowFocusController::~EditWindowFocusController()
 
 qm::EditTextWindow::EditTextWindow(Profile* pProfile) :
 	TextWindow(0, pProfile, L"EditWindow", true),
+	pProfile_(pProfile),
 	pMenuManager_(0),
 	pCallback_(0),
 	wndIme_(pProfile, L"EditWindow", L"", false)
@@ -791,7 +792,7 @@ LRESULT qm::EditTextWindow::onSetFocus(HWND hwnd)
 
 bool qm::EditTextWindow::openLink(const WCHAR* pwszURL)
 {
-	return UIUtil::openURL(getParentFrame(), pwszURL);
+	return UIUtil::openURL(pwszURL, pProfile_, getParentFrame());
 }
 
 

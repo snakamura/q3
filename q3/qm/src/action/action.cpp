@@ -4192,8 +4192,10 @@ void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
  */
 
 qm::MessageOpenLinkAction::MessageOpenLinkAction(MessageSelectionModel* pMessageSelectionModel,
+												 Profile* pProfile,
 												 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
 }
@@ -4217,7 +4219,7 @@ void qm::MessageOpenLinkAction::invoke(const ActionEvent& event)
 		
 		UnstructuredParser link;
 		if (msg.getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST)
-			UIUtil::openURL(hwnd_, link.getValue());
+			UIUtil::openURL(link.getValue(), pProfile_, hwnd_);
 	}
 }
 

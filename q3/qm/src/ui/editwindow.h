@@ -174,6 +174,7 @@ private:
 	EditTextWindow& operator=(const EditTextWindow&);
 
 private:
+	qs::Profile* pProfile_;
 	qs::MenuManager* pMenuManager_;
 	EditTextWindowCallback* pCallback_;
 	qs::ImeWindow wndIme_;

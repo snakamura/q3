@@ -906,9 +906,10 @@ void qm::MainWindowImpl::initActions()
 		pThis_,
 		pMessageFrameWindowManager_.get(),
 		pProfile_);
-	ADD_ACTION2(MessageOpenLinkAction,
+	ADD_ACTION3(MessageOpenLinkAction,
 		IDM_MESSAGE_OPENLINK,
 		pMessageSelectionModel_.get(),
+		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION9(MessageOpenURLAction,
 		IDM_MESSAGE_OPENURL,

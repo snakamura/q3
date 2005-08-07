@@ -16,6 +16,7 @@
 
 #include <qsconv.h>
 #include <qsstream.h>
+#include <qstextutil.h>
 #include <qswindow.h>
 
 #include <tchar.h>
@@ -152,13 +153,30 @@ wstring_ptr qm::UIUtil::formatMenu(const WCHAR* pwszText)
 	return buf.getString();
 }
 
-bool qm::UIUtil::openURL(HWND hwnd,
-						 const WCHAR* pwszURL)
+bool qm::UIUtil::openURL(const WCHAR* pwszURL,
+						 Profile* pProfile,
+						 HWND hwnd)
 {
 	assert(pwszURL);
 	
-	W2T(pwszURL, ptszURL);
+	if (wcsncmp(pwszURL, L"file:", 5) == 0 ||
+		(wcslen(pwszURL) > 2 && TextUtil::isDriveLetterChar(*pwszURL) &&
+		*(pwszURL + 1) == L':' && *(pwszURL + 2) == L'\\') ||
+		wcsncmp(pwszURL, L"\\\\", 2) == 0) {
+		const WCHAR* pExt = wcsrchr(pwszURL, L'.');
+		if (pExt) {
+			wstring_ptr wstrExtensions(pProfile->getString(L"Global",
+				L"WarnExtensions", L"exe com pif bat scr htm html hta vbs js"));
+			if (wcsstr(wstrExtensions.get(), pExt + 1)) {
+				int nMsg = messageBox(Application::getApplication().getResourceHandle(),
+					IDS_CONFIRM_OPENURL, MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd, 0, 0);
+				if (nMsg != IDYES)
+					return true;
+			}
+		}
+	}
 	
+	W2T(pwszURL, ptszURL);
 	SHELLEXECUTEINFO info = {
 		sizeof(info),
 		0,

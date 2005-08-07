@@ -287,6 +287,7 @@
 #define IDC_REPLACENEXT                 1092
 #define IDS_CONFIRM_EXIT                1092
 #define IDC_REPLACEPREV                 1093
+#define IDS_CONFIRM_OPENURL             1093
 #define IDC_REPLACEALL                  1094
 #define IDC_NEVER                       1095
 #define IDC_WHENEVERNOTCONNECTED        1096

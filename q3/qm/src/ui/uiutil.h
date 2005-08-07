@@ -62,8 +62,9 @@ public:
 							  EncodingList* pList);
 	
 	static qs::wstring_ptr formatMenu(const WCHAR* pwszText);
-	static bool openURL(HWND hwnd,
-						const WCHAR* pwszURL);
+	static bool openURL(const WCHAR* pwszURL,
+						qs::Profile* pProfile,
+						HWND hwnd);
 	
 	static int getFolderImage(Folder* pFolder,
 							  bool bSelected);

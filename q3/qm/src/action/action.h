@@ -2040,6 +2040,7 @@ class MessageOpenLinkAction : public qs::AbstractAction
 {
 public:
 	MessageOpenLinkAction(MessageSelectionModel* pMessageSelectionModel,
+						  qs::Profile* pProfile,
 						  HWND hwnd);
 	virtual ~MessageOpenLinkAction();
 
@@ -2053,6 +2054,7 @@ private:
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 

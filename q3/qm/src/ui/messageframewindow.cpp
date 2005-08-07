@@ -377,9 +377,10 @@ void qm::MessageFrameWindowImpl::initActions()
 		pDocument_->getUndoManager(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION2(MessageOpenLinkAction,
+	ADD_ACTION3(MessageOpenLinkAction,
 		IDM_MESSAGE_OPENLINK,
 		this,
+		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION3(MessagePropertyAction,
 		IDM_MESSAGE_PROPERTY,

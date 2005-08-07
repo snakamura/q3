@@ -277,7 +277,7 @@ LRESULT qm::TextMessageViewWindow::onLButtonDown(UINT nFlags,
 
 bool qm::TextMessageViewWindow::openLink(const WCHAR* pwszURL)
 {
-	return UIUtil::openURL(getParentFrame(), pwszURL);
+	return UIUtil::openURL(pwszURL, pProfile_, getParentFrame());
 }
 
 Window& qm::TextMessageViewWindow::getWindow()
@@ -1997,7 +1997,8 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			wcsncmp(bstrURL, L"https:", 6) == 0 ||
 			wcsncmp(bstrURL, L"ftp:", 4) == 0 ||
 			wcsncmp(bstrURL, L"mailto:", 7) == 0))
-			UIUtil::openURL(pHtmlMessageViewWindow_->getParentFrame(), bstrURL);
+			UIUtil::openURL(bstrURL, pHtmlMessageViewWindow_->pProfile_,
+				pHtmlMessageViewWindow_->getParentFrame());
 	}
 	else if (dispId == DISPID_NEWWINDOW3) {
 		if (!pDispParams || pDispParams->cArgs != 5)
@@ -2013,7 +2014,8 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			return E_INVALIDARG;
 		*pVarCancel->pboolVal = VARIANT_TRUE;
 		
-		UIUtil::openURL(pHtmlMessageViewWindow_->getParentFrame(), bstrURL);
+		UIUtil::openURL(bstrURL, pHtmlMessageViewWindow_->pProfile_,
+			pHtmlMessageViewWindow_->getParentFrame());
 	}
 	else if (dispId == DISPID_DOCUMENTCOMPLETE) {
 		if (!pDispParams || pDispParams->cArgs != 2)
@@ -2649,7 +2651,7 @@ LRESULT qm::HtmlMessageViewWindow::onHotSpot(NMHDR* pnmhdr,
 		wcsncmp(wstrURL.get(), L"https:", 6) == 0 ||
 		wcsncmp(wstrURL.get(), L"ftp:", 4) == 0 ||
 		wcsncmp(wstrURL.get(), L"mailto:", 7) == 0)
-		UIUtil::openURL(getParentFrame(), wstrURL.get());
+		UIUtil::openURL(wstrURL.get(), pProfile_, getParentFrame());
 	return 1;
 }
 
@@ -2804,7 +2806,8 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 			wcsncmp(bstrURL, L"https:", 6) == 0 ||
 			wcsncmp(bstrURL, L"ftp:", 4) == 0) ||
 			wcsncmp(bstrURL, L"mailto:", 7) == 0)
-			UIUtil::openURL(pHtmlMessageViewWindow_->getParentFrame(), bstrURL);
+			UIUtil::openURL(bstrURL, pHtmlMessageViewWindow_->pProfile_,
+				pHtmlMessageViewWindow_->getParentFrame());
 	}
 	else if (dispId == DISPID_STATUSTEXTCHANGE) {
 		if (!pDispParams || pDispParams->cArgs != 1)
