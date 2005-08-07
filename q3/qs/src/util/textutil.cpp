@@ -275,19 +275,18 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 	WCHAR cQuote = L'\0';
 	const WCHAR* p = pwszText;
 	while (nLen > 0) {
-		if (p == pwszText || !isURLChar(*(p - 1)) || *(p - 1) == L'(') {
+		if (*p == L':' && p != pwszText) {
 			bool bFound = false;
-			cQuote = p != pwszText && *(p - 1) == L'(' ? L')' : L'\0';
 			for (size_t n = 0; n < nSchemaCount; ++n) {
-				if (ppwszSchemas[n][0] == *p) {
-					size_t nSchemaLen = wcslen(ppwszSchemas[n]);
-					if (nLen > nSchemaLen + 1 &&
-						wcsncmp(p, ppwszSchemas[n], nSchemaLen) == 0 &&
-						*(p + nSchemaLen) == L':' &&
-						isURLChar(*(p + nSchemaLen + 1))) {
-						bFound = true;
-						break;
-					}
+				size_t nSchemaLen = wcslen(ppwszSchemas[n]);
+				if (static_cast<size_t>(p - pwszText) >= nSchemaLen &&
+					wcsncmp(p - nSchemaLen, ppwszSchemas[n], nSchemaLen) == 0) {
+					p -= nSchemaLen;
+					nLen += nSchemaLen;
+					if (p != pwszText && *(p - 1) == L'(')
+						cQuote = L')';
+					bFound = true;
+					break;
 				}
 			}
 			if (bFound)
@@ -312,7 +311,7 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 				++nLen;
 				bFound = true;
 			}
-			else if ((*(p - 1) == L':' && p - 1 != pwszText && (isDriveLetterChar(*(p - 2))))) {
+			else if ((*(p - 1) == L':' && p - 1 != pwszText && isDriveLetterChar(*(p - 2)))) {
 				p -= 2;
 				nLen += 2;
 				bFound = true;
