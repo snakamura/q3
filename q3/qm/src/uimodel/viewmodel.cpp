@@ -1213,6 +1213,12 @@ void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 		else if (!pAccount->isSeen(nOldFlags) && pAccount->isSeen(nNewFlags))
 			--nUnseenCount_;
 		
+		if (nCacheCount_ != 0) {
+			ViewModelItem* pItem = listItem_[n];
+			for (unsigned int nCache = 0; nCache < nCacheCount_; ++nCache)
+				pItem->setCache(nCache, 0);
+		}
+		
 		fireItemChanged(n);
 	}
 }

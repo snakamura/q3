@@ -166,8 +166,10 @@ inline const qm::MacroValue* qm::ViewModelItem::getCache(unsigned int n) const
 inline void qm::ViewModelItem::setCache(unsigned int n,
 										MacroValue* pValue) const
 {
-	*(reinterpret_cast<MacroValue**>(reinterpret_cast<char*>(
-		const_cast<ViewModelItem*>(this)) + sizeof(ViewModelItem)) + n) = pValue;
+	MacroValue** p = reinterpret_cast<MacroValue**>(reinterpret_cast<char*>(
+		const_cast<ViewModelItem*>(this)) + sizeof(ViewModelItem)) + n;
+	MacroValuePtr pValueOld(*p);
+	*p = pValue;
 }
 
 inline qm::ViewModelItem* qm::ViewModelItem::newItem(MessageHolder* pmh,
