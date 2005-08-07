@@ -814,6 +814,23 @@ void qm::ViewModel::payAttention(unsigned int n)
 	fireItemAttentionPaid(n);
 }
 
+ViewModel::RestoreInfo qm::ViewModel::getRestoreInfo() const
+{
+	assert(isLocked());
+	
+	if (!listItem_.empty() &&
+		listItem_[nFocused_]->getMessageHolder() == restoreInfo_.getMessageHolder())
+		return restoreInfo_;
+	else
+		return RestoreInfo();
+}
+
+void qm::ViewModel::setRestoreInfo(const RestoreInfo& info)
+{
+	Lock<ViewModel> lock(*this);
+	restoreInfo_ = info;
+}
+
 void qm::ViewModel::invalidateColors(const ColorManager* pColorManager)
 {
 	Lock<ViewModel> lock(*this);
@@ -1469,6 +1486,28 @@ void qm::ViewModel::fireEvent(const ViewModelEvent& event,
 {
 	for (ViewModelHandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		((*it)->*pfn)(event);
+}
+
+
+/****************************************************************************
+ *
+ * ViewModel::RestoreInfo
+ *
+ */
+
+qm::ViewModel::RestoreInfo::RestoreInfo() :
+	pmh_(0)
+{
+}
+
+qm::ViewModel::RestoreInfo::RestoreInfo(MessageHolder* pmh) :
+	pmh_(pmh)
+{
+}
+
+MessageHolder* qm::ViewModel::RestoreInfo::getMessageHolder() const
+{
+	return pmh_;
 }
 
 

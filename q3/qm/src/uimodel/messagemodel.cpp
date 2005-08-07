@@ -252,12 +252,25 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 
 void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)
 {
-	ViewModel* pViewModel = getViewModel();
-	assert(pViewModel == event.getOldViewModel());
+	ViewModel* pOldViewModel = getViewModel();
+	assert(pOldViewModel == event.getOldViewModel());
 	
-	setViewModel(event.getNewViewModel());
+	if (pOldViewModel)
+		pOldViewModel->setRestoreInfo(ViewModel::RestoreInfo(
+			MessagePtrLock(getCurrentMessage())));
+	
+	ViewModel* pNewViewModel = event.getNewViewModel();
+	setViewModel(pNewViewModel);
 	setCurrentAccount(pViewModelManager_->getCurrentAccount());
-	setMessage(0);
+	
+	if (pNewViewModel) {
+		Lock<ViewModel> lock(*pNewViewModel);
+		ViewModel::RestoreInfo info = pNewViewModel->getRestoreInfo();
+		setMessage(info.getMessageHolder());
+	}
+	else {
+		setMessage(0);
+	}
 }
 
 void qm::PreviewMessageModel::timerTimeout(Timer::Id nId)

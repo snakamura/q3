@@ -285,6 +285,20 @@ public:
 	};
 
 public:
+	class RestoreInfo
+	{
+	public:
+		RestoreInfo();
+		RestoreInfo(MessageHolder* pmh);
+	
+	public:
+		MessageHolder* getMessageHolder() const;
+	
+	private:
+		MessageHolder* pmh_;
+	};
+
+public:
 	typedef std::vector<ViewModelItem*> ItemList;
 
 public:
@@ -346,6 +360,9 @@ public:
 	void setScroll(unsigned int nScroll);
 	
 	void payAttention(unsigned int n);
+	
+	RestoreInfo getRestoreInfo() const;
+	void setRestoreInfo(const RestoreInfo& info);
 	
 	void invalidateColors(const ColorManager* pColorManager);
 	void save() const;
@@ -458,6 +475,7 @@ private:
 	unsigned int nScroll_;
 	unsigned int nMode_;
 	unsigned int nCacheCount_;
+	RestoreInfo restoreInfo_;
 	ViewModelHandlerList listHandler_;
 #ifndef NDEBUG
 	mutable unsigned int nLock_;
