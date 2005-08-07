@@ -50,6 +50,8 @@ public:
 											 const WCHAR* const* ppwszSchemas,
 											 size_t nSchemaCount);
 	static bool isURLChar(WCHAR c);
+	static bool isPathChar(WCHAR c);
+	static bool isDriveLetterChar(WCHAR c);
 	
 	static wstring_ptr encodePassword(const WCHAR* pwsz);
 	static wstring_ptr decodePassword(const WCHAR* pwsz);

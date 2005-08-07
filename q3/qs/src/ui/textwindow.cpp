@@ -1466,14 +1466,18 @@ wstring_ptr qs::TextWindowImpl::getURL(size_t nLine,
 	
 	wstring_ptr wstrURL(allocWString(pBegin, pEnd - pBegin));
 	
-	URLSchemaList::const_iterator it = listURLSchema_.begin();
-	while (it != listURLSchema_.end()) {
-		if (wcsncmp(*it, wstrURL.get(), wcslen(*it)) == 0)
-			break;
-		++it;
+	if (wcsncmp(wstrURL.get(), L"\\\\", 2) != 0 &&
+		(wcslen(wstrURL.get()) <= 2 || !TextUtil::isDriveLetterChar(*wstrURL.get()) ||
+		*(wstrURL.get() + 1) != L':' || *(wstrURL.get() + 2) != L'\\')) {
+		URLSchemaList::const_iterator it = listURLSchema_.begin();
+		while (it != listURLSchema_.end()) {
+			if (wcsncmp(*it, wstrURL.get(), wcslen(*it)) == 0)
+				break;
+			++it;
+		}
+		if (it == listURLSchema_.end())
+			wstrURL = concat(L"mailto:", wstrURL.get());
 	}
-	if (it == listURLSchema_.end())
-		wstrURL = concat(L"mailto:", wstrURL.get());
 	
 	return wstrURL;
 }

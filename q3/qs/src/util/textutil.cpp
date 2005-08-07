@@ -265,59 +265,100 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 	assert(pwszText);
 	
 	std::pair<size_t, size_t> url(-1, 0);
-	if (nSchemaCount != 0) {
-		bool bQuote = false;
-		bool bEmail = false;
-		const WCHAR* p = pwszText;
-		while (nLen > 0) {
-			if (p == pwszText || !isURLChar(*(p - 1)) || *(p - 1) == L'(') {
-				bool bFound = false;
-				bQuote = p != pwszText && *(p - 1) == L'(';
-				for (size_t n = 0; n < nSchemaCount; ++n) {
-					if (ppwszSchemas[n][0] == *p) {
-						size_t nSchemaLen = wcslen(ppwszSchemas[n]);
-						if (nLen > nSchemaLen + 1 &&
-							wcsncmp(p, ppwszSchemas[n], nSchemaLen) == 0 &&
-							*(p + nSchemaLen) == L':' &&
-							isURLChar(*(p + nSchemaLen + 1))) {
-							bFound = true;
+	
+	enum {
+		TYPE_URL,
+		TYPE_EMAIL,
+		TYPE_PATH
+	} type = TYPE_URL;
+	
+	WCHAR cQuote = L'\0';
+	const WCHAR* p = pwszText;
+	while (nLen > 0) {
+		if (p == pwszText || !isURLChar(*(p - 1)) || *(p - 1) == L'(') {
+			bool bFound = false;
+			cQuote = p != pwszText && *(p - 1) == L'(' ? L')' : L'\0';
+			for (size_t n = 0; n < nSchemaCount; ++n) {
+				if (ppwszSchemas[n][0] == *p) {
+					size_t nSchemaLen = wcslen(ppwszSchemas[n]);
+					if (nLen > nSchemaLen + 1 &&
+						wcsncmp(p, ppwszSchemas[n], nSchemaLen) == 0 &&
+						*(p + nSchemaLen) == L':' &&
+						isURLChar(*(p + nSchemaLen + 1))) {
+						bFound = true;
+						break;
+					}
+				}
+			}
+			if (bFound)
+				break;
+		}
+		if (*p == L'@' &&
+			p != pwszText && isURLChar(*(p - 1)) &&
+			nLen > 1 && isURLChar(*(p + 1))) {
+			while (p >= pwszText && isURLChar(*p) && *p != L'(') {
+				--p;
+				++nLen;
+			}
+			++p;
+			--nLen;
+			type = TYPE_EMAIL;
+			break;
+		}
+		if (*p == L'\\' && p != pwszText) {
+			bool bFound = false;
+			if (*(p - 1) == L'\\') {
+				--p;
+				++nLen;
+				bFound = true;
+			}
+			else if ((*(p - 1) == L':' && p - 1 != pwszText && (isDriveLetterChar(*(p - 2))))) {
+				p -= 2;
+				nLen += 2;
+				bFound = true;
+			}
+			if (bFound) {
+				if (p != pwszText) {
+					const WCHAR* pwszQuotes = L"()<>[]{}";
+					for (const WCHAR* pQuote = pwszQuotes; *pQuote; pQuote += 2) {
+						if (*(p - 1) == *pQuote) {
+							cQuote = *(pQuote + 1);
 							break;
 						}
 					}
 				}
-				if (bFound)
-					break;
-			}
-			else if (*p == L'@' &&
-				p != pwszText && isURLChar(*(p - 1)) &&
-				nLen > 1 && isURLChar(*(p + 1))) {
-				while (p >= pwszText && isURLChar(*p) && *p != L'(') {
-					--p;
-					++nLen;
-				}
-				++p;
-				--nLen;
-				bEmail = true;
+				type = TYPE_PATH;
 				break;
 			}
-			--nLen;
-			++p;
 		}
-		if (nLen > 0) {
-			url.first = p - pwszText;
+		--nLen;
+		++p;
+	}
+	if (nLen > 0) {
+		url.first = p - pwszText;
+		if (type == TYPE_URL || type == TYPE_EMAIL) {
 			while (nLen > 0 && isURLChar(*p)) {
 				--nLen;
 				++p;
 			}
 			if (p != pwszText + url.first) {
 				WCHAR c = *(p - 1);
-				if (c == L'.' || c == L',' ||
-					(bQuote && c == L')') ||
-					(bEmail && (c == L';' || c == L')')))
+				if (c == L'.' || c == L',' || (c == cQuote) ||
+					(type == TYPE_EMAIL && (c == L';' || c == L')')))
 					--p;
 			}
-			url.second = p - (pwszText + url.first);
 		}
+		else {
+			while (nLen > 0) {
+				if (!isPathChar(*p) ||
+					(cQuote != L'\0' && *p == cQuote) ||
+					(cQuote == L'\0' && *p == L' '))
+					break;
+				--nLen;
+				++p;
+			}
+		}
+		url.second = p - (pwszText + url.first);
 	}
 	
 	return url;
@@ -348,6 +389,16 @@ bool qs::TextUtil::isURLChar(WCHAR c)
 		c == L',' ||
 		c == L'(' ||
 		c == L')';
+}
+
+bool qs::TextUtil::isPathChar(WCHAR c)
+{
+	return c != L'<' && c != L'>' && c != L'*' && c != L'?' && c != L'|';
+}
+
+bool qs::TextUtil::isDriveLetterChar(WCHAR c)
+{
+	return (L'a' <= c && c <= L'z') || (L'A' <= c && c <= L'Z');
 }
 
 wstring_ptr qs::TextUtil::encodePassword(const WCHAR* pwsz)
