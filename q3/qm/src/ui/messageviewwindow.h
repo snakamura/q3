@@ -92,6 +92,8 @@ public:
 							unsigned int nFlags,
 							unsigned int nSecurityMode) = 0;
 	virtual bool scrollPage(bool bPrev) = 0;
+	virtual int getScrollPos() const = 0;
+	virtual void setScrollPos(int nPos) = 0;
 	virtual void setSelectMode(bool bSelectMode) = 0;
 	virtual void setQuoteMode(bool bQuoteMode) = 0;
 	virtual bool find(const WCHAR* pwszFind,
@@ -186,6 +188,7 @@ private:
 
 class TextMessageViewWindow :
 	public qs::TextWindow,
+	public qs::ReadOnlyTextModelHandler,
 	public qs::TextWindowLinkHandler,
 	public MessageViewWindow
 {
@@ -207,6 +210,9 @@ protected:
 	LRESULT onLButtonDown(UINT nFlags, const POINT& pt);
 
 public:
+	virtual void textLoaded(const qs::ReadOnlyTextModelEvent& event);
+
+public:
 	bool openLink(const WCHAR* pwszURL);
 
 public:
@@ -220,6 +226,8 @@ public:
 							unsigned int nFlags,
 							unsigned int nSecurityMode);
 	virtual bool scrollPage(bool bPrev);
+	virtual int getScrollPos() const;
+	virtual void setScrollPos(int nPos);
 	virtual void setSelectMode(bool bSelectMode);
 	virtual void setQuoteMode(bool bQuoteMode);
 	virtual bool find(const WCHAR* pwszFind,
@@ -258,6 +266,7 @@ private:
 	qs::Profile* pProfile_;
 	MessageModel* pMessageModel_;
 	qs::MenuManager* pMenuManager_;
+	int nScrollPos_;
 };
 
 
@@ -529,6 +538,8 @@ public:
 							unsigned int nFlags,
 							unsigned int nSecurityMode);
 	virtual bool scrollPage(bool bPrev);
+	virtual int getScrollPos() const;
+	virtual void setScrollPos(int nPos);
 	virtual void setSelectMode(bool bSelectMode);
 	virtual void setQuoteMode(bool bQuoteMode);
 	virtual bool find(const WCHAR* pwszFind,
@@ -543,6 +554,10 @@ public:
 	virtual bool canCopy();
 	virtual void selectAll();
 	virtual bool canSelectAll();
+
+private:
+	qs::ComPtr<IHTMLDocument2> getHTMLDocument() const;
+	qs::ComPtr<IHTMLElement2> getHTMLBodyElement() const;
 
 private:
 	HtmlMessageViewWindow(const HtmlMessageViewWindow&);
@@ -955,6 +970,7 @@ private:
 	DWORD dwConnectionPointCookie_;
 	bool bAllowExternal_;
 	bool bActivate_;
+	int nScrollPos_;
 	bool bOnlineMode_;
 #ifndef _WIN32_WCE
 	std::auto_ptr<qs::Theme> pTheme_;

@@ -145,9 +145,22 @@ void qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
 void qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
 {
 	MessageModelEvent event(this, pmh);
-	
 	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		(*it)->messageChanged(event);
+}
+
+void qm::AbstractMessageModel::fireUpdateRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const
+{
+	MessageModelRestoreEvent event(this, pRestoreInfo);
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->updateRestoreInfo(event);
+}
+
+void qm::AbstractMessageModel::fireApplyRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const
+{
+	MessageModelRestoreEvent event(this, pRestoreInfo);
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->applyRestoreInfo(event);
 }
 
 
@@ -255,9 +268,13 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 	ViewModel* pOldViewModel = getViewModel();
 	assert(pOldViewModel == event.getOldViewModel());
 	
-	if (pOldViewModel)
-		pOldViewModel->setRestoreInfo(ViewModel::RestoreInfo(
-			MessagePtrLock(getCurrentMessage())));
+	if (pOldViewModel) {
+		MessagePtrLock mpl(getCurrentMessage());
+		ViewModel::RestoreInfo info(mpl);
+		if (mpl)
+			fireUpdateRestoreInfo(&info);
+		pOldViewModel->setRestoreInfo(info);
+	}
 	
 	ViewModel* pNewViewModel = event.getNewViewModel();
 	setViewModel(pNewViewModel);
@@ -266,7 +283,10 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 	if (pNewViewModel) {
 		Lock<ViewModel> lock(*pNewViewModel);
 		ViewModel::RestoreInfo info = pNewViewModel->getRestoreInfo();
-		setMessage(info.getMessageHolder());
+		MessageHolder* pmh = info.getMessageHolder();
+		setMessage(pmh);
+		if (pmh)
+			fireApplyRestoreInfo(&info);
 	}
 	else {
 		setMessage(0);
@@ -318,4 +338,32 @@ const MessageModel* qm::MessageModelEvent::getMessageModel() const
 MessageHolder* qm::MessageModelEvent::getMessageHolder() const
 {
 	return pmh_;
+}
+
+
+/****************************************************************************
+ *
+ * MessageModelRestoreEvent
+ *
+ */
+
+qm::MessageModelRestoreEvent::MessageModelRestoreEvent(const MessageModel* pModel,
+													   ViewModel::RestoreInfo* pRestoreInfo) :
+	pModel_(pModel),
+	pRestoreInfo_(pRestoreInfo)
+{
+}
+
+qm::MessageModelRestoreEvent::~MessageModelRestoreEvent()
+{
+}
+
+const MessageModel* qm::MessageModelRestoreEvent::getMessageModel() const
+{
+	return pModel_;
+}
+
+ViewModel::RestoreInfo* qm::MessageModelRestoreEvent::getRestoreInfo() const
+{
+	return pRestoreInfo_;
 }

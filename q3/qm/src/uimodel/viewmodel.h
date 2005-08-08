@@ -293,9 +293,12 @@ public:
 	
 	public:
 		MessageHolder* getMessageHolder() const;
+		int getScrollPos() const;
+		void setScrollPos(int n);
 	
 	private:
 		MessageHolder* pmh_;
+		int nScrollPos_;
 	};
 
 public:

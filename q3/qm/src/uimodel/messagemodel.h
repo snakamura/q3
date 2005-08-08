@@ -6,6 +6,9 @@
  *
  */
 
+#ifndef __MESSAGEMODEL_H__
+#define __MESSAGEMODEL_H__
+
 #include <qm.h>
 
 #include <qs.h>
@@ -17,9 +20,6 @@
 #include "messageviewmode.h"
 #include "viewmodel.h"
 
-#ifndef __MESSAGEMODEL_H__
-#define __MESSAGEMODEL_H__
-
 
 namespace qm {
 
@@ -29,6 +29,7 @@ class MessageModel;
 			class PreviewMessageModel;
 class MessageModelHandler;
 class MessageModelEvent;
+class MessageModelRestoreEvent;
 
 class MessageHolder;
 class Message;
@@ -96,8 +97,10 @@ public:
 public:
 	virtual void accountDestroyed(const AccountEvent& event);
 
-private:
+protected:
 	void fireMessageChanged(MessageHolder* pmh) const;
+	void fireUpdateRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const;
+	void fireApplyRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const;
 
 private:
 	AbstractMessageModel(const AbstractMessageModel&);
@@ -195,6 +198,8 @@ public:
 
 public:
 	virtual void messageChanged(const MessageModelEvent& event) = 0;
+	virtual void updateRestoreInfo(const MessageModelRestoreEvent& event) = 0;
+	virtual void applyRestoreInfo(const MessageModelRestoreEvent& event) = 0;
 };
 
 
@@ -222,6 +227,33 @@ public:
 private:
 	const MessageModel* pModel_;
 	MessageHolder* pmh_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageModelRestoreEvent
+ *
+ */
+
+class MessageModelRestoreEvent
+{
+public:
+	MessageModelRestoreEvent(const MessageModel* pModel,
+							 ViewModel::RestoreInfo* pRestoreInfo);
+	~MessageModelRestoreEvent();
+
+public:
+	const MessageModel* getMessageModel() const;
+	ViewModel::RestoreInfo* getRestoreInfo() const;
+
+private:
+	MessageModelRestoreEvent(const MessageModelRestoreEvent&);
+	MessageModelRestoreEvent& operator=(const MessageModelRestoreEvent&);
+
+private:
+	const MessageModel* pModel_;
+	ViewModel::RestoreInfo* pRestoreInfo_;
 };
 
 }

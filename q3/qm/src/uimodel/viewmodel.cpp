@@ -1496,18 +1496,30 @@ void qm::ViewModel::fireEvent(const ViewModelEvent& event,
  */
 
 qm::ViewModel::RestoreInfo::RestoreInfo() :
-	pmh_(0)
+	pmh_(0),
+	nScrollPos_(0)
 {
 }
 
 qm::ViewModel::RestoreInfo::RestoreInfo(MessageHolder* pmh) :
-	pmh_(pmh)
+	pmh_(pmh),
+	nScrollPos_(0)
 {
 }
 
 MessageHolder* qm::ViewModel::RestoreInfo::getMessageHolder() const
 {
 	return pmh_;
+}
+
+int qm::ViewModel::RestoreInfo::getScrollPos() const
+{
+	return nScrollPos_;
+}
+
+void qm::ViewModel::RestoreInfo::setScrollPos(int n)
+{
+	nScrollPos_ = n;
 }
 
 

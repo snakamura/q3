@@ -87,6 +87,8 @@ public:
 
 public:
 	virtual void messageChanged(const MessageModelEvent& event);
+	virtual void updateRestoreInfo(const MessageModelRestoreEvent& event);
+	virtual void applyRestoreInfo(const MessageModelRestoreEvent& event);
 
 public:
 	virtual void messageViewModeChanged(const MessageViewModeEvent& event);
@@ -329,6 +331,18 @@ void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 	else
 		pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED, 0,
 			reinterpret_cast<LPARAM>(event.getMessageHolder()));
+}
+
+void qm::MessageWindowImpl::updateRestoreInfo(const MessageModelRestoreEvent& event)
+{
+	ViewModel::RestoreInfo* pRestoreInfo = event.getRestoreInfo();
+	pRestoreInfo->setScrollPos(pMessageViewWindow_->getScrollPos());
+}
+
+void qm::MessageWindowImpl::applyRestoreInfo(const MessageModelRestoreEvent& event)
+{
+	ViewModel::RestoreInfo* pRestoreInfo = event.getRestoreInfo();
+	pMessageViewWindow_->setScrollPos(pRestoreInfo->getScrollPos());
 }
 
 void qm::MessageWindowImpl::messageViewModeChanged(const MessageViewModeEvent& event)

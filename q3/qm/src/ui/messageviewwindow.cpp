@@ -226,15 +226,18 @@ qm::TextMessageViewWindow::TextMessageViewWindow(Document* pDocument,
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pMessageModel_(pMessageModel),
-	pMenuManager_(pMenuManager)
+	pMenuManager_(pMenuManager),
+	nScrollPos_(0)
 {
 	pTextModel_.reset(new ReadOnlyTextModel());
+	pTextModel_->addReadOnlyTextModelHandler(this);
 	setTextModel(pTextModel_.get());
 	setLinkHandler(this);
 }
 
 qm::TextMessageViewWindow::~TextMessageViewWindow()
 {
+	pTextModel_->removeReadOnlyTextModelHandler(this);
 }
 
 LRESULT qm::TextMessageViewWindow::windowProc(UINT uMsg,
@@ -273,6 +276,12 @@ LRESULT qm::TextMessageViewWindow::onLButtonDown(UINT nFlags,
 		return 0;
 #endif
 	return TextWindow::onLButtonDown(nFlags, pt);
+}
+
+void qm::TextMessageViewWindow::textLoaded(const qs::ReadOnlyTextModelEvent& event)
+{
+	if (nScrollPos_ != 0 && getScrollPos() == 0)
+		scroll(SCROLL_VERTICALPOS, nScrollPos_, false);
 }
 
 bool qm::TextMessageViewWindow::openLink(const WCHAR* pwszURL)
@@ -365,6 +374,19 @@ bool qm::TextMessageViewWindow::scrollPage(bool bPrev)
 	else {
 		return false;
 	}
+}
+
+int qm::TextMessageViewWindow::getScrollPos() const
+{
+	return Window::getScrollPos(SB_VERT);
+}
+
+void qm::TextMessageViewWindow::setScrollPos(int nPos)
+{
+	if (pTextModel_->isLoading())
+		nScrollPos_ = nPos;
+	else
+		scroll(SCROLL_VERTICALPOS, nPos, false);
 }
 
 void qm::TextMessageViewWindow::setSelectMode(bool bSelectMode)
@@ -970,6 +992,7 @@ qm::HtmlMessageViewWindow::HtmlMessageViewWindow(Profile* pProfile,
 	dwConnectionPointCookie_(0),
 	bAllowExternal_(false),
 	bActivate_(false),
+	nScrollPos_(0),
 	bOnlineMode_(false)
 {
 	setWindowHandler(this, false);
@@ -1186,23 +1209,13 @@ void qm::HtmlMessageViewWindow::setActive()
 {
 	HRESULT hr = S_OK;
 	
-	ComPtr<IDispatch> pDisp;
-	hr = pWebBrowser_->get_Document(&pDisp);
-	if (FAILED(hr))
-		return;
-	ComPtr<IHTMLDocument2> pHTMLDocument;
-	hr = pDisp->QueryInterface(IID_IHTMLDocument2,
-		reinterpret_cast<void**>(&pHTMLDocument));
-	if (FAILED(hr))
+	ComPtr<IHTMLDocument2> pHTMLDocument(getHTMLDocument());
+	if (!pHTMLDocument.get())
 		return;
 	
-	bool bComplete = true;
-	BSTRPtr bstrState;
-	hr = pHTMLDocument->get_readyState(&bstrState);
-	if (SUCCEEDED(hr))
-		bComplete = wcscmp(bstrState.get(), L"complete") == 0 ||
-			wcscmp(bstrState.get(), L"interactive") == 0;
-	if (bComplete) {
+	READYSTATE rs;
+	hr = pWebBrowser_->get_ReadyState(&rs);
+	if (SUCCEEDED(hr) && (rs == READYSTATE_COMPLETE || rs == READYSTATE_INTERACTIVE)) {
 		ComPtr<IHTMLWindow2> pHTMLWindow;
 		hr = pHTMLDocument->get_parentWindow(&pHTMLWindow);
 		if (FAILED(hr))
@@ -1317,35 +1330,20 @@ bool qm::HtmlMessageViewWindow::scrollPage(bool bPrev)
 {
 	HRESULT hr = S_OK;
 	
-	ComPtr<IDispatch> pDisp;
-	hr = pWebBrowser_->get_Document(&pDisp);
-	if (FAILED(hr))
-		return false;
-	ComPtr<IHTMLDocument2> pHTMLDocument;
-	hr = pDisp->QueryInterface(IID_IHTMLDocument2,
-		reinterpret_cast<void**>(&pHTMLDocument));
-	if (FAILED(hr))
-		return false;
-	ComPtr<IHTMLElement> pBodyElement;
-	hr = pHTMLDocument->get_body(&pBodyElement);
-	if (FAILED(hr))
-		return false;
-	ComPtr<IHTMLElement2> pBodyElement2;
-	hr = pBodyElement->QueryInterface(IID_IHTMLElement2,
-		reinterpret_cast<void**>(&pBodyElement2));
-	if (FAILED(hr))
+	ComPtr<IHTMLElement2> pBodyElement(getHTMLBodyElement());
+	if (!pBodyElement.get())
 		return false;
 	
 	long nScrollHeight = 0;
-	hr = pBodyElement2->get_scrollHeight(&nScrollHeight);
+	hr = pBodyElement->get_scrollHeight(&nScrollHeight);
 	if (FAILED(hr))
 		return false;
 	long nClientHeight = 0;
-	hr = pBodyElement2->get_clientHeight(&nClientHeight);
+	hr = pBodyElement->get_clientHeight(&nClientHeight);
 	if (FAILED(hr))
 		return false;
 	long nScrollTop = 0;
-	hr = pBodyElement2->get_scrollTop(&nScrollTop);
+	hr = pBodyElement->get_scrollTop(&nScrollTop);
 	if (FAILED(hr))
 		return false;
 	
@@ -1355,13 +1353,44 @@ bool qm::HtmlMessageViewWindow::scrollPage(bool bPrev)
 		VARIANT v;
 		v.vt = VT_BSTR;
 		v.bstrVal = bstrScroll.get();
-		hr = pBodyElement2->doScroll(v);
+		hr = pBodyElement->doScroll(v);
 		if (FAILED(hr))
 			return false;
 		return true;
 	}
 	
 	return false;
+}
+
+int qm::HtmlMessageViewWindow::getScrollPos() const
+{
+	ComPtr<IHTMLElement2> pBodyElement(getHTMLBodyElement());
+	if (!pBodyElement.get())
+		return 0;
+	
+	long nScrollTop = 0;
+	HRESULT hr = pBodyElement->get_scrollTop(&nScrollTop);
+	if (FAILED(hr))
+		return 0;
+	
+	return static_cast<int>(nScrollTop);
+}
+
+void qm::HtmlMessageViewWindow::setScrollPos(int nPos)
+{
+	HRESULT hr = S_OK;
+	
+	READYSTATE rs;
+	hr = pWebBrowser_->get_ReadyState(&rs);
+	if (SUCCEEDED(hr) && rs == READYSTATE_COMPLETE) {
+		ComPtr<IHTMLElement2> pBodyElement(getHTMLBodyElement());
+		if (pBodyElement.get())
+			pBodyElement->put_scrollTop(nPos);
+		nScrollPos_ = 0;
+	}
+	else {
+		nScrollPos_ = nPos;
+	}
 }
 
 void qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
@@ -1381,14 +1410,8 @@ bool qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
 	
 	HRESULT hr = S_OK;
 	
-	ComPtr<IDispatch> pDispDocument;
-	hr = pWebBrowser_->get_Document(&pDispDocument);
-	if (FAILED(hr))
-		return false;
-	ComPtr<IHTMLDocument2> pHTMLDocument;
-	hr = pDispDocument->QueryInterface(IID_IHTMLDocument2,
-		reinterpret_cast<void**>(&pHTMLDocument));
-	if (FAILED(hr))
+	ComPtr<IHTMLDocument2> pHTMLDocument(getHTMLDocument());
+	if (!pHTMLDocument.get())
 		return false;
 	
 	ComPtr<IHTMLSelectionObject> pSelection;
@@ -1491,6 +1514,46 @@ void qm::HtmlMessageViewWindow::selectAll()
 bool qm::HtmlMessageViewWindow::canSelectAll()
 {
 	return true;
+}
+
+ComPtr<IHTMLDocument2> qm::HtmlMessageViewWindow::getHTMLDocument() const
+{
+	HRESULT hr = S_OK;
+	
+	ComPtr<IDispatch> pDisp;
+	hr = pWebBrowser_->get_Document(&pDisp);
+	if (FAILED(hr))
+		return 0;
+	
+	ComPtr<IHTMLDocument2> pHTMLDocument;
+	hr = pDisp->QueryInterface(IID_IHTMLDocument2,
+		reinterpret_cast<void**>(&pHTMLDocument));
+	if (FAILED(hr))
+		return 0;
+	
+	return pHTMLDocument;
+}
+
+ComPtr<IHTMLElement2> qm::HtmlMessageViewWindow::getHTMLBodyElement() const
+{
+	HRESULT hr = S_OK;
+	
+	ComPtr<IHTMLDocument2> pHTMLDocument(getHTMLDocument());
+	if (!pHTMLDocument.get())
+		return 0;
+	
+	ComPtr<IHTMLElement> pBodyElement;
+	hr = pHTMLDocument->get_body(&pBodyElement);
+	if (FAILED(hr))
+		return 0;
+	
+	ComPtr<IHTMLElement2> pBodyElement2;
+	hr = pBodyElement->QueryInterface(IID_IHTMLElement2,
+		reinterpret_cast<void**>(&pBodyElement2));
+	if (FAILED(hr))
+		return 0;
+	
+	return pBodyElement2;
 }
 
 
@@ -2040,6 +2103,10 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 					pHtmlMessageViewWindow_->setActive();
 			}
 			pHtmlMessageViewWindow_->bActivate_ = false;
+		}
+		if (pHtmlMessageViewWindow_->nScrollPos_ != 0) {
+			if (pHtmlMessageViewWindow_->getScrollPos() == 0)
+				pHtmlMessageViewWindow_->setScrollPos(pHtmlMessageViewWindow_->nScrollPos_);
 		}
 	}
 	else if (dispId == DISPID_STATUSTEXTCHANGE) {
