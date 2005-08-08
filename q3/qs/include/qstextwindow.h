@@ -21,6 +21,8 @@ class TextModel;
 		class ReadOnlyTextModel;
 class TextModelHandler;
 class TextModelEvent;
+class ReadOnlyTextModelHandler;
+class ReadOnlyTextModelEvent;
 class TextWindow;
 class TextWindowLinkHandler;
 
@@ -161,7 +163,10 @@ public:
 				 size_t nLen);
 	bool loadText(std::auto_ptr<Reader> pReader,
 				  bool bAsync);
+	bool isLoading() const;
 	void cancelLoad();
+	void addReadOnlyTextModelHandler(ReadOnlyTextModelHandler* pHandler);
+	void removeReadOnlyTextModelHandler(ReadOnlyTextModelHandler* pHandler);
 
 public:
 	virtual size_t getLineCount() const;
@@ -232,6 +237,46 @@ private:
 	size_t nStartLine_;
 	size_t nOldEndLine_;
 	size_t nNewEndLine_;
+};
+
+
+/****************************************************************************
+ *
+ * ReadOnlyTextModelHandler
+ *
+ */
+
+class QSEXPORTCLASS ReadOnlyTextModelHandler
+{
+public:
+	virtual ~ReadOnlyTextModelHandler();
+
+public:
+	virtual void textLoaded(const ReadOnlyTextModelEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * ReadOnlyTextModelEvent
+ *
+ */
+
+class QSEXPORTCLASS ReadOnlyTextModelEvent
+{
+public:
+	explicit ReadOnlyTextModelEvent(ReadOnlyTextModel* pTextModel);
+	~ReadOnlyTextModelEvent();
+
+public:
+	ReadOnlyTextModel* getTextModel() const;
+
+private:
+	ReadOnlyTextModelEvent(const ReadOnlyTextModelEvent&);
+	ReadOnlyTextModelEvent& operator=(const ReadOnlyTextModelEvent&);
+
+private:
+	ReadOnlyTextModel* pTextModel_;
 };
 
 

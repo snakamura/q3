@@ -75,11 +75,8 @@ struct qs::AbstractTextModelImpl
 void qs::AbstractTextModelImpl::fireEvent(void (TextModelHandler::*pfn)(const TextModelEvent&),
 										  const TextModelEvent& event) const
 {
-	HandlerList::const_iterator it = listHandler_.begin();
-	while (it != listHandler_.end()) {
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		((*it)->*pfn)(event);
-		++it;
-	}
 }
 
 
@@ -474,6 +471,7 @@ public:
 					size_t nLen,
 					bool bFireEvent);
 	void clearText(bool bFireEvent);
+	void fireTextLoaded();
 
 public:
 	virtual void timerTimeout(Timer::Id nId);
@@ -484,11 +482,13 @@ private:
 
 public:
 	typedef std::vector<std::pair<size_t, size_t> > LineList;
+	typedef std::vector<ReadOnlyTextModelHandler*> HandlerList;
 
 public:
 	ReadOnlyTextModel* pThis_;
 	std::auto_ptr<StringBuffer<WSTRING> > pBuffer_;
 	LineList listLine_;
+	HandlerList listHandler_;
 	
 	std::auto_ptr<Timer> pTimer_;
 	std::auto_ptr<Reader> pReader_;
@@ -519,6 +519,13 @@ void qs::ReadOnlyTextModelImpl::clearText(bool bFireEvent)
 	updateLines(true, bFireEvent);
 }
 
+void qs::ReadOnlyTextModelImpl::fireTextLoaded()
+{
+	ReadOnlyTextModelEvent event(pThis_);
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->textLoaded(event);
+}
+
 void qs::ReadOnlyTextModelImpl::timerTimeout(Timer::Id nId)
 {
 	if (nId == nTimerLoad_) {
@@ -541,6 +548,7 @@ void qs::ReadOnlyTextModelImpl::timerTimeout(Timer::Id nId)
 			pReader_.reset(0);
 			pTimer_->killTimer(nTimerLoad_);
 			nTimerLoad_ = 0;
+			fireTextLoaded();
 		}
 	}
 }
@@ -662,8 +670,16 @@ bool qs::ReadOnlyTextModel::loadText(std::auto_ptr<Reader> pReader,
 			ReadOnlyTextModelImpl::TIMER_LOAD,
 			ReadOnlyTextModelImpl::LOAD_INTERVAL, pImpl_);
 	}
+	else {
+		pImpl_->fireTextLoaded();
+	}
 	
 	return true;
+}
+
+bool qs::ReadOnlyTextModel::isLoading() const
+{
+	return pImpl_->pReader_.get() != 0;
 }
 
 void qs::ReadOnlyTextModel::cancelLoad()
@@ -672,6 +688,18 @@ void qs::ReadOnlyTextModel::cancelLoad()
 		pImpl_->pTimer_->killTimer(pImpl_->nTimerLoad_);
 		pImpl_->pReader_.reset(0);
 	}
+}
+
+void qs::ReadOnlyTextModel::addReadOnlyTextModelHandler(ReadOnlyTextModelHandler* pHandler)
+{
+	pImpl_->listHandler_.push_back(pHandler);
+}
+
+void qs::ReadOnlyTextModel::removeReadOnlyTextModelHandler(ReadOnlyTextModelHandler* pHandler)
+{
+	ReadOnlyTextModelImpl::HandlerList::iterator it = std::remove(
+		pImpl_->listHandler_.begin(), pImpl_->listHandler_.end(), pHandler);
+	pImpl_->listHandler_.erase(it, pImpl_->listHandler_.end());
 }
 
 size_t qs::ReadOnlyTextModel::getLineCount() const
@@ -757,4 +785,36 @@ size_t qs::TextModelEvent::getOldEndLine() const
 size_t qs::TextModelEvent::getNewEndLine() const
 {
 	return nNewEndLine_;
+}
+
+
+/****************************************************************************
+ *
+ * ReadOnlyTextModelHandler
+ *
+ */
+
+qs::ReadOnlyTextModelHandler::~ReadOnlyTextModelHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * ReadOnlyTextModelEvent
+ *
+ */
+
+qs::ReadOnlyTextModelEvent::ReadOnlyTextModelEvent(ReadOnlyTextModel* pTextModel) :
+	pTextModel_(pTextModel)
+{
+}
+
+qs::ReadOnlyTextModelEvent::~ReadOnlyTextModelEvent()
+{
+}
+
+ReadOnlyTextModel* qs::ReadOnlyTextModelEvent::getTextModel() const
+{
+	return pTextModel_;
 }
