@@ -373,10 +373,12 @@ std::auto_ptr<Condition> qm::SizeCondition::clone() const
 
 qm::PassedCondition::PassedCondition(const WCHAR* pwszName,
 									 UINT nValueId,
-									 UINT nDescriptionId) :
+									 UINT nDescriptionId,
+									 bool bNot) :
 	Condition(pwszName),
 	nValueId_(nValueId),
 	nDescriptionId_(nDescriptionId),
+	bNot_(bNot),
 	nDays_(-1)
 {
 }
@@ -384,10 +386,12 @@ qm::PassedCondition::PassedCondition(const WCHAR* pwszName,
 qm::PassedCondition::PassedCondition(const WCHAR* pwszName,
 									 UINT nValueId,
 									 UINT nDescriptionId,
+									 bool bNot,
 									 unsigned int nDays) :
 	Condition(pwszName),
 	nValueId_(nValueId),
 	nDescriptionId_(nDescriptionId),
+	bNot_(bNot),
 	nDays_(nDays)
 {
 }
@@ -441,9 +445,10 @@ wstring_ptr qm::PassedCondition::getMacro() const
 	WCHAR wszDays[32];
 	swprintf(wszDays, L"%u", nDays_);
 	ConcatW c[] = {
-		{ L"@Passed(",	8	},
-		{ wszDays,		-1	},
-		{ L")",			1	}
+		{ L"@Not(",		bNot_ ? 5 : 0	},
+		{ L"@Passed(",	8				},
+		{ wszDays,		-1				},
+		{ L"))",		bNot_ ? 2 : 1	}
 	};
 	return concat(c, countof(c));
 }
@@ -451,7 +456,7 @@ wstring_ptr qm::PassedCondition::getMacro() const
 std::auto_ptr<Condition> qm::PassedCondition::clone() const
 {
 	return std::auto_ptr<Condition>(new PassedCondition(
-		getName(), nValueId_, nDescriptionId_, nDays_));
+		getName(), nValueId_, nDescriptionId_, bNot_, nDays_));
 }
 
 
@@ -593,9 +598,15 @@ qm::ConditionFactory::ConditionFactory()
 		IDS_CONDITION_LARGER_DESCRIPTION,
 		L"Greater"));
 	list_.push_back(new PassedCondition(
-		L"Passed",
-		IDS_CONDITION_PASSED_VALUE,
-		IDS_CONDITION_PASSED_DESCRIPTION));
+		L"Older",
+		IDS_CONDITION_OLDER_VALUE,
+		IDS_CONDITION_OLDER_DESCRIPTION,
+		false));
+	list_.push_back(new PassedCondition(
+		L"Newer",
+		IDS_CONDITION_NEWER_VALUE,
+		IDS_CONDITION_NEWER_DESCRIPTION,
+		true));
 	list_.push_back(new NoArgumentCondition(
 		L"Junk",
 		IDS_CONDITION_JUNK_DESCRIPTION,
@@ -710,9 +721,12 @@ std::auto_ptr<Condition> qm::ConditionFactory::parse(const MacroExpr* pExpr) con
 		const WCHAR* pwszArgName = visitor.getName();
 		if (!pwszArgName)
 			return std::auto_ptr<Condition>();
+		
+		if (wcscmp(pwszArgName, L"Passed") == 0)
+			return parsePassed(static_cast<const MacroFunction*>(pArg), L"Newer");
+		
 		if (static_cast<const MacroFunction*>(pArg)->getArgSize() != 0)
 			return std::auto_ptr<Condition>();
-		
 		if (wcscmp(pwszArgName, L"Marked") == 0)
 			return getCondition(L"Unmarked")->clone();
 		else if (wcscmp(pwszArgName, L"Seen") == 0)
@@ -777,25 +791,32 @@ std::auto_ptr<Condition> qm::ConditionFactory::parse(const MacroExpr* pExpr) con
 		return pCondition;
 	}
 	else if (wcscmp(pwszName, L"Passed") == 0) {
-		if (nArgSize != 1)
-			return std::auto_ptr<Condition>();
-		
-		const MacroExpr* pArg = pFunction->getArg(0);
-		GetTypeMacroExprVisitor visitor;
-		pArg->visit(&visitor);
-		if (visitor.getType() != GetTypeMacroExprVisitor::TYPE_NUMBER)
-			return std::auto_ptr<Condition>();
-		
-		WCHAR wszDays[32];
-		swprintf(wszDays, L"%u", static_cast<const MacroNumber*>(pArg)->getValue());
-		
-		std::auto_ptr<Condition> pCondition(getCondition(L"Passed")->clone());
-		pCondition->setArgumentValue(0, wszDays);
-		return pCondition;
+		return parsePassed(pFunction, L"Older");
 	}
 	else {
 		return std::auto_ptr<Condition>();
 	}
+}
+
+std::auto_ptr<Condition> qm::ConditionFactory::parsePassed(const MacroFunction* pFunction,
+														   const WCHAR* pwszName) const
+{
+	size_t nArgSize = pFunction->getArgSize();
+	if (nArgSize != 1)
+		return std::auto_ptr<Condition>();
+	
+	const MacroExpr* pArg = pFunction->getArg(0);
+	GetTypeMacroExprVisitor visitor;
+	pArg->visit(&visitor);
+	if (visitor.getType() != GetTypeMacroExprVisitor::TYPE_NUMBER)
+		return std::auto_ptr<Condition>();
+	
+	WCHAR wszDays[32];
+	swprintf(wszDays, L"%u", static_cast<const MacroNumber*>(pArg)->getValue());
+	
+	std::auto_ptr<Condition> pCondition(getCondition(pwszName)->clone());
+	pCondition->setArgumentValue(0, wszDays);
+	return pCondition;
 }
 
 

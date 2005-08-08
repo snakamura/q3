@@ -215,10 +215,12 @@ class PassedCondition : public Condition
 public:
 	PassedCondition(const WCHAR* pwszName,
 					UINT nValueId,
-					UINT nDescriptionId);
+					UINT nDescriptionId,
+					bool bNot);
 	PassedCondition(const WCHAR* pwszName,
 					UINT nValueId,
 					UINT nDescriptionId,
+					bool bNot,
 					unsigned int nDays);
 	virtual ~PassedCondition();
 
@@ -240,6 +242,7 @@ private:
 private:
 	UINT nValueId_;
 	UINT nDescriptionId_;
+	bool bNot_;
 	unsigned int nDays_;
 };
 
@@ -313,6 +316,8 @@ public:
 private:
 	const Condition* getCondition(const WCHAR* pwszName) const;
 	std::auto_ptr<Condition> parse(const MacroExpr* pExpr) const;
+	std::auto_ptr<Condition> parsePassed(const MacroFunction* pFunction,
+										 const WCHAR* pwszName) const;
 
 private:
 	ConditionFactory(const ConditionFactory&);
