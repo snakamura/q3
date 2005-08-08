@@ -282,6 +282,7 @@ void qm::TextMessageViewWindow::textLoaded(const qs::ReadOnlyTextModelEvent& eve
 {
 	if (nScrollPos_ != 0 && getScrollPos() == 0)
 		scroll(SCROLL_VERTICALPOS, nScrollPos_, false);
+	nScrollPos_ = 0;
 }
 
 bool qm::TextMessageViewWindow::openLink(const WCHAR* pwszURL)
@@ -312,6 +313,8 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 										   unsigned int nSecurityMode)
 {
 	assert((pmh && pMessage) || (!pmh && !pMessage));
+	
+	nScrollPos_ = 0;
 	
 	if (pmh) {
 		PartUtil util(*pMessage);
@@ -383,10 +386,13 @@ int qm::TextMessageViewWindow::getScrollPos() const
 
 void qm::TextMessageViewWindow::setScrollPos(int nPos)
 {
-	if (pTextModel_->isLoading())
+	if (pTextModel_->isLoading()) {
 		nScrollPos_ = nPos;
-	else
+	}
+	else {
+		nScrollPos_ = 0;
 		scroll(SCROLL_VERTICALPOS, nPos, false);
+	}
 }
 
 void qm::TextMessageViewWindow::setSelectMode(bool bSelectMode)
@@ -1240,6 +1246,8 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 										   unsigned int nSecurityMode)
 {
 	assert(pmh && pMessage);
+	
+	nScrollPos_ = 0;
 	
 	Account* pAccount = pmh->getFolder()->getAccount();
 	
@@ -2107,6 +2115,7 @@ STDMETHODIMP HtmlMessageViewWindow::DWebBrowserEvents2Impl::Invoke(DISPID dispId
 		if (pHtmlMessageViewWindow_->nScrollPos_ != 0) {
 			if (pHtmlMessageViewWindow_->getScrollPos() == 0)
 				pHtmlMessageViewWindow_->setScrollPos(pHtmlMessageViewWindow_->nScrollPos_);
+			pHtmlMessageViewWindow_->nScrollPos_ = 0;
 		}
 	}
 	else if (dispId == DISPID_STATUSTEXTCHANGE) {
@@ -2414,6 +2423,7 @@ qm::HtmlMessageViewWindow::HtmlMessageViewWindow(qs::Profile* pProfile,
 	dwConnectionPointCookie_(0),
 #endif
 	bAllowExternal_(false),
+	nScrollPos_(0),
 	bOnlineMode_(false)
 {
 	setWindowHandler(this, false);
@@ -2524,6 +2534,7 @@ LRESULT qm::HtmlMessageViewWindow::onNotify(NMHDR* pnmhdr,
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(NM_CONTEXTMENU, 0xffffffff, onContextMenu)
+		HANDLE_NOTIFY(NM_DOCUMENTCOMPLETE, nId_, onDocumentComplete)
 		HANDLE_NOTIFY(NM_HOTSPOT, nId_, onHotSpot)
 		HANDLE_NOTIFY(NM_INLINE_IMAGE, nId_, onInlineImage)
 		HANDLE_NOTIFY(NM_INLINE_SOUND, nId_, onInline)
@@ -2562,6 +2573,8 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 										   unsigned int nSecurityMode)
 {
 	assert(pmh && pMessage);
+	
+	nScrollPos_ = 0;
 	
 	Account* pAccount = pmh->getFolder()->getAccount();
 	
@@ -2627,6 +2640,16 @@ bool qm::HtmlMessageViewWindow::scrollPage(bool bPrev)
 	else {
 		return false;
 	}
+}
+
+int qm::HtmlMessageViewWindow::getScrollPos() const
+{
+	return Window(Window::getWindow(GW_CHILD)).getScrollPos(SB_VERT);
+}
+
+void qm::HtmlMessageViewWindow::setScrollPos(int nPos)
+{
+	Window(Window::getWindow(GW_CHILD)).setScrollPos(SB_VERT, nPos);
 }
 
 void qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
@@ -2705,6 +2728,19 @@ LRESULT qm::HtmlMessageViewWindow::onContextMenu(NMHDR* pnmhdr,
 		::TrackPopupMenu(hmenu, nFlags, pContext->pt.x, pContext->pt.y, 0, getParentFrame(), 0);
 	}
 	
+	return 1;
+}
+
+LRESULT qm::HtmlMessageViewWindow::onDocumentComplete(NMHDR* pnmhdr,
+													  bool* pbHandled)
+{
+	*pbHandled = true;
+	
+	if (nScrollPos_ != 0) {
+		if (getScrollPos() == 0)
+			Window(Window::getWindow(GW_CHILD)).setScrollPos(SB_VERT, nScrollPos_);
+		nScrollPos_ = 0;
+	}
 	return 1;
 }
 

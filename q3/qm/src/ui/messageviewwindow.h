@@ -1019,6 +1019,8 @@ public:
 							unsigned int nFlags,
 							unsigned int nSecurityMode);
 	virtual bool scrollPage(bool bPrev);
+	virtual int getScrollPos() const;
+	virtual void setScrollPos(int nPos);
 	virtual void setSelectMode(bool bSelectMode);
 	virtual void setQuoteMode(bool bQuoteMode);
 	virtual bool find(const WCHAR* pwszFind,
@@ -1037,6 +1039,8 @@ public:
 private:
 	LRESULT onContextMenu(NMHDR* pnmhdr,
 						  bool* pbHandled);
+	LRESULT onDocumentComplete(NMHDR* pnmhdr,
+							   bool* pbHandled);
 	LRESULT onHotSpot(NMHDR* pnmhdr,
 					  bool* pbHandled);
 	LRESULT onInlineImage(NMHDR* pnmhdr,
@@ -1115,6 +1119,7 @@ private:
 	DWORD dwConnectionPointCookie_;
 #endif
 	bool bAllowExternal_;
+	int nScrollPos_;
 	bool bOnlineMode_;
 };
 
