@@ -866,6 +866,8 @@ public:
 	void addColumn(std::auto_ptr<ViewColumn> pColumn);
 	unsigned int getFocus() const;
 	void setFocus(unsigned int nFocus);
+	unsigned int getScroll() const;
+	void setScroll(unsigned int nScroll);
 	unsigned int getSort() const;
 	void setSort(unsigned int nSort);
 	const WCHAR* getFilter() const;
@@ -884,6 +886,7 @@ private:
 	unsigned int nFolderId_;
 	ViewColumnList listColumn_;
 	unsigned int nFocus_;
+	unsigned int nScroll_;
 	unsigned int nSort_;
 	qs::wstring_ptr wstrFilter_;
 	unsigned int nMode_;
@@ -930,6 +933,7 @@ private:
 		STATE_MACRO,
 		STATE_WIDTH,
 		STATE_FOCUS,
+		STATE_SCROLL,
 		STATE_SORT,
 		STATE_FILTER,
 		STATE_MODE

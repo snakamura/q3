@@ -1060,6 +1060,10 @@ void qm::ListWindow::reloadProfiles()
 
 void qm::ListWindow::save() const
 {
+	ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
+	if (pViewModel)
+		pViewModel->setScroll(getScrollPos(SB_VERT));
+	
 	pImpl_->pHeaderColumn_->save();
 }
 
