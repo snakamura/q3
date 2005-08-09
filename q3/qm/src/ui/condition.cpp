@@ -116,13 +116,15 @@ qm::FieldCondition::FieldCondition(const WCHAR* pwszName,
 								   UINT nValueId,
 								   UINT nDescriptionId,
 								   const WCHAR* pwszMacro,
-								   WCHAR cValueQuote) :
+								   WCHAR cValueQuote,
+								   const WCHAR* pwszValueEscape) :
 	Condition(pwszName),
 	nFieldId_(nFieldId),
 	nValueId_(nValueId),
 	nDescriptionId_(nDescriptionId),
 	pwszMacro_(pwszMacro),
-	cValueQuote_(cValueQuote)
+	cValueQuote_(cValueQuote),
+	pwszValueEscape_(pwszValueEscape)
 {
 }
 
@@ -132,6 +134,7 @@ qm::FieldCondition::FieldCondition(const WCHAR* pwszName,
 								   UINT nDescriptionId,
 								   const WCHAR* pwszMacro,
 								   WCHAR cValueQuote,
+								   const WCHAR* pwszValueEscape,
 								   const WCHAR* pwszField,
 								   const WCHAR* pwszValue) :
 	Condition(pwszName),
@@ -139,7 +142,8 @@ qm::FieldCondition::FieldCondition(const WCHAR* pwszName,
 	nValueId_(nValueId),
 	nDescriptionId_(nDescriptionId),
 	pwszMacro_(pwszMacro),
-	cValueQuote_(cValueQuote)
+	cValueQuote_(cValueQuote),
+	pwszValueEscape_(pwszValueEscape)
 {
 	if (pwszField)
 		wstrField_ = allocWString(pwszField);
@@ -234,7 +238,7 @@ wstring_ptr qm::FieldCondition::getMacro() const
 	assert(wstrField_.get());
 	assert(wstrValue_.get());
 	
-	wstring_ptr wstrValue(escape(wstrValue_.get(), cValueQuote_));
+	wstring_ptr wstrValue(escape(wstrValue_.get(), cValueQuote_, pwszValueEscape_));
 	ConcatW c[] = {
 		{ L"@",				1	},
 		{ pwszMacro_,		-1	},
@@ -252,16 +256,17 @@ wstring_ptr qm::FieldCondition::getMacro() const
 std::auto_ptr<Condition> qm::FieldCondition::clone() const
 {
 	return std::auto_ptr<Condition>(new FieldCondition(getName(),
-		nFieldId_, nValueId_, nDescriptionId_, pwszMacro_,
-		cValueQuote_, wstrField_.get(), wstrValue_.get()));
+		nFieldId_, nValueId_, nDescriptionId_, pwszMacro_, cValueQuote_,
+		pwszValueEscape_, wstrField_.get(), wstrValue_.get()));
 }
 
 wstring_ptr qm::FieldCondition::escape(const WCHAR* pwsz,
-									   WCHAR cQuote)
+									   WCHAR cQuote,
+									   const WCHAR* pwszEscape)
 {
 	StringBuffer<WSTRING> buf;
 	while (*pwsz) {
-		if (*pwsz == cQuote || *pwsz == L'\\')
+		if (*pwsz == cQuote || (pwszEscape && wcschr(pwszEscape, *pwsz)))
 			buf.append(L'\\');
 		buf.append(*pwsz);
 		++pwsz;
@@ -545,28 +550,32 @@ qm::ConditionFactory::ConditionFactory()
 		IDS_CONDITION_CONTAIN_VALUE,
 		IDS_CONDITION_CONTAIN_DESCRIPTION,
 		L"Contain",
-		L'\"'));
+		L'\"',
+		L"\\"));
 	list_.push_back(new FieldCondition(
 		L"BeginWith",
 		IDS_CONDITION_BEGINWITH_FIELD,
 		IDS_CONDITION_BEGINWITH_VALUE,
 		IDS_CONDITION_BEGINWITH_DESCRIPTION,
 		L"BeginWith",
-		L'\"'));
+		L'\"',
+		L"\\"));
 	list_.push_back(new FieldCondition(
 		L"Equal",
 		IDS_CONDITION_EQUAL_FIELD,
 		IDS_CONDITION_EQUAL_VALUE,
 		IDS_CONDITION_EQUAL_DESCRIPTION,
 		L"Equal",
-		L'\"'));
+		L'\"',
+		L"\\"));
 	list_.push_back(new FieldCondition(
 		L"RegexMatch",
 		IDS_CONDITION_MATCH_FIELD,
 		IDS_CONDITION_MATCH_VALUE,
 		IDS_CONDITION_MATCH_DESCRIPTION,
 		L"RegexMatch",
-		L'/'));
+		L'/',
+		0));
 	list_.push_back(new NoArgumentCondition(
 		L"Seen",
 		IDS_CONDITION_SEEN_DESCRIPTION,

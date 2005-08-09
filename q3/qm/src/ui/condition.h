@@ -120,13 +120,15 @@ public:
 				   UINT nValueId,
 				   UINT nDescriptionId,
 				   const WCHAR* pwszMacro,
-				   WCHAR cValueQuote);
+				   WCHAR cValueQuote,
+				   const WCHAR* pwszValueEscape);
 	FieldCondition(const WCHAR* pwszName,
 				   UINT nFieldId,
 				   UINT nValueId,
 				   UINT nDescriptionId,
 				   const WCHAR* pwszMacro,
 				   WCHAR cValueQuote,
+				   const WCHAR* pwszValueEscape,
 				   const WCHAR* pwszField,
 				   const WCHAR* pwszValue);
 	virtual ~FieldCondition();
@@ -144,7 +146,8 @@ public:
 
 private:
 	static qs::wstring_ptr escape(const WCHAR* pwsz,
-								  WCHAR cQuote);
+								  WCHAR cQuote,
+								  const WCHAR* pwszEscape);
 
 private:
 	FieldCondition(const FieldCondition&);
@@ -156,6 +159,7 @@ private:
 	UINT nDescriptionId_;
 	const WCHAR* pwszMacro_;
 	WCHAR cValueQuote_;
+	const WCHAR* pwszValueEscape_;
 	qs::wstring_ptr wstrField_;
 	qs::wstring_ptr wstrValue_;
 };
