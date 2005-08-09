@@ -456,6 +456,15 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 			ViewModelItem::FLAG_SELECTED | ViewModelItem::FLAG_FOCUSED);
 	}
 	
+	if (pDataItem_->getRestoreId() != -1 && pFolder->getType() == Folder::TYPE_NORMAL) {
+		MessageHolder* pmh = static_cast<NormalFolder*>(
+			pFolder)->getMessageHolderById(pDataItem_->getRestoreId());
+		if (pmh) {
+			restoreInfo_.setMessageHolder(pmh);
+			restoreInfo_.setScrollPos(pDataItem_->getRestoreScroll());
+		}
+	}
+	
 	pFolder_->addFolderHandler(this);
 	pFolder->getAccount()->addMessageHolderHandler(this);
 }
@@ -851,6 +860,10 @@ void qm::ViewModel::save() const
 	pDataItem_->setScroll(nScroll_);
 	pDataItem_->setFilter(pFilter_.get() ? pFilter_->getName() : 0);
 	pDataItem_->setMode(nMode_);
+	if (restoreInfo_.getMessageHolder()) {
+		pDataItem_->setRestoreId(restoreInfo_.getMessageHolder()->getId());
+		pDataItem_->setRestoreScroll(restoreInfo_.getScrollPos());
+	}
 }
 
 void qm::ViewModel::destroy()
@@ -1512,6 +1525,11 @@ qm::ViewModel::RestoreInfo::RestoreInfo(MessageHolder* pmh) :
 MessageHolder* qm::ViewModel::RestoreInfo::getMessageHolder() const
 {
 	return pmh_;
+}
+
+void qm::ViewModel::RestoreInfo::setMessageHolder(MessageHolder* pmh)
+{
+	pmh_ = pmh;
 }
 
 int qm::ViewModel::RestoreInfo::getScrollPos() const
@@ -2326,7 +2344,9 @@ qm::ViewDataItem::ViewDataItem(unsigned int nFolderId) :
 	nFocus_(0),
 	nScroll_(-1),
 	nSort_(ViewModel::SORT_ASCENDING | ViewModel::SORT_NOTHREAD | 1),
-	nMode_(MessageViewMode::MODE_QUOTE)
+	nMode_(MessageViewMode::MODE_QUOTE),
+	nRestoreId_(-1),
+	nRestoreScroll_(-1)
 {
 }
 
@@ -2408,6 +2428,26 @@ unsigned int qm::ViewDataItem::getMode() const
 void qm::ViewDataItem::setMode(unsigned int nMode)
 {
 	nMode_ = nMode;
+}
+
+unsigned int qm::ViewDataItem::getRestoreId() const
+{
+	return nRestoreId_;
+}
+
+void qm::ViewDataItem::setRestoreId(unsigned int nId)
+{
+	nRestoreId_ = nId;
+}
+
+int qm::ViewDataItem::getRestoreScroll() const
+{
+	return nRestoreScroll_;
+}
+
+void qm::ViewDataItem::setRestoreScroll(int nScroll)
+{
+	nRestoreScroll_ = nScroll;
 }
 
 std::auto_ptr<ViewDataItem> qm::ViewDataItem::clone(unsigned int nFolderId) const
@@ -2608,6 +2648,33 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_MODE;
 	}
+	else if (wcscmp(pwszLocalName, L"restoreInfo") == 0) {
+		if (state_ != STATE_VIEW)
+			return false;
+		
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrLocalName, L"id") == 0) {
+				WCHAR* pEnd = 0;
+				unsigned int nId = wcstol(attributes.getValue(n), &pEnd, 10);
+				if (*pEnd)
+					return false;
+				pItem_->setRestoreId(nId);
+			}
+			else if (wcscmp(pwszAttrLocalName, L"scroll") == 0) {
+				WCHAR* pEnd = 0;
+				int nScroll = wcstol(attributes.getValue(n), &pEnd, 10);
+				if (*pEnd)
+					return false;
+				pItem_->setRestoreScroll(nScroll);
+			}
+			else {
+				return false;
+			}
+		}
+		
+		state_ = STATE_RESTORE;
+	}
 	else {
 		struct {
 			const WCHAR* pwszLocalName_;
@@ -2792,6 +2859,10 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	}
 	else if (wcscmp(pwszLocalName, L"mode") == 0) {
 		assert(state_ == STATE_MODE);
+		state_ = STATE_VIEW;
+	}
+	else if (wcscmp(pwszLocalName, L"restoreInfo") == 0) {
+		assert(state_ == STATE_RESTORE);
 		state_ = STATE_VIEW;
 	}
 	else {
@@ -3026,6 +3097,19 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 	SimpleAttributes modeAttrs(modeItems, countof(modeItems));
 	if (!handler_.startElement(0, 0, L"mode", modeAttrs) ||
 		!handler_.endElement(0, 0, L"mode"))
+		return false;
+	
+	WCHAR wszRestoreId[32];
+	swprintf(wszRestoreId, L"%u", pItem->getRestoreId());
+	WCHAR wszRestoreScroll[32];
+	swprintf(wszRestoreScroll, L"%d", pItem->getRestoreScroll());
+	const SimpleAttributes::Item restoreItems[] = {
+		{ L"id",		wszRestoreId		},
+		{ L"scroll",	wszRestoreScroll	}
+	};
+	SimpleAttributes restoreAttributes(restoreItems, countof(restoreItems));
+	if (!handler_.startElement(0, 0, L"restoreInfo", restoreAttributes) ||
+		!handler_.endElement(0, 0, L"restoreInfo"))
 		return false;
 	
 	if (!handler_.endElement(0, 0, L"view"))

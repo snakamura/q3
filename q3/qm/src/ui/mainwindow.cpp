@@ -1848,6 +1848,7 @@ bool qm::MainWindow::save(bool bForce)
 	pImpl_->pFolderListWindow_->save();
 	pImpl_->pListWindow_->save();
 	pImpl_->pMessageWindow_->save();
+	pImpl_->pPreviewModel_->save();
 	if (!pImpl_->pViewModelManager_->save(bForce))
 		return false;
 #ifdef QMTABWINDOW

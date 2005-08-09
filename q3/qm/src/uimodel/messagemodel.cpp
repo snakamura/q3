@@ -246,6 +246,18 @@ bool qm::PreviewMessageModel::isConnectedToViewModel() const
 	return bConnectedToViewModel_;
 }
 
+void qm::PreviewMessageModel::save() const
+{
+	ViewModel* pViewModel = getViewModel();
+	if (pViewModel) {
+		MessagePtrLock mpl(getCurrentMessage());
+		ViewModel::RestoreInfo info(mpl);
+		if (mpl)
+			fireUpdateRestoreInfo(&info);
+		pViewModel->setRestoreInfo(info);
+	}
+}
+
 void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 {
 	ViewModel* pViewModel = getViewModel();

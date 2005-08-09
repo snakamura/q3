@@ -157,6 +157,7 @@ public:
 	void connectToViewModel();
 	void disconnectFromViewModel();
 	bool isConnectedToViewModel() const;
+	void save() const;
 
 public:
 	virtual void itemStateChanged(const ViewModelEvent& event);

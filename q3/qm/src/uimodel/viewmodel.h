@@ -293,6 +293,7 @@ public:
 	
 	public:
 		MessageHolder* getMessageHolder() const;
+		void setMessageHolder(MessageHolder* pmh);
 		int getScrollPos() const;
 		void setScrollPos(int n);
 	
@@ -874,6 +875,10 @@ public:
 	void setFilter(const WCHAR* pwszFilter);
 	unsigned int getMode() const;
 	void setMode(unsigned int nMode);
+	unsigned int getRestoreId() const;
+	void setRestoreId(unsigned int nId);
+	int getRestoreScroll() const;
+	void setRestoreScroll(int nScroll);
 
 public:
 	std::auto_ptr<ViewDataItem> clone(unsigned int nFolderId) const;
@@ -890,6 +895,8 @@ private:
 	unsigned int nSort_;
 	qs::wstring_ptr wstrFilter_;
 	unsigned int nMode_;
+	unsigned int nRestoreId_;
+	int nRestoreScroll_;
 };
 
 
@@ -936,7 +943,8 @@ private:
 		STATE_SCROLL,
 		STATE_SORT,
 		STATE_FILTER,
-		STATE_MODE
+		STATE_MODE,
+		STATE_RESTORE
 	};
 
 private:
