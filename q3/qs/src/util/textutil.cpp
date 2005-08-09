@@ -307,9 +307,24 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 		if (*p == L'\\' && p != pwszText) {
 			bool bFound = false;
 			if (*(p - 1) == L'\\') {
-				--p;
-				++nLen;
-				bFound = true;
+				const WCHAR* pEnd = p + 1;
+				for (size_t n = nLen - 1; n > 0; --n, ++pEnd) {
+					WCHAR c = *pEnd;
+					if (c == L'\\') {
+						bFound = true;
+						break;
+					}
+					else if ((c < L'a' || L'z' < c) &&
+						(c < L'A' || L'Z' < c) &&
+						(c < L'0' || L'9' < c) &&
+						c != L'_' && c != L'.' && c != L'-') {
+						break;
+					}
+				}
+				if (bFound) {
+					--p;
+					++nLen;
+				}
 			}
 			else if ((*(p - 1) == L':' && p - 1 != pwszText && isDriveLetterChar(*(p - 2)))) {
 				p -= 2;
