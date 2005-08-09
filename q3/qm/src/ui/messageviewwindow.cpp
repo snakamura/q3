@@ -1531,13 +1531,13 @@ ComPtr<IHTMLDocument2> qm::HtmlMessageViewWindow::getHTMLDocument() const
 	ComPtr<IDispatch> pDisp;
 	hr = pWebBrowser_->get_Document(&pDisp);
 	if (FAILED(hr))
-		return 0;
+		return ComPtr<IHTMLDocument2>();
 	
 	ComPtr<IHTMLDocument2> pHTMLDocument;
 	hr = pDisp->QueryInterface(IID_IHTMLDocument2,
 		reinterpret_cast<void**>(&pHTMLDocument));
 	if (FAILED(hr))
-		return 0;
+		return ComPtr<IHTMLDocument2>();
 	
 	return pHTMLDocument;
 }
@@ -1548,18 +1548,18 @@ ComPtr<IHTMLElement2> qm::HtmlMessageViewWindow::getHTMLBodyElement() const
 	
 	ComPtr<IHTMLDocument2> pHTMLDocument(getHTMLDocument());
 	if (!pHTMLDocument.get())
-		return 0;
+		return ComPtr<IHTMLElement2>();
 	
 	ComPtr<IHTMLElement> pBodyElement;
 	hr = pHTMLDocument->get_body(&pBodyElement);
 	if (FAILED(hr))
-		return 0;
+		return ComPtr<IHTMLElement2>();
 	
 	ComPtr<IHTMLElement2> pBodyElement2;
 	hr = pBodyElement->QueryInterface(IID_IHTMLElement2,
 		reinterpret_cast<void**>(&pBodyElement2));
 	if (FAILED(hr))
-		return 0;
+		return ComPtr<IHTMLElement2>();
 	
 	return pBodyElement2;
 }
