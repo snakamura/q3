@@ -5097,7 +5097,13 @@ wstring_ptr qm::SyncFiltersDialog::getLabel(const SyncFilter* p) const
 		buf.append(L"] ");
 	}
 	
-	wstring_ptr wstrCondition(p->getCondition()->getString());
+	wstring_ptr wstrCondition;
+	const Macro* pMacro = p->getCondition();
+	std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
+	if (pConditionList.get())
+		wstrCondition = pConditionList->getDescription(true);
+	else
+		wstrCondition = pMacro->getString();
 	buf.append(wstrCondition.get());
 	
 	return buf.getString();

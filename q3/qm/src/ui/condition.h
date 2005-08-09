@@ -278,6 +278,7 @@ public:
 	const List& getConditions() const;
 	Type getType() const;
 	qs::wstring_ptr getMacro() const;
+	qs::wstring_ptr getDescription(bool bValue) const;
 
 public:
 	void setType(Type type);

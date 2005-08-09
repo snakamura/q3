@@ -12,6 +12,8 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 
+#include "condition.h"
+
 
 /****************************************************************************
  *
@@ -296,7 +298,12 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onOk()
 template<class T, class List, class Container, class EditDialog>
 qs::wstring_ptr qm::RulesColorsDialog<T, List, Container, EditDialog>::getLabel(const T* p) const
 {
-	return p->getCondition()->getString();
+	const Macro* pMacro = p->getCondition();
+	std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
+	if (pConditionList.get())
+		return pConditionList->getDescription(true);
+	else
+		return pMacro->getString();
 }
 
 template<class T, class List, class Container, class EditDialog>

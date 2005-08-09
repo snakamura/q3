@@ -522,6 +522,29 @@ wstring_ptr qm::ConditionList::getMacro() const
 	}
 }
 
+wstring_ptr qm::ConditionList::getDescription(bool bValue) const
+{
+	if (list_.empty()) {
+		return allocWString(L"");
+	}
+	else if (list_.size() == 1) {
+		return list_.front()->getDescription(bValue);
+	}
+	else {
+		wstring_ptr wstrSep(loadString(Application::getApplication().getResourceHandle(),
+			type_ == TYPE_AND ? IDS_CONDITIONTYPE_AND : IDS_CONDITIONTYPE_OR));
+		
+		StringBuffer<WSTRING> buf;
+		for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+			wstring_ptr wstr((*it)->getDescription(bValue));
+			if (it != list_.begin())
+				buf.append(wstrSep.get());
+			buf.append(wstr.get());
+		}
+		return buf.getString();
+	}
+}
+
 void qm::ConditionList::setType(Type type)
 {
 	type_ = type;
