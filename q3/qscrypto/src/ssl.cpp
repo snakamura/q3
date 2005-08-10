@@ -8,12 +8,23 @@
 
 #include <qslog.h>
 
+#include <openssl/err.h>
+
 #include "crypto.h"
 #include "ssl.h"
 #include "util.h"
 
 using namespace qs;
 using namespace qscrypto;
+
+#define LOG_SSLERROR(message) \
+	do { \
+		if (log.isErrorEnabled()) { \
+			char sz[256]; \
+			ERR_error_string_n(ERR_get_error(), sz, countof(sz)); \
+			log.error(message, reinterpret_cast<const unsigned char*>(sz), strlen(sz)); \
+		} \
+	} while (false)
 
 
 /****************************************************************************
@@ -115,7 +126,7 @@ int qscrypto::SSLSocketImpl::recv(char* p,
 	
 	int nRead = SSL_read(pSSL_, p, nLen);
 	if (nRead < 0) {
-		log.debug(L"Error occured while receiving.");
+		LOG_SSLERROR(L"Error occured while receiving.");
 		return -1;
 	}
 	
@@ -134,7 +145,7 @@ int qscrypto::SSLSocketImpl::send(const char* p,
 	
 	int nWritten = SSL_write(pSSL_, p, nLen);
 	if (nWritten < 0) {
-		log.debug(L"Error occured while sending.");
+		LOG_SSLERROR(L"Error occured while sending.");
 		return -1;
 	}
 	
@@ -178,8 +189,10 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	log.debug(L"Initializing SSL context...");
 	
 	pCTX_ = SSL_CTX_new(SSLv23_method());
-	if (!pCTX_)
+	if (!pCTX_) {
+		LOG_SSLERROR(L"Error occured while creating SSL context.");
 		return false;
+	}
 	
 	log.debug(L"Installing trusted CAs...");
 	
@@ -191,25 +204,28 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	log.debug(L"Initializing SSL...");
 	
 	pSSL_ = SSL_new(pCTX_);
-	if (!pSSL_)
+	if (!pSSL_) {
+		LOG_SSLERROR(L"Error occured while create SSL.");
 		return false;
+	}
 	
 	SSL_set_fd(pSSL_, static_cast<int>(pSocket->getSocket()));
 	
 	log.debug(L"Starting SSL handshake...");
 	
-	if (SSL_connect(pSSL_) <= 0)
+	if (SSL_connect(pSSL_) <= 0) {
+		LOG_SSLERROR(L"Error occured while connecting.");
 		return false;
+	}
 	
 	log.debug(L"SSL handshake completed.");
 	
-	bool bVerified = SSL_get_verify_result(pSSL_) == X509_V_OK;
-	if (log.isDebugEnabled()) {
-		if (bVerified)
-			log.debug(L"Server certificate is verified.");
-		else
-			log.debug(L"Failed to verify server certificate.");
-	}
+	long nVerify = SSL_get_verify_result(pSSL_);
+	bool bVerified = nVerify == X509_V_OK;
+	if (bVerified)
+		log.debug(L"Server certificate is verified.");
+	else
+		log.warnf(L"Failed to verify server certificate: %ld", nVerify);
 	
 	X509Ptr pX509(SSL_get_peer_certificate(pSSL_));
 	CertificateImpl cert(pX509.get());
@@ -219,7 +235,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	}
 	
 	if (!pCallback_->checkCertificate(cert, bVerified)) {
-		log.debug(L"Failed to check server certificate");
+		log.warn(L"Failed to check server certificate");
 		return false;
 	}
 	
