@@ -273,17 +273,22 @@ qm::ColorEntry::ColorEntry() :
 }
 
 qm::ColorEntry::ColorEntry(std::auto_ptr<Macro> pCondition,
-						   COLORREF cr) :
+						   COLORREF cr,
+						   const WCHAR* pwszDescription) :
 	pCondition_(pCondition),
 	cr_(cr)
 {
+	if (pwszDescription)
+		wstrDescription_ = allocWString(pwszDescription);
 }
 
-qm::ColorEntry::ColorEntry(const ColorEntry& color)
+qm::ColorEntry::ColorEntry(const ColorEntry& color) :
+	cr_(color.cr_)
 {
 	wstring_ptr wstrCondition(color.pCondition_->getString());
 	pCondition_ = MacroParser().parse(wstrCondition.get());
-	cr_ = color.cr_;
+	if (color.wstrDescription_.get())
+		wstrDescription_ = allocWString(color.wstrDescription_.get());
 }
 
 qm::ColorEntry::~ColorEntry()
@@ -317,6 +322,19 @@ COLORREF qm::ColorEntry::getColor() const
 void qm::ColorEntry::setColor(COLORREF cr)
 {
 	cr_ = cr;
+}
+
+const WCHAR* qm::ColorEntry::getDescription() const
+{
+	return wstrDescription_.get();
+}
+
+void qm::ColorEntry::setDescription(const WCHAR* pwszDescription)
+{
+	if (pwszDescription)
+		wstrDescription_ = allocWString(pwszDescription);
+	else
+		wstrDescription_.reset(0);
 }
 
 
@@ -424,10 +442,13 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		
 		const WCHAR* pwszMatch = 0;
+		const WCHAR* pwszDescription = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrName, L"match") == 0)
 				pwszMatch = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"description") == 0)
+				pwszDescription = attributes.getValue(n);
 			else
 				return false;
 		}
@@ -438,6 +459,9 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		pCondition_ = MacroParser().parse(pwszMatch);
 		if (!pCondition_.get())
 			return false;
+		
+		if (pwszDescription)
+			wstrDescription_ = allocWString(pwszDescription);
 		
 		state_ = STATE_COLOR;
 	}
@@ -467,9 +491,11 @@ bool qm::ColorContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		Color color(buffer_.getCharArray());
 		if (color.getColor() == 0xffffffff)
 			return false;
-		std::auto_ptr<ColorEntry> pEntry(new ColorEntry(pCondition_, color.getColor()));
+		std::auto_ptr<ColorEntry> pEntry(new ColorEntry(
+			pCondition_, color.getColor(), wstrDescription_.get()));
 		pCondition_.reset(0);
 		buffer_.remove();
+		wstrDescription_.reset(0);
 		
 		assert(pColorSet_);
 		pColorSet_->addEntry(pEntry);
@@ -568,7 +594,12 @@ bool qm::ColorWriter::write(const ColorSet* pColorSet)
 bool qm::ColorWriter::write(const ColorEntry* pColor)
 {
 	wstring_ptr wstrCondition(pColor->getCondition()->getString());
-	SimpleAttributes attrs(L"match", wstrCondition.get());
+	const WCHAR* pwszDescription = pColor->getDescription();
+	const SimpleAttributes::Item items[] = {
+		{ L"match",			wstrCondition.get(),	false					},
+		{ L"description",	pwszDescription,		!pwszDescription		}
+	};
+	SimpleAttributes attrs(items, countof(items));
 	if (!handler_.startElement(0, 0, L"color", attrs))
 		return false;
 	

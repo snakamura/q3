@@ -182,7 +182,8 @@ class ColorEntry
 public:
 	ColorEntry();
 	ColorEntry(std::auto_ptr<Macro> pCondition,
-			   COLORREF cr);
+			   COLORREF cr,
+			   const WCHAR* pwszDescription);
 	ColorEntry(const ColorEntry& color);
 	~ColorEntry();
 
@@ -192,6 +193,8 @@ public:
 	bool match(MacroContext* pContext) const;
 	COLORREF getColor() const;
 	void setColor(COLORREF cr);
+	const WCHAR* getDescription() const;
+	void setDescription(const WCHAR* pwszDescription);
 
 private:
 	ColorEntry& operator=(const ColorEntry&);
@@ -199,6 +202,7 @@ private:
 private:
 	std::auto_ptr<Macro> pCondition_;
 	COLORREF cr_;
+	qs::wstring_ptr wstrDescription_;
 };
 
 
@@ -270,6 +274,7 @@ private:
 	State state_;
 	ColorSet* pColorSet_;
 	std::auto_ptr<Macro> pCondition_;
+	qs::wstring_ptr wstrDescription_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
