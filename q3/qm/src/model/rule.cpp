@@ -277,7 +277,7 @@ std::auto_ptr<Rule> RuleManagerImpl::createJunkRule(Account* pAccount)
 		L"@And(@Not(@Deleted()), @Junk(@Seen()))" : L"@Junk()";
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(pwszCondition));
 	std::auto_ptr<RuleAction> pAction(new CopyRuleAction(0, wstrJunk.get(), true));
-	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO));
+	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO, 0));
 }
 
 
@@ -665,11 +665,14 @@ qm::Rule::Rule() :
 
 qm::Rule::Rule(std::auto_ptr<Macro> pCondition,
 			   std::auto_ptr<RuleAction> pAction,
-			   unsigned int nUse) :
+			   unsigned int nUse,
+			   const WCHAR* pwszDescription) :
 	pCondition_(pCondition),
 	pAction_(pAction),
 	nUse_(nUse)
 {
+	if (pwszDescription)
+		wstrDescription_ = allocWString(pwszDescription);
 }
 
 qm::Rule::Rule(const Rule& rule) :
@@ -679,6 +682,8 @@ qm::Rule::Rule(const Rule& rule) :
 	pCondition_ = MacroParser().parse(wstrCondition.get());
 	if (rule.pAction_.get())
 		pAction_ = rule.pAction_->clone();
+	if (rule.wstrDescription_.get())
+		wstrDescription_ = allocWString(rule.wstrDescription_.get());
 }
 
 qm::Rule::~Rule()
@@ -718,6 +723,19 @@ unsigned int qm::Rule::getUse() const
 void qm::Rule::setUse(unsigned int nUse)
 {
 	nUse_ = nUse;
+}
+
+const WCHAR* qm::Rule::getDescription() const
+{
+	return wstrDescription_.get();
+}
+
+void qm::Rule::setDescription(const WCHAR* pwszDescription)
+{
+	if (pwszDescription)
+		wstrDescription_ = allocWString(pwszDescription);
+	else
+		wstrDescription_.reset(0);
 }
 
 bool qm::Rule::match(MacroContext* pContext) const
@@ -1241,12 +1259,15 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		const WCHAR* pwszMatch = 0;
 		const WCHAR* pwszUse = 0;
+		const WCHAR* pwszDescription = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrName, L"match") == 0)
 				pwszMatch = attributes.getValue(n);
 			else if (wcscmp(pwszAttrName, L"use") == 0)
 				pwszUse = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"description") == 0)
+				pwszDescription = attributes.getValue(n);
 			else
 				return false;
 		}
@@ -1268,6 +1289,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		else {
 			nUse_ = Rule::USE_MANUAL | Rule::USE_AUTO;
 		}
+		
+		if (pwszDescription)
+			wstrDescription_ = allocWString(pwszDescription);
 		
 		state_ = STATE_RULE;
 	}
@@ -1296,7 +1320,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			pwszAccount, pwszFolder, bMove));
 		assert(!pCurrentCopyRuleAction_);
 		pCurrentCopyRuleAction_ = static_cast<CopyRuleAction*>(pAction.get());
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction, nUse_));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
+			pAction, nUse_, wstrDescription_.get()));
+		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_MOVE;
@@ -1356,7 +1382,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		}
 		
 		std::auto_ptr<RuleAction> pAction(new DeleteRuleAction(bDirect));
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction, nUse_));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
+			pAction, nUse_, wstrDescription_.get()));
+		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_DELETE;
@@ -1367,7 +1395,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		assert(pCondition_.get());
 		
 		std::auto_ptr<RuleAction> pAction(new DeleteCacheRuleAction());
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction, nUse_));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
+			pAction, nUse_, wstrDescription_.get()));
+		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_DELETECACHE;
@@ -1393,7 +1423,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		
 		std::auto_ptr<RuleAction> pAction(new ApplyRuleAction(pMacroApply));
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction, nUse_));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
+			pAction, nUse_, wstrDescription_.get()));
+		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
 		state_ = STATE_APPLY;
@@ -1423,7 +1455,9 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_RULE);
 		
 		if (pCondition_.get()) {
-			std::auto_ptr<Rule> pRule(new Rule(pCondition_, std::auto_ptr<RuleAction>(), nUse_));
+			std::auto_ptr<Rule> pRule(new Rule(pCondition_,
+				std::auto_ptr<RuleAction>(), nUse_, wstrDescription_.get()));
+			wstrDescription_.reset(0);
 			pCurrentRuleSet_->addRule(pRule);
 		}
 		
@@ -1564,9 +1598,11 @@ bool qm::RuleWriter::write(const Rule* pRule)
 			bufUse.append(L"auto");
 		}
 	}
+	const WCHAR* pwszDescription = pRule->getDescription();
 	const SimpleAttributes::Item items[] = {
-		{ L"match",	wstrCondition.get(),	false					},
-		{ L"use",	bufUse.getCharArray(),	bufUse.getLength() == 0	}
+		{ L"match",			wstrCondition.get(),	false					},
+		{ L"use",			bufUse.getCharArray(),	bufUse.getLength() == 0	},
+		{ L"description",	pwszDescription,		!pwszDescription		}
 	};
 	SimpleAttributes attrs(items, countof(items));
 	if (!handler_.startElement(0, 0, L"rule", attrs))

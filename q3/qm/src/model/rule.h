@@ -114,7 +114,8 @@ public:
 	Rule();
 	Rule(std::auto_ptr<Macro> pCondition,
 		 std::auto_ptr<RuleAction> pAction,
-		 unsigned int nUse);
+		 unsigned int nUse,
+		 const WCHAR* pwszDescription);
 	Rule(const Rule& rule);
 	virtual ~Rule();
 
@@ -126,6 +127,8 @@ public:
 	bool isUse(Use use) const;
 	unsigned int getUse() const;
 	void setUse(unsigned int nUse);
+	const WCHAR* getDescription() const;
+	void setDescription(const WCHAR* pwszDescription);
 	bool match(MacroContext* pContext) const;
 	bool apply(const RuleContext& context) const;
 	bool isMessageDestroyed() const;
@@ -137,6 +140,7 @@ private:
 	std::auto_ptr<Macro> pCondition_;
 	std::auto_ptr<RuleAction> pAction_;
 	unsigned int nUse_;
+	qs::wstring_ptr wstrDescription_;
 };
 
 
@@ -420,6 +424,7 @@ private:
 	qs::wstring_ptr wstrTemplateArgumentName_;
 	std::auto_ptr<Macro> pCondition_;
 	unsigned int nUse_;
+	qs::wstring_ptr wstrDescription_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
