@@ -248,6 +248,7 @@ struct qm::SyncFilterImpl
 	wstring_ptr wstrFolder_;
 	std::auto_ptr<RegexPattern> pFolder_;
 	std::auto_ptr<Macro> pCondition_;
+	wstring_ptr wstrDescription_;
 	SyncFilter::ActionList listAction_;
 };
 
@@ -273,7 +274,8 @@ qm::SyncFilter::SyncFilter() :
 
 qm::SyncFilter::SyncFilter(const WCHAR* pwszFolder,
 						   std::auto_ptr<RegexPattern> pFolder,
-						   std::auto_ptr<Macro> pCondition) :
+						   std::auto_ptr<Macro> pCondition,
+						   const WCHAR* pwszDescription) :
 	pImpl_(0)
 {
 	pImpl_ = new SyncFilterImpl();
@@ -281,6 +283,8 @@ qm::SyncFilter::SyncFilter(const WCHAR* pwszFolder,
 		pImpl_->wstrFolder_ = allocWString(pwszFolder);
 	pImpl_->pFolder_ = pFolder;
 	pImpl_->pCondition_ = pCondition;
+	if (pwszDescription)
+		pImpl_->wstrDescription_ = allocWString(pwszDescription);
 }
 
 qm::SyncFilter::SyncFilter(const SyncFilter& filter) :
@@ -296,6 +300,9 @@ qm::SyncFilter::SyncFilter(const SyncFilter& filter) :
 	
 	wstring_ptr wstrCondition(filter.pImpl_->pCondition_->getString());
 	pImpl_->pCondition_ = MacroParser().parse(wstrCondition.get());
+	
+	if (filter.pImpl_->wstrDescription_.get())
+		pImpl_->wstrDescription_ = allocWString(filter.pImpl_->wstrDescription_.get());
 	
 	const SyncFilter::ActionList& l = filter.pImpl_->listAction_;
 	pImpl_->listAction_.resize(l.size());
@@ -335,6 +342,19 @@ const Macro* qm::SyncFilter::getCondition() const
 void qm::SyncFilter::setCondition(std::auto_ptr<Macro> pCondition)
 {
 	pImpl_->pCondition_ = pCondition;
+}
+
+const WCHAR* qm::SyncFilter::getDescription() const
+{
+	return pImpl_->wstrDescription_.get();
+}
+
+void qm::SyncFilter::setDescription(const WCHAR* pwszDescription)
+{
+	if (pwszDescription)
+		pImpl_->wstrDescription_ = allocWString(pwszDescription);
+	else
+		pImpl_->wstrDescription_.reset(0);
 }
 
 const SyncFilter::ActionList& qm::SyncFilter::getActions() const
@@ -534,12 +554,15 @@ bool qm::SyncFilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		const WCHAR* pwszFolder = 0;
 		const WCHAR* pwszMatch = 0;
+		const WCHAR* pwszDescription = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrName, L"folder") == 0)
 				pwszFolder = attributes.getValue(n);
 			else if (wcscmp(pwszAttrName, L"match") == 0)
 				pwszMatch = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"description") == 0)
+				pwszDescription = attributes.getValue(n);
 			else
 				return false;
 		}
@@ -559,7 +582,8 @@ bool qm::SyncFilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				return false;
 		}
 		
-		std::auto_ptr<SyncFilter> pFilter(new SyncFilter(pwszFolder, pFolder, pCondition));
+		std::auto_ptr<SyncFilter> pFilter(new SyncFilter(
+			pwszFolder, pFolder, pCondition, pwszDescription));
 		assert(pCurrentFilterSet_);
 		pCurrentFilter_ = pFilter.get();
 		pCurrentFilterSet_->addFilter(pFilter);
@@ -741,9 +765,11 @@ bool qm::SyncFilterWriter::write(const SyncFilter* pFilter)
 {
 	const WCHAR* pwszFolder = pFilter->getFolder();
 	wstring_ptr wstrCondition(pFilter->getCondition()->getString());
+	const WCHAR* pwszDescription = pFilter->getDescription();
 	const SimpleAttributes::Item items[] = {
-		{ L"folder",	pwszFolder,		pwszFolder == 0		},
-		{ L"match",		wstrCondition.get()					}
+		{ L"folder",		pwszFolder,			!pwszFolder			},
+		{ L"match",			wstrCondition.get()						},
+		{ L"description",	pwszDescription,	!pwszDescription	}
 	};
 	SimpleAttributes attrs(items, countof(items));
 	if (!handler_.startElement(0, 0, L"filter", attrs))

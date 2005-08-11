@@ -116,7 +116,8 @@ public:
 	SyncFilter();
 	SyncFilter(const WCHAR* pwszFolder,
 			   std::auto_ptr<qs::RegexPattern> pFolder,
-			   std::auto_ptr<Macro> pCondition);
+			   std::auto_ptr<Macro> pCondition,
+			   const WCHAR* pwszDescription);
 	SyncFilter(const SyncFilter& filter);
 	~SyncFilter();
 
@@ -126,6 +127,8 @@ public:
 				   std::auto_ptr<qs::RegexPattern> pFolder);
 	const Macro* getCondition() const;
 	void setCondition(std::auto_ptr<Macro> pCondition);
+	const WCHAR* getDescription() const;
+	void setDescription(const WCHAR* pwszDescription);
 	const ActionList& getActions() const;
 	void setActions(ActionList& listAction);
 	bool match(SyncFilterCallback* pCallback) const;
