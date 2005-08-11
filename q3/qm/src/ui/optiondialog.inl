@@ -298,12 +298,18 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onOk()
 template<class T, class List, class Container, class EditDialog>
 qs::wstring_ptr qm::RulesColorsDialog<T, List, Container, EditDialog>::getLabel(const T* p) const
 {
-	const Macro* pMacro = p->getCondition();
-	std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
-	if (pConditionList.get())
-		return pConditionList->getDescription(true);
-	else
-		return pMacro->getString();
+	const WCHAR* pwszDescription = p->getDescription();
+	if (pwszDescription) {
+		return allocWString(pwszDescription);
+	}
+	else {
+		const Macro* pMacro = p->getCondition();
+		std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
+		if (pConditionList.get())
+			return pConditionList->getDescription(true);
+		else
+			return pMacro->getString();
+	}
 }
 
 template<class T, class List, class Container, class EditDialog>

@@ -5088,25 +5088,31 @@ LRESULT qm::SyncFiltersDialog::onOk()
 
 wstring_ptr qm::SyncFiltersDialog::getLabel(const SyncFilter* p) const
 {
-	StringBuffer<WSTRING> buf;
-	
-	const WCHAR* pwszFolder = p->getFolder();
-	if (pwszFolder) {
-		buf.append(L'[');
-		buf.append(pwszFolder);
-		buf.append(L"] ");
+	const WCHAR* pwszDescription = p->getDescription();
+	if (pwszDescription) {
+		return allocWString(pwszDescription);
 	}
-	
-	wstring_ptr wstrCondition;
-	const Macro* pMacro = p->getCondition();
-	std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
-	if (pConditionList.get())
-		wstrCondition = pConditionList->getDescription(true);
-	else
-		wstrCondition = pMacro->getString();
-	buf.append(wstrCondition.get());
-	
-	return buf.getString();
+	else {
+		StringBuffer<WSTRING> buf;
+		
+		const WCHAR* pwszFolder = p->getFolder();
+		if (pwszFolder) {
+			buf.append(L'[');
+			buf.append(pwszFolder);
+			buf.append(L"] ");
+		}
+		
+		wstring_ptr wstrCondition;
+		const Macro* pMacro = p->getCondition();
+		std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
+		if (pConditionList.get())
+			wstrCondition = pConditionList->getDescription(true);
+		else
+			wstrCondition = pMacro->getString();
+		buf.append(wstrCondition.get());
+		
+		return buf.getString();
+	}
 }
 
 std::auto_ptr<SyncFilter> qm::SyncFiltersDialog::create() const
