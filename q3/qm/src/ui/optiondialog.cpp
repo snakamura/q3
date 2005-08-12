@@ -2463,6 +2463,11 @@ LRESULT qm::ColorDialog::onInitDialog(HWND hwndFocus,
 	wstring_ptr wstrColor(color.getString());
 	setDlgItemText(IDC_COLOR, wstrColor.get());
 	
+	
+	const WCHAR* pwszDescription = pColor_->getDescription();
+	if (pwszDescription)
+		setDlgItemText(IDC_DESCRIPTION, pwszDescription);
+	
 	init(false);
 	updateState();
 	
@@ -2486,8 +2491,11 @@ LRESULT qm::ColorDialog::onOk()
 		return 0;
 	}
 	
+	wstring_ptr wstrDescription(getDlgItemText(IDC_DESCRIPTION));
+	
 	pColor_->setCondition(pCondition);
 	pColor_->setColor(color.getColor());
+	pColor_->setDescription(wstrDescription.get());
 	
 	return DefaultDialog::onOk();
 }
@@ -2718,6 +2726,10 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	Button_SetCheck(getDlgItem(IDC_MANUAL), nUse & Rule::USE_MANUAL ? BST_CHECKED : BST_UNCHECKED);
 	Button_SetCheck(getDlgItem(IDC_AUTO), nUse & Rule::USE_AUTO ? BST_CHECKED : BST_UNCHECKED);
 	
+	const WCHAR* pwszDescription = pRule_->getDescription();
+	if (pwszDescription)
+		setDlgItemText(IDC_DESCRIPTION, pwszDescription);
+	
 	bInit_ = true;
 	
 	init(false);
@@ -2735,7 +2747,6 @@ LRESULT qm::RuleDialog::onOk()
 			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
-	pRule_->setCondition(pCondition);
 	
 	std::auto_ptr<RuleAction> pAction;
 	int nItem = ComboBox_GetCurSel(getDlgItem(IDC_ACTION));
@@ -2787,14 +2798,19 @@ LRESULT qm::RuleDialog::onOk()
 		assert(false);
 		break;
 	}
-	pRule_->setAction(pAction);
 	
 	unsigned int nUse = 0;
 	if (Button_GetCheck(getDlgItem(IDC_MANUAL)) == BST_CHECKED)
 		nUse |= Rule::USE_MANUAL;
 	if (Button_GetCheck(getDlgItem(IDC_AUTO)) == BST_CHECKED)
 		nUse |= Rule::USE_AUTO;
+	
+	wstring_ptr wstrDescription(getDlgItemText(IDC_DESCRIPTION));
+	
+	pRule_->setCondition(pCondition);
+	pRule_->setAction(pAction);
 	pRule_->setUse(nUse);
+	pRule_->setDescription(wstrDescription.get());
 	
 	return DefaultDialog::onOk();
 }
@@ -5314,6 +5330,10 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 	setDlgItemInt(IDC_MAXLINE, nMaxLine);
 	sendDlgItemMessage(IDC_TYPE, CB_SETCURSEL, nType);
 	
+	const WCHAR* pwszDescription = pSyncFilter_->getDescription();
+	if (pwszDescription)
+		setDlgItemText(IDC_DESCRIPTION, pwszDescription);
+	
 	init(false);
 	updateState();
 	
@@ -5405,9 +5425,12 @@ LRESULT qm::SyncFilterDialog::onOk()
 	for (SyncFilter::ActionList::size_type n = 1; n < l.size(); ++n)
 		listAction.push_back(new SyncFilterAction(*l[n]));
 	
+	wstring_ptr wstrDescription(getDlgItemText(IDC_DESCRIPTION));
+	
 	pSyncFilter_->setFolder(pwszFolder, pFolder);
 	pSyncFilter_->setCondition(pCondition);
 	pSyncFilter_->setActions(listAction);
+	pSyncFilter_->setDescription(wstrDescription.get());
 	
 	return DefaultDialog::onOk();
 }
