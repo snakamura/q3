@@ -32,6 +32,13 @@
 #define IDS_CONDITION_NEWER_VALUE       20027
 #define IDS_CONDITIONTYPE_AND           20050
 #define IDS_CONDITIONTYPE_OR            20051
+#define IDS_RULEACTION_NONE             20100
+#define IDS_RULEACTION_MOVE             20101
+#define IDS_RULEACTION_COPY             20102
+#define IDS_RULEACTION_DELETE           20103
+#define IDS_RULEACTION_DELETEDIRECT     20104
+#define IDS_RULEACTION_DELETECACHE      20105
+#define IDS_RULEACTION_APPLYMACRO       20106
 
 // Next default values for new objects
 // 

@@ -9,6 +9,7 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
+#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
@@ -26,6 +27,7 @@
 
 #include <algorithm>
 
+#include "modelresource.h"
 #include "rule.h"
 #include "templatemanager.h"
 #include "undo.h"
@@ -661,6 +663,7 @@ void qm::RuleSet::clear()
 qm::Rule::Rule() :
 	nUse_(USE_MANUAL | USE_AUTO)
 {
+	pAction_.reset(new NoneRuleAction());
 }
 
 qm::Rule::Rule(std::auto_ptr<Macro> pCondition,
@@ -680,8 +683,7 @@ qm::Rule::Rule(const Rule& rule) :
 {
 	wstring_ptr wstrCondition(rule.pCondition_->getString());
 	pCondition_ = MacroParser().parse(wstrCondition.get());
-	if (rule.pAction_.get())
-		pAction_ = rule.pAction_->clone();
+	pAction_ = rule.pAction_->clone();
 	if (rule.wstrDescription_.get())
 		wstrDescription_ = allocWString(rule.wstrDescription_.get());
 }
@@ -707,6 +709,7 @@ RuleAction* qm::Rule::getAction() const
 
 void qm::Rule::setAction(std::auto_ptr<RuleAction> pAction)
 {
+	assert(pAction_.get());
 	pAction_ = pAction;
 }
 
@@ -746,12 +749,12 @@ bool qm::Rule::match(MacroContext* pContext) const
 
 bool qm::Rule::apply(const RuleContext& context) const
 {
-	return pAction_.get() ? pAction_->apply(context) : true;
+	return pAction_->apply(context);
 }
 
 bool qm::Rule::isMessageDestroyed() const
 {
-	return pAction_.get() ? pAction_->isMessageDestroyed() : false;
+	return pAction_->isMessageDestroyed();
 }
 
 
@@ -763,6 +766,47 @@ bool qm::Rule::isMessageDestroyed() const
 
 qm::RuleAction::~RuleAction()
 {
+}
+
+
+/****************************************************************************
+ *
+ * NoneRuleAction
+ *
+ */
+
+qm::NoneRuleAction::NoneRuleAction()
+{
+}
+
+qm::NoneRuleAction::~NoneRuleAction()
+{
+}
+
+NoneRuleAction::Type qm::NoneRuleAction::getType() const
+{
+	return TYPE_NONE;
+}
+
+bool qm::NoneRuleAction::apply(const RuleContext& context) const
+{
+	return true;
+}
+
+bool qm::NoneRuleAction::isMessageDestroyed() const
+{
+	return false;
+}
+
+wstring_ptr qm::NoneRuleAction::getDescription() const
+{
+	return loadString(Application::getApplication().getResourceHandle(),
+		IDS_RULEACTION_NONE);
+}
+
+std::auto_ptr<RuleAction> qm::NoneRuleAction::clone() const
+{
+	return std::auto_ptr<RuleAction>(new NoneRuleAction());
 }
 
 
@@ -912,6 +956,20 @@ bool qm::CopyRuleAction::isMessageDestroyed() const
 	return false;
 }
 
+wstring_ptr qm::CopyRuleAction::getDescription() const
+{
+	wstring_ptr wstrTemplate(loadString(Application::getApplication().getResourceHandle(),
+		bMove_ ? IDS_RULEACTION_MOVE : IDS_RULEACTION_COPY));
+	StringBuffer<WSTRING> buf;
+	if (wstrAccount_.get()) {
+		buf.append(L"//");
+		buf.append(wstrAccount_.get());
+		buf.append(L"/");
+	}
+	buf.append(wstrFolder_.get());
+	return MessageFormat::format(wstrTemplate.get(), buf.getCharArray());
+}
+
 std::auto_ptr<RuleAction> qm::CopyRuleAction::clone() const
 {
 	return std::auto_ptr<RuleAction>(new CopyRuleAction(*this));
@@ -983,6 +1041,12 @@ bool qm::DeleteRuleAction::apply(const RuleContext& context) const
 		context.getFolder(), bDirect_, 0, context.getUndoItemList());
 }
 
+wstring_ptr qm::DeleteRuleAction::getDescription() const
+{
+	return loadString(Application::getApplication().getResourceHandle(),
+		bDirect_ ? IDS_RULEACTION_DELETEDIRECT : IDS_RULEACTION_DELETE);
+}
+
 bool qm::DeleteRuleAction::isMessageDestroyed() const
 {
 	return bDirect_;
@@ -1021,6 +1085,12 @@ bool qm::DeleteCacheRuleAction::apply(const RuleContext& context) const
 {
 	return context.getAccount()->deleteMessagesCache(
 		context.getMessageHolderList());
+}
+
+wstring_ptr qm::DeleteCacheRuleAction::getDescription() const
+{
+	return loadString(Application::getApplication().getResourceHandle(),
+		IDS_RULEACTION_DELETECACHE);
 }
 
 bool qm::DeleteCacheRuleAction::isMessageDestroyed() const
@@ -1079,6 +1149,14 @@ bool qm::ApplyRuleAction::apply(const RuleContext& context) const
 			return false;
 	}
 	return true;
+}
+
+wstring_ptr qm::ApplyRuleAction::getDescription() const
+{
+	wstring_ptr wstrTemplate(loadString(Application::getApplication().getResourceHandle(),
+		IDS_RULEACTION_APPLYMACRO));
+	wstring_ptr wstrMacro(pMacro_->getString());
+	return MessageFormat::format(wstrTemplate.get(), wstrMacro.get());
 }
 
 bool qm::ApplyRuleAction::isMessageDestroyed() const
@@ -1455,8 +1533,9 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_RULE);
 		
 		if (pCondition_.get()) {
+			std::auto_ptr<RuleAction> pAction(new NoneRuleAction());
 			std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-				std::auto_ptr<RuleAction>(), nUse_, wstrDescription_.get()));
+				pAction, nUse_, wstrDescription_.get()));
 			wstrDescription_.reset(0);
 			pCurrentRuleSet_->addRule(pRule);
 		}
@@ -1609,29 +1688,29 @@ bool qm::RuleWriter::write(const Rule* pRule)
 		return false;
 	
 	const RuleAction* pAction = pRule->getAction();
-	if (pAction) {
-		switch (pAction->getType()) {
-		case RuleAction::TYPE_MOVE:
-		case RuleAction::TYPE_COPY:
-			if (!write(static_cast<const CopyRuleAction*>(pAction)))
-				return false;
-			break;
-		case RuleAction::TYPE_DELETE:
-			if (!write(static_cast<const DeleteRuleAction*>(pAction)))
-				return false;
-			break;
-		case RuleAction::TYPE_DELETECACHE:
-			if (!write(static_cast<const DeleteCacheRuleAction*>(pAction)))
-				return false;
-			break;
-		case RuleAction::TYPE_APPLY:
-			if (!write(static_cast<const ApplyRuleAction*>(pAction)))
-				return false;
-			break;
-		default:
-			assert(false);
-			break;
-		}
+	switch (pAction->getType()) {
+	case RuleAction::TYPE_NONE:
+		break;
+	case RuleAction::TYPE_MOVE:
+	case RuleAction::TYPE_COPY:
+		if (!write(static_cast<const CopyRuleAction*>(pAction)))
+			return false;
+		break;
+	case RuleAction::TYPE_DELETE:
+		if (!write(static_cast<const DeleteRuleAction*>(pAction)))
+			return false;
+		break;
+	case RuleAction::TYPE_DELETECACHE:
+		if (!write(static_cast<const DeleteCacheRuleAction*>(pAction)))
+			return false;
+		break;
+	case RuleAction::TYPE_APPLY:
+		if (!write(static_cast<const ApplyRuleAction*>(pAction)))
+			return false;
+		break;
+	default:
+		assert(false);
+		break;
 	}
 	
 	if (!handler_.endElement(0, 0, L"rule"))

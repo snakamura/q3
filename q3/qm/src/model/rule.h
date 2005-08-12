@@ -154,6 +154,7 @@ class RuleAction
 {
 public:
 	enum Type {
+		TYPE_NONE,
 		TYPE_MOVE,
 		TYPE_COPY,
 		TYPE_DELETE,
@@ -168,7 +169,33 @@ public:
 	virtual Type getType() const = 0;
 	virtual bool apply(const RuleContext& context) const = 0;
 	virtual bool isMessageDestroyed() const = 0;
+	virtual qs::wstring_ptr getDescription() const = 0;
 	virtual std::auto_ptr<RuleAction> clone() const = 0;
+};
+
+
+/****************************************************************************
+ *
+ * NoneRuleAction
+ *
+ */
+
+class NoneRuleAction : public RuleAction
+{
+public:
+	NoneRuleAction();
+	virtual ~NoneRuleAction();
+
+public:
+	virtual Type getType() const;
+	virtual bool apply(const RuleContext& context) const;
+	virtual bool isMessageDestroyed() const;
+	virtual qs::wstring_ptr getDescription() const;
+	virtual std::auto_ptr<RuleAction> clone() const;
+
+private:
+	NoneRuleAction(const NoneRuleAction&);
+	NoneRuleAction& operator=(const NoneRuleAction&);
 };
 
 
@@ -204,6 +231,7 @@ public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
 	virtual bool isMessageDestroyed() const;
+	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
 public:
@@ -251,6 +279,7 @@ public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
 	virtual bool isMessageDestroyed() const;
+	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
 private:
@@ -282,6 +311,7 @@ public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
 	virtual bool isMessageDestroyed() const;
+	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
 private:
@@ -313,6 +343,7 @@ public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
 	virtual bool isMessageDestroyed() const;
+	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
 private:
