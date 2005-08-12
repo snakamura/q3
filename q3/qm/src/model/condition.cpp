@@ -619,6 +619,10 @@ qm::ConditionFactory::ConditionFactory()
 		L"Deleted",
 		IDS_CONDITION_DELETED_DESCRIPTION,
 		L"@Deleted()"));
+	list_.push_back(new NoArgumentCondition(
+		L"Undeleted",
+		IDS_CONDITION_UNDELETED_DESCRIPTION,
+		L"@Not(@Deleted())"));
 	list_.push_back(new SizeCondition(
 		L"Less",
 		IDS_CONDITION_SMALLER_VALUE,
@@ -763,6 +767,8 @@ std::auto_ptr<Condition> qm::ConditionFactory::parse(const MacroExpr* pExpr) con
 			return getCondition(L"Unmarked")->clone();
 		else if (wcscmp(pwszArgName, L"Seen") == 0)
 			return getCondition(L"Unseen")->clone();
+		else if (wcscmp(pwszArgName, L"Deleted") == 0)
+			return getCondition(L"Undeleted")->clone();
 		else
 			return std::auto_ptr<Condition>();
 	}
