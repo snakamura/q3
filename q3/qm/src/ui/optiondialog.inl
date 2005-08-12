@@ -12,7 +12,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 
-#include "condition.h"
+#include "../model/condition.h"
 
 
 /****************************************************************************

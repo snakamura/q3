@@ -43,6 +43,7 @@ END
 3 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""res\\\\version.rc""\r\n"
+    "#include ""..\\\\model\\\\model.rc""\r\n"
     "\0"
 END
 
@@ -2412,52 +2413,6 @@ BEGIN
     IDS_PANEL_SYNCFILTERS   "Sync Filters"
 END
 
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_CONDITION_SEEN_DESCRIPTION "Message is seen"
-    IDS_CONDITION_UNSEEN_DESCRIPTION "Message is unseen"
-    IDS_CONDITION_MARKED_DESCRIPTION "Message is marked"
-    IDS_CONDITION_UNMARKED_DESCRIPTION "Message is not marked"
-    IDS_CONDITION_DELETED_DESCRIPTION "Message is deleted"
-    IDS_CONDITION_MULTIPART_DESCRIPTION "Message is multipart"
-    IDS_CONDITION_JUNK_DESCRIPTION "Message is junk"
-    IDS_CONDITION_TRUE_DESCRIPTION "Always"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_CONDITION_CONTAIN_DESCRIPTION "<%0> contains '%1'"
-    IDS_CONDITION_CONTAIN_FIELD "Field"
-    IDS_CONDITION_CONTAIN_VALUE "Text"
-    IDS_CONDITION_BEGINWITH_DESCRIPTION "<%0> begins with '%1'"
-    IDS_CONDITION_BEGINWITH_FIELD "Field"
-    IDS_CONDITION_BEGINWITH_VALUE "Text"
-    IDS_CONDITION_EQUAL_DESCRIPTION "<%0> equals '%1'"
-    IDS_CONDITION_EQUAL_FIELD "Field"
-    IDS_CONDITION_EQUAL_VALUE "Text"
-    IDS_CONDITION_MATCH_DESCRIPTION "<%0> matches '%1'"
-    IDS_CONDITION_MATCH_FIELD "Field"
-    IDS_CONDITION_MATCH_VALUE "Regex"
-    IDS_CONDITION_LARGER_DESCRIPTION "Size is larger than '%0' bytes"
-    IDS_CONDITION_LARGER_VALUE "Size"
-    IDS_CONDITION_SMALLER_DESCRIPTION "Size is smaller than '%0' bytes"
-    IDS_CONDITION_SMALLER_VALUE "Size"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_CONDITION_OLDER_DESCRIPTION "Order than '%0' days"
-    IDS_CONDITION_OLDER_VALUE "Days"
-    IDS_CONDITION_NEWER_DESCRIPTION "Newer than '%0' days"
-    IDS_CONDITION_NEWER_VALUE "Days"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_CONDITIONTYPE_AND   " and "
-    IDS_CONDITIONTYPE_OR    " or "
-END
-
 #endif    // Japanese resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -2469,6 +2424,7 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #include "res\\version.rc"
+#include "..\\model\\model.rc"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

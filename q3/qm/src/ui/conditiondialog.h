@@ -9,8 +9,8 @@
 #ifndef __CONDITIONDIALOG_H__
 #define __CONDITIONDIALOG_H__
 
-#include "condition.h"
 #include "dialogs.h"
+#include "../model/condition.h"
 
 
 namespace qm {

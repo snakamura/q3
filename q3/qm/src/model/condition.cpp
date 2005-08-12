@@ -13,7 +13,7 @@
 #include <qsutil.h>
 
 #include "condition.h"
-#include "resourceinc.h"
+#include "modelresource.h"
 
 using namespace qm;
 using namespace qs;
