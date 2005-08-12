@@ -1381,6 +1381,9 @@ public:
 				AccountManager* pAccountManager,
 				qs::Profile* pProfile);
 
+protected:
+	virtual qs::wstring_ptr getLabel(const Rule* p) const;
+
 private:
 	virtual const WCHAR* getName();
 };
