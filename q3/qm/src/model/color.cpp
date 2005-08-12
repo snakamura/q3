@@ -331,7 +331,7 @@ const WCHAR* qm::ColorEntry::getDescription() const
 
 void qm::ColorEntry::setDescription(const WCHAR* pwszDescription)
 {
-	if (pwszDescription)
+	if (pwszDescription && *pwszDescription)
 		wstrDescription_ = allocWString(pwszDescription);
 	else
 		wstrDescription_.reset(0);

@@ -351,7 +351,7 @@ const WCHAR* qm::SyncFilter::getDescription() const
 
 void qm::SyncFilter::setDescription(const WCHAR* pwszDescription)
 {
-	if (pwszDescription)
+	if (pwszDescription && *pwszDescription)
 		pImpl_->wstrDescription_ = allocWString(pwszDescription);
 	else
 		pImpl_->wstrDescription_.reset(0);

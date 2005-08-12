@@ -732,7 +732,7 @@ const WCHAR* qm::Rule::getDescription() const
 
 void qm::Rule::setDescription(const WCHAR* pwszDescription)
 {
-	if (pwszDescription)
+	if (pwszDescription && *pwszDescription)
 		wstrDescription_ = allocWString(pwszDescription);
 	else
 		wstrDescription_.reset(0);
