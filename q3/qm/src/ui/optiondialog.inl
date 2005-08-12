@@ -303,12 +303,15 @@ qs::wstring_ptr qm::RulesColorsDialog<T, List, Container, EditDialog>::getLabel(
 		return allocWString(pwszDescription);
 	}
 	else {
+		wstring_ptr wstrCondition;
 		const Macro* pMacro = p->getCondition();
 		std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
 		if (pConditionList.get())
-			return pConditionList->getDescription(true);
+			wstrCondition = pConditionList->getDescription(true);
 		else
-			return pMacro->getString();
+			wstrCondition = pMacro->getString();
+		wstring_ptr wstrSuffix(getLabelSuffix(p));
+		return concat(wstrCondition.get(), L" -> ", wstrSuffix.get());
 	}
 }
 

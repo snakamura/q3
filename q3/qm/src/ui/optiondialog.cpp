@@ -2415,9 +2415,14 @@ qm::ColorsDialog::ColorsDialog(ColorSet* pColorSet,
 {
 }
 
-const WCHAR* qm::ColorsDialog::getName()
+const WCHAR* qm::ColorsDialog::getName() const
 {
 	return L"ColorsDialog";
+}
+
+wstring_ptr qm::ColorsDialog::getLabelSuffix(const ColorEntry* p) const
+{
+	return Color(p->getColor()).getString();
 }
 
 
@@ -2587,28 +2592,14 @@ qm::RulesDialog::RulesDialog(RuleSet* pRuleSet,
 {
 }
 
-wstring_ptr qm::RulesDialog::getLabel(const Rule* p) const
-{
-	const WCHAR* pwszDescription = p->getDescription();
-	if (pwszDescription) {
-		return allocWString(pwszDescription);
-	}
-	else {
-		wstring_ptr wstrCondition;
-		const Macro* pMacro = p->getCondition();
-		std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
-		if (pConditionList.get())
-			wstrCondition = pConditionList->getDescription(true);
-		else
-			wstrCondition = pMacro->getString();
-		wstring_ptr wstrAction(p->getAction()->getDescription());
-		return concat(wstrCondition.get(), L" -> ", wstrAction.get());
-	}
-}
-
-const WCHAR* qm::RulesDialog::getName()
+const WCHAR* qm::RulesDialog::getName() const
 {
 	return L"RulesDialog";
+}
+
+wstring_ptr qm::RulesDialog::getLabelSuffix(const Rule* p) const
+{
+	return p->getAction()->getDescription();
 }
 
 

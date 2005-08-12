@@ -1250,7 +1250,8 @@ protected:
 	virtual void updateState();
 
 private:
-	virtual const WCHAR* getName() = 0;
+	virtual const WCHAR* getName() const = 0;
+	virtual qs::wstring_ptr getLabelSuffix(const T* p) const = 0;
 
 protected:
 	LRESULT onSize(UINT nFlags,
@@ -1307,7 +1308,8 @@ public:
 				 qs::Profile* pProfile);
 
 private:
-	virtual const WCHAR* getName();
+	virtual const WCHAR* getName() const;
+	virtual qs::wstring_ptr getLabelSuffix(const ColorEntry* p) const;
 };
 
 
@@ -1381,11 +1383,9 @@ public:
 				AccountManager* pAccountManager,
 				qs::Profile* pProfile);
 
-protected:
-	virtual qs::wstring_ptr getLabel(const Rule* p) const;
-
 private:
-	virtual const WCHAR* getName();
+	virtual const WCHAR* getName() const;
+	virtual qs::wstring_ptr getLabelSuffix(const Rule* p) const;
 };
 
 
