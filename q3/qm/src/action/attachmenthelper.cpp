@@ -227,18 +227,34 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 	}
 	
 	if (dialog.isOpenFolder()) {
-		W2T(pwszFolder, ptszFolder);
+		const WCHAR* pwszCommand = 0;
+		wstring_ptr wstrParam;
+		
+		wstring_ptr wstrFiler(pProfile_->getString(L"Global", L"Filer", L""));
+		if (*wstrFiler.get()) {
+			pwszCommand = wstrFiler.get();
+			if (wcschr(pwszFolder, L' '))
+				wstrParam = concat(L"\"", pwszFolder, L"\"");
+			else
+				wstrParam = allocWString(pwszFolder);
+		}
+		else {
+			pwszCommand = pwszFolder;
+		}
+		
+		W2T(pwszCommand, ptszCommand);
+		W2T(wstrParam.get(), ptszParam);
 		SHELLEXECUTEINFO info = {
 			sizeof(info),
 			0,
 			hwnd_,
-	#ifdef _WIN32_WCE
+#ifdef _WIN32_WCE
 			_T("open"),
-	#else
+#else
 			0,
-	#endif
-			ptszFolder,
-			0,
+#endif
+			ptszCommand,
+			ptszParam,
 			0,
 			SW_SHOW
 		};
