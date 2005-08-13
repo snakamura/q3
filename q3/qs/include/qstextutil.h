@@ -53,6 +53,10 @@ public:
 	static bool isPathChar(WCHAR c);
 	static bool isDriveLetterChar(WCHAR c);
 	
+	static wstring_ptr replace(const WCHAR* pwsz,
+							   const WCHAR* pwszFind,
+							   const WCHAR* pwszReplace);
+	
 	static wstring_ptr encodePassword(const WCHAR* pwsz);
 	static wstring_ptr decodePassword(const WCHAR* pwsz);
 

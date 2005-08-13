@@ -415,6 +415,22 @@ bool qs::TextUtil::isDriveLetterChar(WCHAR c)
 	return (L'a' <= c && c <= L'z') || (L'A' <= c && c <= L'Z');
 }
 
+wstring_ptr qs::TextUtil::replace(const WCHAR* pwsz,
+								  const WCHAR* pwszFind,
+								  const WCHAR* pwszReplace)
+{
+	WCHAR* p = wcsstr(pwsz, pwszFind);
+	if (!p)
+		return allocWString(pwsz);
+	
+	ConcatW c[] = {
+		{ pwsz,					p - pwsz	},
+		{ pwszReplace,			-1			},
+		{ p + wcslen(pwszFind),	-1			}
+	};
+	return concat(c, countof(c));
+}
+
 wstring_ptr qs::TextUtil::encodePassword(const WCHAR* pwsz)
 {
 	assert(pwsz);

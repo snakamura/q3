@@ -16,6 +16,7 @@
 #include <qsfile.h>
 #include <qsosutil.h>
 #include <qsstl.h>
+#include <qstextutil.h>
 #include <qsuiutil.h>
 
 #include "fulltextsearch.h"
@@ -50,17 +51,12 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	wstring_ptr wstrCommand(pProfile_->getString(L"FullTextSearch",
 		L"Command", L"namazu -l -a \"$condition\" \"$index\""));
 	
-	wstrCommand = FullTextSearchUtil::replace(
-		wstrCommand.get(), L"$condition", context.getCondition());
-	if (!wstrCommand.get())
-		return true;
+	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$condition", context.getCondition());
 	
 	wstring_ptr wstrIndex(pAccount_->getProperty(L"FullTextSearch", L"Index", L""));
 	if (!*wstrIndex.get())
 		wstrIndex = concat(pAccount_->getPath(), L"\\index");
-	wstrCommand = FullTextSearchUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
-	if (!wstrCommand.get())
-		return true;
+	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
 	
 	wstring_ptr wstrOutput(Process::exec(wstrCommand.get(), 0));
 	if (!wstrOutput.get())
@@ -313,10 +309,10 @@ bool qm::FullTextSearchPage::updateIndex()
 		if (::GetShortPathName(ptszIndex, tszShort, countof(tszShort)))
 			wstrIndex = tcs2wcs(tszShort);
 	}
-	wstrCommand = FullTextSearchUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
+	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
 	
 	wstring_ptr wstrMsg(concat(pAccount_->getMessageStorePath(), L"\\msg"));
-	wstrCommand = FullTextSearchUtil::replace(wstrCommand.get(), L"$msg", wstrMsg.get());
+	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$msg", wstrMsg.get());
 	
 	W2T(wstrCommand.get(), ptszCommand);
 	STARTUPINFO si = { sizeof(si) };
@@ -389,29 +385,6 @@ void qm::FullTextSearchDriverFactory::InitializerImpl::term()
 {
 	delete pFactory__;
 	pFactory__ = 0;
-}
-
-
-/****************************************************************************
- *
- * FullTextSearchUtil
- *
- */
-
-wstring_ptr qm::FullTextSearchUtil::replace(const WCHAR* pwsz,
-											const WCHAR* pwszFind,
-											const WCHAR* pwszReplace)
-{
-	WCHAR* p = wcsstr(pwsz, pwszFind);
-	if (!p)
-		return 0;
-	
-	ConcatW c[] = {
-		{ pwsz,					p - pwsz	},
-		{ pwszReplace,			-1			},
-		{ p + wcslen(pwszFind),	-1			}
-	};
-	return concat(c, countof(c));
 }
 
 #endif // _WIN32_WCE

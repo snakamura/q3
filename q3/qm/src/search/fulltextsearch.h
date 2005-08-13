@@ -170,21 +170,6 @@ private:
 	friend class InitializerImpl;
 };
 
-
-/****************************************************************************
- *
- * FullTextSearchUtil
- *
- */
-
-class FullTextSearchUtil
-{
-public:
-	static qs::wstring_ptr replace(const WCHAR* pwsz,
-								   const WCHAR* pwszFind,
-								   const WCHAR* pwszReplace);
-};
-
 }
 
 #endif // _WIN32_WCE
