@@ -414,9 +414,11 @@ qm::DetachDialog::DetachDialog(Profile* pProfile,
 							   List& list) :
 	DefaultDialog(IDD_DETACH),
 	pProfile_(pProfile),
-	list_(list)
+	list_(list),
+	bOpenFolder_(false)
 {
 	wstrFolder_ = pProfile_->getString(L"Global", L"DetachFolder", L"");
+	bOpenFolder_ = pProfile_->getInt(L"Global", L"DetachOpenFolder", 0) != 0;
 }
 
 qm::DetachDialog::~DetachDialog()
@@ -426,6 +428,11 @@ qm::DetachDialog::~DetachDialog()
 const WCHAR* qm::DetachDialog::getFolder() const
 {
 	return wstrFolder_.get();
+}
+
+bool qm::DetachDialog::isOpenFolder() const
+{
+	return bOpenFolder_;
 }
 
 LRESULT qm::DetachDialog::onCommand(WORD nCode,
@@ -468,6 +475,9 @@ LRESULT qm::DetachDialog::onInitDialog(HWND hwndFocus,
 	}
 	
 	setDlgItemText(IDC_FOLDER, wstrFolder_.get());
+	Button_SetCheck(getDlgItem(IDC_OPENFOLDER),
+		bOpenFolder_ ? BST_CHECKED : BST_UNCHECKED);
+	
 	updateState();
 	
 	addNotifyHandler(this);
@@ -496,6 +506,9 @@ LRESULT qm::DetachDialog::onOk()
 	
 	wstrFolder_ = getDlgItemText(IDC_FOLDER);
 	pProfile_->setString(L"Global", L"DetachFolder", wstrFolder_.get());
+	
+	bOpenFolder_ = Button_GetCheck(getDlgItem(IDC_OPENFOLDER)) == BST_CHECKED;
+	pProfile_->setInt(L"Global", L"DetachOpenFolder", bOpenFolder_);
 	
 	return DefaultDialog::onOk();
 }

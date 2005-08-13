@@ -323,6 +323,7 @@ public:
 
 public:
 	const WCHAR* getFolder() const;
+	bool isOpenFolder() const;
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -359,6 +360,7 @@ private:
 	qs::Profile* pProfile_;
 	List& list_;
 	qs::wstring_ptr wstrFolder_;
+	bool bOpenFolder_;
 };
 
 

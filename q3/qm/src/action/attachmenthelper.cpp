@@ -185,43 +185,64 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 		}
 	}
 	
-	if (!list.empty()) {
-		DetachDialog dialog(pProfile_, list);
-		if (dialog.doModal(hwnd_) == IDOK) {
-			const WCHAR* pwszFolder = dialog.getFolder();
-			
-			MessageHolder* pmh = 0;
-			Message msg;
-			AttachmentParser::AttachmentList l;
-			AttachmentParser::AttachmentListFree free(l);
-			DetachCallbackImpl callback(hwnd_);
-			unsigned int n = 0;
-			for (DetachDialog::List::iterator it = list.begin(); it != list.end(); ++it) {
-				if ((*it).pmh_ != pmh) {
-					pmh = (*it).pmh_;
-					n = 0;
-					msg.clear();
-					free.free();
-				}
-				else {
-					++n;
-				}
-				if ((*it).wstrName_) {
-					if (msg.getFlag() == Message::FLAG_EMPTY) {
-						if (!(*it).pmh_->getMessage(Account::GETMESSAGEFLAG_ALL,
-							0, pSecurityModel_->getSecurityMode(), &msg))
-							return AttachmentParser::RESULT_FAIL;
-					}
-					if (l.empty())
-						AttachmentParser(msg).getAttachments(false, &l);
-					assert(n < l.size());
-					const AttachmentParser::AttachmentList::value_type& v = l[n];
-					if (AttachmentParser(*v.second).detach(pwszFolder, (*it).wstrName_,
-						&callback, 0) == AttachmentParser::RESULT_FAIL)
-						return AttachmentParser::RESULT_FAIL;
-				}
-			}
+	if (list.empty())
+		return AttachmentParser::RESULT_OK;
+	
+	DetachDialog dialog(pProfile_, list);
+	if (dialog.doModal(hwnd_) != IDOK)
+		return AttachmentParser::RESULT_CANCEL;
+	
+	const WCHAR* pwszFolder = dialog.getFolder();
+	
+	MessageHolder* pmh = 0;
+	Message msg;
+	AttachmentParser::AttachmentList l;
+	AttachmentParser::AttachmentListFree free(l);
+	DetachCallbackImpl callback(hwnd_);
+	unsigned int n = 0;
+	for (DetachDialog::List::iterator it = list.begin(); it != list.end(); ++it) {
+		if ((*it).pmh_ != pmh) {
+			pmh = (*it).pmh_;
+			n = 0;
+			msg.clear();
+			free.free();
 		}
+		else {
+			++n;
+		}
+		if ((*it).wstrName_) {
+			if (msg.getFlag() == Message::FLAG_EMPTY) {
+				if (!(*it).pmh_->getMessage(Account::GETMESSAGEFLAG_ALL,
+					0, pSecurityModel_->getSecurityMode(), &msg))
+					return AttachmentParser::RESULT_FAIL;
+			}
+			if (l.empty())
+				AttachmentParser(msg).getAttachments(false, &l);
+			assert(n < l.size());
+			const AttachmentParser::AttachmentList::value_type& v = l[n];
+			if (AttachmentParser(*v.second).detach(pwszFolder, (*it).wstrName_,
+				&callback, 0) == AttachmentParser::RESULT_FAIL)
+				return AttachmentParser::RESULT_FAIL;
+		}
+	}
+	
+	if (dialog.isOpenFolder()) {
+		W2T(pwszFolder, ptszFolder);
+		SHELLEXECUTEINFO info = {
+			sizeof(info),
+			0,
+			hwnd_,
+	#ifdef _WIN32_WCE
+			_T("open"),
+	#else
+			0,
+	#endif
+			ptszFolder,
+			0,
+			0,
+			SW_SHOW
+		};
+		::ShellExecuteEx(&info);
 	}
 	
 	return AttachmentParser::RESULT_OK;
