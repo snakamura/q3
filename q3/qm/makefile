@@ -64,3 +64,7 @@ $(SRCDIR)/main/version.h: version revision
 	) > $@
 
 $(OBJDIR)/main/application.obj: $(SRCDIR)/main/version.h
+
+$(OBJDIR)/ui/qm.res: $(SRCDIR)/model/model.rc $(SRCDIR)/model/modelresource.h
+$(OBJDIR)/ui/qmhpc.res: $(SRCDIR)/model/model.rc $(SRCDIR)/model/modelresource.h
+$(OBJDIR)/ui/qmppc.res: $(SRCDIR)/model/model.rc $(SRCDIR)/model/modelresource.h
