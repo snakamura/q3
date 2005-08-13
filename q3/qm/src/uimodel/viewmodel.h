@@ -292,13 +292,13 @@ public:
 		RestoreInfo(MessageHolder* pmh);
 	
 	public:
-		MessageHolder* getMessageHolder() const;
+		MessagePtr getMessagePtr() const;
 		void setMessageHolder(MessageHolder* pmh);
 		int getScrollPos() const;
 		void setScrollPos(int n);
 	
 	private:
-		MessageHolder* pmh_;
+		MessagePtr ptr_;
 		int nScrollPos_;
 	};
 

@@ -295,9 +295,9 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 	if (pNewViewModel) {
 		Lock<ViewModel> lock(*pNewViewModel);
 		ViewModel::RestoreInfo info = pNewViewModel->getRestoreInfo();
-		MessageHolder* pmh = info.getMessageHolder();
-		setMessage(pmh);
-		if (pmh)
+		MessagePtrLock mpl(info.getMessagePtr());
+		setMessage(mpl);
+		if (mpl)
 			fireApplyRestoreInfo(&info);
 	}
 	else {

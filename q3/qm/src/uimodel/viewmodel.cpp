@@ -828,11 +828,12 @@ ViewModel::RestoreInfo qm::ViewModel::getRestoreInfo() const
 {
 	assert(isLocked());
 	
-	if (!listItem_.empty() &&
-		listItem_[nFocused_]->getMessageHolder() == restoreInfo_.getMessageHolder())
-		return restoreInfo_;
-	else
-		return RestoreInfo();
+	if (!listItem_.empty()) {
+		MessagePtrLock mpl(restoreInfo_.getMessagePtr());
+		if (mpl == listItem_[nFocused_]->getMessageHolder())
+			return restoreInfo_;
+	}
+	return RestoreInfo();
 }
 
 void qm::ViewModel::setRestoreInfo(const RestoreInfo& info)
@@ -855,15 +856,17 @@ void qm::ViewModel::invalidateColors(const ColorManager* pColorManager)
 
 void qm::ViewModel::save() const
 {
+	Lock<ViewModel> lock(*this);
+	
 	pDataItem_->setSort(nSort_);
 	pDataItem_->setFocus(nFocused_);
 	pDataItem_->setScroll(nScroll_);
 	pDataItem_->setFilter(pFilter_.get() ? pFilter_->getName() : 0);
 	pDataItem_->setMode(nMode_);
-	if (restoreInfo_.getMessageHolder()) {
-		pDataItem_->setRestoreId(restoreInfo_.getMessageHolder()->getId());
-		pDataItem_->setRestoreScroll(restoreInfo_.getScrollPos());
-	}
+	
+	MessagePtrLock mpl(restoreInfo_.getMessagePtr());
+	pDataItem_->setRestoreId(mpl ? mpl->getId() : -1);
+	pDataItem_->setRestoreScroll(mpl ? restoreInfo_.getScrollPos() : 0);
 }
 
 void qm::ViewModel::destroy()
@@ -1511,25 +1514,24 @@ void qm::ViewModel::fireEvent(const ViewModelEvent& event,
  */
 
 qm::ViewModel::RestoreInfo::RestoreInfo() :
-	pmh_(0),
 	nScrollPos_(0)
 {
 }
 
 qm::ViewModel::RestoreInfo::RestoreInfo(MessageHolder* pmh) :
-	pmh_(pmh),
+	ptr_(pmh),
 	nScrollPos_(0)
 {
 }
 
-MessageHolder* qm::ViewModel::RestoreInfo::getMessageHolder() const
+MessagePtr qm::ViewModel::RestoreInfo::getMessagePtr() const
 {
-	return pmh_;
+	return ptr_;
 }
 
 void qm::ViewModel::RestoreInfo::setMessageHolder(MessageHolder* pmh)
 {
-	pmh_ = pmh;
+	ptr_.reset(pmh);
 }
 
 int qm::ViewModel::RestoreInfo::getScrollPos() const
