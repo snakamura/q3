@@ -2422,7 +2422,7 @@ const WCHAR* qm::ColorsDialog::getName() const
 
 wstring_ptr qm::ColorsDialog::getLabelSuffix(const ColorEntry* p) const
 {
-	return Color(p->getColor()).getString();
+	return concat(L"#", Color(p->getColor()).getString().get());
 }
 
 
