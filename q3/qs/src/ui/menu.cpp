@@ -10,6 +10,8 @@
 
 #include <qsaction.h>
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsmenu.h>
 #include <qsstl.h>
 
@@ -121,11 +123,15 @@ qs::MenuManager::MenuManager(const WCHAR* pwszPath,
 	assert(pwszPath);
 	assert(pItem);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qs::MenuManager");
+	
 	pImpl_ = new MenuManagerImpl();
 	pImpl_->pThis_ = this;
 	
-	if (!pImpl_->load(pwszPath, pItem, nItemCount, popupMenuManager))
+	if (!pImpl_->load(pwszPath, pItem, nItemCount, popupMenuManager)) {
+		log.error(L"Could not load menu.");
 		return;
+	}
 }
 
 qs::MenuManager::~MenuManager()
@@ -308,6 +314,9 @@ bool qs::MenuContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 {
 	assert(!stackState_.empty());
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qs::MenuContentHandler");
+	log.debugf(L"Begin startElement: %s", pwszLocalName);
+	
 	if (wcscmp(pwszLocalName, L"menus") == 0) {
 		if (stackState_.back() != STATE_ROOT)
 			return false;
@@ -440,16 +449,18 @@ bool qs::MenuContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				return false;
 			state = STATE_MENU;
 		}
-		::AppendMenu(hmenu, MF_POPUP,
-			reinterpret_cast<UINT_PTR>(hmenuSub), ptszText);
+		::AppendMenu(hmenu, MF_POPUP, reinterpret_cast<UINT_PTR>(hmenuSub), ptszText);
 		
 		if (state == STATE_MENU)
 			stackMenu_.push_back(hmenuSub);
+		
 		stackState_.push_back(state);
 	}
 	else {
 		return false;
 	}
+	
+	log.debug(L"End startElement");
 	
 	return true;
 }
@@ -459,6 +470,9 @@ bool qs::MenuContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 										const WCHAR* pwszQName)
 {
 	assert(!stackState_.empty());
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qs::MenuContentHandler");
+	log.debugf(L"Begin endElement: %s", pwszLocalName);
 	
 	if (wcscmp(pwszLocalName, L"menus") == 0) {
 		assert(stackState_.back() == STATE_MENUS);
@@ -491,6 +505,8 @@ bool qs::MenuContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		return false;
 	}
 	
+	log.debug(L"End endElement");
+	
 	return true;
 }
 
@@ -500,11 +516,19 @@ bool qs::MenuContentHandler::characters(const WCHAR* pwsz,
 {
 	assert(!stackState_.empty());
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qs::MenuContentHandler");
+	if (log.isDebugEnabled()) {
+		wstring_ptr wstr(allocWString(pwsz + nStart, nLength));
+		log.debugf(L"Begin characters: %s", wstr.get());
+	}
+	
 	const WCHAR* p = pwsz + nStart;
 	for (size_t n = 0; n < nLength; ++n, ++p) {
 		if (*p != L' ' && *p != L'\t' && *p != '\n')
 			return false;
 	}
+	
+	log.debug(L"End characters");
 	
 	return true;
 }

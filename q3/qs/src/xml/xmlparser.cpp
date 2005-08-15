@@ -9,6 +9,8 @@
 #pragma warning(disable:4786)
 
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsstream.h>
 
 #include <algorithm>
@@ -366,6 +368,9 @@ bool qs::XMLParser::parseStartElement(XMLParserContext& context,
 {
 	assert(c != L'\0');
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParser");
+	log.debug(L"Begin parseStartElement");
+	
 	wstring_ptr wstrQName;
 	WCHAR cNext = L'\0';
 	if (!context.getString(c, L" \t\n\r>/", &wstrQName, &cNext))
@@ -442,11 +447,16 @@ bool qs::XMLParser::parseStartElement(XMLParserContext& context,
 			return false;
 	}
 	
+	log.debug(L"End parseStartElement");
+	
 	return true;
 }
 
 bool qs::XMLParser::parseEndElement(XMLParserContext& context)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParser");
+	log.debug(L"Begin parseEndElement");
+	
 	wstring_ptr wstrQName;
 	WCHAR c = L'\0';
 	if (!context.getString(L'\0', L" \t\n\r>", &wstrQName, &c))
@@ -481,6 +491,8 @@ bool qs::XMLParser::parseEndElement(XMLParserContext& context)
 			return false;
 	}
 	
+	log.debug(L"End parseEndElement");
+	
 	return true;
 }
 
@@ -492,6 +504,9 @@ bool qs::XMLParser::parseAttributes(XMLParserContext& context,
 	assert(pListAttribute);
 	assert(pNext);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParser");
+	log.debug(L"Begin parseAttributes");
+	
 	AttributeListDeleter deleter(pListAttribute);
 	do {
 		wstring_ptr wstrQName;
@@ -500,6 +515,8 @@ bool qs::XMLParser::parseAttributes(XMLParserContext& context,
 			return false;
 		if (!validateQName(wstrQName.get()))
 			return false;
+		
+		log.debugf(L"Attribute name: %s", wstrQName.get());
 		
 		c = cNext;
 		while (isWhitespace(c)) {
@@ -523,10 +540,13 @@ bool qs::XMLParser::parseAttributes(XMLParserContext& context,
 		StringBuffer<WSTRING> buf;
 		WCHAR cEnd = c;
 		while (true) {
-			if (!context.getChar(&c))
+			if (!context.getChar(&c)) {
+				log.error(L"Failed to get a character.");
 				return false;
+			}
 			
 			if (c == L'\0') {
+				log.error(L"An unexpected end of stream.");
 				return false;
 			}
 			else if (c == cEnd) {
@@ -534,18 +554,24 @@ bool qs::XMLParser::parseAttributes(XMLParserContext& context,
 			}
 			else if (c == L'&') {
 				wstring_ptr wstrValue;
-				if (!context.expandReference(&wstrValue))
+				if (!context.expandReference(&c, &wstrValue)) {
+					log.error(L"Failed to expand an entity reference.");
 					return false;
-				for (const WCHAR* p = wstrValue.get(); *p; ++p) {
-					// TODO
-					// Expand entity
-					if (isWhitespace(*p))
-						buf.append(L' ');
-					else
-						buf.append(*p);
+				}
+				if (wstrValue.get()) {
+					for (const WCHAR* p = wstrValue.get(); *p; ++p) {
+						if (isWhitespace(*p))
+							buf.append(L' ');
+						else
+							buf.append(*p);
+					}
+				}
+				else {
+					buf.append(c);
 				}
 			}
 			else if (c == '<') {
+				log.error(L"< is not allowed in an attribute value.");
 				return false;
 			}
 			else if (isWhitespace(c)) {
@@ -556,18 +582,28 @@ bool qs::XMLParser::parseAttributes(XMLParserContext& context,
 			}
 		}
 		
-		if (!context.getChar(&c))
+		if (!context.getChar(&c)) {
+			log.error(L"Failed to get a character.");
 			return false;
-		if (!isWhitespace(c) && c != L'>' && c != L'/')
+		}
+		if (!isWhitespace(c) && c != L'>' && c != L'/') {
+			log.error(L"An invalid character after an end of an attribute value.");
 			return false;
+		}
 		while (isWhitespace(c)) {
-			if (!context.getChar(&c))
+			if (!context.getChar(&c)) {
+				log.error(L"Failed to get a character.");
 				return false;
-			if (c == L'\0')
+			}
+			if (c == L'\0') {
+				log.error(L"An unexpected end of stream.");
 				return false;
+			}
 		}
 		
 		wstring_ptr wstrValue(buf.getString());
+		
+		log.debugf(L"Attribute value: %s", wstrValue.get());
 		
 		bool bNamespaceDecl = wcscmp(wstrQName.get(), L"xmlns") == 0 ||
 			wcsncmp(wstrQName.get(), L"xmlns:", 6) == 0;
@@ -589,8 +625,7 @@ bool qs::XMLParser::parseAttributes(XMLParserContext& context,
 		}
 	} while (c != L'>' && c != L'/');
 	
-	AttributeList::iterator it = pListAttribute->begin();
-	while (it != pListAttribute->end()) {
+	for (AttributeList::iterator it = pListAttribute->begin(); it != pListAttribute->end(); ++it) {
 		if ((nFlags_ & FLAG_NAMESPACES)) {
 			if ((*it).bNamespaceDecl_) {
 				if (*((*it).wstrQName_ + 5) == L':')
@@ -605,18 +640,16 @@ bool qs::XMLParser::parseAttributes(XMLParserContext& context,
 			}
 		}
 		
-		AttributeList::iterator itP = pListAttribute->begin();
-		while (itP != it) {
+		for (AttributeList::iterator itP = pListAttribute->begin(); itP != it; ++itP) {
 			if (isEqualAttribute(*it, *itP, nFlags_ & FLAG_NAMESPACES))
 				return false;
-			++itP;
 		}
-		
-		++it;
 	}
 	
 	deleter.release();
 	*pNext = c;
+	
+	log.debug(L"End parseAttributes");
 	
 	return true;
 }
@@ -627,14 +660,20 @@ bool qs::XMLParser::parseCharacter(XMLParserContext& context,
 {
 	assert(pNext);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParser");
+	log.debug(L"Begin parseCharacter");
+	
 	StringBuffer<WSTRING> buf;
 	
 	while (c != L'<') {
 		if (c == L'&') {
 			wstring_ptr wstrValue;
-			if (!context.expandReference(&wstrValue))
+			if (!context.expandReference(&c, &wstrValue))
 				return false;
-			buf.append(wstrValue.get());
+			if (wstrValue.get())
+				buf.append(wstrValue.get());
+			else
+				buf.append(c);
 		}
 		else {
 			if (c == '>') {
@@ -659,11 +698,16 @@ bool qs::XMLParser::parseCharacter(XMLParserContext& context,
 	
 	*pNext = c;
 	
+	log.debug(L"End parseCharacter");
+	
 	return true;
 }
 
 bool qs::XMLParser::parseComment(XMLParserContext& context)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParser");
+	log.debug(L"Begin parseComment");
+	
 	WCHAR c = L'\0';
 	if (!context.getChar(&c))
 		return false;
@@ -691,11 +735,16 @@ bool qs::XMLParser::parseComment(XMLParserContext& context)
 	if (c != L'>')
 		return false;
 	
+	log.debug(L"End parseComment");
+	
 	return true;
 }
 
 bool qs::XMLParser::parseCDATASection(XMLParserContext& context)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParser");
+	log.debug(L"Begin parseCDATASection");
+	
 	WCHAR c = L'\0';
 	
 	wstring_ptr wstrName;
@@ -755,11 +804,16 @@ bool qs::XMLParser::parseCDATASection(XMLParserContext& context)
 			return false;
 	}
 	
+	log.debug(L"End parseCDATASection");
+	
 	return true;
 }
 
 bool qs::XMLParser::parsePI(XMLParserContext& context)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParser");
+	log.debug(L"Begin parsePI");
+	
 	WCHAR c = L'\0';
 	
 	wstring_ptr wstrTarget;
@@ -810,11 +864,16 @@ bool qs::XMLParser::parsePI(XMLParserContext& context)
 			return false;
 	}
 	
+	log.debug(L"End parsePI");
+	
 	return true;
 }
 
 bool qs::XMLParser::parseDoctype(XMLParserContext& context)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParser");
+	log.debug(L"Begin parseDoctype");
+	
 	WCHAR c = L'\0';
 	do {
 		if (!context.getChar(&c))
@@ -863,6 +922,8 @@ bool qs::XMLParser::parseDoctype(XMLParserContext& context)
 	}
 	if (c != L'>')
 		return false;
+	
+	log.debug(L"End parseDoctype");
 	
 	return true;
 }
@@ -1015,11 +1076,9 @@ qs::XMLParser::AttributeListDeleter::AttributeListDeleter(AttributeList* p) :
 qs::XMLParser::AttributeListDeleter::~AttributeListDeleter()
 {
 	if (p_) {
-		XMLParser::AttributeList::iterator it = p_->begin();
-		while (it != p_->end()) {
+		for (XMLParser::AttributeList::iterator it = p_->begin(); it != p_->end(); ++it) {
 			freeWString((*it).wstrQName_);
 			freeWString((*it).wstrValue_);
-			++it;
 		}
 		p_->clear();
 	}
@@ -1061,12 +1120,10 @@ qs::XMLParserContext::XMLParserContext(const XMLParserContext* pParentContext,
 
 qs::XMLParserContext::~XMLParserContext()
 {
-	NamespaceMap::iterator it = mapNamespace_.begin();
-	while (it != mapNamespace_.end()) {
+	for (NamespaceMap::iterator it = mapNamespace_.begin(); it != mapNamespace_.end(); ++it) {
 		freeWString((*it).first);
 		assert((*it).second);
 		freeWString((*it).second);
-		++it;
 	}
 }
 
@@ -1175,12 +1232,10 @@ bool qs::XMLParserContext::addNamespace(const WCHAR* pwszQName,
 bool qs::XMLParserContext::fireStartPrefixMappings(ContentHandler* pContentHandler) const
 {
 	if (pContentHandler) {
-		NamespaceMap::const_iterator it = mapNamespace_.begin();
-		while (it != mapNamespace_.end()) {
+		for (NamespaceMap::const_iterator it = mapNamespace_.begin(); it != mapNamespace_.end(); ++it) {
 			if (!pContentHandler->startPrefixMapping(
 				(*it).first ? (*it).first : L"", (*it).second))
 				return false;
-			++it;
 		}
 	}
 	
@@ -1190,12 +1245,10 @@ bool qs::XMLParserContext::fireStartPrefixMappings(ContentHandler* pContentHandl
 bool qs::XMLParserContext::fireEndPrefixMappings(ContentHandler* pContentHandler) const
 {
 	if (pContentHandler) {
-		NamespaceMap::const_iterator it = mapNamespace_.begin();
-		while (it != mapNamespace_.end()) {
+		for (NamespaceMap::const_iterator it = mapNamespace_.begin(); it != mapNamespace_.end(); ++it) {
 			if (!pContentHandler->endPrefixMapping(
 				(*it).first ? (*it).first : L""))
 				return false;
-			++it;
 		}
 	}
 	
@@ -1207,10 +1260,14 @@ bool qs::XMLParserContext::getChar(WCHAR* pChar)
 	assert(pChar);
 	
 	size_t nRead = pReader_->read(pChar, 1);
-	if (nRead == -1)
+	if (nRead == -1) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParserContext");
+		log.error(L"Failed to get a character.");
 		return false;
-	else if (nRead == 0)
+	}
+	else if (nRead == 0) {
 		*pChar = L'\0';
+	}
 	
 	return true;
 }
@@ -1238,8 +1295,11 @@ bool qs::XMLParserContext::getString(WCHAR cFirst,
 		if (!getChar(&c))
 			return false;
 	}
-	if (c == L'\0')
+	if (c == L'\0') {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParserContext");
+		log.errorf(L"An unexpected end of stream: %s", buf.getCharArray());
 		return false;
+	}
 	
 	*pwstr = buf.getString();
 	*pNext = c;
@@ -1247,15 +1307,27 @@ bool qs::XMLParserContext::getString(WCHAR cFirst,
 	return true;
 }
 
-bool qs::XMLParserContext::expandReference(wstring_ptr* pwstrValue)
+bool qs::XMLParserContext::expandReference(WCHAR* pcValue,
+										   wstring_ptr* pwstrValue)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParserContext");
+	log.debug(L"Begin expandReference");
+	
+	assert(pcValue);
 	assert(pwstrValue);
+	
+	*pcValue = L'\0';
+	pwstrValue->reset(0);
 	
 	wstring_ptr wstrName;
 	WCHAR cNext = L'\0';
-	if (!getString(L'\0', L";", &wstrName, &cNext))
+	if (!getString(L'\0', L";", &wstrName, &cNext)) {
+		log.error(L"Failed to get an entity name.");
 		return false;
+	}
 	assert(cNext == L';');
+	
+	log.debugf(L"Expanding reference: %s", wstrName.get());
 	
 	if (*wstrName.get() == L'#') {
 		const WCHAR* p = wstrName.get() + 1;
@@ -1266,15 +1338,18 @@ bool qs::XMLParserContext::expandReference(wstring_ptr* pwstrValue)
 		}
 		WCHAR* pEnd = 0;
 		long nValue = wcstol(p, &pEnd, nBase);
-		if (nValue == 0 || *pEnd || nValue > 0xffff)
+		if (nValue == 0 || *pEnd || nValue > 0xffff) {
+			log.errorf(L"An invalid character reference: %s", wstrName.get());
 			return false;
+		}
 		
-		WCHAR c = static_cast<WCHAR>(nValue);
-		*pwstrValue = allocWString(&c, 1);
+		*pcValue = static_cast<WCHAR>(nValue);
 	}
 	else {
-		if (!pParser_->validateNCName(wstrName.get()))
+		if (!pParser_->validateNCName(wstrName.get())) {
+			log.errorf(L"An invalid entity reference name: %s", wstrName.get());
 			return false;
+		}
 		
 		struct {
 			const WCHAR* pwszName_;
@@ -1292,13 +1367,16 @@ bool qs::XMLParserContext::expandReference(wstring_ptr* pwstrValue)
 				c = predefined[n].c_;
 		}
 		if (c == L'\0') {
+			log.errorf(L"An unknown entity reference: %s", wstrName.get());
 			// TODO
 			// Handle entity
 			return false;
 		}
 		
-		*pwstrValue = allocWString(&c, 1);
+		*pcValue = c;
 	}
+	
+	log.debug(L"End expandReference");
 	
 	return true;
 }

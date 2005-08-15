@@ -61,7 +61,7 @@ extern "C" QSEXPORTPROC int _strnicmp(const char* lhs,
 }
 
 bool isValid(char c,
-			int nBase)
+			 int nBase)
 {
 	if (nBase <= 10)
 		return '0' <= c && c < '0' + nBase;

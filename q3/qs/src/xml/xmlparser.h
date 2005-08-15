@@ -159,7 +159,8 @@ public:
 				   WCHAR* pwszSeparator,
 				   wstring_ptr* pwstr,
 				   WCHAR* pNext);
-	bool expandReference(wstring_ptr* pwstrValue);
+	bool expandReference(WCHAR* pcValue,
+						 wstring_ptr* pwstrValue);
 	const XMLParserContext* getParentContext() const;
 	const WCHAR* getQName() const;
 	bool isWait(Wait wait) const;
