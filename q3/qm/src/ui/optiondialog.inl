@@ -298,21 +298,25 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onOk()
 template<class T, class List, class Container, class EditDialog>
 qs::wstring_ptr qm::RulesColorsDialog<T, List, Container, EditDialog>::getLabel(const T* p) const
 {
+	StringBuffer<WSTRING> buf;
+	
 	const WCHAR* pwszDescription = p->getDescription();
 	if (pwszDescription) {
-		return allocWString(pwszDescription);
+		buf.append(pwszDescription);
+		buf.append(L": ");
 	}
-	else {
-		wstring_ptr wstrCondition;
-		const Macro* pMacro = p->getCondition();
-		std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
-		if (pConditionList.get())
-			wstrCondition = pConditionList->getDescription(true);
-		else
-			wstrCondition = pMacro->getString();
-		wstring_ptr wstrSuffix(getLabelSuffix(p));
-		return concat(wstrCondition.get(), L" -> ", wstrSuffix.get());
-	}
+	
+	const Macro* pMacro = p->getCondition();
+	std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
+	if (pConditionList.get())
+		buf.append(pConditionList->getDescription(true).get());
+	else
+		buf.append(pMacro->getString().get());
+	
+	buf.append(L" -> ");
+	buf.append(getLabelSuffix(p).get());
+	
+	return buf.getString();
 }
 
 template<class T, class List, class Container, class EditDialog>
