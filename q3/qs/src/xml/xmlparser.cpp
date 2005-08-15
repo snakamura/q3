@@ -373,10 +373,16 @@ bool qs::XMLParser::parseStartElement(XMLParserContext& context,
 	
 	wstring_ptr wstrQName;
 	WCHAR cNext = L'\0';
-	if (!context.getString(c, L" \t\n\r>/", &wstrQName, &cNext))
+	if (!context.getString(c, L" \t\n\r>/", &wstrQName, &cNext)) {
+		log.error(L"Failed to get an element name.");
 		return false;
-	if (!validateQName(wstrQName.get()))
+	}
+	if (!validateQName(wstrQName.get())) {
+		log.errorf(L"An invalid element name: %s", wstrQName.get());
 		return false;
+	}
+	
+	log.debugf(L"Element name: %s", wstrQName.get());
 	
 	c = cNext;
 	while (isWhitespace(c)) {
@@ -459,10 +465,16 @@ bool qs::XMLParser::parseEndElement(XMLParserContext& context)
 	
 	wstring_ptr wstrQName;
 	WCHAR c = L'\0';
-	if (!context.getString(L'\0', L" \t\n\r>", &wstrQName, &c))
+	if (!context.getString(L'\0', L" \t\n\r>", &wstrQName, &c)) {
+		log.error(L"Failed to get an element name.");
 		return false;
-	if (!validateQName(wstrQName.get()))
+	}
+	if (!validateQName(wstrQName.get())) {
+		log.errorf(L"An invalid element name: %s", wstrQName.get());
 		return false;
+	}
+	
+	log.debugf(L"Element name: %s", wstrQName.get());
 	
 	const WCHAR* pwszNamespaceURI = 0;
 	const WCHAR* pwszLocalName = 0;
@@ -482,8 +494,10 @@ bool qs::XMLParser::parseEndElement(XMLParserContext& context)
 	if (c != L'>')
 		return false;
 	
-	if (wcscmp(wstrQName.get(), context.getQName()) != 0)
+	if (wcscmp(wstrQName.get(), context.getQName()) != 0) {
+		log.errorf(L"Element names don't match: <%s> and </%s>", context.getQName(), wstrQName.get());
 		return false;
+	}
 	
 	if (pContentHandler_) {
 		if (!pContentHandler_->endElement(
@@ -511,10 +525,14 @@ bool qs::XMLParser::parseAttributes(XMLParserContext& context,
 	do {
 		wstring_ptr wstrQName;
 		WCHAR cNext = L'\0';
-		if (!context.getString(c, L" \t\n\r=", &wstrQName, &cNext))
+		if (!context.getString(c, L" \t\n\r=", &wstrQName, &cNext)) {
+			log.error(L"Failed to get an attribute name.");
 			return false;
-		if (!validateQName(wstrQName.get()))
+		}
+		if (!validateQName(wstrQName.get())) {
+			log.errorf(L"An invalid attribute name: %s", wstrQName.get());
 			return false;
+		}
 		
 		log.debugf(L"Attribute name: %s", wstrQName.get());
 		
@@ -690,6 +708,8 @@ bool qs::XMLParser::parseCharacter(XMLParserContext& context,
 			return false;
 	}
 	
+	log.debugf(L"Characters: %s", buf.getCharArray());
+	
 	if (pContentHandler_) {
 		if (!pContentHandler_->characters(
 			buf.getCharArray(), 0, buf.getLength()))
@@ -799,6 +819,8 @@ bool qs::XMLParser::parseCDATASection(XMLParserContext& context)
 	size_t nLen = buf.getLength();
 	assert(nLen >= 2 && buf.get(nLen - 1) == ']' && buf.get(nLen - 2) == ']');
 	
+	log.debugf(L"CDATA section: %s", buf.getCharArray());
+	
 	if (pContentHandler_) {
 		if (!pContentHandler_->characters(buf.getCharArray(), 0, nLen - 2))
 			return false;
@@ -817,12 +839,17 @@ bool qs::XMLParser::parsePI(XMLParserContext& context)
 	WCHAR c = L'\0';
 	
 	wstring_ptr wstrTarget;
-	if (!context.getString(L'\0', L" \t\r\n?", &wstrTarget, &c))
+	if (!context.getString(L'\0', L" \t\r\n?", &wstrTarget, &c)) {
+		log.error(L"Failed to get a processing instruction target.");
 		return false;
-	if (!validateNCName(wstrTarget.get()))
+	}
+	if (!validateNCName(wstrTarget.get()) ||
+		_wcsicmp(wstrTarget.get(), L"xml") == 0) {
+		log.errorf(L"An invalid processing instruction target: %s", wstrTarget.get());
 		return false;
-	if (_wcsicmp(wstrTarget.get(), L"xml") == 0)
-		return false;
+	}
+	
+	log.debugf(L"Processing instruction target: %s", wstrTarget.get());
 	
 	bool bEnd = false;
 	if (c == L'?') {
@@ -858,6 +885,8 @@ bool qs::XMLParser::parsePI(XMLParserContext& context)
 		}
 	}
 	
+	log.debugf(L"Processing instruction data: %s", buf.getCharArray());
+	
 	if (pContentHandler_) {
 		if (!pContentHandler_->processingInstruction(
 			wstrTarget.get(), buf.getCharArray()))
@@ -882,10 +911,14 @@ bool qs::XMLParser::parseDoctype(XMLParserContext& context)
 	
 	wstring_ptr wstrQName;
 	WCHAR cNext = L'\0';
-	if (!context.getString(c, L" \t\n\r>", &wstrQName, &cNext))
+	if (!context.getString(c, L" \t\n\r>", &wstrQName, &cNext)) {
+		log.error(L"Failed to get a doctype name.");
 		return false;
-	if (!validateQName(wstrQName.get()))
+	}
+	if (!validateQName(wstrQName.get())) {
+		log.errorf(L"An invalid doctype name: %s", wstrQName.get());
 		return false;
+	}
 	c = cNext;
 	
 	while (isWhitespace(c)) {
@@ -1136,6 +1169,8 @@ bool qs::XMLParserContext::expandQName(const WCHAR* pwszQName,
 	assert(ppwszNamespaceURI);
 	assert(ppwszLocalName);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qs::XMLParserContext");
+	
 	*ppwszNamespaceURI = 0;
 	*ppwszLocalName = 0;
 	
@@ -1143,11 +1178,15 @@ bool qs::XMLParserContext::expandQName(const WCHAR* pwszQName,
 	const WCHAR* pwszLocalName = wcschr(pwszQName, L':');
 	if (pwszLocalName) {
 		size_t nLen = pwszLocalName - pwszQName;
-		if (nLen == 5 && wcsncmp(pwszQName, L"xmlns", nLen) == 0)
+		if (nLen == 5 && wcsncmp(pwszQName, L"xmlns", nLen) == 0) {
+			log.error(L"xmlns is an invalid prefix.");
 			return false;
+		}
 		pwszNamespaceURI = getNamespaceURI(pwszQName, nLen);
-		if (!pwszNamespaceURI)
+		if (!pwszNamespaceURI) {
+			log.errorf(L"No namespace is declared for a prefix: %s", pwszQName);
 			return false;
+		}
 		++pwszLocalName;
 	}
 	else {
