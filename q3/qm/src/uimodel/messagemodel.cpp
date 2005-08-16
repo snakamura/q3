@@ -203,19 +203,7 @@ qm::PreviewMessageModel::~PreviewMessageModel()
 
 void qm::PreviewMessageModel::updateToViewModel()
 {
-	ViewModel* pViewModel = getViewModel();
-	assert(pViewModel);
-	
-	Lock<ViewModel> lock(*pViewModel);
-	
-	unsigned int nFocused = pViewModel->getFocused();
-	MessageHolder* pmh = 0;
-	if (nFocused < pViewModel->getCount())
-		pmh = pViewModel->getMessageHolder(nFocused);
-	
-	MessagePtrLock mpl(getCurrentMessage());
-	if (pmh != mpl)
-		setMessage(pmh);
+	updateToViewModel(false);
 }
 
 void qm::PreviewMessageModel::connectToViewModel()
@@ -275,6 +263,11 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 	}
 }
 
+void qm::PreviewMessageModel::updated(const ViewModelEvent& event)
+{
+	updateToViewModel(true);
+}
+
 void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)
 {
 	ViewModel* pOldViewModel = getViewModel();
@@ -311,6 +304,23 @@ void qm::PreviewMessageModel::timerTimeout(Timer::Id nId)
 	pTimer_->killTimer(nTimerId_);
 	nTimerId_ = 0;
 	updateToViewModel();
+}
+
+void qm::PreviewMessageModel::updateToViewModel(bool bClearMessage)
+{
+	ViewModel* pViewModel = getViewModel();
+	assert(pViewModel);
+	
+	Lock<ViewModel> lock(*pViewModel);
+	
+	unsigned int nFocused = pViewModel->getFocused();
+	MessageHolder* pmh = 0;
+	if (nFocused < pViewModel->getCount())
+		pmh = pViewModel->getMessageHolder(nFocused);
+	
+	MessagePtrLock mpl(getCurrentMessage());
+	if (pmh != mpl)
+		setMessage(bClearMessage ? 0 : pmh);
 }
 
 

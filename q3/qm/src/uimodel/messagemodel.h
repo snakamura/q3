@@ -161,12 +161,16 @@ public:
 
 public:
 	virtual void itemStateChanged(const ViewModelEvent& event);
+	virtual void updated(const ViewModelEvent& event);
 
 public:
 	virtual void viewModelSelected(const ViewModelManagerEvent& event);
 
 public:
 	virtual void timerTimeout(qs::Timer::Id nId);
+
+private:
+	void updateToViewModel(bool bClearMessage);
 
 private:
 	PreviewMessageModel(const PreviewMessageModel&);
