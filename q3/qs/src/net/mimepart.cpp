@@ -1165,36 +1165,37 @@ CHAR* qs::Part::getFieldPos(const CHAR* pszName,
 	
 	const CHAR* pFind = pszHeader;
 	while (true) {
-		const CHAR* p = bmfs.find(pFind);
-		if (!p)
+		const CHAR* pBegin = bmfs.find(pFind);
+		if (!pBegin)
 			return 0;
 		
-		const CHAR* pBegin = p;
-		if (nIndex == 0) {
-			p += strlen(pszName) + 2;
-			while (*p) {
-				CHAR c = *p;
-				if (c == ':') {
-					return const_cast<CHAR*>(strHeader_.get() + (pBegin - pszHeader));
-				}
-				else if (c == '\r') {
-					++p;
-					if (*p == '\n') {
-						++p;
-						if (*p == ' ' || *p == '\t')
-							continue;
-					}
-					break;
-				}
-				else if (c != ' ' && c != '\t')
-					break;
-				++p;
+		const CHAR* p = pBegin + strlen(pszName) + 2;
+		while (*p) {
+			CHAR c = *p;
+			if (c == ':') {
+				break;
 			}
-			if (!*p)
-				return 0;
+			else if (c == '\r') {
+				++p;
+				if (*p == '\n') {
+					++p;
+					if (*p == ' ' || *p == '\t')
+						continue;
+				}
+				break;
+			}
+			else if (c != ' ' && c != '\t')
+				break;
+			++p;
 		}
-		else {
-			--nIndex;
+		if (!*p)
+			return 0;
+		
+		if (*p == L':') {
+			if (nIndex == 0)
+				return const_cast<CHAR*>(strHeader_.get() + (pBegin - pszHeader));
+			else
+				--nIndex;
 		}
 		pFind = pBegin + 2;
 	}
