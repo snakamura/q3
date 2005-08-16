@@ -2182,7 +2182,7 @@ BEGIN
     IDS_ERROR_DIALUPDISCONNECT "Error occured while disconnecting dialup."
     IDS_ERROR_GOROUND       "Error occured while going around."
     IDS_ERROR_SYNC          "Error occured while synchronizing."
-    IDS_ERROR_OPENLINK      "Error occured while opending link."
+    IDS_ERROR_OPENLINK      "Error occured while opening link."
     IDS_ERROR_REFRESH       "Error occured while refreshing."
     IDS_ERROR_INSERTFILE    "Error occured while inserting file."
     IDS_ERROR_PASTE         "Error occured while pasting."
@@ -2235,6 +2235,11 @@ BEGIN
     IDS_ERROR_SAVEADDRESSBOOK "Could not save address book."
     IDS_ERROR_UNDO          "Could not undo."
     IDS_ERROR_COMPLEXMACRO  "The macro is too complex."
+    IDS_ERROR_NOOUTBOX      "Could not find Outbox."
+    IDS_ERROR_LOADOUTBOX    "Error occured while loading messages in Outbox."
+    IDS_ERROR_NOSENTBOX     "Cound not find Sentbox."
+    IDS_ERROR_GETMESSAGE    "Could not get a message to be sent."
+    IDS_ERROR_MOVETOSENTBOX "Could not move the sent message to Sentbox."
 END
 
 STRINGTABLE DISCARDABLE 

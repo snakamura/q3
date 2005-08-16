@@ -761,7 +761,7 @@ void qm::SyncStatusWindow::addError(unsigned int nId,
 		buf.append(pAccount->getName());
 		
 		SubAccount* pSubAccount = info.getSubAccount();
-		if (*pSubAccount->getName()) {
+		if (pSubAccount && *pSubAccount->getName()) {
 			buf.append(L'/');
 			buf.append(pSubAccount->getName());
 		}

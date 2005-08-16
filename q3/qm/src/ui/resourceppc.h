@@ -599,6 +599,11 @@
 #define IDS_ERROR_SAVEADDRESSBOOK       10050
 #define IDS_ERROR_UNDO                  10051
 #define IDS_ERROR_COMPLEXMACRO          10052
+#define IDS_ERROR_NOOUTBOX              10053
+#define IDS_ERROR_LOADOUTBOX            10054
+#define IDS_ERROR_NOSENTBOX             10055
+#define IDS_ERROR_GETMESSAGE            10056
+#define IDS_ERROR_MOVETOSENTBOX         10057
 
 // Next default values for new objects
 // 

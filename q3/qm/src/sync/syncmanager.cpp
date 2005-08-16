@@ -464,6 +464,24 @@ void qm::SyncManager::fireStatusChanged() const
 		(*it)->statusChanged(event);
 }
 
+void qm::SyncManager::addError(SyncManagerCallback* pCallback,
+							   unsigned int nId,
+							   Account* pAccount,
+							   SubAccount* pSubAccount,
+							   NormalFolder* pFolder,
+							   UINT nMessageId,
+							   const WCHAR* pwszDescription)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrMessage(loadString(hInst, nMessageId));
+	const WCHAR* pwszDescriptions[] = {
+		pwszDescription
+	};
+	SessionErrorInfo info(pAccount, pSubAccount, pFolder,
+		wstrMessage.get(), 0, pwszDescriptions, pwszDescription ? 1 : 0);
+	pCallback->addError(nId, info);
+}
+
 bool qm::SyncManager::syncData(const SyncData* pData)
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qm::SyncManager::syncData");
@@ -773,6 +791,8 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 {
 	assert(pSession);
 	
+	unsigned int nId = ::GetCurrentThreadId();
+	
 	const ReceiveSyncItem* pReceiveItem = pItem->isSend() ? 0 :
 		static_cast<const ReceiveSyncItem*>(pItem);
 	
@@ -812,8 +832,11 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
 		return true;
 	
-	if (!pFolder->getAccount()->saveMessages(false))
+	Account* pAccount = pItem->getAccount();
+	if (!pAccount->saveMessages(false)) {
+		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_SAVE, 0);
 		return false;
+	}
 	
 	if (!pSession->closeFolder())
 		return false;
@@ -826,21 +849,27 @@ bool qm::SyncManager::send(Document* pDocument,
 						   const SendSyncItem* pItem)
 {
 	unsigned int nId = ::GetCurrentThreadId();
-	pSyncManagerCallback->setAccount(nId, pItem->getAccount(), pItem->getSubAccount());
-	
 	Account* pAccount = pItem->getAccount();
 	SubAccount* pSubAccount = pItem->getSubAccount();
+	pSyncManagerCallback->setAccount(nId, pAccount, pSubAccount);
+	
 	NormalFolder* pOutbox = static_cast<NormalFolder*>(
 		pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
-	if (!pOutbox)
+	if (!pOutbox) {
+		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_NOOUTBOX, 0);
 		return false;
-	if (!pOutbox->loadMessageHolders())
+	}
+	if (!pOutbox->loadMessageHolders()) {
+		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_LOADOUTBOX, 0);
 		return false;
+	}
 	
 	NormalFolder* pSentbox = static_cast<NormalFolder*>(
 		pAccount->getFolderByBoxFlag(Folder::FLAG_SENTBOX));
-	if (!pSentbox)
+	if (!pSentbox) {
+		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_NOSENTBOX, 0);
 		return false;
+	}
 	
 	const WCHAR* pwszIdentity = pSubAccount->getIdentity();
 	assert(pwszIdentity);
@@ -868,8 +897,10 @@ bool qm::SyncManager::send(Document* pDocument,
 				if (bSend) {
 					Message msg;
 					if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
-						L"X-QMAIL-SubAccount", SECURITYMODE_NONE, &msg))
+						L"X-QMAIL-SubAccount", SECURITYMODE_NONE, &msg)) {
+						addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_GETMESSAGE, 0);
 						return false;
+					}
 					
 					if (*pwszIdentity) {
 						UnstructuredParser subaccount;
@@ -954,8 +985,10 @@ bool qm::SyncManager::send(Document* pDocument,
 		{
 			MessagePtrLock mpl(listMessagePtr[m]);
 			if (mpl) {
-				if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
+				if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg)) {
+					addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_GETMESSAGE, 0);
 					return false;
+				}
 				bGet = true;
 			}
 		}
@@ -975,16 +1008,20 @@ bool qm::SyncManager::send(Document* pDocument,
 				l[0] = mpl;
 				if (!pAccount->setMessagesFlags(l,
 					MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT, 0) ||
-					!pAccount->copyMessages(l, pOutbox, pSentbox, Account::COPYFLAG_MOVE, 0, 0))
+					!pAccount->copyMessages(l, pOutbox, pSentbox, Account::COPYFLAG_MOVE, 0, 0)) {
+					addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_MOVETOSENTBOX, 0);
 					return false;
+				}
 			}
 		}
 		
 		pCallback->setPos(static_cast<unsigned int>(m + 1));
 	}
 	
-	if (!pAccount->saveMessages(false))
+	if (!pAccount->saveMessages(false)) {
+		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_SAVE, 0);
 		return false;
+	}
 	
 	return true;
 }
@@ -1065,10 +1102,12 @@ void qm::SyncManager::SyncThread::run()
 		{
 			pSyncManager_->fireStatusChanged();
 		}
+		
 		~StatusChange()
 		{
 			pSyncManager_->fireStatusChanged();
 		}
+		
 		SyncManager* pSyncManager_;
 	} statusChange(pSyncManager_);
 	
@@ -1311,10 +1350,7 @@ void qm::SyncManager::RasConnectionCallbackImpl::setMessage(const WCHAR* pwszMes
 
 void qm::SyncManager::RasConnectionCallbackImpl::error(const WCHAR* pwszMessage)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrMessage(loadString(hInst, IDS_ERROR_DIALUP));
-	SessionErrorInfo info(0, 0, 0, wstrMessage.get(), 0, &pwszMessage, 1);
-	pCallback_->addError(-1, info);
+	SyncManager::addError(pCallback_, -1, 0, 0, 0, IDS_ERROR_DIALUP, pwszMessage);
 }
 
 

@@ -91,6 +91,11 @@ bool qm::SyncUtil::send(SyncManager* pSyncManager,
 	assert(pAccount);
 	assert(pSubAccount);
 	
+	NormalFolder* pOutbox = static_cast<NormalFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
+	if (!pOutbox)
+		return false;
+	
 	std::auto_ptr<SyncData> pData(new SyncData(pSyncManager, pDocument,
 		(nCallbackParam & SyncDialog::FLAG_NOTIFYNEWMESSAGE) != 0, nCallbackParam));
 	pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, pwszMessageId);
@@ -132,8 +137,12 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 		pData->setDialup(pDialup);
 	}
 	
-	if (bSend)
-		pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, 0);
+	if (bSend) {
+		NormalFolder* pOutbox = static_cast<NormalFolder*>(
+			pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
+		if (pOutbox)
+			pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, 0);
+	}
 	
 	if (bReceive) {
 		if (bSelectSyncFilter) {

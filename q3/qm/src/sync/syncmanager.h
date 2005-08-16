@@ -284,9 +284,14 @@ public:
 public:
 	void fireStatusChanged() const;
 
-private:
-	SyncManager(const SyncManager&);
-	SyncManager& operator=(const SyncManager&);
+public:
+	static void addError(SyncManagerCallback* pCallback,
+						 unsigned int nId,
+						 Account* pAccount,
+						 SubAccount* pSubAccount,
+						 NormalFolder* pFolder,
+						 UINT nMessageId,
+						 const WCHAR* pwszDescription);
 
 private:
 	bool syncData(const SyncData* pData);
@@ -305,6 +310,10 @@ private:
 							std::auto_ptr<ReceiveSession>* ppSession,
 							std::auto_ptr<ReceiveSessionCallback>* ppCallback,
 							std::auto_ptr<qs::Logger>* ppLogger);
+
+private:
+	SyncManager(const SyncManager&);
+	SyncManager& operator=(const SyncManager&);
 
 private:
 	class SyncThread : public qs::Thread
