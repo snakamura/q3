@@ -2341,6 +2341,8 @@ BEGIN
     IDS_CLEARRECENTS        "&Clear"
     IDS_UNSPECIFIED         "(Unspecified)"
     IDS_RESOURCEPATH        "Path"
+    IDS_SHOWTAB             "Show Ta&b"
+    IDS_HIDETAB             "Hide Ta&b"
     IDS_RULESETS            "RuleSets"
     IDS_RULES               "Rules"
     IDS_COLORSETS           "ColorSets"
