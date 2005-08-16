@@ -4,12 +4,12 @@
                      @Set('to', @Remove(To, @Address(@I(@Account(), X-QMAIL-SubAccount)), @Address($from))),
                      @Set('cc', @Remove(Cc, @Address(@I(@Account(), X-QMAIL-SubAccount)), @Address($from))),
                      @Concat($to, @If(@And($to, $cc), ', ', ''), $cc))),
-                     @Concat('To: ',
-                             @Decode($from),
-                             '\n',
-                             @If($val,
-                                 @Concat('Cc: ', @Decode($val), '\n'),
-                                 '')))
+         @Concat('To: ',
+                 $from,
+                 '\n',
+                 @If($val,
+                     @Concat('Cc: ', $val, '\n'),
+                     '')))
 }Subject: Re: {@Subject(@True(), @True())}
 {
   @If(@Equal(@Profile('', 'Global', 'Bcc', '1'), '0'),

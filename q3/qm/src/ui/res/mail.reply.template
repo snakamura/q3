@@ -1,8 +1,4 @@
-To: {
-  @If(@Exist('Reply-To'),
-      Reply-To,
-      @Decode(From))
-}
+To: {@If(@Exist('Reply-To'), Reply-To, From)}
 Subject: Re: {@Subject(@True(), @True())}
 {
   @If(@Equal(@Profile('', 'Global', 'Bcc', '1'), '0'),
