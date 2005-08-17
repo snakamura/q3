@@ -210,6 +210,8 @@ bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
 bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 										  size_t nCount)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::ApplicationImpl");
+	
 	ResourceDialog::ResourceList listResource;
 	struct Deleter
 	{
@@ -322,11 +324,15 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 				wstring_ptr wstrBackupPath(concat(wstrPath.get(), L".bak"));
 				W2T(wstrBackupPath.get(), ptszNew);
 				if (::GetFileAttributes(ptszNew) != 0xffffffff) {
-					if (!::DeleteFile(ptszNew))
+					if (!::DeleteFile(ptszNew)) {
+						log.errorf(L"Cound not delete the old backup file: %s", wstrBackupPath.get());
 						return false;
+					}
 				}
-				if (!::MoveFile(ptszPath, ptszNew))
+				if (!::MoveFile(ptszPath, ptszNew)) {
+					log.errorf(L"Cound not rename to the backup file: %s, %s", wstrPath.get(), wstrBackupPath.get());
 					return false;
+				}
 			}
 			
 			if (!detachResource(wstrPath.get(), p->pwszResourceType_, p->pwszResourceName_))
@@ -334,8 +340,10 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 			
 			WIN32_FIND_DATA fd;
 			AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
-			if (!hFind.get())
+			if (!hFind.get()) {
+				log.errorf(L"Cound not find the detached file: %s, %u", wstrPath.get(), ::GetLastError());
 				return false;
+			}
 			files.setResourceFile(wstrPath.get() + nMailFolderLen,
 				p->nRevision_, &fd.ftLastWriteTime);
 		}
@@ -359,32 +367,52 @@ bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
 	assert(pwszType);
 	assert(pwszName);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::ApplicationImpl");
+	log.debugf(L"Detaching the resource: %s, %s, %s", pwszName, pwszType, pwszPath);
+	
 	W2T(pwszName, ptszName);
 	W2T(pwszType, ptszType);
 	HRSRC hrsrc = ::FindResource(hInstResource_, ptszName, ptszType);
-	if (!hrsrc)
+	if (!hrsrc) {
+		log.errorf(L"Counld not find a resource: %s, %s", pwszName, pwszType);
 		return false;
+	}
 	HGLOBAL hResource = ::LoadResource(hInstResource_, hrsrc);
-	if (!hResource)
+	if (!hResource) {
+		log.errorf(L"Counld not load the resource: %s", pwszName);
 		return false;
-	void* pResource = ::LockResource(hResource);
-	if (!pResource)
+	}
+	const void* pResource = ::LockResource(hResource);
+	if (!pResource) {
+		log.errorf(L"Counld not lock the resource: %s", pwszName);
 		return false;
+	}
 	int nLen = ::SizeofResource(hInstResource_, hrsrc);
 	
-	FileOutputStream stream(pwszPath);
-	if (!stream ||
-		stream.write(static_cast<unsigned char*>(pResource), nLen) == -1 ||
-		!stream.close())
+#ifndef _WIN32_WCE
+	const unsigned char* p = static_cast<const unsigned char*>(pResource);
+#else
+	malloc_ptr<unsigned char> pCopy(static_cast<unsigned char*>(malloc(nLen)));
+	if (!pCopy.get()) {
+		log.errorf(L"Counld not alloc memory for the resource: %s", pwszName);
 		return false;
+	}
+	memcpy(pCopy.get(), pResource, nLen);
+	const unsigned char* p = pCopy.get();
+#endif
+	
+	FileOutputStream stream(pwszPath);
+	if (!stream || stream.write(p, nLen) == -1 || !stream.close()) {
+		log.errorf(L"Counld not write the resource to the file: %s", pwszPath);
+		return false;
+	}
 	
 	return true;
 }
 
 void qm::ApplicationImpl::restoreCurrentFolder()
 {
-	wstring_ptr wstrFolder(pProfile_->getString(
-		L"Global", L"CurrentFolder", L""));
+	wstring_ptr wstrFolder(pProfile_->getString(L"Global", L"CurrentFolder", L""));
 	
 	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
 	
@@ -540,6 +568,17 @@ bool qm::Application::initialize()
 	if (!pImpl_->pProfile_->load())
 		return false;
 	
+	Init& init = Init::getInit();
+	wstring_ptr wstrLogDir(concat(pImpl_->wstrMailFolder_.get(), L"\\logs"));
+	init.setLogDirectory(wstrLogDir.get());
+	int nLog = pImpl_->pProfile_->getInt(L"Global", L"Log", -1);
+	if (nLog >= 0) {
+		if (nLog > Logger::LEVEL_DEBUG)
+			nLog = Logger::LEVEL_DEBUG;
+		init.setLogLevel(static_cast<Logger::Level>(nLog));
+		init.setLogEnabled(true);
+	}
+	
 	wstring_ptr wstrTemplateDir(concat(
 		pImpl_->wstrMailFolder_.get(), L"\\templates"));
 	
@@ -596,17 +635,6 @@ bool qm::Application::initialize()
 	};
 	if (!pImpl_->ensureResources(resources, countof(resources)))
 		return false;
-	
-	Init& init = Init::getInit();
-	wstring_ptr wstrLogDir(concat(pImpl_->wstrMailFolder_.get(), L"\\logs"));
-	init.setLogDirectory(wstrLogDir.get());
-	int nLog = pImpl_->pProfile_->getInt(L"Global", L"Log", -1);
-	if (nLog >= 0) {
-		if (nLog > Logger::LEVEL_DEBUG)
-			nLog = Logger::LEVEL_DEBUG;
-		init.setLogLevel(static_cast<Logger::Level>(nLog));
-		init.setLogEnabled(true);
-	}
 	
 	wstring_ptr wstrTempFolder(
 		pImpl_->pProfile_->getString(L"Global", L"TemporaryFolder", L""));
