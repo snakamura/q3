@@ -578,6 +578,8 @@ bool qm::RecentsMenu::createMenu(HMENU hmenu)
 			listURI.push_back(new URI(*pRecents_->get(n)));
 		std::sort(listURI.begin(), listURI.end(), URIComp());
 	}
+	if (listURI.empty())
+		return false;
 	
 	listURI_.reserve(listURI.size());
 	nId = IDM_MESSAGE_OPENRECENT;
