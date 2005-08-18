@@ -3112,10 +3112,9 @@ LRESULT qm::ShellIcon::onNotifyIcon(WPARAM wParam,
 #ifdef _WIN32_WCE
 		if (lParam == WM_LBUTTONDOWN && ::GetAsyncKeyState(VK_MENU))
 			lParam = WM_RBUTTONDOWN;
-#endif
+		bool bShow = lParam == WM_LBUTTONDOWN && nState_ & STATE_HIDDEN;
+#else
 		bool bShow = lParam == WM_LBUTTONDOWN;
-#ifdef _WIN32_WCE
-		bShow &= (nState_ & STATE_HIDDEN) != 0;
 #endif
 		if (bShow)
 			pCallback_->show();
