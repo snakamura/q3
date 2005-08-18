@@ -194,6 +194,7 @@ public:
 #ifndef _WIN32_WCE_PSPC
 public:
 	virtual void showRecentsMenu();
+	virtual void show();
 #endif
 
 #ifdef QMTABWINDOW
@@ -1578,7 +1579,19 @@ void qm::MainWindowImpl::accountListChanged(const AccountManagerEvent& event)
 void qm::MainWindowImpl::showRecentsMenu()
 {
 	AutoMenuHandle hmenu(::CreatePopupMenu());
-	if (pRecentsMenu_->createMenu(hmenu.get())) {
+	bool bShow = pRecentsMenu_->createMenu(hmenu.get());
+	if (pThis_->isHidden()) {
+		if (bShow)
+			::AppendMenu(hmenu.get(), MF_SEPARATOR, -1, 0);
+		
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrShow(loadString(hInst, IDS_SHOWMAIN));
+		W2T(wstrShow.get(), ptszShow);
+		::AppendMenu(hmenu.get(), MF_STRING, IDM_FILE_SHOW, ptszShow);
+		
+		bShow = true;
+	}
+	if (bShow) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -1595,6 +1608,11 @@ void qm::MainWindowImpl::showRecentsMenu()
 		::TrackPopupMenu(hmenu.get(), nFlags, pt.x, pt.y, 0, pThis_->getHandle(), 0);
 		pThis_->postMessage(WM_NULL);
 	}
+}
+
+void qm::MainWindowImpl::show()
+{
+	pThis_->show();
 }
 #endif
 
@@ -2463,8 +2481,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->initActions();
 	
 #ifndef _WIN32_WCE_PSPC
-	pImpl_->pShellIcon_.reset(new ShellIcon(this,
-		pImpl_->pDocument_->getRecents(), pImpl_->pProfile_, pImpl_));
+	pImpl_->pShellIcon_.reset(new ShellIcon(pImpl_->pDocument_->getRecents(),
+		pImpl_->pProfile_, getHandle(), pImpl_));
 #endif
 	
 	pImpl_->bCreated_ = true;
@@ -2989,12 +3007,11 @@ Account* qm::MainWindowStatusBar::getAccount()
  *
  */
 
-qm::ShellIcon::ShellIcon(MainWindow* pMainWindow,
-						 Recents* pRecents,
+qm::ShellIcon::ShellIcon(Recents* pRecents,
 						 Profile* pProfile,
+						 HWND hwnd,
 						 ShellIconCallback* pCallback) :
 	WindowBase(false),
-	pMainWindow_(pMainWindow),
 	pRecents_(pRecents),
 	pProfile_(pProfile),
 	pCallback_(pCallback),
@@ -3007,8 +3024,6 @@ qm::ShellIcon::ShellIcon(MainWindow* pMainWindow,
 		MAKEINTRESOURCE(IDI_MAINFRAME), IMAGE_ICON, 16, 16, 0));
 	hIconRecent_ = reinterpret_cast<HICON>(::LoadImage(hInst,
 		MAKEINTRESOURCE(IDI_NEWMAIL), IMAGE_ICON, 16, 16, 0));
-	
-	HWND hwnd = pMainWindow->getHandle();
 	
 	notifyIcon_.cbSize = sizeof(notifyIcon_);
 	notifyIcon_.hWnd = hwnd;
@@ -3094,23 +3109,18 @@ LRESULT qm::ShellIcon::onNotifyIcon(WPARAM wParam,
 									LPARAM lParam)
 {
 	if (wParam == ID_NOTIFYICON) {
+#ifdef _WIN32_WCE
 		if (lParam == WM_LBUTTONDOWN && ::GetAsyncKeyState(VK_MENU))
 			lParam = WM_RBUTTONDOWN;
-		
-		if (nState_ & STATE_RECENT && nState_ & STATE_HIDDEN) {
-			if (lParam == WM_LBUTTONDOWN)
-				pMainWindow_->show();
-			else if (lParam == WM_RBUTTONDOWN)
-				pCallback_->showRecentsMenu();
-		}
-		else if (nState_ & STATE_RECENT) {
-			if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN)
-				pCallback_->showRecentsMenu();
-		}
-		else if (nState_ & STATE_HIDDEN) {
-			if (lParam == WM_LBUTTONDOWN)
-				pMainWindow_->show();
-		}
+#endif
+		bool bShow = lParam == WM_LBUTTONDOWN;
+#ifdef _WIN32_WCE
+		bShow &= (nState_ & STATE_HIDDEN) != 0;
+#endif
+		if (bShow)
+			pCallback_->show();
+		else if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN)
+			pCallback_->showRecentsMenu();
 	}
 	return 0;
 }

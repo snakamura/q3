@@ -248,9 +248,9 @@ public:
 	};
 
 public:
-	ShellIcon(MainWindow* pMainWindow,
-			  Recents* pRecents,
+	ShellIcon(Recents* pRecents,
 			  qs::Profile* pProfile,
+			  HWND hwnd,
 			  ShellIconCallback* pCallback);
 	virtual ~ShellIcon();
 
@@ -289,7 +289,6 @@ private:
 	};
 
 private:
-	MainWindow* pMainWindow_;
 	Recents* pRecents_;
 	qs::Profile* pProfile_;
 	ShellIconCallback* pCallback_;
@@ -313,6 +312,7 @@ public:
 
 public:
 	virtual void showRecentsMenu() = 0;
+	virtual void show() = 0;
 };
 
 #endif // _WIN32_WCE_PSPC
