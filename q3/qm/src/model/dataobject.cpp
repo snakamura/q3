@@ -16,6 +16,7 @@
 #include <qsassert.h>
 #include <qsconv.h>
 #include <qsstl.h>
+#include <qstextutil.h>
 #include <qsthread.h>
 
 #include <cstdio>
@@ -619,7 +620,7 @@ wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
 	
 	const WCHAR* pwszEscape = L"\\/:*?\"<>|";
 	for (WCHAR* p = wstrName.get(); *p; ++p) {
-		if (wcschr(pwszEscape, *p))
+		if (!TextUtil::isFileNameChar(*p))
 			*p = L'_';
 	}
 	

@@ -21,6 +21,7 @@
 #include <qsstl.h>
 #include <qsstream.h>
 #include <qsstring.h>
+#include <qstextutil.h>
 
 #include <algorithm>
 
@@ -1966,7 +1967,7 @@ wstring_ptr qm::AttachmentParser::getName() const
 	
 	if (wstrName.get()) {
 		for (WCHAR* p = wstrName.get(); *p; ++p) {
-			if (!isValidFileNameChar(*p))
+			if (!TextUtil::isFileNameChar(*p))
 				*p = L'_';
 		}
 	}
@@ -2147,11 +2148,6 @@ void qm::AttachmentParser::setAttachmentDeleted(Part* pPart)
 	
 	NumberParser field(1, 0);
 	pPart->replaceField(L"X-QMAIL-AttachmentDeleted", field);
-}
-
-bool qm::AttachmentParser::isValidFileNameChar(WCHAR c)
-{
-	return wcschr(L"\\/:*?\"<>|", c) == 0;
 }
 
 

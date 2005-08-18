@@ -383,31 +383,17 @@ bool qs::TextUtil::isURLChar(WCHAR c)
 	return (L'A' <= c && c <= L'Z') ||
 		(L'a' <= c && c <= L'z') ||
 		(L'0' <= c && c <= L'9') ||
-		c == L'.' ||
-		c == L':' ||
-		c == L'/' ||
-		c == L'?' ||
-		c == L'%' ||
-		c == L'&' ||
-		c == L'@' ||
-		c == L'!' ||
-		c == L'#' ||
-		c == L'$' ||
-		c == L'~' ||
-		c == L'*' ||
-		c == L'=' ||
-		c == L'+' ||
-		c == L'-' ||
-		c == L'_' ||
-		c == L';' ||
-		c == L',' ||
-		c == L'(' ||
-		c == L')';
+		wcschr(L".:/?%&@!#$~*=+-_;,()", c) != 0;
+}
+
+bool qs::TextUtil::isFileNameChar(WCHAR c)
+{
+	return !wcschr(L"\"<>*?|\\/:", c);
 }
 
 bool qs::TextUtil::isPathChar(WCHAR c)
 {
-	return c != L'<' && c != L'>' && c != L'*' && c != L'?' && c != L'|';
+	return !wcschr(L"\"<>*?|", c);
 }
 
 bool qs::TextUtil::isDriveLetterChar(WCHAR c)
