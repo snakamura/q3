@@ -1424,12 +1424,12 @@ bool qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
 	
 	ComPtr<IHTMLSelectionObject> pSelection;
 	hr = pHTMLDocument->get_selection(&pSelection);
-	if (FAILED(hr))
+	if (FAILED(hr) || !pSelection.get())
 		return false;
 	
 	ComPtr<IDispatch> pDispRange;
 	hr = pSelection->createRange(&pDispRange);
-	if (FAILED(hr))
+	if (FAILED(hr) || !pDispRange.get())
 		return false;
 	ComPtr<IHTMLTxtRange> pRange;
 	hr = pDispRange->QueryInterface(IID_IHTMLTxtRange,
@@ -1449,7 +1449,7 @@ bool qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,
 	else {
 		ComPtr<IHTMLElement> pElement;
 		hr = pHTMLDocument->get_body(&pElement);
-		if (FAILED(hr))
+		if (FAILED(hr) || !pElement.get())
 			return false;
 		ComPtr<IHTMLBodyElement> pBody;
 		hr = pElement->QueryInterface(IID_IHTMLBodyElement,
@@ -1530,7 +1530,7 @@ ComPtr<IHTMLDocument2> qm::HtmlMessageViewWindow::getHTMLDocument() const
 	
 	ComPtr<IDispatch> pDisp;
 	hr = pWebBrowser_->get_Document(&pDisp);
-	if (FAILED(hr))
+	if (FAILED(hr) || !pDisp.get())
 		return ComPtr<IHTMLDocument2>();
 	
 	ComPtr<IHTMLDocument2> pHTMLDocument;
@@ -1552,7 +1552,7 @@ ComPtr<IHTMLElement2> qm::HtmlMessageViewWindow::getHTMLBodyElement() const
 	
 	ComPtr<IHTMLElement> pBodyElement;
 	hr = pHTMLDocument->get_body(&pBodyElement);
-	if (FAILED(hr))
+	if (FAILED(hr) || !pBodyElement.get())
 		return ComPtr<IHTMLElement2>();
 	
 	ComPtr<IHTMLElement2> pBodyElement2;
