@@ -1231,16 +1231,16 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::addError(const SessionErrorInf
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr ptr)
 {
-	pCallback_->notifyNewMessage(nId_);
-	
 	std::auto_ptr<URI> pURI;
 	{
 		MessagePtrLock mpl(ptr);
-		if (mpl)
+		if (mpl && !mpl->getFolder()->isFlag(Folder::FLAG_IGNOREUNSEEN))
 			pURI.reset(new URI(mpl));
 	}
-	if (pURI.get())
+	if (pURI.get()) {
 		pRecents_->add(pURI, bAuto_);
+		pCallback_->notifyNewMessage(nId_);
+	}
 }
 
 
