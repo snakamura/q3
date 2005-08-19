@@ -836,7 +836,7 @@ void qs::TextWindowImpl::calcLines(size_t nStartLine,
 				} while (p != pBegin);
 				
 				if (*p == L'\n') {
-					bool bWrap = nLineWidth + nAverageCharWidth > nFormatWidth;
+					bool bWrap = !bWordWrap_ && nLineWidth + nAverageCharWidth > nFormatWidth;
 					size_t nOffset = pLine - line.getText();
 					size_t nLength = p - pLine;
 					convertLogicalLinksToPhysicalLinks(listLogicalLinkItem,
