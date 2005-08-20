@@ -230,7 +230,12 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 		const WCHAR* pwszCommand = 0;
 		wstring_ptr wstrParam;
 		
-		wstring_ptr wstrFiler(pProfile_->getString(L"Global", L"Filer", L""));
+#ifdef _WIN32_WCE_PSPC
+		const WCHAR* pwszDefaultFiler = L"fexplore.exe";
+#else
+		const WCHAR* pwszDefultFiler = L"";
+#endif
+		wstring_ptr wstrFiler(pProfile_->getString(L"Global", L"Filer", pwszDefaultFiler));
 		if (*wstrFiler.get()) {
 			pwszCommand = wstrFiler.get();
 			if (wcschr(pwszFolder, L' '))
