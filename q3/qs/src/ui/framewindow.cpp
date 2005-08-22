@@ -146,24 +146,25 @@ void qs::FrameWindow::adjustWindowSize(LPARAM lParam)
 
 void qs::FrameWindow::processIdle()
 {
-	HWND hwnd = getToolbar();
+	Window wndBar(getToolbar());
+	if (wndBar.isVisible()) {
 #ifdef _WIN32_WCE
-	if (Window(hwnd).isVisible()) {
-		hwnd = CommandBands_GetCommandBar(hwnd,
-			::SendMessage(hwnd, RB_IDTOINDEX, getBarId(1), 0));
-	}
-	else {
-		hwnd = 0;
-	}
+		Window wndToolbar(CommandBands_GetCommandBar(wndBar.getHandle(),
+			wndBar.sendMessage(RB_IDTOINDEX, getBarId(1))));
+#else
+		REBARBANDINFO rbbi = {
+			sizeof(rbbi),
+			RBBIM_CHILD
+		};
+		wndBar.sendMessage(RB_GETBANDINFO, 0, reinterpret_cast<LPARAM>(&rbbi));
+		Window wndToolbar(rbbi.hwndChild);
 #endif
-	Window wnd(hwnd);
-	if (wnd.getHandle() && wnd.isVisible()) {
-		int nCount = static_cast<int>(wnd.sendMessage(TB_BUTTONCOUNT));
+		int nCount = static_cast<int>(wndToolbar.sendMessage(TB_BUTTONCOUNT));
 		for (int n = 0; n < nCount; ++n) {
 			TBBUTTON button;
-			wnd.sendMessage(TB_GETBUTTON, n, reinterpret_cast<LPARAM>(&button));
+			wndToolbar.sendMessage(TB_GETBUTTON, n, reinterpret_cast<LPARAM>(&button));
 			if ((button.fsStyle & TBSTYLE_SEP) == 0) {
-				CommandUpdateToolbar cut(wnd.getHandle(), button.idCommand);
+				CommandUpdateToolbar cut(wndToolbar.getHandle(), button.idCommand);
 				pImpl_->updateCommand(&cut, false);
 			}
 		}
