@@ -295,6 +295,7 @@ bool qmrss::RssContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			if (!pwszVersion)
 				return false;
 			else if (wcscmp(pwszVersion, L"0.91") == 0 ||
+				wcscmp(pwszVersion, L"0.92") == 0 ||
 				wcscmp(pwszVersion, L"2.0") == 0)
 				pHandler_.reset(new Rss20Handler(pChannel_));
 			else
