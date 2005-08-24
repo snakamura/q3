@@ -1736,16 +1736,18 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,25,114,10
     CONTROL         "&Save when window is deactivated",IDC_SAVEONDEACTIVATE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,35,125,10
+    CONTROL         "&Hide when window is minimized",IDC_HIDEWHENMINIMIZED,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,110,10
     CONTROL         "Show unseen count on &welcome",
                     IDC_SHOWUNSEENCOUNTONWELCOME,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,45,109,10
-    LTEXT           "Tem&porary folder",IDC_STATIC,5,60,55,8
-    EDITTEXT        IDC_TEMPORARYFOLDER,5,70,115,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Browse...",IDC_BROWSE,125,70,50,14
-    LTEXT           "En&codings(*)",IDC_STATIC,5,90,40,8
-    EDITTEXT        IDC_ENCODING,5,100,170,14,ES_AUTOHSCROLL
-    LTEXT           "&Log",IDC_STATIC,5,123,15,8
-    COMBOBOX        IDC_LOG,20,120,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP,5,55,109,10
+    LTEXT           "Tem&porary folder",IDC_STATIC,5,70,55,8
+    EDITTEXT        IDC_TEMPORARYFOLDER,5,80,115,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,125,80,50,14
+    LTEXT           "En&codings(*)",IDC_STATIC,5,100,40,8
+    EDITTEXT        IDC_ENCODING,5,110,170,14,ES_AUTOHSCROLL
+    LTEXT           "&Log",IDC_STATIC,5,133,15,8
+    COMBOBOX        IDC_LOG,20,130,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
 END
 

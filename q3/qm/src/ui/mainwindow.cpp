@@ -217,6 +217,9 @@ public:
 	bool bShowPreviewWindow_;
 	int nListWindowHeight_;
 	bool bSaveOnDeactivate_;
+#ifndef _WIN32_WCE_PSPC
+	bool bHideWhenMinimized_;
+#endif
 	
 	Profile* pProfile_;
 	Document* pDocument_;
@@ -1422,6 +1425,9 @@ void qm::MainWindowImpl::updateStatusBar()
 void qm::MainWindowImpl::reloadProfiles(bool bInitialize)
 {
 	bSaveOnDeactivate_ = pProfile_->getInt(L"Global", L"SaveOnDeactivate", 1) != 0;
+#ifndef _WIN32_WCE_PSPC
+	bHideWhenMinimized_ = pProfile_->getInt(L"Global", L"HideWhenMinimized", 0) != 0;
+#endif
 }
 
 void qm::MainWindowImpl::preModalDialog(HWND hwndParent)
@@ -1788,6 +1794,9 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->bShowPreviewWindow_ = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow", 1) != 0;
 	pImpl_->nListWindowHeight_ = pProfile->getInt(L"MainWindow", L"ListWindowHeight", 200);
 	pImpl_->bSaveOnDeactivate_ = true;
+#ifndef _WIN32_WCE_PSPC
+	pImpl_->bHideWhenMinimized_ = false;
+#endif
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pUIManager_ = 0;
@@ -1909,7 +1918,8 @@ void qm::MainWindow::show()
 	if (!isHidden())
 		return;
 	
-	showWindow();
+	setForegroundWindow();
+	showWindow(SW_RESTORE);
 	
 	pImpl_->pEditFrameWindowManager_->showAll();
 	
@@ -2612,8 +2622,15 @@ LRESULT qm::MainWindow::onSize(UINT nFlags,
 {
 	if (pImpl_->bCreated_ &&
 		!pImpl_->bLayouting_ &&
-		(nFlags == SIZE_RESTORED || nFlags == SIZE_MAXIMIZED))
+		(nFlags == SIZE_RESTORED || nFlags == SIZE_MAXIMIZED)) {
 		pImpl_->layoutChildren(cx, cy);
+	}
+#ifndef _WIN32_WCE_PSPC
+	else if (nFlags == SIZE_MINIMIZED && pImpl_->bHideWhenMinimized_) {
+		hide();
+		return 1;
+	}
+#endif
 	return FrameWindow::onSize(nFlags, cx, cy);
 }
 

@@ -1371,6 +1371,9 @@ DialogUtil::BoolProperty qm::OptionMiscDialog::boolProperties__[] = {
 	{ L"EmptyTrashOnExit",				IDC_EMPTYTRASHONEXIT,				false	},
 	{ L"SaveMessageViewModePerFolder",	IDC_SAVEMESSAGEVIEWMODEPERFOLDER,	true	},
 	{ L"SaveOnDeactivate",				IDC_SAVEONDEACTIVATE,				true	},
+#ifndef _WIN32_WCE_PSPC
+	{ L"HideWhenMinimized",				IDC_HIDEWHENMINIMIZED,				false	},
+#endif
 #ifndef _WIN32_WCE
 	{ L"ShowUnseenCountOnWelcome",		IDC_SHOWUNSEENCOUNTONWELCOME,		false	},
 #endif

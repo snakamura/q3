@@ -534,6 +534,7 @@
 #define IDC_NUMBER                      1422
 #define IDC_DESCRIPTION                 1423
 #define IDC_OPENFOLDER                  1424
+#define IDC_HIDEWHENMINIMIZED           1425
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -634,7 +635,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        219
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1425
+#define _APS_NEXT_CONTROL_VALUE         1426
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
