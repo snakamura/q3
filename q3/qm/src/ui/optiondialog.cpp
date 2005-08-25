@@ -2423,7 +2423,7 @@ const WCHAR* qm::ColorsDialog::getName() const
 	return L"ColorsDialog";
 }
 
-wstring_ptr qm::ColorsDialog::getLabelSuffix(const ColorEntry* p) const
+wstring_ptr qm::ColorsDialog::getLabelPrefix(const ColorEntry* p) const
 {
 	return concat(L"#", Color(p->getColor()).getString().get());
 }
@@ -2600,7 +2600,7 @@ const WCHAR* qm::RulesDialog::getName() const
 	return L"RulesDialog";
 }
 
-wstring_ptr qm::RulesDialog::getLabelSuffix(const Rule* p) const
+wstring_ptr qm::RulesDialog::getLabelPrefix(const Rule* p) const
 {
 	return p->getAction()->getDescription();
 }

@@ -1251,7 +1251,7 @@ protected:
 
 private:
 	virtual const WCHAR* getName() const = 0;
-	virtual qs::wstring_ptr getLabelSuffix(const T* p) const = 0;
+	virtual qs::wstring_ptr getLabelPrefix(const T* p) const = 0;
 
 protected:
 	LRESULT onSize(UINT nFlags,
@@ -1309,7 +1309,7 @@ public:
 
 private:
 	virtual const WCHAR* getName() const;
-	virtual qs::wstring_ptr getLabelSuffix(const ColorEntry* p) const;
+	virtual qs::wstring_ptr getLabelPrefix(const ColorEntry* p) const;
 };
 
 
@@ -1385,7 +1385,7 @@ public:
 
 private:
 	virtual const WCHAR* getName() const;
-	virtual qs::wstring_ptr getLabelSuffix(const Rule* p) const;
+	virtual qs::wstring_ptr getLabelPrefix(const Rule* p) const;
 };
 
 

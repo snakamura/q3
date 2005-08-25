@@ -306,15 +306,15 @@ qs::wstring_ptr qm::RulesColorsDialog<T, List, Container, EditDialog>::getLabel(
 		buf.append(L": ");
 	}
 	
+	buf.append(getLabelPrefix(p).get());
+	buf.append(L" <- ");
+	
 	const Macro* pMacro = p->getCondition();
 	std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
 	if (pConditionList.get())
 		buf.append(pConditionList->getDescription(true).get());
 	else
 		buf.append(pMacro->getString().get());
-	
-	buf.append(L" -> ");
-	buf.append(getLabelSuffix(p).get());
 	
 	return buf.getString();
 }
