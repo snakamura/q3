@@ -5132,6 +5132,25 @@ wstring_ptr qm::SyncFiltersDialog::getLabel(const SyncFilter* p) const
 		buf.append(L"] ");
 	}
 	
+	const SyncFilter::ActionList& listAction = p->getActions();
+	if (!listAction.empty()) {
+		SyncFilterAction* pAction = listAction.front();
+		buf.append(pAction->getName());
+		const SyncFilterAction::ParamList& listParam = pAction->getParams();
+		if (!listParam.empty()) {
+			buf.append(L" (");
+			for (SyncFilterAction::ParamList::const_iterator it = listParam.begin(); it != listParam.end(); ++it) {
+				if (it != listParam.begin())
+					buf.append(L',');
+				buf.append((*it).first);
+				buf.append(L'=');
+				buf.append((*it).second);
+			}
+			buf.append(L')');
+		}
+	}
+	buf.append(L" <- ");
+	
 	const Macro* pMacro = p->getCondition();
 	std::auto_ptr<ConditionList> pConditionList(ConditionFactory::getInstance().parse(pMacro));
 	if (pConditionList.get())
