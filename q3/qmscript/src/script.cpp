@@ -205,15 +205,7 @@ std::auto_ptr<Script> qmscript::ScriptFactoryImpl::createScript(const Init& init
 qmscript::ActiveScriptSite::ActiveScriptSite(const ScriptFactory::Init& init) :
 	nRef_(0),
 	hwnd_(init.hwnd_),
-	pModalHandler_(init.pModalHandler_),
-	pApplication_(0),
-	pDocument_(0),
-	pMacroParser_(0),
-	pArgumentList_(0),
-	pResult_(0),
-	pMainWindow_(0),
-	pEditFrameWindow_(0),
-	pMessageFrameWindow_(0)
+	pModalHandler_(init.pModalHandler_)
 {
 	ComPtr<IApplication> pApplicationObj(
 		Factory::getFactory().createApplication(&Application::getApplication()));
@@ -221,10 +213,13 @@ qmscript::ActiveScriptSite::ActiveScriptSite(const ScriptFactory::Init& init) :
 	
 	std::auto_ptr<MacroParserObj> pMacroParserObj(new MacroParserObj());
 	pMacroParserObj->init(init.pDocument_, init.pProfile_, init.hwnd_);
+	pMacroParserObj->AddRef();
 	
-	std::auto_ptr<ArgumentListObj> pArgumentListObj(new ArgumentListObj());
+	ComPtr<IArgumentList> pArgumentListObj(new ArgumentListObj());
+	pArgumentListObj->AddRef();
 	
-	std::auto_ptr<ResultObj> pResultObj(new ResultObj());
+	ComPtr<IResult> pResultObj(new ResultObj());
+	pResultObj->AddRef();
 	
 	std::auto_ptr<MainWindowObj> pMainWindowObj;
 	std::auto_ptr<EditFrameWindowObj> pEditFrameWindowObj;
@@ -235,67 +230,49 @@ qmscript::ActiveScriptSite::ActiveScriptSite(const ScriptFactory::Init& init) :
 	case ScriptFactory::TYPE_MAIN:
 		pMainWindowObj.reset(new MainWindowObj());
 		pMainWindowObj->init(init.window_.pMainWindow_);
+		pMainWindowObj->AddRef();
 		break;
 	case ScriptFactory::TYPE_EDIT:
 		pEditFrameWindowObj.reset(new EditFrameWindowObj());
 		pEditFrameWindowObj->init(init.window_.pEditFrameWindow_);
+		pEditFrameWindowObj->AddRef();
 		break;
 	case ScriptFactory::TYPE_MESSAGE:
 		pMessageFrameWindowObj.reset(new MessageFrameWindowObj());
 		pMessageFrameWindowObj->init(init.window_.pMessageFrameWindow_);
+		pMessageFrameWindowObj->AddRef();
 		break;
 	default:
 		assert(false);
 		break;
 	}
 	
-	pApplication_ = pApplicationObj.release();
-	pDocument_ = pDocumentObj.release();
-	pMacroParser_ = pMacroParserObj.release();
-	pMacroParser_->AddRef();
-	pArgumentList_ = pArgumentListObj.release();
-	pArgumentList_->AddRef();
-	pResult_ = pResultObj.release();
-	pResult_->AddRef();
-	if (pMainWindowObj.get()) {
-		pMainWindow_ = pMainWindowObj.release();
-		pMainWindow_->AddRef();
-	}
-	if (pEditFrameWindowObj.get()) {
-		pEditFrameWindow_ = pEditFrameWindowObj.release();
-		pEditFrameWindow_->AddRef();
-	}
-	if (pMessageFrameWindowObj.get()) {
-		pMessageFrameWindow_ = pMessageFrameWindowObj.release();
-		pMessageFrameWindow_->AddRef();
-	}
+	pApplication_ = pApplicationObj;
+	pDocument_ = pDocumentObj;
+	pMacroParser_ = ComPtr<IMacroParser>(pMacroParserObj.release());
+	pArgumentList_ = pArgumentListObj;
+	pResult_ = pResultObj;
+	if (pMainWindowObj.get())
+		pMainWindow_ = ComPtr<IMainWindow>(pMainWindowObj.release());
+	if (pEditFrameWindowObj.get())
+		pEditFrameWindow_ = ComPtr<IEditFrameWindow>(pEditFrameWindowObj.release());
+	if (pMessageFrameWindowObj.get())
+		pMessageFrameWindow_ = ComPtr<IMessageFrameWindow>(pMessageFrameWindowObj.release());
 }
 
 qmscript::ActiveScriptSite::~ActiveScriptSite()
 {
-	if (pApplication_)
-		pApplication_->Release();
-	if (pDocument_)
-		pDocument_->Release();
-	if (pMainWindow_)
-		pMainWindow_->Release();
-	if (pMacroParser_)
-		pMacroParser_->Release();
-	if (pArgumentList_)
-		pArgumentList_->Release();
-	if (pResult_)
-		pResult_->Release();
 }
 
 bool qmscript::ActiveScriptSite::setArguments(VARIANT* pvarArgs,
 											  size_t nCount)
 {
-	return static_cast<ArgumentListObj*>(pArgumentList_)->init(pvarArgs, nCount);
+	return static_cast<ArgumentListObj*>(pArgumentList_.get())->init(pvarArgs, nCount);
 }
 
 VARIANT* qmscript::ActiveScriptSite::getResult()
 {
-	return static_cast<ResultObj*>(pResult_)->getValue();
+	return static_cast<ResultObj*>(pResult_.get())->getValue();
 }
 
 STDMETHODIMP qmscript::ActiveScriptSite::QueryInterface(REFIID riid,
@@ -348,14 +325,14 @@ STDMETHODIMP qmscript::ActiveScriptSite::GetItemInfo(LPCOLESTR pwszName,
 		const WCHAR* pwszName_;
 		IDispatch* pDisp_;
 	} items[] = {
-		{ L"application",			pApplication_			},
-		{ L"document",				pDocument_				},
-		{ L"macroParser",			pMacroParser_			},
-		{ L"arguments",				pArgumentList_			},
-		{ L"result",				pResult_				},
-		{ L"mainWindow",			pMainWindow_			},
-		{ L"editFrameWindow",		pEditFrameWindow_		},
-		{ L"messageFrameWindow",	pMessageFrameWindow_	},
+		{ L"application",			pApplication_.get()			},
+		{ L"document",				pDocument_.get()			},
+		{ L"macroParser",			pMacroParser_.get()			},
+		{ L"arguments",				pArgumentList_.get()		},
+		{ L"result",				pResult_.get()				},
+		{ L"mainWindow",			pMainWindow_.get()			},
+		{ L"editFrameWindow",		pEditFrameWindow_.get()		},
+		{ L"messageFrameWindow",	pMessageFrameWindow_.get()	},
 	};
 	for (int n = 0; n < countof(items); ++n) {
 		if (::wcscmp(pwszName, items[n].pwszName_) == 0 && items[n].pDisp_) {

@@ -134,14 +134,14 @@ private:
 	ULONG nRef_;
 	HWND hwnd_;
 	qs::ModalHandler* pModalHandler_;
-	IApplication* pApplication_;
-	IDocument* pDocument_;
-	IMacroParser* pMacroParser_;
-	IArgumentList* pArgumentList_;
-	IResult* pResult_;
-	IMainWindow* pMainWindow_;
-	IEditFrameWindow* pEditFrameWindow_;
-	IMessageFrameWindow* pMessageFrameWindow_;
+	qs::ComPtr<IApplication> pApplication_;
+	qs::ComPtr<IDocument> pDocument_;
+	qs::ComPtr<IMacroParser> pMacroParser_;
+	qs::ComPtr<IArgumentList> pArgumentList_;
+	qs::ComPtr<IResult> pResult_;
+	qs::ComPtr<IMainWindow> pMainWindow_;
+	qs::ComPtr<IEditFrameWindow> pEditFrameWindow_;
+	qs::ComPtr<IMessageFrameWindow> pMessageFrameWindow_;
 };
 
 
