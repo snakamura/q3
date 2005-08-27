@@ -15,6 +15,7 @@
 #include <qsinit.h>
 #include <qsosutil.h>
 #include <qsstream.h>
+#include <qstextutil.h>
 
 #include <tchar.h>
 
@@ -153,25 +154,10 @@ wstring_ptr qm::ExternalEditorManager::createParam(const WCHAR* pwszTemplate,
 {
 	assert(pwszPath);
 	
-	StringBuffer<WSTRING> bufParam;
-	if (pwszTemplate) {
-		const WCHAR* p = wcsstr(pwszTemplate, L"%f");
-		if (p) {
-			bufParam.append(pwszTemplate, p - pwszTemplate);
-			bufParam.append(pwszPath);
-			bufParam.append(p + 2);
-		}
-		else {
-			bufParam.append(pwszTemplate);
-			bufParam.append(L' ');
-			bufParam.append(pwszPath);
-		}
-	}
-	else {
-		bufParam.append(pwszPath);
-	}
-	
-	return bufParam.getString();
+	if (pwszTemplate)
+		return TextUtil::replace(pwszTemplate, L"%f", pwszPath);
+	else
+		return allocWString(pwszPath);
 }
 
 
