@@ -1202,11 +1202,6 @@ qm::InputBoxDialog::~InputBoxDialog()
 {
 }
 
-const WCHAR* qm::InputBoxDialog::getMessage() const
-{
-	return wstrMessage_.get();
-}
-
 const WCHAR* qm::InputBoxDialog::getValue() const
 {
 	return wstrValue_.get();
@@ -2137,6 +2132,129 @@ LRESULT qm::ResourceDialog::onClearAll()
 		ListView_SetCheckState(hwnd, n, FALSE);
 	
 	return 0;
+}
+
+
+/****************************************************************************
+ *
+ * SelectBoxDialog
+ *
+ */
+
+qm::SelectBoxDialog::SelectBoxDialog(Type type,
+									 const WCHAR* pwszMessage,
+									 const CandidateList& listCandidate,
+									 const WCHAR* pwszValue) :
+	DefaultDialog(type == TYPE_LIST ? IDD_LISTSELECTBOX : IDD_COMBOSELECTBOX),
+	type_(type),
+	listCandidate_(listCandidate)
+{
+	if (pwszMessage)
+		wstrMessage_ = allocWString(pwszMessage);
+	if (pwszValue)
+		wstrValue_ = allocWString(pwszValue);
+}
+
+qm::SelectBoxDialog::~SelectBoxDialog()
+{
+}
+
+const WCHAR* qm::SelectBoxDialog::getValue() const
+{
+	return wstrValue_.get();
+}
+
+LRESULT qm::SelectBoxDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
+{
+	init(false);
+	
+	if (wstrMessage_.get())
+		setDlgItemText(IDC_MESSAGE, wstrMessage_.get());
+	
+	switch (type_) {
+	case TYPE_DROPDOWNLIST:
+		Window(getDlgItem(IDC_VALUE)).showWindow(SW_HIDE);
+		break;
+	case TYPE_DROPDOWN:
+		Window(getDlgItem(IDC_VALUELIST)).showWindow(SW_HIDE);
+		break;
+	}
+	
+	HWND hwnd = getList();
+	for (CandidateList::const_iterator it = listCandidate_.begin(); it != listCandidate_.end(); ++it) {
+		W2T(*it, ptsz);
+		if (type_ == TYPE_LIST)
+			ListBox_AddString(hwnd, ptsz);
+		else
+			ComboBox_AddString(hwnd, ptsz);
+	}
+	if (wstrValue_.get()) {
+		W2T(wstrValue_.get(), ptszValue);
+		switch (type_) {
+		case TYPE_LIST:
+			ListBox_SelectString(hwnd, -1, ptszValue);
+			break;
+		case TYPE_DROPDOWNLIST:
+			ComboBox_SelectString(hwnd, -1, ptszValue);
+			break;
+		case TYPE_DROPDOWN:
+			setDlgItemText(IDC_VALUE, wstrValue_.get());
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+	else {
+		if (type_ == TYPE_LIST)
+			ListBox_SetCurSel(hwnd, 0);
+		else
+			ComboBox_SetCurSel(hwnd, 0);
+	}
+	
+	return TRUE;
+}
+
+LRESULT qm::SelectBoxDialog::onOk()
+{
+	HWND hwnd = getList();
+	switch (type_) {
+	case TYPE_LIST:
+		{
+			int nIndex = ListBox_GetCurSel(hwnd);
+			int nLen = ListBox_GetTextLen(hwnd, nIndex);
+			if (nLen == LB_ERR)
+				return 0;
+			tstring_ptr tstrValue(allocTString(nLen + 1));
+			ListBox_GetText(hwnd, nIndex, tstrValue.get());
+			wstrValue_ = tcs2wcs(tstrValue.get());
+		}
+		break;
+	case TYPE_DROPDOWNLIST:
+		{
+			int nIndex = ComboBox_GetCurSel(hwnd);
+			int nLen = ComboBox_GetLBTextLen(hwnd, nIndex);
+			if (nLen == LB_ERR)
+				return 0;
+			tstring_ptr tstrValue(allocTString(nLen + 1));
+			ComboBox_GetLBText(hwnd, nIndex, tstrValue.get());
+			wstrValue_ = tcs2wcs(tstrValue.get());
+		}
+		break;
+	case TYPE_DROPDOWN:
+		wstrValue_ = getDlgItemText(IDC_VALUE);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return DefaultDialog::onOk();
+}
+
+HWND qm::SelectBoxDialog::getList()
+{
+	return getDlgItem(type_ == TYPE_DROPDOWNLIST ? IDC_VALUELIST : IDC_VALUE);
 }
 
 

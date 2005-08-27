@@ -112,6 +112,8 @@
 #define IDI_NEWMAIL                     216
 #define IDD_CONDITION                   217
 #define IDD_CONDITIONARGUMENT           218
+#define IDD_LISTSELECTBOX               219
+#define IDD_COMBOSELECTBOX              220
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -316,6 +318,7 @@
 #define IDC_TRASHBOX                    1115
 #define IDC_VALUE                       1116
 #define IDC_HIDE                        1117
+#define IDC_VALUELIST                   1117
 #define IDC_TREATASSENT                 1118
 #define IDC_CLASS                       1119
 #define IDC_COPY                        1122
@@ -612,7 +615,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        219
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1426
+#define _APS_NEXT_CONTROL_VALUE         1428
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -4178,6 +4178,79 @@ const WCHAR* MacroFunctionScript::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionSelectBox
+ *
+ */
+
+qm::MacroFunctionSelectBox::MacroFunctionSelectBox()
+{
+}
+
+qm::MacroFunctionSelectBox::~MacroFunctionSelectBox()
+{
+}
+
+MacroValuePtr qm::MacroFunctionSelectBox::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(SelectBox);
+	
+	if (!pContext->isFlag(MacroContext::FLAG_UI))
+		return error(*pContext, MacroErrorHandler::CODE_NOUI);
+	
+	if (!checkArgSizeRange(pContext, 2, 4))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	wstring_ptr wstrDefault;
+	if (nSize > 3) {
+		ARG(pValue, 3);
+		wstrDefault = pValue->string();
+	}
+	
+	SelectBoxDialog::Type type = SelectBoxDialog::TYPE_LIST;
+	if (nSize > 2) {
+		ARG(pValue, 2);
+		unsigned int nType = pValue->number();
+		if (nType <= SelectBoxDialog::TYPE_DROPDOWN)
+			type = static_cast<SelectBoxDialog::Type>(nType);
+	}
+	
+	ARG(pValueCandidate, 1);
+	wstring_ptr wstrCandidate(pValueCandidate->string());
+	SelectBoxDialog::CandidateList listCandidate;
+	WCHAR* p = wstrCandidate.get();
+	while (*p) {
+		listCandidate.push_back(p);
+		p = wcschr(p, L'\n');
+		if (!p)
+			break;
+		*p = L'\0';
+		++p;
+	}
+	
+	ARG(pValueMessage, 0);
+	wstring_ptr wstrMessage(pValueMessage->string());
+	
+	SelectBoxDialog dialog(type, wstrMessage.get(), listCandidate, wstrDefault.get());
+	if (dialog.doModal(pContext->getWindow()) != IDOK) {
+		pContext->setReturnType(MacroContext::RETURNTYPE_CANCEL);
+		return MacroValuePtr();
+	}
+	
+	return MacroValueFactory::getFactory().newString(dialog.getValue());
+}
+
+const WCHAR* qm::MacroFunctionSelectBox::getName() const
+{
+	return L"SelectBox";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionSelected
  *
  */
@@ -4964,6 +5037,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION1(		Flag,				L"seen",			MessageHolder::FLAG_SEEN			)
 			DECLARE_FUNCTION1(		Flag,				L"sent",			MessageHolder::FLAG_SENT			)
 			DECLARE_FUNCTION0(		Script,				L"script"												)
+			DECLARE_FUNCTION0(		SelectBox,	 		L"selectbox"											)
 			DECLARE_FUNCTION0(		Selected,			L"selected"												)
 			DECLARE_FUNCTION0(		Set,				L"set"													)
 			DECLARE_FUNCTION0(		Size,				L"size"													)

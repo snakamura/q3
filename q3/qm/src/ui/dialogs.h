@@ -45,6 +45,7 @@ class DefaultDialog;
 	class RenameDialog;
 	class ReplaceDialog;
 	class ResourceDialog;
+	class SelectBoxDialog;
 	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
 #ifdef TABWINDOW
@@ -610,7 +611,6 @@ public:
 	virtual ~InputBoxDialog();
 
 public:
-	const WCHAR* getMessage() const;
 	const WCHAR* getValue() const;
 
 protected:
@@ -970,6 +970,56 @@ private:
 private:
 	ResourceList& listResource_;
 	bool bBackup_;
+};
+
+
+/****************************************************************************
+ *
+ * SelectBoxDialog
+ *
+ */
+
+class SelectBoxDialog : public DefaultDialog
+{
+public:
+	enum Type {
+		TYPE_LIST,
+		TYPE_DROPDOWNLIST,
+		TYPE_DROPDOWN
+	};
+
+public:
+	typedef std::vector<const WCHAR*> CandidateList;
+
+public:
+	SelectBoxDialog(Type type,
+					const WCHAR* pwszMessage,
+					const CandidateList& listCandidate,
+					const WCHAR* pwszValue);
+	virtual ~SelectBoxDialog();
+
+public:
+	const WCHAR* getValue() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	HWND getList();
+
+private:
+	SelectBoxDialog(const SelectBoxDialog&);
+	SelectBoxDialog& operator=(const SelectBoxDialog&);
+
+private:
+	Type type_;
+	qs::wstring_ptr wstrMessage_;
+	const CandidateList& listCandidate_;
+	qs::wstring_ptr wstrValue_;
 };
 
 

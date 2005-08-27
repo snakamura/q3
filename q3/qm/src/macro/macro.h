@@ -96,6 +96,7 @@ class MacroExpr;
 		class MacroFunctionRemove;
 		class MacroFunctionSave;
 		class MacroFunctionScript;
+		class MacroFunctionSelectBox;
 		class MacroFunctionSelected;
 		class MacroFunctionSet;
 		class MacroFunctionSize;
@@ -2192,6 +2193,30 @@ protected:
 private:
 	MacroFunctionScript(const MacroFunctionScript&);
 	MacroFunctionScript& operator=(const MacroFunctionScript&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionSelectBox
+ *
+ */
+
+class MacroFunctionSelectBox : public MacroFunction
+{
+public:
+	MacroFunctionSelectBox();
+	virtual ~MacroFunctionSelectBox();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionSelectBox(const MacroFunctionSelectBox&);
+	MacroFunctionSelectBox& operator=(const MacroFunctionSelectBox&);
 };
 
 
