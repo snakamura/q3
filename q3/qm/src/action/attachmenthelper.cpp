@@ -14,6 +14,7 @@
 
 #include <qsconv.h>
 #include <qsstl.h>
+#include <qstextutil.h>
 #include <qswindow.h>
 
 #include <commdlg.h>
@@ -228,27 +229,38 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 	
 	if (dialog.isOpenFolder()) {
 		const WCHAR* pwszCommand = 0;
-		wstring_ptr wstrParam;
+		WCHAR* pParam = 0;
 		
 #ifdef _WIN32_WCE_PSPC
-		const WCHAR* pwszDefaultFiler = L"fexplore.exe";
+		const WCHAR* pwszDefaultFiler = L"fexplore.exe %d";
 #else
 		const WCHAR* pwszDefaultFiler = L"";
 #endif
-		wstring_ptr wstrFiler(pProfile_->getString(L"Global", L"Filer", pwszDefaultFiler));
-		if (*wstrFiler.get()) {
-			pwszCommand = wstrFiler.get();
-			if (wcschr(pwszFolder, L' '))
-				wstrParam = concat(L"\"", pwszFolder, L"\"");
-			else
-				wstrParam = allocWString(pwszFolder);
+		wstring_ptr wstrCommand(pProfile_->getString(L"Global", L"Filer", pwszDefaultFiler));
+		if (*wstrCommand.get()) {
+			wstrCommand = TextUtil::replace(wstrCommand.get(), L"%d", pwszFolder);
+			
+			pwszCommand = wstrCommand.get();
+			if (*pwszCommand == L'\"') {
+				++pwszCommand;
+				pParam = wcschr(pwszCommand, L'\"');
+			}
+			else {
+				pParam = wcschr(pwszCommand, L' ');
+			}
+			if (pParam) {
+				*pParam = L'\0';
+				++pParam;
+				while (*pParam == L' ')
+					++pParam;
+			}
 		}
 		else {
 			pwszCommand = pwszFolder;
 		}
 		
 		W2T(pwszCommand, ptszCommand);
-		W2T(wstrParam.get(), ptszParam);
+		W2T(pParam, ptszParam);
 		SHELLEXECUTEINFO info = {
 			sizeof(info),
 			0,
@@ -261,7 +273,11 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 			ptszCommand,
 			ptszParam,
 			0,
-			SW_SHOW
+#ifdef _WIN32_WCE
+		SW_SHOWNORMAL,
+#else
+		SW_SHOWDEFAULT,
+#endif
 		};
 		::ShellExecuteEx(&info);
 	}
