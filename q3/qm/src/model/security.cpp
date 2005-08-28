@@ -32,7 +32,7 @@ using namespace qs;
 
 struct qm::SecurityImpl
 {
-	void loadCA();
+	std::auto_ptr<Store> loadCA();
 	
 	wstring_ptr wstrPath_;
 	Profile* pProfile_;
@@ -48,24 +48,24 @@ struct qm::SecurityImpl
 HINSTANCE qm::SecurityImpl::hInstCrypto__ = 0;
 HINSTANCE qm::SecurityImpl::hInstPGP__ = 0;
 
-void qm::SecurityImpl::loadCA()
+std::auto_ptr<Store> qm::SecurityImpl::loadCA()
 {
-	assert(!pStoreCA_.get());
-	
 	Log log(InitThread::getInitThread().getLogger(), L"qm::SecurityImpl");
 	
-	pStoreCA_ = Store::getInstance();
+	std::auto_ptr<Store> pStoreCA(Store::getInstance());
 	if (pProfile_->getInt(L"Security", L"LoadSystemStore", 1)) {
-		if (!pStoreCA_->loadSystem())
+		if (!pStoreCA->loadSystem())
 			log.warn(L"Failed to load certificates from the system store.");
 	}
 	
 	wstring_ptr wstrCAPath(concat(wstrPath_.get(), L"\\", FileNames::CA_PEM));
 	W2T(wstrCAPath.get(), ptszCAPath);
 	if (::GetFileAttributes(ptszCAPath) != 0xffffffff) {
-		if (!pStoreCA_->load(wstrCAPath.get(), Store::FILETYPE_PEM))
+		if (!pStoreCA->load(wstrCAPath.get(), Store::FILETYPE_PEM))
 			log.warn(L"Failed to load certificates from ca.pem.");
 	}
+	
+	return pStoreCA;
 }
 
 
@@ -91,12 +91,16 @@ qm::Security::~Security()
 
 const Store* qm::Security::getCA() const
 {
+#if 1
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	if (!pImpl_->pStoreCA_.get())
-		pImpl_->loadCA();
+		pImpl_->pStoreCA_ = pImpl_->loadCA();
 	
 	return pImpl_->pStoreCA_.get();
+#else
+	return pImpl_->loadCA().release();
+#endif
 }
 
 const SMIMEUtility* qm::Security::getSMIMEUtility() const
