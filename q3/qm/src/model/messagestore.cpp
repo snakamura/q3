@@ -353,7 +353,9 @@ public:
 						bool bEncoded) const;
 	void deleteFiles(unsigned int nOffset) const;
 	bool ensureDirectory(unsigned int nOffset) const;
-	void freeUnrefered(const MessageStore::DataList& listData);
+	void freeUnrefered(const MessageStore::DataList& listData,
+					   unsigned int nMaxOffset,
+					   MessageOperationCallback* pCallback);
 
 public:
 	typedef std::vector<int> DirList;
@@ -474,8 +476,12 @@ bool qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
 	return true;
 }
 
-void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& listData)
+void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& listData,
+											  unsigned int nMaxOffset,
+											  MessageOperationCallback* pCallback)
 {
+	assert(pCallback);
+	
 	typedef std::vector<unsigned int> List;
 	List l;
 	l.resize(listData.size());
@@ -484,12 +490,13 @@ void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& list
 	std::sort(l.begin(), l.end());
 	
 	List::const_iterator it = l.begin();
-	unsigned int nOffset = getOffset(false);
-	for (unsigned int n = 0; n <= nOffset; ++n) {
+	for (unsigned int n = 0; n <= nMaxOffset; ++n) {
 		if (it != l.end() && *it == n)
 			++it;
 		else
 			deleteFiles(n);
+		
+		pCallback->step(1);
 	}
 }
 
@@ -674,8 +681,10 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 	assert(pListData);
 	assert(pCallback);
 	
+	unsigned int nOffset = pImpl_->getOffset(false);
+	
 	pCallback->setCancelable(false);
-	pCallback->setCount(pListData->size());
+	pCallback->setCount(pListData->size() + nOffset);
 	pCallback->show();
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
@@ -702,7 +711,7 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 		return false;
 	pImpl_->pIndexStorage_ = pIndexStorage;
 	
-	pImpl_->freeUnrefered(*pListData);
+	pImpl_->freeUnrefered(*pListData, nOffset, pCallback);
 	
 	return true;
 }
