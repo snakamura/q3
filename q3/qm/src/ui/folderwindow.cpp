@@ -674,7 +674,7 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 			
 			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
-				(!pTarget || !pFolder->isAncestorOf(pTarget))) {
+				(!pTarget || (pTarget != pFolder && !pFolder->isAncestorOf(pTarget)))) {
 				if (pTarget && pTarget->isFlag(Folder::FLAG_TRASHBOX)) {
 					if (!FolderDeleteAction::deleteFolder(pFolderModel_, pFolder))
 						messageBox(Application::getApplication().getResourceHandle(),
@@ -1034,7 +1034,7 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 			
 			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
-				(!pTarget || !pFolder->isAncestorOf(pTarget)))
+				(!pTarget || (pTarget != pFolder && !pFolder->isAncestorOf(pTarget))))
 				dwEffect = DROPEFFECT_MOVE;
 		}
 		
