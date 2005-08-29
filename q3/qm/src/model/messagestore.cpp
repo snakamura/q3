@@ -265,6 +265,7 @@ bool qm::SingleMessageStore::compact(DataList* pListData,
 	assert(pListData);
 	assert(pCallback);
 	
+	pCallback->setCancelable(false);
 	pCallback->setCount(static_cast<int>(pListData->size()));
 	pCallback->show();
 	
@@ -673,6 +674,7 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 	assert(pListData);
 	assert(pCallback);
 	
+	pCallback->setCancelable(false);
 	pCallback->setCount(pListData->size());
 	pCallback->show();
 	

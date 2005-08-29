@@ -18,13 +18,14 @@
 
 template<class Callback>
 qm::ProgressDialogMessageOperationCallbackBase<Callback>::ProgressDialogMessageOperationCallbackBase(HWND hwnd,
-																						   UINT nTitle,
-																						   UINT nMessage) :
+																									 UINT nTitle,
+																									 UINT nMessage) :
 	hwnd_(hwnd),
 	nTitle_(nTitle),
 	nMessage_(nMessage),
 	nCount_(-1),
-	nPos_(0)
+	nPos_(0),
+	bCancelable_(true)
 {
 }
 
@@ -42,6 +43,14 @@ bool qm::ProgressDialogMessageOperationCallbackBase<Callback>::isCanceled()
 		return pDialog_->isCanceled();
 	else
 		return false;
+}
+
+template<class Callback>
+void qm::ProgressDialogMessageOperationCallbackBase<Callback>::setCancelable(bool bCancelable)
+{
+	bCancelable_ = bCancelable;
+	if (pDialog_.get())
+		pDialog_->setCancelable(bCancelable);
 }
 
 template<class Callback>
@@ -66,16 +75,19 @@ template<class Callback>
 void qm::ProgressDialogMessageOperationCallbackBase<Callback>::show()
 {
 	if (!pDialog_.get()) {
-		std::auto_ptr<ProgressDialog> pDialog(new ProgressDialog(nTitle_));
+		std::auto_ptr<ProgressDialog> pDialog(new ProgressDialog());
 		pDialog->init(hwnd_);
 		pDialog_ = pDialog;
 		
+		pDialog_->setTitle(nTitle_);
 		pDialog_->setMessage(nMessage_);
 		
 		if (nCount_ != -1) {
 			pDialog_->setRange(0, nCount_);
 			pDialog_->setPos(nPos_);
 		}
+		
+		pDialog_->setCancelable(bCancelable_);
 	}
 }
 

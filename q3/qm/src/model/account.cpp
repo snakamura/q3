@@ -505,8 +505,10 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 			pCallback->setCount(l.size());
 		
 		if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
-			if (pCallback && l.size() > 1)
+			if (pCallback && l.size() > 1) {
+				pCallback->setCancelable(false);
 				pCallback->show();
+			}
 			
 			if (!pThis_->unstoreMessages(l, pCallback))
 				return false;
@@ -1724,6 +1726,7 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 	
 	Lock<Account> lock(*this);
 	
+	pCallback->setCancelable(false);
 	pCallback->show();
 	
 	MessageStore::DataList listData;
@@ -1790,6 +1793,7 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 		}
 	}
 	
+	pCallback->setCancelable(false);
 	pCallback->setCount(listMessageHolder.size());
 	pCallback->show();
 	

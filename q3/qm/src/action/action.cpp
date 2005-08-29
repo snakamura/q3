@@ -621,8 +621,7 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			MessageActionUtil::select(pViewModel, nIndex - 1, pMessageModel_);
 	}
 	
-	ProgressDialogMessageOperationCallback callback(
-		hwnd_, IDS_DELETE, IDS_DELETE);
+	ProgressDialogMessageOperationCallback callback(hwnd_, IDS_DELETE, IDS_DELETE);
 	UndoItemList undo;
 	if (type_ != TYPE_JUNK) {
 		if (!pAccount->removeMessages(l, pFolder, type_ == TYPE_DIRECT, &callback, &undo)) {
@@ -1033,8 +1032,7 @@ void qm::FileCompactAction::invoke(const ActionEvent& event)
 	if (!pAccount)
 		return;
 	
-	ProgressDialogMessageOperationCallback callback(
-		hwnd_, IDS_COMPACT, IDS_COMPACT);
+	ProgressDialogMessageOperationCallback callback(hwnd_, IDS_COMPACT, IDS_COMPACT);
 	if (!pAccount->compact(&callback)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_COMPACT);
 		return;
@@ -1088,7 +1086,7 @@ void qm::FileDumpAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	ProgressDialog dialog(IDS_DUMP);
+	ProgressDialog dialog;
 	ProgressDialogInit init(&dialog, hwnd_, IDS_DUMP, IDS_DUMP, 0, nCount, 0);
 	
 	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
@@ -1338,7 +1336,7 @@ bool qm::FileExportAction::exportMessages(Account* pAccount,
 			nFlags |= FLAG_ADDFLAGS;
 		unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
 		
-		ProgressDialog progressDialog(IDS_EXPORT);
+		ProgressDialog progressDialog;
 		ProgressDialogInit init(&progressDialog, hwnd_,
 			IDS_EXPORT, IDS_EXPORT, 0, l.size(), 0);
 		
@@ -1615,7 +1613,7 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 	if (bMultipleMessagesInFile)
 		nCount = 100;
 	
-	ProgressDialog progressDialog(IDS_IMPORT);
+	ProgressDialog progressDialog;
 	ProgressDialogInit init(&progressDialog, hwnd,
 		IDS_IMPORT, IDS_IMPORT, 0, nCount, 0);
 	
@@ -2014,7 +2012,7 @@ void qm::FileLoadAction::invoke(const ActionEvent& event)
 	if (!wstrPath.get())
 		return;
 	
-	ProgressDialog dialog(IDS_LOAD);
+	ProgressDialog dialog;
 	ProgressDialogInit init(&dialog, hwnd_, IDS_LOAD, IDS_LOAD, 0, 100, 0);
 	
 	int nPos = 0;
@@ -3201,7 +3199,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		ProgressDialog* pDialog_;
 	};
 	
-	ProgressDialog dialog(IDS_APPLYMESSAGERULES);
+	ProgressDialog dialog;
 	RuleCallbackImpl callback(&dialog);
 	
 	Account* pAccount = 0;
@@ -3212,7 +3210,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 				Account::FolderList l(pAccount->getFolders());
 				std::sort(l.begin(), l.end(), FolderLess());
 				
-				ProgressDialogInit init(&dialog, hwnd_);
+				ProgressDialogInit init(&dialog, hwnd_, IDS_APPLYMESSAGERULES);
 				for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 					Folder* pFolder = *it;
 					if (pFolder->getType() == Folder::TYPE_NORMAL &&
@@ -3240,7 +3238,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 					for (unsigned int n = 0; n < pViewModel->getCount(); ++n)
 						l[n] = pViewModel->getMessageHolder(n);
 					
-					ProgressDialogInit init(&dialog, hwnd_);
+					ProgressDialogInit init(&dialog, hwnd_, IDS_APPLYMESSAGERULES);
 					if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
 						pSecurityModel_->getSecurityMode(), &callback)) {
 						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
@@ -3257,7 +3255,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		MessageHolderList l;
 		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		if (!l.empty()) {
-			ProgressDialogInit init(&dialog, hwnd_);
+			ProgressDialogInit init(&dialog, hwnd_, IDS_APPLYMESSAGERULES);
 			if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
 				pSecurityModel_->getSecurityMode(), &callback)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
@@ -3914,7 +3912,7 @@ void qm::MessageManageJunkAction::invoke(const ActionEvent& event)
 	MessageHolderList l;
 	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
 	
-	ProgressDialog progressDialog(IDS_PROCESSING);
+	ProgressDialog progressDialog;
 	ProgressDialogInit init(&progressDialog, hwnd_,
 		IDS_PROCESSING, IDS_PROCESSING, 0, l.size(), 0);
 	

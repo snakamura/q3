@@ -142,7 +142,8 @@ class ProgressDialogInit
 {
 public:
 	ProgressDialogInit(ProgressDialog* pDialog,
-					   HWND hwnd);
+					   HWND hwnd,
+					   UINT nTitle);
 	ProgressDialogInit(ProgressDialog* pDialog,
 					   HWND hwnd,
 					   UINT nTitle,
@@ -178,6 +179,7 @@ public:
 
 public:
 	virtual bool isCanceled();
+	virtual void setCancelable(bool bCancelable);
 	virtual void setCount(size_t nCount);
 	virtual void step(size_t nStep);
 	virtual void show();
@@ -196,6 +198,7 @@ private:
 	std::auto_ptr<ProgressDialog> pDialog_;
 	size_t nCount_;
 	size_t nPos_;
+	bool bCancelable_;
 };
 
 typedef ProgressDialogMessageOperationCallbackBase<MessageOperationCallback> ProgressDialogMessageOperationCallback;

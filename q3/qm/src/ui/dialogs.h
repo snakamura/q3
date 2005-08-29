@@ -793,13 +793,14 @@ private:
 class ProgressDialog : public DefaultDialog
 {
 public:
-	explicit ProgressDialog(UINT nTitleId);
+	ProgressDialog();
 	virtual ~ProgressDialog();
 
 public:
 	bool init(HWND hwnd);
 	void term();
 	bool isCanceled();
+	void setCancelable(bool bCancelable);
 	void setTitle(UINT nId);
 	void setMessage(UINT nId);
 	void setMessage(const WCHAR* pwszMessage);
@@ -818,12 +819,16 @@ protected:
 	virtual LRESULT onCancel();
 
 private:
+	void pumpMessage(HWND hwnd);
+
+private:
 	ProgressDialog(const ProgressDialog&);
 	ProgressDialog& operator=(const ProgressDialog&);
 
 private:
-	UINT nTitleId_;
+	bool bCancelable_;
 	bool bCanceled_;
+	size_t nLastMessagePumpPos_;
 };
 
 

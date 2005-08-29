@@ -29,6 +29,7 @@ public:
 
 public:
 	virtual bool isCanceled() = 0;
+	virtual void setCancelable(bool bCancelable) = 0;
 	virtual void setCount(size_t nCount) = 0;
 	virtual void step(size_t nStep) = 0;
 	virtual void show() = 0;

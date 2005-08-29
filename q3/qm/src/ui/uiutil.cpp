@@ -468,11 +468,14 @@ void qm::History::addValue(const WCHAR* pwszValue)
  */
 
 qm::ProgressDialogInit::ProgressDialogInit(ProgressDialog* pDialog,
-										   HWND hwnd) :
+										   HWND hwnd,
+										   UINT nTitle) :
 	pDialog_(0)
 {
 	pDialog->init(hwnd);
 	pDialog_ = pDialog;
+	
+	pDialog->setTitle(nTitle);
 }
 
 qm::ProgressDialogInit::ProgressDialogInit(ProgressDialog* pDialog,

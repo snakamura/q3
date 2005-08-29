@@ -1701,10 +1701,11 @@ void qm::PasswordDialog::updateState()
  *
  */
 
-qm::ProgressDialog::ProgressDialog(UINT nTitleId) :
+qm::ProgressDialog::ProgressDialog() :
 	DefaultDialog(IDD_PROGRESS),
-	nTitleId_(nTitleId),
-	bCanceled_(false)
+	bCancelable_(true),
+	bCanceled_(false),
+	nLastMessagePumpPos_(0)
 {
 }
 
@@ -1733,13 +1734,16 @@ bool qm::ProgressDialog::isCanceled()
 	HWND hwnd = getHandle();
 	if (sendDlgItemMessage(IDC_PROGRESS, PBM_GETPOS) % 10 == 0)
 		hwnd = 0;
+	pumpMessage(hwnd);
 	
-	MSG msg;
-	while (::PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE)) {
-		::TranslateMessage(&msg);
-		::DispatchMessage(&msg);
-	}
 	return bCanceled_;
+}
+
+void qm::ProgressDialog::setCancelable(bool bCancelable)
+{
+	bCancelable_ = bCancelable;
+	Window(getDlgItem(IDCANCEL)).enableWindow(bCancelable);
+	pumpMessage(0);
 }
 
 void qm::ProgressDialog::setTitle(UINT nId)
@@ -1770,6 +1774,13 @@ void qm::ProgressDialog::setRange(size_t nMin,
 void qm::ProgressDialog::setPos(size_t n)
 {
 	sendDlgItemMessage(IDC_PROGRESS, PBM_SETPOS, n);
+	
+	if (!bCancelable_) {
+		if (n - nLastMessagePumpPos_ >= 10) {
+			pumpMessage(0);
+			nLastMessagePumpPos_ = n;
+		}
+	}
 }
 
 void qm::ProgressDialog::setStep(size_t n)
@@ -1791,7 +1802,6 @@ LRESULT qm::ProgressDialog::onInitDialog(HWND hwndFocus,
 										 LPARAM lParam)
 {
 	DefaultDialog::init(false);
-	setTitle(nTitleId_);
 	return DefaultDialog::onInitDialog(hwndFocus, lParam);
 }
 
@@ -1799,6 +1809,15 @@ LRESULT qm::ProgressDialog::onCancel()
 {
 	bCanceled_ = true;
 	return 0;
+}
+
+void qm::ProgressDialog::pumpMessage(HWND hwnd)
+{
+	MSG msg;
+	while (::PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE)) {
+		::TranslateMessage(&msg);
+		::DispatchMessage(&msg);
+	}
 }
 
 
