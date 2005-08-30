@@ -33,11 +33,9 @@
 #include "../model/fixedformtext.h"
 #include "../model/templatemanager.h"
 #include "../model/uri.h"
-#include "../ui/actionid.h"
 #include "../ui/addressbookdialog.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
-#include "../ui/menus.h"
 #include "../ui/syncutil.h"
 #include "../ui/uiutil.h"
 #include "../uimodel/attachmentselectionmodel.h"
@@ -321,15 +319,9 @@ qm::EditEditMoveCaretAction::~EditEditMoveCaretAction()
 void qm::EditEditMoveCaretAction::invoke(const ActionEvent& event)
 {
 	TextWindow::Select select = TextWindow::SELECT_CLEAR;
-	if (event.getParam()) {
-		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
-		if (pParam->nArgs_ > 0) {
-			Variant v;
-			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BOOL) == S_OK &&
-				v.boolVal == VARIANT_TRUE)
-				select = TextWindow::SELECT_SELECT;
-		}
-	}
+	const WCHAR* pwszParam = ActionParamUtil::getString(event.getParam(), 0);
+	if (pwszParam && _wcsicmp(pwszParam, L"true") == 0)
+		select = TextWindow::SELECT_SELECT;
 	
 	pTextWindow_->moveCaret(moveCaret_, 0, 0, false, select, true);
 }
@@ -886,8 +878,11 @@ qm::EditFocusItemAction::~EditFocusItemAction()
 
 void qm::EditFocusItemAction::invoke(const ActionEvent& event)
 {
-	EditWindowItem* pItem = pEditWindow_->getItemByNumber(
-		event.getId() - IDM_FOCUS_HEADEREDITITEM);
+	unsigned int nItem = ActionParamUtil::getIndex(event.getParam(), 0);
+	if (nItem == -1)
+		return;
+	
+	EditWindowItem* pItem = pEditWindow_->getItemByNumber(nItem);
 	if (pItem)
 		pItem->setFocus();
 }
@@ -961,15 +956,7 @@ void qm::EditToolAttachmentAction::invoke(const ActionEvent& event)
  */
 
 qm::EditToolEncodingAction::EditToolEncodingAction(EditMessageHolder* pEditMessageHolder) :
-	pEditMessageHolder_(pEditMessageHolder),
-	pEncodingMenu_(0)
-{
-}
-
-qm::EditToolEncodingAction::EditToolEncodingAction(EditMessageHolder* pEditMessageHolder,
-												   EncodingMenu* pEncodingMenu) :
-	pEditMessageHolder_(pEditMessageHolder),
-	pEncodingMenu_(pEncodingMenu)
+	pEditMessageHolder_(pEditMessageHolder)
 {
 }
 
@@ -979,24 +966,37 @@ qm::EditToolEncodingAction::~EditToolEncodingAction()
 
 void qm::EditToolEncodingAction::invoke(const ActionEvent& event)
 {
+	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return;
+	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	const WCHAR* pwszEncoding = 0;
-	if (pEncodingMenu_)
-		pwszEncoding = pEncodingMenu_->getEncoding(event.getId());
-	pEditMessage->setEncoding(pwszEncoding);
+	if (*pwszEncoding)
+		pEditMessage->setEncoding(pwszEncoding);
+	else
+		pEditMessage->setEncoding(0);
+}
+
+bool qm::EditToolEncodingAction::isEnabled(const ActionEvent& event)
+{
+	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return false;
+	return true;
 }
 
 bool qm::EditToolEncodingAction::isChecked(const ActionEvent& event)
 {
+	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return false;
+	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	if (pEncodingMenu_) {
-		const WCHAR* pwszEncoding = pEditMessage->getEncoding();
-		return pwszEncoding &&
-			wcscmp(pwszEncoding, pEncodingMenu_->getEncoding(event.getId())) == 0;
-	}
-	else {
-		return !pEditMessage->getEncoding();
-	}
+	const WCHAR* pwszCurrentEncoding = pEditMessage->getEncoding();
+	if (*pwszEncoding)
+		return pwszCurrentEncoding && wcscmp(pwszEncoding, pwszCurrentEncoding) == 0;
+	else
+		return !pwszCurrentEncoding;
 }
 
 
@@ -1081,9 +1081,9 @@ bool qm::EditToolInsertSignatureAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditToolInsertTextAction::EditToolInsertTextAction(InsertTextMenu* pInsertTextMenu,
+qm::EditToolInsertTextAction::EditToolInsertTextAction(FixedFormTextManager* pFixedFormTextManager,
 													   TextWindow* pTextWindow) :
-	pInsertTextMenu_(pInsertTextMenu),
+	pFixedFormTextManager_(pFixedFormTextManager),
 	pTextWindow_(pTextWindow)
 {
 }
@@ -1094,16 +1094,32 @@ qm::EditToolInsertTextAction::~EditToolInsertTextAction()
 
 void qm::EditToolInsertTextAction::invoke(const ActionEvent& event)
 {
-	const FixedFormText* pText = pInsertTextMenu_->getText(event.getId());
-	if (pText) {
-		if (!pTextWindow_->insertText(pText->getText(), -1)) {
-			// TODO MSG
-		}
+	std::pair<const WCHAR*, unsigned int> param(ActionParamUtil::getStringOrIndex(event.getParam(), 0));
+	
+	const FixedFormText* pText = 0;
+	if (param.first) {
+		pText = pFixedFormTextManager_->getText(param.first);
+	}
+	else if (param.second != -1) {
+		const FixedFormTextManager::TextList& l = pFixedFormTextManager_->getTexts();
+		if (l.size() > param.second)
+			pText = l[param.second];
+	}
+	if (!pText)
+		return;
+	
+	if (!pTextWindow_->insertText(pText->getText(), -1)) {
+		// TODO MSG
 	}
 }
 
 bool qm::EditToolInsertTextAction::isEnabled(const ActionEvent& event)
 {
+	std::pair<const WCHAR*, unsigned int> param(ActionParamUtil::getStringOrIndex(event.getParam(), 0));
+	if (!param.first &&
+		(param.second == -1 || param.second >= pFixedFormTextManager_->getTexts().size()))
+		return false;
+	
 	return pTextWindow_->hasFocus();
 }
 

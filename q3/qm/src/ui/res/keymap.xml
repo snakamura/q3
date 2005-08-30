@@ -63,37 +63,37 @@
 		<action name="TabNavigatePrev">
 			<key code="9" shift="true" ctrl="true"/>
 		</action>
-		<action name="TabSelect0">
+		<action name="TabSelect" param="@0">
 			<key key="1" alt="true"/>
 		</action>
-		<action name="TabSelect1">
+		<action name="TabSelect" param="@1">
 			<key key="2" alt="true"/>
 		</action>
-		<action name="TabSelect2">
+		<action name="TabSelect" param="@2">
 			<key key="3" alt="true"/>
 		</action>
-		<action name="TabSelect3">
+		<action name="TabSelect" param="@3">
 			<key key="4" alt="true"/>
 		</action>
-		<action name="TabSelect4">
+		<action name="TabSelect" param="@4">
 			<key key="5" alt="true"/>
 		</action>
-		<action name="TabSelect5">
+		<action name="TabSelect" param="@5">
 			<key key="6" alt="true"/>
 		</action>
-		<action name="TabSelect6">
+		<action name="TabSelect" param="@6">
 			<key key="7" alt="true"/>
 		</action>
-		<action name="TabSelect7">
+		<action name="TabSelect" param="@7">
 			<key key="8" alt="true"/>
 		</action>
-		<action name="TabSelect8">
+		<action name="TabSelect" param="@8">
 			<key key="9" alt="true"/>
 		</action>
-		<action name="TabSelect9">
+		<action name="TabSelect" param="@9">
 			<key key="0" alt="true"/>
 		</action>
-		<action name="ToolGoround0">
+		<action name="ToolGoround" param="@0">
 			<key key="[" virtual="false"/>
 		</action>
 		<action name="ToolReceive">
@@ -149,14 +149,23 @@
 		<action name="MessageApplyRule">
 			<key key="L"/>
 		</action>
-		<action name="MessageDetach">
-			<key key="X"/>
-		</action>
-		<action name="MessageEdit">
+		<action name="MessageCreate" param="edit">
 			<key code="d" shift="true"/>
 		</action>
-		<action name="MessageForward">
+		<action name="MessageCreate" param="forward">
 			<key key="F"/>
+		</action>
+		<action name="MessageCreate" param="new">
+			<key key="S"/>
+		</action>
+		<action name="MessageCreate" param="reply">
+			<key key="R"/>
+		</action>
+		<action name="MessageCreate" param="reply_all">
+			<key key="R" shift="true"/>
+		</action>
+		<action name="MessageDetach">
+			<key key="X"/>
 		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>
@@ -167,20 +176,11 @@
 		<action name="MessageMarkDownload">
 			<key key="O"/>
 		</action>
-		<action name="MessageNew">
-			<key key="S"/>
-		</action>
 		<action name="MessageOpenLink">
 			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
 			<key code="d" alt="true"/>
-		</action>
-		<action name="MessageReply">
-			<key key="R"/>
-		</action>
-		<action name="MessageReplyAll">
-			<key key="R" shift="true"/>
 		</action>
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
@@ -237,14 +237,23 @@
 		<action name="EditDeleteJunk">
 			<key key="J" ctrl="true"/>
 		</action>
-		<action name="MessageDetach">
-			<key key="X"/>
-		</action>
-		<action name="MessageEdit">
+		<action name="MessageCreate" param="edit">
 			<key code="d" shift="true"/>
 		</action>
-		<action name="MessageForward">
+		<action name="MessageCreate" param="forward">
 			<key key="F"/>
+		</action>
+		<action name="MessageCreate" param="new">
+			<key key="S"/>
+		</action>
+		<action name="MessageCreate" param="reply">
+			<key key="R"/>
+		</action>
+		<action name="MessageCreate" param="reply_all">
+			<key key="R" shift="true"/>
+		</action>
+		<action name="MessageDetach">
+			<key key="X"/>
 		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>
@@ -252,20 +261,11 @@
 		<action name="MessageMarkDownload">
 			<key key="O"/>
 		</action>
-		<action name="MessageNew">
-			<key key="S"/>
-		</action>
 		<action name="MessageOpenLink">
 			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
 			<key code="d" alt="true"/>
-		</action>
-		<action name="MessageReply">
-			<key key="R"/>
-		</action>
-		<action name="MessageReplyAll">
-			<key key="R" shift="true"/>
 		</action>
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
@@ -344,14 +344,23 @@
 		<action name="EditFindPrev">
 			<key code="72" shift="true"/>
 		</action>
-		<action name="MessageDetach">
-			<key key="X"/>
-		</action>
-		<action name="MessageEdit">
+		<action name="MessageCreate" param="edit">
 			<key code="d" shift="true"/>
 		</action>
-		<action name="MessageForward">
+		<action name="MessageCreate" param="forward">
 			<key key="F"/>
+		</action>
+		<action name="MessageCreate" param="new">
+			<key key="S"/>
+		</action>
+		<action name="MessageCreate" param="reply">
+			<key key="R"/>
+		</action>
+		<action name="MessageCreate" param="reply_all">
+			<key key="R" shift="true"/>
+		</action>
+		<action name="MessageDetach">
+			<key key="X"/>
 		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>
@@ -359,20 +368,11 @@
 		<action name="MessageMarkDownload">
 			<key key="O"/>
 		</action>
-		<action name="MessageNew">
-			<key key="S"/>
-		</action>
 		<action name="MessageOpenLink">
 			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
 			<key code="d" alt="true"/>
-		</action>
-		<action name="MessageReply">
-			<key key="R"/>
-		</action>
-		<action name="MessageReplyAll">
-			<key key="R" shift="true"/>
 		</action>
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
@@ -457,31 +457,31 @@
 		<action name="FileSend">
 			<key key="M" alt="true"/>
 		</action>
-		<action name="HeaderEditItem0">
+		<action name="HeaderEditItem" param="@0">
 			<key key="O" alt="true"/>
 		</action>
-		<action name="HeaderEditItem1">
+		<action name="HeaderEditItem" param="@1">
 			<key key="C" alt="true"/>
 		</action>
-		<action name="HeaderEditItem2">
+		<action name="HeaderEditItem" param="@2">
 			<key key="B" alt="true"/>
 		</action>
-		<action name="HeaderEditItem3">
+		<action name="HeaderEditItem" param="@3">
 			<key key="N" alt="true"/>
 		</action>
-		<action name="HeaderEditItem4">
+		<action name="HeaderEditItem" param="@4">
 			<key key="L" alt="true"/>
 		</action>
-		<action name="HeaderEditItem5">
+		<action name="HeaderEditItem" param="@5">
 			<key key="S" alt="true"/>
 		</action>
-		<action name="HeaderEditItem6">
+		<action name="HeaderEditItem" param="@6">
 			<key key="H" alt="true"/>
 		</action>
-		<action name="HeaderEditItem7">
+		<action name="HeaderEditItem" param="@7">
 			<key key="U" alt="true"/>
 		</action>
-		<action name="HeaderEditItem8">
+		<action name="HeaderEditItem" param="@8">
 			<key key="I" alt="true"/>
 		</action>
 		<action name="ToolSelectAddress">
@@ -493,7 +493,7 @@
 		<action name="ToolInsertSignature">
 			<key key="I" shift="true" ctrl="true"/>
 		</action>
-		<action name="ToolInsertText0">
+		<action name="ToolInsertText" param="@0">
 			<key key="I" ctrl="true"/>
 		</action>
 		<action name="ToolReform">

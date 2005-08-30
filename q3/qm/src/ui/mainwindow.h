@@ -32,7 +32,6 @@ struct MainWindowCreateContext;
 
 class AutoPilot;
 class Document;
-class FilterMenu;
 class FolderListWindow;
 class GoRound;
 class ListWindow;
@@ -171,9 +170,7 @@ public:
 						MessageWindow* pMessageWindow,
 						EncodingModel* pEncodingModel,
 						int nOffset,
-						EncodingMenu* pEncodingMenu,
-						ViewTemplateMenu* pViewTemplateMenu,
-						FilterMenu* pFilterMenu);
+						qs::MenuManager* pMenuManager);
 	virtual ~MainWindowStatusBar();
 
 public:
@@ -189,10 +186,7 @@ protected:
 						  const POINT& pt);
 
 protected:
-	virtual HMENU getMenu(int nPart);
-
-private:
-	virtual Account* getAccount();
+	virtual const WCHAR* getMenuName(int nPart);
 
 private:
 	MainWindowStatusBar(const MainWindowStatusBar&);
@@ -210,7 +204,6 @@ private:
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
 	SyncManager* pSyncManager_;
-	FilterMenu* pFilterMenu_;
 	unsigned int nCount_;
 	unsigned int nUnseenCount_;
 	unsigned int nSelectedCount_;

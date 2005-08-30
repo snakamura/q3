@@ -11,6 +11,7 @@
 
 #include <qm.h>
 
+#include <qsaction.h>
 #include <qskeymap.h>
 #include <qsmenu.h>
 #include <qstoolbar.h>
@@ -37,6 +38,7 @@ public:
 	qs::MenuManager* getMenuManager() const;
 	qs::ToolbarManager* getToolbarManager() const;
 	qs::KeyMap* getKeyMap() const;
+	qs::ActionParamMap* getActionParamMap() const;
 
 private:
 	UIManager(const UIManager&);
@@ -46,6 +48,7 @@ private:
 	std::auto_ptr<qs::MenuManager> pMenuManager_;
 	std::auto_ptr<qs::ToolbarManager> pToolbarManager_;
 	std::auto_ptr<qs::KeyMap> pKeyMap_;
+	std::auto_ptr<qs::ActionParamMap> pActionParamMap_;
 };
 
 }

@@ -33,11 +33,11 @@ public:
 
 public:
 	void invoke(UINT nId,
-				VARIANT** ppvarArgs,
-				size_t nArgs) const;
+				const WCHAR** ppParams,
+				size_t nParams) const;
 	void invoke(const WCHAR* pwszAction,
-				VARIANT** ppvarArgs,
-				size_t nArgs) const;
+				const WCHAR** ppParams,
+				size_t nParams) const;
 
 private:
 	ActionInvoker(const ActionInvoker&);

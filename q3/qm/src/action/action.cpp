@@ -62,7 +62,6 @@
 #include "../ui/dialogs.h"
 #include "../ui/editframewindow.h"
 #include "../ui/folderdialog.h"
-#include "../ui/menus.h"
 #include "../ui/messageframewindow.h"
 #include "../ui/optiondialog.h"
 #include "../ui/propertypages.h"
@@ -3289,62 +3288,6 @@ bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
- * MessageApplyTemplateAction
- *
- */
-
-qm::MessageApplyTemplateAction::MessageApplyTemplateAction(TemplateMenu* pTemplateMenu,
-														   Document* pDocument,
-														   FolderModelBase* pFolderModel,
-														   MessageSelectionModel* pMessageSelectionModel,
-														   EncodingModel* pEncodingModel,
-														   SecurityModel* pSecurityModel,
-														   EditFrameWindowManager* pEditFrameWindowManager,
-														   ExternalEditorManager* pExternalEditorManager,
-														   HWND hwnd,
-														   Profile* pProfile,
-														   bool bExternalEditor) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel,
-		pEncodingModel, pSecurityModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor,
-		Application::getApplication().getTemporaryFolder()),
-	pTemplateMenu_(pTemplateMenu),
-	pFolderModel_(pFolderModel),
-	hwnd_(hwnd)
-{
-}
-
-qm::MessageApplyTemplateAction::~MessageApplyTemplateAction()
-{
-}
-
-void qm::MessageApplyTemplateAction::invoke(const ActionEvent& event)
-{
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
-	if (!pAccount)
-		return;
-	
-	const WCHAR* pwszTemplate = pTemplateMenu_->getTemplate(event.getId(), pAccount);
-	if (!pwszTemplate)
-		return;
-	
-	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
-	if (!processor_.process(pwszTemplate, bExternalEditor)) {
-		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
-		return;
-	}
-}
-
-bool qm::MessageApplyTemplateAction::isEnabled(const ActionEvent& event)
-{
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	return p.first || p.second;
-}
-
-
-/****************************************************************************
- *
  * MessageClearRecentsAction
  *
  */
@@ -3536,7 +3479,6 @@ qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
 											 MessageSelectionModel* pMessageSelectionModel,
 											 EncodingModel* pEncodingModel,
 											 SecurityModel* pSecurityModel,
-											 const WCHAR* pwszTemplateName,
 											 EditFrameWindowManager* pEditFrameWindowManager,
 											 ExternalEditorManager* pExternalEditorManager,
 											 HWND hwnd,
@@ -3549,7 +3491,6 @@ qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
 {
-	wstrTemplateName_ = allocWString(pwszTemplateName);
 }
 
 qm::MessageCreateAction::~MessageCreateAction()
@@ -3558,7 +3499,11 @@ qm::MessageCreateAction::~MessageCreateAction()
 
 void qm::MessageCreateAction::invoke(const ActionEvent& event)
 {
-	if (!processor_.process(wstrTemplateName_.get(),
+	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszTemplate)
+		return;
+	
+	if (!processor_.process(pwszTemplate,
 		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
 		return;
@@ -3567,6 +3512,9 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 
 bool qm::MessageCreateAction::isEnabled(const ActionEvent& event)
 {
+	if (!ActionParamUtil::getString(event.getParam(), 0))
+		return false;
+	
 	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
 	return p.first || p.second;
 }
@@ -3650,16 +3598,10 @@ qm::MessageCreateFromFileAction::~MessageCreateFromFileAction()
 
 void qm::MessageCreateFromFileAction::invoke(const ActionEvent& event)
 {
-	if (!event.getParam())
-		return;
-	ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
-	if (pParam->nArgs_ == 0)
-		return;
-	Variant v;
-	if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
+	const WCHAR* pwszPath = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszPath)
 		return;
 	
-	const WCHAR* pwszPath = v.bstrVal;
 	unsigned int nFlags = 0;
 	// TODO
 	if (!composer_.compose(0, 0, pwszPath, nFlags)) {
@@ -3983,19 +3925,21 @@ bool qm::MessageMarkAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::MessageMoveAction::MessageMoveAction(MessageSelectionModel* pMessageSelectionModel,
+qm::MessageMoveAction::MessageMoveAction(AccountManager* pAccountManager,
+										 MessageSelectionModel* pMessageSelectionModel,
 										 ViewModelHolder* pViewModelHolder,
 										 MessageModel* pMessageModel,
-										 MoveMenu* pMoveMenu,
 										 bool bDontSelectNextIfDeletedFlag,
 										 UndoManager* pUndoManager,
+										 qs::Profile* pProfile,
 										 HWND hwnd) :
+	pAccountManager_(pAccountManager),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pViewModelHolder_(pViewModelHolder),
 	pMessageModel_(pMessageModel),
-	pMoveMenu_(pMoveMenu),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pUndoManager_(pUndoManager),
+	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
 }
@@ -4010,10 +3954,6 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 	assert(pViewModel);
 	Lock<ViewModel> lockViewModel(*pViewModel);
 	
-	NormalFolder* pFolderTo = pMoveMenu_->getFolder(event.getId());
-	if (!pFolderTo)
-		return;
-	
 	AccountLock lock;
 	Folder* pFolderFrom = 0;
 	MessageHolderList l;
@@ -4024,7 +3964,28 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 	
 	Account* pAccount = lock.get();
 	
-	bool bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
+	NormalFolder* pFolderTo = 0;
+	bool bMove = true;
+	
+	const WCHAR* pwszFolder = ActionParamUtil::getString(event.getParam(), 0);
+	if (pwszFolder) {
+		Folder* pFolder = pAccountManager_->getFolder(pAccount, pwszFolder);
+		if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
+			return;
+		pFolderTo = static_cast<NormalFolder*>(pFolder);
+		bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
+	}
+	else {
+		MoveMessageDialog dialog(pAccountManager_, pAccount, pProfile_);
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		
+		pFolderTo = dialog.getFolder();
+		bMove = !dialog.isCopy();
+	}
+	if (!pFolderTo)
+		return;
+	
 	if (bMove) {
 		bool bSelectNext = !bDontSelectNextIfDeletedFlag_ ||
 			!pAccount->isSupport(Account::SUPPORT_DELETEDMESSAGE) ||
@@ -4059,103 +4020,17 @@ bool qm::MessageMoveAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
- * MessageMoveOtherAction
- *
- */
-
-qm::MessageMoveOtherAction::MessageMoveOtherAction(AccountManager* pAccountManager,
-												   MessageSelectionModel* pMessageSelectionModel,
-												   ViewModelHolder* pViewModelHolder,
-												   MessageModel* pMessageModel,
-												   bool bDontSelectNextIfDeletedFlag,
-												   UndoManager* pUndoManager,
-												   Profile* pProfile,
-												   HWND hwnd) :
-	pAccountManager_(pAccountManager),
-	pMessageSelectionModel_(pMessageSelectionModel),
-	pViewModelHolder_(pViewModelHolder),
-	pMessageModel_(pMessageModel),
-	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
-	pUndoManager_(pUndoManager),
-	pProfile_(pProfile),
-	hwnd_(hwnd)
-{
-}
-
-qm::MessageMoveOtherAction::~MessageMoveOtherAction()
-{
-}
-
-void qm::MessageMoveOtherAction::invoke(const ActionEvent& event)
-{
-	ViewModel* pViewModel = pViewModelHolder_->getViewModel();
-	assert(pViewModel);
-	Lock<ViewModel> lockViewModel(*pViewModel);
-	
-	AccountLock lock;
-	Folder* pFolderFrom = 0;
-	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
-	assert(pFolderFrom == pViewModel->getFolder());
-	if (l.empty())
-		return;
-	
-	Account* pAccount = lock.get();
-	
-	MoveMessageDialog dialog(pAccountManager_, pAccount, pProfile_);
-	if (dialog.doModal(hwnd_) != IDOK)
-		return;
-	
-	NormalFolder* pFolderTo = dialog.getFolder();
-	if (!pFolderTo)
-		return;
-	
-	bool bMove = !dialog.isCopy();
-	
-	if (bMove) {
-		bool bSelectNext = !bDontSelectNextIfDeletedFlag_ ||
-			!pAccount->isSupport(Account::SUPPORT_DELETEDMESSAGE) ||
-			pFolderFrom->getType() != Folder::TYPE_NORMAL ||
-			pFolderFrom->isFlag(Folder::FLAG_LOCAL);
-		if (bSelectNext) {
-			unsigned int nIndex = l.size() == 1 ?
-				pViewModel->getIndex(l.front()) : pViewModel->getFocused();
-			if (nIndex < pViewModel->getCount() - 1)
-				MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
-			else if (nIndex != 0)
-				MessageActionUtil::select(pViewModel, nIndex - 1, pMessageModel_);
-		}
-	}
-	
-	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
-	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-	UndoItemList undo;
-	unsigned int nFlags = (bMove ? Account::COPYFLAG_MOVE : 0) | Account::COPYFLAG_MANAGEJUNK;
-	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, nFlags, &callback, &undo)) {
-		ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
-		return;
-	}
-	pUndoManager_->pushUndoItem(undo.getUndoItem());
-}
-
-bool qm::MessageMoveOtherAction::isEnabled(const ActionEvent& event)
-{
-	return pMessageSelectionModel_->hasSelectedMessage();
-}
-
-
-/****************************************************************************
- *
  * MessageOpenAttachmentAction
  *
  */
 
-qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(SecurityModel* pSecurityModel,
+qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(AccountManager* pAccountManager,
+															 SecurityModel* pSecurityModel,
 															 Profile* pProfile,
-															 AttachmentMenu* pAttachmentMenu,
 															 TempFileCleaner* pTempFileCleaner,
 															 HWND hwnd) :
-	pAttachmentMenu_(pAttachmentMenu),
+	pAccountManager_(pAccountManager),
+	pSecurityModel_(pSecurityModel),
 	helper_(pSecurityModel, pProfile, pTempFileCleaner, hwnd),
 	hwnd_(hwnd)
 {
@@ -4167,19 +4042,43 @@ qm::MessageOpenAttachmentAction::~MessageOpenAttachmentAction()
 
 void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 {
+	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszURI)
+		return;
+	
+	std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+	if (!pURI.get())
+		return;
+	
+	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
+	if (!mpl)
+		return;
+	
 	Message msg;
-	wstring_ptr wstrName;
-	const Part* pPart = 0;
-	if (!pAttachmentMenu_->getPart(event.getId(), &msg, &wstrName, &pPart)) {
+	if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL,
+		0, pSecurityModel_->getSecurityMode(), &msg)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
 	}
 	
+	const Part* pPart = pURI->getFragment().getPart(&msg);
+	if (!pPart)
+		return;
+	const WCHAR* pwszName = pURI->getFragment().getName();
+	
 	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
-	if (helper_.open(pPart, wstrName.get(), bExternalEditor) == AttachmentParser::RESULT_FAIL) {
+	if (helper_.open(pPart, pwszName, bExternalEditor) == AttachmentParser::RESULT_FAIL) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
 	}
+}
+
+bool qm::MessageOpenAttachmentAction::isEnabled(const ActionEvent& event)
+{
+	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszURI)
+		return false;
+	return true;
 }
 
 
@@ -4221,7 +4120,7 @@ void qm::MessageOpenLinkAction::invoke(const ActionEvent& event)
 	}
 }
 
-bool qm::MessageOpenLinkAction::isEnabled(const qs::ActionEvent& event)
+bool qm::MessageOpenLinkAction::isEnabled(const ActionEvent& event)
 {
 	return pMessageSelectionModel_->hasFocusedMessage();
 }
@@ -4235,7 +4134,6 @@ bool qm::MessageOpenLinkAction::isEnabled(const qs::ActionEvent& event)
 
 qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
 													 AccountManager* pAccountManager,
-													 RecentsMenu* pRecentsMenu,
 													 ViewModelManager* pViewModelManager,
 													 FolderModel* pFolderModel,
 													 MainWindow* pMainWindow,
@@ -4243,7 +4141,6 @@ qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
 													 Profile* pProfile) :
 	pRecents_(pRecents),
 	pAccountManager_(pAccountManager),
-	pRecentsMenu_(pRecentsMenu),
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
 	pMainWindow_(pMainWindow),
@@ -4258,11 +4155,15 @@ qm::MessageOpenRecentAction::~MessageOpenRecentAction()
 
 void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 {
-	const URI* pURI = pRecentsMenu_->getURI(event.getId());
-	if (!pURI)
+	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszURI)
 		return;
 	
-	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI));
+	std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+	if (!pURI.get())
+		return;
+	
+	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
 	if (mpl) {
 		bool bOpenInPreview = pProfile_->getInt(L"Global", L"OpenRecentInPreview", 0) != 0;
 		if (event.getModifier() & ActionEvent::MODIFIER_SHIFT)
@@ -4289,7 +4190,15 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 			}
 		}
 	}
-	pRecents_->remove(pURI);
+	pRecents_->remove(pURI.get());
+}
+
+bool qm::MessageOpenRecentAction::isEnabled(const ActionEvent& event)
+{
+	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszURI)
+		return false;
+	return true;
 }
 
 
@@ -4325,15 +4234,8 @@ qm::MessageOpenURLAction::~MessageOpenURLAction()
 
 void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 {
-	if (!event.getParam())
-		return;
-	
-	ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
-	if (pParam->nArgs_ == 0)
-		return;
-	
-	Variant v;
-	if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
+	const WCHAR* pwszURL = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszURL)
 		return;
 	
 	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
@@ -4360,7 +4262,7 @@ void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 	
 	TemplateContext::Argument arg = {
 		L"url",
-		v.bstrVal
+		pwszURL
 	};
 	TemplateContext::ArgumentList listArgument(1, arg);
 	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
@@ -4562,6 +4464,7 @@ bool qm::MessageSearchAction::isEnabled(const ActionEvent& event)
 
 
 #ifdef QMTABWINDOW
+
 /****************************************************************************
  *
  * TabCloseAction
@@ -4780,10 +4683,8 @@ void qm::TabNavigateAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::TabSelectAction::TabSelectAction(TabModel* pTabModel,
-									 unsigned int nBaseId) :
-	pTabModel_(pTabModel),
-	nBaseId_(nBaseId)
+qm::TabSelectAction::TabSelectAction(TabModel* pTabModel) :
+	pTabModel_(pTabModel)
 {
 }
 
@@ -4791,24 +4692,32 @@ qm::TabSelectAction::~TabSelectAction()
 {
 }
 
-void qm::TabSelectAction::invoke(const qs::ActionEvent& event)
+void qm::TabSelectAction::invoke(const ActionEvent& event)
 {
-	int nItem = getItem(event.getId());
+	int nItem = getItem(event.getParam());
 	if (nItem < 0 || pTabModel_->getCount() <= nItem)
 		return;
 	pTabModel_->setCurrent(nItem);
 }
 
-bool qm::TabSelectAction::isEnabled(const qs::ActionEvent& event)
+bool qm::TabSelectAction::isEnabled(const ActionEvent& event)
 {
-	int nItem = getItem(event.getId());
+	int nItem = getItem(event.getParam());
 	return 0 <= nItem && nItem < pTabModel_->getCount();
 }
 
-int qm::TabSelectAction::getItem(unsigned int nId) const
+int qm::TabSelectAction::getItem(const ActionParam* pParam) const
 {
-	return nId - nBaseId_;
+	std::pair<const WCHAR*, unsigned int> param(ActionParamUtil::getStringOrIndex(pParam, 0));
+	if (param.second != -1)
+		return param.second;
+	
+	// TODO
+	// Treat param as folder path?
+	
+	return -1;
 }
+
 #endif // QMTABWINDOW
 
 
@@ -5084,14 +4993,12 @@ qm::ToolGoRoundAction::ToolGoRoundAction(SyncManager* pSyncManager,
 										 Document* pDocument,
 										 GoRound* pGoRound,
 										 SyncDialogManager* pSyncDialogManager,
-										 HWND hwnd,
-										 GoRoundMenu* pGoRoundMenu) :
+										 HWND hwnd) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
 	pSyncDialogManager_(pSyncDialogManager),
-	hwnd_(hwnd),
-	pGoRoundMenu_(pGoRoundMenu)
+	hwnd_(hwnd)
 {
 }
 
@@ -5101,19 +5008,16 @@ qm::ToolGoRoundAction::~ToolGoRoundAction()
 
 void qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 {
+	std::pair<const WCHAR*, unsigned int> param(ActionParamUtil::getStringOrIndex(event.getParam(), 0));
+	
 	const GoRoundCourse* pCourse = 0;
-	if (event.getParam()) {
-		ActionParam* pParam = static_cast<ActionParam*>(event.getParam());
-		if (pParam->nArgs_ > 0) {
-			Variant v;
-			if (::VariantChangeType(&v, pParam->ppvarArgs_[0], 0, VT_BSTR) != S_OK)
-				return;
-			
-			pCourse = pGoRound_->getCourse(v.bstrVal);
-		}
+	if (param.first) {
+		pCourse = pGoRound_->getCourse(param.first);
 	}
-	else {
-		pCourse = pGoRoundMenu_->getCourse(event.getId());
+	else if (param.second != -1) {
+		const GoRound::CourseList& l = pGoRound_->getCourses();
+		if (l.size() > param.second)
+			pCourse = l[param.second];
 	}
 	
 	if (!SyncUtil::goRound(pSyncManager_, pDocument_,
@@ -5163,11 +5067,11 @@ bool qm::ToolOptionsAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
+qm::ToolScriptAction::ToolScriptAction(ScriptManager* pScriptManager,
 									   Document* pDocument,
 									   Profile* pProfile,
 									   MainWindow* pMainWindow) :
-	pScriptMenu_(pScriptMenu),
+	pScriptManager_(pScriptManager),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pMainWindow_(pMainWindow),
@@ -5176,11 +5080,11 @@ qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
 {
 }
 
-qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
+qm::ToolScriptAction::ToolScriptAction(ScriptManager* pScriptManager,
 									   Document* pDocument,
 									   Profile* pProfile,
 									   EditFrameWindow* pEditFrameWindow) :
-	pScriptMenu_(pScriptMenu),
+	pScriptManager_(pScriptManager),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pMainWindow_(0),
@@ -5189,11 +5093,11 @@ qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
 {
 }
 
-qm::ToolScriptAction::ToolScriptAction(ScriptMenu* pScriptMenu,
+qm::ToolScriptAction::ToolScriptAction(ScriptManager* pScriptManager,
 									   Document* pDocument,
 									   Profile* pProfile,
 									   MessageFrameWindow* pMessageFrameWindow) :
-	pScriptMenu_(pScriptMenu),
+	pScriptManager_(pScriptManager),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pMainWindow_(0),
@@ -5208,8 +5112,8 @@ qm::ToolScriptAction::~ToolScriptAction()
 
 void qm::ToolScriptAction::invoke(const ActionEvent& event)
 {
-	wstring_ptr wstrName = pScriptMenu_->getScript(event.getId());
-	if (!wstrName.get())
+	const WCHAR* pwszName = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszName)
 		return;
 	
 	ScriptManager::WindowInfo info;
@@ -5229,15 +5133,17 @@ void qm::ToolScriptAction::invoke(const ActionEvent& event)
 		assert(false);
 	}
 	
-	ScriptManager* pScriptManager = pScriptMenu_->getScriptManager();
-	std::auto_ptr<Script> pScript(pScriptManager->getScript(
-		wstrName.get(), pDocument_, pProfile_, getModalHandler(), info));
+	std::auto_ptr<Script> pScript(pScriptManager_->getScript(
+		pwszName, pDocument_, pProfile_, getModalHandler(), info));
 	if (pScript.get())
 		pScript->run(0, 0, 0);
 }
 
 bool qm::ToolScriptAction::isEnabled(const ActionEvent& event)
 {
+	if (!ActionParamUtil::getString(event.getParam(), 0))
+		return false;
+	
 	// TODO
 	// Check wether syncing or not
 	return true;
@@ -5252,12 +5158,10 @@ bool qm::ToolScriptAction::isEnabled(const ActionEvent& event)
 
 qm::ToolSubAccountAction::ToolSubAccountAction(AccountManager* pAccountManager,
 											   FolderModel* pFolderModel,
-											   SubAccountMenu* pSubAccountMenu,
 											   SyncManager* pSyncManager,
 											   HWND hwnd) :
 	pAccountManager_(pAccountManager),
 	pFolderModel_(pFolderModel),
-	pSubAccountMenu_(pSubAccountMenu),
 	pSyncManager_(pSyncManager),
 	hwnd_(hwnd)
 {
@@ -5274,21 +5178,30 @@ void qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 		return;
 	}
 	
-	const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
+	const WCHAR* pwszName = ActionParamUtil::getString(event.getParam(), 0);
 	if (!pwszName)
 		return;
 	
 	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
-		SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
-		if (pSubAccount)
-			pAccount->setCurrentSubAccount(pSubAccount);
+		if (pwszName) {
+			SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
+			if (pSubAccount)
+				pAccount->setCurrentSubAccount(pSubAccount);
+		}
+		else {
+			pAccount->setCurrentSubAccount(0);
+		}
 	}
 }
 
 bool qm::ToolSubAccountAction::isEnabled(const ActionEvent& event)
 {
+	const WCHAR* pwszName = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszName)
+		return false;
+	
 	if (pSyncManager_->isSyncing())
 		return false;
 	
@@ -5303,7 +5216,7 @@ bool qm::ToolSubAccountAction::isChecked(const ActionEvent& event)
 	if (!pAccount)
 		return false;
 	
-	const WCHAR* pwszName = pSubAccountMenu_->getName(event.getId());
+	const WCHAR* pwszName = ActionParamUtil::getString(event.getParam(), 0);
 	if (!pwszName)
 		return false;
 	
@@ -5387,15 +5300,7 @@ void qm::ViewDropDownAction::invoke(const ActionEvent& event)
  */
 
 qm::ViewEncodingAction::ViewEncodingAction(EncodingModel* pEncodingModel) :
-	pEncodingModel_(pEncodingModel),
-	pEncodingMenu_(0)
-{
-}
-
-qm::ViewEncodingAction::ViewEncodingAction(EncodingModel* pEncodingModel,
-										   EncodingMenu* pEncodingMenu) :
-	pEncodingModel_(pEncodingModel),
-	pEncodingMenu_(pEncodingMenu)
+	pEncodingModel_(pEncodingModel)
 {
 }
 
@@ -5405,22 +5310,34 @@ qm::ViewEncodingAction::~ViewEncodingAction()
 
 void qm::ViewEncodingAction::invoke(const ActionEvent& event)
 {
-	const WCHAR* pwszEncoding = 0;
-	if (pEncodingMenu_)
-		pwszEncoding = pEncodingMenu_->getEncoding(event.getId());
-	pEncodingModel_->setEncoding(pwszEncoding);
+	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return;
+	else if (*pwszEncoding)
+		pEncodingModel_->setEncoding(pwszEncoding);
+	else
+		pEncodingModel_->setEncoding(0);
+}
+
+bool qm::ViewEncodingAction::isEnabled(const qs::ActionEvent& event)
+{
+	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return false;
+	return true;
 }
 
 bool qm::ViewEncodingAction::isChecked(const ActionEvent& event)
 {
-	if (pEncodingMenu_) {
-		const WCHAR* pwszEncoding = pEncodingModel_->getEncoding();
-		return pwszEncoding &&
-			wcscmp(pwszEncoding, pEncodingMenu_->getEncoding(event.getId())) == 0;
-	}
-	else {
-		return !pEncodingModel_->getEncoding();
-	}
+	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return false;
+	
+	const WCHAR* pwszCurrentEncoding = pEncodingModel_->getEncoding();
+	if (*pwszEncoding)
+		return pwszCurrentEncoding && wcscmp(pwszEncoding, pwszCurrentEncoding) == 0;
+	else
+		return !pwszCurrentEncoding;
 }
 
 
@@ -5430,10 +5347,8 @@ bool qm::ViewEncodingAction::isChecked(const ActionEvent& event)
  *
  */
 
-qm::ViewFilterAction::ViewFilterAction(ViewModelManager* pViewModelManager,
-									   FilterMenu* pFilterMenu) :
-	pViewModelManager_(pViewModelManager),
-	pFilterMenu_(pFilterMenu)
+qm::ViewFilterAction::ViewFilterAction(ViewModelManager* pViewModelManager) :
+	pViewModelManager_(pViewModelManager)
 {
 }
 
@@ -5445,13 +5360,28 @@ void qm::ViewFilterAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		const Filter* pFilter = pFilterMenu_->getFilter(event.getId());
-		pViewModel->setFilter(pFilter);
+		const WCHAR* pwszFilter = ActionParamUtil::getString(event.getParam(), 0);
+		if (!pwszFilter)
+			return;
+		
+		if (*pwszFilter) {
+			FilterManager* pFilterManager = pViewModelManager_->getFilterManager();
+			const Filter* pFilter = pFilterManager->getFilter(pwszFilter);
+			if (pFilter)
+				pViewModel->setFilter(pFilter);
+		}
+		else {
+			pViewModel->setFilter(0);
+		}
 	}
 }
 
 bool qm::ViewFilterAction::isEnabled(const ActionEvent& event)
 {
+	const WCHAR* pwszFilter = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszFilter)
+		return false;
+	
 	return pViewModelManager_->getCurrentViewModel() != 0;
 }
 
@@ -5459,10 +5389,15 @@ bool qm::ViewFilterAction::isChecked(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
+		const WCHAR* pwszFilter = ActionParamUtil::getString(event.getParam(), 0);
+		if (!pwszFilter)
+			return false;
+		
 		const Filter* pFilter = pViewModel->getFilter();
-		return pFilter &&
-			wcscmp(pFilter->getName(),
-				pFilterMenu_->getFilter(event.getId())->getName()) == 0;
+		if (*pwszFilter)
+			return pFilter && wcscmp(pFilter->getName(), pwszFilter) == 0;
+		else
+			return !pFilter;
 	}
 	else {
 		return false;
@@ -5527,43 +5462,6 @@ bool qm::ViewFilterCustomAction::isChecked(const ActionEvent& event)
 	else {
 		return false;
 	}
-}
-
-
-/****************************************************************************
- *
- * ViewFilterNoneAction
- *
- */
-
-qm::ViewFilterNoneAction::ViewFilterNoneAction(ViewModelManager* pViewModelManager) :
-	pViewModelManager_(pViewModelManager)
-{
-}
-
-qm::ViewFilterNoneAction::~ViewFilterNoneAction()
-{
-}
-
-void qm::ViewFilterNoneAction::invoke(const ActionEvent& event)
-{
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel)
-		pViewModel->setFilter(0);
-}
-
-bool qm::ViewFilterNoneAction::isEnabled(const ActionEvent& event)
-{
-	return pViewModelManager_->getCurrentViewModel() != 0;
-}
-
-bool qm::ViewFilterNoneAction::isChecked(const ActionEvent& event)
-{
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel)
-		return !pViewModel->getFilter();
-	else
-		return false;
 }
 
 
@@ -6418,10 +6316,8 @@ qm::ViewShowTabAction::~ViewShowTabAction()
  *
  */
 
-qm::ViewSortAction::ViewSortAction(ViewModelManager* pViewModelManager,
-								   SortMenu* pSortMenu) :
-	pViewModelManager_(pViewModelManager),
-	pSortMenu_(pSortMenu)
+qm::ViewSortAction::ViewSortAction(ViewModelManager* pViewModelManager) :
+	pViewModelManager_(pViewModelManager)
 {
 }
 
@@ -6433,7 +6329,9 @@ void qm::ViewSortAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
-		unsigned int nColumn = pSortMenu_->getSort(event.getId());
+		unsigned int nColumn = getColumn(pViewModel, event.getParam());
+		if (nColumn == -1)
+			return;
 		pViewModel->setSort(nColumn, ViewModel::SORT_INDEX_MASK);
 	}
 }
@@ -6446,11 +6344,22 @@ bool qm::ViewSortAction::isEnabled(const ActionEvent& event)
 bool qm::ViewSortAction::isChecked(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel)
-		return (pSortMenu_->getSort(event.getId()) & ViewModel::SORT_INDEX_MASK) ==
-			(pViewModel->getSort() & ViewModel::SORT_INDEX_MASK);
-	else
+	if (!pViewModel)
 		return false;
+	
+	unsigned int nColumn = getColumn(pViewModel, event.getParam());
+	if (nColumn == -1)
+		return false;
+	return nColumn == (pViewModel->getSort() & ViewModel::SORT_INDEX_MASK);
+}
+
+unsigned int qm::ViewSortAction::getColumn(const ViewModel* pViewModel,
+										   const ActionParam* pParam) const
+{
+	unsigned int nColumn = ActionParamUtil::getIndex(pParam, 0);
+	if (nColumn == -1 || nColumn >= pViewModel->getColumnCount())
+		return -1;
+	return nColumn;
 }
 
 
@@ -6589,15 +6498,7 @@ bool qm::ViewSortThreadAction::isChecked(const ActionEvent& event)
  */
 
 qm::ViewTemplateAction::ViewTemplateAction(MessageWindow* pMessageWindow) :
-	pMessageWindow_(pMessageWindow),
-	pTemplateMenu_(0)
-{
-}
-
-qm::ViewTemplateAction::ViewTemplateAction(MessageWindow* pMessageWindow,
-										   TemplateMenu* pTemplateMenu) :
-	pMessageWindow_(pMessageWindow),
-	pTemplateMenu_(pTemplateMenu)
+	pMessageWindow_(pMessageWindow)
 {
 }
 
@@ -6611,28 +6512,34 @@ void qm::ViewTemplateAction::invoke(const ActionEvent& event)
 	if (!pAccount)
 		return;
 	
-	const WCHAR* pwszTemplate = 0;
-	if (pTemplateMenu_)
-		pwszTemplate = pTemplateMenu_->getTemplate(event.getId(), pAccount);
-	
-	pMessageWindow_->setTemplate(pwszTemplate);
+	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszTemplate)
+		return;
+	else if (*pwszTemplate)
+		pMessageWindow_->setTemplate(pwszTemplate);
+	else
+		pMessageWindow_->setTemplate(0);
+}
+
+bool qm::ViewTemplateAction::isEnabled(const qs::ActionEvent& event)
+{
+	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszTemplate)
+		return false;
+	return true;
 }
 
 bool qm::ViewTemplateAction::isChecked(const ActionEvent& event)
 {
-	if (pTemplateMenu_) {
-		const WCHAR* pwszTemplate = pMessageWindow_->getTemplate();
-		if (!pwszTemplate)
-			return false;
-		
-		Account* pAccount = getAccount();
-		if (!pAccount)
-			return false;
-		return wcscmp(pwszTemplate, pTemplateMenu_->getTemplate(event.getId(), pAccount)) == 0;
-	}
-	else {
-		return !pMessageWindow_->getTemplate();
-	}
+	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszTemplate)
+		return false;
+	
+	const WCHAR* pwszCurrentTemplate = pMessageWindow_->getTemplate();
+	if (*pwszTemplate)
+		return pwszCurrentTemplate && wcscmp(pwszTemplate, pwszCurrentTemplate) == 0;
+	else
+		return !pwszCurrentTemplate;
 }
 
 Account* qm::ViewTemplateAction::getAccount() const
@@ -6666,6 +6573,54 @@ void qm::ActionUtil::error(HWND hwnd,
 						   const WCHAR* pwszMessage)
 {
 	messageBox(pwszMessage, MB_OK | MB_ICONERROR, hwnd);
+}
+
+
+/****************************************************************************
+ *
+ * ActionParamUtil
+ *
+ */
+
+const WCHAR* qm::ActionParamUtil::getString(const qs::ActionParam* pParam,
+											size_t n)
+{
+	if (!pParam || pParam->getCount() <= n)
+		return 0;
+	return pParam->getValue(n);
+}
+
+unsigned int qm::ActionParamUtil::getIndex(const qs::ActionParam* pParam,
+										   size_t n)
+{
+	const WCHAR* pwsz = getString(pParam, n);
+	if (!pwsz || *pwsz != L'@')
+		return -1;
+	
+	WCHAR* pEnd = 0;
+	unsigned int nIndex = wcstol(pwsz + 1, &pEnd, 10);
+	if (*pEnd)
+		return -1;
+	
+	return nIndex;
+}
+
+std::pair<const WCHAR*, unsigned int> qm::ActionParamUtil::getStringOrIndex(const ActionParam* pParam,
+																			size_t n)
+{
+	if (!pParam || pParam->getCount() <= n)
+		return std::pair<const WCHAR*, unsigned int>(0, -1);
+	
+	const WCHAR* pwszParam = pParam->getValue(n);
+	
+	if (*pwszParam == L'@') {
+		WCHAR* pEnd = 0;
+		unsigned int nParam = wcstol(pwszParam + 1, &pEnd, 10);
+		if (!*pEnd)
+			return std::pair<const WCHAR*, unsigned int>(0, nParam);
+	}
+	
+	return std::pair<const WCHAR*, unsigned int>(pwszParam, -1);
 }
 
 

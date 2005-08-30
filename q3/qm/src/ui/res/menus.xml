@@ -72,10 +72,35 @@
 				<menuitem text="S/&amp;MIME Mode" action="ViewSMIMEMode"/>
 				<menuitem text="&amp;PGP Mode" action="ViewPGPMode"/>
 			</popupmenu>
-			<popupmenu text="&amp;Sort" action="ViewSort"/>
-			<popupmenu text="&amp;Filter" action="ViewFilter"/>
-			<popupmenu text="&amp;Template" action="ViewTemplate"/>
-			<popupmenu text="&amp;Encoding" action="ViewEncoding"/>
+			<popupmenu text="&amp;Sort">
+				<menuitem dynamic="ViewSort"/>
+				<separator/>
+				<menuitem text="&amp;Ascending" action="ViewSortAscending"/>
+				<menuitem text="D&amp;escending" action="ViewSortDescending"/>
+				<separator/>
+				<menuitem text="F&amp;lat" action="ViewSortFlat"/>
+				<menuitem text="&amp;Thread" action="ViewSortThread"/>
+				<menuitem text="Fl&amp;oated Thread" action="ViewSortFloatThread"/>
+			</popupmenu>
+			<popupmenu text="&amp;Filter">
+				<menuitem text="&amp;None" action="ViewFilter" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewFilter"/>
+				<separator/>
+				<menuitem text="&amp;Custom..." action="ViewFilterCustom"/>
+				<separator/>
+				<menuitem text="&amp;Edit..." action="ConfigFilters"/>
+			</popupmenu>
+			<popupmenu text="&amp;Template">
+				<menuitem text="&amp;None" action="ViewTemplate" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewTemplate"/>
+			</popupmenu>
+			<popupmenu text="&amp;Encoding">
+				<menuitem text="Auto &amp;Detect" action="ViewEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
 			<separator/>
 			<menuitem text="Customi&amp;ze Columns..." action="ConfigViews"/>
 			<separator/>
@@ -91,12 +116,14 @@
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="&amp;Message">
-			<menuitem text="&amp;New" action="MessageNew"/>
-			<menuitem text="&amp;Reply" action="MessageReply"/>
-			<menuitem text="Reply &amp;All" action="MessageReplyAll"/>
-			<menuitem text="&amp;Forward" action="MessageForward"/>
-			<menuitem text="&amp;Edit" action="MessageEdit"/>
-			<popupmenu text="&amp;Template" action="MessageApplyTemplate"/>
+			<menuitem text="&amp;New" action="MessageCreate" param="new"/>
+			<menuitem text="&amp;Reply" action="MessageCreate" param="reply"/>
+			<menuitem text="Reply &amp;All" action="MessageCreate" param="reply_all"/>
+			<menuitem text="&amp;Forward" action="MessageCreate" param="forward"/>
+			<menuitem text="&amp;Edit" action="MessageCreate" param="edit"/>
+			<popupmenu text="&amp;Template">
+				<menuitem dynamic="MessageCreate"/>
+			</popupmenu>
 			<separator/>
 			<popupmenu text="Mar&amp;k">
 				<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
@@ -111,7 +138,11 @@
 				<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 			</popupmenu>
 			<separator/>
-			<popupmenu text="&amp;Move" action="MessageMove"/>
+			<popupmenu text="&amp;Move">
+				<menuitem dynamic="MessageMove"/>
+				<separator/>
+				<menuitem text="&amp;Others..." action="MessageMove"/>
+			</popupmenu>
 			<separator/>
 			<menuitem text="Appl&amp;y Rules" action="MessageApplyRule"/>
 			<menuitem text="Apply Rules t&amp;o All" action="MessageApplyRuleAll"/>
@@ -119,7 +150,15 @@
 			<separator/>
 			<menuitem text="&amp;Search..." action="MessageSearch"/>
 			<separator/>
-			<popupmenu text="Attac&amp;hment" action="MessageAttachment"/>
+			<popupmenu text="Attac&amp;hment">
+				<menuitem text="&amp;Detach..." action="MessageDetach"/>
+				<menuitem text="De&amp;lete" action="MessageDeleteAttachment"/>
+				<separator/>
+				<menuitem dynamic="MessageAttachment"/>
+				<separator/>
+				<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
+				<menuitem text="&amp;Combine" action="MessageCombine"/>
+			</popupmenu>
 			<separator/>
 			<menuitem text="&amp;Property..." action="MessageProperty"/>
 		</popupmenu>
@@ -127,7 +166,11 @@
 			<menuitem text="S&amp;end &amp;&amp; Receive" action="ToolSync"/>
 			<menuitem text="&amp;Receive" action="ToolReceive"/>
 			<menuitem text="&amp;Send" action="ToolSend"/>
-			<popupmenu text="&amp;Go Round" action="ToolGoRound"/>
+			<popupmenu text="&amp;Go Round">
+				<menuitem dynamic="ToolGoRound"/>
+				<separator/>
+				<menuitem text="&amp;Edit..." action="ConfigGoRound"/>
+			</popupmenu>
 			<menuitem text="&amp;Cancel" action="ToolCancel"/>
 			<separator/>
 			<menuitem text="&amp;Dialup Connect..." action="ToolDialup"/>
@@ -135,11 +178,17 @@
 			<menuitem text="Address Boo&amp;k..." action="ToolAddressBook"/>
 			<menuitem text="Add &amp;From to Address Book..." action="ToolAddAddress"/>
 			<separator/>
-			<popupmenu text="Scri&amp;pt" action="ToolScript"/>
+			<popupmenu text="Scri&amp;pt">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
 			<separator/>
 			<menuitem text="A&amp;uto Pilot" action="ToolAutoPilot"/>
 			<separator/>
-			<popupmenu text="Su&amp;b Account" action="ToolSubAccount"/>
+			<popupmenu text="Su&amp;b Account">
+				<menuitem text="(&amp;Default)" action="ToolSubAccount" param=""/>
+				<separator/>
+				<menuitem dynamic="ToolSubAccount"/>
+			</popupmenu>
 			<menuitem text="&amp;Account..." action="ToolAccount"/>
 			<menuitem text="&amp;Options..." action="ToolOptions"/>
 		</popupmenu>
@@ -181,8 +230,16 @@
 				<menuitem text="S/&amp;MIME Mode" action="ViewSMIMEMode"/>
 				<menuitem text="&amp;PGP Mode" action="ViewPGPMode"/>
 			</popupmenu>
-			<popupmenu text="&amp;Template" action="ViewTemplate"/>
-			<popupmenu text="&amp;Encoding" action="ViewEncoding"/>
+			<popupmenu text="&amp;Template">
+				<menuitem text="&amp;None" action="ViewTemplate" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewTemplate"/>
+			</popupmenu>
+			<popupmenu text="&amp;Encoding">
+				<menuitem text="Auto &amp;Detect" action="ViewEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
 			<separator/>
 			<popupmenu text="Show &amp;Controls">
 				<menuitem text="Show &amp;Toolbar" action="ViewShowToolbar"/>
@@ -191,12 +248,14 @@
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="&amp;Message">
-			<menuitem text="&amp;New" action="MessageNew"/>
-			<menuitem text="&amp;Reply" action="MessageReply"/>
-			<menuitem text="Reply &amp;All" action="MessageReplyAll"/>
-			<menuitem text="&amp;Forward" action="MessageForward"/>
-			<menuitem text="&amp;Edit" action="MessageEdit"/>
-			<popupmenu text="&amp;Template" action="MessageApplyTemplate"/>
+			<menuitem text="&amp;New" action="MessageCreate" param="new"/>
+			<menuitem text="&amp;Reply" action="MessageCreate" param="reply"/>
+			<menuitem text="Reply &amp;All" action="MessageCreate" param="reply_all"/>
+			<menuitem text="&amp;Forward" action="MessageCreate" param="forward"/>
+			<menuitem text="&amp;Edit" action="MessageCreate" param="edit"/>
+			<popupmenu text="&amp;Template">
+				<menuitem dynamic="MessageCreate"/>
+			</popupmenu>
 			<separator/>
 			<popupmenu text="Mar&amp;k">
 				<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
@@ -211,14 +270,28 @@
 				<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 			</popupmenu>
 			<separator/>
-			<popupmenu text="&amp;Move" action="MessageMove"/>
+			<popupmenu text="&amp;Move">
+				<menuitem dynamic="MessageMove"/>
+				<separator/>
+				<menuitem text="&amp;Others..." action="MessageMove"/>
+			</popupmenu>
 			<separator/>
-			<popupmenu text="Attac&amp;hment" action="MessageAttachment"/>
+			<popupmenu text="Attac&amp;hment">
+				<menuitem text="&amp;Detach..." action="MessageDetach"/>
+				<menuitem text="De&amp;lete" action="MessageDeleteAttachment"/>
+				<separator/>
+				<menuitem dynamic="MessageAttachment"/>
+				<separator/>
+				<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
+				<menuitem text="&amp;Combine" action="MessageCombine"/>
+			</popupmenu>
 			<separator/>
 			<menuitem text="&amp;Property..." action="MessageProperty"/>
 		</popupmenu>
 		<popupmenu text="&amp;Tool">
-			<popupmenu text="&amp;Script" action="ToolScript"/>
+			<popupmenu text="Scri&amp;pt">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
 		</popupmenu>
 	</menubar>
 	<menubar name="editframe">
@@ -258,9 +331,17 @@
 		</popupmenu>
 		<popupmenu text="&amp;Tool">
 			<menuitem text="Address &amp;Book..." action="ToolSelectAddress"/>
-			<popupmenu text="&amp;Insert Text" action="ToolInsertText"/>
+			<popupmenu text="&amp;Insert Text">
+				<menuitem dynamic="ToolInsertText"/>
+				<separator/>
+				<menuitem text="&amp;Edit..." action="ConfigTexts"/>
+			</popupmenu>
 			<menuitem text="Insert Si&amp;gnature" action="ToolInsertSignature"/>
-			<popupmenu text="&amp;Encoding" action="ToolEncoding"/>
+			<popupmenu text="&amp;Encoding">
+				<menuitem text="&amp;Default" action="ToolEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ToolEncoding"/>
+			</popupmenu>
 			<separator/>
 			<menuitem text="&amp;Attachment..." action="ToolAttachment"/>
 			<menuitem text="A&amp;rchive Attachments" action="ToolArchiveAttachment"/>
@@ -282,7 +363,9 @@
 				<menuitem text="&amp;MIME" action="ToolPGPMime"/>
 			</popupmenu>
 			<separator/>
-			<popupmenu text="S&amp;cript" action="ToolScript"/>
+			<popupmenu text="S&amp;cript">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
 		</popupmenu>
 	</menubar>
 	<menubar name="addressbookframe">
@@ -359,22 +442,36 @@
 		<menuitem text="&amp;Property..." action="FolderProperty"/>
 	</menu>
 	<menu name="list">
-		<menuitem text="&amp;New" action="MessageNew"/>
-		<menuitem text="&amp;Reply" action="MessageReply"/>
-		<menuitem text="Reply &amp;All" action="MessageReplyAll"/>
-		<menuitem text="&amp;Forward" action="MessageForward"/>
-		<menuitem text="&amp;Edit" action="MessageEdit"/>
-		<popupmenu text="&amp;Template" action="MessageApplyTemplate"/>
+		<menuitem text="&amp;New" action="MessageCreate" param="new"/>
+		<menuitem text="&amp;Reply" action="MessageCreate" param="reply"/>
+		<menuitem text="Reply &amp;All" action="MessageCreate" param="reply_all"/>
+		<menuitem text="&amp;Forward" action="MessageCreate" param="forward"/>
+		<menuitem text="&amp;Edit" action="MessageCreate" param="edit"/>
+		<popupmenu text="&amp;Template">
+			<menuitem dynamic="MessageCreate"/>
+		</popupmenu>
 		<separator/>
 		<menuitem text="&amp;Delete" action="EditDelete"/>
 		<menuitem text="Delete as &amp;Junk" action="EditDeleteJunk"/>
 		<menuitem text="Se&amp;lect All" action="EditSelectAll"/>
 		<separator/>
-		<popupmenu text="&amp;Move" action="MessageMove"/>
+		<popupmenu text="&amp;Move">
+			<menuitem dynamic="MessageMove"/>
+			<separator/>
+			<menuitem text="&amp;Others..." action="MessageMove"/>
+		</popupmenu>
 		<separator/>
 		<menuitem text="Apply Ru&amp;les to Selected" action="MessageApplyRuleSelected"/>
 		<separator/>
-		<popupmenu text="Attac&amp;hment" action="MessageAttachment"/>
+		<popupmenu text="Attac&amp;hment">
+			<menuitem text="&amp;Detach..." action="MessageDetach"/>
+			<menuitem text="De&amp;lete" action="MessageDeleteAttachment"/>
+			<separator/>
+			<menuitem dynamic="MessageAttachment"/>
+			<separator/>
+			<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
+			<menuitem text="&amp;Combine" action="MessageCombine"/>
+		</popupmenu>
 		<separator/>
 		<popupmenu text="Mar&amp;k">
 			<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
@@ -403,9 +500,21 @@
 		<separator/>
 		<menuitem text="&amp;Find..." action="EditFind"/>
 		<separator/>
-		<popupmenu text="&amp;Move" action="MessageMove"/>
+		<popupmenu text="&amp;Move">
+			<menuitem dynamic="MessageMove"/>
+			<separator/>
+			<menuitem text="&amp;Others..." action="MessageMove"/>
+		</popupmenu>
 		<separator/>
-		<popupmenu text="Attac&amp;hment" action="MessageAttachment"/>
+		<popupmenu text="Attac&amp;hment">
+			<menuitem text="&amp;Detach..." action="MessageDetach"/>
+			<menuitem text="De&amp;lete" action="MessageDeleteAttachment"/>
+			<separator/>
+			<menuitem dynamic="MessageAttachment"/>
+			<separator/>
+			<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
+			<menuitem text="&amp;Combine" action="MessageCombine"/>
+		</popupmenu>
 		<separator/>
 		<popupmenu text="Mar&amp;k">
 			<menuitem text="Mark &amp;Seen" action="MessageMarkSeen"/>
@@ -443,15 +552,45 @@
 		<menuitem text="&amp;Edit..." action="AddressEdit"/>
 		<menuitem text="&amp;Delete" action="AddressDelete"/>
 	</menu>
+	<menu name="encoding">
+		<menuitem text="Auto &amp;Detect" action="ViewEncoding" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewEncoding"/>
+	</menu>
+	<menu name="filter">
+		<menuitem text="&amp;None" action="ViewFilter" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewFilter"/>
+		<separator/>
+		<menuitem text="&amp;Custom..." action="ViewFilterCustom"/>
+		<separator/>
+		<menuitem text="&amp;Edit..." action="ConfigFilters"/>
+	</menu>
+	<menu name="template">
+		<menuitem text="&amp;None" action="ViewTemplate" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewTemplate"/>
+	</menu>
 	<menu name="sync">
 		<menuitem text="S&amp;end &amp;&amp; Receive" action="ToolSync"/>
 		<menuitem text="&amp;Receive" action="ToolReceive"/>
 		<menuitem text="&amp;Send" action="ToolSend"/>
 	</menu>
 	<menu name="goround">
-		<popupmenu text="&amp;Go Round" action="ToolGoRound"/>
+		<menuitem dynamic="ToolGoRound"/>
+		<separator/>
+		<menuitem text="&amp;Edit..." action="ConfigGoRound"/>
 	</menu>
 	<menu name="inserttext">
-		<popupmenu text="&amp;Insert Text" action="ToolInsertText"/>
+		<menuitem dynamic="ToolInsertText"/>
+		<separator/>
+		<menuitem text="&amp;Edit..." action="ConfigTexts"/>
+	</menu>
+	<menu name="recents">
+		<menuitem dynamic="MessageRecents"/>
+		<separator/>
+		<menuitem text="&amp;Clear" action="MessageClearRecents"/>
+		<separator/>
+		<menuitem text="&amp;Show" action="FileShow"/>
 	</menu>
 </menus>

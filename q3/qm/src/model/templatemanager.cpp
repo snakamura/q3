@@ -131,11 +131,11 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 	return pItem.release()->getTemplate();
 }
 
-void qm::TemplateManager::getTemplateNames(Account* pAccount,
+void qm::TemplateManager::getTemplateNames(const WCHAR* pwszClass,
 										   const WCHAR* pwszPrefix,
 										   NameList* pList) const
 {
-	assert(pAccount);
+	assert(pwszClass);
 	assert(pList);
 	
 	NameList l;
@@ -144,7 +144,7 @@ void qm::TemplateManager::getTemplateNames(Account* pAccount,
 	StringBuffer<WSTRING> buf;
 	buf.append(wstrPath_.get());
 	buf.append(L"\\templates\\");
-	buf.append(pAccount->getClass());
+	buf.append(pwszClass);
 	buf.append(L"\\");
 	if (pwszPrefix) {
 		buf.append(pwszPrefix);

@@ -18,22 +18,11 @@
 #define IDD_MESSAGEPROPERTY             119
 #define IDD_EXPORT                      120
 #define IDD_IMPORT                      121
-#define IDR_VIEWSORT                    123
-#define IDR_MESSAGEMOVE                 124
-#define IDR_VIEWFILTER                  125
-#define IDR_VIEWTEMPLATE                126
-#define IDR_VIEWENCODING                127
-#define IDR_MESSAGEAPPLYTEMPLATE        128
-#define IDR_MESSAGEAPPLYTEMPLATEEXTERNAL 129
-#define IDR_MESSAGEATTACHMENT           130
-#define IDR_TOOLSUBACCOUNT              131
 #define IDD_ACCOUNT                     132
 #define IDD_ACCOUNTGENERAL              133
 #define IDD_ACCOUNTUSER                 134
 #define IDD_ACCOUNTDIALUP               135
 #define IDD_ACCOUNTADVANCED             136
-#define IDR_TOOLGOROUND                 137
-#define IDR_TOOLSCRIPT                  138
 #define IDD_CREATEACCOUNT               139
 #define IDD_MAILFOLDER                  140
 #define IDD_FIND                        141
@@ -63,7 +52,6 @@
 #define IDD_RESOURCE                    166
 #define IDD_SIGNATURES                  167
 #define IDD_SIGNATURE                   168
-#define IDR_TOOLINSERTTEXT              169
 #define IDD_FIXEDFORMTEXTS              170
 #define IDD_FIXEDFORMTEXT               171
 #define IDD_PASSWORD                    172
@@ -77,7 +65,6 @@
 #define IDR_ADDRESSBOOK                 180
 #define IDD_FILTERS                     180
 #define IDD_FILTER                      181
-#define IDR_TOOLENCODING                181
 #define IDD_SYNCFILTERSETS              182
 #define IDD_SYNCFILTERS                 183
 #define IDD_SYNCFILTER                  184
@@ -616,7 +603,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        219
+#define _APS_NEXT_RESOURCE_VALUE        220
 #define _APS_NEXT_COMMAND_VALUE         49000
 #define _APS_NEXT_CONTROL_VALUE         1428
 #define _APS_NEXT_SYMED_VALUE           101

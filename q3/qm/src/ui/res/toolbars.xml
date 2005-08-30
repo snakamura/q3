@@ -1,9 +1,9 @@
 <toolbars>
 	<toolbar name="mainframe" showText="true">
-		<button image="0" action="MessageNew" text="New"/>
-		<button image="1" action="MessageReply" text="Reply"/>
-		<button image="2" action="MessageReplyAll" text="Reply All"/>
-		<button image="3" action="MessageForward" text="Forward"/>
+		<button image="0" action="MessageCreate" param="new" text="New"/>
+		<button image="1" action="MessageCreate" param="reply" text="Reply"/>
+		<button image="2" action="MessageCreate" param="reply_all" text="Reply All"/>
+		<button image="3" action="MessageCreate" param="forward" text="Forward"/>
 		<separator/>
 		<button image="5" action="EditDelete" text="Delete"/>
 		<separator/>
@@ -14,13 +14,13 @@
 		<button image="6" action="MessageSearch" text="Search"/>
 		<separator/>
 		<button image="7" action="ToolSync" text="Sync" dropdown="sync"/>
-		<button image="8" action="ToolGoround0" text="Goround" dropdown="goround"/>
+		<button image="8" action="ToolGoround" param="@0" text="Goround" dropdown="goround"/>
 	</toolbar>
 	<toolbar name="messageframe" showText="true">
-		<button image="0" action="MessageNew" text="New"/>
-		<button image="1" action="MessageReply" text="Reply"/>
-		<button image="2" action="MessageReplyAll" text="Reply All"/>
-		<button image="3" action="MessageForward" text="Forward"/>
+		<button image="0" action="MessageCreate" param="new" text="New"/>
+		<button image="1" action="MessageCreate" param="reply" text="Reply"/>
+		<button image="2" action="MessageCreate" param="reply_all" text="Reply All"/>
+		<button image="3" action="MessageCreate" param="forward" text="Forward"/>
 		<separator/>
 		<button image="5" action="EditDelete" text="Delete"/>
 		<separator/>
@@ -39,7 +39,7 @@
 		<button image="14" action="EditRedo" text="Redo"/>
 		<separator/>
 		<button image="18" action="ToolSelectAddress" text="Address Book"/>
-		<button image="17" action="ToolInsertText0" text="Insert Text" dropdown="inserttext"/>
+		<button image="17" action="ToolInsertText" param="@0" text="Insert Text" dropdown="inserttext"/>
 		<button image="19" action="ToolAttachment" text="Attachment"/>
 	</toolbar>
 	<toolbar name="addressbookframe" showText="true">

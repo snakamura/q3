@@ -21,10 +21,10 @@
 #endif
 #include <tchar.h>
 
+#include "actionid.h"
 #include "addressbookdialog.h"
 #include "addressbookwindow.h"
 #include "dialogs.h"
-#include "keymap.h"
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "uimanager.h"
@@ -398,6 +398,11 @@ Action* qm::AddressBookFrameWindow::getAction(UINT nId)
 	return pImpl_->pActionMap_->getAction(nId);
 }
 
+const ActionParam* qm::AddressBookFrameWindow::getActionParam(UINT nId)
+{
+	return pImpl_->pUIManager_->getActionParamMap()->getActionParam(nId);
+}
+
 Accelerator* qm::AddressBookFrameWindow::getAccelerator()
 {
 	return pImpl_->pAccelerator_.get();
@@ -448,7 +453,7 @@ LRESULT qm::AddressBookFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"AddressBookFrameWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"AddressBookFrameWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
@@ -1165,7 +1170,7 @@ LRESULT qm::AddressBookListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"AddressBookListWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"AddressBookListWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	

@@ -373,7 +373,6 @@ public:
 	typedef ControllerMap<WindowBase> WindowMap;
 
 public:
-	Action* getAction(UINT nId) const;
 	LRESULT notifyCommandHandlers(WORD wCode,
 								  WORD wId) const;
 	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr,
@@ -426,14 +425,6 @@ friend LRESULT CALLBACK windowProc(HWND,
 
 WindowBaseImpl::WindowMap* qs::WindowBaseImpl::pMap__;
 WindowBaseImpl::InitializerImpl qs::WindowBaseImpl::init__;
-
-Action* qs::WindowBaseImpl::getAction(UINT nId) const
-{
-	Action* pAction = pWindowHandler_->getAction(nId);
-	if (!pAction && pOrgWindowBase_)
-		pAction = pOrgWindowBase_->pImpl_->getAction(nId);
-	return pAction;
-}
 
 LRESULT qs::WindowBaseImpl::notifyCommandHandlers(WORD wCode,
 												  WORD wId) const
@@ -497,10 +488,15 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 	case WM_COMMAND:
 		{
 			UINT nId = LOWORD(wParam);
+			
+			const ActionParam* pParam = pThis_->getActionParamInternal(nId);
+			if (pParam)
+				nId = pParam->getBaseId();
+			
 			Action* pAction = 0;
 			if ((ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX) ||
 				nId == IDOK || nId == IDCANCEL)
-				pAction = getAction(nId);
+				pAction = pThis_->getActionInternal(nId);
 			if (pAction) {
 				unsigned int nModifier = 0;
 				
@@ -519,7 +515,7 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 					}
 				}
 				
-				ActionEvent event(LOWORD(wParam), nModifier);
+				ActionEvent event(LOWORD(wParam), nModifier, pParam);
 				if (pAction->isEnabled(event))
 					pAction->invoke(event);
 				return 0;
@@ -934,6 +930,22 @@ LRESULT qs::WindowBase::defWindowProc(UINT uMsg,
 		return ::CallWindowProc(pImpl_->procSubclass_, getHandle(), uMsg, wParam, lParam);
 	else
 		return ::DefWindowProc(getHandle(), uMsg, wParam, lParam);
+}
+
+Action* qs::WindowBase::getActionInternal(UINT nId) const
+{
+	Action* pAction = pImpl_->pWindowHandler_->getAction(nId);
+	if (!pAction && pImpl_->pOrgWindowBase_)
+		pAction = pImpl_->pOrgWindowBase_->getActionInternal(nId);
+	return pAction;
+}
+
+const ActionParam* qs::WindowBase::getActionParamInternal(UINT nId) const
+{
+	const ActionParam* pParam = pImpl_->pWindowHandler_->getActionParam(nId);
+	if (!pParam && pImpl_->pOrgWindowBase_)
+		pParam = pImpl_->pOrgWindowBase_->getActionParamInternal(nId);
+	return pParam;
 }
 
 bool qs::WindowBase::translateAccelerator(const MSG& msg)
@@ -1666,6 +1678,11 @@ void qs::DefaultWindowHandler::postSubclassWindow()
 }
 
 Action* qs::DefaultWindowHandler::getAction(UINT nId)
+{
+	return 0;
+}
+
+const ActionParam* qs::DefaultWindowHandler::getActionParam(UINT nId)
 {
 	return 0;
 }

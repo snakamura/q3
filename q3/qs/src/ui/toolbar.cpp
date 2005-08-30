@@ -32,7 +32,8 @@ struct qs::ToolbarManagerImpl
 	
 	bool load(const WCHAR* pwszPath,
 			  const ActionItem* pItem,
-			  size_t nItemCount);
+			  size_t nItemCount,
+			  ActionParamMap* pActionParamMap);
 	const Toolbar* getToolbar(const WCHAR* pwszName) const;
 	
 	ToolbarManager* pThis_;
@@ -43,12 +44,13 @@ struct qs::ToolbarManagerImpl
 
 bool qs::ToolbarManagerImpl::load(const WCHAR* pwszPath,
 								  const ActionItem* pItem,
-								  size_t nItemCount)
+								  size_t nItemCount,
+								  ActionParamMap* pActionParamMap)
 {
 	assert(pwszPath);
 	
 	XMLReader reader;
-	ToolbarContentHandler handler(&listToolbar_, pItem, nItemCount);
+	ToolbarContentHandler handler(&listToolbar_, pItem, nItemCount, pActionParamMap);
 	reader.setContentHandler(&handler);
 	return reader.parse(pwszPath);
 }
@@ -77,7 +79,8 @@ qs::ToolbarManager::ToolbarManager(const WCHAR* pwszPath,
 								   HBITMAP hBitmap,
 								   const ActionItem* pItem,
 								   size_t nItemCount,
-								   const MenuManager* pMenuManager) :
+								   const MenuManager* pMenuManager,
+								   ActionParamMap* pActionParamMap) :
 	pImpl_(0)
 {
 	assert(pwszPath);
@@ -96,7 +99,7 @@ qs::ToolbarManager::ToolbarManager(const WCHAR* pwszPath,
 	pImpl->pMenuManager_ = pMenuManager;
 	pImpl->hImageList_ = hImageList;
 	
-	if (!pImpl->load(pwszPath, pItem, nItemCount))
+	if (!pImpl->load(pwszPath, pItem, nItemCount, pActionParamMap))
 		return;
 	
 	pImpl_ = pImpl.release();
@@ -439,10 +442,12 @@ bool qs::ToolbarSeparator::isSeparator() const
 
 qs::ToolbarContentHandler::ToolbarContentHandler(ToolbarList* pListToolbar,
 												 const ActionItem* pItem,
-												 size_t nItemCount) :
+												 size_t nItemCount,
+												 ActionParamMap* pActionParamMap) :
 	pListToolbar_(pListToolbar),
 	pActionItem_(pItem),
 	nActionItemCount_(nItemCount),
+	pActionParamMap_(pActionParamMap),
 	state_(STATE_ROOT),
 	pToolbar_(0),
 	nDummyId_(ActionMap::ID_MAX)
@@ -495,43 +500,57 @@ bool qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (state_ != STATE_TOOLBAR)
 			return false;
 		
-		int nImage = -1;
+		const WCHAR* pwszImage = 0;
 		const WCHAR* pwszText = 0;
 		const WCHAR* pwszToolTip = 0;
 		const WCHAR* pwszAction = 0;
+		const WCHAR* pwszParam = 0;
 		const WCHAR* pwszDropDown = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
-			if (wcscmp(pwszAttrName, L"image") == 0) {
-				WCHAR* pEnd = 0;
-				nImage = wcstol(attributes.getValue(n), &pEnd, 10);
-				if (*pEnd)
-					return false;
-			}
-			else if (wcscmp(pwszAttrName, L"text") == 0) {
+			if (wcscmp(pwszAttrName, L"image") == 0)
+				pwszImage = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"text") == 0)
 				pwszText = attributes.getValue(n);
-			}
-			else if (wcscmp(pwszAttrName, L"tooltip") == 0) {
+			else if (wcscmp(pwszAttrName, L"tooltip") == 0)
 				pwszToolTip = attributes.getValue(n);
-			}
-			else if (wcscmp(pwszAttrName, L"action") == 0) {
+			else if (wcscmp(pwszAttrName, L"action") == 0)
 				pwszAction = attributes.getValue(n);
-			}
-			else if (wcscmp(pwszAttrName, L"dropdown") == 0) {
+			else if (wcscmp(pwszAttrName, L"param") == 0)
+				pwszParam = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"dropdown") == 0)
 				pwszDropDown = attributes.getValue(n);
-			}
-			else {
+			else
 				return false;
-			}
 		}
 		
-		if (nImage == -1 || (!pwszAction && !pwszDropDown))
+		if (!pwszImage || (!pwszAction && !pwszDropDown))
 			return false;
 		
-		UINT nAction = pwszAction ? getActionId(pwszAction) : ++nDummyId_;
-		if (nAction != -1) {
+		WCHAR* pEnd = 0;
+		int nImage = wcstol(pwszImage, &pEnd, 10);
+		if (*pEnd)
+			return false;
+		
+		unsigned int nId = -1;
+		const ActionItem* pItem = 0;
+		if (pwszAction) {
+			pItem = getActionItem(pwszAction);
+			if (pItem)
+				nId = pItem->nId_;
+		}
+		else {
+			nId = ++nDummyId_;
+		}
+		if (nId != -1) {
+			if (pwszParam && pItem) {
+				std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam));
+				nId = pActionParamMap_->addActionParam(pItem->nMaxParamCount_, pParam);
+				if (nId == -1)
+					return false;
+			}
 			std::auto_ptr<ToolbarButton> pButton(new ToolbarButton(
-				nImage, pwszText, pwszToolTip, nAction, pwszDropDown));
+				nImage, pwszText, pwszToolTip, nId, pwszDropDown));
 			pToolbar_->add(pButton);
 		}
 		
@@ -596,7 +615,7 @@ bool qs::ToolbarContentHandler::characters(const WCHAR* pwsz,
 	return true;
 }
 
-UINT qs::ToolbarContentHandler::getActionId(const WCHAR* pwszAction)
+const ActionItem* qs::ToolbarContentHandler::getActionItem(const WCHAR* pwszAction) const
 {
 	ActionItem item = {
 		pwszAction,
@@ -609,11 +628,11 @@ UINT qs::ToolbarContentHandler::getActionId(const WCHAR* pwszAction)
 			string_less<WCHAR>(),
 			mem_data_ref(&ActionItem::pwszAction_),
 			mem_data_ref(&ActionItem::pwszAction_)));
-	if (pItem != pActionItem_ + nActionItemCount_ &&
-		wcscmp(pItem->pwszAction_, pwszAction) == 0)
-		return pItem->nId_;
-	else
-		return -1;
+	if (pItem == pActionItem_ + nActionItemCount_ ||
+		wcscmp(pItem->pwszAction_, pwszAction) != 0 ||
+		(pItem->nFlags_ != 0 && !(pItem->nFlags_ & ActionItem::FLAG_TOOLBAR)))
+		return 0;
+	return pItem;
 }
 
 
@@ -659,14 +678,6 @@ LRESULT qs::ToolbarNotifyHandler::onDropDown(NMHDR* pnmhdr,
 		if (pwszDropDown) {
 			HMENU hmenu = pMenuManager_->getMenu(pwszDropDown, false, false);
 			if (hmenu) {
-				MENUITEMINFO mii = {
-					sizeof(mii),
-					MIIM_SUBMENU
-				};
-				::GetMenuItemInfo(hmenu, 0, TRUE, &mii);
-				if (mii.hSubMenu)
-					hmenu = mii.hSubMenu;
-				
 				UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 				nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;

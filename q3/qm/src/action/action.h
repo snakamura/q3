@@ -28,7 +28,6 @@
 
 namespace qm {
 
-struct ActionParam;
 class AttachmentOpenAction;
 class AttachmentSaveAction;
 class ConfigViewsAction;
@@ -70,7 +69,6 @@ class FolderRenameAction;
 class FolderShowSizeAction;
 class FolderUpdateAction;
 class MessageApplyRuleAction;
-class MessageApplyTemplateAction;
 class MessageClearRecentsAction;
 class MessageCombineAction;
 class MessageCreateAction;
@@ -82,7 +80,6 @@ class MessageExpandDigestAction;
 class MessageManageJunkAction;
 class MessageMarkAction;
 class MessageMoveAction;
-class MessageMoveOtherAction;
 class MessageOpenAttachmentAction;
 class MessageOpenLinkAction;
 class MessageOpenRecentAction;
@@ -112,7 +109,6 @@ class ViewDropDownAction;
 class ViewEncodingAction;
 class ViewFilterAction;
 class ViewFilterCustomAction;
-class ViewFilterNoneAction;
 class ViewFocusAction;
 class ViewLockPreviewAction;
 class ViewMessageModeAction;
@@ -139,6 +135,7 @@ class ViewSortDirectionAction;
 class ViewSortThreadAction;
 class ViewTemplateAction;
 class ActionUtil;
+class ActionParamUtil;
 class FolderActionUtil;
 class MessageActionUtil;
 #ifdef QMTABWINDOW
@@ -146,7 +143,6 @@ class TabActionUtil;
 #endif
 
 class AddressBookFrameWindowManager;
-class AttachmentMenu;
 class AttachmentSelectionModel;
 class AutoPilot;
 class AutoPilotManager;
@@ -154,12 +150,10 @@ class ColorManager;
 class Document;
 class EditFrameWindow;
 class EditFrameWindowManager;
-class EncodingMenu;
 class EncodingModel;
 class ExternalEditorManager;
 class Filter;
 class FilterManager;
-class FilterMenu;
 class FindReplaceManager;
 class FixedFormTextManager;
 class FolderComboBox;
@@ -168,7 +162,6 @@ class FolderModel;
 class FolderSelectionModel;
 class FolderWindow;
 class GoRound;
-class GoRoundMenu;
 class ListWindow;
 class MainWindow;
 class MessageFrameWindow;
@@ -177,19 +170,15 @@ class MessageModel;
 class MessagePtr;
 class MessageSelectionModel;
 class MessageWindow;
-class MoveMenu;
 class NormalFolder;
 class PasswordManager;
 class PreviewMessageModel;
 class ProgressDialog;
 class Recents;
-class RecentsMenu;
 class RuleManager;
-class ScriptMenu;
+class ScriptManager;
 class SecurityModel;
 class SignatureManager;
-class SortMenu;
-class SubAccountMenu;
 class SyncDialogManager;
 class SyncFilterManager;
 class SyncManager;
@@ -199,26 +188,12 @@ class TabWindow;
 #endif
 class TempFileCleaner;
 class Template;
-class TemplateMenu;
 class UIManager;
 class UndoManager;
 class View;
 class ViewModel;
 class ViewModelHolder;
 class ViewModelManager;
-
-
-/****************************************************************************
- *
- * ActionParam
- *
- */
-
-struct ActionParam
-{
-	VARIANT** ppvarArgs_;
-	size_t nArgs_;
-};
 
 
 /****************************************************************************
@@ -1549,44 +1524,6 @@ private:
 
 /****************************************************************************
  *
- * MessageApplyTemplateAction
- *
- */
-
-class MessageApplyTemplateAction : public qs::AbstractAction
-{
-public:
-	MessageApplyTemplateAction(TemplateMenu* pTemplateMenu,
-							   Document* pDocument,
-							   FolderModelBase* pFolderModel,
-							   MessageSelectionModel* pMessageSelectionModel,
-							   EncodingModel* pEncodingModel,
-							   SecurityModel* pSecurityModel,
-							   EditFrameWindowManager* pEditFrameWindowManager,
-							   ExternalEditorManager* pExternalEditorManager,
-							   HWND hwnd,
-							   qs::Profile* pProfile,
-							   bool bExternalEditor);
-	virtual ~MessageApplyTemplateAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
-
-private:
-	MessageApplyTemplateAction(const MessageApplyTemplateAction&);
-	MessageApplyTemplateAction& operator=(const MessageApplyTemplateAction&);
-
-private:
-	TemplateProcessor processor_;
-	TemplateMenu* pTemplateMenu_;
-	FolderModelBase* pFolderModel_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
  * MessageClearRecentsAction
  *
  */
@@ -1661,7 +1598,6 @@ public:
 						MessageSelectionModel* pMessageSelectionModel,
 						EncodingModel* pEncodingModel,
 						SecurityModel* pSecurityModel,
-						const WCHAR* pwszTemplateName,
 						EditFrameWindowManager* pEditFrameWindowManager,
 						ExternalEditorManager* pExternalEditorManager,
 						HWND hwnd,
@@ -1680,7 +1616,6 @@ private:
 private:
 	TemplateProcessor processor_;
 	FolderModelBase* pFolderModel_;
-	qs::wstring_ptr wstrTemplateName_;
 	HWND hwnd_;
 };
 
@@ -1933,12 +1868,13 @@ private:
 class MessageMoveAction : public qs::AbstractAction
 {
 public:
-	MessageMoveAction(MessageSelectionModel* pMessageSelectionModel,
+	MessageMoveAction(AccountManager* pAccountManager,
+					  MessageSelectionModel* pMessageSelectionModel,
 					  ViewModelHolder* pViewModelHolder,
 					  MessageModel* pMessageModel,
-					  MoveMenu* pMoveMenu,
 					  bool bDontSelectNextIfDeletedFlag,
 					  UndoManager* pUndoManager,
+					  qs::Profile* pProfile,
 					  HWND hwnd);
 	virtual ~MessageMoveAction();
 
@@ -1949,44 +1885,6 @@ public:
 private:
 	MessageMoveAction(const MessageMoveAction&);
 	MessageMoveAction& operator=(const MessageMoveAction&);
-
-private:
-	MessageSelectionModel* pMessageSelectionModel_;
-	ViewModelHolder* pViewModelHolder_;
-	MessageModel* pMessageModel_;
-	MoveMenu* pMoveMenu_;
-	bool bDontSelectNextIfDeletedFlag_;
-	UndoManager* pUndoManager_;
-	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * MessageMoveOtherAction
- *
- */
-
-class MessageMoveOtherAction : public qs::AbstractAction
-{
-public:
-	MessageMoveOtherAction(AccountManager* pAccountManager,
-						   MessageSelectionModel* pMessageSelectionModel,
-						   ViewModelHolder* pViewModelHolder,
-						   MessageModel* pMessageModel,
-						   bool bDontSelectNextIfDeletedFlag,
-						   UndoManager* pUndoManager,
-						   qs::Profile* pProfile,
-						   HWND hwnd);
-	virtual ~MessageMoveOtherAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
-
-private:
-	MessageMoveOtherAction(const MessageMoveOtherAction&);
-	MessageMoveOtherAction& operator=(const MessageMoveOtherAction&);
 
 private:
 	AccountManager* pAccountManager_;
@@ -2009,22 +1907,24 @@ private:
 class MessageOpenAttachmentAction : public qs::AbstractAction
 {
 public:
-	MessageOpenAttachmentAction(SecurityModel* pSecurityModel,
+	MessageOpenAttachmentAction(AccountManager* pAccountManager,
+								SecurityModel* pSecurityModel,
 								qs::Profile* pProfile,
-								AttachmentMenu* pAttachmentMenu,
 								TempFileCleaner* pTempFileCleaner,
 								HWND hwnd);
 	virtual ~MessageOpenAttachmentAction();
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageOpenAttachmentAction(const MessageOpenAttachmentAction&);
 	MessageOpenAttachmentAction& operator=(const MessageOpenAttachmentAction&);
 
 private:
-	AttachmentMenu* pAttachmentMenu_;
+	AccountManager* pAccountManager_;
+	SecurityModel* pSecurityModel_;
 	AttachmentHelper helper_;
 	HWND hwnd_;
 };
@@ -2070,7 +1970,6 @@ class MessageOpenRecentAction : public qs::AbstractAction
 public:
 	MessageOpenRecentAction(Recents* pRecents,
 							AccountManager* pAccountManager,
-							RecentsMenu* pRecentsMenu,
 							ViewModelManager* pViewModelManager,
 							FolderModel* pFolderModel,
 							MainWindow* pMainWindow,
@@ -2080,6 +1979,7 @@ public:
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	MessageOpenRecentAction(const MessageOpenRecentAction&);
@@ -2088,7 +1988,6 @@ private:
 private:
 	Recents* pRecents_;
 	AccountManager* pAccountManager_;
-	RecentsMenu* pRecentsMenu_;
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
 	MainWindow* pMainWindow_;
@@ -2196,6 +2095,7 @@ private:
 
 
 #ifdef QMTABWINDOW
+
 /****************************************************************************
  *
  * TabCloseAction
@@ -2363,8 +2263,7 @@ private:
 class TabSelectAction : public qs::AbstractAction
 {
 public:
-	TabSelectAction(TabModel* pTabModel,
-					unsigned int nBaseId);
+	explicit TabSelectAction(TabModel* pTabModel);
 	virtual ~TabSelectAction();
 
 public:
@@ -2372,7 +2271,7 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	int getItem(unsigned int nId) const;
+	int getItem(const qs::ActionParam* pParam) const;
 
 private:
 	TabSelectAction(const TabSelectAction&);
@@ -2380,8 +2279,8 @@ private:
 
 private:
 	TabModel* pTabModel_;
-	unsigned int nBaseId_;
 };
+
 #endif // QMTABWINDOW
 
 
@@ -2547,8 +2446,7 @@ public:
 					  Document* pDocument,
 					  GoRound* pGoRound,
 					  SyncDialogManager* pSyncDialogManager,
-					  HWND hwnd,
-					  GoRoundMenu* pGoRoundMenu);
+					  HWND hwnd);
 	virtual ~ToolGoRoundAction();
 
 public:
@@ -2564,7 +2462,6 @@ private:
 	GoRound* pGoRound_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
-	GoRoundMenu* pGoRoundMenu_;
 };
 
 
@@ -2606,15 +2503,15 @@ private:
 class ToolScriptAction : public qs::AbstractAction
 {
 public:
-	ToolScriptAction(ScriptMenu* pScriptMenu,
+	ToolScriptAction(ScriptManager* pScriptManager,
 					 Document* pDocument,
 					 qs::Profile* pProfile,
 					 MainWindow* pMainWindow);
-	ToolScriptAction(ScriptMenu* pScriptMenu,
+	ToolScriptAction(ScriptManager* pScriptManager,
 					 Document* pDocument,
 					 qs::Profile* pProfile,
 					 EditFrameWindow* pEditFrameWindow);
-	ToolScriptAction(ScriptMenu* pScriptMenu,
+	ToolScriptAction(ScriptManager* pScriptManager,
 					 Document* pDocument,
 					 qs::Profile* pProfile,
 					 MessageFrameWindow* pMessageFrameWindow);
@@ -2629,7 +2526,7 @@ private:
 	ToolScriptAction& operator=(const ToolScriptAction&);
 
 private:
-	ScriptMenu* pScriptMenu_;
+	ScriptManager* pScriptManager_;
 	Document* pDocument_;
 	qs::Profile* pProfile_;
 	MainWindow* pMainWindow_;
@@ -2649,7 +2546,6 @@ class ToolSubAccountAction : public qs::AbstractAction
 public:
 	ToolSubAccountAction(AccountManager* pAccountManager,
 						 FolderModel* pFolderModel,
-						 SubAccountMenu* pSubAccountMenu,
 						 SyncManager* pSyncManager,
 						 HWND hwnd);
 	virtual ~ToolSubAccountAction();
@@ -2666,7 +2562,6 @@ private:
 private:
 	AccountManager* pAccountManager_;
 	FolderModel* pFolderModel_;
-	SubAccountMenu* pSubAccountMenu_;
 	SyncManager* pSyncManager_;
 	HWND hwnd_;
 };
@@ -2747,12 +2642,11 @@ class ViewEncodingAction : public qs::AbstractAction
 {
 public:
 	explicit ViewEncodingAction(EncodingModel* pEncodingModel);
-	ViewEncodingAction(EncodingModel* pEncodingModel,
-					   EncodingMenu* pEncodingMenu);
 	virtual ~ViewEncodingAction();
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
@@ -2761,7 +2655,6 @@ private:
 
 private:
 	EncodingModel* pEncodingModel_;
-	EncodingMenu* pEncodingMenu_;
 };
 
 
@@ -2774,8 +2667,7 @@ private:
 class ViewFilterAction : public qs::AbstractAction
 {
 public:
-	ViewFilterAction(ViewModelManager* pViewModelManager,
-					 FilterMenu* pFilterMenu);
+	explicit ViewFilterAction(ViewModelManager* pViewModelManager);
 	virtual ~ViewFilterAction();
 
 public:
@@ -2789,7 +2681,6 @@ private:
 
 private:
 	ViewModelManager* pViewModelManager_;
-	FilterMenu* pFilterMenu_;
 };
 
 
@@ -2818,32 +2709,6 @@ private:
 private:
 	ViewModelManager* pViewModelManager_;
 	HWND hwnd_;
-};
-
-
-/****************************************************************************
- *
- * ViewFilterNoneAction
- *
- */
-
-class ViewFilterNoneAction : public qs::AbstractAction
-{
-public:
-	explicit ViewFilterNoneAction(ViewModelManager* pViewModelManager);
-	virtual ~ViewFilterNoneAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
-	virtual bool isChecked(const qs::ActionEvent& event);
-
-private:
-	ViewFilterNoneAction(const ViewFilterNoneAction&);
-	ViewFilterNoneAction& operator=(const ViewFilterNoneAction&);
-
-private:
-	ViewModelManager* pViewModelManager_;
 };
 
 
@@ -3395,8 +3260,7 @@ private:
 class ViewSortAction : public qs::AbstractAction
 {
 public:
-	ViewSortAction(ViewModelManager* pViewModelManager,
-				   SortMenu* pSortMenu);
+	explicit ViewSortAction(ViewModelManager* pViewModelManager);
 	virtual ~ViewSortAction();
 
 public:
@@ -3405,12 +3269,15 @@ public:
 	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
+	unsigned int getColumn(const ViewModel* pViewModel,
+						   const qs::ActionParam* pParam) const;
+
+private:
 	ViewSortAction(const ViewSortAction&);
 	ViewSortAction& operator=(const ViewSortAction&);
 
 private:
 	ViewModelManager* pViewModelManager_;
-	SortMenu* pSortMenu_;
 };
 
 
@@ -3489,12 +3356,11 @@ class ViewTemplateAction : public qs::AbstractAction
 {
 public:
 	explicit ViewTemplateAction(MessageWindow* pMessageWindow);
-	ViewTemplateAction(MessageWindow* pMessageWindow,
-					   TemplateMenu* pTemplateMenu);
 	virtual ~ViewTemplateAction();
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
@@ -3506,7 +3372,6 @@ private:
 
 private:
 	MessageWindow* pMessageWindow_;
-	TemplateMenu* pTemplateMenu_;
 };
 
 
@@ -3525,6 +3390,24 @@ public:
 					  UINT nMessage);
 	static void error(HWND hwnd,
 					  const WCHAR* pwszMessage);
+};
+
+
+/****************************************************************************
+ *
+ * ActionParamUtil
+ *
+ */
+
+class ActionParamUtil
+{
+public:
+	static const WCHAR* getString(const qs::ActionParam* pParam,
+								  size_t n);
+	static unsigned int getIndex(const qs::ActionParam* pParam,
+								 size_t n);
+	static std::pair<const WCHAR*, unsigned int> getStringOrIndex(const qs::ActionParam* pParam,
+																  size_t n);
 };
 
 

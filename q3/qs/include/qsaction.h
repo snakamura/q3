@@ -18,9 +18,12 @@
 namespace qs {
 
 class Action;
-class ActionEvent;
 	class AbstractAction;
+class ActionEvent;
+class ActionParam;
 class ActionMap;
+class ActionParamMap;
+struct ActionItem;
 
 
 /****************************************************************************
@@ -62,13 +65,13 @@ public:
 				unsigned int nModifier);
 	ActionEvent(unsigned int nId,
 				unsigned int nModifier,
-				void* pParam);
+				const ActionParam* pParam);
 	~ActionEvent();
 
 public:
 	unsigned int getId() const;
 	unsigned int getModifier() const;
-	void* getParam() const;
+	const ActionParam* getParam() const;
 
 private:
 	ActionEvent(const ActionEvent&);
@@ -77,8 +80,58 @@ private:
 private:
 	unsigned int nId_;
 	unsigned int nModifier_;
-	void* pParam_;
+	const ActionParam* pParam_;
 };
+
+
+/****************************************************************************
+ *
+ * ActionParam
+ *
+ */
+
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS ActionParam
+{
+public:
+	explicit ActionParam(unsigned int nBaseId);
+	ActionParam(unsigned int nBaseId,
+				const WCHAR* pwszValue);
+	ActionParam(unsigned int nBaseId,
+				const WCHAR** ppwszValue,
+				size_t nCount);
+	~ActionParam();
+
+public:
+	unsigned int getBaseId() const;
+	size_t getCount() const;
+	const WCHAR* getValue(size_t n) const;
+
+public:
+	unsigned int addRef();
+	unsigned int release();
+
+private:
+	ActionParam(const ActionParam&);
+	ActionParam& operator=(const ActionParam&);
+
+private:
+	typedef std::vector<WSTRING> ValueList;
+
+private:
+	unsigned int nBaseId_;
+	ValueList listValue_;
+	unsigned int nRef_;
+};
+
+bool operator==(const ActionParam& lhs,
+				const ActionParam& rhs);
+bool operator!=(const ActionParam& lhs,
+				const ActionParam& rhs);
+
+#pragma warning(pop)
 
 
 /****************************************************************************
@@ -141,14 +194,49 @@ private:
 
 /****************************************************************************
  *
+ * ActionParamMap
+ *
+ */
+
+class QSEXPORTCLASS ActionParamMap
+{
+public:
+	ActionParamMap();
+	~ActionParamMap();
+
+public:
+	const ActionParam* getActionParam(unsigned int nId) const;
+	unsigned int addActionParam(unsigned int nMaxParamCount,
+								std::auto_ptr<ActionParam> pParam);
+	void removeActionParam(unsigned int nId);
+
+private:
+	ActionParamMap(const ActionParamMap&);
+	ActionParamMap& operator=(const ActionParamMap&);
+
+private:
+	struct ActionParamMapImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
  * ActionItem
  *
  */
 
 struct QSEXPORTCLASS ActionItem
 {
+	enum Flag {
+		FLAG_MENU			= 0x01,
+		FLAG_TOOLBAR		= 0x02,
+		FLAG_ACCELERATOR	= 0x04
+	};
+	
 	const WCHAR* pwszAction_;
-	UINT nId_;
+	unsigned int nId_;
+	unsigned int nMaxParamCount_;
+	unsigned int nFlags_;
 };
 
 }

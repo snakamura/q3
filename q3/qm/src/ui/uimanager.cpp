@@ -11,8 +11,8 @@
 
 #include <qsconv.h>
 
-#include "menu.h"
-#include "toolbar.h"
+#include "actionitem.h"
+#include "menucreator.h"
 #include "uimanager.h"
 
 using namespace qm;
@@ -29,17 +29,12 @@ qm::UIManager::UIManager()
 {
 	Application& app = Application::getApplication();
 	
+	pActionParamMap_.reset(new ActionParamMap());
+	
 	wstring_ptr wstrMenuPath(app.getProfilePath(FileNames::MENUS_XML));
-	PopupMenuManager popupMenuManager;
-	std::auto_ptr<LoadMenuPopupMenu> pPopupMenus[countof(popupMenuItems)];
-	for (int n = 0; n < countof(popupMenuItems); ++n) {
-		pPopupMenus[n].reset(new LoadMenuPopupMenu(
-			app.getResourceHandle(), popupMenuItems[n].nId_));
-		popupMenuManager.addPopupMenu(
-			popupMenuItems[n].pwszName_, pPopupMenus[n].get());
-	}
-	pMenuManager_.reset(new MenuManager(wstrMenuPath.get(),
-		menuItems, countof(menuItems), popupMenuManager));
+	pMenuManager_.reset(new MenuManager(wstrMenuPath.get(), actionItems,
+		countof(actionItems), dynamicMenuItems, countof(dynamicMenuItems),
+		pActionParamMap_.get()));
 	
 	wstring_ptr wstrBitmapPath(app.getProfilePath(FileNames::TOOLBAR_BMP));
 	W2T(wstrBitmapPath.get(), ptszBitmapPath);
@@ -50,11 +45,12 @@ qm::UIManager::UIManager()
 		ptszBitmapPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
 #endif
 	wstring_ptr wstrToolbarPath(app.getProfilePath(FileNames::TOOLBARS_XML));
-	pToolbarManager_.reset(new ToolbarManager(wstrToolbarPath.get(),
-		hBitmap, toolbarItems, countof(toolbarItems), pMenuManager_.get()));
+	pToolbarManager_.reset(new ToolbarManager(wstrToolbarPath.get(), hBitmap,
+		actionItems, countof(actionItems), pMenuManager_.get(), pActionParamMap_.get()));
 	
 	wstring_ptr wstrKeyMapPath(app.getProfilePath(FileNames::KEYMAP_XML));
-	pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get()));
+	pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get(), actionItems,
+		countof(actionItems), pActionParamMap_.get()));
 }
 
 qm::UIManager::~UIManager()
@@ -74,4 +70,9 @@ ToolbarManager* qm::UIManager::getToolbarManager() const
 KeyMap* qm::UIManager::getKeyMap() const
 {
 	return pKeyMap_.get();
+}
+
+ActionParamMap* qm::UIManager::getActionParamMap() const
+{
+	return pActionParamMap_.get();
 }

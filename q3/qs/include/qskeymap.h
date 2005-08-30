@@ -15,26 +15,13 @@
 
 namespace qs {
 
-struct KeyNameToId;
 class KeyMap;
 
 class Accelerator;
 class AcceleratorFactory;
+struct ActionItem;
+class ActionParamMap;
 class InputStream;
-
-
-/****************************************************************************
- *
- * KeyNameToId
- *
- */
-
-struct QSEXPORTCLASS KeyNameToId
-{
-	const WCHAR* pwszName_;
-	unsigned int nId_;
-	const WCHAR* pwszDefault_;
-};
 
 
 /****************************************************************************
@@ -52,7 +39,10 @@ public:
 	 * @param pwszPath [in] Path to the file which keymap is loaded from.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	KeyMap(const WCHAR* pwszPath);
+	KeyMap(const WCHAR* pwszPath,
+		   const ActionItem* pItem,
+		   size_t nItemCount,
+		   ActionParamMap* pActionParamMap);
 	
 	/**
 	 * Create instance.
@@ -60,7 +50,10 @@ public:
 	 * @param pInputStream [in] Stream which keymap is loaded from.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	KeyMap(InputStream* pInputStream);
+	KeyMap(InputStream* pInputStream,
+		   const ActionItem* pItem,
+		   size_t nItemCount,
+		   ActionParamMap* pActionParamMap);
 	
 	~KeyMap();
 
@@ -70,15 +63,11 @@ public:
 	 *
 	 * @param pFactory [in] Accelerator factory.
 	 * @param pwszName [in] Name of keymap.
-	 * @param pKeyNameToId [in] Map from key name to accelerator id.
-	 * @param nMapSize [in] Size of the map specified by pKeyNameToId.
 	 * @return Created accelerator. Can not be null.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	std::auto_ptr<Accelerator> createAccelerator(AcceleratorFactory* pFactory,
-												 const WCHAR* pwszName,
-												 const KeyNameToId* pKeyNameToId,
-												 size_t nMapSize) const;
+												 const WCHAR* pwszName) const;
 
 private:
 	KeyMap(const KeyMap&);

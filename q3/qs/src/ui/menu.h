@@ -27,7 +27,9 @@ public:
 	MenuContentHandler(MenuManager* pMenuManager,
 					   const ActionItem* pItem,
 					   size_t nItemCount,
-					   const PopupMenuManager& popupMenuManager);
+					   const DynamicMenuItem* pDynamicItem,
+					   size_t nDynamicItemCount,
+					   ActionParamMap* pActionParamMap);
 	virtual ~MenuContentHandler();
 
 public:
@@ -43,7 +45,8 @@ public:
 							size_t nLength);
 
 private:
-	UINT getActionId(const WCHAR* pwszAction);
+	const ActionItem* getActionItem(const WCHAR* pwszAction) const;
+	const DynamicMenuItem* getDynamicMenuItem(const WCHAR* pwszName) const;
 
 private:
 	MenuContentHandler(const MenuContentHandler&);
@@ -55,8 +58,7 @@ private:
 		STATE_MENUS,
 		STATE_MENU,
 		STATE_MENUITEM,
-		STATE_SEPARATOR,
-		STATE_POPUPMENU
+		STATE_SEPARATOR
 	};
 
 private:
@@ -67,7 +69,9 @@ private:
 	MenuManager* pMenuManager_;
 	const ActionItem* pActionItem_;
 	size_t nActionItemCount_;
-	const PopupMenuManager& popupMenuManager_;
+	const DynamicMenuItem* pDynamicItem_;
+	size_t nDynamicItemCount_;
+	ActionParamMap* pActionParamMap_;
 	StateStack stackState_;
 	MenuStack stackMenu_;
 };

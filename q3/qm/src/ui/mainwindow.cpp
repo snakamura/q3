@@ -24,7 +24,6 @@
 
 #include <qsaccelerator.h>
 #include <qsconv.h>
-#include <qskeymap.h>
 #include <qsprofile.h>
 #include <qsstl.h>
 #include <qstheme.h>
@@ -48,10 +47,9 @@
 #include "foldercombobox.h"
 #include "folderlistwindow.h"
 #include "folderwindow.h"
-#include "keymap.h"
 #include "listwindow.h"
 #include "mainwindow.h"
-#include "menus.h"
+#include "menucreator.h"
 #include "messageframewindow.h"
 #include "messagewindow.h"
 #include "optiondialog.h"
@@ -206,6 +204,9 @@ public:
 #endif
 
 public:
+	typedef std::vector<DynamicMenuCreator*> MenuCreatorList;
+
+public:
 	MainWindow* pThis_;
 	
 	bool bShowToolbar_;
@@ -267,19 +268,8 @@ public:
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
 	std::auto_ptr<ExternalEditorManager> pExternalEditorManager_;
-	std::auto_ptr<MoveMenu> pMoveMenu_;
-	std::auto_ptr<FilterMenu> pFilterMenu_;
-	std::auto_ptr<SortMenu> pSortMenu_;
-	std::auto_ptr<AttachmentMenu> pAttachmentMenu_;
-	std::auto_ptr<ViewTemplateMenu> pViewTemplateMenu_;
-	std::auto_ptr<CreateTemplateMenu> pCreateTemplateMenu_;
-	std::auto_ptr<CreateTemplateMenu> pCreateTemplateExternalMenu_;
-	std::auto_ptr<EncodingMenu> pEncodingMenu_;
-	std::auto_ptr<SubAccountMenu> pSubAccountMenu_;
-	std::auto_ptr<GoRoundMenu> pGoRoundMenu_;
-	std::auto_ptr<ScriptMenu> pScriptMenu_;
-	std::auto_ptr<RecentsMenu> pRecentsMenu_;
 	std::auto_ptr<DelayedFolderModelHandler> pDelayedFolderModelHandler_;
+	MenuCreatorList listMenuCreator_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bCreated_;
 	int nInitialShow_;
@@ -662,34 +652,6 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION_RANGE11(MessageApplyTemplateAction,
-		IDM_MESSAGE_APPLYTEMPLATE,
-		IDM_MESSAGE_APPLYTEMPLATE + TemplateMenu::MAX_TEMPLATE,
-		pCreateTemplateMenu_.get(),
-		pDocument_,
-		pFolderModel_.get(),
-		pMessageSelectionModel_.get(),
-		pEncodingModel_.get(),
-		pSecurityModel_.get(),
-		pEditFrameWindowManager_.get(),
-		pExternalEditorManager_.get(),
-		pThis_->getHandle(),
-		pProfile_,
-		false);
-	ADD_ACTION_RANGE11(MessageApplyTemplateAction,
-		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL,
-		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + TemplateMenu::MAX_TEMPLATE,
-		pCreateTemplateExternalMenu_.get(),
-		pDocument_,
-		pFolderModel_.get(),
-		pMessageSelectionModel_.get(),
-		pEncodingModel_.get(),
-		pSecurityModel_.get(),
-		pEditFrameWindowManager_.get(),
-		pExternalEditorManager_.get(),
-		pThis_->getHandle(),
-		pProfile_,
-		true);
 	ADD_ACTION1(MessageClearRecentsAction,
 		IDM_MESSAGE_CLEARRECENTS,
 		pDocument_->getRecents());
@@ -705,47 +667,30 @@ void qm::MainWindowImpl::initActions()
 		pSecurityModel_.get(),
 		pDocument_->getUndoManager(),
 		pThis_->getHandle());
-	
-	struct {
-		UINT nId_;
-		UINT nIdExternal_;
-		const WCHAR* pwszName_;
-	} creates[] = {
-		{ IDM_MESSAGE_EDIT,		IDM_MESSAGE_EDITEXTERNAL,		L"edit"			},
-		{ IDM_MESSAGE_FORWARD,	IDM_MESSAGE_FORWARDEXTERNAL,	L"forward"		},
-		{ IDM_MESSAGE_NEW,		IDM_MESSAGE_NEWEXTERNAL,		L"new"			},
-		{ IDM_MESSAGE_REPLY,	IDM_MESSAGE_REPLYEXTERNAL,		L"reply"		},
-		{ IDM_MESSAGE_REPLYALL,	IDM_MESSAGE_REPLYALLEXTERNAL,	L"reply_all"	},
-	};
-	for (int n = 0; n < countof(creates); ++n) {
-		ADD_ACTION11(MessageCreateAction,
-			creates[n].nId_,
-			pDocument_,
-			pFolderModel_.get(),
-			pMessageSelectionModel_.get(),
-			pEncodingModel_.get(),
-			pSecurityModel_.get(),
-			creates[n].pwszName_,
-			pEditFrameWindowManager_.get(),
-			pExternalEditorManager_.get(),
-			pThis_->getHandle(),
-			pProfile_,
-			false);
-		ADD_ACTION11(MessageCreateAction,
-			creates[n].nIdExternal_,
-			pDocument_,
-			pFolderModel_.get(),
-			pMessageSelectionModel_.get(),
-			pEncodingModel_.get(),
-			pSecurityModel_.get(),
-			creates[n].pwszName_,
-			pEditFrameWindowManager_.get(),
-			pExternalEditorManager_.get(),
-			pThis_->getHandle(),
-			pProfile_,
-			true);
-	}
-	
+	ADD_ACTION10(MessageCreateAction,
+		IDM_MESSAGE_CREATE,
+		pDocument_,
+		pFolderModel_.get(),
+		pMessageSelectionModel_.get(),
+		pEncodingModel_.get(),
+		pSecurityModel_.get(),
+		pEditFrameWindowManager_.get(),
+		pExternalEditorManager_.get(),
+		pThis_->getHandle(),
+		pProfile_,
+		false);
+	ADD_ACTION10(MessageCreateAction,
+		IDM_MESSAGE_CREATEEXTERNAL,
+		pDocument_,
+		pFolderModel_.get(),
+		pMessageSelectionModel_.get(),
+		pEncodingModel_.get(),
+		pSecurityModel_.get(),
+		pEditFrameWindowManager_.get(),
+		pExternalEditorManager_.get(),
+		pThis_->getHandle(),
+		pProfile_,
+		true);
 	ADD_ACTION7(MessageCreateFromClipboardAction,
 		IDM_MESSAGE_CREATEFROMCLIPBOARD,
 		false,
@@ -794,12 +739,11 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle(),
 		pFolderModel_.get(),
 		pSecurityModel_.get());
-	ADD_ACTION_RANGE5(MessageOpenAttachmentAction,
+	ADD_ACTION5(MessageOpenAttachmentAction,
 		IDM_MESSAGE_ATTACHMENT,
-		IDM_MESSAGE_ATTACHMENT + AttachmentMenu::MAX_ATTACHMENT,
+		pDocument_,
 		pSecurityModel_.get(),
 		pProfile_,
-		pAttachmentMenu_.get(),
 		pTempFileCleaner_,
 		pThis_->getHandle());
 	
@@ -856,11 +800,11 @@ void qm::MainWindowImpl::initActions()
 	}
 	
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction1(new MessageMoveAction(
-		pMessageSelectionModel_.get(), this, 0, pMoveMenu_.get(),
-		true, pDocument_->getUndoManager(), pThis_->getHandle()));
+		pDocument_, pMessageSelectionModel_.get(), this, 0, true,
+		pDocument_->getUndoManager(), pProfile_, pThis_->getHandle()));
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
-		pMessageSelectionModel_.get(), this, pPreviewModel_.get(), pMoveMenu_.get(),
-		false, pDocument_->getUndoManager(), pThis_->getHandle()));
+		pDocument_, pMessageSelectionModel_.get(), this, pPreviewModel_.get(),
+		false, pDocument_->getUndoManager(), pProfile_, pThis_->getHandle()));
 	Action* pMessageMoveActions[] = {
 		0,
 		0,
@@ -868,43 +812,18 @@ void qm::MainWindowImpl::initActions()
 		pMessageMoveAction1.get(),
 		pMessageMoveAction2.get()
 	};
-	ADD_ACTION_RANGE3(DispatchAction,
+	ADD_ACTION3(DispatchAction,
 		IDM_MESSAGE_MOVE,
-		IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
 		pViews,
 		pMessageMoveActions,
 		countof(pViews));
 	pMessageMoveAction1.release();
 	pMessageMoveAction2.release();
 	
-	std::auto_ptr<MessageMoveOtherAction> pMessageMoveOtherAction1(
-		new MessageMoveOtherAction(pDocument_, pMessageSelectionModel_.get(),
-			this, 0, true, pDocument_->getUndoManager(), pProfile_, pThis_->getHandle()));
-	std::auto_ptr<MessageMoveOtherAction> pMessageMoveOtherAction2(
-		new MessageMoveOtherAction(pDocument_, pMessageSelectionModel_.get(),
-			this, pPreviewModel_.get(), false, pDocument_->getUndoManager(),
-			pProfile_, pThis_->getHandle()));
-	Action* pMessageMoveOtherActions[] = {
-		0,
-		0,
-		0,
-		pMessageMoveOtherAction1.get(),
-		pMessageMoveOtherAction2.get()
-	};
-	ADD_ACTION3(DispatchAction,
-		IDM_MESSAGE_MOVEOTHER,
-		pViews,
-		pMessageMoveOtherActions,
-		countof(pViews));
-	pMessageMoveOtherAction1.release();
-	pMessageMoveOtherAction2.release();
-	
-	ADD_ACTION_RANGE8(MessageOpenRecentAction,
+	ADD_ACTION7(MessageOpenRecentAction,
 		IDM_MESSAGE_OPENRECENT,
-		IDM_MESSAGE_OPENRECENT + RecentsMenu::MAX_RECENTS,
 		pDocument_->getRecents(),
 		pDocument_,
-		pRecentsMenu_.get(),
 		pViewModelManager_.get(),
 		pFolderModel_.get(),
 		pThis_,
@@ -969,11 +888,9 @@ void qm::MainWindowImpl::initActions()
 		IDM_TAB_NAVIGATEPREV,
 		pTabModel_.get(),
 		true);
-	ADD_ACTION_RANGE2(TabSelectAction,
+	ADD_ACTION1(TabSelectAction,
 		IDM_TAB_SELECT,
-		IDM_TAB_SELECT + 10,
-		pTabModel_.get(),
-		IDM_TAB_SELECT);
+		pTabModel_.get());
 #endif
 	ADD_ACTION7(ToolAccountAction,
 		IDM_TOOL_ACCOUNT,
@@ -1001,33 +918,28 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pSyncDialogManager_,
 		pThis_->getHandle());
-	ADD_ACTION_RANGE6(ToolGoRoundAction,
+	ADD_ACTION5(ToolGoRoundAction,
 		IDM_TOOL_GOROUND,
-		IDM_TOOL_GOROUND + GoRoundMenu::MAX_COURSE,
 		pSyncManager_,
 		pDocument_,
 		pGoRound_,
 		pSyncDialogManager_,
-		pThis_->getHandle(),
-		pGoRoundMenu_.get());
+		pThis_->getHandle());
 	ADD_ACTION3(ToolOptionsAction,
 		IDM_TOOL_OPTIONS,
 		pOptionDialogManager_.get(),
 		pThis_->getHandle(),
 		OptionDialog::PANEL_NONE);
-	ADD_ACTION_RANGE4(ToolScriptAction,
+	ADD_ACTION4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,
-		IDM_TOOL_SCRIPT + ScriptMenu::MAX_SCRIPT,
-		pScriptMenu_.get(),
+		pDocument_->getScriptManager(),
 		pDocument_,
 		pProfile_,
 		pThis_);
-	ADD_ACTION_RANGE5(ToolSubAccountAction,
+	ADD_ACTION4(ToolSubAccountAction,
 		IDM_TOOL_SUBACCOUNT,
-		IDM_TOOL_SUBACCOUNT + SubAccountMenu::MAX_SUBACCOUNT,
 		pDocument_,
 		pFolderModel_.get(),
-		pSubAccountMenu_.get(),
 		pSyncManager_,
 		pThis_->getHandle());
 	
@@ -1068,25 +980,15 @@ void qm::MainWindowImpl::initActions()
 		IDM_VIEW_DROPDOWN,
 		pFolderComboBox_);
 	ADD_ACTION1(ViewEncodingAction,
-		IDM_VIEW_ENCODINGAUTODETECT,
-		pEncodingModel_.get());
-	ADD_ACTION_RANGE2(ViewEncodingAction,
 		IDM_VIEW_ENCODING,
-		IDM_VIEW_ENCODING + EncodingMenu::MAX_ENCODING,
-		pEncodingModel_.get(),
-		pEncodingMenu_.get());
-	ADD_ACTION_RANGE2(ViewFilterAction,
+		pEncodingModel_.get());
+	ADD_ACTION1(ViewFilterAction,
 		IDM_VIEW_FILTER,
-		IDM_VIEW_FILTER + FilterMenu::MAX_FILTER,
-		pViewModelManager_.get(),
-		pFilterMenu_.get());
+		pViewModelManager_.get());
 	ADD_ACTION2(ViewFilterCustomAction,
 		IDM_VIEW_FILTERCUSTOM,
 		pViewModelManager_.get(),
 		pThis_->getHandle());
-	ADD_ACTION1(ViewFilterNoneAction,
-		IDM_VIEW_FILTERNONE,
-		pViewModelManager_.get());
 	ADD_ACTION3(ViewFocusAction,
 		IDM_VIEW_FOCUSNEXT,
 		pViews,
@@ -1229,11 +1131,9 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(ViewShowToolbarAction<MainWindow>,
 		IDM_VIEW_SHOWTOOLBAR,
 		pThis_);
-	ADD_ACTION_RANGE2(ViewSortAction,
+	ADD_ACTION1(ViewSortAction,
 		IDM_VIEW_SORT,
-		IDM_VIEW_SORT + SortMenu::MAX_SORT,
-		pViewModelManager_.get(),
-		pSortMenu_.get());
+		pViewModelManager_.get());
 	ADD_ACTION2(ViewSortDirectionAction,
 		IDM_VIEW_SORTASCENDING,
 		pViewModelManager_.get(),
@@ -1259,13 +1159,8 @@ void qm::MainWindowImpl::initActions()
 		pViewModelManager_.get(),
 		ViewSortThreadAction::TYPE_TOGGLETHREAD);
 	ADD_ACTION1(ViewTemplateAction,
-		IDM_VIEW_TEMPLATENONE,
-		pMessageWindow_);
-	ADD_ACTION_RANGE2(ViewTemplateAction,
 		IDM_VIEW_TEMPLATE,
-		IDM_VIEW_TEMPLATE + TemplateMenu::MAX_TEMPLATE,
-		pMessageWindow_,
-		pViewTemplateMenu_.get());
+		pMessageWindow_);
 }
 
 void qm::MainWindowImpl::layoutChildren()
@@ -1584,20 +1479,8 @@ void qm::MainWindowImpl::accountListChanged(const AccountManagerEvent& event)
 #ifndef _WIN32_WCE_PSPC
 void qm::MainWindowImpl::showRecentsMenu()
 {
-	AutoMenuHandle hmenu(::CreatePopupMenu());
-	bool bShow = pRecentsMenu_->createMenu(hmenu.get());
-	if (pThis_->isHidden()) {
-		if (bShow)
-			::AppendMenu(hmenu.get(), MF_SEPARATOR, -1, 0);
-		
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrShow(loadString(hInst, IDS_SHOWMAIN));
-		W2T(wstrShow.get(), ptszShow);
-		::AppendMenu(hmenu.get(), MF_STRING, IDM_FILE_SHOW, ptszShow);
-		
-		bShow = true;
-	}
-	if (bShow) {
+	HMENU hmenu = pUIManager_->getMenuManager()->getMenu(L"recents", false, false);
+	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
@@ -1611,7 +1494,7 @@ void qm::MainWindowImpl::showRecentsMenu()
 		::GetCursorPos(&pt);
 #endif
 		pThis_->setForegroundWindow();
-		::TrackPopupMenu(hmenu.get(), nFlags, pt.x, pt.y, 0, pThis_->getHandle(), 0);
+		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, pThis_->getHandle(), 0);
 		pThis_->postMessage(WM_NULL);
 	}
 }
@@ -2089,6 +1972,19 @@ UINT qm::MainWindow::getIconId()
 	return IDI_MAINFRAME;
 }
 
+DynamicMenuCreator* qm::MainWindow::getDynamicMenuCreator(DWORD dwData)
+{
+	MainWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
+		pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<DWORD>(),
+				std::mem_fun(&DynamicMenuCreator::getMenuItemData),
+				std::identity<DWORD>()),
+			dwData));
+	return it != pImpl_->listMenuCreator_.end() ? *it : 0;
+}
+
 void qm::MainWindow::getWindowClass(WNDCLASS* pwc)
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
@@ -2120,6 +2016,11 @@ bool qm::MainWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 Action* qm::MainWindow::getAction(UINT nId)
 {
 	return pImpl_->pActionMap_->getAction(nId);
+}
+
+const ActionParam* qm::MainWindow::getActionParam(UINT nId)
+{
+	return pImpl_->pUIManager_->getActionParamMap()->getActionParam(nId);
 }
 
 Accelerator* qm::MainWindow::getAccelerator()
@@ -2199,16 +2100,12 @@ LRESULT qm::MainWindow::onCopyData(HWND hwnd,
 		return 0;
 	
 	UINT nId = static_cast<UINT>(pData->dwData);
-	if (pData->lpData) {
-		Variant v(::SysAllocString(static_cast<WCHAR*>(pData->lpData)));
-		if (v.bstrVal) {
-			VARIANT* pvars[] = { &v };
-			pImpl_->pActionInvoker_->invoke(nId, pvars, countof(pvars));
-		}
-	}
-	else {
+	const WCHAR* pwszParam = static_cast<const WCHAR*>(pData->lpData);
+	if (pwszParam)
+		pImpl_->pActionInvoker_->invoke(nId, &pwszParam, 1);
+	else
 		pImpl_->pActionInvoker_->invoke(nId, 0, 0);
-	}
+	
 	return 1;
 }
 
@@ -2230,7 +2127,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pImpl_->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"MainWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"MainWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
@@ -2266,24 +2163,11 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_,
 		pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),
 		pImpl_->pEditFrameWindowManager_.get(), pImpl_->pExternalEditorManager_.get()));
-	
-	pImpl_->pMoveMenu_.reset(new MoveMenu());
-	pImpl_->pFilterMenu_.reset(new FilterMenu(
-		pImpl_->pViewModelManager_->getFilterManager()));
-	pImpl_->pSortMenu_.reset(new SortMenu(pImpl_->pViewModelManager_.get()));
-	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu(pImpl_->pSecurityModel_.get()));
-	pImpl_->pViewTemplateMenu_.reset(new ViewTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager()));
-	pImpl_->pCreateTemplateMenu_.reset(new CreateTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager(), false));
-	pImpl_->pCreateTemplateExternalMenu_.reset(new CreateTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager(), true));
-	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_, IDM_VIEW_ENCODING));
-	pImpl_->pSubAccountMenu_.reset(new SubAccountMenu(pImpl_->pFolderModel_.get()));
-	pImpl_->pGoRoundMenu_.reset(new GoRoundMenu(pImpl_->pGoRound_));
-	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
-	pImpl_->pRecentsMenu_.reset(new RecentsMenu(
-		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_));
+	pImpl_->pMessageSelectionModel_.reset(
+		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, false));
+	pImpl_->pListOnlyMessageSelectionModel_.reset(
+		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, true));
+	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	
 	bool bVerticalFolderWindow = pImpl_->bVerticalFolderWindow_;
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
@@ -2427,6 +2311,42 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pFolderSplitterWindow_->add(bVerticalFolderWindow ? 0 : 1,
 		bVerticalFolderWindow ? 1 : 0, pImpl_->pListSplitterWindow_);
 	
+	pImpl_->listMenuCreator_.push_back(
+		new MoveMenuCreator(pImpl_->pFolderModel_.get(),
+			pImpl_->pMessageSelectionModel_.get(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new FilterMenuCreator(pImpl_->pViewModelManager_->getFilterManager(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new SortMenuCreator(pImpl_->pViewModelManager_.get(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new AttachmentMenuCreator(pImpl_->pMessageSelectionModel_.get(),
+			pImpl_->pSecurityModel_.get(), pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new ViewTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
+			pImpl_->pFolderModel_.get(), pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new CreateTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
+			pImpl_->pFolderModel_.get(), pImpl_->pUIManager_->getActionParamMap(), false));
+	pImpl_->listMenuCreator_.push_back(
+		new CreateTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
+			pImpl_->pFolderModel_.get(), pImpl_->pUIManager_->getActionParamMap(), true));
+	pImpl_->listMenuCreator_.push_back(
+		new EncodingMenuCreator(pImpl_->pProfile_, true, pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new SubAccountMenuCreator(pImpl_->pFolderModel_.get(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new GoRoundMenuCreator(pImpl_->pGoRound_, pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new ScriptMenuCreator(pImpl_->pDocument_->getScriptManager(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new RecentsMenuCreator(pImpl_->pDocument_->getRecents(), pImpl_->pDocument_,
+			pImpl_->pUIManager_->getActionParamMap()));
+	
 	DWORD dwStatusBarStyle = dwStyle;
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
@@ -2435,8 +2355,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pDocument_, pImpl_->pViewModelManager_.get(),
 		pImpl_->pFolderModel_.get(), pImpl_->pSyncManager_,
 		pImpl_->pMessageWindow_, pImpl_->pEncodingModel_.get(), 2,
-		pImpl_->pEncodingMenu_.get(), pImpl_->pViewTemplateMenu_.get(),
-		pImpl_->pFilterMenu_.get()));
+		pImpl_->pUIManager_->getMenuManager()));
 	if (!pStatusBar->create(L"QmStatusBarWindow", 0, dwStatusBarStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(),
 		0, STATUSCLASSNAMEW, MainWindowImpl::ID_STATUSBAR, 0))
@@ -2474,12 +2393,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #endif
 		pImpl_->pAddressBookFrameWindowManager_.get());
 	
-	pImpl_->pMessageSelectionModel_.reset(
-		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, false));
-	pImpl_->pListOnlyMessageSelectionModel_.reset(
-		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, true));
-	
-	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
 #ifdef QMTABWINDOW
@@ -2518,6 +2431,9 @@ LRESULT qm::MainWindow::onDestroy()
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
+	std::for_each(pImpl_->listMenuCreator_.begin(),
+		pImpl_->listMenuCreator_.end(), qs::deleter<DynamicMenuCreator>());
+	
 	::PostQuitMessage(0);
 	
 	return FrameWindow::onDestroy();
@@ -2532,79 +2448,6 @@ LRESULT qm::MainWindow::onEndSession(bool bEnd,
 	return 0;
 }
 #endif
-
-LRESULT qm::MainWindow::onInitMenuPopup(HMENU hmenu,
-										UINT nIndex,
-										bool bSysMenu)
-{
-	if (!bSysMenu) {
-		UINT nIdFirst = 0;
-		UINT nIdLast = 0;
-		MENUITEMINFO mii = { sizeof(mii), MIIM_ID };
-		for (UINT n = 0; ; ++n) {
-			if (!::GetMenuItemInfo(hmenu, n, TRUE, &mii))
-				break;
-			if (nIdFirst == 0)
-				nIdFirst = mii.wID;
-			nIdLast = mii.wID;
-		}
-		
-		std::pair<Account*, Folder*> p(pImpl_->pFolderModel_->getCurrent());
-		Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
-		if (nIdLast == IDM_MESSAGE_MOVEOTHER) {
-			if (pAccount)
-				pImpl_->pMoveMenu_->createMenu(hmenu, pAccount,
-					::GetKeyState(VK_SHIFT) < 0, *pImpl_->pActionMap_);
-			else
-				::EnableMenuItem(hmenu, nIndex, MF_GRAYED | MF_BYPOSITION);
-		}
-		else if (nIdLast == IDM_VIEW_SORTFLOATTHREAD) {
-			pImpl_->pSortMenu_->createMenu(hmenu);
-		}
-		else if (nIdFirst == IDM_VIEW_FILTERNONE) {
-			pImpl_->pFilterMenu_->createMenu(hmenu);
-		}
-		else if (nIdFirst == IDM_TOOL_GOROUND) {
-			pImpl_->pGoRoundMenu_->createMenu(hmenu);
-		}
-		else if (nIdFirst == IDM_TOOL_SUBACCOUNT) {
-			pImpl_->pSubAccountMenu_->createMenu(hmenu);
-		}
-		else if (nIdFirst == IDM_MESSAGE_DETACH) {
-			pImpl_->pAttachmentMenu_->createMenu(hmenu,
-				pImpl_->pMessageSelectionModel_->getFocusedMessage());
-		}
-		else if (nIdFirst == IDM_VIEW_TEMPLATENONE) {
-			if (pAccount)
-				pImpl_->pViewTemplateMenu_->createMenu(hmenu, pAccount);
-			else
-				::EnableMenuItem(hmenu, nIndex, MF_GRAYED | MF_BYPOSITION);
-		}
-		else if (nIdFirst == IDM_MESSAGE_APPLYTEMPLATE ||
-			nIdFirst == IDM_MESSAGE_APPLYTEMPLATENONE) {
-			if (pAccount)
-				pImpl_->pCreateTemplateMenu_->createMenu(hmenu, pAccount);
-			else
-				::EnableMenuItem(hmenu, nIndex, MF_GRAYED | MF_BYPOSITION);
-		}
-		else if (nIdFirst == IDM_MESSAGE_APPLYTEMPLATEEXTERNAL ||
-			nIdFirst == IDM_MESSAGE_APPLYTEMPLATENONEEXTERNAL) {
-			if (pAccount)
-				pImpl_->pCreateTemplateExternalMenu_->createMenu(hmenu, pAccount);
-			else
-				::EnableMenuItem(hmenu, nIndex, MF_GRAYED | MF_BYPOSITION);
-		}
-		else if (nIdFirst == IDM_VIEW_ENCODINGAUTODETECT) {
-			pImpl_->pEncodingMenu_->createMenu(hmenu);
-		}
-		else if (nIdFirst == IDM_TOOL_SCRIPTNONE ||
-			nIdFirst == IDM_TOOL_SCRIPT) {
-			pImpl_->pScriptMenu_->createMenu(hmenu);
-		}
-	}
-	
-	return FrameWindow::onInitMenuPopup(hmenu, nIndex, bSysMenu);
-}
 
 #ifndef _WIN32_WCE
 LRESULT qm::MainWindow::onQueryEndSession(int nOption)
@@ -2879,15 +2722,12 @@ qm::MainWindowStatusBar::MainWindowStatusBar(Document* pDocument,
 											 MessageWindow* pMessageWindow,
 											 EncodingModel* pEncodingModel,
 											 int nOffset,
-											 EncodingMenu* pEncodingMenu,
-											 ViewTemplateMenu* pViewTemplateMenu,
-											 FilterMenu* pFilterMenu) :
-	MessageStatusBar(pMessageWindow, pEncodingModel, nOffset, pEncodingMenu, pViewTemplateMenu),
+											 MenuManager* pMenuManager) :
+	MessageStatusBar(pMessageWindow, pEncodingModel, nOffset, pMenuManager),
 	pDocument_(pDocument),
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
 	pSyncManager_(pSyncManager),
-	pFilterMenu_(pFilterMenu),
 	nCount_(-1),
 	nUnseenCount_(-1),
 	nSelectedCount_(-1),
@@ -2995,24 +2835,12 @@ LRESULT qm::MainWindowStatusBar::onLButtonDown(UINT nFlags,
 	return MessageStatusBar::onLButtonDown(nFlags, pt);
 }
 
-HMENU qm::MainWindowStatusBar::getMenu(int nPart)
+const WCHAR* qm::MainWindowStatusBar::getMenuName(int nPart)
 {
-	HMENU hmenu = 0;
-	if (nPart == 2) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		hmenu = ::LoadMenu(hInst, MAKEINTRESOURCE(IDR_VIEWFILTER));
-		pFilterMenu_->createMenu(::GetSubMenu(hmenu, 0));
-	}
-	else {
-		hmenu = MessageStatusBar::getMenu(nPart);
-	}
-	return hmenu;
-}
-
-Account* qm::MainWindowStatusBar::getAccount()
-{
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	return p.first ? p.first : p.second ? p.second->getAccount() : 0;
+	if (nPart == 2)
+		return L"filter";
+	else
+		return MessageStatusBar::getMenuName(nPart);
 }
 
 

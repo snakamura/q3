@@ -20,7 +20,6 @@
 #include <qsconv.h>
 #include <qsdevicecontext.h>
 #include <qsdragdrop.h>
-#include <qskeymap.h>
 #include <qsmenu.h>
 #include <qsprofile.h>
 #include <qsstl.h>
@@ -30,7 +29,6 @@
 #include <algorithm>
 #include <vector>
 
-#include "keymap.h"
 #include "listwindow.h"
 #include "messageframewindow.h"
 #include "resourceinc.h"
@@ -1141,7 +1139,7 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"ListWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"ListWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	

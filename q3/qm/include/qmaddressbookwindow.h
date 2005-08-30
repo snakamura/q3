@@ -70,6 +70,7 @@ public:
 	virtual void getWindowClass(WNDCLASS* pwc);
 	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
 	virtual qs::Action* getAction(UINT nId);
+	virtual const qs::ActionParam* getActionParam(UINT nId);
 	virtual qs::Accelerator* getAccelerator();
 	virtual LRESULT windowProc(UINT uMsg,
 							   WPARAM wParam,

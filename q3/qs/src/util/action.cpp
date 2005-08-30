@@ -43,7 +43,7 @@ qs::ActionEvent::ActionEvent(unsigned int nId,
 
 qs::ActionEvent::ActionEvent(unsigned int nId,
 							 unsigned int nModifier,
-							 void* pParam) :
+							 const ActionParam* pParam) :
 	nId_(nId),
 	nModifier_(nModifier),
 	pParam_(pParam)
@@ -64,9 +64,93 @@ unsigned int qs::ActionEvent::getModifier() const
 	return nModifier_;
 }
 
-void* qs::ActionEvent::getParam() const
+const ActionParam* qs::ActionEvent::getParam() const
 {
 	return pParam_;
+}
+
+
+/****************************************************************************
+ *
+ * ActionParam
+ *
+ */
+
+qs::ActionParam::ActionParam(unsigned int nBaseId) :
+	nBaseId_(nBaseId),
+	nRef_(0)
+{
+}
+
+qs::ActionParam::ActionParam(unsigned int nBaseId,
+							 const WCHAR* pwszValue) :
+	nBaseId_(nBaseId),
+	nRef_(0)
+{
+	listValue_.resize(1);
+	listValue_[0] = allocWString(pwszValue).release();
+}
+
+qs::ActionParam::ActionParam(unsigned int nBaseId,
+							 const WCHAR** ppwszValue,
+							 size_t nCount) :
+	nBaseId_(nBaseId),
+	nRef_(0)
+{
+	listValue_.resize(nCount);
+	for (size_t n = 0; n < nCount; ++n)
+		listValue_[n] = allocWString(*(ppwszValue + n)).release();
+}
+
+qs::ActionParam::~ActionParam()
+{
+	std::for_each(listValue_.begin(), listValue_.end(), qs::string_free<WSTRING>());
+}
+
+unsigned int qs::ActionParam::getBaseId() const
+{
+	return nBaseId_;
+}
+
+size_t qs::ActionParam::getCount() const
+{
+	return listValue_.size();
+}
+
+const WCHAR* qs::ActionParam::getValue(size_t n) const
+{
+	assert(n < listValue_.size());
+	return listValue_[n];
+}
+
+unsigned int qs::ActionParam::addRef()
+{
+	return ++nRef_;
+}
+
+unsigned int qs::ActionParam::release()
+{
+	return --nRef_;
+}
+
+bool qs::operator==(const ActionParam& lhs,
+					const ActionParam& rhs)
+{
+	if (lhs.getCount() != rhs.getCount())
+		return false;
+	
+	for (size_t n = 0; n < lhs.getCount(); ++n) {
+		if (wcscmp(lhs.getValue(n), rhs.getValue(n)) != 0)
+			return false;
+	}
+	
+	return true;
+}
+
+bool qs::operator!=(const ActionParam& lhs,
+					const ActionParam& rhs)
+{
+	return !(lhs == rhs);
 }
 
 
@@ -202,4 +286,142 @@ void qs::ActionMap::addAction(unsigned int nIdFrom,
 		l.begin(), l.end(), item, ActionMapImpl::ActionItemLess());
 	pImpl_->listItem_.insert(it, item);
 	pAction.release();
+}
+
+
+/****************************************************************************
+ *
+ * ActionParamMapImpl
+ *
+ */
+
+struct qs::ActionParamMapImpl
+{
+	struct Item
+	{
+		unsigned int nId_;
+		unsigned int nBaseId_;
+		ActionParam* pParam_;
+	};
+	
+	struct ItemLess : public std::binary_function<Item, Item, bool>
+	{
+		bool operator()(const Item& lhs,
+						const Item& rhs) const;
+	};
+	
+	struct ItemBaseLess : public std::binary_function<Item, Item, bool>
+	{
+		bool operator()(const Item& lhs,
+						const Item& rhs) const;
+	};
+	
+	typedef std::vector<Item> ItemList;
+	ItemList listItem_;
+};
+
+
+/****************************************************************************
+ *
+ * ActionParamMapImpl::ItemLess
+ *
+ */
+
+bool qs::ActionParamMapImpl::ItemLess::operator()(const Item& lhs,
+												  const Item& rhs) const
+{
+	return lhs.nId_ < rhs.nId_;
+}
+
+
+/****************************************************************************
+ *
+ * ActionParamMapImpl::ItemBaseLess
+ *
+ */
+
+bool qs::ActionParamMapImpl::ItemBaseLess::operator()(const Item& lhs,
+													  const Item& rhs) const
+{
+	return lhs.nBaseId_ < rhs.nBaseId_;
+}
+
+
+/****************************************************************************
+ *
+ * ActionParamMap
+ *
+ */
+
+qs::ActionParamMap::ActionParamMap() :
+	pImpl_(0)
+{
+	pImpl_ = new ActionParamMapImpl();
+}
+
+qs::ActionParamMap::~ActionParamMap()
+{
+	std::for_each(pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
+		unary_compose_f_gx(
+			deleter<ActionParam>(),
+			mem_data_ref(&ActionParamMapImpl::Item::pParam_)));
+	delete pImpl_;
+}
+
+const ActionParam* qs::ActionParamMap::getActionParam(unsigned int nId) const
+{
+	ActionParamMapImpl::Item item = { nId, 0, 0 };
+	ActionParamMapImpl::ItemList::const_iterator it = std::lower_bound(
+		pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
+		item, ActionParamMapImpl::ItemLess());
+	if (it == pImpl_->listItem_.end() || (*it).nId_ != nId)
+		return 0;
+	return (*it).pParam_;
+}
+
+unsigned int qs::ActionParamMap::addActionParam(unsigned int nMaxParamCount,
+												std::auto_ptr<ActionParam> pParam)
+{
+	unsigned int nBaseId = pParam->getBaseId();
+	
+	ActionParamMapImpl::Item item = { 0, nBaseId, 0 };
+	ActionParamMapImpl::ItemList::iterator it = std::lower_bound(
+		pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
+		item, ActionParamMapImpl::ItemBaseLess());
+	if (it != pImpl_->listItem_.end() && (*it).nBaseId_ == nBaseId) {
+		while (it != pImpl_->listItem_.end() && (*it).nBaseId_ == nBaseId) {
+			if (*(*it).pParam_ == *pParam.get()) {
+				(*it).pParam_->addRef();
+				return (*it).nId_;
+			}
+			++it;
+		}
+	}
+	
+	unsigned int nId = nBaseId + 1;
+	if (!pImpl_->listItem_.empty() && (*(it - 1)).nBaseId_ == nBaseId)
+		nId = (*(it - 1)).nId_ + 1;
+	if (nId - nBaseId >= nMaxParamCount)
+		return -1;
+	
+	ActionParamMapImpl::Item itemNew = { nId, nBaseId, pParam.get() };
+	pImpl_->listItem_.insert(it, itemNew);
+	pParam->addRef();
+	pParam.release();
+	
+	return nId;
+}
+
+void qs::ActionParamMap::removeActionParam(unsigned int nId)
+{
+	ActionParamMapImpl::Item item = { nId, 0, 0 };
+	ActionParamMapImpl::ItemList::iterator it = std::lower_bound(
+		pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
+		item, ActionParamMapImpl::ItemLess());
+	if (it != pImpl_->listItem_.end() && (*it).nId_ == nId) {
+		if ((*it).pParam_->release() == 0) {
+			delete (*it).pParam_;
+			pImpl_->listItem_.erase(it);
+		}
+	}
 }

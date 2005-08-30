@@ -20,7 +20,6 @@
 #include <qsdevicecontext.h>
 #include <qsdragdrop.h>
 #include <qsinit.h>
-#include <qskeymap.h>
 #include <qsmenu.h>
 #include <qsprofile.h>
 #include <qsstl.h>
@@ -32,7 +31,6 @@
 
 #include "dialogs.h"
 #include "folderwindow.h"
-#include "keymap.h"
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
@@ -1342,7 +1340,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"FolderWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"FolderWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	

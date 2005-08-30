@@ -76,11 +76,13 @@ protected:
 #endif
 	virtual HMENU getMenuHandle(void* pCreateParam);
 	virtual UINT getIconId();
+	virtual qs::DynamicMenuCreator* getDynamicMenuCreator(DWORD dwData);
 
 public:
 	virtual void getWindowClass(WNDCLASS* pwc);
 	virtual bool preCreateWindow(CREATESTRUCT* pCreateStruct);
 	virtual qs::Action* getAction(UINT nId);
+	virtual const qs::ActionParam* getActionParam(UINT nId);
 	virtual qs::Accelerator* getAccelerator();
 	virtual LRESULT windowProc(UINT uMsg,
 							   WPARAM wParam,
@@ -99,9 +101,6 @@ protected:
 	LRESULT onEndSession(bool bEnd,
 						 int nOption);
 #endif
-	LRESULT onInitMenuPopup(HMENU hmenu,
-							UINT nIndex,
-							bool bSysMenu);
 #ifndef _WIN32_WCE
 	LRESULT onQueryEndSession(int nOption);
 #endif

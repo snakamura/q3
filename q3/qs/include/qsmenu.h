@@ -16,11 +16,10 @@
 namespace qs {
 
 class MenuManager;
-class PopupMenu;
-	class LoadMenuPopupMenu;
-class PopupMenuManager;
+struct DynamicMenuItem;
 
 struct ActionItem;
+class ActionParamMap;
 
 
 /****************************************************************************
@@ -38,13 +37,14 @@ public:
 	 * @param pwszPath [in] Path to the file where data will be loaded from.
 	 * @param pItem [in] Action items.
 	 * @param nItemCount [in] Count of action items.
-	 * @param popupMenuManager [in] PopupMenuManager which creates popup menus.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	MenuManager(const WCHAR* pwszPath,
 				const ActionItem* pItem,
 				size_t nItemCount,
-				const PopupMenuManager& popupMenuManager);
+				const DynamicMenuItem* pDynamicItem,
+				size_t nDynamicItemCount,
+				ActionParamMap* pActionParamMap);
 	
 	~MenuManager();
 
@@ -85,102 +85,36 @@ private:
 
 /****************************************************************************
  *
- * PopupMenu
+ * DynamicMenuItem
  *
  */
 
-class QSEXPORTCLASS PopupMenu
+struct DynamicMenuItem
 {
-public:
-	virtual ~PopupMenu();
-
-public:
-	/**
-	 * Create popup menu.
-	 *
-	 * @return Created menu. null if error occured.
-	 */
-	virtual HMENU create() const = 0;
-};
-
-
-/****************************************************************************
- *
- * LoadMenuPopupMenu
- *
- */
-
-class QSEXPORTCLASS LoadMenuPopupMenu : public PopupMenu
-{
-public:
-	/**
-	 * Create instance.
-	 *
-	 * @param hInst [in] Instance handle where menu resource exists.
-	 * @param nId [in] ID of menu.
-	 */
-	LoadMenuPopupMenu(HINSTANCE hInst,
-					  UINT nId);
-	
-	virtual ~LoadMenuPopupMenu();
-
-public:
-	virtual HMENU create() const;
-
-private:
-	LoadMenuPopupMenu(const LoadMenuPopupMenu&);
-	LoadMenuPopupMenu& operator=(const LoadMenuPopupMenu&);
-
-private:
-	HINSTANCE hInst_;
+	const WCHAR* pwszName_;
 	UINT nId_;
+	DWORD dwMenuItemData_;
 };
 
 
 /****************************************************************************
  *
- * PopupMenuManager
+ * DynamicMenuCreator
  *
  */
 
-class QSEXPORTCLASS PopupMenuManager
+class QSEXPORTCLASS DynamicMenuCreator
 {
 public:
-	/**
-	 * Create instance.
-	 *
-	 * @exception std::bad_alloc Out of memory.
-	 */
-	PopupMenuManager();
-	
-	~PopupMenuManager();
+	virtual ~DynamicMenuCreator();
 
 public:
-	/**
-	 * Add popup menu.
-	 *
-	 * @param pwszName [in] Action name.
-	 * @param pPopupMenu [in] Popup menu.
-	 * @exception std::bad_alloc Out of memory.
-	 */
-	void addPopupMenu(const WCHAR* pwszName,
-					  const PopupMenu* pPopupMenu);
-
-public:
-	/**
-	 * Create sub menu.
-	 * @param pwszAction [in] Action name.
-	 * @return Created menu. null if action is not found or error occured.
-	 */
-	HMENU createSubMenu(const WCHAR* pwszAction) const;
-
-private:
-	PopupMenuManager(const PopupMenuManager&);
-	PopupMenuManager& operator=(const PopupMenuManager&);
-
-private:
-	struct PopupMenuManagerImpl* pImpl_;
+	virtual UINT createMenu(HMENU hmenu,
+							UINT nIndex) = 0;
+	virtual DWORD getMenuItemData() const = 0;
 };
+
+
 
 }
 

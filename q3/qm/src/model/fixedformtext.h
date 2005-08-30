@@ -46,6 +46,7 @@ public:
 public:
 	const TextList& getTexts();
 	const TextList& getTexts(bool bReload);
+	const FixedFormText* getText(const WCHAR* pwszName);
 	void setTexts(TextList& listText);
 	bool save() const;
 

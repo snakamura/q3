@@ -24,7 +24,6 @@
 #include <tchar.h>
 
 #include "folderlistwindow.h"
-#include "keymap.h"
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
@@ -463,7 +462,7 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"FolderListWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"FolderListWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	

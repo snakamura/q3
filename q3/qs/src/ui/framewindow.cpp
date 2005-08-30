@@ -7,6 +7,7 @@
  */
 
 #include <qsaction.h>
+#include <qsmenu.h>
 #include <qsuiutil.h>
 #include <qswindow.h>
 
@@ -46,10 +47,13 @@ void qs::FrameWindowImpl::updateCommand(CommandUpdate* pcu,
 	
 	if ((ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX) ||
 		nId == IDOK || nId == IDCANCEL) {
-		Action* pAction = pThis_->getAction(nId);
+		const ActionParam* pParam = pThis_->getActionParamInternal(nId);
+		if (pParam)
+			nId = pParam->getBaseId();
+		
+		Action* pAction = pThis_->getActionInternal(nId);
 		if (pAction) {
-			ActionEvent event(nId, 0);
-			
+			ActionEvent event(nId, 0, pParam);
 			pcu->setEnable(pAction->isEnabled(event));
 			pcu->setCheck(pAction->isChecked(event));
 			if (bText) {
@@ -223,6 +227,11 @@ UINT qs::FrameWindow::getMenuId()
 }
 
 UINT qs::FrameWindow::getIconId()
+{
+	return 0;
+}
+
+DynamicMenuCreator* qs::FrameWindow::getDynamicMenuCreator(DWORD dwData)
 {
 	return 0;
 }
@@ -546,6 +555,29 @@ LRESULT qs::FrameWindow::onInitMenuPopup(HMENU hmenu,
 										 UINT nIndex,
 										 bool bSysMenu)
 {
+	if (!bSysMenu) {
+		UINT nIndex = 0;
+		while (true) {
+			MENUITEMINFO mii = {
+				sizeof(mii),
+				MIIM_DATA
+			};
+			if (!::GetMenuItemInfo(hmenu, nIndex, TRUE, &mii))
+				break;
+			
+			if (mii.dwItemData != 0) {
+				DynamicMenuCreator* pMenuCreator = getDynamicMenuCreator(mii.dwItemData);
+				if (pMenuCreator)
+					nIndex = pMenuCreator->createMenu(hmenu, nIndex);
+				else
+					++nIndex;
+			}
+			else {
+				++nIndex;
+			}
+		}
+	}
+	
 	MENUITEMINFO mii = {
 		sizeof(mii),
 		MIIM_ID | MIIM_SUBMENU,

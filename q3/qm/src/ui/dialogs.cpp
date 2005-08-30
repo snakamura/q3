@@ -763,7 +763,7 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 	
 	TemplateManager::NameList listTemplate;
 	StringListFree<TemplateManager::NameList> freeTemplate(listTemplate);
-	pTemplateManager_->getTemplateNames(pAccount_, L"export", &listTemplate);
+	pTemplateManager_->getTemplateNames(pAccount_->getClass(), L"export", &listTemplate);
 	for (TemplateManager::NameList::const_iterator it = listTemplate.begin(); it != listTemplate.end(); ++it) {
 		W2T(*it + 7, ptszTemplate);
 		ComboBox_AddString(getDlgItem(IDC_TEMPLATE), ptszTemplate);

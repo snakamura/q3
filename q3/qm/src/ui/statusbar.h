@@ -11,6 +11,7 @@
 
 #include <qm.h>
 
+#include <qsmenu.h>
 #include <qsmime.h>
 #include <qswindow.h>
 
@@ -20,12 +21,10 @@ namespace qm {
 class StatusBar;
 	class MessageStatusBar;
 
-class EncodingMenu;
 class EncodingModel;
 class Message;
 class MessageHolder;
 class MessageWindow;
-class ViewTemplateMenu;
 
 
 /****************************************************************************
@@ -75,8 +74,7 @@ public:
 	MessageStatusBar(MessageWindow* pMessageWindow,
 					 EncodingModel* pEncodingModel,
 					 int nOffset,
-					 EncodingMenu* pEncodingMenu,
-					 ViewTemplateMenu* pViewTemplateMenu);
+					 qs::MenuManager* pMenuManager);
 	virtual ~MessageStatusBar();
 
 public:
@@ -104,10 +102,7 @@ protected:
 #endif
 
 protected:
-	virtual HMENU getMenu(int nPart);
-
-private:
-	virtual Account* getAccount() = 0;
+	virtual const WCHAR* getMenuName(int nPart);
 
 private:
 	MessageStatusBar(const MessageStatusBar&);
@@ -117,8 +112,7 @@ private:
 	MessageWindow* pMessageWindow_;
 	EncodingModel* pEncodingModel_;
 	int nOffset_;
-	EncodingMenu* pEncodingMenu_;
-	ViewTemplateMenu* pViewTemplateMenu_;
+	qs::MenuManager* pMenuManager_;
 };
 
 }

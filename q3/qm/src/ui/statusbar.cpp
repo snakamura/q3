@@ -10,7 +10,6 @@
 #include <qmmessage.h>
 #include <qmmessagewindow.h>
 
-#include "menus.h"
 #include "resource.h"
 #include "statusbar.h"
 #include "../uimodel/encodingmodel.h"
@@ -85,14 +84,16 @@ bool qm::StatusBar::getRect(int nPart,
 qm::MessageStatusBar::MessageStatusBar(MessageWindow* pMessageWindow,
 									   EncodingModel* pEncodingModel,
 									   int nOffset,
-									   EncodingMenu* pEncodingMenu,
-									   ViewTemplateMenu* pViewTemplateMenu) :
+									   MenuManager* pMenuManager) :
 	pMessageWindow_(pMessageWindow),
 	pEncodingModel_(pEncodingModel),
 	nOffset_(nOffset),
-	pEncodingMenu_(pEncodingMenu),
-	pViewTemplateMenu_(pViewTemplateMenu)
+	pMenuManager_(pMenuManager)
 {
+	assert(pMessageWindow);
+	assert(pEncodingModel);
+	assert(pMenuManager);
+	
 #ifdef _WIN32_WCE_PSPC
 	nOffset_ -= 2;
 #endif
@@ -185,14 +186,13 @@ LRESULT qm::MessageStatusBar::onContextMenu(HWND hwnd,
 	screenToClient(&ptClient);
 	int nPart = getPart(ptClient);
 	if (nPart != -1) {
-		AutoMenuHandle hmenu(getMenu(nPart));
-		if (hmenu.get()) {
-			HMENU hmenuSub = ::GetSubMenu(hmenu.get(), 0);
+		HMENU hmenu = pMenuManager_->getMenu(getMenuName(nPart), false, false);
+		if (hmenu) {
 			UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 			nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-			::TrackPopupMenu(hmenuSub, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+			::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
 		}
 	}
 #endif
@@ -239,17 +239,12 @@ void qm::MessageStatusBar::setIconId(int nPart,
 }
 #endif
 
-HMENU qm::MessageStatusBar::getMenu(int nPart)
+const WCHAR* qm::MessageStatusBar::getMenuName(int nPart)
 {
-	HMENU hmenu = 0;
-	if (nOffset_ + 1 <= nPart && nPart <= nOffset_ + 2) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		UINT nId = nPart == nOffset_ + 1 ? IDR_VIEWENCODING : IDR_VIEWTEMPLATE;
-		hmenu = ::LoadMenu(hInst, MAKEINTRESOURCE(nId));
-		if (nPart == nOffset_ + 1)
-			pEncodingMenu_->createMenu(::GetSubMenu(hmenu, 0));
-		else if (nPart == nOffset_ + 2)
-			pViewTemplateMenu_->createMenu(::GetSubMenu(hmenu, 0), getAccount());
-	}
-	return hmenu;
+	if (nPart == nOffset_ + 1)
+		return L"encoding";
+	else if (nPart == nOffset_ + 2)
+		return L"template";
+	else
+		return 0;
 }

@@ -76,6 +76,8 @@ class Cursor;
 class WaitCursor;
 
 class Action;
+class ActionParam;
+class DynamicMenuCreator;
 class InitThread;
 class Profile;
 
@@ -446,6 +448,10 @@ public:
 								  LPARAM lParam);
 
 public:
+	Action* getActionInternal(UINT nId) const;
+	const ActionParam* getActionParamInternal(UINT nId) const;
+
+public:
 	static bool translateAccelerator(const MSG& msg);
 
 private:
@@ -732,6 +738,7 @@ public:
 	virtual void postSubclassWindow() = 0;
 	
 	virtual Action* getAction(UINT nId) = 0;
+	virtual const ActionParam* getActionParam(UINT nId) = 0;
 	virtual Accelerator* getAccelerator() = 0;
 	virtual bool preTranslateAccelerator(const MSG& msg) = 0;
 	virtual bool isFrame() const = 0;
@@ -1309,6 +1316,7 @@ public:
 	virtual bool preSubclassWindow();
 	virtual void postSubclassWindow();
 	virtual Action* getAction(UINT nId);
+	virtual const ActionParam* getActionParam(UINT nId);
 	virtual Accelerator* getAccelerator();
 	virtual bool preTranslateAccelerator(const MSG& msg);
 	virtual bool isFrame() const;
@@ -1405,6 +1413,7 @@ protected:
 	virtual HMENU getMenuHandle(void* pCreateParam);
 	virtual UINT getMenuId();
 	virtual UINT getIconId();
+	virtual DynamicMenuCreator* getDynamicMenuCreator(DWORD dwData);
 
 public:
 	virtual bool isFrame() const;

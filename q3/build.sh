@@ -103,7 +103,7 @@ run|run.unicode|run.debug|run.debug.unicode|debug|debug.unicode|purify|purify.un
 	;;
 
 countline)
-	wc `/bin/find . ! -regex "\./lib/.*" -a -regex ".*/\(include\|src\)/.*\.\(h\|cpp\|inl\|idl\|rc\)$"` | sort
+	wc `/bin/find . ! -regex "\./lib/.*" -a -regex ".*/\(include\|src\)/.*\.\(h\|cpp\|inl\|idl\|rc\|xml\)$"` | sort
 	;;
 
 countclass)

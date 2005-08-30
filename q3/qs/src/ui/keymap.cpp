@@ -9,6 +9,7 @@
 #pragma warning(disable:4786)
 
 #include <qsaccelerator.h>
+#include <qsaction.h>
 #include <qsinit.h>
 #include <qskeymap.h>
 #include <qslog.h>
@@ -33,26 +34,24 @@ using namespace qs;
 
 struct qs::KeyMapImpl
 {
-	typedef std::vector<ACCEL> AccelList;
-	
-	bool load(InputStream* pInputStream);
+	bool load(InputStream* pInputStream,
+			  const ActionItem* pItem,
+			  size_t nItemCount,
+			  ActionParamMap* pActionParamMap);
 	void clear();
-	void loadAccelerator(const WCHAR* pwszName,
-						 const KeyNameToId* pKeyNameToId,
-						 size_t nMapSize,
-						 AccelList* pListAccel) const;
-	void getAccel(const WCHAR* pwszAccel,
-				  unsigned int nCommand,
-				  AccelList* pListAccel) const;
 	
-	typedef std::vector<std::pair<std::pair<WSTRING, WSTRING>, ACCEL> > AccelMap;
-	AccelMap mapAccel_;
+	typedef std::vector<KeyMapItem*> ItemList;
+	
+	ItemList listItem_;
 };
 
-bool qs::KeyMapImpl::load(InputStream* pInputStream)
+bool qs::KeyMapImpl::load(InputStream* pInputStream,
+						  const ActionItem* pItem,
+						  size_t nItemCount,
+						  ActionParamMap* pActionParamMap)
 {
 	XMLReader reader;
-	KeyMapContentHandler handler(&mapAccel_);
+	KeyMapContentHandler handler(&listItem_, pItem, nItemCount, pActionParamMap);
 	reader.setContentHandler(&handler);
 	InputSource source(pInputStream);
 	if (!reader.parse(&source)) {
@@ -64,100 +63,8 @@ bool qs::KeyMapImpl::load(InputStream* pInputStream)
 
 void qs::KeyMapImpl::clear()
 {
-	std::for_each(mapAccel_.begin(), mapAccel_.end(),
-		unary_compose_f_gx(
-			unary_compose_fx_gx(
-				string_free<WSTRING>(),
-				string_free<WSTRING>()),
-			std::select1st<AccelMap::value_type>()));
-	mapAccel_.clear();
-}
-
-void qs::KeyMapImpl::loadAccelerator(const WCHAR* pwszName,
-									 const KeyNameToId* pKeyNameToId,
-									 size_t nMapSize,
-									 AccelList* pListAccel) const
-{
-	assert(pwszName);
-	assert(pKeyNameToId);
-	assert(pListAccel);
-	
-	for (size_t n = 0; n < nMapSize; ++n, ++pKeyNameToId) {
-		bool bAdd = false;
-		ACCEL accel = { 0, 0, 0 };
-		AccelMap::value_type value(std::make_pair(
-			std::make_pair(const_cast<WSTRING>(pwszName),
-				const_cast<WSTRING>(pKeyNameToId->pwszName_)),
-			accel));
-		AccelMap::const_iterator it = std::lower_bound(
-			mapAccel_.begin(), mapAccel_.end(), value,
-			binary_compose_f_gx_hy(
-				pair_less(string_less<WCHAR>(), string_less<WCHAR>()),
-				std::select1st<AccelMap::value_type>(),
-				std::select1st<AccelMap::value_type>()));
-		while (it != mapAccel_.end() &&
-			wcscmp((*it).first.first, value.first.first) == 0 &&
-			wcscmp((*it).first.second, value.first.second) == 0) {
-			ACCEL accel = (*it).second;
-			accel.cmd = pKeyNameToId->nId_;
-			pListAccel->push_back(accel);
-			bAdd = true;
-			++it;
-		}
-		if (!bAdd && pKeyNameToId->pwszDefault_)
-			getAccel(pKeyNameToId->pwszDefault_,
-				pKeyNameToId->nId_, pListAccel);
-	}
-}
-
-void qs::KeyMapImpl::getAccel(const WCHAR* pwszAccel,
-							  unsigned int nCommand,
-							  AccelList* pListAccel) const
-{
-	assert(pwszAccel);
-	assert(pListAccel);
-	
-	bool bEscape = false;
-	ACCEL accel = { FNOINVERT | FVIRTKEY, 0, nCommand };
-	const WCHAR* p = pwszAccel;
-	do {
-		WCHAR c = *p;
-		if (bEscape) {
-			accel.key = c;
-			bEscape = false;
-		}
-		else {
-			if (c == L',' || c == L'\0') {
-				if (accel.key)
-					pListAccel->push_back(accel);
-				accel.fVirt = FNOINVERT | FVIRTKEY;
-				accel.key = 0;
-			}
-			else if (c == L'\\') {
-				bEscape = true;
-			}
-			else if (c == L'^') {
-				accel.fVirt |= FCONTROL;
-			}
-			else if (c == L'+') {
-				accel.fVirt |= FSHIFT;
-			}
-			else if (c == L'@') {
-				accel.fVirt |= FALT;
-			}
-			else if (c == L'_') {
-				accel.fVirt &= ~FVIRTKEY;
-			}
-			else if (c == L'%') {
-				WCHAR* pEnd = 0;
-				accel.key = static_cast<WORD>(wcstol(p + 1, &pEnd, 16));
-				p = pEnd - 1;
-			}
-			else {
-				accel.key = c;
-			}
-		}
-	} while (*p++ != L'\0');
+	std::for_each(listItem_.begin(), listItem_.end(), deleter<KeyMapItem>());
+	listItem_.clear();
 }
 
 
@@ -167,7 +74,10 @@ void qs::KeyMapImpl::getAccel(const WCHAR* pwszAccel,
  *
  */
 
-qs::KeyMap::KeyMap(const WCHAR* pwszPath) :
+qs::KeyMap::KeyMap(const WCHAR* pwszPath,
+				   const ActionItem* pItem,
+				   size_t nItemCount,
+				   ActionParamMap* pActionParamMap) :
 	pImpl_(0)
 {
 	assert(pwszPath);
@@ -179,20 +89,23 @@ qs::KeyMap::KeyMap(const WCHAR* pwszPath) :
 		return;
 	BufferedInputStream stream(&fileStream, false);
 	
-	if (!pImpl_->load(&stream)) {
+	if (!pImpl_->load(&stream, pItem, nItemCount, pActionParamMap)) {
 		Log log(InitThread::getInitThread().getLogger(), L"qs::KeyMap");
 		log.error(L"Could not load keymap.");
 	}
 }
 
-qs::KeyMap::KeyMap(InputStream* pInputStream) :
+qs::KeyMap::KeyMap(InputStream* pInputStream,
+				   const ActionItem* pItem,
+				   size_t nItemCount,
+				   ActionParamMap* pActionParamMap) :
 	pImpl_(0)
 {
 	assert(pInputStream);
 	
 	pImpl_ = new KeyMapImpl();
 	
-	if (!pImpl_->load(pInputStream)) {
+	if (!pImpl_->load(pInputStream, pItem, nItemCount, pActionParamMap)) {
 		Log log(InitThread::getInitThread().getLogger(), L"qs::KeyMap");
 		log.error(L"Could not load keymap.");
 	}
@@ -207,17 +120,57 @@ qs::KeyMap::~KeyMap()
 }
 
 std::auto_ptr<Accelerator> qs::KeyMap::createAccelerator(AcceleratorFactory* pFactory,
-														 const WCHAR* pwszName,
-														 const KeyNameToId* pKeyNameToId,
-														 size_t nMapSize) const
+														 const WCHAR* pwszName) const
 {
 	assert(pFactory);
 	assert(pwszName);
-	assert(pKeyNameToId);
 	
-	KeyMapImpl::AccelList listAccel;
-	pImpl_->loadAccelerator(pwszName, pKeyNameToId, nMapSize, &listAccel);
-	return pFactory->createAccelerator(listAccel.begin(), listAccel.size());
+	KeyMapImpl::ItemList::const_iterator it = std::find_if(
+		pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::mem_fun(&KeyMapItem::getName),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	
+	KeyMapItem::AccelList listAccel;
+	const KeyMapItem::AccelList& l = it != pImpl_->listItem_.end() ?
+		(*it)->getAccelList() : listAccel;
+	return pFactory->createAccelerator(&l[0], l.size());
+}
+
+
+/****************************************************************************
+ *
+ * KeyMapItem
+ *
+ */
+
+qs::KeyMapItem::KeyMapItem(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	
+	wstrName_ = allocWString(pwszName);
+}
+
+qs::KeyMapItem::~KeyMapItem()
+{
+}
+
+const WCHAR* qs::KeyMapItem::getName() const
+{
+	return wstrName_.get();
+}
+
+const KeyMapItem::AccelList& qs::KeyMapItem::getAccelList() const
+{
+	return listAccel_;
+}
+
+void qs::KeyMapItem::add(ACCEL accel)
+{
+	listAccel_.push_back(accel);
 }
 
 
@@ -227,9 +180,17 @@ std::auto_ptr<Accelerator> qs::KeyMap::createAccelerator(AcceleratorFactory* pFa
  *
  */
 
-qs::KeyMapContentHandler::KeyMapContentHandler(AccelMap* pMapAccel) :
-	pMapAccel_(pMapAccel),
-	state_(STATE_ROOT)
+qs::KeyMapContentHandler::KeyMapContentHandler(ItemList* pItemList,
+											   const ActionItem* pItem,
+											   size_t nItemCount,
+											   ActionParamMap* pActionParamMap) :
+	pItemList_(pItemList),
+	pActionItem_(pItem),
+	nActionItemCount_(nItemCount),
+	pActionParamMap_(pActionParamMap),
+	state_(STATE_ROOT),
+	pKeyMapItem_(0),
+	nActionId_(-1)
 {
 }
 
@@ -263,8 +224,9 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszName)
 			return false;
 		
-		assert(!wstrCurrentName_.get());
-		wstrCurrentName_ = allocWString(pwszName);
+		std::auto_ptr<KeyMapItem> pKeyMapItem(new KeyMapItem(pwszName));
+		pItemList_->push_back(pKeyMapItem.get());
+		pKeyMapItem_ = pKeyMapItem.release();
 		
 		state_ = STATE_KEYMAP;
 	}
@@ -273,17 +235,29 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		
 		const WCHAR* pwszAction = 0;
+		const WCHAR* pwszParam = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			if (wcscmp(attributes.getLocalName(n), L"name") == 0)
 				pwszAction = attributes.getValue(n);
+			else if (wcscmp(attributes.getLocalName(n), L"param") == 0)
+				pwszParam = attributes.getValue(n);
 			else
 				return false;
 		}
 		if (!pwszAction)
 			return false;
 		
-		assert(!wstrCurrentAction_.get());
-		wstrCurrentAction_ = allocWString(pwszAction);
+		const ActionItem* pItem = getActionItem(pwszAction);
+		if (!pItem)
+			return false;
+		unsigned int nId = pItem->nId_;
+		if (pwszParam) {
+			std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam));
+			nId = pActionParamMap_->addActionParam(pItem->nMaxParamCount_, pParam);
+			if (nId == -1)
+				return false;
+		}
+		nActionId_ = nId;
 		
 		state_ = STATE_ACTION;
 	}
@@ -291,7 +265,11 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (state_ != STATE_ACTION)
 			return false;
 		
-		ACCEL accel = { FVIRTKEY | FNOINVERT, 0, 0 };
+		ACCEL accel = {
+			FVIRTKEY | FNOINVERT,
+			0,
+			static_cast<WORD>(nActionId_)
+		};
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			const WCHAR* pwszValue = attributes.getValue(n);
@@ -333,22 +311,8 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (accel.key == 0)
 			return false;
 		
-		assert(wstrCurrentName_.get());
-		wstring_ptr wstrName(allocWString(wstrCurrentName_.get()));
-		assert(wstrCurrentAction_.get());
-		wstring_ptr wstrAction(allocWString(wstrCurrentAction_.get()));
-		
-		AccelMap::value_type value(std::make_pair(
-			std::make_pair(wstrName.get(), wstrAction.get()), accel));
-		AccelMap::iterator it = std::lower_bound(
-			pMapAccel_->begin(), pMapAccel_->end(), value,
-			binary_compose_f_gx_hy(
-				pair_less(string_less<WCHAR>(), string_less<WCHAR>()),
-				std::select1st<AccelMap::value_type>(),
-				std::select1st<AccelMap::value_type>()));
-		pMapAccel_->insert(it, value);
-		wstrName.release();
-		wstrAction.release();
+		assert(pKeyMapItem_);
+		pKeyMapItem_->add(accel);
 		
 		state_ = STATE_KEY;
 	}
@@ -369,14 +333,12 @@ bool qs::KeyMapContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	}
 	else if (wcscmp(pwszLocalName, L"keymap") == 0) {
 		assert(state_ == STATE_KEYMAP);
-		assert(wstrCurrentName_.get());
-		wstrCurrentName_.reset(0);
+		pKeyMapItem_ = 0;
 		state_ = STATE_KEYMAPS;
 	}
 	else if (wcscmp(pwszLocalName, L"action") == 0) {
 		assert(state_ == STATE_ACTION);
-		assert(wstrCurrentAction_.get());
-		wstrCurrentAction_.reset(0);
+		nActionId_ = -1;
 		state_ = STATE_KEYMAP;
 	}
 	else if (wcscmp(pwszLocalName, L"key") == 0) {
@@ -400,4 +362,24 @@ bool qs::KeyMapContentHandler::characters(const WCHAR* pwsz,
 			return false;
 	}
 	return true;
+}
+
+const ActionItem* qs::KeyMapContentHandler::getActionItem(const WCHAR* pwszAction) const
+{
+	ActionItem item = {
+		pwszAction,
+		0
+	};
+	
+	const ActionItem* pItem = std::lower_bound(
+		pActionItem_, pActionItem_ + nActionItemCount_, item,
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			mem_data_ref(&ActionItem::pwszAction_),
+			mem_data_ref(&ActionItem::pwszAction_)));
+	if (pItem == pActionItem_ + nActionItemCount_ ||
+		wcscmp(pItem->pwszAction_, pwszAction) != 0 ||
+		(pItem->nFlags_ != 0 && !(pItem->nFlags_ & ActionItem::FLAG_ACCELERATOR)))
+		return 0;
+	return pItem;
 }

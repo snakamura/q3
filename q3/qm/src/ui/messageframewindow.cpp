@@ -25,8 +25,7 @@
 #endif
 
 #include "actionid.h"
-#include "keymap.h"
-#include "menus.h"
+#include "menucreator.h"
 #include "messageframewindow.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
@@ -64,6 +63,18 @@ public:
 		ID_COMMANDBARMENU		= 1004,
 		ID_COMMANDBARBUTTON		= 1005
 	};
+	
+	enum Menu {
+		MENU_MOVE,
+		MENU_ATTACHMENT,
+		MENU_VIEWTEMPLATE,
+		MENU_CREATETEMPLATE,
+		MENU_CREATETEMPLATEEXTERNAL,
+		MENU_ENCODING,
+		MENU_SCRIPT,
+		
+		MAX_MENU
+	};
 
 public:
 	void initActions();
@@ -90,6 +101,9 @@ public:
 	virtual bool canSelect();
 
 public:
+	typedef std::vector<DynamicMenuCreator*> MenuCreatorList;
+
+public:
 	MessageFrameWindow* pThis_;
 	
 	bool bShowToolbar_;
@@ -103,7 +117,7 @@ public:
 	ViewModelManager* pViewModelManager_;
 	std::auto_ptr<MessageMessageModel> pMessageModel_;
 	MessageWindow* pMessageWindow_;
-	MessageFrameWindowStatusBar* pStatusBar_;
+	MessageStatusBar* pStatusBar_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
@@ -113,13 +127,7 @@ public:
 	std::auto_ptr<DefaultEncodingModel> pEncodingModel_;
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
-	std::auto_ptr<MoveMenu> pMoveMenu_;
-	std::auto_ptr<AttachmentMenu> pAttachmentMenu_;
-	std::auto_ptr<ViewTemplateMenu> pViewTemplateMenu_;
-	std::auto_ptr<CreateTemplateMenu> pCreateTemplateMenu_;
-	std::auto_ptr<CreateTemplateMenu> pCreateTemplateExternalMenu_;
-	std::auto_ptr<EncodingMenu> pEncodingMenu_;
-	std::auto_ptr<ScriptMenu> pScriptMenu_;
+	MenuCreatorList listMenuCreator_;
 	ToolbarCookie* pToolbarCookie_;
 	wstring_ptr wstrTitle_;
 	bool bCreated_;
@@ -234,10 +242,8 @@ void qm::MessageFrameWindowImpl::initActions()
 		IDOK,
 		pThis_->getHandle());
 #endif
-	ADD_ACTION_RANGE11(MessageApplyTemplateAction,
-		IDM_MESSAGE_APPLYTEMPLATE,
-		IDM_MESSAGE_APPLYTEMPLATE + TemplateMenu::MAX_TEMPLATE,
-		pCreateTemplateMenu_.get(),
+	ADD_ACTION10(MessageCreateAction,
+		IDM_MESSAGE_CREATE,
 		pDocument_,
 		this,
 		this,
@@ -248,10 +254,8 @@ void qm::MessageFrameWindowImpl::initActions()
 		pThis_->getHandle(),
 		pProfile_,
 		false);
-	ADD_ACTION_RANGE11(MessageApplyTemplateAction,
-		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL,
-		IDM_MESSAGE_APPLYTEMPLATEEXTERNAL + TemplateMenu::MAX_TEMPLATE,
-		pCreateTemplateExternalMenu_.get(),
+	ADD_ACTION10(MessageCreateAction,
+		IDM_MESSAGE_CREATEEXTERNAL,
 		pDocument_,
 		this,
 		this,
@@ -262,46 +266,6 @@ void qm::MessageFrameWindowImpl::initActions()
 		pThis_->getHandle(),
 		pProfile_,
 		true);
-	
-	struct {
-		UINT nId_;
-		UINT nIdExternal_;
-		const WCHAR* pwszName_;
-	} creates[] = {
-		{ IDM_MESSAGE_EDIT,		IDM_MESSAGE_EDITEXTERNAL,		L"edit"			},
-		{ IDM_MESSAGE_FORWARD,	IDM_MESSAGE_FORWARDEXTERNAL,	L"forward"		},
-		{ IDM_MESSAGE_NEW,		IDM_MESSAGE_NEWEXTERNAL,		L"new"			},
-		{ IDM_MESSAGE_REPLY,	IDM_MESSAGE_REPLYEXTERNAL,		L"reply"		},
-		{ IDM_MESSAGE_REPLYALL,	IDM_MESSAGE_REPLYALLEXTERNAL,	L"reply_all"	},
-	};
-	for (int n = 0; n < countof(creates); ++n) {
-		ADD_ACTION11(MessageCreateAction,
-			creates[n].nId_,
-			pDocument_,
-			this,
-			this,
-			pEncodingModel_.get(),
-			pSecurityModel_.get(),
-			creates[n].pwszName_,
-			pEditFrameWindowManager_,
-			pExternalEditorManager_,
-			pThis_->getHandle(),
-			pProfile_,
-			false);
-		ADD_ACTION11(MessageCreateAction,
-			creates[n].nIdExternal_,
-			pDocument_,
-			this,
-			this,
-			pEncodingModel_.get(),
-			pSecurityModel_.get(),
-			creates[n].pwszName_,
-			pEditFrameWindowManager_,
-			pExternalEditorManager_,
-			pThis_->getHandle(),
-			pProfile_,
-			true);
-	}
 	ADD_ACTION4(MessageDeleteAttachmentAction,
 		IDM_MESSAGE_DELETEATTACHMENT,
 		this,
@@ -314,12 +278,11 @@ void qm::MessageFrameWindowImpl::initActions()
 		this,
 		pSecurityModel_.get(),
 		pThis_->getHandle());
-	ADD_ACTION_RANGE5(MessageOpenAttachmentAction,
+	ADD_ACTION5(MessageOpenAttachmentAction,
 		IDM_MESSAGE_ATTACHMENT,
-		IDM_MESSAGE_ATTACHMENT + AttachmentMenu::MAX_ATTACHMENT,
+		pDocument_,
 		pSecurityModel_.get(),
 		pProfile_,
-		pAttachmentMenu_.get(),
 		pTempFileCleaner_,
 		pThis_->getHandle());
 	
@@ -357,18 +320,8 @@ void qm::MessageFrameWindowImpl::initActions()
 			pThis_->getHandle());
 	}
 	
-	ADD_ACTION_RANGE7(MessageMoveAction,
+	ADD_ACTION8(MessageMoveAction,
 		IDM_MESSAGE_MOVE,
-		IDM_MESSAGE_MOVE + MoveMenu::MAX_FOLDER,
-		this,
-		pMessageModel_.get(),
-		pMessageModel_.get(),
-		pMoveMenu_.get(),
-		false,
-		pDocument_->getUndoManager(),
-		pThis_->getHandle());
-	ADD_ACTION8(MessageMoveOtherAction,
-		IDM_MESSAGE_MOVEOTHER,
 		pDocument_,
 		this,
 		pMessageModel_.get(),
@@ -387,21 +340,15 @@ void qm::MessageFrameWindowImpl::initActions()
 		this,
 		pDocument_->getUndoManager(),
 		pThis_->getHandle());
-	ADD_ACTION_RANGE4(ToolScriptAction,
+	ADD_ACTION4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,
-		IDM_TOOL_SCRIPT + ScriptMenu::MAX_SCRIPT,
-		pScriptMenu_.get(),
+		pDocument_->getScriptManager(),
 		pDocument_,
 		pProfile_,
 		pThis_);
 	ADD_ACTION1(ViewEncodingAction,
-		IDM_VIEW_ENCODINGAUTODETECT,
-		pEncodingModel_.get());
-	ADD_ACTION_RANGE2(ViewEncodingAction,
 		IDM_VIEW_ENCODING,
-		IDM_VIEW_ENCODING + EncodingMenu::MAX_ENCODING,
-		pEncodingModel_.get(),
-		pEncodingMenu_.get());
+		pEncodingModel_.get());
 	ADD_ACTION3(ViewSecurityAction,
 		IDM_VIEW_SMIMEMODE,
 		pSecurityModel_.get(),
@@ -475,13 +422,8 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(ViewShowToolbarAction<MessageFrameWindow>,
 		IDM_VIEW_SHOWTOOLBAR,
 		pThis_);
-	ADD_ACTION_RANGE2(ViewTemplateAction,
-		IDM_VIEW_TEMPLATE,
-		IDM_VIEW_TEMPLATE + TemplateMenu::MAX_TEMPLATE,
-		pMessageWindow_,
-		pViewTemplateMenu_.get());
 	ADD_ACTION1(ViewTemplateAction,
-		IDM_VIEW_TEMPLATENONE,
+		IDM_VIEW_TEMPLATE,
 		pMessageWindow_);
 }
 
@@ -820,6 +762,19 @@ UINT qm::MessageFrameWindow::getIconId()
 	return IDI_MAINFRAME;
 }
 
+DynamicMenuCreator* qm::MessageFrameWindow::getDynamicMenuCreator(DWORD dwData)
+{
+	MessageFrameWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
+		pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<DWORD>(),
+				std::mem_fun(&DynamicMenuCreator::getMenuItemData),
+				std::identity<DWORD>()),
+			dwData));
+	return it != pImpl_->listMenuCreator_.end() ? *it : 0;
+}
+
 void qm::MessageFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
@@ -851,6 +806,11 @@ bool qm::MessageFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 Action* qm::MessageFrameWindow::getAction(UINT nId)
 {
 	return pImpl_->pActionMap_->getAction(nId);
+}
+
+const ActionParam* qm::MessageFrameWindow::getActionParam(UINT nId)
+{
+	return pImpl_->pUIManager_->getActionParamMap()->getActionParam(nId);
 }
 
 Accelerator* qm::MessageFrameWindow::getAccelerator()
@@ -911,20 +871,9 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
 		pImpl_->pProfile_->getInt(L"MessageWindow", L"SecurityMode", 0)));
 	
-	pImpl_->pMoveMenu_.reset(new MoveMenu());
-	pImpl_->pAttachmentMenu_.reset(new AttachmentMenu(pImpl_->pSecurityModel_.get()));
-	pImpl_->pViewTemplateMenu_.reset(new ViewTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager()));
-	pImpl_->pCreateTemplateMenu_.reset(new CreateTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager(), false));
-	pImpl_->pCreateTemplateExternalMenu_.reset(new CreateTemplateMenu(
-		pImpl_->pDocument_->getTemplateManager(), true));
-	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_, IDM_VIEW_ENCODING));
-	pImpl_->pScriptMenu_.reset(new ScriptMenu(pImpl_->pDocument_->getScriptManager()));
-	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"MessageFrameWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"MessageFrameWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
@@ -946,14 +895,34 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pMessageWindow_ = pMessageWindow.release();
 	
+	pImpl_->listMenuCreator_.push_back(
+		new MoveMenuCreator(pImpl_, pImpl_, pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new AttachmentMenuCreator(pImpl_, pImpl_->pSecurityModel_.get(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new ViewTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
+			pImpl_, pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new CreateTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
+			pImpl_, pImpl_->pUIManager_->getActionParamMap(), false));
+	pImpl_->listMenuCreator_.push_back(
+		new CreateTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
+			pImpl_, pImpl_->pUIManager_->getActionParamMap(), true));
+	pImpl_->listMenuCreator_.push_back(
+		new EncodingMenuCreator(pImpl_->pProfile_, true,
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new ScriptMenuCreator(pImpl_->pDocument_->getScriptManager(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	
 	DWORD dwStatusBarStyle = dwStyle;
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
 #endif
-	std::auto_ptr<MessageFrameWindowStatusBar> pStatusBar(new MessageFrameWindowStatusBar(
-		pImpl_->pMessageModel_.get(), pImpl_->pMessageWindow_,
-		pImpl_->pEncodingModel_.get(), 0, pImpl_->pEncodingMenu_.get(),
-		pImpl_->pViewTemplateMenu_.get()));
+	std::auto_ptr<MessageStatusBar> pStatusBar(new MessageStatusBar(
+		pImpl_->pMessageWindow_, pImpl_->pEncodingModel_.get(), 0,
+		pImpl_->pUIManager_->getMenuManager()));
 	if (!pStatusBar->create(L"QmStatusBarWindow", 0, dwStatusBarStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(),
 		0, STATUSCLASSNAMEW, MessageFrameWindowImpl::ID_STATUSBAR, 0))
@@ -980,56 +949,10 @@ LRESULT qm::MessageFrameWindow::onDestroy()
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
-	return FrameWindow::onDestroy();
-}
-
-LRESULT qm::MessageFrameWindow::onInitMenuPopup(HMENU hmenu,
-												UINT nIndex,
-												bool bSysMenu)
-{
-	if (!bSysMenu) {
-		UINT nIdFirst = 0;
-		UINT nIdLast = 0;
-		MENUITEMINFO mii = { sizeof(mii), MIIM_ID };
-		for (UINT n = 0; ; ++n) {
-			if (!::GetMenuItemInfo(hmenu, n, TRUE, &mii))
-				break;
-			if (nIdFirst == 0)
-				nIdFirst = mii.wID;
-			nIdLast = mii.wID;
-		}
-		
-		MessageModel* pModel = getMessageModel();
-		Account* pAccount = pModel->getCurrentAccount();
-		assert(pAccount);
-		if (nIdLast == IDM_MESSAGE_MOVEOTHER) {
-			pImpl_->pMoveMenu_->createMenu(hmenu, pAccount,
-				::GetKeyState(VK_SHIFT) < 0, *pImpl_->pActionMap_);
-		}
-		else if (nIdFirst == IDM_MESSAGE_DETACH) {
-			pImpl_->pAttachmentMenu_->createMenu(hmenu, pImpl_->getFocusedMessage());
-		}
-		else if (nIdFirst == IDM_VIEW_TEMPLATENONE) {
-			pImpl_->pViewTemplateMenu_->createMenu(hmenu, pAccount);
-		}
-		else if (nIdFirst == IDM_MESSAGE_APPLYTEMPLATE ||
-			nIdFirst == IDM_MESSAGE_APPLYTEMPLATENONE) {
-			pImpl_->pCreateTemplateMenu_->createMenu(hmenu, pAccount);
-		}
-		else if (nIdFirst == IDM_MESSAGE_APPLYTEMPLATEEXTERNAL ||
-			nIdFirst == IDM_MESSAGE_APPLYTEMPLATENONEEXTERNAL) {
-			pImpl_->pCreateTemplateExternalMenu_->createMenu(hmenu, pAccount);
-		}
-		else if (nIdFirst == IDM_VIEW_ENCODINGAUTODETECT) {
-			pImpl_->pEncodingMenu_->createMenu(hmenu);
-		}
-		else if (nIdFirst == IDM_TOOL_SCRIPTNONE ||
-			nIdFirst == IDM_TOOL_SCRIPT) {
-			pImpl_->pScriptMenu_->createMenu(hmenu);
-		}
-	}
+	std::for_each(pImpl_->listMenuCreator_.begin(),
+		pImpl_->listMenuCreator_.end(), qs::deleter<DynamicMenuCreator>());
 	
-	return FrameWindow::onInitMenuPopup(hmenu, nIndex, bSysMenu);
+	return FrameWindow::onDestroy();
 }
 
 LRESULT qm::MessageFrameWindow::onSize(UINT nFlags,
@@ -1225,31 +1148,4 @@ MessageFrameWindow* qm::MessageFrameWindowManager::create()
 	MessageFrameWindow* p = pFrame.release();
 	p->initialShow();
 	return p;
-}
-
-
-/****************************************************************************
- *
- * MessageFrameWindowStatusBar
- *
- */
-
-qm::MessageFrameWindowStatusBar::MessageFrameWindowStatusBar(MessageModel* pMessageModel,
-															 MessageWindow* pMessageWindow,
-															 EncodingModel* pEncodingModel,
-															 int nOffset,
-															 EncodingMenu* pEncodingMenu,
-															 ViewTemplateMenu* pViewTemplateMenu) :
-	MessageStatusBar(pMessageWindow, pEncodingModel, nOffset, pEncodingMenu, pViewTemplateMenu),
-	pMessageModel_(pMessageModel)
-{
-}
-
-qm::MessageFrameWindowStatusBar::~MessageFrameWindowStatusBar()
-{
-}
-
-Account* qm::MessageFrameWindowStatusBar::getAccount()
-{
-	return pMessageModel_->getCurrentAccount();
 }

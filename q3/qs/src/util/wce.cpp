@@ -100,4 +100,16 @@ extern "C" QSEXPORTPROC int isdigit(int c)
 
 #endif // _WIN32_WCE < 300
 
+extern "C" QSEXPORTPROC int GetMenuItemCount(HMENU hmenu);
+{
+	int n = 0;
+	while (true) {
+		MENUITEMINFO mii = { sizeof(mii) };
+		if (!::GetMenuItemInfo(hmenu, n, TRUE, &mii))
+			break;
+		++n;
+	}
+	return n;
+}
+
 #endif // _WIN32_WCE

@@ -40,7 +40,7 @@ public:
 	const Template* getTemplate(Account* pAccount,
 								Folder* pFolder,
 								const WCHAR* pwszName) const;
-	void getTemplateNames(Account* pAccount,
+	void getTemplateNames(const WCHAR* pwszClass,
 						  const WCHAR* pwszPrefix,
 						  NameList* pList) const;
 

@@ -45,7 +45,8 @@ public:
 				   HBITMAP hBitmap,
 				   const ActionItem* pItem,
 				   size_t nItemCount,
-				   const MenuManager* pMenuManager);
+				   const MenuManager* pMenuManager,
+				   ActionParamMap* pActionParamMap);
 	
 	~ToolbarManager();
 

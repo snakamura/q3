@@ -75,6 +75,8 @@ extern "C" QSEXPORTPROC int isdigit(int c);
 #define GWLP_WNDPROC   GWL_WNDPROC
 #define DWLP_MSGRESULT DWL_MSGRESULT
 
+extern "C" QSEXPORTPROC int GetMenuItemCount(HMENU hmenu);
+
 #endif // _WIN32_WCE
 
 #endif // __QSWCE_H__

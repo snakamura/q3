@@ -17,6 +17,38 @@ namespace qs {
 
 /****************************************************************************
  *
+ * KeyMapItem
+ *
+ */
+
+class KeyMapItem
+{
+public:
+	typedef std::vector<ACCEL> AccelList;
+
+public:
+	KeyMapItem(const WCHAR* pwszName);
+	~KeyMapItem();
+
+public:
+	const WCHAR* getName() const;
+	const AccelList& getAccelList() const;
+
+public:
+	void add(ACCEL accel);
+
+private:
+	KeyMapItem(const KeyMapItem&);
+	KeyMapItem& operator=(const KeyMapItem&);
+
+private:
+	wstring_ptr wstrName_;
+	AccelList listAccel_;
+};
+
+
+/****************************************************************************
+ *
  * KeyMapContentHandler
  *
  */
@@ -24,10 +56,13 @@ namespace qs {
 class KeyMapContentHandler : public DefaultHandler
 {
 public:
-	typedef std::vector<std::pair<std::pair<WSTRING, WSTRING>, ACCEL> > AccelMap;
+	typedef std::vector<KeyMapItem*> ItemList;
 
 public:
-	explicit KeyMapContentHandler(AccelMap* pMapAccel);
+	KeyMapContentHandler(ItemList* pItemList,
+						 const ActionItem* pItem,
+						 size_t nItemCount,
+						 ActionParamMap* pActionParamMap);
 	virtual ~KeyMapContentHandler();
 
 public:
@@ -42,6 +77,8 @@ public:
 							size_t nStart,
 							size_t nLength);
 
+private:
+	const ActionItem* getActionItem(const WCHAR* pwszAction) const;
 
 private:
 	KeyMapContentHandler(const KeyMapContentHandler&);
@@ -57,10 +94,13 @@ private:
 	};
 
 private:
-	AccelMap* pMapAccel_;
+	ItemList* pItemList_;
+	const ActionItem* pActionItem_;
+	size_t nActionItemCount_;
+	ActionParamMap* pActionParamMap_;
 	State state_;
-	wstring_ptr wstrCurrentName_;
-	wstring_ptr wstrCurrentAction_;
+	KeyMapItem* pKeyMapItem_;
+	unsigned int nActionId_;
 };
 
 }

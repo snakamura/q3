@@ -14,7 +14,6 @@
 #include <qsconv.h>
 #include <qsdevicecontext.h>
 #include <qsinit.h>
-#include <qskeymap.h>
 #include <qsmenu.h>
 #include <qsprofile.h>
 #include <qsstring.h>
@@ -25,7 +24,6 @@
 #include <windowsx.h>
 
 #include "foldercombobox.h"
-#include "keymap.h"
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
@@ -655,7 +653,7 @@ LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"FolderComboBox", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"FolderComboBox");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	

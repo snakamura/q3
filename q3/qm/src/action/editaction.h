@@ -53,9 +53,7 @@ class Document;
 class EditFrameWindow;
 class EditMessageHolder;
 class EditWindow;
-class EncodingMenu;
 class FindReplaceManager;
-class InsertTextMenu;
 class SecurityModel;
 
 
@@ -527,12 +525,11 @@ class EditToolEncodingAction : public qs::AbstractAction
 {
 public:
 	explicit EditToolEncodingAction(EditMessageHolder* pEditMessageHolder);
-	EditToolEncodingAction(EditMessageHolder* pEditMessageHolder,
-						   EncodingMenu* pEncodingMenu);
 	virtual ~EditToolEncodingAction();
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:
@@ -541,7 +538,6 @@ private:
 
 private:
 	EditMessageHolder* pEditMessageHolder_;
-	EncodingMenu* pEncodingMenu_;
 };
 
 
@@ -617,7 +613,7 @@ private:
 class EditToolInsertTextAction : public qs::AbstractAction
 {
 public:
-	EditToolInsertTextAction(InsertTextMenu* pInsertTextMenu,
+	EditToolInsertTextAction(FixedFormTextManager* pFixedFormTextManager,
 							 qs::TextWindow* pTextWindow);
 	virtual ~EditToolInsertTextAction();
 
@@ -630,7 +626,7 @@ private:
 	EditToolInsertTextAction& operator=(const EditToolInsertTextAction&);
 
 private:
-	InsertTextMenu* pInsertTextMenu_;
+	FixedFormTextManager* pFixedFormTextManager_;
 	qs::TextWindow* pTextWindow_;
 };
 

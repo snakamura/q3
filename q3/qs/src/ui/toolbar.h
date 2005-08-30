@@ -173,7 +173,8 @@ public:
 public:
 	ToolbarContentHandler(ToolbarList* pListToolbar,
 						  const ActionItem* pItem,
-						  size_t nItemCount);
+						  size_t nItemCount,
+						  ActionParamMap* pActionParamMap);
 	virtual ~ToolbarContentHandler();
 
 public:
@@ -189,7 +190,7 @@ public:
 							size_t nLength);
 
 private:
-	UINT getActionId(const WCHAR* pwszAction);
+	const ActionItem* getActionItem(const WCHAR* pwszAction) const;
 
 private:
 	ToolbarContentHandler(const ToolbarContentHandler&);
@@ -208,6 +209,7 @@ private:
 	ToolbarList* pListToolbar_;
 	const ActionItem* pActionItem_;
 	size_t nActionItemCount_;
+	ActionParamMap* pActionParamMap_;
 	State state_;
 	Toolbar* pToolbar_;
 	UINT nDummyId_;

@@ -35,14 +35,23 @@ STDMETHODIMP qmscript::ActionInvokeHelper<T>::invokeAction(BSTR bstrAction,
 														   VARIANT arg3)
 {
 	VARIANT* pvarArgs[] = { &arg1, &arg2, &arg3 };
+	const WCHAR* pwszParam[countof(pvarArgs)] = { 0 };
+	Variant params[countof(pvarArgs)];
 	size_t nArg = 0;
 	for (nArg = 0; nArg < countof(pvarArgs); ++nArg) {
 		if (pvarArgs[nArg]->vt == VT_ERROR)
 			break;
+		
+		HRESULT hr = ::VariantChangeType(&params[nArg],
+			pvarArgs[nArg], VARIANT_ALPHABOOL, VT_BSTR);
+		if (hr != S_OK)
+			return hr;
+		
+		pwszParam[nArg] = params[nArg].bstrVal;
 	}
 	
 	const qm::ActionInvoker* pInvoker = getActionInvoker();
-	pInvoker->invoke(bstrAction, pvarArgs, nArg);
+	pInvoker->invoke(bstrAction, pwszParam, nArg);
 	
 	return S_OK;
 }

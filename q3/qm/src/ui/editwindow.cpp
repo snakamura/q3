@@ -12,13 +12,11 @@
 #include <qsaccelerator.h>
 #include <qsconv.h>
 #include <qsdragdrop.h>
-#include <qskeymap.h>
 
 #include <tchar.h>
 
 #include "editwindow.h"
 #include "headereditwindow.h"
-#include "keymap.h"
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
@@ -532,7 +530,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"EditWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"EditWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	

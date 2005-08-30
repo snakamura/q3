@@ -28,8 +28,7 @@
 #include "dialogs.h"
 #include "editframewindow.h"
 #include "editwindow.h"
-#include "keymap.h"
-#include "menus.h"
+#include "menucreator.h"
 #include "optiondialog.h"
 #include "statusbar.h"
 #include "uimanager.h"
@@ -68,6 +67,9 @@ public:
 						int cy);
 
 public:
+	typedef std::vector<DynamicMenuCreator*> MenuCreatorList;
+
+public:
 	EditFrameWindow* pThis_;
 	
 	bool bShowToolbar_;
@@ -88,9 +90,7 @@ public:
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
-	std::auto_ptr<InsertTextMenu> pInsertTextMenu_;
-	std::auto_ptr<EncodingMenu> pEncodingMenu_;
-	std::auto_ptr<ScriptMenu> pScriptMenu_;
+	MenuCreatorList listMenuCreator_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bIme_;
 	bool bCreated_;
@@ -277,9 +277,8 @@ void qm::EditFrameWindowImpl::initActions()
 		pSyncManager_,
 		pSyncDialogManager_,
 		pSecurityModel_);
-	ADD_ACTION_RANGE1(EditFocusItemAction,
+	ADD_ACTION1(EditFocusItemAction,
 		IDM_FOCUS_HEADEREDITITEM,
-		IDM_FOCUS_HEADEREDITITEM + 10,
 		pEditWindow_);
 #ifdef QMZIP
 	ADD_ACTION1(EditToolArchiveAttachmentAction,
@@ -291,21 +290,15 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_->getEditMessageHolder(),
 		pThis_->getHandle());
 	ADD_ACTION1(EditToolEncodingAction,
-		IDM_TOOL_ENCODINGDEFAULT,
-		pEditWindow_->getEditMessageHolder());
-	ADD_ACTION_RANGE2(EditToolEncodingAction,
 		IDM_TOOL_ENCODING,
-		IDM_TOOL_ENCODING + EncodingMenu::MAX_ENCODING,
-		pEditWindow_->getEditMessageHolder(),
-		pEncodingMenu_.get());
+		pEditWindow_->getEditMessageHolder());
 	ADD_ACTION2(EditToolInsertSignatureAction,
 		IDM_TOOL_INSERTSIGNATURE,
 		pEditWindow_->getEditMessageHolder(),
 		pEditWindow_->getTextWindow());
-	ADD_ACTION_RANGE2(EditToolInsertTextAction,
+	ADD_ACTION2(EditToolInsertTextAction,
 		IDM_TOOL_INSERTTEXT,
-		IDM_TOOL_INSERTTEXT + 100,
-		pInsertTextMenu_.get(),
+		pDocument_->getFixedFormTextManager(),
 		pEditWindow_->getTextWindow());
 	ADD_ACTION1(EditToolHeaderEditAction,
 		IDM_TOOL_HEADEREDIT,
@@ -354,10 +347,9 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_->getEditMessageHolder(),
 		MESSAGESECURITY_SMIMESIGN,
 		Security::isSMIMEEnabled());
-	ADD_ACTION_RANGE4(ToolScriptAction,
+	ADD_ACTION4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,
-		IDM_TOOL_SCRIPT + 100,
-		pScriptMenu_.get(),
+		pDocument_->getScriptManager(),
 		pDocument_,
 		pProfile_,
 		pThis_);
@@ -620,6 +612,19 @@ UINT qm::EditFrameWindow::getIconId()
 	return IDI_MAINFRAME;
 }
 
+DynamicMenuCreator* qm::EditFrameWindow::getDynamicMenuCreator(DWORD dwData)
+{
+	EditFrameWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
+		pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<DWORD>(),
+				std::mem_fun(&DynamicMenuCreator::getMenuItemData),
+				std::identity<DWORD>()),
+			dwData));
+	return it != pImpl_->listMenuCreator_.end() ? *it : 0;
+}
+
 void qm::EditFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
@@ -647,6 +652,11 @@ bool qm::EditFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 Action* qm::EditFrameWindow::getAction(UINT nId)
 {
 	return pImpl_->pActionMap_->getAction(nId);
+}
+
+const ActionParam* qm::EditFrameWindow::getActionParam(UINT nId)
+{
+	return pImpl_->pUIManager_->getActionParamMap()->getActionParam(nId);
 }
 
 Accelerator* qm::EditFrameWindow::getAccelerator()
@@ -707,7 +717,7 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, L"EditFrameWindow", mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, L"EditFrameWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
@@ -734,11 +744,16 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	
-	pImpl_->pInsertTextMenu_.reset(new InsertTextMenu(
-		pImpl_->pDocument_->getFixedFormTextManager()));
-	pImpl_->pEncodingMenu_.reset(new EncodingMenu(pImpl_->pProfile_, IDM_TOOL_ENCODING));
-	pImpl_->pScriptMenu_.reset(new ScriptMenu(
-		pImpl_->pDocument_->getScriptManager()));
+	pImpl_->listMenuCreator_.push_back(
+		new InsertTextMenuCreator(pImpl_->pDocument_->getFixedFormTextManager(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new EncodingMenuCreator(pImpl_->pProfile_, false,
+			pImpl_->pUIManager_->getActionParamMap()));
+	pImpl_->listMenuCreator_.push_back(
+		new ScriptMenuCreator(pImpl_->pDocument_->getScriptManager(),
+			pImpl_->pUIManager_->getActionParamMap()));
+	
 	pImpl_->layoutChildren();
 	pImpl_->initActions();
 	pImpl_->bCreated_ = true;
@@ -756,39 +771,13 @@ LRESULT qm::EditFrameWindow::onDestroy()
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
 	
-	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"EditFrameWindow");
+	std::for_each(pImpl_->listMenuCreator_.begin(),
+		pImpl_->listMenuCreator_.end(), qs::deleter<DynamicMenuCreator>());
 	
+	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"EditFrameWindow");
 	FrameWindow::save();
 	
 	return FrameWindow::onDestroy();
-}
-
-LRESULT qm::EditFrameWindow::onInitMenuPopup(HMENU hmenu,
-											 UINT nIndex,
-											 bool bSysMenu)
-{
-	if (!bSysMenu) {
-		UINT nIdFirst = 0;
-		UINT nIdLast = 0;
-		MENUITEMINFO mii = { sizeof(mii), MIIM_ID };
-		for (UINT n = 0; ; ++n) {
-			if (!::GetMenuItemInfo(hmenu, n, TRUE, &mii))
-				break;
-			if (nIdFirst == 0)
-				nIdFirst = mii.wID;
-			nIdLast = mii.wID;
-		}
-		
-		if (nIdLast == IDM_CONFIG_TEXTS)
-			pImpl_->pInsertTextMenu_->createMenu(hmenu);
-		else if (nIdFirst == IDM_TOOL_ENCODINGDEFAULT)
-			pImpl_->pEncodingMenu_->createMenu(hmenu);
-		else if (nIdFirst == IDM_TOOL_SCRIPTNONE ||
-			nIdFirst == IDM_TOOL_SCRIPT)
-			pImpl_->pScriptMenu_->createMenu(hmenu);
-	}
-	
-	return FrameWindow::onInitMenuPopup(hmenu, nIndex, bSysMenu);
 }
 
 LRESULT qm::EditFrameWindow::onSize(UINT nFlags,

@@ -17,11 +17,9 @@
 #include <qmsecurity.h>
 
 #include <qsaccelerator.h>
-#include <qskeymap.h>
 #include <qsprofile.h>
 
 #include "headerwindow.h"
-#include "keymap.h"
 #include "messageviewwindow.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
@@ -619,7 +617,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
-		&acceleratorFactory, pImpl_->pwszSection_, mapKeyNameToId, countof(mapKeyNameToId));
+		&acceleratorFactory, pImpl_->pwszSection_);
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	

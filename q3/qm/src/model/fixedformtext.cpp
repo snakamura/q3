@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsconv.h>
 #include <qsfile.h>
 #include <qsosutil.h>
@@ -46,6 +48,21 @@ const FixedFormTextManager::TextList& qm::FixedFormTextManager::getTexts(bool bR
 	if (bReload)
 		load();
 	return listText_;
+}
+
+const FixedFormText* qm::FixedFormTextManager::getText(const WCHAR* pwszName)
+{
+	load();
+	
+	TextList::const_iterator it = std::find_if(
+		listText_.begin(), listText_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::mem_fun(&FixedFormText::getName),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	return it != listText_.end() ? *it : 0;
 }
 
 void qm::FixedFormTextManager::setTexts(TextList& listText)
