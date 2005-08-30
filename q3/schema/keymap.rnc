@@ -27,10 +27,13 @@ element keymaps {
 				attribute virtual {
 					xsd:boolean
 				}?
-			},
+			}+,
 			attribute name {
 				xsd:string
-			}
+			},
+			attribute param {
+				xsd:string
+			}?
 		}*,
 		attribute name {
 			xsd:string

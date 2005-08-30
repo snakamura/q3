@@ -31,7 +31,10 @@ start = element toolbars {
 
 action = attribute action {
 	xsd:string
-}
+},
+attribute param {
+	xsd:string
+}?
 
 dropdown = attribute dropdown {
 	xsd:string

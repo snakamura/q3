@@ -18,10 +18,18 @@ start = element menus {
 }
 
 item = element menuitem {
-	attribute text {
-		xsd:string
-	},
-	attribute action {
+	(
+		attribute text {
+			xsd:string
+		},
+		attribute action {
+			xsd:string
+		},
+		attribute param {
+			xsd:string
+		}?
+	) |
+	attribute dynamic {
 		xsd:string
 	}
 } |
@@ -32,10 +40,5 @@ element popupmenu {
 	attribute text {
 		xsd:string
 	},
-	(
-		item* |
-		attribute action {
-			xsd:string
-		}
-	)
+	item*
 }
