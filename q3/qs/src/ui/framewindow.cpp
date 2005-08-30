@@ -566,7 +566,8 @@ LRESULT qs::FrameWindow::onInitMenuPopup(HMENU hmenu,
 				break;
 			
 			if (mii.dwItemData != 0) {
-				DynamicMenuCreator* pMenuCreator = getDynamicMenuCreator(mii.dwItemData);
+				DynamicMenuCreator* pMenuCreator = getDynamicMenuCreator(
+					static_cast<DWORD>(mii.dwItemData));
 				if (pMenuCreator)
 					nIndex = pMenuCreator->createMenu(hmenu, nIndex);
 				else
