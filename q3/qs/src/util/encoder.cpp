@@ -22,6 +22,7 @@ using namespace qs;
 
 namespace qs {
 struct EncoderFactoryImpl;
+struct EightBitEncoderImpl;
 struct Base64EncoderImpl;
 struct QuotedPrintableEncoderImpl;
 struct UuencodeEncoderImpl;
@@ -170,6 +171,101 @@ void qs::EncoderFactory::unregisterFactory(EncoderFactory* pFactory)
 	Map::iterator it = std::remove(pMap->begin(), pMap->end(), pFactory);
 	assert(it != pMap->end());
 	pMap->erase(it, pMap->end());
+}
+
+
+/****************************************************************************
+ *
+ * EightBitEncoderImpl
+ *
+ */
+
+struct qs::EightBitEncoderImpl
+{
+	static bool copyStream(InputStream* pInputStream,
+						   OutputStream* pOutputStream);
+};
+
+bool qs::EightBitEncoderImpl::copyStream(InputStream* pInputStream,
+										 OutputStream* pOutputStream)
+{
+	unsigned char buf[8192];
+	while (true) {
+		size_t nLen = pInputStream->read(buf, sizeof(buf));
+		if (nLen == -1)
+			return false;
+		else if (nLen == 0)
+			break;
+		
+		if (pOutputStream->write(buf, nLen) != nLen)
+			return false;
+	}
+	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * EightBitEncoder
+ *
+ */
+
+qs::EightBitEncoder::EightBitEncoder()
+{
+}
+
+qs::EightBitEncoder::~EightBitEncoder()
+{
+}
+
+bool qs::EightBitEncoder::encodeImpl(InputStream* pInputStream,
+									 OutputStream* pOutputStream)
+{
+	return EightBitEncoderImpl::copyStream(pInputStream, pOutputStream);
+}
+
+bool qs::EightBitEncoder::decodeImpl(InputStream* pInputStream,
+									 OutputStream* pOutputStream)
+{
+	return EightBitEncoderImpl::copyStream(pInputStream, pOutputStream);
+}
+
+size_t qs::EightBitEncoder::getEstimatedEncodeLen(size_t nLen)
+{
+	return nLen;
+}
+
+size_t qs::EightBitEncoder::getEstimatedDecodeLen(size_t nLen)
+{
+	return nLen;
+}
+
+
+/****************************************************************************
+ *
+ * EightBitEncoderFactory
+ *
+ */
+
+qs::EightBitEncoderFactory::EightBitEncoderFactory()
+{
+	registerFactory(this);
+}
+
+qs::EightBitEncoderFactory::~EightBitEncoderFactory()
+{
+	unregisterFactory(this);
+}
+
+const WCHAR* qs::EightBitEncoderFactory::getName() const
+{
+	return L"8bit";
+}
+
+std::auto_ptr<Encoder> qs::EightBitEncoderFactory::createInstance()
+{
+	return std::auto_ptr<Encoder>(new EightBitEncoder());
 }
 
 

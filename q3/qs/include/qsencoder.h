@@ -130,6 +130,54 @@ private:
 
 /****************************************************************************
  *
+ * EightBitEncoder
+ *
+ */
+
+class QSEXPORTCLASS EightBitEncoder : public Encoder
+{
+public:
+	EightBitEncoder();
+	virtual ~EightBitEncoder();
+
+protected:
+	virtual bool encodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream);
+	virtual bool decodeImpl(InputStream* pInputStream,
+							OutputStream* pOutputStream);
+	virtual size_t getEstimatedEncodeLen(size_t nLen);
+	virtual size_t getEstimatedDecodeLen(size_t nLen);
+
+private:
+	EightBitEncoder(const EightBitEncoder&);
+	EightBitEncoder& operator=(const EightBitEncoder&);
+};
+
+
+/****************************************************************************
+ *
+ * EightBitEncoderFactory
+ *
+ */
+
+class EightBitEncoderFactory : public EncoderFactory
+{
+public:
+	EightBitEncoderFactory();
+	virtual ~EightBitEncoderFactory();
+
+protected:
+	virtual const WCHAR* getName() const;
+	virtual std::auto_ptr<Encoder> createInstance();
+
+private:
+	EightBitEncoderFactory(const EightBitEncoderFactory&);
+	EightBitEncoderFactory& operator=(const EightBitEncoderFactory&);
+};
+
+
+/****************************************************************************
+ *
  * Base64Encoder
  *
  */

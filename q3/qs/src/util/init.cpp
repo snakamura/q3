@@ -175,6 +175,7 @@ qs::Init::Init(HINSTANCE hInst,
 #endif
 	pImpl_->listConverterFactory_.push_back(new MLangConverterFactory());
 	
+	pImpl_->listEncoderFactory_.push_back(new EightBitEncoderFactory());
 	pImpl_->listEncoderFactory_.push_back(new Base64EncoderFactory());
 	pImpl_->listEncoderFactory_.push_back(new BEncoderFactory());
 	pImpl_->listEncoderFactory_.push_back(new QuotedPrintableEncoderFactory());
