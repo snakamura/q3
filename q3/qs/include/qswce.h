@@ -11,6 +11,8 @@
 
 #ifdef _WIN32_WCE
 
+#include <windows.h>
+
 #if _WIN32_WCE < 300
 
 typedef int INT_PTR, *PINT_PTR;
