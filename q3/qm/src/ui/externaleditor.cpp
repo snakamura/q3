@@ -255,9 +255,7 @@ void qm::ExternalEditorManager::WaitThread::run()
 					}
 					
 					virtual void run() {
-						unsigned int nFlags = 0;
-						// TODO
-						if (!composer_.compose(0, 0, pwszPath_, nFlags)) {
+						if (!composer_.compose(pwszPath_, MESSAGESECURITY_NONE)) {
 							// TODO MSG
 						}
 					}

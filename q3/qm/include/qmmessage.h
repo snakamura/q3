@@ -97,8 +97,6 @@ private:
 	ParamList listParam_;
 };
 
-#pragma warning(pop)
-
 
 /****************************************************************************
  *
@@ -143,6 +141,9 @@ public:
 	MessageCreator();
 	MessageCreator(unsigned int nFlags,
 				   unsigned int nSecurityMode);
+	MessageCreator(unsigned int nFlags,
+				   unsigned int nSecurityMode,
+				   const WCHAR* pwszTransferEncodingFor8Bit);
 	~MessageCreator();
 
 public:
@@ -202,7 +203,10 @@ private:
 private:
 	unsigned int nFlags_;
 	unsigned int nSecurityMode_;
+	qs::wstring_ptr wstrTransferEncodingFor8Bit_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************

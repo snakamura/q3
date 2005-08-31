@@ -382,6 +382,8 @@ public:
 	void setAddMessageId(bool bAddMessageId);
 	bool isAutoApplyRules() const;
 	void setAutoApplyRules(bool bAutoApplyRules);
+	const WCHAR* getTransferEncodingFor8Bit();
+	void setTransferEncodingFor8Bit(const WCHAR* pwszTransferEncodingFor8Bit);
 	unsigned int getSslOption() const;
 	void setSslOption(unsigned int nSslOption);
 	

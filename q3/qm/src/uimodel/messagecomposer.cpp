@@ -52,16 +52,21 @@ qm::MessageComposer::MessageComposer(bool bDraft,
 	pFolderModel_(pFolderModel),
 	pSecurityModel_(pSecurityModel)
 {
+	assert(pDocument);
+	assert(pPasswordManager);
+	assert(pProfile);
+	assert(hwnd);
+	assert(pSecurityModel);
 }
 
 qm::MessageComposer::~MessageComposer()
 {
 }
 
-bool qm::MessageComposer::compose(Account* pAccount,
-								  SubAccount* pSubAccount,
-								  Message* pMessage,
+bool qm::MessageComposer::compose(Message* pMessage,
 								  unsigned int nMessageSecurity,
+								  Account* pAccount,
+								  SubAccount* pSubAccount,
 								  MessagePtr* pptr) const
 {
 	assert(pAccount || pFolderModel_);
@@ -70,27 +75,14 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	assert(pMessage);
 	
 	if (!pAccount) {
-		assert(pFolderModel_);
-		
-		UnstructuredParser account;
-		Part::Field f = pMessage->getField(L"X-QMAIL-Account", &account);
-		if (f == Part::FIELD_EXIST) {
-			pAccount = pDocument_->getAccount(account.getValue());
-		}
-		else {
-			std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-			pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
-		}
+		pAccount = getAccount(*pMessage);
+		if (!pAccount)
+			return false;
 	}
-	if (!pAccount)
-		return false;
 	if (!pSubAccount) {
-		UnstructuredParser subaccount;
-		Part::Field f = pMessage->getField(L"X-QMAIL-SubAccount", &subaccount);
-		if (f == Part::FIELD_EXIST)
-			pSubAccount = pAccount->getSubAccount(subaccount.getValue());
-		else
-			pSubAccount = pAccount->getCurrentSubAccount();
+		pSubAccount = getSubAccount(pAccount, *pMessage);
+		if (!pSubAccount)
+			return false;
 	}
 	
 	NormalFolder* pFolder = static_cast<NormalFolder*>(pAccount->getFolderByBoxFlag(
@@ -175,12 +167,48 @@ bool qm::MessageComposer::compose(Account* pAccount,
 	return true;
 }
 
-bool qm::MessageComposer::compose(Account* pAccount,
-								  SubAccount* pSubAccount,
-								  const WCHAR* pwszPath,
+bool qm::MessageComposer::compose(const WCHAR* pwszMessage,
+								  size_t nLen,
+								  unsigned int nMessageSecurity) const
+{
+	assert(pwszMessage);
+	assert(pFolderModel_);
+	
+	if (nLen == -1)
+		nLen = wcslen(pwszMessage);
+	
+	const unsigned int nFlags = MessageCreator::FLAG_ADDCONTENTTYPE |
+		MessageCreator::FLAG_EXPANDALIAS |
+		MessageCreator::FLAG_EXTRACTATTACHMENT |
+		MessageCreator::FLAG_ENCODETEXT;
+	
+	BMFindString<WSTRING> bmfs(L"\n\n");
+	const WCHAR* pBody = bmfs.find(pwszMessage);
+	size_t nHeaderLen = pBody ? pBody - pwszMessage + 2 : nLen;
+	MessageCreator headerCreator(nFlags, pSecurityModel_->getSecurityMode());
+	std::auto_ptr<Message> pHeader(headerCreator.createMessage(
+		pDocument_, pwszMessage, nHeaderLen));
+	if (!pHeader.get())
+		return false;
+	
+	SubAccount* pSubAccount = getSubAccount(getAccount(*pHeader.get()), *pHeader.get());
+	if (!pSubAccount)
+		return false;
+	
+	MessageCreator creator(nFlags, pSecurityModel_->getSecurityMode(),
+		pSubAccount->getTransferEncodingFor8Bit());
+	std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, pwszMessage, nLen));
+	if (!pMessage.get())
+		return false;
+	
+	return compose(pMessage.get(), nMessageSecurity, 0, 0, 0);
+}
+
+bool qm::MessageComposer::compose(const WCHAR* pwszPath,
 								  unsigned int nMessageSecurity) const
 {
 	assert(pwszPath);
+	assert(pFolderModel_);
 	
 	FileInputStream stream(pwszPath);
 	if (!stream)
@@ -206,21 +234,38 @@ bool qm::MessageComposer::compose(Account* pAccount,
 		return false;
 	
 	if (buf.getLength() != 0) {
-		MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
-			MessageCreator::FLAG_EXPANDALIAS |
-			MessageCreator::FLAG_EXTRACTATTACHMENT |
-			MessageCreator::FLAG_ENCODETEXT,
-			pSecurityModel_->getSecurityMode());
-		std::auto_ptr<Message> pMessage(creator.createMessage(
-			pDocument_, buf.getCharArray(), buf.getLength()));
-		if (!pMessage.get())
-			return false;
-		
-		if (!compose(0, 0, pMessage.get(), nMessageSecurity, 0))
+		if (!compose(buf.getCharArray(), buf.getLength(), nMessageSecurity))
 			return false;
 	}
 	
 	return true;
+}
+
+Account* qm::MessageComposer::getAccount(const Message& header) const
+{
+	assert(pFolderModel_);
+	
+	UnstructuredParser account;
+	if (header.getField(L"X-QMAIL-Account", &account) == Part::FIELD_EXIST) {
+		return pDocument_->getAccount(account.getValue());
+	}
+	else {
+		std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+		return p.first ? p.first : p.second ? p.second->getAccount() : 0;
+	}
+}
+
+SubAccount* qm::MessageComposer::getSubAccount(Account* pAccount,
+											   const Message& header) const
+{
+	if (!pAccount)
+		return 0;
+	
+	UnstructuredParser subaccount;
+	if (header.getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST)
+		return pAccount->getSubAccount(subaccount.getValue());
+	else
+		return pAccount->getCurrentSubAccount();
 }
 
 bool qm::MessageComposer::processSMIME(Message* pMessage,

@@ -186,6 +186,16 @@ qm::MessageCreator::MessageCreator(unsigned int nFlags,
 {
 }
 
+qm::MessageCreator::MessageCreator(unsigned int nFlags,
+								   unsigned int nSecurityMode,
+								   const WCHAR* pwszTransferEncodingFor8Bit) :
+	nFlags_(nFlags),
+	nSecurityMode_(nSecurityMode)
+{
+	if (pwszTransferEncodingFor8Bit && *pwszTransferEncodingFor8Bit)
+		wstrTransferEncodingFor8Bit_ = allocWString(pwszTransferEncodingFor8Bit);
+}
+
 qm::MessageCreator::~MessageCreator()
 {
 }
@@ -222,7 +232,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 												   Part* pParent,
 												   bool bMessage) const
 {
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = wcslen(pwszMessage);
 	
 	std::auto_ptr<Part> pPart;
@@ -390,10 +400,13 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 						pwszEncoding = L"7bit";
 					}
 					else {
-						pwszEncoding = getEncodingForCharset(wstrCharset.get());
-						assert(wcscmp(pwszEncoding, L"quoted-printable") == 0 ||
-							wcscmp(pwszEncoding, L"base64") == 0);
+						if (wstrTransferEncodingFor8Bit_.get())
+							pwszEncoding = wstrTransferEncodingFor8Bit_.get();
+						else
+							pwszEncoding = getEncodingForCharset(wstrCharset.get());
 						pEncoder = EncoderFactory::getInstance(pwszEncoding);
+						if (!pEncoder.get())
+							return std::auto_ptr<Part>(0);
 					}
 					
 					if (nFlags_ & FLAG_ADDCONTENTTYPE) {
@@ -670,7 +683,7 @@ xstring_size_ptr qm::MessageCreator::convertBody(Converter* pConverter,
 MessageCreator qm::MessageCreator::getCreatorForChild() const
 {
 	unsigned int nFlags = nFlags_ & (FLAG_ADDCONTENTTYPE | FLAG_ENCODETEXT | FLAG_RECOVER);
-	return MessageCreator(nFlags, SECURITYMODE_NONE);
+	return MessageCreator(nFlags, SECURITYMODE_NONE, wstrTransferEncodingFor8Bit_.get());
 }
 
 bool qm::MessageCreator::setField(Part* pPart,

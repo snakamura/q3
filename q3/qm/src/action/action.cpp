@@ -3550,17 +3550,7 @@ void qm::MessageCreateFromClipboardAction::invoke(const ActionEvent& event)
 	if (!wstrMessage.get())
 		return;
 	
-	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
-		MessageCreator::FLAG_EXPANDALIAS |
-		MessageCreator::FLAG_EXTRACTATTACHMENT |
-		MessageCreator::FLAG_ENCODETEXT,
-		pSecurityModel_->getSecurityMode());
-	std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, wstrMessage.get(), -1));
-	
-	unsigned int nFlags = 0;
-	// TODO
-	// Set flags
-	if (!composer_.compose(0, 0, pMessage.get(), nFlags, 0)) {
+	if (!composer_.compose(wstrMessage.get(), -1, MESSAGESECURITY_NONE)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
 		return;
 	}
@@ -3602,9 +3592,7 @@ void qm::MessageCreateFromFileAction::invoke(const ActionEvent& event)
 	if (!pwszPath)
 		return;
 	
-	unsigned int nFlags = 0;
-	// TODO
-	if (!composer_.compose(0, 0, pwszPath, nFlags)) {
+	if (!composer_.compose(pwszPath, MESSAGESECURITY_NONE)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
 		return;
 	}

@@ -816,8 +816,8 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	
 	unsigned int nMessageSecurity = pEditMessage->getMessageSecurity();
 	MessagePtr ptr;
-	if (!composer_.compose(pEditMessage->getAccount(),
-		pEditMessage->getSubAccount(), pMessage.get(), nMessageSecurity, &ptr)) {
+	if (!composer_.compose(pMessage.get(), nMessageSecurity,
+		pEditMessage->getAccount(), pEditMessage->getSubAccount(), &ptr)) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 		return;
 	}

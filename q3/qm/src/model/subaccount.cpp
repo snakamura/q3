@@ -59,6 +59,7 @@ struct qm::SubAccountImpl
 	bool bTreatAsSent_;
 	bool bAddMessageId_;
 	bool bAutoApplyRules_;
+	wstring_ptr wstrTransferEncodingFor8Bit_;
 	unsigned int nSslOption_;
 	SubAccount::DialupType dialupType_;
 	wstring_ptr wstrDialupEntry_;
@@ -75,15 +76,16 @@ void qm::SubAccountImpl::load()
 #define LOAD_STRING(section, key, default, name) \
 	this->name = pProfile_->getString(section, key, default);
 	
-	LOAD_STRING(L"Global",	L"Identity",		0,	wstrIdentity_						);
-	LOAD_STRING(L"Global",	L"SenderName",		0,	wstrSenderName_						);
-	LOAD_STRING(L"Global",	L"SenderAddress",	0,	wstrSenderAddress_					);
-	LOAD_STRING(L"Send",	L"Host",			0,	wstrHost_[Account::HOST_SEND]		);
-	LOAD_STRING(L"Receive",	L"Host",			0,	wstrHost_[Account::HOST_RECEIVE]	);
-	LOAD_STRING(L"Send",	L"UserName",		0,	wstrUserName_[Account::HOST_SEND]	);
-	LOAD_STRING(L"Receive",	L"UserName",		0,	wstrUserName_[Account::HOST_RECEIVE]);
-	LOAD_STRING(L"Receive",	L"SyncFilterName",	0,	wstrSyncFilterName_					);
-	LOAD_STRING(L"Dialup",	L"Entry",			0,	wstrDialupEntry_					);
+	LOAD_STRING(L"Global",	L"Identity",				0,	wstrIdentity_						);
+	LOAD_STRING(L"Global",	L"SenderName",				0,	wstrSenderName_						);
+	LOAD_STRING(L"Global",	L"SenderAddress",			0,	wstrSenderAddress_					);
+	LOAD_STRING(L"Send",	L"Host",					0,	wstrHost_[Account::HOST_SEND]		);
+	LOAD_STRING(L"Receive",	L"Host",					0,	wstrHost_[Account::HOST_RECEIVE]	);
+	LOAD_STRING(L"Send",	L"UserName",				0,	wstrUserName_[Account::HOST_SEND]	);
+	LOAD_STRING(L"Receive",	L"UserName",				0,	wstrUserName_[Account::HOST_RECEIVE]);
+	LOAD_STRING(L"Receive",	L"SyncFilterName",			0,	wstrSyncFilterName_					);
+	LOAD_STRING(L"Dialup",	L"Entry",					0,	wstrDialupEntry_					);
+	LOAD_STRING(L"Global",	L"TransferEncodingFor8Bit",	0,	wstrTransferEncodingFor8Bit_		);
 
 #pragma warning(disable:4800)
 #define LOAD_INT(section, key, default, name, type, tempname) \
@@ -385,6 +387,19 @@ void qm::SubAccount::setAutoApplyRules(bool bAutoApplyRules)
 	pImpl_->bAutoApplyRules_ = bAutoApplyRules;
 }
 
+const WCHAR* qm::SubAccount::getTransferEncodingFor8Bit()
+{
+	return pImpl_->wstrTransferEncodingFor8Bit_.get();
+}
+
+void qm::SubAccount::setTransferEncodingFor8Bit(const WCHAR* pwszTransferEncodingFor8Bit)
+{
+	if (pwszTransferEncodingFor8Bit && *pwszTransferEncodingFor8Bit)
+		pImpl_->wstrTransferEncodingFor8Bit_ = allocWString(pwszTransferEncodingFor8Bit);
+	else
+		pImpl_->wstrTransferEncodingFor8Bit_.reset(0);
+}
+
 unsigned int qm::SubAccount::getSslOption() const
 {
 	return pImpl_->nSslOption_;
@@ -632,15 +647,16 @@ bool qm::SubAccount::save(bool bForce) const
 #define SAVE_STRING(section, key, name) \
 	pImpl_->pProfile_->setString(section, key, pImpl_->name.get());
 	
-	SAVE_STRING(L"Global",	L"Identity",		wstrIdentity_						);
-	SAVE_STRING(L"Global",	L"SenderName",		wstrSenderName_						);
-	SAVE_STRING(L"Global",	L"SenderAddress",	wstrSenderAddress_					);
-	SAVE_STRING(L"Send",	L"Host",			wstrHost_[Account::HOST_SEND]		);
-	SAVE_STRING(L"Receive",	L"Host",			wstrHost_[Account::HOST_RECEIVE]	);
-	SAVE_STRING(L"Send",	L"UserName",		wstrUserName_[Account::HOST_SEND]	);
-	SAVE_STRING(L"Receive",	L"UserName",		wstrUserName_[Account::HOST_RECEIVE]);
-	SAVE_STRING(L"Receive",	L"SyncFilterName",	wstrSyncFilterName_					);
-	SAVE_STRING(L"Dialup",	L"Entry",			wstrDialupEntry_					);
+	SAVE_STRING(L"Global",	L"Identity",				wstrIdentity_						);
+	SAVE_STRING(L"Global",	L"SenderName",				wstrSenderName_						);
+	SAVE_STRING(L"Global",	L"SenderAddress",			wstrSenderAddress_					);
+	SAVE_STRING(L"Send",	L"Host",					wstrHost_[Account::HOST_SEND]		);
+	SAVE_STRING(L"Receive",	L"Host",					wstrHost_[Account::HOST_RECEIVE]	);
+	SAVE_STRING(L"Send",	L"UserName",				wstrUserName_[Account::HOST_SEND]	);
+	SAVE_STRING(L"Receive",	L"UserName",				wstrUserName_[Account::HOST_RECEIVE]);
+	SAVE_STRING(L"Receive",	L"SyncFilterName",			wstrSyncFilterName_					);
+	SAVE_STRING(L"Dialup",	L"Entry",					wstrDialupEntry_					);
+	SAVE_STRING(L"Global",	L"TransferEncodingFor8Bit",	wstrTransferEncodingFor8Bit_		);
 	
 #define SAVE_INT(section, key, name) \
 	pImpl_->pProfile_->setInt(section, key, pImpl_->name);

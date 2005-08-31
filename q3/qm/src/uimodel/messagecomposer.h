@@ -51,17 +51,21 @@ public:
 	~MessageComposer();
 
 public:
-	bool compose(Account* pAccount,
-				 SubAccount* pSubAccount,
-				 Message* pMessage,
+	bool compose(Message* pMessage,
 				 unsigned int nMessageSecurity,
-				 MessagePtr* pptr) const;
-	bool compose(Account* pAccount,
+				 Account* pAccount,
 				 SubAccount* pSubAccount,
-				 const WCHAR* pwszPath,
+				 MessagePtr* pptr) const;
+	bool compose(const WCHAR* pwszMessage,
+				 size_t nLen,
+				 unsigned int nMessageSecurity) const;
+	bool compose(const WCHAR* pwszPath,
 				 unsigned int nMessageSecurity) const;
 
 private:
+	Account* getAccount(const Message& header) const;
+	SubAccount* getSubAccount(Account* pAccount,
+							  const Message& header) const;
 	bool processSMIME(Message* pMessage,
 					  unsigned int nMessageSecurity,
 					  SubAccount* pSubAccount) const;

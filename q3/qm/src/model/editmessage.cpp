@@ -112,7 +112,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 	
 	MessageCreator creator(MessageCreator::FLAG_ADDCONTENTTYPE |
 		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT,
-		SECURITYMODE_NONE);
+		SECURITYMODE_NONE, pSubAccount_->getTransferEncodingFor8Bit());
 	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
 		pDocument_, buf.getCharArray(), buf.getLength()));
 	if (!pBodyMessage.get())
