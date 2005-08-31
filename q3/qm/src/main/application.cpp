@@ -526,7 +526,6 @@ bool qm::Application::initialize()
 {
 	pImpl_->pWinSock_.reset(new Winsock());
 	
-	Part::setDefaultCharset(Init::getInit().getMailEncoding());
 	Part::setGlobalOptions(Part::O_USE_COMMENT_AS_PHRASE |
 		Part::O_INTERPRET_FORMAT_FLOWED |
 		Part::O_ALLOW_ENCODED_QSTRING |
@@ -569,6 +568,11 @@ bool qm::Application::initialize()
 		return false;
 	
 	Init& init = Init::getInit();
+	
+	wstring_ptr wstrDefaultCharset(pImpl_->pProfile_->getString(L"Global", L"DefaultCharset", 0));
+	Part::setDefaultCharset(*wstrDefaultCharset.get() ?
+		wstrDefaultCharset.get() : init.getMailEncoding());
+	
 	wstring_ptr wstrLogDir(concat(pImpl_->wstrMailFolder_.get(), L"\\logs"));
 	init.setLogDirectory(wstrLogDir.get());
 	int nLog = pImpl_->pProfile_->getInt(L"Global", L"Log", -1);
