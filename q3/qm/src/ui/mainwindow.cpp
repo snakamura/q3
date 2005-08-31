@@ -1802,7 +1802,7 @@ void qm::MainWindow::show()
 		return;
 	
 	setForegroundWindow();
-	showWindow(SW_RESTORE);
+	showWindow(isIconic() ? SW_RESTORE : SW_SHOW);
 	
 	pImpl_->pEditFrameWindowManager_->showAll();
 	
