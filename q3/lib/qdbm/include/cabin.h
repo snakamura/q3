@@ -207,6 +207,24 @@ int cbstrbwmatch(const char *str, const char *key);
 int cbstrbwimatch(const char *str, const char *key);
 
 
+/* Locate a substring in a string using KMP method.
+   `haystack' specifies the pointer of a target string.
+   `needle' specifies the pointer of a substring to be found.
+   The return value is the pointer to the beginning of the substring or `NULL' if the substring
+   is not found.
+   In most cases, `strstr' as a built-in function of the compiler is faster than this function. */
+char *cbstrstrkmp(const char *haystack, const char *needle);
+
+
+/* Locate a substring in a string using BM method.
+   `haystack' specifies the pointer of a target string.
+   `needle' specifies the pointer of a substring to be found.
+   The return value is the pointer to the beginning of the substring or `NULL' if the substring
+   is not found.
+   In most cases, `strstr' as a built-in function of the compiler is faster than this function. */
+char *cbstrstrbm(const char *haystack, const char *needle);
+
+
 /* Convert the letters of a string to upper case.
    `str' specifies the pointer of a string to convert.
    The return value is the pointer to the string. */
