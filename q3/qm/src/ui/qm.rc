@@ -1482,7 +1482,7 @@ BEGIN
     PUSHBUTTON      "Co&lors...",IDC_COLORS,130,25,50,14
     LTEXT           "Wa&it",IDC_STATIC,5,133,14,8
     EDITTEXT        IDC_SEENWAIT,20,130,18,14,ES_AUTOHSCROLL,WS_EX_RIGHT
-    LTEXT           "s before makeing the message seen",IDC_STATIC,40,133,
+    LTEXT           "s before making the message seen",IDC_STATIC,40,133,
                     108,8
 END
 
@@ -1616,7 +1616,7 @@ BEGIN
     LTEXT           "Tem&porary folder",IDC_STATIC,5,70,55,8
     EDITTEXT        IDC_TEMPORARYFOLDER,5,80,115,14,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDC_BROWSE,125,80,50,14
-    LTEXT           "En&codings(*)",IDC_STATIC,5,100,40,8
+    LTEXT           "En&codings",IDC_STATIC,5,100,40,8
     EDITTEXT        IDC_ENCODING,5,110,170,14,ES_AUTOHSCROLL
     LTEXT           "&Log",IDC_STATIC,5,133,15,8
     COMBOBOX        IDC_LOG,20,130,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
