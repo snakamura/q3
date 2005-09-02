@@ -5223,13 +5223,13 @@ qm::ToolSyncAction::ToolSyncAction(SyncManager* pSyncManager,
 								   Document* pDocument,
 								   FolderModel* pFolderModel,
 								   SyncDialogManager* pSyncDialogManager,
-								   unsigned int nSync,
+								   Type type,
 								   HWND hwnd) :
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pFolderModel_(pFolderModel),
 	pSyncDialogManager_(pSyncDialogManager),
-	nSync_(nSync),
+	type_(type),
 	hwnd_(hwnd)
 {
 }
@@ -5244,18 +5244,42 @@ void qm::ToolSyncAction::invoke(const ActionEvent& event)
 	if (!pAccount)
 		return;
 	
-	if (!SyncUtil::sync(pSyncManager_, pDocument_, pSyncDialogManager_,
-		hwnd_, SyncDialog::FLAG_SHOWDIALOG, pAccount,
-		(nSync_ & SYNC_SEND) != 0, (nSync_ & SYNC_RECEIVE) != 0,
-		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0)) {
-		ActionUtil::error(hwnd_, IDS_ERROR_SYNC);
-		return;
+	if (type_ != TYPE_RECEIVEFOLDER) {
+		if (!SyncUtil::sync(pSyncManager_, pDocument_, pSyncDialogManager_,
+			hwnd_, SyncDialog::FLAG_SHOWDIALOG, pAccount,
+			type_ != TYPE_RECEIVE, type_ != TYPE_SEND,
+			(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_SYNC);
+			return;
+		}
+	}
+	else {
+		Folder* pFolder = pFolderModel_->getCurrent().second;
+		if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL ||
+			!pFolder->isFlag(Folder::FLAG_SYNCABLE))
+			return;
+		
+		if (!SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
+			SyncDialog::FLAG_SHOWDIALOG, static_cast<NormalFolder*>(pFolder), 0)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_SYNC);
+			return;
+		}
 	}
 }
 
 bool qm::ToolSyncAction::isEnabled(const ActionEvent& event)
 {
-	return FolderActionUtil::getAccount(pFolderModel_) != 0;
+	if (!FolderActionUtil::getAccount(pFolderModel_))
+		return false;
+	
+	if (type_ == TYPE_RECEIVEFOLDER) {
+		Folder* pFolder = pFolderModel_->getCurrent().second;
+		if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL ||
+			!pFolder->isFlag(Folder::FLAG_SYNCABLE))
+			return false;
+	}
+	
+	return true;
 }
 
 

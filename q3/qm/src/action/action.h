@@ -2576,9 +2576,11 @@ private:
 class ToolSyncAction : public qs::AbstractAction
 {
 public:
-	enum Sync {
-		SYNC_SEND		= 0x01,
-		SYNC_RECEIVE	= 0x02
+	enum Type {
+		TYPE_SENDRECEIVE,
+		TYPE_SEND,
+		TYPE_RECEIVE,
+		TYPE_RECEIVEFOLDER
 	};
 
 public:
@@ -2586,7 +2588,7 @@ public:
 				   Document* pDocument,
 				   FolderModel* pFolderModel,
 				   SyncDialogManager* pSyncDialogManager,
-				   unsigned int nSync,
+				   Type type,
 				   HWND hwnd);
 	virtual ~ToolSyncAction();
 
@@ -2603,7 +2605,7 @@ private:
 	Document* pDocument_;
 	FolderModel* pFolderModel_;
 	SyncDialogManager* pSyncDialogManager_;
-	unsigned int nSync_;
+	Type type_;
 	HWND hwnd_;
 };
 

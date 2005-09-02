@@ -166,6 +166,7 @@
 			<menuitem text="S&amp;end &amp;&amp; Receive" action="ToolSync"/>
 			<menuitem text="&amp;Receive" action="ToolReceive"/>
 			<menuitem text="&amp;Send" action="ToolSend"/>
+			<menuitem text="Sync Curren&amp;t Folder" action="ToolReceiveFolder"/>
 			<popupmenu text="&amp;Go Round">
 				<menuitem dynamic="ToolGoRound"/>
 				<separator/>
@@ -575,6 +576,7 @@
 		<menuitem text="S&amp;end &amp;&amp; Receive" action="ToolSync"/>
 		<menuitem text="&amp;Receive" action="ToolReceive"/>
 		<menuitem text="&amp;Send" action="ToolSend"/>
+		<menuitem text="Sync Curren&amp;t Folder" action="ToolReceiveFolder"/>
 	</menu>
 	<menu name="goround">
 		<menuitem dynamic="ToolGoRound"/>

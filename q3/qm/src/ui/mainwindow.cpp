@@ -945,11 +945,12 @@ void qm::MainWindowImpl::initActions()
 	
 	struct {
 		UINT nId_;
-		unsigned int nSync_;
+		ToolSyncAction::Type type_;
 	} syncs[] = {
-		{ IDM_TOOL_SYNC,	ToolSyncAction::SYNC_SEND | ToolSyncAction::SYNC_RECEIVE	},
-		{ IDM_TOOL_RECEIVE,	ToolSyncAction::SYNC_RECEIVE								},
-		{ IDM_TOOL_SEND,	ToolSyncAction::SYNC_SEND									}
+		{ IDM_TOOL_SYNC,			ToolSyncAction::TYPE_SENDRECEIVE	},
+		{ IDM_TOOL_RECEIVE,			ToolSyncAction::TYPE_RECEIVE		},
+		{ IDM_TOOL_SEND,			ToolSyncAction::TYPE_SEND			},
+		{ IDM_TOOL_RECEIVEFOLDER,	ToolSyncAction::TYPE_RECEIVEFOLDER	}
 	};
 	for (int n = 0; n < countof(syncs); ++n) {
 		ADD_ACTION6(ToolSyncAction,
@@ -958,7 +959,7 @@ void qm::MainWindowImpl::initActions()
 			pDocument_,
 			pFolderModel_.get(),
 			pSyncDialogManager_,
-			syncs[n].nSync_,
+			syncs[n].type_,
 			pThis_->getHandle());
 	}
 	
