@@ -202,7 +202,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		if (!pmh->getMessage(nFlags, 0, pSecurityModel_->getSecurityMode(), &msg))
 			return false;
 		
-		if (nSeenWait_ != 0 && nSeenWait_ != -1)
+		if (!pmh->isFlag(MessageHolder::FLAG_SEEN) &&
+			nSeenWait_ != 0 && nSeenWait_ != -1)
 			nSeenTimerId_ = pThis_->setTimer(TIMER_MAKESEEN, nSeenWait_*1000);
 	}
 	
