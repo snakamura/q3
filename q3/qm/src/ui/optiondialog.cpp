@@ -228,9 +228,8 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		};
 		TreeView_InsertItem(hwndSelector, &tvis);
 #else
-		int nItem = Window(hwndSelector).sendMessage(
-			CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszName));
-		Window(hwndSelector).sendMessage(CB_SETITEMDATA, nItem, items[n].panel_);
+		int nItem = ComboBox_AddString(hwndSelector, ptszName);
+		ComboBox_SetItemData(hwndSelector, nItem, items[n].panel_);
 #endif
 	}
 	
@@ -349,9 +348,9 @@ LRESULT qm::OptionDialog::onSelectorSelChanged(NMHDR* pnmhdr,
 #else
 LRESULT qm::OptionDialog::onSelectorSelChange()
 {
-	Window selector(getDlgItem(IDC_SELECTOR));
-	int nItem = selector.sendMessage(CB_GETCURSEL);
-	Panel panel = static_cast<Panel>(selector.sendMessage(CB_GETITEMDATA, nItem));
+	HWND hwndSelector = getDlgItem(IDC_SELECTOR);
+	int nItem = ComboBox_GetCurSel(hwndSelector);
+	Panel panel = static_cast<Panel>(ComboBox_GetItemData(hwndSelector, nItem));
 	setCurrentPanel(panel, false);
 	
 	return 0;
@@ -516,11 +515,11 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 		hItem = TreeView_GetNextSibling(hwndSelector, hItem);
 	}
 #else
-	int nCount = Window(hwndSelector).sendMessage(CB_GETCOUNT);
+	int nCount = ComboBox_GetCount(hwndSelector);
 	for (int n = 0; n < nCount; ++n) {
-		Panel p = static_cast<Panel>(Window(hwndSelector).sendMessage(CB_GETITEMDATA, n));
+		Panel p = static_cast<Panel>(ComboBox_GetItemData(hwndSelector, n));
 		if (p == panel) {
-			Window(hwndSelector).sendMessage(CB_SETCURSEL, n);
+			ComboBox_SetCurSel(hwndSelector, n);
 			break;
 		}
 	}
@@ -1419,6 +1418,7 @@ LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
 	else
 		ComboBox_SetCurSel(getDlgItem(IDC_DEFAULTENCODING), 0);
 	
+	HWND hwndLog = getDlgItem(IDC_LOG);
 	const WCHAR* pwszLog[] = {
 		L"NONE",
 		L"FATAL",
@@ -1429,13 +1429,13 @@ LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
 	};
 	for (int n = 0; n < countof(pwszLog); ++n) {
 		W2T(pwszLog[n], ptszLog);
-		sendDlgItemMessage(IDC_LOG, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszLog));
+		ComboBox_AddString(hwndLog, ptszLog);
 	}
 	int nLog = 0;
 	Init& init = Init::getInit();
 	if (init.isLogEnabled())
 		nLog = init.getLogLevel() + 1;
-	sendDlgItemMessage(IDC_LOG, CB_SETCURSEL, nLog);
+	ComboBox_SetCurSel(hwndLog, nLog);
 	
 	return FALSE;
 }
@@ -2724,16 +2724,14 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	};
 	for (int n = 0; n < countof(pwszTypes); ++n) {
 		W2T(pwszTypes[n], ptszType);
-		sendDlgItemMessage(IDC_ACTION, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszType));
+		ComboBox_AddString(getDlgItem(IDC_ACTION), ptszType);
 	}
 	
 	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
-		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(getDlgItem(IDC_ACCOUNT), ptszName);
 	}
 	
 	int nItem = 0;
@@ -2777,7 +2775,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		assert(false);
 		break;
 	}
-	sendDlgItemMessage(IDC_ACTION, CB_SETCURSEL, nItem);
+	ComboBox_SetCurSel(getDlgItem(IDC_ACTION), nItem);
 	
 	unsigned int nUse = pRule_->getUse();
 	Button_SetCheck(getDlgItem(IDC_MANUAL), nUse & Rule::USE_MANUAL ? BST_CHECKED : BST_UNCHECKED);
@@ -2959,7 +2957,7 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 	int nStart = 0;
 	int nEnd = 0;
 	bool bEnable = true;
-	switch (sendDlgItemMessage(IDC_ACTION, CB_GETCURSEL)) {
+	switch (ComboBox_GetCurSel(getDlgItem(IDC_ACTION))) {
 	case 0:
 		break;
 	case 1:
@@ -3003,9 +3001,11 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 
 void qm::RuleDialog::updateFolder(Account* pAccount)
 {
+	HWND hwnd = getDlgItem(IDC_FOLDER);
+	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	
-	sendDlgItemMessage(IDC_FOLDER, CB_RESETCONTENT);
+	ComboBox_ResetContent(hwnd);
 	
 	if (pAccount) {
 		Account::FolderList l(pAccount->getFolders());
@@ -3015,8 +3015,7 @@ void qm::RuleDialog::updateFolder(Account* pAccount)
 			
 			wstring_ptr wstrName(pFolder->getFullName());
 			W2T(wstrName.get(), ptszName);
-			sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszName));
+			ComboBox_AddString(hwnd, ptszName);
 		}
 	}
 	
@@ -3544,8 +3543,7 @@ LRESULT qm::AutoPilotEntryDialog::onInitDialog(HWND hwndFocus,
 	const GoRound::CourseList& listCourse = pGoRound_->getCourses();
 	for (GoRound::CourseList::const_iterator it = listCourse.begin(); it != listCourse.end(); ++it) {
 		W2T((*it)->getName(), ptszCourse);
-		sendDlgItemMessage(IDC_COURSE, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszCourse));
+		ComboBox_AddString(getDlgItem(IDC_COURSE), ptszCourse);
 	}
 	setDlgItemText(IDC_COURSE, pEntry_->getCourse());
 	setDlgItemInt(IDC_INTERVAL, pEntry_->getInterval());
@@ -4376,8 +4374,7 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
-		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(getDlgItem(IDC_ACCOUNT), ptszName);
 	}
 	setDlgItemText(IDC_ACCOUNT, pEntry_->getAccount());
 	
@@ -4527,16 +4524,16 @@ void qm::GoRoundEntryDialog::updateState()
 
 void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
 {
+	HWND hwnd = getDlgItem(IDC_SUBACCOUNT);
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
 	wstring_ptr wstrSubAccount(getDlgItemText(IDC_SUBACCOUNT));
 	
-	sendDlgItemMessage(IDC_SUBACCOUNT, CB_RESETCONTENT);
+	ComboBox_ResetContent(hwnd);
 	
 	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
 	W2T(wstrUnspecified.get(), ptszUnspecified);
-	sendDlgItemMessage(IDC_SUBACCOUNT, CB_ADDSTRING,
-		0, reinterpret_cast<LPARAM>(ptszUnspecified));
+	ComboBox_AddString(hwnd, ptszUnspecified);
 	
 	if (pAccount) {
 		Account::SubAccountList l(pAccount->getSubAccounts());
@@ -4549,14 +4546,12 @@ void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
 			SubAccount* pSubAccount = *it;
 			if (*pSubAccount->getName()) {
 				W2T(pSubAccount->getName(), ptszName);
-				sendDlgItemMessage(IDC_SUBACCOUNT, CB_ADDSTRING,
-					0, reinterpret_cast<LPARAM>(ptszName));
+				ComboBox_AddString(hwnd, ptszName);
 			}
 			else {
 				wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
 				W2T(wstrDefault.get(), ptszDefault);
-				sendDlgItemMessage(IDC_SUBACCOUNT, CB_ADDSTRING,
-					0, reinterpret_cast<LPARAM>(ptszDefault));
+				ComboBox_AddString(hwnd, ptszDefault);
 			}
 		}
 	}
@@ -4566,16 +4561,16 @@ void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
 
 void qm::GoRoundEntryDialog::updateFolder(Account* pAccount)
 {
+	HWND hwnd = getDlgItem(IDC_FOLDER);
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	
-	sendDlgItemMessage(IDC_FOLDER, CB_RESETCONTENT);
+	ComboBox_ResetContent(hwnd);
 	
 	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
 	W2T(wstrAll.get(), ptszAll);
-	sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
-		0, reinterpret_cast<LPARAM>(ptszAll));
+	ComboBox_AddString(hwnd, ptszAll);
 	
 	if (pAccount) {
 		Account::FolderList l(pAccount->getFolders());
@@ -4585,8 +4580,7 @@ void qm::GoRoundEntryDialog::updateFolder(Account* pAccount)
 			
 			wstring_ptr wstrName(pFolder->getFullName());
 			W2T(wstrName.get(), ptszName);
-			sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszName));
+			ComboBox_AddString(hwnd, ptszName);
 		}
 	}
 	
@@ -4595,20 +4589,19 @@ void qm::GoRoundEntryDialog::updateFolder(Account* pAccount)
 
 void qm::GoRoundEntryDialog::updateFilter()
 {
+	HWND hwnd = getDlgItem(IDC_SYNCFILTER);
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
 	wstring_ptr wstrFilter(getDlgItemText(IDC_SYNCFILTER));
 	
-	sendDlgItemMessage(IDC_SYNCFILTER, CB_RESETCONTENT);
+	ComboBox_ResetContent(hwnd);
 	
-	sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
-		0, reinterpret_cast<LPARAM>(_T("")));
+	ComboBox_AddString(hwnd, _T(""));
 	const SyncFilterManager::FilterSetList& l = pSyncFilterManager_->getFilterSets();
 	for (SyncFilterManager::FilterSetList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		SyncFilterSet* pSet = *it;
 		W2T(pSet->getName(), ptszName);
-		sendDlgItemMessage(IDC_SYNCFILTER, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(hwnd, ptszName);
 	}
 	
 	setDlgItemText(IDC_SYNCFILTER, wstrFilter.get());
@@ -4670,8 +4663,7 @@ LRESULT qm::GoRoundDialupDialog::onInitDialog(HWND hwndFocus,
 	RasConnection::getEntries(&listEntry);
 	for (RasConnection::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
 		W2T(*it, ptszEntry);
-		sendDlgItemMessage(IDC_ENTRY, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszEntry));
+		ComboBox_AddString(getDlgItem(IDC_ENTRY), ptszEntry);
 	}
 	
 	init(false);
@@ -4868,8 +4860,7 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 	const AccountManager::AccountList& l = pAccountManager_->getAccounts();
 	for (AccountManager::AccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		W2T((*it)->getName(), ptszName);
-		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(getDlgItem(IDC_ACCOUNT), ptszName);
 	}
 	if (pSignature_->getAccount())
 		setDlgItemText(IDC_ACCOUNT, pSignature_->getAccount());
@@ -5332,8 +5323,7 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 		_T("Ignore (POP3, NNTP)")
 	};
 	for (int n = 0; n < countof(ptszActions); ++n)
-		sendDlgItemMessage(IDC_ACTION, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszActions[n]));
+		ComboBox_AddString(getDlgItem(IDC_ACTION), ptszActions[n]);
 	
 	const TCHAR* ptszTypes[] = {
 		_T("All"),
@@ -5342,8 +5332,7 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 		_T("Header")
 	};
 	for (int n = 0; n < countof(ptszTypes); ++n)
-		sendDlgItemMessage(IDC_TYPE, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszTypes[n]));
+		ComboBox_AddString(getDlgItem(IDC_TYPE), ptszTypes[n]);
 	
 	int nAction = 0;
 	int nMaxLine = 0;
@@ -5401,9 +5390,9 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 		}
 	}
 	
-	sendDlgItemMessage(IDC_ACTION, CB_SETCURSEL, nAction);
+	ComboBox_SetCurSel(getDlgItem(IDC_ACTION), nAction);
 	setDlgItemInt(IDC_MAXLINE, nMaxLine);
-	sendDlgItemMessage(IDC_TYPE, CB_SETCURSEL, nType);
+	ComboBox_SetCurSel(getDlgItem(IDC_TYPE), nType);
 	
 	const WCHAR* pwszDescription = pSyncFilter_->getDescription();
 	if (pwszDescription)
