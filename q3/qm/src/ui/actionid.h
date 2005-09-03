@@ -155,7 +155,7 @@
 #define IDM_VIEW_NEXTMESSAGE            46011
 #define IDM_VIEW_NEXTMESSAGEPAGE        46012
 #define IDM_VIEW_NEXTUNSEENMESSAGE      46013
-#define IDM_VIEW_OPENLINK               46015
+#define IDM_VIEW_OPENLINK               46014
 #define IDM_VIEW_PGPMODE                46015
 #define IDM_VIEW_PREVACCOUNT            46016
 #define IDM_VIEW_PREVFOLDER             46017
