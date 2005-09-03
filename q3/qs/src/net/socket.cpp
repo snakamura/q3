@@ -449,19 +449,20 @@ int qs::Socket::select(int nSelect,
 	Log log(pImpl_->pLogger_, L"qs::Socket");
 	
 	if (pImpl_->pSocketCallback_) {
-		while (nTimeout > 0) {
+		do {
 			if (pImpl_->pSocketCallback_->isCanceled(true)) {
 				log.debug(L"Canceled while selecting.");
 				pImpl_->nError_ = SOCKET_ERROR_CANCEL;
 				return -1;
 			}
 			
-			int n = pImpl_->select(nSelect, nSelect);
+			int n = pImpl_->select(nSelect, nTimeout == 0 ? 0 : 1);
 			if (n != 0)
 				return n;
+			
 			--nTimeout;
-		}
-		pImpl_->nError_ = SOCKET_ERROR_SELECT;
+		} while (nTimeout > 0);
+		
 		return 0;
 	}
 	else {
