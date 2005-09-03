@@ -272,21 +272,27 @@ bool qmimap4::Imap4::checkConnection()
 	if (bDisconnected_)
 		return false;
 	
-	int nSelect = pSocket_->select(Socket::SELECT_READ, 0);
-	if (nSelect == -1)
-		IMAP4_ERROR_SOCKET(IMAP4_ERROR_SELECTSOCKET);
-	else if (nSelect == 0)
-		return true;
+	while (true) {
+		if (!strOverBuf_.get() || !*strOverBuf_.get()) {
+			int nSelect = pSocket_->select(Socket::SELECT_READ, 0);
+			if (nSelect == -1)
+				IMAP4_ERROR_SOCKET(IMAP4_ERROR_SELECTSOCKET);
+			else if (nSelect == 0)
+				return true;
+			
+			char c = 0;
+			if (pSocket_->recv(&c, 1, MSG_PEEK) != 1)
+				return false;
+		}
+		
+		Imap4ParserCallback callback(pImap4Callback_);
+		if (!receive("", false, &callback))
+			return false;
+		else if (bDisconnected_)
+			return false;
+	}
 	
-	char c = 0;
-	if (pSocket_->recv(&c, 1, MSG_PEEK) != 1)
-		return false;
-	
-	Imap4ParserCallback callback(pImap4Callback_);
-	if (!receive("", false, &callback))
-		return false;
-	
-	return !bDisconnected_;
+	return false;
 }
 
 bool qmimap4::Imap4::select(const WCHAR* pwszFolderName)
