@@ -643,9 +643,8 @@ bool qm::Application::initialize()
 	wstring_ptr wstrTempFolder(
 		pImpl_->pProfile_->getString(L"Global", L"TemporaryFolder", L""));
 	if (!*wstrTempFolder.get()) {
-		TCHAR tszPath[MAX_PATH];
-		::GetTempPath(countof(tszPath), tszPath);
-		wstrTempFolder = tcs2wcs(tszPath);
+		wstrTempFolder = concat(pImpl_->wstrMailFolder_.get(), L"\\temp");
+		File::createDirectory(wstrTempFolder.get());
 	}
 	pImpl_->wstrTemporaryFolder_ = wstrTempFolder;
 	
