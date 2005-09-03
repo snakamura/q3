@@ -127,6 +127,13 @@ void qm::UIUtil::loadEncodings(Profile* pProfile,
 	
 	wstring_ptr wstrEncodings(pProfile->getString(L"Global",
 		L"Encodings", L"iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8"));
+	parseEncodings(wstrEncodings.get(), pList);
+}
+
+void qm::UIUtil::parseEncodings(const WCHAR* pwszEncodings,
+								EncodingList* pList)
+{
+	wstring_ptr wstrEncodings(allocWString(pwszEncodings));
 	
 	WCHAR* p = wcstok(wstrEncodings.get(), L" ");
 	while (p) {

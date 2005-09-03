@@ -60,6 +60,8 @@ public:
 									const WCHAR* pwszSection);
 	static void loadEncodings(qs::Profile* pProfile,
 							  EncodingList* pList);
+	static void parseEncodings(const WCHAR* pwszEncodings,
+							   EncodingList* pList);
 	
 	static qs::wstring_ptr formatMenu(const WCHAR* pwszText);
 	static bool openURL(const WCHAR* pwszURL,
