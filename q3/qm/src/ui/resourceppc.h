@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft eMbedded Visual C++ generated include file.
+// Microsoft Developer Studio generated include file.
 // Used by qmppc.rc
 //
 #define IDI_MAINFRAME                   102
@@ -276,6 +276,7 @@
 #define IDC_REPLACEALL                  1094
 #define IDC_NEVER                       1095
 #define IDC_WHENEVERNOTCONNECTED        1096
+#define IDS_OSDEFAULT                   1096
 #define IDC_CONNECT                     1097
 #define IDC_ENTRY                       1098
 #define IDC_SHOWDIALOG                  1099
@@ -503,6 +504,7 @@
 #define IDC_NUMBER                      1422
 #define IDC_DESCRIPTION                 1423
 #define IDC_OPENFOLDER                  1424
+#define IDC_DEFAULTENCODING             1428
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -602,7 +604,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        220
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1428
+#define _APS_NEXT_CONTROL_VALUE         1429
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

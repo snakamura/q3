@@ -1552,14 +1552,18 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,35,120,10
     CONTROL         "&Save when window is deactivated",IDC_SAVEONDEACTIVATE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,125,10
-    LTEXT           "Tem&p folder",IDC_STATIC,5,55,40,8
-    EDITTEXT        IDC_TEMPORARYFOLDER,5,65,82,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Browse...",IDC_BROWSE,92,65,40,12
-    LTEXT           "En&codings",IDC_STATIC,5,82,45,8
-    EDITTEXT        IDC_ENCODING,50,81,82,12,ES_AUTOHSCROLL
-    LTEXT           "&Log",IDC_STATIC,5,97,25,8
-    COMBOBOX        IDC_LOG,50,96,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    LTEXT           "En&codings",IDC_STATIC,5,62,45,8
+    EDITTEXT        IDC_ENCODING,70,60,62,12,ES_AUTOHSCROLL
+    LTEXT           "&Default Encoding(*)",IDC_STATIC,5,77,65,8
+    COMBOBOX        IDC_DEFAULTENCODING,70,75,62,50,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Log",IDC_STATIC,5,92,25,8
+    COMBOBOX        IDC_LOG,70,90,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
+    LTEXT           "Tem&p Folder",IDC_STATIC,5,125,40,8,NOT WS_VISIBLE
+    EDITTEXT        IDC_TEMPORARYFOLDER,5,135,82,12,ES_AUTOHSCROLL | NOT 
+                    WS_VISIBLE
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,92,135,40,12,NOT WS_VISIBLE
 END
 
 IDD_OPTIONEDIT2 DIALOG DISCARDABLE  0, 0, 137, 119
@@ -2121,6 +2125,7 @@ BEGIN
     IDS_TEMPORARYFOLDER     "Temporary Folder"
     IDS_CONFIRM_EXIT        "Error occured while saving. Would you like to continue?\nSelect Yes to continue, No to retry, Cancel to cancel."
     IDS_CONFIRM_OPENURL     "Are you sure to open this file?"
+    IDS_OSDEFAULT           "OS Default"
     IDS_FILTER_EXPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_IMPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_INSERT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"

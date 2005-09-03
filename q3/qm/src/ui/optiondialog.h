@@ -691,6 +691,10 @@ public:
 
 private:
 	LRESULT onBrowse();
+	LRESULT onDropDown();
+
+private:
+	void updateDefaultEncodings();
 
 private:
 	OptionMiscDialog(const OptionMiscDialog&);

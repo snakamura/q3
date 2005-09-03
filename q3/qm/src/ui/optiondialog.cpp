@@ -1394,6 +1394,7 @@ LRESULT qm::OptionMiscDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
+		HANDLE_COMMAND_ID_CODE(IDC_DEFAULTENCODING, CBN_DROPDOWN, onDropDown)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -1410,6 +1411,13 @@ LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
 	wstring_ptr wstrEncodings(pProfile_->getString(L"Global",
 		L"Encodings", L"iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8"));
 	setDlgItemText(IDC_ENCODING, wstrEncodings.get());
+	
+	updateDefaultEncodings();
+	wstring_ptr wstrDefaultEncoding(pProfile_->getString(L"Global", L"DefaultCharset", L""));
+	if (*wstrDefaultEncoding.get())
+		setDlgItemText(IDC_DEFAULTENCODING, wstrDefaultEncoding.get());
+	else
+		ComboBox_SetCurSel(getDlgItem(IDC_DEFAULTENCODING), 0);
 	
 	const WCHAR* pwszLog[] = {
 		L"NONE",
@@ -1443,6 +1451,13 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 	wstring_ptr wstrEncodings(getDlgItemText(IDC_ENCODING));
 	pProfile_->setString(L"Global", L"Encodings", wstrEncodings.get());
 	
+	wstring_ptr wstrDefaultEncoding(getDlgItemText(IDC_DEFAULTENCODING));
+	wstring_ptr wstrOSDefault(loadString(Application::getApplication().getResourceHandle(), IDS_OSDEFAULT));
+	if (wcscmp(wstrDefaultEncoding.get(), wstrOSDefault.get()) == 0)
+		pProfile_->setString(L"Global", L"DefaultCharset", L"");
+	else
+		pProfile_->setString(L"Global", L"DefaultCharset", wstrDefaultEncoding.get());
+	
 	int nLog = ComboBox_GetCurSel(getDlgItem(IDC_LOG));
 	pProfile_->setInt(L"Global", L"Log", nLog - 1);
 	
@@ -1471,6 +1486,36 @@ LRESULT qm::OptionMiscDialog::onBrowse()
 		setDlgItemText(IDC_TEMPORARYFOLDER, wstrPath.get());
 	
 	return 0;
+}
+
+LRESULT qm::OptionMiscDialog::onDropDown()
+{
+	updateDefaultEncodings();
+	return 0;
+}
+
+void qm::OptionMiscDialog::updateDefaultEncodings()
+{
+	HWND hwnd = getDlgItem(IDC_DEFAULTENCODING);
+	
+	wstring_ptr wstrCurrent(getDlgItemText(IDC_DEFAULTENCODING));
+	
+	ComboBox_ResetContent(hwnd);
+	
+	wstring_ptr wstrOSDefault(loadString(Application::getApplication().getResourceHandle(), IDS_OSDEFAULT));
+	W2T(wstrOSDefault.get(), ptszOSDefault);
+	ComboBox_AddString(hwnd, ptszOSDefault);
+	
+	wstring_ptr wstrEncodings(getDlgItemText(IDC_ENCODING));
+	UIUtil::EncodingList listEncoding;
+	StringListFree<UIUtil::EncodingList> free(listEncoding);
+	UIUtil::parseEncodings(wstrEncodings.get(), &listEncoding);
+	for (UIUtil::EncodingList::const_iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
+		W2T(*it, ptszEncoding);
+		ComboBox_AddString(hwnd, ptszEncoding);
+	}
+	
+	setDlgItemText(IDC_DEFAULTENCODING, wstrCurrent.get());
 }
 
 
