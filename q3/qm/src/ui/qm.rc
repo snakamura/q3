@@ -404,31 +404,29 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Advanced"
 FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
 BEGIN
-    LTEXT           "&Identity",IDC_STATIC,5,8,30,8
-    EDITTEXT        IDC_IDENTITY,45,5,175,14,ES_AUTOHSCROLL
-    LTEXT           "&My Address",IDC_STATIC,5,23,40,8
-    EDITTEXT        IDC_MYADDRESS,45,20,175,14,ES_AUTOHSCROLL
-    LTEXT           "&Sync Filter",IDC_STATIC,5,38,33,8
-    COMBOBOX        IDC_SYNCFILTER,45,35,120,45,CBS_DROPDOWN | 
+    LTEXT           "&Sync Filter",IDC_STATIC,5,8,33,8
+    COMBOBOX        IDC_SYNCFILTER,45,5,120,45,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&Edit...",IDC_EDIT,170,35,50,14
-    LTEXT           "&Timeout",IDC_STATIC,5,53,30,8
-    EDITTEXT        IDC_TIMEOUT,45,50,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "&Edit...",IDC_EDIT,170,5,50,14
     CONTROL         "&Connect receive host before send",
                     IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,140,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,140,10
+    CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,140,10
+    CONTROL         "App&ly rules automatically",IDC_AUTOAPPLYRULES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,95,10
+    CONTROL         "Enable &junk filter",IDC_JUNKFILTER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,55,80,10
     CONTROL         "T&reat messages from my address as sent",
                     IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    75,140,10
-    CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,140,10
-    CONTROL         "App&ly rules automatically",IDC_AUTOAPPLYRULES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,95,95,10
-    CONTROL         "Enable &junk filter",IDC_JUNKFILTER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,105,80,10
+                    65,140,10
     CONTROL         "Cache decr&ypted messages for full text search",
                     IDC_STOREDECODED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    115,155,10
+                    75,155,10
+    LTEXT           "&Identity",IDC_STATIC,5,93,25,8
+    EDITTEXT        IDC_IDENTITY,45,90,90,14,ES_AUTOHSCROLL
+    LTEXT           "&Timeout",IDC_STATIC,145,93,30,8
+    EDITTEXT        IDC_TIMEOUT,180,90,40,14,ES_AUTOHSCROLL | ES_NUMBER
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 179, 169

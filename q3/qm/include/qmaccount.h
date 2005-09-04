@@ -350,11 +350,9 @@ public:
 	void setSenderName(const WCHAR* pwszName);
 	const WCHAR* getSenderAddress() const;
 	void setSenderAddress(const WCHAR* pwszAddress);
-	qs::wstring_ptr getMyAddress() const;
-	void setMyAddress(const WCHAR* pwszAddress);
-	bool isMyAddress(const WCHAR* pwszMailbox,
-					 const WCHAR* pwszHost) const;
-	bool isMyAddress(const qs::AddressListParser& address) const;
+	bool isSelf(const WCHAR* pwszMailbox,
+				const WCHAR* pwszHost) const;
+	bool isSelf(const qs::AddressListParser& address) const;
 	
 	const WCHAR* getHost(Account::Host host) const;
 	void setHost(Account::Host host,

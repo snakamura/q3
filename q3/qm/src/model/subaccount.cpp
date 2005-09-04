@@ -65,7 +65,6 @@ struct qm::SubAccountImpl
 	wstring_ptr wstrDialupEntry_;
 	bool bDialupShowDialog_;
 	unsigned int nDialupDisconnectWait_;
-	AddressList listMyAddress_;
 	std::auto_ptr<Profile> pProfile_;
 	wstring_ptr wstrSyncFilterName_;
 	bool bJunkFilterEnabled_;
@@ -109,9 +108,6 @@ void qm::SubAccountImpl::load()
 	LOAD_INT(L"Dialup",		L"DisconnectWait",				0,		nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
 	LOAD_INT(L"JunkFilter",	L"Enabled",						0,		bJunkFilterEnabled_,			bool,					nJunkFilterEnabled			);
 #pragma warning(default:4800)
-	
-	wstring_ptr wstrMyAddress(pProfile_->getString(L"Global", L"MyAddress", 0));
-	pThis_->setMyAddress(wstrMyAddress.get());
 }
 
 
@@ -157,8 +153,6 @@ qm::SubAccount::SubAccount(Account* pAccount,
 qm::SubAccount::~SubAccount()
 {
 	if (pImpl_) {
-		std::for_each(pImpl_->listMyAddress_.begin(),
-			pImpl_->listMyAddress_.end(), string_free<WSTRING>());
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -204,63 +198,20 @@ void qm::SubAccount::setSenderAddress(const WCHAR* pwszAddress)
 	pImpl_->wstrSenderAddress_ = allocWString(pwszAddress);
 }
 
-wstring_ptr qm::SubAccount::getMyAddress() const
+bool qm::SubAccount::isSelf(const WCHAR* pwszMailbox,
+							const WCHAR* pwszHost) const
 {
-	StringBuffer<WSTRING> buf;
-	for (SubAccountImpl::AddressList::const_iterator it = pImpl_->listMyAddress_.begin(); it != pImpl_->listMyAddress_.end(); ++it) {
-		if (buf.getLength() != 0)
-			buf.append(L", ");
-		buf.append(*it);
-	}
-	return buf.getString();
+	const WCHAR* pwszAddress = pImpl_->wstrSenderAddress_.get();
+	const WCHAR* p = wcsrchr(pwszAddress, L'@');
+	if (p)
+		return wcslen(pwszMailbox) == static_cast<size_t>(p - pwszAddress) &&
+			_wcsnicmp(pwszAddress, pwszMailbox, p - pwszAddress) == 0 &&
+			_wcsicmp(p + 1, pwszHost) == 0;
+	else
+		return _wcsicmp(pwszAddress, pwszMailbox) == 0;
 }
 
-void qm::SubAccount::setMyAddress(const WCHAR* pwszAddress)
-{
-	std::for_each(pImpl_->listMyAddress_.begin(),
-		pImpl_->listMyAddress_.end(), string_free<WSTRING>());
-	pImpl_->listMyAddress_.clear();
-	
-	const WCHAR* p = pwszAddress;
-	const WCHAR* pEnd = wcschr(p, L',');
-	while (true) {
-		size_t nLen = pEnd ? pEnd - p : static_cast<size_t>(-1);
-		wstring_ptr wstr(trim(p, nLen));
-		if (wcslen(wstr.get()) != 0) {
-			pImpl_->listMyAddress_.push_back(wstr.get());
-			wstr.release();
-		}
-		
-		if (!pEnd)
-			break;
-		
-		p = pEnd + 1;
-		pEnd = wcschr(p, L',');
-	}
-}
-
-bool qm::SubAccount::isMyAddress(const WCHAR* pwszMailbox,
-								 const WCHAR* pwszHost) const
-{
-	typedef SubAccountImpl::AddressList List;
-	const List& l = pImpl_->listMyAddress_;
-	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
-		const WCHAR* p = wcsrchr(*it, L'@');
-		if (p) {
-			if (wcslen(pwszMailbox) == static_cast<size_t>(p - *it) &&
-				_wcsnicmp(*it, pwszMailbox, p - *it) == 0 &&
-				_wcsicmp(p + 1, pwszHost) == 0)
-				return true;
-		}
-		else {
-			if (_wcsicmp(*it, pwszMailbox) == 0)
-				return true;
-		}
-	}
-	return false;
-}
-
-bool qm::SubAccount::isMyAddress(const AddressListParser& address) const
+bool qm::SubAccount::isSelf(const AddressListParser& address) const
 {
 	typedef AddressListParser::AddressList List;
 	const List& l = address.getAddressList();
@@ -270,12 +221,12 @@ bool qm::SubAccount::isMyAddress(const AddressListParser& address) const
 		if (pGroup) {
 			const List& l = pGroup->getAddressList();
 			for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
-				if (isMyAddress((*it)->getMailbox(), (*it)->getHost()))
+				if (isSelf((*it)->getMailbox(), (*it)->getHost()))
 					return true;
 			}
 		}
 		else {
-			if (isMyAddress(pAddress->getMailbox(), pAddress->getHost()))
+			if (isSelf(pAddress->getMailbox(), pAddress->getHost()))
 				return true;
 		}
 	}
@@ -610,7 +561,7 @@ bool qm::SubAccount::isSelf(const Message& msg) const
 			const AddressListParser::AddressList& listFrom = from.getAddressList();
 			if (!listFrom.empty()) {
 				AddressParser* pFrom = listFrom.front();
-				if (isMyAddress(pFrom->getMailbox(), pFrom->getHost())) {
+				if (isSelf(pFrom->getMailbox(), pFrom->getHost())) {
 					AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
 					if (msg.getField(L"Sender", &sender) == Part::FIELD_EXIST) {
 						const AddressListParser::AddressList& listSender = sender.getAddressList();
@@ -677,9 +628,6 @@ bool qm::SubAccount::save(bool bForce) const
 	SAVE_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_				);
 	SAVE_INT(L"Dialup",		L"DisconnectWait",				nDialupDisconnectWait_			);
 	SAVE_INT(L"JunkFilter",	L"Enabled",						bJunkFilterEnabled_				);
-	
-	wstring_ptr wstrMyAddress(getMyAddress());
-	pImpl_->pProfile_->setString(L"Global", L"MyAddress", wstrMyAddress.get());
 	
 	return pImpl_->pProfile_->save() || bForce;
 }

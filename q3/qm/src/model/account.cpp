@@ -2458,7 +2458,7 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 		AddressListParser address;
 		Part::Field field = pHeader->getField(pwszFields[n], &address);
 		if (field == Part::FIELD_EXIST) {
-			if (pSubAccount->isMyAddress(address))
+			if (pSubAccount->isSelf(address))
 				nFlags |= flags[n];
 		}
 	}

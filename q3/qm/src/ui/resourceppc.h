@@ -233,7 +233,6 @@
 #define IDC_IDENTITY                    1072
 #define IDS_WIDTH                       1072
 #define IDC_SENDUSERNAME                1073
-#define IDC_MYADDRESS                   1073
 #define IDS_CLEARRECENTS                1073
 #define IDC_SENDPASSWORD                1074
 #define IDC_TIMEOUT                     1074

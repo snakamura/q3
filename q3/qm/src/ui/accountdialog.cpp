@@ -929,8 +929,6 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
 	setDlgItemText(IDC_IDENTITY, pSubAccount_->getIdentity());
-	wstring_ptr wstrMyAddress = pSubAccount_->getMyAddress();
-	setDlgItemText(IDC_MYADDRESS, wstrMyAddress.get());
 	
 	setDlgItemText(IDC_SYNCFILTER, pSubAccount_->getSyncFilterName());
 	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 150);
@@ -962,10 +960,6 @@ LRESULT qm::AccountAdvancedPage::onOk()
 	wstring_ptr wstrIdentity(getDlgItemText(IDC_IDENTITY));
 	if (wstrIdentity.get())
 		pSubAccount_->setIdentity(wstrIdentity.get());
-	
-	wstring_ptr wstrMyAddress(getDlgItemText(IDC_MYADDRESS));
-	if (wstrMyAddress.get())
-		pSubAccount_->setMyAddress(wstrMyAddress.get());
 	
 	wstring_ptr wstrSyncFilter(getDlgItemText(IDC_SYNCFILTER));
 	if (wstrSyncFilter.get())
