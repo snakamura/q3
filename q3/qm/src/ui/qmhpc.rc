@@ -398,14 +398,16 @@ BEGIN
     CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,30,125,10
     CONTROL         "App&ly rules automatically",IDC_AUTOAPPLYRULES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,95,10
     CONTROL         "T&reat messages from my address as sent",
                     IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    50,145,10
-    LTEXT           "&Identity",IDC_STATIC,5,67,30,8
-    EDITTEXT        IDC_IDENTITY,45,65,95,12,ES_AUTOHSCROLL
-    LTEXT           "&Timeout",IDC_STATIC,145,67,30,8
-    EDITTEXT        IDC_TIMEOUT,180,65,40,12,ES_AUTOHSCROLL | ES_NUMBER
+                    61,145,10
+    LTEXT           "&Identity",IDC_STATIC,5,77,30,8
+    EDITTEXT        IDC_IDENTITY,45,75,95,12,ES_AUTOHSCROLL
+    LTEXT           "&Timeout",IDC_STATIC,145,77,30,8
+    EDITTEXT        IDC_TIMEOUT,180,75,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Use Content-Transfer-Encoding: 8bit",IDC_USE8BIT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,40,131,10
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 285, 82

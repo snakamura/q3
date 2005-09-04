@@ -345,10 +345,7 @@ const WCHAR* qm::SubAccount::getTransferEncodingFor8Bit()
 
 void qm::SubAccount::setTransferEncodingFor8Bit(const WCHAR* pwszTransferEncodingFor8Bit)
 {
-	if (pwszTransferEncodingFor8Bit && *pwszTransferEncodingFor8Bit)
-		pImpl_->wstrTransferEncodingFor8Bit_ = allocWString(pwszTransferEncodingFor8Bit);
-	else
-		pImpl_->wstrTransferEncodingFor8Bit_.reset(0);
+	pImpl_->wstrTransferEncodingFor8Bit_ = allocWString(pwszTransferEncodingFor8Bit);
 }
 
 unsigned int qm::SubAccount::getSslOption() const

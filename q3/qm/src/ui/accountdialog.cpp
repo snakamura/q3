@@ -928,19 +928,21 @@ LRESULT qm::AccountAdvancedPage::onCommand(WORD nCode,
 LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
-	setDlgItemText(IDC_IDENTITY, pSubAccount_->getIdentity());
-	
 	setDlgItemText(IDC_SYNCFILTER, pSubAccount_->getSyncFilterName());
 	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 150);
 	updateFilter();
 	
-	setDlgItemInt(IDC_TIMEOUT, pSubAccount_->getTimeout());
 	sendDlgItemMessage(IDC_CONNECTRECEIVEHOSTBEFORESEND, BM_SETCHECK,
 		pSubAccount_->isConnectReceiveBeforeSend() ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_TREATASSENT, BM_SETCHECK,
 		pSubAccount_->isTreatAsSent() ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_ADDMESSAGEID, BM_SETCHECK,
 		pSubAccount_->isAddMessageId() ? BST_CHECKED : BST_UNCHECKED);
+	
+	const WCHAR* pwszTransferEncoding = pSubAccount_->getTransferEncodingFor8Bit();
+	if (pwszTransferEncoding && wcscmp(pwszTransferEncoding, L"8bit") == 0)
+		sendDlgItemMessage(IDC_USE8BIT, BM_SETCHECK, BST_CHECKED);
+	
 	sendDlgItemMessage(IDC_AUTOAPPLYRULES, BM_SETCHECK,
 		pSubAccount_->isAutoApplyRules() ? BST_CHECKED : BST_UNCHECKED);
 #ifndef _WIN32_WCE
@@ -952,26 +954,34 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 		pSubAccount_->getAccount()->isStoreDecodedMessage() ? BST_CHECKED : BST_UNCHECKED);
 #endif
 	
+	setDlgItemText(IDC_IDENTITY, pSubAccount_->getIdentity());
+	setDlgItemInt(IDC_TIMEOUT, pSubAccount_->getTimeout());
+	
 	return TRUE;
 }
 
 LRESULT qm::AccountAdvancedPage::onOk()
 {
-	wstring_ptr wstrIdentity(getDlgItemText(IDC_IDENTITY));
-	if (wstrIdentity.get())
-		pSubAccount_->setIdentity(wstrIdentity.get());
-	
 	wstring_ptr wstrSyncFilter(getDlgItemText(IDC_SYNCFILTER));
 	if (wstrSyncFilter.get())
 		pSubAccount_->setSyncFilterName(wstrSyncFilter.get());
 	
-	pSubAccount_->setTimeout(getDlgItemInt(IDC_TIMEOUT));
 	pSubAccount_->setConnectReceiveBeforeSend(
 		sendDlgItemMessage(IDC_CONNECTRECEIVEHOSTBEFORESEND, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->setTreatAsSent(
 		sendDlgItemMessage(IDC_TREATASSENT, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->setAddMessageId(
 		sendDlgItemMessage(IDC_ADDMESSAGEID, BM_GETCHECK) == BST_CHECKED);
+	
+	if (sendDlgItemMessage(IDC_USE8BIT, BM_GETCHECK) == BST_CHECKED) {
+		pSubAccount_->setTransferEncodingFor8Bit(L"8bit");
+	}
+	else {
+		const WCHAR* pwszTransferEncoding = pSubAccount_->getTransferEncodingFor8Bit();
+		if (pwszTransferEncoding && wcscmp(pwszTransferEncoding, L"8bit") == 0)
+			pSubAccount_->setTransferEncodingFor8Bit(L"");
+	}
+	
 	pSubAccount_->setAutoApplyRules(
 		sendDlgItemMessage(IDC_AUTOAPPLYRULES, BM_GETCHECK) == BST_CHECKED);
 #ifndef _WIN32_WCE
@@ -980,6 +990,11 @@ LRESULT qm::AccountAdvancedPage::onOk()
 	pSubAccount_->getAccount()->setStoreDecodedMessage(
 		sendDlgItemMessage(IDC_STOREDECODED, BM_GETCHECK) == BST_CHECKED);
 #endif
+	
+	wstring_ptr wstrIdentity(getDlgItemText(IDC_IDENTITY));
+	if (wstrIdentity.get())
+		pSubAccount_->setIdentity(wstrIdentity.get());
+	pSubAccount_->setTimeout(getDlgItemInt(IDC_TIMEOUT));
 	
 	return DefaultPropertyPage::onOk();
 }
