@@ -1453,7 +1453,8 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 	
 	wstring_ptr wstrDefaultEncoding(getDlgItemText(IDC_DEFAULTENCODING));
 	wstring_ptr wstrOSDefault(loadString(Application::getApplication().getResourceHandle(), IDS_OSDEFAULT));
-	if (wcscmp(wstrDefaultEncoding.get(), wstrOSDefault.get()) == 0)
+	if (wcscmp(wstrDefaultEncoding.get(), wstrOSDefault.get()) == 0 ||
+		!ConverterFactory::getInstance(wstrDefaultEncoding.get()).get())
 		pProfile_->setString(L"Global", L"DefaultCharset", L"");
 	else
 		pProfile_->setString(L"Global", L"DefaultCharset", wstrDefaultEncoding.get());

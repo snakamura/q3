@@ -570,8 +570,11 @@ bool qm::Application::initialize()
 	Init& init = Init::getInit();
 	
 	wstring_ptr wstrDefaultCharset(pImpl_->pProfile_->getString(L"Global", L"DefaultCharset", 0));
-	Part::setDefaultCharset(*wstrDefaultCharset.get() ?
-		wstrDefaultCharset.get() : init.getMailEncoding());
+	if (*wstrDefaultCharset.get() &&
+		ConverterFactory::getInstance(wstrDefaultCharset.get()).get())
+		Part::setDefaultCharset(wstrDefaultCharset.get());
+	else
+		Part::setDefaultCharset(init.getMailEncoding());
 	
 	wstring_ptr wstrLogDir(concat(pImpl_->wstrMailFolder_.get(), L"\\logs"));
 	init.setLogDirectory(wstrLogDir.get());
