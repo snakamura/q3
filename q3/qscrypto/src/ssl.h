@@ -68,6 +68,7 @@ private:
 	qs::SocketOutputStream* pOutputStream_;
 	SSL_CTX* pCTX_;
 	SSL* pSSL_;
+	unsigned int nError_;
 };
 
 

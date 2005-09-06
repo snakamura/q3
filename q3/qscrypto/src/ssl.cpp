@@ -84,13 +84,12 @@ void qscrypto::SSLSocketImpl::setTimeout(long nTimeout)
 
 unsigned int qscrypto::SSLSocketImpl::getLastError() const
 {
-	// TODO
-	return 0;
+	return nError_;
 }
 
 void qscrypto::SSLSocketImpl::setLastError(unsigned int nError)
 {
-	// TODO
+	nError_ = nError;
 }
 
 bool qscrypto::SSLSocketImpl::close()
@@ -109,8 +108,10 @@ bool qscrypto::SSLSocketImpl::close()
 	log.debug(L"SSL connection shut down.");
 	
 	if (bDeleteSocket_) {
-		if (!pSocket_->close())
+		if (!pSocket_->close()) {
+			nError_ = pSocket_->getLastError();
 			return false;
+		}
 	}
 	
 	return true;
@@ -127,6 +128,7 @@ int qscrypto::SSLSocketImpl::recv(char* p,
 	int nRead = SSL_read(pSSL_, p, nLen);
 	if (nRead < 0) {
 		LOG_SSLERROR(L"Error occured while receiving.");
+		nError_ = SOCKET_ERROR_RECV;
 		return -1;
 	}
 	
@@ -146,6 +148,7 @@ int qscrypto::SSLSocketImpl::send(const char* p,
 	int nWritten = SSL_write(pSSL_, p, nLen);
 	if (nWritten < 0) {
 		LOG_SSLERROR(L"Error occured while sending.");
+		nError_ = SOCKET_ERROR_SEND;
 		return -1;
 	}
 	
@@ -162,10 +165,15 @@ int qscrypto::SSLSocketImpl::select(int nSelect)
 int qscrypto::SSLSocketImpl::select(int nSelect,
 									long nTimeout)
 {
-	if (nSelect & SELECT_READ && SSL_pending(pSSL_) > 0)
+	if (nSelect & SELECT_READ && SSL_pending(pSSL_) > 0) {
 		return SELECT_READ;
-	else
-		return pSocket_->select(nSelect, nTimeout);
+	}
+	else {
+		int n = pSocket_->select(nSelect, nTimeout);
+		if (n == -1)
+			nError_ = pSocket_->getLastError();
+		return n;
+	}
 }
 
 InputStream* qscrypto::SSLSocketImpl::getInputStream()
@@ -191,6 +199,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	pCTX_ = SSL_CTX_new(SSLv23_method());
 	if (!pCTX_) {
 		LOG_SSLERROR(L"Error occured while creating SSL context.");
+		nError_ = SOCKET_ERROR_CONNECT;
 		return false;
 	}
 	
@@ -206,6 +215,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	pSSL_ = SSL_new(pCTX_);
 	if (!pSSL_) {
 		LOG_SSLERROR(L"Error occured while create SSL.");
+		nError_ = SOCKET_ERROR_CONNECT;
 		return false;
 	}
 	
@@ -215,6 +225,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	if (SSL_connect(pSSL_) <= 0) {
 		LOG_SSLERROR(L"Error occured while connecting.");
+		nError_ = SOCKET_ERROR_CONNECT;
 		return false;
 	}
 	
@@ -236,6 +247,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	if (!pCallback_->checkCertificate(cert, bVerified)) {
 		log.warn(L"Failed to check server certificate");
+		nError_ = SOCKET_ERROR_CONNECT;
 		return false;
 	}
 	
