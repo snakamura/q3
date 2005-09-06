@@ -27,6 +27,26 @@ using namespace qm;
 using namespace qs;
 
 
+#define RETRY(action) RETRY_RETURN(action, false)
+
+#define RETRY_RETURN(action, value) RETRY_COND_RETURN(action, false, value)
+
+#define RETRY_COND(action, condition) RETRY_COND_RETURN(action, condition, false)
+
+#define RETRY_COND_RETURN(action, condition, value) \
+	for (int n = 0; ; ++n) { \
+		if (action) \
+			break; \
+		if (cacher.isNew() || \
+			!(pImap4->getLastError() & Socket::SOCKET_ERROR_MASK_SOCKET) || \
+			condition) \
+			return value; \
+		if (!cacher.retry()) \
+			return value; \
+		pImap4 = cacher.get(); \
+	} \
+
+
 /****************************************************************************
  *
  * Imap4Driver
@@ -135,8 +155,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 			countof(c) - (bChildOfRoot ? 0 : 2));
 	}
 	
-	if (!pImap4->create(wstrFullName.get()))
-		return std::auto_ptr<NormalFolder>(0);
+	RETRY_RETURN(pImap4->create(wstrFullName.get()), std::auto_ptr<NormalFolder>(0));
 	
 	wstring_ptr wstrName;
 	size_t nFullNameLen = wcslen(wstrFullName.get());
@@ -209,8 +228,7 @@ bool qmimap4::Imap4Driver::removeFolder(NormalFolder* pFolder)
 	
 	wstring_ptr wstrName(Util::getFolderName(pFolder));
 	
-	if (!pImap4->remove(wstrName.get()))
-		return false;
+	RETRY(pImap4->remove(wstrName.get()));
 	
 	cacher.release();
 	
@@ -241,8 +259,7 @@ bool qmimap4::Imap4Driver::renameFolder(NormalFolder* pFolder,
 	p = p ? p + 1 : wstrNewName.get();
 	wcscpy(p, pwszName);
 	
-	if (!pImap4->rename(wstrOldName.get(), wstrNewName.get()))
-		return false;
+	RETRY(pImap4->rename(wstrOldName.get(), wstrNewName.get()));
 	
 	cacher.release();
 	
@@ -287,8 +304,7 @@ bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
 		}
 	}
 	
-	if (!pImap4->rename(wstrOldName.get(), wstrNewName.get()))
-		return false;
+	RETRY(pImap4->rename(wstrOldName.get(), wstrNewName.get()));
 	
 	cacher.release();
 	
@@ -357,7 +373,8 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 			nUid_(nUid),
 			bHeaderOnly_(bHeaderOnly),
 			pmh_(pmh),
-			pCallback_(pCallback)
+			pCallback_(pCallback),
+			bProcessed_(false)
 		{
 		}
 		
@@ -384,6 +401,8 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 			}
 			
 			if (nUid == nUid_ && pBody) {
+				bProcessed_ = true;
+				
 				FetchDataBody::Section s = pBody->getSection();
 				if (((s == FetchDataBody::SECTION_NONE && !bHeaderOnly_) ||
 					(s == FetchDataBody::SECTION_HEADER && bHeaderOnly_)) &&
@@ -402,6 +421,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		bool bHeaderOnly_;
 		MessageHolder* pmh_;
 		GetMessageCallback* pCallback_;
+		bool bProcessed_;
 	};
 	
 	struct BodyStructureProcessHook : public ProcessHook
@@ -558,8 +578,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	if (bBodyStructure) {
 		BodyStructureProcessHook hook(pmh->getId());
 		Hook h(pCallback_.get(), &hook);
-		if (!pImap4->getBodyStructure(range))
-			return false;
+		RETRY_COND(pImap4->getBodyStructure(range), hook.getBodyStructure());
 		FetchDataBodyStructure* pBodyStructure = hook.getBodyStructure();
 		if (pBodyStructure) {
 			Util::PartList listPart;
@@ -590,16 +609,12 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		if (bHeaderOnly) {
 			BodyProcessHook hook(pmh->getId(), true, pmh, pCallback);
 			Hook h(pCallback_.get(), &hook);
-			if (!pImap4->getHeader(range,
-				(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0))
-				return false;
+			RETRY_COND(pImap4->getHeader(range, (nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0), hook.bProcessed_);
 		}
 		else {
 			BodyProcessHook hook(pmh->getId(), false, pmh, pCallback);
 			Hook h(pCallback_.get(), &hook);
-			if (!pImap4->getMessage(range,
-				(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0))
-				return false;
+			RETRY_COND(pImap4->getMessage(range, (nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0), hook.bProcessed_);
 		}
 	}
 	
@@ -665,8 +680,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 		if (!pImap4)
 			return false;
 		
-		if (!setFlags(pImap4, *pRange, pFolder, listUpdate, nFlags, nMask))
-			return false;
+		RETRY(setFlags(pImap4, *pRange, pFolder, listUpdate, nFlags, nMask));
 		
 		cacher.release();
 	}
@@ -709,8 +723,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 		wstring_ptr wstrFolderName(Util::getFolderName(pFolder));
 		
 		Flags flags(Util::getImap4FlagsFromMessageFlags(nFlags));
-		if (!pImap4->append(wstrFolderName.get(), pszMessage, nLen, flags))
-			return false;
+		RETRY(pImap4->append(wstrFolderName.get(), pszMessage, nLen, flags));
 		
 		cacher.release();
 	}
@@ -817,8 +830,7 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 			return false;
 		
 		wstring_ptr wstrFolderName(Util::getFolderName(pFolderTo));
-		if (!pImap4->copy(*pRange, wstrFolderName.get()))
-			return false;
+		RETRY(pImap4->copy(*pRange, wstrFolderName.get()));
 		
 		cacher.release();
 		
@@ -863,7 +875,8 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 			SearchProcessHook(NormalFolder* pFolder,
 							  MessageHolderList* pList) :
 				pFolder_(pFolder),
-				pList_(pList)
+				pList_(pList),
+				bProcessed_(false)
 			{
 			}
 			
@@ -881,16 +894,18 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 						pList_->push_back(pmh);
 				}
 				
+				bProcessed_ = true;
+				
 				return true;
 			}
 			
 			NormalFolder* pFolder_;
 			MessageHolderList* pList_;
+			bool bProcessed_;
 		} hook(pFolder, pList);
 		
 		Hook h(pCallback_.get(), &hook);
-		if (!pImap4->search(pwszCondition, pwszCharset, bUseCharset, true))
-			return false;
+		RETRY_COND(pImap4->search(pwszCondition, pwszCharset, bUseCharset, true), hook.bProcessed_);
 		
 		cacher.release();
 	}
@@ -1732,14 +1747,65 @@ SubAccount* qmimap4::SessionCache::getSubAccount() const
 }
 
 bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
-									   Session* pSession)
+									   Session* pSession,
+									   bool* pbNew)
 {
 	assert(pSession);
+	
+	for (int n = 0; ; ++n) {
+		std::auto_ptr<Logger> pLogger;
+		std::auto_ptr<Imap4> pImap4;
+		unsigned int nLastSelectedTime = 0;
+		bool bNew = true;
+		if (!getSessionWithoutSelect(pFolder, &pLogger, &pImap4, &nLastSelectedTime, &bNew))
+			return false;
+		
+		if (pFolder && isNeedSelect(pFolder, nLastSelectedTime)) {
+			wstring_ptr wstrName(Util::getFolderName(pFolder));
+			if (pImap4->select(wstrName.get()))
+				nLastSelectedTime = ::GetTickCount();
+			else if (bNew || !(pImap4->getLastError() & Socket::SOCKET_ERROR_MASK_SOCKET))
+				return false;
+			else
+				continue;
+		}
+		
+		pSession->pFolder_ = pFolder;
+		pSession->pImap4_ = pImap4.release();
+		pSession->pLogger_ = pLogger.release();
+		pSession->nLastUsedTime_ = 0;
+		pSession->nLastSelectedTime_ = nLastSelectedTime;
+		*pbNew = bNew;
+		
+		break;
+	}
+	
+	return true;
+}
+
+void qmimap4::SessionCache::releaseSession(Session session)
+{
+	assert(listSession_.size() < nMaxSession_);
+	session.nLastUsedTime_ = ::GetTickCount();
+	listSession_.push_back(session);
+}
+
+bool qmimap4::SessionCache::getSessionWithoutSelect(NormalFolder* pFolder,
+													std::auto_ptr<Logger>* ppLogger,
+													std::auto_ptr<Imap4>* ppImap4,
+													unsigned int* pnLastSelectedTime,
+													bool* pbNew)
+{
+	assert(ppLogger);
+	assert(ppImap4);
+	assert(pnLastSelectedTime);
+	assert(pbNew);
 	
 	std::auto_ptr<Logger> pLogger;
 	std::auto_ptr<Imap4> pImap4;
 	unsigned int nLastUsedTime = 0;
 	unsigned int nLastSelectedTime = 0;
+	bool bNew = false;
 	SessionList::iterator it = std::find_if(
 		listSession_.begin(), listSession_.end(),
 		std::bind2nd(
@@ -1785,29 +1851,15 @@ bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 			return false;
 		
 		nLastSelectedTime = 0;
+		bNew = true;
 	}
 	
-	if (pFolder && isNeedSelect(pFolder, nLastSelectedTime)) {
-		wstring_ptr wstrName(Util::getFolderName(pFolder));
-		if (!pImap4->select(wstrName.get()))
-			return false;
-		nLastSelectedTime = ::GetTickCount();
-	}
-	
-	pSession->pFolder_ = pFolder;
-	pSession->pImap4_ = pImap4.release();
-	pSession->pLogger_ = pLogger.release();
-	pSession->nLastUsedTime_ = 0;
-	pSession->nLastSelectedTime_ = nLastSelectedTime;
+	*ppLogger = pLogger;
+	*ppImap4 = pImap4;
+	*pnLastSelectedTime = nLastSelectedTime;
+	*pbNew = bNew;
 	
 	return true;
-}
-
-void qmimap4::SessionCache::releaseSession(Session session)
-{
-	assert(listSession_.size() < nMaxSession_);
-	session.nLastUsedTime_ = ::GetTickCount();
-	listSession_.push_back(session);
 }
 
 bool qmimap4::SessionCache::isNeedSelect(NormalFolder* pFolder,
@@ -1838,29 +1890,27 @@ bool qmimap4::SessionCache::isForceDisconnect(unsigned int nLastUsedTime) const
 
 qmimap4::SessionCacher::SessionCacher(SessionCache* pCache,
 									  NormalFolder* pFolder) :
-	pCache_(pCache)
+	pCache_(pCache),
+	pFolder_(pFolder),
+	bNew_(true)
 {
-	session_.pFolder_ = 0;
-	session_.pImap4_ = 0;
-	session_.pLogger_ = 0;
-	session_.nLastSelectedTime_ = 0;
-	
-	if (!pCache->getSession(pFolder, &session_)) {
-		assert(!session_.pFolder_);
-		assert(!session_.pImap4_);
-		assert(!session_.pLogger_);
-	}
+	init();
+	create();
 }
 
 qmimap4::SessionCacher::~SessionCacher()
 {
-	delete session_.pImap4_;
-	delete session_.pLogger_;
+	destroy();
 }
 
 Imap4* qmimap4::SessionCacher::get() const
 {
 	return session_.pImap4_;
+}
+
+bool qmimap4::SessionCacher::isNew() const
+{
+	return bNew_;
 }
 
 void qmimap4::SessionCacher::release()
@@ -1871,4 +1921,38 @@ void qmimap4::SessionCacher::release()
 		session_.pImap4_ = 0;
 		session_.pLogger_ = 0;
 	}
+}
+
+bool qmimap4::SessionCacher::retry()
+{
+	destroy();
+	return create();
+}
+
+void qmimap4::SessionCacher::init()
+{
+	session_.pFolder_ = 0;
+	session_.pImap4_ = 0;
+	session_.pLogger_ = 0;
+	session_.nLastSelectedTime_ = 0;
+	bNew_ = true;
+}
+
+bool qmimap4::SessionCacher::create()
+{
+	if (!pCache_->getSession(pFolder_, &session_, &bNew_)) {
+		assert(!session_.pFolder_);
+		assert(!session_.pImap4_);
+		assert(!session_.pLogger_);
+		return false;
+	}
+	return true;
+}
+
+void qmimap4::SessionCacher::destroy()
+{
+	delete session_.pImap4_;
+	delete session_.pLogger_;
+	
+	init();
 }

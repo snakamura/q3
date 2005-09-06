@@ -415,10 +415,16 @@ public:
 public:
 	qm::SubAccount* getSubAccount() const;
 	bool getSession(qm::NormalFolder* pFolder,
-					Session* pSession);
+					Session* pSession,
+					bool* pbNew);
 	void releaseSession(Session session);
 
 private:
+	bool getSessionWithoutSelect(qm::NormalFolder* pFolder,
+								 std::auto_ptr<qs::Logger>* ppLogger,
+								 std::auto_ptr<Imap4>* ppImap4,
+								 unsigned int* pnLastSelectedTime,
+								 bool* pbNew);
 	bool isNeedSelect(qm::NormalFolder* pFolder,
 					  unsigned int nLastSelectedTime);
 	bool isForceDisconnect(unsigned int nLastUsedTime) const;
@@ -456,7 +462,14 @@ public:
 
 public:
 	Imap4* get() const;
+	bool isNew() const;
 	void release();
+	bool retry();
+
+private:
+	void init();
+	bool create();
+	void destroy();
 
 private:
 	SessionCacher(const SessionCacher&);
@@ -464,7 +477,9 @@ private:
 
 private:
 	SessionCache* pCache_;
+	qm::NormalFolder* pFolder_;
 	Session session_;
+	bool bNew_;
 };
 
 }
