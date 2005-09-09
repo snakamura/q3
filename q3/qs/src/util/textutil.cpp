@@ -230,16 +230,19 @@ const WCHAR* qs::TextUtil::getBreak(const WCHAR* pBegin,
 {
 	assert(pBegin < p && p <= pEnd);
 	
+	if (p < pEnd && isDangling(*p)) {
+		if (p + 1 == pEnd ||
+			(isBreakBefore(*(p + 1)) && !isLineStartProhibited(*(p + 1))))
+			return p + 1;
+		else if (isBreakSelf(*(p + 1)) &&
+			(p + 2 == pEnd || !isLineStartProhibited(*(p + 2))))
+			return p + 2;
+	}
+	
 	ssize_t nFit = p - pBegin;
 	for (ssize_t n = nFit; n > 0; --n) {
 		WCHAR c = *(pBegin + n);
-		if (isDangling(c) &&
-			(pBegin + n + 1 == pEnd ||
-			!isLineStartProhibited(*(pBegin + n + 1)))) {
-			nFit = n + 1;
-			break;
-		}
-		else if (n != nFit &&
+		if (n != nFit &&
 			(isBreakSelf(c) ||
 			(isBreakAfter(c) && !isLineEndProhibited(c))) &&
 			!isLineStartProhibited(*(pBegin + n + 1))) {
