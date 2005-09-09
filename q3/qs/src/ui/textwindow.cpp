@@ -801,9 +801,9 @@ void qs::TextWindowImpl::calcLines(size_t nStartLine,
 					SIZE size;
 					getTextExtent(dc, pBegin, static_cast<int>(p - pBegin),
 						nFormatWidth - nLineWidth, &nFit, 0, &size);
-					if ((nFit != p - pBegin || p == pEnd ||
-						static_cast<unsigned int>(size.cx) == nFormatWidth - nLineWidth) &&
-						(*p != L'\n' || !bWordWrap_)) {
+					if (nFit != p - pBegin || p == pEnd ||
+						(static_cast<unsigned int>(size.cx) == nFormatWidth - nLineWidth &&
+							(*p != L'\n' || !bWordWrap_))) {
 						if (bWordWrap_ && nFit != p - pBegin) {
 							const WCHAR* pBreak = TextUtil::getBreak(pBegin, pEnd, pBegin + nFit);
 							if (pBreak - pBegin != nFit) {
