@@ -106,7 +106,7 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 		break;
 	case TYPE_MESSAGE:
 		init.hwnd_ = info.window_.pMessageFrameWindow_->getHandle();
-		init.type_ = ScriptFactory::TYPE_EDIT;
+		init.type_ = ScriptFactory::TYPE_MESSAGE;
 		init.window_.pMessageFrameWindow_ = info.window_.pMessageFrameWindow_;
 		break;
 	default:
