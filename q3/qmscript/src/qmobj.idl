@@ -28,8 +28,14 @@ library qm
 	interface IMessageHolder;
 	interface IMessageHolderList;
 	interface IMessage;
+	interface IActionTarget;
+	interface IMainWindow;
+	interface IEditFrameWindow;
+	interface IMessageFrameWindow;
 	interface IMacro;
 	interface IMacroParser;
+	interface IArgumentList;
+	interface IResult;
 	
 	[
 		object,
@@ -211,42 +217,43 @@ library qm
 	
 	[
 		object,
-		uuid(9c1aae75-21fb-40ba-bae3-1cca8032e70e),
+		uuid(df023a6a-c390-43db-a43b-0d86be1d79b1),
 		pointer_default(unique)
 	]
-	interface IMainWindow : IDispatch
+	interface IActionTarget : IDispatch
 	{
 		HRESULT invokeAction([in] BSTR bstrAction,
 							 [in, optional] VARIANT arg1,
 							 [in, optional] VARIANT arg2,
 							 [in, optional] VARIANT arg3);
-	}
+	};
+	
+	[
+		object,
+		uuid(9c1aae75-21fb-40ba-bae3-1cca8032e70e),
+		pointer_default(unique)
+	]
+	interface IMainWindow : IActionTarget
+	{
+	};
 	
 	[
 		object,
 		uuid(244afdfe-33c6-4ab7-8fa1-8452e82d7a64),
 		pointer_default(unique)
 	]
-	interface IEditFrameWindow : IDispatch
+	interface IEditFrameWindow : IActionTarget
 	{
-		HRESULT invokeAction([in] BSTR bstrAction,
-							 [in, optional] VARIANT arg1,
-							 [in, optional] VARIANT arg2,
-							 [in, optional] VARIANT arg3);
-	}
+	};
 	
 	[
 		object,
 		uuid(2d66e342-68eb-491c-b0a4-9eb84197db88),
 		pointer_default(unique)
 	]
-	interface IMessageFrameWindow : IDispatch
+	interface IMessageFrameWindow : IActionTarget
 	{
-		HRESULT invokeAction([in] BSTR bstrAction,
-							 [in, optional] VARIANT arg1,
-							 [in, optional] VARIANT arg2,
-							 [in, optional] VARIANT arg3);
-	}
+	};
 	
 	[
 		object,

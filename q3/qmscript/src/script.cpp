@@ -141,6 +141,7 @@ bool qmscript::ScriptImpl::load(const ScriptFactory::Init& init)
 	} names[] = {
 		{ L"application",			true									},
 		{ L"document",				true									},
+		{ L"actionTarget",			true									},
 		{ L"mainWindow",			init.window_.pMainWindow_ != 0			},
 		{ L"editFrameWindow",		init.window_.pEditFrameWindow_ != 0		},
 		{ L"messageFrameWindow",	init.window_.pMessageFrameWindow_ != 0	},
@@ -321,12 +322,21 @@ STDMETHODIMP qmscript::ActiveScriptSite::GetItemInfo(LPCOLESTR pwszName,
 	
 	HRESULT hr = S_OK;
 	
+	IActionTarget* pActionTarget = 0;
+	if (pMainWindow_.get())
+		pActionTarget = pMainWindow_.get();
+	else if (pEditFrameWindow_.get())
+		pActionTarget = pEditFrameWindow_.get();
+	else if (pMessageFrameWindow_.get())
+		pActionTarget = pMessageFrameWindow_.get();
+	
 	struct {
 		const WCHAR* pwszName_;
 		IDispatch* pDisp_;
 	} items[] = {
 		{ L"application",			pApplication_.get()			},
 		{ L"document",				pDocument_.get()			},
+		{ L"actionTarget",			pActionTarget				},
 		{ L"macroParser",			pMacroParser_.get()			},
 		{ L"arguments",				pArgumentList_.get()		},
 		{ L"result",				pResult_.get()				},
