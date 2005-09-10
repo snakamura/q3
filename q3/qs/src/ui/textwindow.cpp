@@ -1300,25 +1300,27 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 			nStartChar = caret_.nChar_;
 		}
 		
+		const PhysicalLine* pStart = listLine_[nStartLine];
+		const PhysicalLine* pEnd = bSelected ? listLine_[nEndLine] : 0;
+		
+		size_t nLogicalStartLine = pStart->nLogicalLine_;
+		size_t nLogicalStartChar = pStart->nPosition_ + nStartChar;
+		size_t nLogicalEndLine = pEnd ? pEnd->nLogicalLine_ : -1;
+		size_t nLogicalEndChar = pEnd ? pEnd->nPosition_ + nEndChar : -1;
+		
 		size_t nLine = 0;
 		size_t nChar = 0;
-		const PhysicalLine* pStart = listLine_[nStartLine];
-		if (bSelected) {
-			const PhysicalLine* pEnd = listLine_[nEndLine];
-			pTextModel_->update(pStart->nLogicalLine_,
-				pStart->nPosition_ + nStartChar, pEnd->nLogicalLine_,
-				pEnd->nPosition_ + nEndChar, pwsz, nLen, &nLine, &nChar);
-		}
-		else {
-			pTextModel_->update(pStart->nLogicalLine_,
-				pStart->nPosition_ + nStartChar, -1, -1,
-				pwsz, nLen, &nLine, &nChar);
-		}
+		pTextModel_->update(nLogicalStartLine, nLogicalStartChar,
+			nLogicalEndLine, nLogicalEndChar, pwsz, nLen, &nLine, &nChar);
 		nExtentLine_ = -1;
 		
-		std::pair<size_t, size_t> line = getPhysicalLine(nLine, nChar);
-		caret_.nLine_ = line.first;
-		caret_.nChar_ = line.second;
+		std::pair<size_t, size_t> lineStart(nStartLine, nStartChar);
+		if (bWordWrap_)
+			lineStart = getPhysicalLine(nLogicalStartLine, nLogicalStartChar);
+		
+		std::pair<size_t, size_t> lineCaret(getPhysicalLine(nLine, nChar));
+		caret_.nLine_ = lineCaret.first;
+		caret_.nChar_ = lineCaret.second;
 		caret_.nPos_ = getPosFromChar(caret_.nLine_, caret_.nChar_);
 		caret_.nOldPos_ = caret_.nPos_;
 		updateCaret(true);
@@ -1326,14 +1328,14 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 		switch (flag) {
 		case INSERTTEXTFLAG_NORMAL:
 		case INSERTTEXTFLAG_REDO:
-			pUndoManager_->pushUndoItem(nStartLine, nStartChar,
-				line.first, line.second, bReverse ? nStartLine : nEndLine,
+			pUndoManager_->pushUndoItem(lineStart.first, lineStart.second,
+				lineCaret.first, lineCaret.second, bReverse ? nStartLine : nEndLine,
 				bReverse ? nStartChar : nEndChar, wstrSelected,
 				flag == INSERTTEXTFLAG_NORMAL);
 			break;
 		case INSERTTEXTFLAG_UNDO:
-			pUndoManager_->pushRedoItem(nStartLine, nStartChar,
-				line.first, line.second, bReverse ? nStartLine : nEndLine,
+			pUndoManager_->pushRedoItem(lineStart.first, lineStart.second,
+				lineCaret.first, lineCaret.second, bReverse ? nStartLine : nEndLine,
 				bReverse ? nStartChar : nEndChar, wstrSelected);
 			break;
 		default:
