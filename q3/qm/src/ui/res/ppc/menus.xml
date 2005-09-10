@@ -50,6 +50,7 @@
 				<menuitem text="Raw Mode" action="ViewRawMode"/>
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
+				<separator/>
 				<menuitem text="HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="HTML Online Mode" action="ViewHtmlOnlineMode"/>
 				<menuitem text="HTML Internet Zone" action="ViewHtmlInternetZoneMode"/>
@@ -197,6 +198,7 @@
 				<menuitem text="Raw Mode" action="ViewRawMode"/>
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
+				<separator/>
 				<menuitem text="HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="HTML Online Mode" action="ViewHtmlOnlineMode"/>
 				<menuitem text="HTML Internet Zone" action="ViewHtmlInternetZoneMode"/>
