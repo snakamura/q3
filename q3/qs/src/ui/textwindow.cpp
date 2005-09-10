@@ -27,6 +27,7 @@
 #endif
 
 #include "resourceinc.h"
+#include "textmodel.h"
 #include "textwindow.h"
 
 using namespace qs;
@@ -316,7 +317,6 @@ public:
 	TextWindow* pThis_;
 	TextModel* pTextModel_;
 	LineList listLine_;
-	std::auto_ptr<TextWindowUndoManager> pUndoManager_;
 	TextWindowLinkHandler* pLinkHandler_;
 	TextWindowRuler* pRuler_;
 	
@@ -1314,10 +1314,6 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 			nLogicalEndLine, nLogicalEndChar, pwsz, nLen, &nLine, &nChar);
 		nExtentLine_ = -1;
 		
-		std::pair<size_t, size_t> lineStart(nStartLine, nStartChar);
-		if (bWordWrap_)
-			lineStart = getPhysicalLine(nLogicalStartLine, nLogicalStartChar);
-		
 		std::pair<size_t, size_t> lineCaret(getPhysicalLine(nLine, nChar));
 		caret_.nLine_ = lineCaret.first;
 		caret_.nChar_ = lineCaret.second;
@@ -1325,18 +1321,19 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 		caret_.nOldPos_ = caret_.nPos_;
 		updateCaret(true);
 		
+		TextModelUndoManager* pUndoManager = pTextModel_->getUndoManager();
 		switch (flag) {
 		case INSERTTEXTFLAG_NORMAL:
 		case INSERTTEXTFLAG_REDO:
-			pUndoManager_->pushUndoItem(lineStart.first, lineStart.second,
-				lineCaret.first, lineCaret.second, bReverse ? nStartLine : nEndLine,
-				bReverse ? nStartChar : nEndChar, wstrSelected,
+			pUndoManager->pushUndoItem(nLogicalStartLine, nLogicalStartChar,
+				nLine, nChar, bReverse ? nLogicalStartLine : nLogicalEndLine,
+				bReverse ? nLogicalStartChar : nLogicalEndChar, wstrSelected,
 				flag == INSERTTEXTFLAG_NORMAL);
 			break;
 		case INSERTTEXTFLAG_UNDO:
-			pUndoManager_->pushRedoItem(lineStart.first, lineStart.second,
-				lineCaret.first, lineCaret.second, bReverse ? nStartLine : nEndLine,
-				bReverse ? nStartChar : nEndChar, wstrSelected);
+			pUndoManager->pushRedoItem(nLogicalStartLine, nLogicalStartChar,
+				nLine, nChar, bReverse ? nLogicalStartLine : nLogicalEndLine,
+				bReverse ? nLogicalStartChar : nLogicalEndChar, wstrSelected);
 			break;
 		default:
 			assert(false);
@@ -1651,7 +1648,6 @@ void qs::TextWindowImpl::textSet(const TextModelEvent& event)
 	caret_.nPos_ = listLine_.empty() ? 0 : getPosFromChar(caret_.nLine_, caret_.nChar_);
 	caret_.nOldPos_ = caret_.nPos_;
 	clearSelection();
-	pUndoManager_->clear();
 	scrollHorizontal(0);
 	scrollVertical(0);
 	updateScrollBar();
@@ -2046,7 +2042,6 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_ = new TextWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pTextModel_ = pTextModel;
-	pImpl_->pUndoManager_.reset(new TextWindowUndoManager());
 	pImpl_->pLinkHandler_ = 0;
 	pImpl_->pRuler_ = 0;
 	pImpl_->crForeground_ = RGB(0, 0, 0);
@@ -2239,29 +2234,34 @@ bool qs::TextWindow::undo()
 	if (!pImpl_->pTextModel_->isEditable())
 		return false;
 	
-	if (!pImpl_->pUndoManager_->hasUndoItem())
+	TextModelUndoManager* pUndoManager = pImpl_->pTextModel_->getUndoManager();
+	if (!pUndoManager->hasUndoItem())
 		return false;
 	
-	std::auto_ptr<TextWindowUndoManager::Item> pItem(
-		pImpl_->pUndoManager_->popUndoItem());
+	std::auto_ptr<TextModelUndoManager::Item> pItem(pUndoManager->popUndoItem());
 	pImpl_->clearSelection();
-	pImpl_->expandSelection(pItem->getStartLine(), pItem->getStartChar(),
-		pItem->getEndLine(), pItem->getEndChar());
-	moveCaret(TextWindow::MOVECARET_POS, pItem->getEndLine(),
-		pItem->getEndChar(), false, TextWindow::SELECT_NONE, false);
-	if (!pImpl_->insertText(pItem->getText(), -1,
-		TextWindowImpl::INSERTTEXTFLAG_UNDO))
+	std::pair<size_t, size_t> start(pImpl_->getPhysicalLine(
+		pItem->getStartLine(), pItem->getStartChar()));
+	std::pair<size_t, size_t> end(pImpl_->getPhysicalLine(
+		pItem->getEndLine(), pItem->getEndChar()));
+	pImpl_->expandSelection(start.first, start.second, end.first, end.second);
+	moveCaret(TextWindow::MOVECARET_POS, end.first,
+		end.second, false, TextWindow::SELECT_NONE, false);
+	if (!pImpl_->insertText(pItem->getText(), -1, TextWindowImpl::INSERTTEXTFLAG_UNDO))
 		return false;
 	
-	moveCaret(TextWindow::MOVECARET_POS, pItem->getCaretLine(),
-		 pItem->getCaretChar(), false, TextWindow::SELECT_NONE, true);
+	std::pair<size_t, size_t> caret(pImpl_->getPhysicalLine(
+		pItem->getCaretLine(), pItem->getCaretChar()));
+	moveCaret(TextWindow::MOVECARET_POS, caret.first,
+		caret.second, false, TextWindow::SELECT_NONE, true);
 	
 	return true;
 }
 
 bool qs::TextWindow::canUndo() const
 {
-	return pImpl_->pUndoManager_->hasUndoItem();
+	TextModelUndoManager* pUndoManager = pImpl_->pTextModel_->getUndoManager();
+	return pUndoManager->hasUndoItem();
 }
 
 bool qs::TextWindow::redo()
@@ -2269,27 +2269,32 @@ bool qs::TextWindow::redo()
 	if (!pImpl_->pTextModel_->isEditable())
 		return false;
 	
-	if (!pImpl_->pUndoManager_->hasRedoItem())
+	TextModelUndoManager* pUndoManager = pImpl_->pTextModel_->getUndoManager();
+	if (!pUndoManager->hasRedoItem())
 		return false;
 	
-	std::auto_ptr<TextWindowUndoManager::Item> pItem(
-		pImpl_->pUndoManager_->popRedoItem());
+	std::auto_ptr<TextModelUndoManager::Item> pItem(pUndoManager->popRedoItem());
 	pImpl_->clearSelection();
-	pImpl_->expandSelection(pItem->getStartLine(), pItem->getStartChar(),
-		pItem->getEndLine(), pItem->getEndChar());
-	if (!pImpl_->insertText(pItem->getText(), -1,
-		TextWindowImpl::INSERTTEXTFLAG_REDO))
+	std::pair<size_t, size_t> start(pImpl_->getPhysicalLine(
+		pItem->getStartLine(), pItem->getStartChar()));
+	std::pair<size_t, size_t> end(pImpl_->getPhysicalLine(
+		pItem->getEndLine(), pItem->getEndChar()));
+	pImpl_->expandSelection(start.first, start.second, end.first, end.second);
+	if (!pImpl_->insertText(pItem->getText(), -1, TextWindowImpl::INSERTTEXTFLAG_REDO))
 		return false;
 	
-	moveCaret(TextWindow::MOVECARET_POS,pItem->getCaretLine(),
-		 pItem->getCaretChar(), false, TextWindow::SELECT_NONE, true);
+	std::pair<size_t, size_t> caret(pImpl_->getPhysicalLine(
+		pItem->getCaretLine(), pItem->getCaretChar()));
+	moveCaret(TextWindow::MOVECARET_POS, caret.first,
+		caret.second, false, TextWindow::SELECT_NONE, true);
 	
 	return true;
 }
 
 bool qs::TextWindow::canRedo() const
 {
-	return pImpl_->pUndoManager_->hasRedoItem();
+	TextModelUndoManager* pUndoManager = pImpl_->pTextModel_->getUndoManager();
+	return pUndoManager->hasRedoItem();
 }
 
 bool qs::TextWindow::find(const WCHAR* pwszFind,
@@ -4064,161 +4069,6 @@ LRESULT qs::TextWindow::onVScroll(UINT nCode,
 
 qs::TextWindowLinkHandler::~TextWindowLinkHandler()
 {
-}
-
-
-/****************************************************************************
- *
- * TextWindowUndoManager
- *
- */
-
-qs::TextWindowUndoManager::TextWindowUndoManager()
-{
-}
-
-qs::TextWindowUndoManager::~TextWindowUndoManager()
-{
-	clear();
-}
-
-void qs::TextWindowUndoManager::pushUndoItem(size_t nStartLine,
-											 size_t nStartChar,
-											 size_t nEndLine,
-											 size_t nEndChar,
-											 size_t nCaretLine,
-											 size_t nCaretChar,
-											 wstring_ptr wstrText,
-											 bool bClearRedo)
-{
-	std::auto_ptr<Item> pItem(new Item(nStartLine, nStartChar,
-		nEndLine, nEndChar, nCaretLine, nCaretChar, wstrText));
-	listUndo_.push_back(pItem.get());
-	pItem.release();
-	
-	if (bClearRedo)
-		clearRedoItems();
-}
-
-TextWindowUndoManager::Item* qs::TextWindowUndoManager::popUndoItem()
-{
-	assert(!listUndo_.empty());
-	Item* pItem = listUndo_.back();
-	listUndo_.pop_back();
-	return pItem;
-}
-
-bool qs::TextWindowUndoManager::hasUndoItem() const
-{
-	return !listUndo_.empty();
-}
-
-void qs::TextWindowUndoManager::pushRedoItem(size_t nStartLine,
-											 size_t nStartChar,
-											 size_t nEndLine,
-											 size_t nEndChar,
-											 size_t nCaretLine,
-											 size_t nCaretChar,
-											 wstring_ptr wstrText)
-{
-	std::auto_ptr<Item> pItem(new Item(nStartLine, nStartChar,
-		nEndLine, nEndChar, nCaretLine, nCaretChar, wstrText));
-	listRedo_.push_back(pItem.get());
-	pItem.release();
-}
-
-TextWindowUndoManager::Item* qs::TextWindowUndoManager::popRedoItem()
-{
-	assert(!listRedo_.empty());
-	Item* pItem = listRedo_.back();
-	listRedo_.pop_back();
-	return pItem;
-}
-
-bool qs::TextWindowUndoManager::hasRedoItem() const
-{
-	return !listRedo_.empty();
-}
-
-void qs::TextWindowUndoManager::clearRedoItems()
-{
-	std::for_each(listRedo_.begin(), listRedo_.end(), deleter<Item>());
-	listRedo_.clear();
-}
-
-void qs::TextWindowUndoManager::clear()
-{
-	ItemList* pLists[] = {
-		&listUndo_,
-		&listRedo_
-	};
-	for (int n = 0; n < countof(pLists); ++n) {
-		std::for_each(pLists[n]->begin(), pLists[n]->end(), deleter<Item>());
-		pLists[n]->clear();
-	}
-}
-
-
-/****************************************************************************
- *
- * TextWindowUndoManager::Item
- *
- */
-
-qs::TextWindowUndoManager::Item::Item(size_t nStartLine,
-									  size_t nStartChar,
-									  size_t nEndLine,
-									  size_t nEndChar,
-									  size_t nCaretLine,
-									  size_t nCaretChar,
-									  wstring_ptr wstrText) :
-	nStartLine_(nStartLine),
-	nStartChar_(nStartChar),
-	nEndLine_(nEndLine),
-	nEndChar_(nEndChar),
-	nCaretLine_(nCaretLine),
-	nCaretChar_(nCaretChar),
-	wstrText_(wstrText)
-{
-}
-
-qs::TextWindowUndoManager::Item::~Item()
-{
-}
-
-size_t qs::TextWindowUndoManager::Item::getStartLine() const
-{
-	return nStartLine_;
-}
-
-size_t qs::TextWindowUndoManager::Item::getStartChar() const
-{
-	return nStartChar_;
-}
-
-size_t qs::TextWindowUndoManager::Item::getEndLine() const
-{
-	return nEndLine_;
-}
-
-size_t qs::TextWindowUndoManager::Item::getEndChar() const
-{
-	return nEndChar_;
-}
-
-size_t qs::TextWindowUndoManager::Item::getCaretLine() const
-{
-	return nCaretLine_;
-}
-
-size_t qs::TextWindowUndoManager::Item::getCaretChar() const
-{
-	return nCaretChar_;
-}
-
-const WCHAR* qs::TextWindowUndoManager::Item::getText() const
-{
-	return wstrText_.get() ? wstrText_.get() : L"";
 }
 
 

@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "textmodel.h"
+
 using namespace qs;
 
 
@@ -167,6 +169,7 @@ public:
 public:
 	EditableTextModel* pThis_;
 	LineList listLine_;
+	std::auto_ptr<TextModelUndoManager> pUndoManager_;
 };
 
 void qs::EditableTextModelImpl::clear()
@@ -174,6 +177,7 @@ void qs::EditableTextModelImpl::clear()
 	std::for_each(listLine_.begin(),
 		listLine_.end(), deleter<EditLine>());
 	listLine_.clear();
+	pUndoManager_->clear();
 }
 
 void qs::EditableTextModelImpl::clearLines(size_t nStart,
@@ -241,6 +245,7 @@ qs::EditableTextModel::EditableTextModel() :
 {
 	pImpl_ = new EditableTextModelImpl();
 	pImpl_->pThis_ = this;
+	pImpl_->pUndoManager_.reset(new TextModelUndoManager());
 }
 
 qs::EditableTextModel::~EditableTextModel()
@@ -448,6 +453,11 @@ void qs::EditableTextModel::update(size_t nStartLine,
 	fireTextUpdated(nStartLine, nEndLine, *pnLine);
 }
 
+TextModelUndoManager* qs::EditableTextModel::getUndoManager() const
+{
+	return pImpl_->pUndoManager_.get();
+}
+
 
 /****************************************************************************
  *
@@ -499,7 +509,7 @@ bool qs::ReadOnlyTextModelImpl::appendText(const WCHAR* pwszText,
 										   size_t nLen,
 										   bool bFireEvent)
 {
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = wcslen(pwszText);
 	
 	size_t nOldLen = pBuffer_->getLength();
@@ -734,6 +744,12 @@ void qs::ReadOnlyTextModel::update(size_t nStartLine,
 	assert(false);
 }
 
+TextModelUndoManager* qs::ReadOnlyTextModel::getUndoManager() const
+{
+	assert(false);
+	return 0;
+}
+
 
 /****************************************************************************
  *
@@ -817,4 +833,159 @@ qs::ReadOnlyTextModelEvent::~ReadOnlyTextModelEvent()
 ReadOnlyTextModel* qs::ReadOnlyTextModelEvent::getTextModel() const
 {
 	return pTextModel_;
+}
+
+
+/****************************************************************************
+ *
+ * TextModelUndoManager
+ *
+ */
+
+qs::TextModelUndoManager::TextModelUndoManager()
+{
+}
+
+qs::TextModelUndoManager::~TextModelUndoManager()
+{
+	clear();
+}
+
+void qs::TextModelUndoManager::pushUndoItem(size_t nStartLine,
+											size_t nStartChar,
+											size_t nEndLine,
+											size_t nEndChar,
+											size_t nCaretLine,
+											size_t nCaretChar,
+											wstring_ptr wstrText,
+											bool bClearRedo)
+{
+	std::auto_ptr<Item> pItem(new Item(nStartLine, nStartChar,
+		nEndLine, nEndChar, nCaretLine, nCaretChar, wstrText));
+	listUndo_.push_back(pItem.get());
+	pItem.release();
+	
+	if (bClearRedo)
+		clearRedoItems();
+}
+
+TextModelUndoManager::Item* qs::TextModelUndoManager::popUndoItem()
+{
+	assert(!listUndo_.empty());
+	Item* pItem = listUndo_.back();
+	listUndo_.pop_back();
+	return pItem;
+}
+
+bool qs::TextModelUndoManager::hasUndoItem() const
+{
+	return !listUndo_.empty();
+}
+
+void qs::TextModelUndoManager::pushRedoItem(size_t nStartLine,
+											size_t nStartChar,
+											size_t nEndLine,
+											size_t nEndChar,
+											size_t nCaretLine,
+											size_t nCaretChar,
+											wstring_ptr wstrText)
+{
+	std::auto_ptr<Item> pItem(new Item(nStartLine, nStartChar,
+		nEndLine, nEndChar, nCaretLine, nCaretChar, wstrText));
+	listRedo_.push_back(pItem.get());
+	pItem.release();
+}
+
+TextModelUndoManager::Item* qs::TextModelUndoManager::popRedoItem()
+{
+	assert(!listRedo_.empty());
+	Item* pItem = listRedo_.back();
+	listRedo_.pop_back();
+	return pItem;
+}
+
+bool qs::TextModelUndoManager::hasRedoItem() const
+{
+	return !listRedo_.empty();
+}
+
+void qs::TextModelUndoManager::clearRedoItems()
+{
+	std::for_each(listRedo_.begin(), listRedo_.end(), deleter<Item>());
+	listRedo_.clear();
+}
+
+void qs::TextModelUndoManager::clear()
+{
+	ItemList* pLists[] = {
+		&listUndo_,
+		&listRedo_
+	};
+	for (int n = 0; n < countof(pLists); ++n) {
+		std::for_each(pLists[n]->begin(), pLists[n]->end(), deleter<Item>());
+		pLists[n]->clear();
+	}
+}
+
+
+/****************************************************************************
+ *
+ * TextModelUndoManager::Item
+ *
+ */
+
+qs::TextModelUndoManager::Item::Item(size_t nStartLine,
+									 size_t nStartChar,
+									 size_t nEndLine,
+									 size_t nEndChar,
+									 size_t nCaretLine,
+									 size_t nCaretChar,
+									 wstring_ptr wstrText) :
+	nStartLine_(nStartLine),
+	nStartChar_(nStartChar),
+	nEndLine_(nEndLine),
+	nEndChar_(nEndChar),
+	nCaretLine_(nCaretLine),
+	nCaretChar_(nCaretChar),
+	wstrText_(wstrText)
+{
+}
+
+qs::TextModelUndoManager::Item::~Item()
+{
+}
+
+size_t qs::TextModelUndoManager::Item::getStartLine() const
+{
+	return nStartLine_;
+}
+
+size_t qs::TextModelUndoManager::Item::getStartChar() const
+{
+	return nStartChar_;
+}
+
+size_t qs::TextModelUndoManager::Item::getEndLine() const
+{
+	return nEndLine_;
+}
+
+size_t qs::TextModelUndoManager::Item::getEndChar() const
+{
+	return nEndChar_;
+}
+
+size_t qs::TextModelUndoManager::Item::getCaretLine() const
+{
+	return nCaretLine_;
+}
+
+size_t qs::TextModelUndoManager::Item::getCaretChar() const
+{
+	return nCaretChar_;
+}
+
+const WCHAR* qs::TextModelUndoManager::Item::getText() const
+{
+	return wstrText_.get() ? wstrText_.get() : L"";
 }

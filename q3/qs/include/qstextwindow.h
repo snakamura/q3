@@ -28,6 +28,7 @@ class TextWindowLinkHandler;
 
 class Profile;
 class Reader;
+class TextModelUndoManager;
 
 
 /****************************************************************************
@@ -70,6 +71,7 @@ public:
 						size_t nLen,
 						size_t* pnLine,
 						size_t* pnChar) = 0;
+	virtual TextModelUndoManager* getUndoManager() const = 0;
 	virtual void addTextModelHandler(TextModelHandler* pHandler) = 0;
 	virtual void removeTextModelHandler(TextModelHandler* pHandler) = 0;
 };
@@ -135,6 +137,7 @@ public:
 						size_t nLen,
 						size_t* pnLine,
 						size_t* pnChar);
+	virtual TextModelUndoManager* getUndoManager() const;
 
 private:
 	EditableTextModel(const EditableTextModel&);
@@ -180,6 +183,7 @@ public:
 						size_t nLen,
 						size_t* pnLine,
 						size_t* pnChar);
+	virtual TextModelUndoManager* getUndoManager() const;
 
 private:
 	ReadOnlyTextModel(const ReadOnlyTextModel&);
