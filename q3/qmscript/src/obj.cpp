@@ -836,6 +836,7 @@ HRESULT qmscript::MainWindowImpl::internalQueryInterface(REFIID riid,
 														 void** ppv)
 {
 	BEGIN_INTERFACE_MAP()
+		INTERFACE_ENTRY(IID_IActionTarget, IActionTarget)
 		INTERFACE_ENTRY(IID_IMainWindow, IMainWindow)
 	END_INTERFACE_MAP()
 }
@@ -871,6 +872,7 @@ HRESULT qmscript::EditFrameWindowImpl::internalQueryInterface(REFIID riid,
 															  void** ppv)
 {
 	BEGIN_INTERFACE_MAP()
+		INTERFACE_ENTRY(IID_IActionTarget, IActionTarget)
 		INTERFACE_ENTRY(IID_IEditFrameWindow, IEditFrameWindow)
 	END_INTERFACE_MAP()
 }
@@ -906,6 +908,7 @@ HRESULT qmscript::MessageFrameWindowImpl::internalQueryInterface(REFIID riid,
 																 void** ppv)
 {
 	BEGIN_INTERFACE_MAP()
+		INTERFACE_ENTRY(IID_IActionTarget, IActionTarget)
 		INTERFACE_ENTRY(IID_IMessageFrameWindow, IMessageFrameWindow)
 	END_INTERFACE_MAP()
 }
