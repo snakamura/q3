@@ -271,6 +271,7 @@ ifeq ($(PLATFORM),win)
 endif
 	DEFINES				= -D_DEBUG
 	RCFLAGS				= -d _DEBUG
+	LDFLAGS				=
 	SYMBOL				= 1
 else
 	BASENAME			= release
@@ -278,13 +279,14 @@ else
 	CCFLAGS				= -O1 -Oi
 	DEFINES				= -DNDEBUG
 	RCFLAGS				= -d NDEBUG
+	LDFLAGS				= -OPT:REF -OPT:ICF
 endif
 
 ifdef SYMBOL
 	CCFLAGS				+= -Zi -Fd$(OBJDIR)/
-	LDFLAGS				= -DEBUG -DEBUGTYPE:CV -PDB:$(TARGETDIR)/$(PROJECTNAME).pdb -FIXED:NO
+	LDFLAGS				+= -DEBUG -DEBUGTYPE:CV -PDB:$(TARGETDIR)/$(PROJECTNAME).pdb -FIXED:NO
 else
-	LDFLAGS				= -RELEASE -OPT:REF
+	LDFLAGS				+= -RELEASE
 endif
 
 ifndef DEBUG
