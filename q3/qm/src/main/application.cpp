@@ -649,6 +649,8 @@ bool qm::Application::initialize()
 		wstrTempFolder = concat(pImpl_->wstrMailFolder_.get(), L"\\temp");
 		File::createDirectory(wstrTempFolder.get());
 	}
+	if (wstrTempFolder.get()[wcslen(wstrTempFolder.get()) - 1] != L'\\')
+		wstrTempFolder = concat(wstrTempFolder.get(), L"\\");
 	pImpl_->wstrTemporaryFolder_ = wstrTempFolder;
 	
 	pImpl_->pUIManager_.reset(new UIManager());
