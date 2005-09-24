@@ -369,11 +369,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 			
 			std::auto_ptr<Encoder> pEncoder;
 			if (nFlags_ & FLAG_ENCODETEXT) {
-				ContentTransferEncodingParser contentTransferEncoding;
-				if (pPart->getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
-					const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
-					pEncoder = EncoderFactory::getInstance(pwszEncoding);
-				}
+				pEncoder = pPart->getEncoder();
 				if (!pEncoder.get()) {
 					unsigned char* p = reinterpret_cast<unsigned char*>(strBody.get());
 					unsigned char* pEnd = p + strBody.size();

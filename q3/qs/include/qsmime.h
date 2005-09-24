@@ -178,6 +178,7 @@ public:
 	bool isText() const;
 	bool isAttachment() const;
 	Format getFormat() const;
+	std::auto_ptr<Encoder> getEncoder() const;
 	
 	string_ptr getRawField(const WCHAR* pwszName,
 						   unsigned int nIndex) const;

@@ -645,6 +645,14 @@ Part::Format qs::Part::getFormat() const
 	return FORMAT_FLOWED;
 }
 
+std::auto_ptr<Encoder> qs::Part::getEncoder() const
+{
+	ContentTransferEncodingParser contentTransferEncoding;
+	if (getField(L"Content-Transfer-Encoding", &contentTransferEncoding) != FIELD_EXIST)
+		return std::auto_ptr<Encoder>();
+	return EncoderFactory::getInstance(contentTransferEncoding.getEncoding());
+}
+
 string_ptr qs::Part::getRawField(const WCHAR* pwszName,
 								 unsigned int nIndex) const
 {
@@ -758,10 +766,7 @@ bool qs::Part::getBodyText(const WCHAR* pwszCharset,
 		if (!isText())
 			return true;
 		
-		std::auto_ptr<Encoder> pEncoder;
-		ContentTransferEncodingParser contentTransferEncoding;
-		if (getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == FIELD_EXIST)
-			pEncoder = EncoderFactory::getInstance(contentTransferEncoding.getEncoding());
+		std::auto_ptr<Encoder> pEncoder(getEncoder());
 		
 		const CHAR* pszDecodedBody = strBody_.get();
 		size_t nDecodedBodyLen = 0;
@@ -823,12 +828,7 @@ bool qs::Part::getBodyText(const WCHAR* pwszCharset,
 
 malloc_size_ptr<unsigned char> qs::Part::getBodyData() const
 {
-	std::auto_ptr<Encoder> pEncoder;
-	ContentTransferEncodingParser contentTransferEncoding;
-	if (getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == FIELD_EXIST)
-		pEncoder = EncoderFactory::getInstance(
-			contentTransferEncoding.getEncoding());
-	
+	std::auto_ptr<Encoder> pEncoder(getEncoder());
 	malloc_size_ptr<unsigned char> decoded;
 	if (pEncoder.get()) {
 		decoded = pEncoder->decode(
