@@ -451,6 +451,8 @@ bool qmimap4::CopyOfflineJob::apply(Account* pAccount,
 	Folder* pFolder = pAccount->getFolder(wstrFolderTo_.get());
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
 		NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
+		if (!pNormalFolder->loadMessageHolders())
+			return false;
 		
 		wstring_ptr wstrName(Util::getFolderName(pNormalFolder));
 		
