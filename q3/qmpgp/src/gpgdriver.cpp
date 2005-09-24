@@ -38,11 +38,15 @@ qmpgp::GPGDriver::~GPGDriver()
 }
 
 xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
+										size_t nLen,
 										SignFlag signFlag,
 										const WCHAR* pwszUserId,
 										const WCHAR* pwszPassphrase) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszText);
 	
 	wstring_ptr wstrGPG(getCommand());
 	
@@ -71,7 +75,7 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 	
 	XStringBuffer<STRING> buf;
 	string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
-	if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszText))
+	if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszText, nLen))
 		return xstring_size_ptr();
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
 	
@@ -96,9 +100,13 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 }
 
 xstring_size_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
+										   size_t nLen,
 										   const UserIdList& listRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszText);
 	
 	wstring_ptr wstrGPG(getCommand());
 	
@@ -115,7 +123,6 @@ xstring_size_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
 	log.debugf(L"Encrypting with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
-	size_t nLen = strlen(pszText);
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
@@ -138,11 +145,15 @@ xstring_size_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
 }
 
 xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
+												  size_t nLen,
 												  const WCHAR* pwszUserId,
 												  const WCHAR* pwszPassphrase,
 												  const UserIdList& listRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszText);
 	
 	wstring_ptr wstrGPG(getCommand());
 	
@@ -163,7 +174,7 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 	
 	XStringBuffer<STRING> buf;
 	string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
-	if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszText))
+	if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszText, nLen))
 		return xstring_size_ptr();
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
 	
@@ -188,10 +199,14 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 }
 
 bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
+							  size_t nLen,
 							  const CHAR* pszSignature,
 							  wstring_ptr* pwstrUserId) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszContent);
 	
 	wstring_ptr wstrGPG(getCommand());
 	
@@ -215,7 +230,6 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	log.debugf(L"Verifying with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszContent);
-	size_t nLen = strlen(pszContent);
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
@@ -238,11 +252,15 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 }
 
 xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
+													size_t nLen,
 													const WCHAR* pwszPassphrase,
 													unsigned int* pnVerify,
 													wstring_ptr* pwstrUserId) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszContent);
 	
 	wstring_ptr wstrGPG(getCommand());
 	
@@ -255,18 +273,16 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	log.debugf(L"Decrypting and verifying with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = 0;
-	size_t nLen = 0;
 	XStringBuffer<STRING> buf;
 	if (pwszPassphrase) {
 		string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
-		if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszContent))
+		if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszContent, nLen))
 			return xstring_size_ptr();
 		p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
 		nLen = buf.getLength();
 	}
 	else {
 		p = reinterpret_cast<const unsigned char*>(pszContent);
-		nLen = strlen(pszContent);
 	}
 	
 	log.debug(L"Data into stdin", p, nLen);

@@ -86,6 +86,8 @@ private:
 	static qs::xstring_size_ptr createMultipartEncryptedMessage(const CHAR* pszHeader,
 																const CHAR* pszBody,
 																size_t nBodyLen);
+	static std::pair<const CHAR*, size_t> getBodyData(const qs::Part& part,
+													  qs::malloc_size_ptr<unsigned char>* ppBodyData);
 
 private:
 	PGPUtilityImpl(const PGPUtilityImpl&);

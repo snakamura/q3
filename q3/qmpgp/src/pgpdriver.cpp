@@ -37,11 +37,15 @@ qmpgp::PGPDriver::~PGPDriver()
 }
 
 xstring_size_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
+										size_t nLen,
 										SignFlag signFlag,
 										const WCHAR* pwszUserId,
 										const WCHAR* pwszPassphrase) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszText);
 	
 	wstring_ptr wstrPGP(getCommand());
 	
@@ -71,7 +75,6 @@ xstring_size_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 	log.debugf(L"Signing with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
-	size_t nLen = strlen(pszText);
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
@@ -94,9 +97,13 @@ xstring_size_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 }
 
 xstring_size_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
+										   size_t nLen,
 										   const UserIdList& listRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszText);
 	
 	wstring_ptr wstrPGP(getCommand());
 	
@@ -113,7 +120,6 @@ xstring_size_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 	log.debugf(L"Encrypting with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
-	size_t nLen = strlen(pszText);
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
@@ -136,11 +142,15 @@ xstring_size_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 }
 
 xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
+												  size_t nLen,
 												  const WCHAR* pwszUserId,
 												  const WCHAR* pwszPassphrase,
 												  const UserIdList& listRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszText);
 	
 	wstring_ptr wstrPGP(getCommand());
 	
@@ -162,7 +172,6 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 	log.debugf(L"Signing and encrypting with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
-	size_t nLen = strlen(pszText);
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
@@ -185,10 +194,14 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 }
 
 bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
+							  size_t nLen,
 							  const CHAR* pszSignature,
 							  wstring_ptr* pwstrUserId) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszContent);
 	
 	wstring_ptr wstrPGP(getCommand());
 	
@@ -211,7 +224,6 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 	log.debugf(L"Verifying with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszSignature);
-	size_t nLen = strlen(pszSignature);
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
@@ -234,11 +246,15 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 }
 
 xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
+													size_t nLen,
 													const WCHAR* pwszPassphrase,
 													unsigned int* pnVerify,
 													wstring_ptr* pwstrUserId) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
+	
+	if (nLen == -1)
+		nLen = strlen(pszContent);
 	
 	wstring_ptr wstrPGP(getCommand());
 	
@@ -254,7 +270,6 @@ xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	log.debugf(L"Decrypting and verifying with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszContent);
-	size_t nLen = strlen(pszContent);
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
