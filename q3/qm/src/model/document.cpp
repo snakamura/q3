@@ -420,6 +420,9 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 	accountDestroy.release();
 	std::sort(l.begin(), l.end(), AccountLess());
 	
+	if (!pImpl_->pProfile_->getInt(L"Global", L"Offline", 1))
+		setOffline(false);
+	
 	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_ALL, 0);
 	pImpl_->fireDocumentInitialized();
 	

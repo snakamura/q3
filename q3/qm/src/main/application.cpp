@@ -771,9 +771,6 @@ bool qm::Application::initialize()
 	pImpl_->pMainWindow_->updateWindow();
 	pImpl_->pMainWindow_->setForegroundWindow();
 	
-	if (!pImpl_->pProfile_->getInt(L"Global", L"Offline", 1))
-		pImpl_->pDocument_->setOffline(false);
-	
 	pImpl_->restoreCurrentFolder();
 	
 	pImpl_->pAutoPilot_->start(pImpl_->pMainWindow_->getHandle());
