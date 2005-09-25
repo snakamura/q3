@@ -363,7 +363,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 					NormalFolder* pFolder = pmh_->getFolder();
 					if (pFolder->isFlag(Folder::FLAG_CACHEWHENREAD)) {
 						Account* pAccount = pFolder->getAccount();
-						if (!pAccount->updateMessage(pmh_, pszMessage, nLen))
+						if (!pAccount->updateMessage(pmh_, pszMessage, nLen, 0))
 							return false;
 						
 						unsigned int nFlag = 0;
@@ -2578,7 +2578,8 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 
 bool qm::Account::updateMessage(MessageHolder* pmh,
 								const CHAR* pszMessage,
-								size_t nLen)
+								size_t nLen,
+								const Message* pHeader)
 {
 	assert(pmh);
 	assert(pszMessage);
@@ -2587,7 +2588,7 @@ bool qm::Account::updateMessage(MessageHolder* pmh,
 	
 	MessageHolder::MessageBoxKey boxKey;
 	MessageHolder::MessageIndexKey indexKey;
-	if (!pImpl_->pMessageStore_->save(pszMessage, nLen, 0, false,
+	if (!pImpl_->pMessageStore_->save(pszMessage, nLen, pHeader, false,
 		&boxKey.nOffset_, &boxKey.nLength_, &boxKey.nHeaderLength_,
 		&indexKey.nKey_, &indexKey.nLength_))
 		return false;

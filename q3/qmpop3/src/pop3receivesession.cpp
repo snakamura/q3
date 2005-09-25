@@ -596,12 +596,11 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 						if (!setSubAccount(&msg, pSubAccount_))
 							return false;
 						
-						if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size()))
+						if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size(), &msg))
 							return false;
 						
 						UID* pUID = pUIDList_->getUID(nIndex);
-						pUID->update(UID::FLAG_NONE,
-							time.wYear, time.wMonth, time.wDay);
+						pUID->update(UID::FLAG_NONE, time.wYear, time.wMonth, time.wDay);
 					}
 				}
 				mpl->setFlags(0,

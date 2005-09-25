@@ -264,7 +264,8 @@ public:
 								NormalFolder* pFolderTo);
 	bool updateMessage(MessageHolder* pmh,
 					   const CHAR* pszMessage,
-					   size_t nLen);
+					   size_t nLen,
+					   const Message* pHeader);
 
 // These methods are intended to be called from ProtocolDriver class
 public:
