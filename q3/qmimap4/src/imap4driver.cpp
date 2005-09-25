@@ -1288,11 +1288,9 @@ void qmimap4::FolderUtil::save() const
 {
 	WCHAR wszRootFolderSeparator[] = { cRootFolderSeparator_, L'\0' };
 	pAccount_->setProperty(L"Imap4", L"RootFolderSeparator", wszRootFolderSeparator);
-	
-	saveSpecialFolders();
 }
 
-void qmimap4::FolderUtil::saveSpecialFolders() const
+void qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
 {
 	struct {
 		Folder::Flag flag_;
@@ -1305,14 +1303,14 @@ void qmimap4::FolderUtil::saveSpecialFolders() const
 		{ Folder::FLAG_JUNKBOX,		L"JunkFolder"		}
 	};
 	
-	const Account::FolderList& l = pAccount_->getFolders();
+	const Account::FolderList& l = pAccount->getFolders();
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
 		unsigned int nBoxFlags = pFolder->getFlags() & Folder::FLAG_BOX_MASK;
 		for (int n = 0; n < countof(flags); ++n) {
 			if (nBoxFlags & flags[n].flag_) {
 				wstring_ptr wstrName(pFolder->getFullName());
-				pAccount_->setProperty(L"Imap4", flags[n].pwszKey_, wstrName.get());
+				pAccount->setProperty(L"Imap4", flags[n].pwszKey_, wstrName.get());
 			}
 		}
 	}
@@ -1334,8 +1332,8 @@ qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
 	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity)
 {
+	FolderUtil::saveSpecialFolders(pAccount_);
 	pFolderUtil_.reset(new FolderUtil(pAccount_));
-	pFolderUtil_->save();
 }
 
 qmimap4::FolderListGetter::~FolderListGetter()

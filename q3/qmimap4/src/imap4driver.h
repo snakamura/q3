@@ -245,8 +245,8 @@ public:
 					   unsigned int* pnFlags) const;
 	void save() const;
 
-private:
-	void saveSpecialFolders() const;
+public:
+	static void saveSpecialFolders(qm::Account* pAccount);
 
 private:
 	FolderUtil(const FolderUtil&);
