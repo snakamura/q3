@@ -21,29 +21,30 @@ using namespace qs;
 #ifndef _WIN32_WCE
 
 namespace {
-DWORD WINAPI writeProc(void* pParam)
+
+DWORD WINAPI readProc(void* pParam)
 {
-	std::auto_ptr<std::pair<InputStream*, HANDLE> > p(
-		static_cast<std::pair<InputStream*, HANDLE>*>(pParam));
-	InputStream* pInputStream = p->first;
-	HANDLE hInput = p->second;
+	std::auto_ptr<std::pair<OutputStream*, HANDLE> > p(
+		static_cast<std::pair<OutputStream*, HANDLE>*>(pParam));
+	OutputStream* pOutputStream = p->first;
+	AutoHandle hOutput(p->second);
 	
-	unsigned char buf[1024];
 	while (true) {
-		size_t nLen = pInputStream->read(buf, sizeof(buf));
-		if (nLen == 0)
-			break;
-		else if (nLen == -1)
+		unsigned char buf[1024];
+		DWORD dwRead = 0;
+		BOOL b = ::ReadFile(hOutput.get(), buf, sizeof(buf), &dwRead, 0);
+		if (!b && ::GetLastError() != ERROR_BROKEN_PIPE)
 			return 1;
+		else if (!b || dwRead == 0)
+			break;
 		
-		DWORD dwWritten = 0;
-		if (!::WriteFile(hInput, buf, static_cast<DWORD>(nLen), &dwWritten, 0) || dwWritten != nLen)
+		if (pOutputStream->write(buf, dwRead) == -1)
 			return 1;
 	}
-	::CloseHandle(hInput);
 	
 	return 0;
 }
+
 }
 
 wstring_ptr qs::Process::exec(const WCHAR* pwszCommand,
@@ -120,63 +121,64 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 	hStdoutWrite.close();
 	hStderrWrite.close();
 	
-	HANDLE hThread = 0;
-	if (pStdInput) {
-		std::auto_ptr<std::pair<InputStream*, HANDLE> > p(
-			new std::pair<InputStream*, HANDLE>(pStdInput, hStdin.get()));
+	HANDLE hThreadStdout = 0;
+	if (pStdOutput) {
+		std::auto_ptr<std::pair<OutputStream*, HANDLE> > p(
+			new std::pair<OutputStream*, HANDLE>(pStdOutput, hStdout.get()));
 		DWORD dwThreadId = 0;
-		hThread = ::CreateThread(0, 0, writeProc, p.get(), 0, &dwThreadId);
-		if (!hThread)
+		hThreadStdout = ::CreateThread(0, 0, &readProc, p.get(), 0, &dwThreadId);
+		if (!hThreadStdout)
 			return -1;
 		p.release();
-		hStdin.release();
+		hStdout.release();
 	}
-	AutoHandle ahThread(hThread);
+	AutoHandle ahThreadStdout(hThreadStdout);
 	
-	if (hStdout.get() || hStderr.get()) {
-		HANDLE hPipes[2];
-		int nPipeCount = 0;
-		if (hStdout.get())
-			hPipes[nPipeCount++] = hStdout.get();
-		if (hStderr.get())
-			hPipes[nPipeCount++] = hStderr.get();
-		
-		unsigned char buf[1024];
-		DWORD dwRead = 0;
-		while (nPipeCount != 0) {
-			HANDLE* p = hPipes;
-			if (!*p)
-				++p;
-			assert(*p);
-			
-			DWORD dwWait = ::WaitForMultipleObjects(nPipeCount, p, FALSE, INFINITE);
-			if (dwWait < WAIT_OBJECT_0 || WAIT_OBJECT_0 + nPipeCount <= dwWait)
+	HANDLE hThreadStderr = 0;
+	if (pStdError) {
+		std::auto_ptr<std::pair<OutputStream*, HANDLE> > p(
+			new std::pair<OutputStream*, HANDLE>(pStdError, hStderr.get()));
+		DWORD dwThreadId = 0;
+		hThreadStderr = ::CreateThread(0, 0, &readProc, p.get(), 0, &dwThreadId);
+		if (!hThreadStderr)
+			return -1;
+		p.release();
+		hStderr.release();
+	}
+	AutoHandle ahThreadStderr(hThreadStderr);
+	
+	if (pStdInput) {
+		while (true) {
+			unsigned char buf[1024];
+			size_t nLen = pStdInput->read(buf, sizeof(buf));
+			if (nLen == 0)
+				break;
+			else if (nLen == -1)
 				return -1;
 			
-			int nPipe = dwWait - WAIT_OBJECT_0;
-			HANDLE hPipe = p[nPipe];
-			BOOL b = ::ReadFile(hPipe, buf, sizeof(buf), &dwRead, 0);
-			if (!b && ::GetLastError() != ERROR_BROKEN_PIPE) {
-				return -1;
-			}
-			else if (!b || dwRead == 0) {
-				p[nPipe] = 0;
-				--nPipeCount;
-			}
-			OutputStream* pOutputStream = hPipe == hStdout.get() ? pStdOutput : pStdError;
-			if (pOutputStream->write(buf, dwRead) == -1)
+			DWORD dwWritten = 0;
+			if (!::WriteFile(hStdin.get(), buf, static_cast<DWORD>(nLen), &dwWritten, 0) || dwWritten != nLen)
 				return -1;
 		}
+		hStdin.close();
 	}
 	
-	HANDLE hWaits[] = { hProcess.get(), hThread };
-	::WaitForMultipleObjects(hThread ? 2 : 1, hWaits, TRUE, INFINITE);
+	typedef std::vector<HANDLE> HandleList;
+	HandleList listHandle;
+	listHandle.push_back(hProcess.get());
+	if (hThreadStdout)
+		listHandle.push_back(hThreadStdout);
+	if (hThreadStderr)
+		listHandle.push_back(hThreadStderr);
+	::WaitForMultipleObjects(listHandle.size(), &listHandle[0], TRUE, INFINITE);
 	
-	DWORD dwExitCode = 0;
-	if (hThread) {
-		if (!::GetExitCodeThread(hThread, &dwExitCode) || dwExitCode != 0)
+	for (HandleList::const_iterator it = listHandle.begin() + 1; it != listHandle.end(); ++it) {
+		DWORD dwExitCode = 0;
+		if (!::GetExitCodeThread(*it, &dwExitCode) || dwExitCode != 0)
 			return -1;
 	}
+	
+	DWORD dwExitCode = 0;
 	if (!::GetExitCodeProcess(hProcess.get(), &dwExitCode))
 		return -1;
 	
