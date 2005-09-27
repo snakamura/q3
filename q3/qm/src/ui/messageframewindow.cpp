@@ -666,7 +666,7 @@ void qm::MessageFrameWindow::save()
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"MessageFrameWindow");
 	
-	pProfile->setInt(L"MainWindow", L"SecurityMode", pImpl_->pSecurityModel_->getSecurityMode());
+	pProfile->setInt(L"MessageFrameWindow", L"SecurityMode", pImpl_->pSecurityModel_->getSecurityMode());
 	
 	FrameWindow::save();
 }
@@ -869,7 +869,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pMessageModel_.reset(new MessageMessageModel());
 	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
-		pImpl_->pProfile_->getInt(L"MessageWindow", L"SecurityMode", 0)));
+		pImpl_->pProfile_->getInt(L"MessageFrameWindow", L"SecurityMode", 0)));
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
