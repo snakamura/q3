@@ -363,10 +363,9 @@ bool qs::MenuContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				if (pwszParam) {
 					std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam));
 					nId = pActionParamMap_->addActionParam(pItem->nMaxParamCount_, pParam);
-					if (nId == -1)
-						return false;
 				}
-				::AppendMenu(hmenu, MF_STRING, nId, ptszText);
+				if (nId != -1)
+					::AppendMenu(hmenu, MF_STRING, nId, ptszText);
 			}
 		}
 		

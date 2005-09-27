@@ -247,15 +247,14 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszAction)
 			return false;
 		
+		unsigned int nId = -1;
 		const ActionItem* pItem = getActionItem(pwszAction);
-		if (!pItem)
-			return false;
-		unsigned int nId = pItem->nId_;
-		if (pwszParam) {
-			std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam));
-			nId = pActionParamMap_->addActionParam(pItem->nMaxParamCount_, pParam);
-			if (nId == -1)
-				return false;
+		if (pItem) {
+			nId = pItem->nId_;
+			if (pwszParam) {
+				std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam));
+				nId = pActionParamMap_->addActionParam(pItem->nMaxParamCount_, pParam);
+			}
 		}
 		nActionId_ = nId;
 		
@@ -265,54 +264,56 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (state_ != STATE_ACTION)
 			return false;
 		
-		ACCEL accel = {
-			FVIRTKEY | FNOINVERT,
-			0,
-			static_cast<WORD>(nActionId_)
-		};
-		for (int n = 0; n < attributes.getLength(); ++n) {
-			const WCHAR* pwszAttrName = attributes.getLocalName(n);
-			const WCHAR* pwszValue = attributes.getValue(n);
-			if (wcscmp(pwszAttrName, L"key") == 0) {
-				if (accel.key != 0)
+		if (nActionId_ != -1) {
+			ACCEL accel = {
+				FVIRTKEY | FNOINVERT,
+				0,
+				static_cast<WORD>(nActionId_)
+			};
+			for (int n = 0; n < attributes.getLength(); ++n) {
+				const WCHAR* pwszAttrName = attributes.getLocalName(n);
+				const WCHAR* pwszValue = attributes.getValue(n);
+				if (wcscmp(pwszAttrName, L"key") == 0) {
+					if (accel.key != 0)
+						return false;
+					if (wcslen(pwszValue) != 1)
+						return false;
+					accel.key = *pwszValue;
+				}
+				else if (wcscmp(pwszAttrName, L"code") == 0) {
+					if (accel.key != 0)
+						return false;
+					WCHAR* pEnd = 0;
+					accel.key = static_cast<WORD>(wcstol(pwszValue, &pEnd, 16));
+					if (*pEnd)
+						return false;
+				}
+				else if (wcscmp(pwszAttrName, L"shift") == 0) {
+					if (wcscmp(pwszValue, L"true") == 0)
+						accel.fVirt |= FSHIFT;
+				}
+				else if (wcscmp(pwszAttrName, L"ctrl") == 0) {
+					if (wcscmp(pwszValue, L"true") == 0)
+						accel.fVirt |= FCONTROL;
+				}
+				else if (wcscmp(pwszAttrName, L"alt") == 0) {
+					if (wcscmp(pwszValue, L"true") == 0)
+						accel.fVirt |= FALT;
+				}
+				else if (wcscmp(pwszAttrName, L"virtual") == 0) {
+					if (wcscmp(pwszValue, L"false") == 0)
+						accel.fVirt &= ~FVIRTKEY;
+				}
+				else {
 					return false;
-				if (wcslen(pwszValue) != 1)
-					return false;
-				accel.key = *pwszValue;
+				}
 			}
-			else if (wcscmp(pwszAttrName, L"code") == 0) {
-				if (accel.key != 0)
-					return false;
-				WCHAR* pEnd = 0;
-				accel.key = static_cast<WORD>(wcstol(pwszValue, &pEnd, 16));
-				if (*pEnd)
-					return false;
-			}
-			else if (wcscmp(pwszAttrName, L"shift") == 0) {
-				if (wcscmp(pwszValue, L"true") == 0)
-					accel.fVirt |= FSHIFT;
-			}
-			else if (wcscmp(pwszAttrName, L"ctrl") == 0) {
-				if (wcscmp(pwszValue, L"true") == 0)
-					accel.fVirt |= FCONTROL;
-			}
-			else if (wcscmp(pwszAttrName, L"alt") == 0) {
-				if (wcscmp(pwszValue, L"true") == 0)
-					accel.fVirt |= FALT;
-			}
-			else if (wcscmp(pwszAttrName, L"virtual") == 0) {
-				if (wcscmp(pwszValue, L"false") == 0)
-					accel.fVirt &= ~FVIRTKEY;
-			}
-			else {
+			if (accel.key == 0)
 				return false;
-			}
+			
+			assert(pKeyMapItem_);
+			pKeyMapItem_->add(accel);
 		}
-		if (accel.key == 0)
-			return false;
-		
-		assert(pKeyMapItem_);
-		pKeyMapItem_->add(accel);
 		
 		state_ = STATE_KEY;
 	}
