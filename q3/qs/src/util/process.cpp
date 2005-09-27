@@ -170,7 +170,7 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 		listHandle.push_back(hThreadStdout);
 	if (hThreadStderr)
 		listHandle.push_back(hThreadStderr);
-	::WaitForMultipleObjects(listHandle.size(), &listHandle[0], TRUE, INFINITE);
+	::WaitForMultipleObjects(static_cast<DWORD>(listHandle.size()), &listHandle[0], TRUE, INFINITE);
 	
 	for (HandleList::const_iterator it = listHandle.begin() + 1; it != listHandle.end(); ++it) {
 		DWORD dwExitCode = 0;
