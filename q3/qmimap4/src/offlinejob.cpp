@@ -76,7 +76,9 @@ qmimap4::OfflineJobManager::OfflineJobManager(const WCHAR* pwszPath) :
 {
 	assert(pwszPath);
 	
-	if (!load(pwszPath)) {
+	wstrPath_ = concat(pwszPath, L"\\", FILENAME);
+	
+	if (!load()) {
 		// TODO
 	}
 }
@@ -111,72 +113,76 @@ bool qmimap4::OfflineJobManager::apply(Account* pAccount,
 	
 	bModified_ = true;
 	
-	struct Deleter
 	{
-		typedef OfflineJobManager::JobList JobList;
-		
-		Deleter(JobList& l) :
-			l_(l)
+		struct Deleter
 		{
-		}
-		
-		~Deleter()
-		{
-			JobList::iterator it = std::find_if(l_.begin(), l_.end(),
-				std::not1(std::bind2nd(std::equal_to<OfflineJob*>(), 0)));
-			l_.erase(l_.begin(), it);
-		}
-		
-		JobList& l_;
-	} deleter(listJob_);
-	
-	pCallback->setRange(0, listJob_.size());
-	
-	Folder* pPrevFolder = 0;
-	for (JobList::size_type n = 0; n < listJob_.size(); ++n) {
-		pCallback->setPos(n + 1);
-		
-		OfflineJob*& pJob = listJob_[n];
-		if (pJob->getFolder()) {
-			Folder* pFolder = pAccount->getFolder(pJob->getFolder());
-			if (pFolder && pFolder != pPrevFolder &&
-				pFolder->getType() == Folder::TYPE_NORMAL) {
-				wstring_ptr wstrName(Util::getFolderName(
-					static_cast<NormalFolder*>(pFolder)));
-				if (!pImap4->select(wstrName.get()))
-					return false;
-				pPrevFolder = pFolder;
+			typedef OfflineJobManager::JobList JobList;
+			
+			Deleter(JobList& l) :
+				l_(l)
+			{
 			}
+			
+			~Deleter()
+			{
+				JobList::iterator it = std::find_if(l_.begin(), l_.end(),
+					std::not1(std::bind2nd(std::equal_to<OfflineJob*>(), 0)));
+				l_.erase(l_.begin(), it);
+			}
+			
+			JobList& l_;
+		} deleter(listJob_);
+		
+		pCallback->setRange(0, listJob_.size());
+		
+		Folder* pPrevFolder = 0;
+		for (JobList::size_type n = 0; n < listJob_.size(); ++n) {
+			pCallback->setPos(n + 1);
+			
+			OfflineJob*& pJob = listJob_[n];
+			if (pJob->getFolder()) {
+				Folder* pFolder = pAccount->getFolder(pJob->getFolder());
+				if (pFolder && pFolder != pPrevFolder &&
+					pFolder->getType() == Folder::TYPE_NORMAL) {
+					wstring_ptr wstrName(Util::getFolderName(
+						static_cast<NormalFolder*>(pFolder)));
+					if (!pImap4->select(wstrName.get()))
+						return false;
+					pPrevFolder = pFolder;
+				}
+			}
+			
+			bool bClosed = false;
+			if (!pJob->apply(pAccount, pImap4, &bClosed))
+				return false;
+			if (bClosed)
+				pPrevFolder = 0;
+			
+			delete pJob;
+			pJob = 0;
 		}
-		
-		bool bClosed = false;
-		if (!pJob->apply(pAccount, pImap4, &bClosed))
-			return false;
-		if (bClosed)
-			pPrevFolder = 0;
-		
-		delete pJob;
-		pJob = 0;
+	}
+	
+	if (!save()) {
+		// TODO
 	}
 	
 	return true;
 }
 
-bool qmimap4::OfflineJobManager::save(const WCHAR* pwszPath) const
+bool qmimap4::OfflineJobManager::save() const
 {
 	Lock<CriticalSection> lock(cs_);
 	
 	if (!bModified_)
 		return true;
 	
-	wstring_ptr wstrPath(concat(pwszPath, L"\\", FILENAME));
-	
 	if (listJob_.empty()) {
-		W2T(wstrPath.get(), ptszPath);
+		W2T(wstrPath_.get(), ptszPath);
 		::DeleteFile(ptszPath);
 	}
 	else {
-		TemporaryFileRenamer renamer(wstrPath.get());
+		TemporaryFileRenamer renamer(wstrPath_.get());
 		
 		FileOutputStream stream(renamer.getPath());
 		if (!stream)
@@ -241,14 +247,12 @@ bool qmimap4::OfflineJobManager::copyJobs(NormalFolder* pFolderFrom,
 	return true;
 }
 
-bool qmimap4::OfflineJobManager::load(const WCHAR* pwszPath)
+bool qmimap4::OfflineJobManager::load()
 {
-	wstring_ptr wstrPath(concat(pwszPath, L"\\", FILENAME));
-	
-	W2T(wstrPath.get(), ptszPath);
+	W2T(wstrPath_.get(), ptszPath);
 	
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
-		FileInputStream stream(wstrPath.get());
+		FileInputStream stream(wstrPath_.get());
 		if (!stream)
 			return false;
 		BufferedInputStream bufferedStream(&stream, false);

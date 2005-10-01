@@ -51,14 +51,14 @@ public:
 	bool apply(qm::Account* pAccount,
 			   Imap4* pImap4,
 			   qm::ReceiveSessionCallback* pCallback);
-	bool save(const WCHAR* pwszPath) const;
+	bool save() const;
 	bool copyJobs(qm::NormalFolder* pFolderFrom,
 				  qm::NormalFolder* pFolderTo,
 				  const UidList& listUid,
 				  bool bMove);
 
 private:
-	bool load(const WCHAR* pwszPath);
+	bool load();
 	OfflineJob* getCreateMessage(const WCHAR* pwszFolder,
 								 unsigned long nId) const;
 
@@ -70,6 +70,7 @@ private:
 	typedef std::vector<OfflineJob*> JobList;
 
 private:
+	qs::wstring_ptr wstrPath_;
 	JobList listJob_;
 	mutable bool bModified_;
 	qs::CriticalSection cs_;

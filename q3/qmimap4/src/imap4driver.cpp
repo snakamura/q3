@@ -83,7 +83,7 @@ bool qmimap4::Imap4Driver::save(bool bForce)
 {
 	Lock<CriticalSection> lock(cs_);
 	
-	return pOfflineJobManager_->save(pAccount_->getPath()) || bForce;
+	return pOfflineJobManager_->save() || bForce;
 }
 
 bool qmimap4::Imap4Driver::isSupport(Account::Support support)
