@@ -166,30 +166,36 @@ bool qmimap4::OfflineJobManager::save(const WCHAR* pwszPath) const
 {
 	Lock<CriticalSection> lock(cs_);
 	
-	if (!bModified_ || listJob_.empty())
+	if (!bModified_)
 		return true;
 	
 	wstring_ptr wstrPath(concat(pwszPath, L"\\", FILENAME));
 	
-	TemporaryFileRenamer renamer(wstrPath.get());
-	
-	FileOutputStream stream(renamer.getPath());
-	if (!stream)
-		return false;
-	BufferedOutputStream bufferedStream(&stream, false);
-	
-	OfflineJobFactory factory;
-	
-	for (JobList::const_iterator it = listJob_.begin(); it != listJob_.end(); ++it) {
-		if (!factory.writeInstance(&bufferedStream, *it))
+	if (listJob_.empty()) {
+		W2T(wstrPath.get(), ptszPath);
+		::DeleteFile(ptszPath);
+	}
+	else {
+		TemporaryFileRenamer renamer(wstrPath.get());
+		
+		FileOutputStream stream(renamer.getPath());
+		if (!stream)
+			return false;
+		BufferedOutputStream bufferedStream(&stream, false);
+		
+		OfflineJobFactory factory;
+		
+		for (JobList::const_iterator it = listJob_.begin(); it != listJob_.end(); ++it) {
+			if (!factory.writeInstance(&bufferedStream, *it))
+				return false;
+		}
+		
+		if (!bufferedStream.close())
+			return false;
+		
+		if (!renamer.rename())
 			return false;
 	}
-	
-	if (!bufferedStream.close())
-		return false;
-	
-	if (!renamer.rename())
-		return false;
 	
 	bModified_ = false;
 	
