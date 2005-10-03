@@ -229,6 +229,11 @@ void qm::MessageHolder::setFlags(unsigned int nFlags,
 		getAccount()->fireMessageHolderChanged(this, nOldFlags, nFlags_);
 }
 
+bool qm::MessageHolder::setLabel(const WCHAR* pwszLabel)
+{
+	return getAccount()->setLabel(this, pwszLabel);
+}
+
 void qm::MessageHolder::setFolder(NormalFolder* pFolder)
 {
 	assert(getAccount()->isLocked());
@@ -244,15 +249,27 @@ void qm::MessageHolder::destroy()
 void qm::MessageHolder::setKeys(const MessageIndexKey& messageIndexKey,
 								const MessageBoxKey& messageBoxKey)
 {
+	setKeys(messageIndexKey.nKey_ != -1 ? &messageIndexKey : 0, &messageBoxKey);
+}
+
+void qm::MessageHolder::setIndexKey(const MessageIndexKey& messageIndexKey)
+{
+	assert(messageIndexKey.nKey_ != -1);
+	setKeys(&messageIndexKey, 0);
+}
+
+void qm::MessageHolder::setKeys(const MessageIndexKey* pMessageIndexKey,
+								const MessageBoxKey* pMessageBoxKey)
+{
 	Lock<Account> lock(*getAccount());
 	
-	if (messageIndexKey.nKey_ != -1) {
-		messageIndexKey_ = messageIndexKey;
-		
+	if (pMessageIndexKey) {
+		messageIndexKey_ = *pMessageIndexKey;
 		nMessageIdHash_ = -1;
 		nReferenceHash_ = -1;
 	}
-	messageBoxKey_ = messageBoxKey;
+	if (pMessageBoxKey)
+		messageBoxKey_ = *pMessageBoxKey;
 	
 	getAccount()->fireMessageHolderChanged(this, nFlags_, nFlags_);
 }

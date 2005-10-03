@@ -11,6 +11,7 @@
 #include <qmfolder.h>
 #include <qmmessageholder.h>
 
+#include <qsencoder.h>
 #include <qsstl.h>
 
 #include <algorithm>
@@ -115,6 +116,61 @@ unsigned int qmimap4::Util::getImap4FlagsFromMessageFlags(unsigned int nFlags)
 	}
 	
 	return nImap4Flags;
+}
+
+wstring_ptr qmimap4::Util::getLabelFromImap4Flags(const FetchDataFlags::FlagList& listCustomFlag)
+{
+	for (FetchDataFlags::FlagList::const_iterator it = listCustomFlag.begin(); it != listCustomFlag.end(); ++it) {
+		const CHAR* pszFlag = *it;
+		if (strncmp(pszFlag, "q3label=", 8) == 0) {
+			const CHAR* pszLabel = pszFlag + 8;
+			malloc_size_ptr<unsigned char> p(QuotedPrintableEncoder(true).decode(
+				reinterpret_cast<const unsigned char*>(pszLabel), strlen(pszLabel)));
+			if (p.get()) {
+				size_t nLen = p.size();
+				wxstring_size_ptr wstrLabel(UTF7Converter(true).decode(
+					reinterpret_cast<const CHAR*>(p.get()), &nLen));
+				if (wstrLabel.get()) {
+					for (WCHAR* p = wstrLabel.get(); *p; ++p) {
+						if (*p == L'\n' || *p == '\r')
+							*p = L' ';
+					}
+					return allocWString(wstrLabel.get(), wstrLabel.size());
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+std::auto_ptr<Flags> qmimap4::Util::getImap4FlagsFromLabels(const WCHAR** ppwszLabel,
+															size_t nCount)
+{
+	typedef std::vector<STRING> FlagList;
+	FlagList listFlag;
+	StringListFree<FlagList> free(listFlag);
+	listFlag.reserve(nCount);
+	for (size_t n = 0; n < nCount; ++n) {
+		const WCHAR* pwszLabel = ppwszLabel[n];
+		size_t nLen = wcslen(pwszLabel);
+		xstring_size_ptr strLabel(UTF7Converter(true).encode(pwszLabel, &nLen));
+		if (!strLabel.get())
+			return std::auto_ptr<Flags>(0);
+		
+		malloc_size_ptr<unsigned char> p(QuotedPrintableEncoder(true).encode(
+			reinterpret_cast<const unsigned char*>(strLabel.get()), strLabel.size()));
+		if (!p.get())
+			return std::auto_ptr<Flags>(0);
+		
+		Concat c[] = {
+			{ "q3label=",								8			},
+			{ reinterpret_cast<const CHAR*>(p.get()),	p.size()	}
+		};
+		string_ptr strFlag(concat(c, countof(c)));
+		listFlag.push_back(strFlag.release());
+	}
+	return std::auto_ptr<Flags>(new Flags(0,
+		const_cast<const CHAR**>(&listFlag[0]), listFlag.size()));
 }
 
 string_ptr qmimap4::Util::getMessageFromEnvelope(const FetchDataEnvelope* pEnvelope)

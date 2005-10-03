@@ -37,6 +37,7 @@ qm::MessageStore::~MessageStore()
 bool qm::MessageStore::save(const CHAR* pszMessage,
 							size_t nLen,
 							const Message* pHeader,
+							const WCHAR* pwszLabel,
 							bool bIndexOnly,
 							unsigned int* pnOffset,
 							unsigned int* pnLength,
@@ -69,8 +70,8 @@ bool qm::MessageStore::save(const CHAR* pszMessage,
 		pHeader = &header;
 	}
 	
-	return save(*pHeader, pBody, nBodyLen, bIndexOnly, pnOffset,
-		pnLength, pnHeaderLength, pnIndexKey, pnIndexLength);
+	return save(*pHeader, pBody, nBodyLen, pwszLabel, bIndexOnly,
+		pnOffset, pnLength, pnHeaderLength, pnIndexKey, pnIndexLength);
 }
 
 
@@ -172,6 +173,7 @@ bool qm::SingleMessageStore::load(unsigned int nOffset,
 bool qm::SingleMessageStore::save(const Message& header,
 								  const CHAR* pszBody,
 								  size_t nBodyLen,
+								  const WCHAR* pwszLabel,
 								  bool bIndexOnly,
 								  unsigned int* pnOffset,
 								  unsigned int* pnLength,
@@ -193,7 +195,7 @@ bool qm::SingleMessageStore::save(const Message& header,
 		*pnLength = static_cast<unsigned int>(nHeaderLen + nBodyLen + 2);
 	}
 	
-	malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header));
+	malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header, pwszLabel));
 	if (!pIndex.get())
 		return false;
 	
@@ -236,6 +238,16 @@ bool qm::SingleMessageStore::saveDecoded(unsigned int nOffset,
 										 const Message& msg)
 {
 	return false;
+}
+
+bool qm::SingleMessageStore::updateIndex(unsigned int nOldIndexKey,
+										 unsigned int nOldIndexLength,
+										 const unsigned char* pIndex,
+										 unsigned int nIndexLength,
+										 unsigned int* pnIndexKey)
+{
+	return MessageStoreUtil::updateIndex(pImpl_->pStorage_.get(),
+		nOldIndexKey, nOldIndexLength, pIndex, nIndexLength, pnIndexKey);
 }
 
 bool qm::SingleMessageStore::free(unsigned int nOffset,
@@ -577,6 +589,7 @@ bool qm::MultiMessageStore::load(unsigned int nOffset,
 bool qm::MultiMessageStore::save(const Message& header,
 								 const CHAR* pszBody,
 								 size_t nBodyLen,
+								 const WCHAR* pwszLabel,
 								 bool bIndexOnly,
 								 unsigned int* pnOffset,
 								 unsigned int* pnLength,
@@ -598,7 +611,7 @@ bool qm::MultiMessageStore::save(const Message& header,
 		*pnLength = static_cast<unsigned int>(nHeaderLen + nBodyLen + 2);
 	}
 	
-	malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header));
+	malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header, pwszLabel));
 	if (!pIndex.get())
 		return false;
 	
@@ -655,6 +668,16 @@ bool qm::MultiMessageStore::saveDecoded(unsigned int nOffset,
 		return false;
 	
 	return true;
+}
+
+bool qm::MultiMessageStore::updateIndex(unsigned int nOldIndexKey,
+										unsigned int nOldIndexLength,
+										const unsigned char* pIndex,
+										unsigned int nIndexLength,
+										unsigned int* pnIndexKey)
+{
+	return MessageStoreUtil::updateIndex(pImpl_->pIndexStorage_.get(),
+		nOldIndexKey, nOldIndexLength, pIndex, nIndexLength, pnIndexKey);
 }
 
 bool qm::MultiMessageStore::free(unsigned int nOffset,
@@ -844,7 +867,8 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkIndex(ClusterStorage* p
 	for (unsigned int n = 0; n < nCount; ++n) {
 		Message header;
 		if (pCallback->getHeader(n, &header)) {
-			malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(header));
+			malloc_size_ptr<unsigned char> pIndex(MessageIndex::createIndex(
+				header, pCallback->getLabel(n).get()));
 			if (!pIndex.get())
 				return std::auto_ptr<ClusterStorage>(0);
 			
@@ -884,4 +908,26 @@ malloc_ptr<unsigned char> qm::MessageStoreUtil::readIndex(ClusterStorage* pStora
 		return malloc_ptr<unsigned char>(0);
 	
 	return p;
+}
+
+bool qm::MessageStoreUtil::updateIndex(qs::ClusterStorage* pStorage,
+									   unsigned int nOldIndexKey,
+									   unsigned int nOldIndexLength,
+									   const unsigned char* pIndex,
+									   unsigned int nIndexLength,
+									   unsigned int* pnIndexKey)
+{
+	assert(pStorage);
+	assert(pIndex);
+	assert(pnIndexKey);
+	
+	size_t nLength = nIndexLength;
+	*pnIndexKey = static_cast<unsigned int>(pStorage->save(&pIndex, &nLength, 1));
+	if (*pnIndexKey == -1)
+		return false;
+	
+	if (!pStorage->free(nOldIndexKey, nOldIndexLength))
+		return false;
+	
+	return true;
 }

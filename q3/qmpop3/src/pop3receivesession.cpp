@@ -281,8 +281,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			{
 				Lock<Account> lock(*pAccount_);
 				
-				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-					strMessage.get(), strMessage.size(), &msg, -1, nFlags, nSize, false);
+				MessageHolder* pmh = pAccount_->storeMessage(pFolder_, strMessage.get(),
+					strMessage.size(), &msg, -1, nFlags, 0, nSize, false);
 				if (!pmh)
 					return false;
 				

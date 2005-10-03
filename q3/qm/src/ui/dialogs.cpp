@@ -1256,6 +1256,59 @@ LRESULT qm::InputBoxDialog::onOk()
 
 /****************************************************************************
  *
+ * LabelDialog
+ *
+ */
+
+qm::LabelDialog::LabelDialog(const WCHAR* pwszLabel,
+							 Profile* pProfile) :
+	DefaultDialog(IDD_LABEL),
+	pProfile_(pProfile)
+{
+	if (pwszLabel)
+		wstrLabel_ = allocWString(pwszLabel);
+}
+
+qm::LabelDialog::~LabelDialog()
+{
+}
+
+const WCHAR* qm::LabelDialog::getLabel() const
+{
+	return wstrLabel_.get();
+}
+
+LRESULT qm::LabelDialog::onInitDialog(HWND hwndFocus,
+									  LPARAM lParam)
+{
+	init(false);
+	
+	History history(pProfile_, L"Label");
+	for (unsigned int n = 0; n < history.getSize(); ++n) {
+		wstring_ptr wstr(history.getValue(n));
+		if (*wstr.get()) {
+			W2T(wstr.get(), ptsz);
+			ComboBox_AddString(getDlgItem(IDC_LABEL), ptsz);
+		}
+	}
+	
+	if (wstrLabel_.get())
+		setDlgItemText(IDC_LABEL, wstrLabel_.get());
+	
+	return TRUE;
+}
+
+LRESULT qm::LabelDialog::onOk()
+{
+	wstrLabel_ = getDlgItemText(IDC_LABEL);
+	History(pProfile_, L"Label").addValue(wstrLabel_.get());
+	
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
  * MailFolderDialog
  *
  */
@@ -1865,16 +1918,16 @@ LRESULT qm::RenameDialog::onOk()
 	return DefaultDialog::onOk();
 }
 
-void qm::RenameDialog::updateState()
-{
-	Window(getDlgItem(IDOK)).enableWindow(
-		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
-}
-
 LRESULT qm::RenameDialog::onNameChange()
 {
 	updateState();
 	return 0;
+}
+
+void qm::RenameDialog::updateState()
+{
+	Window(getDlgItem(IDOK)).enableWindow(
+		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
 }
 
 
@@ -2516,6 +2569,7 @@ LRESULT qm::ViewsColumnDialog::onInitDialog(HWND hwndFocus,
 		IDS_COLUMNTYPE_SUBJECT,
 		IDS_COLUMNTYPE_SIZE,
 		IDS_COLUMNTYPE_FLAGS,
+		IDS_COLUMNTYPE_LABEL,
 		IDS_COLUMNTYPE_OTHER
 	};
 	for (int n = 0; n < countof(nTypes); ++n) {
@@ -2930,6 +2984,7 @@ void qm::ViewsDialog::update()
 		IDS_COLUMNTYPE_SUBJECT,
 		IDS_COLUMNTYPE_SIZE,
 		IDS_COLUMNTYPE_FLAGS,
+		IDS_COLUMNTYPE_LABEL,
 		IDS_COLUMNTYPE_OTHER
 	};
 	

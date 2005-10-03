@@ -167,6 +167,9 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 	case ViewColumn::TYPE_FLAGS:
 		swprintf(wsz, L"%u", pmh->getFlags());
 		break;
+	case ViewColumn::TYPE_LABEL:
+		wstrText = pmh->getLabel();
+		break;
 	case ViewColumn::TYPE_OTHER:
 		if (nFlags_ & FLAG_CACHE) {
 			assert(nCacheIndex_ != -1);
@@ -222,6 +225,8 @@ unsigned int qm::ViewColumn::getNumber(const ViewModel* pViewModel,
 		break;
 	case ViewColumn::TYPE_FLAGS:
 		nValue = pmh->getFlags();
+		break;
+	case ViewColumn::TYPE_LABEL:
 		break;
 	case ViewColumn::TYPE_OTHER:
 		{
@@ -280,6 +285,7 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 	case ViewColumn::TYPE_SUBJECT:
 	case ViewColumn::TYPE_SIZE:
 	case ViewColumn::TYPE_FLAGS:
+	case ViewColumn::TYPE_LABEL:
 		bCurrent = true;
 		break;
 	case ViewColumn::TYPE_OTHER:
@@ -2780,7 +2786,8 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 				{ L"%fromto",	ViewColumn::TYPE_FROMTO		},
 				{ L"%subject",	ViewColumn::TYPE_SUBJECT	},
 				{ L"%size",		ViewColumn::TYPE_SIZE		},
-				{ L"%flags",	ViewColumn::TYPE_FLAGS		}
+				{ L"%flags",	ViewColumn::TYPE_FLAGS		},
+				{ L"%label",	ViewColumn::TYPE_LABEL		}
 			};
 			for (int n = 0; n < countof(defaults) && type_ == ViewColumn::TYPE_NONE; ++n) {
 				if (_wcsicmp(pwszMacro, defaults[n].pwszMacro_) == 0)
@@ -3039,6 +3046,9 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 			break;
 		case ViewColumn::TYPE_FLAGS:
 			pwszMacro = L"%Flags";
+			break;
+		case ViewColumn::TYPE_LABEL:
+			pwszMacro = L"%Label";
 			break;
 		case ViewColumn::TYPE_OTHER:
 			wstrMacro = pColumn->getMacro()->getString();

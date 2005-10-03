@@ -83,6 +83,9 @@ public:
 								  const MessageHolderList& l,
 								  unsigned int nFlags,
 								  unsigned int nMask) = 0;
+	virtual bool setMessagesLabel(NormalFolder* pFolder,
+								  const MessageHolderList& l,
+								  const WCHAR* pwszLabel) = 0;
 	virtual bool appendMessage(NormalFolder* pFolder,
 							   const CHAR* pszMessage,
 							   size_t nLen,

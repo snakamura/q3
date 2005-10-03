@@ -38,6 +38,7 @@ class DefaultDialog;
 	class FindDialog;
 	class ImportDialog;
 	class InputBoxDialog;
+	class LabelDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
 	class PasswordDialog;
@@ -633,6 +634,39 @@ private:
 
 /****************************************************************************
  *
+ * LabelDialog
+ *
+ */
+
+class LabelDialog : public DefaultDialog
+{
+public:
+	LabelDialog(const WCHAR* pwszLabel,
+				qs::Profile* pProfile);
+	virtual ~LabelDialog();
+
+public:
+	const WCHAR* getLabel() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LabelDialog(const LabelDialog&);
+	LabelDialog& operator=(const LabelDialog&);
+
+private:
+	qs::wstring_ptr wstrLabel_;
+	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
  * MailFolderDialog
  *
  */
@@ -859,10 +893,10 @@ protected:
 	virtual LRESULT onOk();
 
 private:
-	void updateState();
+	LRESULT onNameChange();
 
 private:
-	LRESULT onNameChange();
+	void updateState();
 
 private:
 	RenameDialog(const RenameDialog&);

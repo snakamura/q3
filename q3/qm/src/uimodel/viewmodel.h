@@ -76,6 +76,7 @@ public:
 		TYPE_SUBJECT,
 		TYPE_SIZE,
 		TYPE_FLAGS,
+		TYPE_LABEL,
 		TYPE_OTHER
 	};
 	

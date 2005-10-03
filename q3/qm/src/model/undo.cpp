@@ -187,48 +187,23 @@ bool qm::AbstractUndoExecutor::execute()
 
 /****************************************************************************
  *
- * SetFlagsUndoItem
+ * MessageUndoItem
  *
  */
 
-qm::SetFlagsUndoItem::SetFlagsUndoItem()
+qm::MessageUndoItem::MessageUndoItem()
 {
 #ifndef NDEBUG
 	pFolder_ = 0;
 #endif
 }
 
-qm::SetFlagsUndoItem::~SetFlagsUndoItem()
+qm::MessageUndoItem::~MessageUndoItem()
 {
-	std::for_each(listItem_.begin(), listItem_.end(),
-		unary_compose_f_gx(
-			qs::deleter<URI>(),
-			mem_data_ref(&Item::pURI_)));
+	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<Item>());
 }
 
-void qm::SetFlagsUndoItem::add(MessageHolder* pmh,
-							   unsigned int nFlags,
-							   unsigned int nMask)
-{
-#ifndef NDEBUG
-	if (!pFolder_)
-		pFolder_ = pmh->getFolder();
-	assert(pmh->getFolder() == pFolder_);
-#endif
-	std::auto_ptr<URI> pURI(new URI(pmh));
-	Item item = {
-		pURI.get(),
-		nFlags,
-		nMask
-	};
-	listItem_.push_back(item);
-	pURI.release();
-	
-	if (!wstrAccount_.get())
-		wstrAccount_ = Util::formatAccount(pmh->getAccount());
-}
-
-std::auto_ptr<UndoExecutor> qm::SetFlagsUndoItem::getExecutor(const UndoContext& context)
+std::auto_ptr<UndoExecutor> qm::MessageUndoItem::getExecutor(const UndoContext& context)
 {
 	if (listItem_.empty())
 		return std::auto_ptr<UndoExecutor>(new EmptyUndoExecutor());
@@ -239,15 +214,147 @@ std::auto_ptr<UndoExecutor> qm::SetFlagsUndoItem::getExecutor(const UndoContext&
 		return std::auto_ptr<UndoExecutor>();
 	Lock<Account> lock(*pAccount);
 	
-	std::auto_ptr<SetFlagsUndoExecutor> pExecutor(new SetFlagsUndoExecutor(pAccount));
+	std::auto_ptr<MessageUndoExecutor> pExecutor(createExecutor(pAccount));
 	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
-		const Item& item = *it;
-		MessagePtrLock mpl(pAccountManager->getMessage(*item.pURI_));
+		const Item* pItem = *it;
+		MessagePtrLock mpl(pAccountManager->getMessage(*pItem->getURI()));
 		if (!mpl)
 			return std::auto_ptr<UndoExecutor>();
-		pExecutor->add(mpl, item.nFlags_, item.nMask_);
+		pExecutor->add(mpl, pItem);
 	}
 	return pExecutor;
+}
+
+void qm::MessageUndoItem::add(MessageHolder* pmh,
+							  std::auto_ptr<Item> pItem)
+{
+#ifndef NDEBUG
+	if (!pFolder_)
+		pFolder_ = pmh->getFolder();
+	assert(pmh->getFolder() == pFolder_);
+#endif
+	if (!wstrAccount_.get())
+		wstrAccount_ = Util::formatAccount(pmh->getAccount());
+	
+	listItem_.push_back(pItem.get());
+	pItem.release();
+}
+
+
+/****************************************************************************
+ *
+ * MessageUndoItem::Item
+ *
+ */
+
+qm::MessageUndoItem::Item::Item(std::auto_ptr<URI> pURI) :
+	pURI_(pURI)
+{
+}
+
+qm::MessageUndoItem::Item::~Item()
+{
+}
+
+const URI* qm::MessageUndoItem::Item::getURI() const
+{
+	return pURI_.get();
+}
+
+
+/****************************************************************************
+ *
+ * MessageUndoExecutor
+ *
+ */
+
+qm::MessageUndoExecutor::MessageUndoExecutor(Account* pAccount) :
+	AbstractUndoExecutor(pAccount)
+{
+}
+
+qm::MessageUndoExecutor::~MessageUndoExecutor()
+{
+}
+
+void qm::MessageUndoExecutor::add(MessageHolder* pmh,
+								  const MessageUndoItem::Item* pItem)
+{
+	Item item = {
+		pmh,
+		pItem
+	};
+	listItem_.push_back(item);
+}
+
+bool qm::MessageUndoExecutor::execute(Account* pAccount)
+{
+	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
+		const Item& item = *it;
+		assert(item.pmh_->getAccount() == pAccount);
+		if (!execute(pAccount, item.pmh_, item.pItem_))
+			return false;
+	}
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * SetFlagsUndoItem
+ *
+ */
+
+qm::SetFlagsUndoItem::SetFlagsUndoItem()
+{
+}
+
+qm::SetFlagsUndoItem::~SetFlagsUndoItem()
+{
+}
+
+void qm::SetFlagsUndoItem::add(MessageHolder* pmh,
+							   unsigned int nFlags,
+							   unsigned int nMask)
+{
+	std::auto_ptr<URI> pURI(new URI(pmh));
+	std::auto_ptr<Item> pItem(new Item(pURI, nFlags, nMask));
+	MessageUndoItem::add(pmh, pItem);
+}
+
+std::auto_ptr<MessageUndoExecutor> qm::SetFlagsUndoItem::createExecutor(Account* pAccount) const
+{
+	return std::auto_ptr<MessageUndoExecutor>(new SetFlagsUndoExecutor(pAccount));
+}
+
+
+/****************************************************************************
+ *
+ * SetFlagsUndoItem::Item
+ *
+ */
+
+qm::SetFlagsUndoItem::Item::Item(std::auto_ptr<URI> pURI,
+								 unsigned int nFlags,
+								 unsigned int nMask) :
+	MessageUndoItem::Item(pURI),
+	nFlags_(nFlags),
+	nMask_(nMask)
+{
+}
+
+qm::SetFlagsUndoItem::Item::~Item()
+{
+}
+
+unsigned int qm::SetFlagsUndoItem::Item::getFlags() const
+{
+	return nFlags_;
+}
+
+unsigned int qm::SetFlagsUndoItem::Item::getMask() const
+{
+	return nMask_;
 }
 
 
@@ -258,7 +365,7 @@ std::auto_ptr<UndoExecutor> qm::SetFlagsUndoItem::getExecutor(const UndoContext&
  */
 
 qm::SetFlagsUndoExecutor::SetFlagsUndoExecutor(Account* pAccount) :
-	AbstractUndoExecutor(pAccount)
+	MessageUndoExecutor(pAccount)
 {
 }
 
@@ -266,28 +373,98 @@ qm::SetFlagsUndoExecutor::~SetFlagsUndoExecutor()
 {
 }
 
-void qm::SetFlagsUndoExecutor::add(MessageHolder* pmh,
-								   unsigned int nFlags,
-								   unsigned int nMask)
+bool qm::SetFlagsUndoExecutor::execute(Account* pAccount,
+									   MessageHolder* pmh,
+									   const MessageUndoItem::Item* pItem)
 {
-	Item item = {
-		pmh,
-		nFlags,
-		nMask
-	};
-	listItem_.push_back(item);
+	assert(pAccount);
+	assert(pmh);
+	assert(pItem);
+	assert(pAccount == pmh->getAccount());
+	
+	const SetFlagsUndoItem::Item* p = static_cast<const SetFlagsUndoItem::Item*>(pItem);
+	return pAccount->setMessagesFlags(MessageHolderList(1, pmh), p->getFlags(), p->getMask(), 0);
 }
 
-bool qm::SetFlagsUndoExecutor::execute(Account* pAccount)
+
+/****************************************************************************
+ *
+ * SetLabelUndoItem
+ *
+ */
+
+qm::SetLabelUndoItem::SetLabelUndoItem()
 {
-	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
-		const Item& item = *it;
-		assert(item.pmh_->getAccount() == pAccount);
-		if (!pAccount->setMessagesFlags(MessageHolderList(1, item.pmh_),
-			item.nFlags_, item.nMask_, 0))
-			return false;
-	}
-	return true;
+}
+
+qm::SetLabelUndoItem::~SetLabelUndoItem()
+{
+}
+
+void qm::SetLabelUndoItem::add(MessageHolder* pmh,
+							   const WCHAR* pwszLabel)
+{
+	std::auto_ptr<URI> pURI(new URI(pmh));
+	std::auto_ptr<Item> pItem(new Item(pURI, pwszLabel));
+	MessageUndoItem::add(pmh, pItem);
+}
+
+std::auto_ptr<MessageUndoExecutor> qm::SetLabelUndoItem::createExecutor(Account* pAccount) const
+{
+	return std::auto_ptr<MessageUndoExecutor>(new SetLabelUndoExecutor(pAccount));
+}
+
+
+/****************************************************************************
+ *
+ * SetLabelUndoItem::Item
+ *
+ */
+
+qm::SetLabelUndoItem::Item::Item(std::auto_ptr<URI> pURI,
+								 const WCHAR* pwszLabel) :
+	MessageUndoItem::Item(pURI)
+{
+	if (pwszLabel)
+		wstrLabel_ = allocWString(pwszLabel);
+}
+
+qm::SetLabelUndoItem::Item::~Item()
+{
+}
+
+const WCHAR* qm::SetLabelUndoItem::Item::getLabel() const
+{
+	return wstrLabel_.get();
+}
+
+
+/****************************************************************************
+ *
+ * SetLabelUndoExecutor
+ *
+ */
+
+qm::SetLabelUndoExecutor::SetLabelUndoExecutor(Account* pAccount) :
+	MessageUndoExecutor(pAccount)
+{
+}
+
+qm::SetLabelUndoExecutor::~SetLabelUndoExecutor()
+{
+}
+
+bool qm::SetLabelUndoExecutor::execute(Account* pAccount,
+									   MessageHolder* pmh,
+									   const MessageUndoItem::Item* pItem)
+{
+	assert(pAccount);
+	assert(pmh);
+	assert(pItem);
+	assert(pAccount == pmh->getAccount());
+	
+	const SetLabelUndoItem::Item* p = static_cast<const SetLabelUndoItem::Item*>(pItem);
+	return pAccount->setMessagesLabel(MessageHolderList(1, pmh), p->getLabel(), 0);
 }
 
 

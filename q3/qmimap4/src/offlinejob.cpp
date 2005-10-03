@@ -55,11 +55,11 @@ using namespace qs;
 #define WRITE_STRING(type, str) \
 	do { \
 		size_t nLen = 0; \
-		if (str.get()) \
-			nLen = CharTraits<StringTraits<type>::char_type>::getLength(str.get()); \
+		if (str) \
+			nLen = CharTraits<StringTraits<type>::char_type>::getLength(str); \
 		WRITE(&nLen, sizeof(size_t)); \
-		if (str.get()) \
-			WRITE(str.get(), nLen*sizeof(StringTraits<type>::char_type)); \
+		if (str) \
+			WRITE(str, nLen*sizeof(StringTraits<type>::char_type)); \
 	} while (false)
 
 
@@ -304,7 +304,7 @@ qmimap4::OfflineJob::~OfflineJob()
 
 bool qmimap4::OfflineJob::write(OutputStream* pStream) const
 {
-	WRITE_STRING(WSTRING, wstrFolder_);
+	WRITE_STRING(WSTRING, wstrFolder_.get());
 	
 	return true;
 }
@@ -380,7 +380,7 @@ bool qmimap4::AppendOfflineJob::write(OutputStream* pStream) const
 	if (!OfflineJob::write(pStream))
 		return false;
 	
-	WRITE_STRING(WSTRING, wstrFolder_);
+	WRITE_STRING(WSTRING, wstrFolder_.get());
 	WRITE(&nId_, sizeof(nId_));
 	
 	return true;
@@ -499,7 +499,7 @@ bool qmimap4::CopyOfflineJob::write(OutputStream* pStream) const
 	if (!OfflineJob::write(pStream))
 		return false;
 	
-	WRITE_STRING(WSTRING, wstrFolderTo_);
+	WRITE_STRING(WSTRING, wstrFolderTo_.get());
 	size_t nSize = listUidFrom_.size();
 	WRITE(&nSize, sizeof(nSize));
 	WRITE(&listUidFrom_[0], listUidFrom_.size()*sizeof(UidList::value_type));
@@ -727,6 +727,128 @@ std::auto_ptr<OfflineJob> qmimap4::SetFlagsOfflineJob::create(qs::InputStream* p
 
 /****************************************************************************
  *
+ * SetLabelOfflineJob
+ *
+ */
+
+qmimap4::SetLabelOfflineJob::SetLabelOfflineJob(const WCHAR* pwszFolder,
+												const UidList& listUid,
+												const WCHAR* pwszLabel,
+												const WCHAR** ppwszMask,
+												size_t nMaskCount) :
+	OfflineJob(pwszFolder),
+	listUid_(listUid)
+{
+	if (pwszLabel)
+		wstrLabel_ = allocWString(pwszLabel);
+	
+	listLabel_.reserve(nMaskCount);
+	for (size_t n = 0; n < nMaskCount; ++n)
+		listLabel_.push_back(allocWString(ppwszMask[n]).release());
+}
+
+qmimap4::SetLabelOfflineJob::~SetLabelOfflineJob()
+{
+	std::for_each(listLabel_.begin(), listLabel_.end(), qs::string_free<WSTRING>());
+}
+
+OfflineJob::Type qmimap4::SetLabelOfflineJob::getType() const
+{
+	return TYPE_SETLABEL;
+}
+
+bool qmimap4::SetLabelOfflineJob::apply(Account* pAccount,
+										Imap4* pImap4,
+										bool* pbClosed) const
+{
+	assert(pAccount);
+	assert(pImap4);
+	assert(pbClosed);
+	assert(!listUid_.empty());
+	
+	MultipleRange range(&listUid_[0], listUid_.size(), true);
+	const WCHAR* pwszLabel = wstrLabel_.get();
+	std::auto_ptr<Flags> pFlags(Util::getImap4FlagsFromLabels(
+		&pwszLabel, pwszLabel && *pwszLabel ? 1 : 0));
+	if (!pFlags.get())
+		return false;
+	std::auto_ptr<Flags> pMask(Util::getImap4FlagsFromLabels(
+		const_cast<const WCHAR**>(&listLabel_[0]), listLabel_.size()));
+	if (!pMask.get())
+		return false;
+	if (!pImap4->setFlags(range, *pFlags, *pMask)) {
+		// Because some servers return NO response when I try
+		// storing flags to UID that doesn't exist, I ignore this.
+		return (pImap4->getLastError() & Imap4::IMAP4_ERROR_MASK_LOWLEVEL) ==
+			Imap4::IMAP4_ERROR_RESPONSE;
+	}
+	return true;
+}
+
+bool qmimap4::SetLabelOfflineJob::write(OutputStream* pStream) const
+{
+	if (!OfflineJob::write(pStream))
+		return false;
+	
+	size_t nSize = listUid_.size();
+	WRITE(&nSize, sizeof(nSize));
+	WRITE(&listUid_[0], listUid_.size()*sizeof(unsigned long));
+	WRITE_STRING(WSTRING, wstrLabel_.get());
+	size_t nLabelSize = listLabel_.size();
+	WRITE(&nLabelSize, sizeof(nLabelSize));
+	for (LabelList::const_iterator it = listLabel_.begin(); it != listLabel_.end(); ++it)
+		WRITE_STRING(WSTRING, *it);
+	
+	return true;
+}
+
+bool qmimap4::SetLabelOfflineJob::isCreateMessage(const WCHAR* pwszFolder,
+												  unsigned long nId)
+{
+	return false;
+}
+
+bool qmimap4::SetLabelOfflineJob::merge(OfflineJob* pOfflineJob)
+{
+	return false;
+}
+
+std::auto_ptr<OfflineJob> qmimap4::SetLabelOfflineJob::create(InputStream* pStream)
+{
+	wstring_ptr wstrFolder;
+	READ_STRING(WSTRING, wstrFolder);
+	if (!wstrFolder.get())
+		return std::auto_ptr<OfflineJob>(0);
+	
+	size_t nSize = 0;
+	READ(&nSize, sizeof(nSize));
+	if (nSize == 0)
+		return std::auto_ptr<OfflineJob>(0);
+	UidList listUid;
+	listUid.resize(nSize);
+	READ(&listUid[0], nSize*sizeof(unsigned long));
+	
+	wstring_ptr wstrLabel;
+	READ_STRING(WSTRING, wstrLabel);
+	
+	size_t nLabelSize = 0;
+	READ(&nLabelSize, sizeof(nLabelSize));
+	LabelList listLabel;
+	listLabel.reserve(nLabelSize);
+	StringListFree<LabelList> free(listLabel);
+	for (size_t n = 0; n < nLabelSize; ++n) {
+		wstring_ptr wstrLabel;
+		READ_STRING(WSTRING, wstrLabel);
+		listLabel.push_back(wstrLabel.release());
+	}
+	
+	return std::auto_ptr<OfflineJob>(new SetLabelOfflineJob(wstrFolder.get(), listUid,
+		wstrLabel.get(), const_cast<const WCHAR**>(&listLabel[0]), listLabel.size()));
+}
+
+
+/****************************************************************************
+ *
  * OfflineJobFactory
  *
  */
@@ -767,6 +889,7 @@ std::auto_ptr<OfflineJob> qmimap4::OfflineJobFactory::getInstance(InputStream* p
 		DECLARE_OFFLINEJOB(TYPE_APPEND, AppendOfflineJob)
 		DECLARE_OFFLINEJOB(TYPE_COPY, CopyOfflineJob)
 		DECLARE_OFFLINEJOB(TYPE_SETFLAGS, SetFlagsOfflineJob)
+		DECLARE_OFFLINEJOB(TYPE_SETLABEL, SetLabelOfflineJob)
 	END_OFFLINEJOB()
 	
 	return std::auto_ptr<OfflineJob>(0);

@@ -20,6 +20,8 @@ enum MessageIndexName {
 	NAME_SUBJECT,
 	NAME_MESSAGEID,
 	NAME_REFERENCE,
+	NAME_LABEL,
+	
 	NAME_MAX
 };
 

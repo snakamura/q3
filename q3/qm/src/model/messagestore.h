@@ -60,6 +60,7 @@ public:
 	virtual bool save(const Message& header,
 					  const CHAR* pszBody,
 					  size_t nBodyLen,
+					  const WCHAR* pwszLabel,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,
@@ -68,6 +69,11 @@ public:
 					  unsigned int* pnIndexLength) = 0;
 	virtual bool saveDecoded(unsigned int nOffset,
 							 const Message& msg) = 0;
+	virtual bool updateIndex(unsigned int nOldIndexKey,
+							 unsigned int nOldIndexLength,
+							 const unsigned char* pIndex,
+							 unsigned int nIndexLength,
+							 unsigned int* pnIndexKey) = 0;
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  unsigned int nIndexKey,
@@ -85,6 +91,7 @@ public:
 	bool save(const CHAR* pszMessage,
 			  size_t nLen,
 			  const Message* pHeader,
+			  const WCHAR* pwszLabel,
 			  bool bIndexOnly,
 			  unsigned int* pnOffset,
 			  unsigned int* pnLength,
@@ -118,6 +125,7 @@ public:
 	virtual bool save(const Message& header,
 					  const CHAR* pszBody,
 					  size_t nBodyLen,
+					  const WCHAR* pwszLabel,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,
@@ -126,6 +134,11 @@ public:
 					  unsigned int* pnIndexLength);
 	virtual bool saveDecoded(unsigned int nOffset,
 							 const Message& msg);
+	virtual bool updateIndex(unsigned int nOldIndexKey,
+							 unsigned int nOldIndexLength,
+							 const unsigned char* pIndex,
+							 unsigned int nIndexLength,
+							 unsigned int* pnIndexKey);
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  unsigned int nIndexKey,
@@ -171,6 +184,7 @@ public:
 	virtual bool save(const Message& header,
 					  const CHAR* pszBody,
 					  size_t nBodyLen,
+					  const WCHAR* pwszLabel,
 					  bool bIndexOnly,
 					  unsigned int* pnOffset,
 					  unsigned int* pnLength,
@@ -179,6 +193,11 @@ public:
 					  unsigned int* pnIndexLength);
 	virtual bool saveDecoded(unsigned int nOffset,
 							 const Message& msg);
+	virtual bool updateIndex(unsigned int nOldIndexKey,
+							 unsigned int nOldIndexLength,
+							 const unsigned char* pIndex,
+							 unsigned int nIndexLength,
+							 unsigned int* pnIndexKey);
 	virtual bool free(unsigned int nOffset,
 					  unsigned int nLength,
 					  unsigned int nIndexKey,
@@ -234,6 +253,7 @@ public:
 	virtual unsigned int getCount() = 0;
 	virtual bool getHeader(unsigned int n,
 						   Message* pMessage) = 0;
+	virtual qs::wstring_ptr getLabel(unsigned int n) = 0;
 	virtual void setKey(unsigned int n,
 						unsigned int nKey,
 						unsigned int nLength) = 0;
@@ -260,6 +280,12 @@ public:
 	static qs::malloc_ptr<unsigned char> readIndex(qs::ClusterStorage* pStorage,
 												   unsigned int nKey,
 												   unsigned int nLength);
+	static bool updateIndex(qs::ClusterStorage* pStorage,
+							unsigned int nOldIndexKey,
+							unsigned int nOldIndexLength,
+							const unsigned char* pIndex,
+							unsigned int nIndexLength,
+							unsigned int* pnIndexKey);
 };
 
 }

@@ -110,6 +110,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"MessageDetach",					IDM_MESSAGE_DETACH,					1,							0 },
 	{ L"MessageDraftFromClipboard",		IDM_MESSAGE_DRAFTFROMCLIPBOARD,		1,							0 },
 	{ L"MessageExpandDigest",			IDM_MESSAGE_EXPANDDIGEST,			1,							0 },
+	{ L"MessageLabel",					IDM_MESSAGE_LABEL,					1,							0 },
 	{ L"MessageMark",					IDM_MESSAGE_MARK,					1,							0 },
 	{ L"MessageMarkDeleted",			IDM_MESSAGE_MARKDELETED,			1,							0 },
 	{ L"MessageMarkDownload",			IDM_MESSAGE_MARKDOWNLOAD,			1,							0 },

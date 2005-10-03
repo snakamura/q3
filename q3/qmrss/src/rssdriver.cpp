@@ -163,6 +163,14 @@ bool qmrss::RssDriver::setMessagesFlags(NormalFolder* pFolder,
 	return false;
 }
 
+bool qmrss::RssDriver::setMessagesLabel(NormalFolder* pFolder,
+										const MessageHolderList& l,
+										const WCHAR* pwszLabel)
+{
+	assert(false);
+	return false;
+}
+
 bool qmrss::RssDriver::appendMessage(NormalFolder* pFolder,
 									 const CHAR* pszMessage,
 									 size_t nLen,

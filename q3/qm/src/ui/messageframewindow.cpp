@@ -278,6 +278,12 @@ void qm::MessageFrameWindowImpl::initActions()
 		this,
 		pSecurityModel_.get(),
 		pThis_->getHandle());
+	ADD_ACTION4(MessageLabelAction,
+		IDM_MESSAGE_LABEL,
+		this,
+		pDocument_->getUndoManager(),
+		pProfile_,
+		pThis_->getHandle());
 	ADD_ACTION5(MessageOpenAttachmentAction,
 		IDM_MESSAGE_ATTACHMENT,
 		pDocument_,

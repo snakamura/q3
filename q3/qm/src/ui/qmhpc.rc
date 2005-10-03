@@ -1655,6 +1655,17 @@ BEGIN
                     WS_TABSTOP
 END
 
+IDD_LABEL DIALOG DISCARDABLE  0, 0, 190, 37
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE 0x80000000L
+CAPTION "Label"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Label",IDC_MESSAGE,5,5,180,8
+    COMBOBOX        IDC_LABEL,5,20,180,65,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2237,6 +2248,7 @@ BEGIN
     IDS_COLUMNTYPE_SUBJECT  "Subject"
     IDS_COLUMNTYPE_SIZE     "Size"
     IDS_COLUMNTYPE_FLAGS    "Flags"
+    IDS_COLUMNTYPE_LABEL    "Label"
     IDS_COLUMNTYPE_OTHER    "Other"
 END
 
@@ -2272,6 +2284,7 @@ BEGIN
     IDS_ERROR_NOSENTBOX     "Cound not find Sentbox."
     IDS_ERROR_GETMESSAGE    "Could not get a message to be sent."
     IDS_ERROR_MOVETOSENTBOX "Could not move the sent message to Sentbox."
+    IDS_ERROR_LABELMESSAGE  "Error occured while labeling messages."
 END
 
 STRINGTABLE DISCARDABLE 

@@ -53,6 +53,9 @@ public:
 								  const qm::MessageHolderList& l,
 								  unsigned int nFlags,
 								  unsigned int nMask);
+	virtual bool setMessagesLabel(qm::NormalFolder* pFolder,
+								  const qm::MessageHolderList& l,
+								  const WCHAR* pwszLabel);
 	virtual bool appendMessage(qm::NormalFolder* pFolder,
 							   const CHAR* pszMessage,
 							   size_t nLen,

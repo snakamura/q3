@@ -294,8 +294,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				Lock<Account> lock(*pAccount_);
 				
 				xstring_size_ptr strContent(msg.getContent());
-				MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
-					strContent.get(), strContent.size(), &msg, -1, nFlags, -1, false);
+				MessageHolder* pmh = pAccount_->storeMessage(pFolder_, strContent.get(),
+					strContent.size(), &msg, -1, nFlags, 0, -1, false);
 				if (!pmh)
 					return false;
 				

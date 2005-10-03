@@ -66,6 +66,9 @@ public:
 	static unsigned int getMessageFlagsFromImap4Flags(unsigned int nSystemFlags,
 													  const FetchDataFlags::FlagList& listCustomFlag);
 	static unsigned int getImap4FlagsFromMessageFlags(unsigned int nFlags);
+	static qs::wstring_ptr getLabelFromImap4Flags(const FetchDataFlags::FlagList& listCustomFlag);
+	static std::auto_ptr<Flags> getImap4FlagsFromLabels(const WCHAR** ppwszLabel,
+														size_t nCount);
 	static qs::string_ptr getMessageFromEnvelope(const FetchDataEnvelope* pEnvelope);
 	static qs::string_ptr getHeaderFromBodyStructure(const FetchDataBodyStructure* pBodyStructure,
 													 bool bIncludeContentTypeAndDisposition);

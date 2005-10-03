@@ -22,14 +22,18 @@ class UndoManager;
 class UndoItemList;
 class UndoItem;
 	class EmptyUndoItem;
-	class SetFlagsUndoItem;
+	class MessageUndoItem;
+		class SetFlagsUndoItem;
+		class SetLabelUndoItem;
 	class MessageListUndoItem;
 		class MoveUndoItem;
 		class DeleteUndoItem;
 	class GroupUndoItem;
 class UndoExecutor;
 	class AbstractUndoExecutor;
-		class SetFlagsUndoExecutor;
+		class MessageUndoExecutor;
+			class SetFlagsUndoExecutor;
+			class SetLabelUndoExecutor;
 		class MessageListUndoExecutor;
 			class MoveUndoExecutor;
 			class DeleteUndoExecutor;
@@ -202,38 +206,52 @@ private:
 
 /****************************************************************************
  *
- * SetFlagsUndoItem
+ * MessageUndoItem
  *
  */
 
-class SetFlagsUndoItem : public UndoItem
+class MessageUndoItem : public UndoItem
 {
 public:
-	SetFlagsUndoItem();
-	virtual ~SetFlagsUndoItem();
+	class Item
+	{
+	protected:
+		Item(std::auto_ptr<URI> pURI);
+	
+	public:
+		virtual ~Item();
+	
+	public:
+		const URI* getURI() const;
+	
+	private:
+		Item(const Item&);
+		Item& operator=(const Item&);
+	
+	private:
+		std::auto_ptr<URI> pURI_;
+	};
 
 public:
-	void add(MessageHolder* pmh,
-			 unsigned int nFlags,
-			 unsigned int nMask);
+	MessageUndoItem();
+	virtual ~MessageUndoItem();
 
 public:
 	virtual std::auto_ptr<UndoExecutor> getExecutor(const UndoContext& context);
 
-private:
-	SetFlagsUndoItem(const SetFlagsUndoItem&);
-	SetFlagsUndoItem& operator=(const SetFlagsUndoItem&);
+protected:
+	void add(MessageHolder* pmh,
+			 std::auto_ptr<Item> pItem);
 
 private:
-	struct Item
-	{
-		URI* pURI_;
-		unsigned int nFlags_;
-		unsigned int nMask_;
-	};
+	virtual std::auto_ptr<MessageUndoExecutor> createExecutor(Account* pAccount) const = 0;
 
 private:
-	typedef std::vector<Item> ItemList;
+	MessageUndoItem(const MessageUndoItem&);
+	MessageUndoItem& operator=(const MessageUndoItem&);
+
+private:
+	typedef std::vector<Item*> ItemList;
 
 private:
 	ItemList listItem_;
@@ -246,34 +264,37 @@ private:
 
 /****************************************************************************
  *
- * SetFlagsUndoExecutor
+ * MessageUndoExecutor
  *
  */
 
-class SetFlagsUndoExecutor : public AbstractUndoExecutor
+class MessageUndoExecutor : public AbstractUndoExecutor
 {
 public:
-	explicit SetFlagsUndoExecutor(Account* pAccount);
-	virtual ~SetFlagsUndoExecutor();
+	explicit MessageUndoExecutor(Account* pAccount);
+	virtual ~MessageUndoExecutor();
 
 public:
 	void add(MessageHolder* pmh,
-			 unsigned int nFlags,
-			 unsigned int nMask);
+			 const MessageUndoItem::Item* pItem);
 
 private:
 	virtual bool execute(Account* pAccount);
 
 private:
-	SetFlagsUndoExecutor(const SetFlagsUndoExecutor&);
-	SetFlagsUndoExecutor& operator=(const SetFlagsUndoExecutor&);
+	virtual bool execute(Account* pAccount,
+						 MessageHolder* pmh,
+						 const MessageUndoItem::Item* pItem) = 0;
+
+private:
+	MessageUndoExecutor(const MessageUndoExecutor&);
+	MessageUndoExecutor& operator=(const MessageUndoExecutor&);
 
 private:
 	struct Item
 	{
 		MessageHolder* pmh_;
-		unsigned int nFlags_;
-		unsigned int nMask_;
+		const MessageUndoItem::Item* pItem_;
 	};
 
 private:
@@ -281,6 +302,144 @@ private:
 
 private:
 	ItemList listItem_;
+};
+
+
+/****************************************************************************
+ *
+ * SetFlagsUndoItem
+ *
+ */
+
+class SetFlagsUndoItem : public MessageUndoItem
+{
+public:
+	class Item : public MessageUndoItem::Item
+	{
+	public:
+		Item(std::auto_ptr<URI> pURI,
+			 unsigned int nFlags,
+			 unsigned int nMask);
+		virtual ~Item();
+	
+	public:
+		unsigned int getFlags() const;
+		unsigned int getMask() const;
+	
+	private:
+		Item(const Item&);
+		Item& operator=(const Item&);
+	
+	private:
+		unsigned int nFlags_;
+		unsigned int nMask_;
+	};
+
+public:
+	SetFlagsUndoItem();
+	virtual ~SetFlagsUndoItem();
+
+public:
+	void add(MessageHolder* pmh,
+			 unsigned int nFlags,
+			 unsigned int nMask);
+
+private:
+	virtual std::auto_ptr<MessageUndoExecutor> createExecutor(Account* pAccount) const;
+
+private:
+	SetFlagsUndoItem(const SetFlagsUndoItem&);
+	SetFlagsUndoItem& operator=(const SetFlagsUndoItem&);
+};
+
+
+/****************************************************************************
+ *
+ * SetFlagsUndoExecutor
+ *
+ */
+
+class SetFlagsUndoExecutor : public MessageUndoExecutor
+{
+public:
+	explicit SetFlagsUndoExecutor(Account* pAccount);
+	virtual ~SetFlagsUndoExecutor();
+
+private:
+	virtual bool execute(Account* pAccount,
+						 MessageHolder* pmh,
+						 const MessageUndoItem::Item* pItem);
+
+private:
+	SetFlagsUndoExecutor(const SetFlagsUndoExecutor&);
+	SetFlagsUndoExecutor& operator=(const SetFlagsUndoExecutor&);
+};
+
+
+/****************************************************************************
+ *
+ * SetLabelUndoItem
+ *
+ */
+
+class SetLabelUndoItem : public MessageUndoItem
+{
+public:
+	class Item : public MessageUndoItem::Item
+	{
+	public:
+		Item(std::auto_ptr<URI> pURI,
+			 const WCHAR* pwszLabel);
+		virtual ~Item();
+	
+	public:
+		const WCHAR* getLabel() const;
+	
+	private:
+		Item(const Item&);
+		Item& operator=(const Item&);
+	
+	private:
+		qs::wstring_ptr wstrLabel_;
+	};
+
+public:
+	SetLabelUndoItem();
+	virtual ~SetLabelUndoItem();
+
+public:
+	void add(MessageHolder* pmh,
+			 const WCHAR* pwszLabel);
+
+private:
+	virtual std::auto_ptr<MessageUndoExecutor> createExecutor(Account* pAccount) const;
+
+private:
+	SetLabelUndoItem(const SetLabelUndoItem&);
+	SetLabelUndoItem& operator=(const SetLabelUndoItem&);
+};
+
+
+/****************************************************************************
+ *
+ * SetLabelUndoExecutor
+ *
+ */
+
+class SetLabelUndoExecutor : public MessageUndoExecutor
+{
+public:
+	explicit SetLabelUndoExecutor(Account* pAccount);
+	virtual ~SetLabelUndoExecutor();
+
+private:
+	virtual bool execute(Account* pAccount,
+						 MessageHolder* pmh,
+						 const MessageUndoItem::Item* pItem);
+
+private:
+	SetLabelUndoExecutor(const SetLabelUndoExecutor&);
+	SetLabelUndoExecutor& operator=(const SetLabelUndoExecutor&);
 };
 
 

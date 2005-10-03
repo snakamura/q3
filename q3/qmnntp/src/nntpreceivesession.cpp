@@ -453,7 +453,7 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 	Lock<Account> lock(*pAccount_);
 	
 	MessageHolder* pmh = pAccount_->storeMessage(pFolder_, pszMessage, nLen,
-		0, nId, nFlags, nSize, nFlags == MessageHolder::FLAG_INDEXONLY);
+		0, nId, nFlags, 0, nSize, nFlags == MessageHolder::FLAG_INDEXONLY);
 	if (!pmh)
 		return false;
 	

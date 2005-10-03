@@ -77,6 +77,7 @@ class MessageCreateFromFileAction;
 class MessageDeleteAttachmentAction;
 class MessageDetachAction;
 class MessageExpandDigestAction;
+class MessageLabelAction;
 class MessageManageJunkAction;
 class MessageMarkAction;
 class MessageMoveAction;
@@ -1791,6 +1792,37 @@ private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	SecurityModel* pSecurityModel_;
 	UndoManager* pUndoManager_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageLabelAction
+ *
+ */
+
+class MessageLabelAction : public qs::AbstractAction
+{
+public:
+	MessageLabelAction(MessageSelectionModel* pModel,
+					   UndoManager* pUndoManager,
+					   qs::Profile* pProfile,
+					   HWND hwnd);
+	virtual ~MessageLabelAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	MessageLabelAction(const MessageLabelAction&);
+	MessageLabelAction& operator=(const MessageLabelAction&);
+
+private:
+	MessageSelectionModel* pModel_;
+	UndoManager* pUndoManager_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 

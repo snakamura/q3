@@ -1423,11 +1423,11 @@ private:
  *
  */
 
-template<class List>
+template<class StringList>
 class StringListFree
 {
 public:
-	StringListFree(List& l);
+	StringListFree(StringList& l);
 	~StringListFree();
 
 public:
@@ -1438,7 +1438,7 @@ private:
 	StringListFree& operator=(const StringListFree&);
 
 private:
-	List* p_;
+	StringList* p_;
 };
 
 }

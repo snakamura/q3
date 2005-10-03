@@ -25,6 +25,7 @@ class OfflineJob;
 	class AppendOfflineJob;
 	class CopyOfflineJob;
 	class SetFlagsOfflineJob;
+	class SetLabelOfflineJob;
 class OfflineJobFactory;
 
 class Imap4;
@@ -92,12 +93,12 @@ public:
 	enum Type {
 		TYPE_APPEND		= 1,
 		TYPE_COPY		= 2,
-		TYPE_SETFLAGS	= 4
+		TYPE_SETFLAGS	= 4,
+		TYPE_SETLABEL	= 5
 	};
 
 protected:
 	OfflineJob(const WCHAR* pwszFolder);
-//	OfflineJob(qs::InputStream* pStream);
 
 public:
 	virtual ~OfflineJob();
@@ -247,6 +248,50 @@ private:
 	UidList listUid_;
 	unsigned int nFlags_;
 	unsigned int nMask_;
+};
+
+
+/****************************************************************************
+ *
+ * SetLabelOfflineJob
+ *
+ */
+
+class SetLabelOfflineJob : public OfflineJob
+{
+public:
+	typedef std::vector<unsigned long> UidList;
+	typedef std::vector<qs::WSTRING> LabelList;
+
+public:
+	SetLabelOfflineJob(const WCHAR* pwszFolder,
+					   const UidList& listUid,
+					   const WCHAR* pwszLabel,
+					   const WCHAR** ppwszMask,
+					   size_t nMaskCount);
+	virtual ~SetLabelOfflineJob();
+
+public:
+	virtual Type getType() const;
+	virtual bool apply(qm::Account* pAccount,
+					   Imap4* pImap4,
+					   bool* pbClosed) const;
+	virtual bool write(qs::OutputStream* pStream) const;
+	virtual bool isCreateMessage(const WCHAR* pwszFolder,
+								 unsigned long nId);
+	virtual bool merge(OfflineJob* pOfflineJob);
+
+public:
+	static std::auto_ptr<OfflineJob> create(qs::InputStream* pStream);
+
+private:
+	SetLabelOfflineJob(const SetLabelOfflineJob&);
+	SetLabelOfflineJob& operator=(const SetLabelOfflineJob&);
+
+private:
+	UidList listUid_;
+	qs::wstring_ptr wstrLabel_;
+	LabelList listLabel_;
 };
 
 

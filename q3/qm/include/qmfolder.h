@@ -153,7 +153,15 @@ private:
 class QMEXPORTCLASS NormalFolder : public Folder
 {
 public:
-	typedef std::vector<std::pair<unsigned int, unsigned int> > FlagList;
+	struct MessageInfo
+	{
+		unsigned int nId_;
+		unsigned int nFlags_;
+		qs::WSTRING wstrLabel_;
+	};
+
+public:
+	typedef std::vector<MessageInfo> MessageInfoList;
 
 public:
 	NormalFolder(unsigned int nId,
@@ -178,7 +186,7 @@ public:
 	void setLastSyncTime(unsigned int nTime);
 	MessagePtr getMessageById(unsigned int nId);
 	MessageHolder* getMessageHolderById(unsigned int nId) const;
-	bool updateMessageFlags(const FlagList& listFlag,
+	bool updateMessageInfos(const MessageInfoList& listMessageInfo,
 							bool* pbClear);
 
 public:

@@ -1259,22 +1259,22 @@ typename qs::BMFindString<String>::Char qs::BMFindString<String>::getChar(const 
  *
  */
 
-template<class List>
-qs::StringListFree<List>::StringListFree(List& l) :
+template<class StringList>
+qs::StringListFree<StringList>::StringListFree(StringList& l) :
 	p_(&l)
 {
 }
 
-template<class List>
-qs::StringListFree<List>::~StringListFree()
+template<class StringList>
+qs::StringListFree<StringList>::~StringListFree()
 {
 	if (p_)
 		std::for_each(p_->begin(), p_->end(),
-			string_free<List::value_type>());
+			string_free<StringList::value_type>());
 }
 
-template<class List>
-void qs::StringListFree<List>::release()
+template<class StringList>
+void qs::StringListFree<StringList>::release()
 {
 	p_ = 0;
 }

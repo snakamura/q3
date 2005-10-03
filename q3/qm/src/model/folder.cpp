@@ -613,7 +613,7 @@ MessageHolder* qm::NormalFolder::getMessageHolderById(unsigned int nId) const
 	return it != pImpl_->listMessageHolder_.end() && (*it)->getId() == nId ? *it : 0;
 }
 
-bool qm::NormalFolder::updateMessageFlags(const FlagList& listFlag,
+bool qm::NormalFolder::updateMessageInfos(const MessageInfoList& listMessageInfo,
 										  bool* pbClear)
 {
 	assert(pbClear);
@@ -625,7 +625,7 @@ bool qm::NormalFolder::updateMessageFlags(const FlagList& listFlag,
 	if (!loadMessageHolders())
 		return false;
 	
-	unsigned int nMask = MessageHolder::FLAG_SEEN |
+	const unsigned int nMask = MessageHolder::FLAG_SEEN |
 		MessageHolder::FLAG_REPLIED | MessageHolder::FLAG_DRAFT |
 		MessageHolder::FLAG_DELETED | MessageHolder::FLAG_MARKED;
 	
@@ -633,11 +633,13 @@ bool qm::NormalFolder::updateMessageFlags(const FlagList& listFlag,
 	
 	MessageHolderList& l = pImpl_->listMessageHolder_;
 	MessageHolderList::iterator itM = l.begin();
-	FlagList::const_iterator itF = listFlag.begin();
-	while (itM != l.end() && itF != listFlag.end()) {
-		if ((*itM)->getId() == (*itF).first) {
-			(*itM)->setFlags((*itF).second, nMask);
-			++itF;
+	MessageInfoList::const_iterator itI = listMessageInfo.begin();
+	while (itM != l.end() && itI != listMessageInfo.end()) {
+		if ((*itM)->getId() == (*itI).nId_) {
+			(*itM)->setFlags((*itI).nFlags_, nMask);
+			if (!(*itM)->setLabel((*itI).wstrLabel_))
+				return false;
+			++itI;
 		}
 		else {
 			listRemove.push_back(*itM);
@@ -649,7 +651,7 @@ bool qm::NormalFolder::updateMessageFlags(const FlagList& listFlag,
 		std::copy(itM, l.end(), std::back_inserter(listRemove));
 	}
 	
-	if (itF != listFlag.end()) {
+	if (itI != listMessageInfo.end()) {
 		// Server may have a bug
 		// Clear all
 		if (!pImpl_->unstoreAllMessages())

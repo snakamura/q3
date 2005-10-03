@@ -104,6 +104,9 @@
 		<action name="MessageDetach">
 			<key key="X"/>
 		</action>
+		<action name="MessageLabel">
+			<key key="L" shift="true"/>
+		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>
 		</action>
@@ -185,6 +188,9 @@
 		</action>
 		<action name="MessageDetach">
 			<key key="X"/>
+		</action>
+		<action name="MessageLabel">
+			<key key="L" shift="true"/>
 		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>
@@ -277,6 +283,9 @@
 		</action>
 		<action name="MessageDetach">
 			<key key="X"/>
+		</action>
+		<action name="MessageLabel">
+			<key key="L" shift="true"/>
 		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>

@@ -72,6 +72,7 @@ class MacroExpr;
 		class MacroFunctionIf;
 		class MacroFunctionInputBox;
 		class MacroFunctionJunk;
+		class MacroFunctionLabel;
 		class MacroFunctionLength;
 		class MacroFunctionLoad;
 		class MacroFunctionMessageBox;
@@ -1605,6 +1606,30 @@ protected:
 private:
 	MacroFunctionJunk(const MacroFunctionJunk&);
 	MacroFunctionJunk& operator=(const MacroFunctionJunk&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionLabel
+ *
+ */
+
+class MacroFunctionLabel : public MacroFunction
+{
+public:
+	MacroFunctionLabel();
+	virtual ~MacroFunctionLabel();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionLabel(const MacroFunctionLabel&);
+	MacroFunctionLabel& operator=(const MacroFunctionLabel&);
 };
 
 

@@ -56,14 +56,7 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 {
 	wstring_ptr wstrValue;
 	
-	MessageIndexItem* pItem = 0;
-	if (pLastGotten_ && pLastGotten_->getKey() == nKey)
-		pItem = pLastGotten_;
-	if (!pItem) {
-		ItemMap::iterator it = map_.find(nKey);
-		if (it != map_.end())
-			pItem = (*it).second;
-	}
+	MessageIndexItem* pItem = getItem(nKey);
 	if (pItem) {
 		const WCHAR* pwszValue = pItem->getValue(name);
 		wstrValue = allocWString(pwszValue ? pwszValue : L"");
@@ -84,18 +77,9 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 		malloc_ptr<unsigned char> pData(pMessageStore_->readIndex(nKey, nLength));
 		if (!pData.get())
 			return 0;
-		WCHAR* p = reinterpret_cast<WCHAR*>(pData.get());
 		
 		const WCHAR* pwszValues[NAME_MAX] = { 0 };
-		int nValue = 0;
-		const WCHAR* pStart = p;
-		for (unsigned int n = 0; n < nLength/sizeof(WCHAR) && nValue < NAME_MAX; ++n, ++p) {
-			if (*p == L'\n') {
-				*p = L'\0';
-				pwszValues[nValue++] = pStart;
-				pStart = p + 1;
-			}
-		}
+		parseValues(reinterpret_cast<WCHAR*>(pData.get()), nLength/sizeof(WCHAR), pwszValues);
 		
 		if (nMaxSize_ != 0) {
 			pItem = new MessageIndexItem(nKey, pData, pwszValues);
@@ -123,7 +107,40 @@ void qm::MessageIndex::remove(unsigned int nKey)
 		remove(it);
 }
 
-malloc_size_ptr<unsigned char> qm::MessageIndex::createIndex(const Message& msg)
+malloc_size_ptr<unsigned char> qm::MessageIndex::createReplacedIndex(unsigned int nKey,
+																	 unsigned int nLength,
+																	 MessageIndexName name,
+																	 const WCHAR* pwszValue)
+{
+	ByteOutputStream stream;
+	
+	MessageIndexItem* pItem = getItem(nKey);
+	
+	malloc_ptr<unsigned char> pData;
+	const WCHAR* pwszValues[NAME_MAX] = { 0 };
+	if (!pItem) {
+		pData = pMessageStore_->readIndex(nKey, nLength);
+		if (!pData.get())
+			return malloc_size_ptr<unsigned char>();
+		parseValues(reinterpret_cast<WCHAR*>(pData.get()), nLength/sizeof(WCHAR), pwszValues);
+	}
+	
+	for (int n = 0; n < NAME_MAX; ++n) {
+		const WCHAR* p = 0;
+		if (n != name)
+			p = pItem ? pItem->getValue(static_cast<MessageIndexName>(n)) : pwszValues[n];
+		else
+			p = pwszValue;
+		if (!writeToStream(&stream, p))
+			return malloc_size_ptr<unsigned char>();
+	}
+	
+	size_t nLen = stream.getLength();
+	return malloc_size_ptr<unsigned char>(stream.releaseBuffer(), nLen);
+}
+
+malloc_size_ptr<unsigned char> qm::MessageIndex::createIndex(const Message& header,
+															 const WCHAR* pwszLabel)
 {
 	ByteOutputStream stream;
 	
@@ -132,50 +149,50 @@ malloc_size_ptr<unsigned char> qm::MessageIndex::createIndex(const Message& msg)
 		L"To"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n) {
+		wstring_ptr wstrNames;
 		AddressListParser address;
-		if (msg.getField(pwszFields[n], &address) == Part::FIELD_EXIST) {
-			wstring_ptr wstrNames(address.getNames());
-			if (!writeToStream(&stream, wstrNames.get()))
-				return malloc_size_ptr<unsigned char>();
-		}
-		else {
-			if (!writeToStream(&stream, 0))
-				return malloc_size_ptr<unsigned char>();
-		}
+		if (header.getField(pwszFields[n], &address) == Part::FIELD_EXIST)
+			wstrNames = address.getNames();
+		if (!writeToStream(&stream, wstrNames.get()))
+			return malloc_size_ptr<unsigned char>();
 	}
 	
+	const WCHAR* pwszSubject = 0;
 	UnstructuredParser subject;
-	if (msg.getField(L"Subject", &subject) == Part::FIELD_EXIST) {
-		if (!writeToStream(&stream, subject.getValue()))
-			return malloc_size_ptr<unsigned char>();
-	}
-	else {
-		if (!writeToStream(&stream, 0))
-			return malloc_size_ptr<unsigned char>();
-	}
+	if (header.getField(L"Subject", &subject) == Part::FIELD_EXIST)
+		pwszSubject = subject.getValue();
+	if (!writeToStream(&stream, pwszSubject))
+		return malloc_size_ptr<unsigned char>();
 	
+	const WCHAR* pwszMessageId = 0;
 	MessageIdParser messageId;
-	if (msg.getField(L"Message-Id", &messageId) == Part::FIELD_EXIST) {
-		if (!writeToStream(&stream, messageId.getMessageId()))
-			return malloc_size_ptr<unsigned char>();
-	}
-	else {
-		if (!writeToStream(&stream, 0))
-			return malloc_size_ptr<unsigned char>();
-	}
+	if (header.getField(L"Message-Id", &messageId) == Part::FIELD_EXIST)
+		pwszMessageId = messageId.getMessageId();
+	if (!writeToStream(&stream, pwszMessageId))
+		return malloc_size_ptr<unsigned char>();
 	
-	wstring_ptr wstrReference(PartUtil(msg).getReference());
-	if (wstrReference.get()) {
-		if (!writeToStream(&stream, wstrReference.get()))
-			return malloc_size_ptr<unsigned char>();
-	}
-	else {
-		if (!writeToStream(&stream, 0))
-			return malloc_size_ptr<unsigned char>();
-	}
+	wstring_ptr wstrReference(PartUtil(header).getReference());
+	if (!writeToStream(&stream, wstrReference.get()))
+		return malloc_size_ptr<unsigned char>();
+	
+	if (!writeToStream(&stream, pwszLabel))
+		return malloc_size_ptr<unsigned char>();
 	
 	size_t nLen = stream.getLength();
 	return malloc_size_ptr<unsigned char>(stream.releaseBuffer(), nLen);
+}
+
+MessageIndexItem* qm::MessageIndex::getItem(unsigned int nKey) const
+{
+	MessageIndexItem* pItem = 0;
+	if (pLastGotten_ && pLastGotten_->getKey() == nKey)
+		pItem = pLastGotten_;
+	if (!pItem) {
+		ItemMap::const_iterator it = map_.find(nKey);
+		if (it != map_.end())
+			pItem = (*it).second;
+	}
+	return pItem;
 }
 
 void qm::MessageIndex::insert(MessageIndexItem* pItem)
@@ -209,6 +226,23 @@ void qm::MessageIndex::remove(ItemMap::iterator it)
 		pLastGotten_ = 0;
 	
 	delete pItem;
+}
+
+void qm::MessageIndex::parseValues(WCHAR* p,
+								   size_t nLen,
+								   const WCHAR** ppwszValues)
+{
+	int nValue = 0;
+	const WCHAR* pStart = p;
+	for (size_t n = 0; n < nLen && nValue < NAME_MAX; ++n, ++p) {
+		if (*p == L'\n') {
+			*p = L'\0';
+			ppwszValues[nValue++] = pStart;
+			pStart = p + 1;
+		}
+	}
+	while (nValue < NAME_MAX)
+		ppwszValues[nValue++] = 0;
 }
 
 bool qm::MessageIndex::writeToStream(OutputStream* pStream,

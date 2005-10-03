@@ -2694,6 +2694,64 @@ const WCHAR* qm::MacroFunctionJunk::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionLabel
+ *
+ */
+
+qm::MacroFunctionLabel::MacroFunctionLabel()
+{
+}
+
+qm::MacroFunctionLabel::~MacroFunctionLabel()
+{
+}
+
+MacroValuePtr qm::MacroFunctionLabel::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(Label);
+	
+	if (!checkArgSizeRange(pContext, 0, 1))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (!pmh)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	
+	wstring_ptr wstrLabel;
+	if (nSize > 0) {
+		if (!pmh->getMessageHolder())
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		
+		ARG(pValue, 0);
+		wstrLabel = pValue->string();
+		
+		Account* pAccount = pmh->getAccount();
+		assert(pAccount->isLocked());
+		
+		MessageHolderList l(1, pmh->getMessageHolder());
+		if (!pAccount->setMessagesLabel(l, wstrLabel.get(), 0))
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	}
+	else {
+		if (pmh->getMessageHolder())
+			wstrLabel = pmh->getMessageHolder()->getLabel();
+	}
+	
+	return MacroValueFactory::getFactory().newString(wstrLabel.get());
+}
+
+const WCHAR* qm::MacroFunctionLabel::getName() const
+{
+	return L"Label";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionLength
  *
  */
@@ -4990,6 +5048,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		Junk, 				L"junk"													)
 		END_BLOCK()
 		BEGIN_BLOCK(L'l', L'L')
+			DECLARE_FUNCTION0(		Label,				L"label"												)
 			DECLARE_FUNCTION0(		Length,				L"length"												)
 			DECLARE_FUNCTION1(		Relative,			L"less",			true								)
 			DECLARE_FUNCTION0(		Load,				L"load"													)

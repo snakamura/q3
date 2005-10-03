@@ -136,6 +136,7 @@
 				<separator/>
 				<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 			</popupmenu>
+			<menuitem text="La&amp;bel" action="MessageLabel"/>
 			<separator/>
 			<popupmenu text="&amp;Move">
 				<menuitem dynamic="MessageMove"/>
@@ -268,6 +269,7 @@
 				<separator/>
 				<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 			</popupmenu>
+			<menuitem text="La&amp;bel" action="MessageLabel"/>
 			<separator/>
 			<popupmenu text="&amp;Move">
 				<menuitem dynamic="MessageMove"/>
@@ -475,6 +477,7 @@
 			<separator/>
 			<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 		</popupmenu>
+		<menuitem text="La&amp;bel" action="MessageLabel"/>
 		<separator/>
 		<menuitem text="&amp;Property..." action="MessageProperty"/>
 	</menu>
@@ -517,6 +520,7 @@
 			<separator/>
 			<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 		</popupmenu>
+		<menuitem text="La&amp;bel" action="MessageLabel"/>
 		<separator/>
 		<menuitem text="&amp;Property..." action="MessageProperty"/>
 	</menu>

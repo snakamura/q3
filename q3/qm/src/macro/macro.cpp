@@ -596,16 +596,16 @@ MacroValuePtr qm::MacroFieldCache::value(MacroContext* pContext) const
 		pfnGetTime = &qm::MessageHolderBase::getDate;
 		break;
 	case TYPE_FROM:
-		pfnGetString = qm::MessageHolderBase::getFrom;
+		pfnGetString = &qm::MessageHolderBase::getFrom;
 		break;
 	case TYPE_TO:
-		pfnGetString = qm::MessageHolderBase::getTo;
+		pfnGetString = &qm::MessageHolderBase::getTo;
 		break;
 	case TYPE_FROMTO:
-		pfnGetString = qm::MessageHolderBase::getFromTo;
+		pfnGetString = &qm::MessageHolderBase::getFromTo;
 		break;
 	case TYPE_SUBJECT:
-		pfnGetString = qm::MessageHolderBase::getSubject;
+		pfnGetString = &qm::MessageHolderBase::getSubject;
 		break;
 	case TYPE_SIZE:
 		pfnGetNumber = &qm::MessageHolderBase::getSize;

@@ -218,7 +218,7 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 	if (nUidStart_ != 0) {
 		struct UpdateFlagsProcessHook : public ProcessHook
 		{
-			typedef NormalFolder::FlagList FlagList;
+			typedef NormalFolder::MessageInfoList MessageInfoList;
 			
 			UpdateFlagsProcessHook(unsigned int nUidStart,
 								   ReceiveSessionCallback* pSessionCallback) :
@@ -228,10 +228,18 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 			{
 			}
 			
+			virtual ~UpdateFlagsProcessHook()
+			{
+				std::for_each(listMessageInfo_.begin(), listMessageInfo_.end(),
+					unary_compose_f_gx(qs::string_free<WSTRING>(),
+						mem_data_ref(&NormalFolder::MessageInfo::wstrLabel_)));
+			}
+			
 			virtual Result processFetchResponse(ResponseFetch* pFetch)
 			{
 				unsigned int nUid = pFetch->getUid();
 				unsigned int nFlags = 0;
+				wstring_ptr wstrLabel;
 				
 				int nCount = 0;
 				
@@ -242,6 +250,8 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 						nFlags = Util::getMessageFlagsFromImap4Flags(
 							static_cast<FetchDataFlags*>(*it)->getSystemFlags(),
 							static_cast<FetchDataFlags*>(*it)->getCustomFlags());
+						wstrLabel = Util::getLabelFromImap4Flags(
+							static_cast<FetchDataFlags*>(*it)->getCustomFlags());
 						++nCount;
 						break;
 					default:
@@ -250,7 +260,13 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 				}
 				
 				if (nCount == 1 && nUid != -1 && nUid <= nUidStart_) {
-					listFlag_.push_back(FlagList::value_type(nUid, nFlags));
+					NormalFolder::MessageInfo info = {
+						nUid,
+						nFlags,
+						wstrLabel.get()
+					};
+					listMessageInfo_.push_back(info);
+					wstrLabel.release();
 					
 					unsigned int nPos = pFetch->getNumber();
 					if (nPos % 10 == 0)
@@ -264,7 +280,7 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 			
 			unsigned int nUidStart_;
 			ReceiveSessionCallback* pSessionCallback_;
-			FlagList listFlag_;
+			MessageInfoList listMessageInfo_;
 			unsigned int nLastId_;
 		} hook(nUidStart_, pSessionCallback_);
 		
@@ -281,7 +297,7 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 		}
 		
 		bool bClear = false;
-		if (!pFolder_->updateMessageFlags(hook.listFlag_, &bClear))
+		if (!pFolder_->updateMessageInfos(hook.listMessageInfo_, &bClear))
 			return false;
 		if (bClear)
 			nUidStart_ = 0;
@@ -359,7 +375,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		{
 			unsigned long nUid = pFetch->getUid();
 			unsigned int nFlags = 0;
-			unsigned long nSize = static_cast<unsigned long>(-1);
+			wstring_ptr wstrLabel;
+			unsigned long nSize = -1;
 			FetchDataBodyStructure* pBodyStructure = 0;
 			string_ptr strEnvelope;
 			std::pair<const CHAR*, size_t> header;
@@ -381,6 +398,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				case FetchData::TYPE_FLAGS:
 					nFlags = Util::getMessageFlagsFromImap4Flags(
 						static_cast<FetchDataFlags*>(*it)->getSystemFlags(),
+						static_cast<FetchDataFlags*>(*it)->getCustomFlags());
+					wstrLabel = Util::getLabelFromImap4Flags(
 						static_cast<FetchDataFlags*>(*it)->getCustomFlags());
 					++nCount;
 					break;
@@ -513,7 +532,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			Lock<Account> lock(*pAccount_);
 			
 			MessageHolder* pmh = pAccount_->storeMessage(pFolder_, buf.getCharArray(),
-				buf.getLength(), &msg, nUid, nFlags, nSize, true);
+				buf.getLength(), &msg, nUid, nFlags, wstrLabel.get(), nSize, true);
 			if (!pmh)
 				return RESULT_ERROR;
 			
@@ -1570,30 +1589,36 @@ void qmimap4::Imap4ReceiveSession::CallbackImpl::setPos(size_t nPos)
 
 bool qmimap4::Imap4ReceiveSession::CallbackImpl::response(Response* pResponse)
 {
-#define MAP_RESPONSE(type, name) \
+#define BEGIN_PROCESS_RESPONSE() \
+	switch (pResponse->getType()) { \
+
+#define END_PROCESS_RESPONSE() \
+	default: \
+		assert(false); \
+		return false; \
+	} \
+
+#define PROCESS_RESPONSE(type, name) \
 	case Response::type: \
 		if (!pSession_->process##name##Response( \
 			static_cast<Response##name*>(pResponse))) \
 			return false; \
-		break \
+		break; \
 	
-	switch (pResponse->getType()) {
-	MAP_RESPONSE(TYPE_CAPABILITY, Capability);
-	MAP_RESPONSE(TYPE_CONTINUE, Continue);
-	MAP_RESPONSE(TYPE_EXISTS, Exists);
-	MAP_RESPONSE(TYPE_EXPUNGE, Expunge);
-	MAP_RESPONSE(TYPE_FETCH, Fetch);
-	MAP_RESPONSE(TYPE_FLAGS, Flags);
-	MAP_RESPONSE(TYPE_LIST, List);
-	MAP_RESPONSE(TYPE_NAMESPACE, Namespace);
-	MAP_RESPONSE(TYPE_RECENT, Recent);
-	MAP_RESPONSE(TYPE_SEARCH, Search);
-	MAP_RESPONSE(TYPE_STATE, State);
-	MAP_RESPONSE(TYPE_STATUS, Status);
-	default:
-		assert(false);
-		return false;
-	}
+	BEGIN_PROCESS_RESPONSE()
+		PROCESS_RESPONSE(TYPE_CAPABILITY, Capability)
+		PROCESS_RESPONSE(TYPE_CONTINUE, Continue)
+		PROCESS_RESPONSE(TYPE_EXISTS, Exists)
+		PROCESS_RESPONSE(TYPE_EXPUNGE, Expunge)
+		PROCESS_RESPONSE(TYPE_FETCH, Fetch)
+		PROCESS_RESPONSE(TYPE_FLAGS, Flags)
+		PROCESS_RESPONSE(TYPE_LIST, List)
+		PROCESS_RESPONSE(TYPE_NAMESPACE, Namespace)
+		PROCESS_RESPONSE(TYPE_RECENT, Recent)
+		PROCESS_RESPONSE(TYPE_SEARCH, Search)
+		PROCESS_RESPONSE(TYPE_STATE, State)
+		PROCESS_RESPONSE(TYPE_STATUS, Status)
+	END_PROCESS_RESPONSE()
 	
 	return true;
 }

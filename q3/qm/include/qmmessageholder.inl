@@ -187,6 +187,13 @@ inline qs::wstring_ptr qm::MessageHolder::getReference() const
 		messageIndexKey_.nLength_, NAME_REFERENCE);
 }
 
+inline qs::wstring_ptr qm::MessageHolder::getLabel() const
+{
+	qs::Lock<Account> lock(*getAccount());
+	return getAccount()->getIndex(messageIndexKey_.nKey_,
+		messageIndexKey_.nLength_, NAME_LABEL);
+}
+
 inline const qm::MessageHolder::MessageIndexKey& qm::MessageHolder::getMessageIndexKey() const
 {
 	return messageIndexKey_;

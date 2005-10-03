@@ -211,6 +211,9 @@ public:
 						  unsigned int nFlags,
 						  unsigned int nMask,
 						  UndoItemList* pUndoItemList);
+	bool setMessagesLabel(const MessageHolderList& l,
+						  const WCHAR* pwszLabel,
+						  UndoItemList* pUndoItemList);
 	bool deleteMessagesCache(const MessageHolderList& l);
 	
 	bool isSeen(const MessageHolder* pmh) const;
@@ -242,6 +245,8 @@ public:
 					unsigned int nFlags,
 					unsigned int nSecurityMode,
 					Message* pMessage);
+	bool setLabel(MessageHolder* pmh,
+				  const WCHAR* pwszLabel);
 	void fireMessageHolderChanged(MessageHolder* pmh,
 								  unsigned int nOldFlags,
 								  unsigned int nNewFlags);
@@ -256,6 +261,7 @@ public:
 								const Message* pHeader,
 								unsigned int nId,
 								unsigned int nFlags,
+								const WCHAR* pwszLabel,
 								unsigned int nSize,
 								bool bIndexOnly);
 	bool unstoreMessages(const MessageHolderList& l,

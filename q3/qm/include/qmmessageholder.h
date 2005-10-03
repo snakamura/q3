@@ -100,7 +100,8 @@ public:
 		FLAG_TEXT			= 0x00020000,
 		FLAG_ENVELOPED		= 0x00040000,
 		FLAG_LOCAL			= 0x00080000,
-		FLAG_SYSTEM_MASK	= 0x000f0000,
+		FLAG_LABEL			= 0x80000000,
+		FLAG_SYSTEM_MASK	= 0x800f0000,
 		
 		FLAG_INDEXONLY		= 0x01000000,
 		FLAG_HEADERONLY		= 0x02000000,
@@ -109,7 +110,7 @@ public:
 		FLAG_PARTIAL_MASK	= 0x0f000000,
 		
 		FLAG_POPSDELETE		= 0x10000000,
-		FLAG_ADDON_MASK		= 0xf0000000
+		FLAG_ADDON_MASK		= 0x70000000
 	};
 
 public:
@@ -205,6 +206,7 @@ public:
 	unsigned int getMessageIdHash() const;
 	qs::wstring_ptr getReference() const;
 	unsigned int getReferenceHash() const;
+	qs::wstring_ptr getLabel() const;
 	const MessageIndexKey& getMessageIndexKey() const;
 	const MessageBoxKey& getMessageBoxKey() const;
 	MessageDate getDate() const;
@@ -215,6 +217,7 @@ public:
 	void setId(unsigned int nId);
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
+	bool setLabel(const WCHAR* pwszLabel);
 	void setFolder(NormalFolder* pFolder);
 	void destroy();
 
@@ -222,6 +225,11 @@ public:
 public:
 	void setKeys(const MessageIndexKey& messageIndexKey,
 				 const MessageBoxKey& messageBoxKey);
+	void setIndexKey(const MessageIndexKey& messageIndexKey);
+
+private:
+	void setKeys(const MessageIndexKey* pMessageIndexKey,
+				 const MessageBoxKey* pMessageBoxKey);
 
 private:
 	MessageHolder(const MessageHolder&);

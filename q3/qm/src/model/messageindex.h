@@ -49,15 +49,24 @@ public:
 						unsigned int nLength,
 						MessageIndexName name);
 	void remove(unsigned int nKey);
+	qs::malloc_size_ptr<unsigned char> createReplacedIndex(unsigned int nKey,
+														   unsigned int nLength,
+														   MessageIndexName name,
+														   const WCHAR* pwszValue);
 
 public:
-	static qs::malloc_size_ptr<unsigned char> createIndex(const Message& msg);
+	static qs::malloc_size_ptr<unsigned char> createIndex(const Message& header,
+														  const WCHAR* pwszLabel);
 
 private:
+	MessageIndexItem* getItem(unsigned int nKey) const;
 	void insert(MessageIndexItem* pItem);
 	void remove(ItemMap::iterator it);
 
 private:
+	static void parseValues(WCHAR* p,
+							size_t nLen,
+							const WCHAR** ppwszValues);
 	static bool writeToStream(qs::OutputStream* pStream,
 							  const WCHAR* pwsz);
 

@@ -3817,6 +3817,61 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 
 /****************************************************************************
  *
+ * MessageLabelAction
+ *
+ */
+
+qm::MessageLabelAction::MessageLabelAction(MessageSelectionModel* pModel,
+										   UndoManager* pUndoManager,
+										   Profile* pProfile,
+										   HWND hwnd) :
+	pModel_(pModel),
+	pUndoManager_(pUndoManager),
+	pProfile_(pProfile),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageLabelAction::~MessageLabelAction()
+{
+}
+
+void qm::MessageLabelAction::invoke(const ActionEvent& event)
+{
+	AccountLock lock;
+	MessageHolderList l;
+	pModel_->getSelectedMessages(&lock, 0, &l);
+	
+	if (l.empty())
+		return;
+	
+	wstring_ptr wstrLabel;
+	MessagePtrLock mpl(pModel_->getFocusedMessage());
+	if (mpl)
+		wstrLabel = mpl->getLabel();
+	
+	LabelDialog dialog(wstrLabel.get(), pProfile_);
+	if (dialog.doModal(hwnd_) != IDOK)
+		return;
+	const WCHAR* pwszLabel = dialog.getLabel();
+	
+	Account* pAccount = lock.get();
+	UndoItemList undo;
+	if (!pAccount->setMessagesLabel(l, pwszLabel, &undo)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_LABELMESSAGE);
+		return;
+	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
+}
+
+bool qm::MessageLabelAction::isEnabled(const ActionEvent& event)
+{
+	return pModel_->hasSelectedMessage();
+}
+
+
+/****************************************************************************
+ *
  * MessageManageJunkAction
  *
  */

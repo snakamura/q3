@@ -688,6 +688,105 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 	return true;
 }
 
+bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
+											const MessageHolderList& l,
+											const WCHAR* pwszLabel)
+{
+	assert(pFolder);
+	assert(!l.empty());
+	assert(std::find_if(l.begin(), l.end(),
+		std::not1(
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					std::equal_to<Folder*>(),
+					std::mem_fun(&MessageHolder::getFolder),
+					std::identity<Folder*>()),
+				pFolder))) == l.end());
+	
+	MessageHolderList listUpdate;
+	listUpdate.reserve(l.size());
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessageHolder* pmh = *it;
+		wstring_ptr wstrLabel(pmh->getLabel());
+		if ((!pwszLabel && !*wstrLabel.get()) ||
+			(pwszLabel && wcscmp(pwszLabel, wstrLabel.get()) != 0)) {
+			if (pmh->isFlag(MessageHolder::FLAG_LOCAL))
+				pmh->setLabel(pwszLabel);
+			else
+				listUpdate.push_back(pmh);
+		}
+	}
+	if (listUpdate.empty())
+		return true;
+	
+	typedef std::vector<WSTRING> LabelList;
+	LabelList listLabel;
+	StringListFree<LabelList> free(listLabel);
+	for (MessageHolderList::const_iterator it = listUpdate.begin(); it != listUpdate.end(); ++it) {
+		MessageHolder* pmh = *it;
+		wstring_ptr wstrLabel(pmh->getLabel());
+		if (*wstrLabel.get()) {
+			if (std::find_if(listLabel.begin(), listLabel.end(),
+				std::bind2nd(string_equal<WCHAR>(), wstrLabel.get())) == listLabel.end()) {
+				listLabel.push_back(wstrLabel.get());
+				wstrLabel.release();
+			}
+		}
+	}
+	if (pwszLabel && *pwszLabel) {
+		if (std::find_if(listLabel.begin(), listLabel.end(),
+			std::bind2nd(string_equal<WCHAR>(), pwszLabel)) == listLabel.end()) {
+			wstring_ptr wstrLabel(allocWString(pwszLabel));
+			listLabel.push_back(wstrLabel.get());
+			wstrLabel.release();
+		}
+	}
+	
+	if (bOffline_) {
+		Util::UidList listUid;
+		Util::createUidList(l, &listUid);
+		
+		if (!listUid.empty()) {
+			wstring_ptr wstrFolder(pFolder->getFullName());
+			std::auto_ptr<SetLabelOfflineJob> pJob(new SetLabelOfflineJob(
+				wstrFolder.get(), listUid, pwszLabel,
+				const_cast<const WCHAR**>(&listLabel[0]), listLabel.size()));
+			pOfflineJobManager_->add(pJob);
+		}
+	}
+	else {
+		Lock<CriticalSection> lock(cs_);
+		
+		if (!prepareSessionCache(false))
+			return false;
+		
+		SessionCacher cacher(pSessionCache_.get(), pFolder);
+		Imap4* pImap4 = cacher.get();
+		if (!pImap4)
+			return false;
+		
+		FlagProcessHook hook(pFolder);
+		Hook h(pCallback_.get(), &hook);
+		
+		std::auto_ptr<MultipleRange> pRange(Util::createRange(listUpdate));
+		std::auto_ptr<Flags> pFlags(Util::getImap4FlagsFromLabels(
+			&pwszLabel, pwszLabel && *pwszLabel ? 1 : 0));
+		if (!pFlags.get())
+			return false;
+		std::auto_ptr<Flags> pMask(Util::getImap4FlagsFromLabels(
+			const_cast<const WCHAR**>(&listLabel[0]), listLabel.size()));
+		if (!pMask.get())
+			return false;
+		RETRY(pImap4->setFlags(*pRange, *pFlags, *pMask));
+		
+		cacher.release();
+	}
+	for (MessageHolderList::const_iterator it = listUpdate.begin(); it != listUpdate.end(); ++it)
+		(*it)->setLabel(pwszLabel);
+	
+	return true;
+}
+
 bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 										 const CHAR* pszMessage,
 										 size_t nLen,
@@ -700,7 +799,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 	
 	if (bOffline_) {
 		MessageHolder* pmh = pAccount_->storeMessage(pFolder, pszMessage,
-			nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL, -1, false);
+			nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL, 0, -1, false);
 		if (!pmh)
 			return false;
 		
@@ -1003,6 +1102,7 @@ bool qmimap4::Imap4Driver::FlagProcessHook::processFetchResponse(ResponseFetch* 
 {
 	unsigned int nUid = pFetch->getUid();
 	unsigned int nFlags = 0;
+	wstring_ptr wstrLabel;
 	
 	int nCount = 0;
 	
@@ -1013,6 +1113,8 @@ bool qmimap4::Imap4Driver::FlagProcessHook::processFetchResponse(ResponseFetch* 
 			nFlags = Util::getMessageFlagsFromImap4Flags(
 				static_cast<FetchDataFlags*>(*it)->getSystemFlags(),
 				static_cast<FetchDataFlags*>(*it)->getCustomFlags());
+			wstrLabel = Util::getLabelFromImap4Flags(
+				static_cast<FetchDataFlags*>(*it)->getCustomFlags());
 			++nCount;
 			break;
 		}
@@ -1021,8 +1123,10 @@ bool qmimap4::Imap4Driver::FlagProcessHook::processFetchResponse(ResponseFetch* 
 	if (nUid != -1 && nCount == 1) {
 		MessagePtr ptr(pFolder_->getMessageById(nUid));
 		MessagePtrLock mpl(ptr);
-		if (mpl)
+		if (mpl) {
 			mpl->setFlags(nFlags, nFlags);
+			mpl->setLabel(wstrLabel.get());
+		}
 	}
 	
 	return true;

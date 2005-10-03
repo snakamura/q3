@@ -101,6 +101,7 @@
 #define IDD_CONDITIONARGUMENT           218
 #define IDD_LISTSELECTBOX               219
 #define IDD_COMBOSELECTBOX              220
+#define IDD_LABEL                       221
 #define IDC_SYNCSTATUS                  1000
 #define IDS_SHOWTOOLBAR                 1001
 #define IDC_FILTERSETLIST               1001
@@ -367,8 +368,9 @@
 #define IDC_RECEIVESTARTTLS             1206
 #define IDS_COLUMNTYPE_FLAGS            1207
 #define IDC_SENDNOSECURE                1207
-#define IDS_COLUMNTYPE_OTHER            1208
+#define IDS_COLUMNTYPE_LABEL            1208
 #define IDC_SENDSSL                     1208
+#define IDS_COLUMNTYPE_OTHER            1209
 #define IDC_SENDSTARTTLS                1209
 #define IDC_RECEIVELOG                  1210
 #define IDC_SENDLOG                     1211
@@ -505,6 +507,7 @@
 #define IDC_OPENFOLDER                  1424
 #define IDC_DEFAULTENCODING             1428
 #define IDC_USE8BIT                     1429
+#define IDC_LABEL                       1430
 #define IDS_SYNCMSG_FINISHED            2001
 #define IDS_SYNCMSG_SENDMESSAGES        2002
 #define IDS_APPLYRULE_CHECKINGMESSAGES  2101
@@ -596,6 +599,7 @@
 #define IDS_ERROR_NOSENTBOX             10055
 #define IDS_ERROR_GETMESSAGE            10056
 #define IDS_ERROR_MOVETOSENTBOX         10057
+#define IDS_ERROR_LABELMESSAGE          10058
 
 // Next default values for new objects
 // 
@@ -604,7 +608,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        220
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1430
+#define _APS_NEXT_CONTROL_VALUE         1431
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

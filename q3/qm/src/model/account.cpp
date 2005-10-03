@@ -93,6 +93,10 @@ public:
 						  unsigned int nFlags,
 						  unsigned int nMask,
 						  UndoItemList* pUndoItemList);
+	bool setMessagesLabel(NormalFolder* pFolder,
+						  const MessageHolderList& l,
+						  const WCHAR* pwszLabel,
+						  UndoItemList* pUndoItemList);
 	
 	bool getDataList(MessageStore::DataList* pList) const;
 	
@@ -449,7 +453,7 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 	std::auto_ptr<UndoItem> pUndoItem;
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
 		MessageHolder* pmh = pThis_->storeMessage(pFolder,
-			pszMessage, nLen, &msgHeader, -1, nFlags, nSize, false);
+			pszMessage, nLen, &msgHeader, -1, nFlags, 0, nSize, false);
 		if (!pmh)
 			return false;
 		if (pptr)
@@ -665,6 +669,58 @@ bool qm::AccountImpl::setMessagesFlags(NormalFolder* pFolder,
 	}
 	else {
 		if (!pProtocolDriver_->setMessagesFlags(pFolder, l, nFlags, nMask))
+			return false;
+	}
+	if (pUndoItemList)
+		pUndoItemList->add(pUndoItem);
+	
+	return true;
+}
+
+bool qm::AccountImpl::setMessagesLabel(NormalFolder* pFolder,
+									   const MessageHolderList& l,
+									   const WCHAR* pwszLabel,
+									   UndoItemList* pUndoItemList)
+{
+	assert(pFolder);
+	assert(pThis_->isLocked());
+	assert(std::find_if(l.begin(), l.end(),
+		std::not1(
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					std::equal_to<Folder*>(),
+					std::mem_fun(&MessageHolder::getFolder),
+					std::identity<Folder*>()),
+				pFolder))) == l.end());
+	
+	if (l.empty())
+		return true;
+	
+	wstring_ptr wstrLabel;
+	if (wcschr(pwszLabel, L'\r') || wcschr(pwszLabel, L'\n')) {
+		wstrLabel = allocWString(pwszLabel);
+		for (WCHAR* p = wstrLabel.get(); *p; ++p) {
+			if (*p == L'\n' || *p == L'\r')
+				*p = L' ';
+		}
+		pwszLabel = wstrLabel.get();
+	}
+	
+	std::auto_ptr<SetLabelUndoItem> pUndoItem;
+	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
+		if (pUndoItemList)
+			pUndoItem.reset(new SetLabelUndoItem());
+		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessageHolder* pmh = *it;
+			qs::wstring_ptr wstrOldLabel(pmh->getLabel());
+			if (!pThis_->setLabel(pmh, pwszLabel))
+				return false;
+			if (pUndoItem.get())
+				pUndoItem->add(pmh, wstrOldLabel.get());
+		}
+	}
+	else {
+		if (!pProtocolDriver_->setMessagesLabel(pFolder, l, pwszLabel))
 			return false;
 	}
 	if (pUndoItemList)
@@ -1849,6 +1905,11 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 				0, SECURITYMODE_NONE, pMessage);
 		}
 		
+		virtual wstring_ptr getLabel(unsigned int n)
+		{
+			return listMessageHolder_[n]->getLabel();
+		}
+		
 		virtual void setKey(unsigned int n,
 							unsigned int nKey,
 							unsigned int nLength)
@@ -2144,6 +2205,37 @@ bool qm::Account::setMessagesFlags(const MessageHolderList& l,
 	return AccountImpl::callByFolder(l, &callback);
 }
 
+bool qm::Account::setMessagesLabel(const MessageHolderList& l,
+								   const WCHAR* pwszLabel,
+								   UndoItemList* pUndoItemList)
+{
+	assert(isLocked());
+	
+	struct CallByFolderCallbackImpl : public AccountImpl::CallByFolderCallback
+	{
+		CallByFolderCallbackImpl(AccountImpl* pImpl,
+								 const WCHAR* pwszLabel,
+								 UndoItemList* pUndoItemList) :
+			pImpl_(pImpl),
+			pwszLabel_(pwszLabel),
+			pUndoItemList_(pUndoItemList)
+		{
+		}
+		
+		virtual bool callback(NormalFolder* pFolder,
+							  const MessageHolderList& l)
+		{
+			return pImpl_->setMessagesLabel(pFolder, l, pwszLabel_, pUndoItemList_);
+		}
+		
+		AccountImpl* pImpl_;
+		const WCHAR* pwszLabel_;
+		UndoItemList* pUndoItemList_;
+	} callback(pImpl_, pwszLabel, pUndoItemList);
+	
+	return AccountImpl::callByFolder(l, &callback);
+}
+
 bool qm::Account::deleteMessagesCache(const MessageHolderList& l)
 {
 	assert(isLocked());
@@ -2366,6 +2458,45 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 	return true;
 }
 
+bool qm::Account::setLabel(MessageHolder* pmh,
+						   const WCHAR* pwszLabel)
+{
+	assert(pmh);
+	assert(!pwszLabel || (!wcschr(pwszLabel, L'\n') && !wcschr(pwszLabel, L'\r')));
+	assert(isLocked());
+	
+	if (!pmh->isFlag(MessageHolder::FLAG_LABEL) && (!pwszLabel || !*pwszLabel))
+		return true;
+	
+	wstring_ptr wstrLabel(pmh->getLabel());
+	if ((pwszLabel && wcscmp(wstrLabel.get(), pwszLabel) == 0) ||
+		(!pwszLabel && !*wstrLabel.get()))
+		return true;
+	
+	const MessageHolder::MessageIndexKey& key = pmh->getMessageIndexKey();
+	
+	malloc_size_ptr<unsigned char> pIndex(pImpl_->pMessageIndex_->createReplacedIndex(
+		key.nKey_, key.nLength_, NAME_LABEL, pwszLabel));
+	if (!pIndex.get())
+		return false;
+	
+	unsigned int nKey = 0;
+	if (!pImpl_->pMessageStore_->updateIndex(key.nKey_, key.nLength_,
+		pIndex.get(), static_cast<unsigned int>(pIndex.size()), &nKey))
+		return false;
+	pImpl_->pMessageIndex_->remove(key.nKey_);
+	
+	MessageHolder::MessageIndexKey newKey = {
+		nKey,
+		static_cast<unsigned int>(pIndex.size())
+	};
+	pmh->setIndexKey(newKey);
+	
+	pmh->setFlags(pwszLabel && *pwszLabel ? MessageHolder::FLAG_LABEL : 0, MessageHolder::FLAG_LABEL);
+	
+	return true;
+}
+
 void qm::Account::fireMessageHolderChanged(MessageHolder* pmh,
 										   unsigned int nOldFlags,
 										   unsigned int nNewFlags)
@@ -2399,6 +2530,7 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 										 const Message* pHeader,
 										 unsigned int nId,
 										 unsigned int nFlags,
+										 const WCHAR* pwszLabel,
 										 unsigned int nSize,
 										 bool bIndexOnly)
 {
@@ -2441,8 +2573,8 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 	unsigned int nHeaderLength = 0;
 	unsigned int nIndexKey = -1;
 	unsigned int nIndexLength = 0;
-	if (!pImpl_->pMessageStore_->save(pszMessage, nLen, pHeader, bIndexOnly,
-		&nOffset, &nLength, &nHeaderLength, &nIndexKey, &nIndexLength))
+	if (!pImpl_->pMessageStore_->save(pszMessage, nLen, pHeader, pwszLabel,
+		bIndexOnly, &nOffset, &nLength, &nHeaderLength, &nIndexKey, &nIndexLength))
 		return 0;
 	
 	SubAccount* pSubAccount = getCurrentSubAccount();
@@ -2572,7 +2704,7 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 		unsigned int nFlags = pmh->getFlags() & (MessageHolder::FLAG_USER_MASK |
 			MessageHolder::FLAG_PARTIAL_MASK | MessageHolder::FLAG_LOCAL);
 		return storeMessage(pFolderTo, strContent.get(), strContent.size(),
-			&msg, nId, nFlags, pmh->getSize(), false);
+			&msg, nId, nFlags, pmh->getLabel().get(), pmh->getSize(), false);
 	}
 }
 
@@ -2588,9 +2720,9 @@ bool qm::Account::updateMessage(MessageHolder* pmh,
 	
 	MessageHolder::MessageBoxKey boxKey;
 	MessageHolder::MessageIndexKey indexKey;
-	if (!pImpl_->pMessageStore_->save(pszMessage, nLen, pHeader, false,
-		&boxKey.nOffset_, &boxKey.nLength_, &boxKey.nHeaderLength_,
-		&indexKey.nKey_, &indexKey.nLength_))
+	if (!pImpl_->pMessageStore_->save(pszMessage, nLen, pHeader,
+		pmh->getLabel().get(), false, &boxKey.nOffset_, &boxKey.nLength_,
+		&boxKey.nHeaderLength_, &indexKey.nKey_, &indexKey.nLength_))
 		return false;
 	
 	MessageHolder::MessageIndexKey oldIndexKey = pmh->getMessageIndexKey();
