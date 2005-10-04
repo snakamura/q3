@@ -178,6 +178,7 @@ void qs::FrameWindow::processIdle()
 bool qs::FrameWindow::save()
 {
 #if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if 0
 	HWND hwndToolbar = getToolbar();
 	if (hwndToolbar) {
 		COMMANDBANDSRESTOREINFO cbri = { sizeof(cbri) };
@@ -186,6 +187,7 @@ bool qs::FrameWindow::save()
 				return false;
 		}
 	}
+#endif
 #elif defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 	HWND hwndToolbar = getToolbar();
 	if (hwndToolbar) {
@@ -354,15 +356,19 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 				return -1;
 			
 			COMMANDBANDSRESTOREINFO cbri;
+#if 0
 			if (!getCommandBandsRestoreInfo(1, &cbri))
 				return -1;
 			if (cbri.cbSize != sizeof(cbri)) {
+#endif
 				cbri.cbSize = sizeof(cbri);
 				cbri.wID = getBarId(1);
 				cbri.fStyle = RBBS_NOGRIPPER;
 				cbri.cxRestored = 1;
 				cbri.fMaximized = TRUE;
+#if 0
 			}
+#endif
 			REBARBANDINFO rbbi;
 			rbbi.cbSize = sizeof(REBARBANDINFO);
 			rbbi.fMask = RBBIM_ID | RBBIM_STYLE| RBBIM_SIZE;
