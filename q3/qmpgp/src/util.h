@@ -22,7 +22,8 @@ namespace qmpgp {
 class Util
 {
 public:
-	static qs::wstring_ptr writeTemporaryFile(const CHAR* psz);
+	static qs::wstring_ptr writeTemporaryFile(const CHAR* psz,
+											  size_t nLen);
 };
 
 

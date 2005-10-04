@@ -205,7 +205,7 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 	
 	wstring_ptr wstrPGP(getCommand());
 	
-	wstring_ptr wstrContentPath(Util::writeTemporaryFile(pszContent));
+	wstring_ptr wstrContentPath(Util::writeTemporaryFile(pszContent, nLen));
 	if (!wstrContentPath.get())
 		return false;
 	FileDeleter deleter(wstrContentPath.get());
@@ -224,10 +224,11 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 	log.debugf(L"Verifying with commandline: %s", command.getCharArray());
 	
 	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszSignature);
+	size_t nSignatureLen = strlen(pszSignature);
 	
-	log.debug(L"Data into stdin", p, nLen);
+	log.debug(L"Data into stdin", p, nSignatureLen);
 	
-	ByteInputStream stdin(p, nLen, false);
+	ByteInputStream stdin(p, nSignatureLen, false);
 	ByteOutputStream stdout;
 	ByteOutputStream stderr;
 	

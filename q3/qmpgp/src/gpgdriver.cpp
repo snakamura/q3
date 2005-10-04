@@ -210,14 +210,15 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	
 	wstring_ptr wstrGPG(getCommand());
 	
-	wstring_ptr wstrSignaturePath(Util::writeTemporaryFile(pszSignature));
+	size_t nSignatureLen = strlen(pszSignature);
+	wstring_ptr wstrSignaturePath(Util::writeTemporaryFile(pszSignature, nSignatureLen));
 	if (!wstrSignaturePath.get())
 		return false;
 	FileDeleter deleter(wstrSignaturePath.get());
 	
 	log.debugf(L"Creating a temporary file for verifying: %s", wstrSignaturePath.get());
 	log.debug(L"Data in the temporary file",
-		reinterpret_cast<const unsigned char*>(pszSignature), strlen(pszSignature));
+		reinterpret_cast<const unsigned char*>(pszSignature), nSignatureLen);
 	
 	StringBuffer<WSTRING> command;
 	command.append(wstrGPG.get());

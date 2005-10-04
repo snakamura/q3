@@ -25,8 +25,12 @@ using namespace qs;
  *
  */
 
-wstring_ptr qmpgp::Util::writeTemporaryFile(const CHAR* psz)
+wstring_ptr qmpgp::Util::writeTemporaryFile(const CHAR* psz,
+											size_t nLen)
 {
+	if (nLen == -1)
+		nLen = strlen(psz);
+	
 	Time time(Time::getCurrentTime());
 	WCHAR wszName[128];
 	swprintf(wszName, L"pgp-%04d%02d%02d%02d%02d%02d%03d",
@@ -39,7 +43,7 @@ wstring_ptr qmpgp::Util::writeTemporaryFile(const CHAR* psz)
 	if (!stream)
 		return 0;
 	BufferedOutputStream bufferedStream(&stream, false);
-	if (bufferedStream.write(reinterpret_cast<const unsigned char*>(psz), strlen(psz)) == -1)
+	if (bufferedStream.write(reinterpret_cast<const unsigned char*>(psz), nLen) == -1)
 		return 0;
 	if (!bufferedStream.close())
 		return 0;
