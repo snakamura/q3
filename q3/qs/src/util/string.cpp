@@ -520,7 +520,7 @@ qs::StringTokenizer::StringTokenizer(const WCHAR* pwsz,
 		}
 		else if ((c == L'\0' || wcschr(pwszDelimiter, c)) && !bInQuote) {
 			wstring_ptr wstr(buffer.getString());
-			pImpl_->listToken_.push_back(wstr.get());
+			pImpl->listToken_.push_back(wstr.get());
 			wstr.release();
 		}
 		else {
