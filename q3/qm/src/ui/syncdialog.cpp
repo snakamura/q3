@@ -63,6 +63,14 @@ SyncDialog* qm::SyncDialogManager::open()
 	return pThread_->getDialog();
 }
 
+void qm::SyncDialogManager::hide()
+{
+	if (pThread_.get()) {
+		SyncDialog* pSyncDialog = pThread_->getDialog();
+		pSyncDialog->showWindow(SW_HIDE);
+	}
+}
+
 void qm::SyncDialogManager::save() const
 {
 	if (pThread_.get()) {

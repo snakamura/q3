@@ -1821,6 +1821,7 @@ void qm::MainWindow::hide()
 	if (isHidden())
 		return;
 	
+	pImpl_->pSyncDialogManager_->hide();
 	pImpl_->pMessageFrameWindowManager_->closeAll();
 	pImpl_->pEditFrameWindowManager_->hideAll();
 	

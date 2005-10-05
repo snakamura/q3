@@ -45,6 +45,7 @@ public:
 
 public:
 	SyncDialog* open();
+	void hide();
 	void save() const;
 
 private:
