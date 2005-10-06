@@ -2342,6 +2342,24 @@ BEGIN
     IDS_PANEL_SYNCFILTERS   "Sync Filters"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RULE_NONE           "None"
+    IDS_RULE_MOVE           "Move"
+    IDS_RULE_COPY           "Copy"
+    IDS_RULE_DELETE         "Delete"
+    IDS_RULE_LABEL          "Label"
+    IDS_RULE_DELETECACHE    "Delete Cache"
+    IDS_RULE_APPLY          "Apply"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_LABEL_SET           "Set"
+    IDS_LABEL_ADD           "Add"
+    IDS_LABEL_REMOVE        "Remove"
+END
+
 #endif    // Japanese resources
 /////////////////////////////////////////////////////////////////////////////
 

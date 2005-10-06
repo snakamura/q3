@@ -2709,23 +2709,26 @@ LRESULT qm::RuleDialog::onCommand(WORD nCode,
 LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 									 LPARAM lParam)
 {
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
 	const Macro* pCondition = pRule_->getCondition();
 	if (pCondition) {
 		wstring_ptr wstrCondition(pCondition->getString());
 		setDlgItemText(IDC_CONDITION, wstrCondition.get());
 	}
 	
-	const WCHAR* pwszTypes[] = {
-		L"None",
-		L"Move",
-		L"Copy",
-		L"Delete",
-		L"Label",
-		L"DeleteCache",
-		L"Apply"
+	const UINT nTypeIds[] = {
+		IDS_RULE_NONE,
+		IDS_RULE_MOVE,
+		IDS_RULE_COPY,
+		IDS_RULE_DELETE,
+		IDS_RULE_LABEL,
+		IDS_RULE_DELETECACHE,
+		IDS_RULE_APPLY
 	};
-	for (int n = 0; n < countof(pwszTypes); ++n) {
-		W2T(pwszTypes[n], ptszType);
+	for (int n = 0; n < countof(nTypeIds); ++n) {
+		wstring_ptr wstrType(loadString(hInst, nTypeIds[n]));
+		W2T(wstrType.get(), ptszType);
 		ComboBox_AddString(getDlgItem(IDC_ACTION), ptszType);
 	}
 	
@@ -2736,13 +2739,14 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		ComboBox_AddString(getDlgItem(IDC_ACCOUNT), ptszName);
 	}
 	
-	const WCHAR* pwszLabelTypes[] = {
-		L"Set",
-		L"Add",
-		L"Remove"
+	const UINT nLabelTypeIds[] = {
+		IDS_LABEL_SET,
+		IDS_LABEL_ADD,
+		IDS_LABEL_REMOVE
 	};
-	for (int n = 0; n < countof(pwszLabelTypes); ++n) {
-		W2T(pwszLabelTypes[n], ptszLabelType);
+	for (int n = 0; n < countof(nLabelTypeIds); ++n) {
+		wstring_ptr wstrLabelType(loadString(hInst, nLabelTypeIds[n]));
+		W2T(wstrLabelType.get(), ptszLabelType);
 		ComboBox_AddString(getDlgItem(IDC_LABELTYPE), ptszLabelType);
 	}
 	ComboBox_SetCurSel(getDlgItem(IDC_LABELTYPE), 0);

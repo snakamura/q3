@@ -420,7 +420,14 @@
 #define IDC_NEWENTRY                    1295
 #define IDC_NEWADDRESS                  1296
 #define IDC_COMMENT                     1298
+#define IDS_RULE_NONE                   1300
+#define IDS_RULE_MOVE                   1301
+#define IDS_RULE_COPY                   1302
+#define IDS_RULE_DELETE                 1303
+#define IDS_RULE_LABEL                  1304
+#define IDS_RULE_DELETECACHE            1305
 #define IDC_JUNKBOX                     1306
+#define IDS_RULE_APPLY                  1306
 #define IDC_SELECTOR                    1308
 #define IDC_ACCOUNTSHOWALL              1309
 #define IDC_ACCOUNTSHOWUNSEEN           1310
@@ -433,8 +440,11 @@
 #define IDC_SINGLECLICK                 1317
 #define IDC_COMBOBOXFONT                1317
 #define IDC_POCKETOUTLOOK               1319
+#define IDS_LABEL_SET                   1320
 #define IDC_ADDRESSONLY                 1321
+#define IDS_LABEL_ADD                   1321
 #define IDC_MULTILINE                   1322
+#define IDS_LABEL_REMOVE                1322
 #define IDC_REUSEOPEN                   1323
 #define IDC_REUSECHANGE                 1324
 #define IDC_SOUNDLABEL                  1325
