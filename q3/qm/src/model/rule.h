@@ -33,6 +33,7 @@ class RuleAction;
 	class NullRuleAction;
 	class CopyRuleAction;
 	class DeleteRuleAction;
+	class LabelRuleAction;
 	class DeleteCacheRuleAction;
 	class ApplyRuleAction;
 class RuleContext;
@@ -158,6 +159,7 @@ public:
 		TYPE_MOVE,
 		TYPE_COPY,
 		TYPE_DELETE,
+		TYPE_LABEL,
 		TYPE_DELETECACHE,
 		TYPE_APPLY
 	};
@@ -287,6 +289,51 @@ private:
 
 private:
 	bool bDirect_;
+};
+
+
+/****************************************************************************
+ *
+ * LabelRuleAction
+ *
+ */
+
+class LabelRuleAction : public RuleAction
+{
+public:
+	enum LabelType {
+		LABELTYPE_SET,
+		LABELTYPE_ADD,
+		LABELTYPE_REMOVE
+	};
+
+public:
+	LabelRuleAction(LabelType type,
+					const WCHAR* pwszLabel);
+
+private:
+	LabelRuleAction(const LabelRuleAction& action);
+
+public:
+	virtual ~LabelRuleAction();
+
+public:
+	LabelType getLabelType() const;
+	const WCHAR* getLabel() const;
+
+public:
+	virtual Type getType() const;
+	virtual bool apply(const RuleContext& context) const;
+	virtual bool isMessageDestroyed() const;
+	virtual qs::wstring_ptr getDescription() const;
+	virtual std::auto_ptr<RuleAction> clone() const;
+
+private:
+	LabelRuleAction& operator=(const LabelRuleAction&);
+
+private:
+	LabelType type_;
+	qs::wstring_ptr wstrLabel_;
 };
 
 
@@ -443,6 +490,7 @@ private:
 		STATE_TEMPLATE,
 		STATE_ARGUMENT,
 		STATE_DELETE,
+		STATE_LABEL,
 		STATE_DELETECACHE,
 		STATE_APPLY
 	};
@@ -480,6 +528,7 @@ private:
 	bool write(const Rule* pRule);
 	bool write(const CopyRuleAction* pAction);
 	bool write(const DeleteRuleAction* pAction);
+	bool write(const LabelRuleAction* pAction);
 	bool write(const DeleteCacheRuleAction* pAction);
 	bool write(const ApplyRuleAction* pAction);
 

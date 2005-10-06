@@ -1060,6 +1060,118 @@ std::auto_ptr<RuleAction> qm::DeleteRuleAction::clone() const
 
 /****************************************************************************
  *
+ * LabelRuleAction
+ *
+ */
+
+qm::LabelRuleAction::LabelRuleAction(LabelType type,
+									 const WCHAR* pwszLabel) :
+	type_(type)
+{
+	assert(pwszLabel);
+	wstrLabel_ = allocWString(pwszLabel);
+}
+
+qm::LabelRuleAction::LabelRuleAction(const LabelRuleAction& action) :
+	type_(action.type_)
+{
+	wstrLabel_ = allocWString(action.wstrLabel_.get());
+}
+
+qm::LabelRuleAction::~LabelRuleAction()
+{
+}
+
+LabelRuleAction::LabelType qm::LabelRuleAction::getLabelType() const
+{
+	return type_;
+}
+
+const WCHAR* qm::LabelRuleAction::getLabel() const
+{
+	return wstrLabel_.get();
+}
+
+RuleAction::Type qm::LabelRuleAction::getType() const
+{
+	return TYPE_LABEL;
+}
+
+bool qm::LabelRuleAction::apply(const RuleContext& context) const
+{
+	Account* pAccount = context.getAccount();
+	const MessageHolderList& l = context.getMessageHolderList();
+	UndoItemList* pUndoItemList = context.getUndoItemList();
+	switch (type_) {
+	case LABELTYPE_SET:
+		if (!pAccount->setMessagesLabel(l, wstrLabel_.get(), pUndoItemList))
+			return false;
+		break;
+	case LABELTYPE_ADD:
+		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessageHolder* pmh = *it;
+			wstring_ptr wstrLabel(pmh->getLabel());
+			if (*wstrLabel.get()) {
+				wstrLabel = concat(wstrLabel.get(), L" ", wstrLabel_.get());
+				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), wstrLabel.get(), pUndoItemList))
+					return false;
+			}
+			else {
+				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), wstrLabel_.get(), pUndoItemList))
+					return false;
+			}
+		}
+		break;
+	case LABELTYPE_REMOVE:
+		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessageHolder* pmh = *it;
+			wstring_ptr wstrLabel(pmh->getLabel());
+			if (*wstrLabel.get()) {
+				StringBuffer<WSTRING> buf;
+				const WCHAR* p = wcstok(wstrLabel.get(), L" ");
+				while (p) {
+					if (wcscmp(p, wstrLabel_.get()) != 0) {
+						if (buf.getLength() != 0)
+							buf.append(L' ');
+						buf.append(p);
+					}
+					p = wcstok(0, L" ");
+				}
+				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), buf.getCharArray(), pUndoItemList))
+					return false;
+			}
+		}
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	
+	return true;
+}
+
+wstring_ptr qm::LabelRuleAction::getDescription() const
+{
+	wstring_ptr wstrTemplate(loadString(Application::getApplication().getResourceHandle(),
+		IDS_RULEACTION_LABEL));
+	const WCHAR* pwszType = L"=+-";
+	WCHAR szType[] = { pwszType[type_], L'\0' };
+	return MessageFormat::format(wstrTemplate.get(), wstrLabel_.get(), szType);
+}
+
+bool qm::LabelRuleAction::isMessageDestroyed() const
+{
+	return false;
+}
+
+std::auto_ptr<RuleAction> qm::LabelRuleAction::clone() const
+{
+	return std::auto_ptr<RuleAction>(new LabelRuleAction(*this));
+}
+
+
+/****************************************************************************
+ *
  * DeleteCacheRuleAction
  *
  */
@@ -1467,6 +1579,45 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_DELETE;
 	}
+	else if (wcscmp(pwszLocalName, L"label") == 0) {
+		if (state_ != STATE_RULE)
+			return false;
+		assert(pCondition_.get());
+		
+		const WCHAR* pwszType = 0;
+		const WCHAR* pwszLabel = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"type") == 0)
+				pwszType = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"label") == 0)
+				pwszLabel = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszLabel)
+			return false;
+		
+		LabelRuleAction::LabelType type = LabelRuleAction::LABELTYPE_SET;
+		if (pwszType) {
+			if (wcscmp(pwszType, L"set") == 0)
+				type = LabelRuleAction::LABELTYPE_SET;
+			else if (wcscmp(pwszType, L"add") == 0)
+				type = LabelRuleAction::LABELTYPE_ADD;
+			else if (wcscmp(pwszType, L"remove") == 0)
+				type = LabelRuleAction::LABELTYPE_REMOVE;
+			else
+				return false;
+		}
+		
+		std::auto_ptr<RuleAction> pAction(new LabelRuleAction(type, pwszLabel));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
+			pAction, nUse_, wstrDescription_.get()));
+		wstrDescription_.reset(0);
+		pCurrentRuleSet_->addRule(pRule);
+		
+		state_ = STATE_LABEL;
+	}
 	else if (wcscmp(pwszLocalName, L"deleteCache") == 0) {
 		if (state_ != STATE_RULE)
 			return false;
@@ -1565,6 +1716,10 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	}
 	else if (wcscmp(pwszLocalName, L"delete") == 0) {
 		assert(state_ == STATE_DELETE);
+		state_ = STATE_RULE;
+	}
+	else if (wcscmp(pwszLocalName, L"label") == 0) {
+		assert(state_ == STATE_LABEL);
 		state_ = STATE_RULE;
 	}
 	else if (wcscmp(pwszLocalName, L"deleteCache") == 0) {
@@ -1700,6 +1855,10 @@ bool qm::RuleWriter::write(const Rule* pRule)
 		if (!write(static_cast<const DeleteRuleAction*>(pAction)))
 			return false;
 		break;
+	case RuleAction::TYPE_LABEL:
+		if (!write(static_cast<const LabelRuleAction*>(pAction)))
+			return false;
+		break;
 	case RuleAction::TYPE_DELETECACHE:
 		if (!write(static_cast<const DeleteCacheRuleAction*>(pAction)))
 			return false;
@@ -1763,6 +1922,31 @@ bool qm::RuleWriter::write(const DeleteRuleAction* pAction)
 	SimpleAttributes attrs(L"direct", pAction->isDirect() ? L"true" : L"false");
 	return handler_.startElement(0, 0, L"delete", attrs) &&
 		handler_.endElement(0, 0, L"delete");
+}
+
+bool qm::RuleWriter::write(const LabelRuleAction* pAction)
+{
+	const WCHAR* pwszType = 0;
+	switch (pAction->getLabelType()) {
+	case LabelRuleAction::LABELTYPE_SET:
+		break;
+	case LabelRuleAction::LABELTYPE_ADD:
+		pwszType = L"add";
+		break;
+	case LabelRuleAction::LABELTYPE_REMOVE:
+		pwszType = L"remove";
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	const SimpleAttributes::Item items[] = {
+		{ L"type",	pwszType,				pwszType == 0	},
+		{ L"label",	pAction->getLabel(),	false			}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	return handler_.startElement(0, 0, L"label", attrs) &&
+		handler_.endElement(0, 0, L"label");
 }
 
 bool qm::RuleWriter::write(const DeleteCacheRuleAction* pAction)

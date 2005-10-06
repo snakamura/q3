@@ -2720,6 +2720,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		L"Move",
 		L"Copy",
 		L"Delete",
+		L"Label",
 		L"DeleteCache",
 		L"Apply"
 	};
@@ -2735,7 +2736,17 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		ComboBox_AddString(getDlgItem(IDC_ACCOUNT), ptszName);
 	}
 	
-	int nItem = 0;
+	const WCHAR* pwszLabelTypes[] = {
+		L"Set",
+		L"Add",
+		L"Remove"
+	};
+	for (int n = 0; n < countof(pwszLabelTypes); ++n) {
+		W2T(pwszLabelTypes[n], ptszLabelType);
+		ComboBox_AddString(getDlgItem(IDC_LABELTYPE), ptszLabelType);
+	}
+	ComboBox_SetCurSel(getDlgItem(IDC_LABELTYPE), 0);
+	
 	RuleAction* pAction = pRule_->getAction();
 	RuleAction::Type type = pAction->getType();
 	switch (type) {
@@ -2744,8 +2755,6 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	case RuleAction::TYPE_MOVE:
 	case RuleAction::TYPE_COPY:
 		{
-			nItem = type == RuleAction::TYPE_MOVE ? 1 : 2;
-			
 			CopyRuleAction* pCopy = static_cast<CopyRuleAction*>(pAction);
 			const WCHAR* pwszAccount = pCopy->getAccount();
 			if (pwszAccount)
@@ -2755,19 +2764,19 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		break;
 	case RuleAction::TYPE_DELETE:
 		{
-			nItem = 3;
-			
 			bool bDirect = static_cast<DeleteRuleAction*>(pAction)->isDirect();
 			Button_SetCheck(getDlgItem(IDC_DIRECT), bDirect ? BST_CHECKED : BST_UNCHECKED);
 		}
 		break;
+	case RuleAction::TYPE_LABEL:
+		setDlgItemText(IDC_LABEL, static_cast<LabelRuleAction*>(pAction)->getLabel());
+		ComboBox_SetCurSel(getDlgItem(IDC_LABELTYPE),
+			static_cast<LabelRuleAction*>(pAction)->getLabelType());
+		break;
 	case RuleAction::TYPE_DELETECACHE:
-		nItem = 4;
 		break;
 	case RuleAction::TYPE_APPLY:
 		{
-			nItem = 5;
-			
 			wstring_ptr wstrMacro(static_cast<ApplyRuleAction*>(pAction)->getMacro()->getString());
 			setDlgItemText(IDC_MACRO, wstrMacro.get());
 		}
@@ -2776,7 +2785,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		assert(false);
 		break;
 	}
-	ComboBox_SetCurSel(getDlgItem(IDC_ACTION), nItem);
+	ComboBox_SetCurSel(getDlgItem(IDC_ACTION), type);
 	
 	unsigned int nUse = pRule_->getUse();
 	Button_SetCheck(getDlgItem(IDC_MANUAL), nUse & Rule::USE_MANUAL ? BST_CHECKED : BST_UNCHECKED);
@@ -2805,13 +2814,14 @@ LRESULT qm::RuleDialog::onOk()
 	}
 	
 	std::auto_ptr<RuleAction> pAction;
-	int nItem = ComboBox_GetCurSel(getDlgItem(IDC_ACTION));
-	switch (nItem) {
-	case 0:
+	RuleAction::Type type = static_cast<RuleAction::Type>(
+		ComboBox_GetCurSel(getDlgItem(IDC_ACTION)));
+	switch (type) {
+	case RuleAction::TYPE_NONE:
 		pAction.reset(new NoneRuleAction());
 		break;
-	case 1:
-	case 2:
+	case RuleAction::TYPE_MOVE:
+	case RuleAction::TYPE_COPY:
 		{
 			wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 			if (!*wstrAccount.get())
@@ -2821,7 +2831,7 @@ LRESULT qm::RuleDialog::onOk()
 				return 0;
 			
 			std::auto_ptr<CopyRuleAction> pCopyAction(new CopyRuleAction(
-				wstrAccount.get(), wstrFolder.get(), nItem == 1));
+				wstrAccount.get(), wstrFolder.get(), type == RuleAction::TYPE_MOVE));
 			if (wstrTemplate_.get()) {
 				pCopyAction->setTemplate(wstrTemplate_.get());
 				pCopyAction->setTemplateArguments(listArgument_);
@@ -2830,16 +2840,24 @@ LRESULT qm::RuleDialog::onOk()
 			pAction.reset(pCopyAction.release());
 		}
 		break;
-	case 3:
+	case RuleAction::TYPE_DELETE:
 		{
 			bool bDirect = Button_GetCheck(getDlgItem(IDC_DIRECT)) == BST_CHECKED;
 			pAction.reset(new DeleteRuleAction(bDirect));
 		}
 		break;
-	case 4:
+	case RuleAction::TYPE_LABEL:
+		{
+			LabelRuleAction::LabelType labelType = static_cast<LabelRuleAction::LabelType>(
+				ComboBox_GetCurSel(getDlgItem(IDC_LABELTYPE)));
+			wstring_ptr wstrLabel(getDlgItemText(IDC_LABEL));
+			pAction.reset(new LabelRuleAction(labelType, wstrLabel.get()));
+		}
+		break;
+	case RuleAction::TYPE_DELETECACHE:
 		pAction.reset(new DeleteCacheRuleAction());
 		break;
-	case 5:
+	case RuleAction::TYPE_APPLY:
 		{
 			wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
 			std::auto_ptr<Macro> pMacro(MacroParser().parse(wstrMacro.get()));
@@ -2945,37 +2963,45 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 		UINT nId_;
 		bool b_;
 	} items[] = {
-		{ IDC_ACCOUNTLABEL,	false	},
-		{ IDC_ACCOUNT,		false	},
-		{ IDC_FOLDERLABEL,	false	},
-		{ IDC_FOLDER,		false	},
-		{ IDC_TEMPLATE,		false	},
-		{ IDC_DIRECT,		false	},
-		{ IDC_MACROLABEL,	false	},
-		{ IDC_MACRO,		false	}
+		{ IDC_ACCOUNTLABEL,		false	},
+		{ IDC_ACCOUNT,			false	},
+		{ IDC_FOLDERLABEL,		false	},
+		{ IDC_FOLDER,			false	},
+		{ IDC_TEMPLATE,			false	},
+		{ IDC_DIRECT,			false	},
+		{ IDC_LABELLABEL,		false	},
+		{ IDC_LABEL,			false	},
+		{ IDC_LABELTYPELABEL,	false	},
+		{ IDC_LABELTYPE,		false	},
+		{ IDC_MACROLABEL,		false	},
+		{ IDC_MACRO,			false	}
 	};
 	
 	int nStart = 0;
 	int nEnd = 0;
 	bool bEnable = true;
 	switch (ComboBox_GetCurSel(getDlgItem(IDC_ACTION))) {
-	case 0:
+	case RuleAction::TYPE_NONE:
 		break;
-	case 1:
-	case 2:
+	case RuleAction::TYPE_MOVE:
+	case RuleAction::TYPE_COPY:
 		nStart = 0;
 		nEnd = 5;
 		bEnable = Window(getDlgItem(IDC_FOLDER)).getWindowTextLength() != 0;
 		break;
-	case 3:
+	case RuleAction::TYPE_DELETE:
 		nStart = 5;
 		nEnd = 6;
 		break;
-	case 4:
-		break;
-	case 5:
+	case RuleAction::TYPE_LABEL:
 		nStart = 6;
-		nEnd = 8;
+		nEnd = 10;
+		break;
+	case RuleAction::TYPE_DELETECACHE:
+		break;
+	case RuleAction::TYPE_APPLY:
+		nStart = 10;
+		nEnd = 12;
 		bEnable = Window(getDlgItem(IDC_MACRO)).getWindowTextLength() != 0;
 		break;
 	default:

@@ -101,6 +101,7 @@ BEGIN
     IDS_RULEACTION_MOVE     "Move to [%0]"
     IDS_RULEACTION_COPY     "Copy to [%0]"
     IDS_RULEACTION_DELETE   "Delete"
+    IDS_RULEACTION_LABEL    "Label: %1'%0'"
     IDS_RULEACTION_DELETEDIRECT "Delete directly"
     IDS_RULEACTION_DELETECACHE "Delete cache"
     IDS_RULEACTION_APPLYMACRO "Apply macro: '%0'"
