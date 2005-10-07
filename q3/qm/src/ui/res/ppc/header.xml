@@ -55,6 +55,10 @@
 		<static width="4em" style="bold" showAlways="true">URL:</static>
 		<edit>{X-RSS-Link}</edit>
 	</line>
+	<line hideIfEmpty="label">
+		<static width="4em" style="bold" showAlways="true">Label:</static>
+		<edit name="label">{@Label()}</edit>
+	</line>
 	<line hideIfEmpty="sign">
 		<static width="4em" style="bold" showAlways="true">Signed by:</static>
 		<edit name="sign">{@Param('SignedBy')}</edit>
