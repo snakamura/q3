@@ -2630,10 +2630,11 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			MessageViewMode::Mode mode_;
 		} items[] = {
 			{ L"raw",			MessageViewMode::MODE_RAW			},
-			{ L"html",			MessageViewMode::MODE_HTML			},
-			{ L"htmlonline",	MessageViewMode::MODE_HTMLONLINE	},
+			{ L"source",		MessageViewMode::MODE_SOURCE		},
 			{ L"select",		MessageViewMode::MODE_SELECT		},
 			{ L"quote",			MessageViewMode::MODE_QUOTE			},
+			{ L"html",			MessageViewMode::MODE_HTML			},
+			{ L"htmlonline",	MessageViewMode::MODE_HTMLONLINE	},
 			{ L"internetzone",	MessageViewMode::MODE_INTERNETZONE	}
 		};
 		
@@ -3100,11 +3101,12 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 	unsigned int nMode = pItem->getMode();
 	const SimpleAttributes::Item modeItems[] = {
 		{ L"raw",			nMode & MessageViewMode::MODE_RAW ? L"true" : L"false",				(nMode & MessageViewMode::MODE_RAW) == 0			},
-		{ L"html",			nMode & MessageViewMode::MODE_HTML ? L"true" : L"false",			(nMode & MessageViewMode::MODE_HTML) == 0			},
-		{ L"htmlonline",	nMode & MessageViewMode::MODE_HTMLONLINE ? L"true" : L"false",		(nMode & MessageViewMode::MODE_HTMLONLINE) == 0		},
+		{ L"source",		nMode & MessageViewMode::MODE_SOURCE ? L"true" : L"false",			(nMode & MessageViewMode::MODE_SOURCE) == 0			},
 		{ L"select",		nMode & MessageViewMode::MODE_SELECT ? L"true" : L"false",			(nMode & MessageViewMode::MODE_SELECT) == 0			},
 		{ L"quote",			nMode & MessageViewMode::MODE_QUOTE ? L"true" : L"false",			(nMode & MessageViewMode::MODE_QUOTE) == 0			},
-		{ L"internetzone",	nMode & MessageViewMode::MODE_INTERNETZONE ? L"true" : L"false",	(nMode & MessageViewMode::MODE_INTERNETZONE) == 0	},
+		{ L"html",			nMode & MessageViewMode::MODE_HTML ? L"true" : L"false",			(nMode & MessageViewMode::MODE_HTML) == 0			},
+		{ L"htmlonline",	nMode & MessageViewMode::MODE_HTMLONLINE ? L"true" : L"false",		(nMode & MessageViewMode::MODE_HTMLONLINE) == 0		},
+		{ L"internetzone",	nMode & MessageViewMode::MODE_INTERNETZONE ? L"true" : L"false",	(nMode & MessageViewMode::MODE_INTERNETZONE) == 0	}
 	};
 	SimpleAttributes modeAttrs(modeItems, countof(modeItems));
 	if (!handler_.startElement(0, 0, L"mode", modeAttrs) ||

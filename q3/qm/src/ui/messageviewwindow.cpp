@@ -322,6 +322,14 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 		if (nFlags & FLAG_RAWMODE) {
 			wstrText = util.getAllText(0, pwszEncoding, false);
 		}
+		else if (nFlags & FLAG_SOURCEMODE) {
+			xstring_size_ptr strContent(pMessage->getContent());
+			if (strContent.get()) {
+				XStringBuffer<WXSTRING> buf;
+				if (PartUtil::a2w(strContent.get(), strContent.size(), &buf))
+					wstrText = buf.getXStringSize();
+			}
+		}
 		else if (pTemplate) {
 			// TODO
 			// Performance up.

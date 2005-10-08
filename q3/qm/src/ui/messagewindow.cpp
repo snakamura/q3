@@ -186,6 +186,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
 	bool bRawMode = pMode && pMode->isMode(MessageViewMode::MODE_RAW);
+	bool bSourceMode = pMode && pMode->isMode(MessageViewMode::MODE_SOURCE);
 	bool bHtmlMode = pMode && pMode->isMode(MessageViewMode::MODE_HTML);
 	
 	Message msg;
@@ -193,7 +194,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		unsigned int nFlags = 0;
 		if (nSeenWait_ == 0)
 			nFlags |= Account::GETMESSAGEFLAG_MAKESEEN;
-		if (bRawMode)
+		if (bRawMode || bSourceMode)
 			nFlags |= Account::GETMESSAGEFLAG_ALL;
 		else if (bHtmlMode)
 			nFlags |= Account::GETMESSAGEFLAG_HTML;
@@ -209,7 +210,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	const ContentTypeParser* pContentType = 0;
 	MessageViewWindow* pMessageViewWindow = 0;
-	if (pmh && !bRawMode && bHtmlMode && !wstrTemplate_.get()) {
+	if (pmh && !bRawMode && !bSourceMode && bHtmlMode && !wstrTemplate_.get()) {
 		if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
 			!msg.isMultipart() &&
 			msg.hasField(L"X-QMAIL-Link")) {
@@ -270,6 +271,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			pAccount, pmh->getFolder(), wstrTemplate_.get());
 	
 	unsigned int nFlags = (bRawMode ? MessageViewWindow::FLAG_RAWMODE : 0) |
+		(bSourceMode ? MessageViewWindow::FLAG_SOURCEMODE : 0) |
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
 		(pMode && pMode->isMode(MessageViewMode::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
 		(pMode && pMode->isMode(MessageViewMode::MODE_INTERNETZONE) ? MessageViewWindow::FLAG_INTERNETZONE : 0);
@@ -353,6 +355,7 @@ void qm::MessageWindowImpl::messageViewModeChanged(const MessageViewModeEvent& e
 	case MessageViewMode::MODE_HTML:
 	case MessageViewMode::MODE_HTMLONLINE:
 	case MessageViewMode::MODE_INTERNETZONE:
+	case MessageViewMode::MODE_SOURCE:
 		{
 			MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 			setMessage(mpl, false);

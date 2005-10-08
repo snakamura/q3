@@ -365,20 +365,23 @@ void qm::MessageFrameWindowImpl::initActions()
 		pSecurityModel_.get(),
 		SECURITYMODE_PGP,
 		Security::isPGPEnabled());
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_HTMLINTERNETZONEMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_INTERNETZONE,
+		MessageViewMode::MODE_NONE,
 		true);
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTML,
+		MessageViewMode::MODE_NONE,
 		true);
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_HTMLONLINEMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTMLONLINE,
+		MessageViewMode::MODE_NONE,
 		true);
 	
 	struct {
@@ -401,23 +404,26 @@ void qm::MessageFrameWindowImpl::initActions()
 			navigates[n].type_);
 	}
 	
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_QUOTEMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_QUOTE,
+		MessageViewMode::MODE_NONE,
 		true);
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_RAWMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_RAW,
+		MessageViewMode::MODE_SOURCE,
 		true);
 	ADD_ACTION1(ViewOpenLinkAction,
 		IDM_VIEW_OPENLINK,
 		pMessageWindow_);
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_SELECT,
+		MessageViewMode::MODE_NONE,
 		true);
 	ADD_ACTION1(ViewShowHeaderAction,
 		IDM_VIEW_SHOWHEADER,
@@ -428,6 +434,12 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(ViewShowToolbarAction<MessageFrameWindow>,
 		IDM_VIEW_SHOWTOOLBAR,
 		pThis_);
+	ADD_ACTION4(ViewMessageModeAction,
+		IDM_VIEW_SOURCEMODE,
+		pMessageViewModeHolder_,
+		MessageViewMode::MODE_SOURCE,
+		MessageViewMode::MODE_RAW,
+		true);
 	ADD_ACTION1(ViewTemplateAction,
 		IDM_VIEW_TEMPLATE,
 		pMessageWindow_);

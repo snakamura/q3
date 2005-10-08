@@ -5633,9 +5633,11 @@ bool qm::ViewLockPreviewAction::isEnabled(const ActionEvent& event)
 
 qm::ViewMessageModeAction::ViewMessageModeAction(MessageViewModeHolder* pMessageViewModeHolder,
 												 MessageViewMode::Mode mode,
+												 MessageViewMode::Mode exclusiveMode,
 												 bool bEnabled) :
 	pMessageViewModeHolder_(pMessageViewModeHolder),
 	mode_(mode),
+	exclusiveMode_(exclusiveMode),
 	bEnabled_(bEnabled)
 {
 }
@@ -5647,8 +5649,12 @@ qm::ViewMessageModeAction::~ViewMessageModeAction()
 void qm::ViewMessageModeAction::invoke(const ActionEvent& event)
 {
 	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
-	if (pMode)
-		pMode->setMode(mode_, !pMode->isMode(mode_));
+	if (pMode) {
+		bool b = !pMode->isMode(mode_);
+		pMode->setMode(mode_, b);
+		if (b && exclusiveMode_ != MessageViewMode::MODE_NONE)
+			pMode->setMode(exclusiveMode_, false);
+	}
 }
 
 bool qm::ViewMessageModeAction::isEnabled(const ActionEvent& event)

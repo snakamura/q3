@@ -34,12 +34,14 @@ class MessageViewMode
 {
 public:
 	enum Mode {
-		MODE_RAW			= 0x01,
-		MODE_HTML			= 0x02,
-		MODE_HTMLONLINE		= 0x04,
-		MODE_SELECT			= 0x08,
-		MODE_QUOTE			= 0x10,
-		MODE_INTERNETZONE	= 0x20
+		MODE_NONE			= 0x0000,
+		MODE_RAW			= 0x0001,
+		MODE_SOURCE			= 0x0002,
+		MODE_SELECT			= 0x0010,
+		MODE_QUOTE			= 0x0020,
+		MODE_HTML			= 0x0100,
+		MODE_HTMLONLINE		= 0x0200,
+		MODE_INTERNETZONE	= 0x0400
 	};
 
 public:

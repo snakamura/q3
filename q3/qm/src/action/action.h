@@ -2814,6 +2814,7 @@ class ViewMessageModeAction : public qs::AbstractAction
 public:
 	ViewMessageModeAction(MessageViewModeHolder* pMessageViewModeHolder,
 						  MessageViewMode::Mode mode,
+						  MessageViewMode::Mode exclusiveMode,
 						  bool bEnabled);
 	virtual ~ViewMessageModeAction();
 
@@ -2829,6 +2830,7 @@ private:
 private:
 	MessageViewModeHolder* pMessageViewModeHolder_;
 	MessageViewMode::Mode mode_;
+	MessageViewMode::Mode exclusiveMode_;
 	bool bEnabled_;
 };
 

@@ -1006,20 +1006,23 @@ void qm::MainWindowImpl::initActions()
 		pViews,
 		countof(pViews),
 		false);
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_HTMLINTERNETZONEMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_INTERNETZONE,
+		MessageViewMode::MODE_NONE,
 		true);
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_HTMLMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTML,
+		MessageViewMode::MODE_NONE,
 		true);
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_HTMLONLINEMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_HTMLONLINE,
+		MessageViewMode::MODE_NONE,
 		true);
 	
 	struct {
@@ -1064,15 +1067,17 @@ void qm::MainWindowImpl::initActions()
 			navigateMessages[n].type_);
 	}
 	
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_QUOTEMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_QUOTE,
+		MessageViewMode::MODE_NONE,
 		true);
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_RAWMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_RAW,
+		MessageViewMode::MODE_SOURCE,
 		true);
 	ADD_ACTION7(ViewRefreshAction,
 		IDM_VIEW_REFRESH,
@@ -1107,10 +1112,11 @@ void qm::MainWindowImpl::initActions()
 		pViewModelManager_.get(),
 		pFolderModel_.get(),
 		pMessageSelectionModel_.get());
-	ADD_ACTION3(ViewMessageModeAction,
+	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_SELECT,
+		MessageViewMode::MODE_NONE,
 		true);
 	ADD_ACTION1(ViewShowFolderAction,
 		IDM_VIEW_SHOWFOLDER,
@@ -1165,6 +1171,12 @@ void qm::MainWindowImpl::initActions()
 		IDM_VIEW_SORTTOGGLETHREAD,
 		pViewModelManager_.get(),
 		ViewSortThreadAction::TYPE_TOGGLETHREAD);
+	ADD_ACTION4(ViewMessageModeAction,
+		IDM_VIEW_SOURCEMODE,
+		pMessageViewModeHolder_,
+		MessageViewMode::MODE_SOURCE,
+		MessageViewMode::MODE_RAW,
+		true);
 	ADD_ACTION1(ViewTemplateAction,
 		IDM_VIEW_TEMPLATE,
 		pMessageWindow_);

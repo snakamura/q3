@@ -191,6 +191,7 @@
 #define IDM_VIEW_SORTNAME               46046
 #define IDM_VIEW_SORTTHREAD             46047
 #define IDM_VIEW_SORTTOGGLETHREAD       46048
+#define IDM_VIEW_SOURCEMODE             46049
 #define IDM_VIEW_ENCODING               46100
 #define IDM_VIEW_FILTER                 46200
 #define IDM_VIEW_SORT                   46300

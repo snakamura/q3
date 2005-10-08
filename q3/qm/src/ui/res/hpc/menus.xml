@@ -62,6 +62,7 @@
 			<separator/>
 			<popupmenu text="&amp;Mode">
 				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
+				<menuitem text="Sourc&amp;e Mode" action="ViewSourceMode"/>
 				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="&amp;Select Mode" action="ViewSelectMode"/>
 				<separator/>
@@ -221,6 +222,7 @@
 			<separator/>
 			<popupmenu text="&amp;Mode">
 				<menuitem text="Ra&amp;w Mode" action="ViewRawMode"/>
+				<menuitem text="Sourc&amp;e Mode" action="ViewSourceMode"/>
 				<menuitem text="&amp;Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="&amp;Select Mode" action="ViewSelectMode"/>
 				<separator/>
