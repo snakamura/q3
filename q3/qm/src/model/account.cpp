@@ -2423,18 +2423,13 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 			type = pPGPUtility->getType(*pMessage, true);
 		}
 		
-		if (type == PGPUtility::TYPE_INLINEENCRYPTED ||
-			type == PGPUtility::TYPE_INLINESIGNED) {
-			pImpl_->processPGP(pPGPUtility, type, pMessage);
+		bool bInline = type == PGPUtility::TYPE_INLINEENCRYPTED ||
+			type == PGPUtility::TYPE_INLINESIGNED;
+		while  (type != PGPUtility::TYPE_NONE) {
+			if (!pImpl_->processPGP(pPGPUtility, type, pMessage))
+				break;
+			type = pPGPUtility->getType(*pMessage, bInline);
 			bProcessed = true;
-		}
-		else {
-			while  (type != PGPUtility::TYPE_NONE) {
-				if (!pImpl_->processPGP(pPGPUtility, type, pMessage))
-					break;
-				type = pPGPUtility->getType(*pMessage, false);
-				bProcessed = true;
-			}
 		}
 	}
 	
