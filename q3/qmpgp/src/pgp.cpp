@@ -42,7 +42,6 @@ PGPUtility::Type qmpgp::PGPUtilityImpl::getType(const qs::Part& part,
 		if (bCheckInline && part.isText()) {
 			malloc_size_ptr<unsigned char> pBodyData;
 			std::pair<const CHAR*, size_t> body(getBodyData(part, &pBodyData));
-			
 			if (findInline("-----BEGIN PGP SIGNED MESSAGE-----\r\n", body.first, body.second))
 				return TYPE_INLINESIGNED;
 			else if (findInline("-----BEGIN PGP MESSAGE-----\r\n", body.first, body.second))
@@ -283,8 +282,16 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 		
 		malloc_size_ptr<unsigned char> pBodyData;
 		std::pair<const CHAR*, size_t> body(getBodyData(part, &pBodyData));
+		
+		const CHAR* pBegin = findInline("-----BEGIN PGP SIGNED MESSAGE-----\r\n", body.first, body.second);
+		assert(pBegin);
+		size_t nLen = body.second - (pBegin - body.first);
+		const CHAR* pEnd = findInline("-----END PGP SIGNATURE-----\r\n", pBegin, nLen);
+		if (pEnd)
+			nLen = pEnd - pBegin + 29;
+		
 		xstring_size_ptr strBody(pDriver->decryptAndVerify(
-			body.first, body.second, 0, pnVerify, pwstrSignedBy));
+			pBegin, nLen, 0, pnVerify, pwstrSignedBy));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		if (!checkUserId(part, pwstrSignedBy->get()))
@@ -326,6 +333,46 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 		
 		malloc_size_ptr<unsigned char> pBodyData;
 		std::pair<const CHAR*, size_t> body(getBodyData(part, &pBodyData));
+		
+		XStringBuffer<XSTRING> buf;
+		
+		const CHAR* p = body.first;
+		while (true) {
+			const CHAR* pBegin = findInline("-----BEGIN PGP MESSAGE-----\r\n", p, body.second - (p - body.first));
+			if (pBegin) {
+				if (pBegin != p) {
+					if (!buf.append(p, pBegin - p))
+						return xstring_size_ptr();
+				}
+				size_t nLen = body.second - (pBegin - body.first);
+				const CHAR* pEnd = findInline("-----END PGP MESSAGE-----\r\n", pBegin, nLen);
+				if (pEnd)
+					nLen = pEnd - pBegin + 27;
+				
+				xstring_size_ptr strBody(pDriver->decryptAndVerify(pBegin,
+					nLen, pwszPassphrase, pnVerify, pwstrSignedBy));
+				if (!strBody.get())
+					return xstring_size_ptr();
+				if (*pnVerify != VERIFY_NONE) {
+					if (!checkUserId(part, pwstrSignedBy->get()))
+						*pnVerify |= VERIFY_ADDRESSNOTMATCH;
+					return createMessage(part.getHeader(), strBody.get(), strBody.size());
+				}
+				else {
+					if (!buf.append(strBody.get()))
+						return xstring_size_ptr();
+				}
+				
+				p = pBegin + nLen;
+			}
+			else {
+				if (!buf.append(p, body.second - (p - body.first)))
+					return xstring_size_ptr();
+				break;
+			}
+		}
+		return createMessage(part.getHeader(), buf.getCharArray(), buf.getLength());
+#if 0
 		xstring_size_ptr strBody(pDriver->decryptAndVerify(body.first,
 			body.second, pwszPassphrase, pnVerify, pwstrSignedBy));
 		if (!strBody.get())
@@ -335,6 +382,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 				*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		}
 		return createMessage(part.getHeader(), strBody.get(), strBody.size());
+#endif
 	}
 }
 
