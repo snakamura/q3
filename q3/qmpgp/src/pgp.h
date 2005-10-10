@@ -88,6 +88,9 @@ private:
 																size_t nBodyLen);
 	static std::pair<const CHAR*, size_t> getBodyData(const qs::Part& part,
 													  qs::malloc_size_ptr<unsigned char>* ppBodyData);
+	static const CHAR* findInline(const CHAR* pszMarker,
+								  const CHAR* psz,
+								  size_t nLen);
 
 private:
 	PGPUtilityImpl(const PGPUtilityImpl&);

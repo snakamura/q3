@@ -42,9 +42,10 @@ PGPUtility::Type qmpgp::PGPUtilityImpl::getType(const qs::Part& part,
 		if (bCheckInline && part.isText()) {
 			malloc_size_ptr<unsigned char> pBodyData;
 			std::pair<const CHAR*, size_t> body(getBodyData(part, &pBodyData));
-			if (body.second >= 36 && strncmp(body.first, "-----BEGIN PGP SIGNED MESSAGE-----\r\n", 36) == 0)
+			
+			if (findInline("-----BEGIN PGP SIGNED MESSAGE-----\r\n", body.first, body.second))
 				return TYPE_INLINESIGNED;
-			else if (body.second >=29 && strncmp(body.first, "-----BEGIN PGP MESSAGE-----\r\n", 29) == 0)
+			else if (findInline("-----BEGIN PGP MESSAGE-----\r\n", body.first, body.second))
 				return TYPE_INLINEENCRYPTED;
 		}
 		break;
@@ -610,6 +611,29 @@ std::pair<const CHAR*, size_t> qmpgp::PGPUtilityImpl::getBodyData(const Part& pa
 	}
 	
 	return std::make_pair(pBody, nLen);
+}
+
+const CHAR* qmpgp::PGPUtilityImpl::findInline(const CHAR* pszMarker,
+											  const CHAR* psz,
+											  size_t nLen)
+{
+	assert(pszMarker);
+	assert(strncmp(pszMarker + (strlen(pszMarker) - 2), "\r\n", 2) == 0);
+	assert(psz);
+	
+	BMFindString<STRING> bmfs(pszMarker);
+	const CHAR* p = psz;
+	while (true) {
+		p = bmfs.find(p, nLen - (p - psz));
+		if (!p)
+			return 0;
+		else if (p == psz || (p > psz + 1 && strncmp(p - 2, "\r\n", 2) == 0))
+			return p;
+		else
+			++p;
+	}
+	
+	return 0;
 }
 
 
