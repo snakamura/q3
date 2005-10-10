@@ -106,7 +106,8 @@ class CertificateImpl : public qs::Certificate
 {
 public:
 	CertificateImpl();
-	explicit CertificateImpl(X509* pX509);
+	CertificateImpl(X509* pX509,
+					bool bDuplicate);
 	virtual ~CertificateImpl();
 
 public:

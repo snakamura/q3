@@ -1819,6 +1819,16 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,135,40,50,14
 END
 
+IDD_CERTIFICATE DIALOG DISCARDABLE  0, 0, 370, 204
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Certificate"
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    EDITTEXT        IDC_CERTIFICATE,5,5,360,175,ES_MULTILINE | ES_READONLY | 
+                    WS_VSCROLL | WS_HSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,315,185,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1913,6 +1923,14 @@ BEGIN
         RIGHTMARGIN, 208
         TOPMARGIN, 7
         BOTTOMMARGIN, 47
+    END
+
+    IDD_CERTIFICATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 363
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 197
     END
 END
 #endif    // APSTUDIO_INVOKED

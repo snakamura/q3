@@ -239,7 +239,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 		log.warnf(L"Failed to verify server certificate: %ld", nVerify);
 	
 	X509Ptr pX509(SSL_get_peer_certificate(pSSL_));
-	CertificateImpl cert(pX509.get());
+	CertificateImpl cert(pX509.get(), false);
 	if (log.isDebugEnabled()) {
 		wstring_ptr wstrCert(cert.getText());
 		log.debug(wstrCert.get());

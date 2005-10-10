@@ -132,6 +132,7 @@ public:
 	
 	unsigned int nMode_;
 	wstring_ptr wstrTemplate_;
+	wstring_ptr wstrCertificate_;
 	unsigned int nSeenWait_;
 	
 	HandlerList listHandler_;
@@ -176,6 +177,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	if (bResetEncoding)
 		pEncodingModel_->setEncoding(0);
 	
+	wstrCertificate_.reset(0);
+	
 	Account* pAccount = pMessageModel_->getCurrentAccount();
 	assert(!pmh || pmh->getFolder()->getAccount() == pAccount);
 	
@@ -202,6 +205,10 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			nFlags |= Account::GETMESSAGEFLAG_TEXT;
 		if (!pmh->getMessage(nFlags, 0, pSecurityModel_->getSecurityMode(), &msg))
 			return false;
+		
+		const WCHAR* pwszCertificate = msg.getParam(L"Certificate");
+		if (pwszCertificate)
+			wstrCertificate_ = allocWString(pwszCertificate);
 		
 		if (!pmh->isFlag(MessageHolder::FLAG_SEEN) &&
 			nSeenWait_ != 0 && nSeenWait_ != -1)
@@ -493,6 +500,11 @@ void qm::MessageWindow::setTemplate(const WCHAR* pwszTemplate)
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
 		pImpl_->setMessage(mpl, false);
 	}
+}
+
+const WCHAR* qm::MessageWindow::getCertificate() const
+{
+	return pImpl_->wstrCertificate_.get();
 }
 
 bool qm::MessageWindow::scrollPage(bool bPrev)

@@ -10,6 +10,7 @@
 #include <qmmessage.h>
 #include <qmmessagewindow.h>
 
+#include "actionid.h"
 #include "resource.h"
 #include "statusbar.h"
 #include "../uimodel/encodingmodel.h"
@@ -174,6 +175,7 @@ LRESULT qm::MessageStatusBar::windowProc(UINT uMsg,
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
+		HANDLE_LBUTTONDOWN()
 	END_MESSAGE_HANDLER()
 	return StatusBar::windowProc(uMsg, wParam, lParam);
 }
@@ -198,6 +200,19 @@ LRESULT qm::MessageStatusBar::onContextMenu(HWND hwnd,
 #endif
 	
 	return StatusBar::onContextMenu(hwnd, pt);
+}
+
+LRESULT qm::MessageStatusBar::onLButtonDown(UINT nFlags,
+											const POINT& pt)
+{
+	int nPart = getPart(pt);
+	if (nPart != -1) {
+		UINT nId = getClickActionId(nPart);
+		if (nId != -1)
+			Window(getParentFrame()).postMessage(WM_COMMAND, MAKEWPARAM(nId, 0), 0);
+	}
+	
+	return StatusBar::onLButtonDown(nFlags, pt);
 }
 
 int qm::MessageStatusBar::getPart(const POINT& pt) const
@@ -247,4 +262,12 @@ const WCHAR* qm::MessageStatusBar::getMenuName(int nPart)
 		return L"template";
 	else
 		return 0;
+}
+
+UINT qm::MessageStatusBar::getClickActionId(int nPart)
+{
+	if (nPart == nOffset_ + 4)
+		return IDM_MESSAGE_CERTIFICATE;
+	else
+		return -1;
 }

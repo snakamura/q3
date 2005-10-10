@@ -3288,6 +3288,37 @@ bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * MessageCertificateAction
+ *
+ */
+
+qm::MessageCertificateAction::MessageCertificateAction(MessageWindow* pMessageWindow) :
+	pMessageWindow_(pMessageWindow)
+{
+}
+
+qm::MessageCertificateAction::~MessageCertificateAction()
+{
+}
+
+void qm::MessageCertificateAction::invoke(const ActionEvent& event)
+{
+	const WCHAR* pwszCertificate = pMessageWindow_->getCertificate();
+	if (!pwszCertificate)
+		return;
+	
+	CertificateDialog dialog(pwszCertificate);
+	dialog.doModal(pMessageWindow_->getParentFrame());
+}
+
+bool qm::MessageCertificateAction::isEnabled(const ActionEvent& event)
+{
+	return pMessageWindow_->getCertificate() != 0;
+}
+
+
+/****************************************************************************
+ *
  * MessageClearRecentsAction
  *
  */

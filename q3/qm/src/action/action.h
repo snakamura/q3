@@ -69,6 +69,7 @@ class FolderRenameAction;
 class FolderShowSizeAction;
 class FolderUpdateAction;
 class MessageApplyRuleAction;
+class MessageCertificateAction;
 class MessageClearRecentsAction;
 class MessageCombineAction;
 class MessageCreateAction;
@@ -1520,6 +1521,31 @@ private:
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageCertificateAction
+ *
+ */
+
+class MessageCertificateAction : public qs::AbstractAction
+{
+public:
+	explicit MessageCertificateAction(MessageWindow* pMessageWindow);
+	virtual ~MessageCertificateAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	MessageCertificateAction(const MessageCertificateAction&);
+	MessageCertificateAction& operator=(const MessageCertificateAction&);
+
+private:
+	MessageWindow* pMessageWindow_;
 };
 
 

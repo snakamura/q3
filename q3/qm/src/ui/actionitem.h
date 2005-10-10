@@ -101,6 +101,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"MessageApplyRule",				IDM_MESSAGE_APPLYRULE,				1,							0 },
 	{ L"MessageApplyRuleAll",			IDM_MESSAGE_APPLYRULEALL,			1,							0 },
 	{ L"MessageApplyRuleSelected",		IDM_MESSAGE_APPLYRULESELECTED,		1,							0 },
+	{ L"MessageCertificate",			IDM_MESSAGE_CERTIFICATE,			1,							0 },
 	{ L"MessageClearRecents",			IDM_MESSAGE_CLEARRECENTS,			1,							0 },
 	{ L"MessageCombine",				IDM_MESSAGE_COMBINE,				1,							0 },
 	{ L"MessageCreate",					IDM_MESSAGE_CREATE,					MAX_MESSAGE_CREATE,			0 },

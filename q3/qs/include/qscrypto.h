@@ -415,6 +415,9 @@ public:
 	};
 
 public:
+	typedef std::vector<Certificate*> CertificateList;
+
+public:
 	virtual ~SMIMEUtility();
 
 public:
@@ -462,7 +465,7 @@ public:
 	virtual xstring_size_ptr verify(const Part& part,
 									const Store* pStoreCA,
 									unsigned int* pnVerify,
-									wstring_ptr* pwstrSignedBy) const = 0;
+									CertificateList* pListCertificate) const = 0;
 	
 	/**
 	 * Encrypt the specified part.

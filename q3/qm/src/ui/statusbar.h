@@ -90,6 +90,8 @@ public:
 protected:
 	LRESULT onContextMenu(HWND hwnd,
 						  const POINT& pt);
+	LRESULT onLButtonDown(UINT nFlags,
+						  const POINT& pt);
 
 protected:
 	int getPart(const POINT& pt) const;
@@ -103,6 +105,7 @@ protected:
 
 protected:
 	virtual const WCHAR* getMenuName(int nPart);
+	virtual UINT getClickActionId(int nPart);
 
 private:
 	MessageStatusBar(const MessageStatusBar&);

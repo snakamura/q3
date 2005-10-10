@@ -761,7 +761,21 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 								   Message* pMessage)
 {
 	xstring_size_ptr strMessage;
-	wstring_ptr wstrSignedBy;
+	SMIMEUtility::CertificateList listCertificate;
+	struct Deleter
+	{
+		Deleter(SMIMEUtility::CertificateList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			std::for_each(l_.begin(), l_.end(), qs::deleter<Certificate>());
+		}
+		
+		SMIMEUtility::CertificateList& l_;
+	} deleter(listCertificate);
 	unsigned int nSecurity = pMessage->getSecurity();
 	switch (type) {
 	case SMIMEUtility::TYPE_SIGNED:
@@ -769,7 +783,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 		{
 			unsigned int nVerify = 0;
 			strMessage = pSMIMEUtility->verify(*pMessage,
-				pSecurity_->getCA(), &nVerify, &wstrSignedBy);
+				pSecurity_->getCA(), &nVerify, &listCertificate);
 			if (!strMessage.get())
 				return false;
 			
@@ -806,8 +820,17 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 	if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE, nSecurity))
 		return false;
 	
-	if (wstrSignedBy.get())
-		pMessage->setParam(L"SignedBy", wstrSignedBy.get());
+	if (!listCertificate.empty()) {
+		pMessage->setParam(L"SignedBy", listCertificate.front()->getSubject()->getText().get());
+		
+		StringBuffer<WSTRING> buf;
+		for (SMIMEUtility::CertificateList::const_iterator it = listCertificate.begin(); it != listCertificate.end(); ++it) {
+			if (it != listCertificate.begin())
+				buf.append(L"\n----------------------------------------\n");
+			buf.append((*it)->getText().get());
+		}
+		pMessage->setParam(L"Certificate", buf.getCharArray());
+	}
 	
 	return true;
 }

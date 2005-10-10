@@ -169,10 +169,15 @@ qscrypto::CertificateImpl::CertificateImpl() :
 {
 }
 
-qscrypto::CertificateImpl::CertificateImpl(X509* pX509) :
+qscrypto::CertificateImpl::CertificateImpl(X509* pX509,
+										   bool bDuplicate) :
 	pX509_(pX509),
 	bFree_(false)
 {
+	if (bDuplicate) {
+		pX509_ = X509_dup(pX509);
+		bFree_ = true;
+	}
 }
 
 qscrypto::CertificateImpl::~CertificateImpl()
@@ -459,7 +464,7 @@ bool qscrypto::StoreImpl::load(const WCHAR* pwszPath,
 				return false;
 			for (int n = 0; n < sk_X509_INFO_num(pStackInfo); ++n) {
 				X509_INFO* pInfo = sk_X509_INFO_value(pStackInfo, n);
-				if (pInfo->x509 && CertificateImpl(pInfo->x509).checkValidity())
+				if (pInfo->x509 && CertificateImpl(pInfo->x509, false).checkValidity())
 					X509_STORE_add_cert(pStore_, pInfo->x509);
 				if (pInfo->crl)
 					X509_STORE_add_crl(pStore_, pInfo->crl);
@@ -519,7 +524,7 @@ bool qscrypto::StoreImpl::loadSystem()
 			
 			const unsigned char* p = pContext->pbCertEncoded;
 			X509Ptr x509(d2i_X509(0, &p, pContext->cbCertEncoded));
-			if (x509.get() && CertificateImpl(x509.get()).checkValidity())
+			if (x509.get() && CertificateImpl(x509.get(), false).checkValidity())
 				X509_STORE_add_cert(pStore_, x509.get());
 		}
 		::CertFreeCertificateContext(pContext);

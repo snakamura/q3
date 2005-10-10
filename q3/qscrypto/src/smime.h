@@ -39,7 +39,7 @@ public:
 	virtual qs::xstring_size_ptr verify(const qs::Part& part,
 										const qs::Store* pStoreCA,
 										unsigned int* pnVerify,
-										qs::wstring_ptr* pwstrSignedBy) const;
+										CertificateList* pListCertificate) const;
 	virtual qs::xstring_size_ptr encrypt(qs::Part* pPart,
 										 const qs::Cipher* pCipher,
 										 qs::SMIMECallback* pCallback) const;

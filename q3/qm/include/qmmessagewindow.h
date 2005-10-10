@@ -150,6 +150,7 @@ public:
 	void setShowHeaderWindow(bool bShow);
 	const WCHAR* getTemplate() const;
 	void setTemplate(const WCHAR* pwszTemplate);
+	const WCHAR* getCertificate() const;
 	bool scrollPage(bool bPrev);
 	bool find(const WCHAR* pwszFind,
 			  unsigned int nFlags);

@@ -143,16 +143,16 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 													const Store* pStoreCA,
 													unsigned int* pnVerify,
-													wstring_ptr* pwstrSignedBy) const
+													CertificateList* pListCertificate) const
 {
 	assert(pStoreCA);
 	assert(pnVerify);
-	assert(pwstrSignedBy);
+	assert(pListCertificate);
 	assert(getType(part) == TYPE_SIGNED || getType(part) == TYPE_MULTIPARTSIGNED);
 	assert(part.getContentType());
+	assert(pListCertificate->empty());
 	
 	*pnVerify = VERIFY_OK;
-	pwstrSignedBy->reset(0);
 	
 	bool bMultipart = _wcsicmp(part.getContentType()->getMediaType(), L"multipart") == 0;
 	
@@ -205,12 +205,17 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 		AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
 		Part::Field fieldSender = part.getField(L"Sender", &sender);
 		
-		for (int n = 0; n < sk_X509_num(certs.get()) && !bMatch; ++n) {
-			CertificateImpl cert(sk_X509_value(certs.get(), n));
-			bMatch = match(&cert, fieldFrom == Part::FIELD_EXIST ? &from : 0,
-				fieldSender == Part::FIELD_EXIST ? &sender : 0);
-			if (bMatch)
-				*pwstrSignedBy = cert.getSubject()->getText();
+		for (int n = 0; n < sk_X509_num(certs.get()); ++n) {
+			std::auto_ptr<Certificate> pCert(new CertificateImpl(sk_X509_value(certs.get(), n), true));
+			if (match(pCert.get(), fieldFrom == Part::FIELD_EXIST ? &from : 0,
+				fieldSender == Part::FIELD_EXIST ? &sender : 0)) {
+				bMatch = true;
+				pListCertificate->insert(pListCertificate->begin(), pCert.get());
+			}
+			else {
+				pListCertificate->push_back(pCert.get());
+			}
+			pCert.release();
 		}
 	}
 	if (!bMatch)
@@ -220,6 +225,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
 	if (!pBuf)
 		return xstring_size_ptr();
+	
 	return createMessage(pBuf, nBufLen, part);
 }
 

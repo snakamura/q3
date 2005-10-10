@@ -652,6 +652,9 @@ void qm::MainWindowImpl::initActions()
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
+	ADD_ACTION1(MessageCertificateAction,
+		IDM_MESSAGE_CERTIFICATE,
+		pMessageWindow_);
 	ADD_ACTION1(MessageClearRecentsAction,
 		IDM_MESSAGE_CLEARRECENTS,
 		pDocument_->getRecents());

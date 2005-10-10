@@ -242,6 +242,9 @@ void qm::MessageFrameWindowImpl::initActions()
 		IDOK,
 		pThis_->getHandle());
 #endif
+	ADD_ACTION1(MessageCertificateAction,
+		IDM_MESSAGE_CERTIFICATE,
+		pMessageWindow_);
 	ADD_ACTION10(MessageCreateAction,
 		IDM_MESSAGE_CREATE,
 		pDocument_,

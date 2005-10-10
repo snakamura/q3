@@ -282,6 +282,41 @@ void qm::AttachmentDialog::updateState()
 
 /****************************************************************************
  *
+ * CertificateDialog
+ *
+ */
+
+qm::CertificateDialog::CertificateDialog(const WCHAR* pwszCertificate) :
+	DefaultDialog(IDD_CERTIFICATE)
+{
+	assert(pwszCertificate);
+	
+	StringBuffer<WSTRING> buf;
+	for (const WCHAR* p = pwszCertificate; *p; ++p) {
+		if (*p == L'\n')
+			buf.append(L'\r');
+		buf.append(*p);
+	}
+	wstrCertificate_ = buf.getString();
+}
+
+qm::CertificateDialog::~CertificateDialog()
+{
+}
+
+LRESULT qm::CertificateDialog::onInitDialog(HWND hwndFocus,
+											LPARAM lParam)
+{
+	init(true);
+	
+	setDlgItemText(IDC_CERTIFICATE, wstrCertificate_.get());
+	
+	return TRUE;
+}
+
+
+/****************************************************************************
+ *
  * ConfirmSendDialog
  *
  */

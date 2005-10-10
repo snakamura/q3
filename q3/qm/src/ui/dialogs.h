@@ -30,6 +30,7 @@ class DefaultDialog;
 	class ArchiveDialog;
 #endif
 	class AttachmentDialog;
+	class CertificateDialog;
 	class ConfirmSendDialog;
 	class CustomFilterDialog;
 	class DetachDialog;
@@ -218,6 +219,31 @@ private:
 
 private:
 	EditMessage::AttachmentList& listAttachment_;
+};
+
+
+/****************************************************************************
+ *
+ * CertificateDialog
+ *
+ */
+
+class CertificateDialog : public DefaultDialog
+{
+public:
+	explicit CertificateDialog(const WCHAR* pwszCertificate);
+	virtual ~CertificateDialog();
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+private:
+	CertificateDialog(const CertificateDialog&);
+	CertificateDialog& operator=(const CertificateDialog&);
+
+private:
+	qs::wstring_ptr wstrCertificate_;
 };
 
 
