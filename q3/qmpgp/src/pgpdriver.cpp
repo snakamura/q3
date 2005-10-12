@@ -196,7 +196,9 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 							  size_t nLen,
 							  const CHAR* pszSignature,
-							  wstring_ptr* pwstrUserId) const
+							  wstring_ptr* pwstrUserId,
+							  PGPUtility::Validity* pValidity,
+							  wstring_ptr* pwstrInfo) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
 	
@@ -238,6 +240,8 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
 	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
 	
+	*pwstrInfo = mbs2wcs(reinterpret_cast<const CHAR*>(stderr.getBuffer()), stderr.getLength());
+	
 	if (nCode != 0 && nCode != 1) {
 		log.errorf(L"Command exited with: %d", nCode);
 		return false;
@@ -250,7 +254,9 @@ xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 													size_t nLen,
 													const WCHAR* pwszPassphrase,
 													unsigned int* pnVerify,
-													wstring_ptr* pwstrUserId) const
+													wstring_ptr* pwstrUserId,
+													PGPUtility::Validity* pValidity,
+													wstring_ptr* pwstrInfo) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
 	
@@ -283,6 +289,8 @@ xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	log.debugf(L"Command exited with: %d", nCode);
 	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
 	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	
+	*pwstrInfo = mbs2wcs(reinterpret_cast<const CHAR*>(stderr.getBuffer()), stderr.getLength());
 	
 	if (nCode != 0 && nCode != 1) {
 		log.errorf(L"Command exited with: %d", nCode);

@@ -251,10 +251,14 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 											   bool bMime,
 											   unsigned int* pnVerify,
-											   wstring_ptr* pwstrSignedBy) const
+											   wstring_ptr* pwstrSignedBy,
+											   Validity* pValidity,
+											   qs::wstring_ptr* pwstrInfo) const
 {
 	assert(pnVerify);
 	assert(pwstrSignedBy);
+	assert(pValidity);
+	assert(pwstrInfo);
 	
 	*pnVerify = VERIFY_NONE;
 	pwstrSignedBy->reset(0);
@@ -268,8 +272,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 		if (!strContent.get())
 			return xstring_size_ptr();
 		
-		bool bVerified = pDriver->verify(strContent.get(),
-			-1, part.getPart(1)->getBody(), pwstrSignedBy);
+		bool bVerified = pDriver->verify(strContent.get(), -1,
+			part.getPart(1)->getBody(), pwstrSignedBy, pValidity, pwstrInfo);
 		
 		*pnVerify = bVerified ? VERIFY_OK : VERIFY_FAILED;
 		if (!checkUserId(part, pwstrSignedBy->get()))
@@ -290,8 +294,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 		if (pEnd)
 			nLen = pEnd - pBegin + 29;
 		
-		xstring_size_ptr strBody(pDriver->decryptAndVerify(
-			pBegin, nLen, 0, pnVerify, pwstrSignedBy));
+		xstring_size_ptr strBody(pDriver->decryptAndVerify(pBegin,
+			nLen, 0, pnVerify, pwstrSignedBy, pValidity, pwstrInfo));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		if (!checkUserId(part, pwstrSignedBy->get()))
@@ -305,10 +309,14 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 														 bool bMime,
 														 const WCHAR* pwszPassphrase,
 														 unsigned int* pnVerify,
-														 wstring_ptr* pwstrSignedBy) const
+														 wstring_ptr* pwstrSignedBy,
+														 Validity* pValidity,
+														 qs::wstring_ptr* pwstrInfo) const
 {
 	assert(pnVerify);
 	assert(pwstrSignedBy);
+	assert(pValidity);
+	assert(pwstrInfo);
 	
 	*pnVerify = VERIFY_NONE;
 	pwstrSignedBy->reset(0);
@@ -318,8 +326,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMEENCRYPTED);
 		
-		xstring_size_ptr strContent(pDriver->decryptAndVerify(
-			part.getPart(1)->getBody(), -1, pwszPassphrase, pnVerify, pwstrSignedBy));
+		xstring_size_ptr strContent(pDriver->decryptAndVerify(part.getPart(1)->getBody(),
+			-1, pwszPassphrase, pnVerify, pwstrSignedBy, pValidity, pwstrInfo));
 		if (!strContent.get())
 			return xstring_size_ptr();
 		if (*pnVerify != VERIFY_NONE) {
@@ -349,8 +357,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 				if (pEnd)
 					nLen = pEnd - pBegin + 27;
 				
-				xstring_size_ptr strBody(pDriver->decryptAndVerify(pBegin,
-					nLen, pwszPassphrase, pnVerify, pwstrSignedBy));
+				xstring_size_ptr strBody(pDriver->decryptAndVerify(pBegin, nLen,
+					pwszPassphrase, pnVerify, pwstrSignedBy, pValidity, pwstrInfo));
 				if (!strBody.get())
 					return xstring_size_ptr();
 				if (*pnVerify != VERIFY_NONE) {
@@ -372,17 +380,6 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 			}
 		}
 		return createMessage(part.getHeader(), buf.getCharArray(), buf.getLength());
-#if 0
-		xstring_size_ptr strBody(pDriver->decryptAndVerify(body.first,
-			body.second, pwszPassphrase, pnVerify, pwstrSignedBy));
-		if (!strBody.get())
-			return xstring_size_ptr();
-		if (*pnVerify != VERIFY_NONE) {
-			if (!checkUserId(part, pwstrSignedBy->get()))
-				*pnVerify |= VERIFY_ADDRESSNOTMATCH;
-		}
-		return createMessage(part.getHeader(), strBody.get(), strBody.size());
-#endif
 	}
 }
 

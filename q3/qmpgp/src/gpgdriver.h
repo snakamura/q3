@@ -48,12 +48,16 @@ public:
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
 						const CHAR* pszSignature,
-						qs::wstring_ptr* pwstrUserId) const;
+						qs::wstring_ptr* pwstrUserId,
+						qm::PGPUtility::Validity* pValidity,
+						qs::wstring_ptr* pwstrInfo) const;
 	virtual qs::xstring_size_ptr decryptAndVerify(const CHAR* pszContent,
 												  size_t nLen,
 												  const WCHAR* pwszPassphrase,
 												  unsigned int* pnVerify,
-												  qs::wstring_ptr* pwstrUserId) const;
+												  qs::wstring_ptr* pwstrUserId,
+												  qm::PGPUtility::Validity* pValidity,
+												  qs::wstring_ptr* pwstrInfo) const;
 	virtual bool getAlternatives(const WCHAR* pwszUserId,
 								 UserIdList* pList) const;
 
@@ -64,6 +68,8 @@ private:
 	static unsigned int checkVerified(const unsigned char* pBuf,
 									  size_t nLen,
 									  qs::wstring_ptr* pwstrUserId);
+	static qs::wstring_ptr removeStatus(const unsigned char* pBuf,
+										size_t nLen);
 
 private:
 	GPGDriver(const GPGDriver&);

@@ -201,7 +201,9 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 							  size_t nLen,
 							  const CHAR* pszSignature,
-							  wstring_ptr* pwstrUserId) const
+							  wstring_ptr* pwstrUserId,
+							  PGPUtility::Validity* pValidity,
+							  wstring_ptr* pwstrInfo) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -244,6 +246,8 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
 	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
 	
+	*pwstrInfo = removeStatus(stderr.getBuffer(), stderr.getLength());
+	
 	if (nCode != 0 && nCode != 1) {
 		log.errorf(L"Command exited with: %d", nCode);
 		return false;
@@ -256,7 +260,9 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 													size_t nLen,
 													const WCHAR* pwszPassphrase,
 													unsigned int* pnVerify,
-													wstring_ptr* pwstrUserId) const
+													wstring_ptr* pwstrUserId,
+													PGPUtility::Validity* pValidity,
+													wstring_ptr* pwstrInfo) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -297,6 +303,8 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	log.debugf(L"Command exited with: %d", nCode);
 	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
 	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	
+	*pwstrInfo = removeStatus(stderr.getBuffer(), stderr.getLength());
 	
 	if (nCode != 0 && nCode != 1) {
 		log.errorf(L"Command exited with: %d", nCode);
@@ -400,4 +408,31 @@ unsigned int qmpgp::GPGDriver::checkVerified(const unsigned char* pBuf,
 	*pwstrUserId = mbs2wcs(pStart, p - pStart);
 	
 	return bGood ? PGPUtility::VERIFY_OK : PGPUtility::VERIFY_FAILED;
+}
+
+wstring_ptr qmpgp::GPGDriver::removeStatus(const unsigned char* pBuf,
+										   size_t nLen)
+{
+	StringBuffer<STRING> buf;
+	
+	const CHAR* pBegin = reinterpret_cast<const CHAR*>(pBuf);
+	const CHAR* pEnd = pBegin + nLen;
+	const CHAR* p = pBegin;
+	while (pBegin < pEnd) {
+		while (p < pEnd && *p != '\r' && *p != '\n')
+			++p;
+		
+		if (strncmp(pBegin, "[GNUPG:]", 8) != 0) {
+			buf.append(pBegin, p - pBegin);
+			buf.append('\n');
+		}
+		
+		if (p + 1 < pEnd && *p == '\r' && *(p + 1) == '\n')
+			++p;
+		++p;
+		
+		pBegin = p;
+	}
+	
+	return mbs2wcs(buf.getCharArray(), buf.getLength());
 }

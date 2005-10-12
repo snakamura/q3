@@ -51,12 +51,16 @@ public:
 	virtual qs::xstring_size_ptr verify(const qs::Part& part,
 										bool bMime,
 										unsigned int* pnVerify,
-										qs::wstring_ptr* pwstrSignedBy) const;
+										qs::wstring_ptr* pwstrSignedBy,
+										Validity* pValidity,
+										qs::wstring_ptr* pwstrInfo) const;
 	virtual qs::xstring_size_ptr decryptAndVerify(const qs::Part& part,
 												  bool bMime,
 												  const WCHAR* pwszPassphrase,
 												  unsigned int* pnVerify,
-												  qs::wstring_ptr* pwstrSignedBy) const;
+												  qs::wstring_ptr* pwstrSignedBy,
+												  Validity* pValidity,
+												  qs::wstring_ptr* pwstrInfo) const;
 
 private:
 	std::auto_ptr<Driver> getDriver() const;

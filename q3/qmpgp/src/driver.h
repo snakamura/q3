@@ -11,6 +11,8 @@
 
 #include <qsstring.h>
 
+#include <qmpgp.h>
+
 #include <vector>
 
 
@@ -57,12 +59,16 @@ public:
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
 						const CHAR* pszSignature,
-						qs::wstring_ptr* pwstrUserId) const = 0;
+						qs::wstring_ptr* pwstrUserId,
+						qm::PGPUtility::Validity* pValidity,
+						qs::wstring_ptr* pwstrInfo) const = 0;
 	virtual qs::xstring_size_ptr decryptAndVerify(const CHAR* pszContent,
 												  size_t nLen,
 												  const WCHAR* pwszPassphrase,
 												  unsigned int* pnVerify,
-												  qs::wstring_ptr* pwstrUserId) const = 0;
+												  qs::wstring_ptr* pwstrUserId,
+												  qm::PGPUtility::Validity* pValidity,
+												  qs::wstring_ptr* pwstrInfo) const = 0;
 	virtual bool getAlternatives(const WCHAR* pwszUserId,
 								 UserIdList* pList) const = 0;
 };

@@ -852,29 +852,33 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	xstring_size_ptr strMessage;
 	unsigned int nVerify = 0;
 	wstring_ptr wstrSignedBy;
+	PGPUtility::Validity validity = PGPUtility::VALIDITY_UNDEFINED;
+	wstring_ptr wstrInfo;
 	unsigned int nSecurity = pMessage->getSecurity();
 	switch (type) {
 	case PGPUtility::TYPE_MIMEENCRYPTED:
-		strMessage = pPGPUtility->decryptAndVerify(*pMessage,
-			true, wstrPassword.get(), &nVerify, &wstrSignedBy);
+		strMessage = pPGPUtility->decryptAndVerify(*pMessage, true,
+			wstrPassword.get(), &nVerify, &wstrSignedBy, &validity, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		nSecurity |= Message::SECURITY_DECRYPTED;
 		break;
 	case PGPUtility::TYPE_MIMESIGNED:
-		strMessage = pPGPUtility->verify(*pMessage, true, &nVerify, &wstrSignedBy);
+		strMessage = pPGPUtility->verify(*pMessage, true,
+			&nVerify, &wstrSignedBy, &validity, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		break;
 	case PGPUtility::TYPE_INLINEENCRYPTED:
-		strMessage = pPGPUtility->decryptAndVerify(
-			*pMessage, false, wstrPassword.get(), &nVerify, &wstrSignedBy);
+		strMessage = pPGPUtility->decryptAndVerify(*pMessage, false,
+			wstrPassword.get(), &nVerify, &wstrSignedBy, &validity, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		nSecurity |= Message::SECURITY_DECRYPTED;
 		break;
 	case PGPUtility::TYPE_INLINESIGNED:
-		strMessage = pPGPUtility->verify(*pMessage, false, &nVerify, &wstrSignedBy);
+		strMessage = pPGPUtility->verify(*pMessage, false,
+			&nVerify, &wstrSignedBy, &validity, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		break;
@@ -896,8 +900,13 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE, nSecurity))
 		return false;
 	
-	if (wstrSignedBy.get())
-		pMessage->setParam(L"SignedBy", wstrSignedBy.get());
+	if (nVerify != PGPUtility::VERIFY_NONE) {
+		if (wstrSignedBy.get())
+			pMessage->setParam(L"SignedBy", wstrSignedBy.get());
+		pMessage->setParam(L"Validity", PGPUtility::getValidityText(validity));
+		if (wstrInfo.get())
+			pMessage->setParam(L"Certificate", wstrInfo.get());
+	}
 	
 	return true;
 }

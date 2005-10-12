@@ -47,6 +47,14 @@ public:
 		VERIFY_FAILED			= 0x02,
 		VERIFY_ADDRESSNOTMATCH	= 0x04
 	};
+	
+	enum Validity {
+		VALIDITY_UNDEFINED,
+		VALIDITY_NEVER,
+		VALIDITY_MARGINAL,
+		VALIDITY_FULLY,
+		VALIDITY_ULTIMATE
+	};
 
 public:
 	virtual ~PGPUtility();
@@ -68,15 +76,20 @@ public:
 	virtual qs::xstring_size_ptr verify(const qs::Part& part,
 										bool bMime,
 										unsigned int* pnVerify,
-										qs::wstring_ptr* pwstrSignedBy) const = 0;
+										qs::wstring_ptr* pwstrSignedBy,
+										Validity* pValidity,
+										qs::wstring_ptr* pwstrInfo) const = 0;
 	virtual qs::xstring_size_ptr decryptAndVerify(const qs::Part& part,
 												  bool bMime,
 												  const WCHAR* pwszPassphrase,
 												  unsigned int* pnVerify,
-												  qs::wstring_ptr* pwstrSignedBy) const = 0;
+												  qs::wstring_ptr* pwstrSignedBy,
+												  Validity* pValidity,
+												  qs::wstring_ptr* pwstrInfo) const = 0;
 
 public:
 	static std::auto_ptr<PGPUtility> getInstance(qs::Profile* pProfile);
+	static const WCHAR* getValidityText(Validity validity);
 };
 
 
