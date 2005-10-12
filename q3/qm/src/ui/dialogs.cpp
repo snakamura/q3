@@ -310,8 +310,10 @@ LRESULT qm::CertificateDialog::onInitDialog(HWND hwndFocus,
 	init(true);
 	
 	setDlgItemText(IDC_CERTIFICATE, wstrCertificate_.get());
+	Window(getDlgItem(IDC_CERTIFICATE)).setFocus();
+	sendDlgItemMessage(IDC_CERTIFICATE, EM_SETSEL, -1, 0);
 	
-	return TRUE;
+	return FALSE;
 }
 
 
