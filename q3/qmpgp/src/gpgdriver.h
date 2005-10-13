@@ -63,16 +63,13 @@ public:
 
 private:
 	qs::wstring_ptr getCommand() const;
-	qm::PGPUtility::Verify parseStatus(const unsigned char* pBuf,
-									   size_t nLen,
-									   qs::wstring_ptr* pwstrUserId,
-									   qm::PGPUtility::Validity* pValidity,
-									   qs::wstring_ptr* pwstrInfo) const;
 
 private:
 	static unsigned int checkVerified(const unsigned char* pBuf,
 									  size_t nLen,
 									  qs::wstring_ptr* pwstrUserId);
+	static qs::wstring_ptr removeStatus(const unsigned char* pBuf,
+										size_t nLen);
 
 private:
 	GPGDriver(const GPGDriver&);
