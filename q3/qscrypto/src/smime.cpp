@@ -534,25 +534,6 @@ bool qscrypto::SMIMEUtilityImpl::contains(const qs::AddressListParser* pFrom,
 										  const qs::AddressListParser* pSender,
 										  const WCHAR* pwszAddress)
 {
-	return (pFrom && contains(*pFrom, pwszAddress)) ||
-		(pSender && contains(*pSender, pwszAddress));
-}
-
-bool qscrypto::SMIMEUtilityImpl::contains(const AddressListParser& addressList,
-										  const WCHAR* pwszAddress)
-{
-	const AddressListParser::AddressList& l = addressList.getAddressList();
-	for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (contains(**it, pwszAddress))
-			return true;
-	}
-	return false;
-}
-
-bool qscrypto::SMIMEUtilityImpl::contains(const AddressParser& address,
-										  const WCHAR* pwszAddress)
-{
-	assert(!address.getGroup());
-	wstring_ptr wstrAddress(address.getAddress());
-	return _wcsicmp(wstrAddress.get(), pwszAddress) == 0;
+	return (pFrom && pFrom->contains(pwszAddress)) ||
+		(pSender && pSender->contains(pwszAddress));
 }

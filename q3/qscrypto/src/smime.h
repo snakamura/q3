@@ -70,10 +70,6 @@ private:
 	static bool contains(const qs::AddressListParser* pFrom,
 						 const qs::AddressListParser* pSender,
 						 const WCHAR* pwszAddress);
-	static bool contains(const qs::AddressListParser& addressList,
-						 const WCHAR* pwszAddress);
-	static bool contains(const qs::AddressParser& address,
-						 const WCHAR* pwszAddress);
 
 private:
 	SMIMEUtilityImpl(const SMIMEUtilityImpl&);
