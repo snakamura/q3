@@ -700,6 +700,7 @@ public:
 	wstring_ptr getValue() const;
 	wstring_ptr getValue(bool bAutoQuote) const;
 	void setPhrase(const WCHAR* pwszPhrase);
+	bool contains(const WCHAR* pwszAddress) const;
 
 public:
 	virtual Part::Field parse(const Part& part,
@@ -796,6 +797,7 @@ public:
 	void removeAllAddresses();
 	void replaceAddress(AddressParser* pAddressOld,
 						std::auto_ptr<AddressParser> pAddressNew);
+	bool contains(const WCHAR* pwszAddress) const;
 
 public:
 	virtual Part::Field parse(const Part& part,

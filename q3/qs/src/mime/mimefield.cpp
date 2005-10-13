@@ -1837,6 +1837,14 @@ void qs::AddressParser::setPhrase(const WCHAR* pwszPhrase)
 	wstrPhrase_ = allocWString(pwszPhrase);
 }
 
+bool qs::AddressParser::contains(const WCHAR* pwszAddress) const
+{
+	if (pGroup_.get())
+		return pGroup_->contains(pwszAddress);
+	else
+		return _wcsicmp(getAddress().get(), pwszAddress) == 0;
+}
+
 Part::Field qs::AddressParser::parse(const Part& part,
 									 const WCHAR* pwszName)
 {
@@ -2534,6 +2542,12 @@ void qs::AddressListParser::replaceAddress(AddressParser* pAddressOld,
 		listAddress_.begin(), listAddress_.end(), pAddressOld);
 	assert(it != listAddress_.end());
 	*it = pAddressNew.release();
+}
+
+bool qs::AddressListParser::contains(const WCHAR* pwszAddress) const
+{
+	return std::find_if(listAddress_.begin(), listAddress_.end(),
+		std::bind2nd(std::mem_fun(&AddressParser::contains), pwszAddress)) != listAddress_.end();
 }
 
 Part::Field qs::AddressListParser::parse(const Part& part,
