@@ -481,9 +481,16 @@ struct dirent *_qdbm_win32_readdir(DIR *dir);
  *************************************************************************************************/
 
 
-extern char *(*_qdbm_deflate)(const char *, int, int *);
+enum {
+  _QDBM_ZMZLIB,
+  _QDBM_ZMRAW,
+  _QDBM_ZMGZIP
+};
 
-extern char *(*_qdbm_inflate)(const char *, int, int *);
+
+extern char *(*_qdbm_deflate)(const char *, int, int *, int);
+
+extern char *(*_qdbm_inflate)(const char *, int, int *, int);
 
 extern unsigned int (*_qdbm_getcrc)(const char *, int);
 

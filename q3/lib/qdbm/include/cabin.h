@@ -932,6 +932,32 @@ char *cbdeflate(const char *ptr, int size, int *sp);
 char *cbinflate(const char *ptr, int size, int *sp);
 
 
+/* Compress a serial object with GZIP.
+   `ptr' specifies the pointer to a region.
+   `size' specifies the size of the region.  If it is negative, the size is assigned with
+   `strlen(ptr)'.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.
+   If successful, the return value is the pointer to the result object, else, it is `NULL'.
+   Because the region of the return value is allocated with the `malloc' call, it should be
+   released with the `free' call if it is no longer in use.  This function is available only if
+   QDBM was built with ZLIB enabled. */
+char *cbgzencode(const char *ptr, int size, int *sp);
+
+
+/* Decompress a serial object compressed with GZIP.
+   `ptr' specifies the pointer to a region.
+   `size' specifies the size of the region.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the result object, else, it is `NULL'.
+   Because an additional zero code is appended at the end of the region of the return value,
+   the return value can be treated as a character string.  Because the region of the return
+   value is allocated with the `malloc' call, it should be released with the `free' call if it
+   is no longer in use.  This function is available only if QDBM was built with ZLIB enabled. */
+char *cbgzdecode(const char *ptr, int size, int *sp);
+
+
 /* Get the CRC32 checksum of a serial object.
    `ptr' specifies the pointer to a region.
    `size' specifies the size of the region.  If it is negative, the size is assigned with
