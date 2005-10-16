@@ -336,17 +336,21 @@ unsigned int qmpgp::GPGDriver::parseStatus(const unsigned char* pBuf,
 			if (p - pBegin > 18 && strncmp(pBegin + 9, "VALIDSIG ", 8) == 0) {
 				nVerify = PGPUtility::VERIFY_OK;
 				
-				const CHAR* pFingerPrint = pBegin + 17;
+				const CHAR* pFingerPrint = pBegin + 18;
 				const CHAR* pFingerPrintEnd = pFingerPrint;
 				while (pFingerPrintEnd < p && *pFingerPrintEnd != ' ')
 					++pFingerPrintEnd;
-				
-				wstring_ptr wstrFingerPrint(mbs2wcs(pFingerPrint, pFingerPrintEnd - pFingerPrint));
-				bool bMatch = false;
-				if (!getUserIdFromFingerPrint(wstrFingerPrint.get(), pFrom, pSender, pwstrUserId, &bMatch))
+				if (pFingerPrint != pFingerPrintEnd) {
+					wstring_ptr wstrFingerPrint(mbs2wcs(pFingerPrint, pFingerPrintEnd - pFingerPrint));
+					bool bMatch = false;
+					if (!getUserIdFromFingerPrint(wstrFingerPrint.get(), pFrom, pSender, pwstrUserId, &bMatch))
+						nVerify = PGPUtility::VERIFY_FAILED;
+					else if (!bMatch)
+						nVerify |= PGPUtility::VERIFY_ADDRESSNOTMATCH;
+				}
+				else {
 					nVerify = PGPUtility::VERIFY_FAILED;
-				else if (!bMatch)
-					nVerify |= PGPUtility::VERIFY_ADDRESSNOTMATCH;
+				}
 			}
 			else if (p - pBegin > 16 &&
 				(strncmp(pBegin + 9, "BADSIG ", 7) == 0 ||
