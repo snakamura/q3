@@ -33,25 +33,6 @@ std::auto_ptr<PGPUtility> qm::PGPUtility::getInstance(Profile* pProfile)
 	return PGPFactory::getFactory()->createPGPUtility(pProfile);
 }
 
-const WCHAR* qm::PGPUtility::getValidityText(Validity validity)
-{
-	switch (validity) {
-	case VALIDITY_UNDEFINED:
-		return L"Undefined";
-	case VALIDITY_NEVER:
-		return L"Never";
-	case VALIDITY_MARGINAL:
-		return L"Marginal";
-	case VALIDITY_FULLY:
-		return L"Fully";
-	case VALIDITY_ULTIMATE:
-		return L"Ultimate";
-	default:
-		assert(false);
-		return 0;
-	}
-}
-
 
 /****************************************************************************
  *

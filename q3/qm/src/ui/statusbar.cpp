@@ -151,7 +151,8 @@ void qm::MessageStatusBar::updateMessageParts(MessageHolder* pmh,
 		
 		HICON hIconVerified = 0;
 		if ((nSecurity & Message::SECURITY_VERIFICATIONFAILED) ||
-			(nSecurity & Message::SECURITY_ADDRESSNOTMATCH))
+			((nSecurity & Message::SECURITY_ADDRESSNOTMATCH) &&
+			 !(nSecurity & Message::SECURITY_ADDRESSNOTMATCHNOERROR)))
 			setIconOrText(nOffset_ + 4, IDI_UNVERIFIED, L"X");
 		else if (nSecurity & Message::SECURITY_VERIFIED)
 			setIconOrText(nOffset_ + 4, IDI_VERIFIED, L"V");

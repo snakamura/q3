@@ -787,6 +787,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 			if (!strMessage.get())
 				return false;
 			
+			nSecurity &= ~Message::SECURITY_VERIFY_MASK;
 			if (nVerify == SMIMEUtility::VERIFY_OK)
 				nSecurity |= Message::SECURITY_VERIFIED;
 			if (nVerify & SMIMEUtility::VERIFY_FAILED)
@@ -820,8 +821,11 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 	if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE, nSecurity))
 		return false;
 	
+	wstring_ptr wstrSignedBy = 0;
+	wstring_ptr wstrCertificate;
 	if (!listCertificate.empty()) {
-		pMessage->setParam(L"SignedBy", listCertificate.front()->getSubject()->getText().get());
+		if (nSecurity & Message::SECURITY_VERIFIED)
+			wstrSignedBy = listCertificate.front()->getSubject()->getText();
 		
 		StringBuffer<WSTRING> buf;
 		for (SMIMEUtility::CertificateList::const_iterator it = listCertificate.begin(); it != listCertificate.end(); ++it) {
@@ -829,8 +833,10 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 				buf.append(L"\n----------------------------------------\n");
 			buf.append((*it)->getText().get());
 		}
-		pMessage->setParam(L"Certificate", buf.getCharArray());
+		wstrCertificate = buf.getString();
 	}
+	pMessage->setParam(L"SignedBy", wstrSignedBy.get());
+	pMessage->setParam(L"Certificate", wstrCertificate.get());
 	
 	return true;
 }
@@ -852,33 +858,32 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	xstring_size_ptr strMessage;
 	unsigned int nVerify = 0;
 	wstring_ptr wstrSignedBy;
-	PGPUtility::Validity validity = PGPUtility::VALIDITY_UNDEFINED;
 	wstring_ptr wstrInfo;
 	unsigned int nSecurity = pMessage->getSecurity();
 	switch (type) {
 	case PGPUtility::TYPE_MIMEENCRYPTED:
 		strMessage = pPGPUtility->decryptAndVerify(*pMessage, true,
-			wstrPassword.get(), &nVerify, &wstrSignedBy, &validity, &wstrInfo);
+			wstrPassword.get(), &nVerify, &wstrSignedBy, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		nSecurity |= Message::SECURITY_DECRYPTED;
 		break;
 	case PGPUtility::TYPE_MIMESIGNED:
-		strMessage = pPGPUtility->verify(*pMessage, true,
-			&nVerify, &wstrSignedBy, &validity, &wstrInfo);
+		strMessage = pPGPUtility->verify(*pMessage,
+			true, &nVerify, &wstrSignedBy, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		break;
 	case PGPUtility::TYPE_INLINEENCRYPTED:
 		strMessage = pPGPUtility->decryptAndVerify(*pMessage, false,
-			wstrPassword.get(), &nVerify, &wstrSignedBy, &validity, &wstrInfo);
+			wstrPassword.get(), &nVerify, &wstrSignedBy, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		nSecurity |= Message::SECURITY_DECRYPTED;
 		break;
 	case PGPUtility::TYPE_INLINESIGNED:
-		strMessage = pPGPUtility->verify(*pMessage, false,
-			&nVerify, &wstrSignedBy, &validity, &wstrInfo);
+		strMessage = pPGPUtility->verify(*pMessage,
+			false, &nVerify, &wstrSignedBy, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		break;
@@ -890,22 +895,22 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 			wstrPassword.get(), state == PASSWORDSTATE_SAVE);
 	}
 	
-	if (nVerify == PGPUtility::VERIFY_OK)
-		nSecurity |= Message::SECURITY_VERIFIED;
-	if (nVerify & PGPUtility::VERIFY_FAILED)
-		nSecurity |= Message::SECURITY_VERIFICATIONFAILED;
-	if (nVerify & PGPUtility::VERIFY_ADDRESSNOTMATCH)
-		nSecurity |= Message::SECURITY_ADDRESSNOTMATCH;
+	if (nVerify != PGPUtility::VERIFY_NONE) {
+		nSecurity &= ~Message::SECURITY_VERIFY_MASK;
+		if (nVerify & PGPUtility::VERIFY_OK)
+			nSecurity |= Message::SECURITY_VERIFIED;
+		if (nVerify & PGPUtility::VERIFY_FAILED)
+			nSecurity |= Message::SECURITY_VERIFICATIONFAILED;
+		if (nVerify & PGPUtility::VERIFY_ADDRESSNOTMATCH)
+			nSecurity |= Message::SECURITY_ADDRESSNOTMATCH;
+	}
 	
 	if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE, nSecurity))
 		return false;
 	
 	if (nVerify != PGPUtility::VERIFY_NONE) {
-		if (wstrSignedBy.get())
-			pMessage->setParam(L"SignedBy", wstrSignedBy.get());
-		pMessage->setParam(L"Validity", PGPUtility::getValidityText(validity));
-		if (wstrInfo.get())
-			pMessage->setParam(L"Certificate", wstrInfo.get());
+		pMessage->setParam(L"SignedBy", wstrSignedBy.get());
+		pMessage->setParam(L"Certificate", wstrInfo.get());
 	}
 	
 	return true;
@@ -2439,7 +2444,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 			bProcessed = true;
 		}
 	}
-	if (bPGP) {
+	if (!bProcessed && bPGP) {
 		const PGPUtility* pPGPUtility = pImpl_->pSecurity_->getPGPUtility();
 		PGPUtility::Type type = pPGPUtility->getType(pMessage->getContentType());
 		if  (type == PGPUtility::TYPE_MIMEENCRYPTED ||
@@ -2463,18 +2468,30 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 			type = pPGPUtility->getType(*pMessage, bInline);
 			bProcessed = true;
 		}
+		
+		unsigned int nSecurity = pMessage->getSecurity();
+		if (nSecurity & Message::SECURITY_ADDRESSNOTMATCH)
+			pMessage->setSecurity(nSecurity | Message::SECURITY_ADDRESSNOTMATCHNOERROR);
 	}
 	
+	StringBuffer<WSTRING> bufVerify;
 	unsigned int nSecurity = pMessage->getSecurity();
-	if (nSecurity & Message::SECURITY_VERIFY_MASK) {
-		unsigned int n = 0;
-		if (nSecurity & Message::SECURITY_VERIFY_ERROR_MASK)
-			n = nSecurity >> 12;
-		
-		WCHAR wsz[32];
-		swprintf(wsz, L"%d", n);
-		pMessage->setParam(L"Verification", wsz);
+	if (nSecurity & Message::SECURITY_VERIFIED) {
+		bufVerify.append(L"Verified ");
+		if (nSecurity & Message::SECURITY_ADDRESSNOTMATCH)
+			bufVerify.append(L"AddressMismatch");
+		else
+			bufVerify.append(L"AddressMatch");
 	}
+	else if (nSecurity & Message::SECURITY_VERIFICATIONFAILED) {
+		bufVerify.append(L"VerifyFailed");
+	}
+	if (nSecurity & Message::SECURITY_DECRYPTED) {
+		if (bufVerify.getLength() != 0)
+			bufVerify.append(L' ');
+		bufVerify.append(L"Decrypted");
+	}
+	pMessage->setParam(L"Verify", bufVerify.getCharArray());
 	
 	if (bProcessed && pImpl_->bStoreDecodedMessage_) {
 		unsigned int nOffset = pmh->getMessageBoxKey().nOffset_;

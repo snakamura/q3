@@ -196,8 +196,10 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 							  size_t nLen,
 							  const CHAR* pszSignature,
+							  const AddressListParser* pFrom,
+							  const AddressListParser* pSender,
+							  unsigned int* pnVerify,
 							  wstring_ptr* pwstrUserId,
-							  PGPUtility::Validity* pValidity,
 							  wstring_ptr* pwstrInfo) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
@@ -247,15 +249,18 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 		return false;
 	}
 	
-	return checkVerified(stderr.getBuffer(), stderr.getLength(), pwstrUserId) == PGPUtility::VERIFY_OK;
+	*pnVerify = checkVerified(stderr.getBuffer(), stderr.getLength(), pwstrUserId);
+	
+	return true;
 }
 
 xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 													size_t nLen,
 													const WCHAR* pwszPassphrase,
+													const AddressListParser* pFrom,
+													const AddressListParser* pSender,
 													unsigned int* pnVerify,
 													wstring_ptr* pwstrUserId,
-													PGPUtility::Validity* pValidity,
 													wstring_ptr* pwstrInfo) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
@@ -302,6 +307,7 @@ xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
 }
 
+#if 0
 bool qmpgp::PGPDriver::getAlternatives(const WCHAR* pwszUserId,
 									   UserIdList* pList) const
 {
@@ -355,6 +361,7 @@ bool qmpgp::PGPDriver::getAlternatives(const WCHAR* pwszUserId,
 	
 	return true;
 }
+#endif
 
 wstring_ptr qmpgp::PGPDriver::getCommand() const
 {

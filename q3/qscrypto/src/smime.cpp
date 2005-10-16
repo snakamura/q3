@@ -191,32 +191,31 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 				return xstring_size_ptr();
 		}
 		else {
-			if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(),
-				PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1)
+			if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(), PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1)
 				return xstring_size_ptr();
 		}
 	}
 	
-	bool bMatch = false;
 	X509StackPtr certs(PKCS7_get0_signers(pPKCS7.get(), 0, 0), false);
-	if (certs.get()) {
-		AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
-		Part::Field fieldFrom = part.getField(L"From", &from);
-		AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
-		Part::Field fieldSender = part.getField(L"Sender", &sender);
-		
-		for (int n = 0; n < sk_X509_num(certs.get()); ++n) {
-			std::auto_ptr<Certificate> pCert(new CertificateImpl(sk_X509_value(certs.get(), n), true));
-			if (match(pCert.get(), fieldFrom == Part::FIELD_EXIST ? &from : 0,
-				fieldSender == Part::FIELD_EXIST ? &sender : 0)) {
-				bMatch = true;
-				pListCertificate->insert(pListCertificate->begin(), pCert.get());
-			}
-			else {
-				pListCertificate->push_back(pCert.get());
-			}
-			pCert.release();
+	if (!certs.get())
+		return xstring_size_ptr();
+	
+	AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
+	const AddressListParser* pFrom = part.getField(L"From", &from) == Part::FIELD_EXIST ? &from : 0;
+	AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
+	const AddressListParser* pSender = part.getField(L"Sender", &sender) == Part::FIELD_EXIST ? &sender : 0;
+	
+	bool bMatch = false;
+	for (int n = 0; n < sk_X509_num(certs.get()); ++n) {
+		std::auto_ptr<Certificate> pCert(new CertificateImpl(sk_X509_value(certs.get(), n), true));
+		if (match(pCert.get(), pFrom, pSender)) {
+			bMatch = true;
+			pListCertificate->insert(pListCertificate->begin(), pCert.get());
 		}
+		else {
+			pListCertificate->push_back(pCert.get());
+		}
+		pCert.release();
 	}
 	if (!bMatch)
 		*pnVerify |= VERIFY_ADDRESSNOTMATCH;
@@ -246,8 +245,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 	};
 	for (int n = 0; n < countof(pwszAddresses); ++n) {
 		AddressListParser addressList;
-		Part::Field f = pPart->getField(pwszAddresses[n], &addressList);
-		if (f == Part::FIELD_EXIST) {
+		if (pPart->getField(pwszAddresses[n], &addressList) == Part::FIELD_EXIST) {
 			if (!getCertificates(addressList, pCallback, pCertificates.get()))
 				return xstring_size_ptr();
 		}

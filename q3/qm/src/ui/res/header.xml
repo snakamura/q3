@@ -17,7 +17,7 @@
 	</line>
 	<line class="mail|news">
 		<static width="4em" style="bold" showAlways="true">From:</static>
-		<edit background="{@If(@Not(@Param('Verification')), '', @Equal(@Param('Verification'), 0), 'f5f6be', 'ff0000')}">{@FormatAddress(From, 3)}</edit>
+		<edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}">{@FormatAddress(From, 3)}</edit>
 		<static width="3em" style="bold" showAlways="true">Date:</static>
 		<edit width="10em">{@FormatDate(@Date(Date), '%Y4/%M0/%D %h:%m:%s')}</edit>
 	</line>
@@ -59,6 +59,6 @@
 	</line>
 	<line hideIfEmpty="sign">
 		<static width="4em" style="bold" showAlways="true">Signed by:</static>
-		<edit name="sign">{@Param('SignedBy')}</edit>
+		<edit name="sign" background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'Verified'), 'f5f6be', @Contain(@Param('Verify'), 'VerifyFailed'), 'ec7b95', '')}">{@Param('SignedBy')}</edit>
 	</line>
 </header>

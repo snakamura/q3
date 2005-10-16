@@ -52,31 +52,20 @@ public:
 										bool bMime,
 										unsigned int* pnVerify,
 										qs::wstring_ptr* pwstrSignedBy,
-										Validity* pValidity,
 										qs::wstring_ptr* pwstrInfo) const;
 	virtual qs::xstring_size_ptr decryptAndVerify(const qs::Part& part,
 												  bool bMime,
 												  const WCHAR* pwszPassphrase,
 												  unsigned int* pnVerify,
 												  qs::wstring_ptr* pwstrSignedBy,
-												  Validity* pValidity,
 												  qs::wstring_ptr* pwstrInfo) const;
 
 private:
 	std::auto_ptr<Driver> getDriver() const;
-	bool checkUserId(const qs::Part& part,
-					 const WCHAR* pwszUserId) const;
-	bool checkUserId(const qs::Part& part,
-					 const WCHAR* pwszUserId,
-					 bool bCheckAlternative) const;
 
 private:
 	static void getRecipients(const qs::Part& part,
 							  Driver::UserIdList* pListUserId);
-	static bool contains(const qs::AddressListParser& addressList,
-						 const WCHAR* pwszAddress);
-	static bool contains(const qs::AddressParser& address,
-						 const WCHAR* pwszAddress);
 	static qs::xstring_size_ptr createMessage(const CHAR* pszHeader,
 											  const CHAR* pszBody,
 											  size_t nBodyLen);

@@ -252,18 +252,21 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 											   bool bMime,
 											   unsigned int* pnVerify,
 											   wstring_ptr* pwstrSignedBy,
-											   Validity* pValidity,
 											   qs::wstring_ptr* pwstrInfo) const
 {
 	assert(pnVerify);
 	assert(pwstrSignedBy);
-	assert(pValidity);
 	assert(pwstrInfo);
 	
 	*pnVerify = VERIFY_NONE;
 	pwstrSignedBy->reset(0);
 	
 	std::auto_ptr<Driver> pDriver(getDriver());
+	
+	AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
+	const AddressListParser* pFrom = part.getField(L"From", &from) == Part::FIELD_EXIST ? &from : 0;
+	AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
+	const AddressListParser* pSender = part.getField(L"Sender", &sender) == Part::FIELD_EXIST ? &sender : 0;
 	
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMESIGNED);
@@ -272,12 +275,9 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 		if (!strContent.get())
 			return xstring_size_ptr();
 		
-		bool bVerified = pDriver->verify(strContent.get(), -1,
-			part.getPart(1)->getBody(), pwstrSignedBy, pValidity, pwstrInfo);
-		
-		*pnVerify = bVerified ? VERIFY_OK : VERIFY_FAILED;
-		if (!checkUserId(part, pwstrSignedBy->get()))
-			*pnVerify |= VERIFY_ADDRESSNOTMATCH;
+		if (!pDriver->verify(strContent.get(), -1, part.getPart(1)->getBody(),
+			pFrom, pSender, pnVerify, pwstrSignedBy, pwstrInfo))
+			return xstring_size_ptr();
 		
 		return createMessage(strContent.get(), strContent.size(), part);
 	}
@@ -294,12 +294,10 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 		if (pEnd)
 			nLen = pEnd - pBegin + 29;
 		
-		xstring_size_ptr strBody(pDriver->decryptAndVerify(pBegin,
-			nLen, 0, pnVerify, pwstrSignedBy, pValidity, pwstrInfo));
+		xstring_size_ptr strBody(pDriver->decryptAndVerify(pBegin, nLen,
+			0, pFrom, pSender, pnVerify, pwstrSignedBy, pwstrInfo));
 		if (!strBody.get())
 			return xstring_size_ptr();
-		if (!checkUserId(part, pwstrSignedBy->get()))
-			*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 		
 		return createMessage(part.getHeader(), strBody.get(), strBody.size());
 	}
@@ -310,12 +308,10 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 														 const WCHAR* pwszPassphrase,
 														 unsigned int* pnVerify,
 														 wstring_ptr* pwstrSignedBy,
-														 Validity* pValidity,
 														 qs::wstring_ptr* pwstrInfo) const
 {
 	assert(pnVerify);
 	assert(pwstrSignedBy);
-	assert(pValidity);
 	assert(pwstrInfo);
 	
 	*pnVerify = VERIFY_NONE;
@@ -323,17 +319,18 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 	
 	std::auto_ptr<Driver> pDriver(getDriver());
 	
+	AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
+	const AddressListParser* pFrom = part.getField(L"From", &from) == Part::FIELD_EXIST ? &from : 0;
+	AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
+	const AddressListParser* pSender = part.getField(L"Sender", &sender) == Part::FIELD_EXIST ? &sender : 0;
+	
 	if (bMime) {
 		assert(getType(part, false) == TYPE_MIMEENCRYPTED);
 		
 		xstring_size_ptr strContent(pDriver->decryptAndVerify(part.getPart(1)->getBody(),
-			-1, pwszPassphrase, pnVerify, pwstrSignedBy, pValidity, pwstrInfo));
+			-1, pwszPassphrase, pFrom, pSender, pnVerify, pwstrSignedBy, pwstrInfo));
 		if (!strContent.get())
 			return xstring_size_ptr();
-		if (*pnVerify != VERIFY_NONE) {
-			if (!checkUserId(part, pwstrSignedBy->get()))
-				*pnVerify |= VERIFY_ADDRESSNOTMATCH;
-		}
 		return createMessage(strContent.get(), strContent.size(), part);
 	}
 	else {
@@ -352,18 +349,17 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 					if (!buf.append(p, pBegin - p))
 						return xstring_size_ptr();
 				}
+				
 				size_t nLen = body.second - (pBegin - body.first);
 				const CHAR* pEnd = findInline("-----END PGP MESSAGE-----\r\n", pBegin, nLen);
 				if (pEnd)
 					nLen = pEnd - pBegin + 27;
 				
 				xstring_size_ptr strBody(pDriver->decryptAndVerify(pBegin, nLen,
-					pwszPassphrase, pnVerify, pwstrSignedBy, pValidity, pwstrInfo));
+					pwszPassphrase, pFrom, pSender, pnVerify, pwstrSignedBy, pwstrInfo));
 				if (!strBody.get())
 					return xstring_size_ptr();
 				if (*pnVerify != VERIFY_NONE) {
-					if (!checkUserId(part, pwstrSignedBy->get()))
-						*pnVerify |= VERIFY_ADDRESSNOTMATCH;
 					return createMessage(part.getHeader(), strBody.get(), strBody.size());
 				}
 				else {
@@ -391,55 +387,6 @@ std::auto_ptr<Driver> qmpgp::PGPUtilityImpl::getDriver() const
 		return std::auto_ptr<Driver>(new PGPDriver(pProfile_));
 }
 
-bool qmpgp::PGPUtilityImpl::checkUserId(const qs::Part& part,
-										const WCHAR* pwszUserId) const
-{
-	return checkUserId(part, pwszUserId, true);
-}
-
-bool qmpgp::PGPUtilityImpl::checkUserId(const qs::Part& part,
-										const WCHAR* pwszUserId,
-										bool bCheckAlternative) const
-{
-	if (!pwszUserId)
-		return false;
-	
-	const WCHAR* pStart = wcsrchr(pwszUserId, L'<');
-	if (!pStart)
-		return false;
-	const WCHAR* pEnd = wcsrchr(pwszUserId, L'>');
-	if (!pEnd || pStart > pEnd)
-		return false;
-	
-	wstring_ptr wstrAddress(allocWString(pStart + 1, pEnd - pStart - 1));
-	
-	AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
-	if (part.getField(L"From", &from) == Part::FIELD_EXIST &&
-		contains(from, wstrAddress.get()))
-		return true;
-	
-	AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
-	if (part.getField(L"Sender", &sender) == Part::FIELD_EXIST &&
-		contains(sender, wstrAddress.get()))
-		return true;
-	
-	if (bCheckAlternative) {
-		std::auto_ptr<Driver> pDriver(getDriver());
-		
-		Driver::UserIdList listUserId;
-		StringListFree<Driver::UserIdList> free(listUserId);
-		if (!pDriver->getAlternatives(pwszUserId, &listUserId))
-			return false;
-		
-		for (Driver::UserIdList::const_iterator it = listUserId.begin(); it != listUserId.end(); ++it) {
-			if (checkUserId(part, *it, false))
-				return true;
-		}
-	}
-	
-	return false;
-}
-
 void qmpgp::PGPUtilityImpl::getRecipients(const Part& part,
 										  Driver::UserIdList* pListUserId)
 {
@@ -462,25 +409,6 @@ void qmpgp::PGPUtilityImpl::getRecipients(const Part& part,
 			}
 		}
 	}
-}
-
-bool qmpgp::PGPUtilityImpl::contains(const AddressListParser& addressList,
-									 const WCHAR* pwszAddress)
-{
-	const AddressListParser::AddressList& l = addressList.getAddressList();
-	for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (contains(**it, pwszAddress))
-			return true;
-	}
-	return false;
-}
-
-bool qmpgp::PGPUtilityImpl::contains(const AddressParser& address,
-									 const WCHAR* pwszAddress)
-{
-	assert(!address.getGroup());
-	wstring_ptr wstrAddress(address.getAddress());
-	return _wcsicmp(wstrAddress.get(), pwszAddress) == 0;
 }
 
 xstring_size_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszHeader,

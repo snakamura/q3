@@ -127,7 +127,11 @@ const WCHAR* qm::Message::getParam(const WCHAR* pwszName) const
 void qm::Message::setParam(const WCHAR* pwszName,
 						   const WCHAR* pwszValue)
 {
-	wstring_ptr wstrValue(allocWString(pwszValue));
+	assert(pwszName);
+	
+	wstring_ptr wstrValue;
+	if (pwszValue)
+		wstrValue = allocWString(pwszValue);
 	
 	ParamList::iterator it = std::find_if(
 		listParam_.begin(), listParam_.end(),
@@ -139,9 +143,12 @@ void qm::Message::setParam(const WCHAR* pwszName,
 			pwszName));
 	if (it != listParam_.end()) {
 		freeWString((*it).second);
-		(*it).second = wstrValue.release();
+		if (wstrValue.get())
+			(*it).second = wstrValue.release();
+		else
+			listParam_.erase(it);
 	}
-	else {
+	else if (wstrValue.get()) {
 		wstring_ptr wstrName(allocWString(pwszName));
 		listParam_.push_back(std::make_pair(wstrName.get(), wstrValue.get()));
 		wstrName.release();

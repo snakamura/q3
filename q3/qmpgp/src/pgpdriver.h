@@ -48,18 +48,19 @@ public:
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
 						const CHAR* pszSignature,
+						const qs::AddressListParser* pFrom,
+						const qs::AddressListParser* pSender,
+						unsigned int* pnVerify,
 						qs::wstring_ptr* pwstrUserId,
-						qm::PGPUtility::Validity* pValidity,
 						qs::wstring_ptr* pwstrInfo) const;
 	virtual qs::xstring_size_ptr decryptAndVerify(const CHAR* pszContent,
 												  size_t nLen,
 												  const WCHAR* pwszPassphrase,
+												  const qs::AddressListParser* pFrom,
+												  const qs::AddressListParser* pSender,
 												  unsigned int* pnVerify,
 												  qs::wstring_ptr* pwstrUserId,
-												  qm::PGPUtility::Validity* pValidity,
 												  qs::wstring_ptr* pwstrInfo) const;
-	virtual bool getAlternatives(const WCHAR* pwszUserId,
-								 UserIdList* pList) const;
 
 private:
 	qs::wstring_ptr getCommand() const;
