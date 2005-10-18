@@ -321,10 +321,10 @@ unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pCo
 	requestHeader.append(pwszName);
 	requestHeader.append(L" ");
 	
-	if (pConnection->isProxied()) {
+	if (pConnection->isProxied() && !isSecure()) {
 		requestHeader.append(pURL_->getScheme());
 		requestHeader.append(L"://");
-		requestHeader.append(pURL_->getHost());
+		requestHeader.append(pURL_->getAuthority().get());
 	}
 	requestHeader.append(pURL_->getPath());
 	if (pURL_->getQuery()) {
@@ -334,7 +334,7 @@ unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pCo
 	requestHeader.append(L" HTTP/1.0\r\n");
 	
 	requestHeader.append(L"Host: ");
-	requestHeader.append(pURL_->getHost());
+	requestHeader.append(pURL_->getAuthority().get());
 	requestHeader.append(L"\r\n");
 	
 	requestHeader.append(L"Connection: close\r\n");
@@ -533,11 +533,28 @@ wstring_ptr qmrss::HttpURL::getURL() const
 		buf.append(L'@');
 	}
 	buf.append(wstrHost_.get());
+	if (nPort_ != static_cast<unsigned short>(-1)) {
+		WCHAR wszPort[32];
+		swprintf(wszPort, L":%d", static_cast<int>(nPort_));
+		buf.append(wszPort);
+	}
 	buf.append(L'/');
 	buf.append(wstrPath_.get());
 	if (wstrQuery_.get()) {
 		buf.append(L'?');
 		buf.append(wstrQuery_.get());
+	}
+	return buf.getString();
+}
+
+wstring_ptr qmrss::HttpURL::getAuthority() const
+{
+	StringBuffer<WSTRING> buf;
+	buf.append(wstrHost_.get());
+	if (nPort_ != static_cast<unsigned short>(-1)) {
+		WCHAR wszPort[32];
+		swprintf(wszPort, L":%d", static_cast<int>(nPort_));
+		buf.append(wszPort);
 	}
 	return buf.getString();
 }

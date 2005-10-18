@@ -250,6 +250,7 @@ public:
 	const WCHAR* getPath() const;
 	const WCHAR* getQuery() const;
 	qs::wstring_ptr getURL() const;
+	qs::wstring_ptr getAuthority() const;
 
 public:
 	static std::auto_ptr<HttpURL> create(const WCHAR* pwszURL);
