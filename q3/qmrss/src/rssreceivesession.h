@@ -40,6 +40,10 @@ private:
 		CONTENT_CONTENTENCODED,
 		CONTENT_DESCRIPTION
 	};
+	
+	enum {
+		MAX_REDIRECT = 5
+	};
 
 public:
 	typedef std::vector<qm::MessagePtr> MessagePtrList;

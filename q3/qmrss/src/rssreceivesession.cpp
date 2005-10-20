@@ -169,52 +169,83 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	const Feed* pFeed = pFeedList_->getFeed(pwszURL);
 	
-	HttpMethodGet method(pwszURL);
-	if (pFeed) {
-		wstring_ptr wstrIfModifiedSince(pFeed->getLastModified().format(
-			L"%W, %D %M1 %Y4 %h:%m:%s", Time::FORMAT_UTC));
-		wstrIfModifiedSince = concat(wstrIfModifiedSince.get(), L" GMT");
-		method.setRequestHeader(L"If-Modified-Since", wstrIfModifiedSince.get());
-	}
-	
-	const WCHAR* pwszUserName = pFolder_->getParam(L"UserName");
-	const WCHAR* pwszPassword = pFolder_->getParam(L"Password");
-	if (pwszUserName && *pwszUserName && pwszPassword && *pwszPassword)
-		method.setCredential(pwszUserName, pwszPassword);
-	
-	wstring_ptr wstrUserAgent(Application::getApplication().getVersion(L'/', false));
-	method.setRequestHeader(L"User-Agent", wstrUserAgent.get());
-	
-	const WCHAR* pwszCookie = pFolder_->getParam(L"Cookie");
-	wstring_ptr wstrCookie;
-	if (!pwszCookie || !*pwszCookie) {
-		wstrCookie = getInternetCookie(pwszURL);
-		pwszCookie = wstrCookie.get();
-	}
-	if (pwszCookie && *pwszCookie)
-		method.setRequestHeader(L"Cookie", pwszCookie);
-	
-	unsigned int nCode = http.invoke(&method);
-	if (nCode == 304) {
-		return true;
-	}
-	else if (nCode != 200) {
-		reportError(IDS_ERROR_GET, &method);
-		return false;
+	wstring_ptr wstrURL(allocWString(pwszURL));
+	std::auto_ptr<HttpMethodGet> pMethod;
+	for (int n = 0; n < MAX_REDIRECT; ++n) {
+		pMethod.reset(new HttpMethodGet(wstrURL.get()));
+		if (pFeed) {
+			wstring_ptr wstrIfModifiedSince(pFeed->getLastModified().format(
+				L"%W, %D %M1 %Y4 %h:%m:%s", Time::FORMAT_UTC));
+			wstrIfModifiedSince = concat(wstrIfModifiedSince.get(), L" GMT");
+			pMethod->setRequestHeader(L"If-Modified-Since", wstrIfModifiedSince.get());
+		}
+		
+		const WCHAR* pwszUserName = pFolder_->getParam(L"UserName");
+		const WCHAR* pwszPassword = pFolder_->getParam(L"Password");
+		if (pwszUserName && *pwszUserName && pwszPassword && *pwszPassword)
+			pMethod->setCredential(pwszUserName, pwszPassword);
+		
+		wstring_ptr wstrUserAgent(Application::getApplication().getVersion(L'/', false));
+		pMethod->setRequestHeader(L"User-Agent", wstrUserAgent.get());
+		
+		const WCHAR* pwszCookie = pFolder_->getParam(L"Cookie");
+		wstring_ptr wstrCookie;
+		if (!pwszCookie || !*pwszCookie) {
+			wstrCookie = getInternetCookie(wstrURL.get());
+			pwszCookie = wstrCookie.get();
+		}
+		if (pwszCookie && *pwszCookie)
+			pMethod->setRequestHeader(L"Cookie", pwszCookie);
+		
+		unsigned int nCode = http.invoke(pMethod.get());
+		switch (nCode) {
+		case 200:
+			break;
+		case 301:
+		case 302:
+		case 303:
+		case 307:
+			if (n == MAX_REDIRECT - 1) {
+				reportError(IDS_ERROR_GET, pMethod.get());
+				return false;
+			}
+			else {
+				Part header;
+				if (!header.create(0, pMethod->getResponseHeader(), -1)) {
+					reportError(IDS_ERROR_GET, pMethod.get());
+					return false;
+				}
+				UnstructuredParser location;
+				if (header.getField(L"Location", &location) != Part::FIELD_EXIST) {
+					reportError(IDS_ERROR_GET, pMethod.get());
+					return false;
+				}
+				wstrURL = allocWString(location.getValue());
+				continue;
+			}
+		case 304:
+			return true;
+		default:
+			reportError(IDS_ERROR_GET, pMethod.get());
+			return false;
+		}
+		break;
 	}
 	
 	callback.setMessage(IDS_PARSERSS);
 	
 	std::auto_ptr<Channel> pChannel(RssParser().parse(
-		pwszURL, method.getResponseBodyAsStream()));
+		pwszURL, pMethod->getResponseBodyAsStream()));
 	if (!pChannel.get()) {
 		reportError(IDS_ERROR_PARSE, 0);
 		return false;
 	}
 	
 	Part header;
-	if (!header.create(0, method.getResponseHeader(), -1))
+	if (!header.create(0, pMethod->getResponseHeader(), -1)) {
+		reportError(IDS_ERROR_PARSE, 0);
 		return false;
+	}
 	
 	Time timePubDate(pChannel->getPubDate());
 	if (timePubDate.wYear == 0)
