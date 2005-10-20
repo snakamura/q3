@@ -186,9 +186,18 @@ bool qs::Part::getContent(XStringBuffer<XSTRING>* pBuf) const
 			
 			bProcessed = true;
 			
+			if (strPreamble_.get()) {
+				if (!pBuf->append(strPreamble_.get()) ||
+					!pBuf->append("\r\n"))
+					return false;
+			}
 			if (!listPart_.empty()) {
 				for (PartList::const_iterator it = listPart_.begin(); it != listPart_.end(); ++it) {
-					if (!pBuf->append("\r\n--") ||
+					if (it != listPart_.begin()) {
+						if (!pBuf->append("\r\n"))
+							return false;
+					}
+					if (!pBuf->append("--") ||
 						!pBuf->append(strBoundary.get()) ||
 						!pBuf->append("\r\n"))
 						return false;
@@ -197,7 +206,12 @@ bool qs::Part::getContent(XStringBuffer<XSTRING>* pBuf) const
 				}
 				if (!pBuf->append("\r\n--") ||
 					!pBuf->append(strBoundary.get()) ||
-					!pBuf->append("--\r\n"))
+					!pBuf->append("--"))
+					return false;
+			}
+			if (strEpilogue_.get()) {
+				if (!pBuf->append("\r\n") ||
+					!pBuf->append(strEpilogue_.get()))
 					return false;
 			}
 		}
@@ -907,6 +921,44 @@ Part* qs::Part::getParentPart() const
 	return pParent_;
 }
 
+const CHAR* qs::Part::getPreamble() const
+{
+	return strPreamble_.get();
+}
+
+bool qs::Part::setPreamble(const CHAR* pszPreamble)
+{
+	if (pszPreamble) {
+		xstring_ptr strPreamble(allocXString(pszPreamble));
+		if (!strPreamble.get())
+			return false;
+		strPreamble_ = strPreamble;
+	}
+	else {
+		strPreamble_.reset(0);
+	}
+	return true;
+}
+
+const CHAR* qs::Part::getEpilogue() const
+{
+	return strEpilogue_.get();
+}
+
+bool qs::Part::setEpilogue(const CHAR* pszEpilogue)
+{
+	if (pszEpilogue) {
+		xstring_ptr strEpilogue(allocXString(pszEpilogue));
+		if (!strEpilogue.get())
+			return false;
+		strEpilogue_ = strEpilogue;
+	}
+	else {
+		strEpilogue_.reset(0);
+	}
+	return true;
+}
+
 Part* qs::Part::getEnclosedPart() const
 {
 	return pPartEnclosed_.get();
@@ -1048,6 +1100,7 @@ bool qs::Part::create(const Part* pParent,
 					nLen - (pBody - 2 - pszContent), strBoundary.get(),
 					"\r\n", isOption(O_ALLOW_INCOMPLETE_MULTIPART));
 				
+				bool bFirst = true;
 				while (true) {
 					if (*pnMaxPartCount == 0)
 						break;
@@ -1058,6 +1111,7 @@ bool qs::Part::create(const Part* pParent,
 					bool bEnd = false;
 					if (!finder.getNext(&pBegin, &pEnd, &bEnd))
 						return false;
+					
 					if (pBegin) {
 						std::auto_ptr<Part> pChildPart(new Part(nOptions_));
 						if (!pChildPart->create(this, pBegin, pEnd - pBegin, pnMaxPartCount))
@@ -1067,6 +1121,19 @@ bool qs::Part::create(const Part* pParent,
 					
 					if (bEnd)
 						break;
+				}
+				
+				std::pair<const CHAR*, size_t> preamble(finder.getPreamble());
+				if (preamble.first) {
+					strPreamble_ = allocXString(preamble.first, preamble.second);
+					if (!strPreamble_.get())
+						return false;
+				}
+				std::pair<const CHAR*, size_t> epilogue(finder.getEpilogue());
+				if (epilogue.first) {
+					strEpilogue_ = allocXString(epilogue.first, epilogue.second);
+					if (!strEpilogue_.get())
+						return false;
 				}
 			}
 		}

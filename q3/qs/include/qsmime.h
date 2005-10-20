@@ -206,6 +206,12 @@ public:
 	Part* getParentPart() const;
 
 public:
+	const CHAR* getPreamble() const;
+	bool setPreamble(const CHAR* pszPreamble);
+	const CHAR* getEpilogue() const;
+	bool setEpilogue(const CHAR* pszEpilogue);
+
+public:
 	Part* getEnclosedPart() const;
 	void setEnclosedPart(std::auto_ptr<Part> pPart);
 
@@ -252,6 +258,8 @@ private:
 	xstring_ptr strHeader_;
 	xstring_ptr strBody_;
 	PartList listPart_;
+	xstring_ptr strPreamble_;
+	xstring_ptr strEpilogue_;
 	std::auto_ptr<Part> pPartEnclosed_;
 	Part* pParent_;
 	unsigned int nOptions_;
@@ -1172,12 +1180,15 @@ public:
 	bool getNext(const Char** ppBegin,
 				 const Char** ppEnd,
 				 bool* pbEnd);
+	std::pair<const Char*, size_t> getPreamble() const;
+	std::pair<const Char*, size_t> getEpilogue() const;
 
 private:
 	void getNextBoundary(const Char* p,
 						 size_t nLen,
 						 const Char** ppBegin,
-						 const Char** ppEnd);
+						 const Char** ppEnd,
+						 bool* pbEnd);
 
 private:
 	BoundaryFinder(const BoundaryFinder&);
@@ -1190,6 +1201,10 @@ private:
 	size_t nBoundaryLen_;
 	const Char* pszNewLine_;
 	bool bAllowIncomplete_;
+	const Char* pPreamble_;
+	size_t nPreambleLen_;
+	const Char* pEpilogue_;
+	size_t nEpilogueLen_;
 };
 
 }

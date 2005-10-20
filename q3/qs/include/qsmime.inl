@@ -154,7 +154,11 @@ qs::BoundaryFinder<Char, String>::BoundaryFinder(const Char* pszMessage,
 	nLen_(nLen),
 	nBoundaryLen_(0),
 	pszNewLine_(pszNewLine),
-	bAllowIncomplete_(bAllowIncomplete)
+	bAllowIncomplete_(bAllowIncomplete),
+	pPreamble_(0),
+	nPreambleLen_(0),
+	pEpilogue_(0),
+	nEpilogueLen_(0)
 {
 	assert(CharTraits<Char>::compare(pszMessage, pszNewLine_,
 		CharTraits<Char>::getLength(pszNewLine_)) == 0);
@@ -177,8 +181,13 @@ qs::BoundaryFinder<Char, String>::BoundaryFinder(const Char* pszMessage,
 	
 	const Char* pBegin = 0;
 	const Char* pEnd = 0;
-	getNextBoundary(pszMessage, nLen, &pBegin, &pEnd);
-	p_ = pEnd;
+	bool bEnd = false;
+	getNextBoundary(pszMessage, nLen, &pBegin, &pEnd, &bEnd);
+	if (!pBegin || pBegin != pszMessage) {
+		pPreamble_ = pszMessage + nNewLineLen;
+		nPreambleLen_ = (pBegin ? pBegin - pszMessage : nLen) - nNewLineLen;
+	}
+	p_ = bEnd ? 0 : pEnd;
 	nLen_ = p_ ? nLen - (p_ - pszMessage) : 0;
 }
 
@@ -203,18 +212,24 @@ bool qs::BoundaryFinder<Char, String>::getNext(const Char** ppBegin,
 	if (p_) {
 		const Char* pBegin = 0;
 		const Char* pEnd = 0;
-		getNextBoundary(p_, nLen_, &pBegin, &pEnd);
+		bool bEnd = false;
+		getNextBoundary(p_, nLen_, &pBegin, &pEnd, &bEnd);
 		if (pBegin) {
 			*ppBegin = p_;
 			*ppEnd = pBegin;
-			*pbEnd = pEnd == 0;
+			*pbEnd = bEnd;
 			
-			if (pEnd) {
-				assert(pEnd <= p_ + nLen_);
-				nLen_ -= pEnd - p_;
-				p_ = pEnd;
-			}
-			else {
+			assert(pEnd <= p_ + nLen_);
+			nLen_ -= pEnd - p_;
+			p_ = pEnd;
+			
+			if (bEnd) {
+				size_t nNewLineLen = CharTraits<Char>::getLength(pszNewLine_);
+				assert(nLen_ == 0 || CharTraits<Char>::compare(pEnd, pszNewLine_, nNewLineLen) == 0);
+				if (nLen_ != 0) {
+					pEpilogue_ = pEnd + nNewLineLen;
+					nEpilogueLen_ = nLen_ - nNewLineLen;
+				}
 				nLen_ = 0;
 				p_ = 0;
 			}
@@ -241,17 +256,32 @@ bool qs::BoundaryFinder<Char, String>::getNext(const Char** ppBegin,
 }
 
 template<class Char, class String>
+std::pair<const Char*, size_t> qs::BoundaryFinder<Char, String>::getPreamble() const
+{
+	return std::make_pair(pPreamble_, nPreambleLen_);
+}
+
+template<class Char, class String>
+std::pair<const Char*, size_t> qs::BoundaryFinder<Char, String>::getEpilogue() const
+{
+	return std::make_pair(pEpilogue_, nEpilogueLen_);
+}
+
+template<class Char, class String>
 void qs::BoundaryFinder<Char, String>::getNextBoundary(const Char* p,
 													   size_t nLen,
 													   const Char** ppBegin,
-													   const Char** ppEnd)
+													   const Char** ppEnd,
+													   bool* pbEnd)
 {
 	assert(p);
 	assert(ppBegin);
 	assert(ppEnd);
+	assert(pbEnd);
 	
 	*ppBegin = 0;
 	*ppEnd = 0;
+	*pbEnd = false;
 	
 	size_t nNewLineLen = CharTraits<Char>::getLength(pszNewLine_);
 	
@@ -271,8 +301,8 @@ void qs::BoundaryFinder<Char, String>::getNextBoundary(const Char* p,
 			(pEnd + nNewLineLen <= p + nLen &&
 			CharTraits<Char>::compare(pEnd, pszNewLine_, nNewLineLen) == 0)) {
 			*ppBegin = pBegin;
-			if (!bEnd)
-				*ppEnd = pEnd + nNewLineLen;
+			*ppEnd = pEnd + (bEnd ? 0 : nNewLineLen);
+			*pbEnd = bEnd;
 		}
 		
 		p = pBegin + 1;

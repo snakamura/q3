@@ -315,6 +315,17 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 				if (bEnd)
 					break;
 			}
+			
+			std::pair<const WCHAR*, size_t> preamble(finder.getPreamble());
+			if (preamble.first) {
+				if (!pPart->setPreamble(wcs2mbs(preamble.first, preamble.second).get()))
+					return std::auto_ptr<Part>(0);
+			}
+			std::pair<const WCHAR*, size_t> epilogue(finder.getEpilogue());
+			if (epilogue.first) {
+				if (!pPart->setEpilogue(wcs2mbs(epilogue.first, epilogue.second).get()))
+					return std::auto_ptr<Part>(0);
+			}
 		}
 		else if (bRFC822) {
 			MessageCreator creator(getCreatorForChild());
@@ -856,6 +867,7 @@ bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 		return false;
 	
 	pParentPart->addPart(pPart);
+	pParentPart->setEpilogue("");
 	
 	return true;
 }
