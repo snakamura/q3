@@ -171,7 +171,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	wstring_ptr wstrURL(allocWString(pwszURL));
 	std::auto_ptr<HttpMethodGet> pMethod;
-	for (int n = 0; n < MAX_REDIRECT; ++n) {
+	for (int nRedirect = 0; nRedirect < MAX_REDIRECT; ++nRedirect) {
 		pMethod.reset(new HttpMethodGet(wstrURL.get()));
 		if (pFeed) {
 			wstring_ptr wstrIfModifiedSince(pFeed->getLastModified().format(
@@ -205,7 +205,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		case 302:
 		case 303:
 		case 307:
-			if (n == MAX_REDIRECT - 1) {
+			if (nRedirect == MAX_REDIRECT - 1) {
 				reportError(IDS_ERROR_GET, pMethod.get());
 				return false;
 			}
@@ -284,11 +284,11 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	const Channel::ItemList& listItem = pChannel->getItems();
 	pSessionCallback_->setRange(0, listItem.size());
 	pSessionCallback_->setPos(0);
-	unsigned int n = 0;
-	for (Channel::ItemList::const_reverse_iterator it = listItem.rbegin(); it != listItem.rend(); ++it, ++n) {
+	unsigned int nPos = 0;
+	for (Channel::ItemList::const_reverse_iterator it = listItem.rbegin(); it != listItem.rend(); ++it, ++nPos) {
 		const Item* pItem = *it;
 		
-		pSessionCallback_->setPos(n + 1);
+		pSessionCallback_->setPos(nPos + 1);
 		
 		const WCHAR* pwszLink = pItem->getLink();
 		if (pwszLink) {
