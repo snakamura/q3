@@ -317,7 +317,7 @@ ifeq ($(PLATFORM),win)
 		SUBSYSVER		= 4.0
 	endif
 	ifeq ($(CPU),x64)
-		SUBSYSVER		= 5.10
+		SUBSYSVER		= 5.2
 	endif
 	#########################################################################
 else
@@ -340,18 +340,20 @@ MIDLFLAGS				= -Oicf
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
 	CCFLAGS				+= -EHsc -MD$(DSUFFIX)
-	DEFINES				+= -DMT -D_DLL -DWINVER=0x400 -D_WIN32_WINNT=0x400 -D_WIN32_IE=0x600 -DTAPI_CURRENT_VERSION=0x00010004
+	DEFINES				+= -DMT -D_DLL -D_WIN32_IE=0x600
 	ifeq ($(CODE),unicode)
 		DEFINES			+= -DUNICODE -D_UNICODE
 	endif
 	ifeq ($(CPU),x86)
 		CCFLAGS			+= -GB
-		DEFINES			+= -Dx86 -D_X86_
+		DEFINES			+= -Dx86 -D_X86_ -DWINVER=0x400 -D_WIN32_WINNT=0x400 -DTAPI_CURRENT_VERSION=0x00010004
 		LDFLAGS			+= -MACHINE:I386
+		RCFLAGS			+= -Dx86 -D_X86_
 	endif
 	ifeq ($(CPU),x64)
-		DEFINES			+= -D_AMD64_
+		DEFINES			+= -DWIN64 -D_WIN64 -D_AMD64_ -DWINVER=0x502 -D_WIN32_WINNT=0x502
 		LDFLAGS			+= -MACHINE:AMD64
+		RCFLAGS			+= -D_AMD64_
 	endif
 	
 	LIBCPU				= $(CPU)

@@ -1,1 +1,9 @@
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "res\\manifest"
+#ifndef _WIN32_WCE
+#ifdef _X86_
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "res\\manifest.x86"
+#elif defined _AMD64_
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "res\\manifest.x64"
+#else
+#error Unknown platform.
+#endif
+#endif
