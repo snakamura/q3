@@ -85,9 +85,13 @@ private:
 								  size_t nBodyLen,
 								  Content content,
 								  qm::Message* pMessage);
+	static void updateCookies(const WCHAR* pwszURL,
+							  const qs::Part& header);
 	static bool getInternetProxySetting(qs::wstring_ptr* pwstrProxyHost,
 										unsigned short* pnProxyPort);
 	static qs::wstring_ptr getInternetCookie(const WCHAR* pwszURL);
+	static bool setInternetCookie(const WCHAR* pwszURL,
+								  const WCHAR* pwszCookie);
 
 private:
 	RssReceiveSession(const RssReceiveSession&);

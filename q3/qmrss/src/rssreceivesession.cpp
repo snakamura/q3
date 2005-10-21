@@ -215,12 +215,16 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 					reportError(IDS_ERROR_GET, pMethod.get());
 					return false;
 				}
+				
 				UnstructuredParser location;
 				if (header.getField(L"Location", &location) != Part::FIELD_EXIST) {
 					reportError(IDS_ERROR_GET, pMethod.get());
 					return false;
 				}
 				wstrURL = allocWString(location.getValue());
+				
+				updateCookies(wstrURL.get(), header);
+				
 				continue;
 			}
 		case 304:
@@ -246,6 +250,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		reportError(IDS_ERROR_PARSE, 0);
 		return false;
 	}
+	updateCookies(wstrURL.get(), header);
 	
 	Time timePubDate(pChannel->getPubDate());
 	if (timePubDate.wYear == 0)
@@ -578,6 +583,17 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 	return true;
 }
 
+void qmrss::RssReceiveSession::updateCookies(const WCHAR* pwszURL,
+											 const Part& header)
+{
+	MultipleUnstructuredParser cookie;
+	if (header.getField(L"Set-Cookie", &cookie) == Part::FIELD_EXIST) {
+		const MultipleUnstructuredParser::ValueList& l = cookie.getValues();
+		for (MultipleUnstructuredParser::ValueList::const_iterator it = l.begin(); it != l.end(); ++it)
+			setInternetCookie(pwszURL, *it);
+	}
+}
+
 bool qmrss::RssReceiveSession::getInternetProxySetting(wstring_ptr* pwstrProxyHost,
 													   unsigned short* pnProxyPort)
 {
@@ -633,6 +649,24 @@ wstring_ptr qmrss::RssReceiveSession::getInternetCookie(const WCHAR* pwszURL)
 	return tcs2wcs(tstrCookie.get());
 #else
 	return 0;
+#endif
+}
+
+bool qmrss::RssReceiveSession::setInternetCookie(const WCHAR* pwszURL,
+												 const WCHAR* pwszCookie)
+{
+#if !defined _WIN32_WCE || _WIN32_WCE >= 300
+	const WCHAR* p = wcschr(pwszCookie, L'=');
+	if (!p)
+		return false;
+	
+	tstring_ptr tstrName(wcs2tcs(pwszCookie, p - pwszCookie));
+	
+	W2T(pwszURL, ptszURL);
+	W2T(p + 1, ptszData);
+	return ::InternetSetCookie(ptszURL, tstrName.get(), ptszData) != 0;
+#else
+	return true;
 #endif
 }
 
