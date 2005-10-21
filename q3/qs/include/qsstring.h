@@ -743,7 +743,7 @@ public:
 	basic_xstring_size_ptr();
 	basic_xstring_size_ptr(XString str,
 						   size_t nSize);
-	basic_xstring_size_ptr(basic_xstring_ptr<XString> str,
+	basic_xstring_size_ptr(basic_xstring_ptr<XString>& str,
 						   size_t nSize);
 	basic_xstring_size_ptr(basic_xstring_size_ptr& s);
 	~basic_xstring_size_ptr();

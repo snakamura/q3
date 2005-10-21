@@ -408,7 +408,7 @@ qs::basic_xstring_size_ptr<XString>::basic_xstring_size_ptr(XString str,
 }
 
 template<class XString>
-qs::basic_xstring_size_ptr<XString>::basic_xstring_size_ptr(basic_xstring_ptr<XString> str,
+qs::basic_xstring_size_ptr<XString>::basic_xstring_size_ptr(basic_xstring_ptr<XString>& str,
 															size_t nSize) :
 	str_(str.release()),
 	nSize_(nSize)
