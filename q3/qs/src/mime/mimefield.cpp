@@ -758,31 +758,7 @@ const WCHAR* qs::UnstructuredParser::getValue() const
 Part::Field qs::UnstructuredParser::parse(const Part& part,
 										  const WCHAR* pwszName)
 {
-	assert(pwszName);
-	
-	string_ptr strValue(part.getRawField(pwszName, 0));
-	if (!strValue.get())
-		return Part::FIELD_NOTEXIST;
-	
-	std::auto_ptr<Converter> pConverter;
-	if (isRawValue(strValue.get())) {
-		if (!part.hasField(L"MIME-Version"))
-			pConverter = ConverterFactory::getInstance(part.getDefaultCharset());
-		else if (part.isOption(Part::O_ALLOW_RAW_FIELD))
-			pConverter = ConverterFactory::getInstance(part.getHeaderCharset().get());
-	}
-	if (pConverter.get()) {
-		size_t nLen = strlen(strValue.get());
-		wxstring_size_ptr decoded(pConverter->decode(strValue.get(), &nLen));
-		if (!decoded.get())
-			return Part::FIELD_ERROR;
-		wstrValue_ = allocWString(decoded.get());
-	}
-	else {
-		wstrValue_ = decode(strValue.get(), -1, false, 0);
-	}
-	
-	return Part::FIELD_EXIST;
+	return parse(part, pwszName, 0, &wstrValue_);
 }
 
 string_ptr qs::UnstructuredParser::unparse(const Part& part) const
@@ -884,6 +860,38 @@ wstring_ptr qs::UnstructuredParser::foldValue(const WCHAR* pwszValue) const
 	return buf.getString();
 }
 
+Part::Field qs::UnstructuredParser::parse(const Part& part,
+										  const WCHAR* pwszName,
+										  unsigned int nIndex,
+										  wstring_ptr* pwstrValue)
+{
+	assert(pwszName);
+	
+	string_ptr strValue(part.getRawField(pwszName, nIndex));
+	if (!strValue.get())
+		return Part::FIELD_NOTEXIST;
+	
+	std::auto_ptr<Converter> pConverter;
+	if (isRawValue(strValue.get())) {
+		if (!part.hasField(L"MIME-Version"))
+			pConverter = ConverterFactory::getInstance(part.getDefaultCharset());
+		else if (part.isOption(Part::O_ALLOW_RAW_FIELD))
+			pConverter = ConverterFactory::getInstance(part.getHeaderCharset().get());
+	}
+	if (pConverter.get()) {
+		size_t nLen = strlen(strValue.get());
+		wxstring_size_ptr decoded(pConverter->decode(strValue.get(), &nLen));
+		if (!decoded.get())
+			return Part::FIELD_ERROR;
+		*pwstrValue = allocWString(decoded.get());
+	}
+	else {
+		*pwstrValue = decode(strValue.get(), -1, false, 0);
+	}
+	
+	return Part::FIELD_EXIST;
+}
+
 bool qs::UnstructuredParser::isFirstTokenEncode(const WCHAR* pwsz, size_t nLen)
 {
 	const WCHAR* p = pwsz;
@@ -918,6 +926,49 @@ bool qs::UnstructuredParser::isRawValue(const CHAR* psz)
 			return true;
 	}
 	return false;
+}
+
+
+/****************************************************************************
+ *
+ * MultipleUnstructuredParser
+ *
+ */
+
+qs::MultipleUnstructuredParser::MultipleUnstructuredParser()
+{
+}
+
+qs::MultipleUnstructuredParser::~MultipleUnstructuredParser()
+{
+	std::for_each(listValue_.begin(), listValue_.end(), string_free<WSTRING>());
+}
+
+const MultipleUnstructuredParser::ValueList& qs::MultipleUnstructuredParser::getValues() const
+{
+	return listValue_;
+}
+
+Part::Field qs::MultipleUnstructuredParser::parse(const Part& part,
+												  const WCHAR* pwszName)
+{
+	for (unsigned int nIndex = 0; ; ++nIndex) {
+		wstring_ptr wstrValue;
+		Part::Field field = UnstructuredParser::parse(part, pwszName, nIndex, &wstrValue);
+		if (field == Part::FIELD_NOTEXIST)
+			break;
+		else if (field != Part::FIELD_EXIST)
+			return field;
+		listValue_.push_back(wstrValue.get());
+		wstrValue.release();
+	}
+	return listValue_.empty() ? Part::FIELD_NOTEXIST : Part::FIELD_EXIST;
+}
+
+string_ptr qs::MultipleUnstructuredParser::unparse(const Part& part) const
+{
+	assert(false);
+	return 0;
 }
 
 

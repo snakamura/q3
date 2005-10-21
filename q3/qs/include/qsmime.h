@@ -27,6 +27,7 @@ class FieldFilter;
 	class PrefixFieldFilter;
 class FieldParser;
 	class UnstructuredParser;
+	class MultipleUnstructuredParser;
 	class DummyParser;
 	class NoParseParser;
 	class SimpleParser;
@@ -392,6 +393,12 @@ public:
 private:
 	wstring_ptr foldValue(const WCHAR* pwszValue) const;
 
+public:
+	static Part::Field parse(const Part& part,
+							 const WCHAR* pwszName,
+							 unsigned int nIndex,
+							 wstring_ptr* pwstrValue);
+
 private:
 	static bool isFirstTokenEncode(const WCHAR* pwsz,
 								   size_t nLen);
@@ -406,6 +413,38 @@ private:
 private:
 	wstring_ptr wstrValue_;
 	wstring_ptr wstrCharset_;
+};
+
+
+/****************************************************************************
+ *
+ * MultipleUnstructuredParser
+ *
+ */
+
+class QSEXPORTCLASS MultipleUnstructuredParser : public FieldParser
+{
+public:
+	typedef std::vector<WSTRING> ValueList;
+
+public:
+	MultipleUnstructuredParser();
+	virtual ~MultipleUnstructuredParser();
+
+public:
+	const ValueList& getValues() const;
+
+public:
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
+
+private:
+	MultipleUnstructuredParser(const MultipleUnstructuredParser&);
+	MultipleUnstructuredParser& operator=(const MultipleUnstructuredParser&);
+
+private:
+	ValueList listValue_;
 };
 
 
