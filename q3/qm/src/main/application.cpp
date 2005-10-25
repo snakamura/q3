@@ -926,16 +926,20 @@ wstring_ptr qm::Application::getVersion(WCHAR cSeparator,
 	
 	if (bWithOSVersion) {
 		wstring_ptr wstrOSVersion(getOSVersion());
-#if defined SH3
+#if defined _SH3_
 		const WCHAR* pwszCPU = L"SH3";
-#elif defined SH4
+#elif defined _SH4_
 		const WCHAR* pwszCPU = L"SH4";
-#elif defined MIPS
+#elif defined _MIPS_
 		const WCHAR* pwszCPU = L"MIPS";
-#elif defined ARM
+#elif defined _ARM_
 		const WCHAR* pwszCPU = L"ARM";
-#else
+#elif defined _AMD64_
+		const WCHAR* pwszCPU = L"x64";
+#elif defined _X86_
 		const WCHAR* pwszCPU = L"x86";
+#else
+#	error Unknown CPU
 #endif
 		swprintf(wstrVersion.get(), L"QMAIL%c%d.%d.%d.%d / %s / %s",
 			cSeparator, QMAIL_VERSION/100000, (QMAIL_VERSION%100000)/1000,
@@ -967,21 +971,30 @@ wstring_ptr qm::Application::getOSVersion() const
 		bAddVersion = false;
 		break;
 	case VER_PLATFORM_WIN32_NT:
-		if (ovi.dwMajorVersion == 5) {
-			if (ovi.dwMinorVersion == 0) {
+		switch (ovi.dwMajorVersion) {
+		case 5:
+			switch (ovi.dwMinorVersion) {
+			case 0:
 				pwszPlatform = L"Windows 2000";
 				bAddVersion = false;
-			}
-			else if (ovi.dwMinorVersion == 1) {
+				break;
+			case 1:
+			case 2:
 				pwszPlatform = L"Windows XP";
 				bAddVersion = false;
-			}
-			else {
+				break;
+			default:
 				pwszPlatform = L"Windows NT";
+				break;
 			}
-		}
-		else {
+			break;
+		case 6:
+			pwszPlatform = L"Windows Vista";
+			bAddVersion = false;
+			break;
+		default:
 			pwszPlatform = L"Windows NT";
+			break;
 		}
 		break;
 #ifdef _WIN32_WCE
