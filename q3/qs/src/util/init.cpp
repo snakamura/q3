@@ -168,11 +168,6 @@ qs::Init::Init(HINSTANCE hInst,
 	
 	pImpl_->listConverterFactory_.push_back(new UTF8ConverterFactory());
 	pImpl_->listConverterFactory_.push_back(new UTF7ConverterFactory());
-#ifdef QS_KCONVERT
-	pImpl_->listConverterFactory_.push_back(new ShiftJISConverterFactory());
-	pImpl_->listConverterFactory_.push_back(new ISO2022JPConverterFactory());
-	pImpl_->listConverterFactory_.push_back(new EUCJPConverterFactory());
-#endif
 	pImpl_->listConverterFactory_.push_back(new MLangConverterFactory());
 	
 	pImpl_->listEncoderFactory_.push_back(new EightBitEncoderFactory());

@@ -459,7 +459,7 @@ void qm::ApplicationImpl::loadLibrary(const WCHAR* pwszName)
 #		define SUFFIX L"d"
 #	endif
 #endif
-	wstring_ptr wstrLib(concat(L"qm", pwszName, SUFFIX L".dll"));
+	wstring_ptr wstrLib(concat(pwszName, SUFFIX L".dll"));
 	W2T(wstrLib.get(), ptszLib);
 	::LoadLibrary(ptszLib);
 }
@@ -656,13 +656,13 @@ bool qm::Application::initialize()
 	pImpl_->pUIManager_.reset(new UIManager());
 	
 	const WCHAR* pwszLibraries[] = {
-		L"smtp",
-		L"pop3",
-		L"imap4",
-		L"nntp",
-		L"rss",
-		L"script",
-		L"junk"
+		L"qmsmtp",
+		L"qmpop3",
+		L"qmimap4",
+		L"qmnntp",
+		L"qmrss",
+		L"qmscript",
+		L"qmjunk"
 	};
 	for (int n = 0; n < countof(pwszLibraries); ++n)
 		ApplicationImpl::loadLibrary(pwszLibraries[n]);
