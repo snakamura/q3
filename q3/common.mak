@@ -491,7 +491,7 @@ else
 		LIBS			+= crypt32.lib
 	endif
 	ifdef KCTRL
-		LIBS			+= $(KCTRLDIR)/lib/wce/$(LIBCPU)/kctrl.lib
+		LIBS			+= $(KCTRLDIR)/lib/wce/$(EXLIBCPU)/kctrl.lib
 	endif
 	#########################################################################
 endif
