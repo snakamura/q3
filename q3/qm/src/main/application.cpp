@@ -794,44 +794,6 @@ bool qm::Application::initialize()
 	if (!pImpl_->pDocument_->loadAccounts(wstrAccountFolder.get()))
 		return false;
 	
-	// TODO
-	// Remove in the future.
-	// Just for compatibility.
-	{
-		struct Item {
-			Account::Host host_;
-			const WCHAR* pwszSection_;
-		} items[] = {
-			{ Account::HOST_RECEIVE,	L"Receive"	},
-			{ Account::HOST_SEND,		L"Send"		},
-		};
-		
-		const Document::AccountList& l = pImpl_->pDocument_->getAccounts();
-		for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			Account* pAccount = *it;
-			
-			const Account::SubAccountList& l = pAccount->getSubAccounts();
-			for (Account::SubAccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				SubAccount* pSubAccount = *it;
-				
-				for (int n = 0; n < countof(items); ++n) {
-					AccountPasswordCondition condition(pAccount,
-						pSubAccount, items[n].host_);
-					wstring_ptr wstrPassword = pImpl_->pPasswordManager_->getPassword(condition, true, 0);
-					if (!wstrPassword.get()) {
-						wstrPassword = pSubAccount->getProperty(items[n].pwszSection_, L"EncodedPassword", L"");
-						if (*wstrPassword.get()) {
-							wstrPassword = TextUtil::decodePassword(wstrPassword.get());
-							pImpl_->pPasswordManager_->setPassword(condition, wstrPassword.get(), true);
-						}
-					}
-					pSubAccount->setProperty(items[n].pwszSection_, L"Password", L"");
-					pSubAccount->setProperty(items[n].pwszSection_, L"EncodedPassword", L"");
-				}
-			}
-		}
-	}
-	
 	pImpl_->pMainWindow_->updateWindow();
 	pImpl_->pMainWindow_->setForegroundWindow();
 	
