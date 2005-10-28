@@ -89,9 +89,15 @@ public:
 	};
 
 public:
-	bool ensureDirectory(const WCHAR* pwszPath,
-						 const WCHAR* pwszName);
-	bool ensureParentDirectory(const WCHAR* pwszPath);
+	bool ensureDirectories();
+	bool loadMainProfile();
+	void initMime();
+	void initLog();
+	bool ensureResources();
+	void ensureTempDirectory();
+	void loadLibraries();
+
+public:
 	bool ensureFile(const WCHAR* pwszPath,
 					const WCHAR* pwszDir,
 					const WCHAR* pwszFileName,
@@ -110,6 +116,9 @@ public:
 	virtual bool canAutoPilot();
 
 public:
+	static bool ensureDirectory(const WCHAR* pwszPath,
+								const WCHAR* pwszName);
+	static bool ensureParentDirectory(const WCHAR* pwszPath);
 	static void loadLibrary(const WCHAR* pwszName);
 
 private:
@@ -117,6 +126,7 @@ private:
 										   bool bProfile);
 
 public:
+	Application* pThis_;
 	HINSTANCE hInst_;
 	HINSTANCE hInstResource_;
 	std::auto_ptr<MailFolderLock> pLock_;
@@ -144,30 +154,195 @@ public:
 
 Application* qm::ApplicationImpl::pApplication__ = 0;
 
-bool qm::ApplicationImpl::ensureDirectory(const WCHAR* pwszPath,
-										  const WCHAR* pwszName)
+bool qm::ApplicationImpl::ensureDirectories()
 {
-	assert(pwszPath);
-	assert(!pwszName || *pwszName);
+	if (!ensureDirectory(wstrMailFolder_.get(), 0))
+		return false;
 	
-	wstring_ptr wstrPath;
-	if (pwszName) {
-		wstrPath = concat(pwszPath, L"\\", pwszName);
-		pwszPath = wstrPath.get();
-	}
-	
-	return File::createDirectory(pwszPath);
-}
-
-bool qm::ApplicationImpl::ensureParentDirectory(const WCHAR* pwszPath)
-{
-	const WCHAR* p = wcsrchr(pwszPath, L'\\');
-	if (p) {
-		wstring_ptr wstrDir(allocWString(pwszPath, p - pwszPath));
-		if (!ensureDirectory(wstrDir.get(), 0))
+	const WCHAR* pwszDirs[] = {
+		L"accounts",
+		L"templates",
+		L"scripts",
+		L"security",
+		L"profiles",
+		L"logs"
+	};
+	for (int n = 0; n < countof(pwszDirs); ++n) {
+		if (!ensureDirectory(wstrMailFolder_.get(), pwszDirs[n]))
 			return false;
 	}
+	
 	return true;
+}
+
+bool qm::ApplicationImpl::loadMainProfile()
+{
+	assert(!pProfile_.get());
+	
+	wstring_ptr wstrProfileDir(concat(wstrMailFolder_.get(), L"\\profiles"));
+	if (!ensureFile(wstrProfileDir.get(),
+		*wstrProfileName_.get() ? wstrProfileName_.get() : 0,
+		FileNames::QMAIL_XML, 0, L"PROFILE", FileNames::QMAIL_XML))
+		return false;
+	
+	wstring_ptr wstrProfilePath(pThis_->getProfilePath(FileNames::QMAIL_XML));
+	pProfile_.reset(new XMLProfile(wstrProfilePath.get()));
+	if (!pProfile_->load())
+		return false;
+	
+	return true;
+}
+
+void qm::ApplicationImpl::initMime()
+{
+	assert(pProfile_.get());
+	
+	Part::setGlobalOptions(Part::O_USE_COMMENT_AS_PHRASE |
+		Part::O_INTERPRET_FORMAT_FLOWED |
+		Part::O_ALLOW_ENCODED_QSTRING |
+		Part::O_ALLOW_ENCODED_PARAMETER |
+		Part::O_ALLOW_PARAMETER_INVALID_SEMICOLON |
+		Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN |
+		Part::O_ALLOW_INCOMPLETE_MULTIPART |
+		Part::O_ALLOW_RAW_FIELD |
+		Part::O_ALLOW_SPECIALS_IN_REFERENCES |
+		Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART |
+		Part::O_ALLOW_SINGLE_DIGIT_TIME |
+		Part::O_ALLOW_DATE_WITH_RUBBISH |
+		Part::O_ALLOW_RAW_PARAMETER |
+		Part::O_ALLOW_USE_DEFAULT_ENCODING);
+	
+	wstring_ptr wstrDefaultCharset(pProfile_->getString(L"Global", L"DefaultCharset", 0));
+	const WCHAR* pwszCandidates[] = {
+		wstrDefaultCharset.get(),
+		Init::getInit().getMailEncoding(),
+		L"utf-8"
+	};
+	for (int n = 0; n < countof(pwszCandidates); ++n) {
+		const WCHAR* pwszCharset = pwszCandidates[n];
+		if (pwszCharset && *pwszCharset && ConverterFactory::getInstance(pwszCharset).get()) {
+			Part::setDefaultCharset(pwszCharset);
+			break;
+		}
+	}
+}
+
+void qm::ApplicationImpl::initLog()
+{
+	assert(pProfile_.get());
+	
+	Init& init = Init::getInit();
+	wstring_ptr wstrLogDir(concat(wstrMailFolder_.get(), L"\\logs"));
+	init.setLogDirectory(wstrLogDir.get());
+	int nLog = pProfile_->getInt(L"Global", L"Log", -1);
+	if (nLog >= 0) {
+		if (nLog > Logger::LEVEL_DEBUG)
+			nLog = Logger::LEVEL_DEBUG;
+		init.setLogLevel(static_cast<Logger::Level>(nLog));
+		init.setLogEnabled(true);
+	}
+}
+
+bool qm::ApplicationImpl::ensureResources()
+{
+	wstring_ptr wstrProfileDir(concat(wstrMailFolder_.get(), L"\\profiles"));
+	wstring_ptr wstrTemplateDir(concat(wstrMailFolder_.get(), L"\\templates"));
+	
+#define DECLARE_PROFILE(name, revision, overwrite) \
+	{ \
+		wstrProfileDir.get(), \
+		0, \
+		wstrProfileName_.get(), \
+		name, \
+		L"PROFILE", \
+		name, \
+		revision, \
+		overwrite, \
+	} \
+
+#define DECLARE_TEMPLATE(classname, name, revision) \
+	{ \
+		wstrTemplateDir.get(), \
+		classname, \
+		L"", \
+		name L".template", \
+		L"TEMPLATE", \
+		classname L"." name, \
+		revision, \
+		true, \
+	} \
+
+	ApplicationImpl::Resource resources[] = {
+		DECLARE_PROFILE(FileNames::COLORS_XML,		COLORS_XML_REVISION,				false	),
+		DECLARE_PROFILE(FileNames::FILTERS_XML,		FILTERS_XML_REVISION,				false	),
+		DECLARE_PROFILE(FileNames::HEADER_XML,		HEADER_XML_REVISION,				true	),
+		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	HEADEREDIT_XML_REVISION,			true	),
+		DECLARE_PROFILE(FileNames::KEYMAP_XML,		KEYMAP_XML_REVISION,				true	),
+		DECLARE_PROFILE(FileNames::MENUS_XML,		MENUS_XML_REVISION,					true	),
+		DECLARE_PROFILE(FileNames::SYNCFILTERS_XML,	SYNCFILTERS_XML_REVISION,			false	),
+		DECLARE_PROFILE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP_REVISION,				true	),
+		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	TOOLBARS_XML_REVISION,				true	),
+		DECLARE_PROFILE(FileNames::VIEWS_XML,		VIEWS_XML_REVISION,					false	),
+		DECLARE_TEMPLATE(L"mail",	L"new",			MAIL_NEW_TEMPLATE_REVISION					),
+		DECLARE_TEMPLATE(L"mail",	L"reply",		MAIL_REPLY_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"mail",	L"reply_all",	MAIL_REPLY_ALL_TEMPLATE_REVISION			),
+		DECLARE_TEMPLATE(L"mail",	L"forward",		MAIL_FORWARD_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"mail",	L"edit",		MAIL_EDIT_TEMPLATE_REVISION					),
+		DECLARE_TEMPLATE(L"mail",	L"url",			MAIL_URL_TEMPLATE_REVISION					),
+		DECLARE_TEMPLATE(L"mail",	L"print",		MAIL_PRINT_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"mail",	L"quote",		MAIL_QUOTE_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"news",	L"new",			NEWS_NEW_TEMPLATE_REVISION					),
+		DECLARE_TEMPLATE(L"news",	L"reply",		NEWS_REPLY_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"news",	L"reply_all",	NEWS_REPLY_ALL_TEMPLATE_REVISION			),
+		DECLARE_TEMPLATE(L"news",	L"forward",		NEWS_FORWARD_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"news",	L"edit",		NEWS_EDIT_TEMPLATE_REVISION					),
+		DECLARE_TEMPLATE(L"news",	L"print",		NEWS_PRINT_TEMPLATE_REVISION				),
+		DECLARE_TEMPLATE(L"news",	L"quote",		NEWS_QUOTE_TEMPLATE_REVISION				),
+	};
+	if (!ensureResources(resources, countof(resources)))
+		return false;
+	
+	return true;
+}
+
+void qm::ApplicationImpl::ensureTempDirectory()
+{
+	assert(pProfile_.get());
+	assert(!wstrTemporaryFolder_.get());
+	
+	wstring_ptr wstrTempFolder(pProfile_->getString(L"Global", L"TemporaryFolder", L""));
+	if (!*wstrTempFolder.get()) {
+		wstrTempFolder = concat(wstrMailFolder_.get(), L"\\temp");
+		File::createDirectory(wstrTempFolder.get());
+	}
+	if (wstrTempFolder.get()[wcslen(wstrTempFolder.get()) - 1] != L'\\')
+		wstrTempFolder = concat(wstrTempFolder.get(), L"\\");
+	
+	wstrTemporaryFolder_ = wstrTempFolder;
+}
+
+void qm::ApplicationImpl::loadLibraries()
+{
+	assert(pProfile_.get());
+	
+	const WCHAR* pwszLibraries[] = {
+		L"qmsmtp",
+		L"qmpop3",
+		L"qmimap4",
+		L"qmnntp",
+		L"qmrss",
+		L"qmscript",
+		L"qmjunk"
+	};
+	for (int n = 0; n < countof(pwszLibraries); ++n)
+		loadLibrary(pwszLibraries[n]);
+	
+	wstring_ptr wstrLibraries(pProfile_->getString(L"Global", L"Libraries", L""));
+	WCHAR* p = wcstok(wstrLibraries.get(), L" ,");
+	while (p) {
+		loadLibrary(p);
+		p = wcstok(0, L" ,");
+	}
 }
 
 bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
@@ -444,6 +619,32 @@ bool qm::ApplicationImpl::canAutoPilot()
 		!pSyncManager_->isSyncing();
 }
 
+bool qm::ApplicationImpl::ensureDirectory(const WCHAR* pwszPath,
+										  const WCHAR* pwszName)
+{
+	assert(pwszPath);
+	assert(!pwszName || *pwszName);
+	
+	wstring_ptr wstrPath;
+	if (pwszName) {
+		wstrPath = concat(pwszPath, L"\\", pwszName);
+		pwszPath = wstrPath.get();
+	}
+	
+	return File::createDirectory(pwszPath);
+}
+
+bool qm::ApplicationImpl::ensureParentDirectory(const WCHAR* pwszPath)
+{
+	const WCHAR* p = wcsrchr(pwszPath, L'\\');
+	if (p) {
+		wstring_ptr wstrDir(allocWString(pwszPath, p - pwszPath));
+		if (!ensureDirectory(wstrDir.get(), 0))
+			return false;
+	}
+	return true;
+}
+
 void qm::ApplicationImpl::loadLibrary(const WCHAR* pwszName)
 {
 #ifdef NDEBUG
@@ -502,6 +703,7 @@ qm::Application::Application(HINSTANCE hInst,
 	assert(pLock.get());
 	
 	pImpl_ = new ApplicationImpl();
+	pImpl_->pThis_ = this;
 	pImpl_->hInst_ = hInst;
 	pImpl_->hInstResource_ = hInst;
 	pImpl_->pLock_ = pLock;
@@ -525,154 +727,16 @@ qm::Application::~Application()
 bool qm::Application::initialize()
 {
 	pImpl_->pWinSock_.reset(new Winsock());
-	
-	Part::setGlobalOptions(Part::O_USE_COMMENT_AS_PHRASE |
-		Part::O_INTERPRET_FORMAT_FLOWED |
-		Part::O_ALLOW_ENCODED_QSTRING |
-		Part::O_ALLOW_ENCODED_PARAMETER |
-		Part::O_ALLOW_PARAMETER_INVALID_SEMICOLON |
-		Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN |
-		Part::O_ALLOW_INCOMPLETE_MULTIPART |
-		Part::O_ALLOW_RAW_FIELD |
-		Part::O_ALLOW_SPECIALS_IN_REFERENCES |
-		Part::O_ALLOW_INVALID_PERIOD_IN_LOCALPART |
-		Part::O_ALLOW_SINGLE_DIGIT_TIME |
-		Part::O_ALLOW_DATE_WITH_RUBBISH |
-		Part::O_ALLOW_RAW_PARAMETER |
-		Part::O_ALLOW_USE_DEFAULT_ENCODING);
-	
-	if (!pImpl_->ensureDirectory(pImpl_->wstrMailFolder_.get(), 0))
+	if (!pImpl_->ensureDirectories() ||
+		!pImpl_->loadMainProfile())
 		return false;
-	const WCHAR* pwszDirs[] = {
-		L"accounts",
-		L"templates",
-		L"scripts",
-		L"security",
-		L"profiles",
-		L"logs"
-	};
-	for (int n = 0; n < countof(pwszDirs); ++n) {
-		if (!pImpl_->ensureDirectory(pImpl_->wstrMailFolder_.get(), pwszDirs[n]))
-			return false;
-	}
-	
-	wstring_ptr wstrProfileDir(concat(pImpl_->wstrMailFolder_.get(), L"\\profiles"));
-	if (!pImpl_->ensureFile(wstrProfileDir.get(),
-		*pImpl_->wstrProfileName_.get() ? pImpl_->wstrProfileName_.get() : 0,
-		FileNames::QMAIL_XML, 0, L"PROFILE", FileNames::QMAIL_XML))
+	pImpl_->initMime();
+	pImpl_->initLog();
+	if (!pImpl_->ensureResources())
 		return false;
-	
-	wstring_ptr wstrProfilePath(getProfilePath(FileNames::QMAIL_XML));
-	pImpl_->pProfile_.reset(new XMLProfile(wstrProfilePath.get()));
-	if (!pImpl_->pProfile_->load())
-		return false;
-	
-	Init& init = Init::getInit();
-	
-	wstring_ptr wstrDefaultCharset(pImpl_->pProfile_->getString(L"Global", L"DefaultCharset", 0));
-	if (*wstrDefaultCharset.get() &&
-		ConverterFactory::getInstance(wstrDefaultCharset.get()).get())
-		Part::setDefaultCharset(wstrDefaultCharset.get());
-	else
-		Part::setDefaultCharset(init.getMailEncoding());
-	
-	wstring_ptr wstrLogDir(concat(pImpl_->wstrMailFolder_.get(), L"\\logs"));
-	init.setLogDirectory(wstrLogDir.get());
-	int nLog = pImpl_->pProfile_->getInt(L"Global", L"Log", -1);
-	if (nLog >= 0) {
-		if (nLog > Logger::LEVEL_DEBUG)
-			nLog = Logger::LEVEL_DEBUG;
-		init.setLogLevel(static_cast<Logger::Level>(nLog));
-		init.setLogEnabled(true);
-	}
-	
-	wstring_ptr wstrTemplateDir(concat(
-		pImpl_->wstrMailFolder_.get(), L"\\templates"));
-	
-#define DECLARE_PROFILE(name, revision, overwrite) \
-	{ \
-		wstrProfileDir.get(), \
-		0, \
-		pImpl_->wstrProfileName_.get(), \
-		name, \
-		L"PROFILE", \
-		name, \
-		revision, \
-		overwrite, \
-	} \
-
-#define DECLARE_TEMPLATE(classname, name, revision) \
-	{ \
-		wstrTemplateDir.get(), \
-		classname, \
-		L"", \
-		name L".template", \
-		L"TEMPLATE", \
-		classname L"." name, \
-		revision, \
-		true, \
-	} \
-
-	ApplicationImpl::Resource resources[] = {
-		DECLARE_PROFILE(FileNames::COLORS_XML,		COLORS_XML_REVISION,				false	),
-		DECLARE_PROFILE(FileNames::FILTERS_XML,		FILTERS_XML_REVISION,				false	),
-		DECLARE_PROFILE(FileNames::HEADER_XML,		HEADER_XML_REVISION,				true	),
-		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	HEADEREDIT_XML_REVISION,			true	),
-		DECLARE_PROFILE(FileNames::KEYMAP_XML,		KEYMAP_XML_REVISION,				true	),
-		DECLARE_PROFILE(FileNames::MENUS_XML,		MENUS_XML_REVISION,					true	),
-		DECLARE_PROFILE(FileNames::SYNCFILTERS_XML,	SYNCFILTERS_XML_REVISION,			false	),
-		DECLARE_PROFILE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP_REVISION,				true	),
-		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	TOOLBARS_XML_REVISION,				true	),
-		DECLARE_PROFILE(FileNames::VIEWS_XML,		VIEWS_XML_REVISION,					false	),
-		DECLARE_TEMPLATE(L"mail",	L"new",			MAIL_NEW_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"mail",	L"reply",		MAIL_REPLY_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"mail",	L"reply_all",	MAIL_REPLY_ALL_TEMPLATE_REVISION			),
-		DECLARE_TEMPLATE(L"mail",	L"forward",		MAIL_FORWARD_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"mail",	L"edit",		MAIL_EDIT_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"mail",	L"url",			MAIL_URL_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"mail",	L"print",		MAIL_PRINT_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"mail",	L"quote",		MAIL_QUOTE_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"news",	L"new",			NEWS_NEW_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"news",	L"reply",		NEWS_REPLY_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"news",	L"reply_all",	NEWS_REPLY_ALL_TEMPLATE_REVISION			),
-		DECLARE_TEMPLATE(L"news",	L"forward",		NEWS_FORWARD_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"news",	L"edit",		NEWS_EDIT_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"news",	L"print",		NEWS_PRINT_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"news",	L"quote",		NEWS_QUOTE_TEMPLATE_REVISION				),
-	};
-	if (!pImpl_->ensureResources(resources, countof(resources)))
-		return false;
-	
-	wstring_ptr wstrTempFolder(
-		pImpl_->pProfile_->getString(L"Global", L"TemporaryFolder", L""));
-	if (!*wstrTempFolder.get()) {
-		wstrTempFolder = concat(pImpl_->wstrMailFolder_.get(), L"\\temp");
-		File::createDirectory(wstrTempFolder.get());
-	}
-	if (wstrTempFolder.get()[wcslen(wstrTempFolder.get()) - 1] != L'\\')
-		wstrTempFolder = concat(wstrTempFolder.get(), L"\\");
-	pImpl_->wstrTemporaryFolder_ = wstrTempFolder;
-	
+	pImpl_->ensureTempDirectory();
 	pImpl_->pUIManager_.reset(new UIManager());
-	
-	const WCHAR* pwszLibraries[] = {
-		L"qmsmtp",
-		L"qmpop3",
-		L"qmimap4",
-		L"qmnntp",
-		L"qmrss",
-		L"qmscript",
-		L"qmjunk"
-	};
-	for (int n = 0; n < countof(pwszLibraries); ++n)
-		ApplicationImpl::loadLibrary(pwszLibraries[n]);
-	wstring_ptr wstrLibraries(pImpl_->pProfile_->getString(L"Global", L"Libraries", L""));
-	WCHAR* p = wcstok(wstrLibraries.get(), L" ,");
-	while (p) {
-		ApplicationImpl::loadLibrary(p);
-		p = wcstok(0, L" ,");
-	}
-	
+	pImpl_->loadLibraries();
 	Security::init();
 	
 	pImpl_->pPasswordManagerCallback_.reset(new DefaultPasswordManagerCallback());
