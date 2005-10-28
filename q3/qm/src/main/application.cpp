@@ -216,6 +216,7 @@ void qm::ApplicationImpl::initMime()
 	const WCHAR* pwszCandidates[] = {
 		wstrDefaultCharset.get(),
 		Init::getInit().getMailEncoding(),
+		Init::getInit().getSystemEncoding(),
 		L"utf-8"
 	};
 	for (int n = 0; n < countof(pwszCandidates); ++n) {
@@ -730,13 +731,13 @@ bool qm::Application::initialize()
 	if (!pImpl_->ensureDirectories() ||
 		!pImpl_->loadMainProfile())
 		return false;
-	pImpl_->initMime();
 	pImpl_->initLog();
 	if (!pImpl_->ensureResources())
 		return false;
 	pImpl_->ensureTempDirectory();
 	pImpl_->pUIManager_.reset(new UIManager());
 	pImpl_->loadLibraries();
+	pImpl_->initMime();
 	Security::init();
 	
 	pImpl_->pPasswordManagerCallback_.reset(new DefaultPasswordManagerCallback());
