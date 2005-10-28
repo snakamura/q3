@@ -39,16 +39,6 @@ qmpop3::Pop3Driver::~Pop3Driver()
 
 bool qmpop3::Pop3Driver::init()
 {
-#ifndef _WIN32_WCE
-	// For compatibility.
-	// Remove in the future version.
-	if (!pAccount_->getFolderByBoxFlag(Folder::FLAG_JUNKBOX)) {
-		NormalFolder* pJunkbox = pAccount_->createNormalFolder(L"Junk", 0, false, false);
-		if (pJunkbox)
-			pAccount_->setFolderFlags(pJunkbox, Folder::FLAG_JUNKBOX, Folder::FLAG_JUNKBOX);
-	}
-#endif
-	
 	return true;
 }
 
