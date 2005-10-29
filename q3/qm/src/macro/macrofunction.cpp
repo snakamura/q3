@@ -3405,19 +3405,50 @@ MacroValuePtr qm::MacroFunctionPassed::value(MacroContext* pContext) const
 	
 	LOG(Passed);
 	
-	if (!checkArgSize(pContext, 1))
+	if (!checkArgSizeRange(pContext, 1, 2))
 		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
+	enum Unit {
+		UNIT_DAY,
+		UNIT_HOUR,
+		UNIT_MINUTE,
+		UNIT_SECOND
+	} unit = UNIT_DAY;
+	if (nSize > 1) {
+		ARG(pValueUnit, 1);
+		int nUnit = pValueUnit->number();
+		if (UNIT_DAY <= nUnit && nUnit <= UNIT_SECOND)
+			unit = static_cast<Unit>(nUnit);
+	}
+	
 	ARG(pValue, 0);
-	unsigned int nDay = pValue->number();
+	unsigned int nValue = pValue->number();
 	
 	Time time;
 	pmh->getDate(&time);
-	time.addDay(nDay);
+	switch (unit) {
+	case UNIT_DAY:
+		time.addDay(nValue);
+		break;
+	case UNIT_HOUR:
+		time.addHour(nValue);
+		break;
+	case UNIT_MINUTE:
+		time.addMinute(nValue);
+		break;
+	case UNIT_SECOND:
+		time.addSecond(nValue);
+		break;
+	default:
+		assert(false);
+		break;
+	}
 	
 	Time timeNow(Time::getCurrentTime());
 	
