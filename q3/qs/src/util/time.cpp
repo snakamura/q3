@@ -113,6 +113,25 @@ void qs::Time::setTimeZone(int nTimeZone)
 	nTimeZone_ = nTimeZone;
 }
 
+Time& qs::Time::addSecond(int nSecond)
+{
+	int nSecondNew = wSecond + nSecond;
+	if (nSecondNew > 59) {
+		int nMinute = nSecondNew/60;
+		wSecond = nSecondNew%60;
+		addMinute(nMinute);
+	}
+	else if (nSecondNew < 0) {
+		int nMinute = nSecondNew/60 - 1;
+		wSecond = 60 + nSecondNew%60;
+		addMinute(nMinute);
+	}
+	else {
+		wSecond = nSecondNew;
+	}
+	return *this;
+}
+
 Time& qs::Time::addMinute(int nMinute)
 {
 	int nMinuteNew = wMinute + nMinute;

@@ -132,6 +132,7 @@ public:
 	int getTimeZone() const;
 	void setTimeZone(int nTimeZone);
 	
+	Time& addSecond(int nSecond);
 	Time& addMinute(int nMinute);
 	Time& addHour(int nHour);
 	Time& addDay(int nDay);
