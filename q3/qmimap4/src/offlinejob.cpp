@@ -37,8 +37,8 @@ using namespace qs;
 
 #define READ_STRING(type, name) \
 	do { \
-		size_t nLen = 0; \
-		READ(&nLen, sizeof(size_t)); \
+		unsigned int nLen = 0; \
+		READ(&nLen, sizeof(nLen)); \
 		if (nLen != 0) { \
 			name = StringTraits<type>::allocString(nLen + 1); \
 			READ(name.get(), nLen*sizeof(StringTraits<type>::char_type)); \
@@ -54,10 +54,10 @@ using namespace qs;
 
 #define WRITE_STRING(type, str) \
 	do { \
-		size_t nLen = 0; \
+		unsigned int nLen = 0; \
 		if (str) \
-			nLen = CharTraits<StringTraits<type>::char_type>::getLength(str); \
-		WRITE(&nLen, sizeof(size_t)); \
+			nLen = static_cast<unsigned int>(CharTraits<StringTraits<type>::char_type>::getLength(str)); \
+		WRITE(&nLen, sizeof(nLen)); \
 		if (str) \
 			WRITE(str, nLen*sizeof(StringTraits<type>::char_type)); \
 	} while (false)
@@ -500,7 +500,7 @@ bool qmimap4::CopyOfflineJob::write(OutputStream* pStream) const
 		return false;
 	
 	WRITE_STRING(WSTRING, wstrFolderTo_.get());
-	size_t nSize = listUidFrom_.size();
+	unsigned int nSize = static_cast<unsigned int>(listUidFrom_.size());
 	WRITE(&nSize, sizeof(nSize));
 	WRITE(&listUidFrom_[0], listUidFrom_.size()*sizeof(UidList::value_type));
 	WRITE(&listItemTo_[0], listItemTo_.size()*sizeof(ItemList::value_type));
@@ -589,7 +589,7 @@ std::auto_ptr<OfflineJob> qmimap4::CopyOfflineJob::create(qs::InputStream* pStre
 	if (!wstrFolderTo.get())
 		return std::auto_ptr<OfflineJob>(0);
 	
-	size_t nSize = 0;
+	unsigned int nSize = 0;
 	READ(&nSize, sizeof(nSize));
 	if (nSize == 0)
 		return std::auto_ptr<OfflineJob>(0);
@@ -661,9 +661,9 @@ bool qmimap4::SetFlagsOfflineJob::write(OutputStream* pStream) const
 	if (!OfflineJob::write(pStream))
 		return false;
 	
-	size_t nSize = listUid_.size();
+	unsigned int nSize = listUid_.size();
 	WRITE(&nSize, sizeof(nSize));
-	WRITE(&listUid_[0], listUid_.size()*sizeof(unsigned long));
+	WRITE(&listUid_[0], listUid_.size()*sizeof(UidList::value_type));
 	WRITE(&nFlags_, sizeof(nFlags_));
 	WRITE(&nMask_, sizeof(nMask_));
 	
@@ -706,13 +706,13 @@ std::auto_ptr<OfflineJob> qmimap4::SetFlagsOfflineJob::create(qs::InputStream* p
 	if (!wstrFolder.get())
 		return std::auto_ptr<OfflineJob>(0);
 	
-	size_t nSize = 0;
+	unsigned int nSize = 0;
 	READ(&nSize, sizeof(nSize));
 	if (nSize == 0)
 		return std::auto_ptr<OfflineJob>(0);
 	UidList listUid;
 	listUid.resize(nSize);
-	READ(&listUid[0], nSize*sizeof(unsigned long));
+	READ(&listUid[0], nSize*sizeof(UidList::value_type));
 	
 	unsigned int nFlags = 0;
 	READ(&nFlags, sizeof(nFlags));
@@ -790,11 +790,11 @@ bool qmimap4::SetLabelOfflineJob::write(OutputStream* pStream) const
 	if (!OfflineJob::write(pStream))
 		return false;
 	
-	size_t nSize = listUid_.size();
+	unsigned int nSize = static_cast<unsigned int>(listUid_.size());
 	WRITE(&nSize, sizeof(nSize));
-	WRITE(&listUid_[0], listUid_.size()*sizeof(unsigned long));
+	WRITE(&listUid_[0], listUid_.size()*sizeof(UidList::value_type));
 	WRITE_STRING(WSTRING, wstrLabel_.get());
-	size_t nLabelSize = listLabel_.size();
+	unsigned int nLabelSize = static_cast<unsigned int>(listLabel_.size());
 	WRITE(&nLabelSize, sizeof(nLabelSize));
 	for (LabelList::const_iterator it = listLabel_.begin(); it != listLabel_.end(); ++it)
 		WRITE_STRING(WSTRING, *it);
@@ -820,23 +820,23 @@ std::auto_ptr<OfflineJob> qmimap4::SetLabelOfflineJob::create(InputStream* pStre
 	if (!wstrFolder.get())
 		return std::auto_ptr<OfflineJob>(0);
 	
-	size_t nSize = 0;
+	unsigned int nSize = 0;
 	READ(&nSize, sizeof(nSize));
 	if (nSize == 0)
 		return std::auto_ptr<OfflineJob>(0);
 	UidList listUid;
 	listUid.resize(nSize);
-	READ(&listUid[0], nSize*sizeof(unsigned long));
+	READ(&listUid[0], nSize*sizeof(UidList::value_type));
 	
 	wstring_ptr wstrLabel;
 	READ_STRING(WSTRING, wstrLabel);
 	
-	size_t nLabelSize = 0;
+	unsigned int nLabelSize = 0;
 	READ(&nLabelSize, sizeof(nLabelSize));
 	LabelList listLabel;
 	listLabel.reserve(nLabelSize);
 	StringListFree<LabelList> free(listLabel);
-	for (size_t n = 0; n < nLabelSize; ++n) {
+	for (unsigned int n = 0; n < nLabelSize; ++n) {
 		wstring_ptr wstrLabel;
 		READ_STRING(WSTRING, wstrLabel);
 		listLabel.push_back(wstrLabel.release());
