@@ -661,7 +661,7 @@ bool qmimap4::SetFlagsOfflineJob::write(OutputStream* pStream) const
 	if (!OfflineJob::write(pStream))
 		return false;
 	
-	unsigned int nSize = listUid_.size();
+	unsigned int nSize = static_cast<unsigned int>(listUid_.size());
 	WRITE(&nSize, sizeof(nSize));
 	WRITE(&listUid_[0], listUid_.size()*sizeof(UidList::value_type));
 	WRITE(&nFlags_, sizeof(nFlags_));
