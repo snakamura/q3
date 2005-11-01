@@ -28,8 +28,10 @@ class MacroExpr;
 	class MacroFieldCache;
 	class MacroLiteral;
 	class MacroNumber;
+	class MacroBoolean;
 	class MacroRegex;
 	class MacroVariable;
+	class MacroConstant;
 	class MacroFunction;
 		class MacroFunctionAccount;
 		class MacroFunctionAccountDirectory;
@@ -112,6 +114,7 @@ class MacroExpr;
 class MacroExprVisitor;
 class MacroExprPtr;
 class MacroFunctionFactory;
+class MacroConstantFactory;
 
 class AddressBook;
 
@@ -132,10 +135,11 @@ public:
 		TOKEN_REGEX,
 		TOKEN_AT,
 		TOKEN_DOLLAR,
+		TOKEN_COMMA,
 		TOKEN_PERCENT,
 		TOKEN_LEFTPARENTHESIS,
 		TOKEN_RIGHTPARENTHESIS,
-		TOKEN_COMMA,
+		TOKEN_COLON,
 		TOKEN_END,
 		TOKEN_ERROR
 	};
@@ -447,6 +451,35 @@ private:
 
 /****************************************************************************
  *
+ * MacroBoolean
+ *
+ */
+
+class MacroBoolean : public MacroExpr
+{
+public:
+	explicit MacroBoolean(bool bValue);
+	virtual ~MacroBoolean();
+
+public:
+	bool getValue() const;
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
+
+private:
+	MacroBoolean(const MacroBoolean&);
+	MacroBoolean& operator=(const MacroBoolean&);
+
+private:
+	bool bValue_;
+};
+
+
+/****************************************************************************
+ *
  * MacroRegex
  *
  */
@@ -509,6 +542,34 @@ private:
 private:
 	qs::wstring_ptr wstrName_;
 	unsigned int n_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroConstant
+ *
+ */
+
+class MacroConstant : public MacroExpr
+{
+public:
+	MacroConstant(const WCHAR* pwszName,
+				  std::auto_ptr<MacroExpr> pExpr);
+	virtual ~MacroConstant();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+	virtual qs::wstring_ptr getString() const;
+	virtual void visit(MacroExprVisitor* pVisitor) const;
+
+private:
+	MacroConstant(const MacroConstant&);
+	MacroConstant& operator=(const MacroConstant&);
+
+private:
+	qs::wstring_ptr wstrName_;
+	std::auto_ptr<MacroExpr> pExpr_;
 };
 
 
@@ -2528,8 +2589,10 @@ public:
 	virtual void visitFieldCache(const MacroFieldCache& fieldCache) = 0;
 	virtual void visitLiteral(const MacroLiteral& literal) = 0;
 	virtual void visitNumber(const MacroNumber& number) = 0;
+	virtual void visitBoolean(const MacroBoolean& boolean) = 0;
 	virtual void visitRegex(const MacroRegex& regex) = 0;
 	virtual void visitVariable(const MacroVariable& variable) = 0;
+	virtual void visitConstant(const MacroConstant& constant) = 0;
 	virtual void visitFunction(const MacroFunction& function) = 0;
 };
 
@@ -2587,6 +2650,35 @@ private:
 
 private:
 	static MacroFunctionFactory factory__;
+};
+
+
+/****************************************************************************
+ *
+ * MacroConstantFactory
+ *
+ */
+
+class MacroConstantFactory
+{
+private:
+	MacroConstantFactory();
+
+public:
+	virtual ~MacroConstantFactory();
+
+public:
+	std::auto_ptr<MacroConstant> getConstant(const WCHAR* pwszName) const;
+
+public:
+	static const MacroConstantFactory& getFactory();
+
+private:
+	MacroConstantFactory(const MacroConstantFactory&);
+	MacroConstantFactory& operator=(const MacroConstantFactory&);
+
+private:
+	static MacroConstantFactory factory__;
 };
 
 }

@@ -337,8 +337,10 @@ private:
 			TYPE_FIELDCACHE,
 			TYPE_LITERAL,
 			TYPE_NUMBER,
+			TYPE_BOOLEAN,
 			TYPE_REGEX,
 			TYPE_VARIABLE,
+			TYPE_CONSTANT,
 			TYPE_FUNCTION
 		};
 	
@@ -354,8 +356,10 @@ private:
 		virtual void visitFieldCache(const MacroFieldCache& fieldCache);
 		virtual void visitLiteral(const MacroLiteral& literal);
 		virtual void visitNumber(const MacroNumber& number);
+		virtual void visitBoolean(const MacroBoolean& boolean);
 		virtual void visitRegex(const MacroRegex& regex);
 		virtual void visitVariable(const MacroVariable& variable);
+		virtual void visitConstant(const MacroConstant& constant);
 		virtual void visitFunction(const MacroFunction& function);
 	
 	private:
@@ -376,8 +380,10 @@ private:
 		virtual void visitFieldCache(const MacroFieldCache& fieldCache);
 		virtual void visitLiteral(const MacroLiteral& literal);
 		virtual void visitNumber(const MacroNumber& number);
+		virtual void visitBoolean(const MacroBoolean& boolean);
 		virtual void visitRegex(const MacroRegex& regex);
 		virtual void visitVariable(const MacroVariable& variable);
+		virtual void visitConstant(const MacroConstant& constant);
 		virtual void visitFunction(const MacroFunction& function);
 	
 	private:

@@ -898,6 +898,11 @@ void qm::ConditionFactory::GetTypeMacroExprVisitor::visitNumber(const MacroNumbe
 	type_ = TYPE_NUMBER;
 }
 
+void qm::ConditionFactory::GetTypeMacroExprVisitor::visitBoolean(const MacroBoolean& boolean)
+{
+	type_ = TYPE_BOOLEAN;
+}
+
 void qm::ConditionFactory::GetTypeMacroExprVisitor::visitRegex(const MacroRegex& regex)
 {
 	type_ = TYPE_REGEX;
@@ -906,6 +911,11 @@ void qm::ConditionFactory::GetTypeMacroExprVisitor::visitRegex(const MacroRegex&
 void qm::ConditionFactory::GetTypeMacroExprVisitor::visitVariable(const MacroVariable& variable)
 {
 	type_ = TYPE_VARIABLE;
+}
+
+void qm::ConditionFactory::GetTypeMacroExprVisitor::visitConstant(const MacroConstant& constant)
+{
+	type_ = TYPE_CONSTANT;
 }
 
 void qm::ConditionFactory::GetTypeMacroExprVisitor::visitFunction(const MacroFunction& function)
@@ -950,11 +960,19 @@ void qm::ConditionFactory::GetFunctionNameMacroExprVisitor::visitNumber(const Ma
 {
 }
 
+void qm::ConditionFactory::GetFunctionNameMacroExprVisitor::visitBoolean(const MacroBoolean& boolean)
+{
+}
+
 void qm::ConditionFactory::GetFunctionNameMacroExprVisitor::visitRegex(const MacroRegex& regex)
 {
 }
 
 void qm::ConditionFactory::GetFunctionNameMacroExprVisitor::visitVariable(const MacroVariable& variable)
+{
+}
+
+void qm::ConditionFactory::GetFunctionNameMacroExprVisitor::visitConstant(const MacroConstant& constant)
 {
 }
 

@@ -138,6 +138,10 @@ MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken,
 		++p_;
 		return TOKEN_DOLLAR;
 	}
+	else if (c == L':') {
+		++p_;
+		return TOKEN_COLON;
+	}
 	else if (c == L'%') {
 		++p_;
 		return TOKEN_PERCENT;
@@ -155,7 +159,7 @@ MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken,
 		return TOKEN_COMMA;
 	}
 	else {
-		const WCHAR* pwszSep = L" \t\n,()#";
+		const WCHAR* pwszSep = L" \t\n,()#@$:%\"\'";
 		const WCHAR* pBegin = p_;
 		while (*p_ && !wcschr(pwszSep, *p_))
 			++p_;
@@ -776,6 +780,43 @@ void qm::MacroNumber::visit(MacroExprVisitor* pVisitor) const
 
 /****************************************************************************
  *
+ * MacroBoolean
+ *
+ */
+
+qm::MacroBoolean::MacroBoolean(bool bValue) :
+	bValue_(bValue)
+{
+}
+
+qm::MacroBoolean::~MacroBoolean()
+{
+}
+
+bool qm::MacroBoolean::getValue() const
+{
+	return bValue_;
+}
+
+MacroValuePtr qm::MacroBoolean::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	return MacroValueFactory::getFactory().newBoolean(bValue_);
+}
+
+wstring_ptr qm::MacroBoolean::getString() const
+{
+	return allocWString(bValue_ ? L"@True()" : L"@False");
+}
+
+void qm::MacroBoolean::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitBoolean(*this);
+}
+
+
+/****************************************************************************
+ *
  * MacroRegex
  *
  */
@@ -930,6 +971,41 @@ void qm::MacroVariable::visit(MacroExprVisitor* pVisitor) const
 
 /****************************************************************************
  *
+ * MacroConstant
+ *
+ */
+
+qm::MacroConstant::MacroConstant(const WCHAR* pwszName,
+								 std::auto_ptr<MacroExpr> pExpr) :
+	pExpr_(pExpr)
+{
+	assert(pwszName);
+	
+	wstrName_ = allocWString(pwszName);
+}
+
+qm::MacroConstant::~MacroConstant()
+{
+}
+
+MacroValuePtr qm::MacroConstant::value(MacroContext* pContext) const
+{
+	return pExpr_->value(pContext);
+}
+
+wstring_ptr qm::MacroConstant::getString() const
+{
+	return concat(L":", wstrName_.get());
+}
+
+void qm::MacroConstant::visit(MacroExprVisitor* pVisitor) const
+{
+	pVisitor->visitConstant(*this);
+}
+
+
+/****************************************************************************
+ *
  * MacroExprVisitor
  *
  */
@@ -990,6 +1066,109 @@ void qm::MacroExprPtr::reset(MacroExpr* pExpr)
 	if (pExpr_)
 		pExpr_->release();
 	pExpr_ = pExpr;
+}
+
+
+/****************************************************************************
+ *
+ * MacroConstantFactory
+ *
+ */
+
+MacroConstantFactory qm::MacroConstantFactory::factory__;
+
+qm::MacroConstantFactory::MacroConstantFactory()
+{
+}
+
+qm::MacroConstantFactory::~MacroConstantFactory()
+{
+}
+
+std::auto_ptr<MacroConstant> qm::MacroConstantFactory::getConstant(const WCHAR* pwszName) const
+{
+	assert(pwszName);
+	
+#define BEGIN_DECLARE_CONSTANT() \
+	switch (*pwszName) { \
+
+#define END_DECLARE_CONSTANT() \
+	} \
+	return 0; \
+
+#define BEGIN_BLOCK(c0, c1) \
+	case c0: \
+	case c1: \
+		if (false) { \
+		} \
+
+#define END_BLOCK() \
+	break; \
+
+#define DECLARE_CONSTANT1(classname, name, arg1) \
+		else if (_wcsicmp(pwszName, name) == 0) { \
+			return std::auto_ptr<MacroConstant>(new MacroConstant(name, \
+				std::auto_ptr<MacroExpr>(new Macro##classname(arg1)))); \
+		} \
+	
+	BEGIN_DECLARE_CONSTANT()
+		BEGIN_BLOCK('c', 'C')
+			DECLARE_CONSTANT1(Boolean,	L"CASE-SENSITIVE",		true	)
+			DECLARE_CONSTANT1(Boolean,	L"CASE-INSENSITIVE",	false	)
+		END_BLOCK()
+		BEGIN_BLOCK('d', 'D')
+			DECLARE_CONSTANT1(Number,	L"DATE",				0		)
+			DECLARE_CONSTANT1(Number,	L"DROPDOWN",			2		)
+			DECLARE_CONSTANT1(Number,	L"DROPDOWNLIST",		1		)
+		END_BLOCK()
+		BEGIN_BLOCK('f', 'F')
+			DECLARE_CONSTANT1(Number,	L"FORCERFC822INLINE",	1		)
+			DECLARE_CONSTANT1(Number,	L"FORMAT-ADDRESS",		1		)
+			DECLARE_CONSTANT1(Number,	L"FORMAT-ALL",			0		)
+			DECLARE_CONSTANT1(Number,	L"FORMAT-NAME",			2		)
+			DECLARE_CONSTANT1(Number,	L"FORMAT-VIEW",			3		)
+			DECLARE_CONSTANT1(Boolean,	L"FULLNAME",			true	)
+		END_BLOCK()
+		BEGIN_BLOCK('g', 'G')
+			DECLARE_CONSTANT1(Boolean,	L"GLOBAL",				true	)
+		END_BLOCK()
+		BEGIN_BLOCK('h', 'H')
+			DECLARE_CONSTANT1(Number,	L"HOUR",				1		)
+		END_BLOCK()
+		BEGIN_BLOCK('i', 'I')
+			DECLARE_CONSTANT1(Number,	L"INLINE",				1		)
+		END_BLOCK()
+		BEGIN_BLOCK('l', 'L')
+			DECLARE_CONSTANT1(Number,	L"LIST",				0		)
+			DECLARE_CONSTANT1(Number,	L"LOOKUP-EMPTY",		1		)
+			DECLARE_CONSTANT1(Number,	L"LOOKUP-FORCE",		2		)
+			DECLARE_CONSTANT1(Number,	L"LOOKUP-NONE",			0		)
+		END_BLOCK()
+		BEGIN_BLOCK('m', 'M')
+			DECLARE_CONSTANT1(Number,	L"MINUTE",				2		)
+			DECLARE_CONSTANT1(Boolean,	L"MULTILINE",			1		)
+		END_BLOCK()
+		BEGIN_BLOCK('n', 'N')
+			DECLARE_CONSTANT1(Number,	L"NONE",				0		)
+		END_BLOCK()
+		BEGIN_BLOCK('s', 'S')
+			DECLARE_CONSTANT1(Number,	L"SECOND",				3		)
+			DECLARE_CONSTANT1(Boolean,	L"SINGLELINE",			0		)
+		END_BLOCK()
+		BEGIN_BLOCK('t', 'T')
+			DECLARE_CONSTANT1(Boolean,	L"TEMPLATE",			true	)
+			DECLARE_CONSTANT1(Boolean,	L"TEXT",				false	)
+			DECLARE_CONSTANT1(Boolean,	L"TEXTONLY",			true	)
+			DECLARE_CONSTANT1(Number,	L"TZ-LOCAL",			1		)
+			DECLARE_CONSTANT1(Number,	L"TZ-ORIGINAL",			2		)
+			DECLARE_CONSTANT1(Number,	L"TZ-UTC",				0		)
+		END_BLOCK()
+	END_DECLARE_CONSTANT()
+}
+
+const MacroConstantFactory& qm::MacroConstantFactory::getFactory()
+{
+	return factory__;
 }
 
 
@@ -1146,6 +1325,21 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 						return error(MacroErrorHandler::CODE_INVALIDVARIABLENAME, pLast);
 					
 					pExpr.reset(new MacroVariable(wstrVariable.get()));
+				}
+				break;
+			case MacroTokenizer::TOKEN_COLON:
+				{
+					const WCHAR* pLast = tokenizer.getLastPosition();
+					wstring_ptr wstrConstant;
+					token = tokenizer.getToken(&wstrConstant, 0);
+					if (token != MacroTokenizer::TOKEN_TEXT)
+						return error(MacroErrorHandler::CODE_INVALIDCONSTANTNAME, pLast);
+					
+					std::auto_ptr<MacroConstant> pConstant(MacroConstantFactory::getFactory().getConstant(wstrConstant.get()));
+					if (!pConstant.get())
+						return error(MacroErrorHandler::CODE_INVALIDCONSTANTNAME, pLast);
+					
+					pExpr.reset(pConstant.release());
 				}
 				break;
 			case MacroTokenizer::TOKEN_PERCENT:

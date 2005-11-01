@@ -579,8 +579,7 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 			buf.append(pwszSep);
 		
 		if (bURI) {
-			URI uri(pmh->getMessageHolder(), pMessage,
-				(*it).second, URIFragment::TYPE_BODY);
+			URI uri(pmh->getMessageHolder(), pMessage, (*it).second, URIFragment::TYPE_BODY);
 			wstring_ptr wstrURI(uri.toString());
 			buf.append(wstrURI.get());
 		}
@@ -4718,7 +4717,7 @@ MacroValuePtr qm::MacroFunctionSubstring::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	size_t nLength = static_cast<size_t>(-1);
+	size_t nLength = -1;
 	if (nSize == 3) {
 		ARG(pValue, 2);
 		nLength = pValue->number();
@@ -4736,7 +4735,7 @@ MacroValuePtr qm::MacroFunctionSubstring::value(MacroContext* pContext) const
 		nLength = 0;
 	}
 	else {
-		if (nLength == static_cast<size_t>(-1))
+		if (nLength == -1)
 			nLength = nLen - nBegin;
 		pwsz = wstr.get() + nBegin;
 	}
