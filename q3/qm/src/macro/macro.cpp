@@ -1094,7 +1094,7 @@ std::auto_ptr<MacroConstant> qm::MacroConstantFactory::getConstant(const WCHAR* 
 
 #define END_DECLARE_CONSTANT() \
 	} \
-	return 0; \
+	return std::auto_ptr<MacroConstant>(); \
 
 #define BEGIN_BLOCK(c0, c1) \
 	case c0: \
