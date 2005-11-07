@@ -1,0 +1,118 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_INITIALIZE          "初期化しています"
+    IDS_LOOKUP              "ホストを探しています"
+    IDS_CONNECTING          "接続しています"
+    IDS_CONNECTED           "接続しました"
+    IDS_AUTHENTICATING      "認証しています"
+    IDS_SENDMESSAGE         "メッセージを送信しています"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SMTP                "SMTP"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_GREETING      "挨拶中にエラーが発生しました"
+    IDS_ERROR_HELO          "HELOコマンドでエラーが発生しました"
+    IDS_ERROR_EHLO          "EHLOコマンドでエラーが発生しました"
+    IDS_ERROR_AUTH          "AUTHコマンドでエラーが発生しました"
+    IDS_ERROR_MAIL          "MAILコマンドでエラーが発生しました"
+    IDS_ERROR_RCPT          "RCPTコマンドでエラーが発生しました"
+    IDS_ERROR_DATA          "DATAコマンドでエラーが発生しました"
+    IDS_ERROR_STARTTLS      "STARTTLSコマンドでエラーが発生しました"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_INITIALIZE    "初期化に失敗しました"
+    IDS_ERROR_CONNECT       "接続に失敗しました"
+    IDS_ERROR_RESPONSE      "エラーレスポンスを受け取りました"
+    IDS_ERROR_INVALIDSOCKET "不正なソケットです"
+    IDS_ERROR_TIMEOUT       "接続がタイムアウトしました"
+    IDS_ERROR_SELECT        "selectに失敗しました"
+    IDS_ERROR_DISCONNECT    "サーバから切断されました"
+    IDS_ERROR_RECEIVE       "受信に失敗しました"
+    IDS_ERROR_SEND          "送信に失敗しました"
+    IDS_ERROR_OTHER         "不明なエラーです"
+    IDS_ERROR_SSL           "SSLの初期化に失敗しました"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_MESSAGE       "SMTPエラー"
+END
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

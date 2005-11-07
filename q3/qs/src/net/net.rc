@@ -1,0 +1,85 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "netresource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "netresource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_SOCKET_SOCKET "socket"
+    IDS_ERROR_SOCKET_CLOSESOCKET "closesocket"
+    IDS_ERROR_SOCKET_LOOKUPNAME "Lookup name"
+    IDS_ERROR_SOCKET_CONNECT "connect"
+    IDS_ERROR_SOCKET_CONNECTTIMEOUT "connect timeout"
+    IDS_ERROR_SOCKET_RECV   "recv"
+    IDS_ERROR_SOCKET_RECVTIMEOUT "recv timeout"
+    IDS_ERROR_SOCKET_SEND   "send"
+    IDS_ERROR_SOCKET_SENDTIMEOUT "send timeout"
+    IDS_ERROR_SOCKET_SELECT "select"
+    IDS_ERROR_SOCKET_CANCEL "cancel"
+    IDS_ERROR_SOCKET_UNKNOWN "unknown"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

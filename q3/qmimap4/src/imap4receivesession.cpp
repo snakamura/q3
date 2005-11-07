@@ -1472,20 +1472,6 @@ void qmimap4::Imap4ReceiveSession::reportError(Imap4* pImap4,
 			{ Imap4::IMAP4_ERROR_SEND,			IDS_ERROR_SEND			},
 			{ Imap4::IMAP4_ERROR_RESPONSE,		IDS_ERROR_RESPONSE		},
 			{ Imap4::IMAP4_ERROR_SSL,			IDS_ERROR_SSL			}
-		},
-		{
-			{ Socket::SOCKET_ERROR_SOCKET,			IDS_ERROR_SOCKET_SOCKET			},
-			{ Socket::SOCKET_ERROR_CLOSESOCKET,		IDS_ERROR_SOCKET_CLOSESOCKET	},
-			{ Socket::SOCKET_ERROR_LOOKUPNAME,		IDS_ERROR_SOCKET_LOOKUPNAME		},
-			{ Socket::SOCKET_ERROR_CONNECT,			IDS_ERROR_SOCKET_CONNECT		},
-			{ Socket::SOCKET_ERROR_CONNECTTIMEOUT,	IDS_ERROR_SOCKET_CONNECTTIMEOUT	},
-			{ Socket::SOCKET_ERROR_RECV,			IDS_ERROR_SOCKET_RECV			},
-			{ Socket::SOCKET_ERROR_RECVTIMEOUT,		IDS_ERROR_SOCKET_RECVTIMEOUT	},
-			{ Socket::SOCKET_ERROR_SEND,			IDS_ERROR_SOCKET_SEND			},
-			{ Socket::SOCKET_ERROR_SENDTIMEOUT,		IDS_ERROR_SOCKET_SENDTIMEOUT	},
-			{ Socket::SOCKET_ERROR_SELECT,			IDS_ERROR_SOCKET_SELECT			},
-			{ Socket::SOCKET_ERROR_CANCEL,			IDS_ERROR_SOCKET_CANCEL			},
-			{ Socket::SOCKET_ERROR_UNKNOWN,			IDS_ERROR_SOCKET_UNKNOWN		}
 		}
 	};
 	
@@ -1493,8 +1479,7 @@ void qmimap4::Imap4ReceiveSession::reportError(Imap4* pImap4,
 	unsigned int nMasks[] = {
 		IMAP4ERROR_MASK,
 		Imap4::IMAP4_ERROR_MASK_HIGHLEVEL,
-		Imap4::IMAP4_ERROR_MASK_LOWLEVEL,
-		Socket::SOCKET_ERROR_MASK_SOCKET
+		Imap4::IMAP4_ERROR_MASK_LOWLEVEL
 	};
 	wstring_ptr wstrDescriptions[countof(maps)];
 	for (int n = 0; n < countof(maps); ++n) {
@@ -1505,12 +1490,14 @@ void qmimap4::Imap4ReceiveSession::reportError(Imap4* pImap4,
 	}
 	
 	wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_MESSAGE));
+	wstring_ptr wstrSocketDescription(SocketBase::getErrorDescription(
+		static_cast<SocketBase::Error>(nError & SocketBase::SOCKET_ERROR_MASK_SOCKET)));
 	
 	const WCHAR* pwszDescription[] = {
 		wstrDescriptions[0].get(),
 		wstrDescriptions[1].get(),
 		wstrDescriptions[2].get(),
-		wstrDescriptions[3].get(),
+		wstrSocketDescription.get(),
 		pImap4 ? pImap4->getLastErrorResponse() : 0
 	};
 	SessionErrorInfo info(pAccount_, pSubAccount_, pFolder_, wstrMessage.get(),

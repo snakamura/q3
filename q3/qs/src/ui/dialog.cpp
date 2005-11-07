@@ -910,7 +910,7 @@ LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr,
 
 qs::BrowseFolderDialog::BrowseFolderDialog(const WCHAR* pwszTitle,
 										   const WCHAR* pwszInitialPath) :
-	DefaultDialog(getDllInstanceHandle(), IDD_BROWSEFOLDER),
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_BROWSEFOLDER),
 	pImpl_(0)
 {
 	wstring_ptr wstrPath;
@@ -960,7 +960,7 @@ LRESULT qs::BrowseFolderDialog::onInitDialog(HWND hwndFocus,
 	
 	HWND hwnd = getDlgItem(IDC_FOLDER);
 	
-	HIMAGELIST hImageList = ImageList_LoadBitmap(getDllInstanceHandle(),
+	HIMAGELIST hImageList = ImageList_LoadBitmap(getResourceDllInstanceHandle(),
 		MAKEINTRESOURCE(IDB_BROWSEFOLDER), 16, 10, RGB(255, 255, 255));
 	TreeView_SetImageList(hwnd, hImageList, TVSIL_NORMAL);
 	
@@ -1030,8 +1030,8 @@ LRESULT qs::BrowseFolderDialog::onNewFolder()
 				TreeView_Expand(hwnd, hItem, TVE_EXPAND);
 			}
 			else {
-				messageBox(getDllInstanceHandle(), IDS_ERROR_CREATEFOLDER,
-					MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceDllInstanceHandle(),
+					IDS_ERROR_CREATEFOLDER, MB_OK | MB_ICONERROR, getHandle());
 			}
 		}
 	}
@@ -1059,7 +1059,7 @@ static int CALLBACK enumFontFamProc(ENUMLOGFONT* pelf,
 }
 
 qs::FontDialog::FontDialog(const LOGFONT& lf) :
-	DefaultDialog(getDllInstanceHandle(), IDD_FONT),
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_FONT),
 	lf_(lf)
 {
 }
@@ -1092,7 +1092,7 @@ LRESULT qs::FontDialog::onInitDialog(HWND hwndFocus,
 		IDS_BOLDITALIC
 	};
 	for (int n = 0; n < countof(nStyleIds); ++n) {
-		wstring_ptr wstrStyle(loadString(getDllInstanceHandle(), nStyleIds[n]));
+		wstring_ptr wstrStyle(loadString(getResourceDllInstanceHandle(), nStyleIds[n]));
 		W2T(wstrStyle.get(), ptszStyle);
 		sendDlgItemMessage(IDC_FONTSTYLE, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(ptszStyle));
 	}
@@ -1101,7 +1101,7 @@ LRESULT qs::FontDialog::onInitDialog(HWND hwndFocus,
 		nId = lf_.lfItalic ? IDS_BOLDITALIC : IDS_BOLD;
 	else
 		nId = lf_.lfItalic ? IDS_ITALIC : IDS_REGULAR;
-	wstring_ptr wstrStyle(loadString(getDllInstanceHandle(), nId));
+	wstring_ptr wstrStyle(loadString(getResourceDllInstanceHandle(), nId));
 	W2T(wstrStyle.get(), ptszStyle);
 	sendDlgItemMessage(IDC_FONTSTYLE, CB_SELECTSTRING, 0, reinterpret_cast<LPARAM>(ptszStyle));
 	setDlgItemText(IDC_FONTSTYLE, wstrStyle.get());
@@ -1148,9 +1148,9 @@ LRESULT qs::FontDialog::onOk()
 	_tcsncpy(lf_.lfFaceName, ptszFaceName, countof(lf_.lfFaceName));
 	
 	wstring_ptr wstrStyle(getDlgItemText(IDC_FONTSTYLE));
-	wstring_ptr wstrBold(loadString(getDllInstanceHandle(), IDS_BOLD));
+	wstring_ptr wstrBold(loadString(getResourceDllInstanceHandle(), IDS_BOLD));
 	lf_.lfWeight = wcsstr(wstrStyle.get(), wstrBold.get()) ? FW_BOLD : FW_NORMAL;
-	wstring_ptr wstrItalic(loadString(getDllInstanceHandle(), IDS_ITALIC));
+	wstring_ptr wstrItalic(loadString(getResourceDllInstanceHandle(), IDS_ITALIC));
 	lf_.lfItalic = wcsstr(wstrStyle.get(), wstrItalic.get()) ? TRUE : FALSE;
 	
 	wstring_ptr wstrSize(getDlgItemText(IDC_FONTSIZE));
@@ -1178,7 +1178,7 @@ LRESULT qs::FontDialog::onOk()
  */
 
 qs::FolderNameDialog::FolderNameDialog() :
-	DefaultDialog(getDllInstanceHandle(), IDD_FOLDERNAME)
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_FOLDERNAME)
 {
 }
 

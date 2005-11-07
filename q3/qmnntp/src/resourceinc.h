@@ -9,12 +9,13 @@
 #ifndef __RESOURCEINC_H__
 #define __RESOURCEINC_H__
 
+#include "resource.h"
 #ifdef _WIN32_WCE_PSPC
 #	include "resourceppc.h"
 #elif defined _WIN32_WCE
 #	include "resourcehpc.h"
 #else
-#	include "resource.h"
+#	include "resourcewin.h"
 #endif
 
 #endif // __RESOURCEINC_H__

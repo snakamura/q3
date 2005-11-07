@@ -1,0 +1,42 @@
+<filters>
+	<filterSet name="ヘッダのみ (POP3)">
+		<filter match="@True()">
+			<action name="download">
+				<param name="line">0</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="最大100行 (POP3)">
+		<filter match="@True()">
+			<action name="download">
+				<param name="line">100</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="ヘッダのみ (IMAP4)">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">header</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="テキストのみ (IMAP4)">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">text</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="すべて (IMAP4)">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">all</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="すべて (NNTP)">
+		<filter match="@True()">
+			<action name="download"/>
+		</filter>
+	</filterSet>
+</filters>

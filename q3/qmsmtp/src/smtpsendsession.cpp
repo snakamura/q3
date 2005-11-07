@@ -278,20 +278,6 @@ void qmsmtp::SmtpSendSession::reportError()
 			{ Smtp::SMTP_ERROR_SEND,			IDS_ERROR_SEND			},
 			{ Smtp::SMTP_ERROR_OTHER,			IDS_ERROR_OTHER			},
 			{ Smtp::SMTP_ERROR_SSL,				IDS_ERROR_SSL			}
-		},
-		{
-			{ Socket::SOCKET_ERROR_SOCKET,			IDS_ERROR_SOCKET_SOCKET			},
-			{ Socket::SOCKET_ERROR_CLOSESOCKET,		IDS_ERROR_SOCKET_CLOSESOCKET	},
-			{ Socket::SOCKET_ERROR_LOOKUPNAME,		IDS_ERROR_SOCKET_LOOKUPNAME		},
-			{ Socket::SOCKET_ERROR_CONNECT,			IDS_ERROR_SOCKET_CONNECT		},
-			{ Socket::SOCKET_ERROR_CONNECTTIMEOUT,	IDS_ERROR_SOCKET_CONNECTTIMEOUT	},
-			{ Socket::SOCKET_ERROR_RECV,			IDS_ERROR_SOCKET_RECV			},
-			{ Socket::SOCKET_ERROR_RECVTIMEOUT,		IDS_ERROR_SOCKET_RECVTIMEOUT	},
-			{ Socket::SOCKET_ERROR_SEND,			IDS_ERROR_SOCKET_SEND			},
-			{ Socket::SOCKET_ERROR_SENDTIMEOUT,		IDS_ERROR_SOCKET_SENDTIMEOUT	},
-			{ Socket::SOCKET_ERROR_SELECT,			IDS_ERROR_SOCKET_SELECT			},
-			{ Socket::SOCKET_ERROR_CANCEL,			IDS_ERROR_SOCKET_CANCEL			},
-			{ Socket::SOCKET_ERROR_UNKNOWN,			IDS_ERROR_SOCKET_UNKNOWN		}
 		}
 	};
 	
@@ -299,7 +285,6 @@ void qmsmtp::SmtpSendSession::reportError()
 	unsigned int nMasks[] = {
 		Smtp::SMTP_ERROR_MASK_HIGHLEVEL,
 		Smtp::SMTP_ERROR_MASK_LOWLEVEL,
-		Socket::SOCKET_ERROR_MASK_SOCKET
 	};
 	wstring_ptr wstrDescriptions[countof(maps)];
 	for (int n = 0; n < countof(maps); ++n) {
@@ -310,11 +295,13 @@ void qmsmtp::SmtpSendSession::reportError()
 	}
 	
 	wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_MESSAGE));
+	wstring_ptr wstrSocketDescription(SocketBase::getErrorDescription(
+		static_cast<SocketBase::Error>(nError & SocketBase::SOCKET_ERROR_MASK_SOCKET)));
 	
 	const WCHAR* pwszDescription[] = {
 		wstrDescriptions[0].get(),
 		wstrDescriptions[1].get(),
-		wstrDescriptions[2].get(),
+		wstrSocketDescription.get(),
 		pSmtp_->getLastErrorResponse()
 	};
 	SessionErrorInfo info(pAccount_, pSubAccount_, 0, wstrMessage.get(),

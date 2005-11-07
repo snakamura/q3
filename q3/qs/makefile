@@ -19,3 +19,5 @@ BASEADDRESS		= 0x20000000
 STLPORTEXPORT	= 1
 
 include ../common.mak
+
+$(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res: $(SRCDIR)/ui/$(PROJECTNAME).rc $(SRCDIR)/ui/resource.h $(SRCDIR)/net/net.rc $(SRCDIR)/net/netresource.h

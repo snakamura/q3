@@ -87,3 +87,14 @@ fi
 
 (cd ..; tar cf - version revision) | tar xf -
 $MAKE target $OPTIONS
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+for langid in src.*; do
+	if [ $langid != "src.*" ]; then
+		$MAKE target.mui MUILANG=${langid#src.} $OPTIONS
+		if [ $? -ne 0 ]; then
+			exit 1
+		fi
+	fi
+done

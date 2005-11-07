@@ -100,11 +100,11 @@ void qm::FolderListWindowImpl::loadColumns()
 		bool bLeft_;
 		int nDefaultWidth_;
 	} columns[] = {
-		{ IDS_FOLDERLISTNAME,			L"NameWidth",			true,	150	},
-		{ IDS_FOLDERLISTID,				L"IdWidth",				false,	50	},
-		{ IDS_FOLDERLISTCOUNT,			L"CountWidth",			false,	50	},
-		{ IDS_FOLDERLISTUNSEENCOUNT,	L"UnseenCountWidth",	false,	50	},
-		{ IDS_FOLDERLISTSIZE,			L"SizeWidth",			false,	150	},
+		{ IDS_FOLDERLIST_NAME,			L"NameWidth",			true,	150	},
+		{ IDS_FOLDERLIST_ID,			L"IdWidth",				false,	50	},
+		{ IDS_FOLDERLIST_COUNT,			L"CountWidth",			false,	50	},
+		{ IDS_FOLDERLIST_UNSEENCOUNT,	L"UnseenCountWidth",	false,	50	},
+		{ IDS_FOLDERLIST_SIZE,			L"SizeWidth",			false,	150	},
 	};
 	for (int n = 0; n < countof(columns); ++n) {
 		wstring_ptr wstrTitle(loadString(hInst, columns[n].nId_));

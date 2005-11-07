@@ -13,8 +13,10 @@
 
 #include <qsassert.h>
 
+#include "main.h"
 #include "nntp.h"
 #include "nntpdriver.h"
+#include "resourceinc.h"
 
 using namespace qmnntp;
 using namespace qm;
@@ -117,24 +119,24 @@ bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 	assert(pList);
 	
 	struct {
-		const WCHAR* pwszName_;
+		UINT nId_;
 		unsigned int nFlags_;
 	} folders[] = {
-		{ L"Outbox",	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
-		{ L"Posted",	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
-		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							},
+		{ IDS_FOLDER_OUTBOX,	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
+		{ IDS_FOLDER_POSTED,	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
+		{ IDS_FOLDER_TRASH,		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							},
 #ifndef _WIN32_WCE
-		{ L"Junk",		Folder::FLAG_LOCAL | Folder::FLAG_JUNKBOX							}
+		{ IDS_FOLDER_JUNK,		Folder::FLAG_LOCAL | Folder::FLAG_JUNKBOX							}
 #endif
 	};
 	
 	pList->reserve(countof(folders));
 	
 	for (int n = 0; n < countof(folders); ++n) {
-		std::auto_ptr<NormalFolder> pFolder(new NormalFolder(n + 1, folders[n].pwszName_,
-			L'/', folders[n].nFlags_, 0, 0, 0, 0, 0, 0, pAccount_));
-		pList->push_back(pFolder.get());
-		pFolder.release();
+		wstring_ptr wstrName(loadString(getResourceHandle(), folders[n].nId_));
+		NormalFolder* pFolder = new NormalFolder(n + 1, wstrName.get(),
+			L'/', folders[n].nFlags_, 0, 0, 0, 0, 0, 0, pAccount_);
+		pList->push_back(pFolder);
 	}
 	
 	return true;

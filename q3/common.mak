@@ -96,7 +96,7 @@ ifeq ($(PLATFORM),win)
 		COMPILERLIBDIR		= $(SDKDIR)/lib/amd64
 	endif
 	
-	BASEPLATFORM		=
+	BASEPLATFORM			= win
 	#########################################################################
 else
 	# WINCE #################################################################
@@ -284,7 +284,7 @@ endif
 
 ifdef SYMBOL
 	CCFLAGS				+= -Zi -Fd$(OBJDIR)/
-	LDFLAGS				+= -DEBUG -DEBUGTYPE:CV -PDB:$(TARGETDIR)/$(PROJECTNAME).pdb -FIXED:NO
+	LDFLAGS				+= -DEBUG -DEBUGTYPE:CV -PDB:$(TARGETDIR)/$(PROJECTNAME)$(MUILANGEXT).pdb -FIXED:NO
 else
 	LDFLAGS				+= -RELEASE
 endif
@@ -335,7 +335,9 @@ endif
 CCFLAGS					+= -nologo -W3 -WX -GF -Gy -Zp8 -X
 DEFINES					+= -DWIN32 -D_WIN32 -D_MT -DSTRICT
 LDFLAGS					+= -NOLOGO -INCREMENTAL:NO -SUBSYSTEM:$(SUBSYSTEM),$(SUBSYSVER)
-RCFLAGS					+= -l 0x411
+ifneq ($(MUILANG),)
+	RCFLAGS				+= -l 0x$(MUILANG)
+endif
 MIDLFLAGS				= -Oicf
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
@@ -516,9 +518,15 @@ ifeq ($(PROJECTTYPE),lib)
 	EXTENSION			= lib
 endif
 
+ifeq ($(MUILANG),)
+	MUILANGEXT			=
+else
+	MUILANGEXT			= .$(MUILANG)
+endif
+
 INCLUDEDIR				= include
-SRCDIR					= src
-OBJDIRBASE				= obj
+SRCDIR					= src$(MUILANGEXT)
+OBJDIRBASE				= obj$(MUILANGEXT)
 TLBDIRBASE				= tlb
 
 ifeq ($(PLATFORM),win)
@@ -535,6 +543,7 @@ endif
 TLBDIR					= $(TLBDIRBASE)/$(PLATFORM)
 TARGETBASE				= $(PROJECTNAME)$(SUFFIX)
 TARGET					= $(TARGETBASE).$(EXTENSION)
+MUITARGET				= $(TARGET).$(MUILANG).mui
 
 
 # STLPORT ###################################################################
@@ -601,6 +610,8 @@ export LIB				= $(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR);$(COMPILERLIBDIR)
 
 
 target: $(TARGETDIR)/$(TARGET)
+
+target.mui: $(TARGETDIR)/$(MUITARGET)
 
 clean:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
@@ -672,9 +683,15 @@ $(TARGETDIR)/$(TARGETBASE).lib: $(OBJS)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(AR) -OUT:$@ $(OBJS)
 
+$(TARGETDIR)/$(MUITARGET): $(OBJS) $(RESES)
+	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(LD) $(LDFLAGS) -DLL -OUT:$@ $(OBJS) $(RESES) $(LIBS)
+
 ifneq ($(PLATFORM),)
     ifndef NODEPEND
-        -include $(OBJS:.obj=.d)
+        ifneq ($(OBJS),)
+            -include $(OBJS:.obj=.d)
+        endif
     endif
 endif
 

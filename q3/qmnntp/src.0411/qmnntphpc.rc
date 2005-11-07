@@ -1,0 +1,118 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resourcehpc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resourcehpc.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Japanese resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resourcehpc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resourcehpc.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RECEIVE DIALOG DISCARDABLE  0, 0, 225, 105
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "NNTP"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "初期取得数(&I)",IDC_STATIC,5,7,60,8
+    EDITTEXT        IDC_INITIALFETCHCOUNT,65,5,40,12,ES_AUTOHSCROLL
+    CONTROL         "&XOVERを使用",IDC_XOVER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,20,55,10
+    LTEXT           "1リクエストあたりの取得数(&F)",IDC_STATIC,15,32,80,8
+    EDITTEXT        IDC_FETCHCOUNT,95,30,40,12,ES_AUTOHSCROLL
+END
+
+IDD_SEND DIALOG DISCARDABLE  0, 0, 225, 105
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "NNTP (POST)"
+FONT 9, "Tahoma"
+BEGIN
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_RECEIVE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 218
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
+    END
+
+    IDD_SEND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 218
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Japanese resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -762,9 +762,9 @@ void qm::AddressBookListWindowImpl::loadColumns()
 		const WCHAR* pwszWidthKey_;
 		int nDefaultWidth_;
 	} columns[] = {
-		{ IDS_ADDRESSBOOKLIST_NAME,			L"NameWidth",		150	},
-		{ IDS_ADDRESSBOOKLIST_ADDRESS,		L"AddressWidth",	150	},
-		{ IDS_ADDRESSBOOKLIST_COMMENT,		L"CommentWidth",	150	}
+		{ IDS_ADDRESSBOOK_COLUMN_NAME,		L"NameWidth",		150	},
+		{ IDS_ADDRESSBOOK_COLUMN_ADDRESS,	L"AddressWidth",	150	},
+		{ IDS_ADDRESSBOOK_COLUMN_COMMENT,	L"CommentWidth",	150	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
 		wstring_ptr wstrTitle(loadString(hInst, columns[n].nId_));
@@ -1285,7 +1285,7 @@ void qm::AddressBookThread::run()
 	InitThread init(InitThread::FLAG_SYNCHRONIZER);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_ADDRESSBOOK));
+	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_ADDRESSBOOK));
 	
 	std::auto_ptr<AddressBookFrameWindow> pWindow;
 	{

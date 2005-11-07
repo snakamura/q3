@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resourceppc.h"
 
@@ -14,12 +14,12 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Japanese resources
+// English (U.S.) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
-LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
-#pragma code_page(932)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 #endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
@@ -42,19 +42,12 @@ END
 
 3 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#include ""res\\\\version.rc""\r\n"
+    "#include ""qs.rc""\r\n"
     "\0"
 END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Cursor
-//
-
-IDC_LINK                CURSOR  DISCARDABLE     "res\\link.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -152,43 +145,15 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Bitmap
-//
-
-IDB_BROWSEFOLDER        BITMAP  DISCARDABLE     "res\\browsefolder.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
 //
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_RAS_OPENPORT        "Opening port..."
-    IDS_RAS_PORTOPENED      "Port opened."
-    IDS_RAS_CONNECTDEVICE   "Connecting device..."
-    IDS_RAS_DEVICECONNECTED "Device connected."
-    IDS_RAS_AUTHENTICATE    "Authenticating..."
-    IDS_RAS_AUTHENTICATED   "Authenticated."
-    IDS_RAS_CONNECTED       "Connected."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_RAS_WAITINGBEFOREDISCONNECTING "Disconnecting..."
-    IDS_RAS_DISCONNECTING   "Disconnecting..."
-    IDS_REGULAR             "Regular"
-    IDS_BOLD                "Bold"
-    IDS_ITALIC              "Italic"
-    IDS_BOLDITALIC          "Bold Italic"
-END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_CREATEFOLDER  "Could not create a new folder."
 END
 
-#endif    // Japanese resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -198,7 +163,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-#include "res\\version.rc"
+#include "qs.rc"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

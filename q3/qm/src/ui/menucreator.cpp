@@ -131,7 +131,7 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 	
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_ATTACHMENT, wstrNone.get(), DATA);
 	}
 	
@@ -188,7 +188,7 @@ UINT qm::EncodingMenuCreator::createMenu(HMENU hmenu,
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nBaseId, wstrNone.get(), dwData);
 	}
 	
@@ -239,7 +239,7 @@ UINT qm::FilterMenuCreator::createMenu(HMENU hmenu,
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_FILTER, wstrNone.get(), DATA);
 	}
 	
@@ -291,7 +291,7 @@ UINT qm::GoRoundMenuCreator::createMenu(HMENU hmenu,
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrName(loadString(hInst, IDS_GOROUND));
+		wstring_ptr wstrName(loadString(hInst, IDS_MENU_GOROUND));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_GOROUND, wstrName.get(), DATA);
 	}
 	
@@ -344,7 +344,7 @@ UINT qm::InsertTextMenuCreator::createMenu(HMENU hmenu,
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_INSERTTEXT, wstrNone.get(), DATA);
 	}
 	
@@ -408,7 +408,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 		stackFolder.push_back(MenuInserter(hmenu, 0));
 		
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrThisFolder(loadString(hInst, IDS_THISFOLDER));
+		wstring_ptr wstrThisFolder(loadString(hInst, IDS_MENU_THISFOLDER));
 		W2T(wstrThisFolder.get(), ptszThisFolder);
 		
 		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ) {
@@ -479,7 +479,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 	
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_MOVE, wstrNone.get(), DATA);
 	}
 	
@@ -622,7 +622,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 	
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_OPENRECENT, wstrNone.get(), DATA);
 	}
 	
@@ -684,7 +684,7 @@ UINT qm::ScriptMenuCreator::createMenu(HMENU hmenu,
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_SCRIPTNONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_SCRIPT, wstrNone.get(), DATA);
 	}
 	
@@ -742,7 +742,7 @@ UINT qm::SortMenuCreator::createMenu(HMENU hmenu,
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_SORT, wstrNone.get(), DATA);
 	}
 	
@@ -801,7 +801,7 @@ UINT qm::SubAccountMenuCreator::createMenu(HMENU hmenu,
 	
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_SUBACCOUNT, wstrNone.get(), DATA);
 	}
 	
@@ -873,7 +873,7 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 	
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nBaseId, wstrNone.get(), dwData);
 	}
 	

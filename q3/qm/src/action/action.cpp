@@ -620,7 +620,7 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			MessageActionUtil::select(pViewModel, nIndex - 1, pMessageModel_);
 	}
 	
-	ProgressDialogMessageOperationCallback callback(hwnd_, IDS_DELETE, IDS_DELETE);
+	ProgressDialogMessageOperationCallback callback(hwnd_, IDS_PROGRESS_DELETE, IDS_PROGRESS_DELETE);
 	UndoItemList undo;
 	if (type_ != TYPE_JUNK) {
 		if (!pAccount->removeMessages(l, pFolder, type_ == TYPE_DIRECT, &callback, &undo)) {
@@ -662,7 +662,7 @@ bool qm::EditDeleteMessageAction::confirm() const
 {
 	if (pProfile_->getInt(L"Global", L"ConfirmDeleteMessage", 0))
 		return messageBox(Application::getApplication().getResourceHandle(),
-			IDS_CONFIRMDELETEMESSAGE, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
+			IDS_CONFIRM_DELETEMESSAGE, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
 	else
 		return true;
 }
@@ -770,7 +770,7 @@ void qm::EditFindAction::invoke(const ActionEvent& event)
 	}
 	
 	if (!bFound)
-		ActionUtil::info(hwndFrame, IDS_FINDNOTFOUND);
+		ActionUtil::info(hwndFrame, IDS_MESSAGE_FINDNOTFOUND);
 }
 
 bool qm::EditFindAction::isEnabled(const ActionEvent& event)
@@ -822,7 +822,7 @@ void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 		MessageDataObject::Flag flag = MessageDataObject::getPasteFlag(
 			pDataObject.get(), pDocument_, pNormalFolder);
 		UINT nId = flag == MessageDataObject::FLAG_MOVE ?
-			IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+			IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
 		ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
 		if (!MessageDataObject::pasteMessages(pDataObject.get(), pDocument_,
 			pNormalFolder, flag, &callback, pDocument_->getUndoManager())) {
@@ -958,7 +958,7 @@ void qm::FileCheckAction::invoke(const ActionEvent& event)
 		virtual Ignore isIgnoreError(MessageHolder* pmh)
 		{
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			wstring_ptr wstrTemplate(loadString(hInst, IDS_IGNORECHECKERROR));
+			wstring_ptr wstrTemplate(loadString(hInst, IDS_CONFIRM_IGNORECHECKERROR));
 			wstring_ptr wstrFolderName(pmh->getFolder()->getFullName());
 			wstring_ptr wstrMessage(allocWString(
 				wcslen(wstrTemplate.get()) + wcslen(wstrFolderName.get()) + 100));
@@ -974,7 +974,7 @@ void qm::FileCheckAction::invoke(const ActionEvent& event)
 		}
 	};
 	
-	AccountCheckCallbackImpl callback(hwnd_, IDS_CHECK, IDS_CHECK);
+	AccountCheckCallbackImpl callback(hwnd_, IDS_PROGRESS_CHECK, IDS_PROGRESS_CHECK);
 	if (!pAccount->check(&callback)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_CHECK);
 		return;
@@ -1031,7 +1031,8 @@ void qm::FileCompactAction::invoke(const ActionEvent& event)
 	if (!pAccount)
 		return;
 	
-	ProgressDialogMessageOperationCallback callback(hwnd_, IDS_COMPACT, IDS_COMPACT);
+	ProgressDialogMessageOperationCallback callback(hwnd_,
+		IDS_PROGRESS_COMPACT, IDS_PROGRESS_COMPACT);
 	if (!pAccount->compact(&callback)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_COMPACT);
 		return;
@@ -1086,7 +1087,7 @@ void qm::FileDumpAction::invoke(const ActionEvent& event)
 	}
 	
 	ProgressDialog dialog;
-	ProgressDialogInit init(&dialog, hwnd_, IDS_DUMP, IDS_DUMP, 0, nCount, 0);
+	ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_DUMP, IDS_PROGRESS_DUMP, 0, nCount, 0);
 	
 	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
@@ -1197,7 +1198,7 @@ qm::FileExitAction::~FileExitAction()
 bool qm::FileExitAction::exit(bool bDestroy)
 {
 	if (pSyncManager_->isSyncing()) {
-		ActionUtil::error(hwnd_, IDS_SYNCHRONIZING);
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
 		return false;
 	}
 	
@@ -1245,7 +1246,7 @@ bool qm::FileExitAction::exit(bool bDestroy)
 		{
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
 			
-			wstring_ptr wstr(loadString(hInst, IDS_CONFIRMDELETETEMPFILE));
+			wstring_ptr wstr(loadString(hInst, IDS_CONFIRM_DELETETEMPFILE));
 			wstring_ptr wstrMessage(concat(wstr.get(), pwszPath));
 			
 			int nMsg = messageBox(wstrMessage.get(),
@@ -1337,7 +1338,7 @@ bool qm::FileExportAction::exportMessages(Account* pAccount,
 		
 		ProgressDialog progressDialog;
 		ProgressDialogInit init(&progressDialog, hwnd_,
-			IDS_EXPORT, IDS_EXPORT, 0, l.size(), 0);
+			IDS_PROGRESS_EXPORT, IDS_PROGRESS_EXPORT, 0, l.size(), 0);
 		
 		if (dialog.isFilePerMessage()) {
 			const WCHAR* pwszPath = dialog.getPath();
@@ -1614,7 +1615,7 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 	
 	ProgressDialog progressDialog;
 	ProgressDialogInit init(&progressDialog, hwnd,
-		IDS_IMPORT, IDS_IMPORT, 0, nCount, 0);
+		IDS_PROGRESS_IMPORT, IDS_PROGRESS_IMPORT, 0, nCount, 0);
 	
 	if (bMultipleMessagesInFile) {
 		int nPos = 0;
@@ -2012,7 +2013,7 @@ void qm::FileLoadAction::invoke(const ActionEvent& event)
 		return;
 	
 	ProgressDialog dialog;
-	ProgressDialogInit init(&dialog, hwnd_, IDS_LOAD, IDS_LOAD, 0, 100, 0);
+	ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_LOAD, IDS_PROGRESS_LOAD, 0, 100, 0);
 	
 	int nPos = 0;
 	if (!loadFolder(pAccount, 0, wstrPath.get(), &dialog, &nPos)) {
@@ -2316,7 +2317,7 @@ void qm::FileSalvageAction::invoke(const ActionEvent& event)
 	
 	Account* pAccount = pFolder->getAccount();
 	ProgressDialogMessageOperationCallback callback(
-		hwnd_, IDS_SALVAGE, IDS_SALVAGE);
+		hwnd_, IDS_PROGRESS_SALVAGE, IDS_PROGRESS_SALVAGE);
 	if (!pAccount->salvage(static_cast<NormalFolder*>(pFolder), &callback)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_SALVAGE);
 		return;
@@ -2574,7 +2575,7 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 		return;
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMREMOVEFOLDER));
+	wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVEFOLDER));
 	wstring_ptr wstrName(Util::formatFolders(l, L", "));
 	wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
 	swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
@@ -2681,7 +2682,7 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 	
 	if (pProfile_->getInt(L"Global", L"ConfirmEmptyFolder", 1)) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMEMPTYFOLDER));
+		wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_EMPTYFOLDER));
 		wstring_ptr wstrName(Util::formatFolders(l, L", "));
 		wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
 		swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
@@ -2770,7 +2771,7 @@ void qm::FolderEmptyTrashAction::emptyAllTrash(Document* pDocument,
 	
 	if (pProfile->getInt(L"Global", L"ConfirmEmptyTrash", 1)) {
 		if (messageBox(Application::getApplication().getResourceHandle(),
-			IDS_CONFIRMEMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
+			IDS_CONFIRM_EMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
 			return;
 	}
 	
@@ -2792,7 +2793,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 	
 	if (bConfirm) {
 		if (messageBox(Application::getApplication().getResourceHandle(),
-			IDS_CONFIRMEMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
+			IDS_CONFIRM_EMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
 			return;
 	}
 	
@@ -2822,7 +2823,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 		MessageHolderList l(pTrash->getMessages());
 		if (!l.empty()) {
 			ProgressDialogMessageOperationCallback callback(
-				hwnd, IDS_EMPTYTRASH, IDS_EMPTYTRASH);
+				hwnd, IDS_PROGRESS_EMPTYTRASH, IDS_PROGRESS_EMPTYTRASH);
 			if (!pAccount->removeMessages(l, pTrash, true, &callback, 0)) {
 				ActionUtil::error(hwnd, IDS_ERROR_EMPTYTRASH);
 				return;
@@ -2934,7 +2935,7 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 											Profile* pProfile)
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_PROPERTY));
+	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_PROPERTY));
 	
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 	FolderPropertyPage pageProperty(listFolder);
@@ -3165,13 +3166,13 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		
 		virtual void checkingMessages(Folder* pFolder)
 		{
-			wstring_ptr wstrMessage(getMessage(IDS_APPLYRULE_CHECKINGMESSAGES, pFolder));
+			wstring_ptr wstrMessage(getMessage(IDS_MESSAGE_CHECKMESSAGES, pFolder));
 			pDialog_->setMessage(wstrMessage.get());
 		}
 		
 		virtual void applyingRule(Folder* pFolder)
 		{
-			wstring_ptr wstrMessage(getMessage(IDS_APPLYRULE_APPLYINGRULE, pFolder));
+			wstring_ptr wstrMessage(getMessage(IDS_MESSAGE_APPLYRULE, pFolder));
 			pDialog_->setMessage(wstrMessage.get());
 		}
 		
@@ -3209,7 +3210,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 				Account::FolderList l(pAccount->getFolders());
 				std::sort(l.begin(), l.end(), FolderLess());
 				
-				ProgressDialogInit init(&dialog, hwnd_, IDS_APPLYMESSAGERULES);
+				ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
 				for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 					Folder* pFolder = *it;
 					if (pFolder->getType() == Folder::TYPE_NORMAL &&
@@ -3237,7 +3238,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 					for (unsigned int n = 0; n < pViewModel->getCount(); ++n)
 						l[n] = pViewModel->getMessageHolder(n);
 					
-					ProgressDialogInit init(&dialog, hwnd_, IDS_APPLYMESSAGERULES);
+					ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
 					if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
 						pSecurityModel_->getSecurityMode(), &callback)) {
 						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
@@ -3254,7 +3255,7 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		MessageHolderList l;
 		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		if (!l.empty()) {
-			ProgressDialogInit init(&dialog, hwnd_, IDS_APPLYMESSAGERULES);
+			ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
 			if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
 				pSecurityModel_->getSecurityMode(), &callback)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
@@ -3930,7 +3931,7 @@ void qm::MessageManageJunkAction::invoke(const ActionEvent& event)
 	
 	ProgressDialog progressDialog;
 	ProgressDialogInit init(&progressDialog, hwnd_,
-		IDS_PROCESSING, IDS_PROCESSING, 0, l.size(), 0);
+		IDS_PROGRESS_PROCESS, IDS_PROGRESS_PROCESS, 0, l.size(), 0);
 	
 	for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
 		JunkFilterUtil::manage(pJunkFilter_, l[n], operation_);
@@ -4075,7 +4076,7 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+	UINT nId = bMove ? IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
 	UndoItemList undo;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
 	unsigned int nFlags = (bMove ? Account::COPYFLAG_MOVE : 0) | Account::COPYFLAG_MANAGEJUNK;
@@ -4375,7 +4376,7 @@ void qm::MessagePropertyAction::invoke(const ActionEvent& event)
 	Account* pAccount = lock.get();
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_PROPERTY));
+	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_PROPERTY));
 	
 	MessagePropertyPage page(l);
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
@@ -4435,7 +4436,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 		return;
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_SEARCH));
+	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_SEARCH));
 	
 	typedef std::vector<std::pair<SearchUI*, SearchPropertyPage*> > UIList;
 	UIList listUI;
@@ -4825,7 +4826,7 @@ qm::ToolAccountAction::~ToolAccountAction()
 void qm::ToolAccountAction::invoke(const ActionEvent& event)
 {
 	if (pSyncManager_->isSyncing()) {
-		ActionUtil::error(hwnd_, IDS_SYNCHRONIZING);
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
 		return;
 	}
 	
@@ -5047,7 +5048,7 @@ void qm::ToolDialupAction::invoke(const ActionEvent& event)
 wstring_ptr qm::ToolDialupAction::getText(const ActionEvent& event)
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	UINT nId = isConnected() ? IDS_DIALUPDISCONNECT : IDS_DIALUPCONNECT;
+	UINT nId = isConnected() ? IDS_ACTION_DIALUPDISCONNECT : IDS_ACTION_DIALUPCONNECT;
 	return loadString(hInst, nId);
 }
 
@@ -5248,7 +5249,7 @@ qm::ToolSubAccountAction::~ToolSubAccountAction()
 void qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 {
 	if (pSyncManager_->isSyncing()) {
-		ActionUtil::error(hwnd_, IDS_SYNCHRONIZING);
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
 		return;
 	}
 	
@@ -6306,7 +6307,7 @@ qm::ViewShowFolderAction::ViewShowFolderAction(MainWindow* pMainWindow) :
 	ViewShowControlAction<MainWindow>(pMainWindow,
 		&qm::MainWindow::setShowFolderWindow,
 		&qm::MainWindow::isShowFolderWindow,
-		IDS_SHOWFOLDER, IDS_HIDEFOLDER)
+		IDS_ACTION_SHOWFOLDER, IDS_ACTION_HIDEFOLDER)
 {
 }
 
@@ -6325,7 +6326,7 @@ qm::ViewShowHeaderAction::ViewShowHeaderAction(MessageWindow* pMessageWindow) :
 	ViewShowControlAction<MessageWindow>(pMessageWindow,
 		&qm::MessageWindow::setShowHeaderWindow,
 		&qm::MessageWindow::isShowHeaderWindow,
-		IDS_SHOWHEADER, IDS_HIDEHEADER)
+		IDS_ACTION_SHOWHEADER, IDS_ACTION_HIDEHEADER)
 {
 }
 
@@ -6344,7 +6345,7 @@ qm::ViewShowHeaderColumnAction::ViewShowHeaderColumnAction(ListWindow* pListWind
 	ViewShowControlAction<ListWindow>(pListWindow,
 		&qm::ListWindow::setShowHeaderColumn,
 		&qm::ListWindow::isShowHeaderColumn,
-		IDS_SHOWHEADERCOLUMN, IDS_HIDEHEADERCOLUMN)
+		IDS_ACTION_SHOWHEADERCOLUMN, IDS_ACTION_HIDEHEADERCOLUMN)
 {
 }
 
@@ -6363,7 +6364,7 @@ qm::ViewShowPreviewAction::ViewShowPreviewAction(MainWindow* pMainWindow) :
 	ViewShowControlAction<MainWindow>(pMainWindow,
 		&qm::MainWindow::setShowPreviewWindow,
 		&qm::MainWindow::isShowPreviewWindow,
-		IDS_SHOWPREVIEW, IDS_HIDEPREVIEW)
+		IDS_ACTION_SHOWPREVIEW, IDS_ACTION_HIDEPREVIEW)
 {
 }
 
@@ -6404,7 +6405,7 @@ void qm::ViewShowSyncDialogAction::invoke(const ActionEvent& event)
 
 qm::ViewShowTabAction::ViewShowTabAction(TabWindow* pTabWindow) :
 	ViewShowControlAction<TabWindow>(pTabWindow, &qm::TabWindow::setShowTab,
-		&qm::TabWindow::isShowTab, IDS_SHOWTAB, IDS_HIDETAB)
+		&qm::TabWindow::isShowTab, IDS_ACTION_SHOWTAB, IDS_ACTION_HIDETAB)
 {
 }
 

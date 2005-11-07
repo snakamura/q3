@@ -16,6 +16,7 @@
 #include <qsuiutil.h>
 
 #include <commdlg.h>
+#include <tchar.h>
 #ifndef _WIN32_WCE
 #	include <shlobj.h>
 #endif

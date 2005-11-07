@@ -13,12 +13,12 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// “ú–{Œê resources
+// English (U.S.) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
-LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
-#pragma code_page(932)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 #endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
@@ -49,65 +49,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Dialog
-//
-
-IDD_RECEIVE DIALOG DISCARDABLE  0, 0, 223, 145
-STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
-CAPTION "RSS"
-FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
-BEGIN
-    GROUPBOX        "HTTP Proxy",IDC_STATIC,5,5,213,80
-    CONTROL         "&Never use proxy",IDC_NOPROXY,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,10,15,75,10
-    CONTROL         "Use &internet setting",IDC_INTERNETSETTING,"Button",
-                    BS_AUTORADIOBUTTON,10,25,85,10
-    CONTROL         "&Custom setting",IDC_CUSTOM,"Button",BS_AUTORADIOBUTTON,
-                    10,35,70,10
-    LTEXT           "H&ost",IDC_STATIC,20,53,25,8
-    EDITTEXT        IDC_HOST,50,50,160,14,ES_AUTOHSCROLL
-    LTEXT           "&Port",IDC_STATIC,20,68,20,8
-    EDITTEXT        IDC_PORT,50,65,30,14,ES_AUTOHSCROLL | ES_NUMBER
-END
-
-IDD_SEND DIALOG DISCARDABLE  0, 0, 223, 145
-STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
-CAPTION "Weblog"
-FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
-BEGIN
-    LTEXT           "",IDC_STATIC,5,5,8,8
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    IDD_RECEIVE, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 216
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 138
-    END
-
-    IDD_SEND, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 216
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 138
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
 //
 
@@ -115,6 +56,11 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_RSS                 "RSS"
     IDS_RSSSEND             "Weblog"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FOLDER_TRASH        "Trash"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -141,7 +87,7 @@ BEGIN
     IDS_ERROR_APPLYRULES    "Error occured while applying rules."
 END
 
-#endif    // “ú–{Œê resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

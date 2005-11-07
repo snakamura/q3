@@ -248,7 +248,7 @@ LRESULT qm::AccountDialog::onRemove()
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
 			Account* pAccount = pSubAccount->getAccount();
 			
-			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMREMOVESUBACCOUNT));
+			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVESUBACCOUNT));
 			wstring_ptr wstrName(concat(pAccount->getName(), L"/", pSubAccount->getName()));
 			wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
 			swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
@@ -277,7 +277,7 @@ LRESULT qm::AccountDialog::onRemove()
 				}
 			}
 			
-			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRMREMOVEACCOUNT));
+			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVEACCOUNT));
 			wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(pAccount->getName()) + 64));
 			swprintf(wstrMessage.get(), wstrConfirm.get(), pAccount->getName());
 			int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2, getHandle());
@@ -358,7 +358,7 @@ LRESULT qm::AccountDialog::onProperty()
 		assert(pSubAccount);
 		
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrTitle(loadString(hInst, IDS_ACCOUNT));
+		wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_ACCOUNT));
 		
 		Account* pAccount = pSubAccount->getAccount();
 		PropertyPage* pPage = 0;
@@ -390,7 +390,7 @@ LRESULT qm::AccountDialog::onProperty()
 		
 		if (bAccountAdded_ && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER)) {
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			if (messageBox(hInst, IDS_UPDATEFOLDER, MB_YESNO | MB_ICONQUESTION, getHandle()) == IDYES) {
+			if (messageBox(hInst, IDS_MESSAGE_UPDATEFOLDER, MB_YESNO | MB_ICONQUESTION, getHandle()) == IDYES) {
 				if (!pAccount->updateFolders())
 					messageBox(hInst, IDS_ERROR_UPDATEFOLDER, MB_OK | MB_ICONERROR, getHandle());
 			}

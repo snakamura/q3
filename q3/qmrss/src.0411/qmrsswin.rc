@@ -1,0 +1,124 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resourcewin.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resourcewin.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resourcewin.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resourcewin.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""qmrss.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RECEIVE DIALOG DISCARDABLE  0, 0, 223, 145
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "RSS"
+FONT 9, "MS UI Gothic"
+BEGIN
+    GROUPBOX        "HTTPプロキシ",IDC_STATIC,5,5,213,80
+    CONTROL         "使用しない(&N)",IDC_NOPROXY,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,10,15,75,10
+    CONTROL         "インターネットオプションを使用(&I)",IDC_INTERNETSETTING,
+                    "Button",BS_AUTORADIOBUTTON,10,25,105,10
+    CONTROL         "カスタム(&C)",IDC_CUSTOM,"Button",BS_AUTORADIOBUTTON,10,
+                    35,70,10
+    LTEXT           "ホスト(&O)",IDC_STATIC,20,53,25,8
+    EDITTEXT        IDC_HOST,50,50,160,14,ES_AUTOHSCROLL
+    LTEXT           "ポート(&P)",IDC_STATIC,20,68,25,8
+    EDITTEXT        IDC_PORT,50,65,30,14,ES_AUTOHSCROLL | ES_NUMBER
+END
+
+IDD_SEND DIALOG DISCARDABLE  0, 0, 223, 145
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Weblog"
+FONT 9, "MS UI Gothic"
+BEGIN
+    LTEXT           "",IDC_STATIC,5,5,8,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_RECEIVE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 138
+    END
+
+    IDD_SEND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 138
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "qmrss.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

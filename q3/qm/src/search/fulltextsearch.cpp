@@ -178,7 +178,7 @@ const WCHAR* qm::FullTextSearchUI::getName()
 
 wstring_ptr qm::FullTextSearchUI::getDisplayName()
 {
-	return loadString(Application::getApplication().getResourceHandle(), IDS_FULLTEXTSEARCH);
+	return loadString(Application::getApplication().getResourceHandle(), IDS_TITLE_FULLTEXTSEARCH);
 }
 
 std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(bool bAllFolder,

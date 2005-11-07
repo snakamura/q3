@@ -13,12 +13,12 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Japanese resources
+// English (U.S.) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
-LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
-#pragma code_page(932)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 #endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
@@ -41,6 +41,7 @@ END
 3 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""res\\\\version.rc""\r\n"
+    "\r\n"
     "\0"
 END
 
@@ -61,8 +62,8 @@ BEGIN
     EDITTEXT        IDC_INITIALFETCHCOUNT,65,5,40,12,ES_AUTOHSCROLL
     CONTROL         "Use &XOVER",IDC_XOVER,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,20,55,10
-    LTEXT           "Fetch count",IDC_STATIC,15,32,35,8
-    EDITTEXT        IDC_FETCHCOUNT,65,30,40,12,ES_AUTOHSCROLL
+    LTEXT           "&Fetch count per request",IDC_STATIC,15,32,80,8
+    EDITTEXT        IDC_FETCHCOUNT,95,30,40,12,ES_AUTOHSCROLL
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 225, 105
@@ -99,92 +100,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_NNTP                "NNTP"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_INITIALIZE          "Initializing..."
-    IDS_LOOKUP              "Looking host up..."
-    IDS_CONNECTING          "Connecting..."
-    IDS_CONNECTED           "Connected"
-    IDS_AUTHENTICATING      "Authenticating..."
-    IDS_SELECTGROUP         "Selecting group..."
-    IDS_DOWNLOADMESSAGES    "Download messages..."
-    IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_MESSAGE       "NNTP error."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_GREETING      "Error occured while greeting."
-    IDS_ERROR_GROUP         "Error occured while GROUP command."
-    IDS_ERROR_AUTHINFO      "Error occured while AUTHINFO command."
-    IDS_ERROR_ARTICLE       "Error occured while ARTICLE command."
-    IDS_ERROR_HEAD          "Error occured while HEAD command."
-    IDS_ERROR_BODY          "Error occured while BODY command."
-    IDS_ERROR_XOVER         "Error occured while XOVER command."
-    IDS_ERROR_MODEREADER    "Error occured while MODE READER command."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_INITIALIZE    "Failed to initialize."
-    IDS_ERROR_CONNECT       "Failed to connect."
-    IDS_ERROR_RESPONSE      "Received an error response."
-    IDS_ERROR_INVALIDSOCKET "Invalid socket."
-    IDS_ERROR_OTHER         "Unspecified error."
-    IDS_ERROR_SELECT        "Failed to select."
-    IDS_ERROR_TIMEOUT       "Connection timed out."
-    IDS_ERROR_RECEIVE       "Failed to receive."
-    IDS_ERROR_DISCONNECT    "Disconnected by the peer."
-    IDS_ERROR_SEND          "Failed to send."
-    IDS_ERROR_SSL           "Failed to initialize SSL."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_SOCKET_SOCKET "socket"
-    IDS_ERROR_SOCKET_CLOSESOCKET "closesocket"
-    IDS_ERROR_SOCKET_LOOKUPNAME "Lookup name"
-    IDS_ERROR_SOCKET_CONNECT "connect"
-    IDS_ERROR_SOCKET_CONNECTTIMEOUT "connect timeout"
-    IDS_ERROR_SOCKET_RECV   "recv"
-    IDS_ERROR_SOCKET_RECVTIMEOUT "recv timeout"
-    IDS_ERROR_SOCKET_SEND   "send"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_SOCKET_SENDTIMEOUT "send timeout"
-    IDS_ERROR_SOCKET_SELECT "select"
-    IDS_ERROR_SOCKET_CANCEL "cancel"
-    IDS_ERROR_SOCKET_UNKNOWN "unknown"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_POST          "Error occured while POST command."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
-END
-
-#endif    // Japanese resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -195,6 +111,7 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #include "res\\version.rc"
+
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

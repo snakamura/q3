@@ -12,6 +12,7 @@ PROJECTS="qs qscrypto qsconvja qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qm
 WINTARGETS="win.x86.ansi.release win.x86.unicode.release win.x64.unicode.release"
 WCETARGETS="ppc2003se.armv4.ja ppc2003.armv4.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja sig3.armv4i.ja"
 TARGETS="$WINTARGETS $WCETARGETS"
+MUIS="0411"
 
 if [ $# -eq 0 ]; then
 	COMMAND=all
@@ -35,7 +36,7 @@ copy)
 		for dir in bin lib; do
 			if [ -d $p/$dir ]; then
 				cd $p/$dir
-				tar cf - `/bin/find . ! -regex "\./lib/.*" -a \( -name *.exe -o -name *.dll \)` | (cd $bindir; tar xf -)
+				tar cf - `/bin/find . ! -regex "\./lib/.*" -a \( -name *.exe -o -name *.dll -o -name *.mui \)` | (cd $bindir; tar xf -)
 				cd ../..
 			fi
 		done
@@ -103,7 +104,7 @@ run|run.unicode|run.debug|run.debug.unicode|debug|debug.unicode|purify|purify.un
 	;;
 
 countline)
-	wc `/bin/find . ! -regex "\./lib/.*" -a -regex ".*/\(include\|src\)/.*\.\(h\|cpp\|inl\|idl\|rc\|xml\)$"` | sort
+	wc `/bin/find . ! -regex "\./lib/.*" -a -regex ".*/\(include\|src\(\..+\)?\)/.*\.\(h\|cpp\|inl\|idl\|rc\|xml\)$"` | sort
 	;;
 
 countclass)
@@ -143,20 +144,31 @@ zip)
 	REVISION=`cat revision`
 	DATE=`date +%Y%m%d`
 	ZIPDIR=./zip
+	SUFFIX=`printf $VERSION | tr . _`_$REVISION-$DATE
 	
 	mkdir -p $ZIPDIR
 	
-	zip -j $ZIPDIR/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \
+	zip -j $ZIPDIR/q3-win-x86-ja-$SUFFIX.zip \
 		*/bin/win/x86/ansi/release/*.exe \
 		*/lib/win/x86/ansi/release/*.dll
-	zip -j $ZIPDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \
+	zip -j $ZIPDIR/q3u-win-x86-ja-$SUFFIX.zip \
 		*/bin/win/x86/unicode/release/*.exe \
 		*/lib/win/x86/unicode/release/*.dll
+	for mui in $MUIS; do
+		zip -j $ZIPDIR/q3-win-x86-ja-mui$mui-$SUFFIX.zip \
+			*/bin/win/x86/ansi/release/*.mui
+		zip -j $ZIPDIR/q3u-win-x86-ja-mui$mui-$SUFFIX.zip \
+			*/bin/win/x86/unicode/release/*.mui
+	done
 	
 	for t in $WCETARGETS; do
-		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-`printf $VERSION | tr . _`_$REVISION-$DATE.zip \
+		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip \
 			*/bin/`printf $t | tr . /`/release/*.exe \
 			*/lib/`printf $t | tr . /`/release/*.dll
+		for mui in $MUIS; do
+			zip -j $ZIPDIR/q3u-`printf $t | tr . -`-mui$mui-$SUFFIX.zip \
+				*/bin/`printf $t | tr . /`/release/*.mui
+		done
 	done
 	;;
 

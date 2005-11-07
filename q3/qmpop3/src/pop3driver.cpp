@@ -12,7 +12,9 @@
 
 #include <qsassert.h>
 
+#include "main.h"
 #include "pop3driver.h"
+#include "resourceinc.h"
 
 using namespace qmpop3;
 using namespace qm;
@@ -93,22 +95,23 @@ bool qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 	assert(pList);
 	
 	struct {
-		const WCHAR* pwszName_;
+		UINT nId_;
 		unsigned int nFlags_;
 	} folders[] = {
-		{ L"Inbox",		Folder::FLAG_LOCAL | Folder::FLAG_INBOX | Folder::FLAG_SYNCABLE		},
-		{ L"Outbox",	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
-		{ L"Sentbox",	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
-		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							},
+		{ IDS_FOLDER_INBOX,		Folder::FLAG_LOCAL | Folder::FLAG_INBOX | Folder::FLAG_SYNCABLE		},
+		{ IDS_FOLDER_OUTBOX,	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
+		{ IDS_FOLDER_SENTBOX,	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
+		{ IDS_FOLDER_TRASH,		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							},
 #ifndef _WIN32_WCE
-		{ L"Junk",		Folder::FLAG_LOCAL | Folder::FLAG_JUNKBOX							}
+		{ IDS_FOLDER_JUNK,		Folder::FLAG_LOCAL | Folder::FLAG_JUNKBOX							}
 #endif
 	};
 	
 	pList->reserve(countof(folders));
 	
 	for (int n = 0; n < countof(folders); ++n) {
-		NormalFolder* pFolder = new NormalFolder(n + 1, folders[n].pwszName_,
+		wstring_ptr wstrName(loadString(getResourceHandle(), folders[n].nId_));
+		NormalFolder* pFolder = new NormalFolder(n + 1, wstrName.get(),
 			L'/', folders[n].nFlags_, 0, 0, 0, 0, 0, 0, pAccount_);
 		pList->push_back(pFolder);
 	}

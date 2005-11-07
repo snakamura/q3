@@ -71,20 +71,6 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 			{ Pop3::POP3_ERROR_RESPONSE,		IDS_ERROR_RESPONSE			},
 			{ Pop3::POP3_ERROR_SSL,				IDS_ERROR_SSL				},
 			{ Pop3::POP3_ERROR_OTHER,			IDS_ERROR_OTHER				}
-		},
-		{
-			{ Socket::SOCKET_ERROR_SOCKET,			IDS_ERROR_SOCKET_SOCKET			},
-			{ Socket::SOCKET_ERROR_CLOSESOCKET,		IDS_ERROR_SOCKET_CLOSESOCKET	},
-			{ Socket::SOCKET_ERROR_LOOKUPNAME,		IDS_ERROR_SOCKET_LOOKUPNAME		},
-			{ Socket::SOCKET_ERROR_CONNECT,			IDS_ERROR_SOCKET_CONNECT		},
-			{ Socket::SOCKET_ERROR_CONNECTTIMEOUT,	IDS_ERROR_SOCKET_CONNECTTIMEOUT	},
-			{ Socket::SOCKET_ERROR_RECV,			IDS_ERROR_SOCKET_RECV			},
-			{ Socket::SOCKET_ERROR_RECVTIMEOUT,		IDS_ERROR_SOCKET_RECVTIMEOUT	},
-			{ Socket::SOCKET_ERROR_SEND,			IDS_ERROR_SOCKET_SEND			},
-			{ Socket::SOCKET_ERROR_SENDTIMEOUT,		IDS_ERROR_SOCKET_SENDTIMEOUT	},
-			{ Socket::SOCKET_ERROR_SELECT,			IDS_ERROR_SOCKET_SELECT			},
-			{ Socket::SOCKET_ERROR_CANCEL,			IDS_ERROR_SOCKET_CANCEL			},
-			{ Socket::SOCKET_ERROR_UNKNOWN,			IDS_ERROR_SOCKET_UNKNOWN		}
 		}
 	};
 	
@@ -92,8 +78,7 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 	unsigned int nMasks[] = {
 		POP3ERROR_MASK,
 		Pop3::POP3_ERROR_MASK_HIGHLEVEL,
-		Pop3::POP3_ERROR_MASK_LOWLEVEL,
-		Socket::SOCKET_ERROR_MASK_SOCKET
+		Pop3::POP3_ERROR_MASK_LOWLEVEL
 	};
 	wstring_ptr wstrDescriptions[countof(maps)];
 	for (int n = 0; n < countof(maps); ++n) {
@@ -105,12 +90,14 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 	}
 	
 	wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_MESSAGE));
+	wstring_ptr wstrSocketDescription(SocketBase::getErrorDescription(
+		static_cast<SocketBase::Error>(nError & SocketBase::SOCKET_ERROR_MASK_SOCKET)));
 	
 	const WCHAR* pwszDescription[] = {
 		wstrDescriptions[0].get(),
 		wstrDescriptions[1].get(),
 		wstrDescriptions[2].get(),
-		wstrDescriptions[3].get(),
+		wstrSocketDescription.get(),
 		pPop3 ? pPop3->getLastErrorResponse() : 0
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),

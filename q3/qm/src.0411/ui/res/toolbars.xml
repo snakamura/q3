@@ -1,0 +1,50 @@
+<toolbars>
+	<toolbar name="mainframe" showText="true">
+		<button image="0" action="MessageCreate" param="new" text="新規"/>
+		<button image="1" action="MessageCreate" param="reply" text="返信"/>
+		<button image="2" action="MessageCreate" param="reply_all" text="全員に返信"/>
+		<button image="3" action="MessageCreate" param="forward" text="転送"/>
+		<separator/>
+		<button image="5" action="EditDelete" text="削除"/>
+		<separator/>
+		<button image="20" action="ViewPrevMessage" text="前"/>
+		<button image="21" action="ViewNextMessage" text="次"/>
+		<button image="22" action="ViewNextUnseenMessage" text="次の未読"/>
+		<separator/>
+		<button image="6" action="MessageSearch" text="検索"/>
+		<separator/>
+		<button image="7" action="ToolSync" text="同期" dropdown="sync"/>
+		<button image="8" action="ToolGoround" param="@0" text="巡回" dropdown="goround"/>
+	</toolbar>
+	<toolbar name="messageframe" showText="true">
+		<button image="0" action="MessageCreate" param="new" text="新規"/>
+		<button image="1" action="MessageCreate" param="reply" text="返信"/>
+		<button image="2" action="MessageCreate" param="reply_all" text="全員に返信"/>
+		<button image="3" action="MessageCreate" param="forward" text="転送"/>
+		<separator/>
+		<button image="5" action="EditDelete" text="削除"/>
+		<separator/>
+		<button image="20" action="ViewPrevMessage" text="前"/>
+		<button image="21" action="ViewNextMessage" text="次"/>
+		<button image="22" action="ViewNextUnseenMessage" text="次の未読"/>
+	</toolbar>
+	<toolbar name="editframe" showText="true">
+		<button image="15" action="FileSend" text="送信"/>
+		<button image="16" action="FileDraft" text="草稿"/>
+		<separator/>
+		<button image="10" action="EditCut" text="切り取り"/>
+		<button image="11" action="EditCopy" text="コピー"/>
+		<button image="12" action="EditPaste" text="貼り付け"/>
+		<button image="13" action="EditUndo" text="元に戻す"/>
+		<button image="14" action="EditRedo" text="やり直す"/>
+		<separator/>
+		<button image="18" action="ToolSelectAddress" text="アドレス帳"/>
+		<button image="17" action="ToolInsertText" param="@0" text="定形文" dropdown="inserttext"/>
+		<button image="19" action="ToolAttachment" text="添付ファイル"/>
+	</toolbar>
+	<toolbar name="addressbookframe" showText="true">
+		<button image="23" action="AddressNew" text="新規"/>
+		<button image="24" action="AddressEdit" text="編集"/>
+		<button image="5" action="AddressDelete" text="削除"/>
+	</toolbar>
+</toolbars>

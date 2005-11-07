@@ -2795,7 +2795,11 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 			if (nCount != nCount_ ||
 				nUnseenCount != nUnseenCount_ ||
 				nSelectedCount != nSelectedCount_) {
-				wstring_ptr wstrTemplate(loadString(hInst, IDS_VIEWMODELSTATUSTEMPLATE));
+#ifndef _WIN32_WCE_PSPC
+				wstring_ptr wstrTemplate(loadString(hInst, IDS_STATUS_VIEWMODELTEMPLATE));
+#else
+				wstring_ptr wstrTemplate(loadString(hInst, IDS_STATUS_VIEWMODELTEMPLATESHORT));
+#endif
 				WCHAR wsz[256];
 				swprintf(wsz, wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
 				setText(0, wsz);
@@ -2810,10 +2814,10 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 			if (*pwszName)
 				wstrFilter_ = allocWString(pwszName);
 			else
-				wstrFilter_ = loadString(hInst, IDS_CUSTOM);
+				wstrFilter_ = loadString(hInst, IDS_STATUS_CUSTOM);
 		}
 		else {
-			wstrFilter_ = loadString(hInst, IDS_NONE);
+			wstrFilter_ = loadString(hInst, IDS_STATUS_NONE);
 		}
 		if (!wstrFilter.get() || wcscmp(wstrFilter.get(), wstrFilter_.get()) != 0)
 			setText(2, wstrFilter_.get());
@@ -2832,7 +2836,7 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 	Offline offline = pDocument_->isOffline() ? OFFLINE_OFFLINE : OFFLINE_ONLINE;
 	if (offline != offline_) {
 		bool bOffline = offline == OFFLINE_OFFLINE;
-		wstring_ptr wstrOnline(loadString(hInst, bOffline ? IDS_OFFLINE : IDS_ONLINE));
+		wstring_ptr wstrOnline(loadString(hInst, bOffline ? IDS_STATUS_OFFLINE : IDS_STATUS_ONLINE));
 		setIconOrText(1, bOffline ? IDI_OFFLINE : IDI_ONLINE, wstrOnline.get());
 		offline_ = offline;
 	}

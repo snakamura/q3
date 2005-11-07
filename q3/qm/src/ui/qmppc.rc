@@ -8,18 +8,17 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "afxres.h"
-#include "actionid.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Japanese resources
+// English (U.S.) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
-LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
-#pragma code_page(932)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 #endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
@@ -36,59 +35,17 @@ END
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""afxres.h""\r\n"
-    "#include ""actionid.h""\r\n"
     "\0"
 END
 
 3 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#include ""res\\\\version.rc""\r\n"
-    "#include ""..\\\\model\\\\model.rc""\r\n"
+    "#include ""qm.rc""\r\n"
     "\0"
 END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menubar
-//
-
-IDR_ADDRESSBOOK MENU DISCARDABLE 
-BEGIN
-    POPUP ""
-    BEGIN
-        MENUITEM "Change to &To",               IDM_ADDRESSBOOK_CHANGETO
-        MENUITEM "Change to &Cc",               IDM_ADDRESSBOOK_CHANGECC
-        MENUITEM "Change to &Bcc",              IDM_ADDRESSBOOK_CHANGEBCC
-        MENUITEM SEPARATOR
-        MENUITEM "&Remove",                     IDM_ADDRESSBOOK_REMOVE
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_MAINFRAME           ICON    DISCARDABLE     "res\\qmail.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_FOLDER              BITMAP  DISCARDABLE     "res\\folder.bmp"
-IDB_HEADER              BITMAP  DISCARDABLE     "res\\header.bmp"
-IDB_LIST                BITMAP  DISCARDABLE     "res\\list.bmp"
-IDB_LISTDATA            BITMAP  DISCARDABLE     "res\\listdata.bmp"
-IDB_ADDRESSBOOK         BITMAP  DISCARDABLE     "res\\addressbook.bmp"
-IDB_SYNCNOTIFICATION    BITMAP  DISCARDABLE     "res\\syncnotification.bmp"
-IDB_ACCOUNT             BITMAP  DISCARDABLE     "res\\account.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -147,7 +104,7 @@ BEGIN
                     127,8
     CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,5,
                     20,127,12
-    DEFPUSHBUTTON   "&Cancel",IDCANCEL,44,40,50,12
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,44,40,50,12
 END
 
 IDD_DETACH DIALOG DISCARDABLE  0, 0, 137, 153
@@ -196,7 +153,7 @@ BEGIN
                     LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | 
                     LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | 
                     WS_TABSTOP,5,5,127,85
-    PUSHBUTTON      "&Add",IDC_ADD,27,95,50,12
+    PUSHBUTTON      "&Add...",IDC_ADD,27,95,50,12
     PUSHBUTTON      "&Remove",IDC_REMOVE,82,95,50,12
     DEFPUSHBUTTON   "OK",IDOK,27,112,50,12
     PUSHBUTTON      "Cancel",IDCANCEL,82,112,50,12
@@ -377,13 +334,13 @@ BEGIN
     LTEXT           "&Entry Name",IDC_STATIC,15,45,45,8
     COMBOBOX        IDC_ENTRY,15,55,117,55,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Dial Properties...",IDC_DIALPROPERTY,65,70,67,12
     CONTROL         "&Show dialog box before connect",IDC_SHOWDIALOG,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,90,117,10
-    PUSHBUTTON      "&Dial Properties...",IDC_DIALPROPERTY,65,70,67,14
-    LTEXT           "&Wait",IDC_STATIC,15,110,20,8
+    LTEXT           "&Wait",IDC_STATIC,15,108,20,8
     EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,107,20,12,ES_AUTOHSCROLL | 
                     ES_NUMBER
-    LTEXT           "s before disconnect",IDC_STATIC,55,110,72,8
+    LTEXT           "s before disconnect",IDC_STATIC,55,108,72,8
 END
 
 IDD_ACCOUNTADVANCED DIALOG DISCARDABLE  0, 0, 137, 153
@@ -520,7 +477,7 @@ BEGIN
     EDITTEXT        IDC_PASSWORD,40,35,92,12,ES_PASSWORD | ES_AUTOHSCROLL
     LTEXT           "&Domain",IDC_STATIC,5,52,30,8
     EDITTEXT        IDC_DOMAIN,40,50,92,12,ES_AUTOHSCROLL
-    LTEXT           "Dial &from",IDC_STATIC,5,75,35,8
+    LTEXT           "Dial from",IDC_STATIC,5,75,35,8
     LTEXT           "",IDC_DIALFROM,40,75,92,8
     PUSHBUTTON      "Dial &properties...",IDC_DIALPROPERTY,62,90,70,12
     DEFPUSHBUTTON   "&Connect",IDOK,27,110,50,12
@@ -744,7 +701,7 @@ BEGIN
     CONTROL         "List1",IDC_PARAMETER,"SysListView32",LVS_REPORT | 
                     LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
                     WS_TABSTOP,5,5,127,110
-    PUSHBUTTON      "&Edit",IDC_EDIT,82,120,50,12
+    PUSHBUTTON      "&Edit...",IDC_EDIT,82,120,50,12
 END
 
 IDD_PARAMETER DIALOG DISCARDABLE  0, 0, 137, 153
@@ -778,14 +735,13 @@ FONT 9, "Tahoma"
 BEGIN
     LTEXT           "&Name",IDC_STATIC,5,7,25,8
     EDITTEXT        IDC_NAME,30,5,102,12,ES_AUTOHSCROLL
-    LTEXT           "En&tries",IDC_STATIC,5,20,30,8
-    LISTBOX         IDC_ENTRY,5,30,82,50,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+    LISTBOX         IDC_ENTRY,5,20,82,60,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
                     WS_TABSTOP
-    PUSHBUTTON      "&Add...",IDC_ADD,92,30,40,12
-    PUSHBUTTON      "&Remove",IDC_REMOVE,92,43,40,12
-    PUSHBUTTON      "&Edit...",IDC_EDIT,92,56,40,12
-    PUSHBUTTON      "&Up",IDC_UP,92,75,40,12
-    PUSHBUTTON      "&Down",IDC_DOWN,92,88,40,12
+    PUSHBUTTON      "&Add...",IDC_ADD,90,20,40,12
+    PUSHBUTTON      "&Remove",IDC_REMOVE,90,33,40,12
+    PUSHBUTTON      "&Edit...",IDC_EDIT,90,46,40,12
+    PUSHBUTTON      "&Up",IDC_UP,90,65,40,12
+    PUSHBUTTON      "&Down",IDC_DOWN,90,78,40,12
     CONTROL         "&Sequential",IDC_SEQUENTIAL,"Button",BS_AUTORADIOBUTTON,
                     10,95,55,10
     CONTROL         "&Parallel",IDC_PARALLEL,"Button",BS_AUTORADIOBUTTON,10,
@@ -1252,7 +1208,7 @@ BEGIN
     DEFPUSHBUTTON   "&Send",IDC_SEND,5,45,25,12
     PUSHBUTTON      "S&ave",IDC_SAVE,32,45,25,12
     PUSHBUTTON      "&Discard",IDC_DISCARD,59,45,35,12
-    PUSHBUTTON      "&Cancel",IDCANCEL,96,45,30,12
+    PUSHBUTTON      "Cancel",IDCANCEL,96,45,30,12
 END
 
 IDD_ADDRESSBOOKENTRY DIALOG DISCARDABLE  0, 0, 137, 153
@@ -1381,7 +1337,7 @@ FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Pocket Outlook",IDC_POCKETOUTLOOK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,10,65,10
-    CONTROL         "Load address &only",IDC_ADDRESSONLY,"Button",
+    CONTROL         "&Load address only",IDC_ADDRESSONLY,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,25,70,10
     GROUPBOX        "External Address Book",IDC_STATIC,5,0,95,40
     PUSHBUTTON      "&Font...",IDC_FONT,5,45,50,12
@@ -1431,11 +1387,11 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
     CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,85,50,10
-    PUSHBUTTON      "&Font...",IDC_FONT,82,50,50,12
-    PUSHBUTTON      "Co&lors...",IDC_COLORS,82,65,50,12
     LTEXT           "Wa&it",IDC_STATIC,5,97,15,8
     EDITTEXT        IDC_SEENWAIT,21,95,18,14,ES_AUTOHSCROLL,WS_EX_RIGHT
     LTEXT           "s before making msg seen",IDC_STATIC,40,97,90,8
+    PUSHBUTTON      "&Font...",IDC_FONT,82,50,50,12
+    PUSHBUTTON      "Co&lors...",IDC_COLORS,82,65,50,12
 END
 
 IDD_OPTIONMESSAGE DIALOG DISCARDABLE  0, 0, 137, 119
@@ -1547,7 +1503,7 @@ IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 137, 119
 STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
-    CONTROL         "Show next unseen when scroll to end(*)",
+    CONTROL         "Show next &unseen when scroll to end(*)",
                     IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
                     BS_TOP | BS_MULTILINE | WS_TABSTOP,5,5,125,17
     CONTROL         "&Empty trash on exit",IDC_EMPTYTRASHONEXIT,"Button",
@@ -1586,7 +1542,7 @@ BEGIN
     LTEXT           "&Editor",IDC_STATIC,10,67,20,8
     EDITTEXT        IDC_EDITOR,35,65,47,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDC_BROWSE,87,65,40,12
-    CONTROL         "Create a new message after the editor exits",
+    CONTROL         "Create a new message after the editor e&xits",
                     IDC_AUTOCREATE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
                     BS_MULTILINE | WS_TABSTOP,10,80,115,17
     GROUPBOX        "External Editor",IDC_STATIC,5,40,127,60
@@ -1656,7 +1612,7 @@ BEGIN
     CONTROL         "List1",IDC_ARGUMENTS,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | 
                     WS_TABSTOP,5,40,127,50
-    PUSHBUTTON      "&Edit",IDC_EDIT,82,95,50,12
+    PUSHBUTTON      "&Edit...",IDC_EDIT,82,95,50,12
     DEFPUSHBUTTON   "OK",IDOK,27,115,50,12
     PUSHBUTTON      "Cancel",IDCANCEL,82,115,50,12
 END
@@ -2037,27 +1993,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// TEMPLATE
-//
-
-MAIL.NEW                TEMPLATE DISCARDABLE    "res\\mail.new.template"
-MAIL.REPLY              TEMPLATE DISCARDABLE    "res\\mail.reply.template"
-MAIL.REPLY_ALL          TEMPLATE DISCARDABLE    "res\\mail.reply_all.template"
-MAIL.FORWARD            TEMPLATE DISCARDABLE    "res\\mail.forward.template"
-MAIL.EDIT               TEMPLATE DISCARDABLE    "res\\mail.edit.template"
-MAIL.URL                TEMPLATE DISCARDABLE    "res\\mail.url.template"
-MAIL.PRINT              TEMPLATE DISCARDABLE    "res\\mail.print.template"
-MAIL.QUOTE              TEMPLATE DISCARDABLE    "res\\mail.quote.template"
-NEWS.NEW                TEMPLATE DISCARDABLE    "res\\news.new.template"
-NEWS.REPLY              TEMPLATE DISCARDABLE    "res\\news.reply.template"
-NEWS.REPLY_ALL          TEMPLATE DISCARDABLE    "res\\news.reply_all.template"
-NEWS.FORWARD            TEMPLATE DISCARDABLE    "res\\news.forward.template"
-NEWS.EDIT               TEMPLATE DISCARDABLE    "res\\news.edit.template"
-NEWS.PRINT              TEMPLATE DISCARDABLE    "res\\news.print.template"
-NEWS.QUOTE              TEMPLATE DISCARDABLE    "res\\news.quote.template"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // PROFILE
 //
 
@@ -2072,312 +2007,7 @@ SYNCFILTERS.XML         PROFILE DISCARDABLE     "res\\syncfilters.xml"
 TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
 TOOLBARS.XML            PROFILE DISCARDABLE     "res\\ppc\\toolbars.xml"
 VIEWS.XML               PROFILE DISCARDABLE     "res\\views.xml"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_SHOWTOOLBAR         "Show &Toolbar"
-    IDS_HIDETOOLBAR         "Hide &Toolbar"
-    IDS_SHOWSTATUSBAR       "Show &Status Bar"
-    IDS_HIDESTATUSBAR       "Hide &Status Bar"
-    IDS_SHOWFOLDER          "Show &Folder"
-    IDS_HIDEFOLDER          "Hide &Folder"
-    IDS_SHOWHEADERCOLUMN    "Show Header &Column"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_HIDEHEADERCOLUMN    "Hide Header &Column"
-    IDS_SHOWPREVIEW         "Show &Preview"
-    IDS_HIDEPREVIEW         "Hide &Preview"
-    IDS_SHOWHEADER          "Show &Header"
-    IDS_HIDEHEADER          "Hide &Header"
-    IDS_THISFOLDER          "(This Folder)"
-    IDS_NONE                "(None)"
-    IDS_GOROUND             "&Go Round"
-    IDS_CANCEL              "Cancel"
-    IDS_APPLYMESSAGERULES   "Applying message rules..."
-    IDS_CONFIRMOVERWRITE    "Would you like to overwrite the existing file?\n"
-    IDS_CONFIRMEXECUTEATTACHMENT 
-                            "Are you sure to execute this attachment file?"
-    IDS_CONFIRMDELETETEMPFILE 
-                            "Are you sure to delete the modified temporary file?\n"
-    IDS_PROPERTY            "Property"
-    IDS_ALLCATEGORY         "&All"
-    IDS_CATEGORY            "C&ategory"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_SYNCMSG_FINISHED    "Finished"
-    IDS_SYNCMSG_SENDMESSAGES "Sending messages..."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_CREATEFOLDER  "Could not create folder."
-    IDS_ERROR_EXECUTEATTACHMENT "Could not execute attachment file."
-    IDS_ERROR_DIALUP        "Error occured while dialing up"
-    IDS_ERROR_CLEARDELETED  "Could not clear deleted messages."
-    IDS_ERROR_COPYMESSAGES  "Could not copy messages."
-    IDS_ERROR_CUTMESSAGES   "Could not cut messages."
-    IDS_ERROR_DELETECACHE   "Could not delete cache."
-    IDS_ERROR_DELETEMESSAGES "Could not delete messages."
-    IDS_ERROR_PASTEMESSAGES "Could not paste messages."
-    IDS_ERROR_COMPACT       "Error occured while compacting message box."
-    IDS_ERROR_SAVE          "Error occured while saving."
-    IDS_ERROR_EXPORT        "Error occured while exporting."
-    IDS_ERROR_IMPORT        "Error occured while importing."
-    IDS_ERROR_PRINT         "Error occured while printing."
-    IDS_ERROR_SALVAGE       "Error occured while salvaging."
-    IDS_ERROR_DELETEFOLDER  "Error occured while deleting the folder."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_APPLYRULE_CHECKINGMESSAGES "Checking messages..."
-    IDS_APPLYRULE_APPLYINGRULE "Applying rules..."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ADDRESSBOOK_NAME    "Name"
-    IDS_ADDRESSBOOK_ADDRESS "Address"
-    IDS_ADDRESSBOOK_COMMENT "Comment"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_CONFIRM_SAVEADDRESSBOOK 
-                            "Address Book is not saved.\nWould you like to save changes?"
-    IDS_PROCESSING          "Processing..."
-    IDS_UPDATEFOLDER        "Would you like to update a folder list now?"
-    IDS_TEMPORARYFOLDER     "Temporary Folder"
-    IDS_CONFIRM_EXIT        "Error occured while saving. Would you like to continue?\nSelect Yes to continue, No to retry, Cancel to cancel."
-    IDS_CONFIRM_OPENURL     "Are you sure to open this file?"
-    IDS_OSDEFAULT           "OS Default"
-    IDS_FILTER_EXPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
-    IDS_FILTER_IMPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
-    IDS_FILTER_INSERT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
-    IDS_FILTER_OPEN         "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_FILTER_SAVE         "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
-    IDS_FILTER_ATTACHMENT   "All Files (*.*)|*.*||"
-    IDS_FILTER_SOUND        "Wave Files (*.wav)|*.wav|All Files (*.*)|*.*||"
-    IDS_FILTER_EXECUTABLE   "Executable Files (*.exe)|*.exe|All Files (*.*)|*.*||"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_CATEGORYALL         "All"
-    IDS_DEFAULTSUBACCOUNT   "(Default)"
-    IDS_ACCOUNT             "Account"
-    IDS_TEMPLATENONE        "(&None)"
-    IDS_SCRIPTNONE          "(&None)"
-    IDS_FOLDERLISTNAME      "Name"
-    IDS_FOLDERLISTID        "ID"
-    IDS_FOLDERLISTCOUNT     "Count"
-    IDS_FOLDERLISTUNSEENCOUNT "Unseen"
-    IDS_FOLDERLISTSIZE      "Size"
-    IDS_FINDNOTFOUND        "Not found."
-    IDS_DIALUPCONNECT       "&Dialup Connect"
-    IDS_DIALUPDISCONNECT    "&Dialup Disconnect"
-    IDS_NORMALFOLDER        "Normal"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_QUERYFOLDER         "Query"
-    IDS_LOCALFOLDER         "Local"
-    IDS_REMOTEFOLDER        "Remote"
-    IDS_FOLDERTYPETEMPLATE  "%s (%s)"
-    IDS_EXPORT              "Exporting messages..."
-    IDS_IMPORT              "Importing messages..."
-    IDS_CONFIRMIGNORELOCK   "This mail folder is locked by '%s'.\nWould you like to continue?"
-    IDS_MOVEMESSAGE         "Moving messages..."
-    IDS_COPYMESSAGE         "Copying messages..."
-    IDS_EMPTYTRASH          "Emptying trash..."
-    IDS_DELETE              "Deleting messages..."
-    IDS_CUSTOM              "(Custom)"
-    IDS_VIEWMODELSTATUSTEMPLATE "%uM, %uU, %uS"
-    IDS_ONLINE              "O"
-    IDS_OFFLINE             "F"
-    IDS_CONFIRMREMOVEACCOUNT "Are you sure to remove this account?\n %s"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_CONFIRMREMOVESUBACCOUNT "Are you sure to remove this subaccount?\n %s"
-    IDS_CONFIRMREMOVEFOLDER "Are you sure to remove these folders?\n %s"
-    IDS_THISCATEGORY        "(&This Category)"
-    IDS_SEARCH              "Search"
-    IDS_MACROSEARCH         "Macro"
-    IDS_ALLFOLDER           "(All Folders)"
-    IDS_SYNCHRONIZING       "This operation is not allowed while synchronizing."
-    IDS_COMPACT             "Compacting..."
-    IDS_SALVAGE             "Salvaging messages..."
-    IDS_DUMP                "Dumping messages..."
-    IDS_LOAD                "Loading messages..."
-    IDS_CHECK               "Checking messages..."
-    IDS_IGNORECHECKERROR    "Error occured while checking the cache.\nDo you want to ignore it and remove this message?\nFolder: %s\nID: %u\nOffset: %u\nLength: %u"
-    IDS_TITLE               "Title"
-    IDS_TYPE                "Type"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_EMPTYFOLDER   "Error occured while emptying the folder."
-    IDS_ERROR_EMPTYTRASH    "Error occured while emptying the trash."
-    IDS_ERROR_RENAMEFOLDER  "Error occured while renaming the folder."
-    IDS_ERROR_UPDATEFOLDER  "Error occured while updating folder."
-    IDS_ERROR_APPLYRULE     "Error occured while applying rule."
-    IDS_ERROR_APPLYTEMPLATE "Error occured while applying template."
-    IDS_ERROR_COMBINE       "Error occured while combining messages."
-    IDS_ERROR_CREATEMESSAGE "Error occured while creating message."
-    IDS_ERROR_DELETEATTACHMENT "Error occured while deleting attachments."
-    IDS_ERROR_DETACHATTACHMENT "Error occured while detaching attachments."
-    IDS_ERROR_EXPANDDIGEST  "Error occured while expanding digest."
-    IDS_ERROR_MARKMESSAGE   "Error occured while mark messages."
-    IDS_ERROR_MOVEMESSAGE   "Error occured while moving messages."
-    IDS_ERROR_COPYMESSAGE   "Error occured while copying messages."
-    IDS_ERROR_OPENURL       "Error occured while opening the URL."
-    IDS_ERROR_SETFLAGS      "Error occured while setting flags."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_SEARCH        "Error occured while searching."
-    IDS_ERROR_DIALUPCONNECT "Error occured while connecting dialup."
-    IDS_ERROR_DIALUPDISCONNECT "Error occured while disconnecting dialup."
-    IDS_ERROR_GOROUND       "Error occured while going around."
-    IDS_ERROR_SYNC          "Error occured while synchronizing."
-    IDS_ERROR_OPENLINK      "Error occured while opening link."
-    IDS_ERROR_REFRESH       "Error occured while refreshing."
-    IDS_ERROR_INSERTFILE    "Error occured while inserting file."
-    IDS_ERROR_PASTE         "Error occured while pasting."
-    IDS_ERROR_OPENFILE      "Error occured while opening file."
-    IDS_ERROR_SAVEFILE      "Error occured while saving file."
-    IDS_ERROR_SEND          "Error occured while sending."
-    IDS_ERROR_DUMP          "Error occured while dumping messages."
-    IDS_ERROR_LOAD          "Error occured while loading messages."
-    IDS_ERROR_CHECK         "Error occured while checking messages."
-    IDS_ERROR_INVALIDMACRO  "Error occured while parsing the macro."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_COLUMNTYPE_ID       "ID"
-    IDS_COLUMNTYPE_DATE     "Date"
-    IDS_COLUMNTYPE_FROM     "From"
-    IDS_COLUMNTYPE_TO       "To"
-    IDS_COLUMNTYPE_FROMTO   "From / To"
-    IDS_COLUMNTYPE_SUBJECT  "Subject"
-    IDS_COLUMNTYPE_SIZE     "Size"
-    IDS_COLUMNTYPE_FLAGS    "Flags"
-    IDS_COLUMNTYPE_LABEL    "Label"
-    IDS_COLUMNTYPE_OTHER    "Other"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_WIDTH               "Width"
-    IDS_CLEARRECENTS        "&Clear"
-    IDS_UNSPECIFIED         "(Unspecified)"
-    IDS_RESOURCEPATH        "Path"
-    IDS_RULESETS            "RuleSets"
-    IDS_RULES               "Rules"
-    IDS_COLORSETS           "ColorSets"
-    IDS_COLORS              "Colors"
-    IDS_NAME                "Name"
-    IDS_VALUE               "Value"
-    IDS_CONFIRMEMPTYFOLDER  "Are you sure to delete all messages in these folders?\n %s"
-    IDS_CONFIRMEMPTYTRASH   "Are you sure to delete all messages in Trash?"
-    IDS_CONFIRMDELETEMESSAGE "Are you sure to delete selected messages?"
-    IDS_ADDRESSBOOK         "Address Book - QMAIL"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_CREATEACCOUNT "Error occured while creating an account."
-    IDS_ERROR_MOVEFOLDER    "Error occured while moving folder."
-    IDS_ERROR_SAVEADDRESSBOOK "Could not save address book."
-    IDS_ERROR_UNDO          "Could not undo."
-    IDS_ERROR_COMPLEXMACRO  "The macro is too complex."
-    IDS_ERROR_NOOUTBOX      "Could not find Outbox."
-    IDS_ERROR_LOADOUTBOX    "Error occured while loading messages in Outbox."
-    IDS_ERROR_NOSENTBOX     "Cound not find Sentbox."
-    IDS_ERROR_GETMESSAGE    "Could not get a message to be sent."
-    IDS_ERROR_MOVETOSENTBOX "Could not move the sent message to Sentbox."
-    IDS_ERROR_LABELMESSAGE  "Error occured while labeling messages."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_PROPERTY_NAME       "Name"
-    IDS_PROPERTY_VALUE      "Value"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ADDRESSBOOKLIST_NAME "Name"
-    IDS_ADDRESSBOOKLIST_ADDRESS "Address"
-    IDS_ADDRESSBOOKLIST_COMMENT "Comment"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_PANEL_ADDRESSBOOK   "Address Book"
-    IDS_PANEL_AUTOPILOT     "Auto Pilot"
-    IDS_PANEL_COLORS        "Colors"
-    IDS_PANEL_CONFIRM       "Confirmation"
-    IDS_PANEL_EDIT          "Edit"
-    IDS_PANEL_EDIT2         "Edit2"
-    IDS_PANEL_FILTERS       "Filters"
-    IDS_PANEL_FIXEDFORMTEXTS "Texts"
-    IDS_PANEL_FOLDER        "Folder"
-    IDS_PANEL_GOROUND       "Go Round"
-    IDS_PANEL_HEADER        "Header"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_PANEL_LIST          "List"
-    IDS_PANEL_MESSAGE       "Message"
-    IDS_PANEL_MISC          "Misc"
-    IDS_PANEL_MISC2         "Misc2"
-    IDS_PANEL_PREVIEW       "Preview"
-    IDS_PANEL_RULES         "Rules"
-    IDS_PANEL_SECURITY      "Security"
-    IDS_PANEL_SIGNATURES    "Signatures"
-    IDS_PANEL_SYNCFILTERS   "Sync Filters"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_RULE_NONE           "None"
-    IDS_RULE_MOVE           "Move"
-    IDS_RULE_COPY           "Copy"
-    IDS_RULE_DELETE         "Delete"
-    IDS_RULE_LABEL          "Label"
-    IDS_RULE_DELETECACHE    "Delete Cache"
-    IDS_RULE_APPLY          "Apply"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_LABEL_SET           "Set"
-    IDS_LABEL_ADD           "Add"
-    IDS_LABEL_REMOVE        "Remove"
-END
-
-#endif    // Japanese resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -2387,8 +2017,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-#include "res\\version.rc"
-#include "..\\model\\model.rc"
+#include "qm.rc"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

@@ -13,12 +13,12 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// “ú–{Œê resources
+// English (U.S.) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
-LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
-#pragma code_page(932)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 #endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
@@ -41,63 +41,10 @@ END
 3 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""res\\\\version.rc""\r\n"
+    "\r\n"
     "\0"
 END
 
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_RECEIVE DIALOG DISCARDABLE  0, 0, 223, 145
-STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
-CAPTION "NNTP"
-FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
-BEGIN
-    LTEXT           "&Initial fetch count",IDC_STATIC,5,8,60,8
-    EDITTEXT        IDC_INITIALFETCHCOUNT,65,5,40,14,ES_AUTOHSCROLL
-    CONTROL         "Use &XOVER",IDC_XOVER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,20,55,10
-    LTEXT           "Fetch count",IDC_STATIC,15,33,35,8
-    EDITTEXT        IDC_FETCHCOUNT,65,30,40,14,ES_AUTOHSCROLL
-END
-
-IDD_SEND DIALOG DISCARDABLE  0, 0, 223, 145
-STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
-CAPTION "NNTP (POST)"
-FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
-BEGIN
-    LTEXT           "",IDC_STATIC,5,5,8,8
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    IDD_RECEIVE, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 216
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 138
-    END
-
-    IDD_SEND, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 216
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 138
-    END
-END
 #endif    // APSTUDIO_INVOKED
 
 
@@ -109,6 +56,14 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_NNTP                "NNTP"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FOLDER_OUTBOX       "Outbox"
+    IDS_FOLDER_POSTED       "Posted"
+    IDS_FOLDER_TRASH        "Trash"
+    IDS_FOLDER_JUNK         "Junk"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -157,26 +112,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_SOCKET_SOCKET "socket"
-    IDS_ERROR_SOCKET_CLOSESOCKET "closesocket"
-    IDS_ERROR_SOCKET_LOOKUPNAME "Lookup name"
-    IDS_ERROR_SOCKET_CONNECT "connect"
-    IDS_ERROR_SOCKET_CONNECTTIMEOUT "connect timeout"
-    IDS_ERROR_SOCKET_RECV   "recv"
-    IDS_ERROR_SOCKET_RECVTIMEOUT "recv timeout"
-    IDS_ERROR_SOCKET_SEND   "send"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_ERROR_SOCKET_SENDTIMEOUT "send timeout"
-    IDS_ERROR_SOCKET_SELECT "select"
-    IDS_ERROR_SOCKET_CANCEL "cancel"
-    IDS_ERROR_SOCKET_UNKNOWN "unknown"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     IDS_ERROR_POST          "Error occured while POST command."
 END
 
@@ -185,7 +120,7 @@ BEGIN
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
 END
 
-#endif    // “ú–{Œê resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -196,6 +131,7 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 #include "res\\version.rc"
+
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

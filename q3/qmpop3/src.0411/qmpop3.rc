@@ -1,0 +1,154 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_POP3                "POP3"
+    IDS_POP3SEND            "POP3 (XTND XMIT)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FOLDER_INBOX        "受信箱"
+    IDS_FOLDER_OUTBOX       "送信箱"
+    IDS_FOLDER_SENTBOX      "送信控え"
+    IDS_FOLDER_TRASH        "ゴミ箱"
+    IDS_FOLDER_JUNK         "スパム"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_INITIALIZE          "初期化しています"
+    IDS_LOOKUP              "ホストを探しています"
+    IDS_CONNECTING          "接続しています"
+    IDS_CONNECTED           "接続しました"
+    IDS_AUTHENTICATING      "認証しています"
+    IDS_LOADUID             "UIDを読み込みしています"
+    IDS_CHECKNEWMESSAGE     "新しいメッセージをチェックしています"
+    IDS_DOWNLOADMESSAGES    "メッセージをダウンロードしています"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SAVEUID             "UIDを保存しています"
+    IDS_DELETEMESSAGE       "メッセージを削除しています"
+    IDS_DOWNLOADRESERVEDMESSAGES 
+                            "予約されたメッセージをダウンロードしています"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_MESSAGE       "POP3エラー"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_GREETING      "挨拶中にエラーが発生しました"
+    IDS_ERROR_APOP          "APOPコマンドでエラーが発生しました"
+    IDS_ERROR_USER          "USERコマンドでエラーが発生しました"
+    IDS_ERROR_PASS          "PASSコマンドでエラーが発生しました"
+    IDS_ERROR_STAT          "STATコマンドでエラーが発生しました"
+    IDS_ERROR_LIST          "LISTコマンドでエラーが発生しました"
+    IDS_ERROR_UIDL          "UIDLコマンドでエラーが発生しました"
+    IDS_ERROR_RETR          "RETRコマンドでエラーが発生しました"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_TOP           "TOPコマンドでエラーが発生しました"
+    IDS_ERROR_DELE          "DELEコマンドでエラーが発生しました"
+    IDS_ERROR_NOOP          "NOOPコマンドでエラーが発生しました"
+    IDS_ERROR_XTNDXMIT      "XTND XMITコマンドでエラーが発生しました"
+    IDS_ERROR_STLS          "STLSコマンドでエラーが発生しました"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_INITIALIZE    "初期化に失敗しました"
+    IDS_ERROR_CONNECT       "接続に失敗しました"
+    IDS_ERROR_GENERATEDIGEST "ダイジェストの生成に失敗しました"
+    IDS_ERROR_PARSE         "レスポンスのパースに失敗しました"
+    IDS_ERROR_TIMEOUT       "接続がタイムアウトしました"
+    IDS_ERROR_SELECT        "selectに失敗しました"
+    IDS_ERROR_DISCONNECT    "サーバから切断されました"
+    IDS_ERROR_RECEIVE       "受信に失敗しました"
+    IDS_ERROR_SEND          "送信に失敗しました"
+    IDS_ERROR_INVALIDSOCKET "不正なソケットです"
+    IDS_ERROR_RESPONSE      "エラーレスポンスを受け取りました"
+    IDS_ERROR_SSL           "SSLの初期化に失敗しました"
+    IDS_ERROR_OTHER         "不明なエラーです"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_APPLYRULES    "振り分けルールの適用中にエラーが発生しました"
+END
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

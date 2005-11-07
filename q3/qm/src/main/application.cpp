@@ -706,7 +706,7 @@ qm::Application::Application(HINSTANCE hInst,
 	pImpl_ = new ApplicationImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->hInst_ = hInst;
-	pImpl_->hInstResource_ = hInst;
+	pImpl_->hInstResource_ = loadResourceDll(hInst);
 	pImpl_->pLock_ = pLock;
 	pImpl_->wstrMailFolder_ = wstrMailFolder;
 	pImpl_->wstrProfileName_ = wstrProfile;

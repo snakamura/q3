@@ -1,0 +1,573 @@
+<menus>
+	<menubar name="mainframe">
+		<popupmenu text="ファイル(&amp;F)">
+			<menuitem text="隠す(&amp;H)" action="FileHide"/>
+			<menuitem text="保存(&amp;S)" action="FileSave"/>
+			<menuitem text="印刷(&amp;P)" action="FilePrint"/>
+			<separator/>
+			<menuitem text="読み込み(&amp;I)..." action="FileImport"/>
+			<menuitem text="書き出し(&amp;T)..." action="FileExport"/>
+			<separator/>
+			<menuitem text="オフライン(&amp;O)" action="FileOffline"/>
+			<separator/>
+			<popupmenu text="保守(&amp;M)">
+				<menuitem text="整理(&amp;C)" action="FileCompact"/>
+				<menuitem text="救出(&amp;L)" action="FileSalvage"/>
+				<menuitem text="検査(&amp;K)" action="FileCheck"/>
+				<separator/>
+				<menuitem text="ダンプ(&amp;D)..." action="FileDump"/>
+				<menuitem text="ロード(&amp;A)..." action="FileLoad"/>
+				<separator/>
+				<menuitem text="アンインストール(&amp;U)" action="FileUninstall"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="終了(&amp;X)" action="FileExit"/>
+		</popupmenu>
+		<popupmenu text="フォルダ(&amp;O)">
+			<menuitem text="作成(&amp;C)..." action="FolderCreate"/>
+			<menuitem text="削除(&amp;D)" action="FolderDelete"/>
+			<menuitem text="名前の変更(&amp;R)..." action="FolderRename"/>
+			<menuitem text="フォルダリストを更新(&amp;U)" action="FolderUpdate"/>
+			<separator/>
+			<menuitem text="空にする(&amp;E)" action="FolderEmpty"/>
+			<menuitem text="ゴミ箱を空にする(&amp;T)" action="FolderEmptyTrash"/>
+			<separator/>
+			<menuitem text="サイズを表示(&amp;S)" action="FolderShowSize"/>
+			<separator/>
+			<menuitem text="プロパティ(&amp;P)..." action="FolderProperty"/>
+		</popupmenu>
+		<popupmenu text="編集(&amp;E)">
+			<menuitem text="元に戻す(&amp;U)" action="EditUndo"/>
+			<separator/>
+			<menuitem text="切り取り(&amp;T)" action="EditCut"/>
+			<menuitem text="コピー(&amp;C)" action="EditCopy"/>
+			<menuitem text="貼り付け(&amp;P)" action="EditPaste"/>
+			<menuitem text="すべて選択(&amp;A)" action="EditSelectAll"/>
+			<separator/>
+			<menuitem text="削除(&amp;D)" action="EditDelete"/>
+			<menuitem text="削除済みをクリア(&amp;L)" action="EditClearDeleted"/>
+			<menuitem text="キャッシュを削除(&amp;E)" action="EditDeleteCache"/>
+			<separator/>
+			<menuitem text="メッセージ内検索(&amp;F)..." action="EditFind"/>
+			<menuitem text="次を検索(&amp;N)" action="EditFindNext"/>
+			<menuitem text="前を検索(&amp;V)" action="EditFindPrev"/>
+		</popupmenu>
+		<popupmenu text="表示(&amp;V)">
+			<menuitem text="次のメッセージ(&amp;N)" action="ViewNextMessage"/>
+			<menuitem text="前のメッセージ(&amp;P)" action="ViewPrevMessage"/>
+			<menuitem text="次の未読メッセージ(&amp;U)" action="ViewNextUnseenMessage"/>
+			<menuitem text="メッセージを選択(&amp;L)" action="ViewSelectMessage"/>
+			<separator/>
+			<menuitem text="更新(&amp;R)" action="ViewRefresh"/>
+			<separator/>
+			<popupmenu text="モード(&amp;M)">
+				<menuitem text="すべて表示(&amp;W)" action="ViewRawMode"/>
+				<menuitem text="ソース表示(&amp;E)" action="ViewSourceMode"/>
+				<menuitem text="引用を線で表示(&amp;Q)" action="ViewQuoteMode"/>
+				<menuitem text="キャレットを表示(&amp;S)" action="ViewSelectMode"/>
+				<separator/>
+				<menuitem text="&amp;HTMLを表示" action="ViewHtmlMode"/>
+				<menuitem text="HTMLをオンラインで表示(&amp;O)" action="ViewHtmlOnlineMode"/>
+				<menuitem text="HTMLをインターネットゾーンで表示(&amp;I)" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="S/&amp;MIME" action="ViewSMIMEMode"/>
+			</popupmenu>
+			<popupmenu text="ソート(&amp;S)">
+				<menuitem dynamic="ViewSort"/>
+				<separator/>
+				<menuitem text="昇順(&amp;A)" action="ViewSortAscending"/>
+				<menuitem text="降順(&amp;E)" action="ViewSortDescending"/>
+				<separator/>
+				<menuitem text="スレッド表示しない(&amp;L)" action="ViewSortFlat"/>
+				<menuitem text="スレッド表示(&amp;T)" action="ViewSortThread"/>
+				<menuitem text="スレッドを浮かせる(&amp;O)" action="ViewSortFloatThread"/>
+			</popupmenu>
+			<popupmenu text="フィルタ(&amp;F)">
+				<menuitem text="なし(&amp;N)" action="ViewFilter" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewFilter"/>
+				<separator/>
+				<menuitem text="カスタム(&amp;C)..." action="ViewFilterCustom"/>
+				<separator/>
+				<menuitem text="編集(&amp;E)..." action="ConfigFilters"/>
+			</popupmenu>
+			<popupmenu text="テンプレート(&amp;T)">
+				<menuitem text="なし(&amp;N)" action="ViewTemplate" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewTemplate"/>
+			</popupmenu>
+			<popupmenu text="エンコーディング(&amp;E)">
+				<menuitem text="自動判定(&amp;D)" action="ViewEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="カラムをカスタマイズ(&amp;Z)..." action="ConfigViews"/>
+			<separator/>
+			<popupmenu text="コントロールの表示(&amp;C)">
+				<menuitem text="ツールバーを表示(&amp;T)" action="ViewShowToolbar"/>
+				<menuitem text="ステータスバーを表示(&amp;S)" action="ViewShowStatusBar"/>
+				<menuitem text="フォルダを表示(&amp;F)" action="ViewShowFolder"/>
+				<menuitem text="タブを表示(&amp;B)" action="ViewShowTab"/>
+				<menuitem text="カラムを表示(&amp;H)" action="ViewShowHeaderColumn"/>
+				<menuitem text="プレビューを表示(&amp;P)" action="ViewShowPreview"/>
+				<menuitem text="ヘッダを表示(&amp;H)" action="ViewShowHeader"/>
+				<menuitem text="同期ウィンドウを表示(&amp;Y)" action="ViewShowSyncDialog"/>
+			</popupmenu>
+		</popupmenu>
+		<popupmenu text="メッセージ(&amp;M)">
+			<menuitem text="新規(&amp;N)" action="MessageCreate" param="new"/>
+			<menuitem text="返信(&amp;R)" action="MessageCreate" param="reply"/>
+			<menuitem text="全員に返信(&amp;A)" action="MessageCreate" param="reply_all"/>
+			<menuitem text="転送(&amp;F)" action="MessageCreate" param="forward"/>
+			<menuitem text="編集(&amp;E)" action="MessageCreate" param="edit"/>
+			<popupmenu text="テンプレート(&amp;T)">
+				<menuitem dynamic="MessageCreate"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="マーク(&amp;K)">
+				<menuitem text="既読にする(&amp;S)" action="MessageMarkSeen"/>
+				<menuitem text="未読にする(&amp;U)" action="MessageUnmarkSeen"/>
+				<separator/>
+				<menuitem text="マークを付ける(&amp;M)" action="MessageMark"/>
+				<menuitem text="マークを消す(&amp;K)" action="MessageUnmark"/>
+				<separator/>
+				<menuitem text="ダウンロード予約(&amp;D)" action="MessageMarkDownload"/>
+				<menuitem text="本文をダウンロード予約(&amp;T)" action="MessageMarkDownloadText"/>
+				<separator/>
+				<menuitem text="削除マークを付ける(&amp;L)" action="MessageMarkDeleted"/>
+			</popupmenu>
+			<menuitem text="ラベル(&amp;B)..." action="MessageLabel"/>
+			<separator/>
+			<popupmenu text="移動(&amp;M)">
+				<menuitem dynamic="MessageMove"/>
+				<separator/>
+				<menuitem text="その他(&amp;O)..." action="MessageMove"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="振り分け(&amp;Y)" action="MessageApplyRule"/>
+			<menuitem text="すべてのフォルダを振り分け(&amp;O)" action="MessageApplyRuleAll"/>
+			<menuitem text="選択されたメッセージを振り分け(&amp;L)" action="MessageApplyRuleSelected"/>
+			<separator/>
+			<menuitem text="検索(&amp;S)..." action="MessageSearch"/>
+			<separator/>
+			<popupmenu text="添付ファイル(&amp;H)">
+				<menuitem text="保存(&amp;D)..." action="MessageDetach"/>
+				<menuitem text="削除(&amp;L)" action="MessageDeleteAttachment"/>
+				<separator/>
+				<menuitem dynamic="MessageAttachment"/>
+				<separator/>
+				<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
+				<menuitem text="結合(&amp;C)" action="MessageCombine"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="プロパティ(&amp;P)..." action="MessageProperty"/>
+		</popupmenu>
+		<popupmenu text="ツール(&amp;T)">
+			<menuitem text="送受信(&amp;E)" action="ToolSync"/>
+			<menuitem text="受信(&amp;R)" action="ToolReceive"/>
+			<menuitem text="送信(&amp;S)" action="ToolSend"/>
+			<menuitem text="フォルダを同期(&amp;T)" action="ToolReceiveFolder"/>
+			<popupmenu text="巡回(&amp;G)">
+				<menuitem dynamic="ToolGoRound"/>
+				<separator/>
+				<menuitem text="編集(&amp;E)..." action="ConfigGoRound"/>
+			</popupmenu>
+			<menuitem text="キャンセル(&amp;C)" action="ToolCancel"/>
+			<separator/>
+			<menuitem text="ダイアルアップ接続(&amp;D)..." action="ToolDialup"/>
+			<separator/>
+			<menuitem text="アドレス帳(&amp;K)..." action="ToolAddressBook"/>
+			<menuitem text="送信者をアドレス帳に追加(&amp;F)..." action="ToolAddAddress"/>
+			<separator/>
+			<popupmenu text="スクリプト(&amp;P)">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="自動巡回(&amp;U)" action="ToolAutoPilot"/>
+			<separator/>
+			<popupmenu text="サブアカウント(&amp;B)">
+				<menuitem text="(デフォルト(&amp;D))" action="ToolSubAccount" param=""/>
+				<separator/>
+				<menuitem dynamic="ToolSubAccount"/>
+			</popupmenu>
+			<menuitem text="アカウント(&amp;A)..." action="ToolAccount"/>
+			<menuitem text="オプション(&amp;O)..." action="ToolOptions"/>
+		</popupmenu>
+	</menubar>
+	<menubar name="messageframe">
+		<popupmenu text="ファイル(&amp;F)">
+			<menuitem text="印刷(&amp;P)" action="FilePrint"/>
+			<separator/>
+			<menuitem text="閉じる(&amp;C)" action="FileClose"/>
+		</popupmenu>
+		<popupmenu text="編集(&amp;E)">
+			<menuitem text="コピー(&amp;C)" action="EditCopy"/>
+			<menuitem text="すべて選択(&amp;A)" action="EditSelectAll"/>
+			<separator/>
+			<menuitem text="削除(&amp;D)" action="EditDelete"/>
+			<separator/>
+			<menuitem text="メッセージ内検索(&amp;F)..." action="EditFind"/>
+			<menuitem text="次を検索(&amp;N)" action="EditFindNext"/>
+			<menuitem text="前を検索(&amp;V)" action="EditFindPrev"/>
+		</popupmenu>
+		<popupmenu text="表示(&amp;V)">
+			<menuitem text="次のメッセージ(&amp;N)" action="ViewNextMessage"/>
+			<menuitem text="前のメッセージ(&amp;P)" action="ViewPrevMessage"/>
+			<menuitem text="次の未読メッセージ(&amp;U)" action="ViewNextUnseenMessage"/>
+			<separator/>
+			<popupmenu text="モード(&amp;M)">
+				<menuitem text="すべて表示(&amp;W)" action="ViewRawMode"/>
+				<menuitem text="ソース表示(&amp;E)" action="ViewSourceMode"/>
+				<menuitem text="引用を線で表示(&amp;Q)" action="ViewQuoteMode"/>
+				<menuitem text="キャレットを表示(&amp;S)" action="ViewSelectMode"/>
+				<separator/>
+				<menuitem text="&amp;HTMLを表示" action="ViewHtmlMode"/>
+				<menuitem text="HTMLをオンラインで表示(&amp;O)" action="ViewHtmlOnlineMode"/>
+				<menuitem text="HTMLをインターネットゾーンで表示(&amp;I)" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="S/&amp;MIME" action="ViewSMIMEMode"/>
+			</popupmenu>
+			<popupmenu text="テンプレート(&amp;T)">
+				<menuitem text="なし(&amp;N)" action="ViewTemplate" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewTemplate"/>
+			</popupmenu>
+			<popupmenu text="エンコーディング(&amp;E)">
+				<menuitem text="自動判定(&amp;D)" action="ViewEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="コントロールの表示(&amp;C)">
+				<menuitem text="ツールバーを表示(&amp;T)" action="ViewShowToolbar"/>
+				<menuitem text="ステータスバーを表示(&amp;S)" action="ViewShowStatusBar"/>
+				<menuitem text="ヘッダを表示(&amp;H)" action="ViewShowHeader"/>
+			</popupmenu>
+		</popupmenu>
+		<popupmenu text="メッセージ(&amp;M)">
+			<menuitem text="新規(&amp;N)" action="MessageCreate" param="new"/>
+			<menuitem text="返信(&amp;R)" action="MessageCreate" param="reply"/>
+			<menuitem text="全員に返信(&amp;A)" action="MessageCreate" param="reply_all"/>
+			<menuitem text="転送(&amp;F)" action="MessageCreate" param="forward"/>
+			<menuitem text="編集(&amp;E)" action="MessageCreate" param="edit"/>
+			<popupmenu text="テンプレート(&amp;T)">
+				<menuitem dynamic="MessageCreate"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="マーク(&amp;K)">
+				<menuitem text="既読にする(&amp;S)" action="MessageMarkSeen"/>
+				<menuitem text="未読にする(&amp;U)" action="MessageUnmarkSeen"/>
+				<separator/>
+				<menuitem text="マークを付ける(&amp;M)" action="MessageMark"/>
+				<menuitem text="マークを消す(&amp;K)" action="MessageUnmark"/>
+				<separator/>
+				<menuitem text="ダウンロード予約(&amp;D)" action="MessageMarkDownload"/>
+				<menuitem text="本文をダウンロード予約(&amp;T)" action="MessageMarkDownloadText"/>
+				<separator/>
+				<menuitem text="削除マークを付ける(&amp;L)" action="MessageMarkDeleted"/>
+			</popupmenu>
+			<menuitem text="ラベル(&amp;B)..." action="MessageLabel"/>
+			<separator/>
+			<popupmenu text="移動(&amp;M)">
+				<menuitem dynamic="MessageMove"/>
+				<separator/>
+				<menuitem text="その他(&amp;O)..." action="MessageMove"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="添付ファイル(&amp;H)">
+				<menuitem text="保存(&amp;D)..." action="MessageDetach"/>
+				<menuitem text="削除(&amp;L)" action="MessageDeleteAttachment"/>
+				<separator/>
+				<menuitem dynamic="MessageAttachment"/>
+				<separator/>
+				<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
+				<menuitem text="結合(&amp;C)" action="MessageCombine"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="プロパティ(&amp;P)..." action="MessageProperty"/>
+		</popupmenu>
+		<popupmenu text="ツール(&amp;T)">
+			<popupmenu text="スクリプト(&amp;P)">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
+		</popupmenu>
+	</menubar>
+	<menubar name="editframe">
+		<popupmenu text="ファイル(&amp;F)">
+			<menuitem text="送信(&amp;E)" action="FileSend"/>
+			<menuitem text="すぐに送信(&amp;N)" action="FileSendNow"/>
+			<menuitem text="草稿として保存(&amp;D)" action="FileDraft"/>
+			<menuitem text="草稿として保存して閉じる(&amp;A)" action="FileDraftClose"/>
+			<separator/>
+			<menuitem text="ファイルを開く(&amp;O)..." action="FileOpen"/>
+			<menuitem text="ファイルに保存(&amp;S)..." action="FileSave"/>
+			<menuitem text="ファイルから挿入(&amp;I)..." action="FileInsert"/>
+			<separator/>
+			<menuitem text="閉じる(&amp;C)" action="FileClose"/>
+		</popupmenu>
+		<popupmenu text="編集(&amp;E)">
+			<menuitem text="元に戻す(&amp;U)" action="EditUndo"/>
+			<menuitem text="やり直す(&amp;R)" action="EditRedo"/>
+			<separator/>
+			<menuitem text="切り取り(&amp;T)" action="EditCut"/>
+			<menuitem text="コピー(&amp;C)" action="EditCopy"/>
+			<menuitem text="貼り付け(&amp;P)" action="EditPaste"/>
+			<menuitem text="引用符付きで貼り付け(&amp;Q)" action="EditPasteWithQuote"/>
+			<separator/>
+			<menuitem text="すべて選択(&amp;A)" action="EditSelectAll"/>
+			<separator/>
+			<menuitem text="検索(&amp;F)..." action="EditFind"/>
+			<menuitem text="次を検索(&amp;N)" action="EditFindNext"/>
+			<menuitem text="前を検索(&amp;V)" action="EditFindPrev"/>
+			<menuitem text="置換(&amp;L)..." action="EditReplace"/>
+		</popupmenu>
+		<popupmenu text="表示(&amp;V)">
+			<popupmenu text="コントロールの表示(&amp;C)">
+				<menuitem text="ツールバーを表示(&amp;T)" action="ViewShowToolbar"/>
+				<menuitem text="ステータスバーを表示(&amp;S)" action="ViewShowStatusBar"/>
+			</popupmenu>
+		</popupmenu>
+		<popupmenu text="ツール(&amp;T)">
+			<menuitem text="アドレス帳(&amp;B)..." action="ToolSelectAddress"/>
+			<popupmenu text="定形文(&amp;I)">
+				<menuitem dynamic="ToolInsertText"/>
+				<separator/>
+				<menuitem text="編集(&amp;E)..." action="ConfigTexts"/>
+			</popupmenu>
+			<menuitem text="署名を挿入(&amp;G)" action="ToolInsertSignature"/>
+			<popupmenu text="エンコーディング(&amp;E)">
+				<menuitem text="デフォルト(&amp;D)" action="ToolEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ToolEncoding"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="添付ファイル(&amp;A)..." action="ToolAttachment"/>
+			<separator/>
+			<menuitem text="整形(&amp;M)" action="ToolReform"/>
+			<menuitem text="すべてを整形(&amp;F)" action="ToolReformAll"/>
+			<menuitem text="自動で整形(&amp;U)" action="ToolReformAuto"/>
+			<separator/>
+			<menuitem text="ヘッダを編集(&amp;H)" action="ToolHeaderEdit"/>
+			<separator/>
+			<popupmenu text="&amp;S/MIME">
+				<menuitem text="暗号化(&amp;E)" action="ToolSMIMEEncrypt"/>
+				<menuitem text="署名(&amp;S)" action="ToolSMIMESign"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="スクリプト(&amp;C)">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
+		</popupmenu>
+	</menubar>
+	<menubar name="addressbookframe">
+		<popupmenu text="ファイル(&amp;F)">
+			<menuitem text="新規(&amp;N)..." action="AddressNew"/>
+			<menuitem text="編集(&amp;E)..." action="AddressEdit"/>
+			<menuitem text="削除(&amp;D)" action="AddressDelete"/>
+			<separator/>
+			<menuitem text="保存(&amp;S)" action="FileSave"/>
+			<separator/>
+			<menuitem text="閉じる(&amp;C)" action="FileClose"/>
+		</popupmenu>
+		<popupmenu text="表示(&amp;V)">
+			<popupmenu text="ソース(&amp;S)">
+				<menuitem text="名前(&amp;N)" action="ViewSortName"/>
+				<menuitem text="アドレス(&amp;A)" action="ViewSortAddress"/>
+				<menuitem text="コメント(&amp;C)" action="ViewSortComment"/>
+				<separator/>
+				<menuitem text="昇順(&amp;S)" action="ViewSortAscending"/>
+				<menuitem text="降順(&amp;D)" action="ViewSortDescending"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="再読み込み(&amp;R)" action="ViewRefresh"/>
+			<separator/>
+			<popupmenu text="コントロールの表示(&amp;C)">
+				<menuitem text="ツールバーを表示(&amp;T)" action="ViewShowToolbar"/>
+				<menuitem text="ステータスバーを表示(&amp;S)" action="ViewShowStatusBar"/>
+			</popupmenu>
+		</popupmenu>
+	</menubar>
+	<menu name="edit">
+		<menuitem text="元に戻す(&amp;U)" action="EditUndo"/>
+		<menuitem text="やり直す(&amp;R)" action="EditRedo"/>
+		<separator/>
+		<menuitem text="切り取り(&amp;T)" action="EditCut"/>
+		<menuitem text="コピー(&amp;C)" action="EditCopy"/>
+		<menuitem text="貼り付け(&amp;P)" action="EditPaste"/>
+		<menuitem text="引用符付き貼り付け(&amp;Q)" action="EditPasteWithQuote"/>
+		<separator/>
+		<menuitem text="すべて選択(&amp;A)" action="EditSelectAll"/>
+		<separator/>
+		<menuitem text="検索(&amp;F)..." action="EditFind"/>
+		<menuitem text="次を検索(&amp;N)" action="EditFindNext"/>
+		<menuitem text="前を検索(&amp;V)" action="EditFindPrev"/>
+		<menuitem text="置換(&amp;L)..." action="EditReplace"/>
+	</menu>
+	<menu name="folder">
+		<menuitem text="新しいタブで開く(&amp;O)" action="TabCreate"/>
+		<separator/>
+		<menuitem text="作成(&amp;C)..." action="FolderCreate"/>
+		<menuitem text="削除(&amp;D)" action="FolderDelete"/>
+		<menuitem text="名前の変更(&amp;R)..." action="FolderRename"/>
+		<menuitem text="フォルダリストを更新(&amp;U)" action="FolderUpdate"/>
+		<separator/>
+		<menuitem text="空にする(&amp;E)" action="FolderEmpty"/>
+		<menuitem text="ゴミ箱を空にする(&amp;T)" action="FolderEmptyTrash"/>
+		<separator/>
+		<menuitem text="サイズを表示(&amp;S)" action="FolderShowSize"/>
+		<separator/>
+		<menuitem text="プロパティ(&amp;P)..." action="FolderProperty"/>
+	</menu>
+	<menu name="folderlist">
+		<menuitem text="新しいタブで開く(&amp;O)" action="TabCreate"/>
+		<separator/>
+		<menuitem text="作成(&amp;C)..." action="FolderCreate"/>
+		<menuitem text="削除(&amp;D)" action="FolderDelete"/>
+		<menuitem text="名前の変更(&amp;R)..." action="FolderRename"/>
+		<menuitem text="フォルダリストを更新(&amp;U)" action="FolderUpdate"/>
+		<separator/>
+		<menuitem text="空にする(&amp;E)" action="FolderEmpty"/>
+		<separator/>
+		<menuitem text="サイズを表示(&amp;S)" action="FolderShowSize"/>
+		<separator/>
+		<menuitem text="プロパティ(&amp;P)..." action="FolderProperty"/>
+	</menu>
+	<menu name="list">
+		<menuitem text="新規(&amp;N)" action="MessageCreate" param="new"/>
+		<menuitem text="返信(&amp;R)" action="MessageCreate" param="reply"/>
+		<menuitem text="全員に返信(&amp;A)" action="MessageCreate" param="reply_all"/>
+		<menuitem text="転送(&amp;F)" action="MessageCreate" param="forward"/>
+		<menuitem text="編集(&amp;E)" action="MessageCreate" param="edit"/>
+		<popupmenu text="テンプレート(&amp;T)">
+			<menuitem dynamic="MessageCreate"/>
+		</popupmenu>
+		<separator/>
+		<menuitem text="削除(&amp;D)" action="EditDelete"/>
+		<menuitem text="すべて選択(&amp;A)" action="EditSelectAll"/>
+		<separator/>
+		<popupmenu text="移動(&amp;M)">
+			<menuitem dynamic="MessageMove"/>
+			<separator/>
+			<menuitem text="その他(&amp;O)..." action="MessageMove"/>
+		</popupmenu>
+		<menuitem text="ラベル(&amp;B)..." action="MessageLabel"/>
+		<separator/>
+		<menuitem text="選択されたメッセージを振り分け(&amp;L)" action="MessageApplyRuleSelected"/>
+		<separator/>
+		<popupmenu text="添付ファイル(&amp;H)">
+			<menuitem text="保存(&amp;D)..." action="MessageDetach"/>
+			<menuitem text="削除(&amp;L)" action="MessageDeleteAttachment"/>
+			<separator/>
+			<menuitem dynamic="MessageAttachment"/>
+			<separator/>
+			<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
+			<menuitem text="結合(&amp;C)" action="MessageCombine"/>
+		</popupmenu>
+		<separator/>
+		<popupmenu text="マーク(&amp;K)">
+			<menuitem text="既読にする(&amp;S)" action="MessageMarkSeen"/>
+			<menuitem text="未読にする(&amp;U)" action="MessageUnmarkSeen"/>
+			<separator/>
+			<menuitem text="マークを付ける(&amp;M)" action="MessageMark"/>
+			<menuitem text="マークを消す(&amp;K)" action="MessageUnmark"/>
+			<separator/>
+			<menuitem text="ダウンロード予約(&amp;D)" action="MessageMarkDownload"/>
+			<menuitem text="本文をダウンロード予約(&amp;T)" action="MessageMarkDownloadText"/>
+			<separator/>
+			<menuitem text="削除マークを付ける(&amp;L)" action="MessageMarkDeleted"/>
+		</popupmenu>
+		<separator/>
+		<menuitem text="プロパティ(&amp;P)..." action="MessageProperty"/>
+	</menu>
+	<menu name="message">
+		<menuitem text="次のメッセージ(&amp;N)" action="ViewNextMessage"/>
+		<menuitem text="前のメッセージ(&amp;P)" action="ViewPrevMessage"/>
+		<menuitem text="次の未読メッセージ(&amp;U)" action="ViewNextUnseenMessage"/>
+		<separator/>
+		<menuitem text="削除(&amp;D)" action="EditDelete"/>
+		<menuitem text="コピー(&amp;C)" action="EditCopy"/>
+		<menuitem text="すべて選択(&amp;A)" action="EditSelectAll"/>
+		<separator/>
+		<menuitem text="メッセージ内検索(&amp;F)..." action="EditFind"/>
+		<separator/>
+		<popupmenu text="移動(&amp;M)">
+			<menuitem dynamic="MessageMove"/>
+			<separator/>
+			<menuitem text="その他(&amp;O)..." action="MessageMove"/>
+		</popupmenu>
+		<separator/>
+		<popupmenu text="添付ファイル(&amp;H)">
+			<menuitem text="保存(&amp;D)..." action="MessageDetach"/>
+			<menuitem text="削除(&amp;L)" action="MessageDeleteAttachment"/>
+			<separator/>
+			<menuitem dynamic="MessageAttachment"/>
+			<separator/>
+			<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
+			<menuitem text="結合(&amp;C)" action="MessageCombine"/>
+		</popupmenu>
+		<separator/>
+		<popupmenu text="マーク(&amp;K)">
+			<menuitem text="既読にする(&amp;S)" action="MessageMarkSeen"/>
+			<menuitem text="未読にする(&amp;U)" action="MessageUnmarkSeen"/>
+			<separator/>
+			<menuitem text="マークを付ける(&amp;M)" action="MessageMark"/>
+			<menuitem text="マークを消す(&amp;K)" action="MessageUnmark"/>
+			<separator/>
+			<menuitem text="ダウンロード予約(&amp;D)" action="MessageMarkDownload"/>
+			<menuitem text="本文をダウンロード予約(&amp;T)" action="MessageMarkDownloadText"/>
+			<separator/>
+			<menuitem text="削除マークを付ける(&amp;L)" action="MessageMarkDeleted"/>
+		</popupmenu>
+		<menuitem text="ラベル(&amp;B)..." action="MessageLabel"/>
+		<separator/>
+		<menuitem text="プロパティ(&amp;P)..." action="MessageProperty"/>
+	</menu>
+	<menu name="attachment">
+		<menuitem text="開く(&amp;O)" action="AttachmentOpen"/>
+		<menuitem text="保存(&amp;S)..." action="AttachmentSave"/>
+		<menuitem text="すべて保存(&amp;A)..." action="AttachmentSaveAll"/>
+	</menu>
+	<menu name="attachmentedit">
+		<menuitem text="追加(&amp;A)..." action="AttachmentEditAdd"/>
+		<menuitem text="削除(&amp;D)" action="AttachmentEditDelete"/>
+	</menu>
+	<menu name="tab">
+		<menuitem text="閉じる(&amp;C)" action="TabClose"/>
+		<separator/>
+		<menuitem text="タイトルを編集(&amp;E)..." action="TabEditTitle"/>
+		<separator/>
+		<menuitem text="ロック(&amp;L)" action="TabLock"/>
+	</menu>
+	<menu name="addressbooklist">
+		<menuitem text="新規(&amp;N)..." action="AddressNew"/>
+		<menuitem text="編集(&amp;E)..." action="AddressEdit"/>
+		<menuitem text="削除(&amp;D)" action="AddressDelete"/>
+	</menu>
+	<menu name="encoding">
+		<menuitem text="自動判定(&amp;D)" action="ViewEncoding" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewEncoding"/>
+	</menu>
+	<menu name="filter">
+		<menuitem text="なし(&amp;N)" action="ViewFilter" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewFilter"/>
+		<separator/>
+		<menuitem text="カスタム(&amp;C)..." action="ViewFilterCustom"/>
+		<separator/>
+		<menuitem text="編集(&amp;E)..." action="ConfigFilters"/>
+	</menu>
+	<menu name="template">
+		<menuitem text="なし(&amp;N)" action="ViewTemplate" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewTemplate"/>
+	</menu>
+	<menu name="recents">
+		<menuitem dynamic="MessageRecents"/>
+		<separator/>
+		<menuitem text="クリア(&amp;C)" action="MessageClearRecents"/>
+		<separator/>
+		<menuitem text="表示(&amp;S)" action="FileShow"/>
+	</menu>
+</menus>

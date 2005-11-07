@@ -287,7 +287,7 @@ void qm::EditEditFindAction::invoke(const ActionEvent& event)
 	}
 	
 	if (!bFound)
-		ActionUtil::info(hwnd, IDS_FINDNOTFOUND);
+		ActionUtil::info(hwnd, IDS_MESSAGE_FINDNOTFOUND);
 }
 
 bool qm::EditEditFindAction::isEnabled(const ActionEvent& event)
@@ -531,7 +531,7 @@ void qm::EditEditReplaceAction::invoke(const ActionEvent& event)
 		bool bFound = pTextWindow_->replace(
 			dialog.getFind(), dialog.getReplace(), nFlags);
 		if (!bFound)
-			ActionUtil::info(hwnd, IDS_FINDNOTFOUND);
+			ActionUtil::info(hwnd, IDS_MESSAGE_FINDNOTFOUND);
 	}
 }
 

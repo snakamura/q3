@@ -1,0 +1,4 @@
+﻿<filters>
+	<filter name="未読">@Not(@Seen())</filter>
+	<filter name="新着">@Not(@Passed(14))</filter>
+</filters>

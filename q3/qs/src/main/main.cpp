@@ -16,8 +16,9 @@
 #include <memory>
 #include <vector>
 
-#include <windows.h>
 #include <mlang.h>
+#include <tchar.h>
+#include <windows.h>
 
 using namespace qs;
 
@@ -29,6 +30,7 @@ using namespace qs;
  */
 
 HINSTANCE g_hInstDll = 0;
+HINSTANCE g_hInstResourceDll = 0;
 Window* g_pMainWindow = 0;
 ModalHandler* g_pModalHandler = 0;
 
@@ -75,11 +77,13 @@ BOOL WINAPI DllMain(HANDLE hInst,
 void initProcess(HINSTANCE hInst)
 {
 	g_hInstDll = hInst;
+	g_hInstResourceDll = loadResourceDll(hInst);
 }
 
 void termProcess()
 {
 	g_hInstDll = 0;
+	g_hInstResourceDll = 0;
 }
 
 void initThread()
@@ -105,6 +109,24 @@ QSEXPORTPROC HINSTANCE qs::getInstanceHandle()
 QSEXPORTPROC HINSTANCE qs::getDllInstanceHandle()
 {
 	return g_hInstDll;
+}
+
+QSEXPORTPROC HINSTANCE qs::getResourceDllInstanceHandle()
+{
+	return g_hInstResourceDll;
+}
+
+QSEXPORTPROC HINSTANCE qs::loadResourceDll(HINSTANCE hInst)
+{
+	TCHAR tszPath[MAX_PATH + 10];
+	DWORD dwLen = ::GetModuleFileName(hInst, tszPath, MAX_PATH);
+	if (dwLen == 0)
+		return hInst;
+	
+	_stprintf(tszPath + dwLen, _T(".%04x.mui"),
+		static_cast<unsigned int>(::GetUserDefaultLangID()));
+	HINSTANCE hInstResource = ::LoadLibrary(tszPath);
+	return hInstResource ? hInstResource : hInst;
 }
 
 

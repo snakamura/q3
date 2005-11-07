@@ -2,41 +2,22 @@
 // Microsoft Developer Studio generated include file.
 // Used by qmimap4.rc
 //
-#define IDS_IMAP4                       100
-#define IDD_RECEIVE                     101
-#define IDD_SEARCH                      102
-#define IDS_INITIALIZE                  1000
-#define IDS_LOOKUP                      1001
-#define IDC_ROOTFOLDER                  1001
-#define IDS_CONNECTING                  1002
-#define IDS_CONNECTED                   1003
-#define IDS_AUTHENTICATING              1004
-#define IDC_FETCHCOUNT                  1004
-#define IDS_SELECTFOLDER                1005
-#define IDS_CLOSEFOLDER                 1006
-#define IDC_USEENVELOPE                 1006
-#define IDS_UPDATEMESSAGES              1007
-#define IDC_USEBODYSTRUCTUREALWAYS      1007
-#define IDS_DOWNLOADMESSAGESDATA        1008
-#define IDC_TRUSTBODYSTRUCTURE          1008
-#define IDS_SETFLAGS                    1009
-#define IDC_CLOSEFOLDER                 1009
-#define IDS_DOWNLOADMESSAGES            1010
-#define IDC_MAXSESSION                  1010
-#define IDS_APPLYOFFLINEJOBS            1011
-#define IDC_NAMESPACE                   1012
-#define IDS_DOWNLOADRESERVEDMESSAGES    1012
-#define IDC_SEARCHBODY                  1013
-#define IDS_IMAP4SEARCH                 1013
-#define IDC_IMAP4COMMAND                1014
-#define IDS_MANAGEJUNK                  1014
-#define IDC_PERSONAL                    1015
-#define IDC_OTHERS                      1016
-#define IDC_SHARED                      1017
-#define IDC_CONDITION                   1127
-#define IDC_CURRENT                     1128
-#define IDC_RECURSIVE                   1129
-#define IDC_ALLFOLDER                   1130
+#define IDS_IMAP4                       1000
+#define IDS_INITIALIZE                  2000
+#define IDS_LOOKUP                      2001
+#define IDS_CONNECTING                  2002
+#define IDS_CONNECTED                   2003
+#define IDS_AUTHENTICATING              2004
+#define IDS_SELECTFOLDER                2005
+#define IDS_CLOSEFOLDER                 2006
+#define IDS_UPDATEMESSAGES              2007
+#define IDS_DOWNLOADMESSAGESDATA        2008
+#define IDS_SETFLAGS                    2009
+#define IDS_DOWNLOADMESSAGES            2010
+#define IDS_APPLYOFFLINEJOBS            2011
+#define IDS_DOWNLOADRESERVEDMESSAGES    2012
+#define IDS_IMAP4SEARCH                 2013
+#define IDS_MANAGEJUNK                  2014
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_LOGIN                 11001
@@ -73,27 +54,15 @@
 #define IDS_ERROR_SEND                  12009
 #define IDS_ERROR_RESPONSE              12010
 #define IDS_ERROR_SSL                   12011
-#define IDS_ERROR_SOCKET_SOCKET         13000
-#define IDS_ERROR_SOCKET_CLOSESOCKET    13001
-#define IDS_ERROR_SOCKET_LOOKUPNAME     13002
-#define IDS_ERROR_SOCKET_CONNECT        13003
-#define IDS_ERROR_SOCKET_CONNECTTIMEOUT 13004
-#define IDS_ERROR_SOCKET_RECV           13005
-#define IDS_ERROR_SOCKET_RECVTIMEOUT    13006
-#define IDS_ERROR_SOCKET_SEND           13007
-#define IDS_ERROR_SOCKET_SENDTIMEOUT    13008
-#define IDS_ERROR_SOCKET_SELECT         13009
-#define IDS_ERROR_SOCKET_CANCEL         13010
-#define IDS_ERROR_SOCKET_UNKNOWN        13011
 #define IDS_ERROR_APPLYRULES            14000
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        102
-#define _APS_NEXT_COMMAND_VALUE         40002
-#define _APS_NEXT_CONTROL_VALUE         1018
+#define _APS_NEXT_RESOURCE_VALUE        101
+#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -96,6 +96,9 @@ public:
 					   long nTimeout) = 0;
 	virtual InputStream* getInputStream() = 0;
 	virtual OutputStream* getOutputStream() = 0;
+
+public:
+	static wstring_ptr getErrorDescription(Error error);
 };
 
 

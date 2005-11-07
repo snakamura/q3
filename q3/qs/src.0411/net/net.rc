@@ -1,0 +1,87 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "netresource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\..\src\net\netresource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "netresource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\..\\src\\net\\netresource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_SOCKET_SOCKET "socketでエラーが発生しました"
+    IDS_ERROR_SOCKET_CLOSESOCKET "closesocketでエラーが発生しました"
+    IDS_ERROR_SOCKET_LOOKUPNAME "ホスト名の検索でエラーが発生しました"
+    IDS_ERROR_SOCKET_CONNECT "connectでエラーが発生しました"
+    IDS_ERROR_SOCKET_CONNECTTIMEOUT "connectでタイムアウトしました"
+    IDS_ERROR_SOCKET_RECV   "recvでエラーが発生しました"
+    IDS_ERROR_SOCKET_RECVTIMEOUT "recvでタイムアウトしました"
+    IDS_ERROR_SOCKET_SEND   "sendでエラーが発生しました"
+    IDS_ERROR_SOCKET_SENDTIMEOUT "sendでタイムアウトしました"
+    IDS_ERROR_SOCKET_SELECT "selectでエラーが発生しました"
+    IDS_ERROR_SOCKET_CANCEL "キャンセルされました"
+    IDS_ERROR_SOCKET_UNKNOWN "不明なエラーです"
+END
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

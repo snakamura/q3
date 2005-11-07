@@ -6,7 +6,9 @@
  *
  */
 
+#include "main.h"
 #include "rssdriver.h"
+#include "resourceinc.h"
 
 using namespace qmrss;
 using namespace qm;
@@ -109,19 +111,17 @@ bool qmrss::RssDriver::createDefaultFolders(Account::FolderList* pList)
 	assert(pList);
 	
 	struct {
-		const WCHAR* pwszName_;
+		UINT nId_;
 		unsigned int nFlags_;
 	} folders[] = {
-//		{ L"Inbox",		Folder::FLAG_LOCAL | Folder::FLAG_INBOX | Folder::FLAG_SYNCABLE		},
-//		{ L"Outbox",	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
-//		{ L"Sentbox",	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
-		{ L"Trash",		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							}
+		{ IDS_FOLDER_TRASH,		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX	}
 	};
 	
 	pList->reserve(countof(folders));
 	
 	for (int n = 0; n < countof(folders); ++n) {
-		NormalFolder* pFolder = new NormalFolder(n + 1, folders[n].pwszName_,
+		wstring_ptr wstrName(loadString(getResourceHandle(), folders[n].nId_));
+		NormalFolder* pFolder = new NormalFolder(n + 1, wstrName.get(),
 			L'/', folders[n].nFlags_, 0, 0, 0, 0, 0, 0, pAccount_);
 		pList->push_back(pFolder);
 	}

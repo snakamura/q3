@@ -70,7 +70,7 @@ wstring_ptr DetachCallbackImpl::confirmOverwrite(const WCHAR* pwszPath)
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
-	wstring_ptr wstr(loadString(hInst, IDS_CONFIRMOVERWRITE));
+	wstring_ptr wstr(loadString(hInst, IDS_CONFIRM_OVERWRITE));
 	wstring_ptr wstrMessage(concat(wstr.get(), pwszPath));
 	
 	wstring_ptr wstrPath;
@@ -316,7 +316,7 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 			if (wcsstr(wstrExtensions.get(), p)) {
 				int nMsg = messageBox(
 					Application::getApplication().getResourceHandle(),
-					IDS_CONFIRMEXECUTEATTACHMENT,
+					IDS_CONFIRM_EXECUTEATTACHMENT,
 					MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd_, 0, 0);
 				if (nMsg != IDYES)
 					return AttachmentParser::RESULT_CANCEL;

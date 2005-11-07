@@ -311,11 +311,11 @@ LRESULT qm::ConditionDialog::onInitDialog(HWND hwndFocus,
 		int nWidth_;
 	} columns[] = {
 #ifndef _WIN32_WCE_PSPC
-		{ IDS_NAME,		150	},
-		{ IDS_VALUE,	150	}
+		{ IDS_ARGUMENT_NAME,	150	},
+		{ IDS_ARGUMENT_VALUE,	150	}
 #else
-		{ IDS_NAME,		80	},
-		{ IDS_VALUE,	80	}
+		{ IDS_ARGUMENT_NAME,	80	},
+		{ IDS_ARGUMENT_VALUE,	80	}
 #endif
 	};
 	for (int n = 0; n < countof(columns); ++n) {

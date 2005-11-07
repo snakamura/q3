@@ -646,7 +646,7 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 						pDataObject, pDocument_, pNormalFolder);
 				bool bMove = flag == MessageDataObject::FLAG_MOVE;
 				
-				UINT nId = bMove ? IDS_MOVEMESSAGE : IDS_COPYMESSAGE;
+				UINT nId = bMove ? IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
 				ProgressDialogMessageOperationCallback callback(
 					pThis_->getParentFrame(), nId, nId);
 				if (!MessageDataObject::pasteMessages(pDataObject, pDocument_,

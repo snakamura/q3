@@ -1,0 +1,131 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "modelresource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\..\src\model\modelresource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "modelresource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\..\\src\\model\\modelresource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONDITION_SEEN_DESCRIPTION "既読"
+    IDS_CONDITION_UNSEEN_DESCRIPTION "未読"
+    IDS_CONDITION_MARKED_DESCRIPTION "マークされている"
+    IDS_CONDITION_UNMARKED_DESCRIPTION "マークされていない"
+    IDS_CONDITION_DELETED_DESCRIPTION "削除マークが付いている"
+    IDS_CONDITION_UNDELETED_DESCRIPTION "削除マークが付いていない"
+    IDS_CONDITION_MULTIPART_DESCRIPTION "マルチパート"
+    IDS_CONDITION_JUNK_DESCRIPTION "スパム"
+    IDS_CONDITION_TRUE_DESCRIPTION "常に"
+    IDS_CONDITION_CONTAIN_DESCRIPTION "<%0>が'%1'を含む"
+    IDS_CONDITION_CONTAIN_FIELD "フィールド"
+    IDS_CONDITION_CONTAIN_VALUE "文字列"
+    IDS_CONDITION_BEGINWITH_DESCRIPTION "<%0>が'%1'からはじまる"
+    IDS_CONDITION_BEGINWITH_FIELD "フィールド"
+    IDS_CONDITION_BEGINWITH_VALUE "文字列"
+    IDS_CONDITION_EQUAL_DESCRIPTION "<%0>が'%1'と等しい"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONDITION_EQUAL_FIELD "フィールド"
+    IDS_CONDITION_EQUAL_VALUE "文字列"
+    IDS_CONDITION_MATCH_DESCRIPTION "<%0>が'%1'にマッチする"
+    IDS_CONDITION_MATCH_FIELD "フィールド"
+    IDS_CONDITION_MATCH_VALUE "正規表現"
+    IDS_CONDITION_LARGER_DESCRIPTION "'%0'バイトより大きい"
+    IDS_CONDITION_LARGER_VALUE "サイズ"
+    IDS_CONDITION_SMALLER_DESCRIPTION "'%0'バイトより小さい"
+    IDS_CONDITION_SMALLER_VALUE "サイズ"
+    IDS_CONDITION_OLDER_DESCRIPTION "'%0'日より古い"
+    IDS_CONDITION_OLDER_VALUE "日数"
+    IDS_CONDITION_NEWER_DESCRIPTION "'%0'日より新しい"
+    IDS_CONDITION_NEWER_VALUE "日数"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONDITIONTYPE_AND   " かつ "
+    IDS_CONDITIONTYPE_OR    " または "
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RULEACTION_NONE     "何もしない"
+    IDS_RULEACTION_MOVE     "[%0]に移動する"
+    IDS_RULEACTION_COPY     "[%0]にコピーする"
+    IDS_RULEACTION_DELETE   "削除する"
+    IDS_RULEACTION_LABEL    "ラベルを設定する: %1'%0'"
+    IDS_RULEACTION_DELETEDIRECT "直接削除する"
+    IDS_RULEACTION_DELETECACHE "キャッシュを削除する"
+    IDS_RULEACTION_APPLYMACRO "マクロを適用する: '%0'"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FOLDER_SEARCH       "検索"
+END
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

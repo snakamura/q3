@@ -794,7 +794,7 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 		Window(getDlgItem(IDC_FILEPERMESSAGE)).enableWindow(false);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrNone(loadString(hInst, IDS_NONE));
+	wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 	W2T(wstrNone.get(), ptszNone);
 	ComboBox_AddString(getDlgItem(IDC_TEMPLATE), ptszNone);
 	
@@ -2790,13 +2790,13 @@ LRESULT qm::ViewsDialog::onInitDialog(HWND hwndFocus,
 		int nWidth_;
 	} columns[] = {
 #ifndef _WIN32_WCE_PSPC
-		{ IDS_TITLE,	150	},
-		{ IDS_TYPE,		150	},
-		{ IDS_WIDTH,	50	}
+		{ IDS_COLUMN_TITLE,	150	},
+		{ IDS_COLUMN_TYPE,	150	},
+		{ IDS_COLUMN_WIDTH,	50	}
 #else
-		{ IDS_TITLE,	80	},
-		{ IDS_TYPE,		80	},
-		{ IDS_WIDTH,	30	}
+		{ IDS_COLUMN_TITLE,	80	},
+		{ IDS_COLUMN_TYPE,	80	},
+		{ IDS_COLUMN_WIDTH,	30	}
 #endif
 	};
 	for (int n = 0; n < countof(columns); ++n) {

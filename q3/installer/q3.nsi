@@ -51,6 +51,7 @@ UninstPage custom un.RemoveMailBox
 !insertmacro MUI_UNPAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "Japanese"
 
 Section "Core (required)" Core
 
@@ -167,6 +168,21 @@ Section "Zip" Zip
 SectionEnd
 
 
+Section "Japanese" Japanese
+
+  SetOutPath $INSTDIR
+  
+  File ..\bin\win\${CPU}\${CODE}\release\qm${POSTFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qs${POSTFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmpop3${POSTFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${POSTFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmimap4${POSTFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmnntp${POSTFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmrss${POSTFIX}.dll.0411.mui
+  
+SectionEnd
+
+
 Section "Uninstall"
   
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3"  
@@ -263,6 +279,18 @@ LangString DESC_SecPgp ${LANG_ENGLISH} "PGP and GnuPG support."
 LangString DESC_SecJunk ${LANG_ENGLISH} "Junk filter support."
 LangString DESC_SecScript ${LANG_ENGLISH} "Script support."
 LangString DESC_SecZip ${LANG_ENGLISH} "Enable archiving attachments."
+LangString DESC_SecJapanese ${LANG_ENGLISH} "Japanese UI support."
+
+LangString DESC_SecCore ${LANG_JAPANESE} "POP3/SMTPのサポートを含むコアモジュール"
+LangString DESC_SecImap4 ${LANG_JAPANESE} "IMAP4のサポート"
+LangString DESC_SecNntp ${LANG_JAPANESE} "ネットニュース(NNTP)のサポート"
+LangString DESC_SecRss ${LANG_JAPANESE} "RSSとAtomのサポート"
+LangString DESC_SecCrypto ${LANG_JAPANESE} "SSLとS/MIMEのサポート"
+LangString DESC_SecPgp ${LANG_JAPANESE} "PGPとGnuPGのサポート"
+LangString DESC_SecJunk ${LANG_JAPANESE} "スパムフィルタのサポート"
+LangString DESC_SecScript ${LANG_JAPANESE} "スクリプトのサポート"
+LangString DESC_SecZip ${LANG_JAPANESE} "添付ファイルの圧縮のサポート"
+LangString DESC_SecJapanese ${LANG_JAPANESE} "日本語UIのサポート"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${Core} $(DESC_SecCore)
@@ -274,4 +302,5 @@ LangString DESC_SecZip ${LANG_ENGLISH} "Enable archiving attachments."
   !insertmacro MUI_DESCRIPTION_TEXT ${Junk} $(DESC_SecJunk)
   !insertmacro MUI_DESCRIPTION_TEXT ${Script} $(DESC_SecScript)
   !insertmacro MUI_DESCRIPTION_TEXT ${Zip} $(DESC_SecZip)
+  !insertmacro MUI_DESCRIPTION_TEXT ${Japanese} $(DESC_SecJapanese)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END

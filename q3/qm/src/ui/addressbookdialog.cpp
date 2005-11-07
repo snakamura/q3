@@ -535,9 +535,9 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 		const WCHAR* pwszKey_;
 		int nWidth_;
 	} columns[] = {
-		{ IDS_ADDRESSBOOK_NAME,		L"NameWidth",		120	},
-		{ IDS_ADDRESSBOOK_ADDRESS,	L"AddressWidth",	130	},
-		{ IDS_ADDRESSBOOK_COMMENT,	L"CommentWidth",	60	}
+		{ IDS_ADDRESSBOOK_COLUMN_NAME,		L"NameWidth",		120	},
+		{ IDS_ADDRESSBOOK_COLUMN_ADDRESS,	L"AddressWidth",	130	},
+		{ IDS_ADDRESSBOOK_COLUMN_COMMENT,	L"CommentWidth",	60	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
 		wstring_ptr wstrName(loadString(hInst, columns[n].nId_));
@@ -956,7 +956,7 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 	} deleter(stackMenu);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrThisCategory(loadString(hInst, IDS_THISCATEGORY));
+	wstring_ptr wstrThisCategory(loadString(hInst, IDS_ADDRESSBOOK_THISCATEGORY));
 	W2T(wstrThisCategory.get(), ptszThisCategory);
 	
 	UINT nId = IDM_ADDRESSBOOK_CATEGORY;
@@ -1027,7 +1027,7 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 	
 	::AppendMenu(hmenu.get(), MF_SEPARATOR, -1, 0);
 	
-	wstring_ptr wstrAll(loadString(hInst, IDS_ALLCATEGORY));
+	wstring_ptr wstrAll(loadString(hInst, IDS_ADDRESSBOOK_ALLCATEGORY));
 	W2T(wstrAll.get(), ptszAll);
 	::AppendMenu(hmenu.get(), MF_STRING | (!wstrCategory_.get() ? MF_CHECKED : 0),
 		IDM_ADDRESSBOOK_ALLCATEGORY, ptszAll);
@@ -1043,8 +1043,8 @@ void qm::SelectAddressDialog::setCurrentCategory(const WCHAR* pwszCategory)
 		wstrCategory_.reset(0);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_CATEGORY));
-	wstring_ptr wstrAll(loadString(hInst, IDS_CATEGORYALL));
+	wstring_ptr wstrTitle(loadString(hInst, IDS_ADDRESSBOOK_CATEGORY));
+	wstring_ptr wstrAll(loadString(hInst, IDS_ADDRESSBOOK_CATEGORYALL));
 	
 	ConcatW c[] = {
 		{ wstrTitle.get(),												-1	},

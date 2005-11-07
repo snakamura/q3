@@ -48,7 +48,7 @@
 			<separator/>
 			<popupmenu text="Mode">
 				<menuitem text="Raw Mode" action="ViewRawMode"/>
-				<menuitem text="Sourc&amp;e Mode" action="ViewSourceMode"/>
+				<menuitem text="Source Mode" action="ViewSourceMode"/>
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
 				<separator/>
@@ -122,7 +122,7 @@
 				<separator/>
 				<menuitem text="Mark Deleted" action="MessageMarkDeleted"/>
 			</popupmenu>
-			<menuitem text="Label" action="MessageLabel"/>
+			<menuitem text="Label..." action="MessageLabel"/>
 			<separator/>
 			<popupmenu text="Move">
 				<menuitem dynamic="MessageMove"/>
@@ -178,11 +178,7 @@
 			<menuitem text="Close" action="FileClose"/>
 		</popupmenu>
 		<popupmenu text="Edit">
-			<menuitem text="Undo" action="EditUndo"/>
-			<separator/>
-			<menuitem text="Cut" action="EditCut"/>
 			<menuitem text="Copy" action="EditCopy"/>
-			<menuitem text="Paste" action="EditPaste"/>
 			<menuitem text="Select All" action="EditSelectAll"/>
 			<separator/>
 			<menuitem text="Delete" action="EditDelete"/>
@@ -198,7 +194,7 @@
 			<separator/>
 			<popupmenu text="Mode">
 				<menuitem text="Raw Mode" action="ViewRawMode"/>
-				<menuitem text="Sourc&amp;e Mode" action="ViewSourceMode"/>
+				<menuitem text="Source Mode" action="ViewSourceMode"/>
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
 				<separator/>
@@ -247,7 +243,7 @@
 				<separator/>
 				<menuitem text="Mark Deleted" action="MessageMarkDeleted"/>
 			</popupmenu>
-			<menuitem text="Label" action="MessageLabel"/>
+			<menuitem text="Label..." action="MessageLabel"/>
 			<separator/>
 			<popupmenu text="Move">
 				<menuitem dynamic="MessageMove"/>
@@ -310,7 +306,6 @@
 		</popupmenu>
 		<popupmenu text="Tool">
 			<menuitem text="Address Book..." action="ToolSelectAddress"/>
-			<menuitem text="Attachment..." action="ToolAttachment"/>
 			<popupmenu text="Insert Text">
 				<menuitem dynamic="ToolInsertText"/>
 				<separator/>
@@ -322,6 +317,8 @@
 				<separator/>
 				<menuitem dynamic="ToolEncoding"/>
 			</popupmenu>
+			<separator/>
+			<menuitem text="Attachment..." action="ToolAttachment"/>
 			<separator/>
 			<menuitem text="Reform" action="ToolReform"/>
 			<menuitem text="Reform All" action="ToolReformAll"/>
@@ -450,7 +447,7 @@
 			<separator/>
 			<menuitem text="Mark Deleted" action="MessageMarkDeleted"/>
 		</popupmenu>
-		<menuitem text="Label" action="MessageLabel"/>
+		<menuitem text="Label..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="Property..." action="MessageProperty"/>
 	</menu>
@@ -493,7 +490,7 @@
 			<separator/>
 			<menuitem text="Mark Deleted" action="MessageMarkDeleted"/>
 		</popupmenu>
-		<menuitem text="Label" action="MessageLabel"/>
+		<menuitem text="Label..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="Property..." action="MessageProperty"/>
 	</menu>

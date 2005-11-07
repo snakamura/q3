@@ -541,12 +541,10 @@ qm::SyncStatusWindow::SyncStatusWindow(SyncDialog* pSyncDialog) :
 	WindowBase(true),
 	pSyncDialog_(pSyncDialog),
 	bNewMessage_(false),
-	nFontHeight_(0),
-	nCancelWidth_(0)
+	nFontHeight_(0)
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstrFinished_ = loadString(hInst, IDS_SYNCMSG_FINISHED);
-	wstrCancel_ = loadString(hInst, IDS_CANCEL);
+	wstrFinished_ = loadString(hInst, IDS_MESSAGE_FINISHED);
 	
 	setWindowHandler(this, false);
 }
@@ -968,10 +966,6 @@ LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	TEXTMETRIC tm;
 	dc.getTextMetrics(&tm);
 	nFontHeight_ = tm.tmHeight + tm.tmExternalLeading;
-	
-	SIZE size;
-	dc.getTextExtent(wstrCancel_.get(), static_cast<int>(wcslen(wstrCancel_.get())), &size);
-	nCancelWidth_ = size.cx;
 	
 	return 0;
 }

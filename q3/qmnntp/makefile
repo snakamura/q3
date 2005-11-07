@@ -12,3 +12,5 @@ DEFFILE			= $(OBJDIR)/$(PROJECTNAME).def
 BASEADDRESS		= 0x36000000
 
 include ../common.mak
+
+$(OBJDIR)/$(PROJECTNAME)$(BASEPLATFORM).res: $(SRCDIR)/$(PROJECTNAME).rc $(SRCDIR)/resource.h

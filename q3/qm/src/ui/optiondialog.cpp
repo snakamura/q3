@@ -1480,7 +1480,7 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 LRESULT qm::OptionMiscDialog::onBrowse()
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_TEMPORARYFOLDER));
+	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_TEMPORARYFOLDER));
 	wstring_ptr wstrPath(getDlgItemText(IDC_TEMPORARYFOLDER));
 	wstrPath = qs::UIUtil::browseFolder(getParentPopup(), wstrTitle.get(), wstrPath.get());
 	if (wstrPath.get())
@@ -2444,7 +2444,7 @@ qm::ColorSetsDialog::ColorSetsDialog(ColorManager* pColorManager,
 									 AccountManager* pAccountManager,
 									 Profile* pProfile) :
 	RuleColorSetsDialog<ColorSet, ColorManager::ColorSetList, ColorManager, ColorsDialog>(
-		pColorManager, pAccountManager, pProfile, IDS_COLORSETS,
+		pColorManager, pAccountManager, pProfile, IDS_TITLE_COLORSETS,
 		&ColorManager::getColorSets, &ColorManager::setColorSets)
 {
 }
@@ -2460,7 +2460,8 @@ qm::ColorsDialog::ColorsDialog(ColorSet* pColorSet,
 							   AccountManager* pAccountManager,
 							   Profile* pProfile) :
 	RulesColorsDialog<ColorEntry, ColorSet::ColorList, ColorSet, ColorDialog>(
-		pColorSet, pAccountManager, pProfile, IDS_COLORS, &ColorSet::getColors, &ColorSet::setColors)
+		pColorSet, pAccountManager, pProfile, IDS_TITLE_COLORS,
+		&ColorSet::getColors, &ColorSet::setColors)
 {
 }
 
@@ -2621,7 +2622,7 @@ qm::RuleSetsDialog::RuleSetsDialog(RuleManager* pRuleManager,
 								   AccountManager* pAccountManager,
 								   Profile* pProfile) :
 	RuleColorSetsDialog<RuleSet, RuleManager::RuleSetList, RuleManager, RulesDialog>(
-		pRuleManager, pAccountManager, pProfile, IDS_RULESETS,
+		pRuleManager, pAccountManager, pProfile, IDS_TITLE_RULESETS,
 		&RuleManager::getRuleSets, &RuleManager::setRuleSets)
 {
 }
@@ -2637,7 +2638,8 @@ qm::RulesDialog::RulesDialog(RuleSet* pRuleSet,
 							 AccountManager* pAccountManager,
 							 Profile* pProfile) :
 	RulesColorsDialog<Rule, RuleSet::RuleList, RuleSet, RuleDialog>(
-		pRuleSet, pAccountManager, pProfile, IDS_RULES, &RuleSet::getRules, &RuleSet::setRules)
+		pRuleSet, pAccountManager, pProfile, IDS_TITLE_RULES,
+		&RuleSet::getRules, &RuleSet::setRules)
 {
 }
 
@@ -3110,8 +3112,8 @@ LRESULT qm::CopyRuleTemplateDialog::onInitDialog(HWND hwndFocus,
 		UINT nId_;
 		int nWidth_;
 	} columns[] = {
-		{ IDS_NAME,		100	},
-		{ IDS_VALUE,	100	},
+		{ IDS_ARGUMENT_NAME,	100	},
+		{ IDS_ARGUMENT_VALUE,	100	},
 	};
 	for (int n = 0; n < countof(columns); ++n) {
 		wstring_ptr wstrColumn(loadString(hInst, columns[n].nId_));

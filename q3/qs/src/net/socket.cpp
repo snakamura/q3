@@ -12,6 +12,8 @@
 #include <qssocket.h>
 #include <qsstring.h>
 
+#include "netresource.h"
+
 using namespace qs;
 
 
@@ -41,6 +43,32 @@ qs::Winsock::~Winsock()
 
 qs::SocketBase::~SocketBase()
 {
+}
+
+wstring_ptr qs::SocketBase::getErrorDescription(Error error)
+{
+	struct {
+		Error error_;
+		UINT nId_;
+	} errors[] = {
+		{ SOCKET_ERROR_SOCKET,			IDS_ERROR_SOCKET_SOCKET			},
+		{ SOCKET_ERROR_CLOSESOCKET,		IDS_ERROR_SOCKET_CLOSESOCKET	},
+		{ SOCKET_ERROR_LOOKUPNAME,		IDS_ERROR_SOCKET_LOOKUPNAME		},
+		{ SOCKET_ERROR_CONNECT,			IDS_ERROR_SOCKET_CONNECT		},
+		{ SOCKET_ERROR_CONNECTTIMEOUT,	IDS_ERROR_SOCKET_CONNECTTIMEOUT	},
+		{ SOCKET_ERROR_RECV,			IDS_ERROR_SOCKET_RECV			},
+		{ SOCKET_ERROR_RECVTIMEOUT,		IDS_ERROR_SOCKET_RECVTIMEOUT	},
+		{ SOCKET_ERROR_SEND,			IDS_ERROR_SOCKET_SEND			},
+		{ SOCKET_ERROR_SENDTIMEOUT,		IDS_ERROR_SOCKET_SENDTIMEOUT	},
+		{ SOCKET_ERROR_SELECT,			IDS_ERROR_SOCKET_SELECT			},
+		{ SOCKET_ERROR_CANCEL,			IDS_ERROR_SOCKET_CANCEL			},
+		{ SOCKET_ERROR_UNKNOWN,			IDS_ERROR_SOCKET_UNKNOWN		}
+	};
+	for (int n = 0; n < countof(errors); ++n) {
+		if (error == errors[n].error_)
+			return loadString(getResourceDllInstanceHandle(), errors[n].nId_);
+	}
+	return 0;
 }
 
 

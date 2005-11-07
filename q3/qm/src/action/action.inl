@@ -60,7 +60,7 @@ qs::wstring_ptr qm::ViewShowControlAction<WindowX>::getText(const qs::ActionEven
 template<class WindowX>
 qm::ViewShowStatusBarAction<WindowX>::ViewShowStatusBarAction(WindowX* pWindow) :
 	ViewShowControlAction<WindowX>(pWindow, &WindowX::setShowStatusBar,
-		&WindowX::isShowStatusBar, IDS_SHOWSTATUSBAR, IDS_HIDESTATUSBAR)
+		&WindowX::isShowStatusBar, IDS_ACTION_SHOWSTATUSBAR, IDS_ACTION_HIDESTATUSBAR)
 {
 }
 
@@ -79,7 +79,7 @@ qm::ViewShowStatusBarAction<WindowX>::~ViewShowStatusBarAction()
 template<class WindowX>
 qm::ViewShowToolbarAction<WindowX>::ViewShowToolbarAction(WindowX* pWindow) :
 	ViewShowControlAction<WindowX>(pWindow, &WindowX::setShowToolbar,
-		&WindowX::isShowToolbar, IDS_SHOWTOOLBAR, IDS_HIDETOOLBAR)
+		&WindowX::isShowToolbar, IDS_ACTION_SHOWTOOLBAR, IDS_ACTION_HIDETOOLBAR)
 {
 }
 

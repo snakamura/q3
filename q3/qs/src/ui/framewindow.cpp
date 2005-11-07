@@ -301,7 +301,7 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 				getHandle(),
 				0,
 				hmenu ? IDR_EMPTY : nMenuId,
-				hmenu ? getDllInstanceHandle() : pImpl_->hInstResource_,
+				hmenu ? getResourceDllInstanceHandle() : pImpl_->hInstResource_,
 				0,
 				0
 			};

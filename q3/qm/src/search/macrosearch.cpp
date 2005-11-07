@@ -113,7 +113,7 @@ const WCHAR* qm::MacroSearchUI::getName()
 
 wstring_ptr qm::MacroSearchUI::getDisplayName()
 {
-	return loadString(Application::getApplication().getResourceHandle(), IDS_MACROSEARCH);
+	return loadString(Application::getApplication().getResourceHandle(), IDS_TITLE_MACROSEARCH);
 }
 
 std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(bool bAllFolder,

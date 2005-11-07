@@ -323,7 +323,7 @@ void qs::RasConnectionImpl::setMessage(RasConnectionCallback* pCallback,
 									   UINT nId)
 {
 	assert(pCallback);
-	wstring_ptr wstrMessage(loadString(getDllInstanceHandle(), nId));
+	wstring_ptr wstrMessage(loadString(getResourceDllInstanceHandle(), nId));
 	pCallback->setMessage(wstrMessage.get());
 }
 

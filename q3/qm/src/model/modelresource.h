@@ -41,6 +41,7 @@
 #define IDS_RULEACTION_DELETEDIRECT     20105
 #define IDS_RULEACTION_DELETECACHE      20106
 #define IDS_RULEACTION_APPLYMACRO       20107
+#define IDS_FOLDER_SEARCH               20200
 
 // Next default values for new objects
 // 

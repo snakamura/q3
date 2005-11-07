@@ -60,6 +60,21 @@ QSEXPORTPROC HINSTANCE getInstanceHandle();
  */
 QSEXPORTPROC HINSTANCE getDllInstanceHandle();
 
+/**
+ * Get instance handle of resource dll.
+ *
+ * @return Instance handle of resource dll.
+ */
+QSEXPORTPROC HINSTANCE getResourceDllInstanceHandle();
+
+/**
+ * Load resource dll associated with the specified instance.
+ *
+ * @Param hInst Instance handle.
+ * @return Instance handle of resource dll if loaded, hInst otherwise.
+ */
+QSEXPORTPROC HINSTANCE loadResourceDll(HINSTANCE hInst);
+
 
 /****************************************************************************
  *

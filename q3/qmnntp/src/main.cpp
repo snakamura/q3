@@ -6,7 +6,11 @@
  *
  */
 
+#include <qs.h>
+
 #include "main.h"
+
+using namespace qs;
 
 
 /****************************************************************************
@@ -56,7 +60,7 @@ BOOL WINAPI DllMain(HANDLE hInst,
 		}
 #endif
 		g_hInst = static_cast<HINSTANCE>(hInst);
-		g_hInstResource = g_hInst;
+		g_hInstResource = loadResourceDll(g_hInst);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;

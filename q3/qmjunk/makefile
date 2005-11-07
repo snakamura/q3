@@ -17,7 +17,7 @@ else
 endif
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*.cpp))
-RESES			= $(OBJDIR)/$(PROJECTNAME)$(BASEPLATFORM).res
+RESES			= $(OBJDIR)/$(PROJECTNAME).res
 DEFFILE			= $(OBJDIR)/$(PROJECTNAME).def
 BASEADDRESS		= 0x42000000
 

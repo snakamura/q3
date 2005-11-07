@@ -289,8 +289,6 @@ private:
 	qs::CriticalSection cs_;
 	int nFontHeight_;
 	qs::wstring_ptr wstrFinished_;
-	qs::wstring_ptr wstrCancel_;
-	int nCancelWidth_;
 };
 
 

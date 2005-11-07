@@ -2085,7 +2085,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->nLastWindowWidth_ = 0;
 	pImpl_->hImc_ = 0;
 	pImpl_->bAtok_ = false;
-	pImpl_->hCursorLink_ = ::LoadCursor(getDllInstanceHandle(),
+	pImpl_->hCursorLink_ = ::LoadCursor(getResourceDllInstanceHandle(),
 		MAKEINTRESOURCE(IDC_LINK));
 	pImpl_->nLineHeight_ = 0;
 	pImpl_->nLineInWindow_ = 0;

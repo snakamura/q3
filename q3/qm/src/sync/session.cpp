@@ -529,13 +529,13 @@ bool qm::DefaultReceiveSessionRuleCallback::isCanceled()
 
 void qm::DefaultReceiveSessionRuleCallback::checkingMessages(Folder* pFolder)
 {
-	wstring_ptr wstrMessage(getMessage(IDS_APPLYRULE_CHECKINGMESSAGES, pFolder));
+	wstring_ptr wstrMessage(getMessage(IDS_MESSAGE_CHECKMESSAGES, pFolder));
 	pCallback_->setMessage(wstrMessage.get());
 }
 
 void qm::DefaultReceiveSessionRuleCallback::applyingRule(Folder* pFolder)
 {
-	wstring_ptr wstrMessage(getMessage(IDS_APPLYRULE_APPLYINGRULE, pFolder));
+	wstring_ptr wstrMessage(getMessage(IDS_MESSAGE_APPLYRULE, pFolder));
 	pCallback_->setMessage(wstrMessage.get());
 }
 

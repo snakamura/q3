@@ -11,7 +11,7 @@
 #include <qmmessagewindow.h>
 
 #include "actionid.h"
-#include "resource.h"
+#include "resourceinc.h"
 #include "statusbar.h"
 #include "../uimodel/encodingmodel.h"
 
@@ -137,7 +137,7 @@ void qm::MessageStatusBar::updateMessageParts(MessageHolder* pmh,
 			pwszTemplate += 5;
 		}
 		else {
-			wstrNone = loadString(Application::getApplication().getResourceHandle(), IDS_NONE);
+			wstrNone = loadString(Application::getApplication().getResourceHandle(), IDS_STATUS_NONE);
 			pwszTemplate = wstrNone.get();
 		}
 		setText(nOffset_ + 2, pwszTemplate);

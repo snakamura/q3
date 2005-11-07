@@ -139,7 +139,7 @@
 				<separator/>
 				<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 			</popupmenu>
-			<menuitem text="La&amp;bel" action="MessageLabel"/>
+			<menuitem text="La&amp;bel..." action="MessageLabel"/>
 			<separator/>
 			<popupmenu text="&amp;Move">
 				<menuitem dynamic="MessageMove"/>
@@ -204,11 +204,7 @@
 			<menuitem text="&amp;Close" action="FileClose"/>
 		</popupmenu>
 		<popupmenu text="&amp;Edit">
-			<menuitem text="&amp;Undo" action="EditUndo"/>
-			<separator/>
-			<menuitem text="Cu&amp;t" action="EditCut"/>
 			<menuitem text="&amp;Copy" action="EditCopy"/>
-			<menuitem text="&amp;Paste" action="EditPaste"/>
 			<menuitem text="Select &amp;All" action="EditSelectAll"/>
 			<separator/>
 			<menuitem text="&amp;Delete" action="EditDelete"/>
@@ -275,7 +271,7 @@
 				<separator/>
 				<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 			</popupmenu>
-			<menuitem text="La&amp;bel" action="MessageLabel"/>
+			<menuitem text="La&amp;bel..." action="MessageLabel"/>
 			<separator/>
 			<popupmenu text="&amp;Move">
 				<menuitem dynamic="MessageMove"/>
@@ -467,7 +463,7 @@
 			<separator/>
 			<menuitem text="&amp;Others..." action="MessageMove"/>
 		</popupmenu>
-		<menuitem text="La&amp;bel" action="MessageLabel"/>
+		<menuitem text="La&amp;bel..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="Apply Ru&amp;les to Selected" action="MessageApplyRuleSelected"/>
 		<separator/>
@@ -536,7 +532,7 @@
 			<separator/>
 			<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 		</popupmenu>
-		<menuitem text="La&amp;bel" action="MessageLabel"/>
+		<menuitem text="La&amp;bel..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="&amp;Property..." action="MessageProperty"/>
 	</menu>
