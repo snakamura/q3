@@ -13,6 +13,7 @@
 #include <qsstring.h>
 #include <qsthread.h>
 
+#include <cstdio>
 #include <memory>
 #include <vector>
 

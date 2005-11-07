@@ -14,8 +14,8 @@
 #include <qsencoder.h>
 
 #include <algorithm>
-#include <memory>
 #include <cstdio>
+#include <memory>
 
 #include "mime.h"
 
