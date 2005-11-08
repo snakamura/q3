@@ -88,6 +88,7 @@
 #define IDD_COMBOSELECTBOX              220
 #define IDD_LABEL                       221
 #define IDD_CERTIFICATE                 222
+#define IDD_MACRO                       223
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
 #define IDC_SIZEGRIP                    1003
@@ -394,9 +395,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        223
+#define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1435
+#define _APS_NEXT_CONTROL_VALUE         1436
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

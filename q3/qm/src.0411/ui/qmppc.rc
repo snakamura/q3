@@ -1690,6 +1690,17 @@ BEGIN
                     WS_VSCROLL | WS_HSCROLL
 END
 
+IDD_MACRO DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "マクロ"
+FONT 9, "Tahoma"
+BEGIN
+    EDITTEXT        IDC_MACRO,5,5,127,65,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,75,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,82,75,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

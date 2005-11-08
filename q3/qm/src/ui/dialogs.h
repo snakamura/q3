@@ -40,6 +40,7 @@ class DefaultDialog;
 	class ImportDialog;
 	class InputBoxDialog;
 	class LabelDialog;
+	class MacroDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
 	class PasswordDialog;
@@ -688,6 +689,37 @@ private:
 private:
 	qs::wstring_ptr wstrLabel_;
 	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroDialog
+ *
+ */
+
+class MacroDialog : public DefaultDialog
+{
+public:
+	explicit MacroDialog(const WCHAR* pwszMacro);
+	virtual ~MacroDialog();
+
+public:
+	const WCHAR* getMacro() const;
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	MacroDialog(const MacroDialog&);
+	MacroDialog& operator=(const MacroDialog&);
+
+private:
+	qs::wstring_ptr wstrMacro_;
 };
 
 

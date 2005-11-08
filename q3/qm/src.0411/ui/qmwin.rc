@@ -258,9 +258,8 @@ BEGIN
     LTEXT           "パス(&P)",IDC_STATIC,5,8,25,8
     EDITTEXT        IDC_PATH,55,5,100,14,ES_AUTOHSCROLL
     PUSHBUTTON      "参照(&B)...",IDC_BROWSE,160,5,50,14
-    CONTROL         "複数のメッセージを含む(&M)",
-                    IDC_MULTIMESSAGES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    55,25,135,10
+    CONTROL         "複数のメッセージを含む(&M)",IDC_MULTIMESSAGES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,55,25,135,10
     LTEXT           "エンコーディング(&E)",IDC_STATIC,5,43,50,8
     COMBOBOX        IDC_ENCODING,55,40,100,50,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
@@ -665,7 +664,7 @@ BEGIN
                     WS_TABSTOP,50,50,45,10
 END
 
-IDD_VIEWS DIALOG DISCARDABLE 0, 0, 279, 190
+IDD_VIEWS DIALOG DISCARDABLE  0, 0, 279, 190
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "カラムのカスタマイズ"
 FONT 9, "MS UI Gothic"
@@ -1791,6 +1790,17 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,315,185,50,14
 END
 
+IDD_MACRO DIALOG DISCARDABLE  0, 0, 185, 94
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "マクロ"
+FONT 9, "MS UI Gothic"
+BEGIN
+    EDITTEXT        IDC_MACRO,5,5,175,65,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,75,75,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,130,75,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1872,6 +1882,14 @@ BEGIN
         RIGHTMARGIN, 363
         TOPMARGIN, 7
         BOTTOMMARGIN, 197
+    END
+
+    IDD_MACRO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 85
     END
 END
 #endif    // APSTUDIO_INVOKED

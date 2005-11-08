@@ -3935,10 +3935,15 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 		return;
 	
 	const WCHAR* pwszMacro = ActionParamUtil::getString(event.getParam(), 0);
+	wstring_ptr wstrMacro;
 	if (!pwszMacro) {
-		// TODO
-		// Show dialog and get macro.
-		return;
+		wstring_ptr wstrPrevMacro(pProfile_->getString(L"Global", L"Macro", L""));
+		MacroDialog dialog(wstrPrevMacro.get());
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		wstrMacro = allocWString(dialog.getMacro());
+		pwszMacro = wstrMacro.get();
+		pProfile_->setString(L"Global", L"Macro", pwszMacro);
 	}
 	
 	MacroParser parser;

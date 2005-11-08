@@ -1346,6 +1346,61 @@ LRESULT qm::LabelDialog::onOk()
 
 /****************************************************************************
  *
+ * MacroDialog
+ *
+ */
+
+qm::MacroDialog::MacroDialog(const WCHAR* pwszMacro) :
+	DefaultDialog(IDD_MACRO)
+{
+	if (pwszMacro) {
+		StringBuffer<WSTRING> buf;
+		while (*pwszMacro) {
+			if (*pwszMacro == L'\n')
+				buf.append(L'\r');
+			buf.append(*pwszMacro++);
+		}
+		wstrMacro_ = buf.getString();
+	}
+}
+
+qm::MacroDialog::~MacroDialog()
+{
+}
+
+const WCHAR* qm::MacroDialog::getMacro() const
+{
+	return wstrMacro_.get();
+}
+
+LRESULT qm::MacroDialog::onInitDialog(HWND hwndFocus,
+									  LPARAM lParam)
+{
+	init(false);
+	
+	if (wstrMacro_.get())
+		setDlgItemText(IDC_MACRO, wstrMacro_.get());
+	
+	return TRUE;
+}
+
+LRESULT qm::MacroDialog::onOk()
+{
+	wstrMacro_ = getDlgItemText(IDC_MACRO);
+	
+	WCHAR* pDst = wstrMacro_.get();
+	for (const WCHAR* p = wstrMacro_.get(); *p; ++p) {
+		if (*p != L'\r')
+			*pDst++ = *p;
+	}
+	*pDst = L'\0';
+	
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
  * MailFolderDialog
  *
  */
