@@ -3904,6 +3904,72 @@ bool qm::MessageLabelAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * MessageMacroAction
+ *
+ */
+
+qm::MessageMacroAction::MessageMacroAction(MessageSelectionModel* pMessageSelectionModel,
+										   SecurityModel* pSecurityModel,
+										   Document* pDocument,
+										   Profile* pProfile,
+										   HWND hwnd) :
+	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
+	pDocument_(pDocument),
+	pProfile_(pProfile),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageMacroAction::~MessageMacroAction()
+{
+}
+
+void qm::MessageMacroAction::invoke(const ActionEvent& event)
+{
+	AccountLock lock;
+	Folder* pFolder = 0;
+	MessageHolderList l;
+	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
+	if (l.empty())
+		return;
+	
+	const WCHAR* pwszMacro = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszMacro) {
+		// TODO
+		// Show dialog and get macro.
+		return;
+	}
+	
+	MacroParser parser;
+	std::auto_ptr<Macro> pMacro(parser.parse(pwszMacro));
+	if (!pMacro.get()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_INVALIDMACRO);
+		return;
+	}
+	
+	MacroVariableHolder globalVariable;
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Message msg;
+		MacroContext context(*it, &msg, l, lock.get(), pDocument_, hwnd_, pProfile_, 0,
+			MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY,
+			pSecurityModel_->getSecurityMode(), 0, &globalVariable);
+		MacroValuePtr pValue(pMacro->value(&context));
+		if (!pValue.get()) {
+			ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
+			return;
+		}
+	}
+}
+
+bool qm::MessageMacroAction::isEnabled(const ActionEvent& event)
+{
+	return pMessageSelectionModel_->hasSelectedMessage();
+}
+
+
+/****************************************************************************
+ *
  * MessageManageJunkAction
  *
  */

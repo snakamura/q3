@@ -287,6 +287,13 @@ void qm::MessageFrameWindowImpl::initActions()
 		pDocument_->getUndoManager(),
 		pProfile_,
 		pThis_->getHandle());
+	ADD_ACTION5(MessageMacroAction,
+		IDM_MESSAGE_MACRO,
+		this,
+		pSecurityModel_.get(),
+		pDocument_,
+		pProfile_,
+		pThis_->getHandle());
 	ADD_ACTION5(MessageOpenAttachmentAction,
 		IDM_MESSAGE_ATTACHMENT,
 		pDocument_,

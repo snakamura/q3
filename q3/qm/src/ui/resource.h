@@ -226,6 +226,7 @@
 #define IDS_ERROR_MOVETOSENTBOX         10057
 #define IDS_ERROR_LABELMESSAGE          10058
 #define IDS_ERROR_SYNCHRONIZING         10059
+#define IDS_ERROR_EVALUATEMACRO         10060
 
 // Next default values for new objects
 // 

@@ -113,8 +113,9 @@
 #define IDM_MESSAGE_ATTACHMENT          43100
 #define IDM_MESSAGE_CREATE              43200
 #define IDM_MESSAGE_CREATEEXTERNAL      43300
-#define IDM_MESSAGE_MOVE                43400
-#define IDM_MESSAGE_OPENRECENT          44400
+#define IDM_MESSAGE_MACRO               43400
+#define IDM_MESSAGE_MOVE                43500
+#define IDM_MESSAGE_OPENRECENT          44500
 #define IDM_TOOL_ACCOUNT                45001
 #define IDM_TOOL_ADDADDRESS             45002
 #define IDM_TOOL_ADDRESSBOOK            45003
@@ -236,6 +237,7 @@
 #define MAX_MESSAGE_ATTACHMENT          100
 #define MAX_MESSAGE_CREATE              100
 #define MAX_MESSAGE_CREATEEXTERNAL      100
+#define MAX_MESSAGE_MACRO               100
 #define MAX_MESSAGE_MOVE                1000
 #define MAX_MESSAGE_OPENRECENT          100
 #define MAX_TAB_SELECT                  100

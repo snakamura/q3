@@ -327,6 +327,7 @@ BEGIN
     IDS_ERROR_MOVETOSENTBOX "送信したメッセージを送信控えフォルダに移動できません"
     IDS_ERROR_LABELMESSAGE  "メッセージにラベルを設定できません"
     IDS_ERROR_SYNCHRONIZING "同期中はこの操作を行うことはできません"
+    IDS_ERROR_EVALUATEMACRO "マクロの評価中にエラーが発生しました"
 END
 
 STRINGTABLE 

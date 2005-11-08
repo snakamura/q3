@@ -325,6 +325,7 @@ BEGIN
     IDS_ERROR_MOVETOSENTBOX "Could not move the sent message to Sentbox."
     IDS_ERROR_LABELMESSAGE  "Error occured while labeling messages."
     IDS_ERROR_SYNCHRONIZING "This operation is not allowed while synchronizing."
+    IDS_ERROR_EVALUATEMACRO "Error occured while evaluating macro."
 END
 
 STRINGTABLE 

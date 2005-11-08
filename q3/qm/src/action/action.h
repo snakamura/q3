@@ -79,6 +79,7 @@ class MessageDeleteAttachmentAction;
 class MessageDetachAction;
 class MessageExpandDigestAction;
 class MessageLabelAction;
+class MessageMacroAction;
 class MessageManageJunkAction;
 class MessageMarkAction;
 class MessageMoveAction;
@@ -1848,6 +1849,39 @@ private:
 private:
 	MessageSelectionModel* pModel_;
 	UndoManager* pUndoManager_;
+	qs::Profile* pProfile_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageMacroAction
+ *
+ */
+
+class MessageMacroAction : public qs::AbstractAction
+{
+public:
+	MessageMacroAction(MessageSelectionModel* pMessageSelectionModel,
+					   SecurityModel* pSecurityModel,
+					   Document* pDocument,
+					   qs::Profile* pProfile,
+					   HWND hwnd);
+	virtual ~MessageMacroAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	MessageMacroAction(const MessageMacroAction&);
+	MessageMacroAction& operator=(const MessageMacroAction&);
+
+private:
+	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
+	Document* pDocument_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
