@@ -156,9 +156,9 @@ zip)
 		*/lib/win/x86/unicode/release/*.dll
 	for mui in $MUIS; do
 		zip -j $ZIPDIR/q3-win-x86-ja-mui$mui-$SUFFIX.zip \
-			*/bin/win/x86/ansi/release/*.mui
+			*/lib/win/x86/ansi/release/*.mui
 		zip -j $ZIPDIR/q3u-win-x86-ja-mui$mui-$SUFFIX.zip \
-			*/bin/win/x86/unicode/release/*.mui
+			*/lib/win/x86/unicode/release/*.mui
 	done
 	
 	for t in $WCETARGETS; do
@@ -167,7 +167,7 @@ zip)
 			*/lib/`printf $t | tr . /`/release/*.dll
 		for mui in $MUIS; do
 			zip -j $ZIPDIR/q3u-`printf $t | tr . -`-mui$mui-$SUFFIX.zip \
-				*/bin/`printf $t | tr . /`/release/*.mui
+				*/lib/`printf $t | tr . /`/release/*.mui
 		done
 	done
 	;;
