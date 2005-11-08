@@ -75,6 +75,9 @@ OPTIONS="$OPTIONS BASELANG=$BASELANG"
 if [ "$CODE" != "" ]; then
 	OPTIONS="$OPTIONS CODE=$CODE"
 fi
+if [ "$CODE" = "ansi" ]; then
+	OPTIONS="$OPTIONS OLDWINDOWS=1"
+fi
 if [ "$BASELANG" != "ja" ]; then
 	OPTIONS="$OPTIONS KCONVERT=1"
 fi

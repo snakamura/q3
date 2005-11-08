@@ -314,7 +314,11 @@ ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
 	SUBSYSTEM			= WINDOWS
 	ifeq ($(CPU),x86)
-		SUBSYSVER		= 4.0
+		ifndef OLDWINDOWS
+			SUBSYSVER	= 5.0
+		else
+			SUBSYSVER	= 4.0
+		endif
 	endif
 	ifeq ($(CPU),x64)
 		SUBSYSVER		= 5.2
@@ -348,7 +352,12 @@ ifeq ($(PLATFORM),win)
 	endif
 	ifeq ($(CPU),x86)
 		CCFLAGS			+= -GB
-		DEFINES			+= -Dx86 -D_X86_ -DWINVER=0x400 -D_WIN32_WINNT=0x400 -DTAPI_CURRENT_VERSION=0x00010004
+		DEFINES			+= -Dx86 -D_X86_
+		ifndef OLDWINDOWS
+			DEFINES		+= -DWINVER=0x500 -D_WIN32_WINNT=0x500
+		else
+			DEFINES		+= -DWINVER=0x400 -D_WIN32_WINNT=0x400 -DTAPI_CURRENT_VERSION=0x00010004
+		endif
 		LDFLAGS			+= -MACHINE:I386
 		RCFLAGS			+= -Dx86 -D_X86_
 	endif
