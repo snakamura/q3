@@ -2086,7 +2086,7 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus,
 	
 	for (int n = 0; n < HISTORY_SIZE; ++n) {
 		WCHAR wszKey[32];
-		swprintf(wszKey, L"History%d", n);
+		_snwprintf(wszKey, countof(wszKey), L"History%d", n);
 		
 		struct {
 			const WCHAR* pwszSection_;
@@ -2132,11 +2132,11 @@ LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 		if (wstrText.get()) {
 			for (int n = HISTORY_SIZE - 1; n > 0; --n) {
 				WCHAR wszFromKey[32];
-				swprintf(wszFromKey, L"History%d", n - 1);
+				_snwprintf(wszFromKey, countof(wszFromKey), L"History%d", n - 1);
 				wstring_ptr wstr(pProfile_->getString(items[m].pwszSection_, wszFromKey, L""));
 				
 				WCHAR wszToKey[32];
-				swprintf(wszToKey, L"History%d", n);
+				_snwprintf(wszToKey, countof(wszToKey), L"History%d", n);
 				pProfile_->setString(items[m].pwszSection_, wszToKey, wstr.get());
 			}
 			
@@ -3103,7 +3103,7 @@ void qm::ViewsDialog::update()
 		ListView_SetItemText(hwndList, n, 1, const_cast<LPTSTR>(ptszType));
 		
 		WCHAR wszWidth[32];
-		swprintf(wszWidth, L"%u", pColumn->getWidth());
+		_snwprintf(wszWidth, countof(wszWidth), L"%u", pColumn->getWidth());
 		W2T(wszWidth, ptszWidth);
 		ListView_SetItemText(hwndList, n, 2, const_cast<LPTSTR>(ptszWidth));
 	}

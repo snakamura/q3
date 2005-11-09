@@ -409,7 +409,7 @@ STDMETHODIMP qmscript::ActiveScriptSite::OnScriptError(IActiveScriptError* pErro
 		buf.append(L"\n");
 	}
 	WCHAR wsz[32];
-	swprintf(wsz, L"%d:%d ", nLine, nChar);
+	_snwprintf(wsz, countof(wsz), L"%d:%d ", nLine, nChar);
 	buf.append(wsz);
 	if (bstrLine.get())
 		buf.append(bstrLine.get());

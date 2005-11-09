@@ -787,7 +787,7 @@ void qm::SyncStatusWindow::addError(unsigned int nId,
 	unsigned int nCode = info.getCode();
 	if (nCode != 0) {
 		WCHAR wszCode[32];
-		swprintf(wszCode, L" (0x%08X)", info.getCode());
+		_snwprintf(wszCode, countof(wszCode), L" (0x%08X)", info.getCode());
 		buf.append(wszCode);
 	}
 	
@@ -1215,7 +1215,7 @@ void qm::SyncStatusWindow::paintProgress(qs::DeviceContext* pdc,
 	
 	WCHAR wsz[128] = { L'\0' };
 	if (nMin != 0 || nMax != 0)
-		swprintf(wsz, L"%u/%u", static_cast<unsigned int>(nPos - nMin),
+		_snwprintf(wsz, countof(wsz), L"%u/%u", static_cast<unsigned int>(nPos - nMin),
 			static_cast<unsigned int>(nMax - nMin));
 	
 	SIZE size;

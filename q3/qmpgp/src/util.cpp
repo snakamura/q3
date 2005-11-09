@@ -33,7 +33,7 @@ wstring_ptr qmpgp::Util::writeTemporaryFile(const CHAR* psz,
 	
 	Time time(Time::getCurrentTime());
 	WCHAR wszName[128];
-	swprintf(wszName, L"pgp-%04d%02d%02d%02d%02d%02d%03d",
+	_snwprintf(wszName, countof(wszName), L"pgp-%04d%02d%02d%02d%02d%02d%03d",
 		time.wYear, time.wMonth, time.wDay, time.wHour,
 		time.wMinute, time.wSecond, time.wMilliseconds);
 	

@@ -960,10 +960,10 @@ void qm::FileCheckAction::invoke(const ActionEvent& event)
 			HINSTANCE hInst = Application::getApplication().getResourceHandle();
 			wstring_ptr wstrTemplate(loadString(hInst, IDS_CONFIRM_IGNORECHECKERROR));
 			wstring_ptr wstrFolderName(pmh->getFolder()->getFullName());
-			wstring_ptr wstrMessage(allocWString(
-				wcslen(wstrTemplate.get()) + wcslen(wstrFolderName.get()) + 100));
+			const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(wstrFolderName.get()) + 100;
+			wstring_ptr wstrMessage(allocWString(nLen));
 			const MessageHolder::MessageBoxKey& boxKey = pmh->getMessageBoxKey();
-			swprintf(wstrMessage.get(), wstrTemplate.get(), wstrFolderName.get(),
+			_snwprintf(wstrMessage.get(), nLen, wstrTemplate.get(), wstrFolderName.get(),
 				pmh->getId(), boxKey.nOffset_, boxKey.nLength_);
 			switch (messageBox(wstrMessage.get(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2, getDialog()->getHandle())) {
 			case IDYES:
@@ -1120,7 +1120,7 @@ bool qm::FileDumpAction::dumpFolder(const WCHAR* pwszPath,
 		MessageHolder* pmh = pFolder->getMessage(n);
 		
 		WCHAR wszName[32];
-		swprintf(wszName, L"%u", pmh->getId());
+		_snwprintf(wszName, countof(wszName), L"%u", pmh->getId());
 		
 		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wszName));
 		FileOutputStream fileStream(wstrPath.get());
@@ -1152,7 +1152,8 @@ wstring_ptr qm::FileDumpAction::getDirectory(const WCHAR* pwszPath,
 		wstrParentPath = allocWString(pwszPath);
 	
 	WCHAR wsz[32];
-	swprintf(wsz, L"$%c%x", pFolder->getType() == Folder::TYPE_NORMAL ? L'n' : L'q', pFolder->getFlags());
+	_snwprintf(wsz, countof(wsz), L"$%c%x",
+		pFolder->getType() == Folder::TYPE_NORMAL ? L'n' : L'q', pFolder->getFlags());
 	
 	ConcatW c[] = {
 		{ wstrParentPath.get(),	-1	},
@@ -1355,7 +1356,7 @@ bool qm::FileExportAction::exportMessages(Account* pAccount,
 				progressDialog.setPos(n);
 				
 				WCHAR wszNumber[32];
-				swprintf(wszNumber, L"%d", n);
+				_snwprintf(wszNumber, countof(wszNumber), L"%d", n);
 				ConcatW c[] = {
 					{ pwszPath,		pExt - pwszPath	},
 					{ wszNumber,	-1				},
@@ -1569,7 +1570,7 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 				if (nErrorLine != -1) {
 					buf.append(L" (");
 					WCHAR wszLine[32];
-					swprintf(wszLine, L"%u", nErrorLine);
+					_snwprintf(wszLine, countof(wszLine), L"%u", nErrorLine);
 					buf.append(wszLine);
 					buf.append(L")");
 				}
@@ -2577,8 +2578,9 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVEFOLDER));
 	wstring_ptr wstrName(Util::formatFolders(l, L", "));
-	wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
-	swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
+	const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64;
+	wstring_ptr wstrMessage(allocWString(nLen));
+	_snwprintf(wstrMessage.get(), nLen, wstrConfirm.get(), wstrName.get());
 	int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_);
 	if (nRet != IDYES)
 		return;
@@ -2633,9 +2635,10 @@ bool qm::FolderDeleteAction::deleteFolder(FolderModel* pFolderModel,
 		(pFolder->isFlag(Folder::FLAG_LOCAL) || !pTrash->isFlag(Folder::FLAG_LOCAL))) {
 		wstring_ptr wstrName;
 		if (pAccount->getFolder(pTrash, pFolder->getName())) {
-			wstrName = allocWString(pFolder->getName(), wcslen(pFolder->getName()) + 32);
+			const size_t nLen = wcslen(pFolder->getName()) + 32;
+			wstrName = allocWString(pFolder->getName(), nLen);
 			for (int n = 1; pAccount->getFolder(pTrash, wstrName.get()); ++n)
-				swprintf(wstrName.get(), L"%s(%d)", pFolder->getName(), n);
+				_snwprintf(wstrName.get(), nLen, L"%s(%d)", pFolder->getName(), n);
 		}
 		return pAccount->moveFolder(pFolder, pTrash, wstrName.get());
 	}
@@ -2684,8 +2687,9 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_EMPTYFOLDER));
 		wstring_ptr wstrName(Util::formatFolders(l, L", "));
-		wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
-		swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
+		const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64;
+		wstring_ptr wstrMessage(allocWString(nLen));
+		_snwprintf(wstrMessage.get(), nLen, wstrConfirm.get(), wstrName.get());
 		if (messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) != IDYES)
 			return;
 	}

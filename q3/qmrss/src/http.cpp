@@ -71,7 +71,7 @@ unsigned int qmrss::Http::invoke(HttpMethod* pMethod)
 			request.append(pMethod->getHost());
 			request.append(L":");
 			WCHAR wszPort[32];
-			swprintf(wszPort, L"%u", pMethod->getPort());
+			_snwprintf(wszPort, countof(wszPort), L"%u", pMethod->getPort());
 			request.append(wszPort);
 			request.append(L" HTTP/1.0\r\n\r\n");
 			if (!HttpUtil::write(pSocket.get(), request.getCharArray(), request.getLength()))
@@ -363,7 +363,7 @@ unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pCo
 	size_t nBodyLen = getRequestBodyLength();
 	if (nBodyLen != 0) {
 		WCHAR wszLen[128];
-		swprintf(wszLen, L"Content-Length: %u\r\n", nBodyLen);
+		_snwprintf(wszLen, countof(wszLen), L"Content-Length: %u\r\n", nBodyLen);
 		requestHeader.append(wszLen);
 	}
 	
@@ -535,7 +535,7 @@ wstring_ptr qmrss::HttpURL::getURL() const
 	buf.append(wstrHost_.get());
 	if (nPort_ != static_cast<unsigned short>(-1)) {
 		WCHAR wszPort[32];
-		swprintf(wszPort, L":%d", static_cast<int>(nPort_));
+		_snwprintf(wszPort, countof(wszPort), L":%d", static_cast<int>(nPort_));
 		buf.append(wszPort);
 	}
 	buf.append(L'/');
@@ -553,7 +553,7 @@ wstring_ptr qmrss::HttpURL::getAuthority() const
 	buf.append(wstrHost_.get());
 	if (nPort_ != static_cast<unsigned short>(-1)) {
 		WCHAR wszPort[32];
-		swprintf(wszPort, L":%d", static_cast<int>(nPort_));
+		_snwprintf(wszPort, countof(wszPort), L":%d", static_cast<int>(nPort_));
 		buf.append(wszPort);
 	}
 	return buf.getString();

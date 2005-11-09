@@ -760,13 +760,13 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr,
 			WCHAR wsz[64] = L"";
 			switch (nFlags_ & FLAG_FOLDER_MASK) {
 			case FLAG_FOLDERSHOWALLCOUNT | FLAG_FOLDERSHOWUNSEENCOUNT:
-				swprintf(wsz, L" (%d/%d)", pFolder->getUnseenCount(), pFolder->getCount());
+				_snwprintf(wsz, countof(wsz), L" (%d/%d)", pFolder->getUnseenCount(), pFolder->getCount());
 				break;
 			case FLAG_FOLDERSHOWALLCOUNT:
-				swprintf(wsz, L" (%d)", pFolder->getCount());
+				_snwprintf(wsz, countof(wsz), L" (%d)", pFolder->getCount());
 				break;
 			case FLAG_FOLDERSHOWUNSEENCOUNT:
-				swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
+				_snwprintf(wsz, countof(wsz), L" (%d)", pFolder->getUnseenCount());
 				break;
 			default:
 				break;
@@ -799,14 +799,14 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr,
 			WCHAR wsz[64] = L"";
 			switch (nFlags_ & FLAG_ACCOUNT_MASK) {
 			case FLAG_ACCOUNTSHOWALLCOUNT | FLAG_ACCOUNTSHOWUNSEENCOUNT:
-				swprintf(wsz, L" (%d/%d)", Util::getUnseenMessageCount(pAccount),
+				_snwprintf(wsz, countof(wsz), L" (%d/%d)", Util::getUnseenMessageCount(pAccount),
 					Util::getMessageCount(pAccount));
 				break;
 			case FLAG_ACCOUNTSHOWALLCOUNT:
-				swprintf(wsz, L" (%d)", Util::getMessageCount(pAccount));
+				_snwprintf(wsz, countof(wsz), L" (%d)", Util::getMessageCount(pAccount));
 				break;
 			case FLAG_ACCOUNTSHOWUNSEENCOUNT:
-				swprintf(wsz, L" (%d)", Util::getUnseenMessageCount(pAccount));
+				_snwprintf(wsz, countof(wsz), L" (%d)", Util::getUnseenMessageCount(pAccount));
 				break;
 			default:
 				break;

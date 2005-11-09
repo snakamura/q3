@@ -139,7 +139,7 @@ wstring_ptr qm::URIFragment::toString() const
 		if (buf.getLength() != 0)
 			buf.append(L'.');
 		WCHAR wsz[32];
-		swprintf(wsz, L"%u", *it);
+		_snwprintf(wsz, countof(wsz), L"%u", *it);
 		buf.append(wsz);
 	}
 	
@@ -221,7 +221,7 @@ wstring_ptr qm::URIFragment::escape(const WCHAR* pwsz)
 	while (*pwsz) {
 		if (wcschr(pwszEscape, *pwsz)) {
 			WCHAR wsz[16];
-			swprintf(wsz, L"%%%02X", *pwsz);
+			_snwprintf(wsz, countof(wsz), L"%%%02X", *pwsz);
 			buf.append(wsz);
 		}
 		else {
@@ -400,10 +400,10 @@ const URIFragment& qm::URI::getFragment() const
 wstring_ptr qm::URI::toString() const
 {
 	WCHAR wszValidity[32];
-	swprintf(wszValidity, L"%u", nValidity_);
+	_snwprintf(wszValidity, countof(wszValidity), L"%u", nValidity_);
 	
 	WCHAR wszId[32];
-	swprintf(wszId, L"%u", nId_);
+	_snwprintf(wszId, countof(wszId), L"%u", nId_);
 	
 	wstring_ptr wstrFragment(fragment_.toString());
 	

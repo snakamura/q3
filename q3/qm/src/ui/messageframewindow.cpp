@@ -758,7 +758,7 @@ bool qm::MessageFrameWindow::getCommandBandsRestoreInfo(int n,
 														COMMANDBANDSRESTOREINFO* pcbri) const
 {
 	WCHAR wszKey[32];
-	swprintf(wszKey, L"CommandBandsRestoreInfo%d", n);
+	_snwprintf(wszKey, countof(wszKey), L"CommandBandsRestoreInfo%d", n);
 	size_t nSize = pImpl_->pProfile_->getBinary(L"MessageFrameWindow", wszKey,
 		reinterpret_cast<unsigned char*>(pcbri), sizeof(*pcbri));
 	if (nSize != sizeof(*pcbri))
@@ -770,7 +770,7 @@ bool qm::MessageFrameWindow::setCommandBandsRestoreInfo(int n,
 														const COMMANDBANDSRESTOREINFO& cbri)
 {
 	WCHAR wszKey[32];
-	swprintf(wszKey, L"CommandBandsRestoreInfo%d", n);
+	_snwprintf(wszKey, countof(wszKey), L"CommandBandsRestoreInfo%d", n);
 	pImpl_->pProfile_->setBinary(L"MessageFrameWindow", wszKey,
 		reinterpret_cast<const unsigned char*>(&cbri), sizeof(cbri));
 	return true;

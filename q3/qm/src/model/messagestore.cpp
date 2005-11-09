@@ -426,7 +426,7 @@ unsigned int qm::MultiMessageStoreImpl::getOffset(bool bIncrement)
 		unsigned int nOffset = nDir*1000;
 		
 		WCHAR wszFind[32];
-		swprintf(wszFind, L"\\msg\\%08d\\*.msg", nDir);
+		_snwprintf(wszFind, countof(wszFind), L"\\msg\\%08d\\*.msg", nDir);
 		wstring_ptr wstrFind(concat(wstrPath_.get(), wszFind));
 		W2T(wstrFind.get(), ptszFind);
 		
@@ -453,8 +453,8 @@ wstring_ptr qm::MultiMessageStoreImpl::getPath(unsigned int nOffset,
 											   bool bEncoded) const
 {
 	WCHAR wsz[64];
-	swprintf(wsz, L"\\msg\\%08d\\%08d.%s", nOffset/1000,
-		nOffset, bEncoded ? L"d.msg" : L"msg");
+	_snwprintf(wsz, countof(wsz), L"\\msg\\%08d\\%08d.%s",
+		nOffset/1000, nOffset, bEncoded ? L"d.msg" : L"msg");
 	return concat(wstrPath_.get(), wsz);
 }
 
@@ -474,7 +474,7 @@ bool qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
 	
 	if (nIndex >= listDir_.size() || !listDir_[nIndex]) {
 		WCHAR wsz[64];
-		swprintf(wsz, L"\\msg\\%08d", nIndex);
+		_snwprintf(wsz, countof(wsz), L"\\msg\\%08d", nIndex);
 		
 		wstring_ptr wstrPath(concat(wstrPath_.get(), wsz));
 		W2T(wstrPath.get(), ptszPath);

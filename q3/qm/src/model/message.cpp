@@ -854,7 +854,8 @@ bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 	ContentTypeParser contentTypeNew(L"multipart", L"mixed");
 	WCHAR wszBoundary[128];
 	Time time(Time::getCurrentTime());
-	swprintf(wszBoundary, L"__boundary-%04d%02d%02d%02d%02d%02d%03d%04d__",
+	_snwprintf(wszBoundary, countof(wszBoundary),
+		L"__boundary-%04d%02d%02d%02d%02d%02d%03d%04d__",
 		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
 		time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
 	contentTypeNew.setParameter(L"boundary", wszBoundary);
@@ -2038,7 +2039,7 @@ void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
 				break;
 			
 			WCHAR wsz[32];
-			swprintf(wsz, L"[%d]", n++);
+			_snwprintf(wsz, countof(wsz), L"[%d]", n++);
 			const WCHAR* pExt = wcsrchr(wstrOrigName.get(), L'.');
 			StringBuffer<WSTRING> buf;
 			buf.append(wstrOrigName.get(), pExt ? pExt - wstrOrigName.get() : -1);

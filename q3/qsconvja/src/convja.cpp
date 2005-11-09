@@ -112,13 +112,13 @@ qsconvja::ShiftJISConverterFactory::~ShiftJISConverterFactory()
 bool qsconvja::ShiftJISConverterFactory::isSupported(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	return wcsicmp(pwszName, L"shift_jis") == 0 ||
-		wcsicmp(pwszName, L"x-sjis") == 0;
+	return _wcsicmp(pwszName, L"shift_jis") == 0 ||
+		_wcsicmp(pwszName, L"x-sjis") == 0;
 }
 
 std::auto_ptr<Converter> qsconvja::ShiftJISConverterFactory::createInstance(const WCHAR* pwszName)
 {
-	return new ShiftJISConverter();
+	return std::auto_ptr<Converter>(new ShiftJISConverter());
 }
 
 
@@ -286,12 +286,12 @@ qsconvja::ISO2022JPConverterFactory::~ISO2022JPConverterFactory()
 
 bool qsconvja::ISO2022JPConverterFactory::isSupported(const WCHAR* pwszName)
 {
-	return wcsnicmp(pwszName, L"iso-2022-jp", 11) == 0;
+	return _wcsnicmp(pwszName, L"iso-2022-jp", 11) == 0;
 }
 
 std::auto_ptr<Converter> qsconvja::ISO2022JPConverterFactory::createInstance(const WCHAR* pwszName)
 {
-	return new ISO2022JPConverter();
+	return std::auto_ptr<Converter>(new ISO2022JPConverter());
 }
 
 
@@ -401,12 +401,12 @@ qsconvja::EUCJPConverterFactory::~EUCJPConverterFactory()
 
 bool qsconvja::EUCJPConverterFactory::isSupported(const WCHAR* pwszName)
 {
-	return wcsicmp(pwszName, L"euc-jp") == 0;
+	return _wcsicmp(pwszName, L"euc-jp") == 0;
 }
 
 std::auto_ptr<Converter> qsconvja::EUCJPConverterFactory::createInstance(const WCHAR* pwszName)
 {
-	return new EUCJPConverter();
+	return std::auto_ptr<Converter>(new EUCJPConverter());
 }
 
 

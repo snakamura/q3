@@ -1970,7 +1970,7 @@ bool qm::MainWindow::getCommandBandsRestoreInfo(int n,
 												COMMANDBANDSRESTOREINFO* pcbri) const
 {
 	WCHAR wszKey[32];
-	swprintf(wszKey, L"CommandBandsRestoreInfo%d", n);
+	_snwprintf(wszKey, countof(wszKey), L"CommandBandsRestoreInfo%d", n);
 	size_t nSize = pImpl_->pProfile_->getBinary(L"MainWindow", wszKey,
 		reinterpret_cast<unsigned char*>(pcbri), sizeof(*pcbri));
 	if (nSize != sizeof(*pcbri))
@@ -1982,7 +1982,7 @@ bool qm::MainWindow::setCommandBandsRestoreInfo(int n,
 												const COMMANDBANDSRESTOREINFO& cbri)
 {
 	WCHAR wszKey[32];
-	swprintf(wszKey, L"CommandBandsRestoreInfo%d", n);
+	_snwprintf(wszKey, countof(wszKey), L"CommandBandsRestoreInfo%d", n);
 	pImpl_->pProfile_->setBinary(L"MainWindow", wszKey,
 		reinterpret_cast<const unsigned char*>(&cbri), sizeof(cbri));
 	return true;
@@ -2808,7 +2808,7 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 				wstring_ptr wstrTemplate(loadString(hInst, IDS_STATUS_VIEWMODELTEMPLATESHORT));
 #endif
 				WCHAR wsz[256];
-				swprintf(wsz, wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
+				_snwprintf(wsz, countof(wsz), wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
 				setText(0, wsz);
 			}
 		}

@@ -248,9 +248,9 @@ wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
 	
 	Time time(Time::getCurrentTime());
 	WCHAR wszName[128];
-	swprintf(wszName, L"%s-%04d%02d%02d%02d%02d%02d%03d.%s", pwszPrefix,
-		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
-		time.wSecond, time.wMilliseconds, pwszExtension);
+	_snwprintf(wszName, countof(wszName), L"%s-%04d%02d%02d%02d%02d%02d%03d.%s",
+		pwszPrefix, time.wYear, time.wMonth, time.wDay, time.wHour,
+		time.wMinute, time.wSecond, time.wMilliseconds, pwszExtension);
 	
 	wstring_ptr wstrPath(concat(Application::getApplication().getTemporaryFolder(), wszName));
 	
@@ -438,7 +438,7 @@ qm::History::~History()
 wstring_ptr qm::History::getValue(unsigned int n) const
 {
 	WCHAR wszKey[32];
-	swprintf(wszKey, L"History%u", n);
+	_snwprintf(wszKey, countof(wszKey), L"History%u", n);
 	return pProfile_->getString(pwszSection_, wszKey, L"");
 }
 
@@ -458,7 +458,7 @@ void qm::History::addValue(const WCHAR* pwszValue)
 	
 	for (unsigned int n = 0; n < nSize_; ++n) {
 		WCHAR wszKey[32];
-		swprintf(wszKey, L"History%u", n);
+		_snwprintf(wszKey, countof(wszKey), L"History%u", n);
 		wstring_ptr wstr(pProfile_->getString(pwszSection_, wszKey, L""));
 		pProfile_->setString(pwszSection_, wszKey, wstrValue.get());
 		if (wcscmp(wstr.get(), pwszValue) == 0)

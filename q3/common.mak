@@ -19,6 +19,7 @@ VCVER					= 6
 EVCDIR					= d:/dev/msevc4/evc
 EVCVER					= 4
 PLATFORMSDKDIR			= d:/dev/mssdk
+#PLATFORMSDKDIR			= d:/dev/msvs8/vc/platformsdk
 CESDKPPC2003JADIR		= d:/dev/msevc4/wce420/pocket pc 2003
 CESDKPPC2003ENDIR		= d:/dev/msevc4/wce420/pocket pc 2003
 CESDKSIGIIIDIR			= d:/dev/msevc4/wce410/sigmarioniii sdk
@@ -376,7 +377,7 @@ ifeq ($(PLATFORM),win)
 		RCFLAGS			+= -D_AMD64_
 	endif
 	ifeq ($(VCVER),8)
-		DEFINES			+= -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NON_CONFORMING_SWPRINTFS
+		DEFINES			+= -D_CRT_SECURE_NO_DEPRECATE
 	endif
 	
 	LIBCPU				= $(CPU)

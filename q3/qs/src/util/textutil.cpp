@@ -435,7 +435,7 @@ wstring_ptr qs::TextUtil::encodePassword(const WCHAR* pwsz)
 	wstring_ptr wstr(allocWString(encoded.size()*2 + 1));
 	WCHAR* pDst = wstr.get();
 	for (size_t n = 0; n < encoded.size(); ++n) {
-		swprintf(pDst, L"%02x", *(p + n) ^ 'q');
+		_snwprintf(pDst, 3, L"%02x", *(p + n) ^ 'q');
 		pDst += 2;
 	}
 	*pDst = L'\0';

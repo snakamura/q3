@@ -564,7 +564,7 @@ wstring_ptr qs::DividedFileImpl::getPath(size_t n) const
 		pExt = pFileName + wcslen(pFileName);
 	
 	WCHAR wsz[16];
-	swprintf(wsz, L"%03u", static_cast<unsigned int>(n));
+	_snwprintf(wsz, countof(wsz), L"%03u", static_cast<unsigned int>(n));
 	
 	return concat(wstrPath_.get(), pExt - wstrPath_.get(), wsz, -1, pExt, -1);
 }

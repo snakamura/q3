@@ -829,7 +829,7 @@ bool qm::GoRoundWriter::write(const GoRoundDialup* pDialup)
 	bool bShowDialog = pDialup->isFlag(GoRoundDialup::FLAG_SHOWDIALOG);
 	bool bWheneverNotConnected = pDialup->isFlag(GoRoundDialup::FLAG_WHENEVERNOTCONNECTED);
 	WCHAR wszDisconnectWait[32];
-	swprintf(wszDisconnectWait, L"%u", pDialup->getDisconnectWait());
+	_snwprintf(wszDisconnectWait, countof(wszDisconnectWait), L"%u", pDialup->getDisconnectWait());
 	const SimpleAttributes::Item items[] = {
 		{ L"name",					pDialup->getName()																},
 		{ L"dialFrom",				pDialup->getDialFrom(),						!pDialup->getDialFrom()				},

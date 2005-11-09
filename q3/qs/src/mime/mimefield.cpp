@@ -3043,13 +3043,14 @@ wstring_ptr qs::ParameterFieldParser::getParameter(const WCHAR* pwszName) const
 				}
 			}
 			if (pwszValue) {
-				wstring_ptr wstrName(allocWString(wcslen(pwszName) + 10));
+				const size_t nLen = wcslen(pwszName) + 10;
+				wstring_ptr wstrName(allocWString(nLen));
 				StringBuffer<STRING> buf(strDecode.get());
 				bool bExistOther = true;
 				for (int n = 1; bExistOther; ++n) {
 					for (int m = 0; m < (bFirstExtended ? 2 : 1); ++m) {
 						bool bExtended = m == 1;
-						swprintf(wstrName.get(), L"%s*%d%c", pwszName, n,
+						_snwprintf(wstrName.get(), nLen, L"%s*%d%c", pwszName, n,
 							bExtended ? L'*' : L'\0');
 						const WCHAR* pwsz = getRawParameter(wstrName.get());
 						bExistOther = pwsz != 0;

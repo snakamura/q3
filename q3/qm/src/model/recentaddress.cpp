@@ -65,7 +65,7 @@ void qm::RecentAddress::save() const
 {
 	for (unsigned int n = 0; n < nMax_; ++n) {
 		WCHAR wszKey[32];
-		swprintf(wszKey, L"Address%u", n);
+		_snwprintf(wszKey, countof(wszKey), L"Address%u", n);
 		const WCHAR* pwszValue = L"";
 		wstring_ptr wstrValue;
 		if (n < listAddress_.size()) {
@@ -81,7 +81,7 @@ void qm::RecentAddress::load()
 	listAddress_.reserve(nMax_);
 	for (unsigned int n = 0; n < nMax_; ++n) {
 		WCHAR wszKey[32];
-		swprintf(wszKey, L"Address%u", n);
+		_snwprintf(wszKey, countof(wszKey), L"Address%u", n);
 		wstring_ptr wstrAddress(pProfile_->getString(L"RecentAddress", wszKey, L""));
 		if (*wstrAddress.get()) {
 			std::auto_ptr<AddressParser> pAddress(new AddressParser());

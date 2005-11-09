@@ -365,7 +365,7 @@ bool qm::MailFolderLock::setWindow(HWND hwnd)
 #endif
 	
 	WCHAR wszHandle[32];
-	swprintf(wszHandle, L"%08x\n", reinterpret_cast<int>(hwnd));
+	_snwprintf(wszHandle, countof(wszHandle), L"%08x\n", reinterpret_cast<int>(hwnd));
 	
 	const WCHAR* pwsz[] = {
 		wszHandle,
@@ -433,9 +433,9 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 			pwszName = wstrName.get();
 		
 		wstring_ptr wstrTemplate(loadString(g_hInstDll, IDS_CONFIRM_IGNORELOCK));
-		wstring_ptr wstrMessage(allocWString(
-			wcslen(wstrTemplate.get()) + wcslen(pwszName)));
-		swprintf(wstrMessage.get(), wstrTemplate.get(), pwszName);
+		const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(pwszName);
+		wstring_ptr wstrMessage(allocWString(nLen));
+		_snwprintf(wstrMessage.get(), nLen, wstrTemplate.get(), pwszName);
 		
 		int nRet= messageBox(wstrMessage.get(),
 			MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);

@@ -558,7 +558,7 @@ bool qmjunk::JunkFilterImpl::save(bool bForce)
 		return false;
 	
 	WCHAR wszThresholdScore[64];
-	swprintf(wszThresholdScore, L"%f", fThresholdScore_);
+	_snwprintf(wszThresholdScore, countof(wszThresholdScore), L"%f", fThresholdScore_);
 	pProfile_->setString(L"JunkFilter", L"ThresholdScore", wszThresholdScore);
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);

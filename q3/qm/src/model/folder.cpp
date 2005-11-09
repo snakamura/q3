@@ -437,7 +437,7 @@ public:
 wstring_ptr qm::NormalFolderImpl::getPath() const
 {
 	WCHAR wsz[32];
-	swprintf(wsz, L"\\%03d%s", pThis_->getId(), FileNames::INDEX_EXT);
+	_snwprintf(wsz, countof(wsz), L"\\%03d%s", pThis_->getId(), FileNames::INDEX_EXT);
 	return concat(pThis_->getAccount()->getPath(), wsz);
 }
 

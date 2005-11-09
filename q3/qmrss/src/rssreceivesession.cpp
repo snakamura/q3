@@ -458,7 +458,8 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 		ContentTypeParser contentType(L"multipart", L"alternative");
 		WCHAR wszBoundary[128];
 		Time time(Time::getCurrentTime());
-		swprintf(wszBoundary, L"__boundary-%04d%02d%02d%02d%02d%02d%03d%04d__",
+		_snwprintf(wszBoundary, countof(wszBoundary),
+			L"__boundary-%04d%02d%02d%02d%02d%02d%03d%04d__",
 			time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
 			time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
 		contentType.setParameter(L"boundary", wszBoundary);

@@ -949,7 +949,8 @@ wstring_ptr qm::Application::getProfilePath(const WCHAR* pwszName) const
 wstring_ptr qm::Application::getVersion(WCHAR cSeparator,
 										bool bWithOSVersion) const
 {
-	wstring_ptr wstrVersion(allocWString(256));
+	const size_t nLen = 256;
+	wstring_ptr wstrVersion(allocWString(nLen));
 	
 	if (bWithOSVersion) {
 		wstring_ptr wstrOSVersion(getOSVersion());
@@ -968,12 +969,12 @@ wstring_ptr qm::Application::getVersion(WCHAR cSeparator,
 #else
 #	error Unknown CPU
 #endif
-		swprintf(wstrVersion.get(), L"QMAIL%c%d.%d.%d.%d / %s / %s",
+		_snwprintf(wstrVersion.get(), nLen, L"QMAIL%c%d.%d.%d.%d / %s / %s",
 			cSeparator, QMAIL_VERSION/100000, (QMAIL_VERSION%100000)/1000,
 			QMAIL_VERSION%1000, QMAIL_REVISION, wstrOSVersion.get(), pwszCPU);
 	}
 	else {
-		swprintf(wstrVersion.get(), L"QMAIL%c%d.%d.%d.%d", cSeparator,
+		_snwprintf(wstrVersion.get(), nLen, L"QMAIL%c%d.%d.%d.%d", cSeparator,
 			QMAIL_VERSION/100000, (QMAIL_VERSION%100000)/1000,
 			QMAIL_VERSION%1000, QMAIL_REVISION);
 	}
@@ -1031,14 +1032,15 @@ wstring_ptr qm::Application::getOSVersion() const
 #endif
 	}
 	
-	wstring_ptr wstrOSVersion(allocWString(256));
+	const size_t nLen = 256;
+	wstring_ptr wstrOSVersion(allocWString(nLen));
 	T2W(ovi.szCSDVersion, pwszAdditional);
 	if (bAddVersion)
-		swprintf(wstrOSVersion.get(), L"%s %u.%02u%s%s",
+		_snwprintf(wstrOSVersion.get(), nLen, L"%s %u.%02u%s%s",
 			pwszPlatform, ovi.dwMajorVersion, ovi.dwMinorVersion,
 			*pwszAdditional ? L" " : L"", pwszAdditional);
 	else
-		swprintf(wstrOSVersion.get(), L"%s%s%s",
+		_snwprintf(wstrOSVersion.get(), nLen, L"%s%s%s",
 			pwszPlatform, *pwszAdditional ? L" " : L"", pwszAdditional);
 	
 	return wstrOSVersion;

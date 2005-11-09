@@ -51,7 +51,7 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 	wstring_ptr wstrPath;
 	if (pFolder) {
 		WCHAR wszFolder[16];
-		swprintf(wszFolder, L"_%d", pFolder->getId());
+		_snwprintf(wszFolder, countof(wszFolder), L"_%d", pFolder->getId());
 		ConcatW c[] = {
 			{ pAccount->getPath(),	-1 },
 			{ L"\\templates\\",		-1 },

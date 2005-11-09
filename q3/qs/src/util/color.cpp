@@ -43,8 +43,9 @@ void qs::Color::setColor(COLORREF cr)
 
 wstring_ptr qs::Color::getString() const
 {
-	wstring_ptr wstrColor(allocWString(7));
-	swprintf(wstrColor.get(), L"%02x%02x%02x",
+	const size_t nLen = 7;
+	wstring_ptr wstrColor(allocWString(nLen));
+	_snwprintf(wstrColor.get(), nLen, L"%02x%02x%02x",
 		static_cast<int>(GetRValue(cr_)),
 		static_cast<int>(GetGValue(cr_)),
 		static_cast<int>(GetBValue(cr_)));

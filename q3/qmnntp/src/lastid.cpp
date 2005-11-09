@@ -352,7 +352,7 @@ bool qmnntp::LastIdWriter::write(const LastIdList& l)
 	for (LastIdList::IdList::const_iterator it = listId.begin(); it != listId.end(); ++it) {
 		SimpleAttributes attrs(L"name", (*it).first);
 		WCHAR wszId[32];
-		swprintf(wszId, L"%u", (*it).second);
+		_snwprintf(wszId, countof(wszId), L"%u", (*it).second);
 		if (!handler_.startElement(0, 0, L"lastId", attrs) ||
 			!handler_.characters(wszId, 0, wcslen(wszId)) ||
 			!handler_.endElement(0, 0, L"lastId"))

@@ -183,7 +183,8 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
 		wstring_ptr wstrType(loadString(hInst, nTypeId));
 		wstring_ptr wstrLocal(loadString(hInst, nLocalId));
 		WCHAR wszType[128];
-		swprintf(wszType, wstrTemplate.get(), wstrType.get(), wstrLocal.get());
+		_snwprintf(wszType, countof(wszType), wstrTemplate.get(),
+			wstrType.get(), wstrLocal.get());
 		setDlgItemText(IDC_TYPE, wszType);
 		
 		bool bQuery = pFolder->getType() == Folder::TYPE_QUERY;

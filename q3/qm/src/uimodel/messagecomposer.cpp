@@ -104,7 +104,7 @@ bool qm::MessageComposer::compose(Message* pMessage,
 	
 	if (pSubAccount->isAddMessageId()) {
 		WCHAR wsz[256];
-		swprintf(wsz, L"%u%04d%02d%02d%02d%02d%02d",
+		_snwprintf(wsz, countof(wsz), L"%u%04d%02d%02d%02d%02d%02d",
 			::GetCurrentProcessId(), time.wYear, time.wMonth,
 			time.wDay, time.wHour, time.wMinute, time.wSecond);
 		

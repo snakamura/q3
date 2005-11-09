@@ -174,7 +174,7 @@ void qm::MacroValueNumber::term()
 wstring_ptr qm::MacroValueNumber::string() const
 {
 	WCHAR wsz[32];
-	swprintf(wsz, L"%lu", n_);
+	_snwprintf(wsz, countof(wsz), L"%lu", n_);
 	return allocWString(wsz);
 }
 

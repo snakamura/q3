@@ -587,7 +587,7 @@ wstring_ptr qm::HtmlContentManager::prepare(const Message& msg,
 	
 	Time time(Time::getCurrentTime());
 	WCHAR wszId[256];
-	swprintf(wszId, L"%u%04d%02d%02d%02d%02d%02d%03d@local",
+	_snwprintf(wszId, countof(wszId), L"%u%04d%02d%02d%02d%02d%02d%03d@local",
 		::GetCurrentProcessId(), time.wYear, time.wMonth, time.wDay,
 		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 	

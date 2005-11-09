@@ -365,11 +365,11 @@ bool qmpop3::UIDListWriter::write(const UIDList& l)
 		UID* pUID = l.getUID(static_cast<unsigned int>(n));
 		
 		WCHAR wszFlags[32];
-		swprintf(wszFlags, L"%d", pUID->getFlags());
+		_snwprintf(wszFlags, countof(wszFlags), L"%d", pUID->getFlags());
 		
 		const UID::Date& date = pUID->getDate();
 		WCHAR wszDate[32];
-		swprintf(wszDate, L"%04d-%02d-%02d",
+		_snwprintf(wszDate, countof(wszDate), L"%04d-%02d-%02d",
 			date.nYear_, date.nMonth_, date.nDay_);
 		
 		SimpleAttributes::Item items[] = {

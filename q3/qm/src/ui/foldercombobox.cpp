@@ -494,12 +494,12 @@ void qm::FolderComboBoxImpl::insertFolder(int nIndex,
 	
 	WCHAR wsz[64] = L"";
 	if (bShowAllCount_ && bShowUnseenCount_)
-		swprintf(wsz, L" (%d/%d)",
+		_snwprintf(wsz, countof(wsz), L" (%d/%d)",
 			pFolder->getUnseenCount(), pFolder->getCount());
 	else if (bShowAllCount_)
-		swprintf(wsz, L" (%d)", pFolder->getCount());
+		_snwprintf(wsz, countof(wsz), L" (%d)", pFolder->getCount());
 	else if (bShowUnseenCount_)
-		swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
+		_snwprintf(wsz, countof(wsz), L" (%d)", pFolder->getUnseenCount());
 	
 	buf.append(wsz);
 	

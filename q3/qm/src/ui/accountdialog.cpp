@@ -250,8 +250,9 @@ LRESULT qm::AccountDialog::onRemove()
 			
 			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVESUBACCOUNT));
 			wstring_ptr wstrName(concat(pAccount->getName(), L"/", pSubAccount->getName()));
-			wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64));
-			swprintf(wstrMessage.get(), wstrConfirm.get(), wstrName.get());
+			const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64;
+			wstring_ptr wstrMessage(allocWString(nLen));
+			_snwprintf(wstrMessage.get(), nLen, wstrConfirm.get(), wstrName.get());
 			int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
 				for (int n = 0; n < countof(hosts); ++n) {
@@ -278,8 +279,9 @@ LRESULT qm::AccountDialog::onRemove()
 			}
 			
 			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVEACCOUNT));
-			wstring_ptr wstrMessage(allocWString(wcslen(wstrConfirm.get()) + wcslen(pAccount->getName()) + 64));
-			swprintf(wstrMessage.get(), wstrConfirm.get(), pAccount->getName());
+			const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(pAccount->getName()) + 64;
+			wstring_ptr wstrMessage(allocWString(nLen));
+			_snwprintf(wstrMessage.get(), nLen, wstrConfirm.get(), pAccount->getName());
 			int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
 				pAccountManager_->removeAccount(pAccount);

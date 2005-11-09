@@ -419,7 +419,7 @@ int qs::AbstractProfile::getInt(const WCHAR* pwszSection,
 	int nValue = nDefault;
 	
 	WCHAR wszDefault[32];
-	swprintf(wszDefault, L"%d", nDefault);
+	_snwprintf(wszDefault, countof(wszDefault), L"%d", nDefault);
 	wstring_ptr wstrValue(getString(pwszSection, pwszKey, wszDefault));
 	
 	const WCHAR* p = wstrValue.get();
@@ -443,7 +443,7 @@ void qs::AbstractProfile::setInt(const WCHAR* pwszSection,
 	assert(pwszKey);
 	
 	WCHAR wszValue[32];
-	swprintf(wszValue, L"%d", nValue);
+	_snwprintf(wszValue, countof(wszValue), L"%d", nValue);
 	setString(pwszSection, pwszKey, wszValue);
 }
 
@@ -493,7 +493,7 @@ void qs::AbstractProfile::setBinary(const WCHAR* pwszSection,
 	
 	wstring_ptr wstrValue(allocWString(nSize*2 + 1));
 	for (int n = 0; n < nSize; ++n)
-		swprintf(wstrValue.get() + n*2, L"%02x", *(pValue + n));
+		_snwprintf(wstrValue.get() + n*2, 3, L"%02x", *(pValue + n));
 	*(wstrValue.get() + nSize*2) = L'\0';
 	
 	setString(pwszSection, pwszKey, wstrValue.get());

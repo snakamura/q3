@@ -1203,6 +1203,6 @@ bool qs::HandlerHelper::numberElement(ContentHandler* pHandler,
 									  unsigned int nValue)
 {
 	WCHAR wsz[32];
-	swprintf(wsz, L"%u", nValue);
+	_snwprintf(wsz, countof(wsz), L"%u", nValue);
 	return textElement(pHandler, pwszQName, wsz, -1);
 }

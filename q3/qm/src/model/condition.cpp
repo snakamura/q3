@@ -331,7 +331,7 @@ wstring_ptr qm::SizeCondition::getArgumentValue(size_t n) const
 		return 0;
 	
 	WCHAR wszSize[32];
-	swprintf(wszSize, L"%u", nSize_);
+	_snwprintf(wszSize, countof(wszSize), L"%u", nSize_);
 	return allocWString(wszSize);
 }
 
@@ -352,7 +352,7 @@ wstring_ptr qm::SizeCondition::getDescription(bool bValue) const
 wstring_ptr qm::SizeCondition::getMacro() const
 {
 	WCHAR wszSize[32];
-	swprintf(wszSize, L"%u", nSize_);
+	_snwprintf(wszSize, countof(wszSize), L"%u", nSize_);
 	ConcatW c[] = {
 		{ L"@",				1	},
 		{ pwszMacro_,		-1	},
@@ -426,7 +426,7 @@ wstring_ptr qm::PassedCondition::getArgumentValue(size_t n) const
 		return 0;
 	
 	WCHAR wszDays[32];
-	swprintf(wszDays, L"%u", nDays_);
+	_snwprintf(wszDays, countof(wszDays), L"%u", nDays_);
 	return allocWString(wszDays);
 }
 
@@ -448,7 +448,7 @@ wstring_ptr qm::PassedCondition::getDescription(bool bValue) const
 wstring_ptr qm::PassedCondition::getMacro() const
 {
 	WCHAR wszDays[32];
-	swprintf(wszDays, L"%u", nDays_);
+	_snwprintf(wszDays, countof(wszDays), L"%u", nDays_);
 	ConcatW c[] = {
 		{ L"@Not(",		bNot_ ? 5 : 0	},
 		{ L"@Passed(",	8				},
@@ -822,7 +822,8 @@ std::auto_ptr<Condition> qm::ConditionFactory::parse(const MacroExpr* pExpr) con
 			return std::auto_ptr<Condition>();
 		
 		WCHAR wszSize[32];
-		swprintf(wszSize, L"%u", static_cast<const MacroNumber*>(pArg1)->getValue());
+		_snwprintf(wszSize, countof(wszSize), L"%u",
+			static_cast<const MacroNumber*>(pArg1)->getValue());
 		
 		std::auto_ptr<Condition> pCondition(getCondition(pwszName)->clone());
 		pCondition->setArgumentValue(0, wszSize);
@@ -850,7 +851,8 @@ std::auto_ptr<Condition> qm::ConditionFactory::parsePassed(const MacroFunction* 
 		return std::auto_ptr<Condition>();
 	
 	WCHAR wszDays[32];
-	swprintf(wszDays, L"%u", static_cast<const MacroNumber*>(pArg)->getValue());
+	_snwprintf(wszDays, countof(wszDays), L"%u",
+		static_cast<const MacroNumber*>(pArg)->getValue());
 	
 	std::auto_ptr<Condition> pCondition(getCondition(pwszName)->clone());
 	pCondition->setArgumentValue(0, wszDays);

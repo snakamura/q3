@@ -1211,7 +1211,7 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 		
 		float fThreshold = pJunkFilter_->getThresholdScore();
 		WCHAR wszThreshold[32];
-		swprintf(wszThreshold, L"%.2f", fThreshold);
+		_snwprintf(wszThreshold, countof(wszThreshold), L"%.2f", fThreshold);
 		setDlgItemText(IDC_THRESHOLD, wszThreshold);
 		
 		unsigned int nMaxSize = pJunkFilter_->getMaxTextLength();
@@ -5489,8 +5489,9 @@ LRESULT qm::SyncFilterDialog::onOk()
 	case 0:
 		{
 			int nLine = getDlgItemInt(IDC_MAXLINE);
-			wstring_ptr wstrLine(allocWString(32));
-			swprintf(wstrLine.get(), L"%d", nLine);
+			const size_t nLen = 32;
+			wstring_ptr wstrLine(allocWString(nLen));
+			_snwprintf(wstrLine.get(), nLen, L"%d", nLine);
 			pAction->addParam(allocWString(L"line"), wstrLine);
 		}
 		break;

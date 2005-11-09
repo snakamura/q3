@@ -420,11 +420,12 @@ wstring_ptr qm::TabWindowImpl::getTitle(const TabItem* pItem) const
 		
 		WCHAR wsz[64] = L"";
 		if (bShowAllCount_ && bShowUnseenCount_)
-			swprintf(wsz, L" (%d/%d)", pFolder->getUnseenCount(), pFolder->getCount());
+			_snwprintf(wsz, countof(wsz), L" (%d/%d)",
+				pFolder->getUnseenCount(), pFolder->getCount());
 		else if (bShowAllCount_)
-			swprintf(wsz, L" (%d)", pFolder->getCount());
+			_snwprintf(wsz, countof(wsz), L" (%d)", pFolder->getCount());
 		else if (bShowUnseenCount_)
-			swprintf(wsz, L" (%d)", pFolder->getUnseenCount());
+			_snwprintf(wsz, countof(wsz), L" (%d)", pFolder->getUnseenCount());
 		
 		if (pwszTitle) {
 			return concat(pwszTitle, wsz, pwszLock);

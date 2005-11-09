@@ -730,7 +730,7 @@ UINT qm::SortMenuCreator::createMenu(HMENU hmenu,
 			const WCHAR* pwszTitle = pColumn->getTitle();
 			if (*pwszTitle) {
 				WCHAR wsz[32];
-				swprintf(wsz, L"@%u", n);
+				_snwprintf(wsz, countof(wsz), L"@%u", n);
 				std::auto_ptr<ActionParam> pParam(new ActionParam(IDM_VIEW_SORT, wsz));
 				unsigned int nId = helper_.add(MAX_VIEW_SORT, pParam);
 				if (nId != -1) {

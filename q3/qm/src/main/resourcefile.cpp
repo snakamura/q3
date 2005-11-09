@@ -326,11 +326,12 @@ bool qm::ResourceFileWriter::write(const ResourceFileList* pList)
 		const ResourceFile* p = *it;
 		
 		WCHAR wszRevision[32];
-		swprintf(wszRevision, L"%lu", p->getRevision());
+		_snwprintf(wszRevision, countof(wszRevision), L"%lu", p->getRevision());
 		
 		const FILETIME& ft = p->getModified();
 		WCHAR wszModified[64];
-		swprintf(wszModified, L"%lu:%lu", ft.dwLowDateTime, ft.dwHighDateTime);
+		_snwprintf(wszModified, countof(wszModified),
+			L"%lu:%lu", ft.dwLowDateTime, ft.dwHighDateTime);
 		
 		const SimpleAttributes::Item items[] = {
 			{ L"name",		p->getName()	},

@@ -140,7 +140,7 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 		assert(false);
 		break;
 	case ViewColumn::TYPE_ID:
-		swprintf(wsz, L"%u", pmh->getId());
+		_snwprintf(wsz, countof(wsz), L"%u", pmh->getId());
 		break;
 	case ViewColumn::TYPE_DATE:
 		{
@@ -162,10 +162,10 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 		wstrText = pmh->getSubject();
 		break;
 	case ViewColumn::TYPE_SIZE:
-		swprintf(wsz, L"%dKB", pmh->getSize()/1024 + 1);
+		_snwprintf(wsz, countof(wsz), L"%dKB", pmh->getSize()/1024 + 1);
 		break;
 	case ViewColumn::TYPE_FLAGS:
-		swprintf(wsz, L"%u", pmh->getFlags());
+		_snwprintf(wsz, countof(wsz), L"%u", pmh->getFlags());
 		break;
 	case ViewColumn::TYPE_LABEL:
 		wstrText = pmh->getLabel();
@@ -2974,7 +2974,7 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 	}
 	else {
 		WCHAR wszFolder[32];
-		swprintf(wszFolder, L"%u", pItem->getFolderId());
+		_snwprintf(wszFolder, countof(wszFolder), L"%u", pItem->getFolderId());
 		SimpleAttributes viewAttrs(L"folder", wszFolder);
 		if (!handler_.startElement(0, 0, L"view", viewAttrs))
 			return false;
@@ -3087,7 +3087,7 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 	if (!handler_.startElement(0, 0, L"sort", sortAttrs))
 		return false;
 	WCHAR wsz[32];
-	swprintf(wsz, L"%u", pItem->getSort() & ViewModel::SORT_INDEX_MASK);
+	_snwprintf(wsz, countof(wsz), L"%u", pItem->getSort() & ViewModel::SORT_INDEX_MASK);
 	if (!handler_.characters(wsz, 0, wcslen(wsz)))
 		return false;
 	if (!handler_.endElement(0, 0, L"sort"))
@@ -3114,9 +3114,9 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 		return false;
 	
 	WCHAR wszRestoreId[32];
-	swprintf(wszRestoreId, L"%u", pItem->getRestoreId());
+	_snwprintf(wszRestoreId, countof(wszRestoreId), L"%u", pItem->getRestoreId());
 	WCHAR wszRestoreScroll[32];
-	swprintf(wszRestoreScroll, L"%d", pItem->getRestoreScroll());
+	_snwprintf(wszRestoreScroll, countof(wszRestoreScroll), L"%d", pItem->getRestoreScroll());
 	const SimpleAttributes::Item restoreItems[] = {
 		{ L"id",		wszRestoreId		},
 		{ L"scroll",	wszRestoreScroll	}

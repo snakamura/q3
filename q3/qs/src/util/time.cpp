@@ -248,10 +248,10 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 			case L'Y':
 				switch (*(p + 2)) {
 				case L'2':
-					swprintf(wsz, L"%02d", time.wYear%100);
+					_snwprintf(wsz, countof(wsz), L"%02d", time.wYear%100);
 					break;
 				case L'4':
-					swprintf(wsz, L"%04d", time.wYear);
+					_snwprintf(wsz, countof(wsz), L"%04d", time.wYear);
 					break;
 				default:
 					return 0;
@@ -262,7 +262,7 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 			case L'M':
 				switch (*(p + 2)) {
 				case L'0':
-					swprintf(wsz, L"%02d", time.wMonth);
+					_snwprintf(wsz, countof(wsz), L"%02d", time.wMonth);
 					buf.append(wsz);
 					break;
 				case L'1':
@@ -274,7 +274,7 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 				p += 2;
 				break;
 			case L'D':
-				swprintf(wsz, L"%02d", time.wDay);
+				_snwprintf(wsz, countof(wsz), L"%02d", time.wDay);
 				buf.append(wsz);
 				++p;
 				break;
@@ -283,22 +283,22 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 				++p;
 				break;
 			case L'h':
-				swprintf(wsz, L"%02d", time.wHour);
+				_snwprintf(wsz, countof(wsz), L"%02d", time.wHour);
 				buf.append(wsz);
 				++p;
 				break;
 			case L'm':
-				swprintf(wsz, L"%02d", time.wMinute);
+				_snwprintf(wsz, countof(wsz), L"%02d", time.wMinute);
 				buf.append(wsz);
 				++p;
 				break;
 			case L's':
-				swprintf(wsz, L"%02d", time.wSecond);
+				_snwprintf(wsz, countof(wsz), L"%02d", time.wSecond);
 				buf.append(wsz);
 				++p;
 				break;
 			case L'z':
-				swprintf(wsz, L"%c%04d",
+				_snwprintf(wsz, countof(wsz), L"%c%04d",
 					nTimeZone < 0 ? L'-' : L'+', abs(nTimeZone));
 				buf.append(wsz);
 				++p;

@@ -452,7 +452,7 @@ bool qs::ClusterStorage::rename(const WCHAR* pwszPath,
 		}
 		for (int n = 0; ; ++n) {
 			WCHAR wsz[16];
-			swprintf(wsz, L"%03u", n);
+			_snwprintf(wsz, countof(wsz), L"%03u", n);
 			wstring_ptr wstrOldPath(concat(pImpl_->wstrPath_.get(), wsz, pImpl_->wstrBoxExt_.get()));
 			W2T(wstrOldPath.get(), ptszOldPath);
 			if (::GetFileAttributes(ptszOldPath) == 0xffffffff)

@@ -341,7 +341,7 @@ bool qm::MacroGlobalContext::setRegexResult(const RegexRangeList& listRange)
 		const RegexRange& range = listRange.list_[n];
 		
 		WCHAR wszName[32];
-		swprintf(wszName, L"_%u", n);
+		_snwprintf(wszName, countof(wszName), L"_%u", n);
 		MacroValuePtr pValue(MacroValueFactory::getFactory().newString(
 			range.pStart_, range.pEnd_ - range.pStart_));
 		if (!pValue.get())
@@ -359,7 +359,7 @@ void qm::MacroGlobalContext::clearRegexResult()
 {
 	for (size_t n = 0; n < nRegexResultCount_; ++n) {
 		WCHAR wszName[32];
-		swprintf(wszName, L"_%u", n);
+		_snwprintf(wszName, countof(wszName), L"_%u", n);
 		removeVariable(wszName, false);
 	}
 	nRegexResultCount_ = 0;
@@ -501,7 +501,7 @@ MacroValuePtr qm::MacroExpr::error(const MacroContext& context,
 	Log log(InitThread::getInitThread().getLogger(), L"qm::MacroExpr");
 	if (log.isErrorEnabled()) {
 		WCHAR wsz[128];
-		swprintf(wsz, L"Error occured while processing macro: code=%u at ", code);
+		_snwprintf(wsz, countof(wsz), L"Error occured while processing macro: code=%u at ", code);
 		wstring_ptr wstr(getString());
 		wstring_ptr wstrLog(concat(wsz, wstr.get()));
 		log.error(wstrLog.get());
@@ -768,7 +768,7 @@ MacroValuePtr qm::MacroNumber::value(MacroContext* pContext) const
 wstring_ptr qm::MacroNumber::getString() const
 {
 	WCHAR wsz[32];
-	swprintf(wsz, L"%u", nValue_);
+	_snwprintf(wsz, countof(wsz), L"%u", nValue_);
 	return allocWString(wsz);
 }
 
@@ -954,8 +954,9 @@ MacroValuePtr qm::MacroVariable::value(MacroContext* pContext) const
 wstring_ptr qm::MacroVariable::getString() const
 {
 	if (n_ != -1) {
-		wstring_ptr wstrName(allocWString(32));
-		swprintf(wstrName.get(), L"$%u", n_);
+		const size_t nLen = 32;
+		wstring_ptr wstrName(allocWString(nLen));
+		_snwprintf(wstrName.get(), nLen, L"$%u", n_);
 		return wstrName;
 	}
 	else {
@@ -1430,7 +1431,7 @@ std::auto_ptr<Macro> qm::MacroParser::error(MacroErrorHandler::Code code,
 	Log log(InitThread::getInitThread().getLogger(), L"qm::MacroParser");
 	if (log.isErrorEnabled()) {
 		WCHAR wsz[128];
-		swprintf(wsz, L"Error occured while parsing macro: code=%u at ", code);
+		_snwprintf(wsz, countof(wsz), L"Error occured while parsing macro: code=%u at ", code);
 		wstring_ptr wstrLog(concat(wsz, p));
 		log.error(wstrLog.get());
 	}

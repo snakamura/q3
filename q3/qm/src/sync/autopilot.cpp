@@ -467,7 +467,7 @@ bool qm::AutoPilotWriter::write(const AutoPilotManager* pManager)
 bool qm::AutoPilotWriter::write(const AutoPilotEntry* pEntry)
 {
 	WCHAR wszInterval[32];
-	swprintf(wszInterval, L"%d", pEntry->getInterval());
+	_snwprintf(wszInterval, countof(wszInterval), L"%d", pEntry->getInterval());
 	
 	return handler_.startElement(0, 0, L"entry", DefaultAttributes()) &&
 		handler_.startElement(0, 0, L"course", DefaultAttributes()) &&
