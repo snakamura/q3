@@ -275,19 +275,19 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 	const ContentTypeParser* pContentType = pPart->getContentType();
 	const WCHAR* pwszMediaType = pContentType ?
 		pContentType->getMediaType() : L"text";
-	bool bMultipart = wcsicmp(pwszMediaType, L"multipart") == 0;
+	bool bMultipart = _wcsicmp(pwszMediaType, L"multipart") == 0;
 	
 	if (pBody) {
 		bool bRFC822 = false;
 		if (!bMultipart) {
-			bRFC822 = wcsicmp(pwszMediaType, L"message") == 0 &&
-				wcsicmp(pContentType->getSubType(), L"rfc822") == 0;
+			bRFC822 = _wcsicmp(pwszMediaType, L"message") == 0 &&
+				_wcsicmp(pContentType->getSubType(), L"rfc822") == 0;
 			if (!bRFC822 && !pContentType && pParent) {
 				const ContentTypeParser* pParentContentType =
 					pParent->getContentType();
 				bRFC822 = pParentContentType &&
-					wcsicmp(pParentContentType->getMediaType(), L"multipart") == 0 &&
-					wcsicmp(pParentContentType->getSubType(), L"digest") == 0;
+					_wcsicmp(pParentContentType->getMediaType(), L"multipart") == 0 &&
+					_wcsicmp(pParentContentType->getSubType(), L"digest") == 0;
 			}
 		}
 		if (bMultipart) {
@@ -472,8 +472,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 			!attachment.getAttachments().empty()) {
 			const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
 			assert(pContentType);
-			if (wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
-				wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
+			if (_wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
+				_wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
 				std::auto_ptr<Message> pParent(new Message());
 				if (!makeMultipart(pParent.get(), pPart))
 					return std::auto_ptr<Part>(0);
@@ -532,7 +532,7 @@ bool qm::MessageCreator::createHeader(Part* pPart,
 				(pwszMessage[n + 1] != L' ' && pwszMessage[n + 1] != '\t')) {
 				buf.push_back(L'\0');
 				
-				const WCHAR* pLine = &buf[0] + nLine;
+				WCHAR* pLine = &buf[0] + nLine;
 				WCHAR* p = wcschr(pLine, L':');
 				if (p) {
 					Header header;
@@ -1096,7 +1096,7 @@ wstring_ptr qm::MessageCreator::getContentTypeFromExtension(const WCHAR* pwszExt
 	if (reg) {
 		if (reg.getValue(L"Content Type", &wstrContentType)) {
 			if (wstrContentType.get() &&
-				wcsnicmp(wstrContentType.get(), L"text/", 5) == 0)
+				_wcsnicmp(wstrContentType.get(), L"text/", 5) == 0)
 				wstrContentType.reset(0);
 		}
 	}
@@ -1653,7 +1653,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 PartUtil::DigestMode qm::PartUtil::getDigestMode() const
 {
 	const ContentTypeParser* pContentType = part_.getContentType();
-	if (!pContentType || wcsicmp(pContentType->getMediaType(), L"text") == 0) {
+	if (!pContentType || _wcsicmp(pContentType->getMediaType(), L"text") == 0) {
 		UnstructuredParser subject;
 		if (part_.getField(L"Subject", &subject) == Part::FIELD_EXIST) {
 			wstring_ptr wstrSubject(tolower(subject.getValue()));
@@ -1669,9 +1669,9 @@ PartUtil::DigestMode qm::PartUtil::getDigestMode() const
 			}
 		}
 	}
-	else if (wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
-		if (wcsicmp(pContentType->getSubType(), L"mixed") == 0 ||
-			wcsicmp(pContentType->getSubType(), L"digest") == 0) {
+	else if (_wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
+		if (_wcsicmp(pContentType->getSubType(), L"mixed") == 0 ||
+			_wcsicmp(pContentType->getSubType(), L"digest") == 0) {
 			const Part::PartList& l = part_.getPartList();
 			Part::PartList::const_iterator it = l.begin();
 			while (it != l.end()) {

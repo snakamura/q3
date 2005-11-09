@@ -78,22 +78,24 @@ xstring_size_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
-	ByteInputStream stdin(p, nLen, false);
-	ByteOutputStream stdout;
-	ByteOutputStream stderr;
+	ByteInputStream stdinStream(p, nLen, false);
+	ByteOutputStream stdoutStream;
+	ByteOutputStream stderrStream;
 	
-	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, log.isDebugEnabled() ? &stderr : 0);
+	int nCode = Process::exec(command.getCharArray(), &stdinStream,
+		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0);
 	
 	log.debugf(L"Command exited with: %d", nCode);
-	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
-	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
+	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
 		return xstring_size_ptr();
 	}
 	
-	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
+	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(
+		stdoutStream.getBuffer()), stdoutStream.getLength()), stdoutStream.getLength());
 }
 
 xstring_size_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
@@ -123,22 +125,24 @@ xstring_size_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
-	ByteInputStream stdin(p, nLen, false);
-	ByteOutputStream stdout;
-	ByteOutputStream stderr;
+	ByteInputStream stdinStream(p, nLen, false);
+	ByteOutputStream stdoutStream;
+	ByteOutputStream stderrStream;
 	
-	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, log.isDebugEnabled() ? &stderr : 0);
+	int nCode = Process::exec(command.getCharArray(), &stdinStream,
+		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0);
 	
 	log.debugf(L"Command exited with: %d", nCode);
-	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
-	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
+	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
 		return xstring_size_ptr();
 	}
 	
-	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
+	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(
+		stdoutStream.getBuffer()), stdoutStream.getLength()), stdoutStream.getLength());
 }
 
 xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
@@ -175,22 +179,24 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
-	ByteInputStream stdin(p, nLen, false);
-	ByteOutputStream stdout;
-	ByteOutputStream stderr;
+	ByteInputStream stdinStream(p, nLen, false);
+	ByteOutputStream stdoutStream;
+	ByteOutputStream stderrStream;
 	
-	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, log.isDebugEnabled() ? &stderr : 0);
+	int nCode = Process::exec(command.getCharArray(), &stdinStream,
+		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0);
 	
 	log.debugf(L"Command exited with: %d", nCode);
-	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
-	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
+	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
 		return xstring_size_ptr();
 	}
 	
-	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
+	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(
+		stdoutStream.getBuffer()), stdoutStream.getLength()), stdoutStream.getLength());
 }
 
 bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
@@ -232,24 +238,26 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 	
 	log.debug(L"Data into stdin", p, nSignatureLen);
 	
-	ByteInputStream stdin(p, nSignatureLen, false);
-	ByteOutputStream stdout;
-	ByteOutputStream stderr;
+	ByteInputStream stdinStream(p, nSignatureLen, false);
+	ByteOutputStream stdoutStream;
+	ByteOutputStream stderrStream;
 	
-	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, &stderr);
+	int nCode = Process::exec(command.getCharArray(),
+		&stdinStream, &stdoutStream, &stderrStream);
 	
 	log.debugf(L"Command exited with: %d", nCode);
-	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
-	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
+	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
 	
-	*pwstrInfo = mbs2wcs(reinterpret_cast<const CHAR*>(stderr.getBuffer()), stderr.getLength());
+	*pwstrInfo = mbs2wcs(reinterpret_cast<const CHAR*>(
+		stderrStream.getBuffer()), stderrStream.getLength());
 	
 	if (nCode != 0 && nCode != 1) {
 		log.errorf(L"Command exited with: %d", nCode);
 		return false;
 	}
 	
-	*pnVerify = checkVerified(stderr.getBuffer(), stderr.getLength(), pwstrUserId);
+	*pnVerify = checkVerified(stderrStream.getBuffer(), stderrStream.getLength(), pwstrUserId);
 	
 	return true;
 }
@@ -285,26 +293,29 @@ xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
-	ByteInputStream stdin(p, nLen, false);
-	ByteOutputStream stdout;
-	ByteOutputStream stderr;
+	ByteInputStream stdinStream(p, nLen, false);
+	ByteOutputStream stdoutStream;
+	ByteOutputStream stderrStream;
 	
-	int nCode = Process::exec(command.getCharArray(), &stdin, &stdout, &stderr);
+	int nCode = Process::exec(command.getCharArray(),
+		&stdinStream, &stdoutStream, &stderrStream);
 	
 	log.debugf(L"Command exited with: %d", nCode);
-	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
-	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
+	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
 	
-	*pwstrInfo = mbs2wcs(reinterpret_cast<const CHAR*>(stderr.getBuffer()), stderr.getLength());
+	*pwstrInfo = mbs2wcs(reinterpret_cast<const CHAR*>(
+		stderrStream.getBuffer()), stderrStream.getLength());
 	
 	if (nCode != 0 && nCode != 1) {
 		log.errorf(L"Command exited with: %d", nCode);
 		return xstring_size_ptr();
 	}
 	
-	*pnVerify = checkVerified(stderr.getBuffer(), stderr.getLength(), pwstrUserId);
+	*pnVerify = checkVerified(stderrStream.getBuffer(), stderrStream.getLength(), pwstrUserId);
 	
-	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(stdout.getBuffer()), stdout.getLength()), stdout.getLength());
+	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(
+		stdoutStream.getBuffer()), stdoutStream.getLength()), stdoutStream.getLength());
 }
 
 #if 0
@@ -323,22 +334,23 @@ bool qmpgp::PGPDriver::getAlternatives(const WCHAR* pwszUserId,
 	
 	log.debugf(L"Getting alternatives with commandline: %s", command.getCharArray());
 	
-	ByteOutputStream stdout;
-	ByteOutputStream stderr;
+	ByteOutputStream stdoutStream;
+	ByteOutputStream stderrStream;
 	
-	int nCode = Process::exec(command.getCharArray(), 0, &stdout, log.isDebugEnabled() ? &stderr : 0);
+	int nCode = Process::exec(command.getCharArray(), 0,
+		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0);
 	
 	log.debugf(L"Command exited with: %d", nCode);
-	log.debug(L"Data from stdout", stdout.getBuffer(), stdout.getLength());
-	log.debug(L"Data from stderr", stderr.getBuffer(), stderr.getLength());
+	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
+	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
 		return false;
 	}
 	
-	const CHAR* p = reinterpret_cast<const CHAR*>(stdout.getBuffer());
-	size_t nLen = stdout.getLength();
+	const CHAR* p = reinterpret_cast<const CHAR*>(stdoutStream.getBuffer());
+	size_t nLen = stdoutStream.getLength();
 	while (nLen > 3) {
 		if (*p == ' ') {
 			const CHAR* pStart = p;

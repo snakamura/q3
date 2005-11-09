@@ -564,8 +564,8 @@ bool qm::SubAccount::isSelf(const Message& msg) const
 						const AddressListParser::AddressList& listSender = sender.getAddressList();
 						if (!listSender.empty()) {
 							AddressParser* pSender = listSender.front();
-							bSelf = wcsicmp(pFrom->getMailbox(), pSender->getMailbox()) == 0 &&
-								wcsicmp(pFrom->getHost(), pSender->getHost()) == 0;
+							bSelf = _wcsicmp(pFrom->getMailbox(), pSender->getMailbox()) == 0 &&
+								_wcsicmp(pFrom->getHost(), pSender->getHost()) == 0;
 						}
 					}
 					else {

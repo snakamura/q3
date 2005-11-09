@@ -732,7 +732,7 @@ bool qmnntp::NntpMessageHolder::getMessage(unsigned int nFlags,
 	};
 	
 	for (int n = 0; n < countof(pwszFields); ++n) {
-		if (wcsicmp(pwszField, pwszFields[n]) == 0)
+		if (_wcsicmp(pwszField, pwszFields[n]) == 0)
 			return true;
 	}
 	

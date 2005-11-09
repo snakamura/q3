@@ -165,7 +165,7 @@ bool qmpop3::Pop3::connect(const WCHAR* pwszHost,
 	if (!sendCommand("STAT\r\n", &strStat))
 		POP3_ERROR_OR(POP3_ERROR_STAT);
 	
-	const CHAR* pStat = strStat.get();
+	CHAR* pStat = strStat.get();
 	int n = 0;
 	for (n = 0; n < 3; ++n) {
 		CHAR* pEnd = strchr(pStat, ' ');
@@ -268,7 +268,7 @@ bool qmpop3::Pop3::getMessageSize(unsigned int nMsg,
 	if (!sendCommand(szList, &strResponse))
 		POP3_ERROR_OR(POP3_ERROR_LIST);
 	
-	const CHAR* p = strchr(strResponse.get(), ' ');
+	CHAR* p = strchr(strResponse.get(), ' ');
 	if (!p)
 		POP3_ERROR(POP3_ERROR_LIST | POP3_ERROR_PARSE);
 	p = strchr(p + 1, ' ');
@@ -305,7 +305,7 @@ bool qmpop3::Pop3::getMessageSizes(MessageSizeList* pList)
 	if (!sendCommand("LIST\r\n", &strResponse, &strContent, 0))
 		POP3_ERROR_OR(POP3_ERROR_LIST);
 	
-	const CHAR* p = strContent.get();
+	CHAR* p = strContent.get();
 	while (*p) {
 		p = strchr(p, ' ');
 		if (!p)

@@ -443,7 +443,7 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 		++pwszFragment;
 	}
 	
-	const WCHAR* pwszAccount = wstrURI.get() + 12;
+	WCHAR* pwszAccount = wstrURI.get() + 12;
 	WCHAR* pwszFolder = wcschr(pwszAccount, L'/');
 	if (!pwszFolder)
 		return std::auto_ptr<URI>();

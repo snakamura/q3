@@ -1155,7 +1155,7 @@ private:
 template<class T, class List, class Manager, class EditDialog>
 class RuleColorSetsDialog :
 	public AbstractListDialog<T, List>,
-	public AbstractOptionDialogPanel<RuleColorSetsDialog>
+	public AbstractOptionDialogPanel<RuleColorSetsDialog<T, List, Manager, EditDialog> >
 {
 public:
 	typedef const List& (Manager::*PFN_GET)();

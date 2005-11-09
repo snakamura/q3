@@ -733,7 +733,7 @@ bool qm::EditMessage::applyFields()
 		Field& field = *it;
 		
 		Part* pPart = pMessage_.get();
-		if (wcslen(field.wstrName_) > 8 && wcsnicmp(field.wstrName_, L"content-", 8) == 0)
+		if (wcslen(field.wstrName_) > 8 && _wcsnicmp(field.wstrName_, L"content-", 8) == 0)
 			pPart = pBodyPart_;
 		
 		if (field.wstrValue_ && *field.wstrValue_) {
@@ -913,8 +913,8 @@ std::auto_ptr<Message> qm::EditMessage::makeMultipartMixed(std::auto_ptr<Message
 {
 	const ContentTypeParser* pContentType = pMessage->getContentType();
 	if (!pContentType ||
-		wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
-		wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
+		_wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
+		_wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
 		std::auto_ptr<Message> pNewMessage(new Message());
 		if (!MessageCreator::makeMultipart(pNewMessage.get(), pMessage))
 			return std::auto_ptr<Message>();

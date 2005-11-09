@@ -243,10 +243,10 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 			pwszCommand = wstrCommand.get();
 			if (*pwszCommand == L'\"') {
 				++pwszCommand;
-				pParam = wcschr(pwszCommand, L'\"');
+				pParam = wcschr(wstrCommand.get(), L'\"');
 			}
 			else {
-				pParam = wcschr(pwszCommand, L' ');
+				pParam = wcschr(wstrCommand.get(), L' ');
 			}
 			if (pParam) {
 				*pParam = L'\0';

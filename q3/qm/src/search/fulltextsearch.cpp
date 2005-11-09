@@ -65,7 +65,7 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	typedef std::vector<unsigned int> OffsetList;
 	OffsetList listOffset;
 	
-	const WCHAR* p = wstrOutput.get();
+	WCHAR* p = wstrOutput.get();
 	while (*p) {
 		WCHAR* pEnd = wcschr(p, L'\n');
 		if (!pEnd)

@@ -674,7 +674,7 @@ void qm::TextHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
 
 void qm::TextHeaderEditItem::fieldChanged(const EditMessageFieldEvent& event)
 {
-	if (!getValue() && wcsicmp(event.getName(), wstrField_.get()) == 0)
+	if (!getValue() && _wcsicmp(event.getName(), wstrField_.get()) == 0)
 		Window(hwnd_).setWindowText(event.getValue());
 }
 

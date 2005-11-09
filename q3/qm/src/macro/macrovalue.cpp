@@ -482,7 +482,7 @@ const MacroValueAddress::AddressList& qm::MacroValueAddress::getAddress() const
 void qm::MacroValueAddress::remove(const WCHAR* pwszAddress)
 {
 	for (AddressList::iterator it = listAddress_.begin(); it != listAddress_.end(); ) {
-		if (wcsicmp(*it, pwszAddress) == 0) {
+		if (_wcsicmp(*it, pwszAddress) == 0) {
 			freeWString(*it);
 			it = listAddress_.erase(it);
 		}

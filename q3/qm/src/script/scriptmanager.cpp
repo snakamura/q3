@@ -192,7 +192,7 @@ wstring_ptr qm::ScriptManager::getLanguageByExtension(const WCHAR* pwszExtension
 		
 		const WCHAR* pwszLang = 0;
 		for (int n = 0; n < countof(langs) && !pwszLang; ++n) {
-			if (wcsicmp(langs[n].pwszExt_, pwszExtension) == 0)
+			if (_wcsicmp(langs[n].pwszExt_, pwszExtension) == 0)
 				pwszLang = langs[n].pwszLang_;
 		}
 		if (!pwszLang)

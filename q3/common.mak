@@ -13,9 +13,11 @@ VS6DIR					= d:/dev/msvs
 VC6DIR					= d:/dev/msvs/vc98
 VS7DIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
 VC7DIR					= d:/dev/msvs2003/vc7
-VC7						= 0
+VS8DIR					= d:/dev/msvs8
+VC8DIR					= d:/dev/msvs8/vc
+VCVER					= 6
 EVCDIR					= d:/dev/msevc4/evc
-EVC4					= 1
+EVCVER					= 4
 PLATFORMSDKDIR			= d:/dev/mssdk
 CESDKPPC2003JADIR		= d:/dev/msevc4/wce420/pocket pc 2003
 CESDKPPC2003ENDIR		= d:/dev/msevc4/wce420/pocket pc 2003
@@ -55,10 +57,15 @@ endif
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
 	SDKDIR					= $(PLATFORMSDKDIR)
-	ifeq ($(VC7),1)
+	ifeq ($(VCVER),8)
+		COMPILERDIR			= $(VC8DIR)
+		COMMONBINDIR		= $(VS8DIR)/common7/ide
+	endif
+	ifeq ($(VCVER),7)
 		COMPILERDIR			= $(VC7DIR)
 		COMMONBINDIR		= $(VS7DIR)/common7/ide
-	else
+	endif
+	ifeq ($(VCVER),6)
 		COMPILERDIR			= $(VC6DIR)
 		COMMONBINDIR		= $(VS6DIR)/common/msdev98/bin
 	endif
@@ -69,7 +76,7 @@ ifeq ($(PLATFORM),win)
 		
 		SDKINCLUDEDIR		= $(SDKDIR)/include
 		SDKLIBDIR			= $(SDKDIR)/lib
-		ifeq ($(VC7),1)
+		ifneq ($(VCVER),6)
 			MFCINCLUDEDIR	= $(COMPILERDIR)/atlmfc/include
 			MFCLIBDIR		= $(COMPILERDIR)/atlmfc/lib
 			ATLINCLUDEDIR	= $(COMPILERDIR)/atlmfc/include
@@ -157,7 +164,7 @@ else
 		#####################################################################
 	endif
 	COMPILERDIR			= $(EVCDIR)
-	ifeq ($(EVC4),1)
+	ifeq ($(EVCVER),4)
 		COMPILERBINDIR	= $(COMPILERDIR)/wce420/bin
 	else
 		COMPILERBINDIR	= $(COMPILERDIR)/wce300/bin
@@ -210,14 +217,14 @@ ifeq ($(PLATFORM),win)
 else
 	# WINCE #################################################################
 	ifeq ($(CPU),sh3)
-		ifeq ($(EVC4),1)
+		ifeq ($(EVCVER),4)
 			CCC			= clsh
 		else
 			CCC			= shcl
 		endif
 	endif
 	ifeq ($(CPU),sh4)
-		ifeq ($(EVC4),1)
+		ifeq ($(EVCVER),4)
 			CCC			= clsh
 		else
 			CCC			= shcl
@@ -261,7 +268,7 @@ ifdef DEBUG
 	DSUFFIX				= d
 	CCFLAGS				= -Od
 ifeq ($(PLATFORM),win)
-	ifeq ($(VC7),1)
+	ifneq ($(VCVER),6)
 		ifneq ($(CPU),x64)
 			CCFLAGS		+= -RTC1
 		endif
@@ -291,7 +298,7 @@ endif
 
 ifndef DEBUG
 	ifeq ($(PLATFORM),win)
-		ifeq ($(VC7),1)
+		ifneq ($(VCVER),6)
 			CCFLAGS		+= -GL
 			LDFLAGS		+= -LTCG
 		endif
@@ -351,7 +358,9 @@ ifeq ($(PLATFORM),win)
 		DEFINES			+= -DUNICODE -D_UNICODE
 	endif
 	ifeq ($(CPU),x86)
-		CCFLAGS			+= -GB
+		ifneq ($(VCVER),8)
+			CCFLAGS		+= -GB
+		endif
 		DEFINES			+= -Dx86 -D_X86_
 		ifndef OLDWINDOWS
 			DEFINES		+= -DWINVER=0x500 -D_WIN32_WINNT=0x500
@@ -365,6 +374,9 @@ ifeq ($(PLATFORM),win)
 		DEFINES			+= -DWIN64 -D_WIN64 -D_AMD64_ -DWINVER=0x502 -D_WIN32_WINNT=0x502
 		LDFLAGS			+= -MACHINE:AMD64
 		RCFLAGS			+= -D_AMD64_
+	endif
+	ifeq ($(VCVER),8)
+		DEFINES			+= -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NON_CONFORMING_SWPRINTFS
 	endif
 	
 	LIBCPU				= $(CPU)
@@ -389,7 +401,7 @@ ifeq ($(PLATFORM),win)
 						  urlmon.lib \
 						  crypt32.lib \
 						  wininet.lib
-	ifneq ($(VC7),1)
+	ifeq ($(VCVER),6)
 		LIBS			+= msvcirt$(DSUFFIX).lib
 	endif
 	ifeq ($(CPU),x64)
@@ -471,7 +483,7 @@ else
 		RCFLAGS			+= -D _WIN32_WCE_EMULATION
 	endif
 	
-	ifeq ($(EVC4),1)
+	ifeq ($(EVCVER),4)
 		MIDLFLAGS		+= -msc_ver 1000
 	endif
 	

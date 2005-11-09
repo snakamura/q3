@@ -408,7 +408,7 @@ wstring_ptr qs::TextUtil::replace(const WCHAR* pwsz,
 								  const WCHAR* pwszFind,
 								  const WCHAR* pwszReplace)
 {
-	WCHAR* p = wcsstr(pwsz, pwszFind);
+	const WCHAR* p = wcsstr(pwsz, pwszFind);
 	if (!p)
 		return allocWString(pwsz);
 	

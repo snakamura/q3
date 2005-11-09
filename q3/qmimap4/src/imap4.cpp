@@ -1781,7 +1781,7 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 					return std::auto_ptr<ResponseFetch>(0);
 				
 				const CHAR* p = name.first + 5;
-				CHAR* pEnd = strchr(p, ']');
+				const CHAR* pEnd = strchr(p, ']');
 				if (!pEnd)
 					return std::auto_ptr<ResponseFetch>(0);
 				
