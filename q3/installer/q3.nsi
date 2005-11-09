@@ -250,7 +250,8 @@ FunctionEnd
 
 Function MailBoxFolder
 
-  !insertmacro MUI_HEADER_TEXT "Choose Mailbox Location" "Choose the folder in which to store mail data."
+  !insertmacro MUI_HEADER_TEXT "$(MAILBOXFOLDER_TITLE)" "$(MAILBOXFOLDER_SUBTITLE)"
+  !insertmacro MUI_INSTALLOPTIONS_WRITE "mailbox.ini" "Field 1" "Text" "$(MAILBOXFOLDER_LABEL)"
   ReadRegStr $MAILBOX_FOLDER HKCU "Software\sn\q3\Setting" "MailFolder"
   StrCmp $MAILBOX_FOLDER "" +1 +2
     StrCpy $MAILBOX_FOLDER "$APPDATA\QMAIL3"
@@ -270,7 +271,8 @@ FunctionEnd
 
 Function un.RemoveMailBox
 
-  !insertmacro MUI_HEADER_TEXT "Remove Mailbox" "Remove the folder in which mail data are stored."
+  !insertmacro MUI_HEADER_TEXT "$(REMOVEMAILBOX_TITLE)" "$(REMOVEMAILBOX_SUBTITLE)"
+  !insertmacro MUI_INSTALLOPTIONS_WRITE "remove.ini" "Field 1" "Text" "$(REMOVEMAILBOX_LABEL)"
   !insertmacro MUI_INSTALLOPTIONS_DISPLAY "remove.ini"
   !insertmacro MUI_INSTALLOPTIONS_READ $REMOVE_MAILBOX "remove.ini" "Field 1" "State"
 
@@ -287,6 +289,12 @@ LangString DESC_SecJunk ${LANG_ENGLISH} "Junk filter support."
 LangString DESC_SecScript ${LANG_ENGLISH} "Script support."
 LangString DESC_SecZip ${LANG_ENGLISH} "Enable archiving attachments."
 LangString DESC_SecJapanese ${LANG_ENGLISH} "Japanese UI support."
+LangString MAILBOXFOLDER_TITLE ${LANG_ENGLISH} "Choose Mailbox Location"
+LangString MAILBOXFOLDER_SUBTITLE ${LANG_ENGLISH} "Choose the folder in which to store mail data."
+LangString MAILBOXFOLDER_LABEL ${LANG_ENGLISH} "Mailbox folder"
+LangString REMOVEMAILBOX_TITLE ${LANG_ENGLISH} "Remove Mailbox"
+LangString REMOVEMAILBOX_SUBTITLE ${LANG_ENGLISH} "Choose whether you want to remove the folder in which mail data are stored."
+LangString REMOVEMAILBOX_LABEL ${LANG_ENGLISH} "Remove mail data"
 
 LangString DESC_SecCore ${LANG_JAPANESE} "POP3/SMTPのサポートを含むコアモジュール"
 LangString DESC_SecImap4 ${LANG_JAPANESE} "IMAP4のサポート"
@@ -298,6 +306,12 @@ LangString DESC_SecJunk ${LANG_JAPANESE} "スパムフィルタのサポート"
 LangString DESC_SecScript ${LANG_JAPANESE} "スクリプトのサポート"
 LangString DESC_SecZip ${LANG_JAPANESE} "添付ファイルの圧縮のサポート"
 LangString DESC_SecJapanese ${LANG_JAPANESE} "日本語UIのサポート"
+LangString MAILBOXFOLDER_TITLE ${LANG_JAPANESE} "メールボックスの場所"
+LangString MAILBOXFOLDER_SUBTITLE ${LANG_JAPANESE} "メールのデータを置くフォルダを選択してください。"
+LangString MAILBOXFOLDER_LABEL ${LANG_JAPANESE} "メールボックスフォルダ"
+LangString REMOVEMAILBOX_TITLE ${LANG_JAPANESE} "メールボックスの削除"
+LangString REMOVEMAILBOX_SUBTITLE ${LANG_JAPANESE} "メールのデータが置いてあるフォルダを削除するかどうかを指定してください。"
+LangString REMOVEMAILBOX_LABEL ${LANG_JAPANESE} "メールボックスを削除"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${Core} $(DESC_SecCore)
