@@ -227,6 +227,13 @@ Section "Uninstall"
   Delete $INSTDIR\libeay32.dll
   Delete $INSTDIR\ssleay32.dll
   Delete $INSTDIR\zip32.dll
+  Delete $INSTDIR\qm${POSTFIX}.dll.0411.mui
+  Delete $INSTDIR\qs${POSTFIX}.dll.0411.mui
+  Delete $INSTDIR\qmpop3${POSTFIX}.dll.0411.mui
+  Delete $INSTDIR\qmsmtp${POSTFIX}.dll.0411.mui
+  Delete $INSTDIR\qmimap4${POSTFIX}.dll.0411.mui
+  Delete $INSTDIR\qmnntp${POSTFIX}.dll.0411.mui
+  Delete $INSTDIR\qmrss${POSTFIX}.dll.0411.mui
   Delete $INSTDIR\uninstall.exe
   
   RMDir "$INSTDIR"
