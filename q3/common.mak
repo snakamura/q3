@@ -61,6 +61,7 @@ ifeq ($(PLATFORM),win)
 	ifeq ($(VCVER),8)
 		COMPILERDIR			= $(VC8DIR)
 		COMMONBINDIR		= $(VS8DIR)/common7/ide
+		COMMONTOOLBINDIR	= $(VS8DIR)/common7/tools/bin
 	endif
 	ifeq ($(VCVER),7)
 		COMPILERDIR			= $(VC7DIR)
@@ -627,7 +628,7 @@ LIBS					+= $(DEPENDLIBS)
 INCLUDES				+= $(EXTERNALINCS)
 LIBS					+= $(EXTERNALLIBS)
 
-export PATH				= $(call win2unix,$(BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(SVNDIR)/bin)
+export PATH				= $(call win2unix,$(BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(COMMONTOOLBINDIR)):$(call win2unix,$(SVNDIR)/bin)
 export INCLUDE			= $(SDKINCLUDEDIR);$(MFCINCLUDEDIR);$(ATLINCLUDEDIR);$(COMPILERINCLUDEDIR)
 export LIB				= $(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR);$(COMPILERLIBDIR)
 
