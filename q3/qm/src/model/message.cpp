@@ -366,7 +366,6 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 					}
 				}
 				wstrCharset = allocWString(pwszCharset);
-				pPart->removeField(L"X-QMAIL-OriginalCharset");
 				
 				pConverter = ConverterFactory::getInstance(wstrCharset.get());
 				
@@ -380,6 +379,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 				}
 			}
 			assert(pConverter.get());
+			
+			pPart->removeField(L"X-QMAIL-OriginalCharset");
 			
 			xstring_size_ptr strBody(convertBody(pConverter.get(), pBody, nBodyLen));
 			if (!strBody.get())
