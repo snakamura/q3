@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resourceppc.h"
 
@@ -232,10 +232,10 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,30,35,102,10
     CONTROL         "フラグを書き出す(&G)",IDC_EXPORTFLAGS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,30,45,70,10
-    LTEXT           "テンプレート(&T)",IDC_STATIC,5,63,45,8
+    LTEXT           "テンプレート(&T)",IDC_STATIC,5,62,55,8
     COMBOBOX        IDC_TEMPLATE,60,60,72,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "エンコーディング(&E)",IDC_STATIC,5,78,50,8
+    LTEXT           "エンコーディング(&E)",IDC_STATIC,5,77,55,8
     COMBOBOX        IDC_ENCODING,60,76,72,30,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,27,95,50,12
@@ -252,15 +252,15 @@ BEGIN
     PUSHBUTTON      "参照(&B)...",IDC_BROWSE,82,20,50,12
     CONTROL         "複数のメッセージを含む(&M)",IDC_MULTIMESSAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,40,35,90,10
-    LTEXT           "エンコーディング(&E)",IDC_STATIC,5,53,50,8
+    LTEXT           "エンコーディング(&E)",IDC_STATIC,5,52,55,8
     COMBOBOX        IDC_ENCODING,60,50,72,30,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "通常(&N)",IDC_NORMAL,"Button",BS_AUTORADIOBUTTON,10,75,
-                    55,10
+                    115,10
     CONTROL         "&QMAIL 2.0互換",IDC_QMAIL20COMPATIBLE,"Button",
-                    BS_AUTORADIOBUTTON,10,86,100,10
+                    BS_AUTORADIOBUTTON,10,85,115,10
     CONTROL         "無視(&I)",IDC_IGNORE,"Button",BS_AUTORADIOBUTTON,10,95,
-                    34,10
+                    115,10
     GROUPBOX        "フラグ",IDC_STATIC,5,66,127,45
     DEFPUSHBUTTON   "OK",IDOK,26,115,50,12,WS_GROUP
     PUSHBUTTON      "キャンセル",IDCANCEL,82,115,50,12
