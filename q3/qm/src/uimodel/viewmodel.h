@@ -392,6 +392,10 @@ public:
 	virtual bool isMode(Mode mode) const;
 	virtual void setMode(Mode mode,
 						 bool b);
+	virtual unsigned int getZoom() const;
+	virtual void setZoom(unsigned int nZoom);
+	virtual Fit getFit() const;
+	virtual void setFit(Fit fit);
 
 public:
 	virtual void messageAdded(const FolderMessageEvent& event);
@@ -479,6 +483,8 @@ private:
 	unsigned int nFocused_;
 	unsigned int nScroll_;
 	unsigned int nMode_;
+	unsigned int nZoom_;
+	Fit fit_;
 	unsigned int nCacheCount_;
 	RestoreInfo restoreInfo_;
 	ViewModelHandlerList listHandler_;
@@ -876,6 +882,10 @@ public:
 	void setFilter(const WCHAR* pwszFilter);
 	unsigned int getMode() const;
 	void setMode(unsigned int nMode);
+	unsigned int getZoom() const;
+	void setZoom(unsigned int nZoom);
+	MessageViewMode::Fit getFit() const;
+	void setFit(MessageViewMode::Fit fit);
 	unsigned int getRestoreId() const;
 	void setRestoreId(unsigned int nId);
 	int getRestoreScroll() const;
@@ -896,6 +906,8 @@ private:
 	unsigned int nSort_;
 	qs::wstring_ptr wstrFilter_;
 	unsigned int nMode_;
+	unsigned int nZoom_;
+	MessageViewMode::Fit fit_;
 	unsigned int nRestoreId_;
 	int nRestoreScroll_;
 };

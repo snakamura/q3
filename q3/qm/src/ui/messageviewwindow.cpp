@@ -416,6 +416,14 @@ void qm::TextMessageViewWindow::setQuoteMode(bool bQuoteMode)
 	setLineQuote(bQuoteMode);
 }
 
+void qm::TextMessageViewWindow::setZoom(unsigned int nZoom)
+{
+}
+
+void qm::TextMessageViewWindow::setFit(MessageViewMode::Fit fit)
+{
+}
+
 bool qm::TextMessageViewWindow::find(const WCHAR* pwszFind,
 									 unsigned int nFlags)
 {
@@ -1414,6 +1422,20 @@ void qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
 }
 
 void qm::HtmlMessageViewWindow::setQuoteMode(bool bQuoteMode)
+{
+}
+
+void qm::HtmlMessageViewWindow::setZoom(unsigned int nZoom)
+{
+	if (nZoom != MessageViewMode::ZOOM_NONE) {
+		VARIANT varZoom;
+		varZoom.vt = VT_I4;
+		varZoom.lVal = nZoom;
+		pWebBrowser_->ExecWB(OLECMDID_ZOOM, OLECMDEXECOPT_DONTPROMPTUSER, &varZoom, 0);
+	}
+}
+
+void qm::HtmlMessageViewWindow::setFit(MessageViewMode::Fit fit)
 {
 }
 
@@ -2666,6 +2688,41 @@ void qm::HtmlMessageViewWindow::setSelectMode(bool bSelectMode)
 
 void qm::HtmlMessageViewWindow::setQuoteMode(bool bQuoteMode)
 {
+}
+
+void qm::HtmlMessageViewWindow::setZoom(unsigned int nZoom)
+{
+	if (nZoom != MessageViewMode::ZOOM_NONE)
+		sendMessage(DTM_ZOOMLEVEL, 0, nZoom);
+}
+
+void qm::HtmlMessageViewWindow::setFit(MessageViewMode::Fit fit)
+{
+#if _WIN32_WCE >= 420
+	IBrowser3* pBrowser3 = 0;
+	HRESULT hr = pWebBrowser_->QueryInterface(IID_IBrowser3,
+		reinterpret_cast<void**>(&pBrowser3));
+	if (hr != S_OK)
+		pBrowser3 = 0;
+	
+	switch (fit) {
+	case MessageViewMode::FIT_NONE:
+		pWebBrowser_->put_FitToWindow(VARIANT_FALSE);
+		pBrowser3->put_SuperFitToWindow(VARIANT_FALSE);
+		break;
+	case MessageViewMode::FIT_NORMAL:
+		pWebBrowser_->put_FitToWindow(VARIANT_TRUE);
+		pBrowser3->put_SuperFitToWindow(VARIANT_FALSE);
+		break;
+	case MessageViewMode::FIT_SUPER:
+		pWebBrowser_->put_FitToWindow(VARIANT_FALSE);
+		pBrowser3->put_SuperFitToWindow(VARIANT_TRUE);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+#endif
 }
 
 bool qm::HtmlMessageViewWindow::find(const WCHAR* pwszFind,

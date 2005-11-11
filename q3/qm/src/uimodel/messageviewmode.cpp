@@ -51,12 +51,26 @@ void qm::AbstractMessageViewMode::removeMessageViewModeHandler(MessageViewModeHa
 	listHandler_.erase(it, listHandler_.end());
 }
 
-void qm::AbstractMessageViewMode::fireMessageViewModeChanged(Mode mode,
-															 bool b) const
+void qm::AbstractMessageViewMode::fireModeChanged(Mode mode,
+												  bool b) const
 {
 	MessageViewModeEvent event(mode, b);
 	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->messageViewModeChanged(event);
+		(*it)->modeChanged(event);
+}
+
+void qm::AbstractMessageViewMode::fireZoomChanged() const
+{
+	MessageViewModeEvent event;
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->zoomChanged(event);
+}
+
+void qm::AbstractMessageViewMode::fireFitChanged() const
+{
+	MessageViewModeEvent event;
+	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
+		(*it)->fitChanged(event);
 }
 
 
@@ -76,6 +90,12 @@ qm::MessageViewModeHandler::~MessageViewModeHandler()
 * MessageViewModeEvent
 *
 */
+
+qm::MessageViewModeEvent::MessageViewModeEvent() :
+	mode_(MessageViewMode::MODE_NONE),
+	b_(false)
+{
+}
 
 qm::MessageViewModeEvent::MessageViewModeEvent(MessageViewMode::Mode mode,
 											   bool b) :

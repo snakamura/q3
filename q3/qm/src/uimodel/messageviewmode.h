@@ -43,6 +43,18 @@ public:
 		MODE_HTMLONLINE		= 0x0200,
 		MODE_INTERNETZONE	= 0x0400
 	};
+	
+	enum Fit {
+		FIT_NONE,
+		FIT_NORMAL,
+		FIT_SUPER
+	};
+	
+	enum {
+		ZOOM_NONE		= -1,
+		ZOOM_MIN		= 0,
+		ZOOM_MAX		= 4
+	};
 
 public:
 	virtual ~MessageViewMode();
@@ -51,6 +63,10 @@ public:
 	virtual bool isMode(Mode mode) const = 0;
 	virtual void setMode(Mode mode,
 						 bool b) = 0;
+	virtual unsigned int getZoom() const = 0;
+	virtual void setZoom(unsigned int nZoom) = 0;
+	virtual Fit getFit() const = 0;
+	virtual void setFit(Fit fit) = 0;
 	virtual void addMessageViewModeHandler(MessageViewModeHandler* pHandler) = 0;
 	virtual void removeMessageViewModeHandler(MessageViewModeHandler* pHandler) = 0;
 };
@@ -73,8 +89,10 @@ public:
 	virtual void removeMessageViewModeHandler(MessageViewModeHandler* pHandler);
 
 protected:
-	void fireMessageViewModeChanged(Mode mode,
-									bool b) const;
+	void fireModeChanged(Mode mode,
+						 bool b) const;
+	void fireZoomChanged() const;
+	void fireFitChanged() const;
 
 private:
 	AbstractMessageViewMode(const AbstractMessageViewMode&);
@@ -100,7 +118,9 @@ public:
 	virtual ~MessageViewModeHandler();
 
 public:
-	virtual void messageViewModeChanged(const MessageViewModeEvent& event) = 0;
+	virtual void modeChanged(const MessageViewModeEvent& event) = 0;
+	virtual void zoomChanged(const MessageViewModeEvent& event) = 0;
+	virtual void fitChanged(const MessageViewModeEvent& event) = 0;
 };
 
 
@@ -113,6 +133,7 @@ public:
 class MessageViewModeEvent
 {
 public:
+	MessageViewModeEvent();
 	MessageViewModeEvent(MessageViewMode::Mode mode,
 						 bool b);
 	~MessageViewModeEvent();

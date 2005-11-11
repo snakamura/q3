@@ -44,6 +44,7 @@
 #endif
 
 #include "messagewindow.h"
+#include "../uimodel/messageviewmode.h"
 
 
 namespace qm {
@@ -97,6 +98,8 @@ public:
 	virtual void setScrollPos(int nPos) = 0;
 	virtual void setSelectMode(bool bSelectMode) = 0;
 	virtual void setQuoteMode(bool bQuoteMode) = 0;
+	virtual void setZoom(unsigned int nZoom) = 0;
+	virtual void setFit(MessageViewMode::Fit fit) = 0;
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags) = 0;
 	virtual unsigned int getSupportedFindFlags() const = 0;
@@ -231,6 +234,8 @@ public:
 	virtual void setScrollPos(int nPos);
 	virtual void setSelectMode(bool bSelectMode);
 	virtual void setQuoteMode(bool bQuoteMode);
+	virtual void setZoom(unsigned int nZoom);
+	virtual void setFit(MessageViewMode::Fit fit);
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;
@@ -543,6 +548,8 @@ public:
 	virtual void setScrollPos(int nPos);
 	virtual void setSelectMode(bool bSelectMode);
 	virtual void setQuoteMode(bool bQuoteMode);
+	virtual void setZoom(unsigned int nZoom);
+	virtual void setFit(MessageViewMode::Fit fit);
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;
@@ -1024,6 +1031,8 @@ public:
 	virtual void setScrollPos(int nPos);
 	virtual void setSelectMode(bool bSelectMode);
 	virtual void setQuoteMode(bool bQuoteMode);
+	virtual void setZoom(unsigned int nZoom);
+	virtual void setFit(MessageViewMode::Fit fit);
 	virtual bool find(const WCHAR* pwszFind,
 					  unsigned int nFlags);
 	virtual unsigned int getSupportedFindFlags() const;
