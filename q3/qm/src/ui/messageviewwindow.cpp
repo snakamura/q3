@@ -2708,15 +2708,18 @@ void qm::HtmlMessageViewWindow::setFit(MessageViewMode::Fit fit)
 	switch (fit) {
 	case MessageViewMode::FIT_NONE:
 		pWebBrowser_->put_FitToWindow(VARIANT_FALSE);
-		pBrowser3->put_SuperFitToWindow(VARIANT_FALSE);
+		if (pBrowser3)
+//			pBrowser3->put_SuperFitToWindow(VARIANT_FALSE);
 		break;
 	case MessageViewMode::FIT_NORMAL:
 		pWebBrowser_->put_FitToWindow(VARIANT_TRUE);
-		pBrowser3->put_SuperFitToWindow(VARIANT_FALSE);
+		if (pBrowser3)
+//			pBrowser3->put_SuperFitToWindow(VARIANT_FALSE);
 		break;
 	case MessageViewMode::FIT_SUPER:
 		pWebBrowser_->put_FitToWindow(VARIANT_FALSE);
-		pBrowser3->put_SuperFitToWindow(VARIANT_TRUE);
+		if (pBrowser3)
+//			pBrowser3->put_SuperFitToWindow(VARIANT_TRUE);
 		break;
 	default:
 		assert(false);
