@@ -964,6 +964,8 @@ bool qs::WindowBase::translateAccelerator(const MSG& msg)
 	else if ((msg.message == WM_SYSKEYDOWN || msg.message == WM_SYSKEYUP) &&
 		msg.wParam == VK_MENU)
 		return false;
+	else if (!::IsWindowVisible(msg.hwnd))
+		return false;
 	
 	bool bProcessed = false;
 	
