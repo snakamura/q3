@@ -2699,31 +2699,20 @@ void qm::HtmlMessageViewWindow::setZoom(unsigned int nZoom)
 void qm::HtmlMessageViewWindow::setFit(MessageViewMode::Fit fit)
 {
 #if _WIN32_WCE >= 420
-	IBrowser3* pBrowser3 = 0;
-	HRESULT hr = pWebBrowser_->QueryInterface(IID_IBrowser3,
-		reinterpret_cast<void**>(&pBrowser3));
-	if (hr != S_OK)
-		pBrowser3 = 0;
+	pWebBrowser_->put_FitToWindow(
+		fit == MessageViewMode::FIT_NORMAL ? VARIANT_TRUE : VARIANT_FALSE);
 	
-	switch (fit) {
-	case MessageViewMode::FIT_NONE:
-		pWebBrowser_->put_FitToWindow(VARIANT_FALSE);
-		if (pBrowser3)
-//			pBrowser3->put_SuperFitToWindow(VARIANT_FALSE);
-		break;
-	case MessageViewMode::FIT_NORMAL:
-		pWebBrowser_->put_FitToWindow(VARIANT_TRUE);
-		if (pBrowser3)
-//			pBrowser3->put_SuperFitToWindow(VARIANT_FALSE);
-		break;
-	case MessageViewMode::FIT_SUPER:
-		pWebBrowser_->put_FitToWindow(VARIANT_FALSE);
-		if (pBrowser3)
-//			pBrowser3->put_SuperFitToWindow(VARIANT_TRUE);
-		break;
-	default:
-		assert(false);
-		break;
+	WCHAR* pwszName = L"SuperFitToWindow";
+	DISPID id = DISPID_UNKNOWN;
+	HRESULT hr = pWebBrowser_->GetIDsOfNames(IID_NULL,
+		&pwszName, 1, LOCALE_SYSTEM_DEFAULT, &id);
+	if (hr == S_OK) {
+		VARIANT v;
+		v.vt = VT_BOOL;
+		v.boolVal = fit == MessageViewMode::FIT_SUPER ? VARIANT_TRUE : VARIANT_FALSE;
+		DISPPARAMS params = { &v, 0, 1, 0 };
+		pWebBrowser_->Invoke(id, IID_NULL, LOCALE_SYSTEM_DEFAULT,
+			DISPATCH_PROPERTYPUT, &params, 0, 0, 0);
 	}
 #endif
 }
