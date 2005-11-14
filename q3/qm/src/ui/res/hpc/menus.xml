@@ -97,7 +97,6 @@
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
 			</popupmenu>
-			<separator/>
 			<popupmenu text="&amp;HTML">
 				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
 				<menuitem text="&amp;Online Mode" action="ViewHtmlOnlineMode"/>
