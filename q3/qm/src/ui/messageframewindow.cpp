@@ -453,6 +453,9 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(ViewTemplateAction,
 		IDM_VIEW_TEMPLATE,
 		pMessageWindow_);
+	ADD_ACTION1(ViewZoomAction,
+		IDM_VIEW_ZOOM,
+		pMessageViewModeHolder_);
 }
 
 void qm::MessageFrameWindowImpl::layoutChildren()

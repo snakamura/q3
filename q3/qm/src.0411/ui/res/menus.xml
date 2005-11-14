@@ -67,10 +67,6 @@
 				<menuitem text="引用を線で表示(&amp;Q)" action="ViewQuoteMode"/>
 				<menuitem text="キャレットを表示(&amp;S)" action="ViewSelectMode"/>
 				<separator/>
-				<menuitem text="&amp;HTMLを表示" action="ViewHtmlMode"/>
-				<menuitem text="HTMLをオンラインで表示(&amp;O)" action="ViewHtmlOnlineMode"/>
-				<menuitem text="HTMLをインターネットゾーンで表示(&amp;I)" action="ViewHtmlInternetZoneMode"/>
-				<separator/>
 				<menuitem text="S/&amp;MIME" action="ViewSMIMEMode"/>
 				<menuitem text="&amp;PGP" action="ViewPGPMode"/>
 			</popupmenu>
@@ -102,6 +98,21 @@
 				<menuitem text="自動判定(&amp;D)" action="ViewEncoding" param=""/>
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<popupmenu text="&amp;HTML">
+				<menuitem text="&amp;HTMLを表示" action="ViewHtmlMode"/>
+				<menuitem text="オンラインで表示(&amp;O)" action="ViewHtmlOnlineMode"/>
+				<menuitem text="インターネットゾーンで表示(&amp;I)" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="最大サイズ(&amp;G)" action="ViewZoom" param="4"/>
+				<menuitem text="大サイズ(&amp;L)" action="ViewZoom" param="3"/>
+				<menuitem text="中サイズ(&amp;M)" action="ViewZoom" param="2"/>
+				<menuitem text="小サイズ(&amp;S)" action="ViewZoom" param="1"/>
+				<menuitem text="最小サイズ(&amp;A)" action="ViewZoom" param="0"/>
+				<menuitem text="デフォルト(&amp;D)" action="ViewZoom"/>
+				<separator/>
+				<menuitem text="大きくする(&amp;R)" action="ViewZoom" param="+1"/>
+				<menuitem text="小さくする(&amp;L)" action="ViewZoom" param="-1"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="カラムをカスタマイズ(&amp;Z)..." action="ConfigViews"/>
@@ -225,10 +236,6 @@
 				<menuitem text="引用を線で表示(&amp;Q)" action="ViewQuoteMode"/>
 				<menuitem text="キャレットを表示(&amp;S)" action="ViewSelectMode"/>
 				<separator/>
-				<menuitem text="&amp;HTMLを表示" action="ViewHtmlMode"/>
-				<menuitem text="HTMLをオンラインで表示(&amp;O)" action="ViewHtmlOnlineMode"/>
-				<menuitem text="HTMLをインターネットゾーンで表示(&amp;I)" action="ViewHtmlInternetZoneMode"/>
-				<separator/>
 				<menuitem text="S/&amp;MIME" action="ViewSMIMEMode"/>
 				<menuitem text="&amp;PGP" action="ViewPGPMode"/>
 			</popupmenu>
@@ -241,6 +248,21 @@
 				<menuitem text="自動判定(&amp;D)" action="ViewEncoding" param=""/>
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<popupmenu text="&amp;HTML">
+				<menuitem text="&amp;HTMLを表示" action="ViewHtmlMode"/>
+				<menuitem text="オンラインで表示(&amp;O)" action="ViewHtmlOnlineMode"/>
+				<menuitem text="インターネットゾーンで表示(&amp;I)" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="最大サイズ(&amp;G)" action="ViewZoom" param="4"/>
+				<menuitem text="大サイズ(&amp;L)" action="ViewZoom" param="3"/>
+				<menuitem text="中サイズ(&amp;M)" action="ViewZoom" param="2"/>
+				<menuitem text="小サイズ(&amp;S)" action="ViewZoom" param="1"/>
+				<menuitem text="最小サイズ(&amp;A)" action="ViewZoom" param="0"/>
+				<menuitem text="デフォルト(&amp;D)" action="ViewZoom"/>
+				<separator/>
+				<menuitem text="大きくする(&amp;R)" action="ViewZoom" param="+1"/>
+				<menuitem text="小さくする(&amp;L)" action="ViewZoom" param="-1"/>
 			</popupmenu>
 			<separator/>
 			<popupmenu text="コントロールの表示(&amp;C)">

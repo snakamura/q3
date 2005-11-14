@@ -137,6 +137,7 @@ class ViewSortAction;
 class ViewSortDirectionAction;
 class ViewSortThreadAction;
 class ViewTemplateAction;
+class ViewZoomAction;
 class ActionUtil;
 class ActionParamUtil;
 class FolderActionUtil;
@@ -3473,6 +3474,43 @@ private:
 
 /****************************************************************************
  *
+ * ViewZoomAction
+ *
+ */
+
+class ViewZoomAction : public qs::AbstractAction
+{
+private:
+	enum Type {
+		TYPE_ZOOM,
+		TYPE_INCREMENT,
+		TYPE_DECREMENT,
+		TYPE_ERROR
+	};
+
+public:
+	explicit ViewZoomAction(MessageViewModeHolder* pMessageViewModeHolder);
+	virtual ~ViewZoomAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	static std::pair<Type, unsigned int> getParam(const qs::ActionParam* pParam);
+
+private:
+	ViewZoomAction(const ViewZoomAction&);
+	ViewZoomAction& operator=(const ViewZoomAction&);
+
+private:
+	MessageViewModeHolder* pMessageViewModeHolder_;
+};
+
+
+/****************************************************************************
+ *
  * ActionUtil
  *
  */
@@ -3499,6 +3537,8 @@ class ActionParamUtil
 {
 public:
 	static const WCHAR* getString(const qs::ActionParam* pParam,
+								  size_t n);
+	static unsigned int getNumber(const qs::ActionParam* pParam,
 								  size_t n);
 	static unsigned int getIndex(const qs::ActionParam* pParam,
 								 size_t n);

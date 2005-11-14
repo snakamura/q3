@@ -958,6 +958,8 @@ unsigned int qm::ViewModel::getZoom() const
 
 void qm::ViewModel::setZoom(unsigned int nZoom)
 {
+	assert(nZoom == -1 || (ZOOM_MIN <= nZoom && nZoom <= ZOOM_MAX));
+	
 	if (nZoom != nZoom_) {
 		nZoom_ = nZoom;
 		fireZoomChanged();

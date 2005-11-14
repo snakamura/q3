@@ -198,6 +198,7 @@
 #define IDM_VIEW_FILTER                 46200
 #define IDM_VIEW_SORT                   46300
 #define IDM_VIEW_TEMPLATE               46400
+#define IDM_VIEW_ZOOM                   46500
 #define IDM_FOCUS_HEADEREDITITEM        47000
 #define IDM_ADDRESSBOOK_ALLCATEGORY     48001
 #define IDM_ADDRESSBOOK_CHANGEBCC       48002
@@ -250,5 +251,6 @@
 #define MAX_VIEW_FILTER                 100
 #define MAX_VIEW_SORT                   100
 #define MAX_VIEW_TEMPLATE               100
+#define MAX_VIEW_ZOOM                   100
 
 #endif // __ACTIONID_H__

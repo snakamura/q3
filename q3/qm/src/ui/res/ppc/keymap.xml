@@ -239,6 +239,12 @@
 		<action name="ViewSelectMode">
 			<key key="V"/>
 		</action>
+		<action name="ViewZoom" param="-1">
+			<key key="[" virtual="false" alt="true"/>
+		</action>
+		<action name="ViewZoom" param="+1">
+			<key key="]" virtual="false" alt="true"/>
+		</action>
 	</keymap>
 	<keymap name="MessageFrameWindow">
 		<action name="EditCopy">
@@ -336,6 +342,12 @@
 		</action>
 		<action name="ViewSelectMode">
 			<key key="V"/>
+		</action>
+		<action name="ViewZoom" param="-1">
+			<key key="[" virtual="false" alt="true"/>
+		</action>
+		<action name="ViewZoom" param="+1">
+			<key key="]" virtual="false" alt="true"/>
 		</action>
 	</keymap>
 	<keymap name="EditFrameWindow">

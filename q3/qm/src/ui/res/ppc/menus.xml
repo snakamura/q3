@@ -52,10 +52,6 @@
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
 				<separator/>
-				<menuitem text="HTML Mode" action="ViewHtmlMode"/>
-				<menuitem text="HTML Online Mode" action="ViewHtmlOnlineMode"/>
-				<menuitem text="HTML Internet Zone" action="ViewHtmlInternetZoneMode"/>
-				<separator/>
 				<menuitem text="S/MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
 			<popupmenu text="Sort">
@@ -86,6 +82,22 @@
 				<menuitem text="Auto Detect" action="ViewEncoding" param=""/>
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="&amp;HTML">
+				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="&amp;Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="&amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="Very Lar&amp;ge" action="ViewZoom" param="4"/>
+				<menuitem text="&amp;Large" action="ViewZoom" param="3"/>
+				<menuitem text="&amp;Midium" action="ViewZoom" param="2"/>
+				<menuitem text="&amp;Small" action="ViewZoom" param="1"/>
+				<menuitem text="Very Sm&amp;all" action="ViewZoom" param="0"/>
+				<menuitem text="&amp;Default" action="ViewZoom"/>
+				<separator/>
+				<menuitem text="La&amp;rger" action="ViewZoom" param="+1"/>
+				<menuitem text="Sma&amp;ll" action="ViewZoom" param="-1"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="Customize Columns..." action="ConfigViews"/>
@@ -198,10 +210,6 @@
 				<menuitem text="Quote Mode" action="ViewQuoteMode"/>
 				<menuitem text="Select Mode" action="ViewSelectMode"/>
 				<separator/>
-				<menuitem text="HTML Mode" action="ViewHtmlMode"/>
-				<menuitem text="HTML Online Mode" action="ViewHtmlOnlineMode"/>
-				<menuitem text="HTML Internet Zone" action="ViewHtmlInternetZoneMode"/>
-				<separator/>
 				<menuitem text="S/MIME Mode" action="ViewSMIMEMode"/>
 			</popupmenu>
 			<popupmenu text="Template">
@@ -213,6 +221,21 @@
 				<menuitem text="Auto Detect" action="ViewEncoding" param=""/>
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<popupmenu text="&amp;HTML">
+				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="&amp;Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="&amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="Very Lar&amp;ge" action="ViewZoom" param="4"/>
+				<menuitem text="&amp;Large" action="ViewZoom" param="3"/>
+				<menuitem text="&amp;Midium" action="ViewZoom" param="2"/>
+				<menuitem text="&amp;Small" action="ViewZoom" param="1"/>
+				<menuitem text="Very Sm&amp;all" action="ViewZoom" param="0"/>
+				<menuitem text="&amp;Default" action="ViewZoom"/>
+				<separator/>
+				<menuitem text="La&amp;rger" action="ViewZoom" param="+1"/>
+				<menuitem text="Sma&amp;ll" action="ViewZoom" param="-1"/>
 			</popupmenu>
 			<separator/>
 			<popupmenu text="Show Controls">

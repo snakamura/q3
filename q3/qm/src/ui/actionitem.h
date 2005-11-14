@@ -233,6 +233,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ViewSortToggleThread",			IDM_VIEW_SORTTOGGLETHREAD,			1,							0 },
 	{ L"ViewSourceMode",				IDM_VIEW_SOURCEMODE,				1,							0 },
 	{ L"ViewTemplate",					IDM_VIEW_TEMPLATE,					MAX_VIEW_TEMPLATE,			0 },
+	{ L"ViewZoom",						IDM_VIEW_ZOOM,						MAX_VIEW_ZOOM,				0 },
 };
 
 }

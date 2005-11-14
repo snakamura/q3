@@ -52,10 +52,6 @@
 				<menuitem text="引用を線で表示" action="ViewQuoteMode"/>
 				<menuitem text="キャレットを表示" action="ViewSelectMode"/>
 				<separator/>
-				<menuitem text="HTMLを表示" action="ViewHtmlMode"/>
-				<menuitem text="HTMLをオンラインで表示" action="ViewHtmlOnlineMode"/>
-				<menuitem text="HTMLをインターネットゾーンで表示" action="ViewHtmlInternetZoneMode"/>
-				<separator/>
 				<menuitem text="S/MIME" action="ViewSMIMEMode"/>
 			</popupmenu>
 			<popupmenu text="ソート">
@@ -86,6 +82,21 @@
 				<menuitem text="自動判定" action="ViewEncoding" param=""/>
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<popupmenu text="HTML">
+				<menuitem text="HTMLを表示" action="ViewHtmlMode"/>
+				<menuitem text="オンラインで表示" action="ViewHtmlOnlineMode"/>
+				<menuitem text="インターネットゾーンで表示" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="最大サイズ" action="ViewZoom" param="4"/>
+				<menuitem text="大サイズ" action="ViewZoom" param="3"/>
+				<menuitem text="中サイズ" action="ViewZoom" param="2"/>
+				<menuitem text="小サイズ" action="ViewZoom" param="1"/>
+				<menuitem text="最小サイズ" action="ViewZoom" param="0"/>
+				<menuitem text="デフォルト" action="ViewZoom"/>
+				<separator/>
+				<menuitem text="大きくする" action="ViewZoom" param="+1"/>
+				<menuitem text="小さくする" action="ViewZoom" param="-1"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="カラムをカスタマイズ..." action="ConfigViews"/>
@@ -199,10 +210,6 @@
 				<menuitem text="引用を線で表示" action="ViewQuoteMode"/>
 				<menuitem text="キャレットを表示" action="ViewSelectMode"/>
 				<separator/>
-				<menuitem text="HTMLを表示" action="ViewHtmlMode"/>
-				<menuitem text="HTMLをオンラインで表示" action="ViewHtmlOnlineMode"/>
-				<menuitem text="HTMLをインターネットゾーンで表示" action="ViewHtmlInternetZoneMode"/>
-				<separator/>
 				<menuitem text="S/MIME" action="ViewSMIMEMode"/>
 			</popupmenu>
 			<popupmenu text="テンプレート">
@@ -214,6 +221,21 @@
 				<menuitem text="自動判定" action="ViewEncoding" param=""/>
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<popupmenu text="HTML">
+				<menuitem text="HTMLを表示" action="ViewHtmlMode"/>
+				<menuitem text="オンラインで表示" action="ViewHtmlOnlineMode"/>
+				<menuitem text="インターネットゾーンで表示" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="最大サイズ" action="ViewZoom" param="4"/>
+				<menuitem text="大サイズ" action="ViewZoom" param="3"/>
+				<menuitem text="中サイズ" action="ViewZoom" param="2"/>
+				<menuitem text="小サイズ" action="ViewZoom" param="1"/>
+				<menuitem text="最小サイズ" action="ViewZoom" param="0"/>
+				<menuitem text="デフォルト" action="ViewZoom"/>
+				<separator/>
+				<menuitem text="大きくする" action="ViewZoom" param="+1"/>
+				<menuitem text="小さくする" action="ViewZoom" param="-1"/>
 			</popupmenu>
 			<separator/>
 			<popupmenu text="コントロールの表示">

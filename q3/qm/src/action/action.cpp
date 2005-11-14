@@ -6731,6 +6731,112 @@ Account* qm::ViewTemplateAction::getAccount() const
 
 /****************************************************************************
  *
+ * ViewZoomAction
+ *
+ */
+
+qm::ViewZoomAction::ViewZoomAction(MessageViewModeHolder* pMessageViewModeHolder) :
+	pMessageViewModeHolder_(pMessageViewModeHolder)
+{
+}
+
+qm::ViewZoomAction::~ViewZoomAction()
+{
+}
+
+void qm::ViewZoomAction::invoke(const ActionEvent& event)
+{
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	if (!pMode)
+		return;
+	
+	unsigned int nZoom = -1;
+	
+	std::pair<Type, unsigned int> param(getParam(event.getParam()));
+	switch (param.first) {
+	case TYPE_ZOOM:
+		nZoom = param.second;
+		break;
+	case TYPE_INCREMENT:
+		nZoom = pMode->getZoom();
+		if (nZoom == MessageViewMode::ZOOM_NONE || nZoom == MessageViewMode::ZOOM_MAX)
+			return;
+		++nZoom;
+		break;
+	case TYPE_DECREMENT:
+		nZoom = pMode->getZoom();
+		if (nZoom == MessageViewMode::ZOOM_NONE || nZoom == MessageViewMode::ZOOM_MIN)
+			return;
+		--nZoom;
+		break;
+	case TYPE_ERROR:
+		return;
+	default:
+		assert(false);
+		return;
+	}
+	
+	pMode->setZoom(nZoom);
+}
+
+bool qm::ViewZoomAction::isEnabled(const ActionEvent& event)
+{
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	if (!pMode)
+		return false;
+	
+	std::pair<Type, unsigned int> param(getParam(event.getParam()));
+	switch (param.first) {
+	case TYPE_ZOOM:
+		return true;
+	case TYPE_INCREMENT:
+	case TYPE_DECREMENT:
+		return pMode->getZoom() != MessageViewMode::ZOOM_NONE;
+	case TYPE_ERROR:
+		return false;
+	default:
+		assert(false);
+		return false;
+	}
+}
+
+bool qm::ViewZoomAction::isChecked(const ActionEvent& event)
+{
+	std::pair<Type, unsigned int> param(getParam(event.getParam()));
+	if (param.first != TYPE_ZOOM)
+		return false;
+	
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	return pMode && pMode->getZoom() == param.second;
+}
+
+std::pair<ViewZoomAction::Type, unsigned int> qm::ViewZoomAction::getParam(const ActionParam* pParam)
+{
+	const WCHAR* pwszZoom = ActionParamUtil::getString(pParam, 0);
+	if (pwszZoom) {
+		if (*pwszZoom == L'+') {
+			return std::pair<ViewZoomAction::Type, unsigned int>(TYPE_INCREMENT, -1);
+		}
+		else if (*pwszZoom == L'-') {
+			return std::pair<ViewZoomAction::Type, unsigned int>(TYPE_DECREMENT, -1);
+		}
+		else {
+			WCHAR* pEnd = 0;
+			unsigned int nZoom = static_cast<unsigned int>(wcstol(pwszZoom, &pEnd, 10));
+			if (*pEnd || nZoom < MessageViewMode::ZOOM_MIN || MessageViewMode::ZOOM_MAX < nZoom)
+				return std::pair<ViewZoomAction::Type, unsigned int>(TYPE_ERROR, -1);
+			else
+				return std::pair<ViewZoomAction::Type, unsigned int>(TYPE_ZOOM, nZoom);
+		}
+	}
+	else {
+		return std::pair<ViewZoomAction::Type, unsigned int>(TYPE_ZOOM, -1);
+	}
+}
+
+
+/****************************************************************************
+ *
  * ActionUtil
  *
  */
@@ -6768,6 +6874,21 @@ const WCHAR* qm::ActionParamUtil::getString(const qs::ActionParam* pParam,
 	if (!pParam || pParam->getCount() <= n)
 		return 0;
 	return pParam->getValue(n);
+}
+
+unsigned int qm::ActionParamUtil::getNumber(const qs::ActionParam* pParam,
+											size_t n)
+{
+	const WCHAR* pwszParam = getString(pParam, n);
+	if (!pwszParam)
+		return -1;
+	
+	WCHAR* pEnd = 0;
+	long nParam = wcstol(pwszParam, &pEnd, 10);
+	if (*pEnd)
+		return -1;
+	
+	return static_cast<unsigned int>(nParam);
 }
 
 unsigned int qm::ActionParamUtil::getIndex(const qs::ActionParam* pParam,
