@@ -1628,8 +1628,10 @@ HDWP qm::ComboBoxHeaderEditItem::layout(HDWP hdwp,
 										const RECT& rect,
 										unsigned int nFontHeight)
 {
-	return Window(hwnd_).deferWindowPos(hdwp, 0, rect.left, rect.top,
-		rect.right - rect.left, 100, SWP_NOZORDER | SWP_NOACTIVATE);
+	return Window(hwnd_).deferWindowPos(hdwp, 0,
+		rect.left, rect.top, rect.right - rect.left,
+		static_cast<int>(100*(qs::UIUtil::getLogPixel()/96.0)),
+		SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 void qm::ComboBoxHeaderEditItem::show(bool bShow)
