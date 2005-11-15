@@ -182,6 +182,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ViewEncoding",					IDM_VIEW_ENCODING,					MAX_VIEW_ENCODING,			0 },
 	{ L"ViewFilter",					IDM_VIEW_FILTER,					MAX_VIEW_FILTER,			0 },
 	{ L"ViewFilterCustom",				IDM_VIEW_FILTERCUSTOM,				1,							0 },
+	{ L"ViewFit",						IDM_VIEW_FIT,						MAX_VIEW_FIT,				0 },
 	{ L"ViewFocusNext",					IDM_VIEW_FOCUSNEXT,					1,							0 },
 	{ L"ViewFocusPrev",					IDM_VIEW_FOCUSPREV,					1,							0 },
 #ifdef QMHTMLVIEW

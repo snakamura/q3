@@ -1006,6 +1006,9 @@ void qm::MainWindowImpl::initActions()
 		IDM_VIEW_FILTERCUSTOM,
 		pViewModelManager_.get(),
 		pThis_->getHandle());
+	ADD_ACTION1(ViewFitAction,
+		IDM_VIEW_FIT,
+		pMessageViewModeHolder_);
 	ADD_ACTION3(ViewFocusAction,
 		IDM_VIEW_FOCUSNEXT,
 		pViews,

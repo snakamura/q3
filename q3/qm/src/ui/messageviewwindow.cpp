@@ -2699,20 +2699,39 @@ void qm::HtmlMessageViewWindow::setZoom(unsigned int nZoom)
 void qm::HtmlMessageViewWindow::setFit(MessageViewMode::Fit fit)
 {
 #if _WIN32_WCE >= 420
-	pWebBrowser_->put_FitToWindow(
-		fit == MessageViewMode::FIT_NORMAL ? VARIANT_TRUE : VARIANT_FALSE);
-	
-	WCHAR* pwszName = L"SuperFitToWindow";
-	DISPID id = DISPID_UNKNOWN;
-	HRESULT hr = pWebBrowser_->GetIDsOfNames(IID_NULL,
-		&pwszName, 1, LOCALE_SYSTEM_DEFAULT, &id);
-	if (hr == S_OK) {
-		VARIANT v;
-		v.vt = VT_BOOL;
-		v.boolVal = fit == MessageViewMode::FIT_SUPER ? VARIANT_TRUE : VARIANT_FALSE;
-		DISPPARAMS params = { &v, 0, 1, 0 };
-		pWebBrowser_->Invoke(id, IID_NULL, LOCALE_SYSTEM_DEFAULT,
-			DISPATCH_PROPERTYPUT, &params, 0, 0, 0);
+	switch (fit) {
+	case MessageViewMode::FIT_NONE:
+		pWebBrowser_->put_FitToWindow(VARIANT_FALSE);
+		break;
+	case MessageViewMode::FIT_NORMAL:
+		pWebBrowser_->put_FitToWindow(VARIANT_TRUE);
+		break;
+	case MessageViewMode::FIT_SUPER:
+		{
+			WCHAR* pwszName = L"SuperFitToWindow";
+			DISPID id = DISPID_UNKNOWN;
+			HRESULT hr = pWebBrowser_->GetIDsOfNames(IID_NULL,
+				&pwszName, 1, LOCALE_SYSTEM_DEFAULT, &id);
+			if (hr == S_OK) {
+				VARIANTARG v;
+				::VariantInit(&v);
+				v.vt = VT_BOOL;
+				v.boolVal = fit == MessageViewMode::FIT_SUPER ? VARIANT_TRUE : VARIANT_FALSE;
+				DISPID dispId = DISPID_PROPERTYPUT;
+				DISPPARAMS params = {
+					&v,
+					&dispId,
+					1,
+					1
+				};
+				pWebBrowser_->Invoke(id, IID_NULL, LOCALE_SYSTEM_DEFAULT,
+					DISPATCH_PROPERTYPUT, &params, 0, 0, 0);
+			}
+		}
+		break;
+	default:
+		assert(false);
+		break;
 	}
 #endif
 }

@@ -97,6 +97,10 @@
 				<separator/>
 				<menuitem text="大きくする" action="ViewZoom" param="+1"/>
 				<menuitem text="小さくする" action="ViewZoom" param="-1"/>
+				<separator/>
+				<menuitem text="一列に表示する" action="ViewFit" param="super"/>
+				<menuitem text="画面にあわせる" action="ViewFit" param="normal"/>
+				<menuitem text="表示調整しない" action="ViewFit" param="none"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="カラムをカスタマイズ..." action="ConfigViews"/>
@@ -236,6 +240,10 @@
 				<separator/>
 				<menuitem text="大きくする" action="ViewZoom" param="+1"/>
 				<menuitem text="小さくする" action="ViewZoom" param="-1"/>
+				<separator/>
+				<menuitem text="一列に表示する" action="ViewFit" param="super"/>
+				<menuitem text="画面にあわせる" action="ViewFit" param="normal"/>
+				<menuitem text="表示調整しない" action="ViewFit" param="none"/>
 			</popupmenu>
 			<separator/>
 			<popupmenu text="コントロールの表示">

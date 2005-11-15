@@ -83,20 +83,24 @@
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
 			</popupmenu>
-			<popupmenu text="&amp;HTML">
-				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
-				<menuitem text="&amp;Online Mode" action="ViewHtmlOnlineMode"/>
-				<menuitem text="&amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
+			<popupmenu text="HTML">
+				<menuitem text="HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="Internet Zone" action="ViewHtmlInternetZoneMode"/>
 				<separator/>
-				<menuitem text="Very Lar&amp;ge" action="ViewZoom" param="4"/>
-				<menuitem text="&amp;Large" action="ViewZoom" param="3"/>
-				<menuitem text="&amp;Midium" action="ViewZoom" param="2"/>
-				<menuitem text="&amp;Small" action="ViewZoom" param="1"/>
-				<menuitem text="Very Sm&amp;all" action="ViewZoom" param="0"/>
-				<menuitem text="&amp;Default" action="ViewZoom"/>
+				<menuitem text="Largest" action="ViewZoom" param="4"/>
+				<menuitem text="Larger" action="ViewZoom" param="3"/>
+				<menuitem text="Midium" action="ViewZoom" param="2"/>
+				<menuitem text="Smaller" action="ViewZoom" param="1"/>
+				<menuitem text="Smallest" action="ViewZoom" param="0"/>
+				<menuitem text="Default" action="ViewZoom"/>
 				<separator/>
-				<menuitem text="La&amp;rger" action="ViewZoom" param="+1"/>
-				<menuitem text="Sma&amp;ll" action="ViewZoom" param="-1"/>
+				<menuitem text="Larger" action="ViewZoom" param="+1"/>
+				<menuitem text="Small" action="ViewZoom" param="-1"/>
+				<separator/>
+				<menuitem text="Super Fit to Screen" action="ViewFit" param="super"/>
+				<menuitem text="Fit to Screen" action="ViewFit" param="normal"/>
+				<menuitem text="Do Nothing" action="ViewFit" param="none"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="Customize Columns..." action="ConfigViews"/>
@@ -221,20 +225,24 @@
 				<separator/>
 				<menuitem dynamic="ViewEncoding"/>
 			</popupmenu>
-			<popupmenu text="&amp;HTML">
-				<menuitem text="&amp;HTML Mode" action="ViewHtmlMode"/>
-				<menuitem text="&amp;Online Mode" action="ViewHtmlOnlineMode"/>
-				<menuitem text="&amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
+			<popupmenu text="HTML">
+				<menuitem text="HTML Mode" action="ViewHtmlMode"/>
+				<menuitem text="Online Mode" action="ViewHtmlOnlineMode"/>
+				<menuitem text="Internet Zone" action="ViewHtmlInternetZoneMode"/>
 				<separator/>
-				<menuitem text="Very Lar&amp;ge" action="ViewZoom" param="4"/>
-				<menuitem text="&amp;Large" action="ViewZoom" param="3"/>
-				<menuitem text="&amp;Midium" action="ViewZoom" param="2"/>
-				<menuitem text="&amp;Small" action="ViewZoom" param="1"/>
-				<menuitem text="Very Sm&amp;all" action="ViewZoom" param="0"/>
-				<menuitem text="&amp;Default" action="ViewZoom"/>
+				<menuitem text="Largest" action="ViewZoom" param="4"/>
+				<menuitem text="Larger" action="ViewZoom" param="3"/>
+				<menuitem text="Midium" action="ViewZoom" param="2"/>
+				<menuitem text="Smaller" action="ViewZoom" param="1"/>
+				<menuitem text="Smallest" action="ViewZoom" param="0"/>
+				<menuitem text="Default" action="ViewZoom"/>
 				<separator/>
-				<menuitem text="La&amp;rger" action="ViewZoom" param="+1"/>
-				<menuitem text="Sma&amp;ll" action="ViewZoom" param="-1"/>
+				<menuitem text="Larger" action="ViewZoom" param="+1"/>
+				<menuitem text="Small" action="ViewZoom" param="-1"/>
+				<separator/>
+				<menuitem text="Super Fit to Screen" action="ViewFit" param="super"/>
+				<menuitem text="Fit to Screen" action="ViewFit" param="normal"/>
+				<menuitem text="Do Nothing" action="ViewFit" param="none"/>
 			</popupmenu>
 			<separator/>
 			<popupmenu text="Show Controls">

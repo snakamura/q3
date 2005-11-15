@@ -365,6 +365,9 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(ViewEncodingAction,
 		IDM_VIEW_ENCODING,
 		pEncodingModel_.get());
+	ADD_ACTION1(ViewFitAction,
+		IDM_VIEW_FIT,
+		pMessageViewModeHolder_);
 	ADD_ACTION3(ViewSecurityAction,
 		IDM_VIEW_SMIMEMODE,
 		pSecurityModel_.get(),

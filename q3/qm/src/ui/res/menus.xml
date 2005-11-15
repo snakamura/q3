@@ -104,11 +104,11 @@
 				<menuitem text="&amp;Online Mode" action="ViewHtmlOnlineMode"/>
 				<menuitem text="&amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
 				<separator/>
-				<menuitem text="Very Lar&amp;ge" action="ViewZoom" param="4"/>
-				<menuitem text="&amp;Large" action="ViewZoom" param="3"/>
+				<menuitem text="Lar&amp;gest" action="ViewZoom" param="4"/>
+				<menuitem text="&amp;Larger" action="ViewZoom" param="3"/>
 				<menuitem text="&amp;Midium" action="ViewZoom" param="2"/>
-				<menuitem text="&amp;Small" action="ViewZoom" param="1"/>
-				<menuitem text="Very Sm&amp;all" action="ViewZoom" param="0"/>
+				<menuitem text="&amp;Smaller" action="ViewZoom" param="1"/>
+				<menuitem text="Sm&amp;allest" action="ViewZoom" param="0"/>
 				<menuitem text="&amp;Default" action="ViewZoom"/>
 				<separator/>
 				<menuitem text="La&amp;rger" action="ViewZoom" param="+1"/>
@@ -254,11 +254,11 @@
 				<menuitem text="&amp;Online Mode" action="ViewHtmlOnlineMode"/>
 				<menuitem text="&amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
 				<separator/>
-				<menuitem text="Very Lar&amp;ge" action="ViewZoom" param="4"/>
-				<menuitem text="&amp;Large" action="ViewZoom" param="3"/>
+				<menuitem text="Lar&amp;gest" action="ViewZoom" param="4"/>
+				<menuitem text="&amp;Larger" action="ViewZoom" param="3"/>
 				<menuitem text="&amp;Midium" action="ViewZoom" param="2"/>
-				<menuitem text="&amp;Small" action="ViewZoom" param="1"/>
-				<menuitem text="Very Sm&amp;all" action="ViewZoom" param="0"/>
+				<menuitem text="&amp;Smaller" action="ViewZoom" param="1"/>
+				<menuitem text="Sm&amp;allest" action="ViewZoom" param="0"/>
 				<menuitem text="&amp;Default" action="ViewZoom"/>
 				<separator/>
 				<menuitem text="La&amp;rger" action="ViewZoom" param="+1"/>

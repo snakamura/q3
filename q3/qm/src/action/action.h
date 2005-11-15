@@ -112,6 +112,7 @@ class ViewDropDownAction;
 class ViewEncodingAction;
 class ViewFilterAction;
 class ViewFilterCustomAction;
+class ViewFitAction;
 class ViewFocusAction;
 class ViewLockPreviewAction;
 class ViewMessageModeAction;
@@ -2804,6 +2805,35 @@ private:
 private:
 	ViewModelManager* pViewModelManager_;
 	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewFitAction
+ *
+ */
+
+class ViewFitAction : public qs::AbstractAction
+{
+public:
+	explicit ViewFitAction(MessageViewModeHolder* pMessageViewModeHolder);
+	virtual ~ViewFitAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	static std::pair<MessageViewMode::Fit, bool> getParam(const qs::ActionParam* pParam);
+
+private:
+	ViewFitAction(const ViewFitAction&);
+	ViewFitAction& operator=(const ViewFitAction&);
+
+private:
+	MessageViewModeHolder* pMessageViewModeHolder_;
 };
 
 

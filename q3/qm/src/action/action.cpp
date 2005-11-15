@@ -5641,6 +5641,74 @@ bool qm::ViewFilterCustomAction::isChecked(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ViewFitAction
+ *
+ */
+
+qm::ViewFitAction::ViewFitAction(MessageViewModeHolder* pMessageViewModeHolder) :
+	pMessageViewModeHolder_(pMessageViewModeHolder)
+{
+}
+
+qm::ViewFitAction::~ViewFitAction()
+{
+}
+
+void qm::ViewFitAction::invoke(const ActionEvent& event)
+{
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	if (!pMode)
+		return;
+	
+	std::pair<MessageViewMode::Fit, bool> fit(getParam(event.getParam()));
+	if (!fit.second)
+		return;
+	
+	pMode->setFit(fit.first);
+}
+
+bool qm::ViewFitAction::isEnabled(const ActionEvent& event)
+{
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	if (!pMode)
+		return false;
+	
+	return getParam(event.getParam()).second;
+}
+
+bool qm::ViewFitAction::isChecked(const ActionEvent& event)
+{
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	if (!pMode)
+		return false;
+	
+	std::pair<MessageViewMode::Fit, bool> fit(getParam(event.getParam()));
+	if (!fit.second)
+		return false;
+	
+	return pMode->getFit() == fit.first;
+}
+
+std::pair<MessageViewMode::Fit, bool> qm::ViewFitAction::getParam(const ActionParam* pParam)
+{
+	const WCHAR* pwszFit = ActionParamUtil::getString(pParam, 0);
+	if (!pwszFit)
+		return std::make_pair(MessageViewMode::FIT_NONE, false);
+	
+	MessageViewMode::Fit fit = MessageViewMode::FIT_NONE;
+	if (wcscmp(pwszFit, L"none") == 0)
+		return std::make_pair(MessageViewMode::FIT_NONE, true);
+	else if (wcscmp(pwszFit, L"normal") == 0)
+		return std::make_pair(MessageViewMode::FIT_NORMAL, true);
+	else if (wcscmp(pwszFit, L"super") == 0)
+		return std::make_pair(MessageViewMode::FIT_SUPER, true);
+	else
+		return std::make_pair(MessageViewMode::FIT_NONE, false);
+}
+
+
+/****************************************************************************
+ *
  * ViewFocusAction
  *
  */
@@ -6752,10 +6820,10 @@ void qm::ViewZoomAction::invoke(const ActionEvent& event)
 	
 	unsigned int nZoom = -1;
 	
-	std::pair<Type, unsigned int> param(getParam(event.getParam()));
-	switch (param.first) {
+	std::pair<Type, unsigned int> zoom(getParam(event.getParam()));
+	switch (zoom.first) {
 	case TYPE_ZOOM:
-		nZoom = param.second;
+		nZoom = zoom.second;
 		break;
 	case TYPE_INCREMENT:
 		nZoom = pMode->getZoom();
@@ -6785,8 +6853,8 @@ bool qm::ViewZoomAction::isEnabled(const ActionEvent& event)
 	if (!pMode)
 		return false;
 	
-	std::pair<Type, unsigned int> param(getParam(event.getParam()));
-	switch (param.first) {
+	std::pair<Type, unsigned int> zoom(getParam(event.getParam()));
+	switch (zoom.first) {
 	case TYPE_ZOOM:
 		return true;
 	case TYPE_INCREMENT:
@@ -6802,12 +6870,15 @@ bool qm::ViewZoomAction::isEnabled(const ActionEvent& event)
 
 bool qm::ViewZoomAction::isChecked(const ActionEvent& event)
 {
-	std::pair<Type, unsigned int> param(getParam(event.getParam()));
-	if (param.first != TYPE_ZOOM)
+	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
+	if (!pMode)
 		return false;
 	
-	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
-	return pMode && pMode->getZoom() == param.second;
+	std::pair<Type, unsigned int> zoom(getParam(event.getParam()));
+	if (zoom.first != TYPE_ZOOM)
+		return false;
+	
+	return pMode->getZoom() == zoom.second;
 }
 
 std::pair<ViewZoomAction::Type, unsigned int> qm::ViewZoomAction::getParam(const ActionParam* pParam)
