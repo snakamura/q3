@@ -389,9 +389,19 @@ bool qs::TextUtil::isURLChar(WCHAR c)
 		wcschr(L".:/?%&@!#$~*=+-_;,()", c) != 0;
 }
 
+bool qs::TextUtil::isFileNameChar(CHAR c)
+{
+	return !strchr("\"<>*?|\\/:", c);
+}
+
 bool qs::TextUtil::isFileNameChar(WCHAR c)
 {
 	return !wcschr(L"\"<>*?|\\/:", c);
+}
+
+bool qs::TextUtil::isPathChar(CHAR c)
+{
+	return !strchr("\"<>*?|", c);
 }
 
 bool qs::TextUtil::isPathChar(WCHAR c)

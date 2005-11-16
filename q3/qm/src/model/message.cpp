@@ -1996,10 +1996,21 @@ wstring_ptr qm::AttachmentParser::getName() const
 	}
 	
 	if (wstrName.get()) {
+#ifdef UNICODE
 		for (WCHAR* p = wstrName.get(); *p; ++p) {
 			if (!TextUtil::isFileNameChar(*p))
 				*p = L'_';
 		}
+#else
+		string_ptr strName(wcs2mbs(wstrName.get()));
+		for (CHAR* p = strName.get(); *p; ++p) {
+			if (::IsDBCSLeadByte(*p))
+				++p;
+			else if (!TextUtil::isFileNameChar(*p))
+				*p = '_';
+		}
+		wstrName = mbs2wcs(strName.get());
+#endif
 	}
 	
 	return wstrName;

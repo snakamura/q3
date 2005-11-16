@@ -50,7 +50,9 @@ public:
 											 const WCHAR* const* ppwszSchemas,
 											 size_t nSchemaCount);
 	static bool isURLChar(WCHAR c);
+	static bool isFileNameChar(CHAR c);
 	static bool isFileNameChar(WCHAR c);
+	static bool isPathChar(CHAR c);
 	static bool isPathChar(WCHAR c);
 	static bool isDriveLetterChar(WCHAR c);
 	
