@@ -804,8 +804,13 @@ bool qs::Part::getBodyText(const WCHAR* pwszCharset,
 		CHAR* pDst = strDecode.get();
 		for (size_t n = 0; n < nDecodedBodyLen; ++n) {
 			CHAR c = *(pszDecodedBody + n);
-			if (c != '\r')
+			if (c == '\r') {
+				if (n + 1 >= nDecodedBodyLen || *(pszDecodedBody + n + 1) != '\n')
+					*pDst++ = '\n';
+			}
+			else {
 				*pDst++ = c;
+			}
 		}
 		*pDst = '\0';
 		
