@@ -197,7 +197,7 @@ void qm::ApplicationImpl::initMime()
 {
 	assert(pProfile_.get());
 	
-	Part::setGlobalOptions(Part::O_USE_COMMENT_AS_PHRASE |
+	unsigned int nOptions = Part::O_USE_COMMENT_AS_PHRASE |
 		Part::O_INTERPRET_FORMAT_FLOWED |
 		Part::O_ALLOW_ENCODED_QSTRING |
 		Part::O_ALLOW_ENCODED_PARAMETER |
@@ -210,7 +210,10 @@ void qm::ApplicationImpl::initMime()
 		Part::O_ALLOW_SINGLE_DIGIT_TIME |
 		Part::O_ALLOW_DATE_WITH_RUBBISH |
 		Part::O_ALLOW_RAW_PARAMETER |
-		Part::O_ALLOW_USE_DEFAULT_ENCODING);
+		Part::O_ALLOW_USE_DEFAULT_ENCODING;
+	if (pProfile_->getInt(L"Global", L"RFC2231", 0))
+		nOptions |= Part::O_RFC2231;
+	Part::setGlobalOptions(nOptions);
 	
 	wstring_ptr wstrDefaultCharset(pProfile_->getString(L"Global", L"DefaultCharset", 0));
 	const WCHAR* pwszCandidates[] = {
