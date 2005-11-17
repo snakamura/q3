@@ -189,7 +189,8 @@ public:
 								   const AttachmentList& l,
 								   const WCHAR* pwszTempDir);
 #endif
-	static std::auto_ptr<qs::Part> createPartFromFile(const WCHAR* pwszPath);
+	static std::auto_ptr<qs::Part> createPartFromFile(qs::Part* pParentPart,
+													  const WCHAR* pwszPath);
 	static std::auto_ptr<qs::Part> createRfc822Part(const qs::Part& part,
 													bool bHeaderOnly);
 	static std::auto_ptr<qs::Part> createClonedPart(const qs::Part& part);

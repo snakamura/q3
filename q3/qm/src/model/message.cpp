@@ -927,7 +927,7 @@ bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 			}
 		}
 		else {
-			pChildPart = createPartFromFile(pwszAttachment);
+			pChildPart = createPartFromFile(pPart, pwszAttachment);
 		}
 		if (!pChildPart.get())
 			return false;
@@ -957,7 +957,7 @@ bool qm::MessageCreator::attachArchivedFile(Part* pPart,
 	if (!pwszPath)
 		return false;
 	
-	std::auto_ptr<Part> pChildPart(createPartFromFile(pwszPath));
+	std::auto_ptr<Part> pChildPart(createPartFromFile(pPart, pwszPath));
 	if (!pChildPart.get())
 		return false;
 	pPart->addPart(pChildPart);
@@ -966,11 +966,34 @@ bool qm::MessageCreator::attachArchivedFile(Part* pPart,
 }
 #endif
 
-std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath)
+std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(Part* pParentPart,
+														   const WCHAR* pwszPath)
 {
 	assert(pwszPath);
 	
-	std::auto_ptr<Part> pPart(new Part());
+	// Add a new part to parent part temporarily to make that
+	// the file name is encoded using parent part's header charset.
+	// The part is removed from its parent before the function returns.
+	std::auto_ptr<Part> pNewPart(new Part());
+	Part* pPart = pNewPart.get();
+	pParentPart->addPart(pNewPart);
+	struct Remover
+	{
+		Remover(Part* pParentPart,
+				Part* pPart) :
+			pParentPart_(pParentPart),
+			pPart_(pPart)
+		{
+		}
+		
+		~Remover()
+		{
+			pParentPart_->removePart(pPart_);
+		}
+		
+		Part* pParentPart_;
+		Part* pPart_;
+	} remover(pParentPart, pPart);
 	
 	const WCHAR* pwszContentType = L"application/octet-stream";
 	wstring_ptr wstrContentType;
@@ -987,8 +1010,13 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 	if (!pPart->setField(L"Content-Type", dummyContentType))
 		return std::auto_ptr<Part>(0);
 	ContentTypeParser contentType;
-	if (pPart->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST)
-		return std::auto_ptr<Part>(0);
+	if (pPart->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST) {
+		ContentTypeParser dummyContentType(L"application", L"octet-stream");
+		if (!pPart->setField(L"Content-Type", dummyContentType))
+			return std::auto_ptr<Part>(0);
+		if (pPart->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST)
+			return std::auto_ptr<Part>(0);
+	}
 	contentType.setParameter(L"name", pFileName);
 	if (!pPart->replaceField(L"Content-Type", contentType))
 		return std::auto_ptr<Part>(0);
@@ -1036,7 +1064,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(const WCHAR* pwszPath
 		pPart->setBody(strBody);
 	}
 	
-	return pPart;
+	return std::auto_ptr<Part>(pPart);
 }
 
 std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Part& part,
