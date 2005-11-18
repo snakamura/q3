@@ -162,6 +162,13 @@ bool qs::XMLParser::parseXmlDecl(InputStream* pInputStream,
 	size_t nRead = pStream->read(buf, 6);
 	if (nRead != 6)
 		return false;
+	const unsigned char utf8bom[] = { 0xef, 0xbb, 0xbf };
+	if (strncmp(reinterpret_cast<char*>(buf), reinterpret_cast<const char*>(utf8bom), countof(utf8bom)) == 0) {
+		strncpy(reinterpret_cast<char*>(buf), reinterpret_cast<char*>(buf + countof(utf8bom)), 6 - countof(utf8bom));
+		nRead = pStream->read(buf + (6 - countof(utf8bom)), countof(utf8bom));
+		if (nRead != countof(utf8bom))
+			return false;
+	}
 	if (strncmp(reinterpret_cast<char*>(buf), "<?xml", 5) == 0 && isWhitespace(buf[5])) {
 		char c = 0;
 		if (!skipWhitespace(pStream.get(), &c))
