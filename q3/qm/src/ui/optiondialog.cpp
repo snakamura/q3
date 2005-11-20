@@ -2202,8 +2202,8 @@ qm::OptionEdit2Dialog::OptionEdit2Dialog(EditFrameWindowManager* pEditFrameWindo
 	pProfile_(pProfile),
 	nMessageSecurity_(0)
 {
-	nMessageSecurity_ = pProfile_->getInt(L"Security",
-		L"DefaultMessageSecurity", MESSAGESECURITY_PGPMIME);
+	nMessageSecurity_ = pProfile_->getInt(L"Security", L"DefaultMessageSecurity",
+		MESSAGESECURITY_SMIMEMULTIPARTSIGNED | MESSAGESECURITY_PGPMIME);
 }
 
 qm::OptionEdit2Dialog::~OptionEdit2Dialog()

@@ -55,8 +55,8 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	bArchiveAttachments_ = pProfile_->getInt(L"EditWindow", L"ArchiveAttachments", 0) != 0;
 #endif
 	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
-	nMessageSecurity_ = pProfile_->getInt(L"Security",
-		L"DefaultMessageSecurity", MESSAGESECURITY_PGPMIME);
+	nMessageSecurity_ = pProfile_->getInt(L"Security", L"DefaultMessageSecurity",
+		MESSAGESECURITY_SMIMEMULTIPARTSIGNED | MESSAGESECURITY_PGPMIME);
 }
 
 qm::EditMessage::~EditMessage()
