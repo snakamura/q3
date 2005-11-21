@@ -1725,6 +1725,64 @@ const WCHAR* qm::MacroFunctionFind::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionFindEach
+ *
+ */
+
+qm::MacroFunctionFindEach::MacroFunctionFindEach()
+{
+}
+
+qm::MacroFunctionFindEach::~MacroFunctionFindEach()
+{
+}
+
+MacroValuePtr qm::MacroFunctionFindEach::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(FindEach);
+	
+	if (!checkArgSizeRange(pContext, 2, 3))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	ARG(pValueMessages, 0);
+	if (pValueMessages->getType() != MacroValue::TYPE_MESSAGELIST)
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGTYPE);
+	
+	const MacroValueMessageList::MessageList& l =
+		static_cast<MacroValueMessageList*>(pValueMessages.get())->getMessageList();
+	for (MacroValueMessageList::MessageList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessagePtrLock mpl(*it);
+		if (mpl) {
+			Message msg;
+			MacroContext context(mpl, &msg, pContext);
+			MacroValuePtr pValue(getArg(1)->value(&context));
+			if (!pValue.get()) {
+				return MacroValuePtr();
+			}
+			else if (pValue->boolean()) {
+				if (nSize > 2)
+					return getArg(2)->value(&context);
+				else
+					return pValue;
+			}
+		}
+	}
+	
+	return MacroValueFactory::getFactory().newBoolean(false);
+}
+
+const WCHAR* qm::MacroFunctionFindEach::getName() const
+{
+	return L"FindEach";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionFlag
  *
  */
@@ -5052,6 +5110,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		Field, 				L"field"												)
 			DECLARE_FUNCTION0(		FieldParameter,		L"fieldparameter"										)
 			DECLARE_FUNCTION0(		Find, 				L"find"													)
+			DECLARE_FUNCTION0(		FindEach,			L"findeach"												)
 			DECLARE_FUNCTION0(		Flag,				L"flag"													)
 			DECLARE_FUNCTION0(		Folder, 			L"folder"												)
 			DECLARE_FUNCTION0(		ForEach,			L"foreach"												)

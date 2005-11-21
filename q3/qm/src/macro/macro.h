@@ -60,6 +60,7 @@ class MacroExpr;
 		class MacroFunctionField;
 		class MacroFunctionFieldParameter;
 		class MacroFunctionFind;
+		class MacroFunctionFindEach;
 		class MacroFunctionFlag;
 		class MacroFunctionFolder;
 		class MacroFunctionForEach;
@@ -1291,6 +1292,30 @@ protected:
 private:
 	MacroFunctionFind(const MacroFunctionFind&);
 	MacroFunctionFind& operator=(const MacroFunctionFind&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionFindEach
+ *
+ */
+
+class MacroFunctionFindEach : public MacroFunction
+{
+public:
+	MacroFunctionFindEach();
+	virtual ~MacroFunctionFindEach();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionFindEach(const MacroFunctionFindEach&);
+	MacroFunctionFindEach& operator=(const MacroFunctionFindEach&);
 };
 
 
