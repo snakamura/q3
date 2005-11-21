@@ -155,6 +155,15 @@ std::auto_ptr<Part> qs::Part::clone() const
 		++it;
 	}
 	
+	if (strPreamble_.get()) {
+		if (!pPart->setPreamble(strPreamble_.get()))
+			return std::auto_ptr<Part>(0);
+	}
+	if (strEpilogue_.get()) {
+		if (!pPart->setEpilogue(strEpilogue_.get()))
+			return std::auto_ptr<Part>(0);
+	}
+	
 	return pPart;
 }
 
