@@ -7,6 +7,8 @@
  */
 
 #include <qsencoder.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsmime.h>
 #include <qsstl.h>
 
@@ -114,6 +116,8 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 	assert(pPrivateKey);
 	assert(pCertificate);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::SMIMEUtilityImpl");
+	
 	X509* pX509 = static_cast<const CertificateImpl*>(pCertificate)->getX509();
 	EVP_PKEY* pKey = static_cast<const PrivateKeyImpl*>(pPrivateKey)->getKey();
 	
@@ -128,6 +132,8 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 	xstring_size_ptr strContent(pPart->getContent());
 	if (!strContent.get())
 		return xstring_size_ptr();
+	
+	log.debug(L"Signed content.", reinterpret_cast<const unsigned char*>(strContent.get()), strContent.size());
 	
 	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), static_cast<int>(strContent.size())));
 	PKCS7Ptr pPKCS7(PKCS7_sign(pX509, pKey, 0, pIn.get(), bMultipart ? PKCS7_DETACHED : 0));
@@ -151,6 +157,8 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	assert(getType(part) == TYPE_SIGNED || getType(part) == TYPE_MULTIPARTSIGNED);
 	assert(part.getContentType());
 	assert(pListCertificate->empty());
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::SMIMEUtilityImpl");
 	
 	*pnVerify = VERIFY_OK;
 	
@@ -182,6 +190,9 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 		strContent = part.getPart(0)->getContent();
 		nLen = strContent.size();
 	}
+	
+	log.debug(L"Verified content.", reinterpret_cast<const unsigned char*>(strContent.get()), strContent.size());
+	
 	BIOPtr pContent(bMultipart ? BIO_new_mem_buf(strContent.get(), static_cast<int>(nLen)) : 0);
 	
 	if (PKCS7_verify(pPKCS7.get(), 0, pStore, pContent.get(), pOut.get(), 0) != 1) {
