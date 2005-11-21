@@ -197,6 +197,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	
 	if (PKCS7_verify(pPKCS7.get(), 0, pStore, pContent.get(), pOut.get(), 0) != 1) {
 		*pnVerify |= VERIFY_FAILED;
+		BIO_ctrl(pOut.get(), BIO_CTRL_RESET, 0, 0);
 		if (bMultipart) {
 			if (BIO_write(pOut.get(), strContent.get(), static_cast<int>(nLen)) != static_cast<int>(nLen))
 				return xstring_size_ptr();
