@@ -40,7 +40,8 @@ public:
 public:
 	Logger(LogHandler* pLogHandler,
 		   bool bDeleteHandler,
-		   Level level);
+		   Level level,
+		   const WCHAR* pwszFilter);
 	~Logger();
 
 public:

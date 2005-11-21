@@ -69,6 +69,7 @@ struct qs::InitImpl
 	bool bLogEnabled_;
 	wstring_ptr wstrLogDir_;
 	Logger::Level logLevel_;
+	wstring_ptr wstrLogFilter_;
 	CriticalSection csLog_;
 	ConverterFactoryList listConverterFactory_;
 	EncoderFactoryList listEncoderFactory_;
@@ -283,6 +284,21 @@ void qs::Init::setLogLevel(Logger::Level level)
 	pImpl_->logLevel_ = level;
 }
 
+wstring_ptr qs::Init::getLogFilter() const
+{
+	Lock<CriticalSection> lock(pImpl_->csLog_);
+	return pImpl_->wstrLogFilter_.get() ? allocWString(pImpl_->wstrLogFilter_.get()) : 0;
+}
+
+void qs::Init::setLogFilter(const WCHAR* pwszFilter)
+{
+	Lock<CriticalSection> lock(pImpl_->csLog_);
+	if (pwszFilter)
+		pImpl_->wstrLogFilter_ = allocWString(pwszFilter);
+	else
+		pImpl_->wstrLogFilter_.reset(0);
+}
+
 void qs::Init::setInitThread(InitThread* pInitThread)
 {
 	pImpl_->pInitThread_->set(pInitThread);
@@ -327,8 +343,8 @@ bool qs::InitThreadImpl::createLogger()
 		
 		wstring_ptr wstrPath(concat(wstrLogDir.get(), wszName));
 		std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get()));
-		std::auto_ptr<Logger> pLogger(new Logger(
-			pLogHandler.get(), true, init.getLogLevel()));
+		std::auto_ptr<Logger> pLogger(new Logger(pLogHandler.get(),
+			true, init.getLogLevel(), init.getLogFilter().get()));
 		pLogHandler.release();
 		
 		pLogger_ = pLogger;

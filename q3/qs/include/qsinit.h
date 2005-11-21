@@ -50,6 +50,8 @@ public:
 	void setLogDirectory(const WCHAR* pwszDir);
 	Logger::Level getLogLevel() const;
 	void setLogLevel(Logger::Level level);
+	wstring_ptr getLogFilter() const;
+	void setLogFilter(const WCHAR* pwszFilter);
 
 public:
 	InitThread* getInitThread();

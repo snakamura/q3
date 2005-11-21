@@ -2813,7 +2813,7 @@ std::auto_ptr<Logger> qm::Account::openLogger(Host host) const
 	
 	wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wszName));
 	std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get()));
-	std::auto_ptr<Logger> pLogger(new Logger(pLogHandler.get(), true, Logger::LEVEL_DEBUG));
+	std::auto_ptr<Logger> pLogger(new Logger(pLogHandler.get(), true, Logger::LEVEL_DEBUG, 0));
 	pLogHandler.release();
 	return pLogger;
 }

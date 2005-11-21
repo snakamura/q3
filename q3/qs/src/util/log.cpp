@@ -8,6 +8,7 @@
 
 #include <qsconv.h>
 #include <qslog.h>
+#include <qsregex.h>
 #include <qsstream.h>
 #include <qsutil.h>
 
@@ -25,6 +26,7 @@ struct qs::LoggerImpl
 	LogHandler* pLogHandler_;
 	bool bDeleteHandler_;
 	Logger::Level level_;
+	std::auto_ptr<RegexPattern> pFilter_;
 };
 
 
@@ -36,13 +38,16 @@ struct qs::LoggerImpl
 
 qs::Logger::Logger(LogHandler* pLogHandler,
 				   bool bDeleteHandler,
-				   Level level) :
+				   Level level,
+				   const WCHAR* pwszFilter) :
 	pImpl_(0)
 {
 	pImpl_ = new LoggerImpl();
 	pImpl_->pLogHandler_ = pLogHandler;
 	pImpl_->bDeleteHandler_ = bDeleteHandler;
 	pImpl_->level_ = level;
+	if (pwszFilter)
+		pImpl_->pFilter_ = RegexCompiler().compile(pwszFilter);
 }
 
 qs::Logger::~Logger()
@@ -71,6 +76,9 @@ void qs::Logger::log(Level level,
 	assert(pwszMessage);
 	
 	if (level > pImpl_->level_)
+		return;
+	
+	if (pImpl_->pFilter_.get() && !pImpl_->pFilter_->match(pwszModule))
 		return;
 	
 	pImpl_->pLogHandler_->log(level, pwszModule, pwszMessage, pData, nDataLen);

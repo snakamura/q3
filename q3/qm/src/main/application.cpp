@@ -245,6 +245,9 @@ void qm::ApplicationImpl::initLog()
 		init.setLogLevel(static_cast<Logger::Level>(nLog));
 		init.setLogEnabled(true);
 	}
+	wstring_ptr wstrLogFilter(pProfile_->getString(L"Global", L"LogFilter", L""));
+	if (*wstrLogFilter.get())
+		init.setLogFilter(wstrLogFilter.get());
 }
 
 bool qm::ApplicationImpl::ensureResources()
