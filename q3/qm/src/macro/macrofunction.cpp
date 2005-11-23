@@ -3049,16 +3049,22 @@ MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 	if (wstrFolder.get()) {
 		Folder* pFolder = pContext->getDocument()->getFolder(
 			pContext->getAccount(), wstrFolder.get());
-		if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
+		if (!pFolder)
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		if (nSize > 1) {
+			if (pFolder->getType() != Folder::TYPE_NORMAL)
+				return error(*pContext, MacroErrorHandler::CODE_FAIL);
 			l.push_back(static_cast<NormalFolder*>(pFolder)->getMessageById(nId));
 		}
 		else {
 			Lock<Account> lock(*pFolder->getAccount());
-			l.resize(pFolder->getCount());
-			for (unsigned int n = 0; n < pFolder->getCount(); ++n)
+			if (!pFolder->loadMessageHolders())
+				return error(*pContext, MacroErrorHandler::CODE_FAIL);
+			
+			unsigned int nCount = pFolder->getCount();
+			l.resize(nCount);
+			for (unsigned int n = 0; n < nCount; ++n)
 				l[n] = MessagePtr(pFolder->getMessage(n));
 		}
 	}
@@ -4871,6 +4877,321 @@ const WCHAR* qm::MacroFunctionSubstringSep::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionThread
+ *
+ */
+
+qm::MacroFunctionThread::MacroFunctionThread()
+{
+}
+
+qm::MacroFunctionThread::~MacroFunctionThread()
+{
+}
+
+MacroValuePtr qm::MacroFunctionThread::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(Thread);
+	
+	if (!checkArgSizeRange(pContext, 0, 1))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	MessageHolderBase* pmhBase = pContext->getMessageHolder();
+	if (!pmhBase || !pmhBase->getMessageHolder())
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	MessageHolder* pmh = pmhBase->getMessageHolder();
+	
+	bool bAllFolder = false;
+	if (nSize > 0) {
+		ARG(pValueAllFolder, 0);
+		bAllFolder = pValueAllFolder->boolean();
+	}
+	
+	ItemList listItem;
+	ItemPtrList listItemPtr;
+	Item* pItemThis = 0;
+	
+	Account* pAccount = pmh->getFolder()->getAccount();
+	Lock<Account> lock(*pAccount);
+	if (bAllFolder) {
+		unsigned int nCount = getMessageCount(pAccount);
+		if (nCount == -1)
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		listItem.reserve(nCount);
+		listItemPtr.reserve(nCount);
+		
+		const Account::FolderList& l = pAccount->getFolders();
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			Folder* pFolder = *it;
+			if (pFolder->getType() == Folder::TYPE_NORMAL)
+				getItems(pFolder, pmh, &listItem, &listItemPtr, &pItemThis);
+		}
+	}
+	else {
+		Folder* pFolder = pmh->getFolder();
+		if (!pFolder->loadMessageHolders())
+			return error(*pContext, MacroErrorHandler::CODE_FAIL);
+		
+		unsigned int nCount = pFolder->getCount();
+		listItem.reserve(nCount);
+		listItemPtr.reserve(nCount);
+		
+		getItems(pFolder, pmh, &listItem, &listItemPtr, &pItemThis);
+	}
+	assert(pItemThis);
+	
+	MessageThreadUtil::makeParentLink(listItemPtr,
+		std::mem_fun(&Item::getMessageHolder),
+		std::ptr_fun(&Item::createItemWithMessageIdHash),
+		std::mem_fun(&Item::getMessageIdHash),
+		std::mem_fun(&Item::getParentItem),
+		std::mem_fun(&Item::setParentItem));
+	
+	ItemPtrList listItemInThread;
+	checkItem(pItemThis, pmh, &listItemInThread);
+	for (ItemPtrList::const_iterator it = listItemPtr.begin(); it != listItemPtr.end(); ++it)
+		checkItem(*it, pmh, &listItemInThread);
+	
+	std::sort(listItemInThread.begin(), listItemInThread.end(), ItemLess());
+	
+	MacroValueMessageList::MessageList listMessageHolder;
+	listMessageHolder.resize(listItemInThread.size());
+	std::transform(listItemInThread.begin(), listItemInThread.end(),
+		listMessageHolder.begin(), std::mem_fun(&Item::getMessageHolder));
+	
+	return MacroValueFactory::getFactory().newMessageList(listMessageHolder);
+}
+
+const WCHAR* qm::MacroFunctionThread::getName() const
+{
+	return L"Thread";
+}
+
+unsigned int qm::MacroFunctionThread::getMessageCount(const Account* pAccount)
+{
+	assert(pAccount->isLocked());
+	
+	unsigned int nCount = 0;
+	
+	const Account::FolderList& l = pAccount->getFolders();
+	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		Folder* pFolder = *it;
+		if (pFolder->getType() != Folder::TYPE_NORMAL)
+			continue;
+		if (!pFolder->loadMessageHolders())
+			return -1;
+		nCount += pFolder->getCount();
+	}
+	
+	return nCount;
+}
+
+void qm::MacroFunctionThread::getItems(const Folder* pFolder,
+									   const MessageHolder* pmh,
+									   ItemList* pListItem,
+									   ItemPtrList* pListItemPtr,
+									   Item** ppItemThis)
+{
+	assert(pFolder);
+	assert(pmh);
+	assert(pListItem);
+	assert(pListItemPtr);
+	assert(ppItemThis);
+	
+	unsigned int nCount = pFolder->getCount();
+	assert(pListItem->capacity() >= pListItem->size() + nCount);
+	assert(pListItemPtr->capacity() >= pListItemPtr->size() + nCount);
+	for (unsigned int n = 0; n < nCount; ++n) {
+		MessageHolder* p = pFolder->getMessage(n);
+		pListItem->push_back(Item(p));
+		pListItemPtr->push_back(&(*pListItem)[n]);
+		if (p == pmh)
+			*ppItemThis = &(*pListItem)[n];
+	}
+}
+
+void qm::MacroFunctionThread::checkItem(Item* pItem,
+										const MessageHolder* pmhThis,
+										ItemPtrList* pListItemInThread)
+{
+	assert(pItem);
+	assert(pmhThis);
+	assert(pListItemInThread);
+	
+	if (!pItem->isChecked()) {
+		bool bMatch = false;
+		for (const Item* p = pItem; p && !bMatch; p = p->getParentItem()) {
+			if (p->isChecked()) {
+				bMatch = p->isIncluded();
+				break;
+			}
+			else {
+				bMatch = p->getMessageHolder() == pmhThis;
+			}
+		}
+		if (bMatch) {
+			while (pItem && !pItem->isIncluded()) {
+				pListItemInThread->push_back(pItem);
+				pItem->setChecked(true);
+				pItem = pItem->getParentItem();
+			}
+		}
+		else {
+			while (pItem && !pItem->isChecked()) {
+				pItem->setChecked(false);
+				pItem = pItem->getParentItem();
+			}
+		}
+	}
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionThread::Item
+ *
+ */
+
+qm::MacroFunctionThread::Item::Item(MessageHolder* pmh) :
+	pmh_(pmh),
+	pParent_(0),
+	nFlags_(FLAG_NONE)
+{
+}
+
+qm::MacroFunctionThread::Item::Item(const Item& item) :
+	pmh_(item.pmh_),
+	nFlags_(FLAG_NONE)
+{
+	if (pmh_)
+		pParent_ = item.pParent_;
+	else
+		nMessageIdHash_ = item.nMessageIdHash_;
+}
+
+qm::MacroFunctionThread::Item::Item(unsigned int nMessageIdHash) :
+	pmh_(0),
+	nMessageIdHash_(nMessageIdHash),
+	nFlags_(FLAG_NONE)
+{
+}
+
+qm::MacroFunctionThread::Item::~Item()
+{
+}
+
+MessageHolder* qm::MacroFunctionThread::Item::getMessageHolder() const
+{
+	assert(pmh_);
+	return pmh_;
+}
+
+unsigned int qm::MacroFunctionThread::Item::getMessageIdHash() const
+{
+	return pmh_ ? pmh_->getMessageIdHash() : nMessageIdHash_;
+}
+
+MacroFunctionThread::Item* qm::MacroFunctionThread::Item::getParentItem() const
+{
+	assert(pmh_);
+	return pParent_;
+}
+
+void qm::MacroFunctionThread::Item::setParentItem(Item* pParent)
+{
+	assert(pmh_);
+	pParent_ = pParent;
+}
+
+unsigned int qm::MacroFunctionThread::Item::getLevel() const
+{
+	assert(pmh_);
+	
+	unsigned int nLevel = 0;
+	
+	const Item* pItem = getParentItem();
+	while (pItem) {
+		++nLevel;
+		pItem = pItem->getParentItem();
+	}
+	
+	return nLevel;
+}
+
+bool qm::MacroFunctionThread::Item::isChecked() const
+{
+	assert(pmh_);
+	return (nFlags_ & FLAG_CHECKED) != 0;
+}
+
+bool qm::MacroFunctionThread::Item::isIncluded() const
+{
+	assert(pmh_);
+	return (nFlags_ & FLAG_INCLUDED) != 0;
+}
+
+void qm::MacroFunctionThread::Item::setChecked(bool bIncluded)
+{
+	assert(pmh_);
+	nFlags_ |= FLAG_CHECKED | (bIncluded ? FLAG_INCLUDED : 0);
+}
+
+MacroFunctionThread::Item qm::MacroFunctionThread::Item::createItemWithMessageIdHash(unsigned int nMessageIdHash)
+{
+	return Item(nMessageIdHash);
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionThread::ItemLess
+ *
+ */
+
+bool qm::MacroFunctionThread::ItemLess::operator()(const Item* pLhs,
+												   const Item* pRhs)
+{
+	unsigned int nLevelLhs = pLhs->getLevel();
+	unsigned int nLevelRhs = pRhs->getLevel();
+	if (nLevelLhs < nLevelRhs) {
+		for (unsigned int n = 0; n < nLevelRhs - nLevelLhs; ++n)
+			pRhs = pRhs->getParentItem();
+	}
+	else if (nLevelLhs > nLevelRhs) {
+		for (unsigned int n = 0; n < nLevelLhs - nLevelRhs; ++n)
+			pLhs = pLhs->getParentItem();
+	}
+	assert(pLhs && pRhs);
+	
+	if (pLhs == pRhs) {
+		return nLevelLhs < nLevelRhs;
+	}
+	else {
+		const Item* pParentLhs = pLhs->getParentItem();
+		const Item* pParentRhs = pRhs->getParentItem();
+		while (pParentLhs != pParentRhs) {
+			pLhs = pParentLhs;
+			pRhs = pParentRhs;
+			pParentLhs = pParentLhs->getParentItem();
+			pParentRhs = pParentRhs->getParentItem();
+		}
+		
+		MessageHolder* pmhLhs = pLhs->getMessageHolder();
+		MessageHolder* pmhRhs = pRhs->getMessageHolder();
+		if (pmhLhs->getFolder() == pmhRhs->getFolder())
+			return pmhLhs->getId() < pmhRhs->getId();
+		else
+			return pmhLhs->getFolder()->getId() < pmhRhs->getFolder()->getId();
+	}
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionURI
  *
  */
@@ -5198,6 +5519,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION1(		Additive,			L"subtract",		false								)
 		END_BLOCK()
 		BEGIN_BLOCK(L't', L'T')
+			DECLARE_FUNCTION0(		Thread,				L"thread"												)
 			DECLARE_FUNCTION1(		Boolean,			L"true",			true								)
 		END_BLOCK()
 		BEGIN_BLOCK(L'u', L'U')

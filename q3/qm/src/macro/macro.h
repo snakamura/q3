@@ -109,6 +109,7 @@ class MacroExpr;
 		class MacroFunctionSubject;
 		class MacroFunctionSubstring;
 		class MacroFunctionSubstringSep;
+		class MacroFunctionThread;
 		class MacroFunctionURI;
 		class MacroFunctionVariable;
 		class MacroFunctionWhile;
@@ -2523,6 +2524,97 @@ private:
 
 private:
 	bool bAfter_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionThread
+ *
+ */
+
+class MacroFunctionThread : public MacroFunction
+{
+private:
+	class Item
+	{
+	public:
+		explicit Item(MessageHolder* pmh);
+		Item(const Item& item);
+	
+	private:
+		explicit Item(unsigned int nMessageIdHash);
+	
+	public:
+		~Item();
+	
+	public:
+		MessageHolder* getMessageHolder() const;
+		unsigned int getMessageIdHash() const;
+		Item* getParentItem() const;
+		void setParentItem(Item* pParent);
+		unsigned int getLevel() const;
+		bool isChecked() const;
+		bool isIncluded() const;
+		void setChecked(bool bIncluded);
+	
+	public:
+		static Item createItemWithMessageIdHash(unsigned int nMessageIdHash);
+	
+	private:
+		Item& operator=(const Item&);
+	
+	private:
+		enum Flag {
+			FLAG_NONE		= 0x00,
+			FLAG_CHECKED	= 0x01,
+			FLAG_INCLUDED	= 0x02
+		};
+	
+	private:
+		MessageHolder* pmh_;
+		union {
+			Item* pParent_;
+			unsigned int nMessageIdHash_;
+		};
+		unsigned int nFlags_;
+	};
+
+private:
+	typedef std::vector<Item> ItemList;
+	typedef std::vector<Item*> ItemPtrList;
+
+public:
+	MacroFunctionThread();
+	virtual ~MacroFunctionThread();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	static unsigned int getMessageCount(const Account* pAccount);
+	static void getItems(const Folder* pFolder,
+						 const MessageHolder* pmhThis,
+						 ItemList* pListItem,
+						 ItemPtrList* pListItemPtr,
+						 Item** ppItemThis);
+	static void checkItem(Item* pItem,
+						  const MessageHolder* pmhThis,
+						  ItemPtrList* pListItemInThread);
+
+private:
+	MacroFunctionThread(const MacroFunctionThread&);
+	MacroFunctionThread& operator=(const MacroFunctionThread&);
+
+private:
+	struct ItemLess : public std::binary_function<Item*, Item*, bool>
+	{
+		bool operator()(const Item* pLhs,
+						const Item* pRhs);
+	};
 };
 
 
