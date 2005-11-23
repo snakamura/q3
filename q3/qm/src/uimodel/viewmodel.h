@@ -183,7 +183,12 @@ public:
 
 public:
 	explicit ViewModelItem(MessageHolder* pmh);
+	ViewModelItem(const ViewModelItem& item);
+
+private:
 	explicit ViewModelItem(unsigned int nMessageIdHash);
+
+public:
 	~ViewModelItem();
 
 public:
@@ -214,9 +219,9 @@ public:
 								  unsigned int nCacheSize);
 	static void deleteItem(ViewModelItem* pItem,
 						   unsigned int nCacheSize);
+	static ViewModelItem createItemWithMessageIdHash(unsigned int nMessageIdHash);
 
 private:
-	ViewModelItem(const ViewModelItem&);
 	ViewModelItem& operator=(const ViewModelItem&);
 
 private:
@@ -416,9 +421,6 @@ private:
 	ViewModelItemComp getComparator(unsigned int nSort) const;
 	bool isFloatThread(unsigned int nSort) const;
 	void makeParentLink(bool bUpdateLatest);
-	void makeParentLink(const ItemList& listItemSortedByMessageIdHash,
-						const ItemList& listItemSortedByPointer,
-						ViewModelItem* pItem);
 	void updateCacheCount();
 
 private:

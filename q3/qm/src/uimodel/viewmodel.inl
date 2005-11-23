@@ -29,6 +29,17 @@ inline qm::ViewModelItem::ViewModelItem(MessageHolder* pmh) :
 	clearLatestItem();
 }
 
+inline qm::ViewModelItem::ViewModelItem(const ViewModelItem& item) :
+	pmh_(0),
+	pParentItem_(0),
+	nFlags_(0),
+	cr_(0xffffffff),
+	nMessageFlags_(item.nMessageFlags_),
+	pLatestItem_(0)
+{
+	assert(!item.pmh_);
+}
+
 inline qm::ViewModelItem::ViewModelItem(unsigned int nMessageIdHash) :
 	pmh_(0),
 	pParentItem_(0),
@@ -201,6 +212,11 @@ inline void qm::ViewModelItem::deleteItem(ViewModelItem* pItem,
 #else
 	free(pItem);
 #endif
+}
+
+inline qm::ViewModelItem qm::ViewModelItem::createItemWithMessageIdHash(unsigned int nMessageIdHash)
+{
+	return ViewModelItem(nMessageIdHash);
 }
 
 

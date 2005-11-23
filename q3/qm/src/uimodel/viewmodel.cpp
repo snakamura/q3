@@ -1391,29 +1391,15 @@ void qm::ViewModel::makeParentLink(bool bUpdateLatest)
 {
 	Lock<ViewModel> lock(*this);
 	
-	ItemList listItemSortedByMessageIdHash(listItem_);
-	std::sort(listItemSortedByMessageIdHash.begin(),
-		listItemSortedByMessageIdHash.end(),
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			unary_compose_f_gx(
-				std::mem_fun(&MessageHolder::getMessageIdHash),
-				std::mem_fun(&ViewModelItem::getMessageHolder)),
-			unary_compose_f_gx(
-				std::mem_fun(&MessageHolder::getMessageIdHash),
-				std::mem_fun(&ViewModelItem::getMessageHolder))));
+	MessageThreadUtil::makeParentLink(listItem_,
+		std::mem_fun(&ViewModelItem::getMessageHolder),
+		std::ptr_fun(&ViewModelItem::createItemWithMessageIdHash),
+		std::mem_fun(&ViewModelItem::getMessageIdHash),
+		std::mem_fun(&ViewModelItem::getParentItem),
+		std::mem_fun(&ViewModelItem::setParentItem));
 	
-	ItemList listItemSortedByPointer(listItem_);
-	std::sort(listItemSortedByPointer.begin(),
-		listItemSortedByPointer.end());
-	
-	for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
-		ViewModelItem* pItem = *it;
-		makeParentLink(listItemSortedByMessageIdHash, listItemSortedByPointer, pItem);
-		if (bUpdateLatest)
-			pItem->clearLatestItem();
-	}
 	if (bUpdateLatest) {
+		std::for_each(listItem_.begin(), listItem_.end(), std::mem_fun(&ViewModelItem::clearLatestItem));
 		ViewModelItemComp comp(getComparator(nSort_));
 		for (ItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
 			ViewModelItem* pItem = *it;
@@ -1421,54 +1407,6 @@ void qm::ViewModel::makeParentLink(bool bUpdateLatest)
 			if (pParentItem)
 				pParentItem->updateLatestItem(pItem->getLatestItem(), comp);
 		}
-	}
-}
-
-void qm::ViewModel::makeParentLink(const ItemList& listItemSortedByMessageIdHash,
-								   const ItemList& listItemSortedByPointer,
-								   ViewModelItem* pItem)
-{
-	assert(pItem);
-	
-	MessageHolder* pmh = pItem->getMessageHolder();
-	ViewModelItem* pParentItem = pItem->getParentItem();
-	if (!pParentItem) {
-		unsigned int nReferenceHash = pmh->getReferenceHash();
-		if (nReferenceHash != 0) {
-			ViewModelItem item(nReferenceHash);
-			ItemList::const_iterator it = std::lower_bound(
-				listItemSortedByMessageIdHash.begin(),
-				listItemSortedByMessageIdHash.end(), &item,
-				binary_compose_f_gx_hy(
-					std::less<unsigned int>(),
-					std::mem_fun(&ViewModelItem::getMessageIdHash),
-					std::mem_fun(&ViewModelItem::getMessageIdHash)));
-			if  (it != listItemSortedByMessageIdHash.end() &&
-				(*it)->getMessageHolder()->getMessageIdHash() == nReferenceHash) {
-				bool bFound = false;
-				wstring_ptr wstrReference(pmh->getReference());
-				assert(*wstrReference.get());
-				while  (it != listItemSortedByMessageIdHash.end() &&
-					(*it)->getMessageHolder()->getMessageIdHash() == nReferenceHash &&
-					!bFound) {
-					wstring_ptr wstrMessageId((*it)->getMessageHolder()->getMessageId());
-					if (wcscmp(wstrReference.get(), wstrMessageId.get()) == 0) {
-						bFound = true;
-						break;
-					}
-					++it;
-				}
-				if (bFound)
-					pItem->setParentItem(*it);
-			}
-		}
-	}
-	else {
-		ItemList::const_iterator it = std::lower_bound(
-			listItemSortedByPointer.begin(),
-			listItemSortedByPointer.end(), pParentItem);
-		if (it == listItemSortedByPointer.end() || *it != pParentItem)
-			pItem->setParentItem(0);
 	}
 }
 
