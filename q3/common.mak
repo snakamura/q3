@@ -687,7 +687,7 @@ $(OBJDIR)/%.d: $(SRCDIR)/%.c
 $(TARGETDIR)/$(TARGETBASE).exe: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(LD) $(LDFLAGS) -OUT:$@ $(OBJS) $(RESES) $(LIBS)
-	if [ $(VCVER) -eq 8 ]; then \
+	if [ "$(PLATFORM)" = "win" -a $(VCVER) -eq 8 ]; then \
 		$(MT) -inputresource:$@ -manifest $@.manifest -outputresource:$@; \
 	fi
 
