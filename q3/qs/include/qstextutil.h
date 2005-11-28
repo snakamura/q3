@@ -55,6 +55,7 @@ public:
 	static bool isPathChar(CHAR c);
 	static bool isPathChar(WCHAR c);
 	static bool isDriveLetterChar(WCHAR c);
+	static bool isCommonEmailAddressChar(WCHAR c);
 	
 	static wstring_ptr replace(const WCHAR* pwsz,
 							   const WCHAR* pwszFind,

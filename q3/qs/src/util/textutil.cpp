@@ -296,14 +296,12 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 				break;
 		}
 		if (*p == L'@' &&
-			p != pwszText && isURLChar(*(p - 1)) &&
-			nLen > 1 && isURLChar(*(p + 1))) {
-			while (p >= pwszText && isURLChar(*p) && *p != L'(') {
+			p != pwszText && isCommonEmailAddressChar(*(p - 1)) &&
+			nLen > 1 && isCommonEmailAddressChar(*(p + 1))) {
+			while (p != pwszText && isCommonEmailAddressChar(*(p - 1))) {
 				--p;
 				++nLen;
 			}
-			++p;
-			--nLen;
 			type = TYPE_EMAIL;
 			break;
 		}
@@ -353,19 +351,36 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 	}
 	if (nLen > 0) {
 		url.first = p - pwszText;
-		if (type == TYPE_URL || type == TYPE_EMAIL) {
+		switch (type) {
+		case TYPE_URL:
 			while (nLen > 0 && isURLChar(*p)) {
 				--nLen;
 				++p;
 			}
 			if (p != pwszText + url.first) {
 				WCHAR c = *(p - 1);
-				if (c == L'.' || c == L',' || (c == cQuote) ||
-					(type == TYPE_EMAIL && (c == L';' || c == L')')))
+				if (c == L'.' || c == L',' || c == cQuote)
 					--p;
 			}
-		}
-		else {
+			break;
+		case TYPE_EMAIL:
+			{
+				const WCHAR* pAt = wcschr(p, L'@');
+				assert(pAt);
+				nLen -= pAt - p + 1;
+				p = pAt + 1;
+				while (nLen > 0 && isCommonEmailAddressChar(*p)) {
+					--nLen;
+					++p;
+				}
+				if (p != pwszText + url.first) {
+					WCHAR c = *(p - 1);
+					if (c == L'.')
+						--p;
+				}
+			}
+			break;
+		case TYPE_PATH:
 			while (nLen > 0) {
 				if (!isPathChar(*p) ||
 					(cQuote != L'\0' && *p == cQuote) ||
@@ -374,6 +389,10 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 				--nLen;
 				++p;
 			}
+			break;
+		default:
+			assert(false);
+			break;
 		}
 		url.second = p - (pwszText + url.first);
 	}
@@ -412,6 +431,14 @@ bool qs::TextUtil::isPathChar(WCHAR c)
 bool qs::TextUtil::isDriveLetterChar(WCHAR c)
 {
 	return (L'a' <= c && c <= L'z') || (L'A' <= c && c <= L'Z');
+}
+
+bool qs::TextUtil::isCommonEmailAddressChar(WCHAR c)
+{
+	return (L'a' <= c && c <= L'z') ||
+		(L'A' <= c && c <= L'Z') ||
+		(L'0' <= c && c <= L'9') ||
+		wcschr(L".$%+-=_", c);
 }
 
 wstring_ptr qs::TextUtil::replace(const WCHAR* pwsz,
