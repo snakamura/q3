@@ -2018,8 +2018,9 @@ LRESULT qm::RenameDialog::onNameChange()
 
 void qm::RenameDialog::updateState()
 {
-	Window(getDlgItem(IDOK)).enableWindow(
-		Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0);
+	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+	Window(getDlgItem(IDOK)).enableWindow(*wstrName.get() &&
+		wcscmp(wstrName.get(), wstrName_.get()) != 0);
 }
 
 
