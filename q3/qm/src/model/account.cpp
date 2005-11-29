@@ -1322,6 +1322,9 @@ void qm::Account::removeSubAccount(SubAccount* pSubAccount)
 bool qm::Account::renameSubAccount(SubAccount* pSubAccount,
 								   const WCHAR* pwszName)
 {
+	assert(pSubAccount);
+	assert(pwszName);
+	
 	if (getSubAccount(pwszName))
 		return false;
 	

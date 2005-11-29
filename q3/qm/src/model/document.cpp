@@ -219,6 +219,9 @@ bool qm::Document::renameAccount(Account* pAccount,
 	assert(pAccount);
 	assert(pwszName);
 	
+	if (getAccount(pwszName))
+		return false;
+	
 	if (!pAccount->save(false))
 		return false;
 	

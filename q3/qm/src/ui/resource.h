@@ -227,6 +227,9 @@
 #define IDS_ERROR_LABELMESSAGE          10058
 #define IDS_ERROR_SYNCHRONIZING         10059
 #define IDS_ERROR_EVALUATEMACRO         10060
+#define IDS_ERROR_RENAMEACCOUNT         10061
+#define IDS_ERROR_RENAMESUBACCOUNT      10062
+#define IDS_ERROR_CREATESUBACCOUNT      10063
 
 // Next default values for new objects
 // 

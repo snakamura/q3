@@ -175,13 +175,15 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 		if (dialog.doModal(getHandle()) == IDOK) {
 			const WCHAR* pwszName = dialog.getName();
 			
+			HINSTANCE hInst = Application::getApplication().getResourceHandle();
+			
 			if (pAccount->getSubAccount(pwszName)) {
-				// TODO MSG
+				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
 			if (!pAccount->save(false)) {
-				// TODO MSG
+				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
@@ -201,13 +203,13 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 			W2T(wstrAccountPath.get(), ptszAccountPath);
 			W2T(wstrPath.get(), ptszPath);
 			if (!::CopyFile(ptszAccountPath, ptszPath, FALSE)) {
-				// TODO MSG
+				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
 			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get()));
 			if (!pProfile->load()) {
-				// TODO MSG
+				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
@@ -301,6 +303,8 @@ LRESULT qm::AccountDialog::onRename()
 	
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
 	if (hItem) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		
 		TVITEM item = {
 			TVIF_HANDLE | TVIF_PARAM,
 			hItem
@@ -314,9 +318,13 @@ LRESULT qm::AccountDialog::onRename()
 			if (dialog.doModal(getHandle()) == IDOK) {
 				Account* pAccount = pSubAccount->getAccount();
 				if (!pAccount->renameSubAccount(pSubAccount, dialog.getName())) {
-					// TODO MSG
+					messageBox(hInst, IDS_ERROR_RENAMESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 					return 0;
 				}
+				
+				// TODO
+				// PasswordManager
+				
 				update();
 			}
 		}
@@ -326,9 +334,13 @@ LRESULT qm::AccountDialog::onRename()
 			RenameDialog dialog(pAccount->getName());
 			if (dialog.doModal(getHandle()) == IDOK) {
 				if (!pAccountManager_->renameAccount(pAccount, dialog.getName())) {
-					// TODO MSG
+					messageBox(hInst, IDS_ERROR_RENAMEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 					return 0;
 				}
+				
+				// TODO
+				// PasswordManager
+				
 				update();
 			}
 		}
@@ -541,7 +553,7 @@ void qm::AccountDialog::updateState()
 }
 
 void qm::AccountDialog::initProfileForClass(const WCHAR* pwszClass,
-											qs::Profile* pProfile)
+											Profile* pProfile)
 {
 	// TODO
 	// Use skelton or something?

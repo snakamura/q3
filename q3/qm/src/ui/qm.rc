@@ -326,6 +326,9 @@ BEGIN
     IDS_ERROR_LABELMESSAGE  "Error occured while labeling messages."
     IDS_ERROR_SYNCHRONIZING "This operation is not allowed while synchronizing."
     IDS_ERROR_EVALUATEMACRO "Error occured while evaluating macro."
+    IDS_ERROR_RENAMEACCOUNT "Error occured while renaming the account."
+    IDS_ERROR_RENAMESUBACCOUNT "Error occured while renaming the subaccount."
+    IDS_ERROR_CREATESUBACCOUNT "Error occured while creating a subaccount."
 END
 
 STRINGTABLE 
