@@ -988,6 +988,11 @@ bool qs::Part::isOption(Option option) const
 	return (nOptions_ & option) != 0;
 }
 
+unsigned int qs::Part::getOptions() const
+{
+	return nOptions_;
+}
+
 void qs::Part::setOptions(unsigned int nOptions)
 {
 	nOptions_ = nOptions;
@@ -1009,6 +1014,11 @@ void qs::Part::setDefaultCharset(const WCHAR* pwszCharset)
 bool qs::Part::isGlobalOption(Option option)
 {
 	return (nGlobalOptions__ && option) != 0;
+}
+
+unsigned int qs::Part::getGlobalOptions()
+{
+	return nGlobalOptions__;
 }
 
 void qs::Part::setGlobalOptions(unsigned int nOptions)

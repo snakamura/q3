@@ -1365,9 +1365,7 @@ Part::Field qs::DateParser::parse(const Part& part,
 	if (!strValue.get())
 		return Part::FIELD_NOTEXIST;
 	
-	if (!parse(strValue.get(), -1,
-		part.isOption(Part::O_ALLOW_SINGLE_DIGIT_TIME),
-		part.isOption(Part::O_ALLOW_DATE_WITH_RUBBISH), &date_))
+	if (!parse(strValue.get(), -1, getFlagsFromPartOption(part.getOptions()), &date_))
 		return Part::FIELD_ERROR;
 	
 	return Part::FIELD_EXIST;
@@ -1382,12 +1380,14 @@ string_ptr qs::DateParser::unparse(const Part& part) const
 
 bool qs::DateParser::parse(const CHAR* psz,
 						   size_t nLen,
-						   bool bAllowSingleDigitTime,
-						   bool bAllowRubbish,
+						   unsigned int nFlags,
 						   Time* pTime)
 {
 	assert(psz);
 	assert(pTime);
+	
+	if (nFlags == FLAG_ALLOWDEFAULT)
+		nFlags = getFlagsFromPartOption(Part::getGlobalOptions());
 	
 	Tokenizer t(psz, nLen, Tokenizer::F_RECOGNIZECOMMENT | Tokenizer::F_SPECIAL);
 	
@@ -1460,7 +1460,7 @@ bool qs::DateParser::parse(const CHAR* psz,
 		case S_YEAR:
 			if (token.type_ != Tokenizer::T_ATOM)
 				return false;
-			nHour = getHour(token.str_.get(), bAllowSingleDigitTime);
+			nHour = getHour(token.str_.get(), (nFlags & FLAG_ALLOWSINGLEDIGITTIME) != 0);
 			if (nHour == -1)
 				return false;
 			state = S_HOUR;
@@ -1473,7 +1473,7 @@ bool qs::DateParser::parse(const CHAR* psz,
 		case S_HOURSEP:
 			if (token.type_ != Tokenizer::T_ATOM)
 				return false;
-			nMinute = getMinute(token.str_.get(), bAllowSingleDigitTime);
+			nMinute = getMinute(token.str_.get(), (nFlags & FLAG_ALLOWSINGLEDIGITTIME) != 0);
 			if (nMinute == -1)
 				return false;
 			state = S_MINUTE;
@@ -1488,6 +1488,9 @@ bool qs::DateParser::parse(const CHAR* psz,
 					return false;
 				state = S_TIMEZONE;
 			}
+			else if (token.type_ == Tokenizer::T_END && (nFlags & FLAG_ALLOWNOTIMEZONE) != 0) {
+				state = S_TIMEZONE;
+			}
 			else {
 				return false;
 			}
@@ -1495,21 +1498,27 @@ bool qs::DateParser::parse(const CHAR* psz,
 		case S_MINUTESEP:
 			if (token.type_ != Tokenizer::T_ATOM)
 				return false;
-			nSecond = getSecond(token.str_.get(), bAllowSingleDigitTime);
+			nSecond = getSecond(token.str_.get(), (nFlags & FLAG_ALLOWSINGLEDIGITTIME) != 0);
 			if (nSecond == -1)
 				return false;
 			state = S_SECOND;
 			break;
 		case S_SECOND:
-			if (token.type_ != Tokenizer::T_ATOM)
+			if (token.type_ == Tokenizer::T_ATOM) {
+				nTimeZone = getTimeZone(token.str_.get());
+				if (nTimeZone == -1)
+					return false;
+				state = S_TIMEZONE;
+			}
+			else if (token.type_ == Tokenizer::T_END && (nFlags & FLAG_ALLOWNOTIMEZONE) != 0) {
+				state = S_TIMEZONE;
+			}
+			else {
 				return false;
-			nTimeZone = getTimeZone(token.str_.get());
-			if (nTimeZone == -1)
-				return false;
-			state = S_TIMEZONE;
+			}
 			break;
 		case S_TIMEZONE:
-			if (!bAllowRubbish) {
+			if ((nFlags & FLAG_ALLOWRUBBISH) == 0) {
 				if (token.type_ != Tokenizer::T_END)
 					return false;
 			}
@@ -1544,6 +1553,13 @@ bool qs::DateParser::parse(const CHAR* psz,
 wstring_ptr qs::DateParser::unparse(const Time& time)
 {
 	return time.format(L"%W, %D %M1 %Y4 %h:%m:%s %z", Time::FORMAT_ORIGINAL);
+}
+
+unsigned int qs::DateParser::getFlagsFromPartOption(unsigned int nOption)
+{
+	return (nOption & Part::O_ALLOW_SINGLE_DIGIT_TIME ? FLAG_ALLOWSINGLEDIGITTIME : 0) |
+		(nOption & Part::O_ALLOW_DATE_WITH_RUBBISH ? FLAG_ALLOWRUBBISH : 0) |
+		(nOption & Part::O_ALLOW_DATE_WITHOUT_TIMEZONE ? FLAG_ALLOWNOTIMEZONE : 0);
 }
 
 int qs::DateParser::getWeek(const CHAR* psz)
@@ -1626,39 +1642,25 @@ int qs::DateParser::getYear(const CHAR* psz)
 int qs::DateParser::getHour(const CHAR* psz,
 							bool bAllowSingleDigit)
 {
-	assert(psz);
-	
-	size_t nLen = strlen(psz);
-	if ((nLen != 2 && (!bAllowSingleDigit || nLen != 1)) || !isDigit(psz))
-		return -1;
-	
-	CHAR* pEnd = 0;
-	int nHour = strtol(psz, &pEnd, 10);
-	if (nHour < 0 || 23 < nHour)
-		return -1;
-	
-	return nHour;
+	return getTime(psz, 0, 23, bAllowSingleDigit);
 }
 
 int qs::DateParser::getMinute(const CHAR* psz,
 							  bool bAllowSingleDigit)
 {
-	assert(psz);
-	
-	size_t nLen = strlen(psz);
-	if ((nLen != 2 && (!bAllowSingleDigit || nLen != 1)) || !isDigit(psz))
-		return -1;
-	
-	CHAR* pEnd = 0;
-	int nMinute = strtol(psz, &pEnd, 10);
-	if (nMinute < 0 || 59 < nMinute)
-		return -1;
-	
-	return nMinute;
+	return getTime(psz, 0, 59, bAllowSingleDigit);
 }
 
 int qs::DateParser::getSecond(const CHAR* psz,
 							  bool bAllowSingleDigit)
+{
+	return getTime(psz, 0, 60, bAllowSingleDigit);
+}
+
+int qs::DateParser::getTime(const CHAR* psz,
+							int nMin,
+							int nMax,
+							bool bAllowSingleDigit)
 {
 	assert(psz);
 	
@@ -1667,11 +1669,11 @@ int qs::DateParser::getSecond(const CHAR* psz,
 		return -1;
 	
 	CHAR* pEnd = 0;
-	int nSecond = strtol(psz, &pEnd, 10);
-	if (nSecond < 0 || 60 < nSecond)
+	int n = strtol(psz, &pEnd, 10);
+	if (n < nMin || nMax < n)
 		return -1;
 	
-	return nSecond;
+	return n;
 }
 
 int qs::DateParser::getTimeZone(const CHAR* psz)

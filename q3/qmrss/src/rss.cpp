@@ -699,7 +699,7 @@ bool qmrss::Rss20Handler::endElement(const WCHAR* pwszNamespaceURI,
 		{
 			Time date;
 			string_ptr strDate(wcs2mbs(buffer_.getCharArray()));
-			if (DateParser::parse(strDate.get(), -1, true, true, &date))
+			if (DateParser::parse(strDate.get(), -1, DateParser::FLAG_ALLOWDEFAULT, &date))
 				pChannel_->setPubDate(date);
 			buffer_.remove();
 		}
@@ -727,7 +727,7 @@ bool qmrss::Rss20Handler::endElement(const WCHAR* pwszNamespaceURI,
 			else if (wcscmp(pwszLocalName, L"pubDate") == 0) {
 				Time date;
 				string_ptr strDate(wcs2mbs(buffer_.getCharArray()));
-				if (DateParser::parse(strDate.get(), -1, true, true, &date))
+				if (DateParser::parse(strDate.get(), -1, DateParser::FLAG_ALLOWDEFAULT, &date))
 					pCurrentItem_->setPubDate(date);
 				buffer_.remove();
 			}

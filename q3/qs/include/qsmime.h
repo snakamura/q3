@@ -76,7 +76,9 @@ public:
 		O_ALLOW_SINGLE_DIGIT_TIME				= 0x00010000,
 		O_ALLOW_DATE_WITH_RUBBISH				= 0x00020000,
 		O_ALLOW_RAW_PARAMETER					= 0x00040000,
-		O_ALLOW_USE_DEFAULT_ENCODING			= 0x00080000
+		O_ALLOW_USE_DEFAULT_ENCODING			= 0x00080000,
+		O_ALLOW_DATE_WITHOUT_TIMEZONE			= 0x00100000,
+		O_ALLOW_ALL								= 0x00ffff00
 	};
 	
 	enum Field {
@@ -218,12 +220,14 @@ public:
 
 public:
 	bool isOption(Option option) const;
+	unsigned int getOptions() const;
 	void setOptions(unsigned int nOptions);
 
 public:
 	static const WCHAR* getDefaultCharset();
 	static void setDefaultCharset(const WCHAR* pwszCharset);
 	static bool isGlobalOption(Option option);
+	static unsigned int getGlobalOptions();
 	static void setGlobalOptions(unsigned int nOptions);
 	static size_t getMaxHeaderLength();
 	static void setMaxHeaderLength(size_t nMax);
@@ -650,6 +654,16 @@ private:
 class QSEXPORTCLASS DateParser : public FieldParser
 {
 public:
+	enum Flag {
+		FLAG_NONE					= 0x0000,
+		FLAG_ALLOWSINGLEDIGITTIME	= 0x0001,
+		FLAG_ALLOWRUBBISH			= 0x0002,
+		FLAG_ALLOWNOTIMEZONE		= 0x0004,
+		FLAG_ALLOWALL				= 0x00ff,
+		FLAG_ALLOWDEFAULT			= 0x8000
+	};
+
+public:
 	DateParser();
 	DateParser(const Time& date);
 	virtual ~DateParser();
@@ -665,10 +679,10 @@ public:
 public:
 	static bool parse(const CHAR* psz,
 					  size_t nLen,
-					  bool bAllowSingleDigitTime,
-					  bool bAllowRubbish,
+					  unsigned int nFlags,
 					  Time* pTime);
 	static wstring_ptr unparse(const Time& time);
+	static unsigned int getFlagsFromPartOption(unsigned int nOption);
 
 private:
 	static int getWeek(const CHAR* psz);
@@ -681,6 +695,10 @@ private:
 						 bool bAllowSingleDigit);
 	static int getSecond(const CHAR* psz,
 						 bool bAllowSingleDigit);
+	static int getTime(const CHAR* psz,
+					   int nMin,
+					   int nMax,
+					   bool bAllowSingleDigit);
 	static int getTimeZone(const CHAR* psz);
 	static bool isDigit(const CHAR* psz);
 

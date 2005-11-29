@@ -1081,9 +1081,7 @@ MacroValuePtr qm::MacroFunctionDate::value(MacroContext* pContext) const
 		ARG(pValue, 0);
 		wstring_ptr wstr(pValue->string());
 		string_ptr str(wcs2mbs(wstr.get()));
-		if (!DateParser::parse(str.get(), -1,
-			Part::isGlobalOption(Part::O_ALLOW_SINGLE_DIGIT_TIME),
-			Part::isGlobalOption(Part::O_ALLOW_DATE_WITH_RUBBISH), &time))
+		if (!DateParser::parse(str.get(), -1, DateParser::FLAG_ALLOWDEFAULT, &time))
 			time = Time::getCurrentTime();
 	}
 	else {
