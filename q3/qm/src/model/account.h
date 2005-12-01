@@ -61,6 +61,45 @@ struct AccountLess : public std::binary_function<Account*, Account*, bool>
 
 /****************************************************************************
  *
+ * AccountPasswordHelper
+ *
+ */
+
+class AccountPasswordHelper
+{
+public:
+	AccountPasswordHelper(PasswordManager* pPasswordManager,
+						  Account* pAccount);
+	AccountPasswordHelper(PasswordManager* pPasswordManager,
+						  Account* pAccount,
+						  SubAccount* pSubAccount);
+	~AccountPasswordHelper();
+
+public:
+	void remove() const;
+	void rename(Account* pAccount) const;
+	void rename(Account* pAccount,
+				SubAccount* pSubAccount) const;
+
+private:
+	void init(Account* pAccount,
+			  const Account::SubAccountList& l);
+
+private:
+	AccountPasswordHelper(const AccountPasswordHelper&);
+	AccountPasswordHelper& operator=(const AccountPasswordHelper&);
+
+private:
+	typedef std::vector<AccountPasswordCondition*> ConditionList;
+
+private:
+	PasswordManager* pPasswordManager_;
+	ConditionList listCondition_;
+};
+
+
+/****************************************************************************
+ *
  * RemoteFolderLess
  *
  */

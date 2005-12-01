@@ -206,18 +206,8 @@ void qm::Document::removeAccount(Account* pAccount)
 	AccountList::iterator it = std::find(l.begin(), l.end(), pAccount);
 	assert(it != l.end());
 	
-	Account::Host hosts[] = {
-		Account::HOST_SEND,
-		Account::HOST_RECEIVE
-	};
-	const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
-	for (Account::SubAccountList::const_iterator it = listSubAccount.begin(); it != listSubAccount.end(); ++it) {
-		SubAccount* pSubAccount = *it;
-		for (int n = 0; n < countof(hosts); ++n) {
-			AccountPasswordCondition condition(pAccount, pSubAccount, hosts[n]);
-			pImpl_->pPasswordManager_->removePassword(condition);
-		}
-	}
+	AccountPasswordHelper helper(pImpl_->pPasswordManager_, pAccount);
+	helper.remove();
 	
 	l.erase(it);
 	
@@ -239,20 +229,7 @@ bool qm::Document::renameAccount(Account* pAccount,
 	if (!pAccount->save(false))
 		return false;
 	
-	Account::Host hosts[] = {
-		Account::HOST_SEND,
-		Account::HOST_RECEIVE
-	};
-	const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
-	typedef std::vector<AccountPasswordCondition*> ConditionList;
-	ConditionList listCondition;
-	container_deleter<ConditionList> deleter(listCondition);
-	listCondition.reserve(listSubAccount.size()*countof(hosts));
-	for (Account::SubAccountList::const_iterator it = listSubAccount.begin(); it != listSubAccount.end(); ++it) {
-		SubAccount* pSubAccount = *it;
-		for (int n = 0; n < countof(hosts); ++n)
-			listCondition.push_back(new AccountPasswordCondition(pAccount, pSubAccount, hosts[n]));
-	}
+	AccountPasswordHelper helper(pImpl_->pPasswordManager_, pAccount);
 	
 	wstring_ptr wstrOldPath(allocWString(pAccount->getPath()));
 	
@@ -284,16 +261,7 @@ bool qm::Document::renameAccount(Account* pAccount,
 	l.insert(it, pNewAccount.get());
 	pAccount = pNewAccount.release();
 	
-	for (ConditionList::size_type n = 0; n < listCondition.size(); ++n) {
-		AccountPasswordCondition* pCondition = listCondition[n];
-		wstring_ptr wstrPassword(pImpl_->pPasswordManager_->getPassword(*pCondition, true, 0));
-		pImpl_->pPasswordManager_->removePassword(*pCondition);
-		if (wstrPassword.get()) {
-			SubAccount* pSubAccount = pAccount->getSubAccount(pCondition->getSubAccountName());
-			AccountPasswordCondition condition(pAccount, pSubAccount, pCondition->getHost());
-			pImpl_->pPasswordManager_->setPassword(condition, wstrPassword.get(), true);
-		}
-	}
+	helper.rename(pAccount);
 	
 	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_ADD, pAccount);
 	

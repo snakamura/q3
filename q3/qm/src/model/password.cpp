@@ -306,6 +306,9 @@ qm::AccountPasswordCondition::AccountPasswordCondition(Account* pAccount,
 													   Account::Host host) :
 	host_(host)
 {
+	assert(pAccount);
+	assert(pSubAccount);
+	
 	wstrAccountName_ = allocWString(pAccount->getName());
 	wstrSubAccountName_ = allocWString(pSubAccount->getName());
 	wstrUserName_ = allocWString(pSubAccount->getUserName(host));
