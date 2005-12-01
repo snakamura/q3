@@ -241,10 +241,6 @@ LRESULT qm::AccountDialog::onRemove()
 		TreeView_GetItem(hwnd, &item);
 		
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		Account::Host hosts[] = {
-			Account::HOST_RECEIVE,
-			Account::HOST_SEND
-		};
 		
 		if (TreeView_GetParent(hwnd, hItem)) {
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
@@ -257,28 +253,13 @@ LRESULT qm::AccountDialog::onRemove()
 			_snwprintf(wstrMessage.get(), nLen, wstrConfirm.get(), wstrName.get());
 			int nRet = messageBox(wstrMessage.get(), MB_YESNO | MB_DEFBUTTON2, getHandle());
 			if (nRet == IDYES) {
-				for (int n = 0; n < countof(hosts); ++n) {
-					AccountPasswordCondition condition(pAccount, pSubAccount, hosts[n]);
-					pPasswordManager_->removePassword(condition);
-				}
-				
 				pAccount->removeSubAccount(pSubAccount);
 				pSubAccount_ = pAccount->getCurrentSubAccount();
-				
 				update();
 			}
 		}
 		else {
 			Account* pAccount = reinterpret_cast<Account*>(item.lParam);
-			
-			const Account::SubAccountList& l = pAccount->getSubAccounts();
-			for (Account::SubAccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				SubAccount* pSubAccount = *it;
-				for (int n = 0; n < countof(hosts); ++n) {
-					AccountPasswordCondition condition(pAccount, pSubAccount, hosts[n]);
-					pPasswordManager_->removePassword(condition);
-				}
-			}
 			
 			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVEACCOUNT));
 			const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(pAccount->getName()) + 64;
@@ -303,13 +284,13 @@ LRESULT qm::AccountDialog::onRename()
 	
 	HTREEITEM hItem = TreeView_GetSelection(hwnd);
 	if (hItem) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		
 		TVITEM item = {
 			TVIF_HANDLE | TVIF_PARAM,
 			hItem
 		};
 		TreeView_GetItem(hwnd, &item);
+		
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		
 		if (TreeView_GetParent(hwnd, hItem)) {
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
@@ -321,10 +302,6 @@ LRESULT qm::AccountDialog::onRename()
 					messageBox(hInst, IDS_ERROR_RENAMESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 					return 0;
 				}
-				
-				// TODO
-				// PasswordManager
-				
 				update();
 			}
 		}
@@ -337,10 +314,6 @@ LRESULT qm::AccountDialog::onRename()
 					messageBox(hInst, IDS_ERROR_RENAMEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 					return 0;
 				}
-				
-				// TODO
-				// PasswordManager
-				
 				update();
 			}
 		}

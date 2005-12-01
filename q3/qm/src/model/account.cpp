@@ -1300,10 +1300,20 @@ void qm::Account::addSubAccount(std::auto_ptr<SubAccount> pSubAccount)
 
 void qm::Account::removeSubAccount(SubAccount* pSubAccount)
 {
+	assert(pSubAccount);
 	assert(*pSubAccount->getName());
 	assert(std::find(pImpl_->listSubAccount_.begin(),
 		pImpl_->listSubAccount_.end(), pSubAccount) !=
 		pImpl_->listSubAccount_.end());
+	
+	Host hosts[] = {
+		HOST_SEND,
+		HOST_RECEIVE
+	};
+	for (int n = 0; n < countof(hosts); ++n) {
+		AccountPasswordCondition condition(this, pSubAccount, hosts[n]);
+		pImpl_->pPasswordManager_->removePassword(condition);
+	}
 	
 	SubAccountList::iterator it = std::remove(pImpl_->listSubAccount_.begin(),
 		pImpl_->listSubAccount_.end(), pSubAccount);
@@ -1328,8 +1338,30 @@ bool qm::Account::renameSubAccount(SubAccount* pSubAccount,
 	if (getSubAccount(pwszName))
 		return false;
 	
+	Host hosts[] = {
+		HOST_SEND,
+		HOST_RECEIVE
+	};
+	typedef std::vector<AccountPasswordCondition*> ConditionList;
+	ConditionList listCondition;
+	container_deleter<ConditionList> deleter(listCondition);
+	listCondition.reserve(countof(hosts));
+	for (int n = 0; n < countof(hosts); ++n)
+		listCondition.push_back(new AccountPasswordCondition(this, pSubAccount, hosts[n]));
+	
 	if (!pSubAccount->setName(pwszName))
 		return false;
+	
+	for (ConditionList::size_type n = 0; n < listCondition.size(); ++n) {
+		AccountPasswordCondition* pCondition = listCondition[n];
+		wstring_ptr wstrPassword(pImpl_->pPasswordManager_->getPassword(*pCondition, true, 0));
+		pImpl_->pPasswordManager_->removePassword(*pCondition);
+		if (wstrPassword.get()) {
+			AccountPasswordCondition condition(this, pSubAccount, pCondition->getHost());
+			pImpl_->pPasswordManager_->setPassword(condition, wstrPassword.get(), true);
+		}
+	}
+	
 	pImpl_->fireSubAccountListChanged();
 	
 	return true;

@@ -150,6 +150,9 @@ public:
  *
  */
 
+#pragma warning(push)
+#pragma warning(disable:4251)
+
 class QMEXPORTCLASS AccountPasswordCondition : public PasswordCondition
 {
 public:
@@ -157,6 +160,11 @@ public:
 							 SubAccount* pSubAccount,
 							 Account::Host host);
 	virtual ~AccountPasswordCondition();
+
+public:
+	const WCHAR* getAccountName() const;
+	const WCHAR* getSubAccountName() const;
+	Account::Host getHost() const;
 
 public:
 	virtual std::auto_ptr<Password> createPassword(const WCHAR* pwszPassword,
@@ -171,10 +179,13 @@ private:
 	AccountPasswordCondition& operator=(const AccountPasswordCondition&);
 
 private:
-	Account* pAccount_;
-	SubAccount* pSubAccount_;
+	qs::wstring_ptr wstrAccountName_;
+	qs::wstring_ptr wstrSubAccountName_;
 	Account::Host host_;
+	qs::wstring_ptr wstrUserName_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************
@@ -188,6 +199,9 @@ class QMEXPORTCLASS FilePasswordCondition : public PasswordCondition
 public:
 	explicit FilePasswordCondition(const WCHAR* pwszPath);
 	virtual ~FilePasswordCondition();
+
+public:
+	const WCHAR* getPath() const;
 
 public:
 	virtual std::auto_ptr<Password> createPassword(const WCHAR* pwszPassword,
@@ -217,6 +231,9 @@ class QMEXPORTCLASS PGPPasswordCondition : public PasswordCondition
 public:
 	explicit PGPPasswordCondition(const WCHAR* pwszUserId);
 	virtual ~PGPPasswordCondition();
+
+public:
+	const WCHAR* getUserId() const;
 
 public:
 	virtual std::auto_ptr<Password> createPassword(const WCHAR* pwszPassword,

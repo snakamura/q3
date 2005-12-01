@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qsfile.h>
 #include <qstextutil.h>
 #include <qsthread.h>
@@ -302,21 +304,37 @@ bool qm::AccountPassword::visit(const PasswordVisitor& visitor) const
 qm::AccountPasswordCondition::AccountPasswordCondition(Account* pAccount,
 													   SubAccount* pSubAccount,
 													   Account::Host host) :
-	pAccount_(pAccount),
-	pSubAccount_(pSubAccount),
 	host_(host)
 {
+	wstrAccountName_ = allocWString(pAccount->getName());
+	wstrSubAccountName_ = allocWString(pSubAccount->getName());
+	wstrUserName_ = allocWString(pSubAccount->getUserName(host));
 }
 
 qm::AccountPasswordCondition::~AccountPasswordCondition()
 {
 }
 
+const WCHAR* qm::AccountPasswordCondition::getAccountName() const
+{
+	return wstrAccountName_.get();
+}
+
+const WCHAR* qm::AccountPasswordCondition::getSubAccountName() const
+{
+	return wstrSubAccountName_.get();
+}
+
+Account::Host qm::AccountPasswordCondition::getHost() const
+{
+	return host_;
+}
+
 std::auto_ptr<Password> qm::AccountPasswordCondition::createPassword(const WCHAR* pwszPassword,
 																	 bool bPermanent) const
 {
-	return std::auto_ptr<Password>(new AccountPassword(pAccount_->getName(),
-		pSubAccount_->getName(), host_, pwszPassword, bPermanent));
+	return std::auto_ptr<Password>(new AccountPassword(wstrAccountName_.get(),
+		wstrSubAccountName_.get(), host_, pwszPassword, bPermanent));
 }
 
 wstring_ptr qm::AccountPasswordCondition::getHint() const
@@ -324,13 +342,13 @@ wstring_ptr qm::AccountPasswordCondition::getHint() const
 	StringBuffer<WSTRING> buf;
 	
 	buf.append(L'[');
-	buf.append(pAccount_->getName());
-	if (*pSubAccount_->getName()) {
+	buf.append(wstrAccountName_.get());
+	if (*wstrSubAccountName_.get()) {
 		buf.append(L'/');
-		buf.append(pSubAccount_->getName());
+		buf.append(wstrSubAccountName_.get());
 	}
 	buf.append(L"] ");
-	buf.append(pSubAccount_->getUserName(host_));
+	buf.append(wstrUserName_.get());
 	
 	return buf.getString();
 }
@@ -338,8 +356,8 @@ wstring_ptr qm::AccountPasswordCondition::getHint() const
 bool qm::AccountPasswordCondition::visit(const AccountPassword& password) const
 {
 	return password.getHost() == host_ &&
-		wcscmp(password.getAccount(), pAccount_->getName()) == 0 &&
-		wcscmp(password.getSubAccount(), pSubAccount_->getName()) == 0;
+		wcscmp(password.getAccount(), wstrAccountName_.get()) == 0 &&
+		wcscmp(password.getSubAccount(), wstrSubAccountName_.get()) == 0;
 }
 
 
@@ -385,6 +403,11 @@ qm::FilePasswordCondition::FilePasswordCondition(const WCHAR* pwszPath) :
 
 qm::FilePasswordCondition::~FilePasswordCondition()
 {
+}
+
+const WCHAR* qm::FilePasswordCondition::getPath() const
+{
+	return pwszPath_;
 }
 
 std::auto_ptr<Password> qm::FilePasswordCondition::createPassword(const WCHAR* pwszPassword,
@@ -446,6 +469,11 @@ qm::PGPPasswordCondition::PGPPasswordCondition(const WCHAR* pwszUserId) :
 
 qm::PGPPasswordCondition::~PGPPasswordCondition()
 {
+}
+
+const WCHAR* qm::PGPPasswordCondition::getUserId() const
+{
+	return pwszUserId_;
 }
 
 std::auto_ptr<Password> qm::PGPPasswordCondition::createPassword(const WCHAR* pwszPassword,

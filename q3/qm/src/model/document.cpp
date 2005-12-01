@@ -12,6 +12,7 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfilenames.h>
+#include <qmpassword.h>
 #include <qmrecents.h>
 #include <qmsecurity.h>
 #include <qmjunk.h>
@@ -205,6 +206,19 @@ void qm::Document::removeAccount(Account* pAccount)
 	AccountList::iterator it = std::find(l.begin(), l.end(), pAccount);
 	assert(it != l.end());
 	
+	Account::Host hosts[] = {
+		Account::HOST_SEND,
+		Account::HOST_RECEIVE
+	};
+	const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
+	for (Account::SubAccountList::const_iterator it = listSubAccount.begin(); it != listSubAccount.end(); ++it) {
+		SubAccount* pSubAccount = *it;
+		for (int n = 0; n < countof(hosts); ++n) {
+			AccountPasswordCondition condition(pAccount, pSubAccount, hosts[n]);
+			pImpl_->pPasswordManager_->removePassword(condition);
+		}
+	}
+	
 	l.erase(it);
 	
 	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_REMOVE, pAccount);
@@ -224,6 +238,21 @@ bool qm::Document::renameAccount(Account* pAccount,
 	
 	if (!pAccount->save(false))
 		return false;
+	
+	Account::Host hosts[] = {
+		Account::HOST_SEND,
+		Account::HOST_RECEIVE
+	};
+	const Account::SubAccountList& listSubAccount = pAccount->getSubAccounts();
+	typedef std::vector<AccountPasswordCondition*> ConditionList;
+	ConditionList listCondition;
+	container_deleter<ConditionList> deleter(listCondition);
+	listCondition.reserve(listSubAccount.size()*countof(hosts));
+	for (Account::SubAccountList::const_iterator it = listSubAccount.begin(); it != listSubAccount.end(); ++it) {
+		SubAccount* pSubAccount = *it;
+		for (int n = 0; n < countof(hosts); ++n)
+			listCondition.push_back(new AccountPasswordCondition(pAccount, pSubAccount, hosts[n]));
+	}
 	
 	wstring_ptr wstrOldPath(allocWString(pAccount->getPath()));
 	
@@ -254,6 +283,17 @@ bool qm::Document::renameAccount(Account* pAccount,
 	it = std::lower_bound(l.begin(), l.end(), pNewAccount.get(), AccountLess());
 	l.insert(it, pNewAccount.get());
 	pAccount = pNewAccount.release();
+	
+	for (ConditionList::size_type n = 0; n < listCondition.size(); ++n) {
+		AccountPasswordCondition* pCondition = listCondition[n];
+		wstring_ptr wstrPassword(pImpl_->pPasswordManager_->getPassword(*pCondition, true, 0));
+		pImpl_->pPasswordManager_->removePassword(*pCondition);
+		if (wstrPassword.get()) {
+			SubAccount* pSubAccount = pAccount->getSubAccount(pCondition->getSubAccountName());
+			AccountPasswordCondition condition(pAccount, pSubAccount, pCondition->getHost());
+			pImpl_->pPasswordManager_->setPassword(condition, wstrPassword.get(), true);
+		}
+	}
 	
 	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_ADD, pAccount);
 	
