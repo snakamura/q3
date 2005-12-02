@@ -77,6 +77,7 @@ BEGIN
     IDS_ERROR_RCPT          "Error occured while RCPT command."
     IDS_ERROR_DATA          "Error occured while DATA command."
     IDS_ERROR_STARTTLS      "Error occured while STARTTLS command."
+    IDS_ERROR_RSET          "Error occured while REST command."
 END
 
 STRINGTABLE DISCARDABLE 

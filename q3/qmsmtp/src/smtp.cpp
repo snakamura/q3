@@ -247,9 +247,13 @@ bool qmsmtp::Smtp::sendMessage(const SendMessageData& data)
 	assert(data.nAddressSize_ != 0);
 	assert(data.pszMessage_);
 	
-	string_ptr strCommand(concat("MAIL FROM: <", data.pszEnvelopeFrom_, ">\r\n"));
-	
 	unsigned int nCode = 0;
+	if (!sendCommand("RSET\r\n", &nCode))
+		SMTP_ERROR_OR(SMTP_ERROR_RSET);
+	else if (nCode != 2)
+		SMTP_ERROR(SMTP_ERROR_RSET | SMTP_ERROR_RESPONSE);
+	
+	string_ptr strCommand(concat("MAIL FROM: <", data.pszEnvelopeFrom_, ">\r\n"));
 	if (!sendCommand(strCommand.get(), &nCode))
 		SMTP_ERROR_OR(SMTP_ERROR_MAIL);
 	else if (nCode != 2)

@@ -79,6 +79,7 @@ BEGIN
     IDS_ERROR_RCPT          "RCPTコマンドでエラーが発生しました"
     IDS_ERROR_DATA          "DATAコマンドでエラーが発生しました"
     IDS_ERROR_STARTTLS      "STARTTLSコマンドでエラーが発生しました"
+    IDS_ERROR_RSET          "RESTコマンドでエラーが発生しました"
 END
 
 STRINGTABLE DISCARDABLE 

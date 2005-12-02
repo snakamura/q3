@@ -18,6 +18,7 @@
 #define IDS_ERROR_RCPT                  11005
 #define IDS_ERROR_DATA                  11006
 #define IDS_ERROR_STARTTLS              11007
+#define IDS_ERROR_RSET                  11008
 #define IDS_ERROR_INITIALIZE            12000
 #define IDS_ERROR_CONNECT               12001
 #define IDS_ERROR_RESPONSE              12002
