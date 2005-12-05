@@ -56,6 +56,7 @@ extern "C" {
 
 #define VL_DOVER       VST_DOVER
 #define VL_DKEEP       VST_DKEEP
+#define VL_DCAT        VST_DCAT
 #define VL_DDUP        VST_DDUP
 
 #define VL_JFORWARD    VST_JFORWARD
@@ -66,6 +67,7 @@ extern "C" {
 #define vlput          vstput
 #define vlout          vstout
 #define vlget          vstget
+#define vlvsiz         vstvsiz
 #define vlvnum         vstvnum
 #define vlputlist      vstputlist
 #define vloutlist      vstoutlist
@@ -97,6 +99,9 @@ extern "C" {
 #define vlrepair       vstrepair
 #define vlexportdb     vstexportdb
 #define vlimportdb     vstimportdb
+#define vlgetcache     vstgetcache
+#define vlcurkeycache  vstcurkeycache
+#define vlcurvalcache  vstcurvalcache
 
 #ifndef _VISTA_C
 #include <villa.h>

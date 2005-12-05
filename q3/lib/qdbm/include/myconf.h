@@ -223,6 +223,12 @@ extern "C" {
   open(pathname, flags, mode) \
   open(pathname, flags | O_BINARY, mode)
 
+#define \
+  lstat(pathname, buf) \
+  _qdbm_win32_lstat(pathname, buf)
+
+int _qdbm_win32_lstat(const char *pathname, struct stat *buf);
+
 #else
 
 #undef O_BINARY

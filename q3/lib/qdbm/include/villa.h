@@ -112,8 +112,9 @@ enum {                                   /* enumeration for open modes */
 };
 
 enum {                                   /* enumeration for write modes */
-  VL_DOVER,                              /* overwrite an existing value */
-  VL_DKEEP,                              /* keep an existing value */
+  VL_DOVER,                              /* overwrite the existing value */
+  VL_DKEEP,                              /* keep the existing value */
+  VL_DCAT,                               /* concatenate values */
   VL_DDUP                                /* allow duplication of records */
 };
 
@@ -165,7 +166,8 @@ int vlclose(VILLA *villa);
    assigned with `strlen(vbuf)'.
    `dmode' specifies behavior when the key overlaps, by the following values: `VL_DOVER',
    which means the specified value overwrites the existing one, `VL_DKEEP', which means the
-   existing value is kept, `VL_DDUP', which means duplication of keys is allowed.
+   existing value is kept, `VL_DCAT', which means the specified value is concatenated at the
+   end of the existing value, `VL_DDUP', which means duplication of keys is allowed.
    If successful, the return value is true, else, it is false.
    A duplicated record is stored at the tail of the records of the same key.  The cursor becomes
    unavailable due to updating database. */
@@ -200,6 +202,16 @@ int vlout(VILLA *villa, const char *kbuf, int ksiz);
    the return value is allocated with the `malloc' call, it should be released with the `free'
    call if it is no longer in use. */
 char *vlget(VILLA *villa, const char *kbuf, int ksiz, int *sp);
+
+
+/* Get the size of the value of a record.
+   `villa' specifies a database handle.
+   `kbuf' specifies the pointer to the region of a key.
+   `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
+   with `strlen(kbuf)'.
+   If successful, the return value is the size of the value of the corresponding record, else,
+   it is -1.  If multiple records correspond, the size of the first is returned. */
+int vlvsiz(VILLA *villa, const char *kbuf, int ksiz);
 
 
 /* Get the number of records corresponding a key.
@@ -475,6 +487,52 @@ int vlexportdb(VILLA *villa, const char *name);
    `name' specifies the name of an input file.
    If successful, the return value is true, else, it is false. */
 int vlimportdb(VILLA *villa, const char *name);
+
+
+
+/*************************************************************************************************
+ * features for experts
+ *************************************************************************************************/
+
+
+/* Refer to volatile cache of a value of a record.
+   `villa' specifies a database handle.
+   `kbuf' specifies the pointer to the region of a key.
+   `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
+   with `strlen(kbuf)'.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the value of the
+   corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to
+   the specified key.
+   Because the region of the return value is volatile and it may be spoiled by another operation
+   of the database, the data should be copied into another involatile buffer immediately. */
+const char *vlgetcache(VILLA *villa, const char *kbuf, int ksiz, int *sp);
+
+
+/* Refer to volatile cache of the key of the record where the cursor is.
+   `villa' specifies a database handle.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the key of the corresponding
+   record, else, it is `NULL'.  `NULL' is returned when no record corresponds to the cursor.
+   Because the region of the return value is volatile and it may be spoiled by another operation
+   of the database, the data should be copied into another involatile buffer immediately. */
+const char *vlcurkeycache(VILLA *villa, int *sp);
+
+
+/* Refer to volatile cache of the value of the record where the cursor is.
+   `villa' specifies a database handle.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the value of the
+   corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to
+   the cursor.
+   Because an additional zero code is appended at the end of the region of the
+   return value, the return value can be treated as a character string.  Because the region of
+   the return value is allocated with the `malloc' call, it should be released with the `free'
+   call if it is no longer in use. */
+const char *vlcurvalcache(VILLA *villa, int *sp);
 
 
 

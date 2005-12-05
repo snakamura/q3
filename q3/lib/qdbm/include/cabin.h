@@ -1077,6 +1077,20 @@ void cbstdiobin(void);
 void *cbmyfatal(const char *message);
 
 
+/* Create a datum handle from an allocated region.
+   `ptr' specifies the pointer to the region of an element.  The region should be allocated with
+   malloc and it is released by the function.
+   `size' specifies the size of the region. */
+CBDATUM *cbdatumopenbuf(char *ptr, int size);
+
+
+/* Set a buffer to a datum handle.
+   `ptr' specifies the pointer to the region of an element.  The region should be allocated with
+   malloc and it is released by the function.
+   `size' specifies the size of the region. */
+void cbdatumsetbuf(CBDATUM *datum, char *ptr, int size);
+
+
 /* Add an allocated element at the end of a list.
    `list' specifies a list handle.
    `ptr' specifies the pointer to the region of an element.  The region should be allocated with
