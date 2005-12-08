@@ -116,6 +116,7 @@ public:
 	Rule(std::auto_ptr<Macro> pCondition,
 		 std::auto_ptr<RuleAction> pAction,
 		 unsigned int nUse,
+		 bool bContinue,
 		 const WCHAR* pwszDescription);
 	Rule(const Rule& rule);
 	virtual ~Rule();
@@ -128,11 +129,14 @@ public:
 	bool isUse(Use use) const;
 	unsigned int getUse() const;
 	void setUse(unsigned int nUse);
+	bool isContinue() const;
+	void setContinue(bool bContinue);
 	const WCHAR* getDescription() const;
 	void setDescription(const WCHAR* pwszDescription);
 	bool match(MacroContext* pContext) const;
 	bool apply(const RuleContext& context) const;
 	bool isMessageDestroyed() const;
+	bool isContinuable() const;
 
 private:
 	Rule& operator=(const Rule&);
@@ -141,6 +145,7 @@ private:
 	std::auto_ptr<Macro> pCondition_;
 	std::auto_ptr<RuleAction> pAction_;
 	unsigned int nUse_;
+	bool bContinue_;
 	qs::wstring_ptr wstrDescription_;
 };
 
@@ -509,6 +514,7 @@ private:
 	qs::wstring_ptr wstrTemplateArgumentName_;
 	std::auto_ptr<Macro> pCondition_;
 	unsigned int nUse_;
+	bool bContinue_;
 	qs::wstring_ptr wstrDescription_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };

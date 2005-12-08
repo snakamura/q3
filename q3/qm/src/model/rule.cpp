@@ -211,7 +211,9 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 					ll[nRule].push_back(nMessage);
 					++nMatch;
 					log.debugf(L"Id=%u matches rule=%u.", pmh->getId(), nRule);
-					break;
+					
+					if (!pRule->isContinue() || !pRule->isContinuable())
+						break;
 				}
 			}
 		}
@@ -279,7 +281,7 @@ std::auto_ptr<Rule> RuleManagerImpl::createJunkRule(Account* pAccount)
 		L"@And(@Not(@Deleted()), @Junk(@Seen()))" : L"@Junk()";
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(pwszCondition));
 	std::auto_ptr<RuleAction> pAction(new CopyRuleAction(0, wstrJunk.get(), true));
-	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO, 0));
+	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO, false, 0));
 }
 
 
@@ -661,7 +663,8 @@ void qm::RuleSet::clear()
  */
 
 qm::Rule::Rule() :
-	nUse_(USE_MANUAL | USE_AUTO)
+	nUse_(USE_MANUAL | USE_AUTO),
+	bContinue_(false)
 {
 	pAction_.reset(new NoneRuleAction());
 }
@@ -669,17 +672,20 @@ qm::Rule::Rule() :
 qm::Rule::Rule(std::auto_ptr<Macro> pCondition,
 			   std::auto_ptr<RuleAction> pAction,
 			   unsigned int nUse,
+			   bool bContinue,
 			   const WCHAR* pwszDescription) :
 	pCondition_(pCondition),
 	pAction_(pAction),
-	nUse_(nUse)
+	nUse_(nUse),
+	bContinue_(bContinue)
 {
 	if (pwszDescription)
 		wstrDescription_ = allocWString(pwszDescription);
 }
 
 qm::Rule::Rule(const Rule& rule) :
-	nUse_(rule.nUse_)
+	nUse_(rule.nUse_),
+	bContinue_(rule.bContinue_)
 {
 	wstring_ptr wstrCondition(rule.pCondition_->getString());
 	pCondition_ = MacroParser().parse(wstrCondition.get());
@@ -728,6 +734,16 @@ void qm::Rule::setUse(unsigned int nUse)
 	nUse_ = nUse;
 }
 
+bool qm::Rule::isContinue() const
+{
+	return bContinue_;
+}
+
+void qm::Rule::setContinue(bool bContinue)
+{
+	bContinue_ = bContinue;
+}
+
 const WCHAR* qm::Rule::getDescription() const
 {
 	return wstrDescription_.get();
@@ -755,6 +771,11 @@ bool qm::Rule::apply(const RuleContext& context) const
 bool qm::Rule::isMessageDestroyed() const
 {
 	return (pAction_->getFlags() & RuleAction::FLAG_MESSAGEDESTROYED) != 0;
+}
+
+bool qm::Rule::isContinuable() const
+{
+	return (pAction_->getFlags() & RuleAction::FLAG_CONTINUABLE) != 0;
 }
 
 
@@ -1385,7 +1406,8 @@ qm::RuleContentHandler::RuleContentHandler(RuleManager* pManager) :
 	state_(STATE_ROOT),
 	pCurrentRuleSet_(0),
 	pCurrentCopyRuleAction_(0),
-	nUse_(0)
+	nUse_(0),
+	bContinue_(false)
 {
 }
 
@@ -1449,6 +1471,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		const WCHAR* pwszMatch = 0;
 		const WCHAR* pwszUse = 0;
+		const WCHAR* pwszContinue = 0;
 		const WCHAR* pwszDescription = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
@@ -1456,6 +1479,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				pwszMatch = attributes.getValue(n);
 			else if (wcscmp(pwszAttrName, L"use") == 0)
 				pwszUse = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"continue") == 0)
+				pwszContinue = attributes.getValue(n);
 			else if (wcscmp(pwszAttrName, L"description") == 0)
 				pwszDescription = attributes.getValue(n);
 			else
@@ -1479,6 +1504,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		else {
 			nUse_ = Rule::USE_MANUAL | Rule::USE_AUTO;
 		}
+		
+		bContinue_ = pwszContinue && wcscmp(pwszContinue, L"true") == 0;
 		
 		if (pwszDescription)
 			wstrDescription_ = allocWString(pwszDescription);
@@ -1511,7 +1538,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		assert(!pCurrentCopyRuleAction_);
 		pCurrentCopyRuleAction_ = static_cast<CopyRuleAction*>(pAction.get());
 		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, wstrDescription_.get()));
+			pAction, nUse_, bContinue_, wstrDescription_.get()));
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
@@ -1573,7 +1600,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		std::auto_ptr<RuleAction> pAction(new DeleteRuleAction(bDirect));
 		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, wstrDescription_.get()));
+			pAction, nUse_, bContinue_, wstrDescription_.get()));
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
@@ -1612,7 +1639,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		std::auto_ptr<RuleAction> pAction(new LabelRuleAction(type, pwszLabel));
 		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, wstrDescription_.get()));
+			pAction, nUse_, bContinue_, wstrDescription_.get()));
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
@@ -1625,7 +1652,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		std::auto_ptr<RuleAction> pAction(new DeleteCacheRuleAction());
 		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, wstrDescription_.get()));
+			pAction, nUse_, bContinue_, wstrDescription_.get()));
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
@@ -1653,7 +1680,7 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		std::auto_ptr<RuleAction> pAction(new ApplyRuleAction(pMacroApply));
 		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, wstrDescription_.get()));
+			pAction, nUse_, bContinue_, wstrDescription_.get()));
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
@@ -1686,7 +1713,7 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		if (pCondition_.get()) {
 			std::auto_ptr<RuleAction> pAction(new NoneRuleAction());
 			std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-				pAction, nUse_, wstrDescription_.get()));
+				pAction, nUse_, bContinue_, wstrDescription_.get()));
 			wstrDescription_.reset(0);
 			pCurrentRuleSet_->addRule(pRule);
 		}
@@ -1832,11 +1859,13 @@ bool qm::RuleWriter::write(const Rule* pRule)
 			bufUse.append(L"auto");
 		}
 	}
+	bool bContinue = pRule->isContinue();
 	const WCHAR* pwszDescription = pRule->getDescription();
 	const SimpleAttributes::Item items[] = {
-		{ L"match",			wstrCondition.get(),	false					},
-		{ L"use",			bufUse.getCharArray(),	bufUse.getLength() == 0	},
-		{ L"description",	pwszDescription,		!pwszDescription		}
+		{ L"match",			wstrCondition.get(),			false					},
+		{ L"use",			bufUse.getCharArray(),			bufUse.getLength() == 0	},
+		{ L"continue",		bContinue ? L"true" : L"false",	!bContinue				},
+		{ L"description",	pwszDescription,				!pwszDescription		}
 	};
 	SimpleAttributes attrs(items, countof(items));
 	if (!handler_.startElement(0, 0, L"rule", attrs))
