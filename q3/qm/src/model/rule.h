@@ -163,6 +163,12 @@ public:
 		TYPE_DELETECACHE,
 		TYPE_APPLY
 	};
+	
+	enum Flag {
+		FLAG_NONE				= 0x00,
+		FLAG_MESSAGEDESTROYED	= 0x01,
+		FLAG_CONTINUABLE		= 0x02
+	};
 
 public:
 	virtual ~RuleAction();
@@ -170,7 +176,7 @@ public:
 public:
 	virtual Type getType() const = 0;
 	virtual bool apply(const RuleContext& context) const = 0;
-	virtual bool isMessageDestroyed() const = 0;
+	virtual unsigned int getFlags() const = 0;
 	virtual qs::wstring_ptr getDescription() const = 0;
 	virtual std::auto_ptr<RuleAction> clone() const = 0;
 };
@@ -191,7 +197,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
-	virtual bool isMessageDestroyed() const;
+	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
@@ -232,7 +238,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
-	virtual bool isMessageDestroyed() const;
+	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
@@ -280,7 +286,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
-	virtual bool isMessageDestroyed() const;
+	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
@@ -324,7 +330,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
-	virtual bool isMessageDestroyed() const;
+	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
@@ -357,7 +363,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
-	virtual bool isMessageDestroyed() const;
+	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 
@@ -389,7 +395,7 @@ public:
 public:
 	virtual Type getType() const;
 	virtual bool apply(const RuleContext& context) const;
-	virtual bool isMessageDestroyed() const;
+	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
 

@@ -754,7 +754,7 @@ bool qm::Rule::apply(const RuleContext& context) const
 
 bool qm::Rule::isMessageDestroyed() const
 {
-	return pAction_->isMessageDestroyed();
+	return (pAction_->getFlags() & RuleAction::FLAG_MESSAGEDESTROYED) != 0;
 }
 
 
@@ -793,9 +793,9 @@ bool qm::NoneRuleAction::apply(const RuleContext& context) const
 	return true;
 }
 
-bool qm::NoneRuleAction::isMessageDestroyed() const
+unsigned int qm::NoneRuleAction::getFlags() const
 {
-	return false;
+	return FLAG_CONTINUABLE;
 }
 
 wstring_ptr qm::NoneRuleAction::getDescription() const
@@ -951,9 +951,9 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 	}
 }
 
-bool qm::CopyRuleAction::isMessageDestroyed() const
+unsigned int qm::CopyRuleAction::getFlags() const
 {
-	return false;
+	return FLAG_NONE;
 }
 
 wstring_ptr qm::CopyRuleAction::getDescription() const
@@ -1047,9 +1047,9 @@ wstring_ptr qm::DeleteRuleAction::getDescription() const
 		bDirect_ ? IDS_RULEACTION_DELETEDIRECT : IDS_RULEACTION_DELETE);
 }
 
-bool qm::DeleteRuleAction::isMessageDestroyed() const
+unsigned int qm::DeleteRuleAction::getFlags() const
 {
-	return bDirect_;
+	return bDirect_ ? FLAG_MESSAGEDESTROYED : FLAG_NONE;
 }
 
 std::auto_ptr<RuleAction> qm::DeleteRuleAction::clone() const
@@ -1159,9 +1159,9 @@ wstring_ptr qm::LabelRuleAction::getDescription() const
 	return MessageFormat::format(wstrTemplate.get(), wstrLabel_.get(), szType);
 }
 
-bool qm::LabelRuleAction::isMessageDestroyed() const
+unsigned int qm::LabelRuleAction::getFlags() const
 {
-	return false;
+	return FLAG_CONTINUABLE;
 }
 
 std::auto_ptr<RuleAction> qm::LabelRuleAction::clone() const
@@ -1205,9 +1205,9 @@ wstring_ptr qm::DeleteCacheRuleAction::getDescription() const
 		IDS_RULEACTION_DELETECACHE);
 }
 
-bool qm::DeleteCacheRuleAction::isMessageDestroyed() const
+unsigned int qm::DeleteCacheRuleAction::getFlags() const
 {
-	return false;
+	return FLAG_CONTINUABLE;
 }
 
 std::auto_ptr<RuleAction> qm::DeleteCacheRuleAction::clone() const
@@ -1271,9 +1271,9 @@ wstring_ptr qm::ApplyRuleAction::getDescription() const
 	return MessageFormat::format(wstrTemplate.get(), wstrMacro.get());
 }
 
-bool qm::ApplyRuleAction::isMessageDestroyed() const
+unsigned int qm::ApplyRuleAction::getFlags() const
 {
-	return false;
+	return FLAG_CONTINUABLE;
 }
 
 std::auto_ptr<RuleAction> qm::ApplyRuleAction::clone() const
