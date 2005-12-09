@@ -4251,7 +4251,7 @@ MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 	
 	LOG(Script);
 	
-	if (!checkArgSizeMin(pContext, 3))
+	if (!checkArgSizeMin(pContext, 2))
 		return MacroValuePtr();
 	
 	size_t nSize = getArgSize();
