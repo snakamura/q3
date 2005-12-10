@@ -1005,13 +1005,15 @@ BEGIN
     LTEXT           "タイプ(&Y)",IDC_LABELTYPELABEL,5,62,40,8
     COMBOBOX        IDC_LABELTYPE,45,60,50,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "使用",IDC_STATIC,5,90,15,8
+    CONTROL         "次のルールも適用(&R)",IDC_CONTINUE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,95,127,10
+    LTEXT           "使用",IDC_STATIC,5,107,15,8
     CONTROL         "手動(&M)",IDC_MANUAL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,45,90,40,10
+                    WS_TABSTOP,45,107,40,10
     CONTROL         "自動(&U)",IDC_AUTO,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,90,90,35,10
-    LTEXT           "説明(&D)",IDC_STATIC,5,105,40,8
-    EDITTEXT        IDC_DESCRIPTION,5,115,127,12,ES_AUTOHSCROLL
+                    WS_TABSTOP,90,107,35,10
+    LTEXT           "説明(&D)",IDC_STATIC,5,122,25,8
+    EDITTEXT        IDC_DESCRIPTION,35,120,97,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,27,135,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,82,135,50,12
 END

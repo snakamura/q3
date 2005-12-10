@@ -2793,6 +2793,8 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	}
 	ComboBox_SetCurSel(getDlgItem(IDC_ACTION), type);
 	
+	Button_SetCheck(getDlgItem(IDC_CONTINUE), pRule_->isContinue() ? BST_CHECKED : BST_UNCHECKED);
+	
 	unsigned int nUse = pRule_->getUse();
 	Button_SetCheck(getDlgItem(IDC_MANUAL), nUse & Rule::USE_MANUAL ? BST_CHECKED : BST_UNCHECKED);
 	Button_SetCheck(getDlgItem(IDC_AUTO), nUse & Rule::USE_AUTO ? BST_CHECKED : BST_UNCHECKED);
@@ -2880,6 +2882,8 @@ LRESULT qm::RuleDialog::onOk()
 		break;
 	}
 	
+	bool bContinue = Button_GetCheck(getDlgItem(IDC_CONTINUE)) == BST_CHECKED;
+	
 	unsigned int nUse = 0;
 	if (Button_GetCheck(getDlgItem(IDC_MANUAL)) == BST_CHECKED)
 		nUse |= Rule::USE_MANUAL;
@@ -2890,6 +2894,7 @@ LRESULT qm::RuleDialog::onOk()
 	
 	pRule_->setCondition(pCondition);
 	pRule_->setAction(pAction);
+	pRule_->setContinue(bContinue);
 	pRule_->setUse(nUse);
 	pRule_->setDescription(wstrDescription.get());
 	
@@ -2986,6 +2991,7 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 	int nStart = 0;
 	int nEnd = 0;
 	bool bEnable = true;
+	bool bEnableContinue = true;
 	switch (ComboBox_GetCurSel(getDlgItem(IDC_ACTION))) {
 	case RuleAction::TYPE_NONE:
 		break;
@@ -2994,10 +3000,12 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 		nStart = 0;
 		nEnd = 5;
 		bEnable = Window(getDlgItem(IDC_FOLDER)).getWindowTextLength() != 0;
+		bEnableContinue = false;
 		break;
 	case RuleAction::TYPE_DELETE:
 		nStart = 5;
 		nEnd = 6;
+		bEnableContinue = false;
 		break;
 	case RuleAction::TYPE_LABEL:
 		nStart = 6;
@@ -3021,7 +3029,7 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 	
 	Window(getDlgItem(IDOK)).enableWindow(
 		bEnable && Window(getDlgItem(IDC_CONDITION)).getWindowTextLength() != 0);
-		
+	Window(getDlgItem(IDC_CONTINUE)).enableWindow(bEnableContinue);
 	
 	if (bUpdateFolder) {
 		Account* pAccount = 0;
