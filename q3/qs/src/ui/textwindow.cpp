@@ -52,9 +52,8 @@ public:
 	
 	enum {
 		TIMER_DRAGSCROLL	= 1000,
-		DRAGSCROLL_BORDER	= 30,
 		DRAGSCROLL_DELAY	= 300,
-		DRAGSCROLL_INTERVAL	= 50
+		DRAGSCROLL_INTERVAL	= 100
 	};
 	
 	enum InsertTextFlag {
@@ -3696,7 +3695,7 @@ LRESULT qs::TextWindow::onMouseMove(UINT nFlags,
 	if (getCapture()) {
 		if (pt.x != pImpl_->ptLastButtonDown_.x ||
 			pt.y != pImpl_->ptLastButtonDown_.y)
-			pImpl_->updateSelection(pt, true);
+			pImpl_->updateSelection(pt, false);
 	}
 	
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
@@ -3989,22 +3988,22 @@ LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 #endif
 		
 		RECT rect;
-		pImpl_->getClientRectWithoutMargin(&rect);
+		getClientRect(&rect);
 		
 		bool bScroll = false;
-		if (pt.y < TextWindowImpl::DRAGSCROLL_BORDER) {
-			scroll(SCROLL_LINEUP, 0, pt.y < 0);
+		if (pt.y < rect.top + pImpl_->nMarginTop_) {
+			scroll(SCROLL_LINEUP, 0, pt.y < rect.top);
 			bScroll = true;
 		}
-		else if (pt.y > rect.bottom - TextWindowImpl::DRAGSCROLL_BORDER) {
+		else if (pt.y > rect.bottom - pImpl_->nMarginBottom_) {
 			scroll(SCROLL_LINEDOWN, 0, pt.y > rect.bottom);
 			bScroll = true;
 		}
-		if (pt.x < TextWindowImpl::DRAGSCROLL_BORDER) {
-			scroll(SCROLL_CHARLEFT, 0, pt.x < 0);
+		if (pt.x < rect.left + pImpl_->nMarginLeft_) {
+			scroll(SCROLL_CHARLEFT, 0, pt.x < rect.left);
 			bScroll = true;
 		}
-		else if (pt.x > rect.right - TextWindowImpl::DRAGSCROLL_BORDER) {
+		else if (pt.x > rect.right - pImpl_->nMarginRight_) {
 			scroll(SCROLL_CHARRIGHT, 0, pt.x > rect.right);
 			bScroll = true;
 		}
