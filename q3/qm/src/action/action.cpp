@@ -4961,7 +4961,10 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 		return;
 	AddressParser* pFrom = from.getAddressList().front();
 	
-	AddAddressDialog dialog(pAddressBook_);
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::ADDRESSBOOK_XML));
+	std::auto_ptr<AddressBook> pAddressBook(new AddressBook(wstrPath.get(), 0, false));
+	
+	AddAddressDialog dialog(pAddressBook.get());
 	if (dialog.doModal(hwnd_) != IDOK)
 		return;
 	
@@ -4979,11 +4982,11 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 				wstrAddress.get(), 0, AddressBookAddress::CategoryList(), 0, 0, false));
 			pEntry->addAddress(pAddress);
 			
-			AddressBookEntryDialog dialog(pAddressBook_, pEntry.get());
+			AddressBookEntryDialog dialog(pAddressBook.get(), pEntry.get());
 			if (dialog.doModal(hwnd_) != IDOK)
 				return;
 			
-			pAddressBook_->addEntry(pEntry);
+			pAddressBook->addEntry(pEntry);
 		}
 		break;
 	case AddAddressDialog::TYPE_NEWADDRESS:
@@ -4992,7 +4995,7 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 			std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(pEntry,
 				wstrAddress.get(), 0, AddressBookAddress::CategoryList(), 0, 0, false));
 			
-			AddressBookAddressDialog dialog(pAddressBook_, pAddress.get());
+			AddressBookAddressDialog dialog(pAddressBook.get(), pAddress.get());
 			if (dialog.doModal(hwnd_) != IDOK)
 				return;
 			
@@ -5004,9 +5007,11 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 		break;
 	}
 	
-	if (!pAddressBook_->save()) {
+	if (!pAddressBook->save()) {
 		// TODO
 	}
+	
+	pAddressBook_->reload();
 }
 
 bool qm::ToolAddAddressAction::isEnabled(const ActionEvent& event)
