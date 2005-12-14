@@ -78,6 +78,7 @@ class MacroExpr;
 		class MacroFunctionLabel;
 		class MacroFunctionLength;
 		class MacroFunctionLoad;
+		class MacroFunctionLookupAddressBook;
 		class MacroFunctionMessageBox;
 		class MacroFunctionMessages;
 		class MacroFunctionNot;
@@ -119,6 +120,7 @@ class MacroFunctionFactory;
 class MacroConstantFactory;
 
 class AddressBook;
+class AddressBookCategory;
 
 
 /****************************************************************************
@@ -1765,6 +1767,30 @@ protected:
 private:
 	MacroFunctionLoad(const MacroFunctionLoad&);
 	MacroFunctionLoad& operator=(const MacroFunctionLoad&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionLookupAddressBook
+ *
+ */
+
+class MacroFunctionLookupAddressBook : public MacroFunction
+{
+public:
+	MacroFunctionLookupAddressBook();
+	virtual ~MacroFunctionLookupAddressBook();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionLookupAddressBook(const MacroFunctionLookupAddressBook&);
+	MacroFunctionLookupAddressBook& operator=(const MacroFunctionLookupAddressBook&);
 };
 
 

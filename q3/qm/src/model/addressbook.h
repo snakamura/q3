@@ -16,6 +16,7 @@
 #include <qsprofile.h>
 #include <qssax.h>
 #include <qsstring.h>
+#include <qsthread.h>
 #ifdef _WIN32_WCE
 #	include <qswindow.h>
 #endif
@@ -83,6 +84,8 @@ public:
 	bool reload();
 	void reloadProfiles();
 	bool save() const;
+	void lock() const;
+	void unlock() const;
 
 public:
 	void addEntry(std::auto_ptr<AddressBookEntry> pEntry);
@@ -109,6 +112,7 @@ private:
 	CategoryList listCategory_;
 	std::auto_ptr<ExternalAddressBookManager> pExternalManager_;
 	mutable EntryMap mapEntry_;
+	qs::CriticalSection cs_;
 };
 
 
@@ -140,6 +144,7 @@ public:
 	void setSortKey(const WCHAR* pwszSortKey);
 	const WCHAR* getActualSortKey() const;
 	const AddressList& getAddresses() const;
+	const AddressBookAddress* getAddress(const WCHAR* pwszAddress) const;
 	void setAddresses(AddressList& listAddress);
 	void addAddress(std::auto_ptr<AddressBookAddress> pAddress);
 	bool isExternal() const;
@@ -187,6 +192,7 @@ public:
 	void setAlias(const WCHAR* pwszAlias);
 	const CategoryList& getCategories() const;
 	void setCategories(const CategoryList& listCategory);
+	qs::wstring_ptr getCategoryNames() const;
 	const WCHAR* getComment() const;
 	void setComment(const WCHAR* pwszComment);
 	const WCHAR* getCertificate() const;

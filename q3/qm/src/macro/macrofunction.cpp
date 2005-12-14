@@ -2010,9 +2010,6 @@ MacroValuePtr qm::MacroFunctionFormatAddress::value(MacroContext* pContext) cons
 	
 	LOG(FormatAddress);
 	
-	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
-		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
-	
 	if (!checkArgSizeRange(pContext, 1, 3))
 		return MacroValuePtr();
 	
@@ -2063,6 +2060,7 @@ MacroValuePtr qm::MacroFunctionFormatAddress::value(MacroContext* pContext) cons
 		if (field == Part::FIELD_EXIST) {
 			if (lookup != LOOKUP_NONE) {
 				AddressBook* pAddressBook = pContext->getDocument()->getAddressBook();
+				Lock<AddressBook> lock(*pAddressBook);
 				replacePhrase(pAddressBook, &address, lookup == LOOKUP_FORCE);
 			}
 			switch (type) {
@@ -2951,6 +2949,100 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 const WCHAR* qm::MacroFunctionLoad::getName() const
 {
 	return L"Load";
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionLookupAddressBook
+ *
+ */
+
+qm::MacroFunctionLookupAddressBook::MacroFunctionLookupAddressBook()
+{
+}
+
+qm::MacroFunctionLookupAddressBook::~MacroFunctionLookupAddressBook()
+{
+}
+
+MacroValuePtr qm::MacroFunctionLookupAddressBook::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(LookupAddressBook);
+	
+	if (!checkArgSizeRange(pContext, 1, 2))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	ARG(pValueAddress, 0);
+	wstring_ptr wstrAddress(pValueAddress->string());
+	
+	enum Type {
+		TYPE_NAME,
+		TYPE_SORTKEY,
+		TYPE_ADDRESS,
+		TYPE_ALIAS,
+		TYPE_CATEGORY,
+		TYPE_COMMENT
+	} type = TYPE_NAME;
+	if (nSize > 1) {
+		ARG(pValueType, 1);
+		unsigned int nType = pValueType->number();
+		if (nType <= TYPE_COMMENT)
+			type = static_cast<Type>(nType);
+	}
+	
+	AddressBook* pAddressBook = pContext->getDocument()->getAddressBook();
+	Lock<AddressBook> lock(*pAddressBook);
+	
+	const WCHAR* pwszValue = 0;
+	wstring_ptr wstrValue;
+	
+	const AddressBookEntry* pEntry = pAddressBook->getEntry(wstrAddress.get());
+	if (pEntry) {
+		switch (type) {
+		case TYPE_NAME:
+			pwszValue = pEntry->getName();
+			break;
+		case TYPE_SORTKEY:
+			pwszValue = pEntry->getSortKey();
+			break;
+		default:
+			{
+				const AddressBookAddress* pAddress = pEntry->getAddress(wstrAddress.get());
+				if (pAddress) {
+					switch (type) {
+					case TYPE_ADDRESS:
+						pwszValue = pAddress->getAddress();
+						break;
+					case TYPE_ALIAS:
+						pwszValue = pAddress->getAlias();
+						break;
+					case TYPE_CATEGORY:
+						wstrValue = pAddress->getCategoryNames();
+						pwszValue = wstrValue.get();
+						break;
+					case TYPE_COMMENT:
+						pwszValue = pAddress->getComment();
+						break;
+					}
+				}
+			}
+			break;
+		}
+	}
+	if (!pwszValue)
+		pwszValue = L"";
+	
+	return MacroValueFactory::getFactory().newString(pwszValue);
+}
+
+const WCHAR* qm::MacroFunctionLookupAddressBook::getName() const
+{
+	return L"LookupAddressBook";
 }
 
 
@@ -5460,6 +5552,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		Length,				L"length"												)
 			DECLARE_FUNCTION1(		Relative,			L"less",			true								)
 			DECLARE_FUNCTION0(		Load,				L"load"													)
+			DECLARE_FUNCTION0(		LookupAddressBook,	L"lookupaddressbook"									)
 		END_BLOCK()
 		BEGIN_BLOCK(L'm', L'M')
 			DECLARE_FUNCTION1(		Flag,				L"marked",			MessageHolder::FLAG_MARKED			)

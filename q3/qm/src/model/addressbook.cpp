@@ -148,6 +148,17 @@ const AddressBookEntry* qm::AddressBook::getEntry(const WCHAR* pwszAddress) cons
 
 bool qm::AddressBook::reload()
 {
+	// The primary address book needs to be locked while reloading,
+	// because other thread may read it. Other methods which modify
+	// an address book must not be called on the primary address book.
+	// If you need to modify the primary address book, create a temporary
+	// address book and modify it and save, and then reload the primary
+	// address book.
+	// When you use the primary address book from other threads,
+	// you must call a lock/unlock pair while you hold references to
+	// objects returned from the primary address book. Otherwise,
+	// they may be freed when the primary address book was reloaded.
+	Lock<CriticalSection> lock(cs_);
 	return load();
 }
 
@@ -161,6 +172,16 @@ void qm::AddressBook::reloadProfiles()
 bool qm::AddressBook::save() const
 {
 	return ConfigSaver<const AddressBook*, AddressBookWriter>::save(this, wstrPath_.get());
+}
+
+void qm::AddressBook::lock() const
+{
+	cs_.lock();
+}
+
+void qm::AddressBook::unlock() const
+{
+	cs_.unlock();
 }
 
 void qm::AddressBook::addEntry(std::auto_ptr<AddressBookEntry> pEntry)
@@ -279,6 +300,8 @@ void qm::AddressBook::clear(unsigned int nType)
 
 void qm::AddressBook::prepareEntryMap() const
 {
+	Lock<CriticalSection> lock(cs_);
+	
 	if (!mapEntry_.empty())
 		return;
 	
@@ -404,6 +427,21 @@ const AddressBookEntry::AddressList& qm::AddressBookEntry::getAddresses() const
 	return listAddress_;
 }
 
+const AddressBookAddress* qm::AddressBookEntry::getAddress(const WCHAR* pwszAddress) const
+{
+	assert(pwszAddress);
+	
+	AddressList::const_iterator it = std::find_if(
+		listAddress_.begin(), listAddress_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal_i<WCHAR>(),
+				std::mem_fun(&AddressBookAddress::getAddress),
+				std::identity<const WCHAR*>()),
+			pwszAddress));
+	return it != listAddress_.end() ? *it : 0;
+}
+
 void qm::AddressBookEntry::setAddresses(AddressList& listAddress)
 {
 	clearAddresses();
@@ -527,6 +565,17 @@ const AddressBookAddress::CategoryList& qm::AddressBookAddress::getCategories() 
 void qm::AddressBookAddress::setCategories(const CategoryList& listCategory)
 {
 	listCategory_ = listCategory;
+}
+
+wstring_ptr qm::AddressBookAddress::getCategoryNames() const
+{
+	StringBuffer<WSTRING> bufCategory;
+	for (CategoryList::const_iterator it = listCategory_.begin(); it != listCategory_.end(); ++it) {
+		if (bufCategory.getLength() != 0)
+			bufCategory.append(L',');
+		bufCategory.append((*it)->getName());
+	}
+	return bufCategory.getString();
 }
 
 const WCHAR* qm::AddressBookAddress::getComment() const
@@ -904,17 +953,10 @@ bool qm::AddressBookWriter::write(const AddressBookEntry* pEntry)
 
 bool qm::AddressBookWriter::write(const AddressBookAddress* pAddress)
 {
-	StringBuffer<WSTRING> bufCategory;
-	const AddressBookAddress::CategoryList& listCategory = pAddress->getCategories();
-	for (AddressBookAddress::CategoryList::const_iterator it = listCategory.begin(); it != listCategory.end(); ++it) {
-		if (bufCategory.getLength() != 0)
-			bufCategory.append(L',');
-		bufCategory.append((*it)->getName());
-	}
-	
+	wstring_ptr wstrCategory = pAddress->getCategoryNames();
 	const SimpleAttributes::Item items[] = {
 		{ L"alias",					pAddress->getAlias(),						!pAddress->getAlias()				},
-		{ L"category",				bufCategory.getCharArray(),					bufCategory.getLength() == 0		},
+		{ L"category",				wstrCategory.get(),							!*wstrCategory.get()				},
 		{ L"comment",				pAddress->getComment(),						!pAddress->getComment()				},
 		{ L"rfc2822",				pAddress->isRFC2822() ? L"true" : L"false",	!pAddress->isRFC2822()				},
 		{ L"certificate",			pAddress->getCertificate(),					!pAddress->getCertificate()			}
