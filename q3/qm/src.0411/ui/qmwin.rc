@@ -1792,17 +1792,6 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,315,185,50,14
 END
 
-IDD_MACRO DIALOG DISCARDABLE  0, 0, 185, 94
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "マクロ"
-FONT 9, "MS UI Gothic"
-BEGIN
-    EDITTEXT        IDC_MACRO,5,5,175,65,ES_MULTILINE | ES_AUTOHSCROLL | 
-                    WS_VSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,75,75,50,14
-    PUSHBUTTON      "キャンセル",IDCANCEL,130,75,50,14
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1884,14 +1873,6 @@ BEGIN
         RIGHTMARGIN, 363
         TOPMARGIN, 7
         BOTTOMMARGIN, 197
-    END
-
-    IDD_MACRO, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 178
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 85
     END
 END
 #endif    // APSTUDIO_INVOKED

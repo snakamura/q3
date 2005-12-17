@@ -313,6 +313,8 @@ BEGIN
     IDS_RESOURCEPATH        "パス"
     IDS_INVOKEACTION        "アクションの起動"
     IDS_ACTION              "アクション(&A)"
+    IDS_EXECUTEMACRO        "マクロの実行"
+    IDS_MACRO               "マクロ(&M)"
 END
 
 STRINGTABLE 

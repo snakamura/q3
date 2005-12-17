@@ -149,6 +149,8 @@
 #define IDS_RESOURCEPATH                3010
 #define IDS_INVOKEACTION                3011
 #define IDS_ACTION                      3012
+#define IDS_EXECUTEMACRO                3013
+#define IDS_MACRO                       3014
 #define IDS_MESSAGE_UPDATEFOLDER        5000
 #define IDS_MESSAGE_FINISHED            5001
 #define IDS_MESSAGE_CHECKMESSAGES       5002

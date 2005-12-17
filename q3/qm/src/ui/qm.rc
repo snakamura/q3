@@ -311,6 +311,8 @@ BEGIN
     IDS_RESOURCEPATH        "Path"
     IDS_INVOKEACTION        "Invoke Action"
     IDS_ACTION              "&Action"
+    IDS_EXECUTEMACRO        "Execute Macro"
+    IDS_MACRO               "&Macro"
 END
 
 STRINGTABLE 

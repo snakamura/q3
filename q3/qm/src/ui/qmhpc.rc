@@ -1639,16 +1639,6 @@ BEGIN
                     WS_VSCROLL | WS_HSCROLL
 END
 
-IDD_MACRO DIALOG DISCARDABLE  0, 0, 185, 75
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-EXSTYLE 0x80000000L
-CAPTION "Macro"
-FONT 9, "Tahoma"
-BEGIN
-    EDITTEXT        IDC_MACRO,5,5,175,65,ES_MULTILINE | ES_AUTOHSCROLL | 
-                    WS_VSCROLL
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -3941,11 +3941,16 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 	const WCHAR* pwszMacro = ActionParamUtil::getString(event.getParam(), 0);
 	wstring_ptr wstrMacro;
 	if (!pwszMacro) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrTitle(loadString(hInst, IDS_EXECUTEMACRO));
+		wstring_ptr wstrMessage(loadString(hInst, IDS_MACRO));
 		wstring_ptr wstrPrevMacro(pProfile_->getString(L"Global", L"Macro", L""));
-		MacroDialog dialog(wstrPrevMacro.get());
+		
+		InputBoxDialog dialog(true, wstrTitle.get(), wstrMessage.get(), wstrPrevMacro.get(), false);
 		if (dialog.doModal(hwnd_) != IDOK)
 			return;
-		wstrMacro = allocWString(dialog.getMacro());
+		
+		wstrMacro = allocWString(dialog.getValue());
 		pwszMacro = wstrMacro.get();
 		pProfile_->setString(L"Global", L"Macro", pwszMacro);
 	}
@@ -5207,7 +5212,6 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrTitle(loadString(hInst, IDS_INVOKEACTION));
 	wstring_ptr wstrMessage(loadString(hInst, IDS_ACTION));
-	
 	wstring_ptr wstrAction(pProfile_->getString(L"Global", L"Action", L""));
 	
 	InputBoxDialog dialog(false, wstrTitle.get(), wstrMessage.get(), wstrAction.get(), false);
@@ -5215,6 +5219,7 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 		return;
 	
 	const WCHAR* pwszAction = dialog.getValue();
+	pProfile_->setString(L"Global", L"Action", pwszAction);
 	
 	struct CommandLineHandlerImpl : public CommandLineHandler
 	{
@@ -5248,7 +5253,6 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 	
 	pActionInvoker_->invoke(handler.wstrAction_.get(),
 		const_cast<const WCHAR**>(&handler.listParam_[0]), handler.listParam_.size());
-	pProfile_->setString(L"Global", L"Action", pwszAction);
 }
 
 
