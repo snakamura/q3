@@ -1226,9 +1226,11 @@ void qm::ImportDialog::updateState()
 qm::InputBoxDialog::InputBoxDialog(bool bMultiLine,
 								   const WCHAR* pwszTitle,
 								   const WCHAR* pwszMessage,
-								   const WCHAR* pwszValue) :
+								   const WCHAR* pwszValue,
+								   bool bAllowEmpty) :
 	DefaultDialog(bMultiLine ? IDD_MULTIINPUTBOX : IDD_SINGLEINPUTBOX),
-	bMultiLine_(bMultiLine)
+	bMultiLine_(bMultiLine),
+	bAllowEmpty_(bAllowEmpty)
 {
 	if (pwszTitle)
 		wstrTitle_ = allocWString(pwszTitle);
@@ -1245,6 +1247,15 @@ qm::InputBoxDialog::~InputBoxDialog()
 const WCHAR* qm::InputBoxDialog::getValue() const
 {
 	return wstrValue_.get();
+}
+
+LRESULT qm::InputBoxDialog::onCommand(WORD nCode,
+									  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_VALUE, EN_CHANGE, onValueChange)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
 }
 
 LRESULT qm::InputBoxDialog::onInitDialog(HWND hwndFocus,
@@ -1294,6 +1305,19 @@ LRESULT qm::InputBoxDialog::onOk()
 		*pDst = L'\0';
 	}
 	return DefaultDialog::onOk();
+}
+
+LRESULT qm::InputBoxDialog::onValueChange()
+{
+	updateState();
+	return 0;
+}
+
+void qm::InputBoxDialog::updateState()
+{
+	if (!bAllowEmpty_)
+		Window(getDlgItem(IDOK)).enableWindow(
+			Window(getDlgItem(IDC_VALUE)).getWindowTextLength() != 0);
 }
 
 

@@ -2655,7 +2655,7 @@ MacroValuePtr qm::MacroFunctionInputBox::value(MacroContext* pContext) const
 	ARG(pValue, 0);
 	wstring_ptr wstrMessage(pValue->string());
 	
-	InputBoxDialog dialog(bMultiline, 0, wstrMessage.get(), wstrDefault.get());
+	InputBoxDialog dialog(bMultiline, 0, wstrMessage.get(), wstrDefault.get(), true);
 	if (dialog.doModal(pContext->getWindow()) != IDOK) {
 		pContext->setReturnType(MacroContext::RETURNTYPE_CANCEL);
 		return MacroValuePtr();

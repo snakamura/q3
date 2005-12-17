@@ -5210,7 +5210,7 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 	
 	wstring_ptr wstrAction(pProfile_->getString(L"Global", L"Action", L""));
 	
-	InputBoxDialog dialog(false, wstrTitle.get(), wstrMessage.get(), wstrAction.get());
+	InputBoxDialog dialog(false, wstrTitle.get(), wstrMessage.get(), wstrAction.get(), false);
 	if (dialog.doModal(hwnd_) != IDOK)
 		return;
 	

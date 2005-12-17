@@ -636,11 +636,16 @@ public:
 	InputBoxDialog(bool bMultiLine,
 				   const WCHAR* pwszTitle,
 				   const WCHAR* pwszMessage,
-				   const WCHAR* pwszValue);
+				   const WCHAR* pwszValue,
+				   bool bAllowEmpty);
 	virtual ~InputBoxDialog();
 
 public:
 	const WCHAR* getValue() const;
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
 
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
@@ -648,6 +653,12 @@ protected:
 
 protected:
 	virtual LRESULT onOk();
+
+private:
+	LRESULT onValueChange();
+
+private:
+	void updateState();
 
 private:
 	InputBoxDialog(const InputBoxDialog&);
@@ -658,6 +669,7 @@ private:
 	qs::wstring_ptr wstrTitle_;
 	qs::wstring_ptr wstrMessage_;
 	qs::wstring_ptr wstrValue_;
+	bool bAllowEmpty_;
 };
 
 
