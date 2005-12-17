@@ -941,6 +941,11 @@ void qm::MainWindowImpl::initActions()
 		pGoRound_,
 		pSyncDialogManager_,
 		pThis_->getHandle());
+	ADD_ACTION3(ToolInvokeActionAction,
+		IDM_TOOL_INVOKEACTION,
+		pActionInvoker_.get(),
+		pProfile_,
+		pThis_->getHandle());
 	ADD_ACTION3(ToolOptionsAction,
 		IDM_TOOL_OPTIONS,
 		pOptionDialogManager_.get(),

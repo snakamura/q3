@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
+// Microsoft eMbedded Visual C++ generated include file.
 // Used by qm.rc
 //
 #define IDI_MAINFRAME                   100
@@ -147,6 +147,8 @@
 #define IDS_ALLFOLDER                   3008
 #define IDS_UNSPECIFIED                 3009
 #define IDS_RESOURCEPATH                3010
+#define IDS_INVOKEACTION                3011
+#define IDS_ACTION                      3012
 #define IDS_MESSAGE_UPDATEFOLDER        5000
 #define IDS_MESSAGE_FINISHED            5001
 #define IDS_MESSAGE_CHECKMESSAGES       5002

@@ -634,6 +634,7 @@ class InputBoxDialog : public DefaultDialog
 {
 public:
 	InputBoxDialog(bool bMultiLine,
+				   const WCHAR* pwszTitle,
 				   const WCHAR* pwszMessage,
 				   const WCHAR* pwszValue);
 	virtual ~InputBoxDialog();
@@ -654,6 +655,7 @@ private:
 
 private:
 	bool bMultiLine_;
+	qs::wstring_ptr wstrTitle_;
 	qs::wstring_ptr wstrMessage_;
 	qs::wstring_ptr wstrValue_;
 };

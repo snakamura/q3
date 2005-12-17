@@ -42,6 +42,9 @@
 		<action name="ToolGoround" param="@0">
 			<key key="[" virtual="false"/>
 		</action>
+		<action name="ToolInvokeAction">
+			<key key="X" alt="true" shift="true"/>
+		</action>
 		<action name="ToolReceive">
 			<key key="." virtual="false"/>
 		</action>

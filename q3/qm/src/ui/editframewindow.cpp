@@ -292,6 +292,9 @@ void qm::EditFrameWindowImpl::initActions()
 	ADD_ACTION1(EditToolEncodingAction,
 		IDM_TOOL_ENCODING,
 		pEditWindow_->getEditMessageHolder());
+	ADD_ACTION1(EditToolHeaderEditAction,
+		IDM_TOOL_HEADEREDIT,
+		pEditWindow_);
 	ADD_ACTION2(EditToolInsertSignatureAction,
 		IDM_TOOL_INSERTSIGNATURE,
 		pEditWindow_->getEditMessageHolder(),
@@ -300,9 +303,11 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_TOOL_INSERTTEXT,
 		pDocument_->getFixedFormTextManager(),
 		pEditWindow_->getTextWindow());
-	ADD_ACTION1(EditToolHeaderEditAction,
-		IDM_TOOL_HEADEREDIT,
-		pEditWindow_);
+	ADD_ACTION3(ToolInvokeActionAction,
+		IDM_TOOL_INVOKEACTION,
+		pActionInvoker_.get(),
+		pProfile_,
+		pThis_->getHandle());
 	ADD_ACTION3(EditToolMessageSecurityAction,
 		IDM_TOOL_PGPENCRYPT,
 		pEditWindow_->getEditMessageHolder(),

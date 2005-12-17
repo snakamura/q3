@@ -361,6 +361,11 @@ void qm::MessageFrameWindowImpl::initActions()
 		pDocument_->getAddressBook(),
 		this,
 		pThis_->getHandle());
+	ADD_ACTION3(ToolInvokeActionAction,
+		IDM_TOOL_INVOKEACTION,
+		pActionInvoker_.get(),
+		pProfile_,
+		pThis_->getHandle());
 	ADD_ACTION4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,
 		pDocument_->getScriptManager(),

@@ -309,6 +309,8 @@ BEGIN
     IDS_ALLFOLDER           "(All Folders)"
     IDS_UNSPECIFIED         "(Unspecified)"
     IDS_RESOURCEPATH        "Path"
+    IDS_INVOKEACTION        "Invoke Action"
+    IDS_ACTION              "&Action"
 END
 
 STRINGTABLE 

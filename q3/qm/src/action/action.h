@@ -104,6 +104,7 @@ class ToolAddressBookAction;
 class ToolAutoPilotAction;
 class ToolDialupAction;
 class ToolGoRoundAction;
+class ToolInvokeActionAction;
 class ToolOptionsAction;
 class ToolScriptAction;
 class ToolSubAccountAction;
@@ -2555,6 +2556,34 @@ private:
 	Document* pDocument_;
 	GoRound* pGoRound_;
 	SyncDialogManager* pSyncDialogManager_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * ToolInvokeActionAction
+ *
+ */
+
+class ToolInvokeActionAction : public qs::AbstractAction
+{
+public:
+	ToolInvokeActionAction(ActionInvoker* pActionInvoker,
+						   qs::Profile* pProfile,
+						   HWND hwnd);
+	virtual ~ToolInvokeActionAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ToolInvokeActionAction(const ToolInvokeActionAction&);
+	ToolInvokeActionAction& operator=(const ToolInvokeActionAction&);
+
+private:
+	ActionInvoker* pActionInvoker_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 

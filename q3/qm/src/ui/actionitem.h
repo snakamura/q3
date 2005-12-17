@@ -162,6 +162,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ToolHeaderEdit",				IDM_TOOL_HEADEREDIT,				1,							0 },
 	{ L"ToolInsertSignature",			IDM_TOOL_INSERTSIGNATURE,			1,							0 },
 	{ L"ToolInsertText",				IDM_TOOL_INSERTTEXT,				MAX_TOOL_INSERTTEXT,		0 },
+	{ L"ToolInvokeAction",				IDM_TOOL_INVOKEACTION,				1,							0 },
 	{ L"ToolOptions",					IDM_TOOL_OPTIONS,					1,							0 },
 	{ L"ToolPGPEncrypt",				IDM_TOOL_PGPENCRYPT,				1,							0 },
 	{ L"ToolPGPMime",					IDM_TOOL_PGPMIME,					1,							0 },

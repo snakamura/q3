@@ -1224,11 +1224,14 @@ void qm::ImportDialog::updateState()
  */
 
 qm::InputBoxDialog::InputBoxDialog(bool bMultiLine,
+								   const WCHAR* pwszTitle,
 								   const WCHAR* pwszMessage,
 								   const WCHAR* pwszValue) :
 	DefaultDialog(bMultiLine ? IDD_MULTIINPUTBOX : IDD_SINGLEINPUTBOX),
 	bMultiLine_(bMultiLine)
 {
+	if (pwszTitle)
+		wstrTitle_ = allocWString(pwszTitle);
 	if (pwszMessage)
 		wstrMessage_ = allocWString(pwszMessage);
 	if (pwszValue)
@@ -1248,6 +1251,9 @@ LRESULT qm::InputBoxDialog::onInitDialog(HWND hwndFocus,
 										 LPARAM lParam)
 {
 	init(false);
+	
+	if (wstrTitle_.get())
+		setWindowText(wstrTitle_.get());
 	
 	if (wstrMessage_.get())
 		setDlgItemText(IDC_MESSAGE, wstrMessage_.get());

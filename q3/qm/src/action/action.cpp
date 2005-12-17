@@ -5185,6 +5185,75 @@ void qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ToolInvokeActionAction
+ *
+ */
+
+qm::ToolInvokeActionAction::ToolInvokeActionAction(ActionInvoker* pActionInvoker,
+												   Profile* pProfile,
+												   HWND hwnd) :
+	pActionInvoker_(pActionInvoker),
+	pProfile_(pProfile),
+	hwnd_(hwnd)
+{
+}
+
+qm::ToolInvokeActionAction::~ToolInvokeActionAction()
+{
+}
+
+void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrTitle(loadString(hInst, IDS_INVOKEACTION));
+	wstring_ptr wstrMessage(loadString(hInst, IDS_ACTION));
+	
+	wstring_ptr wstrAction(pProfile_->getString(L"Global", L"Action", L""));
+	
+	InputBoxDialog dialog(false, wstrTitle.get(), wstrMessage.get(), wstrAction.get());
+	if (dialog.doModal(hwnd_) != IDOK)
+		return;
+	
+	const WCHAR* pwszAction = dialog.getValue();
+	
+	struct CommandLineHandlerImpl : public CommandLineHandler
+	{
+		virtual ~CommandLineHandlerImpl()
+		{
+			std::for_each(listParam_.begin(), listParam_.end(), string_free<WSTRING>());
+		}
+		
+		virtual bool process(const WCHAR* pwszOption)
+		{
+			wstring_ptr wstr(allocWString(pwszOption));
+			if (!wstrAction_.get()) {
+				wstrAction_ = wstr;
+			}
+			else {
+				listParam_.push_back(wstr.get());
+				wstr.release();
+			}
+			
+			return true;
+		}
+		
+		typedef std::vector<WSTRING> ParamList;
+		
+		wstring_ptr wstrAction_;
+		ParamList listParam_;
+	} handler;
+	CommandLine commandLine(&handler);
+	if (!commandLine.parse(pwszAction) || !handler.wstrAction_.get())
+		return;
+	
+	pActionInvoker_->invoke(handler.wstrAction_.get(),
+		const_cast<const WCHAR**>(&handler.listParam_[0]), handler.listParam_.size());
+	pProfile_->setString(L"Global", L"Action", pwszAction);
+}
+
+
+/****************************************************************************
+ *
  * ToolOptionsAction
  *
  */
