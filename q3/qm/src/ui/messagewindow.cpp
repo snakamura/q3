@@ -188,9 +188,10 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	}
 	
 	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
-	bool bRawMode = pMode && pMode->isMode(MessageViewMode::MODE_RAW);
-	bool bSourceMode = pMode && pMode->isMode(MessageViewMode::MODE_SOURCE);
-	bool bHtmlMode = pMode && pMode->isMode(MessageViewMode::MODE_HTML);
+	unsigned int nMode = pMode ? pMode->getMode() : MessageViewMode::MODE_NONE;
+	bool bRawMode = (nMode & MessageViewMode::MODE_RAW) != 0;
+	bool bSourceMode = (nMode & MessageViewMode::MODE_SOURCE) != 0;
+	bool bHtmlMode = (nMode & MessageViewMode::MODE_HTML) != 0;
 	
 	Message msg;
 	if (pmh) {
@@ -280,8 +281,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	unsigned int nFlags = (bRawMode ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(bSourceMode ? MessageViewWindow::FLAG_SOURCEMODE : 0) |
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
-		(pMode && pMode->isMode(MessageViewMode::MODE_HTMLONLINE) ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
-		(pMode && pMode->isMode(MessageViewMode::MODE_INTERNETZONE) ? MessageViewWindow::FLAG_INTERNETZONE : 0);
+		(nMode & MessageViewMode::MODE_HTMLONLINE ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
+		(nMode & MessageViewMode::MODE_INTERNETZONE ? MessageViewWindow::FLAG_INTERNETZONE : 0);
 	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0, pTemplate,
 		pEncodingModel_->getEncoding(), nFlags, pSecurityModel_->getSecurityMode()))
 		return false;
@@ -343,24 +344,23 @@ void qm::MessageWindowImpl::modeChanged(const MessageViewModeEvent& event)
 		MessageViewMode::MODE_HTMLONLINE |
 		MessageViewMode::MODE_INTERNETZONE |
 		MessageViewMode::MODE_SOURCE;
+	
 	unsigned int nAdded = event.getAddedMode();
 	unsigned int nRemoved = event.getRemovedMode();
 	if (nAdded & nSetMode || nRemoved & nSetMode) {
 		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 		setMessage(mpl, false);
 	}
-	if (nAdded & MessageViewMode::MODE_SELECT) {
+	
+	if (nAdded & MessageViewMode::MODE_SELECT)
 		pMessageViewWindow_->setSelectMode(true);
-	}
-	else if (nRemoved & MessageViewMode::MODE_SELECT) {
+	else if (nRemoved & MessageViewMode::MODE_SELECT)
 		pMessageViewWindow_->setSelectMode(false);
-	}
-	if (nAdded & MessageViewMode::MODE_QUOTE) {
+	
+	if (nAdded & MessageViewMode::MODE_QUOTE)
 		pMessageViewWindow_->setQuoteMode(true);
-	}
-	else if (nRemoved & MessageViewMode::MODE_QUOTE) {
+	else if (nRemoved & MessageViewMode::MODE_QUOTE)
 		pMessageViewWindow_->setQuoteMode(false);
-	}
 }
 
 void qm::MessageWindowImpl::zoomChanged(const MessageViewModeEvent& event)
@@ -408,8 +408,9 @@ void qm::MessageWindowImpl::statusTextChanged(const WCHAR* pwszText)
 void qm::MessageWindowImpl::applyModeToMessageViewWindow(MessageViewWindow* pMessageViewWindow,
 														 MessageViewMode* pMode)
 {
-	pMessageViewWindow->setSelectMode(pMode && pMode->isMode(MessageViewMode::MODE_SELECT));
-	pMessageViewWindow->setQuoteMode(pMode && pMode->isMode(MessageViewMode::MODE_QUOTE));
+	unsigned int nMode = pMode ? pMode->getMode() : MessageViewMode::MODE_NONE;
+	pMessageViewWindow->setSelectMode((nMode & MessageViewMode::MODE_SELECT) != 0);
+	pMessageViewWindow->setQuoteMode((nMode & MessageViewMode::MODE_QUOTE) != 0);
 	pMessageViewWindow->setZoom(pMode ? pMode->getZoom() : MessageViewMode::ZOOM_NONE);
 	pMessageViewWindow->setFit(pMode ? pMode->getFit() : MessageViewMode::FIT_NONE);
 }

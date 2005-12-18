@@ -61,9 +61,9 @@ public:
 	virtual ~MessageViewMode();
 
 public:
-	virtual bool isMode(Mode mode) const = 0;
-	virtual void setMode(Mode mode,
-						 bool b) = 0;
+	virtual unsigned int getMode() const = 0;
+	virtual void setMode(unsigned int nMode,
+						 unsigned int nMask) = 0;
 	virtual unsigned int getZoom() const = 0;
 	virtual void setZoom(unsigned int nZoom) = 0;
 	virtual Fit getFit() const = 0;
@@ -123,14 +123,9 @@ public:
 	virtual ~DefaultMessageViewMode();
 
 public:
-	unsigned int getMode() const;
-	void setMode(unsigned int nMode,
-				 unsigned int nMask);
-
-public:
-	virtual bool isMode(Mode mode) const;
-	virtual void setMode(Mode mode,
-						 bool b);
+	virtual unsigned int getMode() const;
+	virtual void setMode(unsigned int nMode,
+						 unsigned int nMask);
 	virtual unsigned int getZoom() const;
 	virtual void setZoom(unsigned int nZoom);
 	virtual Fit getFit() const;

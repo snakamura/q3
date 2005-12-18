@@ -343,10 +343,6 @@ public:
 	void setFilter(const Filter* pFilter);
 	const Filter* getFilter() const;
 	
-	void setMode(unsigned int nMode,
-				 unsigned int nMask);
-	unsigned int getMode() const;
-	
 	void addSelection(unsigned int n);
 	void addSelection(unsigned int nStart,
 					  unsigned int nEnd);
@@ -856,6 +852,14 @@ private:
 class ViewDataItem
 {
 public:
+	struct Mode
+	{
+		unsigned int nMode_;
+		unsigned int nZoom_;
+		MessageViewMode::Fit fit_;
+	};
+
+public:
 	explicit ViewDataItem(unsigned int nFolderId);
 	~ViewDataItem();
 
@@ -872,16 +876,12 @@ public:
 	void setSort(unsigned int nSort);
 	const WCHAR* getFilter() const;
 	void setFilter(const WCHAR* pwszFilter);
-	unsigned int getMode() const;
-	void setMode(unsigned int nMode);
-	unsigned int getZoom() const;
-	void setZoom(unsigned int nZoom);
-	MessageViewMode::Fit getFit() const;
-	void setFit(MessageViewMode::Fit fit);
 	unsigned int getRestoreId() const;
 	void setRestoreId(unsigned int nId);
 	int getRestoreScroll() const;
 	void setRestoreScroll(int nScroll);
+	const Mode& getMode() const;
+	void setMode(const Mode& mode);
 
 public:
 	std::auto_ptr<ViewDataItem> clone(unsigned int nFolderId) const;
@@ -897,11 +897,9 @@ private:
 	unsigned int nScroll_;
 	unsigned int nSort_;
 	qs::wstring_ptr wstrFilter_;
-	unsigned int nMode_;
-	unsigned int nZoom_;
-	MessageViewMode::Fit fit_;
 	unsigned int nRestoreId_;
 	int nRestoreScroll_;
+	Mode mode_;
 };
 
 

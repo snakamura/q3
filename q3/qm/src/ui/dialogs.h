@@ -1299,9 +1299,13 @@ private:
 	void update();
 	void updateState();
 	void setColumns(const ViewColumnList& listColumn);
-	void cloneColumns(const ViewColumnList& listColumn,
-					  ViewColumnList* pListColumn);
+	void applyToViewModel(ViewModel* pViewModel);
+	void retrieveFromViewModel(const ViewModel* pViewModel);
 	ViewDataItem* getDefaultItem();
+
+private:
+	static void cloneColumns(const ViewColumnList& listColumn,
+							 ViewColumnList* pListColumn);
 
 private:
 	ViewsDialog(const ViewsDialog&);
@@ -1313,6 +1317,8 @@ private:
 	ViewColumnList listColumn_;
 	unsigned int nSort_;
 	unsigned int nMode_;
+	unsigned int nZoom_;
+	MessageViewMode::Fit fit_;
 };
 
 }

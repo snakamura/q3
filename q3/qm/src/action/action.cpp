@@ -5903,10 +5903,10 @@ void qm::ViewMessageModeAction::invoke(const ActionEvent& event)
 {
 	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
 	if (pMode) {
-		bool b = !pMode->isMode(mode_);
-		pMode->setMode(mode_, b);
-		if (b && exclusiveMode_ != MessageViewMode::MODE_NONE)
-			pMode->setMode(exclusiveMode_, false);
+		if (pMode->getMode() & mode_)
+			pMode->setMode(0, mode_);
+		else
+			pMode->setMode(mode_, mode_ | exclusiveMode_);
 	}
 }
 
@@ -5918,7 +5918,7 @@ bool qm::ViewMessageModeAction::isEnabled(const ActionEvent& event)
 bool qm::ViewMessageModeAction::isChecked(const ActionEvent& event)
 {
 	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
-	return pMode && pMode->isMode(mode_);
+	return pMode && pMode->getMode() & mode_;
 }
 
 

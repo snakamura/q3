@@ -2755,16 +2755,9 @@ qm::ViewsDialog::ViewsDialog(ViewModelManager* pViewModelManager,
 							 ViewModel* pViewModel) :
 	DefaultDialog(IDD_VIEWS),
 	pViewModelManager_(pViewModelManager),
-	pViewModel_(pViewModel),
-	nSort_(pViewModel->getSort()),
-	nMode_(pViewModel->getMode())
+	pViewModel_(pViewModel)
 {
-	const ViewColumnList& listColumn = pViewModel->getColumns();
-	listColumn_.reserve(listColumn.size());
-	for (ViewColumnList::const_iterator it = listColumn.begin(); it != listColumn.end(); ++it) {
-		std::auto_ptr<ViewColumn> pColumn((*it)->clone());
-		listColumn_.push_back(pColumn.release());
-	}
+	retrieveFromViewModel(pViewModel);
 }
 
 qm::ViewsDialog::~ViewsDialog()
@@ -2854,10 +2847,7 @@ LRESULT qm::ViewsDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::ViewsDialog::onOk()
 {
-	pViewModel_->setColumns(listColumn_);
-	listColumn_.clear();
-	pViewModel_->setSort(nSort_, 0xffffffff);
-	pViewModel_->setMode(nMode_, 0xffffffff);
+	applyToViewModel(pViewModel_);
 	return DefaultDialog::onOk();
 }
 
@@ -2952,7 +2942,8 @@ LRESULT qm::ViewsDialog::onAsDefault()
 	cloneColumns(listColumn_, &listColumn);
 	pItem->setColumns(listColumn);
 	pItem->setSort(nSort_);
-	pItem->setMode(nMode_);
+	ViewDataItem::Mode mode = { nMode_, nZoom_, fit_ };
+	pItem->setMode(mode);
 	return 0;
 }
 
@@ -2961,7 +2952,10 @@ LRESULT qm::ViewsDialog::onApplyDefault()
 	ViewDataItem* pItem = getDefaultItem();
 	setColumns(pItem->getColumns());
 	nSort_ = pItem->getSort();
-	nMode_ = pItem->getMode();
+	const ViewDataItem::Mode& mode = pItem->getMode();
+	nMode_ = mode.nMode_;
+	nZoom_ = mode.nZoom_;
+	fit_ = mode.fit_;
 	update();
 	return 0;
 }
@@ -2970,10 +2964,7 @@ LRESULT qm::ViewsDialog::onInherit()
 {
 	Folder* pFolder = pViewModel_->getFolder()->getParentFolder();
 	if (pFolder) {
-		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
-		setColumns(pViewModel->getColumns());
-		nSort_ = pViewModel->getSort();
-		nMode_ = pViewModel->getMode();
+		retrieveFromViewModel(pViewModelManager_->getViewModel(pFolder));
 		update();
 	}
 	return 0;
@@ -2983,15 +2974,8 @@ LRESULT qm::ViewsDialog::onApplyToAll()
 {
 	Account* pAccount = pViewModel_->getFolder()->getAccount();
 	const Account::FolderList& listFolder = pAccount->getFolders();
-	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
-		Folder* pFolder = *it;
-		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
-		ViewColumnList listColumn;
-		cloneColumns(listColumn_, &listColumn);
-		pViewModel->setColumns(listColumn);
-		pViewModel->setSort(nSort_, 0xffffffff);
-		pViewModel->setMode(nMode_, 0xffffffff);
-	}
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it)
+		applyToViewModel(pViewModelManager_->getViewModel(*it));
 	
 	Window(getDlgItem(IDCANCEL)).enableWindow(false);
 	
@@ -3005,14 +2989,8 @@ LRESULT qm::ViewsDialog::onApplyToChildren()
 	const Account::FolderList& listFolder = pAccount->getFolders();
 	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
-		if (pCurrentFolder->isAncestorOf(pFolder)) {
-			ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
-			ViewColumnList listColumn;
-			cloneColumns(listColumn_, &listColumn);
-			pViewModel->setColumns(listColumn);
-			pViewModel->setSort(nSort_, 0xffffffff);
-			pViewModel->setMode(nMode_, 0xffffffff);
-		}
+		if (pCurrentFolder->isAncestorOf(pFolder))
+			applyToViewModel(pViewModelManager_->getViewModel(pFolder));
 	}
 	return 0;
 }
@@ -3123,6 +3101,36 @@ void qm::ViewsDialog::setColumns(const ViewColumnList& listColumn)
 	cloneColumns(listColumn, &listColumn_);
 }
 
+void qm::ViewsDialog::applyToViewModel(ViewModel* pViewModel)
+{
+	ViewColumnList listColumn;
+	cloneColumns(listColumn_, &listColumn);
+	pViewModel->setColumns(listColumn);
+	pViewModel->setSort(nSort_, 0xffffffff);
+	MessageViewMode* pMode = pViewModel->getMessageViewMode();
+	pMode->setMode(nMode_, 0xffffffff);
+	pMode->setZoom(nZoom_);
+	pMode->setFit(fit_);
+}
+
+void qm::ViewsDialog::retrieveFromViewModel(const ViewModel* pViewModel)
+{
+	setColumns(pViewModel->getColumns());
+	nSort_ = pViewModel->getSort();
+	MessageViewMode* pMode = pViewModel->getMessageViewMode();
+	nMode_ = pMode->getMode();
+	nZoom_ = pMode->getZoom();
+	fit_ = pMode->getFit();
+}
+
+ViewDataItem* qm::ViewsDialog::getDefaultItem()
+{
+	Folder* pFolder = pViewModel_->getFolder();
+	Account* pAccount = pFolder->getAccount();
+	DefaultViewData* pDefaultViewData = pViewModelManager_->getDefaultViewData();
+	return pDefaultViewData->getItem(pAccount->getClass());
+}
+
 void qm::ViewsDialog::cloneColumns(const ViewColumnList& listColumn,
 								   ViewColumnList* pListColumn)
 {
@@ -3134,12 +3142,4 @@ void qm::ViewsDialog::cloneColumns(const ViewColumnList& listColumn,
 		std::auto_ptr<ViewColumn> pColumn((*it)->clone());
 		pListColumn->push_back(pColumn.release());
 	}
-}
-
-ViewDataItem* qm::ViewsDialog::getDefaultItem()
-{
-	Folder* pFolder = pViewModel_->getFolder();
-	Account* pAccount = pFolder->getAccount();
-	DefaultViewData* pDefaultViewData = pViewModelManager_->getDefaultViewData();
-	return pDefaultViewData->getItem(pAccount->getClass());
 }

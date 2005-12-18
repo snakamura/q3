@@ -116,17 +116,6 @@ void qm::DefaultMessageViewMode::setMode(unsigned int nMode,
 		fireModeChanged(nMode_ - (nOld & nMode_), nOld - (nOld & nMode_));
 }
 
-bool qm::DefaultMessageViewMode::isMode(Mode mode) const
-{
-	return (nMode_ & mode) != 0;
-}
-
-void qm::DefaultMessageViewMode::setMode(Mode mode,
-										 bool b)
-{
-	setMode(b ? mode : 0, mode);
-}
-
 unsigned int qm::DefaultMessageViewMode::getZoom() const
 {
 	return nZoom_;
