@@ -2824,7 +2824,8 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_VIEW;
 	}
-	else if (wcscmp(pwszLocalName, L"mode") == 0) {
+	else if (wcscmp(pwszLocalName, L"mode") == 0 ||
+		wcscmp(pwszLocalName, L"mode2") == 0) {
 		assert(state_ == STATE_MODE);
 		state_ = STATE_VIEW;
 	}
