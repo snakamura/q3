@@ -1316,9 +1316,7 @@ private:
 	ViewModel* pViewModel_;
 	ViewColumnList listColumn_;
 	unsigned int nSort_;
-	unsigned int nMode_;
-	unsigned int nZoom_;
-	MessageViewMode::Fit fit_;
+	ViewDataItem::Mode mode_[ViewModel::MODETYPE_COUNT];
 };
 
 }

@@ -288,6 +288,13 @@ public:
 		
 		SORT_FLOATTHREAD	= 0x00040000
 	};
+	
+	enum ModeType {
+		MODETYPE_PREVIEW,
+		MODETYPE_MESSAGE,
+		
+		MODETYPE_COUNT
+	};
 
 public:
 	class RestoreInfo
@@ -366,7 +373,7 @@ public:
 	
 	void payAttention(unsigned int n);
 	
-	MessageViewMode* getMessageViewMode() const;
+	MessageViewMode* getMessageViewMode(ModeType modeType) const;
 	
 	RestoreInfo getRestoreInfo() const;
 	void setRestoreInfo(const RestoreInfo& info);
@@ -472,7 +479,7 @@ private:
 	unsigned int nLastSelection_;
 	unsigned int nFocused_;
 	unsigned int nScroll_;
-	std::auto_ptr<DefaultMessageViewMode> pMessageViewMode_;
+	std::auto_ptr<DefaultMessageViewMode> pMessageViewMode_[MODETYPE_COUNT];
 	unsigned int nCacheCount_;
 	RestoreInfo restoreInfo_;
 	ViewModelHandlerList listHandler_;
@@ -880,8 +887,9 @@ public:
 	void setRestoreId(unsigned int nId);
 	int getRestoreScroll() const;
 	void setRestoreScroll(int nScroll);
-	const Mode& getMode() const;
-	void setMode(const Mode& mode);
+	const Mode& getMode(ViewModel::ModeType modeType) const;
+	void setMode(ViewModel::ModeType modeType,
+				 const Mode& mode);
 
 public:
 	std::auto_ptr<ViewDataItem> clone(unsigned int nFolderId) const;
@@ -899,7 +907,7 @@ private:
 	qs::wstring_ptr wstrFilter_;
 	unsigned int nRestoreId_;
 	int nRestoreScroll_;
-	Mode mode_;
+	Mode mode_[ViewModel::MODETYPE_COUNT];
 };
 
 

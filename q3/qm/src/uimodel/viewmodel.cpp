@@ -445,8 +445,11 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	if (pFilter)
 		pFilter_.reset(new Filter(*pFilter));
 	
-	const ViewDataItem::Mode& mode = pDataItem_->getMode();
-	pMessageViewMode_.reset(new DefaultMessageViewMode(mode.nMode_, mode.nZoom_, mode.fit_));
+	for (int n = 0; n < MODETYPE_COUNT; ++n) {
+		const ViewDataItem::Mode& mode = pDataItem_->getMode(static_cast<ModeType>(n));
+		pMessageViewMode_[n].reset(new DefaultMessageViewMode(
+			mode.nMode_, mode.nZoom_, mode.fit_));
+	}
 	
 	updateCacheCount();
 	
@@ -820,9 +823,9 @@ void qm::ViewModel::payAttention(unsigned int n)
 	fireItemAttentionPaid(n);
 }
 
-MessageViewMode* qm::ViewModel::getMessageViewMode() const
+MessageViewMode* qm::ViewModel::getMessageViewMode(ModeType modeType) const
 {
-	return pMessageViewMode_.get();
+	return pMessageViewMode_[modeType].get();
 }
 
 ViewModel::RestoreInfo qm::ViewModel::getRestoreInfo() const
@@ -863,12 +866,15 @@ void qm::ViewModel::save() const
 	pDataItem_->setFocus(nFocused_);
 	pDataItem_->setScroll(nScroll_);
 	pDataItem_->setFilter(pFilter_.get() ? pFilter_->getName() : 0);
-	ViewDataItem::Mode mode = {
-		pMessageViewMode_->getMode(),
-		pMessageViewMode_->getZoom(),
-		pMessageViewMode_->getFit()
-	};
-	pDataItem_->setMode(mode);
+	
+	for (int n = 0; n < MODETYPE_COUNT; ++n) {
+		ViewDataItem::Mode mode = {
+			pMessageViewMode_[n]->getMode(),
+			pMessageViewMode_[n]->getZoom(),
+			pMessageViewMode_[n]->getFit()
+		};
+		pDataItem_->setMode(static_cast<ModeType>(n), mode);
+	}
 	
 	MessagePtrLock mpl(restoreInfo_.getMessagePtr());
 	pDataItem_->setRestoreId(mpl ? mpl->getId() : -1);
@@ -2275,9 +2281,11 @@ qm::ViewDataItem::ViewDataItem(unsigned int nFolderId) :
 	nRestoreId_(-1),
 	nRestoreScroll_(-1)
 {
-	mode_.nMode_ = MessageViewMode::MODE_QUOTE;
-	mode_.nZoom_ = MessageViewMode::ZOOM_NONE;
-	mode_.fit_ = MessageViewMode::FIT_NONE;
+	for (int n = 0; n < countof(mode_); ++n) {
+		mode_[n].nMode_ = MessageViewMode::MODE_QUOTE;
+		mode_[n].nZoom_ = MessageViewMode::ZOOM_NONE;
+		mode_[n].fit_ = MessageViewMode::FIT_NONE;
+	}
 }
 
 qm::ViewDataItem::~ViewDataItem()
@@ -2370,14 +2378,15 @@ void qm::ViewDataItem::setRestoreScroll(int nScroll)
 	nRestoreScroll_ = nScroll;
 }
 
-const ViewDataItem::Mode& qm::ViewDataItem::getMode() const
+const ViewDataItem::Mode& qm::ViewDataItem::getMode(ViewModel::ModeType modeType) const
 {
-	return mode_;
+	return mode_[modeType];
 }
 
-void qm::ViewDataItem::setMode(const Mode& mode)
+void qm::ViewDataItem::setMode(ViewModel::ModeType modeType,
+							   const Mode& mode)
 {
-	mode_ = mode;
+	mode_[modeType] = mode;
 }
 
 std::auto_ptr<ViewDataItem> qm::ViewDataItem::clone(unsigned int nFolderId) const
@@ -2388,7 +2397,8 @@ std::auto_ptr<ViewDataItem> qm::ViewDataItem::clone(unsigned int nFolderId) cons
 		pItem->addColumn((*it)->clone());
 	pItem->setSort(nSort_);
 	pItem->setFilter(wstrFilter_.get());
-	pItem->setMode(mode_);
+	for (int n = 0; n < ViewModel::MODETYPE_COUNT; ++n)
+		pItem->setMode(static_cast<ViewModel::ModeType>(n), mode_[n]);
 	
 	return pItem;
 }
@@ -2543,7 +2553,8 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		state_ = STATE_SORT;
 	}
-	else if (wcscmp(pwszLocalName, L"mode") == 0) {
+	else if (wcscmp(pwszLocalName, L"mode") == 0 ||
+		wcscmp(pwszLocalName, L"mode2") == 0) {
 		if (state_ != STATE_VIEW)
 			return false;
 		
@@ -2596,8 +2607,10 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		}
 		assert(pItem_.get());
 		
+		ViewModel::ModeType modeType = wcscmp(pwszLocalName, L"mode") == 0 ?
+			ViewModel::MODETYPE_PREVIEW : ViewModel::MODETYPE_MESSAGE;
 		ViewDataItem::Mode mode = { nMode, nZoom, fit };
-		pItem_->setMode(mode);
+		pItem_->setMode(modeType, mode);
 		
 		state_ = STATE_MODE;
 	}
@@ -3042,38 +3055,41 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 			return false;
 	}
 	
-	const ViewDataItem::Mode& mode = pItem->getMode();
-	unsigned int nMode = mode.nMode_;
-	unsigned int nZoom = mode.nZoom_;
-	WCHAR wszZoom[32];
-	_snwprintf(wszZoom, countof(wszZoom), L"%u", nZoom);
-	MessageViewMode::Fit fit = mode.fit_;
-	const WCHAR* pwszFit = L"none";
-	switch (fit) {
-	case MessageViewMode::FIT_NORMAL:
-		pwszFit = L"normal";
-		break;
-	case MessageViewMode::FIT_SUPER:
-		pwszFit = L"super";
-		break;
-	default:
-		break;
+	for (int n = 0; n < ViewModel::MODETYPE_COUNT; ++n) {
+		const ViewDataItem::Mode& mode = pItem->getMode(static_cast<ViewModel::ModeType>(n));
+		unsigned int nMode = mode.nMode_;
+		unsigned int nZoom = mode.nZoom_;
+		WCHAR wszZoom[32];
+		_snwprintf(wszZoom, countof(wszZoom), L"%u", nZoom);
+		MessageViewMode::Fit fit = mode.fit_;
+		const WCHAR* pwszFit = L"none";
+		switch (fit) {
+		case MessageViewMode::FIT_NORMAL:
+			pwszFit = L"normal";
+			break;
+		case MessageViewMode::FIT_SUPER:
+			pwszFit = L"super";
+			break;
+		default:
+			break;
+		}
+		const SimpleAttributes::Item modeItems[] = {
+			{ L"raw",			nMode & MessageViewMode::MODE_RAW ? L"true" : L"false",				(nMode & MessageViewMode::MODE_RAW) == 0			},
+			{ L"source",		nMode & MessageViewMode::MODE_SOURCE ? L"true" : L"false",			(nMode & MessageViewMode::MODE_SOURCE) == 0			},
+			{ L"select",		nMode & MessageViewMode::MODE_SELECT ? L"true" : L"false",			(nMode & MessageViewMode::MODE_SELECT) == 0			},
+			{ L"quote",			nMode & MessageViewMode::MODE_QUOTE ? L"true" : L"false",			(nMode & MessageViewMode::MODE_QUOTE) == 0			},
+			{ L"html",			nMode & MessageViewMode::MODE_HTML ? L"true" : L"false",			(nMode & MessageViewMode::MODE_HTML) == 0			},
+			{ L"htmlonline",	nMode & MessageViewMode::MODE_HTMLONLINE ? L"true" : L"false",		(nMode & MessageViewMode::MODE_HTMLONLINE) == 0		},
+			{ L"internetzone",	nMode & MessageViewMode::MODE_INTERNETZONE ? L"true" : L"false",	(nMode & MessageViewMode::MODE_INTERNETZONE) == 0	},
+			{ L"zoom",			wszZoom,															nZoom == MessageViewMode::ZOOM_NONE					},
+			{ L"fit",			pwszFit,															fit == MessageViewMode::FIT_NONE					}
+		};
+		SimpleAttributes modeAttrs(modeItems, countof(modeItems));
+		const WCHAR* pwszName = n == ViewModel::MODETYPE_PREVIEW ? L"mode" : L"mode2";
+		if (!handler_.startElement(0, 0, pwszName, modeAttrs) ||
+			!handler_.endElement(0, 0, pwszName))
+			return false;
 	}
-	const SimpleAttributes::Item modeItems[] = {
-		{ L"raw",			nMode & MessageViewMode::MODE_RAW ? L"true" : L"false",				(nMode & MessageViewMode::MODE_RAW) == 0			},
-		{ L"source",		nMode & MessageViewMode::MODE_SOURCE ? L"true" : L"false",			(nMode & MessageViewMode::MODE_SOURCE) == 0			},
-		{ L"select",		nMode & MessageViewMode::MODE_SELECT ? L"true" : L"false",			(nMode & MessageViewMode::MODE_SELECT) == 0			},
-		{ L"quote",			nMode & MessageViewMode::MODE_QUOTE ? L"true" : L"false",			(nMode & MessageViewMode::MODE_QUOTE) == 0			},
-		{ L"html",			nMode & MessageViewMode::MODE_HTML ? L"true" : L"false",			(nMode & MessageViewMode::MODE_HTML) == 0			},
-		{ L"htmlonline",	nMode & MessageViewMode::MODE_HTMLONLINE ? L"true" : L"false",		(nMode & MessageViewMode::MODE_HTMLONLINE) == 0		},
-		{ L"internetzone",	nMode & MessageViewMode::MODE_INTERNETZONE ? L"true" : L"false",	(nMode & MessageViewMode::MODE_INTERNETZONE) == 0	},
-		{ L"zoom",			wszZoom,															nZoom == MessageViewMode::ZOOM_NONE					},
-		{ L"fit",			pwszFit,															fit == MessageViewMode::FIT_NONE					}
-	};
-	SimpleAttributes modeAttrs(modeItems, countof(modeItems));
-	if (!handler_.startElement(0, 0, L"mode", modeAttrs) ||
-		!handler_.endElement(0, 0, L"mode"))
-		return false;
 	
 	WCHAR wszRestoreId[32];
 	_snwprintf(wszRestoreId, countof(wszRestoreId), L"%u", pItem->getRestoreId());

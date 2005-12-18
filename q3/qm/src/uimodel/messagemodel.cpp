@@ -107,12 +107,12 @@ void qm::AbstractMessageModel::setViewModel(ViewModel* pViewModel)
 	MessageViewMode* pNewMode = 0;
 	
 	if (pViewModel_) {
-		pOldMode = pViewModel_->getMessageViewMode();
+		pOldMode = getMessageViewMode(pViewModel_);
 		pViewModel_->removeViewModelHandler(this);
 	}
 	pViewModel_ = pViewModel;
 	if (pViewModel_) {
-		pNewMode = pViewModel_->getMessageViewMode();
+		pNewMode = getMessageViewMode(pViewModel_);
 		pViewModel_->addViewModelHandler(this);
 	}
 	
@@ -121,7 +121,7 @@ void qm::AbstractMessageModel::setViewModel(ViewModel* pViewModel)
 
 MessageViewMode* qm::AbstractMessageModel::getMessageViewMode()
 {
-	return pViewModel_ ? pViewModel_->getMessageViewMode() : 0;
+	return pViewModel_ ? getMessageViewMode(pViewModel_) : 0;
 }
 
 void qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)
@@ -181,6 +181,11 @@ qm::MessageMessageModel::MessageMessageModel()
 
 qm::MessageMessageModel::~MessageMessageModel()
 {
+}
+
+MessageViewMode* qm::MessageMessageModel::getMessageViewMode(ViewModel* pViewModel) const
+{
+	return pViewModel->getMessageViewMode(ViewModel::MODETYPE_MESSAGE);
 }
 
 
@@ -309,6 +314,11 @@ void qm::PreviewMessageModel::timerTimeout(Timer::Id nId)
 	pTimer_->killTimer(nTimerId_);
 	nTimerId_ = 0;
 	updateToViewModel();
+}
+
+MessageViewMode* qm::PreviewMessageModel::getMessageViewMode(ViewModel* pViewModel) const
+{
+	return pViewModel->getMessageViewMode(ViewModel::MODETYPE_PREVIEW);
 }
 
 void qm::PreviewMessageModel::updateToViewModel(bool bClearMessage)

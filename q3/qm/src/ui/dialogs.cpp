@@ -2942,8 +2942,8 @@ LRESULT qm::ViewsDialog::onAsDefault()
 	cloneColumns(listColumn_, &listColumn);
 	pItem->setColumns(listColumn);
 	pItem->setSort(nSort_);
-	ViewDataItem::Mode mode = { nMode_, nZoom_, fit_ };
-	pItem->setMode(mode);
+	for (int n = 0; n < ViewModel::MODETYPE_COUNT; ++n)
+		pItem->setMode(static_cast<ViewModel::ModeType>(n), mode_[n]);
 	return 0;
 }
 
@@ -2952,10 +2952,8 @@ LRESULT qm::ViewsDialog::onApplyDefault()
 	ViewDataItem* pItem = getDefaultItem();
 	setColumns(pItem->getColumns());
 	nSort_ = pItem->getSort();
-	const ViewDataItem::Mode& mode = pItem->getMode();
-	nMode_ = mode.nMode_;
-	nZoom_ = mode.nZoom_;
-	fit_ = mode.fit_;
+	for (int n = 0; n < ViewModel::MODETYPE_COUNT; ++n)
+		mode_[n] = pItem->getMode(static_cast<ViewModel::ModeType>(n));
 	update();
 	return 0;
 }
@@ -3107,20 +3105,26 @@ void qm::ViewsDialog::applyToViewModel(ViewModel* pViewModel)
 	cloneColumns(listColumn_, &listColumn);
 	pViewModel->setColumns(listColumn);
 	pViewModel->setSort(nSort_, 0xffffffff);
-	MessageViewMode* pMode = pViewModel->getMessageViewMode();
-	pMode->setMode(nMode_, 0xffffffff);
-	pMode->setZoom(nZoom_);
-	pMode->setFit(fit_);
+	for (int n = 0; n < ViewModel::MODETYPE_COUNT; ++n) {
+		MessageViewMode* pMode = pViewModel->getMessageViewMode(
+			static_cast<ViewModel::ModeType>(n));
+		pMode->setMode(mode_[n].nMode_, 0xffffffff);
+		pMode->setZoom(mode_[n].nZoom_);
+		pMode->setFit(mode_[n].fit_);
+	}
 }
 
 void qm::ViewsDialog::retrieveFromViewModel(const ViewModel* pViewModel)
 {
 	setColumns(pViewModel->getColumns());
 	nSort_ = pViewModel->getSort();
-	MessageViewMode* pMode = pViewModel->getMessageViewMode();
-	nMode_ = pMode->getMode();
-	nZoom_ = pMode->getZoom();
-	fit_ = pMode->getFit();
+	for (int n = 0; n < ViewModel::MODETYPE_COUNT; ++n) {
+		MessageViewMode* pMode = pViewModel->getMessageViewMode(
+			static_cast<ViewModel::ModeType>(n));
+		mode_[n].nMode_ = pMode->getMode();
+		mode_[n].nZoom_ = pMode->getZoom();
+		mode_[n].fit_ = pMode->getFit();
+	}
 }
 
 ViewDataItem* qm::ViewsDialog::getDefaultItem()

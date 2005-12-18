@@ -98,6 +98,9 @@ public:
 	virtual void accountDestroyed(const AccountEvent& event);
 
 protected:
+	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const = 0;
+
+protected:
 	void fireMessageChanged(MessageHolder* pmh) const;
 	void fireUpdateRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const;
 	void fireApplyRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const;
@@ -129,6 +132,9 @@ class MessageMessageModel : public AbstractMessageModel
 public:
 	MessageMessageModel();
 	virtual ~MessageMessageModel();
+
+protected:
+	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const;
 
 private:
 	MessageMessageModel(const MessageMessageModel&);
@@ -168,6 +174,9 @@ public:
 
 public:
 	virtual void timerTimeout(qs::Timer::Id nId);
+
+protected:
+	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const;
 
 private:
 	void updateToViewModel(bool bClearMessage);
