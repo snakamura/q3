@@ -16,6 +16,7 @@ namespace qm {
 
 class MessageViewMode;
 	class AbstractMessageViewMode;
+		class DefaultMessageViewMode;
 class MessageViewModeHandler;
 class MessageViewModeEvent;
 class MessageViewModeHolder;
@@ -89,8 +90,8 @@ public:
 	virtual void removeMessageViewModeHandler(MessageViewModeHandler* pHandler);
 
 protected:
-	void fireModeChanged(Mode mode,
-						 bool b) const;
+	void fireModeChanged(unsigned int nModeAdded,
+						 unsigned int nModeRemoved) const;
 	void fireZoomChanged() const;
 	void fireFitChanged() const;
 
@@ -103,6 +104,46 @@ private:
 
 private:
 	HandlerList listHandler_;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultMessageViewMode
+ *
+ */
+
+class DefaultMessageViewMode : public AbstractMessageViewMode
+{
+public:
+	DefaultMessageViewMode();
+	DefaultMessageViewMode(unsigned int nMode,
+						   unsigned int nZoom,
+						   Fit fit);
+	virtual ~DefaultMessageViewMode();
+
+public:
+	unsigned int getMode() const;
+	void setMode(unsigned int nMode,
+				 unsigned int nMask);
+
+public:
+	virtual bool isMode(Mode mode) const;
+	virtual void setMode(Mode mode,
+						 bool b);
+	virtual unsigned int getZoom() const;
+	virtual void setZoom(unsigned int nZoom);
+	virtual Fit getFit() const;
+	virtual void setFit(Fit fit);
+
+private:
+	DefaultMessageViewMode(const DefaultMessageViewMode&);
+	DefaultMessageViewMode& operator=(const DefaultMessageViewMode&);
+
+private:
+	unsigned int nMode_;
+	unsigned int nZoom_;
+	Fit fit_;
 };
 
 
@@ -134,21 +175,21 @@ class MessageViewModeEvent
 {
 public:
 	MessageViewModeEvent();
-	MessageViewModeEvent(MessageViewMode::Mode mode,
-						 bool b);
+	MessageViewModeEvent(unsigned int nModeAdded,
+						 unsigned int nModeRemoved);
 	~MessageViewModeEvent();
 
 public:
-	MessageViewMode::Mode getMode() const;
-	bool isSet() const;
+	unsigned int getAddedMode() const;
+	unsigned int getRemovedMode() const;
 
 private:
 	MessageViewModeEvent(const MessageViewModeEvent&);
 	MessageViewModeEvent& operator=(const MessageViewModeEvent&);
 
 private:
-	MessageViewMode::Mode mode_;
-	bool b_;
+	unsigned int nModeAdded_;
+	unsigned int nModeRemoved_;
 };
 
 

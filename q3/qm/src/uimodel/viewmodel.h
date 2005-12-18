@@ -271,7 +271,6 @@ private:
  */
 
 class ViewModel :
-	public AbstractMessageViewMode,
 	public DefaultFolderHandler,
 	public MessageHolderHandler
 {
@@ -371,6 +370,8 @@ public:
 	
 	void payAttention(unsigned int n);
 	
+	MessageViewMode* getMessageViewMode() const;
+	
 	RestoreInfo getRestoreInfo() const;
 	void setRestoreInfo(const RestoreInfo& info);
 	
@@ -392,15 +393,6 @@ public:
 public:
 	MacroValuePtr getValue(const Macro* pMacro,
 						   MessageHolder* pmh) const;
-
-public:
-	virtual bool isMode(Mode mode) const;
-	virtual void setMode(Mode mode,
-						 bool b);
-	virtual unsigned int getZoom() const;
-	virtual void setZoom(unsigned int nZoom);
-	virtual Fit getFit() const;
-	virtual void setFit(Fit fit);
 
 public:
 	virtual void messageAdded(const FolderMessageEvent& event);
@@ -484,9 +476,7 @@ private:
 	unsigned int nLastSelection_;
 	unsigned int nFocused_;
 	unsigned int nScroll_;
-	unsigned int nMode_;
-	unsigned int nZoom_;
-	Fit fit_;
+	std::auto_ptr<DefaultMessageViewMode> pMessageViewMode_;
 	unsigned int nCacheCount_;
 	RestoreInfo restoreInfo_;
 	ViewModelHandlerList listHandler_;

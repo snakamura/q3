@@ -7,6 +7,8 @@
 
 #pragma warning(disable:4786)
 
+#include <qsassert.h>
+
 #include <algorithm>
 
 #include "messageviewmode.h"
@@ -51,10 +53,10 @@ void qm::AbstractMessageViewMode::removeMessageViewModeHandler(MessageViewModeHa
 	listHandler_.erase(it, listHandler_.end());
 }
 
-void qm::AbstractMessageViewMode::fireModeChanged(Mode mode,
-												  bool b) const
+void qm::AbstractMessageViewMode::fireModeChanged(unsigned int nModeAdded,
+												  unsigned int nModeRemoved) const
 {
-	MessageViewModeEvent event(mode, b);
+	MessageViewModeEvent event(nModeAdded, nModeRemoved);
 	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		(*it)->modeChanged(event);
 }
@@ -71,6 +73,86 @@ void qm::AbstractMessageViewMode::fireFitChanged() const
 	MessageViewModeEvent event;
 	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		(*it)->fitChanged(event);
+}
+
+
+/****************************************************************************
+ *
+ * DefaultMessageViewMode
+ *
+ */
+
+qm::DefaultMessageViewMode::DefaultMessageViewMode() :
+	nMode_(MODE_NONE),
+	nZoom_(ZOOM_NONE),
+	fit_(FIT_NONE)
+{
+}
+
+qm::DefaultMessageViewMode::DefaultMessageViewMode(unsigned int nMode,
+												   unsigned int nZoom,
+												   Fit fit) :
+	nMode_(nMode),
+	nZoom_(nZoom),
+	fit_(fit)
+{
+}
+
+qm::DefaultMessageViewMode::~DefaultMessageViewMode()
+{
+}
+
+unsigned int qm::DefaultMessageViewMode::getMode() const
+{
+	return nMode_;
+}
+
+void qm::DefaultMessageViewMode::setMode(unsigned int nMode,
+										 unsigned int nMask)
+{
+	unsigned int nOld = nMode_;
+	nMode_ = (nMode & nMask) | (nMode_ & ~nMask);
+	if (nMode_ != nOld)
+		fireModeChanged(nMode_ - (nOld & nMode_), nOld - (nOld & nMode_));
+}
+
+bool qm::DefaultMessageViewMode::isMode(Mode mode) const
+{
+	return (nMode_ & mode) != 0;
+}
+
+void qm::DefaultMessageViewMode::setMode(Mode mode,
+										 bool b)
+{
+	setMode(b ? mode : 0, mode);
+}
+
+unsigned int qm::DefaultMessageViewMode::getZoom() const
+{
+	return nZoom_;
+}
+
+void qm::DefaultMessageViewMode::setZoom(unsigned int nZoom)
+{
+	assert(nZoom == -1 || (ZOOM_MIN <= nZoom && nZoom <= ZOOM_MAX));
+	
+	if (nZoom != nZoom_) {
+		nZoom_ = nZoom;
+		fireZoomChanged();
+	}
+}
+
+MessageViewMode::Fit qm::DefaultMessageViewMode::getFit() const
+{
+	return fit_;
+}
+
+void qm::DefaultMessageViewMode::setFit(Fit fit)
+{
+	if (fit != fit_) {
+		fit_ = fit;
+		fireFitChanged();
+	}
 }
 
 
@@ -92,15 +174,15 @@ qm::MessageViewModeHandler::~MessageViewModeHandler()
 */
 
 qm::MessageViewModeEvent::MessageViewModeEvent() :
-	mode_(MessageViewMode::MODE_NONE),
-	b_(false)
+	nModeAdded_(0),
+	nModeRemoved_(0)
 {
 }
 
-qm::MessageViewModeEvent::MessageViewModeEvent(MessageViewMode::Mode mode,
-											   bool b) :
-	mode_(mode),
-	b_(b)
+qm::MessageViewModeEvent::MessageViewModeEvent(unsigned int nModeAdded,
+											   unsigned int nModeRemoved) :
+	nModeAdded_(nModeAdded),
+	nModeRemoved_(nModeRemoved)
 {
 }
 
@@ -108,14 +190,14 @@ qm::MessageViewModeEvent::~MessageViewModeEvent()
 {
 }
 
-MessageViewMode::Mode qm::MessageViewModeEvent::getMode() const
+unsigned int qm::MessageViewModeEvent::getAddedMode() const
 {
-	return mode_;
+	return nModeAdded_;
 }
 
-bool qm::MessageViewModeEvent::isSet() const
+unsigned int qm::MessageViewModeEvent::getRemovedMode() const
 {
-	return b_;
+	return nModeRemoved_;
 }
 
 

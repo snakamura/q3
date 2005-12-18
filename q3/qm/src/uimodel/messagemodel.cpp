@@ -103,20 +103,25 @@ ViewModel* qm::AbstractMessageModel::getViewModel() const
 
 void qm::AbstractMessageModel::setViewModel(ViewModel* pViewModel)
 {
-	ViewModel* pOld = pViewModel_;
+	MessageViewMode* pOldMode = 0;
+	MessageViewMode* pNewMode = 0;
 	
-	if (pViewModel_)
+	if (pViewModel_) {
+		pOldMode = pViewModel_->getMessageViewMode();
 		pViewModel_->removeViewModelHandler(this);
+	}
 	pViewModel_ = pViewModel;
-	if (pViewModel_)
+	if (pViewModel_) {
+		pNewMode = pViewModel_->getMessageViewMode();
 		pViewModel_->addViewModelHandler(this);
+	}
 	
-	fireMessageViewModeChanged(pViewModel_, pOld);
+	fireMessageViewModeChanged(pNewMode, pOldMode);
 }
 
 MessageViewMode* qm::AbstractMessageModel::getMessageViewMode()
 {
-	return pViewModel_;
+	return pViewModel_ ? pViewModel_->getMessageViewMode() : 0;
 }
 
 void qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)

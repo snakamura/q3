@@ -42,7 +42,6 @@ using namespace qs;
  */
 
 class qm::MessageWindowImpl :
-	public AbstractMessageViewMode,
 	public MessageViewModeHolder,
 	public MessageModelHandler,
 	public MessageViewModeHandler,
@@ -72,15 +71,6 @@ public:
 	bool setMessage(MessageHolder* pmh,
 					bool bResetEncoding);
 	void reloadProfiles(bool bInitialize);
-
-public:
-	virtual bool isMode(Mode mode) const;
-	virtual void setMode(Mode mode,
-						 bool b);
-	virtual unsigned int getZoom() const;
-	virtual void setZoom(unsigned int nZoom);
-	virtual Fit getFit() const;
-	virtual void setFit(Fit fit);
 
 public:
 	virtual MessageViewMode* getMessageViewMode();
@@ -139,10 +129,8 @@ public:
 	
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
+	std::auto_ptr<DefaultMessageViewMode> pMessageViewMode_;
 	
-	unsigned int nMode_;
-	unsigned int nZoom_;
-	Fit fit_;
 	wstring_ptr wstrTemplate_;
 	wstring_ptr wstrCertificate_;
 	unsigned int nSeenWait_;
@@ -310,55 +298,9 @@ void qm::MessageWindowImpl::reloadProfiles(bool bInitialize)
 	nSeenWait_ = pProfile_->getInt(pwszSection_, L"SeenWait", 0);
 }
 
-bool qm::MessageWindowImpl::isMode(Mode mode) const
-{
-	return (nMode_ & mode) != 0;
-}
-
-void qm::MessageWindowImpl::setMode(Mode mode,
-									bool b)
-{
-	unsigned int nMode = nMode_;
-	if (b)
-		nMode_ |= mode;
-	else
-		nMode_ &= ~mode;
-	
-	if (nMode_ != nMode)
-		fireModeChanged(mode, b);
-}
-
-unsigned int qm::MessageWindowImpl::getZoom() const
-{
-	return nZoom_;
-}
-
-void qm::MessageWindowImpl::setZoom(unsigned int nZoom)
-{
-	assert(nZoom == -1 || (ZOOM_MIN <= nZoom && nZoom <= ZOOM_MAX));
-	
-	if (nZoom != nZoom_) {
-		nZoom_ = nZoom;
-		fireZoomChanged();
-	}
-}
-
-MessageViewMode::Fit qm::MessageWindowImpl::getFit() const
-{
-	return fit_;
-}
-
-void qm::MessageWindowImpl::setFit(Fit fit)
-{
-	if (fit != fit_) {
-		fit_ = fit;
-		fireFitChanged();
-	}
-}
-
 MessageViewMode* qm::MessageWindowImpl::getMessageViewMode()
 {
-	return this;
+	return pMessageViewMode_.get();
 }
 
 void qm::MessageWindowImpl::addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler)
@@ -395,27 +337,29 @@ void qm::MessageWindowImpl::applyRestoreInfo(const MessageModelRestoreEvent& eve
 
 void qm::MessageWindowImpl::modeChanged(const MessageViewModeEvent& event)
 {
-	MessageViewMode::Mode mode = event.getMode();
-	bool b = event.isSet();
-	switch (mode) {
-	case MessageViewMode::MODE_RAW:
-	case MessageViewMode::MODE_HTML:
-	case MessageViewMode::MODE_HTMLONLINE:
-	case MessageViewMode::MODE_INTERNETZONE:
-	case MessageViewMode::MODE_SOURCE:
-		{
-			MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-			setMessage(mpl, false);
-		}
-		break;
-	case MessageViewMode::MODE_SELECT:
-		pMessageViewWindow_->setSelectMode(b);
-		break;
-	case MessageViewMode::MODE_QUOTE:
-		pMessageViewWindow_->setQuoteMode(b);
-		break;
-	default:
-		break;
+	const unsigned int nSetMode =
+		MessageViewMode::MODE_RAW |
+		MessageViewMode::MODE_HTML |
+		MessageViewMode::MODE_HTMLONLINE |
+		MessageViewMode::MODE_INTERNETZONE |
+		MessageViewMode::MODE_SOURCE;
+	unsigned int nAdded = event.getAddedMode();
+	unsigned int nRemoved = event.getRemovedMode();
+	if (nAdded & nSetMode || nRemoved & nSetMode) {
+		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+		setMessage(mpl, false);
+	}
+	if (nAdded & MessageViewMode::MODE_SELECT) {
+		pMessageViewWindow_->setSelectMode(true);
+	}
+	else if (nRemoved & MessageViewMode::MODE_SELECT) {
+		pMessageViewWindow_->setSelectMode(false);
+	}
+	if (nAdded & MessageViewMode::MODE_QUOTE) {
+		pMessageViewWindow_->setQuoteMode(true);
+	}
+	else if (nRemoved & MessageViewMode::MODE_QUOTE) {
+		pMessageViewWindow_->setQuoteMode(false);
 	}
 }
 
@@ -520,9 +464,9 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->bLayouting_ = false;
 	pImpl_->nSeenTimerId_ = 0;
 	pImpl_->pMessageModel_ = pMessageModel;
-	pImpl_->nMode_ = pProfile->getInt(pwszSection, L"ViewMode", MessageViewMode::MODE_QUOTE);
-	pImpl_->nZoom_ = nZoom;
-	pImpl_->fit_ = static_cast<MessageViewMode::Fit>(nFit);
+	pImpl_->pMessageViewMode_.reset(new DefaultMessageViewMode(
+		pProfile->getInt(pwszSection, L"ViewMode", MessageViewMode::MODE_QUOTE),
+		nZoom, static_cast<MessageViewMode::Fit>(nFit)));
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
 	pImpl_->nSeenWait_ = 0;
 	
@@ -648,9 +592,9 @@ void qm::MessageWindow::save() const
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
-	pProfile->setInt(pImpl_->pwszSection_, L"ViewMode", pImpl_->nMode_);
-	pProfile->setInt(pImpl_->pwszSection_, L"ViewZoom", pImpl_->nZoom_);
-	pProfile->setInt(pImpl_->pwszSection_, L"ViewFit", pImpl_->fit_);
+	pProfile->setInt(pImpl_->pwszSection_, L"ViewMode", pImpl_->pMessageViewMode_->getMode());
+	pProfile->setInt(pImpl_->pwszSection_, L"ViewZoom", pImpl_->pMessageViewMode_->getZoom());
+	pProfile->setInt(pImpl_->pwszSection_, L"ViewFit", pImpl_->pMessageViewMode_->getFit());
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
 }

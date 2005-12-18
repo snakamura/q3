@@ -424,9 +424,6 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	nLastSelection_(0),
 	nFocused_(0),
 	nScroll_(-1),
-	nMode_(0),
-	nZoom_(ZOOM_NONE),
-	fit_(FIT_NONE),
 	nCacheCount_(0)
 {
 	assert(pFolder);
@@ -448,9 +445,9 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	if (pFilter)
 		pFilter_.reset(new Filter(*pFilter));
 	
-	nMode_ = pDataItem_->getMode();
-	nZoom_ = pDataItem_->getZoom();
-	fit_ = pDataItem_->getFit();
+	pMessageViewMode_.reset(new DefaultMessageViewMode(pDataItem_->getMode(),
+		pDataItem_->getZoom(), pDataItem_->getFit()));
+	
 	updateCacheCount();
 	
 	Lock<ViewModel> lock(*this);
@@ -636,12 +633,12 @@ const Filter* qm::ViewModel::getFilter() const
 void qm::ViewModel::setMode(unsigned int nMode,
 							unsigned int nMask)
 {
-	nMode_ = (nMode & nMask) | (nMode_ & ~nMask);
+	pMessageViewMode_->setMode(nMode, nMask);
 }
 
 unsigned int qm::ViewModel::getMode() const
 {
-	return nMode_;
+	return pMessageViewMode_->getMode();
 }
 
 void qm::ViewModel::addSelection(unsigned int n)
@@ -834,6 +831,11 @@ void qm::ViewModel::payAttention(unsigned int n)
 	fireItemAttentionPaid(n);
 }
 
+MessageViewMode* qm::ViewModel::getMessageViewMode() const
+{
+	return pMessageViewMode_.get();
+}
+
 ViewModel::RestoreInfo qm::ViewModel::getRestoreInfo() const
 {
 	assert(isLocked());
@@ -872,9 +874,9 @@ void qm::ViewModel::save() const
 	pDataItem_->setFocus(nFocused_);
 	pDataItem_->setScroll(nScroll_);
 	pDataItem_->setFilter(pFilter_.get() ? pFilter_->getName() : 0);
-	pDataItem_->setMode(nMode_);
-	pDataItem_->setZoom(nZoom_);
-	pDataItem_->setFit(fit_);
+	pDataItem_->setMode(pMessageViewMode_->getMode());
+	pDataItem_->setZoom(pMessageViewMode_->getZoom());
+	pDataItem_->setFit(pMessageViewMode_->getFit());
 	
 	MessagePtrLock mpl(restoreInfo_.getMessagePtr());
 	pDataItem_->setRestoreId(mpl ? mpl->getId() : -1);
@@ -931,52 +933,6 @@ MacroValuePtr qm::ViewModel::getValue(const Macro* pMacro,
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
 		/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 	return pMacro->value(&context);
-}
-
-bool qm::ViewModel::isMode(Mode mode) const
-{
-	return (nMode_ & mode) != 0;
-}
-
-void qm::ViewModel::setMode(Mode mode,
-							bool b)
-{
-	unsigned int nMode = nMode_;
-	if (b)
-		nMode_ |= mode;
-	else
-		nMode_ &= ~mode;
-	
-	if (nMode_ != nMode)
-		fireModeChanged(mode, b);
-}
-
-unsigned int qm::ViewModel::getZoom() const
-{
-	return nZoom_;
-}
-
-void qm::ViewModel::setZoom(unsigned int nZoom)
-{
-	assert(nZoom == -1 || (ZOOM_MIN <= nZoom && nZoom <= ZOOM_MAX));
-	
-	if (nZoom != nZoom_) {
-		nZoom_ = nZoom;
-		fireZoomChanged();
-	}
-}
-
-MessageViewMode::Fit qm::ViewModel::getFit() const
-{
-	return fit_;
-}
-
-void qm::ViewModel::setFit(Fit fit)
-{
-	if (fit != fit_) {
-		fit_ = fit;
-		fireFitChanged();
-	}
 }
 
 void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
