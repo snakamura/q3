@@ -1093,7 +1093,9 @@ bool qm::SelectAddressDialog::isMatchFilter(const AddressBookAddress* pAddress) 
 {
 	if (!wstrFilter_.get())
 		return true;
-	return wcsstr(pAddress->getAddress(), wstrFilter_.get()) != 0;
+	
+	wstring_ptr wstrAddress(tolower(pAddress->getAddress()));
+	return wcsstr(wstrAddress.get(), wstrFilter_.get()) != 0;
 }
 
 size_t qm::SelectAddressDialog::getCategoryLevel(const WCHAR* pwszCategory)
