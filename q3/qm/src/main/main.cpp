@@ -406,6 +406,13 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 	std::auto_ptr<Mutex> pMutex(new Mutex(false, L"QMAIL3Mutex"));
 	pMutex->acquire();
 	
+#ifdef _WIN32_WCE
+	bool bAlreadyExists = ::GetFileAttributes(tstrPath.get()) != 0xffffffff;
+#	define CHECK_ALREADY_EXISTS() (bAlreadyExists)
+#else
+#	define CHECK_ALREADY_EXISTS() (::GetLastError() == ERROR_ALREADY_EXISTS)
+#endif
+	
 	AutoHandle hFile(::CreateFile(tstrPath.get(),
 		GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, 0,
 		OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0));
@@ -426,7 +433,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 		}
 		*phwnd = hwnd;
 	}
-	else if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+	else if (CHECK_ALREADY_EXISTS()) {
 		const WCHAR* pwszName = L"Unknown";
 		wstring_ptr wstrName;
 		if (read(hFile.get(), 0, &wstrName))
