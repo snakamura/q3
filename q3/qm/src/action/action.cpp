@@ -5274,7 +5274,8 @@ void qm::ToolInvokeActionAction::parseActions(const WCHAR* pwszActions,
 	
 	while (*pwszActions) {
 		StringBuffer<WSTRING> buf;
-		for (const WCHAR* p = pwszActions; *p; ++p) {
+		const WCHAR* p = pwszActions;
+		while (*p) {
 			if (*p == L'|') {
 				if (*(p + 1) == L'|') {
 					buf.append(*p);
@@ -5287,6 +5288,7 @@ void qm::ToolInvokeActionAction::parseActions(const WCHAR* pwszActions,
 			else {
 				buf.append(*p);
 			}
+			++p;
 		}
 		if (buf.getLength() != 0) {
 			wstring_ptr wstrAction(trim(buf.getCharArray()));
