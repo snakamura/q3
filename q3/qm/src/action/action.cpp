@@ -5209,17 +5209,26 @@ qm::ToolInvokeActionAction::~ToolInvokeActionAction()
 
 void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_INVOKEACTION));
-	wstring_ptr wstrMessage(loadString(hInst, IDS_ACTION));
-	wstring_ptr wstrAction(pProfile_->getString(L"Global", L"Action", L""));
+	const WCHAR* pwszActions = ActionParamUtil::getString(event.getParam(), 0);
+	wstring_ptr wstrActions;
+	if (!pwszActions) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrTitle(loadString(hInst, IDS_INVOKEACTION));
+		wstring_ptr wstrMessage(loadString(hInst, IDS_ACTION));
+		wstring_ptr wstrPrevActions(pProfile_->getString(L"Global", L"Action", L""));
+		
+		InputBoxDialog dialog(false, wstrTitle.get(), wstrMessage.get(), wstrPrevActions.get(), false);
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		
+		wstrActions = allocWString(dialog.getValue());
+		pProfile_->setString(L"Global", L"Action", wstrActions.get());
+		pwszActions = wstrActions.get();
+	}
 	
-	InputBoxDialog dialog(false, wstrTitle.get(), wstrMessage.get(), wstrAction.get(), false);
-	if (dialog.doModal(hwnd_) != IDOK)
-		return;
-	
-	const WCHAR* pwszAction = dialog.getValue();
-	pProfile_->setString(L"Global", L"Action", pwszAction);
+	ActionList listAction;
+	StringListFree<ActionList> free(listAction);
+	parseActions(pwszActions, &listAction);
 	
 	struct CommandLineHandlerImpl : public CommandLineHandler
 	{
@@ -5246,13 +5255,50 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 		
 		wstring_ptr wstrAction_;
 		ParamList listParam_;
-	} handler;
-	CommandLine commandLine(&handler);
-	if (!commandLine.parse(pwszAction) || !handler.wstrAction_.get())
-		return;
+	};
 	
-	pActionInvoker_->invoke(handler.wstrAction_.get(),
-		const_cast<const WCHAR**>(&handler.listParam_[0]), handler.listParam_.size());
+	for (ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
+		CommandLineHandlerImpl handler;
+		CommandLine commandLine(&handler);
+		if (commandLine.parse(*it) && handler.wstrAction_.get())
+			pActionInvoker_->invoke(handler.wstrAction_.get(),
+				const_cast<const WCHAR**>(&handler.listParam_[0]), handler.listParam_.size());
+	}
+}
+
+void qm::ToolInvokeActionAction::parseActions(const WCHAR* pwszActions,
+											  ActionList* pList)
+{
+	assert(pwszActions);
+	assert(pList);
+	
+	while (*pwszActions) {
+		StringBuffer<WSTRING> buf;
+		for (const WCHAR* p = pwszActions; *p; ++p) {
+			if (*p == L'|') {
+				if (*(p + 1) == L'|') {
+					buf.append(*p);
+					++p;
+				}
+				else {
+					break;
+				}
+			}
+			else {
+				buf.append(*p);
+			}
+		}
+		if (buf.getLength() != 0) {
+			wstring_ptr wstrAction(trim(buf.getCharArray()));
+			pList->push_back(wstrAction.get());
+			wstrAction.release();
+		}
+		
+		if (!*p)
+			break;
+		
+		pwszActions = p + 1;
+	}
 }
 
 

@@ -2568,6 +2568,9 @@ private:
 
 class ToolInvokeActionAction : public qs::AbstractAction
 {
+private:
+	typedef std::vector<qs::WSTRING> ActionList;
+
 public:
 	ToolInvokeActionAction(ActionInvoker* pActionInvoker,
 						   qs::Profile* pProfile,
@@ -2576,6 +2579,10 @@ public:
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	static void parseActions(const WCHAR* pwszActions,
+							 ActionList* pList);
 
 private:
 	ToolInvokeActionAction(const ToolInvokeActionAction&);
