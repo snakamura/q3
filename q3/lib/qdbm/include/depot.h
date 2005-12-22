@@ -45,8 +45,7 @@ typedef struct {                         /* type of structure for a database han
   int rnum;                              /* number of records */
   int fatal;                             /* whether a fatal error occured or not */
   int ioff;                              /* offset of the iterator */
-  int mroff;                             /* offset of the last moved region */
-  int mrsiz;                             /* size of the last moved region */
+  int *fbpool;                           /* free block pool */
   int align;                             /* basic size of alignment */
 } DEPOT;
 
@@ -391,8 +390,8 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.35"
-#define _QDBM_LIBVER   1107
+#define _QDBM_VERSION  "1.8.36"
+#define _QDBM_LIBVER   1108
 
 
 /* Name of the operating system. */
