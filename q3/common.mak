@@ -378,6 +378,9 @@ ifeq ($(PLATFORM),win)
 		LDFLAGS			+= -MACHINE:AMD64
 		RCFLAGS			+= -D_AMD64_
 	endif
+	ifeq ($(VCVER),7)
+		CCFLAGS			+= -Zc:forScope
+	endif
 	ifeq ($(VCVER),8)
 		DEFINES			+= -D_CRT_SECURE_NO_DEPRECATE
 	endif
