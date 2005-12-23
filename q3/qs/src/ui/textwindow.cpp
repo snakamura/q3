@@ -352,6 +352,9 @@ public:
 	Selection selection_;
 	UINT_PTR nTimerDragScroll_;
 	POINT ptLastButtonDown_;
+#ifdef _WIN32_WCE
+	POINT ptLastDrag_;
+#endif
 	mutable int nLastWindowWidth_;
 	HIMC hImc_;
 	bool bAtok_;
@@ -2081,6 +2084,10 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->nTimerDragScroll_ = 0;
 	pImpl_->ptLastButtonDown_.x = -1;
 	pImpl_->ptLastButtonDown_.y = -1;
+#ifdef _WIN32_WCE
+	pImpl_->ptLastDrag_.x = -1;
+	pImpl_->ptLastDrag_.y = -1;
+#endif
 	pImpl_->nLastWindowWidth_ = 0;
 	pImpl_->hImc_ = 0;
 	pImpl_->bAtok_ = false;
@@ -3684,6 +3691,10 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags,
 		
 		pImpl_->ptLastButtonDown_.x = -1;
 		pImpl_->ptLastButtonDown_.y = -1;
+#ifdef _WIN32_WCE
+		pImpl_->ptLastDrag_.x = -1;
+		pImpl_->ptLastDrag_.y = -1;
+#endif
 	}
 	
 	return DefaultWindowHandler::onLButtonUp(nFlags, pt);
@@ -3696,6 +3707,9 @@ LRESULT qs::TextWindow::onMouseMove(UINT nFlags,
 		if (pt.x != pImpl_->ptLastButtonDown_.x ||
 			pt.y != pImpl_->ptLastButtonDown_.y)
 			pImpl_->updateSelection(pt, false);
+#ifdef _WIN32_WCE
+		pImpl_->ptLastDrag_ = pt;
+#endif
 	}
 	
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
@@ -3977,12 +3991,10 @@ LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 		killTimer(pImpl_->nTimerDragScroll_);
 		pImpl_->nTimerDragScroll_ = 0;
 		
-		POINT pt;
 #ifdef _WIN32_WCE
-		DWORD dwPos = ::GetMessagePos();
-		pt.x = static_cast<int>(dwPos & 0x0000ffff);
-		pt.y = static_cast<int>(dwPos & 0xffff0000) >> 16;
+		POINT pt = pImpl_->ptLastDrag_;
 #else
+		POINT pt;
 		::GetCursorPos(&pt);
 		screenToClient(&pt);
 #endif
