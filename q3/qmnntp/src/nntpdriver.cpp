@@ -122,11 +122,11 @@ bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 		UINT nId_;
 		unsigned int nFlags_;
 	} folders[] = {
-		{ IDS_FOLDER_OUTBOX,	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX	},
-		{ IDS_FOLDER_POSTED,	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX							},
-		{ IDS_FOLDER_TRASH,		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX							},
+		{ IDS_FOLDER_OUTBOX,	Folder::FLAG_LOCAL | Folder::FLAG_OUTBOX | Folder::FLAG_DRAFTBOX		},
+		{ IDS_FOLDER_POSTED,	Folder::FLAG_LOCAL | Folder::FLAG_SENTBOX								},
+		{ IDS_FOLDER_TRASH,		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX | Folder::FLAG_IGNOREUNSEEN	},
 #ifndef _WIN32_WCE
-		{ IDS_FOLDER_JUNK,		Folder::FLAG_LOCAL | Folder::FLAG_JUNKBOX							}
+		{ IDS_FOLDER_JUNK,		Folder::FLAG_LOCAL | Folder::FLAG_JUNKBOX | Folder::FLAG_IGNOREUNSEEN	}
 #endif
 	};
 	

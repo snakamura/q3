@@ -114,7 +114,7 @@ bool qmrss::RssDriver::createDefaultFolders(Account::FolderList* pList)
 		UINT nId_;
 		unsigned int nFlags_;
 	} folders[] = {
-		{ IDS_FOLDER_TRASH,		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX	}
+		{ IDS_FOLDER_TRASH,		Folder::FLAG_LOCAL | Folder::FLAG_TRASHBOX | Folder::FLAG_IGNOREUNSEEN	}
 	};
 	
 	pList->reserve(countof(folders));
