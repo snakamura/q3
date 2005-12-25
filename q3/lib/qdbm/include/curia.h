@@ -193,13 +193,22 @@ char *criternext(CURIA *curia, int *sp);
    `curia' specifies a database handle connected as a writer.
    `align' specifies the size of alignment.
    If successful, the return value is true, else, it is false.
-   If alignment is set to a database, the efficiency of overwriting values are improved.
+   If alignment is set to a database, the efficiency of overwriting values is improved.
    The size of alignment is suggested to be average size of the values of the records to be
    stored.  If alignment is positive, padding whose size is multiple number of the alignment
    is placed.  If alignment is negative, as `vsiz' is the size of a value, the size of padding
    is calculated with `(vsiz / pow(2, abs(align) - 1))'.  Because alignment setting is not
    saved in a database, you should specify alignment every opening a database. */
 int crsetalign(CURIA *curia, int align);
+
+
+/* Set the size of the free block pool of a database handle.
+   `curia' specifies a database handle connected as a writer.
+   `size' specifies the size of the free block pool of a database.
+   If successful, the return value is true, else, it is false.
+   The default size of the free block pool is 16.  If the size is greater, the space efficiency
+   of overwriting values is improved with the time efficiency sacrificed. */
+int crsetfbpsiz(CURIA *curia, int size);
 
 
 /* Synchronize updating contents with the files and the devices.

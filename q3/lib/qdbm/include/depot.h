@@ -46,6 +46,7 @@ typedef struct {                         /* type of structure for a database han
   int fatal;                             /* whether a fatal error occured or not */
   int ioff;                              /* offset of the iterator */
   int *fbpool;                           /* free block pool */
+  int fbpsiz;                            /* size of the free block pool */
   int align;                             /* basic size of alignment */
 } DEPOT;
 
@@ -235,13 +236,22 @@ char *dpiternext(DEPOT *depot, int *sp);
    `depot' specifies a database handle connected as a writer.
    `align' specifies the size of alignment.
    If successful, the return value is true, else, it is false.
-   If alignment is set to a database, the efficiency of overwriting values are improved.
+   If alignment is set to a database, the efficiency of overwriting values is improved.
    The size of alignment is suggested to be average size of the values of the records to be
    stored.  If alignment is positive, padding whose size is multiple number of the alignment
    is placed.  If alignment is negative, as `vsiz' is the size of a value, the size of padding
    is calculated with `(vsiz / pow(2, abs(align) - 1))'.  Because alignment setting is not
    saved in a database, you should specify alignment every opening a database. */
 int dpsetalign(DEPOT *depot, int align);
+
+
+/* Set the size of the free block pool of a database handle.
+   `depot' specifies a database handle connected as a writer.
+   `size' specifies the size of the free block pool of a database.
+   If successful, the return value is true, else, it is false.
+   The default size of the free block pool is 16.  If the size is greater, the space efficiency
+   of overwriting values is improved with the time efficiency sacrificed. */
+int dpsetfbpsiz(DEPOT *depot, int size);
 
 
 /* Synchronize updating contents with the file and the device.
@@ -390,8 +400,8 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.36"
-#define _QDBM_LIBVER   1108
+#define _QDBM_VERSION  "1.8.37"
+#define _QDBM_LIBVER   1109
 
 
 /* Name of the operating system. */
