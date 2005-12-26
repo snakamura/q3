@@ -416,10 +416,11 @@ void qm::EditFrameWindowImpl::layoutChildren(int cx,
 	
 	Window::endDeferWindowPos(hdwp);
 	
+	const double dBase = qs::UIUtil::getLogPixel()/96.0;
 	int nWidth[] = {
-		cx - 110,
-		cx - 80,
-		cx - 50,
+		cx - static_cast<int>(110*dBase),
+		cx - static_cast<int>(80*dBase),
+		cx - static_cast<int>(50*dBase),
 		-1
 	};
 	pStatusBar_->setParts(nWidth, countof(nWidth));

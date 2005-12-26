@@ -527,27 +527,28 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 	
 	Window::endDeferWindowPos(hdwp);
 	
+	const double dBase = qs::UIUtil::getLogPixel()/96.0;
 #ifdef _WIN32_WCE_PSPC
 	int nWidth[] = {
-		cx - 40,
-		cx - 20,
+		cx - static_cast<int>(40*dBase),
+		cx - static_cast<int>(20*dBase),
 		-1
 	};
 #elif defined _WIN32_WCE
 	int nWidth[] = {
-		cx - 200,
-		cx - 120,
-		cx - 40,
-		cx - 20,
+		cx - static_cast<int>(200*dBase),
+		cx - static_cast<int>(120*dBase),
+		cx - static_cast<int>(40*dBase),
+		cx - static_cast<int>(20*dBase),
 		-1
 	};
 #else
 	int nWidth[] = {
-		cx - 238,
-		cx - 158,
-		cx - 78,
-		cx - 54,
-		cx - 30,
+		cx - static_cast<int>(238*dBase),
+		cx - static_cast<int>(158*dBase),
+		cx - static_cast<int>(78*dBase),
+		cx - static_cast<int>(54*dBase),
+		cx - static_cast<int>(30*dBase),
 		-1
 	};
 #endif

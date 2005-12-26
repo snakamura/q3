@@ -1290,33 +1290,34 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 	pListSplitterWindow_->setRowHeight(0, nListWindowHeight_);
 	
 	if (bShowStatusBar_) {
+		const double dBase = qs::UIUtil::getLogPixel()/96.0;
 		if (bShowPreviewWindow_) {
 #ifdef _WIN32_WCE_PSPC
 			int nWidth[] = {
-				cx - 60,
-				cx - 40,
-				cx - 20,
+				cx - static_cast<int>(60*dBase),
+				cx - static_cast<int>(40*dBase),
+				cx - static_cast<int>(20*dBase),
 				-1
 			};
 #elif defined _WIN32_WCE
 			int nWidth[] = {
-				cx - 300,
-				cx - 280,
-				cx - 200,
-				cx - 120,
-				cx - 40,
-				cx - 20,
+				cx - static_cast<int>(300*dBase),
+				cx - static_cast<int>(280*dBase),
+				cx - static_cast<int>(200*dBase),
+				cx - static_cast<int>(120*dBase),
+				cx - static_cast<int>(40*dBase),
+				cx - static_cast<int>(20*dBase),
 				-1
 			};
 #else
 			int nWidth[] = {
-				cx - 342,
-				cx - 318,
-				cx - 238,
-				cx - 158,
-				cx - 78,
-				cx - 54,
-				cx - 30,
+				cx - static_cast<int>(342*dBase),
+				cx - static_cast<int>(318*dBase),
+				cx - static_cast<int>(238*dBase),
+				cx - static_cast<int>(158*dBase),
+				cx - static_cast<int>(78*dBase),
+				cx - static_cast<int>(54*dBase),
+				cx - static_cast<int>(30*dBase),
 				-1
 			};
 #endif
@@ -1325,20 +1326,20 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 		else {
 #ifdef _WIN32_WCE_PSPC
 			int nWidth[] = {
-				cx - 20,
+				cx - static_cast<int>(20*dBase),
 				-1
 			};
 #elif defined _WIN32_WCE
 			int nWidth[] = {
-				cx - 100,
-				cx - 80,
-				-1,
+				cx - static_cast<int>(100*dBase),
+				cx - static_cast<int>(80*dBase),
+				-1*dBase),
 			};
 #else
 			int nWidth[] = {
-				cx - 134,
-				cx - 110,
-				cx - 30,
+				cx - static_cast<int>(134*dBase),
+				cx - static_cast<int>(110*dBase),
+				cx - static_cast<int>(30*dBase),
 				-1
 			};
 #endif
