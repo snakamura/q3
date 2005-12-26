@@ -1333,7 +1333,7 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 			int nWidth[] = {
 				cx - static_cast<int>(100*dBase),
 				cx - static_cast<int>(80*dBase),
-				-1*dBase),
+				-1
 			};
 #else
 			int nWidth[] = {
