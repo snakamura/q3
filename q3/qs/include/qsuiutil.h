@@ -40,14 +40,22 @@ public:
 	static void setLogFontToProfile(Profile* pProfile,
 									const WCHAR* pwszSection,
 									const LOGFONT& lf);
+	
 	static bool isImeEnabled(HWND hwnd);
 	static void setImeEnabled(HWND hwnd,
 							  bool bEnabled);
+	
+#ifdef _WIN32_WCE
+	static bool isSipEnabled();
+	static void setSipEnabled(bool bEnabled);
+#endif
+	
 	static bool browseFont(HWND hwnd,
 						   LOGFONT* pLogFont);
 	static wstring_ptr browseFolder(HWND hwnd,
 									const WCHAR* pwszTitle,
 									const WCHAR* pwszInitialPath);
+	
 #ifndef _WIN32_WCE
 	static bool drawThemeBorder(Theme* pTheme,
 								HWND hwnd,
@@ -55,7 +63,9 @@ public:
 								int nStateId,
 								COLORREF crBackground);
 #endif
+	
 	static int getLogPixel();
+	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	static void getWorkArea(RECT* pRect);
 #endif

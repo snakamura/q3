@@ -20,6 +20,9 @@
 #ifndef _WIN32_WCE
 #	include <shlobj.h>
 #endif
+#ifdef _WIN32_WCE
+#	include <sipapi.h>
+#endif
 #ifdef _WIN32_WCE_PSPC
 #	include <aygshell.h>
 #endif
@@ -129,6 +132,19 @@ void qs::UIUtil::setImeEnabled(HWND hwnd,
 		::ImmReleaseContext(hwnd, hImc);
 	}
 }
+
+#ifdef _WIN32_WCE
+bool qs::UIUtil::isSipEnabled()
+{
+	SIPINFO info = { sizeof(info) };
+	return ::SipGetInfo(&info) && info.fdwFlags & SIPF_ON;
+}
+
+void qs::UIUtil::setSipEnabled(bool bEnabled)
+{
+	::SipShowIM(bEnabled ? SIPF_ON : SIPF_OFF);
+}
+#endif
 
 bool qs::UIUtil::browseFont(HWND hwnd,
 							LOGFONT* pLogFont)
