@@ -1583,10 +1583,17 @@ private:
 	ImeWindow& operator=(const ImeWindow&);
 
 private:
+	enum Flag {
+		FLAG_NONE	= 0x00,
+		FLAG_IME	= 0x01,
+		FLAG_SIP	= 0x02
+	};
+
+private:
 	Profile* pProfile_;
 	const WCHAR* pwszSection_;
 	const WCHAR* pwszKeySuffix_;
-	bool bIme_;
+	unsigned int nFlags_;
 };
 
 

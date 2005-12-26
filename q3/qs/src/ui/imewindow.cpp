@@ -25,14 +25,14 @@ qs::ImeWindow::ImeWindow(Profile* pProfile,
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
 	pwszKeySuffix_(pwszKeySuffix),
-	bIme_(false)
+	nFlags_(FLAG_NONE)
 {
 	assert(pProfile);
 	assert(pwszSection);
 	assert(pwszKeySuffix);
 	
 	wstring_ptr wstrKey(concat(L"Ime", pwszKeySuffix_));
-	bIme_ = pProfile_->getInt(pwszSection_, wstrKey.get(), 0) != 0;
+	nFlags_ = pProfile_->getInt(pwszSection_, wstrKey.get(), 0);
 	
 	setWindowHandler(this, false);
 }
@@ -62,7 +62,7 @@ LRESULT qs::ImeWindow::windowProc(UINT uMsg,
 LRESULT qs::ImeWindow::onDestroy()
 {
 	wstring_ptr wstrKey(concat(L"Ime", pwszKeySuffix_));
-	pProfile_->setInt(pwszSection_, wstrKey.get(), bIme_);
+	pProfile_->setInt(pwszSection_, wstrKey.get(), nFlags_);
 	return DefaultWindowHandler::onDestroy();
 }
 
@@ -80,10 +80,20 @@ LRESULT qs::ImeWindow::onSetFocus(HWND hwnd)
 
 void qs::ImeWindow::save()
 {
-	bIme_ = UIUtil::isImeEnabled(getHandle());
+	unsigned int nFlags = FLAG_NONE;
+	if (UIUtil::isImeEnabled(getHandle()))
+		nFlags |= FLAG_IME;
+#ifdef _WIN32_WCE_PSPC
+	if (UIUtil::isSipEnabled())
+		nFlags |= FLAG_SIP;
+#endif
+	nFlags_ = nFlags;
 }
 
 void qs::ImeWindow::restore()
 {
-	UIUtil::setImeEnabled(getHandle(), bIme_);
+	UIUtil::setImeEnabled(getHandle(), (nFlags_ & FLAG_IME) != 0);
+#ifdef _WIN32_WCE_PSPC
+	UIUtil::setSipEnabled((nFlags_ & FLAG_SIP) != 0);
+#endif
 }
