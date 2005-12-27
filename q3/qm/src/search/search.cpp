@@ -13,6 +13,7 @@
 #include <qmsearch.h>
 
 #include <qsstl.h>
+#include <qsuiutil.h>
 
 using namespace qm;
 using namespace qs;
@@ -56,7 +57,7 @@ struct qm::SearchPropertyDataImpl
 	wstring_ptr wstrCondition_;
 	bool bAllFolder_;
 	bool bRecursive_;
-	bool bIme_;
+	unsigned int nImeFlags_;
 };
 
 
@@ -85,7 +86,7 @@ qm::SearchPropertyData::SearchPropertyData(Profile* pProfile,
 		pImpl_->bRecursive_ = nFolder == 1;
 	}
 	
-	pImpl_->bIme_ = pProfile->getInt(L"Search", L"Ime", 0) != 0;
+	pImpl_->nImeFlags_ = pProfile->getInt(L"Search", L"Ime", 0);
 }
 
 qm::SearchPropertyData::~SearchPropertyData()
@@ -108,20 +109,20 @@ bool qm::SearchPropertyData::isRecursive() const
 	return pImpl_->bRecursive_;
 }
 
-bool qm::SearchPropertyData::isIme() const
+unsigned int qm::SearchPropertyData::getImeFlags() const
 {
-	return pImpl_->bIme_;
+	return pImpl_->nImeFlags_;
 }
 
 void qm::SearchPropertyData::set(const WCHAR* pwszCondition,
 								 bool bAllFolder,
 								 bool bRecursive,
-								 bool bIme)
+								 unsigned int nImeFlags)
 {
 	pImpl_->wstrCondition_ = allocWString(pwszCondition);
 	pImpl_->bAllFolder_ = bAllFolder;
 	pImpl_->bRecursive_ = bRecursive;
-	pImpl_->bIme_ = bIme;
+	pImpl_->nImeFlags_ = nImeFlags;
 }
 
 void qm::SearchPropertyData::save() const
@@ -129,7 +130,7 @@ void qm::SearchPropertyData::save() const
 	pImpl_->pProfile_->setString(L"Search", L"Condition", pImpl_->wstrCondition_.get());
 	pImpl_->pProfile_->setInt(L"Search", L"Folder",
 		pImpl_->bAllFolder_ ? 2 : pImpl_->bRecursive_ ? 1 : 0);
-	pImpl_->pProfile_->setInt(L"Search", L"Ime", pImpl_->bIme_);
+	pImpl_->pProfile_->setInt(L"Search", L"Ime", pImpl_->nImeFlags_);
 }
 
 
@@ -159,6 +160,26 @@ LRESULT qm::SearchPropertyPage::onNotify(NMHDR* pnmhdr,
 		HANDLE_NOTIFY_CODE(PSN_SETACTIVE, onSetActive)
 	END_NOTIFY_HANDLER()
 	return DefaultPropertyPage::onNotify(pnmhdr, pbHandled);
+}
+
+unsigned int qm::SearchPropertyPage::getImeFlags() const
+{
+	unsigned int nFlags = SearchPropertyData::IMEFLAG_NONE;
+	if (UIUtil::isImeEnabled(getHandle()))
+		nFlags |= SearchPropertyData::IMEFLAG_IME;
+#ifdef _WIN32_WCE_PSPC
+	if (UIUtil::isSipEnabled())
+		nFlags |= SearchPropertyData::IMEFLAG_SIP;
+#endif
+	return nFlags;
+}
+
+void qm::SearchPropertyPage::setImeFlags(unsigned int nFlags)
+{
+	UIUtil::setImeEnabled(getHandle(), (nFlags & SearchPropertyData::IMEFLAG_IME) != 0);
+#ifdef _WIN32_WCE_PSPC
+	UIUtil::setSipEnabled((nFlags & SearchPropertyData::IMEFLAG_SIP) != 0);
+#endif
 }
 
 LRESULT qm::SearchPropertyPage::onKillActive(NMHDR* pnmhdr,

@@ -78,6 +78,13 @@ public:
 class QMEXPORTCLASS SearchPropertyData
 {
 public:
+	enum ImeFlag {
+		IMEFLAG_NONE	= 0x00,
+		IMEFLAG_IME		= 0x01,
+		IMEFLAG_SIP		= 0x02
+	};
+
+public:
 	SearchPropertyData(qs::Profile* pProfile,
 					   bool bAllFolderOnly);
 	~SearchPropertyData();
@@ -86,11 +93,11 @@ public:
 	const WCHAR* getCondition() const;
 	bool isAllFolder() const;
 	bool isRecursive() const;
-	bool isIme() const;
+	unsigned int getImeFlags() const;
 	void set(const WCHAR* pwszCondition,
 			 bool bAllFolder,
 			 bool bRecursive,
-			 bool bIme);
+			 unsigned int nImeFlags);
 	void save() const;
 
 private:
@@ -129,6 +136,10 @@ public:
 protected:
 	virtual void updateData(SearchPropertyData* pData) = 0;
 	virtual void updateUI(const SearchPropertyData* pData) = 0;
+
+protected:
+	unsigned int getImeFlags() const;
+	void setImeFlags(unsigned int nFlags);
 
 private:
 	LRESULT onKillActive(NMHDR* pnmhdr,
