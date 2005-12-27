@@ -45,7 +45,7 @@ public:
 	static void setImeEnabled(HWND hwnd,
 							  bool bEnabled);
 	
-#ifdef _WIN32_WCE
+#ifdef _WIN32_WCE_PSPC
 	static bool isSipEnabled();
 	static void setSipEnabled(bool bEnabled);
 #endif

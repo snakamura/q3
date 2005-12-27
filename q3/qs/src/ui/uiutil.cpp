@@ -20,11 +20,9 @@
 #ifndef _WIN32_WCE
 #	include <shlobj.h>
 #endif
-#ifdef _WIN32_WCE
-#	include <sipapi.h>
-#endif
 #ifdef _WIN32_WCE_PSPC
 #	include <aygshell.h>
+#	include <sipapi.h>
 #endif
 
 using namespace qs;
@@ -133,7 +131,7 @@ void qs::UIUtil::setImeEnabled(HWND hwnd,
 	}
 }
 
-#ifdef _WIN32_WCE
+#ifdef _WIN32_WCE_PSPC
 bool qs::UIUtil::isSipEnabled()
 {
 	SIPINFO info = { sizeof(info) };
