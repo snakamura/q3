@@ -226,39 +226,40 @@ LRESULT qm::MacroSearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
 		wstring_ptr wstrSearch = getDlgItemText(IDC_CONDITION);
-		if (wstrSearch.get())
+		if (*wstrSearch.get()) {
 			History(pProfile_, L"Search").addValue(wstrSearch.get());
-		bool bMacro = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) == BST_CHECKED;
-		bool bCase = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
-		bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;
-		if (bMacro) {
-			wstrCondition_ = wstrSearch;
-		}
-		else {
-			wstring_ptr wstrLiteral(getLiteral(wstrSearch.get()));
-			
-			StringBuffer<WSTRING> buf;
-			buf.append(L"@Or(");
-			const WCHAR* pwszFields[] = {
-				L"%Subject",
-				L"%From",
-				L"%To"
-			};
-			for (int n = 0; n < countof(pwszFields); ++n) {
-				if (n != 0)
-					buf.append(L", ");
-				createMacro(&buf, pwszFields[n], wstrLiteral.get(), bCase);
+			bool bMacro = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) == BST_CHECKED;
+			bool bCase = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
+			bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;
+			if (bMacro) {
+				wstrCondition_ = wstrSearch;
 			}
-			if (bSearchBody)
-				createMacro(&buf, L"@Body('', @True())", wstrLiteral.get(), bCase);
-			buf.append(L")");
+			else {
+				wstring_ptr wstrLiteral(getLiteral(wstrSearch.get()));
+				
+				StringBuffer<WSTRING> buf;
+				buf.append(L"@Or(");
+				const WCHAR* pwszFields[] = {
+					L"%Subject",
+					L"%From",
+					L"%To"
+				};
+				for (int n = 0; n < countof(pwszFields); ++n) {
+					if (n != 0)
+						buf.append(L", ");
+					createMacro(&buf, pwszFields[n], wstrLiteral.get(), bCase);
+				}
+				if (bSearchBody)
+					createMacro(&buf, L"@Body('', @True())", wstrLiteral.get(), bCase);
+				buf.append(L")");
+				
+				wstrCondition_ = buf.getString();
+			}
 			
-			wstrCondition_ = buf.getString();
+			pProfile_->setInt(L"MacroSearch", L"Macro", bMacro);
+			pProfile_->setInt(L"MacroSearch", L"MatchCase", bCase);
+			pProfile_->setInt(L"MacroSearch", L"SearchBody", bSearchBody);
 		}
-		
-		pProfile_->setInt(L"MacroSearch", L"Macro", bMacro);
-		pProfile_->setInt(L"MacroSearch", L"MatchCase", bCase);
-		pProfile_->setInt(L"MacroSearch", L"SearchBody", bSearchBody);
 	}
 	return SearchPropertyPage::onOk();
 }

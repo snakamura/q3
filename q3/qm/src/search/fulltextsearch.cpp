@@ -275,9 +275,11 @@ LRESULT qm::FullTextSearchPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::FullTextSearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		wstrCondition_ = getDlgItemText(IDC_CONDITION);
-		if (wstrCondition_.get())
-			History(pProfile_, L"Search").addValue(wstrCondition_.get());
+		wstring_ptr wstrSearch = getDlgItemText(IDC_CONDITION);
+		if (*wstrSearch.get()) {
+			History(pProfile_, L"Search").addValue(wstrSearch.get());
+			wstrCondition_ = wstrSearch;
+		}
 	}
 	return SearchPropertyPage::onOk();
 }

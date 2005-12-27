@@ -206,40 +206,41 @@ LRESULT qmimap4::Imap4SearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
 		wstring_ptr wstrSearch = getDlgItemText(IDC_CONDITION);
-		if (wstrSearch.get())
+		if (*wstrSearch.get()) {
 			History(pProfile_, L"Search").addValue(wstrSearch.get());
-		bool bCommand = sendDlgItemMessage(IDC_IMAP4COMMAND, BM_GETCHECK) == BST_CHECKED;
-		bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;
-		if (bCommand) {
-			wstrCondition_ = wstrSearch;
-		}
-		else {
-			wstring_ptr wstrLiteral(getLiteral(wstrSearch.get()));
-			
-			StringBuffer<WSTRING> buf;
-			const WCHAR* pwszFields[] = {
-				L"SUBJECT ",
-				L"FROM ",
-				L"TO "
-			};
-			for (int n = 0; n < countof(pwszFields); ++n) {
-				if (n != 0)
-					buf.append(L" ");
-				if (n != countof(pwszFields) - 1 || bSearchBody)
-					buf.append(L"OR ");
-				buf.append(pwszFields[n]);
-				buf.append(wstrLiteral.get());
+			bool bCommand = sendDlgItemMessage(IDC_IMAP4COMMAND, BM_GETCHECK) == BST_CHECKED;
+			bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;
+			if (bCommand) {
+				wstrCondition_ = wstrSearch;
 			}
-			if (bSearchBody) {
-				buf.append(L" TEXT ");
-				buf.append(wstrLiteral.get());
+			else {
+				wstring_ptr wstrLiteral(getLiteral(wstrSearch.get()));
+				
+				StringBuffer<WSTRING> buf;
+				const WCHAR* pwszFields[] = {
+					L"SUBJECT ",
+					L"FROM ",
+					L"TO "
+				};
+				for (int n = 0; n < countof(pwszFields); ++n) {
+					if (n != 0)
+						buf.append(L" ");
+					if (n != countof(pwszFields) - 1 || bSearchBody)
+						buf.append(L"OR ");
+					buf.append(pwszFields[n]);
+					buf.append(wstrLiteral.get());
+				}
+				if (bSearchBody) {
+					buf.append(L" TEXT ");
+					buf.append(wstrLiteral.get());
+				}
+				
+				wstrCondition_ = buf.getString();
 			}
 			
-			wstrCondition_ = buf.getString();
+			pProfile_->setInt(L"Imap4Search", L"Command", bCommand);
+			pProfile_->setInt(L"Imap4Search", L"SearchBody", bSearchBody);
 		}
-		
-		pProfile_->setInt(L"Imap4Search", L"Command", bCommand);
-		pProfile_->setInt(L"Imap4Search", L"SearchBody", bSearchBody);
 	}
 	return SearchPropertyPage::onOk();
 }
