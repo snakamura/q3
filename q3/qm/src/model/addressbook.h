@@ -42,6 +42,7 @@ class ExternalAddressBook;
 		class WindowsAddressBook;
 		class OutlookAddressBook;
 #else
+	class POOMAddressBook;
 	class PocketOutlookAddressBook;
 #endif
 class ExternalAddressBookManager;
@@ -362,7 +363,7 @@ public:
 	bool isModified() const;
 
 private:
-	void init(std::auto_ptr<ExternalAddressBook> pAddressBook,
+	bool init(std::auto_ptr<ExternalAddressBook> pAddressBook,
 			  bool bAddressOnly);
 
 private:
@@ -522,6 +523,79 @@ private:
 };
 
 #else // _WIN32_WCE
+
+#if _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+
+/****************************************************************************
+ *
+ * POOMAddressBook
+ *
+ */
+
+class POOMAddressBook : public ExternalAddressBook
+{
+public:
+	POOMAddressBook();
+	virtual ~POOMAddressBook();
+
+public:
+	virtual bool init(bool bAddressOnly);
+	virtual void term();
+	virtual bool load(AddressBook* pAddressBook);
+	virtual bool isModified();
+
+private:
+#if _WIN32_WCE > 500
+	bool registerNotification();
+#endif
+	void getCategories(AddressBook* pAddressBook,
+					   struct IContact* pContact,
+					   AddressBookAddress::CategoryList* pList);
+
+#if _WIN32_WCE > 500
+private:
+	class NotificationWindow :
+		public qs::WindowBase,
+		public qs::DefaultWindowHandler
+	{
+	public:
+		explicit NotificationWindow(POOMAddressBook* pAddressBook);
+		virtual ~NotificationWindow();
+	
+	public:
+		virtual LRESULT windowProc(UINT uMsg,
+								   WPARAM wParam,
+								   LPARAM lParam);
+	
+	protected:
+		LRESULT onPimFolderNotification(WPARAM wParam,
+										LPARAM lParam);
+	
+	private:
+		NotificationWindow(const NotificationWindow&);
+		NotificationWindow& operator=(const NotificationWindow&);
+	
+	private:
+		POOMAddressBook* pAddressBook_;
+	};
+	friend class NotificationWindow;
+#endif
+
+private:
+	POOMAddressBook(const POOMAddressBook&);
+	POOMAddressBook& operator=(const POOMAddressBook&);
+
+private:
+	struct IPOutlookApp* pPOutlookApp_;
+#if _WIN32_WCE > 500
+	NotificationWindow* pNotificationWindow_;
+#endif
+	bool bAddressOnly_;
+	bool bModified_;
+};
+
+#endif // _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+
 
 /****************************************************************************
  *

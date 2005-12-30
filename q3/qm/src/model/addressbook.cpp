@@ -8,9 +8,7 @@
 
 #pragma warning(disable:4786)
 
-#ifndef _WIN32_WCE
-#	define INITGUID
-#endif
+#define INITGUID
 
 #include <qmmessage.h>
 #include <qmsecurity.h>
@@ -33,6 +31,9 @@
 #	include <mapix.h>
 #else
 #	include <addrmapi.h>
+#	if _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+#		include <pimstore.h>
+#	endif
 #endif
 #include <tchar.h>
 
@@ -994,18 +995,27 @@ qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile) :
 		L"Externals", L"WAB Outlook PocketOutlook"));
 	const WCHAR* p = wcstok(wstrExternals.get(), L" ");
 	while (p) {
-		std::auto_ptr<ExternalAddressBook> pAddressBook;
 #ifndef _WIN32_WCE
-		if (wcscmp(p, L"WAB") == 0)
-			pAddressBook.reset(new WindowsAddressBook());
-		else if (wcscmp(p, L"Outlook") == 0)
-			pAddressBook.reset(new OutlookAddressBook());
+		if (wcscmp(p, L"WAB") == 0) {
+			std::auto_ptr<ExternalAddressBook> p(new WindowsAddressBook());
+			init(p, bAddressOnly);
+		}
+		else if (wcscmp(p, L"Outlook") == 0) {
+			std::auto_ptr<ExternalAddressBook> p(new OutlookAddressBook());
+			init(p, bAddressOnly);
+		}
 #else
-		if (wcscmp(p, L"PocketOutlook") == 0)
-			pAddressBook.reset(new PocketOutlookAddressBook());
+		if (wcscmp(p, L"PocketOutlook") == 0) {
+#if _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+			std::auto_ptr<ExternalAddressBook> p(new POOMAddressBook());
+			if (!init(p, bAddressOnly))
 #endif
-		if (pAddressBook.get())
-			init(pAddressBook, bAddressOnly);
+			{
+				std::auto_ptr<ExternalAddressBook> p(new PocketOutlookAddressBook());
+				init(p, bAddressOnly);
+			}
+		}
+#endif
 		
 		p = wcstok(0, L" ");
 	}
@@ -1040,13 +1050,16 @@ bool qm::ExternalAddressBookManager::isModified() const
 			std::mem_fun(&ExternalAddressBook::isModified)) != listAddressBook_.end();
 }
 
-void qm::ExternalAddressBookManager::init(std::auto_ptr<ExternalAddressBook> pAddressBook,
+bool qm::ExternalAddressBookManager::init(std::auto_ptr<ExternalAddressBook> pAddressBook,
 										  bool bAddressOnly)
 {
-	if (pAddressBook->init(bAddressOnly)) {
-		listAddressBook_.push_back(pAddressBook.get());
-		pAddressBook.release();
-	}
+	if (!pAddressBook->init(bAddressOnly))
+		return false;
+	
+	listAddressBook_.push_back(pAddressBook.get());
+	pAddressBook.release();
+	
+	return true;
 }
 
 #ifndef _WIN32_WCE
@@ -1641,6 +1654,261 @@ void qm::OutlookAddressBook::freeBuffer(void* pBuffer) const
 
 #else // _WIN32_WCE
 
+#if _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+
+/****************************************************************************
+ *
+ * POOMAddressBook
+ *
+ */
+
+qm::POOMAddressBook::POOMAddressBook() :
+	pPOutlookApp_(0),
+#if _WIN32_WCE > 500
+	pNotificationWindow_(0),
+#endif
+	bAddressOnly_(false),
+	bModified_(true)
+{
+}
+
+qm::POOMAddressBook::~POOMAddressBook()
+{
+	term();
+}
+
+bool qm::POOMAddressBook::init(bool bAddressOnly)
+{
+	HRESULT hr = ::CoCreateInstance(CLSID_Application, 0, CLSCTX_INPROC_SERVER,
+		IID_IPOutlookApp, reinterpret_cast<void**>(&pPOutlookApp_));
+	if (FAILED(hr))
+		return false;
+	
+	HWND hwnd = 0;
+#if _WIN32_WCE > 500
+	std::auto_ptr<NotificationWindow> pWindow(new NotificationWindow(this));
+	if (!pWindow->create(L"QmPOOMAddressBookNotificationWindow",
+		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+		return false;
+	pNotificationWindow_ = pWindow.release();
+	hwnd = pNotificationWindow_->getHandle();
+#endif
+	
+	hr = pPOutlookApp_->Logon(reinterpret_cast<long>(hwnd));
+	if (FAILED(hr))
+		return false;
+	
+#if _WIN32_WCE > 500
+	registerNotification();
+#endif
+	
+	bAddressOnly_ = bAddressOnly;
+	
+	return true;
+}
+
+void qm::POOMAddressBook::term()
+{
+	if (pPOutlookApp_) {
+		pPOutlookApp_->Logoff();
+		pPOutlookApp_->Release();
+		pPOutlookApp_ = 0;
+	}
+	
+#if _WIN32_WCE > 500
+	if (pNotificationWindow_) {
+		pNotificationWindow_->destroyWindow();
+		pNotificationWindow_ = 0;
+	}
+#endif
+}
+
+bool qm::POOMAddressBook::load(AddressBook* pAddressBook)
+{
+	ComPtr<IFolder> pFolder;
+	HRESULT hr = pPOutlookApp_->GetDefaultFolder(olFolderContacts, &pFolder);
+	if (FAILED(hr))
+		return false;
+	
+	ComPtr<IPOutlookItemCollection> pItems;
+	hr = pFolder->get_Items(&pItems);
+	if (FAILED(hr))
+		return false;
+	
+	int nCount = 0;
+	hr = pItems->get_Count(&nCount);
+	if (FAILED(hr))
+		return false;
+	
+	for (int n = 1; n <= nCount; ++n) {
+		ComPtr<IDispatch> pItem;
+		hr = pItems->Item(n, &pItem);
+		if (SUCCEEDED(hr)) {
+			ComPtr<IContact> pContact;
+			hr = pItem->QueryInterface(IID_IContact, reinterpret_cast<void**>(&pContact));
+			if (SUCCEEDED(hr)) {
+				typedef HRESULT (WINAPI IContact::*PFN)(BSTR*);
+				
+				PFN pfnProps[] = {
+					&IContact::get_FirstName,
+					&IContact::get_LastName,
+					&IContact::get_YomiFirstName,
+					&IContact::get_YomiLastName
+				};
+				BSTRPtr bstrProps[countof(pfnProps)];
+				for (int n = 0; n < countof(pfnProps) && SUCCEEDED(hr); ++n) {
+					hr = (pContact.get()->*pfnProps[n])(&bstrProps[n]);
+					if (n > 1 && hr == E_NOTIMPL)
+						hr = S_OK;
+				}
+				if (SUCCEEDED(hr)) {
+					const WCHAR* pwszYomi[2] = { 0 };
+					for (int n = 0; n < countof(pwszYomi); ++n) {
+						pwszYomi[n] = bstrProps[n + 2].get();
+						if (!pwszYomi[n])
+							pwszYomi[n] = bstrProps[n].get();
+					}
+#ifdef JAPAN
+					wstring_ptr wstrName(concat(bstrProps[1].get(), L" ", bstrProps[0].get()));
+					wstring_ptr wstrSortKey(concat(pwszYomi[1], L" ", pwszYomi[0]));
+#else
+					wstring_ptr wstrName(concat(bstrProps[0].get(), L" ", bstrProps[1].get()));
+					wstring_ptr wstrSortKey(concat(pwszYomi[0], L" ", pwszYomi[1]));
+#endif
+					
+					AddressBookAddress::CategoryList listCategory;
+					getCategories(pAddressBook, pContact.get(), &listCategory);
+					
+					std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(
+						wstrName.get(), wstrSortKey.get(), true));
+					
+					PFN pfn[] = {
+						&IContact::get_Email1Address,
+						&IContact::get_Email2Address,
+						&IContact::get_Email3Address
+					};
+					for (int n = 0; n < countof(pfn); ++n) {
+						BSTRPtr bstrAddress;
+						hr = (pContact.get()->*pfn[n])(&bstrAddress);
+						if (SUCCEEDED(hr) && *bstrAddress.get()) {
+							std::auto_ptr<AddressBookAddress> pAddress(
+								new AddressBookAddress(pEntry.get(),
+									bstrAddress.get(),
+									static_cast<const WCHAR*>(0),
+									listCategory,
+									static_cast<const WCHAR*>(0),
+									static_cast<const WCHAR*>(0), bAddressOnly_));
+							pEntry->addAddress(pAddress);
+						}
+					}
+					
+					if (!pEntry->getAddresses().empty())
+						pAddressBook->addEntry(pEntry);
+				}
+			}
+		}
+	}
+	
+	bModified_ = false;
+	
+	return true;
+}
+
+bool qm::POOMAddressBook::isModified()
+{
+	return bModified_;
+}
+
+#if _WIN32_WCE > 500
+bool qm::POOMAddressBook::registerNotification()
+{
+	ComPtr<IFolder> pFolder;
+	HRESULT hr = pPOutlookApp_->GetDefaultFolder(olFolderContacts, &pFolder);
+	if (FAILED(hr))
+		return false;
+	
+	ComPtr<IItem> pItem;
+	hr = pFolder->QueryInterface(IID_IItem, reinterpret_cast<void**>(&pItem));
+	if (FAILED(hr))
+		return false;
+	
+	CEPROPVAL val = { PIMPR_FOLDERNOTIFICATIONS };
+	val.val.ulVal = PIMFOLDERNOTIFICATION_ALL;
+	hr = pItem->SetProps(0, 1, &val);
+	if (FAILED(hr))
+		return false;
+	
+	return true;
+}
+#endif
+
+void qm::POOMAddressBook::getCategories(AddressBook* pAddressBook,
+										IContact* pContact,
+										AddressBookAddress::CategoryList* pList)
+{
+	assert(pAddressBook);
+	assert(pContact);
+	assert(pList);
+	
+	BSTRPtr bstrCategories;
+	HRESULT hr = pContact->get_Categories(&bstrCategories);
+	if (FAILED(hr) || !*bstrCategories.get())
+		return;
+	
+	const WCHAR* p = wcstok(bstrCategories.get(), L",");
+	while (p) {
+		wstring_ptr wstr(trim(p));
+		if (*wstr.get())
+			pList->push_back(pAddressBook->getCategory(wstr.get()));
+		p = wcstok(0, L",");
+	}
+}
+
+
+#if _WIN32_WCE > 500
+/****************************************************************************
+ *
+ * POOMAddressBook::NotificationWindow
+ *
+ */
+
+qm::POOMAddressBook::NotificationWindow::NotificationWindow(POOMAddressBook* pAddressBook) :
+	WindowBase(true),
+	pAddressBook_(pAddressBook)
+{
+	setWindowHandler(this, false);
+}
+
+POOMAddressBook::NotificationWindow::~NotificationWindow()
+{
+}
+
+LRESULT POOMAddressBook::NotificationWindow::windowProc(UINT uMsg,
+														WPARAM wParam,
+														LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_MESSAGE(PIM_ITEM_CREATED_LOCAL, onPimFolderNotification)
+		HANDLE_MESSAGE(PIM_ITEM_DELETED_LOCAL, onPimFolderNotification)
+		HANDLE_MESSAGE(PIM_ITEM_CHANGED_LOCAL, onPimFolderNotification)
+		HANDLE_MESSAGE(PIM_ITEM_CREATED_REMOTE, onPimFolderNotification)
+		HANDLE_MESSAGE(PIM_ITEM_DELETED_REMOTE, onPimFolderNotification)
+		HANDLE_MESSAGE(PIM_ITEM_CHANGED_REMOTE, onPimFolderNotification)
+	END_MESSAGE_HANDLER()
+	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
+}
+
+LRESULT POOMAddressBook::NotificationWindow::onPimFolderNotification(WPARAM wParam,
+																	 LPARAM lParam)
+{
+	pAddressBook_->bModified_ = true;
+	return 0;
+}
+#endif
+
+#endif // _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+
+
 /****************************************************************************
  *
  * PocketOutlookAddressBook
@@ -1664,7 +1932,7 @@ qm::PocketOutlookAddressBook::~PocketOutlookAddressBook()
 bool qm::PocketOutlookAddressBook::init(bool bAddressOnly)
 {
 	std::auto_ptr<NotificationWindow> pWindow(new NotificationWindow(this));
-	if (!pWindow->create(L"QmAddressBookNotificationWindow",
+	if (!pWindow->create(L"QmPocketOutlookAddressBookNotificationWindow",
 		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 		return false;
 	pNotificationWindow_ = pWindow.release();
