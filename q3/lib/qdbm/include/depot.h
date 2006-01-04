@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * The basic API of QDBM
- *                                                      Copyright (C) 2000-2005 Mikio Hirabayashi
+ *                                                      Copyright (C) 2000-2006 Mikio Hirabayashi
  * This file is part of QDBM, Quick Database Manager.
  * QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation; either version
@@ -400,8 +400,8 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.37"
-#define _QDBM_LIBVER   1109
+#define _QDBM_VERSION  "1.8.39"
+#define _QDBM_LIBVER   1200
 
 
 /* Name of the operating system. */

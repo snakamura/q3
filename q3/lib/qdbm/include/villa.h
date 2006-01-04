@@ -1,6 +1,6 @@
 /*************************************************************************************************
  * The advanced API of QDBM
- *                                                      Copyright (C) 2000-2005 Mikio Hirabayashi
+ *                                                      Copyright (C) 2000-2006 Mikio Hirabayashi
  * This file is part of QDBM, Quick Database Manager.
  * QDBM is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation; either version
@@ -115,12 +115,19 @@ enum {                                   /* enumeration for write modes */
   VL_DOVER,                              /* overwrite the existing value */
   VL_DKEEP,                              /* keep the existing value */
   VL_DCAT,                               /* concatenate values */
-  VL_DDUP                                /* allow duplication of records */
+  VL_DDUP,                               /* allow duplication of keys */
+  VL_DDUPR                               /* allow duplication with reverse order */
 };
 
 enum {                                   /* enumeration for jump modes */
   VL_JFORWARD,                           /* step forward */
   VL_JBACKWARD                           /* step backward */
+};
+
+enum {                                   /* enumeration for insertion modes */
+  VL_CPCURRENT,                          /* overwrite the current record */
+  VL_CPBEFORE,                           /* insert before the current record */
+  VL_CPAFTER                             /* insert after the current record */
 };
 
 
@@ -167,10 +174,11 @@ int vlclose(VILLA *villa);
    `dmode' specifies behavior when the key overlaps, by the following values: `VL_DOVER',
    which means the specified value overwrites the existing one, `VL_DKEEP', which means the
    existing value is kept, `VL_DCAT', which means the specified value is concatenated at the
-   end of the existing value, `VL_DDUP', which means duplication of keys is allowed.
+   end of the existing value, `VL_DDUP', which means duplication of keys is allowed and the
+   specified value is added as the last one, `VL_DDUPR', which means duplication of keys is
+   allowed and the specified value is added as the first one.
    If successful, the return value is true, else, it is false.
-   A duplicated record is stored at the tail of the records of the same key.  The cursor becomes
-   unavailable due to updating database. */
+   The cursor becomes unavailable due to updating database. */
 int vlput(VILLA *villa, const char *kbuf, int ksiz, const char *vbuf, int vsiz, int dmode);
 
 
@@ -342,6 +350,29 @@ char *vlcurkey(VILLA *villa, int *sp);
    the return value is allocated with the `malloc' call, it should be released with the `free'
    call if it is no longer in use. */
 char *vlcurval(VILLA *villa, int *sp);
+
+
+/* Insert a record around the cursor.
+   `villa' specifies a database handle connected as a writer.
+   `vbuf' specifies the pointer to the region of a value.
+   `vsiz' specifies the size of the region of the value.  If it is negative, the size is
+   assigned with `strlen(vbuf)'.
+   `cpmode' specifies detail adjustment: `VL_CPCURRENT', which means that the value of the
+   current record is overwritten, `VL_CPBEFORE', which means that a new record is inserted before
+   the current record, `VL_CPAFTER', which means that a new record is inserted after the current
+   record.
+   If successful, the return value is true, else, it is false.  False is returned when no record
+   corresponds to the cursor.
+   After insertion, the cursor is moved to the inserted record. */
+int vlcurput(VILLA *villa, const char *vbuf, int vsiz, int cpmode);
+
+
+/* Delete the record where the cursor is.
+   `villa' specifies a database handle connected as a writer.
+   If successful, the return value is true, else, it is false.  False is returned when no record
+   corresponds to the cursor.
+   After deletion, the cursor is moved to the next record if possible. */
+int vlcurout(VILLA *villa);
 
 
 /* Set the tuning parameters for performance.
