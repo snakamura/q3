@@ -1941,6 +1941,15 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ResizeBor
 	return S_OK;
 }
 
+#if _ATL_VER >= 0x0700
+STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::TranslateAccelerator(DWORD_PTR hwnd,
+																							DWORD nMessage,
+																							DWORD_PTR wParam,
+																							DWORD_PTR lParam,
+																							BSTR bstrGuidCmdGroup,
+																							DWORD nCmdId,
+																							HRESULT* phrResult)
+#else
 STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::TranslateAccelerator(DWORD hwnd,
 																							DWORD nMessage,
 																							DWORD wParam,
@@ -1948,6 +1957,7 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::Translate
 																							BSTR bstrGuidCmdGroup,
 																							DWORD nCmdId,
 																							HRESULT* phrResult)
+#endif
 {
 	*phrResult = S_FALSE;
 	return S_OK;

@@ -713,6 +713,15 @@ private:
 								long buttom,
 								IUnknown* pUIWindow,
 								VARIANT_BOOL bFrameWindow);
+#if _ATL_VER >= 0x0700
+		STDMETHOD(TranslateAccelerator)(DWORD_PTR hwnd,
+										DWORD nMessage,
+										DWORD_PTR wParam,
+										DWORD_PTR lParam,
+										BSTR bstrGuidCmdGroup,
+										DWORD nCmdId,
+										HRESULT* phrResult);
+#else
 		STDMETHOD(TranslateAccelerator)(DWORD hwnd,
 										DWORD nMessage,
 										DWORD wParam,
@@ -720,6 +729,7 @@ private:
 										BSTR bstrGuidCmdGroup,
 										DWORD nCmdId,
 										HRESULT* phrResult);
+#endif
 		STDMETHOD(GetOptionKeyPath)(BSTR* pbstrKey,
 									DWORD dw);
 		STDMETHOD(GetDropTarget)(IUnknown* pDropTarget,
