@@ -13,13 +13,12 @@ VS6DIR					= d:/dev/msvs
 VC6DIR					= d:/dev/msvs/vc98
 VS7DIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
 VC7DIR					= d:/dev/msvs2003/vc7
-VS8DIR					= d:/dev/msvs8
-VC8DIR					= d:/dev/msvs8/vc
+VS8DIR					= C:/Program Files/Microsoft Visual Studio 8
+VC8DIR					= C:/Program Files/Microsoft Visual Studio 8/VC
 VCVER					= 6
 EVCDIR					= d:/dev/msevc4/evc
 EVCVER					= 4
 PLATFORMSDKDIR			= d:/dev/mssdk
-#PLATFORMSDKDIR			= d:/dev/msvs8/vc/platformsdk
 CESDKPPC2003JADIR		= d:/dev/msevc4/wce420/pocket pc 2003
 CESDKPPC2003ENDIR		= d:/dev/msevc4/wce420/pocket pc 2003
 CESDKSIGIIIDIR			= d:/dev/msevc4/wce410/sigmarioniii sdk
@@ -93,16 +92,29 @@ ifeq ($(PLATFORM),win)
 		COMPILERLIBDIR		= $(COMPILERDIR)/lib
 	endif
 	ifeq ($(CPU),x64)
-		SDKBINDIR			= $(SDKDIR)/bin/win64/x86/amd64
+		ifeq ($(VCVER),8)
+			COMPILER64BINDIR= $(COMPILERDIR)/bin/x86_amd64
+		else
+			SDKBINDIR		= $(SDKDIR)/bin/win64/x86/amd64
+		endif
 		
 		SDKINCLUDEDIR		= $(SDKDIR)/include
 		SDKLIBDIR			= $(SDKDIR)/lib/amd64
-		MFCINCLUDEDIR		= $(SDKDIR)/include/mfc
-		MFCLIBDIR			= $(SDKDIR)/lib/amd64/atlmfc
-		ATLINCLUDEDIR		= $(SDKDIR)/include/atl
-		ATLLIBDIR			= $(SDKDIR)/lib/amd64/atlmfc
-		COMPILERINCLUDEDIR	= $(SDKDIR)/include/crt
-		COMPILERLIBDIR		= $(SDKDIR)/lib/amd64
+		ifeq ($(VCVER),8)
+			MFCINCLUDEDIR		= $(COMPILERDIR)/atlmfc/include
+			MFCLIBDIR			= $(COMPILERDIR)/atlmfc/lib/amd64
+			ATLINCLUDEDIR		= $(COMPILERDIR)/atlmfc/include
+			ATLLIBDIR			= $(COMPILERDIR)/atlmfc/lib/amd64
+			COMPILERINCLUDEDIR	= $(COMPILERDIR)/include
+			COMPILERLIBDIR		= $(COMPILERDIR)/lib/amd64
+		else
+			MFCINCLUDEDIR		= $(SDKDIR)/include/mfc
+			MFCLIBDIR			= $(SDKDIR)/lib/amd64/atlmfc
+			ATLINCLUDEDIR		= $(SDKDIR)/include/atl
+			ATLLIBDIR			= $(SDKDIR)/lib/amd64/atlmfc
+			COMPILERINCLUDEDIR	= $(SDKDIR)/include/crt
+			COMPILERLIBDIR		= $(SDKDIR)/lib/amd64
+		endif
 	endif
 	
 	BASEPLATFORM			= win
@@ -582,6 +594,11 @@ ifdef DEBUG
 endif
 ifeq ($(PLATFORM),win)
 	STLPORTFLAGS		+= -D_STLP_NEW_PLATFORM_SDK
+	ifeq ($(CPU),x64)
+		ifneq ($(VCVER),8)
+			STLPORTFLAGS	+= -D_STLP_USING_PLATFORM_SDK_COMPILER
+		endif
+	endif
 endif
 ifdef STLPORTEXPORT
 	STLPORTFLAGS		+= -D_STLP_EXPORT_NODE_ALLOC
@@ -631,7 +648,7 @@ LIBS					+= $(DEPENDLIBS)
 INCLUDES				+= $(EXTERNALINCS)
 LIBS					+= $(EXTERNALLIBS)
 
-export PATH				= $(call win2unix,$(BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(COMMONTOOLBINDIR)):$(call win2unix,$(SVNDIR)/bin)
+export PATH				= $(call win2unix,$(BINDIR)):$(call win2unix,$(COMPILER64BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(COMMONTOOLBINDIR)):$(call win2unix,$(SVNDIR)/bin)
 export INCLUDE			= $(SDKINCLUDEDIR);$(MFCINCLUDEDIR);$(ATLINCLUDEDIR);$(COMPILERINCLUDEDIR)
 export LIB				= $(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR);$(COMPILERLIBDIR)
 

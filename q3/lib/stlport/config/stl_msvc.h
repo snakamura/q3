@@ -4,7 +4,7 @@
 
 
 // Common features for VC++ 4.0 and higher
-# if defined _M_IA64 || defined _M_AMD64
+#if defined (_STLP_USING_PLATFORM_SDK_COMPILER)
 #  define _STLP_NATIVE_HEADER(x) <../crt/##x>
 #  define _STLP_NATIVE_C_HEADER(x) <../crt/##x>
 #  define _STLP_NATIVE_CPP_C_HEADER(x) <../crt/##x>
