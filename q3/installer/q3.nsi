@@ -76,7 +76,7 @@ Section "Core (required)" Core
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "URL Protocol" ""
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\DefaultIcon" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\",0"
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\shell\open\command" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\" -s $\"%1$\""
-  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\" -s $\"%1$\""
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\""
   
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "DisplayName" "QMAIL3"
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "UninstallString" "$INSTDIR\uninstall.exe"
