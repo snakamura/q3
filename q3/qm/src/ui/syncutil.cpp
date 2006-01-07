@@ -59,6 +59,9 @@ bool qm::SyncUtil::syncFolders(SyncManager* pSyncManager,
 	
 	Account* pAccount = listFolder.front()->getAccount();
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+	
+	setDialup(pData.get(), pSubAccount);
+	
 	for (Account::NormalFolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		NormalFolder* pFolder = *it;
 		
@@ -98,6 +101,7 @@ bool qm::SyncUtil::send(SyncManager* pSyncManager,
 	
 	std::auto_ptr<SyncData> pData(new SyncData(pSyncManager, pDocument,
 		(nCallbackParam & SyncDialog::FLAG_NOTIFYNEWMESSAGE) != 0, nCallbackParam));
+	setDialup(pData.get(), pSubAccount);
 	pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, pwszMessageId);
 	
 	SyncDialog* pSyncDialog = pSyncDialogManager->open();
@@ -118,24 +122,17 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 						bool bReceive,
 						bool bSelectSyncFilter)
 {
+	assert(pSyncManager);
+	assert(pDocument);
+	assert(pSyncDialogManager);
+	assert(pAccount);
+	
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
 	
 	std::auto_ptr<SyncData> pData(new SyncData(pSyncManager, pDocument,
 		(nCallbackParam & SyncDialog::FLAG_NOTIFYNEWMESSAGE) != 0, nCallbackParam));
 	
-	if (pSubAccount->getDialupType() != SubAccount::DIALUPTYPE_NEVER) {
-		unsigned int nFlags = 0;
-		if (pSubAccount->isDialupShowDialog())
-			nFlags |= SyncDialup::FLAG_SHOWDIALOG;
-		if (pSubAccount->getDialupType() == SubAccount::DIALUPTYPE_WHENEVERNOTCONNECTED)
-			nFlags |= SyncDialup::FLAG_WHENEVERNOTCONNECTED;
-		
-		std::auto_ptr<SyncDialup> pDialup(new SyncDialup(
-			pSubAccount->getDialupEntry(), nFlags,
-			static_cast<const WCHAR*>(0),
-			pSubAccount->getDialupDisconnectWait()));
-		pData->setDialup(pDialup);
-	}
+	setDialup(pData.get(), pSubAccount);
 	
 	if (bSend) {
 		NormalFolder* pOutbox = static_cast<NormalFolder*>(
@@ -249,4 +246,23 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 	pData->setCallback(pSyncDialog->getSyncManagerCallback());
 	
 	return pSyncManager->sync(pData);
+}
+
+void qm::SyncUtil::setDialup(SyncData* pSyncData,
+							 const SubAccount* pSubAccount)
+{
+	assert(pSyncData);
+	assert(pSubAccount);
+	
+	if (pSubAccount->getDialupType() != SubAccount::DIALUPTYPE_NEVER) {
+		unsigned int nFlags = 0;
+		if (pSubAccount->isDialupShowDialog())
+			nFlags |= SyncDialup::FLAG_SHOWDIALOG;
+		if (pSubAccount->getDialupType() == SubAccount::DIALUPTYPE_WHENEVERNOTCONNECTED)
+			nFlags |= SyncDialup::FLAG_WHENEVERNOTCONNECTED;
+		
+		std::auto_ptr<SyncDialup> pDialup(new SyncDialup(pSubAccount->getDialupEntry(),
+			nFlags, 0, pSubAccount->getDialupDisconnectWait()));
+		pSyncData->setDialup(pDialup);
+	}
 }

@@ -68,6 +68,10 @@ public:
 						SyncDialogManager* pSyncDialogManager,
 						unsigned int nCallbackParam,
 						const GoRoundCourse* pCourse);
+
+private:
+	static void setDialup(SyncData* pSyncData,
+						  const SubAccount* pSubAccount);
 };
 
 }
