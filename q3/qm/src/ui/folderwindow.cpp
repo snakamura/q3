@@ -178,6 +178,9 @@ public:
 	
 	UINT nId_;
 	HFONT hfont_;
+	bool bUseSystemColor_;
+	COLORREF crForeground_;
+	COLORREF crBackground_;
 	unsigned int nFlags_;
 	unsigned int nDragOpenWait_;
 	std::auto_ptr<DropTarget> pDropTarget_;
@@ -414,6 +417,38 @@ void qm::FolderWindowImpl::reloadProfiles(bool bInitialize)
 		::DeleteObject(hfont_);
 	}
 	hfont_ = hfont;
+	
+	bool bUseSystemColor = pProfile_->getInt(L"FolderWindow", L"UseSystemColor", 1) != 0;
+	if (!bUseSystemColor) {
+		struct {
+			const WCHAR* pwszKey_;
+			const WCHAR* pwszDefault_;
+			COLORREF* pcr_;
+		} colors[] = {
+			{ L"ForegroundColor",	L"000000",	&crForeground_	},
+			{ L"BackgroundColor",	L"ffffff",	&crBackground_	}
+		};
+		for (int n = 0; n < countof(colors); ++n) {
+			wstring_ptr wstr(pProfile_->getString(L"FolderWindow",
+				colors[n].pwszKey_, colors[n].pwszDefault_));
+			Color color(wstr.get());
+			if (color.getColor() != 0xffffffff)
+				*colors[n].pcr_ = color.getColor();
+		}
+	}
+	if (!bInitialize) {
+		if (bUseSystemColor) {
+			if (!bUseSystemColor_) {
+				TreeView_SetTextColor(pThis_->getHandle(), ::GetSysColor(COLOR_WINDOWTEXT));
+				TreeView_SetBkColor(pThis_->getHandle(), ::GetSysColor(COLOR_WINDOW));
+			}
+		}
+		else {
+			TreeView_SetTextColor(pThis_->getHandle(), crForeground_);
+			TreeView_SetBkColor(pThis_->getHandle(), crBackground_);
+		}
+	}
+	bUseSystemColor_ = bUseSystemColor;
 }
 
 LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr,
@@ -1190,6 +1225,9 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
+	pImpl_->bUseSystemColor_ = true;
+	pImpl_->crForeground_ = RGB(0, 0, 0);
+	pImpl_->crBackground_ = RGB(255, 255, 255);
 	pImpl_->nFlags_ = FolderWindowImpl::FLAG_FOLDERSHOWALLCOUNT |
 		FolderWindowImpl::FLAG_FOLDERSHOWUNSEENCOUNT |
 		FolderWindowImpl::FLAG_ACCOUNTSHOWALLCOUNT |
@@ -1347,6 +1385,11 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->nId_ = getId();
 	
 	setFont(pImpl_->hfont_, false);
+	
+	if (!pImpl_->bUseSystemColor_) {
+		TreeView_SetTextColor(getHandle(), pImpl_->crForeground_);
+		TreeView_SetBkColor(getHandle(), pImpl_->crBackground_);
+	}
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
 		Application::getApplication().getResourceHandle(),
