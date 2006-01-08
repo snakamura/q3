@@ -178,9 +178,11 @@ public:
 	
 	UINT nId_;
 	HFONT hfont_;
+#ifndef _WIN32_WCE
 	bool bUseSystemColor_;
 	COLORREF crForeground_;
 	COLORREF crBackground_;
+#endif
 	unsigned int nFlags_;
 	unsigned int nDragOpenWait_;
 	std::auto_ptr<DropTarget> pDropTarget_;
@@ -418,6 +420,7 @@ void qm::FolderWindowImpl::reloadProfiles(bool bInitialize)
 	}
 	hfont_ = hfont;
 	
+#ifndef _WIN32_WCE
 	bool bUseSystemColor = pProfile_->getInt(L"FolderWindow", L"UseSystemColor", 1) != 0;
 	if (!bUseSystemColor) {
 		struct {
@@ -449,6 +452,7 @@ void qm::FolderWindowImpl::reloadProfiles(bool bInitialize)
 		}
 	}
 	bUseSystemColor_ = bUseSystemColor;
+#endif
 }
 
 LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr,
@@ -1225,9 +1229,11 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->pDocument_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
+#ifndef _WIN32_WCE
 	pImpl_->bUseSystemColor_ = true;
 	pImpl_->crForeground_ = RGB(0, 0, 0);
 	pImpl_->crBackground_ = RGB(255, 255, 255);
+#endif
 	pImpl_->nFlags_ = FolderWindowImpl::FLAG_FOLDERSHOWALLCOUNT |
 		FolderWindowImpl::FLAG_FOLDERSHOWUNSEENCOUNT |
 		FolderWindowImpl::FLAG_ACCOUNTSHOWALLCOUNT |
@@ -1386,10 +1392,12 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	setFont(pImpl_->hfont_, false);
 	
+#ifndef _WIN32_WCE
 	if (!pImpl_->bUseSystemColor_) {
 		TreeView_SetTextColor(getHandle(), pImpl_->crForeground_);
 		TreeView_SetBkColor(getHandle(), pImpl_->crBackground_);
 	}
+#endif
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
 		Application::getApplication().getResourceHandle(),
