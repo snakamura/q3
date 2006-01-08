@@ -85,6 +85,7 @@ public:
 	unsigned int getLineFromPoint(const POINT& pt) const;
 	void reloadProfiles(bool bInitialize);
 	void updateLineHeight();
+	COLORREF getColor(int nIndex) const;
 
 public:
 	virtual void viewModelSelected(const ViewModelManagerEvent& event);
@@ -134,6 +135,9 @@ public:
 	SyncDialogManager* pSyncDialogManager_;
 	
 	HFONT hfont_;
+	bool bUseSystemColor_;
+	COLORREF crForeground_;
+	COLORREF crBackground_;
 	int nLineHeight_;
 	bool bSingleClickOpen_;
 	ListHeaderColumn* pHeaderColumn_;
@@ -198,15 +202,15 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 	bool bHasFocus = pThis_->hasFocus();
 	bool bSelected = (pItem->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
 	if (bSelected) {
-		pdc->setTextColor(::GetSysColor(bHasFocus ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
-		pdc->setBkColor(::GetSysColor(bHasFocus ? COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER));
+		pdc->setTextColor(getColor(bHasFocus ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
+		pdc->setBkColor(getColor(bHasFocus ? COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER));
 	}
 	else {
 		COLORREF cr = pItem->getColor();
 		if (cr == 0xff000000)
-			cr = ::GetSysColor(COLOR_WINDOWTEXT);
+			cr = getColor(COLOR_WINDOWTEXT);
 		pdc->setTextColor(cr);
-		pdc->setBkColor(::GetSysColor(COLOR_WINDOW));
+		pdc->setBkColor(getColor(COLOR_WINDOW));
 	}
 	
 	RECT r = { rect.left, rect.top, rect.left, rect.bottom };
@@ -268,7 +272,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 				nBkColorId = pThis_->hasFocus() ? COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER;
 #endif
 			COLORREF crOld = pdc->getBkColor();
-			pdc->fillSolidRect(r, ::GetSysColor(nBkColorId));
+			pdc->fillSolidRect(r, getColor(nBkColorId));
 			pdc->setBkColor(crOld);
 			
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
@@ -307,7 +311,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		r.left = r.right;
 	}
 	r.right = rect.right;
-	pdc->fillSolidRect(r, ::GetSysColor(COLOR_WINDOW));
+	pdc->fillSolidRect(r, getColor(COLOR_WINDOW));
 	
 	if (((pViewModel->getSort() & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD) &&
 		nThreadLeft != -1) {
@@ -549,6 +553,25 @@ void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 		updateLineHeight();
 		layoutChildren();
 	}
+	
+	bUseSystemColor_ = pProfile_->getInt(L"ListWindow", L"UseSystemColor", 1) != 0;
+	if (!bUseSystemColor_) {
+		struct {
+			const WCHAR* pwszKey_;
+			const WCHAR* pwszDefault_;
+			COLORREF* pcr_;
+		} colors[] = {
+			{ L"ForegroundColor",	L"000000",	&crForeground_	},
+			{ L"BackgroundColor",	L"ffffff",	&crBackground_	}
+		};
+		for (int n = 0; n < countof(colors); ++n) {
+			wstring_ptr wstr(pProfile_->getString(L"ListWindow",
+				colors[n].pwszKey_, colors[n].pwszDefault_));
+			Color color(wstr.get());
+			if (color.getColor() != 0xffffffff)
+				*colors[n].pcr_ = color.getColor();
+		}
+	}
 }
 
 void qm::ListWindowImpl::updateLineHeight()
@@ -559,6 +582,21 @@ void qm::ListWindowImpl::updateLineHeight()
 	dc.getTextMetrics(&tm);
 	nLineHeight_ = tm.tmHeight +
 		tm.tmExternalLeading + ListWindowImpl::LINE_SPACING;
+}
+
+COLORREF qm::ListWindowImpl::getColor(int nIndex) const
+{
+	if (!bUseSystemColor_) {
+		switch (nIndex) {
+		case COLOR_WINDOWTEXT:
+			return crForeground_;
+		case COLOR_WINDOW:
+			return crBackground_;
+		default:
+			break;
+		}
+	}
+	return ::GetSysColor(nIndex);
 }
 
 void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
@@ -847,7 +885,7 @@ HIMAGELIST qm::ListWindowImpl::createDragImage(const POINT& ptCursor,
 			nWidth,
 			nHeight
 		};
-		dcMem.fillSolidRect(rect, ::GetSysColor(COLOR_WINDOW));
+		dcMem.fillSolidRect(rect, getColor(COLOR_WINDOW));
 		
 		int nTop = 0;
 		for (unsigned int n = nStart; n <= nEnd; ++n) {
@@ -871,7 +909,7 @@ HIMAGELIST qm::ListWindowImpl::createDragImage(const POINT& ptCursor,
 	UINT nFlags = ILC_COLOR32 | ILC_MASK;
 #endif
 	HIMAGELIST hImageList = ImageList_Create(nWidth, nHeight, nFlags, 1, 0);
-	ImageList_AddMasked(hImageList, hbm.get(), ::GetSysColor(COLOR_WINDOW));
+	ImageList_AddMasked(hImageList, hbm.get(), getColor(COLOR_WINDOW));
 	
 	pptHotspot->x = ptCursor.x + pThis_->getScrollPos(SB_HORZ);
 	pptHotspot->y = ptCursor.y - pHeaderColumn_->getHeight() - (nStart - si.nPos)*nLineHeight_;
@@ -919,6 +957,9 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->pDocument_ = 0;
 	pImpl_->pViewModelManager_ = pViewModelManager;
 	pImpl_->hfont_ = 0;
+	pImpl_->bUseSystemColor_ = true;
+	pImpl_->crForeground_ = RGB(0, 0, 0);
+	pImpl_->crBackground_ = RGB(255, 255, 255);
 	pImpl_->nLineHeight_ = 0;
 	pImpl_->bSingleClickOpen_ = false;
 	pImpl_->pHeaderColumn_ = 0;
@@ -1488,12 +1529,12 @@ LRESULT qm::ListWindow::onPaint()
 		}
 		
 		rect.bottom = nBottom;
-		dc.fillSolidRect(rect, ::GetSysColor(COLOR_WINDOW));
+		dc.fillSolidRect(rect, pImpl_->getColor(COLOR_WINDOW));
 	}
 	else {
 		RECT rect;
 		getClientRect(&rect);
-		dc.fillSolidRect(rect, ::GetSysColor(COLOR_WINDOW));
+		dc.fillSolidRect(rect, pImpl_->getColor(COLOR_WINDOW));
 	}
 	
 	return 0;
