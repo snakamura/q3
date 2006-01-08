@@ -23,6 +23,14 @@ extern "C" {
 
 
 #include <stdlib.h>
+#include <time.h>
+
+
+#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
+#define MYEXTERN extern __declspec(dllimport)
+#else
+#define MYEXTERN extern
+#endif
 
 
 
@@ -35,7 +43,7 @@ typedef struct {                         /* type of structure for a database han
   char *name;                            /* name of the database file */
   int wmode;                             /* whether writable or not */
   int inode;                             /* inode of the database file */
-  int mtime;                             /* last modified time of the database */
+  time_t mtime;                          /* last modified time of the database */
   int fd;                                /* file descriptor of the database file */
   int fsiz;                              /* size of the database file */
   char *map;                             /* pointer to the mapped memory */
@@ -92,7 +100,7 @@ enum {                                   /* enumeration for write modes */
 
 
 /* String containing the version information. */
-extern const char *dpversion;
+MYEXTERN const char *dpversion;
 
 
 /* Last happened error code. */
@@ -329,7 +337,7 @@ int dpinode(DEPOT *depot);
 /* Get the last modified time of a database.
    `depot' specifies a database handle.
    The return value is the last modified time of the database. */
-int dpmtime(DEPOT *depot);
+time_t dpmtime(DEPOT *depot);
 
 
 /* Get the file descriptor of a database file.
@@ -400,20 +408,20 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.39"
-#define _QDBM_LIBVER   1200
+#define _QDBM_VERSION  "1.8.40"
+#define _QDBM_LIBVER   1201
 
 
 /* Name of the operating system. */
-extern char *dpsysname;
+MYEXTERN const char *dpsysname;
 
 
 /* File descriptor for debugging output. */
-extern int dpdbgfd;
+MYEXTERN int dpdbgfd;
 
 
 /* Whether this build is reentrant. */
-extern const int dpisreentrant;
+MYEXTERN const int dpisreentrant;
 
 
 /* Set the last happened error code.
@@ -446,6 +454,8 @@ int dpgetflags(DEPOT *depot);
 int dpsetflags(DEPOT *depot, int flags);
 
 
+
+#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }

@@ -27,6 +27,14 @@ extern "C" {
 #include <cabin.h>
 #include <villa.h>
 #include <stdlib.h>
+#include <time.h>
+
+
+#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
+#define MYEXTERN extern __declspec(dllimport)
+#else
+#define MYEXTERN extern
+#endif
 
 
 
@@ -285,7 +293,7 @@ int odinode(ODEUM *odeum);
 /* Get the last modified time of a database.
    `odeum' specifies a database handle.
    The return value is the last modified time of the database. */
-int odmtime(ODEUM *odeum);
+time_t odmtime(ODEUM *odeum);
 
 
 /* Merge plural database directories.
@@ -569,6 +577,8 @@ double odvecabsolute(const int *vec, int vnum);
 double odvecinnerproduct(const int *avec, const int *bvec, int vnum);
 
 
+
+#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }

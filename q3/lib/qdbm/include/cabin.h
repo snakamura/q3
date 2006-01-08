@@ -26,6 +26,13 @@ extern "C" {
 #include <time.h>
 
 
+#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
+#define MYEXTERN extern __declspec(dllimport)
+#else
+#define MYEXTERN extern
+#endif
+
+
 
 /*************************************************************************************************
  * API
@@ -76,7 +83,7 @@ typedef struct {                         /* type of structure for a map */
    The argument specifies the error message.  The initial value of this variable is `NULL'.
    If the value is `NULL', the default function is called when a fatal error occurs. A fatal
    error occurs when memory allocation is failed. */
-extern void (*cbfatalfunc)(const char *);
+MYEXTERN void (*cbfatalfunc)(const char *);
 
 
 /* Allocate a region on memory.
@@ -1149,6 +1156,8 @@ void cbmapputvbuf(CBMAP *map, const char *kbuf, int ksiz, char *vbuf, int vsiz);
   (const char *)(list->array[list->start+index].dptr))
 
 
+
+#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }

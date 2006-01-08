@@ -29,6 +29,13 @@ extern "C" {
 #include <sys/stat.h>
 
 
+#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
+#define MYEXTERN extern __declspec(dllimport)
+#else
+#define MYEXTERN extern
+#endif
+
+
 
 /*************************************************************************************************
  * API
@@ -101,7 +108,7 @@ enum {                                   /* enumeration for options */
 
 
 /* String containing the version information. */
-extern char *gdbm_version;
+MYEXTERN char *gdbm_version;
 
 
 /* Last happened error code. */
@@ -258,6 +265,8 @@ int gdbm_setopt(GDBM_FILE dbf, int option, int *value, int size);
 int *gdbm_errnoptr(void);
 
 
+
+#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }

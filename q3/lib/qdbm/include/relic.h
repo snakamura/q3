@@ -29,6 +29,13 @@ extern "C" {
 #include <fcntl.h>
 
 
+#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
+#define MYEXTERN extern __declspec(dllimport)
+#else
+#define MYEXTERN extern
+#endif
+
+
 
 /*************************************************************************************************
  * API
@@ -150,6 +157,8 @@ int dbm_dirfno(DBM *db);
 int dbm_pagfno(DBM *db);
 
 
+
+#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }

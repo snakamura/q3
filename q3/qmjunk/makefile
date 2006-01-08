@@ -11,9 +11,9 @@ LIBRARIES		= qs qm
 
 EXTERNALINCS	= -I"$(QDBMDIR)/include"
 ifeq ($(PLATFORM),win)
-	EXTERNALLIBS= "$(QDBMDIR)/lib/win/$(EXLIBCPU)/qdbm_t$(DSUFFIX).lib"
+	EXTERNALLIBS= "$(QDBMDIR)/lib/win/$(EXLIBCPU)/qdbm$(DSUFFIX)_static.lib"
 else
-	EXTERNALLIBS= "$(QDBMDIR)/lib/wce/$(EXLIBCPU)/qdbm_t$(DSUFFIX).lib"
+	EXTERNALLIBS= "$(QDBMDIR)/lib/wce/$(EXLIBCPU)/qdbm$(DSUFFIX)_static.lib"
 endif
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*.cpp))

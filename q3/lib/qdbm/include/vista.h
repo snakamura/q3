@@ -105,7 +105,7 @@ extern "C" {
 #define vlcurkeycache  vstcurkeycache
 #define vlcurvalcache  vstcurvalcache
 
-#ifndef _VISTA_C
+#if !defined(_VISTA_C)
 #include <villa.h>
 #endif
 
@@ -116,10 +116,19 @@ extern "C" {
  *************************************************************************************************/
 
 
+#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
+#define MYEXTERN extern __declspec(dllimport)
+#else
+#define MYEXTERN extern
+#endif
+
+
 /* Number of division of the database. */
-extern int vscrdnum;
+MYEXTERN int vscrdnum;
 
 
+
+#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }

@@ -25,6 +25,14 @@ extern "C" {
 #include <depot.h>
 #include <cabin.h>
 #include <stdlib.h>
+#include <time.h>
+
+
+#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
+#define MYEXTERN extern __declspec(dllimport)
+#else
+#define MYEXTERN extern
+#endif
 
 
 
@@ -67,10 +75,10 @@ typedef struct {                         /* type of structure for a node page */
    The return value is positive if the former is big, negative if the latter is big, 0 if both
    are equivalent. */
 typedef int (*VLCFUNC)(const char *aptr, int asiz, const char *bptr, int bsiz);
-extern VLCFUNC VL_CMPLEX;                /* lexical comparing function */
-extern VLCFUNC VL_CMPINT;                /* native integer comparing function */
-extern VLCFUNC VL_CMPNUM;                /* big endian number comparing function */
-extern VLCFUNC VL_CMPDEC;                /* decimal string comparing function */
+MYEXTERN VLCFUNC VL_CMPLEX;              /* lexical comparing function */
+MYEXTERN VLCFUNC VL_CMPINT;              /* native integer comparing function */
+MYEXTERN VLCFUNC VL_CMPNUM;              /* big endian number comparing function */
+MYEXTERN VLCFUNC VL_CMPDEC;              /* decimal string comparing function */
 
 typedef struct {                         /* type of structure for a database handle */
   DEPOT *depot;                          /* internal database handle */
@@ -463,7 +471,7 @@ int vlinode(VILLA *villa);
 /* Get the last modified time of a database.
    `villa' specifies a database handle.
    The return value is the last modified time of the database. */
-int vlmtime(VILLA *villa);
+time_t vlmtime(VILLA *villa);
 
 
 /* Begin the transaction.
@@ -566,6 +574,8 @@ const char *vlcurkeycache(VILLA *villa, int *sp);
 const char *vlcurvalcache(VILLA *villa, int *sp);
 
 
+
+#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }

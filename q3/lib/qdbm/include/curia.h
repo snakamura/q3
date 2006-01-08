@@ -24,6 +24,14 @@ extern "C" {
 
 #include <depot.h>
 #include <stdlib.h>
+#include <time.h>
+
+
+#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
+#define MYEXTERN extern __declspec(dllimport)
+#else
+#define MYEXTERN extern
+#endif
 
 
 
@@ -292,7 +300,7 @@ int crinode(CURIA *curia);
 /* Get the last modified time of a database.
    `curia' specifies a database handle.
    The return value is the last modified time of the database. */
-int crmtime(CURIA *curia);
+time_t crmtime(CURIA *curia);
 
 
 /* Remove a database directory.
@@ -429,6 +437,8 @@ int crgetflags(CURIA *curia);
 int crsetflags(CURIA *curia, int flags);
 
 
+
+#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }
