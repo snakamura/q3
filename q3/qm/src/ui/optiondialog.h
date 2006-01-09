@@ -29,6 +29,7 @@
 
 namespace qm {
 
+class TextColorDialog;
 class OptionDialog;
 class OptionDialogPanel;
 	template<class Dialog> class AbstractOptionDialogPanel;
@@ -45,7 +46,6 @@ class OptionListDialog;
 class OptionMiscDialog;
 class OptionMisc2Dialog;
 class OptionSecurityDialog;
-class TextColorDialog;
 class AbstractOptionTextDialog;
 	class OptionEditDialog;
 	class OptionMessageDialog;
@@ -99,6 +99,91 @@ class Security;
 #ifdef QMTABWINDOW
 class TabWindow;
 #endif
+
+
+/****************************************************************************
+ *
+ * TextColorDialog
+ *
+ */
+
+class TextColorDialog : public DefaultDialog
+{
+public:
+	class Data
+	{
+	public:
+		Data(qs::Profile* pProfile,
+			 const WCHAR* pwszSection,
+			 bool bText);
+		Data(const Data& data);
+		~Data();
+	
+	public:
+		Data& operator=(const Data& data);
+	
+	public:
+		void save(qs::Profile* pProfile,
+				  const WCHAR* pwszSection) const;
+	
+	private:
+		bool bText_;
+		bool bSystemColor_;
+		COLORREF crForeground_;
+		COLORREF crBackground_;
+		qs::wstring_ptr wstrQuote_[2];
+		COLORREF crQuote_[2];
+		COLORREF crLink_;
+		
+		friend class TextColorDialog;
+	};
+
+public:
+	explicit TextColorDialog(const Data& data);
+	virtual ~TextColorDialog();
+
+public:
+	const Data& getData() const;
+
+public:
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onDestroy();
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	LRESULT onCtlColorEdit(HDC hdc,
+						   HWND hwnd);
+	LRESULT onCtlColorStatic(HDC hdc,
+							 HWND hwnd);
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LRESULT onChoose(UINT nId);
+	LRESULT onColor(UINT nId);
+
+private:
+	void updateState();
+	void updateBackgroundBrush();
+
+private:
+	TextColorDialog(const TextColorDialog&);
+	TextColorDialog& operator=(const TextColorDialog&);
+
+private:
+	Data data_;
+	HBRUSH hbrBackground_;
+};
 
 
 /****************************************************************************
@@ -513,6 +598,9 @@ public:
 
 private:
 	LRESULT onComboBoxFont();
+#ifndef _WIN32_WCE
+	LRESULT onWindowColors();
+#endif
 	LRESULT onWindowFont();
 
 private:
@@ -525,6 +613,9 @@ private:
 	qs::Profile* pProfile_;
 	LOGFONT lfWindow_;
 	LOGFONT lfComboBox_;
+#ifndef _WIN32_WCE
+	TextColorDialog::Data color_;
+#endif
 
 private:
 	static DialogUtil::BoolProperty windowBoolProperties__[];
@@ -647,6 +738,7 @@ public:
 	virtual bool save(OptionDialogContext* pContext);
 
 private:
+	LRESULT onColors();
 	LRESULT onFont();
 
 private:
@@ -658,6 +750,7 @@ private:
 	FolderListWindow* pFolderListWindow_;
 	qs::Profile* pProfile_;
 	LOGFONT lf_;
+	TextColorDialog::Data color_;
 
 private:
 	static DialogUtil::BoolProperty boolProperties__[];
@@ -773,89 +866,6 @@ private:
 
 private:
 	static DialogUtil::BoolProperty boolProperties__[];
-};
-
-
-/****************************************************************************
- *
- * TextColorDialog
- *
- */
-
-class TextColorDialog : public DefaultDialog
-{
-public:
-	class Data
-	{
-	public:
-		Data(qs::Profile* pProfile,
-			 const WCHAR* pwszSection);
-		Data(const Data& data);
-		~Data();
-	
-	public:
-		Data& operator=(const Data& data);
-	
-	public:
-		void save(qs::Profile* pProfile,
-				  const WCHAR* pwszSection) const;
-	
-	private:
-		bool bSystemColor_;
-		COLORREF crForeground_;
-		COLORREF crBackground_;
-		qs::wstring_ptr wstrQuote_[2];
-		COLORREF crQuote_[2];
-		COLORREF crLink_;
-		
-		friend class TextColorDialog;
-	};
-
-public:
-	explicit TextColorDialog(const Data& data);
-	virtual ~TextColorDialog();
-
-public:
-	const Data& getData() const;
-
-public:
-	virtual INT_PTR dialogProc(UINT uMsg,
-							   WPARAM wParam,
-							   LPARAM lParam);
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
-
-protected:
-	virtual LRESULT onDestroy();
-	virtual LRESULT onInitDialog(HWND hwndFocus,
-								 LPARAM lParam);
-
-protected:
-	LRESULT onCtlColorEdit(HDC hdc,
-						   HWND hwnd);
-	LRESULT onCtlColorStatic(HDC hdc,
-							 HWND hwnd);
-
-protected:
-	virtual LRESULT onOk();
-
-private:
-	LRESULT onChoose(UINT nId);
-	LRESULT onColor(UINT nId);
-
-private:
-	void updateState();
-	void updateBackgroundBrush();
-
-private:
-	TextColorDialog(const TextColorDialog&);
-	TextColorDialog& operator=(const TextColorDialog&);
-
-private:
-	Data data_;
-	HBRUSH hbrBackground_;
 };
 
 

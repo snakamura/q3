@@ -389,6 +389,9 @@
 #define IDC_LABELTYPELABEL              1432
 #define IDC_LABELTYPE                   1433
 #define IDC_CONTINUE                    1436
+#define IDC_LABELQUOTE1                 1438
+#define IDC_LABELQUOTE2                 1439
+#define IDC_LABELLINK                   1440
 
 // Next default values for new objects
 // 
@@ -397,7 +400,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        223
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1437
+#define _APS_NEXT_CONTROL_VALUE         1441
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

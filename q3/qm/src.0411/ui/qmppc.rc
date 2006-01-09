@@ -1,4 +1,4 @@
-//Microsoft eMbedded Visual C++ generated resource script.
+//Microsoft Developer Studio generated resource script.
 //
 #include "resourceppc.h"
 
@@ -1337,6 +1337,7 @@ BEGIN
     CONTROL         "クリックでメッセージを開く(&S)",IDC_SINGLECLICK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,5,105,10
     PUSHBUTTON      "フォント(&F)...",IDC_FONT,5,20,50,12
+    PUSHBUTTON      "色(&C)...",IDC_COLORS,60,20,50,12
 END
 
 IDD_OPTIONADDRESSBOOK DIALOG DISCARDABLE  0, 0, 137, 119
@@ -1479,13 +1480,13 @@ BEGIN
                     WS_TABSTOP
     PUSHBUTTON      "前景色(&F)...",IDC_CHOOSEFOREGROUND,15,40,50,12
     PUSHBUTTON      "背景色(&B)...",IDC_CHOOSEBACKGROUND,70,40,50,12
-    LTEXT           "引用&1",IDC_STATIC,5,62,24,8
+    LTEXT           "引用&1",IDC_LABELQUOTE1,5,62,24,8
     EDITTEXT        IDC_QUOTE1,35,60,47,12,ES_AUTOHSCROLL
     PUSHBUTTON      "選択(&C)...",IDC_CHOOSEQUOTE1,87,60,45,12
-    LTEXT           "引用&2",IDC_STATIC,5,78,24,8
+    LTEXT           "引用&2",IDC_LABELQUOTE2,5,78,24,8
     EDITTEXT        IDC_QUOTE2,35,75,47,12,ES_AUTOHSCROLL
     PUSHBUTTON      "選択(&H)...",IDC_CHOOSEQUOTE2,87,75,45,12
-    LTEXT           "リンク(&L)",IDC_STATIC,5,92,25,8
+    LTEXT           "リンク(&L)",IDC_LABELLINK,5,92,25,8
     EDITTEXT        IDC_LINK,35,90,47,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
                     WS_TABSTOP
     PUSHBUTTON      "選択(&O)...",IDC_CHOOSELINK,87,90,45,12

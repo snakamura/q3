@@ -46,6 +46,331 @@ using namespace qs;
 
 /****************************************************************************
  *
+ * TextColorDialog
+ *
+ */
+
+qm::TextColorDialog::TextColorDialog(const Data& data) :
+	DefaultDialog(IDD_TEXTCOLOR),
+	data_(data),
+	hbrBackground_(0)
+{
+}
+
+qm::TextColorDialog::~TextColorDialog()
+{
+}
+
+const TextColorDialog::Data& qm::TextColorDialog::getData() const
+{
+	return data_;
+}
+
+INT_PTR qm::TextColorDialog::dialogProc(UINT uMsg,
+										WPARAM wParam,
+										LPARAM lParam)
+{
+	BEGIN_DIALOG_HANDLER()
+		HANDLE_CTLCOLOREDIT()
+		HANDLE_CTLCOLORSTATIC()
+	END_DIALOG_HANDLER()
+	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::TextColorDialog::onCommand(WORD nCode,
+									   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_RANGE(IDC_CHOOSEFOREGROUND, IDC_CHOOSELINK, onChoose)
+		HANDLE_COMMAND_ID_RANGE_CODE(IDC_SYSTEMCOLOR,
+			IDC_CUSTOMCOLOR, BN_CLICKED, onColor)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::TextColorDialog::onDestroy()
+{
+	if (hbrBackground_)
+		::DeleteObject(hbrBackground_);
+	
+	return DefaultDialog::onDestroy();
+}
+
+LRESULT qm::TextColorDialog::onInitDialog(HWND hwndFocus,
+										  LPARAM lParam)
+{
+	Button_SetCheck(getDlgItem(data_.bSystemColor_ ? IDC_SYSTEMCOLOR : IDC_CUSTOMCOLOR), BST_CHECKED);
+	setDlgItemText(IDC_COLOR, L"Sample");
+	
+	if (data_.bText_) {
+		setDlgItemText(IDC_QUOTE1, data_.wstrQuote_[0].get());
+		setDlgItemText(IDC_QUOTE2, data_.wstrQuote_[1].get());
+		setDlgItemText(IDC_LINK, L"http://example.com/");
+	}
+	else {
+		UINT nIds[] = {
+			IDC_LABELQUOTE1,
+			IDC_QUOTE1,
+			IDC_CHOOSEQUOTE1,
+			IDC_LABELQUOTE2,
+			IDC_QUOTE2,
+			IDC_CHOOSEQUOTE2,
+			IDC_LABELLINK,
+			IDC_LINK,
+			IDC_CHOOSELINK
+		};
+		for (int n = 0; n < countof(nIds); ++n) {
+			Window wnd(getDlgItem(nIds[n]));
+			wnd.showWindow(SW_HIDE);
+			wnd.enableWindow(false);
+		}
+	}
+	
+	init(false);
+	updateBackgroundBrush();
+	updateState();
+	
+	return TRUE;
+}
+
+LRESULT qm::TextColorDialog::onCtlColorEdit(HDC hdc,
+											HWND hwnd)
+{
+	return onCtlColorStatic(hdc, hwnd);
+}
+
+LRESULT qm::TextColorDialog::onCtlColorStatic(HDC hdc,
+											  HWND hwnd)
+{
+	bool bSystemColor = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
+	
+	COLORREF crForeground;
+	switch (Window(hwnd).getId()) {
+	case IDC_COLOR:
+		crForeground = bSystemColor ? ::GetSysColor(COLOR_WINDOWTEXT) : data_.crForeground_;
+		break;
+	case IDC_QUOTE1:
+		crForeground = data_.crQuote_[0];
+		break;
+	case IDC_QUOTE2:
+		crForeground = data_.crQuote_[1];
+		break;
+	case IDC_LINK:
+		crForeground = data_.crLink_;
+		break;
+	default:
+		return DefaultDialog::onCtlColorStatic(hdc, hwnd);
+	}
+	
+	COLORREF crBackground = bSystemColor ? ::GetSysColor(COLOR_WINDOW) : data_.crBackground_;
+	
+	DeviceContext dc(hdc);
+	dc.setTextColor(crForeground);
+	dc.setBkColor(crBackground);
+	return reinterpret_cast<LRESULT>(hbrBackground_);
+}
+
+LRESULT qm::TextColorDialog::onOk()
+{
+	data_.bSystemColor_ = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
+	
+	if (data_.bText_) {
+		data_.wstrQuote_[0] = getDlgItemText(IDC_QUOTE1);
+		data_.wstrQuote_[1] = getDlgItemText(IDC_QUOTE2);
+	}
+	
+	return DefaultDialog::onOk();
+}
+
+LRESULT qm::TextColorDialog::onChoose(UINT nId)
+{
+	COLORREF* pcrs[] = {
+		&data_.crForeground_,
+		&data_.crBackground_,
+		&data_.crQuote_[0],
+		&data_.crQuote_[1],
+		&data_.crLink_
+	};
+	COLORREF& cr = *pcrs[nId - IDC_CHOOSEFOREGROUND];
+	
+	COLORREF crCustom[16];
+	CHOOSECOLOR cc = {
+		sizeof(cc),
+		getHandle(),
+		0,
+		cr,
+		crCustom,
+		CC_ANYCOLOR | CC_RGBINIT,
+		0,
+		0,
+		0
+	};
+	if (::ChooseColor(&cc)) {
+		cr = cc.rgbResult;
+		
+		if (nId == IDC_CHOOSEBACKGROUND)
+			updateBackgroundBrush();
+		
+		invalidate();
+	}
+	
+	return 0;
+	
+}
+
+LRESULT qm::TextColorDialog::onColor(UINT nId)
+{
+	updateBackgroundBrush();
+	updateState();
+	return 0;
+}
+
+void qm::TextColorDialog::updateState()
+{
+	bool bEnable = Button_GetCheck(getDlgItem(IDC_CUSTOMCOLOR)) == BST_CHECKED;
+	Window(getDlgItem(IDC_CHOOSEFOREGROUND)).enableWindow(bEnable);
+	Window(getDlgItem(IDC_CHOOSEBACKGROUND)).enableWindow(bEnable);
+}
+
+void qm::TextColorDialog::updateBackgroundBrush()
+{
+	if (hbrBackground_)
+		::DeleteObject(hbrBackground_);
+	
+	bool bSystemColor = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
+	COLORREF crBackground = bSystemColor ? ::GetSysColor(COLOR_WINDOW) : data_.crBackground_;
+	hbrBackground_ = ::CreateSolidBrush(crBackground);
+	
+	invalidate();
+}
+
+
+/****************************************************************************
+ *
+ * TextColorDialog::Data
+ *
+ */
+
+qm::TextColorDialog::Data::Data(Profile* pProfile,
+								const WCHAR* pwszSection,
+								bool bText) :
+	bText_(bText)
+{
+	bSystemColor_ = pProfile->getInt(pwszSection, L"UseSystemColor", 1) != 0;
+	
+	struct
+	{
+		const WCHAR* pwszKey_;
+		const WCHAR* pwszDefault_;
+		COLORREF* pcr_;
+	} colors[] = {
+		{ L"ForegroundColor",	L"000000",	&crForeground_	},
+		{ L"BackgroundColor",	L"ffffff",	&crBackground_	},
+		{ L"QuoteColor1",		L"008000",	&crQuote_[0]	},
+		{ L"QuoteColor2",		L"000080",	&crQuote_[1]	},
+		{ L"LinkColor",			L"0000ff",	&crLink_		}
+	};
+	int nCount = bText_ ? countof(colors) : 2;
+	for (int n = 0; n < nCount; ++n) {
+		wstring_ptr wstr(pProfile->getString(pwszSection,
+			colors[n].pwszKey_, colors[n].pwszDefault_));
+		Color color(wstr.get());
+		if (color.getColor() != 0xffffffff)
+			*colors[n].pcr_ = color.getColor();
+	}
+	
+	if (bText_) {
+		struct
+		{
+			const WCHAR* pwszKey_;
+			const WCHAR* pwszDefault_;
+			wstring_ptr* pwstrValue_;
+		} strings[] = {
+			{ L"Quote1",	L">",	&wstrQuote_[0]	},
+			{ L"Quote2",	L"#",	&wstrQuote_[1]	}
+		};
+		for (int n = 0; n < countof(strings); ++n)
+			*strings[n].pwstrValue_ = pProfile->getString(pwszSection,
+				strings[n].pwszKey_, strings[n].pwszDefault_);
+	}
+}
+
+qm::TextColorDialog::Data::Data(const Data& data) :
+	bText_(data.bText_),
+	bSystemColor_(data.bSystemColor_),
+	crForeground_(data.crForeground_),
+	crBackground_(data.crBackground_),
+	crLink_(data.crLink_)
+{
+	if (bText_) {
+		for (int n = 0; n < countof(crQuote_); ++n) {
+			wstrQuote_[n] = allocWString(data.wstrQuote_[n].get());
+			crQuote_[n] = data.crQuote_[n];
+		}
+	}
+}
+
+qm::TextColorDialog::Data::~Data()
+{
+}
+
+TextColorDialog::Data& qm::TextColorDialog::Data::operator=(const Data& data)
+{
+	if (&data != this) {
+		bText_ = data.bText_;
+		bSystemColor_= data.bSystemColor_;
+		crForeground_ = data.crForeground_;
+		crBackground_ = data.crBackground_;
+		if (bText_) {
+			crLink_ = data.crLink_;
+			for (int n = 0; n < countof(crQuote_); ++n) {
+				wstrQuote_[n] = allocWString(data.wstrQuote_[n].get());
+				crQuote_[n] = data.crQuote_[n];
+			}
+		}
+	}
+	return *this;
+}
+
+void qm::TextColorDialog::Data::save(Profile* pProfile,
+									 const WCHAR* pwszSection) const
+{
+	pProfile->setInt(pwszSection, L"UseSystemColor", bSystemColor_);
+	
+	struct
+	{
+		const WCHAR* pwszKey_;
+		COLORREF cr_;
+	} colors[] = {
+		{ L"ForegroundColor",	crForeground_	},
+		{ L"BackgroundColor",	crBackground_	},
+		{ L"QuoteColor1",		crQuote_[0]		},
+		{ L"QuoteColor2",		crQuote_[1]		},
+		{ L"LinkColor",			crLink_			}
+	};
+	int nCount = bText_ ? countof(colors) : 2;
+	for (int n = 0; n < nCount; ++n) {
+		wstring_ptr wstrColor(Color(colors[n].cr_).getString());
+		pProfile->setString(pwszSection, colors[n].pwszKey_, wstrColor.get());
+	}
+	
+	if (bText_) {
+		struct
+		{
+			const WCHAR* pwszKey_;
+			const WCHAR* pwszValue_;
+		} strings[] = {
+			{ L"Quote1",	wstrQuote_[0].get()	},
+			{ L"Quote2",	wstrQuote_[1].get()	}
+		};
+		for (int n = 0; n < countof(strings); ++n)
+			pProfile->setString(pwszSection, strings[n].pwszKey_, strings[n].pwszValue_);
+	}
+}
+
+
+/****************************************************************************
+ *
  * OptionDialog
  *
  */
@@ -1059,6 +1384,10 @@ qm::OptionFolderDialog::OptionFolderDialog(FolderWindow* pFolderWindow,
 	pFolderWindow_(pFolderWindow),
 	pFolderComboBox_(pFolderComboBox),
 	pProfile_(pProfile)
+#ifndef _WIN32_WCE
+	,
+	color_(pProfile, L"FolderWindow", false)
+#endif
 {
 	qs::UIUtil::getLogFontFromProfile(pProfile_, L"FolderWindow", false, &lfWindow_);
 	qs::UIUtil::getLogFontFromProfile(pProfile_, L"FolderComboBox", false, &lfComboBox_);
@@ -1073,6 +1402,9 @@ LRESULT qm::OptionFolderDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_COMBOBOXFONT, onComboBoxFont)
+#ifndef _WIN32_WCE
+		HANDLE_COMMAND_ID(IDC_WINDOWCOLORS, onWindowColors)
+#endif
 		HANDLE_COMMAND_ID(IDC_WINDOWFONT, onWindowFont)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
@@ -1094,6 +1426,9 @@ bool qm::OptionFolderDialog::save(OptionDialogContext* pContext)
 	DialogUtil::saveBoolProperties(this, pProfile_,
 		L"FolderWindow", windowBoolProperties__, countof(windowBoolProperties__));
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"FolderWindow", lfWindow_);
+#ifndef _WIN32_WCE
+	color_.save(pProfile_, L"FolderWindow");
+#endif
 	
 	DialogUtil::saveBoolProperties(this, pProfile_,
 		L"FolderComboBox", comboBoxBoolProperties__, countof(comboBoxBoolProperties__));
@@ -1109,6 +1444,16 @@ LRESULT qm::OptionFolderDialog::onComboBoxFont()
 	qs::UIUtil::browseFont(getParentPopup(), &lfComboBox_);
 	return 0;
 }
+
+#ifndef _WIN32_WCE
+LRESULT qm::OptionFolderDialog::onWindowColors()
+{
+	TextColorDialog dialog(color_);
+	if (dialog.doModal(getParentPopup()) == IDOK)
+		color_ = dialog.getData();
+	return 0;
+}
+#endif
 
 LRESULT qm::OptionFolderDialog::onWindowFont()
 {
@@ -1313,7 +1658,8 @@ qm::OptionListDialog::OptionListDialog(ListWindow* pListWindow,
 	DefaultDialog(IDD_OPTIONLIST),
 	pListWindow_(pListWindow),
 	pFolderListWindow_(pFolderListWindow),
-	pProfile_(pProfile)
+	pProfile_(pProfile),
+	color_(pProfile, L"ListWindow", false)
 {
 	qs::UIUtil::getLogFontFromProfile(pProfile_, L"ListWindow", false, &lf_);
 }
@@ -1326,6 +1672,7 @@ LRESULT qm::OptionListDialog::onCommand(WORD nCode,
 										WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_COLORS, onColors)
 		HANDLE_COMMAND_ID(IDC_FONT, onFont)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
@@ -1346,10 +1693,20 @@ bool qm::OptionListDialog::save(OptionDialogContext* pContext)
 		L"ListWindow", boolProperties__, countof(boolProperties__));
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"ListWindow", lf_);
 	qs::UIUtil::setLogFontToProfile(pProfile_, L"FolderListWindow", lf_);
+	color_.save(pProfile_, L"ListWindow");
+	color_.save(pProfile_, L"FolderListWindow");
 	
 	pContext->setFlags(OptionDialogContext::FLAG_RELOADLIST);
 	
 	return true;
+}
+
+LRESULT qm::OptionListDialog::onColors()
+{
+	TextColorDialog dialog(color_);
+	if (dialog.doModal(getParentPopup()) == IDOK)
+		color_ = dialog.getData();
+	return 0;
 }
 
 LRESULT qm::OptionListDialog::onFont()
@@ -1638,291 +1995,6 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
 
 /****************************************************************************
  *
- * TextColorDialog
- *
- */
-
-qm::TextColorDialog::TextColorDialog(const Data& data) :
-	DefaultDialog(IDD_TEXTCOLOR),
-	data_(data),
-	hbrBackground_(0)
-{
-}
-
-qm::TextColorDialog::~TextColorDialog()
-{
-}
-
-const TextColorDialog::Data& qm::TextColorDialog::getData() const
-{
-	return data_;
-}
-
-INT_PTR qm::TextColorDialog::dialogProc(UINT uMsg,
-										WPARAM wParam,
-										LPARAM lParam)
-{
-	BEGIN_DIALOG_HANDLER()
-		HANDLE_CTLCOLOREDIT()
-		HANDLE_CTLCOLORSTATIC()
-	END_DIALOG_HANDLER()
-	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
-}
-
-LRESULT qm::TextColorDialog::onCommand(WORD nCode,
-									   WORD nId)
-{
-	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID_RANGE(IDC_CHOOSEFOREGROUND, IDC_CHOOSELINK, onChoose)
-		HANDLE_COMMAND_ID_RANGE_CODE(IDC_SYSTEMCOLOR,
-			IDC_CUSTOMCOLOR, BN_CLICKED, onColor)
-	END_COMMAND_HANDLER()
-	return DefaultDialog::onCommand(nCode, nId);
-}
-
-LRESULT qm::TextColorDialog::onDestroy()
-{
-	if (hbrBackground_)
-		::DeleteObject(hbrBackground_);
-	
-	return DefaultDialog::onDestroy();
-}
-
-LRESULT qm::TextColorDialog::onInitDialog(HWND hwndFocus,
-										  LPARAM lParam)
-{
-	Button_SetCheck(getDlgItem(data_.bSystemColor_ ? IDC_SYSTEMCOLOR : IDC_CUSTOMCOLOR), BST_CHECKED);
-	setDlgItemText(IDC_COLOR, L"Sample");
-	setDlgItemText(IDC_QUOTE1, data_.wstrQuote_[0].get());
-	setDlgItemText(IDC_QUOTE2, data_.wstrQuote_[1].get());
-	setDlgItemText(IDC_LINK, L"http://example.com/");
-	
-	init(false);
-	updateBackgroundBrush();
-	updateState();
-	
-	return TRUE;
-}
-
-LRESULT qm::TextColorDialog::onCtlColorEdit(HDC hdc,
-											HWND hwnd)
-{
-	return onCtlColorStatic(hdc, hwnd);
-}
-
-LRESULT qm::TextColorDialog::onCtlColorStatic(HDC hdc,
-											  HWND hwnd)
-{
-	bool bSystemColor = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
-	
-	COLORREF crForeground;
-	switch (Window(hwnd).getId()) {
-	case IDC_COLOR:
-		crForeground = bSystemColor ? ::GetSysColor(COLOR_WINDOWTEXT) : data_.crForeground_;
-		break;
-	case IDC_QUOTE1:
-		crForeground = data_.crQuote_[0];
-		break;
-	case IDC_QUOTE2:
-		crForeground = data_.crQuote_[1];
-		break;
-	case IDC_LINK:
-		crForeground = data_.crLink_;
-		break;
-	default:
-		return DefaultDialog::onCtlColorStatic(hdc, hwnd);
-	}
-	
-	COLORREF crBackground = bSystemColor ? ::GetSysColor(COLOR_WINDOW) : data_.crBackground_;
-	
-	DeviceContext dc(hdc);
-	dc.setTextColor(crForeground);
-	dc.setBkColor(crBackground);
-	return reinterpret_cast<LRESULT>(hbrBackground_);
-}
-
-LRESULT qm::TextColorDialog::onOk()
-{
-	data_.bSystemColor_ = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
-	
-	return DefaultDialog::onOk();
-}
-
-LRESULT qm::TextColorDialog::onChoose(UINT nId)
-{
-	COLORREF* pcrs[] = {
-		&data_.crForeground_,
-		&data_.crBackground_,
-		&data_.crQuote_[0],
-		&data_.crQuote_[1],
-		&data_.crLink_
-	};
-	COLORREF& cr = *pcrs[nId - IDC_CHOOSEFOREGROUND];
-	
-	COLORREF crCustom[16];
-	CHOOSECOLOR cc = {
-		sizeof(cc),
-		getHandle(),
-		0,
-		cr,
-		crCustom,
-		CC_ANYCOLOR | CC_RGBINIT,
-		0,
-		0,
-		0
-	};
-	if (::ChooseColor(&cc)) {
-		cr = cc.rgbResult;
-		
-		if (nId == IDC_CHOOSEBACKGROUND)
-			updateBackgroundBrush();
-		
-		invalidate();
-	}
-	
-	return 0;
-	
-}
-
-LRESULT qm::TextColorDialog::onColor(UINT nId)
-{
-	updateBackgroundBrush();
-	updateState();
-	return 0;
-}
-
-void qm::TextColorDialog::updateState()
-{
-	bool bEnable = Button_GetCheck(getDlgItem(IDC_CUSTOMCOLOR)) == BST_CHECKED;
-	Window(getDlgItem(IDC_CHOOSEFOREGROUND)).enableWindow(bEnable);
-	Window(getDlgItem(IDC_CHOOSEBACKGROUND)).enableWindow(bEnable);
-}
-
-void qm::TextColorDialog::updateBackgroundBrush()
-{
-	if (hbrBackground_)
-		::DeleteObject(hbrBackground_);
-	
-	bool bSystemColor = Button_GetCheck(getDlgItem(IDC_SYSTEMCOLOR)) == BST_CHECKED;
-	COLORREF crBackground = bSystemColor ? ::GetSysColor(COLOR_WINDOW) : data_.crBackground_;
-	hbrBackground_ = ::CreateSolidBrush(crBackground);
-	
-	invalidate();
-}
-
-
-/****************************************************************************
- *
- * TextColorDialog::Data
- *
- */
-
-qm::TextColorDialog::Data::Data(Profile* pProfile,
-								const WCHAR* pwszSection)
-{
-	bSystemColor_ = pProfile->getInt(pwszSection, L"UseSystemColor", 1) != 0;
-	
-	struct
-	{
-		const WCHAR* pwszKey_;
-		const WCHAR* pwszDefault_;
-		COLORREF* pcr_;
-	} colors[] = {
-		{ L"ForegroundColor",	L"000000",	&crForeground_	},
-		{ L"BackgroundColor",	L"ffffff",	&crBackground_	},
-		{ L"QuoteColor1",		L"008000",	&crQuote_[0]	},
-		{ L"QuoteColor2",		L"000080",	&crQuote_[1]	},
-		{ L"LinkColor",			L"0000ff",	&crLink_		}
-	};
-	for (int n = 0; n < countof(colors); ++n) {
-		wstring_ptr wstr(pProfile->getString(pwszSection,
-			colors[n].pwszKey_, colors[n].pwszDefault_));
-		Color color(wstr.get());
-		if (color.getColor() != 0xffffffff)
-			*colors[n].pcr_ = color.getColor();
-	}
-	
-	struct
-	{
-		const WCHAR* pwszKey_;
-		const WCHAR* pwszDefault_;
-		wstring_ptr* pwstrValue_;
-	} strings[] = {
-		{ L"Quote1",	L">",	&wstrQuote_[0]	},
-		{ L"Quote2",	L"#",	&wstrQuote_[1]	}
-	};
-	for (int n = 0; n < countof(strings); ++n)
-		*strings[n].pwstrValue_ = pProfile->getString(pwszSection,
-			strings[n].pwszKey_, strings[n].pwszDefault_);
-}
-
-qm::TextColorDialog::Data::Data(const Data& data) :
-	bSystemColor_(data.bSystemColor_),
-	crForeground_(data.crForeground_),
-	crBackground_(data.crBackground_),
-	crLink_(data.crLink_)
-{
-	for (int n = 0; n < countof(crQuote_); ++n) {
-		wstrQuote_[n] = allocWString(data.wstrQuote_[n].get());
-		crQuote_[n] = data.crQuote_[n];
-	}
-}
-
-qm::TextColorDialog::Data::~Data()
-{
-}
-
-TextColorDialog::Data& qm::TextColorDialog::Data::operator=(const Data& data)
-{
-	if (&data != this) {
-		bSystemColor_= data.bSystemColor_;
-		crForeground_ = data.crForeground_;
-		crBackground_ = data.crBackground_;
-		crLink_ = data.crLink_;
-		for (int n = 0; n < countof(crQuote_); ++n) {
-			wstrQuote_[n] = allocWString(data.wstrQuote_[n].get());
-			crQuote_[n] = data.crQuote_[n];
-		}
-	}
-	return *this;
-}
-
-void qm::TextColorDialog::Data::save(Profile* pProfile,
-									 const WCHAR* pwszSection) const
-{
-	pProfile->setInt(pwszSection, L"UseSystemColor", bSystemColor_);
-	
-	struct
-	{
-		const WCHAR* pwszKey_;
-		COLORREF cr_;
-	} colors[] = {
-		{ L"ForegroundColor",	crForeground_	},
-		{ L"BackgroundColor",	crBackground_	},
-		{ L"QuoteColor1",		crQuote_[0]		},
-		{ L"QuoteColor2",		crQuote_[1]		},
-		{ L"LinkColor",			crLink_			}
-	};
-	for (int n = 0; n < countof(colors); ++n) {
-		wstring_ptr wstrColor(Color(colors[n].cr_).getString());
-		pProfile->setString(pwszSection, colors[n].pwszKey_, wstrColor.get());
-	}
-	
-	struct
-	{
-		const WCHAR* pwszKey_;
-		const WCHAR* pwszValue_;
-	} strings[] = {
-		{ L"Quote1",	wstrQuote_[0].get()	},
-		{ L"Quote2",	wstrQuote_[1].get()	}
-	};
-	for (int n = 0; n < countof(strings); ++n)
-		pProfile->setString(pwszSection, strings[n].pwszKey_, strings[n].pwszValue_);
-}
-
-
-/****************************************************************************
- *
  * AbstractOptionTextDialog
  *
  */
@@ -1944,7 +2016,7 @@ qm::AbstractOptionTextDialog::AbstractOptionTextDialog(UINT nId,
 	DefaultDialog(nId),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
-	color_(pProfile, pwszSection)
+	color_(pProfile, pwszSection, true)
 {
 	qs::UIUtil::getLogFontFromProfile(pProfile_, pwszSection_, false, &lf_);
 }

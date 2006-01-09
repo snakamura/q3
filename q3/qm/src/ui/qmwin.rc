@@ -1360,6 +1360,7 @@ BEGIN
     CONTROL         "&Vertical(*)",IDC_VERTICAL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,55,140,10
     PUSHBUTTON      "&Font...",IDC_WINDOWFONT,10,70,50,12
+    PUSHBUTTON      "Colo&rs...",IDC_WINDOWCOLORS,65,70,50,12
     GROUPBOX        "Combo Box",IDC_STATIC,5,95,150,55
     CONTROL         "Show all &count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,105,140,10
@@ -1375,6 +1376,7 @@ BEGIN
     CONTROL         "&Single click to open message",IDC_SINGLECLICK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,5,220,10
     PUSHBUTTON      "&Font...",IDC_FONT,5,25,50,12
+    PUSHBUTTON      "&Colors...",IDC_COLORS,60,25,50,12
 END
 
 IDD_OPTIONADDRESSBOOK DIALOG DISCARDABLE  0, 0, 230, 170
@@ -1521,13 +1523,13 @@ BEGIN
                     WS_TABSTOP
     PUSHBUTTON      "&Foreground...",IDC_CHOOSEFOREGROUND,15,55,50,12
     PUSHBUTTON      "&Background...",IDC_CHOOSEBACKGROUND,70,55,50,12
-    LTEXT           "Quote&1",IDC_STATIC,5,82,24,8
+    LTEXT           "Quote&1",IDC_LABELQUOTE1,5,82,24,8
     EDITTEXT        IDC_QUOTE1,35,80,69,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Choose...",IDC_CHOOSEQUOTE1,110,80,50,12
-    LTEXT           "Quote&2",IDC_STATIC,5,102,24,8
+    LTEXT           "Quote&2",IDC_LABELQUOTE2,5,102,24,8
     EDITTEXT        IDC_QUOTE2,35,100,70,12,ES_AUTOHSCROLL
     PUSHBUTTON      "C&hoose...",IDC_CHOOSEQUOTE2,110,100,50,12
-    LTEXT           "&Link",IDC_STATIC,5,122,18,8
+    LTEXT           "&Link",IDC_LABELLINK,5,122,18,8
     EDITTEXT        IDC_LINK,35,120,70,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
                     WS_TABSTOP
     PUSHBUTTON      "Ch&oose...",IDC_CHOOSELINK,110,120,50,12
