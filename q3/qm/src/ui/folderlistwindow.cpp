@@ -87,6 +87,9 @@ public:
 	
 	UINT nId_;
 	HFONT hfont_;
+	bool bUseSystemColor_;
+	COLORREF crForeground_;
+	COLORREF crBackground_;
 	bool bSizeShown_;
 	bool bInserting_;
 };
@@ -252,6 +255,40 @@ void qm::FolderListWindowImpl::reloadProfiles(bool bInitialize)
 		::DeleteObject(hfont_);
 	}
 	hfont_ = hfont;
+	
+	bool bUseSystemColor = pProfile_->getInt(L"FolderListWindow", L"UseSystemColor", 1) != 0;
+	if (!bUseSystemColor) {
+		struct {
+			const WCHAR* pwszKey_;
+			const WCHAR* pwszDefault_;
+			COLORREF* pcr_;
+		} colors[] = {
+			{ L"ForegroundColor",	L"000000",	&crForeground_	},
+			{ L"BackgroundColor",	L"ffffff",	&crBackground_	}
+		};
+		for (int n = 0; n < countof(colors); ++n) {
+			wstring_ptr wstr(pProfile_->getString(L"FolderListWindow",
+				colors[n].pwszKey_, colors[n].pwszDefault_));
+			Color color(wstr.get());
+			if (color.getColor() != 0xffffffff)
+				*colors[n].pcr_ = color.getColor();
+		}
+	}
+	if (!bInitialize) {
+		if (bUseSystemColor) {
+			if (!bUseSystemColor_) {
+				ListView_SetTextColor(pThis_->getHandle(), ::GetSysColor(COLOR_WINDOWTEXT));
+				ListView_SetTextBkColor(pThis_->getHandle(), ::GetSysColor(COLOR_WINDOW));
+				ListView_SetBkColor(pThis_->getHandle(), ::GetSysColor(COLOR_WINDOW));
+			}
+		}
+		else {
+			ListView_SetTextColor(pThis_->getHandle(), crForeground_);
+			ListView_SetTextBkColor(pThis_->getHandle(), crBackground_);
+			ListView_SetBkColor(pThis_->getHandle(), crBackground_);
+		}
+	}
+	bUseSystemColor_ = bUseSystemColor;
 }
 
 LRESULT qm::FolderListWindowImpl::onNotify(NMHDR* pnmhdr,
@@ -366,6 +403,9 @@ qm::FolderListWindow::FolderListWindow(WindowBase* pParentWindow,
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
+	pImpl_->bUseSystemColor_ = true;
+	pImpl_->crForeground_ = RGB(0, 0, 0);
+	pImpl_->crBackground_ = RGB(255, 255, 255);
 	pImpl_->bSizeShown_ = false;
 	pImpl_->bInserting_ = false;
 	
@@ -469,6 +509,12 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->nId_ = getId();
 	
 	setFont(pImpl_->hfont_, false);
+	
+	if (!pImpl_->bUseSystemColor_) {
+		ListView_SetTextColor(getHandle(), pImpl_->crForeground_);
+		ListView_SetTextBkColor(getHandle(), pImpl_->crBackground_);
+		ListView_SetBkColor(getHandle(), pImpl_->crBackground_);
+	}
 	
 	HIMAGELIST hImageList = ImageList_LoadImage(
 		Application::getApplication().getResourceHandle(),
