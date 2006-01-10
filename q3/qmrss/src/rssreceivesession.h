@@ -85,6 +85,8 @@ private:
 								  size_t nBodyLen,
 								  Content content,
 								  qm::Message* pMessage);
+	static std::pair<const WCHAR*, bool> getLink(const Channel* pChannel,
+												 const Item* pItem);
 	static void updateCookies(const WCHAR* pwszURL,
 							  const qs::Part& header);
 	static bool getInternetProxySetting(qs::wstring_ptr* pwstrProxyHost,

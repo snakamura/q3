@@ -290,57 +290,62 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		
 		pSessionCallback_->setPos(nPos + 1);
 		
-		const WCHAR* pwszLink = pItem->getLink();
-		if (pwszLink) {
-			const WCHAR* pwszKey = pItem->getId();
-			if (!pwszKey)
-				pwszKey = pwszLink;
-			wstring_ptr wstrHash;
-			if (bUpdateIfModified) {
-				wstrHash = pItem->getHash();
-				pwszKey = wstrHash.get();
+		std::pair<const WCHAR*, bool> link(getLink(pChannel.get(), pItem));
+		
+		const WCHAR* pwszKey = 0;
+		if (!bUpdateIfModified) {
+			const WCHAR* pwszId = pItem->getId();
+			if (pwszId)
+				pwszKey = pwszId;
+			else if (link.second)
+				pwszKey = link.first;
+		}
+		wstring_ptr wstrHash;
+		if (!pwszKey) {
+			wstrHash = pItem->getHash();
+			pwszKey = wstrHash.get();
+		}
+		
+		if (!pFeed || !pFeed->getItem(pwszKey)) {
+			unsigned int nFlags = 0;
+			
+			Part header;
+			malloc_size_ptr<unsigned char> pBody;
+			
+			// TODO
+			// Sync filter.
+			if (false && link.second) {
+				HttpMethodGet method(link.first);
+				unsigned int nCode = http.invoke(&method);
+				if (nCode != 200)
+					return false;
+				
+				if (!header.create(0, method.getResponseHeader(), -1))
+					return false;
+				pBody = method.getResponseBody();
 			}
-			if (!pFeed || !pFeed->getItem(pwszKey)) {
-				unsigned int nFlags = 0;
-				
-				Part header;
-				malloc_size_ptr<unsigned char> pBody;
-				
-				// TODO
-				// Sync filter.
-				if (false) {
-					HttpMethodGet method(pwszLink);
-					unsigned int nCode = http.invoke(&method);
-					if (nCode != 200)
-						return false;
-					
-					if (!header.create(0, method.getResponseHeader(), -1))
-						return false;
-					pBody = method.getResponseBody();
-				}
-				else {
-					nFlags = MessageHolder::FLAG_HEADERONLY;
-				}
-				
-				Message msg;
-				if (!createItemMessage(pChannel.get(), pItem, timePubDate,
-					pBody.get() ? &header : 0, pBody.get(), pBody.size(), content, &msg))
-					return false;
-				
-				Lock<Account> lock(*pAccount_);
-				
-				xstring_size_ptr strContent(msg.getContent());
-				MessageHolder* pmh = pAccount_->storeMessage(pFolder_, strContent.get(),
-					strContent.size(), &msg, -1, nFlags, 0, -1, false);
-				if (!pmh)
-					return false;
-				
-				listDownloaded.push_back(MessagePtr(pmh));
+			else {
+				nFlags = MessageHolder::FLAG_HEADERONLY;
 			}
 			
-			std::auto_ptr<FeedItem> pItem(new FeedItem(pwszKey));
-			pFeedNew->addItem(pItem);
+			Message msg;
+			if (!createItemMessage(pChannel.get(), pItem, timePubDate,
+				pBody.get() ? &header : 0, pBody.get(), pBody.size(), content, &msg))
+				return false;
+			
+			Lock<Account> lock(*pAccount_);
+			
+			xstring_size_ptr strContent(msg.getContent());
+			MessageHolder* pmh = pAccount_->storeMessage(pFolder_, strContent.get(),
+				strContent.size(), &msg, -1, nFlags, 0, -1, false);
+			if (!pmh)
+				return false;
+			
+			listDownloaded.push_back(MessagePtr(pmh));
 		}
+		
+		std::auto_ptr<FeedItem> pFeedItem(new FeedItem(pwszKey));
+		pFeedNew->addItem(pFeedItem);
 	}
 	
 	pFeedList_->setFeed(pFeedNew);
@@ -436,8 +441,7 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 	assert(pMessage);
 	assert((pHeader && pBody) || (!pHeader && !pBody));
 	
-	const WCHAR* pwszLink = pItem->getLink();
-	assert(pwszLink);
+	const WCHAR* pwszLink = getLink(pChannel, pItem).first;
 	
 	UnstructuredParser link(pwszLink, L"utf-8");
 	if (!pMessage->setField(L"X-QMAIL-Link", link))
@@ -582,6 +586,20 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 		return false;
 	
 	return true;
+}
+
+std::pair<const WCHAR*, bool> qmrss::RssReceiveSession::getLink(const Channel* pChannel,
+																const Item* pItem)
+{
+	const WCHAR* pwszLink = pItem->getLink();
+	bool bItemLink = true;
+	if (!pwszLink) {
+		pwszLink = pChannel->getLink();
+		if (!pwszLink)
+			pwszLink = pChannel->getURL();
+		bItemLink = false;
+	}
+	return std::make_pair(pwszLink, bItemLink);
 }
 
 void qmrss::RssReceiveSession::updateCookies(const WCHAR* pwszURL,
