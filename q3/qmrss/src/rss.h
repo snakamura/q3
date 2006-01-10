@@ -75,6 +75,33 @@ private:
 class Item
 {
 public:
+	class Enclosure
+	{
+	public:
+		Enclosure(const WCHAR* pwszURL,
+				  size_t nLength,
+				  const WCHAR* pwszType);
+		~Enclosure();
+	
+	public:
+		const WCHAR* getURL() const;
+		size_t getLength() const;
+		const WCHAR* getType() const;
+	
+	private:
+		Enclosure(const Enclosure&);
+		Enclosure& operator=(const Enclosure&);
+	
+	private:
+		qs::wstring_ptr wstrURL_;
+		size_t nLength_;
+		qs::wstring_ptr wstrType_;
+	};
+
+public:
+	typedef std::vector<Enclosure*> EnclosureList;
+
+public:
 	Item();
 	~Item();
 
@@ -88,6 +115,7 @@ public:
 	const qs::Time& getPubDate() const;
 	const WCHAR* getContentEncoded() const;
 	const WCHAR* getId() const;
+	const EnclosureList& getEnclosures() const;
 	qs::wstring_ptr getHash() const;
 
 public:
@@ -100,6 +128,7 @@ public:
 	void setPubDate(const qs::Time& time);
 	void setContentEncoded(qs::wstring_ptr wstrContentEncoded);
 	void setId(qs::wstring_ptr wstrId);
+	void addEnclosure(std::auto_ptr<Enclosure> pEnclosure);
 
 private:
 	Item(const Item&);
@@ -115,6 +144,7 @@ private:
 	qs::Time timePubDate_;
 	qs::wstring_ptr wstrContentEncoded_;
 	qs::wstring_ptr wstrId_;
+	EnclosureList listEnclosure_;
 };
 
 

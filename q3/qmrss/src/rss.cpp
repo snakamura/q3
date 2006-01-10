@@ -93,6 +93,7 @@ qmrss::Item::Item()
 
 qmrss::Item::~Item()
 {
+	std::for_each(listEnclosure_.begin(), listEnclosure_.end(), qs::deleter<Enclosure>());
 }
 
 const WCHAR* qmrss::Item::getTitle() const
@@ -138,6 +139,11 @@ const WCHAR* qmrss::Item::getContentEncoded() const
 const WCHAR* qmrss::Item::getId() const
 {
 	return wstrId_.get();
+}
+
+const Item::EnclosureList& qmrss::Item::getEnclosures() const
+{
+	return listEnclosure_;
 }
 
 wstring_ptr qmrss::Item::getHash() const
@@ -223,6 +229,50 @@ void qmrss::Item::setContentEncoded(qs::wstring_ptr wstrContentEncoded)
 void qmrss::Item::setId(qs::wstring_ptr wstrId)
 {
 	wstrId_ = wstrId;
+}
+
+void qmrss::Item::addEnclosure(std::auto_ptr<Enclosure> pEnclosure)
+{
+	listEnclosure_.push_back(pEnclosure.get());
+	pEnclosure.release();
+}
+
+
+/****************************************************************************
+ *
+ * Item::Enclosure
+ *
+ */
+
+qmrss::Item::Enclosure::Enclosure(const WCHAR* pwszURL,
+								  size_t nLength,
+								  const WCHAR* pwszType) :
+	nLength_(nLength)
+{
+	assert(pwszURL);
+	assert(pwszType);
+	
+	wstrURL_ = allocWString(pwszURL);
+	wstrType_ = allocWString(pwszType);
+}
+
+qmrss::Item::Enclosure::~Enclosure()
+{
+}
+
+const WCHAR* qmrss::Item::Enclosure::getURL() const
+{
+	return wstrURL_.get();
+}
+
+size_t qmrss::Item::Enclosure::getLength() const
+{
+	return nLength_;
+}
+
+const WCHAR* qmrss::Item::Enclosure::getType() const
+{
+	return wstrType_.get();
 }
 
 
@@ -636,10 +686,36 @@ bool qmrss::Rss20Handler::startElement(const WCHAR* pwszNamespaceURI,
 				wcscmp(pwszLocalName, L"link") == 0 ||
 				wcscmp(pwszLocalName, L"description") == 0 ||
 				wcscmp(pwszLocalName, L"category") == 0 ||
-				wcscmp(pwszLocalName, L"pubDate") == 0)
+				wcscmp(pwszLocalName, L"pubDate") == 0) {
 				stackState_.push_back(STATE_PROPERTY);
-			else
+			}
+			else if (wcscmp(pwszLocalName, L"enclosure") == 0) {
+				const WCHAR* pwszURL = 0;
+				const WCHAR* pwszLength = 0;
+				const WCHAR* pwszType = 0;
+				for (int n = 0; n < attributes.getLength(); ++n) {
+					const WCHAR* pwszAttrName = attributes.getLocalName(n);
+					if (wcscmp(pwszAttrName, L"url") == 0)
+						pwszURL = attributes.getValue(n);
+					else if (wcscmp(pwszAttrName, L"length") == 0)
+						pwszLength = attributes.getValue(n);
+					else if (wcscmp(pwszAttrName, L"type") == 0)
+						pwszType = attributes.getValue(n);
+				}
+				if (pwszURL && pwszLength && pwszType) {
+					WCHAR* pEnd = 0;
+					long nLength = wcstol(pwszLength, &pEnd, 10);
+					if (nLength != 0 && !*pEnd) {
+						std::auto_ptr<Item::Enclosure> pEnclosure(
+							new Item::Enclosure(pwszURL, nLength, pwszType));
+						pCurrentItem_->addEnclosure(pEnclosure);
+					}
+				}
+				stackState_.push_back(STATE_PROPERTY);
+			}
+			else {
 				stackState_.push_back(STATE_UNKNOWN);
+			}
 		}
 		else if (wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0) {
 			if (wcscmp(pwszLocalName, L"subject") == 0 ||
@@ -730,6 +806,8 @@ bool qmrss::Rss20Handler::endElement(const WCHAR* pwszNamespaceURI,
 				if (DateParser::parse(strDate.get(), -1, DateParser::FLAG_ALLOWDEFAULT, &date))
 					pCurrentItem_->setPubDate(date);
 				buffer_.remove();
+			}
+			else if (wcscmp(pwszLocalName, L"enclosure") == 0) {
 			}
 			else {
 				assert(false);
@@ -840,6 +918,29 @@ bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
 					const WCHAR* pwszHref = attributes.getValue(L"href");
 					if (pwszHref)
 						pChannel_->setLink(allocWString(pwszHref));
+				}
+				else if (wcscmp(pwszRel, L"enclosure") == 0) {
+					const WCHAR* pwszHref = 0;
+					const WCHAR* pwszLength = 0;
+					const WCHAR* pwszType = 0;
+					for (int n = 0; n < attributes.getLength(); ++n) {
+						const WCHAR* pwszAttrName = attributes.getLocalName(n);
+						if (wcscmp(pwszAttrName, L"href") == 0)
+							pwszHref = attributes.getValue(n);
+						else if (wcscmp(pwszAttrName, L"length") == 0)
+							pwszLength = attributes.getValue(n);
+						else if (wcscmp(pwszAttrName, L"type") == 0)
+							pwszType = attributes.getValue(n);
+					}
+					if (pwszHref && pwszLength && pwszType) {
+						WCHAR* pEnd = 0;
+						long nLength = wcstol(pwszLength, &pEnd, 10);
+						if (nLength != 0 && !*pEnd) {
+							std::auto_ptr<Item::Enclosure> pEnclosure(
+								new Item::Enclosure(pwszHref, nLength, pwszType));
+							pCurrentItem_->addEnclosure(pEnclosure);
+						}
+					}
 				}
 				stackState_.push_back(STATE_UNKNOWN);
 			}

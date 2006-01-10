@@ -505,6 +505,13 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 		}
 	}
 	
+	const Item::EnclosureList& listEnclosure = pItem->getEnclosures();
+	for (Item::EnclosureList::const_iterator it = listEnclosure.begin(); it != listEnclosure.end(); ++it) {
+		UnstructuredParser field((*it)->getURL(), L"utf-8");
+		if (!pMessage->setField(L"X-RSS-Enclosure", field))
+			return false;
+	}
+	
 	UTF8Converter converter;
 	
 	Part* pTextPart = 0;
@@ -527,6 +534,18 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 		converter.encode(pwszLink, wcslen(pwszLink), &body) == -1 ||
 		!body.append(">\r\n\r\n"))
 		return false;
+	
+	if (!listEnclosure.empty()) {
+		for (Item::EnclosureList::const_iterator it = listEnclosure.begin(); it != listEnclosure.end(); ++it) {
+			const WCHAR* pwszURL = (*it)->getURL();
+			if (!body.append("<") ||
+				converter.encode(pwszURL, wcslen(pwszURL), &body) == -1 ||
+				!body.append(">\r\n"))
+				return false;
+		}
+		if (!body.append("\r\n"))
+			return false;
+	}
 	
 	const WCHAR* pwszDescription = pItem->getDescription();
 	if (pwszDescription) {
