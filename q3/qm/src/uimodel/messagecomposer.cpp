@@ -130,7 +130,7 @@ bool qm::MessageComposer::compose(Message* pMessage,
 	bool bWithOSVersion = pProfile_->getInt(L"Global", L"XMailerWithOSVersion", 1) != 0;
 	wstring_ptr wstrVersion(Application::getApplication().getVersion(L' ', bWithOSVersion));
 	UnstructuredParser mailer(wstrVersion.get(), L"utf-8");
-	if (!pMessage->replaceField(L"X-Mailer", mailer))
+	if (!pMessage->setField(L"X-Mailer", mailer))
 		return false;
 	
 	if (!pMessage->sortHeader())
