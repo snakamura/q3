@@ -10,11 +10,11 @@
 
 BINDIR					= d:/util/cygwin/bin
 VS6DIR					= d:/dev/msvs
-VC6DIR					= d:/dev/msvs/vc98
-VS7DIR					= c:/Program Files/Microsoft Visual Studio .NET 2003
-VC7DIR					= d:/dev/msvs2003/vc7
+VC6DIR					= $(VS6DIR)/vc98
+VS7DIR					= C:/Program Files/Microsoft Visual Studio .NET 2003
+VC7DIR					= $(VS7DIR)/Vc7
 VS8DIR					= C:/Program Files/Microsoft Visual Studio 8
-VC8DIR					= C:/Program Files/Microsoft Visual Studio 8/VC
+VC8DIR					= $(VS8DIR)/VC
 VCVER					= 6
 EVCDIR					= d:/dev/msevc4/evc
 EVCVER					= 4
@@ -360,7 +360,7 @@ endif
 
 CCFLAGS					+= -nologo -W3 -WX -GF -Gy -Zp8 -X
 DEFINES					+= -DWIN32 -D_WIN32 -D_MT -DSTRICT
-LDFLAGS					+= -NOLOGO -INCREMENTAL:NO -SUBSYSTEM:$(SUBSYSTEM),$(SUBSYSVER)
+LDFLAGS					+= -NOLOGO -INCREMENTAL:NO -MAP -SUBSYSTEM:$(SUBSYSTEM),$(SUBSYSVER)
 ifneq ($(MUILANG),)
 	RCFLAGS				+= -l 0x$(MUILANG)
 endif
