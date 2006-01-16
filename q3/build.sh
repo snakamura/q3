@@ -4,9 +4,12 @@
 
 
 MAKE=${MAKE:=make}
-MSDEV=${MSDEV:=d:/dev/msvs/common/msdev98/bin/msdev.exe}
-PURIFY=${PURIFY:=d:/dev/rational/purify/purify.exe}
-DOXYGEN=${DOXYGEN:=d:/dev/doxygen/doxygen.exe}
+MSDEV=${MSDEV:=C:/Program Files/Microsoft Visual Studio/Common/MSDev98/Bin/MSDEV.exe}
+PURIFY=${PURIFY:=C:/Program Files/Rational/Purify/purify.exe}
+MAKENSIS=${MAKENSIS:=C:/Program Files/NSIS/makensis.exe}
+DOXYGEN=${DOXYGEN:=C:/Program Files/doxygen/doxygen.exe}
+
+INSTALLDIR="C:/Program Files/QMAIL3"
 
 PROJECTS="qs qscrypto qsconvja qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qmpgp qmjunk q3"
 WINTARGETS="win.x86.ansi.release win.x86.unicode.release win.x64.unicode.release"
@@ -40,6 +43,16 @@ copy)
 				cd ../..
 			fi
 		done
+	done
+	;;
+
+install)
+	cp */bin/win/x86/unicode/release/*.exe */lib/win/x86/unicode/release/*.dll "$INSTALLDIR"
+	;;
+
+install-mui)
+	for mui in $MUIS; do
+		cp */lib/win/x86/unicode/release/*.mui "$INSTALLDIR"
 	done
 	;;
 
@@ -100,7 +113,7 @@ run|run.unicode|run.debug|run.debug.unicode|debug|debug.unicode|purify|purify.un
 		RUNPATH="$RUNPATH:`pwd`/$p/lib/win/x86/$CODE/$DEBUG"
 	done
 	
-	PATH="$PATH:$RUNPATH" $EXEC q3/bin/win/x86/$CODE/$DEBUG/q3$SUFFIX.exe &
+	PATH="$PATH:$RUNPATH" "$EXEC" q3/bin/win/x86/$CODE/$DEBUG/q3$SUFFIX.exe &
 	;;
 
 countline)
@@ -178,13 +191,12 @@ zip)
 	;;
 
 doc)
-	$DOXYGEN
+	"$DOXYGEN"
 	;;
 
-inst)
-    ./build.sh copy
-    makensis installer/q3.nsi
-    makensis /DANSI installer/q3.nsi
+installer)
+	"$MAKENSIS" installer/q3.nsi
+	"$MAKENSIS" /DANSI installer/q3.nsi
 	
 	VERSION=`cat version`
 	REVISION=`cat revision`
