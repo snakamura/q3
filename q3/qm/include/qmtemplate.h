@@ -147,7 +147,12 @@ public:
 	~TemplateParser();
 
 public:
-	std::auto_ptr<Template> parse(qs::Reader* pReader) const;
+	std::auto_ptr<Template> parse(qs::Reader* pReader,
+								  const WCHAR* pwszName) const;
+
+private:
+	std::auto_ptr<Template> error(const WCHAR* pwszLog,
+								  const WCHAR* pwszArg) const;
 
 private:
 	TemplateParser(const TemplateParser&);

@@ -1437,12 +1437,7 @@ std::auto_ptr<Macro> qm::MacroParser::error(MacroErrorHandler::Code code,
 	
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qm::MacroParser");
-	if (log.isErrorEnabled()) {
-		WCHAR wsz[128];
-		_snwprintf(wsz, countof(wsz), L"Error occured while parsing macro: code=%u at ", code);
-		wstring_ptr wstrLog(concat(wsz, p));
-		log.error(wstrLog.get());
-	}
+	log.errorf(L"Error occured while parsing macro: code=%u at %s", code, p);
 	
 	return std::auto_ptr<Macro>(0);
 }

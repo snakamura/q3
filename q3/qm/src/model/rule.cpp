@@ -922,7 +922,7 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 		const Template* pTemplate = pTemplateManager->getTemplate(
 			context.getAccount(), context.getFolder(), wstrTemplate_.get());
 		if (!pTemplate) {
-			log.errorf(L"The specified template is not found: %s.", wstrTemplate_.get());
+			log.errorf(L"The specified template cannot be loaded: %s.", wstrTemplate_.get());
 			return false;
 		}
 		

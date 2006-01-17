@@ -13,6 +13,7 @@
 
 #include <qsassert.h>
 #include <qsconv.h>
+#include <qsinit.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -48,6 +49,8 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 	assert(pAccount);
 	assert(pwszName);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::TemplateManager");
+	
 	wstring_ptr wstrPath;
 	if (pFolder) {
 		WCHAR wszFolder[16];
@@ -60,6 +63,8 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 			{ L".template",			-1 }
 		};
 		wstrPath = concat(c, countof(c));
+		
+		log.debugf(L"Checking template file: %s.", wstrPath.get());
 		
 		W2T(wstrPath.get(), ptszPath);
 		if (::GetFileAttributes(ptszPath) == 0xffffffff)
@@ -75,6 +80,8 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 		};
 		wstrPath = concat(c, countof(c));
 		
+		log.debugf(L"Checking template file: %s.", wstrPath.get());
+		
 		W2T(wstrPath.get(), ptszPath);
 		if (::GetFileAttributes(ptszPath) == 0xffffffff) {
 			ConcatW c[] = {
@@ -86,6 +93,8 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 				{ L".template",			-1 }
 			};
 			wstrPath = concat(c, countof(c));
+			
+			log.debugf(L"Checking template file: %s.", wstrPath.get());
 		}
 	}
 	assert(wstrPath.get());
@@ -93,6 +102,10 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 	W2T(wstrPath.get(), ptszPath);
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+	if (!hFind.get()) {
+		log.errorf(L"Template is not found: %s.", wstrPath.get());
+		return 0;
+	}
 	
 	ItemList::iterator it = std::find_if(listItem_.begin(), listItem_.end(),
 		std::bind2nd(
@@ -104,6 +117,7 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 	if (it != listItem_.end()) {
 		Item* pItem = *it;
 		if (::CompareFileTime(&fd.ftLastWriteTime, &pItem->getFileTime()) == 0) {
+			log.debugf(L"The template is not modified. Use cache: %s.", pwszName);
 			return pItem->getTemplate();
 		}
 		else {
@@ -112,21 +126,27 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 		}
 	}
 	
+	log.debugf(L"Loading template file: %s.", wstrPath.get());
+	
 	FileInputStream stream(wstrPath.get());
-	if (!stream)
+	if (!stream) {
+		log.errorf(L"Could not create a file stream: %s.", wstrPath.get());
 		return 0;
+	}
 	BufferedInputStream bufferedStream(&stream, false);
 	InputStreamReader reader(&bufferedStream, false, 0);
-	if (!reader)
+	if (!reader) {
+		log.errorf(L"Could not create a reader: %s.", wstrPath.get());
 		return 0;
+	}
 	
-	std::auto_ptr<Template> pTemplate(TemplateParser().parse(&reader));
-	if (!pTemplate.get())
+	std::auto_ptr<Template> pTemplate(TemplateParser().parse(&reader, wstrPath.get()));
+	if (!pTemplate.get()) {
+		log.errorf(L"Error occured while parsing the template: %s.", pwszName);
 		return 0;
+	}
 	
-	std::auto_ptr<Item> pItem(new Item(
-		wstrPath.get(), fd.ftLastWriteTime, pTemplate));
-	
+	std::auto_ptr<Item> pItem(new Item(wstrPath.get(), fd.ftLastWriteTime, pTemplate));
 	listItem_.push_back(pItem.get());
 	return pItem.release()->getTemplate();
 }

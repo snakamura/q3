@@ -11,6 +11,7 @@
 #include <qmmacro.h>
 #include <qmtemplate.h>
 
+#include <qsinit.h>
 #include <qsstl.h>
 #include <qsstream.h>
 
@@ -194,7 +195,8 @@ qm::TemplateParser::~TemplateParser()
 {
 }
 
-std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
+std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader,
+												  const WCHAR* pwszName) const
 {
 	assert(pReader);
 	
@@ -239,7 +241,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 		else {
 			size_t nRead = pReader->read(&c, 1);
 			if (nRead == -1)
-				return std::auto_ptr<Template>(0);
+				return error(L"Could not read from the reader", pwszName);
 			else if (nRead != 1)
 				break;
 		}
@@ -248,7 +250,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 			if (c == L'{') {
 				size_t nRead = pReader->read(&c, 1);
 				if (nRead == -1) {
-					return std::auto_ptr<Template>(0);
+					return error(L"Could not read from the reader", pwszName);
 				}
 				else if (nRead == 1 && c == L'{') {
 					bufText.append(L'{');
@@ -263,7 +265,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 				bufText.append(L'}');
 				size_t nRead = pReader->read(&c, 1);
 				if (nRead == -1)
-					return std::auto_ptr<Template>(0);
+					return error(L"Could not read from the reader", pwszName);
 				else if (nRead == 1 && c != L'}')
 					cNext = c;
 			}
@@ -276,14 +278,14 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 				bufMacro.append(L'{');
 				size_t nRead = pReader->read(&c, 1);
 				if (nRead == -1)
-					return std::auto_ptr<Template>(0);
+					return error(L"Could not read from the reader", pwszName);
 				else if (nRead == 1 && c != L'{')
 					cNext = c;
 			}
 			else if (c == L'}') {
 				size_t nRead = pReader->read(&c, 1);
 				if (nRead == -1) {
-					return std::auto_ptr<Template>(0);
+					return error(L"Could not read from the reader", pwszName);
 				}
 				else if (nRead == 1 && c == L'}') {
 					bufMacro.append(L'}');
@@ -291,7 +293,8 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 				else {
 					std::auto_ptr<Macro> pMacro(parser.parse(bufMacro.getCharArray()));
 					if (!pMacro.get())
-						return std::auto_ptr<Template>(0);
+						return error(L"Error occured while parsing macro: %s.", bufMacro.getCharArray());
+					
 					wstring_ptr wstrText(bufText.getString());
 					listValue.push_back(std::make_pair(wstrText.get(), pMacro.get()));
 					wstrText.release();
@@ -317,4 +320,16 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader) const
 	std::auto_ptr<Template> pTemplate(new Template(listValue));
 	deleter.release();
 	return pTemplate;
+}
+
+std::auto_ptr<Template> qm::TemplateParser::error(const WCHAR* pwszLog,
+												  const WCHAR* pwszArg) const
+{
+	if (!pwszArg)
+		pwszArg = L"";
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::TemplateParser");
+	log.errorf(pwszLog, pwszArg);
+	
+	return std::auto_ptr<Template>(0);
 }

@@ -2907,7 +2907,8 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 	wstring_ptr wstr;
 	if (bTemplate) {
 		TemplateParser parser;
-		std::auto_ptr<Template> pTemplate(parser.parse(&bufferedReader));
+		std::auto_ptr<Template> pTemplate(parser.parse(
+			&bufferedReader, wstrAbsolutePath.get()));
 		if (!pTemplate.get())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		

@@ -1129,7 +1129,7 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			}
 			else if (wcscmp(pwszAttrLocalName, L"background") == 0) {
 				StringReader reader(attributes.getValue(n), false);
-				std::auto_ptr<Template> pBackground(TemplateParser().parse(&reader));
+				std::auto_ptr<Template> pBackground(TemplateParser().parse(&reader, 0));
 				if (!pBackground.get())
 					return false;
 				if (!reader.close())
@@ -1209,7 +1209,7 @@ bool qm::HeaderWindowContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(pCurrentItem_);
 		
 		StringReader reader(buffer_.getCharArray(), false);
-		std::auto_ptr<Template> pValue(TemplateParser().parse(&reader));
+		std::auto_ptr<Template> pValue(TemplateParser().parse(&reader, 0));
 		if (!pValue.get())
 			return false;
 		if (!reader.close())
