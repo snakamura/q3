@@ -952,7 +952,7 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 				context.getDocument(), wstrValue.get(), wcslen(wstrValue.get())));
 			if (!pAccountTo->appendMessage(static_cast<NormalFolder*>(pFolderTo),
 				*pMessage, pmh->getFlags() & MessageHolder::FLAG_USER_MASK,
-				context.getUndoItemList(), 0))
+				pmh->getLabel().get(), context.getUndoItemList(), 0))
 				return false;
 			
 			if (bMove_) {

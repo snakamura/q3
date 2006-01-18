@@ -76,6 +76,7 @@ public:
 					   size_t nLen,
 					   const Message& msgHeader,
 					   unsigned int nFlags,
+					   const WCHAR* pwszLabel,
 					   unsigned int nSize,
 					   UndoItemList* pUndoItemList,
 					   MessagePtr* pptr);
@@ -119,6 +120,7 @@ public:
 									   Message* pMessage);
 	static bool callByFolder(const MessageHolderList& l,
 							 CallByFolderCallback* pCallback);
+	static qs::wstring_ptr normalizeLabel(const WCHAR* pwszLabel);
 
 private:
 	bool createDefaultFolders();
@@ -444,6 +446,7 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 									size_t nLen,
 									const Message& msgHeader,
 									unsigned int nFlags,
+									const WCHAR* pwszLabel,
 									unsigned int nSize,
 									UndoItemList* pUndoItemList,
 									MessagePtr* pptr)
@@ -454,10 +457,12 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 	
 	Lock<Account> lock(*pThis_);
 	
+	wstring_ptr wstrLabel(normalizeLabel(pwszLabel));
+	
 	std::auto_ptr<UndoItem> pUndoItem;
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
-		MessageHolder* pmh = pThis_->storeMessage(pFolder,
-			pszMessage, nLen, &msgHeader, -1, nFlags, 0, nSize, false);
+		MessageHolder* pmh = pThis_->storeMessage(pFolder, pszMessage,
+			nLen, &msgHeader, -1, nFlags, wstrLabel.get(), nSize, false);
 		if (!pmh)
 			return false;
 		if (pptr)
@@ -466,7 +471,7 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 			pUndoItem.reset(new DeleteUndoItem(MessageHolderList(1, pmh)));
 	}
 	else {
-		if (!pProtocolDriver_->appendMessage(pFolder, pszMessage, nLen, nFlags))
+		if (!pProtocolDriver_->appendMessage(pFolder, pszMessage, nLen, nFlags, wstrLabel.get()))
 			return false;
 	}
 	if (pUndoItemList)
@@ -601,8 +606,9 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 			if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK,
 				0, SECURITYMODE_NONE, &msg))
 				return false;
-			if (!pAccountTo->appendMessage(pFolderTo, msg,
-				pmh->getFlags() & MessageHolder::FLAG_USER_MASK, pUndoItemList, 0))
+			unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
+			wstring_ptr wstrLabel(pmh->getLabel());
+			if (!pAccountTo->appendMessage(pFolderTo, msg, nFlags, wstrLabel.get(), pUndoItemList, 0))
 				return false;
 			
 			if (pCallback) {
@@ -700,15 +706,7 @@ bool qm::AccountImpl::setMessagesLabel(NormalFolder* pFolder,
 	if (l.empty())
 		return true;
 	
-	wstring_ptr wstrLabel;
-	if (wcschr(pwszLabel, L'\r') || wcschr(pwszLabel, L'\n')) {
-		wstrLabel = allocWString(pwszLabel);
-		for (WCHAR* p = wstrLabel.get(); *p; ++p) {
-			if (*p == L'\n' || *p == L'\r')
-				*p = L' ';
-		}
-		pwszLabel = wstrLabel.get();
-	}
+	wstring_ptr wstrLabel(normalizeLabel(pwszLabel));
 	
 	std::auto_ptr<SetLabelUndoItem> pUndoItem;
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
@@ -717,14 +715,14 @@ bool qm::AccountImpl::setMessagesLabel(NormalFolder* pFolder,
 		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			MessageHolder* pmh = *it;
 			qs::wstring_ptr wstrOldLabel(pmh->getLabel());
-			if (!pThis_->setLabel(pmh, pwszLabel))
+			if (!pThis_->setLabel(pmh, wstrLabel.get()))
 				return false;
 			if (pUndoItem.get())
 				pUndoItem->add(pmh, wstrOldLabel.get());
 		}
 	}
 	else {
-		if (!pProtocolDriver_->setMessagesLabel(pFolder, l, pwszLabel))
+		if (!pProtocolDriver_->setMessagesLabel(pFolder, l, wstrLabel.get()))
 			return false;
 	}
 	if (pUndoItemList)
@@ -1031,6 +1029,19 @@ bool qm::AccountImpl::callByFolder(const MessageHolderList& l,
 	}
 	
 	return true;
+}
+
+wstring_ptr qm::AccountImpl::normalizeLabel(const WCHAR* pwszLabel)
+{
+	if (!pwszLabel)
+		return 0;
+	
+	wstring_ptr wstrLabel(allocWString(pwszLabel));
+	for (WCHAR* p = wstrLabel.get(); *p; ++p) {
+		if (*p == L'\n' || *p == L'\r')
+			*p = L' ';
+	}
+	return wstrLabel;
 }
 
 bool qm::AccountImpl::createDefaultFolders()
@@ -1864,7 +1875,7 @@ bool qm::Account::salvage(NormalFolder* pFolder,
 		virtual bool salvage(const Message& msg)
 		{
 			Account* pAccount = pFolder_->getAccount();
-			return pAccount->appendMessage(pFolder_, msg, 0, 0, 0);
+			return pAccount->appendMessage(pFolder_, msg, 0, 0, 0, 0);
 		}
 	
 	private:
@@ -2110,12 +2121,13 @@ bool qm::Account::importMessage(NormalFolder* pFolder,
 	if (field != Part::FIELD_NOTEXIST)
 		header.removeField(L"X-QMAIL-Flags");
 	
-	return pImpl_->appendMessage(pFolder, pszMessage, nLen, header, nMessageFlags, -1, 0, 0);
+	return pImpl_->appendMessage(pFolder, pszMessage, nLen, header, nMessageFlags, 0, -1, 0, 0);
 }
 
 bool qm::Account::appendMessage(NormalFolder* pFolder,
 								const Message& msg,
 								unsigned int nFlags,
+								const WCHAR* pwszLabel,
 								UndoItemList* pUndoItemList,
 								MessagePtr* pptr)
 {
@@ -2126,8 +2138,8 @@ bool qm::Account::appendMessage(NormalFolder* pFolder,
 	if (!strMessage.get())
 		return false;
 	
-	return pImpl_->appendMessage(pFolder, strMessage.get(),
-		strMessage.size(), msg, nFlags, -1, pUndoItemList, pptr);
+	return pImpl_->appendMessage(pFolder, strMessage.get(), strMessage.size(),
+		msg, nFlags, pwszLabel, -1, pUndoItemList, pptr);
 }
 
 bool qm::Account::removeMessages(const MessageHolderList& l,

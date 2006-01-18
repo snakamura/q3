@@ -725,7 +725,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 	for (MessageHolderList::const_iterator it = listUpdate.begin(); it != listUpdate.end(); ++it) {
 		MessageHolder* pmh = *it;
 		wstring_ptr wstrLabel(pmh->getLabel());
-		if (*wstrLabel.get()) {
+		if (wstrLabel.get() && *wstrLabel.get()) {
 			if (std::find_if(listLabel.begin(), listLabel.end(),
 				std::bind2nd(string_equal<WCHAR>(), wstrLabel.get())) == listLabel.end()) {
 				listLabel.push_back(wstrLabel.get());
@@ -770,10 +770,10 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 		
 		std::auto_ptr<MultipleRange> pRange(Util::createRange(listUpdate));
 		std::auto_ptr<Flags> pFlags(Util::getImap4FlagsFromLabels(
-			&pwszLabel, pwszLabel && *pwszLabel ? 1 : 0));
+			0, &pwszLabel, pwszLabel && *pwszLabel ? 1 : 0));
 		if (!pFlags.get())
 			return false;
-		std::auto_ptr<Flags> pMask(Util::getImap4FlagsFromLabels(
+		std::auto_ptr<Flags> pMask(Util::getImap4FlagsFromLabels(0,
 			const_cast<const WCHAR**>(&listLabel[0]), listLabel.size()));
 		if (!pMask.get())
 			return false;
@@ -790,7 +790,8 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 										 const CHAR* pszMessage,
 										 size_t nLen,
-										 unsigned int nFlags)
+										 unsigned int nFlags,
+										 const WCHAR* pwszLabel)
 {
 	assert(pFolder);
 	assert(pszMessage);
@@ -799,7 +800,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 	
 	if (bOffline_) {
 		MessageHolder* pmh = pAccount_->storeMessage(pFolder, pszMessage,
-			nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL, 0, -1, false);
+			nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL, pwszLabel, -1, false);
 		if (!pmh)
 			return false;
 		
@@ -821,8 +822,11 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 		
 		wstring_ptr wstrFolderName(Util::getFolderName(pFolder));
 		
-		Flags flags(Util::getImap4FlagsFromMessageFlags(nFlags));
-		RETRY(pImap4->append(wstrFolderName.get(), pszMessage, nLen, flags));
+		std::auto_ptr<Flags> pFlags(Util::getImap4FlagsFromLabels(nFlags,
+			&pwszLabel, pwszLabel && *pwszLabel ? 1 : 0));
+		if (!pFlags.get())
+			return false;
+		RETRY(pImap4->append(wstrFolderName.get(), pszMessage, nLen, *pFlags));
 		
 		cacher.release();
 	}

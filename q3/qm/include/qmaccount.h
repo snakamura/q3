@@ -194,6 +194,7 @@ public:
 	bool appendMessage(NormalFolder* pFolder,
 					   const Message& msg,
 					   unsigned int nFlags,
+					   const WCHAR* pwszLabel,
 					   UndoItemList* pUndoItemList,
 					   MessagePtr* pptr);
 	bool removeMessages(const MessageHolderList& l,

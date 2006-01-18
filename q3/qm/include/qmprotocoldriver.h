@@ -89,7 +89,8 @@ public:
 	virtual bool appendMessage(NormalFolder* pFolder,
 							   const CHAR* pszMessage,
 							   size_t nLen,
-							   unsigned int nFlags) = 0;
+							   unsigned int nFlags,
+							   const WCHAR* pwszLabel) = 0;
 	virtual bool removeMessages(NormalFolder* pFolder,
 								const MessageHolderList& l) = 0;
 	virtual bool copyMessages(const MessageHolderList& l,

@@ -205,7 +205,8 @@ bool qmnntp::NntpDriver::setMessagesLabel(NormalFolder* pFolder,
 bool qmnntp::NntpDriver::appendMessage(NormalFolder* pFolder,
 									   const CHAR* pszMessage,
 									   size_t nLen,
-									   unsigned int nFlags)
+									   unsigned int nFlags,
+									   const WCHAR* pwszLabel)
 {
 	assert(false);
 	return false;

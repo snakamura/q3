@@ -363,8 +363,13 @@ bool qmimap4::AppendOfflineJob::apply(Account* pAccount,
 			if (!strContent.get())
 				return false;
 			
-			Flags flags(Util::getImap4FlagsFromMessageFlags(mpl->getFlags()));
-			if (!pImap4->append(wstrName.get(), strContent.get(), strContent.size(), flags))
+			wstring_ptr wstrLabel(mpl->getLabel());
+			const WCHAR* pwszLabel = wstrLabel.get();
+			std::auto_ptr<Flags> pFlags(Util::getImap4FlagsFromLabels(mpl->getFlags(),
+				&pwszLabel, pwszLabel && *pwszLabel ? 1 : 0));
+			if (!pFlags.get())
+				return false;
+			if (!pImap4->append(wstrName.get(), strContent.get(), strContent.size(), *pFlags))
 				return false;
 			
 			if (!pAccount->unstoreMessages(MessageHolderList(1, mpl), 0))
@@ -769,10 +774,10 @@ bool qmimap4::SetLabelOfflineJob::apply(Account* pAccount,
 	MultipleRange range(&listUid_[0], listUid_.size(), true);
 	const WCHAR* pwszLabel = wstrLabel_.get();
 	std::auto_ptr<Flags> pFlags(Util::getImap4FlagsFromLabels(
-		&pwszLabel, pwszLabel && *pwszLabel ? 1 : 0));
+		0, &pwszLabel, pwszLabel && *pwszLabel ? 1 : 0));
 	if (!pFlags.get())
 		return false;
-	std::auto_ptr<Flags> pMask(Util::getImap4FlagsFromLabels(
+	std::auto_ptr<Flags> pMask(Util::getImap4FlagsFromLabels(0,
 		const_cast<const WCHAR**>(&listLabel_[0]), listLabel_.size()));
 	if (!pMask.get())
 		return false;

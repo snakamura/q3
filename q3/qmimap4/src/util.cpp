@@ -143,7 +143,8 @@ wstring_ptr qmimap4::Util::getLabelFromImap4Flags(const FetchDataFlags::FlagList
 	return 0;
 }
 
-std::auto_ptr<Flags> qmimap4::Util::getImap4FlagsFromLabels(const WCHAR** ppwszLabel,
+std::auto_ptr<Flags> qmimap4::Util::getImap4FlagsFromLabels(unsigned int nFlags,
+															const WCHAR** ppwszLabel,
 															size_t nCount)
 {
 	typedef std::vector<STRING> FlagList;
@@ -169,7 +170,7 @@ std::auto_ptr<Flags> qmimap4::Util::getImap4FlagsFromLabels(const WCHAR** ppwszL
 		string_ptr strFlag(concat(c, countof(c)));
 		listFlag.push_back(strFlag.release());
 	}
-	return std::auto_ptr<Flags>(new Flags(0,
+	return std::auto_ptr<Flags>(new Flags(nFlags,
 		const_cast<const CHAR**>(&listFlag[0]), listFlag.size()));
 }
 

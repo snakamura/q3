@@ -162,7 +162,8 @@ bool qmpop3::Pop3Driver::setMessagesLabel(NormalFolder* pFolder,
 bool qmpop3::Pop3Driver::appendMessage(NormalFolder* pFolder,
 									   const CHAR* pszMessage,
 									   size_t nLen,
-									   unsigned int nFlags)
+									   unsigned int nFlags,
+									   const WCHAR* pwszLabel)
 {
 	assert(false);
 	return false;

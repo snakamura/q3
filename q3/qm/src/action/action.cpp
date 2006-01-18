@@ -3383,7 +3383,7 @@ void qm::MessageCombineAction::invoke(const ActionEvent& event)
 		NormalFolder* pFolder = l.front()->getFolder();
 		unsigned int nFlags = 0;
 		UndoItemList undo;
-		if (!pAccount->appendMessage(pFolder, msg, nFlags, &undo, 0)) {
+		if (!pAccount->appendMessage(pFolder, msg, nFlags, 0, &undo, 0)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
 			return;
 		}
@@ -3706,8 +3706,9 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 	AttachmentParser::setAttachmentDeleted(&msg);
 	
 	NormalFolder* pNormalFolder = pmh->getFolder();
-	if (!pAccount->appendMessage(pNormalFolder, msg,
-		pmh->getFlags() & MessageHolder::FLAG_USER_MASK, pUndoItemList, 0))
+	unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
+	wstring_ptr wstrLabel(pmh->getLabel());
+	if (!pAccount->appendMessage(pNormalFolder, msg, nFlags, wstrLabel.get(), pUndoItemList, 0))
 		return false;
 	
 	if (!pAccount->removeMessages(MessageHolderList(1, pmh), pFolder, false, 0, pUndoItemList))
@@ -3841,9 +3842,9 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 	
 	for (PartUtil::MessageList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		// TODO
-		// Set flags?
+		// Set flags and label?
 		unsigned int nFlags = 0;
-		if (!pAccount->appendMessage(pmh->getFolder(), **it, nFlags, pUndoItemList, 0))
+		if (!pAccount->appendMessage(pmh->getFolder(), **it, nFlags, 0, pUndoItemList, 0))
 			return false;
 	}
 	

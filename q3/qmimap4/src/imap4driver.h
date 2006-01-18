@@ -77,7 +77,8 @@ public:
 	virtual bool appendMessage(qm::NormalFolder* pFolder,
 							   const CHAR* pszMessage,
 							   size_t nLen,
-							   unsigned int nFlags);
+							   unsigned int nFlags,
+							   const WCHAR* pwszLabel);
 	virtual bool removeMessages(qm::NormalFolder* pFolder,
 								const qm::MessageHolderList& l);
 	virtual bool copyMessages(const qm::MessageHolderList& l,
