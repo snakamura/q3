@@ -592,9 +592,14 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 	Account* pAccountTo = pFolderTo->getAccount();
 	
 	bool bLocalCopy = true;
-	if (bMove && pAccountTo == pThis_)
-		bLocalCopy = pFolderFrom->isFlag(Folder::FLAG_LOCAL) !=
-			pFolderTo->isFlag(Folder::FLAG_LOCAL);
+	if (pAccountTo == pThis_) {
+		if (bMove)
+			bLocalCopy = pFolderFrom->isFlag(Folder::FLAG_LOCAL) !=
+				pFolderTo->isFlag(Folder::FLAG_LOCAL);
+		else
+			bLocalCopy = pFolderFrom->isFlag(Folder::FLAG_LOCAL) ||
+				pFolderTo->isFlag(Folder::FLAG_LOCAL);
+	}
 	
 	if (bLocalCopy) {
 		if (pCallback && l.size() > 1)
