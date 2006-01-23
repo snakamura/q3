@@ -1948,7 +1948,11 @@ bool qm::RuleWriter::write(const CopyRuleAction* pAction)
 
 bool qm::RuleWriter::write(const DeleteRuleAction* pAction)
 {
-	SimpleAttributes attrs(L"direct", pAction->isDirect() ? L"true" : L"false");
+	bool bDirect = pAction->isDirect();
+	const SimpleAttributes::Item items[] = {
+		{ L"direct",	bDirect ? L"true" : L"false",	!bDirect	}
+	};
+	SimpleAttributes attrs(items, countof(items));
 	return handler_.startElement(0, 0, L"delete", attrs) &&
 		handler_.endElement(0, 0, L"delete");
 }
