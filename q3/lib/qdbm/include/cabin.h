@@ -974,6 +974,58 @@ char *cbgzdecode(const char *ptr, int size, int *sp);
 unsigned int cbgetcrc(const char *ptr, int size);
 
 
+/* Compress a serial object with LZO.
+   `ptr' specifies the pointer to a region.
+   `size' specifies the size of the region.  If it is negative, the size is assigned with
+   `strlen(ptr)'.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.
+   If successful, the return value is the pointer to the result object, else, it is `NULL'.
+   Because the region of the return value is allocated with the `malloc' call, it should be
+   released with the `free' call if it is no longer in use.  This function is available only if
+   QDBM was built with LZO enabled. */
+char *cblzoencode(const char *ptr, int size, int *sp);
+
+
+/* Decompress a serial object compressed with LZO.
+   `ptr' specifies the pointer to a region.
+   `size' specifies the size of the region.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the result object, else, it is `NULL'.
+   Because an additional zero code is appended at the end of the region of the return value,
+   the return value can be treated as a character string.  Because the region of the return
+   value is allocated with the `malloc' call, it should be released with the `free' call if it
+   is no longer in use.  This function is available only if QDBM was built with LZO enabled. */
+char *cblzodecode(const char *ptr, int size, int *sp);
+
+
+/* Compress a serial object with BZIP2.
+   `ptr' specifies the pointer to a region.
+   `size' specifies the size of the region.  If it is negative, the size is assigned with
+   `strlen(ptr)'.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.
+   If successful, the return value is the pointer to the result object, else, it is `NULL'.
+   Because the region of the return value is allocated with the `malloc' call, it should be
+   released with the `free' call if it is no longer in use.  This function is available only if
+   QDBM was built with LZO enabled. */
+char *cbbzencode(const char *ptr, int size, int *sp);
+
+
+/* Decompress a serial object compressed with BZIP2.
+   `ptr' specifies the pointer to a region.
+   `size' specifies the size of the region.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the result object, else, it is `NULL'.
+   Because an additional zero code is appended at the end of the region of the return value,
+   the return value can be treated as a character string.  Because the region of the return
+   value is allocated with the `malloc' call, it should be released with the `free' call if it
+   is no longer in use.  This function is available only if QDBM was built with LZO enabled. */
+char *cbbzdecode(const char *ptr, int size, int *sp);
+
+
 /* Convert the character encoding of a string.
    `ptr' specifies the pointer to a region.
    `size' specifies the size of the region.  If it is negative, the size is assigned with

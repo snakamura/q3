@@ -71,7 +71,7 @@ typedef int gdbm_error;                  /* type of error codes */
 typedef struct {                         /* type of structure for a database handle */
   DEPOT *depot;                          /* internal database handle of Depot */
   CURIA *curia;                          /* internal database handle of Curia */
-  int syncmode;                          /* wheter syncronous mode or not */
+  int syncmode;                          /* whether to be besyncronous mode */
 } GDBM;
 
 typedef GDBM *GDBM_FILE;                 /* type of pointer to a database handle */

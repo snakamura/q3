@@ -41,7 +41,7 @@ extern "C" {
 
 typedef struct {                         /* type of structure for a database handle */
   char *name;                            /* name of the database file */
-  int wmode;                             /* whether writable or not */
+  int wmode;                             /* whether to be writable */
   int inode;                             /* inode of the database file */
   time_t mtime;                          /* last modified time of the database */
   int fd;                                /* file descriptor of the database file */
@@ -51,7 +51,7 @@ typedef struct {                         /* type of structure for a database han
   int *buckets;                          /* pointer to the bucket array */
   int bnum;                              /* number of the bucket array */
   int rnum;                              /* number of records */
-  int fatal;                             /* whether a fatal error occured or not */
+  int fatal;                             /* whether a fatal error occured */
   int ioff;                              /* offset of the iterator */
   int *fbpool;                           /* free block pool */
   int fbpsiz;                            /* size of the free block pool */
@@ -408,8 +408,8 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.40"
-#define _QDBM_LIBVER   1201
+#define _QDBM_VERSION  "1.8.43"
+#define _QDBM_LIBVER   1204
 
 
 /* Name of the operating system. */
@@ -449,7 +449,7 @@ int dpgetflags(DEPOT *depot);
 
 /* Set flags of a database.
    `depot' specifies a database handle connected as a writer.
-   `flags' specifies flags to set.
+   `flags' specifies flags to set.  Least ten bits are reserved for internal use.
    If successful, the return value is true, else, it is false. */
 int dpsetflags(DEPOT *depot, int flags);
 

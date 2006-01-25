@@ -42,7 +42,7 @@ extern "C" {
 
 typedef struct {                         /* type of structure for the database handle */
   char *name;                            /* name of the database directory */
-  int wmode;                             /* whether writable or not */
+  int wmode;                             /* whether to be writable */
   int inode;                             /* inode of the database directory */
   DEPOT *attr;                           /* database handle for attributes */
   DEPOT **depots;                        /* handles of the record database */
@@ -432,7 +432,7 @@ int crgetflags(CURIA *curia);
 
 /* Set flags of a database.
    `curia' specifies a database handle connected as a writer.
-   `flags' specifies flags to set.
+   `flags' specifies flags to set.  Least ten bits are reserved for internal use.
    If successful, the return value is true, else, it is false. */
 int crsetflags(CURIA *curia, int flags);
 

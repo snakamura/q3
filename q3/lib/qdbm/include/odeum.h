@@ -45,8 +45,8 @@ extern "C" {
 
 typedef struct {                         /* type of structure for a database handle */
   char *name;                            /* name of the database directory */
-  int wmode;                             /* whether writable or not */
-  int fatal;                             /* whether a fatal error occured or not */
+  int wmode;                             /* whether to be writable */
+  int fatal;                             /* whether a fatal error occured */
   int inode;                             /* inode of the database directory */
   CURIA *docsdb;                         /* database handle for documents */
   CURIA *indexdb;                        /* database handle for the inverted index */

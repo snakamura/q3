@@ -54,7 +54,7 @@ typedef struct {                         /* type of structure for index of a pag
 
 typedef struct {                         /* type of structure for a leaf page */
   int id;                                /* ID number of the leaf */
-  int dirty;                             /* whether to be written back or not */
+  int dirty;                             /* whether to be written back */
   CBLIST *recs;                          /* list of records */
   int prev;                              /* ID number of the previous leaf */
   int next;                              /* ID number of the next leaf */
@@ -62,7 +62,7 @@ typedef struct {                         /* type of structure for a leaf page */
 
 typedef struct {                         /* type of structure for a node page */
   int id;                                /* ID number of the node */
-  int dirty;                             /* whether to be written back or not */
+  int dirty;                             /* whether to be written back */
   int heir;                              /* ID of the child before the first index */
   CBLIST *idxs;                          /* list of indexes */
 } VLNODE;
@@ -83,8 +83,8 @@ MYEXTERN VLCFUNC VL_CMPDEC;              /* decimal string comparing function */
 typedef struct {                         /* type of structure for a database handle */
   DEPOT *depot;                          /* internal database handle */
   VLCFUNC cmp;                           /* pointer to the comparing function */
-  int wmode;                             /* whether writable or not */
-  int zmode;                             /* whether compress leaves or not */
+  int wmode;                             /* whether to be writable */
+  int cmode;                             /* compression mode for leaves */
   int root;                              /* ID number of the root page */
   int last;                              /* ID number of the last leaf */
   int lnum;                              /* number of leaves */
@@ -101,7 +101,7 @@ typedef struct {                         /* type of structure for a database han
   int nodecnum;                          /* max number of caching nodes */
   int avglsiz;                           /* average size of each leave */
   int avgnsiz;                           /* average size of each node */
-  int tran;                              /* whether in the transaction or not */
+  int tran;                              /* whether in the transaction */
   int rbroot;                            /* root for rollback */
   int rblast;                            /* last for rollback */
   int rblnum;                            /* lnum for rollback */
@@ -116,7 +116,9 @@ enum {                                   /* enumeration for open modes */
   VL_OTRUNC = 1 << 3,                    /* a writer truncating */
   VL_ONOLCK = 1 << 4,                    /* open without locking */
   VL_OLCKNB = 1 << 5,                    /* lock without blocking */
-  VL_OZCOMP = 1 << 6                     /* compress leaves */
+  VL_OZCOMP = 1 << 6,                    /* compress leaves with ZLIB */
+  VL_OYCOMP = 1 << 7,                    /* compress leaves with LZO */
+  VL_OXCOMP = 1 << 8                     /* compress leaves with BZIP2 */
 };
 
 enum {                                   /* enumeration for write modes */
@@ -145,9 +147,11 @@ enum {                                   /* enumeration for insertion modes */
    If the mode is `VL_OWRITER', the following may be added by bitwise or: `VL_OCREAT', which
    means it creates a new database if not exist, `VL_OTRUNC', which means it creates a new
    database regardless if one exists, `VL_OZCOMP', which means leaves in the database are
-   compressed.  Both of `VL_OREADER' and `VL_OWRITER' can be added to by bitwise or:
-   `VL_ONOLCK', which means it opens a database file without file locking, or `VL_OLCKNB',
-   which means locking is performed without blocking.
+   compressed with ZLIB, `VL_OYCOMP', which means leaves in the database are compressed with LZO,
+   `VL_OXCOMP', which means leaves in the database are compressed with BZIP2.  Both of
+   `VL_OREADER' and `VL_OWRITER' can be added to by bitwise or: `VL_ONOLCK', which means it opens
+   a database file without file locking, or `VL_OLCKNB', which means locking is performed without
+   blocking.
    `cmp' specifies a comparing function: `VL_CMPLEX' comparing keys in lexical order,
    `VL_CMPINT' comparing keys as objects of `int' in native byte order, `VL_CMPNUM' comparing
    keys as numbers of big endian, `VL_CMPDEC' comparing keys as decimal strings.  Any function
@@ -156,8 +160,9 @@ enum {                                   /* enumeration for insertion modes */
    The return value is the database handle or `NULL' if it is not successful.
    While connecting as a writer, an exclusive lock is invoked to the database file.
    While connecting as a reader, a shared lock is invoked to the database file.  The thread
-   blocks until the lock is achieved.  `VL_OZCOMP' is available only if QDBM was built with
-   ZLIB enabled.  If `VL_ONOLCK' is used, the application is responsible for exclusion control. */
+   blocks until the lock is achieved.  `VL_OZCOMP', `VL_OYCOMP', and `VL_OXCOMP' are available
+   only if QDBM was built each with ZLIB, LZO, and BZIP2 enabled.  If `VL_ONOLCK' is used, the
+   application is responsible for exclusion control. */
 VILLA *vlopen(const char *name, int omode, VLCFUNC cmp);
 
 
@@ -572,6 +577,19 @@ const char *vlcurkeycache(VILLA *villa, int *sp);
    the return value is allocated with the `malloc' call, it should be released with the `free'
    call if it is no longer in use. */
 const char *vlcurvalcache(VILLA *villa, int *sp);
+
+
+/* Get flags of a database.
+   `villa' specifies a database handle.
+   The return value is the flags of a database. */
+int vlgetflags(VILLA *villa);
+
+
+/* Set flags of a database.
+   `villa' specifies a database handle connected as a writer.
+   `flags' specifies flags to set.  Least ten bits are reserved for internal use.
+   If successful, the return value is true, else, it is false. */
+int vlsetflags(VILLA *villa, int flags);
 
 
 

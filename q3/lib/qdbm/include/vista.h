@@ -104,6 +104,8 @@ extern "C" {
 #define vlgetcache     vstgetcache
 #define vlcurkeycache  vstcurkeycache
 #define vlcurvalcache  vstcurvalcache
+#define vlgetflags     vstgetflags
+#define vlsetflags     vstsetflags
 
 #if !defined(_VISTA_C)
 #include <villa.h>
