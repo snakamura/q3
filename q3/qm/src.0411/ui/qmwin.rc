@@ -320,7 +320,7 @@ BEGIN
     EDITTEXT        IDC_RECEIVEPASSWORD,65,35,150,14,ES_PASSWORD | 
                     ES_AUTOHSCROLL
     GROUPBOX        "送信",IDC_STATIC,5,70,215,65
-    CONTROL         "認証(&A)",IDC_SENDAUTHENTICATE,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "認証(&T)",IDC_SENDAUTHENTICATE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,83,53,10
     LTEXT           "ユーザ名(&S)",IDC_STATIC,10,99,40,8
     EDITTEXT        IDC_SENDUSERNAME,65,95,150,14,ES_AUTOHSCROLL
@@ -1583,10 +1583,10 @@ BEGIN
                     WS_TABSTOP,5,55,109,10
     LTEXT           "エンコーディング(&C)",IDC_STATIC,5,73,55,8
     EDITTEXT        IDC_ENCODING,90,70,130,14,ES_AUTOHSCROLL
-    LTEXT           "デフォルトエンコーディング(&D)(*)",IDC_STATIC,5,88,85,8
+    LTEXT           "デフォルト(&D)(*)",IDC_STATIC,10,88,60,8
     COMBOBOX        IDC_DEFAULTENCODING,90,85,70,30,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "ログ(&L)",IDC_STATIC,5,103,25,8
+    LTEXT           "ログレベル(&L)",IDC_STATIC,5,103,60,8
     COMBOBOX        IDC_LOG,90,100,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "一時フォルダ(&P)",IDC_STATIC,5,145,55,8,NOT WS_VISIBLE

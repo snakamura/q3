@@ -317,7 +317,7 @@ BEGIN
     EDITTEXT        IDC_RECEIVEPASSWORD,65,35,150,12,ES_PASSWORD | 
                     ES_AUTOHSCROLL
     GROUPBOX        "Outgoing mail",IDC_STATIC,5,70,215,65
-    CONTROL         "&Authenticate",IDC_SENDAUTHENTICATE,"Button",
+    CONTROL         "Au&thenticate",IDC_SENDAUTHENTICATE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,83,53,10
     LTEXT           "U&sername",IDC_STATIC,10,97,40,8
     EDITTEXT        IDC_SENDUSERNAME,65,95,150,12,ES_AUTOHSCROLL
@@ -1577,7 +1577,7 @@ BEGIN
     LTEXT           "&Default(*)",IDC_STATIC,10,87,55,8
     COMBOBOX        IDC_DEFAULTENCODING,65,85,70,30,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Log",IDC_STATIC,5,102,60,8
+    LTEXT           "&Log Level",IDC_STATIC,5,102,60,8
     COMBOBOX        IDC_LOG,65,100,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "Tem&porary Folder",IDC_STATIC,5,145,220,8,NOT 
