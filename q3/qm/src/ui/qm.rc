@@ -432,6 +432,7 @@ STRINGTABLE
 BEGIN
     IDS_PANEL_PREVIEW       "Preview"
     IDS_PANEL_RULES         "Rules"
+    IDS_PANEL_SEARCH        "Search"
     IDS_PANEL_SECURITY      "Security"
     IDS_PANEL_SIGNATURES    "Signatures"
     IDS_PANEL_SYNCFILTERS   "Sync Filters"

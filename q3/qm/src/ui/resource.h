@@ -133,10 +133,11 @@
 #define IDS_PANEL_MISC2                 2415
 #define IDS_PANEL_PREVIEW               2416
 #define IDS_PANEL_RULES                 2417
-#define IDS_PANEL_SECURITY              2418
-#define IDS_PANEL_SIGNATURES            2419
-#define IDS_PANEL_SYNCFILTERS           2420
-#define IDS_PANEL_TAB                   2421
+#define IDS_PANEL_SEARCH                2418
+#define IDS_PANEL_SECURITY              2419
+#define IDS_PANEL_SIGNATURES            2420
+#define IDS_PANEL_SYNCFILTERS           2421
+#define IDS_PANEL_TAB                   2422
 #define IDS_DEFAULTSUBACCOUNT           3000
 #define IDS_NORMALFOLDER                3001
 #define IDS_QUERYFOLDER                 3002

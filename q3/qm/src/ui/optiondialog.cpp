@@ -523,13 +523,14 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FILTERS,		IDS_PANEL_FILTERS			},
 		{ PANEL_SYNCFILTERS,	IDS_PANEL_SYNCFILTERS		},
 		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
-		{ PANEL_CONFIRM,		IDS_PANEL_CONFIRM			},
-		{ PANEL_MISC,			IDS_PANEL_MISC				},
-		{ PANEL_MISC2,			IDS_PANEL_MISC2				},
 #ifndef _WIN32_WCE
+		{ PANEL_SEARCH,			IDS_PANEL_SEARCH			},
 		{ PANEL_JUNK,			IDS_PANEL_JUNK				},
 #endif
-		{ PANEL_SECURITY,		IDS_PANEL_SECURITY			}
+		{ PANEL_SECURITY,		IDS_PANEL_SECURITY			},
+		{ PANEL_CONFIRM,		IDS_PANEL_CONFIRM			},
+		{ PANEL_MISC,			IDS_PANEL_MISC				},
+		{ PANEL_MISC2,			IDS_PANEL_MISC2				}
 	};
 	for (int n = 0; n < countof(items); ++n) {
 		wstring_ptr wstrName(loadString(hInst, items[n].nId_));
@@ -813,13 +814,14 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
 			PANEL4(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pDocument_->getRecents(), pProfile_);
-			PANEL1(PANEL_CONFIRM, OptionConfirm, pProfile_);
-			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
-			PANEL1(PANEL_MISC2, OptionMisc2, pProfile_);
 #ifndef _WIN32_WCE
+			PANEL1(PANEL_SEARCH, OptionSearch, pProfile_);
 			PANEL1(PANEL_JUNK, OptionJunk, pDocument_->getJunkFilter());
 #endif
 			PANEL2(PANEL_SECURITY, OptionSecurity, pDocument_->getSecurity(), pProfile_);
+			PANEL1(PANEL_CONFIRM, OptionConfirm, pProfile_);
+			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
+			PANEL1(PANEL_MISC2, OptionMisc2, pProfile_);
 		END_PANEL()
 	}
 	
@@ -1923,6 +1925,114 @@ bool qm::OptionMisc2Dialog::save(OptionDialogContext* pContext)
 	
 	return true;
 }
+
+
+#ifndef _WIN32_WCE
+/****************************************************************************
+ *
+ * OptionSearchDialog
+ *
+ */
+
+namespace {
+struct {
+	UINT nId_;
+	const WCHAR* pwszSearch_;
+	const WCHAR* pwszUpdate_;
+} engines[] = {
+	{
+		IDC_NAMAZU,
+		L"namazu -l -a \"$condition\" \"$index\"",
+		L"mknmz.bat -a -h -O \"$index\" \"$msg\""
+	},
+	{
+		IDC_HYPERESTRAIER,
+		L"estcmd search -ic $encoding -vu -sf -max -1 \"$index\" \"$condition\"",
+		L"estcmd gather -cl -fm -cm -sd \"$index\" \"$msg\""
+	}
+};
+}
+
+qm::OptionSearchDialog::OptionSearchDialog(Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONSEARCH),
+	pProfile_(pProfile)
+{
+}
+
+qm::OptionSearchDialog::~OptionSearchDialog()
+{
+}
+
+LRESULT qm::OptionSearchDialog::onCommand(WORD nCode,
+										  WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_NAMAZU, BN_CLICKED, onClicked)
+		HANDLE_COMMAND_ID_CODE(IDC_HYPERESTRAIER, BN_CLICKED, onClicked)
+		HANDLE_COMMAND_ID_CODE(IDC_CUSTOM, BN_CLICKED, onClicked)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionSearchDialog::onInitDialog(HWND hwndFocus,
+											 LPARAM lParam)
+{
+	wstring_ptr wstrSearch(pProfile_->getString(L"FullTextSearch", L"Command", engines[0].pwszSearch_));
+	wstring_ptr wstrUpdate(pProfile_->getString(L"FullTextSearch", L"IndexCommand", engines[0].pwszUpdate_));
+	
+	UINT nId = IDC_CUSTOM;
+	for (int n = 0; n < countof(engines); ++n) {
+		if (wcscmp(wstrSearch.get(), engines[n].pwszSearch_) == 0 &&
+			wcscmp(wstrUpdate.get(), engines[n].pwszUpdate_) == 0)
+			nId = engines[n].nId_;
+	}
+	sendDlgItemMessage(nId, BM_SETCHECK, BST_CHECKED);
+	
+	setDlgItemText(IDC_SEARCH, wstrSearch.get());
+	setDlgItemText(IDC_UPDATE, wstrUpdate.get());
+	
+	updateState();
+	
+	return FALSE;
+}
+
+bool qm::OptionSearchDialog::save(OptionDialogContext* pContext)
+{
+	bool bCustom = true;
+	for (int n = 0; n < countof(engines) && bCustom; ++n) {
+		if (sendDlgItemMessage(engines[n].nId_, BM_GETCHECK) == BST_CHECKED) {
+			pProfile_->setString(L"FullTextSearch", L"Command", engines[n].pwszSearch_);
+			pProfile_->setString(L"FullTextSearch", L"IndexCommand", engines[n].pwszUpdate_);
+			bCustom = false;
+		}
+	}
+	if (bCustom) {
+		wstring_ptr wstrSearch(getDlgItemText(IDC_SEARCH));
+		wstring_ptr wstrUpdate(getDlgItemText(IDC_UPDATE));
+		pProfile_->setString(L"FullTextSearch", L"Command", wstrSearch.get());
+		pProfile_->setString(L"FullTextSearch", L"IndexCommand", wstrUpdate.get());
+	}
+	
+	return true;
+}
+
+LRESULT qm::OptionSearchDialog::onClicked()
+{
+	updateState();
+	return 0;
+}
+
+void qm::OptionSearchDialog::updateState()
+{
+	bool bEnable = sendDlgItemMessage(IDC_CUSTOM, BM_GETCHECK) == BST_CHECKED;
+	UINT nIds[] = {
+		IDC_SEARCH,
+		IDC_UPDATE
+	};
+	for (int n = 0; n < countof(nIds); ++n)
+		Window(getDlgItem(nIds[n])).enableWindow(bEnable);
+}
+#endif // _WIN32_WCE
 
 
 /****************************************************************************

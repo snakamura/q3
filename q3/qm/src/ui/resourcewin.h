@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft eMbedded Visual C++ generated include file.
 // Used by qmwin.rc
 //
 #define IDD_SYNC                        110
@@ -91,6 +91,7 @@
 #define IDD_COMBOSELECTBOX              220
 #define IDD_LABEL                       221
 #define IDD_CERTIFICATE                 222
+#define IDD_OPTIONSEARCH                223
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
 #define IDC_SIZEGRIP                    1003
@@ -412,15 +413,19 @@
 #define IDC_LABELQUOTE1                 1438
 #define IDC_LABELQUOTE2                 1439
 #define IDC_LABELLINK                   1440
+#define IDC_NAMAZU                      1441
+#define IDC_HYPERESTRAIER               1442
+#define IDC_SEARCH                      1443
+#define IDC_UPDATE                      1444
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        223
+#define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1441
+#define _APS_NEXT_CONTROL_VALUE         1445
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

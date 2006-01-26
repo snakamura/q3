@@ -434,6 +434,7 @@ STRINGTABLE
 BEGIN
     IDS_PANEL_PREVIEW       "プレビュー"
     IDS_PANEL_RULES         "振り分けルール"
+    IDS_PANEL_SEARCH        "検索"
     IDS_PANEL_SECURITY      "セキュリティ"
     IDS_PANEL_SIGNATURES    "署名"
     IDS_PANEL_SYNCFILTERS   "同期フィルタ"

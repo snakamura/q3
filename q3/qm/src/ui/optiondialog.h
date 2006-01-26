@@ -45,6 +45,9 @@ class OptionJunkDialog;
 class OptionListDialog;
 class OptionMiscDialog;
 class OptionMisc2Dialog;
+#ifndef _WIN32_WCE
+class OptionSearchDialog;
+#endif
 class OptionSecurityDialog;
 class AbstractOptionTextDialog;
 	class OptionEditDialog;
@@ -220,13 +223,14 @@ public:
 		PANEL_SYNCFILTERS,
 		PANEL_AUTOPILOT,
 		
-		PANEL_CONFIRM,
-		PANEL_MISC,
-		PANEL_MISC2,
 #ifndef _WIN32_WCE
+		PANEL_SEARCH,
 		PANEL_JUNK,
 #endif
 		PANEL_SECURITY,
+		PANEL_CONFIRM,
+		PANEL_MISC,
+		PANEL_MISC2,
 		
 		MAX_PANEL
 	};
@@ -832,6 +836,48 @@ private:
 private:
 	static DialogUtil::BoolProperty boolProperties__[];
 };
+
+
+#ifndef _WIN32_WCE
+/****************************************************************************
+ *
+ * OptionSearchDialog
+ *
+ */
+
+class OptionSearchDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionSearchDialog>
+{
+public:
+	explicit OptionSearchDialog(qs::Profile* pProfile);
+	virtual ~OptionSearchDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onClicked();
+
+private:
+	void updateState();
+
+private:
+	OptionSearchDialog(const OptionSearchDialog&);
+	OptionSearchDialog& operator=(const OptionSearchDialog&);
+
+private:
+	qs::Profile* pProfile_;
+};
+#endif
 
 
 /****************************************************************************

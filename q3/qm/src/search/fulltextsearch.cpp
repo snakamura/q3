@@ -14,6 +14,7 @@
 #include <qmuiutil.h>
 
 #include <qsfile.h>
+#include <qsinit.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 #include <qstextutil.h>
@@ -51,12 +52,12 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	wstring_ptr wstrCommand(pProfile_->getString(L"FullTextSearch",
 		L"Command", L"namazu -l -a \"$condition\" \"$index\""));
 	
-	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$condition", context.getCondition());
-	
 	wstring_ptr wstrIndex(pAccount_->getProperty(L"FullTextSearch", L"Index", L""));
 	if (!*wstrIndex.get())
 		wstrIndex = concat(pAccount_->getPath(), L"\\index");
 	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
+	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$encoding", Init::getInit().getSystemEncoding());
+	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$condition", context.getCondition());
 	
 	wstring_ptr wstrOutput(Process::exec(wstrCommand.get(), 0));
 	if (!wstrOutput.get())
@@ -311,9 +312,9 @@ bool qm::FullTextSearchPage::updateIndex()
 			wstrIndex = tcs2wcs(tszShort);
 	}
 	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
-	
 	wstring_ptr wstrMsg(concat(pAccount_->getMessageStorePath(), L"\\msg"));
 	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$msg", wstrMsg.get());
+	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$encoding", Init::getInit().getSystemEncoding());
 	
 	W2T(wstrCommand.get(), ptszCommand);
 	STARTUPINFO si = { sizeof(si) };
