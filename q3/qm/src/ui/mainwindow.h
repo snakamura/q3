@@ -330,6 +330,108 @@ struct MainWindowCreateContext
 };
 
 
+/****************************************************************************
+ *
+ * SplitterHelper
+ *
+ */
+
+class SplitterHelper
+{
+public:
+	enum Type {
+		TYPE_VERTICAL,
+		TYPE_HORIZONTAL,
+		
+		MAX_TYPE
+	};
+	
+	enum Placement {
+		PLACEMENT_PRIMARY		= 0x01,
+		PLACEMENT_SECONDARY		= 0x02,
+		
+		PLACEMENT_0				= 0x10,
+		PLACEMENT_1				= 0x20,
+		
+		PLACEMENT_PRIMARY0		= PLACEMENT_PRIMARY | PLACEMENT_0,
+		PLACEMENT_PRIMARY1		= PLACEMENT_PRIMARY | PLACEMENT_1,
+		PLACEMENT_SECONDARY0	= PLACEMENT_SECONDARY | PLACEMENT_0,
+		PLACEMENT_SECONDARY1	= PLACEMENT_SECONDARY | PLACEMENT_1,
+		
+		PLACEMENT_SPLITTER_MASK	= 0x0f,
+		PLACEMENT_PANE_MASK		= 0xf0
+	};
+	
+	enum Splitter {
+		SPLITTER_PRIMARY,
+		SPLITTER_SECONDARY,
+			
+		MAX_SPLITTER
+	};
+	
+	enum Component {
+		COMPONENT_SECONDARY,
+		COMPONENT_FOLDER,
+		COMPONENT_LIST,
+		COMPONENT_PREVIEW,
+		
+		MAX_COMPONENT
+	};
+
+public:
+	explicit SplitterHelper(qs::Profile* pProfile);
+	~SplitterHelper();
+
+public:
+	Type getType(Splitter splitter) const;
+	Placement getPlacement(Component component) const;
+	int getLocation(Splitter splitter) const;
+
+public:
+	void setWindows(qs::SplitterWindow* pPrimarySplitterWindow,
+					qs::SplitterWindow* pSecondarySplitterWindow);
+	qs::SplitterWindow* getSplitterWindow(Component component) const;
+	void addComponents(qs::Window* pFolderWindow,
+					   qs::Window* pListWindow,
+					   qs::Window* pPreviewWindow);
+	void applyLocation(Splitter splitter) const;
+	void saveLocation(Splitter splitter);
+	bool isVisible(Component component) const;
+	bool setVisible(Component component,
+					bool bVisible);
+	void applyVisibility(Component component) const;
+	void save() const;
+
+private:
+	Splitter getSplitter(Component component) const;
+	std::pair<int, int> getPane(Component component) const;
+	void addComponent(Component component,
+					  qs::Window* pWindow);
+	Component getOppositeComponent(Component component) const;
+
+private:
+	static bool checkType(WCHAR c);
+	static bool checkComponents(WCHAR c0,
+								WCHAR c1,
+								WCHAR c2);
+	static Type getType(WCHAR c);
+	static Component getComponent(WCHAR c);
+
+private:
+	SplitterHelper(const SplitterHelper&);
+	SplitterHelper& operator=(const SplitterHelper&);
+
+private:
+	qs::Profile* pProfile_;
+	
+	Type types_[MAX_SPLITTER];
+	Placement placements_[MAX_COMPONENT];
+	
+	qs::SplitterWindow* pSplitterWindow_[MAX_SPLITTER];
+	int nLocations_[MAX_SPLITTER];
+	bool bVisible_[MAX_COMPONENT];
+};
+
 }
 
 #endif // __MAINWINDOW_H__

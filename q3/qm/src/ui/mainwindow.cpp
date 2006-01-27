@@ -109,20 +109,20 @@ class qm::MainWindowImpl :
 {
 public:
 	enum {
-		ID_FOLDERSPLITTERWINDOW	= 1001,
-		ID_LISTSPLITTERWINDOW	= 1002,
-		ID_FOLDERWINDOW			= 1003,
-		ID_FOLDERCOMBOBOX		= 1004,
-		ID_TABWINDOW			= 1005,
-		ID_LISTCONTAINERWINDOW	= 1006,
-		ID_FOLDERLISTWINDOW		= 1007,
-		ID_LISTWINDOW			= 1008,
-		ID_MESSAGEWINDOW		= 1009,
-		ID_TOOLBAR				= 1010,
-		ID_STATUSBAR			= 1011,
-		ID_COMMANDBARMENU		= 1012,
-		ID_COMMANDBARBUTTON		= 1013,
-		ID_SYNCNOTIFICATION		= 1014,
+		ID_PRIMARYSPLITTERWINDOW	= 1001,
+		ID_SECONDARYSPLITTERWINDOW	= 1002,
+		ID_FOLDERWINDOW				= 1003,
+		ID_FOLDERCOMBOBOX			= 1004,
+		ID_TABWINDOW				= 1005,
+		ID_LISTCONTAINERWINDOW		= 1006,
+		ID_FOLDERLISTWINDOW			= 1007,
+		ID_LISTWINDOW				= 1008,
+		ID_MESSAGEWINDOW			= 1009,
+		ID_TOOLBAR					= 1010,
+		ID_STATUSBAR				= 1011,
+		ID_COMMANDBARMENU			= 1012,
+		ID_COMMANDBARBUTTON			= 1013,
+		ID_SYNCNOTIFICATION			= 1014,
 	};
 
 public:
@@ -211,12 +211,7 @@ public:
 	
 	bool bShowToolbar_;
 	bool bShowStatusBar_;
-	bool bShowFolderWindow_;
-	int nFolderWindowSize_;
 	bool bShowFolderComboBox_;
-	bool bVerticalFolderWindow_;
-	bool bShowPreviewWindow_;
-	int nListWindowHeight_;
 	bool bSaveOnDeactivate_;
 #ifndef _WIN32_WCE_PSPC
 	bool bHideWhenMinimized_;
@@ -232,8 +227,9 @@ public:
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
 	std::auto_ptr<Accelerator> pAccelerator_;
-	SplitterWindow* pFolderSplitterWindow_;
-	SplitterWindow* pListSplitterWindow_;
+	std::auto_ptr<SplitterHelper> pSplitterHelper_;
+	SplitterWindow* pPrimarySplitterWindow_;
+	SplitterWindow* pSecondarySplitterWindow_;
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
 #ifdef QMTABWINDOW
@@ -1265,16 +1261,6 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 	hdwp = pSyncNotificationWindow_->deferWindowPos(hdwp, HWND_TOP,
 		cx - SyncNotificationWindow::WIDTH, 0/*nTopBarHeight*/, 0, 0, SWP_NOSIZE);
 	
-	hdwp = pFolderSplitterWindow_->deferWindowPos(hdwp, 0,
-		0, nTopBarHeight + nFolderComboBoxHeight, cx,
-		cy - nStatusBarHeight - nTopBarHeight - nFolderComboBoxHeight - nBottomBarHeight,
-		SWP_NOZORDER);
-	pFolderSplitterWindow_->showPane(0, 0, bShowFolderWindow_);
-	if (bVerticalFolderWindow_)
-		pFolderSplitterWindow_->setRowHeight(0, nFolderWindowSize_);
-	else
-		pFolderSplitterWindow_->setColumnWidth(0, nFolderWindowSize_);
-	
 	if (bShowFolderComboBox_) {
 		hdwp = pFolderComboBox_->deferWindowPos(hdwp, 0, 0, nTopBarHeight,
 			cx, /*nFolderComboBoxHeight*/200, SWP_NOZORDER);
@@ -1284,14 +1270,21 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 		pFolderComboBox_->showWindow(SW_HIDE);
 	}
 	
+	hdwp = pPrimarySplitterWindow_->deferWindowPos(hdwp, 0,
+		0, nTopBarHeight + nFolderComboBoxHeight, cx,
+		cy - nStatusBarHeight - nTopBarHeight - nFolderComboBoxHeight - nBottomBarHeight,
+		SWP_NOZORDER);
+	
 	Window::endDeferWindowPos(hdwp);
 	
-	pListSplitterWindow_->showPane(0, 1, bShowPreviewWindow_);
-	pListSplitterWindow_->setRowHeight(0, nListWindowHeight_);
+	pSplitterHelper_->applyVisibility(SplitterHelper::COMPONENT_FOLDER);
+	pSplitterHelper_->applyVisibility(SplitterHelper::COMPONENT_PREVIEW);
+	pSplitterHelper_->applyLocation(SplitterHelper::SPLITTER_PRIMARY);
+	pSplitterHelper_->applyLocation(SplitterHelper::SPLITTER_SECONDARY);
 	
 	if (bShowStatusBar_) {
 		const double dBase = qs::UIUtil::getLogPixel()/96.0;
-		if (bShowPreviewWindow_) {
+		if (pSplitterHelper_->isVisible(SplitterHelper::COMPONENT_PREVIEW)) {
 #ifdef _WIN32_WCE_PSPC
 			int nWidth[] = {
 				cx - static_cast<int>(60*dBase),
@@ -1392,18 +1385,11 @@ void qm::MainWindowImpl::sizeChanged(const SplitterWindowEvent& event)
 {
 	if (bCreated_ && !bLayouting_) {
 		SplitterWindow* pSplitterWindow = event.getSplitterWindow();
-		if (pSplitterWindow == pFolderSplitterWindow_) {
-			if (bVerticalFolderWindow_)
-				nFolderWindowSize_ = pSplitterWindow->getRowHeight(0);
-			else
-				nFolderWindowSize_ = pSplitterWindow->getColumnWidth(0);
-		}
-		else if (pSplitterWindow == pListSplitterWindow_) {
-			nListWindowHeight_ = pSplitterWindow->getRowHeight(0);
-		}
-		else {
-			assert(false);
-		}
+		assert(pSplitterWindow == pPrimarySplitterWindow_ ||
+			pSplitterWindow == pSecondarySplitterWindow_);
+		SplitterHelper::Splitter splitter = pSplitterWindow == pPrimarySplitterWindow_ ?
+			SplitterHelper::SPLITTER_PRIMARY : SplitterHelper::SPLITTER_SECONDARY;
+		pSplitterHelper_->saveLocation(splitter);
 	}
 }
 
@@ -1498,7 +1484,7 @@ void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 {
 	if (bShowStatusBar_) {
 		pStatusBar_->updateListParts(L"");
-		if (bShowPreviewWindow_)
+		if (pThis_->isShowPreviewWindow())
 			pStatusBar_->updateMessageParts(event.getMessageHolder(),
 				event.getMessage(), event.getContentType());
 	}
@@ -1711,12 +1697,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pThis_ = this;
 	pImpl_->bShowToolbar_ = pProfile->getInt(L"MainWindow", L"ShowToolbar", 1) != 0;
 	pImpl_->bShowStatusBar_ = pProfile->getInt(L"MainWindow", L"ShowStatusBar", 1) != 0;
-	pImpl_->bShowFolderWindow_ = pProfile->getInt(L"MainWindow", L"ShowFolderWindow", 1) != 0;
-	pImpl_->nFolderWindowSize_ = pProfile->getInt(L"MainWindow", L"FolderWindowSize", 100);
 	pImpl_->bShowFolderComboBox_ = pProfile->getInt(L"MainWindow", L"ShowFolderComboBox", 0) != 0;
-	pImpl_->bVerticalFolderWindow_ = pProfile->getInt(L"FolderWindow", L"Vertical", 0) != 0;
-	pImpl_->bShowPreviewWindow_ = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow", 1) != 0;
-	pImpl_->nListWindowHeight_ = pProfile->getInt(L"MainWindow", L"ListWindowHeight", 200);
 	pImpl_->bSaveOnDeactivate_ = true;
 #ifndef _WIN32_WCE_PSPC
 	pImpl_->bHideWhenMinimized_ = false;
@@ -1730,8 +1711,8 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pGoRound_ = 0;
 	pImpl_->pTempFileCleaner_ = 0;
 	pImpl_->pAutoPilot_ = 0;
-	pImpl_->pFolderSplitterWindow_ = 0;
-	pImpl_->pListSplitterWindow_ = 0;
+	pImpl_->pPrimarySplitterWindow_ = 0;
+	pImpl_->pSecondarySplitterWindow_ = 0;
 	pImpl_->pFolderWindow_ = 0;
 	pImpl_->pFolderComboBox_ = 0;
 #ifdef QMTABWINDOW
@@ -1812,20 +1793,11 @@ bool qm::MainWindow::save(bool bForce)
 	pProfile->setInt(L"MainWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
 	pProfile->setInt(L"MainWindow", L"ShowStatusBar", pImpl_->bShowStatusBar_);
 	
-	if (pImpl_->bShowFolderWindow_) {
-		if (pImpl_->bVerticalFolderWindow_)
-			pImpl_->nFolderWindowSize_ = pImpl_->pFolderSplitterWindow_->getRowHeight(0);
-		else
-			pImpl_->nFolderWindowSize_ = pImpl_->pFolderSplitterWindow_->getColumnWidth(0);
-	}
-	pProfile->setInt(L"MainWindow", L"FolderWindowSize", pImpl_->nFolderWindowSize_);
-	pProfile->setInt(L"MainWindow", L"ShowFolderWindow", pImpl_->bShowFolderWindow_);
-	pProfile->setInt(L"MainWindow", L"ShowFolderComboBox", pImpl_->bShowFolderComboBox_);
+	pImpl_->pSplitterHelper_->saveLocation(SplitterHelper::SPLITTER_PRIMARY);
+	pImpl_->pSplitterHelper_->saveLocation(SplitterHelper::SPLITTER_SECONDARY);
+	pImpl_->pSplitterHelper_->save();
 	
-	if (pImpl_->bShowPreviewWindow_)
-		pImpl_->nListWindowHeight_ = pImpl_->pListSplitterWindow_->getRowHeight(0);
-	pProfile->setInt(L"MainWindow", L"ListWindowHeight", pImpl_->nListWindowHeight_);
-	pProfile->setInt(L"MainWindow", L"ShowPreviewWindow", pImpl_->bShowPreviewWindow_);
+	pProfile->setInt(L"MainWindow", L"ShowFolderComboBox", pImpl_->bShowFolderComboBox_);
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"MainWindow");
 	
@@ -1898,21 +1870,12 @@ void qm::MainWindow::setShowStatusBar(bool bShow)
 
 bool qm::MainWindow::isShowFolderWindow() const
 {
-	return pImpl_->bShowFolderWindow_;
+	return pImpl_->pSplitterHelper_->isVisible(SplitterHelper::COMPONENT_FOLDER);
 }
 
 void qm::MainWindow::setShowFolderWindow(bool bShow)
 {
-	if (bShow != pImpl_->bShowFolderWindow_) {
-		if (!bShow) {
-			if (pImpl_->bVerticalFolderWindow_)
-				pImpl_->nFolderWindowSize_ =
-					pImpl_->pFolderSplitterWindow_->getRowHeight(0);
-			else
-				pImpl_->nFolderWindowSize_ =
-					pImpl_->pFolderSplitterWindow_->getColumnWidth(0);
-		}
-		pImpl_->bShowFolderWindow_ = bShow;
+	if (pImpl_->pSplitterHelper_->setVisible(SplitterHelper::COMPONENT_FOLDER, bShow)) {
 		pImpl_->bShowFolderComboBox_ = !bShow;
 		pImpl_->layoutChildren();
 	}
@@ -1920,16 +1883,12 @@ void qm::MainWindow::setShowFolderWindow(bool bShow)
 
 bool qm::MainWindow::isShowPreviewWindow() const
 {
-	return pImpl_->bShowPreviewWindow_;
+	return pImpl_->pSplitterHelper_->isVisible(SplitterHelper::COMPONENT_PREVIEW);
 }
 
 void qm::MainWindow::setShowPreviewWindow(bool bShow)
 {
-	if (bShow != pImpl_->bShowPreviewWindow_) {
-		if (!bShow)
-			pImpl_->nListWindowHeight_ =
-				pImpl_->pListSplitterWindow_->getRowHeight(0);
-		pImpl_->bShowPreviewWindow_ = bShow;
+	if (pImpl_->pSplitterHelper_->setVisible(SplitterHelper::COMPONENT_PREVIEW, bShow)) {
 		pImpl_->layoutChildren();
 		
 		if (bShow) {
@@ -2173,6 +2132,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
 	
+	pImpl_->pSplitterHelper_.reset(new SplitterHelper(pImpl_->pProfile_));
+	
 	pImpl_->pFolderModel_.reset(new DefaultFolderModel());
 #ifdef QMTABWINDOW
 	pImpl_->pTabModel_.reset(new DefaultTabModel(pImpl_->pDocument_, pImpl_->pProfile_,
@@ -2184,8 +2145,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode", 0)));
 	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pDocument_,
 		pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
-	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
-		pImpl_->pViewModelManager_.get(), pImpl_->bShowPreviewWindow_));
+	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(pImpl_->pViewModelManager_.get(),
+		pImpl_->pSplitterHelper_->isVisible(SplitterHelper::COMPONENT_PREVIEW)));
 	pImpl_->pOptionDialogManager_.reset(new OptionDialogManager(pImpl_->pDocument_,
 		pImpl_->pGoRound_, pImpl_->pViewModelManager_->getFilterManager(),
 		pImpl_->pViewModelManager_->getColorManager(), pImpl_->pSyncManager_,
@@ -2211,35 +2172,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, true));
 	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	
-	bool bVerticalFolderWindow = pImpl_->bVerticalFolderWindow_;
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
 #endif
-	
-	std::auto_ptr<SplitterWindow> pFolderSplitterWindow(new SplitterWindow(
-		bVerticalFolderWindow ? 1 : 2, bVerticalFolderWindow ? 2 : 1, true, pImpl_));
-	if (!pFolderSplitterWindow->create(L"QmFolderSplitterWindow",
-		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, getHandle(), 0, 0,
-		MainWindowImpl::ID_FOLDERSPLITTERWINDOW, 0))
-		return -1;
-	pImpl_->pFolderSplitterWindow_ = pFolderSplitterWindow.release();
-	
-	std::auto_ptr<FolderWindow> pFolderWindow(new FolderWindow(
-		pImpl_->pFolderSplitterWindow_, pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
-	FolderWindowCreateContext folderWindowContext = {
-		pContext->pDocument_,
-		pContext->pUIManager_
-	};
-	if (!pFolderWindow->create(L"QmFolderWindow",
-		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, pImpl_->pFolderSplitterWindow_->getHandle(),
-		dwExStyle, 0, MainWindowImpl::ID_FOLDERWINDOW, &folderWindowContext))
-		return -1;
-	pImpl_->pFolderWindow_ = pFolderWindow.release();
 	
 	std::auto_ptr<FolderComboBox> pFolderComboBox(new FolderComboBox(
 		this, pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
@@ -2254,15 +2192,46 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pFolderComboBox_ = pFolderComboBox.release();
 	
-	std::auto_ptr<SplitterWindow> pListSplitterWindow(
-		new SplitterWindow(1, 2, true, pImpl_));
-	if (!pListSplitterWindow->create(L"QmListSplitterWindow",
-		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, getHandle(), 0, 0,
-		MainWindowImpl::ID_LISTSPLITTERWINDOW, 0))
+	bool bVerticalPrimary = pImpl_->pSplitterHelper_->getType(
+		SplitterHelper::SPLITTER_PRIMARY) == SplitterHelper::TYPE_VERTICAL;
+	std::auto_ptr<SplitterWindow> pPrimarySplitterWindow(new SplitterWindow(
+		bVerticalPrimary ? 1 : 2, bVerticalPrimary ? 2 : 1, true, pImpl_));
+	if (!pPrimarySplitterWindow->create(L"QmPrimarySplitterWindow", 0, dwStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		getHandle(), 0, 0, MainWindowImpl::ID_PRIMARYSPLITTERWINDOW, 0))
 		return -1;
-	pImpl_->pListSplitterWindow_ = pListSplitterWindow.release();
+	pImpl_->pPrimarySplitterWindow_ = pPrimarySplitterWindow.release();
 	
+	bool bVerticalSecondary = pImpl_->pSplitterHelper_->getType(
+		SplitterHelper::SPLITTER_SECONDARY) == SplitterHelper::TYPE_VERTICAL;
+	std::auto_ptr<SplitterWindow> pSecondarySplitterWindow(new SplitterWindow(
+		bVerticalSecondary ? 1 : 2, bVerticalSecondary ? 2 : 1, true, pImpl_));
+	if (!pSecondarySplitterWindow->create(L"QmSecondarySplitterWindow", 0, dwStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		getHandle(), 0, 0, MainWindowImpl::ID_SECONDARYSPLITTERWINDOW, 0))
+		return -1;
+	pImpl_->pSecondarySplitterWindow_ = pSecondarySplitterWindow.release();
+	
+	pImpl_->pSplitterHelper_->setWindows(
+		pImpl_->pPrimarySplitterWindow_, pImpl_->pSecondarySplitterWindow_);
+	
+	SplitterWindow* pFolderSplitterWindow = pImpl_->pSplitterHelper_->getSplitterWindow(
+		SplitterHelper::COMPONENT_FOLDER);
+	std::auto_ptr<FolderWindow> pFolderWindow(new FolderWindow(
+		pFolderSplitterWindow, pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
+	FolderWindowCreateContext folderWindowContext = {
+		pContext->pDocument_,
+		pContext->pUIManager_
+	};
+	if (!pFolderWindow->create(L"QmFolderWindow", 0, dwStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		pFolderSplitterWindow->getHandle(), dwExStyle, 0,
+		MainWindowImpl::ID_FOLDERWINDOW, &folderWindowContext))
+		return -1;
+	pImpl_->pFolderWindow_ = pFolderWindow.release();
+	
+	SplitterWindow* pListSplitterWindow = pImpl_->pSplitterHelper_->getSplitterWindow(
+		SplitterHelper::COMPONENT_LIST);
 #ifdef QMTABWINDOW
 	std::auto_ptr<TabWindow> pTabWindow(new TabWindow(
 		pImpl_->pTabModel_.get(), pImpl_->pProfile_));
@@ -2272,21 +2241,21 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	};
 	if (!pTabWindow->create(L"QmTabWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		pImpl_->pListSplitterWindow_->getHandle(), 0, 0,
+		pListSplitterWindow->getHandle(), 0, 0,
 		MainWindowImpl::ID_TABWINDOW, &tabContext))
 		return -1;
 	pImpl_->pTabWindow_ = pTabWindow.release();
 	HWND hwndListContainerParent = pImpl_->pTabWindow_->getHandle();
 #else
-	HWND hwndListContainerParent = pImpl_->pListSplitterWindow_->getHandle();
+	HWND hwndListContainerParent = pListSplitterWindow->getHandle();
 #endif
 	
 	std::auto_ptr<ListContainerWindow> pListContainerWindow(
 		new ListContainerWindow(pImpl_->pFolderModel_.get()));
-	if (!pListContainerWindow->create(L"QmListContainerWindow", 0,
-		dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, hwndListContainerParent, dwExStyle,
-		0, MainWindowImpl::ID_LISTCONTAINERWINDOW, 0))
+	if (!pListContainerWindow->create(L"QmListContainerWindow", 0, dwStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		hwndListContainerParent, dwExStyle, 0,
+		MainWindowImpl::ID_LISTCONTAINERWINDOW, 0))
 		return -1;
 	pImpl_->pListContainerWindow_ = pListContainerWindow.release();
 #ifdef QMTABWINDOW
@@ -2299,10 +2268,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderListWindowCreateContext folderListContext = {
 		pContext->pUIManager_
 	};
-	if (!pFolderListWindow->create(L"QmFolderListWindow",
-		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, pImpl_->pListContainerWindow_->getHandle(),
-		0, 0, MainWindowImpl::ID_FOLDERLISTWINDOW, &folderListContext))
+	if (!pFolderListWindow->create(L"QmFolderListWindow", 0, dwStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		pImpl_->pListContainerWindow_->getHandle(), 0, 0,
+		MainWindowImpl::ID_FOLDERLISTWINDOW, &folderListContext))
 		return -1;
 	pImpl_->pFolderListWindow_ = pFolderListWindow.release();
 	pImpl_->pListContainerWindow_->setFolderListWindow(pImpl_->pFolderListWindow_);
@@ -2316,14 +2285,16 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pSyncManager_,
 		pImpl_->pSyncDialogManager_
 	};
-	if (!pListWindow->create(L"QmListWindow",
-		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, pImpl_->pListContainerWindow_->getHandle(),
-		0, 0, MainWindowImpl::ID_LISTWINDOW, &listContext))
+	if (!pListWindow->create(L"QmListWindow", 0, dwStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		pImpl_->pListContainerWindow_->getHandle(), 0, 0,
+		MainWindowImpl::ID_LISTWINDOW, &listContext))
 		return -1;
 	pImpl_->pListWindow_ = pListWindow.release();
 	pImpl_->pListContainerWindow_->setListWindow(pImpl_->pListWindow_);
 	
+	SplitterWindow* pPreviewSplitterWindow = pImpl_->pSplitterHelper_->getSplitterWindow(
+		SplitterHelper::COMPONENT_PREVIEW);
 	std::auto_ptr<MessageWindow> pMessageWindow(new MessageWindow(
 		pImpl_->pPreviewModel_.get(), pImpl_->pProfile_, L"PreviewWindow"));
 	pImpl_->pMessageViewModeHolder_ = pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder", 1) != 0 ?
@@ -2335,23 +2306,20 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pEncodingModel_.get(),
 		pImpl_->pSecurityModel_.get(),
 	};
-	if (!pMessageWindow->create(L"QmMessageWindow",
-		0, dwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		CW_USEDEFAULT, pImpl_->pFolderSplitterWindow_->getHandle(),
-		0, 0, MainWindowImpl::ID_MESSAGEWINDOW, &messageContext))
+	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		pPreviewSplitterWindow->getHandle(), 0, 0,
+		MainWindowImpl::ID_MESSAGEWINDOW, &messageContext))
 		return -1;
 	pImpl_->pMessageWindow_ = pMessageWindow.release();
 	
 #ifdef QMTABWINDOW
-	pImpl_->pListSplitterWindow_->add(0, 0, pImpl_->pTabWindow_);
+	pImpl_->pSplitterHelper_->addComponents(pImpl_->pFolderWindow_,
+		pImpl_->pTabWindow_, pImpl_->pMessageWindow_);
 #else
-	pImpl_->pListSplitterWindow_->add(0, 0, pImpl_->pListContainerWindow_);
+	pImpl_->pSplitterHelper_->addComponents(pImpl_->pFolderWindow_,
+		pImpl_->pListContainerWindow_, pImpl_->pMessageWindow_);
 #endif
-	pImpl_->pListSplitterWindow_->add(0, 1, pImpl_->pMessageWindow_);
-	
-	pImpl_->pFolderSplitterWindow_->add(0, 0, pImpl_->pFolderWindow_);
-	pImpl_->pFolderSplitterWindow_->add(bVerticalFolderWindow ? 0 : 1,
-		bVerticalFolderWindow ? 1 : 0, pImpl_->pListSplitterWindow_);
 	
 	pImpl_->listMenuCreator_.push_back(
 		new MoveMenuCreator(pImpl_->pFolderModel_.get(),
@@ -2414,16 +2382,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSyncNotificationWindow_ = pSyncNotificationWindow.release();
 	
 	pImpl_->layoutChildren();
-	
-	if (bVerticalFolderWindow)
-		pImpl_->pFolderSplitterWindow_->setRowHeight(
-			0, pImpl_->nFolderWindowSize_);
-	else
-		pImpl_->pFolderSplitterWindow_->setColumnWidth(
-			0, pImpl_->nFolderWindowSize_);
-	
-	pImpl_->pListSplitterWindow_->setRowHeight(
-		0, pImpl_->nListWindowHeight_);
 	
 	pImpl_->pOptionDialogManager_->initUIs(this, pImpl_->pFolderWindow_,
 		pImpl_->pFolderComboBox_, pImpl_->pListWindow_,
@@ -3060,3 +3018,286 @@ qm::ShellIconCallback::~ShellIconCallback()
 }
 
 #endif // _WIN32_WCE_PSPC
+
+
+/****************************************************************************
+ *
+ * SplitterHelper
+ *
+ */
+
+qm::SplitterHelper::SplitterHelper(Profile* pProfile) :
+	pProfile_(pProfile)
+{
+	assert(pProfile);
+	
+	wstring_ptr wstrPlacement(pProfile->getString(L"MainWindow", L"Placement", L""));
+	
+	const WCHAR* p = wstrPlacement.get();
+	if (wcslen(p) == 7 && *p == L'(' && *(p + 4) == L')' &&
+		checkType(*(p + 2)) && checkType(*(p + 5)) &&
+		checkComponents(*(p + 1), *(p + 3), *(p + 6))) {
+		types_[SPLITTER_PRIMARY] = getType(*(p + 5));
+		types_[SPLITTER_SECONDARY] = getType(*(p + 2));
+		placements_[COMPONENT_SECONDARY] = PLACEMENT_PRIMARY0;
+		placements_[getComponent(*(p + 6))] = PLACEMENT_PRIMARY1;
+		placements_[getComponent(*(p + 1))] = PLACEMENT_SECONDARY0;
+		placements_[getComponent(*(p + 3))] = PLACEMENT_SECONDARY1;
+	}
+	else if (wcslen(p) == 7&& *(p + 2) == L'(' && *(p + 6) == L')' &&
+		checkType(*(p + 1)) && checkType(*(p + 4)) &&
+		checkComponents(*p, *(p + 3), *(p + 5))) {
+		types_[SPLITTER_PRIMARY] = getType(*(p + 1));
+		types_[SPLITTER_SECONDARY] = getType(*(p + 4));
+		placements_[getComponent(*p)] = PLACEMENT_PRIMARY0;
+		placements_[COMPONENT_SECONDARY] = PLACEMENT_PRIMARY1;
+		placements_[getComponent(*(p + 3))] = PLACEMENT_SECONDARY0;
+		placements_[getComponent(*(p + 5))] = PLACEMENT_SECONDARY1;
+	}
+	else {
+		types_[SPLITTER_PRIMARY] = TYPE_HORIZONTAL;
+		types_[SPLITTER_SECONDARY] = TYPE_VERTICAL;
+		placements_[COMPONENT_SECONDARY] = PLACEMENT_PRIMARY1;
+		placements_[COMPONENT_FOLDER] = PLACEMENT_PRIMARY0;
+		placements_[COMPONENT_LIST] = PLACEMENT_SECONDARY0;
+		placements_[COMPONENT_PREVIEW] = PLACEMENT_SECONDARY1;
+	}
+	
+	pSplitterWindow_[SPLITTER_PRIMARY] = 0;
+	pSplitterWindow_[SPLITTER_SECONDARY] = 0;
+	nLocations_[SPLITTER_PRIMARY] = pProfile->getInt(L"MainWindow", L"PrimaryLocation", 100);
+	nLocations_[SPLITTER_SECONDARY] = pProfile->getInt(L"MainWindow", L"SecondaryLocation", 200);
+	bVisible_[COMPONENT_FOLDER] = pProfile->getInt(L"MainWindow", L"ShowFolderWindow", 1) != 0;
+	bVisible_[COMPONENT_LIST] = true;
+	bVisible_[COMPONENT_PREVIEW] = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow", 1) != 0;
+}
+
+qm::SplitterHelper::~SplitterHelper()
+{
+}
+
+SplitterHelper::Type qm::SplitterHelper::getType(Splitter splitter) const
+{
+	return types_[splitter];
+}
+
+SplitterHelper::Placement qm::SplitterHelper::getPlacement(Component component) const
+{
+	return placements_[component];
+}
+
+int qm::SplitterHelper::getLocation(Splitter splitter) const
+{
+	return nLocations_[splitter];
+}
+
+void qm::SplitterHelper::setWindows(SplitterWindow* pPrimarySplitterWindow,
+									SplitterWindow* pSecondarySplitterWindow)
+{
+	assert(pSplitterWindow_[SPLITTER_PRIMARY] == 0 &&
+		pSplitterWindow_[SPLITTER_SECONDARY] == 0);
+	
+	pSplitterWindow_[SPLITTER_PRIMARY] = pPrimarySplitterWindow;
+	pSplitterWindow_[SPLITTER_SECONDARY] = pSecondarySplitterWindow;
+}
+
+SplitterWindow* qm::SplitterHelper::getSplitterWindow(Component component) const
+{
+	assert(pSplitterWindow_[SPLITTER_PRIMARY] != 0 &&
+		pSplitterWindow_[SPLITTER_SECONDARY] != 0);
+	
+	return pSplitterWindow_[getSplitter(component)];
+}
+
+void qm::SplitterHelper::addComponents(Window* pFolderWindow,
+									   Window* pListWindow,
+									   Window* pPreviewWindow)
+{
+	assert(pSplitterWindow_[SPLITTER_PRIMARY] != 0 &&
+		pSplitterWindow_[SPLITTER_SECONDARY] != 0);
+	
+	addComponent(COMPONENT_FOLDER, pFolderWindow);
+	addComponent(COMPONENT_LIST, pListWindow);
+	addComponent(COMPONENT_PREVIEW, pPreviewWindow);
+	addComponent(COMPONENT_SECONDARY, pSplitterWindow_[SPLITTER_SECONDARY]);
+}
+
+void qm::SplitterHelper::applyLocation(Splitter splitter) const
+{
+	assert(pSplitterWindow_[SPLITTER_PRIMARY] != 0 &&
+		pSplitterWindow_[SPLITTER_SECONDARY] != 0);
+	
+	SplitterWindow* pWindow = pSplitterWindow_[splitter];
+	int nLocation = getLocation(splitter);
+	if (getType(splitter) == TYPE_VERTICAL)
+		pWindow->setRowHeight(0, nLocation);
+	else
+		pWindow->setColumnWidth(0, nLocation);
+}
+
+void qm::SplitterHelper::saveLocation(Splitter splitter)
+{
+	assert(pSplitterWindow_[SPLITTER_PRIMARY] != 0 &&
+		pSplitterWindow_[SPLITTER_SECONDARY] != 0);
+	
+	SplitterWindow* pWindow = pSplitterWindow_[splitter];
+	bool bVertical = getType(splitter) == TYPE_VERTICAL;
+	if (pWindow->isShowPane(0, 0) &&
+		pWindow->isShowPane(bVertical ? 0 : 1, bVertical ? 1 : 0))
+		nLocations_[splitter] = bVertical ?
+			pWindow->getRowHeight(0) : pWindow->getColumnWidth(0);
+}
+
+bool qm::SplitterHelper::isVisible(Component component) const
+{
+	return bVisible_[component];
+}
+
+bool qm::SplitterHelper::setVisible(Component component,
+									bool bVisible)
+{
+	assert(pSplitterWindow_[SPLITTER_PRIMARY] != 0 &&
+		pSplitterWindow_[SPLITTER_SECONDARY] != 0);
+	
+	if (bVisible == bVisible_[component])
+		return false;
+	
+	saveLocation(getSplitter(component));
+	bVisible_[component] = bVisible;
+	
+	return true;
+}
+
+void qm::SplitterHelper::applyVisibility(Component component) const
+{
+	assert(pSplitterWindow_[SPLITTER_PRIMARY] != 0 &&
+		pSplitterWindow_[SPLITTER_SECONDARY] != 0);
+	
+	bool bVisible = bVisible_[component];
+	SplitterWindow* pWindow = getSplitterWindow(component);
+	std::pair<int, int> pane(getPane(component));
+	Component opposite = getOppositeComponent(component);
+	std::pair<int, int> oppositePane(getPane(opposite));
+	if (bVisible) {
+		pWindow->showPane(pane.first, pane.second, true);
+		if (pWindow == pSplitterWindow_[SPLITTER_SECONDARY]) {
+			std::pair<int, int> secondaryPane(getPane(COMPONENT_SECONDARY));
+			if (!pSplitterWindow_[SPLITTER_PRIMARY]->isShowPane(
+				secondaryPane.first, secondaryPane.second)) {
+				pWindow->showPane(oppositePane.first, oppositePane.second, bVisible_[opposite]);
+				pSplitterWindow_[SPLITTER_PRIMARY]->showPane(
+					secondaryPane.first, secondaryPane.second, true);
+			}
+		}
+	}
+	else {
+		if (pWindow->isShowPane(oppositePane.first, oppositePane.second)) {
+			pWindow->showPane(pane.first, pane.second, false);
+		}
+		else {
+			assert(pWindow == pSplitterWindow_[SPLITTER_SECONDARY]);
+			std::pair<int, int> secondaryPane(getPane(COMPONENT_SECONDARY));
+			pSplitterWindow_[SPLITTER_PRIMARY]->showPane(
+				secondaryPane.first, secondaryPane.second, false);
+		}
+	}
+}
+
+void qm::SplitterHelper::save() const
+{
+	pProfile_->setInt(L"MainWindow", L"PrimaryLocation", nLocations_[SPLITTER_PRIMARY]);
+	pProfile_->setInt(L"MainWindow", L"SecondaryLocation", nLocations_[SPLITTER_SECONDARY]);
+}
+
+SplitterHelper::Splitter qm::SplitterHelper::getSplitter(Component component) const
+{
+	Placement p = placements_[component];
+	return p & PLACEMENT_PRIMARY ? SPLITTER_PRIMARY : SPLITTER_SECONDARY;
+}
+
+std::pair<int, int> qm::SplitterHelper::getPane(Component component) const
+{
+	Placement p = placements_[component];
+	if (p & PLACEMENT_0)
+		return std::make_pair(0, 0);
+	else if (getType(getSplitter(component)) == TYPE_VERTICAL)
+		return std::make_pair(0, 1);
+	else
+		return std::make_pair(1, 0);
+}
+
+void qm::SplitterHelper::addComponent(Component component,
+									  Window* pWindow)
+{
+	assert(pWindow);
+	
+	SplitterWindow* pSplitterWindow = getSplitterWindow(component);
+	std::pair<int, int> pane(getPane(component));
+	pSplitterWindow->add(pane.first, pane.second, pWindow);
+}
+
+SplitterHelper::Component qm::SplitterHelper::getOppositeComponent(Component component) const
+{
+	Placement placement = placements_[component];
+	Placement oppositePlacement = static_cast<Placement>(
+		(placement & PLACEMENT_SPLITTER_MASK) |
+		(placement & PLACEMENT_0 ? PLACEMENT_1 : PLACEMENT_0));
+	for (int c = 0; c < MAX_COMPONENT; ++c) {
+		if (placements_[c] == oppositePlacement)
+			return static_cast<Component>(c);
+	}
+	assert(false);
+	return component;
+}
+
+bool qm::SplitterHelper::checkType(WCHAR c)
+{
+	return getType(c) != MAX_TYPE;
+}
+
+bool qm::SplitterHelper::checkComponents(WCHAR c0,
+										 WCHAR c1,
+										 WCHAR c2)
+{
+	Component components[] = {
+		getComponent(c0),
+		getComponent(c1),
+		getComponent(c2)
+	};
+	for (int n = 0; n < countof(components); ++n) {
+		Component c = components[n];
+		if (c == MAX_COMPONENT)
+			return false;
+		for (int m = 0; m < n; ++m) {
+			if (c == components[m])
+				return false;
+		}
+	}
+	return true;
+}
+
+SplitterHelper::Type qm::SplitterHelper::getType(WCHAR c)
+{
+	switch (c) {
+	case L'|':
+		return TYPE_HORIZONTAL;
+	case L'-':
+		return TYPE_VERTICAL;
+	default:
+		return MAX_TYPE;
+	}
+}
+
+SplitterHelper::Component qm::SplitterHelper::getComponent(WCHAR c)
+{
+	switch (c) {
+	case L'F':
+		return COMPONENT_FOLDER;
+	case L'L':
+		return COMPONENT_LIST;
+	case L'P':
+		return COMPONENT_PREVIEW;
+	default:
+		return MAX_COMPONENT;
+	}
+}
