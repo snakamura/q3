@@ -1572,13 +1572,13 @@ BEGIN
     CONTROL         "Show unseen count on &welcome",
                     IDC_SHOWUNSEENCOUNTONWELCOME,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,55,220,10
-    LTEXT           "En&codings",IDC_STATIC,5,72,55,8
-    EDITTEXT        IDC_ENCODING,65,70,130,12,ES_AUTOHSCROLL
-    LTEXT           "&Default(*)",IDC_STATIC,10,87,55,8
-    COMBOBOX        IDC_DEFAULTENCODING,65,85,70,30,CBS_DROPDOWN | 
+    LTEXT           "En&codings",IDC_STATIC,5,72,45,8
+    EDITTEXT        IDC_ENCODING,50,70,145,12,ES_AUTOHSCROLL
+    LTEXT           "&Default(*)",IDC_STATIC,10,87,40,8
+    COMBOBOX        IDC_DEFAULTENCODING,50,85,70,30,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Log Level",IDC_STATIC,5,102,60,8
-    COMBOBOX        IDC_LOG,65,100,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    LTEXT           "&Log Level",IDC_STATIC,5,102,45,8
+    COMBOBOX        IDC_LOG,50,100,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "Tem&porary Folder",IDC_STATIC,5,145,220,8,NOT 
                     WS_VISIBLE
