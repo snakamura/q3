@@ -3031,7 +3031,13 @@ qm::SplitterHelper::SplitterHelper(Profile* pProfile) :
 {
 	assert(pProfile);
 	
-	wstring_ptr wstrPlacement(pProfile->getString(L"MainWindow", L"Placement", L""));
+#ifdef _WIN32_WCE_PSPC
+	const WCHAR* pwszDefaultPlacement = L"F-(L-P)";
+#else
+	const WCHAR* pwszDefaultPlacement = L"F|(L-P)";
+#endif
+	wstring_ptr wstrPlacement(pProfile->getString(
+		L"MainWindow", L"Placement", pwszDefaultPlacement));
 	
 	const WCHAR* p = wstrPlacement.get();
 	if (wcslen(p) == 7 && *p == L'(' && *(p + 4) == L')' &&
