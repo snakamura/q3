@@ -1547,7 +1547,7 @@ BEGIN
     CONTROL         "&GnuPG",IDC_GNUPG,"Button",BS_AUTORADIOBUTTON,10,55,160,
                     10
     LTEXT           "Warn before opening &attachments with these extensions",
-                    IDC_STATIC,5,75,170,8
+                    IDC_STATIC,5,75,180,8
     EDITTEXT        IDC_WARNEXTENSION,5,85,170,12,ES_AUTOHSCROLL
 END
 
