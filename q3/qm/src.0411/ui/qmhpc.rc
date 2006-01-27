@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resourcehpc.h"
 
@@ -14,7 +14,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Japanese resources
+// 日本語 resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 #ifdef _WIN32
@@ -1280,16 +1280,14 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,8
     CONTROL         "フォルダに未読数を表示(&S)",IDC_FOLDERSHOWUNSEEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,40,125,8
-    CONTROL         "垂直に分割(&V)(*)",IDC_VERTICAL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,50,70,8
-    PUSHBUTTON      "フォント(&F)...",IDC_WINDOWFONT,145,48,50,12
-    GROUPBOX        "ウィンドウ",IDC_STATIC,5,0,195,65
+    PUSHBUTTON      "フォント(&F)...",IDC_WINDOWFONT,145,38,50,12
+    GROUPBOX        "ウィンドウ",IDC_STATIC,5,0,195,55
     CONTROL         "メッセージ数を表示(&C)",IDC_SHOWALL,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,75,75,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,65,75,8
     CONTROL         "未読数を表示(&E)",IDC_SHOWUNSEEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,85,85,8
-    PUSHBUTTON      "フォント(&O)...",IDC_COMBOBOXFONT,145,83,50,12
-    GROUPBOX        "コンボボックス",IDC_STATIC,5,65,195,35
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,75,85,8
+    PUSHBUTTON      "フォント(&O)...",IDC_COMBOBOXFONT,145,73,50,12
+    GROUPBOX        "コンボボックス",IDC_STATIC,5,55,195,35
 END
 
 IDD_OPTIONLIST DIALOG DISCARDABLE  0, 0, 205, 100
@@ -2009,7 +2007,7 @@ SYNCFILTERS.XML         PROFILE DISCARDABLE     "res\\syncfilters.xml"
 TOOLBAR.BMP             PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\toolbar.bmp"
 TOOLBARS.XML            PROFILE DISCARDABLE     "res\\hpc\\toolbars.xml"
 VIEWS.XML               PROFILE DISCARDABLE     "res\\views.xml"
-#endif    // Japanese resources
+#endif    // 日本語 resources
 /////////////////////////////////////////////////////////////////////////////
 
 

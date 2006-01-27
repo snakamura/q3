@@ -348,7 +348,6 @@
 #define IDC_WARNEXTENSION               1368
 #define IDC_TEMPORARYFOLDER             1369
 #define IDC_SAVEMESSAGEVIEWMODEPERFOLDER 1372
-#define IDC_VERTICAL                    1373
 #define IDC_HIDEHEADERIFNOFOCUS         1379
 #define IDC_COLUMN                      1380
 #define IDC_AUTOREFORM                  1381

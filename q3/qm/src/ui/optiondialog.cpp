@@ -1370,8 +1370,7 @@ DialogUtil::BoolProperty qm::OptionFolderDialog::windowBoolProperties__[] = {
 	{ L"FolderShowAllCount",		IDC_FOLDERSHOWALL,		true	},
 	{ L"FolderShowUnseenCount",		IDC_FOLDERSHOWUNSEEN,	true	},
 	{ L"AccountShowAllCount",		IDC_ACCOUNTSHOWALL,		true	},
-	{ L"AccountShowUnseenCount",	IDC_ACCOUNTSHOWUNSEEN,	true	},
-	{ L"Vertical",					IDC_VERTICAL,			false	}
+	{ L"AccountShowUnseenCount",	IDC_ACCOUNTSHOWUNSEEN,	true	}
 };
 
 DialogUtil::BoolProperty qm::OptionFolderDialog::comboBoxBoolProperties__[] = {

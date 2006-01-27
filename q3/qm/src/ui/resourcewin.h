@@ -358,7 +358,6 @@
 #define IDC_WARNEXTENSION               1368
 #define IDC_TEMPORARYFOLDER             1369
 #define IDC_SAVEMESSAGEVIEWMODEPERFOLDER 1372
-#define IDC_VERTICAL                    1373
 #define IDC_MANUALLEARN                 1374
 #define IDC_AUTOLEARN                   1375
 #define IDC_THRESHOLD                   1376

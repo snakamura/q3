@@ -1272,16 +1272,14 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,8
     CONTROL         "Show un&seen count on folders",IDC_FOLDERSHOWUNSEEN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,125,8
-    CONTROL         "&Vertical(*)",IDC_VERTICAL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,50,45,8
-    PUSHBUTTON      "&Font...",IDC_WINDOWFONT,145,48,50,12
-    GROUPBOX        "Window",IDC_STATIC,5,0,195,65
+    PUSHBUTTON      "&Font...",IDC_WINDOWFONT,145,38,50,12
+    GROUPBOX        "Window",IDC_STATIC,5,0,195,55
     CONTROL         "Show all &count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,75,65,8
+                    WS_TABSTOP,10,65,65,8
     CONTROL         "Show uns&een count",IDC_SHOWUNSEEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,85,85,8
-    PUSHBUTTON      "F&ont...",IDC_COMBOBOXFONT,145,83,50,12
-    GROUPBOX        "Combo Box",IDC_STATIC,5,65,195,35
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,75,85,8
+    PUSHBUTTON      "F&ont...",IDC_COMBOBOXFONT,145,73,50,12
+    GROUPBOX        "Combo Box",IDC_STATIC,5,55,195,35
 END
 
 IDD_OPTIONLIST DIALOG DISCARDABLE  0, 0, 205, 100

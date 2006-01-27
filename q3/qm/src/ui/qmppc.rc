@@ -1312,8 +1312,6 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,10
     CONTROL         "Show un&seen count on folders",IDC_FOLDERSHOWUNSEEN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,110,10
-    CONTROL         "&Vertical(*)",IDC_VERTICAL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,50,49,12
     PUSHBUTTON      "&Font...",IDC_WINDOWFONT,77,50,50,12
     GROUPBOX        "Window",IDC_STATIC,5,0,127,65
     CONTROL         "Show all &count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
