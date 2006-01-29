@@ -416,7 +416,7 @@
 #define IDC_HYPERESTRAIER               1442
 #define IDC_SEARCH                      1443
 #define IDC_UPDATE                      1444
-#define IDC_SPLITWINDOW                 1445
+#define IDC_VIEWPLACEMENT               1445
 
 // Next default values for new objects
 // 

@@ -392,7 +392,7 @@
 #define IDC_LABELQUOTE1                 1438
 #define IDC_LABELQUOTE2                 1439
 #define IDC_LABELLINK                   1440
-#define IDC_SPLITWINDOW                 1445
+#define IDC_VIEWPLACEMENT               1445
 
 // Next default values for new objects
 // 

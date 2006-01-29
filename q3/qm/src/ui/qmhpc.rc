@@ -1463,8 +1463,8 @@ IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 205, 100
 STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "Spl&it Window(*)",IDC_STATIC,5,7,55,8
-    COMBOBOX        IDC_SPLITWINDOW,60,5,80,30,CBS_DROPDOWN | 
+    LTEXT           "V&iew Placement(*)",IDC_STATIC,5,7,65,8
+    COMBOBOX        IDC_VIEWPLACEMENT,70,5,80,30,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Show next &unseen when scroll to end(*)",
                     IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
