@@ -341,8 +341,8 @@ void qm::SyncDialog::save() const
 #ifndef _WIN32_WCE
 	RECT rect;
 	getWindowRect(&rect);
-	pProfile_->setInt(L"SyncDialog", L"X", rect.left);
-	pProfile_->setInt(L"SyncDialog", L"Y", rect.top);
+	pProfile_->setInt(L"SyncDialog", L"Left", rect.left);
+	pProfile_->setInt(L"SyncDialog", L"Top", rect.top);
 	pProfile_->setInt(L"SyncDialog", L"Width", rect.right - rect.left);
 	pProfile_->setInt(L"SyncDialog", L"Height", rect.bottom - rect.top);
 #endif
@@ -413,19 +413,19 @@ LRESULT qm::SyncDialog::onInitDialog(HWND hwndFocus,
 		0, 0, 0, 0, getHandle(), WS_EX_STATICEDGE, 0, IDC_SYNCSTATUS, 0);
 	
 #ifdef _WIN32_WCE
-	int x = 0;
-	int y = 0;
+	int nLeft = 0;
+	int nTop = 0;
 	RECT rectWorkArea;
 	::SystemParametersInfo(SPI_GETWORKAREA, 0, &rectWorkArea, 0);
 	int nWidth = rectWorkArea.right - rectWorkArea.left;
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 #else
-	int x = pProfile_->getInt(L"SyncDialog", L"X", 0);
-	int y = pProfile_->getInt(L"SyncDialog", L"Y", 0);
+	int nLeft = pProfile_->getInt(L"SyncDialog", L"Left", 0);
+	int nTop = pProfile_->getInt(L"SyncDialog", L"Top", 0);
 	int nWidth = pProfile_->getInt(L"SyncDialog", L"Width", 300);
 	int nHeight = pProfile_->getInt(L"SyncDialog", L"Height", 200);
 #endif
-	setWindowPos(0, x, y, nWidth, nHeight, SWP_NOZORDER);
+	setWindowPos(0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER);
 	
 	return TRUE;
 }
