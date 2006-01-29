@@ -1509,24 +1509,27 @@ IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 137, 119
 STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
+    LTEXT           "ウィンドウ分割(&I)(*)",IDC_STATIC,5,7,60,8
+    COMBOBOX        IDC_SPLITWINDOW,65,5,67,30,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "最後までスクロールしたら次の未読を表示(&U)(*)",
                     IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
-                    BS_TOP | BS_MULTILINE | WS_TABSTOP,5,5,125,17
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,5,20,125,17
     CONTROL         "終了時にゴミ箱を空にする(&E)",IDC_EMPTYTRASHONEXIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,95,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,40,95,10
     CONTROL         "モードをフォルダごとに保存する(&V)(*)",
                     IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,115,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,115,10
     CONTROL         "非アクティブになったら保存する(&S)",
                     IDC_SAVEONDEACTIVATE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,45,125,10
-    LTEXT           "エンコーディング(&C)",IDC_STATIC,5,62,55,8
-    EDITTEXT        IDC_ENCODING,60,60,72,12,ES_AUTOHSCROLL
-    LTEXT           "デフォルト(&D)(*)",IDC_STATIC,10,77,49,8
-    COMBOBOX        IDC_DEFAULTENCODING,60,75,72,50,CBS_DROPDOWN | 
+                    WS_TABSTOP,5,60,125,10
+    LTEXT           "エンコーディング(&C)",IDC_STATIC,5,77,55,8
+    EDITTEXT        IDC_ENCODING,60,75,72,12,ES_AUTOHSCROLL
+    LTEXT           "デフォルト(&D)(*)",IDC_STATIC,10,92,49,8
+    COMBOBOX        IDC_DEFAULTENCODING,60,90,72,50,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "ログレベル(&L)",IDC_STATIC,5,92,50,8
-    COMBOBOX        IDC_LOG,60,90,50,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    LTEXT           "ログレベル(&L)",IDC_STATIC,5,107,50,8
+    COMBOBOX        IDC_LOG,60,105,50,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "一時フォルダ(&P)",IDC_STATIC,5,125,40,8,NOT WS_VISIBLE
     EDITTEXT        IDC_TEMPORARYFOLDER,5,135,82,12,ES_AUTOHSCROLL | NOT 

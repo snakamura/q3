@@ -416,6 +416,7 @@
 #define IDC_HYPERESTRAIER               1442
 #define IDC_SEARCH                      1443
 #define IDC_UPDATE                      1444
+#define IDC_SPLITWINDOW                 1445
 
 // Next default values for new objects
 // 
@@ -424,7 +425,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1445
+#define _APS_NEXT_CONTROL_VALUE         1446
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

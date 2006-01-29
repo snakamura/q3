@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resourcewin.h"
 
@@ -1555,28 +1555,31 @@ IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 230, 170
 STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
+    LTEXT           "Spl&it Window(*)",IDC_STATIC,5,7,55,8
+    COMBOBOX        IDC_SPLITWINDOW,60,5,80,30,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Show next &unseen when scroll to end(*)",
                     IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,5,220,10
+                    WS_TABSTOP,5,25,220,10
     CONTROL         "&Empty trash on exit",IDC_EMPTYTRASHONEXIT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,220,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,220,10
     CONTROL         "Sa&ve message mode per folder(*)",
                     IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,220,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,220,10
     CONTROL         "&Save when window is deactivated",IDC_SAVEONDEACTIVATE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,35,220,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,55,220,10
     CONTROL         "&Hide when window is minimized",IDC_HIDEWHENMINIMIZED,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,220,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,220,10
     CONTROL         "Show unseen count on &welcome",
                     IDC_SHOWUNSEENCOUNTONWELCOME,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,55,220,10
-    LTEXT           "En&codings",IDC_STATIC,5,72,45,8
-    EDITTEXT        IDC_ENCODING,50,70,145,12,ES_AUTOHSCROLL
-    LTEXT           "&Default(*)",IDC_STATIC,10,87,40,8
-    COMBOBOX        IDC_DEFAULTENCODING,50,85,70,30,CBS_DROPDOWN | 
+                    WS_TABSTOP,5,75,220,10
+    LTEXT           "En&codings",IDC_STATIC,5,92,45,8
+    EDITTEXT        IDC_ENCODING,50,90,145,12,ES_AUTOHSCROLL
+    LTEXT           "&Default(*)",IDC_STATIC,10,107,40,8
+    COMBOBOX        IDC_DEFAULTENCODING,50,105,70,30,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Log Level",IDC_STATIC,5,102,45,8
-    COMBOBOX        IDC_LOG,50,100,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    LTEXT           "&Log Level",IDC_STATIC,5,122,45,8
+    COMBOBOX        IDC_LOG,50,120,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "Tem&porary Folder",IDC_STATIC,5,145,220,8,NOT 
                     WS_VISIBLE

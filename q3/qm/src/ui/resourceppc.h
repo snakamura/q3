@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft eMbedded Visual C++ generated include file.
 // Used by qmppc.rc
 //
 #define IDD_SYNC                        110
@@ -391,6 +391,7 @@
 #define IDC_LABELQUOTE1                 1438
 #define IDC_LABELQUOTE2                 1439
 #define IDC_LABELLINK                   1440
+#define IDC_SPLITWINDOW                 1445
 
 // Next default values for new objects
 // 
@@ -399,7 +400,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1445
+#define _APS_NEXT_CONTROL_VALUE         1446
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

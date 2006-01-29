@@ -1795,6 +1795,21 @@ LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
 		nLog = init.getLogLevel() + 1;
 	ComboBox_SetCurSel(hwndLog, nLog);
 	
+	HWND hwndSplitWindow = getDlgItem(IDC_SPLITWINDOW);
+	const WCHAR* pwszSplitWindow[] = {
+		L"F|(L-P)",
+		L"(F|L)-P",
+		L"F|(L|P)",
+		L"F-(L-P)",
+		L"(F-L)|P"
+	};
+	for (int n = 0; n < countof(pwszSplitWindow); ++n) {
+		W2T(pwszSplitWindow[n], ptszSplitWindow);
+		ComboBox_AddString(hwndSplitWindow, ptszSplitWindow);
+	}
+	wstring_ptr wstrSplitWindow(pProfile_->getString(L"MainWindow", L"Placement", L"F|(L-P"));
+	setDlgItemText(IDC_SPLITWINDOW, wstrSplitWindow.get());
+	
 	return FALSE;
 }
 
@@ -1829,6 +1844,9 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 	if (bLogEnabled != init.isLogEnabled() ||
 		logLevel != init.getLogLevel())
 		InitThread::getInitThread().resetLogger();
+	
+	wstring_ptr wstrSplitWindow(getDlgItemText(IDC_SPLITWINDOW));
+	pProfile_->setString(L"MainWindow", L"Placement", wstrSplitWindow.get());
 	
 	pContext->setFlags(OptionDialogContext::FLAG_RELOADMAIN);
 	
