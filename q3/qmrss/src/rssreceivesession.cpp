@@ -221,11 +221,35 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 					reportError(IDS_ERROR_PARSEREDIRECTLOCATION, wstrURL.get(), pMethod.get());
 					return false;
 				}
-				if (!HttpURL::create(location.getValue()).get()) {
-					reportError(IDS_ERROR_INVALIDREDIRECTLOCATION, location.getValue(), pMethod.get());
-					return false;
+				const WCHAR* pwszLocation = location.getValue();
+				wstring_ptr wstrLocation;
+				if (!HttpURL::create(pwszLocation).get()) {
+					// Because some server set a relative URL in Location:, I'll handle them here.
+					// This is not allowed in HTTP/1.1.
+					bool bRecover = false;
+					if (*pwszLocation == L'/') {
+						std::auto_ptr<HttpURL> pURL(HttpURL::create(wstrURL.get()));
+						if (pURL.get()) {
+							StringBuffer<WSTRING> buf;
+							buf.append(pURL->getScheme());
+							buf.append(L"://");
+							buf.append(pURL->getAuthority().get());
+							buf.append(pwszLocation);
+							
+							std::auto_ptr<HttpURL> pLocation(HttpURL::create(buf.getCharArray()));
+							if (pLocation.get()) {
+								wstrLocation = pLocation->getURL();
+								pwszLocation = wstrLocation.get();
+								bRecover = true;
+							}
+						}
+					}
+					if (!bRecover) {
+						reportError(IDS_ERROR_INVALIDREDIRECTLOCATION, pwszLocation, pMethod.get());
+						return false;
+					}
 				}
-				wstrURL = allocWString(location.getValue());
+				wstrURL = allocWString(pwszLocation);
 				
 				updateCookies(wstrURL.get(), header);
 				
