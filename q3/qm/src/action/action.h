@@ -1226,6 +1226,7 @@ class FolderDeleteAction : public qs::AbstractAction
 public:
 	FolderDeleteAction(FolderModel* pFolderModel,
 					   FolderSelectionModel* pFolderSelectionModel,
+					   SyncManager* pSyncManager,
 					   HWND hwnd);
 	virtual ~FolderDeleteAction();
 
@@ -1244,6 +1245,7 @@ private:
 private:
 	FolderModel* pFolderModel_;
 	FolderSelectionModel* pFolderSelectionModel_;
+	SyncManager* pSyncManager_;
 	HWND hwnd_;
 };
 
@@ -1380,6 +1382,7 @@ public:
 
 public:
 	FolderPropertyAction(FolderSelectionModel* pFolderSelectionModel,
+						 SyncManager* pSyncManager,
 						 HWND hwnd,
 						 qs::Profile* pProfile);
 	virtual ~FolderPropertyAction();
@@ -1400,6 +1403,7 @@ private:
 
 private:
 	FolderSelectionModel* pFolderSelectionModel_;
+	SyncManager* pSyncManager_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };
@@ -1415,6 +1419,7 @@ class FolderRenameAction : public qs::AbstractAction
 {
 public:
 	FolderRenameAction(FolderSelectionModel* pFolderSelectionModel,
+					   SyncManager* pSyncManager,
 					   HWND hwnd);
 	virtual ~FolderRenameAction();
 
@@ -1428,6 +1433,7 @@ private:
 
 private:
 	FolderSelectionModel* pFolderSelectionModel_;
+	SyncManager* pSyncManager_;
 	HWND hwnd_;
 };
 
@@ -1467,6 +1473,7 @@ class FolderUpdateAction : public qs::AbstractAction
 {
 public:
 	FolderUpdateAction(FolderModel* pFolderModel,
+					   SyncManager* pSyncManager,
 					   HWND hwnd);
 	virtual ~FolderUpdateAction();
 
@@ -1480,6 +1487,7 @@ private:
 
 private:
 	FolderModel* pFolderModel_;
+	SyncManager* pSyncManager_;
 	HWND hwnd_;
 };
 

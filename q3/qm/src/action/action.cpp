@@ -2557,9 +2557,11 @@ bool qm::FolderCreateAction::isEnabled(const ActionEvent& event)
 
 qm::FolderDeleteAction::FolderDeleteAction(FolderModel* pFolderModel,
 										   FolderSelectionModel* pFolderSelectionModel,
+										   SyncManager* pSyncManager,
 										   HWND hwnd) :
 	pFolderModel_(pFolderModel),
 	pFolderSelectionModel_(pFolderSelectionModel),
+	pSyncManager_(pSyncManager),
 	hwnd_(hwnd)
 {
 }
@@ -2618,7 +2620,8 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 
 bool qm::FolderDeleteAction::isEnabled(const ActionEvent& event)
 {
-	return FolderActionUtil::hasSelected(pFolderSelectionModel_);
+	return !pSyncManager_->isSyncing() &&
+		FolderActionUtil::hasSelected(pFolderSelectionModel_);
 }
 
 bool qm::FolderDeleteAction::deleteFolder(FolderModel* pFolderModel,
@@ -2758,7 +2761,7 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 
 bool qm::FolderEmptyTrashAction::isEnabled(const ActionEvent& event)
 {
-	return getTrash() != 0;
+	return !pSyncManager_->isSyncing() && getTrash() != 0;
 }
 
 void qm::FolderEmptyTrashAction::emptyAllTrash(Document* pDocument,
@@ -2909,9 +2912,11 @@ void qm::FolderExpandAction::invoke(const ActionEvent& event)
  */
 
 qm::FolderPropertyAction::FolderPropertyAction(FolderSelectionModel* pFolderSelectionModel,
+											   SyncManager* pSyncManager,
 											   HWND hwnd,
 											   Profile* pProfile) :
 	pFolderSelectionModel_(pFolderSelectionModel),
+	pSyncManager_(pSyncManager),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -2930,7 +2935,8 @@ void qm::FolderPropertyAction::invoke(const ActionEvent& event)
 
 bool qm::FolderPropertyAction::isEnabled(const ActionEvent& event)
 {
-	return FolderActionUtil::hasSelected(pFolderSelectionModel_);
+	return !pSyncManager_->isSyncing() &&
+		FolderActionUtil::hasSelected(pFolderSelectionModel_);
 }
 
 void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolder,
@@ -2981,8 +2987,10 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
  */
 
 qm::FolderRenameAction::FolderRenameAction(FolderSelectionModel* pFolderSelectionModel,
+										   SyncManager* pSyncManager,
 										   HWND hwnd) :
 	pFolderSelectionModel_(pFolderSelectionModel),
+	pSyncManager_(pSyncManager),
 	hwnd_(hwnd)
 {
 }
@@ -3029,7 +3037,8 @@ void qm::FolderRenameAction::invoke(const ActionEvent& event)
 
 bool qm::FolderRenameAction::isEnabled(const ActionEvent& event)
 {
-	return FolderActionUtil::getFocused(pFolderSelectionModel_).second != 0;
+	return !pSyncManager_->isSyncing() &&
+		FolderActionUtil::getFocused(pFolderSelectionModel_).second != 0;
 }
 
 
@@ -3067,8 +3076,10 @@ bool qm::FolderShowSizeAction::isEnabled(const ActionEvent& event)
  */
 
 qm::FolderUpdateAction::FolderUpdateAction(FolderModel* pFolderModel,
+										   SyncManager* pSyncManager,
 										   HWND hwnd) :
 	pFolderModel_(pFolderModel),
+	pSyncManager_(pSyncManager),
 	hwnd_(hwnd)
 {
 }
@@ -3100,6 +3111,9 @@ void qm::FolderUpdateAction::invoke(const ActionEvent& event)
 
 bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing())
+		return false;
+	
 	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	return pAccount && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER);
 }

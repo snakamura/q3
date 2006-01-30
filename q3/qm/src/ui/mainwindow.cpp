@@ -579,10 +579,11 @@ void qm::MainWindowImpl::initActions()
 		this,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION3(FolderDeleteAction,
+	ADD_ACTION4(FolderDeleteAction,
 		IDM_FOLDER_DELETE,
 		pFolderModel_.get(),
 		this,
+		pSyncManager_,
 		pThis_->getHandle());
 	ADD_ACTION4(FolderEmptyAction,
 		IDM_FOLDER_EMPTY,
@@ -606,18 +607,21 @@ void qm::MainWindowImpl::initActions()
 		IDM_FOLDER_COLLAPSE,
 		pFolderWindow_,
 		false);
-	ADD_ACTION3(FolderPropertyAction,
+	ADD_ACTION4(FolderPropertyAction,
 		IDM_FOLDER_PROPERTY,
 		this,
+		pSyncManager_,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION2(FolderRenameAction,
+	ADD_ACTION3(FolderRenameAction,
 		IDM_FOLDER_RENAME,
 		this,
+		pSyncManager_,
 		pThis_->getHandle());
-	ADD_ACTION2(FolderUpdateAction,
+	ADD_ACTION3(FolderUpdateAction,
 		IDM_FOLDER_UPDATE,
 		pFolderModel_.get(),
+		pSyncManager_,
 		pThis_->getHandle());
 	ADD_ACTION1(FolderShowSizeAction,
 		IDM_FOLDER_SHOWSIZE,
