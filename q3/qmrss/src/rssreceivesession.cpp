@@ -130,13 +130,13 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		// See <BTS:872> for details.
 		return true;
 #else
-		reportError(IDS_ERROR_URL, 0);
+		reportError(IDS_ERROR_URL, pwszURL, 0);
 		return false;
 #endif
 	}
 	std::auto_ptr<HttpURL> pURL(HttpURL::create(pwszURL));
 	if (!pURL.get()) {
-		reportError(IDS_ERROR_URL, 0);
+		reportError(IDS_ERROR_URL, pwszURL, 0);
 		return false;
 	}
 	
@@ -206,19 +206,23 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		case 303:
 		case 307:
 			if (nRedirect == MAX_REDIRECT - 1) {
-				reportError(IDS_ERROR_GET, pMethod.get());
+				reportError(IDS_ERROR_EXCEEDMAXREDIRECT, wstrURL.get(), pMethod.get());
 				return false;
 			}
 			else {
 				Part header;
 				if (!header.create(0, pMethod->getResponseHeader(), -1)) {
-					reportError(IDS_ERROR_GET, pMethod.get());
+					reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), pMethod.get());
 					return false;
 				}
 				
 				UnstructuredParser location;
 				if (header.getField(L"Location", &location) != Part::FIELD_EXIST) {
-					reportError(IDS_ERROR_GET, pMethod.get());
+					reportError(IDS_ERROR_PARSEREDIRECTLOCATION, wstrURL.get(), pMethod.get());
+					return false;
+				}
+				if (!HttpURL::create(location.getValue()).get()) {
+					reportError(IDS_ERROR_INVALIDREDIRECTLOCATION, location.getValue(), pMethod.get());
 					return false;
 				}
 				wstrURL = allocWString(location.getValue());
@@ -230,7 +234,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		case 304:
 			return true;
 		default:
-			reportError(IDS_ERROR_GET, pMethod.get());
+			reportError(IDS_ERROR_GET, wstrURL.get(), pMethod.get());
 			return false;
 		}
 		break;
@@ -241,13 +245,13 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	std::auto_ptr<Channel> pChannel(RssParser().parse(
 		pwszURL, pMethod->getResponseBodyAsStream()));
 	if (!pChannel.get()) {
-		reportError(IDS_ERROR_PARSE, 0);
+		reportError(IDS_ERROR_PARSE, wstrURL.get(), 0);
 		return false;
 	}
 	
 	Part header;
 	if (!header.create(0, pMethod->getResponseHeader(), -1)) {
-		reportError(IDS_ERROR_PARSE, 0);
+		reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), 0);
 		return false;
 	}
 	updateCookies(wstrURL.get(), header);
@@ -358,7 +362,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	if (pSubAccount_->isAutoApplyRules()) {
 		if (!applyRules(&listDownloaded))
-			reportError(IDS_ERROR_APPLYRULES, 0);
+			reportError(IDS_ERROR_APPLYRULES, 0, 0);
 	}
 	for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
 		bool bNotify = false;
@@ -407,6 +411,7 @@ bool qmrss::RssReceiveSession::applyRules(MessagePtrList* pList)
 }
 
 void qmrss::RssReceiveSession::reportError(UINT nId,
+										   const WCHAR* pwszParam,
 										   HttpMethod* pMethod)
 {
 	HINSTANCE hInst = getResourceHandle();
@@ -420,6 +425,7 @@ void qmrss::RssReceiveSession::reportError(UINT nId,
 	
 	const WCHAR* pwszDescription[] = {
 		wstrDescription.get(),
+		pwszParam,
 		wstrResponse.get()
 	};
 	

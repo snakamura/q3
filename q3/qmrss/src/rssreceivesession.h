@@ -74,6 +74,7 @@ private:
 	void clearFeeds();
 	bool applyRules(MessagePtrList* pList);
 	void reportError(UINT nId,
+					 const WCHAR* pwszParam,
 					 HttpMethod* pMethod);
 
 private:

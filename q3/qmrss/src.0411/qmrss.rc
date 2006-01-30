@@ -87,6 +87,10 @@ BEGIN
     IDS_ERROR_GET           "RSSの取得中にエラーが発生しました"
     IDS_ERROR_PARSE         "RSSのパース中にエラーが発生しました"
     IDS_ERROR_APPLYRULES    "振り分けルールの適用中にエラーが発生しました"
+    IDS_ERROR_EXCEEDMAXREDIRECT "最大リダイレクト回数を超えました"
+    IDS_ERROR_PARSERESPONSEHEADER "レスポンスヘッダのパース中にエラーが発生しました"
+    IDS_ERROR_PARSEREDIRECTLOCATION "Location:ヘッダのパース中にエラーが発生しました"
+    IDS_ERROR_INVALIDREDIRECTLOCATION "Location:ヘッダに指定されたURLが不正です"
 END
 
 #endif    // 日本語 resources

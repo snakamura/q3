@@ -17,6 +17,10 @@
 #define IDS_ERROR_GET                   11001
 #define IDS_ERROR_PARSE                 11002
 #define IDS_ERROR_APPLYRULES            11003
+#define IDS_ERROR_EXCEEDMAXREDIRECT     11004
+#define IDS_ERROR_PARSERESPONSEHEADER   11005
+#define IDS_ERROR_PARSEREDIRECTLOCATION 11006
+#define IDS_ERROR_INVALIDREDIRECTLOCATION 11007
 
 // Next default values for new objects
 // 

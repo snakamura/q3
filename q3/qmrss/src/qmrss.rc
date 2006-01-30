@@ -85,6 +85,10 @@ BEGIN
     IDS_ERROR_GET           "Error occured while getting RSS."
     IDS_ERROR_PARSE         "Error occured while parsing RSS."
     IDS_ERROR_APPLYRULES    "Error occured while applying rules."
+    IDS_ERROR_EXCEEDMAXREDIRECT "Exceed max redirection."
+    IDS_ERROR_PARSERESPONSEHEADER "Error occured while parsing response header."
+    IDS_ERROR_PARSEREDIRECTLOCATION "Error occured while getting Location: header."
+    IDS_ERROR_INVALIDREDIRECTLOCATION "Invalid redirect location URL."
 END
 
 #endif    // English (U.S.) resources
