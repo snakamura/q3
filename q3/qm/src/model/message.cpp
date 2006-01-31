@@ -2024,6 +2024,9 @@ wstring_ptr qm::AttachmentParser::getName() const
 	}
 	
 	if (wstrName.get()) {
+		if (File::isDeviceName(wstrName.get()))
+			wstrName = concat(L"_", wstrName.get());
+		
 #ifdef UNICODE
 		for (WCHAR* p = wstrName.get(); *p; ++p) {
 			if (!TextUtil::isFileNameChar(*p))
