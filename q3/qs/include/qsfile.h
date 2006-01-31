@@ -131,6 +131,14 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	static bool removeDirectory(const WCHAR* pwszDir);
+	
+	/**
+	 * Check if the specified name is device name such as CON, PRN, etc... or not.
+	 *
+	 * @param pwszName [in] File name
+	 * @param true if the specified name is device name, false otherwise.
+	 */
+	static bool isDeviceName(const WCHAR* pwszName);
 };
 
 

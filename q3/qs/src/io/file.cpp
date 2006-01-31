@@ -136,6 +136,45 @@ bool qs::File::removeDirectory(const WCHAR* pwszDir)
 	return ::RemoveDirectory(tstrPathBase.get()) != 0;
 }
 
+bool qs::File::isDeviceName(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	
+	const WCHAR* pwszDeviceNames[] = {
+		L"CON",
+		L"PRN",
+		L"AUX",
+		L"NUL",
+		L"COM1",
+		L"COM2",
+		L"COM3",
+		L"COM4",
+		L"COM5",
+		L"COM6",
+		L"COM7",
+		L"COM8",
+		L"COM9",
+		L"LPT1",
+		L"LPT2",
+		L"LPT3",
+		L"LPT4",
+		L"LPT5",
+		L"LPT6",
+		L"LPT7",
+		L"LPT8",
+		L"LPT9",
+		L"CLOCK$"
+	};
+	for (int n = 0; n < countof(pwszDeviceNames); ++n) {
+		const WCHAR* p = pwszDeviceNames[n];
+		size_t nLen = wcslen(p);
+		if (_wcsicmp(pwszName, p) == 0 ||
+			(_wcsnicmp(pwszName, p, nLen) == 0 && pwszName[nLen] == L'.'))
+			return true;
+	}
+	return false;
+}
+
 
 /****************************************************************************
  *
