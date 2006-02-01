@@ -454,7 +454,7 @@ std::auto_ptr<MessageWindow::Mark> qm::TextMessageViewWindow::mark() const
 void qm::TextMessageViewWindow::reset(const MessageWindow::Mark& mark)
 {
 	const MarkImpl& impl = static_cast<const MarkImpl&>(mark);
-	moveCaret(MOVECARET_POS, impl.nLine_, impl.nChar_, false, SELECT_CLEAR, false);
+	moveCaret(MOVECARET_POS, impl.nLine_, impl.nChar_, SELECT_CLEAR, MOVECARETFLAG_NONE);
 }
 
 bool qm::TextMessageViewWindow::openLink()

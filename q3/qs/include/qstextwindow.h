@@ -330,6 +330,13 @@ public:
 		MOVECARET_POS
 	};
 	
+	enum MoveCaretFlag {
+		MOVECARETFLAG_NONE		= 0x00,
+		MOVECARETFLAG_REPEAT	= 0x01,
+		MOVECARETFLAG_SCROLL	= 0x02,
+		MOVECARETFLAG_NOMARGIN	= 0x04
+	};
+	
 	enum Select {
 		SELECT_SELECT,
 		SELECT_CLEAR,
@@ -392,9 +399,8 @@ public:
 	void moveCaret(MoveCaret moveCaret,
 				   size_t nLine,
 				   size_t nChar,
-				   bool bRepeat,
 				   Select select,
-				   bool bScroll);
+				   unsigned int nFlags);
 	void deselectAll();
 	bool openLink();
 	TextWindowLinkHandler* getLinkHandler() const;

@@ -231,8 +231,8 @@ void qm::EditEditFindAction::invoke(const ActionEvent& event)
 									   bool bRegex)
 			{
 				if (bSearched_)
-					pTextWindow_->moveCaret(TextWindow::MOVECARET_POS,
-						nLine_, nChar_, false, TextWindow::SELECT_CLEAR, false);
+					pTextWindow_->moveCaret(TextWindow::MOVECARET_POS, nLine_, nChar_,
+						TextWindow::SELECT_CLEAR, TextWindow::MOVECARETFLAG_NONE);
 				
 				unsigned int nFlags =
 					(bMatchCase ? TextWindow::FIND_MATCHCASE : 0) |
@@ -323,7 +323,7 @@ void qm::EditEditMoveCaretAction::invoke(const ActionEvent& event)
 	if (pwszParam && _wcsicmp(pwszParam, L"true") == 0)
 		select = TextWindow::SELECT_SELECT;
 	
-	pTextWindow_->moveCaret(moveCaret_, 0, 0, false, select, true);
+	pTextWindow_->moveCaret(moveCaret_, 0, 0, select, TextWindow::MOVECARETFLAG_SCROLL);
 }
 
 bool qm::EditEditMoveCaretAction::isEnabled(const ActionEvent& event)
@@ -517,8 +517,8 @@ void qm::EditEditReplaceAction::invoke(const ActionEvent& event)
 		nFlags |= TextWindow::FIND_PREVIOUS;
 	
 	if (type == ReplaceDialog::TYPE_ALL) {
-		pTextWindow_->moveCaret(TextWindow::MOVECARET_DOCSTART,
-			0, 0, false, TextWindow::SELECT_CLEAR, false);
+		pTextWindow_->moveCaret(TextWindow::MOVECARET_DOCSTART, 0, 0,
+			TextWindow::SELECT_CLEAR, TextWindow::MOVECARETFLAG_NONE);
 		
 		while (true) {
 			bool bFound = pTextWindow_->replace(

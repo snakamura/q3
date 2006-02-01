@@ -53,7 +53,7 @@ public:
 	enum {
 		TIMER_DRAGSCROLL	= 1000,
 		DRAGSCROLL_DELAY	= 300,
-		DRAGSCROLL_INTERVAL	= 100
+		DRAGSCROLL_INTERVAL	= 300
 	};
 	
 	enum InsertTextFlag {
@@ -342,6 +342,8 @@ public:
 	wstring_ptr wstrReformQuote_;
 	URLSchemaList listURLSchema_;
 	COLORREF crLink_;
+	unsigned int nDragScrollDelay_;
+	unsigned int nDragScrollInterval_;
 	
 	HFONT hfont_;
 	bool bAdjustExtent_;
@@ -676,7 +678,8 @@ void qs::TextWindowImpl::startSelection(const POINT& pt,
 	selection_.nEndChar_ = pos.second;
 	
 	pThis_->moveCaret(TextWindow::MOVECARET_POS, pos.first,
-		pos.second, false, TextWindow::SELECT_NONE, bScroll);
+		pos.second, TextWindow::SELECT_NONE,
+		(bScroll ? TextWindow::MOVECARETFLAG_SCROLL : TextWindow::MOVECARETFLAG_NONE) | TextWindow::MOVECARETFLAG_NOMARGIN);
 }
 
 void qs::TextWindowImpl::updateSelection(const POINT& pt,
@@ -688,7 +691,8 @@ void qs::TextWindowImpl::updateSelection(const POINT& pt,
 	selection_.nEndChar_ = pos.second;
 	
 	pThis_->moveCaret(TextWindow::MOVECARET_POS, pos.first,
-		pos.second, false, TextWindow::SELECT_NONE, bScroll);
+		pos.second, TextWindow::SELECT_NONE,
+		(bScroll ? TextWindow::MOVECARETFLAG_SCROLL : TextWindow::MOVECARETFLAG_NONE) | TextWindow::MOVECARETFLAG_NOMARGIN);
 }
 
 void qs::TextWindowImpl::clearSelection()
@@ -1219,19 +1223,19 @@ void qs::TextWindowImpl::updateCaret(bool bScroll,
 		
 		if (static_cast<int>(caret_.nLine_) < scrollPos_.nLine_ + nMarginTop)
 			pThis_->scroll(TextWindow::SCROLL_VERTICALPOS,
-				static_cast<int>(caret_.nLine_ - 3), false);
-		else if (caret_.nLine_ > scrollPos_.nLine_ + nLineInWindow - nMarginBottom)
+				static_cast<int>(caret_.nLine_ - nMarginTop), false);
+		else if (caret_.nLine_ >= scrollPos_.nLine_ + nLineInWindow - nMarginBottom)
 			pThis_->scroll(TextWindow::SCROLL_VERTICALPOS,
-				static_cast<int>(caret_.nLine_ - nLineInWindow + 3), false);
+				static_cast<int>(caret_.nLine_ - nLineInWindow + nMarginBottom + 1), false);
 		else
 			bScroll = false;
 		
 		if (caret_.nPos_ < scrollPos_.nPos_ + nMarginLeft)
 			pThis_->scroll(TextWindow::SCROLL_HORIZONTALPOS,
-				caret_.nPos_ - 20, false);
+				caret_.nPos_ - nMarginLeft, false);
 		else if (caret_.nPos_ > scrollPos_.nPos_ + (rect.right - rect.left) - nMarginRight)
 			pThis_->scroll(TextWindow::SCROLL_HORIZONTALPOS,
-				caret_.nPos_ - (rect.right - rect.left) + 20, false);
+				caret_.nPos_ - (rect.right - rect.left) + nMarginRight, false);
 		else
 			bScroll = false;
 	}
@@ -1369,7 +1373,8 @@ bool qs::TextWindowImpl::deleteText(TextWindow::DeleteTextFlag flag)
 				break;
 			}
 			
-			pThis_->moveCaret(mc, 0, 0, false, TextWindow::SELECT_SELECT, true);
+			pThis_->moveCaret(mc, 0, 0, TextWindow::SELECT_SELECT,
+				TextWindow::MOVECARETFLAG_SCROLL);
 			if (pThis_->isSelected()) {
 				std::swap(selection_.nStartLine_, selection_.nEndLine_);
 				std::swap(selection_.nStartChar_, selection_.nEndChar_);
@@ -1521,23 +1526,25 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 		int nDefault_;
 		int nValue_;
 	} initNumbers[] = {
-		{ L"LineSpecing",				2,	0 },
-		{ L"CharInLine",				0,	0 },
-		{ L"TabWidth",					4,	0 },
-		{ L"MarginTop",					10,	0 },
-		{ L"MarginBottom",				10,	0 },
-		{ L"MarginLeft",				10,	0 },
-		{ L"MarginRight",				10,	0 },
-		{ L"ShowNewLine",				0,	0 },
-		{ L"ShowTab",					0,	0 },
-		{ L"ShowVerticalScrollBar",		1,	0 },
-		{ L"ShowHorizontalScrollBar",	0,	0 },
-		{ L"ShowCaret",					0,	0 },
-		{ L"ShowRuler",					0,	0 },
-		{ L"ReformLineLength",			74,	0 },
-		{ L"AdjustExtent",				0,	0 },
-		{ L"LineQuote",					1,	0 },
-		{ L"WordWrap",					0,	0 }
+		{ L"LineSpecing",				2,						0 },
+		{ L"CharInLine",				0,						0 },
+		{ L"TabWidth",					4,						0 },
+		{ L"MarginTop",					10,						0 },
+		{ L"MarginBottom",				10,						0 },
+		{ L"MarginLeft",				10,						0 },
+		{ L"MarginRight",				10,						0 },
+		{ L"ShowNewLine",				0,						0 },
+		{ L"ShowTab",					0,						0 },
+		{ L"ShowVerticalScrollBar",		1,						0 },
+		{ L"ShowHorizontalScrollBar",	0,						0 },
+		{ L"ShowCaret",					0,						0 },
+		{ L"ShowRuler",					0,						0 },
+		{ L"ReformLineLength",			74,						0 },
+		{ L"AdjustExtent",				0,						0 },
+		{ L"LineQuote",					1,						0 },
+		{ L"WordWrap",					0,						0 },
+		{ L"DragScrollDelay",			DRAGSCROLL_DELAY,		0 },
+		{ L"DragScrollInterval",		DRAGSCROLL_INTERVAL,	0 }
 	};
 	for (n = 0; n < countof(initNumbers); ++n)
 		initNumbers[n].nValue_ = pProfile->getInt(pwszSection,
@@ -1611,6 +1618,8 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 	wstrReformQuote_.reset(initStrings[2].wstrValue_);
 	listURLSchema_.swap(listURLSchema);
 	crLink_ = initColors[4].cr_;
+	nDragScrollDelay_ = initNumbers[17].nValue_;
+	nDragScrollInterval_ = initNumbers[18].nValue_;
 	hfont_ = font.release();
 	bAdjustExtent_ = bAdjustExtent;
 	nLineHeight_ = 0;
@@ -1945,7 +1954,7 @@ qs::TextWindowImpl::PositionRestorer::~PositionRestorer()
 	if (caret_.first != -1 && caret_.second != -1) {
 		std::pair<size_t, size_t> caret(pImpl_->getPhysicalLine(caret_.first, caret_.second));
 		pImpl_->pThis_->moveCaret(TextWindow::MOVECARET_POS,
-			caret.first, caret.second, false, TextWindow::SELECT_NONE, false);
+			caret.first, caret.second, TextWindow::SELECT_NONE, TextWindow::MOVECARETFLAG_NONE);
 	}
 	
 	if (pImpl_->pThis_->isSelected()) {
@@ -2067,6 +2076,8 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->bWordWrap_ = false;
 	pImpl_->nReformLineLength_ = 74;
 	pImpl_->crLink_ = RGB(0, 0, 255);
+	pImpl_->nDragScrollDelay_ = TextWindowImpl::DRAGSCROLL_DELAY;
+	pImpl_->nDragScrollInterval_ = TextWindowImpl::DRAGSCROLL_INTERVAL;
 	pImpl_->hfont_ = 0;
 	pImpl_->bAdjustExtent_ = false;
 	pImpl_->hbmNewLine_ = 0;
@@ -2171,8 +2182,8 @@ wstring_ptr qs::TextWindow::getSelectedText() const
 
 bool qs::TextWindow::selectAll()
 {
-	moveCaret(MOVECARET_DOCSTART, 0, 0, false, SELECT_CLEAR, false);
-	moveCaret(MOVECARET_DOCEND, 0, 0, false, SELECT_SELECT, true);
+	moveCaret(MOVECARET_DOCSTART, 0, 0, SELECT_CLEAR, MOVECARETFLAG_NONE);
+	moveCaret(MOVECARET_DOCEND, 0, 0, SELECT_SELECT, MOVECARETFLAG_SCROLL);
 	return true;
 }
 
@@ -2251,15 +2262,13 @@ bool qs::TextWindow::undo()
 	std::pair<size_t, size_t> end(pImpl_->getPhysicalLine(
 		pItem->getEndLine(), pItem->getEndChar()));
 	pImpl_->expandSelection(start.first, start.second, end.first, end.second);
-	moveCaret(TextWindow::MOVECARET_POS, end.first,
-		end.second, false, TextWindow::SELECT_NONE, false);
+	moveCaret(MOVECARET_POS, end.first, end.second, SELECT_NONE, MOVECARETFLAG_NONE);
 	if (!pImpl_->insertText(pItem->getText(), -1, TextWindowImpl::INSERTTEXTFLAG_UNDO))
 		return false;
 	
 	std::pair<size_t, size_t> caret(pImpl_->getPhysicalLine(
 		pItem->getCaretLine(), pItem->getCaretChar()));
-	moveCaret(TextWindow::MOVECARET_POS, caret.first,
-		caret.second, false, TextWindow::SELECT_NONE, true);
+	moveCaret(MOVECARET_POS, caret.first, caret.second, SELECT_NONE, MOVECARETFLAG_SCROLL);
 	
 	return true;
 }
@@ -2291,8 +2300,7 @@ bool qs::TextWindow::redo()
 	
 	std::pair<size_t, size_t> caret(pImpl_->getPhysicalLine(
 		pItem->getCaretLine(), pItem->getCaretChar()));
-	moveCaret(TextWindow::MOVECARET_POS, caret.first,
-		caret.second, false, TextWindow::SELECT_NONE, true);
+	moveCaret(MOVECARET_POS, caret.first, caret.second, SELECT_NONE, MOVECARETFLAG_SCROLL);
 	
 	return true;
 }
@@ -2439,10 +2447,8 @@ bool qs::TextWindow::replace(const WCHAR* pwszFind,
 	}
 	
 	if (bFound) {
-		moveCaret(MOVECARET_POS, start.first,
-			start.second, false, SELECT_CLEAR, false);
-		moveCaret(MOVECARET_POS, end.first,
-			end.second, false, SELECT_SELECT, true);
+		moveCaret(MOVECARET_POS, start.first, start.second, SELECT_CLEAR, MOVECARETFLAG_NONE);
+		moveCaret(MOVECARET_POS, end.first, end.second, SELECT_SELECT, MOVECARETFLAG_SCROLL);
 		
 		if (pwszReplace) {
 			if (bRegex) {
@@ -2604,7 +2610,7 @@ void qs::TextWindow::reform()
 	pImpl_->insertText(wstrText.get(), -1,
 		TextWindowImpl::INSERTTEXTFLAG_NORMAL);
 	
-	moveCaret(MOVECARET_CHARLEFT, 0, 0, false, SELECT_NONE, true);
+	moveCaret(MOVECARET_CHARLEFT, 0, 0, SELECT_NONE, MOVECARETFLAG_SCROLL);
 }
 
 void qs::TextWindow::scroll(Scroll scroll,
@@ -2701,10 +2707,12 @@ void qs::TextWindow::scroll(Scroll scroll,
 void qs::TextWindow::moveCaret(MoveCaret moveCaret,
 							   size_t nLine,
 							   size_t nChar,
-							   bool bRepeat,
 							   Select select,
-							   bool bScroll)
+							   unsigned int nFlags)
 {
+	bool bRepeat = (nFlags & MOVECARETFLAG_REPEAT) != 0;
+	bool bScroll = (nFlags & MOVECARETFLAG_SCROLL) != 0;
+	
 	if (!pImpl_->listLine_.empty()) {
 		TextWindowImpl::Caret caret = pImpl_->caret_;
 		
@@ -2961,6 +2969,12 @@ void qs::TextWindow::moveCaret(MoveCaret moveCaret,
 			pImpl_->caret_.nPos_ = pImpl_->getPosFromChar(
 				pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
 			pImpl_->caret_.nOldPos_ = pImpl_->caret_.nPos_;
+			if (nFlags & MOVECARETFLAG_NOMARGIN) {
+				rectMargin.left = 0;
+				rectMargin.top = 0;
+				rectMargin.right = 0;
+				rectMargin.bottom = 0;
+			}
 			break;
 		default:
 			assert(false);
@@ -3590,8 +3604,8 @@ LRESULT qs::TextWindow::onKeyDown(UINT nKey,
 			break;
 		}
 		if (bMoveCaret)
-			moveCaret(mc, 0, 0, (nFlags & 0x40000000) != 0,
-				::GetKeyState(VK_SHIFT) < 0 ? SELECT_SELECT : SELECT_CLEAR, true);
+			moveCaret(mc, 0, 0, ::GetKeyState(VK_SHIFT) < 0 ? SELECT_SELECT : SELECT_CLEAR,
+				(nFlags & 0x40000000 ? MOVECARETFLAG_REPEAT : MOVECARETFLAG_NONE) | MOVECARETFLAG_SCROLL);
 	}
 	else {
 		bool bScroll = true;
@@ -3662,8 +3676,8 @@ LRESULT qs::TextWindow::onLButtonDown(UINT nFlags,
 	pImpl_->ptLastButtonDown_ = pt;
 	setCapture();
 	
-	pImpl_->nTimerDragScroll_ = setTimer(TextWindowImpl::TIMER_DRAGSCROLL,
-		TextWindowImpl::DRAGSCROLL_DELAY);
+	pImpl_->nTimerDragScroll_ = setTimer(
+		TextWindowImpl::TIMER_DRAGSCROLL, pImpl_->nDragScrollDelay_);
 	
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
@@ -3677,7 +3691,7 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags,
 		
 		releaseCapture();
 		
-		pImpl_->updateSelection(pt, false);
+		pImpl_->updateSelection(pt, true);
 		
 		if (!pImpl_->pTextModel_->isEditable()) {
 			int cx = ::GetSystemMetrics(SM_CXDOUBLECLK);
@@ -4007,7 +4021,8 @@ LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 			scroll(SCROLL_LINEUP, 0, pt.y < rect.top);
 			bScroll = true;
 		}
-		else if (pt.y > rect.bottom - pImpl_->nMarginBottom_) {
+		else if (pt.y >= static_cast<int>(rect.top + pImpl_->nMarginTop_ +
+			pImpl_->getLineHeight()*pImpl_->getLineInWindow())) {
 			scroll(SCROLL_LINEDOWN, 0, pt.y > rect.bottom);
 			bScroll = true;
 		}
@@ -4021,10 +4036,10 @@ LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 		}
 		
 		if (bScroll)
-			pImpl_->updateSelection(pt, true);
+			pImpl_->updateSelection(pt, false);
 		
-		pImpl_->nTimerDragScroll_ = setTimer(TextWindowImpl::TIMER_DRAGSCROLL,
-			TextWindowImpl::DRAGSCROLL_INTERVAL);
+		pImpl_->nTimerDragScroll_ = setTimer(
+			TextWindowImpl::TIMER_DRAGSCROLL, pImpl_->nDragScrollInterval_);
 		
 		return 0;
 	}
