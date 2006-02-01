@@ -4016,14 +4016,19 @@ LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 		RECT rect;
 		getClientRect(&rect);
 		
+		int nTop = rect.top + pImpl_->nMarginTop_;
+		int nBottom = nTop + pImpl_->getLineHeight()*pImpl_->getLineInWindow();
+		
 		bool bScroll = false;
-		if (pt.y < rect.top + pImpl_->nMarginTop_) {
-			scroll(SCROLL_LINEUP, 0, pt.y < rect.top);
+		int nDiff = 0;
+		if (pt.y < nTop) {
+			scroll(SCROLL_LINEUP, 0, false);
+			nDiff = nTop - pt.y;
 			bScroll = true;
 		}
-		else if (pt.y >= static_cast<int>(rect.top + pImpl_->nMarginTop_ +
-			pImpl_->getLineHeight()*pImpl_->getLineInWindow())) {
-			scroll(SCROLL_LINEDOWN, 0, pt.y > rect.bottom);
+		else if (pt.y >= nBottom) {
+			scroll(SCROLL_LINEDOWN, 0, false);
+			nDiff = pt.y - nBottom;
 			bScroll = true;
 		}
 		if (pt.x < rect.left + pImpl_->nMarginLeft_) {
@@ -4038,8 +4043,11 @@ LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 		if (bScroll)
 			pImpl_->updateSelection(pt, false);
 		
-		pImpl_->nTimerDragScroll_ = setTimer(
-			TextWindowImpl::TIMER_DRAGSCROLL, pImpl_->nDragScrollInterval_);
+		const int nDelta = 10;
+		const int nMax = 20;
+		int nSpeed = nDiff > nDelta*nMax ? nMax : nDiff >= nDelta ? nDiff/nDelta : 1;
+		pImpl_->nTimerDragScroll_ = setTimer(TextWindowImpl::TIMER_DRAGSCROLL,
+			pImpl_->nDragScrollInterval_/nSpeed);
 		
 		return 0;
 	}
