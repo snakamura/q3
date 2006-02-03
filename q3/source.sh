@@ -9,6 +9,7 @@ GLOBALS=" \
 	*.mak \
 	*.sh \
 	*.awk \
+	*.xsl \
 	patch/*.patch \
 "
 SRC=`/bin/find . \( \( -type f -a -regex ".*/\(src\|include\)\(/.*\.\(cpp\|c\|h\|inl\|idl\|def\|rc\)\|.*/res/.*\)$" -a ! -regex ".*/\.svn/.*" \) -o -name makefile -o -name libname -o -name platforms \) -a ! -name version.h`
@@ -18,8 +19,6 @@ SCHEMA=" \
 "
 
 DOCS=" \
+	Doxyfile \
 "
-SPRS=" \
-"
-
-zip -ru $ARCHIVE $GLOBALS $SRC $SCHEMA
+zip -ru $ARCHIVE $GLOBALS $SRC $SCHEMA $DOCS
