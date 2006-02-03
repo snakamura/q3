@@ -206,7 +206,7 @@ installer)
     ;;
 
 *)
-	REVISION=`LC_MESSAGES=C svn info | grep "Last Changed Rev" | sed -e 's/[^0-9]\+//'`
+	REVISION=`svn info --xml | xsltproc --param path "'info/entry/commit/@revision'" xpath.xsl -`
 	if [ -f revision ]; then
 		OLDREVISION=`cat revision`
 	fi
