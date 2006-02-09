@@ -1,0 +1,4 @@
+=begin
+=FileCheckアクション
+
+=end

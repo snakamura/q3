@@ -1,0 +1,4 @@
+=begin
+=MessageMarkSeenアクション
+
+=end

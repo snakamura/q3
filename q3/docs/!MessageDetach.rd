@@ -1,0 +1,4 @@
+=begin
+=MessageDetachアクション
+
+=end

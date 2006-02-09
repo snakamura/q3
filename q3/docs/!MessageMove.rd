@@ -1,0 +1,4 @@
+=begin
+=MessageMoveアクション
+
+=end

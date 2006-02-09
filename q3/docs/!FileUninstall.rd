@@ -1,0 +1,4 @@
+=begin
+=FileUninstallアクション
+
+=end

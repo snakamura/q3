@@ -1,0 +1,4 @@
+=begin
+=ViewRawModeアクション
+
+=end

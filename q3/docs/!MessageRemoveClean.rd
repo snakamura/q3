@@ -1,0 +1,4 @@
+=begin
+=MessageRemoveCleanアクション
+
+=end

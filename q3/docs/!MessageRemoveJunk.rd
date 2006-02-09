@@ -1,0 +1,4 @@
+=begin
+=MessageRemoveJunkアクション
+
+=end

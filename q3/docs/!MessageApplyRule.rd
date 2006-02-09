@@ -1,0 +1,4 @@
+=begin
+=MessageApplyRuleアクション
+
+=end

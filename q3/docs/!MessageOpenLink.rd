@@ -1,0 +1,4 @@
+=begin
+=MessageOpenLinkアクション
+
+=end

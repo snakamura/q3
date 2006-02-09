@@ -1,0 +1,4 @@
+=begin
+=FolderDeleteアクション
+
+=end
