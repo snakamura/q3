@@ -1,6 +1,6 @@
 # $Id$
 
-.PHONY: installer zip copy
+.PHONY: installer zip copy doc
 
 installer: copy
 	./build.sh installer
@@ -10,6 +10,9 @@ zip:
 
 copy:
 	./build.sh copy
+
+doc:
+	./build.sh doc
 
 
 %:
