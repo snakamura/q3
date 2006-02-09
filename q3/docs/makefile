@@ -1,6 +1,6 @@
 HTMLDIR	= html
 
-HTMLS	= $(patsubst %.rd, $(HTMLDIR)/%.html, $(wildcard [A-Z@!]*.rd)) $(HTMLDIR)/index.html
+HTMLS	= $(patsubst %.rd, $(HTMLDIR)/%.html, $(wildcard [A-Z@!]*.rd))
 HEAD	= head.rd
 
 all: $(HTMLS)
