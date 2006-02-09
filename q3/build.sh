@@ -191,6 +191,10 @@ zip)
 	;;
 
 doc)
+	(cd docs; make)
+	;;
+
+apidoc)
 	"$DOXYGEN"
 	;;
 
