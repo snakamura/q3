@@ -579,6 +579,15 @@ const char *vlcurkeycache(VILLA *villa, int *sp);
 const char *vlcurvalcache(VILLA *villa, int *sp);
 
 
+/* Set the size of the free block pool of a database handle.
+   `villa' specifies a database handle connected as a writer.
+   `size' specifies the size of the free block pool of a database.
+   If successful, the return value is true, else, it is false.
+   The default size of the free block pool is 64.  If the size is greater, the space efficiency
+   of overwriting values is improved with the time efficiency sacrificed. */
+int vlsetfbpsiz(VILLA *villa, int size);
+
+
 /* Get flags of a database.
    `villa' specifies a database handle.
    The return value is the flags of a database. */

@@ -104,6 +104,7 @@ extern "C" {
 #define vlgetcache     vstgetcache
 #define vlcurkeycache  vstcurkeycache
 #define vlcurvalcache  vstcurvalcache
+#define vlsetfbpsiz    vstsetfbpsiz
 #define vlgetflags     vstgetflags
 #define vlsetflags     vstsetflags
 
