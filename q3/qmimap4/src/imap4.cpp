@@ -2797,14 +2797,18 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 				// Octet
 			case 9:
 				// Line
-				if ((*it)->getType() != ListItem::TYPE_TEXT) {
-					return std::auto_ptr<FetchDataBodyStructure>(0);
-				}
-				else {
+				if ((*it)->getType() == ListItem::TYPE_TEXT) {
 					std::pair<const CHAR*, size_t> value(
 						static_cast<ListItemText*>(*it)->getText().get());
 					if (!TokenUtil::string2number(value, pn[nCount - 6]))
 						return std::auto_ptr<FetchDataBodyStructure>(0);
+				}
+				else if ((*it)->getType() == ListItem::TYPE_NIL) {
+					// Some server return nil instead of number.
+					*pn[nCount - 6] = 0;
+				}
+				else {
+					return std::auto_ptr<FetchDataBodyStructure>(0);
 				}
 				if (nCount == 6) {
 					if (_stricmp(strContentType.get(), "MESSAGE") == 0 &&
