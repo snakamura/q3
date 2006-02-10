@@ -3,6 +3,8 @@
 
 [オプション]の[検索]パネルでは検索関係の設定を行います。
 
+((<検索の設定|"IMG:images/OptionSearch.png">))
+
 
 ==[Namazu][Hyper Estraier][カスタム]
 全文検索で使うエンジンを指定します。
