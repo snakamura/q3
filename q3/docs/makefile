@@ -5,6 +5,9 @@ HEAD	= head.rd
 
 all: $(HTMLS)
 
+clean:
+	rm -rf $(HTMLDIR)
+
 $(HTMLDIR)/%.html: %.rd
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	cat $(HEAD) $< | ruby -Ku /usr/local/bin/rd2 -r rd/rd2html-ext-lib.rb --ref-extension --headline-secno --head-element --with-part=head > $@
