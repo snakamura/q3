@@ -1,12 +1,12 @@
 =begin
-=QMAIL3ã®ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ
+=QMAIL3‚ÌƒhƒLƒ…ƒƒ“ƒg
 
-==ç›®æ¬¡
-*((<ã‚¹ãƒ‘ãƒ ãƒ•ã‚£ãƒ«ã‚¿|URL:JunkFilter.html>))
-*è¨­å®š
-  *((<ã‚¹ãƒ‘ãƒ ãƒ•ã‚£ãƒ«ã‚¿ã®è¨­å®š|URL:ConfigJunkFilter.html>))
-*((<ã‚³ãƒžãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³|URL:CommandLine.html>))
+==–ÚŽŸ
+*((<ƒXƒpƒ€ƒtƒBƒ‹ƒ^|URL:JunkFilter.html>))
+*Ý’è
+  *((<ƒXƒpƒ€ƒtƒBƒ‹ƒ^‚ÌÝ’è|URL:ConfigJunkFilter.html>))
+*((<ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“|URL:CommandLine.html>))
 *FAQ
-  *((<ãƒ¬ã‚¸ã‚¹ãƒˆãƒªã‚’ä½¿ç”¨ã—ãªã„æ–¹æ³•|URL:HowNotToUseRegistry.html>))
+  *((<ƒŒƒWƒXƒgƒŠ‚ðŽg—p‚µ‚È‚¢•û–@|URL:HowNotToUseRegistry.html>))
 
 =end
