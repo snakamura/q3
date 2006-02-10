@@ -1,0 +1,6 @@
+=begin
+=ToolReceiveFolderアクション
+
+// TODO
+
+=end

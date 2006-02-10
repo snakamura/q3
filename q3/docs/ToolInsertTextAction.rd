@@ -1,0 +1,6 @@
+=begin
+=ToolInsertTextアクション
+
+// TODO
+
+=end

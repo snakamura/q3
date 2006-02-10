@@ -1,0 +1,6 @@
+=begin
+=EditDeleteWordアクション
+
+// TODO
+
+=end

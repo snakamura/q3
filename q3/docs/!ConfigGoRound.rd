@@ -1,4 +1,0 @@
-=begin
-=ConfigGoRoundアクション
-
-=end

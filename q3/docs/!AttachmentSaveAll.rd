@@ -1,4 +1,0 @@
-=begin
-=AttachmentSaveAllアクション
-
-=end

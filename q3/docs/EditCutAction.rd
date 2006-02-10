@@ -1,0 +1,6 @@
+=begin
+=EditCutアクション
+
+// TODO
+
+=end

@@ -1,4 +1,0 @@
-=begin
-=AttachmentOpenアクション
-
-=end

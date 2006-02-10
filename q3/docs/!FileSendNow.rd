@@ -1,4 +1,0 @@
-=begin
-=FileSendNowアクション
-
-=end

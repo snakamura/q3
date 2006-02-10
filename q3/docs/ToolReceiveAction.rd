@@ -1,0 +1,6 @@
+=begin
+=ToolReceiveアクション
+
+// TODO
+
+=end

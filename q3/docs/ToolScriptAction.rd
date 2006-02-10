@@ -1,0 +1,6 @@
+=begin
+=ToolScriptアクション
+
+// TODO
+
+=end

@@ -1,0 +1,6 @@
+=begin
+=MessageCreateExternalアクション
+
+// TODO
+
+=end

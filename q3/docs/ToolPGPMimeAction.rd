@@ -1,0 +1,6 @@
+=begin
+=ToolPGPMimeアクション
+
+// TODO
+
+=end

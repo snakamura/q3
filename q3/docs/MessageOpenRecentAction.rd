@@ -1,0 +1,6 @@
+=begin
+=MessageOpenRecentアクション
+
+// TODO
+
+=end

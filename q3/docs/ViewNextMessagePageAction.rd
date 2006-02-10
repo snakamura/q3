@@ -1,0 +1,6 @@
+=begin
+=ViewNextMessagePageアクション
+
+// TODO
+
+=end

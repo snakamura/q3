@@ -1,4 +1,0 @@
-=begin
-=FileExitアクション
-
-=end

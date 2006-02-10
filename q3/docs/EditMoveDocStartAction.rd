@@ -1,0 +1,6 @@
+=begin
+=EditMoveDocStartアクション
+
+// TODO
+
+=end

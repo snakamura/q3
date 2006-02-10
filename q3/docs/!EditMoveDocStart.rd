@@ -1,4 +1,0 @@
-=begin
-=EditMoveDocStartアクション
-
-=end

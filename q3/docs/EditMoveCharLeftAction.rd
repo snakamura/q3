@@ -1,0 +1,6 @@
+=begin
+=EditMoveCharLeftアクション
+
+// TODO
+
+=end

@@ -1,0 +1,6 @@
+=begin
+=ToolSMIMEEncryptアクション
+
+// TODO
+
+=end

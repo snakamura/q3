@@ -1,4 +1,0 @@
-=begin
-=EditDeleteCacheアクション
-
-=end

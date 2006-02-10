@@ -1,0 +1,6 @@
+=begin
+=FileCompactアクション
+
+// TODO
+
+=end

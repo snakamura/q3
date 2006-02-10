@@ -1,4 +1,0 @@
-=begin
-=ViewHtmlInternetZoneModeアクション
-
-=end

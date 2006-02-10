@@ -1,0 +1,6 @@
+=begin
+=MessageApplyRuleSelectedアクション
+
+// TODO
+
+=end

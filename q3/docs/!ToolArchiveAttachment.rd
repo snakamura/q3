@@ -1,4 +1,0 @@
-=begin
-=ToolArchiveAttachmentアクション
-
-=end

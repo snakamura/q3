@@ -1,0 +1,6 @@
+=begin
+=MessageCertificateアクション
+
+// TODO
+
+=end

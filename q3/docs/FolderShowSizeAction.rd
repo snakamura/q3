@@ -1,0 +1,6 @@
+=begin
+=FolderShowSizeアクション
+
+// TODO
+
+=end

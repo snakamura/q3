@@ -1,0 +1,6 @@
+=begin
+=MessageOpenLinkアクション
+
+// TODO
+
+=end

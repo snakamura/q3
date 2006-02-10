@@ -1,0 +1,6 @@
+=begin
+=ToolSMIMESignアクション
+
+// TODO
+
+=end

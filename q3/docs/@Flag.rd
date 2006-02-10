@@ -1,4 +1,0 @@
-=begin
-=@Flag
-
-=end

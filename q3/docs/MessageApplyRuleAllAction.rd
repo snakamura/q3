@@ -1,0 +1,6 @@
+=begin
+=MessageApplyRuleAllアクション
+
+// TODO
+
+=end

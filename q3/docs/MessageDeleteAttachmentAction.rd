@@ -1,0 +1,6 @@
+=begin
+=MessageDeleteAttachmentアクション
+
+// TODO
+
+=end

@@ -1,0 +1,6 @@
+=begin
+=ViewEncodingアクション
+
+// TODO
+
+=end

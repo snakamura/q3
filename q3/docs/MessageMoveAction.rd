@@ -1,0 +1,6 @@
+=begin
+=MessageMoveアクション
+
+// TODO
+
+=end

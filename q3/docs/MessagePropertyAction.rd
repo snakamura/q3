@@ -1,0 +1,6 @@
+=begin
+=MessagePropertyアクション
+
+// TODO
+
+=end

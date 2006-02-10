@@ -1,0 +1,6 @@
+=begin
+=MessageDetachアクション
+
+// TODO
+
+=end

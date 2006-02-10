@@ -1,0 +1,6 @@
+=begin
+=MessageLabelアクション
+
+// TODO
+
+=end

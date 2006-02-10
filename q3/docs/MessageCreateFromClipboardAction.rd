@@ -1,0 +1,6 @@
+=begin
+=MessageCreateFromClipboardアクション
+
+// TODO
+
+=end

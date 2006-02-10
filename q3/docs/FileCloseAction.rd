@@ -1,0 +1,6 @@
+=begin
+=FileCloseアクション
+
+// TODO
+
+=end

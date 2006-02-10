@@ -1,0 +1,6 @@
+=begin
+=MessageMarkDeletedアクション
+
+// TODO
+
+=end

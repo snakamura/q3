@@ -1,4 +1,0 @@
-=begin
-=AddressEditアクション
-
-=end

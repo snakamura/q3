@@ -1,0 +1,6 @@
+=begin
+=EditMoveLineStartアクション
+
+// TODO
+
+=end

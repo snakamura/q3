@@ -1,0 +1,6 @@
+=begin
+=ConfigRulesアクション
+
+// TODO
+
+=end

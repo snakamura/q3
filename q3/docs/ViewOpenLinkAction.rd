@@ -1,0 +1,6 @@
+=begin
+=ViewOpenLinkアクション
+
+// TODO
+
+=end

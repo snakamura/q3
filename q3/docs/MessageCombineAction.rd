@@ -1,0 +1,6 @@
+=begin
+=MessageCombineアクション
+
+// TODO
+
+=end

@@ -1,0 +1,6 @@
+=begin
+=ViewTemplateアクション
+
+// TODO
+
+=end

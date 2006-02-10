@@ -1,0 +1,6 @@
+=begin
+=ViewShowHeaderColumnアクション
+
+// TODO
+
+=end

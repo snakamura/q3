@@ -1,4 +1,0 @@
-=begin
-=EditMoveCharLeftアクション
-
-=end

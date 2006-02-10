@@ -1,4 +1,0 @@
-=begin
-=@Draft
-
-=end

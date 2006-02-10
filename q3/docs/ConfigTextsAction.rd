@@ -1,0 +1,6 @@
+=begin
+=ConfigTextsアクション
+
+// TODO
+
+=end

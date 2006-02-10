@@ -1,0 +1,6 @@
+=begin
+=MessageMarkSeenアクション
+
+// TODO
+
+=end

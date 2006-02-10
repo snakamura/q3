@@ -1,0 +1,6 @@
+=begin
+=MessageExpandDigestアクション
+
+// TODO
+
+=end

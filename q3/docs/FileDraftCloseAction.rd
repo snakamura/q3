@@ -1,0 +1,6 @@
+=begin
+=FileDraftCloseアクション
+
+// TODO
+
+=end

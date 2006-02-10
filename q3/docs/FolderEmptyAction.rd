@@ -1,0 +1,6 @@
+=begin
+=FolderEmptyアクション
+
+// TODO
+
+=end

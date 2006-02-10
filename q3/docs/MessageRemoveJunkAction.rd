@@ -1,0 +1,6 @@
+=begin
+=MessageRemoveJunkアクション
+
+// TODO
+
+=end

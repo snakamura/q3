@@ -1,0 +1,6 @@
+=begin
+=ViewSelectMessageアクション
+
+// TODO
+
+=end

@@ -1,0 +1,6 @@
+=begin
+=ToolEncodingアクション
+
+// TODO
+
+=end

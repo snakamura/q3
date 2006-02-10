@@ -1,0 +1,6 @@
+=begin
+=ToolInsertSignatureアクション
+
+// TODO
+
+=end

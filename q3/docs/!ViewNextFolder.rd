@@ -1,4 +1,0 @@
-=begin
-=ViewNextFolderアクション
-
-=end

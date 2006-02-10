@@ -1,0 +1,6 @@
+=begin
+=FolderCollapseアクション
+
+// TODO
+
+=end
