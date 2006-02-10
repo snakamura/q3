@@ -106,18 +106,26 @@ int qm::main(const WCHAR* pwszCommandLine)
 	if (pwszProfile)
 		wstrProfile = allocWString(pwszProfile);
 	
-	if (!wstrMailFolder.get() || !wstrProfile.get()) {
+	if (!wstrMailFolder.get()) {
 		TCHAR tszPath[MAX_PATH + 1];
-		if (::GetModuleFileName(0, tszPath, MAX_PATH) > 5 &&
-			_tcsicmp(tszPath + _tcslen(tszPath) - 5, _T("x.exe")) == 0) {
-			if (!wstrMailFolder.get()) {
-				wstring_ptr wstrPath(tcs2wcs(tszPath));
-				const WCHAR* p = wcsrchr(wstrPath.get(), L'\\');
-				if (p)
-					wstrMailFolder = concat(wstrPath.get(), p - wstrPath.get(), L"\\mail", -1);
-				else
-					wstrMailFolder = allocWString(L"\\mail");
-			}
+		int nLen = ::GetModuleFileName(0, tszPath, MAX_PATH);
+		
+		bool bLocal = nLen > 5 && _tcsicmp(tszPath + _tcslen(tszPath) - 5, _T("x.exe")) == 0;
+		
+		wstring_ptr wstrPath(tcs2wcs(tszPath));
+		const WCHAR* p = wcsrchr(wstrPath.get(), L'\\');
+		wstring_ptr wstrLocalMailFolder;
+		if (p)
+			wstrLocalMailFolder = concat(wstrPath.get(), p - wstrPath.get(), L"\\mail", -1);
+		else
+			wstrLocalMailFolder = allocWString(L"\\mail");
+		if (!bLocal) {
+			W2T(wstrLocalMailFolder.get(), ptszLocalMailFolder);
+			DWORD dwAttributes = ::GetFileAttributes(ptszLocalMailFolder);
+			bLocal = dwAttributes != 0xffffffff && dwAttributes & FILE_ATTRIBUTE_DIRECTORY;
+		}
+		if (bLocal) {
+			wstrMailFolder = wstrLocalMailFolder;
 			if (!wstrProfile.get())
 				wstrProfile = allocWString(L"");
 		}
