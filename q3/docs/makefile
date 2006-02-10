@@ -7,4 +7,4 @@ all: $(HTMLS)
 
 $(HTMLDIR)/%.html: %.rd
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	cat $(HEAD) $< | rd2 -r rd/rd2html-ext-lib.rb --ref-extension --headline-secno --head-element --with-part=head > $@
+	cat $(HEAD) $< | ruby -Ku /usr/local/bin/rd2 -r rd/rd2html-ext-lib.rb --ref-extension --headline-secno --head-element --with-part=head > $@
