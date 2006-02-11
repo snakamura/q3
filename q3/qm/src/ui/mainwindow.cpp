@@ -3217,6 +3217,8 @@ void qm::SplitterHelper::save() const
 {
 	pProfile_->setInt(L"MainWindow", L"PrimaryLocation", nLocations_[SPLITTER_PRIMARY]);
 	pProfile_->setInt(L"MainWindow", L"SecondaryLocation", nLocations_[SPLITTER_SECONDARY]);
+	pProfile_->setInt(L"MainWindow", L"ShowFolderWindow", bVisible_[COMPONENT_FOLDER]);
+	pProfile_->setInt(L"MainWindow", L"ShowPreviewWindow", bVisible_[COMPONENT_PREVIEW]);
 }
 
 SplitterHelper::Splitter qm::SplitterHelper::getSplitter(Component component) const
