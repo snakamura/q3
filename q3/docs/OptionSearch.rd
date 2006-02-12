@@ -6,9 +6,16 @@
 ((<検索の設定|"IMG:images/OptionSearch.png">))
 
 
-==[Namazu][Hyper Estraier][カスタム]
+====[全文検索]
 全文検索で使うエンジンを指定します。
 
++[Namazu]
+((<Namazu|URL:http://www.namazu.org/>))を使用します。
+
++[Hyper Estraier]
+((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))を使用します。
+
++[カスタム]
 カスタムを選択した場合には、検索・更新時に呼び出すコマンドを指定します。コマンドの指定では以下の置換文字列が使用できます。
 
 *検索
