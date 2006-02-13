@@ -19,6 +19,15 @@
   *((<確認の設定|URL:OptionConfirm.html>))
   *((<その他の設定|URL:OptionMisc.html>))
   *((<その他2の設定|URL:OptionMisc2.html>))
+*アクション
+  *((<ConfigAutoPilotアクション|URL:ConfigAutoPilotAction.html>))
+  *((<ConfigColorsアクション|URL:ConfigColorsAction.html>))
+  *((<ConfigFiltersアクション|URL:ConfigFiltersAction.html>))
+  *((<ConfigGoRoundアクション|URL:ConfigGoRoundAction.html>))
+  *((<ConfigRulesアクション|URL:ConfigRulesAction.html>))
+  *((<ConfigSignaturesアクション|URL:ConfigSignaturesAction.html>))
+  *((<ConfigSyncFiltersアクション|URL:ConfigSyncFiltersAction.html>))
+  *((<ConfigTextsアクション|URL:ConfigTextsAction.html>))
 *((<コマンドライン|URL:CommandLine.html>))
 *FAQ
   *((<どうやったらレジストリを使用しないようにできますか?|URL:HowToNotUseRegistry.html>))
