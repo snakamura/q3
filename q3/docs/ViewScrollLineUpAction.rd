@@ -1,5 +1,5 @@
 =begin
-=ViewScrollLineUpã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewScrollLineUpƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

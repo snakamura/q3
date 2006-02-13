@@ -1,5 +1,5 @@
 =begin
-=ViewShowFolderã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewShowFolderƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

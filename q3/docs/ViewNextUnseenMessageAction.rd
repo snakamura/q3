@@ -1,5 +1,5 @@
 =begin
-=ViewNextUnseenMessageã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewNextUnseenMessageƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

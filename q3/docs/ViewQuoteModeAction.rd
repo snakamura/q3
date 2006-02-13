@@ -1,5 +1,5 @@
 =begin
-=ViewQuoteModeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewQuoteModeƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

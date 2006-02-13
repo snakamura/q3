@@ -1,5 +1,5 @@
 =begin
-=ToolPGPEncryptã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolPGPEncryptƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

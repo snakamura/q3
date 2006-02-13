@@ -1,5 +1,5 @@
 =begin
-=ViewSourceModeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewSourceModeƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

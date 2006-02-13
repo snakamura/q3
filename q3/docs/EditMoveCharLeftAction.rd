@@ -1,5 +1,5 @@
 =begin
-=EditMoveCharLeftã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=EditMoveCharLeftƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

@@ -1,5 +1,5 @@
 =begin
-=MessagePropertyã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessagePropertyƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

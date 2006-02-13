@@ -1,5 +1,5 @@
 =begin
-=AttachmentOpenã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=AttachmentOpenƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

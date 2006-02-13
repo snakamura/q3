@@ -1,5 +1,5 @@
 =begin
-=ToolReceiveã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolReceiveƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

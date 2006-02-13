@@ -1,5 +1,5 @@
 =begin
-=ViewSelectMessageã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewSelectMessageƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

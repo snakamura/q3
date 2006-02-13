@@ -1,5 +1,5 @@
 =begin
-=ViewSortToggleThreadã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewSortToggleThreadƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

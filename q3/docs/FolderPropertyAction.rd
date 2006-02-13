@@ -1,5 +1,5 @@
 =begin
-=FolderPropertyã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FolderPropertyƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

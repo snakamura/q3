@@ -1,5 +1,5 @@
 =begin
-=ViewPGPModeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewPGPModeƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

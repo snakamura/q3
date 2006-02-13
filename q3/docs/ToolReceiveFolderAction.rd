@@ -1,5 +1,5 @@
 =begin
-=ToolReceiveFolderã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolReceiveFolderƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

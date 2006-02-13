@@ -1,5 +1,5 @@
 =begin
-=ToolSMIMEEncryptã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolSMIMEEncryptƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

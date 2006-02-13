@@ -1,5 +1,5 @@
 =begin
-=ToolEncodingã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolEncodingƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

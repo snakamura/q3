@@ -1,5 +1,5 @@
 =begin
-=ConfigSyncFiltersã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ConfigSyncFiltersƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

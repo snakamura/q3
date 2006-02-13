@@ -1,5 +1,5 @@
 =begin
-=MessageRemoveJunkã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageRemoveJunkƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

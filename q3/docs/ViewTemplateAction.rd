@@ -1,5 +1,5 @@
 =begin
-=ViewTemplateã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewTemplateƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

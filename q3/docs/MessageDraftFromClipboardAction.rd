@@ -1,5 +1,5 @@
 =begin
-=MessageDraftFromClipboardã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageDraftFromClipboardƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

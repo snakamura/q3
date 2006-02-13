@@ -1,5 +1,5 @@
 =begin
-=ViewShowHeaderã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewShowHeaderƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

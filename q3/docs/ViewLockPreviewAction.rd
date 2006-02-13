@@ -1,5 +1,5 @@
 =begin
-=ViewLockPreviewã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewLockPreviewƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

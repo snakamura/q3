@@ -1,5 +1,5 @@
 =begin
-=ViewNextAccountã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewNextAccountƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

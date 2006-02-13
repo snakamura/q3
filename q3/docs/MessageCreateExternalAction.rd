@@ -1,5 +1,5 @@
 =begin
-=MessageCreateExternalã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageCreateExternalƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

@@ -1,5 +1,5 @@
 =begin
-=ConfigSignaturesã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ConfigSignaturesƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

@@ -1,5 +1,5 @@
 =begin
-=FileInsertã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FileInsertƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

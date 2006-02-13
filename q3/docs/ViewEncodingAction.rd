@@ -1,5 +1,5 @@
 =begin
-=ViewEncodingã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewEncodingƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

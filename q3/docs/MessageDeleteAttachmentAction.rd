@@ -1,5 +1,5 @@
 =begin
-=MessageDeleteAttachmentã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageDeleteAttachmentƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

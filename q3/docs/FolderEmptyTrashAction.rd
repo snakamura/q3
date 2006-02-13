@@ -1,5 +1,5 @@
 =begin
-=FolderEmptyTrashã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FolderEmptyTrashƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

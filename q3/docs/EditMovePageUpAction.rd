@@ -1,5 +1,5 @@
 =begin
-=EditMovePageUpã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=EditMovePageUpƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

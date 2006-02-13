@@ -1,5 +1,5 @@
 =begin
-=FileCloseã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FileCloseƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

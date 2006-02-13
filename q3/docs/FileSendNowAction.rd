@@ -1,5 +1,5 @@
 =begin
-=FileSendNowã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FileSendNowƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

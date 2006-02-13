@@ -1,5 +1,5 @@
 =begin
-=ViewShowStatusBarã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewShowStatusBarƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

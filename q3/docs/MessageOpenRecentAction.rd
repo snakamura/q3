@@ -1,5 +1,5 @@
 =begin
-=MessageOpenRecentã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageOpenRecentƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

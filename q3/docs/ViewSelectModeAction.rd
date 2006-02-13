@@ -1,5 +1,5 @@
 =begin
-=ViewSelectModeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewSelectModeƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

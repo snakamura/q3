@@ -1,5 +1,5 @@
 =begin
-=ViewShowHeaderColumnã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewShowHeaderColumnƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

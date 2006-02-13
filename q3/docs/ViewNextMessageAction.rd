@@ -1,5 +1,5 @@
 =begin
-=ViewNextMessageã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewNextMessageƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

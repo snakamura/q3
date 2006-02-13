@@ -1,5 +1,5 @@
 =begin
-=MessageMacroã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageMacroƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

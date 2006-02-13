@@ -1,5 +1,5 @@
 =begin
-=MessageCertificateã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageCertificateƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

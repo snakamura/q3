@@ -1,5 +1,5 @@
 =begin
-=TabMoveRightã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=TabMoveRightƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

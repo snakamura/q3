@@ -1,5 +1,5 @@
 =begin
-=ConfigGoRoundã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ConfigGoRoundƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

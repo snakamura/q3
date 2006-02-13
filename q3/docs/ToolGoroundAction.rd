@@ -1,5 +1,5 @@
 =begin
-=ToolGoroundã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolGoroundƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

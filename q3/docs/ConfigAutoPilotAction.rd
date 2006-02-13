@@ -1,5 +1,5 @@
 =begin
-=ConfigAutoPilotã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ConfigAutoPilotƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

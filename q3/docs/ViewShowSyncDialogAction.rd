@@ -1,5 +1,5 @@
 =begin
-=ViewShowSyncDialogã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewShowSyncDialogƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

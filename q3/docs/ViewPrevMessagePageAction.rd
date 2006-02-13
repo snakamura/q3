@@ -1,5 +1,5 @@
 =begin
-=ViewPrevMessagePageã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewPrevMessagePageƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

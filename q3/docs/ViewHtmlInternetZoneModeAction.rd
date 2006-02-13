@@ -1,5 +1,5 @@
 =begin
-=ViewHtmlInternetZoneModeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewHtmlInternetZoneModeƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

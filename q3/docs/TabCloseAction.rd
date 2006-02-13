@@ -1,5 +1,5 @@
 =begin
-=TabCloseã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=TabCloseƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

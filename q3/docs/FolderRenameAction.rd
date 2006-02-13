@@ -1,5 +1,5 @@
 =begin
-=FolderRenameã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FolderRenameƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

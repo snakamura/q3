@@ -1,5 +1,5 @@
 =begin
-=EditCutã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=EditCutƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

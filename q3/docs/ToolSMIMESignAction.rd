@@ -1,5 +1,5 @@
 =begin
-=ToolSMIMESignã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolSMIMESignƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

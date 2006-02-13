@@ -1,5 +1,5 @@
 =begin
-=ViewRefreshã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewRefreshƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

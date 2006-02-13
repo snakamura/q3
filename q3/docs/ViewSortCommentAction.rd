@@ -1,5 +1,5 @@
 =begin
-=ViewSortCommentã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewSortCommentƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

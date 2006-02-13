@@ -1,5 +1,5 @@
 =begin
-=EditSelectAllã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=EditSelectAllƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

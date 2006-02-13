@@ -1,5 +1,5 @@
 =begin
-=EditMoveLineStartã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=EditMoveLineStartƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

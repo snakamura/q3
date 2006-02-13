@@ -1,5 +1,5 @@
 =begin
-=FileCompactã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FileCompactƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

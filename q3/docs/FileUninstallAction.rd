@@ -1,5 +1,5 @@
 =begin
-=FileUninstallã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FileUninstallƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

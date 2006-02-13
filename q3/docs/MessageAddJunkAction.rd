@@ -1,5 +1,5 @@
 =begin
-=MessageAddJunkã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageAddJunkƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

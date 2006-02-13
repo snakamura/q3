@@ -1,5 +1,5 @@
 =begin
-=ViewScrollBottomã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewScrollBottomƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

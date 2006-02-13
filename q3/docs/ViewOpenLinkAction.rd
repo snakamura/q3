@@ -1,5 +1,5 @@
 =begin
-=ViewOpenLinkã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewOpenLinkƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

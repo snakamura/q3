@@ -1,5 +1,5 @@
 =begin
-=ToolInsertTextã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolInsertTextƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

@@ -1,5 +1,5 @@
 =begin
-=FolderDeleteã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FolderDeleteƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

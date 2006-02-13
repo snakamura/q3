@@ -1,5 +1,5 @@
 =begin
-=EditFindNextã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=EditFindNextƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

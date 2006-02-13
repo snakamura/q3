@@ -1,5 +1,5 @@
 =begin
-=MessageMarkUser2ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageMarkUser2ƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

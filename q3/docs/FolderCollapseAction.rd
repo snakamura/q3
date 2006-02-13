@@ -1,5 +1,5 @@
 =begin
-=FolderCollapseã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FolderCollapseƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

@@ -1,5 +1,5 @@
 =begin
-=ToolDialupã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolDialupƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

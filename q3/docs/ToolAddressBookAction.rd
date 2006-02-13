@@ -1,5 +1,5 @@
 =begin
-=ToolAddressBookã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolAddressBookƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

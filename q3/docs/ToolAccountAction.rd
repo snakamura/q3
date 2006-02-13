@@ -1,5 +1,5 @@
 =begin
-=ToolAccountã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolAccountƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

@@ -1,5 +1,5 @@
 =begin
-=EditPasteWithQuoteã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=EditPasteWithQuoteƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

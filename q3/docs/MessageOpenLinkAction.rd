@@ -1,5 +1,5 @@
 =begin
-=MessageOpenLinkã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageOpenLinkƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

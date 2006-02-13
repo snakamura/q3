@@ -1,5 +1,5 @@
 =begin
-=FolderShowSizeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=FolderShowSizeƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

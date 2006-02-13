@@ -1,5 +1,5 @@
 =begin
-=MessageApplyRuleã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageApplyRuleƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

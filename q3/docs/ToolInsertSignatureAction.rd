@@ -1,5 +1,5 @@
 =begin
-=ToolInsertSignatureã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolInsertSignatureƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

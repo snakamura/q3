@@ -1,5 +1,5 @@
 =begin
-=ViewScrollLineDownã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewScrollLineDownƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

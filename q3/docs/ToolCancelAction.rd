@@ -1,5 +1,5 @@
 =begin
-=ToolCancelã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ToolCancelƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

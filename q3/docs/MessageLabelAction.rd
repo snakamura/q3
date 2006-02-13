@@ -1,5 +1,5 @@
 =begin
-=MessageLabelã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=MessageLabelƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

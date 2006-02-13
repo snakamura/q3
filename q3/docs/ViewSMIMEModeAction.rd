@@ -1,5 +1,5 @@
 =begin
-=ViewSMIMEModeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewSMIMEModeƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

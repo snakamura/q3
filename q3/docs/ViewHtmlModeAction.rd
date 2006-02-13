@@ -1,5 +1,5 @@
 =begin
-=ViewHtmlModeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ViewHtmlModeƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

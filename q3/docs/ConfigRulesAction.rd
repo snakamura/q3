@@ -1,5 +1,5 @@
 =begin
-=ConfigRulesã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=ConfigRulesƒAƒNƒVƒ‡ƒ“
 
 // TODO
 

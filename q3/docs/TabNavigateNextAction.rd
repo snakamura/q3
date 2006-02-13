@@ -1,5 +1,5 @@
 =begin
-=TabNavigateNextã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+=TabNavigateNextƒAƒNƒVƒ‡ƒ“
 
 // TODO
 
