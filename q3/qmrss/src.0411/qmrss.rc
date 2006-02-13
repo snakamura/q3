@@ -86,7 +86,7 @@ BEGIN
     IDS_ERROR_URL           "URLが指定されていません"
     IDS_ERROR_GET           "RSSの取得中にエラーが発生しました"
     IDS_ERROR_PARSE         "RSSのパース中にエラーが発生しました"
-    IDS_ERROR_APPLYRULES    "振り分けルールの適用中にエラーが発生しました"
+    IDS_ERROR_APPLYRULES    "メッセージの振り分け中にエラーが発生しました"
     IDS_ERROR_EXCEEDMAXREDIRECT "最大リダイレクト回数を超えました"
     IDS_ERROR_PARSERESPONSEHEADER "レスポンスヘッダのパース中にエラーが発生しました"
     IDS_ERROR_PARSEREDIRECTLOCATION "Location:ヘッダのパース中にエラーが発生しました"

@@ -159,19 +159,19 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_PROGRESS_APPLYRULES "メッセージに振り分けルールを適用しています"
-    IDS_PROGRESS_CHECK      "メッセージを検査しています"
-    IDS_PROGRESS_COMPACT    "メッセージを整理しています"
-    IDS_PROGRESS_COPYMESSAGE "メッセージをコピーしています"
-    IDS_PROGRESS_DELETE     "メッセージを削除しています"
-    IDS_PROGRESS_DUMP       "メッセージをダンプしています"
-    IDS_PROGRESS_EMPTYTRASH "ゴミ箱を空にしています"
-    IDS_PROGRESS_EXPORT     "メッセージを書き出しています"
-    IDS_PROGRESS_IMPORT     "メッセージを読み込んでいます"
-    IDS_PROGRESS_LOAD       "メッセージをロードしています"
-    IDS_PROGRESS_MOVEMESSAGE "メッセージを移動しています"
-    IDS_PROGRESS_PROCESS    "処理しています"
-    IDS_PROGRESS_SALVAGE    "メッセージを救出しています"
+    IDS_PROGRESS_APPLYRULES "メッセージを振り分け中"
+    IDS_PROGRESS_CHECK      "メッセージを検査中"
+    IDS_PROGRESS_COMPACT    "メッセージを整理中"
+    IDS_PROGRESS_COPYMESSAGE "メッセージをコピー中"
+    IDS_PROGRESS_DELETE     "メッセージを削除中"
+    IDS_PROGRESS_DUMP       "メッセージをダンプ中"
+    IDS_PROGRESS_EMPTYTRASH "ゴミ箱内のメッセージを削除中"
+    IDS_PROGRESS_EXPORT     "メッセージを書き出し中"
+    IDS_PROGRESS_IMPORT     "メッセージを読み込み中"
+    IDS_PROGRESS_LOAD       "メッセージをロード中"
+    IDS_PROGRESS_MOVEMESSAGE "メッセージを移動中"
+    IDS_PROGRESS_PROCESS    "処理中"
+    IDS_PROGRESS_SALVAGE    "メッセージを救出中"
 END
 
 STRINGTABLE 
@@ -206,7 +206,7 @@ BEGIN
     IDS_TITLE_FULLTEXTSEARCH "全文検索"
     IDS_TITLE_MACROSEARCH   "基本"
     IDS_TITLE_PROPERTY      "プロパティ"
-    IDS_TITLE_RULES         "振り分けルールの設定"
+    IDS_TITLE_RULES         "振り分けの設定"
 END
 
 STRINGTABLE 
@@ -224,7 +224,7 @@ BEGIN
     IDS_MESSAGE_UPDATEFOLDER "フォルダリストを更新しますか？"
     IDS_MESSAGE_FINISHED    "終了しました"
     IDS_MESSAGE_CHECKMESSAGES "メッセージを調べています"
-    IDS_MESSAGE_APPLYRULE   "振り分けルールを適用しています"
+    IDS_MESSAGE_APPLYRULE   "メッセージを振り分けています"
     IDS_MESSAGE_FINDNOTFOUND "検索文字列が見つかりません"
 END
 
@@ -255,7 +255,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_TITLE_RULESETS      "振り分けルールの設定"
+    IDS_TITLE_RULESETS      "振り分けの設定"
     IDS_TITLE_SEARCH        "検索"
     IDS_TITLE_TEMPORARYFOLDER "一時フォルダ"
 END
@@ -350,7 +350,7 @@ BEGIN
     IDS_ERROR_EMPTYTRASH    "ゴミ箱を空にできません"
     IDS_ERROR_RENAMEFOLDER  "フォルダの名前の変更に失敗しました"
     IDS_ERROR_UPDATEFOLDER  "フォルダリストの更新に失敗しました"
-    IDS_ERROR_APPLYRULE     "振り分けルールの適用に失敗しました"
+    IDS_ERROR_APPLYRULE     "メッセージの振り分けに失敗しました"
     IDS_ERROR_APPLYTEMPLATE "テンプレートの適用中にエラーが発生しました"
     IDS_ERROR_COMBINE       "メッセージの結合に失敗しました"
     IDS_ERROR_CREATEMESSAGE "メッセージの作成に失敗しました"
@@ -433,7 +433,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_PANEL_PREVIEW       "プレビュー"
-    IDS_PANEL_RULES         "振り分けルール"
+    IDS_PANEL_RULES         "振り分け"
     IDS_PANEL_SEARCH        "検索"
     IDS_PANEL_SECURITY      "セキュリティ"
     IDS_PANEL_SIGNATURES    "署名"
