@@ -170,7 +170,7 @@ std::auto_ptr<Flags> qmimap4::Util::getImap4FlagsFromLabels(unsigned int nFlags,
 		string_ptr strFlag(concat(c, countof(c)));
 		listFlag.push_back(strFlag.release());
 	}
-	return std::auto_ptr<Flags>(new Flags(nFlags,
+	return std::auto_ptr<Flags>(new Flags(getImap4FlagsFromMessageFlags(nFlags),
 		const_cast<const CHAR**>(&listFlag[0]), listFlag.size()));
 }
 
