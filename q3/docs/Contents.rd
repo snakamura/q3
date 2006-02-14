@@ -2,6 +2,12 @@
 =QMAIL3のドキュメント
 
 ==目次
+*インストール
+  *((<インストール|URL:Install.html>))
+    *((<インストーラによるインストール|URL:InstallWithInstaller.html>))
+    *((<Zipファイルによるインストール|URL:InstallWithZip.html>))
+  *((<バージョンアップ|URL:VersionUp.html>))
+  *((<アンインストール|URL:Uninstall.html>))
 *((<スパムフィルタ|URL:JunkFilter.html>))
 *設定
   *((<フォルダビューの設定|URL:OptionFolder.html>))
@@ -33,5 +39,7 @@
   *((<どうやったらレジストリを使用しないようにできますか?|URL:HowToNotUseRegistry.html>))
   *((<なぜ自分が送信したメッセージを受信するのですか?|URL:WhyReceiveSentMessage.html>))
   *((<どうやってプレビューで開いたメッセージを既読にしないようにできますか?|URL:HowToNotMakeSeenOnPreview.html>))
+  *((<なぜ日本語化したのにメニューやツールバーが英語のままなのですか?|URL:WhyMenuAndToolbarAreNotLocalized.html>))
+  *((<どうやったらmailto URLへ関連付けられますか?|URL:HowToAssociateWithMailtoUrl.html>))
 
 =end
