@@ -203,8 +203,9 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
 		const WCHAR* pwszKey_;
 	} items[] = {
 		{ IDC_MACRO,		L"Macro"		},
-		{ IDC_MATCHCASE,	L"MatchCase",	},
-		{ IDC_SEARCHBODY,	L"SearchBody",	}
+		{ IDC_MATCHCASE,	L"MatchCase"	},
+		{ IDC_SEARCHHEADER,	L"SearchHeader"	},
+		{ IDC_SEARCHBODY,	L"SearchBody"	}
 	};
 	for (int n = 0; n < countof(items); ++n) {
 		int nValue = pProfile_->getInt(L"MacroSearch", items[n].pwszKey_, 0);
@@ -230,27 +231,31 @@ LRESULT qm::MacroSearchPage::onOk()
 			History(pProfile_, L"Search").addValue(wstrSearch.get());
 			bool bMacro = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) == BST_CHECKED;
 			bool bCase = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
+			bool bSearchHeader = sendDlgItemMessage(IDC_SEARCHHEADER, BM_GETCHECK) == BST_CHECKED;
 			bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;
 			if (bMacro) {
 				wstrCondition_ = wstrSearch;
 			}
 			else {
+				wstring_ptr wstrMacro(pProfile_->getString(L"MacroSearch", L"SearchMacro",
+					L"@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case))"));
 				wstring_ptr wstrLiteral(getLiteral(wstrSearch.get()));
 				
 				StringBuffer<WSTRING> buf;
-				buf.append(L"@Or(");
-				const WCHAR* pwszFields[] = {
-					L"%Subject",
-					L"%From",
-					L"%To"
-				};
-				for (int n = 0; n < countof(pwszFields); ++n) {
-					if (n != 0)
-						buf.append(L", ");
-					createMacro(&buf, pwszFields[n], wstrLiteral.get(), bCase);
-				}
-				if (bSearchBody)
-					createMacro(&buf, L"@Body('', @True())", wstrLiteral.get(), bCase);
+				buf.append(L"@Progn(@Set('Search', ");
+				buf.append(wstrLiteral.get());
+				buf.append(L"), @Set('Case', ");
+				buf.append(bCase ? L'1' : L'0');
+				buf.append(L"), ");
+				if (bSearchHeader || bSearchBody)
+					buf.append(L"@Or(");
+				buf.append(wstrMacro.get());
+				if (bSearchHeader && bSearchBody)
+					buf.append(L", @Contain(@Decode(@Header()), $Search, $Case), @Contain(@Body(), $Search, $Case))");
+				else if (bSearchHeader)
+					buf.append(L", @Contain(@Decode(@Header()), $Search, $Case))");
+				else if (bSearchBody)
+					buf.append(L", @Contain(@Body(), $Search, $Case))");
 				buf.append(L")");
 				
 				wstrCondition_ = buf.getString();
@@ -258,6 +263,7 @@ LRESULT qm::MacroSearchPage::onOk()
 			
 			pProfile_->setInt(L"MacroSearch", L"Macro", bMacro);
 			pProfile_->setInt(L"MacroSearch", L"MatchCase", bCase);
+			pProfile_->setInt(L"MacroSearch", L"SearchHeader", bSearchHeader);
 			pProfile_->setInt(L"MacroSearch", L"SearchBody", bSearchBody);
 		}
 	}

@@ -615,11 +615,13 @@ BEGIN
     COMBOBOX        IDC_CONDITION,50,5,160,75,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "大文字小文字を区別する(&C)",IDC_MATCHCASE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,105,10
+    CONTROL         "すべてのヘッダを検索する(&E)",IDC_SEARCHHEADER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,105,10
     CONTROL         "本文を検索する(&B)",IDC_SEARCHBODY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,70,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,105,10
     CONTROL         "マクロ(&M)",IDC_MACRO,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,45,60,10
+                    WS_TABSTOP,5,55,105,10
     GROUPBOX        "フォルダ",IDC_STATIC,115,25,75,45
     CONTROL         "現在(&U)",IDC_CURRENT,"Button",BS_AUTORADIOBUTTON,120,
                     35,55,10

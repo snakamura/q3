@@ -601,18 +601,20 @@ BEGIN
     COMBOBOX        IDC_CONDITION,45,5,87,70,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,25,55,10
+                    WS_TABSTOP,5,25,125,10
+    CONTROL         "S&earch All Headers",IDC_SEARCHHEADER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,125,10
     CONTROL         "Search &Body",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,35,60,10
+                    WS_TABSTOP,5,45,125,10
     CONTROL         "&Macro",IDC_MACRO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    5,45,50,10
-    CONTROL         "C&urrent",IDC_CURRENT,"Button",BS_AUTORADIOBUTTON,10,75,
+                    5,55,125,10
+    CONTROL         "C&urrent",IDC_CURRENT,"Button",BS_AUTORADIOBUTTON,10,85,
                     45,10
     CONTROL         "&Recursive",IDC_RECURSIVE,"Button",BS_AUTORADIOBUTTON,
-                    10,85,50,10
-    CONTROL         "All &Folder",IDC_ALLFOLDER,"Button",BS_AUTORADIOBUTTON,
                     10,95,50,10
-    GROUPBOX        "Folder",IDC_STATIC,5,65,65,45
+    CONTROL         "All &Folder",IDC_ALLFOLDER,"Button",BS_AUTORADIOBUTTON,
+                    10,105,50,10
+    GROUPBOX        "Folder",IDC_STATIC,5,75,65,45
 END
 
 IDD_FOLDERCONDITION DIALOG DISCARDABLE  0, 0, 137, 153

@@ -612,10 +612,12 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,25,100,10
+    CONTROL         "S&earch All Headers",IDC_SEARCHHEADER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,100,10
     CONTROL         "Search &Body",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,35,100,10
+                    WS_TABSTOP,5,45,100,10
     CONTROL         "&Macro",IDC_MACRO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    5,45,100,10
+                    5,55,100,10
     GROUPBOX        "Folder",IDC_STATIC,115,25,75,45
     CONTROL         "C&urrent",IDC_CURRENT,"Button",BS_AUTORADIOBUTTON,120,
                     35,65,10

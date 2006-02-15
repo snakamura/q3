@@ -592,10 +592,12 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "大文字小文字を区別する(&C)",IDC_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,25,95,10
+    CONTROL         "すべてのヘッダを検索する(&E)",IDC_SEARCHHEADER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,95,10
     CONTROL         "本文を検索する(&B)",IDC_SEARCHBODY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,70,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,95,10
     CONTROL         "マクロ(&M)",IDC_MACRO,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,45,50,10
+                    WS_TABSTOP,5,55,95,10
     CONTROL         "現在(&U)",IDC_CURRENT,"Button",BS_AUTORADIOBUTTON,110,
                     35,45,10
     CONTROL         "再帰(&R)",IDC_RECURSIVE,"Button",BS_AUTORADIOBUTTON,110,
