@@ -198,7 +198,7 @@ INT_PTR qs::PropertySheetBase::doModal(HWND hwndParent)
 INT_PTR qs::PropertySheetBase::doModal(HWND hwndParent,
 									   ModalHandler* pModalHandler)
 {
-	if (pModalHandler)
+	if (!pModalHandler)
 		pModalHandler = getModalHandler();
 	
 	auto_ptr_array<HPROPSHEETPAGE> aphpsp(new HPROPSHEETPAGE[pImpl_->listPage_.size()]);
@@ -211,7 +211,7 @@ INT_PTR qs::PropertySheetBase::doModal(HWND hwndParent,
 	while (it != pImpl_->listPage_.end())
 		aphpsp[n++] = (*it++)->pImpl_->hpsp_;
 	
-	ModalHandlerInvoker(pModalHandler, hwndParent);
+	ModalHandlerInvoker invoker(pModalHandler, hwndParent);
 	
 	PropertySheetBaseImpl::PropertySheetMap* pMap = 
 		PropertySheetBaseImpl::getPropertySheetMap();
