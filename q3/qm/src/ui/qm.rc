@@ -1,4 +1,4 @@
-// Microsoft Visual C++ generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -28,19 +28,19 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE MOVEABLE PURE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE MOVEABLE PURE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "#include ""actionid.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE MOVEABLE PURE 
 BEGIN
     "#include ""res\\\\version.rc""\r\n"
     "#include ""..\\\\model\\\\model.rc""\r\n"
@@ -55,13 +55,13 @@ END
 // Bitmap
 //
 
-IDB_ACCOUNT             BITMAP                  "res\\account.bmp"
-IDB_ADDRESSBOOK         BITMAP                  "res\\addressbook.bmp"
-IDB_FOLDER              BITMAP                  "res\\folder.bmp"
-IDB_HEADER              BITMAP                  "res\\header.bmp"
-IDB_LIST                BITMAP                  "res\\list.bmp"
-IDB_LISTDATA            BITMAP                  "res\\listdata.bmp"
-IDB_SYNCNOTIFICATION    BITMAP                  "res\\syncnotification.bmp"
+IDB_ACCOUNT             BITMAP  MOVEABLE PURE   "res\\account.bmp"
+IDB_ADDRESSBOOK         BITMAP  MOVEABLE PURE   "res\\addressbook.bmp"
+IDB_FOLDER              BITMAP  MOVEABLE PURE   "res\\folder.bmp"
+IDB_HEADER              BITMAP  MOVEABLE PURE   "res\\header.bmp"
+IDB_LIST                BITMAP  MOVEABLE PURE   "res\\list.bmp"
+IDB_LISTDATA            BITMAP  MOVEABLE PURE   "res\\listdata.bmp"
+IDB_SYNCNOTIFICATION    BITMAP  MOVEABLE PURE   "res\\syncnotification.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -70,20 +70,20 @@ IDB_SYNCNOTIFICATION    BITMAP                  "res\\syncnotification.bmp"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_MAINFRAME           ICON                    "res\\qmail.ico"
-IDI_DECRYPTED           ICON                    "res\\decrypted.ico"
-IDI_NEWMAIL             ICON                    "res\\newmail.ico"
-IDI_OFFLINE             ICON                    "res\\offline.ico"
-IDI_ONLINE              ICON                    "res\\online.ico"
-IDI_UNVERIFIED          ICON                    "res\\unverified.ico"
-IDI_VERIFIED            ICON                    "res\\verified.ico"
+IDI_MAINFRAME           ICON    DISCARDABLE     "res\\qmail.ico"
+IDI_DECRYPTED           ICON    DISCARDABLE     "res\\decrypted.ico"
+IDI_NEWMAIL             ICON    DISCARDABLE     "res\\newmail.ico"
+IDI_OFFLINE             ICON    DISCARDABLE     "res\\offline.ico"
+IDI_ONLINE              ICON    DISCARDABLE     "res\\online.ico"
+IDI_UNVERIFIED          ICON    DISCARDABLE     "res\\unverified.ico"
+IDI_VERIFIED            ICON    DISCARDABLE     "res\\verified.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
 //
 
-IDR_ADDRESSBOOK MENU 
+IDR_ADDRESSBOOK MENU DISCARDABLE 
 BEGIN
     POPUP ""
     BEGIN
@@ -101,28 +101,28 @@ END
 // TEMPLATE
 //
 
-MAIL.EDIT               TEMPLATE                "res\\mail.edit.template"
-MAIL.FORWARD            TEMPLATE                "res\\mail.forward.template"
-MAIL.NEW                TEMPLATE                "res\\mail.new.template"
-MAIL.PRINT              TEMPLATE                "res\\mail.print.template"
-MAIL.QUOTE              TEMPLATE                "res\\mail.quote.template"
-MAIL.REPLY              TEMPLATE                "res\\mail.reply.template"
-MAIL.REPLY_ALL          TEMPLATE                "res\\mail.reply_all.template"
-MAIL.URL                TEMPLATE                "res\\mail.url.template"
-NEWS.EDIT               TEMPLATE                "res\\news.edit.template"
-NEWS.FORWARD            TEMPLATE                "res\\news.forward.template"
-NEWS.NEW                TEMPLATE                "res\\news.new.template"
-NEWS.PRINT              TEMPLATE                "res\\news.print.template"
-NEWS.QUOTE              TEMPLATE                "res\\news.quote.template"
-NEWS.REPLY              TEMPLATE                "res\\news.reply.template"
-NEWS.REPLY_ALL          TEMPLATE                "res\\news.reply_all.template"
+MAIL.EDIT               TEMPLATE MOVEABLE PURE  "res\\mail.edit.template"
+MAIL.FORWARD            TEMPLATE MOVEABLE PURE  "res\\mail.forward.template"
+MAIL.NEW                TEMPLATE MOVEABLE PURE  "res\\mail.new.template"
+MAIL.PRINT              TEMPLATE MOVEABLE PURE  "res\\mail.print.template"
+MAIL.QUOTE              TEMPLATE MOVEABLE PURE  "res\\mail.quote.template"
+MAIL.REPLY              TEMPLATE MOVEABLE PURE  "res\\mail.reply.template"
+MAIL.REPLY_ALL          TEMPLATE MOVEABLE PURE  "res\\mail.reply_all.template"
+MAIL.URL                TEMPLATE MOVEABLE PURE  "res\\mail.url.template"
+NEWS.EDIT               TEMPLATE MOVEABLE PURE  "res\\news.edit.template"
+NEWS.FORWARD            TEMPLATE MOVEABLE PURE  "res\\news.forward.template"
+NEWS.NEW                TEMPLATE MOVEABLE PURE  "res\\news.new.template"
+NEWS.PRINT              TEMPLATE MOVEABLE PURE  "res\\news.print.template"
+NEWS.QUOTE              TEMPLATE MOVEABLE PURE  "res\\news.quote.template"
+NEWS.REPLY              TEMPLATE MOVEABLE PURE  "res\\news.reply.template"
+NEWS.REPLY_ALL          TEMPLATE MOVEABLE PURE  "res\\news.reply_all.template"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ACTION_SHOWTOOLBAR  "Show &Toolbar"
     IDS_ACTION_HIDETOOLBAR  "Hide &Toolbar"
@@ -134,7 +134,7 @@ BEGIN
     IDS_ACTION_HIDEHEADERCOLUMN "Hide Header &Column"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ACTION_SHOWPREVIEW  "Show &Preview"
     IDS_ACTION_HIDEPREVIEW  "Hide &Preview"
@@ -148,14 +148,14 @@ BEGIN
     IDS_ACTION_DIALUPDISCONNECT "&Dialup Disconnect"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MENU_THISFOLDER     "(This Folder)"
     IDS_MENU_NONE           "(None)"
     IDS_MENU_GOROUND        "&Go Round"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PROGRESS_APPLYRULES "Applying message rules..."
     IDS_PROGRESS_CHECK      "Checking messages..."
@@ -172,7 +172,7 @@ BEGIN
     IDS_PROGRESS_SALVAGE    "Salvaging messages..."
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_CONFIRM_OVERWRITE   "Would you like to overwrite the existing file?\n"
     IDS_CONFIRM_EXECUTEATTACHMENT 
@@ -195,7 +195,7 @@ BEGIN
                             "Error occured while checking the cache.\nDo you want to ignore it and remove this message?\nFolder: %s\nID: %u\nOffset: %u\nLength: %u"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_TITLE_ACCOUNT       "Account"
     IDS_TITLE_ADDRESSBOOK   "Address Book - QMAIL"
@@ -207,7 +207,7 @@ BEGIN
     IDS_TITLE_RULES         "Rules"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ADDRESSBOOK_ALLCATEGORY "&All"
     IDS_ADDRESSBOOK_THISCATEGORY "(&This Category)"
@@ -217,7 +217,7 @@ BEGIN
     IDS_ADDRESSBOOK_COLUMN_ADDRESS "Address"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MESSAGE_UPDATEFOLDER "Would you like to update a folder list now?"
     IDS_MESSAGE_FINISHED    "Finished"
@@ -226,7 +226,7 @@ BEGIN
     IDS_MESSAGE_FINDNOTFOUND "Not found."
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_CREATEFOLDER  "Could not create folder."
     IDS_ERROR_EXECUTEATTACHMENT "Could not execute attachment file."
@@ -246,19 +246,19 @@ BEGIN
     IDS_ERROR_DELETEFOLDER  "Error occured while deleting the folder."
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ADDRESSBOOK_COLUMN_COMMENT "Comment"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_TITLE_RULESETS      "RuleSets"
     IDS_TITLE_SEARCH        "Search"
     IDS_TITLE_TEMPORARYFOLDER "Temporary Folder"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_DEFAULTSUBACCOUNT   "(Default)"
     IDS_NORMALFOLDER        "Normal"
@@ -269,7 +269,7 @@ BEGIN
     IDS_OSDEFAULT           "OS Default"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_STATUS_VIEWMODELTEMPLATE "%u Message(s), %u Unseen, %u Selected"
     IDS_STATUS_VIEWMODELTEMPLATESHORT "%uM, %uU, %uS"
@@ -279,7 +279,7 @@ BEGIN
     IDS_STATUS_NONE         "(None)"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_FILTER_EXPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
     IDS_FILTER_IMPORT       "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
@@ -291,7 +291,7 @@ BEGIN
     IDS_FILTER_EXECUTABLE   "Executable Files (*.exe)|*.exe|All Files (*.*)|*.*||"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_FOLDERLIST_NAME     "Name"
     IDS_FOLDERLIST_ID       "ID"
@@ -299,12 +299,12 @@ BEGIN
     IDS_FOLDERLIST_UNSEENCOUNT "Unseen"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_FOLDERLIST_SIZE     "Size"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ALLFOLDER           "(All Folders)"
     IDS_UNSPECIFIED         "(Unspecified)"
@@ -315,7 +315,7 @@ BEGIN
     IDS_MACRO               "&Macro"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_CREATEACCOUNT "Error occured while creating an account."
     IDS_ERROR_MOVEFOLDER    "Error occured while moving folder."
@@ -335,14 +335,20 @@ BEGIN
     IDS_ERROR_CREATESUBACCOUNT "Error occured while creating a subaccount."
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_OUTBOXHASEXTRAFLAGS 
+                            "Outbox must not have flags other than Outbox or Draftbox"
+END
+
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_COLUMN_TITLE        "Title"
     IDS_COLUMN_TYPE         "Type"
     IDS_COLUMN_WIDTH        "Width"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_EMPTYFOLDER   "Error occured while emptying the folder."
     IDS_ERROR_EMPTYTRASH    "Error occured while emptying the trash."
@@ -362,7 +368,7 @@ BEGIN
     IDS_ERROR_SETFLAGS      "Error occured while setting flags."
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_SEARCH        "Error occured while searching."
     IDS_ERROR_DIALUPCONNECT "Error occured while connecting dialup."
@@ -382,7 +388,7 @@ BEGIN
     IDS_ERROR_INVALIDMACRO  "Error occured while parsing the macro."
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_COLUMNTYPE_ID       "ID"
     IDS_COLUMNTYPE_DATE     "Date"
@@ -396,19 +402,19 @@ BEGIN
     IDS_COLUMNTYPE_OTHER    "Other"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ARGUMENT_NAME       "Name"
     IDS_ARGUMENT_VALUE      "Value"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PROPERTY_NAME       "Name"
     IDS_PROPERTY_VALUE      "Value"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PANEL_ADDRESSBOOK   "Address Book"
     IDS_PANEL_AUTOPILOT     "Auto Pilot"
@@ -428,7 +434,7 @@ BEGIN
     IDS_PANEL_MISC2         "Misc2"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PANEL_PREVIEW       "Preview"
     IDS_PANEL_RULES         "Rules"
@@ -439,7 +445,7 @@ BEGIN
     IDS_PANEL_TAB           "Tab"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_RULE_NONE           "None"
     IDS_RULE_MOVE           "Move"
@@ -450,7 +456,7 @@ BEGIN
     IDS_RULE_APPLY          "Apply"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_LABEL_SET           "Set"
     IDS_LABEL_ADD           "Add"

@@ -859,6 +859,10 @@ bool qm::SyncManager::send(Document* pDocument,
 		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_NOOUTBOX, 0);
 		return false;
 	}
+	if (pOutbox->getFlags() & Folder::FLAG_BOX_MASK & ~Folder::FLAG_OUTBOX & ~Folder::FLAG_DRAFTBOX) {
+		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_OUTBOXHASEXTRAFLAGS, 0);
+		return false;
+	}
 	if (!pOutbox->loadMessageHolders()) {
 		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_LOADOUTBOX, 0);
 		return false;

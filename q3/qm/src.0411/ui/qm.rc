@@ -1,4 +1,4 @@
-// Microsoft Visual C++ generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -29,12 +29,12 @@ LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE MOVEABLE PURE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE MOVEABLE PURE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "#include ""..\\..\\src\\ui\\actionid.h""\r\n"
@@ -42,7 +42,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE MOVEABLE PURE 
 BEGIN
     "#include ""res\\\\version.rc""\r\n"
     "#include ""..\\\\model\\\\model.rc""\r\n"
@@ -57,13 +57,13 @@ END
 // Bitmap
 //
 
-IDB_ACCOUNT             BITMAP                  "..\\..\\src\\ui\\res\\account.bmp"
-IDB_ADDRESSBOOK         BITMAP                  "..\\..\\src\\ui\\res\\addressbook.bmp"
-IDB_FOLDER              BITMAP                  "..\\..\\src\\ui\\res\\folder.bmp"
-IDB_HEADER              BITMAP                  "..\\..\\src\\ui\\res\\header.bmp"
-IDB_LIST                BITMAP                  "..\\..\\src\\ui\\res\\list.bmp"
-IDB_LISTDATA            BITMAP                  "..\\..\\src\\ui\\res\\listdata.bmp"
-IDB_SYNCNOTIFICATION    BITMAP                  "..\\..\\src\\ui\\res\\syncnotification.bmp"
+IDB_ACCOUNT             BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\account.bmp"
+IDB_ADDRESSBOOK         BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\addressbook.bmp"
+IDB_FOLDER              BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\folder.bmp"
+IDB_HEADER              BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\header.bmp"
+IDB_LIST                BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\list.bmp"
+IDB_LISTDATA            BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\listdata.bmp"
+IDB_SYNCNOTIFICATION    BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\syncnotification.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -72,28 +72,28 @@ IDB_SYNCNOTIFICATION    BITMAP                  "..\\..\\src\\ui\\res\\syncnotif
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_MAINFRAME           ICON                    "..\\..\\src\\ui\\res\\qmail.ico"
-IDI_DECRYPTED           ICON                    "..\\..\\src\\ui\\res\\decrypted.ico"
-IDI_NEWMAIL             ICON                    "..\\..\\src\\ui\\res\\newmail.ico"
-IDI_OFFLINE             ICON                    "..\\..\\src\\ui\\res\\offline.ico"
-IDI_ONLINE              ICON                    "..\\..\\src\\ui\\res\\online.ico"
-IDI_UNVERIFIED          ICON                    "..\\..\\src\\ui\\res\\unverified.ico"
-IDI_VERIFIED            ICON                    "..\\..\\src\\ui\\res\\verified.ico"
+IDI_MAINFRAME           ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\qmail.ico"
+IDI_DECRYPTED           ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\decrypted.ico"
+IDI_NEWMAIL             ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\newmail.ico"
+IDI_OFFLINE             ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\offline.ico"
+IDI_ONLINE              ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\online.ico"
+IDI_UNVERIFIED          ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\unverified.ico"
+IDI_VERIFIED            ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\verified.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Menu
 //
 
-IDR_ADDRESSBOOK MENU 
+IDR_ADDRESSBOOK MENU DISCARDABLE 
 BEGIN
     POPUP ""
     BEGIN
-        MENUITEM "&Toに変更",               IDM_ADDRESSBOOK_CHANGETO
-        MENUITEM "&Ccに変更",               IDM_ADDRESSBOOK_CHANGECC
-        MENUITEM "&Bccに変更",              IDM_ADDRESSBOOK_CHANGEBCC
+        MENUITEM "&Toに変更",                   IDM_ADDRESSBOOK_CHANGETO
+        MENUITEM "&Ccに変更",                   IDM_ADDRESSBOOK_CHANGECC
+        MENUITEM "&Bccに変更",                  IDM_ADDRESSBOOK_CHANGEBCC
         MENUITEM SEPARATOR
-        MENUITEM "削除(&R)",                     IDM_ADDRESSBOOK_REMOVE
+        MENUITEM "削除(&R)",                    IDM_ADDRESSBOOK_REMOVE
     END
 END
 
@@ -103,28 +103,28 @@ END
 // TEMPLATE
 //
 
-MAIL.EDIT               TEMPLATE                "..\\..\\src\\ui\\res\\mail.edit.template"
-MAIL.FORWARD            TEMPLATE                "..\\..\\src\\ui\\res\\mail.forward.template"
-MAIL.NEW                TEMPLATE                "..\\..\\src\\ui\\res\\mail.new.template"
-MAIL.PRINT              TEMPLATE                "..\\..\\src\\ui\\res\\mail.print.template"
-MAIL.QUOTE              TEMPLATE                "..\\..\\src\\ui\\res\\mail.quote.template"
-MAIL.REPLY              TEMPLATE                "..\\..\\src\\ui\\res\\mail.reply.template"
-MAIL.REPLY_ALL          TEMPLATE                "..\\..\\src\\ui\\res\\mail.reply_all.template"
-MAIL.URL                TEMPLATE                "..\\..\\src\\ui\\res\\mail.url.template"
-NEWS.EDIT               TEMPLATE                "..\\..\\src\\ui\\res\\news.edit.template"
-NEWS.FORWARD            TEMPLATE                "..\\..\\src\\ui\\res\\news.forward.template"
-NEWS.NEW                TEMPLATE                "..\\..\\src\\ui\\res\\news.new.template"
-NEWS.PRINT              TEMPLATE                "..\\..\\src\\ui\\res\\news.print.template"
-NEWS.QUOTE              TEMPLATE                "..\\..\\src\\ui\\res\\news.quote.template"
-NEWS.REPLY              TEMPLATE                "..\\..\\src\\ui\\res\\news.reply.template"
-NEWS.REPLY_ALL          TEMPLATE                "..\\..\\src\\ui\\res\\news.reply_all.template"
+MAIL.EDIT               TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.edit.template"
+MAIL.FORWARD            TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.forward.template"
+MAIL.NEW                TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.new.template"
+MAIL.PRINT              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.print.template"
+MAIL.QUOTE              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.quote.template"
+MAIL.REPLY              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.reply.template"
+MAIL.REPLY_ALL          TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.reply_all.template"
+MAIL.URL                TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.url.template"
+NEWS.EDIT               TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.edit.template"
+NEWS.FORWARD            TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.forward.template"
+NEWS.NEW                TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.new.template"
+NEWS.PRINT              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.print.template"
+NEWS.QUOTE              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.quote.template"
+NEWS.REPLY              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.reply.template"
+NEWS.REPLY_ALL          TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.reply_all.template"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ACTION_SHOWTOOLBAR  "ツールバーを表示(&T)"
     IDS_ACTION_HIDETOOLBAR  "ツールバーを隠す(&T)"
@@ -136,7 +136,7 @@ BEGIN
     IDS_ACTION_HIDEHEADERCOLUMN "カラムを隠す(&C)"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ACTION_SHOWPREVIEW  "プレビューを表示(&P)"
     IDS_ACTION_HIDEPREVIEW  "プレビューを隠す(&P)"
@@ -150,14 +150,14 @@ BEGIN
     IDS_ACTION_DIALUPDISCONNECT "ダイアルアップを切断(&D)"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MENU_THISFOLDER     "(このフォルダ)"
     IDS_MENU_NONE           "(なし)"
     IDS_MENU_GOROUND        "巡回(&G)"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PROGRESS_APPLYRULES "メッセージを振り分け中"
     IDS_PROGRESS_CHECK      "メッセージを検査中"
@@ -174,11 +174,10 @@ BEGIN
     IDS_PROGRESS_SALVAGE    "メッセージを救出中"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_CONFIRM_OVERWRITE   "同じ名前のファイルが存在します。上書きしますか？\n"
-    IDS_CONFIRM_EXECUTEATTACHMENT 
-                            "この添付ファイルを実行しますか？"
+    IDS_CONFIRM_EXECUTEATTACHMENT "この添付ファイルを実行しますか？"
     IDS_CONFIRM_DELETETEMPFILE 
                             "この一時ファイルは変更されています。削除しますか？\n"
     IDS_CONFIRM_IGNORELOCK  "このメールボックスは'%s'によってロックされています。\n続行しますか？"
@@ -188,7 +187,8 @@ BEGIN
     IDS_CONFIRM_REMOVEFOLDER "フォルダを削除してもよろしいですか？\n %s"
     IDS_CONFIRM_EMPTYFOLDER "フォルダ内のすべてのメッセージを削除してもよろしいですか？\n %s"
     IDS_CONFIRM_EMPTYTRASH  "ゴミ箱内のすべてのメッセージを削除してもよろしいですか？"
-    IDS_CONFIRM_DELETEMESSAGE "選択されたメッセージを削除してもよろしいですか？"
+    IDS_CONFIRM_DELETEMESSAGE 
+                            "選択されたメッセージを削除してもよろしいですか？"
     IDS_CONFIRM_SAVEADDRESSBOOK 
                             "アドレス帳が保存されていません。保存しますか？"
     IDS_CONFIRM_EXIT        "保存中にエラーが発生しました。続行しますか？\n続行する場合には「はい」を、再試行する場合には「いいえ」を、キャンセルする場合には「キャンセル」を選択してください。"
@@ -197,7 +197,7 @@ BEGIN
                             "キャッシュを検査中にエラーが発生しました。\nエラーを無視してこのメッセージを削除してもよろしいですか？\nフォルダ: %s\nID: %u\nオフセット: %u\nサイズ: %u"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_TITLE_ACCOUNT       "アカウント"
     IDS_TITLE_ADDRESSBOOK   "アドレス帳 - QMAIL"
@@ -209,7 +209,7 @@ BEGIN
     IDS_TITLE_RULES         "振り分けの設定"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ADDRESSBOOK_ALLCATEGORY "すべて(&A)"
     IDS_ADDRESSBOOK_THISCATEGORY "(このカテゴリ(&T))"
@@ -219,7 +219,7 @@ BEGIN
     IDS_ADDRESSBOOK_COLUMN_ADDRESS "アドレス"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_MESSAGE_UPDATEFOLDER "フォルダリストを更新しますか？"
     IDS_MESSAGE_FINISHED    "終了しました"
@@ -228,7 +228,7 @@ BEGIN
     IDS_MESSAGE_FINDNOTFOUND "検索文字列が見つかりません"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_CREATEFOLDER  "フォルダの作成に失敗しました"
     IDS_ERROR_EXECUTEATTACHMENT "添付ファイルの実行に失敗しました"
@@ -248,19 +248,19 @@ BEGIN
     IDS_ERROR_DELETEFOLDER  "フォルダの削除に失敗しました"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ADDRESSBOOK_COLUMN_COMMENT "コメント"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_TITLE_RULESETS      "振り分けの設定"
     IDS_TITLE_SEARCH        "検索"
     IDS_TITLE_TEMPORARYFOLDER "一時フォルダ"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_DEFAULTSUBACCOUNT   "(デフォルト)"
     IDS_NORMALFOLDER        "通常フォルダ"
@@ -271,7 +271,7 @@ BEGIN
     IDS_OSDEFAULT           "OSのデフォルト"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_STATUS_VIEWMODELTEMPLATE "%u通のメッセージ %u通の未読 %u通を選択"
     IDS_STATUS_VIEWMODELTEMPLATESHORT "全部:%u 未読:%u 選択:%u"
@@ -281,7 +281,7 @@ BEGIN
     IDS_STATUS_NONE         "(なし)"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_FILTER_EXPORT       "テキストファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*||"
     IDS_FILTER_IMPORT       "テキストファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*||"
@@ -293,7 +293,7 @@ BEGIN
     IDS_FILTER_EXECUTABLE   "実行ファイル (*.exe)|*.exe|すべてのファイル (*.*)|*.*||"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_FOLDERLIST_NAME     "名前"
     IDS_FOLDERLIST_ID       "ID"
@@ -301,12 +301,12 @@ BEGIN
     IDS_FOLDERLIST_UNSEENCOUNT "未読数"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_FOLDERLIST_SIZE     "サイズ"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ALLFOLDER           "(すべてのフォルダ)"
     IDS_UNSPECIFIED         "(未指定)"
@@ -317,7 +317,7 @@ BEGIN
     IDS_MACRO               "マクロ(&M)"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_CREATEACCOUNT "アカウントの作成に失敗しました"
     IDS_ERROR_MOVEFOLDER    "フォルダの移動に失敗しました"
@@ -337,14 +337,20 @@ BEGIN
     IDS_ERROR_CREATESUBACCOUNT "サブアカウントの作成に失敗しました"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_OUTBOXHASEXTRAFLAGS 
+                            "送信箱は送信箱と草稿箱以外のフラグを持つことはできません"
+END
+
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_COLUMN_TITLE        "タイトル"
     IDS_COLUMN_TYPE         "タイプ"
     IDS_COLUMN_WIDTH        "幅"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_EMPTYFOLDER   "フォルダを空にできません"
     IDS_ERROR_EMPTYTRASH    "ゴミ箱を空にできません"
@@ -364,7 +370,7 @@ BEGIN
     IDS_ERROR_SETFLAGS      "フラグの設定に失敗しました"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_SEARCH        "検索中にエラーが発生しました"
     IDS_ERROR_DIALUPCONNECT "ダイアルアップ接続中にエラーが発生しました"
@@ -384,7 +390,7 @@ BEGIN
     IDS_ERROR_INVALIDMACRO  "不正なマクロです"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_COLUMNTYPE_ID       "ID"
     IDS_COLUMNTYPE_DATE     "日付"
@@ -398,19 +404,19 @@ BEGIN
     IDS_COLUMNTYPE_OTHER    "その他"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ARGUMENT_NAME       "名前"
     IDS_ARGUMENT_VALUE      "値"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PROPERTY_NAME       "名前"
     IDS_PROPERTY_VALUE      "値"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PANEL_ADDRESSBOOK   "アドレス帳"
     IDS_PANEL_AUTOPILOT     "自動巡回"
@@ -430,7 +436,7 @@ BEGIN
     IDS_PANEL_MISC2         "その他2"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PANEL_PREVIEW       "プレビュー"
     IDS_PANEL_RULES         "振り分け"
@@ -441,7 +447,7 @@ BEGIN
     IDS_PANEL_TAB           "タブ"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_RULE_NONE           "なし"
     IDS_RULE_MOVE           "移動"
@@ -452,7 +458,7 @@ BEGIN
     IDS_RULE_APPLY          "マクロの適用"
 END
 
-STRINGTABLE 
+STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_LABEL_SET           "設定"
     IDS_LABEL_ADD           "追加"
