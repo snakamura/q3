@@ -690,6 +690,7 @@ wstring_ptr qm::ApplicationImpl::getResourcePath(const Resource& resource,
  */
 
 qm::Application::Application(HINSTANCE hInst,
+							 HINSTANCE hInstResource,
 							 wstring_ptr wstrMailFolder,
 							 wstring_ptr wstrProfile,
 							 std::auto_ptr<MailFolderLock> pLock)
@@ -701,7 +702,7 @@ qm::Application::Application(HINSTANCE hInst,
 	pImpl_ = new ApplicationImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->hInst_ = hInst;
-	pImpl_->hInstResource_ = loadResourceDll(hInst);
+	pImpl_->hInstResource_ = hInstResource;
 	pImpl_->pLock_ = pLock;
 	pImpl_->wstrMailFolder_ = wstrMailFolder;
 	pImpl_->wstrProfileName_ = wstrProfile;

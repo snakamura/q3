@@ -33,6 +33,7 @@ class QMEXPORTCLASS Application
 {
 public:
 	Application(HINSTANCE hInst,
+				HINSTANCE hInstResource,
 				qs::wstring_ptr wstrMailFolder,
 				qs::wstring_ptr wstrProfile,
 				std::auto_ptr<MailFolderLock> pLock);

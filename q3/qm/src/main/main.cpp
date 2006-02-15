@@ -43,7 +43,8 @@ int main(const WCHAR* pwszCommandLine);
  *
  */
 
-HINSTANCE g_hInstDll = 0;
+HINSTANCE g_hInst = 0;
+HINSTANCE g_hInstResource = 0;
 
 
 /****************************************************************************
@@ -65,7 +66,8 @@ BOOL WINAPI DllMain(HANDLE hInst,
 			::OutputDebugString(tsz);
 		}
 #endif
-		g_hInstDll = static_cast<HINSTANCE>(hInst);
+		g_hInst = static_cast<HINSTANCE>(hInst);
+		g_hInstResource = loadResourceDll(g_hInst);
 		break;
 	case DLL_PROCESS_DETACH:
 		break;
@@ -164,7 +166,7 @@ int qm::main(const WCHAR* pwszCommandLine)
 					}
 				}
 #endif
-				MailFolderDialog dialog(g_hInstDll, wstrMailFolder.get());
+				MailFolderDialog dialog(g_hInstResource, wstrMailFolder.get());
 				if (dialog.doModal(0) != IDOK)
 					return 1;
 				wstrMailFolder = allocWString(dialog.getMailFolder());
@@ -195,7 +197,7 @@ int qm::main(const WCHAR* pwszCommandLine)
 	
 	MailFolderLock* pLockTemp = pLock.get();
 	std::auto_ptr<Application> pApplication(new Application(
-		g_hInstDll, wstrMailFolder, wstrProfile, pLock));
+		g_hInst, g_hInstResource, wstrMailFolder, wstrProfile, pLock));
 	
 	if (!pApplication->initialize())
 		return 1;
@@ -447,7 +449,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 		if (read(hFile.get(), 0, &wstrName))
 			pwszName = wstrName.get();
 		
-		wstring_ptr wstrTemplate(loadString(g_hInstDll, IDS_CONFIRM_IGNORELOCK));
+		wstring_ptr wstrTemplate(loadString(g_hInstResource, IDS_CONFIRM_IGNORELOCK));
 		const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(pwszName);
 		wstring_ptr wstrMessage(allocWString(nLen));
 		_snwprintf(wstrMessage.get(), nLen, wstrTemplate.get(), pwszName);
