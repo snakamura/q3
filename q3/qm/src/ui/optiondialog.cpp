@@ -523,8 +523,8 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FILTERS,		IDS_PANEL_FILTERS			},
 		{ PANEL_SYNCFILTERS,	IDS_PANEL_SYNCFILTERS		},
 		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
-#ifndef _WIN32_WCE
 		{ PANEL_SEARCH,			IDS_PANEL_SEARCH			},
+#ifndef _WIN32_WCE
 		{ PANEL_JUNK,			IDS_PANEL_JUNK				},
 #endif
 		{ PANEL_SECURITY,		IDS_PANEL_SECURITY			},
@@ -814,8 +814,8 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
 			PANEL4(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pDocument_->getRecents(), pProfile_);
-#ifndef _WIN32_WCE
 			PANEL1(PANEL_SEARCH, OptionSearch, pProfile_);
+#ifndef _WIN32_WCE
 			PANEL1(PANEL_JUNK, OptionJunk, pDocument_->getJunkFilter());
 #endif
 			PANEL2(PANEL_SECURITY, OptionSecurity, pDocument_->getSecurity(), pProfile_);
@@ -1944,13 +1944,13 @@ bool qm::OptionMisc2Dialog::save(OptionDialogContext* pContext)
 }
 
 
-#ifndef _WIN32_WCE
 /****************************************************************************
  *
  * OptionSearchDialog
  *
  */
 
+#ifndef _WIN32_WCE
 namespace {
 struct {
 	UINT nId_;
@@ -1969,6 +1969,7 @@ struct {
 	}
 };
 }
+#endif
 
 qm::OptionSearchDialog::OptionSearchDialog(Profile* pProfile) :
 	DefaultDialog(IDD_OPTIONSEARCH),
@@ -1983,17 +1984,24 @@ qm::OptionSearchDialog::~OptionSearchDialog()
 LRESULT qm::OptionSearchDialog::onCommand(WORD nCode,
 										  WORD nId)
 {
+#ifndef _WIN32_WCE
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(IDC_NAMAZU, BN_CLICKED, onClicked)
 		HANDLE_COMMAND_ID_CODE(IDC_HYPERESTRAIER, BN_CLICKED, onClicked)
 		HANDLE_COMMAND_ID_CODE(IDC_CUSTOM, BN_CLICKED, onClicked)
 	END_COMMAND_HANDLER()
+#endif
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
 LRESULT qm::OptionSearchDialog::onInitDialog(HWND hwndFocus,
 											 LPARAM lParam)
 {
+	wstring_ptr wstrMacro(pProfile_->getString(L"MacroSearch", L"SearchMacro",
+		L"@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case))"));
+	setDlgItemText(IDC_MACRO, wstrMacro.get());
+	
+#ifndef _WIN32_WCE
 	wstring_ptr wstrSearch(pProfile_->getString(L"FullTextSearch", L"Command", engines[0].pwszSearch_));
 	wstring_ptr wstrUpdate(pProfile_->getString(L"FullTextSearch", L"IndexCommand", engines[0].pwszUpdate_));
 	
@@ -2007,6 +2015,7 @@ LRESULT qm::OptionSearchDialog::onInitDialog(HWND hwndFocus,
 	
 	setDlgItemText(IDC_SEARCH, wstrSearch.get());
 	setDlgItemText(IDC_UPDATE, wstrUpdate.get());
+#endif
 	
 	updateState();
 	
@@ -2015,6 +2024,10 @@ LRESULT qm::OptionSearchDialog::onInitDialog(HWND hwndFocus,
 
 bool qm::OptionSearchDialog::save(OptionDialogContext* pContext)
 {
+	wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
+	pProfile_->setString(L"MacroSearch", L"SearchMacro", wstrMacro.get());
+	
+#ifndef _WIN32_WCE
 	bool bCustom = true;
 	for (int n = 0; n < countof(engines) && bCustom; ++n) {
 		if (sendDlgItemMessage(engines[n].nId_, BM_GETCHECK) == BST_CHECKED) {
@@ -2029,18 +2042,22 @@ bool qm::OptionSearchDialog::save(OptionDialogContext* pContext)
 		pProfile_->setString(L"FullTextSearch", L"Command", wstrSearch.get());
 		pProfile_->setString(L"FullTextSearch", L"IndexCommand", wstrUpdate.get());
 	}
+#endif
 	
 	return true;
 }
 
+#ifndef _WIN32_WCE
 LRESULT qm::OptionSearchDialog::onClicked()
 {
 	updateState();
 	return 0;
 }
+#endif
 
 void qm::OptionSearchDialog::updateState()
 {
+#ifndef _WIN32_WCE
 	bool bEnable = sendDlgItemMessage(IDC_CUSTOM, BM_GETCHECK) == BST_CHECKED;
 	UINT nIds[] = {
 		IDC_SEARCH,
@@ -2048,8 +2065,8 @@ void qm::OptionSearchDialog::updateState()
 	};
 	for (int n = 0; n < countof(nIds); ++n)
 		Window(getDlgItem(nIds[n])).enableWindow(bEnable);
+#endif
 }
-#endif // _WIN32_WCE
 
 
 /****************************************************************************

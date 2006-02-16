@@ -1687,6 +1687,15 @@ BEGIN
                     WS_VSCROLL | WS_HSCROLL
 END
 
+IDD_OPTIONSEARCH DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Macro",IDC_STATIC,10,10,20,8
+    EDITTEXT        IDC_MACRO,10,20,117,12,ES_AUTOHSCROLL
+    GROUPBOX        "Simple",IDC_STATIC,5,0,127,40
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

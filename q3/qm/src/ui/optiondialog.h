@@ -45,9 +45,7 @@ class OptionJunkDialog;
 class OptionListDialog;
 class OptionMiscDialog;
 class OptionMisc2Dialog;
-#ifndef _WIN32_WCE
 class OptionSearchDialog;
-#endif
 class OptionSecurityDialog;
 class AbstractOptionTextDialog;
 	class OptionEditDialog;
@@ -222,9 +220,8 @@ public:
 		PANEL_FILTERS,
 		PANEL_SYNCFILTERS,
 		PANEL_AUTOPILOT,
-		
-#ifndef _WIN32_WCE
 		PANEL_SEARCH,
+#ifndef _WIN32_WCE
 		PANEL_JUNK,
 #endif
 		PANEL_SECURITY,
@@ -838,7 +835,6 @@ private:
 };
 
 
-#ifndef _WIN32_WCE
 /****************************************************************************
  *
  * OptionSearchDialog
@@ -864,8 +860,10 @@ protected:
 public:
 	virtual bool save(OptionDialogContext* pContext);
 
+#ifndef _WIN32_WCE
 private:
 	LRESULT onClicked();
+#endif
 
 private:
 	void updateState();
@@ -877,7 +875,6 @@ private:
 private:
 	qs::Profile* pProfile_;
 };
-#endif
 
 
 /****************************************************************************
