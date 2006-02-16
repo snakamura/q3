@@ -300,6 +300,8 @@ bool qmsmtp::Smtp::sendMessage(const SendMessageData& data)
 	
 	if (!send(&listSendData[0], listSendData.size(), true, &nCode, 0))
 		SMTP_ERROR_OR(SMTP_ERROR_DATA);
+	else if (nCode != 2)
+		SMTP_ERROR(SMTP_ERROR_DATA | SMTP_ERROR_RESPONSE);
 	
 	return true;
 }
