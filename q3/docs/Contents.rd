@@ -69,6 +69,16 @@
   *((<ConfigSignaturesアクション|URL:ConfigSignaturesAction.html>))
   *((<ConfigSyncFiltersアクション|URL:ConfigSyncFiltersAction.html>))
   *((<ConfigTextsアクション|URL:ConfigTextsAction.html>))
+  *((<EditMoveCharLeftアクション|URL:EditMoveCharLeftAction.html>))
+  *((<EditMoveCharRightアクション|URL:EditMoveCharRightAction.html>))
+  *((<EditMoveDocEndアクション|URL:EditMoveDocEndAction.html>))
+  *((<EditMoveDocStartアクション|URL:EditMoveDocStartAction.html>))
+  *((<EditMoveLineDownアクション|URL:EditMoveLineDownAction.html>))
+  *((<EditMoveLineEndアクション|URL:EditMoveLineEndAction.html>))
+  *((<EditMoveLineStartアクション|URL:EditMoveLineStartAction.html>))
+  *((<EditMoveLineUpアクション|URL:EditMoveLineUpAction.html>))
+  *((<EditMovePageDownアクション|URL:EditMovePageDownAction.html>))
+  *((<EditMovePageUpアクション|URL:EditMovePageUpAction.html>))
 *マクロ
 *その他
   *((<コマンドライン|URL:CommandLine.html>))
