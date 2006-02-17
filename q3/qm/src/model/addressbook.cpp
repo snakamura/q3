@@ -1029,12 +1029,11 @@ qm::ExternalAddressBookManager::~ExternalAddressBookManager()
 
 bool qm::ExternalAddressBookManager::load(AddressBook* pAddressBook)
 {
-	if (std::find_if(listAddressBook_.begin(), listAddressBook_.end(),
+	std::for_each(listAddressBook_.begin(), listAddressBook_.end(),
 		std::not1(
 			std::bind2nd(
 				std::mem_fun(&ExternalAddressBook::load),
-				pAddressBook))) != listAddressBook_.end())
-		return false;
+				pAddressBook)));
 	
 	bModified_ = false;
 	
@@ -1610,7 +1609,8 @@ bool qm::OutlookAddressBook::init(bool bAddressOnly)
 		return false;
 	
 	ComPtr<IMAPISession> pSession;
-	hr = (*pfnMAPILogonEx)(0, 0, 0, MAPI_EXTENDED | MAPI_USE_DEFAULT | MAPI_NO_MAIL | fMapiUnicode, &pSession);
+	FLAGS flags = MAPI_EXTENDED | MAPI_USE_DEFAULT | MAPI_LOGON_UI | MAPI_NO_MAIL | fMapiUnicode;
+	hr = (*pfnMAPILogonEx)(0, 0, 0, flags, &pSession);
 	if (hr != S_OK) {
 		log.errorf(L"MAPILogonEx failed: %08x.", hr);
 		return false;
