@@ -649,13 +649,11 @@ void qm::SyncStatusWindow::startThread(unsigned int nId,
 									   unsigned int nParam)
 {
 	std::auto_ptr<Item> pItem(new Item(nId, nParam));
-	
 	{
 		Lock<CriticalSection> lock(cs_);
 		listItem_.push_back(pItem.get());
 		pItem.release();
 	}
-	
 	invalidate(false);
 	updateScrollBar();
 }
@@ -668,7 +666,6 @@ void qm::SyncStatusWindow::endThread(unsigned int nId)
 		delete *it;
 		listItem_.erase(it);
 	}
-	
 	invalidate(false);
 	updateScrollBar();
 }
@@ -677,15 +674,16 @@ void qm::SyncStatusWindow::setPos(unsigned int nId,
 								  bool bSub,
 								  size_t nPos)
 {
-	Lock<CriticalSection> lock(cs_);
-	ItemList::iterator it = getItem(nId);
-	(*it)->setPos(bSub, nPos);
-	
-	if (!bSub) {
-		(*it)->setRange(true, 0, 0);
-		(*it)->setPos(true, 0);
+	{
+		Lock<CriticalSection> lock(cs_);
+		ItemList::iterator it = getItem(nId);
+		(*it)->setPos(bSub, nPos);
+		
+		if (!bSub) {
+			(*it)->setRange(true, 0, 0);
+			(*it)->setPos(true, 0);
+		}
 	}
-	
 	invalidate(false);
 }
 
@@ -694,9 +692,11 @@ void qm::SyncStatusWindow::setRange(unsigned int nId,
 									size_t nMin,
 									size_t nMax)
 {
-	Lock<CriticalSection> lock(cs_);
-	ItemList::iterator it = getItem(nId);
-	(*it)->setRange(bSub, nMin, nMax);
+	{
+		Lock<CriticalSection> lock(cs_);
+		ItemList::iterator it = getItem(nId);
+		(*it)->setRange(bSub, nMin, nMax);
+	}
 	invalidate(false);
 }
 
@@ -704,18 +704,22 @@ void qm::SyncStatusWindow::setAccount(unsigned int nId,
 									  Account* pAccount,
 									  SubAccount* pSubAccount)
 {
-	Lock<CriticalSection> lock(cs_);
-	ItemList::iterator it = getItem(nId);
-	(*it)->setAccount(pAccount, pSubAccount);
+	{
+		Lock<CriticalSection> lock(cs_);
+		ItemList::iterator it = getItem(nId);
+		(*it)->setAccount(pAccount, pSubAccount);
+	}
 	invalidate(false);
 }
 
 void qm::SyncStatusWindow::setFolder(unsigned int nId,
 									 Folder* pFolder)
 {
-	Lock<CriticalSection> lock(cs_);
-	ItemList::iterator it = getItem(nId);
-	(*it)->setFolder(pFolder);
+	{
+		Lock<CriticalSection> lock(cs_);
+		ItemList::iterator it = getItem(nId);
+		(*it)->setFolder(pFolder);
+	}
 	invalidate(false);
 }
 
@@ -743,11 +747,13 @@ void qm::SyncStatusWindow::setMessage(unsigned int nId,
 		pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
 	}
 	else {
-		Lock<CriticalSection> lock(cs_);
-		ItemList::iterator it = getItem(nId);
-		(*it)->setMessage(pwszMessage);
-		(*it)->setRange(true, 0, 0);
-		(*it)->setPos(true, 0);
+		{
+			Lock<CriticalSection> lock(cs_);
+			ItemList::iterator it = getItem(nId);
+			(*it)->setMessage(pwszMessage);
+			(*it)->setRange(true, 0, 0);
+			(*it)->setPos(true, 0);
+		}
 		invalidate(false);
 	}
 }

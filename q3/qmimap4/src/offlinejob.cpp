@@ -349,7 +349,7 @@ bool qmimap4::AppendOfflineJob::apply(Account* pAccount,
 	Folder* pFolder = pAccount->getFolder(wstrFolder_.get());
 	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
 		NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
-		Lock<Account>lock(*pAccount);
+		Lock<Account> lock(*pAccount);
 		MessagePtrLock mpl(pNormalFolder->getMessageById(nId_));
 		if (mpl && mpl->isFlag(MessageHolder::FLAG_LOCAL)) {
 			wstring_ptr wstrName(Util::getFolderName(pNormalFolder));
