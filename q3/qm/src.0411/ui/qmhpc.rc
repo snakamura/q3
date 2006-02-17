@@ -1308,7 +1308,7 @@ FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Pocket Outlook",IDC_POCKETOUTLOOK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,10,65,8
-    CONTROL         "メールアドレスのみ読み込む(&L)",IDC_ADDRESSONLY,"Button",
+    CONTROL         "メールアドレスのみ挿入する(&I)",IDC_ADDRESSONLY,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,25,105,8
     GROUPBOX        "外部アドレス帳",IDC_STATIC,5,0,135,40
     PUSHBUTTON      "フォント(&F)...",IDC_FONT,5,45,50,12

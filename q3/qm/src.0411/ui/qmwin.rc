@@ -1397,7 +1397,7 @@ BEGIN
                     WS_TABSTOP,10,15,95,10
     CONTROL         "&Outlook",IDC_OUTLOOK,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,25,45,10
-    CONTROL         "メールアドレスのみ読み込む(&L)",IDC_ADDRESSONLY,"Button",
+    CONTROL         "メールアドレスのみ挿入する(&I)",IDC_ADDRESSONLY,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,40,100,10
     PUSHBUTTON      "フォント(&F)...",IDC_FONT,5,60,50,14
 END

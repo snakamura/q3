@@ -1340,7 +1340,7 @@ FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Pocket Outlook",IDC_POCKETOUTLOOK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,10,65,10
-    CONTROL         "&Load address only",IDC_ADDRESSONLY,"Button",
+    CONTROL         "&Insert address only",IDC_ADDRESSONLY,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,25,70,10
     GROUPBOX        "External Address Book",IDC_STATIC,5,0,95,40
     PUSHBUTTON      "&Font...",IDC_FONT,5,45,50,12

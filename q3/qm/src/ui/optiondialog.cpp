@@ -1272,8 +1272,7 @@ LRESULT qm::OptionAddressBookDialog::onCommand(WORD nCode,
 LRESULT qm::OptionAddressBookDialog::onInitDialog(HWND hwndFocus,
 												  LPARAM lParam)
 {
-	wstring_ptr wstrExternals(pProfile_->getString(L"AddressBook",
-		L"Externals", L"WAB Outlook PocketOutlook"));
+	wstring_ptr wstrExternals(pProfile_->getString(L"AddressBook", L"Externals", L""));
 	const WCHAR* p = wcstok(wstrExternals.get(), L" ");
 	while (p) {
 		for (int n = 0; n < countof(externals__); ++n) {

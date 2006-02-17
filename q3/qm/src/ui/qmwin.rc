@@ -1388,7 +1388,7 @@ BEGIN
                     WS_TABSTOP,10,15,125,10
     CONTROL         "&Outlook",IDC_OUTLOOK,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,25,125,10
-    CONTROL         "&Load address only",IDC_ADDRESSONLY,"Button",
+    CONTROL         "&Insert address only",IDC_ADDRESSONLY,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,40,125,10
     PUSHBUTTON      "&Font...",IDC_FONT,5,60,50,12
 END
