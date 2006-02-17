@@ -991,8 +991,7 @@ qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile) :
 {
 	bool bAddressOnly = pProfile->getInt(L"AddressBook", L"AddressOnly", 0) != 0;
 	
-	wstring_ptr wstrExternals(pProfile->getString(L"AddressBook",
-		L"Externals", L"WAB Outlook PocketOutlook"));
+	wstring_ptr wstrExternals(pProfile->getString(L"AddressBook", L"Externals", L""));
 	const WCHAR* p = wcstok(wstrExternals.get(), L" ");
 	while (p) {
 #ifndef _WIN32_WCE
