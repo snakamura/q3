@@ -165,7 +165,8 @@ public:
 class QSEXPORTCLASS FileLogHandler : public LogHandler
 {
 public:
-	explicit FileLogHandler(const WCHAR* pwszPath);
+	FileLogHandler(const WCHAR* pwszPath,
+				   const WCHAR* pwszTimeFormat);
 	virtual ~FileLogHandler();
 
 public:

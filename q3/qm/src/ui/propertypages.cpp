@@ -122,7 +122,7 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus,
 		
 		Time time;
 		pmh->getDate(&time);
-		wstring_ptr wstrTime(time.format(L"%Y4/%M0/%D %h:%m:%s", Time::FORMAT_LOCAL));
+		wstring_ptr wstrTime(time.format(Time::getDefaultFormat(), Time::FORMAT_LOCAL));
 		setDlgItemText(IDC_DATE, wstrTime.get());
 		
 		unsigned int nFlags = pmh->getFlags();

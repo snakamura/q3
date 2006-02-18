@@ -70,6 +70,7 @@ struct qs::InitImpl
 	wstring_ptr wstrLogDir_;
 	Logger::Level logLevel_;
 	wstring_ptr wstrLogFilter_;
+	wstring_ptr wstrLogTimeFormat_;
 	CriticalSection csLog_;
 	ConverterFactoryList listConverterFactory_;
 	EncoderFactoryList listEncoderFactory_;
@@ -299,6 +300,18 @@ void qs::Init::setLogFilter(const WCHAR* pwszFilter)
 		pImpl_->wstrLogFilter_.reset(0);
 }
 
+wstring_ptr qs::Init::getLogTimeFormat() const
+{
+	Lock<CriticalSection> lock(pImpl_->csLog_);
+	return allocWString(pImpl_->wstrLogTimeFormat_.get());
+}
+
+void qs::Init::setLogTimeFormat(const WCHAR* pwszTimeFormat)
+{
+	Lock<CriticalSection> lock(pImpl_->csLog_);
+	pImpl_->wstrLogTimeFormat_ = allocWString(pwszTimeFormat);
+}
+
 void qs::Init::setInitThread(InitThread* pInitThread)
 {
 	pImpl_->pInitThread_->set(pInitThread);
@@ -342,7 +355,8 @@ bool qs::InitThreadImpl::createLogger()
 			time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
 		
 		wstring_ptr wstrPath(concat(wstrLogDir.get(), wszName));
-		std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get()));
+		std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(
+			wstrPath.get(), init.getLogTimeFormat().get()));
 		std::auto_ptr<Logger> pLogger(new Logger(pLogHandler.get(),
 			true, init.getLogLevel(), init.getLogFilter().get()));
 		pLogHandler.release();

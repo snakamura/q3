@@ -39,6 +39,8 @@ using namespace qs;
  *
  */
 
+wstring_ptr qm::ViewColumn::wstrTimeFormat__(allocWString(L"%Y2/%M0/%D %h:%m"));
+
 qm::ViewColumn::ViewColumn(const WCHAR* pwszTitle,
 						   Type type,
 						   std::auto_ptr<Macro> pMacro,
@@ -146,7 +148,7 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 		{
 			Time t;
 			pmh->getDate(&t);
-			wstrText = t.format(L"%Y2/%M0/%D %h:%m", Time::FORMAT_LOCAL);
+			wstrText = t.format(wstrTimeFormat__.get(), Time::FORMAT_LOCAL);
 		}
 		break;
 	case ViewColumn::TYPE_FROM:
@@ -318,6 +320,16 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 	
 	if (bCurrent)
 		*pTime = Time::getCurrentTime();
+}
+
+const WCHAR* qm::ViewColumn::getTimeFormat()
+{
+	return wstrTimeFormat__.get();
+}
+
+void qm::ViewColumn::setTimeFormat(qs::wstring_ptr wstrTimeFormat)
+{
+	wstrTimeFormat__ = wstrTimeFormat;
 }
 
 
@@ -1608,6 +1620,9 @@ qm::ViewModelManager::ViewModelManager(Document* pDocument,
 	pCurrentAccount_(0),
 	pCurrentViewModel_(0)
 {
+	ViewColumn::setTimeFormat(pProfile_->getString(
+		L"ListWindow", L"TimeFormat", L"%Y2/%M0/%D %h:%m"));
+	
 	const Application& app = Application::getApplication();
 	pDefaultViewData_.reset(new DefaultViewData(app.getProfilePath(FileNames::VIEWS_XML).get()));
 	pFilterManager_.reset(new FilterManager(app.getProfilePath(FileNames::FILTERS_XML).get()));

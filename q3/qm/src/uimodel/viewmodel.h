@@ -127,6 +127,10 @@ public:
 				 qs::Time* pTime) const;
 
 public:
+	static const WCHAR* getTimeFormat();
+	static void setTimeFormat(qs::wstring_ptr wstrTimeFormat);
+
+private:
 	ViewColumn(const ViewColumn&);
 	ViewColumn& operator=(const ViewColumn&);
 
@@ -137,6 +141,9 @@ private:
 	unsigned int nFlags_;
 	unsigned int nWidth_;
 	unsigned int nCacheIndex_;
+
+private:
+	static qs::wstring_ptr wstrTimeFormat__;
 };
 
 typedef std::vector<ViewColumn*> ViewColumnList;

@@ -43,6 +43,8 @@ const WCHAR* qs::Time::pwszMonths__[] = {
 	L"Dec"
 };
 
+wstring_ptr qs::Time::wstrDefaultFormat__(allocWString(L"%Y4/%M0/%D %h:%m:%s"));
+
 qs::Time::Time()
 {
 	wYear = 0;
@@ -439,6 +441,16 @@ Time qs::Time::getTransitionDate(const SYSTEMTIME& time)
 	}
 	return Time(0, time.wMonth, time.wDayOfWeek, nDay,
 		time.wHour, time.wMinute, time.wSecond, time.wMilliseconds, 0);
+}
+
+const WCHAR* qs::Time::getDefaultFormat()
+{
+	return wstrDefaultFormat__.get();
+}
+
+void qs::Time::setDefaultFormat(const WCHAR* pwszDefaultFormat)
+{
+	wstrDefaultFormat__ = allocWString(pwszDefaultFormat);
 }
 
 QSEXPORTPROC bool qs::operator==(const Time& lhs,

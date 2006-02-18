@@ -133,6 +133,7 @@ struct qs::FileLogHandlerImpl
 	bool prepareStream();
 	
 	wstring_ptr wstrPath_;
+	wstring_ptr wstrTimeFormat_;
 	std::auto_ptr<qs::OutputStream> pStream_;
 };
 
@@ -159,11 +160,16 @@ bool qs::FileLogHandlerImpl::prepareStream()
  *
  */
 
-qs::FileLogHandler::FileLogHandler(const WCHAR* pwszPath) :
+qs::FileLogHandler::FileLogHandler(const WCHAR* pwszPath,
+								   const WCHAR* pwszTimeFormat) :
 	pImpl_(0)
 {
+	if (!pwszTimeFormat)
+		pwszTimeFormat = L"%Y4/%M0/%D-%h:%m:%s%z";
+	
 	pImpl_ = new FileLogHandlerImpl();
 	pImpl_->wstrPath_ = allocWString(pwszPath);
+	pImpl_->wstrTimeFormat_ = allocWString(pwszTimeFormat);
 }
 
 qs::FileLogHandler::~FileLogHandler()
@@ -184,7 +190,7 @@ bool qs::FileLogHandler::log(Logger::Level level,
 		return false;
 	
 	Time time(Time::getCurrentTime());
-	wstring_ptr wstrTime(time.format(L"%Y4/%M0/%D-%h:%m:%s%z", Time::FORMAT_LOCAL));
+	wstring_ptr wstrTime(time.format(pImpl_->wstrTimeFormat_.get(), Time::FORMAT_LOCAL));
 	
 	const WCHAR* pwszLevels[] = {
 		L"FATAL",

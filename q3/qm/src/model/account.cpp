@@ -2839,7 +2839,8 @@ std::auto_ptr<Logger> qm::Account::openLogger(Host host) const
 	}
 	
 	wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wszName));
-	std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get()));
+	std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get(),
+		pImpl_->pProfile_->getString(L"Global", L"LogTimeFormat", L"%Y4/%M0/%D-%h:%m:%s%z").get()));
 	std::auto_ptr<Logger> pLogger(new Logger(pLogHandler.get(), true, Logger::LEVEL_DEBUG, 0));
 	pLogHandler.release();
 	return pLogger;

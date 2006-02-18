@@ -91,6 +91,7 @@ public:
 public:
 	bool ensureDirectories();
 	bool loadMainProfile();
+	void initTimeFormat();
 	void initMime();
 	void initLog();
 	bool ensureResources();
@@ -193,6 +194,14 @@ bool qm::ApplicationImpl::loadMainProfile()
 	return true;
 }
 
+void qm::ApplicationImpl::initTimeFormat()
+{
+	assert(pProfile_.get());
+	
+	Time::setDefaultFormat(pProfile_->getString(L"Global",
+		L"DefaultTimeFormat", L"%Y4/%M0/%D %h:%m:%s").get());
+}
+
 void qm::ApplicationImpl::initMime()
 {
 	assert(pProfile_.get());
@@ -225,8 +234,10 @@ void qm::ApplicationImpl::initLog()
 	assert(pProfile_.get());
 	
 	Init& init = Init::getInit();
+	
 	wstring_ptr wstrLogDir(concat(wstrMailFolder_.get(), L"\\logs"));
 	init.setLogDirectory(wstrLogDir.get());
+	
 	int nLog = pProfile_->getInt(L"Global", L"Log", -1);
 	if (nLog >= 0) {
 		if (nLog > Logger::LEVEL_DEBUG)
@@ -234,9 +245,13 @@ void qm::ApplicationImpl::initLog()
 		init.setLogLevel(static_cast<Logger::Level>(nLog));
 		init.setLogEnabled(true);
 	}
+	
 	wstring_ptr wstrLogFilter(pProfile_->getString(L"Global", L"LogFilter", L""));
 	if (*wstrLogFilter.get())
 		init.setLogFilter(wstrLogFilter.get());
+	
+	init.setLogTimeFormat(pProfile_->getString(L"Global",
+		L"LogTimeFormat", L"%Y4/%M0/%D-%h:%m:%s%z").get());
 }
 
 bool qm::ApplicationImpl::ensureResources()
@@ -733,6 +748,7 @@ bool qm::Application::initialize()
 	pImpl_->ensureTempDirectory();
 	pImpl_->pUIManager_.reset(new UIManager());
 	pImpl_->loadLibraries();
+	pImpl_->initTimeFormat();
 	pImpl_->initMime();
 	Security::init();
 	

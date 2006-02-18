@@ -552,7 +552,7 @@ const Time& qm::MacroValueTime::getTime() const
 
 wstring_ptr qm::MacroValueTime::string() const
 {
-	return time_.format(L"%Y4/%M0/%D %h:%m:%s", Time::FORMAT_ORIGINAL);
+	return time_.format(Time::getDefaultFormat(), Time::FORMAT_ORIGINAL);
 }
 
 bool qm::MacroValueTime::boolean() const

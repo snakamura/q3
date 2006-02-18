@@ -19,7 +19,7 @@
 		<static width="4em" style="bold" showAlways="true">送信者:</static>
 		<edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}">{@FormatAddress(From, 3)}</edit>
 		<static width="3em" style="bold" showAlways="true">日付:</static>
-		<edit width="10em">{@FormatDate(@Date(Date), '%Y4/%M0/%D %h:%m:%s')}</edit>
+		<edit width="10em">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
 	</line>
 	<line class="mail|news">
 		<static width="4em" style="bold" showAlways="true">件名:</static>
@@ -35,7 +35,7 @@
 	</line>
 	<line class="rss">
 		<static width="4em" style="bold" showAlways="true">日付:</static>
-		<edit width="10em">{@FormatDate(@Date(Date), '%Y4/%M0/%D %h:%m:%s')}</edit>
+		<edit width="10em">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="creator">
 		<static width="4em" style="bold" showAlways="true">作成者:</static>

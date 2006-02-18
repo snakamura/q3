@@ -52,6 +52,8 @@ public:
 	void setLogLevel(Logger::Level level);
 	wstring_ptr getLogFilter() const;
 	void setLogFilter(const WCHAR* pwszFilter);
+	wstring_ptr getLogTimeFormat() const;
+	void setLogTimeFormat(const WCHAR* pwszTimeFormat);
 
 public:
 	InitThread* getInitThread();

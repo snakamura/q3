@@ -1524,7 +1524,8 @@ bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 	
 	DateParser date;
 	if (part_.getField(L"Date", &date) == Part::FIELD_EXIST) {
-		wstring_ptr wstrDate(date.getTime().format(L"Date:    %Y4/%M0/%D %h:%m:%s\n",
+		wstring_ptr wstrFormat(concat(L"Date:    ", Time::getDefaultFormat(), L"\n"));
+		wstring_ptr wstrDate(date.getTime().format(wstrFormat.get(),
 			bUseSendersTimeZone ? Time::FORMAT_ORIGINAL : Time::FORMAT_LOCAL));
 		if (!pBuf->append(wstrDate.get()))
 			return false;

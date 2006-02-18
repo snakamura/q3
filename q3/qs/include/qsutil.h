@@ -94,6 +94,9 @@ private:
 };
 
 
+#pragma warning(push)
+#pragma warning(disable:4251)
+
 /****************************************************************************
  *
  * Time
@@ -153,6 +156,8 @@ public:
 public:
 	static int getSystemTimeZone();
 	static Time getTransitionDate(const SYSTEMTIME& time);
+	static const WCHAR* getDefaultFormat();
+	static void setDefaultFormat(const WCHAR* pwszDefaultFormat);
 
 private:
 	int nTimeZone_;
@@ -160,7 +165,10 @@ private:
 private:
 	static const WCHAR* pwszWeeks__[];
 	static const WCHAR* pwszMonths__[];
+	static wstring_ptr wstrDefaultFormat__;
 };
+
+#pragma warning(pop)
 
 QSEXPORTPROC bool operator==(const Time& lhs,
 							 const Time& rhs);
