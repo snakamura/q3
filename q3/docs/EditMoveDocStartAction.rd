@@ -1,6 +1,5 @@
 =begin
 =EditMoveDocStartアクション
-
 キャレットを文書の最初に動かします。
 
 

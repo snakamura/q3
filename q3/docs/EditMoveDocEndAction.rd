@@ -1,6 +1,5 @@
 =begin
 =EditMoveDocEndアクション
-
 キャレットを文書の最後に動かします。
 
 

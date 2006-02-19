@@ -1,6 +1,5 @@
 =begin
 =EditMoveCharLeftアクション
-
 キャレットを一文字左に動かします。
 
 

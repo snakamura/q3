@@ -1,6 +1,5 @@
 =begin
 =EditMovePageUpアクション
-
 キャレットを一ページ上に動かします。
 
 

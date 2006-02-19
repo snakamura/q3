@@ -1,6 +1,5 @@
 =begin
 =EditMoveLineStartアクション
-
 キャレットを行頭に動かします。
 
 
