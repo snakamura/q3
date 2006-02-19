@@ -162,7 +162,7 @@ std::pair<DWORD, DWORD> getVersion(HINSTANCE hInst)
 			std::vector<unsigned char> buf(p, p + dwSize);
 			VS_FIXEDFILEINFO* pInfo = 0;
 			UINT nInfoSize = 0;
-			if (::VerQueryValue(&buf[0], L"\\", reinterpret_cast<void**>(&pInfo), &nInfoSize)) {
+			if (::VerQueryValue(&buf[0], _T("\\"), reinterpret_cast<void**>(&pInfo), &nInfoSize)) {
 				version.first = pInfo->dwFileVersionMS;
 				version.second = pInfo->dwFileVersionLS;
 			}
