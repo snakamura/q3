@@ -418,7 +418,8 @@ ifeq ($(PLATFORM),win)
 						  uuid.lib \
 						  urlmon.lib \
 						  crypt32.lib \
-						  wininet.lib
+						  wininet.lib \
+						  version.lib
 	ifeq ($(VCVER),6)
 		LIBS			+= msvcirt$(DSUFFIX).lib
 	endif

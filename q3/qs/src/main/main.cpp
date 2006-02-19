@@ -102,6 +102,10 @@ void termThread()
  *
  */
 
+#if !defined _WIN32_WCE || (_WIN32_WCE >= 300 && !defined PLATFORM_PPC)
+std::pair<DWORD, DWORD> getVersion(HINSTANCE hInst);
+#endif
+
 QSEXPORTPROC HINSTANCE qs::getInstanceHandle()
 {
 	return Init::getInit().getInstanceHandle();
@@ -131,8 +135,43 @@ QSEXPORTPROC HINSTANCE qs::loadResourceDll(HINSTANCE hInst)
 #else
 	HINSTANCE hInstResource = ::LoadLibrary(tszPath);
 #endif
-	return hInstResource ? hInstResource : hInst;
+	if (!hInstResource)
+		return hInst;
+	
+#if !defined _WIN32_WCE || (_WIN32_WCE >= 300 && !defined PLATFORM_PPC)
+	if (getVersion(hInst) != getVersion(hInstResource)) {
+		::FreeLibrary(hInstResource);
+		return hInst;
+	}
+#endif
+	
+	return hInstResource;
 }
+
+#if !defined _WIN32_WCE || (_WIN32_WCE >= 300 && !defined PLATFORM_PPC)
+std::pair<DWORD, DWORD> getVersion(HINSTANCE hInst)
+{
+	std::pair<DWORD, DWORD> version(0, 0);
+	
+	HRSRC hrsrc = ::FindResource(hInst, MAKEINTRESOURCE(VS_VERSION_INFO), RT_VERSION);
+	if (hrsrc) {
+		HGLOBAL hres = ::LoadResource(hInst, hrsrc);
+		if (hres) {
+			unsigned char* p = static_cast<unsigned char*>(::LockResource(hres));
+			DWORD dwSize = ::SizeofResource(hInst, hrsrc);
+			std::vector<unsigned char> buf(p, p + dwSize);
+			VS_FIXEDFILEINFO* pInfo = 0;
+			UINT nInfoSize = 0;
+			if (::VerQueryValue(&buf[0], L"\\", reinterpret_cast<void**>(&pInfo), &nInfoSize)) {
+				version.first = pInfo->dwFileVersionMS;
+				version.second = pInfo->dwFileVersionLS;
+			}
+		}
+	}
+	
+	return version;
+}
+#endif
 
 
 /****************************************************************************
