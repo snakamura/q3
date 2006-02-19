@@ -56,6 +56,8 @@
   *テンプレート
   *同期フィルタ
   *リストビューの色
+  *((<整形|URL:Reform.html>))
+  *((<メッセージモード|URL:MessageMode.html>))
   *SSL
   *S/MIME
   *PGPとGnuPG
