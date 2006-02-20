@@ -26,10 +26,12 @@
     *メールを書く
   *NetNewsを使う
     *((<アカウントの作成|URL:CreateNntpAccount.html>))
+    *((<グループの購読|URL:SubscribeNntpGroup.html>))
     *ニュースを読む
     *ニュースをポストする
   *RSSを使う
     *((<アカウントの作成|URL:CreateRssAccount.html>))
+    *((<フィードの購読|URL:SubscribeRssFeed.html>))
     *RSSを読む
 *機能
   *アカウント
