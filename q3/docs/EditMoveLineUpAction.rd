@@ -1,5 +1,6 @@
 =begin
 =EditMoveLineUpアクション
+
 キャレットを一行上に動かします。
 
 

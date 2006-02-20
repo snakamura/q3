@@ -1,5 +1,6 @@
 =begin
 =EditMoveLineEndアクション
+
 キャレットを行末に動かします。
 
 

@@ -1,5 +1,6 @@
 =begin
 =TabNavigateNextアクション
+
 一つ次（右）のタブを選択します。
 
 
