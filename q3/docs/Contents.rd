@@ -47,6 +47,8 @@
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
   *振り分け
   *巡回
+  *自動巡回
+  *未読通知
   *検索
     *マクロ検索
     *IMAP4検索
@@ -430,5 +432,6 @@
   *((<どうやってプレビューで開いたメッセージを既読にしないようにできますか?|URL:HowToNotMakeSeenOnPreview.html>))
   *((<なぜ日本語化したのにメニューやツールバーが英語のままなのですか?|URL:WhyMenuAndToolbarAreNotLocalized.html>))
   *((<どうやったらmailto URLへ関連付けられますか?|URL:HowToAssociateWithMailtoUrl.html>))
+  *((<メールボックスディレクトリを移動するにはどうすれば良いですか?|URL:HowToChangeMailBoxDirectory.html>))
 
 =end
