@@ -35,6 +35,7 @@
     *RSSを読む
 *機能
   *アカウント
+    *サブアカウント
     *マルチアカウント
   *フォルダ
     *通常フォルダ
@@ -49,25 +50,32 @@
   *巡回
   *自動巡回
   *未読通知
+  *HTML表示
   *検索
     *マクロ検索
     *IMAP4検索
     *全文検索
   *アドレス帳
     *外部アドレス帳
+  *添付ファイル
   *署名
   *定型文
   *テンプレート
+  *フィルタ
   *同期フィルタ
   *リストビューの色
+  *リストビューのカスタマイズ
   *((<整形|URL:Reform.html>))
   *((<メッセージモード|URL:MessageMode.html>))
+  *ダイアルアップ
   *SSL
   *S/MIME
   *PGPとGnuPG
   *外部エディタ
   *((<スパムフィルタ|URL:JunkFilter.html>))
   *スクリプト
+  *((<コマンドライン|URL:CommandLine.html>))
+  *正規表現
 *アカウントの設定
   *((<アカウントの管理|URL:ManageAccount.html>))
   *((<アカウントの作成|URL:CreateAccount.html>))
@@ -423,9 +431,6 @@
     *((<@User4|URL:User4Function.html>))
     *((<@Variable|URL:VariableFunction.html>))
     *((<@While|URL:WhileFunction.html>))
-*その他
-  *((<コマンドライン|URL:CommandLine.html>))
-  *正規表現
 *FAQ
   *((<どうやったらレジストリを使用しないようにできますか?|URL:HowToNotUseRegistry.html>))
   *((<なぜ自分が送信したメッセージを受信するのですか?|URL:WhyReceiveSentMessage.html>))
@@ -433,5 +438,6 @@
   *((<なぜ日本語化したのにメニューやツールバーが英語のままなのですか?|URL:WhyMenuAndToolbarAreNotLocalized.html>))
   *((<どうやったらmailto URLへ関連付けられますか?|URL:HowToAssociateWithMailtoUrl.html>))
   *((<メールボックスディレクトリを移動するにはどうすれば良いですか?|URL:HowToChangeMailBoxDirectory.html>))
+  *受信したメールの送信者をアドレス帳に登録した名前で表示するにはどうすればよいですか?
 
 =end
