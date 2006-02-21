@@ -12,7 +12,7 @@ GLOBALS=" \
 	*.xsl \
 	patch/*.patch \
 "
-SRC=`/bin/find . \( \( -type f -a -regex ".*/\(src\|include\)\(/.*\.\(cpp\|c\|h\|inl\|idl\|def\|rc\)\|.*/res/.*\)$" -a ! -regex ".*/\.svn/.*" \) -o -name makefile -o -name libname -o -name platforms \) -a ! -name version.h`
+SRC=`/bin/find q* \( \( -type f -a -regex ".*/\(src\|include\)\(/.*\.\(cpp\|c\|h\|inl\|idl\|def\|rc\)\|.*/res/.*\)$" -a ! -regex ".*/\.svn/.*" \) -o -name makefile -o -name libname -o -name platforms \) -a ! -name version.h`
 
 SCHEMA=" \
 	`/bin/find schema -name "*.rnc"` \
@@ -20,5 +20,8 @@ SCHEMA=" \
 
 DOCS=" \
 	Doxyfile \
+	docs/makefile \
+	docs/*.rd \
+	docs/images/*.png \
 "
 zip -ru $ARCHIVE $GLOBALS $SRC $SCHEMA $DOCS
