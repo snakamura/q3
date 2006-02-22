@@ -755,9 +755,9 @@ BEGIN
     CONTROL         "Se&lect Folder",IDC_SELECTFOLDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,50,50,65,10
     LTEXT           "Sync F&ilter",IDC_STATIC,5,67,40,8
-    COMBOBOX        IDC_SYNCFILTER,50,65,60,30,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SYNCFILTER,50,65,95,30,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "&Edit...",IDC_EDIT,115,65,30,12
+    PUSHBUTTON      "&Edit...",IDC_EDIT,115,65,30,12,NOT WS_VISIBLE
     CONTROL         "Sen&d && Receive",IDC_SENDRECEIVE,"Button",
                     BS_AUTORADIOBUTTON,155,15,65,10
     CONTROL         "&Receive",IDC_RECEIVE,"Button",BS_AUTORADIOBUTTON,155,

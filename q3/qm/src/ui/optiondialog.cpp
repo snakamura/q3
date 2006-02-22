@@ -4635,16 +4635,20 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	setDlgItemText(IDC_ACCOUNT, pEntry_->getAccount());
 	
 	const WCHAR* pwszSubAccount = pEntry_->getSubAccount();
-	if (pwszSubAccount) {
-		setDlgItemText(IDC_SUBACCOUNT, pwszSubAccount);
-	}
-	else {
+	if (!pwszSubAccount) {
 		wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
 		setDlgItemText(IDC_SUBACCOUNT, wstrUnspecified.get());
 	}
+	else if (!*pwszSubAccount) {
+		wstring_ptr wstrUnspecified(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
+		setDlgItemText(IDC_SUBACCOUNT, wstrUnspecified.get());
+	}
+	else {
+		setDlgItemText(IDC_SUBACCOUNT, pwszSubAccount);
+	}
 	
 	const WCHAR* pwszFolder = pEntry_->getFolder();
-	if (pwszFolder) {
+	if (pwszFolder && *pwszFolder) {
 		setDlgItemText(IDC_FOLDER, pwszFolder);
 	}
 	else {
@@ -4697,7 +4701,7 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	const WCHAR* pwszFolder = wstrFolder.get();
 	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
-	if (wcscmp(pwszFolder, wstrAll.get()) == 0)
+	if (!*pwszFolder || wcscmp(pwszFolder, wstrAll.get()) == 0)
 		pwszFolder = 0;
 	RegexValue folder;
 	if (pwszFolder && !folder.setRegex(pwszFolder)) {
