@@ -188,6 +188,9 @@ zip)
 				*/lib/`printf $t | tr . /`/release/*.mui
 		done
 	done
+	
+	(cd docs; make zip)
+	mv $ZIPDIR/doc.zip $ZIPDIR/q3-doc-$SUFFIX.zip
 	;;
 
 doc)
