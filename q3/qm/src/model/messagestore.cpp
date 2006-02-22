@@ -246,7 +246,7 @@ bool qm::SingleMessageStore::updateIndex(unsigned int nOldIndexKey,
 										 unsigned int nIndexLength,
 										 unsigned int* pnIndexKey)
 {
-	return MessageStoreUtil::updateIndex(pImpl_->pStorage_.get(),
+	return MessageStoreUtil::updateIndex(pImpl_->pIndexStorage_.get(),
 		nOldIndexKey, nOldIndexLength, pIndex, nIndexLength, pnIndexKey);
 }
 
