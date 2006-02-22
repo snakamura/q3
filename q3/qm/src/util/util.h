@@ -83,8 +83,6 @@ public:
 	void assign(RegexValue& regex);
 
 private:
-
-private:
 	qs::wstring_ptr wstrRegex_;
 	std::auto_ptr<qs::RegexPattern> pRegex_;
 };

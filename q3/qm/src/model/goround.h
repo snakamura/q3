@@ -124,7 +124,7 @@ public:
 	void setSubAccount(const WCHAR* pwszSubAccount);
 	const WCHAR* getFolder() const;
 	const qs::RegexPattern* getFolderPattern() const;
-	bool setFolder(const WCHAR* pwszFolder);
+	void setFolder(RegexValue& folder);
 	bool isFlag(Flag flag) const;
 	void setFlags(unsigned int nFlags);
 	const WCHAR* getFilter() const;

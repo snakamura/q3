@@ -336,9 +336,9 @@ const RegexPattern* qm::GoRoundEntry::getFolderPattern() const
 	return folder_.getRegexPattern();
 }
 
-bool qm::GoRoundEntry::setFolder(const WCHAR* pwszFolder)
+void qm::GoRoundEntry::setFolder(RegexValue& folder)
 {
-	return folder_.setRegex(pwszFolder);
+	folder_.assign(folder);
 }
 
 bool qm::GoRoundEntry::isFlag(Flag flag) const

@@ -4699,7 +4699,8 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
 	if (wcscmp(pwszFolder, wstrAll.get()) == 0)
 		pwszFolder = 0;
-	if (pwszFolder && !RegexCompiler().compile(pwszFolder).get()) {
+	RegexValue folder;
+	if (pwszFolder && !folder.setRegex(pwszFolder)) {
 		// TODO MSG
 		return 0;
 	}
@@ -4725,7 +4726,7 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	
 	pEntry_->setAccount(wstrAccount.get());
 	pEntry_->setSubAccount(pwszSubAccount);
-	pEntry_->setFolder(pwszFolder);
+	pEntry_->setFolder(folder);
 	pEntry_->setFlags(nFlags);
 	pEntry_->setFilter(pwszFilter);
 	pEntry_->setConnectReceiveBeforeSend(crbs);
