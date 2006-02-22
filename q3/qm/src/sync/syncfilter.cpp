@@ -22,6 +22,7 @@
 
 #include "syncfilter.h"
 #include "../util/confighelper.h"
+#include "../util/util.h"
 
 using namespace qm;
 using namespace qs;
@@ -245,8 +246,7 @@ struct qm::SyncFilterImpl
 {
 	void clear();
 	
-	wstring_ptr wstrFolder_;
-	std::auto_ptr<RegexPattern> pFolder_;
+	RegexValue folder_;
 	std::auto_ptr<Macro> pCondition_;
 	wstring_ptr wstrDescription_;
 	SyncFilter::ActionList listAction_;
@@ -272,16 +272,13 @@ qm::SyncFilter::SyncFilter() :
 	pImpl_->pCondition_ = MacroParser().parse(L"@True()");
 }
 
-qm::SyncFilter::SyncFilter(const WCHAR* pwszFolder,
-						   std::auto_ptr<RegexPattern> pFolder,
+qm::SyncFilter::SyncFilter(RegexValue& folder,
 						   std::auto_ptr<Macro> pCondition,
 						   const WCHAR* pwszDescription) :
 	pImpl_(0)
 {
 	pImpl_ = new SyncFilterImpl();
-	if (pwszFolder)
-		pImpl_->wstrFolder_ = allocWString(pwszFolder);
-	pImpl_->pFolder_ = pFolder;
+	pImpl_->folder_.assign(folder);
 	pImpl_->pCondition_ = pCondition;
 	if (pwszDescription)
 		pImpl_->wstrDescription_ = allocWString(pwszDescription);
@@ -292,11 +289,7 @@ qm::SyncFilter::SyncFilter(const SyncFilter& filter) :
 {
 	pImpl_ = new SyncFilterImpl();
 	
-	if (filter.pImpl_->wstrFolder_.get()) {
-		pImpl_->wstrFolder_ = allocWString(filter.pImpl_->wstrFolder_.get());
-		pImpl_->pFolder_ = RegexCompiler().compile(pImpl_->wstrFolder_.get());
-		assert(pImpl_->pFolder_.get());
-	}
+	pImpl_->folder_ = filter.pImpl_->folder_;
 	
 	wstring_ptr wstrCondition(filter.pImpl_->pCondition_->getString());
 	pImpl_->pCondition_ = MacroParser().parse(wstrCondition.get());
@@ -318,20 +311,12 @@ qm::SyncFilter::~SyncFilter()
 
 const WCHAR* qm::SyncFilter::getFolder() const
 {
-	return pImpl_->wstrFolder_.get();
+	return pImpl_->folder_.getRegex();
 }
 
-void qm::SyncFilter::setFolder(const WCHAR* pwszFolder,
-							   std::auto_ptr<qs::RegexPattern> pFolder)
+void qm::SyncFilter::setFolder(RegexValue& folder)
 {
-	assert((pwszFolder && pFolder.get()) || (!pwszFolder && !pFolder.get()));
-	
-	if (pwszFolder)
-		pImpl_->wstrFolder_ = allocWString(pwszFolder);
-	else
-		pImpl_->wstrFolder_.reset(0);
-	
-	pImpl_->pFolder_ = pFolder;
+	pImpl_->folder_.assign(folder);
 }
 
 const Macro* qm::SyncFilter::getCondition() const
@@ -373,9 +358,9 @@ bool qm::SyncFilter::match(SyncFilterCallback* pCallback) const
 	assert(pCallback);
 	
 	const NormalFolder* pFolder = pCallback->getFolder();
-	if (pImpl_->pFolder_.get()) {
+	if (pImpl_->folder_.getRegexPattern()) {
 		wstring_ptr wstrName(pFolder->getFullName());
-		if (!pImpl_->pFolder_->match(wstrName.get()))
+		if (!pImpl_->folder_->match(wstrName.get()))
 			return false;
 	}
 	
@@ -567,13 +552,9 @@ bool qm::SyncFilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				return false;
 		}
 		
-		
-		std::auto_ptr<RegexPattern> pFolder;
-		if (pwszFolder) {
-			pFolder = RegexCompiler().compile(pwszFolder);
-			if (!pFolder.get())
-				return false;
-		}
+		RegexValue folder;
+		if (pwszFolder && !folder.setRegex(pwszFolder))
+			return false;
 		
 		std::auto_ptr<Macro> pCondition;
 		if (pwszMatch) {
@@ -583,7 +564,7 @@ bool qm::SyncFilterContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		}
 		
 		std::auto_ptr<SyncFilter> pFilter(new SyncFilter(
-			pwszFolder, pFolder, pCondition, pwszDescription));
+			folder, pCondition, pwszDescription));
 		assert(pCurrentFilterSet_);
 		pCurrentFilter_ = pFilter.get();
 		pCurrentFilterSet_->addFilter(pFilter);

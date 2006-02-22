@@ -153,33 +153,17 @@ qm::ColorSet::ColorSet()
 {
 }
 
-qm::ColorSet::ColorSet(const WCHAR* pwszAccount,
-					   std::auto_ptr<RegexPattern> pAccount,
-					   const WCHAR* pwszFolder,
-					   std::auto_ptr<RegexPattern> pFolder) :
-	pAccount_(pAccount),
-	pFolder_(pFolder)
+qm::ColorSet::ColorSet(RegexValue& account,
+					   RegexValue& folder)
 {
-	if (pwszAccount)
-		wstrAccount_ = allocWString(pwszAccount);
-	if (pwszFolder)
-		wstrFolder_ = allocWString(pwszFolder);
+	account_.assign(account);
+	folder_.assign(folder);
 }
 
-qm::ColorSet::ColorSet(const ColorSet& colorset)
+qm::ColorSet::ColorSet(const ColorSet& colorset) :
+	account_(colorset.account_),
+	folder_(colorset.folder_)
 {
-	RegexCompiler compiler;
-	if (colorset.wstrAccount_.get()) {
-		wstrAccount_ = allocWString(colorset.wstrAccount_.get());
-		pAccount_ = compiler.compile(wstrAccount_.get());
-		assert(pAccount_.get());
-	}
-	if (colorset.wstrFolder_.get()) {
-		wstrFolder_ = allocWString(colorset.wstrFolder_.get());
-		pFolder_ = compiler.compile(wstrFolder_.get());
-		assert(pFolder_.get());
-	}
-	
 	for (ColorSet::ColorList::const_iterator it = colorset.listColor_.begin(); it != colorset.listColor_.end(); ++it)
 		listColor_.push_back(new ColorEntry(**it));
 }
@@ -191,34 +175,22 @@ qm::ColorSet::~ColorSet()
 
 const WCHAR* qm::ColorSet::getAccount() const
 {
-	return wstrAccount_.get();
+	return account_.getRegex();
 }
 
-void qm::ColorSet::setAccount(const WCHAR* pwszAccount,
-							  std::auto_ptr<RegexPattern> pAccount)
+void qm::ColorSet::setAccount(RegexValue& account)
 {
-	assert((pwszAccount && pAccount.get()) || (!pwszAccount && !pAccount.get()));
-	if (pwszAccount)
-		wstrAccount_ = allocWString(pwszAccount);
-	else
-		wstrAccount_.reset(0);
-	pAccount_ = pAccount;
+	account_.assign(account);
 }
 
 const WCHAR* qm::ColorSet::getFolder() const
 {
-	return wstrFolder_.get();
+	return folder_.getRegex();
 }
 
-void qm::ColorSet::setFolder(const WCHAR* pwszFolder,
-							 std::auto_ptr<RegexPattern> pFolder)
+void qm::ColorSet::setFolder(RegexValue& folder)
 {
-	assert((pwszFolder && pFolder.get()) || (!pwszFolder && !pFolder.get()));
-	if (pwszFolder)
-		wstrFolder_ = allocWString(pwszFolder);
-	else
-		wstrFolder_.reset(0);
-	pFolder_ = pFolder;
+	folder_.assign(folder);
 }
 
 const ColorSet::ColorList& qm::ColorSet::getColors() const
@@ -236,12 +208,12 @@ bool qm::ColorSet::match(Folder* pFolder) const
 {
 	assert(pFolder);
 	
-	if (pAccount_.get() && !pAccount_->match(pFolder->getAccount()->getName()))
+	if (account_.getRegexPattern() && !account_->match(pFolder->getAccount()->getName()))
 		return false;
 	
-	if (pFolder_.get()) {
+	if (folder_.getRegexPattern()) {
 		wstring_ptr wstrFullName(pFolder->getFullName());
-		if (!pFolder_->match(wstrFullName.get()))
+		if (!folder_->match(wstrFullName.get()))
 			return false;
 	}
 	
@@ -414,24 +386,15 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		assert(!pColorSet_);
 		
-		RegexCompiler compiler;
+		RegexValue account;
+		if (pwszAccount && !account.setRegex(pwszAccount))
+			return false;
 		
-		std::auto_ptr<RegexPattern> pAccount;
-		if (pwszAccount) {
-			pAccount = compiler.compile(pwszAccount);
-			if (!pAccount.get())
-				return false;
-		}
+		RegexValue folder;
+		if (pwszFolder && !folder.setRegex(pwszFolder))
+			return false;
 		
-		std::auto_ptr<RegexPattern> pFolder;
-		if (pwszFolder) {
-			pFolder = compiler.compile(pwszFolder);
-			if (!pFolder.get())
-				return false;
-		}
-		
-		std::auto_ptr<ColorSet> pColorSet(new ColorSet(
-			pwszAccount, pAccount, pwszFolder, pFolder));
+		std::auto_ptr<ColorSet> pColorSet(new ColorSet(account, folder));
 		pColorSet_ = pColorSet.get();
 		pManager_->addColorSet(pColorSet);
 		

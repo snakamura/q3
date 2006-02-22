@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "../util/confighelper.h"
+#include "../util/util.h"
 
 
 namespace qm {
@@ -84,8 +85,7 @@ class Signature
 {
 public:
 	Signature();
-	Signature(const WCHAR* pwszAccount,
-			  std::auto_ptr<qs::RegexPattern> pAccount,
+	Signature(RegexValue& account,
 			  const WCHAR* pwszName,
 			  bool bDefault,
 			  const WCHAR* pwszSignature);
@@ -94,8 +94,7 @@ public:
 
 public:
 	const WCHAR* getAccount() const;
-	void setAccount(const WCHAR* pwszAccount,
-					std::auto_ptr<qs::RegexPattern> pAccount);
+	void setAccount(RegexValue& account);
 	bool match(Account* pAccount) const;
 	const WCHAR* getName() const;
 	void setName(const WCHAR* pwszName);
@@ -108,8 +107,7 @@ private:
 	Signature& operator=(const Signature&);
 
 private:
-	qs::wstring_ptr wstrAccount_;
-	std::auto_ptr<qs::RegexPattern> pAccount_;
+	RegexValue account_;
 	qs::wstring_ptr wstrName_;
 	bool bDefault_;
 	qs::wstring_ptr wstrSignature_;
@@ -154,8 +152,7 @@ private:
 private:
 	SignatureManager* pManager_;
 	State state_;
-	qs::wstring_ptr wstrAccount_;
-	std::auto_ptr<qs::RegexPattern> pAccount_;
+	RegexValue account_;
 	qs::wstring_ptr wstrName_;
 	bool bDefault_;
 	qs::StringBuffer<qs::WSTRING> buffer_;

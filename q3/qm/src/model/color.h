@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "../util/confighelper.h"
+#include "../util/util.h"
 
 namespace qm {
 
@@ -135,20 +136,16 @@ public:
 
 public:
 	ColorSet();
-	ColorSet(const WCHAR* pwszAccount,
-			 std::auto_ptr<qs::RegexPattern> pAccount,
-			 const WCHAR* pwszFolder,
-			 std::auto_ptr<qs::RegexPattern> pFolder);
+	ColorSet(RegexValue& account,
+			 RegexValue& folder);
 	ColorSet(const ColorSet& colorset);
 	~ColorSet();
 
 public:
 	const WCHAR* getAccount() const;
-	void setAccount(const WCHAR* pwszAccount,
-					std::auto_ptr<qs::RegexPattern> pAccount);
+	void setAccount(RegexValue& account);
 	const WCHAR* getFolder() const;
-	void setFolder(const WCHAR* pwszFolder,
-				   std::auto_ptr<qs::RegexPattern> pFolder);
+	void setFolder(RegexValue& folder);
 	const ColorList& getColors() const;
 	void setColors(ColorList& listColor);
 	bool match(Folder* pFolder) const;
@@ -163,10 +160,8 @@ private:
 	ColorSet& operator=(const ColorSet&);
 
 private:
-	qs::wstring_ptr wstrAccount_;
-	std::auto_ptr<qs::RegexPattern> pAccount_;
-	qs::wstring_ptr wstrFolder_;
-	std::auto_ptr<qs::RegexPattern> pFolder_;
+	RegexValue account_;
+	RegexValue folder_;
 	ColorList listColor_;
 };
 

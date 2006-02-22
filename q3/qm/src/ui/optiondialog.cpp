@@ -4682,7 +4682,7 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-	if (!wstrAccount.get())
+	if (!*wstrAccount.get())
 		return 0;
 	
 	wstring_ptr wstrSubAccount(getDlgItemText(IDC_SUBACCOUNT));
@@ -4699,11 +4699,9 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
 	if (wcscmp(pwszFolder, wstrAll.get()) == 0)
 		pwszFolder = 0;
-	std::auto_ptr<RegexPattern> pFolderPattern;
-	if (pwszFolder) {
-		pFolderPattern = RegexCompiler().compile(pwszFolder);
-		if (!pFolderPattern.get())
-			return 0;
+	if (pwszFolder && !RegexCompiler().compile(pwszFolder).get()) {
+		// TODO MSG
+		return 0;
 	}
 	
 	unsigned int nFlags = 0;
@@ -4727,7 +4725,7 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	
 	pEntry_->setAccount(wstrAccount.get());
 	pEntry_->setSubAccount(pwszSubAccount);
-	pEntry_->setFolder(pwszFolder, pFolderPattern);
+	pEntry_->setFolder(pwszFolder);
 	pEntry_->setFlags(nFlags);
 	pEntry_->setFilter(pwszFilter);
 	pEntry_->setConnectReceiveBeforeSend(crbs);
@@ -5151,13 +5149,10 @@ LRESULT qm::SignatureDialog::onOk()
 	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
 	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-	const WCHAR* pwszAccount = 0;
-	std::auto_ptr<RegexPattern> pAccount;
-	if (*wstrAccount.get()) {
-		pAccount = RegexCompiler().compile(wstrAccount.get());
-		if (!pAccount.get())
-			return 0;
-		pwszAccount = wstrAccount.get();
+	RegexValue account;
+	if (*wstrAccount.get() && !account.setRegex(wstrAccount.get())) {
+		// TODO MSG
+		return 0;
 	}
 	
 	bool bDefault = Button_GetCheck(getDlgItem(IDC_DEFAULT)) == BST_CHECKED;
@@ -5166,7 +5161,7 @@ LRESULT qm::SignatureDialog::onOk()
 	wstrSignature = Util::convertCRLFtoLF(wstrSignature.get());
 	
 	pSignature_->setName(wstrName.get());
-	pSignature_->setAccount(pwszAccount, pAccount);
+	pSignature_->setAccount(account);
 	pSignature_->setDefault(bDefault);
 	pSignature_->setSignature(wstrSignature.get());
 	
@@ -5671,15 +5666,10 @@ LRESULT qm::SyncFilterDialog::onOk()
 	}
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
-	const WCHAR* pwszFolder = 0;
-	std::auto_ptr<RegexPattern> pFolder;
-	if (*wstrFolder.get()) {
-		pFolder = RegexCompiler().compile(wstrFolder.get());
-		if (!pFolder.get()) {
-			// TODO MSG
-			return 0;
-		}
-		pwszFolder = wstrFolder.get();
+	RegexValue folder;
+	if (*wstrFolder.get() && !folder.setRegex(wstrFolder.get())) {
+		// TODO MSG
+		return 0;
 	}
 	
 	int nAction = ComboBox_GetCurSel(getDlgItem(IDC_ACTION));
@@ -5748,7 +5738,7 @@ LRESULT qm::SyncFilterDialog::onOk()
 	
 	wstring_ptr wstrDescription(getDlgItemText(IDC_DESCRIPTION));
 	
-	pSyncFilter_->setFolder(pwszFolder, pFolder);
+	pSyncFilter_->setFolder(folder);
 	pSyncFilter_->setCondition(pCondition);
 	pSyncFilter_->setActions(listAction);
 	pSyncFilter_->setDescription(wstrDescription.get());

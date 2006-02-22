@@ -254,12 +254,10 @@ qm::GoRoundEntry::GoRoundEntry() :
 
 qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
 							   const WCHAR* pwszSubAccount,
-							   const WCHAR* pwszFolder,
-							   std::auto_ptr<RegexPattern> pFolder,
+							   RegexValue& folder,
 							   unsigned int nFlags,
 							   const WCHAR* pwszFilter,
 							   ConnectReceiveBeforeSend crbs) :
-	pFolder_(pFolder),
 	nFlags_(nFlags),
 	crbs_(crbs)
 {
@@ -268,24 +266,19 @@ qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
 	wstrAccount_ = allocWString(pwszAccount);
 	if (pwszSubAccount)
 		wstrSubAccount_ = allocWString(pwszSubAccount);
-	if (pwszFolder)
-		wstrFolder_ = allocWString(pwszFolder);
+	folder_.assign(folder);
 	if (pwszFilter)
 		wstrFilter_ = allocWString(pwszFilter);
 }
 
 qm::GoRoundEntry::GoRoundEntry(const GoRoundEntry& entry) :
+	folder_(entry.folder_),
 	nFlags_(entry.nFlags_),
 	crbs_(entry.crbs_)
 {
 	wstrAccount_ = allocWString(entry.wstrAccount_.get());
 	if (entry.wstrSubAccount_.get())
 		wstrSubAccount_ = allocWString(entry.wstrSubAccount_.get());
-	if (entry.wstrFolder_.get()) {
-		wstrFolder_ = allocWString(entry.wstrFolder_.get());
-		pFolder_ = RegexCompiler().compile(wstrFolder_.get());
-		assert(pFolder_.get());
-	}
 	if (entry.wstrFilter_.get())
 		wstrFilter_ = allocWString(entry.wstrFilter_.get());
 }
@@ -300,11 +293,7 @@ GoRoundEntry& qm::GoRoundEntry::operator=(const GoRoundEntry& entry)
 		wstrAccount_ = allocWString(entry.wstrAccount_.get());
 		if (entry.wstrSubAccount_.get())
 			wstrSubAccount_ = allocWString(entry.wstrSubAccount_.get());
-		if (entry.wstrFolder_.get()) {
-			wstrFolder_ = allocWString(entry.wstrFolder_.get());
-			pFolder_ = RegexCompiler().compile(wstrFolder_.get());
-			assert(pFolder_.get());
-		}
+		folder_ = entry.folder_;
 		nFlags_ = entry.nFlags_;
 		if (entry.wstrFilter_.get())
 			wstrFilter_ = allocWString(entry.wstrFilter_.get());
@@ -339,23 +328,17 @@ void qm::GoRoundEntry::setSubAccount(const WCHAR* pwszSubAccount)
 
 const WCHAR* qm::GoRoundEntry::getFolder() const
 {
-	return wstrFolder_.get();
+	return folder_.getRegex();
 }
 
 const RegexPattern* qm::GoRoundEntry::getFolderPattern() const
 {
-	return pFolder_.get();
+	return folder_.getRegexPattern();
 }
 
-void qm::GoRoundEntry::setFolder(const WCHAR* pwszFolder,
-								 std::auto_ptr<RegexPattern> pFolder)
+bool qm::GoRoundEntry::setFolder(const WCHAR* pwszFolder)
 {
-	assert((pwszFolder && pFolder.get()) || (!pwszFolder && !pFolder.get()));
-	if (pwszFolder)
-		wstrFolder_ = allocWString(pwszFolder);
-	else
-		wstrFolder_.reset(0);
-	pFolder_ = pFolder;
+	return folder_.setRegex(pwszFolder);
 }
 
 bool qm::GoRoundEntry::isFlag(Flag flag) const
@@ -673,15 +656,12 @@ bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			!(nFlags & GoRoundEntry::FLAG_RECEIVE))
 			nFlags |= GoRoundEntry::FLAG_SEND | GoRoundEntry::FLAG_RECEIVE;
 		
-		std::auto_ptr<RegexPattern> pFolder;
-		if (pwszFolder) {
-			pFolder = RegexCompiler().compile(pwszFolder);
-			if (!pFolder.get())
-				return false;
-		}
+		RegexValue folder;
+		if (pwszFolder && !folder.setRegex(pwszFolder))
+			return false;
 		
 		std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry(pwszAccount,
-			pwszSubAccount, pwszFolder, pFolder, nFlags, pwszFilter, crbs));
+			pwszSubAccount, folder, nFlags, pwszFilter, crbs));
 		
 		pCurrentEntry_ = pEntry.get();
 		pCurrentCourse_->addEntry(pEntry);

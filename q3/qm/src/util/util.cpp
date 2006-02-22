@@ -213,3 +213,95 @@ void qm::Util::getFilesOrURIs(IDataObject* pDataObject,
 		}
 	}
 }
+
+
+/****************************************************************************
+ *
+ * RegexValue
+ *
+ */
+
+qm::RegexValue::RegexValue()
+{
+}
+
+qm::RegexValue::RegexValue(const WCHAR* pwszRegex,
+						   std::auto_ptr<RegexPattern> pRegex)
+{
+	setRegex(pwszRegex, pRegex);
+}
+
+qm::RegexValue::RegexValue(const RegexValue& regex)
+{
+	const WCHAR* pwszRegex = regex.getRegex();
+	if (pwszRegex) {
+		wstrRegex_ = allocWString(pwszRegex);
+		pRegex_ = RegexCompiler().compile(wstrRegex_.get());
+		assert(pRegex_.get());
+	}
+}
+
+qm::RegexValue::~RegexValue()
+{
+}
+
+RegexValue& qm::RegexValue::operator=(const RegexValue& regex)
+{
+	if (&regex != this) {
+		std::auto_ptr<RegexPattern> pRegex;
+		const WCHAR* pwszRegex = regex.getRegex();
+		if (pwszRegex) {
+			pRegex = RegexCompiler().compile(pwszRegex);
+			assert(pRegex.get());
+		}
+		setRegex(pwszRegex, pRegex);
+	}
+	return *this;
+}
+
+const RegexPattern* qm::RegexValue::operator->() const
+{
+	return pRegex_.get();
+}
+
+const WCHAR* qm::RegexValue::getRegex() const
+{
+	return wstrRegex_.get();
+}
+
+const RegexPattern* qm::RegexValue::getRegexPattern() const
+{
+	return pRegex_.get();
+}
+
+bool qm::RegexValue::setRegex(const WCHAR* pwszRegex)
+{
+	std::auto_ptr<RegexPattern> pRegex;
+	if (pwszRegex) {
+		pRegex = RegexCompiler().compile(pwszRegex);
+		if (!pRegex.get())
+			return false;
+	}
+	setRegex(pwszRegex, pRegex);
+	
+	return true;
+}
+
+void qm::RegexValue::setRegex(const WCHAR* pwszRegex,
+							  std::auto_ptr<RegexPattern> pRegex)
+{
+	assert((pwszRegex && pRegex.get()) || (!pwszRegex && !pRegex.get()));
+	
+	if (pwszRegex)
+		wstrRegex_ = allocWString(pwszRegex);
+	else
+		wstrRegex_.reset(0);
+	
+	pRegex_ = pRegex;
+}
+
+void qm::RegexValue::assign(RegexValue& regex)
+{
+	wstrRegex_ = regex.wstrRegex_;
+	pRegex_ = regex.pRegex_;
+}

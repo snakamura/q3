@@ -260,36 +260,22 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onInitDialog(HWND
 template<class T, class List, class Container, class EditDialog>
 LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onOk()
 {
-	RegexCompiler compiler;
-	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-	std::auto_ptr<RegexPattern> pAccount;
-	if (*wstrAccount.get()) {
-		pAccount = compiler.compile(wstrAccount.get());
-		if (!pAccount.get()) {
-			// TODO MSG
-			return 0;
-		}
+	RegexValue account;
+	if (*wstrAccount.get() && !account.setRegex(wstrAccount.get())) {
+		// TODO MSG
+		return 0;
 	}
-	else {
-		wstrAccount.reset(0);
-	}
-	pContainer_->setAccount(wstrAccount.get(), pAccount);
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
-	std::auto_ptr<RegexPattern> pFolder;
-	if (*wstrFolder.get()) {
-		pFolder = compiler.compile(wstrFolder.get());
-		if (!pFolder.get()) {
-			// TODO MSG
-			return 0;
-		}
+	RegexValue folder;
+	if (*wstrFolder.get() && !folder.setRegex(wstrFolder.get())) {
+		// TODO MSG
+		return 0;
 	}
-	else {
-		wstrFolder.reset(0);
-	}
-	pContainer_->setFolder(wstrFolder.get(), pFolder);
 	
+	pContainer_->setAccount(account);
+	pContainer_->setFolder(folder);
 	(pContainer_->*pfnSet_)(getList());
 	
 	return AbstractListDialog<T, List>::onOk();

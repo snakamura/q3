@@ -17,6 +17,8 @@
 #include <qssax.h>
 #include <qsstream.h>
 
+#include "../util/util.h"
+
 
 namespace qm {
 
@@ -105,8 +107,7 @@ public:
 	GoRoundEntry();
 	GoRoundEntry(const WCHAR* pwszAccount,
 				 const WCHAR* pwszSubAccount,
-				 const WCHAR* pwszFolder,
-				 std::auto_ptr<qs::RegexPattern> pFolder,
+				 RegexValue& folder,
 				 unsigned int nFlags,
 				 const WCHAR* pwszFilter,
 				 ConnectReceiveBeforeSend crbs);
@@ -123,8 +124,7 @@ public:
 	void setSubAccount(const WCHAR* pwszSubAccount);
 	const WCHAR* getFolder() const;
 	const qs::RegexPattern* getFolderPattern() const;
-	void setFolder(const WCHAR* pwszFolder,
-				   std::auto_ptr<qs::RegexPattern> pFolder);
+	bool setFolder(const WCHAR* pwszFolder);
 	bool isFlag(Flag flag) const;
 	void setFlags(unsigned int nFlags);
 	const WCHAR* getFilter() const;
@@ -135,8 +135,7 @@ public:
 private:
 	qs::wstring_ptr wstrAccount_;
 	qs::wstring_ptr wstrSubAccount_;
-	qs::wstring_ptr wstrFolder_;
-	std::auto_ptr<qs::RegexPattern> pFolder_;
+	RegexValue folder_;
 	unsigned int nFlags_;
 	qs::wstring_ptr wstrFilter_;
 	ConnectReceiveBeforeSend crbs_;

@@ -545,33 +545,17 @@ qm::RuleSet::RuleSet()
 {
 }
 
-qm::RuleSet::RuleSet(const WCHAR* pwszAccount,
-					 std::auto_ptr<RegexPattern> pAccount,
-					 const WCHAR* pwszFolder,
-					 std::auto_ptr<RegexPattern> pFolder) :
-	pAccount_(pAccount),
-	pFolder_(pFolder)
+qm::RuleSet::RuleSet(RegexValue& account,
+					 RegexValue& folder)
 {
-	if (pwszAccount)
-		wstrAccount_ = allocWString(pwszAccount);
-	if (pwszFolder)
-		wstrFolder_ = allocWString(pwszFolder);
+	account_.assign(account);
+	folder_.assign(folder);
 }
 
-qm::RuleSet::RuleSet(const RuleSet& ruleset)
+qm::RuleSet::RuleSet(const RuleSet& ruleset) :
+	account_(ruleset.account_),
+	folder_(ruleset.folder_)
 {
-	RegexCompiler compiler;
-	if (ruleset.wstrAccount_.get()) {
-		wstrAccount_ = allocWString(ruleset.wstrAccount_.get());
-		pAccount_ = compiler.compile(wstrAccount_.get());
-		assert(pAccount_.get());
-	}
-	if (ruleset.wstrFolder_.get()) {
-		wstrFolder_ = allocWString(ruleset.wstrFolder_.get());
-		pFolder_ = compiler.compile(wstrFolder_.get());
-		assert(pFolder_.get());
-	}
-	
 	for (RuleList::const_iterator it = ruleset.listRule_.begin(); it != ruleset.listRule_.end(); ++it)
 		listRule_.push_back(new Rule(**it));
 }
@@ -583,49 +567,34 @@ qm::RuleSet::~RuleSet()
 
 const WCHAR* qm::RuleSet::getAccount() const
 {
-	return wstrAccount_.get();
+	return account_.getRegex();
 }
 
-void qm::RuleSet::setAccount(const WCHAR* pwszAccount,
-							 std::auto_ptr<RegexPattern> pAccount)
+void qm::RuleSet::setAccount(RegexValue& account)
 {
-	assert((pwszAccount && pAccount.get()) || (!pwszAccount && !pAccount.get()));
-	if (pwszAccount)
-		wstrAccount_ = allocWString(pwszAccount);
-	else
-		wstrAccount_.reset(0);
-	pAccount_ = pAccount;
+	account_.assign(account);
 }
 
 const WCHAR* qm::RuleSet::getFolder() const
 {
-	return wstrFolder_.get();
+	return folder_.getRegex();
 }
 
-void qm::RuleSet::setFolder(const WCHAR* pwszFolder,
-							std::auto_ptr<RegexPattern> pFolder)
+void qm::RuleSet::setFolder(RegexValue& folder)
 {
-	assert((pwszFolder && pFolder.get()) || (!pwszFolder && !pFolder.get()));
-	if (pwszFolder)
-		wstrFolder_ = allocWString(pwszFolder);
-	else
-		wstrFolder_.reset(0);
-	pFolder_ = pFolder;
+	folder_.assign(folder);
 }
 
 bool qm::RuleSet::matchName(const Folder* pFolder) const
 {
 	assert(pFolder);
 	
-	if (pAccount_.get()) {
-		const WCHAR* pwszName = pFolder->getAccount()->getName();
-		if (!pAccount_->match(pwszName))
-			return false;
-	}
+	if (account_.getRegexPattern() && !account_->match(pFolder->getAccount()->getName()))
+		return false;
 	
-	if (pFolder_.get()) {
+	if (folder_.getRegexPattern()) {
 		wstring_ptr wstrName(pFolder->getFullName());
-		if (!pFolder_->match(wstrName.get()))
+		if (!folder_->match(wstrName.get()))
 			return false;
 	}
 	
@@ -1443,22 +1412,15 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				return false;
 		}
 		
-		RegexCompiler compiler;
-		std::auto_ptr<RegexPattern> pAccount;
-		if (pwszAccount) {
-			pAccount = compiler.compile(pwszAccount);
-			if (!pAccount.get())
-				return false;
-		}
-		std::auto_ptr<RegexPattern> pFolder;
-		if (pwszFolder) {
-			pFolder = compiler.compile(pwszFolder);
-			if (!pFolder.get())
-				return false;
-		}
+		RegexValue account;
+		if (pwszAccount && !account.setRegex(pwszAccount))
+			return false;
 		
-		std::auto_ptr<RuleSet> pSet(new RuleSet(
-			pwszAccount, pAccount, pwszFolder, pFolder));
+		RegexValue folder;
+		if (pwszFolder && !folder.setRegex(pwszFolder))
+			return false;
+		
+		std::auto_ptr<RuleSet> pSet(new RuleSet(account, folder));
 		assert(!pCurrentRuleSet_);
 		pCurrentRuleSet_ = pSet.get();
 		pManager_->addRuleSet(pSet);
@@ -1898,7 +1860,7 @@ bool qm::RuleWriter::write(const Rule* pRule)
 		break;
 	default:
 		assert(false);
-		break;
+		return false;
 	}
 	
 	if (!handler_.endElement(0, 0, L"rule"))
@@ -1971,7 +1933,7 @@ bool qm::RuleWriter::write(const LabelRuleAction* pAction)
 		break;
 	default:
 		assert(false);
-		break;
+		return false;
 	}
 	const SimpleAttributes::Item items[] = {
 		{ L"type",	pwszType,				pwszType == 0	},

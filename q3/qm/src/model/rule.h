@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "../util/confighelper.h"
+#include "../util/util.h"
 
 namespace qm {
 
@@ -61,20 +62,16 @@ public:
 
 public:
 	RuleSet();
-	RuleSet(const WCHAR* pwszAccount,
-			std::auto_ptr<qs::RegexPattern> pAccount,
-			const WCHAR* pwszFolder,
-			std::auto_ptr<qs::RegexPattern> pFolder);
+	RuleSet(RegexValue& account,
+			RegexValue& folder);
 	RuleSet(const RuleSet& ruleset);
 	~RuleSet();
 
 public:
 	const WCHAR* getAccount() const;
-	void setAccount(const WCHAR* pwszAccount,
-					std::auto_ptr<qs::RegexPattern> pAccount);
+	void setAccount(RegexValue& account);
 	const WCHAR* getFolder() const;
-	void setFolder(const WCHAR* pwszFolder,
-				   std::auto_ptr<qs::RegexPattern> pFolder);
+	void setFolder(RegexValue& folder);
 	bool matchName(const Folder* pFolder) const;
 	const RuleList& getRules() const;
 	void setRules(RuleList& listRule);
@@ -89,10 +86,8 @@ private:
 	RuleSet& operator=(const RuleSet&);
 
 private:
-	qs::wstring_ptr wstrAccount_;
-	std::auto_ptr<qs::RegexPattern> pAccount_;
-	qs::wstring_ptr wstrFolder_;
-	std::auto_ptr<qs::RegexPattern> pFolder_;
+	RegexValue account_;
+	RegexValue folder_;
 	RuleList listRule_;
 };
 

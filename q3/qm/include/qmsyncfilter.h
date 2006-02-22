@@ -29,6 +29,7 @@ class Account;
 class Macro;
 class MacroContext;
 class NormalFolder;
+class RegexValue;
 
 
 /****************************************************************************
@@ -114,8 +115,7 @@ public:
 
 public:
 	SyncFilter();
-	SyncFilter(const WCHAR* pwszFolder,
-			   std::auto_ptr<qs::RegexPattern> pFolder,
+	SyncFilter(RegexValue& folder,
 			   std::auto_ptr<Macro> pCondition,
 			   const WCHAR* pwszDescription);
 	SyncFilter(const SyncFilter& filter);
@@ -123,8 +123,7 @@ public:
 
 public:
 	const WCHAR* getFolder() const;
-	void setFolder(const WCHAR* pwszFolder,
-				   std::auto_ptr<qs::RegexPattern> pFolder);
+	void setFolder(RegexValue& folder);
 	const Macro* getCondition() const;
 	void setCondition(std::auto_ptr<Macro> pCondition);
 	const WCHAR* getDescription() const;

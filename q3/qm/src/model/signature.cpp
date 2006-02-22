@@ -148,31 +148,24 @@ qm::Signature::Signature() :
 	wstrSignature_ = allocWString(L"");
 }
 
-qm::Signature::Signature(const WCHAR* pwszAccount,
-						 std::auto_ptr<RegexPattern> pAccount,
+qm::Signature::Signature(RegexValue& account,
 						 const WCHAR* pwszName,
 						 bool bDefault,
 						 const WCHAR* pwszSignature) :
-	pAccount_(pAccount),
 	bDefault_(bDefault)
 {
 	assert(pwszName);
 	assert(pwszSignature);
 	
-	if (pwszAccount)
-		wstrAccount_ = allocWString(pwszAccount);
+	account_.assign(account);
 	wstrName_ = allocWString(pwszName);
 	wstrSignature_ = allocWString(pwszSignature);
 }
 
 qm::Signature::Signature(const Signature& signature) :
+	account_(signature.account_),
 	bDefault_(signature.bDefault_)
 {
-	if (signature.wstrAccount_.get()) {
-		wstrAccount_ = allocWString(signature.wstrAccount_.get());
-		pAccount_ = RegexCompiler().compile(wstrAccount_.get());
-		assert(pAccount_.get());
-	}
 	wstrName_ = allocWString(signature.wstrName_.get());
 	wstrSignature_ = allocWString(signature.wstrSignature_.get());
 }
@@ -183,27 +176,20 @@ qm::Signature::~Signature()
 
 const WCHAR* qm::Signature::getAccount() const
 {
-	return wstrAccount_.get();
+	return account_.getRegex();
 }
 
-void qm::Signature::setAccount(const WCHAR* pwszAccount,
-							   std::auto_ptr<RegexPattern> pAccount)
+void qm::Signature::setAccount(RegexValue& account)
 {
-	assert((pwszAccount && pAccount.get()) || (!pwszAccount && !pAccount.get()));
-	
-	if (pwszAccount)
-		wstrAccount_ = allocWString(pwszAccount);
-	else
-		wstrAccount_.reset(0);
-	pAccount_ = pAccount;
+	account_.assign(account);
 }
 
 bool qm::Signature::match(Account* pAccount) const
 {
 	assert(pAccount);
 	
-	if (pAccount_.get())
-		return pAccount_->match(pAccount->getName());
+	if (account_.getRegexPattern())
+		return account_->match(pAccount->getName());
 	else
 		return true;
 }
@@ -290,14 +276,9 @@ bool qm::SignatureContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		assert(!wstrName_.get());
 		wstrName_ = allocWString(pwszName);
 		
-		assert(!wstrAccount_.get());
-		assert(!pAccount_.get());
-		if (pwszAccount) {
-			pAccount_ = RegexCompiler().compile(pwszAccount);
-			if (!pAccount_.get())
-				return false;
-			wstrAccount_ = allocWString(pwszAccount);
-		}
+		assert(!account_.getRegex());
+		if (!account_.setRegex(pwszAccount))
+			return false;
 		
 		state_ = STATE_SIGNATURE;
 	}
@@ -319,10 +300,9 @@ bool qm::SignatureContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"signature") == 0) {
 		assert(state_ == STATE_SIGNATURE);
 		
-		std::auto_ptr<Signature> pSignature(new Signature(wstrAccount_.get(),
-			pAccount_, wstrName_.get(), bDefault_, buffer_.getCharArray()));
+		std::auto_ptr<Signature> pSignature(new Signature(account_,
+			wstrName_.get(), bDefault_, buffer_.getCharArray()));
 		
-		wstrAccount_.reset(0);
 		wstrName_.reset(0);
 		buffer_.remove();
 		
