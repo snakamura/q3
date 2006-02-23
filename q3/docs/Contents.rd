@@ -50,7 +50,10 @@
   *巡回
   *自動巡回
   *未読通知
+  *スレッド表示
   *HTML表示
+  *フラグ
+  *ラベル
   *検索
     *マクロ検索
     *IMAP4検索
@@ -67,6 +70,7 @@
   *リストビューのカスタマイズ
   *((<整形|URL:Reform.html>))
   *((<メッセージモード|URL:MessageMode.html>))
+  *((<セキュリティモード|URL:SecurityMode.html>))
   *ダイアルアップ
   *SSL
   *S/MIME
