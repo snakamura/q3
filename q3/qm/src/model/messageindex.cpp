@@ -76,7 +76,7 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 	else {
 		malloc_ptr<unsigned char> pData(pMessageStore_->readIndex(nKey, nLength));
 		if (!pData.get())
-			return 0;
+			return allocWString(L"");
 		
 		const WCHAR* pwszValues[NAME_MAX] = { 0 };
 		parseValues(reinterpret_cast<WCHAR*>(pData.get()), nLength/sizeof(WCHAR), pwszValues);
