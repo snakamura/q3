@@ -28,6 +28,7 @@
 #include <functional>
 
 #include "syncmanager.h"
+#include "../model/term.h"
 #include "../model/uri.h"
 #include "../ui/resourceinc.h"
 
@@ -326,7 +327,7 @@ void qm::SyncData::addFolder(Account* pAccount,
 
 void qm::SyncData::addFolders(Account* pAccount,
 							  SubAccount* pSubAccount,
-							  const RegexPattern* pFolderNamePattern,
+							  const Term& folder,
 							  const WCHAR* pwszFilterName)
 {
 	Account::FolderList listFolder;
@@ -345,9 +346,9 @@ void qm::SyncData::addFolders(Account* pAccount,
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			(!pTrash || !pTrash->isAncestorOf(pFolder))) {
 			bool bAdd = true;
-			if (pFolderNamePattern) {
+			if (folder.isSpecified()) {
 				wstring_ptr wstrFolderName(pFolder->getFullName());
-				bAdd = pFolderNamePattern->match(wstrFolderName.get());
+				bAdd = folder.match(wstrFolderName.get());
 			}
 			if (bAdd)
 				listFolder.push_back(pFolder);

@@ -23,8 +23,9 @@
 
 #include <vector>
 
+#include "term.h"
 #include "../util/confighelper.h"
-#include "../util/util.h"
+
 
 namespace qm {
 
@@ -62,16 +63,16 @@ public:
 
 public:
 	RuleSet();
-	RuleSet(RegexValue& account,
-			RegexValue& folder);
+	RuleSet(Term& account,
+			Term& folder);
 	RuleSet(const RuleSet& ruleset);
 	~RuleSet();
 
 public:
 	const WCHAR* getAccount() const;
-	void setAccount(RegexValue& account);
+	void setAccount(Term& account);
 	const WCHAR* getFolder() const;
-	void setFolder(RegexValue& folder);
+	void setFolder(Term& folder);
 	bool matchName(const Folder* pFolder) const;
 	const RuleList& getRules() const;
 	void setRules(RuleList& listRule);
@@ -86,8 +87,8 @@ private:
 	RuleSet& operator=(const RuleSet&);
 
 private:
-	RegexValue account_;
-	RegexValue folder_;
+	Term account_;
+	Term folder_;
 	RuleList listRule_;
 };
 

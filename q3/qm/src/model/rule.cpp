@@ -545,8 +545,8 @@ qm::RuleSet::RuleSet()
 {
 }
 
-qm::RuleSet::RuleSet(RegexValue& account,
-					 RegexValue& folder)
+qm::RuleSet::RuleSet(Term& account,
+					 Term& folder)
 {
 	account_.assign(account);
 	folder_.assign(folder);
@@ -567,20 +567,20 @@ qm::RuleSet::~RuleSet()
 
 const WCHAR* qm::RuleSet::getAccount() const
 {
-	return account_.getRegex();
+	return account_.getValue();
 }
 
-void qm::RuleSet::setAccount(RegexValue& account)
+void qm::RuleSet::setAccount(Term& account)
 {
 	account_.assign(account);
 }
 
 const WCHAR* qm::RuleSet::getFolder() const
 {
-	return folder_.getRegex();
+	return folder_.getValue();
 }
 
-void qm::RuleSet::setFolder(RegexValue& folder)
+void qm::RuleSet::setFolder(Term& folder)
 {
 	folder_.assign(folder);
 }
@@ -589,12 +589,12 @@ bool qm::RuleSet::matchName(const Folder* pFolder) const
 {
 	assert(pFolder);
 	
-	if (account_.getRegexPattern() && !account_->match(pFolder->getAccount()->getName()))
+	if (!account_.match(pFolder->getAccount()->getName()))
 		return false;
 	
-	if (folder_.getRegexPattern()) {
+	if (folder_.isSpecified()) {
 		wstring_ptr wstrName(pFolder->getFullName());
-		if (!folder_->match(wstrName.get()))
+		if (!folder_.match(wstrName.get()))
 			return false;
 	}
 	
@@ -1412,12 +1412,12 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				return false;
 		}
 		
-		RegexValue account;
-		if (pwszAccount && !account.setRegex(pwszAccount))
+		Term account;
+		if (pwszAccount && !account.setValue(pwszAccount))
 			return false;
 		
-		RegexValue folder;
-		if (pwszFolder && !folder.setRegex(pwszFolder))
+		Term folder;
+		if (pwszFolder && !folder.setValue(pwszFolder))
 			return false;
 		
 		std::auto_ptr<RuleSet> pSet(new RuleSet(account, folder));

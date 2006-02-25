@@ -19,8 +19,9 @@
 
 #include <vector>
 
+#include "term.h"
 #include "../util/confighelper.h"
-#include "../util/util.h"
+
 
 namespace qm {
 
@@ -136,16 +137,16 @@ public:
 
 public:
 	ColorSet();
-	ColorSet(RegexValue& account,
-			 RegexValue& folder);
+	ColorSet(Term& account,
+			 Term& folder);
 	ColorSet(const ColorSet& colorset);
 	~ColorSet();
 
 public:
 	const WCHAR* getAccount() const;
-	void setAccount(RegexValue& account);
+	void setAccount(Term& account);
 	const WCHAR* getFolder() const;
-	void setFolder(RegexValue& folder);
+	void setFolder(Term& folder);
 	const ColorList& getColors() const;
 	void setColors(ColorList& listColor);
 	bool match(Folder* pFolder) const;
@@ -160,8 +161,8 @@ private:
 	ColorSet& operator=(const ColorSet&);
 
 private:
-	RegexValue account_;
-	RegexValue folder_;
+	Term account_;
+	Term folder_;
 	ColorList listColor_;
 };
 

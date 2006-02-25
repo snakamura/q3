@@ -18,6 +18,7 @@
 #include "syncdialog.h"
 #include "syncutil.h"
 #include "../model/goround.h"
+#include "../model/term.h"
 #include "../sync/syncmanager.h"
 
 using namespace qm;
@@ -147,11 +148,11 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 				pSubAccount->getSyncFilterName());
 			if (dialog.doModal(hwnd) != IDOK)
 				return true;
-			pData->addFolders(pAccount, pSubAccount, 0, dialog.getName());
+			pData->addFolders(pAccount, pSubAccount, Term(), dialog.getName());
 		}
 		else {
 			pData->addFolders(pAccount, pSubAccount,
-				0, pSubAccount->getSyncFilterName());
+				Term(), pSubAccount->getSyncFilterName());
 		}
 	}
 	
@@ -217,7 +218,7 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 					}
 					else {
 						pData->addFolders(pAccount, pSubAccount,
-							pEntry->getFolderPattern(), pwszFilter);
+							pEntry->getFolder(), pwszFilter);
 					}
 				}
 			}
@@ -236,7 +237,7 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 			if (pOutbox)
 				pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, 0);
 			
-			pData->addFolders(pAccount, pSubAccount, 0, pSubAccount->getSyncFilterName());
+			pData->addFolders(pAccount, pSubAccount, Term(), pSubAccount->getSyncFilterName());
 		}
 	}
 	

@@ -153,8 +153,8 @@ qm::ColorSet::ColorSet()
 {
 }
 
-qm::ColorSet::ColorSet(RegexValue& account,
-					   RegexValue& folder)
+qm::ColorSet::ColorSet(Term& account,
+					   Term& folder)
 {
 	account_.assign(account);
 	folder_.assign(folder);
@@ -175,20 +175,20 @@ qm::ColorSet::~ColorSet()
 
 const WCHAR* qm::ColorSet::getAccount() const
 {
-	return account_.getRegex();
+	return account_.getValue();
 }
 
-void qm::ColorSet::setAccount(RegexValue& account)
+void qm::ColorSet::setAccount(Term& account)
 {
 	account_.assign(account);
 }
 
 const WCHAR* qm::ColorSet::getFolder() const
 {
-	return folder_.getRegex();
+	return folder_.getValue();
 }
 
-void qm::ColorSet::setFolder(RegexValue& folder)
+void qm::ColorSet::setFolder(Term& folder)
 {
 	folder_.assign(folder);
 }
@@ -208,12 +208,12 @@ bool qm::ColorSet::match(Folder* pFolder) const
 {
 	assert(pFolder);
 	
-	if (account_.getRegexPattern() && !account_->match(pFolder->getAccount()->getName()))
+	if (!account_.match(pFolder->getAccount()->getName()))
 		return false;
 	
-	if (folder_.getRegexPattern()) {
+	if (folder_.isSpecified()) {
 		wstring_ptr wstrFullName(pFolder->getFullName());
-		if (!folder_->match(wstrFullName.get()))
+		if (!folder_.match(wstrFullName.get()))
 			return false;
 	}
 	
@@ -386,12 +386,12 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		assert(!pColorSet_);
 		
-		RegexValue account;
-		if (pwszAccount && !account.setRegex(pwszAccount))
+		Term account;
+		if (pwszAccount && !account.setValue(pwszAccount))
 			return false;
 		
-		RegexValue folder;
-		if (pwszFolder && !folder.setRegex(pwszFolder))
+		Term folder;
+		if (pwszFolder && !folder.setValue(pwszFolder))
 			return false;
 		
 		std::auto_ptr<ColorSet> pColorSet(new ColorSet(account, folder));

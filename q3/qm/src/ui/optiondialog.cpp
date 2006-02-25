@@ -4446,9 +4446,10 @@ wstring_ptr qm::GoRoundCourseDialog::getLabel(const GoRoundEntry* p) const
 		buf.append(L'/');
 		buf.append(p->getSubAccount());
 	}
-	if (p->getFolder()) {
+	const Term& folder = p->getFolder();
+	if (folder.isSpecified()) {
 		buf.append(L" [");
-		buf.append(p->getFolder());
+		buf.append(folder.getValue());
 		buf.append(L']');
 	}
 	return buf.getString();
@@ -4647,9 +4648,9 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 		setDlgItemText(IDC_SUBACCOUNT, pwszSubAccount);
 	}
 	
-	const WCHAR* pwszFolder = pEntry_->getFolder();
-	if (pwszFolder && *pwszFolder) {
-		setDlgItemText(IDC_FOLDER, pwszFolder);
+	const Term& folder = pEntry_->getFolder();
+	if (folder.isSpecified()) {
+		setDlgItemText(IDC_FOLDER, folder.getValue());
 	}
 	else {
 		wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
@@ -4703,8 +4704,8 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
 	if (!*pwszFolder || wcscmp(pwszFolder, wstrAll.get()) == 0)
 		pwszFolder = 0;
-	RegexValue folder;
-	if (pwszFolder && !folder.setRegex(pwszFolder)) {
+	Term folder;
+	if (pwszFolder && !folder.setValue(pwszFolder)) {
 		// TODO MSG
 		return 0;
 	}
@@ -5154,8 +5155,8 @@ LRESULT qm::SignatureDialog::onOk()
 	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
 	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-	RegexValue account;
-	if (*wstrAccount.get() && !account.setRegex(wstrAccount.get())) {
+	Term account;
+	if (*wstrAccount.get() && !account.setValue(wstrAccount.get())) {
 		// TODO MSG
 		return 0;
 	}
@@ -5671,8 +5672,8 @@ LRESULT qm::SyncFilterDialog::onOk()
 	}
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
-	RegexValue folder;
-	if (*wstrFolder.get() && !folder.setRegex(wstrFolder.get())) {
+	Term folder;
+	if (*wstrFolder.get() && !folder.setValue(wstrFolder.get())) {
 		// TODO MSG
 		return 0;
 	}

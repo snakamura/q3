@@ -12,14 +12,12 @@
 #include <qm.h>
 #include <qmaccount.h>
 
-#include <qsregex.h>
 #include <qsstring.h>
 
 
 namespace qm {
 
 class Util;
-class RegexValue;
 
 class AccountManager;
 
@@ -52,39 +50,6 @@ public:
 	static bool hasFilesOrURIs(IDataObject* pDataObject);
 	static void getFilesOrURIs(IDataObject* pDataObject,
 							   PathList* pList);
-};
-
-
-/****************************************************************************
- *
- * RegexValue
- *
- */
-
-class RegexValue
-{
-public:
-	RegexValue();
-	RegexValue(const WCHAR* pwszRegex,
-			   std::auto_ptr<qs::RegexPattern> pRegex);
-	RegexValue(const RegexValue& regex);
-	~RegexValue();
-
-public:
-	RegexValue& operator=(const RegexValue& regex);
-	const qs::RegexPattern* operator->() const;
-
-public:
-	const WCHAR* getRegex() const;
-	const qs::RegexPattern* getRegexPattern() const;
-	bool setRegex(const WCHAR* pwszRegex);
-	void setRegex(const WCHAR* pwszRegex,
-				  std::auto_ptr<qs::RegexPattern> pRegex);
-	void assign(RegexValue& regex);
-
-private:
-	qs::wstring_ptr wstrRegex_;
-	std::auto_ptr<qs::RegexPattern> pRegex_;
 };
 
 }

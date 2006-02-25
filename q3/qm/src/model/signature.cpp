@@ -148,7 +148,7 @@ qm::Signature::Signature() :
 	wstrSignature_ = allocWString(L"");
 }
 
-qm::Signature::Signature(RegexValue& account,
+qm::Signature::Signature(Term& account,
 						 const WCHAR* pwszName,
 						 bool bDefault,
 						 const WCHAR* pwszSignature) :
@@ -176,10 +176,10 @@ qm::Signature::~Signature()
 
 const WCHAR* qm::Signature::getAccount() const
 {
-	return account_.getRegex();
+	return account_.getValue();
 }
 
-void qm::Signature::setAccount(RegexValue& account)
+void qm::Signature::setAccount(Term& account)
 {
 	account_.assign(account);
 }
@@ -188,10 +188,7 @@ bool qm::Signature::match(Account* pAccount) const
 {
 	assert(pAccount);
 	
-	if (account_.getRegexPattern())
-		return account_->match(pAccount->getName());
-	else
-		return true;
+	return account_.match(pAccount->getName());
 }
 
 const WCHAR* qm::Signature::getName() const
@@ -276,8 +273,8 @@ bool qm::SignatureContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		assert(!wstrName_.get());
 		wstrName_ = allocWString(pwszName);
 		
-		assert(!account_.getRegex());
-		if (!account_.setRegex(pwszAccount))
+		assert(!account_.getValue());
+		if (!account_.setValue(pwszAccount))
 			return false;
 		
 		state_ = STATE_SIGNATURE;

@@ -254,7 +254,7 @@ qm::GoRoundEntry::GoRoundEntry() :
 
 qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
 							   const WCHAR* pwszSubAccount,
-							   RegexValue& folder,
+							   Term& folder,
 							   unsigned int nFlags,
 							   const WCHAR* pwszFilter,
 							   ConnectReceiveBeforeSend crbs) :
@@ -326,17 +326,12 @@ void qm::GoRoundEntry::setSubAccount(const WCHAR* pwszSubAccount)
 		wstrSubAccount_.reset(0);
 }
 
-const WCHAR* qm::GoRoundEntry::getFolder() const
+const Term& qm::GoRoundEntry::getFolder() const
 {
-	return folder_.getRegex();
+	return folder_;
 }
 
-const RegexPattern* qm::GoRoundEntry::getFolderPattern() const
-{
-	return folder_.getRegexPattern();
-}
-
-void qm::GoRoundEntry::setFolder(RegexValue& folder)
+void qm::GoRoundEntry::setFolder(Term& folder)
 {
 	folder_.assign(folder);
 }
@@ -656,8 +651,8 @@ bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			!(nFlags & GoRoundEntry::FLAG_RECEIVE))
 			nFlags |= GoRoundEntry::FLAG_SEND | GoRoundEntry::FLAG_RECEIVE;
 		
-		RegexValue folder;
-		if (pwszFolder && !folder.setRegex(pwszFolder))
+		Term folder;
+		if (pwszFolder && !folder.setValue(pwszFolder))
 			return false;
 		
 		std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry(pwszAccount,
@@ -829,14 +824,14 @@ bool qm::GoRoundWriter::write(const GoRoundEntry* pEntry)
 	bool bSelectFolder = pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER);
 	GoRoundEntry::ConnectReceiveBeforeSend crbs = pEntry->getConnectReceiveBeforeSend();
 	const SimpleAttributes::Item items[] = {
-		{ L"account",					pEntry->getAccount()																			},
-		{ L"subaccount",				pEntry->getSubAccount(),								!pEntry->getSubAccount()				},
-		{ L"folder",					pEntry->getFolder(),									!pEntry->getFolder() || bSelectFolder	},
-		{ L"filter",					pEntry->getFilter(),									!pEntry->getFilter()					},
-		{ L"send",						bSend ? L"true" : L"false",								!bSend || (bSend && bReceive)			},
-		{ L"receive",					bReceive ? L"true" : L"false",							!bReceive || (bSend && bReceive)		},
-		{ L"selectFolder",				bSelectFolder ? L"true" : L"false",						!bSelectFolder							},
-		{ L"connectReceiveBeforeSend",	crbs == GoRoundEntry::CRBS_TRUE ? L"true" : L"false",	crbs == GoRoundEntry::CRBS_NONE			}
+		{ L"account",					pEntry->getAccount()																						},
+		{ L"subaccount",				pEntry->getSubAccount(),								!pEntry->getSubAccount()							},
+		{ L"folder",					pEntry->getFolder().getValue(),							!pEntry->getFolder().getValue() || bSelectFolder	},
+		{ L"filter",					pEntry->getFilter(),									!pEntry->getFilter()								},
+		{ L"send",						bSend ? L"true" : L"false",								!bSend || (bSend && bReceive)						},
+		{ L"receive",					bReceive ? L"true" : L"false",							!bReceive || (bSend && bReceive)					},
+		{ L"selectFolder",				bSelectFolder ? L"true" : L"false",						!bSelectFolder										},
+		{ L"connectReceiveBeforeSend",	crbs == GoRoundEntry::CRBS_TRUE ? L"true" : L"false",	crbs == GoRoundEntry::CRBS_NONE						}
 	};
 	SimpleAttributes attrs(items, countof(items));
 	return handler_.startElement(0, 0, L"entry", attrs) &&

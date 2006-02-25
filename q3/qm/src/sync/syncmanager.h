@@ -37,6 +37,7 @@ class Folder;
 class SubAccount;
 class NormalFolder;
 class Recents;
+class Term;
 class SyncFilterManager;
 class SyncFilterSet;
 
@@ -238,7 +239,7 @@ public:
 				   unsigned int nFlags);
 	void addFolders(Account* pAccount,
 					SubAccount* pSubAccount,
-					const qs::RegexPattern* pFolderNamePattern,
+					const Term& folder,
 					const WCHAR* pwszFilterName);
 	void addSend(Account* pAccount,
 				 SubAccount* pSubAccount,

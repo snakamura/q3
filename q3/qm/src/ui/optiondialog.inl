@@ -261,15 +261,15 @@ template<class T, class List, class Container, class EditDialog>
 LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onOk()
 {
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-	RegexValue account;
-	if (*wstrAccount.get() && !account.setRegex(wstrAccount.get())) {
+	Term account;
+	if (*wstrAccount.get() && !account.setValue(wstrAccount.get())) {
 		// TODO MSG
 		return 0;
 	}
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
-	RegexValue folder;
-	if (*wstrFolder.get() && !folder.setRegex(wstrFolder.get())) {
+	Term folder;
+	if (*wstrFolder.get() && !folder.setValue(wstrFolder.get())) {
 		// TODO MSG
 		return 0;
 	}
