@@ -431,6 +431,7 @@ public:
 	unsigned int nLastSyncTime_;
 	MessageHolderList listMessageHolder_;
 	bool bLoad_;
+	unsigned int nMaxId_;
 	mutable bool bModified_;
 };
 
@@ -526,6 +527,7 @@ qm::NormalFolder::NormalFolder(unsigned int nId,
 	pImpl_->nDeletedCount_ = nDeletedCount;
 	pImpl_->nLastSyncTime_ = 0;
 	pImpl_->bLoad_ = false;
+	pImpl_->nMaxId_ = 0;
 	pImpl_->bModified_ = false;
 	
 	getAccount()->addMessageHolderHandler(pImpl_);
@@ -729,6 +731,8 @@ bool qm::NormalFolder::loadMessageHolders()
 	
 	wstring_ptr wstrPath(pImpl_->getPath());
 	
+	MessageHolderList& l = pImpl_->listMessageHolder_;
+	
 	W2T(wstrPath.get(), ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
 		FileInputStream fileStream(wstrPath.get());
@@ -746,7 +750,7 @@ bool qm::NormalFolder::loadMessageHolders()
 				return false;
 			
 			std::auto_ptr<MessageHolder> pmh(new MessageHolder(this, init));
-			pImpl_->listMessageHolder_.push_back(pmh.get());
+			l.push_back(pmh.get());
 			MessageHolder* p = pmh.release();
 			
 			if (!p->isSeen())
@@ -758,6 +762,8 @@ bool qm::NormalFolder::loadMessageHolders()
 				++pImpl_->nDeletedCount_;
 		}
 	}
+	
+	pImpl_->nMaxId_ = l.empty() ? 0 : l.back()->getId();
 	
 	pImpl_->bLoad_ = true;
 	
@@ -828,9 +834,10 @@ unsigned int qm::NormalFolder::generateId()
 		assert(nMaxId < (*it)->getId());
 		nMaxId = (*it)->getId();
 	}
+	assert(pImpl_->nMaxId_ >= nMaxId);
 #endif
 	
-	return l.empty() ? 1 : l.back()->getId() + 1;
+	return pImpl_->nMaxId_ + 1;
 }
 
 bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh)
@@ -857,6 +864,8 @@ bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh)
 		++pImpl_->nDownloadCount_;
 	if (p->isFlag(MessageHolder::FLAG_DELETED))
 		++pImpl_->nDeletedCount_;
+	
+	pImpl_->nMaxId_ = p->getId();
 	
 	getImpl()->fireMessageAdded(MessageHolderList(1, p));
 	
@@ -960,6 +969,8 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
 			--pImpl_->nDeletedCount_;
 			++pFolder->pImpl_->nDeletedCount_;
 		}
+		
+		pFolder->pImpl_->nMaxId_ = pmh->getId();
 	}
 	
 	getImpl()->fireMessageRemoved(l);
