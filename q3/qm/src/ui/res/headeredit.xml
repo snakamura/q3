@@ -30,7 +30,7 @@
 	<line hideIfNoFocus="true">
 		<static width="6em" style="bold" align="right">Acco&amp;unt:</static>
 		<account number="7"/>
-		<static width="5em" style="bold" align="right">S&amp;ignature:</static>
+		<static width="5.5em" style="bold" align="right">S&amp;ignature:</static>
 		<signature width="5em" number="8"/>
 	</line>
 </headerEdit>

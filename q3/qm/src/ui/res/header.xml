@@ -26,7 +26,7 @@
 		<edit>{@Subject()}</edit>
 	</line>
 	<line hideIfEmpty="attachment" class="mail|news">
-		<static width="4em" style="bold" align="right" showAlways="true">Attachment:</static>
+		<static width="6em" style="bold" align="right" showAlways="true">Attachment:</static>
 		<attachment name="attachment"/>
 	</line>
 	<line class="rss">
