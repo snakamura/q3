@@ -66,6 +66,7 @@ struct qs::InitImpl
 	wstring_ptr wstrMailEncoding_;
 	wstring_ptr wstrFixedWidthFont_;
 	wstring_ptr wstrProportionalFont_;
+	wstring_ptr wstrUIFont_;
 	bool bLogEnabled_;
 	wstring_ptr wstrLogDir_;
 	Logger::Level logLevel_;
@@ -105,6 +106,21 @@ bool qs::InitImpl::setSystemEncodingAndFonts(const WCHAR* pwszEncoding)
 	wstrMailEncoding_ = allocWString(pwszBodyEncoding);
 	wstrFixedWidthFont_ = allocWString(cpinfo.wszFixedWidthFont);
 	wstrProportionalFont_ = allocWString(cpinfo.wszProportionalFont);
+	
+#ifndef _WIN32_WCE
+	HFONT hfont = reinterpret_cast<HFONT>(::GetStockObject(DEFAULT_GUI_FONT));
+#else
+	HFONT hfont = reinterpret_cast<HFONT>(::GetStockObject(SYSTEM_FONT));
+#endif
+	if (hfont) {
+		LOGFONT lf;
+		::GetObject(hfont, sizeof(lf), &lf);
+		T2W(lf.lfFaceName, pwszFaceName);
+		wstrUIFont_ = allocWString(pwszFaceName);
+	}
+	else {
+		wstrUIFont_ = allocWString(wstrProportionalFont_.get());
+	}
 	
 	return true;
 }
@@ -242,6 +258,11 @@ const WCHAR* qs::Init::getDefaultFixedWidthFont() const
 const WCHAR* qs::Init::getDefaultProportionalFont() const
 {
 	return pImpl_->wstrProportionalFont_.get();
+}
+
+const WCHAR* qs::Init::getDefaultUIFont() const
+{
+	return pImpl_->wstrUIFont_.get();
 }
 
 InitThread* qs::Init::getInitThread()

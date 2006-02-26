@@ -1253,7 +1253,8 @@ qm::OptionAddressBookDialog::OptionAddressBookDialog(AddressBook* pAddressBook,
 	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pProfile_(pProfile)
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"AddressBookListWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_,
+		L"AddressBookListWindow", qs::UIUtil::DEFAULTFONT_UI, &lf_);
 }
 
 qm::OptionAddressBookDialog::~OptionAddressBookDialog()
@@ -1389,8 +1390,10 @@ qm::OptionFolderDialog::OptionFolderDialog(FolderWindow* pFolderWindow,
 	color_(pProfile, L"FolderWindow", false)
 #endif
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"FolderWindow", false, &lfWindow_);
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"FolderComboBox", false, &lfComboBox_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_,
+		L"FolderWindow", qs::UIUtil::DEFAULTFONT_UI, &lfWindow_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_,
+		L"FolderComboBox", qs::UIUtil::DEFAULTFONT_UI, &lfComboBox_);
 }
 
 qm::OptionFolderDialog::~OptionFolderDialog()
@@ -1476,7 +1479,8 @@ qm::OptionHeaderDialog::OptionHeaderDialog(MessageFrameWindowManager* pMessageFr
 	pPreviewWindow_(pPreviewWindow),
 	pProfile_(pProfile)
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"HeaderWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_,
+		L"HeaderWindow", qs::UIUtil::DEFAULTFONT_UI, &lf_);
 }
 
 qm::OptionHeaderDialog::~OptionHeaderDialog()
@@ -1661,7 +1665,8 @@ qm::OptionListDialog::OptionListDialog(ListWindow* pListWindow,
 	pProfile_(pProfile),
 	color_(pProfile, L"ListWindow", false)
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"ListWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_,
+		L"ListWindow", qs::UIUtil::DEFAULTFONT_UI, &lf_);
 }
 
 qm::OptionListDialog::~OptionListDialog()
@@ -2161,7 +2166,8 @@ qm::AbstractOptionTextDialog::AbstractOptionTextDialog(UINT nId,
 	pwszSection_(pwszSection),
 	color_(pProfile, pwszSection, true)
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, pwszSection_, false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_,
+		pwszSection_, qs::UIUtil::DEFAULTFONT_FIXED, &lf_);
 }
 
 qm::AbstractOptionTextDialog::~AbstractOptionTextDialog()
@@ -2270,7 +2276,8 @@ qm::OptionEditDialog::OptionEditDialog(EditFrameWindowManager* pEditFrameWindowM
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pProfile_(pProfile)
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"HeaderEditWindow", false, &lfHeader_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_,
+		L"HeaderEditWindow", qs::UIUtil::DEFAULTFONT_UI, &lfHeader_);
 }
 
 qm::OptionEditDialog::~OptionEditDialog()
@@ -2589,7 +2596,8 @@ qm::OptionTabDialog::OptionTabDialog(TabWindow* pTabWindow,
 	pTabWindow_(pTabWindow),
 	pProfile_(pProfile)
 {
-	qs::UIUtil::getLogFontFromProfile(pProfile_, L"TabWindow", false, &lf_);
+	qs::UIUtil::getLogFontFromProfile(pProfile_,
+		L"TabWindow", qs::UIUtil::DEFAULTFONT_UI, &lf_);
 }
 
 qm::OptionTabDialog::~OptionTabDialog()

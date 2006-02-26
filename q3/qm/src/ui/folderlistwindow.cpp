@@ -247,7 +247,8 @@ Folder* qm::FolderListWindowImpl::getFolder(int nItem) const
 
 void qm::FolderListWindowImpl::reloadProfiles(bool bInitialize)
 {
-	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"FolderListWindow", false);
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
+		L"FolderListWindow", qs::UIUtil::DEFAULTFONT_UI);
 	if (!bInitialize) {
 		assert(hfont_);
 		Window(ListView_GetHeader(pThis_->getHandle())).setFont(hfont);

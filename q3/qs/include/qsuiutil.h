@@ -30,12 +30,19 @@ class Theme;
 class QSEXPORTCLASS UIUtil
 {
 public:
+	enum DefaultFont {
+		DEFAULTFONT_PROPORTIONAL,
+		DEFAULTFONT_FIXED,
+		DEFAULTFONT_UI
+	};
+
+public:
 	static HFONT createFontFromProfile(Profile* pProfile,
 									   const WCHAR* pwszSection,
-									   bool bDefaultFixedWidth);
+									   DefaultFont defaultFont);
 	static void getLogFontFromProfile(Profile* pProfile,
 									  const WCHAR* pwszSection,
-									  bool bDefaultFixedWidth,
+									  DefaultFont defaultFont,
 									  LOGFONT* pLogFont);
 	static void setLogFontToProfile(Profile* pProfile,
 									const WCHAR* pwszSection,

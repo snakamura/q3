@@ -112,7 +112,8 @@ bool qm::HeaderEditWindowImpl::create(const WCHAR* pwszClass,
 
 void qm::HeaderEditWindowImpl::reloadProfiles(bool bInitialize)
 {
-	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"HeaderEditWindow", false);
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
+		L"HeaderEditWindow", qs::UIUtil::DEFAULTFONT_UI);
 	LOGFONT lf;
 	::GetObject(hfont, sizeof(lf), &lf);
 	lf.lfWeight = FW_BOLD;
@@ -807,7 +808,10 @@ const TCHAR* qm::StaticHeaderEditItem::getWindowClassName() const
 
 UINT qm::StaticHeaderEditItem::getWindowStyle() const
 {
-	UINT nStyle = (getValue() ? 0 : SS_NOPREFIX) | SS_ENDELLIPSIS;
+	UINT nStyle = getValue() ? 0 : SS_NOPREFIX;
+#ifndef _WIN32_WCE
+	nStyle |= SS_ENDELLIPSIS;
+#endif
 	switch (getAlign()) {
 	case ALIGN_LEFT:
 		nStyle |= SS_LEFT;
@@ -927,10 +931,9 @@ const TCHAR* qm::EditHeaderEditItem::getWindowClassName() const
 
 UINT qm::EditHeaderEditItem::getWindowStyle() const
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	UINT nStyle = WS_BORDER | ES_AUTOHSCROLL;
-#else
 	UINT nStyle = ES_AUTOHSCROLL;
+#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+	nStyle |= WS_BORDER;
 #endif
 	switch (getAlign()) {
 	case ALIGN_LEFT:

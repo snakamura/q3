@@ -43,6 +43,7 @@ public:
 	const WCHAR* getMailEncoding() const;
 	const WCHAR* getDefaultFixedWidthFont() const;
 	const WCHAR* getDefaultProportionalFont() const;
+	const WCHAR* getDefaultUIFont() const;
 	
 	bool isLogEnabled() const;
 	void setLogEnabled(bool bEnabled);

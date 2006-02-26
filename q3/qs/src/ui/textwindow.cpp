@@ -1564,7 +1564,8 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 		initStrings[n].wstrValue_ = pProfile->getString(pwszSection,
 			initStrings[n].pwszKey_, initStrings[n].pwszDefault_).release();
 	
-	GdiObject<HFONT> font(UIUtil::createFontFromProfile(pProfile, pwszSection, true));
+	GdiObject<HFONT> font(UIUtil::createFontFromProfile(
+		pProfile, pwszSection, UIUtil::DEFAULTFONT_FIXED));
 	
 	LOGFONT lf;
 	::GetObject(font.get(), sizeof(lf), &lf);

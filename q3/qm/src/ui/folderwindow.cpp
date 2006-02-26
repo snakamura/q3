@@ -412,7 +412,8 @@ void qm::FolderWindowImpl::reloadProfiles(bool bInitialize)
 	
 	nDragOpenWait_ = pProfile_->getInt(L"FolderWindow", L"DragOpenWait", 500);
 	
-	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"FolderWindow", false);
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
+		L"FolderWindow", qs::UIUtil::DEFAULTFONT_UI);
 	if (!bInitialize) {
 		assert(hfont_);
 		pThis_->setFont(hfont);

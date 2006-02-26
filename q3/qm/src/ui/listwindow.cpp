@@ -542,7 +542,8 @@ void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 #endif
 	bSingleClickOpen_ = pProfile_->getInt(L"ListWindow", L"SingleClickOpen", bSingleClickOpen) != 0;
 	
-	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"ListWindow", false);
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
+		L"ListWindow", qs::UIUtil::DEFAULTFONT_UI);
 	if (!bInitialize) {
 		assert(hfont_);
 		pHeaderColumn_->setFont(hfont);

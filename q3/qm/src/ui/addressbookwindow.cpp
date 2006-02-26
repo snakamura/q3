@@ -836,7 +836,8 @@ void qm::AddressBookListWindowImpl::open(int nItem)
 
 void qm::AddressBookListWindowImpl::reloadProfiles(bool bInitialize)
 {
-	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"AddressBookListWindow", false);
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
+		L"AddressBookListWindow", qs::UIUtil::DEFAULTFONT_UI);
 	if (!bInitialize) {
 		assert(hfont_);
 		Window(ListView_GetHeader(pThis_->getHandle())).setFont(hfont);

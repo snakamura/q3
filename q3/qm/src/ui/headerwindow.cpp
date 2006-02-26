@@ -107,7 +107,8 @@ bool qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
 
 void qm::HeaderWindowImpl::reloadProfiles(bool bInitialize)
 {
-	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"HeaderWindow", false);
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
+		L"HeaderWindow", qs::UIUtil::DEFAULTFONT_UI);
 	LOGFONT lf;
 	::GetObject(hfont, sizeof(lf), &lf);
 	lf.lfWeight = FW_BOLD;
@@ -691,7 +692,10 @@ const TCHAR* qm::StaticHeaderItem::getWindowClassName() const
 
 UINT qm::StaticHeaderItem::getWindowStyle() const
 {
-	UINT nStyle = SS_NOPREFIX | SS_ENDELLIPSIS;
+	UINT nStyle = SS_NOPREFIX;
+#ifndef _WIN32_WCE
+	nStyle |= SS_ENDELLIPSIS;
+#endif
 	switch (getAlign()) {
 	case ALIGN_LEFT:
 		nStyle |= SS_LEFT;

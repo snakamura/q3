@@ -36,16 +36,16 @@ using namespace qs;
 
 HFONT qs::UIUtil::createFontFromProfile(Profile* pProfile,
 										const WCHAR* pwszSection,
-										bool bDefaultFixedWidth)
+										DefaultFont defaultFont)
 {
 	LOGFONT lf;
-	getLogFontFromProfile(pProfile, pwszSection, bDefaultFixedWidth, &lf);
+	getLogFontFromProfile(pProfile, pwszSection, defaultFont, &lf);
 	return ::CreateFontIndirect(&lf);
 }
 
 void qs::UIUtil::getLogFontFromProfile(Profile* pProfile,
 									   const WCHAR* pwszSection,
-									   bool bDefaultFixedWidth,
+									   DefaultFont defaultFont,
 									   LOGFONT* pLogFont)
 {
 	assert(pProfile);
@@ -53,10 +53,20 @@ void qs::UIUtil::getLogFontFromProfile(Profile* pProfile,
 	assert(pLogFont);
 	
 	const WCHAR* pwszDefaultFace = 0;
-	if (bDefaultFixedWidth)
-		pwszDefaultFace = Init::getInit().getDefaultFixedWidthFont();
-	else
+	switch (defaultFont) {
+	case DEFAULTFONT_PROPORTIONAL:
 		pwszDefaultFace = Init::getInit().getDefaultProportionalFont();
+		break;
+	case DEFAULTFONT_FIXED:
+		pwszDefaultFace = Init::getInit().getDefaultFixedWidthFont();
+		break;
+	case DEFAULTFONT_UI:
+		pwszDefaultFace = Init::getInit().getDefaultUIFont();
+		break;
+	default:
+		assert(false);
+		break;
+	}
 	
 	wstring_ptr wstrFontFace(pProfile->getString(
 		pwszSection, L"FontFace", pwszDefaultFace));

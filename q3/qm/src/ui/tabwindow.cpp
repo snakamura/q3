@@ -844,7 +844,8 @@ void qm::TabCtrlWindow::processDragEvent(const DropTargetDragEvent& event)
 
 void qm::TabCtrlWindow::reloadProfiles(bool bInitialize)
 {
-	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_, L"TabWindow", false);
+	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
+		L"TabWindow", qs::UIUtil::DEFAULTFONT_UI);
 	if (!bInitialize) {
 		assert(hfont_);
 		setFont(hfont);
