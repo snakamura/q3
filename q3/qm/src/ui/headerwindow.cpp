@@ -489,6 +489,7 @@ qm::TextHeaderItemSite::~TextHeaderItemSite()
 
 qm::TextHeaderItem::TextHeaderItem() :
 	nStyle_(STYLE_NORMAL),
+	align_(ALIGN_LEFT),
 	hwnd_(0),
 	crBackground_(0xffffffff),
 	hbrBackground_(0)
@@ -507,6 +508,11 @@ HWND qm::TextHeaderItem::getHandle() const
 void qm::TextHeaderItem::setStyle(unsigned int nStyle)
 {
 	nStyle_ = nStyle;
+}
+
+void qm::TextHeaderItem::setAlign(Align align)
+{
+	align_ = align;
 }
 
 void qm::TextHeaderItem::setBackground(std::auto_ptr<Template> pBackground)
@@ -592,6 +598,11 @@ bool qm::TextHeaderItem::isActive() const
 	return Window(hwnd_).hasFocus();
 }
 
+TextHeaderItem::Align qm::TextHeaderItem::getAlign() const
+{
+	return align_;
+}
+
 HBRUSH qm::TextHeaderItem::getColor(qs::DeviceContext* pdc)
 {
 	if (hbrBackground_)
@@ -624,6 +635,16 @@ unsigned int qm::TextHeaderItem::parseStyle(const WCHAR* pwszStyle)
 	}
 	
 	return nStyle;
+}
+
+TextHeaderItem::Align qm::TextHeaderItem::parseAlign(const WCHAR* pwszAlign)
+{
+	if (wcscmp(pwszAlign, L"right") == 0)
+		return ALIGN_RIGHT;
+	else if (wcscmp(pwszAlign, L"center") == 0)
+		return ALIGN_CENTER;
+	else
+		return ALIGN_LEFT;
 }
 
 void qm::TextHeaderItem::updateColor(const TemplateContext& context)
@@ -670,7 +691,22 @@ const TCHAR* qm::StaticHeaderItem::getWindowClassName() const
 
 UINT qm::StaticHeaderItem::getWindowStyle() const
 {
-	return SS_LEFTNOWORDWRAP | SS_NOPREFIX;
+	UINT nStyle = SS_NOPREFIX | SS_ENDELLIPSIS;
+	switch (getAlign()) {
+	case ALIGN_LEFT:
+		nStyle |= SS_LEFT;
+		break;
+	case ALIGN_CENTER:
+		nStyle |= SS_CENTER;
+		break;
+	case ALIGN_RIGHT:
+		nStyle |= SS_RIGHT;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return nStyle;
 }
 
 
@@ -695,7 +731,22 @@ const TCHAR* qm::EditHeaderItem::getWindowClassName() const
 
 UINT qm::EditHeaderItem::getWindowStyle() const
 {
-	return ES_READONLY | ES_AUTOHSCROLL;
+	UINT nStyle = ES_READONLY | ES_AUTOHSCROLL;
+	switch (getAlign()) {
+	case ALIGN_LEFT:
+		nStyle |= ES_LEFT;
+		break;
+	case ALIGN_CENTER:
+		nStyle |= ES_CENTER;
+		break;
+	case ALIGN_RIGHT:
+		nStyle |= ES_RIGHT;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return nStyle;
 }
 
 
@@ -1121,6 +1172,9 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			}
 			else if (wcscmp(pwszAttrLocalName, L"style") == 0) {
 				pItem->setStyle(TextHeaderItem::parseStyle(attributes.getValue(n)));
+			}
+			else if (wcscmp(pwszAttrLocalName, L"align") == 0) {
+				pItem->setAlign(TextHeaderItem::parseAlign(attributes.getValue(n)));
 			}
 			else if (wcscmp(pwszAttrLocalName, L"showAlways") == 0) {
 				if (wcscmp(attributes.getValue(n), L"true") == 0)

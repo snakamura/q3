@@ -1,36 +1,36 @@
 <headerEdit>
 	<line class="mail">
-		<static width="6em" style="bold">T&amp;o:</static>
+		<static width="6em" style="bold" align="right">T&amp;o:</static>
 		<address field="To" number="0"/>
 	</line>
 	<line class="mail" hideIfNoFocus="true">
-		<static width="6em" style="bold">&amp;Cc:</static>
+		<static width="6em" style="bold" align="right">&amp;Cc:</static>
 		<address field="Cc" number="1" initialFocus="false"/>
 	</line>
 	<line class="mail" hideIfNoFocus="true">
-		<static width="6em" style="bold">&amp;Bcc:</static>
+		<static width="6em" style="bold" align="right">&amp;Bcc:</static>
 		<address field="Bcc" number="2" initialFocus="false"/>
 	</line>
 	<line class="news">
-		<static width="6em" style="bold">&amp;Newsgroups:</static>
+		<static width="6em" style="bold" align="right">&amp;Newsgroups:</static>
 		<edit type="unstructured" field="Newsgroups" number="3"/>
 	</line>
 	<line class="news" hideIfNoFocus="true">
-		<static width="6em" style="bold">Fo&amp;llowup-To:</static>
+		<static width="6em" style="bold" align="right">Fo&amp;llowup-To:</static>
 		<edit type="unstructured" field="Followup-To" number="4" initialFocus="false"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="6em" style="bold">&amp;Subject:</static>
+		<static width="6em" style="bold" align="right">&amp;Subject:</static>
 		<edit type="unstructured" field="Subject" number="5"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="6em" style="bold">Attac&amp;hment:</static>
+		<static width="6em" style="bold" align="right">Attac&amp;hment:</static>
 		<attachment number="6"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="6em" style="bold">Acco&amp;unt:</static>
+		<static width="6em" style="bold" align="right">Acco&amp;unt:</static>
 		<account number="7"/>
-		<static width="5em" style="bold">S&amp;ignature:</static>
+		<static width="5em" style="bold" align="right">S&amp;ignature:</static>
 		<signature width="5em" number="8"/>
 	</line>
 </headerEdit>

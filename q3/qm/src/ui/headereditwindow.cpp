@@ -572,7 +572,8 @@ bool qm::HeaderEditItem::canRedo()
 
 qm::TextHeaderEditItem::TextHeaderEditItem(EditWindowFocusController* pController) :
 	HeaderEditItem(pController),
-	nStyle_(0),
+	nStyle_(STYLE_NORMAL),
+	align_(ALIGN_LEFT),
 	type_(TYPE_UNSTRUCTURED),
 	hwnd_(0)
 {
@@ -615,6 +616,11 @@ bool qm::TextHeaderEditItem::hasFocus() const
 void qm::TextHeaderEditItem::setStyle(unsigned int nStyle)
 {
 	nStyle_ = nStyle;
+}
+
+void qm::TextHeaderEditItem::setAlign(Align align)
+{
+	align_ = align;
 }
 
 void qm::TextHeaderEditItem::setField(const WCHAR* pwszField)
@@ -683,6 +689,11 @@ HWND qm::TextHeaderEditItem::getHandle() const
 	return hwnd_;
 }
 
+TextHeaderEditItem::Align qm::TextHeaderEditItem::getAlign() const
+{
+	return align_;
+}
+
 const WCHAR* qm::TextHeaderEditItem::getField() const
 {
 	return wstrField_.get();
@@ -723,6 +734,16 @@ unsigned int qm::TextHeaderEditItem::parseStyle(const WCHAR* pwszStyle)
 	}
 	
 	return nStyle;
+}
+
+TextHeaderEditItem::Align qm::TextHeaderEditItem::parseAlign(const WCHAR* pwszAlign)
+{
+	if (wcscmp(pwszAlign, L"right") == 0)
+		return ALIGN_RIGHT;
+	else if (wcscmp(pwszAlign, L"center") == 0)
+		return ALIGN_CENTER;
+	else
+		return ALIGN_LEFT;
 }
 
 TextHeaderEditItem::Type qm::TextHeaderEditItem::parseType(const WCHAR* pwszType)
@@ -786,7 +807,22 @@ const TCHAR* qm::StaticHeaderEditItem::getWindowClassName() const
 
 UINT qm::StaticHeaderEditItem::getWindowStyle() const
 {
-	return SS_LEFTNOWORDWRAP | (getValue() ? 0 : SS_NOPREFIX);
+	UINT nStyle = (getValue() ? 0 : SS_NOPREFIX) | SS_ENDELLIPSIS;
+	switch (getAlign()) {
+	case ALIGN_LEFT:
+		nStyle |= SS_LEFT;
+		break;
+	case ALIGN_CENTER:
+		nStyle |= SS_CENTER;
+		break;
+	case ALIGN_RIGHT:
+		nStyle |= SS_RIGHT;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return nStyle;
 }
 
 UINT qm::StaticHeaderEditItem::getWindowExStyle() const
@@ -892,10 +928,25 @@ const TCHAR* qm::EditHeaderEditItem::getWindowClassName() const
 UINT qm::EditHeaderEditItem::getWindowStyle() const
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	return WS_BORDER | ES_AUTOHSCROLL;
+	UINT nStyle = WS_BORDER | ES_AUTOHSCROLL;
 #else
-	return ES_AUTOHSCROLL;
+	UINT nStyle = ES_AUTOHSCROLL;
 #endif
+	switch (getAlign()) {
+	case ALIGN_LEFT:
+		nStyle |= ES_LEFT;
+		break;
+	case ALIGN_CENTER:
+		nStyle |= ES_CENTER;
+		break;
+	case ALIGN_RIGHT:
+		nStyle |= ES_RIGHT;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return nStyle;
 }
 
 UINT qm::EditHeaderEditItem::getWindowExStyle() const
@@ -2070,6 +2121,9 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 				}
 				else if (wcscmp(pwszAttrLocalName, L"style") == 0) {
 					pItem->setStyle(TextHeaderEditItem::parseStyle(attributes.getValue(n)));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"align") == 0) {
+					pItem->setAlign(TextHeaderEditItem::parseAlign(attributes.getValue(n)));
 				}
 				else if (wcscmp(pwszAttrLocalName, L"field") == 0) {
 					pItem->setField(attributes.getValue(n));

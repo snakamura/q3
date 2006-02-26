@@ -1,64 +1,64 @@
 <header>
 	<line class="mail">
-		<static width="4em" style="bold" showAlways="true">宛先:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">宛先:</static>
 		<edit>{@FormatAddress(To, 3)}</edit>
 	</line>
 	<line class="mail" hideIfEmpty="cc">
-		<static width="4em" style="bold" showAlways="true">Cc:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">Cc:</static>
 		<edit name="cc">{@FormatAddress(Cc, 3)}</edit>
 	</line>
 	<line class="news">
-		<static width="4em" style="bold" showAlways="true">Newsgroups:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">Newsgroups:</static>
 		<edit>{Newsgroups}</edit>
 	</line>
 	<line class="news" hideIfEmpty="followup-to">
-		<static width="4em" style="bold" showAlways="true">Followup-To:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">Followup-To:</static>
 		<edit name="followup-to">{FollowUp-To}</edit>
 	</line>
 	<line class="mail|news">
-		<static width="4em" style="bold" showAlways="true">送信者:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">送信者:</static>
 		<edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}">{@FormatAddress(From, 3)}</edit>
-		<static width="3em" style="bold" showAlways="true">日付:</static>
+		<static width="3em" style="bold" align="right" showAlways="true">日付:</static>
 		<edit width="10em">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
 	</line>
 	<line class="mail|news">
-		<static width="4em" style="bold" showAlways="true">件名:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">件名:</static>
 		<edit>{@Subject()}</edit>
 	</line>
 	<line hideIfEmpty="attachment" class="mail|news">
-		<static width="4em" style="bold" showAlways="true">添付ファイル:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">添付ファイル:</static>
 		<attachment name="attachment"/>
 	</line>
 	<line class="rss">
-		<static width="4em" style="bold" showAlways="true">タイトル:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">タイトル:</static>
 		<edit>{@Subject()}</edit>
 	</line>
 	<line class="rss">
-		<static width="4em" style="bold" showAlways="true">日付:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">日付:</static>
 		<edit width="10em">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="creator">
-		<static width="4em" style="bold" showAlways="true">作成者:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">作成者:</static>
 		<edit name="creator">{X-RSS-Creator}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="category">
-		<static width="4em" style="bold" showAlways="true">カテゴリ:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">カテゴリ:</static>
 		<edit name="category">{X-RSS-Category}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="subject">
-		<static width="4em" style="bold" showAlways="true">主題:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">主題:</static>
 		<edit name="subject">{X-RSS-Subject}</edit>
 	</line>
 	<line class="rss">
-		<static width="4em" style="bold" showAlways="true">URL:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">URL:</static>
 		<edit>{X-RSS-Link}</edit>
 	</line>
 	<line hideIfEmpty="label">
-		<static width="4em" style="bold" showAlways="true">ラベル:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">ラベル:</static>
 		<edit name="label">{@Label()}</edit>
 	</line>
 	<line hideIfEmpty="sign">
-		<static width="4em" style="bold" showAlways="true">署名者:</static>
+		<static width="4em" style="bold" align="right" showAlways="true">署名者:</static>
 		<edit name="sign" background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'Verified'), 'f5f6be', @Contain(@Param('Verify'), 'VerifyFailed'), 'ec7b95', '')}">{@Param('SignedBy')}</edit>
 	</line>
 </header>

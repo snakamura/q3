@@ -182,6 +182,12 @@ public:
 		STYLE_BOLD		= 0x01,
 		STYLE_ITALIC	= 0x02
 	};
+	
+	enum Align {
+		ALIGN_LEFT,
+		ALIGN_CENTER,
+		ALIGN_RIGHT
+	};
 
 protected:
 	TextHeaderItem();
@@ -194,6 +200,7 @@ public:
 
 public:
 	void setStyle(unsigned int nStyle);
+	void setAlign(Align align);
 	void setBackground(std::auto_ptr<Template> pBackground);
 
 public:
@@ -216,6 +223,9 @@ public:
 	virtual bool isActive() const;
 
 protected:
+	Align getAlign() const;
+
+protected:
 	virtual const TCHAR* getWindowClassName() const = 0;
 	virtual UINT getWindowStyle() const = 0;
 
@@ -224,6 +234,7 @@ public:
 
 public:
 	static unsigned int parseStyle(const WCHAR* pwszStyle);
+	static Align parseAlign(const WCHAR* pwszAlign);
 
 private:
 	void updateColor(const TemplateContext& context);
@@ -234,6 +245,7 @@ private:
 
 private:
 	unsigned int nStyle_;
+	Align align_;
 	std::auto_ptr<Template> pBackground_;
 	HWND hwnd_;
 	COLORREF crBackground_;

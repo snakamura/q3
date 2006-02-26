@@ -186,6 +186,12 @@ public:
 		STYLE_ITALIC	= 0x02
 	};
 	
+	enum Align {
+		ALIGN_LEFT,
+		ALIGN_CENTER,
+		ALIGN_RIGHT
+	};
+	
 	enum Type {
 		TYPE_UNSTRUCTURED,
 		TYPE_ADDRESSLIST,
@@ -206,6 +212,7 @@ public:
 
 public:
 	void setStyle(unsigned int nStyle);
+	void setAlign(Align align);
 	void setField(const WCHAR* pwszField);
 	void setType(Type type);
 
@@ -226,6 +233,7 @@ public:
 
 protected:
 	HWND getHandle() const;
+	Align getAlign() const;
 	const WCHAR* getField() const;
 	Type getType() const;
 
@@ -239,6 +247,7 @@ public:
 
 public:
 	static unsigned int parseStyle(const WCHAR* pwszStyle);
+	static Align parseAlign(const WCHAR* pwszAlign);
 	static Type parseType(const WCHAR* pwszType);
 
 private:
@@ -247,6 +256,7 @@ private:
 
 private:
 	unsigned int nStyle_;
+	Align align_;
 	qs::wstring_ptr wstrField_;
 	Type type_;
 	HWND hwnd_;
