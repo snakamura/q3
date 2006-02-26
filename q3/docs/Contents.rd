@@ -18,8 +18,8 @@
   *((<画面構成|URL:WindowsAndViews.html>))
   *POP3でメールを使う
     *((<アカウントの作成|URL:CreatePop3Account.html>))
-    *メールを読む
-    *メールを書く
+    *((<メールを読む|URL:ReadPop3Message.html>))
+    *((<メールを書く|URL:WritePop3Message.html>))
   *IMAP4でメールを使う
     *((<アカウントの作成|URL:CreateImap4Account.html>))
     *メールを読む
