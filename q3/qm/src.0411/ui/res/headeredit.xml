@@ -12,11 +12,11 @@
 		<address field="Bcc" number="2" initialFocus="false"/>
 	</line>
 	<line class="news">
-		<static width="6.5em" style="bold" align="right">&amp;Newsgroups:</static>
+		<static width="6.5em" style="bold" align="right">グループ(&amp;N):</static>
 		<edit type="unstructured" field="Newsgroups" number="3"/>
 	</line>
 	<line class="news" hideIfNoFocus="true">
-		<static width="6.5em" style="bold" align="right">Fo&amp;llowup-To:</static>
+		<static width="6.5em" style="bold" align="right">フォロー先(&amp;L):</static>
 		<edit type="unstructured" field="Followup-To" number="4" initialFocus="false"/>
 	</line>
 	<line hideIfNoFocus="true">
@@ -24,7 +24,7 @@
 		<edit type="unstructured" field="Subject" number="5"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="6.5em" style="bold" align="right">添付(&amp;H):</static>
+		<static width="6.5em" style="bold" align="right">添付ファイル(&amp;H):</static>
 		<attachment number="6"/>
 	</line>
 	<line hideIfNoFocus="true">

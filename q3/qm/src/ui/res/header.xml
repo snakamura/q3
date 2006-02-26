@@ -1,64 +1,64 @@
 <header>
 	<line class="mail">
-		<static width="4em" style="bold" align="right" showAlways="true">To:</static>
+		<static width="1.4em" style="bold" showAlways="true">To:</static>
 		<edit>{@FormatAddress(To, 3)}</edit>
 	</line>
 	<line class="mail" hideIfEmpty="cc">
-		<static width="4em" style="bold" align="right" showAlways="true">Cc:</static>
+		<static width="1.4em" style="bold" showAlways="true">Cc:</static>
 		<edit name="cc">{@FormatAddress(Cc, 3)}</edit>
 	</line>
 	<line class="news">
-		<static width="4em" style="bold" align="right" showAlways="true">Newsgroups:</static>
+		<static width="5.8em" style="bold" showAlways="true">Newsgroups:</static>
 		<edit>{Newsgroups}</edit>
 	</line>
 	<line class="news" hideIfEmpty="followup-to">
-		<static width="4em" style="bold" align="right" showAlways="true">Followup-To:</static>
+		<static width="5.8em" style="bold" showAlways="true">Followup-To:</static>
 		<edit name="followup-to">{FollowUp-To}</edit>
 	</line>
 	<line class="mail|news">
-		<static width="4em" style="bold" align="right" showAlways="true">From:</static>
+		<static width="2.5em" style="bold" showAlways="true">From:</static>
 		<edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}">{@FormatAddress(From, 3)}</edit>
 		<static width="3em" style="bold" align="right" showAlways="true">Date:</static>
 		<edit width="10em">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
 	</line>
 	<line class="mail|news">
-		<static width="4em" style="bold" align="right" showAlways="true">Subject:</static>
+		<static width="3.8em" style="bold" showAlways="true">Subject:</static>
 		<edit>{@Subject()}</edit>
 	</line>
 	<line hideIfEmpty="attachment" class="mail|news">
-		<static width="6em" style="bold" align="right" showAlways="true">Attachment:</static>
+		<static width="5.8em" style="bold" showAlways="true">Attachment:</static>
 		<attachment name="attachment"/>
 	</line>
 	<line class="rss">
-		<static width="4em" style="bold" align="right" showAlways="true">Title:</static>
+		<static width="2.5em" style="bold" showAlways="true">Title:</static>
 		<edit>{@Subject()}</edit>
 	</line>
 	<line class="rss">
-		<static width="4em" style="bold" align="right" showAlways="true">Date:</static>
+		<static width="2.5em" style="bold" showAlways="true">Date:</static>
 		<edit width="10em">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="creator">
-		<static width="4em" style="bold" align="right" showAlways="true">Creator:</static>
+		<static width="3.8em" style="bold" showAlways="true">Creator:</static>
 		<edit name="creator">{X-RSS-Creator}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="category">
-		<static width="4em" style="bold" align="right" showAlways="true">Category:</static>
+		<static width="4.4em" style="bold" showAlways="true">Category:</static>
 		<edit name="category">{X-RSS-Category}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="subject">
-		<static width="4em" style="bold" align="right" showAlways="true">Subject:</static>
+		<static width="3.8em" style="bold" showAlways="true">Subject:</static>
 		<edit name="subject">{X-RSS-Subject}</edit>
 	</line>
 	<line class="rss">
-		<static width="4em" style="bold" align="right" showAlways="true">URL:</static>
+		<static width="2em" style="bold" showAlways="true">URL:</static>
 		<edit>{X-RSS-Link}</edit>
 	</line>
 	<line hideIfEmpty="label">
-		<static width="4em" style="bold" align="right" showAlways="true">Label:</static>
+		<static width="2.7em" style="bold" showAlways="true">Label:</static>
 		<edit name="label">{@Label()}</edit>
 	</line>
-	<line hideIfEmpty="sign">
-		<static width="4em" style="bold" align="right" showAlways="true">Signed by:</static>
+	<line class="mail|news" hideIfEmpty="sign">
+		<static width="4.8em" style="bold" showAlways="true">Signed by:</static>
 		<edit name="sign" background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'Verified'), 'f5f6be', @Contain(@Param('Verify'), 'VerifyFailed'), 'ec7b95', '')}">{@Param('SignedBy')}</edit>
 	</line>
 </header>
