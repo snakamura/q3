@@ -30,7 +30,7 @@
 	<line hideIfNoFocus="true">
 		<static width="6.5em" style="bold" align="right">アカウント(&amp;U):</static>
 		<account number="7"/>
-		<static width="5em" style="bold" align="right">署名(&amp;I):</static>
+		<static width="4em" style="bold" align="right">署名(&amp;I):</static>
 		<signature width="5em" number="8"/>
 	</line>
 </headerEdit>
