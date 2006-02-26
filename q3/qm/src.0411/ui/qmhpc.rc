@@ -375,9 +375,9 @@ EXSTYLE 0x80000000L
 CAPTION "アカウントの作成"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "名前(&N)",IDC_STATIC,5,7,25,8
+    LTEXT           "名前(&N)",IDC_STATIC,5,7,50,8
     EDITTEXT        IDC_NAME,65,5,215,12,ES_AUTOHSCROLL
-    LTEXT           "クラス(&L)",IDC_STATIC,5,22,30,8
+    LTEXT           "クラス(&L)",IDC_STATIC,5,22,50,8
     COMBOBOX        IDC_CLASS,65,20,55,50,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "受信プロトコル(&I)",IDC_STATIC,5,38,60,8
@@ -390,7 +390,7 @@ BEGIN
                     BS_AUTORADIOBUTTON | WS_GROUP,130,30,80,10
     CONTROL         "1ファイル(&S)",IDC_SINGLEFILE,"Button",
                     BS_AUTORADIOBUTTON,130,44,55,10
-    LTEXT           "ブロックサイズ(&B)",IDC_STATIC,195,44,45,8
+    LTEXT           "ブロックサイズ(&B)",IDC_STATIC,185,44,55,8
     EDITTEXT        IDC_BLOCKSIZE,240,42,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
     LTEXT           "MB",IDC_STATIC,265,44,11,8
@@ -2012,7 +2012,7 @@ END
 
 COLORS.XML              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\colors.xml"
 FILTERS.XML             PROFILE DISCARDABLE     "res\\filters.xml"
-HEADER.XML              PROFILE DISCARDABLE     "res\\header.xml"
+HEADER.XML              PROFILE DISCARDABLE     "res\\hpc\\header.xml"
 HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\headeredit.xml"
 KEYMAP.XML              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\hpc\\keymap.xml"
 MENUS.XML               PROFILE DISCARDABLE     "res\\hpc\\menus.xml"
