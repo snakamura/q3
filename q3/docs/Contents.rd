@@ -22,17 +22,17 @@
     *((<メールを書く|URL:WritePop3Message.html>))
   *IMAP4でメールを使う
     *((<アカウントの作成|URL:CreateImap4Account.html>))
-    *メールを読む
-    *メールを書く
+    *((<メールを読む|URL:ReadImap4Message.html>))
+    *((<メールを書く|URL:WriteImap4Message.html>))
   *NetNewsを使う
     *((<アカウントの作成|URL:CreateNntpAccount.html>))
     *((<グループの購読|URL:SubscribeNntpGroup.html>))
-    *ニュースを読む
-    *ニュースをポストする
+    *((<ニュースを読む|URL:ReadNntpMessage.html>))
+    *((<ニュースを投稿する|URL:PostNntpMessage.html>))
   *RSSを使う
     *((<アカウントの作成|URL:CreateRssAccount.html>))
     *((<フィードの購読|URL:SubscribeRssFeed.html>))
-    *RSSを読む
+    *((<フィードを読む|URL:ReadRssFeed.html>))
 *機能
   *アカウント
     *サブアカウント
@@ -46,6 +46,8 @@
       *一般
       *パラメータ
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
+    *特殊フォルダ
+  *オンラインとオフライン
   *振り分け
   *巡回
   *自動巡回
@@ -75,6 +77,7 @@
   *SSL
   *S/MIME
   *PGPとGnuPG
+  *印刷
   *外部エディタ
   *((<スパムフィルタ|URL:JunkFilter.html>))
   *スクリプト
