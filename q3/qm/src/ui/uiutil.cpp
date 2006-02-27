@@ -374,7 +374,7 @@ unsigned int qm::UIUtil::getPreferredWidth(HWND hwnd,
 	ClientDeviceContext dc(hwnd);
 	ObjectSelector<HFONT> fontSelecter(dc, wnd.getFont());
 	SIZE size;
-	dc.getTextExtent(wstrText.get(), wcslen(wstrText.get()), &size);
+	dc.getTextExtent(wstrText.get(), static_cast<int>(wcslen(wstrText.get())), &size);
 	return size.cx + 2;
 }
 
