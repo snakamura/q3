@@ -3985,7 +3985,7 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 			MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY,
 			pSecurityModel_->getSecurityMode(), 0, &globalVariable);
 		MacroValuePtr pValue(pMacro->value(&context));
-		if (!pValue.get()) {
+		if (!pValue.get() && context.getReturnType() == MacroContext::RETURNTYPE_NONE) {
 			ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
 			return;
 		}
