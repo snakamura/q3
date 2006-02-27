@@ -39,6 +39,8 @@ class DefaultDialog;
 	class FindDialog;
 	class ImportDialog;
 	class InputBoxDialog;
+		class SingleLineInputBoxDialog;
+		class MultiLineInputBoxDialog;
 	class LabelDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
@@ -631,12 +633,14 @@ private:
 
 class InputBoxDialog : public DefaultDialog
 {
-public:
-	InputBoxDialog(bool bMultiLine,
+protected:
+	InputBoxDialog(UINT nId,
 				   const WCHAR* pwszTitle,
 				   const WCHAR* pwszMessage,
 				   const WCHAR* pwszValue,
 				   bool bAllowEmpty);
+
+public:
 	virtual ~InputBoxDialog();
 
 public:
@@ -653,6 +657,10 @@ protected:
 protected:
 	virtual LRESULT onOk();
 
+protected:
+	virtual qs::wstring_ptr normalizeValue(const WCHAR* pwszValue) const;
+	virtual qs::wstring_ptr unnormalizeValue(const WCHAR* pwszValue) const;
+
 private:
 	LRESULT onValueChange();
 
@@ -664,11 +672,80 @@ private:
 	InputBoxDialog& operator=(const InputBoxDialog&);
 
 private:
-	bool bMultiLine_;
 	qs::wstring_ptr wstrTitle_;
 	qs::wstring_ptr wstrMessage_;
 	qs::wstring_ptr wstrValue_;
 	bool bAllowEmpty_;
+};
+
+
+/****************************************************************************
+ *
+ * SingleLineInputBoxDialog
+ *
+ */
+
+class SingleLineInputBoxDialog : public InputBoxDialog
+{
+public:
+	SingleLineInputBoxDialog(const WCHAR* pwszTitle,
+							 const WCHAR* pwszMessage,
+							 const WCHAR* pwszValue,
+							 bool bAllowEmpty);
+	virtual ~SingleLineInputBoxDialog();
+
+private:
+	SingleLineInputBoxDialog(const SingleLineInputBoxDialog&);
+	SingleLineInputBoxDialog& operator=(const SingleLineInputBoxDialog&);
+};
+
+
+/****************************************************************************
+ *
+ * MultiLineInputBoxDialog
+ *
+ */
+
+class MultiLineInputBoxDialog : public InputBoxDialog
+{
+public:
+	MultiLineInputBoxDialog(const WCHAR* pwszTitle,
+							const WCHAR* pwszMessage,
+							const WCHAR* pwszValue,
+							bool bAllowEmpty,
+							qs::Profile* pProfile,
+							const WCHAR* pwszSection);
+	virtual ~MultiLineInputBoxDialog();
+
+public:
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+protected:
+	virtual LRESULT onDestroy();
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	LRESULT onSize(UINT nFlags,
+				   int cx,
+				   int cy);
+
+private:
+	void layout();
+
+protected:
+	virtual qs::wstring_ptr normalizeValue(const WCHAR* pwszValue) const;
+	virtual qs::wstring_ptr unnormalizeValue(const WCHAR* pwszValue) const;
+
+private:
+	MultiLineInputBoxDialog(const MultiLineInputBoxDialog&);
+	MultiLineInputBoxDialog& operator=(const MultiLineInputBoxDialog&);
+
+private:
+	qs::Profile* pProfile_;
+	const WCHAR* pwszSection_;
 };
 
 

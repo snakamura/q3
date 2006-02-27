@@ -1223,13 +1223,12 @@ void qm::ImportDialog::updateState()
  *
  */
 
-qm::InputBoxDialog::InputBoxDialog(bool bMultiLine,
+qm::InputBoxDialog::InputBoxDialog(UINT nId,
 								   const WCHAR* pwszTitle,
 								   const WCHAR* pwszMessage,
 								   const WCHAR* pwszValue,
 								   bool bAllowEmpty) :
-	DefaultDialog(bMultiLine ? IDD_MULTIINPUTBOX : IDD_SINGLEINPUTBOX),
-	bMultiLine_(bMultiLine),
+	DefaultDialog(nId),
 	bAllowEmpty_(bAllowEmpty)
 {
 	if (pwszTitle)
@@ -1269,42 +1268,26 @@ LRESULT qm::InputBoxDialog::onInitDialog(HWND hwndFocus,
 	if (wstrMessage_.get())
 		setDlgItemText(IDC_MESSAGE, wstrMessage_.get());
 	
-	if (wstrValue_.get()) {
-		if (bMultiLine_ && wcschr(wstrValue_.get(), L'\n')) {
-			StringBuffer<WSTRING> buf;
-			
-			const WCHAR* p = wstrValue_.get();
-			while (*p) {
-				if (*p == L'\n')
-					buf.append(L'\r');
-				buf.append(*p);
-				++p;
-			}
-			
-			setDlgItemText(IDC_VALUE, buf.getCharArray());
-		}
-		else {
-			setDlgItemText(IDC_VALUE, wstrValue_.get());
-		}
-	}
+	if (wstrValue_.get())
+		setDlgItemText(IDC_VALUE, unnormalizeValue(wstrValue_.get()).get());
 	
 	return TRUE;
 }
 
 LRESULT qm::InputBoxDialog::onOk()
 {
-	wstrValue_ = getDlgItemText(IDC_VALUE);
-	if (bMultiLine_ && wstrValue_.get()) {
-		WCHAR* pSrc = wstrValue_.get();
-		WCHAR* pDst = wstrValue_.get();
-		while (*pSrc) {
-			if (*pSrc != L'\r')
-				*pDst++ = *pSrc;
-			++pSrc;
-		}
-		*pDst = L'\0';
-	}
+	wstrValue_ = normalizeValue(getDlgItemText(IDC_VALUE).get());
 	return DefaultDialog::onOk();
+}
+
+wstring_ptr qm::InputBoxDialog::normalizeValue(const WCHAR* pwszValue) const
+{
+	return allocWString(pwszValue);
+}
+
+wstring_ptr qm::InputBoxDialog::unnormalizeValue(const WCHAR* pwszValue) const
+{
+	return allocWString(pwszValue);
 }
 
 LRESULT qm::InputBoxDialog::onValueChange()
@@ -1318,6 +1301,150 @@ void qm::InputBoxDialog::updateState()
 	if (!bAllowEmpty_)
 		Window(getDlgItem(IDOK)).enableWindow(
 			Window(getDlgItem(IDC_VALUE)).getWindowTextLength() != 0);
+}
+
+
+/****************************************************************************
+ *
+ * SingleLineInputBoxDialog
+ *
+ */
+
+qm::SingleLineInputBoxDialog::SingleLineInputBoxDialog(const WCHAR* pwszTitle,
+													   const WCHAR* pwszMessage,
+													   const WCHAR* pwszValue,
+													   bool bAllowEmpty) :
+	InputBoxDialog(IDD_SINGLEINPUTBOX, pwszTitle, pwszMessage, pwszValue, bAllowEmpty)
+{
+}
+
+qm::SingleLineInputBoxDialog::~SingleLineInputBoxDialog()
+{
+}
+
+
+/****************************************************************************
+ *
+ * MultiLineInputBoxDialog
+ *
+ */
+
+qm::MultiLineInputBoxDialog::MultiLineInputBoxDialog(const WCHAR* pwszTitle,
+													 const WCHAR* pwszMessage,
+													 const WCHAR* pwszValue,
+													 bool bAllowEmpty,
+													 Profile* pProfile,
+													 const WCHAR* pwszSection) :
+	InputBoxDialog(IDD_MULTIINPUTBOX, pwszTitle, pwszMessage, pwszValue, bAllowEmpty),
+	pProfile_(pProfile),
+	pwszSection_(pwszSection)
+{
+}
+
+qm::MultiLineInputBoxDialog::~MultiLineInputBoxDialog()
+{
+}
+
+INT_PTR qm::MultiLineInputBoxDialog::dialogProc(UINT uMsg,
+												WPARAM wParam,
+												LPARAM lParam)
+{
+	BEGIN_DIALOG_HANDLER()
+		HANDLE_SIZE()
+	END_DIALOG_HANDLER()
+	return InputBoxDialog::dialogProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::MultiLineInputBoxDialog::onDestroy()
+{
+#ifndef _WIN32_WCE
+	RECT rect;
+	getWindowRect(&rect);
+	pProfile_->setInt(pwszSection_, L"Width", rect.right - rect.left);
+	pProfile_->setInt(pwszSection_, L"Height", rect.bottom - rect.top);
+#endif
+	return InputBoxDialog::onDestroy();
+}
+
+LRESULT qm::MultiLineInputBoxDialog::onInitDialog(HWND hwndFocus,
+												  LPARAM lParam)
+{
+	LRESULT lResult = InputBoxDialog::onInitDialog(hwndFocus, lParam);
+	
+#ifndef _WIN32_WCE
+	int nWidth = pProfile_->getInt(pwszSection_, L"Width", 400);
+	int nHeight = pProfile_->getInt(pwszSection_, L"Height", 300);
+	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+#endif
+	
+	return lResult;
+}
+
+LRESULT qm::MultiLineInputBoxDialog::onSize(UINT nFlags,
+											int cx,
+											int cy)
+{
+	layout();
+	return 0;
+}
+
+wstring_ptr qm::MultiLineInputBoxDialog::normalizeValue(const WCHAR* pwszValue) const
+{
+	StringBuffer<WSTRING> buf;
+	for (const WCHAR* p = pwszValue; *p; ++p) {
+		if (*p != L'\r')
+			buf.append(*p);
+	}
+	return buf.getString();
+}
+
+wstring_ptr qm::MultiLineInputBoxDialog::unnormalizeValue(const WCHAR* pwszValue) const
+{
+	StringBuffer<WSTRING> buf;
+	for (const WCHAR* p = pwszValue; *p; ++p) {
+		if (*p == L'\n')
+			buf.append(L'\r');
+		buf.append(*p);
+	}
+	return buf.getString();
+}
+
+void qm::MultiLineInputBoxDialog::layout()
+{
+#ifndef _WIN32_WCE
+	RECT rect;
+	getClientRect(&rect);
+	RECT rectMessage;
+	Window(getDlgItem(IDC_MESSAGE)).getWindowRect(&rectMessage);
+	RECT rectButton;
+	Window(getDlgItem(IDOK)).getWindowRect(&rectButton);
+	
+	int nWidth = rect.right - rect.left;
+	int nHeight = rect.bottom - rect.top;
+	int nMessageHeight = rectMessage.bottom - rectMessage.top;
+	int nButtonWidth = rectButton.right - rectButton.left;
+	int nButtonHeight = rectButton.bottom - rectButton.top;
+	
+	HDWP hdwp = beginDeferWindowPos(5);
+	
+	hdwp = Window(getDlgItem(IDC_MESSAGE)).deferWindowPos(hdwp, 0, 5, 5,
+		nWidth - 10, nMessageHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_VALUE)).deferWindowPos(hdwp,
+		0, 5, nMessageHeight + 10, nWidth - 10,
+		nHeight - nMessageHeight - nButtonHeight - 20,
+		SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDOK)).deferWindowPos(hdwp, 0,
+		nWidth - (nButtonWidth + 5)*2 - 15, nHeight - nButtonHeight - 5,
+		nButtonWidth, nButtonHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDCANCEL)).deferWindowPos(hdwp, 0,
+		nWidth - (nButtonWidth + 5) - 15, nHeight - nButtonHeight - 5,
+		nButtonWidth, nButtonHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	hdwp = Window(getDlgItem(IDC_SIZEGRIP)).deferWindowPos(hdwp, 0,
+		rect.right - rect.left - 13, rect.bottom - rect.top - 12,
+		13, 12, SWP_NOZORDER | SWP_NOACTIVATE);
+	
+	endDeferWindowPos(hdwp);
+#endif
 }
 
 

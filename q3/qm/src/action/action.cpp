@@ -3961,7 +3961,8 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 		wstring_ptr wstrMessage(loadString(hInst, IDS_MACRO));
 		wstring_ptr wstrPrevMacro(pProfile_->getString(L"Global", L"Macro", L""));
 		
-		InputBoxDialog dialog(true, wstrTitle.get(), wstrMessage.get(), wstrPrevMacro.get(), false);
+		MultiLineInputBoxDialog dialog(wstrTitle.get(), wstrMessage.get(),
+			wstrPrevMacro.get(), false, pProfile_, L"MacroDialog");
 		if (dialog.doModal(hwnd_) != IDOK)
 			return;
 		
@@ -5232,7 +5233,8 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 		wstring_ptr wstrMessage(loadString(hInst, IDS_ACTION));
 		wstring_ptr wstrPrevActions(pProfile_->getString(L"Global", L"Action", L""));
 		
-		InputBoxDialog dialog(false, wstrTitle.get(), wstrMessage.get(), wstrPrevActions.get(), false);
+		SingleLineInputBoxDialog dialog(wstrTitle.get(),
+			wstrMessage.get(), wstrPrevActions.get(), false);
 		if (dialog.doModal(hwnd_) != IDOK)
 			return;
 		

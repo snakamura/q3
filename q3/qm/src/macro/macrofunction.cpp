@@ -2655,13 +2655,19 @@ MacroValuePtr qm::MacroFunctionInputBox::value(MacroContext* pContext) const
 	ARG(pValue, 0);
 	wstring_ptr wstrMessage(pValue->string());
 	
-	InputBoxDialog dialog(bMultiline, 0, wstrMessage.get(), wstrDefault.get(), true);
-	if (dialog.doModal(pContext->getWindow()) != IDOK) {
+	std::auto_ptr<InputBoxDialog> pDialog;
+	if (bMultiline)
+		pDialog.reset(new MultiLineInputBoxDialog(0, wstrMessage.get(),
+			wstrDefault.get(), true, pContext->getProfile(), L"InputBoxDialog"));
+	else
+		pDialog.reset(new SingleLineInputBoxDialog(0,
+			wstrMessage.get(), wstrDefault.get(), true));
+	if (pDialog->doModal(pContext->getWindow()) != IDOK) {
 		pContext->setReturnType(MacroContext::RETURNTYPE_CANCEL);
 		return MacroValuePtr();
 	}
 	
-	return MacroValueFactory::getFactory().newString(dialog.getValue());
+	return MacroValueFactory::getFactory().newString(pDialog->getValue());
 }
 
 const WCHAR* qm::MacroFunctionInputBox::getName() const
