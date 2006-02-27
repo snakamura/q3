@@ -181,9 +181,10 @@ HDWP qm::LineLayoutLine::layout(HDWP hdwp,
 	int nPercentWidth = 0;
 	int nNoWidthCount = 0;
 	for (ItemList::size_type n = 0; n < listItem_.size(); ++n) {
-		double dItemWidth = listItem_[n]->getWidth();
+		const LineLayoutItem* pItem = listItem_[n];
+		double dItemWidth = pItem->getWidth();
 		int nItemWidth = 0;
-		switch (listItem_[n]->getUnit()) {
+		switch (pItem->getUnit()) {
 		case LineLayoutItem::UNIT_NONE:
 			++nNoWidthCount;
 			break;
@@ -197,6 +198,10 @@ HDWP qm::LineLayoutLine::layout(HDWP hdwp,
 			break;
 		case LineLayoutItem::UNIT_EM:
 			nItemWidth = static_cast<int>(dItemWidth*nFontHeight);
+			nFixedWidth += nItemWidth;
+			break;
+		case LineLayoutItem::UNIT_AUTO:
+			nItemWidth = pItem->getPreferredWidth();
 			nFixedWidth += nItemWidth;
 			break;
 		default:
@@ -289,10 +294,16 @@ LineLayoutItem::Unit qm::LineLayoutItem::getUnit() const
 	return unit_;
 }
 
-void qm::LineLayoutItem::setWidth(double dWidth, Unit unit)
+void qm::LineLayoutItem::setWidth(double dWidth,
+								  Unit unit)
 {
 	dWidth_ = dWidth;
 	unit_ = unit;
+}
+
+unsigned int qm::LineLayoutItem::getPreferredWidth() const
+{
+	return 1;
 }
 
 bool qm::LineLayoutItem::parseWidth(const WCHAR* pwszWidth,
@@ -303,28 +314,34 @@ bool qm::LineLayoutItem::parseWidth(const WCHAR* pwszWidth,
 	assert(pdWidth);
 	assert(pUnit);
 	
-	WCHAR* pEnd = 0;
-	double dWidth = wcstod(pwszWidth, &pEnd);
-	Unit unit = UNIT_NONE;
-	if (dWidth < 0)
-		return false;
-	if (*pEnd == L'%') {
-		if (*(pEnd + 1))
-			return false;
-		unit = UNIT_PERCENT;
-	}
-	else if (wcscmp(pEnd, L"em") == 0) {
-		unit = UNIT_EM;
-	}
-	else if (!*pEnd || wcscmp(pEnd, L"px") == 0) {
-		unit = UNIT_PIXEL;
+	if (wcscmp(pwszWidth, L"auto") == 0) {
+		*pdWidth = 0;
+		*pUnit = UNIT_AUTO;
 	}
 	else {
-		return false;
+		WCHAR* pEnd = 0;
+		double dWidth = wcstod(pwszWidth, &pEnd);
+		Unit unit = UNIT_NONE;
+		if (dWidth < 0)
+			return false;
+		if (*pEnd == L'%') {
+			if (*(pEnd + 1))
+				return false;
+			unit = UNIT_PERCENT;
+		}
+		else if (wcscmp(pEnd, L"em") == 0) {
+			unit = UNIT_EM;
+		}
+		else if (!*pEnd || wcscmp(pEnd, L"px") == 0) {
+			unit = UNIT_PIXEL;
+		}
+		else {
+			return false;
+		}
+		
+		*pdWidth = dWidth;
+		*pUnit = unit;
 	}
-	
-	*pdWidth = dWidth;
-	*pUnit = unit;
 	
 	return true;
 }

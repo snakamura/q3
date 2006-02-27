@@ -801,6 +801,11 @@ unsigned int qm::StaticHeaderEditItem::getHeight(unsigned int nWidth,
 	return nFontHeight;
 }
 
+unsigned int qm::StaticHeaderEditItem::getPreferredWidth() const
+{
+	return UIUtil::getPreferredWidth(getHandle());
+}
+
 const TCHAR* qm::StaticHeaderEditItem::getWindowClassName() const
 {
 	return _T("STATIC");

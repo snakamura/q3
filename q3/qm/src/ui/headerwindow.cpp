@@ -30,6 +30,7 @@
 
 #include "actionid.h"
 #include "headerwindow.h"
+#include "uiutil.h"
 #include "../model/dataobject.h"
 #include "../model/uri.h"
 
@@ -685,6 +686,11 @@ qm::StaticHeaderItem::~StaticHeaderItem()
 {
 }
 
+unsigned int qm::StaticHeaderItem::getPreferredWidth() const
+{
+	return UIUtil::getPreferredWidth(getHandle());
+}
+
 const TCHAR* qm::StaticHeaderItem::getWindowClassName() const
 {
 	return _T("STATIC");
@@ -1312,4 +1318,3 @@ void qm::HeaderWindowContentHandler::setWidth(LineLayoutItem* pItem,
 	if (LineLayoutItem::parseWidth(pwszWidth, &dWidth, &unit))
 		pItem->setWidth(dWidth, unit);
 }
-

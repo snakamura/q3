@@ -123,7 +123,8 @@ public:
 		UNIT_NONE,
 		UNIT_PIXEL,
 		UNIT_PERCENT,
-		UNIT_EM
+		UNIT_EM,
+		UNIT_AUTO
 	};
 
 protected:
@@ -143,6 +144,7 @@ public:
 public:
 	virtual unsigned int getHeight(unsigned int nWidth,
 								   unsigned int nFontHeight) const = 0;
+	virtual unsigned int getPreferredWidth() const;
 	virtual bool create(qs::WindowBase* pParent,
 						const std::pair<HFONT, HFONT>& fonts,
 						UINT nId,

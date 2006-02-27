@@ -1,34 +1,34 @@
 <headerEdit>
 	<line class="mail">
-		<static width="6.5em" style="bold" align="right">宛先(&amp;O):</static>
+		<static width="6em" style="bold" align="right">宛先(&amp;O):</static>
 		<address field="To" number="0"/>
 	</line>
 	<line class="mail" hideIfNoFocus="true">
-		<static width="6.5em" style="bold" align="right">&amp;Cc:</static>
+		<static width="6em" style="bold" align="right">&amp;Cc:</static>
 		<address field="Cc" number="1" initialFocus="false"/>
 	</line>
 	<line class="mail" hideIfNoFocus="true">
-		<static width="6.5em" style="bold" align="right">&amp;Bcc:</static>
+		<static width="6em" style="bold" align="right">&amp;Bcc:</static>
 		<address field="Bcc" number="2" initialFocus="false"/>
 	</line>
 	<line class="news">
-		<static width="6.5em" style="bold" align="right">グループ(&amp;N):</static>
+		<static width="6em" style="bold" align="right">グループ(&amp;N):</static>
 		<edit type="unstructured" field="Newsgroups" number="3"/>
 	</line>
 	<line class="news" hideIfNoFocus="true">
-		<static width="6.5em" style="bold" align="right">フォロー先(&amp;L):</static>
+		<static width="6em" style="bold" align="right">フォロー先(&amp;L):</static>
 		<edit type="unstructured" field="Followup-To" number="4" initialFocus="false"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="6.5em" style="bold" align="right">件名(&amp;S):</static>
+		<static width="6em" style="bold" align="right">件名(&amp;S):</static>
 		<edit type="unstructured" field="Subject" number="5"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="6.5em" style="bold" align="right">添付ファイル(&amp;H):</static>
+		<static width="6em" style="bold" align="right">添付(&amp;H):</static>
 		<attachment number="6"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="6.5em" style="bold" align="right">アカウント(&amp;U):</static>
+		<static width="6em" style="bold" align="right">アカウント(&amp;U):</static>
 		<account number="7"/>
 		<static width="4em" style="bold" align="right">署名(&amp;I):</static>
 		<signature width="5em" number="8"/>

@@ -81,7 +81,7 @@
 				<width>250</width>
 			</column>
 			<column indent="true" line="true" icon="false" align="left" sort="text">
-				<title>サブジェクト</title>
+				<title>主題</title>
 				<macro>X-RSS-Subject</macro>
 				<width>100</width>
 			</column>

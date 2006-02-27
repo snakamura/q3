@@ -265,6 +265,9 @@ public:
 	StaticHeaderItem();
 	virtual ~StaticHeaderItem();
 
+public:
+	virtual unsigned int getPreferredWidth() const;
+
 protected:
 	virtual const TCHAR* getWindowClassName() const;
 	virtual UINT getWindowStyle() const;

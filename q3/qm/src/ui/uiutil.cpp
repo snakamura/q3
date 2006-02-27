@@ -15,6 +15,7 @@
 #include <qmuiutil.h>
 
 #include <qsconv.h>
+#include <qsdevicecontext.h>
 #include <qsstream.h>
 #include <qstextutil.h>
 #include <qswindow.h>
@@ -355,6 +356,17 @@ MessagePtr qm::UIUtil::getMessageFromClipboard(HWND hwnd,
 		return MessagePtr();
 	
 	return pAccountManager->getMessage(*pURI.get());
+}
+
+unsigned int qm::UIUtil::getPreferredWidth(HWND hwnd)
+{
+	Window wnd(hwnd);
+	wstring_ptr wstrText(wnd.getWindowText());
+	ClientDeviceContext dc(hwnd);
+	ObjectSelector<HFONT> fontSelecter(dc, wnd.getFont());
+	SIZE size;
+	dc.getTextExtent(wstrText.get(), wcslen(wstrText.get()), &size);
+	return size.cx + 2;
 }
 
 
