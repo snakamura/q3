@@ -307,9 +307,8 @@ bool qm::SingleMessageStore::compact(DataList* pListData,
 		pCallback->step(1);
 	}
 	
-	if (!pImpl_->pIndexStorage_->close())
-		return false;
-	if (!pIndexStorage->rename(pImpl_->wstrIndexPath_.get(), FileNames::INDEX))
+	if (!pImpl_->pIndexStorage_->close() ||
+		!pIndexStorage->rename(pImpl_->wstrIndexPath_.get(), FileNames::INDEX))
 		return false;
 	pImpl_->pIndexStorage_ = pIndexStorage;
 	
@@ -728,9 +727,8 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 		pCallback->step(1);
 	}
 	
-	if (!pImpl_->pIndexStorage_->close())
-		return false;
-	if (!pIndexStorage->rename(pImpl_->wstrIndexPath_.get(), FileNames::INDEX))
+	if (!pImpl_->pIndexStorage_->close() ||
+		!pIndexStorage->rename(pImpl_->wstrIndexPath_.get(), FileNames::INDEX))
 		return false;
 	pImpl_->pIndexStorage_ = pIndexStorage;
 	
@@ -857,9 +855,6 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkIndex(ClusterStorage* p
 {
 	assert(pCallback);
 	
-	if (!pStorage->close())
-		return std::auto_ptr<ClusterStorage>(0);
-	
 	std::auto_ptr<ClusterStorage> pIndexStorage(new ClusterStorage(
 		pwszPath, FileNames::CHECK, FileNames::BOX_EXT, FileNames::MAP_EXT, nBlockSize));
 	
@@ -889,7 +884,8 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkIndex(ClusterStorage* p
 		}
 	}
 	
-	if (!pIndexStorage->rename(pwszPath, FileNames::INDEX))
+	if (!pStorage->close() ||
+		!pIndexStorage->rename(pwszPath, FileNames::INDEX))
 		return std::auto_ptr<ClusterStorage>(0);
 	
 	return pIndexStorage;
