@@ -20,11 +20,11 @@
 		<edit type="unstructured" field="Followup-To" number="4" initialFocus="false"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="1max" style="bold" align="right">件名ファイル(&amp;S):</static>
+		<static width="1max" style="bold" align="right">件名(&amp;S):</static>
 		<edit type="unstructured" field="Subject" number="5"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="1max" style="bold" align="right">添付(&amp;H):</static>
+		<static width="1max" style="bold" align="right">添付ファイル(&amp;H):</static>
 		<attachment number="6"/>
 	</line>
 	<line hideIfNoFocus="true">
