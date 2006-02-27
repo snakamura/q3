@@ -358,10 +358,19 @@ MessagePtr qm::UIUtil::getMessageFromClipboard(HWND hwnd,
 	return pAccountManager->getMessage(*pURI.get());
 }
 
-unsigned int qm::UIUtil::getPreferredWidth(HWND hwnd)
+unsigned int qm::UIUtil::getPreferredWidth(HWND hwnd,
+										   bool bNoPrefix)
 {
 	Window wnd(hwnd);
 	wstring_ptr wstrText(wnd.getWindowText());
+	if (!bNoPrefix) {
+		WCHAR* pDst = wstrText.get();
+		for (const WCHAR* p = wstrText.get(); *p; ++p) {
+			if (*p != L'&')
+				*pDst++ = *p;
+		}
+		*pDst = L'\0';
+	}
 	ClientDeviceContext dc(hwnd);
 	ObjectSelector<HFONT> fontSelecter(dc, wnd.getFont());
 	SIZE size;

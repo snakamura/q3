@@ -803,7 +803,7 @@ unsigned int qm::StaticHeaderEditItem::getHeight(unsigned int nWidth,
 
 unsigned int qm::StaticHeaderEditItem::getPreferredWidth() const
 {
-	return UIUtil::getPreferredWidth(getHandle());
+	return UIUtil::getPreferredWidth(getHandle(), !getValue());
 }
 
 const TCHAR* qm::StaticHeaderEditItem::getWindowClassName() const

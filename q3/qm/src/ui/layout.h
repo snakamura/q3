@@ -74,6 +74,14 @@ private:
 class LineLayoutLine
 {
 public:
+	enum {
+		MAX_MINMAX = 9
+	};
+
+public:
+	typedef std::vector<unsigned int> WidthMap;
+
+public:
 	LineLayoutLine();
 	virtual ~LineLayoutLine();
 
@@ -88,6 +96,7 @@ public:
 	HDWP layout(HDWP hdwp,
 				const RECT& rect,
 				unsigned int nFontHeight,
+				const WidthMap& mapWidth,
 				unsigned int* pnHeight) const;
 	void show(bool bShow) const;
 	void setFont(const std::pair<HFONT, HFONT>& fonts);
@@ -124,7 +133,8 @@ public:
 		UNIT_PIXEL,
 		UNIT_PERCENT,
 		UNIT_EM,
-		UNIT_AUTO
+		UNIT_AUTO,
+		UNIT_MINMAX
 	};
 
 protected:

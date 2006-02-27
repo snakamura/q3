@@ -76,20 +76,42 @@ void qm::LineLayout::layout(const RECT& rect,
 	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it)
 		nCount += (*it)->getItemCount();
 	
+	LineLayoutLine::WidthMap mapWidth(LineLayoutLine::MAX_MINMAX*2, 0);
+	std::fill_n(mapWidth.begin(), static_cast<int>(LineLayoutLine::MAX_MINMAX), -1);
+	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it) {
+		const LineLayoutLine* pLine = *it;
+		if (!pLine->isHidden()) {
+			for (unsigned int n = 0; n < pLine->getItemCount(); ++n) {
+				const LineLayoutItem* pItem = pLine->getItem(n);
+				LineLayoutItem::Unit unit = pItem->getUnit();
+				if (unit == LineLayoutItem::UNIT_MINMAX) {
+					int nIndex = static_cast<int>(pItem->getWidth());
+					unsigned int& nWidth = mapWidth[nIndex + LineLayoutLine::MAX_MINMAX];
+					unsigned int nPreferredWidth = pItem->getPreferredWidth();
+					if (nIndex < 0)
+						nWidth = QSMIN(nWidth, nPreferredWidth);
+					else
+						nWidth = QSMAX(nWidth, nPreferredWidth);
+				}
+			}
+		}
+	}
+	
 	HDWP hdwp = Window::beginDeferWindowPos(nCount);
 	
 	int nTop = 0;
 	for (LineList::const_iterator it = listLine_.begin(); it != listLine_.end(); ++it) {
+		const LineLayoutLine* pLine = *it;
 		unsigned int nHeight = 0;
-		if (!(*it)->isHidden()) {
+		if (!pLine->isHidden()) {
 			r.top = nTop == 0 ? 5 : nTop;
 			r.bottom = r.top;
-			hdwp = (*it)->layout(hdwp, r, nFontHeight, &nHeight);
+			hdwp = pLine->layout(hdwp, r, nFontHeight, mapWidth, &nHeight);
 			r.bottom = r.top + nHeight;
 			if (nHeight != 0)
 				nTop = r.bottom + nLineSpacing_;
 		}
-		(*it)->show(nHeight != 0);
+		pLine->show(nHeight != 0);
 	}
 	if (nTop == 0)
 		nHeight_ = 0;
@@ -165,6 +187,7 @@ void qm::LineLayoutLine::destroy() const
 HDWP qm::LineLayoutLine::layout(HDWP hdwp,
 								const RECT& rect,
 								unsigned int nFontHeight,
+								const WidthMap& mapWidth,
 								unsigned int* pnHeight) const
 {
 	assert(pnHeight);
@@ -202,6 +225,10 @@ HDWP qm::LineLayoutLine::layout(HDWP hdwp,
 			break;
 		case LineLayoutItem::UNIT_AUTO:
 			nItemWidth = pItem->getPreferredWidth();
+			nFixedWidth += nItemWidth;
+			break;
+		case LineLayoutItem::UNIT_MINMAX:
+			nItemWidth = mapWidth[MAX_MINMAX + static_cast<int>(dItemWidth)];
 			nFixedWidth += nItemWidth;
 			break;
 		default:
@@ -324,19 +351,29 @@ bool qm::LineLayoutItem::parseWidth(const WCHAR* pwszWidth,
 		Unit unit = UNIT_NONE;
 		if (dWidth < 0)
 			return false;
-		if (*pEnd == L'%') {
-			if (*(pEnd + 1))
-				return false;
+		if (wcscmp(pEnd, L"%") == 0) {
 			unit = UNIT_PERCENT;
 		}
 		else if (wcscmp(pEnd, L"em") == 0) {
 			unit = UNIT_EM;
+		}
+		else if (wcscmp(pEnd, L"min") == 0) {
+			unit = UNIT_MINMAX;
+			dWidth = -dWidth;
+		}
+		else if (wcscmp(pEnd, L"max") == 0) {
+			unit = UNIT_MINMAX;
 		}
 		else if (!*pEnd || wcscmp(pEnd, L"px") == 0) {
 			unit = UNIT_PIXEL;
 		}
 		else {
 			return false;
+		}
+		
+		if (unit == UNIT_MINMAX) {
+			if (dWidth == 0 || dWidth > LineLayoutLine::MAX_MINMAX)
+				return false;
 		}
 		
 		*pdWidth = dWidth;

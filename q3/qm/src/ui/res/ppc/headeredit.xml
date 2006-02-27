@@ -1,38 +1,38 @@
 <headerEdit>
 	<line class="mail">
-		<static width="3.8em" style="bold" align="right">To:</static>
+		<static width="1max" style="bold" align="right">To:</static>
 		<address field="To" number="0"/>
 	</line>
 	<line class="mail" hideIfNoFocus="true">
-		<static width="3.8em" style="bold" align="right">Cc:</static>
+		<static width="1max" style="bold" align="right">Cc:</static>
 		<address field="Cc" number="1" initialFocus="false"/>
 	</line>
 	<line class="mail" hideIfNoFocus="true">
-		<static width="3.8em" style="bold" align="right">Bcc:</static>
+		<static width="1max" style="bold" align="right">Bcc:</static>
 		<address field="Bcc" number="2" initialFocus="false"/>
 	</line>
 	<line class="news">
-		<static width="3.8em" style="bold" align="right">NGroups:</static>
+		<static width="1max" style="bold" align="right">NGroups:</static>
 		<edit type="unstructured" field="Newsgroups" number="3"/>
 	</line>
 	<line class="news" hideIfNoFocus="true">
-		<static width="3.8em" style="bold" align="right">Fup-To:</static>
+		<static width="1max" style="bold" align="right">Fup-To:</static>
 		<edit type="unstructured" field="Followup-To" number="4" initialFocus="false"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="3.8em" style="bold" align="right">Subject:</static>
+		<static width="1max" style="bold" align="right">Subject:</static>
 		<edit type="unstructured" field="Subject" number="5"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="3.8em" style="bold" align="right">Attach:</static>
+		<static width="1max" style="bold" align="right">Attach:</static>
 		<attachment number="6"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="3.8em" style="bold" align="right">Account:</static>
+		<static width="1max" style="bold" align="right">Account:</static>
 		<account number="7"/>
 	</line>
 	<line hideIfNoFocus="true">
-		<static width="3.8em" style="bold" align="right">Sig:</static>
+		<static width="1max" style="bold" align="right">Sig:</static>
 		<signature number="8"/>
 	</line>
 </headerEdit>

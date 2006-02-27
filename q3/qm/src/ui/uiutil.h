@@ -85,7 +85,8 @@ public:
 	static MessagePtr getMessageFromClipboard(HWND hwnd,
 											  AccountManager* pAccountManager);
 	
-	static unsigned int getPreferredWidth(HWND hwnd);
+	static unsigned int getPreferredWidth(HWND hwnd,
+										  bool bNoPrefix);
 };
 
 

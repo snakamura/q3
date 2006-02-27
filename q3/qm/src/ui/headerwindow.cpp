@@ -688,7 +688,7 @@ qm::StaticHeaderItem::~StaticHeaderItem()
 
 unsigned int qm::StaticHeaderItem::getPreferredWidth() const
 {
-	return UIUtil::getPreferredWidth(getHandle());
+	return UIUtil::getPreferredWidth(getHandle(), true);
 }
 
 const TCHAR* qm::StaticHeaderItem::getWindowClassName() const
