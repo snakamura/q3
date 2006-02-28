@@ -237,7 +237,7 @@ public:
 	static Align parseAlign(const WCHAR* pwszAlign);
 
 private:
-	void updateColor(const TemplateContext& context);
+	void updateColor(const TemplateContext* pContext);
 
 private:
 	TextHeaderItem(const TextHeaderItem&);
@@ -326,6 +326,9 @@ public:
 	virtual ~AttachmentHeaderItem();
 
 public:
+	void setBackground(std::auto_ptr<Template> pBackground);
+
+public:
 	virtual unsigned int getHeight(unsigned int nWidth,
 								   unsigned int nFontHeight) const;
 	virtual bool create(qs::WindowBase* pParent,
@@ -364,6 +367,7 @@ public:
 
 private:
 	void clear();
+	void updateColor(const TemplateContext* pContext);
 
 private:
 	AttachmentHeaderItem(const AttachmentHeaderItem&);
@@ -401,6 +405,7 @@ private:
 	friend class AttachmentWindow;
 
 private:
+	std::auto_ptr<Template> pBackground_;
 	AttachmentWindow wnd_;
 	qs::MenuManager* pMenuManager_;
 	qs::WindowBase* pParent_;
@@ -440,6 +445,7 @@ public:
 private:
 	static void setWidth(LineLayoutItem* pItem,
 						 const WCHAR* pwszWidth);
+	static std::auto_ptr<Template> parseTemplate(const WCHAR* pwszTemplate);
 
 private:
 	HeaderWindowContentHandler(const HeaderWindowContentHandler&);

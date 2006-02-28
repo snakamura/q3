@@ -582,12 +582,12 @@ void qm::TextHeaderItem::setMessage(const TemplateContext* pContext)
 {
 	if (pContext) {
 		wstring_ptr wstrValue(getValue(*pContext));
-		updateColor(*pContext);
 		Window(hwnd_).setWindowText(wstrValue.get() ? wstrValue.get() : L"");
 	}
 	else {
 		Window(hwnd_).setWindowText(L"");
 	}
+	updateColor(pContext);
 }
 
 bool qm::TextHeaderItem::isEmptyValue() const
@@ -649,13 +649,13 @@ TextHeaderItem::Align qm::TextHeaderItem::parseAlign(const WCHAR* pwszAlign)
 		return ALIGN_LEFT;
 }
 
-void qm::TextHeaderItem::updateColor(const TemplateContext& context)
+void qm::TextHeaderItem::updateColor(const TemplateContext* pContext)
 {
 	COLORREF crBackground = 0xffffffff;
-	if (context.getMessageHolder() || (getFlags() & FLAG_SHOWALWAYS)) {
-		if (pBackground_.get()) {
+	if (pBackground_.get()) {
+		if (pContext && (pContext->getMessageHolder() || (getFlags() & FLAG_SHOWALWAYS))) {
 			wstring_ptr wstrBackground;
-			if (pBackground_->getValue(context, &wstrBackground) == Template::RESULT_SUCCESS)
+			if (pBackground_->getValue(*pContext, &wstrBackground) == Template::RESULT_SUCCESS)
 				crBackground = Color(wstrBackground.get()).getColor();
 		}
 	}
@@ -805,6 +805,11 @@ qm::AttachmentHeaderItem::~AttachmentHeaderItem()
 {
 }
 
+void qm::AttachmentHeaderItem::setBackground(std::auto_ptr<Template> pBackground)
+{
+	pBackground_ = pBackground;
+}
+
 unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nWidth,
 												 unsigned int nFontHeight) const
 {
@@ -916,6 +921,8 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 			}
 		}
 	}
+	
+	updateColor(pContext);
 }
 
 bool qm::AttachmentHeaderItem::isEmptyValue() const
@@ -1028,6 +1035,23 @@ void qm::AttachmentHeaderItem::clear()
 	
 	pAccountManager_ = 0;
 	nSecurityMode_ = SECURITYMODE_NONE;
+}
+
+void qm::AttachmentHeaderItem::updateColor(const TemplateContext* pContext)
+{
+	COLORREF crBackground = 0xffffffff;
+	if (pBackground_.get()) {
+		if (pContext && (pContext->getMessageHolder() || (getFlags() & FLAG_SHOWALWAYS))) {
+			wstring_ptr wstrBackground;
+			if (pBackground_->getValue(*pContext, &wstrBackground) == Template::RESULT_SUCCESS)
+				crBackground = Color(wstrBackground.get()).getColor();
+		}
+	}
+	if (crBackground == 0xffffffff)
+		crBackground = ::GetSysColor(COLOR_3DFACE);
+	
+	ListView_SetBkColor(wnd_.getHandle(), crBackground);
+	ListView_SetTextBkColor(wnd_.getHandle(), crBackground);
 }
 
 
@@ -1192,13 +1216,9 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 						HeaderItem::FLAG_SHOWALWAYS);
 			}
 			else if (wcscmp(pwszAttrLocalName, L"background") == 0) {
-				StringReader reader(attributes.getValue(n), false);
-				std::auto_ptr<Template> pBackground(TemplateParser().parse(&reader, 0));
+				std::auto_ptr<Template> pBackground(parseTemplate(attributes.getValue(n)));
 				if (!pBackground.get())
 					return false;
-				if (!reader.close())
-					return false;
-				
 				pItem->setBackground(pBackground);
 			}
 			else {
@@ -1232,6 +1252,12 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				if (wcscmp(attributes.getValue(n), L"true") == 0)
 					pItem->setFlags(HeaderItem::FLAG_SHOWALWAYS,
 						HeaderItem::FLAG_SHOWALWAYS);
+			}
+			else if (wcscmp(pwszAttrLocalName, L"background") == 0) {
+				std::auto_ptr<Template> pBackground(parseTemplate(attributes.getValue(n)));
+				if (!pBackground.get())
+					return false;
+				pItem->setBackground(pBackground);
 			}
 			else {
 				return false;
@@ -1272,13 +1298,9 @@ bool qm::HeaderWindowContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_ITEM);
 		assert(pCurrentItem_);
 		
-		StringReader reader(buffer_.getCharArray(), false);
-		std::auto_ptr<Template> pValue(TemplateParser().parse(&reader, 0));
+		std::auto_ptr<Template> pValue(parseTemplate(buffer_.getCharArray()));
 		if (!pValue.get())
 			return false;
-		if (!reader.close())
-			return false;
-		
 		pCurrentItem_->setValue(pValue);
 		buffer_.remove();
 		
@@ -1317,4 +1339,15 @@ void qm::HeaderWindowContentHandler::setWidth(LineLayoutItem* pItem,
 	LineLayoutItem::Unit unit;
 	if (LineLayoutItem::parseWidth(pwszWidth, &dWidth, &unit))
 		pItem->setWidth(dWidth, unit);
+}
+
+std::auto_ptr<Template> qm::HeaderWindowContentHandler::parseTemplate(const WCHAR* pwszTemplate)
+{
+	StringReader reader(pwszTemplate, false);
+	std::auto_ptr<Template> pTemplate(TemplateParser().parse(&reader, 0));
+	if (!pTemplate.get())
+		return std::auto_ptr<Template>();
+	if (!reader.close())
+		return std::auto_ptr<Template>();
+	return pTemplate;
 }
