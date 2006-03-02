@@ -233,10 +233,16 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	long nVerify = SSL_get_verify_result(pSSL_);
 	bool bVerified = nVerify == X509_V_OK;
-	if (bVerified)
+	if (bVerified) {
 		log.debug(L"Server certificate is verified.");
-	else
-		log.warnf(L"Failed to verify server certificate: %ld", nVerify);
+	}
+	else {
+		if (log.isWarnEnabled()) {
+			const char* p = X509_verify_cert_error_string(nVerify);
+			log.warn(L"Failed to verify server certificate:",
+				reinterpret_cast<const unsigned char*>(p), strlen(p));
+		}
+	}
 	
 	X509Ptr pX509(SSL_get_peer_certificate(pSSL_));
 	CertificateImpl cert(pX509.get(), false);
@@ -246,7 +252,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	}
 	
 	if (!pCallback_->checkCertificate(cert, bVerified)) {
-		log.warn(L"Failed to check server certificate");
+		log.error(L"Failed to check server certificate");
 		nError_ = SOCKET_ERROR_CONNECT;
 		return false;
 	}
