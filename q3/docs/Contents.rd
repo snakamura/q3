@@ -78,10 +78,12 @@
   *S/MIME
   *PGPとGnuPG
   *((<印刷|URL:Printing.html>))
+  *インポートとエクスポート
   *外部エディタ
   *((<スパムフィルタ|URL:JunkFilter.html>))
   *スクリプト
   *((<コマンドライン|URL:CommandLine.html>))
+  *ログ
   *正規表現
 *アカウントの設定
   *((<アカウントの管理|URL:ManageAccount.html>))
