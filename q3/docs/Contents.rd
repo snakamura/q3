@@ -77,7 +77,7 @@
   *SSL
   *S/MIME
   *PGPとGnuPG
-  *印刷
+  *((<印刷|URL:Printing.html>))
   *外部エディタ
   *((<スパムフィルタ|URL:JunkFilter.html>))
   *スクリプト
