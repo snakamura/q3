@@ -114,7 +114,8 @@ void qm::EditAttachmentEditDeleteAction::invoke(const ActionEvent& event)
 
 bool qm::EditAttachmentEditDeleteAction::isEnabled(const ActionEvent& event)
 {
-	return pAttachmentSelectionModel_->hasSelectedAttachment();
+	return !pAttachmentSelectionModel_->isAttachmentDeleted() &&
+		pAttachmentSelectionModel_->hasSelectedAttachment();
 }
 
 

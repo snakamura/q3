@@ -797,7 +797,8 @@ qm::AttachmentHeaderItem::AttachmentHeaderItem(MenuManager* pMenuManager) :
 	pMenuManager_(pMenuManager),
 	pParent_(0),
 	pAccountManager_(0),
-	nSecurityMode_(SECURITYMODE_NONE)
+	nSecurityMode_(SECURITYMODE_NONE),
+	bAttachmentDeleted_(false)
 {
 }
 
@@ -917,7 +918,7 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 					pURI.release();
 				}
 				
-				wnd_.enableWindow(!parser.isAttachmentDeleted());
+				bAttachmentDeleted_ = parser.isAttachmentDeleted();
 			}
 		}
 	}
@@ -962,6 +963,11 @@ void qm::AttachmentHeaderItem::getSelectedAttachment(NameList* pList)
 	}
 }
 
+bool qm::AttachmentHeaderItem::isAttachmentDeleted()
+{
+	return bAttachmentDeleted_;
+}
+
 #ifndef _WIN32_WCE
 LRESULT qm::AttachmentHeaderItem::onNotify(NMHDR* pnmhdr,
 										   bool* pbHandled)
@@ -976,6 +982,9 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 											  bool* pbHandled)
 {
 	assert(pAccountManager_);
+	
+	if (bAttachmentDeleted_)
+		return 0;
 	
 	NMLISTVIEW* pnmlv = reinterpret_cast<NMLISTVIEW*>(pnmhdr);
 	
@@ -1035,6 +1044,7 @@ void qm::AttachmentHeaderItem::clear()
 	
 	pAccountManager_ = 0;
 	nSecurityMode_ = SECURITYMODE_NONE;
+	bAttachmentDeleted_ = false;
 }
 
 void qm::AttachmentHeaderItem::updateColor(const TemplateContext* pContext)

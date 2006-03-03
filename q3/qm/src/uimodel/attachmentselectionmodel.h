@@ -37,6 +37,7 @@ public:
 	virtual bool hasAttachment() = 0;
 	virtual bool hasSelectedAttachment() = 0;
 	virtual void getSelectedAttachment(NameList* pList) = 0;
+	virtual bool isAttachmentDeleted() = 0;
 };
 
 }

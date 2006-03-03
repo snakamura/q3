@@ -152,7 +152,8 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 
 bool qm::AttachmentOpenAction::isEnabled(const ActionEvent& event)
 {
-	return pAttachmentSelectionModel_->hasSelectedAttachment();
+	return !pAttachmentSelectionModel_->isAttachmentDeleted() &&
+		pAttachmentSelectionModel_->hasSelectedAttachment();
 }
 
 
@@ -209,6 +210,8 @@ void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 
 bool qm::AttachmentSaveAction::isEnabled(const ActionEvent& event)
 {
+	if (pAttachmentSelectionModel_->isAttachmentDeleted())
+		return false;
 	return bAll_ ? pAttachmentSelectionModel_->hasAttachment() :
 		pAttachmentSelectionModel_->hasSelectedAttachment();
 }

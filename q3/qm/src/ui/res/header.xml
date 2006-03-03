@@ -27,7 +27,7 @@
 	</line>
 	<line hideIfEmpty="attachment" class="mail|news">
 		<static width="auto" style="bold" showAlways="true">Attachment:</static>
-		<attachment name="attachment"/>
+		<attachment name="attachment" background="{@If(@Equal(X-QMAIL-AttachmentDeleted, 1), 'ccc7ba', '')}"/>
 	</line>
 	<line class="rss">
 		<static width="auto" style="bold" showAlways="true">Title:</static>

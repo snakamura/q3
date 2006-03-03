@@ -506,6 +506,7 @@ public:
 	virtual bool hasAttachment();
 	virtual bool hasSelectedAttachment();
 	virtual void getSelectedAttachment(NameList* pList);
+	virtual bool isAttachmentDeleted();
 
 private:
 	void update(EditMessage* pEditMessage);

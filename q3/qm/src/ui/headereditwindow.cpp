@@ -1487,6 +1487,11 @@ void qm::AttachmentHeaderEditItem::getSelectedAttachment(NameList* pList)
 	}
 }
 
+bool qm::AttachmentHeaderEditItem::isAttachmentDeleted()
+{
+	return false;
+}
+
 void qm::AttachmentHeaderEditItem::update(EditMessage* pEditMessage)
 {
 	HWND hwnd = wnd_.getHandle();

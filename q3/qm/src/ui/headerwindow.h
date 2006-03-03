@@ -351,6 +351,7 @@ public:
 	virtual bool hasAttachment();
 	virtual bool hasSelectedAttachment();
 	virtual void getSelectedAttachment(NameList* pList);
+	virtual bool isAttachmentDeleted();
 
 #ifndef _WIN32_WCE
 public:
@@ -411,6 +412,7 @@ private:
 	qs::WindowBase* pParent_;
 	AccountManager* pAccountManager_;
 	unsigned int nSecurityMode_;
+	bool bAttachmentDeleted_;
 };
 
 
