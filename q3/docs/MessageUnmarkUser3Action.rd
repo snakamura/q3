@@ -3,7 +3,7 @@
 
 対象のメッセージのユーザ3フラグを倒します。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

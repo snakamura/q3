@@ -3,7 +3,7 @@
 
 対象のメッセージのキャッシュを削除します。リモートフォルダ上のメッセージに対してのみ有効です。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

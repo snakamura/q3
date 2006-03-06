@@ -3,7 +3,7 @@
 
 対象のメッセージのユーザ2フラグを立てます。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

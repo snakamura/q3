@@ -3,7 +3,7 @@
 
 対象のメッセージを直接削除します。ゴミ箱は使われません。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

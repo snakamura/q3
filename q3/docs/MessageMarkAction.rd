@@ -3,7 +3,7 @@
 
 対象のメッセージのマークフラグを立てます。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

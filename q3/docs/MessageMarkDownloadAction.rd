@@ -3,7 +3,7 @@
 
 対象のメッセージのダウンロードフラグを立てます。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

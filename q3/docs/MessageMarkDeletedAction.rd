@@ -3,7 +3,7 @@
 
 対象のメッセージの削除フラグを立てます。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

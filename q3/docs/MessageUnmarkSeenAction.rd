@@ -3,7 +3,7 @@
 
 対象のメッセージの既読フラグを倒します。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

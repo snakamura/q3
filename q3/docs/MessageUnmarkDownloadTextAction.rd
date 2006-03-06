@@ -3,7 +3,7 @@
 
 対象のメッセージの本文ダウンロードフラグを倒します。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数

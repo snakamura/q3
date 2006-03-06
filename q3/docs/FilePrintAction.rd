@@ -3,7 +3,7 @@
 
 対象のメッセージを印刷します。印刷の詳細は、((<印刷|URL:Printing.html>))を参照してください。
 
-<<<targetMessage.rd
+<<<selectedMessage.rd
 
 
 ==引数
