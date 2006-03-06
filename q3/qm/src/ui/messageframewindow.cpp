@@ -228,6 +228,14 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(FileCloseAction,
 		IDM_FILE_CLOSE,
 		pThis_->getHandle());
+	ADD_ACTION6(FileExportAction,
+		IDM_FILE_EXPORT,
+		this,
+		pEncodingModel_.get(),
+		pSecurityModel_.get(),
+		pDocument_,
+		pProfile_,
+		pThis_->getHandle());
 	ADD_ACTION7(FilePrintAction,
 		IDM_FILE_PRINT,
 		pDocument_,

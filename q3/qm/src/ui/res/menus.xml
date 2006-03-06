@@ -212,6 +212,8 @@
 		<popupmenu text="&amp;File">
 			<menuitem text="&amp;Print" action="FilePrint"/>
 			<separator/>
+			<menuitem text="Expor&amp;t..." action="FileExport"/>
+			<separator/>
 			<menuitem text="&amp;Close" action="FileClose"/>
 		</popupmenu>
 		<popupmenu text="&amp;Edit">
