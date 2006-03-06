@@ -83,7 +83,7 @@
   *外部エディタ
   *((<スパムフィルタ|URL:JunkFilter.html>))
   *スクリプト
-  *ドラッグアンドドロップ
+  *((<ドラッグアンドドロップ|URL:DragAndDrop.html>))
   *((<コマンドライン|URL:CommandLine.html>))
   *ログ
   *正規表現
