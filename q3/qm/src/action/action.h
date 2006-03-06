@@ -3218,6 +3218,7 @@ public:
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
 	ViewSelectMessageAction(const ViewSelectMessageAction&);

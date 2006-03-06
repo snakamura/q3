@@ -5481,14 +5481,9 @@ void qm::ToolSubAccountAction::invoke(const ActionEvent& event)
 	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
-		if (pwszName) {
-			SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
-			if (pSubAccount)
-				pAccount->setCurrentSubAccount(pSubAccount);
-		}
-		else {
-			pAccount->setCurrentSubAccount(0);
-		}
+		SubAccount* pSubAccount = pAccount->getSubAccount(pwszName);
+		if (pSubAccount)
+			pAccount->setCurrentSubAccount(pSubAccount);
 	}
 }
 
@@ -5681,10 +5676,7 @@ void qm::ViewFilterAction::invoke(const ActionEvent& event)
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
 		const WCHAR* pwszFilter = ActionParamUtil::getString(event.getParam(), 0);
-		if (!pwszFilter)
-			return;
-		
-		if (*pwszFilter) {
+		if (pwszFilter && *pwszFilter) {
 			FilterManager* pFilterManager = pViewModelManager_->getFilterManager();
 			const Filter* pFilter = pFilterManager->getFilter(pwszFilter);
 			if (pFilter)
@@ -5698,10 +5690,6 @@ void qm::ViewFilterAction::invoke(const ActionEvent& event)
 
 bool qm::ViewFilterAction::isEnabled(const ActionEvent& event)
 {
-	const WCHAR* pwszFilter = ActionParamUtil::getString(event.getParam(), 0);
-	if (!pwszFilter)
-		return false;
-	
 	return pViewModelManager_->getCurrentViewModel() != 0;
 }
 
@@ -5710,11 +5698,8 @@ bool qm::ViewFilterAction::isChecked(const ActionEvent& event)
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 	if (pViewModel) {
 		const WCHAR* pwszFilter = ActionParamUtil::getString(event.getParam(), 0);
-		if (!pwszFilter)
-			return false;
-		
 		const Filter* pFilter = pViewModel->getFilter();
-		if (*pwszFilter)
+		if (pwszFilter && *pwszFilter)
 			return pFilter && wcscmp(pFilter->getName(), pwszFilter) == 0;
 		else
 			return !pFilter;
@@ -6583,6 +6568,12 @@ void qm::ViewSelectMessageAction::invoke(const ActionEvent& event)
 				MessageActionUtil::select(pViewModel, nIndex, false);
 		}
 	}
+}
+
+bool qm::ViewSelectMessageAction::isEnabled(const ActionEvent& event)
+{
+	return pViewModelManager_->getCurrentViewModel() &&
+		pMessageSelectionModel_->hasFocusedMessage();
 }
 
 
