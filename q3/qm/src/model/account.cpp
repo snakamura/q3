@@ -1365,6 +1365,10 @@ SubAccount* qm::Account::getCurrentSubAccount() const
 
 void qm::Account::setCurrentSubAccount(SubAccount* pSubAccount)
 {
+	assert(pSubAccount);
+	assert(std::find(pImpl_->listSubAccount_.begin(),
+		pImpl_->listSubAccount_.end(), pSubAccount) != pImpl_->listSubAccount_.end());
+	
 	pImpl_->pCurrentSubAccount_ = pSubAccount;
 	pImpl_->pProtocolDriver_->setSubAccount(pSubAccount);
 	
