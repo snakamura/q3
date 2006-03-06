@@ -623,6 +623,9 @@ bool qm::AddressBookFrameWindowManager::closeAll()
 
 void qm::AddressBookFrameWindowManager::showAll()
 {
+	if (!pFrameWindow_)
+		return;
+	
 	struct RunnableImpl : public Runnable
 	{
 		RunnableImpl(AddressBookFrameWindow* pFrameWindow) :
@@ -642,6 +645,9 @@ void qm::AddressBookFrameWindowManager::showAll()
 
 void qm::AddressBookFrameWindowManager::hideAll()
 {
+	if (!pFrameWindow_)
+		return;
+	
 	struct RunnableImpl : public Runnable
 	{
 		RunnableImpl(AddressBookFrameWindow* pFrameWindow) :
