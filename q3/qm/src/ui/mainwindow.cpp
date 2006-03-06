@@ -1822,6 +1822,7 @@ void qm::MainWindow::show()
 	showWindow(isIconic() ? SW_RESTORE : SW_SHOW);
 	
 	pImpl_->pEditFrameWindowManager_->showAll();
+	pImpl_->pAddressBookFrameWindowManager_->showAll();
 	
 	pImpl_->pShellIcon_->hideHiddenIcon();
 }
@@ -1834,6 +1835,7 @@ void qm::MainWindow::hide()
 	pImpl_->pSyncDialogManager_->hide();
 	pImpl_->pMessageFrameWindowManager_->closeAll();
 	pImpl_->pEditFrameWindowManager_->hideAll();
+	pImpl_->pAddressBookFrameWindowManager_->hideAll();
 	
 	showWindow(SW_HIDE);
 	

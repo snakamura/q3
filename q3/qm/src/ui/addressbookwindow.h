@@ -45,6 +45,8 @@ public:
 public:
 	void open();
 	bool closeAll();
+	void showAll();
+	void hideAll();
 	void reloadProfiles();
 
 public:

@@ -621,6 +621,44 @@ bool qm::AddressBookFrameWindowManager::closeAll()
 	return true;
 }
 
+void qm::AddressBookFrameWindowManager::showAll()
+{
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(AddressBookFrameWindow* pFrameWindow) :
+			pFrameWindow_(pFrameWindow)
+		{
+		}
+		
+		virtual void run()
+		{
+			pFrameWindow_->showWindow();
+		}
+		
+		AddressBookFrameWindow* pFrameWindow_;
+	} runnable(pFrameWindow_);
+	pFrameWindow_->getInitThread()->getSynchronizer()->syncExec(&runnable);
+}
+
+void qm::AddressBookFrameWindowManager::hideAll()
+{
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(AddressBookFrameWindow* pFrameWindow) :
+			pFrameWindow_(pFrameWindow)
+		{
+		}
+		
+		virtual void run()
+		{
+			pFrameWindow_->showWindow(SW_HIDE);
+		}
+		
+		AddressBookFrameWindow* pFrameWindow_;
+	} runnable(pFrameWindow_);
+	pFrameWindow_->getInitThread()->getSynchronizer()->syncExec(&runnable);
+}
+
 void qm::AddressBookFrameWindowManager::reloadProfiles()
 {
 	if (!pFrameWindow_)
