@@ -233,7 +233,7 @@ bool qmpop3::Pop3::getMessage(unsigned int nMsg,
 		POP3_ERROR(POP3_ERROR_RETR | POP3_ERROR_RESPONSE);
 	
 	CHAR szRetr[128];
-	if (nMaxLine == 0xffffffff)
+	if (nMaxLine == -1)
 		sprintf(szRetr, "RETR %d\r\n", nMsg + 1);
 	else
 		sprintf(szRetr, "TOP %d %d\r\n", nMsg + 1, nMaxLine);
@@ -245,7 +245,7 @@ bool qmpop3::Pop3::getMessage(unsigned int nMsg,
 	xstring_size_ptr strContent;
 	if (!sendCommand(szRetr, &strResponse, &strContent,
 		nEstimatedSize != -1 ? nEstimatedSize : 0))
-		POP3_ERROR_OR(nMaxLine == 0xffffffff ? POP3_ERROR_RETR : POP3_ERROR_TOP);
+		POP3_ERROR_OR(nMaxLine == -1 ? POP3_ERROR_RETR : POP3_ERROR_TOP);
 	
 	*pstrMessage = strContent;
 	
@@ -577,7 +577,7 @@ bool qmpop3::Pop3::receive(string_ptr* pstrResponse,
 		bufContent.remove(bufContent.getLength() - 2, bufContent.getLength());
 		*pstrContent = bufContent.getXStringSize();
 		if (!pstrContent->get())
-			return false;
+			POP3_ERROR(POP3_ERROR_OTHER);
 	}
 	
 	nError_ = POP3_ERROR_SUCCESS;

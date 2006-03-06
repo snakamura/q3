@@ -750,7 +750,7 @@ const CHAR* qs::Part::getBody() const
 bool qs::Part::setBody(const CHAR* pszBody,
 					   size_t nLen)
 {
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = strlen(pszBody);
 	
 	xstring_ptr strBody(allocXString(pszBody, nLen));
@@ -1077,7 +1077,7 @@ bool qs::Part::create(const Part* pParent,
 	assert(pszContent);
 	assert(pnMaxPartCount);
 	
-	if (nLen == static_cast<size_t>(-1))
+	if (nLen == -1)
 		nLen = strlen(pszContent);
 	
 	clear();
