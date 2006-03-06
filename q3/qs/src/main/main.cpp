@@ -33,7 +33,6 @@ using namespace qs;
 HINSTANCE g_hInstDll = 0;
 HINSTANCE g_hInstResourceDll = 0;
 Window* g_pMainWindow = 0;
-ModalHandler* g_pModalHandler = 0;
 
 
 /****************************************************************************
@@ -193,16 +192,6 @@ QSEXPORTPROC void qs::setMainWindow(Window* pWindow)
 QSEXPORTPROC const WCHAR* qs::getTitle()
 {
 	return Init::getInit().getTitle();
-}
-
-QSEXPORTPROC ModalHandler* qs::getModalHandler()
-{
-	return g_pModalHandler;
-}
-
-QSEXPORTPROC void qs::setModalHandler(ModalHandler* pModalHandler)
-{
-	g_pModalHandler = pModalHandler;
 }
 
 

@@ -17,6 +17,7 @@
 #include <qmuiutil.h>
 
 #include <qsconv.h>
+#include <qsinit.h>
 #include <qsmime.h>
 #include <qsras.h>
 #include <qsuiutil.h>
@@ -1965,14 +1966,14 @@ bool qm::ProgressDialog::init(HWND hwnd)
 	if (!create(hwnd))
 		return false;
 	showWindow(SW_SHOW);
-	getModalHandler()->preModalDialog(0);
+	InitThread::getInitThread().getModalHandler()->preModalDialog(0);
 	
 	return true;
 }
 
 void qm::ProgressDialog::term()
 {
-	getModalHandler()->postModalDialog(0);
+	InitThread::getInitThread().getModalHandler()->postModalDialog(0);
 	destroyWindow();
 }
 

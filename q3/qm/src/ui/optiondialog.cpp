@@ -436,7 +436,7 @@ qm::OptionDialog::~OptionDialog()
 
 int qm::OptionDialog::doModal(HWND hwndParent)
 {
-	ModalHandler* pModalHandler = getModalHandler();
+	ModalHandler* pModalHandler = InitThread::getInitThread().getModalHandler();
 	ModalHandlerInvoker invoker(pModalHandler, hwndParent);
 	
 	if (!create(hwndParent))

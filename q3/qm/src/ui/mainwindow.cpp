@@ -24,6 +24,7 @@
 
 #include <qsaccelerator.h>
 #include <qsconv.h>
+#include <qsinit.h>
 #include <qsprofile.h>
 #include <qsstl.h>
 #include <qstheme.h>
@@ -1738,7 +1739,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	
 	pImpl_->reloadProfiles(false);
 	
-	setModalHandler(pImpl_);
+	InitThread::getInitThread().setModalHandler(pImpl_);
 }
 
 qm::MainWindow::~MainWindow()

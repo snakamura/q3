@@ -30,6 +30,7 @@
 
 #include <qsconv.h>
 #include <qsfile.h>
+#include <qsinit.h>
 #include <qsstl.h>
 #include <qsstream.h>
 #include <qsuiutil.h>
@@ -5429,8 +5430,8 @@ void qm::ToolScriptAction::invoke(const ActionEvent& event)
 		assert(false);
 	}
 	
-	std::auto_ptr<Script> pScript(pScriptManager_->getScript(
-		pwszName, pDocument_, pProfile_, getModalHandler(), info));
+	std::auto_ptr<Script> pScript(pScriptManager_->getScript(pwszName, pDocument_,
+		pProfile_, InitThread::getInitThread().getModalHandler(), info));
 	if (pScript.get())
 		pScript->run(0, 0, 0);
 }

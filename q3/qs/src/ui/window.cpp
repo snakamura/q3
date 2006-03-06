@@ -122,7 +122,7 @@ QSEXPORTPROC int qs::messageBox(const WCHAR* pwszMessage,
 	W2T(pwszMessage, ptszMessage);
 	
 	if (!pModalHandler)
-		pModalHandler = getModalHandler();
+		pModalHandler = InitThread::getInitThread().getModalHandler();
 	
 	ModalHandlerInvoker invoker(pModalHandler, hwnd);
 	return ::MessageBox(hwnd, ptszMessage, ptszTitle, nType);

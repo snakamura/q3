@@ -355,6 +355,7 @@ struct qs::InitThreadImpl
 	bool createLogger();
 	
 	std::auto_ptr<Synchronizer> pSynchronizer_;
+	ModalHandler* pModalHandler_;
 	std::auto_ptr<Logger> pLogger_;
 };
 
@@ -399,6 +400,7 @@ qs::InitThread::InitThread(unsigned int nFlags) :
 	pImpl_(0)
 {
 	pImpl_ = new InitThreadImpl();
+	pImpl_->pModalHandler_ = 0;
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
@@ -432,6 +434,16 @@ Synchronizer* qs::InitThread::getSynchronizer() const
 {
 	assert(pImpl_->pSynchronizer_.get());
 	return pImpl_->pSynchronizer_.get();
+}
+
+ModalHandler* qs::InitThread::getModalHandler() const
+{
+	return pImpl_->pModalHandler_;
+}
+
+void qs::InitThread::setModalHandler(ModalHandler* pModalHandler)
+{
+	pImpl_->pModalHandler_ = pModalHandler;
 }
 
 Logger* qs::InitThread::getLogger() const

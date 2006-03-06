@@ -199,7 +199,7 @@ INT_PTR qs::PropertySheetBase::doModal(HWND hwndParent,
 									   ModalHandler* pModalHandler)
 {
 	if (!pModalHandler)
-		pModalHandler = getModalHandler();
+		pModalHandler = InitThread::getInitThread().getModalHandler();
 	
 	auto_ptr_array<HPROPSHEETPAGE> aphpsp(new HPROPSHEETPAGE[pImpl_->listPage_.size()]);
 	

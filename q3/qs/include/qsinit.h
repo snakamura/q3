@@ -18,6 +18,7 @@ namespace qs {
 class Init;
 class InitThread;
 
+class ModalHandler;
 class Synchronizer;
 
 
@@ -91,6 +92,8 @@ public:
 
 public:
 	Synchronizer* getSynchronizer() const;
+	ModalHandler* getModalHandler() const;
+	void setModalHandler(ModalHandler* pModalHandler);
 	Logger* getLogger() const;
 	void resetLogger();
 

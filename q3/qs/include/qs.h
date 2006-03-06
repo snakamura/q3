@@ -104,20 +104,6 @@ QSEXPORTPROC void setMainWindow(Window* pWindow);
  */
 QSEXPORTPROC const WCHAR* getTitle();
 
-/**
- * Get modal handler.
- *
- * @return Modal handler.
- */
-QSEXPORTPROC ModalHandler* getModalHandler();
-
-/**
- * Set modal handler.
- *
- * @param pModalHandler [in] Modal handler.
- */
-QSEXPORTPROC void setModalHandler(ModalHandler* pModalHandler);
-
 
 /****************************************************************************
  *

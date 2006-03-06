@@ -4364,7 +4364,7 @@ MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 	ScriptManager* pScriptManager = pContext->getDocument()->getScriptManager();
 	std::auto_ptr<Script> pScript(pScriptManager->createScript(wstrScript.get(),
 		wstrLanguage.get(), pContext->getDocument(), pContext->getProfile(),
-		pContext->getWindow(), getModalHandler()));
+		pContext->getWindow(), InitThread::getInitThread().getModalHandler()));
 	if (!pScript.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	

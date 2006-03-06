@@ -364,7 +364,7 @@ INT_PTR qs::Dialog::doModal(HWND hwndParent,
 							ModalHandler* pModalHandler)
 {
 	if (!pModalHandler)
-		pModalHandler = getModalHandler();
+		pModalHandler = InitThread::getInitThread().getModalHandler();
 	
 	ModalHandlerInvoker invoker(pModalHandler, hwndParent);
 	DialogBaseImpl::DialogMap* pMap = DialogBaseImpl::getDialogMap();
@@ -633,7 +633,7 @@ int qs::FileDialog::doModal(HWND hwndParent,
 #endif
 	
 	if (!pModalHandler)
-		pModalHandler = getModalHandler();
+		pModalHandler = InitThread::getInitThread().getModalHandler();
 	
 	OPENFILENAME ofn = {
 		sizeof(ofn),
