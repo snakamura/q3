@@ -138,8 +138,9 @@ public:
 	bool bUseSystemColor_;
 	COLORREF crForeground_;
 	COLORREF crBackground_;
-	int nLineHeight_;
 	bool bSingleClickOpen_;
+	bool bEllipsis_;
+	int nLineHeight_;
 	ListHeaderColumn* pHeaderColumn_;
 	HIMAGELIST hImageList_;
 	HIMAGELIST hImageListData_;
@@ -256,8 +257,12 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 				pt.x += nOffset;
 			}
 			
-			pdc->extTextOut(pt.x, pt.y, ETO_CLIPPED | ETO_OPAQUE,
-				r, wstrText.get(), static_cast<UINT>(nLen), 0);
+			if (bEllipsis_)
+				pdc->extTextOutEllipsis(pt.x, pt.y, ETO_CLIPPED | ETO_OPAQUE,
+					r, wstrText.get(), static_cast<UINT>(nLen));
+			else
+				pdc->extTextOut(pt.x, pt.y, ETO_CLIPPED | ETO_OPAQUE,
+					r, wstrText.get(), static_cast<UINT>(nLen), 0);
 			
 			if (rectFocus.left == -1)
 				rectFocus.left = r.left;
@@ -541,6 +546,7 @@ void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 	bool bSingleClickOpen = false;
 #endif
 	bSingleClickOpen_ = pProfile_->getInt(L"ListWindow", L"SingleClickOpen", bSingleClickOpen) != 0;
+	bEllipsis_ = pProfile_->getInt(L"ListWindow", L"Ellipsis", 1) != 0;
 	
 	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
 		L"ListWindow", qs::UIUtil::DEFAULTFONT_UI);
@@ -961,8 +967,9 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->bUseSystemColor_ = true;
 	pImpl_->crForeground_ = RGB(0, 0, 0);
 	pImpl_->crBackground_ = RGB(255, 255, 255);
-	pImpl_->nLineHeight_ = 0;
 	pImpl_->bSingleClickOpen_ = false;
+	pImpl_->bEllipsis_ = true;
+	pImpl_->nLineHeight_ = 0;
 	pImpl_->pHeaderColumn_ = 0;
 	pImpl_->hImageList_ = 0;
 	pImpl_->hImageListData_ = 0;
