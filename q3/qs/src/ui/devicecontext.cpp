@@ -24,6 +24,37 @@ using namespace qs;
  *
  */
 
+bool qs::DeviceContext::extTextOutEllipsis(int x,
+										   int y,
+										   UINT nOptions,
+										   const RECT& rect,
+										   const WCHAR* pwszString,
+										   UINT nCount)
+{
+	int nWidth = rect.right - x;
+	int nFit = 0;
+	SIZE size;
+	if (!getTextExtentEx(pwszString, nCount, nWidth, &nFit, 0, &size))
+		return false;
+	else if (size.cx <= nWidth)
+		return extTextOut(x, y, nOptions, rect, pwszString, nCount, 0);
+	
+	wstring_ptr str(allocWString(nFit + 4));
+	wcsncpy(str.get(), pwszString, nFit);
+	while (nFit >= 0) {
+		wcscpy(str.get() + nFit, L"...");
+		if (!getTextExtentEx(pwszString, nFit + 3, nWidth, 0, 0, &size))
+			return false;
+		else if (size.cx <= nWidth)
+			break;
+		--nFit;
+	}
+	if (nFit < 0)
+		return true;
+	
+	return extTextOut(x, y, nOptions, rect, str.get(), nFit + 3, 0);
+}
+
 #ifndef UNICODE
 bool qs::DeviceContext::getTextExtentEx(const WCHAR* pwszString,
 										int nCount,

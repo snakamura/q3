@@ -87,6 +87,12 @@ public:
 					const WCHAR* pwszString,
 					UINT nCount,
 					int* pnDx);
+	bool extTextOutEllipsis(int x,
+							int y,
+							UINT nOptions,
+							const RECT& rect,
+							const WCHAR* pwszString,
+							UINT nCount);
 	bool getTextMetrics(TEXTMETRIC* ptm) const;
 	bool getTextExtent(const WCHAR* pwszString,
 					   int nCount,
