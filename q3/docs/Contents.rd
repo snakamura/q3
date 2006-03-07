@@ -80,7 +80,7 @@
   *((<"S/MIME"|URL:SMIME.html>))
   *PGPとGnuPG
   *((<印刷|URL:Printing.html>))
-  *インポートとエクスポート
+  *((<インポートとエクスポート|URL:ImportAndExport.html>))
   *外部エディタ
   *((<スパムフィルタ|URL:JunkFilter.html>))
   *スクリプト
