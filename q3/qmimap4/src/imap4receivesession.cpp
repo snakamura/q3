@@ -179,6 +179,26 @@ bool qmimap4::Imap4ReceiveSession::closeFolder()
 		pCallback_->setMessage(IDS_CLOSEFOLDER);
 		if (!pImap4_->close())
 			HANDLE_ERROR();
+		
+		Lock<Account> lock(*pAccount_);
+		if (pFolder_->getDeletedCount() != 0) {
+			const MessageHolderList& l = pFolder_->getMessages();
+			NormalFolder::MessageInfoList listMessageInfo;
+			listMessageInfo.reserve(l.size());
+			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				MessageHolder* pmh = *it;
+				if (!pmh->isFlag(MessageHolder::FLAG_DELETED)) {
+					NormalFolder::MessageInfo info = {
+						pmh->getId(),
+						pmh->getFlags(),
+						0
+					};
+					listMessageInfo.push_back(info);
+				}
+			}
+			if (!pFolder_->updateMessageInfos(listMessageInfo, false, 0))
+				return false;
+		}
 	}
 	
 	pFolder_ = 0;
@@ -297,7 +317,7 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 		}
 		
 		bool bClear = false;
-		if (!pFolder_->updateMessageInfos(hook.listMessageInfo_, &bClear))
+		if (!pFolder_->updateMessageInfos(hook.listMessageInfo_, true, &bClear))
 			return false;
 		if (bClear)
 			nUidStart_ = 0;

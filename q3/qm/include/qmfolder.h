@@ -187,6 +187,7 @@ public:
 	MessagePtr getMessageById(unsigned int nId);
 	MessageHolder* getMessageHolderById(unsigned int nId) const;
 	bool updateMessageInfos(const MessageInfoList& listMessageInfo,
+							bool bUpdateFlagsAndLabel,
 							bool* pbClear);
 
 public:

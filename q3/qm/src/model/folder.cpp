@@ -616,11 +616,11 @@ MessageHolder* qm::NormalFolder::getMessageHolderById(unsigned int nId) const
 }
 
 bool qm::NormalFolder::updateMessageInfos(const MessageInfoList& listMessageInfo,
+										  bool bUpdateFlagsAndLabel,
 										  bool* pbClear)
 {
-	assert(pbClear);
-	
-	*pbClear = false;
+	if (pbClear)
+		*pbClear = false;
 	
 	Lock<Account> lock(*getAccount());
 	
@@ -638,9 +638,11 @@ bool qm::NormalFolder::updateMessageInfos(const MessageInfoList& listMessageInfo
 	MessageInfoList::const_iterator itI = listMessageInfo.begin();
 	while (itM != l.end() && itI != listMessageInfo.end()) {
 		if ((*itM)->getId() == (*itI).nId_) {
-			(*itM)->setFlags((*itI).nFlags_, nMask);
-			if (!(*itM)->setLabel((*itI).wstrLabel_))
-				return false;
+			if (bUpdateFlagsAndLabel) {
+				(*itM)->setFlags((*itI).nFlags_, nMask);
+				if (!(*itM)->setLabel((*itI).wstrLabel_))
+					return false;
+			}
 			++itI;
 		}
 		else {
@@ -658,7 +660,8 @@ bool qm::NormalFolder::updateMessageInfos(const MessageInfoList& listMessageInfo
 		// Clear all
 		if (!pImpl_->unstoreAllMessages())
 			return false;
-		*pbClear = true;
+		if (pbClear)
+			*pbClear = true;
 	}
 	else {
 		if (!pImpl_->unstoreMessages(listRemove))
