@@ -63,6 +63,7 @@
     *全文検索
   *アドレス帳
     *外部アドレス帳
+    *アドレス補完
   *添付ファイル
   *署名
   *定型文
@@ -76,7 +77,7 @@
   *((<セキュリティモード|URL:SecurityMode.html>))
   *ダイアルアップ
   *SSL
-  *S/MIME
+  *((<"S/MIME"|URL:SMIME.html>))
   *PGPとGnuPG
   *((<印刷|URL:Printing.html>))
   *インポートとエクスポート
