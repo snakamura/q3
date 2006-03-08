@@ -3,8 +3,6 @@
 
 IMAP4でメッセージを受信するための設定を行います。
 
-// TODO 画像
-
 ((<IMAP4タブ|"IMG:images/AccountImap4ReceivePage.png">))
 
 

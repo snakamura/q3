@@ -3,8 +3,6 @@
 
 詳細の設定を行います。
 
-// TODO 画像
-
 ((<詳細タブ|"IMG:images/AccountDetailPage.png">))
 
 

@@ -3,8 +3,6 @@
 
 RSSでフィードを受信するための設定を行います。
 
-// TODO 画像
-
 ((<RSSタブ|"IMG:images/AccountRssReceivePage.png">))
 
 

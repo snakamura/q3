@@ -3,8 +3,6 @@
 
 一般の設定を行います。
 
-// TODO 画像
-
 ((<一般タブ|"IMG:images/AccountGeneralPage.png">))
 
 

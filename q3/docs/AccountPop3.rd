@@ -3,8 +3,6 @@
 
 POP3でメッセージを受信するための設定を行います。
 
-// TODO 画像
-
 ((<POP3タブ|"IMG:images/AccountPop3ReceivePage.png">))
 
 

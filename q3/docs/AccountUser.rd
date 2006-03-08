@@ -3,8 +3,6 @@
 
 ユーザの設定を行います。
 
-// TODO 画像
-
 ((<ユーザタブ|"IMG:images/AccountUserPage.png">))
 
 

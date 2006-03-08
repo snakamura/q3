@@ -3,8 +3,6 @@
 
 NNTPでメッセージを受信するための設定を行います。
 
-// TODO 画像
-
 ((<NNTPタブ|"IMG:images/AccountNntpReceivePage.png">))
 
 

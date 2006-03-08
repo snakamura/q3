@@ -3,8 +3,6 @@
 
 SMTPでメッセージを送信するための設定を行います。
 
-// TODO 画像
-
 ((<SMTPタブ|"IMG:images/AccountSmtpSendPage.png">))
 
 
