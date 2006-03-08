@@ -56,6 +56,8 @@ LRESULT qmpop3::ReceivePage::onInitDialog(HWND hwndFocus,
 	sendDlgItemMessage(IDC_SKIPDUPLICATEDUID, BM_SETCHECK,
 		bSkipDuplicatedUID ? BST_CHECKED : BST_UNCHECKED);
 	
+	updateState();
+	
 	return TRUE;
 }
 
@@ -77,6 +79,27 @@ LRESULT qmpop3::ReceivePage::onOk()
 		sendDlgItemMessage(IDC_SKIPDUPLICATEDUID, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
 	
 	return DefaultPropertyPage::onOk();
+}
+
+LRESULT qmpop3::ReceivePage::onCommand(WORD nCode,
+									   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_DELETEONSERVER, onDeleteOnServer)
+	END_COMMAND_HANDLER()
+	return DefaultPropertyPage::onCommand(nCode, nId);
+}
+
+LRESULT qmpop3::ReceivePage::onDeleteOnServer()
+{
+	updateState();
+	return 0;
+}
+
+void qmpop3::ReceivePage::updateState()
+{
+	Window(getDlgItem(IDC_DELETEBEFORE)).enableWindow(
+		sendDlgItemMessage(IDC_DELETEONSERVER, BM_GETCHECK) != BST_CHECKED);
 }
 
 
