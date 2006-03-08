@@ -48,8 +48,11 @@
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
     *特殊フォルダ
   *オンラインとオフライン
-  *振り分け
-  *部分受信とダウンロード予約
+  *((<振り分け|ApplyRules.html>))
+  *プロトコル依存のトピック
+    *POP3
+      *部分受信とダウンロード予約
+      *選択削除
   *巡回
   *自動巡回
   *未読通知
@@ -69,16 +72,16 @@
   *定型文
   *テンプレート
   *((<フィルタ|URL:Filter.html>))
-  *同期フィルタ
+  *((<同期フィルタ|URL:SyncFilter.html>))
   *リストビューの色
   *リストビューのカスタマイズ
   *((<整形|URL:Reform.html>))
   *((<メッセージモード|URL:MessageMode.html>))
   *((<セキュリティモード|URL:SecurityMode.html>))
   *ダイアルアップ
-  *SSL
+  *((<SSL|URL:SSL.html>))
   *((<"S/MIME"|URL:SMIME.html>))
-  *PGPとGnuPG
+  *((<PGPとGnuPG|URL:PGP.html>))
   *((<印刷|URL:Printing.html>))
   *((<インポートとエクスポート|URL:ImportAndExport.html>))
   *外部エディタ
@@ -86,7 +89,7 @@
   *スクリプト
   *((<ドラッグアンドドロップ|URL:DragAndDrop.html>))
   *((<コマンドライン|URL:CommandLine.html>))
-  *ログ
+  *((<ログ|URL:Log.html>))
   *正規表現
 *アカウントの設定
   *((<アカウントの管理|URL:ManageAccount.html>))

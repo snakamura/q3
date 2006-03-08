@@ -58,7 +58,7 @@
 
 
 ====[S/MIME]
-S/MIMEの設定を行います。
+S/MIMEの設定を行います。S/MIMEについては、((<"S/MIME"|URL:SMIME.html>))を参照してください。
 
 
 +[デフォルトで暗号化する]
@@ -78,7 +78,7 @@ S/MIMEの設定を行います。
 
 
 ====[PGP/GnuPG]
-PGP/GnuPGの設定を行います。
+PGPとGnuPGの設定を行います。PGPとGnuPGについては、((<PGPとGnuPG|URL:PGP.html>))を参照してください。
 
 
 +[デフォルトで暗号化する]
