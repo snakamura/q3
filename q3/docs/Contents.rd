@@ -47,8 +47,8 @@
       *パラメータ
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
     *特殊フォルダ
-  *オンラインとオフライン
-  *((<振り分け|ApplyRules.html>))
+  *((<オンラインとオフライン|URL:OnlineAndOffline.html>))
+  *((<振り分け|URL:ApplyRules.html>))
   *プロトコル依存のトピック
     *POP3
       *部分受信とダウンロード予約
