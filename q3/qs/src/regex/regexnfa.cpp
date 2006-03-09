@@ -395,7 +395,7 @@ void qs::RegexNfaMatcher::search(const WCHAR* pStart,
 	*ppStart = 0;
 	*ppEnd = 0;
 	
-	const WCHAR* p = pCurrent;
+	const WCHAR* p = pCurrent - (bReverse ? 1 : 0);
 	while (bReverse ? p >= pStart : p <= pEnd) {
 		match(pStart, pEnd, p, bMatchEnd, ppEnd, pStackMatch);
 		if (*ppEnd) {
