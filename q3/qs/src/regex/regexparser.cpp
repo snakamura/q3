@@ -1062,25 +1062,25 @@ std::auto_ptr<RegexMultiEscapeAtom> qs::RegexParser::getMultiEscapedAtom(WCHAR c
 
 bool qs::RegexParser::isSingleEscapeChar(WCHAR c)
 {
-	const WCHAR* pEnd = wszSingleEscapeChar__ + countof(wszSingleEscapeChar__);
+	const WCHAR* pEnd = wszSingleEscapeChar__ + countof(wszSingleEscapeChar__) - 1;
 	return std::find(wszSingleEscapeChar__, pEnd, c) != pEnd;
 }
 
 bool qs::RegexParser::isMultiEscapeChar(WCHAR c)
 {
-	const WCHAR* pEnd = wszMultiEscapeChar__ + countof(wszMultiEscapeChar__);
+	const WCHAR* pEnd = wszMultiEscapeChar__ + countof(wszMultiEscapeChar__) - 1;
 	return std::find(wszMultiEscapeChar__, pEnd, c) != pEnd;
 }
 
 bool qs::RegexParser::isSpecialChar(WCHAR c)
 {
-	const WCHAR* pEnd = wszSpecialChar__ + countof(wszSpecialChar__);
+	const WCHAR* pEnd = wszSpecialChar__ + countof(wszSpecialChar__) - 1;
 	return std::find(wszSpecialChar__, pEnd, c) != pEnd;
 }
 
 bool qs::RegexParser::isQuantifierChar(WCHAR c)
 {
-	const WCHAR* pEnd = wszQuantifierChar__ + countof(wszQuantifierChar__);
+	const WCHAR* pEnd = wszQuantifierChar__ + countof(wszQuantifierChar__) - 1;
 	return std::find(wszQuantifierChar__, pEnd, c) != pEnd;
 }
 
