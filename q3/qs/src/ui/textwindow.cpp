@@ -611,6 +611,10 @@ std::pair<size_t, size_t> qs::TextWindowImpl::getPhysicalLine(size_t nLogicalLin
 	
 	size_t nPhysicalChar = nChar > (*it)->nPosition_ ?
 		nChar - (*it)->nPosition_ : 0;
+	if (it + 1 != listLine_.end() && nPhysicalChar == (*it)->nLength_) {
+		++it;
+		nPhysicalChar = 0;
+	}
 	return std::make_pair(it - listLine_.begin(), nPhysicalChar);
 }
 
@@ -1283,7 +1287,7 @@ bool qs::TextWindowImpl::insertText(const WCHAR* pwsz,
 									InsertTextFlag flag)
 {
 	if (pTextModel_->isEditable()) {
-		if (nLen == static_cast<size_t>(-1))
+		if (nLen == -1)
 			nLen = wcslen(pwsz);
 		
 		size_t nStartLine = 0;
