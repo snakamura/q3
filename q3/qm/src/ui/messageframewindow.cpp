@@ -990,6 +990,10 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->wstrTitle_ = getWindowText();
 	
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"MessageFrameWindow");
+#endif
+	
 	pImpl_->bCreated_ = true;
 	
 	return 0;

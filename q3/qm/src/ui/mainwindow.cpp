@@ -2415,6 +2415,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_, getHandle(), pImpl_));
 #endif
 	
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"MainWindow");
+#endif
+	
 	pImpl_->bCreated_ = true;
 	
 	return 0;

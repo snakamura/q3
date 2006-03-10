@@ -378,6 +378,26 @@ unsigned int qm::UIUtil::getPreferredWidth(HWND hwnd,
 	return size.cx + 2;
 }
 
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+void qm::UIUtil::setWindowAlpha(HWND hwnd,
+								Profile* pProfile,
+								const WCHAR* pwszSection)
+{
+	unsigned int nAlpha = pProfile->getInt(pwszSection, L"Alpha", 0);
+	if (nAlpha > 255)
+		return;
+	
+	Window wnd(hwnd);
+	DWORD dwExStyle = wnd.getWindowLong(GWL_EXSTYLE);
+	if (dwExStyle & WS_EX_LAYERED && nAlpha == 0)
+		wnd.setWindowLong(GWL_EXSTYLE, dwExStyle & ~WS_EX_LAYERED);
+	else if (!(dwExStyle & WS_EX_LAYERED) && nAlpha != 0)
+		wnd.setWindowLong(GWL_EXSTYLE, dwExStyle | WS_EX_LAYERED);
+	if (nAlpha != 0)
+		wnd.setLayeredWindowAttributes(0, static_cast<BYTE>(nAlpha), LWA_ALPHA);
+}
+#endif
+
 
 /****************************************************************************
  *

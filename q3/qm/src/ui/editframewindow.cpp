@@ -761,7 +761,13 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			pImpl_->pUIManager_->getActionParamMap()));
 	
 	pImpl_->layoutChildren();
+	
 	pImpl_->initActions();
+	
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"EditFrameWindow");
+#endif
+	
 	pImpl_->bCreated_ = true;
 	
 	return 0;

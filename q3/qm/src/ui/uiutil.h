@@ -87,6 +87,12 @@ public:
 	
 	static unsigned int getPreferredWidth(HWND hwnd,
 										  bool bNoPrefix);
+	
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+	static void setWindowAlpha(HWND hwnd,
+							   qs::Profile* pProfile,
+							   const WCHAR* pwszSection);
+#endif
 };
 
 

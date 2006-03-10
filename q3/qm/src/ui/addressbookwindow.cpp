@@ -489,7 +489,13 @@ LRESULT qm::AddressBookFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	
 	pImpl_->layoutChildren();
+	
 	pImpl_->initActions();
+	
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"AddressBookFrameWindow");
+#endif
+	
 	pImpl_->bCreated_ = true;
 	
 	return 0;
