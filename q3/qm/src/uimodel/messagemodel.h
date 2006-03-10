@@ -67,7 +67,8 @@ class AbstractMessageModel :
 	public ViewModelHolder,
 	public AbstractMessageViewModeHolder,
 	public DefaultViewModelHandler,
-	public DefaultAccountHandler
+	public DefaultAccountHandler,
+	public DefaultMessageHolderHandler
 {
 protected:
 	AbstractMessageModel();
@@ -96,6 +97,9 @@ public:
 
 public:
 	virtual void accountDestroyed(const AccountEvent& event);
+
+public:
+	virtual void messageHolderKeysChanged(const MessageHolderEvent& event);
 
 protected:
 	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const = 0;

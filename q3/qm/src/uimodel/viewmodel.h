@@ -279,7 +279,7 @@ private:
 
 class ViewModel :
 	public DefaultFolderHandler,
-	public MessageHolderHandler
+	public DefaultMessageHolderHandler
 {
 public:
 	enum Sort {
@@ -411,8 +411,8 @@ public:
 	virtual void folderDestroyed(const FolderEvent& event);
 
 public:
-	virtual void messageHolderChanged(const MessageHolderEvent& event);
-	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
+	virtual void messageHolderFlagsChanged(const MessageHolderEvent& event);
+	virtual void messageHolderKeysChanged(const MessageHolderEvent& event);
 
 private:
 	void update(bool bRestoreSelection,

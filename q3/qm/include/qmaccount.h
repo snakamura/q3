@@ -248,9 +248,10 @@ public:
 					Message* pMessage);
 	bool setLabel(MessageHolder* pmh,
 				  const WCHAR* pwszLabel);
-	void fireMessageHolderChanged(MessageHolder* pmh,
-								  unsigned int nOldFlags,
-								  unsigned int nNewFlags);
+	void fireMessageHolderFlagsChanged(MessageHolder* pmh,
+									   unsigned int nOldFlags,
+									   unsigned int nNewFlags);
+	void fireMessageHolderKeysChanged(MessageHolder* pmh);
 	void fireMessageHolderDestroyed(MessageHolder* pmh);
 
 // These methods are intended to be called from ReceiveSession class

@@ -1238,7 +1238,7 @@ void qm::ViewModel::folderDestroyed(const FolderEvent& event)
 	pViewModelManager_->removeViewModel(this);
 }
 
-void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
+void qm::ViewModel::messageHolderFlagsChanged(const MessageHolderEvent& event)
 {
 	Lock<ViewModel> lock(*this);
 	
@@ -1264,8 +1264,21 @@ void qm::ViewModel::messageHolderChanged(const MessageHolderEvent& event)
 	}
 }
 
-void qm::ViewModel::messageHolderDestroyed(const MessageHolderEvent& event)
+void qm::ViewModel::messageHolderKeysChanged(const MessageHolderEvent& event)
 {
+	Lock<ViewModel> lock(*this);
+	
+	MessageHolder* pmh = event.getMessageHolder();
+	unsigned int n = getIndex(pmh);
+	if (n != -1) {
+		if (nCacheCount_ != 0) {
+			ViewModelItem* pItem = listItem_[n];
+			for (unsigned int nCache = 0; nCache < nCacheCount_; ++nCache)
+				pItem->setCache(nCache, 0);
+		}
+		
+		fireItemChanged(n);
+	}
 }
 
 void qm::ViewModel::update(bool bRestoreSelection,

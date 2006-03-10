@@ -410,7 +410,7 @@ FolderImpl* qm::Folder::getImpl() const
  *
  */
 
-struct qm::NormalFolderImpl : public MessageHolderHandler
+struct qm::NormalFolderImpl : public DefaultMessageHolderHandler
 {
 public:
 	wstring_ptr getPath() const;
@@ -418,8 +418,7 @@ public:
 	bool unstoreAllMessages();
 
 public:
-	virtual void messageHolderChanged(const MessageHolderEvent& event);
-	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
+	virtual void messageHolderFlagsChanged(const MessageHolderEvent& event);
 
 public:
 	NormalFolder* pThis_;
@@ -453,7 +452,7 @@ bool qm::NormalFolderImpl::unstoreAllMessages()
 	return unstoreMessages(l);
 }
 
-void qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
+void qm::NormalFolderImpl::messageHolderFlagsChanged(const MessageHolderEvent& event)
 {
 	MessageHolder* pmh = event.getMessageHolder();
 	if (pmh->getFolder() == pThis_) {
@@ -491,10 +490,6 @@ void qm::NormalFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
 		
 		bModified_ = true;
 	}
-}
-
-void qm::NormalFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event)
-{
 }
 
 
@@ -989,10 +984,10 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
  *
  */
 
-struct qm::QueryFolderImpl : public MessageHolderHandler
+struct qm::QueryFolderImpl : public DefaultMessageHolderHandler
 {
 public:
-	virtual void messageHolderChanged(const MessageHolderEvent& event);
+	virtual void messageHolderFlagsChanged(const MessageHolderEvent& event);
 	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
 
 public:
@@ -1005,7 +1000,7 @@ public:
 	unsigned int nUnseenCount_;
 };
 
-void qm::QueryFolderImpl::messageHolderChanged(const MessageHolderEvent& event)
+void qm::QueryFolderImpl::messageHolderFlagsChanged(const MessageHolderEvent& event)
 {
 	MessageHolder* pmh = event.getMessageHolder();
 	MessageHolderList::const_iterator it = std::lower_bound(

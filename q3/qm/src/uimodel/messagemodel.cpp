@@ -60,11 +60,15 @@ Account* qm::AbstractMessageModel::getCurrentAccount() const
 void qm::AbstractMessageModel::setCurrentAccount(Account* pAccount)
 {
 	if (pAccount != pAccount_) {
-		if (pAccount_)
+		if (pAccount_) {
+			pAccount_->removeMessageHolderHandler(this);
 			pAccount_->removeAccountHandler(this);
+		}
 		pAccount_ = pAccount;
-		if (pAccount_)
+		if (pAccount_) {
 			pAccount_->addAccountHandler(this);
+			pAccount_->addMessageHolderHandler(this);
+		}
 	}
 }
 
@@ -145,6 +149,11 @@ void qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
 {
 	setMessage(0);
 	setCurrentAccount(0);
+}
+
+void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent& event)
+{
+	setMessage(event.getMessageHolder());
 }
 
 void qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const

@@ -311,8 +311,28 @@ public:
 	virtual ~MessageHolderHandler();
 
 public:
-	virtual void messageHolderChanged(const MessageHolderEvent& event) = 0;
+	virtual void messageHolderFlagsChanged(const MessageHolderEvent& event) = 0;
+	virtual void messageHolderKeysChanged(const MessageHolderEvent& event) = 0;
 	virtual void messageHolderDestroyed(const MessageHolderEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultMessageHolderHandler
+ *
+ */
+
+class DefaultMessageHolderHandler : public MessageHolderHandler
+{
+public:
+	DefaultMessageHolderHandler();
+	virtual ~DefaultMessageHolderHandler();
+
+public:
+	virtual void messageHolderFlagsChanged(const MessageHolderEvent& event);
+	virtual void messageHolderKeysChanged(const MessageHolderEvent& event);
+	virtual void messageHolderDestroyed(const MessageHolderEvent& event);
 };
 
 

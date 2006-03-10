@@ -316,12 +316,17 @@ void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 {
 	bool bUIThread = ::GetCurrentThreadId() == ::GetWindowThreadProcessId(pThis_->getHandle(), 0);
 	MessageHolder* pmh = event.getMessageHolder();
-	assert(!pmh || bUIThread);
-	if (bUIThread)
+	if (bUIThread) {
 		setMessage(pmh, true);
-	else
-		pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED, 0,
-			reinterpret_cast<LPARAM>(event.getMessageHolder()));
+	}
+	else {
+		// If this event occurs in other than UI thread, ignore it if pmh is not null,
+		// because pmh will be invalidated while posting a window event.
+		// This may happen if the synchronizing thread changes the keys of MessageHolder,
+		// such as updating its label.
+		if (!pmh)
+			pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED);
+	}
 }
 
 void qm::MessageWindowImpl::updateRestoreInfo(const MessageModelRestoreEvent& event)
@@ -734,7 +739,7 @@ LRESULT qm::MessageWindow::onTimer(UINT_PTR nId)
 LRESULT qm::MessageWindow::onMessageModelMessageChanged(WPARAM wParam,
 														LPARAM lParam)
 {
-	pImpl_->setMessage(reinterpret_cast<MessageHolder*>(lParam), true);
+	pImpl_->setMessage(0, true);
 	return 0;
 }
 

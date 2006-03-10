@@ -2576,16 +2576,26 @@ bool qm::Account::setLabel(MessageHolder* pmh,
 	return true;
 }
 
-void qm::Account::fireMessageHolderChanged(MessageHolder* pmh,
-										   unsigned int nOldFlags,
-										   unsigned int nNewFlags)
+void qm::Account::fireMessageHolderFlagsChanged(MessageHolder* pmh,
+												unsigned int nOldFlags,
+												unsigned int nNewFlags)
 {
 	assert(isLocked());
 	
 	typedef AccountImpl::MessageHolderHandlerList List;
 	MessageHolderEvent event(pmh, nOldFlags, nNewFlags);
 	for (List::const_iterator it = pImpl_->listMessageHolderHandler_.begin(); it != pImpl_->listMessageHolderHandler_.end(); ++it)
-		(*it)->messageHolderChanged(event);
+		(*it)->messageHolderFlagsChanged(event);
+}
+
+void qm::Account::fireMessageHolderKeysChanged(MessageHolder* pmh)
+{
+	assert(isLocked());
+	
+	typedef AccountImpl::MessageHolderHandlerList List;
+	MessageHolderEvent event(pmh);
+	for (List::const_iterator it = pImpl_->listMessageHolderHandler_.begin(); it != pImpl_->listMessageHolderHandler_.end(); ++it)
+		(*it)->messageHolderKeysChanged(event);
 }
 
 void qm::Account::fireMessageHolderDestroyed(MessageHolder* pmh)

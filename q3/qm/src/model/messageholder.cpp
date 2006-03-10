@@ -226,7 +226,7 @@ void qm::MessageHolder::setFlags(unsigned int nFlags,
 	nFlags_ |= nFlags & nMask;
 	
 	if (nOldFlags != nFlags_)
-		getAccount()->fireMessageHolderChanged(this, nOldFlags, nFlags_);
+		getAccount()->fireMessageHolderFlagsChanged(this, nOldFlags, nFlags_);
 }
 
 bool qm::MessageHolder::setLabel(const WCHAR* pwszLabel)
@@ -271,7 +271,7 @@ void qm::MessageHolder::setKeys(const MessageIndexKey* pMessageIndexKey,
 	if (pMessageBoxKey)
 		messageBoxKey_ = *pMessageBoxKey;
 	
-	getAccount()->fireMessageHolderChanged(this, nFlags_, nFlags_);
+	getAccount()->fireMessageHolderKeysChanged(this);
 }
 
 
@@ -337,6 +337,33 @@ wstring_ptr qm::AbstractMessageHolder::getAddress(const WCHAR* pwszName) const
  */
 
 qm::MessageHolderHandler::~MessageHolderHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * DefaultMessageHolderHandler
+ *
+ */
+
+qm::DefaultMessageHolderHandler::DefaultMessageHolderHandler()
+{
+}
+
+qm::DefaultMessageHolderHandler::~DefaultMessageHolderHandler()
+{
+}
+
+void qm::DefaultMessageHolderHandler::messageHolderFlagsChanged(const MessageHolderEvent& event)
+{
+}
+
+void qm::DefaultMessageHolderHandler::messageHolderKeysChanged(const MessageHolderEvent& event)
+{
+}
+
+void qm::DefaultMessageHolderHandler::messageHolderDestroyed(const MessageHolderEvent& event)
 {
 }
 
