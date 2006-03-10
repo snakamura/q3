@@ -705,6 +705,15 @@ inline bool qs::Window::isDialogMessage(MSG* pMsg)
 	return ::IsDialogMessage(hwnd_, pMsg) != 0;
 }
 
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+inline bool qs::Window::setLayeredWindowAttributes(COLORREF crKey,
+												   BYTE bAlpha,
+												   DWORD dwFlags)
+{
+	return ::SetLayeredWindowAttributes(hwnd_, crKey, bAlpha, dwFlags) != 0;
+}
+#endif
+
 inline void qs::Window::setHandle(HWND hwnd)
 {
 	assert(!hwnd_ || !hwnd);

@@ -354,6 +354,12 @@ public:
 							   WPARAM wParam,
 							   LPARAM lParam);
 	bool isDialogMessage(MSG* pMsg);
+
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+	bool setLayeredWindowAttributes(COLORREF crKey,
+									BYTE bAlpha,
+									DWORD dwFlags);
+#endif
 	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
 	bool tapAndHold(const POINT& pt);
