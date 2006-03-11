@@ -388,11 +388,11 @@ void qm::UIUtil::setWindowAlpha(HWND hwnd,
 		return;
 	
 	Window wnd(hwnd);
-	DWORD dwExStyle = wnd.getWindowLong(GWL_EXSTYLE);
+	DWORD dwExStyle = wnd.getExStyle();
 	if (dwExStyle & WS_EX_LAYERED && nAlpha == 0)
-		wnd.setWindowLong(GWL_EXSTYLE, dwExStyle & ~WS_EX_LAYERED);
+		wnd.setExStyle(0, WS_EX_LAYERED);
 	else if (!(dwExStyle & WS_EX_LAYERED) && nAlpha != 0)
-		wnd.setWindowLong(GWL_EXSTYLE, dwExStyle | WS_EX_LAYERED);
+		wnd.setExStyle(WS_EX_LAYERED, WS_EX_LAYERED);
 	if (nAlpha != 0)
 		wnd.setLayeredWindowAttributes(0, static_cast<BYTE>(nAlpha), LWA_ALPHA);
 }

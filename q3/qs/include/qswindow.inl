@@ -103,6 +103,26 @@ inline DWORD qs::Window::getStyle() const
 	return static_cast<DWORD>(getWindowLong(GWL_STYLE));
 }
 
+
+inline DWORD qs::Window::setStyle(DWORD dwStyle,
+								  DWORD dwMask)
+{
+	return static_cast<DWORD>(setWindowLong(GWL_STYLE,
+		(getStyle() & ~dwMask) | (dwStyle & dwMask)));
+}
+
+inline DWORD qs::Window::getExStyle() const
+{
+	return static_cast<DWORD>(getWindowLong(GWL_EXSTYLE));
+}
+
+inline DWORD qs::Window::setExStyle(DWORD dwStyle,
+									DWORD dwMask)
+{
+	return static_cast<DWORD>(setWindowLong(GWL_EXSTYLE,
+		(getExStyle() & ~dwMask) | (dwStyle & dwMask)));
+}
+
 inline UINT qs::Window::getId() const
 {
 	return static_cast<UINT>(getWindowLong(GWLP_ID));

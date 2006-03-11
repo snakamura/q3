@@ -151,6 +151,9 @@ public:
 	DWORD getStyle() const;
 	DWORD setStyle(DWORD dwStyle,
 				   DWORD dwMask);
+	DWORD getExStyle() const;
+	DWORD setExStyle(DWORD dwStyle,
+					 DWORD dwMask);
 	UINT getId() const;
 	bool enableWindow();
 	bool enableWindow(bool bEnable);

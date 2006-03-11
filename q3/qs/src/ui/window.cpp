@@ -135,15 +135,6 @@ QSEXPORTPROC int qs::messageBox(const WCHAR* pwszMessage,
  *
  */
 
-DWORD qs::Window::setStyle(DWORD dwStyle,
-						   DWORD dwMask)
-{
-	DWORD dw = getStyle();
-	dw &= ~dwMask;
-	dw |= dwStyle & dwMask;
-	return static_cast<DWORD>(setWindowLong(GWL_STYLE, dw));
-}
-
 bool qs::Window::screenToClient(RECT* pRect) const
 {
 	assert(hwnd_);
