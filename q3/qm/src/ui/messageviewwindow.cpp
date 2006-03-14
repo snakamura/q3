@@ -336,7 +336,7 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			// TODO
 			// Get selected messages
 			TemplateContext context(pmh, pMessage, MessageHolderList(),
-				pmh->getFolder()->getAccount(), pDocument_, getHandle(), pwszEncoding,
+				pmh->getAccount(), pDocument_, getHandle(), pwszEncoding,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 			wstring_ptr wstr;
@@ -1265,7 +1265,7 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	
 	nScrollPos_ = 0;
 	
-	Account* pAccount = pmh->getFolder()->getAccount();
+	Account* pAccount = pmh->getAccount();
 	
 	HRESULT hr = S_OK;
 	
@@ -2616,7 +2616,7 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	
 	nScrollPos_ = 0;
 	
-	Account* pAccount = pmh->getFolder()->getAccount();
+	Account* pAccount = pmh->getAccount();
 	
 	HRESULT hr = S_OK;
 	

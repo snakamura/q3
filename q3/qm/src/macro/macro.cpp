@@ -1590,7 +1590,7 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 							   const MacroContext* pContext) :
 	pmh_(pmh),
 	pMessage_(pMessage),
-	pAccount_(pmh->getFolder()->getAccount()),
+	pAccount_(pmh->getAccount()),
 	pGlobalContext_(pContext->pGlobalContext_),
 	bOwnGlobalContext_(false)
 {

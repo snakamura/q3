@@ -199,7 +199,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	wstrCertificate_.reset(0);
 	
 	Account* pAccount = pMessageModel_->getCurrentAccount();
-	assert(!pmh || pmh->getFolder()->getAccount() == pAccount);
+	assert(!pmh || pmh->getAccount() == pAccount);
 	
 	if (nSeenTimerId_ != 0) {
 		pThis_->killTimer(nSeenTimerId_);
@@ -746,7 +746,7 @@ LRESULT qm::MessageWindow::onTimer(UINT_PTR nId)
 	if (nId == pImpl_->nSeenTimerId_) {
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
 		if (mpl) {
-			Account* pAccount = mpl->getFolder()->getAccount();
+			Account* pAccount = mpl->getAccount();
 			pAccount->setMessagesFlags(MessageHolderList(1, mpl),
 				MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
 		}

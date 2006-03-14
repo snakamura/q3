@@ -841,7 +841,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		if (pURI.get()) {
 			MessagePtrLock mpl(pDocument_->getMessage(*pURI));
 			if (mpl) {
-				Account* p = mpl->getFolder()->getAccount();
+				Account* p = mpl->getAccount();
 				if (!p->removeMessages(MessageHolderList(1, mpl), 0, false, 0, 0)) {
 					// TODO
 				}

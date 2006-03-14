@@ -601,10 +601,10 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 		
 		MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
 		if (mpl) {
-			if (pAccount != mpl->getFolder()->getAccount()) {
+			if (pAccount != mpl->getAccount()) {
 				if (pAccount != 0)
 					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, -1, 0, DATA);
-				pAccount = mpl->getFolder()->getAccount();
+				pAccount = mpl->getAccount();
 			}
 			
 			wstring_ptr wstrURI(pURI->toString());

@@ -1431,7 +1431,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 {
 	Message msg;
 	TemplateContext context(pmh, &msg, MessageHolderList(),
-		pmh->getFolder()->getAccount(), pDocument_, hwnd_, pEncodingModel_->getEncoding(),
+		pmh->getAccount(), pDocument_, hwnd_, pEncodingModel_->getEncoding(),
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 	
@@ -4280,7 +4280,7 @@ void qm::MessageOpenLinkAction::invoke(const ActionEvent& event)
 {
 	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
 	if (mpl) {
-		Account* pAccount = mpl->getFolder()->getAccount();
+		Account* pAccount = mpl->getAccount();
 		if (!pAccount->isSupport(Account::SUPPORT_EXTERNALLINK))
 			return;
 		

@@ -1830,7 +1830,7 @@ MacroValuePtr qm::MacroFunctionFlag::value(MacroContext* pContext) const
 		
 		ARG(pValue, nBase);
 		
-		Account* pAccount = pmh->getFolder()->getAccount();
+		Account* pAccount = pmh->getAccount();
 		MessageHolderList l(1, pmh->getMessageHolder());
 		if (!pAccount->setMessagesFlags(l,
 			pValue->boolean() ? nFlags : 0, nFlags, 0))
@@ -5012,7 +5012,7 @@ MacroValuePtr qm::MacroFunctionThread::value(MacroContext* pContext) const
 	ItemPtrList listItemPtr;
 	Item* pItemThis = 0;
 	
-	Account* pAccount = pmh->getFolder()->getAccount();
+	Account* pAccount = pmh->getAccount();
 	Lock<Account> lock(*pAccount);
 	if (bAllFolder) {
 		unsigned int nCount = getMessageCount(pAccount);
