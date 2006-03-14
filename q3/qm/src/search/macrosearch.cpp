@@ -177,8 +177,6 @@ LRESULT qm::MacroSearchPage::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_MACRO, onMacro)
-		HANDLE_COMMAND_ID(IDC_MATCHCASE, onMatchCase)
-		HANDLE_COMMAND_ID(IDC_SEARCHBODY, onSearchBody)
 	END_COMMAND_HANDLER()
 	return SearchPropertyPage::onCommand(nCode, nId);
 }
@@ -276,22 +274,11 @@ LRESULT qm::MacroSearchPage::onMacro()
 	return 0;
 }
 
-LRESULT qm::MacroSearchPage::onMatchCase()
-{
-	updateState();
-	return 0;
-}
-
-LRESULT qm::MacroSearchPage::onSearchBody()
-{
-	updateState();
-	return 0;
-}
-
 void qm::MacroSearchPage::updateState()
 {
 	bool bEnable = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) != BST_CHECKED;
 	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(bEnable);
+	Window(getDlgItem(IDC_SEARCHHEADER)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_SEARCHBODY)).enableWindow(bEnable);
 }
 

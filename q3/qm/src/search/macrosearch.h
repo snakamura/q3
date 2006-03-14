@@ -110,8 +110,6 @@ protected:
 
 private:
 	LRESULT onMacro();
-	LRESULT onMatchCase();
-	LRESULT onSearchBody();
 
 private:
 	void updateState();
