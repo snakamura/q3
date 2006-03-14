@@ -18,6 +18,7 @@
 #include <qsdevicecontext.h>
 #include <qsstream.h>
 #include <qstextutil.h>
+#include <qsuiutil.h>
 #include <qswindow.h>
 
 #include <tchar.h>
@@ -375,7 +376,7 @@ unsigned int qm::UIUtil::getPreferredWidth(HWND hwnd,
 	ObjectSelector<HFONT> fontSelecter(dc, wnd.getFont());
 	SIZE size;
 	dc.getTextExtent(wstrText.get(), static_cast<int>(wcslen(wstrText.get())), &size);
-	return size.cx + 2;
+	return size.cx + 2*qs::UIUtil::getLogPixel()/96;
 }
 
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
