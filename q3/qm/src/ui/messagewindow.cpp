@@ -125,6 +125,7 @@ public:
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
 	bool bLayouting_;
+	bool bSettingMessage_;
 	UINT_PTR nSeenTimerId_;
 	
 	MessageModel* pMessageModel_;
@@ -172,6 +173,24 @@ void qm::MessageWindowImpl::layoutChildren(int cx,
 bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 									   bool bResetEncoding)
 {
+	class SettingMessage
+	{
+	public:
+		SettingMessage(bool& b) :
+			b_(b)
+		{
+			b_ = true;
+		}
+		
+		~SettingMessage()
+		{
+			b_ = false;
+		}
+	
+	private:
+		bool& b_;
+	} s(bSettingMessage_);
+	
 	bool bActive = pThis_->isActive();
 	
 	if (bResetEncoding)
@@ -317,7 +336,8 @@ void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 	bool bUIThread = ::GetCurrentThreadId() == ::GetWindowThreadProcessId(pThis_->getHandle(), 0);
 	MessageHolder* pmh = event.getMessageHolder();
 	if (bUIThread) {
-		setMessage(pmh, true);
+		if (!bSettingMessage_)
+			setMessage(pmh, true);
 	}
 	else {
 		// If this event occurs in other than UI thread, ignore it if pmh is not null,
@@ -468,6 +488,7 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->pMessageViewWindow_ = 0;
 	pImpl_->bCreated_ = false;
 	pImpl_->bLayouting_ = false;
+	pImpl_->bSettingMessage_ = false;
 	pImpl_->nSeenTimerId_ = 0;
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->pMessageViewMode_.reset(new DefaultMessageViewMode(
