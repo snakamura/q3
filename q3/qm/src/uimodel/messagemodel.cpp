@@ -81,7 +81,7 @@ void qm::AbstractMessageModel::setMessage(MessageHolder* pmh)
 {
 	Message msg;
 	if (pmh)
-		setCurrentAccount(pmh->getFolder()->getAccount());
+		setCurrentAccount(pmh->getAccount());
 	
 	ptr_.reset(pmh);
 	
@@ -153,7 +153,9 @@ void qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
 
 void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent& event)
 {
-	setMessage(event.getMessageHolder());
+	MessagePtrLock mpl(ptr_);
+	if (mpl && mpl == event.getMessageHolder())
+		setMessage(mpl);
 }
 
 void qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
