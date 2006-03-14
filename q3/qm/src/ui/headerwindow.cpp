@@ -567,9 +567,13 @@ HDWP qm::TextHeaderItem::layout(HDWP hdwp,
 #ifndef _WIN32_WCE
 	nFlags |= SWP_NOCOPYBITS;
 #endif
-	return Window(hwnd_).deferWindowPos(hdwp, 0, rect.left,
+	hdwp = Window(hwnd_).deferWindowPos(hdwp, 0, rect.left,
 		rect.top + ((rect.bottom - rect.top) - nHeight)/2,
 		rect.right - rect.left, nHeight, nFlags);
+#ifdef _WIN32_WCE
+	Window(hwnd_).invalidate();
+#endif
+	return hdwp;
 }
 
 void qm::TextHeaderItem::show(bool bShow)
@@ -866,9 +870,6 @@ HDWP qm::AttachmentHeaderItem::layout(HDWP hdwp,
 									  unsigned int nFontHeight)
 {
 	unsigned int nFlags = SWP_NOZORDER | SWP_NOACTIVATE;
-#ifndef _WIN32_WCE
-	nFlags |= SWP_NOCOPYBITS;
-#endif
 	return wnd_.deferWindowPos(hdwp, 0, rect.left, rect.top,
 		rect.right - rect.left, rect.bottom - rect.top, nFlags);
 }
