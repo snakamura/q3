@@ -47,7 +47,7 @@
       *パラメータ
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
     *特殊フォルダ
-  *((<オンラインとオフライン|URL:OnlineAndOffline.html>))
+  *((<オンラインとオフライン|URL:OnlineOffline.html>))
   *((<振り分け|URL:ApplyRules.html>))
   *プロトコル依存のトピック
     *POP3
@@ -58,7 +58,7 @@
   *未読通知
   *スレッド表示
   *HTML表示
-  *フラグ
+  *((<フラグ|URL:Flag.html>))
   *ラベル
   *検索
     *マクロ検索
