@@ -2836,6 +2836,24 @@ LRESULT qm::HtmlMessageViewWindow::onHotSpot(NMHDR* pnmhdr,
 	*pbHandled = true;
 	
 	wstring_ptr wstrURL(getTarget(pnmhdr));
+	
+#if _WIN32_WCE >= 420
+	BSTRPtr bstrBaseURL;
+	HRESULT hr = pWebBrowser_->get_LocationBaseURL(&bstrBaseURL);
+	if (hr == S_OK) {
+		DWORD dwLen = 0;
+		hr = ::CoInternetCombineUrl(bstrBaseURL.get(),
+			wstrURL.get(), 0, 0, 0, &dwLen, 0);
+		if (hr == S_FALSE || hr == E_POINTER) {
+			wstring_ptr wstr(allocWString(dwLen + 1));
+			hr = ::CoInternetCombineUrl(bstrBaseURL.get(),
+				wstrURL.get(), 0, wstr.get(), dwLen + 1, &dwLen, 0);
+			if (hr == S_OK)
+				wstrURL = wstr;
+		}
+	}
+#endif
+	
 	if (wcsncmp(wstrURL.get(), L"http:", 5) == 0 ||
 		wcsncmp(wstrURL.get(), L"https:", 6) == 0 ||
 		wcsncmp(wstrURL.get(), L"ftp:", 4) == 0 ||
