@@ -818,7 +818,7 @@ void qs::TextWindowImpl::calcLines(size_t nStartLine,
 							const WCHAR* pBreak = TextUtil::getBreak(pBegin, pEnd, pBegin + nFit);
 							if (pBreak - pBegin != nFit) {
 								nFit = static_cast<int>(pBreak - pBegin);
-								getTextExtent(dc, pBegin, nFit, nFormatWidth - nLineWidth, 0, 0, &size);
+								getTextExtent(dc, pBegin, nFit, 0/*nFormatWidth - nLineWidth*/, 0, 0, &size);
 							}
 						}
 						
