@@ -56,7 +56,7 @@
   *巡回
   *自動巡回
   *未読通知
-  *スレッド表示
+  *((<スレッド表示|URL:Thread.html>))
   *HTML表示
   *((<フラグ|URL:Flag.html>))
   *ラベル
@@ -81,6 +81,7 @@
   *ダイアルアップ
   *((<SSL|URL:SSL.html>))
   *((<"S/MIME"|URL:SMIME.html>))
+  *((<ルート証明書|URL:RootCertificate.html>))
   *((<PGPとGnuPG|URL:PGP.html>))
   *((<印刷|URL:Printing.html>))
   *((<インポートとエクスポート|URL:ImportAndExport.html>))
