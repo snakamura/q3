@@ -53,11 +53,11 @@
     *POP3
       *部分受信とダウンロード予約
       *選択削除
-  *巡回
+  *((<巡回|URL:GoRound.html>))
   *自動巡回
   *未読通知
   *((<スレッド表示|URL:Thread.html>))
-  *HTML表示
+  *((<HTML表示|URL:HtmlView.html>))
   *((<フラグ|URL:Flag.html>))
   *ラベル
   *検索
