@@ -7,13 +7,13 @@ QMAIL3ではメッセージをスレッド表示することができます。サポートされているスレッド
 
 スレッド表示は以下のアクションにより切り替えることができます。
 
-:((<ViewSortFlatアクション|URL:ViewSortFlatAction.html>))
+:((<[表示]-[ソート]-[スレッド表示しない]|URL:ViewSortFlatAction.html>))
   スレッド表示をやめて全てのメッセージをフラットに表示します。
 
-:((<ViewSortThreadアクション|URL:ViewSortThreadAction.html>))
+:((<[表示]-[ソート]-[スレッド表示]|URL:ViewSortThreadAction.html>))
   通常のスレッド表示にします。
 
-:((<ViewSortFloatThreadアクション|URL:ViewSortFloatThreadAction.html>))
+:((<[表示]-[ソート]-[スレッドを浮かせる]|URL:ViewSortFloatThreadAction.html>))
   フローティングスレッド表示にします。
 
 :((<ViewSortToggleThreadアクション|URL:ViewSortToggleThreadAction.html>))

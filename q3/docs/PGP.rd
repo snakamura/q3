@@ -15,7 +15,7 @@ GnuPGを使うかPGPを使うかは、((<セキュリティの設定|URL:OptionSecurity.html>))で指
 
 
 ==復号と署名の検証
-復号や署名の検証を行うには、((<ViewPGPModeアクション|URL:ViewPGPModeAction.html>))を使用してPGPモードをOnにします。PGPモードをOnにするとメッセージを読み込むときにPGPの復号や署名の検証が自動的に行われます。
+復号や署名の検証を行うには、((<[表示]-[モード]-[PGP]|URL:ViewPGPModeAction.html>))にチェックを入れてPGPモードをOnにします。PGPモードをOnにするとメッセージを読み込むときにPGPの復号や署名の検証が自動的に行われます。
 
 復号や署名の検証を行ったメッセージを表示すると、ステータスバーにそのことを現すマークが表示されます。
 
@@ -31,9 +31,9 @@ GnuPGを使うかPGPを使うかは、((<セキュリティの設定|URL:OptionSecurity.html>))で指
 
 
 ==暗号化と署名
-メッセージを暗号化するには、エディットウィンドウで、((<ToolPGPEncryptアクション|URL:ToolPGPEncryptAction.html>))を使用して暗号化するように設定します。同様に署名するには、((<ToolPGPSignアクション|URL:ToolPGPSignAction.html>))を使用して署名するように設定します。
+メッセージを暗号化するには、エディットウィンドウで、((<[ツール]-[PGP]-[暗号化]|URL:ToolPGPEncryptAction.html>))にチェックを入れて暗号化するように設定します。同様に署名するには、((<[ツール]-[PGP]-[署名]|URL:ToolPGPSignAction.html>))にチェックを入れて署名するように設定します。
 
-((<ToolPGPMimeアクション|URL:ToolPGPMimeAction.html>))を使用すると、PGP/MIMEを使うかインラインのPGPを使うかを切り替えることができます。ただし、インラインのPGPを使うように指定している場合でも、添付ファイルがある場合には自動的にPGP/MIMEが使用されます。
+((<[ツール]-[PGP]-[MIME]|URL:ToolPGPMimeAction.html>))にチェックを入れると、PGP/MIMEを使うかインラインのPGPを使うかを切り替えることができます。ただし、インラインのPGPを使うように指定している場合でも、添付ファイルがある場合には自動的にPGP/MIMEが使用されます。
 
 これらのデフォルト値は、((<エディットビュー2の設定|URL:OptionEdit2.html>))で指定することができます。
 
