@@ -1,7 +1,7 @@
 =begin
 =ViewQuoteModeアクション
 
-((<メッセージモード|URL:MessageMode.html>))の引用モードをOn/Offします。
+((<メッセージ表示モード|URL:MessageViewMode.html>))の引用モードをOn/Offします。
 
 
 ==引数

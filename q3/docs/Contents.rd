@@ -41,8 +41,8 @@
     *通常フォルダ
       *ローカルフォルダ
       *リモートフォルダ
-    *検索フォルダ
-    *フォルダのプロパティ
+    *((<検索フォルダ|URL:QueryFolder.html>))
+    *((<フォルダのプロパティ|URL:FolderProperty.html>))
       *一般
       *パラメータ
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
@@ -59,7 +59,7 @@
   *((<スレッド表示|URL:Thread.html>))
   *((<HTML表示|URL:HtmlView.html>))
   *((<フラグ|URL:Flag.html>))
-  *ラベル
+  *((<ラベル|URL:Label.html>))
   *検索
     *マクロ検索
     *IMAP4検索
@@ -74,9 +74,9 @@
   *((<フィルタ|URL:Filter.html>))
   *((<同期フィルタ|URL:SyncFilter.html>))
   *リストビューの色
-  *リストビューのカスタマイズ
+  *((<リストビューのカスタマイズ|URL:CustomizeListView.html>))
   *((<整形|URL:Reform.html>))
-  *((<メッセージモード|URL:MessageMode.html>))
+  *((<メッセージ表示モード|URL:MessageViewMode.html>))
   *((<セキュリティモード|URL:SecurityMode.html>))
   *ダイアルアップ
   *((<SSL|URL:SSL.html>))
@@ -119,6 +119,14 @@
   *((<エディットビュー2の設定|URL:OptionEdit2.html>))
   *((<タブの設定|URL:OptionTab.html>))
   *((<アドレス帳の設定|URL:OptionAddressBook.html>))
+  *振り分けの設定
+  *色の設定
+  *巡回の設定
+  *署名の設定
+  *定形文の設定
+  *((<フィルタの設定|URL:OptionFilter.html>))
+  *同期フィルタの設定
+  *自動巡回の設定
   *((<検索の設定|URL:OptionSearch.html>))
   *((<スパムフィルタの設定|URL:OptionJunkFilter.html>))
   *((<セキュリティの設定|URL:OptionSecurity.html>))

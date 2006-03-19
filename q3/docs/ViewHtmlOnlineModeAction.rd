@@ -1,7 +1,7 @@
 =begin
 =ViewHtmlOnlineModeアクション
 
-((<メッセージモード|URL:MessageMode.html>))のHTMLオンラインモードをOn/Offします。
+((<メッセージ表示モード|URL:MessageViewMode.html>))のHTMLオンラインモードをOn/Offします。
 
 
 ==引数

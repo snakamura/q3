@@ -1,7 +1,7 @@
 =begin
 =ViewHtmlModeアクション
 
-((<メッセージモード|URL:MessageMode.html>))のHTML表示モードをOn/Offします。
+((<メッセージ表示モード|URL:MessageViewMode.html>))のHTML表示モードをOn/Offします。
 
 
 ==引数

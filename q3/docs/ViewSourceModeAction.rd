@@ -1,7 +1,7 @@
 =begin
 =ViewSourceModeアクション
 
-((<メッセージモード|URL:MessageMode.html>))のソースモードをOn/Offします。
+((<メッセージ表示モード|URL:MessageViewMode.html>))のソースモードをOn/Offします。
 
 
 ==引数

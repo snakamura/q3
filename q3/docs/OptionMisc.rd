@@ -37,8 +37,8 @@ F‚ÍƒtƒHƒ‹ƒ_ƒrƒ…[AL‚ÍƒŠƒXƒgƒrƒ…[AP‚ÍƒvƒŒƒrƒ…[‚ðˆÓ–¡‚µ‚Ü‚·B|‚Í‰¡‚É•ªŠ„A-‚Í
 QMAIL3‚ðI—¹‚·‚é‚Æ‚«‚ÉƒSƒ~” ‚ð‹ó‚É‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚Í‹ó‚É‚µ‚Ü‚¹‚ñB
 
 
-+[ƒƒbƒZ[ƒWƒ‚[ƒh‚ðƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚·‚é]
-((<ƒƒbƒZ[ƒWƒ‚[ƒh|URL:MessageMode.html>))‚ðƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚µ‚È‚¢ê‡A‚·‚×‚Ä‚ÌƒtƒHƒ‹ƒ_‚Å‹¤’Ê‚ÌƒƒbƒZ[ƒWƒ‚[ƒh‚ªŽg‚í‚ê‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚ÍƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚µ‚Ü‚·B
++[ƒƒbƒZ[ƒW•\Ž¦ƒ‚[ƒh‚ðƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚·‚é]
+((<ƒƒbƒZ[ƒW•\Ž¦ƒ‚[ƒh|URL:MessageViewMode.html>))‚ðƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚µ‚È‚¢ê‡A‚·‚×‚Ä‚ÌƒtƒHƒ‹ƒ_‚Å‹¤’Ê‚ÌƒƒbƒZ[ƒWƒ‚[ƒh‚ªŽg‚í‚ê‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚ÍƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚µ‚Ü‚·B
 
 
 +[ƒEƒBƒ“ƒhƒE‚ª”ñƒAƒNƒeƒBƒu‚É‚È‚Á‚½‚ç•Û‘¶‚·‚é]

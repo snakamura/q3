@@ -8,13 +8,9 @@
 ==フィードを読む
 フィードを読むには、リストビューで読みたいエントリをクリックします。
 
-// TODO 画像更新
-
 ((<RSSの表示|"IMG:images/TutorialRssView.png">))
 
 ((<[表示]-[HTML]-[HTMLを表示]|URL:ViewHtmlModeAction.html>))を選択してHTMLモードにすると、フィードをHTML表示することができます。このとき、フィード中にコンテンツが含まれる場合にはそのコンテンツを表示し、含まれない場合にはリンク先のページを直接表示します。
-
-// TODO 画像更新
 
 ((<RSSのHTML表示|"IMG:images/TutorialRssHtmlView.png">))
 

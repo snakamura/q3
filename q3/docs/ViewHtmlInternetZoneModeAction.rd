@@ -1,7 +1,7 @@
 =begin
 =ViewHtmlInternetZoneModeアクション
 
-((<メッセージモード|URL:MessageMode.html>))のインターネットゾーンモードをOn/Offします。
+((<メッセージ表示モード|URL:MessageViewMode.html>))のHTMLインターネットゾーンモードをOn/Offします。
 
 
 ==引数

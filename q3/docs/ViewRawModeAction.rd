@@ -1,7 +1,7 @@
 =begin
 =ViewRawModeアクション
 
-((<メッセージモード|URL:MessageMode.html>))の生メッセージモードをOn/Offします。
+((<メッセージ表示モード|URL:MessageViewMode.html>))の生メッセージモードをOn/Offします。
 
 
 ==引数
