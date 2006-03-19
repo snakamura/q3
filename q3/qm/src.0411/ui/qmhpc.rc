@@ -1480,7 +1480,7 @@ BEGIN
                     WS_TABSTOP,5,20,150,10
     CONTROL         "終了時にゴミ箱を空にする(&E)",IDC_EMPTYTRASHONEXIT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,30,100,8
-    CONTROL         "メッセージモードをフォルダごとに保存する(&V)(*)",
+    CONTROL         "メッセージ表示モードをフォルダごとに保存する(&V)(*)",
                     IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,40,160,8
     CONTROL         "ウィンドウが非アクティブになったら保存する(&S)",
