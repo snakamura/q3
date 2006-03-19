@@ -96,6 +96,19 @@
   *((<アカウントの管理|URL:ManageAccount.html>))
   *((<アカウントの作成|URL:CreateAccount.html>))
   *((<アカウントのプロパティ|URL:AccountProperty.html>))
+    *((<一般の設定|URL:AccountGeneral.html>))
+    *((<ユーザの設定|URL:AccountUser.html>))
+    *((<詳細の設定|URL:AccountDetail.html>))
+    *((<POP3の設定|URL:AccountPop3.html>))
+    *((<POP3(XTND XMIT)の設定|URL:AccountPop3Send.html>))
+    *((<IMAP4の設定|URL:AccountImap4.html>))
+    *((<SMTPの設定|URL:AccountSmtp.html>))
+    *((<NNTPの設定|URL:AccountNntp.html>))
+    *((<NNTP(POST)の設定|URL:AccountNntpPost.html>))
+    *((<RSSの設定|URL:AccountRss.html>))
+    *((<Blogの設定|URL:AccountBlog.html>))
+    *((<ダイアルアップの設定|URL:AccountDialup.html>))
+    *((<高度の設定|URL:AccountAdvanced.html>))
 *設定
   *((<フォルダビューの設定|URL:OptionFolder.html>))
   *((<リストビューの設定|URL:OptionList.html>))
@@ -435,6 +448,32 @@
     *((<@User4|URL:User4Function.html>))
     *((<@Variable|URL:VariableFunction.html>))
     *((<@While|URL:WhileFunction.html>))
+*設定ファイル
+  *プロファイル
+    *addressbook.xml
+    *autopilot.xml
+    *colors.xml
+    *filters.xml
+    *fonts.xml
+    *goround.xml
+    *header.xml
+    *headeredit.xml
+    *keymap.xml
+    *menus.xml
+    *passwords.xml
+    *qmail.xml
+    *resources.xml
+    *rules.xml
+    *signatures.xml
+    *syncfilters.xml
+    *tabs.xml
+    *texts.xml
+    *toolbars.xml
+    *views.xml
+  *アカウント
+    *account.xml
+    *folders.xml
+    *views.xml
 *FAQ
   *((<どうやったらレジストリを使用しないようにできますか?|URL:HowToNotUseRegistry.html>))
   *((<なぜ自分が送信したメッセージを受信するのですか?|URL:WhyReceiveSentMessage.html>))
