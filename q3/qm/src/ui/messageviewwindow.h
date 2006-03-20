@@ -140,6 +140,7 @@ public:
 							 const WCHAR* pwszSection,
 							 MessageModel* pMessageModel,
 							 qs::MenuManager* pMenuManager,
+							 const MessageWindowFontGroup* pFontGroup,
 							 MessageViewWindowCallback* pCallback,
 							 bool bTextOnly);
 	~MessageViewWindowFactory();
@@ -201,7 +202,8 @@ public:
 						  qs::Profile* pProfile,
 						  const WCHAR* pwszSection,
 						  MessageModel* pMessageModel,
-						  qs::MenuManager* pMenuManager);
+						  qs::MenuManager* pMenuManager,
+						  const MessageWindowFontGroup* pFontGroup);
 	virtual ~TextMessageViewWindow();
 
 public:
@@ -272,6 +274,8 @@ private:
 	qs::Profile* pProfile_;
 	MessageModel* pMessageModel_;
 	qs::MenuManager* pMenuManager_;
+	const MessageWindowFontGroup* pFontGroup_;
+	const MessageWindowFontSet::Font* pFont_;
 	int nScrollPos_;
 };
 

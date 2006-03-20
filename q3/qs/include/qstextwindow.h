@@ -410,6 +410,8 @@ public:
 	void setForegroundColor(COLORREF cr);
 	COLORREF getBackgroundColor() const;
 	void setBackgroundColor(COLORREF cr);
+	HFONT getFont() const;
+	void setFont(HFONT hfont);
 	unsigned int getLineSpacing() const;
 	void setLineSpacing(unsigned int nLineSpacing);
 	unsigned int getCharInLine() const;

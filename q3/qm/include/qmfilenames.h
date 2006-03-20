@@ -36,6 +36,7 @@ struct FileNames
 	static const WCHAR* COMPACT;
 	static const WCHAR* FILTERS_XML;
 	static const WCHAR* FOLDERS_XML;
+	static const WCHAR* FONTS_XML;
 	static const WCHAR* GOROUND_XML;
 	static const WCHAR* HEADER_XML;
 	static const WCHAR* HEADEREDIT_XML;

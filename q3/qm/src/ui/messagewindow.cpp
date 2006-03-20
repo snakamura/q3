@@ -484,6 +484,9 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pwszSection_ = pwszSection;
 	pImpl_->pDocument_ = 0;
+	pImpl_->pMessageViewModeHolder_ = 0;
+	pImpl_->pEncodingModel_ = 0;
+	pImpl_->pSecurityModel_ = 0;
 	pImpl_->pHeaderWindow_ = 0;
 	pImpl_->pMessageViewWindow_ = 0;
 	pImpl_->bCreated_ = false;
@@ -689,10 +692,12 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pHeaderWindow_ = pHeaderWindow.release();
 	
+	const MessageWindowFontGroup* pFontGroup = pContext->pFontManager_->getGroup(
+		pImpl_->pProfile_->getString(pImpl_->pwszSection_, L"FontGroup", L"").get());
 	std::auto_ptr<MessageViewWindowFactory> pFactory(
 		new MessageViewWindowFactory(this, pImpl_->pDocument_,
 			pImpl_->pProfile_, pImpl_->pwszSection_, pImpl_->pMessageModel_,
-			pContext->pUIManager_->getMenuManager(), pImpl_, false));
+			pContext->pUIManager_->getMenuManager(), pFontGroup, pImpl_, false));
 	pImpl_->pFactory_ = pFactory;
 	
 	if (!pImpl_->pFactory_->create())
@@ -872,4 +877,362 @@ const WCHAR* qm::MessageWindowStatusTextEvent::getText() const
 
 qm::MessageWindowItem::~MessageWindowItem()
 {
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowFontManager
+ *
+ */
+
+qm::MessageWindowFontManager::MessageWindowFontManager(const WCHAR* pwszPath)
+{
+	load(pwszPath);
+}
+
+qm::MessageWindowFontManager::~MessageWindowFontManager()
+{
+	std::for_each(listGroup_.begin(), listGroup_.end(),
+		qs::deleter<MessageWindowFontGroup>());
+}
+
+const MessageWindowFontGroup* qm::MessageWindowFontManager::getGroup(const WCHAR* pwszName) const
+{
+	GroupList::const_iterator it = std::find_if(
+		listGroup_.begin(), listGroup_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::mem_fun(&MessageWindowFontGroup::getName),
+				std::identity<const WCHAR*>()),
+			pwszName));
+	return it != listGroup_.end() ? *it : 0;
+}
+
+void qm::MessageWindowFontManager::addGroup(std::auto_ptr<MessageWindowFontGroup> pGroup)
+{
+	listGroup_.push_back(pGroup.get());
+	pGroup.release();
+}
+
+bool qm::MessageWindowFontManager::load(const WCHAR* pwszPath)
+{
+	XMLReader reader;
+	MessageWindowFontContentHandler contentHandler(this);
+	reader.setContentHandler(&contentHandler);
+	return reader.parse(pwszPath);
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowFontGroup
+ *
+ */
+
+qm::MessageWindowFontGroup::MessageWindowFontGroup(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	wstrName_ = allocWString(pwszName);
+}
+
+qm::MessageWindowFontGroup::~MessageWindowFontGroup()
+{
+	std::for_each(listFontSet_.begin(), listFontSet_.end(),
+		qs::deleter<MessageWindowFontSet>());
+}
+
+const WCHAR* qm::MessageWindowFontGroup::getName() const
+{
+	return wstrName_.get();
+}
+
+const MessageWindowFontSet* qm::MessageWindowFontGroup::getFontSet(MacroContext* pContext) const
+{
+	FontSetList::const_iterator it = std::find_if(
+		listFontSet_.begin(), listFontSet_.end(),
+		std::bind2nd(std::mem_fun(&MessageWindowFontSet::match), pContext));
+	return it != listFontSet_.end() ? *it : 0;
+}
+
+void qm::MessageWindowFontGroup::addFontSet(std::auto_ptr<MessageWindowFontSet> pFontSet)
+{
+	listFontSet_.push_back(pFontSet.get());
+	pFontSet.release();
+}
+
+bool qm::MessageWindowFontGroup::isSet() const
+{
+	// TODO
+	// Check if there is font set which matches against any condition?
+	return !listFontSet_.empty();
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowFontSet
+ *
+ */
+
+qm::MessageWindowFontSet::MessageWindowFontSet(std::auto_ptr<Macro> pCondition) :
+	pCondition_(pCondition)
+{
+}
+
+qm::MessageWindowFontSet::~MessageWindowFontSet()
+{
+}
+
+bool qm::MessageWindowFontSet::match(MacroContext* pContext) const
+{
+	assert(pContext);
+	assert(pContext->getMessageHolder());
+	
+	if (!pCondition_.get())
+		return true;
+	
+	MacroValuePtr pValue(pCondition_->value(pContext));
+	return pValue.get() && pValue->boolean();
+}
+
+const MessageWindowFontSet::Font* qm::MessageWindowFontSet::getFont() const
+{
+	return pFont_.get();
+}
+
+void qm::MessageWindowFontSet::setFont(std::auto_ptr<Font> pFont)
+{
+	pFont_ = pFont;
+}
+
+bool qm::MessageWindowFontSet::isSet() const
+{
+	return pFont_.get() != 0;
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowFontSet::Font
+ *
+ */
+
+qm::MessageWindowFontSet::Font::Font(const WCHAR* pwszFace,
+									 double dSize,
+									 unsigned int nStyle,
+									 unsigned int nCharset) :
+	dSize_(dSize),
+	nStyle_(nStyle),
+	nCharset_(nCharset)
+{
+	assert(pwszFace);
+	wstrFace_ = allocWString(pwszFace);
+}
+
+qm::MessageWindowFontSet::Font::~Font()
+{
+}
+
+HFONT qm::MessageWindowFontSet::Font::createFont() const
+{
+	ClientDeviceContext dc(0);
+	LOGFONT lf;
+	FontHelper::createLogFont(dc, wstrFace_.get(), dSize_, nStyle_, nCharset_, &lf);
+	return ::CreateFontIndirect(&lf);
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowFontContentHandler
+ *
+ */
+
+qm::MessageWindowFontContentHandler::MessageWindowFontContentHandler(MessageWindowFontManager* pManager) :
+	pManager_(pManager),
+	state_(STATE_ROOT)
+{
+}
+
+qm::MessageWindowFontContentHandler::~MessageWindowFontContentHandler()
+{
+}
+
+bool qm::MessageWindowFontContentHandler::startElement(const WCHAR* pwszNamespaceURI,
+													   const WCHAR* pwszLocalName,
+													   const WCHAR* pwszQName,
+													   const Attributes& attributes)
+{
+	if (wcscmp(pwszLocalName, L"fonts") == 0) {
+		if (state_ != STATE_ROOT)
+			return false;
+		state_ = STATE_FONTS;
+	}
+	else if (wcscmp(pwszLocalName, L"group") == 0) {
+		if (state_ != STATE_FONTS)
+			return false;
+		
+		const WCHAR* pwszName = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"name") == 0)
+				pwszName = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszName)
+			return false;
+		
+		pGroup_.reset(new MessageWindowFontGroup(pwszName));
+		
+		state_ = STATE_GROUP;
+	}
+	else if (wcscmp(pwszLocalName, L"fontSet") == 0) {
+		if (state_ != STATE_GROUP)
+			return false;
+		
+		const WCHAR* pwszMatch = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"match") == 0)
+				pwszMatch = attributes.getValue(n);
+			else
+				return false;
+		}
+		
+		std::auto_ptr<Macro> pCondition;
+		if (pwszMatch) {
+			pCondition = MacroParser().parse(pwszMatch);
+			if (!pCondition.get())
+				return false;
+		}
+		
+		pFontSet_.reset(new MessageWindowFontSet(pCondition));
+		
+		state_ = STATE_FONTSET;
+	}
+	else if (wcscmp(pwszLocalName, L"font") == 0) {
+		if (state_ != STATE_FONTSET)
+			return false;
+		
+		const WCHAR* pwszFace = 0;
+		const WCHAR* pwszSize = 0;
+		const WCHAR* pwszStyle = 0;
+		const WCHAR* pwszCharset = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"face") == 0)
+				pwszFace = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"size") == 0)
+				pwszSize = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"style") == 0)
+				pwszStyle = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"charset") == 0)
+				pwszCharset = attributes.getValue(n);
+			else
+				return false;
+		}
+		if (!pwszFace)
+			return false;
+		
+		double dSize = 9.0;
+		if (pwszSize) {
+			WCHAR* pEnd = 0;
+			double d = wcstod(pwszSize, &pEnd);
+			if (!*pEnd)
+				dSize = d;
+		}
+		
+		unsigned int nStyle = 0;
+		if (pwszStyle) {
+			wstring_ptr wstrStyle(allocWString(pwszStyle));
+			const WCHAR* p = wcstok(wstrStyle.get(), L" ");
+			while (p) {
+				if (wcscmp(p, L"bold") == 0)
+					nStyle |= FontHelper::STYLE_BOLD;
+				else if (wcscmp(p, L"italic") == 0)
+					nStyle |= FontHelper::STYLE_ITALIC;
+				else if (wcscmp(p, L"underline") == 0)
+					nStyle |= FontHelper::STYLE_UNDERLINE;
+				else if (wcscmp(p, L"strikeout") == 0)
+					nStyle |= FontHelper::STYLE_STRIKEOUT;
+				
+				p = wcstok(0, L" ");
+			}
+		}
+		
+		unsigned int nCharset = 0;
+		if (pwszCharset) {
+			WCHAR* pEnd = 0;
+			long l = wcstol(pwszCharset, &pEnd, 10);
+			if (!*pEnd)
+				nCharset = static_cast<int>(l);
+		}
+		
+		assert(pFontSet_.get());
+		std::auto_ptr<MessageWindowFontSet::Font> pFont(
+			new MessageWindowFontSet::Font(pwszFace, dSize, nStyle, nCharset));
+		pFontSet_->setFont(pFont);
+		
+		state_ = STATE_FONT;
+	}
+	else {
+		return false;
+	}
+	
+	return true;
+}
+
+bool qm::MessageWindowFontContentHandler::endElement(const WCHAR* pwszNamespaceURI,
+													 const WCHAR* pwszLocalName,
+													 const WCHAR* pwszQName)
+{
+	if (wcscmp(pwszLocalName, L"fonts") == 0) {
+		assert(state_ == STATE_FONTS);
+		state_ = STATE_ROOT;
+	}
+	else if (wcscmp(pwszLocalName, L"group") == 0) {
+		assert(state_ == STATE_GROUP);
+		
+		assert(pGroup_.get());
+		if (pGroup_->isSet())
+			pManager_->addGroup(pGroup_);
+		pGroup_.reset(0);
+		
+		state_ = STATE_FONTS;
+	}
+	else if (wcscmp(pwszLocalName, L"fontSet") == 0) {
+		assert(state_ == STATE_FONTSET);
+		
+		assert(pGroup_.get());
+		assert(pFontSet_.get());
+		if (pFontSet_->isSet())
+			pGroup_->addFontSet(pFontSet_);
+		pFontSet_.reset(0);
+		
+		state_ = STATE_GROUP;
+	}
+	else if (wcscmp(pwszLocalName, L"font") == 0) {
+		assert(state_ == STATE_FONT);
+		state_ = STATE_FONTSET;
+	}
+	else {
+		return false;
+	}
+	
+	return true;
+}
+
+bool qm::MessageWindowFontContentHandler::characters(const WCHAR* pwsz,
+													 size_t nStart,
+													 size_t nLength)
+{
+	const WCHAR* p = pwsz + nStart;
+	for (size_t n = 0; n < nLength; ++n, ++p) {
+		if (*p != L' ' && *p != L'\t' && *p != L'\n')
+			return false;
+	}
+	return true;
 }

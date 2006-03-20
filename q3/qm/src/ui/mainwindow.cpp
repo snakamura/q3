@@ -258,6 +258,7 @@ public:
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
 	std::auto_ptr<OptionDialogManager> pOptionDialogManager_;
+	std::auto_ptr<MessageWindowFontManager> pMessageWindowFontManager_;
 	std::auto_ptr<MessageFrameWindowManager> pMessageFrameWindowManager_;
 	std::auto_ptr<EditFrameWindowManager> pEditFrameWindowManager_;
 	std::auto_ptr<AddressBookFrameWindowManager> pAddressBookFrameWindowManager_;
@@ -2169,10 +2170,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pDocument_, pImpl_->pPasswordManager_,
 		pImpl_->pProfile_, getHandle(), pImpl_->pTempFileCleaner_,
 		pImpl_->pFolderModel_.get(), pImpl_->pSecurityModel_.get()));
+	pImpl_->pMessageWindowFontManager_.reset(new MessageWindowFontManager(
+		Application::getApplication().getProfilePath(FileNames::FONTS_XML).get()));
 	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(
-		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_,
-		pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),
-		pImpl_->pEditFrameWindowManager_.get(), pImpl_->pExternalEditorManager_.get()));
+		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_, pImpl_->pProfile_,
+		pImpl_->pViewModelManager_.get(), pImpl_->pEditFrameWindowManager_.get(),
+		pImpl_->pExternalEditorManager_.get(), pImpl_->pMessageWindowFontManager_.get()));
 	pImpl_->pMessageSelectionModel_.reset(
 		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, false));
 	pImpl_->pListOnlyMessageSelectionModel_.reset(
@@ -2312,6 +2315,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pMessageViewModeHolder_,
 		pImpl_->pEncodingModel_.get(),
 		pImpl_->pSecurityModel_.get(),
+		pImpl_->pMessageWindowFontManager_.get()
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

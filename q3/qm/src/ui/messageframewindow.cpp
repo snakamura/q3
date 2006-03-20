@@ -940,7 +940,8 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pContext->pUIManager_,
 		pImpl_->pMessageViewModeHolder_,
 		pImpl_->pEncodingModel_.get(),
-		pImpl_->pSecurityModel_.get()
+		pImpl_->pSecurityModel_.get(),
+		pContext->pFontManager_
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, getHandle(), 0, 0,
@@ -1036,7 +1037,8 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
 														 Profile* pProfile,
 														 ViewModelManager* pViewModelManager,
 														 EditFrameWindowManager* pEditFrameWindowManager,
-														 ExternalEditorManager* pExternalEditorManager) :
+														 ExternalEditorManager* pExternalEditorManager,
+														 MessageWindowFontManager* pFontManager) :
 	pDocument_(pDocument),
 	pUIManager_(pUIManager),
 	pTempFileCleaner_(pTempFileCleaner),
@@ -1044,6 +1046,7 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
 	pViewModelManager_(pViewModelManager),
 	pEditFrameWindowManager_(pEditFrameWindowManager), 
 	pExternalEditorManager_(pExternalEditorManager),
+	pFontManager_(pFontManager),
 	pCachedFrame_(0)
 {
 	assert(pDocument);
@@ -1052,6 +1055,7 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
 	assert(pViewModelManager);
 	assert(pEditFrameWindowManager);
 	assert(pExternalEditorManager);
+	assert(pFontManager);
 }
 
 qm::MessageFrameWindowManager::~MessageFrameWindowManager()
@@ -1196,7 +1200,8 @@ MessageFrameWindow* qm::MessageFrameWindowManager::create()
 		pUIManager_,
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
-		pTempFileCleaner_
+		pTempFileCleaner_,
+		pFontManager_
 	};
 	if (!pFrame->create(L"QmMessageFrameWindow", L"QMAIL", dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

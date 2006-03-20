@@ -246,6 +246,7 @@ public:
 	void reloadProfiles(Profile* pProfile,
 						const WCHAR* pwszSection,
 						bool bInitialize);
+	bool isAdjustExtent(HFONT hfont) const;
 
 public:
 	virtual void textUpdated(const TextModelEvent& event);
@@ -340,6 +341,7 @@ public:
 	bool bWordWrap_;
 	unsigned int nReformLineLength_;
 	wstring_ptr wstrReformQuote_;
+	bool bForceAdjustExtent_;
 	URLSchemaList listURLSchema_;
 	COLORREF crLink_;
 	unsigned int nDragScrollDelay_;
@@ -1571,11 +1573,6 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 	GdiObject<HFONT> font(UIUtil::createFontFromProfile(
 		pProfile, pwszSection, UIUtil::DEFAULTFONT_FIXED));
 	
-	LOGFONT lf;
-	::GetObject(font.get(), sizeof(lf), &lf);
-	bool bAdjustExtent = lf.lfPitchAndFamily & FIXED_PITCH &&
-		(initNumbers[14].nValue_ != 0 || lf.lfWeight != FW_NORMAL);
-	
 	TextWindowImpl::URLSchemaList listURLSchema;
 	int nClickableURL = pProfile->getInt(pwszSection, L"ClickableURL", 1);
 	if (nClickableURL) {
@@ -1621,12 +1618,13 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 	bWordWrap_ = initNumbers[16].nValue_ != 0;
 	nReformLineLength_ = initNumbers[13].nValue_;
 	wstrReformQuote_.reset(initStrings[2].wstrValue_);
+	bForceAdjustExtent_ = initNumbers[14].nValue_ != 0;
 	listURLSchema_.swap(listURLSchema);
 	crLink_ = initColors[4].cr_;
 	nDragScrollDelay_ = initNumbers[17].nValue_;
 	nDragScrollInterval_ = initNumbers[18].nValue_;
 	hfont_ = font.release();
-	bAdjustExtent_ = bAdjustExtent;
+	bAdjustExtent_ = isAdjustExtent(hfont_);
 	nLineHeight_ = 0;
 	nLineInWindow_ = 0;
 	nAverageCharWidth_ = 0;
@@ -1647,6 +1645,14 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 			SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER |
 			SWP_NOACTIVATE | SWP_FRAMECHANGED);
 	}
+}
+
+bool qs::TextWindowImpl::isAdjustExtent(HFONT hfont) const
+{
+	LOGFONT lf;
+	::GetObject(hfont, sizeof(lf), &lf);
+	return lf.lfPitchAndFamily & FIXED_PITCH &&
+		(bForceAdjustExtent_ || lf.lfWeight != FW_NORMAL);
 }
 
 void qs::TextWindowImpl::textUpdated(const TextModelEvent& event)
@@ -2080,6 +2086,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->bLineQuote_ = true;
 	pImpl_->bWordWrap_ = false;
 	pImpl_->nReformLineLength_ = 74;
+	pImpl_->bForceAdjustExtent_ = false;
 	pImpl_->crLink_ = RGB(0, 0, 255);
 	pImpl_->nDragScrollDelay_ = TextWindowImpl::DRAGSCROLL_DELAY;
 	pImpl_->nDragScrollInterval_ = TextWindowImpl::DRAGSCROLL_INTERVAL;
@@ -3068,6 +3075,28 @@ void qs::TextWindow::setBackgroundColor(COLORREF cr)
 		pImpl_->crBackground_ = cr;
 		invalidate();
 	}
+}
+
+HFONT qs::TextWindow::getFont() const
+{
+	return pImpl_->hfont_;
+}
+
+void qs::TextWindow::setFont(HFONT hfont)
+{
+	::DeleteObject(pImpl_->hfont_);
+	pImpl_->hfont_ = hfont;
+	pImpl_->bAdjustExtent_ = pImpl_->isAdjustExtent(hfont);
+	pImpl_->nLineHeight_ = 0;
+	pImpl_->nLineInWindow_ = 0;
+	pImpl_->nAverageCharWidth_ = 0;
+	pImpl_->nExtentLine_ = -1;
+	pImpl_->bExtentNewLine_ = false;
+	if (pImpl_->bShowRuler_)
+		pImpl_->updateRuler();
+	pImpl_->recalcLines(true);
+	pImpl_->updateScrollBar();
+	invalidate();
 }
 
 unsigned int qs::TextWindow::getLineSpacing() const

@@ -80,6 +80,7 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(MessageWindow* pMessageWi
 													   const WCHAR* pwszSection,
 													   MessageModel* pMessageModel,
 													   MenuManager* pMenuManager,
+													   const MessageWindowFontGroup* pFontGroup,
 													   MessageViewWindowCallback* pCallback,
 													   bool bTextOnly) :
 	pMessageWindow_(pMessageWindow),
@@ -98,7 +99,7 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(MessageWindow* pMessageWi
 #endif
 {
 	pText_ = new TextMessageViewWindow(pDocument_, pProfile_,
-		pwszSection_, pMessageModel_, pMenuManager_);
+		pwszSection_, pMessageModel_, pMenuManager_, pFontGroup);
 }
 
 qm::MessageViewWindowFactory::~MessageViewWindowFactory()
@@ -221,12 +222,15 @@ qm::TextMessageViewWindow::TextMessageViewWindow(Document* pDocument,
 												 Profile* pProfile,
 												 const WCHAR* pwszSection,
 												 MessageModel* pMessageModel,
-												 MenuManager* pMenuManager) :
+												 MenuManager* pMenuManager,
+												 const MessageWindowFontGroup* pFontGroup) :
 	TextWindow(0, pProfile, pwszSection, true),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pMessageModel_(pMessageModel),
 	pMenuManager_(pMenuManager),
+	pFontGroup_(pFontGroup),
+	pFont_(0),
 	nScrollPos_(0)
 {
 	pTextModel_.reset(new ReadOnlyTextModel());
@@ -361,6 +365,26 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 		
 		if (!wstrText.get())
 			return false;
+		
+		if (pFontGroup_) {
+			MacroVariableHolder globalVariable;
+			MacroContext context(pmh, pMessage, MessageHolderList(),
+				pmh->getAccount(), pDocument_, getHandle(), pProfile_, pwszEncoding,
+				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+				nSecurityMode, 0, &globalVariable);
+			const MessageWindowFontSet* pFontSet = pFontGroup_->getFontSet(&context);
+			if (pFontSet) {
+				const MessageWindowFontSet::Font* pFont = pFontSet->getFont();
+				if (pFont != pFont_) {
+					HFONT hfont = pFont->createFont();
+					if (hfont) {
+						pTextModel_->setText(L"", 0);
+						setFont(hfont);
+						pFont_ = pFont;
+					}
+				}
+			}
+		}
 		
 		std::auto_ptr<StringReader> pReader(new StringReader(wstrText));
 		return pTextModel_->loadText(pReader, true);

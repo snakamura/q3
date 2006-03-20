@@ -27,6 +27,7 @@ const WCHAR* qm::FileNames::COLORS_XML		= L"colors.xml";
 const WCHAR* qm::FileNames::COMPACT			= L"compact";
 const WCHAR* qm::FileNames::FILTERS_XML		= L"filters.xml";
 const WCHAR* qm::FileNames::FOLDERS_XML		= L"folders.xml";
+const WCHAR* qm::FileNames::FONTS_XML		= L"fonts.xml";
 const WCHAR* qm::FileNames::GOROUND_XML		= L"goround.xml";
 const WCHAR* qm::FileNames::HEADER_XML		= L"header.xml";
 const WCHAR* qm::FileNames::HEADEREDIT_XML	= L"headeredit.xml";

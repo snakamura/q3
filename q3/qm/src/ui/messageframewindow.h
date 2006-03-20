@@ -29,6 +29,7 @@ class MessageFrameWindow;
 class MessageHolder;
 class MessageModel;
 class MessageWindow;
+class MessageWindowFontManager;
 class TempFileCleaner;
 class UIManager;
 class ViewModelManager;
@@ -49,7 +50,8 @@ public:
 							  qs::Profile* pProfile,
 							  ViewModelManager* pViewModelManager,
 							  EditFrameWindowManager* pEditFrameWindowManager,
-							  ExternalEditorManager* pExternalEditorManager);
+							  ExternalEditorManager* pExternalEditorManager,
+							  MessageWindowFontManager* pFontManager);
 	~MessageFrameWindowManager();
 
 public:
@@ -81,6 +83,7 @@ private:
 	ViewModelManager* pViewModelManager_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	ExternalEditorManager* pExternalEditorManager_;
+	MessageWindowFontManager* pFontManager_;
 	FrameList listFrame_;
 	MessageFrameWindow* pCachedFrame_;
 };
@@ -99,6 +102,7 @@ struct MessageFrameWindowCreateContext
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	ExternalEditorManager* pExternalEditorManager_;
 	TempFileCleaner* pTempFileCleaner_;
+	MessageWindowFontManager* pFontManager_;
 };
 
 }
