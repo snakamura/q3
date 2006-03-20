@@ -27,7 +27,10 @@ case $COMMAND in
 clean | clean.win | clean.wce)
 	for p in $PROJECTS; do
 		cd $p
-		$MAKE $COMMAND
+		$MAKE $COMMAND 
+		for mui in $MUIS; do
+			$MAKE $COMMAND MUILANG=$mui
+		done
 		cd ..
 	done
 	;;
