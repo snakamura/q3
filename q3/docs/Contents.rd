@@ -68,8 +68,8 @@
     *外部アドレス帳
     *アドレス補完
   *添付ファイル
-  *署名
-  *定型文
+  *((<署名|URL:Signature.html>))
+  *((<定型文|URL:FixedFormText.html>))
   *テンプレート
   *((<フィルタ|URL:Filter.html>))
   *((<同期フィルタ|URL:SyncFilter.html>))
