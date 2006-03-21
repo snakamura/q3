@@ -2786,7 +2786,6 @@ public:
 
 public:
 	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
 	virtual bool isChecked(const qs::ActionEvent& event);
 
 private:

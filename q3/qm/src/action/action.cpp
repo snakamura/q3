@@ -5627,30 +5627,17 @@ qm::ViewEncodingAction::~ViewEncodingAction()
 void qm::ViewEncodingAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
-	if (!pwszEncoding)
-		return;
-	else if (*pwszEncoding)
+	if (pwszEncoding && *pwszEncoding)
 		pEncodingModel_->setEncoding(pwszEncoding);
 	else
 		pEncodingModel_->setEncoding(0);
 }
 
-bool qm::ViewEncodingAction::isEnabled(const qs::ActionEvent& event)
-{
-	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
-	if (!pwszEncoding)
-		return false;
-	return true;
-}
-
 bool qm::ViewEncodingAction::isChecked(const ActionEvent& event)
 {
 	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
-	if (!pwszEncoding)
-		return false;
-	
 	const WCHAR* pwszCurrentEncoding = pEncodingModel_->getEncoding();
-	if (*pwszEncoding)
+	if (pwszEncoding && *pwszEncoding)
 		return pwszCurrentEncoding && wcscmp(pwszEncoding, pwszCurrentEncoding) == 0;
 	else
 		return !pwszCurrentEncoding;
