@@ -25,6 +25,7 @@
 #include <tchar.h>
 
 #include "headereditwindow.h"
+#include "resourceinc.h"
 #include "uiutil.h"
 #include "../model/addressbook.h"
 #include "../model/dataobject.h"
@@ -1873,9 +1874,12 @@ void qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
 	SignatureManager::SignatureList l;
 	pSignatureManager->getSignatures(pEditMessage->getAccount(), &l);
 	
-	Window combo(getHandle());
 	ComboBox_ResetContent(getHandle());
-	ComboBox_AddString(getHandle(), _T("None"));
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrNone(loadString(hInst, IDS_SIGNATURE_NONE));
+	W2T(wstrNone.get(), ptszNone);
+	ComboBox_AddString(getHandle(), ptszNone);
 	
 	int nSelect = 0;
 	int nDefault = -1;

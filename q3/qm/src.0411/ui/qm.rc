@@ -465,6 +465,11 @@ BEGIN
     IDS_LABEL_REMOVE        "çÌèú"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SIGNATURE_NONE      "Ç»Çµ"
+END
+
 #endif    // ì˙ñ{åÍ resources
 /////////////////////////////////////////////////////////////////////////////
 

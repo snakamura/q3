@@ -463,6 +463,11 @@ BEGIN
     IDS_LABEL_REMOVE        "Remove"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SIGNATURE_NONE      "None"
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

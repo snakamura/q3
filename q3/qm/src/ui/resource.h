@@ -138,6 +138,7 @@
 #define IDS_PANEL_SIGNATURES            2420
 #define IDS_PANEL_SYNCFILTERS           2421
 #define IDS_PANEL_TAB                   2422
+#define IDS_SIGNATURE_NONE              2500
 #define IDS_DEFAULTSUBACCOUNT           3000
 #define IDS_NORMALFOLDER                3001
 #define IDS_QUERYFOLDER                 3002
