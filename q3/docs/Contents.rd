@@ -54,7 +54,7 @@
       *部分受信とダウンロード予約
       *選択削除
   *((<巡回|URL:GoRound.html>))
-  *自動巡回
+  *((<自動巡回|URL:AutoPilot.html>))
   *未読通知
   *((<スレッド表示|URL:Thread.html>))
   *((<HTML表示|URL:HtmlView.html>))
@@ -109,7 +109,7 @@
     *((<Blogの設定|URL:AccountBlog.html>))
     *((<ダイアルアップの設定|URL:AccountDialup.html>))
     *((<高度の設定|URL:AccountAdvanced.html>))
-*設定
+*((<設定|URL:Options.html>))
   *((<フォルダビューの設定|URL:OptionFolder.html>))
   *((<リストビューの設定|URL:OptionList.html>))
   *((<プレビューの設定|URL:OptionPreview.html>))
@@ -119,14 +119,14 @@
   *((<エディットビュー2の設定|URL:OptionEdit2.html>))
   *((<タブの設定|URL:OptionTab.html>))
   *((<アドレス帳の設定|URL:OptionAddressBook.html>))
-  *振り分けの設定
-  *色の設定
-  *巡回の設定
-  *署名の設定
-  *定形文の設定
+  *((<振り分けの設定|URL:OptionRules.html>))
+  *((<色の設定|URL:OptionColors.html>))
+  *((<巡回の設定|URL:OptionGoRound.html>))
+  *((<署名の設定|URL:OptionSignatures.html>))
+  *((<定形文の設定|URL:OptionTexts.html>))
   *((<フィルタの設定|URL:OptionFilter.html>))
-  *同期フィルタの設定
-  *自動巡回の設定
+  *((<同期フィルタの設定|URL:OptionSyncFilters.html>))
+  *((<自動巡回の設定|URL:OptionAutoPilot.html>))
   *((<検索の設定|URL:OptionSearch.html>))
   *((<スパムフィルタの設定|URL:OptionJunkFilter.html>))
   *((<セキュリティの設定|URL:OptionSecurity.html>))
