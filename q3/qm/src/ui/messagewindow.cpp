@@ -214,7 +214,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	Message msg;
 	if (pmh) {
-		unsigned int nFlags = 0;
+		unsigned int nFlags = Account::GETMESSAGEFLAG_FALLBACK;
 		if (nSeenWait_ == 0)
 			nFlags |= Account::GETMESSAGEFLAG_MAKESEEN;
 		if (bRawMode || bSourceMode)

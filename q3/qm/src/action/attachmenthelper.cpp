@@ -157,8 +157,7 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 		MessageHolder* pmh = *itM;
 		
 		Message msg;
-		if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT,
-			0, pSecurityModel_->getSecurityMode(), &msg))
+		if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, pSecurityModel_->getSecurityMode(), &msg))
 			return AttachmentParser::RESULT_FAIL;
 		
 		AttachmentParser parser(msg);

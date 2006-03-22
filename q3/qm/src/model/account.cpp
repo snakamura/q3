@@ -405,10 +405,8 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 			return false;
 		bGet = callback.bGet_;
 		bMadeSeen = callback.bMadeSeen_;
-		if (!bGet) {
-			if (nFlags & Account::GETMESSAGEFLAG_NOFALLBACK)
-				return false;
-		}
+		if (!bGet && !(nFlags & Account::GETMESSAGEFLAG_FALLBACK))
+			return false;
 	}
 	
 	if (!bGet) {
@@ -608,8 +606,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
 			MessageHolder* pmh = l[n];
 			Message msg;
-			if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK,
-				0, SECURITYMODE_NONE, &msg))
+			if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
 				return false;
 			unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
 			wstring_ptr wstrLabel(pmh->getLabel());
@@ -1972,8 +1969,7 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 							   Message* pMessage)
 		{
 			return listMessageHolder_[n]->getMessage(
-				Account::GETMESSAGEFLAG_HEADER | Account::GETMESSAGEFLAG_NOFALLBACK,
-				0, SECURITYMODE_NONE, pMessage);
+				Account::GETMESSAGEFLAG_HEADER, 0, SECURITYMODE_NONE, pMessage);
 		}
 		
 		virtual wstring_ptr getLabel(unsigned int n)

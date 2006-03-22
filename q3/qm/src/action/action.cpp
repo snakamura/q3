@@ -1461,8 +1461,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	assert(pmh);
 	
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL | Account::GETMESSAGEFLAG_NOFALLBACK,
-		0, nSecurityMode, &msg))
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg))
 		return false;
 	
 	if (nFlags & FLAG_ADDFLAGS) {
@@ -3716,8 +3715,7 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 														 UndoItemList* pUndoItemList) const
 {
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
-		0, pSecurityModel_->getSecurityMode(), &msg))
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, pSecurityModel_->getSecurityMode(), &msg))
 		return false;
 	
 	AttachmentParser::removeAttachments(&msg);
@@ -3836,8 +3834,7 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 												 UndoItemList* pUndoItemList)
 {
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
-		0, pSecurityModel_->getSecurityMode(), &msg))
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, pSecurityModel_->getSecurityMode(), &msg))
 		return false;
 	
 	PartUtil::MessageList l;
@@ -4230,8 +4227,7 @@ void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 		return;
 	
 	Message msg;
-	if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL,
-		0, pSecurityModel_->getSecurityMode(), &msg)) {
+	if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, pSecurityModel_->getSecurityMode(), &msg)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
 	}

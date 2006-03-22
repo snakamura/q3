@@ -990,9 +990,7 @@ bool qm::SyncManager::send(Document* pDocument,
 		{
 			MessagePtrLock mpl(listMessagePtr[m]);
 			if (mpl) {
-				unsigned int nFlags = Account::GETMESSAGEFLAG_ALL |
-					Account::GETMESSAGEFLAG_NOFALLBACK;
-				if (!mpl->getMessage(nFlags, 0, SECURITYMODE_NONE, &msg)) {
+				if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg)) {
 					addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_GETMESSAGE, 0);
 					return false;
 				}
