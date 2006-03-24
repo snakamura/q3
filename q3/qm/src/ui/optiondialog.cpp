@@ -5575,29 +5575,37 @@ LRESULT qm::SyncFilterDialog::onCommand(WORD nCode,
 LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 										   LPARAM lParam)
 {
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
 	wstring_ptr wstrCondition(pSyncFilter_->getCondition()->getString());
 	setDlgItemText(IDC_CONDITION, wstrCondition.get());
 	
 	setDlgItemText(IDC_FOLDER, pSyncFilter_->getFolder());
 	
-	const TCHAR* ptszActions[] = {
-		_T("Download (POP3)"),
-		_T("Download (IMAP4)"),
-		_T("Download (NNTP)"),
-		_T("Delete (POP3, IMAP4)"),
-		_T("Ignore (POP3, NNTP)")
+	UINT nActions[] = {
+		IDS_SYNCFILTERACTION_DOWNLOADPOP3,
+		IDS_SYNCFILTERACTION_DOWNLOADIMAP4,
+		IDS_SYNCFILTERACTION_DOWNLOADNNTP,
+		IDS_SYNCFILTERACTION_DELETE,
+		IDS_SYNCFILTERACTION_IGNORE
 	};
-	for (int n = 0; n < countof(ptszActions); ++n)
-		ComboBox_AddString(getDlgItem(IDC_ACTION), ptszActions[n]);
+	for (int n = 0; n < countof(nActions); ++n) {
+		wstring_ptr wstr(loadString(hInst, nActions[n]));
+		W2T(wstr.get(), ptsz);
+		ComboBox_AddString(getDlgItem(IDC_ACTION), ptsz);
+	}
 	
-	const TCHAR* ptszTypes[] = {
-		_T("All"),
-		_T("Text"),
-		_T("Html"),
-		_T("Header")
+	UINT nTypes[] = {
+		IDS_SYNCFILTERIMAP4DOWNLOADTYPE_ALL,
+		IDS_SYNCFILTERIMAP4DOWNLOADTYPE_TEXT,
+		IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HTML,
+		IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HEADER
 	};
-	for (int n = 0; n < countof(ptszTypes); ++n)
-		ComboBox_AddString(getDlgItem(IDC_TYPE), ptszTypes[n]);
+	for (int n = 0; n < countof(nTypes); ++n) {
+		wstring_ptr wstr(loadString(hInst, nTypes[n]));
+		W2T(wstr.get(), ptsz);
+		ComboBox_AddString(getDlgItem(IDC_TYPE), ptsz);
+	}
 	
 	int nAction = 0;
 	int nMaxLine = 0;
