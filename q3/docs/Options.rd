@@ -17,7 +17,7 @@ QMAIL3全体の設定は[オプション]ダイアログで行います。このダイアログでは左側のリス
 *((<巡回の設定|URL:OptionGoRound.html>))
 *((<署名の設定|URL:OptionSignatures.html>))
 *((<定形文の設定|URL:OptionTexts.html>))
-*((<フィルタの設定|URL:OptionFilter.html>))
+*((<フィルタの設定|URL:OptionFilters.html>))
 *((<同期フィルタの設定|URL:OptionSyncFilters.html>))
 *((<自動巡回の設定|URL:OptionAutoPilot.html>))
 *((<検索の設定|URL:OptionSearch.html>))

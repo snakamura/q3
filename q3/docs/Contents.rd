@@ -55,15 +55,15 @@
       *選択削除
   *((<巡回|URL:GoRound.html>))
   *((<自動巡回|URL:AutoPilot.html>))
-  *未読通知
+  *((<新着通知|URL:Recents.html>))
   *((<スレッド表示|URL:Thread.html>))
   *((<HTML表示|URL:HtmlView.html>))
   *((<フラグ|URL:Flag.html>))
   *((<ラベル|URL:Label.html>))
-  *検索
-    *マクロ検索
-    *IMAP4検索
-    *全文検索
+  *((<検索|URL:Search.html>))
+    *((<マクロ検索|URL:MacroSearch.html>))
+    *((<IMAP4検索|URL:Imap4Search.html>))
+    *((<全文検索|URL:FullTextSearch.html>))
   *アドレス帳
     *外部アドレス帳
     *アドレス補完
@@ -71,6 +71,9 @@
   *((<署名|URL:Signature.html>))
   *((<定型文|URL:FixedFormText.html>))
   *テンプレート
+    *作成用テンプレート
+    *((<表示用テンプレート|URL:ViewTemplate.html>))
+    *その他のテンプレート
   *((<フィルタ|URL:Filter.html>))
   *((<同期フィルタ|URL:SyncFilter.html>))
   *リストビューの色
@@ -87,7 +90,7 @@
   *((<インポートとエクスポート|URL:ImportAndExport.html>))
   *外部エディタ
   *((<スパムフィルタ|URL:JunkFilter.html>))
-  *スクリプト
+  *((<スクリプト|URL:Script.html>))
   *((<ドラッグアンドドロップ|URL:DragAndDrop.html>))
   *((<コマンドライン|URL:CommandLine.html>))
   *((<ログ|URL:Log.html>))
@@ -124,7 +127,7 @@
   *((<巡回の設定|URL:OptionGoRound.html>))
   *((<署名の設定|URL:OptionSignatures.html>))
   *((<定形文の設定|URL:OptionTexts.html>))
-  *((<フィルタの設定|URL:OptionFilter.html>))
+  *((<フィルタの設定|URL:OptionFilters.html>))
   *((<同期フィルタの設定|URL:OptionSyncFilters.html>))
   *((<自動巡回の設定|URL:OptionAutoPilot.html>))
   *((<検索の設定|URL:OptionSearch.html>))

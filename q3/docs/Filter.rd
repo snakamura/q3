@@ -7,6 +7,6 @@
 
 ((<フィルタ|"IMG:images/Filter.png">))
 
-((<[なし]|URL:ViewFilterAction.html>))を選択するとフィルタを使用しません。((<[未読]|URL:ViewFilterAction.html>)), ((<[新着]|URL:ViewFilterAction.html>))などを選択すると対応するフィルタが適用されます。((<[カスタム]|URL:ViewFilterCustomAction.html>))を選択するとその場だけで使用するフィルタを作成することができます。((<[編集]|URL:OptionFilter.html>))を選択するとフィルタを編集することができます。
+((<[なし]|URL:ViewFilterAction.html>))を選択するとフィルタを使用しません。((<[未読]|URL:ViewFilterAction.html>)), ((<[新着]|URL:ViewFilterAction.html>))などを選択すると対応するフィルタが適用されます。((<[カスタム]|URL:ViewFilterCustomAction.html>))を選択するとその場だけで使用するフィルタを作成することができます。((<[編集]|URL:OptionFilters.html>))を選択するとフィルタを編集することができます。
 
 =end

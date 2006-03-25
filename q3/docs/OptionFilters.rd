@@ -1,6 +1,10 @@
 =begin
 =フィルタの設定
 
+[オプション]ダイアログの[フィルタ]パネルではフィルタの設定を行います。
+
+((<フィルタの設定|"IMG:images/OptionFilters.png">))
+
 // TODO
 
 =end
