@@ -1410,7 +1410,7 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 		if (nLine != static_cast<unsigned int>(-1)) {
 			bool bSelected = pViewModel->isSelected(nLine);
 			
-			pViewModel->setFocused(nLine, true);
+			pViewModel->setFocused(nLine, false);
 			
 			if (!(nFlags & MK_CONTROL) && !bSelected)
 				pViewModel->clearSelection();
@@ -1565,7 +1565,7 @@ LRESULT qm::ListWindow::onRButtonDown(UINT nFlags,
 				if (!bSelected)
 					pViewModel->setSelection(nLine);
 				
-				pViewModel->setFocused(nLine, true);
+				pViewModel->setFocused(nLine, false);
 				pViewModel->setLastSelection(nLine);
 				pImpl_->ensureVisible(nLine);
 			}
