@@ -51,6 +51,7 @@ public:
 	virtual void setCurrentAccount(Account* pAccount) = 0;
 	virtual MessagePtr getCurrentMessage() const = 0;
 	virtual void setMessage(MessageHolder* pmh) = 0;
+	virtual void reloadProfiles() = 0;
 	virtual void addMessageModelHandler(MessageModelHandler* pHandler) = 0;
 	virtual void removeMessageModelHandler(MessageModelHandler* pHandler) = 0;
 };
@@ -137,6 +138,9 @@ public:
 	MessageMessageModel();
 	virtual ~MessageMessageModel();
 
+public:
+	virtual void reloadProfiles();
+
 protected:
 	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const;
 
@@ -159,8 +163,12 @@ class PreviewMessageModel :
 {
 public:
 	PreviewMessageModel(ViewModelManager* pViewModelManager,
+						qs::Profile* pProfile,
 						bool bConnectToViewModel);
 	virtual ~PreviewMessageModel();
+
+public:
+	virtual void reloadProfiles();
 
 public:
 	void updateToViewModel();
@@ -191,12 +199,13 @@ private:
 
 private:
 	enum {
-		TIMER_ITEMSTATECHANGED	= 10,
-		TIMEOUT					= 300
+		TIMER_ITEMSTATECHANGED	= 10
 	};
 
 private:
 	ViewModelManager* pViewModelManager_;
+	qs::Profile* pProfile_;
+	unsigned int nDelay_;
 	std::auto_ptr<qs::Timer> pTimer_;
 	qs::Timer::Id nTimerId_;
 	bool bConnectedToViewModel_;

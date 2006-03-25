@@ -2153,7 +2153,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode", 0)));
 	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pDocument_,
 		pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
-	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(pImpl_->pViewModelManager_.get(),
+	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
+		pImpl_->pViewModelManager_.get(), pImpl_->pProfile_,
 		pImpl_->pSplitterHelper_->isVisible(SplitterHelper::COMPONENT_PREVIEW)));
 	pImpl_->pOptionDialogManager_.reset(new OptionDialogManager(pImpl_->pDocument_,
 		pImpl_->pGoRound_, pImpl_->pViewModelManager_->getFilterManager(),

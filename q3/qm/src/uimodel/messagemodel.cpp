@@ -194,6 +194,10 @@ qm::MessageMessageModel::~MessageMessageModel()
 {
 }
 
+void qm::MessageMessageModel::reloadProfiles()
+{
+}
+
 MessageViewMode* qm::MessageMessageModel::getMessageViewMode(ViewModel* pViewModel) const
 {
 	return pViewModel->getMessageViewMode(ViewModel::MODETYPE_MESSAGE);
@@ -207,11 +211,16 @@ MessageViewMode* qm::MessageMessageModel::getMessageViewMode(ViewModel* pViewMod
  */
 
 qm::PreviewMessageModel::PreviewMessageModel(ViewModelManager* pViewModelManager,
+											 Profile* pProfile,
 											 bool bConnectToViewModel) :
 	pViewModelManager_(pViewModelManager),
+	pProfile_(pProfile),
+	nDelay_(300),
 	nTimerId_(0),
 	bConnectedToViewModel_(false)
 {
+	reloadProfiles();
+	
 	if (bConnectToViewModel)
 		connectToViewModel();
 	
@@ -220,6 +229,11 @@ qm::PreviewMessageModel::PreviewMessageModel(ViewModelManager* pViewModelManager
 
 qm::PreviewMessageModel::~PreviewMessageModel()
 {
+}
+
+void qm::PreviewMessageModel::reloadProfiles()
+{
+	nDelay_ = pProfile_->getInt(L"PreviewWindow", L"Delay", 300);
 }
 
 void qm::PreviewMessageModel::updateToViewModel()
@@ -277,8 +291,8 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 			pTimer_->killTimer(nTimerId_);
 			nTimerId_ = 0;
 		}
-		if (event.isDelay())
-			nTimerId_ = pTimer_->setTimer(TIMER_ITEMSTATECHANGED, TIMEOUT, this);
+		if (event.isDelay() && nDelay_ != 0)
+			nTimerId_ = pTimer_->setTimer(TIMER_ITEMSTATECHANGED, nDelay_, this);
 		else
 			updateToViewModel();
 	}
