@@ -61,10 +61,10 @@
   *((<フラグ|URL:Flag.html>))
   *((<ラベル|URL:Label.html>))
   *((<検索|URL:Search.html>))
-    *((<マクロ検索|URL:MacroSearch.html>))
+    *((<基本検索|URL:MacroSearch.html>))
     *((<IMAP4検索|URL:Imap4Search.html>))
     *((<全文検索|URL:FullTextSearch.html>))
-  *アドレス帳
+  *((<アドレス帳|URL:AddressBook.html>))
     *外部アドレス帳
     *アドレス補完
   *添付ファイル

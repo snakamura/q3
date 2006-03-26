@@ -1,33 +1,16 @@
 =begin
 =検索の設定
 
-[オプション]ダイアログの[検索]パネルでは検索関係の設定を行います。
+[オプション]ダイアログの[検索]パネルでは((<検索|URL:Search.html>))の設定を行います。
 
 ((<検索の設定|"IMG:images/OptionSearch.png">))
 
 
 ====[基本]
-マクロ検索の設定を行います。
+基本検索の設定を行います。
 
 +[マクロ]
-マクロ検索で使われるマクロを指定します。$Conditionと$Caseはそれぞれ検索文字列と大文字小文字を区別するかどうかの値を実行時に割り当てられます。デフォルトでは「@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case))」です。
-
-ここで指定されたマクロを@X()と考えると、検索時のマクロは以下のようになります。
-
- @Progn(@Set('Search', <検索文字列>),
-        @Set('Case', <大文字と小文字を区別する>),
-        @X())
-
-さらに検索時のオプションで、[すべてのヘッダを検索する]や[本文を検索する]にチェックを入れた場合には、以下のようなマクロが使われます。
-
-*すべてのヘッダを検索する場合
-  @Or(@X(), @Contain(@Decode(@Header()), $Search, $Case))
-*本文を検索する場合
-  @Or(@X(), @Contain(@Body(), $Search, $Case))
-*上記の両方
-  @Or(@X(),
-      @Contain(@Decode(@Header()), $Search, $Case),
-      @Contain(@Body(), $Search, $Case))
+基本検索で使われるマクロを指定します。$Conditionと$Caseはそれぞれ検索文字列と大文字小文字を区別するかどうかの値を実行時に割り当てられます。デフォルトでは「@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case))」です。詳細については、((<検索|URL:Search.html>))を参照してください。
 
 
 ====[全文検索]
@@ -63,3 +46,5 @@
 (2)一行の一番最後に現れる/の後ろがファイル名になっている
 
 ((:(2):))の条件に合致しない行は無視されます。
+
+=end
