@@ -1532,7 +1532,7 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 		int nDefault_;
 		int nValue_;
 	} initNumbers[] = {
-		{ L"LineSpecing",				2,						0 },
+		{ L"LineSpacing",				2,						0 },
 		{ L"CharInLine",				0,						0 },
 		{ L"TabWidth",					4,						0 },
 		{ L"MarginTop",					10,						0 },
