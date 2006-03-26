@@ -92,8 +92,8 @@ BEGIN
     LTEXT           "検索文字列(&S)",IDC_STATIC,5,7,45,8
     COMBOBOX        IDC_CONDITION,55,5,130,70,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
-    CONTROL         "本文を検索(&B)",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,25,65,10
+    CONTROL         "本文を検索する(&B)",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,25,75,10
     CONTROL         "IMAP4コマンド(&C)",IDC_IMAP4COMMAND,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,35,70,10
     CONTROL         "現在(&U)",IDC_CURRENT,"Button",BS_AUTORADIOBUTTON,110,
