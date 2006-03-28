@@ -95,6 +95,9 @@
   *((<コマンドライン|URL:CommandLine.html>))
   *((<ログ|URL:Log.html>))
   *正規表現
+  *((<メニューのカスタマイズ|URL:CustomizeMenus.html>))
+  *((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))
+  *((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))
 *アカウントの設定
   *((<アカウントの管理|URL:ManageAccount.html>))
   *((<アカウントの作成|URL:CreateAccount.html>))
@@ -492,6 +495,7 @@
   *((<なぜ日本語化したのにメニューやツールバーが英語のままなのですか?|URL:WhyMenuAndToolbarAreNotLocalized.html>))
   *((<どうやったらmailto URLへ関連付けられますか?|URL:HowToAssociateWithMailtoUrl.html>))
   *((<メールボックスディレクトリを移動するにはどうすれば良いですか?|URL:HowToChangeMailBoxDirectory.html>))
-  *受信したメールの送信者をアドレス帳に登録した名前で表示するにはどうすればよいですか?
+  *((<受信したメールの送信者をアドレス帳に登録した名前で表示するにはどうすれば良いですか?|URL:HowToShowNameInAddressBook.html>))
+  *((<同じスレッドのメッセージをまとめて既読にするにはどうすれば良いですか?|URL:HowToKillThread.html>))
 
 =end
