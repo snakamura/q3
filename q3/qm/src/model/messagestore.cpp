@@ -645,7 +645,7 @@ bool qm::MultiMessageStore::save(const Message& header,
 bool qm::MultiMessageStore::saveDecoded(unsigned int nOffset,
 										const Message& msg)
 {
-	assert(nOffset);
+	assert(nOffset != -1);
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
@@ -906,7 +906,7 @@ malloc_ptr<unsigned char> qm::MessageStoreUtil::readIndex(ClusterStorage* pStora
 	return p;
 }
 
-bool qm::MessageStoreUtil::updateIndex(qs::ClusterStorage* pStorage,
+bool qm::MessageStoreUtil::updateIndex(ClusterStorage* pStorage,
 									   unsigned int nOldIndexKey,
 									   unsigned int nOldIndexLength,
 									   const unsigned char* pIndex,
