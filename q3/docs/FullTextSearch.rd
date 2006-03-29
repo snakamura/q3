@@ -1,7 +1,7 @@
 =begin
 =全文検索
 
-全文検索では((<Namazu|URL:http://www.namazu.org/>))や((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))を使用した全文検索を行います。Windows版でのみ使用できます。全文検索のエンジンとして何を使うかは、((<検索の設定|URL:OptionSearch.html>))で指定します。
+全文検索では((<Namazu|URL:http://www.namazu.org/>))や((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))を使用した全文検索を行います。Windows版でのみ使用できます。全文検索のエンジンとして何を使うかは、((<検索の設定|URL:OptionSearch.html>))で指定します。使用するエンジンは、あらかじめインストールしておく必要があります。
 
 全文検索を行うには、((<アカウントの作成|URL:CreateAccount.html>))時に[メッセージボックス]を[1メッセージ1ファイル]で作成する必要があります。また、全文検索用のインデックスは自動では更新されませんので適宜更新する必要があります。
 
