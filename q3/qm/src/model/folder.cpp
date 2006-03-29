@@ -419,6 +419,7 @@ public:
 
 public:
 	virtual void messageHolderFlagsChanged(const MessageHolderEvent& event);
+	virtual void messageHolderKeysChanged(const MessageHolderEvent& event);
 
 public:
 	NormalFolder* pThis_;
@@ -490,6 +491,13 @@ void qm::NormalFolderImpl::messageHolderFlagsChanged(const MessageHolderEvent& e
 		
 		bModified_ = true;
 	}
+}
+
+void qm::NormalFolderImpl::messageHolderKeysChanged(const MessageHolderEvent& event)
+{
+	MessageHolder* pmh = event.getMessageHolder();
+	if (pmh->getFolder() == pThis_)
+		bModified_ = true;
 }
 
 
