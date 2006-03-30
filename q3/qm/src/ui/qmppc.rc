@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 英語 (アメリカ) resources
+// English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -2022,7 +2022,7 @@ SYNCFILTERS.XML         PROFILE DISCARDABLE     "res\\syncfilters.xml"
 TOOLBAR.BMP             PROFILE DISCARDABLE     "res\\toolbar.bmp"
 TOOLBARS.XML            PROFILE DISCARDABLE     "res\\ppc\\toolbars.xml"
 VIEWS.XML               PROFILE DISCARDABLE     "res\\views.xml"
-#endif    // 英語 (アメリカ) resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
