@@ -803,7 +803,6 @@ bool qs::XMLParser::parseCDATASection(XMLParserContext& context)
 				state = STATE_TWO;
 				break;
 			case STATE_TWO:
-				state = STATE_NONE;
 				break;
 			default:
 				assert(false);
