@@ -43,8 +43,9 @@
       *リモートフォルダ
     *((<検索フォルダ|URL:QueryFolder.html>))
     *((<フォルダのプロパティ|URL:FolderProperty.html>))
-      *一般
-      *パラメータ
+      *((<一般|URL:FolderPropertyPage.html>))
+      *((<検索条件|URL:FolderConditionPage.html>))
+      *((<パラメータ|URL:FolderParameterPage.html>))
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
     *特殊フォルダ
   *((<オンラインとオフライン|URL:OnlineOffline.html>))
@@ -94,7 +95,7 @@
   *((<ドラッグアンドドロップ|URL:DragAndDrop.html>))
   *((<コマンドライン|URL:CommandLine.html>))
   *((<ログ|URL:Log.html>))
-  *正規表現
+  *((<正規表現|URL:RegularExpression.html>))
   *((<メニューのカスタマイズ|URL:CustomizeMenus.html>))
   *((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))
   *((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))
