@@ -362,20 +362,28 @@ HANDLE qs::Event::getHandle() const
 qs::Mutex::Mutex() :
 	hMutex_(0)
 {
-	init(false, 0);
+	init(false, 0, 0);
 }
 
 qs::Mutex::Mutex(bool bOwner) :
 	hMutex_(0)
 {
-	init(bOwner, 0);
+	init(bOwner, 0, 0);
 }
 
 qs::Mutex::Mutex(bool bOwner,
 				 const WCHAR* pwszName) :
 	hMutex_(0)
 {
-	init(bOwner, pwszName);
+	init(bOwner, pwszName, 0);
+}
+
+qs::Mutex::Mutex(bool bOwner,
+				 const WCHAR* pwszName,
+				 bool* pbAlreadyExists) :
+	hMutex_(0)
+{
+	init(bOwner, pwszName, pbAlreadyExists);
 }
 
 qs::Mutex::~Mutex()
@@ -397,11 +405,14 @@ bool qs::Mutex::release()
 }
 
 void qs::Mutex::init(bool bOwner,
-					 const WCHAR* pwszName)
+					 const WCHAR* pwszName,
+					 bool* pbAlreadyExists)
 {
 	if (pwszName) {
 		W2T(pwszName, ptszName);
 		hMutex_ = ::CreateMutex(0, bOwner, ptszName);
+		if (pbAlreadyExists)
+			*pbAlreadyExists = ::GetLastError() == ERROR_ALREADY_EXISTS;
 	}
 	else {
 		hMutex_ = ::CreateMutex(0, bOwner, 0);

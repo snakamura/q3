@@ -335,6 +335,9 @@ public:
 	Mutex(bool bOwner);
 	Mutex(bool bOwner,
 		  const WCHAR* pwszName);
+	Mutex(bool bOwner,
+		  const WCHAR* pwszName,
+		  bool* pbAlreadyExists);
 	~Mutex();
 
 public:
@@ -343,7 +346,8 @@ public:
 
 private:
 	void init(bool bOwner,
-			  const WCHAR* pwszName);
+			  const WCHAR* pwszName,
+			  bool* pbAlreadyExists);
 
 private:
 	Mutex(const Mutex&);
