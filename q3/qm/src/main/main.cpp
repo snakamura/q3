@@ -413,28 +413,17 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 	wstring_ptr wstrPath(concat(pwszMailFolder, L"\\lock"));
 	tstring_ptr tstrPath(wcs2tcs(wstrPath.get()));
 	
-	std::auto_ptr<Mutex> pMutex(new Mutex(false, L"QMAIL3Mutex"));
+	bool bPrevInstance = false;
+	std::auto_ptr<Mutex> pMutex(new Mutex(false, L"QMAIL3Mutex", &bPrevInstance));
 	pMutex->acquire();
 	
-#ifdef _WIN32_WCE
-	bool bAlreadyExists = ::GetFileAttributes(tstrPath.get()) != 0xffffffff;
-#	define CHECK_ALREADY_EXISTS() (bAlreadyExists)
-#else
-#	define CHECK_ALREADY_EXISTS() (::GetLastError() == ERROR_ALREADY_EXISTS)
+#ifndef _WIN32_WCE
+	bPrevInstance = false;
 #endif
 	
-	AutoHandle hFile(::CreateFile(tstrPath.get(),
-		GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, 0,
-		OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0));
-	if (!hFile.get()) {
-		AutoHandle hFileRead(::CreateFile(tstrPath.get(),
-			GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-			0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-		if (!hFileRead.get())
-			return;
-		
-		HWND hwnd = 0;
-		if (read(hFileRead.get(), &hwnd, 0)) {
+	if (bPrevInstance) {
+		HWND hwnd = ::FindWindow(_T("QmMainWindow"), 0);
+		if (hwnd) {
 #ifndef _WIN32_WCE_PSPC
 			COPYDATASTRUCT data = { IDM_FILE_SHOW };
 			::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
@@ -442,33 +431,64 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 			::SetForegroundWindow(hwnd);
 		}
 		*phwnd = hwnd;
-	}
-	else if (CHECK_ALREADY_EXISTS()) {
-		const WCHAR* pwszName = L"Unknown";
-		wstring_ptr wstrName;
-		if (read(hFile.get(), 0, &wstrName))
-			pwszName = wstrName.get();
 		
-		wstring_ptr wstrTemplate(loadString(g_hInstResource, IDS_CONFIRM_IGNORELOCK));
-		const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(pwszName);
-		wstring_ptr wstrMessage(allocWString(nLen));
-		_snwprintf(wstrMessage.get(), nLen, wstrTemplate.get(), pwszName);
-		
-		int nRet= messageBox(wstrMessage.get(),
-			MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
-		*pbContinue = nRet == IDYES;
-	}
-	else {
-		*pbContinue = true;
-	}
-	
-	if (*pbContinue) {
-		hFile_ = hFile.release();
-		tstrPath_ = tstrPath;
-		pMutex_ = pMutex;
-	}
-	else {
 		pMutex->release();
+	}
+	else {
+#ifdef _WIN32_WCE
+		bool bAlreadyExists = ::GetFileAttributes(tstrPath.get()) != 0xffffffff;
+#	define CHECK_ALREADY_EXISTS() (bAlreadyExists)
+#else
+#	define CHECK_ALREADY_EXISTS() (::GetLastError() == ERROR_ALREADY_EXISTS)
+#endif
+		
+		AutoHandle hFile(::CreateFile(tstrPath.get(),
+			GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, 0,
+			OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0));
+		if (!hFile.get()) {
+			AutoHandle hFileRead(::CreateFile(tstrPath.get(),
+				GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+				0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
+			if (!hFileRead.get())
+				return;
+			
+			HWND hwnd = 0;
+			if (read(hFileRead.get(), &hwnd, 0)) {
+	#ifndef _WIN32_WCE_PSPC
+				COPYDATASTRUCT data = { IDM_FILE_SHOW };
+				::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
+	#endif
+				::SetForegroundWindow(hwnd);
+			}
+			*phwnd = hwnd;
+		}
+		else if (CHECK_ALREADY_EXISTS()) {
+			const WCHAR* pwszName = L"Unknown";
+			wstring_ptr wstrName;
+			if (read(hFile.get(), 0, &wstrName))
+				pwszName = wstrName.get();
+			
+			wstring_ptr wstrTemplate(loadString(g_hInstResource, IDS_CONFIRM_IGNORELOCK));
+			const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(pwszName);
+			wstring_ptr wstrMessage(allocWString(nLen));
+			_snwprintf(wstrMessage.get(), nLen, wstrTemplate.get(), pwszName);
+			
+			int nRet= messageBox(wstrMessage.get(),
+				MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
+			*pbContinue = nRet == IDYES;
+		}
+		else {
+			*pbContinue = true;
+		}
+		
+		if (*pbContinue) {
+			hFile_ = hFile.release();
+			tstrPath_ = tstrPath;
+			pMutex_ = pMutex;
+		}
+		else {
+			pMutex->release();
+		}
 	}
 }
 
