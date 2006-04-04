@@ -395,6 +395,9 @@ private:
 								const POINT& pt);
 		LRESULT onLButtonDown(UINT nFlags,
 							  const POINT& pt);
+		LRESULT onSize(UINT nFlags,
+					   int cx,
+					   int cy);
 	
 	private:
 		AttachmentWindow(const AttachmentWindow&);

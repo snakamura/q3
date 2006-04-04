@@ -822,7 +822,10 @@ void qm::AttachmentHeaderItem::setBackground(std::auto_ptr<Template> pBackground
 unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nWidth,
 												 unsigned int nFontHeight) const
 {
-	return QSMIN(ListView_GetItemCount(wnd_.getHandle())*(nFontHeight + 2), nFontHeight*4 + 7);
+	int nCount = ListView_GetItemCount(wnd_.getHandle());
+	unsigned int nHeight = QSMAX(nFontHeight,
+		static_cast<unsigned int>(::GetSystemMetrics(SM_CYSMICON))) + 1;
+	return QSMIN(nCount*nHeight, nHeight*4 + 2);
 }
 
 bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
@@ -834,8 +837,8 @@ bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
 	
 	pParent_ = pParent;
 	
-	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_SMALLICON | LVS_NOLABELWRAP |
-		LVS_SHAREIMAGELISTS | LVS_ALIGNLEFT | LVS_AUTOARRANGE;
+	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_REPORT |
+		LVS_SHAREIMAGELISTS | LVS_NOCOLUMNHEADER;
 	if (!wnd_.create(L"QmAttachmentWindow", 0, dwStyle,
 		0, 0, 0, 0, pParent->getHandle(), 0, WC_LISTVIEWW, nId, 0))
 		return false;
@@ -847,6 +850,12 @@ bool qm::AttachmentHeaderItem::create(WindowBase* pParent,
 		_T("dummy.txt"), FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
 		SHGFI_USEFILEATTRIBUTES | SHGFI_SYSICONINDEX | SHGFI_SMALLICON));
 	ListView_SetImageList(wnd_.getHandle(), hImageList, LVSIL_SMALL);
+	
+	LVCOLUMN column = {
+		LVCF_FMT,
+		LVCFMT_LEFT | LVCFMT_IMAGE,
+	};
+	ListView_InsertColumn(wnd_.getHandle(), 0, &column);
 	
 	wnd_.setFont(fonts.first);
 	
@@ -1098,6 +1107,7 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::windowProc(UINT uMsg,
 		HANDLE_CONTEXTMENU()
 		HANDLE_LBUTTONDBLCLK()
 		HANDLE_LBUTTONDOWN()
+		HANDLE_SIZE()
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -1116,6 +1126,14 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onContextMenu(HWND hwnd,
 	return 0;
 }
 
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDblClk(UINT nFlags,
+																	const POINT& pt)
+{
+	Window(getParentFrame()).postMessage(WM_COMMAND,
+		MAKEWPARAM(IDM_ATTACHMENT_OPEN, 0), 0);
+	return DefaultWindowHandler::onLButtonDblClk(nFlags, pt);
+}
+
 LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDown(UINT nFlags,
 																  const POINT& pt)
 {
@@ -1126,12 +1144,15 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDown(UINT nFlags,
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
 
-LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onLButtonDblClk(UINT nFlags,
-																	const POINT& pt)
+LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onSize(UINT nFlags,
+														   int cx,
+														   int cy)
 {
-	Window(getParentFrame()).postMessage(WM_COMMAND,
-		MAKEWPARAM(IDM_ATTACHMENT_OPEN, 0), 0);
-	return DefaultWindowHandler::onLButtonDblClk(nFlags, pt);
+	RECT rect;
+	getWindowRect(&rect);
+	int nWidth = rect.right - rect.left - ::GetSystemMetrics(SM_CXVSCROLL) - 5;
+	ListView_SetColumnWidth(getHandle(), 0, nWidth);
+	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
 
