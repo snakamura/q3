@@ -1,16 +1,16 @@
 =begin
 =@Not
 
- Boolean @Not(Boolean)
+ Boolean @Not(Boolean arg)
 
 
 ==説明
-引数で指定された真偽値の反対の値を返します。つまり、Trueの場合にはFalseを、Falseの場合にはTrueを返します。
+argで指定された真偽値の反対の値を返します。つまり、Trueの場合にはFalseを、Falseの場合にはTrueを返します。
 
 
 ==引数
-:1
-  Boolean 真偽値
+:Boolean arg
+  真偽値
 
 
 ==エラー

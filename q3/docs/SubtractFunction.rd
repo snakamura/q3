@@ -1,19 +1,19 @@
 =begin
 =@Subtract
 
- Number @Subtract(Number, Number)
+ Number @Subtract(Number arg1, Number arg2)
 
 
 ==説明
-引数で指定された二つの数の差を返します。
+arg1とarg2の差を返します。
 
 
 ==引数
-:1
-  Number 引かれる数
+:Number arg1
+  数値
 
-:2
-  Number 引く数
+:Number arg2
+  数値
 
 
 ==エラー

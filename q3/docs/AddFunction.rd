@@ -1,19 +1,19 @@
 =begin
 =@Add
 
- Number @Add(Number, Number)
+ Number @Add(Number arg1, Number arg2)
 
 
 ==説明
-引数で指定された二つの数の和を返します。
+arg1とarg2の和を返します。
 
 
 ==引数
-:1
-  Number 足される数
+:Number arg1
+  数値
 
-:2
-  Number 足す数
+:Number arg2
+  数値
 
 
 ==エラー

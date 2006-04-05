@@ -1,15 +1,15 @@
 =begin
 =@And
 
- Boolean @And(Boolean+)
+ Boolean @And(Boolean arg+)
 
 
 ==説明
-引数で指定された真偽値の論理積を返します。つまり、全ての値がTrueならばTrueを返し、それ以外の場合にはFalseを返します。1個以上の任意の数の引数を渡せます。
+argで指定された真偽値の論理積を返します。つまり、全ての値がTrueならばTrueを返し、それ以外の場合にはFalseを返します。1個以上の任意の数の引数を渡せます。
 
 
 ==引数
-:1-
+:Boolean arg
   Boolean 真偽値
 
 
