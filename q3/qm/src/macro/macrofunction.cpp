@@ -257,6 +257,57 @@ const WCHAR* qm::MacroFunctionAccount::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionAccountClass
+ *
+ */
+
+qm::MacroFunctionAccountClass::MacroFunctionAccountClass()
+{
+}
+
+qm::MacroFunctionAccountClass::~MacroFunctionAccountClass()
+{
+}
+
+MacroValuePtr qm::MacroFunctionAccountClass::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(AccountClass);
+	
+	if (!checkArgSizeRange(pContext, 0, 1))
+		return MacroValuePtr();
+	size_t nSize = getArgSize();
+	
+	wstring_ptr wstrAccount;
+	if (nSize > 0) {
+		ARG(pValue, 0);
+		wstrAccount = pValue->string();
+	}
+	
+	Account* pAccount = 0;
+	if (wstrAccount.get()) {
+		pAccount = pContext->getDocument()->getAccount(wstrAccount.get());
+		if (!pAccount)
+			return error(*pContext, MacroErrorHandler::CODE_UNKNOWNACCOUNT);
+	}
+	else {
+		pAccount = pContext->getAccount();
+		if (!pAccount)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
+	}
+	
+	return MacroValueFactory::getFactory().newString(pAccount->getClass());
+}
+
+const WCHAR* qm::MacroFunctionAccountClass::getName() const
+{
+	return L"AccountClass";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionAccountDirectory
  *
  */
@@ -5487,6 +5538,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 	BEGIN_DECLARE_FUNCTION()
 		BEGIN_BLOCK(L'a', L'A')
 			DECLARE_FUNCTION0(		Account,			L"account"												)
+			DECLARE_FUNCTION0(		AccountClass,		L"accountclass"											)
 			DECLARE_FUNCTION0(		AccountDirectory,	L"accountdirectory"										)
 			DECLARE_FUNCTION1(		Address,			L"address",			false								)
 			DECLARE_FUNCTION0(		AddressBook,		L"addressbook"											)

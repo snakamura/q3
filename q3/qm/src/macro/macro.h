@@ -661,6 +661,30 @@ private:
 
 /****************************************************************************
  *
+ * MacroFunctionAccountClass
+ *
+ */
+
+class MacroFunctionAccountClass : public MacroFunction
+{
+public:
+	MacroFunctionAccountClass();
+	virtual ~MacroFunctionAccountClass();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionAccountClass(const MacroFunctionAccountClass&);
+	MacroFunctionAccountClass& operator=(const MacroFunctionAccountClass&);
+};
+
+
+/****************************************************************************
+ *
  * MacroFunctionAccountDirectory
  *
  */
