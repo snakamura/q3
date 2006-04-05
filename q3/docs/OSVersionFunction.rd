@@ -1,5 +1,5 @@
 =begin
-=@Osversion
+=@OSVersion
 
 // TODO
 
