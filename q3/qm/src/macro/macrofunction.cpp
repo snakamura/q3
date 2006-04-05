@@ -443,7 +443,10 @@ MacroValuePtr qm::MacroFunctionAddress::value(MacroContext* pContext) const
 
 const WCHAR* qm::MacroFunctionAddress::getName() const
 {
-	return L"Address";
+	if (bName_)
+		return L"Name";
+	else
+		return L"Address";
 }
 
 
