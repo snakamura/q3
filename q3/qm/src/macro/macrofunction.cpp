@@ -4227,9 +4227,10 @@ MacroValuePtr qm::MacroFunctionRelative::value(MacroContext* pContext) const
 	else {
 		wstring_ptr wstrLhs(pValueLhs->string());
 		wstring_ptr wstrRhs(pValueRhs->string());
-		
-		int (*pfn)(const WCHAR*, const WCHAR*) = bCase ? &wcscmp : &_wcsicmp;
-		int nComp = (*pfn)(wstrLhs.get(), wstrRhs.get());
+		if (bCase)
+			nComp = wcscmp(wstrLhs.get(), wstrRhs.get());
+		else
+			nComp = _wcsicmp(wstrLhs.get(), wstrRhs.get());
 	}
 	
 	return MacroValueFactory::getFactory().newBoolean(
