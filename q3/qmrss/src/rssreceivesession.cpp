@@ -335,8 +335,6 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		}
 		
 		if (!pFeed || !pFeed->getItem(pwszKey)) {
-			unsigned int nFlags = 0;
-			
 			Part header;
 			malloc_size_ptr<unsigned char> pBody;
 			
@@ -352,9 +350,6 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 					return false;
 				pBody = method.getResponseBody();
 			}
-			else {
-				nFlags = MessageHolder::FLAG_HEADERONLY;
-			}
 			
 			Message msg;
 			if (!createItemMessage(pChannel.get(), pItem, timePubDate,
@@ -364,6 +359,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 			Lock<Account> lock(*pAccount_);
 			
 			xstring_size_ptr strContent(msg.getContent());
+			unsigned int nFlags = msg.isMultipart() ? 0 : MessageHolder::FLAG_TEXTONLY;
 			MessageHolder* pmh = pAccount_->storeMessage(pFolder_, strContent.get(),
 				strContent.size(), &msg, -1, nFlags, 0, -1, false);
 			if (!pmh)
