@@ -4933,7 +4933,7 @@ MacroValuePtr qm::MacroFunctionSubstring::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	size_t nLength = -1;
+	unsigned int nLength = -1;
 	if (nSize == 3) {
 		ARG(pValue, 2);
 		nLength = pValue->number();
@@ -4946,13 +4946,13 @@ MacroValuePtr qm::MacroFunctionSubstring::value(MacroContext* pContext) const
 	ARG(pValueBegin, 1);
 	unsigned int nBegin = pValueBegin->number();
 	const WCHAR* pwsz = 0;
-	if (static_cast<size_t>(nBegin) >= nLen) {
+	if (nBegin >= nLen) {
 		pwsz = L"";
 		nLength = 0;
 	}
 	else {
-		if (nLength == -1)
-			nLength = nLen - nBegin;
+		if (nLength == -1 || nLength > nLen - nBegin)
+			nLength = static_cast<unsigned int>(nLen) - nBegin;
 		pwsz = wstr.get() + nBegin;
 	}
 	
@@ -5003,9 +5003,7 @@ MacroValuePtr qm::MacroFunctionSubstringSep::value(MacroContext* pContext) const
 	ARG(pValueSep, 1);
 	wstring_ptr wstrSep(pValueSep->string());
 	
-	wstring_ptr wstrLower;
 	const WCHAR* pwsz = wstr.get();
-	
 	BMFindString<WSTRING> bmfs(wstrSep.get(), wcslen(wstrSep.get()),
 		bCase ? 0 : BMFindString<WSTRING>::FLAG_IGNORECASE);
 	const WCHAR* p = bmfs.find(pwsz);
