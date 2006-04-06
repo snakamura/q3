@@ -624,26 +624,8 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 			MessageActionUtil::select(pViewModel, nIndex - 1, pMessageModel_);
 	}
 	
-	ProgressDialogMessageOperationCallback callback(hwnd_, IDS_PROGRESS_DELETE, IDS_PROGRESS_DELETE);
-	UndoItemList undo;
-	if (type_ != TYPE_JUNK) {
-		if (!pAccount->removeMessages(l, pFolder, type_ == TYPE_DIRECT, &callback, &undo)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
-			return;
-		}
-	}
-	else {
-		NormalFolder* pJunk = static_cast<NormalFolder*>(
-			pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
-		if (pJunk) {
-			unsigned int nFlags = Account::COPYFLAG_MOVE | Account::COPYFLAG_MANAGEJUNK;
-			if (!pAccount->copyMessages(l, pFolder, pJunk, nFlags, &callback, &undo)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
-				return;
-			}
-		}
-	}
-	pUndoManager_->pushUndoItem(undo.getUndoItem());
+	if (!deleteMessages(l, pFolder))
+		ActionUtil::error(hwnd_, IDS_ERROR_DELETEMESSAGES);
 }
 
 bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
@@ -658,6 +640,32 @@ bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
 		if (!pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX))
 			return false;
 	}
+	
+	return true;
+}
+
+bool qm::EditDeleteMessageAction::deleteMessages(const MessageHolderList& l,
+												 Folder* pFolder) const
+{
+	Account* pAccount = pFolder->getAccount();
+	
+	ProgressDialogMessageOperationCallback callback(hwnd_,
+		IDS_PROGRESS_DELETE, IDS_PROGRESS_DELETE);
+	UndoItemList undo;
+	if (type_ != TYPE_JUNK) {
+		if (!pAccount->removeMessages(l, pFolder, type_ == TYPE_DIRECT, &callback, &undo))
+			return false;
+	}
+	else {
+		NormalFolder* pJunk = static_cast<NormalFolder*>(
+			pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
+		if (pJunk) {
+			unsigned int nFlags = Account::COPYFLAG_MOVE | Account::COPYFLAG_MANAGEJUNK;
+			if (!pAccount->copyMessages(l, pFolder, pJunk, nFlags, &callback, &undo))
+				return false;
+		}
+	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 	
 	return true;
 }
@@ -818,36 +826,29 @@ qm::EditPasteMessageAction::~EditPasteMessageAction()
 void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 {
 	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
-	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL &&
-		!pFolder->isFlag(Folder::FLAG_NOSELECT)) {
-		ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pDocument_));
-		
-		NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
-		MessageDataObject::Flag flag = MessageDataObject::getPasteFlag(
-			pDataObject.get(), pDocument_, pNormalFolder);
-		UINT nId = flag == MessageDataObject::FLAG_MOVE ?
-			IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
-		ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-		if (!MessageDataObject::pasteMessages(pDataObject.get(), pDocument_,
-			pNormalFolder, flag, &callback, pDocument_->getUndoManager())) {
-			ActionUtil::error(hwnd_, IDS_ERROR_PASTEMESSAGES);
-			return;
-		}
-		
-		if (!pDocument_->isOffline() &&
-			!pFolder->isFlag(Folder::FLAG_LOCAL) &&
-			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
-			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				SyncDialog::FLAG_NONE, pNormalFolder, 0);
-		}
-#ifdef _WIN32_WCE
-		Clipboard clipboard(0);
-		clipboard.empty();
-#else
-		::OleSetClipboard(0);
-#endif
+	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL ||
+		pFolder->isFlag(Folder::FLAG_NOSELECT))
+		return;
+	
+	NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);
+	if (!pasteMessages(pNormalFolder)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_PASTEMESSAGES);
+		return;
 	}
+	
+	if (!pDocument_->isOffline() &&
+		!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+		SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
+			SyncDialog::FLAG_NONE, pNormalFolder, 0);
+	}
+#ifdef _WIN32_WCE
+	Clipboard clipboard(0);
+	clipboard.empty();
+#else
+	::OleSetClipboard(0);
+#endif
 }
 
 bool qm::EditPasteMessageAction::isEnabled(const ActionEvent& event)
@@ -857,6 +858,19 @@ bool qm::EditPasteMessageAction::isEnabled(const ActionEvent& event)
 		pFolder->isFlag(Folder::FLAG_NOSELECT))
 		return false;
 	return MessageDataObject::queryClipboard();
+}
+
+bool qm::EditPasteMessageAction::pasteMessages(NormalFolder* pFolder) const
+{
+	ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pDocument_));
+	
+	MessageDataObject::Flag flag = MessageDataObject::getPasteFlag(
+		pDataObject.get(), pDocument_, pFolder);
+	UINT nId = flag == MessageDataObject::FLAG_MOVE ?
+		IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
+	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
+	return MessageDataObject::pasteMessages(pDataObject.get(), pDocument_,
+		pFolder, flag, &callback, pDocument_->getUndoManager());
 }
 
 
@@ -948,6 +962,17 @@ void qm::FileCheckAction::invoke(const ActionEvent& event)
 	if (!pAccount)
 		return;
 	
+	if (!check(pAccount))
+		ActionUtil::error(hwnd_, IDS_ERROR_CHECK);
+}
+
+bool qm::FileCheckAction::isEnabled(const ActionEvent& event)
+{
+	return FolderActionUtil::getAccount(pFolderModel_) != 0;
+}
+
+bool qm::FileCheckAction::check(Account* pAccount) const
+{
 	class AccountCheckCallbackImpl : public ProgressDialogMessageOperationCallbackBase<AccountCheckCallback>
 	{
 	public:
@@ -979,15 +1004,7 @@ void qm::FileCheckAction::invoke(const ActionEvent& event)
 	};
 	
 	AccountCheckCallbackImpl callback(hwnd_, IDS_PROGRESS_CHECK, IDS_PROGRESS_CHECK);
-	if (!pAccount->check(&callback)) {
-		ActionUtil::error(hwnd_, IDS_ERROR_CHECK);
-		return;
-	}
-}
-
-bool qm::FileCheckAction::isEnabled(const ActionEvent& event)
-{
-	return FolderActionUtil::getAccount(pFolderModel_) != 0;
+	return pAccount->check(&callback);
 }
 
 
@@ -1035,17 +1052,20 @@ void qm::FileCompactAction::invoke(const ActionEvent& event)
 	if (!pAccount)
 		return;
 	
-	ProgressDialogMessageOperationCallback callback(hwnd_,
-		IDS_PROGRESS_COMPACT, IDS_PROGRESS_COMPACT);
-	if (!pAccount->compact(&callback)) {
+	if (!compact(pAccount))
 		ActionUtil::error(hwnd_, IDS_ERROR_COMPACT);
-		return;
-	}
 }
 
 bool qm::FileCompactAction::isEnabled(const ActionEvent& event)
 {
 	return FolderActionUtil::getAccount(pFolderModel_) != 0;
+}
+
+bool qm::FileCompactAction::compact(Account* pAccount) const
+{
+	ProgressDialogMessageOperationCallback callback(hwnd_,
+		IDS_PROGRESS_COMPACT, IDS_PROGRESS_COMPACT);
+	return pAccount->compact(&callback);
 }
 
 
@@ -1076,6 +1096,18 @@ void qm::FileDumpAction::invoke(const ActionEvent& event)
 	if (!wstrPath.get())
 		return;
 	
+	if (!dump(pAccount, wstrPath.get()))
+		ActionUtil::error(hwnd_, IDS_ERROR_DUMP);
+}
+
+bool qm::FileDumpAction::isEnabled(const ActionEvent& event)
+{
+	return FolderActionUtil::getAccount(pFolderModel_) != 0;
+}
+
+bool qm::FileDumpAction::dump(Account* pAccount,
+							  const WCHAR* pwszPath) const
+{
 	Lock<Account> lock(*pAccount);
 	
 	const Account::FolderList& listFolder = pAccount->getFolders();
@@ -1085,7 +1117,7 @@ void qm::FileDumpAction::invoke(const ActionEvent& event)
 		Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL) {
 			if (!pFolder->loadMessageHolders())
-				return;
+				return false;
 			nCount += pFolder->getCount();
 		}
 	}
@@ -1095,22 +1127,17 @@ void qm::FileDumpAction::invoke(const ActionEvent& event)
 	
 	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
-		if (!dumpFolder(wstrPath.get(), pFolder, pFolder->getType() != Folder::TYPE_NORMAL, &dialog)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_DUMP);
-			return;
-		}
+		if (!dumpFolder(pFolder, pwszPath, pFolder->getType() != Folder::TYPE_NORMAL, &dialog))
+			return false;
 	}
+	
+	return true;
 }
 
-bool qm::FileDumpAction::isEnabled(const ActionEvent& event)
-{
-	return FolderActionUtil::getAccount(pFolderModel_) != 0;
-}
-
-bool qm::FileDumpAction::dumpFolder(const WCHAR* pwszPath,
-									Folder* pFolder,
+bool qm::FileDumpAction::dumpFolder(Folder* pFolder,
+									const WCHAR* pwszPath,
 									bool bCreateDirectoryOnly,
-									ProgressDialog* pDialog)
+									ProgressDialog* pDialog) const
 {
 	wstring_ptr wstrDir(getDirectory(pwszPath, pFolder));
 	if (!File::createDirectory(wstrDir.get()))
@@ -2016,14 +2043,8 @@ void qm::FileLoadAction::invoke(const ActionEvent& event)
 	if (!wstrPath.get())
 		return;
 	
-	ProgressDialog dialog;
-	ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_LOAD, IDS_PROGRESS_LOAD, 0, 100, 0);
-	
-	int nPos = 0;
-	if (!loadFolder(pAccount, 0, wstrPath.get(), &dialog, &nPos)) {
+	if (!load(pAccount, wstrPath.get()))
 		ActionUtil::error(hwnd_, IDS_ERROR_LOAD);
-		return;
-	}
 }
 
 bool qm::FileLoadAction::isEnabled(const ActionEvent& event)
@@ -2031,11 +2052,23 @@ bool qm::FileLoadAction::isEnabled(const ActionEvent& event)
 	return FolderActionUtil::getAccount(pFolderModel_) != 0;
 }
 
+bool qm::FileLoadAction::load(Account* pAccount,
+							  const WCHAR* pwszPath) const
+{
+	Lock<Account> lock(*pAccount);
+	
+	ProgressDialog dialog;
+	ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_LOAD, IDS_PROGRESS_LOAD, 0, 100, 0);
+	
+	int nPos = 0;
+	return loadFolder(pAccount, 0, pwszPath, &dialog, &nPos);
+}
+
 bool qm::FileLoadAction::loadFolder(Account* pAccount,
 									Folder* pFolder,
 									const WCHAR* pwszPath,
 									ProgressDialog* pDialog,
-									int* pnPos)
+									int* pnPos) const
 {
 	wstring_ptr wstrFind(concat(pwszPath, L"\\*.*"));
 	W2T(wstrFind.get(), ptszFind);
@@ -2319,19 +2352,22 @@ void qm::FileSalvageAction::invoke(const ActionEvent& event)
 	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
 		return;
 	
-	Account* pAccount = pFolder->getAccount();
-	ProgressDialogMessageOperationCallback callback(
-		hwnd_, IDS_PROGRESS_SALVAGE, IDS_PROGRESS_SALVAGE);
-	if (!pAccount->salvage(static_cast<NormalFolder*>(pFolder), &callback)) {
+	if (!salvage(static_cast<NormalFolder*>(pFolder)))
 		ActionUtil::error(hwnd_, IDS_ERROR_SALVAGE);
-		return;
-	}
 }
 
 bool qm::FileSalvageAction::isEnabled(const ActionEvent& event)
 {
 	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	return pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
+}
+
+bool qm::FileSalvageAction::salvage(NormalFolder* pFolder) const
+{
+	Account* pAccount = pFolder->getAccount();
+	ProgressDialogMessageOperationCallback callback(
+		hwnd_, IDS_PROGRESS_SALVAGE, IDS_PROGRESS_SALVAGE);
+	return pAccount->salvage(pFolder, &callback);
 }
 
 
@@ -2702,7 +2738,20 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 			return;
 	}
 	
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+	if (!emptyFolders(l))
+		ActionUtil::error(hwnd_, IDS_ERROR_EMPTYFOLDER);
+}
+
+bool qm::FolderEmptyAction::isEnabled(const ActionEvent& event)
+{
+	Account::FolderList l;
+	getFolderList(event, &l);
+	return l.size() > 1 || (l.size() == 1 && !l.front()->isFlag(Folder::FLAG_TRASHBOX));
+}
+
+bool qm::FolderEmptyAction::emptyFolders(const Account::FolderList& listFolder) const
+{
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
 		
 		if (!pFolder->isFlag(Folder::FLAG_TRASHBOX)) {
@@ -2712,21 +2761,13 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 			MessageHolderList l(pFolder->getMessages());
 			if (!l.empty()) {
 				UndoItemList undo;
-				if (!pAccount->removeMessages(l, pFolder, false, 0, &undo)) {
-					ActionUtil::error(hwnd_, IDS_ERROR_EMPTYFOLDER);
-					return;
-				}
+				if (!pAccount->removeMessages(l, pFolder, false, 0, &undo))
+					return false;
 				pUndoManager_->pushUndoItem(undo.getUndoItem());
 			}
 		}
 	}
-}
-
-bool qm::FolderEmptyAction::isEnabled(const ActionEvent& event)
-{
-	Account::FolderList l;
-	getFolderList(event, &l);
-	return l.size() > 1 || (l.size() == 1 && !l.front()->isFlag(Folder::FLAG_TRASHBOX));
+	return true;
 }
 
 void qm::FolderEmptyAction::getFolderList(const ActionEvent& event,
@@ -3189,6 +3230,35 @@ qm::MessageApplyRuleAction::~MessageApplyRuleAction()
 
 void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 {
+	Account* pAccount = 0;
+	if (!applyRule(&pAccount)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
+		return;
+	}
+	
+	if (pAccount && !pAccount->save(false))
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+}
+
+bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
+{
+	if (pViewModelManager_) {
+		if (bAll_)
+			return pViewModelManager_->getCurrentAccount() != 0;
+		else
+			return pViewModelManager_->getCurrentViewModel() != 0;
+	}
+	else {
+		return pMessageSelectionModel_->hasSelectedMessage();
+	}
+}
+
+bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
+{
+	assert(ppAccount);
+	
+	*ppAccount = 0;
+	
 	struct RuleCallbackImpl : public RuleCallback
 	{
 		RuleCallbackImpl(ProgressDialog* pProgressDialog) :
@@ -3257,10 +3327,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 					if (pFolder->getType() == Folder::TYPE_NORMAL &&
 						!pFolder->isHidden()) {
 						if (!pRuleManager_->apply(pFolder, pDocument_, hwnd_, pProfile_,
-							pSecurityModel_->getSecurityMode(), &callback)) {
-							ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
-							return;
-						}
+							pSecurityModel_->getSecurityMode(), &callback))
+							return false;
 					}
 				}
 			}
@@ -3281,10 +3349,8 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 					
 					ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
 					if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
-						pSecurityModel_->getSecurityMode(), &callback)) {
-						ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
-						return;
-					}
+						pSecurityModel_->getSecurityMode(), &callback))
+						return false;
 					pAccount = pFolder->getAccount();
 				}
 			}
@@ -3298,33 +3364,15 @@ void qm::MessageApplyRuleAction::invoke(const ActionEvent& event)
 		if (!l.empty()) {
 			ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
 			if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
-				pSecurityModel_->getSecurityMode(), &callback)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
-				return;
-			}
+				pSecurityModel_->getSecurityMode(), &callback))
+				return false;
 			pAccount = lock.get();
 		}
 	}
 	
-	if (pAccount) {
-		if (!pAccount->save(false)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
-			return;
-		}
-	}
-}
-
-bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
-{
-	if (pViewModelManager_) {
-		if (bAll_)
-			return pViewModelManager_->getCurrentAccount() != 0;
-		else
-			return pViewModelManager_->getCurrentViewModel() != 0;
-	}
-	else {
-		return pMessageSelectionModel_->hasSelectedMessage();
-	}
+	*ppAccount = pAccount;
+	
+	return true;
 }
 
 
@@ -4193,20 +4241,31 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	UINT nId = bMove ? IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
-	UndoItemList undo;
-	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-	unsigned int nFlags = (bMove ? Account::COPYFLAG_MOVE : 0) | Account::COPYFLAG_MANAGEJUNK;
-	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, nFlags, &callback, &undo)) {
+	if (!moveMessages(l, pFolderFrom, pFolderTo, bMove))
 		ActionUtil::error(hwnd_, bMove ? IDS_ERROR_MOVEMESSAGE : IDS_ERROR_COPYMESSAGE);
-		return;
-	}
-	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::MessageMoveAction::isEnabled(const ActionEvent& event)
 {
 	return pMessageSelectionModel_->hasSelectedMessage();
+}
+
+bool qm::MessageMoveAction::moveMessages(const MessageHolderList& l,
+										 Folder* pFolderFrom,
+										 NormalFolder* pFolderTo,
+										 bool bMove) const
+{
+	UINT nId = bMove ? IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
+	UndoItemList undo;
+	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
+	Account* pAccount = pFolderFrom->getAccount();
+	unsigned int nFlags = (bMove ? Account::COPYFLAG_MOVE : 0) | Account::COPYFLAG_MANAGEJUNK;
+	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, nFlags, &callback, &undo))
+		return false;
+	
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
+	
+	return true;
 }
 
 

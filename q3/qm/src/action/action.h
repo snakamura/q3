@@ -527,6 +527,8 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	bool deleteMessages(const MessageHolderList& l,
+						Folder* pFolder) const;
 	bool confirm() const;
 
 private:
@@ -605,6 +607,9 @@ public:
 public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool pasteMessages(NormalFolder* pFolder) const;
 
 private:
 	EditPasteMessageAction(const EditPasteMessageAction&);
@@ -692,6 +697,9 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	bool check(Account* pAccount) const;
+
+private:
 	FileCheckAction(const FileCheckAction&);
 	FileCheckAction& operator=(const FileCheckAction&);
 
@@ -743,6 +751,9 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	bool compact(Account* pAccount) const;
+
+private:
 	FileCompactAction(const FileCompactAction&);
 	FileCompactAction& operator=(const FileCompactAction&);
 
@@ -770,10 +781,12 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	bool dumpFolder(const WCHAR* pwszPath,
-					Folder* pFolder,
+	bool dump(Account* pAccount,
+			  const WCHAR* pwszPath) const;
+	bool dumpFolder(Folder* pFolder,
+					const WCHAR* pwszPath,
 					bool bCreateDirectoryOnly,
-					ProgressDialog* pDialog);
+					ProgressDialog* pDialog) const;
 
 private:
 	static qs::wstring_ptr getDirectory(const WCHAR* pwszPath,
@@ -984,11 +997,13 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	bool load(Account* pAccount,
+			  const WCHAR* pwszPath) const;
 	bool loadFolder(Account* pAccount,
 					Folder* pFolder,
 					const WCHAR* pwszPath,
 					ProgressDialog* pDialog,
-					int* pnPos);
+					int* pnPos) const;
 
 private:
 	static void getInfo(const WCHAR* pwszFileName,
@@ -1097,6 +1112,9 @@ public:
 public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool salvage(NormalFolder* pFolder) const;
 
 private:
 	FileSalvageAction(const FileSalvageAction&);
@@ -1271,6 +1289,7 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	bool emptyFolders(const Account::FolderList& listFolder) const;
 	void getFolderList(const qs::ActionEvent& event,
 					   Account::FolderList* pList) const;
 
@@ -1525,6 +1544,9 @@ public:
 public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool applyRule(Account** ppAccount) const;
 
 private:
 	MessageApplyRuleAction(const MessageApplyRuleAction&);
@@ -1990,6 +2012,12 @@ public:
 public:
 	virtual void invoke(const qs::ActionEvent& event);
 	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	bool moveMessages(const MessageHolderList& l,
+					  Folder* pFolderFrom,
+					  NormalFolder* pFolderTo,
+					  bool bMove) const;
 
 private:
 	MessageMoveAction(const MessageMoveAction&);
