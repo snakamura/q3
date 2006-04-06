@@ -423,7 +423,7 @@
     *((<@Name|URL:NameFunction.html>))
     *((<@Not|URL:NotFunction.html>))
     *((<@Or|URL:OrFunction.html>))
-    *((<@Osversion|URL:OsversionFunction.html>))
+    *((<@OSVersion|URL:OSVersionFunction.html>))
     *((<@Param|URL:ParamFunction.html>))
     *((<@ParseURL|URL:ParseURLFunction.html>))
     *((<@Part|URL:PartFunction.html>))
