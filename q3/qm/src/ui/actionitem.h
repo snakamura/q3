@@ -88,7 +88,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"FolderCollapse",				IDM_FOLDER_COLLAPSE,				1,							0 },
 	{ L"FolderCreate",					IDM_FOLDER_CREATE,					1,							0 },
 	{ L"FolderDelete",					IDM_FOLDER_DELETE,					1,							0 },
-	{ L"FolderEmpty",					IDM_FOLDER_EMPTY,					1,							0 },
+	{ L"FolderEmpty",					IDM_FOLDER_EMPTY,					MAX_FOLDER_EMPTY,			0 },
 	{ L"FolderEmptyTrash",				IDM_FOLDER_EMPTYTRASH,				1,							0 },
 	{ L"FolderExpand",					IDM_FOLDER_EXPAND,					1,							0 },
 	{ L"FolderProperty",				IDM_FOLDER_PROPERTY,				1,							0 },

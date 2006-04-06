@@ -236,6 +236,7 @@
 #define IDM_ADDRESS_NEW                 53003
 
 #define MAX_FOCUS_HEADEREDITITEM        100
+#define MAX_FOLDER_EMPTY                100
 #define MAX_ADDRESSBOOK_CATEGORY        100
 #define MAX_MESSAGE_ATTACHMENT          100
 #define MAX_MESSAGE_CREATE              100

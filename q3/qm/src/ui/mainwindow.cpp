@@ -587,8 +587,9 @@ void qm::MainWindowImpl::initActions()
 		this,
 		pSyncManager_,
 		pThis_->getHandle());
-	ADD_ACTION4(FolderEmptyAction,
+	ADD_ACTION5(FolderEmptyAction,
 		IDM_FOLDER_EMPTY,
+		pDocument_,
 		this,
 		pDocument_->getUndoManager(),
 		pThis_->getHandle(),

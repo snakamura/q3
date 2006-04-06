@@ -1259,7 +1259,8 @@ private:
 class FolderEmptyAction : public qs::AbstractAction
 {
 public:
-	FolderEmptyAction(FolderSelectionModel* pFolderSelectionModel,
+	FolderEmptyAction(AccountManager* pAccountManager,
+					  FolderSelectionModel* pFolderSelectionModel,
 					  UndoManager* pUndoManager,
 					  HWND hwnd,
 					  qs::Profile* pProfile);
@@ -1270,10 +1271,15 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	void getFolderList(const qs::ActionEvent& event,
+					   Account::FolderList* pList) const;
+
+private:
 	FolderEmptyAction(const FolderEmptyAction&);
 	FolderEmptyAction& operator=(const FolderEmptyAction&);
 
 private:
+	AccountManager* pAccountManager_;
 	FolderSelectionModel* pFolderSelectionModel_;
 	UndoManager* pUndoManager_;
 	HWND hwnd_;
@@ -3633,6 +3639,7 @@ public:
 	static void getSelected(FolderSelectionModel* pModel,
 							Account::FolderList* pListFolder);
 	static bool hasSelected(FolderSelectionModel* pModel);
+	static Account* getAccount(FolderSelectionModel* pModel);
 	static std::pair<Account*, Folder*> getCurrent(FolderModel* pModel);
 	static Account* getAccount(FolderModel* pModel);
 	static Folder* getFolder(FolderModel* pModel);

@@ -2667,10 +2667,12 @@ bool qm::FolderDeleteAction::deleteFolder(FolderModel* pFolderModel,
  *
  */
 
-qm::FolderEmptyAction::FolderEmptyAction(FolderSelectionModel* pFolderSelectionModel,
+qm::FolderEmptyAction::FolderEmptyAction(AccountManager* pAccountManager,
+										 FolderSelectionModel* pFolderSelectionModel,
 										 UndoManager* pUndoManager,
 										 HWND hwnd,
 										 Profile* pProfile) :
+	pAccountManager_(pAccountManager),
 	pFolderSelectionModel_(pFolderSelectionModel),
 	pUndoManager_(pUndoManager),
 	hwnd_(hwnd),
@@ -2685,7 +2687,7 @@ qm::FolderEmptyAction::~FolderEmptyAction()
 void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 {
 	Account::FolderList l;
-	FolderActionUtil::getSelected(pFolderSelectionModel_, &l);
+	getFolderList(event, &l);
 	if (l.empty())
 		return;
 	
@@ -2723,8 +2725,26 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 bool qm::FolderEmptyAction::isEnabled(const ActionEvent& event)
 {
 	Account::FolderList l;
-	FolderActionUtil::getSelected(pFolderSelectionModel_, &l);
+	getFolderList(event, &l);
 	return l.size() > 1 || (l.size() == 1 && !l.front()->isFlag(Folder::FLAG_TRASHBOX));
+}
+
+void qm::FolderEmptyAction::getFolderList(const ActionEvent& event,
+										  Account::FolderList* pList) const
+{
+	const WCHAR* pwszFolder = ActionParamUtil::getString(event.getParam(), 0);
+	if (pwszFolder) {
+		Account* pAccount = FolderActionUtil::getAccount(pFolderSelectionModel_);
+		if (pAccount) {
+			Folder* pFolder = pAccountManager_->getFolder(pAccount, pwszFolder);
+			if (pFolder)
+				pList->push_back(pFolder);
+		}
+	}
+	else {
+		FolderActionUtil::getSelected(pFolderSelectionModel_, pList);
+	}
+	
 }
 
 
@@ -7141,6 +7161,17 @@ bool qm::FolderActionUtil::hasSelected(FolderSelectionModel* pModel)
 		return true;
 	else
 		return pModel->hasSelectedFolder();
+}
+
+Account* qm::FolderActionUtil::getAccount(FolderSelectionModel* pModel)
+{
+	std::pair<Account*, Folder*> p(getFocused(pModel));
+	if (p.first)
+		return p.first;
+	else if (p.second)
+		return p.second->getAccount();
+	else
+		return 0;
 }
 
 std::pair<Account*, Folder*> qm::FolderActionUtil::getCurrent(FolderModel* pModel)
