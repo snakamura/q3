@@ -2002,7 +2002,7 @@ LRESULT qm::OptionSearchDialog::onInitDialog(HWND hwndFocus,
 											 LPARAM lParam)
 {
 	wstring_ptr wstrMacro(pProfile_->getString(L"MacroSearch", L"SearchMacro",
-		L"@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case))"));
+		L"@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case), @Contain(@Label(), $Search, $Case))"));
 	setDlgItemText(IDC_MACRO, wstrMacro.get());
 	
 #ifndef _WIN32_WCE
