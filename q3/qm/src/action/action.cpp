@@ -3135,6 +3135,68 @@ bool qm::FolderShowSizeAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * FolderSubscribeAction
+ *
+ */
+
+qm::FolderSubscribeAction::FolderSubscribeAction(FolderSelectionModel* pFolderSelectionModel,
+												 HWND hwnd) :
+	pFolderSelectionModel_(pFolderSelectionModel),
+	hwnd_(hwnd)
+{
+}
+
+qm::FolderSubscribeAction::~FolderSubscribeAction()
+{
+}
+
+void qm::FolderSubscribeAction::invoke(const ActionEvent& event)
+{
+	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
+	if (!p.first && !p.second)
+		return;
+	
+	Folder* pFolder = p.second;
+	Account* pAccount = p.first ? p.first : pFolder->getAccount();
+	std::auto_ptr<ReceiveSessionUI> pReceiveUI(
+		ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
+	pReceiveUI->subscribe(pAccount, pFolder);
+}
+
+bool qm::FolderSubscribeAction::isEnabled(const ActionEvent& event)
+{
+	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
+	if (!p.first && !p.second)
+		return false;
+	
+	Folder* pFolder = p.second;
+	Account* pAccount = p.first ? p.first : pFolder->getAccount();
+	std::auto_ptr<ReceiveSessionUI> pReceiveUI(
+		ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
+	return pReceiveUI->canSubscribe(pAccount, pFolder);
+}
+
+wstring_ptr qm::FolderSubscribeAction::getText(const ActionEvent& event)
+{
+	wstring_ptr wstrText;
+	
+	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
+	if (p.first || p.second) {
+		Account* pAccount = p.first ? p.first : p.second->getAccount();
+		std::auto_ptr<ReceiveSessionUI> pReceiveUI(
+			ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
+		wstrText = pReceiveUI->getSubscribeText();
+	}
+	
+	if (!wstrText.get())
+		wstrText = loadString(Application::getApplication().getResourceHandle(), IDS_ACTION_SUBSCRIBE);
+	
+	return wstrText;
+}
+
+
+/****************************************************************************
+ *
  * FolderUpdateAction
  *
  */

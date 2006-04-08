@@ -417,6 +417,8 @@
 		<menuitem text="名前の変更..." action="FolderRename"/>
 		<menuitem text="フォルダリストを更新" action="FolderUpdate"/>
 		<separator/>
+		<menuitem text="購読(&amp;B)..." action="FolderSubscribe"/>
+		<separator/>
 		<menuitem text="空にする" action="FolderEmpty"/>
 		<menuitem text="ゴミ箱を空にする" action="FolderEmptyTrash"/>
 		<separator/>
@@ -429,6 +431,8 @@
 		<menuitem text="削除" action="FolderDelete"/>
 		<menuitem text="名前の変更..." action="FolderRename"/>
 		<menuitem text="フォルダリストを更新" action="FolderUpdate"/>
+		<separator/>
+		<menuitem text="購読(&amp;B)..." action="FolderSubscribe"/>
 		<separator/>
 		<menuitem text="空にする" action="FolderEmpty"/>
 		<separator/>

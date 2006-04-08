@@ -67,6 +67,7 @@ class FolderExpandAction;
 class FolderPropertyAction;
 class FolderRenameAction;
 class FolderShowSizeAction;
+class FolderSubscribeAction;
 class FolderUpdateAction;
 class MessageApplyRuleAction;
 class MessageCertificateAction;
@@ -1485,6 +1486,34 @@ private:
 
 private:
 	FolderListWindow* pFolderListWindow_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderSubscribeAction
+ *
+ */
+
+class FolderSubscribeAction : public qs::AbstractAction
+{
+public:
+	FolderSubscribeAction(FolderSelectionModel* pFolderSelectionModel,
+						  HWND hwnd);
+	virtual ~FolderSubscribeAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+	virtual qs::wstring_ptr getText(const qs::ActionEvent& event);
+
+private:
+	FolderSubscribeAction(const FolderSubscribeAction&);
+	FolderSubscribeAction& operator=(const FolderSubscribeAction&);
+
+private:
+	FolderSelectionModel* pFolderSelectionModel_;
+	HWND hwnd_;
 };
 
 

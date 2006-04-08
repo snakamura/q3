@@ -69,7 +69,8 @@
 #define IDM_FOLDER_PROPERTY             42007
 #define IDM_FOLDER_RENAME               42008
 #define IDM_FOLDER_SHOWSIZE             42009
-#define IDM_FOLDER_UPDATE               42010
+#define IDM_FOLDER_SUBSCRIBE            42010
+#define IDM_FOLDER_UPDATE               42011
 #define IDM_MESSAGE_ADDCLEAN            43001
 #define IDM_MESSAGE_ADDJUNK             43002
 #define IDM_MESSAGE_APPLYRULE           43003

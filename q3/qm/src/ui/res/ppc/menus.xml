@@ -418,6 +418,8 @@
 		<menuitem text="Rename..." action="FolderRename"/>
 		<menuitem text="Update" action="FolderUpdate"/>
 		<separator/>
+		<menuitem text="Su&amp;bscribe..." action="FolderSubscribe"/>
+		<separator/>
 		<menuitem text="Empty" action="FolderEmpty"/>
 		<menuitem text="Empty Trash" action="FolderEmptyTrash"/>
 		<separator/>
@@ -430,6 +432,8 @@
 		<menuitem text="Delete" action="FolderDelete"/>
 		<menuitem text="Rename..." action="FolderRename"/>
 		<menuitem text="Update" action="FolderUpdate"/>
+		<separator/>
+		<menuitem text="Su&amp;bscribe..." action="FolderSubscribe"/>
 		<separator/>
 		<menuitem text="Empty" action="FolderEmpty"/>
 		<separator/>

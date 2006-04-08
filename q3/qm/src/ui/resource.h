@@ -35,6 +35,7 @@
 #define IDS_ACTION_HIDEMAIN             1015
 #define IDS_ACTION_DIALUPCONNECT        1016
 #define IDS_ACTION_DIALUPDISCONNECT     1017
+#define IDS_ACTION_SUBSCRIBE            1018
 #define IDS_MENU_THISFOLDER             1100
 #define IDS_MENU_NONE                   1101
 #define IDS_MENU_GOROUND                1102

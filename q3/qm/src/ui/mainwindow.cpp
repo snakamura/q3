@@ -621,14 +621,18 @@ void qm::MainWindowImpl::initActions()
 		this,
 		pSyncManager_,
 		pThis_->getHandle());
+	ADD_ACTION1(FolderShowSizeAction,
+		IDM_FOLDER_SHOWSIZE,
+		pFolderListWindow_);
+	ADD_ACTION2(FolderSubscribeAction,
+		IDM_FOLDER_SUBSCRIBE,
+		this,
+		pThis_->getHandle());
 	ADD_ACTION3(FolderUpdateAction,
 		IDM_FOLDER_UPDATE,
 		pFolderModel_.get(),
 		pSyncManager_,
 		pThis_->getHandle());
-	ADD_ACTION1(FolderShowSizeAction,
-		IDM_FOLDER_SHOWSIZE,
-		pFolderListWindow_);
 	ADD_ACTION7(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULE,
 		pDocument_->getRuleManager(),

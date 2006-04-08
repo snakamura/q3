@@ -80,6 +80,22 @@ qm::ReceiveSessionUI::~ReceiveSessionUI()
 {
 }
 
+void qm::ReceiveSessionUI::subscribe(Account* pAccount,
+									 Folder* pFolder)
+{
+}
+
+bool qm::ReceiveSessionUI::canSubscribe(Account* pAccount,
+										Folder* pFolder)
+{
+	return false;
+}
+
+wstring_ptr qm::ReceiveSessionUI::getSubscribeText()
+{
+	return 0;
+}
+
 
 /****************************************************************************
  *

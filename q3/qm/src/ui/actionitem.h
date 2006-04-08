@@ -94,6 +94,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"FolderProperty",				IDM_FOLDER_PROPERTY,				1,							0 },
 	{ L"FolderRename",					IDM_FOLDER_RENAME,					1,							0 },
 	{ L"FolderShowSize",				IDM_FOLDER_SHOWSIZE,				1,							0 },
+	{ L"FolderSubscribe",				IDM_FOLDER_SUBSCRIBE,				1,							0 },
 	{ L"FolderUpdate",					IDM_FOLDER_UPDATE,					1,							0 },
 	{ L"HeaderEditItem",				IDM_FOCUS_HEADEREDITITEM,			MAX_FOCUS_HEADEREDITITEM,	0 },
 	{ L"MessageAddClean",				IDM_MESSAGE_ADDCLEAN,				1,							0 },

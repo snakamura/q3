@@ -173,6 +173,11 @@ public:
 	virtual short getDefaultPort(bool bSecure) = 0;
 	virtual bool isSupported(Support support) = 0;
 	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(SubAccount* pSubAccount) = 0;
+	virtual void subscribe(Account* pAccount,
+						   Folder* pFolder);
+	virtual bool canSubscribe(Account* pAccount,
+							  Folder* pFolder);
+	virtual qs::wstring_ptr getSubscribeText();
 };
 
 
