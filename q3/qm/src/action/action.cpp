@@ -3139,8 +3139,10 @@ bool qm::FolderShowSizeAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::FolderSubscribeAction::FolderSubscribeAction(FolderSelectionModel* pFolderSelectionModel,
+qm::FolderSubscribeAction::FolderSubscribeAction(Document* pDocument,
+												 FolderSelectionModel* pFolderSelectionModel,
 												 HWND hwnd) :
+	pDocument_(pDocument),
 	pFolderSelectionModel_(pFolderSelectionModel),
 	hwnd_(hwnd)
 {
@@ -3160,7 +3162,7 @@ void qm::FolderSubscribeAction::invoke(const ActionEvent& event)
 	Account* pAccount = p.first ? p.first : pFolder->getAccount();
 	std::auto_ptr<ReceiveSessionUI> pReceiveUI(
 		ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
-	pReceiveUI->subscribe(pAccount, pFolder, hwnd_);
+	pReceiveUI->subscribe(pDocument_, pAccount, pFolder, hwnd_);
 }
 
 bool qm::FolderSubscribeAction::isEnabled(const ActionEvent& event)

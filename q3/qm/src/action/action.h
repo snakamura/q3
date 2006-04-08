@@ -1498,7 +1498,8 @@ private:
 class FolderSubscribeAction : public qs::AbstractAction
 {
 public:
-	FolderSubscribeAction(FolderSelectionModel* pFolderSelectionModel,
+	FolderSubscribeAction(Document* pDocument,
+						  FolderSelectionModel* pFolderSelectionModel,
 						  HWND hwnd);
 	virtual ~FolderSubscribeAction();
 
@@ -1512,6 +1513,7 @@ private:
 	FolderSubscribeAction& operator=(const FolderSubscribeAction&);
 
 private:
+	Document* pDocument_;
 	FolderSelectionModel* pFolderSelectionModel_;
 	HWND hwnd_;
 };
