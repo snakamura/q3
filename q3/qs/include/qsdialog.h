@@ -280,6 +280,7 @@ public:
 	void add(PropertyPage* pPage);
 	void setStartPage(int nPage);
 	PropertyPage* getPage(int nPage);
+	PROPSHEETHEADER& getHeader();
 	
 	void init();
 	bool isDialogMessage(MSG* pMsg);

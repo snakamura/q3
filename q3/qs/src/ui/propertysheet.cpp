@@ -243,6 +243,11 @@ PropertyPage* qs::PropertySheetBase::getPage(int nPage)
 	return pImpl_->listPage_[nPage];
 }
 
+PROPSHEETHEADER& qs::PropertySheetBase::getHeader()
+{
+	return pImpl_->psh_;
+}
+
 void qs::PropertySheetBase::init()
 {
 	if (!pImpl_->bInit_) {
