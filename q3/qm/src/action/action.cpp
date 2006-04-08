@@ -3160,7 +3160,7 @@ void qm::FolderSubscribeAction::invoke(const ActionEvent& event)
 	Account* pAccount = p.first ? p.first : pFolder->getAccount();
 	std::auto_ptr<ReceiveSessionUI> pReceiveUI(
 		ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
-	pReceiveUI->subscribe(pAccount, pFolder);
+	pReceiveUI->subscribe(pAccount, pFolder, hwnd_);
 }
 
 bool qm::FolderSubscribeAction::isEnabled(const ActionEvent& event)

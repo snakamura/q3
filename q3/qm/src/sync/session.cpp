@@ -81,7 +81,8 @@ qm::ReceiveSessionUI::~ReceiveSessionUI()
 }
 
 void qm::ReceiveSessionUI::subscribe(Account* pAccount,
-									 Folder* pFolder)
+									 Folder* pFolder,
+									 HWND hwnd)
 {
 }
 
