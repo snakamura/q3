@@ -229,8 +229,7 @@ LRESULT qmrss::SubscribeURLPage::onWizNext(NMHDR* pnmhdr,
 										   bool* pbHandled)
 {
 	if (!next())
-		setWindowLong(DWL_MSGRESULT, -1);
-//		::SetWindowLong(getHandle(), DWL_MSGRESULT, -1);
+		setWindowLong(DWLP_MSGRESULT, -1);
 	*pbHandled = true;
 	return TRUE;
 }
