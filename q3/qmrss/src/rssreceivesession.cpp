@@ -13,8 +13,6 @@
 
 #include <qsthread.h>
 
-#include <wininet.h>
-
 #include "feed.h"
 #include "main.h"
 #include "resourceinc.h"
@@ -149,7 +147,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	wstring_ptr wstrProxyHost;
 	unsigned short nProxyPort = 8080;
 	if (pSubAccount_->getProperty(L"Http", L"UseInternetSetting", 0)) {
-		bUseProxy = getInternetProxySetting(&wstrProxyHost, &nProxyPort);
+		bUseProxy = HttpUtil::getInternetProxySetting(&wstrProxyHost, &nProxyPort);
 	}
 	else if (pSubAccount_->getProperty(L"Http", L"UseProxy", 0)) {
 		wstrProxyHost = pSubAccount_->getProperty(L"Http", L"ProxyHost", L"");
@@ -191,7 +189,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		const WCHAR* pwszCookie = pFolder_->getParam(L"Cookie");
 		wstring_ptr wstrCookie;
 		if (!pwszCookie || !*pwszCookie) {
-			wstrCookie = getInternetCookie(wstrURL.get());
+			wstrCookie = HttpUtil::getInternetCookie(wstrURL.get());
 			pwszCookie = wstrCookie.get();
 		}
 		if (pwszCookie && *pwszCookie)
@@ -215,44 +213,14 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 					reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), pMethod.get());
 					return false;
 				}
+				HttpUtil::updateInternetCookies(wstrURL.get(), header);
 				
-				UnstructuredParser location;
-				if (header.getField(L"Location", &location) != Part::FIELD_EXIST) {
-					reportError(IDS_ERROR_PARSEREDIRECTLOCATION, wstrURL.get(), pMethod.get());
+				UINT nErrorId = 0;
+				wstrURL = HttpUtil::getRedirectLocation(wstrURL.get(), header, &nErrorId);
+				if (!wstrURL.get()) {
+					reportError(nErrorId, wstrURL.get(), pMethod.get());
 					return false;
 				}
-				const WCHAR* pwszLocation = location.getValue();
-				wstring_ptr wstrLocation;
-				if (!HttpURL::create(pwszLocation).get()) {
-					// Because some server set a relative URL in Location:, I'll handle them here.
-					// This is not allowed in HTTP/1.1.
-					bool bRecover = false;
-					if (*pwszLocation == L'/') {
-						std::auto_ptr<HttpURL> pURL(HttpURL::create(wstrURL.get()));
-						if (pURL.get()) {
-							StringBuffer<WSTRING> buf;
-							buf.append(pURL->getScheme());
-							buf.append(L"://");
-							buf.append(pURL->getAuthority().get());
-							buf.append(pwszLocation);
-							
-							std::auto_ptr<HttpURL> pLocation(HttpURL::create(buf.getCharArray()));
-							if (pLocation.get()) {
-								wstrLocation = pLocation->getURL();
-								pwszLocation = wstrLocation.get();
-								bRecover = true;
-							}
-						}
-					}
-					if (!bRecover) {
-						reportError(IDS_ERROR_INVALIDREDIRECTLOCATION, pwszLocation, pMethod.get());
-						return false;
-					}
-				}
-				wstrURL = allocWString(pwszLocation);
-				
-				updateCookies(wstrURL.get(), header);
-				
 				continue;
 			}
 		case 304:
@@ -278,7 +246,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), 0);
 		return false;
 	}
-	updateCookies(wstrURL.get(), header);
+	HttpUtil::updateInternetCookies(wstrURL.get(), header);
 	
 	Time timePubDate(pChannel->getPubDate());
 	if (timePubDate.wYear == 0)
@@ -647,93 +615,6 @@ std::pair<const WCHAR*, bool> qmrss::RssReceiveSession::getLink(const Channel* p
 	return std::make_pair(pwszLink, bItemLink);
 }
 
-void qmrss::RssReceiveSession::updateCookies(const WCHAR* pwszURL,
-											 const Part& header)
-{
-	MultipleUnstructuredParser cookie;
-	if (header.getField(L"Set-Cookie", &cookie) == Part::FIELD_EXIST) {
-		const MultipleUnstructuredParser::ValueList& l = cookie.getValues();
-		for (MultipleUnstructuredParser::ValueList::const_iterator it = l.begin(); it != l.end(); ++it)
-			setInternetCookie(pwszURL, *it);
-	}
-}
-
-bool qmrss::RssReceiveSession::getInternetProxySetting(wstring_ptr* pwstrProxyHost,
-													   unsigned short* pnProxyPort)
-{
-	Registry reg(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
-	if (!reg)
-		return false;
-	
-	DWORD dwProxyEnable = 0;
-	if (!reg.getValue(L"ProxyEnable", &dwProxyEnable) || dwProxyEnable == 0)
-		return false;
-	
-	wstring_ptr wstrProxy;
-	if (!reg.getValue(L"ProxyServer", &wstrProxy))
-		return false;
-	
-	if (wcschr(wstrProxy.get(), L';')) {
-		const WCHAR* p = wcstok(wstrProxy.get(), L";");
-		while (p) {
-			if (wcsncmp(p, L"http=", 5) == 0) {
-				wstrProxy = allocWString(p + 5);
-				break;
-			}
-			p = wcstok(0, L";");
-		}
-	}
-	
-	const WCHAR* pPort = wcsrchr(wstrProxy.get(), L':');
-	if (!pPort)
-		return false;
-	
-	*pwstrProxyHost = allocWString(wstrProxy.get(), pPort - wstrProxy.get());
-	
-	WCHAR* pEnd = 0;
-	*pnProxyPort = static_cast<unsigned short>(wcstol(pPort + 1, &pEnd, 0));
-	if (*pEnd)
-		return false;
-	
-	return true;
-}
-
-wstring_ptr qmrss::RssReceiveSession::getInternetCookie(const WCHAR* pwszURL)
-{
-#if !defined _WIN32_WCE || _WIN32_WCE >= 300
-	W2T(pwszURL, ptszURL);
-	DWORD dwSize = 0;
-	if (!::InternetGetCookie(ptszURL, 0, 0, &dwSize))
-		return 0;
-	
-	tstring_ptr tstrCookie(allocTString(dwSize));
-	if (!::InternetGetCookie(ptszURL, 0, tstrCookie.get(), &dwSize))
-		return 0;
-	
-	return tcs2wcs(tstrCookie.get());
-#else
-	return 0;
-#endif
-}
-
-bool qmrss::RssReceiveSession::setInternetCookie(const WCHAR* pwszURL,
-												 const WCHAR* pwszCookie)
-{
-#if !defined _WIN32_WCE || _WIN32_WCE >= 300
-	const WCHAR* p = wcschr(pwszCookie, L'=');
-	if (!p)
-		return false;
-	
-	tstring_ptr tstrName(wcs2tcs(pwszCookie, p - pwszCookie));
-	
-	W2T(pwszURL, ptszURL);
-	W2T(p + 1, ptszData);
-	return ::InternetSetCookie(ptszURL, tstrName.get(), ptszData) != 0;
-#else
-	return true;
-#endif
-}
-
 
 /****************************************************************************
  *
@@ -745,11 +626,9 @@ qmrss::RssReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
 													 const WCHAR* pwszHost,
 													 const Security* pSecurity,
 													 ReceiveSessionCallback* pSessionCallback) :
-	AbstractSSLSocketCallback(pSecurity),
-	pSubAccount_(pSubAccount),
+	DefaultCallback(pwszHost, pSubAccount->getSslOption(), pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
-	wstrHost_ = allocWString(pwszHost);
 }
 
 qmrss::RssReceiveSession::CallbackImpl::~CallbackImpl()
@@ -785,16 +664,6 @@ void qmrss::RssReceiveSession::CallbackImpl::connecting()
 void qmrss::RssReceiveSession::CallbackImpl::connected()
 {
 	setMessage(IDS_CONNECTED);
-}
-
-unsigned int qmrss::RssReceiveSession::CallbackImpl::getOption()
-{
-	return pSubAccount_->getSslOption();
-}
-
-const WCHAR* qmrss::RssReceiveSession::CallbackImpl::getHost()
-{
-	return wstrHost_.get();
 }
 
 
@@ -835,6 +704,61 @@ bool qmrss::RssReceiveSessionUI::isSupported(Support support)
 std::auto_ptr<PropertyPage> qmrss::RssReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
 	return std::auto_ptr<PropertyPage>(new ReceivePage(pSubAccount));
+}
+
+void qmrss::RssReceiveSessionUI::subscribe(Document* pDocument,
+										   Account* pAccount,
+										   Folder* pFolder,
+										   HWND hwnd)
+{
+	SubscribeData data;
+	
+#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+	PropertySheetBase sheet(getResourceHandle(), L"Test", false);
+	sheet.getHeader().dwFlags |= PSH_WIZARD;
+	
+	SubscribeURLPage pageURL(pDocument, pAccount, &data);
+	sheet.add(&pageURL);
+	SubscribePropertyPage pageProperty(&data);
+	sheet.add(&pageProperty);
+	if (sheet.doModal(hwnd) != IDOK)
+		return;
+#else
+	SubscribeURLPage pageURL(pDocument, pAccount, &data);
+	if (pageURL.doModal(hwnd) != IDOK)
+		return;
+	
+	SubscribePropertyPage pageProperty(&data);
+	if (pageProperty.doModal(hwnd) != IDOK)
+		return;
+#endif
+	
+	NormalFolder* pNewFolder = pAccount->createNormalFolder(
+		data.wstrName_.get(), pFolder, false, true);
+	if (!pNewFolder) {
+		messageBox(getResourceHandle(), IDS_ERROR_SUBSCRIBE, MB_OK | MB_ICONERROR, hwnd);
+		return;
+	}
+	
+	pNewFolder->setParam(L"URL", data.wstrURL_.get());
+	if (data.wstrUserName_.get())
+		pNewFolder->setParam(L"UserName", data.wstrUserName_.get());
+	if (data.wstrPassword_.get())
+		pNewFolder->setParam(L"Password", data.wstrPassword_.get());
+	pNewFolder->setParam(L"MakeMultipart", data.bMakeMultipart_ ? L"true" : L"false");
+	pNewFolder->setParam(L"UseDescriptionAsContent", data.bUseDescriptionAsContent_ ? L"true" : L"false");
+	pNewFolder->setParam(L"UpdateIfModified", data.bUpdateIfModified_ ? L"true" : L"false");
+}
+
+bool qmrss::RssReceiveSessionUI::canSubscribe(Account* pAccount,
+											  Folder* pFolder)
+{
+	return true;
+}
+
+wstring_ptr qmrss::RssReceiveSessionUI::getSubscribeText()
+{
+	return loadString(getResourceHandle(), IDS_SUBSCRIBE);
 }
 
 

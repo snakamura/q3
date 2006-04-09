@@ -10,6 +10,7 @@
 #define __HTTP_H__
 
 #include <qslog.h>
+#include <qsmime.h>
 #include <qssocket.h>
 #include <qsssl.h>
 
@@ -292,6 +293,20 @@ public:
 	static bool write(qs::SocketBase* pSocket,
 					  const WCHAR* p,
 					  size_t nLen);
+	
+	static qs::wstring_ptr getRedirectLocation(const WCHAR* pwszURL,
+											   const qs::Part& header,
+											   UINT* pnErrorId);
+	static qs::wstring_ptr resolveRelativeURL(const WCHAR* pwszURL,
+											  const WCHAR* pwszBaseURL);
+	
+	static bool getInternetProxySetting(qs::wstring_ptr* pwstrProxyHost,
+										unsigned short* pnProxyPort);
+	static qs::wstring_ptr getInternetCookie(const WCHAR* pwszURL);
+	static bool setInternetCookie(const WCHAR* pwszURL,
+								  const WCHAR* pwszCookie);
+	static void updateInternetCookies(const WCHAR* pwszURL,
+									  const qs::Part& header);
 };
 
 }

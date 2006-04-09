@@ -10,8 +10,12 @@
 
 #include <qsconv.h>
 #include <qsencoder.h>
+#include <qsosutil.h>
+
+#include <wininet.h>
 
 #include "http.h"
+#include "resource.h"
 
 using namespace qmrss;
 using namespace qs;
@@ -538,7 +542,6 @@ wstring_ptr qmrss::HttpURL::getURL() const
 		_snwprintf(wszPort, countof(wszPort), L":%d", static_cast<int>(nPort_));
 		buf.append(wszPort);
 	}
-	buf.append(L'/');
 	buf.append(wstrPath_.get());
 	if (wstrQuery_.get()) {
 		buf.append(L'?');
@@ -754,3 +757,158 @@ bool qmrss::HttpUtil::write(SocketBase* pSocket,
 	return write(pSocket, reinterpret_cast<const unsigned char*>(str.get()), strlen(str.get()));
 }
 
+wstring_ptr qmrss::HttpUtil::getRedirectLocation(const WCHAR* pwszURL,
+												 const qs::Part& header,
+												 UINT* pnErrorId)
+{
+	UnstructuredParser location;
+	if (header.getField(L"Location", &location) != Part::FIELD_EXIST) {
+		if (pnErrorId)
+			*pnErrorId = IDS_ERROR_PARSEREDIRECTLOCATION;
+		return 0;
+	}
+	const WCHAR* pwszLocation = location.getValue();
+	wstring_ptr wstrLocation;
+	if (!HttpURL::create(pwszLocation).get()) {
+		// Because some server set a relative URL in Location:, I'll handle them here.
+		// This is not allowed in HTTP/1.1.
+		bool bRecover = false;
+		if (*pwszLocation == L'/') {
+			std::auto_ptr<HttpURL> pURL(HttpURL::create(pwszURL));
+			if (pURL.get()) {
+				StringBuffer<WSTRING> buf;
+				buf.append(pURL->getScheme());
+				buf.append(L"://");
+				buf.append(pURL->getAuthority().get());
+				buf.append(pwszLocation);
+				
+				std::auto_ptr<HttpURL> pLocation(HttpURL::create(buf.getCharArray()));
+				if (pLocation.get()) {
+					wstrLocation = pLocation->getURL();
+					pwszLocation = wstrLocation.get();
+					bRecover = true;
+				}
+			}
+		}
+		if (!bRecover) {
+			if (pnErrorId)
+				*pnErrorId = IDS_ERROR_INVALIDREDIRECTLOCATION;
+			return 0;
+		}
+	}
+	return allocWString(pwszLocation);
+}
+
+wstring_ptr qmrss::HttpUtil::resolveRelativeURL(const WCHAR* pwszURL,
+												const WCHAR* pwszBaseURL)
+{
+	assert(pwszURL);
+	assert(pwszBaseURL);
+	
+	if (HttpURL::create(pwszURL).get())
+		return allocWString(pwszURL);
+	
+	std::auto_ptr<HttpURL> pBaseURL(HttpURL::create(pwszBaseURL));
+	if (!pBaseURL.get())
+		return allocWString(pwszURL);
+	
+	StringBuffer<WSTRING> buf;
+	buf.append(pBaseURL->getScheme());
+	buf.append(L"://");
+	buf.append(pBaseURL->getAuthority().get());
+	if (*pwszURL != L'/') {
+		const WCHAR* pwszPath = pBaseURL->getPath();
+		const WCHAR* p = wcsrchr(pwszPath, L'/');
+		if (p)
+			buf.append(pwszPath, p - pwszPath + 1);
+	}
+	buf.append(pwszURL);
+	return buf.getString();
+}
+
+bool qmrss::HttpUtil::getInternetProxySetting(wstring_ptr* pwstrProxyHost,
+											  unsigned short* pnProxyPort)
+{
+	Registry reg(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
+	if (!reg)
+		return false;
+	
+	DWORD dwProxyEnable = 0;
+	if (!reg.getValue(L"ProxyEnable", &dwProxyEnable) || dwProxyEnable == 0)
+		return false;
+	
+	wstring_ptr wstrProxy;
+	if (!reg.getValue(L"ProxyServer", &wstrProxy))
+		return false;
+	
+	if (wcschr(wstrProxy.get(), L';')) {
+		const WCHAR* p = wcstok(wstrProxy.get(), L";");
+		while (p) {
+			if (wcsncmp(p, L"http=", 5) == 0) {
+				wstrProxy = allocWString(p + 5);
+				break;
+			}
+			p = wcstok(0, L";");
+		}
+	}
+	
+	const WCHAR* pPort = wcsrchr(wstrProxy.get(), L':');
+	if (!pPort)
+		return false;
+	
+	*pwstrProxyHost = allocWString(wstrProxy.get(), pPort - wstrProxy.get());
+	
+	WCHAR* pEnd = 0;
+	*pnProxyPort = static_cast<unsigned short>(wcstol(pPort + 1, &pEnd, 0));
+	if (*pEnd)
+		return false;
+	
+	return true;
+}
+
+wstring_ptr qmrss::HttpUtil::getInternetCookie(const WCHAR* pwszURL)
+{
+#if !defined _WIN32_WCE || _WIN32_WCE >= 300
+	W2T(pwszURL, ptszURL);
+	DWORD dwSize = 0;
+	if (!::InternetGetCookie(ptszURL, 0, 0, &dwSize))
+		return 0;
+	
+	tstring_ptr tstrCookie(allocTString(dwSize));
+	if (!::InternetGetCookie(ptszURL, 0, tstrCookie.get(), &dwSize))
+		return 0;
+	
+	return tcs2wcs(tstrCookie.get());
+#else
+	return 0;
+#endif
+}
+
+bool qmrss::HttpUtil::setInternetCookie(const WCHAR* pwszURL,
+										const WCHAR* pwszCookie)
+{
+#if !defined _WIN32_WCE || _WIN32_WCE >= 300
+	const WCHAR* p = wcschr(pwszCookie, L'=');
+	if (!p)
+		return false;
+	
+	tstring_ptr tstrName(wcs2tcs(pwszCookie, p - pwszCookie));
+	
+	W2T(pwszURL, ptszURL);
+	W2T(p + 1, ptszData);
+	return ::InternetSetCookie(ptszURL, tstrName.get(), ptszData) != 0;
+#else
+	return true;
+#endif
+}
+
+void qmrss::HttpUtil::updateInternetCookies(const WCHAR* pwszURL,
+											const Part& header)
+{
+	MultipleUnstructuredParser cookie;
+	if (header.getField(L"Set-Cookie", &cookie) == Part::FIELD_EXIST) {
+		const MultipleUnstructuredParser::ValueList& l = cookie.getValues();
+		for (MultipleUnstructuredParser::ValueList::const_iterator it = l.begin(); it != l.end(); ++it)
+			setInternetCookie(pwszURL, *it);
+	}
+}

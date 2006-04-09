@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resourcehpc.h"
 
@@ -77,6 +77,38 @@ FONT 9, "Tahoma"
 BEGIN
 END
 
+IDD_SUBSCRIBEURL DIALOG DISCARDABLE  0, 0, 225, 105
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add Feed - URL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Input URL of a feed or a web page",IDC_STATIC,5,5,215,8
+    EDITTEXT        IDC_URL,5,15,215,12,ES_AUTOHSCROLL
+END
+
+IDD_SUBSCRIBEPROPERTY DIALOG DISCARDABLE  0, 0, 225, 105
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add Feed - Settings"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_STATIC,5,7,20,8
+    EDITTEXT        IDC_NAME,30,5,190,12,ES_AUTOHSCROLL
+    CONTROL         "Store &contents",IDC_MAKEMULTIPART,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,20,215,10
+    CONTROL         "Use <&description> instead of <content:encoded>",
+                    IDC_USEDESCRIPTIONASCONTENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,15,30,205,10
+    CONTROL         "Update if the item is &modified",IDC_UPDATEIFMODIFIED,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,40,215,10
+    CONTROL         "&Authenticate",IDC_AUTHENTICATE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,55,55,10
+    LTEXT           "&Username",IDC_STATIC,10,67,40,8
+    EDITTEXT        IDC_USERNAME,50,65,90,12,ES_AUTOHSCROLL
+    LTEXT           "&Password",IDC_STATIC,10,82,40,8
+    EDITTEXT        IDC_PASSWORD,50,80,90,12,ES_PASSWORD | ES_AUTOHSCROLL
+    GROUPBOX        "",IDC_STATIC,5,55,140,45
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -95,6 +127,22 @@ BEGIN
     END
 
     IDD_SEND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 218
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
+    END
+
+    IDD_SUBSCRIBEURL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 218
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
+    END
+
+    IDD_SUBSCRIBEPROPERTY, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 218

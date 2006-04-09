@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -76,6 +76,12 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_SUBSCRIBE           "&Add Feed..."
+    IDS_CONTINUE            "Could not get the specified feed.\nWould you like to continue?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     IDS_ERROR_MESSAGE       "RSS error."
 END
 
@@ -86,9 +92,16 @@ BEGIN
     IDS_ERROR_PARSE         "Error occured while parsing RSS."
     IDS_ERROR_APPLYRULES    "Error occured while applying rules."
     IDS_ERROR_EXCEEDMAXREDIRECT "Exceed max redirection."
-    IDS_ERROR_PARSERESPONSEHEADER "Error occured while parsing response header."
-    IDS_ERROR_PARSEREDIRECTLOCATION "Error occured while getting Location: header."
+    IDS_ERROR_PARSERESPONSEHEADER 
+                            "Error occured while parsing response header."
+    IDS_ERROR_PARSEREDIRECTLOCATION 
+                            "Error occured while getting Location: header."
     IDS_ERROR_INVALIDREDIRECTLOCATION "Invalid redirect location URL."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_SUBSCRIBE     "Could not add the feed."
 END
 
 #endif    // English (U.S.) resources

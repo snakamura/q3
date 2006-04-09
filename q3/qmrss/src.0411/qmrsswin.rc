@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resourcewin.h"
 
@@ -80,6 +80,40 @@ BEGIN
     LTEXT           "",IDC_STATIC,5,5,8,8
 END
 
+IDD_SUBSCRIBEURL DIALOG DISCARDABLE  0, 0, 285, 110
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "フィードの追加 - URL"
+FONT 9, "MS UI Gothic"
+BEGIN
+    LTEXT           "フィードまたはWebページのURLを入力してください",
+                    IDC_STATIC,5,5,275,8
+    EDITTEXT        IDC_URL,5,15,275,12,ES_AUTOHSCROLL
+END
+
+IDD_SUBSCRIBEPROPERTY DIALOG DISCARDABLE  0, 0, 285, 110
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "フィードの追加 - 設定"
+FONT 9, "MS UI Gothic"
+BEGIN
+    LTEXT           "名前(&N)",IDC_STATIC,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,245,12,ES_AUTOHSCROLL
+    CONTROL         "コンテンツを保存する(&C)",IDC_MAKEMULTIPART,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,275,10
+    CONTROL         "<description>を<content:encoded>の代わりに使用する(&D)",
+                    IDC_USEDESCRIPTIONASCONTENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,15,35,265,10
+    CONTROL         "アイテムが変更されていたら更新する(&M)",
+                    IDC_UPDATEIFMODIFIED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,45,275,10
+    GROUPBOX        "",IDC_STATIC,5,60,140,45
+    CONTROL         "認証(&A)",IDC_AUTHENTICATE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,60,35,10
+    LTEXT           "ユーザ名(&U)",IDC_STATIC,10,72,40,8
+    EDITTEXT        IDC_USERNAME,50,70,90,12,ES_AUTOHSCROLL
+    LTEXT           "パスワード(&P)",IDC_STATIC,10,87,40,8
+    EDITTEXT        IDC_PASSWORD,50,85,90,12,ES_PASSWORD | ES_AUTOHSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -103,6 +137,22 @@ BEGIN
         RIGHTMARGIN, 216
         TOPMARGIN, 7
         BOTTOMMARGIN, 138
+    END
+
+    IDD_SUBSCRIBEURL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 278
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 103
+    END
+
+    IDD_SUBSCRIBEPROPERTY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 278
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 103
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -9,10 +9,8 @@
 #ifndef __RSSRECEIVESESSION_H__
 #define __RSSRECEIVESESSION_H__
 
-#include <qmsecurity.h>
-#include <qmsession.h>
-
 #include "http.h"
+#include "util.h"
 
 
 namespace qmrss {
@@ -88,23 +86,13 @@ private:
 								  qm::Message* pMessage);
 	static std::pair<const WCHAR*, bool> getLink(const Channel* pChannel,
 												 const Item* pItem);
-	static void updateCookies(const WCHAR* pwszURL,
-							  const qs::Part& header);
-	static bool getInternetProxySetting(qs::wstring_ptr* pwstrProxyHost,
-										unsigned short* pnProxyPort);
-	static qs::wstring_ptr getInternetCookie(const WCHAR* pwszURL);
-	static bool setInternetCookie(const WCHAR* pwszURL,
-								  const WCHAR* pwszCookie);
 
 private:
 	RssReceiveSession(const RssReceiveSession&);
 	RssReceiveSession& operator=(const RssReceiveSession&);
 
 private:
-	class CallbackImpl :
-		public qs::SocketCallback,
-		public qm::AbstractSSLSocketCallback,
-		public HttpCallback
+	class CallbackImpl : public DefaultCallback
 	{
 	public:
 		CallbackImpl(qm::SubAccount* pSubAccount,
@@ -123,17 +111,11 @@ private:
 		virtual void connecting();
 		virtual void connected();
 	
-	protected:
-		virtual unsigned int getOption();
-		virtual const WCHAR* getHost();
-	
 	private:
 		CallbackImpl(const CallbackImpl&);
 		CallbackImpl& operator=(const CallbackImpl&);
 	
 	private:
-		qm::SubAccount* pSubAccount_;
-		qs::wstring_ptr wstrHost_;
 		qm::ReceiveSessionCallback* pSessionCallback_;
 	};
 
@@ -168,6 +150,13 @@ public:
 	virtual short getDefaultPort(bool bSecure);
 	virtual bool isSupported(Support support);
 	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(qm::SubAccount* pSubAccount);
+	virtual void subscribe(qm::Document* pDocument,
+						   qm::Account* pAccount,
+						   qm::Folder* pFolder,
+						   HWND hwnd);
+	virtual bool canSubscribe(qm::Account* pAccount,
+							  qm::Folder* pFolder);
+	virtual qs::wstring_ptr getSubscribeText();
 
 private:
 	RssReceiveSessionUI(const RssReceiveSessionUI&);
