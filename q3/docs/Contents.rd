@@ -219,6 +219,7 @@
   *((<FolderPropertyアクション|URL:FolderPropertyAction.html>))
   *((<FolderRenameアクション|URL:FolderRenameAction.html>))
   *((<FolderShowSizeアクション|URL:FolderShowSizeAction.html>))
+  *((<FolderSubscribeアクション|URL:FolderSubscribeAction.html>))
   *((<FolderUpdateアクション|URL:FolderUpdateAction.html>))
   *((<HeaderEditItemアクション|URL:HeaderEditItemAction.html>))
   *((<MessageAddCleanアクション|URL:MessageAddCleanAction.html>))
