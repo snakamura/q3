@@ -709,6 +709,7 @@ std::auto_ptr<PropertyPage> qmrss::RssReceiveSessionUI::createPropertyPage(SubAc
 void qmrss::RssReceiveSessionUI::subscribe(Document* pDocument,
 										   Account* pAccount,
 										   Folder* pFolder,
+										   PasswordCallback* pPasswordCallback,
 										   HWND hwnd)
 {
 	SubscribeData data;

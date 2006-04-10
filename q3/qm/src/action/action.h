@@ -1499,6 +1499,7 @@ class FolderSubscribeAction : public qs::AbstractAction
 {
 public:
 	FolderSubscribeAction(Document* pDocument,
+						  PasswordManager* pPasswordManager,
 						  FolderSelectionModel* pFolderSelectionModel,
 						  HWND hwnd);
 	virtual ~FolderSubscribeAction();
@@ -1514,6 +1515,7 @@ private:
 
 private:
 	Document* pDocument_;
+	PasswordManager* pPasswordManager_;
 	FolderSelectionModel* pFolderSelectionModel_;
 	HWND hwnd_;
 };

@@ -624,9 +624,10 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(FolderShowSizeAction,
 		IDM_FOLDER_SHOWSIZE,
 		pFolderListWindow_);
-	ADD_ACTION3(FolderSubscribeAction,
+	ADD_ACTION4(FolderSubscribeAction,
 		IDM_FOLDER_SUBSCRIBE,
 		pDocument_,
+		pPasswordManager_,
 		this,
 		pThis_->getHandle());
 	ADD_ACTION3(FolderUpdateAction,

@@ -176,6 +176,7 @@ public:
 	virtual void subscribe(Document* pDocument,
 						   Account* pAccount,
 						   Folder* pFolder,
+						   PasswordCallback* pPasswordCallback,
 						   HWND hwnd);
 	virtual bool canSubscribe(Account* pAccount,
 							  Folder* pFolder);

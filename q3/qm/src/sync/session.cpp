@@ -83,6 +83,7 @@ qm::ReceiveSessionUI::~ReceiveSessionUI()
 void qm::ReceiveSessionUI::subscribe(Document* pDocument,
 									 Account* pAccount,
 									 Folder* pFolder,
+									 PasswordCallback* pPasswordCallback,
 									 HWND hwnd)
 {
 }

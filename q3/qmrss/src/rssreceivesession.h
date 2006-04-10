@@ -153,6 +153,7 @@ public:
 	virtual void subscribe(qm::Document* pDocument,
 						   qm::Account* pAccount,
 						   qm::Folder* pFolder,
+						   qm::PasswordCallback* pPasswordCallback,
 						   HWND hwnd);
 	virtual bool canSubscribe(qm::Account* pAccount,
 							  qm::Folder* pFolder);

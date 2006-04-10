@@ -3140,9 +3140,11 @@ bool qm::FolderShowSizeAction::isEnabled(const ActionEvent& event)
  */
 
 qm::FolderSubscribeAction::FolderSubscribeAction(Document* pDocument,
+												 PasswordManager* pPasswordManager,
 												 FolderSelectionModel* pFolderSelectionModel,
 												 HWND hwnd) :
 	pDocument_(pDocument),
+	pPasswordManager_(pPasswordManager),
 	pFolderSelectionModel_(pFolderSelectionModel),
 	hwnd_(hwnd)
 {
@@ -3162,7 +3164,8 @@ void qm::FolderSubscribeAction::invoke(const ActionEvent& event)
 	Account* pAccount = p.first ? p.first : pFolder->getAccount();
 	std::auto_ptr<ReceiveSessionUI> pReceiveUI(
 		ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
-	pReceiveUI->subscribe(pDocument_, pAccount, pFolder, hwnd_);
+	DefaultPasswordCallback callback(pPasswordManager_);
+	pReceiveUI->subscribe(pDocument_, pAccount, pFolder, &callback, hwnd_);
 }
 
 bool qm::FolderSubscribeAction::isEnabled(const ActionEvent& event)
