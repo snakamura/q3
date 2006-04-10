@@ -286,6 +286,10 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 	
 	SubAccount* pSubAccount = pAccount_->getCurrentSubAccount();
 	
+	std::auto_ptr<Logger> pLogger;
+	if (pSubAccount->isLog(Account::HOST_RECEIVE))
+		pLogger = pAccount_->openLogger(Account::HOST_RECEIVE);
+	
 	bool bUseProxy = false;
 	wstring_ptr wstrProxyHost;
 	unsigned short nProxyPort = 8080;
@@ -301,7 +305,7 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 	DefaultCallback callback(pURL->getHost(),
 		pSubAccount->getSslOption(), pDocument_->getSecurity());
 	Http http(pSubAccount->getTimeout(), bUseProxy ? wstrProxyHost.get() : 0,
-		bUseProxy ? nProxyPort : 0, &callback, &callback, &callback, 0);
+		bUseProxy ? nProxyPort : 0, &callback, &callback, &callback, pLogger.get());
 	
 	wstring_ptr wstrURL(allocWString(pwszURL));
 	std::auto_ptr<HttpMethodGet> pMethod;
