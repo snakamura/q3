@@ -710,9 +710,10 @@ void qmrss::RssReceiveSessionUI::subscribe(Document* pDocument,
 										   Account* pAccount,
 										   Folder* pFolder,
 										   PasswordCallback* pPasswordCallback,
-										   HWND hwnd)
+										   HWND hwnd,
+										   void* pParam)
 {
-	SubscribeData data;
+	SubscribeData data(static_cast<WCHAR*>(pParam));
 	
 #if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
 	PropertySheetBase sheet(getResourceHandle(), L"Test", false);

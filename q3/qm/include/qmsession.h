@@ -177,7 +177,8 @@ public:
 						   Account* pAccount,
 						   Folder* pFolder,
 						   PasswordCallback* pPasswordCallback,
-						   HWND hwnd);
+						   HWND hwnd,
+						   void* pParam);
 	virtual bool canSubscribe(Account* pAccount,
 							  Folder* pFolder);
 	virtual qs::wstring_ptr getSubscribeText();

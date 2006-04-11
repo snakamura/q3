@@ -859,9 +859,10 @@ void qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_.get(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION9(MessageOpenURLAction,
+	ADD_ACTION10(MessageOpenURLAction,
 		IDM_MESSAGE_OPENURL,
 		pDocument_,
+		pPasswordManager_,
 		pFolderModel_.get(),
 		pMessageSelectionModel_.get(),
 		pSecurityModel_.get(),

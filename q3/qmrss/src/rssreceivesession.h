@@ -154,7 +154,8 @@ public:
 						   qm::Account* pAccount,
 						   qm::Folder* pFolder,
 						   qm::PasswordCallback* pPasswordCallback,
-						   HWND hwnd);
+						   HWND hwnd,
+						   void* pParam);
 	virtual bool canSubscribe(qm::Account* pAccount,
 							  qm::Folder* pFolder);
 	virtual qs::wstring_ptr getSubscribeText();

@@ -134,11 +134,13 @@ LRESULT qmrss::SendPage::onOk()
  *
  */
 
-qmrss::SubscribeData::SubscribeData() :
+qmrss::SubscribeData::SubscribeData(const WCHAR* pwszURL) :
 	bMakeMultipart_(false),
 	bUseDescriptionAsContent_(false),
 	bUpdateIfModified_(false)
 {
+	if (pwszURL)
+		wstrURL_ = allocWString(pwszURL);
 }
 
 qmrss::SubscribeData::~SubscribeData()

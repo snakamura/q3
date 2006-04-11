@@ -100,7 +100,7 @@ private:
 class SubscribeData
 {
 public:
-	SubscribeData();
+	explicit SubscribeData(const WCHAR* pwszURL);
 	~SubscribeData();
 
 private:

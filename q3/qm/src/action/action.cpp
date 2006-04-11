@@ -3160,12 +3160,8 @@ void qm::FolderSubscribeAction::invoke(const ActionEvent& event)
 	if (!p.first && !p.second)
 		return;
 	
-	Folder* pFolder = p.second;
-	Account* pAccount = p.first ? p.first : pFolder->getAccount();
-	std::auto_ptr<ReceiveSessionUI> pReceiveUI(
-		ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
-	DefaultPasswordCallback callback(pPasswordManager_);
-	pReceiveUI->subscribe(pDocument_, pAccount, pFolder, &callback, hwnd_);
+	subscribe(pDocument_, p.first ? p.first : p.second->getAccount(),
+		p.second, pPasswordManager_, hwnd_, 0);
 }
 
 bool qm::FolderSubscribeAction::isEnabled(const ActionEvent& event)
@@ -3197,6 +3193,19 @@ wstring_ptr qm::FolderSubscribeAction::getText(const ActionEvent& event)
 		wstrText = loadString(Application::getApplication().getResourceHandle(), IDS_ACTION_SUBSCRIBE);
 	
 	return wstrText;
+}
+
+void qm::FolderSubscribeAction::subscribe(Document* pDocument,
+										  Account* pAccount,
+										  Folder* pFolder,
+										  PasswordManager* pPasswordManager,
+										  HWND hwnd,
+										  void* pParam)
+{
+	std::auto_ptr<ReceiveSessionUI> pReceiveUI(
+		ReceiveSessionFactory::getUI(pAccount->getType(Account::HOST_RECEIVE)));
+	DefaultPasswordCallback callback(pPasswordManager);
+	pReceiveUI->subscribe(pDocument, pAccount, pFolder, &callback, hwnd, pParam);
 }
 
 
@@ -4526,6 +4535,7 @@ bool qm::MessageOpenRecentAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
+											   PasswordManager* pPasswordManager,
 											   FolderModelBase* pFolderModel,
 											   MessageSelectionModel* pMessageSelectionModel,
 											   SecurityModel* pSecurityModel,
@@ -4539,6 +4549,7 @@ qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
 		pExternalEditorManager, hwnd, pProfile, bExternalEditor,
 		Application::getApplication().getTemporaryFolder()),
 	pDocument_(pDocument),
+	pPasswordManager_(pPasswordManager),
 	pFolderModel_(pFolderModel),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
@@ -4555,10 +4566,53 @@ void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 	if (!pwszURL)
 		return;
 	
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+	if (wcsncmp(pwszURL, L"feed:", 5) == 0)
+		openFeedURL(pwszURL);
+	else
+		openMailtoURL(pwszURL, (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
+}
+
+void qm::MessageOpenURLAction::openMailtoURL(const WCHAR* pwszURL,
+											 bool bExternalEditor) const
+{
+	std::pair<Account*, bool> account(getAccount(L"mail", L"DefaultMailAccount"));
+	if (!account.second)
+		return;
+	
+	TemplateContext::Argument arg = {
+		L"url",
+		pwszURL
+	};
+	TemplateContext::ArgumentList listArgument(1, arg);
+	if (!processor_.process(L"url", listArgument, bExternalEditor, account.first)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_OPENURL);
+		return;
+	}
+}
+
+void qm::MessageOpenURLAction::openFeedURL(const WCHAR* pwszURL) const
+{
+	std::pair<Account*, bool> account(getAccount(L"rss", L"DefaultRssAccount"));
+	if (!account.second)
+		return;
+	
+	wstring_ptr wstrURL;
+	if (wcsncmp(pwszURL, L"feed://", 7) == 0)
+		wstrURL = concat(L"http:", pwszURL + 5);
+	else
+		wstrURL = allocWString(pwszURL + 5);
+	
+	FolderSubscribeAction::subscribe(pDocument_, account.first,
+		0, pPasswordManager_, hwnd_, wstrURL.get());
+}
+
+std::pair<Account*, bool> qm::MessageOpenURLAction::getAccount(const WCHAR* pwszClass,
+															   const WCHAR* pwszDefaultKey) const
+{
+	std::pair<Account*, Folder*> p(FolderActionUtil::getCurrent(pFolderModel_));
 	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
-	if (!pAccount || wcscmp(pAccount->getClass(), L"mail") != 0) {
-		wstring_ptr wstrAccount(pProfile_->getString(L"Global", L"DefaultMailAccount", L""));
+	if (!pAccount || wcscmp(pAccount->getClass(), pwszClass) != 0) {
+		wstring_ptr wstrAccount(pProfile_->getString(L"Global", pwszDefaultKey, L""));
 		if (*wstrAccount.get()) {
 			pAccount = pDocument_->getAccount(wstrAccount.get());
 		}
@@ -4566,27 +4620,17 @@ void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 			pAccount = 0;
 			const Document::AccountList& l = pDocument_->getAccounts();
 			for (Document::AccountList::const_iterator it = l.begin(); it != l.end() && !pAccount; ++it) {
-				if (wcscmp((*it)->getClass(), L"mail") == 0)
+				if (wcscmp((*it)->getClass(), pwszClass) == 0)
 					pAccount = *it;
 			}
 		}
 		if (!pAccount)
-			return;
+			return std::pair<Account*, bool>(0, false);
 	}
 	else {
 		pAccount = 0;
 	}
-	
-	TemplateContext::Argument arg = {
-		L"url",
-		pwszURL
-	};
-	TemplateContext::ArgumentList listArgument(1, arg);
-	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
-	if (!processor_.process(L"url", listArgument, bExternalEditor, pAccount)) {
-		ActionUtil::error(hwnd_, IDS_ERROR_OPENURL);
-		return;
-	}
+	return std::make_pair(pAccount, true);
 }
 
 
@@ -7300,7 +7344,7 @@ Account* qm::FolderActionUtil::getAccount(FolderSelectionModel* pModel)
 		return 0;
 }
 
-std::pair<Account*, Folder*> qm::FolderActionUtil::getCurrent(FolderModel* pModel)
+std::pair<Account*, Folder*> qm::FolderActionUtil::getCurrent(const FolderModelBase* pModel)
 {
 	std::pair<Account*, Folder*> p(pModel->getTemporary());
 	if (!p.first && !p.second)
@@ -7308,13 +7352,13 @@ std::pair<Account*, Folder*> qm::FolderActionUtil::getCurrent(FolderModel* pMode
 	return p;
 }
 
-Account* qm::FolderActionUtil::getAccount(FolderModel* pModel)
+Account* qm::FolderActionUtil::getAccount(const FolderModelBase* pModel)
 {
 	std::pair<Account*, Folder*> p(getCurrent(pModel));
 	return p.first ? p.first : p.second ? p.second->getAccount() : 0;
 }
 
-Folder* qm::FolderActionUtil::getFolder(FolderModel* pModel)
+Folder* qm::FolderActionUtil::getFolder(const FolderModelBase* pModel)
 {
 	return getCurrent(pModel).second;
 }

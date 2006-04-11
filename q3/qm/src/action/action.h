@@ -1509,6 +1509,14 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 	virtual qs::wstring_ptr getText(const qs::ActionEvent& event);
 
+public:
+	static void subscribe(Document* pDocument,
+						  Account* pAccount,
+						  Folder* pFolder,
+						  PasswordManager* pPasswordManager,
+						  HWND hwnd,
+						  void* pParam);
+
 private:
 	FolderSubscribeAction(const FolderSubscribeAction&);
 	FolderSubscribeAction& operator=(const FolderSubscribeAction&);
@@ -2176,6 +2184,7 @@ class MessageOpenURLAction : public qs::AbstractAction
 {
 public:
 	MessageOpenURLAction(Document* pDocument,
+						 PasswordManager* pPasswordManager,
 						 FolderModelBase* pFolderModel,
 						 MessageSelectionModel* pMessageSelectionModel,
 						 SecurityModel* pSecurityModel,
@@ -2190,12 +2199,20 @@ public:
 	virtual void invoke(const qs::ActionEvent& event);
 
 private:
+	void openMailtoURL(const WCHAR* pwszURL,
+					   bool bExternalEditor) const;
+	void openFeedURL(const WCHAR* pwszURL) const;
+	std::pair<Account*, bool> getAccount(const WCHAR* pwszClass,
+										 const WCHAR* pwszDefaultKey) const;
+
+private:
 	MessageOpenURLAction(const MessageOpenURLAction&);
 	MessageOpenURLAction& operator=(const MessageOpenURLAction&);
 
 private:
 	TemplateProcessor processor_;
 	Document* pDocument_;
+	PasswordManager* pPasswordManager_;
 	FolderModelBase* pFolderModel_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
@@ -3701,9 +3718,9 @@ public:
 							Account::FolderList* pListFolder);
 	static bool hasSelected(FolderSelectionModel* pModel);
 	static Account* getAccount(FolderSelectionModel* pModel);
-	static std::pair<Account*, Folder*> getCurrent(FolderModel* pModel);
-	static Account* getAccount(FolderModel* pModel);
-	static Folder* getFolder(FolderModel* pModel);
+	static std::pair<Account*, Folder*> getCurrent(const FolderModelBase* pModel);
+	static Account* getAccount(const FolderModelBase* pModel);
+	static Folder* getFolder(const FolderModelBase* pModel);
 };
 
 
