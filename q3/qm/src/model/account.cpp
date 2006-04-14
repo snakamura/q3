@@ -1784,9 +1784,9 @@ bool qm::Account::updateFolders()
 	return true;
 }
 
-std::pair<const WCHAR**, size_t> qm::Account::getFolderParamNames() const
+std::pair<const WCHAR**, size_t> qm::Account::getFolderParamNames(bool bSyncable) const
 {
-	return pImpl_->pProtocolDriver_->getFolderParamNames();
+	return pImpl_->pProtocolDriver_->getFolderParamNames(bSyncable);
 }
 
 void  qm::Account::setOffline(bool bOffline)

@@ -148,7 +148,7 @@ bool qmnntp::NntpDriver::getRemoteFolders(RemoteFolderList* pList)
 	return true;
 }
 
-std::pair<const WCHAR**, size_t> qmnntp::NntpDriver::getFolderParamNames()
+std::pair<const WCHAR**, size_t> qmnntp::NntpDriver::getFolderParamNames(bool bSyncable)
 {
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }

@@ -135,15 +135,20 @@ bool qmrss::RssDriver::getRemoteFolders(RemoteFolderList* pList)
 	return false;
 }
 
-std::pair<const WCHAR**, size_t> qmrss::RssDriver::getFolderParamNames()
+std::pair<const WCHAR**, size_t> qmrss::RssDriver::getFolderParamNames(bool bSyncable)
 {
-	return std::pair<const WCHAR**, size_t>(pwszParamNames__, countof(pwszParamNames__));
+	if (bSyncable)
+		return std::pair<const WCHAR**, size_t>(pwszParamNames__, countof(pwszParamNames__));
+	else
+		return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
 void qmrss::RssDriver::setDefaultFolderParams(NormalFolder* pFolder)
 {
-	for (int n = 0; n < countof(pwszParamNames__); ++n)
-		pFolder->setParam(pwszParamNames__[n], pwszParamValues__[n]);
+	if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
+		for (int n = 0; n < countof(pwszParamNames__); ++n)
+			pFolder->setParam(pwszParamNames__[n], pwszParamValues__[n]);
+	}
 }
 
 bool qmrss::RssDriver::getMessage(MessageHolder* pmh,

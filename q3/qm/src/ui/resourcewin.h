@@ -234,7 +234,6 @@
 #define IDC_APPLYTOALL                  1160
 #define IDC_APPLYTOCHILDREN             1161
 #define IDC_PARAMETER                   1163
-#define IDC_SYNCABLE                    1166
 #define IDC_COURSE                      1167
 #define IDC_CONFIRM                     1172
 #define IDC_SEQUENTIAL                  1173

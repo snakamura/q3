@@ -125,7 +125,7 @@ bool qmpop3::Pop3Driver::getRemoteFolders(RemoteFolderList* pList)
 	return false;
 }
 
-std::pair<const WCHAR**, size_t> qmpop3::Pop3Driver::getFolderParamNames()
+std::pair<const WCHAR**, size_t> qmpop3::Pop3Driver::getFolderParamNames(bool bSyncable)
 {
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }

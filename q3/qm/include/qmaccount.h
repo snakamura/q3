@@ -176,7 +176,7 @@ public:
 						unsigned int nFlags,
 						unsigned int nMask);
 	bool updateFolders();
-	std::pair<const WCHAR**, size_t> getFolderParamNames() const;
+	std::pair<const WCHAR**, size_t> getFolderParamNames(bool bSyncable) const;
 	
 	void setOffline(bool bOffline);
 	bool compact(MessageOperationCallback* pCallback);

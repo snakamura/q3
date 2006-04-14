@@ -43,7 +43,7 @@ public:
 							const WCHAR* pwszName);
 	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
 	virtual bool getRemoteFolders(RemoteFolderList* pList);
-	virtual std::pair<const WCHAR**, size_t> getFolderParamNames();
+	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(bool bSyncable);
 	virtual void setDefaultFolderParams(qm::NormalFolder* pFolder);
 	
 	virtual bool getMessage(qm::MessageHolder* pmh,

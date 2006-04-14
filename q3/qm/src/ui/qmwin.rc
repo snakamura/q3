@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// 英語 (アメリカ) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -78,7 +78,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,115,105,50,12
 END
 
-IDD_CREATEFOLDER DIALOG DISCARDABLE  0, 0, 165, 107
+IDD_CREATEFOLDER DIALOG DISCARDABLE  0, 0, 165, 92
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Create Folder"
 FONT 9, "Tahoma"
@@ -92,10 +92,8 @@ BEGIN
                     10,45,60,10
     CONTROL         "&Query",IDC_QUERYFOLDER,"Button",BS_AUTORADIOBUTTON,10,
                     55,60,10
-    CONTROL         "&Synchronizable",IDC_SYNCABLE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,75,70,10
-    DEFPUSHBUTTON   "OK",IDOK,55,90,50,12
-    PUSHBUTTON      "Cancel",IDCANCEL,110,90,50,12
+    DEFPUSHBUTTON   "OK",IDOK,55,75,50,12
+    PUSHBUTTON      "Cancel",IDCANCEL,110,75,50,12
 END
 
 IDD_PROGRESS DIALOG DISCARDABLE  0, 0, 185, 57
@@ -1915,7 +1913,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (U.S.) resources
+#endif    // 英語 (アメリカ) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

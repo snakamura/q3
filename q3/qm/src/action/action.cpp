@@ -2536,8 +2536,6 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 	unsigned int nFlags = 0;
 	if (bAllowRemote)
 		nFlags |= CreateFolderDialog::FLAG_ALLOWREMOTE;
-	if (pAccount->isSupport(Account::SUPPORT_LOCALFOLDERSYNC))
-		nFlags |= CreateFolderDialog::FLAG_ALLOWLOCALSYNC;
 	
 	CreateFolderDialog dialog(type, nFlags);
 	if (dialog.doModal(hwnd_) == IDOK) {
@@ -2546,7 +2544,7 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 		switch (dialog.getType()) {
 		case CreateFolderDialog::TYPE_LOCALFOLDER:
 			pNormalFolder = pAccount->createNormalFolder(
-				dialog.getName(), pFolder, false, dialog.isSyncable());
+				dialog.getName(), pFolder, false, false);
 			break;
 		case CreateFolderDialog::TYPE_REMOTEFOLDER:
 			pNormalFolder = pAccount->createNormalFolder(
@@ -2569,14 +2567,6 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 			Account::FolderList l(1, pQueryFolder);
 			FolderPropertyAction::openProperty(l,
 				FolderPropertyAction::OPEN_CONDITION, hwnd_, pProfile_);
-		}
-		else {
-			std::pair<const WCHAR**, size_t> params(pAccount->getFolderParamNames());
-			if (params.second) {
-				Account::FolderList l(1, pNormalFolder);
-				FolderPropertyAction::openProperty(l,
-					FolderPropertyAction::OPEN_PARAMETER, hwnd_, pProfile_);
-			}
 		}
 	}
 }
@@ -3029,11 +3019,13 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 	std::auto_ptr<FolderParameterPage> pParameterPage;
 	if (listFolder.size() == 1 &&
 		listFolder.front()->getType() == Folder::TYPE_NORMAL) {
-		Account* pAccount = listFolder.front()->getAccount();
-		std::pair<const WCHAR**, size_t> params(pAccount->getFolderParamNames());
+		Folder* pFolder = listFolder.front();
+		Account* pAccount = pFolder->getAccount();
+		bool bSyncable = pFolder->isFlag(Folder::FLAG_SYNCABLE);
+		std::pair<const WCHAR**, size_t> params(pAccount->getFolderParamNames(bSyncable));
 		if (params.second != 0) {
 			pParameterPage.reset(new FolderParameterPage(
-				listFolder.front(), params.first, params.second));
+				pFolder, params.first, params.second));
 			sheet.add(pParameterPage.get());
 			if (open == OPEN_PARAMETER)
 				sheet.setStartPage(1);

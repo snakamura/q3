@@ -331,7 +331,7 @@ bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 	return true;
 }
 
-std::pair<const WCHAR**, size_t> qmimap4::Imap4Driver::getFolderParamNames()
+std::pair<const WCHAR**, size_t> qmimap4::Imap4Driver::getFolderParamNames(bool bSyncable)
 {
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }

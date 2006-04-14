@@ -46,8 +46,7 @@ public:
 	};
 	
 	enum Flag {
-		FLAG_ALLOWREMOTE	= 0x01,
-		FLAG_ALLOWLOCALSYNC	= 0x02
+		FLAG_ALLOWREMOTE	= 0x01
 	};
 
 public:
@@ -58,7 +57,6 @@ public:
 public:
 	Type getType() const;
 	const WCHAR* getName() const;
-	bool isSyncable() const;
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -73,7 +71,6 @@ protected:
 
 private:
 	LRESULT onNameChange();
-	LRESULT onTypeChange(UINT nId);
 
 private:
 	void updateState();
@@ -86,7 +83,6 @@ private:
 	Type type_;
 	unsigned int nFlags_;
 	qs::wstring_ptr wstrName_;
-	bool bSyncable_;
 };
 
 
