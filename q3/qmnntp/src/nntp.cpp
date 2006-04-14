@@ -358,8 +358,12 @@ bool qmnntp::Nntp::newGroups(const WCHAR* pwszDate,
 	assert(pwszTime && wcslen(pwszTime) == 6);
 	assert(ppGroupsData);
 	
+	string_ptr strDate(wcs2mbs(pwszDate));
+	string_ptr strTime(wcs2mbs(pwszTime));
+	
 	CHAR szCommand[128];
-	sprintf(szCommand, "NEWGROUPS %s %s%s\r\n", pwszDate, pwszTime, bGMT ? " GMT" : "");
+	sprintf(szCommand, "NEWGROUPS %s %s%s\r\n",
+		strDate.get(), strTime.get(), bGMT ? " GMT" : "");
 	
 	const CHAR* pszCodes[] = {
 		"231"

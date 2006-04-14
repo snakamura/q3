@@ -286,8 +286,7 @@ void qmnntp::SubscribeDialog::refresh()
 
 bool qmnntp::SubscribeDialog::refreshGroup()
 {
-	// TODO
-	// Use NEWGROUPS if groups is not empty.
+	Time time(Time::getCurrentTime());
 	
 	SubAccount* pSubAccount = pAccount_->getCurrentSubAccount();
 	
@@ -303,12 +302,23 @@ bool qmnntp::SubscribeDialog::refreshGroup()
 		return false;
 	
 	std::auto_ptr<GroupsData> pGroupsData;
-	if (!nntp.list(&pGroupsData))
-		return false;
+	const WCHAR* pwszDate = pGroups_->getDate();
+	const WCHAR* pwszTime = pGroups_->getTime();
+	if (pGroups_->getGroupList().empty() || !pwszDate || !pwszTime) {
+		if (!nntp.list(&pGroupsData))
+			return false;
+	}
+	else {
+		if (!nntp.newGroups(pwszDate, pwszTime, true, &pGroupsData))
+			return false;
+	}
 	
 	nntp.disconnect();
 	
-	pGroups_->add(pGroupsData.get());
+	wstring_ptr wstrDate(time.format(L"%Y2%M0%D", Time::FORMAT_UTC));
+	wstring_ptr wstrTime(time.format(L"%h%m%s", Time::FORMAT_UTC));
+	pGroups_->add(pGroupsData.get(), wstrDate.get(), wstrTime.get());
+	
 	refresh();
 	
 	return true;

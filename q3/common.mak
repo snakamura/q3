@@ -32,6 +32,7 @@ CESDKHPCPROJADIR		= C:/Program Files/Windows CE Tools/wce211/MS HPC Pro
 CESDKHPCPROENDIR		= C:/Program Files/Windows CE Tools/wce211/MS HPC Pro
 SVNDIR					= C:/Program Files/Subversion
 STLPORTDIR				= ../lib/stlport
+BOOSTDIR				= ../lib/boost
 KCTRLDIR				= ../lib/kctrl
 
 -include ../env.mak
@@ -607,6 +608,10 @@ else
 	STLPORTFLAGS		+= -D_STLP_IMPORT_NODE_ALLOC
 endif
 DEFINES					+= $(STLPORTFLAGS)
+#############################################################################
+
+# BOOST #####################################################################
+INCLUDES				+= -I"$(BOOSTDIR)"
 #############################################################################
 
 # KCTRL #####################################################################

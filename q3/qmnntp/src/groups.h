@@ -43,10 +43,16 @@ public:
 
 public:
 	const GroupList& getGroupList() const;
-	void add(const GroupsData* pData);
+	const WCHAR* getDate() const;
+	const WCHAR* getTime() const;
+	void add(const GroupsData* pData,
+			 const WCHAR* pwszDate,
+			 const WCHAR* pwszTime);
 	bool save() const;
 
 public:
+	void setDateTime(const WCHAR* pwszDate,
+					 const WCHAR* pwszTime);
 	void add(std::auto_ptr<Group> pGroup);
 
 private:
@@ -60,6 +66,8 @@ private:
 private:
 	qs::wstring_ptr wstrPath_;
 	GroupList listGroup_;
+	qs::wstring_ptr wstrDate_;
+	qs::wstring_ptr wstrTime_;
 	mutable bool bModified_;
 };
 

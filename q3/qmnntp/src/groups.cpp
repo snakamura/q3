@@ -43,8 +43,22 @@ const Groups::GroupList& qmnntp::Groups::getGroupList() const
 	return listGroup_;
 }
 
-void qmnntp::Groups::add(const GroupsData* pData)
+const WCHAR* qmnntp::Groups::getDate() const
 {
+	return wstrDate_.get();
+}
+
+const WCHAR* qmnntp::Groups::getTime() const
+{
+	return wstrTime_.get();
+}
+
+void qmnntp::Groups::add(const GroupsData* pData,
+						 const WCHAR* pwszDate,
+						 const WCHAR* pwszTime)
+{
+	setDateTime(pwszDate, pwszTime);
+	
 	size_t nCount = pData->getCount();
 	if (nCount == 0)
 		return;
@@ -98,6 +112,18 @@ void qmnntp::Groups::add(std::auto_ptr<Group> pGroup)
 	
 	listGroup_.insert(it, pGroup.get());
 	pGroup.release();
+	
+	bModified_ = true;
+}
+
+void qmnntp::Groups::setDateTime(const WCHAR* pwszDate,
+								 const WCHAR* pwszTime)
+{
+	assert(pwszDate);
+	assert(pwszTime);
+	
+	wstrDate_ = allocWString(pwszDate);
+	wstrTime_ = allocWString(pwszTime);
 	
 	bModified_ = true;
 }
@@ -169,6 +195,22 @@ bool qmnntp::GroupsContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 	if (wcscmp(pwszLocalName, L"groups") == 0) {
 		if (state_ != STATE_ROOT)
 			return false;
+		
+		const WCHAR* pwszDate = 0;
+		const WCHAR* pwszTime = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"date") == 0)
+				pwszDate = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"time") == 0)
+				pwszTime = attributes.getValue(n);
+			else
+				return false;
+		}
+		
+		if (pwszDate && pwszTime)
+			pGroups_->setDateTime(pwszDate, pwszTime);
+		
 		state_ = STATE_GROUPS;
 	}
 	else if (wcscmp(pwszLocalName, L"group") == 0) {
@@ -246,8 +288,13 @@ qmnntp::GroupsWriter::~GroupsWriter()
 
 bool qmnntp::GroupsWriter::write(const Groups* pGroups)
 {
+	const SimpleAttributes::Item items[] = {
+		{ L"date",	pGroups->getDate(),	!pGroups->getDate()	},
+		{ L"time",	pGroups->getTime(),	!pGroups->getTime()	}
+	};
+	SimpleAttributes attrs(items, countof(items));
 	if (!handler_.startDocument() ||
-		!handler_.startElement(0, 0, L"groups", DefaultAttributes()))
+		!handler_.startElement(0, 0, L"groups", attrs))
 		return false;
 	
 	const Groups::GroupList& l = pGroups->getGroupList();
