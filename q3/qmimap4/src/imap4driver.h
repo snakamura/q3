@@ -45,7 +45,6 @@ public:
 	virtual ~Imap4Driver();
 
 public:
-	virtual bool init();
 	virtual bool save(bool bForce);
 	virtual bool isSupport(qm::Account::Support support);
 	virtual void setOffline(bool bOffline);
@@ -59,10 +58,7 @@ public:
 	virtual bool moveFolder(qm::NormalFolder* pFolder,
 							qm::NormalFolder* pParent,
 							const WCHAR* pwszName);
-	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
 	virtual bool getRemoteFolders(RemoteFolderList* pList);
-	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(bool bSyncable);
-	virtual void setDefaultFolderParams(qm::NormalFolder* pFolder);
 	
 	virtual bool getMessage(qm::MessageHolder* pmh,
 							unsigned int nFlags,

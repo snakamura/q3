@@ -55,16 +55,6 @@ qmnntp::NntpDriver::~NntpDriver()
 	clearSession();
 }
 
-bool qmnntp::NntpDriver::init()
-{
-	return true;
-}
-
-bool qmnntp::NntpDriver::save(bool bForce)
-{
-	return true;
-}
-
 bool qmnntp::NntpDriver::isSupport(Account::Support support)
 {
 	return (nSupport__ & support) != 0;
@@ -84,34 +74,6 @@ void qmnntp::NntpDriver::setSubAccount(qm::SubAccount* pSubAccount)
 		pSubAccount_ = pSubAccount;
 		nForceDisconnect_ = pSubAccount_->getProperty(L"Nntp", L"ForceDisconnect", 0);
 	}
-}
-
-std::auto_ptr<NormalFolder> qmnntp::NntpDriver::createFolder(const WCHAR* pwszName,
-															 Folder* pParent)
-{
-	assert(false);
-	return std::auto_ptr<NormalFolder>(0);
-}
-
-bool qmnntp::NntpDriver::removeFolder(NormalFolder* pFolder)
-{
-	assert(false);
-	return false;
-}
-
-bool qmnntp::NntpDriver::renameFolder(NormalFolder* pFolder,
-									  const WCHAR* pwszName)
-{
-	assert(false);
-	return false;
-}
-
-bool qmnntp::NntpDriver::moveFolder(NormalFolder* pFolder,
-									NormalFolder* pParent,
-									const WCHAR* pwszName)
-{
-	assert(false);
-	return false;
 }
 
 bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
@@ -142,21 +104,6 @@ bool qmnntp::NntpDriver::createDefaultFolders(Account::FolderList* pList)
 	return true;
 }
 
-bool qmnntp::NntpDriver::getRemoteFolders(RemoteFolderList* pList)
-{
-	// TODO
-	return true;
-}
-
-std::pair<const WCHAR**, size_t> qmnntp::NntpDriver::getFolderParamNames(bool bSyncable)
-{
-	return std::pair<const WCHAR**, size_t>(0, 0);
-}
-
-void qmnntp::NntpDriver::setDefaultFolderParams(NormalFolder* pFolder)
-{
-}
-
 bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 									unsigned int nFlags,
 									GetMessageCallback* pCallback)
@@ -183,49 +130,6 @@ bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 		return false;
 	
 	return true;
-}
-
-bool qmnntp::NntpDriver::setMessagesFlags(NormalFolder* pFolder,
-										  const MessageHolderList& l,
-										  unsigned int nFlags,
-										  unsigned int nMask)
-{
-	assert(false);
-	return false;
-}
-
-bool qmnntp::NntpDriver::setMessagesLabel(NormalFolder* pFolder,
-										  const MessageHolderList& l,
-										  const WCHAR* pwszLabel)
-{
-	assert(false);
-	return false;
-}
-
-bool qmnntp::NntpDriver::appendMessage(NormalFolder* pFolder,
-									   const CHAR* pszMessage,
-									   size_t nLen,
-									   unsigned int nFlags,
-									   const WCHAR* pwszLabel)
-{
-	assert(false);
-	return false;
-}
-
-bool qmnntp::NntpDriver::removeMessages(NormalFolder* pFolder,
-										const MessageHolderList& l)
-{
-	assert(false);
-	return false;
-}
-
-bool qmnntp::NntpDriver::copyMessages(const MessageHolderList& l,
-									  NormalFolder* pFolderFrom,
-									  NormalFolder* pFolderTo,
-									  bool bMove)
-{
-	assert(false);
-	return false;
 }
 
 bool qmnntp::NntpDriver::prepareSession(NormalFolder* pFolder)

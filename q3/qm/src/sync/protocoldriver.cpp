@@ -36,6 +36,123 @@ qm::ProtocolDriver::~ProtocolDriver()
 {
 }
 
+bool qm::ProtocolDriver::init()
+{
+	return true;
+}
+
+bool qm::ProtocolDriver::save(bool bForce)
+{
+	return true;
+}
+
+void qm::ProtocolDriver::setOffline(bool bOffline)
+{
+}
+
+void qm::ProtocolDriver::setSubAccount(SubAccount* pSubAccount)
+{
+}
+
+std::auto_ptr<NormalFolder> qm::ProtocolDriver::createFolder(const WCHAR* pwszName,
+															 Folder* pParent)
+{
+	assert(false);
+	return std::auto_ptr<NormalFolder>(0);
+}
+
+bool qm::ProtocolDriver::removeFolder(NormalFolder* pFolder)
+{
+	assert(false);
+	return false;
+}
+
+bool qm::ProtocolDriver::renameFolder(NormalFolder* pFolder,
+									  const WCHAR* pwszName)
+{
+	assert(false);
+	return false;
+}
+
+bool qm::ProtocolDriver::moveFolder(NormalFolder* pFolder,
+									NormalFolder* pParent,
+									const WCHAR* pwszName)
+{
+	assert(false);
+	return false;
+}
+
+bool qm::ProtocolDriver::createDefaultFolders(Account::FolderList* pList)
+{
+	return true;
+}
+
+bool qm::ProtocolDriver::getRemoteFolders(RemoteFolderList* pList)
+{
+	assert(false);
+	return false;
+}
+
+std::pair<const WCHAR**, size_t> qm::ProtocolDriver::getFolderParamNames(bool bSyncable)
+{
+	return std::pair<const WCHAR**, size_t>(0, 0);
+}
+
+void qm::ProtocolDriver::setDefaultFolderParams(NormalFolder* pFolder)
+{
+}
+
+bool qm::ProtocolDriver::getMessage(MessageHolder* pmh,
+									unsigned int nFlags,
+									GetMessageCallback* pCallback)
+{
+	assert(false);
+	return false;
+}
+
+bool qm::ProtocolDriver::setMessagesFlags(NormalFolder* pFolder,
+										  const MessageHolderList& l,
+										  unsigned int nFlags,
+										  unsigned int nMask)
+{
+	assert(false);
+	return false;
+}
+
+bool qm::ProtocolDriver::setMessagesLabel(NormalFolder* pFolder,
+										  const MessageHolderList& l,
+										  const WCHAR* pwszLabel)
+{
+	assert(false);
+	return false;
+}
+
+bool qm::ProtocolDriver::appendMessage(NormalFolder* pFolder,
+									   const CHAR* pszMessage,
+									   size_t nLen,
+									   unsigned int nFlags,
+									   const WCHAR* pwszLabel)
+{
+	assert(false);
+	return false;
+}
+
+bool qm::ProtocolDriver::removeMessages(NormalFolder* pFolder,
+										const MessageHolderList& l)
+{
+	assert(false);
+	return false;
+}
+
+bool qm::ProtocolDriver::copyMessages(const MessageHolderList& l,
+									  NormalFolder* pFolderFrom,
+									  NormalFolder* pFolderTo,
+									  bool bMove)
+{
+	assert(false);
+	return false;
+}
+
 
 /****************************************************************************
  *

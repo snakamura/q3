@@ -55,55 +55,9 @@ qmrss::RssDriver::~RssDriver()
 {
 }
 
-bool qmrss::RssDriver::init()
-{
-	return true;
-}
-
-bool qmrss::RssDriver::save(bool bForce)
-{
-	return true;
-}
-
 bool qmrss::RssDriver::isSupport(Account::Support support)
 {
 	return (nSupport__ & support) != 0;
-}
-
-void qmrss::RssDriver::setOffline(bool bOffline)
-{
-}
-
-void qmrss::RssDriver::setSubAccount(qm::SubAccount* pSubAccount)
-{
-}
-
-std::auto_ptr<NormalFolder> qmrss::RssDriver::createFolder(const WCHAR* pwszName,
-														   Folder* pParent)
-{
-	assert(false);
-	return std::auto_ptr<NormalFolder>(0);
-}
-
-bool qmrss::RssDriver::removeFolder(NormalFolder* pFolder)
-{
-	assert(false);
-	return false;
-}
-
-bool qmrss::RssDriver::renameFolder(NormalFolder* pFolder,
-									const WCHAR* pwszName)
-{
-	assert(false);
-	return false;
-}
-
-bool qmrss::RssDriver::moveFolder(NormalFolder* pFolder,
-								  NormalFolder* pParent,
-								  const WCHAR* pwszName)
-{
-	assert(false);
-	return false;
 }
 
 bool qmrss::RssDriver::createDefaultFolders(Account::FolderList* pList)
@@ -129,12 +83,6 @@ bool qmrss::RssDriver::createDefaultFolders(Account::FolderList* pList)
 	return true;
 }
 
-bool qmrss::RssDriver::getRemoteFolders(RemoteFolderList* pList)
-{
-	assert(false);
-	return false;
-}
-
 std::pair<const WCHAR**, size_t> qmrss::RssDriver::getFolderParamNames(bool bSyncable)
 {
 	if (bSyncable)
@@ -149,57 +97,6 @@ void qmrss::RssDriver::setDefaultFolderParams(NormalFolder* pFolder)
 		for (int n = 0; n < countof(pwszParamNames__); ++n)
 			pFolder->setParam(pwszParamNames__[n], pwszParamValues__[n]);
 	}
-}
-
-bool qmrss::RssDriver::getMessage(MessageHolder* pmh,
-								  unsigned int nFlags,
-								  GetMessageCallback* pCallback)
-{
-	assert(false);
-	return false;
-}
-
-bool qmrss::RssDriver::setMessagesFlags(NormalFolder* pFolder,
-										const MessageHolderList& l,
-										unsigned int nFlags,
-										unsigned int nMask)
-{
-	assert(false);
-	return false;
-}
-
-bool qmrss::RssDriver::setMessagesLabel(NormalFolder* pFolder,
-										const MessageHolderList& l,
-										const WCHAR* pwszLabel)
-{
-	assert(false);
-	return false;
-}
-
-bool qmrss::RssDriver::appendMessage(NormalFolder* pFolder,
-									 const CHAR* pszMessage,
-									 size_t nLen,
-									 unsigned int nFlags,
-									 const WCHAR* pwszLabel)
-{
-	assert(false);
-	return false;
-}
-
-bool qmrss::RssDriver::removeMessages(NormalFolder* pFolder,
-									  const MessageHolderList& l)
-{
-	assert(false);
-	return false;
-}
-
-bool qmrss::RssDriver::copyMessages(const MessageHolderList& l,
-									NormalFolder* pFolderFrom,
-									NormalFolder* pFolderTo,
-									bool bMove)
-{
-	assert(false);
-	return false;
 }
 
 

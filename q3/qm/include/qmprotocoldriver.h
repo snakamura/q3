@@ -57,46 +57,46 @@ public:
 	virtual ~ProtocolDriver();
 
 public:
-	virtual bool init() = 0;
-	virtual bool save(bool bForce) = 0;
+	virtual bool init();
+	virtual bool save(bool bForce);
 	virtual bool isSupport(Account::Support support) = 0;
-	virtual void setOffline(bool bOffline) = 0;
-	virtual void setSubAccount(SubAccount* pSubAccount) = 0;
+	virtual void setOffline(bool bOffline);
+	virtual void setSubAccount(SubAccount* pSubAccount);
 	
 	virtual std::auto_ptr<NormalFolder> createFolder(const WCHAR* pwszName,
-													 Folder* pParent) = 0;
-	virtual bool removeFolder(NormalFolder* pFolder) = 0;
+													 Folder* pParent);
+	virtual bool removeFolder(NormalFolder* pFolder);
 	virtual bool renameFolder(NormalFolder* pFolder,
-							  const WCHAR* pwszName) = 0;
+							  const WCHAR* pwszName);
 	virtual bool moveFolder(NormalFolder* pFolder,
 							NormalFolder* pParent,
-							const WCHAR* pwszName) = 0;
-	virtual bool createDefaultFolders(Account::FolderList* pList) = 0;
-	virtual bool getRemoteFolders(RemoteFolderList* pList) = 0;
-	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(bool bSyncable) = 0;
-	virtual void setDefaultFolderParams(NormalFolder* pFolder) = 0;
+							const WCHAR* pwszName);
+	virtual bool createDefaultFolders(Account::FolderList* pList);
+	virtual bool getRemoteFolders(RemoteFolderList* pList);
+	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(bool bSyncable);
+	virtual void setDefaultFolderParams(NormalFolder* pFolder);
 	
 	virtual bool getMessage(MessageHolder* pmh,
 							unsigned int nFlags,
-							GetMessageCallback* pCallback) = 0;
+							GetMessageCallback* pCallback);
 	virtual bool setMessagesFlags(NormalFolder* pFolder,
 								  const MessageHolderList& l,
 								  unsigned int nFlags,
-								  unsigned int nMask) = 0;
+								  unsigned int nMask);
 	virtual bool setMessagesLabel(NormalFolder* pFolder,
 								  const MessageHolderList& l,
-								  const WCHAR* pwszLabel) = 0;
+								  const WCHAR* pwszLabel);
 	virtual bool appendMessage(NormalFolder* pFolder,
 							   const CHAR* pszMessage,
 							   size_t nLen,
 							   unsigned int nFlags,
-							   const WCHAR* pwszLabel) = 0;
+							   const WCHAR* pwszLabel);
 	virtual bool removeMessages(NormalFolder* pFolder,
-								const MessageHolderList& l) = 0;
+								const MessageHolderList& l);
 	virtual bool copyMessages(const MessageHolderList& l,
 							  NormalFolder* pFolderFrom,
 							  NormalFolder* pFolderTo,
-							  bool bMove) = 0;
+							  bool bMove);
 };
 
 

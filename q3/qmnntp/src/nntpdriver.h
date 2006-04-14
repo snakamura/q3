@@ -37,46 +37,15 @@ public:
 	virtual ~NntpDriver();
 
 public:
-	virtual bool init();
-	virtual bool save(bool bForce);
 	virtual bool isSupport(qm::Account::Support support);
 	virtual void setOffline(bool bOffline);
 	virtual void setSubAccount(qm::SubAccount* pSubAccount);
 	
-	virtual std::auto_ptr<qm::NormalFolder> createFolder(const WCHAR* pwszName,
-														 qm::Folder* pParent);
-	virtual bool removeFolder(qm::NormalFolder* pFolder);
-	virtual bool renameFolder(qm::NormalFolder* pFolder,
-							  const WCHAR* pwszName);
-	virtual bool moveFolder(qm::NormalFolder* pFolder,
-							qm::NormalFolder* pParent,
-							const WCHAR* pwszName);
 	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
-	virtual bool getRemoteFolders(RemoteFolderList* pList);
-	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(bool bSyncable);
-	virtual void setDefaultFolderParams(qm::NormalFolder* pFolder);
 	
 	virtual bool getMessage(qm::MessageHolder* pmh,
 							unsigned int nFlags,
 							GetMessageCallback* pCallback);
-	virtual bool setMessagesFlags(qm::NormalFolder* pFolder,
-								  const qm::MessageHolderList& l,
-								  unsigned int nFlags,
-								  unsigned int nMask);
-	virtual bool setMessagesLabel(qm::NormalFolder* pFolder,
-								  const qm::MessageHolderList& l,
-								  const WCHAR* pwszLabel);
-	virtual bool appendMessage(qm::NormalFolder* pFolder,
-							   const CHAR* pszMessage,
-							   size_t nLen,
-							   unsigned int nFlags,
-							   const WCHAR* pwszLabel);
-	virtual bool removeMessages(qm::NormalFolder* pFolder,
-								const qm::MessageHolderList& l);
-	virtual bool copyMessages(const qm::MessageHolderList& l,
-							  qm::NormalFolder* pFolderFrom,
-							  qm::NormalFolder* pFolderTo,
-							  bool bMove);
 
 private:
 	bool prepareSession(qm::NormalFolder* pFolder);

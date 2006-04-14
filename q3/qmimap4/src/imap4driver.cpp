@@ -74,11 +74,6 @@ qmimap4::Imap4Driver::~Imap4Driver()
 {
 }
 
-bool qmimap4::Imap4Driver::init()
-{
-	return true;
-}
-
 bool qmimap4::Imap4Driver::save(bool bForce)
 {
 	Lock<CriticalSection> lock(cs_);
@@ -311,12 +306,6 @@ bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
 	return true;
 }
 
-bool qmimap4::Imap4Driver::createDefaultFolders(Account::FolderList* pList)
-{
-	assert(pList);
-	return true;
-}
-
 bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 {
 	assert(pList);
@@ -329,15 +318,6 @@ bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 	getter.getFolders(pList);
 	
 	return true;
-}
-
-std::pair<const WCHAR**, size_t> qmimap4::Imap4Driver::getFolderParamNames(bool bSyncable)
-{
-	return std::pair<const WCHAR**, size_t>(0, 0);
-}
-
-void qmimap4::Imap4Driver::setDefaultFolderParams(NormalFolder* pFolder)
-{
 }
 
 bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,

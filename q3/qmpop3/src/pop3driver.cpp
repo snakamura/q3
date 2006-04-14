@@ -39,55 +39,9 @@ qmpop3::Pop3Driver::~Pop3Driver()
 {
 }
 
-bool qmpop3::Pop3Driver::init()
-{
-	return true;
-}
-
-bool qmpop3::Pop3Driver::save(bool bForce)
-{
-	return true;
-}
-
 bool qmpop3::Pop3Driver::isSupport(Account::Support support)
 {
 	return (nSupport__ & support) != 0;
-}
-
-void qmpop3::Pop3Driver::setOffline(bool bOffline)
-{
-}
-
-void qmpop3::Pop3Driver::setSubAccount(SubAccount* pSubAccount)
-{
-}
-
-std::auto_ptr<NormalFolder> qmpop3::Pop3Driver::createFolder(const WCHAR* pwszName,
-															 Folder* pParent)
-{
-	assert(false);
-	return std::auto_ptr<NormalFolder>(0);
-}
-
-bool qmpop3::Pop3Driver::removeFolder(NormalFolder* pFolder)
-{
-	assert(false);
-	return false;
-}
-
-bool qmpop3::Pop3Driver::renameFolder(NormalFolder* pFolder,
-									  const WCHAR* pwszName)
-{
-	assert(false);
-	return false;
-}
-
-bool qmpop3::Pop3Driver::moveFolder(NormalFolder* pFolder,
-									NormalFolder* pParent,
-									const WCHAR* pwszName)
-{
-	assert(false);
-	return false;
 }
 
 bool qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
@@ -117,72 +71,6 @@ bool qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 	}
 	
 	return true;
-}
-
-bool qmpop3::Pop3Driver::getRemoteFolders(RemoteFolderList* pList)
-{
-	assert(false);
-	return false;
-}
-
-std::pair<const WCHAR**, size_t> qmpop3::Pop3Driver::getFolderParamNames(bool bSyncable)
-{
-	return std::pair<const WCHAR**, size_t>(0, 0);
-}
-
-void qmpop3::Pop3Driver::setDefaultFolderParams(NormalFolder* pFolder)
-{
-}
-
-bool qmpop3::Pop3Driver::getMessage(MessageHolder* pmh,
-									unsigned int nFlags,
-									GetMessageCallback* pCallback)
-{
-	assert(false);
-	return false;
-}
-
-bool qmpop3::Pop3Driver::setMessagesFlags(NormalFolder* pFolder,
-										  const MessageHolderList& l,
-										  unsigned int nFlags,
-										  unsigned int nMask)
-{
-	assert(false);
-	return false;
-}
-
-bool qmpop3::Pop3Driver::setMessagesLabel(NormalFolder* pFolder,
-										  const MessageHolderList& l,
-										  const WCHAR* pwszLabel)
-{
-	assert(false);
-	return false;
-}
-
-bool qmpop3::Pop3Driver::appendMessage(NormalFolder* pFolder,
-									   const CHAR* pszMessage,
-									   size_t nLen,
-									   unsigned int nFlags,
-									   const WCHAR* pwszLabel)
-{
-	assert(false);
-	return false;
-}
-
-bool qmpop3::Pop3Driver::removeMessages(NormalFolder* pFolder,
-										const MessageHolderList& l)
-{
-	assert(false);
-	return false;
-}
-
-bool qmpop3::Pop3Driver::copyMessages(const MessageHolderList& l,
-									  NormalFolder* pFolderFrom,
-									  NormalFolder* pFolderTo,
-									  bool bMove)
-{
-	assert(false);
-	return false;
 }
 
 
