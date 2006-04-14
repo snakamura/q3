@@ -406,7 +406,7 @@
 			<menuitem text="閉じる(&amp;C)" action="FileClose"/>
 		</popupmenu>
 		<popupmenu text="表示(&amp;V)">
-			<popupmenu text="ソース(&amp;S)">
+			<popupmenu text="ソート(&amp;S)">
 				<menuitem text="名前(&amp;N)" action="ViewSortName"/>
 				<menuitem text="アドレス(&amp;A)" action="ViewSortAddress"/>
 				<menuitem text="コメント(&amp;C)" action="ViewSortComment"/>
