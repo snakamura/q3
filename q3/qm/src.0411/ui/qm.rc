@@ -264,12 +264,13 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_DEFAULTSUBACCOUNT   "(デフォルト)"
-    IDS_NORMALFOLDER        "通常フォルダ"
-    IDS_QUERYFOLDER         "検索フォルダ"
     IDS_LOCALFOLDER         "ローカル"
+    IDS_SYNCABLELOCALFOLDER "ローカル (同期可能)"
     IDS_REMOTEFOLDER        "リモート"
-    IDS_FOLDERTYPETEMPLATE  "%s (%s)"
+    IDS_QUERYFOLDER         "検索"
     IDS_OSDEFAULT           "OSのデフォルト"
+    IDS_ALLFOLDER           "(すべてのフォルダ)"
+    IDS_UNSPECIFIED         "(未指定)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -309,8 +310,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ALLFOLDER           "(すべてのフォルダ)"
-    IDS_UNSPECIFIED         "(未指定)"
     IDS_RESOURCEPATH        "パス"
     IDS_INVOKEACTION        "アクションの起動"
     IDS_ACTION              "アクション(&A)"

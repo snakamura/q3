@@ -155,17 +155,27 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
 		setDlgItemInt(IDC_ID, pFolder->getId());
 		
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrTemplate(loadString(hInst, IDS_FOLDERTYPETEMPLATE));
-		UINT nTypeId = pFolder->getType() == Folder::TYPE_NORMAL ?
-			IDS_NORMALFOLDER : IDS_QUERYFOLDER;
-		UINT nLocalId = pFolder->isFlag(Folder::FLAG_LOCAL) ?
-			IDS_LOCALFOLDER : IDS_REMOTEFOLDER;
-		wstring_ptr wstrType(loadString(hInst, nTypeId));
-		wstring_ptr wstrLocal(loadString(hInst, nLocalId));
-		WCHAR wszType[128];
-		_snwprintf(wszType, countof(wszType), wstrTemplate.get(),
-			wstrType.get(), wstrLocal.get());
-		setDlgItemText(IDC_TYPE, wszType);
+		wstring_ptr wstrType;
+		switch (pFolder->getType()) {
+		case Folder::TYPE_NORMAL:
+			if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
+				if (pFolder->isFlag(Folder::FLAG_SYNCABLE))
+					wstrType = loadString(hInst, IDS_SYNCABLELOCALFOLDER);
+				else
+					wstrType = loadString(hInst, IDS_LOCALFOLDER);
+			}
+			else {
+				wstrType = loadString(hInst, IDS_REMOTEFOLDER);
+			}
+			break;
+		case Folder::TYPE_QUERY:
+			wstrType = loadString(hInst, IDS_QUERYFOLDER);
+			break;
+		default:
+			assert(false);
+			break;
+		}
+		setDlgItemText(IDC_TYPE, wstrType.get());
 		
 		bool bQuery = pFolder->getType() == Folder::TYPE_QUERY;
 		unsigned int nFlags = pFolder->getFlags();

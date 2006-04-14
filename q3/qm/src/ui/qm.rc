@@ -14,7 +14,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// 英語 (アメリカ) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -262,12 +262,13 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_DEFAULTSUBACCOUNT   "(Default)"
-    IDS_NORMALFOLDER        "Normal"
-    IDS_QUERYFOLDER         "Query"
     IDS_LOCALFOLDER         "Local"
+    IDS_SYNCABLELOCALFOLDER "Local (Syncable)"
     IDS_REMOTEFOLDER        "Remote"
-    IDS_FOLDERTYPETEMPLATE  "%s (%s)"
+    IDS_QUERYFOLDER         "Query"
     IDS_OSDEFAULT           "OS Default"
+    IDS_ALLFOLDER           "(All Folders)"
+    IDS_UNSPECIFIED         "(Unspecified)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -307,8 +308,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ALLFOLDER           "(All Folders)"
-    IDS_UNSPECIFIED         "(Unspecified)"
     IDS_RESOURCEPATH        "Path"
     IDS_INVOKEACTION        "Invoke Action"
     IDS_ACTION              "&Action"
@@ -486,7 +485,7 @@ BEGIN
     IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HEADER "Header"
 END
 
-#endif    // English (U.S.) resources
+#endif    // 英語 (アメリカ) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
