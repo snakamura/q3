@@ -33,24 +33,11 @@ BASEADDRESS		= 0x30000000
 
 include ../common.mak
 
+%: %.sh
+
 $(SRCDIR)/main/version.h: version revision
 	( \
-		getRevision() { \
-			LC_MESSAGES=C svn info $$1 | grep "Last Changed Rev" | cut -f 4 -d ' '; \
-		}; \
-		getNewestRevision() { \
-			rev=`getRevision $$1`; \
-			for p in hpc ppc; do \
-				x=`dirname $$1`/$$p/`basename $$1`; \
-				if [ -f $$x ]; then \
-					revx=`getRevision $$x`; \
-					if [ $$rev -lt $$revx ]; then \
-						rev=$$revx; \
-					fi; \
-				fi; \
-			done; \
-			echo $$rev; \
-		}; \
+		source version.sh; \
 		\
 		printf "const int QMAIL_VERSION = %d%02d%03d;\n" \
 			`cat version | tr '.' ' '`; \
