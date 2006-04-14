@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft eMbedded Visual C++ generated include file.
 // Used by qmnntp.rc
 //
 #define IDS_NNTP                        1000
@@ -15,6 +15,9 @@
 #define IDS_SELECTGROUP                 2005
 #define IDS_DOWNLOADMESSAGES            2006
 #define IDS_DOWNLOADRESERVEDMESSAGES    2007
+#define IDS_SUBSCRIBE                   2100
+#define IDS_GROUP                       2101
+#define IDS_REFRESH                     2102
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_GROUP                 11001
@@ -25,6 +28,8 @@
 #define IDS_ERROR_XOVER                 11006
 #define IDS_ERROR_MODEREADER            11007
 #define IDS_ERROR_POST                  11008
+#define IDS_ERROR_LIST                  11009
+#define IDS_ERROR_NEWGROUPS             11010
 #define IDS_ERROR_INITIALIZE            12000
 #define IDS_ERROR_CONNECT               12001
 #define IDS_ERROR_RESPONSE              12002
@@ -37,6 +42,8 @@
 #define IDS_ERROR_SEND                  12009
 #define IDS_ERROR_SSL                   12010
 #define IDS_ERROR_APPLYRULES            14000
+#define IDS_ERROR_SUBSCRIBE             14001
+#define IDS_ERROR_REFRESH               14002
 
 // Next default values for new objects
 // 

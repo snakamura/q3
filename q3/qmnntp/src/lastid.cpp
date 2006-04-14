@@ -129,13 +129,9 @@ bool qmnntp::LastIdList::save()
 		return false;
 	
 	LastIdWriter w(&writer);
-	if (!w.write(*this))
-		return false;
-	
-	if (!writer.close())
-		return false;
-	
-	if (!renamer.rename())
+	if (!w.write(*this) ||
+		!writer.close() ||
+		!renamer.rename())
 		return false;
 	
 	bModified_ = false;

@@ -88,38 +88,11 @@ private:
 	NntpDriver& operator=(const NntpDriver&);
 
 private:
-	class CallbackImpl : public AbstractCallback
-	{
-	public:
-		CallbackImpl(qm::SubAccount* pSubAccount,
-					 qm::PasswordCallback* pPasswordCallback,
-					 const qm::Security* pSecurity);
-		virtual ~CallbackImpl();
-	
-	public:
-		virtual bool isCanceled(bool bForce) const;
-		virtual void initialize();
-		virtual void lookup();
-		virtual void connecting();
-		virtual void connected();
-	
-	public:
-		virtual void authenticating();
-		virtual void setRange(size_t nMin,
-							  size_t nMax);
-		virtual void setPos(size_t nPos);
-	
-	private:
-		CallbackImpl(const CallbackImpl&);
-		CallbackImpl& operator=(const CallbackImpl&);
-	};
-
-private:
 	qm::Account* pAccount_;
 	qm::PasswordCallback* pPasswordCallback_;
 	const qm::Security* pSecurity_;
 	std::auto_ptr<Nntp> pNntp_;
-	std::auto_ptr<CallbackImpl> pCallback_;
+	std::auto_ptr<DefaultCallback> pCallback_;
 	std::auto_ptr<qs::Logger> pLogger_;
 	qm::SubAccount* pSubAccount_;
 	bool bOffline_;

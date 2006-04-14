@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -115,11 +115,22 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_POST          "POSTコマンドでエラーが発生しました"
+    IDS_ERROR_LIST          "LISTコマンドでエラーが発生しました"
+    IDS_ERROR_NEWGROUPS     "NEWGROUPSコマンドでエラーが発生しました"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_APPLYRULES    "メッセージの振り分け中にエラーが発生しました"
+    IDS_ERROR_SUBSCRIBE     "グループの追加に失敗しました"
+    IDS_ERROR_REFRESH       "グループのリストをサーバからダウンロードできません"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SUBSCRIBE           "グループの追加(&A)..."
+    IDS_GROUP               "グループ"
+    IDS_REFRESH             "サーバからグループのリストをダウンロードしますか？"
 END
 
 #endif    // 日本語 resources

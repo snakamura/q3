@@ -54,29 +54,41 @@ public:
 
 /****************************************************************************
  *
- * AbstractCallback
+ * DefaultCallback
  *
  */
 
-class AbstractCallback :
+class DefaultCallback :
 	public qs::SocketCallback,
 	public qm::DefaultSSLSocketCallback,
 	public NntpCallback
 {
 public:
-	AbstractCallback(qm::SubAccount* pSubAccount,
-					 qm::PasswordCallback* pPasswordCallback,
-					 const qm::Security* pSecurity);
-	virtual ~AbstractCallback();
+	DefaultCallback(qm::SubAccount* pSubAccount,
+					qm::PasswordCallback* pPasswordCallback,
+					const qm::Security* pSecurity);
+	virtual ~DefaultCallback();
 
+public:
+	virtual bool isCanceled(bool bForce) const;
+	virtual void initialize();
+	virtual void lookup();
+	virtual void connecting();
+	virtual void connected();
+	
 public:
 	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
 							 qs::wstring_ptr* pwstrPassword);
 	virtual void setPassword(const WCHAR* pwszPassword);
+	
+	virtual void authenticating();
+	virtual void setRange(size_t nMin,
+						  size_t nMax);
+	virtual void setPos(size_t nPos);
 
 private:
-	AbstractCallback(const AbstractCallback&);
-	AbstractCallback& operator=(const AbstractCallback&);
+	DefaultCallback(const DefaultCallback&);
+	DefaultCallback& operator=(const DefaultCallback&);
 
 private:
 	qm::SubAccount* pSubAccount_;

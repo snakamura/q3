@@ -23,6 +23,7 @@ namespace qmnntp {
 class Nntp;
 class NntpCallback;
 class MessagesData;
+class GroupsData;
 
 
 /****************************************************************************
@@ -60,6 +61,8 @@ public:
 		NNTP_ERROR_XOVER			= 0x00000700,
 		NNTP_ERROR_MODEREADER		= 0x00000800,
 		NNTP_ERROR_POST				= 0x00000900,
+		NNTP_ERROR_LIST				= 0x00000a00,
+		NNTP_ERROR_NEWGROUPS		= 0x00000b00,
 		NNTP_ERROR_MASK_HIGHLEVEL	= 0x0000ff00
 	};
 	
@@ -119,9 +122,14 @@ public:
 					unsigned int nEstimatedSize);
 	bool getMessagesData(unsigned int nStart,
 						 unsigned int nEnd,
-						 std::auto_ptr<MessagesData>* ppMessageData);
+						 std::auto_ptr<MessagesData>* ppMessagesData);
 	bool postMessage(const CHAR* pszMessage,
 					 size_t nLen);
+	bool list(std::auto_ptr<GroupsData>* ppGroupsData);
+	bool newGroups(const WCHAR* pwszDate,
+				   const WCHAR* pwszTime,
+				   bool bGMT,
+				   std::auto_ptr<GroupsData>* ppGroupsData);
 	
 	unsigned int getLastError() const;
 	const WCHAR* getLastErrorResponse() const;
@@ -238,11 +246,54 @@ public:
 	const Item& getItem(size_t n) const;
 
 public:
-	bool setData(qs::xstring_ptr strData);
+	bool setData(qs::xstring_ptr strData,
+				 size_t nEstimatedSize);
 
 private:
 	MessagesData(const MessagesData&);
 	MessagesData& operator=(const MessagesData&);
+
+private:
+	typedef std::vector<Item> ItemList;
+
+private:
+	qs::xstring_ptr strData_;
+	ItemList listItem_;
+};
+
+
+/****************************************************************************
+ *
+ * GroupsData
+ *
+ */
+
+class GroupsData
+{
+public:
+	struct Item
+	{
+		const CHAR* pszGroup_;
+		unsigned int nLast_;
+		unsigned int nFirst_;
+		const CHAR* pszPost_;
+	};
+
+public:
+	GroupsData();
+	~GroupsData();
+
+public:
+	size_t getCount() const;
+	const Item& getItem(size_t n) const;
+
+public:
+	bool setData(qs::xstring_ptr strData,
+				 size_t nEstimatedSize);
+
+private:
+	GroupsData(const GroupsData&);
+	GroupsData& operator=(const GroupsData&);
 
 private:
 	typedef std::vector<Item> ItemList;

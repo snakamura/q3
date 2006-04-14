@@ -482,7 +482,7 @@ bool qmnntp::NntpReceiveSession::applyRules(MessagePtrList* pList,
 qmnntp::NntpReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
 													   const Security* pSecurity,
 													   ReceiveSessionCallback* pSessionCallback) :
-	AbstractCallback(pSubAccount, pSessionCallback, pSecurity),
+	DefaultCallback(pSubAccount, pSessionCallback, pSecurity),
 	pSessionCallback_(pSessionCallback)
 {
 }
@@ -576,6 +576,36 @@ bool qmnntp::NntpReceiveSessionUI::isSupported(Support support)
 std::auto_ptr<PropertyPage> qmnntp::NntpReceiveSessionUI::createPropertyPage(SubAccount* pSubAccount)
 {
 	return std::auto_ptr<PropertyPage>(new ReceivePage(pSubAccount));
+}
+
+void qmnntp::NntpReceiveSessionUI::subscribe(Document* pDocument,
+											 Account* pAccount,
+											 Folder* pFolder,
+											 PasswordCallback* pPasswordCallback,
+											 HWND hwnd,
+											 void* pParam)
+{
+	SubscribeDialog dialog(pDocument, pAccount, pPasswordCallback);
+	if (dialog.doModal(hwnd) != IDOK)
+		return;
+	
+	NormalFolder* pNewFolder = pAccount->createNormalFolder(
+		dialog.getGroup(), 0, false, true);
+	if (!pNewFolder) {
+		messageBox(getResourceHandle(), IDS_ERROR_SUBSCRIBE, MB_OK | MB_ICONERROR, hwnd);
+		return;
+	}
+}
+
+bool qmnntp::NntpReceiveSessionUI::canSubscribe(Account* pAccount,
+												Folder* pFolder)
+{
+	return true;
+}
+
+wstring_ptr qmnntp::NntpReceiveSessionUI::getSubscribeText()
+{
+	return loadString(getResourceHandle(), IDS_SUBSCRIBE);
 }
 
 

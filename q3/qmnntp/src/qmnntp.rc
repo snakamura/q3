@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// 英語 (アメリカ) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -113,14 +113,25 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_POST          "Error occured while POST command."
+    IDS_ERROR_LIST          "Error occured while LIST command."
+    IDS_ERROR_NEWGROUPS     "Error occured while NEWGROUPS command."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
+    IDS_ERROR_SUBSCRIBE     "Could not add the group."
+    IDS_ERROR_REFRESH       "Could not download a group list from a server."
 END
 
-#endif    // English (U.S.) resources
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SUBSCRIBE           "&Add Group..."
+    IDS_GROUP               "Group"
+    IDS_REFRESH             "Are you sure to download a group list from a server?"
+END
+
+#endif    // 英語 (アメリカ) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

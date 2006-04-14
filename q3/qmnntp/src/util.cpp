@@ -53,7 +53,9 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 			{ Nntp::NNTP_ERROR_BODY,		IDS_ERROR_BODY			},
 			{ Nntp::NNTP_ERROR_XOVER,		IDS_ERROR_XOVER			},
 			{ Nntp::NNTP_ERROR_MODEREADER,	IDS_ERROR_MODEREADER	},
-			{ Nntp::NNTP_ERROR_POST,		IDS_ERROR_POST			}
+			{ Nntp::NNTP_ERROR_POST,		IDS_ERROR_POST			},
+			{ Nntp::NNTP_ERROR_LIST,		IDS_ERROR_LIST			},
+			{ Nntp::NNTP_ERROR_NEWGROUPS,	IDS_ERROR_NEWGROUPS		}
 		},
 		{
 			{ Nntp::NNTP_ERROR_INITIALIZE,		IDS_ERROR_INITIALIZE	},
@@ -132,13 +134,13 @@ void qmnntp::Util::setPassword(SubAccount* pSubAccount,
 
 /****************************************************************************
  *
- * AbstractCallback
+ * DefaultCallback
  *
  */
 
-qmnntp::AbstractCallback::AbstractCallback(SubAccount* pSubAccount,
-										   PasswordCallback* pPasswordCallback,
-										   const Security* pSecurity) :
+qmnntp::DefaultCallback::DefaultCallback(SubAccount* pSubAccount,
+										 PasswordCallback* pPasswordCallback,
+										 const Security* pSecurity) :
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
 	pSubAccount_(pSubAccount),
 	pPasswordCallback_(pPasswordCallback),
@@ -146,20 +148,54 @@ qmnntp::AbstractCallback::AbstractCallback(SubAccount* pSubAccount,
 {
 }
 
-qmnntp::AbstractCallback::~AbstractCallback()
+qmnntp::DefaultCallback::~DefaultCallback()
 {
 }
 
-bool qmnntp::AbstractCallback::getUserInfo(wstring_ptr* pwstrUserName,
-										   wstring_ptr* pwstrPassword)
+bool qmnntp::DefaultCallback::isCanceled(bool bForce) const
+{
+	return false;
+}
+
+void qmnntp::DefaultCallback::initialize()
+{
+}
+
+void qmnntp::DefaultCallback::lookup()
+{
+}
+
+void qmnntp::DefaultCallback::connecting()
+{
+}
+
+void qmnntp::DefaultCallback::connected()
+{
+}
+
+bool qmnntp::DefaultCallback::getUserInfo(wstring_ptr* pwstrUserName,
+										  wstring_ptr* pwstrPassword)
 {
 	state_ = Util::getUserInfo(pSubAccount_, Account::HOST_RECEIVE,
 		pPasswordCallback_, pwstrUserName, pwstrPassword);
 	return state_ != PASSWORDSTATE_NONE;
 }
 
-void qmnntp::AbstractCallback::setPassword(const WCHAR* pwszPassword)
+void qmnntp::DefaultCallback::setPassword(const WCHAR* pwszPassword)
 {
 	Util::setPassword(pSubAccount_, Account::HOST_RECEIVE,
 		state_, pPasswordCallback_, pwszPassword);
+}
+
+void qmnntp::DefaultCallback::authenticating()
+{
+}
+
+void qmnntp::DefaultCallback::setRange(size_t nMin,
+												size_t nMax)
+{
+}
+
+void qmnntp::DefaultCallback::setPos(size_t nPos)
+{
 }

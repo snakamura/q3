@@ -91,7 +91,7 @@ private:
 	NntpReceiveSession& operator=(const NntpReceiveSession&);
 
 private:
-	class CallbackImpl : public AbstractCallback
+	class CallbackImpl : public DefaultCallback
 	{
 	public:
 		CallbackImpl(qm::SubAccount* pSubAccount,
@@ -156,6 +156,15 @@ public:
 	virtual short getDefaultPort(bool bSecure);
 	virtual bool isSupported(Support support);
 	virtual std::auto_ptr<qs::PropertyPage> createPropertyPage(qm::SubAccount* pSubAccount);
+	virtual void subscribe(qm::Document* pDocument,
+						   qm::Account* pAccount,
+						   qm::Folder* pFolder,
+						   qm::PasswordCallback* pPasswordCallback,
+						   HWND hwnd,
+						   void* pParam);
+	virtual bool canSubscribe(qm::Account* pAccount,
+							  qm::Folder* pFolder);
+	virtual qs::wstring_ptr getSubscribeText();
 
 private:
 	NntpReceiveSessionUI(const NntpReceiveSessionUI&);

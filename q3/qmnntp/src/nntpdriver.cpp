@@ -238,18 +238,17 @@ bool qmnntp::NntpDriver::prepareSession(NormalFolder* pFolder)
 		clearSession();
 		
 		std::auto_ptr<Logger> pLogger;
-		std::auto_ptr<CallbackImpl> pCallback;
+		std::auto_ptr<DefaultCallback> pCallback;
 		std::auto_ptr<Nntp> pNntp;
 		
 		if (pSubAccount_->isLog(Account::HOST_RECEIVE))
 			pLogger = pAccount_->openLogger(Account::HOST_RECEIVE);
 		
-		pCallback.reset(new CallbackImpl(pSubAccount_, pPasswordCallback_, pSecurity_));
+		pCallback.reset(new DefaultCallback(pSubAccount_, pPasswordCallback_, pSecurity_));
 		
 		pNntp.reset(new Nntp(pSubAccount_->getTimeout(), pCallback.get(),
 			pCallback.get(), pCallback.get(), pLogger.get()));
-		if (!pNntp->connect(
-			pSubAccount_->getHost(Account::HOST_RECEIVE),
+		if (!pNntp->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 			pSubAccount_->getPort(Account::HOST_RECEIVE),
 			pSubAccount_->getSecure(Account::HOST_RECEIVE) == SubAccount::SECURE_SSL))
 			return false;
@@ -286,58 +285,6 @@ void qmnntp::NntpDriver::clearSession()
 bool qmnntp::NntpDriver::isForceDisconnect() const
 {
 	return nForceDisconnect_ != 0 && nLastUsedTime_ + nForceDisconnect_*1000 < ::GetTickCount();
-}
-
-
-/****************************************************************************
- *
- * NntpDriver::CallbackImpl
- *
- */
-
-qmnntp::NntpDriver::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
-											   PasswordCallback* pPasswordCallback,
-											   const Security* pSecurity) :
-	AbstractCallback(pSubAccount, pPasswordCallback, pSecurity)
-{
-}
-
-qmnntp::NntpDriver::CallbackImpl::~CallbackImpl()
-{
-}
-
-bool qmnntp::NntpDriver::CallbackImpl::isCanceled(bool bForce) const
-{
-	return false;
-}
-
-void qmnntp::NntpDriver::CallbackImpl::initialize()
-{
-}
-
-void qmnntp::NntpDriver::CallbackImpl::lookup()
-{
-}
-
-void qmnntp::NntpDriver::CallbackImpl::connecting()
-{
-}
-
-void qmnntp::NntpDriver::CallbackImpl::connected()
-{
-}
-
-void qmnntp::NntpDriver::CallbackImpl::authenticating()
-{
-}
-
-void qmnntp::NntpDriver::CallbackImpl::setRange(size_t nMin,
-												size_t nMax)
-{
-}
-
-void qmnntp::NntpDriver::CallbackImpl::setPos(size_t nPos)
-{
 }
 
 

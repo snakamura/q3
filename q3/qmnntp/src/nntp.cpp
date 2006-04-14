@@ -240,10 +240,10 @@ bool qmnntp::Nntp::getMessage(const WCHAR* pwszMessageId,
 
 bool qmnntp::Nntp::getMessagesData(unsigned int nStart,
 								   unsigned int nEnd,
-								   std::auto_ptr<MessagesData>* ppMessageData)
+								   std::auto_ptr<MessagesData>* ppMessagesData)
 {
 	assert(nStart <= nEnd);
-	assert(ppMessageData);
+	assert(ppMessagesData);
 	
 	CHAR szCommand[128];
 	sprintf(szCommand, "XOVER %u-%u\r\n", nStart, nEnd);
@@ -265,11 +265,11 @@ bool qmnntp::Nntp::getMessagesData(unsigned int nStart,
 	
 	if (nCode == 224) {
 		xstring_ptr str(strContent.release());
-		if (!pData->setData(str))
+		if (!pData->setData(str, nEnd - nStart))
 			NNTP_ERROR(NNTP_ERROR_XOVER | NNTP_ERROR_PARSE);
 	}
 	
-	*ppMessageData = pData;
+	*ppMessagesData = pData;
 	
 	return true;
 }
@@ -317,6 +317,70 @@ bool qmnntp::Nntp::postMessage(const CHAR* pszMessage,
 		NNTP_ERROR_OR(NNTP_ERROR_POST);
 	else if (nCode != 240)
 		NNTP_ERROR(NNTP_ERROR_POST | NNTP_ERROR_RESPONSE);
+	
+	return true;
+}
+
+bool qmnntp::Nntp::list(std::auto_ptr<GroupsData>* ppGroupsData)
+{
+	assert(ppGroupsData);
+	
+	const CHAR* pszCodes[] = {
+		"215"
+	};
+	
+	unsigned int nCode = 0;
+	string_ptr strResponse;
+	xstring_size_ptr strContent;
+	if (!sendCommand("LIST\r\n", pszCodes, countof(pszCodes),
+		&nCode, &strResponse, &strContent))
+		NNTP_ERROR_OR(NNTP_ERROR_LIST);
+	else if (nCode != 215)
+		NNTP_ERROR(NNTP_ERROR_LIST | NNTP_ERROR_RESPONSE);
+	
+	std::auto_ptr<GroupsData> pData(new GroupsData());
+	
+	xstring_ptr str(strContent.release());
+	if (!pData->setData(str, 10240))
+		NNTP_ERROR(NNTP_ERROR_LIST | NNTP_ERROR_PARSE);
+	
+	*ppGroupsData = pData;
+	
+	return true;
+}
+
+bool qmnntp::Nntp::newGroups(const WCHAR* pwszDate,
+							 const WCHAR* pwszTime,
+							 bool bGMT,
+							 std::auto_ptr<GroupsData>* ppGroupsData)
+{
+	assert(pwszDate && wcslen(pwszDate) == 6);
+	assert(pwszTime && wcslen(pwszTime) == 6);
+	assert(ppGroupsData);
+	
+	CHAR szCommand[128];
+	sprintf(szCommand, "NEWGROUPS %s %s%s\r\n", pwszDate, pwszTime, bGMT ? " GMT" : "");
+	
+	const CHAR* pszCodes[] = {
+		"231"
+	};
+	
+	unsigned int nCode = 0;
+	string_ptr strResponse;
+	xstring_size_ptr strContent;
+	if (!sendCommand(szCommand, pszCodes, countof(pszCodes),
+		&nCode, &strResponse, &strContent))
+		NNTP_ERROR_OR(NNTP_ERROR_NEWGROUPS);
+	else if (nCode != 231)
+		NNTP_ERROR(NNTP_ERROR_NEWGROUPS | NNTP_ERROR_RESPONSE);
+	
+	std::auto_ptr<GroupsData> pData(new GroupsData());
+	
+	xstring_ptr str(strContent.release());
+	if (!pData->setData(str, -1))
+		NNTP_ERROR(NNTP_ERROR_NEWGROUPS | NNTP_ERROR_PARSE);
+	
+	*ppGroupsData = pData;
 	
 	return true;
 }
@@ -715,12 +779,15 @@ const MessagesData::Item& qmnntp::MessagesData::getItem(size_t n) const
 	return listItem_[n];
 }
 
-bool qmnntp::MessagesData::setData(xstring_ptr strData)
+bool qmnntp::MessagesData::setData(xstring_ptr strData,
+								   size_t nEstimatedSize)
 {
 	assert(strData.get());
 	
-	CHAR* p = strData.get();
+	if (nEstimatedSize != -1)
+		listItem_.reserve(nEstimatedSize);
 	
+	CHAR* p = strData.get();
 	while (*p) {
 		Item item = { 0 };
 		int n = 0;
@@ -773,7 +840,77 @@ bool qmnntp::MessagesData::setData(xstring_ptr strData)
 			break;
 		p += 2;
 	}
+	strData_ = strData;
 	
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * GroupsData
+ *
+ */
+
+qmnntp::GroupsData::GroupsData()
+{
+}
+
+qmnntp::GroupsData::~GroupsData()
+{
+}
+
+size_t qmnntp::GroupsData::getCount() const
+{
+	return listItem_.size();
+}
+
+const GroupsData::Item& qmnntp::GroupsData::getItem(size_t n) const
+{
+	assert(n < listItem_.size());
+	return listItem_[n];
+}
+
+bool qmnntp::GroupsData::setData(qs::xstring_ptr strData,
+								 size_t nEstimatedSize)
+{
+	assert(strData.get());
+	
+	if (nEstimatedSize != -1)
+		listItem_.reserve(nEstimatedSize);
+	
+	CHAR* p = strData.get();
+	while (*p) {
+		Item item = { 0 };
+		
+		CHAR* pEnd = strchr(p, ' ');
+		if (!pEnd)
+			return false;
+		*pEnd = L'\0';
+		item.pszGroup_ = p;
+		p = pEnd + 1;
+		
+		item.nLast_ = strtol(p, &pEnd, 10);
+		if (*pEnd != L' ')
+			return false;
+		p = pEnd + 1;
+		
+		item.nFirst_ = strtol(p, &pEnd, 10);
+		if (*pEnd != L' ')
+			return false;
+		p = pEnd + 1;
+		
+		item.pszPost_ = p;
+		p = strstr(p, "\r\n");
+		if (p)
+			*p = L'\0';
+		
+		listItem_.push_back(item);
+		
+		if (!p)
+			break;
+		p += 2;
+	}
 	strData_ = strData;
 	
 	return true;
