@@ -120,13 +120,13 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
-    IDS_ERROR_SUBSCRIBE     "Could not add the group."
+    IDS_ERROR_SUBSCRIBE     "Could not subscribe to the group."
     IDS_ERROR_REFRESH       "Could not download a group list from a server."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_SUBSCRIBE           "&Add Group..."
+    IDS_SUBSCRIBE           "Su&bscribe to Group..."
     IDS_GROUP               "Group"
     IDS_REFRESH             "Are you sure to download a group list from a server?"
 END

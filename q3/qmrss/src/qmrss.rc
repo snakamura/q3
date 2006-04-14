@@ -76,7 +76,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_SUBSCRIBE           "&Add Feed..."
+    IDS_SUBSCRIBE           "Su&bscribe to Feed..."
     IDS_CONTINUE            "Could not get the specified feed.\nWould you like to continue?"
 END
 
@@ -101,7 +101,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_SUBSCRIBE     "Could not add the feed."
+    IDS_ERROR_SUBSCRIBE     "Could not subscribe to the feed."
 END
 
 #endif    // English (U.S.) resources

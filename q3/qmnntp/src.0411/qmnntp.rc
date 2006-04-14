@@ -122,13 +122,13 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_APPLYRULES    "メッセージの振り分け中にエラーが発生しました"
-    IDS_ERROR_SUBSCRIBE     "グループの追加に失敗しました"
+    IDS_ERROR_SUBSCRIBE     "グループの購読に失敗しました"
     IDS_ERROR_REFRESH       "グループのリストをサーバからダウンロードできません"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_SUBSCRIBE           "グループの追加(&A)..."
+    IDS_SUBSCRIBE           "グループの購読(&B)..."
     IDS_GROUP               "グループ"
     IDS_REFRESH             "サーバからグループのリストをダウンロードしますか？"
 END
