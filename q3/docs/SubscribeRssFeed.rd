@@ -1,13 +1,13 @@
 =begin
 =フィードの購読
 
-フィードを追加するにはメニューから((<[フォルダ]-[フィードの追加]|URL:FolderSubscribeAction.html>))を選択します。するとフィードを追加するためのウィザードが開きます。
+フィードを追加するにはメニューから((<[フォルダ]-[フィードの購読]|URL:FolderSubscribeAction.html>))を選択します。すると購読するフィードを追加するためのウィザードが開きます。
 
-((<[フィードの追加 - URL]ページ|"IMG:images/TutorialRssSubscribeURLPage.png">))
+((<[フィードの購読 - URL]ページ|"IMG:images/TutorialRssSubscribeURLPage.png">))
 
 まず、フィードのURLを指定します。RSS AutoDiscoveryに対応しているWebページのURLを指定することもできます。[次へ]をクリックすると、指定されたフィードを取得して次のページへ進みます。フィードが取得できなかった場合には、そのまま続行するかどうかを尋ねられます。
 
-((<[フィードの追加 - 設定]ページ|"IMG:images/TutorialRssSubscribePropertyPage.png">))
+((<[フィードの購読 - 設定]ページ|"IMG:images/TutorialRssSubscribePropertyPage.png">))
 
 次に各種の設定を行います。
 
