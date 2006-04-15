@@ -44,7 +44,7 @@ private:
 	TempFileCleaner& operator=(const TempFileCleaner&);
 
 private:
-	typedef std::vector<std::pair<qs::TSTRING, FILETIME> > List;
+	typedef std::vector<std::pair<qs::WSTRING, FILETIME> > List;
 
 private:
 	List list_;

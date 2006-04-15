@@ -30,59 +30,49 @@ qm::TempFileCleaner::TempFileCleaner()
 
 qm::TempFileCleaner::~TempFileCleaner()
 {
+	std::for_each(list_.begin(), list_.end(),
+		unary_compose_f_gx(string_free<WSTRING>(),
+			std::select1st<List::value_type>()));
 }
 
 void qm::TempFileCleaner::add(const WCHAR* pwszPath)
 {
-	tstring_ptr tstrPath(wcs2tcs(pwszPath));
-	
 	List::iterator it = std::find_if(list_.begin(), list_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
-				string_equal<TCHAR>(),
+				string_equal<WCHAR>(),
 				std::select1st<List::value_type>(),
-				std::identity<const TCHAR*>()),
-			tstrPath.get()));
+				std::identity<const WCHAR*>()),
+			pwszPath));
 	if (it != list_.end()) {
-		freeTString((*it).first);
+		freeWString((*it).first);
 		list_.erase(it);
 	}
 	
-	AutoHandle hFile(::CreateFile(tstrPath.get(), GENERIC_READ, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (hFile.get()) {
-		FILETIME ft;
-		BOOL b = ::GetFileTime(hFile.get(), 0, 0, &ft);
-		hFile.close();
-		if (b) {
-			list_.push_back(List::value_type(tstrPath.get(), ft));
-			tstrPath.release();
-		}
+	W2T(pwszPath, ptszPath);
+	WIN32_FIND_DATA fd;
+	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+	if (hFind.get()) {
+		wstring_ptr wstrPath(allocWString(pwszPath));
+		list_.push_back(List::value_type(wstrPath.get(), fd.ftLastWriteTime));
+		wstrPath.release();
 	}
 }
 
 void qm::TempFileCleaner::clean(TempFileCleanerCallback* pCallback)
 {
 	for (List::iterator it = list_.begin(); it != list_.end(); ++it) {
-		AutoHandle hFile(::CreateFile((*it).first, GENERIC_READ, 0, 0,
-			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-		if (hFile .get()) {
-			FILETIME ft;
-			BOOL b = ::GetFileTime(hFile.get(), 0, 0, &ft);
-			hFile.close();
-			if (b) {
-				bool bDelete = true;
-				if (::CompareFileTime(&(*it).second, &ft) != 0) {
-					wstring_ptr wstrPath(tcs2wcs((*it).first));
-					bDelete = pCallback->confirmDelete(wstrPath.get());
-				}
-				if (bDelete)
-					::DeleteFile((*it).first);
-			}
+		wstring_ptr wstrPath((*it).first);
+		W2T(wstrPath.get(), ptszPath);
+		WIN32_FIND_DATA fd;
+		AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+		if (hFind.get()) {
+			hFind.close();
+			if (::CompareFileTime(&(*it).second, &fd.ftLastWriteTime) == 0 ||
+				pCallback->confirmDelete(wstrPath.get()))
+				::DeleteFile(ptszPath);
 		}
-		freeTString((*it).first);
 	}
-	
 	list_.clear();
 }
 
