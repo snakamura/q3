@@ -59,6 +59,24 @@ void qm::TempFileCleaner::add(const WCHAR* pwszPath)
 	}
 }
 
+bool qm::TempFileCleaner::isModified(const WCHAR* pwszPath) const
+{
+	List::const_iterator it = std::find_if(list_.begin(), list_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				string_equal<WCHAR>(),
+				std::select1st<List::value_type>(),
+				std::identity<const WCHAR*>()),
+			pwszPath));
+	if (it == list_.end())
+		return false;
+	
+	W2T(pwszPath, ptszPath);
+	WIN32_FIND_DATA fd;
+	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+	return hFind.get() && ::CompareFileTime(&(*it).second, &fd.ftLastWriteTime) != 0;
+}
+
 void qm::TempFileCleaner::clean(TempFileCleanerCallback* pCallback)
 {
 	for (List::iterator it = list_.begin(); it != list_.end(); ++it) {

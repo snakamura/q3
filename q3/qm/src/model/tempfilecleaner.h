@@ -37,6 +37,7 @@ public:
 
 public:
 	void add(const WCHAR* pwszPath);
+	bool isModified(const WCHAR* pwszPath) const;
 	void clean(TempFileCleanerCallback* pCallback);
 
 private:

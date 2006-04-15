@@ -40,7 +40,8 @@ namespace {
 class DetachCallbackImpl : public AttachmentParser::DetachCallback
 {
 public:
-	DetachCallbackImpl(HWND hwnd);
+	DetachCallbackImpl(TempFileCleaner* pTempFileCleaner,
+					   HWND hwnd);
 	~DetachCallbackImpl();
 
 public:
@@ -51,11 +52,14 @@ private:
 	DetachCallbackImpl& operator=(const DetachCallbackImpl&);
 
 private:
+	TempFileCleaner* pTempFileCleaner_;
 	HWND hwnd_;
 };
 }
 
-DetachCallbackImpl::DetachCallbackImpl(HWND hwnd) :
+DetachCallbackImpl::DetachCallbackImpl(TempFileCleaner* pTempFileCleaner,
+									   HWND hwnd) :
+	pTempFileCleaner_(pTempFileCleaner),
 	hwnd_(hwnd)
 {
 }
@@ -67,6 +71,9 @@ DetachCallbackImpl::~DetachCallbackImpl()
 wstring_ptr DetachCallbackImpl::confirmOverwrite(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
+	
+	if (pTempFileCleaner_ && !pTempFileCleaner_->isModified(pwszPath))
+		return allocWString(pwszPath);
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
@@ -198,7 +205,7 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 	Message msg;
 	AttachmentParser::AttachmentList l;
 	AttachmentParser::AttachmentListFree free(l);
-	DetachCallbackImpl callback(hwnd_);
+	DetachCallbackImpl callback(0, hwnd_);
 	unsigned int n = 0;
 	for (DetachDialog::List::iterator it = list.begin(); it != list.end(); ++it) {
 		if ((*it).pmh_ != pmh) {
@@ -293,9 +300,8 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 	assert(pTempFileCleaner_);
 	
 	AttachmentParser parser(*pPart);
-	DetachCallbackImpl callback(hwnd_);
-	const WCHAR* pwszTempDir =
-		Application::getApplication().getTemporaryFolder();
+	DetachCallbackImpl callback(pTempFileCleaner_, hwnd_);
+	const WCHAR* pwszTempDir = Application::getApplication().getTemporaryFolder();
 	wstring_ptr wstrPath;
 	AttachmentParser::Result result = parser.detach(
 		pwszTempDir, pwszName, &callback, &wstrPath);
