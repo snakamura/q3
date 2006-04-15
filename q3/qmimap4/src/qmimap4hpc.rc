@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resourcehpc.h"
 
@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// 英語 (アメリカ) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -101,6 +101,8 @@ BEGIN
     CONTROL         "All &Folder",IDC_ALLFOLDER,"Button",BS_AUTORADIOBUTTON,
                     100,55,50,10
     GROUPBOX        "Folder",IDC_STATIC,95,25,65,45
+    CONTROL         "Create New &Query Folder",IDC_NEWFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,95,75,95,10
 END
 
 
@@ -130,7 +132,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (U.S.) resources
+#endif    // 英語 (アメリカ) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

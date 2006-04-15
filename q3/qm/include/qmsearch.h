@@ -93,10 +93,12 @@ public:
 	const WCHAR* getCondition() const;
 	bool isAllFolder() const;
 	bool isRecursive() const;
+	bool isNewFolder() const;
 	unsigned int getImeFlags() const;
 	void set(const WCHAR* pwszCondition,
 			 bool bAllFolder,
 			 bool bRecursive,
+			 bool bNewFolder,
 			 unsigned int nImeFlags);
 	void save() const;
 

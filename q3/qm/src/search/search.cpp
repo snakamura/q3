@@ -57,6 +57,7 @@ struct qm::SearchPropertyDataImpl
 	wstring_ptr wstrCondition_;
 	bool bAllFolder_;
 	bool bRecursive_;
+	bool bNewFolder_;
 	unsigned int nImeFlags_;
 };
 
@@ -86,6 +87,7 @@ qm::SearchPropertyData::SearchPropertyData(Profile* pProfile,
 		pImpl_->bRecursive_ = nFolder == 1;
 	}
 	
+	pImpl_->bNewFolder_ = pProfile->getInt(L"Search", L"NewFolder", 0) != 0;
 	pImpl_->nImeFlags_ = pProfile->getInt(L"Search", L"Ime", 0);
 }
 
@@ -109,6 +111,11 @@ bool qm::SearchPropertyData::isRecursive() const
 	return pImpl_->bRecursive_;
 }
 
+bool qm::SearchPropertyData::isNewFolder() const
+{
+	return pImpl_->bNewFolder_;
+}
+
 unsigned int qm::SearchPropertyData::getImeFlags() const
 {
 	return pImpl_->nImeFlags_;
@@ -117,11 +124,13 @@ unsigned int qm::SearchPropertyData::getImeFlags() const
 void qm::SearchPropertyData::set(const WCHAR* pwszCondition,
 								 bool bAllFolder,
 								 bool bRecursive,
+								 bool bNewFolder,
 								 unsigned int nImeFlags)
 {
 	pImpl_->wstrCondition_ = allocWString(pwszCondition);
 	pImpl_->bAllFolder_ = bAllFolder;
 	pImpl_->bRecursive_ = bRecursive;
+	pImpl_->bNewFolder_ = bNewFolder;
 	pImpl_->nImeFlags_ = nImeFlags;
 }
 
@@ -130,6 +139,7 @@ void qm::SearchPropertyData::save() const
 	pImpl_->pProfile_->setString(L"Search", L"Condition", pImpl_->wstrCondition_.get());
 	pImpl_->pProfile_->setInt(L"Search", L"Folder",
 		pImpl_->bAllFolder_ ? 2 : pImpl_->bRecursive_ ? 1 : 0);
+	pImpl_->pProfile_->setInt(L"Search", L"NewFolder", pImpl_->bNewFolder_);
 	pImpl_->pProfile_->setInt(L"Search", L"Ime", pImpl_->nImeFlags_);
 }
 

@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft eMbedded Visual C++ generated include file.
 // Used by qmimap4win.rc
 //
 #define IDD_RECEIVE                     101
@@ -21,6 +21,7 @@
 #define IDC_CURRENT                     1128
 #define IDC_RECURSIVE                   1129
 #define IDC_ALLFOLDER                   1130
+#define IDC_NEWFOLDER                   1131
 
 // Next default values for new objects
 // 

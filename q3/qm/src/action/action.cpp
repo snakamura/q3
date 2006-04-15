@@ -4772,41 +4772,62 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	}
 	sheet.setStartPage(nStartPage);
 	
-	if (sheet.doModal(hwnd_) == IDOK) {
-		UIList::size_type nPage = 0;
-		while (nPage < listUI.size()) {
-			if (listUI[nPage].second->getCondition())
-				break;
-			++nPage;
-		}
-		if (nPage != listUI.size()) {
-			SearchPropertyPage* pPage = listUI[nPage].second;
-			const WCHAR* pwszCondition = pPage->getCondition();
-			if (*pwszCondition) {
-				WaitCursor cursor;
-				
-				wstring_ptr wstrFolder;
-				if (!data.isAllFolder())
-					wstrFolder = pFolder->getFullName();
-				
-				pSearch->set(pPage->getDriver(), pwszCondition,
-					wstrFolder.get(), data.isRecursive());
-				
-				if (pFolder != pSearch)
-					pFolderModel_->setCurrent(0, pSearch, false);
-				
-				if (pFolder == pSearch || !pSearch->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
-					if (!pSearch->search(pDocument_, hwnd_,
-						pProfile_, pSecurityModel_->getSecurityMode())) {
-						ActionUtil::error(hwnd_, IDS_ERROR_SEARCH);
-						return;
-					}
+	if (sheet.doModal(hwnd_) != IDOK)
+		return;
+	
+	UIList::size_type nPage = 0;
+	while (nPage < listUI.size()) {
+		if (listUI[nPage].second->getCondition())
+			break;
+		++nPage;
+	}
+	if (nPage == listUI.size())
+		return;
+	
+	SearchPropertyPage* pPage = listUI[nPage].second;
+	const WCHAR* pwszCondition = pPage->getCondition();
+	if (*pwszCondition) {
+		WaitCursor cursor;
+		
+		wstring_ptr wstrFolder;
+		if (!data.isAllFolder())
+			wstrFolder = pFolder->getFullName();
+		
+		if (data.isNewFolder()) {
+			wstring_ptr wstrName(allocWString(data.getCondition()));
+			std::replace(wstrName.get(), wstrName.get() + wcslen(wstrName.get()), L'/', L'_');
+			if (pAccount->getFolder(0, wstrName.get())) {
+				for (int n = 1; n < 1000; ++n) {
+					WCHAR wsz[10];
+					_snwprintf(wsz, countof(wsz), L" (%d)", n);
+					wstrName = concat(data.getCondition(), wsz);
+					if (!pAccount->getFolder(0, wstrName.get()))
+						break;
 				}
 			}
-			pProfile_->setString(L"Search", L"Page", pPage->getDriver());
-			data.save();
+			pSearch = pAccount->createQueryFolder(wstrName.get(), 0,
+				pPage->getDriver(), pwszCondition, wstrFolder.get(), data.isRecursive());
+			if (!pSearch)
+				return;
+		}
+		else {
+			pSearch->set(pPage->getDriver(), pwszCondition,
+				wstrFolder.get(), data.isRecursive());
+		}
+		
+		if (pFolder != pSearch)
+			pFolderModel_->setCurrent(0, pSearch, false);
+		
+		if (pFolder == pSearch || !pSearch->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+			if (!pSearch->search(pDocument_, hwnd_,
+				pProfile_, pSecurityModel_->getSecurityMode())) {
+				ActionUtil::error(hwnd_, IDS_ERROR_SEARCH);
+				return;
+			}
 		}
 	}
+	pProfile_->setString(L"Search", L"Page", pPage->getDriver());
+	data.save();
 }
 
 bool qm::MessageSearchAction::isEnabled(const ActionEvent& event)

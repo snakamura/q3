@@ -141,17 +141,21 @@ void qmimap4::Imap4SearchPage::updateData(SearchPropertyData* pData)
 	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
 	pData->set(wstrCondition.get(),
 		sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED,
-		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED, getImeFlags());
+		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED,
+		sendDlgItemMessage(IDC_NEWFOLDER, BM_GETCHECK) == BST_CHECKED, getImeFlags());
 }
 
 void qmimap4::Imap4SearchPage::updateUI(const SearchPropertyData* pData)
 {
 	if (pData->getCondition()) {
 		setDlgItemText(IDC_CONDITION, pData->getCondition());
+		
 		UINT nId = pData->isAllFolder() ? IDC_ALLFOLDER :
 			pData->isRecursive() ? IDC_RECURSIVE : IDC_CURRENT;
 		for (UINT n = IDC_CURRENT; n < IDC_CURRENT + 3; ++n)
 			sendDlgItemMessage(n, BM_SETCHECK, n == nId ? BST_CHECKED : BST_UNCHECKED);
+		
+		sendDlgItemMessage(IDC_NEWFOLDER, BM_SETCHECK, pData->isNewFolder() ? BST_CHECKED : BST_UNCHECKED);
 	}
 	setImeFlags(pData->getImeFlags());
 }

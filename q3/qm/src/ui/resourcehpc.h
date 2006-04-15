@@ -394,6 +394,7 @@
 #define IDC_LABELLINK                   1440
 #define IDC_VIEWPLACEMENT               1445
 #define IDC_SEARCHHEADER                1446
+#define IDC_NEWFOLDER                   1447
 
 // Next default values for new objects
 // 

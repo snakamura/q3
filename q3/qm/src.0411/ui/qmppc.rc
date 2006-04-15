@@ -617,6 +617,8 @@ BEGIN
     CONTROL         "すべて(&F)",IDC_ALLFOLDER,"Button",BS_AUTORADIOBUTTON,
                     10,105,50,10
     GROUPBOX        "フォルダ",IDC_STATIC,5,75,65,45
+    CONTROL         "新しい検索フォルダを作成(&Q)",IDC_NEWFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,125,127,10
 END
 
 IDD_FOLDERCONDITION DIALOG DISCARDABLE  0, 0, 137, 153
