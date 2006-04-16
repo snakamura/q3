@@ -1129,13 +1129,17 @@ void qs::TextWindowImpl::updateScrollBar()
 		pThis_->getScrollInfo(SB_VERT, &si);
 		
 		unsigned int nPage = getLineInWindow();
-		if (nPage > listLine_.size())
-			nPage = static_cast<unsigned int>(listLine_.size());
-		if (si.nMin != 0 || si.nMax != static_cast<int>(listLine_.size() - 1) ||
+		unsigned int nMax = static_cast<unsigned int>(listLine_.size() - 1);
+		if (scrollPos_.nLine_ != 0 && nMax < scrollPos_.nLine_ + nPage)
+			nMax = scrollPos_.nLine_ + nPage - 1;
+		if (nPage > nMax)
+			nPage = nMax;
+		
+		if (si.nMin != 0 || si.nMax != nMax ||
 			si.nPage != nPage || si.nPos != scrollPos_.nLine_) {
 			si.fMask = SIF_PAGE | SIF_POS | SIF_RANGE | SIF_DISABLENOSCROLL;
 			si.nMin = 0;
-			si.nMax = static_cast<int>(listLine_.size() - 1);
+			si.nMax = nMax;
 			si.nPage = nPage;
 			si.nPos = scrollPos_.nLine_;
 			pThis_->setScrollInfo(SB_VERT, si, true);
@@ -2632,9 +2636,11 @@ void qs::TextWindow::scroll(Scroll scroll,
 	if (scroll & SCROLL_VERTICAL_MASK) {
 		unsigned int nLineInWindow = pImpl_->getLineInWindow();
 		
-		int nEnd = static_cast<int>(pImpl_->listLine_.size() - nLineInWindow);
-		if (nEnd < 0)
-			nEnd = 0;
+		int nMax = static_cast<int>(pImpl_->listLine_.size() - nLineInWindow);
+		if (pImpl_->scrollPos_.nLine_ != 0)
+			nMax = QSMAX(nMax, static_cast<int>(pImpl_->scrollPos_.nLine_ - 1));
+		if (nMax < 0)
+			nMax = 0;
 		
 		int nNewPos = pImpl_->scrollPos_.nLine_;
 		switch (scroll) {
@@ -2642,7 +2648,7 @@ void qs::TextWindow::scroll(Scroll scroll,
 			nNewPos = 0;
 			break;
 		case SCROLL_BOTTOM:
-			nNewPos = nEnd;
+			nNewPos = nMax;
 			break;
 		case SCROLL_LINEUP:
 			nNewPos -= bRepeat ? 2 : 1;
@@ -2662,8 +2668,8 @@ void qs::TextWindow::scroll(Scroll scroll,
 		}
 		if (nNewPos < 0)
 			nNewPos = 0;
-		else if (nNewPos > nEnd)
-			nNewPos = nEnd;
+		else if (nNewPos > nMax)
+			nNewPos = nMax;
 		
 		pImpl_->scrollVertical(nNewPos);
 	}
@@ -2677,9 +2683,9 @@ void qs::TextWindow::scroll(Scroll scroll,
 		int nMaxWidth = (pImpl_->nCharInLine_ == 0 ?
 			nPage : pImpl_->nCharInLine_*nCharWidth) - 1;
 		
-		int nEnd = nMaxWidth - nPage;
-		if (nEnd < 0)
-			nEnd = 0;
+		int nMax = nMaxWidth - nPage;
+		if (nMax < 0)
+			nMax = 0;
 		
 		int nNewPos = pImpl_->scrollPos_.nPos_;
 		switch (scroll) {
@@ -2687,7 +2693,7 @@ void qs::TextWindow::scroll(Scroll scroll,
 			nNewPos = 0;
 			break;
 		case SCROLL_RIGHT:
-			nNewPos = nEnd;
+			nNewPos = nMax;
 			break;
 		case SCROLL_CHARLEFT:
 			nNewPos -= (bRepeat ? 2 : 1)*nCharWidth*4;
@@ -2707,8 +2713,8 @@ void qs::TextWindow::scroll(Scroll scroll,
 		}
 		if (nNewPos < 0)
 			nNewPos = 0;
-		else if (nNewPos > nEnd)
-			nNewPos = nEnd;
+		else if (nNewPos > nMax)
+			nNewPos = nMax;
 		
 		pImpl_->scrollHorizontal(nNewPos);
 	}
