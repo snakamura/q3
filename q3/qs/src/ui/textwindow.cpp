@@ -1133,7 +1133,7 @@ void qs::TextWindowImpl::updateScrollBar()
 		if (scrollPos_.nLine_ != 0 && nMax < scrollPos_.nLine_ + nPage)
 			nMax = scrollPos_.nLine_ + nPage - 1;
 		if (nPage > nMax)
-			nPage = nMax;
+			nPage = nMax + 1;
 		
 		if (si.nMin != 0 || si.nMax != static_cast<int>(nMax) ||
 			si.nPage != nPage || si.nPos != scrollPos_.nLine_) {
