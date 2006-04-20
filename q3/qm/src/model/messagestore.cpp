@@ -11,6 +11,7 @@
 #include <qmfilenames.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsosutil.h>
 #include <qsthread.h>
 
@@ -358,18 +359,24 @@ malloc_ptr<unsigned char> qm::SingleMessageStore::readIndex(unsigned int nKey,
 struct qm::MultiMessageStoreImpl
 {
 public:
+	enum {
+		FILES_IN_DIRECTORY = 1000
+	};
+
+public:
+	typedef std::vector<int> DirList;
+
+public:
 	bool init();
 	unsigned int getOffset(bool bIncrement);
 	wstring_ptr getPath(unsigned int nOffset,
 						bool bEncoded) const;
 	void deleteFiles(unsigned int nOffset) const;
 	bool ensureDirectory(unsigned int nOffset) const;
+	void deleteEmptyDirectories(unsigned int nMaxOffset) const;
 	void freeUnrefered(const MessageStore::DataList& listData,
 					   unsigned int nMaxOffset,
 					   MessageOperationCallback* pCallback);
-
-public:
-	typedef std::vector<int> DirList;
 
 public:
 	wstring_ptr wstrPath_;
@@ -422,7 +429,7 @@ unsigned int qm::MultiMessageStoreImpl::getOffset(bool bIncrement)
 			} while (::FindNextFile(hFindDir.get(), &fdDir));
 		}
 		
-		unsigned int nOffset = nDir*1000;
+		unsigned int nOffset = nDir*FILES_IN_DIRECTORY;
 		
 		WCHAR wszFind[32];
 		_snwprintf(wszFind, countof(wszFind), L"\\msg\\%08d\\*.msg", nDir);
@@ -453,7 +460,7 @@ wstring_ptr qm::MultiMessageStoreImpl::getPath(unsigned int nOffset,
 {
 	WCHAR wsz[64];
 	_snwprintf(wsz, countof(wsz), L"\\msg\\%08d\\%08d.%s",
-		nOffset/1000, nOffset, bEncoded ? L"d.msg" : L"msg");
+		nOffset/FILES_IN_DIRECTORY, nOffset, bEncoded ? L"d.msg" : L"msg");
 	return concat(wstrPath_.get(), wsz);
 }
 
@@ -469,7 +476,7 @@ void qm::MultiMessageStoreImpl::deleteFiles(unsigned int nOffset) const
 
 bool qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
 {
-	unsigned int nIndex = nOffset/1000;
+	unsigned int nIndex = nOffset/FILES_IN_DIRECTORY;
 	
 	if (nIndex >= listDir_.size() || !listDir_[nIndex]) {
 		WCHAR wsz[64];
@@ -485,6 +492,21 @@ bool qm::MultiMessageStoreImpl::ensureDirectory(unsigned int nOffset) const
 	}
 	
 	return true;
+}
+
+void qm::MultiMessageStoreImpl::deleteEmptyDirectories(unsigned int nMaxOffset) const
+{
+	unsigned int nMax = nMaxOffset/FILES_IN_DIRECTORY;
+	for (unsigned int n = 0; n < nMax; ++n) {
+		WCHAR wsz[64];
+		_snwprintf(wsz, countof(wsz), L"\\msg\\%08d", n);
+		wstring_ptr wstrPath(concat(wstrPath_.get(), wsz));
+		if (File::isDirectoryEmpty(wstrPath.get()))
+			File::removeDirectory(wstrPath.get());
+		
+		if (n < listDir_.size())
+			listDir_[n] = 0;
+	}
 }
 
 void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& listData,
@@ -509,6 +531,8 @@ void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& list
 		
 		pCallback->step(1);
 	}
+	
+	deleteEmptyDirectories(nMaxOffset);
 }
 
 
