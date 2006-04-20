@@ -136,6 +136,28 @@ bool qs::File::removeDirectory(const WCHAR* pwszDir)
 	return ::RemoveDirectory(tstrPathBase.get()) != 0;
 }
 
+bool qs::File::isDirectoryEmpty(const WCHAR* pwszDir)
+{
+	assert(pwszDir);
+	assert(*(pwszDir + wcslen(pwszDir) - 1) != L'\\');
+	
+	wstring_ptr wstrFind(concat(pwszDir, L"\\*.*"));
+	W2T(wstrFind.get(), ptszFind);
+	WIN32_FIND_DATA fd;
+	AutoFindHandle hFind(::FindFirstFile(ptszFind, &fd));
+	if (!hFind.get())
+		return false;
+	
+	do {
+		if (_tcscmp(fd.cFileName, _T(".")) == 0 ||
+			_tcscmp(fd.cFileName, _T("..")) == 0)
+			continue;
+		return false;
+	} while (::FindNextFile(hFind.get(), &fd));
+	
+	return true;
+}
+
 bool qs::File::isDeviceName(const WCHAR* pwszName)
 {
 	assert(pwszName);

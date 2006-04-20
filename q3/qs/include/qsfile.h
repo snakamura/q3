@@ -133,6 +133,14 @@ public:
 	static bool removeDirectory(const WCHAR* pwszDir);
 	
 	/**
+	 * Check if the specified directory is empty or not.
+	 *
+	 * @param pwszDir [in] Directory.
+	 * @return true if the specified directory exists and is empty, false otherwise.
+	 */
+	static bool isDirectoryEmpty(const WCHAR* pwszDir);
+	
+	/**
 	 * Check if the specified name is device name such as CON, PRN, etc... or not.
 	 *
 	 * @param pwszName [in] File name
