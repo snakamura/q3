@@ -69,7 +69,7 @@ void qmrss::Channel::setLink(wstring_ptr wstrLink)
 	wstrLink_ = wstrLink;
 }
 
-void qmrss::Channel::setPubDate(const qs::Time& time)
+void qmrss::Channel::setPubDate(const Time& time)
 {
 	timePubDate_ = time;
 }
@@ -221,12 +221,12 @@ void qmrss::Item::setPubDate(const Time& time)
 	timePubDate_ = time;
 }
 
-void qmrss::Item::setContentEncoded(qs::wstring_ptr wstrContentEncoded)
+void qmrss::Item::setContentEncoded(wstring_ptr wstrContentEncoded)
 {
 	wstrContentEncoded_ = wstrContentEncoded;
 }
 
-void qmrss::Item::setId(qs::wstring_ptr wstrId)
+void qmrss::Item::setId(wstring_ptr wstrId)
 {
 	wstrId_ = wstrId;
 }
@@ -333,7 +333,10 @@ bool qmrss::RssContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				pHandler_.reset(new Rss10Handler(pChannel_));
 			else if (wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
 				wcscmp(pwszLocalName, L"feed") == 0)
-				pHandler_.reset(new AtomHandler(pChannel_));
+				pHandler_.reset(new Atom03Handler(pChannel_));
+			else if (wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"feed") == 0)
+				pHandler_.reset(new Atom10Handler(pChannel_));
 			else
 				return false;
 		}
@@ -519,13 +522,19 @@ bool qmrss::Rss10Handler::endElement(const WCHAR* pwszNamespaceURI,
 			wcscmp(pwszLocalName, L"channel") == 0);
 		break;
 	case STATE_TITLE:
+		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0 &&
+			wcscmp(pwszLocalName, L"title") == 0);
 		pChannel_->setTitle(buffer_.getString());
 		break;
 	case STATE_LINK:
+		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/rss/1.0/") == 0 &&
+			wcscmp(pwszLocalName, L"link") == 0);
 		pChannel_->setLink(buffer_.getString());
 		break;
 	case STATE_DATE:
 		{
+			assert(wcscmp(pwszNamespaceURI, L"http://purl.org/dc/elements/1.1/") == 0 &&
+				wcscmp(pwszLocalName, L"date") == 0);
 			Time date;
 			if (ParserUtil::parseDate(buffer_.getCharArray(), &date))
 				pChannel_->setPubDate(date);
@@ -766,13 +775,16 @@ bool qmrss::Rss20Handler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(!pwszNamespaceURI && wcscmp(pwszLocalName, L"channel") == 0);
 		break;
 	case STATE_TITLE:
+		assert(!pwszNamespaceURI && wcscmp(pwszLocalName, L"title") == 0);
 		pChannel_->setTitle(buffer_.getString());
 		break;
 	case STATE_LINK:
+		assert(!pwszNamespaceURI && wcscmp(pwszLocalName, L"link") == 0);
 		pChannel_->setLink(buffer_.getString());
 		break;
 	case STATE_PUBDATE:
 		{
+			assert(!pwszNamespaceURI && wcscmp(pwszLocalName, L"pubDate") == 0);
 			Time date;
 			string_ptr strDate(wcs2mbs(buffer_.getCharArray()));
 			if (DateParser::parse(strDate.get(), -1, DateParser::FLAG_ALLOWDEFAULT, &date))
@@ -870,25 +882,25 @@ bool qmrss::Rss20Handler::characters(const WCHAR* pwsz,
 
 /****************************************************************************
  *
- * AtomHandler
+ * Atom03Handler
  *
  */
 
-qmrss::AtomHandler::AtomHandler(Channel* pChannel) :
+qmrss::Atom03Handler::Atom03Handler(Channel* pChannel) :
 	pChannel_(pChannel),
 	pCurrentItem_(0)
 {
 	stackState_.push_back(STATE_ROOT);
 }
 
-qmrss::AtomHandler::~AtomHandler()
+qmrss::Atom03Handler::~Atom03Handler()
 {
 }
 
-bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
-									  const WCHAR* pwszLocalName,
-									  const WCHAR* pwszQName,
-									  const Attributes& attributes)
+bool qmrss::Atom03Handler::startElement(const WCHAR* pwszNamespaceURI,
+										const WCHAR* pwszLocalName,
+										const WCHAR* pwszQName,
+										const Attributes& attributes)
 {
 	assert(!stackState_.empty());
 	
@@ -1037,9 +1049,9 @@ bool qmrss::AtomHandler::startElement(const WCHAR* pwszNamespaceURI,
 	return true;
 }
 
-bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
-									const WCHAR* pwszLocalName,
-									const WCHAR* pwszQName)
+bool qmrss::Atom03Handler::endElement(const WCHAR* pwszNamespaceURI,
+									  const WCHAR* pwszLocalName,
+									  const WCHAR* pwszQName)
 {
 	assert(!stackState_.empty());
 	
@@ -1053,6 +1065,8 @@ bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
 			wcscmp(pwszLocalName, L"feed") == 0);
 		break;
 	case STATE_TITLE:
+		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+			wcscmp(pwszLocalName, L"title") == 0);
 		pChannel_->setTitle(buffer_.getString());
 		break;
 	case STATE_MODIFIED:
@@ -1101,6 +1115,8 @@ bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
 		break;
 	case STATE_AUTHOR:
 		{
+			assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+				wcscmp(pwszLocalName, L"author") == 0);
 			StringBuffer<WSTRING> buf;
 			if (wstrName_.get())
 				buf.append(wstrName_.get());
@@ -1117,9 +1133,13 @@ bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
 		}
 		break;
 	case STATE_NAME:
+		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+			wcscmp(pwszLocalName, L"name") == 0);
 		wstrName_ = buffer_.getString();
 		break;
 	case STATE_EMAIL:
+		assert(wcscmp(pwszNamespaceURI, L"http://purl.org/atom/ns#") == 0 &&
+			wcscmp(pwszLocalName, L"email") == 0);
 		wstrEmail_ = buffer_.getString();
 		break;
 	case STATE_CONTENT:
@@ -1144,9 +1164,9 @@ bool qmrss::AtomHandler::endElement(const WCHAR* pwszNamespaceURI,
 	return true;
 }
 
-bool qmrss::AtomHandler::characters(const WCHAR* pwsz,
-									size_t nStart,
-									size_t nLength)
+bool qmrss::Atom03Handler::characters(const WCHAR* pwsz,
+									  size_t nStart,
+									  size_t nLength)
 {
 	assert(!stackState_.empty());
 	
@@ -1164,10 +1184,434 @@ bool qmrss::AtomHandler::characters(const WCHAR* pwsz,
 	return true;
 }
 
-void qmrss::AtomHandler::escape(const WCHAR* pwsz,
-								size_t nLen,
-								bool bAttribute,
-								qs::StringBuffer<qs::WSTRING>* pBuf)
+void qmrss::Atom03Handler::escape(const WCHAR* pwsz,
+								  size_t nLen,
+								  bool bAttribute,
+								  StringBuffer<WSTRING>* pBuf)
+{
+	if (nLen == -1)
+		nLen = wcslen(pwsz);
+	
+	for (const WCHAR* p = pwsz; p < pwsz + nLen; ++p) {
+		if (*p == L'<')
+			pBuf->append(L"&lt;");
+		else if (*p == L'&')
+			pBuf->append(L"&amp;");
+		else if (*p == L'\"' && bAttribute)
+			pBuf->append(L"&quot;");
+		else
+			pBuf->append(*p);
+	}
+}
+
+
+/****************************************************************************
+ *
+ * Atom10Handler
+ *
+ */
+
+qmrss::Atom10Handler::Atom10Handler(Channel* pChannel) :
+	pChannel_(pChannel),
+	content_(CONTENT_NONE),
+	pCurrentItem_(0),
+	nContentNest_(0)
+{
+	stackState_.push_back(STATE_ROOT);
+}
+
+qmrss::Atom10Handler::~Atom10Handler()
+{
+}
+
+bool qmrss::Atom10Handler::startElement(const WCHAR* pwszNamespaceURI,
+										const WCHAR* pwszLocalName,
+										const WCHAR* pwszQName,
+										const Attributes& attributes)
+{
+	assert(!stackState_.empty());
+	
+	switch (content_) {
+	case CONTENT_NONE:
+		{
+			State state = stackState_.back();
+			switch (state) {
+			case STATE_ROOT:
+				if (!pwszNamespaceURI ||
+					wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") != 0 ||
+					wcscmp(pwszLocalName, L"feed") != 0)
+					return false;
+				stackState_.push_back(STATE_FEED);
+				break;
+			case STATE_FEED:
+				if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0) {
+					if (wcscmp(pwszLocalName, L"link") == 0) {
+						const WCHAR* pwszLink = processLink(attributes);
+						if (pwszLink)
+							pChannel_->setLink(allocWString(pwszLink));
+					}
+					else if (wcscmp(pwszLocalName, L"title") == 0) {
+						content_ = getContent(attributes);
+						assert(nContentNest_ == 0);
+						stackState_.push_back(STATE_TITLE);
+					}
+					else if (wcscmp(pwszLocalName, L"updated") == 0) {
+						stackState_.push_back(STATE_UPDATED);
+					}
+					else if (wcscmp(pwszLocalName, L"entry") == 0) {
+						std::auto_ptr<Item> pItem(new Item());
+						pCurrentItem_ = pItem.get();
+						pChannel_->addItem(pItem);
+						stackState_.push_back(STATE_ENTRY);
+					}
+					else {
+						stackState_.push_back(STATE_UNKNOWN);
+					}
+				}
+				else {
+					stackState_.push_back(STATE_UNKNOWN);
+				}
+				break;
+			case STATE_ENTRY:
+				if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0) {
+					if (wcscmp(pwszLocalName, L"id") == 0) {
+						stackState_.push_back(STATE_ID);
+					}
+					else if (wcscmp(pwszLocalName, L"link") == 0) {
+						const WCHAR* pwszLink = processLink(attributes);
+						if (pwszLink)
+							pCurrentItem_->setLink(allocWString(pwszLink));
+					}
+					else if (wcscmp(pwszLocalName, L"title") == 0) {
+						content_ = getContent(attributes);
+						assert(nContentNest_ == 0);
+						stackState_.push_back(STATE_TITLE);
+					}
+					else if (wcscmp(pwszLocalName, L"updated") == 0) {
+						stackState_.push_back(STATE_UPDATED);
+					}
+					else if (wcscmp(pwszLocalName, L"category") == 0) {
+						const WCHAR* pwszTerm = 0;
+						const WCHAR* pwszLabel = 0;
+						for (int n = 0; n < attributes.getLength(); ++n) {
+							const WCHAR* pwszAttrName = attributes.getLocalName(n);
+							if (wcscmp(pwszAttrName, L"term") == 0)
+								pwszTerm = attributes.getValue(n);
+							else if (wcscmp(pwszAttrName, L"label") == 0)
+								pwszLabel = attributes.getValue(n);
+						}
+						if (pwszLabel)
+							pCurrentItem_->addCategory(allocWString(pwszLabel));
+						else if (pwszTerm)
+							pCurrentItem_->addCategory(allocWString(pwszTerm));
+						
+						stackState_.push_back(STATE_CATEGORY);
+					}
+					else if (wcscmp(pwszLocalName, L"author") == 0) {
+						stackState_.push_back(STATE_AUTHOR);
+					}
+					else if (wcscmp(pwszLocalName, L"summary") == 0) {
+						content_ = getContent(attributes);
+						assert(nContentNest_ == 0);
+						stackState_.push_back(STATE_SUMMARY);
+					}
+					else if (wcscmp(pwszLocalName, L"content") == 0) {
+						content_ = getContent(attributes);
+						assert(nContentNest_ == 0);
+						stackState_.push_back(STATE_CONTENT);
+					}
+					else {
+						stackState_.push_back(STATE_UNKNOWN);
+					}
+				}
+				else {
+					stackState_.push_back(STATE_UNKNOWN);
+				}
+				break;
+			case STATE_AUTHOR:
+				if (pwszNamespaceURI && wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0) {
+					if (wcscmp(pwszLocalName, L"name") == 0) {
+						stackState_.push_back(STATE_NAME);
+					}
+					else if (wcscmp(pwszLocalName, L"email") == 0) {
+						stackState_.push_back(STATE_EMAIL);
+					}
+					else {
+						stackState_.push_back(STATE_UNKNOWN);
+					}
+				}
+				else {
+					stackState_.push_back(STATE_UNKNOWN);
+				}
+				break;
+			case STATE_LINK:
+			case STATE_UPDATED:
+			case STATE_ID:
+			case STATE_CATEGORY:
+			case STATE_NAME:
+			case STATE_EMAIL:
+				stackState_.push_back(STATE_UNKNOWN);
+				break;
+			case STATE_TITLE:
+			case STATE_SUMMARY:
+			case STATE_CONTENT:
+				assert(false);
+				break;
+			case STATE_UNKNOWN:
+				stackState_.push_back(STATE_UNKNOWN);
+				break;
+			default:
+				assert(false);
+				break;
+			}
+		}
+		break;
+	case CONTENT_TEXT:
+	case CONTENT_HTML:
+		++nContentNest_;
+		stackState_.push_back(STATE_UNKNOWN);
+		break;
+	case CONTENT_XHTML:
+		if (nContentNest_ != 0 ||
+			wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") != 0 ||
+			wcscmp(pwszLocalName, L"div") != 0) {
+			buffer_.append(L"<");
+			if (wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") == 0)
+				buffer_.append(pwszLocalName);
+			else
+				buffer_.append(pwszQName);
+			for (int n = 0; n < attributes.getLength(); ++n) {
+				buffer_.append(L" ");
+				buffer_.append(attributes.getQName(n));
+				buffer_.append(L"=\"");
+				escape(attributes.getValue(n), -1, true, &buffer_);
+				buffer_.append(L"\"");
+			}
+			buffer_.append(L">");
+		}
+		++nContentNest_;
+		stackState_.push_back(STATE_UNKNOWN);
+		break;
+	}
+	return true;
+}
+
+bool qmrss::Atom10Handler::endElement(const WCHAR* pwszNamespaceURI,
+									  const WCHAR* pwszLocalName,
+									  const WCHAR* pwszQName)
+{
+	assert(!stackState_.empty());
+	
+	switch (content_) {
+	case CONTENT_TEXT:
+	case CONTENT_HTML:
+		if (nContentNest_ == 0)
+			content_ = CONTENT_NONE;
+		else
+			--nContentNest_;
+		break;
+	case CONTENT_XHTML:
+		if (nContentNest_ == 0) {
+			content_ = CONTENT_NONE;
+		}
+		else {
+			--nContentNest_;
+			if (nContentNest_ != 0 ||
+				wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") != 0 ||
+				wcscmp(pwszLocalName, L"div") != 0) {
+				buffer_.append(L"</");
+				if (wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") == 0)
+					buffer_.append(pwszLocalName);
+				else
+					buffer_.append(pwszQName);
+				buffer_.append(L">");
+			}
+		}
+		break;
+	}
+	if (content_ == CONTENT_NONE) {
+		State state = stackState_.back();
+		switch (state) {
+		case STATE_ROOT:
+			assert(false);
+			return false;
+		case STATE_FEED:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"feed") == 0);
+			break;
+		case STATE_ENTRY:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				   wcscmp(pwszLocalName, L"entry") == 0);
+			assert(pCurrentItem_);
+			pCurrentItem_ = 0;
+			break;
+		case STATE_LINK:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"link") == 0);
+			break;
+		case STATE_TITLE:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"title") == 0);
+			if (pCurrentItem_)
+				pCurrentItem_->setTitle(buffer_.getString());
+			else
+				pChannel_->setTitle(buffer_.getString());
+			break;
+		case STATE_UPDATED:
+			{
+				assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+					wcscmp(pwszLocalName, L"updated") == 0);
+				wstring_ptr wstrUpdated(buffer_.getString());
+				Time updated;
+				if (ParserUtil::parseDate(wstrUpdated.get(), &updated)) {
+					if (pCurrentItem_)
+						pCurrentItem_->setPubDate(updated);
+					else
+						pChannel_->setPubDate(updated);
+				}
+			}
+			break;
+		case STATE_ID:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"id") == 0);
+			assert(pCurrentItem_);
+			pCurrentItem_->setId(buffer_.getString());
+			break;
+		case STATE_CATEGORY:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"category") == 0);
+			assert(pCurrentItem_);
+			break;
+		case STATE_AUTHOR:
+			{
+				assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+					wcscmp(pwszLocalName, L"author") == 0);
+				StringBuffer<WSTRING> buf;
+				if (wstrName_.get())
+					buf.append(wstrName_.get());
+				if (wstrEmail_.get()) {
+					if (wstrName_.get())
+						buf.append(L" <");
+					buf.append(wstrEmail_.get());
+					if (wstrName_.get())
+						buf.append(L">");
+				}
+				assert(pCurrentItem_);
+				pCurrentItem_->addCreator(buf.getString());
+				wstrName_.reset(0);
+				wstrEmail_.reset(0);
+			}
+			break;
+		case STATE_NAME:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"name") == 0);
+			wstrName_ = buffer_.getString();
+			break;
+		case STATE_EMAIL:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"email") == 0);
+			wstrEmail_ = buffer_.getString();
+			break;
+		case STATE_SUMMARY:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"summary") == 0);
+			assert(pCurrentItem_);
+			pCurrentItem_->setDescription(buffer_.getString());
+			break;
+		case STATE_CONTENT:
+			assert(wcscmp(pwszNamespaceURI, L"http://www.w3.org/2005/Atom") == 0 &&
+				wcscmp(pwszLocalName, L"content") == 0);
+			assert(pCurrentItem_);
+			pCurrentItem_->setContentEncoded(buffer_.getString());
+			break;
+		case STATE_UNKNOWN:
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+	
+	stackState_.pop_back();
+	
+	return true;
+}
+
+bool qmrss::Atom10Handler::characters(const WCHAR* pwsz,
+									  size_t nStart,
+									  size_t nLength)
+{
+	assert(!stackState_.empty());
+	
+	switch (content_) {
+	case CONTENT_NONE:
+		{
+			State state = stackState_.back();
+			if (state == STATE_UPDATED ||
+				state == STATE_ID ||
+				state == STATE_NAME ||
+				state == STATE_EMAIL)
+				buffer_.append(pwsz + nStart, nLength);
+		}
+		break;
+	case CONTENT_TEXT:
+	case CONTENT_HTML:
+		buffer_.append(pwsz + nStart, nLength);
+		break;
+	case CONTENT_XHTML:
+		escape(pwsz + nStart, nLength, false, &buffer_);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	
+	return true;
+}
+
+const WCHAR* qmrss::Atom10Handler::processLink(const Attributes& attributes)
+{
+	const WCHAR* pwszHref = 0;
+	const WCHAR* pwszRel = 0;
+	const WCHAR* pwszType = 0;
+	for (int n = 0; n < attributes.getLength(); ++n) {
+		const WCHAR* pwszAttrName = attributes.getLocalName(n);
+		if (wcscmp(pwszAttrName, L"href") == 0)
+			pwszHref = attributes.getValue(n);
+		else if (wcscmp(pwszAttrName, L"rel") == 0)
+			pwszRel = attributes.getValue(n);
+		else if (wcscmp(pwszAttrName, L"type") == 0)
+			pwszType = attributes.getValue(n);
+	}
+	if (pwszHref &&
+		(!pwszRel || _wcsicmp(pwszRel, L"alternate") == 0) &&
+		(!pwszType || _wcsicmp(pwszType, L"text/html") == 0)) {
+		stackState_.push_back(STATE_LINK);
+		return pwszHref;
+	}
+	else {
+		stackState_.push_back(STATE_UNKNOWN);
+		return 0;
+	}
+}
+
+Atom10Handler::Content qmrss::Atom10Handler::getContent(const Attributes& attributes)
+{
+	const WCHAR* pwszType = attributes.getValue(L"type");
+	if (!pwszType || wcscmp(pwszType, L"text") == 0)
+		return CONTENT_TEXT;
+	else if (wcscmp(pwszType, L"html") == 0)
+		return CONTENT_HTML;
+	else if (wcscmp(pwszType, L"xhtml") == 0)
+		return CONTENT_XHTML;
+	else
+		return CONTENT_TEXT;
+}
+
+void qmrss::Atom10Handler::escape(const WCHAR* pwsz,
+								  size_t nLen,
+								  bool bAttribute,
+								  StringBuffer<WSTRING>* pBuf)
 {
 	if (nLen == -1)
 		nLen = wcslen(pwsz);

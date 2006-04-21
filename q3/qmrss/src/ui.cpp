@@ -255,7 +255,8 @@ bool qmrss::SubscribeURLPage::next()
 	std::auto_ptr<Channel> pChannel(getChannel(wstrURL.get(), true));
 	if (pChannel.get()) {
 		pData_->wstrURL_ = allocWString(pChannel->getURL());
-		pData_->wstrName_ = allocWString(pChannel->getTitle());
+		if (pChannel->getTitle())
+			pData_->wstrName_ = allocWString(pChannel->getTitle());
 	}
 	else {
 		if (messageBox(getResourceHandle(), IDS_CONTINUE,

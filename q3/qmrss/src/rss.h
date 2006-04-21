@@ -23,6 +23,8 @@ class RssContentHandler;
 class RssHandler;
 	class Rss10Handler;
 	class Rss20Handler;
+	class Atom03Handler;
+	class Atom10Handler;
 
 
 /****************************************************************************
@@ -335,15 +337,15 @@ private:
 
 /****************************************************************************
  *
- * AtomHandler
+ * Atom03Handler
  *
  */
 
-class AtomHandler : public RssHandler
+class Atom03Handler : public RssHandler
 {
 public:
-	explicit AtomHandler(Channel* pChannel);
-	virtual ~AtomHandler();
+	explicit Atom03Handler(Channel* pChannel);
+	virtual ~Atom03Handler();
 
 public:
 	virtual bool startElement(const WCHAR* pwszNamespaceURI,
@@ -364,8 +366,8 @@ private:
 					   qs::StringBuffer<qs::WSTRING>* pBuf);
 
 private:
-	AtomHandler(const AtomHandler&);
-	AtomHandler& operator=(const AtomHandler&);
+	Atom03Handler(const Atom03Handler&);
+	Atom03Handler& operator=(const Atom03Handler&);
 
 private:
 	enum State {
@@ -391,6 +393,84 @@ private:
 	StateStack stackState_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 	Item* pCurrentItem_;
+	qs::wstring_ptr wstrName_;
+	qs::wstring_ptr wstrEmail_;
+};
+
+
+/****************************************************************************
+ *
+ * Atom10Handler
+ *
+ */
+
+class Atom10Handler : public RssHandler
+{
+public:
+	explicit Atom10Handler(Channel* pChannel);
+	virtual ~Atom10Handler();
+
+public:
+	virtual bool startElement(const WCHAR* pwszNamespaceURI,
+							  const WCHAR* pwszLocalName,
+							  const WCHAR* pwszQName,
+							  const qs::Attributes& attributes);
+	virtual bool endElement(const WCHAR* pwszNamespaceURI,
+							const WCHAR* pwszLocalName,
+							const WCHAR* pwszQName);
+	virtual bool characters(const WCHAR* pwsz,
+							size_t nStart,
+							size_t nLength);
+
+private:
+	const WCHAR* processLink(const qs::Attributes& attributes);
+
+private:
+	enum State {
+		STATE_ROOT,
+		STATE_FEED,
+		STATE_ENTRY,
+		STATE_LINK,
+		STATE_TITLE,
+		STATE_UPDATED,
+		STATE_ID,
+		STATE_CATEGORY,
+		STATE_AUTHOR,
+		STATE_NAME,
+		STATE_EMAIL,
+		STATE_SUMMARY,
+		STATE_CONTENT,
+		STATE_UNKNOWN
+	};
+	
+	enum Content {
+		CONTENT_NONE,
+		CONTENT_TEXT,
+		CONTENT_HTML,
+		CONTENT_XHTML
+	};
+
+private:
+	static Content getContent(const qs::Attributes& attributes);
+	static void escape(const WCHAR* pwsz,
+					   size_t nLen,
+					   bool bAttribute,
+					   qs::StringBuffer<qs::WSTRING>* pBuf);
+
+private:
+	Atom10Handler(const Atom10Handler&);
+	Atom10Handler& operator=(const Atom10Handler&);
+
+private:
+	typedef std::vector<State> StateStack;
+
+private:
+	Channel* pChannel_;
+	StateStack stackState_;
+	Content content_;
+	qs::StringBuffer<qs::WSTRING> buffer_;
+	Item* pCurrentItem_;
+	unsigned int nContentNest_;
 	qs::wstring_ptr wstrName_;
 	qs::wstring_ptr wstrEmail_;
 };
