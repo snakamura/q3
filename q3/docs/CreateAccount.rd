@@ -39,7 +39,7 @@
 *news
   *NNTP
 *rss
-  *Weblog
+  *Blog
 
 
 ====[メッセージボックス]
