@@ -1372,25 +1372,24 @@ bool qmrss::Atom10Handler::startElement(const WCHAR* pwszNamespaceURI,
 		stackState_.push_back(STATE_UNKNOWN);
 		break;
 	case CONTENT_XHTML:
-		if (nContentNest_ != 0 ||
-			wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") != 0 ||
-			wcscmp(pwszLocalName, L"div") != 0) {
-			buffer_.append(L"<");
-			if (wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") == 0)
-				buffer_.append(pwszLocalName);
-			else
-				buffer_.append(pwszQName);
-			for (int n = 0; n < attributes.getLength(); ++n) {
-				buffer_.append(L" ");
-				buffer_.append(attributes.getQName(n));
-				buffer_.append(L"=\"");
-				escape(attributes.getValue(n), -1, true, &buffer_);
-				buffer_.append(L"\"");
+		{
+			bool bXHTML = pwszNamespaceURI &&
+				wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") == 0;
+			if (nContentNest_ != 0 || !bXHTML || wcscmp(pwszLocalName, L"div") != 0) {
+				buffer_.append(L"<");
+				buffer_.append(bXHTML ? pwszLocalName : pwszQName);
+				for (int n = 0; n < attributes.getLength(); ++n) {
+					buffer_.append(L" ");
+					buffer_.append(attributes.getQName(n));
+					buffer_.append(L"=\"");
+					escape(attributes.getValue(n), -1, true, &buffer_);
+					buffer_.append(L"\"");
+				}
+				buffer_.append(L">");
 			}
-			buffer_.append(L">");
+			++nContentNest_;
+			stackState_.push_back(STATE_UNKNOWN);
 		}
-		++nContentNest_;
-		stackState_.push_back(STATE_UNKNOWN);
 		break;
 	}
 	return true;
@@ -1416,14 +1415,11 @@ bool qmrss::Atom10Handler::endElement(const WCHAR* pwszNamespaceURI,
 		}
 		else {
 			--nContentNest_;
-			if (nContentNest_ != 0 ||
-				wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") != 0 ||
-				wcscmp(pwszLocalName, L"div") != 0) {
+			bool bXHTML = pwszNamespaceURI &&
+				wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") == 0;
+			if (nContentNest_ != 0 || !bXHTML || wcscmp(pwszLocalName, L"div") != 0) {
 				buffer_.append(L"</");
-				if (wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") == 0)
-					buffer_.append(pwszLocalName);
-				else
-					buffer_.append(pwszQName);
+				buffer_.append(bXHTML ? pwszLocalName : pwszQName);
 				buffer_.append(L">");
 			}
 		}
