@@ -661,7 +661,8 @@ qs::UTF7ConverterFactory::~UTF7ConverterFactory()
 bool qs::UTF7ConverterFactory::isSupported(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	return _wcsicmp(pwszName, L"utf-7") == 0;
+	return _wcsicmp(pwszName, L"utf-7") == 0 ||
+		_wcsicmp(pwszName, L"utf7") == 0;
 }
 
 std::auto_ptr<Converter> qs::UTF7ConverterFactory::createInstance(const WCHAR* pwszName)
@@ -813,7 +814,8 @@ qs::UTF8ConverterFactory::~UTF8ConverterFactory()
 bool qs::UTF8ConverterFactory::isSupported(const WCHAR* pwszName)
 {
 	assert(pwszName);
-	return _wcsicmp(pwszName, L"utf-8") == 0;
+	return _wcsicmp(pwszName, L"utf-8") == 0 ||
+		_wcsicmp(pwszName, L"utf8") == 0;
 }
 
 std::auto_ptr<Converter> qs::UTF8ConverterFactory::createInstance(const WCHAR* pwszName)
