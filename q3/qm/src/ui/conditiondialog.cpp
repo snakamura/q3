@@ -118,8 +118,6 @@ Condition* qm::ConditionsDialog::edit(Condition* p) const
 
 void qm::ConditionsDialog::updateState()
 {
-	AbstractListDialog<Condition, ConditionList::List>::updateState();
-	
 	bool bCustom = Button_GetCheck(getDlgItem(IDC_CUSTOM)) == BST_CHECKED;
 	
 	UINT nIds[] = {
@@ -134,6 +132,9 @@ void qm::ConditionsDialog::updateState()
 	};
 	for (int n = 0; n < countof(nIds); ++n)
 		Window(getDlgItem(nIds[n])).enableWindow(!bCustom);
+	
+	if (!bCustom)
+		AbstractListDialog<Condition, ConditionList::List>::updateState();
 	
 	sendDlgItemMessage(IDC_MACRO, EM_SETREADONLY, !bCustom);
 	
