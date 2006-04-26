@@ -17,15 +17,6 @@
 using namespace qs;
 using namespace qscrypto;
 
-#define LOG_SSLERROR(message) \
-	do { \
-		if (log.isErrorEnabled()) { \
-			char sz[256]; \
-			ERR_error_string_n(ERR_get_error(), sz, countof(sz)); \
-			log.error(message, reinterpret_cast<const unsigned char*>(sz), strlen(sz)); \
-		} \
-	} while (false)
-
 
 /****************************************************************************
  *
@@ -127,7 +118,7 @@ int qscrypto::SSLSocketImpl::recv(char* p,
 	
 	int nRead = SSL_read(pSSL_, p, nLen);
 	if (nRead < 0) {
-		LOG_SSLERROR(L"Error occured while receiving.");
+		Util::logError(log, L"Error occured while receiving.");
 		nError_ = SOCKET_ERROR_RECV;
 		return -1;
 	}
@@ -147,7 +138,7 @@ int qscrypto::SSLSocketImpl::send(const char* p,
 	
 	int nWritten = SSL_write(pSSL_, p, nLen);
 	if (nWritten < 0) {
-		LOG_SSLERROR(L"Error occured while sending.");
+		Util::logError(log, L"Error occured while sending.");
 		nError_ = SOCKET_ERROR_SEND;
 		return -1;
 	}
@@ -198,7 +189,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	pCTX_ = SSL_CTX_new(SSLv23_method());
 	if (!pCTX_) {
-		LOG_SSLERROR(L"Error occured while creating SSL context.");
+		Util::logError(log, L"Error occured while creating SSL context.");
 		nError_ = SOCKET_ERROR_CONNECT;
 		return false;
 	}
@@ -214,7 +205,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	pSSL_ = SSL_new(pCTX_);
 	if (!pSSL_) {
-		LOG_SSLERROR(L"Error occured while create SSL.");
+		Util::logError(log, L"Error occured while create SSL.");
 		nError_ = SOCKET_ERROR_CONNECT;
 		return false;
 	}
@@ -224,7 +215,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	log.debug(L"Starting SSL handshake...");
 	
 	if (SSL_connect(pSSL_) <= 0) {
-		LOG_SSLERROR(L"Error occured while connecting.");
+		Util::logError(log, L"Error occured while connecting.");
 		nError_ = SOCKET_ERROR_CONNECT;
 		return false;
 	}

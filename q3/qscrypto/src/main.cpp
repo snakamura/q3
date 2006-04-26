@@ -70,6 +70,8 @@ BOOL WINAPI DllMain(HANDLE hInst,
 #endif
 		g_hInst = static_cast<HINSTANCE>(hInst);
 		g_hInstResource = g_hInst;
+		ERR_load_crypto_strings();
+		ERR_load_SSL_strings();
 		OpenSSL_add_all_algorithms();
 		SSL_library_init();
 		CRYPTO_set_locking_callback(&qscrypto::lockCallback);
