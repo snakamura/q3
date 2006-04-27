@@ -376,7 +376,7 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 			return std::auto_ptr<Channel>();
 		
 		std::auto_ptr<RegexPattern> pPatternType(RegexCompiler().compile(
-			L"<link [^<>]*type=\"?application/(rss|atom)\\+xml\"?[^<>]*/?>",
+			L"<link [^<>]*type=\"?application/(rss|atom|rdf)\\+xml(\\s*;[^\"<>])*\"?[^<>]*/?>",
 			RegexCompiler::MODE_MULTILINE | RegexCompiler::MODE_DOTALL | RegexCompiler::MODE_CASEINSENSITIVE));
 		const WCHAR* pStart = 0;
 		const WCHAR* pEnd = 0;
