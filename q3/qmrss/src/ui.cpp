@@ -43,6 +43,7 @@ LRESULT qmrss::ReceivePage::onCommand(WORD nCode,
 									  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_AUTHENTICATE, onAuthenticate)
 		HANDLE_COMMAND_ID_RANGE(IDC_NOPROXY, IDC_CUSTOM, onProxy)
 	END_COMMAND_HANDLER()
 	return DefaultPropertyPage::onCommand(nCode, nId);
@@ -61,6 +62,13 @@ LRESULT qmrss::ReceivePage::onInitDialog(HWND hwndFocus,
 	wstring_ptr wstrHost(pSubAccount_->getProperty(L"Http", L"ProxyHost", L""));
 	setDlgItemText(IDC_HOST, wstrHost.get());
 	setDlgItemInt(IDC_PORT, pSubAccount_->getProperty(L"Http", L"ProxyPort", 8080));
+	
+	wstring_ptr wstrUserName(pSubAccount_->getProperty(L"Http", L"ProxyUserName", L""));
+	wstring_ptr wstrPassword(pSubAccount_->getProperty(L"Http", L"ProxyPassword", L""));
+	sendDlgItemMessage(IDC_AUTHENTICATE, BM_SETCHECK,
+		*wstrUserName.get() && *wstrPassword.get() ? BST_CHECKED : BST_UNCHECKED);
+	setDlgItemText(IDC_USERNAME, wstrUserName.get());
+	setDlgItemText(IDC_PASSWORD, wstrPassword.get());
 	
 	updateState();
 	
@@ -83,7 +91,24 @@ LRESULT qmrss::ReceivePage::onOk()
 		pSubAccount_->setProperty(L"Http", L"ProxyHost", wstrHost.get());
 	pSubAccount_->setProperty(L"Http", L"ProxyPort", getDlgItemInt(IDC_PORT));
 	
+	wstring_ptr wstrUserName;
+	wstring_ptr wstrPassword;
+	if (sendDlgItemMessage(IDC_AUTHENTICATE, BM_GETCHECK) == BST_CHECKED) {
+		wstrUserName = getDlgItemText(IDC_USERNAME);
+		wstrPassword = getDlgItemText(IDC_PASSWORD);
+	}
+	pSubAccount_->setProperty(L"Http", L"ProxyUserName",
+		wstrUserName.get() ? wstrUserName.get() : L"");
+	pSubAccount_->setProperty(L"Http", L"ProxyPassword",
+		wstrPassword.get() ? wstrPassword.get() : L"");
+	
 	return DefaultPropertyPage::onOk();
+}
+
+LRESULT qmrss::ReceivePage::onAuthenticate()
+{
+	updateState();
+	return 0;
 }
 
 LRESULT qmrss::ReceivePage::onProxy(UINT nId)
@@ -94,9 +119,13 @@ LRESULT qmrss::ReceivePage::onProxy(UINT nId)
 
 void qmrss::ReceivePage::updateState()
 {
-	bool bEnable = sendDlgItemMessage(IDC_CUSTOM, BM_GETCHECK) == BST_CHECKED;
-	Window(getDlgItem(IDC_HOST)).enableWindow(bEnable);
-	Window(getDlgItem(IDC_PORT)).enableWindow(bEnable);
+	bool bCustom = sendDlgItemMessage(IDC_CUSTOM, BM_GETCHECK) == BST_CHECKED;
+	bool bAuth = sendDlgItemMessage(IDC_AUTHENTICATE, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_HOST)).enableWindow(bCustom);
+	Window(getDlgItem(IDC_PORT)).enableWindow(bCustom);
+	Window(getDlgItem(IDC_AUTHENTICATE)).enableWindow(bCustom);
+	Window(getDlgItem(IDC_USERNAME)).enableWindow(bCustom && bAuth);
+	Window(getDlgItem(IDC_PASSWORD)).enableWindow(bCustom && bAuth);
 }
 
 
@@ -293,22 +322,10 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 	if (pSubAccount->isLog(Account::HOST_RECEIVE))
 		pLogger = pAccount_->openLogger(Account::HOST_RECEIVE);
 	
-	bool bUseProxy = false;
-	wstring_ptr wstrProxyHost;
-	unsigned short nProxyPort = 8080;
-	if (pSubAccount->getProperty(L"Http", L"UseInternetSetting", 0)) {
-		bUseProxy = HttpUtil::getInternetProxySetting(&wstrProxyHost, &nProxyPort);
-	}
-	else if (pSubAccount->getProperty(L"Http", L"UseProxy", 0)) {
-		wstrProxyHost = pSubAccount->getProperty(L"Http", L"ProxyHost", L"");
-		nProxyPort = pSubAccount->getProperty(L"Http", L"ProxyPort", 8080);
-		bUseProxy = true;
-	}
-	
 	DefaultCallback callback(pURL->getHost(),
 		pSubAccount->getSslOption(), pDocument_->getSecurity());
-	Http http(pSubAccount->getTimeout(), bUseProxy ? wstrProxyHost.get() : 0,
-		bUseProxy ? nProxyPort : 0, &callback, &callback, &callback, pLogger.get());
+	std::auto_ptr<Http> pHttp(Util::createHttp(pSubAccount,
+		&callback, &callback, &callback, pLogger.get()));
 	
 	wstring_ptr wstrURL(allocWString(pwszURL));
 	std::auto_ptr<HttpMethodGet> pMethod;
@@ -322,7 +339,7 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 		if (wstrCookie.get() && *wstrCookie.get())
 			pMethod->setRequestHeader(L"Cookie", wstrCookie.get());
 		
-		unsigned int nCode = http.invoke(pMethod.get());
+		unsigned int nCode = pHttp->invoke(pMethod.get());
 		switch (nCode) {
 		case 200:
 			break;

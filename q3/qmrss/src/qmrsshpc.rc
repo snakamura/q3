@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// 英語 (アメリカ) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -64,10 +64,16 @@ BEGIN
     CONTROL         "&Custom setting",IDC_CUSTOM,"Button",BS_AUTORADIOBUTTON,
                     10,35,85,10
     LTEXT           "H&ost",IDC_STATIC,20,47,20,8
-    EDITTEXT        IDC_HOST,45,45,165,12,ES_AUTOHSCROLL
-    LTEXT           "&Port",IDC_STATIC,20,62,20,8
-    EDITTEXT        IDC_PORT,45,60,40,12,ES_AUTOHSCROLL | ES_NUMBER
-    GROUPBOX        "HTTP Proxy",IDC_STATIC,5,5,213,75
+    EDITTEXT        IDC_HOST,45,45,105,12,ES_AUTOHSCROLL
+    LTEXT           "&Port",IDC_STATIC,155,47,15,8
+    EDITTEXT        IDC_PORT,175,45,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Au&thenticate",IDC_AUTHENTICATE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,60,57,10
+    LTEXT           "&Username",IDC_STATIC,30,73,35,8
+    EDITTEXT        IDC_USERNAME,65,70,55,12,ES_AUTOHSCROLL
+    LTEXT           "&Password",IDC_STATIC,125,73,30,8
+    EDITTEXT        IDC_PASSWORD,160,70,55,12,ES_PASSWORD | ES_AUTOHSCROLL
+    GROUPBOX        "HTTP Proxy",IDC_STATIC,5,5,213,85
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 225, 105
@@ -152,7 +158,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (U.S.) resources
+#endif    // 英語 (アメリカ) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

@@ -49,6 +49,7 @@ protected:
 	virtual LRESULT onOk();
 
 private:
+	LRESULT onAuthenticate();
 	LRESULT onProxy(UINT nId);
 
 private:

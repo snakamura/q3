@@ -35,10 +35,7 @@ class HttpUtil;
 class Http
 {
 public:
-	Http(unsigned int nTimeout,
-		 const WCHAR* pwszProxyHost,
-		 unsigned short nProxyPort,
-		 qs::SocketCallback* pSocketCallback,
+	Http(qs::SocketCallback* pSocketCallback,
 		 qs::SSLSocketCallback* pSSLSocketCallback,
 		 HttpCallback* pHttpCallback,
 		 qs::Logger* pLogger);
@@ -46,6 +43,18 @@ public:
 
 public:
 	unsigned int invoke(HttpMethod* pMethod);
+	
+	unsigned int getTimeout() const;
+	void setTimeout(unsigned int nTimeout);
+	
+	const WCHAR* getProxyHost() const;
+	void setProxyHost(const WCHAR* pwszProxyHost);
+	unsigned short getProxyPort() const;
+	void setProxyPort(unsigned short nProxyPort);
+	const WCHAR* getProxyUserName() const;
+	void setProxyUserName(const WCHAR* pwszUserName);
+	const WCHAR* getProxyPassword() const;
+	void setProxyPassword(const WCHAR* pwszPassword);
 
 private:
 	Http(const Http&);
@@ -55,6 +64,8 @@ private:
 	unsigned int nTimeout_;
 	qs::wstring_ptr wstrProxyHost_;
 	unsigned short nProxyPort_;
+	qs::wstring_ptr wstrProxyUserName_;
+	qs::wstring_ptr wstrProxyPassword_;
 	qs::SocketCallback* pSocketCallback_;
 	qs::SSLSocketCallback* pSSLSocketCallback_;
 	HttpCallback* pHttpCallback_;
@@ -127,6 +138,8 @@ public:
 								  const WCHAR* pwszValue) = 0;
 	virtual void setCredential(const WCHAR* pwszUserName,
 							   const WCHAR* pwszPassword) = 0;
+	virtual void setProxyCredential(const WCHAR* pwszUserName,
+									const WCHAR* pwszPassword) = 0;
 
 public:
 	virtual const CHAR* getResponseLine() const = 0;
@@ -161,6 +174,8 @@ public:
 								  const WCHAR* pwszValue);
 	virtual void setCredential(const WCHAR* pwszUserName,
 							   const WCHAR* pwszPassword);
+	virtual void setProxyCredential(const WCHAR* pwszUserName,
+									const WCHAR* pwszPassword);
 
 public:
 	virtual const CHAR* getResponseLine() const;
@@ -197,6 +212,8 @@ private:
 	HeaderList listRequestHeader_;
 	qs::wstring_ptr wstrUserName_;
 	qs::wstring_ptr wstrPassword_;
+	qs::wstring_ptr wstrProxyUserName_;
+	qs::wstring_ptr wstrProxyPassword_;
 	qs::xstring_ptr strResponseLine_;
 	qs::xstring_ptr strResponseHeader_;
 	std::auto_ptr<HttpConnection> pConnection_;

@@ -19,6 +19,23 @@ namespace qmrss {
 
 /****************************************************************************
  *
+ * Util
+ *
+ */
+
+class Util
+{
+public:
+	static std::auto_ptr<Http> createHttp(qm::SubAccount* pSubAccount,
+										  qs::SocketCallback* pSocketCallback,
+										  qs::SSLSocketCallback* pSSLSocketCallback,
+										  HttpCallback* pHttpCallback,
+										  qs::Logger* pLogger);
+};
+
+
+/****************************************************************************
+ *
  * DefaultCallback
  *
  */

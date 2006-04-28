@@ -27,22 +27,17 @@ using namespace qs;
  *
  */
 
-qmrss::Http::Http(unsigned int nTimeout,
-				  const WCHAR* pwszProxyHost,
-				  unsigned short nProxyPort,
-				  SocketCallback* pSocketCallback,
+qmrss::Http::Http(SocketCallback* pSocketCallback,
 				  SSLSocketCallback* pSSLSocketCallback,
 				  HttpCallback* pHttpCallback,
 				  Logger* pLogger) :
-	nTimeout_(nTimeout),
-	nProxyPort_(nProxyPort),
+	nTimeout_(60),
+	nProxyPort_(8080),
 	pSocketCallback_(pSocketCallback),
 	pSSLSocketCallback_(pSSLSocketCallback),
 	pHttpCallback_(pHttpCallback),
 	pLogger_(pLogger)
 {
-	if (pwszProxyHost)
-		wstrProxyHost_ = allocWString(pwszProxyHost);
 }
 
 qmrss::Http::~Http()
@@ -122,9 +117,69 @@ unsigned int qmrss::Http::invoke(HttpMethod* pMethod)
 		pSocketBase = pSocket;
 	}
 	
-	std::auto_ptr<HttpConnection> pConnection(
-		new HttpConnection(pSocketBase, bProxied));
+	std::auto_ptr<HttpConnection> pConnection(new HttpConnection(pSocketBase, bProxied));
+	if (bProxied && wstrProxyUserName_.get() && wstrProxyPassword_.get())
+		pMethod->setProxyCredential(wstrProxyUserName_.get(), wstrProxyPassword_.get());
 	return pMethod->invoke(pConnection);
+}
+
+unsigned int qmrss::Http::getTimeout() const
+{
+	return nTimeout_;
+}
+
+void qmrss::Http::setTimeout(unsigned int nTimeout)
+{
+	nTimeout_ = nTimeout;
+}
+
+const WCHAR* qmrss::Http::getProxyHost() const
+{
+	return wstrProxyHost_.get();
+}
+
+void qmrss::Http::setProxyHost(const WCHAR* pwszProxyHost)
+{
+	if (pwszProxyHost)
+		wstrProxyHost_ = allocWString(pwszProxyHost);
+	else
+		wstrProxyHost_.reset(0);
+}
+
+unsigned short qmrss::Http::getProxyPort() const
+{
+	return nProxyPort_;
+}
+
+void qmrss::Http::setProxyPort(unsigned short nProxyPort)
+{
+	nProxyPort_ = nProxyPort;
+}
+
+const WCHAR* qmrss::Http::getProxyUserName() const
+{
+	return wstrProxyUserName_.get();
+}
+
+void qmrss::Http::setProxyUserName(const WCHAR* pwszUserName)
+{
+	if (pwszUserName)
+		wstrProxyUserName_ = allocWString(pwszUserName);
+	else
+		wstrProxyUserName_.reset(0);
+}
+
+const WCHAR* qmrss::Http::getProxyPassword() const
+{
+	return wstrProxyPassword_.get();
+}
+
+void qmrss::Http::setProxyPassword(const WCHAR* pwszPassword)
+{
+	if (pwszPassword)
+		wstrProxyPassword_ = allocWString(pwszPassword);
+	else
+		wstrProxyPassword_.reset(0);
 }
 
 
@@ -250,6 +305,16 @@ void qmrss::AbstractHttpMethod::setCredential(const WCHAR* pwszUserName,
 	wstrPassword_ = allocWString(pwszPassword);
 }
 
+void qmrss::AbstractHttpMethod::setProxyCredential(const WCHAR* pwszUserName,
+												   const WCHAR* pwszPassword)
+{
+	assert(pwszUserName);
+	assert(pwszPassword);
+	
+	wstrProxyUserName_ = allocWString(pwszUserName);
+	wstrProxyPassword_ = allocWString(pwszPassword);
+}
+
 const CHAR* qmrss::AbstractHttpMethod::getResponseLine() const
 {
 	return strResponseLine_.get();
@@ -357,6 +422,16 @@ unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pCo
 		if (!wstrCredential.get())
 			return -1;
 		requestHeader.append(L"Authorization: Basic ");
+		requestHeader.append(wstrCredential.get());
+		requestHeader.append(L"\r\n");
+	}
+	
+	if (pConnection->isProxied() && wstrProxyUserName_.get() && wstrProxyPassword_.get()) {
+		wstring_ptr wstrCredential(HttpUtil::getBasicCredential(
+			wstrProxyUserName_.get(), wstrProxyPassword_.get()));
+		if (!wstrCredential.get())
+			return -1;
+		requestHeader.append(L"Proxy-Authorization: Basic ");
 		requestHeader.append(wstrCredential.get());
 		requestHeader.append(L"\r\n");
 	}

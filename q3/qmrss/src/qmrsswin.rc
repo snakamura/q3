@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// 英語 (アメリカ) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -57,17 +57,23 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "RSS"
 FONT 9, "Tahoma"
 BEGIN
-    GROUPBOX        "HTTP Proxy",IDC_STATIC,5,5,215,80
+    GROUPBOX        "HTTP Proxy",IDC_STATIC,5,5,215,95
     CONTROL         "&Never use proxy",IDC_NOPROXY,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP,10,15,205,10
     CONTROL         "Use &internet setting",IDC_INTERNETSETTING,"Button",
                     BS_AUTORADIOBUTTON,10,25,205,10
     CONTROL         "&Custom setting",IDC_CUSTOM,"Button",BS_AUTORADIOBUTTON,
                     10,35,205,10
-    LTEXT           "H&ost",IDC_STATIC,20,52,25,8
-    EDITTEXT        IDC_HOST,50,50,160,12,ES_AUTOHSCROLL
-    LTEXT           "&Port",IDC_STATIC,20,67,20,8
-    EDITTEXT        IDC_PORT,50,65,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "H&ost",IDC_STATIC,20,52,20,8
+    EDITTEXT        IDC_HOST,40,50,120,12,ES_AUTOHSCROLL
+    LTEXT           "&Port",IDC_STATIC,165,52,15,8
+    EDITTEXT        IDC_PORT,185,50,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Au&thenticate",IDC_AUTHENTICATE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,68,57,10
+    LTEXT           "&Username",IDC_STATIC,30,82,35,8
+    EDITTEXT        IDC_USERNAME,65,80,55,12,ES_AUTOHSCROLL
+    LTEXT           "Pass&word",IDC_STATIC,125,82,30,8
+    EDITTEXT        IDC_PASSWORD,160,80,55,12,ES_PASSWORD | ES_AUTOHSCROLL
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 225, 145
@@ -153,7 +159,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (U.S.) resources
+#endif    // 英語 (アメリカ) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

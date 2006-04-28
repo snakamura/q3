@@ -143,27 +143,13 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	log.debugf(L"Connecting to the site: %s", pwszURL);
 	
-	bool bUseProxy = false;
-	wstring_ptr wstrProxyHost;
-	unsigned short nProxyPort = 8080;
-	if (pSubAccount_->getProperty(L"Http", L"UseInternetSetting", 0)) {
-		bUseProxy = HttpUtil::getInternetProxySetting(&wstrProxyHost, &nProxyPort);
-	}
-	else if (pSubAccount_->getProperty(L"Http", L"UseProxy", 0)) {
-		wstrProxyHost = pSubAccount_->getProperty(L"Http", L"ProxyHost", L"");
-		nProxyPort = pSubAccount_->getProperty(L"Http", L"ProxyPort", 8080);
-		bUseProxy = true;
-	}
-	if (bUseProxy && log.isDebugEnabled())
-		log.debugf(L"Using proxy: %s:%u", wstrProxyHost.get(), nProxyPort);
-	
 	CallbackImpl callback(pSubAccount_, pURL->getHost(),
 		pDocument_->getSecurity(), pSessionCallback_);
 	callback.setMessage(IDS_REQUESTRSS);
 	pSessionCallback_->setRange(0, 0);
 	
-	Http http(pSubAccount_->getTimeout(), bUseProxy ? wstrProxyHost.get() : 0,
-		bUseProxy ? nProxyPort : 0, &callback, &callback, &callback, pLogger_);
+	std::auto_ptr<Http> pHttp(Util::createHttp(pSubAccount_,
+		&callback, &callback, &callback, pLogger_));
 	
 	const Feed* pFeed = pFeedList_->getFeed(pwszURL);
 	
@@ -195,7 +181,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		if (pwszCookie && *pwszCookie)
 			pMethod->setRequestHeader(L"Cookie", pwszCookie);
 		
-		unsigned int nCode = http.invoke(pMethod.get());
+		unsigned int nCode = pHttp->invoke(pMethod.get());
 		switch (nCode) {
 		case 200:
 			break;
@@ -310,7 +296,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 			// Sync filter.
 			if (false && link.second) {
 				HttpMethodGet method(link.first);
-				unsigned int nCode = http.invoke(&method);
+				unsigned int nCode = pHttp->invoke(&method);
 				if (nCode != 200)
 					return false;
 				
