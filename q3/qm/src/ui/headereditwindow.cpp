@@ -1233,7 +1233,7 @@ bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
 		}
 	}
 	else {
-		if (_wcsnicmp(pAddress->getAddress(), pwszInput, nLen) == 0)
+		if (matchAddress(pAddress->getAddress(), pwszInput, nLen))
 			return true;
 	}
 	return false;
@@ -1263,7 +1263,7 @@ bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
 		const WCHAR* pwszPhrase = address.getPhrase();
 		bool bMatchName = matchName(pwszPhrase, pwszInput, nLen);
 		wstring_ptr wstrAddress(address.getAddress());
-		bool bMatchAddress = _wcsnicmp(wstrAddress.get(), pwszInput, nLen) == 0;
+		bool bMatchAddress = matchAddress(wstrAddress.get(), pwszInput, nLen);
 		return (bMatchName || bMatchAddress) &&
 			((pwszPhrase && *pwszPhrase) || !bMatchAddress || wcslen(wstrAddress.get()) != nLen);
 	}
@@ -1284,6 +1284,24 @@ bool qm::AddressHeaderEditItem::matchName(const WCHAR* pwszName,
 		if (_wcsnicmp(p + 1, pwszInput, nInputLen) == 0)
 			return true;
 		p = wcschr(p + 1, L' ');
+	}
+	return false;
+}
+
+bool qm::AddressHeaderEditItem::matchAddress(const WCHAR* pwszAddress,
+											 const WCHAR* pwszInput,
+											 size_t nInputLen)
+{
+	if (!pwszAddress)
+		return false;
+	
+	if (_wcsnicmp(pwszAddress, pwszInput, nInputLen) == 0)
+		return true;
+	
+	const WCHAR* p = wcschr(pwszAddress, L'@');
+	if (p) {
+		if (_wcsnicmp(p + 1, pwszInput, nInputLen) == 0)
+			return true;
 	}
 	return false;
 }

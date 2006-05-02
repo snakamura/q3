@@ -437,6 +437,9 @@ private:
 	static bool matchName(const WCHAR* pwszName,
 						  const WCHAR* pwszInput,
 						  size_t nInputLen);
+	static bool matchAddress(const WCHAR* pwszAddress,
+							 const WCHAR* pwszInput,
+							 size_t nInputLen);
 
 private:
 	AddressHeaderEditItem(const AddressHeaderEditItem&);
