@@ -2538,36 +2538,42 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 		nFlags |= CreateFolderDialog::FLAG_ALLOWREMOTE;
 	
 	CreateFolderDialog dialog(type, nFlags);
-	if (dialog.doModal(hwnd_) == IDOK) {
-		NormalFolder* pNormalFolder = 0;
-		QueryFolder* pQueryFolder = 0;
-		switch (dialog.getType()) {
-		case CreateFolderDialog::TYPE_LOCALFOLDER:
-			pNormalFolder = pAccount->createNormalFolder(
-				dialog.getName(), pFolder, false, false);
-			break;
-		case CreateFolderDialog::TYPE_REMOTEFOLDER:
-			pNormalFolder = pAccount->createNormalFolder(
-				dialog.getName(), pFolder, true, true);
-			break;
-		case CreateFolderDialog::TYPE_QUERYFOLDER:
-			pQueryFolder = pAccount->createQueryFolder(dialog.getName(),
-				pFolder, L"macro", L"@False()", 0, false);
-			break;
-		default:
-			assert(false);
-			break;
-		}
-		if (!pNormalFolder && !pQueryFolder) {
-			ActionUtil::error(hwnd_, IDS_ERROR_CREATEFOLDER);
-			return;
-		}
-		
-		if (pQueryFolder) {
-			Account::FolderList l(1, pQueryFolder);
-			FolderPropertyAction::openProperty(l,
-				FolderPropertyAction::OPEN_CONDITION, hwnd_, pProfile_);
-		}
+	if (dialog.doModal(hwnd_) != IDOK)
+		return;
+	
+	NormalFolder* pNormalFolder = 0;
+	QueryFolder* pQueryFolder = 0;
+	switch (dialog.getType()) {
+	case CreateFolderDialog::TYPE_LOCALFOLDER:
+		pNormalFolder = pAccount->createNormalFolder(
+			dialog.getName(), pFolder, false, false);
+		break;
+	case CreateFolderDialog::TYPE_REMOTEFOLDER:
+		pNormalFolder = pAccount->createNormalFolder(
+			dialog.getName(), pFolder, true, true);
+		break;
+	case CreateFolderDialog::TYPE_QUERYFOLDER:
+		pQueryFolder = pAccount->createQueryFolder(dialog.getName(),
+			pFolder, L"macro", L"@False()", 0, false);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	if (!pNormalFolder && !pQueryFolder) {
+		ActionUtil::error(hwnd_, IDS_ERROR_CREATEFOLDER);
+		return;
+	}
+	
+	if (pQueryFolder) {
+		Account::FolderList l(1, pQueryFolder);
+		FolderPropertyAction::openProperty(l,
+			FolderPropertyAction::OPEN_CONDITION, hwnd_, pProfile_);
+	}
+	
+	if (!pAccount->save(false)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+		return;
 	}
 }
 
@@ -2644,6 +2650,12 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 				return;
 			}
 		}
+	}
+	
+	Account* pAccount = l.front()->getAccount();
+	if (!pAccount->save(false)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+		return;
 	}
 }
 
@@ -2998,6 +3010,9 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 											HWND hwnd,
 											Profile* pProfile)
 {
+	if (listFolder.empty())
+		return;
+	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_PROPERTY));
 	
@@ -3033,6 +3048,12 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 	}
 	
 	sheet.doModal(hwnd);
+	
+	Account* pAccount = listFolder.front()->getAccount();
+	if (!pAccount->save(false)) {
+		ActionUtil::error(hwnd, IDS_ERROR_SAVE);
+		return;
+	}
 }
 
 
@@ -3058,36 +3079,42 @@ qm::FolderRenameAction::~FolderRenameAction()
 void qm::FolderRenameAction::invoke(const ActionEvent& event)
 {
 	Folder* pFolder = FolderActionUtil::getFocused(pFolderSelectionModel_).second;
-	if (pFolder) {
-		RenameDialog dialog(pFolder->getName());
-		if (dialog.doModal(hwnd_) != IDOK)
-			return;
-		
-		const WCHAR* pwszName = dialog.getName();
-		if (wcscmp(pFolder->getName(), pwszName) == 0)
-			return;
-		
-		Account* pAccount = pFolder->getAccount();
-		if (*pwszName == pFolder->getSeparator()) {
-			Folder* pParent = 0;
-			if (*(pwszName + 1) != L'\0') {
-				pParent = pAccount->getFolder(pwszName + 1);
-				if (!pParent) {
-					ActionUtil::error(hwnd_, IDS_ERROR_MOVEFOLDER);
-					return;
-				}
-			}
-			if (!pAccount->moveFolder(pFolder, pParent, 0)) {
+	if (!pFolder)
+		return;
+	
+	RenameDialog dialog(pFolder->getName());
+	if (dialog.doModal(hwnd_) != IDOK)
+		return;
+	
+	const WCHAR* pwszName = dialog.getName();
+	if (wcscmp(pFolder->getName(), pwszName) == 0)
+		return;
+	
+	Account* pAccount = pFolder->getAccount();
+	if (*pwszName == pFolder->getSeparator()) {
+		Folder* pParent = 0;
+		if (*(pwszName + 1) != L'\0') {
+			pParent = pAccount->getFolder(pwszName + 1);
+			if (!pParent) {
 				ActionUtil::error(hwnd_, IDS_ERROR_MOVEFOLDER);
 				return;
 			}
 		}
-		else {
-			if (!pAccount->renameFolder(pFolder, pwszName)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_RENAMEFOLDER);
-				return;
-			}
+		if (!pAccount->moveFolder(pFolder, pParent, 0)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_MOVEFOLDER);
+			return;
 		}
+	}
+	else {
+		if (!pAccount->renameFolder(pFolder, pwszName)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_RENAMEFOLDER);
+			return;
+		}
+	}
+	
+	if (!pAccount->save(false)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+		return;
 	}
 }
 
@@ -3152,8 +3179,13 @@ void qm::FolderSubscribeAction::invoke(const ActionEvent& event)
 	if (!p.first && !p.second)
 		return;
 	
-	subscribe(pDocument_, p.first ? p.first : p.second->getAccount(),
-		p.second, pPasswordManager_, hwnd_, 0);
+	Account* pAccount = p.first ? p.first : p.second->getAccount();
+	subscribe(pDocument_, pAccount, p.second, pPasswordManager_, hwnd_, 0);
+	
+	if (!pAccount->save(false)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+		return;
+	}
 }
 
 bool qm::FolderSubscribeAction::isEnabled(const ActionEvent& event)
