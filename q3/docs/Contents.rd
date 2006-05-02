@@ -34,21 +34,22 @@
     *((<フィードの購読|URL:SubscribeRssFeed.html>))
     *((<フィードを読む|URL:ReadRssFeed.html>))
 *機能
-  *アカウント
+  *((<アカウント|URL:Account.html>))
     *((<サブアカウント|URL:SubAccount.html>))
-    *マルチアカウント
-  *フォルダ
-    *通常フォルダ
-      *ローカルフォルダ
-      *リモートフォルダ
+    *((<マルチアカウント|URL:MultiAccount.html>))
+  *((<フォルダ|URL:Folder.html>))
+    *((<通常フォルダ|URL:NormalFolder.html>))
+      *((<ローカルフォルダ|URL:LocalFolder.html>))
+      *((<リモートフォルダ|URL:RemoteFolder.html>))
     *((<検索フォルダ|URL:QueryFolder.html>))
     *((<フォルダのプロパティ|URL:FolderProperty.html>))
       *((<一般|URL:FolderPropertyPage.html>))
       *((<検索条件|URL:FolderConditionPage.html>))
       *((<パラメータ|URL:FolderParameterPage.html>))
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
-    *特殊フォルダ
+    *((<特殊フォルダ|URL:SpecialFolder.html>))
   *((<オンラインとオフライン|URL:OnlineOffline.html>))
+  *メッセージの移動とコピー
   *((<振り分け|URL:ApplyRules.html>))
   *プロトコル依存のトピック
     *POP3
@@ -66,15 +67,15 @@
     *((<IMAP4検索|URL:Imap4Search.html>))
     *((<全文検索|URL:FullTextSearch.html>))
   *((<アドレス帳|URL:AddressBook.html>))
-    *外部アドレス帳
-    *アドレス補完
+    *((<外部アドレス帳|URL:ExternalAddressBook.html>))
+    *((<アドレスの自動補完|URL:AddressAutoComplete.html>))
   *添付ファイル
   *((<署名|URL:Signature.html>))
   *((<定型文|URL:FixedFormText.html>))
-  *テンプレート
-    *作成用テンプレート
-    *((<表示用テンプレート|URL:ViewTemplate.html>))
-    *その他のテンプレート
+  *((<テンプレート|URL:Template.html>))
+    *((<作成用のテンプレート|URL:CreateTemplate.html>))
+    *((<表示用のテンプレート|URL:ViewTemplate.html>))
+    *((<その他のテンプレート|URL:OtherTemplate.html>))
   *((<フィルタ|URL:Filter.html>))
   *((<同期フィルタ|URL:SyncFilter.html>))
   *リストビューの色
@@ -93,6 +94,7 @@
   *((<スパムフィルタ|URL:JunkFilter.html>))
   *((<スクリプト|URL:Script.html>))
   *((<ドラッグアンドドロップ|URL:DragAndDrop.html>))
+  *保守
   *((<コマンドライン|URL:CommandLine.html>))
   *((<ログ|URL:Log.html>))
   *((<正規表現|URL:RegularExpression.html>))
@@ -358,7 +360,7 @@
   *((<ViewSourceModeアクション|URL:ViewSourceModeAction.html>))
   *((<ViewTemplateアクション|URL:ViewTemplateAction.html>))
   *((<ViewZoomアクション|URL:ViewZoomAction.html>))
-*マクロ
+*((<マクロ|URL:Macro.html>))
   *型
   *関数
     *((<@Account|URL:AccountFunction.html>))
