@@ -1273,7 +1273,22 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 		FunctionStack& stack_;
 	} deleter(stackFunction);
 	
+	const MacroTokenizer::Token exprTokens[] = {
+		MacroTokenizer::TOKEN_TEXT,
+		MacroTokenizer::TOKEN_LITERAL,
+		MacroTokenizer::TOKEN_REGEX,
+		MacroTokenizer::TOKEN_AT,
+		MacroTokenizer::TOKEN_DOLLAR,
+		MacroTokenizer::TOKEN_COLON,
+		MacroTokenizer::TOKEN_PERCENT
+	};
+	const MacroTokenizer::Token acceptExprTokens[] = {
+		MacroTokenizer::TOKEN_AT,
+		MacroTokenizer::TOKEN_COMMA
+	};
+	
 	bool bEnd = false;
+	bool bAcceptExpr = true;
 	while (!bEnd) {
 		wstring_ptr wstrToken;
 		wstring_ptr wstrTokenEx;
@@ -1283,6 +1298,12 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
 				tokenizer.getLastPosition());
 		}
 		else {
+#define FIND(a, t) std::find(a, a + countof(a), t) != a + countof(a)
+			if (!bAcceptExpr && FIND(exprTokens, token))
+				return error(MacroErrorHandler::CODE_SYNTAXERROR, tokenizer.getLastPosition());
+			bAcceptExpr = FIND(acceptExprTokens, token);
+#undef FIND
+			
 			MacroExprPtr pExpr;
 			switch (token) {
 			case MacroTokenizer::TOKEN_TEXT:
