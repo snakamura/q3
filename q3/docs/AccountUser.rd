@@ -3,7 +3,7 @@
 
 ユーザの設定を行います。
 
-((<ユーザタブ|"IMG:images/AccountUserPage.png">))
+((<[ユーザ]タブ|"IMG:images/AccountUserPage.png">))
 
 
 ====[受信]

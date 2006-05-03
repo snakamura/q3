@@ -3,7 +3,7 @@
 
 高度の設定を行います。
 
-((<高度タブ|"IMG:images/AccountAdvancedPage.png">))
+((<[高度]タブ|"IMG:images/AccountAdvancedPage.png">))
 
 
 +[同期フィルタ]

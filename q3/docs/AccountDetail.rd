@@ -3,7 +3,7 @@
 
 詳細の設定を行います。
 
-((<詳細タブ|"IMG:images/AccountDetailPage.png">))
+((<[詳細]タブ|"IMG:images/AccountDetailPage.png">))
 
 
 ====[受信]

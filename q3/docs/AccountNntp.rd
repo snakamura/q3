@@ -3,7 +3,7 @@
 
 NNTPでメッセージを受信するための設定を行います。
 
-((<NNTPタブ|"IMG:images/AccountNntpReceivePage.png">))
+((<[NNTP]タブ|"IMG:images/AccountNntpReceivePage.png">))
 
 
 +[初期取得数]

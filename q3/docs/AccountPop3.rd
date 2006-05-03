@@ -3,7 +3,7 @@
 
 POP3でメッセージを受信するための設定を行います。
 
-((<POP3タブ|"IMG:images/AccountPop3ReceivePage.png">))
+((<[POP3]タブ|"IMG:images/AccountPop3ReceivePage.png">))
 
 
 +[APOPを使用]

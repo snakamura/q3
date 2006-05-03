@@ -3,7 +3,7 @@
 
 SMTPでメッセージを送信するための設定を行います。
 
-((<SMTPタブ|"IMG:images/AccountSmtpSendPage.png">))
+((<[SMTP]タブ|"IMG:images/AccountSmtpSendPage.png">))
 
 
 +[ローカルホスト]

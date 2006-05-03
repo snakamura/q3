@@ -3,7 +3,7 @@
 
 IMAP4でメッセージを受信するための設定を行います。
 
-((<IMAP4タブ|"IMG:images/AccountImap4ReceivePage.png">))
+((<[IMAP4]タブ|"IMG:images/AccountImap4ReceivePage.png">))
 
 
 +[ルートフォルダ]

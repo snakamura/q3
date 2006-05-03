@@ -3,7 +3,7 @@
 
 一般の設定を行います。
 
-((<一般タブ|"IMG:images/AccountGeneralPage.png">))
+((<[一般]タブ|"IMG:images/AccountGeneralPage.png">))
 
 
 ====[サーバ情報]

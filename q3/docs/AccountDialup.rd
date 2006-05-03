@@ -3,7 +3,7 @@
 
 ダイアルアップの設定を行います。
 
-((<ダイアルアップタブ|"IMG:images/AccountDialupPage.png">))
+((<[ダイアルアップ]タブ|"IMG:images/AccountDialupPage.png">))
 
 
 +[ダイアルアップ接続をしない]

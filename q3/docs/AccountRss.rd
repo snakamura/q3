@@ -3,7 +3,7 @@
 
 RSSでフィードを受信するための設定を行います。
 
-((<RSSタブ|"IMG:images/AccountRssReceivePage.png">))
+((<[RSS]タブ|"IMG:images/AccountRssReceivePage.png">))
 
 
 ====[HTTPプロキシ]
