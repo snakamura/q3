@@ -102,6 +102,7 @@ public:
 						  UndoItemList* pUndoItemList);
 	
 	bool getDataList(MessageStore::DataList* pList) const;
+	bool isRemoteMessage(MessageHolder* pmh) const;
 	
 	bool processSMIME(const SMIMEUtility* pSMIMEUtility,
 					  SMIMEUtility::Type type,
@@ -339,11 +340,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 		assert(false);
 		break;
 	}
-	if ((pmh->getFolder()->isFlag(Folder::FLAG_LOCAL) &&
-		(!pProtocolDriver_->isSupport(Account::SUPPORT_LOCALFOLDERGETMESSAGE) ||
-		!pmh->getFolder()->isFlag(Folder::FLAG_SYNCABLE))))
-		bLoadFromStore = true;
-	else if (pmh->isFlag(MessageHolder::FLAG_LOCAL))
+	if (!isRemoteMessage(pmh))
 		bLoadFromStore = true;
 	
 	bool bGet = false;
@@ -758,6 +755,18 @@ bool qm::AccountImpl::getDataList(MessageStore::DataList* pList) const
 		}
 	}
 	return true;
+}
+
+bool qm::AccountImpl::isRemoteMessage(MessageHolder* pmh) const
+{
+	if ((pmh->getFolder()->isFlag(Folder::FLAG_LOCAL) &&
+		(!pProtocolDriver_->isSupport(Account::SUPPORT_LOCALFOLDERGETMESSAGE) ||
+		!pmh->getFolder()->isFlag(Folder::FLAG_SYNCABLE))))
+		return false;
+	else if (pmh->isFlag(MessageHolder::FLAG_LOCAL))
+		return false;
+	else
+		return true;
 }
 
 bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
@@ -2311,7 +2320,7 @@ bool qm::Account::deleteMessagesCache(const MessageHolderList& l)
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		MessageHolder* pmh = *it;
 		
-		if (!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL)) {
+		if (pImpl_->isRemoteMessage(pmh)) {
 			MessageHolder::MessageBoxKey key = pmh->getMessageBoxKey();
 			if (key.nOffset_ != -1) {
 				if (!pImpl_->pMessageStore_->free(key.nOffset_, key.nLength_, -1, 0))
