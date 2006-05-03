@@ -626,7 +626,7 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "検索条件"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "ドライバ(&D)",IDC_STATIC,5,5,45,8
+    LTEXT           "タイプ(&T)",IDC_STATIC,5,5,45,8
     COMBOBOX        IDC_DRIVER,5,15,127,50,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "条件(&C)",IDC_STATIC,5,35,28,8

@@ -658,7 +658,7 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "検索条件"
 FONT 9, "MS UI Gothic"
 BEGIN
-    LTEXT           "ドライバ(&D)",IDC_STATIC,5,8,30,8
+    LTEXT           "タイプ(&T)",IDC_STATIC,5,8,30,8
     COMBOBOX        IDC_DRIVER,50,5,65,50,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "条件(&C)",IDC_STATIC,5,23,35,8

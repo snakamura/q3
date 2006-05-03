@@ -607,7 +607,7 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Condition"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Driver",IDC_STATIC,5,7,19,8
+    LTEXT           "&Type",IDC_STATIC,5,7,19,8
     COMBOBOX        IDC_DRIVER,40,5,70,50,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "&Condition",IDC_STATIC,5,22,28,8
