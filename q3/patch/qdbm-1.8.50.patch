@@ -1,6 +1,6 @@
-diff -uNr qdbm-1.8.43.orig/VCmakefile qdbm-1.8.43/VCmakefile
---- qdbm-1.8.43.orig/VCmakefile	2006-01-07 19:13:08.000000000 +0900
-+++ qdbm-1.8.43/VCmakefile	2006-01-25 07:38:32.525875000 +0900
+diff -uNr qdbm-1.8.50.orig/VCmakefile qdbm-1.8.50/VCmakefile
+--- qdbm-1.8.50.orig/VCmakefile	2006-01-07 19:13:08.000000000 +0900
++++ qdbm-1.8.50/VCmakefile	2006-05-03 13:56:56.005446400 +0900
 @@ -18,7 +18,7 @@
  # Configurations
  !IF "$(CFG)" == "ld"
@@ -35,7 +35,7 @@ diff -uNr qdbm-1.8.43.orig/VCmakefile qdbm-1.8.43/VCmakefile
  !ELSE
  !MESSAGE Build using dynamic threaded release configuration
  BASE_DEFS = /DNDEBUG
-@@ -61,9 +61,9 @@
+@@ -61,11 +61,11 @@
  !ENDIF
  
  # Building binaries
@@ -45,8 +45,11 @@ diff -uNr qdbm-1.8.43.orig/VCmakefile qdbm-1.8.43/VCmakefile
 -LIBFLAGS = /libpath:"$(VCPATH)\lib" /libpath:"$(VCPATH)\PlatformSDK\Lib" /libpath:"." \
 +LIBFLAGS = /libpath:"." \
    /nologo $(YOUR_LIBFLAGS)
- LINKFLAGS = /libpath:"$(VCPATH)\lib" /libpath:"$(VCPATH)\PlatformSDK\Lib" /libpath:"." \
+-LINKFLAGS = /libpath:"$(VCPATH)\lib" /libpath:"$(VCPATH)\PlatformSDK\Lib" /libpath:"." \
++LINKFLAGS = /libpath:"." \
    /nologo $(YOUR_LINKFLAGS)
+ 
+ # Targets
 @@ -120,7 +120,7 @@
  	-rd tmp_l /S /Q > NUL: 2>&1
  	-rd tmp_td /S /Q > NUL: 2>&1
@@ -56,9 +59,9 @@ diff -uNr qdbm-1.8.43.orig/VCmakefile qdbm-1.8.43/VCmakefile
  	-rd tmp /S /Q > NUL: 2>&1
  	-del *.obj *.lib *.dll *.exp *.exe casket /F /Q > NUL: 2>&1
  
-diff -uNr qdbm-1.8.43.orig/VCmakefile64 qdbm-1.8.43/VCmakefile64
---- qdbm-1.8.43.orig/VCmakefile64	1970-01-01 09:00:00.000000000 +0900
-+++ qdbm-1.8.43/VCmakefile64	2006-01-25 07:43:56.807125000 +0900
+diff -uNr qdbm-1.8.50.orig/VCmakefile64 qdbm-1.8.50/VCmakefile64
+--- qdbm-1.8.50.orig/VCmakefile64	1970-01-01 09:00:00.000000000 +0900
++++ qdbm-1.8.50/VCmakefile64	2006-05-03 13:56:27.302505100 +0900
 @@ -0,0 +1,248 @@
 +# Makefile to build QDBM using Microsoft Visual C++
 +
@@ -308,3 +311,22 @@ diff -uNr qdbm-1.8.43.orig/VCmakefile64 qdbm-1.8.43/VCmakefile64
 +
 +
 +# END OF FILE
+diff -uNr qdbm-1.8.50.orig/qdbm.def qdbm-1.8.50/qdbm.def
+--- qdbm-1.8.50.orig/qdbm.def	2006-03-19 20:24:19.000000000 +0900
++++ qdbm-1.8.50/qdbm.def	2006-05-03 13:47:47.274583300 +0900
+@@ -45,6 +45,7 @@
+   cbdirlist = cbdirlist
+   cbencname = cbencname
+   cbfilestat = cbfilestat
++  cbfree = cbfree
+   cbgetcrc = cbgetcrc
+   cbggcsweep = cbggcsweep
+   cbglobalgc = cbglobalgc
+@@ -129,6 +130,7 @@
+   cburlbreak = cburlbreak
+   cburldecode = cburldecode
+   cburlencode = cburlencode
++  cburlresolve = cburlresolve
+   cbvmemavail = cbvmemavail
+   cbwritefile = cbwritefile
+   cbxmlattrs = cbxmlattrs

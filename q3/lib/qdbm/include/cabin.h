@@ -115,6 +115,13 @@ void *cbrealloc(void *ptr, size_t size);
 char *cbmemdup(const char *ptr, int size);
 
 
+/* Free a region on memory.
+   `ptr' specifies the pointer to a region.  If it is `NULL', this function has no effect.
+   Although this function is just a wrapper of `free' call, this is useful in applications using
+   another package of the `malloc' series. */
+void cbfree(void *ptr);
+
+
 /* Register the pointer or handle of an object to the global garbage collector.
    `ptr' specifies the pointer or handle of an object.
    `func' specifies the pointer to a function to release resources of the object.  Its argument
@@ -129,6 +136,12 @@ void cbglobalgc(void *ptr, void (*func)(void *));
    after calling this function.  Because the global garbage collecter is initialized and you
    can register new objects into it. */
 void cbggcsweep(void);
+
+
+/* Check availability of allocation of the virtual memory.
+   `size' specifies the size of region to be allocated newly.
+   The return value is true if allocation should be success, or false if not. */
+int cbvmemavail(size_t size);
 
 
 /* Sort an array using insert sort.
@@ -254,6 +267,19 @@ char *cbstrtrim(char *str);
    `str' specifies the pointer of a string to convert.
    The return value is the pointer to the string. */
 char *cbstrsqzspc(char *str);
+
+
+/* Count the number of characters in a string of UTF-8.
+   `str' specifies the pointer of a string of UTF-8.
+   The return value is the number of characters in the string. */
+int cbstrcountutf(const char *str);
+
+
+/* Cut a string of UTF-8 at the specified number of characters.
+   `str' specifies the pointer of a string of UTF-8.
+   `num' specifies the number of characters to be kept.
+   The return value is the pointer to the string. */
+char *cbstrcututf(char *str, int num);
 
 
 /* Get a datum handle.
@@ -719,6 +745,16 @@ int cbfilestat(const char *name, int *isdirp, int *sizep, int *mtimep);
    Because the handle of the return value is opened with the function `cbmapopen', it should
    be closed with the function `cbmapclose' if it is no longer in use. */
 CBMAP *cburlbreak(const char *str);
+
+
+/* Resolve a relative URL with another absolute URL.
+   `base' specifies an absolute URL of a base location.
+   `target' specifies a URL to be resolved.
+   The return value is a resolved URL.  If the target URL is relative, a new URL of relative
+   location from the base location is returned.  Else, a copy of the target URL is returned.
+   Because the region of the return value is allocated with the `malloc' call, it should be
+   released with the `free' call if it is no longer in use. */
+char *cburlresolve(const char *base, const char *target);
 
 
 /* Encode a serial object with URL encoding.
