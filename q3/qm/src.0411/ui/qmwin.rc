@@ -658,16 +658,16 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "検索条件"
 FONT 9, "MS UI Gothic"
 BEGIN
-    LTEXT           "タイプ(&T)",IDC_STATIC,5,8,30,8
+    LTEXT           "タイプ(&T)",IDC_STATIC,5,8,40,8
     COMBOBOX        IDC_DRIVER,50,5,65,50,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "条件(&C)",IDC_STATIC,5,23,35,8
+    LTEXT           "条件(&C)",IDC_STATIC,5,23,40,8
     EDITTEXT        IDC_CONDITION,50,20,180,14,ES_AUTOHSCROLL
     LTEXT           "フォルダ(&F)",IDC_STATIC,5,38,35,8
     COMBOBOX        IDC_FOLDER,50,35,90,85,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    CONTROL         "再帰(&R)",IDC_RECURSIVE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,50,50,45,10
+    CONTROL         "サブフォルダも検索(&I)",IDC_RECURSIVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,50,50,180,10
 END
 
 IDD_VIEWS DIALOG DISCARDABLE  0, 0, 279, 190
