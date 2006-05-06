@@ -664,8 +664,8 @@ qm::MessageFrameWindow::MessageFrameWindow(MessageFrameWindowManager* pMessageFr
 	
 	pImpl_ = new MessageFrameWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bShowToolbar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowToolbar", 1) != 0;
-	pImpl_->bShowStatusBar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowStatusBar", 1) != 0;
+	pImpl_->bShowToolbar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowToolbar") != 0;
+	pImpl_->bShowStatusBar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowStatusBar") != 0;
 	pImpl_->pMessageFrameWindowManager_ = pMessageFrameWindowManager;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pViewModelManager_ = pViewModelManager;
@@ -922,7 +922,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pMessageModel_.reset(new MessageMessageModel());
 	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
-		pImpl_->pProfile_->getInt(L"MessageFrameWindow", L"SecurityMode", 0)));
+		pImpl_->pProfile_->getInt(L"MessageFrameWindow", L"SecurityMode")));
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -933,7 +933,8 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	std::auto_ptr<MessageWindow> pMessageWindow(new MessageWindow(
 		pImpl_->pMessageModel_.get(), pImpl_->pProfile_, L"MessageWindow"));
-	pImpl_->pMessageViewModeHolder_ = pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder", 1) != 0 ?
+	pImpl_->pMessageViewModeHolder_ =
+		pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder") != 0 ?
 		pImpl_->pMessageModel_.get() : pMessageWindow->getMessageViewModeHolder();
 	MessageWindowCreateContext context = {
 		pContext->pDocument_,

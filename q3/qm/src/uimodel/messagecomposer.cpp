@@ -127,7 +127,7 @@ bool qm::MessageComposer::compose(Message* pMessage,
 		pMessage->removeField(L"X-QMAIL-Macro");
 	}
 	
-	bool bWithOSVersion = pProfile_->getInt(L"Global", L"XMailerWithOSVersion", 1) != 0;
+	bool bWithOSVersion = pProfile_->getInt(L"Global", L"XMailerWithOSVersion") != 0;
 	wstring_ptr wstrVersion(Application::getApplication().getVersion(L' ', bWithOSVersion));
 	UnstructuredParser mailer(wstrVersion.get(), L"utf-8");
 	if (!pMessage->setField(L"X-Mailer", mailer))

@@ -153,10 +153,10 @@ void qm::TabWindowImpl::handleUpdateMessage(LPARAM lParam)
 
 void qm::TabWindowImpl::reloadProfiles(bool bInitialize)
 {
-	bool bShowTab = pProfile_->getInt(L"TabWindow", L"Show", 1) != 0;
+	bool bShowTab = pProfile_->getInt(L"TabWindow", L"Show") != 0;
 	
-	bShowAllCount_ = pProfile_->getInt(L"TabWindow", L"ShowAllCount", 1) != 0;
-	bShowUnseenCount_ = pProfile_->getInt(L"TabWindow", L"ShowUnseenCount", 1) != 0;
+	bShowAllCount_ = pProfile_->getInt(L"TabWindow", L"ShowAllCount") != 0;
+	bShowUnseenCount_ = pProfile_->getInt(L"TabWindow", L"ShowUnseenCount") != 0;
 	
 	if (!bInitialize) {
 		if (bShowTab != pThis_->isShowTab())
@@ -654,7 +654,7 @@ bool qm::TabCtrlWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	if (!DefaultWindowHandler::preCreateWindow(pCreateStruct))
 		return false;
 	
-	bool bMultiline = pProfile_->getInt(L"TabWindow", L"Multiline", 0) != 0;
+	bool bMultiline = pProfile_->getInt(L"TabWindow", L"Multiline") != 0;
 	pCreateStruct->style |= TCS_TABS | TCS_FOCUSNEVER |
 		(bMultiline ? TCS_MULTILINE : TCS_SINGLELINE);
 	
@@ -854,7 +854,7 @@ void qm::TabCtrlWindow::reloadProfiles(bool bInitialize)
 	hfont_ = hfont;
 	
 	if (!bInitialize) {
-		bool bMultiline = pProfile_->getInt(L"TabWindow", L"Multiline", 0) != 0;
+		bool bMultiline = pProfile_->getInt(L"TabWindow", L"Multiline") != 0;
 		if (bMultiline != isMultiline())
 			setStyle(bMultiline ? TCS_MULTILINE : TCS_SINGLELINE,
 				TCS_MULTILINE | TCS_SINGLELINE);

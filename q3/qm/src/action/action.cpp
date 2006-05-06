@@ -672,7 +672,7 @@ bool qm::EditDeleteMessageAction::deleteMessages(const MessageHolderList& l,
 
 bool qm::EditDeleteMessageAction::confirm() const
 {
-	if (pProfile_->getInt(L"Global", L"ConfirmDeleteMessage", 0))
+	if (pProfile_->getInt(L"Global", L"ConfirmDeleteMessage"))
 		return messageBox(Application::getApplication().getResourceHandle(),
 			IDS_CONFIRM_DELETEMESSAGE, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
 	else
@@ -753,7 +753,7 @@ void qm::EditFindAction::invoke(const ActionEvent& event)
 		} callback(pMessageWindow_, bFound);
 		
 		bool bIncremental = nSupportedFlags & MessageWindow::FIND_INCREMENTAL &&
-			pProfile_->getInt(L"Global", L"IncrementalSearch", 0) != 0;
+			pProfile_->getInt(L"Global", L"IncrementalSearch") != 0;
 		bool bSupportRegex = (nSupportedFlags & MessageWindow::FIND_REGEX) != 0;
 		FindDialog dialog(pProfile_, bSupportRegex, bIncremental ? &callback: 0);
 		if (dialog.doModal(hwndFrame) != IDOK)
@@ -1240,7 +1240,7 @@ bool qm::FileExitAction::exit(bool bDestroy)
 	if (!pAddressBookFrameWindowManager_->closeAll())
 		return false;
 	
-	bool bEmptyTrash = pProfile_->getInt(L"Global", L"EmptyTrashOnExit", 0) != 0;
+	bool bEmptyTrash = pProfile_->getInt(L"Global", L"EmptyTrashOnExit") != 0;
 	if (bEmptyTrash)
 		FolderEmptyTrashAction::emptyAllTrash(pDocument_, pSyncManager_,
 			pSyncDialogManager_, pFolderModel_, hwnd_, pProfile_);
@@ -2299,8 +2299,7 @@ bool qm::FilePrintAction::print(Account* pAccount,
 		return false;
 	}
 	
-	wstring_ptr wstrExtension(pProfile_->getString(
-		L"Global", L"PrintExtension", L"html"));
+	wstring_ptr wstrExtension(pProfile_->getString(L"Global", L"PrintExtension"));
 	
 	wstring_ptr wstrPath(UIUtil::writeTemporaryFile(wstrValue.get(),
 		L"q3print", wstrExtension.get(), pTempFileCleaner_));
@@ -2729,7 +2728,7 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 	if (l.empty())
 		return;
 	
-	if (pProfile_->getInt(L"Global", L"ConfirmEmptyFolder", 1)) {
+	if (pProfile_->getInt(L"Global", L"ConfirmEmptyFolder")) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_EMPTYFOLDER));
 		wstring_ptr wstrName(Util::formatFolders(l, L", "));
@@ -2822,7 +2821,7 @@ void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 	if (pAccount)
 		emptyTrash(pAccount, pDocument_, pSyncManager_,
 			pSyncDialogManager_, pFolderModel_, hwnd_,
-			pProfile_->getInt(L"Global", L"ConfirmEmptyTrash", 1) != 0);
+			pProfile_->getInt(L"Global", L"ConfirmEmptyTrash") != 0);
 }
 
 bool qm::FolderEmptyTrashAction::isEnabled(const ActionEvent& event)
@@ -2842,7 +2841,7 @@ void qm::FolderEmptyTrashAction::emptyAllTrash(Document* pDocument,
 		&FolderEmptyTrashAction::hasTrash) == listAccount.end())
 		return;
 	
-	if (pProfile->getInt(L"Global", L"ConfirmEmptyTrash", 1)) {
+	if (pProfile->getInt(L"Global", L"ConfirmEmptyTrash")) {
 		if (messageBox(Application::getApplication().getResourceHandle(),
 			IDS_CONFIRM_EMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
 			return;
@@ -4128,7 +4127,7 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrTitle(loadString(hInst, IDS_EXECUTEMACRO));
 		wstring_ptr wstrMessage(loadString(hInst, IDS_MACRO));
-		wstring_ptr wstrPrevMacro(pProfile_->getString(L"Global", L"Macro", L""));
+		wstring_ptr wstrPrevMacro(pProfile_->getString(L"Global", L"Macro"));
 		
 		MultiLineInputBoxDialog dialog(wstrTitle.get(), wstrMessage.get(),
 			wstrPrevMacro.get(), false, pProfile_, L"MacroDialog");
@@ -4515,7 +4514,7 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 	
 	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
 	if (mpl) {
-		bool bOpenInPreview = pProfile_->getInt(L"Global", L"OpenRecentInPreview", 0) != 0;
+		bool bOpenInPreview = pProfile_->getInt(L"Global", L"OpenRecentInPreview") != 0;
 		if (event.getModifier() & ActionEvent::MODIFIER_SHIFT)
 			bOpenInPreview = !bOpenInPreview;
 		
@@ -4636,7 +4635,7 @@ std::pair<Account*, bool> qm::MessageOpenURLAction::getAccount(const WCHAR* pwsz
 	std::pair<Account*, Folder*> p(FolderActionUtil::getCurrent(pFolderModel_));
 	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
 	if (!pAccount || wcscmp(pAccount->getClass(), pwszClass) != 0) {
-		wstring_ptr wstrAccount(pProfile_->getString(L"Global", pwszDefaultKey, L""));
+		wstring_ptr wstrAccount(pProfile_->getString(L"Global", pwszDefaultKey));
 		if (*wstrAccount.get()) {
 			pAccount = pDocument_->getAccount(wstrAccount.get());
 		}
@@ -4788,7 +4787,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 				std::mem_fun(&SearchUI::getIndex),
 				std::select1st<UIList::value_type>())));
 	
-	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page", 0));
+	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page"));
 	
 	bool bAllFolderOnly = pFolder == 0;
 	SearchPropertyData data(pProfile_, bAllFolderOnly);
@@ -5466,7 +5465,7 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrTitle(loadString(hInst, IDS_INVOKEACTION));
 		wstring_ptr wstrMessage(loadString(hInst, IDS_ACTION));
-		wstring_ptr wstrPrevActions(pProfile_->getString(L"Global", L"Action", L""));
+		wstring_ptr wstrPrevActions(pProfile_->getString(L"Global", L"Action"));
 		
 		SingleLineInputBoxDialog dialog(wstrTitle.get(),
 			wstrMessage.get(), wstrPrevActions.get(), false);
@@ -6495,7 +6494,7 @@ bool qm::ViewNavigateMessageAction::isEnabled(const ActionEvent& event)
 void qm::ViewNavigateMessageAction::init(qs::Profile* pProfile)
 {
 	if (nType_ == TYPE_NEXTPAGE &&
-		pProfile->getInt(L"Global", L"NextUnseenWhenScrollEnd", 0))
+		pProfile->getInt(L"Global", L"NextUnseenWhenScrollEnd"))
 		nType_ |= TYPE_NEXTPAGEUNSEEN;
 }
 

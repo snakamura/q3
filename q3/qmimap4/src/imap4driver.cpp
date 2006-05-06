@@ -111,8 +111,8 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
-	wstring_ptr wstrRootFolderSeparator(pAccount_->getProperty(L"Imap4", L"RootFolderSeparator", L"/"));
+	wstring_ptr wstrRootFolder(pAccount_->getPropertyString(L"Imap4", L"RootFolder"));
+	wstring_ptr wstrRootFolderSeparator(pAccount_->getPropertyString(L"Imap4", L"RootFolderSeparator"));
 	
 	if (!prepareSessionCache(false))
 		return std::auto_ptr<NormalFolder>(0);
@@ -289,7 +289,7 @@ bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
 		wstrNewName = concat(wstrParentName.get(), wsz, pwszName);
 	}
 	else {
-		wstring_ptr wstrRootFolder(pAccount_->getProperty(L"Imap4", L"RootFolder", L""));
+		wstring_ptr wstrRootFolder(pAccount_->getPropertyString(L"Imap4", L"RootFolder"));
 		if (*wstrRootFolder.get()) {
 			WCHAR wsz[] = { pFolder->getSeparator(), L'\0' };
 			wstrNewName = concat(wstrRootFolder.get(), wsz, pwszName);
@@ -334,7 +334,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	unsigned int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
+	unsigned int nOption = pSubAccount_->getPropertyInt(L"Imap4", L"Option");
 	
 	if (!prepareSessionCache(false))
 		return false;
@@ -1004,7 +1004,7 @@ bool qmimap4::Imap4Driver::prepareSessionCache(bool bClear)
 	if (!pSessionCache_.get()) {
 		pCallback_.reset(new CallbackImpl(pSubAccount_, pPasswordCallback_, pSecurity_));
 		
-		int nMaxSession = pAccount_->getProperty(L"Imap4", L"MaxSession", 5);
+		int nMaxSession = pAccount_->getPropertyInt(L"Imap4", L"MaxSession");
 		pSessionCache_.reset(new SessionCache(pAccount_,
 			pSubAccount_, pCallback_.get(), nMaxSession));
 	}
@@ -1262,26 +1262,22 @@ qmimap4::FolderUtil::FolderUtil(Account* pAccount) :
 	pAccount_(pAccount),
 	cRootFolderSeparator_(L'/')
 {
-	wstrRootFolder_ = pAccount->getProperty(L"Imap4", L"RootFolder", L"");
+	wstrRootFolder_ = pAccount->getPropertyString(L"Imap4", L"RootFolder");
 	
-	wstring_ptr wstrRootFolderSeparator(pAccount->getProperty(
-		L"Imap4", L"RootFolderSeparator", L"/"));
+	wstring_ptr wstrRootFolderSeparator(pAccount->getPropertyString(
+		L"Imap4", L"RootFolderSeparator"));
 	if (*wstrRootFolderSeparator.get())
 		cRootFolderSeparator_ = *wstrRootFolderSeparator.get();
 	
-	struct {
-		const WCHAR* pwszKey_;
-		const WCHAR* pwszDefault_;
-	} folders[] = {
-		{ L"OutboxFolder",		L"Outbox"	},
-		{ L"DraftboxFolder",	L"Outbox"	},
-		{ L"SentboxFolder",		L"Sentbox"	},
-		{ L"TrashFolder",		L"Trash"	},
-		{ L"JunkFolder",		L"Junk"		}
+	const WCHAR* pwszKeys[] = {
+		L"OutboxFolder",
+		L"DraftboxFolder",
+		L"SentboxFolder",
+		L"TrashFolder",
+		L"JunkFolder"
 	};
-	for (int n = 0; n < countof(folders); ++n)
-		wstrSpecialFolders_[n] = pAccount->getProperty(L"Imap4",
-			folders[n].pwszKey_, folders[n].pwszDefault_);
+	for (int n = 0; n < countof(pwszKeys); ++n)
+		wstrSpecialFolders_[n] = pAccount->getPropertyString(L"Imap4", pwszKeys[n]);
 }
 
 qmimap4::FolderUtil::~FolderUtil()
@@ -1375,7 +1371,7 @@ void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 void qmimap4::FolderUtil::save() const
 {
 	WCHAR wszRootFolderSeparator[] = { cRootFolderSeparator_, L'\0' };
-	pAccount_->setProperty(L"Imap4", L"RootFolderSeparator", wszRootFolderSeparator);
+	pAccount_->setPropertyString(L"Imap4", L"RootFolderSeparator", wszRootFolderSeparator);
 }
 
 void qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
@@ -1398,7 +1394,7 @@ void qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
 		for (int n = 0; n < countof(flags); ++n) {
 			if (nBoxFlags & flags[n].flag_) {
 				wstring_ptr wstrName(pFolder->getFullName());
-				pAccount->setProperty(L"Imap4", flags[n].pwszKey_, wstrName.get());
+				pAccount->setPropertyString(L"Imap4", flags[n].pwszKey_, wstrName.get());
 			}
 		}
 	}
@@ -1486,7 +1482,7 @@ bool qmimap4::FolderListGetter::listNamespaces()
 {
 	pCallback_->setNamespaceList(&listNamespace_);
 	
-	bool bUseNamespace = pSubAccount_->getProperty(L"Imap4", L"UseNamespace", 0) &&
+	bool bUseNamespace = pSubAccount_->getPropertyInt(L"Imap4", L"UseNamespace") &&
 		pImap4_->getCapability() & Imap4::CAPABILITY_NAMESPACE;
 	if (bUseNamespace) {
 		if (!pImap4_->namespaceList())
@@ -1732,9 +1728,9 @@ bool qmimap4::FolderListGetter::CallbackImpl::processNamespace(ResponseNamespace
 			&pNamespace->getShared()
 		};
 		bool bUse[] = {
-			pGetter_->pSubAccount_->getProperty(L"Imap4", L"UsePersonal", 1) != 0,
-			pGetter_->pSubAccount_->getProperty(L"Imap4", L"UseOthers", 1) != 0,
-			pGetter_->pSubAccount_->getProperty(L"Imap4", L"UseShared", 1) != 0
+			pGetter_->pSubAccount_->getPropertyInt(L"Imap4", L"UsePersonal") != 0,
+			pGetter_->pSubAccount_->getPropertyInt(L"Imap4", L"UseOthers") != 0,
+			pGetter_->pSubAccount_->getPropertyInt(L"Imap4", L"UseShared") != 0
 		};
 		for (int n = 0; n < countof(pLists); ++n) {
 			if (bUse[n]) {
@@ -1812,8 +1808,8 @@ qmimap4::SessionCache::SessionCache(Account* pAccount,
 	bReselect_(true),
 	nForceDisconnect_(0)
 {
-	bReselect_ = pSubAccount->getProperty(L"Imap4", L"Reselect", 1) != 0;
-	nForceDisconnect_ = pSubAccount->getProperty(L"Imap4", L"ForceDisconnect", 0);
+	bReselect_ = pSubAccount->getPropertyInt(L"Imap4", L"Reselect") != 0;
+	nForceDisconnect_ = pSubAccount->getPropertyInt(L"Imap4", L"ForceDisconnect");
 	listSession_.reserve(nMaxSession);
 }
 

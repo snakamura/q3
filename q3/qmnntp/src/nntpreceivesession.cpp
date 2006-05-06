@@ -179,8 +179,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			nStart = QSMAX(nStart, nId + 1);
 		}
 		else if (nLastId == 0) {
-			unsigned int nInitialFetchCount = pSubAccount_->getProperty(
-				L"Nntp", L"InitialFetchCount", 300);
+			unsigned int nInitialFetchCount = pSubAccount_->getPropertyInt(
+				L"Nntp", L"InitialFetchCount");
 			if (pNntp_->getLast() > nInitialFetchCount - 1)
 				nStart = QSMAX(nStart, pNntp_->getLast() - nInitialFetchCount + 1);
 		}
@@ -190,14 +190,14 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	pSessionCallback_->setRange(0, pNntp_->getLast());
 	pSessionCallback_->setPos(nStart);
 	
-	bool bUseXOver = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1) != 0;
+	bool bUseXOver = pSubAccount_->getPropertyInt(L"Nntp", L"UseXOVER") != 0;
 	
 	MacroVariableHolder globalVariable;
 	
 	MessagePtrList listDownloaded;
 	
 	if (bUseXOver) {
-		unsigned int nStep = pSubAccount_->getProperty(L"Nntp", L"XOVERStep", 100);
+		unsigned int nStep = pSubAccount_->getPropertyInt(L"Nntp", L"XOVERStep");
 		
 		for (unsigned int n = nStart; n <= pNntp_->getLast(); n += nStep) {
 			std::auto_ptr<MessagesData> pData;

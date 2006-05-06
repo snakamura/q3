@@ -1633,8 +1633,7 @@ qm::ViewModelManager::ViewModelManager(Document* pDocument,
 	pCurrentAccount_(0),
 	pCurrentViewModel_(0)
 {
-	ViewColumn::setTimeFormat(pProfile_->getString(
-		L"ListWindow", L"TimeFormat", L"%Y2/%M0/%D %h:%m"));
+	ViewColumn::setTimeFormat(pProfile_->getString(L"ListWindow", L"TimeFormat"));
 	
 	const Application& app = Application::getApplication();
 	pDefaultViewData_.reset(new DefaultViewData(app.getProfilePath(FileNames::VIEWS_XML).get()));

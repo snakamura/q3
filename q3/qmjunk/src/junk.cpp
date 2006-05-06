@@ -101,20 +101,20 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 {
 	wstrPath_ = allocWString(pwszPath);
 	
-	wstring_ptr wstrThresholdScore(pProfile->getString(L"JunkFilter", L"ThresholdScore", L"0.95"));
+	wstring_ptr wstrThresholdScore(pProfile->getString(L"JunkFilter", L"ThresholdScore"));
 	WCHAR* pEnd = 0;
 	double dThresholdScore = wcstod(wstrThresholdScore.get(), &pEnd);
 	if (!*pEnd)
 		fThresholdScore_ = static_cast<float>(dThresholdScore);
 	
-	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags", FLAG_AUTOLEARN | FLAG_MANUALLEARN);
-	nMaxTextLen_ = pProfile->getInt(L"JunkFilter", L"MaxTextLen", 32*1024);
+	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags");
+	nMaxTextLen_ = pProfile->getInt(L"JunkFilter", L"MaxTextLen");
 	
-	wstring_ptr wstrWhiteList(pProfile->getString(L"JunkFilter", L"WhiteList", L""));
+	wstring_ptr wstrWhiteList(pProfile->getString(L"JunkFilter", L"WhiteList"));
 	if (*wstrWhiteList.get())
 		pWhiteList_.reset(new AddressList(wstrWhiteList.get()));
 	
-	wstring_ptr wstrBlackList(pProfile->getString(L"JunkFilter", L"BlackList", L""));
+	wstring_ptr wstrBlackList(pProfile->getString(L"JunkFilter", L"BlackList"));
 	if (*wstrBlackList.get())
 		pBlackList_.reset(new AddressList(wstrBlackList.get()));
 	
@@ -558,7 +558,7 @@ bool qmjunk::JunkFilterImpl::save(bool bForce)
 		return false;
 	
 	WCHAR wszThresholdScore[64];
-	_snwprintf(wszThresholdScore, countof(wszThresholdScore), L"%f", fThresholdScore_);
+	_snwprintf(wszThresholdScore, countof(wszThresholdScore), L"%.2f", fThresholdScore_);
 	pProfile_->setString(L"JunkFilter", L"ThresholdScore", wszThresholdScore);
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
@@ -583,7 +583,7 @@ bool qmjunk::JunkFilterImpl::init()
 	}
 	
 	wstring_ptr wstrProfilePath(concat(wstrPath_.get(), L"\\junk.xml"));
-	XMLProfile profile(wstrProfilePath.get());
+	XMLProfile profile(wstrProfilePath.get(), 0, 0);
 	if (!profile.load()) {
 		log.error(L"Could not load junk.xml.");
 		return false;
@@ -610,7 +610,7 @@ bool qmjunk::JunkFilterImpl::flush() const
 	
 	if (nCleanCount_ != -1 && nJunkCount_ != -1) {
 		wstring_ptr wstrProfilePath(concat(wstrPath_.get(), L"\\junk.xml"));
-		XMLProfile profile(wstrProfilePath.get());
+		XMLProfile profile(wstrProfilePath.get(), 0, 0);
 		profile.setInt(L"Junk", L"CleanCount", nCleanCount_);
 		profile.setInt(L"Junk", L"JunkCount", nJunkCount_);
 		if (!profile.save()) {

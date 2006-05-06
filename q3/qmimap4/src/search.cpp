@@ -44,9 +44,9 @@ bool qmimap4::Imap4SearchDriver::search(const SearchContext& context,
 	Imap4Driver* pDriver = static_cast<Imap4Driver*>(pAccount_->getProtocolDriver());
 	SubAccount* pSubAccount = pAccount_->getCurrentSubAccount();
 	
-	wstring_ptr wstrCharset(pAccount_->getProperty(L"Imap4",
+	wstring_ptr wstrCharset(pAccount_->getPropertyString(L"Imap4",
 		L"SearchCharset", Part::getDefaultCharset()));
-	int nUseCharset = pAccount_->getProperty(L"Imap4", L"SearchUseCharset", 1);
+	int nUseCharset = pAccount_->getPropertyInt(L"Imap4", L"SearchUseCharset");
 	
 	SearchContext::FolderList listFolder;
 	context.getTargetFolders(pAccount_, &listFolder);
@@ -192,7 +192,7 @@ LRESULT qmimap4::Imap4SearchPage::onInitDialog(HWND hwndFocus,
 		{ IDC_SEARCHBODY,	L"SearchBody",	}
 	};
 	for (int n = 0; n < countof(items); ++n) {
-		if (pProfile_->getInt(L"Imap4Search", items[n].pwszKey_, 0) != 0)
+		if (pProfile_->getInt(L"Imap4Search", items[n].pwszKey_) != 0)
 			sendDlgItemMessage(items[n].nId_, BM_SETCHECK, BST_CHECKED);
 	}
 	

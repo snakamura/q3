@@ -36,6 +36,7 @@
 #include <windows.h>
 #include <tchar.h>
 
+#include "defaultprofile.h"
 #include "main.h"
 #include "resourcefile.h"
 #ifndef DEPENDCHECK
@@ -135,7 +136,7 @@ public:
 	wstring_ptr wstrMailFolder_;
 	wstring_ptr wstrTemporaryFolder_;
 	wstring_ptr wstrProfileName_;
-	std::auto_ptr<XMLProfile> pProfile_;
+	std::auto_ptr<Profile> pProfile_;
 	std::auto_ptr<Document> pDocument_;
 	std::auto_ptr<PasswordManager> pPasswordManager_;
 	std::auto_ptr<PasswordManagerCallback> pPasswordManagerCallback_;
@@ -187,7 +188,8 @@ bool qm::ApplicationImpl::loadMainProfile()
 		return false;
 	
 	wstring_ptr wstrProfilePath(pThis_->getProfilePath(FileNames::QMAIL_XML));
-	pProfile_.reset(new XMLProfile(wstrProfilePath.get()));
+	pProfile_.reset(new XMLProfile(wstrProfilePath.get(),
+		defaultProfiles, countof(defaultProfiles)));
 	if (!pProfile_->load())
 		return false;
 	
@@ -198,8 +200,7 @@ void qm::ApplicationImpl::initTimeFormat()
 {
 	assert(pProfile_.get());
 	
-	Time::setDefaultFormat(pProfile_->getString(L"Global",
-		L"DefaultTimeFormat", L"%Y4/%M0/%D %h:%m:%s").get());
+	Time::setDefaultFormat(pProfile_->getString(L"Global", L"DefaultTimeFormat").get());
 }
 
 void qm::ApplicationImpl::initMime()
@@ -209,11 +210,11 @@ void qm::ApplicationImpl::initMime()
 	unsigned int nOptions = Part::O_USE_COMMENT_AS_PHRASE |
 		Part::O_INTERPRET_FORMAT_FLOWED |
 		Part::O_ALLOW_ALL;
-	if (pProfile_->getInt(L"Global", L"RFC2231", 0))
+	if (pProfile_->getInt(L"Global", L"RFC2231"))
 		nOptions |= Part::O_RFC2231;
 	Part::setGlobalOptions(nOptions);
 	
-	wstring_ptr wstrDefaultCharset(pProfile_->getString(L"Global", L"DefaultCharset", 0));
+	wstring_ptr wstrDefaultCharset(pProfile_->getString(L"Global", L"DefaultCharset"));
 	const WCHAR* pwszCandidates[] = {
 		wstrDefaultCharset.get(),
 		Init::getInit().getMailEncoding(),
@@ -238,7 +239,7 @@ void qm::ApplicationImpl::initLog()
 	wstring_ptr wstrLogDir(concat(wstrMailFolder_.get(), L"\\logs"));
 	init.setLogDirectory(wstrLogDir.get());
 	
-	int nLog = pProfile_->getInt(L"Global", L"Log", -1);
+	int nLog = pProfile_->getInt(L"Global", L"Log");
 	if (nLog >= 0) {
 		if (nLog > Logger::LEVEL_DEBUG)
 			nLog = Logger::LEVEL_DEBUG;
@@ -246,12 +247,11 @@ void qm::ApplicationImpl::initLog()
 		init.setLogEnabled(true);
 	}
 	
-	wstring_ptr wstrLogFilter(pProfile_->getString(L"Global", L"LogFilter", L""));
+	wstring_ptr wstrLogFilter(pProfile_->getString(L"Global", L"LogFilter"));
 	if (*wstrLogFilter.get())
 		init.setLogFilter(wstrLogFilter.get());
 	
-	init.setLogTimeFormat(pProfile_->getString(L"Global",
-		L"LogTimeFormat", L"%Y4/%M0/%D-%h:%m:%s%z").get());
+	init.setLogTimeFormat(pProfile_->getString(L"Global", L"LogTimeFormat").get());
 }
 
 bool qm::ApplicationImpl::ensureResources()
@@ -321,7 +321,7 @@ void qm::ApplicationImpl::ensureTempDirectory()
 	assert(pProfile_.get());
 	assert(!wstrTemporaryFolder_.get());
 	
-	wstring_ptr wstrTempFolder(pProfile_->getString(L"Global", L"TemporaryFolder", L""));
+	wstring_ptr wstrTempFolder(pProfile_->getString(L"Global", L"TemporaryFolder"));
 	if (!*wstrTempFolder.get()) {
 		wstrTempFolder = concat(wstrMailFolder_.get(), L"\\temp");
 		File::createDirectory(wstrTempFolder.get());
@@ -348,7 +348,7 @@ void qm::ApplicationImpl::loadLibraries()
 	for (int n = 0; n < countof(pwszLibraries); ++n)
 		loadLibrary(pwszLibraries[n]);
 	
-	wstring_ptr wstrLibraries(pProfile_->getString(L"Global", L"Libraries", L""));
+	wstring_ptr wstrLibraries(pProfile_->getString(L"Global", L"Libraries"));
 	WCHAR* p = wcstok(wstrLibraries.get(), L" ,");
 	while (p) {
 		loadLibrary(p);
@@ -598,7 +598,7 @@ bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
 
 void qm::ApplicationImpl::restoreCurrentFolder()
 {
-	wstring_ptr wstrFolder(pProfile_->getString(L"Global", L"CurrentFolder", L""));
+	wstring_ptr wstrFolder(pProfile_->getString(L"Global", L"CurrentFolder"));
 	
 	FolderModel* pFolderModel = pMainWindow_->getFolderModel();
 	

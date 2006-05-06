@@ -32,14 +32,14 @@ std::auto_ptr<Http> qmrss::Util::createHttp(SubAccount* pSubAccount,
 	unsigned short nProxyPort = 8080;
 	wstring_ptr wstrProxyUserName;
 	wstring_ptr wstrProxyPassword;
-	if (pSubAccount->getProperty(L"Http", L"UseInternetSetting", 0)) {
+	if (pSubAccount->getPropertyInt(L"Http", L"UseInternetSetting")) {
 		bUseProxy = HttpUtil::getInternetProxySetting(&wstrProxyHost, &nProxyPort);
 	}
-	else if (pSubAccount->getProperty(L"Http", L"UseProxy", 0)) {
-		wstrProxyHost = pSubAccount->getProperty(L"Http", L"ProxyHost", L"");
-		nProxyPort = pSubAccount->getProperty(L"Http", L"ProxyPort", 8080);
-		wstrProxyUserName = pSubAccount->getProperty(L"Http", L"ProxyUserName", L"");
-		wstrProxyPassword = pSubAccount->getProperty(L"Http", L"ProxyPassword", L"");
+	else if (pSubAccount->getPropertyInt(L"Http", L"UseProxy")) {
+		wstrProxyHost = pSubAccount->getPropertyString(L"Http", L"ProxyHost");
+		nProxyPort = pSubAccount->getPropertyInt(L"Http", L"ProxyPort");
+		wstrProxyUserName = pSubAccount->getPropertyString(L"Http", L"ProxyUserName");
+		wstrProxyPassword = pSubAccount->getPropertyString(L"Http", L"ProxyPassword");
 		bUseProxy = true;
 	}
 	if (bUseProxy && log.isDebugEnabled())

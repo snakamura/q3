@@ -250,7 +250,7 @@ void qm::EditEditFindAction::invoke(const ActionEvent& event)
 			bool bSearched_;
 		} callback(pTextWindow_, bFound);
 		
-		bool bIncremental = pProfile_->getInt(L"Global", L"IncrementalSearch", 0) != 0;
+		bool bIncremental = pProfile_->getInt(L"Global", L"IncrementalSearch") != 0;
 		FindDialog dialog(pProfile_, true, bIncremental ? &callback : 0);
 		if (dialog.doModal(hwnd) != IDOK)
 			return;
@@ -411,7 +411,7 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		if (!wstrText.get())
 			return;
 		
-		wstring_ptr wstrQuote(pProfile_->getString(L"Global", L"Quote", L"> "));
+		wstring_ptr wstrQuote(pProfile_->getString(L"Global", L"Quote"));
 		
 		XStringBuffer<WSTRING> buf;
 		bool bNewLine = true;
@@ -1227,8 +1227,8 @@ void qm::EditToolReformAllAction::invoke(const ActionEvent& event)
 		// TODO MSG
 	}
 	
-	int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength", 74);
-	int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth", 4);
+	int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength");
+	int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth");
 	wxstring_ptr wstrReformedText(TextUtil::fold(wstrText.get(), -1, nLineLen, 0, 0, nTabWidth));
 	if (!pTextModel->setText(wstrReformedText.get(), -1)) {
 		// TODO MSG

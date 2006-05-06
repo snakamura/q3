@@ -105,7 +105,7 @@ bool qmpop3::Pop3ReceiveSession::connect()
 	pPop3_.reset(new Pop3(pSubAccount_->getTimeout(), pCallback_.get(),
 		pCallback_.get(), pCallback_.get(), pLogger_));
 	
-	bool bApop = pSubAccount_->getProperty(L"Pop3", L"Apop", 0) != 0;
+	bool bApop = pSubAccount_->getPropertyInt(L"Pop3", L"Apop") != 0;
 	Pop3::Secure secure = Util::getSecure(pSubAccount_);
 	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 		pSubAccount_->getPort(Account::HOST_RECEIVE), bApop, secure))
@@ -171,8 +171,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	pSessionCallback_->setRange(0, nCount);
 	pSessionCallback_->setPos(nStart_);
 	
-	bool bHandleStatus = pSubAccount_->getProperty(L"Pop3", L"HandleStatus", 0) != 0;
-	bool bSkipDuplicatedUID = pSubAccount_->getProperty(L"Pop3", L"SkipDuplicatedUID", 0) != 0;
+	bool bHandleStatus = pSubAccount_->getPropertyInt(L"Pop3", L"HandleStatus") != 0;
+	bool bSkipDuplicatedUID = pSubAccount_->getPropertyInt(L"Pop3", L"SkipDuplicatedUID") != 0;
 	
 	Time time(Time::getCurrentTime());
 	UID::Date date = {
@@ -329,8 +329,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 	}
 	
-	bool bDeleteOnServer = pSubAccount_->getProperty(L"Pop3", L"DeleteOnServer", 0) != 0;
-	int nDeleteBefore = pSubAccount_->getProperty(L"Pop3", L"DeleteBefore", 0);
+	bool bDeleteOnServer = pSubAccount_->getPropertyInt(L"Pop3", L"DeleteOnServer") != 0;
+	int nDeleteBefore = pSubAccount_->getPropertyInt(L"Pop3", L"DeleteBefore");
 	
 	if (bDeleteOnServer || nDeleteBefore != 0) {
 		for (unsigned int n = 0; n < pUIDList_->getCount(); ++n) {
@@ -362,7 +362,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 		
 		if (listIndex.size()) {
-			bool bDeleteLocal = pSubAccount_->getProperty(L"Pop3", L"DeleteLocal", 0) != 0;
+			bool bDeleteLocal = pSubAccount_->getPropertyInt(L"Pop3", L"DeleteLocal") != 0;
 			
 			pCallback_->setMessage(IDS_DELETEMESSAGE);
 			pSessionCallback_->setRange(0, listIndex.size());
@@ -440,7 +440,7 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 			bReservedDownload_ = true;
 	}
 	
-	unsigned int nGetAll = pSubAccount_->getProperty(L"Pop3", L"GetAll", 20);
+	unsigned int nGetAll = pSubAccount_->getPropertyInt(L"Pop3", L"GetAll");
 	unsigned int nCount = pPop3_->getMessageCount();
 	unsigned int nUIDCount = pUIDList->getCount();
 	if (nUIDCount == 0 ||

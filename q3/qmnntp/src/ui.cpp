@@ -40,9 +40,9 @@ qmnntp::ReceivePage::~ReceivePage()
 LRESULT qmnntp::ReceivePage::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
-	int nInitialFetchCount = pSubAccount_->getProperty(L"Nntp", L"InitialFetchCount", 300);
-	bool bUseXOver = pSubAccount_->getProperty(L"Nntp", L"UseXOVER", 1) != 0;
-	int nXOverStep = pSubAccount_->getProperty(L"Nntp", L"XOVERStep", 100);
+	int nInitialFetchCount = pSubAccount_->getPropertyInt(L"Nntp", L"InitialFetchCount");
+	bool bUseXOver = pSubAccount_->getPropertyInt(L"Nntp", L"UseXOVER") != 0;
+	int nXOverStep = pSubAccount_->getPropertyInt(L"Nntp", L"XOVERStep");
 	
 	setDlgItemInt(IDC_INITIALFETCHCOUNT, nInitialFetchCount);
 	sendDlgItemMessage(IDC_XOVER, BM_SETCHECK, bUseXOver ? BST_CHECKED : BST_UNCHECKED);
@@ -53,11 +53,11 @@ LRESULT qmnntp::ReceivePage::onInitDialog(HWND hwndFocus,
 
 LRESULT qmnntp::ReceivePage::onOk()
 {
-	pSubAccount_->setProperty(L"Nntp", L"InitialFetchCount",
+	pSubAccount_->setPropertyInt(L"Nntp", L"InitialFetchCount",
 		getDlgItemInt(IDC_INITIALFETCHCOUNT));
-	pSubAccount_->setProperty(L"Nntp", L"UseXOVER",
+	pSubAccount_->setPropertyInt(L"Nntp", L"UseXOVER",
 		sendDlgItemMessage(IDC_XOVER, BM_GETCHECK) == BST_CHECKED ? 1 : 0);
-	pSubAccount_->setProperty(L"Nntp", L"XOVERStep",
+	pSubAccount_->setPropertyInt(L"Nntp", L"XOVERStep",
 		getDlgItemInt(IDC_FETCHCOUNT));
 	
 	return DefaultPropertyPage::onOk();

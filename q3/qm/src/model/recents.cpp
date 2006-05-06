@@ -64,7 +64,7 @@ qm::Recents::Recents(AccountManager* pAccountManager,
 	pImpl_(0)
 {
 	std::auto_ptr<RegexPattern> pFilter;
-	wstring_ptr wstrPattern(pProfile->getString(L"Recents", L"Filter", L""));
+	wstring_ptr wstrPattern(pProfile->getString(L"Recents", L"Filter"));
 	if (*wstrPattern.get())
 		pFilter = RegexCompiler().compile(wstrPattern.get());
 	
@@ -72,8 +72,8 @@ qm::Recents::Recents(AccountManager* pAccountManager,
 	pImpl_->pThis_ = this;
 	pImpl_->pAccountManager_ = pAccountManager;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->nMax_ = pProfile->getInt(L"Recents", L"Max", 20);
-	pImpl_->bAddAutoOnly_ = pProfile->getInt(L"Recents", L"AddAutoOnly", 1) != 0;
+	pImpl_->nMax_ = pProfile->getInt(L"Recents", L"Max");
+	pImpl_->bAddAutoOnly_ = pProfile->getInt(L"Recents", L"AddAutoOnly") != 0;
 	pImpl_->pFilter_ = pFilter;
 #ifndef NDEBUG
 	pImpl_->nLock_ = 0;

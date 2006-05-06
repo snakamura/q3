@@ -38,6 +38,125 @@ qs::Profile::~Profile()
 {
 }
 
+wstring_ptr qs::Profile::getString(const WCHAR* pwszSection,
+								   const WCHAR* pwszKey)
+{
+	return getString(pwszSection, pwszKey, 0);
+}
+
+int qs::Profile::getInt(const WCHAR* pwszSection,
+						const WCHAR* pwszKey)
+{
+	return getInt(pwszSection, pwszKey, 0);
+}
+
+
+/****************************************************************************
+ *
+ * DefaultLess
+ *
+ */
+
+inline bool qs::DefaultLess::operator()(const Profile::Default& lhs,
+										const Profile::Default& rhs) const
+{
+	return compare(lhs, rhs) < 0;
+}
+
+inline int qs::DefaultLess::compare(const Profile::Default& lhs,
+									const Profile::Default& rhs)
+{
+	int nComp = wcscmp(lhs.pwszSection_, rhs.pwszSection_);
+	if (nComp == 0)
+		nComp = wcscmp(lhs.pwszKey_, rhs.pwszKey_);
+	return nComp;
+}
+
+
+/****************************************************************************
+ *
+ * AbstractProfileImpl
+ *
+ */
+
+struct qs::AbstractProfileImpl
+{
+	typedef std::vector<Profile::Default> DefaultMap;
+	
+	DefaultMap mapDefault_;
+};
+
+
+/****************************************************************************
+ *
+ * AbstractProfile
+ *
+ */
+
+qs::AbstractProfile::AbstractProfile(const Default* pDefault,
+									 size_t nCount) :
+	pImpl_(0)
+{
+	pImpl_ = new AbstractProfileImpl();
+	
+	if (pDefault && nCount != 0)
+		addDefault(pDefault, nCount);
+}
+
+qs::AbstractProfile::~AbstractProfile()
+{
+	delete pImpl_;
+	pImpl_ = 0;
+}
+
+void qs::AbstractProfile::addDefault(const Default* pDefault,
+									 size_t nCount)
+{
+	assert(pDefault);
+	
+#ifndef NDEBUG
+	for (size_t n = 0; n < nCount; ++n) {
+		const Default* p = pDefault + n;
+		assert(p->pwszSection_);
+		assert(p->pwszKey_);
+		assert(p->pwszValue_);
+	}
+#endif
+	
+	AbstractProfileImpl::DefaultMap& m = pImpl_->mapDefault_;
+	m.reserve(m.size() + nCount);
+	m.insert(m.end(), pDefault, pDefault + nCount);
+	std::sort(m.begin(), m.end(), DefaultLess());
+}
+
+const WCHAR* qs::AbstractProfile::getDefault(const WCHAR* pwszSection,
+											 const WCHAR* pwszKey,
+											 const WCHAR* pwszDefault) const
+{
+	AbstractProfileImpl::DefaultMap& m = pImpl_->mapDefault_;
+	Default d = { pwszSection, pwszKey, 0 };
+	AbstractProfileImpl::DefaultMap::const_iterator it =
+		std::lower_bound(m.begin(), m.end(), d, DefaultLess());
+	return it != m.end() && DefaultLess::compare(*it, d) == 0 ? (*it).pwszValue_ : pwszDefault;
+}
+
+int qs::AbstractProfile::getDefault(const WCHAR* pwszSection,
+									const WCHAR* pwszKey,
+									int nDefault) const
+{
+	AbstractProfileImpl::DefaultMap& m = pImpl_->mapDefault_;
+	Default d = { pwszSection, pwszKey, 0 };
+	AbstractProfileImpl::DefaultMap::const_iterator it =
+		std::lower_bound(m.begin(), m.end(), d, DefaultLess());
+	if (it != m.end() && DefaultLess::compare(*it, d) == 0) {
+		WCHAR* pEnd = 0;
+		int n = wcstol((*it).pwszValue_, &pEnd, 10);
+		if (!*pEnd)
+			nDefault = n;
+	}
+	return nDefault;
+}
+
 
 /****************************************************************************
  *
@@ -66,7 +185,10 @@ wstring_ptr qs::RegistryProfileImpl::getKeyName(const WCHAR* pwszSection)
  */
 
 qs::RegistryProfile::RegistryProfile(const WCHAR* pwszCompanyName,
-									 const WCHAR* pwszAppName)
+									 const WCHAR* pwszAppName,
+									 const Default* pDefault,
+									 size_t nCount) :
+	AbstractProfile(pDefault, nCount)
 {
 	assert(pwszCompanyName);
 	assert(pwszAppName);
@@ -98,6 +220,7 @@ wstring_ptr qs::RegistryProfile::getString(const WCHAR* pwszSection,
 	assert(pwszSection);
 	assert(pwszKey);
 	
+	pwszDefault = getDefault(pwszSection, pwszKey, pwszDefault);
 	if (!pwszDefault)
 		pwszDefault = L"";
 	
@@ -105,9 +228,7 @@ wstring_ptr qs::RegistryProfile::getString(const WCHAR* pwszSection,
 	
 	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
 	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
-	if (!reg)
-		setString(pwszSection, pwszKey, pwszDefault);
-	else
+	if (reg)
 		reg.getValue(pwszKey, &wstrValue);
 	
 	if (!wstrValue.get())
@@ -153,14 +274,11 @@ int qs::RegistryProfile::getInt(const WCHAR* pwszSection,
 	assert(pwszSection);
 	assert(pwszKey);
 	
-	int nValue = nDefault;
+	int nValue = getDefault(pwszSection, pwszKey, nDefault);
 	
 	wstring_ptr wstrRegKey(pImpl_->getKeyName(pwszSection));
 	Registry reg(HKEY_CURRENT_USER, wstrRegKey.get());
 	if (reg) {
-		setInt(pwszSection, pwszKey, nDefault);
-	}
-	else {
 		DWORD dwValue = 0;
 		if (reg.getValue(pwszKey, &dwValue))
 			nValue = dwValue;
@@ -248,22 +366,22 @@ bool qs::RegistryProfile::rename(const WCHAR* pwszName)
 
 /****************************************************************************
  *
- * AbstractProfileImpl
+ * AbstractTextProfileImpl
  *
  */
 
-struct qs::AbstractProfileImpl
+struct qs::AbstractTextProfileImpl
 {
 	static wstring_ptr getEntry(const WCHAR* pwszSection,
 								const WCHAR* pwszKey);
 	
 	wstring_ptr wstrPath_;
-	AbstractProfile::Map map_;
+	AbstractTextProfile::Map map_;
 	CriticalSection cs_;
 };
 
-wstring_ptr qs::AbstractProfileImpl::getEntry(const WCHAR* pwszSection,
-											  const WCHAR* pwszKey)
+wstring_ptr qs::AbstractTextProfileImpl::getEntry(const WCHAR* pwszSection,
+												  const WCHAR* pwszKey)
 {
 	return concat(pwszSection, L"_", pwszKey);
 }
@@ -271,20 +389,23 @@ wstring_ptr qs::AbstractProfileImpl::getEntry(const WCHAR* pwszSection,
 
 /****************************************************************************
  *
- * AbstractProfile
+ * AbstractTextProfile
  *
  */
 
-qs::AbstractProfile::AbstractProfile(const WCHAR* pwszPath) :
+qs::AbstractTextProfile::AbstractTextProfile(const WCHAR* pwszPath,
+											 const Default* pDefault,
+											 size_t nCount) :
+	AbstractProfile(pDefault, nCount),
 	pImpl_(0)
 {
 	wstring_ptr wstrPath(allocWString(pwszPath));
 	
-	pImpl_ = new AbstractProfileImpl();
+	pImpl_ = new AbstractTextProfileImpl();
 	pImpl_->wstrPath_ = wstrPath;
 }
 
-qs::AbstractProfile::~AbstractProfile()
+qs::AbstractTextProfile::~AbstractTextProfile()
 {
 	if (pImpl_) {
 		std::for_each(pImpl_->map_.begin(), pImpl_->map_.end(),
@@ -296,66 +417,71 @@ qs::AbstractProfile::~AbstractProfile()
 	}
 }
 
-wstring_ptr qs::AbstractProfile::getString(const WCHAR* pwszSection,
-										   const WCHAR* pwszKey,
-										   const WCHAR* pwszDefault)
+wstring_ptr qs::AbstractTextProfile::getString(const WCHAR* pwszSection,
+											   const WCHAR* pwszKey,
+											   const WCHAR* pwszDefault)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	
+	pwszDefault = getDefault(pwszSection, pwszKey, pwszDefault);
 	if (!pwszDefault)
 		pwszDefault = L"";
 	
-	wstring_ptr wstrEntry(AbstractProfileImpl::getEntry(pwszSection, pwszKey));
-	
-	Lock<CriticalSection> lock(pImpl_->cs_);
-	
-	AbstractProfile::Map::iterator it = pImpl_->map_.find(wstrEntry.get());
-	if (it == pImpl_->map_.end()) {
-		wstring_ptr wstrValue(allocWString(pwszDefault));
-		it = pImpl_->map_.insert(std::make_pair(wstrEntry.get(), wstrValue.get())).first;
-		wstrEntry.release();
-		wstrValue.release();
-	}
-	
-	return allocWString((*it).second);
+	const WCHAR* pwszValue = get(pwszSection, pwszKey);
+	return allocWString(pwszValue ? pwszValue : pwszDefault);
 }
 
-void qs::AbstractProfile::setString(const WCHAR* pwszSection,
-									const WCHAR* pwszKey,
-									const WCHAR* pwszValue)
+void qs::AbstractTextProfile::setString(const WCHAR* pwszSection,
+										const WCHAR* pwszKey,
+										const WCHAR* pwszValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pwszValue);
 	
-	wstring_ptr wstrEntry(AbstractProfileImpl::getEntry(pwszSection, pwszKey));
-	wstring_ptr wstrValue(allocWString(pwszValue));
+	wstring_ptr wstrEntry(AbstractTextProfileImpl::getEntry(pwszSection, pwszKey));
+	wstring_ptr wstrValue;
+	const WCHAR* pwszDefault = getDefault(pwszSection,
+		pwszKey, static_cast<const WCHAR*>(0));
+	if (!pwszDefault || wcscmp(pwszDefault, pwszValue) != 0)
+		wstrValue = allocWString(pwszValue);
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	AbstractProfile::Map::iterator it = pImpl_->map_.find(wstrEntry.get());
+	AbstractTextProfile::Map::iterator it = pImpl_->map_.find(wstrEntry.get());
 	if (it == pImpl_->map_.end()) {
-		pImpl_->map_.insert(std::make_pair(wstrEntry.get(), wstrValue.get()));
-		wstrEntry.release();
-		wstrValue.release();
+		if (wstrValue.get()) {
+			pImpl_->map_.insert(std::make_pair(wstrEntry.get(), wstrValue.get()));
+			wstrEntry.release();
+			wstrValue.release();
+		}
 	}
 	else {
 		freeWString((*it).second);
-		(*it).second = wstrValue.release();
+		if (wstrValue.get()) {
+			(*it).second = wstrValue.release();
+		}
+		else {
+			freeWString((*it).first);
+			pImpl_->map_.erase(it);
+		}
 	}
 }
 
-void qs::AbstractProfile::getStringList(const WCHAR* pwszSection,
-										const WCHAR* pwszKey,
-										StringList* pListValue)
+void qs::AbstractTextProfile::getStringList(const WCHAR* pwszSection,
+											const WCHAR* pwszKey,
+											StringList* pListValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pListValue);
 	
-	wstring_ptr wstrValue(getString(pwszSection, pwszKey, L""));
+	const WCHAR* pwszValue = get(pwszSection, pwszKey);
+	if (!pwszValue)
+		return;
 	
+	wstring_ptr wstrValue(allocWString(pwszValue));
 	WCHAR* p = wcstok(wstrValue.get(), L" ");
 	while (p) {
 		StringBuffer<WSTRING> buf;
@@ -381,9 +507,9 @@ void qs::AbstractProfile::getStringList(const WCHAR* pwszSection,
 	}
 }
 
-void qs::AbstractProfile::setStringList(const WCHAR* pwszSection,
-										const WCHAR* pwszKey,
-										const StringList& listValue)
+void qs::AbstractTextProfile::setStringList(const WCHAR* pwszSection,
+											const WCHAR* pwszKey,
+											const StringList& listValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
@@ -409,35 +535,29 @@ void qs::AbstractProfile::setStringList(const WCHAR* pwszSection,
 	setString(pwszSection, pwszKey, buf.getCharArray());
 }
 
-int qs::AbstractProfile::getInt(const WCHAR* pwszSection,
-								const WCHAR* pwszKey,
-								int nDefault)
+int qs::AbstractTextProfile::getInt(const WCHAR* pwszSection,
+									const WCHAR* pwszKey,
+									int nDefault)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	
-	int nValue = nDefault;
+	int nValue = getDefault(pwszSection, pwszKey, nDefault);
 	
-	WCHAR wszDefault[32];
-	_snwprintf(wszDefault, countof(wszDefault), L"%d", nDefault);
-	wstring_ptr wstrValue(getString(pwszSection, pwszKey, wszDefault));
-	
-	const WCHAR* p = wstrValue.get();
-	if (*p == L'-')
-		++p;
-	if (*p) {
-		while (*p && iswdigit(*p))
-			++p;
-		if (!*p)
-			nValue = _wtoi(wstrValue.get());
+	const WCHAR* pwszValue = get(pwszSection, pwszKey);
+	if (pwszValue) {
+		WCHAR* pEnd = 0;
+		int n = wcstol(pwszValue, &pEnd, 10);
+		if (!*pEnd)
+			nValue = n;
 	}
 	
 	return nValue;
 }
 
-void qs::AbstractProfile::setInt(const WCHAR* pwszSection,
-								 const WCHAR* pwszKey,
-								 int nValue)
+void qs::AbstractTextProfile::setInt(const WCHAR* pwszSection,
+									 const WCHAR* pwszKey,
+									 int nValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
@@ -447,22 +567,22 @@ void qs::AbstractProfile::setInt(const WCHAR* pwszSection,
 	setString(pwszSection, pwszKey, wszValue);
 }
 
-size_t qs::AbstractProfile::getBinary(const WCHAR* pwszSection,
-									  const WCHAR* pwszKey,
-									  unsigned char* pValue,
-									  size_t nSize)
+size_t qs::AbstractTextProfile::getBinary(const WCHAR* pwszSection,
+										  const WCHAR* pwszKey,
+										  unsigned char* pValue,
+										  size_t nSize)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(pValue);
 	
-	wstring_ptr wstrEntry(AbstractProfileImpl::getEntry(pwszSection, pwszKey));
+	wstring_ptr wstrEntry(AbstractTextProfileImpl::getEntry(pwszSection, pwszKey));
 	
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	size_t nResultSize = 0;
 	
-	AbstractProfile::Map::iterator it = pImpl_->map_.find(wstrEntry.get());
+	AbstractTextProfile::Map::iterator it = pImpl_->map_.find(wstrEntry.get());
 	if (it != pImpl_->map_.end()) {
 		const WCHAR* pwszValue = (*it).second;
 		size_t nLen = wcslen(pwszValue);
@@ -482,10 +602,10 @@ size_t qs::AbstractProfile::getBinary(const WCHAR* pwszSection,
 	return nResultSize;
 }
 
-void qs::AbstractProfile::setBinary(const WCHAR* pwszSection,
-									const WCHAR* pwszKey,
-									const unsigned char* pValue,
-									int nSize)
+void qs::AbstractTextProfile::setBinary(const WCHAR* pwszSection,
+										const WCHAR* pwszKey,
+										const unsigned char* pValue,
+										int nSize)
 {
 	assert(pwszSection);
 	assert(pwszKey);
@@ -499,25 +619,25 @@ void qs::AbstractProfile::setBinary(const WCHAR* pwszSection,
 	setString(pwszSection, pwszKey, wstrValue.get());
 }
 
-bool qs::AbstractProfile::load()
+bool qs::AbstractTextProfile::load()
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	return loadImpl(pImpl_->wstrPath_.get());
 }
 
-bool qs::AbstractProfile::save() const
+bool qs::AbstractTextProfile::save() const
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	return saveImpl(pImpl_->wstrPath_.get());
 }
 
-bool qs::AbstractProfile::deletePermanent()
+bool qs::AbstractTextProfile::deletePermanent()
 {
 	W2T(pImpl_->wstrPath_.get(), ptszPath);
 	return ::DeleteFile(ptszPath) != 0;
 }
 
-bool qs::AbstractProfile::rename(const WCHAR* pwszName)
+bool qs::AbstractTextProfile::rename(const WCHAR* pwszName)
 {
 	wstring_ptr wstrPath(allocWString(pwszName));
 	W2T(pImpl_->wstrPath_.get(), ptszOldPath);
@@ -530,9 +650,20 @@ bool qs::AbstractProfile::rename(const WCHAR* pwszName)
 	return true;
 }
 
-AbstractProfile::Map& qs::AbstractProfile::getMap() const
+AbstractTextProfile::Map& qs::AbstractTextProfile::getMap() const
 {
 	return pImpl_->map_;
+}
+
+const WCHAR* qs::AbstractTextProfile::get(const WCHAR* pwszSection,
+										  const WCHAR* pwszKey) const
+{
+	wstring_ptr wstrEntry(AbstractTextProfileImpl::getEntry(pwszSection, pwszKey));
+	
+	Lock<CriticalSection> lock(pImpl_->cs_);
+	
+	AbstractTextProfile::Map::const_iterator it = pImpl_->map_.find(wstrEntry.get());
+	return it != pImpl_->map_.end() ? (*it).second : 0;
 }
 
 
@@ -584,8 +715,10 @@ void qs::TextProfileImpl::parseLine(const WCHAR* pwszLine,
  *
  */
 
-qs::TextProfile::TextProfile(const WCHAR* pwszPath) :
-	AbstractProfile(pwszPath)
+qs::TextProfile::TextProfile(const WCHAR* pwszPath,
+							 const Default* pDefault,
+							 size_t nCount) :
+	AbstractTextProfile(pwszPath, pDefault, nCount)
 {
 }
 
@@ -658,11 +791,11 @@ bool qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
 	wstring_ptr wstrPath(concat(pwszPath, L".tmp"));
 	W2T(wstrPath.get(), ptszPath);
 	
-	AbstractProfile::Map& map = getMap();
+	AbstractTextProfile::Map& map = getMap();
 	typedef std::vector<std::pair<WSTRING, std::pair<WSTRING, bool> > > EntryList;
 	EntryList listEntry;
 	listEntry.reserve(map.size());
-	AbstractProfile::Map::const_iterator it = map.begin();
+	AbstractTextProfile::Map::const_iterator it = map.begin();
 	while (it != map.end()) {
 		listEntry.push_back(std::make_pair(
 			(*it).first, std::make_pair((*it).second, false)));
@@ -774,8 +907,10 @@ bool qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
  *
  */
 
-qs::XMLProfile::XMLProfile(const WCHAR* pwszPath) :
-	AbstractProfile(pwszPath)
+qs::XMLProfile::XMLProfile(const WCHAR* pwszPath,
+						   const Default* pDefault,
+						   size_t nCount) :
+	AbstractTextProfile(pwszPath, pDefault, nCount)
 {
 }
 
@@ -817,8 +952,8 @@ bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 	
 	wstring_ptr wstrSection;
 	size_t nSectionLen = 0;
-	AbstractProfile::Map& map = getMap();
-	AbstractProfile::Map::iterator it = map.begin();
+	AbstractTextProfile::Map& map = getMap();
+	AbstractTextProfile::Map::iterator it = map.begin();
 	while (it != map.end()) {
 		const WCHAR* pwszEntry = (*it).first;
 		if (!wstrSection.get() ||
@@ -839,14 +974,16 @@ bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 				return false;
 		}
 		
-		const WCHAR* p = wcschr(pwszEntry, L'_');
-		assert(p);
-		if (!handler.startElement(0, 0, L"key", SimpleAttributes(L"name", p + 1)))
-			return false;
-		if (!handler.characters((*it).second, 0, wcslen((*it).second)))
-			return false;
-		if (!handler.endElement(0, 0, L"key"))
-			return false;
+		const WCHAR* pwszKey = wcschr(pwszEntry, L'_') + 1;
+		const WCHAR* pwszValue = (*it).second;
+		const WCHAR* pwszDefault = getDefault(wstrSection.get(),
+			pwszKey, static_cast<const WCHAR*>(0));
+		if (!pwszDefault || wcscmp(pwszValue, pwszDefault) != 0) {
+			if (!handler.startElement(0, 0, L"key", SimpleAttributes(L"name", pwszKey)) ||
+				!handler.characters(pwszValue, 0, wcslen(pwszValue)) ||
+				!handler.endElement(0, 0, L"key"))
+				return false;
+		}
 		
 		++it;
 	}
@@ -873,7 +1010,7 @@ bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
  *
  */
 
-qs::XMLProfileContentHandler::XMLProfileContentHandler(AbstractProfile::Map* pMap) :
+qs::XMLProfileContentHandler::XMLProfileContentHandler(AbstractTextProfile::Map* pMap) :
 	pMap_(pMap),
 	state_(STATE_ROOT)
 {

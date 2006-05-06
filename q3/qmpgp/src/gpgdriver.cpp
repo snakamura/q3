@@ -321,7 +321,7 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 
 wstring_ptr qmpgp::GPGDriver::getCommand() const
 {
-	return pProfile_->getString(L"GPG", L"Command", L"gpg.exe");
+	return pProfile_->getString(L"GPG", L"Command");
 }
 
 unsigned int qmpgp::GPGDriver::parseStatus(const unsigned char* pBuf,

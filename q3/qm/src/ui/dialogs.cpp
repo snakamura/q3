@@ -455,8 +455,8 @@ qm::DetachDialog::DetachDialog(Profile* pProfile,
 	list_(list),
 	bOpenFolder_(false)
 {
-	wstrFolder_ = pProfile_->getString(L"Global", L"DetachFolder", L"");
-	bOpenFolder_ = pProfile_->getInt(L"Global", L"DetachOpenFolder", 0) != 0;
+	wstrFolder_ = pProfile_->getString(L"Global", L"DetachFolder");
+	bOpenFolder_ = pProfile_->getInt(L"Global", L"DetachOpenFolder") != 0;
 }
 
 qm::DetachDialog::~DetachDialog()
@@ -917,10 +917,10 @@ qm::FindDialog::FindDialog(Profile* pProfile,
 	pProfile_(pProfile),
 	bSupportRegex_(bSupportRegex),
 	pCallback_(pCallback),
-	wndFind_(pProfile, L"Find", L"", false),
 	bMatchCase_(false),
 	bRegex_(false),
-	bPrev_(false)
+	bPrev_(false),
+	wndFind_(pProfile, L"Find", L"", false)
 {
 }
 
@@ -977,11 +977,11 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus,
 	if (ComboBox_GetCount(getDlgItem(IDC_FIND)) != 0)
 		ComboBox_SetCurSel(getDlgItem(IDC_FIND), 0);
 	
-	int nMatchCase = pProfile_->getInt(L"Find", L"MatchCase", 0);
+	int nMatchCase = pProfile_->getInt(L"Find", L"MatchCase");
 	Button_SetCheck(getDlgItem(IDC_MATCHCASE), nMatchCase ? BST_CHECKED : BST_UNCHECKED);
 	
 	if (bSupportRegex_) {
-		int nRegex = pProfile_->getInt(L"Find", L"Regex", 0);
+		int nRegex = pProfile_->getInt(L"Find", L"Regex");
 		Button_SetCheck(getDlgItem(IDC_REGEX), nRegex ? BST_CHECKED : BST_UNCHECKED);
 	}
 	
@@ -1458,7 +1458,8 @@ void qm::MultiLineInputBoxDialog::layout()
 qm::LabelDialog::LabelDialog(const WCHAR* pwszLabel,
 							 Profile* pProfile) :
 	DefaultDialog(IDD_LABEL),
-	pProfile_(pProfile)
+	pProfile_(pProfile),
+	wndFind_(pProfile, L"Label", L"", false)
 {
 	if (pwszLabel)
 		wstrLabel_ = allocWString(pwszLabel);
@@ -1593,7 +1594,7 @@ qm::MoveMessageDialog::MoveMessageDialog(AccountManager* pAccountManager,
 	bCopy_(false),
 	bShowHidden_(false)
 {
-	bShowHidden_ = pProfile->getInt(L"MoveMessageDialog", L"ShowHidden", 0) != 0;
+	bShowHidden_ = pProfile->getInt(L"MoveMessageDialog", L"ShowHidden") != 0;
 }
 
 qm::MoveMessageDialog::~MoveMessageDialog()
@@ -1642,7 +1643,7 @@ LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus,
 		Button_SetCheck(getDlgItem(IDC_SHOWHIDDEN), BST_CHECKED);
 	
 	Folder* pFolderSelected = 0;
-	wstring_ptr wstrFolder(pAccount_->getProperty(L"UI", L"FolderTo", L""));
+	wstring_ptr wstrFolder(pAccount_->getPropertyString(L"UI", L"FolderTo"));
 	if (*wstrFolder.get())
 		pFolderSelected = pAccountManager_->getFolder(0, wstrFolder.get());
 	
@@ -1693,7 +1694,7 @@ LRESULT qm::MoveMessageDialog::onOk()
 		{ wstrFolderName.get(),					-1	}
 	};
 	wstring_ptr wstrName(concat(c, countof(c)));
-	pAccount_->setProperty(L"UI", L"FolderTo", wstrName.get());
+	pAccount_->setPropertyString(L"UI", L"FolderTo", wstrName.get());
 	
 	return DefaultDialog::onOk();
 }
@@ -2138,7 +2139,9 @@ qm::ReplaceDialog::ReplaceDialog(Profile* pProfile) :
 	pProfile_(pProfile),
 	bMatchCase_(false),
 	bRegex_(false),
-	type_(TYPE_NEXT)
+	type_(TYPE_NEXT),
+	wndFind_(pProfile, L"Find", L"", false),
+	wndReplace_(pProfile, L"Replace", L"", false)
 {
 }
 
@@ -2188,33 +2191,32 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	for (int n = 0; n < HISTORY_SIZE; ++n) {
-		WCHAR wszKey[32];
-		_snwprintf(wszKey, countof(wszKey), L"History%d", n);
-		
-		struct {
-			const WCHAR* pwszSection_;
-			UINT nId_;
-		} items[] = {
-			{ L"Find",		IDC_FIND	},
-			{ L"Replace",	IDC_REPLACE	}
-		};
-		for (int m = 0; m < countof(items); ++m) {
-			wstring_ptr wstr(pProfile_->getString(items[m].pwszSection_, wszKey, L""));
+	struct {
+		UINT nId_;
+		const WCHAR* pwszSection_;
+	} items[] = {
+		{ IDC_FIND,		L"Find"		},
+		{ IDC_REPLACE,	L"Replace"	}
+	};
+	for (size_t m = 0; m < countof(items); ++m) {
+		HWND hwnd = getDlgItem(items[m].nId_);
+		History history(pProfile_, items[m].pwszSection_);
+		for (unsigned int n = 0; n < history.getSize(); ++n) {
+			wstring_ptr wstr(history.getValue(n));
 			if (*wstr.get()) {
 				W2T(wstr.get(), ptsz);
-				ComboBox_AddString(getDlgItem(items[m].nId_), ptsz);
+				ComboBox_AddString(hwnd, ptsz);
 			}
 		}
+		if (ComboBox_GetCount(hwnd) != 0)
+			ComboBox_SetCurSel(hwnd, 0);
 	}
 	
-	int nMatchCase = pProfile_->getInt(L"Find", L"MatchCase", 0);
-	Button_SetCheck(getDlgItem(IDC_MATCHCASE),
-		nMatchCase ? BST_CHECKED : BST_UNCHECKED);
+	bool bMatchCase = pProfile_->getInt(L"Find", L"MatchCase") != 0;
+	Button_SetCheck(getDlgItem(IDC_MATCHCASE), bMatchCase ? BST_CHECKED : BST_UNCHECKED);
 	
-	int nRegex = pProfile_->getInt(L"Find", L"Regex", 0);
-	Button_SetCheck(getDlgItem(IDC_REGEX),
-		nRegex ? BST_CHECKED : BST_UNCHECKED);
+	bool bRegex = pProfile_->getInt(L"Find", L"Regex") != 0;
+	Button_SetCheck(getDlgItem(IDC_REGEX), bRegex ? BST_CHECKED : BST_UNCHECKED);
 	
 	updateState();
 	
@@ -2223,31 +2225,11 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::ReplaceDialog::onReplace(UINT nId)
 {
-	struct {
-		UINT nId_;
-		wstring_ptr* pwstr_;
-		const WCHAR* pwszSection_;
-	} items[] = {
-		{ IDC_FIND,		&wstrFind_,		L"Find"		},
-		{ IDC_REPLACE,	&wstrReplace_,	L"Replace"	}
-	};
-	for (int m = 0; m < countof(items); ++m) {
-		wstring_ptr wstrText(getDlgItemText(items[m].nId_));
-		if (wstrText.get()) {
-			for (int n = HISTORY_SIZE - 1; n > 0; --n) {
-				WCHAR wszFromKey[32];
-				_snwprintf(wszFromKey, countof(wszFromKey), L"History%d", n - 1);
-				wstring_ptr wstr(pProfile_->getString(items[m].pwszSection_, wszFromKey, L""));
-				
-				WCHAR wszToKey[32];
-				_snwprintf(wszToKey, countof(wszToKey), L"History%d", n);
-				pProfile_->setString(items[m].pwszSection_, wszToKey, wstr.get());
-			}
-			
-			pProfile_->setString(items[m].pwszSection_, L"History0", wstrText.get());
-		}
-		*items[m].pwstr_ = wstrText;
-	}
+	wstrFind_ = getDlgItemText(IDC_FIND);
+	History(pProfile_, L"Find").addValue(wstrFind_.get());
+	
+	wstrReplace_ = getDlgItemText(IDC_REPLACE);
+	History(pProfile_, L"Replace").addValue(wstrReplace_.get());
 	
 	bMatchCase_ = Button_GetCheck(getDlgItem(IDC_MATCHCASE)) == BST_CHECKED;
 	pProfile_->setInt(L"Find", L"MatchCase", bMatchCase_ ? 1 : 0);
@@ -2571,7 +2553,7 @@ LRESULT qm::SelectDialupEntryDialog::onInitDialog(HWND hwndFocus,
 		ListBox_AddString(getDlgItem(IDC_ENTRY), ptszEntry);
 	}
 	
-	wstring_ptr wstrEntry(pProfile_->getString(L"Dialup", L"Entry", 0));
+	wstring_ptr wstrEntry(pProfile_->getString(L"Dialup", L"Entry"));
 	W2T(wstrEntry.get(), ptszEntry);
 	ListBox_SelectString(getDlgItem(IDC_ENTRY), -1, ptszEntry);
 	

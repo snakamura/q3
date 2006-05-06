@@ -1367,9 +1367,9 @@ void qm::MainWindowImpl::updateStatusBar()
 
 void qm::MainWindowImpl::reloadProfiles(bool bInitialize)
 {
-	bSaveOnDeactivate_ = pProfile_->getInt(L"Global", L"SaveOnDeactivate", 1) != 0;
+	bSaveOnDeactivate_ = pProfile_->getInt(L"Global", L"SaveOnDeactivate") != 0;
 #ifndef _WIN32_WCE_PSPC
-	bHideWhenMinimized_ = pProfile_->getInt(L"Global", L"HideWhenMinimized", 0) != 0;
+	bHideWhenMinimized_ = pProfile_->getInt(L"Global", L"HideWhenMinimized") != 0;
 #endif
 }
 
@@ -1709,9 +1709,9 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	
 	pImpl_ = new MainWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bShowToolbar_ = pProfile->getInt(L"MainWindow", L"ShowToolbar", 1) != 0;
-	pImpl_->bShowStatusBar_ = pProfile->getInt(L"MainWindow", L"ShowStatusBar", 1) != 0;
-	pImpl_->bShowFolderComboBox_ = pProfile->getInt(L"MainWindow", L"ShowFolderComboBox", 0) != 0;
+	pImpl_->bShowToolbar_ = pProfile->getInt(L"MainWindow", L"ShowToolbar") != 0;
+	pImpl_->bShowStatusBar_ = pProfile->getInt(L"MainWindow", L"ShowStatusBar") != 0;
+	pImpl_->bShowFolderComboBox_ = pProfile->getInt(L"MainWindow", L"ShowFolderComboBox") != 0;
 	pImpl_->bSaveOnDeactivate_ = true;
 #ifndef _WIN32_WCE_PSPC
 	pImpl_->bHideWhenMinimized_ = false;
@@ -2158,7 +2158,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pFolderListModel_.reset(new FolderListModel());
 	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());
 	pImpl_->pSecurityModel_.reset(new DefaultSecurityModel(
-		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode", 0)));
+		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode")));
 	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pDocument_,
 		pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
@@ -2316,7 +2316,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		SplitterHelper::COMPONENT_PREVIEW);
 	std::auto_ptr<MessageWindow> pMessageWindow(new MessageWindow(
 		pImpl_->pPreviewModel_.get(), pImpl_->pProfile_, L"PreviewWindow"));
-	pImpl_->pMessageViewModeHolder_ = pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder", 1) != 0 ?
+	pImpl_->pMessageViewModeHolder_ =
+		pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder") != 0 ?
 		pImpl_->pPreviewModel_.get() : pMessageWindow->getMessageViewModeHolder();
 	MessageWindowCreateContext messageContext = {
 		pContext->pDocument_,
@@ -2912,9 +2913,8 @@ qm::ShellIcon::ShellIcon(Recents* pRecents,
 	
 	pRecents->addRecentsHandler(this);
 	
-	UINT nHotKeyModifier = pProfile->getInt(
-		L"Recents", L"HotKeyModifiers", MOD_ALT | MOD_SHIFT);
-	UINT nHotKey = pProfile->getInt(L"Recents", L"HotKey", 'A');
+	UINT nHotKeyModifier = pProfile->getInt(L"Recents", L"HotKeyModifiers");
+	UINT nHotKey = pProfile->getInt(L"Recents", L"HotKey");
 	::RegisterHotKey(hwnd, HOTKEY_RECENTS, nHotKeyModifier, nHotKey);
 }
 
@@ -3055,13 +3055,7 @@ qm::SplitterHelper::SplitterHelper(Profile* pProfile) :
 {
 	assert(pProfile);
 	
-#ifdef _WIN32_WCE_PSPC
-	const WCHAR* pwszDefaultPlacement = L"F-(L-P)";
-#else
-	const WCHAR* pwszDefaultPlacement = L"F|(L-P)";
-#endif
-	wstring_ptr wstrPlacement(pProfile->getString(
-		L"MainWindow", L"Placement", pwszDefaultPlacement));
+	wstring_ptr wstrPlacement(pProfile->getString(L"MainWindow", L"Placement"));
 	
 	const WCHAR* p = wstrPlacement.get();
 	if (wcslen(p) == 7 && *p == L'(' && *(p + 4) == L')' &&
@@ -3095,11 +3089,11 @@ qm::SplitterHelper::SplitterHelper(Profile* pProfile) :
 	
 	pSplitterWindow_[SPLITTER_PRIMARY] = 0;
 	pSplitterWindow_[SPLITTER_SECONDARY] = 0;
-	nLocations_[SPLITTER_PRIMARY] = pProfile->getInt(L"MainWindow", L"PrimaryLocation", 100);
-	nLocations_[SPLITTER_SECONDARY] = pProfile->getInt(L"MainWindow", L"SecondaryLocation", 200);
-	bVisible_[COMPONENT_FOLDER] = pProfile->getInt(L"MainWindow", L"ShowFolderWindow", 1) != 0;
+	nLocations_[SPLITTER_PRIMARY] = pProfile->getInt(L"MainWindow", L"PrimaryLocation");
+	nLocations_[SPLITTER_SECONDARY] = pProfile->getInt(L"MainWindow", L"SecondaryLocation");
+	bVisible_[COMPONENT_FOLDER] = pProfile->getInt(L"MainWindow", L"ShowFolderWindow") != 0;
 	bVisible_[COMPONENT_LIST] = true;
-	bVisible_[COMPONENT_PREVIEW] = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow", 1) != 0;
+	bVisible_[COMPONENT_PREVIEW] = pProfile->getInt(L"MainWindow", L"ShowPreviewWindow") != 0;
 }
 
 qm::SplitterHelper::~SplitterHelper()

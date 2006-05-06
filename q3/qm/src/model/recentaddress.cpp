@@ -30,7 +30,7 @@ qm::RecentAddress::RecentAddress(AddressBook* pAddressBook,
 	pAddressBook_(pAddressBook),
 	pProfile_(pProfile)
 {
-	nMax_ = pProfile_->getInt(L"RecentAddress", L"Max", 10);
+	nMax_ = pProfile_->getInt(L"RecentAddress", L"Max");
 	if (nMax_ == 0 || nMax_ > 100)
 		nMax_ = 10;
 	
@@ -66,13 +66,10 @@ void qm::RecentAddress::save() const
 	for (unsigned int n = 0; n < nMax_; ++n) {
 		WCHAR wszKey[32];
 		_snwprintf(wszKey, countof(wszKey), L"Address%u", n);
-		const WCHAR* pwszValue = L"";
-		wstring_ptr wstrValue;
 		if (n < listAddress_.size()) {
-			wstrValue = listAddress_[n]->getValue();
-			pwszValue = wstrValue.get();
+			wstring_ptr wstrValue(listAddress_[n]->getValue());
+			pProfile_->setString(L"RecentAddress", wszKey, wstrValue.get());
 		}
-		pProfile_->setString(L"RecentAddress", wszKey, pwszValue);
 	}
 }
 
@@ -82,7 +79,7 @@ void qm::RecentAddress::load()
 	for (unsigned int n = 0; n < nMax_; ++n) {
 		WCHAR wszKey[32];
 		_snwprintf(wszKey, countof(wszKey), L"Address%u", n);
-		wstring_ptr wstrAddress(pProfile_->getString(L"RecentAddress", wszKey, L""));
+		wstring_ptr wstrAddress(pProfile_->getString(L"RecentAddress", wszKey));
 		if (*wstrAddress.get()) {
 			std::auto_ptr<AddressParser> pAddress(new AddressParser());
 			if (MessageCreator::getAddress(wstrAddress.get(), pAddress.get()))

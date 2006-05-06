@@ -38,8 +38,8 @@ wstring_ptr qmimap4::Util::getFolderName(NormalFolder* pFolder)
 	
 	if (pFolder->isFlag(Folder::FLAG_CHILDOFROOT)) {
 		Account* pAccount = pFolder->getAccount();
-		wstring_ptr wstrRootFolder(pAccount->getProperty(L"Imap4", L"RootFolder", L""));
-		wstring_ptr wstrRootFolderSeparator(pAccount->getProperty(L"Imap4", L"RootFolderSeparator", L"/"));
+		wstring_ptr wstrRootFolder(pAccount->getPropertyString(L"Imap4", L"RootFolder"));
+		wstring_ptr wstrRootFolderSeparator(pAccount->getPropertyString(L"Imap4", L"RootFolderSeparator"));
 		if (*wstrRootFolder.get()) {
 			ConcatW c[] = {
 				{ wstrRootFolder.get(),				-1	},
@@ -860,5 +860,5 @@ void qmimap4::AbstractCallback::setPassword(const WCHAR* pwszPassword)
 
 wstring_ptr qmimap4::AbstractCallback::getAuthMethods()
 {
-	return pSubAccount_->getProperty(L"Imap4", L"AuthMethods", L"");
+	return pSubAccount_->getPropertyString(L"Imap4", L"AuthMethods");
 }

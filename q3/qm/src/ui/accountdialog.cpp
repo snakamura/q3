@@ -20,6 +20,7 @@
 #include "accountdialog.h"
 #include "optiondialog.h"
 #include "resourceinc.h"
+#include "../main/defaultprofile.h"
 
 using namespace qm;
 using namespace qs;
@@ -125,7 +126,7 @@ LRESULT qm::AccountDialog::onAddAccount()
 		}
 		
 		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", FileNames::ACCOUNT_XML));
-		XMLProfile profile(wstrPath.get());
+		XMLProfile profile(wstrPath.get(), defaultAccountProfiles, countof(defaultAccountProfiles));
 		profile.setString(L"Global", L"Class", dialog.getClass());
 		profile.setInt(L"Global", L"BlockSize", dialog.getBlockSize());
 		profile.setInt(L"Global", L"IndexBlockSize", dialog.getIndexBlockSize());
@@ -207,7 +208,8 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 				return 0;
 			}
 			
-			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get()));
+			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get(),
+				defaultAccountProfiles, countof(defaultAccountProfiles)));
 			if (!pProfile->load()) {
 				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 				return 0;

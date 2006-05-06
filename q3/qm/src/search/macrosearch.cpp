@@ -210,7 +210,7 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
 		{ IDC_SEARCHBODY,	L"SearchBody"	}
 	};
 	for (int n = 0; n < countof(items); ++n) {
-		int nValue = pProfile_->getInt(L"MacroSearch", items[n].pwszKey_, 0);
+		int nValue = pProfile_->getInt(L"MacroSearch", items[n].pwszKey_);
 		if (nValue != 0)
 			sendDlgItemMessage(items[n].nId_, BM_SETCHECK, BST_CHECKED);
 	}
@@ -239,8 +239,7 @@ LRESULT qm::MacroSearchPage::onOk()
 				wstrCondition_ = wstrSearch;
 			}
 			else {
-				wstring_ptr wstrMacro(pProfile_->getString(L"MacroSearch", L"SearchMacro",
-					L"@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case), @Contain(@Label(), $Search, $Case))"));
+				wstring_ptr wstrMacro(pProfile_->getString(L"MacroSearch", L"SearchMacro"));
 				wstring_ptr wstrLiteral(getLiteral(wstrSearch.get()));
 				
 				StringBuffer<WSTRING> buf;

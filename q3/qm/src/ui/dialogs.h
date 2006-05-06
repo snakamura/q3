@@ -567,11 +567,11 @@ private:
 	qs::Profile* pProfile_;
 	bool bSupportRegex_;
 	Callback* pCallback_;
-	qs::ImeWindow wndFind_;
 	qs::wstring_ptr wstrFind_;
 	bool bMatchCase_;
 	bool bRegex_;
 	bool bPrev_;
+	qs::ImeWindow wndFind_;
 };
 
 
@@ -779,6 +779,7 @@ private:
 private:
 	qs::wstring_ptr wstrLabel_;
 	qs::Profile* pProfile_;
+	qs::ImeWindow wndFind_;
 };
 
 
@@ -1072,17 +1073,14 @@ private:
 	ReplaceDialog& operator=(const ReplaceDialog&);
 
 private:
-	enum {
-		HISTORY_SIZE = 10
-	};
-
-private:
 	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrFind_;
 	qs::wstring_ptr wstrReplace_;
 	bool bMatchCase_;
 	bool bRegex_;
 	Type type_;
+	qs::ImeWindow wndFind_;
+	qs::ImeWindow wndReplace_;
 };
 
 

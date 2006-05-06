@@ -533,18 +533,16 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 	struct {
 		UINT nId_;
 		const WCHAR* pwszKey_;
-		int nWidth_;
 	} columns[] = {
-		{ IDS_ADDRESSBOOK_COLUMN_NAME,		L"NameWidth",		120	},
-		{ IDS_ADDRESSBOOK_COLUMN_ADDRESS,	L"AddressWidth",	130	},
-		{ IDS_ADDRESSBOOK_COLUMN_COMMENT,	L"CommentWidth",	60	}
+		{ IDS_ADDRESSBOOK_COLUMN_NAME,		L"NameWidth"	},
+		{ IDS_ADDRESSBOOK_COLUMN_ADDRESS,	L"AddressWidth"	},
+		{ IDS_ADDRESSBOOK_COLUMN_COMMENT,	L"CommentWidth"	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
 		wstring_ptr wstrName(loadString(hInst, columns[n].nId_));
 		W2T(wstrName.get(), ptszName);
 		
-		int nWidth = pProfile_->getInt(L"AddressBook",
-			columns[n].pwszKey_, columns[n].nWidth_);
+		int nWidth = pProfile_->getInt(L"AddressBook", columns[n].pwszKey_);
 		LVCOLUMN column = {
 			LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 			LVCFMT_LEFT,
@@ -562,7 +560,7 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 		MAKEINTRESOURCE(IDB_ADDRESSBOOK), 16, 0, RGB(255, 255, 255));
 	ListView_SetImageList(hwndSelected, hImageList, LVSIL_SMALL);
 	
-	int nColumnWidth = pProfile_->getInt(L"AddressBook", L"SelectedAddressWidth", 150);
+	int nColumnWidth = pProfile_->getInt(L"AddressBook", L"SelectedAddressWidth");
 	LVCOLUMN column = {
 		LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 		LVCFMT_LEFT,
@@ -603,7 +601,7 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 	}
 	ListView_SortItems(hwndSelected, &selectedItemComp, 0);
 	
-	wstring_ptr wstrCategory(pProfile_->getString(L"AddressBook", L"Category", L""));
+	wstring_ptr wstrCategory(pProfile_->getString(L"AddressBook", L"Category"));
 	setCurrentCategory(*wstrCategory.get() ? wstrCategory.get() : 0);
 	
 #ifdef _WIN32_WCE
@@ -613,8 +611,8 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = pProfile_->getInt(L"AddressBook", L"Width", 620);
-	int nHeight = pProfile_->getInt(L"AddressBook", L"Height", 450);
+	int nWidth = pProfile_->getInt(L"AddressBook", L"Width");
+	int nHeight = pProfile_->getInt(L"AddressBook", L"Height");
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif

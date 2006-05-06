@@ -540,13 +540,8 @@ unsigned int qm::ListWindowImpl::getLineFromPoint(const POINT& pt) const
 
 void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 {
-#ifdef _WIN32_WCE_PSPC
-	bool bSingleClickOpen = true;
-#else
-	bool bSingleClickOpen = false;
-#endif
-	bSingleClickOpen_ = pProfile_->getInt(L"ListWindow", L"SingleClickOpen", bSingleClickOpen) != 0;
-	bEllipsis_ = pProfile_->getInt(L"ListWindow", L"Ellipsis", 1) != 0;
+	bSingleClickOpen_ = pProfile_->getInt(L"ListWindow", L"SingleClickOpen") != 0;
+	bEllipsis_ = pProfile_->getInt(L"ListWindow", L"Ellipsis") != 0;
 	
 	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
 		L"ListWindow", qs::UIUtil::DEFAULTFONT_UI);
@@ -561,19 +556,17 @@ void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 		layoutChildren();
 	}
 	
-	bUseSystemColor_ = pProfile_->getInt(L"ListWindow", L"UseSystemColor", 1) != 0;
+	bUseSystemColor_ = pProfile_->getInt(L"ListWindow", L"UseSystemColor") != 0;
 	if (!bUseSystemColor_) {
 		struct {
 			const WCHAR* pwszKey_;
-			const WCHAR* pwszDefault_;
 			COLORREF* pcr_;
 		} colors[] = {
-			{ L"ForegroundColor",	L"000000",	&crForeground_	},
-			{ L"BackgroundColor",	L"ffffff",	&crBackground_	}
+			{ L"ForegroundColor",	&crForeground_	},
+			{ L"BackgroundColor",	&crBackground_	}
 		};
 		for (int n = 0; n < countof(colors); ++n) {
-			wstring_ptr wstr(pProfile_->getString(L"ListWindow",
-				colors[n].pwszKey_, colors[n].pwszDefault_));
+			wstring_ptr wstr(pProfile_->getString(L"ListWindow", colors[n].pwszKey_));
 			Color color(wstr.get());
 			if (color.getColor() != 0xffffffff)
 				*colors[n].pcr_ = color.getColor();
@@ -1806,7 +1799,7 @@ qm::ListHeaderColumn::ListHeaderColumn(ListWindow* pListWindow,
 	pImpl_->nId_ = 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pViewModel_ = 0;
-	pImpl_->bShow_ = pProfile->getInt(L"ListWindow", L"ShowHeaderColumn", 1) != 0;
+	pImpl_->bShow_ = pProfile->getInt(L"ListWindow", L"ShowHeaderColumn") != 0;
 	
 	setWindowHandler(this, false);
 	

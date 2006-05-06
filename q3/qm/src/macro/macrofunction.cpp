@@ -3754,7 +3754,7 @@ MacroValuePtr qm::MacroFunctionProfile::value(MacroContext* pContext) const
 	}
 	else {
 		wstring_ptr wstrAbsolutePath(pContext->resolvePath(wstrPath.get()));
-		XMLProfile profile(wstrAbsolutePath.get());
+		XMLProfile profile(wstrAbsolutePath.get(), 0, 0);
 		if (!profile.load())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		wstrValue = profile.getString(wstrSection.get(),

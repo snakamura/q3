@@ -52,11 +52,10 @@ qm::EditMessage::EditMessage(Profile* pProfile,
 	nMessageSecurity_(0)
 {
 #ifdef QMZIP
-	bArchiveAttachments_ = pProfile_->getInt(L"EditWindow", L"ArchiveAttachments", 0) != 0;
+	bArchiveAttachments_ = pProfile_->getInt(L"EditWindow", L"ArchiveAttachments") != 0;
 #endif
-	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform", 1) != 0;
-	nMessageSecurity_ = pProfile_->getInt(L"Security", L"DefaultMessageSecurity",
-		MESSAGESECURITY_SMIMEMULTIPARTSIGNED | MESSAGESECURITY_PGPMIME);
+	bAutoReform_ = pProfile_->getInt(L"EditWindow", L"AutoReform") != 0;
+	nMessageSecurity_ = pProfile_->getInt(L"Security", L"DefaultMessageSecurity");
 }
 
 qm::EditMessage::~EditMessage()
@@ -85,8 +84,8 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 	const WCHAR* pwszBody = wstrBody_.get();
 	wxstring_ptr wstrBody;
 	if (bFixup && bAutoReform_) {
-		int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength", 74);
-		int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth", 4);
+		int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength");
+		int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth");
 		
 		wstrBody = TextUtil::fold(wstrBody_.get(),
 			wstrBody_.size(), nLineLen, 0, 0, nTabWidth);

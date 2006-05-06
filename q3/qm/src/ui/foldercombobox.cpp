@@ -217,8 +217,8 @@ void qm::FolderComboBoxImpl::handleUpdateMessage(LPARAM lParam)
 
 void qm::FolderComboBoxImpl::reloadProfiles(bool bInitialize)
 {
-	bShowAllCount_ = pProfile_->getInt(L"FolderComboBox", L"ShowAllCount", 1) != 0;
-	bShowUnseenCount_ = pProfile_->getInt(L"FolderComboBox", L"ShowUnseenCount", 1) != 0;
+	bShowAllCount_ = pProfile_->getInt(L"FolderComboBox", L"ShowAllCount") != 0;
+	bShowUnseenCount_ = pProfile_->getInt(L"FolderComboBox", L"ShowUnseenCount") != 0;
 	
 	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
 		L"FolderComboBox", qs::UIUtil::DEFAULTFONT_UI);

@@ -137,7 +137,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	}
 	
 	bool bExternalEditor = bExternalEditor_;
-	if (pProfile_->getInt(L"Global", L"UseExternalEditor", 0) != 0)
+	if (pProfile_->getInt(L"Global", L"UseExternalEditor") != 0)
 		bExternalEditor = !bExternalEditor;
 	if (bReverseExternalEditor)
 		bExternalEditor = !bExternalEditor;

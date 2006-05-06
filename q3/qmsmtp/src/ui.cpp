@@ -34,7 +34,7 @@ qmsmtp::SendPage::~SendPage()
 LRESULT qmsmtp::SendPage::onInitDialog(HWND hwndFocus,
 									   LPARAM lParam)
 {
-	wstring_ptr wstrLocalHost(pSubAccount_->getProperty(L"Smtp", L"LocalHost", L""));
+	wstring_ptr wstrLocalHost(pSubAccount_->getPropertyString(L"Smtp", L"LocalHost"));
 	
 	setDlgItemText(IDC_LOCALHOST, wstrLocalHost.get());
 	
@@ -45,7 +45,7 @@ LRESULT qmsmtp::SendPage::onOk()
 {
 	wstring_ptr wstrLocalHost(getDlgItemText(IDC_LOCALHOST));
 	if (wstrLocalHost.get())
-		pSubAccount_->setProperty(L"Smtp", L"LocalHost", wstrLocalHost.get());
+		pSubAccount_->setPropertyString(L"Smtp", L"LocalHost", wstrLocalHost.get());
 	
 	return DefaultPropertyPage::onOk();
 }

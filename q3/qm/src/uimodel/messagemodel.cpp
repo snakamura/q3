@@ -233,7 +233,7 @@ qm::PreviewMessageModel::~PreviewMessageModel()
 
 void qm::PreviewMessageModel::reloadProfiles()
 {
-	nDelay_ = pProfile_->getInt(L"PreviewWindow", L"Delay", 300);
+	nDelay_ = pProfile_->getInt(L"PreviewWindow", L"Delay");
 }
 
 void qm::PreviewMessageModel::updateToViewModel()

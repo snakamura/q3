@@ -405,12 +405,12 @@ void qm::FolderWindowImpl::reloadProfiles(bool bInitialize)
 		{ L"AccountShowUnseenCount",	FLAG_ACCOUNTSHOWUNSEENCOUNT	}
 	};
 	for (int n = 0; n < countof(flags); ++n) {
-		if (pProfile_->getInt(L"FolderWindow", flags[n].pwszKey_, 1))
+		if (pProfile_->getInt(L"FolderWindow", flags[n].pwszKey_))
 			nFlags |= flags[n].flag_;
 	}
 	nFlags_ = nFlags;
 	
-	nDragOpenWait_ = pProfile_->getInt(L"FolderWindow", L"DragOpenWait", 500);
+	nDragOpenWait_ = pProfile_->getInt(L"FolderWindow", L"DragOpenWait");
 	
 	HFONT hfont = qs::UIUtil::createFontFromProfile(pProfile_,
 		L"FolderWindow", qs::UIUtil::DEFAULTFONT_UI);
@@ -422,19 +422,17 @@ void qm::FolderWindowImpl::reloadProfiles(bool bInitialize)
 	hfont_ = hfont;
 	
 #ifndef _WIN32_WCE
-	bool bUseSystemColor = pProfile_->getInt(L"FolderWindow", L"UseSystemColor", 1) != 0;
+	bool bUseSystemColor = pProfile_->getInt(L"FolderWindow", L"UseSystemColor") != 0;
 	if (!bUseSystemColor) {
 		struct {
 			const WCHAR* pwszKey_;
-			const WCHAR* pwszDefault_;
 			COLORREF* pcr_;
 		} colors[] = {
-			{ L"ForegroundColor",	L"000000",	&crForeground_	},
-			{ L"BackgroundColor",	L"ffffff",	&crBackground_	}
+			{ L"ForegroundColor",	&crForeground_	},
+			{ L"BackgroundColor",	&crBackground_	}
 		};
 		for (int n = 0; n < countof(colors); ++n) {
-			wstring_ptr wstr(pProfile_->getString(L"FolderWindow",
-				colors[n].pwszKey_, colors[n].pwszDefault_));
+			wstring_ptr wstr(pProfile_->getString(L"FolderWindow", colors[n].pwszKey_));
 			Color color(wstr.get());
 			if (color.getColor() != 0xffffffff)
 				*colors[n].pcr_ = color.getColor();

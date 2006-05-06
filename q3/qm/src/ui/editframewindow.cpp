@@ -442,8 +442,8 @@ qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
 {
 	pImpl_ = new EditFrameWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bShowToolbar_ = pProfile->getInt(L"EditFrameWindow", L"ShowToolbar", 1) != 0;
-	pImpl_->bShowStatusBar_ = pProfile->getInt(L"EditFrameWindow", L"ShowStatusBar", 1) != 0;
+	pImpl_->bShowToolbar_ = pProfile->getInt(L"EditFrameWindow", L"ShowToolbar") != 0;
+	pImpl_->bShowStatusBar_ = pProfile->getInt(L"EditFrameWindow", L"ShowStatusBar") != 0;
 	pImpl_->pManager_ = pManager;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;

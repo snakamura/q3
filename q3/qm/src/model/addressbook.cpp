@@ -989,9 +989,9 @@ qm::ExternalAddressBook::~ExternalAddressBook()
 qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile) :
 	bModified_(true)
 {
-	bool bAddressOnly = pProfile->getInt(L"AddressBook", L"AddressOnly", 0) != 0;
+	bool bAddressOnly = pProfile->getInt(L"AddressBook", L"AddressOnly") != 0;
 	
-	wstring_ptr wstrExternals(pProfile->getString(L"AddressBook", L"Externals", L""));
+	wstring_ptr wstrExternals(pProfile->getString(L"AddressBook", L"Externals"));
 	const WCHAR* p = wcstok(wstrExternals.get(), L" ");
 	while (p) {
 #ifndef _WIN32_WCE

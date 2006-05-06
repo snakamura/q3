@@ -112,7 +112,7 @@ qm::DefaultTabModel::DefaultTabModel(Document* pDocument,
 	nReuse_(REUSE_NONE)
 {
 	wstrPath_ = allocWString(pwszPath);
-	nReuse_ = pProfile_->getInt(L"TabWindow", L"Reuse", REUSE_NONE);
+	nReuse_ = pProfile_->getInt(L"TabWindow", L"Reuse");
 	
 	pDocument_->addDocumentHandler(this);
 	pDocument_->addAccountManagerHandler(this);
@@ -337,7 +337,7 @@ void qm::DefaultTabModel::documentInitialized(const DocumentEvent& event)
 	}
 	
 	if (!listItem_.empty()) {
-		int nItem = pProfile_->getInt(L"TabWindow", L"CurrentTab", 0);
+		int nItem = pProfile_->getInt(L"TabWindow", L"CurrentTab");
 		if (0 <= nItem && nItem < getCount())
 			setCurrent(nItem);
 	}

@@ -72,41 +72,41 @@ struct qm::SubAccountImpl
 
 void qm::SubAccountImpl::load()
 {
-#define LOAD_STRING(section, key, default, name) \
-	this->name = pProfile_->getString(section, key, default);
+#define LOAD_STRING(section, key, name) \
+	this->name = pProfile_->getString(section, key);
 	
-	LOAD_STRING(L"Global",	L"Identity",				0,	wstrIdentity_						);
-	LOAD_STRING(L"Global",	L"SenderName",				0,	wstrSenderName_						);
-	LOAD_STRING(L"Global",	L"SenderAddress",			0,	wstrSenderAddress_					);
-	LOAD_STRING(L"Send",	L"Host",					0,	wstrHost_[Account::HOST_SEND]		);
-	LOAD_STRING(L"Receive",	L"Host",					0,	wstrHost_[Account::HOST_RECEIVE]	);
-	LOAD_STRING(L"Send",	L"UserName",				0,	wstrUserName_[Account::HOST_SEND]	);
-	LOAD_STRING(L"Receive",	L"UserName",				0,	wstrUserName_[Account::HOST_RECEIVE]);
-	LOAD_STRING(L"Receive",	L"SyncFilterName",			0,	wstrSyncFilterName_					);
-	LOAD_STRING(L"Dialup",	L"Entry",					0,	wstrDialupEntry_					);
-	LOAD_STRING(L"Global",	L"TransferEncodingFor8Bit",	0,	wstrTransferEncodingFor8Bit_		);
+	LOAD_STRING(L"Global",	L"Identity",				wstrIdentity_						);
+	LOAD_STRING(L"Global",	L"SenderName",				wstrSenderName_						);
+	LOAD_STRING(L"Global",	L"SenderAddress",			wstrSenderAddress_					);
+	LOAD_STRING(L"Send",	L"Host",					wstrHost_[Account::HOST_SEND]		);
+	LOAD_STRING(L"Receive",	L"Host",					wstrHost_[Account::HOST_RECEIVE]	);
+	LOAD_STRING(L"Send",	L"UserName",				wstrUserName_[Account::HOST_SEND]	);
+	LOAD_STRING(L"Receive",	L"UserName",				wstrUserName_[Account::HOST_RECEIVE]);
+	LOAD_STRING(L"Receive",	L"SyncFilterName",			wstrSyncFilterName_					);
+	LOAD_STRING(L"Dialup",	L"Entry",					wstrDialupEntry_					);
+	LOAD_STRING(L"Global",	L"TransferEncodingFor8Bit",	wstrTransferEncodingFor8Bit_		);
 
 #pragma warning(disable:4800)
-#define LOAD_INT(section, key, default, name, type, tempname) \
-	int _##tempname##_ = pProfile_->getInt(section, key, default); \
+#define LOAD_INT(section, key, name, type, tempname) \
+	int _##tempname##_ = pProfile_->getInt(section, key); \
 	name = static_cast<type>(_##tempname##_)
 	
-	LOAD_INT(L"Send",		L"Port",						25,		nPort_[Account::HOST_SEND],		short,					nSendPort					);
-	LOAD_INT(L"Receive",	L"Port",						110,	nPort_[Account::HOST_RECEIVE],	short,					nReceivePort				);
-	LOAD_INT(L"Send",		L"Secure",						0,		secure_[Account::HOST_SEND],	SubAccount::Secure,		nSendSecure					);
-	LOAD_INT(L"Receive",	L"Secure",						0,		secure_[Account::HOST_RECEIVE],	SubAccount::Secure,		nReceiveSecure				);
-	LOAD_INT(L"Send",		L"Log",							0,		bLog_[Account::HOST_SEND],		bool,					nSendLog					);
-	LOAD_INT(L"Receive",	L"Log",							0,		bLog_[Account::HOST_RECEIVE],	bool,					nReceiveLog					);
-	LOAD_INT(L"Global",		L"Timeout",						60,		nTimeout_,						long,					nTimeout					);
-	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	0,		bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
-	LOAD_INT(L"Global",		L"TreatAsSent",					1,		bTreatAsSent_,					bool,					nTreatAsSent				);
-	LOAD_INT(L"Global",		L"AddMessageId",				1,		bAddMessageId_,					bool,					nAddMessageId				);
-	LOAD_INT(L"Global",		L"AutoApplyRules",				0,		bAutoApplyRules_,				bool,					nAutoApplyRules				);
-	LOAD_INT(L"Global",		L"SslOption",					0,		nSslOption_,					unsigned int,			nSslOption					);
-	LOAD_INT(L"Dialup",		L"Type",						0,		dialupType_,					SubAccount::DialupType,	dialupType					);
-	LOAD_INT(L"Dialup",		L"ShowDialog",					0,		bDialupShowDialog_,				bool,					bDialupShowDialog			);
-	LOAD_INT(L"Dialup",		L"DisconnectWait",				0,		nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
-	LOAD_INT(L"JunkFilter",	L"Enabled",						0,		bJunkFilterEnabled_,			bool,					nJunkFilterEnabled			);
+	LOAD_INT(L"Send",		L"Port",						nPort_[Account::HOST_SEND],		short,					nSendPort					);
+	LOAD_INT(L"Receive",	L"Port",						nPort_[Account::HOST_RECEIVE],	short,					nReceivePort				);
+	LOAD_INT(L"Send",		L"Secure",						secure_[Account::HOST_SEND],	SubAccount::Secure,		nSendSecure					);
+	LOAD_INT(L"Receive",	L"Secure",						secure_[Account::HOST_RECEIVE],	SubAccount::Secure,		nReceiveSecure				);
+	LOAD_INT(L"Send",		L"Log",							bLog_[Account::HOST_SEND],		bool,					nSendLog					);
+	LOAD_INT(L"Receive",	L"Log",							bLog_[Account::HOST_RECEIVE],	bool,					nReceiveLog					);
+	LOAD_INT(L"Global",		L"Timeout",						nTimeout_,						long,					nTimeout					);
+	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
+	LOAD_INT(L"Global",		L"TreatAsSent",					bTreatAsSent_,					bool,					nTreatAsSent				);
+	LOAD_INT(L"Global",		L"AddMessageId",				bAddMessageId_,					bool,					nAddMessageId				);
+	LOAD_INT(L"Global",		L"AutoApplyRules",				bAutoApplyRules_,				bool,					nAutoApplyRules				);
+	LOAD_INT(L"Global",		L"SslOption",					nSslOption_,					unsigned int,			nSslOption					);
+	LOAD_INT(L"Dialup",		L"Type",						dialupType_,					SubAccount::DialupType,	dialupType					);
+	LOAD_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_,				bool,					bDialupShowDialog			);
+	LOAD_INT(L"Dialup",		L"DisconnectWait",				nDialupDisconnectWait_,			unsigned int,			nDialupDisconnectWait		);
+	LOAD_INT(L"JunkFilter",	L"Enabled",						bJunkFilterEnabled_,			bool,					nJunkFilterEnabled			);
 #pragma warning(default:4800)
 }
 
@@ -482,9 +482,15 @@ std::auto_ptr<Certificate> qm::SubAccount::getCertificate(PasswordManager* pPass
 	return pCertificate;
 }
 
-int qm::SubAccount::getProperty(const WCHAR* pwszSection,
-								const WCHAR* pwszKey,
-								int nDefault) const
+int qm::SubAccount::getPropertyInt(const WCHAR* pwszSection,
+								   const WCHAR* pwszKey) const
+{
+	return getPropertyInt(pwszSection, pwszKey, 0);
+}
+
+int qm::SubAccount::getPropertyInt(const WCHAR* pwszSection,
+								   const WCHAR* pwszKey,
+								   int nDefault) const
 {
 	assert(pwszSection);
 	assert(pwszKey);
@@ -492,9 +498,9 @@ int qm::SubAccount::getProperty(const WCHAR* pwszSection,
 	return pImpl_->pProfile_->getInt(pwszSection, pwszKey, nDefault);
 }
 
-void qm::SubAccount::setProperty(const WCHAR* pwszSection,
-								 const WCHAR* pwszKey,
-								 int nValue)
+void qm::SubAccount::setPropertyInt(const WCHAR* pwszSection,
+									const WCHAR* pwszKey,
+									int nValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
@@ -502,9 +508,15 @@ void qm::SubAccount::setProperty(const WCHAR* pwszSection,
 	pImpl_->pProfile_->setInt(pwszSection, pwszKey, nValue);
 }
 
-wstring_ptr qm::SubAccount::getProperty(const WCHAR* pwszSection,
-										const WCHAR* pwszKey,
-										const WCHAR* pwszDefault) const
+wstring_ptr qm::SubAccount::getPropertyString(const WCHAR* pwszSection,
+											  const WCHAR* pwszKey) const
+{
+	return getPropertyString(pwszSection, pwszKey, L"");
+}
+
+wstring_ptr qm::SubAccount::getPropertyString(const WCHAR* pwszSection,
+											  const WCHAR* pwszKey,
+											  const WCHAR* pwszDefault) const
 {
 	assert(pwszSection);
 	assert(pwszKey);
@@ -517,9 +529,9 @@ wstring_ptr qm::SubAccount::getProperty(const WCHAR* pwszSection,
 	return pImpl_->pProfile_->getString(pwszSection, pwszKey, pwszDefault);
 }
 
-void qm::SubAccount::setProperty(const WCHAR* pwszSection,
-								 const WCHAR* pwszKey,
-								 const WCHAR* pwszValue)
+void qm::SubAccount::setPropertyString(const WCHAR* pwszSection,
+									   const WCHAR* pwszKey,
+									   const WCHAR* pwszValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);

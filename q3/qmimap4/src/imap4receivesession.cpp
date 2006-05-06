@@ -175,7 +175,7 @@ bool qmimap4::Imap4ReceiveSession::closeFolder()
 	pCallback_->setRange(0, 0);
 	pCallback_->setPos(0);
 	
-	if (pSubAccount_->getProperty(L"Imap4", L"CloseFolder", 0)) {
+	if (pSubAccount_->getPropertyInt(L"Imap4", L"CloseFolder")) {
 		pCallback_->setMessage(IDS_CLOSEFOLDER);
 		if (!pImap4_->close())
 			HANDLE_ERROR();
@@ -334,10 +334,10 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 
 bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilterSet)
 {
-	int nFetchCount = pSubAccount_->getProperty(L"Imap4", L"FetchCount", 100);
-	int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
+	int nFetchCount = pSubAccount_->getPropertyInt(L"Imap4", L"FetchCount");
+	int nOption = pSubAccount_->getPropertyInt(L"Imap4", L"Option");
 	
-	wstring_ptr wstrAdditionalFields(pSubAccount_->getProperty(L"Imap4", L"AdditionalFields", L""));
+	wstring_ptr wstrAdditionalFields(pSubAccount_->getPropertyString(L"Imap4", L"AdditionalFields"));
 	string_ptr strAdditionalFields(wcs2mbs(wstrAdditionalFields.get()));
 	
 	typedef std::vector<unsigned long> UidList;
@@ -1023,7 +1023,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 	if (pFolder->getDownloadCount() == 0)
 		return true;
 	
-	unsigned int nOption = pSubAccount_->getProperty(L"Imap4", L"Option", 0xff);
+	unsigned int nOption = pSubAccount_->getPropertyInt(L"Imap4", L"Option");
 	
 	typedef std::vector<unsigned long> UidList;
 	UidList listAll;

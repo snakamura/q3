@@ -377,7 +377,7 @@ bool qmpgp::PGPDriver::getAlternatives(const WCHAR* pwszUserId,
 
 wstring_ptr qmpgp::PGPDriver::getCommand() const
 {
-	return pProfile_->getString(L"PGP", L"Command", L"pgp.exe");
+	return pProfile_->getString(L"PGP", L"Command");
 }
 
 unsigned int qmpgp::PGPDriver::checkVerified(const unsigned char* pBuf,

@@ -19,6 +19,22 @@ namespace qs {
 
 /****************************************************************************
  *
+ * DefaultLess
+ *
+ */
+
+struct DefaultLess : public std::binary_function<Profile::Default, Profile::Default, bool>
+{
+	bool operator()(const Profile::Default& lhs,
+					const Profile::Default& rhs) const;
+	
+	static int compare(const Profile::Default& lhs,
+					   const Profile::Default& rhs);
+};
+
+
+/****************************************************************************
+ *
  * XMLProfileContentHandler
  *
  */
@@ -26,7 +42,7 @@ namespace qs {
 class XMLProfileContentHandler : public DefaultHandler
 {
 public:
-	XMLProfileContentHandler(AbstractProfile::Map* pMap);
+	XMLProfileContentHandler(AbstractTextProfile::Map* pMap);
 	virtual ~XMLProfileContentHandler();
 
 public:
@@ -54,7 +70,7 @@ private:
 	};
 
 private:
-	AbstractProfile::Map* pMap_;
+	AbstractTextProfile::Map* pMap_;
 	State state_;
 	wstring_ptr wstrSection_;
 	wstring_ptr wstrEntry_;

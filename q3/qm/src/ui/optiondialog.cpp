@@ -256,24 +256,22 @@ qm::TextColorDialog::Data::Data(Profile* pProfile,
 								bool bText) :
 	bText_(bText)
 {
-	bSystemColor_ = pProfile->getInt(pwszSection, L"UseSystemColor", 1) != 0;
+	bSystemColor_ = pProfile->getInt(pwszSection, L"UseSystemColor") != 0;
 	
 	struct
 	{
 		const WCHAR* pwszKey_;
-		const WCHAR* pwszDefault_;
 		COLORREF* pcr_;
 	} colors[] = {
-		{ L"ForegroundColor",	L"000000",	&crForeground_	},
-		{ L"BackgroundColor",	L"ffffff",	&crBackground_	},
-		{ L"QuoteColor1",		L"008000",	&crQuote_[0]	},
-		{ L"QuoteColor2",		L"000080",	&crQuote_[1]	},
-		{ L"LinkColor",			L"0000ff",	&crLink_		}
+		{ L"ForegroundColor",	&crForeground_	},
+		{ L"BackgroundColor",	&crBackground_	},
+		{ L"QuoteColor1",		&crQuote_[0]	},
+		{ L"QuoteColor2",		&crQuote_[1]	},
+		{ L"LinkColor",			&crLink_		}
 	};
 	int nCount = bText_ ? countof(colors) : 2;
 	for (int n = 0; n < nCount; ++n) {
-		wstring_ptr wstr(pProfile->getString(pwszSection,
-			colors[n].pwszKey_, colors[n].pwszDefault_));
+		wstring_ptr wstr(pProfile->getString(pwszSection, colors[n].pwszKey_));
 		Color color(wstr.get());
 		if (color.getColor() != 0xffffffff)
 			*colors[n].pcr_ = color.getColor();
@@ -283,15 +281,14 @@ qm::TextColorDialog::Data::Data(Profile* pProfile,
 		struct
 		{
 			const WCHAR* pwszKey_;
-			const WCHAR* pwszDefault_;
 			wstring_ptr* pwstrValue_;
 		} strings[] = {
-			{ L"Quote1",	L">",	&wstrQuote_[0]	},
-			{ L"Quote2",	L"#",	&wstrQuote_[1]	}
+			{ L"Quote1",	&wstrQuote_[0]	},
+			{ L"Quote2",	&wstrQuote_[1]	}
 		};
 		for (int n = 0; n < countof(strings); ++n)
-			*strings[n].pwstrValue_ = pProfile->getString(pwszSection,
-				strings[n].pwszKey_, strings[n].pwszDefault_);
+			*strings[n].pwstrValue_ = pProfile->getString(
+				pwszSection, strings[n].pwszKey_);
 	}
 }
 
@@ -422,7 +419,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	listPanel_.resize(MAX_PANEL);
 	
 	if (panel_ == PANEL_NONE) {
-		int nPanel = pProfile_->getInt(L"OptionDialog", L"Panel", 0);
+		int nPanel = pProfile_->getInt(L"OptionDialog", L"Panel");
 		if (nPanel < 0 || MAX_PANEL <= nPanel)
 			nPanel = 0;
 		panel_ = static_cast<Panel>(nPanel);
@@ -568,8 +565,8 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = pProfile_->getInt(L"OptionDialog", L"Width", 620);
-	int nHeight = pProfile_->getInt(L"OptionDialog", L"Height", 450);
+	int nWidth = pProfile_->getInt(L"OptionDialog", L"Width");
+	int nHeight = pProfile_->getInt(L"OptionDialog", L"Height");
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif
@@ -1273,7 +1270,7 @@ LRESULT qm::OptionAddressBookDialog::onCommand(WORD nCode,
 LRESULT qm::OptionAddressBookDialog::onInitDialog(HWND hwndFocus,
 												  LPARAM lParam)
 {
-	wstring_ptr wstrExternals(pProfile_->getString(L"AddressBook", L"Externals", L""));
+	wstring_ptr wstrExternals(pProfile_->getString(L"AddressBook", L"Externals"));
 	const WCHAR* p = wcstok(wstrExternals.get(), L" ");
 	while (p) {
 		for (int n = 0; n < countof(externals__); ++n) {
@@ -1285,7 +1282,7 @@ LRESULT qm::OptionAddressBookDialog::onInitDialog(HWND hwndFocus,
 		p = wcstok(0, L" ");
 	}
 	
-	if (pProfile_->getInt(L"AddressBook", L"AddressOnly", 0))
+	if (pProfile_->getInt(L"AddressBook", L"AddressOnly"))
 		Button_SetCheck(getDlgItem(IDC_ADDRESSONLY), BST_CHECKED);
 	
 	return FALSE;
@@ -1327,9 +1324,9 @@ LRESULT qm::OptionAddressBookDialog::onFont()
  */
 
 DialogUtil::BoolProperty qm::OptionConfirmDialog::boolProperties__[] = {
-	{ L"ConfirmDeleteMessage",			IDC_CONFIRMDELETEMESSAGE,			false	},
-	{ L"ConfirmEmptyFolder",			IDC_CONFIRMEMPTYFOLDER,				true	},
-	{ L"ConfirmEmptyTrash",				IDC_CONFIRMEMPTYTRASH,				true	}
+	{ L"ConfirmDeleteMessage",			IDC_CONFIRMDELETEMESSAGE	},
+	{ L"ConfirmEmptyFolder",			IDC_CONFIRMEMPTYFOLDER		},
+	{ L"ConfirmEmptyTrash",				IDC_CONFIRMEMPTYTRASH		}
 };
 
 qm::OptionConfirmDialog::OptionConfirmDialog(Profile* pProfile) :
@@ -1367,15 +1364,15 @@ bool qm::OptionConfirmDialog::save(OptionDialogContext* pContext)
  */
 
 DialogUtil::BoolProperty qm::OptionFolderDialog::windowBoolProperties__[] = {
-	{ L"FolderShowAllCount",		IDC_FOLDERSHOWALL,		true	},
-	{ L"FolderShowUnseenCount",		IDC_FOLDERSHOWUNSEEN,	true	},
-	{ L"AccountShowAllCount",		IDC_ACCOUNTSHOWALL,		true	},
-	{ L"AccountShowUnseenCount",	IDC_ACCOUNTSHOWUNSEEN,	true	}
+	{ L"FolderShowAllCount",		IDC_FOLDERSHOWALL		},
+	{ L"FolderShowUnseenCount",		IDC_FOLDERSHOWUNSEEN	},
+	{ L"AccountShowAllCount",		IDC_ACCOUNTSHOWALL		},
+	{ L"AccountShowUnseenCount",	IDC_ACCOUNTSHOWUNSEEN	}
 };
 
 DialogUtil::BoolProperty qm::OptionFolderDialog::comboBoxBoolProperties__[] = {
-	{ L"ShowAllCount",		IDC_SHOWALL,	true	},
-	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN,	true	}
+	{ L"ShowAllCount",		IDC_SHOWALL		},
+	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN	}
 };
 
 qm::OptionFolderDialog::OptionFolderDialog(FolderWindow* pFolderWindow,
@@ -1649,11 +1646,7 @@ void qm::OptionJunkDialog::layout()
  */
 
 DialogUtil::BoolProperty qm::OptionListDialog::boolProperties__[] = {
-#ifdef _WIN32_WCE_PSPC
-	{ L"SingleClickOpen",	IDC_SINGLECLICK,	true	}
-#else
-	{ L"SingleClickOpen",	IDC_SINGLECLICK,	false	}
-#endif
+	{ L"SingleClickOpen",	IDC_SINGLECLICK	}
 };
 
 qm::OptionListDialog::OptionListDialog(ListWindow* pListWindow,
@@ -1728,15 +1721,15 @@ LRESULT qm::OptionListDialog::onFont()
  */
 
 DialogUtil::BoolProperty qm::OptionMiscDialog::boolProperties__[] = {
-	{ L"NextUnseenWhenScrollEnd",		IDC_SHOWNEXTUNSEENWHENSCROLLEND,	false	},
-	{ L"EmptyTrashOnExit",				IDC_EMPTYTRASHONEXIT,				false	},
-	{ L"SaveMessageViewModePerFolder",	IDC_SAVEMESSAGEVIEWMODEPERFOLDER,	true	},
-	{ L"SaveOnDeactivate",				IDC_SAVEONDEACTIVATE,				true	},
+	{ L"NextUnseenWhenScrollEnd",		IDC_SHOWNEXTUNSEENWHENSCROLLEND		},
+	{ L"EmptyTrashOnExit",				IDC_EMPTYTRASHONEXIT				},
+	{ L"SaveMessageViewModePerFolder",	IDC_SAVEMESSAGEVIEWMODEPERFOLDER	},
+	{ L"SaveOnDeactivate",				IDC_SAVEONDEACTIVATE				},
 #ifndef _WIN32_WCE_PSPC
-	{ L"HideWhenMinimized",				IDC_HIDEWHENMINIMIZED,				false	},
+	{ L"HideWhenMinimized",				IDC_HIDEWHENMINIMIZED				},
 #endif
 #ifndef _WIN32_WCE
-	{ L"ShowUnseenCountOnWelcome",		IDC_SHOWUNSEENCOUNTONWELCOME,		false	},
+	{ L"ShowUnseenCountOnWelcome",		IDC_SHOWUNSEENCOUNTONWELCOME		},
 #endif
 };
 
@@ -1766,15 +1759,14 @@ LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
 	DialogUtil::loadBoolProperties(this, pProfile_,
 		L"Global", boolProperties__, countof(boolProperties__));
 	
-	wstring_ptr wstrTempFolder(pProfile_->getString(L"Global", L"TemporaryFolder", L""));
+	wstring_ptr wstrTempFolder(pProfile_->getString(L"Global", L"TemporaryFolder"));
 	setDlgItemText(IDC_TEMPORARYFOLDER, wstrTempFolder.get());
 	
-	wstring_ptr wstrEncodings(pProfile_->getString(L"Global",
-		L"Encodings", L"iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8"));
+	wstring_ptr wstrEncodings(pProfile_->getString(L"Global", L"Encodings"));
 	setDlgItemText(IDC_ENCODING, wstrEncodings.get());
 	
 	updateDefaultEncodings();
-	wstring_ptr wstrDefaultEncoding(pProfile_->getString(L"Global", L"DefaultCharset", L""));
+	wstring_ptr wstrDefaultEncoding(pProfile_->getString(L"Global", L"DefaultCharset"));
 	if (*wstrDefaultEncoding.get())
 		setDlgItemText(IDC_DEFAULTENCODING, wstrDefaultEncoding.get());
 	else
@@ -1811,7 +1803,7 @@ LRESULT qm::OptionMiscDialog::onInitDialog(HWND hwndFocus,
 		W2T(pwszPlacement[n], ptszPlacement);
 		ComboBox_AddString(hwndPlacement, ptszPlacement);
 	}
-	wstring_ptr wstrPlacement(pProfile_->getString(L"MainWindow", L"Placement", L"F|(L-P"));
+	wstring_ptr wstrPlacement(pProfile_->getString(L"MainWindow", L"Placement"));
 	setDlgItemText(IDC_VIEWPLACEMENT, wstrPlacement.get());
 	
 	return FALSE;
@@ -1907,11 +1899,11 @@ void qm::OptionMiscDialog::updateDefaultEncodings()
  */
 
 DialogUtil::BoolProperty qm::OptionMisc2Dialog::boolProperties__[] = {
-	{ L"IncrementalSearch",	IDC_INCREMENTALSEARCH,	false	},
-	{ L"Bcc",				IDC_BCC,				true	},
-	{ L"NoBccForML",		IDC_NOBCCFORML,			false	},
-	{ L"ForwardRfc822",		IDC_FORWARDRFC822,		false	},
-	{ L"OpenAddressBook",	IDC_OPENADDRESSBOOK,	false	}
+	{ L"IncrementalSearch",	IDC_INCREMENTALSEARCH	},
+	{ L"Bcc",				IDC_BCC					},
+	{ L"NoBccForML",		IDC_NOBCCFORML			},
+	{ L"ForwardRfc822",		IDC_FORWARDRFC822		},
+	{ L"OpenAddressBook",	IDC_OPENADDRESSBOOK		}
 };
 
 qm::OptionMisc2Dialog::OptionMisc2Dialog(Profile* pProfile) :
@@ -1930,7 +1922,7 @@ LRESULT qm::OptionMisc2Dialog::onInitDialog(HWND hwndFocus,
 	DialogUtil::loadBoolProperties(this, pProfile_,
 		L"Global", boolProperties__, countof(boolProperties__));
 	
-	wstring_ptr wstrQuote(pProfile_->getString(L"Global", L"Quote", L"> "));
+	wstring_ptr wstrQuote(pProfile_->getString(L"Global", L"Quote"));
 	setDlgItemText(IDC_QUOTE, wstrQuote.get());
 	
 	return FALSE;
@@ -2001,13 +1993,12 @@ LRESULT qm::OptionSearchDialog::onCommand(WORD nCode,
 LRESULT qm::OptionSearchDialog::onInitDialog(HWND hwndFocus,
 											 LPARAM lParam)
 {
-	wstring_ptr wstrMacro(pProfile_->getString(L"MacroSearch", L"SearchMacro",
-		L"@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case), @Contain(@Label(), $Search, $Case))"));
+	wstring_ptr wstrMacro(pProfile_->getString(L"MacroSearch", L"SearchMacro"));
 	setDlgItemText(IDC_MACRO, wstrMacro.get());
 	
 #ifndef _WIN32_WCE
-	wstring_ptr wstrSearch(pProfile_->getString(L"FullTextSearch", L"Command", engines[0].pwszSearch_));
-	wstring_ptr wstrUpdate(pProfile_->getString(L"FullTextSearch", L"IndexCommand", engines[0].pwszUpdate_));
+	wstring_ptr wstrSearch(pProfile_->getString(L"FullTextSearch", L"Command"));
+	wstring_ptr wstrUpdate(pProfile_->getString(L"FullTextSearch", L"IndexCommand"));
 	
 	UINT nId = IDC_CUSTOM;
 	for (int n = 0; n < countof(engines); ++n) {
@@ -2080,7 +2071,7 @@ void qm::OptionSearchDialog::updateState()
  */
 
 DialogUtil::BoolProperty qm::OptionSecurityDialog::boolProperties__[] = {
-	{ L"LoadSystemStore",	IDC_SYSTEMSTORE,		true	},
+	{ L"LoadSystemStore",	IDC_SYSTEMSTORE	}
 };
 
 qm::OptionSecurityDialog::OptionSecurityDialog(Security* pSecurity,
@@ -2102,7 +2093,7 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 		L"Security", boolProperties__, countof(boolProperties__));
 	
 #ifndef _WIN32_WCE
-	bool bGPG = pProfile_->getInt(L"PGP", L"UseGPG", 1) != 0;
+	bool bGPG = pProfile_->getInt(L"PGP", L"UseGPG") != 0;
 	Button_SetCheck(getDlgItem(bGPG ? IDC_GNUPG : IDC_PGP), BST_CHECKED);
 #endif
 	
@@ -2115,8 +2106,7 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 	}
 #endif
 	
-	wstring_ptr wstrExtensions(pProfile_->getString(L"Global",
-		L"WarnExtensions", L"exe com pif bat scr htm html hta vbs js"));
+	wstring_ptr wstrExtensions(pProfile_->getString(L"Global", L"WarnExtensions"));
 	setDlgItemText(IDC_WARNEXTENSION, wstrExtensions.get());
 	
 	return FALSE;
@@ -2148,14 +2138,14 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
  */
 
 DialogUtil::BoolProperty qm::AbstractOptionTextDialog::boolProperties__[] = {
-	{ L"WordWrap",					IDC_WORDWRAP,					false	},
-	{ L"ShowRuler",					IDC_SHOWRULER,					false	},
-	{ L"ShowVerticalScrollBar",		IDC_SHOWVERTICALSCROLLBAR,		true	},
-	{ L"ShowHorizontalScrollBar",	IDC_SHOWHORIZONTALSCROLLBAR,	false	}
+	{ L"WordWrap",					IDC_WORDWRAP				},
+	{ L"ShowRuler",					IDC_SHOWRULER				},
+	{ L"ShowVerticalScrollBar",		IDC_SHOWVERTICALSCROLLBAR	},
+	{ L"ShowHorizontalScrollBar",	IDC_SHOWHORIZONTALSCROLLBAR	}
 };
 
 DialogUtil::IntProperty qm::AbstractOptionTextDialog::intProperties__[] = {
-	{ L"TabWidth",	IDC_TABWIDTH,	4	}
+	{ L"TabWidth",	IDC_TABWIDTH	}
 };
 
 qm::AbstractOptionTextDialog::AbstractOptionTextDialog(UINT nId,
@@ -2189,7 +2179,7 @@ LRESULT qm::AbstractOptionTextDialog::onCommand(WORD nCode,
 LRESULT qm::AbstractOptionTextDialog::onInitDialog(HWND hwndFocus,
 												   LPARAM lParam)
 {
-	unsigned int nCharInLine = pProfile_->getInt(pwszSection_, L"CharInLine", 0);
+	unsigned int nCharInLine = pProfile_->getInt(pwszSection_, L"CharInLine");
 	if (nCharInLine == 0) {
 		Button_SetCheck(getDlgItem(IDC_WRAPWINDOWWIDTH), BST_CHECKED);
 		setDlgItemInt(IDC_CHARINLINE, 80);
@@ -2261,13 +2251,9 @@ LRESULT qm::AbstractOptionTextDialog::onWrapChange(UINT nId)
  */
 
 DialogUtil::BoolProperty qm::OptionEditDialog::boolProperties__[] = {
-	{ L"ShowTab",				IDC_SHOWTAB,				true	},
-	{ L"ShowNewLine",			IDC_SHOWNEWLINE,			true	},
-#ifdef _WIN32_WCE
-	{ L"HideHeaderIfNoFocus",	IDC_HIDEHEADERIFNOFOCUS,	true	}
-#else
-	{ L"HideHeaderIfNoFocus",	IDC_HIDEHEADERIFNOFOCUS,	false	}
-#endif
+	{ L"ShowTab",				IDC_SHOWTAB				},
+	{ L"ShowNewLine",			IDC_SHOWNEWLINE			},
+	{ L"HideHeaderIfNoFocus",	IDC_HIDEHEADERIFNOFOCUS	}
 };
 
 qm::OptionEditDialog::OptionEditDialog(EditFrameWindowManager* pEditFrameWindowManager,
@@ -2402,19 +2388,19 @@ LRESULT qm::SecurityDialog::onOk()
  */
 
 DialogUtil::BoolProperty qm::OptionEdit2Dialog::globalBoolProperties__[] = {
-	{ L"UseExternalEditor",			IDC_USEEXTERNALEDITOR,		false	},
-	{ L"ExternalEditorAutoCreate",	IDC_AUTOCREATE,				true	}
+	{ L"UseExternalEditor",			IDC_USEEXTERNALEDITOR	},
+	{ L"ExternalEditorAutoCreate",	IDC_AUTOCREATE			}
 };
 
 DialogUtil::BoolProperty qm::OptionEdit2Dialog::editBoolProperties__[] = {
-	{ L"AutoReform",			IDC_AUTOREFORM,			true	},
+	{ L"AutoReform",			IDC_AUTOREFORM				},
 #ifdef QMZIP
-	{ L"ArchiveAttachments",	IDC_ARCHIVEATTACHMENTS,	false	}
+	{ L"ArchiveAttachments",	IDC_ARCHIVEATTACHMENTS		}
 #endif
 };
 
 DialogUtil::IntProperty qm::OptionEdit2Dialog::intProperties__[] = {
-	{ L"ReformLineLength",	IDC_COLUMN,	74	}
+	{ L"ReformLineLength",	IDC_COLUMN	}
 };
 
 qm::OptionEdit2Dialog::OptionEdit2Dialog(EditFrameWindowManager* pEditFrameWindowManager,
@@ -2424,8 +2410,7 @@ qm::OptionEdit2Dialog::OptionEdit2Dialog(EditFrameWindowManager* pEditFrameWindo
 	pProfile_(pProfile),
 	nMessageSecurity_(0)
 {
-	nMessageSecurity_ = pProfile_->getInt(L"Security", L"DefaultMessageSecurity",
-		MESSAGESECURITY_SMIMEMULTIPARTSIGNED | MESSAGESECURITY_PGPMIME);
+	nMessageSecurity_ = pProfile_->getInt(L"Security", L"DefaultMessageSecurity");
 }
 
 qm::OptionEdit2Dialog::~OptionEdit2Dialog()
@@ -2452,7 +2437,7 @@ LRESULT qm::OptionEdit2Dialog::onInitDialog(HWND hwndFocus,
 	DialogUtil::loadIntProperties(this, pProfile_,
 		L"EditWindow", intProperties__, countof(intProperties__));
 	
-	wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"Editor", L"notepad.exe"));
+	wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"Editor"));
 	setDlgItemText(IDC_EDITOR, wstrEditor.get());
 	
 	return FALSE;
@@ -2539,7 +2524,7 @@ bool qm::OptionMessageDialog::save(OptionDialogContext* pContext)
  */
 
 DialogUtil::IntProperty qm::OptionPreviewDialog::intProperties__[] = {
-	{ L"SeenWait",	IDC_SEENWAIT,	0	}
+	{ L"SeenWait",	IDC_SEENWAIT	}
 };
 
 qm::OptionPreviewDialog::OptionPreviewDialog(MessageWindow* pPreviewWindow,
@@ -2585,9 +2570,9 @@ bool qm::OptionPreviewDialog::save(OptionDialogContext* pContext)
  */
 
 DialogUtil::BoolProperty qm::OptionTabDialog::boolProperties__[] = {
-	{ L"Multiline",			IDC_MULTILINE,	false	},
-	{ L"ShowAllCount",		IDC_SHOWALL,	true	},
-	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN,	true	}
+	{ L"Multiline",			IDC_MULTILINE	},
+	{ L"ShowAllCount",		IDC_SHOWALL		},
+	{ L"ShowUnseenCount",	IDC_SHOWUNSEEN	}
 };
 
 qm::OptionTabDialog::OptionTabDialog(TabWindow* pTabWindow,
@@ -3639,10 +3624,10 @@ LRESULT qm::AutoPilotDialog::onCommand(WORD nCode,
 LRESULT qm::AutoPilotDialog::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
-	wstring_ptr wstrSound = pProfile_->getString(L"AutoPilot", L"Sound", L"");
+	wstring_ptr wstrSound = pProfile_->getString(L"AutoPilot", L"Sound");
 	setDlgItemText(IDC_SOUND, wstrSound.get());
 	
-	if (pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected", 0))
+	if (pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected"))
 		Button_SetCheck(getDlgItem(IDC_ONLYWHENCONNECTED), BST_CHECKED);
 	if (pRecents_->isEnabled())
 		Button_SetCheck(getDlgItem(IDC_ADDTORECENTS), BST_CHECKED);
@@ -4162,8 +4147,8 @@ LRESULT qm::FixedFormTextDialog::onInitDialog(HWND hwndFocus,
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = pProfile_->getInt(L"FixedFormTextDialog", L"Width", 620);
-	int nHeight = pProfile_->getInt(L"FixedFormTextDialog", L"Height", 450);
+	int nWidth = pProfile_->getInt(L"FixedFormTextDialog", L"Width");
+	int nHeight = pProfile_->getInt(L"FixedFormTextDialog", L"Height");
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif
@@ -4421,8 +4406,8 @@ LRESULT qm::GoRoundCourseDialog::onInitDialog(HWND hwndFocus,
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = pProfile_->getInt(L"GoRoundCourseDialog", L"Width", 620);
-	int nHeight = pProfile_->getInt(L"GoRoundCourseDialog", L"Height", 450);
+	int nWidth = pProfile_->getInt(L"GoRoundCourseDialog", L"Width");
+	int nHeight = pProfile_->getInt(L"GoRoundCourseDialog", L"Height");
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif
@@ -5146,8 +5131,8 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = pProfile_->getInt(L"SignatureDialog", L"Width", 620);
-	int nHeight = pProfile_->getInt(L"SignatureDialog", L"Height", 450);
+	int nWidth = pProfile_->getInt(L"SignatureDialog", L"Width");
+	int nHeight = pProfile_->getInt(L"SignatureDialog", L"Height");
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif
@@ -5397,8 +5382,8 @@ LRESULT qm::SyncFiltersDialog::onInitDialog(HWND hwndFocus,
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = pProfile_->getInt(L"SyncFiltersDialog", L"Width", 620);
-	int nHeight = pProfile_->getInt(L"SyncFiltersDialog", L"Height", 450);
+	int nWidth = pProfile_->getInt(L"SyncFiltersDialog", L"Width");
+	int nHeight = pProfile_->getInt(L"SyncFiltersDialog", L"Height");
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif

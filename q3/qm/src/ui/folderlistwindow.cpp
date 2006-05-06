@@ -101,20 +101,18 @@ void qm::FolderListWindowImpl::loadColumns()
 		UINT nId_;
 		const WCHAR* pwszWidthKey_;
 		bool bLeft_;
-		int nDefaultWidth_;
 	} columns[] = {
-		{ IDS_FOLDERLIST_NAME,			L"NameWidth",			true,	150	},
-		{ IDS_FOLDERLIST_ID,			L"IdWidth",				false,	50	},
-		{ IDS_FOLDERLIST_COUNT,			L"CountWidth",			false,	50	},
-		{ IDS_FOLDERLIST_UNSEENCOUNT,	L"UnseenCountWidth",	false,	50	},
-		{ IDS_FOLDERLIST_SIZE,			L"SizeWidth",			false,	150	},
+		{ IDS_FOLDERLIST_NAME,			L"NameWidth",			true	},
+		{ IDS_FOLDERLIST_ID,			L"IdWidth",				false	},
+		{ IDS_FOLDERLIST_COUNT,			L"CountWidth",			false	},
+		{ IDS_FOLDERLIST_UNSEENCOUNT,	L"UnseenCountWidth",	false	},
+		{ IDS_FOLDERLIST_SIZE,			L"SizeWidth",			false	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
 		wstring_ptr wstrTitle(loadString(hInst, columns[n].nId_));
 		W2T(wstrTitle.get(), ptszTitle);
 		
-		int nWidth = pProfile_->getInt(L"FolderListWindow",
-			columns[n].pwszWidthKey_, columns[n].nDefaultWidth_);
+		int nWidth = pProfile_->getInt(L"FolderListWindow", columns[n].pwszWidthKey_);
 		LVCOLUMN column = {
 			LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 			columns[n].bLeft_ ? LVCFMT_LEFT : LVCFMT_RIGHT,
@@ -257,19 +255,17 @@ void qm::FolderListWindowImpl::reloadProfiles(bool bInitialize)
 	}
 	hfont_ = hfont;
 	
-	bool bUseSystemColor = pProfile_->getInt(L"FolderListWindow", L"UseSystemColor", 1) != 0;
+	bool bUseSystemColor = pProfile_->getInt(L"FolderListWindow", L"UseSystemColor") != 0;
 	if (!bUseSystemColor) {
 		struct {
 			const WCHAR* pwszKey_;
-			const WCHAR* pwszDefault_;
 			COLORREF* pcr_;
 		} colors[] = {
-			{ L"ForegroundColor",	L"000000",	&crForeground_	},
-			{ L"BackgroundColor",	L"ffffff",	&crBackground_	}
+			{ L"ForegroundColor",	&crForeground_	},
+			{ L"BackgroundColor",	&crBackground_	}
 		};
 		for (int n = 0; n < countof(colors); ++n) {
-			wstring_ptr wstr(pProfile_->getString(L"FolderListWindow",
-				colors[n].pwszKey_, colors[n].pwszDefault_));
+			wstring_ptr wstr(pProfile_->getString(L"FolderListWindow", colors[n].pwszKey_));
 			Color color(wstr.get());
 			if (color.getColor() != 0xffffffff)
 				*colors[n].pcr_ = color.getColor();

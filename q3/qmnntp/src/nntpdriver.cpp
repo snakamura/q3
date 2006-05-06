@@ -72,7 +72,7 @@ void qmnntp::NntpDriver::setSubAccount(qm::SubAccount* pSubAccount)
 	if (pSubAccount != pSubAccount_) {
 		clearSession();
 		pSubAccount_ = pSubAccount;
-		nForceDisconnect_ = pSubAccount_->getProperty(L"Nntp", L"ForceDisconnect", 0);
+		nForceDisconnect_ = pSubAccount_->getPropertyInt(L"Nntp", L"ForceDisconnect");
 	}
 }
 

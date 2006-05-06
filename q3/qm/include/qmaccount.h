@@ -122,18 +122,22 @@ public:
 	bool isStoreDecodedMessage() const;
 	void setStoreDecodedMessage(bool bStore) const;
 	
-	int getProperty(const WCHAR* pwszSection,
-					const WCHAR* pwszKey,
-					int nDefault) const;
-	void setProperty(const WCHAR* pwszSection,
-					 const WCHAR* pwszKey,
-					 int nValue);
-	qs::wstring_ptr getProperty(const WCHAR* pwszSection,
-								const WCHAR* pwszName,
-								const WCHAR* pwszDefault) const;
-	void setProperty(const WCHAR* pwszSection,
-					 const WCHAR* pwszName,
-					 const WCHAR* pwszValue);
+	int getPropertyInt(const WCHAR* pwszSection,
+					   const WCHAR* pwszKey) const;
+	int getPropertyInt(const WCHAR* pwszSection,
+					   const WCHAR* pwszKey,
+					   int nDefault) const;
+	void setPropertyInt(const WCHAR* pwszSection,
+						const WCHAR* pwszKey,
+						int nValue);
+	qs::wstring_ptr getPropertyString(const WCHAR* pwszSection,
+									  const WCHAR* pwszKey) const;
+	qs::wstring_ptr getPropertyString(const WCHAR* pwszSection,
+									  const WCHAR* pwszKey,
+									  const WCHAR* pwszDefault) const;
+	void setPropertyString(const WCHAR* pwszSection,
+						   const WCHAR* pwszKey,
+						   const WCHAR* pwszValue);
 	
 	SubAccount* getSubAccount(const WCHAR* pwszName) const;
 	SubAccount* getSubAccountByIdentity(const WCHAR* pwszIdentity) const;
@@ -406,18 +410,22 @@ public:
 	std::auto_ptr<qs::PrivateKey> getPrivateKey(PasswordManager* pPasswordManager) const;
 	std::auto_ptr<qs::Certificate> getCertificate(PasswordManager* pPasswordManager) const;
 	
-	int getProperty(const WCHAR* pwszSection,
-					const WCHAR* pwszKey,
-					int nDefault) const;
-	void setProperty(const WCHAR* pwszSection,
-					 const WCHAR* pwszKey,
-					 int nValue);
-	qs::wstring_ptr getProperty(const WCHAR* pwszSection,
-								const WCHAR* pwszKey,
-								const WCHAR* pwszDefault) const;
-	void setProperty(const WCHAR* pwszSection,
-					 const WCHAR* pwszKey,
-					 const WCHAR* pwszValue);
+	int getPropertyInt(const WCHAR* pwszSection,
+					   const WCHAR* pwszKey) const;
+	int getPropertyInt(const WCHAR* pwszSection,
+					   const WCHAR* pwszKey,
+					   int nDefault) const;
+	void setPropertyInt(const WCHAR* pwszSection,
+						const WCHAR* pwszKey,
+						int nValue);
+	qs::wstring_ptr getPropertyString(const WCHAR* pwszSection,
+									  const WCHAR* pwszKey) const;
+	qs::wstring_ptr getPropertyString(const WCHAR* pwszSection,
+									  const WCHAR* pwszKey,
+									  const WCHAR* pwszDefault) const;
+	void setPropertyString(const WCHAR* pwszSection,
+						   const WCHAR* pwszKey,
+						   const WCHAR* pwszValue);
 	
 	const WCHAR* getSyncFilterName() const;
 	void setSyncFilterName(const WCHAR* pwszName);

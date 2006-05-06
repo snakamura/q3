@@ -181,7 +181,7 @@ bool qm::EditWindowImpl::updateEditMessage() const
 
 void qm::EditWindowImpl::reloadProfiles(bool bInitialize)
 {
-	bHideHeaderIfNoFocus_ = pProfile_->getInt(L"EditWindow", L"HideHeaderIfNoFocus", 0) != 0;
+	bHideHeaderIfNoFocus_ = pProfile_->getInt(L"EditWindow", L"HideHeaderIfNoFocus") != 0;
 	
 	if (!bInitialize)
 		layoutChildren();

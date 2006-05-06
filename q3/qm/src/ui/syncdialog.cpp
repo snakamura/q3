@@ -327,7 +327,7 @@ void qm::SyncDialog::notifyNewMessage() const
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
 	
-	wstring_ptr wstrSound(pProfile_->getString(L"AutoPilot", L"Sound", 0));
+	wstring_ptr wstrSound(pProfile_->getString(L"AutoPilot", L"Sound"));
 	if (*wstrSound.get()) {
 		W2T(wstrSound.get(), ptszSound);
 		sndPlaySound(ptszSound, SND_ASYNC);
@@ -420,10 +420,10 @@ LRESULT qm::SyncDialog::onInitDialog(HWND hwndFocus,
 	int nWidth = rectWorkArea.right - rectWorkArea.left;
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 #else
-	int nLeft = pProfile_->getInt(L"SyncDialog", L"Left", 0);
-	int nTop = pProfile_->getInt(L"SyncDialog", L"Top", 0);
-	int nWidth = pProfile_->getInt(L"SyncDialog", L"Width", 300);
-	int nHeight = pProfile_->getInt(L"SyncDialog", L"Height", 200);
+	int nLeft = pProfile_->getInt(L"SyncDialog", L"Left");
+	int nTop = pProfile_->getInt(L"SyncDialog", L"Top");
+	int nWidth = pProfile_->getInt(L"SyncDialog", L"Width");
+	int nHeight = pProfile_->getInt(L"SyncDialog", L"Height");
 #endif
 	setWindowPos(0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER);
 	
@@ -762,7 +762,7 @@ void qm::SyncStatusWindow::addError(unsigned int nId,
 									const SessionErrorInfo& info)
 {
 	SubAccount* pSubAccount = info.getSubAccount();
-	if (pSubAccount && pSubAccount->getProperty(L"Misc", L"IgnoreError", 0))
+	if (pSubAccount && pSubAccount->getPropertyInt(L"Misc", L"IgnoreError"))
 		return;
 	
 	StringBuffer<WSTRING> buf;

@@ -237,12 +237,7 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 		const WCHAR* pwszCommand = 0;
 		WCHAR* pParam = 0;
 		
-#ifdef _WIN32_WCE_PSPC
-		const WCHAR* pwszDefaultFiler = L"fexplore.exe %d";
-#else
-		const WCHAR* pwszDefaultFiler = L"";
-#endif
-		wstring_ptr wstrCommand(pProfile_->getString(L"Global", L"Filer", pwszDefaultFiler));
+		wstring_ptr wstrCommand(pProfile_->getString(L"Global", L"Filer"));
 		if (*wstrCommand.get()) {
 			wstrCommand = TextUtil::replace(wstrCommand.get(), L"%d", pwszFolder);
 			
@@ -316,8 +311,7 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 		if (p) {
 			++p;
 			
-			wstring_ptr wstrExtensions(pProfile_->getString(L"Global",
-				L"WarnExtensions", L"exe com pif bat scr htm html hta vbs js"));
+			wstring_ptr wstrExtensions(pProfile_->getString(L"Global", L"WarnExtensions"));
 			if (wcsstr(wstrExtensions.get(), p)) {
 				int nMsg = messageBox(
 					Application::getApplication().getResourceHandle(),
@@ -333,7 +327,7 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 	
 	tstring_ptr tstrEditor;
 	if (bOpenWithEditor) {
-		wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"Editor", L"notepad.exe"));
+		wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"Editor"));
 		tstrEditor = wcs2tcs(wstrEditor.get());
 	}
 	

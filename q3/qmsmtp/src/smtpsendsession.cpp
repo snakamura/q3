@@ -131,7 +131,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	PartUtil util(*pMessage);
 	bool bResent = util.isResent();
 	
-	wstring_ptr wstrEnvelopeFrom = pSubAccount_->getProperty(L"Smtp", L"EnvelopeFrom", L"");
+	wstring_ptr wstrEnvelopeFrom = pSubAccount_->getPropertyString(L"Smtp", L"EnvelopeFrom");
 	if (!*wstrEnvelopeFrom.get()) {
 		wstrEnvelopeFrom.reset(0);
 		
@@ -388,12 +388,12 @@ void qmsmtp::SmtpSendSession::CallbackImpl::setPassword(const WCHAR* pwszPasswor
 
 wstring_ptr qmsmtp::SmtpSendSession::CallbackImpl::getLocalHost()
 {
-	return pSubAccount_->getProperty(L"Smtp", L"LocalHost", L"");
+	return pSubAccount_->getPropertyString(L"Smtp", L"LocalHost");
 }
 
 wstring_ptr qmsmtp::SmtpSendSession::CallbackImpl::getAuthMethods()
 {
-	return pSubAccount_->getProperty(L"Smtp", L"AuthMethods", L"");
+	return pSubAccount_->getPropertyString(L"Smtp", L"AuthMethods");
 }
 
 void qmsmtp::SmtpSendSession::CallbackImpl::authenticating()

@@ -19,10 +19,11 @@
 namespace qs {
 
 class Profile;
-	class RegistryProfile;
 	class AbstractProfile;
-		class TextProfile;
-		class XMLProfile;
+		class RegistryProfile;
+		class AbstractTextProfile;
+			class TextProfile;
+			class XMLProfile;
 
 
 /****************************************************************************
@@ -33,6 +34,14 @@ class Profile;
 
 class QSEXPORTCLASS Profile
 {
+public:
+	struct Default
+	{
+		const WCHAR* pwszSection_;
+		const WCHAR* pwszKey_;
+		const WCHAR* pwszValue_;
+	};
+
 public:
 	typedef std::vector<WSTRING> StringList;
 
@@ -53,6 +62,9 @@ public:
 	virtual wstring_ptr getString(const WCHAR* pwszSection,
 								  const WCHAR* pwszKey,
 								  const WCHAR* pwszDefault) = 0;
+	
+	virtual wstring_ptr getString(const WCHAR* pwszSection,
+								  const WCHAR* pwszKey);
 	
 	/**
 	 * Set string value.
@@ -86,6 +98,9 @@ public:
 	virtual int getInt(const WCHAR* pwszSection,
 					   const WCHAR* pwszKey,
 					   int nDefault) = 0;
+	
+	virtual int getInt(const WCHAR* pwszSection,
+					   const WCHAR* pwszKey);
 	
 	/**
 	 * Set int value.
@@ -160,6 +175,45 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual bool rename(const WCHAR* pwszName) = 0;
+	
+	virtual void addDefault(const Default* pDefault,
+							size_t nCount) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * AbstractProfile
+ *
+ */
+
+class QSEXPORTCLASS AbstractProfile : public Profile
+{
+protected:
+	AbstractProfile(const Default* pDefault,
+					size_t nCount);
+
+public:
+	virtual ~AbstractProfile();
+
+public:
+	virtual void addDefault(const Default* pDefault,
+							size_t nCount);
+
+protected:
+	const WCHAR* getDefault(const WCHAR* pwszSection,
+							const WCHAR* pwszKey,
+							const WCHAR* pwszDefault) const;
+	int getDefault(const WCHAR* pwszSection,
+				   const WCHAR* pwszKey,
+				   int nDefault) const;
+
+private:
+	AbstractProfile(const AbstractProfile&);
+	AbstractProfile& operator=(const AbstractProfile&);
+
+private:
+	struct AbstractProfileImpl* pImpl_;
 };
 
 
@@ -169,7 +223,7 @@ public:
  *
  */
 
-class QSEXPORTCLASS RegistryProfile : public Profile
+class QSEXPORTCLASS RegistryProfile : public AbstractProfile
 {
 public:
 	/**
@@ -180,7 +234,9 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	RegistryProfile(const WCHAR* pwszCompanyName,
-					const WCHAR* pwszAppName);
+					const WCHAR* pwszAppName,
+					const Default* pDefault,
+					size_t nCount);
 	
 	virtual ~RegistryProfile();
 
@@ -231,11 +287,11 @@ private:
 
 /****************************************************************************
  *
- * AbstractProfile
+ * AbstractTextProfile
  *
  */
 
-class QSEXPORTCLASS AbstractProfile : public Profile
+class QSEXPORTCLASS AbstractTextProfile : public AbstractProfile
 {
 public:
 	typedef std::map<WSTRING, WSTRING, string_less<WCHAR> > Map;
@@ -247,10 +303,12 @@ protected:
 	 * @param pwszPath [in] Path to file.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	AbstractProfile(const WCHAR* pwszPath);
+	AbstractTextProfile(const WCHAR* pwszPath,
+						const Default* pDefault,
+						size_t nCount);
 
 public:
-	virtual ~AbstractProfile();
+	virtual ~AbstractTextProfile();
 
 public:
 	virtual wstring_ptr getString(const WCHAR* pwszSection,
@@ -309,13 +367,15 @@ protected:
 
 protected:
 	Map& getMap() const;
+	const WCHAR* get(const WCHAR* pwszSection,
+					 const WCHAR* pwszKey) const;
 
 private:
-	AbstractProfile(const AbstractProfile&);
-	AbstractProfile& operator=(const AbstractProfile&);
+	AbstractTextProfile(const AbstractTextProfile&);
+	AbstractTextProfile& operator=(const AbstractTextProfile&);
 
 private:
-	struct AbstractProfileImpl* pImpl_;
+	struct AbstractTextProfileImpl* pImpl_;
 };
 
 
@@ -325,7 +385,7 @@ private:
  *
  */
 
-class QSEXPORTCLASS TextProfile : public AbstractProfile
+class QSEXPORTCLASS TextProfile : public AbstractTextProfile
 {
 public:
 	/**
@@ -334,7 +394,9 @@ public:
 	 * @param pwszPath [in] Path to file.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	TextProfile(const WCHAR* pwszPath);
+	TextProfile(const WCHAR* pwszPath,
+				const Default* pDefault,
+				size_t nCount);
 	
 	virtual ~TextProfile();
 
@@ -354,7 +416,7 @@ private:
  *
  */
 
-class QSEXPORTCLASS XMLProfile : public AbstractProfile
+class QSEXPORTCLASS XMLProfile : public AbstractTextProfile
 {
 public:
 	/**
@@ -363,7 +425,10 @@ public:
 	 * @param pwszPath [in] Path to file.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	XMLProfile(const WCHAR* pwszPath);
+	XMLProfile(const WCHAR* pwszPath,
+			   const Default* pDefault,
+			   size_t nCount);
+	
 	virtual ~XMLProfile();
 
 protected:

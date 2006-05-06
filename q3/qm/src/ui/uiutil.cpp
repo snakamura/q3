@@ -61,7 +61,7 @@ int qm::UIUtil::loadWindowPlacement(Profile* pProfile,
 		{ L"Height",	0 }
 	};
 	for (int n = 0; n < countof(items); ++n)
-		items[n].n_ = pProfile->getInt(pwszSection, items[n].pwszKey_, 0);
+		items[n].n_ = pProfile->getInt(pwszSection, items[n].pwszKey_);
 	
 	int nShow = SW_SHOWNORMAL;
 	if (items[2].n_ != 0 && items[3].n_ != 0) {
@@ -72,7 +72,7 @@ int qm::UIUtil::loadWindowPlacement(Profile* pProfile,
 		pCreateStruct->cx = items[2].n_;
 		pCreateStruct->cy = items[3].n_;
 		
-		nShow = pProfile->getInt(pwszSection, L"Show", SW_SHOWNORMAL);
+		nShow = pProfile->getInt(pwszSection, L"Show");
 		if (nShow != SW_MAXIMIZE &&
 			nShow != SW_MINIMIZE &&
 			nShow != SW_SHOWNORMAL)
@@ -127,8 +127,7 @@ void qm::UIUtil::loadEncodings(Profile* pProfile,
 {
 	assert(pProfile);
 	
-	wstring_ptr wstrEncodings(pProfile->getString(L"Global",
-		L"Encodings", L"iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8"));
+	wstring_ptr wstrEncodings(pProfile->getString(L"Global", L"Encodings"));
 	parseEncodings(wstrEncodings.get(), pList);
 }
 
@@ -174,8 +173,7 @@ bool qm::UIUtil::openURL(const WCHAR* pwszURL,
 		wcsncmp(pwszURL, L"\\\\", 2) == 0) {
 		const WCHAR* pExt = wcsrchr(pwszURL, L'.');
 		if (pExt) {
-			wstring_ptr wstrExtensions(pProfile->getString(L"Global",
-				L"WarnExtensions", L"exe com pif bat scr htm html hta vbs js"));
+			wstring_ptr wstrExtensions(pProfile->getString(L"Global", L"WarnExtensions"));
 			if (wcsstr(wstrExtensions.get(), pExt + 1)) {
 				int nMsg = messageBox(Application::getApplication().getResourceHandle(),
 					IDS_CONFIRM_OPENURL, MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd, 0, 0);
@@ -413,8 +411,7 @@ void qm::DialogUtil::loadBoolProperties(Dialog* pDialog,
 										size_t nCount)
 {
 	for (size_t n = 0; n < nCount; ++n) {
-		bool bValue = pProfile->getInt(pwszSection,
-			pProperties[n].pwszKey_, pProperties[n].bDefault_) != 0;
+		bool bValue = pProfile->getInt(pwszSection, pProperties[n].pwszKey_) != 0;
 		pDialog->sendDlgItemMessage(pProperties[n].nId_,
 			BM_SETCHECK, bValue ? BST_CHECKED : BST_UNCHECKED);
 	}
@@ -439,8 +436,7 @@ void qm::DialogUtil::loadIntProperties(Dialog* pDialog,
 									   size_t nCount)
 {
 	for (size_t n = 0; n < nCount; ++n) {
-		int nValue = pProfile->getInt(pwszSection,
-			pProperties[n].pwszKey_, pProperties[n].nDefault_);
+		int nValue = pProfile->getInt(pwszSection, pProperties[n].pwszKey_);
 		pDialog->setDlgItemInt(pProperties[n].nId_, nValue);
 	}
 }
@@ -503,7 +499,7 @@ void qm::History::addValue(const WCHAR* pwszValue)
 		_snwprintf(wszKey, countof(wszKey), L"History%u", n);
 		wstring_ptr wstr(pProfile_->getString(pwszSection_, wszKey, L""));
 		pProfile_->setString(pwszSection_, wszKey, wstrValue.get());
-		if (wcscmp(wstr.get(), pwszValue) == 0)
+		if (!*wstr.get() || wcscmp(wstr.get(), pwszValue) == 0)
 			break;
 		wstrValue = wstr;
 	}

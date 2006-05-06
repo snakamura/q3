@@ -248,8 +248,8 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onInitDialog(HWND
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = pProfile_->getInt(getName(), L"Width", 620);
-	int nHeight = pProfile_->getInt(getName(), L"Height", 450);
+	int nWidth = pProfile_->getInt(getName(), L"Width");
+	int nHeight = pProfile_->getInt(getName(), L"Height");
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif

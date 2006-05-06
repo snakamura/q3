@@ -49,10 +49,9 @@ qm::FullTextSearchDriver::~FullTextSearchDriver()
 bool qm::FullTextSearchDriver::search(const SearchContext& context,
 									  MessageHolderList* pList)
 {
-	wstring_ptr wstrCommand(pProfile_->getString(L"FullTextSearch",
-		L"Command", L"namazu -l -a \"$condition\" \"$index\""));
+	wstring_ptr wstrCommand(pProfile_->getString(L"FullTextSearch", L"Command"));
 	
-	wstring_ptr wstrIndex(pAccount_->getProperty(L"FullTextSearch", L"Index", L""));
+	wstring_ptr wstrIndex(pAccount_->getPropertyString(L"FullTextSearch", L"Index"));
 	if (!*wstrIndex.get())
 		wstrIndex = concat(pAccount_->getPath(), L"\\index");
 	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
@@ -297,10 +296,9 @@ LRESULT qm::FullTextSearchPage::onUpdateIndex()
 
 bool qm::FullTextSearchPage::updateIndex()
 {
-	wstring_ptr wstrCommand(pProfile_->getString(L"FullTextSearch",
-		L"IndexCommand", L"mknmz.bat -a -h -O \"$index\" \"$msg\""));
+	wstring_ptr wstrCommand(pProfile_->getString(L"FullTextSearch", L"IndexCommand"));
 	
-	wstring_ptr wstrIndex(pAccount_->getProperty(L"FullTextSearch", L"Index", L""));
+	wstring_ptr wstrIndex(pAccount_->getPropertyString(L"FullTextSearch", L"Index"));
 	if (!*wstrIndex.get())
 		wstrIndex = concat(pAccount_->getPath(), L"\\index");
 	

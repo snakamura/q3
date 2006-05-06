@@ -315,7 +315,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 
 void qm::MessageWindowImpl::reloadProfiles(bool bInitialize)
 {
-	nSeenWait_ = pProfile_->getInt(pwszSection_, L"SeenWait", 0);
+	nSeenWait_ = pProfile_->getInt(pwszSection_, L"SeenWait");
 }
 
 MessageViewMode* qm::MessageWindowImpl::getMessageViewMode()
@@ -469,18 +469,18 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	WindowBase(true),
 	pImpl_(0)
 {
-	int nZoom = pProfile->getInt(pwszSection, L"ViewZoom", MessageViewMode::ZOOM_NONE);
+	int nZoom = pProfile->getInt(pwszSection, L"ViewZoom");
 	if (nZoom != MessageViewMode::ZOOM_NONE &&
 		(nZoom < MessageViewMode::ZOOM_MIN || MessageViewMode::ZOOM_MAX < nZoom))
 		nZoom = MessageViewMode::ZOOM_NONE;
-	int nFit = pProfile->getInt(pwszSection, L"ViewFit", MessageViewMode::FIT_NONE);
+	int nFit = pProfile->getInt(pwszSection, L"ViewFit");
 	if (nFit < MessageViewMode::FIT_NONE || MessageViewMode::FIT_SUPER < nFit)
 		nFit = MessageViewMode::FIT_NONE;
-	wstring_ptr wstrTemplate(pProfile->getString(pwszSection, L"Template", L""));
+	wstring_ptr wstrTemplate(pProfile->getString(pwszSection, L"Template"));
 	
 	pImpl_ = new MessageWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bShowHeaderWindow_ = pProfile->getInt(pwszSection, L"ShowHeaderWindow", 1) != 0;
+	pImpl_->bShowHeaderWindow_ = pProfile->getInt(pwszSection, L"ShowHeaderWindow") != 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pwszSection_ = pwszSection;
 	pImpl_->pDocument_ = 0;
@@ -495,7 +495,7 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->nSeenTimerId_ = 0;
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->pMessageViewMode_.reset(new DefaultMessageViewMode(
-		pProfile->getInt(pwszSection, L"ViewMode", MessageViewMode::MODE_QUOTE),
+		pProfile->getInt(pwszSection, L"ViewMode"),
 		nZoom, static_cast<MessageViewMode::Fit>(nFit)));
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
 	pImpl_->nSeenWait_ = 0;
@@ -693,7 +693,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pHeaderWindow_ = pHeaderWindow.release();
 	
 	const MessageWindowFontGroup* pFontGroup = pContext->pFontManager_->getGroup(
-		pImpl_->pProfile_->getString(pImpl_->pwszSection_, L"FontGroup", L"").get());
+		pImpl_->pProfile_->getString(pImpl_->pwszSection_, L"FontGroup").get());
 	std::auto_ptr<MessageViewWindowFactory> pFactory(
 		new MessageViewWindowFactory(this, pImpl_->pDocument_,
 			pImpl_->pProfile_, pImpl_->pwszSection_, pImpl_->pMessageModel_,

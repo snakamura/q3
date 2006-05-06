@@ -53,7 +53,7 @@ qm::AutoPilot::AutoPilot(AutoPilotManager* pAutoPilotManager,
 	unseenCountUpdater_(pDocument, pProfile)
 #endif
 {
-	bEnabled_ = pProfile->getInt(L"AutoPilot", L"Enabled", 0) != 0;
+	bEnabled_ = pProfile->getInt(L"AutoPilot", L"Enabled") != 0;
 }
 
 qm::AutoPilot::~AutoPilot()
@@ -94,7 +94,7 @@ void qm::AutoPilot::save() const
 void qm::AutoPilot::timerTimeout(Timer::Id nId)
 {
 	if (nId == nId_) {
-		bool bOnlyWhenConnected = pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected", 0) != 0;
+		bool bOnlyWhenConnected = pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected") != 0;
 		bool bPilot = bEnabled_ &&
 			(!bOnlyWhenConnected || RasConnection::isNetworkConnected()) &&
 			pCallback_->canAutoPilot();
@@ -134,7 +134,7 @@ qm::AutoPilot::UnseenCountUpdater::UnseenCountUpdater(AccountManager* pAccountMa
 	pAccountManager_(pAccountManager),
 	pfnSHSetUnreadMailCount_(0)
 {
-	if (pProfile->getInt(L"Global", L"ShowUnseenCountOnWelcome", 0)) {
+	if (pProfile->getInt(L"Global", L"ShowUnseenCountOnWelcome")) {
 		HINSTANCE hInst = ::LoadLibrary(_T("shell32.dll"));
 		pfnSHSetUnreadMailCount_ = reinterpret_cast<PFN_SHSETUNREADMAILCOUNT>(
 			::GetProcAddress(hInst, "SHSetUnreadMailCountW"));
@@ -172,7 +172,7 @@ bool qm::AutoPilot::UnseenCountUpdater::updateAccount(Account* pAccount)
 		return false;
 	
 	unsigned int nCount = 0;
-	if (pSubAccount->getProperty(L"Global", L"ShowUnseenCountOnWelcome", 1)) {
+	if (pSubAccount->getPropertyInt(L"Global", L"ShowUnseenCountOnWelcome")) {
 		Folder* pFolder = pAccount->getFolderByBoxFlag(Folder::FLAG_INBOX);
 		if (pFolder)
 			nCount = pFolder->getUnseenCount();

@@ -72,9 +72,9 @@ bool qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 	if (!hFind.get())
 		return false;
 	
-	wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"ExternalEditor", L""));
+	wstring_ptr wstrEditor(pProfile_->getString(L"Global", L"ExternalEditor"));
 	if (!*wstrEditor.get())
-		wstrEditor = pProfile_->getString(L"Global", L"Editor", L"notepad.exe");
+		wstrEditor = pProfile_->getString(L"Global", L"Editor");
 	
 	const WCHAR* pFile = wstrEditor.get();
 	WCHAR* pParam = 0;
@@ -118,7 +118,7 @@ bool qm::ExternalEditorManager::open(const WCHAR* pwszMessage)
 	
 	AutoHandle hProcess(sei.hProcess);
 	
-	if (pProfile_->getInt(L"Global", L"ExternalEditorAutoCreate", 1)) {
+	if (pProfile_->getInt(L"Global", L"ExternalEditorAutoCreate")) {
 		Item item = {
 			wstrPath.get(),
 			{

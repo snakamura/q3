@@ -35,6 +35,7 @@
 #include "modelresource.h"
 #include "undo.h"
 #include "../junk/junk.h"
+#include "../main/defaultprofile.h"
 #include "../util/confighelper.h"
 
 using namespace qm;
@@ -202,7 +203,8 @@ bool qm::AccountImpl::loadSubAccounts()
 {
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", FileNames::ACCOUNT_XML));
 	
-	std::auto_ptr<XMLProfile> pAccountProfile(new XMLProfile(wstrPath.get()));
+	std::auto_ptr<XMLProfile> pAccountProfile(new XMLProfile(wstrPath.get(),
+		defaultAccountProfiles, countof(defaultAccountProfiles)));
 	if (!pAccountProfile->load())
 		return false;
 	
@@ -240,7 +242,8 @@ bool qm::AccountImpl::loadSubAccounts()
 			wstring_ptr wstrPath(concat(
 				wstrPath_.get(), L"\\", pwszFileName));
 			
-			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get()));
+			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get(),
+				defaultAccountProfiles, countof(defaultAccountProfiles)));
 			if (pProfile->load()) {
 				std::auto_ptr<SubAccount> pSubAccount(
 					new SubAccount(pThis_, pProfile, wstrName.get()));
@@ -1117,18 +1120,17 @@ qm::Account::Account(const WCHAR* pwszPath,
 	
 	Profile* pProfile = pImpl_->pProfile_;
 	
-	int nBlockSize = pProfile->getInt(L"Global", L"BlockSize", -1);
+	int nBlockSize = pProfile->getInt(L"Global", L"BlockSize");
 	if (nBlockSize != -1)
 		nBlockSize *= 1024*1024;
 	
-	int nIndexBlockSize = pProfile->getInt(L"Global", L"IndexBlockSize", -1);
+	int nIndexBlockSize = pProfile->getInt(L"Global", L"IndexBlockSize");
 	if (nIndexBlockSize == 0)
 		nIndexBlockSize = -1;
 	else if (nIndexBlockSize != -1)
 		nIndexBlockSize *= 1024*1024;
 	
-	wstring_ptr wstrMessageStorePath(
-		pProfile->getString(L"Global", L"MessageStorePath", L""));
+	wstring_ptr wstrMessageStorePath(pProfile->getString(L"Global", L"MessageStorePath"));
 	if (*wstrMessageStorePath.get())
 		pImpl_->wstrMessageStorePath_ = wstrMessageStorePath;
 	else
@@ -1145,14 +1147,14 @@ qm::Account::Account(const WCHAR* pwszPath,
 			nBlockSize, pwszPath, nIndexBlockSize));
 	
 	pImpl_->bStoreDecodedMessage_ = pImpl_->bMultiMessageStore_ &&
-		pProfile->getInt(L"Global", L"StoreDecodedMessage", 0) != 0;
+		pProfile->getInt(L"Global", L"StoreDecodedMessage") != 0;
 	
-	size_t nIndexMaxSize = pProfile->getInt(L"Global", L"IndexMaxSize", -1);
+	size_t nIndexMaxSize = pProfile->getInt(L"Global", L"IndexMaxSize");
 	pImpl_->pMessageIndex_.reset(new MessageIndex(pImpl_->pMessageStore_.get(), nIndexMaxSize));
 	
-	pImpl_->wstrClass_ = pProfile->getString(L"Global", L"Class", L"mail");
-	pImpl_->wstrType_[HOST_SEND] = pProfile->getString(L"Send", L"Type", L"smtp");
-	pImpl_->wstrType_[HOST_RECEIVE] = pProfile->getString(L"Receive", L"Type", L"pop3");
+	pImpl_->wstrClass_ = pProfile->getString(L"Global", L"Class");
+	pImpl_->wstrType_[HOST_SEND] = pProfile->getString(L"Send", L"Type");
+	pImpl_->wstrType_[HOST_RECEIVE] = pProfile->getString(L"Receive", L"Type");
 	
 	pImpl_->pProtocolDriver_ = ProtocolFactory::getDriver(this, pSecurity);
 	pImpl_->bDeletedAsSeen_ = pImpl_->pProtocolDriver_->isSupport(SUPPORT_DELETEDMESSAGE);
@@ -1163,7 +1165,7 @@ qm::Account::Account(const WCHAR* pwszPath,
 		// TODO
 	}
 	
-	wstring_ptr wstrSubAccount(pProfile->getString(L"Global", L"SubAccount", L""));
+	wstring_ptr wstrSubAccount(pProfile->getString(L"Global", L"SubAccount"));
 	pImpl_->pCurrentSubAccount_ = getSubAccount(wstrSubAccount.get());
 	if (!pImpl_->pCurrentSubAccount_)
 		pImpl_->pCurrentSubAccount_ = pImpl_->listSubAccount_.front();
@@ -1231,53 +1233,65 @@ void qm::Account::setStoreDecodedMessage(bool bStore) const
 	pImpl_->bStoreDecodedMessage_ = bStore;
 }
 
-int qm::Account::getProperty(const WCHAR* pwszSection,
-							 const WCHAR* pwszKey,
-							 int nDefault) const
+int qm::Account::getPropertyInt(const WCHAR* pwszSection,
+								const WCHAR* pwszKey) const
+{
+	return getPropertyInt(pwszSection, pwszKey, 0);
+}
+
+int qm::Account::getPropertyInt(const WCHAR* pwszSection,
+								const WCHAR* pwszKey,
+								int nDefault) const
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(!pImpl_->listSubAccount_.empty());
 	
 	SubAccount* pSubAccount = pImpl_->listSubAccount_.front();
-	return pSubAccount->getProperty(pwszSection, pwszKey, nDefault);
+	return pSubAccount->getPropertyInt(pwszSection, pwszKey, nDefault);
 }
 
-void qm::Account::setProperty(const WCHAR* pwszSection,
-							  const WCHAR* pwszKey,
-							  int nValue)
+void qm::Account::setPropertyInt(const WCHAR* pwszSection,
+								 const WCHAR* pwszKey,
+								 int nValue)
 {
 	assert(pwszSection);
 	assert(pwszKey);
 	assert(!pImpl_->listSubAccount_.empty());
 	
 	SubAccount* pSubAccount = pImpl_->listSubAccount_.front();
-	pSubAccount->setProperty(pwszSection, pwszKey, nValue);
+	pSubAccount->setPropertyInt(pwszSection, pwszKey, nValue);
 }
 
-wstring_ptr qm::Account::getProperty(const WCHAR* pwszSection,
-									 const WCHAR* pwszName,
-									 const WCHAR* pwszDefault) const
+wstring_ptr qm::Account::getPropertyString(const WCHAR* pwszSection,
+										   const WCHAR* pwszKey) const
+{
+	return getPropertyString(pwszSection, pwszKey, L"");
+}
+
+wstring_ptr qm::Account::getPropertyString(const WCHAR* pwszSection,
+										   const WCHAR* pwszKey,
+										   const WCHAR* pwszDefault) const
 {
 	assert(pwszSection);
-	assert(pwszName);
+	assert(pwszKey);
 	assert(!pImpl_->listSubAccount_.empty());
 	
 	SubAccount* pSubAccount = pImpl_->listSubAccount_.front();
-	return pSubAccount->getProperty(pwszSection, pwszName, pwszDefault);
+	return pSubAccount->getPropertyString(pwszSection, pwszKey, pwszDefault);
 }
 
-void qm::Account::setProperty(const WCHAR* pwszSection,
-							  const WCHAR* pwszName,
-							  const WCHAR* pwszValue)
+void qm::Account::setPropertyString(const WCHAR* pwszSection,
+									const WCHAR* pwszKey,
+									const WCHAR* pwszValue)
 {
 	assert(pwszSection);
-	assert(pwszName);
+	assert(pwszKey);
 	assert(pwszValue);
 	assert(!pImpl_->listSubAccount_.empty());
 	
 	SubAccount* pSubAccount = pImpl_->listSubAccount_.front();
-	pSubAccount->setProperty(pwszSection, pwszName, pwszValue);
+	pSubAccount->setPropertyString(pwszSection, pwszKey, pwszValue);
 }
 
 SubAccount* qm::Account::getSubAccount(const WCHAR* pwszName) const
@@ -2425,7 +2439,7 @@ void qm::Account::deletePermanent(bool bDeleteContent)
 		pImpl_->pProtocolDriver_.reset(0);
 		
 		wstring_ptr wstrMessageStorePath(
-			pImpl_->pProfile_->getString(L"Global", L"MessageStorePath", L""));
+			pImpl_->pProfile_->getString(L"Global", L"MessageStorePath"));
 		if (*wstrMessageStorePath.get()) {
 			if (!File::removeDirectory(wstrMessageStorePath.get())) {
 				// TODO LOG
@@ -2859,7 +2873,7 @@ std::auto_ptr<Logger> qm::Account::openLogger(Host host) const
 	
 	wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wszName));
 	std::auto_ptr<FileLogHandler> pLogHandler(new FileLogHandler(wstrPath.get(),
-		pImpl_->pProfile_->getString(L"Global", L"LogTimeFormat", L"%Y4/%M0/%D-%h:%m:%s%z").get()));
+		pImpl_->pProfile_->getString(L"Global", L"LogTimeFormat").get()));
 	std::auto_ptr<Logger> pLogger(new Logger(pLogHandler.get(), true, Logger::LEVEL_DEBUG, 0));
 	pLogHandler.release();
 	return pLogger;

@@ -52,19 +52,19 @@ LRESULT qmrss::ReceivePage::onCommand(WORD nCode,
 LRESULT qmrss::ReceivePage::onInitDialog(HWND hwndFocus,
 										 LPARAM lParam)
 {
-	if (pSubAccount_->getProperty(L"Http", L"UseInternetSetting", 0))
+	if (pSubAccount_->getPropertyInt(L"Http", L"UseInternetSetting"))
 		sendDlgItemMessage(IDC_INTERNETSETTING, BM_SETCHECK, BST_CHECKED);
-	else if (pSubAccount_->getProperty(L"Http", L"UseProxy", 0))
+	else if (pSubAccount_->getPropertyInt(L"Http", L"UseProxy"))
 		sendDlgItemMessage(IDC_CUSTOM, BM_SETCHECK, BST_CHECKED);
 	else
 		sendDlgItemMessage(IDC_NOPROXY, BM_SETCHECK, BST_CHECKED);
 	
-	wstring_ptr wstrHost(pSubAccount_->getProperty(L"Http", L"ProxyHost", L""));
+	wstring_ptr wstrHost(pSubAccount_->getPropertyString(L"Http", L"ProxyHost"));
 	setDlgItemText(IDC_HOST, wstrHost.get());
-	setDlgItemInt(IDC_PORT, pSubAccount_->getProperty(L"Http", L"ProxyPort", 8080));
+	setDlgItemInt(IDC_PORT, pSubAccount_->getPropertyInt(L"Http", L"ProxyPort"));
 	
-	wstring_ptr wstrUserName(pSubAccount_->getProperty(L"Http", L"ProxyUserName", L""));
-	wstring_ptr wstrPassword(pSubAccount_->getProperty(L"Http", L"ProxyPassword", L""));
+	wstring_ptr wstrUserName(pSubAccount_->getPropertyString(L"Http", L"ProxyUserName"));
+	wstring_ptr wstrPassword(pSubAccount_->getPropertyString(L"Http", L"ProxyPassword"));
 	sendDlgItemMessage(IDC_AUTHENTICATE, BM_SETCHECK,
 		*wstrUserName.get() && *wstrPassword.get() ? BST_CHECKED : BST_UNCHECKED);
 	setDlgItemText(IDC_USERNAME, wstrUserName.get());
@@ -83,13 +83,13 @@ LRESULT qmrss::ReceivePage::onOk()
 		bUseInternetSetting = true;
 	else if (sendDlgItemMessage(IDC_CUSTOM, BM_GETCHECK) == BST_CHECKED)
 		bUseProxy = true;
-	pSubAccount_->setProperty(L"Http", L"UseInternetSetting", bUseInternetSetting);
-	pSubAccount_->setProperty(L"Http", L"UseProxy", bUseProxy);
+	pSubAccount_->setPropertyInt(L"Http", L"UseInternetSetting", bUseInternetSetting);
+	pSubAccount_->setPropertyInt(L"Http", L"UseProxy", bUseProxy);
 	
 	wstring_ptr wstrHost(getDlgItemText(IDC_HOST));
 	if (wstrHost.get())
-		pSubAccount_->setProperty(L"Http", L"ProxyHost", wstrHost.get());
-	pSubAccount_->setProperty(L"Http", L"ProxyPort", getDlgItemInt(IDC_PORT));
+		pSubAccount_->setPropertyString(L"Http", L"ProxyHost", wstrHost.get());
+	pSubAccount_->setPropertyInt(L"Http", L"ProxyPort", getDlgItemInt(IDC_PORT));
 	
 	wstring_ptr wstrUserName;
 	wstring_ptr wstrPassword;
@@ -97,9 +97,9 @@ LRESULT qmrss::ReceivePage::onOk()
 		wstrUserName = getDlgItemText(IDC_USERNAME);
 		wstrPassword = getDlgItemText(IDC_PASSWORD);
 	}
-	pSubAccount_->setProperty(L"Http", L"ProxyUserName",
+	pSubAccount_->setPropertyString(L"Http", L"ProxyUserName",
 		wstrUserName.get() ? wstrUserName.get() : L"");
-	pSubAccount_->setProperty(L"Http", L"ProxyPassword",
+	pSubAccount_->setPropertyString(L"Http", L"ProxyPassword",
 		wstrPassword.get() ? wstrPassword.get() : L"");
 	
 	return DefaultPropertyPage::onOk();

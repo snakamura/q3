@@ -220,8 +220,8 @@ qm::AddressBookFrameWindow::AddressBookFrameWindow(AddressBookFrameWindowManager
 {
 	pImpl_ = new AddressBookFrameWindowImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->bShowToolbar_ = pProfile->getInt(L"AddressBookFrameWindow", L"ShowToolbar", 1) != 0;
-	pImpl_->bShowStatusBar_ = pProfile->getInt(L"AddressBookFrameWindow", L"ShowStatusBar", 1) != 0;
+	pImpl_->bShowToolbar_ = pProfile->getInt(L"AddressBookFrameWindow", L"ShowToolbar") != 0;
+	pImpl_->bShowStatusBar_ = pProfile->getInt(L"AddressBookFrameWindow", L"ShowStatusBar") != 0;
 	pImpl_->pManager_ = pManager;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pUIManager_ = 0;
@@ -810,18 +810,16 @@ void qm::AddressBookListWindowImpl::loadColumns()
 	struct {
 		UINT nId_;
 		const WCHAR* pwszWidthKey_;
-		int nDefaultWidth_;
 	} columns[] = {
-		{ IDS_ADDRESSBOOK_COLUMN_NAME,		L"NameWidth",		150	},
-		{ IDS_ADDRESSBOOK_COLUMN_ADDRESS,	L"AddressWidth",	150	},
-		{ IDS_ADDRESSBOOK_COLUMN_COMMENT,	L"CommentWidth",	150	}
+		{ IDS_ADDRESSBOOK_COLUMN_NAME,		L"NameWidth"	},
+		{ IDS_ADDRESSBOOK_COLUMN_ADDRESS,	L"AddressWidth"	},
+		{ IDS_ADDRESSBOOK_COLUMN_COMMENT,	L"CommentWidth"	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
 		wstring_ptr wstrTitle(loadString(hInst, columns[n].nId_));
 		W2T(wstrTitle.get(), ptszTitle);
 		
-		int nWidth = pProfile_->getInt(L"AddressBookListWindow",
-			columns[n].pwszWidthKey_, columns[n].nDefaultWidth_);
+		int nWidth = pProfile_->getInt(L"AddressBookListWindow", columns[n].pwszWidthKey_);
 		LVCOLUMN column = {
 			LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 			LVCFMT_LEFT,

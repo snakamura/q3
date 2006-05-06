@@ -75,20 +75,20 @@ qm::SearchPropertyData::SearchPropertyData(Profile* pProfile,
 	pImpl_ = new SearchPropertyDataImpl();
 	pImpl_->pProfile_ = pProfile;
 	
-	pImpl_->wstrCondition_ = pProfile->getString(L"Search", L"Condition", L"");
+	pImpl_->wstrCondition_ = pProfile->getString(L"Search", L"Condition");
 	
 	if (bAllFolderOnly) {
 		pImpl_->bAllFolder_ = true;
 		pImpl_->bRecursive_ = false;
 	}
 	else {
-		int nFolder = pProfile->getInt(L"Search", L"Folder", 0);
+		int nFolder = pProfile->getInt(L"Search", L"Folder");
 		pImpl_->bAllFolder_ = nFolder == 2;
 		pImpl_->bRecursive_ = nFolder == 1;
 	}
 	
-	pImpl_->bNewFolder_ = pProfile->getInt(L"Search", L"NewFolder", 0) != 0;
-	pImpl_->nImeFlags_ = pProfile->getInt(L"Search", L"Ime", 0);
+	pImpl_->bNewFolder_ = pProfile->getInt(L"Search", L"NewFolder") != 0;
+	pImpl_->nImeFlags_ = pProfile->getInt(L"Search", L"Ime");
 }
 
 qm::SearchPropertyData::~SearchPropertyData()

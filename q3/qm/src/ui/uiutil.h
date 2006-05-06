@@ -109,14 +109,12 @@ public:
 	{
 		const WCHAR* pwszKey_;
 		UINT nId_;
-		bool bDefault_;
 	};
 	
 	struct IntProperty
 	{
 		const WCHAR* pwszKey_;
 		UINT nId_;
-		int nDefault_;
 	};
 
 public:

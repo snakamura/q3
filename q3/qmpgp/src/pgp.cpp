@@ -381,7 +381,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 
 std::auto_ptr<Driver> qmpgp::PGPUtilityImpl::getDriver() const
 {
-	if (pProfile_->getInt(L"PGP", L"UseGPG", 1))
+	if (pProfile_->getInt(L"PGP", L"UseGPG"))
 		return std::auto_ptr<Driver>(new GPGDriver(pProfile_));
 	else
 		return std::auto_ptr<Driver>(new PGPDriver(pProfile_));

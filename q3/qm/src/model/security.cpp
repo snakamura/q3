@@ -53,7 +53,7 @@ std::auto_ptr<Store> qm::SecurityImpl::loadCA()
 	Log log(InitThread::getInitThread().getLogger(), L"qm::SecurityImpl");
 	
 	std::auto_ptr<Store> pStoreCA(Store::getInstance());
-	if (pProfile_->getInt(L"Security", L"LoadSystemStore", 1)) {
+	if (pProfile_->getInt(L"Security", L"LoadSystemStore")) {
 		if (!pStoreCA->loadSystem())
 			log.warn(L"Failed to load certificates from the system store.");
 	}
