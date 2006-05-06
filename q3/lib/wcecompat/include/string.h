@@ -56,6 +56,8 @@ _CRTIMP wchar_t * __cdecl _wcsset(wchar_t *, wchar_t);
 _CRTIMP wchar_t * __cdecl _wcslwr(wchar_t *);
 _CRTIMP wchar_t * __cdecl _wcsupr(wchar_t *);
 
+void * __cdecl memcpy(void *, const void *, size_t);
+
 // Non STDC old names for above
 #define wcsdup    _wcsdup
 #define wcsicmp   _wcsicmp
