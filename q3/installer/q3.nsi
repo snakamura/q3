@@ -1,5 +1,7 @@
 ; $Id$
 
+!define VC8DIR "C:\Program Files\Microsoft Visual Studio 8\VC"
+
 !ifdef ANSI
   !define CODE ansi
   !define POSTFIX
@@ -9,8 +11,10 @@
 !endif
 !ifdef x64
   !define CPU x64
+  !define CRTBASE amd64
 !else
   !define CPU x86
+  !define CRTBASE x86
 !endif
 
 !include "MUI.nsh"
@@ -64,6 +68,8 @@ Section "Core (required)" Core
   File ..\bin\win\${CPU}\${CODE}\release\qs${POSTFIX}.dll
   File ..\bin\win\${CPU}\${CODE}\release\qmpop3${POSTFIX}.dll
   File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${POSTFIX}.dll
+  File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\msvcr80.dll"
+  File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
   
   WriteRegStr HKCU "SOFTWARE\sn\q3\Setting" "MailFolder" "$MAILBOX_FOLDER"
   CreateDirectory "$MAILBOX_FOLDER"
