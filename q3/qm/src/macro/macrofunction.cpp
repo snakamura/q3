@@ -921,16 +921,17 @@ MacroValuePtr qm::MacroFunctionComputerName::value(MacroContext* pContext) const
 	wstring_ptr wstrName;
 #ifdef _WIN32_WCE
 	Registry reg(HKEY_LOCAL_MACHINE, L"Ident", true);
-	if (!reg)
-		return MacroValuePtr();
-	if (!reg.getValue(L"Name", &wstrName))
-		return MacroValuePtr();
+	if (reg)
+		reg.getValue(L"Name", &wstrName)
 #else
 	TCHAR tszComputerName[MAX_COMPUTERNAME_LENGTH + 1];
 	DWORD dwSize = countof(tszComputerName);
-	::GetComputerName(tszComputerName, &dwSize);
-	wstrName = tcs2wcs(tszComputerName);
+	if (::GetComputerName(tszComputerName, &dwSize))
+		wstrName = tcs2wcs(tszComputerName);
 #endif
+	
+	if (!wstrName.get())
+		wstrName = allocWString(L"");
 	
 	return MacroValueFactory::getFactory().newString(wstrName.get());
 }
