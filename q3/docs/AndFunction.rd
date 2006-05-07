@@ -10,7 +10,7 @@ arg‚Åw’è‚³‚ê‚½^‹U’l‚Ì˜_—Ï‚ğ•Ô‚µ‚Ü‚·B‚Â‚Ü‚èA‘S‚Ä‚Ì’l‚ªTrue‚È‚ç‚ÎTrue‚ğ•Ô‚µ
 
 ==ˆø”
 :Boolean arg
-  Boolean ^‹U’l
+  ^‹U’l
 
 
 ==ƒGƒ‰[

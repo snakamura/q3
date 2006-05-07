@@ -17,6 +17,6 @@ quote.templateはエディットビューで((<[編集]-[引用符付きで貼り付け]|URL:EditPaste
 
 
 ==mailto URL処理用のテンプレート
-url.templateは、mailto URLに関連付けされた場合など、((<コマンドライン|URL:CommandLine.html>))で-sオプションを使用してmailto URLを渡された場合に使用されるテンプレートです。mailto URLから宛先やSubject、本文などを取り出してメッセージを作成し、エディットウィンドウで開きます。
+url.templateは、mailto URLに関連付けされた場合など、((<コマンドライン|URL:CommandLine.html>))で-sオプションを使用してmailto URLを渡された場合に使用されるテンプレートです。mailto URLから宛先やSubject、本文などを取り出してメッセージを作成し、エディットウィンドウで開きます。この処理をするときにはurlという名前のテンプレートの引数に指定されたURLが渡されます。
 
 =end

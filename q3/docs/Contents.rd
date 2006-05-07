@@ -44,7 +44,7 @@
       *((<パラメータ|URL:FolderParameterPage.html>))
         *((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
   *((<オンラインとオフライン|URL:OnlineOffline.html>))
-  *メッセージの移動とコピー
+  *((<メッセージの移動とコピー|URL:MoveMessage.html>))
   *((<振り分け|URL:ApplyRules.html>))
   *プロトコル依存のトピック
     *POP3
@@ -89,7 +89,7 @@
   *((<スパムフィルタ|URL:JunkFilter.html>))
   *((<スクリプト|URL:Script.html>))
   *((<ドラッグアンドドロップ|URL:DragAndDrop.html>))
-  *保守
+  *((<保守|URL:Maintenance.html>))
   *((<コマンドライン|URL:CommandLine.html>))
   *((<ログ|URL:Log.html>))
   *((<正規表現|URL:RegularExpression.html>))
