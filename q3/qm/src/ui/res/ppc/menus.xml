@@ -163,7 +163,6 @@
 					<separator/>
 					<menuitem text="Edit..." action="ConfigGoRound"/>
 				</popupmenu>
-				<menuitem text="Cancel" action="ToolCancel"/>
 				<separator/>
 				<menuitem text="Dialup Connect..." action="ToolDialup"/>
 			</popupmenu>

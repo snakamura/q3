@@ -156,7 +156,6 @@ const qs::ActionItem actionItems[] = {
 	{ L"ToolArchiveAttachment",			IDM_TOOL_ARCHIVEATTACHMENT,			1,							0 },
 	{ L"ToolAttachment",				IDM_TOOL_ATTACHMENT,				1,							0 },
 	{ L"ToolAutoPilot",					IDM_TOOL_AUTOPILOT,					1,							0 },
-	{ L"ToolCancel",					IDM_TOOL_CANCEL,					1,							0 },
 	{ L"ToolDialup",					IDM_TOOL_DIALUP,					1,							0 },
 	{ L"ToolEncoding",					IDM_TOOL_ENCODING,					MAX_TOOL_ENCODING,			0 },
 	{ L"ToolGoround",					IDM_TOOL_GOROUND,					MAX_TOOL_GOROUND,			0 },

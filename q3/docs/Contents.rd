@@ -276,7 +276,6 @@
   *((<ToolArchiveAttachmentアクション|URL:ToolArchiveAttachmentAction.html>))
   *((<ToolAttachmentアクション|URL:ToolAttachmentAction.html>))
   *((<ToolAutoPilotアクション|URL:ToolAutoPilotAction.html>))
-  *((<ToolCancelアクション|URL:ToolCancelAction.html>))
   *((<ToolDialupアクション|URL:ToolDialupAction.html>))
   *((<ToolEncodingアクション|URL:ToolEncodingAction.html>))
   *((<ToolGoroundアクション|URL:ToolGoroundAction.html>))
