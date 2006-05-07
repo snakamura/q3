@@ -422,16 +422,18 @@ qm::SelectAddressDialog::SelectAddressDialog(AddressBook* pAddressBook,
 		TYPE_BCC
 	};
 	for (int n = 0; n < countof(listAddress_); ++n) {
-		UTF8Parser field(pwszAddress[n]);
-		Part part;
-		if (part.setField(L"Dummy", field)) {
-			AddressListParser addressList(AddressListParser::FLAG_ALLOWUTF8);
-			if (part.getField(L"Dummy", &addressList) == Part::FIELD_EXIST) {
-				const AddressListParser::AddressList& l = addressList.getAddressList();
-				for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
-					wstring_ptr wstrValue((*it)->getValue());
-					listAddress_[n].push_back(wstrValue.get());
-					wstrValue.release();
+		if (pwszAddress[n]) {
+			UTF8Parser field(pwszAddress[n]);
+			Part part;
+			if (part.setField(L"Dummy", field)) {
+				AddressListParser addressList(AddressListParser::FLAG_ALLOWUTF8);
+				if (part.getField(L"Dummy", &addressList) == Part::FIELD_EXIST) {
+					const AddressListParser::AddressList& l = addressList.getAddressList();
+					for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+						wstring_ptr wstrValue((*it)->getValue());
+						listAddress_[n].push_back(wstrValue.get());
+						wstrValue.release();
+					}
 				}
 			}
 		}
