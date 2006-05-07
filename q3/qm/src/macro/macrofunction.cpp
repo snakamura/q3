@@ -1518,8 +1518,8 @@ MacroValuePtr qm::MacroFunctionExist::value(MacroContext* pContext) const
 	if (!pMessage)
 		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
-	bool bHas = pMessage->hasField(wstrName.get());
-	return MacroValueFactory::getFactory().newBoolean(bHas);
+	return MacroValueFactory::getFactory().newBoolean(
+		pMessage->hasField(wstrName.get()));
 }
 
 const WCHAR* qm::MacroFunctionExist::getName() const
@@ -3453,7 +3453,7 @@ const WCHAR* qm::MacroFunctionParseURL::getName() const
 }
 
 wstring_ptr qm::MacroFunctionParseURL::decode(const WCHAR* p,
-													  size_t nLen)
+											  size_t nLen)
 {
 	assert(p);
 	
@@ -3834,6 +3834,8 @@ MacroValuePtr qm::MacroFunctionProgn::value(MacroContext* pContext) const
 		if (n == nSize - 1)
 			return pValue;
 	}
+	
+	assert(false);
 	
 	return MacroValuePtr();
 }
