@@ -922,7 +922,7 @@ MacroValuePtr qm::MacroFunctionComputerName::value(MacroContext* pContext) const
 #ifdef _WIN32_WCE
 	Registry reg(HKEY_LOCAL_MACHINE, L"Ident", true);
 	if (reg)
-		reg.getValue(L"Name", &wstrName)
+		reg.getValue(L"Name", &wstrName);
 #else
 	TCHAR tszComputerName[MAX_COMPUTERNAME_LENGTH + 1];
 	DWORD dwSize = countof(tszComputerName);
