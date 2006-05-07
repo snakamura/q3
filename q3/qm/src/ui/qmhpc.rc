@@ -733,8 +733,8 @@ BEGIN
                     85,60,10
     GROUPBOX        "Type",IDC_TYPE,5,65,85,35
     CONTROL         "&Confirm",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,100,69,40,10
-    PUSHBUTTON      "Dia&lup...",IDC_DIALUP,170,90,50,12
+                    WS_TABSTOP,100,70,40,10
+    PUSHBUTTON      "Dia&lup...",IDC_DIALUP,100,85,50,12
 END
 
 IDD_GOROUNDENTRY DIALOG DISCARDABLE  0, 0, 291, 82

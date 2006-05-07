@@ -791,8 +791,8 @@ BEGIN
     CONTROL         "並列(&P)",IDC_PARALLEL,"Button",BS_AUTORADIOBUTTON,10,
                     135,60,10
     CONTROL         "確認する(&C)",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,100,118,50,10
-    PUSHBUTTON      "ダイアルアップ(&L)...",IDC_DIALUP,170,117,50,14
+                    WS_TABSTOP,100,120,50,10
+    PUSHBUTTON      "ダイアルアップ(&L)...",IDC_DIALUP,100,135,60,14
     DEFPUSHBUTTON   "OK",IDOK,115,150,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,170,150,50,14
     SCROLLBAR       IDC_SIZEGRIP,212,161,10,9,SBS_BOTTOMALIGN | SBS_VERT | 

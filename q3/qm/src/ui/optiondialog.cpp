@@ -4532,14 +4532,18 @@ void qm::GoRoundCourseDialog::layout()
 	Window(getDlgItem(IDC_PARALLEL)).getWindowRect(&rectParallel);
 	screenToClient(&rectParallel);
 	
-	RECT rectButton;
-	Window(getDlgItem(IDC_DIALUP)).getWindowRect(&rectButton);
-	int nButtonWidth = rectButton.right - rectButton.left;
 #ifndef _WIN32_WCE
+	RECT rectButton;
+	Window(getDlgItem(IDOK)).getWindowRect(&rectButton);
+	int nButtonWidth = rectButton.right - rectButton.left;
 	int nButtonHeight = rectButton.bottom - rectButton.top;
 #else
 	int nButtonHeight = -5;
 #endif
+	
+	RECT rectConfirm;
+	Window(getDlgItem(IDC_CONFIRM)).getWindowRect(&rectConfirm);
+	int nConfirmHeight = rectConfirm.bottom - rectConfirm.top;
 	
 	HDWP hdwp = beginDeferWindowPos(15);
 	
@@ -4563,7 +4567,7 @@ void qm::GoRoundCourseDialog::layout()
 		rectType.right + 5, rect.bottom - nButtonHeight - nTypeHeight,
 		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 	hdwp = Window(getDlgItem(IDC_DIALUP)).deferWindowPos(hdwp, 0,
-		rect.right - (nButtonWidth + 5), rect.bottom - nButtonHeight - nTypeHeight - 10,
+		rectType.right + 5, rect.bottom - nButtonHeight - nTypeHeight + nConfirmHeight + 5,
 		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 	
 #ifndef _WIN32_WCE

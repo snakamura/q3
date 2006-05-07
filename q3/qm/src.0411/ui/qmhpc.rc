@@ -739,8 +739,8 @@ BEGIN
                     85,60,10
     GROUPBOX        "タイプ",IDC_TYPE,5,65,85,35
     CONTROL         "確認する(&C)",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,100,69,50,10
-    PUSHBUTTON      "ダイアルアップ(&L)...",IDC_DIALUP,160,90,60,12
+                    WS_TABSTOP,100,70,50,10
+    PUSHBUTTON      "ダイアルアップ(&L)...",IDC_DIALUP,100,85,60,12
 END
 
 IDD_GOROUNDENTRY DIALOG DISCARDABLE  0, 0, 291, 82
