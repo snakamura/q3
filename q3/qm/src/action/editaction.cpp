@@ -968,19 +968,30 @@ qm::EditToolEncodingAction::~EditToolEncodingAction()
 void qm::EditToolEncodingAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return;
+	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	if (pwszEncoding && *pwszEncoding)
+	if (*pwszEncoding)
 		pEditMessage->setEncoding(pwszEncoding);
 	else
 		pEditMessage->setEncoding(0);
 }
 
+bool qm::EditToolEncodingAction::isEnabled(const ActionEvent& event)
+{
+	return ActionParamUtil::getString(event.getParam(), 0) != 0;
+}
+
 bool qm::EditToolEncodingAction::isChecked(const ActionEvent& event)
 {
 	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return false;
+	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	const WCHAR* pwszCurrentEncoding = pEditMessage->getEncoding();
-	if (pwszEncoding && *pwszEncoding)
+	if (*pwszEncoding)
 		return pwszCurrentEncoding && wcscmp(pwszEncoding, pwszCurrentEncoding) == 0;
 	else
 		return !pwszCurrentEncoding;

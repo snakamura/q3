@@ -5857,17 +5857,27 @@ qm::ViewEncodingAction::~ViewEncodingAction()
 void qm::ViewEncodingAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
-	if (pwszEncoding && *pwszEncoding)
+	if (!pwszEncoding)
+		return;
+	else if (*pwszEncoding)
 		pEncodingModel_->setEncoding(pwszEncoding);
 	else
 		pEncodingModel_->setEncoding(0);
 }
 
+bool qm::ViewEncodingAction::isEnabled(const qs::ActionEvent& event)
+{
+	return ActionParamUtil::getString(event.getParam(), 0) != 0;
+}
+
 bool qm::ViewEncodingAction::isChecked(const ActionEvent& event)
 {
 	const WCHAR* pwszEncoding = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszEncoding)
+		return false;
+	
 	const WCHAR* pwszCurrentEncoding = pEncodingModel_->getEncoding();
-	if (pwszEncoding && *pwszEncoding)
+	if (*pwszEncoding)
 		return pwszCurrentEncoding && wcscmp(pwszEncoding, pwszCurrentEncoding) == 0;
 	else
 		return !pwszCurrentEncoding;
@@ -7112,7 +7122,9 @@ qm::ViewTemplateAction::~ViewTemplateAction()
 void qm::ViewTemplateAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
-	if (pwszTemplate && *pwszTemplate)
+	if (!pwszTemplate)
+		return;
+	else if (*pwszTemplate)
 		pMessageWindow_->setTemplate(pwszTemplate);
 	else
 		pMessageWindow_->setTemplate(0);
@@ -7126,10 +7138,11 @@ bool qm::ViewTemplateAction::isEnabled(const ActionEvent& event)
 bool qm::ViewTemplateAction::isChecked(const ActionEvent& event)
 {
 	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
-	const WCHAR* pwszCurrentTemplate = pMessageWindow_->getTemplate();
 	if (!pwszTemplate)
 		return false;
-	else if (*pwszTemplate)
+	
+	const WCHAR* pwszCurrentTemplate = pMessageWindow_->getTemplate();
+	if (*pwszTemplate)
 		return pwszCurrentTemplate && wcscmp(pwszTemplate, pwszCurrentTemplate) == 0;
 	else
 		return !pwszCurrentTemplate;
