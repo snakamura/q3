@@ -7111,10 +7111,6 @@ qm::ViewTemplateAction::~ViewTemplateAction()
 
 void qm::ViewTemplateAction::invoke(const ActionEvent& event)
 {
-	Account* pAccount = getAccount();
-	if (!pAccount)
-		return;
-	
 	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
 	if (pwszTemplate && *pwszTemplate)
 		pMessageWindow_->setTemplate(pwszTemplate);
@@ -7122,11 +7118,18 @@ void qm::ViewTemplateAction::invoke(const ActionEvent& event)
 		pMessageWindow_->setTemplate(0);
 }
 
+bool qm::ViewTemplateAction::isEnabled(const ActionEvent& event)
+{
+	return ActionParamUtil::getString(event.getParam(), 0) != 0;
+}
+
 bool qm::ViewTemplateAction::isChecked(const ActionEvent& event)
 {
 	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
 	const WCHAR* pwszCurrentTemplate = pMessageWindow_->getTemplate();
-	if (pwszTemplate && *pwszTemplate)
+	if (!pwszTemplate)
+		return false;
+	else if (*pwszTemplate)
 		return pwszCurrentTemplate && wcscmp(pwszTemplate, pwszCurrentTemplate) == 0;
 	else
 		return !pwszCurrentTemplate;
