@@ -710,6 +710,8 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (pMode)
 		pMode->addMessageViewModeHandler(pImpl_);
 	
+	MessageWindowImpl::applyModeToMessageViewWindow(pImpl_->pMessageViewWindow_, pMode);
+	
 	pImpl_->bCreated_ = true;
 	pImpl_->bLayouting_ = false;
 	
