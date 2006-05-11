@@ -1,4 +1,4 @@
-Newsgroups:
+Newsgroups: {@If(@FolderFlag(:FF-SYNCABLE), @Folder(), '')}
 Subject: 
 X-QMAIL-Account: {@Account()}{
   @If(@Identity(),
