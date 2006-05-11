@@ -393,6 +393,7 @@
     *((<@Find|URL:FindFunction.html>))
     *((<@Flag|URL:FlagFunction.html>))
     *((<@Folder|URL:FolderFunction.html>))
+    *((<@FolderFlag|URL:FolderFlagFunction.html>))
     *((<@ForEach|URL:ForEachFunction.html>))
     *((<@FormatAddress|URL:FormatAddressFunction.html>))
     *((<@FormatDate|URL:FormatDateFunction.html>))

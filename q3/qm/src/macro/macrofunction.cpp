@@ -1998,6 +1998,49 @@ const WCHAR* qm::MacroFunctionFolder::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionFolderFlag
+ *
+ */
+
+qm::MacroFunctionFolderFlag::MacroFunctionFolderFlag()
+{
+}
+
+qm::MacroFunctionFolderFlag::~MacroFunctionFolderFlag()
+{
+}
+
+MacroValuePtr qm::MacroFunctionFolderFlag::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(Folder);
+	
+	if (!checkArgSize(pContext, 1))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (!pmh)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	
+	ARG(pValue, 0);
+	unsigned int nFlags = pValue->number();
+	
+	NormalFolder* pFolder = pmh->getFolder();
+	return MacroValueFactory::getFactory().newBoolean(
+		(pFolder->getFlags() & nFlags) != 0);
+}
+
+const WCHAR* qm::MacroFunctionFolderFlag::getName() const
+{
+	return L"FolderFlag";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionForEach
  *
  */
@@ -5588,6 +5631,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		FindEach,			L"findeach"												)
 			DECLARE_FUNCTION0(		Flag,				L"flag"													)
 			DECLARE_FUNCTION0(		Folder, 			L"folder"												)
+			DECLARE_FUNCTION0(		FolderFlag, 		L"folderflag"											)
 			DECLARE_FUNCTION0(		ForEach,			L"foreach"												)
 			DECLARE_FUNCTION1(		Flag,				L"forwarded",		MessageHolder::FLAG_FORWARDED		)
 			DECLARE_FUNCTION0(		FormatAddress, 		L"formataddress"										)

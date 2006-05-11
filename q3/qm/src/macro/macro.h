@@ -63,6 +63,7 @@ class MacroExpr;
 		class MacroFunctionFindEach;
 		class MacroFunctionFlag;
 		class MacroFunctionFolder;
+		class MacroFunctionFolderFlag;
 		class MacroFunctionForEach;
 		class MacroFunctionFormatAddress;
 		class MacroFunctionFormatDate;
@@ -1396,6 +1397,30 @@ protected:
 private:
 	MacroFunctionFolder(const MacroFunctionFolder&);
 	MacroFunctionFolder& operator=(const MacroFunctionFolder&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionFolderFlag
+ *
+ */
+
+class MacroFunctionFolderFlag : public MacroFunction
+{
+public:
+	MacroFunctionFolderFlag();
+	virtual ~MacroFunctionFolderFlag();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionFolderFlag(const MacroFunctionFolderFlag&);
+	MacroFunctionFolderFlag& operator=(const MacroFunctionFolderFlag&);
 };
 
 
