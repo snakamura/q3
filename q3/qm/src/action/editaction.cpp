@@ -374,7 +374,7 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		const TemplateManager* pManager = pDocument_->getTemplateManager();
 		const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
 		if (pTemplate) {
-			TemplateContext context(mpl, &msg, MessageHolderList(), pAccount,
+			TemplateContext context(mpl, &msg, MessageHolderList(), pFolder, pAccount,
 				pDocument_, hwnd_, 0, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 			switch (pTemplate->getValue(context, &wstrMessage)) {

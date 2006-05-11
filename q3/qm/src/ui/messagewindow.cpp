@@ -200,6 +200,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	Account* pAccount = pMessageModel_->getCurrentAccount();
 	assert(!pmh || pmh->getAccount() == pAccount);
+	Folder* pFolder = pMessageModel_->getCurrentFolder();
 	
 	if (nSeenTimerId_ != 0) {
 		pThis_->killTimer(nSeenTimerId_);
@@ -277,8 +278,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		if (pAccount) {
 			// TODO
 			// Get selected
-			TemplateContext context(pmh, pmh ? &msg : 0, MessageHolderList(), pAccount,
-				pDocument_, pThis_->getHandle(), pEncodingModel_->getEncoding(),
+			TemplateContext context(pmh, pmh ? &msg : 0, MessageHolderList(), pFolder,
+				pAccount, pDocument_, pThis_->getHandle(), pEncodingModel_->getEncoding(),
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 			pHeaderWindow_->setMessage(&context);
@@ -302,7 +303,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
 		(nMode & MessageViewMode::MODE_HTMLONLINE ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
 		(nMode & MessageViewMode::MODE_INTERNETZONE ? MessageViewWindow::FLAG_INTERNETZONE : 0);
-	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0, pTemplate,
+	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0, pFolder, pTemplate,
 		pEncodingModel_->getEncoding(), nFlags, pSecurityModel_->getSecurityMode()))
 		return false;
 	if (bActive)

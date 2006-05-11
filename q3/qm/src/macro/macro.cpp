@@ -181,6 +181,7 @@ const WCHAR* qm::MacroTokenizer::getLastPosition() const
  */
 
 qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected,
+										   Folder* pFolder,
 										   Document* pDocument,
 										   HWND hwnd,
 										   Profile* pProfile,
@@ -190,6 +191,7 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 										   MacroErrorHandler* pErrorHandler,
 										   MacroVariableHolder* pGlobalVariable) :
 	listSelected_(listSelected),
+	pFolder_(pFolder),
 	pDocument_(pDocument),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
@@ -217,6 +219,11 @@ qm::MacroGlobalContext::~MacroGlobalContext()
 const MessageHolderList& qm::MacroGlobalContext::getSelectedMessageHolders() const
 {
 	return listSelected_;
+}
+
+Folder* qm::MacroGlobalContext::getFolder() const
+{
+	return pFolder_;
 }
 
 Document* qm::MacroGlobalContext::getDocument() const
@@ -1594,8 +1601,9 @@ void qm::MacroVariableHolder::removeVariable(const WCHAR* pwszName)
 
 qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 							   Message* pMessage,
-							   const MessageHolderList& listSelected,
 							   Account* pAccount,
+							   const MessageHolderList& listSelected,
+							   Folder* pFolder,
 							   Document* pDocument,
 							   HWND hwnd,
 							   Profile* pProfile,
@@ -1618,8 +1626,9 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	assert(hwnd || !(nFlags & FLAG_UI));
 	assert(pProfile);
 	
-	pGlobalContext_ = new MacroGlobalContext(listSelected, pDocument, hwnd, pProfile,
-		pwszBodyCharset, nFlags, nSecurityMode, pErrorHandler, pGlobalVariable);
+	pGlobalContext_ = new MacroGlobalContext(listSelected, pFolder,
+		pDocument, hwnd, pProfile, pwszBodyCharset, nFlags,
+		nSecurityMode, pErrorHandler, pGlobalVariable);
 }
 
 qm::MacroContext::MacroContext(MessageHolderBase* pmh,
@@ -1692,14 +1701,19 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	return pMessage_;
 }
 
+Account* qm::MacroContext::getAccount() const
+{
+	return pAccount_;
+}
+
 const MessageHolderList& qm::MacroContext::getSelectedMessageHolders() const
 {
 	return pGlobalContext_->getSelectedMessageHolders();
 }
 
-Account* qm::MacroContext::getAccount() const
+Folder* qm::MacroContext::getFolder() const
 {
-	return pAccount_;
+	return pGlobalContext_->getFolder();
 }
 
 Document* qm::MacroContext::getDocument() const

@@ -1400,7 +1400,7 @@ bool qm::FileExportAction::exportMessages(Account* pAccount,
 					return false;
 				BufferedOutputStream stream(&fileStream, false);
 				if (pTemplate) {
-					if (!writeMessage(&stream, pTemplate, l[n], pwszEncoding))
+					if (!writeMessage(&stream, pTemplate, pFolder, l[n], pwszEncoding))
 						return false;
 				}
 				else {
@@ -1433,7 +1433,7 @@ bool qm::FileExportAction::exportMessages(Account* pAccount,
 					progressDialog.setPos(nPos++);
 					
 					if (pTemplate) {
-						if (!writeMessage(&stream, pTemplate, *it, pwszEncoding))
+						if (!writeMessage(&stream, pTemplate, pFolder, *it, pwszEncoding))
 							return false;
 					}
 					else {
@@ -1453,11 +1453,12 @@ bool qm::FileExportAction::exportMessages(Account* pAccount,
 
 bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 										const Template* pTemplate,
+										Folder* pFolder,
 										MessageHolder* pmh,
 										const WCHAR* pwszEncoding)
 {
 	Message msg;
-	TemplateContext context(pmh, &msg, MessageHolderList(),
+	TemplateContext context(pmh, &msg, MessageHolderList(), pFolder,
 		pmh->getAccount(), pDocument_, hwnd_, pEncodingModel_->getEncoding(),
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
@@ -2282,7 +2283,7 @@ bool qm::FilePrintAction::print(Account* pAccount,
 		return false;
 	
 	Message msg;
-	TemplateContext context(pmh, &msg, listSelected, pAccount, pDocument_, hwnd_,
+	TemplateContext context(pmh, &msg, listSelected, pFolder, pAccount, pDocument_, hwnd_,
 		pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 	
@@ -4149,7 +4150,7 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 	MacroVariableHolder globalVariable;
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Message msg;
-		MacroContext context(*it, &msg, l, lock.get(), pDocument_, hwnd_, pProfile_, 0,
+		MacroContext context(*it, &msg, lock.get(), l, pFolder, pDocument_, hwnd_, pProfile_, 0,
 			MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY,
 			pSecurityModel_->getSecurityMode(), 0, &globalVariable);
 		MacroValuePtr pValue(pMacro->value(&context));

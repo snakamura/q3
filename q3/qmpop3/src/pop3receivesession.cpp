@@ -958,8 +958,8 @@ std::auto_ptr<MacroContext> qmpop3::Pop3SyncFilterCallback::getMacroContext()
 	if (!pmh_.get())
 		pmh_.reset(new Pop3MessageHolder(this, pFolder_, pMessage_, nSize_));
 	
-	return std::auto_ptr<MacroContext>(new MacroContext(
-		pmh_.get(), pMessage_, MessageHolderList(), pAccount_,
+	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
+		pMessage_, pAccount_, MessageHolderList(), pFolder_,
 		pDocument_, 0, pProfile_, 0, MacroContext::FLAG_NONE,
 		SECURITYMODE_NONE, 0, pGlobalVariable_));
 }

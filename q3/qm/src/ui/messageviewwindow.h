@@ -89,6 +89,7 @@ public:
 	virtual void setActive() = 0;
 	virtual bool setMessage(MessageHolder* pmh,
 							Message* pMessage,
+							Folder* pFolder,
 							const Template* pTemplate,
 							const WCHAR* pwszEncoding,
 							unsigned int nFlags,
@@ -227,6 +228,7 @@ public:
 	virtual void setActive();
 	virtual bool setMessage(MessageHolder* pmh,
 							Message* pMessage,
+							Folder* pFolder,
 							const Template* pTemplate,
 							const WCHAR* pwszEncoding,
 							unsigned int nFlags,
@@ -543,6 +545,7 @@ public:
 	virtual void setActive();
 	virtual bool setMessage(MessageHolder* pmh,
 							Message* pMessage,
+							Folder* pFolder,
 							const Template* pTemplate,
 							const WCHAR* pwszEncoding,
 							unsigned int nFlags,
@@ -1036,6 +1039,7 @@ public:
 	virtual void setActive();
 	virtual bool setMessage(MessageHolder* pmh,
 							Message* pMessage,
+							Folder* pFolder,
 							const Template* pTemplate,
 							const WCHAR* pwszEncoding,
 							unsigned int nFlags,

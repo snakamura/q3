@@ -179,6 +179,7 @@ class MacroGlobalContext
 {
 public:
 	MacroGlobalContext(const MessageHolderList& listSelected,
+					   Folder* pFolder,
 					   Document* pDocument,
 					   HWND hwnd,
 					   qs::Profile* pProfile,
@@ -191,6 +192,7 @@ public:
 
 public:
 	const MessageHolderList& getSelectedMessageHolders() const;
+	Folder* getFolder() const;
 	Document* getDocument() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
@@ -222,6 +224,7 @@ private:
 
 private:
 	const MessageHolderList& listSelected_;
+	Folder* pFolder_;
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;

@@ -311,6 +311,7 @@ void qm::TextMessageViewWindow::setActive()
 
 bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 										   Message* pMessage,
+										   Folder* pFolder,
 										   const Template* pTemplate,
 										   const WCHAR* pwszEncoding,
 										   unsigned int nFlags,
@@ -338,9 +339,9 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			// TODO
 			// Performance up.
 			// TODO
-			// Get selected messages
+			// Pass selected messages
 			TemplateContext context(pmh, pMessage, MessageHolderList(),
-				pmh->getAccount(), pDocument_, getHandle(), pwszEncoding,
+				pFolder, pmh->getAccount(), pDocument_, getHandle(), pwszEncoding,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 			wstring_ptr wstr;
@@ -368,8 +369,10 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 		
 		if (pFontGroup_) {
 			MacroVariableHolder globalVariable;
-			MacroContext context(pmh, pMessage, MessageHolderList(),
-				pmh->getAccount(), pDocument_, getHandle(), pProfile_, pwszEncoding,
+			// TODO
+			// Pass selected messages
+			MacroContext context(pmh, pMessage, pmh->getAccount(), MessageHolderList(),
+				pFolder, pDocument_, getHandle(), pProfile_, pwszEncoding,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, 0, &globalVariable);
 			const MessageWindowFontSet* pFontSet = pFontGroup_->getFontSet(&context);
@@ -1280,6 +1283,7 @@ void qm::HtmlMessageViewWindow::setActive()
 
 bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 										   Message* pMessage,
+										   Folder* pFolder,
 										   const Template* pTemplate,
 										   const WCHAR* pwszEncoding,
 										   unsigned int nFlags,
@@ -2631,6 +2635,7 @@ void qm::HtmlMessageViewWindow::setActive()
 
 bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 										   Message* pMessage,
+										   Folder* pFolder,
 										   const Template* pTemplate,
 										   const WCHAR* pwszEncoding,
 										   unsigned int nFlags,

@@ -1967,8 +1967,9 @@ MacroValuePtr qm::MacroFunctionFolder::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	Folder* pFolder = pmh ? pmh->getFolder() : pContext->getFolder();
+	if (!pFolder)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTFOLDER);
 	
 	bool bFull = true;
 	if (nSize > 0) {
@@ -1976,7 +1977,6 @@ MacroValuePtr qm::MacroFunctionFolder::value(MacroContext* pContext) const
 		bFull = pValue->boolean();
 	}
 	
-	NormalFolder* pFolder = pmh->getFolder();
 	const WCHAR* pwszName = 0;
 	wstring_ptr wstrName;
 	if (bFull) {
@@ -2022,13 +2022,13 @@ MacroValuePtr qm::MacroFunctionFolderFlag::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	Folder* pFolder = pmh ? pmh->getFolder() : pContext->getFolder();
+	if (!pFolder)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTFOLDER);
 	
 	ARG(pValue, 0);
 	unsigned int nFlags = pValue->number();
 	
-	NormalFolder* pFolder = pmh->getFolder();
 	return MacroValueFactory::getFactory().newBoolean(
 		(pFolder->getFlags() & nFlags) != 0);
 }
@@ -3017,7 +3017,7 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		TemplateContext context(pContext->getMessageHolder(), pContext->getMessage(),
-			pContext->getSelectedMessageHolders(), pContext->getAccount(),
+			pContext->getSelectedMessageHolders(), pContext->getFolder(), pContext->getAccount(),
 			pContext->getDocument(), pContext->getWindow(), pContext->getBodyCharset(),
 			pContext->getFlags(), pContext->getSecurityMode(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());

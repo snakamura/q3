@@ -84,7 +84,8 @@ public:
 		CODE_INVALIDTHREAD,
 		CODE_NOCONTEXTACCOUNT,
 		CODE_NOUI,
-		CODE_NOTMODIFIABLE
+		CODE_NOTMODIFIABLE,
+		CODE_NOCONTEXTFOLDER
 	};
 
 public:
@@ -223,8 +224,9 @@ public:
 public:
 	MacroContext(MessageHolderBase* pmh,
 				 Message* pMessage,
-				 const MessageHolderList& listSelected,
 				 Account* pAccount,
+				 const MessageHolderList& listSelected,
+				 Folder* pFolder,
 				 Document* pDocument,
 				 HWND hwnd,
 				 qs::Profile* pProfile,
@@ -243,8 +245,9 @@ public:
 	Message* getMessage() const;
 	Message* getMessage(MessageType type,
 						const WCHAR* pwszField) const;
-	const MessageHolderList& getSelectedMessageHolders() const;
 	Account* getAccount() const;
+	const MessageHolderList& getSelectedMessageHolders() const;
+	Folder* getFolder() const;
 	Document* getDocument() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;

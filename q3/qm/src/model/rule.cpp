@@ -204,8 +204,8 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 				const Rule* pRule = listRule[nRule];
 				unsigned int nFlags = bAuto ? MacroContext::FLAG_NONE :
 					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI;
-				MacroContext context(pmh, &msg, MessageHolderList(), pAccount, pDocument,
-					hwnd, pProfile, 0, nFlags, nSecurityMode, 0, &globalVariable);
+				MacroContext context(pmh, &msg, pAccount, MessageHolderList(), pFolder,
+					pDocument, hwnd, pProfile, 0, nFlags, nSecurityMode, 0, &globalVariable);
 				bool bMatch = pRule->match(&context);
 				if (bMatch) {
 					ll[nRule].push_back(nMessage);
@@ -907,7 +907,7 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 			MessageHolder* pmh = *it;
 			
 			Message msg;
-			TemplateContext templateContext(pmh, &msg, MessageHolderList(),
+			TemplateContext templateContext(pmh, &msg, MessageHolderList(), context.getFolder(),
 				context.getAccount(), context.getDocument(), context.getWindow(), 0,
 				context.isAuto() ? MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				context.getSecurityMode(), context.getProfile(), 0, listArgument);
@@ -1242,8 +1242,8 @@ bool qm::ApplyRuleAction::apply(const RuleContext& context) const
 	const MessageHolderList& l = context.getMessageHolderList();
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Message msg;
-		MacroContext c(*it, &msg, MessageHolderList(), context.getAccount(),
-			context.getDocument(), context.getWindow(), context.getProfile(), 0,
+		MacroContext c(*it, &msg, context.getAccount(), MessageHolderList(),
+			context.getFolder(), context.getDocument(), context.getWindow(), context.getProfile(), 0,
 			context.isAuto() ? MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 			context.getSecurityMode(), 0, context.getGlobalVariable());
 		MacroValuePtr pValue(pMacro_->value(&c));

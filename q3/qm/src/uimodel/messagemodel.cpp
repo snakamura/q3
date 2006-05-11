@@ -72,6 +72,11 @@ void qm::AbstractMessageModel::setCurrentAccount(Account* pAccount)
 	}
 }
 
+Folder* qm::AbstractMessageModel::getCurrentFolder() const
+{
+	return pViewModel_ ? pViewModel_->getFolder() : 0;
+}
+
 MessagePtr qm::AbstractMessageModel::getCurrentMessage() const
 {
 	return ptr_;

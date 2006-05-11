@@ -879,6 +879,7 @@ private:
 						const MessageHolderList& l);
 	bool writeMessage(qs::OutputStream* pStream,
 					  const Template* pTemplate,
+					  Folder* pFolder,
 					  MessageHolder* pmh,
 					  const WCHAR* pwszEncoding);
 

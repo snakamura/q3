@@ -49,6 +49,7 @@ public:
 public:
 	virtual Account* getCurrentAccount() const = 0;
 	virtual void setCurrentAccount(Account* pAccount) = 0;
+	virtual Folder* getCurrentFolder() const = 0;
 	virtual MessagePtr getCurrentMessage() const = 0;
 	virtual void setMessage(MessageHolder* pmh) = 0;
 	virtual void reloadProfiles() = 0;
@@ -80,6 +81,7 @@ public:
 public:
 	virtual Account* getCurrentAccount() const;
 	virtual void setCurrentAccount(Account* pAccount);
+	virtual Folder* getCurrentFolder() const;
 	virtual MessagePtr getCurrentMessage() const;
 	virtual void setMessage(MessageHolder* pmh);
 	virtual void addMessageModelHandler(MessageModelHandler* pHandler);

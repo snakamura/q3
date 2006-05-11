@@ -89,6 +89,7 @@ public:
 	TemplateContext(MessageHolderBase* pmh,
 					Message* pMessage,
 					const MessageHolderList& listSelected,
+					Folder* pFolder,
 					Account* pAccount,
 					Document* pDocument,
 					HWND hwnd,
@@ -104,6 +105,7 @@ public:
 	MessageHolderBase* getMessageHolder() const;
 	Message* getMessage() const;
 	const MessageHolderList& getSelectedMessageHolders() const;
+	Folder* getFolder() const;
 	Account* getAccount() const;
 	Document* getDocument() const;
 	HWND getWindow() const;
@@ -122,6 +124,7 @@ private:
 	MessageHolderBase* pmh_;
 	Message* pMessage_;
 	const MessageHolderList& listSelected_;
+	Folder* pFolder_;
 	Account* pAccount_;
 	Document* pDocument_;
 	HWND hwnd_;

@@ -119,7 +119,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	MacroErrorHandlerImpl handler;
 	Message msg;
 	TemplateContext context(pmh, pmh ? &msg : 0, listSelected,
-		pAccount, pDocument_, hwnd_, pwszBodyCharset,
+		pFolder, pAccount, pDocument_, hwnd_, pwszBodyCharset,
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI | MacroContext::FLAG_MODIFY,
 		pSecurityModel_->getSecurityMode(), pProfile_, &handler, listArgument);
 	

@@ -69,8 +69,8 @@ bool qm::MacroSearchDriver::search(const SearchContext& context,
 			MessageHolder* pmh = pFolder->getMessage(n);
 			
 			Message msg;
-			MacroContext context(pmh, &msg, MessageHolderList(),
-				pAccount_, pDocument_, hwnd_, pProfile_, 0,
+			MacroContext context(pmh, &msg, pAccount_,  MessageHolderList(),
+				pFolder, pDocument_, hwnd_, pProfile_, 0,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				context.getSecurityMode(), 0, &globalVariable);
 			MacroValuePtr pValue(pMacro->value(&context));
