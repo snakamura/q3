@@ -1961,15 +1961,29 @@ MacroValuePtr qm::MacroFunctionFolder::value(MacroContext* pContext) const
 	
 	LOG(Folder);
 	
-	if (!checkArgSizeRange(pContext, 0, 1))
+	if (!checkArgSizeRange(pContext, 0, 2))
 		return MacroValuePtr();
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	Folder* pFolder = pmh ? pmh->getFolder() : pContext->getFolder();
-	if (!pFolder)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTFOLDER);
+	bool bCurrent = false;
+	if (nSize > 1) {
+		ARG(pValue, 1);
+		bCurrent = pValue->boolean();
+	}
+	
+	Folder* pFolder = 0;
+	if (bCurrent) {
+		pFolder = pContext->getFolder();
+		if (!pFolder)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTFOLDER);
+	}
+	else {
+		MessageHolderBase* pmh = pContext->getMessageHolder();
+		if (!pmh)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		pFolder = pmh->getFolder();
+	}
 	
 	bool bFull = true;
 	if (nSize > 0) {
@@ -2016,18 +2030,20 @@ MacroValuePtr qm::MacroFunctionFolderFlag::value(MacroContext* pContext) const
 	
 	LOG(Folder);
 	
-	if (!checkArgSize(pContext, 1))
+	if (!checkArgSize(pContext, 2))
 		return MacroValuePtr();
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	Folder* pFolder = pmh ? pmh->getFolder() : pContext->getFolder();
+	ARG(pValueFolder, 0);
+	wstring_ptr wstrFolder(pValueFolder->string());
+	Folder* pFolder = pContext->getDocument()->getFolder(
+		pContext->getAccount(), wstrFolder.get());
 	if (!pFolder)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTFOLDER);
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
-	ARG(pValue, 0);
-	unsigned int nFlags = pValue->number();
+	ARG(pValueFlags, 1);
+	unsigned int nFlags = pValueFlags->number();
 	
 	return MacroValueFactory::getFactory().newBoolean(
 		(pFolder->getFlags() & nFlags) != 0);
