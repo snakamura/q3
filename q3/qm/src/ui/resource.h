@@ -246,6 +246,7 @@
 #define IDS_ERROR_RENAMESUBACCOUNT      10062
 #define IDS_ERROR_CREATESUBACCOUNT      10063
 #define IDS_ERROR_OUTBOXHASEXTRAFLAGS   10064
+#define IDS_ERROR_OPENMESSAGE           10065
 
 // Next default values for new objects
 // 

@@ -4487,14 +4487,16 @@ qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
 													 FolderModel* pFolderModel,
 													 MainWindow* pMainWindow,
 													 MessageFrameWindowManager* pMessageFrameWindowManager,
-													 Profile* pProfile) :
+													 Profile* pProfile,
+													 HWND hwnd) :
 	pRecents_(pRecents),
 	pAccountManager_(pAccountManager),
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
 	pMainWindow_(pMainWindow),
 	pMessageFrameWindowManager_(pMessageFrameWindowManager),
-	pProfile_(pProfile)
+	pProfile_(pProfile),
+	hwnd_(hwnd)
 {
 }
 
@@ -4534,9 +4536,8 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 				MessageActionUtil::select(pViewModel, nIndex, false);
 		}
 		else {
-			if (!pMessageFrameWindowManager_->open(pViewModel, mpl)) {
-				// TODO MSG
-			}
+			if (!pMessageFrameWindowManager_->open(pViewModel, mpl))
+				ActionUtil::error(hwnd_, IDS_ERROR_OPENMESSAGE);
 		}
 	}
 	pRecents_->remove(pURI.get());
@@ -5262,9 +5263,8 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 		break;
 	}
 	
-	if (!pAddressBook->save()) {
-		// TODO
-	}
+	if (!pAddressBook->save())
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVEADDRESSBOOK);
 	
 	pAddressBook_->reload();
 }

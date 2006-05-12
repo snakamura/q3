@@ -338,7 +338,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_OUTBOXHASEXTRAFLAGS 
-                            "Outbox must not have flags other than Outbox or Draftbox"
+                            "Outbox must not have flags other than Outbox or Draftbox."
+    IDS_ERROR_OPENMESSAGE   "Failed to open message window."
 END
 
 STRINGTABLE DISCARDABLE 

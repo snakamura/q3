@@ -341,6 +341,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_ERROR_OUTBOXHASEXTRAFLAGS 
                             "送信箱は送信箱と草稿箱以外のフラグを持つことはできません"
+    IDS_ERROR_OPENMESSAGE   "メッセージウィンドウが開けません"
 END
 
 STRINGTABLE DISCARDABLE 

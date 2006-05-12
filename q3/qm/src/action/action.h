@@ -2153,7 +2153,8 @@ public:
 							FolderModel* pFolderModel,
 							MainWindow* pMainWindow,
 							MessageFrameWindowManager* pMessageFrameWindowManager,
-							qs::Profile* pProfile);
+							qs::Profile* pProfile,
+							HWND hwnd);
 	virtual ~MessageOpenRecentAction();
 
 public:
@@ -2172,6 +2173,7 @@ private:
 	MainWindow* pMainWindow_;
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	qs::Profile* pProfile_;
+	HWND hwnd_;
 };
 
 

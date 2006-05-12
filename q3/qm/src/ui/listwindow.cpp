@@ -816,14 +816,16 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 					if (event.getKeyState() & MK_ALT) {
 						if (!FileImportAction::importShowDialog(pNormalFolder,
 							listPath, pProfile_, pThis_->getParentFrame(), 0, 0)) {
-							// TODO MSG
+							messageBox(Application::getApplication().getResourceHandle(),
+								IDS_ERROR_IMPORT, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 						}
 					}
 					else {
 						if (!FileImportAction::import(pNormalFolder,
 							listPath, false, 0, Account::IMPORTFLAG_NORMALFLAGS,
 							pThis_->getParentFrame(), 0, 0)) {
-							// TODO MSG
+							messageBox(Application::getApplication().getResourceHandle(),
+								IDS_ERROR_IMPORT, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 						}
 					}
 					
@@ -1345,9 +1347,9 @@ LRESULT qm::ListWindow::onKeyDown(UINT nKey,
 				unsigned int nItem = pViewModel->getFocused();
 				if (nItem < pViewModel->getCount()) {
 					if (!pImpl_->pMessageFrameWindowManager_->open(
-						pViewModel, pViewModel->getMessageHolder(nItem))) {
-						// TODO MSG
-					}
+						pViewModel, pViewModel->getMessageHolder(nItem)))
+						messageBox(Application::getApplication().getResourceHandle(),
+							IDS_ERROR_OPENMESSAGE, MB_OK | MB_ICONERROR, getParentFrame());
 				}
 			}
 		}
@@ -1376,9 +1378,9 @@ LRESULT qm::ListWindow::onLButtonDblClk(UINT nFlags,
 			unsigned int nLine = pImpl_->getLineFromPoint(pt);
 			if (nLine != static_cast<unsigned int>(-1)) {
 				if (!pImpl_->pMessageFrameWindowManager_->open(
-					pViewModel, pViewModel->getMessageHolder(nLine))) {
-					// TODO MSG
-				}
+					pViewModel, pViewModel->getMessageHolder(nLine)))
+					messageBox(Application::getApplication().getResourceHandle(),
+						IDS_ERROR_OPENMESSAGE, MB_OK | MB_ICONERROR, getParentFrame());
 			}
 		}
 	}
@@ -1436,9 +1438,9 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 			
 			if (pImpl_->bSingleClickOpen_) {
 				if (!pImpl_->pMessageFrameWindowManager_->open(
-					pViewModel, pViewModel->getMessageHolder(nLine))) {
-					// TODO MSG
-				}
+					pViewModel, pViewModel->getMessageHolder(nLine)))
+					messageBox(Application::getApplication().getResourceHandle(),
+						IDS_ERROR_OPENMESSAGE, MB_OK | MB_ICONERROR, getParentFrame());
 			}
 		}
 	}
