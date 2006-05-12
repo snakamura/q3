@@ -2057,6 +2057,54 @@ const WCHAR* qm::MacroFunctionFolderFlag::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionFolderProperty
+ *
+ */
+
+qm::MacroFunctionFolderProperty::MacroFunctionFolderProperty()
+{
+}
+
+qm::MacroFunctionFolderProperty::~MacroFunctionFolderProperty()
+{
+}
+
+MacroValuePtr qm::MacroFunctionFolderProperty::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(Folder);
+	
+	if (!checkArgSize(pContext, 2))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	ARG(pValueFolder, 0);
+	wstring_ptr wstrFolder(pValueFolder->string());
+	Folder* pFolder = pContext->getDocument()->getFolder(
+		pContext->getAccount(), wstrFolder.get());
+	if (!pFolder)
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
+	ARG(pValueName, 1);
+	wstring_ptr wstrName(pValueName->string());
+	
+	const WCHAR* pwszParam = pFolder->getParam(wstrName.get());
+	if (!pwszParam)
+		pwszParam = L"";
+	
+	return MacroValueFactory::getFactory().newString(pwszParam);
+}
+
+const WCHAR* qm::MacroFunctionFolderProperty::getName() const
+{
+	return L"FolderProperty";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionForEach
  *
  */
@@ -5648,6 +5696,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		Flag,				L"flag"													)
 			DECLARE_FUNCTION0(		Folder, 			L"folder"												)
 			DECLARE_FUNCTION0(		FolderFlag, 		L"folderflag"											)
+			DECLARE_FUNCTION0(		FolderProperty, 	L"folderproperty"										)
 			DECLARE_FUNCTION0(		ForEach,			L"foreach"												)
 			DECLARE_FUNCTION1(		Flag,				L"forwarded",		MessageHolder::FLAG_FORWARDED		)
 			DECLARE_FUNCTION0(		FormatAddress, 		L"formataddress"										)
