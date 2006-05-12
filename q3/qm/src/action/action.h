@@ -1216,6 +1216,7 @@ class FolderCreateAction : public qs::AbstractAction
 {
 public:
 	FolderCreateAction(FolderSelectionModel* pFolderSelectionModel,
+					   SyncManager* pSyncManager,
 					   HWND hwnd,
 					   qs::Profile* pProfile);
 	virtual ~FolderCreateAction();
@@ -1230,6 +1231,7 @@ private:
 
 private:
 	FolderSelectionModel* pFolderSelectionModel_;
+	SyncManager* pSyncManager_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };
@@ -1502,6 +1504,7 @@ public:
 	FolderSubscribeAction(Document* pDocument,
 						  PasswordManager* pPasswordManager,
 						  FolderSelectionModel* pFolderSelectionModel,
+						  SyncManager* pSyncManager,
 						  HWND hwnd);
 	virtual ~FolderSubscribeAction();
 
@@ -1526,6 +1529,7 @@ private:
 	Document* pDocument_;
 	PasswordManager* pPasswordManager_;
 	FolderSelectionModel* pFolderSelectionModel_;
+	SyncManager* pSyncManager_;
 	HWND hwnd_;
 };
 

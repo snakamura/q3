@@ -36,6 +36,7 @@
 #include "uiutil.h"
 #include "../action/action.h"
 #include "../model/dataobject.h"
+#include "../sync/syncmanager.h"
 #include "../uimodel/foldermodel.h"
 #include "../util/util.h"
 
@@ -175,6 +176,7 @@ public:
 	Profile* pProfile_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
+	SyncManager* pSyncManager_;
 	
 	UINT nId_;
 	HFONT hfont_;
@@ -696,7 +698,8 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 			}
 		}
 	}
-	else if (FolderDataObject::canPasteFolder(pDataObject)) {
+	else if (!pSyncManager_->isSyncing() &&
+		FolderDataObject::canPasteFolder(pDataObject)) {
 		if (hItem) {
 			Account* pAccount = 0;
 			Folder* pTarget = 0;
@@ -710,7 +713,8 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 			
 			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
-				(!pTarget || (pTarget != pFolder && !pFolder->isAncestorOf(pTarget)))) {
+				(!pTarget || (pTarget != pFolder && !pFolder->isAncestorOf(pTarget) &&
+					!pTarget->isFlag(Folder::FLAG_NOINFERIORS)))) {
 				if (pTarget && pTarget->isFlag(Folder::FLAG_TRASHBOX)) {
 					if (!FolderDeleteAction::deleteFolder(pFolderModel_, pFolder))
 						messageBox(Application::getApplication().getResourceHandle(),
@@ -1056,7 +1060,8 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 			}
 		}
 	}
-	else if (FolderDataObject::canPasteFolder(pDataObject)) {
+	else if (!pSyncManager_->isSyncing() &&
+		FolderDataObject::canPasteFolder(pDataObject)) {
 		if (hItem) {
 			Account* pAccount = 0;
 			Folder* pTarget = 0;
@@ -1070,7 +1075,8 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 			
 			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
-				(!pTarget || (pTarget != pFolder && !pFolder->isAncestorOf(pTarget))))
+				(!pTarget || (pTarget != pFolder && !pFolder->isAncestorOf(pTarget) &&
+					!pTarget->isFlag(Folder::FLAG_NOINFERIORS))))
 				dwEffect = DROPEFFECT_MOVE;
 		}
 		
@@ -1226,6 +1232,7 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
+	pImpl_->pSyncManager_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
 #ifndef _WIN32_WCE
@@ -1377,6 +1384,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderWindowCreateContext* pContext =
 		static_cast<FolderWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
 	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);

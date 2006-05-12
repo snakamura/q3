@@ -2483,9 +2483,11 @@ void qm::FileUninstallAction::invoke(const ActionEvent& event)
  */
 
 qm::FolderCreateAction::FolderCreateAction(FolderSelectionModel* pFolderSelectionModel,
+										   SyncManager* pSyncManager,
 										   HWND hwnd,
 										   Profile* pProfile) :
 	pFolderSelectionModel_(pFolderSelectionModel),
+	pSyncManager_(pSyncManager),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -2497,6 +2499,11 @@ qm::FolderCreateAction::~FolderCreateAction()
 
 void qm::FolderCreateAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
+		return;
+	}
+	
 	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
 	if (!p.first && !p.second)
 		return;
@@ -2579,6 +2586,9 @@ void qm::FolderCreateAction::invoke(const ActionEvent& event)
 
 bool qm::FolderCreateAction::isEnabled(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing())
+		return false;
+	
 	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
 	return p.first || p.second;
 }
@@ -2607,6 +2617,11 @@ qm::FolderDeleteAction::~FolderDeleteAction()
 
 void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
+		return;
+	}
+	
 	Account::FolderList l;
 	FolderActionUtil::getSelected(pFolderSelectionModel_, &l);
 	if (l.empty())
@@ -2818,6 +2833,11 @@ qm::FolderEmptyTrashAction::~FolderEmptyTrashAction()
 
 void qm::FolderEmptyTrashAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
+		return;
+	}
+	
 	Account* pAccount = getAccount();
 	if (pAccount)
 		emptyTrash(pAccount, pDocument_, pSyncManager_,
@@ -2994,6 +3014,11 @@ qm::FolderPropertyAction::~FolderPropertyAction()
 
 void qm::FolderPropertyAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
+		return;
+	}
+	
 	Account::FolderList l;
 	FolderActionUtil::getSelected(pFolderSelectionModel_, &l);
 	openProperty(l, FolderPropertyAction::OPEN_PROPERTY, hwnd_, pProfile_);
@@ -3077,6 +3102,11 @@ qm::FolderRenameAction::~FolderRenameAction()
 
 void qm::FolderRenameAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
+		return;
+	}
+	
 	Folder* pFolder = FolderActionUtil::getFocused(pFolderSelectionModel_).second;
 	if (!pFolder)
 		return;
@@ -3160,10 +3190,12 @@ bool qm::FolderShowSizeAction::isEnabled(const ActionEvent& event)
 qm::FolderSubscribeAction::FolderSubscribeAction(Document* pDocument,
 												 PasswordManager* pPasswordManager,
 												 FolderSelectionModel* pFolderSelectionModel,
+												 SyncManager* pSyncManager,
 												 HWND hwnd) :
 	pDocument_(pDocument),
 	pPasswordManager_(pPasswordManager),
 	pFolderSelectionModel_(pFolderSelectionModel),
+	pSyncManager_(pSyncManager),
 	hwnd_(hwnd)
 {
 }
@@ -3174,6 +3206,11 @@ qm::FolderSubscribeAction::~FolderSubscribeAction()
 
 void qm::FolderSubscribeAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
+		return;
+	}
+	
 	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
 	if (!p.first && !p.second)
 		return;
@@ -3189,6 +3226,9 @@ void qm::FolderSubscribeAction::invoke(const ActionEvent& event)
 
 bool qm::FolderSubscribeAction::isEnabled(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing())
+		return false;
+	
 	std::pair<Account*, Folder*> p(FolderActionUtil::getFocused(pFolderSelectionModel_));
 	if (!p.first && !p.second)
 		return false;
@@ -3253,6 +3293,11 @@ qm::FolderUpdateAction::~FolderUpdateAction()
 
 void qm::FolderUpdateAction::invoke(const ActionEvent& event)
 {
+	if (pSyncManager_->isSyncing()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SYNCHRONIZING);
+		return;
+	}
+	
 	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	if (!pAccount)
 		return;

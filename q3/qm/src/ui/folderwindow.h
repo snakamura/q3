@@ -15,6 +15,7 @@ namespace qm {
 struct FolderWindowCreateContext;
 
 class Document;
+class SyncManager;
 class UIManager;
 
 
@@ -28,6 +29,7 @@ struct FolderWindowCreateContext
 {
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	SyncManager* pSyncManager_;
 };
 
 }

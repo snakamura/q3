@@ -576,9 +576,10 @@ void qm::MainWindowImpl::initActions()
 #endif
 	ADD_ACTION0(FileUninstallAction,
 		IDM_FILE_UNINSTALL);
-	ADD_ACTION3(FolderCreateAction,
+	ADD_ACTION4(FolderCreateAction,
 		IDM_FOLDER_CREATE,
 		this,
+		pSyncManager_,
 		pThis_->getHandle(),
 		pProfile_);
 	ADD_ACTION4(FolderDeleteAction,
@@ -624,11 +625,12 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(FolderShowSizeAction,
 		IDM_FOLDER_SHOWSIZE,
 		pFolderListWindow_);
-	ADD_ACTION4(FolderSubscribeAction,
+	ADD_ACTION5(FolderSubscribeAction,
 		IDM_FOLDER_SUBSCRIBE,
 		pDocument_,
 		pPasswordManager_,
 		this,
+		pSyncManager_,
 		pThis_->getHandle());
 	ADD_ACTION3(FolderUpdateAction,
 		IDM_FOLDER_UPDATE,
@@ -2241,7 +2243,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pFolderSplitterWindow, pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
 	FolderWindowCreateContext folderWindowContext = {
 		pContext->pDocument_,
-		pContext->pUIManager_
+		pContext->pUIManager_,
+		pContext->pSyncManager_
 	};
 	if (!pFolderWindow->create(L"QmFolderWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
