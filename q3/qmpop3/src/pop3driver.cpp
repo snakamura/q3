@@ -30,6 +30,10 @@ using namespace qs;
 const unsigned int qmpop3::Pop3Driver::nSupport__ =
 	Account::SUPPORT_LOCALFOLDERDOWNLOAD | Account::SUPPORT_JUNKFILTER;
 
+const WCHAR* qmpop3::Pop3Driver::pwszParamNames__[] = {
+	L"To"
+};
+
 qmpop3::Pop3Driver::Pop3Driver(Account* pAccount) :
 	pAccount_(pAccount)
 {
@@ -71,6 +75,14 @@ bool qmpop3::Pop3Driver::createDefaultFolders(Account::FolderList* pList)
 	}
 	
 	return true;
+}
+
+std::pair<const WCHAR**, size_t> qmpop3::Pop3Driver::getFolderParamNames(Folder* pFolder)
+{
+	if (!(pFolder->getFlags() & Folder::FLAG_BOX_MASK))
+		return std::pair<const WCHAR**, size_t>(pwszParamNames__, countof(pwszParamNames__));
+	else
+		return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
 

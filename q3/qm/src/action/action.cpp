@@ -3036,8 +3036,7 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 		listFolder.front()->getType() == Folder::TYPE_NORMAL) {
 		Folder* pFolder = listFolder.front();
 		Account* pAccount = pFolder->getAccount();
-		bool bSyncable = pFolder->isFlag(Folder::FLAG_SYNCABLE);
-		std::pair<const WCHAR**, size_t> params(pAccount->getFolderParamNames(bSyncable));
+		std::pair<const WCHAR**, size_t> params(pAccount->getFolderParamNames(pFolder));
 		if (params.second != 0) {
 			pParameterPage.reset(new FolderParameterPage(
 				pFolder, params.first, params.second));

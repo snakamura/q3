@@ -73,7 +73,7 @@ public:
 							const WCHAR* pwszName);
 	virtual bool createDefaultFolders(Account::FolderList* pList);
 	virtual bool getRemoteFolders(RemoteFolderList* pList);
-	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(bool bSyncable);
+	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(Folder* pFolder);
 	virtual void setDefaultFolderParams(NormalFolder* pFolder);
 	
 	virtual bool getMessage(MessageHolder* pmh,

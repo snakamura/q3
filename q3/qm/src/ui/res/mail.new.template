@@ -1,9 +1,11 @@
 {
-  @Progn(@Set('bcc', @Equal(@Profile('', 'Global', 'Bcc', '1'), '1')),
+  @Progn(@Set('to', @FolderProperty(@Folder(:FN-FULLNAME, :FT-CURRENT), 'To')),
+         @Set('bcc', @Equal(@Profile('', 'Global', 'Bcc', '1'), '1')),
          @Set('addr',
               @If(@Equal(@Profile('', 'Global', 'OpenAddressBook', '0'), '1'),
-                  @AddressBook('', '', @If($bcc, @I(), '')),
-                  @If($bcc, @Concat('Bcc: ', @I(), '\n'), ''))),
+                  @AddressBook($to, '', @If($bcc, @I(), '')),
+                  @Concat('To: ', $to, '\n',
+                          @If($bcc, @Concat('Bcc: ', @I(), '\n'), '')))),
          @Concat(@If(@Contain($addr, 'To: '), '', 'To: \n'), $addr))
 }Subject: 
 X-QMAIL-Account: {@Account()}{

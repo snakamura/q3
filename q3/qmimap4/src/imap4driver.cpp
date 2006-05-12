@@ -58,6 +58,10 @@ const unsigned int qmimap4::Imap4Driver::nSupport__ =
 	Account::SUPPORT_DELETEDMESSAGE |
 	Account::SUPPORT_JUNKFILTER;
 
+const WCHAR* qmimap4::Imap4Driver::pwszParamNames__[] = {
+	L"To"
+};
+
 qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
 								  PasswordCallback* pPasswordCallback,
 								  const Security* pSecurity) :
@@ -318,6 +322,14 @@ bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 	getter.getFolders(pList);
 	
 	return true;
+}
+
+std::pair<const WCHAR**, size_t> qmimap4::Imap4Driver::getFolderParamNames(Folder* pFolder)
+{
+	if (!(pFolder->getFlags() & Folder::FLAG_BOX_MASK))
+		return std::pair<const WCHAR**, size_t>(pwszParamNames__, countof(pwszParamNames__));
+	else
+		return std::pair<const WCHAR**, size_t>(0, 0);
 }
 
 bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,

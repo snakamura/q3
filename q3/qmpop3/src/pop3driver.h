@@ -33,6 +33,7 @@ public:
 public:
 	virtual bool isSupport(qm::Account::Support support);
 	virtual bool createDefaultFolders(qm::Account::FolderList* pList);
+	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(qm::Folder* pFolder);
 
 private:
 	Pop3Driver(const Pop3Driver&);
@@ -43,6 +44,7 @@ private:
 
 private:
 	static const unsigned int nSupport__;
+	static const WCHAR* pwszParamNames__[];
 };
 
 

@@ -59,6 +59,7 @@ public:
 							qm::NormalFolder* pParent,
 							const WCHAR* pwszName);
 	virtual bool getRemoteFolders(RemoteFolderList* pList);
+	virtual std::pair<const WCHAR**, size_t> getFolderParamNames(qm::Folder* pFolder);
 	
 	virtual bool getMessage(qm::MessageHolder* pmh,
 							unsigned int nFlags,
@@ -190,6 +191,7 @@ private:
 
 private:
 	static const unsigned int nSupport__;
+	static const WCHAR* pwszParamNames__[];
 };
 
 

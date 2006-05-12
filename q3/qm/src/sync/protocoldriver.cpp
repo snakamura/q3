@@ -93,7 +93,7 @@ bool qm::ProtocolDriver::getRemoteFolders(RemoteFolderList* pList)
 	return false;
 }
 
-std::pair<const WCHAR**, size_t> qm::ProtocolDriver::getFolderParamNames(bool bSyncable)
+std::pair<const WCHAR**, size_t> qm::ProtocolDriver::getFolderParamNames(Folder* pFolder)
 {
 	return std::pair<const WCHAR**, size_t>(0, 0);
 }

@@ -83,9 +83,9 @@ bool qmrss::RssDriver::createDefaultFolders(Account::FolderList* pList)
 	return true;
 }
 
-std::pair<const WCHAR**, size_t> qmrss::RssDriver::getFolderParamNames(bool bSyncable)
+std::pair<const WCHAR**, size_t> qmrss::RssDriver::getFolderParamNames(Folder* pFolder)
 {
-	if (bSyncable)
+	if (pFolder->isFlag(Folder::FLAG_SYNCABLE))
 		return std::pair<const WCHAR**, size_t>(pwszParamNames__, countof(pwszParamNames__));
 	else
 		return std::pair<const WCHAR**, size_t>(0, 0);
