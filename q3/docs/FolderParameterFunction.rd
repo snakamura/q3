@@ -1,5 +1,5 @@
 =begin
-=@FolderProperty
+=@FolderParameter
 
 // TODO
 

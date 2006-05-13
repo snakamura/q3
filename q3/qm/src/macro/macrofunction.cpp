@@ -2057,19 +2057,19 @@ const WCHAR* qm::MacroFunctionFolderFlag::getName() const
 
 /****************************************************************************
  *
- * MacroFunctionFolderProperty
+ * MacroFunctionFolderParameter
  *
  */
 
-qm::MacroFunctionFolderProperty::MacroFunctionFolderProperty()
+qm::MacroFunctionFolderParameter::MacroFunctionFolderParameter()
 {
 }
 
-qm::MacroFunctionFolderProperty::~MacroFunctionFolderProperty()
+qm::MacroFunctionFolderParameter::~MacroFunctionFolderParameter()
 {
 }
 
-MacroValuePtr qm::MacroFunctionFolderProperty::value(MacroContext* pContext) const
+MacroValuePtr qm::MacroFunctionFolderParameter::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
@@ -2097,9 +2097,9 @@ MacroValuePtr qm::MacroFunctionFolderProperty::value(MacroContext* pContext) con
 	return MacroValueFactory::getFactory().newString(pwszParam);
 }
 
-const WCHAR* qm::MacroFunctionFolderProperty::getName() const
+const WCHAR* qm::MacroFunctionFolderParameter::getName() const
 {
-	return L"FolderProperty";
+	return L"FolderParameter";
 }
 
 
@@ -5696,7 +5696,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		Flag,				L"flag"													)
 			DECLARE_FUNCTION0(		Folder, 			L"folder"												)
 			DECLARE_FUNCTION0(		FolderFlag, 		L"folderflag"											)
-			DECLARE_FUNCTION0(		FolderProperty, 	L"folderproperty"										)
+			DECLARE_FUNCTION0(		FolderParameter, 	L"folderparameter"										)
 			DECLARE_FUNCTION0(		ForEach,			L"foreach"												)
 			DECLARE_FUNCTION1(		Flag,				L"forwarded",		MessageHolder::FLAG_FORWARDED		)
 			DECLARE_FUNCTION0(		FormatAddress, 		L"formataddress"										)

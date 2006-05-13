@@ -1,5 +1,5 @@
 {
-  @Progn(@Set('to', @FolderProperty(@Folder(:FN-FULLNAME, :FT-CURRENT), 'To')),
+  @Progn(@Set('to', @FolderParameter(@Folder(:FN-FULLNAME, :FT-CURRENT), 'To')),
          @Set('bcc', @Equal(@Profile('', 'Global', 'Bcc', '1'), '1')),
          @Set('addr',
               @If(@Equal(@Profile('', 'Global', 'OpenAddressBook', '0'), '1'),
