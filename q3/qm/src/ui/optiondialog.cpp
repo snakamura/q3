@@ -2488,6 +2488,10 @@ LRESULT qm::OptionEdit2Dialog::onSecurity()
  *
  */
 
+DialogUtil::BoolProperty qm::OptionMessageDialog::boolProperties__[] = {
+	{ L"ShowHeader",	IDC_SHOWHEADER	}
+};
+
 qm::OptionMessageDialog::OptionMessageDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
 											 Profile* pProfile) :
 	AbstractOptionTextDialog(IDD_OPTIONMESSAGE, pProfile, L"MessageWindow"),
@@ -2503,6 +2507,9 @@ qm::OptionMessageDialog::~OptionMessageDialog()
 LRESULT qm::OptionMessageDialog::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"MessageWindow", boolProperties__, countof(boolProperties__));
+	
 	return AbstractOptionTextDialog::onInitDialog(hwndFocus, lParam);
 }
 
@@ -2510,6 +2517,9 @@ bool qm::OptionMessageDialog::save(OptionDialogContext* pContext)
 {
 	if (!AbstractOptionTextDialog::save(pContext))
 		return false;
+	
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"MessageWindow", boolProperties__, countof(boolProperties__));
 	
 	pContext->setFlags(OptionDialogContext::FLAG_RELOADMESSAGE);
 	
@@ -2522,6 +2532,10 @@ bool qm::OptionMessageDialog::save(OptionDialogContext* pContext)
  * OptionPreviewDialog
  *
  */
+
+DialogUtil::BoolProperty qm::OptionPreviewDialog::boolProperties__[] = {
+	{ L"ShowHeader",	IDC_SHOWHEADER	}
+};
 
 DialogUtil::IntProperty qm::OptionPreviewDialog::intProperties__[] = {
 	{ L"SeenWait",	IDC_SEENWAIT	}
@@ -2542,6 +2556,8 @@ qm::OptionPreviewDialog::~OptionPreviewDialog()
 LRESULT qm::OptionPreviewDialog::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"PreviewWindow", boolProperties__, countof(boolProperties__));
 	DialogUtil::loadIntProperties(this, pProfile_,
 		L"PreviewWindow", intProperties__, countof(intProperties__));
 	
@@ -2553,6 +2569,8 @@ bool qm::OptionPreviewDialog::save(OptionDialogContext* pContext)
 	if (!AbstractOptionTextDialog::save(pContext))
 		return false;
 	
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"PreviewWindow", boolProperties__, countof(boolProperties__));
 	DialogUtil::saveIntProperties(this, pProfile_,
 		L"PreviewWindow", intProperties__, countof(intProperties__));
 	

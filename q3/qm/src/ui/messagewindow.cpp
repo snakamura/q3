@@ -135,6 +135,7 @@ public:
 	wstring_ptr wstrTemplate_;
 	wstring_ptr wstrCertificate_;
 	unsigned int nSeenWait_;
+	bool bShowHeader_;
 	
 	HandlerList listHandler_;
 };
@@ -300,7 +301,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	unsigned int nFlags = (bRawMode ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(bSourceMode ? MessageViewWindow::FLAG_SOURCEMODE : 0) |
-		(!bShowHeaderWindow_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
+		(!bShowHeaderWindow_ && bShowHeader_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
 		(nMode & MessageViewMode::MODE_HTMLONLINE ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
 		(nMode & MessageViewMode::MODE_INTERNETZONE ? MessageViewWindow::FLAG_INTERNETZONE : 0);
 	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0, pFolder, pTemplate,
@@ -317,6 +318,12 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 void qm::MessageWindowImpl::reloadProfiles(bool bInitialize)
 {
 	nSeenWait_ = pProfile_->getInt(pwszSection_, L"SeenWait");
+	bShowHeader_ = pProfile_->getInt(pwszSection_, L"ShowHeader") != 0;
+	
+	if (!bInitialize) {
+		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
+		setMessage(mpl, false);
+	}
 }
 
 MessageViewMode* qm::MessageWindowImpl::getMessageViewMode()
@@ -500,6 +507,7 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 		nZoom, static_cast<MessageViewMode::Fit>(nFit)));
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
 	pImpl_->nSeenWait_ = 0;
+	pImpl_->bShowHeader_ = true;
 	
 	pImpl_->reloadProfiles(true);
 	

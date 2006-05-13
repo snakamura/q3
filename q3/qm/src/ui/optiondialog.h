@@ -1118,6 +1118,9 @@ private:
 private:
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	qs::Profile* pProfile_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
 };
 
 
@@ -1150,6 +1153,7 @@ private:
 	qs::Profile* pProfile_;
 
 private:
+	static DialogUtil::BoolProperty boolProperties__[];
 	static DialogUtil::IntProperty intProperties__[];
 };
 

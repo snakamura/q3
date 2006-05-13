@@ -1397,6 +1397,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,75,10
     CONTROL         "水平スクロールバー(&H)",IDC_SHOWHORIZONTALSCROLLBAR,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,85,75,10
+    CONTROL         "ヘッダ表示(&D)",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,85,52,10
     EDITTEXT        IDC_SEENWAIT,5,95,18,14,ES_AUTOHSCROLL,WS_EX_RIGHT
     LTEXT           "秒待ってから既読にする(&I)",IDC_STATIC,25,97,90,8
     PUSHBUTTON      "フォント(&F)...",IDC_FONT,82,50,50,12
@@ -1424,6 +1426,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,75,10
     CONTROL         "水平スクロールバー(&H)",IDC_SHOWHORIZONTALSCROLLBAR,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,85,75,10
+    CONTROL         "ヘッダ表示(&D)",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,85,52,10
     PUSHBUTTON      "フォント(&F)...",IDC_FONT,82,50,50,12
     PUSHBUTTON      "色(&L)...",IDC_COLORS,82,65,50,12
 END

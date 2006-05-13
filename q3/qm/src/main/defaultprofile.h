@@ -367,6 +367,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"MessageWindow",	L"TabWidth",				L"4"							},
 	{ L"MessageWindow",	L"FontGroup",				L""								},
 	{ L"MessageWindow",	L"SeenWait",				L"0"							},
+	{ L"MessageWindow",	L"ShowHeader",				L"1"							},
 	{ L"MessageWindow",	L"ShowHeaderWindow",		L"1"							},
 	{ L"MessageWindow", L"Template", 				L""								},
 	{ L"MessageWindow",	L"ViewFit",					L"0"							}, /*MessageViewMode::FIT_NONE*/
@@ -423,6 +424,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"PreviewWindow",	L"Delay",					L"300"							},
 	{ L"PreviewWindow",	L"FontGroup",				L""								},
 	{ L"PreviewWindow",	L"SeenWait",				L"0"							},
+	{ L"PreviewWindow",	L"ShowHeader",				L"1"							},
 	{ L"PreviewWindow",	L"ShowHeaderWindow",		L"1"							},
 	{ L"PreviewWindow",	L"Template",				L""								},
 	{ L"PreviewWindow",	L"ViewFit",					L"0"							}, /*MessageViewMode::FIT_NONE*/
