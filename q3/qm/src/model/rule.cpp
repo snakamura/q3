@@ -245,7 +245,8 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 				for (IndexList::const_iterator it = listIndex.begin(); it != listIndex.end(); ++it) {
 					MessagePtrLock mpl(pAccessor->getMessagePtr(*it));
 					MessageHolder* pmh = mpl ? mpl : pAccessor->getMessageHolder(*it);
-					l.push_back(pmh);
+					if (pmh)
+						l.push_back(pmh);
 				}
 				
 				RuleContext context(l, pDocument, pAccount, pFolder, hwnd,
