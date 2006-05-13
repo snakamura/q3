@@ -737,10 +737,30 @@ bool qm::NormalFolder::loadMessageHolders()
 	
 	wstring_ptr wstrPath(pImpl_->getPath());
 	
-	MessageHolderList& l = pImpl_->listMessageHolder_;
+	MessageHolderList l;
+	struct Deleter
+	{
+		Deleter(MessageHolderList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			std::for_each(l_.begin(), l_.end(), qs::deleter<MessageHolder>());
+		}
+		
+		MessageHolderList& l_;
+	} deleter(l);
 	
 	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	WIN32_FIND_DATA fd;
+	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+	if (hFind.get()) {
+		hFind.close();
+		
+		l.reserve(fd.nFileSizeLow/sizeof(MessageHolder::Init));
+		
 		FileInputStream fileStream(wstrPath.get());
 		if (!fileStream)
 			return false;
@@ -748,12 +768,16 @@ bool qm::NormalFolder::loadMessageHolders()
 		
 		MessageHolder::Init init;
 		size_t nRead = 0;
+		unsigned int nPrevId = 0;
 		while (true) {
 			size_t nRead = stream.read(reinterpret_cast<unsigned char*>(&init), sizeof(init));
 			if (nRead == 0)
 				break;
 			else if (nRead != sizeof(init))
 				return false;
+			else if (nPrevId != 0 && init.nId_ <= nPrevId)
+				return false;
+			nPrevId = init.nId_;
 			
 			std::auto_ptr<MessageHolder> pmh(new MessageHolder(this, init));
 			l.push_back(pmh.get());
@@ -770,6 +794,7 @@ bool qm::NormalFolder::loadMessageHolders()
 	}
 	
 	pImpl_->nMaxId_ = l.empty() ? 0 : l.back()->getId();
+	pImpl_->listMessageHolder_.swap(l);
 	
 	pImpl_->bLoad_ = true;
 	
@@ -828,7 +853,8 @@ bool qm::NormalFolder::deletePermanent()
 
 unsigned int qm::NormalFolder::generateId()
 {
-	Lock<Account> lock(*getAccount());
+	assert(getAccount()->isLocked());
+	
 	if (!loadMessageHolders())
 		return -1;
 	

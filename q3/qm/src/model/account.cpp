@@ -2715,7 +2715,7 @@ MessageHolder* qm::Account::storeMessage(NormalFolder* pFolder,
 		pTime = &time;
 	}
 	
-	if (nId == static_cast<unsigned int>(-1)) {
+	if (nId == -1) {
 		nId = pFolder->generateId();
 		if (nId == -1)
 			return 0;
