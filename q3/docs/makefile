@@ -11,8 +11,9 @@ HTMLS	= $(patsubst %.rd, $(HTMLDIR)/%.html, $(wildcard [A-Z]*.rd))
 HEAD	= head.rd
 FOOT	= foot.rd
 IMGS	= $(patsubst images/%.png, $(HTMLDIR)/images/%.png, $(wildcard images/*.png))
+CSSS	= $(patsubst %.css, $(HTMLDIR)/%.css, $(wildcard *.css))
 
-all: $(HTMLS) $(IMGS)
+all: $(HTMLS) $(IMGS) $(CSSS)
 
 zip: all
 	if [ ! -d $(ZIPDIR) ]; then mkdir -p $(ZIPDIR); fi
@@ -24,6 +25,10 @@ clean:
 $(HTMLDIR)/%.html: %.rd
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	cat $(HEAD) $< $(FOOT) | ruby -Ks $(RD2) -r rd/rd2html-ext-lib.rb --out-code sjis --ref-extension --headline-title --head-element --with-part=head --with-part=html:include > $@
+
+$(HTMLDIR)/%.css: %.css
+	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	cp $< $@
 
 $(HTMLDIR)/images/%.png: images/%.png
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi

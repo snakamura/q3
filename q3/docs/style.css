@@ -1,0 +1,38 @@
+body {
+    margin-right: 8%;
+    margin-left: 8%;
+    background-color: white;
+    color: black;
+}
+h1, h2, h3, h4, h5 {
+    padding: .5ex .5ex .5ex .5ex;
+    font-weight: bold;
+}
+h1 {
+    font-weight: normal;
+    border-bottom: gray 3px double;
+}
+h2 {
+    margin-top: 2em;
+    border-bottom: gray 2px double;
+}
+h3 {
+    margin-top: 1em;
+    border-bottom: gray 1px solid;
+}
+pre {
+    background-color: #eeeeff;
+    color: black;
+    padding: 1em;
+    border: 1px dotted #ccccff;
+}
+i {
+    font-style: normal;
+    font-weight: bold;
+    color: #009999;
+}
+em {
+    font-style: normal;
+    font-weight: bold;
+    color: #0000cc;
+}
