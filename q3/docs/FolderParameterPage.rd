@@ -7,6 +7,7 @@
 
 一部のフォルダは追加のパラメータを設定できます。たとえば、RSSアカウントのフォルダはフィードのURLなどをパラメータとして設定します。[パラメータ]タブではこれらのパラメータを設定します。パラメータが設定できないフォルダの場合にはこのタブは表示されません。
 
-*((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))
+*((<メールアカウントのパラメータ|URL:FolderPropertyMailParameter.html>))
+*((<RSSアカウントのパラメータ|URL:FolderPropertyRssParameter.html>))
 
 =end
