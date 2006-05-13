@@ -1295,7 +1295,7 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 	}
 	else {
 		if (part_.isText()) {
-			if (pwszQuote) {
+			if (pwszQuote && *pwszQuote) {
 				wxstring_size_ptr wstrBody(part_.getBodyText(pwszCharset));
 				if (!wstrBody.get())
 					return false;
@@ -1375,13 +1375,13 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 				bFirst = false;
 			}
 			else {
-				if (*(pBuf->getCharArray() + pBuf->getLength() - 1) == L'\n' && pwszQuote) {
+				if (*(pBuf->getCharArray() + pBuf->getLength() - 1) == L'\n' && pwszQuote && *pwszQuote) {
 					if (!pBuf->append(pwszQuote))
 						return false;
 				}
 				if (!pBuf->append(L"\n"))
 					return false;
-				if (pwszQuote) {
+				if (pwszQuote && *pwszQuote) {
 					if (!pBuf->append(pwszQuote))
 						return false;
 				}
@@ -1402,7 +1402,7 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 	}
 	else {
 		bool bAttachment = part_.isAttachment();
-		if (pwszQuote) {
+		if (pwszQuote && *pwszQuote) {
 			wxstring_size_ptr wstrBody;
 			if (part_.getEnclosedPart() && (!bAttachment || bForceRfc822Inline)) {
 				PartUtil util(*part_.getEnclosedPart());

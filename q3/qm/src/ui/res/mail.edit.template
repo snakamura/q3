@@ -8,8 +8,8 @@ X-QMAIL-Account: {@Account()}{
   @If(X-QMAIL-SubAccount,
       @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount),
       '')}{
-  @If(@Or(@Equal(@Folder(), @SpecialFolder('Outbox')),
-          @Equal(@Folder(), @SpecialFolder('Draftbox'))),
+  @If(@Or(@Equal(@Folder(), @SpecialFolder(:SF-OUTBOX)),
+          @Equal(@Folder(), @SpecialFolder(:SF-DRAFTBOX))),
       @Concat('\nX-QMAIL-DraftMacro: @ForEach(@Messages(\'//',
               @Account(),
               '/',

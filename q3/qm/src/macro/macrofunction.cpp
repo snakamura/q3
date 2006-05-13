@@ -703,7 +703,9 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	wstring_ptr wstrQuote;
 	if (nSize > 0) {
 		ARG(pValue, 0);
-		wstrQuote = pValue->string();
+		wstring_ptr wstr(pValue->string());
+		if (*wstr.get())
+			wstrQuote = wstr;
 	}
 	
 	Message* pMessage = getMessage(pContext,
@@ -783,18 +785,18 @@ MacroValuePtr qm::MacroFunctionBodyCharset::value(MacroContext* pContext) const
 	if (nView > 2)
 		nView = 0;
 	
-	Message* pMessage = getMessage(pContext,
-		nView != VIEW_NONE ? MacroContext::MESSAGETYPE_TEXT :
-		MacroContext::MESSAGETYPE_ALL, 0);
-	if (!pMessage)
-		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
-	
-	if (!pPart)
-		pPart = pMessage;
-	
 	const WCHAR* pwszCharset = pContext->getBodyCharset();
+	
 	wstring_ptr wstrCharset;
 	if (!pwszCharset) {
+		Message* pMessage = getMessage(pContext,
+			nView != VIEW_NONE ? MacroContext::MESSAGETYPE_TEXT :
+			MacroContext::MESSAGETYPE_ALL, 0);
+		if (!pMessage)
+			return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
+		if (!pPart)
+			pPart = pMessage;
+		
 		PartUtil util(*pPart);
 		if (nView == VIEW_NONE)
 			wstrCharset = util.getAllTextCharset();
@@ -1676,7 +1678,7 @@ MacroValuePtr qm::MacroFunctionFieldParameter::value(MacroContext* pContext) con
 	SimpleParameterParser parser;
 	Part::Field field = pPart->getField(wstrName.get(), &parser);
 	if (field == Part::FIELD_EXIST) {
-		if (wstrParamName.get()) {
+		if (wstrParamName.get() && *wstrParamName.get()) {
 			wstrValue = parser.getParameter(wstrParamName.get());
 			pwszValue = wstrValue.get();
 		}
@@ -2439,15 +2441,14 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 	
 	const CHAR* pszHeader = pPart->getHeader();
 	Part partTemp;
-	if (wstrRemoveField.get()) {
+	if (wstrRemoveField.get() && *wstrRemoveField.get()) {
 		if (!partTemp.create(0, pszHeader, -1))
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		const WCHAR* p = wstrRemoveField.get();
 		const WCHAR* pEnd = wcschr(p, L',');
 		while (true) {
-			wstring_ptr wstrField(trim(
-				p, pEnd ? pEnd - p : static_cast<size_t>(-1)));
+			wstring_ptr wstrField(trim(p, pEnd ? pEnd - p : -1));
 			partTemp.removeField(wstrField.get(), 0xffffffff);
 			if (!pEnd)
 				break;
@@ -4833,31 +4834,13 @@ MacroValuePtr qm::MacroFunctionSpecialFolder::value(MacroContext* pContext) cons
 	}
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrName(pValue->string());
-	
-	struct {
-		const WCHAR* pwszName_;
-		Folder::Flag flag_;
-	} flags[] = {
-		{ L"Inbox",		Folder::FLAG_INBOX		},
-		{ L"Outbox",	Folder::FLAG_OUTBOX		},
-		{ L"Sentbox",	Folder::FLAG_SENTBOX	},
-		{ L"Trashbox",	Folder::FLAG_TRASHBOX	},
-		{ L"Draftbox",	Folder::FLAG_DRAFTBOX	},
-		{ L"Searchbox",	Folder::FLAG_SEARCHBOX	}
-	};
-	
-	Folder::Flag flag = static_cast<Folder::Flag>(0);
-	for (int n = 0; n < countof(flags) && flag == 0; ++n) {
-		if (wcscmp(wstrName.get(), flags[n].pwszName_) == 0)
-			flag = flags[n].flag_;
-	}
-	if (flag == 0)
+	unsigned int nFlags = pValue->number();
+	if (!(nFlags & Folder::FLAG_BOX_MASK))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	const WCHAR* pwszFolderName = L"";
 	wstring_ptr wstrFolderName;
-	Folder* pFolder = pAccount->getFolderByBoxFlag(flag);
+	Folder* pFolder = pAccount->getFolderByBoxFlag(static_cast<Folder::Flag>(nFlags));
 	if (pFolder) {
 		wstrFolderName = pFolder->getFullName();
 		pwszFolderName = wstrFolderName.get();
