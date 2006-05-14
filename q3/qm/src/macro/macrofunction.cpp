@@ -1550,7 +1550,7 @@ MacroValuePtr qm::MacroFunctionExit::value(MacroContext* pContext) const
 	
 	LOG(Exit);
 	
-	if (!checkArgSizeRange(pContext, 2, 4))
+	if (!checkArgSize(pContext, 0))
 		return MacroValuePtr();
 	
 	pContext->setReturnType(MacroContext::RETURNTYPE_EXIT);
