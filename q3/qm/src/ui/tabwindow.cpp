@@ -684,10 +684,11 @@ LRESULT qm::TabCtrlWindow::windowProc(UINT uMsg,
 LRESULT qm::TabCtrlWindow::onContextMenu(HWND hwnd,
 										 const POINT& pt)
 {
+	POINT ptMenu = UIUtil::getTabCtrlContextMenuPosition(getHandle(), pt);
 	HMENU hmenu = pMenuManager_->getMenu(L"tab", false, false);
 	if (hmenu) {
 		TCHITTESTINFO info = {
-			{ pt.x, pt.y }
+			{ ptMenu.x, ptMenu.y }
 		};
 		screenToClient(&info.pt);
 		int nItem = TabCtrl_HitTest(getHandle(), &info);
@@ -697,7 +698,7 @@ LRESULT qm::TabCtrlWindow::onContextMenu(HWND hwnd,
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+		::TrackPopupMenu(hmenu, nFlags, ptMenu.x, ptMenu.y, 0, getParentFrame(), 0);
 		
 		postMessage(TabCtrlWindow::WM_TABCTRLWINDOW_DESELECTTEMPORARY);
 	}

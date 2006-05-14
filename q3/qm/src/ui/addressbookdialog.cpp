@@ -1249,6 +1249,7 @@ LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::windowProc(UINT uMsg
 LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onContextMenu(HWND hwnd,
 																		  const POINT& pt)
 {
+	POINT ptMenu = UIUtil::getListViewContextMenuPosition(getHandle(), pt);
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	AutoMenuHandle hmenu(::LoadMenu(hInst, MAKEINTRESOURCE(IDR_ADDRESSBOOK)));
 	HMENU hmenuSub = ::GetSubMenu(hmenu.get(), 0);
@@ -1256,7 +1257,7 @@ LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onContextMenu(HWND h
 #ifndef _WIN32_WCE
 	nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-	UINT nId = ::TrackPopupMenu(hmenuSub, nFlags, pt.x, pt.y, 0, getHandle(), 0);
+	UINT nId = ::TrackPopupMenu(hmenuSub, nFlags, ptMenu.x, ptMenu.y, 0, getHandle(), 0);
 	if (nId == IDM_ADDRESSBOOK_REMOVE) {
 		pDialog_->remove();
 	}

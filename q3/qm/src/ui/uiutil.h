@@ -16,6 +16,7 @@
 #include <qs.h>
 #include <qsprofile.h>
 #include <qsstring.h>
+#include <qstextwindow.h>
 
 #include "../model/editmessage.h"
 
@@ -87,6 +88,17 @@ public:
 	
 	static unsigned int getPreferredWidth(HWND hwnd,
 										  bool bNoPrefix);
+	
+	static POINT getContextMenuPosition(HWND hwnd,
+										const POINT& pt);
+	static POINT getListViewContextMenuPosition(HWND hwnd,
+												const POINT& pt);
+	static POINT getTreeViewContextMenuPosition(HWND hwnd,
+												const POINT& pt);
+	static POINT getTabCtrlContextMenuPosition(HWND hwnd,
+											   const POINT& pt);
+	static POINT getTextWindowContextMenuPosition(qs::TextWindow* pTextWindow,
+												  const POINT& pt);
 	
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
 	static void setWindowAlpha(HWND hwnd,

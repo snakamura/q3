@@ -1115,13 +1115,14 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::windowProc(UINT uMsg,
 LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onContextMenu(HWND hwnd,
 																  const POINT& pt)
 {
+	POINT ptMenu = UIUtil::getListViewContextMenuPosition(getHandle(), pt);
 	HMENU hmenu = pItem_->pMenuManager_->getMenu(L"attachment", false, false);
 	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+		::TrackPopupMenu(hmenu, nFlags, ptMenu.x, ptMenu.y, 0, getParentFrame(), 0);
 	}
 	return 0;
 }

@@ -13,6 +13,7 @@
 #include "actionid.h"
 #include "resourceinc.h"
 #include "statusbar.h"
+#include "uiutil.h"
 #include "../uimodel/encodingmodel.h"
 
 using namespace qm;
@@ -184,6 +185,7 @@ LRESULT qm::MessageStatusBar::windowProc(UINT uMsg,
 LRESULT qm::MessageStatusBar::onContextMenu(HWND hwnd,
 											const POINT& pt)
 {
+	POINT ptMenu = UIUtil::getContextMenuPosition(getHandle(), pt);
 #ifndef _WIN32_WCE_PSPC
 	POINT ptClient = pt;
 	screenToClient(&ptClient);
@@ -195,12 +197,12 @@ LRESULT qm::MessageStatusBar::onContextMenu(HWND hwnd,
 #ifndef _WIN32_WCE
 			nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-			::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+			::TrackPopupMenu(hmenu, nFlags, ptMenu.x, ptMenu.y, 0, getParentFrame(), 0);
 		}
 	}
 #endif
 	
-	return StatusBar::onContextMenu(hwnd, pt);
+	return 0;
 }
 
 LRESULT qm::MessageStatusBar::onLButtonDown(UINT nFlags,

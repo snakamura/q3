@@ -1343,10 +1343,11 @@ LRESULT qm::FolderWindow::windowProc(UINT uMsg,
 LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 										const POINT& pt)
 {
+	POINT ptMenu = UIUtil::getTreeViewContextMenuPosition(getHandle(), pt);
 	HMENU hmenu = pImpl_->pMenuManager_->getMenu(L"folder", false, false);
 	if (hmenu) {
 		TVHITTESTINFO info = {
-			{ pt.x, pt.y },
+			{ ptMenu.x, ptMenu.y },
 		};
 		screenToClient(&info.pt);
 		HTREEITEM hItem = TreeView_HitTest(getHandle(), &info);
@@ -1364,7 +1365,7 @@ LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+		::TrackPopupMenu(hmenu, nFlags, ptMenu.x, ptMenu.y, 0, getParentFrame(), 0);
 		
 #if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
 		if (hItem)

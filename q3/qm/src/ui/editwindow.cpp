@@ -737,13 +737,14 @@ LRESULT qm::EditTextWindow::windowProc(UINT uMsg,
 LRESULT qm::EditTextWindow::onContextMenu(HWND hwnd,
 										  const POINT& pt)
 {
+	POINT ptMenu = UIUtil::getTextWindowContextMenuPosition(this, pt);
 	HMENU hmenu = pMenuManager_->getMenu(L"edit", false, false);
 	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+		::TrackPopupMenu(hmenu, nFlags, ptMenu.x, ptMenu.y, 0, getParentFrame(), 0);
 	}
 	
 	return 0;

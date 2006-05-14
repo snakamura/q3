@@ -1157,13 +1157,31 @@ LRESULT qm::ListWindow::onContextMenu(HWND hwnd,
 {
 	setFocus();
 	
+	POINT ptMenu = { 5, 5 };
+	if (pt.x == -1 && pt.y == -1) {
+		ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
+		if (pViewModel) {
+			Lock<ViewModel> lock(*pViewModel);
+			unsigned int nItem = pViewModel->getFocused();
+			if (nItem < pViewModel->getCount()) {
+				RECT rect;
+				pImpl_->getRect(&rect);
+				ptMenu.y = rect.top + (nItem - getScrollPos(SB_VERT))*pImpl_->nLineHeight_ + 5;
+			}
+		}
+		clientToScreen(&ptMenu);
+	}
+	else {
+		ptMenu = pt;
+	}
+	
 	HMENU hmenu = pImpl_->pMenuManager_->getMenu(L"list", false, false);
 	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
 #ifndef _WIN32_WCE
 		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
 #endif
-		::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, getParentFrame(), 0);
+		::TrackPopupMenu(hmenu, nFlags, ptMenu.x, ptMenu.y, 0, getParentFrame(), 0);
 	}
 	
 	return 0;
@@ -1402,7 +1420,7 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 		Lock<ViewModel> lock(*pViewModel);
 		
 		unsigned int nLine = pImpl_->getLineFromPoint(pt);
-		if (nLine != static_cast<unsigned int>(-1)) {
+		if (nLine != -1) {
 			bool bSelected = pViewModel->isSelected(nLine);
 			
 			pViewModel->setFocused(nLine, false);

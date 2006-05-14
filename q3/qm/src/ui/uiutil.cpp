@@ -377,6 +377,114 @@ unsigned int qm::UIUtil::getPreferredWidth(HWND hwnd,
 	return size.cx + 2*qs::UIUtil::getLogPixel()/96;
 }
 
+POINT qm::UIUtil::getContextMenuPosition(HWND hwnd,
+										 const POINT& pt)
+{
+	POINT ptMenu;
+	if (pt.x == -1 && pt.y == -1) {
+		RECT rect;
+		Window(hwnd).getWindowRect(&rect);
+		ptMenu.x = rect.left + 5;
+		ptMenu.y = rect.top + 5;
+	}
+	else {
+		ptMenu = pt;
+	}
+	return ptMenu;
+}
+
+POINT qm::UIUtil::getListViewContextMenuPosition(HWND hwnd,
+												 const POINT& pt)
+{
+	POINT ptMenu;
+	if (pt.x == -1 && pt.y == -1) {
+		int nItem = ListView_GetNextItem(hwnd, -1, LVNI_ALL | LVNI_FOCUSED);
+		RECT rect;
+		if (nItem != -1) {
+			ListView_GetItemRect(hwnd, nItem, &rect, LVIR_BOUNDS);
+			Window(hwnd).clientToScreen(&rect);
+		}
+		else {
+			Window(hwnd).getWindowRect(&rect);
+		}
+		ptMenu.x = rect.left + 5;
+		ptMenu.y = rect.top + 5;
+	}
+	else {
+		ptMenu = pt;
+	}
+	return ptMenu;
+}
+
+POINT qm::UIUtil::getTreeViewContextMenuPosition(HWND hwnd,
+												 const POINT& pt)
+{
+	POINT ptMenu;
+	if (pt.x == -1 && pt.y == -1) {
+		HTREEITEM hItem = TreeView_GetSelection(hwnd);
+		RECT rect;
+		if (hItem) {
+			TreeView_GetItemRect(hwnd, hItem, &rect, TRUE);
+			Window(hwnd).clientToScreen(&rect);
+		}
+		else {
+			Window(hwnd).getWindowRect(&rect);
+		}
+		ptMenu.x = rect.left + 5;
+		ptMenu.y = rect.top + 5;
+	}
+	else {
+		ptMenu = pt;
+	}
+	return ptMenu;
+}
+
+POINT qm::UIUtil::getTabCtrlContextMenuPosition(HWND hwnd,
+												const POINT& pt)
+{
+	POINT ptMenu;
+	if (pt.x == -1 && pt.y == -1) {
+		int nItem = TabCtrl_GetCurFocus(hwnd);
+		RECT rect;
+		if (nItem != -1) {
+			TabCtrl_GetItemRect(hwnd, nItem, &rect);
+			Window(hwnd).clientToScreen(&rect);
+		}
+		else {
+			Window(hwnd).getWindowRect(&rect);
+		}
+		ptMenu.x = rect.left + 5;
+		ptMenu.y = rect.top + 5;
+	}
+	else {
+		ptMenu = pt;
+	}
+	return ptMenu;
+}
+
+POINT qm::UIUtil::getTextWindowContextMenuPosition(TextWindow* pTextWindow,
+												   const POINT& pt)
+{
+	POINT ptMenu;
+	if (pt.x == -1 && pt.y == -1) {
+		if (pTextWindow->isShowCaret() && ::GetCaretPos(&ptMenu)) {
+			pTextWindow->clientToScreen(&ptMenu);
+			ptMenu.x += 5;
+			ptMenu.y += 5;
+		}
+		else {
+			RECT rect;
+			pTextWindow->getWindowRect(&rect);
+			ptMenu.x = rect.left + 5;
+			ptMenu.y = rect.top + 5;
+		}
+	}
+	else {
+		ptMenu = pt;
+	}
+	return ptMenu;
+}
+
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
 void qm::UIUtil::setWindowAlpha(HWND hwnd,
 								Profile* pProfile,
