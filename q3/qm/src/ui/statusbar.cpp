@@ -185,8 +185,8 @@ LRESULT qm::MessageStatusBar::windowProc(UINT uMsg,
 LRESULT qm::MessageStatusBar::onContextMenu(HWND hwnd,
 											const POINT& pt)
 {
-	POINT ptMenu = UIUtil::getContextMenuPosition(getHandle(), pt);
 #ifndef _WIN32_WCE_PSPC
+	POINT ptMenu = UIUtil::getContextMenuPosition(getHandle(), pt);
 	POINT ptClient = pt;
 	screenToClient(&ptClient);
 	int nPart = getPart(ptClient);
