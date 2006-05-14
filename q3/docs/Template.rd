@@ -19,6 +19,8 @@
   印刷用
 :quote.template
   引用用
+:url.template
+  mailto URL処理用
 
 各テンプレートの使い方については以下を参照してください。
 

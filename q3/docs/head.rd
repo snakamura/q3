@@ -1,5 +1,5 @@
 =begin head
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" type="text/css" href="style.css" />
 =end
 =begin html
 <div class="nav"><a href="Contents.html">–ÚŽŸ</a></div>
