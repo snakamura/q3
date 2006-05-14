@@ -222,6 +222,9 @@ public:
 	};
 
 public:
+	typedef std::vector<MacroValue*> ArgumentList;
+
+public:
 	MacroContext(MessageHolderBase* pmh,
 				 Message* pMessage,
 				 Account* pAccount,
@@ -265,9 +268,8 @@ public:
 	const MacroExpr* getFunction(const WCHAR* pwszName) const;
 	bool setFunction(const WCHAR* pwszName,
 					 const MacroExpr* pExpr);
-	void pushArgumentContext();
-	void popArgumentContext();
-	void addArgument(MacroValuePtr pValue);
+	void pushArguments(ArgumentList& listArgument);
+	void popArguments();
 	MacroValuePtr getArgument(unsigned int n) const;
 	bool setRegexResult(const qs::RegexRangeList& listRange);
 	void clearRegexResult();

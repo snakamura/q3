@@ -320,19 +320,14 @@ bool qm::MacroGlobalContext::setFunction(const WCHAR* pwszName,
 	return pFunction_->setFunction(pwszName, pExpr);
 }
 
-void qm::MacroGlobalContext::pushArgumentContext()
+void qm::MacroGlobalContext::pushArguments(MacroContext::ArgumentList& listArgument)
 {
-	pArgument_->pushContext();
+	pArgument_->push(listArgument);
 }
 
-void qm::MacroGlobalContext::popArgumentContext()
+void qm::MacroGlobalContext::popArguments()
 {
-	pArgument_->popContext();
-}
-
-void qm::MacroGlobalContext::addArgument(MacroValuePtr pValue)
-{
-	pArgument_->addArgument(pValue);
+	pArgument_->pop();
 }
 
 MacroValuePtr qm::MacroGlobalContext::getArgument(unsigned int n) const
@@ -447,38 +442,32 @@ qm::MacroArgumentHolder::~MacroArgumentHolder()
 {
 }
 
-void qm::MacroArgumentHolder::pushContext()
+void qm::MacroArgumentHolder::push(MacroContext::ArgumentList& listArgument)
 {
-	listArgument_.resize(listArgument_.size() + 1);
+	stackArgument_.resize(stackArgument_.size() + 1);
+	stackArgument_.back().swap(listArgument);
 }
 
-void qm::MacroArgumentHolder::popContext()
+void qm::MacroArgumentHolder::pop()
 {
-	assert(!listArgument_.empty());
+	assert(!stackArgument_.empty());
 	
-	std::vector<MacroValue*>& v = listArgument_.back();
-	for (std::vector<MacroValue*>::iterator it = v.begin(); it != v.end(); ++it)
+	MacroContext::ArgumentList& l = stackArgument_.back();
+	for (MacroContext::ArgumentList::const_iterator it = l.begin(); it != l.end(); ++it)
 		MacroValuePtr pValue(*it);
-	listArgument_.pop_back();
-}
-
-void qm::MacroArgumentHolder::addArgument(MacroValuePtr pValue)
-{
-	assert(!listArgument_.empty());
-	listArgument_.back().push_back(pValue.get());
-	pValue.release();
+	stackArgument_.pop_back();
 }
 
 MacroValuePtr qm::MacroArgumentHolder::getArgument(unsigned int n) const
 {
-	if (listArgument_.empty())
+	if (stackArgument_.empty())
 		return MacroValuePtr();
 	
-	const std::vector<MacroValue*>& v = listArgument_.back();
-	if (n >= v.size())
+	const MacroContext::ArgumentList& l = stackArgument_.back();
+	if (n >= l.size())
 		return MacroValuePtr();
 	else
-		return v[n]->clone();
+		return l[n]->clone();
 }
 
 
@@ -1799,19 +1788,14 @@ bool qm::MacroContext::setFunction(const WCHAR* pwszName,
 	return pGlobalContext_->setFunction(pwszName, pExpr);
 }
 
-void qm::MacroContext::pushArgumentContext()
+void qm::MacroContext::pushArguments(ArgumentList& listArgument)
 {
-	pGlobalContext_->pushArgumentContext();
+	pGlobalContext_->pushArguments(listArgument);
 }
 
-void qm::MacroContext::popArgumentContext()
+void qm::MacroContext::popArguments()
 {
-	pGlobalContext_->popArgumentContext();
-}
-
-void qm::MacroContext::addArgument(MacroValuePtr pValue)
-{
-	pGlobalContext_->addArgument(pValue);
+	pGlobalContext_->popArguments();
 }
 
 MacroValuePtr qm::MacroContext::getArgument(unsigned int n) const

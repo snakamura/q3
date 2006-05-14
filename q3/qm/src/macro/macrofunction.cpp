@@ -2367,22 +2367,49 @@ MacroValuePtr qm::MacroFunctionFunction::value(MacroContext* pContext) const
 	if (!pExpr)
 		return error(*pContext, MacroErrorHandler::CODE_UNKNOWNFUNCTION);
 	
-	struct Args
+	MacroContext::ArgumentList listArgument;
+	struct Deleter
 	{
-		Args(MacroContext* pContext) : pContext_(pContext) {}
-		~Args() { pContext_->popArgumentContext(); }
-		MacroContext* pContext_;
-	} args(pContext);
-	
-	pContext->pushArgumentContext();
+		Deleter(MacroContext::ArgumentList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			for (MacroContext::ArgumentList::const_iterator it = l_.begin(); it != l_.end(); ++it)
+				MacroValuePtr pValue(*it);
+			l_.clear();
+		}
+		
+		MacroContext::ArgumentList& l_;
+	} deleter(listArgument);
+	listArgument.reserve(getArgSize() + 1);
 	
 	MacroValuePtr pValueName(MacroValueFactory::getFactory().newString(wstrName_.get()));
-	pContext->addArgument(pValueName);
+	listArgument.push_back(pValueName.release());
 	
 	for (size_t n = 0; n < getArgSize(); ++n) {
 		ARG(pValue, n);
-		pContext->addArgument(pValue);
+		listArgument.push_back(pValue.release());
 	}
+	
+	struct Args
+	{
+		Args(MacroContext* pContext) :
+			pContext_(pContext)
+		{
+		}
+		
+		~Args()
+		{
+			pContext_->popArguments();
+		}
+		
+		MacroContext* pContext_;
+	} args(pContext);
+	
+	pContext->pushArguments(listArgument);
 	
 	return pExpr->value(pContext);
 }

@@ -212,9 +212,8 @@ public:
 	const MacroExpr* getFunction(const WCHAR* pwszName) const;
 	bool setFunction(const WCHAR* pwszName,
 					 const MacroExpr* pExpr);
-	void pushArgumentContext();
-	void popArgumentContext();
-	void addArgument(MacroValuePtr pValue);
+	void pushArguments(MacroContext::ArgumentList& listArgument);
+	void popArguments();
 	MacroValuePtr getArgument(unsigned int n) const;
 	bool setRegexResult(const qs::RegexRangeList& listRange);
 	void clearRegexResult();
@@ -284,9 +283,8 @@ public:
 	~MacroArgumentHolder();
 
 public:
-	void pushContext();
-	void popContext();
-	void addArgument(MacroValuePtr pValue);
+	void push(MacroContext::ArgumentList& listArgument);
+	void pop();
 	MacroValuePtr getArgument(unsigned int n) const;
 
 private:
@@ -294,10 +292,10 @@ private:
 	MacroArgumentHolder& operator=(const MacroArgumentHolder&);
 
 private:
-	typedef std::vector<std::vector<MacroValue*> > ArgumentList;
+	typedef std::vector<MacroContext::ArgumentList> ArgumentStack;
 
 private:
-	ArgumentList listArgument_;
+	ArgumentStack stackArgument_;
 };
 
 
