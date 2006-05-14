@@ -3088,7 +3088,9 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 	wstring_ptr wstrEncoding;
 	if (nSize > 2) {
 		ARG(pValueEncoding, 2);
-		wstrEncoding = pValueEncoding->string();
+		wstring_ptr wstr(pValueEncoding->string());
+		if (*wstr.get())
+			wstrEncoding = wstr;
 	}
 	
 	wstring_ptr wstrAbsolutePath(pContext->resolvePath(wstrPath.get()));
@@ -4498,7 +4500,9 @@ MacroValuePtr qm::MacroFunctionSave::value(MacroContext* pContext) const
 	wstring_ptr wstrEncoding;
 	if (nSize > 2) {
 		ARG(pValueEncoding, 2);
-		wstrEncoding = pValueEncoding->string();
+		wstring_ptr wstr(pValueEncoding->string());
+		if (*wstr.get())
+			wstrEncoding = wstr;
 	}
 	
 	wstring_ptr wstrAbsolutePath(pContext->resolvePath(wstrPath.get()));
@@ -4514,7 +4518,7 @@ MacroValuePtr qm::MacroFunctionSave::value(MacroContext* pContext) const
 	if (!writer.close())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
-	return MacroValueFactory::getFactory().newBoolean(true);
+	return pValueContent;
 }
 
 const WCHAR* qm::MacroFunctionSave::getName() const
