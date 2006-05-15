@@ -114,6 +114,7 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 			AttachmentParser::AttachmentListFree free(list);
 			parser.getAttachments(false, &list);
 			
+			int nMnemonic = 1;
 			for (List::iterator it = list.begin(); it != list.end(); ++it) {
 				URI uri(mpl, &msg, (*it).second, URIFragment::TYPE_BODY);
 				wstring_ptr wstrURI(uri.toString());
@@ -121,7 +122,7 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 					IDM_MESSAGE_ATTACHMENT, wstrURI.get()));
 				unsigned int nId = helper_.add(MAX_MESSAGE_ATTACHMENT, pParam);
 				if (nId != -1) {
-					wstring_ptr wstrName(UIUtil::formatMenu((*it).first));
+					wstring_ptr wstrName(UIUtil::formatMenu((*it).first, &nMnemonic));
 					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), DATA);
 					bAdded = true;
 				}
@@ -178,12 +179,15 @@ UINT qm::EncodingMenuCreator::createMenu(HMENU hmenu,
 	UINT nMax = bView_ ? MAX_VIEW_ENCODING : MAX_TOOL_ENCODING;
 	
 	if (!listEncoding.empty()) {
+		int nMnemonic = 1;
 		for (StringList::iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
 			const WCHAR* pwszEncoding = *it;
 			std::auto_ptr<ActionParam> pParam(new ActionParam(nBaseId, pwszEncoding));
 			unsigned int nId = helper_.add(nMax, pParam);
-			if (nId != -1)
-				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, pwszEncoding, dwData);
+			if (nId != -1) {
+				wstring_ptr wstrName(UIUtil::formatMenu(pwszEncoding, &nMnemonic));
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), dwData);
+			}
 		}
 	}
 	else {
@@ -226,13 +230,14 @@ UINT qm::FilterMenuCreator::createMenu(HMENU hmenu,
 	
 	const FilterManager::FilterList& l = pFilterManager_->getFilters();
 	if (!l.empty()) {
+		int nMnemonic = 1;
 		for (FilterManager::FilterList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			const Filter* pFilter = *it;
 			
 			std::auto_ptr<ActionParam> pParam(new ActionParam(IDM_VIEW_FILTER, pFilter->getName()));
 			unsigned int nId = helper_.add(MAX_VIEW_FILTER, pParam);
 			if (nId != -1) {
-				wstring_ptr wstrTitle(UIUtil::formatMenu(pFilter->getName()));
+				wstring_ptr wstrTitle(UIUtil::formatMenu(pFilter->getName(), &nMnemonic));
 				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), DATA);
 			}
 		}
@@ -277,6 +282,7 @@ UINT qm::GoRoundMenuCreator::createMenu(HMENU hmenu,
 	
 	const GoRound::CourseList& l = pGoRound_->getCourses();
 	if (!l.empty()) {
+		int nMnemonic = 1;
 		for (GoRound::CourseList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			GoRoundCourse* pCourse = *it;
 			
@@ -284,7 +290,7 @@ UINT qm::GoRoundMenuCreator::createMenu(HMENU hmenu,
 				IDM_TOOL_GOROUND, pCourse->getName()));
 			unsigned int nId = helper_.add(MAX_TOOL_GOROUND, pParam);
 			if (nId != -1) {
-				wstring_ptr wstrName(UIUtil::formatMenu(pCourse->getName()));
+				wstring_ptr wstrName(UIUtil::formatMenu(pCourse->getName(), &nMnemonic));
 				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), DATA);
 			}
 		}
@@ -330,6 +336,7 @@ UINT qm::InsertTextMenuCreator::createMenu(HMENU hmenu,
 	const FixedFormTextManager::TextList& l = pManager_->getTexts();
 	if (!l.empty()) {
 		UINT nPos = 0;
+		int nMnemonic = 1;
 		for (FixedFormTextManager::TextList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			const FixedFormText* pText = *it;
 			
@@ -337,7 +344,7 @@ UINT qm::InsertTextMenuCreator::createMenu(HMENU hmenu,
 				IDM_TOOL_INSERTTEXT, pText->getName()));
 			unsigned int nId = helper_.add(MAX_TOOL_INSERTTEXT, pParam);
 			if (nId != -1) {
-				wstring_ptr wstrName(UIUtil::formatMenu(pText->getName()));
+				wstring_ptr wstrName(UIUtil::formatMenu(pText->getName(), &nMnemonic));
 				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), DATA);
 			}
 		}
@@ -421,7 +428,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 			
 			HMENU hmenuThis = stackFolder.back().hmenu_;
 			
-			wstring_ptr wstrName(formatName(pFolder, stackFolder.back().nCount_));
+			wstring_ptr wstrName(formatName(pFolder, &stackFolder.back().nMnemonic_));
 			W2T(wstrName.get(), ptszName);
 			
 			bool bHasChild = hasSelectableChildNormalFolder(it, listFolder.end());
@@ -513,10 +520,11 @@ bool qm::MoveMenuCreator::hasSelectableChildNormalFolder(Account::FolderList::co
 }
 
 wstring_ptr qm::MoveMenuCreator::formatName(const Folder* pFolder,
-											unsigned int n)
+											int* pnMnemonic)
 {
 	assert(pFolder);
-	return UIUtil::formatMenu(pFolder->getName());
+	assert(pnMnemonic);
+	return UIUtil::formatMenu(pFolder->getName(), pnMnemonic);
 }
 
 
@@ -530,7 +538,8 @@ qm::MoveMenuCreator::MenuInserter::MenuInserter(HMENU hmenu,
 												Folder* pFolder) :
 	hmenu_(hmenu),
 	pFolder_(pFolder),
-	nCount_(0)
+	nCount_(0),
+	nMnemonic_(1)
 {
 }
 
@@ -595,6 +604,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 	bool bAdded = false;
 	
 	Account* pAccount = 0;
+	int nMnemonic = 1;
 	for (URIList::iterator it = listURI.begin(); it != listURI.end(); ++it) {
 		std::auto_ptr<URI> pURI(*it);
 		*it = 0;
@@ -613,9 +623,14 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 			unsigned int nId = helper_.add(MAX_MESSAGE_OPENRECENT, pParam);
 			if (nId != -1) {
 				wstring_ptr wstrSubject(mpl->getSubject());
-				wstring_ptr wstrTitle(UIUtil::formatMenu(wstrSubject.get()));
+				WCHAR wszMnemonic[] = {
+					nMnemonic < 10 ? L'1' + (nMnemonic - 1) : L'0',
+					L'\0'
+				};
+				wstring_ptr wstrTitle(concat(wszMnemonic, wstrSubject.get()));
 				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), DATA);
 				bAdded = true;
+				++nMnemonic;
 			}
 		}
 	}
@@ -671,13 +686,14 @@ UINT qm::ScriptMenuCreator::createMenu(HMENU hmenu,
 	pScriptManager_->getScriptNames(&l);
 	
 	if (!l.empty()) {
+		int nMnemonic = 1;
 		for (ScriptManager::NameList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			const WCHAR* pwszName = *it;
 			
 			std::auto_ptr<ActionParam> pParam(new ActionParam(IDM_TOOL_SCRIPT, pwszName));
 			unsigned int nId = helper_.add(MAX_TOOL_SCRIPT, pParam);
 			if (nId != -1) {
-				wstring_ptr wstrMenu(UIUtil::formatMenu(pwszName));
+				wstring_ptr wstrMenu(UIUtil::formatMenu(pwszName, &nMnemonic));
 				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrMenu.get(), DATA);
 			}
 		}
@@ -724,6 +740,7 @@ UINT qm::SortMenuCreator::createMenu(HMENU hmenu,
 	if (pViewModel) {
 		unsigned int nSortIndex = pViewModel->getSort() & ViewModel::SORT_INDEX_MASK;
 		UINT nId = IDM_VIEW_SORT;
+		int nMnemonic = 1;
 		const ViewColumnList& l = pViewModel->getColumns();
 		for (ViewColumnList::size_type n = 0; n < l.size(); ++n) {
 			const ViewColumn* pColumn = l[n];
@@ -734,7 +751,7 @@ UINT qm::SortMenuCreator::createMenu(HMENU hmenu,
 				std::auto_ptr<ActionParam> pParam(new ActionParam(IDM_VIEW_SORT, wsz));
 				unsigned int nId = helper_.add(MAX_VIEW_SORT, pParam);
 				if (nId != -1) {
-					wstring_ptr wstrTitle(UIUtil::formatMenu(pwszTitle));
+					wstring_ptr wstrTitle(UIUtil::formatMenu(pwszTitle, &nMnemonic));
 					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), DATA);
 				}
 			}
@@ -785,6 +802,7 @@ UINT qm::SubAccountMenuCreator::createMenu(HMENU hmenu,
 	if (pAccount) {
 		const Account::SubAccountList& l = pAccount->getSubAccounts();
 		assert(!l.empty());
+		int nMnemonic = 1;
 		for (Account::SubAccountList::const_iterator it = l.begin() + 1; it != l.end(); ++it) {
 			SubAccount* pSubAccount = *it;
 			
@@ -792,7 +810,7 @@ UINT qm::SubAccountMenuCreator::createMenu(HMENU hmenu,
 				IDM_TOOL_SUBACCOUNT, pSubAccount->getName()));
 			unsigned int nId = helper_.add(MAX_TOOL_SUBACCOUNT, pParam);
 			if (nId != -1) {
-				wstring_ptr wstrText(UIUtil::formatMenu(pSubAccount->getName()));
+				wstring_ptr wstrText(UIUtil::formatMenu(pSubAccount->getName(), &nMnemonic));
 				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrText.get(), DATA);
 				bAdded = true;
 			}
@@ -857,13 +875,14 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 		
 		if (!listName.empty()) {
 			UINT nMax = getMax();
+			int nMnemonic = 1;
 			for (TemplateManager::NameList::const_iterator it = listName.begin(); it != listName.end(); ++it) {
 				const WCHAR* pwszName = *it;
 				
 				std::auto_ptr<ActionParam> pParam(new ActionParam(nBaseId, pwszName));
 				unsigned int nId = helper_.add(nMax, pParam);
 				if (nId != -1) {
-					wstring_ptr wstrMenu(UIUtil::formatMenu(pwszName + nPrefixLen + 1));
+					wstring_ptr wstrMenu(UIUtil::formatMenu(pwszName + nPrefixLen + 1, &nMnemonic));
 					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrMenu.get(), dwData);
 					bAdded = true;
 				}

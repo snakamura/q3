@@ -64,7 +64,8 @@ public:
 	static void parseEncodings(const WCHAR* pwszEncodings,
 							   EncodingList* pList);
 	
-	static qs::wstring_ptr formatMenu(const WCHAR* pwszText);
+	static qs::wstring_ptr formatMenu(const WCHAR* pwszText,
+									  int* pnMnemonic);
 	static bool openURL(const WCHAR* pwszURL,
 						qs::Profile* pProfile,
 						HWND hwnd);

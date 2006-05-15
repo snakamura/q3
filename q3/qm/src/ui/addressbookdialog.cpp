@@ -960,6 +960,7 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 	W2T(wstrThisCategory.get(), ptszThisCategory);
 	
 	UINT nId = IDM_ADDRESSBOOK_CATEGORY;
+	int nMnemonic = 1;
 	for (AddressBook::CategoryList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		const AddressBookCategory* pCategory = *it;
 		
@@ -986,7 +987,7 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 			wstring_ptr wstrName(getCategoryName(
 				pCategory->getName(), stackMenu.size() - 1, false));
 			
-			wstring_ptr wstrText(UIUtil::formatMenu(wstrName.get()));
+			wstring_ptr wstrText(UIUtil::formatMenu(wstrName.get(), &nMnemonic));
 			W2T(wstrText.get(), ptszText);
 			
 			bool bSubMenu = false;

@@ -328,7 +328,7 @@ private:
 	static bool hasSelectableChildNormalFolder(Account::FolderList::const_iterator first,
 											   Account::FolderList::const_iterator last);
 	static qs::wstring_ptr formatName(const Folder* pFolder,
-									  unsigned int n);
+									  int* pnMnemonic);
 
 private:
 	MoveMenuCreator(const MoveMenuCreator&);
@@ -343,6 +343,7 @@ private:
 		HMENU hmenu_;
 		Folder* pFolder_;
 		unsigned int nCount_;
+		int nMnemonic_;
 	};
 
 private:

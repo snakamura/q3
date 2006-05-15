@@ -145,17 +145,32 @@ void qm::UIUtil::parseEncodings(const WCHAR* pwszEncodings,
 	}
 }
 
-wstring_ptr qm::UIUtil::formatMenu(const WCHAR* pwszText)
+wstring_ptr qm::UIUtil::formatMenu(const WCHAR* pwszText,
+								   int* pnMnemonic)
 {
 	assert(pwszText);
+	assert(pnMnemonic);
 	
+	bool bAddMnemonic = false;
 	StringBuffer<WSTRING> buf;
-	buf.append(L'&');
 	while (*pwszText) {
-		if (*pwszText == L'&')
+		WCHAR c = *pwszText;
+		if (!bAddMnemonic && ((L'A' <= c && c <= L'Z') || (L'a' <= c && c <= L'z'))) {
 			buf.append(L'&');
-		buf.append(*pwszText);
+			bAddMnemonic = true;
+		}
+		if (c == L'&')
+			buf.append(L'&');
+		buf.append(c);
 		++pwszText;
+	}
+	if (!bAddMnemonic) {
+		if (1 <= *pnMnemonic && *pnMnemonic <= 9) {
+			buf.append(L"(&");
+			buf.append(L'1' + (*pnMnemonic - 1));
+			buf.append(L')');
+		}
+		++(*pnMnemonic);
 	}
 	
 	return buf.getString();
