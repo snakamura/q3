@@ -32,6 +32,6 @@
             0,
             @Equal($1, 1),
             $2,
-            @Add($2, @Multiply(@Subtract($1, 1), $2)))),
+            @Add($2, @Multiply(@Subtract($1, 1), $2))))
 
 =end
