@@ -625,6 +625,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 				wstring_ptr wstrSubject(mpl->getSubject());
 				WCHAR wszMnemonic[] = {
 					nMnemonic < 10 ? L'1' + (nMnemonic - 1) : L'0',
+					L' ',
 					L'\0'
 				};
 				wstring_ptr wstrTitle(concat(wszMnemonic, wstrSubject.get()));
