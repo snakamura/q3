@@ -425,9 +425,13 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 	assert(listUID_.empty());
 	assert(listSize_.empty());
 	
+	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
+	
 	std::auto_ptr<UIDList> pUIDList(loadUIDList());
-	if (!pUIDList.get())
+	if (!pUIDList.get()) {
+		log.error(L"Failed to load uid list.");
 		return false;
+	}
 	
 	pCallback_->setMessage(IDS_CHECKNEWMESSAGE);
 	
@@ -800,9 +804,10 @@ qmpop3::Pop3ReceiveSession::UIDSaver::UIDSaver(Pop3ReceiveSession* pSession,
 
 qmpop3::Pop3ReceiveSession::UIDSaver::~UIDSaver()
 {
+	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
+	
 	if (pUIDList_) {
 		if (!pSession_->saveUIDList(pUIDList_)) {
-			Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
 			log.error(L"Failed to save uid list.");
 		}
 	}
