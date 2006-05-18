@@ -74,10 +74,7 @@ bool qm::MacroSearchDriver::search(const SearchContext& context,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				context.getSecurityMode(), 0, &globalVariable);
 			MacroValuePtr pValue(pMacro->value(&context));
-			// TODO
-			if (!pValue.get())
-				return false;
-			if (pValue->boolean())
+			if (pValue.get() && pValue->boolean())
 				pList->push_back(pmh);
 		}
 	}
