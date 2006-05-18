@@ -278,6 +278,7 @@ private:
 	void getLineExtent(const DeviceContext& dc,
 					   const WCHAR* pwsz,
 					   size_t nLength,
+					   int nOffset,
 					   Extent* pExtent,
 					   bool* pbNewLine) const;
 	void getLinks(const WCHAR* pwsz,
@@ -517,9 +518,7 @@ size_t qs::TextWindowImpl::getCharFromPos(size_t nLine,
 	size_t nChar = 0;
 	
 	unsigned int nQuoteWidth = listLine_[nLine]->nQuoteDepth_*getQuoteWidth();
-	if (nPos > nQuoteWidth) {
-		nPos -= nQuoteWidth;
-		
+	if (nPos > 0) {
 		if (nLine != nExtentLine_) {
 			getLineExtent(nLine, &extent_, &bExtentNewLine_);
 			nExtentLine_ = nLine;
@@ -540,7 +539,7 @@ size_t qs::TextWindowImpl::getCharFromPos(size_t nLine,
 int qs::TextWindowImpl::getPosFromChar(size_t nLine,
 									   size_t nChar) const
 {
-	int nPos = listLine_[nLine]->nQuoteDepth_*getQuoteWidth();
+	int nPos = 0;
 	
 	if (nChar != 0) {
 		if (nLine != nExtentLine_) {
@@ -549,6 +548,9 @@ int qs::TextWindowImpl::getPosFromChar(size_t nLine,
 		}
 		if (!extent_.empty())
 			nPos += extent_[nChar - 1];
+	}
+	else {
+		nPos = listLine_[nLine]->nQuoteDepth_*getQuoteWidth();
 	}
 	
 	return nPos;
@@ -1791,13 +1793,17 @@ void qs::TextWindowImpl::getLineExtent(size_t nLine,
 	const PhysicalLine* pPhysicalLine = listLine_[nLine];
 	const TextModel::Line& logicalLine = pTextModel_->getLine(
 		pPhysicalLine->nLogicalLine_);
+	int nOffset = 0;
+	if (pPhysicalLine->nQuoteDepth_ != 0)
+		nOffset = pPhysicalLine->nQuoteDepth_*getQuoteWidth();
 	getLineExtent(dc, logicalLine.getText() + pPhysicalLine->nPosition_,
-		pPhysicalLine->nLength_, pExtent, pbNewLine);
+		pPhysicalLine->nLength_, nOffset, pExtent, pbNewLine);
 }
 
 void qs::TextWindowImpl::getLineExtent(const DeviceContext& dc,
 									   const WCHAR* pwsz,
 									   size_t nLength,
+									   int nOffset,
 									   Extent* pExtent,
 									   bool* pbNewLine) const
 {
@@ -1817,23 +1823,23 @@ void qs::TextWindowImpl::getLineExtent(const DeviceContext& dc,
 				SIZE size;
 				getTextExtent(dc, pBegin, static_cast<int>(p - pBegin),
 					0, 0, &(*pExtent)[pBegin - pwsz], &size);
-				if (pBegin != pwsz) {
-					int nOffset = (*pExtent)[pBegin - pwsz - 1];
+				if (nOffset != 0) {
 					for (Extent::size_type n = pBegin - pwsz; n < static_cast<Extent::size_type>(p - pwsz); ++n)
 						(*pExtent)[n] += nOffset;
 				}
+				nOffset = (*pExtent)[p - pwsz - 1];
 			}
 			if (p != pEnd) {
 				assert(*p == L'\t');
-				(*pExtent)[p - pwsz] = getNextTabStop(
-					p != pwsz ? (*pExtent)[p - pwsz - 1] : 0);
+				(*pExtent)[p - pwsz] = getNextTabStop(nOffset);
 				pBegin = p + 1;
+				nOffset = (*pExtent)[p - pwsz];
 			}
 		}
 		++p;
 	}
 	if (bNewLine)
-		(*pExtent)[nLength - 1] = (nLength == 1 ? 0 : (*pExtent)[nLength - 2]) + getAverageCharWidth();
+		(*pExtent)[nLength - 1] = nOffset + getAverageCharWidth();
 	*pbNewLine = bNewLine;
 }
 
@@ -1931,15 +1937,13 @@ void qs::TextWindowImpl::fillPhysicalLinks(LinkItemList* pList,
 	if (pList->empty() || nLength == 0)
 		return;
 	
-	getLineExtent(dc, pwsz, nLength, &extent_, &bExtentNewLine_);
+	getLineExtent(dc, pwsz, nLength, nQuoteDepth*getQuoteWidth(), &extent_, &bExtentNewLine_);
 	nExtentLine_ = -1;
-	
-	unsigned int nQuoteWidth = nQuoteDepth*getQuoteWidth();
 	
 	for (LinkItemList::iterator it = pList->begin(); it != pList->end(); ++it) {
 		assert((*it).nOffset_ + (*it).nLength_ <= extent_.size());
-		(*it).nLeft_ = ((*it).nOffset_ != 0 ? extent_[(*it).nOffset_ - 1] : 0) + nQuoteWidth;
-		(*it).nRight_ = extent_[(*it).nOffset_ + (*it).nLength_ - 1] + nQuoteWidth;
+		(*it).nLeft_ = (*it).nOffset_ != 0 ? extent_[(*it).nOffset_ - 1] : 0;
+		(*it).nRight_ = extent_[(*it).nOffset_ + (*it).nLength_ - 1];
 	}
 }
 
