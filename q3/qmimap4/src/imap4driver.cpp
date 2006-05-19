@@ -939,6 +939,27 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 	return true;
 }
 
+bool qmimap4::Imap4Driver::prepareFolder(NormalFolder* pFolder)
+{
+	assert(pFolder);
+	assert(!pFolder->isFlag(Folder::FLAG_LOCAL));
+	
+	if (bOffline_)
+		return true;
+	
+	Lock<CriticalSection> lock(cs_);
+	
+	if (!prepareSessionCache(false))
+		return false;
+	
+	SessionCacher cacher(pSessionCache_.get(), pFolder);
+	Imap4* pImap4 = cacher.get();
+	if (!pImap4)
+		return false;
+	
+	return true;
+}
+
 OfflineJobManager* qmimap4::Imap4Driver::getOfflineJobManager() const
 {
 	return pOfflineJobManager_.get();

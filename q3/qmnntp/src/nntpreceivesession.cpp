@@ -312,26 +312,32 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 	}
 	
-	bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
-	if (bJunkFilter) {
-		if (!applyJunkFilter(listDownloaded))
-			return false;
-	}
-	
-	bool bApplyRules = pSubAccount_->isAutoApplyRules();
-	if (bApplyRules || bJunkFilter) {
-		if (!applyRules(&listDownloaded, bJunkFilter, !bApplyRules))
-			Util::reportError(0, pSessionCallback_, pAccount_,
-				pSubAccount_, pFolder_, NNTPERROR_APPLYRULES);
-	}
-	for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
-		bool bNotify = false;
-		{
-			MessagePtrLock mpl(*it);
-			bNotify = mpl && !pAccount_->isSeen(mpl);
+	if (!listDownloaded.empty()) {
+		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
+		bool bApplyRules = pSubAccount_->isAutoApplyRules();
+		
+		if (bJunkFilter || bApplyRules)
+			pAccount_->prepareGetMessage(pFolder_);
+		
+		if (bJunkFilter) {
+			if (!applyJunkFilter(listDownloaded))
+				return false;
 		}
-		if (bNotify)
-			pSessionCallback_->notifyNewMessage(*it);
+		
+		if (bApplyRules || bJunkFilter) {
+			if (!applyRules(&listDownloaded, bJunkFilter, !bApplyRules))
+				Util::reportError(0, pSessionCallback_, pAccount_,
+					pSubAccount_, pFolder_, NNTPERROR_APPLYRULES);
+		}
+		for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
+			bool bNotify = false;
+			{
+				MessagePtrLock mpl(*it);
+				bNotify = mpl && !pAccount_->isSeen(mpl);
+			}
+			if (bNotify)
+				pSessionCallback_->notifyNewMessage(*it);
+		}
 	}
 	
 	return true;

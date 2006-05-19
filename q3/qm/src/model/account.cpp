@@ -2847,6 +2847,22 @@ bool qm::Account::updateMessage(MessageHolder* pmh,
 	return true;
 }
 
+bool qm::Account::prepareGetMessage(NormalFolder* pFolder)
+{
+	assert(pFolder);
+	
+	if (pImpl_->pProtocolDriver_->isSupport(SUPPORT_LOCALFOLDERGETMESSAGE)) {
+		if (!pFolder->isFlag(Folder::FLAG_SYNCABLE))
+			return true;
+	}
+	else {
+		if (pFolder->isFlag(Folder::FLAG_LOCAL))
+			return true;
+	}
+	
+	return pImpl_->pProtocolDriver_->prepareFolder(pFolder);
+}
+
 unsigned int qm::Account::generateFolderId() const
 {
 	unsigned int nId = 0;

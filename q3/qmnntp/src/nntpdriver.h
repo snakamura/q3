@@ -11,6 +11,8 @@
 
 #include <qmprotocoldriver.h>
 
+#include <qsthread.h>
+
 #include "util.h"
 
 
@@ -46,6 +48,7 @@ public:
 	virtual bool getMessage(qm::MessageHolder* pmh,
 							unsigned int nFlags,
 							GetMessageCallback* pCallback);
+	virtual bool prepareFolder(qm::NormalFolder* pFolder);
 
 private:
 	bool prepareSession(qm::NormalFolder* pFolder);
@@ -67,6 +70,7 @@ private:
 	bool bOffline_;
 	unsigned int nForceDisconnect_;
 	unsigned int nLastUsedTime_;
+	qs::CriticalSection cs_;
 
 private:
 	static const unsigned int nSupport__;

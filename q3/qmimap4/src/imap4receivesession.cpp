@@ -971,33 +971,39 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			HANDLE_ERROR();
 	}
 	
-	bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
-	if (bJunkFilter) {
-		if (!applyJunkFilter(listMessageData))
-			return false;
-		bJunkFilter = pFolder_->isFlag(Folder::FLAG_INBOX);
-	}
-	
-	bool bApplyRules = pSubAccount_->isAutoApplyRules();
-	if (bApplyRules || bJunkFilter) {
-		if (!applyRules(listMessageData, bJunkFilter, !bApplyRules))
-			reportError(0, IMAP4ERROR_APPLYRULES);
-	}
-	
-	bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
-		!pFolder_->isFlag(Folder::FLAG_SENTBOX) &&
-		!pFolder_->isFlag(Folder::FLAG_TRASHBOX) &&
-		!pFolder_->isFlag(Folder::FLAG_DRAFTBOX) &&
-		!pFolder_->isFlag(Folder::FLAG_JUNKBOX);
-	if (bNotifyNewMessage) {
-		for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
-			bool bNotify = false;
-			{
-				MessagePtrLock mpl((*it).getMessagePtr());
-				bNotify = mpl && !pAccount_->isSeen(mpl);
+	if (!listMessageData.empty()) {
+		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
+		bool bApplyRules = pSubAccount_->isAutoApplyRules();
+		
+		if (bJunkFilter || bApplyRules)
+			pAccount_->prepareGetMessage(pFolder_);
+		
+		if (bJunkFilter) {
+			if (!applyJunkFilter(listMessageData))
+				return false;
+			bJunkFilter = pFolder_->isFlag(Folder::FLAG_INBOX);
+		}
+		
+		if (bApplyRules || bJunkFilter) {
+			if (!applyRules(listMessageData, bJunkFilter, !bApplyRules))
+				reportError(0, IMAP4ERROR_APPLYRULES);
+		}
+		
+		bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
+			!pFolder_->isFlag(Folder::FLAG_SENTBOX) &&
+			!pFolder_->isFlag(Folder::FLAG_TRASHBOX) &&
+			!pFolder_->isFlag(Folder::FLAG_DRAFTBOX) &&
+			!pFolder_->isFlag(Folder::FLAG_JUNKBOX);
+		if (bNotifyNewMessage) {
+			for (MessageDataList::const_iterator it = listMessageData.begin(); it != listMessageData.end(); ++it) {
+				bool bNotify = false;
+				{
+					MessagePtrLock mpl((*it).getMessagePtr());
+					bNotify = mpl && !pAccount_->isSeen(mpl);
+				}
+				if (bNotify)
+					pSessionCallback_->notifyNewMessage((*it).getMessagePtr());
 			}
-			if (bNotify)
-				pSessionCallback_->notifyNewMessage((*it).getMessagePtr());
 		}
 	}
 	

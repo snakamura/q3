@@ -114,6 +114,8 @@ bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 	if (bOffline_)
 		return true;
 	
+	Lock<CriticalSection> lock(cs_);
+	
 	if (!prepareSession(pmh->getFolder()))
 		return false;
 	
@@ -127,6 +129,21 @@ bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 		return false;
 	
 	if (!pCallback->message(strMessage.get(), strMessage.size(), Message::FLAG_NONE, false))
+		return false;
+	
+	return true;
+}
+
+bool qmnntp::NntpDriver::prepareFolder(NormalFolder* pFolder)
+{
+	assert(pFolder);
+	
+	if (bOffline_)
+		return true;
+	
+	Lock<CriticalSection> lock(cs_);
+	
+	if (!prepareSession(pFolder))
 		return false;
 	
 	return true;

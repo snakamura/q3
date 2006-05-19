@@ -278,6 +278,7 @@ public:
 					   const CHAR* pszMessage,
 					   size_t nLen,
 					   const Message* pHeader);
+	bool prepareGetMessage(NormalFolder* pFolder);
 
 // These methods are intended to be called from ProtocolDriver class
 public:

@@ -82,6 +82,7 @@ public:
 							  qm::NormalFolder* pFolderFrom,
 							  qm::NormalFolder* pFolderTo,
 							  bool bMove);
+	virtual bool prepareFolder(qm::NormalFolder* pFolder);
 
 public:
 	OfflineJobManager* getOfflineJobManager() const;

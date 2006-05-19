@@ -97,6 +97,7 @@ public:
 							  NormalFolder* pFolderFrom,
 							  NormalFolder* pFolderTo,
 							  bool bMove);
+	virtual bool prepareFolder(NormalFolder* pFolder);
 };
 
 
