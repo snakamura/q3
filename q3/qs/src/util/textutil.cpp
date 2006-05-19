@@ -405,7 +405,7 @@ bool qs::TextUtil::isURLChar(WCHAR c)
 	return (L'A' <= c && c <= L'Z') ||
 		(L'a' <= c && c <= L'z') ||
 		(L'0' <= c && c <= L'9') ||
-		wcschr(L".:/?%&@!#$~*=+-_;,()", c) != 0;
+		wcschr(L".:/?%&@!#$~*=+-_;,()[]'", c) != 0;
 }
 
 bool qs::TextUtil::isFileNameChar(CHAR c)
@@ -438,7 +438,7 @@ bool qs::TextUtil::isCommonEmailAddressChar(WCHAR c)
 	return (L'a' <= c && c <= L'z') ||
 		(L'A' <= c && c <= L'Z') ||
 		(L'0' <= c && c <= L'9') ||
-		wcschr(L".$%+-=_", c);
+		wcschr(L".$%+-=_'", c);
 }
 
 wstring_ptr qs::TextUtil::replace(const WCHAR* pwsz,
