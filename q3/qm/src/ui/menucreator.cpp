@@ -18,6 +18,7 @@
 #include <qsassert.h>
 #include <qsconv.h>
 #include <qsstl.h>
+#include <qstextutil.h>
 
 #include <algorithm>
 
@@ -624,11 +625,13 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 			if (nId != -1) {
 				wstring_ptr wstrSubject(mpl->getSubject());
 				WCHAR wszMnemonic[] = {
+					L'&',
 					nMnemonic < 10 ? L'1' + (nMnemonic - 1) : L'0',
 					L' ',
 					L'\0'
 				};
-				wstring_ptr wstrTitle(concat(wszMnemonic, wstrSubject.get()));
+				wstring_ptr wstrTitle(concat(wszMnemonic,
+					TextUtil::replaceAll(wstrSubject.get(), L"&", L"&&").get()));
 				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), DATA);
 				bAdded = true;
 				++nMnemonic;
