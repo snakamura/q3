@@ -457,6 +457,25 @@ wstring_ptr qs::TextUtil::replace(const WCHAR* pwsz,
 	return concat(c, countof(c));
 }
 
+wstring_ptr qs::TextUtil::replaceAll(const WCHAR* pwsz,
+									 const WCHAR* pwszFind,
+									 const WCHAR* pwszReplace)
+{
+	size_t nLen = wcslen(pwszFind);
+	StringBuffer<WSTRING> buf;
+	while (*pwsz) {
+		if (wcsncmp(pwsz, pwszFind, nLen) == 0) {
+			buf.append(pwszReplace);
+			pwsz += nLen;
+		}
+		else {
+			buf.append(*pwsz);
+			++pwsz;
+		}
+	}
+	return buf.getString();
+}
+
 wstring_ptr qs::TextUtil::encodePassword(const WCHAR* pwsz)
 {
 	assert(pwsz);
