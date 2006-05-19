@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft eMbedded Visual C++ generated include file.
 // Used by qmpop3.rc
 //
 #define IDS_POP3                        1000
@@ -20,6 +20,8 @@
 #define IDS_SAVEUID                     2008
 #define IDS_DELETEMESSAGE               2009
 #define IDS_DOWNLOADRESERVEDMESSAGES    2010
+#define IDS_MANAGEJUNK                  2011
+#define IDS_FILTERJUNK                  2012
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_APOP                  11001
@@ -48,6 +50,8 @@
 #define IDS_ERROR_SSL                   12011
 #define IDS_ERROR_OTHER                 12012
 #define IDS_ERROR_APPLYRULES            14000
+#define IDS_ERROR_MANAGEJUNK            14001
+#define IDS_ERROR_FILTERJUNK            14002
 
 // Next default values for new objects
 // 

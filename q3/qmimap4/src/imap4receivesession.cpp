@@ -1279,7 +1279,48 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 	if (!pJunkFilter)
 		return true;
 	
-	if (pFolder_->isFlag(Folder::FLAG_JUNKBOX) &&
+	if (pFolder_->isFlag(Folder::FLAG_INBOX) &&
+		pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
+		pCallback_->setMessage(IDS_FILTERJUNK);
+		pSessionCallback_->setRange(0, l.size());
+		pSessionCallback_->setPos(0);
+		
+		for (MessageDataList::size_type n = 0; n < l.size(); ++n) {
+			Message msg;
+			bool bProcess = false;
+			bool bSeen = false;
+			{
+				MessagePtrLock mpl(l[n].getMessagePtr());
+				if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
+					bSeen = pAccount_->isSeen(mpl);
+					bProcess = mpl->getMessage(Account::GETMESSAGEFLAG_TEXT,
+						0, SECURITYMODE_NONE, &msg);
+				}
+			}
+			unsigned int nOperation = 0;
+			if (bProcess) {
+				if (bSeen) {
+					nOperation = JunkFilter::OPERATION_ADDCLEAN;
+				}
+				else {
+					float fScore = pJunkFilter->getScore(msg);
+					if (fScore < 0)
+						reportError(0, IMAP4ERROR_FILTERJUNK);
+					else if (fScore > pJunkFilter->getThresholdScore())
+						nOperation = JunkFilter::OPERATION_ADDJUNK;
+					else
+						nOperation = JunkFilter::OPERATION_ADDCLEAN;
+				}
+			}
+			if (nOperation != 0) {
+				if (!pJunkFilter->manage(msg, nOperation))
+					reportError(0, IMAP4ERROR_MANAGEJUNK);
+			}
+			
+			pSessionCallback_->setPos(n);
+		}
+	}
+	else if (pFolder_->isFlag(Folder::FLAG_JUNKBOX) &&
 		pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
 		pCallback_->setMessage(IDS_MANAGEJUNK);
 		pSessionCallback_->setRange(0, l.size());
@@ -1298,8 +1339,10 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 					}
 				}
 			}
-			if (nOperation != 0)
-				pJunkFilter->manage(msg, nOperation);
+			if (nOperation != 0) {
+				if (!pJunkFilter->manage(msg, nOperation))
+					reportError(0, IMAP4ERROR_MANAGEJUNK);
+			}
 			
 			pSessionCallback_->setPos(n);
 		}
@@ -1452,7 +1495,9 @@ void qmimap4::Imap4ReceiveSession::reportError(Imap4* pImap4,
 		UINT nId_;
 	} maps[][23] = {
 		{
-			{ IMAP4ERROR_APPLYRULES,	IDS_ERROR_APPLYRULES	}
+			{ IMAP4ERROR_APPLYRULES,	IDS_ERROR_APPLYRULES	},
+			{ IMAP4ERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	},
+			{ IMAP4ERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	}
 		},
 		{
 			{ Imap4::IMAP4_ERROR_GREETING,		IDS_ERROR_GREETING		},

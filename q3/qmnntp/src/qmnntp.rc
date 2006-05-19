@@ -76,6 +76,8 @@ BEGIN
     IDS_SELECTGROUP         "Selecting group..."
     IDS_DOWNLOADMESSAGES    "Download messages..."
     IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages."
+    IDS_MANAGEJUNK          "Managing junk messages..."
+    IDS_FILTERJUNK          "Filtering junk messages..."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -122,6 +124,8 @@ BEGIN
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
     IDS_ERROR_SUBSCRIBE     "Could not subscribe to the group."
     IDS_ERROR_REFRESH       "Could not download a group list from a server."
+    IDS_ERROR_MANAGEJUNK    "Error occured while managing junk messages."
+    IDS_ERROR_FILTERJUNK    "Error occured while filtering junk messages."
 END
 
 STRINGTABLE DISCARDABLE 

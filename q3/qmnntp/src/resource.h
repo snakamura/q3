@@ -15,6 +15,8 @@
 #define IDS_SELECTGROUP                 2005
 #define IDS_DOWNLOADMESSAGES            2006
 #define IDS_DOWNLOADRESERVEDMESSAGES    2007
+#define IDS_MANAGEJUNK                  2008
+#define IDS_FILTERJUNK                  2009
 #define IDS_SUBSCRIBE                   2100
 #define IDS_GROUP                       2101
 #define IDS_REFRESH                     2102
@@ -44,6 +46,8 @@
 #define IDS_ERROR_APPLYRULES            14000
 #define IDS_ERROR_SUBSCRIBE             14001
 #define IDS_ERROR_REFRESH               14002
+#define IDS_ERROR_MANAGEJUNK            14003
+#define IDS_ERROR_FILTERJUNK            14004
 
 // Next default values for new objects
 // 

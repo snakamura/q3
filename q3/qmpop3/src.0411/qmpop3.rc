@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -66,6 +66,10 @@ BEGIN
     IDS_FOLDER_OUTBOX       "送信箱"
     IDS_FOLDER_SENTBOX      "送信控え"
     IDS_FOLDER_TRASH        "ゴミ箱"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     IDS_FOLDER_JUNK         "スパム"
 END
 
@@ -79,14 +83,12 @@ BEGIN
     IDS_LOADUID             "UIDを読み込みしています"
     IDS_CHECKNEWMESSAGE     "新しいメッセージをチェックしています"
     IDS_DOWNLOADMESSAGES    "メッセージをダウンロードしています"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     IDS_SAVEUID             "UIDを保存しています"
     IDS_DELETEMESSAGE       "メッセージを削除しています"
     IDS_DOWNLOADRESERVEDMESSAGES 
                             "予約されたメッセージをダウンロードしています"
+    IDS_MANAGEJUNK          "迷惑メールを登録しています"
+    IDS_FILTERJUNK          "迷惑メールをフィルタしていします"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -135,6 +137,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_APPLYRULES    "メッセージの振り分け中にエラーが発生しました"
+    IDS_ERROR_MANAGEJUNK    "迷惑メールを登録中にエラーが発生しました"
+    IDS_ERROR_FILTERJUNK    "迷惑メールをフィルタ中にエラーが発生しました"
 END
 
 #endif    // 日本語 resources

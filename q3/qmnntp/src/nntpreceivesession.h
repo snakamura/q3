@@ -82,6 +82,7 @@ private:
 					  unsigned int nFlags,
 					  unsigned int nSize,
 					  MessagePtrList* pListDownloaded);
+	bool applyJunkFilter(const qm::MessagePtrList& l) const;
 	bool applyRules(MessagePtrList* pList,
 					bool bJunkFilter,
 					bool bJunkFilterOnly);

@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// 英語 (アメリカ) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -64,6 +64,10 @@ BEGIN
     IDS_FOLDER_OUTBOX       "Outbox"
     IDS_FOLDER_SENTBOX      "Sentbox"
     IDS_FOLDER_TRASH        "Trash"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     IDS_FOLDER_JUNK         "Junk"
 END
 
@@ -77,13 +81,11 @@ BEGIN
     IDS_LOADUID             "Loading UID..."
     IDS_CHECKNEWMESSAGE     "Checking new messages..."
     IDS_DOWNLOADMESSAGES    "Downloading messages..."
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     IDS_SAVEUID             "Saving UID..."
     IDS_DELETEMESSAGE       "Deleting messages..."
     IDS_DOWNLOADRESERVEDMESSAGES "Downloading reserved messages..."
+    IDS_MANAGEJUNK          "Managing junk messages..."
+    IDS_FILTERJUNK          "Filtering junk messages..."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -132,9 +134,11 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
+    IDS_ERROR_MANAGEJUNK    "Error occured while managing junk messages."
+    IDS_ERROR_FILTERJUNK    "Error occured while filtering junk messages."
 END
 
-#endif    // English (U.S.) resources
+#endif    // 英語 (アメリカ) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft eMbedded Visual C++ generated include file.
 // Used by qmimap4.rc
 //
 #define IDS_IMAP4                       1000
@@ -18,6 +18,7 @@
 #define IDS_DOWNLOADRESERVEDMESSAGES    2012
 #define IDS_IMAP4SEARCH                 2013
 #define IDS_MANAGEJUNK                  2014
+#define IDS_FILTERJUNK                  2015
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_GREETING              11000
 #define IDS_ERROR_LOGIN                 11001
@@ -55,6 +56,8 @@
 #define IDS_ERROR_RESPONSE              12010
 #define IDS_ERROR_SSL                   12011
 #define IDS_ERROR_APPLYRULES            14000
+#define IDS_ERROR_MANAGEJUNK            14001
+#define IDS_ERROR_FILTERJUNK            14002
 
 // Next default values for new objects
 // 

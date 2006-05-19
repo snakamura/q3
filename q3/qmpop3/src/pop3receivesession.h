@@ -79,6 +79,7 @@ private:
 	bool downloadReservedMessages();
 	bool downloadReservedMessages(qm::NormalFolder* pFolder,
 								  unsigned int* pnPos);
+	bool applyJunkFilter(const qm::MessagePtrList& l) const;
 	bool applyRules(qm::MessagePtrList* pList,
 					bool bJunkFilter,
 					bool bJunkFilterOnly);

@@ -10,6 +10,7 @@
 
 #include <qmaccount.h>
 #include <qmfolder.h>
+#include <qmjunk.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmrule.h>
@@ -390,8 +391,13 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 	}
 	
-	bool bApplyRules = pSubAccount_->isAutoApplyRules();
 	bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
+	if (bJunkFilter) {
+		if (!applyJunkFilter(listDownloaded))
+			return false;
+	}
+	
+	bool bApplyRules = pSubAccount_->isAutoApplyRules();
 	if (bApplyRules || bJunkFilter) {
 		if (!applyRules(&listDownloaded, bJunkFilter, !bApplyRules))
 			Util::reportError(0, pSessionCallback_, pAccount_,
@@ -613,6 +619,58 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 					MessageHolder::FLAG_DOWNLOADTEXT |
 					MessageHolder::FLAG_PARTIAL_MASK);
 			}
+		}
+	}
+	
+	return true;
+}
+
+bool qmpop3::Pop3ReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) const
+{
+	JunkFilter* pJunkFilter = pDocument_->getJunkFilter();
+	if (!pJunkFilter)
+		return true;
+	
+	if (pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
+		pCallback_->setMessage(IDS_FILTERJUNK);
+		pSessionCallback_->setRange(0, l.size());
+		pSessionCallback_->setPos(0);
+		
+		for (MessagePtrList::size_type n = 0; n < l.size(); ++n) {
+			Message msg;
+			bool bProcess = false;
+			bool bSeen = false;
+			{
+				MessagePtrLock mpl(l[n]);
+				if (mpl) {
+					bSeen = pAccount_->isSeen(mpl);
+					bProcess = mpl->getMessage(Account::GETMESSAGEFLAG_TEXT,
+						0, SECURITYMODE_NONE, &msg);
+				}
+			}
+			unsigned int nOperation = 0;
+			if (bProcess) {
+				if (bSeen) {
+					nOperation = JunkFilter::OPERATION_ADDCLEAN;
+				}
+				else {
+					float fScore = pJunkFilter->getScore(msg);
+					if (fScore < 0)
+						Util::reportError(0, pSessionCallback_, pAccount_,
+							pSubAccount_, pFolder_, POP3ERROR_FILTERJUNK);
+					else if (fScore > pJunkFilter->getThresholdScore())
+						nOperation = JunkFilter::OPERATION_ADDJUNK;
+					else
+						nOperation = JunkFilter::OPERATION_ADDCLEAN;
+				}
+			}
+			if (nOperation != 0) {
+				if (!pJunkFilter->manage(msg, nOperation))
+					Util::reportError(0, pSessionCallback_, pAccount_,
+						pSubAccount_, pFolder_, POP3ERROR_MANAGEJUNK);
+			}
+			
+			pSessionCallback_->setPos(n);
 		}
 	}
 	
