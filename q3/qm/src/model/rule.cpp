@@ -90,6 +90,9 @@ public:
 
 private:
 	static std::auto_ptr<Rule> createJunkRule(Account* pAccount);
+	static bool isNeedPrepare(Accessor* pAccessor,
+							  MacroContext::MessageType type);
+	static MacroContext::MessageType getMessageType(const RuleList& l);
 
 public:
 	RuleManager* pThis_;
@@ -184,6 +187,11 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	pCallback->checkingMessages(pFolder);
 	pCallback->setRange(0, nCount);
 	
+	if (bAuto &&
+		pFolder->getType() == Folder::TYPE_NORMAL &&
+		isNeedPrepare(pAccessor, getMessageType(listRule)))
+		pAccount->prepareGetMessage(static_cast<NormalFolder*>(pFolder));
+	
 	typedef std::vector<size_t> IndexList;
 	typedef std::vector<IndexList> ListList;
 	ListList ll(listRule.size());
@@ -270,7 +278,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	return true;
 }
 
-std::auto_ptr<Rule> RuleManagerImpl::createJunkRule(Account* pAccount)
+std::auto_ptr<Rule> qm::RuleManagerImpl::createJunkRule(Account* pAccount)
 {
 	const NormalFolder* pJunk = static_cast<NormalFolder*>(
 		pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
@@ -283,6 +291,50 @@ std::auto_ptr<Rule> RuleManagerImpl::createJunkRule(Account* pAccount)
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(pwszCondition));
 	std::auto_ptr<RuleAction> pAction(new CopyRuleAction(0, wstrJunk.get(), true));
 	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO, false, 0));
+}
+
+bool qm::RuleManagerImpl::isNeedPrepare(Accessor* pAccessor,
+										MacroContext::MessageType type)
+{
+	if (type == MacroContext::MESSAGETYPE_NONE)
+		return false;
+	
+	size_t nCount = pAccessor->getCount();
+	for (size_t nMessage = 0; nMessage < nCount; ++nMessage) {
+		MessagePtrLock mpl(pAccessor->getMessagePtr(nMessage));
+		MessageHolder* pmh = mpl ? mpl : pAccessor->getMessageHolder(nMessage);
+		if (pmh) {
+			unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_PARTIAL_MASK;
+			switch (type) {
+			case MacroContext::MESSAGETYPE_HEADER:
+				if (nFlags == MessageHolder::FLAG_INDEXONLY)
+					return true;
+				break;
+			case MacroContext::MESSAGETYPE_TEXT:
+				if (nFlags == MessageHolder::FLAG_INDEXONLY ||
+					nFlags == MessageHolder::FLAG_HEADERONLY)
+					return true;
+				break;
+			case MacroContext::MESSAGETYPE_ALL:
+				if (nFlags)
+					return true;
+				break;
+			default:
+				assert(false);
+				break;
+			}
+		}
+	}
+	
+	return false;
+}
+
+MacroContext::MessageType qm::RuleManagerImpl::getMessageType(const RuleList& l)
+{
+	MacroContext::MessageType type = MacroContext::MESSAGETYPE_NONE;
+	for (RuleList::const_iterator it = l.begin(); it != l.end(); ++it)
+		type = QSMAX(type, (*it)->getMessageType());
+	return type;
 }
 
 
@@ -746,6 +798,11 @@ bool qm::Rule::isMessageDestroyed() const
 bool qm::Rule::isContinuable() const
 {
 	return (pAction_->getFlags() & RuleAction::FLAG_CONTINUABLE) != 0;
+}
+
+MacroContext::MessageType qm::Rule::getMessageType() const
+{
+	return pCondition_->getMessageTypeHint();
 }
 
 

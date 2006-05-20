@@ -97,9 +97,22 @@ wstring_ptr qm::MacroFunction::getString() const
 	return concat(c, countof(c));
 }
 
+MacroContext::MessageType qm::MacroFunction::getMessageTypeHint() const
+{
+	MacroContext::MessageType type = getFunctionMessageTypeHint();
+	for (ArgList::const_iterator it = listArg_.begin(); it != listArg_.end(); ++it)
+		type = QSMAX(type, (*it)->getMessageTypeHint());
+	return type;
+}
+
 void qm::MacroFunction::visit(MacroExprVisitor* pVisitor) const
 {
 	pVisitor->visitFunction(*this);
+}
+
+MacroContext::MessageType qm::MacroFunction::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_NONE;
 }
 
 const WCHAR* qm::MacroFunction::getFunctionName() const
@@ -650,6 +663,11 @@ const WCHAR* qm::MacroFunctionAttachment::getName() const
 	return L"Attachment";
 }
 
+MacroContext::MessageType qm::MacroFunctionAttachment::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_TEXT;
+}
+
 
 /****************************************************************************
  *
@@ -735,6 +753,11 @@ const WCHAR* qm::MacroFunctionBody::getName() const
 	return L"Body";
 }
 
+MacroContext::MessageType qm::MacroFunctionBody::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_ALL;
+}
+
 
 /****************************************************************************
  *
@@ -811,6 +834,11 @@ MacroValuePtr qm::MacroFunctionBodyCharset::value(MacroContext* pContext) const
 const WCHAR* qm::MacroFunctionBodyCharset::getName() const
 {
 	return L"BodyCharset";
+}
+
+MacroContext::MessageType qm::MacroFunctionBodyCharset::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_TEXT;
 }
 
 
@@ -1529,6 +1557,11 @@ const WCHAR* qm::MacroFunctionExist::getName() const
 	return L"Exist";
 }
 
+MacroContext::MessageType qm::MacroFunctionExist::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_HEADER;
+}
+
 
 /****************************************************************************
  *
@@ -1620,6 +1653,11 @@ const WCHAR* qm::MacroFunctionField::getName() const
 	return L"Field";
 }
 
+MacroContext::MessageType qm::MacroFunctionField::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_HEADER;
+}
+
 
 /****************************************************************************
  *
@@ -1695,6 +1733,11 @@ MacroValuePtr qm::MacroFunctionFieldParameter::value(MacroContext* pContext) con
 const WCHAR* qm::MacroFunctionFieldParameter::getName() const
 {
 	return L"FieldParameter";
+}
+
+MacroContext::MessageType qm::MacroFunctionFieldParameter::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_HEADER;
 }
 
 
@@ -2497,6 +2540,11 @@ const WCHAR* qm::MacroFunctionHeader::getName() const
 	return L"Header";
 }
 
+MacroContext::MessageType qm::MacroFunctionHeader::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_HEADER;
+}
+
 
 /****************************************************************************
  *
@@ -2891,14 +2939,6 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
-	
-	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_TEXT, 0);
-	if (!pMessage)
-		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
-	
 	bool bJunk = false;
 	JunkFilter* pJunkFilter = pContext->getDocument()->getJunkFilter();
 	if (pJunkFilter) {
@@ -2907,10 +2947,24 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 			ARG(pValue, 0);
 			bWhite = pValue->boolean();
 		}
+		
 		bool bBlack = false;
 		if (!bWhite && nSize > 1) {
 			ARG(pValue, 1);
 			bBlack = pValue->boolean();
+		}
+		
+		bool bLearn = (pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) != 0;
+		
+		Message* pMessage = 0;
+		if ((!bWhite && !bBlack) || bLearn) {
+			MessageHolderBase* pmh = pContext->getMessageHolder();
+			if (!pmh)
+				return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+			
+			pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_TEXT, 0);
+			if (!pMessage)
+				return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 		}
 		
 		if (bWhite) {
@@ -2925,7 +2979,7 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 				bJunk = fScore > pJunkFilter->getThresholdScore();
 		}
 		
-		if (pJunkFilter->getFlags() & JunkFilter::FLAG_AUTOLEARN) {
+		if (bLearn) {
 			unsigned int nOperation = bJunk ?
 				JunkFilter::OPERATION_ADDJUNK : JunkFilter::OPERATION_ADDCLEAN;
 			pJunkFilter->manage(*pMessage, nOperation);
@@ -3736,6 +3790,11 @@ const WCHAR* qm::MacroFunctionPart::getName() const
 	return L"Part";
 }
 
+MacroContext::MessageType qm::MacroFunctionPart::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_ALL;
+}
+
 
 /****************************************************************************
  *
@@ -4092,6 +4151,11 @@ MacroValuePtr qm::MacroFunctionReferences::value(MacroContext* pContext) const
 const WCHAR* qm::MacroFunctionReferences::getName() const
 {
 	return L"References";
+}
+
+MacroContext::MessageType qm::MacroFunctionReferences::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_HEADER;
 }
 
 
@@ -5029,6 +5093,11 @@ MacroValuePtr qm::MacroFunctionSubject::value(MacroContext* pContext) const
 const WCHAR* qm::MacroFunctionSubject::getName() const
 {
 	return L"Subject";
+}
+
+MacroContext::MessageType qm::MacroFunctionSubject::getFunctionMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_HEADER;
 }
 
 

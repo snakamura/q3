@@ -155,8 +155,7 @@ bool qm::ProtocolDriver::copyMessages(const MessageHolderList& l,
 
 bool qm::ProtocolDriver::prepareFolder(NormalFolder* pFolder)
 {
-	assert(false);
-	return false;
+	return true;
 }
 
 

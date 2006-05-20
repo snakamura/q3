@@ -486,6 +486,11 @@ void qm::MacroExpr::release()
 	delete this;
 }
 
+MacroContext::MessageType qm::MacroExpr::getMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_NONE;
+}
+
 MacroValuePtr qm::MacroExpr::error(const MacroContext& context,
 								   MacroErrorHandler::Code code) const
 {
@@ -547,6 +552,11 @@ MacroValuePtr qm::MacroField::value(MacroContext* pContext) const
 wstring_ptr qm::MacroField::getString() const
 {
 	return allocWString(wstrName_.get());
+}
+
+MacroContext::MessageType qm::MacroField::getMessageTypeHint() const
+{
+	return MacroContext::MESSAGETYPE_HEADER;
 }
 
 void qm::MacroField::visit(MacroExprVisitor* pVisitor) const
@@ -1241,6 +1251,11 @@ wstring_ptr qm::Macro::getString() const
 	return pExpr_->getString();
 }
 
+MacroContext::MessageType qm::Macro::getMessageTypeHint() const
+{
+	return pExpr_->getMessageTypeHint();
+}
+
 const MacroExpr* qm::Macro::getExpr() const
 {
 	return pExpr_;
@@ -1663,6 +1678,8 @@ Message* qm::MacroContext::getMessage() const
 Message* qm::MacroContext::getMessage(MessageType type,
 									  const WCHAR* pwszField) const
 {
+	assert(type != MESSAGETYPE_NONE);
+	
 	Message::Flag flag = pMessage_->getFlag();
 	unsigned int nFlags = 0;
 	switch (type) {

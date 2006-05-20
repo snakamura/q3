@@ -316,9 +316,6 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
 		bool bApplyRules = pSubAccount_->isAutoApplyRules();
 		
-		if (bJunkFilter || bApplyRules)
-			pAccount_->prepareGetMessage(pFolder_);
-		
 		if (bJunkFilter) {
 			if (!applyJunkFilter(listDownloaded))
 				return false;
@@ -484,6 +481,8 @@ bool qmnntp::NntpReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 		pCallback_->setMessage(IDS_FILTERJUNK);
 		pSessionCallback_->setRange(0, l.size());
 		pSessionCallback_->setPos(0);
+		
+		pAccount_->prepareGetMessage(pFolder_);
 		
 		for (MessagePtrList::size_type n = 0; n < l.size(); ++n) {
 			Message msg;

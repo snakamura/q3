@@ -314,6 +314,7 @@ public:
 	virtual MacroValuePtr value(MacroContext* pContext) const = 0;
 	virtual qs::wstring_ptr getString() const = 0;
 	virtual void release();
+	virtual MacroContext::MessageType getMessageTypeHint() const;
 	virtual void visit(MacroExprVisitor* pVisitor) const = 0;
 
 protected:
@@ -340,6 +341,7 @@ public:
 public:
 	virtual MacroValuePtr value(MacroContext* pContext) const;
 	virtual qs::wstring_ptr getString() const;
+	virtual MacroContext::MessageType getMessageTypeHint() const;
 	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 private:
@@ -599,10 +601,12 @@ public:
 
 public:
 	virtual qs::wstring_ptr getString() const;
+	virtual MacroContext::MessageType getMessageTypeHint() const;
 	virtual void visit(MacroExprVisitor* pVisitor) const;
 
 protected:
 	virtual const WCHAR* getName() const = 0;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 public:
 	const WCHAR* getFunctionName() const;
@@ -829,6 +833,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionAttachment(const MacroFunctionAttachment&);
@@ -853,6 +858,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionBody(const MacroFunctionBody&);
@@ -877,6 +883,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionBodyCharset(const MacroFunctionBodyCharset&);
@@ -1222,6 +1229,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionExist(const MacroFunctionExist&);
@@ -1270,6 +1278,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionField(const MacroFunctionField&);
@@ -1294,6 +1303,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionFieldParameter(const MacroFunctionFieldParameter&);
@@ -1574,6 +1584,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionHeader(const MacroFunctionHeader&);
@@ -2059,6 +2070,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionPart(const MacroFunctionPart&);
@@ -2227,6 +2239,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionReferences(const MacroFunctionReferences&);
@@ -2570,6 +2583,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const;
+	virtual MacroContext::MessageType getFunctionMessageTypeHint() const;
 
 private:
 	MacroFunctionSubject(const MacroFunctionSubject&);

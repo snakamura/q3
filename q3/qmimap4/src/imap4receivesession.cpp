@@ -975,9 +975,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
 		bool bApplyRules = pSubAccount_->isAutoApplyRules();
 		
-		if (bJunkFilter || bApplyRules)
-			pAccount_->prepareGetMessage(pFolder_);
-		
 		if (bJunkFilter) {
 			if (!applyJunkFilter(listMessageData))
 				return false;
@@ -1291,6 +1288,8 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 		pSessionCallback_->setRange(0, l.size());
 		pSessionCallback_->setPos(0);
 		
+		pAccount_->prepareGetMessage(pFolder_);
+		
 		for (MessageDataList::size_type n = 0; n < l.size(); ++n) {
 			Message msg;
 			bool bProcess = false;
@@ -1331,6 +1330,8 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 		pCallback_->setMessage(IDS_MANAGEJUNK);
 		pSessionCallback_->setRange(0, l.size());
 		pSessionCallback_->setPos(0);
+		
+		pAccount_->prepareGetMessage(pFolder_);
 		
 		for (MessageDataList::size_type n = 0; n < l.size(); ++n) {
 			Message msg;

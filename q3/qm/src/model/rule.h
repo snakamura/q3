@@ -133,6 +133,7 @@ public:
 	bool apply(const RuleContext& context) const;
 	bool isMessageDestroyed() const;
 	bool isContinuable() const;
+	MacroContext::MessageType getMessageType() const;
 
 private:
 	Rule& operator=(const Rule&);

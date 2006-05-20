@@ -99,74 +99,6 @@ public:
 
 /****************************************************************************
  *
- * Macro
- *
- */
-
-#pragma warning(push)
-#pragma warning(disable:4251)
-
-class QMEXPORTCLASS Macro
-{
-public:
-	explicit Macro(MacroExprPtr pExpr);
-	~Macro();
-
-public:
-	MacroValuePtr value(MacroContext* pContext) const;
-	qs::wstring_ptr getString() const;
-
-public:
-	const MacroExpr* getExpr() const;
-
-private:
-	Macro(const Macro&);
-	Macro& operator=(const Macro&);
-
-private:
-	MacroExpr* pExpr_;
-};
-
-#pragma warning(pop)
-
-
-/****************************************************************************
- *
- * MacroParser
- *
- */
-
-class QMEXPORTCLASS MacroParser
-{
-public:
-	MacroParser();
-	~MacroParser();
-
-public:
-	std::auto_ptr<Macro> parse(const WCHAR* pwszMacro) const;
-	std::auto_ptr<Macro> parse(const WCHAR* pwszMacro,
-							   Macro* pParentMacro) const;
-	void setErrorHandler(MacroErrorHandler* pErrorHandler);
-	MacroErrorHandler* getErrorHandler() const;
-
-public:
-	static bool isNumber(const WCHAR* pwsz);
-
-private:
-	std::auto_ptr<Macro> error(MacroErrorHandler::Code code,
-							   const WCHAR* p) const;
-
-private:
-	MacroParser(const MacroParser&);
-	MacroParser& operator=(const MacroParser&);
-
-private:
-	MacroErrorHandler* pErrorHandler_;
-};
-
-
-/****************************************************************************
- *
  * MacroVariableHolder
  *
  */
@@ -202,6 +134,7 @@ class QMEXPORTCLASS MacroContext
 {
 public:
 	enum MessageType {
+		MESSAGETYPE_NONE = -1,
 		MESSAGETYPE_HEADER,
 		MESSAGETYPE_TEXT,
 		MESSAGETYPE_ALL
@@ -285,6 +218,75 @@ private:
 	Account* pAccount_;
 	MacroGlobalContext* pGlobalContext_;
 	bool bOwnGlobalContext_;
+};
+
+
+/****************************************************************************
+ *
+ * Macro
+ *
+ */
+
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QMEXPORTCLASS Macro
+{
+public:
+	explicit Macro(MacroExprPtr pExpr);
+	~Macro();
+
+public:
+	MacroValuePtr value(MacroContext* pContext) const;
+	qs::wstring_ptr getString() const;
+	MacroContext::MessageType getMessageTypeHint() const;
+
+public:
+	const MacroExpr* getExpr() const;
+
+private:
+	Macro(const Macro&);
+	Macro& operator=(const Macro&);
+
+private:
+	MacroExpr* pExpr_;
+};
+
+#pragma warning(pop)
+
+
+/****************************************************************************
+ *
+ * MacroParser
+ *
+ */
+
+class QMEXPORTCLASS MacroParser
+{
+public:
+	MacroParser();
+	~MacroParser();
+
+public:
+	std::auto_ptr<Macro> parse(const WCHAR* pwszMacro) const;
+	std::auto_ptr<Macro> parse(const WCHAR* pwszMacro,
+							   Macro* pParentMacro) const;
+	void setErrorHandler(MacroErrorHandler* pErrorHandler);
+	MacroErrorHandler* getErrorHandler() const;
+
+public:
+	static bool isNumber(const WCHAR* pwsz);
+
+private:
+	std::auto_ptr<Macro> error(MacroErrorHandler::Code code,
+							   const WCHAR* p) const;
+
+private:
+	MacroParser(const MacroParser&);
+	MacroParser& operator=(const MacroParser&);
+
+private:
+	MacroErrorHandler* pErrorHandler_;
 };
 
 
