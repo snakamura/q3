@@ -710,13 +710,13 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 		VIEW_FORCERFC822INLINE,
 		VIEW_INLINE
 	};
-	unsigned int nView = 0;
+	unsigned int nView = VIEW_NONE;
 	if (nSize > 1) {
 		ARG(pValue, 1);
 		nView = pValue->number();
 	}
-	if (nView > 2)
-		nView = 0;
+	if (nView > VIEW_INLINE)
+		nView = VIEW_NONE;
 	
 	wstring_ptr wstrQuote;
 	if (nSize > 0) {
@@ -800,13 +800,13 @@ MacroValuePtr qm::MacroFunctionBodyCharset::value(MacroContext* pContext) const
 		VIEW_FORCERFC822INLINE,
 		VIEW_INLINE
 	};
-	unsigned int nView = 0;
+	unsigned int nView = VIEW_INLINE;
 	if (nSize > 0) {
 		ARG(pValue, 0);
 		nView = pValue->number();
 	}
-	if (nView > 2)
-		nView = 0;
+	if (nView > VIEW_INLINE)
+		nView = VIEW_INLINE;
 	
 	const WCHAR* pwszCharset = pContext->getBodyCharset();
 	
