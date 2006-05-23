@@ -538,7 +538,7 @@ MacroValuePtr qm::MacroFunctionAddressBook::value(MacroContext* pContext) const
 		}
 	}
 	
-	return MacroValueFactory::getFactory().newString(buf.getCharArray());
+	return MacroValueFactory::getFactory().newString(buf.getString());
 }
 
 const WCHAR* qm::MacroFunctionAddressBook::getName() const
@@ -655,7 +655,7 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 		}
 	}
 	
-	return MacroValueFactory::getFactory().newString(buf.getCharArray());
+	return MacroValueFactory::getFactory().newString(buf.getString());
 }
 
 const WCHAR* qm::MacroFunctionAttachment::getName() const
@@ -745,7 +745,7 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	if (!wstrBody.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
-	return MacroValueFactory::getFactory().newString(wstrBody.get(), wstrBody.size());
+	return MacroValueFactory::getFactory().newString(wstrBody);
 }
 
 const WCHAR* qm::MacroFunctionBody::getName() const
@@ -963,7 +963,7 @@ MacroValuePtr qm::MacroFunctionComputerName::value(MacroContext* pContext) const
 	if (!wstrName.get())
 		wstrName = allocWString(L"");
 	
-	return MacroValueFactory::getFactory().newString(wstrName.get());
+	return MacroValueFactory::getFactory().newString(wstrName);
 }
 
 const WCHAR* qm::MacroFunctionComputerName::getName() const
@@ -999,7 +999,7 @@ MacroValuePtr qm::MacroFunctionConcat::value(MacroContext* pContext) const
 		buf.append(wstr.get());
 	}
 	
-	return MacroValueFactory::getFactory().newString(buf.getCharArray());
+	return MacroValueFactory::getFactory().newString(buf.getString());
 }
 
 const WCHAR* qm::MacroFunctionConcat::getName() const
@@ -1441,7 +1441,6 @@ MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 	ARG(pValueCommand, 0);
 	wstring_ptr wstrCommand(pValueCommand->string().release());
 	
-	const WCHAR* pwszResult = L"";
 	wstring_ptr wstrOutput;
 	if (nSize > 1) {
 #ifndef _WIN32_WCE
@@ -1451,7 +1450,6 @@ MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 		wstrOutput = Process::exec(wstrCommand.get(), wstrInput.get());
 		if (!wstrOutput.get())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
-		pwszResult = wstrOutput.get();
 #endif
 	}
 	else {
@@ -1506,7 +1504,10 @@ MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	}
 	
-	return MacroValueFactory::getFactory().newString(pwszResult);
+	if (wstrOutput.get())
+		return MacroValueFactory::getFactory().newString(wstrOutput);
+	else
+		return MacroValueFactory::getFactory().newString(L"");
 }
 
 const WCHAR* qm::MacroFunctionExecute::getName() const
@@ -2379,7 +2380,7 @@ MacroValuePtr qm::MacroFunctionFormatDate::value(MacroContext* pContext) const
 	MacroValue::String wstrFormat(pValueFormat->string());
 	
 	wstring_ptr wstrValue(pTime->getTime().format(wstrFormat.get(), format));
-	return MacroValueFactory::getFactory().newString(wstrValue.get());
+	return MacroValueFactory::getFactory().newString(wstrValue);
 }
 
 const WCHAR* qm::MacroFunctionFormatDate::getName() const
@@ -2536,7 +2537,7 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 	if (!wstrHeader.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
-	return MacroValueFactory::getFactory().newString(wstrHeader.get());
+	return MacroValueFactory::getFactory().newString(wstrHeader);
 }
 
 const WCHAR* qm::MacroFunctionHeader::getName() const
@@ -2597,7 +2598,7 @@ MacroValuePtr qm::MacroFunctionHtmlEscape::value(MacroContext* pContext) const
 		}
 	}
 	
-	return MacroValueFactory::getFactory().newString(buf.getCharArray());
+	return MacroValueFactory::getFactory().newString(buf.getString());
 }
 
 const WCHAR* qm::MacroFunctionHtmlEscape::getName() const
@@ -3048,7 +3049,7 @@ MacroValuePtr qm::MacroFunctionLabel::value(MacroContext* pContext) const
 			wstrLabel = pmh->getMessageHolder()->getLabel();
 	}
 	
-	return MacroValueFactory::getFactory().newString(wstrLabel.get());
+	return MacroValueFactory::getFactory().newString(wstrLabel);
 }
 
 const WCHAR* qm::MacroFunctionLabel::getName() const
@@ -3200,7 +3201,7 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		wstr = buf.getString();
 	}
 	
-	return MacroValueFactory::getFactory().newString(wstr.get());
+	return MacroValueFactory::getFactory().newString(wstr);
 }
 
 const WCHAR* qm::MacroFunctionLoad::getName() const
@@ -3524,8 +3525,8 @@ MacroValuePtr qm::MacroFunctionOSVersion::value(MacroContext* pContext) const
 	if (!checkArgSize(pContext, 0))
 		return MacroValuePtr();
 	
-	wstring_ptr wstrOSVersion(Application::getApplication().getOSVersion());
-	return MacroValueFactory::getFactory().newString(wstrOSVersion.get());
+	return MacroValueFactory::getFactory().newString(
+		Application::getApplication().getOSVersion());
 }
 
 const WCHAR* qm::MacroFunctionOSVersion::getName() const
@@ -3639,7 +3640,7 @@ MacroValuePtr qm::MacroFunctionParseURL::value(MacroContext* pContext) const
 		buf.append(L"\n\n");
 	}
 	
-	return MacroValueFactory::getFactory().newString(buf.getCharArray());
+	return MacroValueFactory::getFactory().newString(buf.getString());
 }
 
 const WCHAR* qm::MacroFunctionParseURL::getName() const
@@ -3962,7 +3963,7 @@ MacroValuePtr qm::MacroFunctionProfile::value(MacroContext* pContext) const
 			wstrKey.get(), wstrDefault.get());
 	}
 	
-	return MacroValueFactory::getFactory().newString(wstrValue.get());
+	return MacroValueFactory::getFactory().newString(wstrValue);
 }
 
 const WCHAR* qm::MacroFunctionProfile::getName() const
@@ -4079,7 +4080,7 @@ MacroValuePtr qm::MacroFunctionQuote::value(MacroContext* pContext) const
 	if (!wstr.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
-	return MacroValueFactory::getFactory().newString(wstr.get());
+	return MacroValueFactory::getFactory().newString(wstr);
 }
 
 const WCHAR* qm::MacroFunctionQuote::getName() const
@@ -4149,7 +4150,7 @@ MacroValuePtr qm::MacroFunctionReferences::value(MacroContext* pContext) const
 		++n;
 	}
 	
-	return MacroValueFactory::getFactory().newString(buf.getCharArray());
+	return MacroValueFactory::getFactory().newString(buf.getString());
 }
 
 const WCHAR* qm::MacroFunctionReferences::getName() const
@@ -4378,7 +4379,7 @@ MacroValuePtr qm::MacroFunctionRegexReplace::value(MacroContext* pContext) const
 		}
 	}
 	
-	return MacroValueFactory::getFactory().newString(buf.getCharArray());
+	return MacroValueFactory::getFactory().newString(buf.getString());
 }
 
 const WCHAR* qm::MacroFunctionRegexReplace::getName() const
@@ -4507,7 +4508,7 @@ MacroValuePtr qm::MacroFunctionRemove::value(MacroContext* pContext) const
 		}
 		
 		wstring_ptr wstrValue(addressList.getValue());
-		return MacroValueFactory::getFactory().newString(wstrValue.get());
+		return MacroValueFactory::getFactory().newString(wstrValue);
 	}
 }
 
@@ -5582,7 +5583,7 @@ MacroValuePtr qm::MacroFunctionURI::value(MacroContext* pContext) const
 		wstrURI = URI(pmh->getMessageHolder()).toString();
 	}
 	
-	return MacroValueFactory::getFactory().newString(wstrURI.get());
+	return MacroValueFactory::getFactory().newString(wstrURI);
 }
 
 const WCHAR* qm::MacroFunctionURI::getName() const

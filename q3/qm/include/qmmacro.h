@@ -403,8 +403,8 @@ public:
 	virtual ~MacroValueString();
 
 public:
-	void init(const WCHAR* pwsz,
-			  size_t nLen);
+	void init(qs::wstring_ptr wstr);
+	void init(qs::wxstring_ptr wxstr);
 	void term();
 
 public:
@@ -414,11 +414,15 @@ public:
 	virtual MacroValuePtr clone() const;
 
 private:
+	const WCHAR* get() const;
+
+private:
 	MacroValueString(const MacroValueString&);
 	MacroValueString& operator=(const MacroValueString&);
 
 private:
 	qs::wstring_ptr wstr_;
+	qs::wxstring_ptr wxstr_;
 };
 
 
@@ -724,6 +728,8 @@ public:
 	MacroValuePtr newString(const WCHAR* pwsz);
 	MacroValuePtr newString(const WCHAR* pwsz,
 							size_t nLen);
+	MacroValuePtr newString(qs::wstring_ptr wstr);
+	MacroValuePtr newString(qs::wxstring_ptr wstr);
 	void deleteString(MacroValueString* pmvs);
 	
 	MacroValuePtr newNumber(unsigned int n);

@@ -169,39 +169,49 @@ qm::MacroValueString::MacroValueString() :
 
 qm::MacroValueString::~MacroValueString()
 {
-	assert(!wstr_.get());
+	assert(!wstr_.get() && !wxstr_.get());
 }
 
-void qm::MacroValueString::init(const WCHAR* pwsz,
-								size_t nLen)
+void qm::MacroValueString::init(wstring_ptr wstr)
 {
-	assert(pwsz);
-	assert(!wstr_.get());
+	assert(wstr.get());
+	assert(!wstr_.get() && !wxstr_.get());
 	
-	wstr_ = allocWString(pwsz, nLen);
+	wstr_ = wstr;
+}
+
+void qm::MacroValueString::init(wxstring_ptr wxstr)
+{
+	assert(wxstr.get());
+	assert(!wstr_.get() && !wxstr_.get());
+	
+	wxstr_ = wxstr;
 }
 
 void qm::MacroValueString::term()
 {
-	assert(wstr_.get());
+	assert(wstr_.get() || wxstr_.get());
+	
 	wstr_.reset(0);
+	wxstr_.reset(0);
 }
 
 MacroValue::String qm::MacroValueString::string() const
 {
-	return String(wstr_.get());
+	return String(get());
 }
 
 bool qm::MacroValueString::boolean() const
 {
-	return *wstr_.get() != L'\0';
+	return *get() != L'\0';
 }
 
 unsigned int qm::MacroValueString::number() const
 {
-	if (MacroParser::isNumber(wstr_.get())) {
+	const WCHAR* pwsz = get();
+	if (MacroParser::isNumber(pwsz)) {
 		WCHAR* pEnd = 0;
-		return wcstol(wstr_.get(), &pEnd, 10);
+		return wcstol(pwsz, &pEnd, 10);
 	}
 	else {
 		return 0;
@@ -210,7 +220,17 @@ unsigned int qm::MacroValueString::number() const
 
 MacroValuePtr qm::MacroValueString::clone() const
 {
-	return MacroValueFactory::getFactory().newString(wstr_.get());
+	return MacroValueFactory::getFactory().newString(get());
+}
+
+const WCHAR* qm::MacroValueString::get() const
+{
+	assert(wstr_.get() || wxstr_.get());
+	
+	if (wstr_.get())
+		return wstr_.get();
+	else
+		return wxstr_.get();
 }
 
 
@@ -964,9 +984,23 @@ MacroValuePtr qm::MacroValueFactory::newString(const WCHAR* pwsz)
 MacroValuePtr qm::MacroValueFactory::newString(const WCHAR* pwsz,
 											   size_t nLen)
 {
+	wstring_ptr wstr(allocWString(pwsz, nLen));
+	return newString(wstr);
+}
+
+MacroValuePtr qm::MacroValueFactory::newString(qs::wstring_ptr wstr)
+{
 	MacroValuePtr pValue(newValue<MacroValueString>(
 		pImpl_->lock_, pImpl_->listString_, pImpl_->nString_));
-	static_cast<MacroValueString*>(pValue.get())->init(pwsz, nLen);
+	static_cast<MacroValueString*>(pValue.get())->init(wstr);
+	return pValue;
+}
+
+MacroValuePtr qm::MacroValueFactory::newString(qs::wxstring_ptr wstr)
+{
+	MacroValuePtr pValue(newValue<MacroValueString>(
+		pImpl_->lock_, pImpl_->listString_, pImpl_->nString_));
+	static_cast<MacroValueString*>(pValue.get())->init(wstr);
 	return pValue;
 }
 
