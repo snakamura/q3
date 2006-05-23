@@ -312,7 +312,9 @@ public:
 	};
 
 public:
-	class String
+#pragma warning(push)
+#pragma warning(disable:4251)
+	class QMEXPORTCLASS String
 	{
 	public:
 		String();
@@ -334,6 +336,7 @@ public:
 		qs::wxstring_ptr wxstr_;
 		const WCHAR* pwsz_;
 	};
+#pragma warning(pop)
 
 protected:
 	explicit MacroValue(Type type);
@@ -348,7 +351,11 @@ public:
 	virtual String string() const = 0;
 	virtual bool boolean() const = 0;
 	virtual unsigned int number() const = 0;
-	virtual MacroValuePtr clone() const = 0;
+	virtual MacroValuePtr clone();
+	virtual void release();
+
+protected:
+	void initRef();
 
 private:
 	MacroValue(const MacroValue&);
@@ -356,6 +363,7 @@ private:
 
 private:
 	Type type_;
+	unsigned int nRef_;
 };
 
 
@@ -379,7 +387,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueBoolean(const MacroValueBoolean&);
@@ -411,7 +418,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	const WCHAR* get() const;
@@ -446,7 +452,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueNumber(const MacroValueNumber&);
@@ -481,7 +486,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueRegex(const MacroValueRegex&);
@@ -520,7 +524,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	bool isAddress() const;
@@ -551,7 +554,7 @@ public:
 	virtual ~MacroValueAddress();
 
 public:
-	void init(const AddressList& l);
+	void init(AddressList& l);
 	void term();
 
 public:
@@ -562,7 +565,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueAddress(const MacroValueAddress&);
@@ -596,7 +598,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueTime(const MacroValueTime&);
@@ -630,7 +631,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValuePart(const MacroValuePart&);
@@ -657,7 +657,7 @@ public:
 	virtual ~MacroValueMessageList();
 
 public:
-	void init(const MessageList& l);
+	void init(MessageList& l);
 	void term();
 
 public:
@@ -667,7 +667,6 @@ public:
 	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
-	virtual MacroValuePtr clone() const;
 
 private:
 	MacroValueMessageList(const MacroValueMessageList&);
@@ -743,7 +742,7 @@ public:
 						   const CHAR* pszField);
 	void deleteField(MacroValueField* pmvf);
 	
-	MacroValuePtr newAddress(const MacroValueAddress::AddressList& l);
+	MacroValuePtr newAddress(MacroValueAddress::AddressList& l);
 	void deleteAddress(MacroValueAddress* pmva);
 	
 	MacroValuePtr newTime(const qs::Time& time);
@@ -752,7 +751,7 @@ public:
 	MacroValuePtr newPart(const qs::Part* pPart);
 	void deletePart(MacroValuePart* pmvp);
 	
-	MacroValuePtr newMessageList(const MacroValueMessageList::MessageList& l);
+	MacroValuePtr newMessageList(MacroValueMessageList::MessageList& l);
 	void deleteMessageList(MacroValueMessageList* pmvml);
 	
 	void deleteValue(MacroValue* pmv);

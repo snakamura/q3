@@ -26,17 +26,37 @@ using namespace qs;
  */
 
 qm::MacroValue::MacroValue(Type type) :
-	type_(type)
+	type_(type),
+	nRef_(0)
 {
 }
 
 qm::MacroValue::~MacroValue()
 {
+	assert(nRef_ == 0);
 }
 
 MacroValue::Type qm::MacroValue::getType() const
 {
 	return type_;
+}
+
+MacroValuePtr qm::MacroValue::clone()
+{
+	++nRef_;
+	return MacroValuePtr(this);
+}
+
+void qm::MacroValue::release()
+{
+	if (--nRef_ == 0)
+		MacroValueFactory::getFactory().deleteValue(this);
+}
+
+void qm::MacroValue::initRef()
+{
+	assert(nRef_ == 0);
+	nRef_ = 1;
 }
 
 
@@ -127,6 +147,7 @@ qm::MacroValueBoolean::~MacroValueBoolean()
 
 void qm::MacroValueBoolean::init(bool b)
 {
+	initRef();
 	b_ = b;
 }
 
@@ -148,11 +169,6 @@ bool qm::MacroValueBoolean::boolean() const
 unsigned int qm::MacroValueBoolean::number() const
 {
 	return b_ ? 1 : 0;
-}
-
-MacroValuePtr qm::MacroValueBoolean::clone() const
-{
-	return MacroValueFactory::getFactory().newBoolean(b_);
 }
 
 
@@ -177,6 +193,7 @@ void qm::MacroValueString::init(wstring_ptr wstr)
 	assert(wstr.get());
 	assert(!wstr_.get() && !wxstr_.get());
 	
+	initRef();
 	wstr_ = wstr;
 }
 
@@ -185,6 +202,7 @@ void qm::MacroValueString::init(wxstring_ptr wxstr)
 	assert(wxstr.get());
 	assert(!wstr_.get() && !wxstr_.get());
 	
+	initRef();
 	wxstr_ = wxstr;
 }
 
@@ -218,11 +236,6 @@ unsigned int qm::MacroValueString::number() const
 	}
 }
 
-MacroValuePtr qm::MacroValueString::clone() const
-{
-	return MacroValueFactory::getFactory().newString(get());
-}
-
 const WCHAR* qm::MacroValueString::get() const
 {
 	assert(wstr_.get() || wxstr_.get());
@@ -252,6 +265,7 @@ qm::MacroValueNumber::~MacroValueNumber()
 
 void qm::MacroValueNumber::init(unsigned int n)
 {
+	initRef();
 	n_ = n;
 }
 
@@ -277,11 +291,6 @@ unsigned int qm::MacroValueNumber::number() const
 	return n_;
 }
 
-MacroValuePtr qm::MacroValueNumber::clone() const
-{
-	return MacroValueFactory::getFactory().newNumber(n_);
-}
-
 
 /****************************************************************************
  *
@@ -303,6 +312,7 @@ qm::MacroValueRegex::~MacroValueRegex()
 void qm::MacroValueRegex::init(const WCHAR* pwszPattern,
 							   const RegexPattern* pPattern)
 {
+	initRef();
 	pwszPattern_ = pwszPattern;
 	pPattern_ = pPattern;
 }
@@ -339,11 +349,6 @@ unsigned int qm::MacroValueRegex::number() const
 	}
 }
 
-MacroValuePtr qm::MacroValueRegex::clone() const
-{
-	return MacroValueFactory::getFactory().newRegex(pwszPattern_, pPattern_);
-}
-
 
 /****************************************************************************
  *
@@ -365,6 +370,7 @@ qm::MacroValueField::~MacroValueField()
 void qm::MacroValueField::init(const WCHAR* pwszName,
 							   const CHAR* pszField)
 {
+	initRef();
 	wstrName_ = allocWString(pwszName);
 	if (pszField)
 		strField_ = allocString(pszField);
@@ -501,11 +507,6 @@ unsigned int qm::MacroValueField::number() const
 	}
 }
 
-MacroValuePtr qm::MacroValueField::clone() const
-{
-	return MacroValueFactory::getFactory().newField(wstrName_.get(), strField_.get());
-}
-
 bool qm::MacroValueField::isAddress() const
 {
 	const WCHAR* pwszFields[] = {
@@ -547,14 +548,12 @@ qm::MacroValueAddress::~MacroValueAddress()
 {
 }
 
-void qm::MacroValueAddress::init(const AddressList& l)
+void qm::MacroValueAddress::init(AddressList& l)
 {
 	assert(listAddress_.empty());
 	
-	listAddress_.reserve(l.size());
-	
-	for (AddressList::const_iterator it = l.begin(); it != l.end(); ++it)
-		listAddress_.push_back(allocWString(*it).release());
+	initRef();
+	listAddress_.swap(l);
 }
 
 void qm::MacroValueAddress::term()
@@ -604,11 +603,6 @@ unsigned int qm::MacroValueAddress::number() const
 	return static_cast<unsigned int>(listAddress_.size());
 }
 
-MacroValuePtr qm::MacroValueAddress::clone() const
-{
-	return MacroValueFactory::getFactory().newAddress(listAddress_);
-}
-
 
 /****************************************************************************
  *
@@ -627,6 +621,7 @@ qm::MacroValueTime::~MacroValueTime()
 
 void qm::MacroValueTime::init(const Time& time)
 {
+	initRef();
 	time_ = time;
 }
 
@@ -654,11 +649,6 @@ unsigned int qm::MacroValueTime::number() const
 	return 0;
 }
 
-MacroValuePtr qm::MacroValueTime::clone() const
-{
-	return MacroValueFactory::getFactory().newTime(time_);
-}
-
 
 /****************************************************************************
  *
@@ -678,6 +668,7 @@ qm::MacroValuePart::~MacroValuePart()
 
 void qm::MacroValuePart::init(const Part* pPart)
 {
+	initRef();
 	pPart_ = pPart;
 }
 
@@ -709,11 +700,6 @@ unsigned int qm::MacroValuePart::number() const
 	return pPart_ ? 1 : 0;
 }
 
-MacroValuePtr qm::MacroValuePart::clone() const
-{
-	return MacroValueFactory::getFactory().newPart(pPart_);
-}
-
 
 /****************************************************************************
  *
@@ -730,9 +716,10 @@ qm::MacroValueMessageList::~MacroValueMessageList()
 {
 }
 
-void qm::MacroValueMessageList::init(const MessageList& l)
+void qm::MacroValueMessageList::init(MessageList& l)
 {
-	list_ = l;
+	initRef();
+	list_.swap(l);
 }
 
 void qm::MacroValueMessageList::term()
@@ -768,11 +755,6 @@ bool qm::MacroValueMessageList::boolean() const
 unsigned int qm::MacroValueMessageList::number() const
 {
 	return static_cast<unsigned int>(list_.size());
-}
-
-MacroValuePtr qm::MacroValueMessageList::clone() const
-{
-	return MacroValueFactory::getFactory().newMessageList(list_);
 }
 
 
@@ -835,7 +817,7 @@ MacroValue* qm::MacroValuePtr::release()
 void qm::MacroValuePtr::reset(MacroValue* pValue)
 {
 	if (pValue_)
-		MacroValueFactory::getFactory().deleteValue(pValue_);
+		pValue_->release();
 	pValue_ = pValue;
 }
 
@@ -1050,7 +1032,7 @@ void qm::MacroValueFactory::deleteField(MacroValueField* pmvf)
 	::deleteValue<MacroValueField>(pImpl_->lock_, pImpl_->listField_, pmvf);
 }
 
-MacroValuePtr qm::MacroValueFactory::newAddress(const MacroValueAddress::AddressList& l)
+MacroValuePtr qm::MacroValueFactory::newAddress(MacroValueAddress::AddressList& l)
 {
 	MacroValuePtr pValue(newValue<MacroValueAddress>(
 		pImpl_->lock_, pImpl_->listAddress_, pImpl_->nAddress_));
@@ -1089,7 +1071,7 @@ void qm::MacroValueFactory::deletePart(MacroValuePart* pmvp)
 	::deleteValue<MacroValuePart>(pImpl_->lock_, pImpl_->listPart_, pmvp);
 }
 
-MacroValuePtr qm::MacroValueFactory::newMessageList(const MacroValueMessageList::MessageList& l)
+MacroValuePtr qm::MacroValueFactory::newMessageList(MacroValueMessageList::MessageList& l)
 {
 	MacroValuePtr pValue(newValue<MacroValueMessageList>(
 		pImpl_->lock_, pImpl_->listMessageList_, pImpl_->nMessageList_));

@@ -444,14 +444,14 @@ MacroValuePtr qm::MacroFunctionAddress::value(MacroContext* pContext) const
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDARGTYPE);
 	
 	MacroValueField* pValueField = static_cast<MacroValueField*>(pValue.get());
-	std::vector<WSTRING> v;
-	StringListFree<std::vector<WSTRING> > free(v);
+	MacroValueAddress::AddressList l;
+	StringListFree<MacroValueAddress::AddressList> free(l);
 	if (bName_)
-		pValueField->getNames(&v);
+		pValueField->getNames(&l);
 	else
-		pValueField->getAddresses(&v);
+		pValueField->getAddresses(&l);
 	
-	return MacroValueFactory::getFactory().newAddress(v);
+	return MacroValueFactory::getFactory().newAddress(l);
 }
 
 const WCHAR* qm::MacroFunctionAddress::getName() const
