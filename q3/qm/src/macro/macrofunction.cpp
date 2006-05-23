@@ -292,7 +292,7 @@ MacroValuePtr qm::MacroFunctionAccountClass::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	size_t nSize = getArgSize();
 	
-	wstring_ptr wstrAccount;
+	MacroValue::String wstrAccount;
 	if (nSize > 0) {
 		ARG(pValue, 0);
 		wstrAccount = pValue->string();
@@ -343,7 +343,7 @@ MacroValuePtr qm::MacroFunctionAccountDirectory::value(MacroContext* pContext) c
 		return MacroValuePtr();
 	size_t nSize = getArgSize();
 	
-	wstring_ptr wstrAccount;
+	MacroValue::String wstrAccount;
 	if (nSize > 0) {
 		ARG(pValue, 0);
 		wstrAccount = pValue->string();
@@ -493,7 +493,7 @@ MacroValuePtr qm::MacroFunctionAddressBook::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	wstring_ptr wstrAddress[3];
+	MacroValue::String wstrAddress[3];
 	for (unsigned int nArg = 0; nArg < countof(wstrAddress); ++nArg) {
 		if (nSize > 2 - nArg) {
 			ARG(pValue, 2 - nArg);
@@ -621,7 +621,7 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	const WCHAR* pwszSep = L", ";
-	wstring_ptr wstrSep;
+	MacroValue::String wstrSep;
 	if (nSize > 0) {
 		ARG(pValue, 0);
 		wstrSep = pValue->string();
@@ -718,10 +718,10 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	if (nView > VIEW_INLINE)
 		nView = VIEW_NONE;
 	
-	wstring_ptr wstrQuote;
+	MacroValue::String wstrQuote;
 	if (nSize > 0) {
 		ARG(pValue, 0);
-		wstring_ptr wstr(pValue->string());
+		MacroValue::String wstr(pValue->string());
 		if (*wstr.get())
 			wstrQuote = wstr;
 	}
@@ -743,7 +743,7 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 		wstrBody = util.getBodyText(wstrQuote.get(),
 			pContext->getBodyCharset(), nView == VIEW_FORCERFC822INLINE);
 	if (!wstrBody.get())
-		return MacroValuePtr();
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	return MacroValueFactory::getFactory().newString(wstrBody.get(), wstrBody.size());
 }
@@ -910,7 +910,7 @@ MacroValuePtr qm::MacroFunctionClipboard::value(MacroContext* pContext) const
 	else {
 		MacroValuePtr pValueContent(getArg(0)->value(pContext));
 		
-		wstring_ptr wstrText(pValueContent->string());
+		MacroValue::String wstrText(pValueContent->string());
 		
 		if (!Clipboard::setText(wstrText.get()))
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
@@ -995,7 +995,7 @@ MacroValuePtr qm::MacroFunctionConcat::value(MacroContext* pContext) const
 	StringBuffer<WSTRING> buf;
 	for (size_t n = 0; n < getArgSize(); ++n) {
 		ARG(pValue, n);
-		wstring_ptr wstr(pValue->string());
+		MacroValue::String wstr(pValue->string());
 		buf.append(wstr.get());
 	}
 	
@@ -1043,8 +1043,8 @@ MacroValuePtr qm::MacroFunctionContain::value(MacroContext* pContext) const
 	ARG(pValueLhs, 0);
 	ARG(pValueRhs, 1);
 	
-	wstring_ptr wstrLhs(pValueLhs->string());
-	wstring_ptr wstrRhs(pValueRhs->string());
+	MacroValue::String wstrLhs(pValueLhs->string());
+	MacroValue::String wstrRhs(pValueRhs->string());
 	
 	size_t nLhsLen = wcslen(wstrLhs.get());
 	size_t nRhsLen = wcslen(wstrRhs.get());
@@ -1109,7 +1109,7 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 	assert(pmh->getMessageHolder());
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrFolder(pValue->string());
+	MacroValue::String wstrFolder(pValue->string());
 	
 	Folder* pFolderTo = pContext->getDocument()->getFolder(
 		pContext->getAccount(), wstrFolder.get());
@@ -1164,8 +1164,8 @@ MacroValuePtr qm::MacroFunctionDate::value(MacroContext* pContext) const
 	Time time;
 	if (nSize == 1) {
 		ARG(pValue, 0);
-		wstring_ptr wstr(pValue->string());
-		string_ptr str(wcs2mbs(wstr.get()));
+		MacroValue::String wstrDate(pValue->string());
+		string_ptr str(wcs2mbs(wstrDate.get()));
 		if (!DateParser::parse(str.get(), -1, DateParser::FLAG_ALLOWDEFAULT, &time))
 			time = Time::getCurrentTime();
 	}
@@ -1206,14 +1206,17 @@ MacroValuePtr qm::MacroFunctionDecode::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstr(pValue->string());
+	MacroValue::String wstrValue(pValue->string());
 	
-	if (FieldParserUtil<WSTRING>::isAscii(wstr.get())) {
-		string_ptr str(wcs2mbs(wstr.get()));
+	const WCHAR* pwsz = wstrValue.get();
+	wstring_ptr wstr;
+	if (FieldParserUtil<WSTRING>::isAscii(wstrValue.get())) {
+		string_ptr str(wcs2mbs(wstrValue.get()));
 		wstr = FieldParser::decode(str.get(), -1, false, 0);
+		pwsz = wstr.get();
 	}
 	
-	return MacroValueFactory::getFactory().newString(wstr.get());
+	return MacroValueFactory::getFactory().newString(pwsz);
 }
 
 const WCHAR* qm::MacroFunctionDecode::getName() const
@@ -1246,7 +1249,7 @@ MacroValuePtr qm::MacroFunctionDefun::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrName(pValue->string());
+	MacroValue::String wstrName(pValue->string());
 	
 	bool bSet = pContext->setFunction(wstrName.get(), getArg(1));
 	return MacroValueFactory::getFactory().newBoolean(bSet);
@@ -1349,8 +1352,8 @@ MacroValuePtr qm::MacroFunctionEqual::value(MacroContext* pContext) const
 		bEqual = pValueLhs->number() == pValueRhs->number();
 	}
 	else {
-		wstring_ptr wstrLhs(pValueLhs->string());
-		wstring_ptr wstrRhs(pValueRhs->string());
+		MacroValue::String wstrLhs(pValueLhs->string());
+		MacroValue::String wstrRhs(pValueRhs->string());
 		if (bCase)
 			bEqual = wcscmp(wstrLhs.get(), wstrRhs.get()) == 0;
 		else
@@ -1390,7 +1393,7 @@ MacroValuePtr qm::MacroFunctionEval::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrExpr(pValue->string());
+	MacroValue::String wstrExpr(pValue->string());
 	
 	MacroParser parser;
 	std::auto_ptr<Macro> pMacro(parser.parse(wstrExpr.get()));
@@ -1436,14 +1439,14 @@ MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 #endif
 	
 	ARG(pValueCommand, 0);
-	wstring_ptr wstrCommand(pValueCommand->string());
+	wstring_ptr wstrCommand(pValueCommand->string().release());
 	
 	const WCHAR* pwszResult = L"";
 	wstring_ptr wstrOutput;
 	if (nSize > 1) {
 #ifndef _WIN32_WCE
 		ARG(pValueInput, 1);
-		wstring_ptr wstrInput(pValueInput->string());
+		MacroValue::String wstrInput(pValueInput->string());
 		
 		wstrOutput = Process::exec(wstrCommand.get(), wstrInput.get());
 		if (!wstrOutput.get())
@@ -1541,7 +1544,7 @@ MacroValuePtr qm::MacroFunctionExist::value(MacroContext* pContext) const
 	
 	ARG(pValue, 0);
 	
-	wstring_ptr wstrName(pValue->string());
+	MacroValue::String wstrName(pValue->string());
 	
 	Message* pMessage = getMessage(pContext,
 		MacroContext::MESSAGETYPE_HEADER, wstrName.get());
@@ -1627,7 +1630,7 @@ MacroValuePtr qm::MacroFunctionField::value(MacroContext* pContext) const
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrName(pValue->string());
+	MacroValue::String wstrName(pValue->string());
 	
 	const Part* pPart = 0;
 	if (nSize > 1) {
@@ -1689,7 +1692,7 @@ MacroValuePtr qm::MacroFunctionFieldParameter::value(MacroContext* pContext) con
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrName(pValue->string());
+	MacroValue::String wstrName(pValue->string());
 	
 	const Part* pPart = 0;
 	if (nSize > 2) {
@@ -1705,7 +1708,7 @@ MacroValuePtr qm::MacroFunctionFieldParameter::value(MacroContext* pContext) con
 		pPart = pMessage;
 	}
 	
-	wstring_ptr wstrParamName;
+	MacroValue::String wstrParamName;
 	if (nSize > 1) {
 		ARG(pValue, 1);
 		wstrParamName = pValue->string();
@@ -1779,12 +1782,12 @@ MacroValuePtr qm::MacroFunctionFind::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValue, 0);
-	wstring_ptr wstr(pValue->string());
+	MacroValue::String wstr(pValue->string());
 	unsigned int nResult = -1;
 	size_t nLen = wcslen(wstr.get());
 	if (nIndex < nLen) {
 		ARG(pValueSep, 1);
-		wstring_ptr wstrSep(pValueSep->string());
+		MacroValue::String wstrSep(pValueSep->string());
 		if (*wstrSep.get()) {
 			const WCHAR* p = 0;
 			if (*(wstrSep.get() + 1) == L'\0') {
@@ -2081,7 +2084,7 @@ MacroValuePtr qm::MacroFunctionFolderFlag::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValueFolder, 0);
-	wstring_ptr wstrFolder(pValueFolder->string());
+	MacroValue::String wstrFolder(pValueFolder->string());
 	Folder* pFolder = pContext->getDocument()->getFolder(
 		pContext->getAccount(), wstrFolder.get());
 	if (!pFolder)
@@ -2126,14 +2129,14 @@ MacroValuePtr qm::MacroFunctionFolderParameter::value(MacroContext* pContext) co
 	size_t nSize = getArgSize();
 	
 	ARG(pValueFolder, 0);
-	wstring_ptr wstrFolder(pValueFolder->string());
+	MacroValue::String wstrFolder(pValueFolder->string());
 	Folder* pFolder = pContext->getDocument()->getFolder(
 		pContext->getAccount(), wstrFolder.get());
 	if (!pFolder)
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	ARG(pValueName, 1);
-	wstring_ptr wstrName(pValueName->string());
+	MacroValue::String wstrName(pValueName->string());
 	
 	const WCHAR* pwszParam = pFolder->getParam(wstrName.get());
 	if (!pwszParam)
@@ -2373,7 +2376,7 @@ MacroValuePtr qm::MacroFunctionFormatDate::value(MacroContext* pContext) const
 	MacroValueTime* pTime = static_cast<MacroValueTime*>(pValueDate.get());
 	
 	ARG(pValueFormat, 1);
-	wstring_ptr wstrFormat(pValueFormat->string());
+	MacroValue::String wstrFormat(pValueFormat->string());
 	
 	wstring_ptr wstrValue(pTime->getTime().format(wstrFormat.get(), format));
 	return MacroValueFactory::getFactory().newString(wstrValue.get());
@@ -2503,7 +2506,7 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 			return MacroValuePtr();
 	}
 	
-	wstring_ptr wstrRemoveField;
+	MacroValue::String wstrRemoveField;
 	if (nSize > 0) {
 		ARG(pValue, 0);
 		wstrRemoveField = pValue->string();
@@ -2531,7 +2534,8 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 	
 	wxstring_ptr wstrHeader(PartUtil::a2w(pszHeader));
 	if (!wstrHeader.get())
-		return MacroValuePtr();
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
 	return MacroValueFactory::getFactory().newString(wstrHeader.get());
 }
 
@@ -2570,7 +2574,7 @@ MacroValuePtr qm::MacroFunctionHtmlEscape::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrValue(pValue->string());
+	MacroValue::String wstrValue(pValue->string());
 	
 	StringBuffer<WSTRING> buf;
 	for (const WCHAR* p = wstrValue.get(); *p; ++p) {
@@ -2630,7 +2634,7 @@ MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	wstring_ptr wstrSubAccount;
+	MacroValue::String wstrSubAccount;
 	if (nSize > 1) {
 		ARG(pValue, 1);
 		wstrSubAccount = pValue->string();
@@ -2639,7 +2643,7 @@ MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 	Account* pAccount = 0;
 	if (nSize > 0) {
 		ARG(pValue, 0);
-		wstring_ptr wstrAccount(pValue->string());
+		MacroValue::String wstrAccount(pValue->string());
 		pAccount = pContext->getDocument()->getAccount(wstrAccount.get());
 		if (!pAccount)
 			return error(*pContext, MacroErrorHandler::CODE_UNKNOWNACCOUNT);
@@ -2815,7 +2819,7 @@ MacroValuePtr qm::MacroFunctionInclude::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	ARG(pValuePath, 0);
-	wstring_ptr wstrPath(pValuePath->string());
+	MacroValue::String wstrPath(pValuePath->string());
 	
 	wstring_ptr wstrAbsolutePath(pContext->resolvePath(wstrPath.get()));
 	FileInputStream stream(wstrAbsolutePath.get());
@@ -2878,7 +2882,7 @@ MacroValuePtr qm::MacroFunctionInputBox::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	wstring_ptr wstrDefault;
+	MacroValue::String wstrDefault;
 	if (nSize > 2) {
 		ARG(pValue, 2);
 		wstrDefault = pValue->string();
@@ -2891,7 +2895,7 @@ MacroValuePtr qm::MacroFunctionInputBox::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrMessage(pValue->string());
+	MacroValue::String wstrMessage(pValue->string());
 	
 	std::auto_ptr<InputBoxDialog> pDialog;
 	if (bMultiline)
@@ -3030,7 +3034,7 @@ MacroValuePtr qm::MacroFunctionLabel::value(MacroContext* pContext) const
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		ARG(pValue, 0);
-		wstrLabel = pValue->string();
+		wstrLabel = pValue->string().release();
 		
 		Account* pAccount = pmh->getAccount();
 		assert(pAccount->isLocked());
@@ -3085,7 +3089,7 @@ MacroValuePtr qm::MacroFunctionLength::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrValue(pValue->string());
+	MacroValue::String wstrValue(pValue->string());
 	
 	size_t nLen = 0;
 	if (bByte) {
@@ -3131,7 +3135,7 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValuePath, 0);
-	wstring_ptr wstrPath(pValuePath->string());
+	MacroValue::String wstrPath(pValuePath->string());
 	
 	bool bTemplate = false;
 	if (nSize > 1) {
@@ -3139,10 +3143,10 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		bTemplate = pValueTemplate->boolean();
 	}
 	
-	wstring_ptr wstrEncoding;
+	MacroValue::String wstrEncoding;
 	if (nSize > 2) {
 		ARG(pValueEncoding, 2);
-		wstring_ptr wstr(pValueEncoding->string());
+		MacroValue::String wstr(pValueEncoding->string());
 		if (*wstr.get())
 			wstrEncoding = wstr;
 	}
@@ -3231,7 +3235,7 @@ MacroValuePtr qm::MacroFunctionLookupAddressBook::value(MacroContext* pContext) 
 	size_t nSize = getArgSize();
 	
 	ARG(pValueAddress, 0);
-	wstring_ptr wstrAddress(pValueAddress->string());
+	MacroValue::String wstrAddress(pValueAddress->string());
 	
 	enum Type {
 		TYPE_NAME,
@@ -3334,7 +3338,7 @@ MacroValuePtr qm::MacroFunctionMessageBox::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrMessage(pValue->string());
+	MacroValue::String wstrMessage(pValue->string());
 	
 	HWND hwnd = Window::getActiveWindow();
 	if (!hwnd)
@@ -3381,7 +3385,7 @@ MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 		nId = pValueId->number();
 	}
 	
-	wstring_ptr wstrFolder;
+	MacroValue::String wstrFolder;
 	if (nSize > 0) {
 		ARG(pValueFolder, 0);
 		wstrFolder = pValueFolder->string();
@@ -3554,7 +3558,7 @@ MacroValuePtr qm::MacroFunctionParseURL::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrURL(pValue->string());
+	MacroValue::String wstrURL(pValue->string());
 	
 	StringBuffer<WSTRING> buf;
 	if (wcslen(wstrURL.get()) >= 7 &&
@@ -3722,7 +3726,7 @@ MacroValuePtr qm::MacroFunctionParam::value(MacroContext* pContext) const
 		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrName(pValue->string());
+	MacroValue::String wstrName(pValue->string());
 	
 	const WCHAR* pwszValue = pMessage->getParam(wstrName.get());
 	return MacroValueFactory::getFactory().newString(pwszValue ? pwszValue : L"");
@@ -3930,15 +3934,15 @@ MacroValuePtr qm::MacroFunctionProfile::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValuePath, 0);
-	wstring_ptr wstrPath(pValuePath->string());
+	MacroValue::String wstrPath(pValuePath->string());
 	
 	ARG(pValueSection, 1);
-	wstring_ptr wstrSection(pValueSection->string());
+	MacroValue::String wstrSection(pValueSection->string());
 	
 	ARG(pValueKey, 2);
-	wstring_ptr wstrKey(pValueKey->string());
+	MacroValue::String wstrKey(pValueKey->string());
 	
-	wstring_ptr wstrDefault;
+	MacroValue::String wstrDefault;
 	if (nSize > 3) {
 		ARG(pValueDefault, 3);
 		wstrDefault = pValueDefault->string();
@@ -4066,16 +4070,16 @@ MacroValuePtr qm::MacroFunctionQuote::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	ARG(pValueText, 0);
-	wstring_ptr wstrText(pValueText->string());
+	MacroValue::String wstrText(pValueText->string());
 	
 	ARG(pValueQuote, 1);
-	wstring_ptr wstrQuote(pValueQuote->string());
+	MacroValue::String wstrQuote(pValueQuote->string());
 	
-	wxstring_ptr str(PartUtil::quote(wstrText.get(), wstrQuote.get()));
-	if (!str.get())
+	wxstring_ptr wstr(PartUtil::quote(wstrText.get(), wstrQuote.get()));
+	if (!wstr.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
-	return MacroValueFactory::getFactory().newString(str.get());
+	return MacroValueFactory::getFactory().newString(wstr.get());
 }
 
 const WCHAR* qm::MacroFunctionQuote::getName() const
@@ -4185,7 +4189,7 @@ MacroValuePtr qm::MacroFunctionRegexFind::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrValue(pValue->string());
+	MacroValue::String wstrValue(pValue->string());
 	
 	const RegexPattern* pPattern = 0;
 	std::auto_ptr<RegexPattern> p;
@@ -4194,7 +4198,7 @@ MacroValuePtr qm::MacroFunctionRegexFind::value(MacroContext* pContext) const
 		pPattern = static_cast<MacroValueRegex*>(pValuePattern.get())->getPattern();
 	}
 	else {
-		wstring_ptr wstrPattern(pValuePattern->string());
+		MacroValue::String wstrPattern(pValuePattern->string());
 		p = RegexCompiler().compile(wstrPattern.get());
 		if (!p.get())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
@@ -4254,7 +4258,7 @@ MacroValuePtr qm::MacroFunctionRegexMatch::value(MacroContext* pContext) const
 		return MacroValuePtr();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrValue(pValue->string());
+	MacroValue::String wstrValue(pValue->string());
 	
 	const RegexPattern* pPattern = 0;
 	std::auto_ptr<RegexPattern> p;
@@ -4263,7 +4267,7 @@ MacroValuePtr qm::MacroFunctionRegexMatch::value(MacroContext* pContext) const
 		pPattern = static_cast<MacroValueRegex*>(pValuePattern.get())->getPattern();
 	}
 	else {
-		wstring_ptr wstrPattern(pValuePattern->string());
+		MacroValue::String wstrPattern(pValuePattern->string());
 		p = RegexCompiler().compile(wstrPattern.get());
 		if (!p.get())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
@@ -4318,7 +4322,7 @@ MacroValuePtr qm::MacroFunctionRegexReplace::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrValue(pValue->string());
+	MacroValue::String wstrValue(pValue->string());
 	
 	const RegexPattern* pPattern = 0;
 	std::auto_ptr<RegexPattern> p;
@@ -4327,7 +4331,7 @@ MacroValuePtr qm::MacroFunctionRegexReplace::value(MacroContext* pContext) const
 		pPattern = static_cast<MacroValueRegex*>(pValuePattern.get())->getPattern();
 	}
 	else {
-		wstring_ptr wstrPattern(pValuePattern->string());
+		MacroValue::String wstrPattern(pValuePattern->string());
 		p = RegexCompiler().compile(wstrPattern.get());
 		if (!p.get())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
@@ -4335,7 +4339,7 @@ MacroValuePtr qm::MacroFunctionRegexReplace::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValueReplace, 2);
-	wstring_ptr wstrReplace(pValueReplace->string());
+	MacroValue::String wstrReplace(pValueReplace->string());
 	
 	bool bGlobal = false;
 	if (nSize > 3) {
@@ -4429,8 +4433,8 @@ MacroValuePtr qm::MacroFunctionRelative::value(MacroContext* pContext) const
 		nComp = pValueLhs->number() - pValueRhs->number();
 	}
 	else {
-		wstring_ptr wstrLhs(pValueLhs->string());
-		wstring_ptr wstrRhs(pValueRhs->string());
+		MacroValue::String wstrLhs(pValueLhs->string());
+		MacroValue::String wstrRhs(pValueRhs->string());
 		if (bCase)
 			nComp = wcscmp(wstrLhs.get(), wstrRhs.get());
 		else
@@ -4476,7 +4480,7 @@ MacroValuePtr qm::MacroFunctionRemove::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValue, 0);
-	wstring_ptr wstrValue(pValue->string());
+	MacroValue::String wstrValue(pValue->string());
 	
 	Part part;
 	if (!MessageCreator::setField(&part, L"Dummy", wstrValue.get(),
@@ -4497,7 +4501,7 @@ MacroValuePtr qm::MacroFunctionRemove::value(MacroContext* pContext) const
 					remove(&addressList, *it);
 			}
 			else {
-				wstring_ptr wstr(pValue->string());
+				MacroValue::String wstr(pValue->string());
 				remove(&addressList, wstr.get());
 			}
 		}
@@ -4556,15 +4560,15 @@ MacroValuePtr qm::MacroFunctionSave::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValuePath, 0);
-	wstring_ptr wstrPath(pValuePath->string());
+	MacroValue::String wstrPath(pValuePath->string());
 	
 	ARG(pValueContent, 1);
-	wstring_ptr wstrContent(pValueContent->string());
+	MacroValue::String wstrContent(pValueContent->string());
 	
-	wstring_ptr wstrEncoding;
+	MacroValue::String wstrEncoding;
 	if (nSize > 2) {
 		ARG(pValueEncoding, 2);
-		wstring_ptr wstr(pValueEncoding->string());
+		MacroValue::String wstr(pValueEncoding->string());
 		if (*wstr.get())
 			wstrEncoding = wstr;
 	}
@@ -4617,10 +4621,10 @@ MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValueScript, 0);
-	wstring_ptr wstrScript(pValueScript->string());
+	MacroValue::String wstrScript(pValueScript->string());
 	
 	ARG(pValueLanguage, 1);
-	wstring_ptr wstrLanguage(pValueLanguage->string());
+	MacroValue::String wstrLanguage(pValueLanguage->string());
 	
 	ScriptManager* pScriptManager = pContext->getDocument()->getScriptManager();
 	std::auto_ptr<Script> pScript(pScriptManager->createScript(wstrScript.get(),
@@ -4658,7 +4662,7 @@ MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 			break;
 		default:
 			{
-				wstring_ptr wstrValue(pValue->string());
+				MacroValue::String wstrValue(pValue->string());
 				listArgs[n].vt = VT_BSTR;
 				listArgs[n].bstrVal = ::SysAllocString(wstrValue.get());
 				if (!listArgs[n].bstrVal)
@@ -4714,7 +4718,7 @@ MacroValuePtr qm::MacroFunctionSelectBox::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	wstring_ptr wstrDefault;
+	MacroValue::String wstrDefault;
 	if (nSize > 3) {
 		ARG(pValue, 3);
 		wstrDefault = pValue->string();
@@ -4729,7 +4733,7 @@ MacroValuePtr qm::MacroFunctionSelectBox::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValueCandidate, 1);
-	wstring_ptr wstrCandidate(pValueCandidate->string());
+	wstring_ptr wstrCandidate(pValueCandidate->string().release());
 	SelectBoxDialog::CandidateList listCandidate;
 	WCHAR* p = wstrCandidate.get();
 	while (*p) {
@@ -4742,7 +4746,7 @@ MacroValuePtr qm::MacroFunctionSelectBox::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValueMessage, 0);
-	wstring_ptr wstrMessage(pValueMessage->string());
+	MacroValue::String wstrMessage(pValueMessage->string());
 	
 	SelectBoxDialog dialog(type, wstrMessage.get(), listCandidate, wstrDefault.get());
 	if (dialog.doModal(pContext->getWindow()) != IDOK) {
@@ -4829,7 +4833,7 @@ MacroValuePtr qm::MacroFunctionSet::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValueName, 0);
-	wstring_ptr wstrName(pValueName->string());
+	MacroValue::String wstrName(pValueName->string());
 	ARG(pValue, 1);
 	
 	if (!pContext->setVariable(wstrName.get(), pValue.get(), bGlobal))
@@ -4917,7 +4921,7 @@ MacroValuePtr qm::MacroFunctionSpecialFolder::value(MacroContext* pContext) cons
 	Account* pAccount = 0;
 	if (nSize > 1) {
 		ARG(pValue, 1);
-		wstring_ptr wstrAccount(pValue->string());
+		MacroValue::String wstrAccount(pValue->string());
 		pAccount = pContext->getDocument()->getAccount(wstrAccount.get());
 		if (!pAccount)
 			return error(*pContext, MacroErrorHandler::CODE_UNKNOWNACCOUNT);
@@ -5133,7 +5137,7 @@ MacroValuePtr qm::MacroFunctionSubstring::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValue, 0);
-	wstring_ptr wstr(pValue->string());
+	MacroValue::String wstr(pValue->string());
 	size_t nLen = wcslen(wstr.get());
 	
 	ARG(pValueBegin, 1);
@@ -5191,10 +5195,10 @@ MacroValuePtr qm::MacroFunctionSubstringSep::value(MacroContext* pContext) const
 	}
 	
 	ARG(pValue, 0);
-	wstring_ptr wstr(pValue->string());
+	MacroValue::String wstr(pValue->string());
 	
 	ARG(pValueSep, 1);
-	wstring_ptr wstrSep(pValueSep->string());
+	MacroValue::String wstrSep(pValueSep->string());
 	
 	const WCHAR* pwsz = wstr.get();
 	BMFindString<WSTRING> bmfs(wstrSep.get(), wcslen(wstrSep.get()),
@@ -5613,7 +5617,7 @@ MacroValuePtr qm::MacroFunctionVariable::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	ARG(pValueName, 0);
-	wstring_ptr wstrName(pValueName->string());
+	MacroValue::String wstrName(pValueName->string());
 	
 	MacroValuePtr pValue(pContext->getVariable(wstrName.get()));
 	

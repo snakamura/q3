@@ -42,6 +42,75 @@ MacroValue::Type qm::MacroValue::getType() const
 
 /****************************************************************************
  *
+ * MacroValue::String
+ *
+ */
+
+qm::MacroValue::String::String() :
+	pwsz_(0)
+{
+}
+
+qm::MacroValue::String::String(const WCHAR* pwsz) :
+	pwsz_(pwsz)
+{
+}
+
+qm::MacroValue::String::String(qs::wstring_ptr wstr) :
+	wstr_(wstr),
+	pwsz_(wstr_.get())
+{
+}
+
+qm::MacroValue::String::String(qs::wxstring_ptr wxstr) :
+	wxstr_(wxstr),
+	pwsz_(wxstr_.get())
+{
+}
+
+qm::MacroValue::String::String(String& str) :
+	wstr_(str.wstr_),
+	wxstr_(str.wxstr_),
+	pwsz_(str.pwsz_)
+{
+}
+
+qm::MacroValue::String::~String()
+{
+}
+
+MacroValue::String& qm::MacroValue::String::operator=(String& str)
+{
+	if (&str != this) {
+		wstr_ = str.wstr_;
+		wxstr_ = str.wxstr_;
+		pwsz_ = str.pwsz_;
+	}
+	return *this;
+}
+
+const WCHAR* qm::MacroValue::String::get() const
+{
+	return pwsz_;
+}
+
+wstring_ptr qm::MacroValue::String::release()
+{
+	wstring_ptr wstr;
+	if (wstr_.get())
+		wstr = wstr_;
+	else
+		wstr = allocWString(pwsz_);
+	
+	wstr_.reset(0);
+	wxstr_.reset(0);
+	pwsz_ = 0;
+	
+	return wstr;
+}
+
+/****************************************************************************
+ *
  * MacroValueBoolean
  *
  */
@@ -66,9 +135,9 @@ void qm::MacroValueBoolean::term()
 	b_ = false;
 }
 
-wstring_ptr qm::MacroValueBoolean::string() const
+MacroValue::String qm::MacroValueBoolean::string() const
 {
-	return allocWString(b_ ? L"true" : L"false");
+	return String(b_ ? L"true" : L"false");
 }
 
 bool qm::MacroValueBoolean::boolean() const
@@ -118,9 +187,9 @@ void qm::MacroValueString::term()
 	wstr_.reset(0);
 }
 
-wstring_ptr qm::MacroValueString::string() const
+MacroValue::String qm::MacroValueString::string() const
 {
-	return allocWString(wstr_.get());
+	return String(wstr_.get());
 }
 
 bool qm::MacroValueString::boolean() const
@@ -171,11 +240,11 @@ void qm::MacroValueNumber::term()
 	n_ = 0;
 }
 
-wstring_ptr qm::MacroValueNumber::string() const
+MacroValue::String qm::MacroValueNumber::string() const
 {
 	WCHAR wsz[32];
 	_snwprintf(wsz, countof(wsz), L"%lu", n_);
-	return allocWString(wsz);
+	return String(allocWString(wsz));
 }
 
 bool qm::MacroValueNumber::boolean() const
@@ -229,9 +298,9 @@ const RegexPattern* qm::MacroValueRegex::getPattern() const
 	return pPattern_;
 }
 
-wstring_ptr qm::MacroValueRegex::string() const
+MacroValue::String qm::MacroValueRegex::string() const
 {
-	return allocWString(pwszPattern_);
+	return String(pwszPattern_);
 }
 
 bool qm::MacroValueRegex::boolean() const
@@ -366,30 +435,30 @@ bool qm::MacroValueField::getNames(std::vector<WSTRING>* pNames) const
 	return true;
 }
 
-wstring_ptr qm::MacroValueField::string() const
+MacroValue::String qm::MacroValueField::string() const
 {
 	if (strField_.get()) {
 		Part part;
 		if (!part.create(0, strField_.get(), -1))
-			return 0;
+			return String(L"");
 		if (isAddress()) {
 			AddressListParser address;
 			if (part.getField(wstrName_.get(), &address) == Part::FIELD_EXIST)
-				return address.getValue();
+				return String(address.getValue());
 		}
 		else if (_wcsicmp(wstrName_.get(), L"Received") == 0) {
 			NoParseParser received(L": ", 0);
 			if (part.getField(wstrName_.get(), &received) == Part::FIELD_EXIST)
-				return allocWString(received.getValue());
+				return String(allocWString(received.getValue()));
 		}
 		else {
 			UnstructuredParser unstructured;
 			if (part.getField(wstrName_.get(), &unstructured) == Part::FIELD_EXIST)
-				return allocWString(unstructured.getValue());
+				return String(allocWString(unstructured.getValue()));
 		}
 	}
 	
-	return allocWString(L"");
+	return String(L"");
 }
 
 bool qm::MacroValueField::boolean() const
@@ -399,7 +468,7 @@ bool qm::MacroValueField::boolean() const
 
 unsigned int qm::MacroValueField::number() const
 {
-	wstring_ptr wstrValue(string());
+	MacroValue::String wstrValue(string());
 	if (!wstrValue.get())
 		return 0;
 	
@@ -492,7 +561,7 @@ void qm::MacroValueAddress::remove(const WCHAR* pwszAddress)
 	}
 }
 
-wstring_ptr qm::MacroValueAddress::string() const
+MacroValue::String qm::MacroValueAddress::string() const
 {
 	StringBuffer<WSTRING> buf;
 	
@@ -502,7 +571,7 @@ wstring_ptr qm::MacroValueAddress::string() const
 		buf.append(*it);
 	}
 	
-	return buf.getString();
+	return String(buf.getString());
 }
 
 bool qm::MacroValueAddress::boolean() const
@@ -550,9 +619,9 @@ const Time& qm::MacroValueTime::getTime() const
 	return time_;
 }
 
-wstring_ptr qm::MacroValueTime::string() const
+MacroValue::String qm::MacroValueTime::string() const
 {
-	return time_.format(Time::getDefaultFormat(), Time::FORMAT_ORIGINAL);
+	return String(time_.format(Time::getDefaultFormat(), Time::FORMAT_ORIGINAL));
 }
 
 bool qm::MacroValueTime::boolean() const
@@ -602,12 +671,12 @@ const Part* qm::MacroValuePart::getPart() const
 	return pPart_;
 }
 
-wstring_ptr qm::MacroValuePart::string() const
+MacroValue::String qm::MacroValuePart::string() const
 {
 	if (pPart_)
-		return allocWString(PartUtil(*pPart_).getAllText(0, 0, false).get());
+		return String(PartUtil(*pPart_).getAllText(0, 0, false).get());
 	else
-		return allocWString(L"");
+		return String(L"");
 }
 
 bool qm::MacroValuePart::boolean() const
@@ -656,7 +725,7 @@ const MacroValueMessageList::MessageList& qm::MacroValueMessageList::getMessageL
 	return list_;
 }
 
-wstring_ptr qm::MacroValueMessageList::string() const
+MacroValue::String qm::MacroValueMessageList::string() const
 {
 	StringBuffer<WSTRING> buf;
 	for (MessageList::const_iterator it = list_.begin(); it != list_.end(); ++it) {
@@ -668,7 +737,7 @@ wstring_ptr qm::MacroValueMessageList::string() const
 			buf.append(wstrURI.get());
 		}
 	}
-	return buf.getString();
+	return String(buf.getString());
 }
 
 bool qm::MacroValueMessageList::boolean() const

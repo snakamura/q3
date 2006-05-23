@@ -177,12 +177,12 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 			assert(nCacheIndex_ != -1);
 			const MacroValue* pCache = pItem->getCache(nCacheIndex_);
 			if (pCache)
-				wstrText = pCache->string();
+				wstrText = pCache->string().release();
 		}
 		if (!wstrText.get()) {
 			MacroValuePtr pValue(pViewModel->getValue(pMacro_.get(), pmh));
 			if (pValue.get()) {
-				wstrText = pValue->string();
+				wstrText = pValue->string().release();
 				if (nFlags_ & FLAG_CACHE) {
 					if (pValue->getType() != MacroValue::TYPE_STRING)
 						pValue = MacroValueFactory::getFactory().newString(wstrText.get());

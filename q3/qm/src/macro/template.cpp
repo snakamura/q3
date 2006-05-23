@@ -71,8 +71,7 @@ Template::Result qm::Template::getValue(const TemplateContext& context,
 				else
 					return RESULT_CANCEL;
 			}
-			wstring_ptr wstrValue(pValue->string());
-			buf.append(wstrValue.get());
+			buf.append(pValue->string().get());
 		}
 	}
 	

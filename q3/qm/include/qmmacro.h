@@ -311,6 +311,30 @@ public:
 		TYPE_MESSAGELIST
 	};
 
+public:
+	class String
+	{
+	public:
+		String();
+		String(const WCHAR* pwsz);
+		String(qs::wstring_ptr wstr);
+		String(qs::wxstring_ptr wxstr);
+		String(String& str);
+		~String();
+	
+	public:
+		String& operator=(String& str);
+	
+	public:
+		const WCHAR* get() const;
+		qs::wstring_ptr release();
+	
+	private:
+		qs::wstring_ptr wstr_;
+		qs::wxstring_ptr wxstr_;
+		const WCHAR* pwsz_;
+	};
+
 protected:
 	explicit MacroValue(Type type);
 
@@ -321,7 +345,7 @@ public:
 	Type getType() const;
 
 public:
-	virtual qs::wstring_ptr string() const = 0;
+	virtual String string() const = 0;
 	virtual bool boolean() const = 0;
 	virtual unsigned int number() const = 0;
 	virtual MacroValuePtr clone() const = 0;
@@ -352,7 +376,7 @@ public:
 	void term();
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;
@@ -384,7 +408,7 @@ public:
 	void term();
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;
@@ -415,7 +439,7 @@ public:
 	void term();
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;
@@ -450,7 +474,7 @@ public:
 	const qs::RegexPattern* getPattern() const;
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;
@@ -489,7 +513,7 @@ public:
 	bool getNames(std::vector<qs::WSTRING>* pNames) const;
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;
@@ -531,7 +555,7 @@ public:
 	void remove(const WCHAR* pwszAddress);
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;
@@ -565,7 +589,7 @@ public:
 	const qs::Time& getTime() const;
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;
@@ -599,7 +623,7 @@ public:
 	const qs::Part* getPart() const;
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;
@@ -636,7 +660,7 @@ public:
 	const MessageList& getMessageList() const;
 
 public:
-	virtual qs::wstring_ptr string() const;
+	virtual String string() const;
 	virtual bool boolean() const;
 	virtual unsigned int number() const;
 	virtual MacroValuePtr clone() const;

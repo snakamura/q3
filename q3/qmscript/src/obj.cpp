@@ -1006,7 +1006,7 @@ STDMETHODIMP qmscript::MacroImpl::evaluate(IMessageHolder* pMessageHolder,
 		break;
 	default:
 		{
-			wstring_ptr wstrValue(pValue->string());
+			MacroValue::String wstrValue(pValue->string());
 			pvarResult->vt = VT_BSTR;
 			pvarResult->bstrVal = ::SysAllocString(wstrValue.get());
 			if (!pvarResult->bstrVal)
