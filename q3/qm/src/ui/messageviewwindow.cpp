@@ -338,18 +338,13 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 		}
 		else if (pTemplate) {
 			// TODO
-			// Performance up.
-			// TODO
 			// Pass selected messages
 			TemplateContext context(pmh, pMessage, MessageHolderList(),
 				pFolder, pmh->getAccount(), pDocument_, getHandle(), pwszEncoding,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
-			wstring_ptr wstr;
-			if (pTemplate->getValue(context, &wstr) != Template::RESULT_SUCCESS)
+			if (pTemplate->getValue(context, &wstrText) != Template::RESULT_SUCCESS)
 				return false;
-			size_t nLen = wcslen(wstr.get());
-			wstrText.reset(allocWXString(wstr.get(), nLen), nLen);
 		}
 		else if (nFlags & FLAG_INCLUDEHEADER) {
 			wstrText = util.getFormattedText(false, pwszEncoding, true);

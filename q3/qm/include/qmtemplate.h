@@ -57,6 +57,8 @@ public:
 public:
 	Result getValue(const TemplateContext& context,
 					qs::wstring_ptr* pwstrValue) const;
+	Result getValue(const TemplateContext& context,
+					qs::wxstring_size_ptr* pwstrValue) const;
 
 private:
 	Template(const Template&);

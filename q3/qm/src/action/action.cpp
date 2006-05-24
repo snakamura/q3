@@ -1463,7 +1463,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 	
-	wstring_ptr wstrValue;
+	wxstring_size_ptr wstrValue;
 	if (pTemplate->getValue(context, &wstrValue) != Template::RESULT_SUCCESS)
 		return false;
 	
@@ -1471,7 +1471,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	if (!pConverter.get())
 		return false;
 	
-	size_t nLen = wcslen(wstrValue.get());
+	size_t nLen = wstrValue.size();
 	xstring_size_ptr strContent = pConverter->encode(wstrValue.get(), &nLen);
 	
 	if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()), strContent.size()) == -1)
@@ -2287,7 +2287,7 @@ bool qm::FilePrintAction::print(Account* pAccount,
 		pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 	
-	wstring_ptr wstrValue;
+	wxstring_size_ptr wstrValue;
 	switch (pTemplate->getValue(context, &wstrValue)) {
 	case Template::RESULT_SUCCESS:
 		break;

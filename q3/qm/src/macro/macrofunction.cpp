@@ -3169,7 +3169,7 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	BufferedReader bufferedReader(&reader, false);
 	
-	wstring_ptr wstr;
+	wxstring_size_ptr wstrText;
 	if (bTemplate) {
 		TemplateParser parser;
 		std::auto_ptr<Template> pTemplate(parser.parse(
@@ -3182,7 +3182,7 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 			pContext->getDocument(), pContext->getWindow(), pContext->getBodyCharset(),
 			pContext->getFlags(), pContext->getSecurityMode(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());
-		switch (pTemplate->getValue(context, &wstr)) {
+		switch (pTemplate->getValue(context, &wstrText)) {
 		case Template::RESULT_SUCCESS:
 			break;
 		case Template::RESULT_ERROR:
@@ -3196,7 +3196,7 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		}
 	}
 	else {
-		StringBuffer<WSTRING> buf;
+		XStringBuffer<WXSTRING> buf;
 		WCHAR wsz[1024];
 		while (true) {
 			size_t nRead = bufferedReader.read(wsz, countof(wsz));
@@ -3204,12 +3204,13 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 				return error(*pContext, MacroErrorHandler::CODE_FAIL);
 			else if (nRead == 0)
 				break;
-			buf.append(wsz, nRead);
+			if (!buf.append(wsz, nRead))
+				return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		}
-		wstr = buf.getString();
+		wstrText = buf.getXStringSize();
 	}
 	
-	return MacroValueFactory::getFactory().newString(wstr);
+	return MacroValueFactory::getFactory().newString(wstrText);
 }
 
 const WCHAR* qm::MacroFunctionLoad::getName() const

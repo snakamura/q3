@@ -27,6 +27,63 @@ using namespace qs;
  *
  */
 
+namespace qm {
+
+template<class Buffer>
+bool append(Buffer& buf,
+			const WCHAR* pwsz)
+{
+	return buf.append(pwsz);
+}
+
+template<>
+bool append(StringBuffer<WSTRING>& buf,
+			const WCHAR* pwsz)
+{
+	buf.append(pwsz);
+	return true;
+}
+
+template<class Buffer>
+Template::Result getTemplateValue(const Template::ValueList& listValue,
+								  const TemplateContext& context,
+								  Buffer& buffer)
+{
+	MacroVariableHolder globalVariable;
+	
+	const TemplateContext::ArgumentList& l = context.getArgumentList();
+	for (TemplateContext::ArgumentList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
+		MacroValuePtr pValue(MacroValueFactory::getFactory().newString((*itA).pwszValue_));
+		globalVariable.setVariable((*itA).pwszName_, pValue);
+	}
+	
+	for (Template::ValueList::const_iterator itV = listValue.begin(); itV != listValue.end(); ++itV) {
+		if (!append(buffer, (*itV).first))
+			return Template::RESULT_ERROR;
+		
+		if ((*itV).second) {
+			MacroContext c(context.getMessageHolder(), context.getMessage(),
+				context.getAccount(), context.getSelectedMessageHolders(),
+				context.getFolder(), context.getDocument(), context.getWindow(),
+				context.getProfile(), context.getBodyCharset(), context.getMacroFlags(),
+				context.getSecurityMode(), context.getErrorHandler(), &globalVariable);
+			MacroValuePtr pValue((*itV).second->value(&c));
+			if (!pValue.get()) {
+				if (c.getReturnType() == MacroContext::RETURNTYPE_NONE)
+					return Template::RESULT_ERROR;
+				else
+					return Template::RESULT_CANCEL;
+			}
+			if (!append(buffer, pValue->string().get()))
+				return Template::RESULT_ERROR;
+		}
+	}
+	
+	return Template::RESULT_SUCCESS;
+}
+
+}
+
 qm::Template::Template(const ValueList& l) :
 	listValue_(l)
 {
@@ -46,38 +103,22 @@ Template::Result qm::Template::getValue(const TemplateContext& context,
 	pwstrValue->reset(0);
 	
 	StringBuffer<WSTRING> buf;
-	
-	MacroVariableHolder globalVariable;
-	
-	const TemplateContext::ArgumentList& l = context.getArgumentList();
-	for (TemplateContext::ArgumentList::const_iterator itA = l.begin(); itA != l.end(); ++itA) {
-		MacroValuePtr pValue(MacroValueFactory::getFactory().newString((*itA).pwszValue_));
-		globalVariable.setVariable((*itA).pwszName_, pValue);
-	}
-	
-	for (ValueList::const_iterator itV = listValue_.begin(); itV != listValue_.end(); ++itV) {
-		buf.append((*itV).first);
-		
-		if ((*itV).second) {
-			MacroContext c(context.getMessageHolder(), context.getMessage(),
-				context.getAccount(), context.getSelectedMessageHolders(),
-				context.getFolder(), context.getDocument(), context.getWindow(),
-				context.getProfile(), context.getBodyCharset(), context.getMacroFlags(),
-				context.getSecurityMode(), context.getErrorHandler(), &globalVariable);
-			MacroValuePtr pValue((*itV).second->value(&c));
-			if (!pValue.get()) {
-				if (c.getReturnType() == MacroContext::RETURNTYPE_NONE)
-					return RESULT_ERROR;
-				else
-					return RESULT_CANCEL;
-			}
-			buf.append(pValue->string().get());
-		}
-	}
-	
+	Result result = getTemplateValue(listValue_, context, buf);
 	*pwstrValue = buf.getString();
+	return result;
+}
+
+Template::Result qm::Template::getValue(const TemplateContext& context,
+										wxstring_size_ptr* pwstrValue) const
+{
+	assert(pwstrValue);
 	
-	return RESULT_SUCCESS;
+	pwstrValue->reset(0, -1);
+	
+	XStringBuffer<WXSTRING> buf;
+	Result result = getTemplateValue(listValue_, context, buf);
+	*pwstrValue = buf.getXStringSize();
+	return result;
 }
 
 

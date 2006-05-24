@@ -123,7 +123,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI | MacroContext::FLAG_MODIFY,
 		pSecurityModel_->getSecurityMode(), pProfile_, &handler, listArgument);
 	
-	wstring_ptr wstrValue;
+	wxstring_size_ptr wstrValue;
 	switch (pTemplate->getValue(context, &wstrValue)) {
 	case Template::RESULT_SUCCESS:
 		break;
@@ -149,7 +149,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		MessageCreator creator(MessageCreator::FLAG_ADDNODEFAULTCONTENTTYPE |
 			MessageCreator::FLAG_RECOVERHEADER, SECURITYMODE_NONE);
 		std::auto_ptr<Message> pMessage(creator.createMessage(
-			pDocument_, wstrValue.get(), -1));
+			pDocument_, wstrValue.get(), wstrValue.size()));
 		if (!pMessage.get())
 			return false;
 		

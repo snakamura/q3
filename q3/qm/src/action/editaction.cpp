@@ -362,7 +362,7 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 {
 	MessagePtr ptr(UIUtil::getMessageFromClipboard(pTextWindow_->getHandle(), pDocument_));
 	
-	wstring_ptr wstrMessage;
+	wxstring_size_ptr wstrMessage;
 	wstring_ptr wstrMessageId;
 	
 	MessagePtrLock mpl(ptr);
@@ -401,7 +401,7 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 			wstrMessageId = allocWString(messageId.getMessageId());
 	}
 	if (wstrMessage.get()) {
-		if (!pTextWindow_->insertText(wstrMessage.get(), -1)) {
+		if (!pTextWindow_->insertText(wstrMessage.get(), wstrMessage.size())) {
 			ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
 			return;
 		}
