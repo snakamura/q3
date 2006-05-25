@@ -79,8 +79,7 @@ public:
 
 public:
 	void updateMessageParts(MessageHolder* pmh,
-							Message& msg,
-							const qs::ContentTypeParser* pContentType);
+							const Message& msg);
 
 public:
 	virtual LRESULT windowProc(UINT uMsg,

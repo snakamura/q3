@@ -230,14 +230,12 @@ class MessageWindowEvent
 {
 public:
 	MessageWindowEvent(MessageHolder* pmh,
-					   Message& msg,
-					   const qs::ContentTypeParser* pContentType);
+					   const Message& msg);
 	~MessageWindowEvent();
 
 public:
 	MessageHolder* getMessageHolder() const;
-	Message& getMessage() const;
-	const qs::ContentTypeParser* getContentType() const;
+	const Message& getMessage() const;
 
 private:
 	MessageWindowEvent(const MessageWindowEvent&);
@@ -245,8 +243,7 @@ private:
 
 private:
 	MessageHolder* pmh_;
-	Message& msg_;
-	const qs::ContentTypeParser* pContentType_;
+	const Message& msg_;
 };
 
 

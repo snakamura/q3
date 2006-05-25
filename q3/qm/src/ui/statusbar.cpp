@@ -106,30 +106,16 @@ qm::MessageStatusBar::~MessageStatusBar()
 }
 
 void qm::MessageStatusBar::updateMessageParts(MessageHolder* pmh,
-											  Message& msg,
-											  const ContentTypeParser* pContentType)
+											  const Message& msg)
 {
 	if (pmh) {
 #ifndef _WIN32_WCE_PSPC
 		const WCHAR* pwszEncoding = pEncodingModel_->getEncoding();
 		wstring_ptr wstrCharset;
 		if (!pwszEncoding) {
-			if (!pContentType) {
-				if (msg.isMultipart()) {
-					const Part::PartList& listPart = msg.getPartList();
-					if (!listPart.empty())
-						pContentType = listPart.front()->getContentType();
-				}
-				else {
-					pContentType = msg.getContentType();
-				}
-			}
-			if (pContentType)
-				wstrCharset = pContentType->getParameter(L"charset");
+			wstrCharset = PartUtil(msg).getBodyTextCharset(false);
 			pwszEncoding = wstrCharset.get();
 		}
-		if (!pwszEncoding)
-			pwszEncoding = L"us-ascii";
 		setText(nOffset_ + 1, pwszEncoding);
 		
 		const WCHAR* pwszTemplate = pMessageWindow_->getTemplate();

@@ -1502,8 +1502,7 @@ void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 	if (bShowStatusBar_) {
 		pStatusBar_->updateListParts(L"");
 		if (pThis_->isShowPreviewWindow())
-			pStatusBar_->updateMessageParts(event.getMessageHolder(),
-				event.getMessage(), event.getContentType());
+			pStatusBar_->updateMessageParts(event.getMessageHolder(), event.getMessage());
 	}
 }
 

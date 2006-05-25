@@ -105,8 +105,7 @@ public:
 
 private:
 	void fireMessageChanged(MessageHolder* pmh,
-							Message& msg,
-							const ContentTypeParser* pContentType) const;
+							const Message& msg) const;
 	void fireStatusTextChanged(const WCHAR* pwszText) const;
 
 public:
@@ -310,7 +309,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	if (bActive)
 		pThis_->setActive();
 	
-	fireMessageChanged(pmh, msg, pContentType);
+	fireMessageChanged(pmh, msg);
 	
 	return true;
 }
@@ -449,10 +448,9 @@ void qm::MessageWindowImpl::applyModeToMessageViewWindow(MessageViewWindow* pMes
 }
 
 void qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
-											   Message& msg,
-											   const ContentTypeParser* pContentType) const
+											   const Message& msg) const
 {
-	MessageWindowEvent event(pmh, msg, pContentType);
+	MessageWindowEvent event(pmh, msg);
 	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		(*it)->messageChanged(event);
 }
@@ -831,11 +829,9 @@ qm::MessageWindowHandler::~MessageWindowHandler()
  */
 
 qm::MessageWindowEvent::MessageWindowEvent(MessageHolder* pmh,
-										   Message& msg,
-										   const ContentTypeParser* pContentType) :
+										   const Message& msg) :
 	pmh_(pmh),
-	msg_(msg),
-	pContentType_(pContentType)
+	msg_(msg)
 {
 }
 
@@ -848,14 +844,9 @@ MessageHolder* qm::MessageWindowEvent::getMessageHolder() const
 	return pmh_;
 }
 
-Message& qm::MessageWindowEvent::getMessage() const
+const Message& qm::MessageWindowEvent::getMessage() const
 {
 	return msg_;
-}
-
-const ContentTypeParser* qm::MessageWindowEvent::getContentType() const
-{
-	return pContentType_;
 }
 
 

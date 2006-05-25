@@ -575,8 +575,7 @@ void qm::MessageFrameWindowImpl::messageChanged(const MessageWindowEvent& event)
 		
 		if (bShowStatusBar_) {
 			pStatusBar_->setText(0, L"");
-			pStatusBar_->updateMessageParts(pmh,
-				event.getMessage(), event.getContentType());
+			pStatusBar_->updateMessageParts(pmh, event.getMessage());
 		}
 	}
 	else {
