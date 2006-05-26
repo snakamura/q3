@@ -101,7 +101,8 @@ private:
 					   bool bDropDown);
 	void insertFolder(int nIndex,
 					  Folder* pFolder,
-					  bool bDropDown);
+					  bool bDropDown,
+					  bool bAddHandler);
 
 private:
 	LRESULT onCloseUp();
@@ -185,14 +186,12 @@ void qm::FolderComboBoxImpl::update(Folder* pFolder)
 	assert(pFolder);
 	
 	bool bDropDown = ComboBox_GetDroppedState(pThis_->getHandle()) != 0;
-
+	
 	int nSelectedItem = ComboBox_GetCurSel(pThis_->getHandle());
-
-	pFolder->removeFolderHandler(this);
 	
 	int nIndex = getIndexFromFolder(pFolder);
 	ComboBox_DeleteString(pThis_->getHandle(), nIndex);
-	insertFolder(nIndex, pFolder, bDropDown);
+	insertFolder(nIndex, pFolder, bDropDown, false);
 	
 	ComboBox_SetCurSel(pThis_->getHandle(), nSelectedItem);
 }
@@ -466,14 +465,15 @@ void qm::FolderComboBoxImpl::insertFolders(int nIndex,
 		
 		if (!pFolder->isHidden()) {
 			++nIndex;
-			insertFolder(nIndex, pFolder, bDropDown);
+			insertFolder(nIndex, pFolder, bDropDown, true);
 		}
 	}
 }
 
 void qm::FolderComboBoxImpl::insertFolder(int nIndex,
 										  Folder* pFolder,
-										  bool bDropDown)
+										  bool bDropDown,
+										  bool bAddHandler)
 {
 	assert(pFolder);
 	
@@ -512,7 +512,8 @@ void qm::FolderComboBoxImpl::insertFolder(int nIndex,
 	ComboBox_SetItemData(pThis_->getHandle(), nFolderIndex,
 		reinterpret_cast<LPARAM>(pFolder) | 0x01);
 	
-	pFolder->addFolderHandler(this);
+	if (bAddHandler)
+		pFolder->addFolderHandler(this);
 }
 
 LRESULT qm::FolderComboBoxImpl::onCloseUp()
