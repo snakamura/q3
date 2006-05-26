@@ -415,7 +415,7 @@ void qm::FolderComboBoxImpl::addAccount(Account* pAccount,
 	int nInsert = 0;
 	for (nInsert = 0; nInsert < nCount; ++nInsert) {
 		Account* p = getAccount(nInsert);
-		if (p && wcscmp(p->getName(), pAccount->getName()) > 0)
+		if (p && _wcsicmp(p->getName(), pAccount->getName()) > 0)
 			break;
 	}
 	
