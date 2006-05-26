@@ -19,6 +19,8 @@
 #include <qmsecurity.h>
 
 #include <qscrypto.h>
+#include <qsinit.h>
+#include <qslog.h>
 
 #include "foldermodel.h"
 #include "messagecomposer.h"
@@ -272,26 +274,40 @@ bool qm::MessageComposer::processSMIME(Message* pMessage,
 									   unsigned int nMessageSecurity,
 									   SubAccount* pSubAccount) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::MessageComposer");
+	
 	if (!(nMessageSecurity & MESSAGESECURITY_SMIMESIGN) &&
 		!(nMessageSecurity & MESSAGESECURITY_SMIMEENCRYPT))
 		return true;
 	
 	const Security* pSecurity = pDocument_->getSecurity();
 	const SMIMEUtility* pSMIMEUtility = pSecurity->getSMIMEUtility();
-	if (!pSMIMEUtility)
+	if (!pSMIMEUtility) {
+		log.error(L"S/MIME is not supported.");
 		return false;
+	}
 	
 	if (nMessageSecurity & MESSAGESECURITY_SMIMESIGN) {
 		bool bMultipart = !(nMessageSecurity & MESSAGESECURITY_SMIMEENCRYPT) &&
 			(nMessageSecurity & MESSAGESECURITY_SMIMEMULTIPARTSIGNED);
 		std::auto_ptr<Certificate> pCertificate(pSubAccount->getCertificate(pPasswordManager_));
-		std::auto_ptr<PrivateKey> pPrivateKey(pSubAccount->getPrivateKey(pPasswordManager_));
-		if (!pCertificate.get() || !pPrivateKey.get())
+		if (!pCertificate.get()) {
+			log.errorf(L"Could not get the certificate for the account: %s/%s.",
+				pSubAccount->getAccount()->getName(), pSubAccount->getName());
 			return false;
+		}
+		std::auto_ptr<PrivateKey> pPrivateKey(pSubAccount->getPrivateKey(pPasswordManager_));
+		if (!pPrivateKey.get()) {
+			log.errorf(L"Could not get the private key for the account: %s/%s.",
+				pSubAccount->getAccount()->getName(), pSubAccount->getName());
+			return false;
+		}
 		xstring_size_ptr strMessage(pSMIMEUtility->sign(pMessage,
 			bMultipart, pPrivateKey.get(), pCertificate.get()));
-		if (!strMessage.get())
+		if (!strMessage.get()) {
+			log.error(L"Failed to sign with S/MIME.");
 			return false;
+		}
 		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 			return false;
 	}
@@ -304,8 +320,10 @@ bool qm::MessageComposer::processSMIME(Message* pMessage,
 		std::auto_ptr<Cipher> pCipher(Cipher::getInstance(L"des3"));
 		xstring_size_ptr strMessage(pSMIMEUtility->encrypt(
 			pMessage, pCipher.get(), &callback));
-		if (!strMessage.get())
+		if (!strMessage.get()) {
+			log.error(L"Failed to encrypt with S/MIME.");
 			return false;
+		}
 		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 			return false;
 	}
@@ -317,14 +335,18 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 									 unsigned int nMessageSecurity,
 									 SubAccount* pSubAccount) const
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::MessageComposer");
+	
 	if (!(nMessageSecurity & MESSAGESECURITY_PGPSIGN) &&
 		!(nMessageSecurity & MESSAGESECURITY_PGPENCRYPT))
 		return true;
 	
 	const Security* pSecurity = pDocument_->getSecurity();
 	const PGPUtility* pPGPUtility = pSecurity->getPGPUtility();
-	if (!pPGPUtility)
+	if (!pPGPUtility) {
+		log.error(L"PGP is not supported.");
 		return false;
+	}
 	
 	const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
 	wstring_ptr wstrPassword;
@@ -342,8 +364,10 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
 		xstring_size_ptr strMessage(pPGPUtility->signAndEncrypt(
 			pMessage, bMime, pwszUserId, wstrPassword.get()));
-		if (!strMessage.get())
+		if (!strMessage.get()) {
+			log.error(L"Failed to sign and encrypt with PGP.");
 			return false;
+		}
 		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 			return false;
 	}
@@ -351,15 +375,19 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
 		xstring_size_ptr strMessage(pPGPUtility->sign(pMessage,
 			bMime, pwszUserId, wstrPassword.get()));
-		if (!strMessage.get())
+		if (!strMessage.get()) {
+			log.error(L"Failed to sign with PGP.");
 			return false;
+		}
 		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 			return false;
 	}
 	else if (nMessageSecurity & MESSAGESECURITY_PGPENCRYPT) {
 		xstring_size_ptr strMessage(pPGPUtility->encrypt(pMessage, bMime));
-		if (!strMessage.get())
+		if (!strMessage.get()) {
+			log.error(L"Failed to encrypt with PGP.");
 			return false;
+		}
 		if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE))
 			return false;
 	}

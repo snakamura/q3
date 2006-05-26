@@ -137,8 +137,10 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::sign(Part* pPart,
 	
 	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), static_cast<int>(strContent.size())));
 	PKCS7Ptr pPKCS7(PKCS7_sign(pX509, pKey, 0, pIn.get(), bMultipart ? PKCS7_DETACHED : 0));
-	if (!pPKCS7.get())
+	if (!pPKCS7.get()) {
+		Util::logError(log, L"Failed to create signed PKCS#7.");
 		return xstring_size_ptr();
+	}
 	
 	if (bMultipart)
 		return createMultipartMessage(strHeader.get(), *pPart, pPKCS7.get());
@@ -178,8 +180,10 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	
 	BIOPtr pIn(BIO_new_mem_buf(pBody.get(), static_cast<int>(pBody.size())));
 	PKCS7Ptr pPKCS7(d2i_PKCS7_bio(pIn.get(), 0));
-	if (!pPKCS7.get())
+	if (!pPKCS7.get()) {
+		Util::logError(log, L"Failed to load PKCS#7.");
 		return xstring_size_ptr();
+	}
 	
 	X509_STORE* pStore = static_cast<const StoreImpl*>(pStoreCA)->getStore();
 	BIOPtr pOut(BIO_new(BIO_s_mem()));
@@ -203,8 +207,10 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 				return xstring_size_ptr();
 		}
 		else {
-			if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(), PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1)
+			if (PKCS7_verify(pPKCS7.get(), 0, pStore, 0, pOut.get(), PKCS7_NOVERIFY | PKCS7_NOSIGS) != 1) {
+				Util::logError(log, L"Failed to get content from PKCS#7.");
 				return xstring_size_ptr();
+			}
 		}
 	}
 	
@@ -248,6 +254,8 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 	assert(pCipher);
 	assert(pCallback);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::SMIMEUtilityImpl");
+	
 	X509StackPtr pCertificates(sk_X509_new_null(), true);
 	
 	const WCHAR* pwszAddresses[] = {
@@ -286,8 +294,10 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::encrypt(Part* pPart,
 	BIOPtr pIn(BIO_new_mem_buf(strContent.get(), static_cast<int>(strContent.size())));
 	PKCS7Ptr pPKCS7(PKCS7_encrypt(pCertificates.get(), pIn.get(),
 		static_cast<const CipherImpl*>(pCipher)->getCipher(), 0));
-	if (!pPKCS7.get())
+	if (!pPKCS7.get()) {
+		Util::logError(log, L"Failed to create encrypted PKCS#7.");
 		return xstring_size_ptr();
+	}
 	
 	return createMessage(strHeader.get(), pPKCS7.get(), true);
 }
@@ -298,8 +308,9 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 {
 	assert(pPrivateKey);
 	assert(pCertificate);
-	
 	assert(getType(part) == TYPE_ENVELOPED);
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::SMIMEUtilityImpl");
 	
 	malloc_size_ptr<unsigned char> buf(part.getBodyData());
 	if (!buf.get())
@@ -314,8 +325,10 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 	X509* pX509 = static_cast<const CertificateImpl*>(pCertificate)->getX509();
 	
 	BIOPtr pOut(BIO_new(BIO_s_mem()));
-	if (PKCS7_decrypt(pPKCS7.get(), pKey, pX509, pOut.get(), 0) != 1)
+	if (PKCS7_decrypt(pPKCS7.get(), pKey, pX509, pOut.get(), 0) != 1) {
+		Util::logError(log, L"Failed to decrypt PKCS#7.");
 		return xstring_size_ptr();
+	}
 	
 	char* pBuf = 0;
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
@@ -499,6 +512,8 @@ bool qscrypto::SMIMEUtilityImpl::getCertificates(const qs::AddressParser& addres
 												 qs::SMIMECallback* pCallback,
 												 STACK_OF(X509)* pCertificates)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::SMIMEUtilityImpl");
+	
 	AddressListParser* pGroup = address.getGroup();
 	if (pGroup) {
 		if (!getCertificates(*pGroup, pCallback, pCertificates))
@@ -507,8 +522,10 @@ bool qscrypto::SMIMEUtilityImpl::getCertificates(const qs::AddressParser& addres
 	else {
 		wstring_ptr wstrAddress(address.getAddress());
 		std::auto_ptr<Certificate> pCertificate(pCallback->getCertificate(wstrAddress.get()));
-		if (!pCertificate.get())
+		if (!pCertificate.get()) {
+			log.errorf(L"Failed to get a certificate for %s.", wstrAddress.get());
 			return false;
+		}
 		X509* pX509 = static_cast<CertificateImpl*>(pCertificate.get())->releaseX509();
 		sk_X509_push(pCertificates, pX509);
 	}
