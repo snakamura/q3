@@ -116,6 +116,8 @@ protected:
 								 LPARAM lParam);
 	LRESULT onViewModelItemRemoved(WPARAM wParam,
 								   LPARAM lParam);
+	LRESULT onViewModelItemChanged(WPARAM wParam,
+								   LPARAM lParam);
 
 public:
 	virtual bool isShow() const;

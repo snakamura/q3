@@ -66,7 +66,8 @@ public:
 	};
 	enum {
 		WM_VIEWMODEL_ITEMADDED		= WM_APP + 1101,
-		WM_VIEWMODEL_ITEMREMOVED	= WM_APP + 1102
+		WM_VIEWMODEL_ITEMREMOVED	= WM_APP + 1102,
+		WM_VIEWMODEL_ITEMCHANGED	= WM_APP + 1103
 	};
 
 public:
@@ -626,20 +627,17 @@ void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 
 void qm::ListWindowImpl::itemAdded(const ViewModelEvent& event)
 {
-	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	pThis_->postMessage(WM_VIEWMODEL_ITEMADDED, event.getItem(), 0);
 }
 
 void qm::ListWindowImpl::itemRemoved(const ViewModelEvent& event)
 {
-	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
 	pThis_->postMessage(WM_VIEWMODEL_ITEMREMOVED, event.getItem(), 0);
 }
 
 void qm::ListWindowImpl::itemChanged(const ViewModelEvent& event)
 {
-	assert(event.getViewModel() == pViewModelManager_->getCurrentViewModel());
-	invalidateLine(event.getItem());
+	pThis_->postMessage(WM_VIEWMODEL_ITEMCHANGED, event.getItem(), 0);
 }
 
 void qm::ListWindowImpl::itemStateChanged(const ViewModelEvent& event)
@@ -1148,6 +1146,7 @@ LRESULT qm::ListWindow::windowProc(UINT uMsg,
 		HANDLE_VSCROLL()
 		HANDLE_MESSAGE(ListWindowImpl::WM_VIEWMODEL_ITEMADDED, onViewModelItemAdded)
 		HANDLE_MESSAGE(ListWindowImpl::WM_VIEWMODEL_ITEMREMOVED, onViewModelItemRemoved)
+		HANDLE_MESSAGE(ListWindowImpl::WM_VIEWMODEL_ITEMCHANGED, onViewModelItemChanged)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -1671,8 +1670,6 @@ LRESULT qm::ListWindow::onVScroll(UINT nCode,
 LRESULT qm::ListWindow::onViewModelItemAdded(WPARAM wParam,
 											 LPARAM lParam)
 {
-	// TODO
-	// Performance up
 	refresh();
 	return 0;
 }
@@ -1680,9 +1677,14 @@ LRESULT qm::ListWindow::onViewModelItemAdded(WPARAM wParam,
 LRESULT qm::ListWindow::onViewModelItemRemoved(WPARAM wParam,
 											   LPARAM lParam)
 {
-	// TODO
-	// Performance up
 	refresh();
+	return 0;
+}
+
+LRESULT qm::ListWindow::onViewModelItemChanged(WPARAM wParam,
+											   LPARAM lParam)
+{
+	pImpl_->invalidateLine(static_cast<unsigned int>(wParam));
 	return 0;
 }
 
