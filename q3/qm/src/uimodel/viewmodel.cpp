@@ -1407,16 +1407,22 @@ void qm::ViewModel::updateCacheCount()
 
 void qm::ViewModel::fireItemAdded() const
 {
+	assert(isLocked());
+	
 	fireEvent(ViewModelEvent(this), &ViewModelHandler::itemAdded);
 }
 
 void qm::ViewModel::fireItemRemoved() const
 {
+	assert(isLocked());
+	
 	fireEvent(ViewModelEvent(this), &ViewModelHandler::itemRemoved);
 }
 
 void qm::ViewModel::fireItemChanged(unsigned int nItem) const
 {
+	assert(isLocked());
+	
 	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemChanged);
 }
 
