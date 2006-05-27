@@ -2367,6 +2367,8 @@ bool qm::Account::isSeen(unsigned int nFlags) const
 
 void qm::Account::addAccountHandler(AccountHandler* pHandler)
 {
+	Lock<Account> lock(*this);
+	
 	assert(std::find(pImpl_->listAccountHandler_.begin(),
 		pImpl_->listAccountHandler_.end(), pHandler) ==
 		pImpl_->listAccountHandler_.end());
@@ -2375,6 +2377,8 @@ void qm::Account::addAccountHandler(AccountHandler* pHandler)
 
 void qm::Account::removeAccountHandler(AccountHandler* pHandler)
 {
+	Lock<Account> lock(*this);
+	
 	AccountImpl::AccountHandlerList& l = pImpl_->listAccountHandler_;
 	AccountImpl::AccountHandlerList::iterator it =
 		std::remove(l.begin(), l.end(), pHandler);

@@ -900,15 +900,18 @@ void qm::ViewModel::destroy()
 
 void qm::ViewModel::addViewModelHandler(ViewModelHandler* pHandler)
 {
+	Lock<ViewModel> lock(*this);
+	
 	listHandler_.push_back(pHandler);
 }
 
 void qm::ViewModel::removeViewModelHandler(ViewModelHandler* pHandler)
 {
-	ViewModelHandlerList& l = listHandler_;
+	Lock<ViewModel> lock(*this);
+	
 	ViewModelHandlerList::iterator it = std::remove(
-		l.begin(), l.end(), pHandler);
-	l.erase(it, l.end());
+		listHandler_.begin(), listHandler_.end(), pHandler);
+	listHandler_.erase(it, listHandler_.end());
 }
 
 void qm::ViewModel::lock() const
