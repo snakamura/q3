@@ -502,7 +502,7 @@ public:
 	
 	std::auto_ptr<Timer> pTimer_;
 	std::auto_ptr<Reader> pReader_;
-	Timer::Id nTimerLoad_;
+	bool bTimer_;
 };
 
 bool qs::ReadOnlyTextModelImpl::appendText(const WCHAR* pwszText,
@@ -538,28 +538,26 @@ void qs::ReadOnlyTextModelImpl::fireTextLoaded()
 
 void qs::ReadOnlyTextModelImpl::timerTimeout(Timer::Id nId)
 {
-	if (nId == nTimerLoad_) {
-		assert(pReader_.get());
-		
-		bool bError = false;
-		typedef std::vector<WCHAR> Buffer;
-		Buffer buf;
-		buf.resize(10240);
-		
-		size_t nRead = pReader_->read(&buf[0], buf.size());
-		if (nRead == -1)
+	assert(pReader_.get());
+	
+	bool bError = false;
+	typedef std::vector<WCHAR> Buffer;
+	Buffer buf;
+	buf.resize(10240);
+	
+	size_t nRead = pReader_->read(&buf[0], buf.size());
+	if (nRead == -1)
+		bError = true;
+	if (!bError && nRead != 0) {
+		if (!appendText(&buf[0], nRead, true))
 			bError = true;
-		if (!bError && nRead != 0) {
-			if (!appendText(&buf[0], nRead, true))
-				bError = true;
-		}
-		
-		if (bError || nRead == 0) {
-			pReader_.reset(0);
-			pTimer_->killTimer(nTimerLoad_);
-			nTimerLoad_ = 0;
-			fireTextLoaded();
-		}
+	}
+	
+	if (bError || nRead == 0) {
+		pReader_.reset(0);
+		pTimer_->killTimer(TIMER_LOAD);
+		bTimer_ = false;
+		fireTextLoaded();
 	}
 }
 
@@ -620,7 +618,7 @@ qs::ReadOnlyTextModel::ReadOnlyTextModel() :
 	pImpl_->pThis_ = this;
 	pImpl_->pBuffer_ = pBuffer;
 	pImpl_->pTimer_ = pTimer;
-	pImpl_->nTimerLoad_ = 0;
+	pImpl_->bTimer_ = false;
 }
 
 qs::ReadOnlyTextModel::~ReadOnlyTextModel()
@@ -676,7 +674,7 @@ bool qs::ReadOnlyTextModel::loadText(std::auto_ptr<Reader> pReader,
 	
 	if (nRead != 0) {
 		pImpl_->pReader_ = pReader;
-		pImpl_->nTimerLoad_ = pImpl_->pTimer_->setTimer(
+		pImpl_->bTimer_ = pImpl_->pTimer_->setTimer(
 			ReadOnlyTextModelImpl::TIMER_LOAD,
 			ReadOnlyTextModelImpl::LOAD_INTERVAL, pImpl_);
 	}
@@ -695,7 +693,10 @@ bool qs::ReadOnlyTextModel::isLoading() const
 void qs::ReadOnlyTextModel::cancelLoad()
 {
 	if (pImpl_->pReader_.get()) {
-		pImpl_->pTimer_->killTimer(pImpl_->nTimerLoad_);
+		if (pImpl_->bTimer_) {
+			pImpl_->pTimer_->killTimer(ReadOnlyTextModelImpl::TIMER_LOAD);
+			pImpl_->bTimer_ = false;
+		}
 		pImpl_->pReader_.reset(0);
 	}
 }

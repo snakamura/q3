@@ -94,21 +94,31 @@ qs::Timer::~Timer()
 	}
 }
 
-Timer::Id qs::Timer::setTimer(Id nId,
-							  unsigned int nTimeout,
-							  TimerHandler* pHandler)
+bool qs::Timer::setTimer(Id nId,
+						 unsigned int nTimeout,
+						 TimerHandler* pHandler)
 {
 	assert(pHandler);
 	
 	TimerImpl::HandlerMap& m = pImpl_->mapHandler_;
 	
-	Id nTimerId = pImpl_->pWindow_->setTimer(nId, nTimeout);
-	if (nTimerId == 0)
-		return 0;
+	TimerImpl::HandlerMap::iterator it = std::find_if(
+		m.begin(), m.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Id>(),
+				std::select1st<TimerImpl::HandlerMap::value_type>(),
+				std::identity<Id>()),
+			nId));
+	if (it != m.end())
+		m.erase(it);
 	
-	pImpl_->mapHandler_.push_back(std::make_pair(nTimerId, pHandler));
+	if (pImpl_->pWindow_->setTimer(nId, nTimeout) == 0)
+		return false;
 	
-	return nTimerId;
+	pImpl_->mapHandler_.push_back(std::make_pair(nId, pHandler));
+	
+	return true;
 }
 
 void qs::Timer::killTimer(Id nId)
@@ -122,7 +132,8 @@ void qs::Timer::killTimer(Id nId)
 				std::select1st<TimerImpl::HandlerMap::value_type>(),
 				std::identity<Id>()),
 			nId));
-	assert(it != m.end());
+	if (it == m.end())
+		return;
 	m.erase(it);
 	
 	pImpl_->pWindow_->killTimer(nId);

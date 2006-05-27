@@ -58,7 +58,7 @@ qm::AutoCompleteEditSubclassWindow::AutoCompleteEditSubclassWindow(HWND hwnd,
 	pParent_(pParent),
 	pCallback_(pCallback),
 	nId_(0),
-	nTimerId_(0),
+	bTimer_(false),
 	pListWindow_(0)
 {
 	setWindowHandler(this, false);
@@ -137,8 +137,10 @@ LRESULT qm::AutoCompleteEditSubclassWindow::onDestroy()
 
 LRESULT qm::AutoCompleteEditSubclassWindow::onKillFocus(HWND hwnd)
 {
-	if (nTimerId_ != 0)
-		killTimer(nTimerId_);
+	if (bTimer_) {
+		killTimer(TIMER_ID);
+		bTimer_ = false;
+	}
 	
 	hideCandidates();
 	
@@ -147,9 +149,9 @@ LRESULT qm::AutoCompleteEditSubclassWindow::onKillFocus(HWND hwnd)
 
 LRESULT qm::AutoCompleteEditSubclassWindow::onTimer(UINT_PTR nId)
 {
-	if (nId == nTimerId_) {
-		killTimer(nTimerId_);
-		nTimerId_ = 0;
+	if (nId == TIMER_ID) {
+		killTimer(TIMER_ID);
+		bTimer_ = false;
 		
 		showCandidates();
 	}
@@ -169,7 +171,7 @@ LRESULT qm::AutoCompleteEditSubclassWindow::onChange()
 {
 	hideCandidates();
 	if (hasFocus())
-		nTimerId_ = setTimer(TIMER_ID, TIMER_INTERVAL);
+		bTimer_ = setTimer(TIMER_ID, TIMER_INTERVAL) != 0;
 	return 1;
 }
 

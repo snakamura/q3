@@ -145,7 +145,7 @@ qm::FolderModelHandler::~FolderModelHandler()
 
 qm::DelayedFolderModelHandler::DelayedFolderModelHandler(FolderModelHandler* pHandler) :
 	pHandler_(pHandler),
-	nTimerId_(0),
+	bTimer_(false),
 	pAccount_(0),
 	pFolder_(0)
 {
@@ -174,10 +174,10 @@ void qm::DelayedFolderModelHandler::folderSelected(const FolderModelEvent& event
 
 void qm::DelayedFolderModelHandler::timerTimeout(Timer::Id nId)
 {
-	assert(nId == nTimerId_);
 	assert((pAccount_ && !pFolder_) || (!pAccount_ && pFolder_));
 	
-	pTimer_->killTimer(nTimerId_);
+	pTimer_->killTimer(TIMERID);
+	bTimer_ = false;
 	
 	if (pAccount_)
 		pHandler_->accountSelected(FolderModelEvent(pAccount_, false));
@@ -188,10 +188,13 @@ void qm::DelayedFolderModelHandler::timerTimeout(Timer::Id nId)
 void qm::DelayedFolderModelHandler::set(Account* pAccount,
 										Folder* pFolder)
 {
+	if (bTimer_)
+		pTimer_->killTimer(TIMERID);
+	
 	pAccount_ = pAccount;
 	pFolder_ = pFolder;
 	
-	nTimerId_ = pTimer_->setTimer(TIMERID, TIMEOUT, this);
+	bTimer_ = pTimer_->setTimer(TIMERID, TIMEOUT, this);
 }
 
 

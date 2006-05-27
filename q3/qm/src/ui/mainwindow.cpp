@@ -1418,8 +1418,6 @@ void qm::MainWindowImpl::accountSelected(const FolderModelEvent& event)
 
 void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 {
-	assert(event.getFolder() == pFolderModel_->getCurrent().second);
-	
 	Folder* pFolder = event.getFolder();
 	
 	pFolderListModel_->setAccount(0);

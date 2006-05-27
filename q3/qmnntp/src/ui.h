@@ -159,7 +159,7 @@ private:
 	qs::wstring_ptr wstrGroup_;
 	std::auto_ptr<Groups> pGroups_;
 	GroupList listGroup_;
-	UINT_PTR nTimerId_;
+	bool bTimer_;
 };
 
 }

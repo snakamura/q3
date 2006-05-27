@@ -171,7 +171,7 @@ private:
 private:
 	FolderModelHandler* pHandler_;
 	std::auto_ptr<qs::Timer> pTimer_;
-	qs::Timer::Id nTimerId_;
+	bool bTimer_;
 	Account* pAccount_;
 	Folder* pFolder_;
 };

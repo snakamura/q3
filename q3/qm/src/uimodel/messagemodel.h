@@ -209,7 +209,7 @@ private:
 	qs::Profile* pProfile_;
 	unsigned int nDelay_;
 	std::auto_ptr<qs::Timer> pTimer_;
-	qs::Timer::Id nTimerId_;
+	bool bTimer_;
 	bool bConnectedToViewModel_;
 };
 

@@ -826,7 +826,7 @@ qs::CustomDragDropManager::DragDropWindow::DragDropWindow(const CustomDragDropMa
 	bFinished_(false),
 	dwEffect_(DROPEFFECT_NONE),
 	bCanceled_(false),
-	nTimerId_(-1),
+	bTimer_(false),
 	pCurrentDropTarget_(0),
 	ptCurrent_(pt)
 {
@@ -835,14 +835,15 @@ qs::CustomDragDropManager::DragDropWindow::DragDropWindow(const CustomDragDropMa
 	subclassWindow(hwnd);
 	setCapture();
 	
-	nTimerId_ = setTimer(TIMER_ID, TIMER_INTERVAL);
+	bTimer_ = setTimer(TIMER_ID, TIMER_INTERVAL) != 0;
 	
 	setCurrentMousePosition(pt, getKeyState());
 }
 
 qs::CustomDragDropManager::DragDropWindow::~DragDropWindow()
 {
-	killTimer(nTimerId_);
+	if (bTimer_)
+		killTimer(TIMER_ID);
 	releaseCapture();
 	unsubclassWindow();
 }
@@ -935,10 +936,11 @@ LRESULT qs::CustomDragDropManager::DragDropWindow::onRButtonUp(UINT nFlags,
 
 LRESULT qs::CustomDragDropManager::DragDropWindow::onTimer(UINT_PTR nId)
 {
-	if (nId == nTimerId_) {
-		killTimer(nTimerId_);
+	if (nId == TIMER_ID) {
+		killTimer(TIMER_ID);
+		bTimer_ = false;
 		updateEffect(getKeyState());
-		nTimerId_ = setTimer(TIMER_ID, TIMER_INTERVAL);
+		bTimer_ = setTimer(TIMER_ID, TIMER_INTERVAL) != 0;
 	}
 	return DefaultWindowHandler::onTimer(nId);
 }

@@ -45,7 +45,7 @@ qm::AutoPilot::AutoPilot(AutoPilotManager* pAutoPilotManager,
 	pSyncDialogManager_(pSyncDialogManager),
 	hwnd_(0),
 	pCallback_(pCallback),
-	nId_(0),
+	bTimer_(false),
 	bEnabled_(false),
 	nCount_(0)
 #ifndef _WIN32_WCE
@@ -58,10 +58,8 @@ qm::AutoPilot::AutoPilot(AutoPilotManager* pAutoPilotManager,
 
 qm::AutoPilot::~AutoPilot()
 {
-	if (pTimer_.get()) {
-		if (nId_ != 0)
-			pTimer_->killTimer(nId_);
-	}
+	if (pTimer_.get() && bTimer_)
+		pTimer_->killTimer(TIMER_CHECK);
 }
 
 AutoPilotManager* qm::AutoPilot::getAutoPilotManager() const
@@ -73,7 +71,7 @@ void qm::AutoPilot::start(HWND hwnd)
 {
 	hwnd_ = hwnd;
 	pTimer_.reset(new Timer());
-	nId_ = pTimer_->setTimer(TIMER_CHECK, 60*1000, this);
+	bTimer_ = pTimer_->setTimer(TIMER_CHECK, 60*1000, this);
 }
 
 bool qm::AutoPilot::isEnabled() const
@@ -93,32 +91,30 @@ void qm::AutoPilot::save() const
 
 void qm::AutoPilot::timerTimeout(Timer::Id nId)
 {
-	if (nId == nId_) {
-		bool bOnlyWhenConnected = pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected") != 0;
-		bool bPilot = bEnabled_ &&
-			(!bOnlyWhenConnected || RasConnection::isNetworkConnected()) &&
-			pCallback_->canAutoPilot();
-		if (bPilot) {
-			const AutoPilotManager::EntryList& l = pAutoPilotManager_->getEntries();
-			for (AutoPilotManager::EntryList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				const AutoPilotEntry* pEntry = *it;
-				if (nCount_ % pEntry->getInterval() == 0) {
-					const GoRoundCourse* pCourse = pGoRound_->getCourse(pEntry->getCourse());
-					if (pCourse)
-						SyncUtil::goRound(pSyncManager_, pDocument_, pSyncDialogManager_,
-							SyncDialog::FLAG_NOTIFYNEWMESSAGE, pCourse);
-				}
+	bool bOnlyWhenConnected = pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected") != 0;
+	bool bPilot = bEnabled_ &&
+		(!bOnlyWhenConnected || RasConnection::isNetworkConnected()) &&
+		pCallback_->canAutoPilot();
+	if (bPilot) {
+		const AutoPilotManager::EntryList& l = pAutoPilotManager_->getEntries();
+		for (AutoPilotManager::EntryList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			const AutoPilotEntry* pEntry = *it;
+			if (nCount_ % pEntry->getInterval() == 0) {
+				const GoRoundCourse* pCourse = pGoRound_->getCourse(pEntry->getCourse());
+				if (pCourse)
+					SyncUtil::goRound(pSyncManager_, pDocument_, pSyncDialogManager_,
+						SyncDialog::FLAG_NOTIFYNEWMESSAGE, pCourse);
 			}
 		}
-		
-#ifndef _WIN32_WCE
-		unseenCountUpdater_.update();
-#endif
-		
-		++nCount_;
-		if (nCount_ == 100000)
-			nCount_ = 0;
 	}
+	
+#ifndef _WIN32_WCE
+	unseenCountUpdater_.update();
+#endif
+	
+	++nCount_;
+	if (nCount_ == 100000)
+		nCount_ = 0;
 }
 
 

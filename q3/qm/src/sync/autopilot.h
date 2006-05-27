@@ -111,7 +111,7 @@ private:
 	HWND hwnd_;
 	AutoPilotCallback* pCallback_;
 	std::auto_ptr<qs::Timer> pTimer_;
-	qs::Timer::Id nId_;
+	bool bTimer_;
 	bool bEnabled_;
 	unsigned int nCount_;
 #ifndef _WIN32_WCE

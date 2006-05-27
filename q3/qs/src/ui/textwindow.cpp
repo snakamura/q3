@@ -355,7 +355,7 @@ public:
 	ScrollPos scrollPos_;
 	Caret caret_;
 	Selection selection_;
-	UINT_PTR nTimerDragScroll_;
+	bool bTimerDragScroll_;
 	POINT ptLastButtonDown_;
 #ifdef _WIN32_WCE
 	POINT ptLastDrag_;
@@ -2112,7 +2112,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->selection_.nStartChar_ = 0;
 	pImpl_->selection_.nEndLine_ = 0;
 	pImpl_->selection_.nEndChar_ = 0;
-	pImpl_->nTimerDragScroll_ = 0;
+	pImpl_->bTimerDragScroll_ = false;
 	pImpl_->ptLastButtonDown_.x = -1;
 	pImpl_->ptLastButtonDown_.y = -1;
 #ifdef _WIN32_WCE
@@ -3720,8 +3720,8 @@ LRESULT qs::TextWindow::onLButtonDown(UINT nFlags,
 	pImpl_->ptLastButtonDown_ = pt;
 	setCapture();
 	
-	pImpl_->nTimerDragScroll_ = setTimer(
-		TextWindowImpl::TIMER_DRAGSCROLL, pImpl_->nDragScrollDelay_);
+	pImpl_->bTimerDragScroll_ = setTimer(
+		TextWindowImpl::TIMER_DRAGSCROLL, pImpl_->nDragScrollDelay_) != 0;
 	
 	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
 }
@@ -3730,8 +3730,10 @@ LRESULT qs::TextWindow::onLButtonUp(UINT nFlags,
 									const POINT& pt)
 {
 	if (getCapture()) {
-		killTimer(pImpl_->nTimerDragScroll_);
-		pImpl_->nTimerDragScroll_ = 0;
+		if (pImpl_->bTimerDragScroll_) {
+			killTimer(TextWindowImpl::TIMER_DRAGSCROLL);
+			pImpl_->bTimerDragScroll_ = false;
+		}
 		
 		releaseCapture();
 		
@@ -4045,9 +4047,9 @@ LRESULT qs::TextWindow::onThemeChanged()
 
 LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 {
-	if (nId == pImpl_->nTimerDragScroll_) {
-		killTimer(pImpl_->nTimerDragScroll_);
-		pImpl_->nTimerDragScroll_ = 0;
+	if (nId == TextWindowImpl::TIMER_DRAGSCROLL) {
+		killTimer(TextWindowImpl::TIMER_DRAGSCROLL);
+		pImpl_->bTimerDragScroll_ = false;
 		
 #ifdef _WIN32_WCE
 		POINT pt = pImpl_->ptLastDrag_;
@@ -4090,8 +4092,8 @@ LRESULT qs::TextWindow::onTimer(UINT_PTR nId)
 		const int nDelta = 10;
 		const int nMax = 20;
 		int nSpeed = nDiff > nDelta*nMax ? nMax : nDiff >= nDelta ? nDiff/nDelta : 1;
-		pImpl_->nTimerDragScroll_ = setTimer(TextWindowImpl::TIMER_DRAGSCROLL,
-			pImpl_->nDragScrollInterval_/nSpeed);
+		pImpl_->bTimerDragScroll_ = setTimer(TextWindowImpl::TIMER_DRAGSCROLL,
+			pImpl_->nDragScrollInterval_/nSpeed) != 0;
 		
 		return 0;
 	}

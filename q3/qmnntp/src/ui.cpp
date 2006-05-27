@@ -105,7 +105,7 @@ qmnntp::SubscribeDialog::SubscribeDialog(Document* pDocument,
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pPasswordCallback_(pPasswordCallback),
-	nTimerId_(-1)
+	bTimer_(false)
 {
 	wstring_ptr wstrPath(concat(pAccount->getPath(), L"\\groups.xml"));
 	pGroups_.reset(new Groups(wstrPath.get()));
@@ -122,8 +122,10 @@ const WCHAR* qmnntp::SubscribeDialog::getGroup() const
 
 LRESULT qmnntp::SubscribeDialog::onDestroy()
 {
-	if (nTimerId_ != -1)
-		killTimer(nTimerId_);
+	if (bTimer_) {
+		killTimer(TIMERID);
+		bTimer_ = false;
+	}
 	
 	removeNotifyHandler(this);
 	
@@ -192,9 +194,9 @@ INT_PTR qmnntp::SubscribeDialog::dialogProc(UINT uMsg,
 
 LRESULT qmnntp::SubscribeDialog::onTimer(UINT_PTR nId)
 {
-	if (nId == nTimerId_) {
-		killTimer(nTimerId_);
-		nTimerId_ = -1;
+	if (nId == TIMERID) {
+		killTimer(TIMERID);
+		bTimer_ = false;
 		
 		refresh();
 	}
@@ -214,7 +216,7 @@ LRESULT qmnntp::SubscribeDialog::onCommand(WORD nCode,
 
 LRESULT qmnntp::SubscribeDialog::onFilterChange()
 {
-	nTimerId_ = setTimer(TIMERID, TIMEOUT);
+	bTimer_ = setTimer(TIMERID, TIMEOUT) != 0;
 	return 0;
 }
 

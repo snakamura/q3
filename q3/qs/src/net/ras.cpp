@@ -742,7 +742,7 @@ qs::RasWindow::RasWindow(RasConnection* pConnection,
 	WindowBase(false),
 	pConnection_(pConnection),
 	pCallback_(pCallback),
-	nTimerId_(0),
+	bTimer_(false),
 	bEnd_(false),
 	bCanceled_(false)
 {
@@ -773,7 +773,7 @@ LRESULT qs::RasWindow::windowProc(UINT uMsg,
 
 LRESULT qs::RasWindow::onTimer(UINT_PTR nId)
 {
-	if (nId == nTimerId_) {
+	if (nId == TIMER_RAS) {
 		if (pCallback_->isCanceled()) {
 			bCanceled_ = true;
 			end(true);
@@ -791,8 +791,8 @@ LRESULT qs::RasWindow::onRasDialEvent(WPARAM wParam,
 		RASCONNSTATE rcs = static_cast<RASCONNSTATE>(wParam);
 		UINT nError = static_cast<UINT>(lParam);
 		
-		if (nTimerId_ == 0)
-			nTimerId_ = setTimer(TIMER_RAS, TIMEOUT);
+		if (!bTimer_)
+			bTimer_ = setTimer(TIMER_RAS, TIMEOUT) != 0;
 		
 		bool bDisconnect = false;
 		
@@ -849,6 +849,8 @@ void qs::RasWindow::end(bool bDisconnect)
 	if (bDisconnect)
 		pConnection_->disconnect(0);
 	bEnd_ = true;
-	killTimer(nTimerId_);
-	nTimerId_ = 0;
+	if (bTimer_) {
+		killTimer(TIMER_RAS);
+		bTimer_ = false;
+	}
 }

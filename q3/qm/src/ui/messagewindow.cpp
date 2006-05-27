@@ -125,7 +125,7 @@ public:
 	bool bCreated_;
 	bool bLayouting_;
 	bool bSettingMessage_;
-	UINT_PTR nSeenTimerId_;
+	bool bSeenTimer_;
 	
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
@@ -202,9 +202,9 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	assert(!pmh || pmh->getAccount() == pAccount);
 	Folder* pFolder = pMessageModel_->getCurrentFolder();
 	
-	if (nSeenTimerId_ != 0) {
-		pThis_->killTimer(nSeenTimerId_);
-		nSeenTimerId_ = 0;
+	if (bSeenTimer_) {
+		pThis_->killTimer(TIMER_MAKESEEN);
+		bSeenTimer_ = false;
 	}
 	
 	MessageViewMode* pMode = pMessageViewModeHolder_->getMessageViewMode();
@@ -233,7 +233,7 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		
 		if (!pmh->isFlag(MessageHolder::FLAG_SEEN) &&
 			nSeenWait_ != 0 && nSeenWait_ != -1)
-			nSeenTimerId_ = pThis_->setTimer(TIMER_MAKESEEN, nSeenWait_*1000);
+			bSeenTimer_ = pThis_->setTimer(TIMER_MAKESEEN, nSeenWait_*1000) != 0;
 	}
 	
 	const ContentTypeParser* pContentType = 0;
@@ -498,7 +498,7 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->bCreated_ = false;
 	pImpl_->bLayouting_ = false;
 	pImpl_->bSettingMessage_ = false;
-	pImpl_->nSeenTimerId_ = 0;
+	pImpl_->bSeenTimer_ = false;
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->pMessageViewMode_.reset(new DefaultMessageViewMode(
 		pProfile->getInt(pwszSection, L"ViewMode"),
@@ -757,7 +757,7 @@ LRESULT qm::MessageWindow::onSize(UINT nFlags,
 
 LRESULT qm::MessageWindow::onTimer(UINT_PTR nId)
 {
-	if (nId == pImpl_->nSeenTimerId_) {
+	if (nId == MessageWindowImpl::TIMER_MAKESEEN) {
 		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
 		if (mpl) {
 			Account* pAccount = mpl->getAccount();
@@ -765,8 +765,8 @@ LRESULT qm::MessageWindow::onTimer(UINT_PTR nId)
 				MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
 		}
 		
-		killTimer(pImpl_->nSeenTimerId_);
-		pImpl_->nSeenTimerId_ = 0;
+		killTimer(MessageWindowImpl::TIMER_MAKESEEN);
+		pImpl_->bSeenTimer_ = false;
 	}
 	return 0;
 }

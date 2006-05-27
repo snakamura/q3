@@ -57,7 +57,7 @@ private:
 private:
 	RasConnection* pConnection_;
 	RasConnectionCallback* pCallback_;
-	UINT_PTR nTimerId_;
+	bool bTimer_;
 	bool bEnd_;
 	bool bCanceled_;
 

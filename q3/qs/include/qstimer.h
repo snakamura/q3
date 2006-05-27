@@ -46,12 +46,12 @@ public:
 	 * @param nId [in] Timer ID.
 	 * @param nTimeout [in] Timeout in millisecond.
 	 * @param pHandler [in] Handler which is callbacked when timer timeouts.
-	 * @return Timer ID. -1 if fail.
+	 * @return true if success, false otherwise.
 	 * @exception std::bad_alloc Out of memory.
 	 */
-	Id setTimer(Id nId,
-				unsigned int nTimeout,
-				TimerHandler* pHandler);
+	bool setTimer(Id nId,
+				  unsigned int nTimeout,
+				  TimerHandler* pHandler);
 	
 	/**
 	 * Kill timer.

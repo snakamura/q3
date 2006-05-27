@@ -208,7 +208,7 @@ private:
 		bool bFinished_;
 		DWORD dwEffect_;
 		bool bCanceled_;
-		UINT nTimerId_;
+		bool bTimer_;
 		DropTarget* pCurrentDropTarget_;
 		POINT ptCurrent_;
 	};

@@ -125,7 +125,7 @@ private:
 	qs::WindowBase* pParent_;
 	AutoCompleteCallback* pCallback_;
 	UINT nId_;
-	UINT_PTR nTimerId_;
+	bool bTimer_;
 	std::pair<size_t, size_t> input_;
 	AutoCompleteListWindow* pListWindow_;
 };
