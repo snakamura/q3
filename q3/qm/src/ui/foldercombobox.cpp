@@ -89,16 +89,19 @@ public:
 	virtual void folderSelected(const FolderModelEvent& event);
 
 private:
-	void clearAccountList();
-	void updateAccountList(bool bDropDown);
+	void clearAccountList(bool bRemoveHandler);
+	void updateAccountList(bool bDropDown,
+						   bool bRefreshHandler);
 	void refreshFolderList(Account* pAccount,
 						   bool bDropDown);
 	void addAccount(Account* pAccount,
-					bool bDropDown);
+					bool bDropDown,
+					bool bAddHandler);
 	void removeAccount(Account* pAccount);
 	void insertFolders(int nIndex,
 					   Account* pAccount,
-					   bool bDropDown);
+					   bool bDropDown,
+					   bool bAddHandler);
 	void insertFolder(int nIndex,
 					  Folder* pFolder,
 					  bool bDropDown,
@@ -234,7 +237,7 @@ void qm::FolderComboBoxImpl::reloadProfiles(bool bInitialize)
 #endif
 		
 		int nIndex = ComboBox_GetCurSel(pThis_->getHandle());
-		updateAccountList(false);
+		updateAccountList(false, false);
 		ComboBox_SetCurSel(pThis_->getHandle(), nIndex);
 	}
 }
@@ -267,10 +270,10 @@ void qm::FolderComboBoxImpl::accountListChanged(const AccountManagerEvent& event
 	
 	switch (event.getType()) {
 	case AccountManagerEvent::TYPE_ALL:
-		updateAccountList(bDropDown);
+		updateAccountList(bDropDown, true);
 		break;
 	case AccountManagerEvent::TYPE_ADD:
-		addAccount(event.getAccount(), bDropDown);
+		addAccount(event.getAccount(), bDropDown, true);
 		break;
 	case AccountManagerEvent::TYPE_REMOVE:
 		removeAccount(event.getAccount());
@@ -354,31 +357,33 @@ void qm::FolderComboBoxImpl::folderSelected(const FolderModelEvent& event)
 		ComboBox_SetCurSel(pThis_->getHandle(), nIndex);
 }
 
-void qm::FolderComboBoxImpl::clearAccountList()
+void qm::FolderComboBoxImpl::clearAccountList(bool bRemoveHandler)
 {
-	int nCount = ComboBox_GetCount(pThis_->getHandle());
-	for (int n = 0; n < nCount; ++n) {
-		Account* pAccount = getAccount(n);
-		if (pAccount) {
-			pAccount->removeAccountHandler(this);
-		}
-		else {
-			Folder* pFolder = getFolder(n);
-			assert(pFolder);
-			pFolder->removeFolderHandler(this);
+	if (bRemoveHandler) {
+		int nCount = ComboBox_GetCount(pThis_->getHandle());
+		for (int n = 0; n < nCount; ++n) {
+			Account* pAccount = getAccount(n);
+			if (pAccount) {
+				pAccount->removeAccountHandler(this);
+			}
+			else {
+				Folder* pFolder = getFolder(n);
+				assert(pFolder);
+				pFolder->removeFolderHandler(this);
+			}
 		}
 	}
-	
 	ComboBox_ResetContent(pThis_->getHandle());
 }
 
-void qm::FolderComboBoxImpl::updateAccountList(bool bDropDown)
+void qm::FolderComboBoxImpl::updateAccountList(bool bDropDown,
+											   bool bRefreshHandler)
 {
-	clearAccountList();
+	clearAccountList(bRefreshHandler);
 	
 	const Document::AccountList& l = pDocument_->getAccounts();
 	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
-		addAccount(*it, bDropDown);
+		addAccount(*it, bDropDown, bRefreshHandler);
 }
 
 void qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount,
@@ -396,7 +401,7 @@ void qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount,
 		ComboBox_DeleteString(pThis_->getHandle(), nIndex);
 	}
 	
-	insertFolders(nIndex - 1, pAccount, bDropDown);
+	insertFolders(nIndex - 1, pAccount, bDropDown, true);
 	
 	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
 	if (p.first)
@@ -406,7 +411,8 @@ void qm::FolderComboBoxImpl::refreshFolderList(Account* pAccount,
 }
 
 void qm::FolderComboBoxImpl::addAccount(Account* pAccount,
-										bool bDropDown)
+										bool bDropDown,
+										bool bAddHandler)
 {
 	assert(pAccount);
 	
@@ -426,9 +432,10 @@ void qm::FolderComboBoxImpl::addAccount(Account* pAccount,
 	ComboBox_SetItemData(pThis_->getHandle(), nIndex,
 		reinterpret_cast<LPARAM>(pAccount));
 	
-	insertFolders(nIndex, pAccount, bDropDown);
+	insertFolders(nIndex, pAccount, bDropDown, bAddHandler);
 	
-	pAccount->addAccountHandler(this);
+	if (bAddHandler)
+		pAccount->addAccountHandler(this);
 }
 
 void qm::FolderComboBoxImpl::removeAccount(Account* pAccount)
@@ -452,7 +459,8 @@ void qm::FolderComboBoxImpl::removeAccount(Account* pAccount)
 
 void qm::FolderComboBoxImpl::insertFolders(int nIndex,
 										   Account* pAccount,
-										   bool bDropDown)
+										   bool bDropDown,
+										   bool bAddHandler)
 {
 	assert(nIndex != CB_ERR);
 	assert(pAccount);
@@ -465,7 +473,7 @@ void qm::FolderComboBoxImpl::insertFolders(int nIndex,
 		
 		if (!pFolder->isHidden()) {
 			++nIndex;
-			insertFolder(nIndex, pFolder, bDropDown, true);
+			insertFolder(nIndex, pFolder, bDropDown, bAddHandler);
 		}
 	}
 }
@@ -519,7 +527,7 @@ void qm::FolderComboBoxImpl::insertFolder(int nIndex,
 LRESULT qm::FolderComboBoxImpl::onCloseUp()
 {
 	int nItem = ComboBox_GetCurSel(pThis_->getHandle());
-	updateAccountList(false);
+	updateAccountList(false, false);
 	ComboBox_SetCurSel(pThis_->getHandle(), nItem);
 	return 0;
 }
@@ -527,7 +535,7 @@ LRESULT qm::FolderComboBoxImpl::onCloseUp()
 LRESULT qm::FolderComboBoxImpl::onDropDown()
 {
 	int nItem = ComboBox_GetCurSel(pThis_->getHandle());
-	updateAccountList(true);
+	updateAccountList(true, false);
 	ComboBox_SetCurSel(pThis_->getHandle(), nItem);
 	return 0;
 }
