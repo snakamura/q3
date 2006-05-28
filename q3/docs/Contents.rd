@@ -410,8 +410,8 @@
     *((<@False|URL:FalseFunction.html>))
     *((<@Field|URL:FieldFunction.html>))
     *((<@FieldParameter|URL:FieldParameterFunction.html>))
-    *((<@FindEach|URL:FindEachFunction.html>))
     *((<@Find|URL:FindFunction.html>))
+    *((<@FindEach|URL:FindEachFunction.html>))
     *((<@Flag|URL:FlagFunction.html>))
     *((<@Folder|URL:FolderFunction.html>))
     *((<@FolderFlag|URL:FolderFlagFunction.html>))
@@ -497,7 +497,7 @@
     *keymap.xml
     *menus.xml
     *passwords.xml
-    *qmail.xml
+    *((<qmail.xml|URL:QmailXml.html>))
     *resources.xml
     *rules.xml
     *signatures.xml
