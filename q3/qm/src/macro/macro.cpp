@@ -1137,9 +1137,9 @@ std::auto_ptr<MacroConstant> qm::MacroConstantFactory::getConstant(const WCHAR* 
 			DECLARE_CONSTANT1(Boolean,	L"CASE-INSENSITIVE",	false	)
 		END_BLOCK()
 		BEGIN_BLOCK('d', 'D')
-			DECLARE_CONSTANT1(Number,	L"DATE",				0		)
-			DECLARE_CONSTANT1(Number,	L"DROPDOWN",			2		)
-			DECLARE_CONSTANT1(Number,	L"DROPDOWNLIST",		1		)
+			DECLARE_CONSTANT1(Number,	L"DATE",				0		) // Deprecated
+			DECLARE_CONSTANT1(Number,	L"DROPDOWN",			2		) // Deprecated
+			DECLARE_CONSTANT1(Number,	L"DROPDOWNLIST",		1		) // Deprecated
 		END_BLOCK()
 		BEGIN_BLOCK('f', 'F')
 			DECLARE_CONSTANT1(Number,	L"FF-NOSELECT",			1		)
@@ -1173,20 +1173,33 @@ std::auto_ptr<MacroConstant> qm::MacroConstantFactory::getConstant(const WCHAR* 
 			DECLARE_CONSTANT1(Boolean,	L"GLOBAL",				true	)
 		END_BLOCK()
 		BEGIN_BLOCK('h', 'H')
-			DECLARE_CONSTANT1(Number,	L"HOUR",				1		)
+			DECLARE_CONSTANT1(Number,	L"HOUR",				1		) // Deprecated
+		END_BLOCK()
+		BEGIN_BLOCK('i', 'I')
+			DECLARE_CONSTANT1(Boolean,	L"INPUT-SINGLELINE",	false	)
+			DECLARE_CONSTANT1(Boolean,	L"INPUT-MULTILINE",		true	)
 		END_BLOCK()
 		BEGIN_BLOCK('l', 'L')
-			DECLARE_CONSTANT1(Number,	L"LIST",				0		)
+			DECLARE_CONSTANT1(Number,	L"LIST",				0		) // Deprecated
 			DECLARE_CONSTANT1(Number,	L"LOOKUP-EMPTY",		1		)
 			DECLARE_CONSTANT1(Number,	L"LOOKUP-FORCE",		2		)
 			DECLARE_CONSTANT1(Number,	L"LOOKUP-NONE",			0		)
 		END_BLOCK()
 		BEGIN_BLOCK('m', 'M')
-			DECLARE_CONSTANT1(Number,	L"MINUTE",				2		)
-			DECLARE_CONSTANT1(Boolean,	L"MULTILINE",			1		)
+			DECLARE_CONSTANT1(Number,	L"MINUTE",				2		) // Deprecated
+			DECLARE_CONSTANT1(Boolean,	L"MULTILINE",			1		) // Deprecated
+		END_BLOCK()
+		BEGIN_BLOCK('p', 'P')
+			DECLARE_CONSTANT1(Number,	L"PASSED-DAY",			0		)
+			DECLARE_CONSTANT1(Number,	L"PASSED-HOUR",			1		)
+			DECLARE_CONSTANT1(Number,	L"PASSED-MINUTE",		2		)
+			DECLARE_CONSTANT1(Number,	L"PASSED-SECOND",		3		)
 		END_BLOCK()
 		BEGIN_BLOCK('s', 'S')
-			DECLARE_CONSTANT1(Number,	L"SECOND",				3		)
+			DECLARE_CONSTANT1(Number,	L"SECOND",				3		) // Deprecated
+			DECLARE_CONSTANT1(Number,	L"SELECT-LIST",			0		)
+			DECLARE_CONSTANT1(Number,	L"SELECT-DROPDOWN",		2		)
+			DECLARE_CONSTANT1(Number,	L"SELECT-DROPDOWNLIST",	1		)
 			DECLARE_CONSTANT1(Number,	L"SF-INBOX",			256		)
 			DECLARE_CONSTANT1(Number,	L"SF-OUTBOX",			512		)
 			DECLARE_CONSTANT1(Number,	L"SF-SENTBOX",			1024	)
@@ -1194,7 +1207,7 @@ std::auto_ptr<MacroConstant> qm::MacroConstantFactory::getConstant(const WCHAR* 
 			DECLARE_CONSTANT1(Number,	L"SF-DRAFTBOX",			4096	)
 			DECLARE_CONSTANT1(Number,	L"SF-SEARCHBOX",		8192	)
 			DECLARE_CONSTANT1(Number,	L"SF-JUNKBOX",			16384	)
-			DECLARE_CONSTANT1(Boolean,	L"SINGLELINE",			0		)
+			DECLARE_CONSTANT1(Boolean,	L"SINGLELINE",			0		) // Deprecated
 		END_BLOCK()
 		BEGIN_BLOCK('t', 'T')
 			DECLARE_CONSTANT1(Boolean,	L"TEMPLATE",			true	)
