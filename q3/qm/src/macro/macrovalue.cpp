@@ -685,7 +685,7 @@ const Part* qm::MacroValuePart::getPart() const
 MacroValue::String qm::MacroValuePart::string() const
 {
 	if (pPart_)
-		return String(PartUtil(*pPart_).getAllText(0, 0, false).get());
+		return String(PartUtil(*pPart_).getAllText(0, 0, false));
 	else
 		return String(L"");
 }
