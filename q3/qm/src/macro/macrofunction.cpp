@@ -3411,7 +3411,9 @@ MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 		if (nSize > 1) {
 			if (pFolder->getType() != Folder::TYPE_NORMAL)
 				return error(*pContext, MacroErrorHandler::CODE_FAIL);
-			l.push_back(static_cast<NormalFolder*>(pFolder)->getMessageById(nId));
+			MessagePtr ptr(static_cast<NormalFolder*>(pFolder)->getMessageById(nId));
+			if (MessagePtrLock(ptr))
+				l.push_back(ptr);
 		}
 		else {
 			Lock<Account> lock(*pFolder->getAccount());
@@ -3425,7 +3427,29 @@ MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 		}
 	}
 	else {
-		// TODO
+		Account* pAccount = pContext->getAccount();
+		Lock<Account> lock(*pAccount);
+		const Account::FolderList& listFolder = pAccount->getFolders();
+		
+		unsigned int nCount = 0;
+		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+			Folder* pFolder = *it;
+			if (pFolder->getType() == Folder::TYPE_NORMAL)
+				nCount += pFolder->getCount();
+		}
+		l.reserve(nCount);
+		
+		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+			Folder* pFolder = *it;
+			if (pFolder->getType() == Folder::TYPE_NORMAL) {
+				if (!pFolder->loadMessageHolders())
+					return error(*pContext, MacroErrorHandler::CODE_FAIL);
+				
+				unsigned int nCount = pFolder->getCount();
+				for (unsigned int n = 0; n < nCount; ++n)
+					l.push_back(MessagePtr(pFolder->getMessage(n)));
+			}
+		}
 	}
 	
 	return MacroValueFactory::getFactory().newMessageList(l);
