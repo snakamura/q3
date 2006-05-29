@@ -15,6 +15,8 @@
 #include <qmsecurity.h>
 
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsmime.h>
 #include <qsprofile.h>
 #include <qsstl.h>
@@ -400,8 +402,14 @@ void qm::SubAccount::setDialupDisconnectWait(unsigned int nWait)
 
 std::auto_ptr<PrivateKey> qm::SubAccount::getPrivateKey(PasswordManager* pPasswordManager) const
 {
-	if (!Security::isSMIMEEnabled())
+	assert(pPasswordManager);
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::SubAccount");
+	
+	if (!Security::isSMIMEEnabled()) {
+		log.error(L"S/MIME is not supported.");
 		return std::auto_ptr<PrivateKey>();
+	}
 	
 	std::auto_ptr<PrivateKey> pPrivateKey(PrivateKey::getInstance());
 	
@@ -430,11 +438,13 @@ std::auto_ptr<PrivateKey> qm::SubAccount::getPrivateKey(PasswordManager* pPasswo
 		wstrPath = concat(c, countof(c));
 	}
 	
+	log.debugf(L"Load subaccount's private key from %s", wstrPath.get());
+	
 	FileCryptoPasswordCallback callback(pPasswordManager, wstrPath.get());
-	
-	if (!pPrivateKey->load(wstrPath.get(), PrivateKey::FILETYPE_PEM, &callback))
+	if (!pPrivateKey->load(wstrPath.get(), PrivateKey::FILETYPE_PEM, &callback)) {
+		log.errorf(L"Failed to load subaccount's certificate from %s", wstrPath.get());
 		return std::auto_ptr<PrivateKey>();
-	
+	}
 	callback.save();
 	
 	return pPrivateKey;
@@ -442,8 +452,14 @@ std::auto_ptr<PrivateKey> qm::SubAccount::getPrivateKey(PasswordManager* pPasswo
 
 std::auto_ptr<Certificate> qm::SubAccount::getCertificate(PasswordManager* pPasswordManager) const
 {
-	if (!Security::isSMIMEEnabled())
+	assert(pPasswordManager);
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::SubAccount");
+	
+	if (!Security::isSMIMEEnabled()) {
+		log.error(L"S/MIME is not supported.");
 		return std::auto_ptr<Certificate>();
+	}
 	
 	std::auto_ptr<Certificate> pCertificate(Certificate::getInstance());
 	
@@ -472,11 +488,13 @@ std::auto_ptr<Certificate> qm::SubAccount::getCertificate(PasswordManager* pPass
 		wstrPath = concat(c, countof(c));
 	}
 	
+	log.debugf(L"Load subaccount's certificate from %s", wstrPath.get());
+	
 	FileCryptoPasswordCallback callback(pPasswordManager, wstrPath.get());
-	
-	if (!pCertificate->load(wstrPath.get(), Certificate::FILETYPE_PEM, &callback))
+	if (!pCertificate->load(wstrPath.get(), Certificate::FILETYPE_PEM, &callback)) {
+		log.errorf(L"Failed to load subaccount's certificate from %s", wstrPath.get());
 		return std::auto_ptr<Certificate>();
-	
+	}
 	callback.save();
 	
 	return pCertificate;

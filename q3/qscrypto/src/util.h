@@ -159,7 +159,7 @@ private:
 class Util
 {
 public:
-	static qs::malloc_size_ptr<unsigned char> createBIOFromStream(qs::InputStream* pStream);
+	static qs::malloc_size_ptr<unsigned char> loadFromStream(qs::InputStream* pStream);
 	static void logError(qs::Log& log,
 						 const WCHAR* pwszMessage);
 };

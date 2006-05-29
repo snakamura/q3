@@ -21,7 +21,7 @@ using namespace qs;
  *
  */
 
-malloc_size_ptr<unsigned char> qscrypto::Util::createBIOFromStream(InputStream* pStream)
+malloc_size_ptr<unsigned char> qscrypto::Util::loadFromStream(InputStream* pStream)
 {
 	assert(pStream);
 	

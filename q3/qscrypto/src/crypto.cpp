@@ -204,9 +204,15 @@ bool qscrypto::CertificateImpl::load(const WCHAR* pwszPath,
 {
 	assert(pwszPath);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::CertificateImpl");
+	
+	log.debugf(L"Loading a certificate from %s", pwszPath);
+	
 	FileInputStream stream(pwszPath);
-	if (!stream)
+	if (!stream) {
+		log.errorf(L"Failed to open file: %s", pwszPath);
 		return false;
+	}
 	BufferedInputStream bufferedStream(&stream, false);
 	
 	return load(&bufferedStream, type, pCallback);
@@ -218,9 +224,13 @@ bool qscrypto::CertificateImpl::load(InputStream* pStream,
 {
 	assert(pStream);
 	
-	malloc_size_ptr<unsigned char> buf(Util::createBIOFromStream(pStream));
-	if (!buf.get())
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::CertificateImpl");
+	
+	malloc_size_ptr<unsigned char> buf(Util::loadFromStream(pStream));
+	if (!buf.get()) {
+		log.error(L"Failed to read from stream.");
 		return false;
+	}
 	
 	BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 	
@@ -228,8 +238,10 @@ bool qscrypto::CertificateImpl::load(InputStream* pStream,
 	case FILETYPE_PEM:
 		pX509_ = PEM_read_bio_X509(pIn.get(), 0,
 			pCallback ? &passwordCallback : 0, pCallback);
-		if (!pX509_)
+		if (!pX509_) {
+			Util::logError(log, L"Failed to load a certificate from PEM.");
 			return false;
+		}
 		break;
 	default:
 		assert(false);
@@ -311,9 +323,15 @@ bool qscrypto::PrivateKeyImpl::load(const WCHAR* pwszPath,
 {
 	assert(pwszPath);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::PrivateKeyImpl");
+	
+	log.debugf(L"Loading a private key from %s", pwszPath);
+	
 	FileInputStream stream(pwszPath);
-	if (!stream)
+	if (!stream) {
+		log.errorf(L"Failed to open file: %s", pwszPath);
 		return false;
+	}
 	BufferedInputStream bufferedStream(&stream, false);
 	
 	return load(&bufferedStream, type, pCallback);
@@ -325,9 +343,13 @@ bool qscrypto::PrivateKeyImpl::load(InputStream* pStream,
 {
 	assert(pStream);
 	
-	malloc_size_ptr<unsigned char> buf(Util::createBIOFromStream(pStream));
-	if (!buf.get())
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::PrivateKeyImpl");
+	
+	malloc_size_ptr<unsigned char> buf(Util::loadFromStream(pStream));
+	if (!buf.get()) {
+		log.error(L"Failed to read from stream.");
 		return false;
+	}
 	
 	BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 	
@@ -335,8 +357,10 @@ bool qscrypto::PrivateKeyImpl::load(InputStream* pStream,
 	case FILETYPE_PEM:
 		pKey_ = PEM_read_bio_PrivateKey(pIn.get(), 0,
 			pCallback ? &passwordCallback : 0, pCallback);
-		if (!pKey_)
+		if (!pKey_) {
+			Util::logError(log, L"Failed to load a private key from PEM.");
 			return false;
+		}
 		break;
 	default:
 		assert(false);
@@ -375,9 +399,15 @@ bool qscrypto::PublicKeyImpl::load(const WCHAR* pwszPath,
 {
 	assert(pwszPath);
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::PublicKeyImpl");
+	
+	log.debugf(L"Loading a public key from %s", pwszPath);
+	
 	FileInputStream stream(pwszPath);
-	if (!stream)
+	if (!stream) {
+		log.errorf(L"Failed to open file: %s", pwszPath);
 		return false;
+	}
 	BufferedInputStream bufferedStream(&stream, false);
 	
 	return load(&bufferedStream, type, pCallback);
@@ -389,9 +419,13 @@ bool qscrypto::PublicKeyImpl::load(InputStream* pStream,
 {
 	assert(pStream);
 	
-	malloc_size_ptr<unsigned char> buf(Util::createBIOFromStream(pStream));
-	if (!buf.get())
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::PublicKeyImpl");
+	
+	malloc_size_ptr<unsigned char> buf(Util::loadFromStream(pStream));
+	if (!buf.get()) {
+		log.error(L"Failed to read from stream.");
 		return false;
+	}
 	
 	BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 	
@@ -399,8 +433,10 @@ bool qscrypto::PublicKeyImpl::load(InputStream* pStream,
 	case FILETYPE_PEM:
 		pKey_ = PEM_read_bio_PUBKEY(pIn.get(), 0,
 			pCallback ? &passwordCallback : 0, pCallback);
-		if (!pKey_)
+		if (!pKey_) {
+			Util::logError(log, L"Failed to load a public key from PEM.");
 			return false;
+		}
 		break;
 	default:
 		assert(false);
@@ -448,20 +484,26 @@ bool qscrypto::StoreImpl::load(const WCHAR* pwszPath,
 	case FILETYPE_PEM:
 		{
 			FileInputStream stream(pwszPath);
-			if (!stream)
+			if (!stream) {
+				log.errorf(L"Failed to open file: %s", pwszPath);
 				return false;
+			}
 			BufferedInputStream bufferedStream(&stream, false);
 			
-			malloc_size_ptr<unsigned char> buf(Util::createBIOFromStream(&bufferedStream));
-			if (!buf.get())
+			malloc_size_ptr<unsigned char> buf(Util::loadFromStream(&bufferedStream));
+			if (!buf.get()) {
+				log.error(L"Failed to read from stream.");
 				return false;
+			}
 			
 			BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 			
 			STACK_OF(X509_INFO)* pStackInfo =
 				PEM_X509_INFO_read_bio(pIn.get(), 0, 0, 0);
-			if (!pStackInfo)
+			if (!pStackInfo) {
+				Util::logError(log, L"Failed to load certificates from PEM.");
 				return false;
+			}
 			for (int n = 0; n < sk_X509_INFO_num(pStackInfo); ++n) {
 				X509_INFO* pInfo = sk_X509_INFO_value(pStackInfo, n);
 				if (pInfo->x509 && CertificateImpl(pInfo->x509, false).checkValidity())
@@ -507,14 +549,19 @@ bool qscrypto::StoreImpl::load(const WCHAR* pwszPath,
 bool qscrypto::StoreImpl::loadSystem()
 {
 #if !defined _WIN32_WCE || _WIN32_WCE > 300 || defined PLATFORM_PPC2002
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::StoreImpl");
+	
 	const TCHAR* ptszNames[] = {
 		_T("ROOT"),
 		_T("CA")
 	};
 	for (int n = 0; n < countof(ptszNames); ++n) {
 		HCERTSTORE hStore = ::CertOpenSystemStore(0, ptszNames[n]);
-		if (!hStore)
+		if (!hStore) {
+			T2W(ptszNames[n], pwszName);
+			log.warnf(L"Failed to open system store: ", pwszName);
 			return false;
+		}
 		
 		const CERT_CONTEXT* pContext = 0;
 		while (true) {
