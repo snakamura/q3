@@ -792,8 +792,8 @@ bool qs::WindowBase::subclassWindow(HWND hwnd)
 		return false;
 	
 	pImpl_->procSubclass_ = reinterpret_cast<WNDPROC>(
-		::SetWindowLong(hwnd, GWLP_WNDPROC,
-			reinterpret_cast<LONG>(&qs::windowProc)));
+		::SetWindowLongPtr(hwnd, GWLP_WNDPROC,
+			reinterpret_cast<LONG_PTR>(&qs::windowProc)));
 	if (!pImpl_->procSubclass_)
 		return false;
 	
@@ -817,8 +817,8 @@ bool qs::WindowBase::unsubclassWindow()
 	if (!pImpl_->procSubclass_)
 		return false;
 	
-	if (::SetWindowLong(getHandle(), GWLP_WNDPROC,
-		reinterpret_cast<LONG>(pImpl_->procSubclass_)) == 0)
+	if (::SetWindowLongPtr(getHandle(), GWLP_WNDPROC,
+		reinterpret_cast<LONG_PTR>(pImpl_->procSubclass_)) == 0)
 		return false;
 	
 	WindowBaseImpl::WindowMap* pMap = WindowBaseImpl::getWindowMap();
