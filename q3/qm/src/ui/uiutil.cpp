@@ -65,10 +65,29 @@ int qm::UIUtil::loadWindowPlacement(Profile* pProfile,
 	
 	int nShow = SW_SHOWNORMAL;
 	if (items[2].n_ != 0 && items[3].n_ != 0) {
+		int nLeftOffset = 0;
+		int nTopOffset = 0;
+#if _WIN32_WINNT > 0x500
+		RECT rect = {
+			items[0].n_,
+			items[1].n_,
+			items[0].n_ + items[2].n_,
+			items[1].n_ + items[3].n_
+		};
+		HMONITOR hMonitor = ::MonitorFromRect(&rect, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO info = { sizeof(info) };
+		if (::GetMonitorInfo(hMonitor, &info)) {
+			nLeftOffset = info.rcWork.left - info.rcMonitor.left;
+			nTopOffset = info.rcWork.top - info.rcMonitor.top;
+		}
+#else
 		RECT rect;
 		::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
-		pCreateStruct->x = rect.left + items[0].n_;
-		pCreateStruct->y = rect.top + items[1].n_;
+		nLeftOffset = rect.left;
+		nTopOffset = rect.top;
+#endif
+		pCreateStruct->x = items[0].n_ + nLeftOffset;
+		pCreateStruct->y = items[1].n_ + nTopOffset;
 		pCreateStruct->cx = items[2].n_;
 		pCreateStruct->cy = items[3].n_;
 		
