@@ -90,7 +90,7 @@ struct qm::SingleMessageStoreImpl
 	
 	wstring_ptr wstrPath_;
 	wstring_ptr wstrIndexPath_;
-	unsigned int nIndexBlockSize_;
+	size_t nIndexBlockSize_;
 	std::auto_ptr<ClusterStorage> pStorage_;
 	std::auto_ptr<ClusterStorage> pIndexStorage_;
 	CriticalSection cs_;
@@ -110,9 +110,9 @@ const unsigned char qm::SingleMessageStoreImpl::szUnusedSeparator__[] = "\n\nFro
  */
 
 qm::SingleMessageStore::SingleMessageStore(const WCHAR* pwszPath,
-										   unsigned int nBlockSize,
+										   size_t nBlockSize,
 										   const WCHAR* pwszIndexPath,
-										   unsigned int nIndexBlockSize)
+										   size_t nIndexBlockSize)
 {
 	wstring_ptr wstrPath(allocWString(pwszPath));
 	wstring_ptr wstrIndexPath(allocWString(pwszIndexPath));
@@ -381,7 +381,7 @@ public:
 public:
 	wstring_ptr wstrPath_;
 	wstring_ptr wstrIndexPath_;
-	unsigned int nIndexBlockSize_;
+	size_t nIndexBlockSize_;
 	std::auto_ptr<ClusterStorage> pIndexStorage_;
 	unsigned int nOffset_;
 	CriticalSection cs_;
@@ -544,7 +544,7 @@ void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& list
 
 qm::MultiMessageStore::MultiMessageStore(const WCHAR* pwszPath,
 										 const WCHAR* pwszIndexPath,
-										 unsigned int nIndexBlockSize)
+										 size_t nIndexBlockSize)
 {
 	wstring_ptr wstrPath(allocWString(pwszPath));
 	wstring_ptr wstrIndexPath(allocWString(pwszIndexPath));
@@ -874,7 +874,7 @@ void qm::MessageStoreUtil::freeUnrefered(ClusterStorage* pStorage,
 
 std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkIndex(ClusterStorage* pStorage,
 															   const WCHAR* pwszPath,
-															   unsigned int nBlockSize,
+															   size_t nBlockSize,
 															   MessageStoreCheckCallback* pCallback)
 {
 	assert(pCallback);
