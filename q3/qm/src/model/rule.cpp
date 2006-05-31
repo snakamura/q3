@@ -189,6 +189,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	
 	if (bAuto &&
 		pFolder->getType() == Folder::TYPE_NORMAL &&
+		pAccount->isRemoteMessageFolder(static_cast<NormalFolder*>(pFolder)) &&
 		isNeedPrepare(pAccessor, getMessageType(listRule)))
 		pAccount->prepareGetMessage(static_cast<NormalFolder*>(pFolder));
 	

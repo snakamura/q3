@@ -762,14 +762,8 @@ bool qm::AccountImpl::getDataList(MessageStore::DataList* pList) const
 
 bool qm::AccountImpl::isRemoteMessage(MessageHolder* pmh) const
 {
-	if ((pmh->getFolder()->isFlag(Folder::FLAG_LOCAL) &&
-		(!pProtocolDriver_->isSupport(Account::SUPPORT_LOCALFOLDERGETMESSAGE) ||
-		!pmh->getFolder()->isFlag(Folder::FLAG_SYNCABLE))))
-		return false;
-	else if (pmh->isFlag(MessageHolder::FLAG_LOCAL))
-		return false;
-	else
-		return true;
+	return pThis_->isRemoteMessageFolder(pmh->getFolder()) &&
+		!pmh->isFlag(MessageHolder::FLAG_LOCAL);
 }
 
 bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
@@ -1810,6 +1804,13 @@ bool qm::Account::updateFolders()
 std::pair<const WCHAR**, size_t> qm::Account::getFolderParamNames(Folder* pFolder) const
 {
 	return pImpl_->pProtocolDriver_->getFolderParamNames(pFolder);
+}
+
+bool qm::Account::isRemoteMessageFolder(const NormalFolder* pFolder)
+{
+	return !pFolder->isFlag(Folder::FLAG_LOCAL) ||
+		(isSupport(SUPPORT_LOCALFOLDERGETMESSAGE) &&
+		 pFolder->isFlag(Folder::FLAG_SYNCABLE));
 }
 
 void  qm::Account::setOffline(bool bOffline)

@@ -181,6 +181,7 @@ public:
 						unsigned int nMask);
 	bool updateFolders();
 	std::pair<const WCHAR**, size_t> getFolderParamNames(Folder* pFolder) const;
+	bool isRemoteMessageFolder(const NormalFolder* pFolder);
 	
 	void setOffline(bool bOffline);
 	bool compact(MessageOperationCallback* pCallback);
