@@ -67,7 +67,7 @@ void qm::SyncDialogManager::hide()
 {
 	if (pThread_.get()) {
 		SyncDialog* pSyncDialog = pThread_->getDialog();
-		pSyncDialog->showWindow(SW_HIDE);
+		pSyncDialog->hide();
 	}
 }
 
@@ -106,7 +106,6 @@ qm::SyncDialog::SyncDialog(Profile* pProfile,
 	pProfile_(pProfile),
 	pPasswordManager_(pPasswordManager),
 	pStatusWindow_(0),
-	bShowError_(false),
 	nCanceledTime_(0)
 {
 	addCommandHandler(this);
@@ -143,7 +142,6 @@ void qm::SyncDialog::show()
 	}
 	else {
 		if (!isVisible()) {
-			bShowError_ = false;
 			layout();
 			showWindow(SW_SHOWNA);
 		}
@@ -175,7 +173,6 @@ void qm::SyncDialog::hide()
 			return;
 		
 		setDlgItemText(IDC_ERROR, L"");
-		bShowError_ = false;
 		
 		showWindow(SW_HIDE);
 		if (Window::getForegroundWindow() == getHandle())
@@ -208,12 +205,13 @@ void qm::SyncDialog::addError(const WCHAR* pwszError)
 	
 	W2T(pwszError, ptszError);
 	
+	bool bHasError = hasError();
+	
 	sendDlgItemMessage(IDC_ERROR, EM_SETSEL, -1, -1);
 	sendDlgItemMessage(IDC_ERROR, EM_REPLACESEL, FALSE,
 		reinterpret_cast<LPARAM>(ptszError));
 	
-	if (!bShowError_) {
-		bShowError_ = true;
+	if (!bHasError) {
 		layout();
 		if (!isVisible()) {
 			showWindow(SW_SHOWNA);
@@ -478,20 +476,21 @@ void qm::SyncDialog::layout(int cx,
 	hide.getWindowRect(&rectButton);
 	int nButtonWidth = rectButton.right - rectButton.left;
 	int nButtonHeight = rectButton.bottom - rectButton.top;
+	bool bShowError = hasError();
 	
 	HDWP hdwp = Window::beginDeferWindowPos(6);
 	
 #if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
-	int nErrorHeight = bShowError_ ? (cy - nButtonHeight - 30)/2 : 0;
+	int nErrorHeight = bShowError ? (cy - nButtonHeight - 30)/2 : 0;
 	hdwp = error.deferWindowPos(hdwp, 0, 5,
 		cy - nErrorHeight - nButtonHeight - 10, cx - 10, nErrorHeight,
 		SWP_NOZORDER | SWP_NOACTIVATE);
-	error.showWindow(bShowError_);
+	error.showWindow(bShowError);
 	
 	hdwp = message.deferWindowPos(hdwp, 0, 5, 5, cx - 10,
 		nMessageHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 	hdwp = pStatusWindow_->deferWindowPos(hdwp, 0, 5, nMessageHeight + 10, cx - 10,
-		cy - nErrorHeight - nButtonHeight - nMessageHeight - (bShowError_ ? 25 : 20),
+		cy - nErrorHeight - nButtonHeight - nMessageHeight - (bShowError ? 25 : 20),
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	
 	hdwp = cancel.deferWindowPos(hdwp, 0, cx - nButtonWidth*2 - 10,
@@ -499,17 +498,17 @@ void qm::SyncDialog::layout(int cx,
 	hdwp = hide.deferWindowPos(hdwp, 0, cx - nButtonWidth - 5,
 		cy - nButtonHeight - 5, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
 #else
-	int nErrorHeight = bShowError_ ? (cy - 25)/2 : 0;
+	int nErrorHeight = bShowError ? (cy - 25)/2 : 0;
 	hdwp = error.deferWindowPos(hdwp, 0, 5,
 		cy - nErrorHeight - 5, cx - nButtonWidth - 15, nErrorHeight,
 		SWP_NOZORDER | SWP_NOACTIVATE);
-	error.showWindow(bShowError_);
+	error.showWindow(bShowError);
 	
 	hdwp = message.deferWindowPos(hdwp, 0, 5, 5, cx - nButtonWidth - 15,
 		nMessageHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 	hdwp = pStatusWindow_->deferWindowPos(hdwp, 0, 5,
 		nMessageHeight + 10, cx - nButtonWidth - 15,
-		cy - nErrorHeight - nMessageHeight - (bShowError_ ? 20 : 15),
+		cy - nErrorHeight - nMessageHeight - (bShowError ? 20 : 15),
 		SWP_NOZORDER | SWP_NOACTIVATE);
 	hdwp = cancel.deferWindowPos(hdwp, 0, cx - nButtonWidth - 5,
 		5, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);

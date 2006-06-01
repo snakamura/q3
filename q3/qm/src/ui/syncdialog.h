@@ -145,7 +145,6 @@ private:
 	qs::Profile* pProfile_;
 	PasswordManager* pPasswordManager_;
 	SyncStatusWindow* pStatusWindow_;
-	bool bShowError_;
 	volatile unsigned int nCanceledTime_;
 };
 
