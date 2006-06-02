@@ -35,7 +35,6 @@ struct qm::RecentsImpl
 	AccountManager* pAccountManager_;
 	Profile* pProfile_;
 	unsigned int nMax_;
-	bool bAddAutoOnly_;
 	std::auto_ptr<qs::RegexPattern> pFilter_;
 	URIList list_;
 	CriticalSection cs_;
@@ -73,7 +72,6 @@ qm::Recents::Recents(AccountManager* pAccountManager,
 	pImpl_->pAccountManager_ = pAccountManager;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->nMax_ = pProfile->getInt(L"Recents", L"Max");
-	pImpl_->bAddAutoOnly_ = pProfile->getInt(L"Recents", L"AddAutoOnly") != 0;
 	pImpl_->pFilter_ = pFilter;
 #ifndef NDEBUG
 	pImpl_->nLock_ = 0;
@@ -114,12 +112,11 @@ const URI* qm::Recents::get(unsigned int n) const
 	return pImpl_->list_[n];
 }
 
-void qm::Recents::add(std::auto_ptr<URI> pURI,
-					  bool bAuto)
+void qm::Recents::add(std::auto_ptr<URI> pURI)
 {
 	assert(pURI.get());
 	
-	if (pImpl_->nMax_ == 0 || (!bAuto && pImpl_->bAddAutoOnly_))
+	if (pImpl_->nMax_ == 0)
 		return;
 	
 	if (pImpl_->pFilter_.get()) {

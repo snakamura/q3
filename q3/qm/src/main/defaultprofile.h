@@ -433,7 +433,6 @@ const qs::Profile::Default defaultProfiles[] = {
 	
 	{ L"RecentAddress",	L"Max",	L"10"	},
 	
-	{ L"Recents",	L"AddAutoOnly",		L"1"	},
 	{ L"Recents",	L"Filter",			L""		},
 	{ L"Recents",	L"HotKey", 			L"65"	}, /*'A'*/
 	{ L"Recents",	L"HotKeyModifiers",	L"5"	}, /*MOD_ALT | MOD_SHIFT*/
@@ -462,12 +461,15 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"SignatureDialog",	L"Width",	L"620"	},
 #endif
 	
+	{ L"Sync",	L"Notify",	L"0"	}, /*SyncManager::NOTIFY_ALWAYS*/
+	
 #ifndef _WIN32_WCE
 	{ L"SyncDialog",	L"Height",	L"200"	},
 	{ L"SyncDialog",	L"Left",	L"0"	},
 	{ L"SyncDialog",	L"Top",		L"0"	},
 	{ L"SyncDialog",	L"Width",	L"300"	},
 #endif
+	{ L"SyncDialog",	L"Show",	L"2"	}, /*SyncDialog::SHOW_MANUAL*/
 	
 #ifndef _WIN32_WCE
 	{ L"SyncFiltersDialog",	L"Height",	L"450"	},

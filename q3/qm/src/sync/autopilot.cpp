@@ -103,7 +103,7 @@ void qm::AutoPilot::timerTimeout(Timer::Id nId)
 				const GoRoundCourse* pCourse = pGoRound_->getCourse(pEntry->getCourse());
 				if (pCourse)
 					SyncUtil::goRound(pSyncManager_, pDocument_, pSyncDialogManager_,
-						SyncDialog::FLAG_NOTIFYNEWMESSAGE, pCourse);
+						SyncData::TYPE_AUTO, pCourse);
 			}
 		}
 	}

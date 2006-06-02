@@ -71,13 +71,6 @@ class SyncDialog :
 	public qs::CommandHandler
 {
 public:
-	enum Flag {
-		FLAG_NONE				= 0x00,
-		FLAG_SHOWDIALOG			= 0x01,
-		FLAG_NOTIFYNEWMESSAGE	= 0x02
-	};
-
-public:
 	SyncDialog(qs::Profile* pProfile,
 			   PasswordManager* pPasswordManager);
 	virtual ~SyncDialog();
@@ -104,6 +97,7 @@ public:
 	bool showDialupDialog(RASDIALPARAMS* prdp);
 	qs::wstring_ptr selectDialupEntry();
 	void notifyNewMessage() const;
+	bool isShowDialog(SyncData::Type type) const;
 	void save() const;
 
 public:
@@ -142,6 +136,13 @@ private:
 	SyncDialog& operator=(const SyncDialog&);
 
 private:
+	enum Show {
+		SHOW_ALWAYS,
+		SHOW_NEVER,
+		SHOW_MANUAL
+	};
+
+private:
 	qs::Profile* pProfile_;
 	PasswordManager* pPasswordManager_;
 	SyncStatusWindow* pStatusWindow_;
@@ -172,13 +173,11 @@ private:
 		};
 	
 	public:
-		Item(unsigned int nId,
-			 unsigned int nParam);
+		explicit Item(unsigned int nId);
 		~Item();
 	
 	public:
 		unsigned int getId() const;
-		unsigned int getParam() const;
 		const Progress& getProgress(bool bSub) const;
 		const WCHAR* getMessage() const;
 	
@@ -198,7 +197,6 @@ private:
 	
 	private:
 		unsigned int nId_;
-		unsigned int nParam_;
 		Progress main_;
 		Progress sub_;
 		Account* pAccount_;
@@ -222,10 +220,10 @@ public:
 							   LPARAM lParam);
 
 public:
-	virtual void start(unsigned int nParam);
+	virtual void start(SyncData::Type type);
 	virtual void end();
 	virtual void startThread(unsigned int nId,
-							 unsigned int nParam);
+							 SyncData::Type type);
 	virtual void endThread(unsigned int nId);
 	virtual void setPos(unsigned int nId,
 						bool bSub,
@@ -284,7 +282,7 @@ private:
 private:
 	SyncDialog* pSyncDialog_;
 	ItemList listItem_;
-	bool bNewMessage_;
+	volatile bool bNewMessage_;
 	qs::CriticalSection cs_;
 	int nFontHeight_;
 	qs::wstring_ptr wstrFinished_;

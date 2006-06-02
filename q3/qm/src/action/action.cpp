@@ -375,7 +375,7 @@ void qm::EditClearDeletedAction::invoke(const ActionEvent& event)
 	
 	if (!l.empty()) {
 		if (!SyncUtil::syncFolders(pSyncManager_, pDocument_, pSyncDialogManager_,
-			SyncDialog::FLAG_NONE, l, ReceiveSyncItem::FLAG_EXPUNGE)) {
+			SyncData::TYPE_ACTIVE, l, ReceiveSyncItem::FLAG_EXPUNGE)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_CLEARDELETED);
 			return;
 		}
@@ -841,7 +841,7 @@ void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 		SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-			SyncDialog::FLAG_NONE, pNormalFolder, 0);
+			SyncData::TYPE_ACTIVE, pNormalFolder, 0);
 	}
 #ifdef _WIN32_WCE
 	Clipboard clipboard(0);
@@ -1615,7 +1615,7 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0);
+				SyncData::TYPE_ACTIVE, static_cast<NormalFolder*>(pFolder), 0);
 		}
 		else {
 			if (!pFolder->getAccount()->save(false)) {
@@ -2930,7 +2930,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 	}
 	else if (pTrash->isFlag(Folder::FLAG_SYNCABLE)) {
 		if (!SyncUtil::syncFolder(pSyncManager, pDocument,
-			pSyncDialogManager, SyncDialog::FLAG_NONE, pTrash,
+			pSyncDialogManager, SyncData::TYPE_ACTIVE, pTrash,
 			ReceiveSyncItem::FLAG_EMPTY | ReceiveSyncItem::FLAG_EXPUNGE)) {
 			ActionUtil::error(hwnd, IDS_ERROR_EMPTYTRASH);
 			return;
@@ -5391,8 +5391,8 @@ qm::ToolDialupAction::~ToolDialupAction()
 void qm::ToolDialupAction::invoke(const ActionEvent& event)
 {
 	if (!isConnected()) {
-		std::auto_ptr<SyncData> pData(new SyncData(pSyncManager_,
-			pDocument_, false, SyncDialog::FLAG_SHOWDIALOG));
+		std::auto_ptr<SyncData> pData(new SyncData(
+			pSyncManager_, pDocument_, SyncData::TYPE_MANUAL));
 		
 		std::auto_ptr<SyncDialup> pDialup(new SyncDialup(
 			static_cast<const WCHAR*>(0),
@@ -5476,7 +5476,7 @@ void qm::ToolGoRoundAction::invoke(const ActionEvent& event)
 	}
 	
 	if (!SyncUtil::goRound(pSyncManager_, pDocument_,
-		pSyncDialogManager_, SyncDialog::FLAG_SHOWDIALOG, pCourse)) {
+		pSyncDialogManager_, SyncData::TYPE_MANUAL, pCourse)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_GOROUND);
 		return;
 	}
@@ -5825,9 +5825,8 @@ void qm::ToolSyncAction::invoke(const ActionEvent& event)
 	
 	if (type_ != TYPE_RECEIVEFOLDER) {
 		if (!SyncUtil::sync(pSyncManager_, pDocument_, pSyncDialogManager_,
-			hwnd_, SyncDialog::FLAG_SHOWDIALOG, pAccount,
-			type_ != TYPE_RECEIVE, type_ != TYPE_SEND,
-			(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0)) {
+			SyncData::TYPE_MANUAL, pAccount, type_ != TYPE_RECEIVE, type_ != TYPE_SEND,
+			(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0, hwnd_)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_SYNC);
 			return;
 		}
@@ -5839,7 +5838,7 @@ void qm::ToolSyncAction::invoke(const ActionEvent& event)
 			return;
 		
 		if (!SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-			SyncDialog::FLAG_SHOWDIALOG, static_cast<NormalFolder*>(pFolder), 0)) {
+			SyncData::TYPE_MANUAL, static_cast<NormalFolder*>(pFolder), 0)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_SYNC);
 			return;
 		}
@@ -6689,7 +6688,7 @@ void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 	case Folder::TYPE_NORMAL:
 		if (pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
 			if (!SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0)) {
+				SyncData::TYPE_ACTIVE, static_cast<NormalFolder*>(pFolder), 0)) {
 				ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
 				return;
 			}

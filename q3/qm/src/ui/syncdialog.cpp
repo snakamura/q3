@@ -332,6 +332,19 @@ void qm::SyncDialog::notifyNewMessage() const
 	}
 }
 
+bool qm::SyncDialog::isShowDialog(SyncData::Type type) const
+{
+	switch (pProfile_->getInt(L"SyncDialog", L"Show", SHOW_MANUAL)) {
+	case SHOW_ALWAYS:
+		return true;
+	case SHOW_NEVER:
+		return false;
+	case SHOW_MANUAL:
+	default:
+		return type == SyncData::TYPE_MANUAL;
+	}
+}
+
 void qm::SyncDialog::save() const
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
@@ -571,8 +584,10 @@ LRESULT qm::SyncStatusWindow::windowProc(UINT uMsg,
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-void qm::SyncStatusWindow::start(unsigned int nParam)
+void qm::SyncStatusWindow::start(SyncData::Type type)
 {
+	bool bShow = pSyncDialog_->isShowDialog(type);
+	
 	struct RunnableImpl : public Runnable
 	{
 		RunnableImpl(SyncDialog* pSyncDialog,
@@ -595,7 +610,7 @@ void qm::SyncStatusWindow::start(unsigned int nParam)
 		
 		SyncDialog* pSyncDialog_;
 		bool bShow_;
-	} runnable(pSyncDialog_, (nParam & SyncDialog::FLAG_SHOWDIALOG) != 0);
+	} runnable(pSyncDialog_, bShow);
 	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
 }
 
@@ -645,9 +660,9 @@ void qm::SyncStatusWindow::end()
 }
 
 void qm::SyncStatusWindow::startThread(unsigned int nId,
-									   unsigned int nParam)
+									   SyncData::Type type)
 {
-	std::auto_ptr<Item> pItem(new Item(nId, nParam));
+	std::auto_ptr<Item> pItem(new Item(nId));
 	{
 		Lock<CriticalSection> lock(cs_);
 		listItem_.push_back(pItem.get());
@@ -954,10 +969,7 @@ bool qm::SyncStatusWindow::showDialupDialog(RASDIALPARAMS* prdp)
 
 void qm::SyncStatusWindow::notifyNewMessage(unsigned int nId)
 {
-	Lock<CriticalSection> lock(cs_);
-	ItemList::iterator it = getItem(nId);
-	if ((*it)->getParam() & SyncDialog::FLAG_NOTIFYNEWMESSAGE)
-		bNewMessage_ = true;
+	bNewMessage_ = true;
 }
 
 LRESULT qm::SyncStatusWindow::onCreate(CREATESTRUCT* pCreateStruct)
@@ -1253,10 +1265,8 @@ SyncStatusWindow::ItemList::iterator qm::SyncStatusWindow::getItem(unsigned int 
  *
  */
 
-qm::SyncStatusWindow::Item::Item(unsigned int nId,
-								 unsigned int nParam) :
+qm::SyncStatusWindow::Item::Item(unsigned int nId) :
 	nId_(nId),
-	nParam_(nParam),
 	pAccount_(0),
 	pSubAccount_(0),
 	pFolder_(0)
@@ -1276,11 +1286,6 @@ qm::SyncStatusWindow::Item::~Item()
 unsigned int qm::SyncStatusWindow::Item::getId() const
 {
 	return nId_;
-}
-
-unsigned int qm::SyncStatusWindow::Item::getParam() const
-{
-	return nParam_;
 }
 
 const SyncStatusWindow::Item::Progress& qm::SyncStatusWindow::Item::getProgress(bool bSub) const

@@ -829,7 +829,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		if (pMessage->getField(L"Message-Id", &messageId) == Part::FIELD_EXIST)
 			pwszMessageId = messageId.getMessageId();
 		if (!SyncUtil::send(pSyncManager_, pDocument_, pSyncDialogManager_,
-			0, pAccount, pSubAccount, pwszMessageId)) {
+			SyncData::TYPE_ACTIVE, pAccount, pSubAccount, pwszMessageId)) {
 			ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 			return;
 		}

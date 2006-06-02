@@ -46,8 +46,7 @@ public:
 	void setEnabled(bool bEnabled);
 	unsigned int getCount() const;
 	const URI* get(unsigned int n) const;
-	void add(std::auto_ptr<URI> pURI,
-			 bool bAuto);
+	void add(std::auto_ptr<URI> pURI);
 	void remove(const URI* pURI);
 	void clear();
 	void removeSeens();

@@ -211,19 +211,24 @@ private:
 class SyncData
 {
 public:
+	enum Type {
+		TYPE_MANUAL,
+		TYPE_AUTO,
+		TYPE_ACTIVE
+	};
+
+public:
 	typedef std::vector<SyncItem*> ItemList;
 
 public:
 	SyncData(SyncManager* pManager,
 			 Document* pDocument,
-			 bool bAuto,
-			 unsigned int nCallbackParam);
+			 Type type);
 	~SyncData();
 
 public:
 	Document* getDocument() const;
-	bool isAuto() const;
-	unsigned int getCallbackParam() const;
+	Type getType() const;
 	const SyncDialup* getDialup() const;
 	bool isEmpty() const;
 	const ItemList& getItems() const;
@@ -253,8 +258,7 @@ private:
 private:
 	SyncManager* pManager_;
 	Document* pDocument_;
-	bool bAuto_;
-	unsigned int nCallbackParam_;
+	Type type_;
 	SyncManagerCallback* pCallback_;
 	std::auto_ptr<SyncDialup> pDialup_;
 	ItemList listItem_;
@@ -307,7 +311,7 @@ private:
 	bool openReceiveSession(Document* pDocument,
 							SyncManagerCallback* pSyncManagerCallback,
 							const SyncItem* pItem,
-							bool bAuto,
+							SyncData::Type type,
 							std::auto_ptr<ReceiveSession>* ppSession,
 							std::auto_ptr<ReceiveSessionCallback>* ppCallback,
 							std::auto_ptr<qs::Logger>* ppLogger);
@@ -315,6 +319,13 @@ private:
 private:
 	SyncManager(const SyncManager&);
 	SyncManager& operator=(const SyncManager&);
+
+private:
+	enum Notify {
+		NOTIFY_ALWAYS,
+		NOTIFY_NEVER,
+		NOTIFY_AUTO
+	};
 
 private:
 	class SyncThread : public qs::Thread
@@ -368,7 +379,8 @@ private:
 	public:
 		explicit ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
 											Recents* pRecents,
-											bool bAuto);
+											SyncData::Type type,
+											Notify notify);
 		virtual ~ReceiveSessionCallbackImpl();
 	
 	public:
@@ -395,6 +407,10 @@ private:
 		virtual void notifyNewMessage(MessagePtr ptr);
 	
 	private:
+		static bool isNotify(SyncData::Type type,
+							 Notify notify);
+	
+	private:
 		ReceiveSessionCallbackImpl(const ReceiveSessionCallbackImpl&);
 		ReceiveSessionCallbackImpl& operator=(const ReceiveSessionCallbackImpl&);
 	
@@ -402,7 +418,7 @@ private:
 		SyncManagerCallback* pCallback_;
 		unsigned int nId_;
 		Recents* pRecents_;
-		bool bAuto_;
+		bool bNotify_;
 	};
 	
 	class SendSessionCallbackImpl : public SendSessionCallback
@@ -508,10 +524,10 @@ public:
 	virtual ~SyncManagerCallback();
 
 public:
-	virtual void start(unsigned int nParam) = 0;
+	virtual void start(SyncData::Type type) = 0;
 	virtual void end() = 0;
 	virtual void startThread(unsigned int nId,
-							 unsigned int nParam) = 0;
+							 SyncData::Type type) = 0;
 	virtual void endThread(unsigned int nId) = 0;
 	virtual void setPos(unsigned int nId,
 						bool bSub,

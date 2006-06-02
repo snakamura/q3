@@ -1428,7 +1428,7 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				SyncDialog::FLAG_NONE, static_cast<NormalFolder*>(pFolder), 0);
+				SyncData::TYPE_ACTIVE, static_cast<NormalFolder*>(pFolder), 0);
 		}
 	}
 	

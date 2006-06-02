@@ -832,7 +832,7 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 						pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 						pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 						SyncUtil::syncFolder(pSyncManager_, pDocument_,
-							pSyncDialogManager_, SyncDialog::FLAG_NONE, pNormalFolder, 0);
+							pSyncDialogManager_, SyncData::TYPE_ACTIVE, pNormalFolder, 0);
 					}
 				}
 			}

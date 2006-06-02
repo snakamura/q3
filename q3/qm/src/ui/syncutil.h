@@ -13,6 +13,8 @@
 
 #include <qs.h>
 
+#include "../sync/syncmanager.h"
+
 
 namespace qm {
 
@@ -38,35 +40,35 @@ public:
 	static bool syncFolder(SyncManager* pSyncManager,
 						   Document* pDocument,
 						   SyncDialogManager* pSyncDialogManager,
-						   unsigned int nCallbackParam,
+						   SyncData::Type type,
 						   NormalFolder* pFolder,
 						   unsigned int nFlags);
 	static bool syncFolders(SyncManager* pSyncManager,
 							Document* pDocument,
 							SyncDialogManager* pSyncDialogManager,
-							unsigned int nCallbackParam,
+							SyncData::Type type,
 							const Account::NormalFolderList& listFolder,
 							unsigned int nFlags);
 	static bool sync(SyncManager* pSyncManager,
 					 Document* pDocument,
 					 SyncDialogManager* pSyncDialogManager,
-					 HWND hwnd,
-					 unsigned int nCallbackParam,
+					 SyncData::Type type,
 					 Account* pAccount,
 					 bool bSend,
 					 bool bReceive,
-					 bool bSelectSyncFilter);
+					 bool bSelectSyncFilter,
+					 HWND hwnd);
 	static bool send(SyncManager* pSyncManager,
 					 Document* pDocument,
 					 SyncDialogManager* pSyncDialogManager,
-					 unsigned int nCallbackParam,
+					 SyncData::Type type,
 					 Account* pAccount,
 					 SubAccount* pSubAccount,
 					 const WCHAR* pwszMessageId);
 	static bool goRound(SyncManager* pSyncManager,
 						Document* pDocument,
 						SyncDialogManager* pSyncDialogManager,
-						unsigned int nCallbackParam,
+						SyncData::Type type,
 						const GoRoundCourse* pCourse);
 
 private:

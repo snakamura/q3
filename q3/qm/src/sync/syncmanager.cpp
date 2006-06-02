@@ -239,12 +239,10 @@ unsigned int qm::SyncDialup::getDisconnectWait() const
 
 qm::SyncData::SyncData(SyncManager* pManager,
 					   Document* pDocument,
-					   bool bAuto,
-					   unsigned int nCallbackParam) :
+					   Type type) :
 	pManager_(pManager),
 	pDocument_(pDocument),
-	bAuto_(bAuto),
-	nCallbackParam_(nCallbackParam),
+	type_(type),
 	pCallback_(0),
 	nSlot_(0)
 {
@@ -260,14 +258,9 @@ Document* qm::SyncData::getDocument() const
 	return pDocument_;
 }
 
-bool qm::SyncData::isAuto() const
+SyncData::Type qm::SyncData::getType() const
 {
-	return bAuto_;
-}
-
-unsigned int qm::SyncData::getCallbackParam() const
-{
-	return nCallbackParam_;
+	return type_;
 }
 
 const SyncDialup* qm::SyncData::getDialup() const
@@ -496,7 +489,7 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 					   const SyncData* pData) :
 			pCallback_(pCallback)
 		{
-			pCallback_->start(pData->getCallbackParam());
+			pCallback_->start(pData->getType());
 		}
 		
 		~CallbackCaller()
@@ -657,12 +650,11 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 	{
 		CallbackCaller(SyncManagerCallback* pCallback,
 					   unsigned int nId,
-					   unsigned int nParam) :
+					   SyncData::Type type) :
 			pCallback_(pCallback),
-			nId_(nId),
-			nParam_(nParam)
+			nId_(nId)
 		{
-			pCallback_->startThread(nId_, nParam_);
+			pCallback_->startThread(nId_, type);
 		}
 		
 		~CallbackCaller()
@@ -672,8 +664,7 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 		
 		SyncManagerCallback* pCallback_;
 		unsigned int nId_;
-		unsigned int nParam_;
-	} caller(pCallback, ::GetCurrentThreadId(), pData->getCallbackParam());
+	} caller(pCallback, ::GetCurrentThreadId(), pData->getType());
 	
 	struct ReceiveSessionTerm
 	{
@@ -746,7 +737,7 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 					
 					std::auto_ptr<ReceiveSession> pReceiveSession;
 					if (!openReceiveSession(pData->getDocument(),
-						pCallback, pItem, pData->isAuto(),
+						pCallback, pItem, pData->getType(),
 						&pReceiveSession, &pReceiveCallback, &pLogger))
 						continue;
 					session.reset(pReceiveSession);
@@ -1034,7 +1025,7 @@ bool qm::SyncManager::send(Document* pDocument,
 bool qm::SyncManager::openReceiveSession(Document* pDocument,
 										 SyncManagerCallback* pSyncManagerCallback,
 										 const SyncItem* pItem,
-										 bool bAuto,
+										 SyncData::Type type,
 										 std::auto_ptr<ReceiveSession>* ppSession,
 										 std::auto_ptr<ReceiveSessionCallback>* ppCallback,
 										 std::auto_ptr<Logger>* ppLogger)
@@ -1059,8 +1050,12 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 	if (!pSession.get())
 		return false;
 	
+	int nNotify = pProfile_->getInt(L"Sync", L"Notify", NOTIFY_ALWAYS);
+	if (nNotify < NOTIFY_ALWAYS || NOTIFY_AUTO)
+		nNotify = NOTIFY_ALWAYS;
+	
 	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(new ReceiveSessionCallbackImpl(
-		pSyncManagerCallback, pDocument->getRecents(), bAuto));
+		pSyncManagerCallback, pDocument->getRecents(), type, static_cast<Notify>(nNotify)));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
 		pProfile_, pLogger.get(), pCallback.get()))
 		return false;
@@ -1167,15 +1162,15 @@ void qm::SyncManager::ParallelSyncThread::run()
 
 qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
 																		Recents* pRecents,
-																		bool bAuto) :
+																		SyncData::Type type,
+																		Notify notify) :
 	pCallback_(pCallback),
+	nId_(::GetCurrentThreadId()),
 	pRecents_(pRecents),
-	bAuto_(bAuto)
+	bNotify_(isNotify(type, notify))
 {
 	assert(pCallback);
 	assert(pRecents);
-	
-	nId_ = ::GetCurrentThreadId();
 }
 
 qm::SyncManager::ReceiveSessionCallbackImpl::~ReceiveSessionCallbackImpl()
@@ -1236,6 +1231,9 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::addError(const SessionErrorInf
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr ptr)
 {
+	if (!bNotify_)
+		return;
+	
 	std::auto_ptr<URI> pURI;
 	{
 		MessagePtrLock mpl(ptr);
@@ -1243,8 +1241,22 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr pt
 			pURI.reset(new URI(mpl));
 	}
 	if (pURI.get()) {
-		pRecents_->add(pURI, bAuto_);
+		pRecents_->add(pURI);
 		pCallback_->notifyNewMessage(nId_);
+	}
+}
+
+bool qm::SyncManager::ReceiveSessionCallbackImpl::isNotify(SyncData::Type type,
+														   Notify notify)
+{
+	switch (notify) {
+	case NOTIFY_NEVER:
+		return false;
+	case NOTIFY_AUTO:
+		return type == SyncData::TYPE_AUTO;
+	case NOTIFY_ALWAYS:
+	default:
+		return true;
 	}
 }
 
