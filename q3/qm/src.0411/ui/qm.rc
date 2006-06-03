@@ -444,6 +444,7 @@ BEGIN
     IDS_PANEL_SEARCH        "検索"
     IDS_PANEL_SECURITY      "セキュリティ"
     IDS_PANEL_SIGNATURES    "署名"
+    IDS_PANEL_SYNC          "同期"
     IDS_PANEL_SYNCFILTERS   "同期フィルタ"
     IDS_PANEL_TAB           "タブ"
 END
@@ -486,6 +487,14 @@ BEGIN
     IDS_SYNCFILTERIMAP4DOWNLOADTYPE_TEXT "テキスト"
     IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HTML "HTML"
     IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HEADER "ヘッダ"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SYNC_ALWAYS         "常に"
+    IDS_SYNC_NEVER          "なし"
+    IDS_SYNC_AUTO           "自動巡回時のみ"
+    IDS_SYNC_MANUAL         "手動同期時のみ"
 END
 
 #endif    // 日本語 resources

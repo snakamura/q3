@@ -35,6 +35,7 @@
 #include "messageframewindow.h"
 #include "optiondialog.h"
 #include "resourceinc.h"
+#include "syncdialog.h"
 #include "../model/addressbook.h"
 #include "../sync/syncmanager.h"
 #include "../uimodel/tabmodel.h"
@@ -520,6 +521,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_FILTERS,		IDS_PANEL_FILTERS			},
 		{ PANEL_SYNCFILTERS,	IDS_PANEL_SYNCFILTERS		},
 		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
+		{ PANEL_SYNC,			IDS_PANEL_SYNC				},
 		{ PANEL_SEARCH,			IDS_PANEL_SEARCH			},
 #ifndef _WIN32_WCE
 		{ PANEL_JUNK,			IDS_PANEL_JUNK				},
@@ -810,7 +812,8 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL2(PANEL_FIXEDFORMTEXTS, FixedFormTexts, pDocument_->getFixedFormTextManager(), pProfile_);
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
 			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
-			PANEL4(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pDocument_->getRecents(), pProfile_);
+			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
+			PANEL2(PANEL_SYNC, OptionSync, pDocument_->getRecents(), pProfile_);
 			PANEL1(PANEL_SEARCH, OptionSearch, pProfile_);
 #ifndef _WIN32_WCE
 			PANEL1(PANEL_JUNK, OptionJunk, pDocument_->getJunkFilter());
@@ -2128,6 +2131,145 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
 	pContext->setFlags(OptionDialogContext::FLAG_RELOADSECURITY);
 	
 	return true;
+}
+
+
+/****************************************************************************
+ *
+ * OptionSyncDialog
+ *
+ */
+
+qm::OptionSyncDialog::OptionSyncDialog(Recents* pRecents,
+									   Profile* pProfile) :
+	DefaultDialog(IDD_OPTIONSYNC),
+	pRecents_(pRecents),
+	pProfile_(pProfile)
+{
+}
+
+qm::OptionSyncDialog::~OptionSyncDialog()
+{
+}
+
+LRESULT qm::OptionSyncDialog::onCommand(WORD nCode,
+									   WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
+LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
+											   LPARAM lParam)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
+	HWND hwndSyncDialog = getDlgItem(IDC_SYNCDIALOG);
+	UINT nSyncDialogIds[] = {
+		IDS_SYNC_ALWAYS,
+		IDS_SYNC_MANUAL,
+		IDS_SYNC_NEVER
+	};
+	for (int n = 0; n < countof(nSyncDialogIds); ++n) {
+		wstring_ptr wstr(loadString(hInst, nSyncDialogIds[n]));
+		W2T(wstr.get(), ptsz);
+		ComboBox_AddString(hwndSyncDialog, ptsz);
+	}
+	int nShow = 1;
+	switch (pProfile_->getInt(L"SyncDialog", L"Show")) {
+	case SyncDialog::SHOW_ALWAYS:
+		nShow = 0;
+		break;
+	case SyncDialog::SHOW_NEVER:
+		nShow = 2;
+		break;
+	case SyncDialog::SHOW_MANUAL:
+	default:
+		break;
+	}
+	ComboBox_SetCurSel(hwndSyncDialog, nShow);
+	
+	HWND hwndNotification = getDlgItem(IDC_NOTIFICATION);
+	UINT nNotificationIds[] = {
+		IDS_SYNC_ALWAYS,
+		IDS_SYNC_AUTO,
+		IDS_SYNC_NEVER
+	};
+	for (int n = 0; n <countof(nNotificationIds); ++n) {
+		wstring_ptr wstr(loadString(hInst, nNotificationIds[n]));
+		W2T(wstr.get(), ptsz);
+		ComboBox_AddString(hwndNotification, ptsz);
+	}
+	int nNotify = 0;
+	switch (pProfile_->getInt(L"Sync", L"Notify")) {
+	case SyncManager::NOTIFY_NEVER:
+		nNotify = 2;
+		break;
+	case SyncManager::NOTIFY_AUTO:
+		nNotify = 1;
+		break;
+	case SyncManager::NOTIFY_ALWAYS:
+	default:
+		break;
+	}
+	ComboBox_SetCurSel(hwndNotification, nNotify);
+	
+	wstring_ptr wstrSound = pProfile_->getString(L"AutoPilot", L"Sound");
+	setDlgItemText(IDC_SOUND, wstrSound.get());
+	
+	setDlgItemInt(IDC_MAX, pRecents_->getMax());
+	
+	return FALSE;
+}
+
+bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
+{
+	SyncDialog::Show show = SyncDialog::SHOW_MANUAL;
+	HWND hwndSyncDialog = getDlgItem(IDC_SYNCDIALOG);
+	switch (ComboBox_GetCurSel(hwndSyncDialog)) {
+	case 0:
+		show = SyncDialog::SHOW_ALWAYS;
+		break;
+	case 2:
+		show = SyncDialog::SHOW_NEVER;
+		break;
+	}
+	pProfile_->setInt(L"SyncDialog", L"Show", show);
+	
+	SyncManager::Notify notify = SyncManager::NOTIFY_ALWAYS;
+	HWND hwndNotification = getDlgItem(IDC_NOTIFICATION);
+	switch (ComboBox_GetCurSel(hwndNotification)) {
+	case 1:
+		notify = SyncManager::NOTIFY_AUTO;
+		break;
+	case 2:
+		notify = SyncManager::NOTIFY_NEVER;
+		break;
+	}
+	pProfile_->setInt(L"Sync", L"Notify", notify);
+	
+	wstring_ptr wstrSound(getDlgItemText(IDC_SOUND));
+	if (wstrSound.get())
+		pProfile_->setString(L"AutoPilot", L"Sound", wstrSound.get());
+	
+	pRecents_->setMax(getDlgItemInt(IDC_MAX));
+	
+	return true;
+}
+
+LRESULT qm::OptionSyncDialog::onBrowse()
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_SOUND));
+	
+	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
+		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_SOUND, dialog.getPath());
+	
+	return 0;
 }
 
 
@@ -3601,12 +3743,10 @@ void qm::ArgumentDialog::updateState()
 
 qm::AutoPilotDialog::AutoPilotDialog(AutoPilotManager* pManager,
 									 GoRound* pGoRound,
-									 Recents* pRecents,
 									 Profile* pProfile) :
 	AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>(IDD_AUTOPILOT, IDC_ENTRIES, false),
 	pManager_(pManager),
 	pGoRound_(pGoRound),
-	pRecents_(pRecents),
 	pProfile_(pProfile)
 {
 	const AutoPilotManager::EntryList& l = pManager->getEntries();
@@ -3630,25 +3770,11 @@ INT_PTR qm::AutoPilotDialog::dialogProc(UINT uMsg,
 	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::dialogProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::AutoPilotDialog::onCommand(WORD nCode,
-									   WORD nId)
-{
-	BEGIN_COMMAND_HANDLER()
-		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
-	END_COMMAND_HANDLER()
-	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onCommand(nCode, nId);
-}
-
 LRESULT qm::AutoPilotDialog::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
-	wstring_ptr wstrSound = pProfile_->getString(L"AutoPilot", L"Sound");
-	setDlgItemText(IDC_SOUND, wstrSound.get());
-	
 	if (pProfile_->getInt(L"AutoPilot", L"OnlyWhenConnected"))
 		Button_SetCheck(getDlgItem(IDC_ONLYWHENCONNECTED), BST_CHECKED);
-	if (pRecents_->isEnabled())
-		Button_SetCheck(getDlgItem(IDC_ADDTORECENTS), BST_CHECKED);
 	
 	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onInitDialog(hwndFocus, lParam);
 }
@@ -3681,14 +3807,8 @@ bool qm::AutoPilotDialog::save(OptionDialogContext* pContext)
 	if (!pManager_->save(false))
 		return false;
 	
-	wstring_ptr wstrSound(getDlgItemText(IDC_SOUND));
-	if (wstrSound.get())
-		pProfile_->setString(L"AutoPilot", L"Sound", wstrSound.get());
-	
 	bool bConnected = Button_GetCheck(getDlgItem(IDC_ONLYWHENCONNECTED)) == BST_CHECKED;
 	pProfile_->setInt(L"AutoPilot", L"OnlyWhenConnected", bConnected);
-	
-	pRecents_->setEnabled(Button_GetCheck(getDlgItem(IDC_ADDTORECENTS)) == BST_CHECKED);
 	
 	return true;
 }
@@ -3701,73 +3821,28 @@ LRESULT qm::AutoPilotDialog::onSize(UINT nFlags,
 	return AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>::onSize(nFlags, cx, cy);
 }
 
-LRESULT qm::AutoPilotDialog::onBrowse()
-{
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_SOUND));
-	
-	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
-	if (dialog.doModal(getHandle()) == IDOK)
-		setDlgItemText(IDC_SOUND, dialog.getPath());
-	
-	return 0;
-}
-
 void qm::AutoPilotDialog::layout()
 {
 #ifndef _WIN32_WCE_PSPC
 	RECT rect;
 	getClientRect(&rect);
 	
-	RECT rectSoundLabel;
-	Window(getDlgItem(IDC_SOUNDLABEL)).getWindowRect(&rectSoundLabel);
-	screenToClient(&rectSoundLabel);
-	
-	RECT rectSound;
-	Window(getDlgItem(IDC_SOUND)).getWindowRect(&rectSound);
-	screenToClient(&rectSound);
-	int nSoundHeight = rectSound.bottom - rectSound.top;
-	
-	RECT rectBrowse;
-	Window(getDlgItem(IDC_BROWSE)).getWindowRect(&rectBrowse);
-	screenToClient(&rectBrowse);
-	int nBrowseWidth = rectBrowse.right - rectBrowse.left;
-	
 	RECT rectConnected;
 	Window(getDlgItem(IDC_ONLYWHENCONNECTED)).getWindowRect(&rectConnected);
 	screenToClient(&rectConnected);
 	int nConnectedHeight = rectConnected.bottom - rectConnected.top;
 	
-	RECT rectRecents;
-	Window(getDlgItem(IDC_ADDTORECENTS)).getWindowRect(&rectRecents);
-	screenToClient(&rectRecents);
+	HDWP hdwp = beginDeferWindowPos(6);
 	
-	HDWP hdwp = beginDeferWindowPos(11);
-	
-	hdwp = LayoutUtil::layout(this, IDC_ENTRIES, hdwp, 0,
-		nSoundHeight + nConnectedHeight + 10);
+	hdwp = LayoutUtil::layout(this, IDC_ENTRIES, hdwp, 0, nConnectedHeight + 10);
 	
 #ifdef _WIN32_WCE
 	int nLabelOffset = 2;
 #else
 	int nLabelOffset = 3;
 #endif
-	hdwp = Window(getDlgItem(IDC_SOUNDLABEL)).deferWindowPos(hdwp, 0,
-		rectSoundLabel.left, rect.bottom - nSoundHeight - nConnectedHeight - 10 + nLabelOffset,
-		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-	hdwp = Window(getDlgItem(IDC_SOUND)).deferWindowPos(hdwp, 0,
-		rectSound.left, rect.bottom - nSoundHeight - nConnectedHeight - 10,
-		rect.right - rectSound.left - nBrowseWidth - 10, nSoundHeight,
-		SWP_NOZORDER | SWP_NOACTIVATE);
-	hdwp = Window(getDlgItem(IDC_BROWSE)).deferWindowPos(hdwp, 0,
-		rect.right - nBrowseWidth - 5, rect.bottom - nSoundHeight - nConnectedHeight - 10,
-		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 	hdwp = Window(getDlgItem(IDC_ONLYWHENCONNECTED)).deferWindowPos(hdwp, 0,
 		rectConnected.left, rect.bottom - nConnectedHeight - 5,
-		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-	hdwp = Window(getDlgItem(IDC_ADDTORECENTS)).deferWindowPos(hdwp, 0,
-		rectRecents.left, rect.bottom - nConnectedHeight - 5,
 		0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 	
 	endDeferWindowPos(hdwp);

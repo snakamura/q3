@@ -442,6 +442,7 @@ BEGIN
     IDS_PANEL_SEARCH        "Search"
     IDS_PANEL_SECURITY      "Security"
     IDS_PANEL_SIGNATURES    "Signatures"
+    IDS_PANEL_SYNC          "Sync"
     IDS_PANEL_SYNCFILTERS   "Sync Filters"
     IDS_PANEL_TAB           "Tab"
 END
@@ -484,6 +485,14 @@ BEGIN
     IDS_SYNCFILTERIMAP4DOWNLOADTYPE_TEXT "Text"
     IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HTML "Html"
     IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HEADER "Header"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SYNC_ALWAYS         "Always"
+    IDS_SYNC_NEVER          "Never"
+    IDS_SYNC_AUTO           "Auto Only"
+    IDS_SYNC_MANUAL         "Manual Only"
 END
 
 #endif    // âpåÍ (ÉAÉÅÉäÉJ) resources

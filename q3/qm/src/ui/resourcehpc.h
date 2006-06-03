@@ -89,6 +89,7 @@
 #define IDD_LABEL                       221
 #define IDD_CERTIFICATE                 222
 #define IDD_OPTIONSEARCH                223
+#define IDD_OPTIONSYNC                  224
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
 #define IDC_SIZEGRIP                    1003
@@ -396,6 +397,9 @@
 #define IDC_SEARCHHEADER                1446
 #define IDC_NEWFOLDER                   1447
 #define IDC_SHOWHEADER                  1448
+#define IDC_SYNCDIALOG                  1449
+#define IDC_NOTIFICATION                1450
+#define IDC_MAX                         1451
 
 // Next default values for new objects
 // 
@@ -404,7 +408,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1449
+#define _APS_NEXT_CONTROL_VALUE         1452
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

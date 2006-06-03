@@ -47,6 +47,7 @@ class OptionMiscDialog;
 class OptionMisc2Dialog;
 class OptionSearchDialog;
 class OptionSecurityDialog;
+class OptionSyncDialog;
 class AbstractOptionTextDialog;
 	class OptionEditDialog;
 	class OptionMessageDialog;
@@ -220,6 +221,7 @@ public:
 		PANEL_FILTERS,
 		PANEL_SYNCFILTERS,
 		PANEL_AUTOPILOT,
+		PANEL_SYNC,
 		PANEL_SEARCH,
 #ifndef _WIN32_WCE
 		PANEL_JUNK,
@@ -909,6 +911,45 @@ private:
 
 private:
 	static DialogUtil::BoolProperty boolProperties__[];
+};
+
+
+/****************************************************************************
+ *
+ * OptionSyncDialog
+ *
+ */
+
+class OptionSyncDialog :
+	public DefaultDialog,
+	public AbstractOptionDialogPanel<OptionSyncDialog>
+{
+public:
+	OptionSyncDialog(Recents* pRecents,
+					 qs::Profile* pProfile);
+	virtual ~OptionSyncDialog();
+
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+public:
+	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onBrowse();
+
+private:
+	OptionSyncDialog(const OptionSyncDialog&);
+	OptionSyncDialog& operator=(const OptionSyncDialog&);
+
+private:
+	Recents* pRecents_;
+	qs::Profile* pProfile_;
 };
 
 
@@ -1613,7 +1654,6 @@ class AutoPilotDialog :
 public:
 	AutoPilotDialog(AutoPilotManager* pManager,
 					GoRound* pGoRound,
-					Recents* pRecents,
 					qs::Profile* pProfile);
 	virtual ~AutoPilotDialog();
 
@@ -1621,10 +1661,6 @@ public:
 	virtual INT_PTR dialogProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);
-
-public:
-	virtual LRESULT onCommand(WORD nCode,
-							  WORD nId);
 
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
@@ -1644,9 +1680,6 @@ protected:
 				   int cy);
 
 private:
-	LRESULT onBrowse();
-
-private:
 	void layout();
 
 private:
@@ -1656,7 +1689,6 @@ private:
 private:
 	AutoPilotManager* pManager_;
 	GoRound* pGoRound_;
-	Recents* pRecents_;
 	qs::Profile* pProfile_;
 };
 

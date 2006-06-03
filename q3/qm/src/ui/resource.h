@@ -137,8 +137,9 @@
 #define IDS_PANEL_SEARCH                2418
 #define IDS_PANEL_SECURITY              2419
 #define IDS_PANEL_SIGNATURES            2420
-#define IDS_PANEL_SYNCFILTERS           2421
-#define IDS_PANEL_TAB                   2422
+#define IDS_PANEL_SYNC                  2421
+#define IDS_PANEL_SYNCFILTERS           2422
+#define IDS_PANEL_TAB                   2423
 #define IDS_SIGNATURE_NONE              2500
 #define IDS_SYNCFILTERACTION_DOWNLOADPOP3 2600
 #define IDS_SYNCFILTERACTION_DOWNLOADIMAP4 2601
@@ -149,6 +150,10 @@
 #define IDS_SYNCFILTERIMAP4DOWNLOADTYPE_TEXT 2701
 #define IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HTML 2702
 #define IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HEADER 2703
+#define IDS_SYNC_ALWAYS                 2800
+#define IDS_SYNC_NEVER                  2801
+#define IDS_SYNC_AUTO                   2802
+#define IDS_SYNC_MANUAL                 2803
 #define IDS_DEFAULTSUBACCOUNT           3000
 #define IDS_LOCALFOLDER                 3001
 #define IDS_SYNCABLELOCALFOLDER         3002

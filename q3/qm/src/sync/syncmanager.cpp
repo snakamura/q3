@@ -1065,7 +1065,7 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 
 bool qm::SyncManager::isNotify(SyncData::Type type) const
 {
-	switch (pProfile_->getInt(L"Sync", L"Notify", NOTIFY_ALWAYS)) {
+	switch (pProfile_->getInt(L"Sync", L"Notify")) {
 	case NOTIFY_NEVER:
 		return false;
 	case NOTIFY_AUTO:

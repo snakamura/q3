@@ -334,7 +334,7 @@ void qm::SyncDialog::notifyNewMessage() const
 
 bool qm::SyncDialog::isShowDialog(SyncData::Type type) const
 {
-	switch (pProfile_->getInt(L"SyncDialog", L"Show", SHOW_MANUAL)) {
+	switch (pProfile_->getInt(L"SyncDialog", L"Show")) {
 	case SHOW_ALWAYS:
 		return true;
 	case SHOW_NEVER:

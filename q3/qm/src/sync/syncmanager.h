@@ -275,6 +275,13 @@ private:
 class SyncManager
 {
 public:
+	enum Notify {
+		NOTIFY_ALWAYS,
+		NOTIFY_NEVER,
+		NOTIFY_AUTO
+	};
+
+public:
 	explicit SyncManager(qs::Profile* pProfile);
 	~SyncManager();
 
@@ -322,13 +329,6 @@ private:
 private:
 	SyncManager(const SyncManager&);
 	SyncManager& operator=(const SyncManager&);
-
-private:
-	enum Notify {
-		NOTIFY_ALWAYS,
-		NOTIFY_NEVER,
-		NOTIFY_AUTO
-	};
 
 private:
 	class SyncThread : public qs::Thread

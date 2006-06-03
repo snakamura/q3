@@ -71,6 +71,13 @@ class SyncDialog :
 	public qs::CommandHandler
 {
 public:
+	enum Show {
+		SHOW_ALWAYS,
+		SHOW_NEVER,
+		SHOW_MANUAL
+	};
+
+public:
 	SyncDialog(qs::Profile* pProfile,
 			   PasswordManager* pPasswordManager);
 	virtual ~SyncDialog();
@@ -134,13 +141,6 @@ private:
 private:
 	SyncDialog(const SyncDialog&);
 	SyncDialog& operator=(const SyncDialog&);
-
-private:
-	enum Show {
-		SHOW_ALWAYS,
-		SHOW_NEVER,
-		SHOW_MANUAL
-	};
 
 private:
 	qs::Profile* pProfile_;

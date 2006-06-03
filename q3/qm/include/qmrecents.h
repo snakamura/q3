@@ -42,8 +42,8 @@ public:
 	~Recents();
 
 public:
-	bool isEnabled() const;
-	void setEnabled(bool bEnabled);
+	unsigned int getMax() const;
+	void setMax(unsigned int nMax);
 	unsigned int getCount() const;
 	const URI* get(unsigned int n) const;
 	void add(std::auto_ptr<URI> pURI);

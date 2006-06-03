@@ -86,17 +86,16 @@ qm::Recents::~Recents()
 	}
 }
 
-bool qm::Recents::isEnabled() const
+unsigned int qm::Recents::getMax() const
 {
 	Lock<Recents> lock(*this);
-	return pImpl_->nMax_ != 0;
+	return pImpl_->nMax_;
 }
 
-void qm::Recents::setEnabled(bool bEnabled)
+void qm::Recents::setMax(unsigned int nMax)
 {
 	Lock<Recents> lock(*this);
-	if (bEnabled != isEnabled())
-		pImpl_->nMax_ = bEnabled ? 20 : 0;
+	pImpl_->nMax_ = nMax;
 }
 
 unsigned int qm::Recents::getCount() const
