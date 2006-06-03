@@ -317,6 +317,9 @@ private:
 							std::auto_ptr<qs::Logger>* ppLogger);
 
 private:
+	bool isNotify(SyncData::Type type) const;
+
+private:
 	SyncManager(const SyncManager&);
 	SyncManager& operator=(const SyncManager&);
 
@@ -379,8 +382,7 @@ private:
 	public:
 		explicit ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
 											Recents* pRecents,
-											SyncData::Type type,
-											Notify notify);
+											bool bNotify);
 		virtual ~ReceiveSessionCallbackImpl();
 	
 	public:
@@ -405,10 +407,6 @@ private:
 	
 	public:
 		virtual void notifyNewMessage(MessagePtr ptr);
-	
-	private:
-		static bool isNotify(SyncData::Type type,
-							 Notify notify);
 	
 	private:
 		ReceiveSessionCallbackImpl(const ReceiveSessionCallbackImpl&);

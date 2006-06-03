@@ -1050,12 +1050,8 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 	if (!pSession.get())
 		return false;
 	
-	int nNotify = pProfile_->getInt(L"Sync", L"Notify", NOTIFY_ALWAYS);
-	if (nNotify < NOTIFY_ALWAYS || NOTIFY_AUTO)
-		nNotify = NOTIFY_ALWAYS;
-	
 	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(new ReceiveSessionCallbackImpl(
-		pSyncManagerCallback, pDocument->getRecents(), type, static_cast<Notify>(nNotify)));
+		pSyncManagerCallback, pDocument->getRecents(), isNotify(type)));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
 		pProfile_, pLogger.get(), pCallback.get()))
 		return false;
@@ -1065,6 +1061,19 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 	*ppLogger = pLogger;
 	
 	return true;
+}
+
+bool qm::SyncManager::isNotify(SyncData::Type type) const
+{
+	switch (pProfile_->getInt(L"Sync", L"Notify", NOTIFY_ALWAYS)) {
+	case NOTIFY_NEVER:
+		return false;
+	case NOTIFY_AUTO:
+		return type == SyncData::TYPE_AUTO;
+	case NOTIFY_ALWAYS:
+	default:
+		return true;
+	}
 }
 
 
@@ -1162,12 +1171,11 @@ void qm::SyncManager::ParallelSyncThread::run()
 
 qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
 																		Recents* pRecents,
-																		SyncData::Type type,
-																		Notify notify) :
+																		bool bNotify) :
 	pCallback_(pCallback),
 	nId_(::GetCurrentThreadId()),
 	pRecents_(pRecents),
-	bNotify_(isNotify(type, notify))
+	bNotify_(bNotify)
 {
 	assert(pCallback);
 	assert(pRecents);
@@ -1243,20 +1251,6 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr pt
 	if (pURI.get()) {
 		pRecents_->add(pURI);
 		pCallback_->notifyNewMessage(nId_);
-	}
-}
-
-bool qm::SyncManager::ReceiveSessionCallbackImpl::isNotify(SyncData::Type type,
-														   Notify notify)
-{
-	switch (notify) {
-	case NOTIFY_NEVER:
-		return false;
-	case NOTIFY_AUTO:
-		return type == SyncData::TYPE_AUTO;
-	case NOTIFY_ALWAYS:
-	default:
-		return true;
 	}
 }
 
