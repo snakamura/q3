@@ -9,7 +9,8 @@
 #ifndef __RSSRECEIVESESSION_H__
 #define __RSSRECEIVESESSION_H__
 
-#include "http.h"
+#include <qshttp.h>
+
 #include "util.h"
 
 
@@ -73,7 +74,7 @@ private:
 	bool applyRules(MessagePtrList* pList);
 	void reportError(UINT nId,
 					 const WCHAR* pwszParam,
-					 HttpMethod* pMethod);
+					 qs::HttpMethod* pMethod);
 
 private:
 	static bool createItemMessage(const Channel* pChannel,

@@ -12,7 +12,7 @@
 #include <qmsecurity.h>
 #include <qmsession.h>
 
-#include "http.h"
+#include <qshttp.h>
 
 
 namespace qmrss {
@@ -26,11 +26,11 @@ namespace qmrss {
 class Util
 {
 public:
-	static std::auto_ptr<Http> createHttp(qm::SubAccount* pSubAccount,
-										  qs::SocketCallback* pSocketCallback,
-										  qs::SSLSocketCallback* pSSLSocketCallback,
-										  HttpCallback* pHttpCallback,
-										  qs::Logger* pLogger);
+	static std::auto_ptr<qs::Http> createHttp(qm::SubAccount* pSubAccount,
+											  qs::SocketCallback* pSocketCallback,
+											  qs::SSLSocketCallback* pSSLSocketCallback,
+											  qs::HttpCallback* pHttpCallback,
+											  qs::Logger* pLogger);
 };
 
 
@@ -43,7 +43,7 @@ public:
 class DefaultCallback :
 	public qs::SocketCallback,
 	public qm::AbstractSSLSocketCallback,
-	public HttpCallback
+	public qs::HttpCallback
 {
 public:
 	DefaultCallback(const WCHAR* pwszHost,

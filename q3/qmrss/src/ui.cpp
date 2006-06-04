@@ -9,9 +9,9 @@
 #include <qmapplication.h>
 #include <qmdocument.h>
 
+#include <qshttp.h>
 #include <qsregex.h>
 
-#include "http.h"
 #include "main.h"
 #include "resourceinc.h"
 #include "ui.h"
@@ -335,7 +335,7 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 		wstring_ptr wstrUserAgent(Application::getApplication().getVersion(L'/', false));
 		pMethod->setRequestHeader(L"User-Agent", wstrUserAgent.get());
 		
-		wstring_ptr wstrCookie(HttpUtil::getInternetCookie(wstrURL.get()));
+		wstring_ptr wstrCookie(HttpUtility::getInternetCookie(wstrURL.get()));
 		if (wstrCookie.get() && *wstrCookie.get())
 			pMethod->setRequestHeader(L"Cookie", wstrCookie.get());
 		
@@ -354,9 +354,9 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 				Part header;
 				if (!header.create(0, pMethod->getResponseHeader(), -1))
 					return std::auto_ptr<Channel>();
-				HttpUtil::updateInternetCookies(wstrURL.get(), header);
+				HttpUtility::updateInternetCookies(wstrURL.get(), header);
 				
-				wstrURL = HttpUtil::getRedirectLocation(wstrURL.get(), header, 0);
+				wstrURL = HttpUtility::getRedirectLocation(wstrURL.get(), header, 0);
 				if (!wstrURL.get())
 					return std::auto_ptr<Channel>();
 				continue;
@@ -370,7 +370,7 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 	Part header;
 	if (!header.create(0, pMethod->getResponseHeader(), -1))
 		return std::auto_ptr<Channel>();
-	HttpUtil::updateInternetCookies(wstrURL.get(), header);
+	HttpUtility::updateInternetCookies(wstrURL.get(), header);
 	
 	const ContentTypeParser* pContentType = header.getContentType();
 	if (bAutoDiscovery &&
@@ -411,7 +411,7 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 		
 		const RegexRange& range = listRange.list_[1];
 		wstring_ptr wstrFeedURL(allocWString(range.pStart_, range.pEnd_ - range.pStart_));
-		wstrFeedURL = HttpUtil::resolveRelativeURL(wstrFeedURL.get(), wstrURL.get());
+		wstrFeedURL = HttpUtility::resolveRelativeURL(wstrFeedURL.get(), wstrURL.get());
 		return getChannel(wstrFeedURL.get(), false);
 	}
 	else {

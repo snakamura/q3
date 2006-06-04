@@ -33,7 +33,7 @@ std::auto_ptr<Http> qmrss::Util::createHttp(SubAccount* pSubAccount,
 	wstring_ptr wstrProxyUserName;
 	wstring_ptr wstrProxyPassword;
 	if (pSubAccount->getPropertyInt(L"Http", L"UseInternetSetting")) {
-		bUseProxy = HttpUtil::getInternetProxySetting(&wstrProxyHost, &nProxyPort);
+		bUseProxy = HttpUtility::getInternetProxySetting(&wstrProxyHost, &nProxyPort);
 	}
 	else if (pSubAccount->getPropertyInt(L"Http", L"UseProxy")) {
 		wstrProxyHost = pSubAccount->getPropertyString(L"Http", L"ProxyHost");

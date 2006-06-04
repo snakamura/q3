@@ -10,13 +10,13 @@
 
 #include <qsconv.h>
 #include <qsencoder.h>
+#include <qshttp.h>
 #include <qsosutil.h>
 
 #include <wininet.h>
 
 #include "http.h"
 
-using namespace qmrss;
 using namespace qs;
 
 
@@ -26,10 +26,10 @@ using namespace qs;
  *
  */
 
-qmrss::Http::Http(SocketCallback* pSocketCallback,
-				  SSLSocketCallback* pSSLSocketCallback,
-				  HttpCallback* pHttpCallback,
-				  Logger* pLogger) :
+qs::Http::Http(SocketCallback* pSocketCallback,
+			   SSLSocketCallback* pSSLSocketCallback,
+			   HttpCallback* pHttpCallback,
+			   Logger* pLogger) :
 	nTimeout_(60),
 	nProxyPort_(8080),
 	pSocketCallback_(pSocketCallback),
@@ -39,11 +39,11 @@ qmrss::Http::Http(SocketCallback* pSocketCallback,
 {
 }
 
-qmrss::Http::~Http()
+qs::Http::~Http()
 {
 }
 
-unsigned int qmrss::Http::invoke(HttpMethod* pMethod)
+unsigned int qs::Http::invoke(HttpMethod* pMethod)
 {
 	assert(pMethod);
 	
@@ -122,22 +122,22 @@ unsigned int qmrss::Http::invoke(HttpMethod* pMethod)
 	return pMethod->invoke(pConnection);
 }
 
-unsigned int qmrss::Http::getTimeout() const
+unsigned int qs::Http::getTimeout() const
 {
 	return nTimeout_;
 }
 
-void qmrss::Http::setTimeout(unsigned int nTimeout)
+void qs::Http::setTimeout(unsigned int nTimeout)
 {
 	nTimeout_ = nTimeout;
 }
 
-const WCHAR* qmrss::Http::getProxyHost() const
+const WCHAR* qs::Http::getProxyHost() const
 {
 	return wstrProxyHost_.get();
 }
 
-void qmrss::Http::setProxyHost(const WCHAR* pwszProxyHost)
+void qs::Http::setProxyHost(const WCHAR* pwszProxyHost)
 {
 	if (pwszProxyHost)
 		wstrProxyHost_ = allocWString(pwszProxyHost);
@@ -145,22 +145,22 @@ void qmrss::Http::setProxyHost(const WCHAR* pwszProxyHost)
 		wstrProxyHost_.reset(0);
 }
 
-unsigned short qmrss::Http::getProxyPort() const
+unsigned short qs::Http::getProxyPort() const
 {
 	return nProxyPort_;
 }
 
-void qmrss::Http::setProxyPort(unsigned short nProxyPort)
+void qs::Http::setProxyPort(unsigned short nProxyPort)
 {
 	nProxyPort_ = nProxyPort;
 }
 
-const WCHAR* qmrss::Http::getProxyUserName() const
+const WCHAR* qs::Http::getProxyUserName() const
 {
 	return wstrProxyUserName_.get();
 }
 
-void qmrss::Http::setProxyUserName(const WCHAR* pwszUserName)
+void qs::Http::setProxyUserName(const WCHAR* pwszUserName)
 {
 	if (pwszUserName)
 		wstrProxyUserName_ = allocWString(pwszUserName);
@@ -168,12 +168,12 @@ void qmrss::Http::setProxyUserName(const WCHAR* pwszUserName)
 		wstrProxyUserName_.reset(0);
 }
 
-const WCHAR* qmrss::Http::getProxyPassword() const
+const WCHAR* qs::Http::getProxyPassword() const
 {
 	return wstrProxyPassword_.get();
 }
 
-void qmrss::Http::setProxyPassword(const WCHAR* pwszPassword)
+void qs::Http::setProxyPassword(const WCHAR* pwszPassword)
 {
 	if (pwszPassword)
 		wstrProxyPassword_ = allocWString(pwszPassword);
@@ -188,7 +188,7 @@ void qmrss::Http::setProxyPassword(const WCHAR* pwszPassword)
  *
  */
 
-qmrss::HttpCallback::~HttpCallback()
+qs::HttpCallback::~HttpCallback()
 {
 }
 
@@ -199,51 +199,51 @@ qmrss::HttpCallback::~HttpCallback()
  *
  */
 
-qmrss::HttpConnection::HttpConnection(std::auto_ptr<SocketBase> pSocket,
-									  bool bProxied) :
+qs::HttpConnection::HttpConnection(std::auto_ptr<SocketBase> pSocket,
+								   bool bProxied) :
 	pSocket_(pSocket),
 	bProxied_(bProxied)
 {
 }
 
-qmrss::HttpConnection::~HttpConnection()
+qs::HttpConnection::~HttpConnection()
 {
 }
 
-bool qmrss::HttpConnection::isProxied() const
+bool qs::HttpConnection::isProxied() const
 {
 	return bProxied_;
 }
 
-bool qmrss::HttpConnection::write(const WCHAR* p,
-								  size_t nLen)
+bool qs::HttpConnection::write(const WCHAR* p,
+							   size_t nLen)
 {
 	return HttpUtil::write(pSocket_.get(), p, nLen);
 }
 
-size_t qmrss::HttpConnection::read(unsigned char* p,
-								   size_t nLen)
+size_t qs::HttpConnection::read(unsigned char* p,
+								size_t nLen)
 {
 	if (!prepareInputStream())
 		return -1;
 	return pInputStream_->read(p, nLen);
 }
 
-xstring_ptr qmrss::HttpConnection::readLine()
+xstring_ptr qs::HttpConnection::readLine()
 {
 	if (!prepareInputStream())
 		return 0;
 	return HttpUtil::readLine(pInputStream_.get());
 }
 
-InputStream* qmrss::HttpConnection::getInputStream()
+InputStream* qs::HttpConnection::getInputStream()
 {
 	if (!prepareInputStream())
 		return 0;
 	return pInputStream_.get();
 }
 
-bool qmrss::HttpConnection::prepareInputStream()
+bool qs::HttpConnection::prepareInputStream()
 {
 	if (pInputStream_.get())
 		return true;
@@ -260,7 +260,7 @@ bool qmrss::HttpConnection::prepareInputStream()
  *
  */
 
-qmrss::HttpMethod::~HttpMethod()
+qs::HttpMethod::~HttpMethod()
 {
 }
 
@@ -271,12 +271,12 @@ qmrss::HttpMethod::~HttpMethod()
  *
  */
 
-qmrss::AbstractHttpMethod::AbstractHttpMethod(const WCHAR* pwszURL)
+qs::AbstractHttpMethod::AbstractHttpMethod(const WCHAR* pwszURL)
 {
 	pURL_ = HttpURL::create(pwszURL);
 }
 
-qmrss::AbstractHttpMethod::~AbstractHttpMethod()
+qs::AbstractHttpMethod::~AbstractHttpMethod()
 {
 	std::for_each(listRequestHeader_.begin(), listRequestHeader_.end(),
 		unary_compose_fx_gx(
@@ -284,8 +284,8 @@ qmrss::AbstractHttpMethod::~AbstractHttpMethod()
 			string_free<WSTRING>()));
 }
 
-void qmrss::AbstractHttpMethod::setRequestHeader(const WCHAR* pwszName,
-												 const WCHAR* pwszValue)
+void qs::AbstractHttpMethod::setRequestHeader(const WCHAR* pwszName,
+											  const WCHAR* pwszValue)
 {
 	wstring_ptr wstrName(allocWString(pwszName));
 	wstring_ptr wstrValue(allocWString(pwszValue));
@@ -294,8 +294,8 @@ void qmrss::AbstractHttpMethod::setRequestHeader(const WCHAR* pwszName,
 	wstrValue.release();
 }
 
-void qmrss::AbstractHttpMethod::setCredential(const WCHAR* pwszUserName,
-											  const WCHAR* pwszPassword)
+void qs::AbstractHttpMethod::setCredential(const WCHAR* pwszUserName,
+										   const WCHAR* pwszPassword)
 {
 	assert(pwszUserName);
 	assert(pwszPassword);
@@ -304,8 +304,8 @@ void qmrss::AbstractHttpMethod::setCredential(const WCHAR* pwszUserName,
 	wstrPassword_ = allocWString(pwszPassword);
 }
 
-void qmrss::AbstractHttpMethod::setProxyCredential(const WCHAR* pwszUserName,
-												   const WCHAR* pwszPassword)
+void qs::AbstractHttpMethod::setProxyCredential(const WCHAR* pwszUserName,
+												const WCHAR* pwszPassword)
 {
 	assert(pwszUserName);
 	assert(pwszPassword);
@@ -314,17 +314,17 @@ void qmrss::AbstractHttpMethod::setProxyCredential(const WCHAR* pwszUserName,
 	wstrProxyPassword_ = allocWString(pwszPassword);
 }
 
-const CHAR* qmrss::AbstractHttpMethod::getResponseLine() const
+const CHAR* qs::AbstractHttpMethod::getResponseLine() const
 {
 	return strResponseLine_.get();
 }
 
-const CHAR* qmrss::AbstractHttpMethod::getResponseHeader() const
+const CHAR* qs::AbstractHttpMethod::getResponseHeader() const
 {
 	return strResponseHeader_.get();
 }
 
-malloc_size_ptr<unsigned char> qmrss::AbstractHttpMethod::getResponseBody() const
+malloc_size_ptr<unsigned char> qs::AbstractHttpMethod::getResponseBody() const
 {
 	InputStream* pStream = getResponseBodyAsStream();
 	
@@ -347,38 +347,38 @@ malloc_size_ptr<unsigned char> qmrss::AbstractHttpMethod::getResponseBody() cons
 	return malloc_size_ptr<unsigned char>(p, nLen);
 }
 
-InputStream* qmrss::AbstractHttpMethod::getResponseBodyAsStream() const
+InputStream* qs::AbstractHttpMethod::getResponseBodyAsStream() const
 {
 	return pConnection_->getInputStream();
 }
 
-const WCHAR* qmrss::AbstractHttpMethod::getHost() const
+const WCHAR* qs::AbstractHttpMethod::getHost() const
 {
 	return pURL_->getHost();
 }
 
-unsigned short qmrss::AbstractHttpMethod::getPort() const
+unsigned short qs::AbstractHttpMethod::getPort() const
 {
 	unsigned short nPort = pURL_->getPort();
 	return nPort != static_cast<unsigned short>(-1) ? nPort : isSecure() ? 443 : 80;
 }
 
-bool qmrss::AbstractHttpMethod::isSecure() const
+bool qs::AbstractHttpMethod::isSecure() const
 {
 	return wcscmp(pURL_->getScheme(), L"https") == 0;
 }
 
-bool qmrss::AbstractHttpMethod::isReady() const
+bool qs::AbstractHttpMethod::isReady() const
 {
 	return pURL_.get() != 0;
 }
 
-unsigned int qmrss::AbstractHttpMethod::getRetryCount() const
+unsigned int qs::AbstractHttpMethod::getRetryCount() const
 {
 	return 2;
 }
 
-unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pConnection)
+unsigned int qs::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pConnection)
 {
 	assert(pConnection.get());
 	assert(pURL_.get());
@@ -480,22 +480,22 @@ unsigned int qmrss::AbstractHttpMethod::invoke(std::auto_ptr<HttpConnection> pCo
 	return nStatus;
 }
 
-bool qmrss::AbstractHttpMethod::getRequestHeaders(StringBuffer<WSTRING>* pBuf) const
+bool qs::AbstractHttpMethod::getRequestHeaders(StringBuffer<WSTRING>* pBuf) const
 {
 	return true;
 }
 
-size_t qmrss::AbstractHttpMethod::getRequestBodyLength() const
+size_t qs::AbstractHttpMethod::getRequestBodyLength() const
 {
 	return 0;
 }
 
-bool qmrss::AbstractHttpMethod::writeRequestBody(HttpConnection* pConnection) const
+bool qs::AbstractHttpMethod::writeRequestBody(HttpConnection* pConnection) const
 {
 	return true;
 }
 
-std::pair<const WCHAR*, const WCHAR*> qmrss::AbstractHttpMethod::getCredential() const
+std::pair<const WCHAR*, const WCHAR*> qs::AbstractHttpMethod::getCredential() const
 {
 	const WCHAR* pwszUserName = wstrUserName_.get();
 	const WCHAR* pwszPassword = wstrPassword_.get();
@@ -513,16 +513,16 @@ std::pair<const WCHAR*, const WCHAR*> qmrss::AbstractHttpMethod::getCredential()
  *
  */
 
-qmrss::HttpMethodGet::HttpMethodGet(const WCHAR* pwszURL) :
+qs::HttpMethodGet::HttpMethodGet(const WCHAR* pwszURL) :
 	AbstractHttpMethod(pwszURL)
 {
 }
 
-qmrss::HttpMethodGet::~HttpMethodGet()
+qs::HttpMethodGet::~HttpMethodGet()
 {
 }
 
-const WCHAR* qmrss::HttpMethodGet::getName() const
+const WCHAR* qs::HttpMethodGet::getName() const
 {
 	return L"GET";
 }
@@ -534,13 +534,13 @@ const WCHAR* qmrss::HttpMethodGet::getName() const
  *
  */
 
-qmrss::HttpURL::HttpURL(const WCHAR* pwszScheme,
-						const WCHAR* pwszHost,
-						unsigned short nPort,
-						const WCHAR* pwszUser,
-						const WCHAR* pwszPassword,
-						const WCHAR* pwszPath,
-						const WCHAR* pwszQuery) :
+qs::HttpURL::HttpURL(const WCHAR* pwszScheme,
+					 const WCHAR* pwszHost,
+					 unsigned short nPort,
+					 const WCHAR* pwszUser,
+					 const WCHAR* pwszPassword,
+					 const WCHAR* pwszPath,
+					 const WCHAR* pwszQuery) :
 	nPort_(nPort)
 {
 	assert(pwszScheme);
@@ -558,46 +558,46 @@ qmrss::HttpURL::HttpURL(const WCHAR* pwszScheme,
 		wstrQuery_ = allocWString(pwszQuery);
 }
 
-qmrss::HttpURL::~HttpURL()
+qs::HttpURL::~HttpURL()
 {
 }
 
-const WCHAR* qmrss::HttpURL::getScheme() const
+const WCHAR* qs::HttpURL::getScheme() const
 {
 	return wstrScheme_.get();
 }
 
-const WCHAR* qmrss::HttpURL::getHost() const
+const WCHAR* qs::HttpURL::getHost() const
 {
 	return wstrHost_.get();
 }
 
-unsigned short qmrss::HttpURL::getPort() const
+unsigned short qs::HttpURL::getPort() const
 {
 	return nPort_;
 }
 
-const WCHAR* qmrss::HttpURL::getUser() const
+const WCHAR* qs::HttpURL::getUser() const
 {
 	return wstrUser_.get();
 }
 
-const WCHAR* qmrss::HttpURL::getPassword() const
+const WCHAR* qs::HttpURL::getPassword() const
 {
 	return wstrPassword_.get();
 }
 
-const WCHAR* qmrss::HttpURL::getPath() const
+const WCHAR* qs::HttpURL::getPath() const
 {
 	return wstrPath_.get();
 }
 
-const WCHAR* qmrss::HttpURL::getQuery() const
+const WCHAR* qs::HttpURL::getQuery() const
 {
 	return wstrQuery_.get();
 }
 
-wstring_ptr qmrss::HttpURL::getURL() const
+wstring_ptr qs::HttpURL::getURL() const
 {
 	StringBuffer<WSTRING> buf;
 	buf.append(wstrScheme_.get());
@@ -624,7 +624,7 @@ wstring_ptr qmrss::HttpURL::getURL() const
 	return buf.getString();
 }
 
-wstring_ptr qmrss::HttpURL::getAuthority() const
+wstring_ptr qs::HttpURL::getAuthority() const
 {
 	StringBuffer<WSTRING> buf;
 	buf.append(wstrHost_.get());
@@ -636,7 +636,7 @@ wstring_ptr qmrss::HttpURL::getAuthority() const
 	return buf.getString();
 }
 
-std::auto_ptr<HttpURL> qmrss::HttpURL::create(const WCHAR* pwszURL)
+std::auto_ptr<HttpURL> qs::HttpURL::create(const WCHAR* pwszURL)
 {
 	const WCHAR* p = wcsstr(pwszURL, L"://");
 	if (!p)
@@ -699,139 +699,11 @@ std::auto_ptr<HttpURL> qmrss::HttpURL::create(const WCHAR* pwszURL)
 
 /****************************************************************************
  *
- * HttpUtil
+ * HttpUtility
  *
  */
 
-wstring_ptr qmrss::HttpUtil::getBasicCredential(const WCHAR* pwszUserName,
-												const WCHAR* pwszPassword)
-{
-	wstring_ptr wstrCredential(concat(pwszUserName, L":", pwszPassword));
-	size_t nLen = wcslen(wstrCredential.get());
-	xstring_size_ptr strCredential(UTF8Converter().encode(wstrCredential.get(), &nLen));
-	if (!strCredential.get())
-		return 0;
-	malloc_size_ptr<unsigned char> pCredential(Base64Encoder(false).encode(
-		reinterpret_cast<const unsigned char*>(strCredential.get()), strCredential.size()));
-	return mbs2wcs(reinterpret_cast<const CHAR*>(pCredential.get()), pCredential.size());
-}
-
-unsigned int qmrss::HttpUtil::parseResponse(const char* p)
-{
-	if (strncmp(p, "HTTP/1.0 ", 9) != 0 &&
-		strncmp(p, "HTTP/1.1 ", 9) != 0)
-		return -1;
-	
-	char szStatus[4];
-	strncpy(szStatus, p + 9, 3);
-	szStatus[3] = '\0';
-	
-	char* pEnd = 0;
-	long nStatus = strtol(szStatus, &pEnd, 10);
-	if (*pEnd || nStatus < 0 || 600 < nStatus)
-		return -1;
-	
-	return static_cast<unsigned int>(nStatus);
-}
-
-xstring_ptr qmrss::HttpUtil::readLine(InputStream* pInputStream)
-{
-	bool bCr = false;
-	XStringBuffer<XSTRING> buf;
-	while (true) {
-		unsigned char c = 0;
-		size_t n = pInputStream->read(&c, 1);
-		if (n == -1)
-			return 0;
-		else if (n == 0)
-			break;
-		
-		if (!buf.append(c))
-			return 0;
-		
-		if (bCr) {
-			if (c == '\n') {
-				buf.remove(buf.getLength() - 2, buf.getLength());
-				break;
-			}
-			else {
-				bCr = false;
-			}
-		}
-		else {
-			bCr = c == '\r';
-		}
-	}
-	return buf.getXString();
-}
-
-xstring_ptr qmrss::HttpUtil::readLine(qs::SocketBase* pSocket)
-{
-	bool bCr = false;
-	XStringBuffer<XSTRING> buf;
-	while (true) {
-		unsigned char c = 0;
-		if (!readByte(pSocket, &c))
-			return 0;
-		
-		if (!buf.append(c))
-			return 0;
-		
-		if (bCr) {
-			if (c == '\n') {
-				buf.remove(buf.getLength() - 2, buf.getLength());
-				break;
-			}
-			else {
-				bCr = false;
-			}
-		}
-		else {
-			bCr = c == '\r';
-		}
-	}
-	return buf.getXString();
-}
-
-bool qmrss::HttpUtil::readByte(qs::SocketBase* pSocket,
-							   unsigned char* p)
-{
-	int nSelect = pSocket->select(SocketBase::SELECT_READ);
-	if (nSelect == -1)
-		return false;
-	else if (nSelect == 0)
-		return false;
-	return pSocket->recv(reinterpret_cast<char*>(p), 1, 0) == 1;
-}
-
-bool qmrss::HttpUtil::write(SocketBase* pSocket,
-							const unsigned char* p,
-							size_t nLen)
-{
-	while (nLen != 0) {
-		int nSelect = pSocket->select(SocketBase::SELECT_WRITE | SocketBase::SELECT_READ);
-		if (nSelect == -1)
-			return false;
-		else if (nSelect == 0)
-			return false;
-		int n = pSocket->send(reinterpret_cast<const char*>(p), static_cast<int>(nLen), 0);
-		if (n == -1)
-			return false;
-		nLen -= n;
-		p += n;
-	}
-	return true;
-}
-
-bool qmrss::HttpUtil::write(SocketBase* pSocket,
-							const WCHAR* p,
-							size_t nLen)
-{
-	string_ptr str(wcs2mbs(p, nLen));
-	return write(pSocket, reinterpret_cast<const unsigned char*>(str.get()), strlen(str.get()));
-}
-
-wstring_ptr qmrss::HttpUtil::getRedirectLocation(const WCHAR* pwszURL,
+wstring_ptr qs::HttpUtility::getRedirectLocation(const WCHAR* pwszURL,
 												 const qs::Part& header,
 												 RedirectError* pError)
 {
@@ -876,7 +748,7 @@ wstring_ptr qmrss::HttpUtil::getRedirectLocation(const WCHAR* pwszURL,
 	return allocWString(pwszLocation);
 }
 
-wstring_ptr qmrss::HttpUtil::resolveRelativeURL(const WCHAR* pwszURL,
+wstring_ptr qs::HttpUtility::resolveRelativeURL(const WCHAR* pwszURL,
 												const WCHAR* pwszBaseURL)
 {
 	assert(pwszURL);
@@ -903,7 +775,7 @@ wstring_ptr qmrss::HttpUtil::resolveRelativeURL(const WCHAR* pwszURL,
 	return buf.getString();
 }
 
-bool qmrss::HttpUtil::getInternetProxySetting(wstring_ptr* pwstrProxyHost,
+bool qs::HttpUtility::getInternetProxySetting(wstring_ptr* pwstrProxyHost,
 											  unsigned short* pnProxyPort)
 {
 	Registry reg(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings");
@@ -943,7 +815,7 @@ bool qmrss::HttpUtil::getInternetProxySetting(wstring_ptr* pwstrProxyHost,
 	return true;
 }
 
-wstring_ptr qmrss::HttpUtil::getInternetCookie(const WCHAR* pwszURL)
+wstring_ptr qs::HttpUtility::getInternetCookie(const WCHAR* pwszURL)
 {
 #if !defined _WIN32_WCE || _WIN32_WCE >= 300
 	W2T(pwszURL, ptszURL);
@@ -961,7 +833,7 @@ wstring_ptr qmrss::HttpUtil::getInternetCookie(const WCHAR* pwszURL)
 #endif
 }
 
-bool qmrss::HttpUtil::setInternetCookie(const WCHAR* pwszURL,
+bool qs::HttpUtility::setInternetCookie(const WCHAR* pwszURL,
 										const WCHAR* pwszCookie)
 {
 #if !defined _WIN32_WCE || _WIN32_WCE >= 300
@@ -979,7 +851,7 @@ bool qmrss::HttpUtil::setInternetCookie(const WCHAR* pwszURL,
 #endif
 }
 
-void qmrss::HttpUtil::updateInternetCookies(const WCHAR* pwszURL,
+void qs::HttpUtility::updateInternetCookies(const WCHAR* pwszURL,
 											const Part& header)
 {
 	MultipleUnstructuredParser cookie;
@@ -988,4 +860,139 @@ void qmrss::HttpUtil::updateInternetCookies(const WCHAR* pwszURL,
 		for (MultipleUnstructuredParser::ValueList::const_iterator it = l.begin(); it != l.end(); ++it)
 			setInternetCookie(pwszURL, *it);
 	}
+}
+
+
+/****************************************************************************
+ *
+ * HttpUtil
+ *
+ */
+
+wstring_ptr qs::HttpUtil::getBasicCredential(const WCHAR* pwszUserName,
+											 const WCHAR* pwszPassword)
+{
+	wstring_ptr wstrCredential(concat(pwszUserName, L":", pwszPassword));
+	size_t nLen = wcslen(wstrCredential.get());
+	xstring_size_ptr strCredential(UTF8Converter().encode(wstrCredential.get(), &nLen));
+	if (!strCredential.get())
+		return 0;
+	malloc_size_ptr<unsigned char> pCredential(Base64Encoder(false).encode(
+		reinterpret_cast<const unsigned char*>(strCredential.get()), strCredential.size()));
+	return mbs2wcs(reinterpret_cast<const CHAR*>(pCredential.get()), pCredential.size());
+}
+
+unsigned int qs::HttpUtil::parseResponse(const char* p)
+{
+	if (strncmp(p, "HTTP/1.0 ", 9) != 0 &&
+		strncmp(p, "HTTP/1.1 ", 9) != 0)
+		return -1;
+	
+	char szStatus[4];
+	strncpy(szStatus, p + 9, 3);
+	szStatus[3] = '\0';
+	
+	char* pEnd = 0;
+	long nStatus = strtol(szStatus, &pEnd, 10);
+	if (*pEnd || nStatus < 0 || 600 < nStatus)
+		return -1;
+	
+	return static_cast<unsigned int>(nStatus);
+}
+
+xstring_ptr qs::HttpUtil::readLine(InputStream* pInputStream)
+{
+	bool bCr = false;
+	XStringBuffer<XSTRING> buf;
+	while (true) {
+		unsigned char c = 0;
+		size_t n = pInputStream->read(&c, 1);
+		if (n == -1)
+			return 0;
+		else if (n == 0)
+			break;
+		
+		if (!buf.append(c))
+			return 0;
+		
+		if (bCr) {
+			if (c == '\n') {
+				buf.remove(buf.getLength() - 2, buf.getLength());
+				break;
+			}
+			else {
+				bCr = false;
+			}
+		}
+		else {
+			bCr = c == '\r';
+		}
+	}
+	return buf.getXString();
+}
+
+xstring_ptr qs::HttpUtil::readLine(qs::SocketBase* pSocket)
+{
+	bool bCr = false;
+	XStringBuffer<XSTRING> buf;
+	while (true) {
+		unsigned char c = 0;
+		if (!readByte(pSocket, &c))
+			return 0;
+		
+		if (!buf.append(c))
+			return 0;
+		
+		if (bCr) {
+			if (c == '\n') {
+				buf.remove(buf.getLength() - 2, buf.getLength());
+				break;
+			}
+			else {
+				bCr = false;
+			}
+		}
+		else {
+			bCr = c == '\r';
+		}
+	}
+	return buf.getXString();
+}
+
+bool qs::HttpUtil::readByte(qs::SocketBase* pSocket,
+							unsigned char* p)
+{
+	int nSelect = pSocket->select(SocketBase::SELECT_READ);
+	if (nSelect == -1)
+		return false;
+	else if (nSelect == 0)
+		return false;
+	return pSocket->recv(reinterpret_cast<char*>(p), 1, 0) == 1;
+}
+
+bool qs::HttpUtil::write(SocketBase* pSocket,
+						 const unsigned char* p,
+						 size_t nLen)
+{
+	while (nLen != 0) {
+		int nSelect = pSocket->select(SocketBase::SELECT_WRITE | SocketBase::SELECT_READ);
+		if (nSelect == -1)
+			return false;
+		else if (nSelect == 0)
+			return false;
+		int n = pSocket->send(reinterpret_cast<const char*>(p), static_cast<int>(nLen), 0);
+		if (n == -1)
+			return false;
+		nLen -= n;
+		p += n;
+	}
+	return true;
+}
+
+bool qs::HttpUtil::write(SocketBase* pSocket,
+						 const WCHAR* p,
+						 size_t nLen)
+{
+	string_ptr str(wcs2mbs(p, nLen));
+	return write(pSocket, reinterpret_cast<const unsigned char*>(str.get()), strlen(str.get()));
 }

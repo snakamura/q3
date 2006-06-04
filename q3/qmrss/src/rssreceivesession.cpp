@@ -175,7 +175,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		const WCHAR* pwszCookie = pFolder_->getParam(L"Cookie");
 		wstring_ptr wstrCookie;
 		if (!pwszCookie || !*pwszCookie) {
-			wstrCookie = HttpUtil::getInternetCookie(wstrURL.get());
+			wstrCookie = HttpUtility::getInternetCookie(wstrURL.get());
 			pwszCookie = wstrCookie.get();
 		}
 		if (pwszCookie && *pwszCookie)
@@ -199,18 +199,18 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 					reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), pMethod.get());
 					return false;
 				}
-				HttpUtil::updateInternetCookies(wstrURL.get(), header);
+				HttpUtility::updateInternetCookies(wstrURL.get(), header);
 				
-				HttpUtil::RedirectError error = HttpUtil::REDIRECTERROR_SUCCESS;
-				wstrURL = HttpUtil::getRedirectLocation(wstrURL.get(), header, &error);
+				HttpUtility::RedirectError error = HttpUtility::REDIRECTERROR_SUCCESS;
+				wstrURL = HttpUtility::getRedirectLocation(wstrURL.get(), header, &error);
 				if (!wstrURL.get()) {
 					UINT nIds[] = {
 						0,
 						IDS_ERROR_PARSEREDIRECTLOCATION,
 						IDS_ERROR_INVALIDREDIRECTLOCATION
 					};
-					assert(error - HttpUtil::REDIRECTERROR_SUCCESS < countof(nIds));
-					reportError(nIds[error - HttpUtil::REDIRECTERROR_SUCCESS], wstrURL.get(), pMethod.get());
+					assert(error - HttpUtility::REDIRECTERROR_SUCCESS < countof(nIds));
+					reportError(nIds[error - HttpUtility::REDIRECTERROR_SUCCESS], wstrURL.get(), pMethod.get());
 					return false;
 				}
 				continue;
@@ -238,7 +238,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), 0);
 		return false;
 	}
-	HttpUtil::updateInternetCookies(wstrURL.get(), header);
+	HttpUtility::updateInternetCookies(wstrURL.get(), header);
 	
 	Time timePubDate(pChannel->getPubDate());
 	if (timePubDate.wYear == 0)

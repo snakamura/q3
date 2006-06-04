@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __HTTP_H__
-#define __HTTP_H__
+#ifndef __QSHTTP_H__
+#define __QSHTTP_H__
 
 #include <qslog.h>
 #include <qsmime.h>
@@ -15,7 +15,7 @@
 #include <qsssl.h>
 
 
-namespace qmrss {
+namespace qs {
 
 class Http;
 class HttpCallback;
@@ -23,7 +23,7 @@ class HttpConnection;
 class HttpMethod;
 	class HttpMethodGet;
 class HttpURL;
-class HttpUtil;
+class HttpUtility;
 
 
 /****************************************************************************
@@ -32,13 +32,16 @@ class HttpUtil;
  *
  */
 
-class Http
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS Http
 {
 public:
-	Http(qs::SocketCallback* pSocketCallback,
-		 qs::SSLSocketCallback* pSSLSocketCallback,
+	Http(SocketCallback* pSocketCallback,
+		 SSLSocketCallback* pSSLSocketCallback,
 		 HttpCallback* pHttpCallback,
-		 qs::Logger* pLogger);
+		 Logger* pLogger);
 	~Http();
 
 public:
@@ -62,15 +65,17 @@ private:
 
 private:
 	unsigned int nTimeout_;
-	qs::wstring_ptr wstrProxyHost_;
+	wstring_ptr wstrProxyHost_;
 	unsigned short nProxyPort_;
-	qs::wstring_ptr wstrProxyUserName_;
-	qs::wstring_ptr wstrProxyPassword_;
-	qs::SocketCallback* pSocketCallback_;
-	qs::SSLSocketCallback* pSSLSocketCallback_;
+	wstring_ptr wstrProxyUserName_;
+	wstring_ptr wstrProxyPassword_;
+	SocketCallback* pSocketCallback_;
+	SSLSocketCallback* pSSLSocketCallback_;
 	HttpCallback* pHttpCallback_;
-	qs::Logger* pLogger_;
+	Logger* pLogger_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************
@@ -79,7 +84,7 @@ private:
  *
  */
 
-class HttpCallback
+class QSEXPORTCLASS HttpCallback
 {
 public:
 	virtual ~HttpCallback();
@@ -92,10 +97,13 @@ public:
  *
  */
 
-class HttpConnection
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS HttpConnection
 {
 public:
-	HttpConnection(std::auto_ptr<qs::SocketBase> pSocket,
+	HttpConnection(std::auto_ptr<SocketBase> pSocket,
 				   bool bProxied);
 	~HttpConnection();
 
@@ -105,8 +113,8 @@ public:
 			   size_t nLen);
 	size_t read(unsigned char* p,
 				size_t nLen);
-	qs::xstring_ptr readLine();
-	qs::InputStream* getInputStream();
+	xstring_ptr readLine();
+	InputStream* getInputStream();
 
 private:
 	bool prepareInputStream();
@@ -116,10 +124,12 @@ private:
 	HttpConnection& operator=(const HttpConnection&);
 
 private:
-	std::auto_ptr<qs::SocketBase> pSocket_;
+	std::auto_ptr<SocketBase> pSocket_;
 	bool bProxied_;
-	std::auto_ptr<qs::BufferedInputStream> pInputStream_;
+	std::auto_ptr<BufferedInputStream> pInputStream_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************
@@ -128,7 +138,7 @@ private:
  *
  */
 
-class HttpMethod
+class QSEXPORTCLASS HttpMethod
 {
 public:
 	virtual ~HttpMethod();
@@ -144,8 +154,8 @@ public:
 public:
 	virtual const CHAR* getResponseLine() const = 0;
 	virtual const CHAR* getResponseHeader() const = 0;
-	virtual qs::malloc_size_ptr<unsigned char> getResponseBody() const = 0;
-	virtual qs::InputStream* getResponseBodyAsStream() const = 0;
+	virtual malloc_size_ptr<unsigned char> getResponseBody() const = 0;
+	virtual InputStream* getResponseBodyAsStream() const = 0;
 
 public:
 	virtual const WCHAR* getHost() const = 0;
@@ -163,7 +173,10 @@ public:
  *
  */
 
-class AbstractHttpMethod : public HttpMethod
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS AbstractHttpMethod : public HttpMethod
 {
 public:
 	AbstractHttpMethod(const WCHAR* pwszURL);
@@ -180,8 +193,8 @@ public:
 public:
 	virtual const CHAR* getResponseLine() const;
 	virtual const CHAR* getResponseHeader() const;
-	virtual qs::malloc_size_ptr<unsigned char> getResponseBody() const;
-	virtual qs::InputStream* getResponseBodyAsStream() const;
+	virtual malloc_size_ptr<unsigned char> getResponseBody() const;
+	virtual InputStream* getResponseBodyAsStream() const;
 
 public:
 	virtual const WCHAR* getHost() const;
@@ -193,7 +206,7 @@ public:
 
 protected:
 	virtual const WCHAR* getName() const = 0;
-	virtual bool getRequestHeaders(qs::StringBuffer<qs::WSTRING>* pBuf) const;
+	virtual bool getRequestHeaders(StringBuffer<WSTRING>* pBuf) const;
 	virtual size_t getRequestBodyLength() const;
 	virtual bool writeRequestBody(HttpConnection* pConnection) const;
 
@@ -205,19 +218,21 @@ private:
 	AbstractHttpMethod& operator=(const AbstractHttpMethod&);
 
 private:
-	typedef std::vector<std::pair<qs::WSTRING, qs::WSTRING> > HeaderList;
+	typedef std::vector<std::pair<WSTRING, WSTRING> > HeaderList;
 
 private:
 	std::auto_ptr<HttpURL> pURL_;
 	HeaderList listRequestHeader_;
-	qs::wstring_ptr wstrUserName_;
-	qs::wstring_ptr wstrPassword_;
-	qs::wstring_ptr wstrProxyUserName_;
-	qs::wstring_ptr wstrProxyPassword_;
-	qs::xstring_ptr strResponseLine_;
-	qs::xstring_ptr strResponseHeader_;
+	wstring_ptr wstrUserName_;
+	wstring_ptr wstrPassword_;
+	wstring_ptr wstrProxyUserName_;
+	wstring_ptr wstrProxyPassword_;
+	xstring_ptr strResponseLine_;
+	xstring_ptr strResponseHeader_;
 	std::auto_ptr<HttpConnection> pConnection_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************
@@ -226,7 +241,7 @@ private:
  *
  */
 
-class HttpMethodGet : public AbstractHttpMethod
+class QSEXPORTCLASS HttpMethodGet : public AbstractHttpMethod
 {
 public:
 	HttpMethodGet(const WCHAR* pwszURL);
@@ -247,7 +262,10 @@ private:
  *
  */
 
-class HttpURL
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS HttpURL
 {
 public:
 	HttpURL(const WCHAR* pwszScheme,
@@ -267,8 +285,8 @@ public:
 	const WCHAR* getPassword() const;
 	const WCHAR* getPath() const;
 	const WCHAR* getQuery() const;
-	qs::wstring_ptr getURL() const;
-	qs::wstring_ptr getAuthority() const;
+	wstring_ptr getURL() const;
+	wstring_ptr getAuthority() const;
 
 public:
 	static std::auto_ptr<HttpURL> create(const WCHAR* pwszURL);
@@ -278,23 +296,25 @@ private:
 	HttpURL& operator=(const HttpURL&);
 
 private:
-	qs::wstring_ptr wstrScheme_;
-	qs::wstring_ptr wstrHost_;
+	wstring_ptr wstrScheme_;
+	wstring_ptr wstrHost_;
 	unsigned short nPort_;
-	qs::wstring_ptr wstrUser_;
-	qs::wstring_ptr wstrPassword_;
-	qs::wstring_ptr wstrPath_;
-	qs::wstring_ptr wstrQuery_;
+	wstring_ptr wstrUser_;
+	wstring_ptr wstrPassword_;
+	wstring_ptr wstrPath_;
+	wstring_ptr wstrQuery_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************
  *
- * HttpUtil
+ * HttpUtility
  *
  */
 
-class HttpUtil
+class QSEXPORTCLASS HttpUtility
 {
 public:
 	enum RedirectError {
@@ -304,35 +324,21 @@ public:
 	};
 
 public:
-	static qs::wstring_ptr getBasicCredential(const WCHAR* pwszUserName,
-											  const WCHAR* pwszPassword);
-	static unsigned int parseResponse(const char* p);
-	static qs::xstring_ptr readLine(qs::InputStream* pInputStream);
-	static qs::xstring_ptr readLine(qs::SocketBase* pSocket);
-	static bool readByte(qs::SocketBase* pSocket,
-						 unsigned char* p);
-	static bool write(qs::SocketBase* pSocket,
-					  const unsigned char* p,
-					  size_t nLen);
-	static bool write(qs::SocketBase* pSocket,
-					  const WCHAR* p,
-					  size_t nLen);
+	static wstring_ptr getRedirectLocation(const WCHAR* pwszURL,
+										   const Part& header,
+										   RedirectError* pError);
+	static wstring_ptr resolveRelativeURL(const WCHAR* pwszURL,
+										  const WCHAR* pwszBaseURL);
 	
-	static qs::wstring_ptr getRedirectLocation(const WCHAR* pwszURL,
-											   const qs::Part& header,
-											   RedirectError* pError);
-	static qs::wstring_ptr resolveRelativeURL(const WCHAR* pwszURL,
-											  const WCHAR* pwszBaseURL);
-	
-	static bool getInternetProxySetting(qs::wstring_ptr* pwstrProxyHost,
+	static bool getInternetProxySetting(wstring_ptr* pwstrProxyHost,
 										unsigned short* pnProxyPort);
-	static qs::wstring_ptr getInternetCookie(const WCHAR* pwszURL);
+	static wstring_ptr getInternetCookie(const WCHAR* pwszURL);
 	static bool setInternetCookie(const WCHAR* pwszURL,
 								  const WCHAR* pwszCookie);
 	static void updateInternetCookies(const WCHAR* pwszURL,
-									  const qs::Part& header);
+									  const Part& header);
 };
 
 }
 
-#endif // __HTTP_H__
+#endif // __QSHTTP_H__
