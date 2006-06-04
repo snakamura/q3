@@ -950,6 +950,9 @@ private:
 private:
 	Recents* pRecents_;
 	qs::Profile* pProfile_;
+
+private:
+	static DialogUtil::BoolProperty boolProperties__[];
 };
 
 

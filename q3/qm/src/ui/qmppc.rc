@@ -1709,10 +1709,12 @@ BEGIN
     LTEXT           "&Sound",IDC_SOUNDLABEL,10,57,25,8
     EDITTEXT        IDC_SOUND,40,55,87,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDC_BROWSE,77,70,50,12
-    LTEXT           "&Max messages in recents",IDC_STATIC,10,87,85,8
-    EDITTEXT        IDC_MAX,100,85,27,12,ES_RIGHT | ES_AUTOHSCROLL | 
+    CONTROL         "Open in &preview",IDC_OPENINPREVIEW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,85,117,10
+    LTEXT           "&Max messages in recents",IDC_STATIC,10,97,85,8
+    EDITTEXT        IDC_MAX,100,95,27,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
-    GROUPBOX        "Notification",IDC_STATIC,5,30,127,75
+    GROUPBOX        "Notification",IDC_STATIC,5,30,127,80
 END
 
 

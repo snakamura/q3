@@ -400,6 +400,7 @@
 #define IDC_SYNCDIALOG                  1449
 #define IDC_NOTIFICATION                1450
 #define IDC_MAX                         1451
+#define IDC_OPENINPREVIEW               1452
 
 // Next default values for new objects
 // 
@@ -408,7 +409,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1452
+#define _APS_NEXT_CONTROL_VALUE         1453
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

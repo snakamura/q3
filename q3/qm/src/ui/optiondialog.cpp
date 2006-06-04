@@ -2140,6 +2140,10 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
  *
  */
 
+DialogUtil::BoolProperty qm::OptionSyncDialog::boolProperties__[] = {
+	{ L"OpenRecentInPreview",	IDC_OPENINPREVIEW	}
+};
+
 qm::OptionSyncDialog::OptionSyncDialog(Recents* pRecents,
 									   Profile* pProfile) :
 	DefaultDialog(IDD_OPTIONSYNC),
@@ -2164,6 +2168,9 @@ LRESULT qm::OptionSyncDialog::onCommand(WORD nCode,
 LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 											   LPARAM lParam)
 {
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"Global", boolProperties__, countof(boolProperties__));
+	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
 	HWND hwndSyncDialog = getDlgItem(IDC_SYNCDIALOG);
@@ -2226,6 +2233,9 @@ LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 
 bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
 {
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"Global", boolProperties__, countof(boolProperties__));
+	
 	SyncDialog::Show show = SyncDialog::SHOW_MANUAL;
 	HWND hwndSyncDialog = getDlgItem(IDC_SYNCDIALOG);
 	switch (ComboBox_GetCurSel(hwndSyncDialog)) {

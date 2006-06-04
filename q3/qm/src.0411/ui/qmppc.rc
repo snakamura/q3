@@ -1718,10 +1718,12 @@ BEGIN
     LTEXT           "サウンド(&S)",IDC_SOUNDLABEL,10,57,35,8
     EDITTEXT        IDC_SOUND,45,55,82,12,ES_AUTOHSCROLL
     PUSHBUTTON      "参照(&B)...",IDC_BROWSE,77,70,50,12
-    LTEXT           "新着メッセージリストの最大数(&M)",IDC_STATIC,10,87,95,8
-    EDITTEXT        IDC_MAX,105,85,22,12,ES_RIGHT | ES_AUTOHSCROLL | 
+    CONTROL         "プレビューで開く(&P)",IDC_OPENINPREVIEW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,85,117,10
+    LTEXT           "新着メッセージリストの最大数(&M)",IDC_STATIC,10,97,95,8
+    EDITTEXT        IDC_MAX,105,95,22,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
-    GROUPBOX        "新着メッセージ通知",IDC_STATIC,5,30,127,75
+    GROUPBOX        "新着メッセージ通知",IDC_STATIC,5,30,127,80
 END
 
 
