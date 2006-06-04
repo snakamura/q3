@@ -1,5 +1,5 @@
 =begin
-=設定
+=オプションの設定
 
 QMAIL3全体の設定は[オプション]ダイアログで行います。このダイアログでは左側のリスト（Pocket PC版では上のコンボボックス）で項目を選択すると、右側（Pocket PC版では下側）のパネルが切り替わり、各項目の設定が行えます。以下のパネルがあります。
 
@@ -20,6 +20,7 @@ QMAIL3全体の設定は[オプション]ダイアログで行います。このダイアログでは左側のリス
 *((<フィルタの設定|URL:OptionFilters.html>))
 *((<同期フィルタの設定|URL:OptionSyncFilters.html>))
 *((<自動巡回の設定|URL:OptionAutoPilot.html>))
+*((<同期の設定|URL:OptionSync.html>))
 *((<検索の設定|URL:OptionSearch.html>))
 *((<スパムフィルタの設定|URL:OptionJunkFilter.html>))
 *((<セキュリティの設定|URL:OptionSecurity.html>))
