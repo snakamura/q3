@@ -52,7 +52,6 @@ const qs::Profile::Default defaultProfiles[] = {
 	
 	{ L"AutoPilot",	L"Enabled",				L"0"	},
 	{ L"AutoPilot",	L"OnlyWhenConnected",	L"0"	},
-	{ L"AutoPilot",	L"Sound",				L""		},
 	
 #ifndef _WIN32_WCE
 	{ L"ColorsDialog",	L"Height",	L"450"	},
@@ -461,7 +460,12 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"SignatureDialog",	L"Width",	L"620"	},
 #endif
 	
-	{ L"Sync",	L"Notify",	L"0"	}, /*SyncManager::NOTIFY_ALWAYS*/
+	{ L"Sync",	L"Notify",	L"0"								}, /*SyncManager::NOTIFY_ALWAYS*/
+#ifdef _WIN32_WCE
+	{ L"Sync",	L"Sound",	L"\\Windows\\alarm1.wav"			},
+#else
+	{ L"Sync",	L"Sound",	L"C:\\Windows\\Media\\notify.wav"	},
+#endif
 	
 #ifndef _WIN32_WCE
 	{ L"SyncDialog",	L"Height",	L"200"	},

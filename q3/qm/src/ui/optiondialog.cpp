@@ -2216,7 +2216,7 @@ LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 	}
 	ComboBox_SetCurSel(hwndNotification, nNotify);
 	
-	wstring_ptr wstrSound = pProfile_->getString(L"AutoPilot", L"Sound");
+	wstring_ptr wstrSound = pProfile_->getString(L"Sync", L"Sound");
 	setDlgItemText(IDC_SOUND, wstrSound.get());
 	
 	setDlgItemInt(IDC_MAX, pRecents_->getMax());
@@ -2252,7 +2252,7 @@ bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
 	
 	wstring_ptr wstrSound(getDlgItemText(IDC_SOUND));
 	if (wstrSound.get())
-		pProfile_->setString(L"AutoPilot", L"Sound", wstrSound.get());
+		pProfile_->setString(L"Sync", L"Sound", wstrSound.get());
 	
 	pRecents_->setMax(getDlgItemInt(IDC_MAX));
 	

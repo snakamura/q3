@@ -325,7 +325,7 @@ void qm::SyncDialog::notifyNewMessage() const
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
 	
-	wstring_ptr wstrSound(pProfile_->getString(L"AutoPilot", L"Sound"));
+	wstring_ptr wstrSound(pProfile_->getString(L"Sync", L"Sound"));
 	if (*wstrSound.get()) {
 		W2T(wstrSound.get(), ptszSound);
 		sndPlaySound(ptszSound, SND_ASYNC);
