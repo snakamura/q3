@@ -297,6 +297,13 @@ private:
 class HttpUtil
 {
 public:
+	enum RedirectError {
+		REDIRECTERROR_SUCCESS,
+		REDIRECTERROR_PARSELOCATION,
+		REDIRECTERROR_INVALIDLOCATION
+	};
+
+public:
 	static qs::wstring_ptr getBasicCredential(const WCHAR* pwszUserName,
 											  const WCHAR* pwszPassword);
 	static unsigned int parseResponse(const char* p);
@@ -313,7 +320,7 @@ public:
 	
 	static qs::wstring_ptr getRedirectLocation(const WCHAR* pwszURL,
 											   const qs::Part& header,
-											   UINT* pnErrorId);
+											   RedirectError* pError);
 	static qs::wstring_ptr resolveRelativeURL(const WCHAR* pwszURL,
 											  const WCHAR* pwszBaseURL);
 	

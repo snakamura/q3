@@ -15,7 +15,6 @@
 #include <wininet.h>
 
 #include "http.h"
-#include "resource.h"
 
 using namespace qmrss;
 using namespace qs;
@@ -834,12 +833,15 @@ bool qmrss::HttpUtil::write(SocketBase* pSocket,
 
 wstring_ptr qmrss::HttpUtil::getRedirectLocation(const WCHAR* pwszURL,
 												 const qs::Part& header,
-												 UINT* pnErrorId)
+												 RedirectError* pError)
 {
+	if (pError)
+		*pError = REDIRECTERROR_SUCCESS;
+	
 	UnstructuredParser location;
 	if (header.getField(L"Location", &location) != Part::FIELD_EXIST) {
-		if (pnErrorId)
-			*pnErrorId = IDS_ERROR_PARSEREDIRECTLOCATION;
+		if (pError)
+			*pError = REDIRECTERROR_PARSELOCATION;
 		return 0;
 	}
 	const WCHAR* pwszLocation = location.getValue();
@@ -866,8 +868,8 @@ wstring_ptr qmrss::HttpUtil::getRedirectLocation(const WCHAR* pwszURL,
 			}
 		}
 		if (!bRecover) {
-			if (pnErrorId)
-				*pnErrorId = IDS_ERROR_INVALIDREDIRECTLOCATION;
+			if (pError)
+				*pError = REDIRECTERROR_INVALIDLOCATION;
 			return 0;
 		}
 	}

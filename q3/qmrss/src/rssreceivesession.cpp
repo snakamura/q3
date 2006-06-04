@@ -201,10 +201,16 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 				}
 				HttpUtil::updateInternetCookies(wstrURL.get(), header);
 				
-				UINT nErrorId = 0;
-				wstrURL = HttpUtil::getRedirectLocation(wstrURL.get(), header, &nErrorId);
+				HttpUtil::RedirectError error = HttpUtil::REDIRECTERROR_SUCCESS;
+				wstrURL = HttpUtil::getRedirectLocation(wstrURL.get(), header, &error);
 				if (!wstrURL.get()) {
-					reportError(nErrorId, wstrURL.get(), pMethod.get());
+					UINT nIds[] = {
+						0,
+						IDS_ERROR_PARSEREDIRECTLOCATION,
+						IDS_ERROR_INVALIDREDIRECTLOCATION
+					};
+					assert(error - HttpUtil::REDIRECTERROR_SUCCESS < countof(nIds));
+					reportError(nIds[error - HttpUtil::REDIRECTERROR_SUCCESS], wstrURL.get(), pMethod.get());
 					return false;
 				}
 				continue;
