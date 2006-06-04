@@ -103,8 +103,8 @@ class FilePassword : public Password
 {
 public:
 	FilePassword(const WCHAR* pwszPath,
-				const WCHAR* pwszPassword,
-				bool bPermanent);
+				 const WCHAR* pwszPassword,
+				 bool bPermanent);
 	virtual ~FilePassword();
 
 public:
