@@ -275,7 +275,6 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 		TYPE_PATH
 	} type = TYPE_URL;
 	
-	WCHAR cQuote = L'\0';
 	const WCHAR* p = pwszText;
 	while (nLen > 0) {
 		if (*p == L':' && p != pwszText) {
@@ -286,8 +285,6 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 					wcsncmp(p - nSchemaLen, ppwszSchemas[n], nSchemaLen) == 0) {
 					p -= nSchemaLen;
 					nLen += nSchemaLen;
-					if (p != pwszText && *(p - 1) == L'(')
-						cQuote = L')';
 					bFound = true;
 					break;
 				}
@@ -333,15 +330,6 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 				bFound = true;
 			}
 			if (bFound) {
-				if (p != pwszText) {
-					const WCHAR* pwszQuotes = L"()<>[]{}";
-					for (const WCHAR* pQuote = pwszQuotes; *pQuote; pQuote += 2) {
-						if (*(p - 1) == *pQuote) {
-							cQuote = *(pQuote + 1);
-							break;
-						}
-					}
-				}
 				type = TYPE_PATH;
 				break;
 			}
@@ -350,6 +338,17 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 		++p;
 	}
 	if (nLen > 0) {
+		WCHAR cQuote = L'\0';
+		if (p != pwszText && (type == TYPE_URL || type == TYPE_PATH)) {
+			const WCHAR* pwszQuotes = L"()<>[]{}\"\"''";
+			for (const WCHAR* pQuote = pwszQuotes; *pQuote; pQuote += 2) {
+				if (*(p - 1) == *pQuote) {
+					cQuote = *(pQuote + 1);
+					break;
+				}
+			}
+		}
+		
 		url.first = p - pwszText;
 		switch (type) {
 		case TYPE_URL:
