@@ -2619,8 +2619,12 @@ LRESULT qm::OptionEdit2Dialog::onBrowse()
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
-	if (dialog.doModal(getHandle()) == IDOK)
-		setDlgItemText(IDC_EDITOR, dialog.getPath());
+	if (dialog.doModal(getHandle()) == IDOK) {
+		wstring_ptr wstrPath(allocWString(dialog.getPath()));
+		if (wcschr(wstrPath.get(), L' '))
+			wstrPath = concat(L"\"", wstrPath.get(), L"\"");
+		setDlgItemText(IDC_EDITOR, wstrPath.get());
+	}
 	
 	return 0;
 }
