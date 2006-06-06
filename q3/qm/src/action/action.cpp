@@ -1473,6 +1473,8 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	
 	size_t nLen = wstrValue.size();
 	xstring_size_ptr strContent = pConverter->encode(wstrValue.get(), &nLen);
+	if (!strContent.get())
+		return false;
 	
 	if (pStream->write(reinterpret_cast<unsigned char*>(strContent.get()), strContent.size()) == -1)
 		return false;
