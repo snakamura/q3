@@ -1239,7 +1239,6 @@ string_ptr qs::SimpleParser::unparse(const Part& part) const
 		return encode(wstrValue_.get(), -1, wstrCharset.get(), 0, true);
 	}
 	else {
-		// TODO
 		if (!FieldParserUtil<WSTRING>::isAscii(wstrValue_.get()))
 			return 0;
 		return wcs2mbs(wstrValue_.get());
@@ -1311,12 +1310,11 @@ Part::Field qs::NumberParser::parse(const Part& part,
 			break;
 		}
 	}
-	// TODO
-	// Check value
-	if (nFlags_ & FLAG_HEX)
-		sscanf(strNumber.get(), "%x", &n_);
-	else
-		sscanf(strNumber.get(), "%d", &n_);
+	
+	CHAR* pEnd = 0;
+	n_ = strtol(strNumber.get(), &pEnd, nFlags_ & FLAG_HEX ? 16 : 10);
+	if (*pEnd)
+		return parseError();
 	
 	return Part::FIELD_EXIST;
 }
@@ -1328,7 +1326,6 @@ string_ptr qs::NumberParser::unparse(const Part& part) const
 		sprintf(sz, "%x", n_);
 	else
 		sprintf(sz, "%d", n_);
-	
 	return allocString(sz);
 }
 
