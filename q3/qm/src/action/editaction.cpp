@@ -177,6 +177,11 @@ void qm::EditEditDeleteAction::invoke(const qs::ActionEvent& event)
 	pTextWindow_->deleteText(flag_);
 }
 
+bool qm::EditEditDeleteAction::isEnabled(const ActionEvent& event)
+{
+	return pTextWindow_->hasFocus();
+}
+
 
 /****************************************************************************
  *
