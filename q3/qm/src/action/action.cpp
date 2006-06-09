@@ -4884,7 +4884,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 						break;
 				}
 			}
-			pSearch = pAccount->createQueryFolder(wstrName.get(), 0,
+			pSearch = pAccount->createQueryFolder(wstrName.get(), pSearch,
 				pPage->getDriver(), pwszCondition, wstrFolder.get(), data.isRecursive());
 			if (!pSearch)
 				return;
