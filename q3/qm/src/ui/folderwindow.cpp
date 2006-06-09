@@ -1128,9 +1128,9 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 		
 		int nHScroll = -1;
 		if (pt.x < rect.left + 30)
-			nHScroll = SB_LEFT;
+			nHScroll = SB_LINELEFT;
 		else if (pt.x > rect.right - 30)
-			nHScroll = SB_RIGHT;
+			nHScroll = SB_LINERIGHT;
 		if (nHScroll != -1) {
 			lock.lock();
 			pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(nHScroll, 0), 0);
