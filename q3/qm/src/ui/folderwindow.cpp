@@ -78,6 +78,11 @@ public:
 		
 		WM_FOLDERWINDOW_DESELECTTEMPORARY	= WM_APP + 1310
 	};
+	
+	enum {
+		DRAGSCROLL_MARGIN		= 30,
+		DRAGSCROLL_DELAYTIME	= 300
+	};
 
 public:
 	typedef std::vector<std::pair<Folder*, HTREEITEM> > FolderMap;
@@ -194,6 +199,7 @@ public:
 	HTREEITEM hItemDragTarget_;
 	HTREEITEM hItemDragOver_;
 	DWORD dwDragOverLastChangedTime_;
+	DWORD dwDragScrollStartTime_;
 };
 
 Account* qm::FolderWindowImpl::getAccount(HTREEITEM hItem) const
@@ -622,7 +628,8 @@ void qm::FolderWindowImpl::dragEnter(const DropTargetDragEvent& event)
 {
 	hItemDragTarget_ = 0;
 	hItemDragOver_ = 0;
-	dwDragOverLastChangedTime_ = 0;
+	dwDragOverLastChangedTime_ = -1;
+	dwDragScrollStartTime_ = ::GetTickCount() + DRAGSCROLL_DELAYTIME;
 	
 	POINT pt = event.getPoint();
 	pThis_->screenToClient(&pt);
@@ -644,7 +651,8 @@ void qm::FolderWindowImpl::dragExit(const DropTargetEvent& event)
 	
 	hItemDragTarget_ = 0;
 	hItemDragOver_ = 0;
-	dwDragOverLastChangedTime_ = 0;
+	dwDragOverLastChangedTime_ = -1;
+	dwDragScrollStartTime_ = -1;
 	
 	ImageList_DragLeave(pThis_->getHandle());
 }
@@ -657,7 +665,8 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 	
 	hItemDragTarget_ = 0;
 	hItemDragOver_ = 0;
-	dwDragOverLastChangedTime_ = 0;
+	dwDragOverLastChangedTime_ = -1;
+	dwDragScrollStartTime_ = -1;
 	
 	POINT pt = event.getPoint();
 	pThis_->screenToClient(&pt);
@@ -1113,27 +1122,32 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 			hItemDragTarget_ = hSelectItem;
 		}
 		
-		RECT rect;
-		pThis_->getClientRect(&rect);
-		
-		int nVScroll = -1;
-		if (pt.y < rect.top + 30)
-			nVScroll = SB_LINEUP;
-		else if (pt.y > rect.bottom - 30)
-			nVScroll = SB_LINEDOWN;
-		if (nVScroll != -1) {
-			lock.lock();
-			pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(nVScroll, 0), 0);
-		}
-		
-		int nHScroll = -1;
-		if (pt.x < rect.left + 30)
-			nHScroll = SB_LINELEFT;
-		else if (pt.x > rect.right - 30)
-			nHScroll = SB_LINERIGHT;
-		if (nHScroll != -1) {
-			lock.lock();
-			pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(nHScroll, 0), 0);
+		if (dwDragScrollStartTime_ == -1 ||
+			::GetTickCount() > dwDragScrollStartTime_) {
+			RECT rect;
+			pThis_->getClientRect(&rect);
+			
+			int nVScroll = -1;
+			if (pt.y < rect.top + DRAGSCROLL_MARGIN)
+				nVScroll = SB_LINEUP;
+			else if (pt.y > rect.bottom - DRAGSCROLL_MARGIN)
+				nVScroll = SB_LINEDOWN;
+			if (nVScroll != -1) {
+				lock.lock();
+				pThis_->sendMessage(WM_VSCROLL, MAKEWPARAM(nVScroll, 0), 0);
+			}
+			
+			int nHScroll = -1;
+			if (pt.x < rect.left + DRAGSCROLL_MARGIN)
+				nHScroll = SB_LINELEFT;
+			else if (pt.x > rect.right - DRAGSCROLL_MARGIN)
+				nHScroll = SB_LINERIGHT;
+			if (nHScroll != -1) {
+				lock.lock();
+				pThis_->sendMessage(WM_HSCROLL, MAKEWPARAM(nHScroll, 0), 0);
+			}
+			
+			dwDragScrollStartTime_ = -1;
 		}
 		
 		if (hItem && (info.flags & TVHT_ONITEMBUTTON || info.flags & TVHT_ONITEMICON)) {
@@ -1248,6 +1262,7 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->hItemDragTarget_ = 0;
 	pImpl_->hItemDragOver_ = 0;
 	pImpl_->dwDragOverLastChangedTime_ = -1;
+	pImpl_->dwDragScrollStartTime_ = -1;
 	
 	pImpl_->reloadProfiles(true);
 	
