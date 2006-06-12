@@ -347,6 +347,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 			if (wstrCharset.get())
 				pConverter = ConverterFactory::getInstance(wstrCharset.get());
 			
+			xstring_size_ptr strBody;
+			
 			if (!pConverter.get()) {
 				bool bDefault = true;
 				const WCHAR* pwszCharset = Part::getDefaultCharset();
@@ -366,8 +368,14 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 					}
 				}
 				wstrCharset = allocWString(pwszCharset);
-				
 				pConverter = ConverterFactory::getInstance(wstrCharset.get());
+				
+				xstring_size_ptr strBody(convertBody(pConverter.get(), pBody, nBodyLen));
+				if (!strBody.get()) {
+					wstrCharset = allocWString(L"utf-8");
+					pConverter = ConverterFactory::getInstance(wstrCharset.get());
+					bDefault = false;
+				}
 				
 				if (nFlags_ & FLAG_ADDCONTENTTYPE ||
 					(nFlags_ & FLAG_ADDNODEFAULTCONTENTTYPE && !bDefault)) {
@@ -382,9 +390,11 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 			
 			pPart->removeField(L"X-QMAIL-OriginalCharset");
 			
-			xstring_size_ptr strBody(convertBody(pConverter.get(), pBody, nBodyLen));
-			if (!strBody.get())
-				return std::auto_ptr<Part>(0);
+			if (!strBody.get()) {
+				strBody = convertBody(pConverter.get(), pBody, nBodyLen);
+				if (!strBody.get())
+					return std::auto_ptr<Part>(0);
+			}
 			
 			std::auto_ptr<Encoder> pEncoder;
 			if (nFlags_ & FLAG_ENCODETEXT) {
@@ -2325,7 +2335,7 @@ Part::Field qm::XQMAILAttachmentParser::parse(const Part& part,
 string_ptr qm::XQMAILAttachmentParser::unparse(const Part& part) const
 {
 	wstring_ptr wstrValue(format(listAttachment_));
-	return encode(wstrValue.get(), -1, L"utf-8", L"B", false);
+	return encode(wstrValue.get(), -1, L"utf-8", L"B", false, false);
 }
 
 wstring_ptr qm::XQMAILAttachmentParser::format(const AttachmentList& l)

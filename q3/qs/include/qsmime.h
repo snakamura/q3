@@ -355,12 +355,18 @@ public:
 							 size_t nLen,
 							 const WCHAR* pwszCharset,
 							 const WCHAR* pwszEncoding,
-							 bool bOneBlock);
+							 bool bOneBlock,
+							 bool bFallbackToUtf8);
 	static string_ptr convertToUTF8(const CHAR* psz);
 	static bool isSpecial(CHAR c);
 	static Part::Field parseError();
 
 private:
+	static string_ptr encode(const WCHAR* pwsz,
+							 size_t nLen,
+							 const WCHAR* pwszCharset,
+							 const WCHAR* pwszEncoding,
+							 bool bOneBlock);
 	static string_ptr encodeLine(const WCHAR* pwsz,
 								 size_t nLen,
 								 const WCHAR* pwszCharset,

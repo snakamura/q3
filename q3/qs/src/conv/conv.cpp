@@ -884,10 +884,8 @@ size_t qs::MLangConverter::encodeImpl(const WCHAR* pwsz,
 	UINT nDstLen = 0;
 	hr = pImpl_->pMultiLanguage_->ConvertStringFromUnicode(&dwMode,
 		pImpl_->dwEncoding_, const_cast<WCHAR*>(pwsz), &nSrcLen, 0, &nDstLen);
-	if (FAILED(hr))
+	if (hr != S_OK)
 		return -1;
-	else if (hr == S_FALSE)
-		return 0;
 	
 	XStringBufferLock<XSTRING> lock(pBuf, nDstLen + 1);
 	CHAR* pLock = lock.get();
@@ -925,10 +923,8 @@ size_t qs::MLangConverter::decodeImpl(const CHAR* psz,
 	UINT nDstLen = 0;
 	hr = pImpl_->pMultiLanguage_->ConvertStringToUnicode(&dwMode,
 		pImpl_->dwEncoding_, const_cast<CHAR*>(psz), &nSrcLen, 0, &nDstLen);
-	if (FAILED(hr))
+	if (hr != S_OK)
 		return -1;
-	else if (hr == S_FALSE)
-		return 0;
 	
 	XStringBufferLock<WXSTRING> lock(pBuf, nDstLen + 1);
 	WCHAR* pLock = lock.get();

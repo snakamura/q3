@@ -534,6 +534,46 @@ string_ptr qs::FieldParser::encode(const WCHAR* pwsz,
 								   size_t nLen,
 								   const WCHAR* pwszCharset,
 								   const WCHAR* pwszEncoding,
+								   bool bOneBlock,
+								   bool bFallbackToUtf8)
+{
+	string_ptr str = encode(pwsz, nLen, pwszCharset, pwszEncoding, bOneBlock);
+	if (!str.get() && bFallbackToUtf8 && _wcsicmp(pwszCharset, L"utf-8") != 0)
+		str = encode(pwsz, nLen, L"utf-8", L"B", bOneBlock);
+	return str;
+}
+
+string_ptr qs::FieldParser::convertToUTF8(const CHAR* psz)
+{
+	std::auto_ptr<Converter> pConverter(
+		ConverterFactory::getInstance(Part::getDefaultCharset()));
+	if (!pConverter.get())
+		return 0;
+	
+	size_t nEncodedLen = strlen(psz);
+	wxstring_size_ptr decoded(pConverter->decode(psz, &nEncodedLen));
+	if (!decoded.get())
+		return 0;
+	
+	size_t nDecodedLen = decoded.size();
+	xstring_size_ptr str(UTF8Converter().encode(decoded.get(), &nDecodedLen));
+	return allocString(str.get(), str.size());
+}
+
+bool qs::FieldParser::isSpecial(CHAR c)
+{
+	return Tokenizer::isSpecial(c, Tokenizer::F_SPECIAL | Tokenizer::F_TSPECIAL | Tokenizer::F_ESPECIAL);
+}
+
+Part::Field qs::FieldParser::parseError()
+{
+	return Part::FIELD_ERROR;
+}
+
+string_ptr qs::FieldParser::encode(const WCHAR* pwsz,
+								   size_t nLen,
+								   const WCHAR* pwszCharset,
+								   const WCHAR* pwszEncoding,
 								   bool bOneBlock)
 {
 	assert(pwsz);
@@ -592,38 +632,13 @@ string_ptr qs::FieldParser::encode(const WCHAR* pwsz,
 			string_ptr str(encodeLine(lines[n].first,
 				lines[n].second - lines[n].first, pwszCharset, pConverter.get(),
 				pwszEncodingSymbol, pEncoder.get(), bOneBlock));
+			if (!str.get())
+				return 0;
 			buf.append(str.get());
 		}
 	}
 	
 	return buf.getString();
-}
-
-string_ptr qs::FieldParser::convertToUTF8(const CHAR* psz)
-{
-	std::auto_ptr<Converter> pConverter(
-		ConverterFactory::getInstance(Part::getDefaultCharset()));
-	if (!pConverter.get())
-		return 0;
-	
-	size_t nEncodedLen = strlen(psz);
-	wxstring_size_ptr decoded(pConverter->decode(psz, &nEncodedLen));
-	if (!decoded.get())
-		return 0;
-	
-	size_t nDecodedLen = decoded.size();
-	xstring_size_ptr str(UTF8Converter().encode(decoded.get(), &nDecodedLen));
-	return allocString(str.get(), str.size());
-}
-
-bool qs::FieldParser::isSpecial(CHAR c)
-{
-	return Tokenizer::isSpecial(c, Tokenizer::F_SPECIAL | Tokenizer::F_TSPECIAL | Tokenizer::F_ESPECIAL);
-}
-
-Part::Field qs::FieldParser::parseError()
-{
-	return Part::FIELD_ERROR;
 }
 
 string_ptr qs::FieldParser::encodeLine(const WCHAR* pwsz,
@@ -690,13 +705,13 @@ string_ptr qs::FieldParser::encodeLine(const WCHAR* pwsz,
 			size_t nLen = i.second - i.first;
 			xstring_size_ptr converted(pConverter->encode(i.first, &nLen));
 			if (!converted.get())
-				QTHROW_BADALLOC();
+				return 0;
 			
 			malloc_size_ptr<unsigned char> encoded(pEncoder->encode(
 				reinterpret_cast<const unsigned char*>(converted.get()),
 				converted.size()));
 			if (!encoded.get())
-				QTHROW_BADALLOC();
+				return 0;
 			
 			buf.append("=?");
 			buf.append(strCharset.get());
@@ -772,7 +787,7 @@ string_ptr qs::UnstructuredParser::unparse(const Part& part) const
 	}
 	
 	wstring_ptr wstrFoldedValue(foldValue(wstrValue_.get()));
-	return encode(wstrFoldedValue.get(), -1, pwszCharset, 0, false);
+	return encode(wstrFoldedValue.get(), -1, pwszCharset, 0, false, true);
 }
 
 wstring_ptr qs::UnstructuredParser::foldValue(const WCHAR* pwszValue) const
@@ -1023,7 +1038,9 @@ string_ptr qs::DummyParser::unparse(const Part& part) const
 					if (pBegin != wstrValue_.get() && *pBegin == L' ')
 						++pBegin;
 					string_ptr str(encode(pBegin, p - pBegin,
-						wstrCharset.get(), 0, false));
+						wstrCharset.get(), 0, false, true));
+					if (!str.get())
+						return 0;
 					buf.append(str.get());
 					buf.append(' ');
 				}
@@ -1035,7 +1052,10 @@ string_ptr qs::DummyParser::unparse(const Part& part) const
 		++pEnd;
 	}
 	if (pBegin != pEnd) {
-		string_ptr str(encode(pBegin, pEnd - pBegin, wstrCharset.get(), 0, false));
+		string_ptr str(encode(pBegin, pEnd - pBegin,
+			wstrCharset.get(), 0, false, true));
+		if (!str.get())
+			return 0;
 		buf.append(str.get());
 	}
 	
@@ -1236,7 +1256,7 @@ string_ptr qs::SimpleParser::unparse(const Part& part) const
 {
 	if (nFlags_ & FLAG_DECODE) {
 		wstring_ptr wstrCharset(part.getHeaderCharset());
-		return encode(wstrValue_.get(), -1, wstrCharset.get(), 0, true);
+		return encode(wstrValue_.get(), -1, wstrCharset.get(), 0, true, true);
 	}
 	else {
 		if (!FieldParserUtil<WSTRING>::isAscii(wstrValue_.get()))
@@ -1923,7 +1943,9 @@ string_ptr qs::AddressParser::unparse(const Part& part) const
 		}
 		else {
 			wstring_ptr wstrCharset(part.getHeaderCharset());
-			string_ptr str(encode(wstrPhrase_.get(), -1, wstrCharset.get(), 0, true));
+			string_ptr str(encode(wstrPhrase_.get(), -1, wstrCharset.get(), 0, true, true));
+			if (!str.get())
+				return 0;
 			buf.append(str.get());
 		}
 	}
@@ -2640,6 +2662,8 @@ string_ptr qs::AddressListParser::unparse(const Part& part) const
 		if (it != listAddress_.begin())
 			buf.append(",\r\n ");
 		string_ptr str((*it)->unparse(part));
+		if (!str.get())
+			return 0;
 		buf.append(str.get());
 	}
 	
@@ -3265,7 +3289,9 @@ string_ptr qs::ParameterFieldParser::unparseParameter(const Part& part) const
 		}
 		else if (part.isOption(Part::O_ALLOW_ENCODED_PARAMETER)) {
 			wstring_ptr wstrCharset(part.getHeaderCharset());
-			strValue = encode(pwsz, -1, wstrCharset.get(), 0, true);
+			strValue = encode(pwsz, -1, wstrCharset.get(), 0, true, true);
+			if (!strValue.get())
+				return 0;
 			strParamValue = concat("\"", strValue.get(), "\"");
 		}
 		
