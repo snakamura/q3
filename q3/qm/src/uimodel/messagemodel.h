@@ -194,6 +194,7 @@ protected:
 
 private:
 	void updateToViewModel(bool bClearMessage);
+	void killTimer();
 
 private:
 	PreviewMessageModel(const PreviewMessageModel&);

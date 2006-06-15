@@ -259,10 +259,7 @@ void qm::PreviewMessageModel::disconnectFromViewModel()
 {
 	assert(bConnectedToViewModel_);
 	
-	if (bTimer_) {
-		pTimer_->killTimer(TIMER_ITEMSTATECHANGED);
-		bTimer_ = false;
-	}
+	killTimer();
 	
 	pViewModelManager_->removeViewModelManagerHandler(this);
 	setViewModel(0);
@@ -292,10 +289,7 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 	assert(pViewModel == event.getViewModel());
 	
 	if (event.getItem() == pViewModel->getFocused()) {
-		if (bTimer_) {
-			pTimer_->killTimer(TIMER_ITEMSTATECHANGED);
-			bTimer_ = false;
-		}
+		killTimer();
 		if (event.isDelay() && nDelay_ != 0)
 			bTimer_ = pTimer_->setTimer(TIMER_ITEMSTATECHANGED, nDelay_, this);
 		else
@@ -310,6 +304,8 @@ void qm::PreviewMessageModel::updated(const ViewModelEvent& event)
 
 void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)
 {
+	killTimer();
+	
 	ViewModel* pOldViewModel = getViewModel();
 	assert(pOldViewModel == event.getOldViewModel());
 	
@@ -340,8 +336,7 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 
 void qm::PreviewMessageModel::timerTimeout(Timer::Id nId)
 {
-	pTimer_->killTimer(TIMER_ITEMSTATECHANGED);
-	bTimer_ = false;
+	killTimer();
 	updateToViewModel();
 }
 
@@ -365,6 +360,15 @@ void qm::PreviewMessageModel::updateToViewModel(bool bClearMessage)
 	MessagePtrLock mpl(getCurrentMessage());
 	if (pmh != mpl)
 		setMessage(bClearMessage ? 0 : pmh);
+}
+
+void qm::PreviewMessageModel::killTimer()
+{
+	if (!bTimer_)
+		return;
+	
+	pTimer_->killTimer(TIMER_ITEMSTATECHANGED);
+	bTimer_ = false;
 }
 
 
