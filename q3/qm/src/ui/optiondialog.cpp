@@ -3116,7 +3116,12 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		ComboBox_AddString(getDlgItem(IDC_ACTION), ptszType);
 	}
 	
-	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
+	std::sort(listAccount.begin(), listAccount.end(),
+		binary_compose_f_gx_hy(
+			string_less_i<WCHAR>(),
+			std::mem_fun(&Account::getName),
+			std::mem_fun(&Account::getName)));
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
@@ -4731,7 +4736,12 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
-	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
+	std::sort(listAccount.begin(), listAccount.end(),
+		binary_compose_f_gx_hy(
+			string_less_i<WCHAR>(),
+			std::mem_fun(&Account::getName),
+			std::mem_fun(&Account::getName)));
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
@@ -4903,7 +4913,7 @@ void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
 		Account::SubAccountList l(pAccount->getSubAccounts());
 		std::sort(l.begin(), l.end(),
 			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
+				string_less_i<WCHAR>(),
 				std::mem_fun(&SubAccount::getName),
 				std::mem_fun(&SubAccount::getName)));
 		for (Account::SubAccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -5221,8 +5231,13 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 {
 	setDlgItemText(IDC_NAME, pSignature_->getName());
 	
-	const AccountManager::AccountList& l = pAccountManager_->getAccounts();
-	for (AccountManager::AccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
+	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
+	std::sort(listAccount.begin(), listAccount.end(),
+		binary_compose_f_gx_hy(
+			string_less_i<WCHAR>(),
+			std::mem_fun(&Account::getName),
+			std::mem_fun(&Account::getName)));
+	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		W2T((*it)->getName(), ptszName);
 		ComboBox_AddString(getDlgItem(IDC_ACCOUNT), ptszName);
 	}

@@ -226,7 +226,12 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onInitDialog(HWND
 	wstring_ptr wstrTitle(loadString(hInst, nTitleId_));
 	setWindowText(wstrTitle.get());
 	
-	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
+	std::sort(listAccount.begin(), listAccount.end(),
+		binary_compose_f_gx_hy(
+			string_less_i<WCHAR>(),
+			std::mem_fun(&Account::getName),
+			std::mem_fun(&Account::getName)));
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
