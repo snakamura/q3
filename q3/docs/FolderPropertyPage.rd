@@ -38,6 +38,8 @@ IMAP4ƒAƒJƒEƒ“ƒg‚ÌƒŠƒ‚[ƒgƒtƒHƒ‹ƒ_‚âNNTPƒAƒJƒEƒ“ƒg‚Ì“¯Šú‰Â”\‚ÈƒtƒHƒ‹ƒ_‚Å‚ÍA“¯ŠúŽ
 +[–¢“Ç‚ð–³Ž‹‚·‚é]
 ƒ`ƒFƒbƒN‚·‚é‚Æ‚±‚ÌƒtƒHƒ‹ƒ_“à‚Ì–¢“ÇƒƒbƒZ[ƒW‚ð–³Ž‹‚µ‚Ü‚·BƒtƒHƒ‹ƒ_‚É–¢“Çƒ}[ƒN‚ª•t‚©‚È‚­‚È‚èA((<[•\Ž¦]-[ŽŸ‚Ì–¢“ÇƒƒbƒZ[ƒW]|URL:ViewNextUnseenMessageAction.html>))‚Å–¢“ÇƒƒbƒZ[ƒW‚ð’T‚·‚Æ‚«‚É‚à‚±‚ÌƒtƒHƒ‹ƒ_“à‚ÌƒƒbƒZ[ƒW‚Í–³Ž‹‚µ‚Ü‚·B
 
+‚Ü‚½A((<V’…ƒƒbƒZ[ƒW’Ê’m|URL:Recents.html>))‚ÌŽž‚É‚à‚±‚Ìƒ`ƒFƒbƒN‚ª•t‚¢‚½ƒtƒHƒ‹ƒ_“à‚ÌƒƒbƒZ[ƒW‚Í–³Ž‹‚³‚ê‚Ü‚·B
+
 
 ====[ƒ^ƒCƒv]
 “ÁŽêƒtƒHƒ‹ƒ_‚ÌŽw’è‚ð‚µ‚Ü‚·B“ÁŽêƒtƒHƒ‹ƒ_‚É‚Â‚¢‚Ä‚ÍA((<ƒtƒHƒ‹ƒ_|URL:Folder.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
