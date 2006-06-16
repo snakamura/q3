@@ -430,6 +430,8 @@ private:
 	void fireItemRemoved() const;
 	void fireItemChanged(unsigned int nItem) const;
 	void fireItemStateChanged(unsigned int nItem,
+							  unsigned int nFlags,
+							  unsigned int nMask,
 							  bool bDelay) const;
 	void fireItemAttentionPaid(unsigned int nItem) const;
 	void fireUpdated() const;
@@ -536,12 +538,16 @@ public:
 				   unsigned int nItem);
 	ViewModelEvent(const ViewModel* pViewModel,
 				   unsigned int nItem,
+				   unsigned int nFlags,
+				   unsigned int nMask,
 				   bool bDelay);
 	~ViewModelEvent();
 
 public:
 	const ViewModel* getViewModel() const;
 	unsigned int getItem() const;
+	unsigned int getFlags() const;
+	unsigned int getMask() const;
 	bool isDelay() const;
 
 private:
@@ -551,6 +557,8 @@ private:
 private:
 	const ViewModel* pViewModel_;
 	unsigned int nItem_;
+	unsigned int nFlags_;
+	unsigned int nMask_;
 	bool bDelay_;
 };
 

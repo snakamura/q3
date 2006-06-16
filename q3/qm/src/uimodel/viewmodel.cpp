@@ -653,7 +653,8 @@ void qm::ViewModel::addSelection(unsigned int n)
 	ViewModelItem* pItem = listItem_[n];
 	if (!(pItem->getFlags() & ViewModelItem::FLAG_SELECTED)) {
 		pItem->setFlags(ViewModelItem::FLAG_SELECTED, ViewModelItem::FLAG_SELECTED);
-		fireItemStateChanged(n, true);
+		fireItemStateChanged(n, ViewModelItem::FLAG_SELECTED,
+			ViewModelItem::FLAG_SELECTED, true);
 	}
 }
 
@@ -679,7 +680,7 @@ void qm::ViewModel::removeSelection(unsigned int n)
 	ViewModelItem* pItem = listItem_[n];
 	if (pItem->getFlags() & ViewModelItem::FLAG_SELECTED) {
 		pItem->setFlags(0, ViewModelItem::FLAG_SELECTED);
-		fireItemStateChanged(n, true);
+		fireItemStateChanged(n, 0, ViewModelItem::FLAG_SELECTED, true);
 	}
 }
 
@@ -798,8 +799,9 @@ void qm::ViewModel::setFocused(unsigned int n,
 		listItem_[nFocused_]->setFlags(ViewModelItem::FLAG_FOCUSED,
 			ViewModelItem::FLAG_FOCUSED);
 		
-		fireItemStateChanged(nOld, bDelay);
-		fireItemStateChanged(n, bDelay);
+		fireItemStateChanged(nOld, 0, ViewModelItem::FLAG_FOCUSED, bDelay);
+		fireItemStateChanged(n, ViewModelItem::FLAG_FOCUSED,
+			ViewModelItem::FLAG_FOCUSED, bDelay);
 	}
 }
 
@@ -1427,9 +1429,12 @@ void qm::ViewModel::fireItemChanged(unsigned int nItem) const
 }
 
 void qm::ViewModel::fireItemStateChanged(unsigned int nItem,
+										 unsigned int nFlags,
+										 unsigned int nMask,
 										 bool bDelay) const
 {
-	fireEvent(ViewModelEvent(this, nItem, bDelay), &ViewModelHandler::itemStateChanged);
+	fireEvent(ViewModelEvent(this, nItem, nFlags, nMask, bDelay),
+		 &ViewModelHandler::itemStateChanged);
 }
 
 void qm::ViewModel::fireItemAttentionPaid(unsigned int nItem) const
@@ -1575,6 +1580,8 @@ void qm::DefaultViewModelHandler::destroyed(const ViewModelEvent& event)
 qm::ViewModelEvent::ViewModelEvent(const ViewModel* pViewModel) :
 	pViewModel_(pViewModel),
 	nItem_(-1),
+	nFlags_(0),
+	nMask_(0),
 	bDelay_(true)
 {
 }
@@ -1583,15 +1590,21 @@ qm::ViewModelEvent::ViewModelEvent(const ViewModel* pViewModel,
 								   unsigned int nItem) :
 	pViewModel_(pViewModel),
 	nItem_(nItem),
+	nFlags_(0),
+	nMask_(0),
 	bDelay_(true)
 {
 }
 
 qm::ViewModelEvent::ViewModelEvent(const ViewModel* pViewModel,
 								   unsigned int nItem,
+								   unsigned int nFlags,
+								   unsigned int nMask,
 								   bool bDelay) :
 	pViewModel_(pViewModel),
 	nItem_(nItem),
+	nFlags_(nFlags),
+	nMask_(nMask),
 	bDelay_(bDelay)
 {
 }
@@ -1608,6 +1621,16 @@ const ViewModel* qm::ViewModelEvent::getViewModel() const
 unsigned int qm::ViewModelEvent::getItem() const
 {
 	return nItem_;
+}
+
+unsigned int qm::ViewModelEvent::getFlags() const
+{
+	return nFlags_;
+}
+
+unsigned int qm::ViewModelEvent::getMask() const
+{
+	return nMask_;
 }
 
 bool qm::ViewModelEvent::isDelay() const

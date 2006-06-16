@@ -285,6 +285,9 @@ void qm::PreviewMessageModel::save() const
 
 void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 {
+	if (!(event.getMask() & ViewModelItem::FLAG_FOCUSED))
+		return;
+	
 	ViewModel* pViewModel = getViewModel();
 	assert(pViewModel == event.getViewModel());
 	
