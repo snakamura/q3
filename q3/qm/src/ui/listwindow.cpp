@@ -536,7 +536,7 @@ unsigned int qm::ListWindowImpl::getLineFromPoint(const POINT& pt) const
 	
 	unsigned int nLine = (pt.y - pHeaderColumn_->getHeight())/
 		nLineHeight_ + pThis_->getScrollPos(SB_VERT);
-	return nLine < pViewModel->getCount() ? nLine : static_cast<unsigned int>(-1);
+	return nLine < pViewModel->getCount() ? nLine : -1;
 }
 
 void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
@@ -1393,7 +1393,7 @@ LRESULT qm::ListWindow::onLButtonDblClk(UINT nFlags,
 			Lock<ViewModel> lock(*pViewModel);
 			
 			unsigned int nLine = pImpl_->getLineFromPoint(pt);
-			if (nLine != static_cast<unsigned int>(-1)) {
+			if (nLine != -1) {
 				if (!pImpl_->pMessageFrameWindowManager_->open(
 					pViewModel, pViewModel->getMessageHolder(nLine)))
 					messageBox(Application::getApplication().getResourceHandle(),
@@ -1480,7 +1480,7 @@ LRESULT qm::ListWindow::onLButtonUp(UINT nFlags,
 		Lock<ViewModel> lock(*pViewModel);
 		
 		unsigned int nLine = pImpl_->getLineFromPoint(pt);
-		if (nLine != static_cast<unsigned int>(-1)) {
+		if (nLine != -1) {
 			bool bSelected = pViewModel->isSelected(nLine);
 			
 			if (bSelected && !(nFlags & MK_SHIFT) && !(nFlags & MK_CONTROL))
@@ -1570,7 +1570,7 @@ LRESULT qm::ListWindow::onRButtonDown(UINT nFlags,
 		Lock<ViewModel> lock(*pViewModel);
 		
 		unsigned int nLine = pImpl_->getLineFromPoint(pt);
-		if (nLine != static_cast<unsigned int>(-1)) {
+		if (nLine != -1) {
 			bool bSelected = pViewModel->isSelected(nLine);
 			
 			if ((nFlags & MK_SHIFT) == 0 && (nFlags & MK_CONTROL) == 0) {
@@ -1595,7 +1595,7 @@ LRESULT qm::ListWindow::onRButtonUp(UINT nFlags,
 		Lock<ViewModel> lock(*pViewModel);
 		
 		unsigned int nLine = pImpl_->getLineFromPoint(pt);
-		if (nLine != static_cast<unsigned int>(-1)) {
+		if (nLine != -1) {
 			bool bSelected = pViewModel->isSelected(nLine);
 			
 			if (!bSelected && nFlags & MK_SHIFT)
