@@ -55,6 +55,7 @@ typedef struct {                         /* type of structure for a database han
   int ioff;                              /* offset of the iterator */
   int *fbpool;                           /* free block pool */
   int fbpsiz;                            /* size of the free block pool */
+  int fbpinc;                            /* incrementor of update of the free block pool */
   int align;                             /* basic size of alignment */
 } DEPOT;
 
@@ -376,6 +377,24 @@ int dpexportdb(DEPOT *depot, const char *name);
 int dpimportdb(DEPOT *depot, const char *name);
 
 
+/* Retrieve a record directly from a database file.
+   `name' specifies the name of a database file.
+   `kbuf' specifies the pointer to the region of a key.
+   `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
+   with `strlen(kbuf)'.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the value of the
+   corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to
+   the specified key.
+   Because an additional zero code is appended at the end of the region of the return value,
+   the return value can be treated as a character string.  Because the region of the return
+   value is allocated with the `malloc' call, it should be released with the `free' call if it
+   is no longer in use.  Although this function can be used even while the database file is
+   locked by another process, it is not assured that recent updated is reflected. */
+char *dpsnaffle(const char *name, const char *kbuf, int ksiz, int *sp);
+
+
 /* Hash function used inside Depot.
    `kbuf' specifies the pointer to the region of a key.
    `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
@@ -408,8 +427,8 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.50"
-#define _QDBM_LIBVER   1211
+#define _QDBM_VERSION  "1.8.59"
+#define _QDBM_LIBVER   1220
 
 
 /* Name of the operating system. */

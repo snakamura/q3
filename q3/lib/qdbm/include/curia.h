@@ -334,6 +334,24 @@ int crexportdb(CURIA *curia, const char *name);
 int crimportdb(CURIA *curia, const char *name);
 
 
+/* Retrieve a record directly from a database directory.
+   `name' specifies the name of a database directory.
+   `kbuf' specifies the pointer to the region of a key.
+   `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
+   with `strlen(kbuf)'.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the value of the
+   corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to
+   the specified key.
+   Because an additional zero code is appended at the end of the region of the return value,
+   the return value can be treated as a character string.  Because the region of the return
+   value is allocated with the `malloc' call, it should be released with the `free' call if it
+   is no longer in use.  Although this function can be used even while the database directory is
+   locked by another process, it is not assured that recent updated is reflected. */
+char *crsnaffle(const char *name, const char *kbuf, int ksiz, int *sp);
+
+
 /* Store a large object.
    `curia' specifies a database handle connected as a writer.
    `kbuf' specifies the pointer to the region of a key.

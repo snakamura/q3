@@ -1,12 +1,12 @@
-diff -uNr qdbm-1.8.50.orig/VCmakefile qdbm-1.8.50/VCmakefile
---- qdbm-1.8.50.orig/VCmakefile	2006-01-07 19:13:08.000000000 +0900
-+++ qdbm-1.8.50/VCmakefile	2006-05-03 13:56:56.005446400 +0900
+diff -uNr qdbm-1.8.59.orig/VCmakefile qdbm-1.8.59/VCmakefile
+--- qdbm-1.8.59.orig/VCmakefile	2006-01-07 19:13:08.000000000 +0900
++++ qdbm-1.8.59/VCmakefile	2006-06-16 09:04:03.231125000 +0900
 @@ -18,7 +18,7 @@
  # Configurations
  !IF "$(CFG)" == "ld"
  !MESSAGE Build using static debug configuration
 -BASE_FLAGS = /MLd /W3 /ZI /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
-+BASE_FLAGS = /MLd /W3 /Zi /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
++BASE_FLAGS = /MLd /W3 /Zi /Od /FD /RTC1 /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
  BASE_DEFS = /D_DEBUG /D__DEBUG__
  OUTDIR = .\tmp_ld
  LIB_APPEND = _ld
@@ -15,7 +15,7 @@ diff -uNr qdbm-1.8.50.orig/VCmakefile qdbm-1.8.50/VCmakefile
  !ELSEIF "$(CFG)" == "td"
  !MESSAGE Build using static threaded debug configuration
 -BASE_FLAGS = /MTd /W3 /ZI /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
-+BASE_FLAGS = /MTd /W3 /Zi /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
++BASE_FLAGS = /MTd /W3 /Zi /Od /FD /RTC1 /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
  BASE_DEFS = /D_DEBUG /D__DEBUG__
  OUTDIR = .\tmp_td
  LIB_APPEND = _td
@@ -24,7 +24,7 @@ diff -uNr qdbm-1.8.50.orig/VCmakefile qdbm-1.8.50/VCmakefile
  !ELSEIF "$(CFG)" == "dd"
  !MESSAGE Build using dynamic threaded debug configuration
 -BASE_FLAGS = /MDd /W3 /ZI /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
-+BASE_FLAGS = /MDd /W3 /Zi /Od /FD /GZ /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
++BASE_FLAGS = /MDd /W3 /Zi /Od /FD /RTC1 /Fo"$(OUTDIR)\\" /Fd"$(OUTDIR)\\"
  BASE_DEFS = /D_DEBUG /D__DEBUG__
 -OUTDIR = .\tmp_dd
 -LIB_APPEND = _dd
@@ -50,18 +50,21 @@ diff -uNr qdbm-1.8.50.orig/VCmakefile qdbm-1.8.50/VCmakefile
    /nologo $(YOUR_LINKFLAGS)
  
  # Targets
-@@ -120,7 +120,7 @@
+@@ -120,9 +120,9 @@
  	-rd tmp_l /S /Q > NUL: 2>&1
  	-rd tmp_td /S /Q > NUL: 2>&1
  	-rd tmp_t /S /Q > NUL: 2>&1
 -	-rd tmp_dd /S /Q > NUL: 2>&1
 +	-rd tmpd /S /Q > NUL: 2>&1
  	-rd tmp /S /Q > NUL: 2>&1
- 	-del *.obj *.lib *.dll *.exp *.exe casket /F /Q > NUL: 2>&1
+-	-del *.obj *.lib *.dll *.exp *.exe casket /F /Q > NUL: 2>&1
++	-del *.obj *.lib *.dll *.exp *.exe *.manifest casket /F /Q > NUL: 2>&1
  
-diff -uNr qdbm-1.8.50.orig/VCmakefile64 qdbm-1.8.50/VCmakefile64
---- qdbm-1.8.50.orig/VCmakefile64	1970-01-01 09:00:00.000000000 +0900
-+++ qdbm-1.8.50/VCmakefile64	2006-05-03 13:56:27.302505100 +0900
+ 
+ "$(OUTDIR)" :
+diff -uNr qdbm-1.8.59.orig/VCmakefile64 qdbm-1.8.59/VCmakefile64
+--- qdbm-1.8.59.orig/VCmakefile64	1970-01-01 09:00:00.000000000 +0900
++++ qdbm-1.8.59/VCmakefile64	2006-06-16 09:04:16.403000000 +0900
 @@ -0,0 +1,248 @@
 +# Makefile to build QDBM using Microsoft Visual C++
 +
@@ -187,7 +190,7 @@ diff -uNr qdbm-1.8.50.orig/VCmakefile64 qdbm-1.8.50/VCmakefile64
 +	-rd tmp_t /S /Q > NUL: 2>&1
 +	-rd tmpd /S /Q > NUL: 2>&1
 +	-rd tmp /S /Q > NUL: 2>&1
-+	-del *.obj *.lib *.dll *.exp *.exe casket /F /Q > NUL: 2>&1
++	-del *.obj *.lib *.dll *.exp *.exe *.manifest casket /F /Q > NUL: 2>&1
 +
 +
 +"$(OUTDIR)" :
@@ -311,22 +314,3 @@ diff -uNr qdbm-1.8.50.orig/VCmakefile64 qdbm-1.8.50/VCmakefile64
 +
 +
 +# END OF FILE
-diff -uNr qdbm-1.8.50.orig/qdbm.def qdbm-1.8.50/qdbm.def
---- qdbm-1.8.50.orig/qdbm.def	2006-03-19 20:24:19.000000000 +0900
-+++ qdbm-1.8.50/qdbm.def	2006-05-03 13:47:47.274583300 +0900
-@@ -45,6 +45,7 @@
-   cbdirlist = cbdirlist
-   cbencname = cbencname
-   cbfilestat = cbfilestat
-+  cbfree = cbfree
-   cbgetcrc = cbgetcrc
-   cbggcsweep = cbggcsweep
-   cbglobalgc = cbglobalgc
-@@ -129,6 +130,7 @@
-   cburlbreak = cburlbreak
-   cburldecode = cburldecode
-   cburlencode = cburlencode
-+  cburlresolve = cburlresolve
-   cbvmemavail = cbvmemavail
-   cbwritefile = cbwritefile
-   cbxmlattrs = cbxmlattrs

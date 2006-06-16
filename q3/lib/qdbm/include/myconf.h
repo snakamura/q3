@@ -58,6 +58,16 @@ extern "C" {
 #define _SYS_HPUX_
 #define _QDBM_SYSNAME  "HP-UX"
 
+#elif defined(__osf)
+
+#define _SYS_TRU64_
+#define _QDBM_SYSNAME  "Tru64"
+
+#elif defined(_AIX)
+
+#define _SYS_AIX_
+#define _QDBM_SYSNAME  "AIX"
+
 #elif defined(__APPLE__) && defined(__MACH__)
 
 #define _SYS_MACOSX_
@@ -217,6 +227,7 @@ extern "C" {
 
 #if defined(_SYS_MSVC_) || defined(_SYS_MINGW_) || defined(_SYS_CYGWIN_)
 
+#undef UNICODE
 #undef open
 
 #define \
@@ -293,7 +304,7 @@ void *_qdbm_settsd(void *ptr, int size, const void *initval);
 
 #if defined(_SYS_MSVC_) || defined(_SYS_MINGW_) || \
   defined(_SYS_FREEBSD_) || defined(_SYS_NETBSD_) || defined(_SYS_OPENBSD_) || \
-  defined(_SYS_RISCOS_) || defined(MYNOMMAP)
+  defined(_SYS_AIX_) || defined(_SYS_RISCOS_) || defined(MYNOMMAP)
 
 #undef PROT_EXEC
 #undef PROT_READ

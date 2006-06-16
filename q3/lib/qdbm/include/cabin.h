@@ -57,16 +57,16 @@ typedef struct {                         /* type of structure for a list */
   int num;                               /* number of using elements */
 } CBLIST;
 
-typedef struct {                         /* type of structure for an element of a map */
+typedef struct _CBMAPDATUM {             /* type of structure for an element of a map */
   char *kbuf;                            /* pointer to the region of the key */
   int ksiz;                              /* size of the region of the key */
   char *vbuf;                            /* pointer to the region of the value */
   int vsiz;                              /* size of the region of the value */
   int hash;                              /* second hash value */
-  char *left;                            /* pointer to the left child */
-  char *right;                           /* pointer to the right child */
-  char *prev;                            /* pointer to the previous element */
-  char *next;                            /* pointer to the next element */
+  struct _CBMAPDATUM *left;              /* pointer to the left child */
+  struct _CBMAPDATUM *right;             /* pointer to the right child */
+  struct _CBMAPDATUM *prev;              /* pointer to the previous element */
+  struct _CBMAPDATUM *next;              /* pointer to the next element */
 } CBMAPDATUM;
 
 typedef struct {                         /* type of structure for a map */
@@ -730,7 +730,14 @@ CBLIST *cbdirlist(const char *name);
    assigned.  If it is `NULL', it is not used.
    If successful, the return value is true, else, false.  False is returned when the file does
    not exist or the permission is denied. */
-int cbfilestat(const char *name, int *isdirp, int *sizep, int *mtimep);
+int cbfilestat(const char *name, int *isdirp, int *sizep, time_t *mtimep);
+
+
+/* Remove a file or a directory and its sub ones recursively.
+   `name' specifies the name of a file or a directory.
+   If successful, the return value is true, else, false.  False is returned when the file does
+   not exist or the permission is denied. */
+int cbremove(const char *name);
 
 
 /* Break up a URL into elements.
@@ -1143,7 +1150,9 @@ char *cbdatestrhttp(time_t t, int jl);
 
 /* Get the time value of a date string in decimal, hexadecimal, W3CDTF, or RFC 822 (1123).
    `str' specifies a date string in decimal, hexadecimal, W3CDTF, or RFC 822 (1123).
-   The return value is the time value of the date or -1 if the format is invalid. */
+   The return value is the time value of the date or -1 if the format is invalid.
+   Decimal can be trailed by "s" for in seconds, "m" for in minutes, "h" for in hours,
+   and "d" for in days. */
 time_t cbstrmktime(const char *str);
 
 

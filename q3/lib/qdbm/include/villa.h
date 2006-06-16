@@ -109,6 +109,13 @@ typedef struct {                         /* type of structure for a database han
   int rbrnum;                            /* rnum for rollback */
 } VILLA;
 
+typedef struct {                         /* type of structure for a multiple cursor handle */
+  VILLA *villa;                          /* database handle */
+  int curleaf;                           /* ID number of the leaf where the cursor is */
+  int curknum;                           /* index of the key where the cursor is */
+  int curvnum;                           /* index of the value where the cursor is */
+} VLMULCUR;
+
 enum {                                   /* enumeration for open modes */
   VL_OREADER = 1 << 0,                   /* open as a reader */
   VL_OWRITER = 1 << 1,                   /* open as a writer */
@@ -323,7 +330,7 @@ int vlcurprev(VILLA *villa);
 int vlcurnext(VILLA *villa);
 
 
-/* Move the cursor to position around a record.
+/* Move the cursor to a position around a record.
    `villa' specifies a database handle.
    `kbuf' specifies the pointer to the region of a key.
    `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
@@ -401,6 +408,15 @@ int vlcurout(VILLA *villa);
    The default setting is equivalent to `vlsettuning(49, 192, 1024, 512)'.  Because tuning
    parameters are not saved in a database, you should specify them every opening a database. */
 void vlsettuning(VILLA *villa, int lrecmax, int nidxmax, int lcnum, int ncnum);
+
+
+/* Set the size of the free block pool of a database handle.
+   `villa' specifies a database handle connected as a writer.
+   `size' specifies the size of the free block pool of a database.
+   If successful, the return value is true, else, it is false.
+   The default size of the free block pool is 256.  If the size is greater, the space efficiency
+   of overwriting values is improved with the time efficiency sacrificed. */
+int vlsetfbpsiz(VILLA *villa, int size);
 
 
 /* Synchronize updating contents with the file and the device.
@@ -539,6 +555,12 @@ int vlimportdb(VILLA *villa, const char *name);
  *************************************************************************************************/
 
 
+/* Synchronize updating contents on memory.
+   `villa' specifies a database handle connected as a writer.
+   If successful, the return value is true, else, it is false. */
+int vlmemsync(VILLA *villa);
+
+
 /* Refer to volatile cache of a value of a record.
    `villa' specifies a database handle.
    `kbuf' specifies the pointer to the region of a key.
@@ -579,13 +601,111 @@ const char *vlcurkeycache(VILLA *villa, int *sp);
 const char *vlcurvalcache(VILLA *villa, int *sp);
 
 
-/* Set the size of the free block pool of a database handle.
-   `villa' specifies a database handle connected as a writer.
-   `size' specifies the size of the free block pool of a database.
-   If successful, the return value is true, else, it is false.
-   The default size of the free block pool is 64.  If the size is greater, the space efficiency
-   of overwriting values is improved with the time efficiency sacrificed. */
-int vlsetfbpsiz(VILLA *villa, int size);
+/* Get a multiple cursor handle.
+   `villa' specifies a database handle connected as a reader.
+   The return value is a multiple cursor handle or `NULL' if it is not successful.
+   The returned object is should be closed before the database handle is closed. */
+VLMULCUR *vlmulcuropen(VILLA *villa);
+
+
+/* Close a multiple cursor handle.
+   `mulcur' specifies a multiple cursor handle. */
+void vlmulcurclose(VLMULCUR *mulcur);
+
+
+/* Move a multiple cursor to the first record.
+   `mulcur' specifies a multiple cursor handle.
+   If successful, the return value is true, else, it is false.  False is returned if there is
+   no record in the database. */
+int vlmulcurfirst(VLMULCUR *mulcur);
+
+
+/* Move a multiple cursor to the last record.
+   `mulcur' specifies a multiple cursor handle.
+   If successful, the return value is true, else, it is false.  False is returned if there is
+   no record in the database. */
+int vlmulcurlast(VLMULCUR *mulcur);
+
+
+/* Move a multiple cursor to the previous record.
+   `mulcur' specifies a multiple cursor handle.
+   If successful, the return value is true, else, it is false.  False is returned if there is
+   no previous record. */
+int vlmulcurprev(VLMULCUR *mulcur);
+
+
+/* Move a multiple cursor to the next record.
+   `mulcur' specifies a multiple cursor handle.
+   If successful, the return value is true, else, it is false.  False is returned if there is
+   no next record. */
+int vlmulcurnext(VLMULCUR *mulcur);
+
+
+/* Move a multiple cursor to a position around a record.
+   `mulcur' specifies a multiple cursor handle.
+   `kbuf' specifies the pointer to the region of a key.
+   `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
+   with `strlen(kbuf)'.
+   `jmode' specifies detail adjustment: `VL_JFORWARD', which means that the cursor is set to
+   the first record of the same key and that the cursor is set to the next substitute if
+   completely matching record does not exist, `VL_JBACKWARD', which means that the cursor is
+   set to the last record of the same key and that the cursor is set to the previous substitute
+   if completely matching record does not exist.
+   If successful, the return value is true, else, it is false.  False is returned if there is
+   no record corresponding the condition. */
+int vlmulcurjump(VLMULCUR *mulcur, const char *kbuf, int ksiz, int jmode);
+
+
+/* Get the key of the record where a multiple cursor is.
+   `mulcur' specifies a multiple cursor handle.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the key of the corresponding
+   record, else, it is `NULL'.  `NULL' is returned when no record corresponds to the cursor.
+   Because an additional zero code is appended at the end of the region of the
+   return value, the return value can be treated as a character string.  Because the region of
+   the return value is allocated with the `malloc' call, it should be released with the `free'
+   call if it is no longer in use. */
+char *vlmulcurkey(VLMULCUR *mulcur, int *sp);
+
+
+/* Get the value of the record where a multiple cursor is.
+   `mulcur' specifies a multiple cursor handle.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the value of the
+   corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to
+   the cursor.
+   Because an additional zero code is appended at the end of the region of the
+   return value, the return value can be treated as a character string.  Because the region of
+   the return value is allocated with the `malloc' call, it should be released with the `free'
+   call if it is no longer in use. */
+char *vlmulcurval(VLMULCUR *mulcur, int *sp);
+
+
+/* Refer to volatile cache of the key of the record where a multiple cursor is.
+   `mulcur' specifies a multiple cursor handle.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the key of the corresponding
+   record, else, it is `NULL'.  `NULL' is returned when no record corresponds to the cursor.
+   Because the region of the return value is volatile and it may be spoiled by another operation
+   of the database, the data should be copied into another involatile buffer immediately. */
+const char *vlmulcurkeycache(VLMULCUR *mulcur, int *sp);
+
+
+/* Refer to volatile cache of the value of the record where a multiple cursor is.
+   `mulcur' specifies a multiple cursor handle.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   If successful, the return value is the pointer to the region of the value of the
+   corresponding record, else, it is `NULL'.  `NULL' is returned when no record corresponds to
+   the cursor.
+   Because an additional zero code is appended at the end of the region of the
+   return value, the return value can be treated as a character string.  Because the region of
+   the return value is allocated with the `malloc' call, it should be released with the `free'
+   call if it is no longer in use. */
+const char *vlmulcurvalcache(VLMULCUR *mulcur, int *sp);
 
 
 /* Get flags of a database.
