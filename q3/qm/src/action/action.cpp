@@ -839,13 +839,6 @@ void qm::EditPasteMessageAction::invoke(const ActionEvent& event)
 		return;
 	}
 	
-	if (!pDocument_->isOffline() &&
-		!pFolder->isFlag(Folder::FLAG_LOCAL) &&
-		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
-		SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-			SyncData::TYPE_ACTIVE, pNormalFolder, 0);
-	}
 #ifdef _WIN32_WCE
 	Clipboard clipboard(0);
 	clipboard.empty();
@@ -1615,18 +1608,9 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 			ActionUtil::error(hwnd_, wstrMessage.get());
 			return;
 		}
-		if (!pDocument_->isOffline() &&
-			!pFolder->isFlag(Folder::FLAG_LOCAL) &&
-			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
-			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				SyncData::TYPE_ACTIVE, static_cast<NormalFolder*>(pFolder), 0);
-		}
-		else {
-			if (!pFolder->getAccount()->save(false)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
-				return;
-			}
+		if (!pFolder->getAccount()->save(false)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+			return;
 		}
 	}
 }

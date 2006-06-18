@@ -826,14 +826,6 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 								IDS_ERROR_IMPORT, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 						}
 					}
-					
-					if (!pDocument_->isOffline() &&
-						!pFolder->isFlag(Folder::FLAG_LOCAL) &&
-						pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-						pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
-						SyncUtil::syncFolder(pSyncManager_, pDocument_,
-							pSyncDialogManager_, SyncData::TYPE_ACTIVE, pNormalFolder, 0);
-					}
 				}
 			}
 #endif
