@@ -151,6 +151,7 @@ public:
 	std::auto_ptr<ProtocolDriver> pProtocolDriver_;
 	AccountHandlerList listAccountHandler_;
 	MessageHolderHandlerList listMessageHolderHandler_;
+	AccountHook* pHook_;
 	CriticalSection csLock_;
 	bool bDeletedAsSeen_;
 #ifndef NDEBUG
@@ -463,10 +464,11 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 	
 	std::auto_ptr<UndoItem> pUndoItem;
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
+		unsigned int nStoreFlags = Account::OPFLAG_ACTIVE |
+			(nAppendFlags & Account::OPFLAG_MASK);
 		unsigned int nResultFlags = 0;
-		MessageHolder* pmh = pThis_->storeMessage(pFolder, pszMessage,
-			nLen, &msgHeader, -1, nFlags, wstrLabel.get(), nSize,
-			(nAppendFlags & Account::OPFLAG_MASK) | Account::OPFLAG_ACTIVE, &nResultFlags);
+		MessageHolder* pmh = pThis_->storeMessage(pFolder, pszMessage, nLen,
+			&msgHeader, -1, nFlags, wstrLabel.get(), nSize, nStoreFlags, &nResultFlags);
 		if (!pmh)
 			return false;
 		if (nResultFlags == 0) {
@@ -477,11 +479,15 @@ bool qm::AccountImpl::appendMessage(NormalFolder* pFolder,
 		}
 	}
 	else {
-		if (!pProtocolDriver_->appendMessage(pFolder, pszMessage, nLen, nFlags, wstrLabel.get()))
+		if (!pProtocolDriver_->appendMessage(pFolder,
+			pszMessage, nLen, nFlags, wstrLabel.get()))
 			return false;
 	}
 	if (pUndoItemList)
 		pUndoItemList->add(pUndoItem);
+	
+	if (pHook_)
+		pHook_->messageAppended(pFolder, nAppendFlags);
 	
 	return true;
 }
@@ -669,6 +675,9 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		if (pCallback)
 			pCallback->step(l.size());
 	}
+	
+	if (pHook_)
+		pHook_->messageCopied(pFolderFrom, pFolderTo, nCopyFlags);
 	
 	return true;
 }
@@ -1128,6 +1137,7 @@ qm::Account::Account(const WCHAR* pwszPath,
 	pImpl_->pSecurity_ = pSecurity;
 	pImpl_->pPasswordManager_ = pPasswordManager;
 	pImpl_->pCurrentSubAccount_ = 0;
+	pImpl_->pHook_ = 0;
 	pImpl_->bDeletedAsSeen_ = false;
 #ifndef NDEBUG
 	pImpl_->nLock_ = 0;
@@ -2468,6 +2478,11 @@ void qm::Account::removeMessageHolderHandler(MessageHolderHandler* pHandler)
 	l.erase(it, l.end());
 }
 
+void qm::Account::setHook(AccountHook* pHook)
+{
+	pImpl_->pHook_ = pHook;
+}
+
 void qm::Account::lock() const
 {
 	pImpl_->csLock_.lock();
@@ -3091,6 +3106,17 @@ unsigned int qm::FolderListChangedEvent::getNewFlags() const
  */
 
 qm::AccountCheckCallback::~AccountCheckCallback()
+{
+}
+
+
+/****************************************************************************
+ *
+ * AccountHook
+ *
+ */
+
+qm::AccountHook::~AccountHook()
 {
 }
 

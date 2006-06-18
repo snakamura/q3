@@ -34,6 +34,7 @@ class AccountHandler;
 class AccountEvent;
 class FolderListChangedEvent;
 class AccountCheckCallback;
+class AccountHook;
 class AccountManager;
 class AccountManagerHandler;
 class AccountManagerEvent;
@@ -261,6 +262,8 @@ public:
 	
 	void addMessageHolderHandler(MessageHolderHandler* pHandler);
 	void removeMessageHolderHandler(MessageHolderHandler* pHandler);
+	
+	void setHook(AccountHook* pHook);
 	
 	void lock() const;
 	void unlock() const;
@@ -617,6 +620,26 @@ public:
 
 public:
 	virtual Ignore isIgnoreError(MessageHolder* pmh) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * AccountHook
+ *
+ */
+
+class AccountHook
+{
+public:
+	virtual ~AccountHook();
+
+public:
+	virtual void messageAppended(NormalFolder* pFolder,
+								 unsigned int nAppendFlags) = 0;
+	virtual void messageCopied(NormalFolder* pFolderFrom,
+							   NormalFolder* pFolderTo,
+							   unsigned int nCopyFlags) = 0;
 };
 
 
