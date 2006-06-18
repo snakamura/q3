@@ -2642,6 +2642,8 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 	if (nRet != IDYES)
 		return;
 	
+	Account* pAccount = l.front()->getAccount();
+	
 	if (l.size() == 1) {
 		if (!deleteFolder(pFolderModel_, l[0])) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DELETEFOLDER);
@@ -2672,7 +2674,6 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	Account* pAccount = l.front()->getAccount();
 	if (!pAccount->save(false)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
 		return;
