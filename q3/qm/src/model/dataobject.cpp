@@ -460,8 +460,6 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 	assert(pAccountManager);
 	assert(pFolderTo);
 	
-	HRESULT hr = S_OK;
-	
 	if (flag == FLAG_NONE)
 		flag = getPasteFlag(pDataObject, pAccountManager, pFolderTo);
 	
@@ -469,61 +467,62 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 	
 	FORMATETC fe = formats__[FORMAT_MESSAGEHOLDERLIST];
 	StgMedium stm;
-	hr = pDataObject->GetData(&fe, &stm);
-	if (hr == S_OK) {
-		LockGlobal lock(stm.hGlobal);
-		const WCHAR* p = static_cast<const WCHAR*>(lock.get());
-		MessagePtrList listMessagePtr;
-		while (*p) {
-			std::auto_ptr<URI> pURI(URI::parse(p));
-			if (!pURI.get())
-				return false;
-			listMessagePtr.push_back(pAccountManager->getMessage(*pURI.get()));
-			p += wcslen(p) + 1;
-		}
-		
-		if (!listMessagePtr.empty()) {
-			if (pCallback)
-				pCallback->setCount(static_cast<unsigned int>(listMessagePtr.size()));
-			
-			UndoItemList undo;
-			while (true) {
-				Account* pAccount = 0;
-				AccountLock lock;
-				MessageHolderList l;
-				
-				for (MessagePtrList::iterator it = listMessagePtr.begin(); it != listMessagePtr.end(); ++it) {
-					MessagePtrLock mpl(*it);
-					if (mpl) {
-						if (!pAccount) {
-							pAccount = mpl->getAccount();
-							lock.set(pAccount);
-						}
-						if (mpl->getAccount() == pAccount) {
-							l.push_back(mpl);
-							*it = MessagePtr();
-						}
-					}
-				}
-				if (!pAccount)
-					break;
-				
-				assert(!l.empty());
-				
-				unsigned int nCopyFlags = Account::OPFLAG_ACTIVE |
-					Account::COPYFLAG_MANAGEJUNK;
-				if (flag == FLAG_MOVE)
-					nCopyFlags |= Account::COPYFLAG_MOVE;
-				if (!pAccount->copyMessages(l, pFolderFrom,
-					pFolderTo, nCopyFlags, pCallback, &undo, 0))
-					return false;
-				
-				if (pCallback && pCallback->isCanceled())
-					break;
-			}
-			pUndoManager->pushUndoItem(undo.getUndoItem());
-		}
+	if (pDataObject->GetData(&fe, &stm) != S_OK)
+		return true;
+	
+	LockGlobal lock(stm.hGlobal);
+	const WCHAR* p = static_cast<const WCHAR*>(lock.get());
+	MessagePtrList listMessagePtr;
+	while (*p) {
+		std::auto_ptr<URI> pURI(URI::parse(p));
+		if (!pURI.get())
+			return false;
+		listMessagePtr.push_back(pAccountManager->getMessage(*pURI.get()));
+		p += wcslen(p) + 1;
 	}
+	
+	if (listMessagePtr.empty())
+		return true;
+	
+	if (pCallback)
+		pCallback->setCount(static_cast<unsigned int>(listMessagePtr.size()));
+	
+	UndoItemList undo;
+	while (true) {
+		Account* pAccount = 0;
+		AccountLock lock;
+		MessageHolderList l;
+		
+		for (MessagePtrList::iterator it = listMessagePtr.begin(); it != listMessagePtr.end(); ++it) {
+			MessagePtrLock mpl(*it);
+			if (mpl) {
+				if (!pAccount) {
+					pAccount = mpl->getAccount();
+					lock.set(pAccount);
+				}
+				if (mpl->getAccount() == pAccount) {
+					l.push_back(mpl);
+					*it = MessagePtr();
+				}
+			}
+		}
+		if (!pAccount)
+			break;
+		
+		assert(!l.empty());
+		
+		unsigned int nCopyFlags = Account::OPFLAG_ACTIVE |
+			Account::COPYFLAG_MANAGEJUNK;
+		if (flag == FLAG_MOVE)
+			nCopyFlags |= Account::COPYFLAG_MOVE;
+		if (!pAccount->copyMessages(l, pFolderFrom,
+			pFolderTo, nCopyFlags, pCallback, &undo, 0))
+			return false;
+		
+		if (pCallback && pCallback->isCanceled())
+			break;
+	}
+	pUndoManager->pushUndoItem(undo.getUndoItem());
 	
 	return true;
 }
