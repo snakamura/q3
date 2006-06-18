@@ -45,26 +45,36 @@ public:
 	const RuleSetList& getRuleSets();
 	const RuleSetList& getRuleSets(bool bReload);
 	void setRuleSets(RuleSetList& listRuleSet);
-	bool apply(Folder* pFolder,
-			   Document* pDocument,
-			   HWND hwnd,
-			   qs::Profile* pProfile,
-			   unsigned int nSecurityMode,
-			   RuleCallback* pCallback);
-	bool apply(Folder* pFolder,
-			   const MessageHolderList& l,
-			   Document* pDocument,
-			   HWND hwnd,
-			   qs::Profile* pProfile,
-			   unsigned int nSecurityMode,
-			   RuleCallback* pCallback);
-	bool apply(Folder* pFolder,
-			   MessagePtrList* pList,
-			   Document* pDocument,
-			   qs::Profile* pProfile,
-			   bool bJunkFilter,
-			   bool bJunkFilterOnly,
-			   RuleCallback* pCallback);
+	bool applyManual(Folder* pFolder,
+					 Document* pDocument,
+					 HWND hwnd,
+					 qs::Profile* pProfile,
+					 unsigned int nSecurityMode,
+					 UndoItemList* pUndoItemList,
+					 RuleCallback* pCallback);
+	bool applyManual(Folder* pFolder,
+					 const MessageHolderList& l,
+					 Document* pDocument,
+					 HWND hwnd,
+					 qs::Profile* pProfile,
+					 unsigned int nSecurityMode,
+					 UndoItemList* pUndoItemList,
+					 RuleCallback* pCallback);
+	bool applyAuto(Folder* pFolder,
+				   MessagePtrList* pList,
+				   Document* pDocument,
+				   qs::Profile* pProfile,
+				   bool bJunkFilter,
+				   bool bJunkFilterOnly,
+				   RuleCallback* pCallback);
+	bool applyActive(Folder* pFolder,
+					 const MessageHolderList& l,
+					 Document* pDocument,
+					 HWND hwnd,
+					 qs::Profile* pProfile,
+					 unsigned int nSecurityMode,
+					 bool bBackground,
+					 unsigned int* pnResultFlags);
 	bool save() const;
 
 public:

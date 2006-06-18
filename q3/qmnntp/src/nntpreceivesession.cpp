@@ -461,8 +461,11 @@ bool qmnntp::NntpReceiveSession::storeMessage(const CHAR* pszMessage,
 {
 	Lock<Account> lock(*pAccount_);
 	
-	MessageHolder* pmh = pAccount_->storeMessage(pFolder_, pszMessage, nLen,
-		0, nId, nFlags, 0, nSize, nFlags == MessageHolder::FLAG_INDEXONLY);
+	unsigned int nStoreFlags = Account::OPFLAG_BACKGROUND;
+	if (nFlags == MessageHolder::FLAG_INDEXONLY)
+		nStoreFlags |= Account::STOREFLAG_INDEXONLY;
+	MessageHolder* pmh = pAccount_->storeMessage(pFolder_,
+		pszMessage, nLen, 0, nId, nFlags, 0, nSize, nStoreFlags, 0);
 	if (!pmh)
 		return false;
 	
@@ -531,7 +534,7 @@ bool qmnntp::NntpReceiveSession::applyRules(MessagePtrList* pList,
 {
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->apply(pFolder_, pList, pDocument_,
+	return pRuleManager->applyAuto(pFolder_, pList, pDocument_,
 		pProfile_, bJunkFilter, bJunkFilterOnly, &callback);
 }
 

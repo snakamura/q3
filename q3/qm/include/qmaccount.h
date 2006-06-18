@@ -83,10 +83,36 @@ public:
 		GETMESSAGEFLAG_FALLBACK		= 0x20
 	};
 	
+	enum OpFlag {
+		OPFLAG_NONE			= 0x0000,
+		OPFLAG_ACTIVE		= 0x0100,
+		OPFLAG_BACKGROUND	= 0x0200,
+		
+		OPFLAG_MASK			= 0x0f00
+	};
+	
+	enum RemoveFlag {
+		REMOVEFLAG_NONE			= 0x00,
+		REMOVEFLAG_DIRECT		= 0x01
+	};
+	
 	enum CopyFlag {
 		COPYFLAG_NONE		= 0x00,
 		COPYFLAG_MOVE		= 0x01,
 		COPYFLAG_MANAGEJUNK	= 0x02
+	};
+	
+	enum StoreFlag {
+		STOREFLAG_NONE			= 0x00,
+		STOREFLAG_INDEXONLY		= 0x01
+	};
+	
+	enum ResultFlag {
+		RESULTFLAG_NONE			= 0x00,
+		RESULTFLAG_DESTROYED	= 0x01,
+		RESULTFLAG_MOVED		= 0x02,
+		
+		RESULTFLAG_ALL			= 0x0f
 	};
 	
 	enum Support {
@@ -200,19 +226,22 @@ public:
 					   const Message& msg,
 					   unsigned int nFlags,
 					   const WCHAR* pwszLabel,
+					   unsigned int nAppendFlags,
 					   UndoItemList* pUndoItemList,
 					   MessagePtr* pptr);
 	bool removeMessages(const MessageHolderList& l,
 						Folder* pFolder,
-						bool bDirect,
+						unsigned int nRemoveFlags,
 						MessageOperationCallback* pCallback,
-						UndoItemList* pUndoItemList);
+						UndoItemList* pUndoItemList,
+						unsigned int* pnResultFlags);
 	bool copyMessages(const MessageHolderList& l,
 					  Folder* pFolderFrom,
 					  NormalFolder* pFolderTo,
-					  unsigned int nFlags,
+					  unsigned int nCopyFlags,
 					  MessageOperationCallback* pCallback,
-					  UndoItemList* pUndoItemList);
+					  UndoItemList* pUndoItemList,
+					  unsigned int* pnResultFlags);
 	bool setMessagesFlags(const MessageHolderList& l,
 						  unsigned int nFlags,
 						  unsigned int nMask,
@@ -270,7 +299,8 @@ public:
 								unsigned int nFlags,
 								const WCHAR* pwszLabel,
 								unsigned int nSize,
-								bool bIndexOnly);
+								unsigned int nStoreFlags,
+								unsigned int* pnResultFlags);
 	bool unstoreMessages(const MessageHolderList& l,
 						 MessageOperationCallback* pCallback);
 	MessageHolder* cloneMessage(MessageHolder* pmh,

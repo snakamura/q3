@@ -653,15 +653,18 @@ bool qm::EditDeleteMessageAction::deleteMessages(const MessageHolderList& l,
 		IDS_PROGRESS_DELETE, IDS_PROGRESS_DELETE);
 	UndoItemList undo;
 	if (type_ != TYPE_JUNK) {
-		if (!pAccount->removeMessages(l, pFolder, type_ == TYPE_DIRECT, &callback, &undo))
+		unsigned int nRemoveFlags = Account::OPFLAG_ACTIVE |
+			(type_ == TYPE_DIRECT ? Account::REMOVEFLAG_DIRECT : Account::REMOVEFLAG_NONE);
+		if (!pAccount->removeMessages(l, pFolder, nRemoveFlags, &callback, &undo, 0))
 			return false;
 	}
 	else {
 		NormalFolder* pJunk = static_cast<NormalFolder*>(
 			pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX));
 		if (pJunk) {
-			unsigned int nFlags = Account::COPYFLAG_MOVE | Account::COPYFLAG_MANAGEJUNK;
-			if (!pAccount->copyMessages(l, pFolder, pJunk, nFlags, &callback, &undo))
+			unsigned int nFlags = Account::OPFLAG_ACTIVE |
+				Account::COPYFLAG_MOVE | Account::COPYFLAG_MANAGEJUNK;
+			if (!pAccount->copyMessages(l, pFolder, pJunk, nFlags, &callback, &undo, 0))
 				return false;
 		}
 	}
@@ -2780,7 +2783,7 @@ bool qm::FolderEmptyAction::emptyFolders(const Account::FolderList& listFolder) 
 			MessageHolderList l(pFolder->getMessages());
 			if (!l.empty()) {
 				UndoItemList undo;
-				if (!pAccount->removeMessages(l, pFolder, false, 0, &undo))
+				if (!pAccount->removeMessages(l, pFolder, Account::OPFLAG_ACTIVE, 0, &undo, 0))
 					return false;
 				pUndoManager_->pushUndoItem(undo.getUndoItem());
 			}
@@ -2919,7 +2922,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 		if (!l.empty()) {
 			ProgressDialogMessageOperationCallback callback(
 				hwnd, IDS_PROGRESS_EMPTYTRASH, IDS_PROGRESS_EMPTYTRASH);
-			if (!pAccount->removeMessages(l, pTrash, true, &callback, 0)) {
+			if (!pAccount->removeMessages(l, pTrash, Account::REMOVEFLAG_DIRECT, &callback, 0, 0)) {
 				ActionUtil::error(hwnd, IDS_ERROR_EMPTYTRASH);
 				return;
 			}
@@ -3336,6 +3339,7 @@ bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
+												   UndoManager* pUndoManager,
 												   ViewModelManager* pViewModelManager,
 												   bool bAll,
 												   SecurityModel* pSecurityModel,
@@ -3343,6 +3347,7 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
+	pUndoManager_(pUndoManager),
 	pViewModelManager_(pViewModelManager),
 	pMessageSelectionModel_(0),
 	bAll_(bAll),
@@ -3354,12 +3359,14 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 }
 
 qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
+												   UndoManager* pUndoManager,
 												   MessageSelectionModel* pMessageSelectionModel,
 												   SecurityModel* pSecurityModel,
 												   Document* pDocument,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
+	pUndoManager_(pUndoManager),
 	pViewModelManager_(0),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	bAll_(false),
@@ -3460,10 +3467,13 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 	RuleCallbackImpl callback(&dialog);
 	
 	Account* pAccount = 0;
+	UndoItemList undo;
 	if (pViewModelManager_) {
 		if (bAll_) {
 			pAccount = pViewModelManager_->getCurrentAccount();
 			if (pAccount) {
+				Lock<Account> lock(*pAccount);
+				
 				Account::FolderList l(pAccount->getFolders());
 				std::sort(l.begin(), l.end(), FolderLess());
 				
@@ -3472,8 +3482,8 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 					Folder* pFolder = *it;
 					if (pFolder->getType() == Folder::TYPE_NORMAL &&
 						!pFolder->isHidden()) {
-						if (!pRuleManager_->apply(pFolder, pDocument_, hwnd_, pProfile_,
-							pSecurityModel_->getSecurityMode(), &callback))
+						if (!pRuleManager_->applyManual(pFolder, pDocument_, hwnd_, pProfile_,
+							pSecurityModel_->getSecurityMode(), &undo, &callback))
 							return false;
 					}
 				}
@@ -3494,8 +3504,8 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 						l[n] = pViewModel->getMessageHolder(n);
 					
 					ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
-					if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
-						pSecurityModel_->getSecurityMode(), &callback))
+					if (!pRuleManager_->applyManual(pFolder, l, pDocument_, hwnd_, pProfile_,
+						pSecurityModel_->getSecurityMode(), &undo, &callback))
 						return false;
 					pAccount = pFolder->getAccount();
 				}
@@ -3509,12 +3519,13 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		if (!l.empty()) {
 			ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
-			if (!pRuleManager_->apply(pFolder, l, pDocument_, hwnd_, pProfile_,
-				pSecurityModel_->getSecurityMode(), &callback))
+			if (!pRuleManager_->applyManual(pFolder, l, pDocument_, hwnd_, pProfile_,
+				pSecurityModel_->getSecurityMode(), &undo, &callback))
 				return false;
 			pAccount = lock.get();
 		}
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 	
 	*ppAccount = pAccount;
 	
@@ -3614,7 +3625,8 @@ void qm::MessageCombineAction::invoke(const ActionEvent& event)
 		NormalFolder* pFolder = l.front()->getFolder();
 		unsigned int nFlags = 0;
 		UndoItemList undo;
-		if (!pAccount->appendMessage(pFolder, msg, nFlags, 0, &undo, 0)) {
+		if (!pAccount->appendMessage(pFolder, msg, nFlags,
+			0, Account::OPFLAG_NONE, &undo, 0)) {
 			ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
 			return;
 		}
@@ -3929,7 +3941,8 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 														 UndoItemList* pUndoItemList) const
 {
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, pSecurityModel_->getSecurityMode(), &msg))
+	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
+		0, pSecurityModel_->getSecurityMode(), &msg))
 		return false;
 	
 	AttachmentParser::removeAttachments(&msg);
@@ -3938,10 +3951,12 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 	NormalFolder* pNormalFolder = pmh->getFolder();
 	unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
 	wstring_ptr wstrLabel(pmh->getLabel());
-	if (!pAccount->appendMessage(pNormalFolder, msg, nFlags, wstrLabel.get(), pUndoItemList, 0))
+	if (!pAccount->appendMessage(pNormalFolder, msg, nFlags,
+		wstrLabel.get(), Account::OPFLAG_NONE, pUndoItemList, 0))
 		return false;
 	
-	if (!pAccount->removeMessages(MessageHolderList(1, pmh), pFolder, false, 0, pUndoItemList))
+	if (!pAccount->removeMessages(MessageHolderList(1, pmh),
+		pFolder, Account::OPFLAG_ACTIVE, 0, pUndoItemList, 0))
 		return false;
 	
 	return true;
@@ -4073,7 +4088,8 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 		// TODO
 		// Set flags and label?
 		unsigned int nFlags = 0;
-		if (!pAccount->appendMessage(pmh->getFolder(), **it, nFlags, 0, pUndoItemList, 0))
+		if (!pAccount->appendMessage(pmh->getFolder(), **it,
+			nFlags, 0, Account::OPFLAG_NONE, pUndoItemList, 0))
 			return false;
 	}
 	
@@ -4405,8 +4421,9 @@ bool qm::MessageMoveAction::moveMessages(const MessageHolderList& l,
 	UndoItemList undo;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
 	Account* pAccount = pFolderFrom->getAccount();
-	unsigned int nFlags = (bMove ? Account::COPYFLAG_MOVE : 0) | Account::COPYFLAG_MANAGEJUNK;
-	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, nFlags, &callback, &undo))
+	unsigned int nFlags = Account::OPFLAG_ACTIVE | Account::COPYFLAG_MANAGEJUNK |
+		(bMove ? Account::COPYFLAG_MOVE : Account::COPYFLAG_NONE);
+	if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, nFlags, &callback, &undo, 0))
 		return false;
 	
 	pUndoManager_->pushUndoItem(undo.getUndoItem());

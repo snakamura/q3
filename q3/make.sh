@@ -101,3 +101,6 @@ for langid in src.*; do
 		fi
 	fi
 done
+if [ "$BSC" = "1" ]; then
+	$MAKE target.bsc $OPTIONS
+fi

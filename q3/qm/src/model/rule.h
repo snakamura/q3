@@ -104,7 +104,8 @@ class Rule
 public:
 	enum Use {
 		USE_MANUAL	= 0x01,
-		USE_AUTO	= 0x02
+		USE_AUTO	= 0x02,
+		USE_ACTIVE	= 0x04
 	};
 
 public:
@@ -130,8 +131,7 @@ public:
 	const WCHAR* getDescription() const;
 	void setDescription(const WCHAR* pwszDescription);
 	bool match(MacroContext* pContext) const;
-	bool apply(const RuleContext& context) const;
-	bool isMessageDestroyed() const;
+	bool apply(RuleContext* pContext) const;
 	bool isContinuable() const;
 	MacroContext::MessageType getMessageType() const;
 
@@ -168,8 +168,7 @@ public:
 	
 	enum Flag {
 		FLAG_NONE				= 0x00,
-		FLAG_MESSAGEDESTROYED	= 0x01,
-		FLAG_CONTINUABLE		= 0x02
+		FLAG_CONTINUABLE		= 0x01
 	};
 
 public:
@@ -177,7 +176,7 @@ public:
 
 public:
 	virtual Type getType() const = 0;
-	virtual bool apply(const RuleContext& context) const = 0;
+	virtual bool apply(RuleContext* pContext) const = 0;
 	virtual unsigned int getFlags() const = 0;
 	virtual qs::wstring_ptr getDescription() const = 0;
 	virtual std::auto_ptr<RuleAction> clone() const = 0;
@@ -198,7 +197,7 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual bool apply(const RuleContext& context) const;
+	virtual bool apply(RuleContext* pContext) const;
 	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
@@ -239,7 +238,7 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual bool apply(const RuleContext& context) const;
+	virtual bool apply(RuleContext* pContext) const;
 	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
@@ -287,7 +286,7 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual bool apply(const RuleContext& context) const;
+	virtual bool apply(RuleContext* pContext) const;
 	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
@@ -331,7 +330,7 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual bool apply(const RuleContext& context) const;
+	virtual bool apply(RuleContext* pContext) const;
 	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
@@ -364,7 +363,7 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual bool apply(const RuleContext& context) const;
+	virtual bool apply(RuleContext* pContext) const;
 	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
@@ -396,7 +395,7 @@ public:
 
 public:
 	virtual Type getType() const;
-	virtual bool apply(const RuleContext& context) const;
+	virtual bool apply(RuleContext* pContext) const;
 	virtual unsigned int getFlags() const;
 	virtual qs::wstring_ptr getDescription() const;
 	virtual std::auto_ptr<RuleAction> clone() const;
@@ -425,7 +424,7 @@ public:
 				HWND hwnd,
 				qs::Profile* pProfile,
 				MacroVariableHolder* pGlobalVariable,
-				bool bAuto,
+				bool bBackground,
 				unsigned int nSecurityMode,
 				UndoItemList* pUndoItemList);
 	~RuleContext();
@@ -438,9 +437,11 @@ public:
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	MacroVariableHolder* getGlobalVariable() const;
-	bool isAuto() const;
+	bool isBackground() const;
 	unsigned int getSecurityMode() const;
 	UndoItemList* getUndoItemList() const;
+	unsigned int getResultFlags() const;
+	void setResultFlags(unsigned int nResultFlags);
 
 private:
 	RuleContext(const RuleContext&);
@@ -454,9 +455,10 @@ private:
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	MacroVariableHolder* pGlobalVariable_;
-	bool bAuto_;
+	bool bBackground_;
 	unsigned int nSecurityMode_;
 	UndoItemList* pUndoItemList_;
+	unsigned int nResultFlags_;
 };
 
 

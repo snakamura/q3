@@ -1573,6 +1573,7 @@ class MessageApplyRuleAction : public qs::AbstractAction
 {
 public:
 	MessageApplyRuleAction(RuleManager* pRuleManager,
+						   UndoManager* pUndoManager,
 						   ViewModelManager* pViewModelManager,
 						   bool bAll,
 						   SecurityModel* pSecurityModel,
@@ -1580,6 +1581,7 @@ public:
 						   HWND hwnd,
 						   qs::Profile* pProfile);
 	MessageApplyRuleAction(RuleManager* pRuleManager,
+						   UndoManager* pUndoManager,
 						   MessageSelectionModel* pMessageSelectionModel,
 						   SecurityModel* pSecurityModel,
 						   Document* pDocument,
@@ -1600,6 +1602,7 @@ private:
 
 private:
 	RuleManager* pRuleManager_;
+	UndoManager* pUndoManager_;
 	ViewModelManager* pViewModelManager_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	bool bAll_;

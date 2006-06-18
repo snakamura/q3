@@ -1059,6 +1059,8 @@ BEGIN
                     WS_TABSTOP,45,105,45,10
     CONTROL         "自動(&U)",IDC_AUTO,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,95,105,35,10
+    CONTROL         "アクティブ(&V)",IDC_ACTIVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,145,105,50,10
     LTEXT           "説明(&D)",IDC_STATIC,5,123,35,8
     EDITTEXT        IDC_DESCRIPTION,45,120,165,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,105,140,50,14

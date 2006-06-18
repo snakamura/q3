@@ -791,8 +791,9 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 	Lock<Account> lock(*pAccount_);
 	
 	if (bOffline_) {
-		MessageHolder* pmh = pAccount_->storeMessage(pFolder, pszMessage,
-			nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL, pwszLabel, -1, false);
+		MessageHolder* pmh = pAccount_->storeMessage(pFolder,
+			pszMessage, nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL,
+			pwszLabel, -1, Account::STOREFLAG_NONE, 0);
 		if (!pmh)
 			return false;
 		

@@ -28,6 +28,7 @@ class FolderLess;
 class FolderHandler;
 class FolderEvent;
 	class FolderMessageEvent;
+class FolderHook;
 
 class Account;
 class Document;
@@ -189,6 +190,7 @@ public:
 	bool updateMessageInfos(const MessageInfoList& listMessageInfo,
 							bool bUpdateFlagsAndLabel,
 							bool* pbClear);
+	void setHook(FolderHook* pHook);
 
 public:
 	virtual Type getType() const;
@@ -205,10 +207,14 @@ public:
 // These methods are intended to be called from Account class
 public:
 	unsigned int generateId();
-	bool appendMessage(std::auto_ptr<MessageHolder> pmh);
+	bool appendMessage(std::auto_ptr<MessageHolder> pmh,
+					   unsigned int nOpFlags,
+					   unsigned int* pnResultFlags);
 	void removeMessages(const MessageHolderList& l);
 	bool moveMessages(const MessageHolderList& l,
-					  NormalFolder* pFolder);
+					  NormalFolder* pFolder,
+					  unsigned int nOpFlags,
+					  unsigned int* pnResultFlags);
 
 private:
 	NormalFolder(const NormalFolder&);
@@ -397,6 +403,24 @@ private:
 
 private:
 	const MessageHolderList& l_;
+};
+
+
+/****************************************************************************
+ *
+ * FolderHook
+ *
+ */
+
+class FolderHook
+{
+public:
+	virtual ~FolderHook();
+
+public:
+	virtual unsigned int messageAdded(NormalFolder* pFolder,
+									  const MessageHolderList& l,
+									  unsigned int nOpFlags) = 0;
 };
 
 }

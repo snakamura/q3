@@ -613,7 +613,7 @@ bool qm::MoveUndoExecutor::execute(Account* pAccount,
 								   NormalFolder* pFolder,
 								   const MessageHolderList& l)
 {
-	return pAccount->copyMessages(l, pFolder, pFolderTo_, Account::COPYFLAG_MOVE, 0, 0);
+	return pAccount->copyMessages(l, pFolder, pFolderTo_, Account::COPYFLAG_MOVE, 0, 0, 0);
 }
 
 
@@ -662,7 +662,7 @@ bool qm::DeleteUndoExecutor::execute(Account* pAccount,
 									 NormalFolder* pFolder,
 									 const MessageHolderList& l)
 {
-	return pAccount->removeMessages(l, pFolder, true, 0, 0);
+	return pAccount->removeMessages(l, pFolder, Account::REMOVEFLAG_DIRECT, 0, 0, 0);
 }
 
 

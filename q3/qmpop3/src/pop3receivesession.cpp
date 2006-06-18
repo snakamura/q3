@@ -283,7 +283,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				Lock<Account> lock(*pAccount_);
 				
 				MessageHolder* pmh = pAccount_->storeMessage(pFolder_, strMessage.get(),
-					strMessage.size(), &msg, -1, nFlags, 0, nSize, false);
+					strMessage.size(), &msg, -1, nFlags, 0, nSize, Account::OPFLAG_BACKGROUND, 0);
 				if (!pmh)
 					return false;
 				
@@ -381,8 +381,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					if (mpl) {
 						mpl->setFlags(0, MessageHolder::FLAG_DELETED);
 						if (bDeleteLocal)
-							pAccount_->removeMessages(MessageHolderList(1, mpl),
-								pFolder_, false, 0, 0);
+							pAccount_->removeMessages(MessageHolderList(1, mpl), pFolder_,
+								Account::OPFLAG_ACTIVE | Account::OPFLAG_BACKGROUND, 0, 0, 0);
 					}
 				}
 			}
@@ -685,7 +685,7 @@ bool qmpop3::Pop3ReceiveSession::applyRules(MessagePtrList* pList,
 {
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->apply(pFolder_, pList, pDocument_,
+	return pRuleManager->applyAuto(pFolder_, pList, pDocument_,
 		pProfile_, bJunkFilter, bJunkFilterOnly, &callback);
 }
 

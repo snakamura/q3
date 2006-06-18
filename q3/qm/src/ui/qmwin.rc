@@ -1052,6 +1052,8 @@ BEGIN
                     WS_TABSTOP,45,105,45,10
     CONTROL         "A&uto",IDC_AUTO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     95,105,35,10
+    CONTROL         "Acti&ve",IDC_ACTIVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,145,105,35,10
     LTEXT           "&Description",IDC_STATIC,5,122,35,8
     EDITTEXT        IDC_DESCRIPTION,45,120,165,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,105,140,50,12

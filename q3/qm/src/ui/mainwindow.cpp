@@ -637,27 +637,30 @@ void qm::MainWindowImpl::initActions()
 		pFolderModel_.get(),
 		pSyncManager_,
 		pThis_->getHandle());
-	ADD_ACTION7(MessageApplyRuleAction,
+	ADD_ACTION8(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULE,
 		pDocument_->getRuleManager(),
+		pDocument_->getUndoManager(),
 		pViewModelManager_.get(),
 		false,
 		pSecurityModel_.get(),
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION7(MessageApplyRuleAction,
+	ADD_ACTION8(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULEALL,
 		pDocument_->getRuleManager(),
+		pDocument_->getUndoManager(),
 		pViewModelManager_.get(),
 		true,
 		pSecurityModel_.get(),
 		pDocument_,
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION6(MessageApplyRuleAction,
+	ADD_ACTION7(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULESELECTED,
 		pDocument_->getRuleManager(),
+		pDocument_->getUndoManager(),
 		pMessageSelectionModel_.get(),
 		pSecurityModel_.get(),
 		pDocument_,
@@ -1759,6 +1762,11 @@ qm::MainWindow::~MainWindow()
 FolderModel* qm::MainWindow::getFolderModel() const
 {
 	return pImpl_->pFolderModel_.get();
+}
+
+SecurityModel* qm::MainWindow::getSecurityModel() const
+{
+	return pImpl_->pSecurityModel_.get();
 }
 
 const ActionInvoker* qm::MainWindow::getActionInvoker() const

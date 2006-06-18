@@ -321,7 +321,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 			xstring_size_ptr strContent(msg.getContent());
 			unsigned int nFlags = msg.isMultipart() ? 0 : MessageHolder::FLAG_TEXTONLY;
 			MessageHolder* pmh = pAccount_->storeMessage(pFolder_, strContent.get(),
-				strContent.size(), &msg, -1, nFlags, 0, -1, false);
+				strContent.size(), &msg, -1, nFlags, 0, -1, Account::OPFLAG_BACKGROUND, 0);
 			if (!pmh)
 				return false;
 			
@@ -386,7 +386,7 @@ bool qmrss::RssReceiveSession::applyRules(MessagePtrList* pList)
 {
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->apply(pFolder_, pList,
+	return pRuleManager->applyAuto(pFolder_, pList,
 		pDocument_, pProfile_, false, false, &callback);
 }
 

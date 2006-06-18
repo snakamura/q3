@@ -1003,8 +1003,9 @@ bool qm::SyncManager::send(Document* pDocument,
 			if (mpl) {
 				l[0] = mpl;
 				if (!pAccount->setMessagesFlags(l,
-					MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT, 0) ||
-					!pAccount->copyMessages(l, pOutbox, pSentbox, Account::COPYFLAG_MOVE, 0, 0)) {
+						MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT, 0) ||
+					!pAccount->copyMessages(l, pOutbox, pSentbox,
+						Account::COPYFLAG_MOVE | Account::OPFLAG_BACKGROUND, 0, 0, 0)) {
 					addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_MOVETOSENTBOX, 0);
 					return false;
 				}

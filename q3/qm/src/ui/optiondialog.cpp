@@ -3032,7 +3032,27 @@ const WCHAR* qm::RulesDialog::getName() const
 
 wstring_ptr qm::RulesDialog::getLabelPrefix(const Rule* p) const
 {
-	return p->getAction()->getDescription();
+	StringBuffer<WSTRING> buf;
+	
+	struct {
+		Rule::Use use_;
+		WCHAR c_;
+	} uses[] = {
+		{ Rule::USE_MANUAL,	L'M'	},
+		{ Rule::USE_AUTO,	L'A'	},
+		{ Rule::USE_ACTIVE,	L'V'	}
+	};
+	unsigned int nUse = p->getUse();
+	for (int n = 0; n < countof(uses); ++n) {
+		if (nUse & uses[n].use_)
+			buf.append(uses[n].c_);
+	}
+	if (nUse != 0)
+		buf.append(L' ');
+	
+	buf.append(p->getAction()->getDescription().get());
+	
+	return buf.getString();
 }
 
 
@@ -3185,6 +3205,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	unsigned int nUse = pRule_->getUse();
 	Button_SetCheck(getDlgItem(IDC_MANUAL), nUse & Rule::USE_MANUAL ? BST_CHECKED : BST_UNCHECKED);
 	Button_SetCheck(getDlgItem(IDC_AUTO), nUse & Rule::USE_AUTO ? BST_CHECKED : BST_UNCHECKED);
+	Button_SetCheck(getDlgItem(IDC_ACTIVE), nUse & Rule::USE_ACTIVE ? BST_CHECKED : BST_UNCHECKED);
 	
 	const WCHAR* pwszDescription = pRule_->getDescription();
 	if (pwszDescription)
@@ -3276,6 +3297,8 @@ LRESULT qm::RuleDialog::onOk()
 		nUse |= Rule::USE_MANUAL;
 	if (Button_GetCheck(getDlgItem(IDC_AUTO)) == BST_CHECKED)
 		nUse |= Rule::USE_AUTO;
+	if (Button_GetCheck(getDlgItem(IDC_ACTIVE)) == BST_CHECKED)
+		nUse |= Rule::USE_ACTIVE;
 	
 	wstring_ptr wstrDescription(getDlgItemText(IDC_DESCRIPTION));
 	

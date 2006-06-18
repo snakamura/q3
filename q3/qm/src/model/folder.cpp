@@ -433,6 +433,7 @@ public:
 	bool bLoad_;
 	unsigned int nMaxId_;
 	mutable bool bModified_;
+	FolderHook* pHook_;
 };
 
 wstring_ptr qm::NormalFolderImpl::getPath() const
@@ -532,6 +533,7 @@ qm::NormalFolder::NormalFolder(unsigned int nId,
 	pImpl_->bLoad_ = false;
 	pImpl_->nMaxId_ = 0;
 	pImpl_->bModified_ = false;
+	pImpl_->pHook_ = 0;
 	
 	getAccount()->addMessageHolderHandler(pImpl_);
 }
@@ -672,6 +674,11 @@ bool qm::NormalFolder::updateMessageInfos(const MessageInfoList& listMessageInfo
 	}
 	
 	return true;
+}
+
+void qm::NormalFolder::setHook(FolderHook* pHook)
+{
+	pImpl_->pHook_ = pHook;
 }
 
 Folder::Type qm::NormalFolder::getType() const
@@ -872,7 +879,9 @@ unsigned int qm::NormalFolder::generateId()
 	return pImpl_->nMaxId_ + 1;
 }
 
-bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh)
+bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh,
+									 unsigned int nOpFlags,
+									 unsigned int* pnResultFlags)
 {
 	assert(pmh.get());
 	assert(pmh->getFolder() == this);
@@ -899,7 +908,14 @@ bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh)
 	
 	pImpl_->nMaxId_ = p->getId();
 	
-	getImpl()->fireMessageAdded(MessageHolderList(1, p));
+	MessageHolderList l(1, p);
+	getImpl()->fireMessageAdded(l);
+	
+	if (pImpl_->pHook_) {
+		unsigned int nResultFlags = pImpl_->pHook_->messageAdded(this, l, nOpFlags);
+		if (pnResultFlags)
+			*pnResultFlags = nResultFlags;
+	}
 	
 	return true;
 }
@@ -950,7 +966,9 @@ void qm::NormalFolder::removeMessages(const MessageHolderList& l)
 }
 
 bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
-									NormalFolder* pFolder)
+									NormalFolder* pFolder,
+									unsigned int nOpFlags,
+									unsigned int* pnResultFlags)
 {
 	assert(!l.empty());
 	assert(pFolder);
@@ -1007,6 +1025,9 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
 	
 	getImpl()->fireMessageRemoved(l);
 	pFolder->getImpl()->fireMessageAdded(l);
+	
+	if (pImpl_->pHook_)
+		*pnResultFlags = pFolder->pImpl_->pHook_->messageAdded(pFolder, l, nOpFlags);
 	
 	return true;
 }
@@ -1459,4 +1480,15 @@ qm::FolderMessageEvent::~FolderMessageEvent()
 const MessageHolderList& qm::FolderMessageEvent::getMessageHolders() const
 {
 	return l_;
+}
+
+
+/****************************************************************************
+ *
+ * FolderHook
+ *
+ */
+
+qm::FolderHook::~FolderHook()
+{
 }

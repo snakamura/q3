@@ -22,6 +22,7 @@ namespace qm {
 class MainWindow;
 
 class FolderModel;
+class SecurityModel;
 
 
 /****************************************************************************
@@ -38,6 +39,7 @@ public:
 
 public:
 	FolderModel* getFolderModel() const;
+	SecurityModel* getSecurityModel() const;
 	const ActionInvoker* getActionInvoker() const;
 	bool isShowingModalDialog() const;
 	void initialShow();

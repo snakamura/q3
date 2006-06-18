@@ -47,7 +47,7 @@ class qm::RuleManagerImpl
 public:
 	enum Flag {
 		FLAG_NONE		= 0x00,
-		FLAG_AUTO		= 0x01,
+		FLAG_BACKGROUND	= 0x01,
 		FLAG_JUNK		= 0x02,
 		FLAG_JUNKONLY	= 0x04
 	};
@@ -66,6 +66,60 @@ public:
 		virtual void setMessageHolder(size_t n,
 									  MessageHolder* pmh) = 0;
 	};
+	
+	class FolderAccessor : public RuleManagerImpl::Accessor
+	{
+	public:
+		FolderAccessor(const Folder* pFolder);
+		virtual ~FolderAccessor();
+	
+	public:
+		virtual size_t getCount() const;
+		virtual MessagePtr getMessagePtr(size_t n) const;
+		virtual MessageHolder* getMessageHolder(size_t n) const;
+		virtual bool isRequestResult() const;
+		virtual void setMessageHolder(size_t n,
+									  MessageHolder* pmh);
+	
+	private:
+		const Folder* pFolder_;
+	};
+	
+	class ConstListAccessor : public RuleManagerImpl::Accessor
+	{
+	public:
+		ConstListAccessor(const MessageHolderList& l);
+		virtual ~ConstListAccessor();
+	
+	public:
+		virtual size_t getCount() const;
+		virtual MessagePtr getMessagePtr(size_t n) const;
+		virtual MessageHolder* getMessageHolder(size_t n) const;
+		virtual bool isRequestResult() const;
+		virtual void setMessageHolder(size_t n,
+									  MessageHolder* pmh);
+	
+	private:
+		const MessageHolderList& l_;
+	};
+	
+	class ListAccessor : public RuleManagerImpl::Accessor
+	{
+	public:
+		ListAccessor(MessagePtrList& l);
+		virtual ~ListAccessor();
+	
+	public:
+		virtual size_t getCount() const;
+		virtual MessagePtr getMessagePtr(size_t n) const;
+		virtual MessageHolder* getMessageHolder(size_t n) const;
+		virtual bool isRequestResult() const;
+		virtual void setMessageHolder(size_t n,
+									  MessageHolder* pmh);
+	
+	private:
+		MessagePtrList& l_;
+	};
 
 public:
 	typedef std::vector<Rule*> RuleList;
@@ -77,16 +131,19 @@ public:
 public:
 	bool load();
 	void getRules(const Folder* pFolder,
-				  bool bAuto,
+				  Rule::Use use,
 				  RuleList* pList) const;
 	bool apply(Folder* pFolder,
 			   Accessor* pAccessor,
 			   Document* pDocument,
 			   HWND hwnd,
 			   Profile* pProfile,
+			   Rule::Use use,
 			   unsigned int nFlags,
 			   unsigned int nSecurityMode,
-			   RuleCallback* pCallback);
+			   UndoItemList* pUndoItemList,
+			   RuleCallback* pCallback,
+			   unsigned int* pnResultFlags);
 
 private:
 	static std::auto_ptr<Rule> createJunkRule(Account* pAccount);
@@ -117,14 +174,13 @@ bool qm::RuleManagerImpl::load()
 }
 
 void qm::RuleManagerImpl::getRules(const Folder* pFolder,
-								   bool bAuto,
+								   Rule::Use use,
 								   RuleList* pList) const
 {
 	assert(pFolder);
 	assert(pList);
 	assert(pList->empty());
 	
-	Rule::Use use = bAuto ? Rule::USE_AUTO : Rule::USE_MANUAL;
 	for (RuleManager::RuleSetList::const_iterator itS = listRuleSet_.begin(); itS != listRuleSet_.end(); ++itS) {
 		const RuleSet* pRuleSet = *itS;
 		if (pRuleSet->matchName(pFolder)) {
@@ -140,14 +196,16 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 								Document* pDocument,
 								HWND hwnd,
 								Profile* pProfile,
+								Rule::Use use,
 								unsigned int nFlags,
 								unsigned int nSecurityMode,
-								RuleCallback* pCallback)
+								UndoItemList* pUndoItemList,
+								RuleCallback* pCallback,
+								unsigned int* pnResultFlags)
 {
 	assert(pFolder);
 	assert(pAccessor);
 	assert(pDocument);
-	assert(hwnd || nFlags & FLAG_AUTO);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qm::RuleManagerImpl");
 	
@@ -161,11 +219,9 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	ReadWriteReadLock readLock(lock_);
 	Lock<ReadWriteReadLock> ruleLock(readLock);
 	
-	bool bAuto = (nFlags & FLAG_AUTO) != 0;
-	
 	RuleManagerImpl::RuleList listRule;
 	if (!(nFlags & FLAG_JUNKONLY))
-		getRules(pFolder, bAuto, &listRule);
+		getRules(pFolder, use, &listRule);
 	
 	std::auto_ptr<Rule> pRuleJunk;
 	if (nFlags & FLAG_JUNK) {
@@ -184,10 +240,13 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	if (nCount == 0)
 		return true;
 	
-	pCallback->checkingMessages(pFolder);
-	pCallback->setRange(0, nCount);
+	if (pCallback) {
+		pCallback->checkingMessages(pFolder);
+		pCallback->setRange(0, nCount);
+	}
 	
-	if (bAuto &&
+	bool bBackground = (nFlags & FLAG_BACKGROUND) != 0;
+	if (bBackground &&
 		pFolder->getType() == Folder::TYPE_NORMAL &&
 		pAccount->isRemoteMessageFolder(static_cast<NormalFolder*>(pFolder)) &&
 		isNeedPrepare(pAccessor, getMessageType(listRule)))
@@ -200,10 +259,11 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	size_t nMatch = 0;
 	MacroVariableHolder globalVariable;
 	for (size_t nMessage = 0; nMessage < nCount; ++nMessage) {
-		if (nMessage % 10 == 0 && pCallback->isCanceled())
+		if (pCallback && nMessage % 10 == 0 && pCallback->isCanceled())
 			return true;
 		
-		pCallback->setPos(nMessage);
+		if (pCallback)
+			pCallback->setPos(nMessage);
 		
 		MessagePtrLock mpl(pAccessor->getMessagePtr(nMessage));
 		MessageHolder* pmh = mpl ? mpl : pAccessor->getMessageHolder(nMessage);
@@ -211,7 +271,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 			Message msg;
 			for (RuleList::size_type nRule = 0; nRule < listRule.size(); ++nRule) {
 				const Rule* pRule = listRule[nRule];
-				unsigned int nFlags = bAuto ? MacroContext::FLAG_NONE :
+				unsigned int nFlags = bBackground ? MacroContext::FLAG_NONE :
 					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI;
 				MacroContext context(pmh, &msg, pAccount, MessageHolderList(), pFolder,
 					pDocument, hwnd, pProfile, 0, nFlags, nSecurityMode, 0, &globalVariable);
@@ -231,15 +291,17 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	if (nMatch == 0)
 		return true;
 	
-	pCallback->applyingRule(pFolder);
-	pCallback->setRange(0, nMatch);
-	pCallback->setPos(0);
+	if (pCallback) {
+		pCallback->applyingRule(pFolder);
+		pCallback->setRange(0, nMatch);
+		pCallback->setPos(0);
+	}
 	
 	bool bRequestResult = pAccessor->isRequestResult();
-	UndoItemList undo;
+	unsigned int nResultFlags = 0;
 	size_t nPos = 0;
 	for (RuleList::size_type nRule = 0; nRule < listRule.size(); ++nRule) {
-		if (pCallback->isCanceled())
+		if (pCallback && pCallback->isCanceled())
 			return true;
 		
 		const IndexList& listIndex = ll[nRule];
@@ -258,23 +320,26 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 						l.push_back(pmh);
 				}
 				
-				RuleContext context(l, pDocument, pAccount, pFolder, hwnd,
-					pProfile, &globalVariable, bAuto, nSecurityMode, &undo);
-				if (!pRule->apply(context))
+				RuleContext context(l, pDocument, pAccount, pFolder, hwnd, pProfile,
+					&globalVariable, bBackground, nSecurityMode, pUndoItemList);
+				if (!pRule->apply(&context))
 					return false;
+				nResultFlags |= context.getResultFlags();
 				
 				if (bRequestResult) {
-					bool bDestroyed = pRule->isMessageDestroyed();
+					bool bDestroyed = (context.getResultFlags() & Account::RESULTFLAG_DESTROYED) != 0;
 					for (IndexList::size_type n = 0; n < listIndex.size(); ++n)
 						pAccessor->setMessageHolder(listIndex[n], bDestroyed ? 0 : l[n]);
 				}
 			}
 			
 			nPos += listIndex.size();
-			pCallback->setPos(nPos);
+			if (pCallback)
+				pCallback->setPos(nPos);
 		}
 	}
-	pDocument->getUndoManager()->pushUndoItem(undo.getUndoItem());
+	if (pnResultFlags)
+		*pnResultFlags = nResultFlags;
 	
 	return true;
 }
@@ -352,6 +417,132 @@ qm::RuleManagerImpl::Accessor::~Accessor()
 
 /****************************************************************************
  *
+ * RuleManagerImpl::FolderAccessor
+ *
+ */
+
+qm::RuleManagerImpl::FolderAccessor::FolderAccessor(const Folder* pFolder) :
+	pFolder_(pFolder)
+{
+}
+
+qm::RuleManagerImpl::FolderAccessor::~FolderAccessor()
+{
+}
+
+size_t qm::RuleManagerImpl::FolderAccessor::getCount() const
+{
+	return pFolder_->getCount();
+}
+
+MessagePtr qm::RuleManagerImpl::FolderAccessor::getMessagePtr(size_t n) const
+{
+	return MessagePtr();
+}
+
+MessageHolder* qm::RuleManagerImpl::FolderAccessor::getMessageHolder(size_t n) const
+{
+	return pFolder_->getMessage(static_cast<unsigned int>(n));
+}
+
+bool qm::RuleManagerImpl::FolderAccessor::isRequestResult() const
+{
+	return false;
+}
+
+void qm::RuleManagerImpl::FolderAccessor::setMessageHolder(size_t n,
+														   MessageHolder* pmh)
+{
+	assert(false);
+}
+
+
+/****************************************************************************
+ *
+ * RuleManagerImpl::ConstListAccessor
+ *
+ */
+
+qm::RuleManagerImpl::ConstListAccessor::ConstListAccessor(const MessageHolderList& l) :
+	l_(l)
+{
+}
+
+qm::RuleManagerImpl::ConstListAccessor::~ConstListAccessor()
+{
+}
+
+size_t qm::RuleManagerImpl::ConstListAccessor::getCount() const
+{
+	return l_.size();
+}
+
+MessagePtr qm::RuleManagerImpl::ConstListAccessor::getMessagePtr(size_t n) const
+{
+	return MessagePtr();
+}
+
+MessageHolder* qm::RuleManagerImpl::ConstListAccessor::getMessageHolder(size_t n) const
+{
+	return l_[n];
+}
+
+bool qm::RuleManagerImpl::ConstListAccessor::isRequestResult() const
+{
+	return false;
+}
+
+void qm::RuleManagerImpl::ConstListAccessor::setMessageHolder(size_t n,
+															  MessageHolder* pmh)
+{
+	assert(false);
+}
+
+
+/****************************************************************************
+ *
+ * RuleManagerImpl::ListAccessor
+ *
+ */
+
+qm::RuleManagerImpl::ListAccessor::ListAccessor(MessagePtrList& l) :
+	l_(l)
+{
+}
+
+qm::RuleManagerImpl::ListAccessor::~ListAccessor()
+{
+}
+
+size_t qm::RuleManagerImpl::ListAccessor::getCount() const
+{
+	return l_.size();
+}
+
+MessagePtr qm::RuleManagerImpl::ListAccessor::getMessagePtr(size_t n) const
+{
+	return l_[n];
+}
+
+MessageHolder* qm::RuleManagerImpl::ListAccessor::getMessageHolder(size_t n) const
+{
+	return 0;
+}
+
+bool qm::RuleManagerImpl::ListAccessor::isRequestResult() const
+{
+	return true;
+}
+
+void qm::RuleManagerImpl::ListAccessor::setMessageHolder(size_t n,
+														 MessageHolder* pmh)
+{
+	l_[n] = pmh;
+}
+
+
+/****************************************************************************
+ *
  * RuleManager
  *
  */
@@ -386,177 +577,71 @@ void qm::RuleManager::setRuleSets(RuleSetList& listRuleSet)
 	pImpl_->listRuleSet_.swap(listRuleSet);
 }
 
-bool qm::RuleManager::apply(Folder* pFolder,
-							Document* pDocument,
-							HWND hwnd,
-							Profile* pProfile,
-							unsigned int nSecurityMode,
-							RuleCallback* pCallback)
+bool qm::RuleManager::applyManual(Folder* pFolder,
+								  Document* pDocument,
+								  HWND hwnd,
+								  Profile* pProfile,
+								  unsigned int nSecurityMode,
+								  UndoItemList* pUndoItemList,
+								  RuleCallback* pCallback)
 {
 	if (!pFolder->loadMessageHolders())
 		return false;
 	
-	class FolderAccessor : public RuleManagerImpl::Accessor
-	{
-	public:
-		FolderAccessor(const Folder* pFolder) :
-			pFolder_(pFolder)
-		{
-		}
-		
-		virtual ~FolderAccessor()
-		{
-		}
-	
-	public:
-		virtual size_t getCount() const
-		{
-			return pFolder_->getCount();
-		}
-		
-		virtual MessagePtr getMessagePtr(size_t n) const
-		{
-			return MessagePtr();
-		}
-		
-		virtual MessageHolder* getMessageHolder(size_t n) const
-		{
-			return pFolder_->getMessage(static_cast<unsigned int>(n));
-		}
-		
-		virtual bool isRequestResult() const
-		{
-			return false;
-		}
-		
-		virtual void setMessageHolder(size_t n,
-									  MessageHolder* pmh)
-		{
-			assert(false);
-		}
-	
-	private:
-		const Folder* pFolder_;
-	} accessor(pFolder);
-	
+	RuleManagerImpl::FolderAccessor accessor(pFolder);
 	return pImpl_->apply(pFolder, &accessor, pDocument, hwnd,
-		pProfile, RuleManagerImpl::FLAG_NONE, nSecurityMode, pCallback);
+		pProfile, Rule::USE_MANUAL, RuleManagerImpl::FLAG_NONE,
+		nSecurityMode, pUndoItemList, pCallback, 0);
 }
 
-bool qm::RuleManager::apply(Folder* pFolder,
-							const MessageHolderList& l,
-							Document* pDocument,
-							HWND hwnd,
-							Profile* pProfile,
-							unsigned int nSecurityMode,
-							RuleCallback* pCallback)
+bool qm::RuleManager::applyManual(Folder* pFolder,
+								  const MessageHolderList& l,
+								  Document* pDocument,
+								  HWND hwnd,
+								  Profile* pProfile,
+								  unsigned int nSecurityMode,
+								  UndoItemList* pUndoItemList,
+								  RuleCallback* pCallback)
 {
-	class ConstListAccessor : public RuleManagerImpl::Accessor
-	{
-	public:
-		ConstListAccessor(const MessageHolderList& l) :
-			l_(l)
-		{
-		}
-		
-		virtual ~ConstListAccessor()
-		{
-		}
-	
-	public:
-		virtual size_t getCount() const
-		{
-			return l_.size();
-		}
-		
-		virtual MessagePtr getMessagePtr(size_t n) const
-		{
-			return MessagePtr();
-		}
-		
-		virtual MessageHolder* getMessageHolder(size_t n) const
-		{
-			return l_[n];
-		}
-		
-		virtual bool isRequestResult() const
-		{
-			return false;
-		}
-		
-		virtual void setMessageHolder(size_t n,
-									  MessageHolder* pmh)
-		{
-			assert(false);
-		}
-	
-	private:
-		const MessageHolderList& l_;
-	} accessor(l);
-	
+	RuleManagerImpl::ConstListAccessor accessor(l);
 	return pImpl_->apply(pFolder, &accessor, pDocument, hwnd,
-		pProfile, RuleManagerImpl::FLAG_NONE, nSecurityMode, pCallback);
+		pProfile, Rule::USE_MANUAL, RuleManagerImpl::FLAG_NONE,
+		nSecurityMode, pUndoItemList, pCallback, 0);
 }
 
-bool qm::RuleManager::apply(Folder* pFolder,
-							MessagePtrList* pList,
-							Document* pDocument,
-							Profile* pProfile,
-							bool bJunkFilter,
-							bool bJunkFilterOnly,
-							RuleCallback* pCallback)
+bool qm::RuleManager::applyAuto(Folder* pFolder,
+								MessagePtrList* pList,
+								Document* pDocument,
+								Profile* pProfile,
+								bool bJunkFilter,
+								bool bJunkFilterOnly,
+								RuleCallback* pCallback)
 {
-	unsigned int nFlags = RuleManagerImpl::FLAG_AUTO;
+	unsigned int nFlags = RuleManagerImpl::FLAG_BACKGROUND;
 	if (bJunkFilter)
 		nFlags |= RuleManagerImpl::FLAG_JUNK;
 	if (bJunkFilterOnly)
 		nFlags |= RuleManagerImpl::FLAG_JUNKONLY;
 	
-	class ListAccessor : public RuleManagerImpl::Accessor
-	{
-	public:
-		ListAccessor(MessagePtrList& l) :
-			l_(l)
-		{
-		}
-		
-		virtual ~ListAccessor()
-		{
-		}
-	
-	public:
-		virtual size_t getCount() const
-		{
-			return l_.size();
-		}
-		
-		virtual MessagePtr getMessagePtr(size_t n) const
-		{
-			return l_[n];
-		}
-		
-		virtual MessageHolder* getMessageHolder(size_t n) const
-		{
-			return 0;
-		}
-		
-		virtual bool isRequestResult() const
-		{
-			return true;
-		}
-		
-		virtual void setMessageHolder(size_t n,
-									  MessageHolder* pmh)
-		{
-			l_[n] = pmh;
-		}
-	
-	private:
-		MessagePtrList& l_;
-	} accessor(*pList);
-	
-	return pImpl_->apply(pFolder, &accessor, pDocument, 0,
-		pProfile, nFlags, SECURITYMODE_NONE, pCallback);
+	RuleManagerImpl::ListAccessor accessor(*pList);
+	return pImpl_->apply(pFolder, &accessor, pDocument, 0, pProfile,
+		Rule::USE_AUTO, nFlags, SECURITYMODE_NONE, 0, pCallback, 0);
+}
+
+bool qm::RuleManager::applyActive(Folder* pFolder,
+								  const MessageHolderList& l,
+								  Document* pDocument,
+								  HWND hwnd,
+								  Profile* pProfile,
+								  unsigned int nSecurityMode,
+								  bool bBackground,
+								  unsigned int* pnResultFlags)
+{
+	unsigned int nFlags = bBackground ?
+		RuleManagerImpl::FLAG_BACKGROUND : RuleManagerImpl::FLAG_NONE;
+	RuleManagerImpl::ConstListAccessor accessor(l);
+	return pImpl_->apply(pFolder, &accessor, pDocument, hwnd, pProfile,
+		Rule::USE_ACTIVE, nFlags, nSecurityMode, 0, 0, pnResultFlags);
 }
 
 bool qm::RuleManager::save() const
@@ -786,14 +871,9 @@ bool qm::Rule::match(MacroContext* pContext) const
 	return pValue.get() && pValue->boolean();
 }
 
-bool qm::Rule::apply(const RuleContext& context) const
+bool qm::Rule::apply(RuleContext* pContext) const
 {
-	return pAction_->apply(context);
-}
-
-bool qm::Rule::isMessageDestroyed() const
-{
-	return (pAction_->getFlags() & RuleAction::FLAG_MESSAGEDESTROYED) != 0;
+	return pAction_->apply(pContext);
 }
 
 bool qm::Rule::isContinuable() const
@@ -837,7 +917,7 @@ NoneRuleAction::Type qm::NoneRuleAction::getType() const
 	return TYPE_NONE;
 }
 
-bool qm::NoneRuleAction::apply(const RuleContext& context) const
+bool qm::NoneRuleAction::apply(RuleContext* pContext) const
 {
 	return true;
 }
@@ -923,13 +1003,13 @@ RuleAction::Type qm::CopyRuleAction::getType() const
 	return bMove_ ? TYPE_MOVE : TYPE_COPY;
 }
 
-bool qm::CopyRuleAction::apply(const RuleContext& context) const
+bool qm::CopyRuleAction::apply(RuleContext* pContext) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qm::CopyRuleAction");
 	
-	Account* pAccountTo = context.getAccount();
+	Account* pAccountTo = pContext->getAccount();
 	if (wstrAccount_.get()) {
-		pAccountTo = context.getDocument()->getAccount(wstrAccount_.get());
+		pAccountTo = pContext->getDocument()->getAccount(wstrAccount_.get());
 		if (!pAccountTo) {
 			log.errorf(L"The specified account is not found: %s.", wstrAccount_.get());
 			return false;
@@ -942,13 +1022,13 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 		return false;
 	}
 	
-	log.debugf(L"%u messages are %s to %s.", context.getMessageHolderList().size(),
+	log.debugf(L"%u messages are %s to %s.", pContext->getMessageHolderList().size(),
 		bMove_ ? L"moved" : L"copied", wstrFolder_.get());
 	
 	if (wstrTemplate_.get()) {
-		const TemplateManager* pTemplateManager = context.getDocument()->getTemplateManager();
+		const TemplateManager* pTemplateManager = pContext->getDocument()->getTemplateManager();
 		const Template* pTemplate = pTemplateManager->getTemplate(
-			context.getAccount(), context.getFolder(), wstrTemplate_.get());
+			pContext->getAccount(), pContext->getFolder(), wstrTemplate_.get());
 		if (!pTemplate) {
 			log.errorf(L"The specified template cannot be loaded: %s.", wstrTemplate_.get());
 			return false;
@@ -961,15 +1041,15 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 			listArgument[n].pwszValue_ = listArgument_[n].second;
 		}
 		
-		const MessageHolderList& l = context.getMessageHolderList();
+		const MessageHolderList& l = pContext->getMessageHolderList();
 		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			MessageHolder* pmh = *it;
 			
 			Message msg;
-			TemplateContext templateContext(pmh, &msg, MessageHolderList(), context.getFolder(),
-				context.getAccount(), context.getDocument(), context.getWindow(), 0,
-				context.isAuto() ? MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
-				context.getSecurityMode(), context.getProfile(), 0, listArgument);
+			TemplateContext templateContext(pmh, &msg, MessageHolderList(), pContext->getFolder(),
+				pContext->getAccount(), pContext->getDocument(), pContext->getWindow(), 0,
+				pContext->isBackground() ? MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+				pContext->getSecurityMode(), pContext->getProfile(), 0, listArgument);
 			wstring_ptr wstrValue;
 			if (pTemplate->getValue(templateContext, &wstrValue) != Template::RESULT_SUCCESS) {
 				log.errorf(L"Error occured while processing template.");
@@ -977,27 +1057,40 @@ bool qm::CopyRuleAction::apply(const RuleContext& context) const
 			}
 			
 			std::auto_ptr<Message> pMessage(MessageCreator().createMessage(
-				context.getDocument(), wstrValue.get(), wcslen(wstrValue.get())));
+				pContext->getDocument(), wstrValue.get(), wcslen(wstrValue.get())));
+			unsigned int nAppendFlags = pContext->isBackground() ?
+				Account::OPFLAG_BACKGROUND : Account::OPFLAG_NONE;
 			if (!pAccountTo->appendMessage(static_cast<NormalFolder*>(pFolderTo),
 				*pMessage, pmh->getFlags() & MessageHolder::FLAG_USER_MASK,
-				pmh->getLabel().get(), context.getUndoItemList(), 0))
+				pmh->getLabel().get(), nAppendFlags, pContext->getUndoItemList(), 0))
 				return false;
 			
 			if (bMove_) {
-				if (!context.getAccount()->removeMessages(MessageHolderList(1, pmh),
-					context.getFolder(), false, 0, context.getUndoItemList()))
+				unsigned int nRemoveFlags = Account::OPFLAG_ACTIVE |
+					(pContext->isBackground() ? Account::OPFLAG_BACKGROUND : Account::REMOVEFLAG_NONE);
+				unsigned int nResultFlags = 0;
+				if (!pContext->getAccount()->removeMessages(
+					MessageHolderList(1, pmh), pContext->getFolder(), nRemoveFlags,
+					0, pContext->getUndoItemList(), &nResultFlags))
 					return false;
+				pContext->setResultFlags(nResultFlags);
 			}
 		}
-		
-		return true;
 	}
 	else {
-		unsigned int nFlags = bMove_ ? Account::COPYFLAG_MOVE : Account::COPYFLAG_NONE;
-		return context.getAccount()->copyMessages(context.getMessageHolderList(),
-			context.getFolder(), static_cast<NormalFolder*>(pFolderTo),
-			nFlags, 0, context.getUndoItemList());
+		unsigned int nCopyFlags = Account::OPFLAG_ACTIVE |
+			(bMove_ ? Account::COPYFLAG_MOVE : Account::COPYFLAG_NONE);
+		if (pContext->isBackground())
+			nCopyFlags |= Account::OPFLAG_BACKGROUND;
+		unsigned int nResultFlags = 0;
+		if (!pContext->getAccount()->copyMessages(pContext->getMessageHolderList(),
+			pContext->getFolder(), static_cast<NormalFolder*>(pFolderTo),
+			nCopyFlags, 0, pContext->getUndoItemList(), &nResultFlags))
+			return false;
+		pContext->setResultFlags(nResultFlags);
 	}
+	
+	return true;
 }
 
 unsigned int qm::CopyRuleAction::getFlags() const
@@ -1084,10 +1177,18 @@ RuleAction::Type qm::DeleteRuleAction::getType() const
 	return TYPE_DELETE;
 }
 
-bool qm::DeleteRuleAction::apply(const RuleContext& context) const
+bool qm::DeleteRuleAction::apply(RuleContext* pContext) const
 {
-	return context.getAccount()->removeMessages(context.getMessageHolderList(),
-		context.getFolder(), bDirect_, 0, context.getUndoItemList());
+	unsigned int nRemoveFlags = Account::OPFLAG_ACTIVE |
+		(bDirect_ ? Account::REMOVEFLAG_DIRECT : Account::REMOVEFLAG_NONE);
+	if (pContext->isBackground())
+		nRemoveFlags |= Account::OPFLAG_BACKGROUND;
+	unsigned int nResultFlags = 0;
+	if (!pContext->getAccount()->removeMessages(pContext->getMessageHolderList(),
+		pContext->getFolder(), nRemoveFlags, 0, pContext->getUndoItemList(), &nResultFlags))
+		return false;
+	pContext->setResultFlags(nResultFlags);
+	return true;
 }
 
 wstring_ptr qm::DeleteRuleAction::getDescription() const
@@ -1098,7 +1199,7 @@ wstring_ptr qm::DeleteRuleAction::getDescription() const
 
 unsigned int qm::DeleteRuleAction::getFlags() const
 {
-	return bDirect_ ? FLAG_MESSAGEDESTROYED : FLAG_NONE;
+	return FLAG_NONE;
 }
 
 std::auto_ptr<RuleAction> qm::DeleteRuleAction::clone() const
@@ -1146,11 +1247,11 @@ RuleAction::Type qm::LabelRuleAction::getType() const
 	return TYPE_LABEL;
 }
 
-bool qm::LabelRuleAction::apply(const RuleContext& context) const
+bool qm::LabelRuleAction::apply(RuleContext* pContext) const
 {
-	Account* pAccount = context.getAccount();
-	const MessageHolderList& l = context.getMessageHolderList();
-	UndoItemList* pUndoItemList = context.getUndoItemList();
+	Account* pAccount = pContext->getAccount();
+	const MessageHolderList& l = pContext->getMessageHolderList();
+	UndoItemList* pUndoItemList = pContext->getUndoItemList();
 	switch (type_) {
 	case LABELTYPE_SET:
 		if (!pAccount->setMessagesLabel(l, wstrLabel_.get(), pUndoItemList))
@@ -1242,10 +1343,10 @@ RuleAction::Type qm::DeleteCacheRuleAction::getType() const
 	return TYPE_DELETECACHE;
 }
 
-bool qm::DeleteCacheRuleAction::apply(const RuleContext& context) const
+bool qm::DeleteCacheRuleAction::apply(RuleContext* pContext) const
 {
-	return context.getAccount()->deleteMessagesCache(
-		context.getMessageHolderList());
+	return pContext->getAccount()->deleteMessagesCache(
+		pContext->getMessageHolderList());
 }
 
 wstring_ptr qm::DeleteCacheRuleAction::getDescription() const
@@ -1296,15 +1397,17 @@ RuleAction::Type qm::ApplyRuleAction::getType() const
 	return TYPE_APPLY;
 }
 
-bool qm::ApplyRuleAction::apply(const RuleContext& context) const
+bool qm::ApplyRuleAction::apply(RuleContext* pContext) const
 {
-	const MessageHolderList& l = context.getMessageHolderList();
+	const MessageHolderList& l = pContext->getMessageHolderList();
+	unsigned int nMacroFlags = pContext->isBackground() ?
+		MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI;
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Message msg;
-		MacroContext c(*it, &msg, context.getAccount(), MessageHolderList(),
-			context.getFolder(), context.getDocument(), context.getWindow(), context.getProfile(), 0,
-			context.isAuto() ? MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
-			context.getSecurityMode(), 0, context.getGlobalVariable());
+		MacroContext c(*it, &msg, pContext->getAccount(), MessageHolderList(),
+			pContext->getFolder(), pContext->getDocument(),
+			pContext->getWindow(), pContext->getProfile(), 0, nMacroFlags,
+			pContext->getSecurityMode(), 0, pContext->getGlobalVariable());
 		MacroValuePtr pValue(pMacro_->value(&c));
 		if (!pValue.get())
 			return false;
@@ -1344,7 +1447,7 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 							 HWND hwnd,
 							 Profile* pProfile,
 							 MacroVariableHolder* pGlobalVariable,
-							 bool bAuto,
+							 bool bBackground,
 							 unsigned int nSecurityMode,
 							 UndoItemList* pUndoItemList) :
 	listMessageHolder_(l),
@@ -1354,9 +1457,10 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	pGlobalVariable_(pGlobalVariable),
-	bAuto_(bAuto),
+	bBackground_(bBackground),
 	nSecurityMode_(nSecurityMode),
-	pUndoItemList_(pUndoItemList)
+	pUndoItemList_(pUndoItemList),
+	nResultFlags_(Account::RESULTFLAG_NONE)
 {
 	assert(!l.empty());
 	assert(pDocument);
@@ -1365,7 +1469,6 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 	assert(pFolder);
 	assert(pProfile);
 	assert(pGlobalVariable);
-	assert(pUndoItemList);
 }
 
 qm::RuleContext::~RuleContext()
@@ -1407,9 +1510,9 @@ MacroVariableHolder* qm::RuleContext::getGlobalVariable() const
 	return pGlobalVariable_;
 }
 
-bool qm::RuleContext::isAuto() const
+bool qm::RuleContext::isBackground() const
 {
-	return bAuto_;
+	return bBackground_;
 }
 
 unsigned int qm::RuleContext::getSecurityMode() const
@@ -1420,6 +1523,16 @@ unsigned int qm::RuleContext::getSecurityMode() const
 UndoItemList* qm::RuleContext::getUndoItemList() const
 {
 	return pUndoItemList_;
+}
+
+unsigned int qm::RuleContext::getResultFlags() const
+{
+	return nResultFlags_;
+}
+
+void qm::RuleContext::setResultFlags(unsigned int nResultFlags)
+{
+	nResultFlags_ |= nResultFlags;
 }
 
 
@@ -1521,6 +1634,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				nUse_ |= Rule::USE_MANUAL;
 			if (wcsstr(pwszUse, L"auto"))
 				nUse_ |= Rule::USE_AUTO;
+			if (wcsstr(pwszUse, L"active"))
+				nUse_ |= Rule::USE_ACTIVE;
 		}
 		else {
 			nUse_ = Rule::USE_MANUAL | Rule::USE_AUTO;
@@ -1878,6 +1993,11 @@ bool qm::RuleWriter::write(const Rule* pRule)
 			if (bufUse.getLength() != 0)
 				bufUse.append(L' ');
 			bufUse.append(L"auto");
+		}
+		if (pRule->getUse() & Rule::USE_ACTIVE) {
+			if (bufUse.getLength() != 0)
+				bufUse.append(L' ');
+			bufUse.append(L"active");
 		}
 	}
 	bool bContinue = pRule->isContinue();

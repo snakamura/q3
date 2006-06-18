@@ -552,7 +552,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			Lock<Account> lock(*pAccount_);
 			
 			MessageHolder* pmh = pAccount_->storeMessage(pFolder_, buf.getCharArray(),
-				buf.getLength(), &msg, nUid, nFlags, wstrLabel.get(), nSize, true);
+				buf.getLength(), &msg, nUid, nFlags, wstrLabel.get(), nSize,
+				Account::STOREFLAG_INDEXONLY | Account::OPFLAG_BACKGROUND, 0);
 			if (!pmh)
 				return RESULT_ERROR;
 			
@@ -1369,7 +1370,7 @@ bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
 	
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->apply(pFolder_, &listMessagePtr, pDocument_,
+	return pRuleManager->applyAuto(pFolder_, &listMessagePtr, pDocument_,
 		pProfile_, bJunkFilter, bJunkFilterOnly, &callback);
 }
 

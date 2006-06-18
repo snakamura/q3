@@ -510,8 +510,12 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 				
 				assert(!l.empty());
 				
-				unsigned int nFlags = (flag == FLAG_MOVE ? Account::COPYFLAG_MOVE : 0) | Account::COPYFLAG_MANAGEJUNK;
-				if (!pAccount->copyMessages(l, pFolderFrom, pFolderTo, nFlags, pCallback, &undo))
+				unsigned int nCopyFlags = Account::OPFLAG_ACTIVE |
+					Account::COPYFLAG_MANAGEJUNK;
+				if (flag == FLAG_MOVE)
+					nCopyFlags |= Account::COPYFLAG_MOVE;
+				if (!pAccount->copyMessages(l, pFolderFrom,
+					pFolderTo, nCopyFlags, pCallback, &undo, 0))
 					return false;
 				
 				if (pCallback && pCallback->isCanceled())

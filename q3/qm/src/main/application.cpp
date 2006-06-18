@@ -46,6 +46,7 @@
 #include "../model/tempfilecleaner.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
+#include "../ui/activerule.h"
 #include "../ui/dialogs.h"
 #include "../ui/mainwindow.h"
 #include "../ui/syncdialog.h"
@@ -146,6 +147,7 @@ public:
 	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
 	std::auto_ptr<AutoPilotManager> pAutoPilotManager_;
 	std::auto_ptr<AutoPilot> pAutoPilot_;
+	std::auto_ptr<ActiveRuleInvoker> pActiveRuleInvoker_;
 	std::auto_ptr<UIManager> pUIManager_;
 	MainWindow* pMainWindow_;
 	HINSTANCE hInstAtl_;
@@ -807,6 +809,10 @@ bool qm::Application::initialize()
 	if (!pImpl_->pDocument_->loadAccounts(wstrAccountFolder.get()))
 		return false;
 	
+	pImpl_->pActiveRuleInvoker_.reset(new ActiveRuleInvoker(
+		pImpl_->pDocument_.get(), pImpl_->pMainWindow_->getSecurityModel(),
+		pImpl_->pMainWindow_->getHandle(), pImpl_->pProfile_.get()));
+	
 	pImpl_->pMainWindow_->updateWindow();
 	pImpl_->pMainWindow_->setForegroundWindow();
 	
@@ -837,6 +843,7 @@ void qm::Application::uninitialize()
 #endif
 	
 	pImpl_->pUIManager_.reset(0);
+	pImpl_->pActiveRuleInvoker_.reset(0);
 	pImpl_->pTempFileCleaner_.reset(0);
 	pImpl_->pGoRound_.reset(0);
 	pImpl_->pSyncDialogManager_.reset(0);

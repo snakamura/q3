@@ -270,6 +270,7 @@ AR						= lib
 LD						= link
 MIDL					= midl
 MT						= mt
+BSCMAKE					= bscmake
 DUMPBIN					= dumpbin
 GCC						= gcc
 
@@ -395,8 +396,12 @@ ifeq ($(PLATFORM),win)
 		CCFLAGS			+= -Zc:forScope
 	endif
 	ifeq ($(VCVER),8)
+		CCFLAGS			+= -FC
 		DEFINES			+= -D_CRT_SECURE_NO_DEPRECATE
 	endif
+	
+	CCFLAGS				+= -FR$(@D)/
+	BSCFLAGS			= -El
 	
 	LIBCPU				= $(CPU)
 	EXLIBCPU			= $(CPU)
@@ -585,6 +590,7 @@ TLBDIR					= $(TLBDIRBASE)/$(PLATFORM)
 TARGETBASE				= $(PROJECTNAME)$(SUFFIX)
 TARGET					= $(TARGETBASE).$(EXTENSION)
 MUITARGET				= $(TARGET).$(MUILANG).mui
+BSCTARGET				= $(TARGETBASE).bsc
 
 
 # STLPORT ###################################################################
@@ -663,10 +669,14 @@ else
 	export LIB			= $(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR);$(COMPILERLIBDIR)
 endif
 
+SBRS					= $(patsubst %.obj, %.sbr, $(OBJS))
+
 
 target: $(TARGETDIR)/$(TARGET)
 
 target.mui: $(TARGETDIR)/$(MUITARGET)
+
+target.bsc: $(TARGETDIR)/$(BSCTARGET)
 
 clean:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
@@ -688,11 +698,11 @@ clean.wce:
 	done
 	-rm -f version revision
 
-$(OBJDIR)/%.obj: $(SRCDIR)/%.cpp
+$(OBJDIR)/%.obj $(OBJDIR)/%.sbr: $(SRCDIR)/%.cpp
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CCC) $(CCFLAGS) $(DEFINES) $(INCLUDES) -c -Fo$@ $<
 
-$(OBJDIR)/%.obj: $(SRCDIR)/%.c
+$(OBJDIR)/%.obj $(OBJDIR)/%.sbr: $(SRCDIR)/%.c
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CCC) $(CCFLAGS) $(DEFINES) $(INCLUDES) -c -Fo$@ $<
 
@@ -744,6 +754,10 @@ $(TARGETDIR)/$(TARGETBASE).lib: $(OBJS)
 $(TARGETDIR)/$(MUITARGET): $(OBJS) $(RESES)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(LD) $(LDFLAGS) -DLL -OUT:$@ $(OBJS) $(RESES) $(LIBS)
+
+$(TARGETDIR)/$(TARGETBASE).bsc: $(SBRS)
+	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(BSCMAKE) $(BSCFLAGS) -o $@ $(SBRS)
 
 ifneq ($(PLATFORM),)
     ifndef NODEPEND

@@ -1132,8 +1132,11 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 	assert(pAccount->isLocked());
 	
 	MessageHolderList l(1, pmh->getMessageHolder());
-	unsigned int nFlags = bMove_ ? Account::COPYFLAG_MOVE : Account::COPYFLAG_NONE;
-	if (!pAccount->copyMessages(l, 0, static_cast<NormalFolder*>(pFolderTo), nFlags, 0, 0))
+	unsigned int nCopyFlags = Account::OPFLAG_ACTIVE |
+		(bMove_ ? Account::COPYFLAG_MOVE : Account::COPYFLAG_NONE);
+	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		nCopyFlags |= Account::OPFLAG_BACKGROUND;
+	if (!pAccount->copyMessages(l, 0, static_cast<NormalFolder*>(pFolderTo), nCopyFlags, 0, 0, 0))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	return MacroValueFactory::getFactory().newBoolean(true);
@@ -1308,8 +1311,12 @@ MacroValuePtr qm::MacroFunctionDelete::value(MacroContext* pContext) const
 	assert(pAccount->isLocked());
 	
 	MessageHolderList l(1, pmh->getMessageHolder());
-	if (!pAccount->removeMessages(l, 0, false, 0, 0))
+	if (!pAccount->removeMessages(l, 0, Account::OPFLAG_ACTIVE, 0, 0, 0))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
+	// TODO
+	// The context message might be destroyed by removeMessages.
+	// What can I do when this happens?
 	
 	return MacroValueFactory::getFactory().newBoolean(true);
 }
