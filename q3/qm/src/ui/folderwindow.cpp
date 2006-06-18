@@ -165,6 +165,7 @@ private:
 					   Account* pAccount);
 	void insertFolder(Folder* pFolder);
 	void removeFolder(Folder* pFolder);
+	void sortFolders(Folder* pFolder);
 	void processDragEvent(const DropTargetDragEvent& event);
 
 private:
@@ -563,18 +564,23 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 		removeFolder(event.getFolder());
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
-		{
-			HTREEITEM hItem = getHandleFromFolder(event.getFolder());
-			RECT rect;
-			if (TreeView_GetItemRect(pThis_->getHandle(), hItem, &rect, FALSE))
-				pThis_->invalidateRect(rect);
-		}
+		update(event.getFolder());
 		break;
 	case FolderListChangedEvent::TYPE_FLAGS:
-		if ((event.getOldFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK)) !=
-			(event.getNewFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK))) {
-			// TODO
-			refreshFolderList(event.getAccount());
+		{
+			Folder* pFolder = event.getFolder();
+			unsigned int nOldFlags = event.getOldFlags();
+			unsigned int nNewFlags = event.getNewFlags();
+			if ((nOldFlags & Folder::FLAG_HIDE) != (nNewFlags & Folder::FLAG_HIDE)) {
+				refreshFolderList(event.getAccount());
+			}
+			else if ((nOldFlags & Folder::FLAG_BOX_MASK) != (nNewFlags & Folder::FLAG_BOX_MASK)) {
+				sortFolders(pFolder);
+				update(pFolder);
+			}
+			else {
+				update(pFolder);
+			}
 		}
 		break;
 	default:
@@ -1099,6 +1105,30 @@ void qm::FolderWindowImpl::removeFolder(Folder* pFolder)
 	pFolder->removeFolderHandler(this);
 	
 	TreeView_DeleteItem(pThis_->getHandle(), hItem);
+}
+
+void qm::FolderWindowImpl::sortFolders(Folder* pFolder)
+{
+	assert(pFolder);
+	
+	HWND hwnd = pThis_->getHandle();
+	
+	struct Comparator
+	{
+		static int CALLBACK compare(LPARAM lParam1,
+									LPARAM lParam2,
+									LPARAM lParamSort)
+		{
+			return FolderLess::compare(reinterpret_cast<Folder*>(lParam1),
+				reinterpret_cast<Folder*>(lParam2));
+		}
+	};
+	TV_SORTCB sort = {
+		TreeView_GetParent(hwnd, getHandleFromFolder(pFolder)),
+		&Comparator::compare,
+		0
+	};
+	TreeView_SortChildrenCB(hwnd, &sort, FALSE);
 }
 
 void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
