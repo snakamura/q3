@@ -2691,6 +2691,29 @@ bool qm::FolderDeleteAction::deleteFolder(FolderModel* pFolderModel,
 {
 	Account* pAccount = pFolder->getAccount();
 	
+	if (pFolderModel->getCurrent().second == pFolder) {
+		Folder* pParent = pFolder->getParentFolder();
+		Folder* pFolderNext = 0;
+		
+		Account::FolderList l(pAccount->getFolders());
+		std::sort(l.begin(), l.end(), FolderLess());
+		Account::FolderList::const_iterator it = std::find(l.begin(), l.end(), pFolder);
+		for (++it; it != l.end() && !pFolderNext; ++it) {
+			Folder* p = *it;
+			if (p->getAccount() != pAccount)
+				break;
+			else if (p->getParentFolder() == pParent)
+				pFolderNext = p;
+		}
+		if (!pFolderNext)
+			pFolderNext = pParent;
+		
+		if (pFolderNext)
+			pFolderModel->setCurrent(0, pFolderNext, false);
+		else
+			pFolderModel->setCurrent(pAccount, 0, false);
+	}
+	
 	Folder* pTrash = pAccount->getFolderByBoxFlag(Folder::FLAG_TRASHBOX);
 	if (pTrash &&
 		pFolder != pTrash &&
@@ -2708,28 +2731,6 @@ bool qm::FolderDeleteAction::deleteFolder(FolderModel* pFolderModel,
 		return pAccount->moveFolder(pFolder, pTrash, wstrName.get());
 	}
 	else {
-		if (pFolderModel->getCurrent().second == pFolder) {
-			Folder* pParent = pFolder->getParentFolder();
-			Folder* pFolderNext = 0;
-			
-			Account::FolderList l(pAccount->getFolders());
-			std::sort(l.begin(), l.end(), FolderLess());
-			Account::FolderList::const_iterator it = std::find(l.begin(), l.end(), pFolder);
-			for (++it; it != l.end() && !pFolderNext; ++it) {
-				Folder* p = *it;
-				if (p->getAccount() != pAccount)
-					break;
-				else if (p->getParentFolder() == pParent)
-					pFolderNext = p;
-			}
-			if (!pFolderNext)
-				pFolderNext = pParent;
-			
-			if (pFolderNext)
-				pFolderModel->setCurrent(0, pFolderNext, false);
-			else
-				pFolderModel->setCurrent(pAccount, 0, false);
-		}
 		return pAccount->removeFolder(pFolder);
 	}
 }
