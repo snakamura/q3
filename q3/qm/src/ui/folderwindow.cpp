@@ -563,8 +563,12 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 		removeFolder(event.getFolder());
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
-		// TODO
-		refreshFolderList(event.getAccount());
+		{
+			HTREEITEM hItem = getHandleFromFolder(event.getFolder());
+			RECT rect;
+			if (TreeView_GetItemRect(pThis_->getHandle(), hItem, &rect, FALSE))
+				pThis_->invalidateRect(rect);
+		}
 		break;
 	case FolderListChangedEvent::TYPE_FLAGS:
 		if ((event.getOldFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK)) !=
