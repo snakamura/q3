@@ -76,6 +76,7 @@ void qm::ActiveRuleInvoker::folderListChanged(const FolderListChangedEvent& even
 		removeHook(event.getFolder());
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
+	case FolderListChangedEvent::TYPE_MOVE:
 	case FolderListChangedEvent::TYPE_FLAGS:
 		break;
 	default:

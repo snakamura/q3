@@ -96,6 +96,7 @@ void qm::FolderListModel::folderListChanged(const FolderListChangedEvent& event)
 	case FolderListChangedEvent::TYPE_ADD:
 	case FolderListChangedEvent::TYPE_REMOVE:
 	case FolderListChangedEvent::TYPE_RENAME:
+	case FolderListChangedEvent::TYPE_MOVE:
 		fireFolderListChanged();
 		break;
 	case FolderListChangedEvent::TYPE_FLAGS:

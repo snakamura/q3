@@ -163,8 +163,10 @@ private:
 	void removeAccount(Account* pAccount);
 	void insertFolders(HTREEITEM hItem,
 					   Account* pAccount);
-	void insertFolder(Folder* pFolder);
-	void removeFolder(Folder* pFolder);
+	void insertFolder(Folder* pFolder,
+					  bool bRecursive);
+	void removeFolder(Folder* pFolder,
+					  bool bRecursive);
 	void sortFolders(Folder* pFolder);
 	void processDragEvent(const DropTargetDragEvent& event);
 
@@ -558,13 +560,20 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 		refreshFolderList(event.getAccount());
 		break;
 	case FolderListChangedEvent::TYPE_ADD:
-		insertFolder(event.getFolder());
+		insertFolder(event.getFolder(), false);
 		break;
 	case FolderListChangedEvent::TYPE_REMOVE:
-		removeFolder(event.getFolder());
+		removeFolder(event.getFolder(), false);
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
 		update(event.getFolder());
+		break;
+	case FolderListChangedEvent::TYPE_MOVE:
+		{
+			Folder* pFolder = event.getFolder();
+			removeFolder(pFolder, true);
+			insertFolder(pFolder, true);
+		}
 		break;
 	case FolderListChangedEvent::TYPE_FLAGS:
 		{
@@ -1042,7 +1051,8 @@ void qm::FolderWindowImpl::insertFolders(HTREEITEM hItem,
 	}
 }
 
-void qm::FolderWindowImpl::insertFolder(Folder* pFolder)
+void qm::FolderWindowImpl::insertFolder(Folder* pFolder,
+										bool bRecursive)
 {
 	assert(pFolder);
 	
@@ -1084,11 +1094,28 @@ void qm::FolderWindowImpl::insertFolder(Folder* pFolder)
 		return;
 	mapFolder_.push_back(std::make_pair(pFolder, hItem));
 	pFolder->addFolderHandler(this);
+	
+	if (bRecursive) {
+		Account::FolderList l;
+		pFolder->getAccount()->getChildFolders(pFolder, &l);
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it)
+			insertFolder(*it, true);
+	}
 }
 
-void qm::FolderWindowImpl::removeFolder(Folder* pFolder)
+void qm::FolderWindowImpl::removeFolder(Folder* pFolder,
+										bool bRecursive)
 {
 	assert(pFolder);
+	
+	if (bRecursive) {
+		Account::FolderList l;
+		pFolder->getAccount()->getChildFolders(pFolder, &l);
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it)
+			removeFolder(*it, true);
+	}
+	
+	HWND hwnd = pThis_->getHandle();
 	
 	FolderMap::iterator it = std::find_if(
 		mapFolder_.begin(), mapFolder_.end(),
@@ -1101,10 +1128,11 @@ void qm::FolderWindowImpl::removeFolder(Folder* pFolder)
 	assert(it != mapFolder_.end());
 	
 	HTREEITEM hItem = (*it).second;
+	assert(!TreeView_GetChild(hwnd, hItem));
 	mapFolder_.erase(it);
 	pFolder->removeFolderHandler(this);
 	
-	TreeView_DeleteItem(pThis_->getHandle(), hItem);
+	TreeView_DeleteItem(hwnd, hItem);
 }
 
 void qm::FolderWindowImpl::sortFolders(Folder* pFolder)

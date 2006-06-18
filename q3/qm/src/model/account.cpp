@@ -1509,6 +1509,22 @@ const Account::FolderList& qm::Account::getFolders() const
 	return pImpl_->listFolder_;
 }
 
+void qm::Account::getChildFolders(const Folder* pFolder,
+								  FolderList* pList) const
+{
+	assert(pList);
+	
+	std::remove_copy_if(
+		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
+		std::back_inserter(*pList),
+		std::not1(std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<const Folder*>(),
+				std::mem_fun(&Folder::getParentFolder),
+				std::identity<const Folder*>()),
+			pFolder)));
+}
+
 void qm::Account::getNormalFolders(const WCHAR* pwszName,
 								   bool bRecursive,
 								   NormalFolderList* pList) const
@@ -1717,7 +1733,7 @@ bool qm::Account::moveFolder(Folder* pFolder,
 		pFolder->setName(pwszName);
 	pFolder->setParentFolder(pParent);
 	
-	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_ALL, 0);
+	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_MOVE, pFolder);
 	pImpl_->fireFolderListChanged(event);
 	
 	return true;

@@ -303,6 +303,10 @@ void qm::FolderComboBoxImpl::folderListChanged(const FolderListChangedEvent& eve
 		// TODO
 		refreshFolderList(event.getAccount(), bDropDown);
 		break;
+	case FolderListChangedEvent::TYPE_MOVE:
+		// TODO
+		refreshFolderList(event.getAccount(), bDropDown);
+		break;
 	case FolderListChangedEvent::TYPE_FLAGS:
 		if ((event.getOldFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK)) !=
 			(event.getNewFlags() & (Folder::FLAG_HIDE | Folder::FLAG_BOX_MASK))) {
