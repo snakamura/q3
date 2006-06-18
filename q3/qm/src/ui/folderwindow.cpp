@@ -164,6 +164,7 @@ private:
 	void insertFolders(HTREEITEM hItem,
 					   Account* pAccount);
 	void insertFolder(Folder* pFolder);
+	void removeFolder(Folder* pFolder);
 	void processDragEvent(const DropTargetDragEvent& event);
 
 private:
@@ -559,8 +560,7 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 		insertFolder(event.getFolder());
 		break;
 	case FolderListChangedEvent::TYPE_REMOVE:
-		// TODO
-		refreshFolderList(event.getAccount());
+		removeFolder(event.getFolder());
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
 		// TODO
@@ -1034,6 +1034,8 @@ void qm::FolderWindowImpl::insertFolders(HTREEITEM hItem,
 
 void qm::FolderWindowImpl::insertFolder(Folder* pFolder)
 {
+	assert(pFolder);
+	
 	HWND hwnd = pThis_->getHandle();
 	
 	Folder* pParent = pFolder->getParentFolder();
@@ -1072,6 +1074,27 @@ void qm::FolderWindowImpl::insertFolder(Folder* pFolder)
 		return;
 	mapFolder_.push_back(std::make_pair(pFolder, hItem));
 	pFolder->addFolderHandler(this);
+}
+
+void qm::FolderWindowImpl::removeFolder(Folder* pFolder)
+{
+	assert(pFolder);
+	
+	FolderMap::iterator it = std::find_if(
+		mapFolder_.begin(), mapFolder_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<Folder*>(),
+				std::select1st<FolderMap::value_type>(),
+				std::identity<Folder*>()),
+			pFolder));
+	assert(it != mapFolder_.end());
+	
+	HTREEITEM hItem = (*it).second;
+	mapFolder_.erase(it);
+	pFolder->removeFolderHandler(this);
+	
+	TreeView_DeleteItem(pThis_->getHandle(), hItem);
 }
 
 void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
