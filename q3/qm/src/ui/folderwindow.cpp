@@ -163,6 +163,7 @@ private:
 	void removeAccount(Account* pAccount);
 	void insertFolders(HTREEITEM hItem,
 					   Account* pAccount);
+	void insertFolder(Folder* pFolder);
 	void processDragEvent(const DropTargetDragEvent& event);
 
 private:
@@ -555,8 +556,7 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 		refreshFolderList(event.getAccount());
 		break;
 	case FolderListChangedEvent::TYPE_ADD:
-		// TODO
-		refreshFolderList(event.getAccount());
+		insertFolder(event.getFolder());
 		break;
 	case FolderListChangedEvent::TYPE_REMOVE:
 		// TODO
@@ -1030,6 +1030,48 @@ void qm::FolderWindowImpl::insertFolders(HTREEITEM hItem,
 		mapFolder_.push_back(std::make_pair(pFolder, hItemFolder));
 		pFolder->addFolderHandler(this);
 	}
+}
+
+void qm::FolderWindowImpl::insertFolder(Folder* pFolder)
+{
+	HWND hwnd = pThis_->getHandle();
+	
+	Folder* pParent = pFolder->getParentFolder();
+	HTREEITEM hItemParent = pParent ? getHandleFromFolder(pParent) :
+		getHandleFromAccount(pFolder->getAccount());
+	assert(hItemParent);
+	
+	HTREEITEM hItemInsertAfter = TVI_FIRST;
+	HTREEITEM hItemChild = TreeView_GetChild(hwnd, hItemParent);
+	while (hItemChild) {
+		Folder* pChild = getFolder(hItemChild);
+		if (FolderLess::compare(pChild, pFolder) > 0)
+			break;
+		hItemInsertAfter = hItemChild;
+		hItemChild = TreeView_GetNextSibling(hwnd, hItemChild);
+	}
+	
+	TVINSERTSTRUCT tvisFolder = {
+		hItemParent,
+		hItemInsertAfter,
+		{
+			TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
+			0,
+			0,
+			0,
+			LPSTR_TEXTCALLBACK,
+			0,
+			I_IMAGECALLBACK,
+			I_IMAGECALLBACK,
+			0,
+			reinterpret_cast<LPARAM>(pFolder)
+		}
+	};
+	HTREEITEM hItem = TreeView_InsertItem(hwnd, &tvisFolder);
+	if (!hItem)
+		return;
+	mapFolder_.push_back(std::make_pair(pFolder, hItem));
+	pFolder->addFolderHandler(this);
 }
 
 void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
