@@ -67,7 +67,7 @@ public:
 									  MessageHolder* pmh) = 0;
 	};
 	
-	class FolderAccessor : public RuleManagerImpl::Accessor
+	class FolderAccessor : public Accessor
 	{
 	public:
 		FolderAccessor(const Folder* pFolder);
@@ -85,7 +85,7 @@ public:
 		const Folder* pFolder_;
 	};
 	
-	class ConstListAccessor : public RuleManagerImpl::Accessor
+	class ConstListAccessor : public Accessor
 	{
 	public:
 		ConstListAccessor(const MessageHolderList& l);
@@ -103,7 +103,7 @@ public:
 		const MessageHolderList& l_;
 	};
 	
-	class ListAccessor : public RuleManagerImpl::Accessor
+	class ListAccessor : public Accessor
 	{
 	public:
 		ListAccessor(MessagePtrList& l);
