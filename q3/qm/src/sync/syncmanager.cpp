@@ -1002,10 +1002,11 @@ bool qm::SyncManager::send(Document* pDocument,
 			MessagePtrLock mpl(listMessagePtr[m]);
 			if (mpl) {
 				l[0] = mpl;
+				unsigned int nCopyFlags = Account::COPYFLAG_MOVE |
+					Account::OPFLAG_ACTIVE | Account::OPFLAG_BACKGROUND;
 				if (!pAccount->setMessagesFlags(l,
 						MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT, 0) ||
-					!pAccount->copyMessages(l, pOutbox, pSentbox,
-						Account::COPYFLAG_MOVE | Account::OPFLAG_BACKGROUND, 0, 0, 0)) {
+					!pAccount->copyMessages(l, pOutbox, pSentbox, nCopyFlags, 0, 0, 0)) {
 					addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_MOVETOSENTBOX, 0);
 					return false;
 				}
