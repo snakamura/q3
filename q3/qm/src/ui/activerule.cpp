@@ -9,6 +9,8 @@
 #include <qmdocument.h>
 #include <qmrule.h>
 
+#include <boost/bind.hpp>
+
 #include "activerule.h"
 #include "../uimodel/securitymodel.h"
 
@@ -32,20 +34,16 @@ qm::ActiveRuleInvoker::ActiveRuleInvoker(Document* pDocument,
 	pProfile_(pProfile)
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
-//	std::for_each(l.begin(), l.end(),
-//		std::bind1st(std::mem_fun(&ActiveRuleInvoker::addHandlers), this));
-	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
-		addHandlers(*it);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&ActiveRuleInvoker::addHandlers, this, _1));
 	pDocument_->addAccountManagerHandler(this);
 }
 
 qm::ActiveRuleInvoker::~ActiveRuleInvoker()
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
-//	std::for_each(l.begin(), l.end(),
-//		std::bind1st(std::mem_fun(&ActiveRuleInvoker::removeHandlers), this));
-	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
-		removeHandlers(*it);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&ActiveRuleInvoker::removeHandlers, this, _1));
 	pDocument_->removeAccountManagerHandler(this);
 }
 
@@ -114,20 +112,16 @@ unsigned int qm::ActiveRuleInvoker::applyRules(Folder* pFolder,
 void qm::ActiveRuleInvoker::addHandlers(Account* pAccount)
 {
 	const Account::FolderList& l = pAccount->getFolders();
-//	std::for_each(l.begin(), l.end(),
-//		std::bind1st(std::mem_fun(&ActiveRuleInvoker::addHook), this));
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-		addHook(*it);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&ActiveRuleInvoker::addHook, this, _1));
 	pAccount->addAccountHandler(this);
 }
 
 void qm::ActiveRuleInvoker::removeHandlers(Account* pAccount)
 {
 	const Account::FolderList& l = pAccount->getFolders();
-//	std::for_each(l.begin(), l.end(),
-//		std::bind1st(std::mem_fun(&ActiveRuleInvoker::removeHook), this));
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-		removeHook(*it);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&ActiveRuleInvoker::removeHook, this, _1));
 	pAccount->removeAccountHandler(this);
 }
 

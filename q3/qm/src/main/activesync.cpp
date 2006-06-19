@@ -8,6 +8,8 @@
 
 #include <qmdocument.h>
 
+#include <boost/bind.hpp>
+
 #include "activesync.h"
 #include "../ui/syncutil.h"
 
@@ -26,20 +28,15 @@ qm::ActiveSyncInvoker::ActiveSyncInvoker(Document* pDocument,
 	pSyncDialogManager_(pSyncDialogManager)
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
-//	std::for_each(l.begin(), l.end(),
-//		std::bind2nd(std::mem_fun(&Account::setHook), this));
-	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
-		(*it)->setHook(this);
+	std::for_each(l.begin(), l.end(), boost::bind(&Account::setHook, _1, this));
 	pDocument_->addAccountManagerHandler(this);
 }
 
 qm::ActiveSyncInvoker::~ActiveSyncInvoker()
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
-//	std::for_each(l.begin(), l.end(),
-//		std::bind2nd(std::mem_fun(&Account::setHook), 0));
-	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
-		(*it)->setHook(0);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&Account::setHook, _1, static_cast<AccountHook*>(0)));
 	pDocument_->removeAccountManagerHandler(this);
 }
 
@@ -64,10 +61,7 @@ void qm::ActiveSyncInvoker::accountListChanged(const AccountManagerEvent& event)
 	case AccountManagerEvent::TYPE_ALL:
 		{
 			const Document::AccountList& l = pDocument_->getAccounts();
-//			std::for_each(l.begin(), l.end(),
-//				std::bind2nd(std::mem_fun(&Account::setHook), this));
-			for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
-				(*it)->setHook(this);
+			std::for_each(l.begin(), l.end(), boost::bind(&Account::setHook, _1, this));
 		}
 		break;
 	case AccountManagerEvent::TYPE_ADD:
