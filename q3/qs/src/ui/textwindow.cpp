@@ -281,6 +281,8 @@ private:
 					   int nOffset,
 					   Extent* pExtent,
 					   bool* pbNewLine) const;
+	void getLinks(const TextModel::Line& line,
+				  LogicalLinkItemList* pList) const;
 	void getLinks(const WCHAR* pwsz,
 				  size_t nLen,
 				  LogicalLinkItemList* pList) const;
@@ -794,7 +796,7 @@ void qs::TextWindowImpl::calcLines(size_t nStartLine,
 			nQuoteLength = 0;
 		}
 		else {
-			getLinks(line.getText(), line.getLength(), &listLogicalLinkItem);
+			getLinks(line, &listLogicalLinkItem);
 			
 			const WCHAR* pBegin = line.getText() + nQuoteLength;
 			const WCHAR* pEnd = line.getText() + line.getLength();
@@ -1467,23 +1469,20 @@ wstring_ptr qs::TextWindowImpl::getURL(size_t nLine,
 	assert(pLinkItem);
 	
 	const PhysicalLine* pLine = listLine_[nLine];
-	
+	size_t nPos = pLine->nPosition_ + pLinkItem->nOffset_;
 	TextModel::Line line = pTextModel_->getLine(pLine->nLogicalLine_);
-	const WCHAR* pBegin = line.getText() + pLine->nPosition_ + pLinkItem->nOffset_;
-	const WCHAR* pEnd = pBegin + pLinkItem->nLength_;
-	if (pLinkItem->nOffset_ == 0 && pLine->nPosition_ != 0) {
-		while (pBegin >= line.getText() && TextUtil::isURLChar(*pBegin))
-			--pBegin;
-		++pBegin;
+	LogicalLinkItemList listLogicalLinkItem;
+	getLinks(line, &listLogicalLinkItem);
+	LogicalLinkItemList::const_iterator it = listLogicalLinkItem.begin();
+	while (it != listLogicalLinkItem.end()) {
+		const LogicalLinkItem& item = *it;
+		if (item.nOffset_ <= nPos && nPos < item.nOffset_ + item.nLength_)
+			break;
+		++it;
 	}
+	assert(it != listLogicalLinkItem.end());
 	
-	if (pLinkItem->nOffset_ + pLinkItem->nLength_ == pLine->nLength_) {
-		while (pEnd - line.getText() < static_cast<int>(line.getLength()) &&
-			TextUtil::isURLChar(*pEnd))
-			++pEnd;
-	}
-	
-	wstring_ptr wstrURL(allocWString(pBegin, pEnd - pBegin));
+	wstring_ptr wstrURL(allocWString(line.getText() + (*it).nOffset_, (*it).nLength_));
 	
 	if (wcsncmp(wstrURL.get(), L"\\\\", 2) != 0 &&
 		(wcslen(wstrURL.get()) <= 2 || !TextUtil::isDriveLetterChar(*wstrURL.get()) ||
@@ -1841,6 +1840,16 @@ void qs::TextWindowImpl::getLineExtent(const DeviceContext& dc,
 	if (bNewLine)
 		(*pExtent)[nLength - 1] = nOffset + getAverageCharWidth();
 	*pbNewLine = bNewLine;
+}
+
+void qs::TextWindowImpl::getLinks(const TextModel::Line& line,
+								  LogicalLinkItemList* pList) const
+{
+	const WCHAR* pwsz = line.getText();
+	size_t nLen = line.getLength();
+	if (nLen != 0 && *(pwsz + nLen - 1) == L'\n')
+		--nLen;
+	getLinks(pwsz, nLen, pList);
 }
 
 void qs::TextWindowImpl::getLinks(const WCHAR* pwsz,
