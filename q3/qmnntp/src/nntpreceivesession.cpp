@@ -6,6 +6,8 @@
  *
  */
 
+#pragma warning(disable:4786)
+
 #include <qmdocument.h>
 #include <qmjunk.h>
 #include <qmmessage.h>
