@@ -506,7 +506,7 @@ BEGIN
     CONTROL         "読んだときにキャッシュする(&C)",IDC_CACHEWHENREAD,
                     "Button",BS_AUTO3STATE | WS_TABSTOP,10,45,90,10
     CONTROL         "未読を無視する(&U)",IDC_IGNOREUNSEEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,55,70,10
+                    BS_AUTO3STATE | WS_TABSTOP,10,55,70,10
     GROUPBOX        "フラグ",IDC_STATIC,5,25,100,75
     CONTROL         "受信箱(&I)",IDC_INBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,115,35,45,10

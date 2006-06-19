@@ -511,7 +511,7 @@ BEGIN
                     BS_AUTO3STATE | BS_TOP | BS_MULTILINE | WS_TABSTOP,10,70,
                     60,20
     CONTROL         "Ignore &Unseen",IDC_IGNOREUNSEEN,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,90,60,10
+                    BS_AUTO3STATE | WS_TABSTOP,10,90,60,10
     GROUPBOX        "Flag",IDC_STATIC,5,40,70,75
     CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
                     85,50,40,10
