@@ -26,16 +26,20 @@ qm::ActiveSyncInvoker::ActiveSyncInvoker(Document* pDocument,
 	pSyncDialogManager_(pSyncDialogManager)
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
-	std::for_each(l.begin(), l.end(),
-		std::bind2nd(std::mem_fun(&Account::setHook), this));
+//	std::for_each(l.begin(), l.end(),
+//		std::bind2nd(std::mem_fun(&Account::setHook), this));
+	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
+		(*it)->setHook(this);
 	pDocument_->addAccountManagerHandler(this);
 }
 
 qm::ActiveSyncInvoker::~ActiveSyncInvoker()
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
-	std::for_each(l.begin(), l.end(),
-		std::bind2nd(std::mem_fun(&Account::setHook), 0));
+//	std::for_each(l.begin(), l.end(),
+//		std::bind2nd(std::mem_fun(&Account::setHook), 0));
+	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
+		(*it)->setHook(0);
 	pDocument_->removeAccountManagerHandler(this);
 }
 
@@ -60,8 +64,10 @@ void qm::ActiveSyncInvoker::accountListChanged(const AccountManagerEvent& event)
 	case AccountManagerEvent::TYPE_ALL:
 		{
 			const Document::AccountList& l = pDocument_->getAccounts();
-			std::for_each(l.begin(), l.end(),
-				std::bind2nd(std::mem_fun(&Account::setHook), this));
+//			std::for_each(l.begin(), l.end(),
+//				std::bind2nd(std::mem_fun(&Account::setHook), this));
+			for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
+				(*it)->setHook(this);
 		}
 		break;
 	case AccountManagerEvent::TYPE_ADD:
@@ -81,7 +87,8 @@ void qm::ActiveSyncInvoker::sync(NormalFolder* pFolder)
 	if (pDocument_->isOffline())
 		return;
 	
-	if (pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+	if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
 		SyncUtil::syncFolder(pSyncManager_, pDocument_,
 			pSyncDialogManager_, SyncData::TYPE_ACTIVE, pFolder, 0);
