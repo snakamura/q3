@@ -803,6 +803,10 @@ void qm::ViewModel::setFocused(unsigned int n,
 		fireItemStateChanged(n, ViewModelItem::FLAG_FOCUSED,
 			ViewModelItem::FLAG_FOCUSED, bDelay);
 	}
+	else {
+		fireItemStateChanged(n, ViewModelItem::FLAG_FOCUSED,
+			ViewModelItem::FLAG_FOCUSED, bDelay);
+	}
 }
 
 unsigned int qm::ViewModel::getFocused() const
