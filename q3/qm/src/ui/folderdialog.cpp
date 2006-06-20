@@ -122,7 +122,7 @@ struct
 	bool bEnableQuery_;
 	bool bReverse_;
 } folderFlags[] = {
-	{ Folder::FLAG_SYNCWHENOPEN,	IDC_SYNCWHENOPEN,	Folder::FLAG_SYNCABLE,	true,	false	},
+	{ Folder::FLAG_ACTIVESYNC,		IDC_ACTIVEUPDATE,	Folder::FLAG_SYNCABLE,	true,	false	},
 	{ Folder::FLAG_CACHEWHENREAD,	IDC_CACHEWHENREAD,	Folder::FLAG_SYNCABLE,	false,	false	},
 	{ Folder::FLAG_IGNOREUNSEEN,	IDC_IGNOREUNSEEN,	Folder::FLAG_NOSELECT,	true,	true	},
 	{ Folder::FLAG_INBOX,			IDC_INBOX,			Folder::FLAG_NOSELECT,	false,	true	},
@@ -261,7 +261,7 @@ LRESULT qm::FolderPropertyPage::onOk()
 		switch (pFolder->getType()) {
 		case Folder::TYPE_NORMAL:
 			if (!pFolder->isFlag(Folder::FLAG_SYNCABLE))
-				nFolderMask &= ~(Folder::FLAG_SYNCWHENOPEN | Folder::FLAG_CACHEWHENREAD);
+				nFolderMask &= ~(Folder::FLAG_ACTIVESYNC | Folder::FLAG_CACHEWHENREAD);
 			if (pFolder->isFlag(Folder::FLAG_NOSELECT))
 				nFolderMask &= ~(Folder::FLAG_INBOX | Folder::FLAG_OUTBOX |
 					Folder::FLAG_SENTBOX | Folder::FLAG_DRAFTBOX | Folder::FLAG_TRASHBOX);

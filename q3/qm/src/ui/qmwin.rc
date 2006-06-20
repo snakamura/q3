@@ -516,12 +516,12 @@ BEGIN
     LTEXT           "",IDC_ID,35,20,185,8
     LTEXT           "Type",IDC_STATIC,5,35,25,8
     LTEXT           "",IDC_TYPE,35,35,185,8
-    CONTROL         "S&ync when opened",IDC_SYNCWHENOPEN,"Button",
+    CONTROL         "U&pdate actively",IDC_ACTIVEUPDATE,"Button",
                     BS_AUTO3STATE | WS_TABSTOP,10,60,95,10
     CONTROL         "&Cache when read",IDC_CACHEWHENREAD,"Button",
                     BS_AUTO3STATE | WS_TABSTOP,10,70,95,10
-    CONTROL         "Ignore &Unseen",IDC_IGNOREUNSEEN,"Button",
-                    BS_AUTO3STATE | WS_TABSTOP,10,80,95,10
+    CONTROL         "Ignore &Unseen",IDC_IGNOREUNSEEN,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,10,80,95,10
     GROUPBOX        "Flags",IDC_STATIC,5,50,105,80
     CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
                     125,60,95,10

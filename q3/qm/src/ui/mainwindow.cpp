@@ -1429,14 +1429,14 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 	if (!pDocument_->isOffline()) {
 		if (pFolder->getType() == Folder::TYPE_NORMAL &&
 			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-			pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+			pFolder->isFlag(Folder::FLAG_ACTIVESYNC)) {
 			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
 				SyncData::TYPE_ACTIVE, static_cast<NormalFolder*>(pFolder), 0);
 		}
 	}
 	
 	if (pFolder->getType() == Folder::TYPE_QUERY &&
-		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN))
+		pFolder->isFlag(Folder::FLAG_ACTIVESYNC))
 		static_cast<QueryFolder*>(pFolder)->search(pDocument_,
 			pThis_->getHandle(), pProfile_, pSecurityModel_->getSecurityMode());
 }

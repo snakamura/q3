@@ -520,7 +520,7 @@ BEGIN
     LTEXT           "",IDC_ID,35,20,185,8
     LTEXT           "タイプ",IDC_STATIC,5,35,25,8
     LTEXT           "",IDC_TYPE,35,35,185,8
-    CONTROL         "開いたときに同期する(&Y)",IDC_SYNCWHENOPEN,"Button",
+    CONTROL         "自動で更新する(&P)",IDC_ACTIVEUPDATE,"Button",
                     BS_AUTO3STATE | WS_TABSTOP,10,60,90,10
     CONTROL         "読んだときにキャッシュする(&C)",IDC_CACHEWHENREAD,
                     "Button",BS_AUTO3STATE | WS_TABSTOP,10,70,90,10

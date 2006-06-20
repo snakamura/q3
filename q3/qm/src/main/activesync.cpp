@@ -83,7 +83,7 @@ void qm::ActiveSyncInvoker::sync(NormalFolder* pFolder)
 	
 	if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
 		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-		pFolder->isFlag(Folder::FLAG_SYNCWHENOPEN)) {
+		pFolder->isFlag(Folder::FLAG_ACTIVESYNC)) {
 		SyncUtil::syncFolder(pSyncManager_, pDocument_,
 			pSyncDialogManager_, SyncData::TYPE_ACTIVE, pFolder, 0);
 	}

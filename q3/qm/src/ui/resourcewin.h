@@ -189,7 +189,7 @@
 #define IDC_DOMAIN                      1106
 #define IDC_DIALFROM                    1107
 #define IDC_TYPE                        1108
-#define IDC_SYNCWHENOPEN                1109
+#define IDC_ACTIVEUPDATE                1109
 #define IDC_CACHEWHENREAD               1110
 #define IDC_INBOX                       1111
 #define IDC_OUTBOX                      1112

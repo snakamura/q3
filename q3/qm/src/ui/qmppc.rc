@@ -504,14 +504,14 @@ BEGIN
     LTEXT           "",IDC_ID,35,15,97,8
     LTEXT           "Type",IDC_STATIC,5,25,25,8
     LTEXT           "",IDC_TYPE,35,25,97,8
-    CONTROL         "S&ync when opened",IDC_SYNCWHENOPEN,"Button",
+    CONTROL         "U&pdate actively",IDC_ACTIVEUPDATE,"Button",
                     BS_AUTO3STATE | BS_TOP | BS_MULTILINE | WS_TABSTOP,10,50,
-                    60,20
+                    60,10
     CONTROL         "&Cache when read",IDC_CACHEWHENREAD,"Button",
-                    BS_AUTO3STATE | BS_TOP | BS_MULTILINE | WS_TABSTOP,10,70,
+                    BS_AUTO3STATE | BS_TOP | BS_MULTILINE | WS_TABSTOP,10,60,
                     60,20
-    CONTROL         "Ignore &Unseen",IDC_IGNOREUNSEEN,"Button",
-                    BS_AUTO3STATE | WS_TABSTOP,10,90,60,10
+    CONTROL         "Ignore &Unseen",IDC_IGNOREUNSEEN,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,10,80,60,10
     GROUPBOX        "Flag",IDC_STATIC,5,40,70,75
     CONTROL         "&Inbox",IDC_INBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
                     85,50,40,10
