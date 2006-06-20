@@ -36,6 +36,7 @@
 #include <windows.h>
 #include <tchar.h>
 
+#include "activerule.h"
 #include "activesync.h"
 #include "defaultprofile.h"
 #include "main.h"
@@ -47,7 +48,6 @@
 #include "../model/tempfilecleaner.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
-#include "../ui/activerule.h"
 #include "../ui/dialogs.h"
 #include "../ui/mainwindow.h"
 #include "../ui/syncdialog.h"
