@@ -400,7 +400,6 @@ ifeq ($(PLATFORM),win)
 		DEFINES			+= -D_CRT_SECURE_NO_DEPRECATE
 	endif
 	
-	CCFLAGS				+= -FR$(@D)/
 	BSCFLAGS			= -El
 	
 	LIBCPU				= $(CPU)
@@ -698,13 +697,21 @@ clean.wce:
 	done
 	-rm -f version revision
 
-$(OBJDIR)/%.obj $(OBJDIR)/%.sbr: $(SRCDIR)/%.cpp
+$(OBJDIR)/%.obj: $(SRCDIR)/%.cpp
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CCC) $(CCFLAGS) $(DEFINES) $(INCLUDES) -c -Fo$@ $<
 
-$(OBJDIR)/%.obj $(OBJDIR)/%.sbr: $(SRCDIR)/%.c
+$(OBJDIR)/%.obj: $(SRCDIR)/%.c
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CCC) $(CCFLAGS) $(DEFINES) $(INCLUDES) -c -Fo$@ $<
+
+$(OBJDIR)/%.sbr: $(SRCDIR)/%.cpp
+	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(CCC) $(CCFLAGS) $(DEFINES) $(INCLUDES) -Zs -c -FR$@ $<
+
+$(OBJDIR)/%.sbr: $(SRCDIR)/%.c
+	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(CCC) $(CCFLAGS) $(DEFINES) $(INCLUDES) -Zs -c -FR$@ $<
 
 $(SRCDIR)/%.rcx: $(SRCDIR)/%.rc
 	$(RCPP) $< > $@
