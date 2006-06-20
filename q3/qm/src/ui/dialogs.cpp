@@ -1686,14 +1686,7 @@ LRESULT qm::MoveMessageDialog::onOk()
 	
 	bCopy_ = Button_GetCheck(getDlgItem(IDC_COPY)) == BST_CHECKED;
 	
-	wstring_ptr wstrFolderName(pFolder_->getFullName());
-	ConcatW c[] = {
-		{ L"//",								2	},
-		{ pFolder_->getAccount()->getName(),	-1	},
-		{ L"/",									1	},
-		{ wstrFolderName.get(),					-1	}
-	};
-	wstring_ptr wstrName(concat(c, countof(c)));
+	wstring_ptr wstrName(Util::formatFolder(pFolder_));
 	pAccount_->setPropertyString(L"UI", L"FolderTo", wstrName.get());
 	
 	return DefaultDialog::onOk();

@@ -154,14 +154,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 	
 	HGLOBAL hGlobal = 0;
 	if (pFormat->cfFormat == nFormats__[FORMAT_FOLDER]) {
-		wstring_ptr wstrFolderName(pFolder_->getFullName());
-		ConcatW c[] = {
-			{ L"//",								2	},
-			{ pFolder_->getAccount()->getName(),	-1	},
-			{ L"/",									1	},
-			{ wstrFolderName.get(),					-1	}
-		};
-		wstring_ptr wstrName(concat(c, countof(c)));
+		wstring_ptr wstrName(Util::formatFolder(pFolder_));
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
 			(wcslen(wstrName.get()) + 1)*sizeof(WCHAR));
 		if (!hGlobal)
