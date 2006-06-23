@@ -48,6 +48,7 @@
 #include "../model/tempfilecleaner.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
+#include "../sync/syncqueue.h"
 #include "../ui/dialogs.h"
 #include "../ui/mainwindow.h"
 #include "../ui/syncdialog.h"
@@ -144,6 +145,7 @@ public:
 	std::auto_ptr<PasswordManagerCallback> pPasswordManagerCallback_;
 	std::auto_ptr<SyncManager> pSyncManager_;
 	std::auto_ptr<SyncDialogManager> pSyncDialogManager_;
+	std::auto_ptr<SyncQueue> pSyncQueue_;
 	std::auto_ptr<GoRound> pGoRound_;
 	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
 	std::auto_ptr<AutoPilotManager> pAutoPilotManager_;
@@ -770,6 +772,8 @@ bool qm::Application::initialize()
 	pImpl_->pSyncManager_.reset(new SyncManager(pImpl_->pProfile_.get()));
 	pImpl_->pSyncDialogManager_.reset(new SyncDialogManager(
 		pImpl_->pProfile_.get(), pImpl_->pPasswordManager_.get()));
+	pImpl_->pSyncQueue_.reset(new SyncQueue(pImpl_->pSyncManager_.get(),
+		pImpl_->pDocument_.get(), pImpl_->pSyncDialogManager_.get()));
 	pImpl_->pGoRound_.reset(new GoRound(getProfilePath(FileNames::GOROUND_XML).get()));
 	pImpl_->pTempFileCleaner_.reset(new TempFileCleaner());
 	pImpl_->pAutoPilotManager_.reset(new AutoPilotManager(
@@ -793,6 +797,7 @@ bool qm::Application::initialize()
 		pImpl_->pPasswordManager_.get(),
 		pImpl_->pSyncManager_.get(),
 		pImpl_->pSyncDialogManager_.get(),
+		pImpl_->pSyncQueue_.get(),
 		pImpl_->pGoRound_.get(),
 		pImpl_->pTempFileCleaner_.get(),
 		pImpl_->pAutoPilot_.get()
@@ -814,8 +819,8 @@ bool qm::Application::initialize()
 	pImpl_->pActiveRuleInvoker_.reset(new ActiveRuleInvoker(
 		pImpl_->pDocument_.get(), pImpl_->pMainWindow_->getSecurityModel(),
 		pImpl_->pMainWindow_->getHandle(), pImpl_->pProfile_.get()));
-	pImpl_->pActiveSyncInvoker_.reset(new ActiveSyncInvoker(pImpl_->pDocument_.get(),
-		pImpl_->pSyncManager_.get(), pImpl_->pSyncDialogManager_.get()));
+	pImpl_->pActiveSyncInvoker_.reset(new ActiveSyncInvoker(
+		pImpl_->pDocument_.get(), pImpl_->pSyncQueue_.get()));
 	
 	pImpl_->pMainWindow_->updateWindow();
 	pImpl_->pMainWindow_->setForegroundWindow();
@@ -851,6 +856,7 @@ void qm::Application::uninitialize()
 	pImpl_->pActiveRuleInvoker_.reset(0);
 	pImpl_->pTempFileCleaner_.reset(0);
 	pImpl_->pGoRound_.reset(0);
+	pImpl_->pSyncQueue_.reset(0);
 	pImpl_->pSyncDialogManager_.reset(0);
 	pImpl_->pSyncManager_.reset(0);
 	pImpl_->pDocument_.reset(0);

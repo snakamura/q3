@@ -57,7 +57,6 @@
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "syncdialog.h"
-#include "syncutil.h"
 #include "tabwindow.h"
 #include "uimanager.h"
 #include "uiutil.h"
@@ -69,6 +68,7 @@
 #include "../model/tempfilecleaner.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
+#include "../sync/syncqueue.h"
 #include "../uimodel/attachmentselectionmodel.h"
 #include "../uimodel/encodingmodel.h"
 #include "../uimodel/folderlistmodel.h"
@@ -224,6 +224,7 @@ public:
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
+	SyncQueue* pSyncQueue_;
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
@@ -1426,16 +1427,12 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 	pFolderListModel_->setAccount(0);
 	pViewModelManager_->setCurrentFolder(pFolder);
 	
-	if (!pDocument_->isOffline()) {
-		if (pFolder->getType() == Folder::TYPE_NORMAL &&
-			pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-			pFolder->isFlag(Folder::FLAG_ACTIVESYNC)) {
-			SyncUtil::syncFolder(pSyncManager_, pDocument_, pSyncDialogManager_,
-				SyncData::TYPE_ACTIVE, static_cast<NormalFolder*>(pFolder), 0);
-		}
-	}
-	
-	if (pFolder->getType() == Folder::TYPE_QUERY &&
+	if (!pDocument_->isOffline() &&
+		pFolder->getType() == Folder::TYPE_NORMAL &&
+		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
+		pFolder->isFlag(Folder::FLAG_ACTIVESYNC))
+		pSyncQueue_->pushFolder(static_cast<NormalFolder*>(pFolder));
+	else if (pFolder->getType() == Folder::TYPE_QUERY &&
 		pFolder->isFlag(Folder::FLAG_ACTIVESYNC))
 		static_cast<QueryFolder*>(pFolder)->search(pDocument_,
 			pThis_->getHandle(), pProfile_, pSecurityModel_->getSecurityMode());
@@ -1725,6 +1722,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pPasswordManager_ = 0;
 	pImpl_->pSyncManager_ = 0;
 	pImpl_->pSyncDialogManager_ = 0;
+	pImpl_->pSyncQueue_ = 0;
 	pImpl_->pGoRound_ = 0;
 	pImpl_->pTempFileCleaner_ = 0;
 	pImpl_->pAutoPilot_ = 0;
@@ -2146,6 +2144,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pPasswordManager_ = pContext->pPasswordManager_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
+	pImpl_->pSyncQueue_ = pContext->pSyncQueue_;
 	pImpl_->pGoRound_ = pContext->pGoRound_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	pImpl_->pAutoPilot_ = pContext->pAutoPilot_;

@@ -11,7 +11,7 @@
 #include <boost/bind.hpp>
 
 #include "activesync.h"
-#include "../ui/syncutil.h"
+#include "../sync/syncqueue.h"
 
 
 /****************************************************************************
@@ -21,11 +21,9 @@
  */
 
 qm::ActiveSyncInvoker::ActiveSyncInvoker(Document* pDocument,
-										 SyncManager* pSyncManager,
-										 SyncDialogManager* pSyncDialogManager) :
+										 SyncQueue* pSyncQueue) :
 	pDocument_(pDocument),
-	pSyncManager_(pSyncManager),
-	pSyncDialogManager_(pSyncDialogManager)
+	pSyncQueue_(pSyncQueue)
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
 	std::for_each(l.begin(), l.end(), boost::bind(&Account::setHook, _1, this));
@@ -78,13 +76,9 @@ void qm::ActiveSyncInvoker::accountListChanged(const AccountManagerEvent& event)
 
 void qm::ActiveSyncInvoker::sync(NormalFolder* pFolder)
 {
-	if (pDocument_->isOffline())
-		return;
-	
-	if (!pFolder->isFlag(Folder::FLAG_LOCAL) &&
+	if (!pDocument_->isOffline() &&
+		!pFolder->isFlag(Folder::FLAG_LOCAL) &&
 		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
-		pFolder->isFlag(Folder::FLAG_ACTIVESYNC)) {
-		SyncUtil::syncFolder(pSyncManager_, pDocument_,
-			pSyncDialogManager_, SyncData::TYPE_ACTIVE, pFolder, 0);
-	}
+		pFolder->isFlag(Folder::FLAG_ACTIVESYNC))
+		pSyncQueue_->pushFolder(pFolder);
 }

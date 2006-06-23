@@ -39,6 +39,7 @@ class PasswordManager;
 class Recents;
 class SyncDialogManager;
 class SyncManager;
+class SyncQueue;
 class TempFileCleaner;
 class UIManager;
 
@@ -324,6 +325,7 @@ struct MainWindowCreateContext
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
+	SyncQueue* pSyncQueue_;
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;

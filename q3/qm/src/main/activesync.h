@@ -19,8 +19,7 @@ class ActiveSyncInvoker;
 
 class Document;
 class NormalFolder;
-class SyncManager;
-class SyncDialogManager;
+class SyncQueue;
 
 
 /****************************************************************************
@@ -35,8 +34,7 @@ class ActiveSyncInvoker :
 {
 public:
 	ActiveSyncInvoker(Document* pDocument,
-					  SyncManager* pSyncManager,
-					  SyncDialogManager* pSyncDialogManager);
+					  SyncQueue* pSyncQueue);
 	virtual ~ActiveSyncInvoker();
 
 public:
@@ -58,8 +56,7 @@ private:
 
 private:
 	Document* pDocument_;
-	SyncManager* pSyncManager_;
-	SyncDialogManager* pSyncDialogManager_;
+	SyncQueue* pSyncQueue_;
 };
 
 }
