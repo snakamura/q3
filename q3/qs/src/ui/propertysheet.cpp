@@ -166,7 +166,7 @@ qs::PropertySheetBase::PropertySheetBase(HINSTANCE hInstResource,
 	memset(&pImpl_->psh_, 0, sizeof(pImpl_->psh_));
 	pImpl_->psh_.dwSize = sizeof(pImpl_->psh_);
 	pImpl_->psh_.dwFlags = PSH_DEFAULT | PSH_USECALLBACK | PSH_NOAPPLYNOW;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	pImpl_->psh_.dwFlags |= PSH_MAXIMIZE;
 #endif
 	pImpl_->psh_.hInstance = hInstResource;
@@ -251,7 +251,7 @@ PROPSHEETHEADER& qs::PropertySheetBase::getHeader()
 void qs::PropertySheetBase::init()
 {
 	if (!pImpl_->bInit_) {
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 		centerWindow();
 #endif
 		pImpl_->bInit_ = true;
@@ -292,17 +292,17 @@ int CALLBACK qs::propertySheetProc(HWND hwnd,
 			assert(pThis);
 			pMap->setController(hwnd, pThis);
 			pThis->setHandle(hwnd);
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 			pThis->centerWindow();
 #endif
 			pMap->setThis(0);
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 			Window wndTab(::GetDlgItem(hwnd, 0x3020));
 			wndTab.setStyle(TCS_BOTTOM, TCS_BOTTOM);
 #endif
 		}
 		break;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	case PSCB_GETVERSION:
 		return COMCTL32_VERSION;
 #endif

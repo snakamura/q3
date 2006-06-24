@@ -669,11 +669,11 @@ LRESULT qm::TabCtrlWindow::windowProc(UINT uMsg,
 		HANDLE_CONTEXTMENU()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
-#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x400
 		HANDLE_MBUTTONDOWN()
 		HANDLE_MBUTTONUP()
 #endif
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 		HANDLE_MOUSEWHEEL()
 #endif
 		HANDLE_MESSAGE(WM_TABCTRLWINDOW_DESELECTTEMPORARY, onDeselectTemporary)
@@ -739,7 +739,7 @@ LRESULT qm::TabCtrlWindow::onDestroy()
 	return DefaultWindowHandler::onDestroy();
 }
 
-#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x400
 LRESULT qm::TabCtrlWindow::onMButtonDown(UINT nFlags,
 										 const POINT& pt)
 {
@@ -762,7 +762,7 @@ LRESULT qm::TabCtrlWindow::onMButtonUp(UINT nFlags,
 }
 #endif
 
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 LRESULT qm::TabCtrlWindow::onMouseWheel(UINT nFlags,
 										short nDelta,
 										const POINT& pt)

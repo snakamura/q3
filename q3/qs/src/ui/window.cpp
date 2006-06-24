@@ -328,7 +328,7 @@ bool qs::Window::setDlgItemText(int nDlgItem,
 	return ::SetDlgItemText(hwnd_, nDlgItem, ptszText) != 0;
 }
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 bool qs::Window::tapAndHold(const POINT& pt)
 {
 	assert(hwnd_);
@@ -567,7 +567,7 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 		break;
 #endif
 	
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if defined _WIN32_WCE && (_WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC)
 	case WM_LBUTTONDOWN:
 		if (::GetKeyState(VK_MENU) < 0) {
 			POINT pt = {
@@ -1635,7 +1635,7 @@ void qs::DefaultWindowHandler::getWindowClass(WNDCLASS* pwc)
 	pwc->cbWndExtra = 4;
 	pwc->hInstance = getInstanceHandle();
 	pwc->hIcon = 0;
-#if defined _WIN32_WCE && _WIN32_WCE < 211
+#if defined _WIN32_WCE && _WIN32_WCE < 0x211
 	pwc->hCursor = 0;
 #else // _WIN32_WCE
 	pwc->hCursor = ::LoadCursor(0, IDC_ARROW);
@@ -1719,7 +1719,7 @@ DefWindowProcHolder* qs::DefaultWindowHandler::getDefWindowProcHolder()
 }
 
 
-#if _WIN32_WCE >= 200
+#if _WIN32_WCE >= 0x200
 
 /****************************************************************************
  *
@@ -1762,7 +1762,7 @@ LRESULT qs::CommandBand::onSize(UINT nFlags,
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
-#endif // _WIN32_WCE >= 200
+#endif // _WIN32_WCE >= 0x200
 
 
 /****************************************************************************

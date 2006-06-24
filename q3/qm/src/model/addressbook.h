@@ -524,7 +524,7 @@ private:
 
 #else // _WIN32_WCE
 
-#if _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x420 && defined _WIN32_WCE_PSPC
 
 /****************************************************************************
  *
@@ -545,14 +545,14 @@ public:
 	virtual bool isModified();
 
 private:
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 	bool registerNotification();
 #endif
 	void getCategories(AddressBook* pAddressBook,
 					   struct IContact* pContact,
 					   AddressBookAddress::CategoryList* pList);
 
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 private:
 	class NotificationWindow :
 		public qs::WindowBase,
@@ -587,14 +587,14 @@ private:
 
 private:
 	struct IPOutlookApp* pPOutlookApp_;
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 	NotificationWindow* pNotificationWindow_;
 #endif
 	bool bAddressOnly_;
 	bool bModified_;
 };
 
-#endif // _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+#endif // _WIN32_WCE >= 0x420 && defined _WIN32_WCE_PSPC
 
 
 /****************************************************************************

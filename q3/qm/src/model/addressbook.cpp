@@ -31,7 +31,7 @@
 #	include <mapix.h>
 #else
 #	include <addrmapi.h>
-#	if _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+#	if _WIN32_WCE >= 0x420 && defined _WIN32_WCE_PSPC
 #		include <pimstore.h>
 #	endif
 #endif
@@ -1005,7 +1005,7 @@ qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile) :
 		}
 #else
 		if (wcscmp(p, L"PocketOutlook") == 0) {
-#if _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x420 && defined _WIN32_WCE_PSPC
 			std::auto_ptr<ExternalAddressBook> p(new POOMAddressBook());
 			if (!init(p, bAddressOnly))
 #endif
@@ -1653,7 +1653,7 @@ void qm::OutlookAddressBook::freeBuffer(void* pBuffer) const
 
 #else // _WIN32_WCE
 
-#if _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x420 && defined _WIN32_WCE_PSPC
 
 /****************************************************************************
  *
@@ -1663,7 +1663,7 @@ void qm::OutlookAddressBook::freeBuffer(void* pBuffer) const
 
 qm::POOMAddressBook::POOMAddressBook() :
 	pPOutlookApp_(0),
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 	pNotificationWindow_(0),
 #endif
 	bAddressOnly_(false),
@@ -1684,7 +1684,7 @@ bool qm::POOMAddressBook::init(bool bAddressOnly)
 		return false;
 	
 	HWND hwnd = 0;
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 	std::auto_ptr<NotificationWindow> pWindow(new NotificationWindow(this));
 	if (!pWindow->create(L"QmPOOMAddressBookNotificationWindow",
 		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
@@ -1697,7 +1697,7 @@ bool qm::POOMAddressBook::init(bool bAddressOnly)
 	if (FAILED(hr))
 		return false;
 	
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 	registerNotification();
 #endif
 	
@@ -1714,7 +1714,7 @@ void qm::POOMAddressBook::term()
 		pPOutlookApp_ = 0;
 	}
 	
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 	if (pNotificationWindow_) {
 		pNotificationWindow_->destroyWindow();
 		pNotificationWindow_ = 0;
@@ -1818,7 +1818,7 @@ bool qm::POOMAddressBook::isModified()
 	return bModified_;
 }
 
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 bool qm::POOMAddressBook::registerNotification()
 {
 	ComPtr<IFolder> pFolder;
@@ -1864,7 +1864,7 @@ void qm::POOMAddressBook::getCategories(AddressBook* pAddressBook,
 }
 
 
-#if _WIN32_WCE > 500
+#if _WIN32_WCE > 0x500
 /****************************************************************************
  *
  * POOMAddressBook::NotificationWindow
@@ -1905,7 +1905,7 @@ LRESULT POOMAddressBook::NotificationWindow::onPimFolderNotification(WPARAM wPar
 }
 #endif
 
-#endif // _WIN32_WCE >= 420 && defined _WIN32_WCE_PSPC
+#endif // _WIN32_WCE >= 0x420 && defined _WIN32_WCE_PSPC
 
 
 /****************************************************************************

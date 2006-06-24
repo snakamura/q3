@@ -18,7 +18,7 @@
 
 using namespace qs;
 
-#if defined _WIN32_WCE && _WIN32_WCE <= 300
+#if defined _WIN32_WCE && _WIN32_WCE <= 0x300
 namespace {
 const DWORD INVALID_SET_FILE_POINTER = 0xffffffff;
 }

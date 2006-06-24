@@ -817,7 +817,7 @@ bool qs::HttpUtility::getInternetProxySetting(wstring_ptr* pwstrProxyHost,
 
 wstring_ptr qs::HttpUtility::getInternetCookie(const WCHAR* pwszURL)
 {
-#if !defined _WIN32_WCE || _WIN32_WCE >= 300
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x300
 	W2T(pwszURL, ptszURL);
 	DWORD dwSize = 0;
 	if (!::InternetGetCookie(ptszURL, 0, 0, &dwSize))
@@ -836,7 +836,7 @@ wstring_ptr qs::HttpUtility::getInternetCookie(const WCHAR* pwszURL)
 bool qs::HttpUtility::setInternetCookie(const WCHAR* pwszURL,
 										const WCHAR* pwszCookie)
 {
-#if !defined _WIN32_WCE || _WIN32_WCE >= 300
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x300
 	const WCHAR* p = wcschr(pwszCookie, L'=');
 	if (!p)
 		return false;

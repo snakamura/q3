@@ -13,7 +13,7 @@
 
 #include <windows.h>
 
-#if _WIN32_WCE < 300
+#if _WIN32_WCE < 0x300
 
 typedef int INT_PTR, *PINT_PTR;
 typedef unsigned int UINT_PTR, *PUINT_PTR;
@@ -68,7 +68,7 @@ extern "C" QSEXPORTPROC long strtol(const char* p,
 extern "C" QSEXPORTPROC int isdigit(int c);
 #endif
 
-#endif // _WIN32_WCE < 300
+#endif // _WIN32_WCE < 0x300
 
 #define GetWindowLongPtr GetWindowLong
 #define SetWindowLongPtr SetWindowLong

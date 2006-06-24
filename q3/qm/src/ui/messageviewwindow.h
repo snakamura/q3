@@ -1139,7 +1139,7 @@ private:
 	qs::MenuManager* pMenuManager_;
 	MessageViewWindowCallback* pCallback_;
 	UINT nId_;
-#if _WIN32_WCE >= 420
+#if _WIN32_WCE >= 0x420
 	IBrowser2* pWebBrowser_;
 #endif
 #if 0

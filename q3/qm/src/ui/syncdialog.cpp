@@ -493,7 +493,7 @@ void qm::SyncDialog::layout(int cx,
 	
 	HDWP hdwp = Window::beginDeferWindowPos(6);
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	int nErrorHeight = bShowError ? (cy - nButtonHeight - 30)/2 : 0;
 	hdwp = error.deferWindowPos(hdwp, 0, 5,
 		cy - nErrorHeight - nButtonHeight - 10, cx - 10, nErrorHeight,

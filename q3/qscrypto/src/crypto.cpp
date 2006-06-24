@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 
-#if !defined _WIN32_WCE || _WIN32_WCE > 300 || defined PLATFORM_PPC2002
+#if !defined _WIN32_WCE || _WIN32_WCE > 0x300 || defined PLATFORM_PPC2002
 #	include <tchar.h>
 #	include <wincrypt.h>
 #endif
@@ -548,7 +548,7 @@ bool qscrypto::StoreImpl::load(const WCHAR* pwszPath,
 
 bool qscrypto::StoreImpl::loadSystem()
 {
-#if !defined _WIN32_WCE || _WIN32_WCE > 300 || defined PLATFORM_PPC2002
+#if !defined _WIN32_WCE || _WIN32_WCE > 0x300 || defined PLATFORM_PPC2002
 	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::StoreImpl");
 	
 	const TCHAR* ptszNames[] = {

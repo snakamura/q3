@@ -151,7 +151,7 @@ void qs::MessageLoop::run()
 				return;
 			
 			bool bProcess = true;
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 			if (msg.message == WM_MOUSEWHEEL) {
 				msg.hwnd = ::WindowFromPoint(msg.pt);
 				bProcess = msg.hwnd &&

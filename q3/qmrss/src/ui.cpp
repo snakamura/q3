@@ -186,7 +186,7 @@ qmrss::SubscribeData::~SubscribeData()
 qmrss::SubscribeURLPage::SubscribeURLPage(Document* pDocument,
 										  Account* pAccount,
 										  SubscribeData* pData) :
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	DefaultPropertyPage(getResourceHandle(), IDD_SUBSCRIBEURL),
 #else
 	DefaultDialog(getResourceHandle(), IDD_SUBSCRIBEURL),
@@ -201,7 +201,7 @@ qmrss::SubscribeURLPage::~SubscribeURLPage()
 {
 }
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 LRESULT qmrss::SubscribeURLPage::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
@@ -224,7 +224,7 @@ LRESULT qmrss::SubscribeURLPage::onCommand(WORD nCode,
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(IDC_URL, EN_CHANGE, onURLChange)
 	END_COMMAND_HANDLER()
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	return DefaultPropertyPage::onCommand(nCode, nId);
 #else
 	return DefaultDialog::onCommand(nCode, nId);
@@ -237,7 +237,7 @@ LRESULT qmrss::SubscribeURLPage::onURLChange()
 	return 0;
 }
 
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 LRESULT qmrss::SubscribeURLPage::onNotify(NMHDR* pnmhdr,
 										  bool* pbHandled)
 {
@@ -302,7 +302,7 @@ void qmrss::SubscribeURLPage::updateState()
 {
 	wstring_ptr wstrURL(getDlgItemText(IDC_URL));
 	bool bEnable = *wstrURL.get() != L'\0';
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	PropSheet_SetWizButtons(getSheet()->getHandle(), bEnable ? PSWIZB_NEXT : 0);
 #else
 	Window(getDlgItem(IDOK)).enableWindow(bEnable);
@@ -431,7 +431,7 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
  */
 
 qmrss::SubscribePropertyPage::SubscribePropertyPage(SubscribeData* pData) :
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	DefaultPropertyPage(getResourceHandle(), IDD_SUBSCRIBEPROPERTY),
 #else
 	DefaultDialog(getResourceHandle(), IDD_SUBSCRIBEPROPERTY),
@@ -444,7 +444,7 @@ qmrss::SubscribePropertyPage::~SubscribePropertyPage()
 {
 }
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 LRESULT qmrss::SubscribePropertyPage::onInitDialog(HWND hwndFocus,
 												   LPARAM lParam)
 {
@@ -468,7 +468,7 @@ LRESULT qmrss::SubscribePropertyPage::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID_CODE(IDC_MAKEMULTIPART, BN_CLICKED, onMakeMultipartClicked)
 		HANDLE_COMMAND_ID_CODE(IDC_NAME, EN_CHANGE, onNameChange)
 	END_COMMAND_HANDLER()
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	return DefaultPropertyPage::onCommand(nCode, nId);
 #else
 	return DefaultDialog::onCommand(nCode, nId);
@@ -493,7 +493,7 @@ LRESULT qmrss::SubscribePropertyPage::onNameChange()
 	return 0;
 }
 
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 LRESULT qmrss::SubscribePropertyPage::onNotify(NMHDR* pnmhdr,
 											   bool* pbHandled)
 {
@@ -558,7 +558,7 @@ void qmrss::SubscribePropertyPage::updateState()
 {
 	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
 	bool bEnable = *wstrName.get() != L'\0';
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	PropSheet_SetWizButtons(getSheet()->getHandle(),
 		PSWIZB_BACK | (bEnable ? PSWIZB_FINISH : PSWIZB_DISABLEDFINISH));
 #else

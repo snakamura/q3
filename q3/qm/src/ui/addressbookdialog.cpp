@@ -471,7 +471,7 @@ LRESULT qm::SelectAddressDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID(IDC_CATEGORY, onCategory)
 		HANDLE_COMMAND_ID_RANGE(IDC_TO, IDC_BCC, onSelect)
 		HANDLE_COMMAND_ID(IDC_REMOVE, onRemove)
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 		HANDLE_COMMAND_ID_CODE(IDC_FILTER, EN_CHANGE, onFilterChange)
 #endif
 	END_COMMAND_HANDLER()
@@ -711,7 +711,7 @@ LRESULT qm::SelectAddressDialog::onRemove()
 	return 0;
 }
 
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 LRESULT qm::SelectAddressDialog::onFilterChange()
 {
 	wstring_ptr wstrFilter(getDlgItemText(IDC_FILTER));
@@ -869,7 +869,7 @@ void qm::SelectAddressDialog::remove()
 
 void qm::SelectAddressDialog::layout()
 {
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	RECT rect;
 	getClientRect(&rect);
 	
@@ -1229,7 +1229,7 @@ qm::SelectAddressDialog::SelectedAddressListWindow::~SelectedAddressListWindow()
 
 bool qm::SelectAddressDialog::SelectedAddressListWindow::preSubclassWindow()
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x400 && defined _WIN32_WCE_PSPC
 	pDialog_->addNotifyHandler(this);
 #endif
 	return true;
@@ -1306,7 +1306,7 @@ LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onContextMenu(HWND h
 
 LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onDestroy()
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x400 && defined _WIN32_WCE_PSPC
 	pDialog_->removeNotifyHandler(this);
 #endif
 	return DefaultWindowHandler::onDestroy();
@@ -1315,7 +1315,7 @@ LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onDestroy()
 LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onLButtonDown(UINT nFlags,
 																		  const POINT& pt)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE < 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && _WIN32_WCE < 0x400 && defined _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
 		return 0;
 #endif
@@ -1326,14 +1326,14 @@ LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onNotify(NMHDR* pnmh
 																	 bool* pbHandled)
 {
 	BEGIN_NOTIFY_HANDLER()
-#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x400 && defined _WIN32_WCE_PSPC
 		HANDLE_NOTIFY(NM_RECOGNIZEGESTURE, IDC_SELECTEDADDRESS, onRecognizeGesture)
 #endif
 	END_NOTIFY_HANDLER()
 	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x400 && defined _WIN32_WCE_PSPC
 LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onRecognizeGesture(NMHDR* pnmhdr,
 																			   bool* pbHandled)
 {

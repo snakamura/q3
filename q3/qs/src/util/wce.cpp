@@ -13,7 +13,7 @@
 
 #ifdef _WIN32_WCE
 
-#if _WIN32_WCE < 300
+#if _WIN32_WCE < 0x300
 
 extern "C" QSEXPORTPROC int _stricmp(const char* lhs,
 									 const char* rhs)
@@ -98,7 +98,7 @@ extern "C" QSEXPORTPROC int isdigit(int c)
 }
 #endif
 
-#endif // _WIN32_WCE < 300
+#endif // _WIN32_WCE < 0x300
 
 extern "C" QSEXPORTPROC int GetMenuItemCount(HMENU hmenu)
 {

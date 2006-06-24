@@ -35,7 +35,7 @@ struct qs::FrameWindowImpl
 	FrameWindow* pThis_;
 	HINSTANCE hInstResource_;
 	HWND hwndBands_;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	SHACTIVATEINFO shActivateInfo_;
 #endif
 };
@@ -110,11 +110,11 @@ int qs::FrameWindow::getToolbarHeight() const
 	HWND hwndToolbar = getToolbar();
 	
 	int nBarHeight = 0;
-#if !defined _WIN32_WCE || (_WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC)
+#if !defined _WIN32_WCE || (_WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC)
 	RECT rectToolbar;
 	::GetWindowRect(hwndToolbar, &rectToolbar);
 	nBarHeight = rectToolbar.bottom - rectToolbar.top;
-#elif _WIN32_WCE >= 200
+#elif _WIN32_WCE >= 0x200
 	nBarHeight = CommandBands_Height(hwndToolbar);
 #elif defined _WIN32_WCE
 	nBarHeight = CommandBar_Height(hwndToolbar);
@@ -125,7 +125,7 @@ int qs::FrameWindow::getToolbarHeight() const
 
 void qs::FrameWindow::adjustWindowSize(LPARAM lParam)
 {
-#if _WIN32_WCE >= 200
+#if _WIN32_WCE >= 0x200
 	RECT rect;
 #ifdef _WIN32_WCE_PSPC
 	SIPINFO si;
@@ -134,7 +134,7 @@ void qs::FrameWindow::adjustWindowSize(LPARAM lParam)
 	si.pvImData = 0;
 	::SHSipInfo(SPI_GETSIPINFO, lParam, &si, 0);
 	rect = si.rcVisibleDesktop;
-#if _WIN32_WCE >= 300
+#if _WIN32_WCE >= 0x300
 	if ((si.fdwFlags & SIPF_ON) == 0) {
 		int nToolbarHeight = getToolbarHeight();
 		rect.bottom -= nToolbarHeight;
@@ -177,7 +177,7 @@ void qs::FrameWindow::processIdle()
 
 bool qs::FrameWindow::save()
 {
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 #if 0
 	HWND hwndToolbar = getToolbar();
 	if (hwndToolbar) {
@@ -188,7 +188,7 @@ bool qs::FrameWindow::save()
 		}
 	}
 #endif
-#elif defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#elif defined _WIN32_WCE && (_WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC)
 	HWND hwndToolbar = getToolbar();
 	if (hwndToolbar) {
 		int nStored = 0;
@@ -261,7 +261,7 @@ LRESULT qs::FrameWindow::onActivate(UINT nFlags,
 									HWND hwnd,
 									bool bMinimized)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	::SHHandleWMActivate(getHandle(), MAKEWPARAM(nFlags, bMinimized),
 		reinterpret_cast<LPARAM>(hwnd), &pImpl_->shActivateInfo_, 0);
 #endif
@@ -295,7 +295,7 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		};
 		bool bToolbar = getToolbarButtons(&toolbar);
 		if (bToolbar) {
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 			SHMENUBARINFO mbi = {
 				sizeof(mbi),
 				getHandle(),
@@ -375,7 +375,7 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			rbbi.fStyle = cbri.fStyle;
 			rbbi.wID = cbri.wID;
 			rbbi.cx = cbri.cxRestored;
-#if _WIN32_WCE >= 421
+#if _WIN32_WCE >= 0x421
 			int nLogPixel = UIUtil::getLogPixel();
 			if (nLogPixel != 96) {
 				const int nDefaultBarHeight = 24;
@@ -405,7 +405,7 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			if (!pCommandBand->subclassWindow(pImpl_->hwndBands_))
 				return -1;
 			pCommandBand.release();
-#elif _WIN32_WCE >= 200
+#elif _WIN32_WCE >= 0x200
 			pImpl_->hwndBands_ = CommandBands_Create(getInstanceHandle(),
 				getHandle(), toolbar.nId_, RBS_VARHEIGHT | RBS_BANDBORDERS, 0);
 			if (!pImpl_->hwndBands_)
@@ -537,7 +537,7 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 				static_cast<WPARAM>(FALSE), reinterpret_cast<LPARAM>(hIcon));
 #endif // _WIN32_WCE
 		
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 		memset(&pImpl_->shActivateInfo_, 0, sizeof(pImpl_->shActivateInfo_));
 		pImpl_->shActivateInfo_.cbSize = sizeof(pImpl_->shActivateInfo_);
 #endif
@@ -602,7 +602,7 @@ LRESULT qs::FrameWindow::onInitMenuPopup(HMENU hmenu,
 LRESULT qs::FrameWindow::onSettingChange(WPARAM wParam,
 										 LPARAM lParam)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	::SHHandleWMSettingChange(getHandle(),
 		wParam, lParam, &pImpl_->shActivateInfo_);
 #endif
@@ -610,7 +610,7 @@ LRESULT qs::FrameWindow::onSettingChange(WPARAM wParam,
 }
 
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 
 /****************************************************************************
  *

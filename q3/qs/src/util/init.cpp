@@ -144,9 +144,9 @@ qs::Init::Init(HINSTANCE hInst,
 	::_set_new_handler(newHandler);
 #endif
 	
-#if defined _WIN32_WCE && _WIN32_WCE < 300
+#if defined _WIN32_WCE && _WIN32_WCE < 0x300
 	HRESULT hr = ::CoInitializeEx(0, COINIT_MULTITHREADED);
-#elif defined _WIN32_WCE && _WIN32_WCE >= 300
+#elif defined _WIN32_WCE && _WIN32_WCE >= 0x300
 	HRESULT hr = ::CoInitializeEx(0, COINIT_APARTMENTTHREADED);
 	if (hr == E_INVALIDARG)
 		hr = ::CoInitializeEx(0, COINIT_MULTITHREADED);

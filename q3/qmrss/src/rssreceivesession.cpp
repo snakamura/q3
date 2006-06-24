@@ -707,7 +707,7 @@ void qmrss::RssReceiveSessionUI::subscribe(Document* pDocument,
 {
 	SubscribeData data(static_cast<WCHAR*>(pParam));
 	
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	PropertySheetBase sheet(getResourceHandle(), L"Test", false);
 	sheet.getHeader().dwFlags |= PSH_WIZARD;
 	

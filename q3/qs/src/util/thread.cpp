@@ -41,7 +41,7 @@ inline LONG WINAPI InterlockedCompareExchange_(LONG volatile* Destination,
 #pragma warning(pop)
 #	define InterlockedCompareExchange(ptr, newval, oldval) \
 		InterlockedCompareExchange_(ptr, newval, oldval)
-#elif defined _WIN32_WCE && _WIN32_WCE < 300
+#elif defined _WIN32_WCE && _WIN32_WCE < 0x300
 #	define InterlockedCompareExchange(ptr, newval, oldval) \
 	((PVOID)InterlockedTestExchange((LPLONG)ptr, (LONG)oldval, (LONG)newval))  
 #endif

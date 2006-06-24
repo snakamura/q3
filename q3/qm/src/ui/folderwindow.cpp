@@ -142,7 +142,7 @@ public:
 private:
 	LRESULT onRClick(NMHDR* pnmhdr,
 					 bool* pbHandled);
-#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x400 && defined _WIN32_WCE_PSPC
 	LRESULT onRecognizeGesture(NMHDR* pnmhdr,
 							   bool* pbHandled);
 #endif
@@ -472,7 +472,7 @@ LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr,
 {
 	BEGIN_NOTIFY_HANDLER()
 		HANDLE_NOTIFY(NM_RCLICK, nId_, onRClick)
-#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x400 && defined _WIN32_WCE_PSPC
 		HANDLE_NOTIFY(NM_RECOGNIZEGESTURE, nId_, onRecognizeGesture)
 #endif
 		HANDLE_NOTIFY(TVN_BEGINDRAG, nId_, onBeginDrag)
@@ -770,7 +770,7 @@ LRESULT qm::FolderWindowImpl::onRClick(NMHDR* pnmhdr,
 		reinterpret_cast<WPARAM>(pnmhdr->hwndFrom), ::GetMessagePos());
 }
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x400 && defined _WIN32_WCE_PSPC
 LRESULT qm::FolderWindowImpl::onRecognizeGesture(NMHDR* pnmhdr,
 												 bool* pbHandled)
 {
@@ -1494,7 +1494,7 @@ LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 		screenToClient(&info.pt);
 		HTREEITEM hItem = TreeView_HitTest(getHandle(), &info);
 		if (hItem) {
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if defined _WIN32_WCE && (_WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC)
 			TreeView_SelectDropTarget(getHandle(), hItem);
 #endif
 			if (TreeView_GetParent(getHandle(), hItem))
@@ -1509,7 +1509,7 @@ LRESULT qm::FolderWindow::onContextMenu(HWND hwnd,
 #endif
 		::TrackPopupMenu(hmenu, nFlags, ptMenu.x, ptMenu.y, 0, getParentFrame(), 0);
 		
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if defined _WIN32_WCE && (_WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC)
 		if (hItem)
 			TreeView_SelectDropTarget(getHandle(), 0);
 #endif
@@ -1583,10 +1583,10 @@ LRESULT qm::FolderWindow::onDestroy()
 LRESULT qm::FolderWindow::onLButtonDown(UINT nFlags,
 										const POINT& pt)
 {
-#if defined _WIN32_WCE && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if defined _WIN32_WCE && (_WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC)
 	if (::GetKeyState(VK_MENU) < 0)
 		return 0;
-#elif defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#elif defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	TVHITTESTINFO info = {
 		{ pt.x, pt.y },
 	};

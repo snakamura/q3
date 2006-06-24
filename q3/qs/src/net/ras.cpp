@@ -571,7 +571,7 @@ wstring_ptr qs::RasConnection::getLocation()
 							reinterpret_cast<BYTE*>(ptc.get()) +
 								ptc->dwLocationListOffset +
 								n*sizeof(LINELOCATIONENTRY));
-#if !defined _WIN32_WCE || _WIN32_WCE >= 200
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x200
 					if (plle->dwPermanentLocationID == ptc->dwCurrentLocationID) {
 						ptszLocation = reinterpret_cast<LPCTSTR>(
 							reinterpret_cast<BYTE*>(ptc.get()) +

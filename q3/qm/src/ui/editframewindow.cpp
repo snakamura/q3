@@ -224,7 +224,7 @@ void qm::EditFrameWindowImpl::initActions()
 	ADD_ACTION1(FileCloseAction,
 		IDM_FILE_CLOSE,
 		pThis_->getHandle());
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	ADD_ACTION1(FileCloseAction,
 		IDOK,
 		pThis_->getHandle());
@@ -382,7 +382,7 @@ void qm::EditFrameWindowImpl::layoutChildren(int cx,
 #else
 	int nToolbarHeight = rectToolbar.bottom - rectToolbar.top;
 #endif
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	int nTopBarHeight = 0;
 	int nBottomBarHeight = bShowToolbar_ ? nToolbarHeight : 0;
 #else
@@ -397,7 +397,7 @@ void qm::EditFrameWindowImpl::layoutChildren(int cx,
 	
 	HDWP hdwp = Window::beginDeferWindowPos(3);
 	
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	hdwp = wndToolbar.deferWindowPos(hdwp, 0, 0,
 		cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
 #else
@@ -641,7 +641,7 @@ void qm::EditFrameWindow::getWindowClass(WNDCLASS* pwc)
 
 bool qm::EditFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	RECT rect;
 	qs::UIUtil::getWorkArea(&rect);
 	pCreateStruct->x = rect.left;
@@ -740,7 +740,7 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pEditWindow_ = pEditWindow.release();
 	
 	DWORD dwStatusBarStyle = dwStyle;
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
 #endif
 	std::auto_ptr<StatusBar> pStatusBar(new StatusBar());
@@ -841,7 +841,7 @@ qm::EditFrameWindowManager::~EditFrameWindowManager()
 bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 {
 	std::auto_ptr<EditFrameWindow> pFrame(new EditFrameWindow(this, pProfile_));
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	DWORD dwStyle = WS_CLIPCHILDREN;
 	DWORD dwExStyle = WS_EX_CAPTIONOKBTN;
 #elif defined _WIN32_WCE

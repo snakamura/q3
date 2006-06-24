@@ -254,7 +254,7 @@ private:
 	LRESULT onCategory();
 	LRESULT onSelect(UINT nId);
 	LRESULT onRemove();
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	LRESULT onFilterChange();
 #endif
 	LRESULT onAddressColumnClick(NMHDR* pnmhdr,
@@ -339,7 +339,7 @@ private:
 								 bool* pbHandled);
 	
 	private:
-#if defined _WIN32_WCE && _WIN32_WCE >= 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x400 && defined _WIN32_WCE_PSPC
 		LRESULT onRecognizeGesture(NMHDR* pnmhdr,
 								   bool* pbHandled);
 #endif

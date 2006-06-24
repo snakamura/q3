@@ -442,9 +442,9 @@ else
 #		CCFLAGS			+= -GX
 		#####################################################################
 	endif
-	DEFINES				+= -D_WIN32_WCE=$(CEVER) -DUNDER_CE=$(CEVER) -DUNICODE -D_UNICODE
+	DEFINES				+= -D_WIN32_WCE=0x$(CEVER) -DUNDER_CE=0x$(CEVER) -DUNICODE -D_UNICODE
 	LDFLAGS				+= -NODEFAULTLIB
-	RCFLAGS				+=  -D _WIN32_WCE=$(CEVER) -D UNDER_CE=$(CEVER)
+	RCFLAGS				+=  -D _WIN32_WCE=0x$(CEVER) -D UNDER_CE=0x$(CEVER)
 	
 	LIBCPU				= $(CPU)
 	EXLIBCPU			= $(CPU)

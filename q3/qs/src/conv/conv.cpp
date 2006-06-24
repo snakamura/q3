@@ -25,7 +25,7 @@
 
 using namespace qs;
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 211
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x211
 #include <initguid.h>
 DEFINE_GUID(IID_IMultiLanguage, 0x275c23e1, 0x3747, 0x11d0,
 	0x9f, 0xea, 0x00, 0xaa, 0x00, 0x3f, 0x86, 0x46);

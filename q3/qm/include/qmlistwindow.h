@@ -95,7 +95,7 @@ protected:
 						  const POINT& pt);
 	LRESULT onLButtonUp(UINT nFlags,
 						const POINT& pt);
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 	LRESULT onMouseWheel(UINT nFlags,
 						 short nDelta,
 						 const POINT& pt);

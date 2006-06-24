@@ -157,7 +157,7 @@ void qs::UIUtil::setSipEnabled(bool bEnabled)
 bool qs::UIUtil::browseFont(HWND hwnd,
 							LOGFONT* pLogFont)
 {
-#if 0//!defined _WIN32_WCE || (_WIN32_WCE >= 400 && !defined _WIN32_WCE_PSPC)
+#if 0//!defined _WIN32_WCE || (_WIN32_WCE >= 0x400 && !defined _WIN32_WCE_PSPC)
 	CHOOSEFONT cf = {
 		sizeof(cf),
 		hwnd,
@@ -268,7 +268,7 @@ int qs::UIUtil::getLogPixel()
 	return dc.getDeviceCaps(LOGPIXELSY);
 }
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 void qs::UIUtil::getWorkArea(RECT* pRect)
 {
 	assert(pRect);

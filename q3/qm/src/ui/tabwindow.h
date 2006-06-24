@@ -61,13 +61,13 @@ protected:
 						  const POINT& pt);
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x400
 	LRESULT onMButtonDown(UINT nFlags,
 						  const POINT& pt);
 	LRESULT onMButtonUp(UINT nFlags,
 						const POINT& pt);
 #endif
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 	LRESULT onMouseWheel(UINT nFlags,
 						 short nDelta,
 						 const POINT& pt);

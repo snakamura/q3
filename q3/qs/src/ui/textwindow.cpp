@@ -3356,7 +3356,7 @@ void qs::TextWindow::getWindowClass(WNDCLASS* pwc)
 {
 	DefaultWindowHandler::getWindowClass(pwc);
 	
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 	pwc->hCursor = ::LoadCursor(0, IDC_IBEAM);
 #endif // _WIN32_WCE
 }
@@ -3396,7 +3396,7 @@ LRESULT qs::TextWindow::windowProc(UINT uMsg,
 		HANDLE_LBUTTONDOWN()
 		HANDLE_LBUTTONUP()
 		HANDLE_MOUSEMOVE()
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 		HANDLE_MOUSEWHEEL()
 #endif
 #ifndef _WIN32_WCE
@@ -3784,7 +3784,7 @@ LRESULT qs::TextWindow::onMouseMove(UINT nFlags,
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
 }
 
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 LRESULT qs::TextWindow::onMouseWheel(UINT nFlags,
 									 short nDelta,
 									 const POINT& pt)

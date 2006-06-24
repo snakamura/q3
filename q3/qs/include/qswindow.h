@@ -30,7 +30,7 @@
 #	endif
 #endif
 
-#if defined _WIN32_WCE && _WIN32_WCE <= 211
+#if defined _WIN32_WCE && _WIN32_WCE <= 0x211
 #	define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
 #	define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 #endif
@@ -46,7 +46,7 @@ class DefWindowProcHolder;
 #ifdef QS_KANJIIN
 		class KanjiinWindow;
 #endif
-#if _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if _WIN32_WCE >= 0x200 && (_WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC)
 		class CommandBand;
 #endif
 class CommandUpdate;
@@ -66,7 +66,7 @@ class DefaultWindowHandlerBase;
 #ifdef QS_KANJIIN
 		class KanjiinWindow;
 #endif
-#if _WIN32_WCE >= 200 && (_WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC)
+#if _WIN32_WCE >= 0x200 && (_WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC)
 		class CommandBand;
 #endif
 class SplitterWindowHandler;
@@ -364,7 +364,7 @@ public:
 									DWORD dwFlags);
 #endif
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	bool tapAndHold(const POINT& pt);
 #endif
 
@@ -952,7 +952,7 @@ public:
 			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
-#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x400
 #define HANDLE_MBUTTONDBLCLK() \
 	case WM_MBUTTONDBLCLK: \
 		lResult = onMButtonDblClk(static_cast<UINT>(wParam), \
@@ -985,7 +985,7 @@ public:
 			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
 		break; \
 
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 #define HANDLE_MOUSEWHEEL() \
 	case WM_MOUSEWHEEL: \
 		lResult = onMouseWheel(LOWORD(wParam), HIWORD(wParam), \
@@ -1228,7 +1228,7 @@ protected:
 						  const POINT& pt);
 	LRESULT onLButtonUp(UINT nFlags,
 						const POINT& pt);
-#if !defined _WIN32_WCE || _WIN32_WCE >= 400
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x400
 	LRESULT onMButtonDblClk(UINT nFlags,
 							const POINT& pt);
 	LRESULT onMButtonDown(UINT nFlags,
@@ -1243,7 +1243,7 @@ protected:
 #endif
 	LRESULT onMouseMove(UINT nFlags,
 						const POINT& pt);
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 	LRESULT onMouseWheel(UINT nFlags,
 						 short nDelta,
 						 const POINT& pt);
@@ -1648,7 +1648,7 @@ private:
 #endif // QS_KANJIIN
 
 
-#if _WIN32_WCE >= 200
+#if _WIN32_WCE >= 0x200
 
 /****************************************************************************
  *
@@ -1679,7 +1679,7 @@ private:
 	CommandBand& operator=(const CommandBand&);
 };
 
-#endif // _WIN32_WCE >= 200
+#endif // _WIN32_WCE >= 0x200
 
 
 /****************************************************************************

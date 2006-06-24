@@ -355,7 +355,7 @@ LRESULT qm::AutoCompleteListWindow::windowProc(UINT uMsg,
 		HANDLE_MOUSEACTIVATE()
 #endif
 		HANDLE_MOUSEMOVE()
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 		HANDLE_MOUSEWHEEL()
 #endif
 		HANDLE_PAINT()
@@ -425,7 +425,7 @@ LRESULT qm::AutoCompleteListWindow::onMouseMove(UINT nFlags,
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
 }
 
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 LRESULT qm::AutoCompleteListWindow::onMouseWheel(UINT nFlags,
 												 short nDelta,
 												 const POINT& pt)

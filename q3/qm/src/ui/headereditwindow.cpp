@@ -946,7 +946,7 @@ const TCHAR* qm::EditHeaderEditItem::getWindowClassName() const
 UINT qm::EditHeaderEditItem::getWindowStyle() const
 {
 	UINT nStyle = ES_AUTOHSCROLL;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	nStyle |= WS_BORDER;
 #endif
 	switch (getAlign()) {
@@ -968,7 +968,7 @@ UINT qm::EditHeaderEditItem::getWindowStyle() const
 
 UINT qm::EditHeaderEditItem::getWindowExStyle() const
 {
-#if defined _WIN32_WCE && _WIN32_WCE >=300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	return 0;
 #else
 	return WS_EX_CLIENTEDGE;
@@ -1382,10 +1382,10 @@ bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | LVS_REPORT |
 		LVS_SHAREIMAGELISTS | LVS_NOCOLUMNHEADER;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	dwStyle |= WS_BORDER;
 #endif
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
@@ -1629,7 +1629,7 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onContextMenu(HWND h
 LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onLButtonDown(UINT nFlags,
 																		  const POINT& pt)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && _WIN32_WCE < 400 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && _WIN32_WCE < 0x400 && defined _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
 		return 0;
 #endif
@@ -1704,7 +1704,7 @@ bool qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 	assert(!hwnd_);
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_DROPDOWNLIST;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;

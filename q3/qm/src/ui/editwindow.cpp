@@ -555,7 +555,7 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_
 	};
 	std::auto_ptr<EditTextWindow> pTextWindow(new EditTextWindow(pImpl_->pProfile_));
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
@@ -775,7 +775,7 @@ LRESULT qm::EditTextWindow::onKillFocus(HWND hwnd)
 LRESULT qm::EditTextWindow::onLButtonDown(UINT nFlags,
 										  const POINT& pt)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
 		return 0;
 #endif

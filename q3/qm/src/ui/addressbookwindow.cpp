@@ -169,7 +169,7 @@ void qm::AddressBookFrameWindowImpl::layoutChildren(int cx,
 	Window wndToolbar(hwndToolbar);
 	wndToolbar.getWindowRect(&rectToolbar);
 	int nToolbarHeight = rectToolbar.bottom - rectToolbar.top;
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	int nTopBarHeight = 0;
 	int nBottomBarHeight = bShowToolbar_ ? nToolbarHeight : 0;
 #else
@@ -184,7 +184,7 @@ void qm::AddressBookFrameWindowImpl::layoutChildren(int cx,
 	
 	HDWP hdwp = Window::beginDeferWindowPos(3);
 	
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	hdwp = wndToolbar.deferWindowPos(hdwp, 0, 0,
 		cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
 #else
@@ -379,7 +379,7 @@ void qm::AddressBookFrameWindow::getWindowClass(WNDCLASS* pwc)
 
 bool qm::AddressBookFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	RECT rect;
 	qs::UIUtil::getWorkArea(&rect);
 	pCreateStruct->x = rect.left;
@@ -460,7 +460,7 @@ LRESULT qm::AddressBookFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pAddressBookModel_.reset(pContext->pAddressBookModel_);
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
@@ -478,7 +478,7 @@ LRESULT qm::AddressBookFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pListWindow_ = pListWindow.release();
 	
 	DWORD dwStatusBarStyle = dwStyle;
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
 #endif
 	std::auto_ptr<StatusBar> pStatusBar(new StatusBar());
@@ -1267,7 +1267,7 @@ LRESULT qm::AddressBookListWindow::onLButtonDblClk(UINT nFlags,
 LRESULT qm::AddressBookListWindow::onLButtonDown(UINT nFlags,
 												 const POINT& pt)
 {
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	if (tapAndHold(pt))
 		return 0;
 #endif

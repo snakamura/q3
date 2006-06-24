@@ -126,7 +126,7 @@ public:
  */
 
 class SubscribeURLPage :
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	public qs::DefaultPropertyPage
 #else
 	public qs::DefaultDialog
@@ -143,7 +143,7 @@ public:
 					 SubscribeData* pData);
 	virtual ~SubscribeURLPage();
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
@@ -159,7 +159,7 @@ public:
 private:
 	LRESULT onURLChange();
 
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr,
 							 bool* pbHandled);
@@ -198,7 +198,7 @@ private:
  */
 
 class SubscribePropertyPage :
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	public qs::DefaultPropertyPage
 #else
 	public qs::DefaultDialog
@@ -208,7 +208,7 @@ public:
 	explicit SubscribePropertyPage(SubscribeData* pData);
 	virtual ~SubscribePropertyPage();
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
@@ -226,7 +226,7 @@ private:
 	LRESULT onMakeMultipartClicked();
 	LRESULT onNameChange();
 
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr,
 							 bool* pbHandled);

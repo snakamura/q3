@@ -216,7 +216,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 	}
 	
 	RECT r = { rect.left, rect.top, rect.left, rect.bottom };
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	RECT rectFocus = { 0, rect.top, 0, rect.bottom };
 #else
 	RECT rectFocus = { -1, rect.top, 0, rect.bottom };
@@ -273,7 +273,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 			unsigned int nValue = pColumn->getNumber(pViewModel, pItem);
 			
 			UINT nBkColorId = COLOR_WINDOW;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 			if (bSelected)
 				nBkColorId = pThis_->hasFocus() ? COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER;
 #endif
@@ -281,7 +281,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 			pdc->fillSolidRect(r, getColor(nBkColorId));
 			pdc->setBkColor(crOld);
 			
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 			UINT nFlags = bSelected ? ILD_TRANSPARENT : ILD_NORMAL;
 #else
 			UINT nFlags = bSelected ? ILD_SELECTED : ILD_NORMAL;
@@ -309,7 +309,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 				ImageList_Draw(hImageListData_, 5, pdc->getHandle(),
 					r.left + 15, y, nFlags);
 			
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 			rectFocus.right = r.right;
 #endif
 		}
@@ -367,7 +367,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		}
 	}
 	
-#if !defined _WIN32_WCE || _WIN32_WCE < 300 || !defined _WIN32_WCE_PSPC
+#if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
 	if ((pItem->getFlags() & ViewModelItem::FLAG_FOCUSED) && bHasFocus) {
 		pdc->setTextColor(COLOR_WINDOWTEXT);
 		pdc->drawFocusRect(rectFocus);
@@ -1127,7 +1127,7 @@ LRESULT qm::ListWindow::windowProc(UINT uMsg,
 		HANDLE_LBUTTONDBLCLK()
 		HANDLE_LBUTTONDOWN()
 		HANDLE_LBUTTONUP()
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 		HANDLE_MOUSEWHEEL()
 #endif
 		HANDLE_PAINT()
@@ -1402,7 +1402,7 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 {
 	setFocus();
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	bool bTapAndHold = false;
 #endif
 	
@@ -1439,7 +1439,7 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 			
 			pImpl_->ensureVisible(nLine);
 			
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 			if (tapAndHold(pt))
 				return 0;
 			bTapAndHold = true;
@@ -1454,7 +1454,7 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 		}
 	}
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	if (!bTapAndHold) {
 		if (tapAndHold(pt))
 			return 0;
@@ -1483,7 +1483,7 @@ LRESULT qm::ListWindow::onLButtonUp(UINT nFlags,
 	return 0;
 }
 
-#if !defined _WIN32_WCE || _WIN32_WCE >= 211
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 LRESULT qm::ListWindow::onMouseWheel(UINT nFlags,
 									 short nDelta,
 									 const POINT& pt)

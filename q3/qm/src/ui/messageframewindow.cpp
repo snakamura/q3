@@ -245,7 +245,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		pThis_->getHandle(),
 		pProfile_,
 		pTempFileCleaner_);
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	ADD_ACTION1(FileCloseAction,
 		IDOK,
 		pThis_->getHandle());
@@ -501,7 +501,7 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 #else
 	int nToolbarHeight = rectToolbar.bottom - rectToolbar.top;
 #endif
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	int nTopBarHeight = 0;
 	int nBottomBarHeight = bShowToolbar_ ? nToolbarHeight : 0;
 #else
@@ -516,7 +516,7 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 	
 	HDWP hdwp = Window::beginDeferWindowPos(3);
 	
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	hdwp = wndToolbar.deferWindowPos(hdwp, 0, 0,
 		cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
 #else
@@ -840,7 +840,7 @@ bool qm::MessageFrameWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	if (!FrameWindow::preCreateWindow(pCreateStruct))
 		return false;
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	RECT rect;
 	qs::UIUtil::getWorkArea(&rect);
 	pCreateStruct->x = rect.left;
@@ -971,7 +971,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			pImpl_->pUIManager_->getActionParamMap()));
 	
 	DWORD dwStatusBarStyle = dwStyle;
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
 #endif
 	std::auto_ptr<MessageStatusBar> pStatusBar(new MessageStatusBar(
@@ -1078,7 +1078,7 @@ bool qm::MessageFrameWindowManager::open(ViewModel* pViewModel,
 		pFrame = pCachedFrame_;
 		pCachedFrame_ = 0;
 	}
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	else if (!listFrame_.empty()) {
 		pFrame = listFrame_.front();
 	}
@@ -1185,7 +1185,7 @@ MessageFrameWindow* qm::MessageFrameWindowManager::create()
 {
 	std::auto_ptr<MessageFrameWindow> pFrame(
 		new MessageFrameWindow(this, pViewModelManager_, pProfile_));
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	DWORD dwStyle = WS_CLIPCHILDREN;
 	DWORD dwExStyle = WS_EX_CAPTIONOKBTN;
 #elif defined _WIN32_WCE

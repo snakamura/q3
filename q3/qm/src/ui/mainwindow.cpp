@@ -1242,7 +1242,7 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 #else
 	int nToolbarHeight = rectToolbar.bottom - rectToolbar.top;
 #endif
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	int nTopBarHeight = 0;
 	int nBottomBarHeight = bShowToolbar_ ? nToolbarHeight : 0;
 #else
@@ -1265,7 +1265,7 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 	
 	HDWP hdwp = Window::beginDeferWindowPos(5);
 	
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	hdwp = wndToolbar.deferWindowPos(hdwp, 0, 0,
 		cy - nToolbarHeight, cx, nToolbarHeight, SWP_NOZORDER);
 #else
@@ -2021,7 +2021,7 @@ bool qm::MainWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
 	if (!FrameWindow::preCreateWindow(pCreateStruct))
 		return false;
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	RECT rect;
 	qs::UIUtil::getWorkArea(&rect);
 	pCreateStruct->x = rect.left;
@@ -2199,7 +2199,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pDelayedFolderModelHandler_.reset(new DelayedFolderModelHandler(pImpl_));
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	DWORD dwExStyle = 0;
 #else
 	DWORD dwExStyle = WS_EX_CLIENTEDGE;
@@ -2387,7 +2387,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			pImpl_->pUIManager_->getActionParamMap()));
 	
 	DWORD dwStatusBarStyle = dwStyle;
-#if _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
 #endif
 	std::auto_ptr<MainWindowStatusBar> pStatusBar(new MainWindowStatusBar(

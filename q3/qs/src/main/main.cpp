@@ -101,7 +101,7 @@ void termThread()
  *
  */
 
-#if !defined _WIN32_WCE || (_WIN32_WCE >= 300 && !defined PLATFORM_PPC)
+#if !defined _WIN32_WCE || (_WIN32_WCE >= 0x300 && !defined PLATFORM_PPC)
 std::pair<DWORD, DWORD> getVersion(HINSTANCE hInst);
 #endif
 
@@ -137,7 +137,7 @@ QSEXPORTPROC HINSTANCE qs::loadResourceDll(HINSTANCE hInst)
 	if (!hInstResource)
 		return hInst;
 	
-#if !defined _WIN32_WCE || (_WIN32_WCE >= 300 && !defined PLATFORM_PPC)
+#if !defined _WIN32_WCE || (_WIN32_WCE >= 0x300 && !defined PLATFORM_PPC)
 	if (getVersion(hInst) != getVersion(hInstResource)) {
 		::FreeLibrary(hInstResource);
 		return hInst;
@@ -147,7 +147,7 @@ QSEXPORTPROC HINSTANCE qs::loadResourceDll(HINSTANCE hInst)
 	return hInstResource;
 }
 
-#if !defined _WIN32_WCE || (_WIN32_WCE >= 300 && !defined PLATFORM_PPC)
+#if !defined _WIN32_WCE || (_WIN32_WCE >= 0x300 && !defined PLATFORM_PPC)
 std::pair<DWORD, DWORD> getVersion(HINSTANCE hInst)
 {
 	std::pair<DWORD, DWORD> version(0, 0);

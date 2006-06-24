@@ -14,7 +14,7 @@
 
 namespace qs {
 
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 /****************************************************************************
  *
  * MenuBarWindow

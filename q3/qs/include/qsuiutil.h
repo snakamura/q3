@@ -73,7 +73,7 @@ public:
 	
 	static int getLogPixel();
 	
-#if defined _WIN32_WCE && _WIN32_WCE >= 300 && defined _WIN32_WCE_PSPC
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	static void getWorkArea(RECT* pRect);
 #endif
 };
