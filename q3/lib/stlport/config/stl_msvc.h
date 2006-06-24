@@ -92,6 +92,11 @@
 # define _STLP_STATIC_CONST_INIT_BUG   1
 # endif	//	(_STLP_MSVC <= 1310)
 
+# ifdef UNDER_CE
+#  define _STLP_NO_USING_FOR_GLOBAL_FUNCTIONS 1
+#  define _STLP_GLOBAL_NEW_HANDLER
+#endif
+
 # if (_STLP_MSVC <= 1300) 
 #  define _STLP_DEFAULT_CONSTRUCTOR_BUG 1
 

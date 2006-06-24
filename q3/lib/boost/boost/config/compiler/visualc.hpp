@@ -128,7 +128,8 @@
       // Note: these are so far off, they are not really supported
 #   elif _MSC_VER < 1300 // eVC++ 4 comes with 1200-1202
 #     define BOOST_COMPILER_VERSION evc4.0
-//#     error unknown CE compiler
+#   elif _MSC_VER == 1400
+#     define BOOST_COMPILER_VERSION evc8
 #   else
 #     error unknown CE compiler
 #   endif
