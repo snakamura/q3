@@ -1220,7 +1220,7 @@ qs::auto_ptr_array<size_t> qs::BMFindString<String>::createNextTable(const Char*
 	for (ssize_t m = nLen - 1; m >= 0; --m) {
 		*(pTemp.get() + m) = n;
 		while (n != nLen && pszPattern[n] != pszPattern[m]) {
-			*(pNext.get() + n) = QSMIN(*(pNext.get() + n), nLen - m - 1);
+			*(pNext.get() + n) = QSMIN(*(pNext.get() + n), static_cast<size_t>(nLen - m - 1));
 			n = *(pTemp.get() + n);
 		}
 		--n;

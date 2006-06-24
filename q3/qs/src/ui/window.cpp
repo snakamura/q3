@@ -216,8 +216,8 @@ bool qs::Window::centerWindow(HWND hwnd)
 	getWindowRect(&rect);
 	
 	return setWindowPos(0,
-		QSMAX(0, (rectParent.left + rectParent.right - (rect.right - rect.left) - rectShift.left)/2),
-		QSMAX(0, (rectParent.top + rectParent.bottom - (rect.bottom - rect.top) - rectShift.top)/2),
+		QSMAX(0L, (rectParent.left + rectParent.right - (rect.right - rect.left) - rectShift.left)/2),
+		QSMAX(0L, (rectParent.top + rectParent.bottom - (rect.bottom - rect.top) - rectShift.top)/2),
 		0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }
 
