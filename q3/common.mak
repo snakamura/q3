@@ -52,6 +52,11 @@ endif
 
 include ../function.mak
 
+
+ifeq ($(call cever,-ge,500),0)
+	EVCVER				= 8
+endif
+
 ifdef EMULATION
 	ifeq ($(if $(call platform,ppc2002),1,$(call cever,-lt,400)),0)
 		OLDEMULATION	= 1
