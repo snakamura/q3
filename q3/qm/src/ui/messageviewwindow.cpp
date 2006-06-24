@@ -2479,11 +2479,6 @@ qm::HtmlMessageViewWindow::HtmlMessageViewWindow(qs::Profile* pProfile,
 	pMenuManager_(pMenuManager),
 	pCallback_(pCallback),
 	nId_(0),
-#if _WIN32_WCE >= 0x500
-	// TODO
-#elif _WIN32_WCE >= 0x420
-	pWebBrowser_(0),
-#endif
 #if 0
 	pWebBrowserEvents_(0),
 	dwConnectionPointCookie_(0),
@@ -2524,24 +2519,21 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pMessageWindow_->addNotifyHandler(this);
 	
-#if _WIN32_WCE >= 0x500
-	// TODO
-#elif _WIN32_WCE >= 0x420
+#if _WIN32_WCE >= 0x420
 	ComPtr<IDispatch> pDispBrowser;
 	sendMessage(DTM_BROWSERDISPATCH, 0, reinterpret_cast<LPARAM>(&pDispBrowser));
 	if (!pDispBrowser.get())
 		return -1;
-	HRESULT hr = pDispBrowser->QueryInterface(IID_IBrowser2,
-		reinterpret_cast<void**>(&pWebBrowser_));
-	if (FAILED(hr))
-		return -1;
+	
+	pBrowser_.reset(new IBrowserHelper(pDispBrowser.get()));
 #endif
 	
 #if 0
-	pWebBrowserEvents_ = new DWebBrowserEvents2Impl(this, pWebBrowser_);
+	IBrowser2* pWebBrowser = pBrowser_->getBrowser();
+	pWebBrowserEvents_ = new DWebBrowserEvents2Impl(this, pWebBrowser);
 	pWebBrowserEvents_->AddRef();
 	ComPtr<IConnectionPointContainer> pConnectionPointContainer;
-	hr = pWebBrowser_->QueryInterface(IID_IConnectionPointContainer,
+	HRESULT hr = pWebBrowser->QueryInterface(IID_IConnectionPointContainer,
 		reinterpret_cast<void**>(&pConnectionPointContainer));
 	if (FAILED(hr))
 		return -1;
@@ -2568,15 +2560,14 @@ LRESULT qm::HtmlMessageViewWindow::onDestroy()
 {
 	pMessageWindow_->removeNotifyHandler(this);
 	
-#if _WIN32_WCE >= 0x500
-	// TODO
-#elif _WIN32_WCE >= 0x420
-	if (pWebBrowser_) {
+#if _WIN32_WCE >= 0x420
+	if (pBrowser_.get()) {
 #if 0
 		if (dwConnectionPointCookie_ != 0) {
+			IBrowser2* pWebBrowser = pBrowser_->getBrowser();
 			ComPtr<IConnectionPointContainer> pConnectionPointContainer;
 			ComPtr<IConnectionPoint> pConnectionPoint;
-			HRESULT hr = pWebBrowser_->QueryInterface(IID_IConnectionPointContainer,
+			HRESULT hr = pWebBrowser->QueryInterface(IID_IConnectionPointContainer,
 				reinterpret_cast<void**>(&pConnectionPointContainer));
 			if (SUCCEEDED(hr))
 				hr = pConnectionPointContainer->FindConnectionPoint(
@@ -2585,8 +2576,7 @@ LRESULT qm::HtmlMessageViewWindow::onDestroy()
 				hr = pConnectionPoint->Unadvise(dwConnectionPointCookie_);
 		}
 #endif
-		pWebBrowser_->Release();
-		pWebBrowser_ = 0;
+		pBrowser_.reset(0);
 	}
 #endif
 #if 0
@@ -2665,11 +2655,9 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		wstrURL = allocWString(link.getValue());
 		bAllowExternal_ = true;
 		
-#if _WIN32_WCE >= 0x500
-		// TODO
-#elif _WIN32_WCE >= 0x420
+#if _WIN32_WCE >= 0x420
 		BSTRPtr bstrPrevURL;
-		if (pWebBrowser_->get_LocationURL(&bstrPrevURL) == S_OK) {
+		if (pBrowser_->get_LocationURL(&bstrPrevURL) == S_OK) {
 			const WCHAR* p1 = wcsrchr(wstrURL.get(), L'#');
 			size_t nLen1 = p1 ? p1 - wstrURL.get() : wcslen(wstrURL.get());
 			const WCHAR* p2 = wcsrchr(bstrPrevURL.get(), L'#');
@@ -2741,38 +2729,16 @@ void qm::HtmlMessageViewWindow::setZoom(unsigned int nZoom)
 
 void qm::HtmlMessageViewWindow::setFit(MessageViewMode::Fit fit)
 {
-#if _WIN32_WCE >= 0x500
-	// TODO
-#elif _WIN32_WCE >= 0x420
+#if _WIN32_WCE >= 0x420
 	switch (fit) {
 	case MessageViewMode::FIT_NONE:
-		pWebBrowser_->put_FitToWindow(VARIANT_FALSE);
+		pBrowser_->put_FitToWindow(VARIANT_FALSE);
 		break;
 	case MessageViewMode::FIT_NORMAL:
-		pWebBrowser_->put_FitToWindow(VARIANT_TRUE);
+		pBrowser_->put_FitToWindow(VARIANT_TRUE);
 		break;
 	case MessageViewMode::FIT_SUPER:
-		{
-			WCHAR* pwszName = L"SuperFitToWindow";
-			DISPID id = DISPID_UNKNOWN;
-			HRESULT hr = pWebBrowser_->GetIDsOfNames(IID_NULL,
-				&pwszName, 1, LOCALE_SYSTEM_DEFAULT, &id);
-			if (hr == S_OK) {
-				VARIANTARG v;
-				::VariantInit(&v);
-				v.vt = VT_BOOL;
-				v.boolVal = fit == MessageViewMode::FIT_SUPER ? VARIANT_TRUE : VARIANT_FALSE;
-				DISPID dispId = DISPID_PROPERTYPUT;
-				DISPPARAMS params = {
-					&v,
-					&dispId,
-					1,
-					1
-				};
-				pWebBrowser_->Invoke(id, IID_NULL, LOCALE_SYSTEM_DEFAULT,
-					DISPATCH_PROPERTYPUT, &params, 0, 0, 0);
-			}
-		}
+		pBrowser_->put_SuperFitToWindow(VARIANT_TRUE);
 		break;
 	default:
 		assert(false);
@@ -2872,11 +2838,9 @@ LRESULT qm::HtmlMessageViewWindow::onHotSpot(NMHDR* pnmhdr,
 	
 	wstring_ptr wstrURL(getTarget(pnmhdr));
 	
-#if _WIN32_WCE >= 0x500
-	// TODO
-#elif _WIN32_WCE >= 0x420
+#if _WIN32_WCE >= 0x420
 	BSTRPtr bstrBaseURL;
-	HRESULT hr = pWebBrowser_->get_LocationBaseURL(&bstrBaseURL);
+	HRESULT hr = pBrowser_->get_LocationBaseURL(&bstrBaseURL);
 	if (hr == S_OK) {
 		DWORD dwLen = 0;
 		hr = ::CoInternetCombineUrl(bstrBaseURL.get(),
@@ -2951,6 +2915,135 @@ wstring_ptr qm::HtmlMessageViewWindow::getTarget(NMHDR* pnmhdr) const
 		return mbs2wcs(pHtmlView->szTarget);
 	}
 }
+
+
+#if _WIN32_WCE >= 0x420
+/****************************************************************************
+ *
+ * HtmlMessageViewWindow::IBrowserHelper
+ *
+ */
+
+qm::HtmlMessageViewWindow::IBrowserHelper::IBrowserHelper(IDispatch* pDispatch) :
+#if _WIN32_WCE < 0x500
+	pDispatch_(pDispatch),
+	pBrowser_(0)
+#else
+	pDispatch_(pDispatch)
+#endif
+{
+	pDispatch_->AddRef();
+	
+#if _WIN32_WCE < 0x500
+	HRESULT hr = pDispatch->QueryInterface(IID_IBrowser2,
+		reinterpret_cast<void**>(&pBrowser_));
+	if (FAILED(hr))
+		pBrowser_ = 0;
+#endif
+}
+
+qm::HtmlMessageViewWindow::IBrowserHelper::~IBrowserHelper()
+{
+#if _WIN32_WCE < 0x500
+	if (pBrowser_)
+		pBrowser_->Release();
+#endif
+	pDispatch_->Release();
+}
+
+#if _WIN32_WCE < 0x500
+IBrowser2* qm::HtmlMessageViewWindow::IBrowserHelper::getBrowser() const
+{
+	return pBrowser_;
+}
+#endif
+
+STDMETHODIMP qm::HtmlMessageViewWindow::IBrowserHelper::get_LocationURL(BSTR* pbstr)
+{
+#if _WIN32_WCE < 0x500
+	if (pBrowser_)
+		return pBrowser_->get_LocationURL(pbstr);
+#endif
+	return getProperty(DISPID_BROWSERLOCATION, pbstr);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::IBrowserHelper::get_LocationBaseURL(BSTR* pbstr)
+{
+#if _WIN32_WCE < 0x500
+	if (pBrowser_)
+		return pBrowser_->get_LocationBaseURL(pbstr);
+#endif
+	return getProperty(DISPID_BROWSERLOCATIONBASEURL, pbstr);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::IBrowserHelper::put_FitToWindow(VARIANT_BOOL b)
+{
+#if _WIN32_WCE < 0x500
+	if (pBrowser_)
+		return pBrowser_->put_FitToWindow(b);
+#endif
+	return putProperty(DISPID_BROWSERFITTOWINDOW, b);
+}
+
+STDMETHODIMP qm::HtmlMessageViewWindow::IBrowserHelper::put_SuperFitToWindow(VARIANT_BOOL b)
+{
+	WCHAR wszName[] = L"SuperFitToWindow";
+	return putProperty(wszName, b);
+}
+
+HRESULT qm::HtmlMessageViewWindow::IBrowserHelper::getProperty(WCHAR* pwszName,
+															   BSTR* pbstr)
+{
+	DISPID id = DISPID_UNKNOWN;
+	HRESULT hr = pDispatch_->GetIDsOfNames(IID_NULL,
+		&pwszName, 1, LOCALE_SYSTEM_DEFAULT, &id);
+	if (FAILED(hr))
+		return hr;
+	return getProperty(id, pbstr);
+}
+
+HRESULT qm::HtmlMessageViewWindow::IBrowserHelper::getProperty(DISPID id,
+															   BSTR* pbstr)
+{
+	DISPPARAMS params = { 0, 0, 0, 0 };
+	VARIANT v;
+	::VariantInit(&v);
+	HRESULT hr = pDispatch_->Invoke(id, IID_NULL, LOCALE_SYSTEM_DEFAULT,
+		DISPATCH_PROPERTYGET, &params, &v, 0, 0);
+	if (FAILED(hr))
+		return hr;
+	if (v.vt != VT_BSTR) {
+		::VariantClear(&v);
+		return E_FAIL;
+	}
+	*pbstr = v.bstrVal;
+	return S_OK;
+}
+
+HRESULT qm::HtmlMessageViewWindow::IBrowserHelper::putProperty(WCHAR* pwszName,
+															   VARIANT_BOOL b)
+{
+	DISPID id = DISPID_UNKNOWN;
+	HRESULT hr = pDispatch_->GetIDsOfNames(IID_NULL,
+		&pwszName, 1, LOCALE_SYSTEM_DEFAULT, &id);
+	if (FAILED(hr))
+		return hr;
+	return putProperty(id, b);
+}
+
+HRESULT qm::HtmlMessageViewWindow::IBrowserHelper::putProperty(DISPID id,
+															   VARIANT_BOOL b)
+{
+	VARIANTARG v;
+	::VariantInit(&v);
+	v.vt = VT_BOOL;
+	v.boolVal = b;
+	DISPID dispId = DISPID_PROPERTYPUT;
+	DISPPARAMS params = { &v, &dispId, 1, 1 };
+	return pDispatch_->Invoke(id, IID_NULL, LOCALE_SYSTEM_DEFAULT,
+		DISPATCH_PROPERTYPUT, &params, 0, 0, 0);
+}
+#endif // _WIN32_WCE >= 0x420
 
 
 #if 0

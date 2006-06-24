@@ -1082,6 +1082,46 @@ private:
 	qs::wstring_ptr getTarget(NMHDR* pnmhdr) const;
 
 private:
+#if _WIN32_WCE >= 0x420
+	class IBrowserHelper
+	{
+	public:
+		explicit IBrowserHelper(IDispatch* pDispatch);
+		~IBrowserHelper();
+	
+#if _WIN32_WCE < 0x500
+	public:
+		IBrowser2* getBrowser() const;
+#endif
+	
+	public:
+		STDMETHOD(get_LocationURL)(BSTR* pbstr);
+		STDMETHOD(get_LocationBaseURL)(BSTR* pbstr);
+		STDMETHOD(put_FitToWindow)(VARIANT_BOOL b);
+		STDMETHOD(put_SuperFitToWindow)(VARIANT_BOOL b);
+	
+	private:
+		HRESULT getProperty(WCHAR* pwszName,
+							BSTR* pbstr);
+		HRESULT getProperty(DISPID id,
+							BSTR* pbstr);
+		HRESULT putProperty(WCHAR* pwszName,
+							VARIANT_BOOL b);
+		HRESULT putProperty(DISPID id,
+							VARIANT_BOOL b);
+	
+	private:
+		IBrowserHelper(const IBrowserHelper&);
+		IBrowserHelper& operator=(const IBrowserHelper&);
+	
+	private:
+		IDispatch* pDispatch_;
+#if _WIN32_WCE < 0x500
+		IBrowser2* pBrowser_;
+#endif
+	};
+#endif
+	
 #if 0
 	class DWebBrowserEvents2Impl : public _DPIEWebBrowserEvents2
 	{
@@ -1139,10 +1179,8 @@ private:
 	qs::MenuManager* pMenuManager_;
 	MessageViewWindowCallback* pCallback_;
 	UINT nId_;
-#if _WIN32_WCE >= 0x500
-	// TODO
-#elif _WIN32_WCE >= 0x420
-	IBrowser2* pWebBrowser_;
+#if _WIN32_WCE >= 0x420
+	std::auto_ptr<IBrowserHelper> pBrowser_;
 #endif
 #if 0
 	DWebBrowserEvents2Impl* pWebBrowserEvents_;
