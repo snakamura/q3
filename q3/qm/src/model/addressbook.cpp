@@ -30,7 +30,9 @@
 #	include <mapi.h>
 #	include <mapix.h>
 #else
-#	include <addrmapi.h>
+#	if _WIN32_WCE < 0x500
+#		include <addrmapi.h>
+#	endif
 #	if _WIN32_WCE >= 0x420 && defined _WIN32_WCE_PSPC
 #		include <pimstore.h>
 #	endif
@@ -1010,8 +1012,10 @@ qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile) :
 			if (!init(p, bAddressOnly))
 #endif
 			{
+#if _WIN32_WCE < 0x500
 				std::auto_ptr<ExternalAddressBook> p(new PocketOutlookAddressBook());
 				init(p, bAddressOnly);
+#endif
 			}
 		}
 #endif
@@ -1663,7 +1667,7 @@ void qm::OutlookAddressBook::freeBuffer(void* pBuffer) const
 
 qm::POOMAddressBook::POOMAddressBook() :
 	pPOutlookApp_(0),
-#if _WIN32_WCE > 0x500
+#if _WIN32_WCE >= 0x500
 	pNotificationWindow_(0),
 #endif
 	bAddressOnly_(false),
@@ -1684,7 +1688,7 @@ bool qm::POOMAddressBook::init(bool bAddressOnly)
 		return false;
 	
 	HWND hwnd = 0;
-#if _WIN32_WCE > 0x500
+#if _WIN32_WCE >= 0x500
 	std::auto_ptr<NotificationWindow> pWindow(new NotificationWindow(this));
 	if (!pWindow->create(L"QmPOOMAddressBookNotificationWindow",
 		0, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
@@ -1697,7 +1701,7 @@ bool qm::POOMAddressBook::init(bool bAddressOnly)
 	if (FAILED(hr))
 		return false;
 	
-#if _WIN32_WCE > 0x500
+#if _WIN32_WCE >= 0x500
 	registerNotification();
 #endif
 	
@@ -1714,7 +1718,7 @@ void qm::POOMAddressBook::term()
 		pPOutlookApp_ = 0;
 	}
 	
-#if _WIN32_WCE > 0x500
+#if _WIN32_WCE >= 0x500
 	if (pNotificationWindow_) {
 		pNotificationWindow_->destroyWindow();
 		pNotificationWindow_ = 0;
@@ -1818,7 +1822,7 @@ bool qm::POOMAddressBook::isModified()
 	return bModified_;
 }
 
-#if _WIN32_WCE > 0x500
+#if _WIN32_WCE >= 0x500
 bool qm::POOMAddressBook::registerNotification()
 {
 	ComPtr<IFolder> pFolder;
@@ -1864,7 +1868,7 @@ void qm::POOMAddressBook::getCategories(AddressBook* pAddressBook,
 }
 
 
-#if _WIN32_WCE > 0x500
+#if _WIN32_WCE >= 0x500
 /****************************************************************************
  *
  * POOMAddressBook::NotificationWindow
@@ -1908,6 +1912,7 @@ LRESULT POOMAddressBook::NotificationWindow::onPimFolderNotification(WPARAM wPar
 #endif // _WIN32_WCE >= 0x420 && defined _WIN32_WCE_PSPC
 
 
+#if _WIN32_WCE < 0x500
 /****************************************************************************
  *
  * PocketOutlookAddressBook
@@ -2181,5 +2186,6 @@ LRESULT PocketOutlookAddressBook::NotificationWindow::onDBNotification(WPARAM wP
 	pAddressBook_->bModified_ = true;
 	return 0;
 }
+#endif // _WIN32_WCE <= 0x500
 
 #endif // _WIN32_WCE

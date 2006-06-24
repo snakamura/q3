@@ -16,9 +16,12 @@ VC7DIR					= $(VS7DIR)/Vc7
 VS8DIR					= C:/Program Files/Microsoft Visual Studio 8
 VC8DIR					= $(VS8DIR)/VC
 VCVER					= 8
-EVCDIR					= C:/Program Files/Microsoft eMbedded C++ 4.0/EVC
+EVC3DIR					= C:/Program Files/Microsoft eMbedded Tools/EVC
+EVC4DIR					= C:/Program Files/Microsoft eMbedded C++ 4.0/EVC
 EVCVER					= 4
 PLATFORMSDKDIR			= C:/Program Files/Microsoft Platform SDK for Windows Server 2003 R2
+CESDKWM5JADIR			= C:/Program Files/Windows CE Tools/wce500/Windows Mobile 5.0 Pocket PC SDK
+CESDKWM5ENDIR			= C:/Program Files/Windows CE Tools/wce500/Windows Mobile 5.0 Pocket PC SDK
 CESDKPPC2003JADIR		= C:/Program Files/Windows CE Tools/wce420/POCKET PC 2003
 CESDKPPC2003ENDIR		= C:/Program Files/Windows CE Tools/wce420/POCKET PC 2003
 CESDKSIGIIIDIR			= C:/Program Files/Windows CE Tools/wce410/sigmarionIII SDK
@@ -122,6 +125,16 @@ ifeq ($(PLATFORM),win)
 	#########################################################################
 else
 	# WINCE #################################################################
+	ifeq ($(PLATFORM),wm5)
+		# WM5 ###############################################################
+		ifeq ($(BASELANG),ja)
+			SDKDIR		= $(CESDKWM5JADIR)
+		else
+			SDKDIR		= $(CESDKWM5ENDIR)
+		endif
+		BASEPLATFORM	= ppc
+		#####################################################################
+	endif
 	ifneq ($(call platform,ppc2003 ppc2003se),)
 		# PPC2003SE PPC2003 #################################################
 		ifeq ($(BASELANG),ja)
@@ -178,14 +191,41 @@ else
 		BASEPLATFORM	= hpc
 		#####################################################################
 	endif
-	COMPILERDIR			= $(EVCDIR)
-	ifeq ($(EVCVER),4)
-		COMPILERBINDIR	= $(COMPILERDIR)/wce420/bin
-	else
-		COMPILERBINDIR	= $(COMPILERDIR)/wce300/bin
+	ifeq ($(EVCVER),8)
+		COMPILERDIR			= $(VC8DIR)/ce
+		ifeq ($(CPU),sh3)
+			COMPILERBINDIR	= $(COMPILERDIR)/bin/x86_sh
+		endif
+		ifeq ($(CPU),sh4)
+			COMPILERBINDIR	= $(COMPILERDIR)/bin/x86_sh
+		endif
+		ifeq ($(CPU),mips)
+			COMPILERBINDIR	= $(COMPILERDIR)/bin/x86_mips
+		endif
+		ifeq ($(CPU),arm)
+			COMPILERBINDIR	= $(COMPILERDIR)/bin/x86_arm
+		endif
+		ifeq ($(CPU),armv4)
+			COMPILERBINDIR	= $(COMPILERDIR)/bin/x86_arm
+		endif
+		ifeq ($(CPU),armv4i)
+			COMPILERBINDIR	= $(COMPILERDIR)/bin/x86_arm
+		endif
+		COMMONBINDIR		= $(VS8DIR)/common7/ide
+		COMMONTOOLBINDIR	= $(VS8DIR)/common7/tools/bin
+		COMMONTOOL2BINDIR	= $(VC8DIR)/bin
 	endif
-	COMMONBINDIR		= $(COMPILERDIR)/../common/evc/bin
-	SDKBINDIR			= $(SDKDIR)/bin
+	ifeq ($(EVCVER),4)
+		COMPILERDIR			= $(EVC4DIR)
+		COMPILERBINDIR		= $(COMPILERDIR)/wce420/bin
+		COMMONBINDIR		= $(COMPILERDIR)/../common/evc/bin
+	endif
+	ifeq ($(EVCVER),3)
+		COMPILERDIR			= $(EVC34DIR)
+		COMPILERBINDIR		= $(COMPILERDIR)/wce300/bin
+		COMMONBINDIR		= $(COMPILERDIR)/../common/evc/bin
+	endif
+	SDKBINDIR				= $(SDKDIR)/bin
 	
 	ifeq ($(SDKINCLUDEDIR),)
 		ifeq ($(call cever,-lt,400),0)
@@ -209,17 +249,35 @@ else
 			endif
 		endif
 	endif
-	ifeq ($(MFCINCLUDEDIR),)
-		MFCINCLUDEDIR		= $(SDKDIR)/mfc/include
+	ifeq ($(call cever,-ge,500),0)
+		ifeq ($(MFCINCLUDEDIR),)
+			MFCINCLUDEDIR		= $(COMPILERDIR)/atlmfc/include
+		endif
+		ifeq ($(MFCLIBDIR),)
+			MFCLIBDIR			= $(COMPILERDIR)/atlmfc/lib/$(LIBCPU)
+		endif
+		ifeq ($(ATLINCLUDEDIR),)
+			ATLINCLUDEDIR		= $(COMPILERDIR)/atlmfc/include
+		endif
+		ifeq ($(ATLLIBDIR),)
+			ATLLIBDIR			= $(COMPILERDIR)/atlmfc/lib/$(LIBCPU)
+		endif
+	else
+		ifeq ($(MFCINCLUDEDIR),)
+			MFCINCLUDEDIR		= $(SDKDIR)/mfc/include
+		endif
+		ifeq ($(MFCLIBDIR),)
+			MFCLIBDIR			= $(SDKDIR)/mfc/lib/$(LIBCPU)
+		endif
+		ifeq ($(ATLINCLUDEDIR),)
+			ATLINCLUDEDIR		= $(SDKDIR)/atl/include
+		endif
+		ifeq ($(ATLLIBDIR),)
+			ATLLIBDIR			= $(SDKDIR)/atl/lib/$(LIBCPU)
+		endif
 	endif
-	ifeq ($(MFCLIBDIR),)
-		MFCLIBDIR			= $(SDKDIR)/mfc/lib/$(LIBCPU)
-	endif
-	ifeq ($(ATLINCLUDEDIR),)
-		ATLINCLUDEDIR		= $(SDKDIR)/atl/include
-	endif
-	ifeq ($(ATLLIBDIR),)
-		ATLLIBDIR			= $(SDKDIR)/atl/lib/$(LIBCPU)
+	ifeq ($(EVCVER),8)
+		COMPILERINCLUDEDIR	= $(COMPILERDIR)/include
 	endif
 	#########################################################################
 endif
@@ -227,41 +285,45 @@ endif
 
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
-	CCC					= cl
+	CCC						= cl
 	#########################################################################
 else
 	# WINCE #################################################################
-	ifeq ($(CPU),sh3)
-		ifeq ($(EVCVER),4)
-			CCC			= clsh
-		else
-			CCC			= shcl
+	ifeq ($(EVCVER),8)
+		CCC					= cl
+	else
+		ifeq ($(CPU),sh3)
+			ifeq ($(EVCVER),4)
+				CCC			= clsh
+			else
+				CCC			= shcl
+			endif
 		endif
-	endif
-	ifeq ($(CPU),sh4)
-		ifeq ($(EVCVER),4)
-			CCC			= clsh
-		else
-			CCC			= shcl
+		ifeq ($(CPU),sh4)
+			ifeq ($(EVCVER),4)
+				CCC			= clsh
+			else
+				CCC			= shcl
+			endif
 		endif
-	endif
-	ifeq ($(CPU),mips)
-		CCC				= clmips
-	endif
-	ifeq ($(CPU),arm)
-		CCC				= clarm
-	endif
-	ifeq ($(CPU),xscale)
-		CCC				= clarm
-	endif
-	ifeq ($(CPU),armv4)
-		CCC				= clarm
-	endif
-	ifeq ($(CPU),armv4i)
-		CCC				= clarm
-	endif
-	ifeq ($(CPU),x86em)
-		CCC				= cl
+		ifeq ($(CPU),mips)
+			CCC				= clmips
+		endif
+		ifeq ($(CPU),arm)
+			CCC				= clarm
+		endif
+		ifeq ($(CPU),xscale)
+			CCC				= clarm
+		endif
+		ifeq ($(CPU),armv4)
+			CCC				= clarm
+		endif
+		ifeq ($(CPU),armv4i)
+			CCC				= clarm
+		endif
+		ifeq ($(CPU),x86em)
+			CCC				= cl
+		endif
 	endif
 	#########################################################################
 endif
@@ -498,8 +560,16 @@ else
 		RCFLAGS			+= -D _WIN32_WCE_PSPC -DWIN32_PLATFORM_PSPC
 	endif
 	
+	ifeq ($(PLATFORM),wm5)
+		DEFINES			+= -D_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA
+	endif
+	
 	ifndef EMULATION
-		CCFLAGS			+= -MC
+		ifeq ($(EVCVER),8)
+			CCFLAGS		+= -MD -GS-
+		else
+			CCFLAGS		+= -MC
+		endif
 		DEFINES			+= -D_DLL
 	endif
 	ifdef OLDEMULATION
@@ -507,6 +577,9 @@ else
 		RCFLAGS			+= -D _WIN32_WCE_EMULATION
 	endif
 	
+	ifeq ($(EVCVER),8)
+		CCFLAGS			+= -FC -Zc:wchar_t-
+	endif
 	ifeq ($(EVCVER),4)
 		MIDLFLAGS		+= -msc_ver 1000
 	endif
@@ -525,17 +598,15 @@ else
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif
-	ifneq ($(call platform,ppc2003 ppc2003se),)
+	ifneq ($(call platform,ppc2003se ppc2003),)
 		LIBS			+= ccrtrtti.lib
 	endif
-	ifneq ($(call platform,ppc2003 ppc2003se ppc2002 sig3),)
-		LIBS			+= urlmon.lib
-	endif
-	ifneq ($(call platform,ppc2003 ppc2003se ppc2002),)
+	ifneq ($(call platform,wm5 ppc2003se ppc2003 ppc2002),)
 		LIBS			+= wvuuid.lib
 	endif
 	ifeq ($(if $(call platform,ppc2002),0,$(call cever,-ge,400)),0)
-		LIBS			+= crypt32.lib
+		LIBS			+= urlmon.lib \
+						   crypt32.lib
 	endif
 	ifdef KCTRL
 		LIBS			+= $(KCTRLDIR)/lib/wce/$(EXLIBCPU)/kctrl.lib
@@ -659,7 +730,7 @@ LIBS					+= $(DEPENDLIBS)
 INCLUDES				+= $(EXTERNALINCS)
 LIBS					+= $(EXTERNALLIBS)
 
-export PATH				= $(call win2unix,$(BINDIR)):$(call win2unix,$(COMPILER64BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(COMMONTOOLBINDIR)):$(call win2unix,$(SVNDIR)/bin)
+export PATH				= $(call win2unix,$(BINDIR)):$(call win2unix,$(COMPILER64BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(COMMONTOOLBINDIR)):$(call win2unix,$(COMMONTOOL2BINDIR)):$(call win2unix,$(SVNDIR)/bin)
 ifeq ($(VCVER),8)
 	export INCLUDE		= $(COMPILERINCLUDEDIR);$(SDKINCLUDEDIR);$(MFCINCLUDEDIR);$(ATLINCLUDEDIR)
 	export LIB			= $(COMPILERLIBDIR);$(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR)
@@ -691,7 +762,7 @@ clean.win:
 
 clean.wce:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
-		for p in ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3; do \
+		for p in wm5 ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3; do \
 			if [ -d $$d/$$p ]; then rm -rf $$d/$$p; fi \
 		done \
 	done

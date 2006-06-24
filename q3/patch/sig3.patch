@@ -1,0 +1,67 @@
+diff -uNr sigmarionIII SDK.orig/Atl/include/atlbase.h sigmarionIII SDK/Atl/include/atlbase.h
+--- sigmarionIII SDK.orig/Atl/include/atlbase.h	2006-06-24 15:08:01.125409000 +0900
++++ sigmarionIII SDK/Atl/include/atlbase.h	2006-06-22 02:10:02.233000000 +0900
+@@ -1048,10 +1048,10 @@
+ 		ATLASSERT(p==NULL);
+ 		return &p;
+ 	}
+-	_NoAddRefReleaseOnCComPtr<T>* operator->() const
++	_NoAddRefReleaseOnCComPtr<IUnknown>* operator->() const
+ 	{
+ 		ATLASSERT(p!=NULL);
+-		return (_NoAddRefReleaseOnCComPtr<T>*)p;
++		return (_NoAddRefReleaseOnCComPtr<IUnknown>*)p;
+ 	}
+ 	IUnknown* operator=(IUnknown* lp)
+ 	{
+@@ -1095,7 +1095,7 @@
+ 		p = NULL;
+ 		return pt;
+ 	}
+-	HRESULT CopyTo(T** ppT)
++	HRESULT CopyTo(IUnknown** ppT)
+ 	{
+ 		ATLASSERT(ppT != NULL);
+ 		if (ppT == NULL)
+@@ -1116,7 +1116,7 @@
+ 	HRESULT CoCreateInstance(REFCLSID rclsid, LPUNKNOWN pUnkOuter = NULL, DWORD dwClsContext = CLSCTX_ALL)
+ 	{
+ 		ATLASSERT(p == NULL);
+-		return ::CoCreateInstance(rclsid, pUnkOuter, dwClsContext, __uuidof(T), (void**)&p);
++		return ::CoCreateInstance(rclsid, pUnkOuter, dwClsContext, __uuidof(IUnknown), (void**)&p);
+ 	}
+ 	HRESULT CoCreateInstance(LPCOLESTR szProgID, LPUNKNOWN pUnkOuter = NULL, DWORD dwClsContext = CLSCTX_ALL)
+ 	{
+@@ -1124,7 +1124,7 @@
+ 		HRESULT hr = WCE_ATL_FCTN(CLSIDFromProgID)(szProgID, &clsid);
+ 		ATLASSERT(p == NULL);
+ 		if (SUCCEEDED(hr))
+-			hr = ::CoCreateInstance(clsid, pUnkOuter, dwClsContext, __uuidof(T), (void**)&p);
++			hr = ::CoCreateInstance(clsid, pUnkOuter, dwClsContext, __uuidof(IUnknown), (void**)&p);
+ 		return hr;
+ 	}
+ 	template <class Q>
+diff -uNr sigmarionIII SDK.orig/Include/Armv4i/objidl.h sigmarionIII SDK/Include/Armv4i/objidl.h
+--- sigmarionIII SDK.orig/Include/Armv4i/objidl.h	2006-06-24 15:07:47.953534000 +0900
++++ sigmarionIII SDK/Include/Armv4i/objidl.h	2006-06-22 01:39:11.373625000 +0900
+@@ -10701,7 +10701,7 @@
+ /* [uuid][object][local] */ 
+ 
+ 
+-typedef /* [unique] */ __RPC_FAR *LPGLOBALINTERFACETABLE;
++//typedef /* [unique] */ __RPC_FAR *LPGLOBALINTERFACETABLE;
+ 
+ 
+ EXTERN_C const IID IID_IGlobalInterfaceTable;
+diff -uNr sigmarionIII SDK.orig/Include/Armv4i/shobjidl.h sigmarionIII SDK/Include/Armv4i/shobjidl.h
+--- sigmarionIII SDK.orig/Include/Armv4i/shobjidl.h	2006-06-24 15:07:53.594159000 +0900
++++ sigmarionIII SDK/Include/Armv4i/shobjidl.h	2006-06-22 02:02:22.951750000 +0900
+@@ -1883,7 +1883,7 @@
+ // may or may not use those settings.
+ //
+ //--------------------------------------------------------------------------
+-typedef LPVIEWSETTINGS;
++//typedef LPVIEWSETTINGS;
+ 
+ // NB Bitfields.
+ // FWF_DESKTOP implies FWF_TRANSPARENT/NOCLIENTEDGE/NOSCROLL

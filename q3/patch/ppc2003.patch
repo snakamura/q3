@@ -1,0 +1,44 @@
+diff -uNr POCKET PC 2003.orig/Include/Armv4/htmlctrl.h POCKET PC 2003/Include/Armv4/htmlctrl.h
+--- POCKET PC 2003.orig/Include/Armv4/htmlctrl.h	2006-06-24 15:16:05.234784000 +0900
++++ POCKET PC 2003/Include/Armv4/htmlctrl.h	2006-06-22 09:20:25.933180800 +0900
+@@ -1,5 +1,5 @@
+ /////////////////////////////////////////////////////////////////////////////
+-// Copyright (c) Microsoft Corporation.  All rights reserved.
++// Copyright (c) Microsoft Corporation.  All rights reserved.
+ /////////////////////////////////////////////////////////////////////////////
+ 
+ #pragma once
+diff -uNr POCKET PC 2003.orig/Include/Armv4/objidl.h POCKET PC 2003/Include/Armv4/objidl.h
+--- POCKET PC 2003.orig/Include/Armv4/objidl.h	2006-06-24 15:15:48.016034000 +0900
++++ POCKET PC 2003/Include/Armv4/objidl.h	2006-06-22 09:12:41.023207800 +0900
+@@ -10701,7 +10701,7 @@
+ /* [uuid][object][local] */ 
+ 
+ 
+-typedef /* [unique] */ __RPC_FAR *LPGLOBALINTERFACETABLE;
++//typedef /* [unique] */ __RPC_FAR *LPGLOBALINTERFACETABLE;
+ 
+ 
+ EXTERN_C const IID IID_IGlobalInterfaceTable;
+diff -uNr POCKET PC 2003.orig/Include/Armv4/shobjidl.h POCKET PC 2003/Include/Armv4/shobjidl.h
+--- POCKET PC 2003.orig/Include/Armv4/shobjidl.h	2006-06-24 15:15:58.266034000 +0900
++++ POCKET PC 2003/Include/Armv4/shobjidl.h	2006-06-22 09:14:29.817297600 +0900
+@@ -1885,7 +1885,7 @@
+ // may or may not use those settings.
+ //
+ //--------------------------------------------------------------------------
+-typedef LPVIEWSETTINGS;
++//typedef LPVIEWSETTINGS;
+ 
+ // NB Bitfields.
+ // FWF_DESKTOP implies FWF_TRANSPARENT/NOCLIENTEDGE/NOSCROLL
+diff -uNr POCKET PC 2003.orig/Include/Armv4/wvdispid.h POCKET PC 2003/Include/Armv4/wvdispid.h
+--- POCKET PC 2003.orig/Include/Armv4/wvdispid.h	2006-06-24 15:16:12.625409000 +0900
++++ POCKET PC 2003/Include/Armv4/wvdispid.h	2006-06-22 09:21:11.650760400 +0900
+@@ -1,5 +1,5 @@
+ /////////////////////////////////////////////////////////////////////////////
+-// Copyright (c) Microsoft Corporation.  All rights reserved.
++// Copyright (c) Microsoft Corporation.  All rights reserved.
+ /////////////////////////////////////////////////////////////////////////////
+ 
+ #pragma once

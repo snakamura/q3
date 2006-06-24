@@ -17,10 +17,10 @@ endif
 ifeq ($(PLATFORM),sig3)
 	CPROJS		+= -DQMHTMLVIEW -DQMHTMLVIEWWEBBROWSER -DQMTABWINDOW
 endif
-ifneq ($(call platform, hpcpro hpc2000),)
+ifneq ($(call platform,hpc2000 hpcpro),)
 	CPROJS		+= -DQMTABWINDOW
 endif
-ifneq ($(call platform, ppc2003 ppc2003se ppc2002),)
+ifneq ($(call platform,wm5 ppc2003se ppc2003 ppc2002),)
 	CPROJS		+= -DQMHTMLVIEW -DQMHTMLVIEWHTMLCTRL
 endif
 
