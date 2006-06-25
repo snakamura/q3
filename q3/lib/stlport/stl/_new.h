@@ -47,7 +47,7 @@ _STLP_END_NAMESPACE
 
 #include <new>
 
-#if _WIN32_WCE >= 400
+#if _WIN32_WCE >= 0x400
 # ifndef _STLP_NO_BAD_ALLOC
 #  ifdef _STLP_USE_OWN_NAMESPACE
 

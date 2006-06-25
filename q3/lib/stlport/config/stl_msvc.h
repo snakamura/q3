@@ -12,7 +12,7 @@
 #  define _STLP_NATIVE_CPP_RUNTIME_HEADER(header) <../crt/##header>
 #  define _STLP_GLOBAL_NEW_HANDLER
 # else
-#  if defined(UNDER_CE) && UNDER_CE >= 400
+#  if defined(UNDER_CE) && UNDER_CE >= 0x400
 #   if defined(_X86_)
 #       define _STLP_NATIVE_HEADER(x) <../Emulator/##x>
 #       define _STLP_NATIVE_C_HEADER(x) <../Emulator/##x>

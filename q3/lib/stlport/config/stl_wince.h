@@ -15,7 +15,7 @@
 #endif
 
 #define _STLP_NO_NATIVE_MBSTATE_T
-#if _WIN32_WCE < 400
+#if _WIN32_WCE < 0x400
   #define _STLP_NO_TYPEINFO
 //  #define _STLP_NO_BAD_ALLOC
   #define _STLP_NO_NEW_NEW_HEADER
@@ -26,7 +26,7 @@
 #   define _STLP_NO_THREADS 1
 
 // not all new-style headers are available...
-#if _WIN32_WCE < 400
+#if _WIN32_WCE < 0x400
   # define _STLP_HAS_NO_NEW_C_HEADERS
 
   #     undef _STLP_HAS_NO_EXCEPTIONS
@@ -108,14 +108,14 @@ extern "C"
   int         __cdecl rename(const char *, const char *);
   time_t      __cdecl time(time_t *);
 
-  #if (_WIN32_WCE < 300)
+  #if (_WIN32_WCE < 0x300)
     char * __cdecl strrchr(const char *, int);
   #endif
 
 #ifdef __cplusplus
 }
 
-#if _WIN32_WCE < 400
+#if _WIN32_WCE < 0x400
 #ifndef __PLACEMENT_NEW_INLINE
 inline void *__cdecl operator new(size_t, void *_P) { return (_P); }
 #define __PLACEMENT_NEW_INLINE
@@ -125,7 +125,7 @@ inline void *__cdecl operator new(size_t, void *_P) { return (_P); }
 // Only defined as macros in Windows CE SDK
 #include _STLP_NATIVE_C_HEADER(ctype.h)
 
-#if (_WIN32_WCE < 300)                  // Only wide chars for older versions
+#if (_WIN32_WCE < 0x300)                  // Only wide chars for older versions
 #define _isctype iswctype
 #endif
 
