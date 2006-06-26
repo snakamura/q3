@@ -119,19 +119,6 @@
   *((<アカウントの管理|URL:ManageAccount.html>))
   *((<アカウントの作成|URL:CreateAccount.html>))
   *((<アカウントのプロパティ|URL:AccountProperty.html>))
-    *((<一般の設定|URL:AccountGeneral.html>))
-    *((<ユーザの設定|URL:AccountUser.html>))
-    *((<詳細の設定|URL:AccountDetail.html>))
-    *((<POP3の設定|URL:AccountPop3.html>))
-    *((<POP3(XTND XMIT)の設定|URL:AccountPop3Send.html>))
-    *((<IMAP4の設定|URL:AccountImap4.html>))
-    *((<SMTPの設定|URL:AccountSmtp.html>))
-    *((<NNTPの設定|URL:AccountNntp.html>))
-    *((<NNTP(POST)の設定|URL:AccountNntpPost.html>))
-    *((<RSSの設定|URL:AccountRss.html>))
-    *((<Blogの設定|URL:AccountBlog.html>))
-    *((<ダイアルアップの設定|URL:AccountDialup.html>))
-    *((<高度の設定|URL:AccountAdvanced.html>))
 *((<オプションの設定|URL:Options.html>))
 *((<アクション|URL:Action.html>))
 *((<マクロ|URL:Macro.html>))
@@ -166,14 +153,6 @@
     *account.xml
     *folders.xml
     *views.xml
-*FAQ
-  *((<どうやったらレジストリを使用しないようにできますか?|URL:HowToNotUseRegistry.html>))
-  *((<なぜ自分が送信したメッセージを受信するのですか?|URL:WhyReceiveSentMessage.html>))
-  *((<どうやってプレビューで開いたメッセージを既読にしないようにできますか?|URL:HowToNotMakeSeenOnPreview.html>))
-  *((<なぜ日本語化したのにメニューやツールバーが英語のままなのですか?|URL:WhyMenuAndToolbarAreNotLocalized.html>))
-  *((<どうやったらmailto URLへ関連付けられますか?|URL:HowToAssociateWithMailtoUrl.html>))
-  *((<メールボックスディレクトリを移動するにはどうすれば良いですか?|URL:HowToChangeMailBoxDirectory.html>))
-  *((<受信したメールの送信者をアドレス帳に登録した名前で表示するにはどうすれば良いですか?|URL:HowToShowNameInAddressBook.html>))
-  *((<同じスレッドのメッセージをまとめて既読にするにはどうすれば良いですか?|URL:HowToKillThread.html>))
+*((<FAQ|URL:FAQ.html>))
 
 =end
