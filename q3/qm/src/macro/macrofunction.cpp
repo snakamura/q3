@@ -2042,8 +2042,6 @@ MacroValuePtr qm::MacroFunctionFolder::value(MacroContext* pContext) const
 	Folder* pFolder = 0;
 	if (bCurrent) {
 		pFolder = pContext->getFolder();
-		if (!pFolder)
-			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTFOLDER);
 	}
 	else {
 		MessageHolderBase* pmh = pContext->getMessageHolder();
@@ -2052,20 +2050,22 @@ MacroValuePtr qm::MacroFunctionFolder::value(MacroContext* pContext) const
 		pFolder = pmh->getFolder();
 	}
 	
-	bool bFull = true;
-	if (nSize > 0) {
-		ARG(pValue, 0);
-		bFull = pValue->boolean();
-	}
-	
-	const WCHAR* pwszName = 0;
+	const WCHAR* pwszName = L"";
 	wstring_ptr wstrName;
-	if (bFull) {
-		wstrName = pFolder->getFullName();
-		pwszName = wstrName.get();
-	}
-	else {
-		pwszName = pFolder->getName();
+	if (pFolder) {
+		bool bFull = true;
+		if (nSize > 0) {
+			ARG(pValue, 0);
+			bFull = pValue->boolean();
+		}
+		
+		if (bFull) {
+			wstrName = pFolder->getFullName();
+			pwszName = wstrName.get();
+		}
+		else {
+			pwszName = pFolder->getName();
+		}
 	}
 	
 	return MacroValueFactory::getFactory().newString(pwszName);
