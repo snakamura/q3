@@ -3470,6 +3470,39 @@ const WCHAR* qm::MacroFunctionMessages::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionNew
+ *
+ */
+
+qm::MacroFunctionNew::MacroFunctionNew()
+{
+}
+
+qm::MacroFunctionNew::~MacroFunctionNew()
+{
+}
+
+MacroValuePtr qm::MacroFunctionNew::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(New);
+	
+	if (!checkArgSize(pContext, 0))
+		return MacroValuePtr();
+	
+	return MacroValueFactory::getFactory().newBoolean(
+		pContext->isFlag(MacroContext::FLAG_NEW));
+}
+
+const WCHAR* qm::MacroFunctionNew::getName() const
+{
+	return L"New";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionNot
  *
  */
@@ -5862,6 +5895,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 		END_BLOCK()
 		BEGIN_BLOCK(L'n', L'N')
 			DECLARE_FUNCTION1(		Address,			L"name",			true								)
+			DECLARE_FUNCTION0(		New,				L"new"													)
 			DECLARE_FUNCTION0(		Not,				L"not"													)
 		END_BLOCK()
 		BEGIN_BLOCK(L'o', L'O')

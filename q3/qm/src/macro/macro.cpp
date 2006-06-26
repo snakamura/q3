@@ -1642,6 +1642,7 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	pmh_(pmh),
 	pMessage_(pMessage),
 	pAccount_(pAccount),
+	nFlags_(nFlags & FLAG_MESSAGE_MASK),
 	pGlobalContext_(0),
 	bOwnGlobalContext_(true)
 {
@@ -1654,7 +1655,7 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	assert(pProfile);
 	
 	pGlobalContext_ = new MacroGlobalContext(listSelected, pFolder,
-		pDocument, hwnd, pProfile, pwszBodyCharset, nFlags,
+		pDocument, hwnd, pProfile, pwszBodyCharset, nFlags & FLAG_GLOBAL_MASK,
 		nSecurityMode, pErrorHandler, pGlobalVariable);
 }
 
@@ -1767,7 +1768,7 @@ const WCHAR* qm::MacroContext::getBodyCharset() const
 
 unsigned int qm::MacroContext::getFlags() const
 {
-	return pGlobalContext_->getFlags();
+	return pGlobalContext_->getFlags() | nFlags_;
 }
 
 bool qm::MacroContext::isFlag(Flag flag) const

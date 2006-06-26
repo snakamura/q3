@@ -274,10 +274,11 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 			Message msg;
 			for (RuleList::size_type nRule = 0; nRule < listRule.size(); ++nRule) {
 				const Rule* pRule = listRule[nRule];
-				unsigned int nFlags = bBackground ? MacroContext::FLAG_NONE :
-					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI;
+				unsigned int nMacroFlags = (bBackground ? MacroContext::FLAG_NONE :
+					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI) |
+					(nFlags & FLAG_NEW ? MacroContext::FLAG_NEW : 0);
 				MacroContext context(pmh, &msg, pAccount, MessageHolderList(), pFolder,
-					pDocument, hwnd, pProfile, 0, nFlags, nSecurityMode, 0, &globalVariable);
+					pDocument, hwnd, pProfile, 0, nMacroFlags, nSecurityMode, 0, &globalVariable);
 				bool bMatch = pRule->match(&context);
 				if (bMatch) {
 					ll[nRule].push_back(nMessage);
@@ -323,10 +324,9 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 						l.push_back(pmh);
 				}
 				
-				/// TODO
-				/// Handle FLAG_NEW
-				RuleContext context(l, pDocument, pAccount, pFolder, hwnd, pProfile,
-					&globalVariable, bBackground, nSecurityMode, pUndoItemList);
+				RuleContext context(l, pDocument, pAccount, pFolder,
+					hwnd, pProfile, &globalVariable, bBackground,
+					(nFlags & FLAG_NEW) != 0, nSecurityMode, pUndoItemList);
 				if (!pRule->apply(&context))
 					return false;
 				nResultFlags |= context.getResultFlags();
@@ -1050,9 +1050,9 @@ bool qm::CopyRuleAction::apply(RuleContext* pContext) const
 			MessageHolder* pmh = *it;
 			
 			Message msg;
-			TemplateContext templateContext(pmh, &msg, MessageHolderList(), pContext->getFolder(),
-				pContext->getAccount(), pContext->getDocument(), pContext->getWindow(), 0,
-				pContext->isBackground() ? MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+			TemplateContext templateContext(pmh, &msg, MessageHolderList(),
+				pContext->getFolder(), pContext->getAccount(), pContext->getDocument(),
+				pContext->getWindow(), 0, pContext->getMacroFlags(),
 				pContext->getSecurityMode(), pContext->getProfile(), 0, listArgument);
 			wstring_ptr wstrValue;
 			if (pTemplate->getValue(templateContext, &wstrValue) != Template::RESULT_SUCCESS) {
@@ -1404,8 +1404,7 @@ RuleAction::Type qm::ApplyRuleAction::getType() const
 bool qm::ApplyRuleAction::apply(RuleContext* pContext) const
 {
 	const MessageHolderList& l = pContext->getMessageHolderList();
-	unsigned int nMacroFlags = pContext->isBackground() ?
-		MacroContext::FLAG_NONE : MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI;
+	unsigned int nMacroFlags = pContext->getMacroFlags();
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Message msg;
 		MacroContext c(*it, &msg, pContext->getAccount(), MessageHolderList(),
@@ -1452,6 +1451,7 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 							 Profile* pProfile,
 							 MacroVariableHolder* pGlobalVariable,
 							 bool bBackground,
+							 bool bNew,
 							 unsigned int nSecurityMode,
 							 UndoItemList* pUndoItemList) :
 	listMessageHolder_(l),
@@ -1462,6 +1462,7 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 	pProfile_(pProfile),
 	pGlobalVariable_(pGlobalVariable),
 	bBackground_(bBackground),
+	bNew_(bNew),
 	nSecurityMode_(nSecurityMode),
 	pUndoItemList_(pUndoItemList),
 	nResultFlags_(Account::RESULTFLAG_NONE)
@@ -1517,6 +1518,18 @@ MacroVariableHolder* qm::RuleContext::getGlobalVariable() const
 bool qm::RuleContext::isBackground() const
 {
 	return bBackground_;
+}
+
+bool qm::RuleContext::isNew() const
+{
+	return bNew_;
+}
+
+unsigned int qm::RuleContext::getMacroFlags() const
+{
+	return (bBackground_ ? MacroContext::FLAG_NONE :
+		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI) |
+		(bNew_ ? MacroContext::FLAG_NEW : 0);
 }
 
 unsigned int qm::RuleContext::getSecurityMode() const

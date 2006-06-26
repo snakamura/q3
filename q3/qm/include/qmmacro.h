@@ -146,11 +146,16 @@ public:
 	};
 	
 	enum Flag {
-		FLAG_NONE					= 0x00,
-		FLAG_UITHREAD				= 0x01,
-		FLAG_UI						= 0x02,
-		FLAG_MODIFY					= 0x04,
-		FLAG_GETMESSAGEASPOSSIBLE	= 0x10
+		FLAG_NONE					= 0x0000,
+		
+		FLAG_NEW					= 0x0001,
+		FLAG_MESSAGE_MASK			= 0x00ff,
+		
+		FLAG_UITHREAD				= 0x0100,
+		FLAG_UI						= 0x0200,
+		FLAG_MODIFY					= 0x0400,
+		FLAG_GETMESSAGEASPOSSIBLE	= 0x1000,
+		FLAG_GLOBAL_MASK			= 0xff00
 	};
 
 public:
@@ -215,6 +220,7 @@ private:
 	MessageHolderBase* pmh_;
 	Message* pMessage_;
 	Account* pAccount_;
+	unsigned int nFlags_;
 	MacroGlobalContext* pGlobalContext_;
 	bool bOwnGlobalContext_;
 };

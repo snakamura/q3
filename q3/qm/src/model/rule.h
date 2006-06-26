@@ -425,6 +425,7 @@ public:
 				qs::Profile* pProfile,
 				MacroVariableHolder* pGlobalVariable,
 				bool bBackground,
+				bool bNew,
 				unsigned int nSecurityMode,
 				UndoItemList* pUndoItemList);
 	~RuleContext();
@@ -438,6 +439,8 @@ public:
 	qs::Profile* getProfile() const;
 	MacroVariableHolder* getGlobalVariable() const;
 	bool isBackground() const;
+	bool isNew() const;
+	unsigned int getMacroFlags() const;
 	unsigned int getSecurityMode() const;
 	UndoItemList* getUndoItemList() const;
 	unsigned int getResultFlags() const;
@@ -456,6 +459,7 @@ private:
 	qs::Profile* pProfile_;
 	MacroVariableHolder* pGlobalVariable_;
 	bool bBackground_;
+	bool bNew_;
 	unsigned int nSecurityMode_;
 	UndoItemList* pUndoItemList_;
 	unsigned int nResultFlags_;
