@@ -1,4 +1,9 @@
-Newsgroups: {@If(@FolderFlag(@Folder(:FN-FULLNAME, :FT-CURRENT), :FF-SYNCABLE), @Folder(), '')}
+Newsgroups: {
+  @Progn(@Set('folder', @Folder(:FN-FULLNAME, :FT-CURRENT)),
+         @If(@And($folder, @FolderFlag($folder, :FF-SYNCABLE)),
+             $folder,
+             ''))
+}
 Subject: 
 X-QMAIL-Account: {@Account()}{
   @If(@Identity(),
