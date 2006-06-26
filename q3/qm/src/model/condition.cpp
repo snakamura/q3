@@ -644,6 +644,14 @@ qm::ConditionFactory::ConditionFactory()
 		IDS_CONDITION_NEWER_DESCRIPTION,
 		true));
 	list_.push_back(new NoArgumentCondition(
+		L"New",
+		IDS_CONDITION_NEW_DESCRIPTION,
+		L"@New()"));
+	list_.push_back(new NoArgumentCondition(
+		L"Old",
+		IDS_CONDITION_OLD_DESCRIPTION,
+		L"@Not(@New())"));
+	list_.push_back(new NoArgumentCondition(
 		L"Junk",
 		IDS_CONDITION_JUNK_DESCRIPTION,
 		L"@Junk()"));
@@ -741,7 +749,8 @@ std::auto_ptr<Condition> qm::ConditionFactory::parse(const MacroExpr* pExpr) con
 		wcscmp(pwszName, L"Marked") == 0 ||
 		wcscmp(pwszName, L"Multipart") == 0 ||
 		wcscmp(pwszName, L"Seen") == 0 ||
-		wcscmp(pwszName, L"True") == 0) {
+		wcscmp(pwszName, L"True") == 0 ||
+		wcscmp(pwszName, L"New") == 0) {
 		if (nArgSize != 0)
 			return std::auto_ptr<Condition>();
 		
@@ -769,6 +778,8 @@ std::auto_ptr<Condition> qm::ConditionFactory::parse(const MacroExpr* pExpr) con
 			return getCondition(L"Unseen")->clone();
 		else if (wcscmp(pwszArgName, L"Deleted") == 0)
 			return getCondition(L"Undeleted")->clone();
+		else if (wcscmp(pwszArgName, L"New") == 0)
+			return getCondition(L"Old")->clone();
 		else
 			return std::auto_ptr<Condition>();
 	}
