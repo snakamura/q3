@@ -383,6 +383,12 @@ public:
 		SSLOPTION_ALLOWUNVERIFIEDCERTIFICATE	= 0x01,
 		SSLOPTION_ALLOWDIFFERENTHOST			= 0x02
 	};
+	
+	enum AutoApplyRules {
+		AUTOAPPLYRULES_NONE		= 0x00,
+		AUTOAPPLYRULES_NEW		= 0x01,
+		AUTOAPPLYRULES_EXISTING	= 0x02
+	};
 
 public:
 	SubAccount(Account* pAccount,
@@ -428,8 +434,8 @@ public:
 	void setTreatAsSent(bool bTreatAsSent);
 	bool isAddMessageId() const;
 	void setAddMessageId(bool bAddMessageId);
-	bool isAutoApplyRules() const;
-	void setAutoApplyRules(bool bAutoApplyRules);
+	unsigned int getAutoApplyRules() const;
+	void setAutoApplyRules(unsigned int nAutoApplyRules);
 	const WCHAR* getTransferEncodingFor8Bit();
 	void setTransferEncodingFor8Bit(const WCHAR* pwszTransferEncodingFor8Bit);
 	unsigned int getSslOption() const;

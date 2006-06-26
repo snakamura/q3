@@ -398,7 +398,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				return false;
 		}
 		
-		bool bApplyRules = pSubAccount_->isAutoApplyRules();
+		bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;
 		if (bApplyRules || bJunkFilter) {
 			if (!applyRules(&listDownloaded, bJunkFilter, !bApplyRules))
 				Util::reportError(0, pSessionCallback_, pAccount_,
@@ -683,10 +683,12 @@ bool qmpop3::Pop3ReceiveSession::applyRules(MessagePtrList* pList,
 											bool bJunkFilter,
 											bool bJunkFilterOnly)
 {
+	unsigned int nFlags = (bJunkFilter ? RuleManager::AUTOFLAG_JUNKFILTER : 0) |
+		(bJunkFilterOnly ? RuleManager::AUTOFLAG_JUNKFILTERONLY : 0);
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->applyAuto(pFolder_, pList, pDocument_,
-		pProfile_, bJunkFilter, bJunkFilterOnly, &callback);
+	return pRuleManager->applyAuto(pFolder_, pList,
+		pDocument_, pProfile_, nFlags, &callback);
 }
 
 std::auto_ptr<UIDList> qmpop3::Pop3ReceiveSession::loadUIDList() const

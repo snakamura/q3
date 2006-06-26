@@ -340,7 +340,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	// TODO
 	// Check trackbacks.
 	
-	if (pSubAccount_->isAutoApplyRules()) {
+	bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;
+	if (bApplyRules) {
 		if (!applyRules(&listDownloaded))
 			reportError(IDS_ERROR_APPLYRULES, 0, 0);
 	}
@@ -387,7 +388,7 @@ bool qmrss::RssReceiveSession::applyRules(MessagePtrList* pList)
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
 	return pRuleManager->applyAuto(pFolder_, pList,
-		pDocument_, pProfile_, false, false, &callback);
+		pDocument_, pProfile_, RuleManager::AUTOFLAG_NONE, &callback);
 }
 
 void qmrss::RssReceiveSession::reportError(UINT nId,

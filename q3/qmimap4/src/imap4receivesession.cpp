@@ -974,7 +974,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	
 	if (!listMessageData.empty()) {
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
-		bool bApplyRules = pSubAccount_->isAutoApplyRules();
+		bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;
 		
 		if (bJunkFilter) {
 			if (!applyJunkFilter(listMessageData))
@@ -1368,10 +1368,12 @@ bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
 	std::transform(l.begin(), l.end(), listMessagePtr.begin(),
 		std::mem_fun_ref(&MessageData::getMessagePtr));
 	
+	unsigned int nFlags = (bJunkFilter ? RuleManager::AUTOFLAG_JUNKFILTER : 0) |
+		(bJunkFilterOnly ? RuleManager::AUTOFLAG_JUNKFILTERONLY : 0);
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->applyAuto(pFolder_, &listMessagePtr, pDocument_,
-		pProfile_, bJunkFilter, bJunkFilterOnly, &callback);
+	return pRuleManager->applyAuto(pFolder_, &listMessagePtr,
+		pDocument_, pProfile_, nFlags, &callback);
 }
 
 bool qmimap4::Imap4ReceiveSession::processCapabilityResponse(ResponseCapability* pCapability)

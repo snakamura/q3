@@ -709,7 +709,7 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 		bool bConnected_;
 	};
 	
-	
+	unsigned int nId = ::GetCurrentThreadId();
 	std::auto_ptr<Logger> pLogger;
 	std::auto_ptr<ReceiveSessionCallback> pReceiveCallback;
 	ReceiveSessionTerm session;
@@ -741,7 +741,7 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 						&pReceiveSession, &pReceiveCallback, &pLogger))
 						continue;
 					session.reset(pReceiveSession);
-					if (pCallback->isCanceled(pItem->getSlot(), false))
+					if (pCallback->isCanceled(nId, false))
 						break;
 					
 					if (!session.get()->connect()) {
@@ -749,20 +749,20 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 						continue;
 					}
 					session.setConnected();
-					if (pCallback->isCanceled(pItem->getSlot(), false))
+					if (pCallback->isCanceled(nId, false))
 						break;
 					
 					if (!session.get()->applyOfflineJobs())
 						continue;
-					if (pCallback->isCanceled(pItem->getSlot(), false))
+					if (pCallback->isCanceled(nId, false))
 						break;
 					
 					pSubAccount = pItem->getSubAccount();
 				}
 				if (bSync) {
-					if (!syncFolder(pCallback, pItem, session.get()))
+					if (!syncFolder(pData->getDocument(), pCallback, pItem, session.get()))
 						continue;
-					if (pCallback->isCanceled(pItem->getSlot(), false))
+					if (pCallback->isCanceled(nId, false))
 						break;
 				}
 			}
@@ -770,14 +770,15 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 			if (pItem->isSend()) {
 				if (!send(pData->getDocument(), pCallback, static_cast<const SendSyncItem*>(pItem)))
 					continue;
-				if (pCallback->isCanceled(pItem->getSlot(), false))
+				if (pCallback->isCanceled(nId, false))
 					break;
 			}
 		}
 	}
 }
 
-bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
+bool qm::SyncManager::syncFolder(Document* pDocument,
+								 SyncManagerCallback* pSyncManagerCallback,
 								 const SyncItem* pItem,
 								 ReceiveSession* pSession)
 {
@@ -792,7 +793,7 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (!pFolder || !pFolder->isFlag(Folder::FLAG_SYNCABLE))
 		return true;
 	
-	pSyncManagerCallback->setFolder(::GetCurrentThreadId(), pFolder);
+	pSyncManagerCallback->setFolder(nId, pFolder);
 	
 	FolderWait wait(this, pFolder);
 	
@@ -809,20 +810,50 @@ bool qm::SyncManager::syncFolder(SyncManagerCallback* pSyncManagerCallback,
 	if (!pSession->selectFolder(pFolder, nSelectFlags))
 		return false;
 	pFolder->setLastSyncTime(::GetTickCount());
-	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+	if (pSyncManagerCallback->isCanceled(nId, false))
 		return true;
 	
 	if (!pSession->updateMessages())
 		return false;
-	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+	if (pSyncManagerCallback->isCanceled(nId, false))
 		return true;
+	
+	SubAccount* pSubAccount = pItem->getSubAccount();
+	bool bApplyRules = (pSubAccount->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_EXISTING) != 0;
+	unsigned int nLastId = -1;
+	if (bApplyRules) {
+		Lock<Account> lock(*pFolder->getAccount());
+		if (!pFolder->loadMessageHolders())
+			return false;
+		unsigned int nCount = pFolder->getCount();
+		if (nCount != 0)
+			nLastId = pFolder->getMessage(nCount - 1)->getId();
+	}
 	
 	const SyncFilterSet* pFilterSet = pReceiveItem ?
 		pReceiveItem->getFilterSet() : 0;
 	if (!pSession->downloadMessages(pFilterSet))
 		return false;
-	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+	if (pSyncManagerCallback->isCanceled(nId, false))
 		return true;
+	
+	if (bApplyRules && nLastId != -1) {
+		MessagePtrList l;
+		{
+			Lock<Account> lock(*pFolder->getAccount());
+			unsigned int nCount = pFolder->getCount();
+			for (unsigned int n = 0; n < nCount; ++n) {
+				MessageHolder* pmh = pFolder->getMessage(n);
+				if (pmh->getId() > nLastId)
+					break;
+				l.push_back(MessagePtr(pmh));
+			}
+		}
+		RuleManager* pRuleManager = pDocument->getRuleManager();
+		RuleCallbackImpl callback(pSyncManagerCallback, nId);
+		return pRuleManager->applyAuto(pFolder, &l, pDocument,
+			pProfile_, RuleManager::AUTOFLAG_EXISTING, &callback);
+	}
 	
 	Account* pAccount = pItem->getAccount();
 	if (!pAccount->saveMessages(false)) {
@@ -913,7 +944,7 @@ bool qm::SyncManager::send(Document* pDocument,
 				if (bSend)
 					listMessagePtr.push_back(MessagePtr(pmh));
 				
-				if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+				if (pSyncManagerCallback->isCanceled(nId, false))
 					return true;
 			}
 		}
@@ -958,13 +989,13 @@ bool qm::SyncManager::send(Document* pDocument,
 		bool bConnected_;
 	} term(pSession.get());
 	
-	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+	if (pSyncManagerCallback->isCanceled(nId, false))
 		return true;
 	
 	if (!pSession->connect())
 		return false;
 	term.setConnected();
-	if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+	if (pSyncManagerCallback->isCanceled(nId, false))
 		return true;
 	
 	pCallback->setRange(0, static_cast<unsigned int>(listMessagePtr.size()));
@@ -973,7 +1004,7 @@ bool qm::SyncManager::send(Document* pDocument,
 	l.resize(1);
 	
 	for (MessagePtrList::size_type m = 0; m < listMessagePtr.size(); ++m) {
-		if (pSyncManagerCallback->isCanceled(pItem->getSlot(), false))
+		if (pSyncManagerCallback->isCanceled(nId, false))
 			return true;
 		
 		Message msg;
@@ -1364,6 +1395,61 @@ void qm::SyncManager::RasConnectionCallbackImpl::setMessage(const WCHAR* pwszMes
 void qm::SyncManager::RasConnectionCallbackImpl::error(const WCHAR* pwszMessage)
 {
 	SyncManager::addError(pCallback_, -1, 0, 0, 0, IDS_ERROR_DIALUP, pwszMessage);
+}
+
+
+/****************************************************************************
+ *
+ * SyncManager::RuleCallbackImpl
+ *
+ */
+
+qm::SyncManager::RuleCallbackImpl::RuleCallbackImpl(SyncManagerCallback* pCallback,
+													unsigned int nId) :
+	pCallback_(pCallback),
+	nId_(nId)
+{
+}
+
+qm::SyncManager::RuleCallbackImpl::~RuleCallbackImpl()
+{
+}
+
+bool qm::SyncManager::RuleCallbackImpl::isCanceled()
+{
+	return pCallback_->isCanceled(nId_, false);
+}
+
+void qm::SyncManager::RuleCallbackImpl::checkingMessages(Folder* pFolder)
+{
+	wstring_ptr wstrMessage(getMessage(IDS_MESSAGE_CHECKMESSAGES, pFolder));
+	pCallback_->setMessage(nId_, wstrMessage.get());
+}
+
+void qm::SyncManager::RuleCallbackImpl::applyingRule(Folder* pFolder)
+{
+	wstring_ptr wstrMessage(getMessage(IDS_MESSAGE_APPLYRULE, pFolder));
+	pCallback_->setMessage(nId_, wstrMessage.get());
+}
+
+void qm::SyncManager::RuleCallbackImpl::setRange(size_t nMin,
+												 size_t nMax)
+{
+	pCallback_->setRange(nId_, false, nMin, nMax);
+}
+
+void qm::SyncManager::RuleCallbackImpl::setPos(size_t nPos)
+{
+	pCallback_->setPos(nId_, false, nPos);
+}
+
+wstring_ptr qm::SyncManager::RuleCallbackImpl::getMessage(UINT nId,
+														  Folder* pFolder)
+{
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrMessage(loadString(hInst, nId));
+	wstring_ptr wstrName(pFolder->getFullName());
+	return concat(wstrMessage.get(), L" : ", wstrName.get());
 }
 
 

@@ -60,7 +60,7 @@ struct qm::SubAccountImpl
 	bool bConnectReceiveBeforeSend_;
 	bool bTreatAsSent_;
 	bool bAddMessageId_;
-	bool bAutoApplyRules_;
+	unsigned int nAutoApplyRules_;
 	wstring_ptr wstrTransferEncodingFor8Bit_;
 	unsigned int nSslOption_;
 	SubAccount::DialupType dialupType_;
@@ -103,7 +103,7 @@ void qm::SubAccountImpl::load()
 	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
 	LOAD_INT(L"Global",		L"TreatAsSent",					bTreatAsSent_,					bool,					nTreatAsSent				);
 	LOAD_INT(L"Global",		L"AddMessageId",				bAddMessageId_,					bool,					nAddMessageId				);
-	LOAD_INT(L"Global",		L"AutoApplyRules",				bAutoApplyRules_,				bool,					nAutoApplyRules				);
+	LOAD_INT(L"Global",		L"AutoApplyRules",				nAutoApplyRules_,				unsigned int,			nAutoApplyRules				);
 	LOAD_INT(L"Global",		L"SslOption",					nSslOption_,					unsigned int,			nSslOption					);
 	LOAD_INT(L"Dialup",		L"Type",						dialupType_,					SubAccount::DialupType,	dialupType					);
 	LOAD_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_,				bool,					bDialupShowDialog			);
@@ -330,14 +330,14 @@ void qm::SubAccount::setAddMessageId(bool bAddMessageId)
 	pImpl_->bAddMessageId_ = bAddMessageId;
 }
 
-bool qm::SubAccount::isAutoApplyRules() const
+unsigned int qm::SubAccount::getAutoApplyRules() const
 {
-	return pImpl_->bAutoApplyRules_;
+	return pImpl_->nAutoApplyRules_;
 }
 
-void qm::SubAccount::setAutoApplyRules(bool bAutoApplyRules)
+void qm::SubAccount::setAutoApplyRules(unsigned int nAutoApplyRules)
 {
-	pImpl_->bAutoApplyRules_ = bAutoApplyRules;
+	pImpl_->nAutoApplyRules_ = nAutoApplyRules;
 }
 
 const WCHAR* qm::SubAccount::getTransferEncodingFor8Bit()
@@ -649,7 +649,7 @@ bool qm::SubAccount::save(bool bForce) const
 	SAVE_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_		);
 	SAVE_INT(L"Global",		L"TreatAsSent",					bTreatAsSent_					);
 	SAVE_INT(L"Global",		L"AddMessageId",				bAddMessageId_					);
-	SAVE_INT(L"Global",		L"AutoApplyRules",				bAutoApplyRules_				);
+	SAVE_INT(L"Global",		L"AutoApplyRules",				nAutoApplyRules_				);
 	SAVE_INT(L"Global",		L"SslOption",					nSslOption_						);
 	SAVE_INT(L"Dialup",		L"Type",						dialupType_						);
 	SAVE_INT(L"Dialup",		L"ShowDialog",					bDialupShowDialog_				);

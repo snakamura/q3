@@ -909,6 +909,7 @@ LRESULT qm::AccountAdvancedPage::onCommand(WORD nCode,
 										   WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_AUTOAPPLYRULES, onAutoApplyRules)
 		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
 	END_COMMAND_HANDLER()
 	return DefaultPropertyPage::onCommand(nCode, nId);
@@ -932,8 +933,11 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 	if (pwszTransferEncoding && wcscmp(pwszTransferEncoding, L"8bit") == 0)
 		sendDlgItemMessage(IDC_USE8BIT, BM_SETCHECK, BST_CHECKED);
 	
+	unsigned int nAutoApplyRules = pSubAccount_->getAutoApplyRules();
 	sendDlgItemMessage(IDC_AUTOAPPLYRULES, BM_SETCHECK,
-		pSubAccount_->isAutoApplyRules() ? BST_CHECKED : BST_UNCHECKED);
+		nAutoApplyRules & SubAccount::AUTOAPPLYRULES_NEW ? BST_CHECKED : BST_UNCHECKED);
+	sendDlgItemMessage(IDC_AUTOAPPLYRULESTOEXISTING, BM_SETCHECK,
+		nAutoApplyRules & SubAccount::AUTOAPPLYRULES_EXISTING ? BST_CHECKED : BST_UNCHECKED);
 #ifndef _WIN32_WCE
 	sendDlgItemMessage(IDC_JUNKFILTER, BM_SETCHECK,
 		pSubAccount_->isJunkFilterEnabled() ? BST_CHECKED : BST_UNCHECKED);
@@ -945,6 +949,8 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 	
 	setDlgItemText(IDC_IDENTITY, pSubAccount_->getIdentity());
 	setDlgItemInt(IDC_TIMEOUT, pSubAccount_->getTimeout());
+	
+	updateState();
 	
 	return TRUE;
 }
@@ -971,8 +977,13 @@ LRESULT qm::AccountAdvancedPage::onOk()
 			pSubAccount_->setTransferEncodingFor8Bit(L"");
 	}
 	
-	pSubAccount_->setAutoApplyRules(
-		sendDlgItemMessage(IDC_AUTOAPPLYRULES, BM_GETCHECK) == BST_CHECKED);
+	unsigned int nAutoApplyRules = SubAccount::AUTOAPPLYRULES_NONE;
+	if (sendDlgItemMessage(IDC_AUTOAPPLYRULES, BM_GETCHECK) == BST_CHECKED) {
+		nAutoApplyRules |= SubAccount::AUTOAPPLYRULES_NEW;
+		if (sendDlgItemMessage(IDC_AUTOAPPLYRULESTOEXISTING, BM_GETCHECK) == BST_CHECKED)
+			nAutoApplyRules |= SubAccount::AUTOAPPLYRULES_EXISTING;
+	}
+	pSubAccount_->setAutoApplyRules(nAutoApplyRules);
 #ifndef _WIN32_WCE
 	pSubAccount_->setJunkFilterEnabled(
 		sendDlgItemMessage(IDC_JUNKFILTER, BM_GETCHECK) == BST_CHECKED);
@@ -988,6 +999,12 @@ LRESULT qm::AccountAdvancedPage::onOk()
 	return DefaultPropertyPage::onOk();
 }
 
+LRESULT qm::AccountAdvancedPage::onAutoApplyRules()
+{
+	updateState();
+	return 0;
+}
+
 LRESULT qm::AccountAdvancedPage::onEdit()
 {
 	HWND hwnd = getHandle();
@@ -1001,6 +1018,12 @@ LRESULT qm::AccountAdvancedPage::onEdit()
 		updateFilter();
 	
 	return 0;
+}
+
+void qm::AccountAdvancedPage::updateState()
+{
+	Window(getDlgItem(IDC_AUTOAPPLYRULESTOEXISTING)).enableWindow(
+		sendDlgItemMessage(IDC_AUTOAPPLYRULES, BM_GETCHECK) == BST_CHECKED);
 }
 
 void qm::AccountAdvancedPage::updateFilter()

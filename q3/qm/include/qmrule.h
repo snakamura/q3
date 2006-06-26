@@ -35,6 +35,14 @@ class RuleSet;
 class QMEXPORTCLASS RuleManager
 {
 public:
+	enum AutoFlag {
+		AUTOFLAG_NONE			= 0x00,
+		AUTOFLAG_JUNKFILTER		= 0x01,
+		AUTOFLAG_JUNKFILTERONLY	= 0x02,
+		AUTOFLAG_EXISTING		= 0x04
+	};
+
+public:
 	typedef std::vector<RuleSet*> RuleSetList;
 
 public:
@@ -64,8 +72,7 @@ public:
 				   MessagePtrList* pList,
 				   Document* pDocument,
 				   qs::Profile* pProfile,
-				   bool bJunkFilter,
-				   bool bJunkFilterOnly,
+				   unsigned int nAutoFlags,
 				   RuleCallback* pCallback);
 	bool applyActive(Folder* pFolder,
 					 const MessageHolderList& l,

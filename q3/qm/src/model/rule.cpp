@@ -49,7 +49,8 @@ public:
 		FLAG_NONE		= 0x00,
 		FLAG_BACKGROUND	= 0x01,
 		FLAG_JUNK		= 0x02,
-		FLAG_JUNKONLY	= 0x04
+		FLAG_JUNKONLY	= 0x04,
+		FLAG_NEW		= 0x08
 	};
 
 public:
@@ -70,7 +71,7 @@ public:
 	class FolderAccessor : public Accessor
 	{
 	public:
-		FolderAccessor(const Folder* pFolder);
+		explicit FolderAccessor(const Folder* pFolder);
 		virtual ~FolderAccessor();
 	
 	public:
@@ -88,7 +89,7 @@ public:
 	class ConstListAccessor : public Accessor
 	{
 	public:
-		ConstListAccessor(const MessageHolderList& l);
+		explicit ConstListAccessor(const MessageHolderList& l);
 		virtual ~ConstListAccessor();
 	
 	public:
@@ -106,7 +107,8 @@ public:
 	class ListAccessor : public Accessor
 	{
 	public:
-		ListAccessor(MessagePtrList& l);
+		ListAccessor(MessagePtrList& l,
+					 bool bRequestResult);
 		virtual ~ListAccessor();
 	
 	public:
@@ -119,6 +121,7 @@ public:
 	
 	private:
 		MessagePtrList& l_;
+		bool bRequestResult_;
 	};
 
 public:
@@ -320,6 +323,8 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 						l.push_back(pmh);
 				}
 				
+				/// TODO
+				/// Handle FLAG_NEW
 				RuleContext context(l, pDocument, pAccount, pFolder, hwnd, pProfile,
 					&globalVariable, bBackground, nSecurityMode, pUndoItemList);
 				if (!pRule->apply(&context))
@@ -505,8 +510,10 @@ void qm::RuleManagerImpl::ConstListAccessor::setMessageHolder(size_t n,
  *
  */
 
-qm::RuleManagerImpl::ListAccessor::ListAccessor(MessagePtrList& l) :
-	l_(l)
+qm::RuleManagerImpl::ListAccessor::ListAccessor(MessagePtrList& l,
+												bool bRequestResult) :
+	l_(l),
+	bRequestResult_(bRequestResult)
 {
 }
 
@@ -531,7 +538,7 @@ MessageHolder* qm::RuleManagerImpl::ListAccessor::getMessageHolder(size_t n) con
 
 bool qm::RuleManagerImpl::ListAccessor::isRequestResult() const
 {
-	return true;
+	return bRequestResult_;
 }
 
 void qm::RuleManagerImpl::ListAccessor::setMessageHolder(size_t n,
@@ -613,17 +620,14 @@ bool qm::RuleManager::applyAuto(Folder* pFolder,
 								MessagePtrList* pList,
 								Document* pDocument,
 								Profile* pProfile,
-								bool bJunkFilter,
-								bool bJunkFilterOnly,
+								unsigned int nAutoFlags,
 								RuleCallback* pCallback)
 {
-	unsigned int nFlags = RuleManagerImpl::FLAG_BACKGROUND;
-	if (bJunkFilter)
-		nFlags |= RuleManagerImpl::FLAG_JUNK;
-	if (bJunkFilterOnly)
-		nFlags |= RuleManagerImpl::FLAG_JUNKONLY;
-	
-	RuleManagerImpl::ListAccessor accessor(*pList);
+	unsigned int nFlags = RuleManagerImpl::FLAG_BACKGROUND |
+		(nAutoFlags & AUTOFLAG_JUNKFILTER ? RuleManagerImpl::FLAG_JUNK : 0) |
+		(nAutoFlags & AUTOFLAG_JUNKFILTERONLY ? RuleManagerImpl::FLAG_JUNKONLY : 0) |
+		(nAutoFlags & AUTOFLAG_EXISTING ? 0 : RuleManagerImpl::FLAG_NEW);
+	RuleManagerImpl::ListAccessor accessor(*pList, !(nAutoFlags & AUTOFLAG_EXISTING));
 	return pImpl_->apply(pFolder, &accessor, pDocument, 0, pProfile,
 		Rule::USE_AUTO, nFlags, SECURITYMODE_NONE, 0, pCallback, 0);
 }

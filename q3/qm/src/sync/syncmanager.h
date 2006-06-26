@@ -309,7 +309,8 @@ private:
 	bool syncData(const SyncData* pData);
 	void syncSlotData(const SyncData* pData,
 					  unsigned int nSlot);
-	bool syncFolder(SyncManagerCallback* pSyncManagerCallback,
+	bool syncFolder(Document* pDocument,
+					SyncManagerCallback* pSyncManagerCallback,
 					const SyncItem* pItem,
 					ReceiveSession* pSession);
 	bool send(Document* pDocument,
@@ -474,6 +475,34 @@ private:
 	private:
 		const SyncDialup* pDialup_;
 		SyncManagerCallback* pCallback_;
+	};
+	
+	class RuleCallbackImpl : public RuleCallback
+	{
+	public:
+		RuleCallbackImpl(SyncManagerCallback* pCallback,
+						 unsigned int nId);
+		virtual ~RuleCallbackImpl();
+	
+	public:
+		virtual bool isCanceled();
+		virtual void checkingMessages(Folder* pFolder);
+		virtual void applyingRule(Folder* pFolder);
+		virtual void setRange(size_t nMin,
+							  size_t nMax);
+		virtual void setPos(size_t nPos);
+	
+	private:
+		qs::wstring_ptr getMessage(UINT nId,
+								   Folder* pFolder);
+	
+	private:
+		RuleCallbackImpl(const RuleCallbackImpl&);
+		RuleCallbackImpl& operator=(const RuleCallbackImpl&);
+	
+	private:
+		SyncManagerCallback* pCallback_;
+		unsigned int nId_;
 	};
 	
 	class FolderWait

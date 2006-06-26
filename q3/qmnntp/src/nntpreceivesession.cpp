@@ -316,7 +316,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	
 	if (!listDownloaded.empty()) {
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
-		bool bApplyRules = pSubAccount_->isAutoApplyRules();
+		bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;
 		
 		if (bJunkFilter) {
 			if (!applyJunkFilter(listDownloaded))
@@ -534,10 +534,12 @@ bool qmnntp::NntpReceiveSession::applyRules(MessagePtrList* pList,
 											bool bJunkFilter,
 											bool bJunkFilterOnly)
 {
+	unsigned int nFlags = (bJunkFilter ? RuleManager::AUTOFLAG_JUNKFILTER : 0) |
+		(bJunkFilterOnly ? RuleManager::AUTOFLAG_JUNKFILTERONLY : 0);
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->applyAuto(pFolder_, pList, pDocument_,
-		pProfile_, bJunkFilter, bJunkFilterOnly, &callback);
+	return pRuleManager->applyAuto(pFolder_, pList,
+		pDocument_, pProfile_, nFlags, &callback);
 }
 
 

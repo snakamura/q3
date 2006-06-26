@@ -403,9 +403,11 @@ protected:
 	virtual LRESULT onOk();
 
 private:
+	LRESULT onAutoApplyRules();
 	LRESULT onEdit();
 
 private:
+	void updateState();
 	void updateFilter();
 
 private:
