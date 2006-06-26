@@ -1719,6 +1719,8 @@ bool qm::Account::moveFolder(Folder* pFolder,
 		(pwszName && getFolder(pParent, pwszName)))
 		return false;
 	
+	bool bHidden = pFolder->isHidden();
+	
 	if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
 		for (FolderList::const_iterator it = pImpl_->listFolder_.begin(); it != pImpl_->listFolder_.end(); ++it) {
 			if (pFolder->isAncestorOf(*it) && !(*it)->isFlag(Folder::FLAG_LOCAL))
@@ -1743,7 +1745,8 @@ bool qm::Account::moveFolder(Folder* pFolder,
 		pFolder->setName(pwszName);
 	pFolder->setParentFolder(pParent);
 	
-	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_MOVE, pFolder);
+	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_MOVE,
+		pFolder, bHidden, pFolder->isHidden());
 	pImpl_->fireFolderListChanged(event);
 	
 	return true;
@@ -1754,14 +1757,14 @@ void qm::Account::setFolderFlags(Folder* pFolder,
 								 unsigned int nMask)
 {
 	unsigned int nOldFlags = pFolder->getFlags();
-	if ((nOldFlags & nMask) != nFlags) {
-		pFolder->setFlags(nFlags, nMask);
-		
-		FolderListChangedEvent event(this,
-			FolderListChangedEvent::TYPE_FLAGS, pFolder,
-			nOldFlags, pFolder->getFlags());
-		pImpl_->fireFolderListChanged(event);
-	}
+	if ((nOldFlags & nMask) == (nFlags & nMask))
+		return;
+	
+	pFolder->setFlags(nFlags, nMask);
+	
+	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_FLAGS,
+		pFolder, nOldFlags, pFolder->getFlags());
+	pImpl_->fireFolderListChanged(event);
 }
 
 bool qm::Account::updateFolders()
@@ -3052,7 +3055,26 @@ qm::FolderListChangedEvent::FolderListChangedEvent(Account* pAccount,
 												   Folder* pFolder) :
 	pAccount_(pAccount),
 	type_(type),
-	pFolder_(pFolder)
+	pFolder_(pFolder),
+	bOldHidden_(false),
+	bNewHidden_(true),
+	nOldFlags_(0),
+	nNewFlags_(0)
+{
+}
+
+qm::FolderListChangedEvent::FolderListChangedEvent(Account* pAccount,
+												   Type type,
+												   Folder* pFolder,
+												   bool bOldHidden,
+												   bool bNewHidden) :
+	pAccount_(pAccount),
+	type_(type),
+	pFolder_(pFolder),
+	bOldHidden_(bOldHidden),
+	bNewHidden_(bNewHidden),
+	nOldFlags_(0),
+	nNewFlags_(0)
 {
 }
 
@@ -3064,6 +3086,8 @@ qm::FolderListChangedEvent::FolderListChangedEvent(Account* pAccount,
 	pAccount_(pAccount),
 	type_(type),
 	pFolder_(pFolder),
+	bOldHidden_(false),
+	bNewHidden_(true),
 	nOldFlags_(nOldFlags),
 	nNewFlags_(nNewFlags)
 {
@@ -3086,6 +3110,16 @@ FolderListChangedEvent::Type qm::FolderListChangedEvent::getType() const
 Folder* qm::FolderListChangedEvent::getFolder() const
 {
 	return pFolder_;
+}
+
+bool qm::FolderListChangedEvent::isOldHidden() const
+{
+	return bOldHidden_;
+}
+
+bool qm::FolderListChangedEvent::isNewHidden() const
+{
+	return bNewHidden_;
 }
 
 unsigned int qm::FolderListChangedEvent::getOldFlags() const

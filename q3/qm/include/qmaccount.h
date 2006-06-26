@@ -582,6 +582,11 @@ public:
 	FolderListChangedEvent(Account* pAccount,
 						   Type type,
 						   Folder* pFolder,
+						   bool bOldHidden,
+						   bool bNewHidden);
+	FolderListChangedEvent(Account* pAccount,
+						   Type type,
+						   Folder* pFolder,
 						   unsigned int nOldFlags,
 						   unsigned int nNewFlags);
 	~FolderListChangedEvent();
@@ -590,6 +595,8 @@ public:
 	Account* getAccount() const;
 	Type getType() const;
 	Folder* getFolder() const;
+	bool isOldHidden() const;
+	bool isNewHidden() const;
 	unsigned int getOldFlags() const;
 	unsigned int getNewFlags() const;
 
@@ -601,6 +608,8 @@ private:
 	Account* pAccount_;
 	Type type_;
 	Folder* pFolder_;
+	bool bOldHidden_;
+	bool bNewHidden_;
 	unsigned int nOldFlags_;
 	unsigned int nNewFlags_;
 };

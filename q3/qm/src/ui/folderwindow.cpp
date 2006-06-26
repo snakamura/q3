@@ -555,33 +555,42 @@ void qm::FolderWindowImpl::currentSubAccountChanged(const AccountEvent& event)
 
 void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event)
 {
+	Folder* pFolder = event.getFolder();
+	
 	switch (event.getType()) {
 	case FolderListChangedEvent::TYPE_ALL:
 		refreshFolderList(event.getAccount());
 		break;
 	case FolderListChangedEvent::TYPE_ADD:
-		insertFolder(event.getFolder(), false);
+		if (!pFolder->isHidden())
+			insertFolder(pFolder, false);
 		break;
 	case FolderListChangedEvent::TYPE_REMOVE:
-		removeFolder(event.getFolder(), false);
+		if (!pFolder->isHidden())
+			removeFolder(pFolder, false);
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
-		update(event.getFolder());
+		if (!pFolder->isHidden())
+			update(event.getFolder());
 		break;
 	case FolderListChangedEvent::TYPE_MOVE:
-		{
-			Folder* pFolder = event.getFolder();
+		if (!event.isOldHidden())
 			removeFolder(pFolder, true);
+		if (!event.isNewHidden())
 			insertFolder(pFolder, true);
-		}
 		break;
 	case FolderListChangedEvent::TYPE_FLAGS:
 		{
-			Folder* pFolder = event.getFolder();
 			unsigned int nOldFlags = event.getOldFlags();
 			unsigned int nNewFlags = event.getNewFlags();
-			if ((nOldFlags & Folder::FLAG_HIDE) != (nNewFlags & Folder::FLAG_HIDE)) {
-				refreshFolderList(event.getAccount());
+			if ((nOldFlags & Folder::FLAG_HIDE) && !(nNewFlags & Folder::FLAG_HIDE)) {
+				if (!pFolder->isHidden())
+					insertFolder(pFolder, true);
+			}
+			else if (!(nOldFlags & Folder::FLAG_HIDE) && (nNewFlags & Folder::FLAG_HIDE)) {
+				Folder* pParent = pFolder->getParentFolder();
+				if (!pParent || !pParent->isHidden())
+					removeFolder(pFolder, true);
 			}
 			else if ((nOldFlags & Folder::FLAG_BOX_MASK) != (nNewFlags & Folder::FLAG_BOX_MASK)) {
 				sortFolders(pFolder);
@@ -1055,6 +1064,7 @@ void qm::FolderWindowImpl::insertFolder(Folder* pFolder,
 										bool bRecursive)
 {
 	assert(pFolder);
+	assert(!pFolder->isFlag(Folder::FLAG_HIDE));
 	
 	HWND hwnd = pThis_->getHandle();
 	
@@ -1098,9 +1108,13 @@ void qm::FolderWindowImpl::insertFolder(Folder* pFolder,
 	if (bRecursive) {
 		Account::FolderList l;
 		pFolder->getAccount()->getChildFolders(pFolder, &l);
-		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-			insertFolder(*it, true);
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			if (!(*it)->isFlag(Folder::FLAG_HIDE))
+				insertFolder(*it, true);
+		}
 	}
+	
+	update(pFolder);
 }
 
 void qm::FolderWindowImpl::removeFolder(Folder* pFolder,
@@ -1111,8 +1125,10 @@ void qm::FolderWindowImpl::removeFolder(Folder* pFolder,
 	if (bRecursive) {
 		Account::FolderList l;
 		pFolder->getAccount()->getChildFolders(pFolder, &l);
-		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-			removeFolder(*it, true);
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			if (!(*it)->isFlag(Folder::FLAG_HIDE))
+				removeFolder(*it, true);
+		}
 	}
 	
 	HWND hwnd = pThis_->getHandle();
