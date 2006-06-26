@@ -13,9 +13,9 @@
 #include <qsprofile.h>
 #include <qstextwindow.h>
 
+#include "messagecomposer.h"
 #include "../model/editmessage.h"
 #include "../ui/editwindow.h"
-#include "../uimodel/messagecomposer.h"
 
 
 namespace qm {

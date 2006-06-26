@@ -19,10 +19,10 @@
 #include <qsstream.h>
 
 #include "attachmenthelper.h"
+#include "messagecomposer.h"
 #include "templateprocessor.h"
 #include "../ui/messagewindow.h"
 #include "../ui/optiondialog.h"
-#include "../uimodel/messagecomposer.h"
 #include "../uimodel/messageviewmode.h"
 
 

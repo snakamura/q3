@@ -22,12 +22,12 @@
 #include <qsinit.h>
 #include <qslog.h>
 
-#include "foldermodel.h"
 #include "messagecomposer.h"
-#include "securitymodel.h"
 #include "../model/addressbook.h"
 #include "../model/message.h"
 #include "../model/recentaddress.h"
+#include "../uimodel/foldermodel.h"
+#include "../uimodel/securitymodel.h"
 
 using namespace qm;
 using namespace qs;
