@@ -42,8 +42,8 @@ public:
 	~SyncQueue();
 
 public:
-	bool pushFolder(NormalFolder* pFolder);
-	bool pushFolders(const Account::NormalFolderList& listFolder);
+	void pushFolder(NormalFolder* pFolder);
+	void pushFolders(const Account::NormalFolderList& listFolder);
 
 private:
 	void sync();

@@ -9,7 +9,6 @@
 #include <qmdocument.h>
 
 #include <boost/bind.hpp>
-#include <boost/bind/make_adaptable.hpp>
 
 #include "syncmanager.h"
 #include "syncqueue.h"
@@ -48,7 +47,7 @@ qm::SyncQueue::~SyncQueue()
 	clear();
 }
 
-bool qm::SyncQueue::pushFolder(NormalFolder* pFolder)
+void qm::SyncQueue::pushFolder(NormalFolder* pFolder)
 {
 	wstring_ptr wstrFolder(Util::formatFolder(pFolder));
 	
@@ -59,17 +58,12 @@ bool qm::SyncQueue::pushFolder(NormalFolder* pFolder)
 	}
 	
 	pWindow_->postMessage(WM_SYNCQUEUE_SYNC);
-	
-	return true;
 }
 
-bool qm::SyncQueue::pushFolders(const Account::NormalFolderList& listFolder)
+void qm::SyncQueue::pushFolders(const Account::NormalFolderList& listFolder)
 {
-	Account::NormalFolderList::const_iterator it = std::find_if(
-		listFolder.begin(), listFolder.end(),
-		std::not1(boost::make_adaptable<bool, NormalFolder*>(
-			boost::bind(&SyncQueue::pushFolder, this, _1))));
-	return it == listFolder.end();
+	std::for_each(listFolder.begin(), listFolder.end(),
+		boost::bind(&SyncQueue::pushFolder, this, _1));
 }
 
 void qm::SyncQueue::sync()
