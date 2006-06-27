@@ -68,6 +68,7 @@
 *((<@Move|URL:MoveFunction.html>))
 *((<@Multipart|URL:MultipartFunction.html>))
 *((<@Name|URL:NameFunction.html>))
+*((<@New|URL:NewFunction.html>))
 *((<@Not|URL:NotFunction.html>))
 *((<@Or|URL:OrFunction.html>))
 *((<@OSVersion|URL:OSVersionFunction.html>))

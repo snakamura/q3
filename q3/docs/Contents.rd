@@ -49,6 +49,7 @@
     *((<アカウントの作成|URL:CreateRssAccount.html>))
     *((<フィードの購読|URL:SubscribeRssFeed.html>))
     *((<フィードを読む|URL:ReadRssFeed.html>))
+  *振り分けルールを設定する
 *機能
   *((<アカウント|URL:Account.html>))
     *((<サブアカウント|URL:SubAccount.html>))
