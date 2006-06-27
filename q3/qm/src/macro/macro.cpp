@@ -214,6 +214,7 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 
 qm::MacroGlobalContext::~MacroGlobalContext()
 {
+	std::for_each(listParsedMacro_.begin(), listParsedMacro_.end(), qs::deleter<Macro>());
 }
 
 const MessageHolderList& qm::MacroGlobalContext::getSelectedMessageHolders() const
@@ -365,6 +366,14 @@ void qm::MacroGlobalContext::clearRegexResult()
 		removeVariable(wszName, false);
 	}
 	nRegexResultCount_ = 0;
+}
+
+void qm::MacroGlobalContext::storeParsedMacro(std::auto_ptr<Macro> pMacro)
+{
+	assert(pMacro.get());
+	
+	listParsedMacro_.push_back(pMacro.get());
+	pMacro.release();
 }
 
 
@@ -1292,12 +1301,6 @@ qm::MacroParser::~MacroParser()
 
 std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro) const
 {
-	return parse(pwszMacro, 0);
-}
-
-std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro,
-											Macro* pParentMacro) const
-{
 	assert(pwszMacro);
 	
 	MacroExprPtr pMacroExpr;
@@ -1842,6 +1845,11 @@ bool qm::MacroContext::setRegexResult(const RegexRangeList& listRange)
 void qm::MacroContext::clearRegexResult()
 {
 	pGlobalContext_->clearRegexResult();
+}
+
+void qm::MacroContext::storeParsedMacro(std::auto_ptr<Macro> pMacro)
+{
+	pGlobalContext_->storeParsedMacro(pMacro);
 }
 
 wstring_ptr qm::MacroContext::resolvePath(const WCHAR* pwszPath)

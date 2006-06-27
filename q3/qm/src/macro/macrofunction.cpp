@@ -1419,7 +1419,10 @@ MacroValuePtr qm::MacroFunctionEval::value(MacroContext* pContext) const
 	if (!pMacro.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
-	return pMacro->value(pContext);
+	Macro* p = pMacro.get();
+	pContext->storeParsedMacro(pMacro);
+	
+	return p->value(pContext);
 }
 
 const WCHAR* qm::MacroFunctionEval::getName() const
@@ -2862,7 +2865,11 @@ MacroValuePtr qm::MacroFunctionInclude::value(MacroContext* pContext) const
 	std::auto_ptr<Macro> pMacro(parser.parse(buf.getCharArray()));
 	if (!pMacro.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
-	return pMacro->value(pContext);
+	
+	Macro* p = pMacro.get();
+	pContext->storeParsedMacro(pMacro);
+	
+	return p->value(pContext);
 }
 
 const WCHAR* qm::MacroFunctionInclude::getName() const

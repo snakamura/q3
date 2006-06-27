@@ -218,10 +218,14 @@ public:
 	MacroValuePtr getArgument(unsigned int n) const;
 	bool setRegexResult(const qs::RegexRangeList& listRange);
 	void clearRegexResult();
+	void storeParsedMacro(std::auto_ptr<Macro> pMacro);
 
 private:
 	MacroGlobalContext(const MacroGlobalContext&);
 	MacroGlobalContext& operator=(const MacroGlobalContext&);
+
+private:
+	typedef std::vector<Macro*> MacroList;
 
 private:
 	const MessageHolderList& listSelected_;
@@ -239,6 +243,7 @@ private:
 	std::auto_ptr<MacroFunctionHolder> pFunction_;
 	std::auto_ptr<MacroArgumentHolder> pArgument_;
 	size_t nRegexResultCount_;
+	MacroList listParsedMacro_;
 };
 
 

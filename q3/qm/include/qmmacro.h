@@ -210,6 +210,7 @@ public:
 	MacroValuePtr getArgument(unsigned int n) const;
 	bool setRegexResult(const qs::RegexRangeList& listRange);
 	void clearRegexResult();
+	void storeParsedMacro(std::auto_ptr<Macro> pMacro);
 	qs::wstring_ptr resolvePath(const WCHAR* pwszPath);
 
 private:
@@ -274,8 +275,6 @@ public:
 
 public:
 	std::auto_ptr<Macro> parse(const WCHAR* pwszMacro) const;
-	std::auto_ptr<Macro> parse(const WCHAR* pwszMacro,
-							   Macro* pParentMacro) const;
 	void setErrorHandler(MacroErrorHandler* pErrorHandler);
 	MacroErrorHandler* getErrorHandler() const;
 
