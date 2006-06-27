@@ -1,7 +1,7 @@
 =begin
 =@InputBox
 
- String @InputBox(String message, String default?, Boolean multiline?)
+ String @InputBox(String message, Boolean multiline?, String default?)
 
 
 ==説明
@@ -24,10 +24,10 @@ multilineにはダイアログのタイプを指定します。指定できるのは以下のとおりです。
 ==引数
 :String message
   表示するメッセージ
-:String default
-  デフォルトの入力文字列
 :Boolean multiline
   ダイアログのタイプ
+:String default
+  デフォルトの入力文字列
 
 
 ==エラー
@@ -40,9 +40,12 @@ multilineにはダイアログのタイプを指定します。指定できるのは以下のとおりです。
 
 ==例
  # 単数行
- @InputBox('入力してください', 'テスト')
+ @InputBox('入力してください')
+ 
+ # 単数行でデフォルトを指定
+ @InputBox('入力してください', :INPUT-SINGLELINE, 'テスト')
  
  # 複数行
- @InputBox('入力してください', '', :INPUT-MULTILINE)
+ @InputBox('入力してください', :INPUT-MULTILINE)
 
 =end
