@@ -18,7 +18,7 @@ multilineにはダイアログのタイプを指定します。指定できるのは以下のとおりです。
   
   ((<複数行入力ダイアログ|"IMG:images/MultiLineInputBoxDialog.png">))
 
-指定しない場合には、INPUT-SINGLELINEを指定したのと同じになります。
+指定しない場合には、:INPUT-SINGLELINEを指定したのと同じになります。
 
 
 ==引数
