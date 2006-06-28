@@ -16,6 +16,7 @@
 *((<@BeginWith|URL:BeginWithFunction.html>))
 *((<@Body|URL:BodyFunction.html>))
 *((<@BodyCharset|URL:BodyCharsetFunction.html>))
+*((<@Catch|URL:CatchFunction.html>))
 *((<@Clipboard|URL:ClipboardFunction.html>))
 *((<@ComputerName|URL:ComputerNameFunction.html>))
 *((<@Concat|URL:ConcatFunction.html>))

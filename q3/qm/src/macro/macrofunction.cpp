@@ -41,13 +41,6 @@
 using namespace qm;
 using namespace qs;
 
-#define VALUE(name, expr) \
-	MacroValuePtr name(expr); \
-	do { \
-		if (!name.get()) \
-			return MacroValuePtr(); \
-	} while (false)
-
 #define ARG(name, index) \
 	MacroValuePtr name(getArg(index)->value(pContext)); \
 	do { \
@@ -886,6 +879,43 @@ MacroValuePtr qm::MacroFunctionBoolean::value(MacroContext* pContext) const
 const WCHAR* qm::MacroFunctionBoolean::getName() const
 {
 	return b_ ? L"True" : L"False";
+}
+
+
+/****************************************************************************
+ *
+ * MacroFunctionCatch
+ *
+ */
+
+qm::MacroFunctionCatch::MacroFunctionCatch()
+{
+}
+
+qm::MacroFunctionCatch::~MacroFunctionCatch()
+{
+}
+
+MacroValuePtr qm::MacroFunctionCatch::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(Catch);
+	
+	if (!checkArgSize(pContext, 2))
+		return MacroValuePtr();
+	
+	MacroValuePtr pValue(getArg(0)->value(pContext));
+	if (!pValue.get() &&
+		pContext->getReturnType() == MacroContext::RETURNTYPE_NONE)
+		return getArg(1)->value(pContext);
+	else
+		return pValue;
+}
+
+const WCHAR* qm::MacroFunctionCatch::getName() const
+{
+	return L"Catch";
 }
 
 
@@ -5829,6 +5859,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION1(		Contain,			L"beginwith",		true								)
 		END_BLOCK()
 		BEGIN_BLOCK(L'c', L'C')
+			DECLARE_FUNCTION0(		Catch,				L"catch"												)
 			DECLARE_FUNCTION0(		Clipboard,			L"clipboard"											)
 			DECLARE_FUNCTION0(		ComputerName,		L"computername"											)
 			DECLARE_FUNCTION0(		Concat,				L"concat"												)

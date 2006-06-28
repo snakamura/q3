@@ -43,6 +43,7 @@ class MacroExpr;
 		class MacroFunctionBody;
 		class MacroFunctionBodyCharset;
 		class MacroFunctionBoolean;
+		class MacroFunctionCatch;
 		class MacroFunctionClipboard;
 		class MacroFunctionComputerName;
 		class MacroFunctionConcat;
@@ -921,6 +922,30 @@ private:
 
 private:
 	bool b_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionCatch
+ *
+ */
+
+class MacroFunctionCatch : public MacroFunction
+{
+public:
+	MacroFunctionCatch();
+	virtual ~MacroFunctionCatch();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionCatch(const MacroFunctionCatch&);
+	MacroFunctionCatch& operator=(const MacroFunctionCatch&);
 };
 
 
