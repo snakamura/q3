@@ -3111,15 +3111,16 @@ class ViewNavigateMessageAction : public qs::AbstractAction
 {
 public:
 	enum Type {
-		TYPE_NEXT			= 0x01,
-		TYPE_PREV			= 0x02,
-		TYPE_NEXTUNSEEN		= 0x03,
-		TYPE_NEXTPAGE		= 0x04,
-		TYPE_PREVPAGE		= 0x05,
-		TYPE_SELF			= 0x06,
-		TYPE_TYPE_MASK		= 0x0f,
+		TYPE_NEXT					= 0x01,
+		TYPE_PREV					= 0x02,
+		TYPE_NEXTUNSEEN				= 0x03,
+		TYPE_NEXTPAGE				= 0x04,
+		TYPE_PREVPAGE				= 0x05,
+		TYPE_SELF					= 0x06,
+		TYPE_TYPE_MASK				= 0x0f,
 		
-		TYPE_NEXTPAGEUNSEEN	= 0x10
+		TYPE_NEXTPAGEUNSEEN			= 0x10,
+		TYPE_UNSEENINOTHERACCOUNT	= 0x20
 	};
 
 public:
@@ -3127,11 +3128,13 @@ public:
 							  FolderModel* pFolderModel,
 							  MainWindow* pMainWindow,
 							  MessageWindow* pMessageWindow,
+							  AccountManager* pAccountManager,
 							  qs::Profile* pProfile,
 							  Type type);
 	ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
 							  ViewModelHolder* pViewModelHolder,
 							  MessageWindow* pMessageWindow,
+							  AccountManager* pAccountManager,
 							  qs::Profile* pProfile,
 							  Type type);
 	virtual ~ViewNavigateMessageAction();
@@ -3144,7 +3147,9 @@ private:
 	void init(qs::Profile* pProfile);
 	std::pair<ViewModel*, unsigned int> getNextUnseen(ViewModel* pViewModel,
 													  unsigned int nIndex) const;
-	Folder* getNextUnseenFolder(Folder* pFolder) const;
+	Folder* getNextUnseenFolder(Account* pAccount,
+								Folder* pFolderStart) const;
+	Folder* getNextUnseenFolder(Account* pAccountStart) const;
 	bool isUnseenFolder(const Folder* pFolder) const;
 
 private:
@@ -3157,6 +3162,7 @@ private:
 	ViewModelHolder* pViewModelHolder_;
 	MainWindow* pMainWindow_;
 	MessageWindow* pMessageWindow_;
+	AccountManager* pAccountManager_;
 	unsigned int nType_;
 };
 

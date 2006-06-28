@@ -201,6 +201,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Global",	L"LogFilter",						L""													},
 	{ L"Global",	L"LogTimeFormat",					L"%Y4/%M0/%D-%h:%m:%s%z"							},
 	{ L"Global",	L"Macro",							L""													},
+	{ L"Global",	L"NextUnseenInOtherAccounts",		L"0"												},
 	{ L"Global",	L"NextUnseenWhenScrollEnd",			L"0"												},
 	{ L"Global",	L"NoBccForML",						L"0"												},
 	{ L"Global",	L"Offline",							L"1"												},

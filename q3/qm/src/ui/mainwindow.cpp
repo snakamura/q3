@@ -1092,12 +1092,13 @@ void qm::MainWindowImpl::initActions()
 		{ IDM_VIEW_PREVMESSAGEPAGE,		ViewNavigateMessageAction::TYPE_PREVPAGE	}
 	};
 	for (int n = 0; n < countof(navigateMessages); ++n) {
-		ADD_ACTION6(ViewNavigateMessageAction,
+		ADD_ACTION7(ViewNavigateMessageAction,
 			navigateMessages[n].nId_,
 			pViewModelManager_.get(),
 			pFolderModel_.get(),
 			pThis_,
 			pMessageWindow_,
+			pDocument_,
 			pProfile_,
 			navigateMessages[n].type_);
 	}

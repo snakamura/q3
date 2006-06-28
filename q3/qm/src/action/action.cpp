@@ -6397,6 +6397,7 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pView
 														 FolderModel* pFolderModel,
 														 MainWindow* pMainWindow,
 														 MessageWindow* pMessageWindow,
+														 AccountManager* pAccountManager,
 														 Profile* pProfile,
 														 Type type) :
 	pViewModelManager_(pViewModelManager),
@@ -6404,6 +6405,7 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pView
 	pViewModelHolder_(0),
 	pMainWindow_(pMainWindow),
 	pMessageWindow_(pMessageWindow),
+	pAccountManager_(pAccountManager),
 	nType_(type)
 {
 	assert(pViewModelManager);
@@ -6415,6 +6417,7 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pView
 qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pViewModelManager,
 														 ViewModelHolder* pViewModelHolder,
 														 MessageWindow* pMessageWindow,
+														 AccountManager* pAccountManager,
 														 Profile* pProfile,
 														 Type type) :
 	pViewModelManager_(pViewModelManager),
@@ -6422,6 +6425,7 @@ qm::ViewNavigateMessageAction::ViewNavigateMessageAction(ViewModelManager* pView
 	pViewModelHolder_(pViewModelHolder),
 	pMainWindow_(0),
 	pMessageWindow_(pMessageWindow),
+	pAccountManager_(pAccountManager),
 	nType_(type)
 {
 	assert(pViewModelManager);
@@ -6572,6 +6576,9 @@ void qm::ViewNavigateMessageAction::init(qs::Profile* pProfile)
 	if (nType_ == TYPE_NEXTPAGE &&
 		pProfile->getInt(L"Global", L"NextUnseenWhenScrollEnd"))
 		nType_ |= TYPE_NEXTPAGEUNSEEN;
+	else if (nType_ == TYPE_NEXTUNSEEN &&
+		pProfile->getInt(L"Global", L"NextUnseenInOtherAccounts"))
+		nType_ |= TYPE_UNSEENINOTHERACCOUNT;
 }
 
 std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen(ViewModel* pViewModel,
@@ -6603,7 +6610,11 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 		}
 	}
 	if (!bFound) {
-		Folder* pUnseenFolder = getNextUnseenFolder(pViewModel->getFolder());
+		Folder* pFolder = pViewModel->getFolder();
+		Account* pAccount = pFolder->getAccount();
+		Folder* pUnseenFolder = getNextUnseenFolder(pAccount, pFolder);
+		if (!pUnseenFolder && nType_ & TYPE_UNSEENINOTHERACCOUNT)
+			pUnseenFolder = getNextUnseenFolder(pAccount);
 		if (pUnseenFolder) {
 			pViewModel = pViewModelManager_->getViewModel(pUnseenFolder);
 			unseen = getNextUnseen(pViewModel, 0);
@@ -6616,23 +6627,56 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 	return unseen;
 }
 
-Folder* qm::ViewNavigateMessageAction::getNextUnseenFolder(Folder* pFolder) const
+Folder* qm::ViewNavigateMessageAction::getNextUnseenFolder(Account* pAccount,
+														   Folder* pFolderStart) const
 {
-	Account* pAccount = pFolder->getAccount();
-	Account::FolderList listFolder(pAccount->getFolders());
-	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+	assert(pAccount);
 	
-	Account::FolderList::iterator itStart = std::find(
-		listFolder.begin(), listFolder.end(), pFolder);
-	assert(itStart != listFolder.end());
+	Account::FolderList l(pAccount->getFolders());
+	std::sort(l.begin(), l.end(), FolderLess());
 	
-	Account::FolderList::const_iterator it = std::find_if(
-		itStart + 1, listFolder.end(),
-		boost::bind(&ViewNavigateMessageAction::isUnseenFolder, this, _1));
-	if (it == listFolder.end())
-		it = std::find_if(listFolder.begin(), itStart,
+	Account::FolderList::iterator itStart = l.end();
+	if (pFolderStart) {
+		itStart = std::find(l.begin(), l.end(), pFolderStart);
+		assert(itStart != l.end());
+		
+		Account::FolderList::const_iterator it = std::find_if(itStart + 1, l.end(),
 			boost::bind(&ViewNavigateMessageAction::isUnseenFolder, this, _1));
-	return it != listFolder.end() ? *it : 0;
+		if (it != l.end())
+			return *it;
+	}
+	
+	Account::FolderList::const_iterator it = std::find_if(l.begin(), itStart,
+		boost::bind(&ViewNavigateMessageAction::isUnseenFolder, this, _1));
+	return it != itStart ? *it : 0;
+}
+
+Folder* qm::ViewNavigateMessageAction::getNextUnseenFolder(Account* pAccountStart) const
+{
+	assert(pAccountStart);
+	
+	AccountManager::AccountList l(pAccountManager_->getAccounts());
+	std::sort(l.begin(), l.end(),
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			std::mem_fun(&Account::getName),
+			std::mem_fun(&Account::getName)));
+	
+	AccountManager::AccountList::const_iterator itStart =
+		std::find(l.begin(), l.end(), pAccountStart);
+	assert(itStart != l.end());
+	
+	for (AccountManager::AccountList::const_iterator it = itStart + 1; it != l.end(); ++it) {
+		Folder* pFolder = getNextUnseenFolder(*it, 0);
+		if (pFolder)
+			return pFolder;
+	}
+	for (AccountManager::AccountList::const_iterator it = l.begin(); it != itStart; ++it) {
+		Folder* pFolder = getNextUnseenFolder(*it, 0);
+		if (pFolder)
+			return pFolder;
+	}
+	return 0;
 }
 
 bool qm::ViewNavigateMessageAction::isUnseenFolder(const Folder* pFolder) const
