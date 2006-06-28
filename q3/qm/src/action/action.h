@@ -3144,6 +3144,7 @@ private:
 	void init(qs::Profile* pProfile);
 	std::pair<ViewModel*, unsigned int> getNextUnseen(ViewModel* pViewModel,
 													  unsigned int nIndex) const;
+	Folder* getNextUnseenFolder(Folder* pFolder) const;
 	bool isUnseenFolder(const Folder* pFolder) const;
 
 private:

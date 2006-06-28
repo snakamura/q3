@@ -38,6 +38,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #ifndef _WIN32_WCE
 #	include <shlwapi.h>
 #endif
@@ -6573,7 +6575,7 @@ void qm::ViewNavigateMessageAction::init(qs::Profile* pProfile)
 }
 
 std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen(ViewModel* pViewModel,
-																				unsigned int nIndex) const
+																				 unsigned int nIndex) const
 {
 	std::pair<ViewModel*, unsigned int> unseen(pViewModel, -1);
 	
@@ -6601,29 +6603,7 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 		}
 	}
 	if (!bFound) {
-		Folder* pFolder = pViewModel->getFolder();
-		Account* pAccount = pFolder->getAccount();
-		const Account::FolderList& l = pAccount->getFolders();
-		Account::FolderList listFolder(l);
-		std::sort(listFolder.begin(), listFolder.end(), FolderLess());
-		
-		Account::FolderList::const_iterator itThis = std::find(
-			listFolder.begin(), listFolder.end(), pFolder);
-		assert(itThis != listFolder.end());
-		
-		Folder* pUnseenFolder = 0;
-		Account::FolderList::const_iterator it = itThis;
-		for (++it; it != listFolder.end() && !pUnseenFolder; ++it) {
-			if (isUnseenFolder(*it))
-				pUnseenFolder = *it;
-		}
-		if (!pUnseenFolder) {
-			for (it = listFolder.begin(); it != itThis && !pUnseenFolder; ++it) {
-				if (isUnseenFolder(*it))
-					pUnseenFolder = *it;
-			}
-		}
-		
+		Folder* pUnseenFolder = getNextUnseenFolder(pViewModel->getFolder());
 		if (pUnseenFolder) {
 			pViewModel = pViewModelManager_->getViewModel(pUnseenFolder);
 			unseen = getNextUnseen(pViewModel, 0);
@@ -6634,6 +6614,25 @@ std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen
 	}
 	
 	return unseen;
+}
+
+Folder* qm::ViewNavigateMessageAction::getNextUnseenFolder(Folder* pFolder) const
+{
+	Account* pAccount = pFolder->getAccount();
+	Account::FolderList listFolder(pAccount->getFolders());
+	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+	
+	Account::FolderList::iterator itStart = std::find(
+		listFolder.begin(), listFolder.end(), pFolder);
+	assert(itStart != listFolder.end());
+	
+	Account::FolderList::const_iterator it = std::find_if(
+		itStart + 1, listFolder.end(),
+		boost::bind(&ViewNavigateMessageAction::isUnseenFolder, this, _1));
+	if (it == listFolder.end())
+		it = std::find_if(listFolder.begin(), itStart,
+			boost::bind(&ViewNavigateMessageAction::isUnseenFolder, this, _1));
+	return it != listFolder.end() ? *it : 0;
 }
 
 bool qm::ViewNavigateMessageAction::isUnseenFolder(const Folder* pFolder) const
