@@ -1351,11 +1351,9 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro) const
 				tokenizer.getLastPosition());
 		}
 		else {
-#define FIND(a, t) std::find(a, a + countof(a), t) != a + countof(a)
-			if (!bAcceptExpr && FIND(exprTokens, token))
+			if (!bAcceptExpr && std::find(exprTokens, endof(exprTokens), token) != endof(exprTokens))
 				return error(MacroErrorHandler::CODE_SYNTAXERROR, tokenizer.getLastPosition());
-			bAcceptExpr = FIND(acceptExprTokens, token);
-#undef FIND
+			bAcceptExpr = std::find(acceptExprTokens, endof(acceptExprTokens), token) != endof(acceptExprTokens);
 			
 			MacroExprPtr pExpr;
 			switch (token) {

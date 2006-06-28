@@ -129,7 +129,8 @@ QSEXPORTPROC const WCHAR* getTitle();
  */
 QSEXPORTPROC const WCHAR* getSystemEncoding();
 
-#define countof(x) sizeof(x)/sizeof(x[0])
+#define countof(x) (sizeof(x)/sizeof(x[0]))
+#define endof(x) ((x) + countof(x))
 
 #if _STLPORT_VERSION >= 0x450 && (!defined _WIN32_WCE || _STLPORT_VERSION < 0x460)
 #	define QSMIN min
