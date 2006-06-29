@@ -402,6 +402,7 @@
 #define IDC_OPENINPREVIEW               1452
 #define IDC_ACTIVE                      1453
 #define IDC_AUTOAPPLYRULESTOEXISTING    1454
+#define IDC_UNSEENINOTHERACCOUNTS       1455
 
 // Next default values for new objects
 // 
@@ -410,7 +411,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1455
+#define _APS_NEXT_CONTROL_VALUE         1456
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

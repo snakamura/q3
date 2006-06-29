@@ -1474,16 +1474,16 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Show next &unseen when scroll to end(*)",
                     IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,20,150,10
+                    WS_TABSTOP,5,20,195,8
+    CONTROL         "&Jump to next unseen in other accounts(*)",
+                    IDC_UNSEENINOTHERACCOUNTS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,30,195,8
     CONTROL         "&Empty trash on exit",IDC_EMPTYTRASHONEXIT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,30,75,8
-    CONTROL         "Sa&ve message mode per folder(*)",
-                    IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,120,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,195,8
     CONTROL         "&Save when window is deactivated",IDC_SAVEONDEACTIVATE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,50,125,8
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,50,195,8
     CONTROL         "&Hide when window is minimized",IDC_HIDEWHENMINIMIZED,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,125,8
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,195,8
     LTEXT           "En&codings",IDC_STATIC,5,72,45,8
     EDITTEXT        IDC_ENCODING,50,70,150,12,ES_AUTOHSCROLL
     LTEXT           "&Default(*)",IDC_STATIC,10,87,40,8
@@ -1543,18 +1543,21 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Incremental search",IDC_INCREMENTALSEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,75,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,195,8
+    CONTROL         "Sa&ve message mode per folder(*)",
+                    IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,195,8
     CONTROL         "&Bcc to myself",IDC_BCC,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,20,60,8
+                    WS_TABSTOP,5,30,195,8
     CONTROL         "Don't bcc if the original message seems from &ML",
                     IDC_NOBCCFORML,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
-                    30,170,8
+                    41,185,8
     CONTROL         "Use message/rfc822 for &forwarding",IDC_FORWARDRFC822,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,40,125,8
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,50,195,8
     CONTROL         "Open &address book when compose",IDC_OPENADDRESSBOOK,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,50,130,8
-    LTEXT           "&Quote",IDC_STATIC,5,67,20,8
-    EDITTEXT        IDC_QUOTE,30,65,40,12,ES_AUTOHSCROLL
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,61,190,8
+    LTEXT           "&Quote",IDC_STATIC,5,77,20,8
+    EDITTEXT        IDC_QUOTE,30,75,40,12,ES_AUTOHSCROLL
 END
 
 IDD_OPTIONCONFIRM DIALOG DISCARDABLE  0, 0, 205, 100

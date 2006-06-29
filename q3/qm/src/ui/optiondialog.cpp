@@ -1725,8 +1725,8 @@ LRESULT qm::OptionListDialog::onFont()
 
 DialogUtil::BoolProperty qm::OptionMiscDialog::boolProperties__[] = {
 	{ L"NextUnseenWhenScrollEnd",		IDC_SHOWNEXTUNSEENWHENSCROLLEND		},
+	{ L"NextUnseenInOtherAccounts",		IDC_UNSEENINOTHERACCOUNTS			},
 	{ L"EmptyTrashOnExit",				IDC_EMPTYTRASHONEXIT				},
-	{ L"SaveMessageViewModePerFolder",	IDC_SAVEMESSAGEVIEWMODEPERFOLDER	},
 	{ L"SaveOnDeactivate",				IDC_SAVEONDEACTIVATE				},
 #ifndef _WIN32_WCE_PSPC
 	{ L"HideWhenMinimized",				IDC_HIDEWHENMINIMIZED				},
@@ -1902,11 +1902,12 @@ void qm::OptionMiscDialog::updateDefaultEncodings()
  */
 
 DialogUtil::BoolProperty qm::OptionMisc2Dialog::boolProperties__[] = {
-	{ L"IncrementalSearch",	IDC_INCREMENTALSEARCH	},
-	{ L"Bcc",				IDC_BCC					},
-	{ L"NoBccForML",		IDC_NOBCCFORML			},
-	{ L"ForwardRfc822",		IDC_FORWARDRFC822		},
-	{ L"OpenAddressBook",	IDC_OPENADDRESSBOOK		}
+	{ L"IncrementalSearch",				IDC_INCREMENTALSEARCH				},
+	{ L"SaveMessageViewModePerFolder",	IDC_SAVEMESSAGEVIEWMODEPERFOLDER	},
+	{ L"Bcc",							IDC_BCC								},
+	{ L"NoBccForML",					IDC_NOBCCFORML						},
+	{ L"ForwardRfc822",					IDC_FORWARDRFC822					},
+	{ L"OpenAddressBook",				IDC_OPENADDRESSBOOK					}
 };
 
 qm::OptionMisc2Dialog::OptionMisc2Dialog(Profile* pProfile) :

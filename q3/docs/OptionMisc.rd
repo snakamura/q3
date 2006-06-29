@@ -3,6 +3,7 @@
 
 [ƒIƒvƒVƒ‡ƒ“]ƒ_ƒCƒAƒƒO‚Ì[‚»‚Ì‘¼]ƒpƒlƒ‹‚Å‚Í‚»‚Ì‘¼‚ÌÝ’è‚ðs‚¢‚Ü‚·B
 
+// TODO ‰æ‘œXV
 ((<‚»‚Ì‘¼‚ÌÝ’è|"IMG:images/OptionMisc.png">))
 
 
@@ -33,12 +34,12 @@ F‚ÍƒtƒHƒ‹ƒ_ƒrƒ…[AL‚ÍƒŠƒXƒgƒrƒ…[AP‚ÍƒvƒŒƒrƒ…[‚ðˆÓ–¡‚µ‚Ü‚·B|‚Í‰¡‚É•ªŠ„A-‚Í
 ƒƒbƒZ[ƒWƒrƒ…[‚âƒvƒŒƒrƒ…[‚ÅƒXƒy[ƒXƒL[‚ð‰Ÿ‚·‚ÆŽŸ‚Ìƒy[ƒW‚ÖƒXƒNƒ[ƒ‹‚µAÅŒã‚Ü‚ÅƒXƒNƒ[ƒ‹‚·‚é‚ÆŽŸ‚ÌƒƒbƒZ[ƒW‚ð•\Ž¦‚µ‚Ü‚·BŽŸ‚ÌƒƒbƒZ[ƒW‚ð•\Ž¦‚·‚é‘ã‚í‚è‚ÉŽŸ‚Ì–¢“ÇƒƒbƒZ[ƒW‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚ÍŽŸ‚ÌƒƒbƒZ[ƒW‚ð•\Ž¦‚µ‚Ü‚·B
 
 
++[•Ê‚ÌƒAƒJƒEƒ“ƒg“à‚Ì–¢“Ç‚É‚àƒWƒƒƒ“ƒv‚·‚é]
+((<[ƒƒbƒZ[ƒW]-[ŽŸ‚Ì–¢“ÇƒƒbƒZ[ƒW]|URL:ViewNextUnseenMessageAction.html>))‚ð‘I‘ð‚µ‚½‚Æ‚«‚ÉA‘¼‚ÌƒAƒJƒEƒ“ƒg‚É‚ ‚é–¢“ÇƒƒbƒZ[ƒW‚É‚àƒWƒƒƒ“ƒv‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚ÍƒWƒƒƒ“ƒv‚µ‚Ü‚¹‚ñB
+
+
 +[I—¹Žž‚ÉƒSƒ~” ‚ð‹ó‚É‚·‚é]
 QMAIL3‚ðI—¹‚·‚é‚Æ‚«‚ÉƒSƒ~” ‚ð‹ó‚É‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚Í‹ó‚É‚µ‚Ü‚¹‚ñB
-
-
-+[ƒƒbƒZ[ƒW•\Ž¦ƒ‚[ƒh‚ðƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚·‚é]
-((<ƒƒbƒZ[ƒW•\Ž¦ƒ‚[ƒh|URL:MessageViewMode.html>))‚ðƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚µ‚È‚¢ê‡A‚·‚×‚Ä‚ÌƒtƒHƒ‹ƒ_‚Å‹¤’Ê‚ÌƒƒbƒZ[ƒWƒ‚[ƒh‚ªŽg‚í‚ê‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚ÍƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚µ‚Ü‚·B
 
 
 +[ƒEƒBƒ“ƒhƒE‚ª”ñƒAƒNƒeƒBƒu‚É‚È‚Á‚½‚ç•Û‘¶‚·‚é]

@@ -1481,17 +1481,17 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "最後までスクロールしたら次の未読を表示(&U)(*)",
                     IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,20,150,10
+                    WS_TABSTOP,5,20,195,8
+    CONTROL         "別のアカウント内の未読にもジャンプする(&J)(*)",
+                    IDC_UNSEENINOTHERACCOUNTS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,30,195,8
     CONTROL         "終了時にゴミ箱を空にする(&E)",IDC_EMPTYTRASHONEXIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,30,100,8
-    CONTROL         "メッセージ表示モードをフォルダごとに保存する(&V)(*)",
-                    IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,160,8
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,40,195,8
     CONTROL         "ウィンドウが非アクティブになったら保存する(&S)",
                     IDC_SAVEONDEACTIVATE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,50,155,8
+                    WS_TABSTOP,5,50,195,8
     CONTROL         "最小化されたら隠す(&H)",IDC_HIDEWHENMINIMIZED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,60,125,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,60,195,8
     LTEXT           "エンコーディング(&C)",IDC_STATIC,5,72,55,8
     EDITTEXT        IDC_ENCODING,60,70,140,12,ES_AUTOHSCROLL
     LTEXT           "デフォルト(&D)(*)",IDC_STATIC,10,87,45,8
@@ -1551,20 +1551,23 @@ STYLE WS_CHILD
 FONT 9, "Tahoma"
 BEGIN
     CONTROL         "インクリメンタルサーチ(&I)",IDC_INCREMENTALSEARCH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,5,75,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,5,195,8
+    CONTROL         "メッセージ表示モードをフォルダごとに保存する(&V)(*)",
+                    IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,195,8
     CONTROL         "自分を&Bccに含める",IDC_BCC,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,20,75,8
+                    WS_TABSTOP,5,30,195,8
     CONTROL         "元のメッセージが&ML宛てのときにはBccに含めない",
                     IDC_NOBCCFORML,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
-                    30,170,8
+                    41,185,8
     CONTROL         "転送するときにはmessage/rfc822を使う(&F)",
                     IDC_FORWARDRFC822,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    5,40,135,8
+                    5,50,195,8
     CONTROL         "メッセージ作成時にアドレス帳を開く(&A)",
                     IDC_OPENADDRESSBOOK,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,50,130,8
-    LTEXT           "引用符(&Q)",IDC_STATIC,5,67,35,8
-    EDITTEXT        IDC_QUOTE,40,65,40,12,ES_AUTOHSCROLL
+                    WS_TABSTOP,5,61,195,8
+    LTEXT           "引用符(&Q)",IDC_STATIC,5,77,35,8
+    EDITTEXT        IDC_QUOTE,40,75,40,12,ES_AUTOHSCROLL
 END
 
 IDD_OPTIONCONFIRM DIALOG DISCARDABLE  0, 0, 205, 100

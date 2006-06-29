@@ -1515,21 +1515,21 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Show next &unseen when scroll to end(*)",
                     IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
-                    BS_TOP | BS_MULTILINE | WS_TABSTOP,5,20,125,17
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,5,20,127,17
+    CONTROL         "&Jump to unseen in other accounts(*)",
+                    IDC_UNSEENINOTHERACCOUNTS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,40,129,10
     CONTROL         "&Empty trash on exit",IDC_EMPTYTRASHONEXIT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,75,10
-    CONTROL         "Sa&ve message mode per folder(*)",
-                    IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,120,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,127,10
     CONTROL         "&Save when window is deactivated",IDC_SAVEONDEACTIVATE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,125,10
-    LTEXT           "En&codings",IDC_STATIC,5,77,45,8
-    EDITTEXT        IDC_ENCODING,50,75,82,12,ES_AUTOHSCROLL
-    LTEXT           "&Default(*)",IDC_STATIC,10,92,40,8
-    COMBOBOX        IDC_DEFAULTENCODING,50,90,82,50,CBS_DROPDOWN | 
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,127,10
+    LTEXT           "En&codings",IDC_STATIC,5,77,40,8
+    EDITTEXT        IDC_ENCODING,45,75,87,12,ES_AUTOHSCROLL
+    LTEXT           "&Default(*)",IDC_STATIC,10,92,35,8
+    COMBOBOX        IDC_DEFAULTENCODING,45,90,87,50,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Log Level",IDC_STATIC,5,107,45,8
-    COMBOBOX        IDC_LOG,50,105,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    LTEXT           "&Log Level",IDC_STATIC,5,107,40,8
+    COMBOBOX        IDC_LOG,45,105,40,60,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "Tem&p Folder",IDC_STATIC,5,125,40,8,NOT WS_VISIBLE
     EDITTEXT        IDC_TEMPORARYFOLDER,5,135,82,12,ES_AUTOHSCROLL | NOT 
@@ -1584,17 +1584,20 @@ FONT 9, "Tahoma"
 BEGIN
     CONTROL         "&Incremental search",IDC_INCREMENTALSEARCH,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,5,75,10
+    CONTROL         "Sa&ve message mode per folder(*)",
+                    IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,120,10
     CONTROL         "&Bcc to myself",IDC_BCC,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,20,60,10
+                    WS_TABSTOP,5,30,60,10
     CONTROL         "Don't bcc if the original message seems from &ML",
                     IDC_NOBCCFORML,"Button",BS_AUTOCHECKBOX | BS_TOP | 
-                    BS_MULTILINE | WS_TABSTOP,15,30,115,17
+                    BS_MULTILINE | WS_TABSTOP,15,41,115,17
     CONTROL         "Use message/rfc822 for &forwarding",IDC_FORWARDRFC822,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,50,125,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,61,125,10
     CONTROL         "Open &address book when compose",IDC_OPENADDRESSBOOK,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,125,10
-    LTEXT           "&Quote",IDC_STATIC,5,77,20,8
-    EDITTEXT        IDC_QUOTE,30,75,40,12,ES_AUTOHSCROLL
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,70,125,10
+    LTEXT           "&Quote",IDC_STATIC,5,87,20,8
+    EDITTEXT        IDC_QUOTE,30,85,40,12,ES_AUTOHSCROLL
 END
 
 IDD_OPTIONCONFIRM DIALOG DISCARDABLE  0, 0, 137, 119
