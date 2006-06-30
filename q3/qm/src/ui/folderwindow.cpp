@@ -11,6 +11,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmfolderwindow.h>
 #include <qmmessageholder.h>
@@ -1565,9 +1566,10 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	}
 #endif
 	
-	HIMAGELIST hImageList = ImageList_LoadImage(
-		Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDB_FOLDER), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
+	wstring_ptr wstrBitmapPath(Application::getApplication().getProfilePath(FileNames::FOLDER_BMP));
+	W2T(wstrBitmapPath.get(), ptszBitmapPath);
+	HIMAGELIST hImageList = ImageList_LoadImage(0, ptszBitmapPath,
+		16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_LOADFROMFILE);
 	TreeView_SetImageList(getHandle(), hImageList, TVSIL_NORMAL);
 	
 	pImpl_->pDropTarget_.reset(new DropTarget(getHandle()));

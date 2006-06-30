@@ -55,12 +55,8 @@ END
 // Bitmap
 //
 
-IDB_ACCOUNT             BITMAP  MOVEABLE PURE   "res\\account.bmp"
 IDB_ADDRESSBOOK         BITMAP  MOVEABLE PURE   "res\\addressbook.bmp"
-IDB_FOLDER              BITMAP  MOVEABLE PURE   "res\\folder.bmp"
 IDB_HEADER              BITMAP  MOVEABLE PURE   "res\\header.bmp"
-IDB_LIST                BITMAP  MOVEABLE PURE   "res\\list.bmp"
-IDB_LISTDATA            BITMAP  MOVEABLE PURE   "res\\listdata.bmp"
 IDB_SYNCNOTIFICATION    BITMAP  MOVEABLE PURE   "res\\syncnotification.bmp"
 
 /////////////////////////////////////////////////////////////////////////////

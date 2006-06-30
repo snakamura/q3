@@ -11,6 +11,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmlistwindow.h>
 #include <qmmacro.h>
@@ -1201,15 +1202,17 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->createHeaderColumn())
 		return -1;
 	
-	pImpl_->hImageList_ = ImageList_LoadImage(
-		Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDB_LIST), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
+	wstring_ptr wstrBitmapPath(Application::getApplication().getProfilePath(FileNames::LIST_BMP));
+	W2T(wstrBitmapPath.get(), ptszBitmapPath);
+	pImpl_->hImageList_ = ImageList_LoadImage(0, ptszBitmapPath,
+		16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_LOADFROMFILE);
 #ifdef _WIN32_WCE_PSPC
 	ImageList_SetBkColor(pImpl_->hImageList_, CLR_NONE);
 #endif
-	pImpl_->hImageListData_ = ImageList_LoadBitmap(
-		Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDB_LISTDATA), 8, 0, RGB(255, 255, 255));
+	wstring_ptr wstrDataBitmapPath(Application::getApplication().getProfilePath(FileNames::LISTDATA_BMP));
+	W2T(wstrDataBitmapPath.get(), ptszDataBitmapPath);
+	pImpl_->hImageListData_ = ImageList_LoadImage(0, ptszDataBitmapPath,
+		8, 0, RGB(255, 255, 255), IMAGE_BITMAP, LR_LOADFROMFILE);
 	
 	pImpl_->hpenThreadLine_ = ::CreatePen(PS_SOLID, 1, RGB(0, 0x80, 0));
 	pImpl_->hpenFocusedThreadLine_ = ::CreatePen(PS_SOLID, 1, RGB(255, 255, 255));

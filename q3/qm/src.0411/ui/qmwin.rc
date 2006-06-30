@@ -1857,11 +1857,15 @@ END
 // PROFILE
 //
 
+ACCOUNT.BMP             PROFILE MOVEABLE PURE   "..\\..\\src\\ui\\res\\account.bmp"
 COLORS.XML              PROFILE MOVEABLE PURE   "..\\..\\src\\ui\\res\\colors.xml"
 FILTERS.XML             PROFILE MOVEABLE PURE   "res\\filters.xml"
+FOLDER.BMP              PROFILE MOVEABLE PURE   "..\\..\\src\\ui\\res\\folder.bmp"
 HEADER.XML              PROFILE MOVEABLE PURE   "res\\header.xml"
 HEADEREDIT.XML          PROFILE MOVEABLE PURE   "res\\headeredit.xml"
 KEYMAP.XML              PROFILE MOVEABLE PURE   "..\\..\\src\\ui\\res\\keymap.xml"
+LIST.BMP                PROFILE MOVEABLE PURE   "..\\..\\src\\ui\\res\\list.bmp"
+LISTDATA.BMP            PROFILE MOVEABLE PURE   "..\\..\\src\\ui\\res\\listdata.bmp"
 MENUS.XML               PROFILE MOVEABLE PURE   "res\\menus.xml"
 QMAIL.XML               PROFILE MOVEABLE PURE   "..\\..\\src\\ui\\res\\qmail.xml"
 SYNCFILTERS.XML         PROFILE MOVEABLE PURE   "res\\syncfilters.xml"

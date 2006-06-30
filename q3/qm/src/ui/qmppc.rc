@@ -2040,11 +2040,15 @@ END
 // PROFILE
 //
 
+ACCOUNT.BMP             PROFILE DISCARDABLE     "res\\account.bmp"
 COLORS.XML              PROFILE DISCARDABLE     "res\\colors.xml"
 FILTERS.XML             PROFILE DISCARDABLE     "res\\filters.xml"
+FOLDER.BMP              PROFILE DISCARDABLE     "res\\folder.bmp"
 HEADER.XML              PROFILE DISCARDABLE     "res\\ppc\\header.xml"
 HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\ppc\\headeredit.xml"
 KEYMAP.XML              PROFILE DISCARDABLE     "res\\ppc\\keymap.xml"
+LIST.BMP                PROFILE DISCARDABLE     "res\\list.bmp"
+LISTDATA.BMP            PROFILE DISCARDABLE     "res\\listdata.bmp"
 MENUS.XML               PROFILE DISCARDABLE     "res\\ppc\\menus.xml"
 QMAIL.XML               PROFILE DISCARDABLE     "res\\qmail.xml"
 SYNCFILTERS.XML         PROFILE DISCARDABLE     "res\\syncfilters.xml"

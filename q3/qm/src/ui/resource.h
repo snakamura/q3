@@ -9,13 +9,9 @@
 #define IDI_OFFLINE                     104
 #define IDI_ONLINE                      105
 #define IDI_NEWMAIL                     106
-#define IDB_FOLDER                      200
-#define IDB_HEADER                      201
-#define IDB_LIST                        202
-#define IDB_LISTDATA                    203
-#define IDB_ADDRESSBOOK                 204
-#define IDB_SYNCNOTIFICATION            205
-#define IDB_ACCOUNT                     206
+#define IDB_HEADER                      200
+#define IDB_ADDRESSBOOK                 201
+#define IDB_SYNCNOTIFICATION            202
 #define IDR_ADDRESSBOOK                 300
 #define IDS_ACTION_SHOWTOOLBAR          1000
 #define IDS_ACTION_HIDETOOLBAR          1001

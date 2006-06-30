@@ -25,6 +25,7 @@ namespace qm {
 struct FileNames
 {
 	static const WCHAR* ACCOUNT;
+	static const WCHAR* ACCOUNT_BMP;
 	static const WCHAR* ACCOUNT_XML;
 	static const WCHAR* ADDRESSBOOK_XML;
 	static const WCHAR* AUTOPILOT_XML;
@@ -35,6 +36,7 @@ struct FileNames
 	static const WCHAR* COLORS_XML;
 	static const WCHAR* COMPACT;
 	static const WCHAR* FILTERS_XML;
+	static const WCHAR* FOLDER_BMP;
 	static const WCHAR* FOLDERS_XML;
 	static const WCHAR* FONTS_XML;
 	static const WCHAR* GOROUND_XML;
@@ -44,6 +46,8 @@ struct FileNames
 	static const WCHAR* INDEX_EXT;
 	static const WCHAR* KEY;
 	static const WCHAR* KEYMAP_XML;
+	static const WCHAR* LIST_BMP;
+	static const WCHAR* LISTDATA_BMP;
 	static const WCHAR* MAP_EXT;
 	static const WCHAR* MENUS_XML;
 	static const WCHAR* MSG;

@@ -13,6 +13,7 @@
 #include <qmaccount.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
+#include <qmfilenames.h>
 #include <qmfolder.h>
 
 #include <qsmenu.h>
@@ -713,9 +714,10 @@ LRESULT qm::TabCtrlWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	setFont(hfont_);
 	
-	HIMAGELIST hImageList = ImageList_LoadImage(
-		Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDB_FOLDER), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
+	wstring_ptr wstrBitmapPath(Application::getApplication().getProfilePath(FileNames::FOLDER_BMP));
+	W2T(wstrBitmapPath.get(), ptszBitmapPath);
+	HIMAGELIST hImageList = ImageList_LoadImage(0, ptszBitmapPath,
+		16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_LOADFROMFILE);
 	TabCtrl_SetImageList(getHandle(), hImageList);
 	
 	pDropTarget_.reset(new DropTarget(getHandle()));
