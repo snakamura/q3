@@ -270,6 +270,27 @@ int qm::UIUtil::getFolderImage(Folder* pFolder,
 	return nImage;
 }
 
+HIMAGELIST qm::UIUtil::createImageListFromFile(const WCHAR* pwszName,
+											   int nWidth,
+											   COLORREF crMask)
+{
+	wstring_ptr wstrPath(Application::getApplication().getProfilePath(pwszName));
+	W2T(wstrPath.get(), ptszPath);
+#ifndef _WIN32_WCE
+	return ImageList_LoadImage(0, ptszPath, nWidth, 0,
+		crMask, IMAGE_BITMAP, LR_LOADFROMFILE);
+#else
+	GdiObject<HBITMAP> hBitmap(::SHLoadDIBitmap(ptszPath));
+	BITMAP bm;
+	::GetObject(hBitmap.get(), sizeof(bm), &bm);
+	
+	HIMAGELIST hImageList = ImageList_Create(nWidth, bm.bmHeight,
+		ILC_COLOR | ILC_MASK, bm.bmWidth/nWidth, 0);
+	ImageList_AddMasked(hImageList, hBitmap.get(), crMask);
+	return hImageList;
+#endif
+}
+
 wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
 										   const WCHAR* pwszPrefix,
 										   const WCHAR* pwszExtension,

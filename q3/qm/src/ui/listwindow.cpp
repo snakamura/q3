@@ -1202,17 +1202,13 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (!pImpl_->createHeaderColumn())
 		return -1;
 	
-	wstring_ptr wstrBitmapPath(Application::getApplication().getProfilePath(FileNames::LIST_BMP));
-	W2T(wstrBitmapPath.get(), ptszBitmapPath);
-	pImpl_->hImageList_ = ImageList_LoadImage(0, ptszBitmapPath,
-		16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_LOADFROMFILE);
+	pImpl_->hImageList_ = UIUtil::createImageListFromFile(
+		FileNames::LIST_BMP, 16, CLR_DEFAULT);
 #ifdef _WIN32_WCE_PSPC
 	ImageList_SetBkColor(pImpl_->hImageList_, CLR_NONE);
 #endif
-	wstring_ptr wstrDataBitmapPath(Application::getApplication().getProfilePath(FileNames::LISTDATA_BMP));
-	W2T(wstrDataBitmapPath.get(), ptszDataBitmapPath);
-	pImpl_->hImageListData_ = ImageList_LoadImage(0, ptszDataBitmapPath,
-		8, 0, RGB(255, 255, 255), IMAGE_BITMAP, LR_LOADFROMFILE);
+	pImpl_->hImageListData_ = UIUtil::createImageListFromFile(
+		FileNames::LISTDATA_BMP, 8, RGB(255, 255, 255));
 	
 	pImpl_->hpenThreadLine_ = ::CreatePen(PS_SOLID, 1, RGB(0, 0x80, 0));
 	pImpl_->hpenFocusedThreadLine_ = ::CreatePen(PS_SOLID, 1, RGB(255, 255, 255));

@@ -83,10 +83,8 @@ LRESULT qm::AccountDialog::onDestroy()
 LRESULT qm::AccountDialog::onInitDialog(HWND hwndFocus,
 										LPARAM lParam)
 {
-	wstring_ptr wstrBitmapPath(Application::getApplication().getProfilePath(FileNames::ACCOUNT_BMP));
-	W2T(wstrBitmapPath.get(), ptszBitmapPath);
-	HIMAGELIST hImageList = ImageList_LoadImage(0, ptszBitmapPath,
-		16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_LOADFROMFILE);
+	HIMAGELIST hImageList = UIUtil::createImageListFromFile(
+		FileNames::ACCOUNT_BMP, 16, CLR_DEFAULT);
 	TreeView_SetImageList(getDlgItem(IDC_ACCOUNT), hImageList, TVSIL_NORMAL);
 	
 	init(true);

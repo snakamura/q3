@@ -73,6 +73,10 @@ public:
 	static int getFolderImage(Folder* pFolder,
 							  bool bSelected);
 	
+	static HIMAGELIST createImageListFromFile(const WCHAR* pwszName,
+											  int nWidth,
+											  COLORREF crMask);
+	
 	static qs::wstring_ptr writeTemporaryFile(const WCHAR* pwszValue,
 											  const WCHAR* pwszPrefix,
 											  const WCHAR* pwszExtension,

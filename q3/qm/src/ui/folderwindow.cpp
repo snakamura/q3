@@ -1566,10 +1566,8 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	}
 #endif
 	
-	wstring_ptr wstrBitmapPath(Application::getApplication().getProfilePath(FileNames::FOLDER_BMP));
-	W2T(wstrBitmapPath.get(), ptszBitmapPath);
-	HIMAGELIST hImageList = ImageList_LoadImage(0, ptszBitmapPath,
-		16, 0, CLR_DEFAULT, IMAGE_BITMAP, LR_LOADFROMFILE);
+	HIMAGELIST hImageList = UIUtil::createImageListFromFile(
+		FileNames::FOLDER_BMP, 16, CLR_DEFAULT);
 	TreeView_SetImageList(getHandle(), hImageList, TVSIL_NORMAL);
 	
 	pImpl_->pDropTarget_.reset(new DropTarget(getHandle()));
