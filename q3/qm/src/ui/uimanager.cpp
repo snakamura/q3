@@ -10,6 +10,7 @@
 #include <qmfilenames.h>
 
 #include <qsconv.h>
+#include <qsdevicecontext.h>
 
 #include "actionitem.h"
 #include "menucreator.h"
@@ -39,13 +40,13 @@ qm::UIManager::UIManager()
 	wstring_ptr wstrBitmapPath(app.getProfilePath(FileNames::TOOLBAR_BMP));
 	W2T(wstrBitmapPath.get(), ptszBitmapPath);
 #ifdef _WIN32_WCE
-	HBITMAP hBitmap = ::SHLoadDIBitmap(ptszBitmapPath);
+	GdiObject<HBITMAP> hBitmap(::SHLoadDIBitmap(ptszBitmapPath));
 #else
-	HBITMAP hBitmap = reinterpret_cast<HBITMAP>(::LoadImage(0,
-		ptszBitmapPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+	GdiObject<HBITMAP> hBitmap(reinterpret_cast<HBITMAP>(::LoadImage(0,
+		ptszBitmapPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE)));
 #endif
 	wstring_ptr wstrToolbarPath(app.getProfilePath(FileNames::TOOLBARS_XML));
-	pToolbarManager_.reset(new ToolbarManager(wstrToolbarPath.get(), hBitmap,
+	pToolbarManager_.reset(new ToolbarManager(wstrToolbarPath.get(), hBitmap.get(),
 		actionItems, countof(actionItems), pMenuManager_.get(), pActionParamMap_.get()));
 	
 	wstring_ptr wstrKeyMapPath(app.getProfilePath(FileNames::KEYMAP_XML));
