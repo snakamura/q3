@@ -570,9 +570,13 @@ HDWP qm::TextHeaderItem::layout(HDWP hdwp,
 	hdwp = Window(hwnd_).deferWindowPos(hdwp, 0, rect.left,
 		rect.top + ((rect.bottom - rect.top) - nHeight)/2,
 		rect.right - rect.left, nHeight, nFlags);
+	
+	postLayout();
+	
 #ifdef _WIN32_WCE
 	Window(hwnd_).invalidate();
 #endif
+	
 	return hdwp;
 }
 
@@ -590,7 +594,25 @@ void qm::TextHeaderItem::setMessage(const TemplateContext* pContext)
 {
 	if (pContext) {
 		wstring_ptr wstrValue(getValue(*pContext));
-		Window(hwnd_).setWindowText(wstrValue.get() ? wstrValue.get() : L"");
+		
+		const WCHAR* pwszValue = L"";
+		if (wstrValue.get())
+			pwszValue = wstrValue.get();
+		
+		const WCHAR* p = wcschr(pwszValue, L'\n');
+		if (p) {
+			StringBuffer<WSTRING> buf(pwszValue, p - pwszValue);
+			while (*p) {
+				if (*p == L'\n')
+					buf.append(L'\r');
+				buf.append(*p);
+				++p;
+			}
+			Window(hwnd_).setWindowText(buf.getCharArray());
+		}
+		else {
+			Window(hwnd_).setWindowText(pwszValue);
+		}
 	}
 	else {
 		Window(hwnd_).setWindowText(L"");
@@ -611,6 +633,10 @@ bool qm::TextHeaderItem::isActive() const
 TextHeaderItem::Align qm::TextHeaderItem::getAlign() const
 {
 	return align_;
+}
+
+void qm::TextHeaderItem::postLayout()
+{
 }
 
 HBRUSH qm::TextHeaderItem::getColor(qs::DeviceContext* pdc)
@@ -734,12 +760,29 @@ UINT qm::StaticHeaderItem::getWindowStyle() const
  *
  */
 
-qm::EditHeaderItem::EditHeaderItem()
+qm::EditHeaderItem::EditHeaderItem() :
+	nMultiline_(-1)
 {
 }
 
 qm::EditHeaderItem::~EditHeaderItem()
 {
+}
+
+void qm::EditHeaderItem::setMultiline(unsigned int nMultiline)
+{
+	nMultiline_ = nMultiline;
+}
+
+unsigned int qm::EditHeaderItem::getHeight(unsigned int nWidth,
+										   unsigned int nFontHeight) const
+{
+	if (nMultiline_ == -1)
+		return TextHeaderItem::getHeight(nWidth, nFontHeight);
+	else if (nMultiline_ == 0)
+		return getLineCount()*nFontHeight;
+	else
+		return QSMIN(getLineCount(), nMultiline_)*nFontHeight;
 }
 
 const TCHAR* qm::EditHeaderItem::getWindowClassName() const
@@ -750,6 +793,7 @@ const TCHAR* qm::EditHeaderItem::getWindowClassName() const
 UINT qm::EditHeaderItem::getWindowStyle() const
 {
 	UINT nStyle = ES_READONLY | ES_AUTOHSCROLL;
+	
 	switch (getAlign()) {
 	case ALIGN_LEFT:
 		nStyle |= ES_LEFT;
@@ -764,9 +808,18 @@ UINT qm::EditHeaderItem::getWindowStyle() const
 		assert(false);
 		break;
 	}
+	
+	if (nMultiline_ != -1)
+		nStyle |= ES_MULTILINE | WS_VSCROLL;
+	
 	return nStyle;
 }
 
+void qm::EditHeaderItem::postLayout()
+{
+	if (nMultiline_ != -1 && nMultiline_ != 0)
+		Window(getHandle()).showScrollBar(SB_VERT, getLineCount() > nMultiline_);
+}
 
 void qm::EditHeaderItem::copy()
 {
@@ -791,6 +844,26 @@ void qm::EditHeaderItem::selectAll()
 bool qm::EditHeaderItem::canSelectAll()
 {
 	return true;
+}
+
+unsigned int qm::EditHeaderItem::getLineCount() const
+{
+	wstring_ptr wstrText(Window(getHandle()).getWindowText());
+	unsigned int nCount = 1;
+	for (const WCHAR* p = wstrText.get(); *p; ++p) {
+		if (*p == L'\n')
+			++nCount;
+	}
+	return nCount;
+}
+
+unsigned int qm::EditHeaderItem::parseMultiline(const WCHAR* pwszMultiline)
+{
+	WCHAR* pEnd = 0;
+	long n = wcstol(pwszMultiline, &pEnd, 10);
+	if (*pEnd)
+		return -1;
+	return n;
 }
 
 
@@ -1230,8 +1303,9 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		assert(pCurrentLine_);
 		
+		bool bStatic = wcscmp(pwszLocalName, L"static") == 0;
 		std::auto_ptr<TextHeaderItem> pItem;
-		if (wcscmp(pwszLocalName, L"static") == 0)
+		if (bStatic)
 			pItem.reset(new StaticHeaderItem());
 		else
 			pItem.reset(new EditHeaderItem());
@@ -1254,6 +1328,10 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				if (wcscmp(attributes.getValue(n), L"true") == 0)
 					pItem->setFlags(HeaderItem::FLAG_SHOWALWAYS,
 						HeaderItem::FLAG_SHOWALWAYS);
+			}
+			else if (!bStatic && wcscmp(pwszAttrLocalName, L"multiline") == 0) {
+				static_cast<EditHeaderItem*>(pItem.get())->setMultiline(
+					EditHeaderItem::parseMultiline(attributes.getValue(n)));
 			}
 			else if (wcscmp(pwszAttrLocalName, L"background") == 0) {
 				std::auto_ptr<Template> pBackground(parseTemplate(attributes.getValue(n)));

@@ -228,6 +228,7 @@ protected:
 protected:
 	virtual const TCHAR* getWindowClassName() const = 0;
 	virtual UINT getWindowStyle() const = 0;
+	virtual void postLayout();
 
 public:
 	virtual HBRUSH getColor(qs::DeviceContext* pdc);
@@ -290,9 +291,17 @@ public:
 	EditHeaderItem();
 	virtual ~EditHeaderItem();
 
+public:
+	void setMultiline(unsigned int nMultiline);
+
+public:
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const;
+
 protected:
 	virtual const TCHAR* getWindowClassName() const;
 	virtual UINT getWindowStyle() const;
+	virtual void postLayout();
 
 public:
 	virtual void copy();
@@ -301,8 +310,17 @@ public:
 	virtual bool canSelectAll();
 
 private:
+	unsigned int getLineCount() const;
+
+public:
+	static unsigned int parseMultiline(const WCHAR* pwszMultiline);
+
+private:
 	EditHeaderItem(const EditHeaderItem&);
 	EditHeaderItem& operator=(const EditHeaderItem&);
+
+private:
+	unsigned int nMultiline_;
 };
 
 
