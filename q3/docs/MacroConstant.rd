@@ -1,6 +1,0 @@
-=begin
-=’è”
-
-// TODO
-
-=end

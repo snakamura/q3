@@ -124,9 +124,7 @@
 *((<アクション|URL:Action.html>))
 *((<マクロ|URL:Macro.html>))
   *((<型|URL:MacroType.html>))
-  *((<定数|URL:MacroConstant.html>))
   *((<変数|URL:MacroVariable.html>))
-  *((<正規表現|URL:MacroRegex.html>))
   *((<関数|URL:MacroFunction.html>))
 *設定ファイル
   *プロファイル
