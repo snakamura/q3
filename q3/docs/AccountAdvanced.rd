@@ -3,7 +3,6 @@
 
 高度の設定を行います。
 
-// TODO 画像更新
 ((<[高度]タブ|"IMG:images/AccountAdvancedPage.png">))
 
 
