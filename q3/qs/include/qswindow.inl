@@ -520,6 +520,13 @@ inline bool qs::Window::setScrollRange(int nBar,
 	return ::SetScrollRange(hwnd_, nBar, nMinPos, nMaxPos, bRedraw) != 0;
 }
 
+inline bool qs::Window::showScrollBar(int nBar,
+									  bool bShow)
+{
+	assert(hwnd_);
+	return ::ShowScrollBar(hwnd_, nBar, bShow) != 0;
+}
+
 inline int qs::Window::scrollWindow(int x,
 									int y)
 {

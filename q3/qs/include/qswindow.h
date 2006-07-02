@@ -276,6 +276,8 @@ public:
 						int nMinPos,
 						int nMaxPos,
 						bool bRedraw);
+	bool showScrollBar(int nBar,
+					   bool bShow);
 	int scrollWindow(int x,
 					 int y);
 	int scrollWindow(int x,
