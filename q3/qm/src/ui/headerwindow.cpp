@@ -817,8 +817,9 @@ UINT qm::EditHeaderItem::getWindowStyle() const
 
 void qm::EditHeaderItem::postLayout()
 {
-	if (nMultiline_ != -1 && nMultiline_ != 0)
-		Window(getHandle()).showScrollBar(SB_VERT, getLineCount() > nMultiline_);
+	if (nMultiline_ != -1)
+		Window(getHandle()).showScrollBar(SB_VERT,
+			nMultiline_ != 0 && getLineCount() > nMultiline_);
 }
 
 void qm::EditHeaderItem::copy()
