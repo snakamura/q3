@@ -524,7 +524,13 @@ inline bool qs::Window::showScrollBar(int nBar,
 									  bool bShow)
 {
 	assert(hwnd_);
+#ifdef _WIN32_WCE
+	DWORD dwStyle = nBar == SB_HORZ ? WS_HSCROLL : WS_VSCROLL;
+	setStyle(bShow ? dwStyle : 0, dwStyle);
+	return true;
+#else
 	return ::ShowScrollBar(hwnd_, nBar, bShow) != 0;
+#endif
 }
 
 inline int qs::Window::scrollWindow(int x,
