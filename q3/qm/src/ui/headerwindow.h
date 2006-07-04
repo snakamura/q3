@@ -293,6 +293,7 @@ public:
 
 public:
 	void setMultiline(unsigned int nMultiline);
+	void setWrap(bool bWrap);
 
 public:
 	virtual unsigned int getHeight(unsigned int nWidth,
@@ -321,6 +322,7 @@ private:
 
 private:
 	unsigned int nMultiline_;
+	bool bWrap_;
 };
 
 

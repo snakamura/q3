@@ -761,7 +761,8 @@ UINT qm::StaticHeaderItem::getWindowStyle() const
  */
 
 qm::EditHeaderItem::EditHeaderItem() :
-	nMultiline_(-1)
+	nMultiline_(-1),
+	bWrap_(false)
 {
 }
 
@@ -772,6 +773,11 @@ qm::EditHeaderItem::~EditHeaderItem()
 void qm::EditHeaderItem::setMultiline(unsigned int nMultiline)
 {
 	nMultiline_ = nMultiline;
+}
+
+void qm::EditHeaderItem::setWrap(bool bWrap)
+{
+	bWrap_ = bWrap;
 }
 
 unsigned int qm::EditHeaderItem::getHeight(unsigned int nWidth,
@@ -792,7 +798,7 @@ const TCHAR* qm::EditHeaderItem::getWindowClassName() const
 
 UINT qm::EditHeaderItem::getWindowStyle() const
 {
-	UINT nStyle = ES_READONLY | ES_AUTOHSCROLL;
+	UINT nStyle = ES_READONLY;
 	
 	switch (getAlign()) {
 	case ALIGN_LEFT:
@@ -809,6 +815,8 @@ UINT qm::EditHeaderItem::getWindowStyle() const
 		break;
 	}
 	
+	if (nMultiline_ == -1 || !bWrap_)
+		nStyle |= ES_AUTOHSCROLL;
 	if (nMultiline_ != -1)
 		nStyle |= ES_MULTILINE | WS_VSCROLL;
 	
@@ -849,13 +857,7 @@ bool qm::EditHeaderItem::canSelectAll()
 
 unsigned int qm::EditHeaderItem::getLineCount() const
 {
-	wstring_ptr wstrText(Window(getHandle()).getWindowText());
-	unsigned int nCount = 1;
-	for (const WCHAR* p = wstrText.get(); *p; ++p) {
-		if (*p == L'\n')
-			++nCount;
-	}
-	return nCount;
+	return Window(getHandle()).sendMessage(EM_GETLINECOUNT);
 }
 
 unsigned int qm::EditHeaderItem::parseMultiline(const WCHAR* pwszMultiline)
@@ -1333,6 +1335,10 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else if (!bStatic && wcscmp(pwszAttrLocalName, L"multiline") == 0) {
 				static_cast<EditHeaderItem*>(pItem.get())->setMultiline(
 					EditHeaderItem::parseMultiline(attributes.getValue(n)));
+			}
+			else if (!bStatic && wcscmp(pwszAttrLocalName, L"wrap") == 0) {
+				if (wcscmp(attributes.getValue(n), L"true") == 0)
+					static_cast<EditHeaderItem*>(pItem.get())->setWrap(true);
 			}
 			else if (wcscmp(pwszAttrLocalName, L"background") == 0) {
 				std::auto_ptr<Template> pBackground(parseTemplate(attributes.getValue(n)));
