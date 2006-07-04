@@ -857,7 +857,7 @@ bool qm::EditHeaderItem::canSelectAll()
 
 unsigned int qm::EditHeaderItem::getLineCount() const
 {
-	return Window(getHandle()).sendMessage(EM_GETLINECOUNT);
+	return static_cast<unsigned int>(Window(getHandle()).sendMessage(EM_GETLINECOUNT));
 }
 
 unsigned int qm::EditHeaderItem::parseMultiline(const WCHAR* pwszMultiline)
