@@ -896,7 +896,7 @@ HIMAGELIST qm::ListWindowImpl::createDragImage(const POINT& ptCursor,
 		}
 	}
 	
-#ifdef _WIN32_WCE
+#if defined _WIN32_WCE && _WIN32_WCE < 0x500
 	UINT nFlags = ILC_COLOR | ILC_MASK;
 #else
 	UINT nFlags = ILC_COLOR32 | ILC_MASK;

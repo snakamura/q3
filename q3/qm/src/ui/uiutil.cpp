@@ -284,8 +284,13 @@ HIMAGELIST qm::UIUtil::createImageListFromFile(const WCHAR* pwszName,
 	BITMAP bm;
 	::GetObject(hBitmap.get(), sizeof(bm), &bm);
 	
-	HIMAGELIST hImageList = ImageList_Create(nWidth, bm.bmHeight,
-		ILC_COLOR | ILC_MASK, bm.bmWidth/nWidth, 0);
+#if _WIN32_WCE >= 0x500
+	UINT nFlags = ILC_COLOR32 | ILC_MASK;
+#else
+	UINT nFlags = ILC_COLOR | ILC_MASK;
+#endif
+	HIMAGELIST hImageList = ImageList_Create(nWidth,
+		bm.bmHeight, nFlags, bm.bmWidth/nWidth, 0);
 	ImageList_AddMasked(hImageList, hBitmap.get(), crMask);
 	return hImageList;
 #endif
