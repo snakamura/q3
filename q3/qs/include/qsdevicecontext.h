@@ -80,6 +80,12 @@ public:
 				int nHeight,
 				DWORD dwRop);
 	
+	COLORREF getPixel(int x,
+					  int y);
+	COLORREF setPixel(int x,
+					  int y,
+					  COLORREF cr);
+	
 	bool extTextOut(int x,
 					int y,
 					UINT nOptions,

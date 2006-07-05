@@ -159,6 +159,21 @@ inline bool qs::DeviceContext::patBlt(int x,
 	return ::PatBlt(hdc_, x, y, nWidth, nHeight, dwRop) != 0;
 }
 
+inline COLORREF qs::DeviceContext::getPixel(int x,
+											int y)
+{
+	assert(hdc_);
+	return ::GetPixel(hdc_, x, y);
+}
+
+inline COLORREF qs::DeviceContext::setPixel(int x,
+											int y,
+											COLORREF cr)
+{
+	assert(hdc_);
+	return ::SetPixel(hdc_, x, y, cr);
+}
+
 inline bool qs::DeviceContext::extTextOut(int x,
 										  int y,
 										  UINT nOptions,
