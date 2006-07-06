@@ -568,8 +568,7 @@ HDWP qm::TextHeaderItem::layout(HDWP hdwp,
 	nFlags |= SWP_NOCOPYBITS;
 #endif
 	hdwp = Window(hwnd_).deferWindowPos(hdwp, 0, rect.left,
-		rect.top + ((rect.bottom - rect.top) - nHeight)/2,
-		rect.right - rect.left, nHeight, nFlags);
+		rect.top, rect.right - rect.left, nHeight, nFlags);
 	
 	postLayout();
 	
