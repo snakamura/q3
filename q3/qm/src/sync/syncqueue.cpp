@@ -68,25 +68,40 @@ void qm::SyncQueue::pushFolders(const Account::NormalFolderList& listFolder)
 
 void qm::SyncQueue::sync()
 {
-	Account::NormalFolderList l;
+	Account::NormalFolderList listFolder;
 	{
 		Lock<CriticalSection> lock(cs_);
-		l.reserve(listFolderName_.size());
+		listFolder.reserve(listFolderName_.size());
 		for (FolderNameList::const_iterator it = listFolderName_.begin(); it != listFolderName_.end(); ++it) {
 			Folder* pFolder = Util::getAccountOrFolder(pDocument_, *it).second;
 			if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL)
-				l.push_back(static_cast<NormalFolder*>(pFolder));
+				listFolder.push_back(static_cast<NormalFolder*>(pFolder));
 		}
 		clear();
 	}
-	if (l.empty())
+	if (listFolder.empty())
 		return;
 	
-	std::sort(l.begin(), l.end());
-	l.erase(std::unique(l.begin(), l.end()), l.end());
+	std::sort(listFolder.begin(), listFolder.end());
+	listFolder.erase(std::unique(listFolder.begin(), listFolder.end()), listFolder.end());
 	
-	SyncUtil::syncFolders(pSyncManager_, pDocument_,
-		pSyncDialogManager_, SyncData::TYPE_ACTIVE, l, 0);
+	while (!listFolder.empty()) {
+		Account* pAccount = listFolder.front()->getAccount();
+		Account::NormalFolderList l;
+		l.reserve(listFolder.size());
+		for (Account::NormalFolderList::iterator it = listFolder.begin(); it != listFolder.end(); ) {
+			NormalFolder* pFolder = *it;
+			if (pFolder->getAccount() == pAccount) {
+				l.push_back(pFolder);
+				it = listFolder.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+		SyncUtil::syncFolders(pSyncManager_, pDocument_,
+			pSyncDialogManager_, SyncData::TYPE_ACTIVE, l, 0);
+	}
 }
 
 void qm::SyncQueue::clear()
