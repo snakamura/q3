@@ -114,6 +114,10 @@ protected:
 		INITIALFOCUS_TRUE,
 		INITIALFOCUS_FALSE
 	};
+	
+	enum {
+		DEFAULT_MARGIN = 7
+	};
 
 protected:
 	explicit HeaderEditItem(EditWindowFocusController* pController);
@@ -241,6 +245,8 @@ protected:
 	virtual const TCHAR* getWindowClassName() const = 0;
 	virtual UINT getWindowStyle() const = 0;
 	virtual UINT getWindowExStyle() const = 0;
+	virtual int getTopOffset(const RECT& rect,
+							 unsigned int nFontHeight) const = 0;
 
 public:
 	virtual void setFocus();
@@ -290,6 +296,8 @@ protected:
 	virtual const TCHAR* getWindowClassName() const;
 	virtual UINT getWindowStyle() const;
 	virtual UINT getWindowExStyle() const;
+	virtual int getTopOffset(const RECT& rect,
+							 unsigned int nFontHeight) const;
 
 private:
 	StaticHeaderEditItem(const StaticHeaderEditItem&);
@@ -333,6 +341,8 @@ protected:
 	virtual const TCHAR* getWindowClassName() const;
 	virtual UINT getWindowStyle() const;
 	virtual UINT getWindowExStyle() const;
+	virtual int getTopOffset(const RECT& rect,
+							 unsigned int nFontHeight) const;
 
 public:
 	virtual void copy();

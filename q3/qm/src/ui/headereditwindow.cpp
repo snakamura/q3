@@ -670,7 +670,8 @@ HDWP qm::TextHeaderEditItem::layout(HDWP hdwp,
 	nFlags |= SWP_NOCOPYBITS;
 #endif
 	hdwp = Window(hwnd_).deferWindowPos(hdwp, 0, rect.left,
-		rect.top, rect.right - rect.left, nHeight, nFlags);
+		rect.top + getTopOffset(rect, nFontHeight),
+		rect.right - rect.left, nHeight, nFlags);
 #ifdef _WIN32_WCE
 	Window(hwnd_).invalidate();
 #endif
@@ -847,6 +848,16 @@ UINT qm::StaticHeaderEditItem::getWindowExStyle() const
 	return 0;
 }
 
+int qm::StaticHeaderEditItem::getTopOffset(const RECT& rect,
+										   unsigned int nFontHeight) const
+{
+	unsigned int nHeight = rect.bottom - rect.top;
+	if (nHeight > nFontHeight + DEFAULT_MARGIN)
+		return DEFAULT_MARGIN/2;
+	else
+		return (nHeight - nFontHeight)/2;
+}
+
 
 /****************************************************************************
  *
@@ -906,7 +917,7 @@ bool qm::EditHeaderEditItem::isFocusItem() const
 unsigned int qm::EditHeaderEditItem::getHeight(unsigned int nWidth,
 											   unsigned int nFontHeight) const
 {
-	return nFontHeight + 7;
+	return nFontHeight + DEFAULT_MARGIN;
 }
 
 bool qm::EditHeaderEditItem::create(qs::WindowBase* pParent,
@@ -972,6 +983,12 @@ UINT qm::EditHeaderEditItem::getWindowExStyle() const
 #else
 	return WS_EX_CLIENTEDGE;
 #endif
+}
+
+int qm::EditHeaderEditItem::getTopOffset(const RECT& rect,
+										 unsigned int nFontHeight) const
+{
+	return 0;
 }
 
 void qm::EditHeaderEditItem::copy()
@@ -1368,8 +1385,7 @@ unsigned int qm::AttachmentHeaderEditItem::getHeight(unsigned int nWidth,
 	int nCount = ListView_GetItemCount(wnd_.getHandle());
 	unsigned int nHeight = QSMAX(nFontHeight,
 		static_cast<unsigned int>(::GetSystemMetrics(SM_CYSMICON))) + 1;
-//	return QSMAX(nFontHeight + 7, QSMIN(nCount*nHeight + 4, nHeight*4 + 7));
-	return QSMIN(nCount*nHeight + 4, nHeight*4 + 7);
+	return QSMAX(nFontHeight + DEFAULT_MARGIN, QSMIN(nCount*nHeight + 4, nHeight*4 + DEFAULT_MARGIN));
 }
 
 bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
