@@ -220,7 +220,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		xstring_size_ptr strMessage;
 		Message msg;
 		State state = STATE_NONE;
-		unsigned int nMaxLine = 0xffffffff;
+		unsigned int nMaxLine = -1;
 		bool bIgnore = false;
 		if (pSyncFilterSet) {
 			Pop3SyncFilterCallback callback(pDocument_, pAccount_,
@@ -259,7 +259,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				return false;
 		}
 		
-		bool bPartial = bIgnore || (nMaxLine != 0xffffffff && nSize > strMessage.size());
+		bool bPartial = bIgnore || (nMaxLine != -1 && nSize > strMessage.size());
 		
 		if (!bIgnore) {
 			if (!setUid(&msg, pwszUID))

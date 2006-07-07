@@ -154,7 +154,7 @@ public:
 				  bool* pbSet);
 	
 	// Replace the specified field by the specified value provided by parser
-	// If nIndex equals to 0xffffffff, remove all fields whose name is strName
+	// If nIndex equals to -1, remove all fields whose name is strName
 	// and set the value. If there is no field which is speicifed by strName
 	// and nIndex, replaceField behave like setField with 3rd argument be set to ture.
 	bool replaceField(const WCHAR* pwszName,
@@ -164,7 +164,7 @@ public:
 					  unsigned int nIndex);
 	
 	// Remove the specified field
-	// If nIndex equals to 0xffffffff, remove all fields whose name is strName
+	// If nIndex equals to -1, remove all fields whose name is strName
 	bool removeField(const WCHAR* pwszName);
 	bool removeField(const WCHAR* pwszName,
 					 unsigned int nIndex);

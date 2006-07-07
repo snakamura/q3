@@ -2573,7 +2573,7 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 		const WCHAR* pEnd = wcschr(p, L',');
 		while (true) {
 			wstring_ptr wstrField(trim(p, pEnd ? pEnd - p : -1));
-			partTemp.removeField(wstrField.get(), 0xffffffff);
+			partTemp.removeField(wstrField.get(), -1);
 			if (!pEnd)
 				break;
 			p = pEnd + 1;

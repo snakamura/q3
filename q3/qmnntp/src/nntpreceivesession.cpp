@@ -748,7 +748,6 @@ qmnntp::NntpSyncFilterCallback::~NntpSyncFilterCallback()
 bool qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
 {
 	bool bDownload = false;
-	unsigned int nMaxLine = 0xffffffff;
 	switch (nFlag & Account::GETMESSAGEFLAG_METHOD_MASK) {
 	case Account::GETMESSAGEFLAG_ALL:
 	case Account::GETMESSAGEFLAG_TEXT:
@@ -757,7 +756,6 @@ bool qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
 		break;
 	case Account::GETMESSAGEFLAG_HEADER:
 		bDownload = *pState_ == NntpReceiveSession::STATE_NONE;
-		nMaxLine = 0;
 		break;
 	case Account::GETMESSAGEFLAG_POSSIBLE:
 		break;

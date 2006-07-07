@@ -356,8 +356,8 @@ bool qs::Part::replaceField(const WCHAR* pwszName,
 {
 	assert(pwszName);
 	
-	if (nIndex == 0xffffffff) {
-		removeField(pwszName, 0xffffffff);
+	if (nIndex == -1) {
+		removeField(pwszName, -1);
 		return setField(pwszName, parser, true);
 	}
 	else {
@@ -398,7 +398,7 @@ bool qs::Part::replaceField(const WCHAR* pwszName,
 
 bool qs::Part::removeField(const WCHAR* pwszName)
 {
-	return removeField(pwszName, 0xffffffff);
+	return removeField(pwszName, -1);
 }
 
 bool qs::Part::removeField(const WCHAR* pwszName,
@@ -408,7 +408,7 @@ bool qs::Part::removeField(const WCHAR* pwszName,
 	
 	bool bRemove = false;
 	
-	if (nIndex == 0xffffffff) {
+	if (nIndex == -1) {
 		while (true) {
 			if (!removeField(pwszName, 0))
 				break;
