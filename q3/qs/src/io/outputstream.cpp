@@ -150,7 +150,7 @@ bool qs::ByteOutputStreamImpl::allocBuffer(size_t nSize)
 	}
 	
 	malloc_ptr<unsigned char> pNew(
-		static_cast<unsigned char*>(realloc(pBuf_, nNewSize)));
+		static_cast<unsigned char*>(reallocate(pBuf_, nNewSize)));
 	if (!pNew.get())
 		return false;
 	p_ = pNew.get() + (p_ - pBuf_);
@@ -178,7 +178,7 @@ qs::ByteOutputStream::ByteOutputStream()
 qs::ByteOutputStream::~ByteOutputStream()
 {
 	if (pImpl_) {
-		free(pImpl_->pBuf_);
+		deallocate(pImpl_->pBuf_);
 		delete pImpl_;
 		pImpl_ = 0;
 	}

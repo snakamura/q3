@@ -107,6 +107,18 @@ QSEXPORTPROC const WCHAR* getTitle();
 
 /****************************************************************************
  *
+ * memory management
+ *
+ */
+
+QSEXPORTPROC void* allocate(size_t nSize);
+QSEXPORTPROC void deallocate(void* p);
+QSEXPORTPROC void* reallocate(void* p,
+							  size_t nSize);
+
+
+/****************************************************************************
+ *
  * misc
  *
  */

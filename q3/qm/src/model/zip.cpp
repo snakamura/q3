@@ -106,7 +106,7 @@ bool qm::ZipFile::zip(const WCHAR* pwszPath,
 	}
 	
 	size_t nIndexLen = sizeof(char*)*listPath.size();
-	malloc_ptr<char> pBuf(static_cast<char*>(malloc(nIndexLen + nPathLen)));
+	malloc_ptr<char> pBuf(static_cast<char*>(allocate(nIndexLen + nPathLen)));
 	if (!pBuf.get())
 		return false;
 	char** ppIndex = reinterpret_cast<char**>(pBuf.get());

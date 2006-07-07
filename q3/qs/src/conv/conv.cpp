@@ -422,7 +422,7 @@ bool qs::UTF7ConverterImpl::decode(const CHAR* p,
 	size_t n = 0;
 	size_t nEncodeLen = pEnd - p;
 	malloc_ptr<unsigned char> pBuf(
-		static_cast<unsigned char*>(malloc(nEncodeLen + 4)));
+		static_cast<unsigned char*>(allocate(nEncodeLen + 4)));
 	if (!pBuf.get())
 		return false;
 	for (n = 0; n < nEncodeLen; ++n) {
@@ -525,7 +525,7 @@ size_t qs::UTF7Converter::encodeImpl(const WCHAR* pwsz,
 				*p++ = cIn;
 				size_t nEncodeLen = pSrc - pEncodeBegin;
 				malloc_ptr<unsigned char> pEncode(
-					static_cast<unsigned char*>(malloc(nEncodeLen*sizeof(WCHAR) + 1)));
+					static_cast<unsigned char*>(allocate(nEncodeLen*sizeof(WCHAR) + 1)));
 				if (!pEncode.get())
 					return -1;
 				for (n = 0; n < nEncodeLen; ++n, ++pEncodeBegin)

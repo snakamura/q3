@@ -75,11 +75,11 @@ class malloc_ptr
 public:
 	explicit malloc_ptr(T* p = 0) : p_(p) {}
 	malloc_ptr(malloc_ptr& a) : p_(a.release()) {}
-	~malloc_ptr() { free(p_); }
+	~malloc_ptr() { deallocate(p_); }
 	malloc_ptr& operator=(malloc_ptr& a)
 	{
 		if (&a != this) {
-			free(p_);
+			deallocate(p_);
 			p_ = a.release();
 		}
 		return *this;
@@ -97,7 +97,7 @@ public:
 	void reset(T* p = 0)
 	{
 		if (p != p_) {
-			free(p_);
+			deallocate(p_);
 			p_ = p;
 		}
 	}
@@ -121,11 +121,11 @@ public:
 	malloc_size_ptr(T* p, size_t nSize) : p_(p), nSize_(nSize) {}
 	malloc_size_ptr(malloc_ptr<T>& a, size_t nSize) : p_(a.release()), nSize_(nSize) {}
 	malloc_size_ptr(malloc_size_ptr& a) : p_(a.release()), nSize_(a.nSize_) {}
-	~malloc_size_ptr() { free(p_); }
+	~malloc_size_ptr() { deallocate(p_); }
 	malloc_size_ptr& operator=(malloc_size_ptr& a)
 	{
 		if (&a != this) {
-			free(p_);
+			deallocate(p_);
 			p_ = a.release();
 			nSize_ = a.nSize_;
 		}
@@ -145,7 +145,7 @@ public:
 			   size_t nSize = 0)
 	{
 		if (p != p_) {
-			free(p_);
+			deallocate(p_);
 			p_ = p;
 			nSize_ = nSize;
 		}

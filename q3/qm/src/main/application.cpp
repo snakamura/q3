@@ -588,7 +588,7 @@ bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
 #ifndef _WIN32_WCE
 	const unsigned char* p = static_cast<const unsigned char*>(pResource);
 #else
-	malloc_ptr<unsigned char> pCopy(static_cast<unsigned char*>(malloc(nLen)));
+	malloc_ptr<unsigned char> pCopy(static_cast<unsigned char*>(allocate(nLen)));
 	if (!pCopy.get()) {
 		log.errorf(L"Counld not alloc memory for the resource: %s", pwszName);
 		return false;

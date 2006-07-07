@@ -867,7 +867,7 @@ malloc_size_ptr<unsigned char> qs::Part::getBodyData() const
 	}
 	else {
 		size_t nLen = strlen(strBody_.get());
-		malloc_ptr<unsigned char> p(static_cast<unsigned char*>(malloc(nLen + 1)));
+		malloc_ptr<unsigned char> p(static_cast<unsigned char*>(allocate(nLen + 1)));
 		if (!p.get())
 			return malloc_size_ptr<unsigned char>();
 		decoded = malloc_size_ptr<unsigned char>(p.release(), nLen);

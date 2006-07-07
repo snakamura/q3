@@ -331,9 +331,12 @@ malloc_size_ptr<unsigned char> qs::AbstractHttpMethod::getResponseBody() const
 	malloc_ptr<unsigned char> p;
 	size_t nLen = 0;
 	while (true) {
-		p.reset(static_cast<unsigned char*>(realloc(p.release(), nLen + 4096)));
-		if (!p.get())
+		malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
+			reallocate(p.get(), nLen + 4096)));
+		if (!pNew.get())
 			return malloc_size_ptr<unsigned char>();
+		p.release();
+		p.reset(pNew.release());
 		
 		size_t nRead = pStream->read(p.get() + nLen, 4096);
 		if (nRead == -1)

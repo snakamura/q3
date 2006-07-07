@@ -637,7 +637,7 @@ size_t qs::ClusterStorage::compact(size_t nOffset,
 		assert(nLen%ClusterStorageImpl::CLUSTER_SIZE == 0);
 		
 		malloc_ptr<unsigned char> p(
-			static_cast<unsigned char*>(malloc(nLen + 1)));
+			static_cast<unsigned char*>(allocate(nLen + 1)));
 		if (!p.get())
 			return -1;
 		File* pFile = pImpl_->pFile_.get();

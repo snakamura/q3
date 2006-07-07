@@ -554,7 +554,7 @@ wstring_ptr qs::RasConnection::getLocation()
 #endif
 		
 		ptc.reset(static_cast<LPLINETRANSLATECAPS>(
-			::malloc(sizeof(LINETRANSLATECAPS) + 10240)));
+			allocate(sizeof(LINETRANSLATECAPS) + 10240)));
 		if (ptc.get()) {
 			ptc->dwTotalSize = sizeof(LINETRANSLATECAPS) + 10240;
 			if (::lineGetTranslateCaps(hLineApp, dwVersion, ptc.get()) == 0) {

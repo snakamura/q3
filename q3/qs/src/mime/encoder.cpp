@@ -594,7 +594,7 @@ bool qs::QuotedPrintableEncoderImpl::append(unsigned char c,
 	if (!*pp || static_cast<size_t>(*pp - ppBuf->get()) == ppBuf->size()) {
 		size_t nSize = ppBuf->size() == 0 ? 128 : ppBuf->size()*2;
 		malloc_size_ptr<unsigned char> p(static_cast<unsigned char*>(
-			realloc(ppBuf->get(), nSize)), nSize);
+			reallocate(ppBuf->get(), nSize)), nSize);
 		if (!p.get())
 			return false;
 		*pp = p.get() + ppBuf->size();
@@ -680,7 +680,7 @@ bool qs::QuotedPrintableEncoder::encodeImpl(InputStream* pInputStream,
 				if (nSpaceLen == nSpaceBufSize) {
 					nSpaceBufSize = nSpaceBufSize == 0 ? 10 : nSpaceBufSize*2;
 					malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
-						realloc(pSpace.get(), nSpaceBufSize)));
+						reallocate(pSpace.get(), nSpaceBufSize)));
 					if (!pNew.get())
 						return false;
 					pSpace.release();
@@ -916,7 +916,7 @@ inline size_t qs::UuencodeEncoderImpl::readLine(InputStream* pInputStream,
 		if (static_cast<size_t>(p - ppBuf->get()) >= *pnBufSize) {
 			*pnBufSize = *pnBufSize == 0 ? 80 : *pnBufSize*2;
 			malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
-				realloc(ppBuf->get(), *pnBufSize)));
+				reallocate(ppBuf->get(), *pnBufSize)));
 			if (!pNew.get())
 				return -1;
 			p = pNew.get() + (p - ppBuf->get());

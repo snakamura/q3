@@ -190,7 +190,7 @@ inline qm::ViewModelItem* qm::ViewModelItem::newItem(MessageHolder* pmh,
 #ifdef NDEBUG
 	void* p = std::__sgi_alloc::allocate(nSize);
 #else
-	void* p = malloc(nSize);
+	void* p = qs::allocate(nSize);
 #endif
 	memset(static_cast<char*>(p) + sizeof(ViewModelItem), 0, nCacheSize*sizeof(MacroValue*));
 	
@@ -210,7 +210,7 @@ inline void qm::ViewModelItem::deleteItem(ViewModelItem* pItem,
 #ifdef NDEBUG
 	std::__sgi_alloc::deallocate(pItem, nSize);
 #else
-	free(pItem);
+	qs::deallocate(pItem);
 #endif
 }
 

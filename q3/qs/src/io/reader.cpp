@@ -116,7 +116,7 @@ qs::InputStreamReader::InputStreamReader(InputStream* pInputStream,
 	assert(pInputStream);
 	
 	malloc_ptr<CHAR> pBuf(static_cast<CHAR*>(
-		malloc(InputStreamReaderImpl::BUFFER_SIZE*sizeof(CHAR))));
+		allocate(InputStreamReaderImpl::BUFFER_SIZE*sizeof(CHAR))));
 	if (!pBuf.get())
 		return;
 	
@@ -143,7 +143,7 @@ qs::InputStreamReader::~InputStreamReader()
 	if (pImpl_) {
 		if (pImpl_->bDelete_)
 			delete pImpl_->pInputStream_;
-		free(pImpl_->pBuf_);
+		deallocate(pImpl_->pBuf_);
 		delete pImpl_;
 		pImpl_ = 0;
 	}

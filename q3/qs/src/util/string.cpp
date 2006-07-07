@@ -70,7 +70,7 @@ QSEXPORTPROC void qs::freeString(STRING str)
 
 QSEXPORTPROC xstring_ptr qs::allocXString(size_t nSize)
 {
-	return static_cast<XSTRING>(malloc((nSize + 1)*sizeof(CHAR)));
+	return static_cast<XSTRING>(allocate((nSize + 1)*sizeof(CHAR)));
 }
 
 QSEXPORTPROC xstring_ptr qs::allocXString(const CHAR* psz)
@@ -92,20 +92,20 @@ QSEXPORTPROC xstring_ptr qs::allocXString(const CHAR* psz,
 }
 
 QSEXPORTPROC xstring_ptr qs::reallocXString(xstring_ptr str,
-											 size_t nSize)
+											size_t nSize)
 {
-	xstring_ptr strNew(allocXString(nSize));
+	xstring_ptr strNew(static_cast<XSTRING>(reallocate(
+		str.get(), (nSize + 1)*sizeof(CHAR))));
 	if (!strNew.get())
 		return 0;
-	size_t nLen = QSMIN(str.get() ? strlen(str.get()) : 0, nSize);
-	strncpy(strNew.get(), str.get(), nLen);
-	*(strNew.get() + nLen) = '\0';
+	*(strNew.get() + nSize) = '\0';
+	str.release();
 	return strNew;
 }
 
 QSEXPORTPROC void qs::freeXString(XSTRING str)
 {
-	free(str);
+	deallocate(str);
 }
 
 QSEXPORTPROC wstring_ptr qs::allocWString(size_t nSize)
@@ -119,7 +119,7 @@ QSEXPORTPROC wstring_ptr qs::allocWString(size_t nSize)
 
 QSEXPORTPROC wxstring_ptr qs::allocWXString(size_t nSize)
 {
-	return static_cast<WXSTRING>(malloc((nSize + 1)*sizeof(WCHAR)));
+	return static_cast<WXSTRING>(allocate((nSize + 1)*sizeof(WCHAR)));
 }
 
 QSEXPORTPROC wstring_ptr qs::allocWString(const WCHAR* pwsz)
@@ -169,12 +169,12 @@ QSEXPORTPROC wstring_ptr qs::reallocWString(wstring_ptr wstr,
 QSEXPORTPROC wxstring_ptr qs::reallocWXString(wxstring_ptr wstr,
 											  size_t nSize)
 {
-	wxstring_ptr wstrNew(allocWXString(nSize));
+	wxstring_ptr wstrNew(static_cast<WXSTRING>(reallocate(
+		wstr.get(), (nSize + 1)*sizeof(WCHAR))));
 	if (!wstrNew.get())
 		return 0;
-	size_t nLen = QSMIN(wstr.get() ? wcslen(wstr.get()) : 0, nSize);
-	wcsncpy(wstrNew.get(), wstr.get(), nLen);
-	*(wstrNew.get() + nLen) = L'\0';
+	*(wstrNew.get() + nSize) = L'\0';
+	wstr.release();
 	return wstrNew;
 }
 
@@ -188,7 +188,7 @@ QSEXPORTPROC void qs::freeWString(WSTRING wstr)
 
 QSEXPORTPROC void qs::freeWXString(WXSTRING wstr)
 {
-	free(wstr);
+	deallocate(wstr);
 }
 
 

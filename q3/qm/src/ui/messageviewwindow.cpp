@@ -701,7 +701,7 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 				if (!wstrBody.get())
 					return;
 				malloc_ptr<WCHAR> p(static_cast<WCHAR*>(
-					malloc((wstrBody.size() + 2)*sizeof(WCHAR))));
+					allocate((wstrBody.size() + 2)*sizeof(WCHAR))));
 				if (!p.get())
 					return;
 				*p = 0xfeff;

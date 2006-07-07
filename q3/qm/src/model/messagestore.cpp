@@ -161,7 +161,7 @@ bool qm::SingleMessageStore::load(unsigned int nOffset,
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	unsigned int nLoad = nLength + SingleMessageStoreImpl::SEPARATOR_SIZE;
-	malloc_ptr<unsigned char> pBuf(static_cast<unsigned char*>(malloc(nLoad)));
+	malloc_ptr<unsigned char> pBuf(static_cast<unsigned char*>(allocate(nLoad)));
 	if (!pBuf.get())
 		return false;
 	if (pImpl_->pStorage_->load(pBuf.get(), nOffset, nLoad) == -1)
@@ -598,7 +598,7 @@ bool qm::MultiMessageStore::load(unsigned int nOffset,
 	if (!stream)
 		return false;
 	
-	malloc_ptr<unsigned char> pBuf(static_cast<unsigned char*>(malloc(nLength)));
+	malloc_ptr<unsigned char> pBuf(static_cast<unsigned char*>(allocate(nLength)));
 	if (!pBuf.get())
 		return false;
 	
@@ -919,7 +919,7 @@ malloc_ptr<unsigned char> qm::MessageStoreUtil::readIndex(ClusterStorage* pStora
 														  unsigned int nKey,
 														  unsigned int nLength)
 {
-	malloc_ptr<unsigned char> p(static_cast<unsigned char*>(malloc(nLength)));
+	malloc_ptr<unsigned char> p(static_cast<unsigned char*>(allocate(nLength)));
 	if (!p.get())
 		return malloc_ptr<unsigned char>(0);
 	

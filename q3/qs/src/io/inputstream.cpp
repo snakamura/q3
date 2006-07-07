@@ -152,7 +152,7 @@ qs::ByteInputStream::ByteInputStream(const unsigned char* p,
 	
 	malloc_ptr<unsigned char> pBuf;
 	if (bCopy) {
-		pBuf.reset(static_cast<unsigned char*>(malloc(nLen)));
+		pBuf.reset(static_cast<unsigned char*>(allocate(nLen)));
 		if (!pBuf.get())
 			return;
 		memcpy(pBuf.get(), p, nLen);

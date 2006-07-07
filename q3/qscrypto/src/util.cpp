@@ -33,7 +33,7 @@ malloc_size_ptr<unsigned char> qscrypto::Util::loadFromStream(InputStream* pStre
 		if (nLen == nBufSize) {
 			nBufSize = nBufSize == 0 ? nInitialSize : nBufSize*2;
 			malloc_ptr<unsigned char> pNew(static_cast<unsigned char*>(
-				realloc(p.get(), nBufSize)));
+				reallocate(p.get(), nBufSize)));
 			if (!pNew.get())
 				return malloc_size_ptr<unsigned char>();
 			p.release();

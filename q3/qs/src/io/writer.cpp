@@ -159,7 +159,7 @@ qs::OutputStreamWriter::OutputStreamWriter(OutputStream* pOutputStream,
 	assert(pOutputStream);
 	
 	malloc_ptr<WCHAR> pBuf(static_cast<WCHAR*>(
-		malloc(OutputStreamWriterImpl::BUFFER_SIZE*sizeof(WCHAR))));
+		allocate(OutputStreamWriterImpl::BUFFER_SIZE*sizeof(WCHAR))));
 	if (!pBuf.get())
 		return;
 	
@@ -183,7 +183,7 @@ qs::OutputStreamWriter::~OutputStreamWriter()
 	if (pImpl_) {
 		if (pImpl_->bDelete_)
 			delete pImpl_->pOutputStream_;
-		free(pImpl_->pBuf_);
+		deallocate(pImpl_->pBuf_);
 		delete pImpl_;
 		pImpl_ = 0;
 	}
