@@ -252,7 +252,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 		if (!bIgnore && state != STATE_ALL && (state != STATE_HEADER || nMaxLine != 0)) {
 			strMessage.reset(0, -1);
-			if (!pPop3_->getMessage(n, nMaxLine, &strMessage, nSize))
+			if (!pPop3_->getMessage(n, nMaxLine, &strMessage, nMaxLine == -1 ? nSize : -1))
 				HANDLE_ERROR();
 			
 			if (!msg.createHeader(strMessage.get(), strMessage.size()))
@@ -600,7 +600,7 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 					unsigned int nIndex = pUIDList_->getIndex(uid.getValue());
 					if (nIndex != -1) {
 						xstring_size_ptr strMessage;
-						if (!pPop3_->getMessage(nIndex, 0xffffffff, &strMessage, listSize_[nIndex]))
+						if (!pPop3_->getMessage(nIndex, -1, &strMessage, listSize_[nIndex]))
 							HANDLE_ERROR();
 						
 						if (!setUid(&msg, uid.getValue()))
@@ -982,7 +982,7 @@ qmpop3::Pop3SyncFilterCallback::~Pop3SyncFilterCallback()
 bool qmpop3::Pop3SyncFilterCallback::getMessage(unsigned int nFlag)
 {
 	bool bDownload = false;
-	unsigned int nMaxLine = 0xffffffff;
+	unsigned int nMaxLine = -1;
 	switch (nFlag & Account::GETMESSAGEFLAG_METHOD_MASK) {
 	case Account::GETMESSAGEFLAG_ALL:
 	case Account::GETMESSAGEFLAG_TEXT:
@@ -1004,7 +1004,7 @@ bool qmpop3::Pop3SyncFilterCallback::getMessage(unsigned int nFlag)
 		xstring_size_ptr& str = *pstrMessage_;
 		
 		str.reset(0, -1);
-		if (!pPop3_->getMessage(nMessage_, nMaxLine, &str, nSize_))
+		if (!pPop3_->getMessage(nMessage_, nMaxLine, &str, nMaxLine == -1 ? nSize_ : -1))
 			return false;
 		
 		if (!pMessage_->createHeader(str.get(), str.size()))
