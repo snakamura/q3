@@ -1659,6 +1659,7 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onSize(UINT nFlags,
 	getWindowRect(&rect);
 	int nWidth = rect.right - rect.left - ::GetSystemMetrics(SM_CXVSCROLL) - 9;
 	ListView_SetColumnWidth(getHandle(), 0, nWidth);
+	showScrollBar(SB_HORZ, false);
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
 
