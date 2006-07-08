@@ -782,12 +782,16 @@ void qm::EditHeaderItem::setWrap(bool bWrap)
 unsigned int qm::EditHeaderItem::getHeight(unsigned int nWidth,
 										   unsigned int nFontHeight) const
 {
-	if (nMultiline_ == -1)
+	if (nMultiline_ == -1) {
 		return TextHeaderItem::getHeight(nWidth, nFontHeight);
-	else if (nMultiline_ == 0)
-		return getLineCount()*nFontHeight;
-	else
-		return QSMIN(getLineCount(), nMultiline_)*nFontHeight;
+	}
+	else {
+		unsigned int nLineCount = getLineCount(nWidth, nFontHeight);
+		if (nMultiline_ == 0)
+			return nLineCount*nFontHeight;
+		else
+			return QSMIN(nLineCount, nMultiline_)*nFontHeight;
+	}
 }
 
 const TCHAR* qm::EditHeaderItem::getWindowClassName() const
@@ -826,7 +830,7 @@ void qm::EditHeaderItem::postLayout()
 {
 	if (nMultiline_ != -1)
 		Window(getHandle()).showScrollBar(SB_VERT,
-			nMultiline_ != 0 && getLineCount() > nMultiline_);
+			nMultiline_ != 0 && getLineCount(-1, -1) > nMultiline_);
 }
 
 void qm::EditHeaderItem::copy()
@@ -854,9 +858,21 @@ bool qm::EditHeaderItem::canSelectAll()
 	return true;
 }
 
-unsigned int qm::EditHeaderItem::getLineCount() const
+unsigned int qm::EditHeaderItem::getLineCount(unsigned int nWidth,
+											  unsigned int nFontHeight) const
 {
-	return static_cast<unsigned int>(Window(getHandle()).sendMessage(EM_GETLINECOUNT));
+	if (nMultiline_ == -1)
+		return 1;
+	
+	Window wnd(getHandle());
+	if (bWrap_ && nWidth != -1) {
+		RECT rect;
+		wnd.getWindowRect(&rect);
+		if (static_cast<unsigned int>(rect.right - rect.left) != nWidth)
+			wnd.setWindowPos(0, 0, 0, nWidth, nFontHeight,
+				SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
+	}
+	return static_cast<unsigned int>(wnd.sendMessage(EM_GETLINECOUNT));
 }
 
 unsigned int qm::EditHeaderItem::parseMultiline(const WCHAR* pwszMultiline)

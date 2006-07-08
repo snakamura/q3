@@ -311,7 +311,8 @@ public:
 	virtual bool canSelectAll();
 
 private:
-	unsigned int getLineCount() const;
+	unsigned int getLineCount(unsigned int nWidth,
+							  unsigned int nFontHeight) const;
 
 public:
 	static unsigned int parseMultiline(const WCHAR* pwszMultiline);
