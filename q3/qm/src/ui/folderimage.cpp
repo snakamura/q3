@@ -58,6 +58,8 @@ int qm::FolderImage::getAccountImage(const Account* pAccount,
 									 bool bUnseen,
 									 bool bSelected) const
 {
+	int nImage = 0;
+	
 	ImageList::const_iterator it = std::find_if(
 		listImage_.begin(), listImage_.end(),
 		std::bind2nd(
@@ -75,8 +77,12 @@ int qm::FolderImage::getAccountImage(const Account* pAccount,
 					std::identity<const WCHAR*>()),
 				pAccount->getClass()));
 	if (it != listImage_.end())
-		return (*it).second;
-	return 0;
+		nImage = (*it).second;
+	
+	if (bUnseen)
+		nImage += 1;
+	
+	return nImage;
 }
 
 int qm::FolderImage::getFolderImage(const Folder* pFolder,
@@ -85,6 +91,7 @@ int qm::FolderImage::getFolderImage(const Folder* pFolder,
 									bool bSelected) const
 {
 	int nImage = 0;
+	
 	unsigned int nFlags = pFolder->getFlags();
 	switch (pFolder->getType()) {
 	case Folder::TYPE_NORMAL:
