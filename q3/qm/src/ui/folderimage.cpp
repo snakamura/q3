@@ -96,31 +96,31 @@ int qm::FolderImage::getFolderImage(const Folder* pFolder,
 	switch (pFolder->getType()) {
 	case Folder::TYPE_NORMAL:
 		if (nFlags & Folder::FLAG_INBOX)
-			nImage = 1;
+			nImage = 2;
 		else if (nFlags & Folder::FLAG_OUTBOX)
-			nImage = 4;
+			nImage = 5;
 		else if (nFlags & Folder::FLAG_DRAFTBOX)
-			nImage = 7;
+			nImage = 8;
 		else if (nFlags & Folder::FLAG_SENTBOX)
-			nImage = 10;
+			nImage = 11;
 		else if (nFlags & Folder::FLAG_TRASHBOX)
-			nImage = 13;
+			nImage = 14;
 		else if (nFlags & Folder::FLAG_JUNKBOX)
-			nImage = 16;
+			nImage = 17;
 		else if (nFlags & Folder::FLAG_NOSELECT)
-			nImage = bSelected ? 43 : 40;
+			nImage = bSelected ? 44 : 41;
 		else if ((nFlags & Folder::FLAG_LOCAL) && (nFlags & Folder::FLAG_SYNCABLE))
-			nImage = bSelected ? 31 : 28;
+			nImage = bSelected ? 32 : 29;
 		else if (nFlags & Folder::FLAG_LOCAL)
-			nImage = bSelected ? 25 : 22;
+			nImage = bSelected ? 26 : 23;
 		else
-			nImage = bSelected ? 37 : 34;
+			nImage = bSelected ? 38 : 35;
 		break;
 	case Folder::TYPE_QUERY:
 		if (nFlags & Folder::FLAG_SEARCHBOX)
-			nImage = 19;
+			nImage = 20;
 		else
-			nImage = bSelected ? 49 : 46;
+			nImage = bSelected ? 50 : 47;
 		break;
 	default:
 		assert(false);
