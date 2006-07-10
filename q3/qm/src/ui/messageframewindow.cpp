@@ -114,6 +114,7 @@ public:
 	Document* pDocument_;
 	UIManager* pUIManager_;
 	TempFileCleaner* pTempFileCleaner_;
+	const FolderImage* pFolderImage_;
 	ViewModelManager* pViewModelManager_;
 	std::auto_ptr<MessageMessageModel> pMessageModel_;
 	MessageWindow* pMessageWindow_;
@@ -344,7 +345,7 @@ void qm::MessageFrameWindowImpl::initActions()
 			pThis_->getHandle());
 	}
 	
-	ADD_ACTION8(MessageMoveAction,
+	ADD_ACTION9(MessageMoveAction,
 		IDM_MESSAGE_MOVE,
 		pDocument_,
 		this,
@@ -352,6 +353,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageModel_.get(),
 		false,
 		pDocument_->getUndoManager(),
+		pFolderImage_,
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION3(MessageOpenLinkAction,
@@ -918,6 +920,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pEditFrameWindowManager_ = pContext->pEditFrameWindowManager_;
 	pImpl_->pExternalEditorManager_ = pContext->pExternalEditorManager_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
+	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	
 	pImpl_->pMessageModel_.reset(new MessageMessageModel());
 	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());
@@ -1035,6 +1038,7 @@ LRESULT qm::MessageFrameWindow::onSize(UINT nFlags,
 qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
 														 UIManager* pUIManager,
 														 TempFileCleaner* pTempFileCleaner,
+														 const FolderImage* pFolderImage,
 														 Profile* pProfile,
 														 ViewModelManager* pViewModelManager,
 														 EditFrameWindowManager* pEditFrameWindowManager,
@@ -1043,6 +1047,7 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
 	pDocument_(pDocument),
 	pUIManager_(pUIManager),
 	pTempFileCleaner_(pTempFileCleaner),
+	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
 	pViewModelManager_(pViewModelManager),
 	pEditFrameWindowManager_(pEditFrameWindowManager), 
@@ -1202,6 +1207,7 @@ MessageFrameWindow* qm::MessageFrameWindowManager::create()
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
 		pTempFileCleaner_,
+		pFolderImage_,
 		pFontManager_
 	};
 	if (!pFrame->create(L"QmMessageFrameWindow", L"QMAIL", dwStyle,

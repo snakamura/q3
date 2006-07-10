@@ -25,6 +25,7 @@ class Document;
 class EditFrameWindowManager;
 class EncodingModel;
 class ExternalEditorManager;
+class FolderImage;
 class MessageFrameWindow;
 class MessageHolder;
 class MessageModel;
@@ -47,6 +48,7 @@ public:
 	MessageFrameWindowManager(Document* pDocument,
 							  UIManager* pUIManager,
 							  TempFileCleaner* pTempFileCleaner,
+							  const FolderImage* pFolderImage,
 							  qs::Profile* pProfile,
 							  ViewModelManager* pViewModelManager,
 							  EditFrameWindowManager* pEditFrameWindowManager,
@@ -79,6 +81,7 @@ private:
 	Document* pDocument_;
 	UIManager* pUIManager_;
 	TempFileCleaner* pTempFileCleaner_;
+	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;
 	ViewModelManager* pViewModelManager_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
@@ -102,6 +105,7 @@ struct MessageFrameWindowCreateContext
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	ExternalEditorManager* pExternalEditorManager_;
 	TempFileCleaner* pTempFileCleaner_;
+	const FolderImage* pFolderImage_;
 	MessageWindowFontManager* pFontManager_;
 };
 

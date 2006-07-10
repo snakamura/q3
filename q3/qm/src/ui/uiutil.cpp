@@ -235,41 +235,6 @@ bool qm::UIUtil::openURL(const WCHAR* pwszURL,
 	return ::ShellExecuteEx(&info) != 0;
 }
 
-int qm::UIUtil::getFolderImage(Folder* pFolder,
-							   bool bSelected)
-{
-	int nImage = 0;
-	switch (pFolder->getType()) {
-	case Folder::TYPE_NORMAL:
-		{
-			unsigned int nFlags = pFolder->getFlags();
-			if (nFlags & Folder::FLAG_INBOX)
-				nImage = 8;
-			else if ((nFlags & Folder::FLAG_OUTBOX) ||
-				(nFlags & Folder::FLAG_SENTBOX) ||
-				(nFlags & Folder::FLAG_DRAFTBOX))
-				nImage = 11;
-			else if (nFlags & Folder::FLAG_TRASHBOX ||
-				nFlags & Folder::FLAG_JUNKBOX)
-				nImage = 14;
-			else if (nFlags & Folder::FLAG_NOSELECT)
-				nImage = bSelected ? 29 : 26;
-			else if (nFlags & Folder::FLAG_LOCAL)
-				nImage = bSelected ? 5 : 2;
-			else
-				nImage = bSelected ? 23 : 20;
-		}
-		break;
-	case Folder::TYPE_QUERY:
-		nImage = 17;
-		break;
-	default:
-		assert(false);
-		break;
-	}
-	return nImage;
-}
-
 HIMAGELIST qm::UIUtil::createImageListFromFile(const WCHAR* pwszName,
 											   int nWidth,
 											   COLORREF crMask)

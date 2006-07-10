@@ -19,6 +19,7 @@
 #include <qsmenu.h>
 #include <qsuiutil.h>
 
+#include "folderimage.h"
 #include "resourceinc.h"
 #include "tabwindow.h"
 #include "uimanager.h"
@@ -94,13 +95,15 @@ private:
 	wstring_ptr getTitle(const TabItem* pItem) const;
 
 private:
-	static int getFolderImage(Folder* pFolder);
+	int getAccountImage(const Account* pAccount) const;
+	int getFolderImage(const Folder* pFolder) const;
 
 public:
 	TabWindow* pThis_;
 	TabCtrlWindow* pTabCtrl_;
 	HWND hwnd_;
 	TabModel* pTabModel_;
+	const FolderImage* pFolderImage_;
 	Profile* pProfile_;
 	
 	bool bShowTab_;
@@ -200,7 +203,7 @@ void qm::TabWindowImpl::itemAdded(const TabModelEvent& event)
 		0,
 		const_cast<LPTSTR>(ptszName),
 		0,
-		p.second ? getFolderImage(p.second) : 0,
+		p.second ? getFolderImage(p.second) : getAccountImage(p.first),
 		reinterpret_cast<LPARAM>(pItem)
 	};
 	TabCtrl_InsertItem(pTabCtrl_->getHandle(), nItem, &item);
@@ -259,7 +262,7 @@ void qm::TabWindowImpl::itemMoved(const TabModelEvent& event)
 		0,
 		const_cast<LPTSTR>(ptszName),
 		0,
-		p.second ? getFolderImage(p.second) : 0,
+		p.second ? getFolderImage(p.second) : getAccountImage(p.first),
 		reinterpret_cast<LPARAM>(pItem)
 	};
 	TabCtrl_InsertItem(pTabCtrl_->getHandle(), nItem + nAmount, &item);
@@ -351,7 +354,7 @@ void qm::TabWindowImpl::update(int nItem)
 		0,
 		const_cast<LPTSTR>(ptszName),
 		0,
-		p.second ? getFolderImage(p.second) : 0,
+		p.second ? getFolderImage(p.second) : getAccountImage(p.first),
 		reinterpret_cast<LPARAM>(pItem)
 	};
 	TabCtrl_SetItem(pTabCtrl_->getHandle(), nItem, &item);
@@ -445,14 +448,17 @@ wstring_ptr qm::TabWindowImpl::getTitle(const TabItem* pItem) const
 	}
 }
 
-int qm::TabWindowImpl::getFolderImage(Folder* pFolder)
+int qm::TabWindowImpl::getAccountImage(const Account* pAccount) const
 {
-	int nImage = UIUtil::getFolderImage(pFolder, false);
-	if (pFolder->getUnseenCount() != 0)
-		nImage += 2;
-	else if (pFolder->getCount() != 0)
-		nImage += 1;
-	return nImage;
+	if (!pAccount)
+		return 0;
+	return pFolderImage_->getAccountImage(pAccount, false, false);
+}
+
+int qm::TabWindowImpl::getFolderImage(const Folder* pFolder) const
+{
+	return pFolderImage_->getFolderImage(pFolder,
+		pFolder->getCount() != 0, pFolder->getUnseenCount() != 0, false);
 }
 
 
@@ -543,10 +549,11 @@ LRESULT qm::TabWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	TabWindowCreateContext* pContext =
 		reinterpret_cast<TabWindowCreateContext*>(pCreateStruct->lpCreateParams);
+	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	
 	std::auto_ptr<TabCtrlWindow> pTabCtrl(new TabCtrlWindow(
 		pContext->pDocument_, pImpl_->pTabModel_, pImpl_->pProfile_,
-		pContext->pUIManager_->getMenuManager()));
+		pImpl_->pFolderImage_, pContext->pUIManager_->getMenuManager()));
 	if (!pTabCtrl->create(L"QmTabCtrlWindow", 0,
 		WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -618,11 +625,13 @@ LRESULT qm::TabWindow::onMessageChanged(WPARAM wParam,
 qm::TabCtrlWindow::TabCtrlWindow(Document* pDocument,
 								 TabModel* pTabModel,
 								 Profile* pProfile,
+								 const FolderImage* pFolderImage,
 								 MenuManager* pMenuManager) :
 	WindowBase(true),
 	pDocument_(pDocument),
 	pTabModel_(pTabModel),
 	pProfile_(pProfile),
+	pFolderImage_(pFolderImage),
 	pMenuManager_(pMenuManager),
 	hfont_(0)
 {
@@ -714,8 +723,7 @@ LRESULT qm::TabCtrlWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	setFont(hfont_);
 	
-	HIMAGELIST hImageList = UIUtil::createImageListFromFile(
-		FileNames::FOLDER_BMP, 16, CLR_DEFAULT);
+	HIMAGELIST hImageList = ImageList_Duplicate(pFolderImage_->getImageList());
 	TabCtrl_SetImageList(getHandle(), hImageList);
 	
 	pDropTarget_.reset(new DropTarget(getHandle()));

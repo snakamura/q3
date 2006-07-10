@@ -31,6 +31,7 @@
 #include <tchar.h>
 
 #include "dialogs.h"
+#include "folderimage.h"
 #include "folderwindow.h"
 #include "resourceinc.h"
 #include "uimanager.h"
@@ -172,13 +173,13 @@ private:
 	void processDragEvent(const DropTargetDragEvent& event);
 
 private:
-	static int getFolderImage(Folder* pFolder,
-							  bool bSelected,
-							  bool bExpanded);
-	static int getAccountImage(Account* pAccount,
-							   bool bSelected,
-							   bool bExpanded);
-	
+	int getFolderImage(const Folder* pFolder,
+					   bool bSelected,
+					   bool bExpanded) const;
+	int getAccountImage(const Account* pAccount,
+						bool bSelected,
+						bool bExpanded) const;
+
 public:
 	FolderWindow* pThis_;
 	WindowBase* pParentWindow_;
@@ -187,6 +188,7 @@ public:
 	Profile* pProfile_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	Document* pDocument_;
+	const FolderImage* pFolderImage_;
 	SyncManager* pSyncManager_;
 	
 	UINT nId_;
@@ -1315,12 +1317,10 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 	ImageList_DragMove(pt.x, pt.y);
 }
 
-int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
+int qm::FolderWindowImpl::getFolderImage(const Folder* pFolder,
 										 bool bSelected,
-										 bool bExpanded)
+										 bool bExpanded) const
 {
-	int nImage = UIUtil::getFolderImage(pFolder, bSelected);
-	
 	bool bMessage = false;
 	bool bUnseen = false;
 	if (bExpanded) {
@@ -1342,17 +1342,12 @@ int qm::FolderWindowImpl::getFolderImage(Folder* pFolder,
 		}
 	}
 	
-	if (bUnseen)
-		nImage += 2;
-	else if (bMessage)
-		nImage += 1;
-	
-	return nImage;
+	return pFolderImage_->getFolderImage(pFolder, bMessage, bUnseen, bSelected);
 }
 
-int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
+int qm::FolderWindowImpl::getAccountImage(const Account* pAccount,
 										  bool bSelected,
-										  bool bExpanded)
+										  bool bExpanded) const
 {
 	bool bUnseen = false;
 	
@@ -1367,7 +1362,7 @@ int qm::FolderWindowImpl::getAccountImage(Account* pAccount,
 			bUnseen = pFolder->getUnseenCount() != 0;
 	}
 	
-	return bUnseen ? 1 : 0;
+	return pFolderImage_->getAccountImage(pAccount, bUnseen, bSelected);
 }
 
 
@@ -1544,6 +1539,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderWindowCreateContext* pContext =
 		static_cast<FolderWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
@@ -1566,8 +1562,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	}
 #endif
 	
-	HIMAGELIST hImageList = UIUtil::createImageListFromFile(
-		FileNames::FOLDER_BMP, 16, CLR_DEFAULT);
+	HIMAGELIST hImageList = ImageList_Duplicate(pImpl_->pFolderImage_->getImageList());
 	TreeView_SetImageList(getHandle(), hImageList, TVSIL_NORMAL);
 	
 	pImpl_->pDropTarget_.reset(new DropTarget(getHandle()));

@@ -329,6 +329,7 @@ struct MainWindowCreateContext
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
+	const FolderImage* pFolderImage_;
 };
 
 

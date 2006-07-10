@@ -70,9 +70,6 @@ public:
 						qs::Profile* pProfile,
 						HWND hwnd);
 	
-	static int getFolderImage(Folder* pFolder,
-							  bool bSelected);
-	
 	static HIMAGELIST createImageListFromFile(const WCHAR* pwszName,
 											  int nWidth,
 											  COLORREF crMask);

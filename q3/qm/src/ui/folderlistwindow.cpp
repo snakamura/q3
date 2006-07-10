@@ -24,6 +24,7 @@
 
 #include <tchar.h>
 
+#include "folderimage.h"
 #include "folderlistwindow.h"
 #include "resourceinc.h"
 #include "uimanager.h"
@@ -85,6 +86,7 @@ public:
 	MenuManager* pMenuManager_;
 	Profile* pProfile_;
 	std::auto_ptr<Accelerator> pAccelerator_;
+	const FolderImage* pFolderImage_;
 	
 	UINT nId_;
 	HFONT hfont_;
@@ -184,7 +186,7 @@ void qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount,
 				0,
 				const_cast<LPTSTR>(ptszName),
 				0,
-				UIUtil::getFolderImage(pFolder, false),
+				pFolderImage_->getFolderImage(pFolder, false, false, false),
 				reinterpret_cast<LPARAM>(pFolder),
 				getIndent(pFolder)
 			};
@@ -498,6 +500,7 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderListWindowCreateContext* pContext =
 		static_cast<FolderListWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
+	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -515,8 +518,7 @@ LRESULT qm::FolderListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		ListView_SetBkColor(getHandle(), pImpl_->crBackground_);
 	}
 	
-	HIMAGELIST hImageList = UIUtil::createImageListFromFile(
-		FileNames::FOLDER_BMP, 16, CLR_DEFAULT);
+	HIMAGELIST hImageList = ImageList_Duplicate(pImpl_->pFolderImage_->getImageList());
 	ListView_SetImageList(getHandle(), hImageList, LVSIL_SMALL);
 	
 	ListView_SetExtendedListViewStyle(getHandle(),

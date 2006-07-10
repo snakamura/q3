@@ -2042,7 +2042,6 @@ END
 ACCOUNT.BMP             PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\account.bmp"
 COLORS.XML              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\colors.xml"
 FILTERS.XML             PROFILE DISCARDABLE     "res\\filters.xml"
-FOLDER.BMP              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\folder.bmp"
 HEADER.XML              PROFILE DISCARDABLE     "res\\header.xml"
 HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\headeredit.xml"
 KEYMAP.XML              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\hpc\\keymap.xml"

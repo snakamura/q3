@@ -1849,7 +1849,6 @@ END
 ACCOUNT.BMP             PROFILE MOVEABLE PURE   "res\\account.bmp"
 COLORS.XML              PROFILE MOVEABLE PURE   "res\\colors.xml"
 FILTERS.XML             PROFILE MOVEABLE PURE   "res\\filters.xml"
-FOLDER.BMP              PROFILE MOVEABLE PURE   "res\\folder.bmp"
 HEADER.XML              PROFILE MOVEABLE PURE   "res\\header.xml"
 HEADEREDIT.XML          PROFILE MOVEABLE PURE   "res\\headeredit.xml"
 KEYMAP.XML              PROFILE MOVEABLE PURE   "res\\keymap.xml"

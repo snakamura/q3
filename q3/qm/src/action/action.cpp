@@ -4336,6 +4336,7 @@ qm::MessageMoveAction::MessageMoveAction(AccountManager* pAccountManager,
 										 MessageModel* pMessageModel,
 										 bool bDontSelectNextIfDeletedFlag,
 										 UndoManager* pUndoManager,
+										 const FolderImage* pFolderImage,
 										 qs::Profile* pProfile,
 										 HWND hwnd) :
 	pAccountManager_(pAccountManager),
@@ -4344,6 +4345,7 @@ qm::MessageMoveAction::MessageMoveAction(AccountManager* pAccountManager,
 	pMessageModel_(pMessageModel),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pUndoManager_(pUndoManager),
+	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -4381,7 +4383,7 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 		bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
 	}
 	else {
-		MoveMessageDialog dialog(pAccountManager_, pAccount, pProfile_);
+		MoveMessageDialog dialog(pAccountManager_, pAccount, pFolderImage_, pProfile_);
 		if (dialog.doModal(hwnd_) != IDOK)
 			return;
 		

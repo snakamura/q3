@@ -59,6 +59,7 @@ class DefaultDialog;
 	class ViewsDialog;
 
 class Account;
+class FolderImage;
 class SyncFilterManager;
 class TemplateManager;
 
@@ -839,6 +840,7 @@ class MoveMessageDialog :
 public:
 	MoveMessageDialog(AccountManager* pAccountManager,
 					  Account* pAccount,
+					  const FolderImage* pFolderImage,
 					  qs::Profile* pProfile);
 	virtual ~MoveMessageDialog();
 
@@ -885,6 +887,7 @@ private:
 private:
 	AccountManager* pAccountManager_;
 	Account* pAccount_;
+	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;
 	NormalFolder* pFolder_;
 	bool bCopy_;

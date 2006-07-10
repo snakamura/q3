@@ -15,6 +15,7 @@ namespace qm {
 struct FolderWindowCreateContext;
 
 class Document;
+class FolderImage;
 class UIManager;
 
 
@@ -27,6 +28,7 @@ class UIManager;
 struct FolderListWindowCreateContext
 {
 	UIManager* pUIManager_;
+	const FolderImage* pFolderImage_;
 };
 
 }

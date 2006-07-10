@@ -50,6 +50,7 @@
 #include "../sync/syncmanager.h"
 #include "../sync/syncqueue.h"
 #include "../ui/dialogs.h"
+#include "../ui/folderimage.h"
 #include "../ui/mainwindow.h"
 #include "../ui/syncdialog.h"
 #include "../ui/uimanager.h"
@@ -150,6 +151,7 @@ public:
 	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
 	std::auto_ptr<AutoPilotManager> pAutoPilotManager_;
 	std::auto_ptr<AutoPilot> pAutoPilot_;
+	std::auto_ptr<FolderImage> pFolderImage_;
 	std::auto_ptr<ActiveRuleInvoker> pActiveRuleInvoker_;
 	std::auto_ptr<ActiveSyncInvoker> pActiveSyncInvoker_;
 	std::auto_ptr<UIManager> pUIManager_;
@@ -169,11 +171,12 @@ bool qm::ApplicationImpl::ensureDirectories()
 	
 	const WCHAR* pwszDirs[] = {
 		L"accounts",
-		L"templates",
+		L"images",
+		L"logs",
+		L"profiles",
 		L"scripts",
 		L"security",
-		L"profiles",
-		L"logs"
+		L"templates"
 	};
 	for (int n = 0; n < countof(pwszDirs); ++n) {
 		if (!ensureDirectory(wstrMailFolder_.get(), pwszDirs[n]))
@@ -264,6 +267,7 @@ bool qm::ApplicationImpl::ensureResources()
 {
 	wstring_ptr wstrProfileDir(concat(wstrMailFolder_.get(), L"\\profiles"));
 	wstring_ptr wstrTemplateDir(concat(wstrMailFolder_.get(), L"\\templates"));
+	wstring_ptr wstrImageDir(concat(wstrMailFolder_.get(), L"\\images"));
 	
 #define DECLARE_PROFILE(name, revision, overwrite) \
 	{ \
@@ -272,6 +276,18 @@ bool qm::ApplicationImpl::ensureResources()
 		wstrProfileName_.get(), \
 		name, \
 		L"PROFILE", \
+		name, \
+		revision, \
+		overwrite, \
+	} \
+
+#define DECLARE_IMAGE(name, revision, overwrite) \
+	{ \
+		wstrImageDir.get(), \
+		0, \
+		L"", \
+		name, \
+		L"IMAGE", \
 		name, \
 		revision, \
 		overwrite, \
@@ -293,7 +309,6 @@ bool qm::ApplicationImpl::ensureResources()
 		DECLARE_PROFILE(FileNames::ACCOUNT_BMP,		ACCOUNT_BMP_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::COLORS_XML,		COLORS_XML_REVISION,				false	),
 		DECLARE_PROFILE(FileNames::FILTERS_XML,		FILTERS_XML_REVISION,				false	),
-		DECLARE_PROFILE(FileNames::FOLDER_BMP,		FOLDER_BMP_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::HEADER_XML,		HEADER_XML_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	HEADEREDIT_XML_REVISION,			true	),
 		DECLARE_PROFILE(FileNames::KEYMAP_XML,		KEYMAP_XML_REVISION,				true	),
@@ -304,6 +319,10 @@ bool qm::ApplicationImpl::ensureResources()
 		DECLARE_PROFILE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	TOOLBARS_XML_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::VIEWS_XML,		VIEWS_XML_REVISION,					false	),
+		DECLARE_IMAGE(FileNames::FOLDER_BMP,		FOLDER_BMP_REVISION,				true	),
+		DECLARE_IMAGE(L"account_mail.bmp",			ACCOUNT_MAIL_BMP_REVISION,			true	),
+		DECLARE_IMAGE(L"account_news.bmp",			ACCOUNT_NEWS_BMP_REVISION,			true	),
+		DECLARE_IMAGE(L"account_rss.bmp",			ACCOUNT_RSS_BMP_REVISION,			true	),
 		DECLARE_TEMPLATE(L"mail",	L"new",			MAIL_NEW_TEMPLATE_REVISION					),
 		DECLARE_TEMPLATE(L"mail",	L"reply",		MAIL_REPLY_TEMPLATE_REVISION				),
 		DECLARE_TEMPLATE(L"mail",	L"reply_all",	MAIL_REPLY_ALL_TEMPLATE_REVISION			),
@@ -786,6 +805,9 @@ bool qm::Application::initialize()
 		pImpl_->pProfile_.get(), pImpl_->pDocument_.get(),
 		pImpl_->pGoRound_.get(), pImpl_->pSyncManager_.get(),
 		pImpl_->pSyncDialogManager_.get(), pImpl_));
+	wstring_ptr wstrImageFolder(concat(
+		pImpl_->wstrMailFolder_.get(), L"\\images"));
+	pImpl_->pFolderImage_.reset(new FolderImage(wstrImageFolder.get()));
 	
 	std::auto_ptr<MainWindow> pMainWindow(new MainWindow(pImpl_->pProfile_.get()));
 #ifdef _WIN32_WCE
@@ -804,7 +826,8 @@ bool qm::Application::initialize()
 		pImpl_->pSyncQueue_.get(),
 		pImpl_->pGoRound_.get(),
 		pImpl_->pTempFileCleaner_.get(),
-		pImpl_->pAutoPilot_.get()
+		pImpl_->pAutoPilot_.get(),
+		pImpl_->pFolderImage_.get()
 	};
 	wstring_ptr wstrTitle(getVersion(L' ', false));
 	if (!pMainWindow->create(L"QmMainWindow", wstrTitle.get(), dwStyle,
@@ -855,6 +878,7 @@ void qm::Application::uninitialize()
 	}
 #endif
 	
+	pImpl_->pFolderImage_.reset(0);
 	pImpl_->pUIManager_.reset(0);
 	pImpl_->pActiveSyncInvoker_.reset(0);
 	pImpl_->pActiveRuleInvoker_.reset(0);

@@ -164,6 +164,7 @@ class FilterManager;
 class FindReplaceManager;
 class FixedFormTextManager;
 class FolderComboBox;
+class FolderImage;
 class FolderListWindow;
 class FolderModel;
 class FolderSelectionModel;
@@ -2054,6 +2055,7 @@ public:
 					  MessageModel* pMessageModel,
 					  bool bDontSelectNextIfDeletedFlag,
 					  UndoManager* pUndoManager,
+					  const FolderImage* pFolderImage,
 					  qs::Profile* pProfile,
 					  HWND hwnd);
 	virtual ~MessageMoveAction();
@@ -2079,6 +2081,7 @@ private:
 	MessageModel* pMessageModel_;
 	bool bDontSelectNextIfDeletedFlag_;
 	UndoManager* pUndoManager_;
+	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };

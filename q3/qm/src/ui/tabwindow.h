@@ -22,6 +22,7 @@ namespace qm {
 class TabCtrlWindow;
 struct TabWindowCreateContext;
 
+class FolderImage;
 class TabItem;
 class TabModel;
 class UIManager;
@@ -42,6 +43,7 @@ public:
 	TabCtrlWindow(Document* pDocument,
 				  TabModel* pTabModel,
 				  qs::Profile* pProfile,
+				  const FolderImage* pFolderImage,
 				  qs::MenuManager* pMenuManager);
 	virtual ~TabCtrlWindow();
 
@@ -98,6 +100,7 @@ private:
 	Document* pDocument_;
 	TabModel* pTabModel_;
 	qs::Profile* pProfile_;
+	const FolderImage* pFolderImage_;
 	qs::MenuManager* pMenuManager_;
 	
 	HFONT hfont_;
@@ -115,6 +118,7 @@ struct TabWindowCreateContext
 {
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	const FolderImage* pFolderImage_;
 };
 
 }

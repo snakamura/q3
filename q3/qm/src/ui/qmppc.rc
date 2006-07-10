@@ -2043,7 +2043,6 @@ END
 ACCOUNT.BMP             PROFILE DISCARDABLE     "res\\account.bmp"
 COLORS.XML              PROFILE DISCARDABLE     "res\\colors.xml"
 FILTERS.XML             PROFILE DISCARDABLE     "res\\filters.xml"
-FOLDER.BMP              PROFILE DISCARDABLE     "res\\folder.bmp"
 HEADER.XML              PROFILE DISCARDABLE     "res\\ppc\\header.xml"
 HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\ppc\\headeredit.xml"
 KEYMAP.XML              PROFILE DISCARDABLE     "res\\ppc\\keymap.xml"

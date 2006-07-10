@@ -228,6 +228,7 @@ public:
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
+	const FolderImage* pFolderImage_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	std::auto_ptr<SplitterHelper> pSplitterHelper_;
 	SplitterWindow* pPrimarySplitterWindow_;
@@ -832,10 +833,10 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction1(new MessageMoveAction(
 		pDocument_, pMessageSelectionModel_.get(), this, 0, true,
-		pDocument_->getUndoManager(), pProfile_, pThis_->getHandle()));
+		pDocument_->getUndoManager(), pFolderImage_, pProfile_, pThis_->getHandle()));
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
 		pDocument_, pMessageSelectionModel_.get(), this, pPreviewModel_.get(),
-		false, pDocument_->getUndoManager(), pProfile_, pThis_->getHandle()));
+		false, pDocument_->getUndoManager(), pFolderImage_, pProfile_, pThis_->getHandle()));
 	Action* pMessageMoveActions[] = {
 		0,
 		0,
@@ -2149,6 +2150,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pGoRound_ = pContext->pGoRound_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	pImpl_->pAutoPilot_ = pContext->pAutoPilot_;
+	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pImpl_->pUIManager_->getKeyMap()->createAccelerator(
@@ -2190,9 +2192,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pMessageWindowFontManager_.reset(new MessageWindowFontManager(
 		Application::getApplication().getProfilePath(FileNames::FONTS_XML).get()));
 	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(
-		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_, pImpl_->pProfile_,
-		pImpl_->pViewModelManager_.get(), pImpl_->pEditFrameWindowManager_.get(),
-		pImpl_->pExternalEditorManager_.get(), pImpl_->pMessageWindowFontManager_.get()));
+		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_,
+		pImpl_->pFolderImage_, pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),
+		pImpl_->pEditFrameWindowManager_.get(), pImpl_->pExternalEditorManager_.get(),
+		pImpl_->pMessageWindowFontManager_.get()));
 	pImpl_->pMessageSelectionModel_.reset(
 		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, false));
 	pImpl_->pListOnlyMessageSelectionModel_.reset(
@@ -2249,6 +2252,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderWindowCreateContext folderWindowContext = {
 		pContext->pDocument_,
 		pContext->pUIManager_,
+		pContext->pFolderImage_,
 		pContext->pSyncManager_
 	};
 	if (!pFolderWindow->create(L"QmFolderWindow", 0, dwStyle,
@@ -2266,6 +2270,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	TabWindowCreateContext tabContext = {
 		pContext->pDocument_,
 		pContext->pUIManager_,
+		pContext->pFolderImage_
 	};
 	if (!pTabWindow->create(L"QmTabWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -2294,7 +2299,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pListContainerWindow_, pImpl_->pFolderListModel_.get(),
 		pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
 	FolderListWindowCreateContext folderListContext = {
-		pContext->pUIManager_
+		pContext->pUIManager_,
+		pContext->pFolderImage_
 	};
 	if (!pFolderListWindow->create(L"QmFolderListWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

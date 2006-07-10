@@ -29,6 +29,7 @@
 
 #include "conditiondialog.h"
 #include "dialogs.h"
+#include "folderimage.h"
 #include "uimanager.h"
 #include "uiutil.h"
 #include "../model/templatemanager.h"
@@ -1585,10 +1586,12 @@ void qm::MailFolderDialog::updateState()
 
 qm::MoveMessageDialog::MoveMessageDialog(AccountManager* pAccountManager,
 										 Account* pAccount,
+										 const FolderImage* pFolderImage,
 										 Profile* pProfile) :
 	DefaultDialog(IDD_MOVEMESSAGE),
 	pAccountManager_(pAccountManager),
 	pAccount_(pAccount),
+	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
 	pFolder_(0),
 	bCopy_(false),
@@ -1634,8 +1637,7 @@ LRESULT qm::MoveMessageDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	HIMAGELIST hImageList = UIUtil::createImageListFromFile(
-		FileNames::FOLDER_BMP, 16, CLR_DEFAULT);
+	HIMAGELIST hImageList = ImageList_Duplicate(pFolderImage_->getImageList());
 	TreeView_SetImageList(getDlgItem(IDC_FOLDER), hImageList, TVSIL_NORMAL);
 	
 	if (bShowHidden_)
@@ -1751,6 +1753,7 @@ bool qm::MoveMessageDialog::insertAccount(HWND hwnd,
 	assert(pAccount);
 	
 	W2T(pAccount->getName(), ptszName);
+	int nImage = pFolderImage_->getAccountImage(pAccount, false, false);
 	
 	TVINSERTSTRUCT tvisAccount = {
 		TVI_ROOT,
@@ -1762,8 +1765,8 @@ bool qm::MoveMessageDialog::insertAccount(HWND hwnd,
 			0,
 			const_cast<LPTSTR>(ptszName),
 			0,
-			0,
-			0,
+			nImage,
+			nImage,
 			0,
 			reinterpret_cast<LPARAM>(pAccount)
 		}
@@ -1815,8 +1818,8 @@ bool qm::MoveMessageDialog::insertFolders(HWND hwnd,
 				0,
 				const_cast<LPTSTR>(ptszName),
 				0,
-				UIUtil::getFolderImage(pFolder, false),
-				UIUtil::getFolderImage(pFolder, true),
+				pFolderImage_->getFolderImage(pFolder, false, false, false),
+				pFolderImage_->getFolderImage(pFolder, false, false, true),
 				0,
 				reinterpret_cast<LPARAM>(pFolder)
 			}
