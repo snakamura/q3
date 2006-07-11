@@ -239,17 +239,18 @@ HIMAGELIST qm::UIUtil::createImageListFromFile(const WCHAR* pwszName,
 											   int nWidth,
 											   COLORREF crMask)
 {
-	wstring_ptr wstrPath(Application::getApplication().getProfilePath(pwszName));
+	wstring_ptr wstrPath(Application::getApplication().getImagePath(pwszName));
 	W2T(wstrPath.get(), ptszPath);
-#ifndef _WIN32_WCE
-	return ImageList_LoadImage(0, ptszPath, nWidth, 0,
-		crMask, IMAGE_BITMAP, LR_LOADFROMFILE);
-#else
+#ifdef _WIN32_WCE
 	GdiObject<HBITMAP> hBitmap(::SHLoadDIBitmap(ptszPath));
+#else
+	GdiObject<HBITMAP> hBitmap(reinterpret_cast<HBITMAP>(
+		::LoadImage(0, ptszPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE)));
+#endif
 	BITMAP bm;
 	::GetObject(hBitmap.get(), sizeof(bm), &bm);
 	
-#if _WIN32_WCE >= 0x500
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x500
 	UINT nFlags = ILC_COLOR32 | ILC_MASK;
 #else
 	UINT nFlags = ILC_COLOR | ILC_MASK;
@@ -258,7 +259,6 @@ HIMAGELIST qm::UIUtil::createImageListFromFile(const WCHAR* pwszName,
 		bm.bmHeight, nFlags, bm.bmWidth/nWidth, 0);
 	ImageList_AddMasked(hImageList, hBitmap.get(), crMask);
 	return hImageList;
-#endif
 }
 
 wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
