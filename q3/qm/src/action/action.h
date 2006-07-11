@@ -2497,6 +2497,7 @@ public:
 					  FolderModel* pFolderModel,
 					  PasswordManager* pPasswordManager,
 					  SyncManager* pSyncManager,
+					  const FolderImage* pFolderImage,
 					  OptionDialogManager* pOptionDialogManager,
 					  qs::Profile* pProfile,
 					  HWND hwnd);
@@ -2515,6 +2516,7 @@ private:
 	FolderModel* pFolderModel_;
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
+	const FolderImage* pFolderImage_;
 	OptionDialogManager* pOptionDialogManager_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;

@@ -53,6 +53,7 @@ public:
 				  SyncFilterManager* pSyncFilterManager,
 				  const Security* pSecurity,
 				  JunkFilter* pJunkFilter,
+				  const FolderImage* pFolderImage,
 				  OptionDialogManager* pOptionDialogManager,
 				  qs::Profile* pProfile);
 	virtual ~AccountDialog();
@@ -98,6 +99,7 @@ private:
 	SyncFilterManager* pSyncFilterManager_;
 	const Security* pSecurity_;
 	JunkFilter* pJunkFilter_;
+	const FolderImage* pFolderImage_;
 	OptionDialogManager* pOptionDialogManager_;
 	qs::Profile* pProfile_;
 	bool bAccountAdded_;

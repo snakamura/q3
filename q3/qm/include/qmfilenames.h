@@ -25,7 +25,6 @@ namespace qm {
 struct FileNames
 {
 	static const WCHAR* ACCOUNT;
-	static const WCHAR* ACCOUNT_BMP;
 	static const WCHAR* ACCOUNT_XML;
 	static const WCHAR* ADDRESSBOOK_XML;
 	static const WCHAR* AUTOPILOT_XML;

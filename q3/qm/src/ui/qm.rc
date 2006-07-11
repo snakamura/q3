@@ -118,7 +118,6 @@ NEWS.REPLY_ALL          TEMPLATE MOVEABLE PURE  "res\\news.reply_all.template"
 // IMAGE
 //
 
-ACCOUNT.BMP             IMAGE   DISCARDABLE     "res\\account.bmp"
 ACCOUNT_MAIL.BMP        IMAGE   DISCARDABLE     "res\\account_mail.bmp"
 ACCOUNT_NEWS.BMP        IMAGE   DISCARDABLE     "res\\account_news.bmp"
 ACCOUNT_RSS.BMP         IMAGE   DISCARDABLE     "res\\account_rss.bmp"

@@ -16,7 +16,6 @@
  */
 
 const WCHAR* qm::FileNames::ACCOUNT			= L"account";
-const WCHAR* qm::FileNames::ACCOUNT_BMP		= L"account.bmp";
 const WCHAR* qm::FileNames::ACCOUNT_XML		= L"account.xml";
 const WCHAR* qm::FileNames::ADDRESSBOOK_XML	= L"addressbook.xml";
 const WCHAR* qm::FileNames::AUTOPILOT_XML	= L"autopilot.xml";

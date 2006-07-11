@@ -18,6 +18,7 @@
 #include <tchar.h>
 
 #include "accountdialog.h"
+#include "folderimage.h"
 #include "optiondialog.h"
 #include "resourceinc.h"
 #include "../main/defaultprofile.h"
@@ -38,6 +39,7 @@ qm::AccountDialog::AccountDialog(AccountManager* pAccountManager,
 								 SyncFilterManager* pSyncFilterManager,
 								 const Security* pSecurity,
 								 JunkFilter* pJunkFilter,
+								 const FolderImage* pFolderImage,
 								 OptionDialogManager* pOptionDialogManager,
 								 Profile* pProfile) :
 	DefaultDialog(IDD_ACCOUNT),
@@ -47,6 +49,7 @@ qm::AccountDialog::AccountDialog(AccountManager* pAccountManager,
 	pSyncFilterManager_(pSyncFilterManager),
 	pSecurity_(pSecurity),
 	pJunkFilter_(pJunkFilter),
+	pFolderImage_(pFolderImage),
 	pOptionDialogManager_(pOptionDialogManager),
 	pProfile_(pProfile),
 	bAccountAdded_(false)
@@ -83,8 +86,7 @@ LRESULT qm::AccountDialog::onDestroy()
 LRESULT qm::AccountDialog::onInitDialog(HWND hwndFocus,
 										LPARAM lParam)
 {
-	HIMAGELIST hImageList = UIUtil::createImageListFromFile(
-		FileNames::ACCOUNT_BMP, 16, CLR_DEFAULT);
+	HIMAGELIST hImageList = ImageList_Duplicate(pFolderImage_->getImageList());
 	TreeView_SetImageList(getDlgItem(IDC_ACCOUNT), hImageList, TVSIL_NORMAL);
 	
 	init(true);
@@ -418,6 +420,8 @@ void qm::AccountDialog::update()
 			Account* pAccount = *itA;
 			
 			W2T(pAccount->getName(), ptszName);
+			int nCloseImage = pFolderImage_->getAccountImage(pAccount, false, false);
+			int nOpenImage = pFolderImage_->getAccountImage(pAccount, false, true);
 			TVINSERTSTRUCT tis = {
 				TVI_ROOT,
 				TVI_SORT,
@@ -428,8 +432,8 @@ void qm::AccountDialog::update()
 					0,
 					const_cast<LPTSTR>(ptszName),
 					0,
-					0,
-					0,
+					nCloseImage,
+					nOpenImage,
 					0,
 					reinterpret_cast<LPARAM>(pAccount)
 				}
@@ -454,8 +458,8 @@ void qm::AccountDialog::update()
 						0,
 						const_cast<LPTSTR>(ptszName),
 						0,
-						1,
-						1,
+						nCloseImage,
+						nOpenImage,
 						0,
 						reinterpret_cast<LPARAM>(pSubAccount)
 					}

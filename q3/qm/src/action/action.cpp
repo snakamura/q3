@@ -5206,6 +5206,7 @@ qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
 										 FolderModel* pFolderModel,
 										 PasswordManager* pPasswordManager,
 										 SyncManager* pSyncManager,
+										 const FolderImage* pFolderImage,
 										 OptionDialogManager* pOptionDialogManager,
 										 Profile* pProfile,
 										 HWND hwnd) :
@@ -5213,6 +5214,7 @@ qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
 	pFolderModel_(pFolderModel),
 	pPasswordManager_(pPasswordManager),
 	pSyncManager_(pSyncManager),
+	pFolderImage_(pFolderImage),
 	pOptionDialogManager_(pOptionDialogManager),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
@@ -5237,7 +5239,7 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
 	AccountDialog dialog(pDocument_, pAccount, pPasswordManager_,
 		pSyncManager_->getSyncFilterManager(), pDocument_->getSecurity(),
-		pDocument_->getJunkFilter(), pOptionDialogManager_, pProfile_);
+		pDocument_->getJunkFilter(), pFolderImage_, pOptionDialogManager_, pProfile_);
 	dialog.doModal(hwnd_, 0);
 	
 	if (!Application::getApplication().save(false))

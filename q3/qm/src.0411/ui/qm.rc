@@ -120,7 +120,6 @@ NEWS.REPLY_ALL          TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.repl
 // IMAGE
 //
 
-ACCOUNT.BMP             IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\account.bmp"
 ACCOUNT_MAIL.BMP        IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\account_mail.bmp"
 ACCOUNT_NEWS.BMP        IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\account_news.bmp"
 ACCOUNT_RSS.BMP         IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\account_rss.bmp"

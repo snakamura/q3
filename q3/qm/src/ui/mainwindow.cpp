@@ -926,12 +926,13 @@ void qm::MainWindowImpl::initActions()
 		IDM_TAB_SELECT,
 		pTabModel_.get());
 #endif
-	ADD_ACTION7(ToolAccountAction,
+	ADD_ACTION8(ToolAccountAction,
 		IDM_TOOL_ACCOUNT,
 		pDocument_,
 		pFolderModel_.get(),
 		pPasswordManager_,
 		pSyncManager_,
+		pFolderImage_,
 		pOptionDialogManager_.get(),
 		pProfile_,
 		pThis_->getHandle());
