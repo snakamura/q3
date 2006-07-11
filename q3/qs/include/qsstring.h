@@ -1037,7 +1037,8 @@ public:
 private:
 	void init(const Char* pwsz,
 			  size_t nLen);
-	void allocBuffer(size_t nLen);
+	void allocBuffer(size_t nLen,
+					 bool bExact);
 
 private:
 	enum {
@@ -1237,7 +1238,8 @@ public:
 private:
 	bool init(const Char* pwsz,
 			  size_t nLen);
-	bool allocBuffer(size_t nLen);
+	bool allocBuffer(size_t nLen,
+					 bool bExact);
 
 private:
 	XStringBuffer(const XStringBuffer&);

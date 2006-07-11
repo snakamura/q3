@@ -685,7 +685,7 @@ void qs::StringBuffer<String>::append(const Char* psz,
 		return;
 	
 	if ((pEnd_ - str_.get()) + nLen > nLen_)
-		allocBuffer(nLen);
+		allocBuffer((pEnd_ - str_.get()) + nLen, false);
 	memcpy(pEnd_, psz, nLen*sizeof(Char));
 	pEnd_ += nLen;
 	*pEnd_ = Char();
@@ -718,7 +718,7 @@ void qs::StringBuffer<String>::insert(size_t nPos,
 	// TODO
 	// Performance improvement
 	if ((pEnd_ - str_.get()) + nLen > nLen_)
-		allocBuffer(nLen);
+		allocBuffer((pEnd_ - str_.get()) + nLen, false);
 	
 	memmove(str_.get() + nPos + nLen, str_.get() + nPos,
 		(pEnd_ - str_.get() - nPos)*sizeof(Char));
@@ -762,7 +762,7 @@ template<class String>
 void qs::StringBuffer<String>::reserve(size_t nSize)
 {
 	if (nSize > nLen_)
-		allocBuffer(nSize);
+		allocBuffer(nSize, true);
 }
 
 template<class String>
@@ -791,10 +791,13 @@ void qs::StringBuffer<String>::init(const Char* psz,
 }
 
 template<class String>
-void qs::StringBuffer<String>::allocBuffer(size_t nLen)
+void qs::StringBuffer<String>::allocBuffer(size_t nLen,
+										   bool bExact)
 {
 	size_t nEnd = pEnd_ - str_.get();
-	size_t nNewLen =  QSMAX(nLen_ == 0 ? size_t(INITIAL) : nLen_*2, nLen);
+	size_t nNewLen = QSMAX(bExact ? nLen_ : nLen_ == 0 ? size_t(INITIAL) : nLen_*2, nLen);
+	assert(nNewLen > nLen_);
+	assert(nNewLen >= nLen);
 	basic_string_ptr<String> str(StringTraits<String>::reallocString(str_, nNewLen));
 	nLen_ = nNewLen;
 	pEnd_ = str.get() + nEnd;
@@ -898,7 +901,7 @@ bool qs::XStringBuffer<XString>::append(const Char* psz,
 		return true;
 	
 	if ((pEnd_ - str_.get()) + nLen > nLen_) {
-		if (!allocBuffer(nLen))
+		if (!allocBuffer((pEnd_ - str_.get()) + nLen, false))
 			return false;
 	}
 	memcpy(pEnd_, psz, nLen*sizeof(Char));
@@ -935,7 +938,7 @@ bool qs::XStringBuffer<XString>::insert(size_t nPos,
 	// TODO
 	// Performance improvement
 	if ((pEnd_ - str_.get()) + nLen > nLen_) {
-		if (!allocBuffer(nLen))
+		if (!allocBuffer((pEnd_ - str_.get()) + nLen, false))
 			return false;
 	}
 	
@@ -982,7 +985,7 @@ template<class XString>
 bool qs::XStringBuffer<XString>::reserve(size_t nSize)
 {
 	if (nSize > nLen_)
-		return allocBuffer(nSize);
+		return allocBuffer(nSize, true);
 	else
 		return true;
 }
@@ -992,7 +995,7 @@ typename qs::XStringBuffer<XString>::Char* qs::XStringBuffer<XString>::lockBuffe
 {
 	size_t nNewSize = (pEnd_ - str_.get()) + nSize;
 	if (nNewSize > nLen_) {
-		if (!allocBuffer(nNewSize))
+		if (!allocBuffer(nNewSize, true))
 			return 0;
 	}
 	return pEnd_;
@@ -1043,10 +1046,13 @@ bool qs::XStringBuffer<XString>::init(const Char* psz,
 }
 
 template<class XString>
-bool qs::XStringBuffer<XString>::allocBuffer(size_t nLen)
+bool qs::XStringBuffer<XString>::allocBuffer(size_t nLen,
+											 bool bExact)
 {
 	size_t nEnd = pEnd_ - str_.get();
-	size_t nNewLen = QSMAX(nLen_ == 0 ? size_t(INITIAL) : (nLen_ < TWICE_MAX ? nLen_*2 : nLen_*3/2), nLen);
+	size_t nNewLen = QSMAX(bExact ? nLen_ : nLen_ == 0 ? size_t(INITIAL) : nLen_ < TWICE_MAX ? nLen_*2 : nLen_*3/2, nLen);
+	assert(nNewLen > nLen_);
+	assert(nNewLen >= nLen);
 	basic_xstring_ptr<XString> str(XStringTraits<XString>::reallocXString(str_, nNewLen));
 	if (!str.get())
 		return false;
