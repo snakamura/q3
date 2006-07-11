@@ -1040,6 +1040,11 @@ private:
 	void allocBuffer(size_t nLen);
 
 private:
+	enum {
+		INITIAL = 16
+	};
+
+private:
 	StringBuffer(const StringBuffer&);
 	StringBuffer& operator=(const StringBuffer&);
 
@@ -1237,6 +1242,12 @@ private:
 private:
 	XStringBuffer(const XStringBuffer&);
 	XStringBuffer& operator=(const XStringBuffer&);
+
+private:
+	enum {
+		INITIAL		= 16,
+		TWICE_MAX	= 1024*1024
+	};
 
 private:
 	basic_xstring_ptr<XString> str_;

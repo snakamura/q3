@@ -794,14 +794,8 @@ template<class String>
 void qs::StringBuffer<String>::allocBuffer(size_t nLen)
 {
 	size_t nEnd = pEnd_ - str_.get();
-	
-	basic_string_ptr<String> str;
-	size_t nNewLen = nLen_;
-	if (nNewLen == 0)
-		nNewLen = QSMAX(size_t(16), nLen);
-	else
-		nNewLen += QSMAX(nNewLen*2, nLen);
-	str = StringTraits<String>::reallocString(str_, nNewLen);
+	size_t nNewLen =  QSMAX(nLen_ == 0 ? size_t(INITIAL) : nLen_*2, nLen);
+	basic_string_ptr<String> str(StringTraits<String>::reallocString(str_, nNewLen));
 	nLen_ = nNewLen;
 	pEnd_ = str.get() + nEnd;
 	str_ = str;
@@ -1052,20 +1046,13 @@ template<class XString>
 bool qs::XStringBuffer<XString>::allocBuffer(size_t nLen)
 {
 	size_t nEnd = pEnd_ - str_.get();
-	
-	basic_xstring_ptr<XString> str;
-	size_t nNewLen = nLen_;
-	if (nNewLen == 0)
-		nNewLen = QSMAX(size_t(16), nLen);
-	else
-		nNewLen += QSMAX(nNewLen*2, nLen);
-	str = XStringTraits<XString>::reallocXString(str_, nNewLen);
+	size_t nNewLen = QSMAX(nLen_ == 0 ? size_t(INITIAL) : (nLen_ < TWICE_MAX ? nLen_*2 : nLen_*3/2), nLen);
+	basic_xstring_ptr<XString> str(XStringTraits<XString>::reallocXString(str_, nNewLen));
 	if (!str.get())
 		return false;
 	nLen_ = nNewLen;
 	pEnd_ = str.get() + nEnd;
 	str_ = str;
-	
 	return true;
 }
 
