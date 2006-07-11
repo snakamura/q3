@@ -37,7 +37,7 @@ qm::UIManager::UIManager()
 		countof(actionItems), dynamicMenuItems, countof(dynamicMenuItems),
 		pActionParamMap_.get()));
 	
-	wstring_ptr wstrBitmapPath(app.getProfilePath(FileNames::TOOLBAR_BMP));
+	wstring_ptr wstrBitmapPath(app.getImagePath(FileNames::TOOLBAR_BMP));
 	W2T(wstrBitmapPath.get(), ptszBitmapPath);
 #ifdef _WIN32_WCE
 	GdiObject<HBITMAP> hBitmap(::SHLoadDIBitmap(ptszBitmapPath));

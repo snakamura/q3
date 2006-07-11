@@ -53,6 +53,7 @@ public:
 	const WCHAR* getTemporaryFolder() const;
 	const WCHAR* getProfileName() const;
 	qs::wstring_ptr getProfilePath(const WCHAR* pwszName) const;
+	qs::wstring_ptr getImagePath(const WCHAR* pwszName) const;
 	qs::wstring_ptr getVersion(WCHAR cSeparator,
 							   bool bWithOSVersion) const;
 	qs::wstring_ptr getOSVersion() const;

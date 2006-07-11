@@ -2039,18 +2039,14 @@ END
 // PROFILE
 //
 
-ACCOUNT.BMP             PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\account.bmp"
 COLORS.XML              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\colors.xml"
 FILTERS.XML             PROFILE DISCARDABLE     "res\\filters.xml"
 HEADER.XML              PROFILE DISCARDABLE     "res\\header.xml"
 HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\headeredit.xml"
 KEYMAP.XML              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\hpc\\keymap.xml"
-LIST.BMP                PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\list.bmp"
-LISTDATA.BMP            PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\listdata.bmp"
 MENUS.XML               PROFILE DISCARDABLE     "res\\hpc\\menus.xml"
 QMAIL.XML               PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\qmail.xml"
 SYNCFILTERS.XML         PROFILE DISCARDABLE     "res\\syncfilters.xml"
-TOOLBAR.BMP             PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\toolbar.bmp"
 TOOLBARS.XML            PROFILE DISCARDABLE     "res\\hpc\\toolbars.xml"
 VIEWS.XML               PROFILE DISCARDABLE     "res\\views.xml"
 #endif    // “ú–{Œê resources

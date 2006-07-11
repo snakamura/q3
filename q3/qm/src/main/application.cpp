@@ -115,6 +115,8 @@ public:
 	bool detachResource(const WCHAR* pwszPath,
 						const WCHAR* pwszType,
 						const WCHAR* pwszName);
+	wstring_ptr getProfileNameBasedPath(const WCHAR* pwszBaseName,
+										const WCHAR* pwszName) const;
 	void restoreCurrentFolder();
 	void saveCurrentFolder();
 
@@ -306,20 +308,20 @@ bool qm::ApplicationImpl::ensureResources()
 	} \
 
 	ApplicationImpl::Resource resources[] = {
-		DECLARE_PROFILE(FileNames::ACCOUNT_BMP,		ACCOUNT_BMP_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::COLORS_XML,		COLORS_XML_REVISION,				false	),
 		DECLARE_PROFILE(FileNames::FILTERS_XML,		FILTERS_XML_REVISION,				false	),
 		DECLARE_PROFILE(FileNames::HEADER_XML,		HEADER_XML_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	HEADEREDIT_XML_REVISION,			true	),
 		DECLARE_PROFILE(FileNames::KEYMAP_XML,		KEYMAP_XML_REVISION,				true	),
-		DECLARE_PROFILE(FileNames::LIST_BMP,		LIST_BMP_REVISION,					true	),
-		DECLARE_PROFILE(FileNames::LISTDATA_BMP,	LISTDATA_BMP_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::MENUS_XML,		MENUS_XML_REVISION,					true	),
 		DECLARE_PROFILE(FileNames::SYNCFILTERS_XML,	SYNCFILTERS_XML_REVISION,			false	),
-		DECLARE_PROFILE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	TOOLBARS_XML_REVISION,				true	),
 		DECLARE_PROFILE(FileNames::VIEWS_XML,		VIEWS_XML_REVISION,					false	),
+		DECLARE_IMAGE(FileNames::ACCOUNT_BMP,		ACCOUNT_BMP_REVISION,				true	),
 		DECLARE_IMAGE(FileNames::FOLDER_BMP,		FOLDER_BMP_REVISION,				true	),
+		DECLARE_IMAGE(FileNames::LIST_BMP,			LIST_BMP_REVISION,					true	),
+		DECLARE_IMAGE(FileNames::LISTDATA_BMP,		LISTDATA_BMP_REVISION,				true	),
+		DECLARE_IMAGE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP_REVISION,				true	),
 		DECLARE_IMAGE(L"account_mail.bmp",			ACCOUNT_MAIL_BMP_REVISION,			true	),
 		DECLARE_IMAGE(L"account_news.bmp",			ACCOUNT_NEWS_BMP_REVISION,			true	),
 		DECLARE_IMAGE(L"account_rss.bmp",			ACCOUNT_RSS_BMP_REVISION,			true	),
@@ -623,6 +625,44 @@ bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
 	}
 	
 	return true;
+}
+
+wstring_ptr qm::ApplicationImpl::getProfileNameBasedPath(const WCHAR* pwszBaseName,
+														 const WCHAR* pwszName) const
+{
+	assert(pwszBaseName);
+	assert(pwszName);
+	
+	wstring_ptr wstrPath;
+	if (*wstrProfileName_.get()) {
+		ConcatW c[] = {
+			{ wstrMailFolder_.get(),	-1	},
+			{ L"\\",					1	},
+			{ pwszBaseName,				-1	},
+			{ L"\\",					1	},
+			{ wstrProfileName_.get(),	-1	},
+			{ L"\\",					1	},
+			{ pwszName,					-1	}
+		};
+		wstrPath = concat(c, countof(c));
+		
+		W2T(wstrPath.get(), ptszPath);
+		if (::GetFileAttributes(ptszPath) == 0xffffffff)
+			wstrPath.reset(0);
+	}
+	
+	if (!wstrPath.get()) {
+		ConcatW c[] = {
+			{ wstrMailFolder_.get(),	-1	},
+			{ L"\\",					1	},
+			{ pwszBaseName,				-1	},
+			{ L"\\",					1	},
+			{ pwszName,					-1	}
+		};
+		wstrPath = concat(c, countof(c));
+	}
+
+	return wstrPath;
 }
 
 void qm::ApplicationImpl::restoreCurrentFolder()
@@ -979,29 +1019,12 @@ const WCHAR* qm::Application::getProfileName() const
 
 wstring_ptr qm::Application::getProfilePath(const WCHAR* pwszName) const
 {
-	assert(pwszName);
-	
-	wstring_ptr wstrPath;
-	if (*pImpl_->wstrProfileName_.get()) {
-		ConcatW c[] = {
-			{ pImpl_->wstrMailFolder_.get(),	-1	},
-			{ L"\\profiles\\",					-1	},
-			{ pImpl_->wstrProfileName_.get(),	-1	},
-			{ L"\\",							1	},
-			{ pwszName,							-1	}
-		};
-		wstrPath = concat(c, countof(c));
-		
-		W2T(wstrPath.get(), ptszPath);
-		if (::GetFileAttributes(ptszPath) == 0xffffffff)
-			wstrPath.reset(0);
-	}
-	
-	if (!wstrPath.get())
-		wstrPath = concat(pImpl_->wstrMailFolder_.get(),
-			L"\\profiles\\", pwszName);
+	return pImpl_->getProfileNameBasedPath(L"profiles", pwszName);
+}
 
-	return wstrPath;
+qs::wstring_ptr qm::Application::getImagePath(const WCHAR* pwszName) const
+{
+	return pImpl_->getProfileNameBasedPath(L"images", pwszName);
 }
 
 wstring_ptr qm::Application::getVersion(WCHAR cSeparator,
