@@ -814,7 +814,7 @@ HMENU qm::MessageFrameWindow::getMenuHandle(void* pCreateParam)
 
 UINT qm::MessageFrameWindow::getIconId()
 {
-	return IDI_MAINFRAME;
+	return IDI_MESSAGE;
 }
 
 DynamicMenuCreator* qm::MessageFrameWindow::getDynamicMenuCreator(DWORD dwData)
@@ -834,7 +834,7 @@ void qm::MessageFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
 	pwc->hIcon = ::LoadIcon(Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDI_MAINFRAME));
+		MAKEINTRESOURCE(IDI_MESSAGE));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
 }
 

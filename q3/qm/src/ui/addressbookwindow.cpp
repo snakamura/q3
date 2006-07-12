@@ -366,14 +366,14 @@ HMENU qm::AddressBookFrameWindow::getMenuHandle(void* pCreateParam)
 
 UINT qm::AddressBookFrameWindow::getIconId()
 {
-	return IDI_MAINFRAME;
+	return IDI_ADDRESSBOOK;
 }
 
 void qm::AddressBookFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
 	pwc->hIcon = ::LoadIcon(Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDI_MAINFRAME));
+		MAKEINTRESOURCE(IDI_ADDRESSBOOK));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
 }
 

@@ -75,6 +75,9 @@ IDI_OFFLINE             ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\offline.i
 IDI_ONLINE              ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\online.ico"
 IDI_UNVERIFIED          ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\unverified.ico"
 IDI_VERIFIED            ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\verified.ico"
+IDI_MESSAGE             ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\message.ico"
+IDI_EDIT                ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\edit.ico"
+IDI_ADDRESSBOOK         ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\addressbook.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

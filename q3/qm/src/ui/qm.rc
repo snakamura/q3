@@ -73,6 +73,9 @@ IDI_OFFLINE             ICON    DISCARDABLE     "res\\offline.ico"
 IDI_ONLINE              ICON    DISCARDABLE     "res\\online.ico"
 IDI_UNVERIFIED          ICON    DISCARDABLE     "res\\unverified.ico"
 IDI_VERIFIED            ICON    DISCARDABLE     "res\\verified.ico"
+IDI_MESSAGE             ICON    DISCARDABLE     "res\\message.ico"
+IDI_EDIT                ICON    DISCARDABLE     "res\\edit.ico"
+IDI_ADDRESSBOOK         ICON    DISCARDABLE     "res\\addressbook.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -615,7 +615,7 @@ HMENU qm::EditFrameWindow::getMenuHandle(void* pCreateParam)
 
 UINT qm::EditFrameWindow::getIconId()
 {
-	return IDI_MAINFRAME;
+	return IDI_EDIT;
 }
 
 DynamicMenuCreator* qm::EditFrameWindow::getDynamicMenuCreator(DWORD dwData)
@@ -635,7 +635,7 @@ void qm::EditFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
 	pwc->hIcon = ::LoadIcon(Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDI_MAINFRAME));
+		MAKEINTRESOURCE(IDI_EDIT));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
 }
 
