@@ -185,7 +185,7 @@
 			<menuitem text="Options..." action="ToolOptions"/>
 		</popupmenu>
 		<popupmenu text="Help">
-			<menuitem text="About" action="HelpAbout"/>
+			<menuitem text="About..." action="HelpAbout"/>
 		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">

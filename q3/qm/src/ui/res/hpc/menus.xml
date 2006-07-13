@@ -207,7 +207,7 @@
 			<menuitem text="&amp;Options..." action="ToolOptions"/>
 		</popupmenu>
 		<popupmenu text="&amp;Help">
-			<menuitem text="&amp;About" action="HelpAbout"/>
+			<menuitem text="&amp;About..." action="HelpAbout"/>
 		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">

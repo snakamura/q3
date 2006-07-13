@@ -186,7 +186,7 @@
 			<menuitem text="オプション..." action="ToolOptions"/>
 		</popupmenu>
 		<popupmenu text="ヘルプ">
-			<menuitem text="バージョン情報" action="HelpAbout"/>
+			<menuitem text="バージョン情報..." action="HelpAbout"/>
 		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">
