@@ -206,6 +206,9 @@
 			<menuitem text="&amp;Account..." action="ToolAccount"/>
 			<menuitem text="&amp;Options..." action="ToolOptions"/>
 		</popupmenu>
+		<popupmenu text="&amp;Help">
+			<menuitem text="&amp;About" action="HelpAbout"/>
+		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">
 		<popupmenu text="&amp;File">

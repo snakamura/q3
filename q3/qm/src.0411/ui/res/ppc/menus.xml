@@ -185,6 +185,9 @@
 			<menuitem text="アカウント..." action="ToolAccount"/>
 			<menuitem text="オプション..." action="ToolOptions"/>
 		</popupmenu>
+		<popupmenu text="ヘルプ">
+			<menuitem text="バージョン情報" action="HelpAbout"/>
+		</popupmenu>
 	</menubar>
 	<menubar name="messageframe">
 		<popupmenu text="ファイル">

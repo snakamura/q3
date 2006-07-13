@@ -97,6 +97,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"FolderSubscribe",				IDM_FOLDER_SUBSCRIBE,				1,							0 },
 	{ L"FolderUpdate",					IDM_FOLDER_UPDATE,					1,							0 },
 	{ L"HeaderEditItem",				IDM_FOCUS_HEADEREDITITEM,			MAX_FOCUS_HEADEREDITITEM,	0 },
+	{ L"HelpAbout",						IDM_HELP_ABOUT,						1,							0 },
 	{ L"MessageAddClean",				IDM_MESSAGE_ADDCLEAN,				1,							0 },
 	{ L"MessageAddJunk",				IDM_MESSAGE_ADDJUNK,				1,							0 },
 	{ L"MessageApplyRule",				IDM_MESSAGE_APPLYRULE,				1,							0 },

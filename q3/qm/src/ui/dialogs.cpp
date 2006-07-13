@@ -55,6 +55,57 @@ qm::DefaultDialog::~DefaultDialog()
 }
 
 
+/****************************************************************************
+ *
+ * AboutDialog
+ *
+ */
+
+qm::AboutDialog::AboutDialog() :
+	DefaultDialog(IDD_ABOUT)
+{
+}
+
+qm::AboutDialog::~AboutDialog()
+{
+}
+
+LRESULT qm::AboutDialog::onInitDialog(HWND hwndFocus,
+									  LPARAM lParam)
+{
+	const Application& app = Application::getApplication();
+	
+#ifndef _WIN32_WCE
+	HICON hIcon = ::LoadIcon(app.getResourceHandle(), MAKEINTRESOURCE(IDI_MAINFRAME));
+	Static_SetIcon(getDlgItem(IDC_APPICON), hIcon);
+#endif
+	
+	setDlgItemText(IDC_VERSION, app.getVersion(L' ', false).get());
+	
+	const WCHAR* pwszDescription =
+		L"RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n\r\n"
+		L"STLport\r\n"
+		L"http://stlport.org/\r\n\r\n"
+		L"boost\r\n"
+		L"http://boost.org/\r\n\r\n"
+		L"OpenSSL\r\n"
+		L"http://www.openssl.org/\r\n\r\n"
+		L"QDBM\r\n"
+		L"http://qdbm.sourceforge.net/\r\n\r\n"
+		L"Info-ZIP\r\n"
+		L"http://www.info-zip.org/\r\n\r\n"
+		L"famfamfam.com\r\n"
+		L"http://www.famfamfam.com/\r\n\r\n"
+		L"Petite Priere\r\n"
+		L"http://snow.if.tv/\r\n";
+	setDlgItemText(IDC_DESCRIPTION, pwszDescription);
+	
+	init(true);
+	
+	return TRUE;
+}
+
+
 #ifdef QMZIP
 /****************************************************************************
  *

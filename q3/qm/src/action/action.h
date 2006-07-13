@@ -69,6 +69,7 @@ class FolderRenameAction;
 class FolderShowSizeAction;
 class FolderSubscribeAction;
 class FolderUpdateAction;
+class HelpAboutAction;
 class MessageApplyRuleAction;
 class MessageCertificateAction;
 class MessageClearRecentsAction;
@@ -1560,6 +1561,30 @@ private:
 private:
 	FolderModel* pFolderModel_;
 	SyncManager* pSyncManager_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * HelpAboutAction
+ *
+ */
+
+class HelpAboutAction : public qs::AbstractAction
+{
+public:
+	explicit HelpAboutAction(HWND hwnd);
+	virtual ~HelpAboutAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	HelpAboutAction(const HelpAboutAction&);
+	HelpAboutAction& operator=(const HelpAboutAction&);
+
+private:
 	HWND hwnd_;
 };
 

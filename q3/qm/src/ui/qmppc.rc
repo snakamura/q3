@@ -1725,6 +1725,19 @@ BEGIN
     GROUPBOX        "Notification",IDC_STATIC,5,30,127,80
 END
 
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_VERSION,5,5,127,8
+    LTEXT           "(C) 1998-2006 Satoshi Nakamura.\nAll rights reserved.",
+                    IDC_STATIC,5,15,127,20
+    LTEXT           "http://q3.snak.org/",IDC_STATIC,5,40,127,8
+    EDITTEXT        IDC_DESCRIPTION,5,55,127,55,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2025,6 +2038,14 @@ BEGIN
     END
 
     IDD_CERTIFICATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ABOUT, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 130

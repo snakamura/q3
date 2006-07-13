@@ -25,6 +25,7 @@
 namespace qm {
 
 class DefaultDialog;
+	class AbountDialog;
 	template<class T, class List> class AbstractListDialog;
 #ifndef _WIN32_WCE
 	class ArchiveDialog;
@@ -81,6 +82,28 @@ public:
 private:
 	DefaultDialog(const DefaultDialog&);
 	DefaultDialog& operator=(const DefaultDialog&);
+};
+
+
+/****************************************************************************
+ *
+ * AboutDialog
+ *
+ */
+
+class AboutDialog : public DefaultDialog
+{
+public:
+	AboutDialog();
+	~AboutDialog();
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+private:
+	AboutDialog(const AboutDialog&);
+	AboutDialog& operator=(const AboutDialog&);
 };
 
 

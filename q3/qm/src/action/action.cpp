@@ -3337,6 +3337,28 @@ bool qm::FolderUpdateAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * HelpAboutAction
+ *
+ */
+
+qm::HelpAboutAction::HelpAboutAction(HWND hwnd) :
+	hwnd_(hwnd)
+{
+}
+
+qm::HelpAboutAction::~HelpAboutAction()
+{
+}
+
+void qm::HelpAboutAction::invoke(const qs::ActionEvent& event)
+{
+	AboutDialog dialog;
+	dialog.doModal(hwnd_);
+}
+
+
+/****************************************************************************
+ *
  * MessageApplyRuleAction
  *
  */

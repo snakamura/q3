@@ -1692,6 +1692,20 @@ BEGIN
     GROUPBOX        "新着メッセージ通知",IDC_STATIC,5,30,195,65
 END
 
+IDD_ABOUT DIALOGEX 0, 0, 205, 105
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE 0x80000000L
+CAPTION "QMAILのバージョン情報"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_VERSION,5,5,195,8
+    LTEXT           "(C) 1998-2006 Satoshi Nakamura. All rights reserved.",
+                    IDC_STATIC,5,15,195,8
+    LTEXT           "http://q3.snak.org/",IDC_STATIC,5,30,195,8
+    EDITTEXT        IDC_DESCRIPTION,5,45,195,55,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2029,6 +2043,14 @@ BEGIN
         RIGHTMARGIN, 283
         TOPMARGIN, 7
         BOTTOMMARGIN, 103
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 198
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
     END
 END
 #endif    // APSTUDIO_INVOKED

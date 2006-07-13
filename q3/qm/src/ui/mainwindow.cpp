@@ -639,6 +639,9 @@ void qm::MainWindowImpl::initActions()
 		pFolderModel_.get(),
 		pSyncManager_,
 		pThis_->getHandle());
+	ADD_ACTION1(HelpAboutAction,
+		IDM_HELP_ABOUT,
+		pThis_->getHandle());
 	ADD_ACTION8(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULE,
 		pDocument_->getRuleManager(),

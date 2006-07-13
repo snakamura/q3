@@ -1851,6 +1851,21 @@ BEGIN
                     ES_NUMBER
 END
 
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 245, 134
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAILÇÃÉoÅ[ÉWÉáÉìèÓïÒ"
+FONT 9, "MS UI Gothic"
+BEGIN
+    ICON            "",IDC_APPICON,5,5,20,20
+    LTEXT           "",IDC_VERSION,35,5,205,8
+    LTEXT           "Copyright(C) 1998-2006 Satoshi Nakamura. All rights reserved.",
+                    -1,35,15,205,8
+    LTEXT           "http://q3.snak.org/",-1,35,25,205,8
+    DEFPUSHBUTTON   "OK",IDOK,190,115,50,14
+    EDITTEXT        IDC_DESCRIPTION,35,40,205,70,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1931,6 +1946,14 @@ BEGIN
         RIGHTMARGIN, 363
         TOPMARGIN, 7
         BOTTOMMARGIN, 197
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 238
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 127
     END
 END
 #endif    // APSTUDIO_INVOKED
