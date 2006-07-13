@@ -69,6 +69,8 @@ public:
 	static bool openURL(const WCHAR* pwszURL,
 						qs::Profile* pProfile,
 						HWND hwnd);
+	static bool openURL(const WCHAR* pwszURL,
+						HWND hwnd);
 	
 	static HIMAGELIST createImageListFromFile(const WCHAR* pwszName,
 											  int nWidth,

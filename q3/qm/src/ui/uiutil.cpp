@@ -200,6 +200,7 @@ bool qm::UIUtil::openURL(const WCHAR* pwszURL,
 						 HWND hwnd)
 {
 	assert(pwszURL);
+	assert(pProfile);
 	
 	if (wcsncmp(pwszURL, L"file:", 5) == 0 ||
 		(wcslen(pwszURL) > 2 && TextUtil::isDriveLetterChar(*pwszURL) &&
@@ -216,6 +217,14 @@ bool qm::UIUtil::openURL(const WCHAR* pwszURL,
 			}
 		}
 	}
+	
+	return openURL(pwszURL, hwnd);
+}
+
+bool qm::UIUtil::openURL(const WCHAR* pwszURL,
+						 HWND hwnd)
+{
+	assert(pwszURL);
 	
 	W2T(pwszURL, ptszURL);
 	SHELLEXECUTEINFO info = {
