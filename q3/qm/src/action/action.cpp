@@ -3359,6 +3359,31 @@ void qm::HelpAboutAction::invoke(const qs::ActionEvent& event)
 
 /****************************************************************************
  *
+ * HelpOpenURLAction
+ *
+ */
+
+qm::HelpOpenURLAction::HelpOpenURLAction(HWND hwnd) :
+	hwnd_(hwnd)
+{
+}
+
+qm::HelpOpenURLAction::~HelpOpenURLAction()
+{
+}
+
+void qm::HelpOpenURLAction::invoke(const qs::ActionEvent& event)
+{
+	const WCHAR* pwszURL = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszURL)
+		return;
+	
+	UIUtil::openURL(pwszURL, hwnd_);
+}
+
+
+/****************************************************************************
+ *
  * MessageApplyRuleAction
  *
  */

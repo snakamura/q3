@@ -642,6 +642,9 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(HelpAboutAction,
 		IDM_HELP_ABOUT,
 		pThis_->getHandle());
+	ADD_ACTION1(HelpOpenURLAction,
+		IDM_HELP_OPENURL,
+		pThis_->getHandle());
 	ADD_ACTION8(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULE,
 		pDocument_->getRuleManager(),

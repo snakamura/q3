@@ -209,6 +209,9 @@
 			<menuitem text="&amp;Options..." action="ToolOptions"/>
 		</popupmenu>
 		<popupmenu text="&amp;Help">
+			<menuitem text="&amp;Document" action="HelpOpenURL" param="http://q3.snak.org/doc/"/>
+			<menuitem text="&amp;Website" action="HelpOpenURL" param="http://q3.snak.org/"/>
+			<separator/>
 			<menuitem text="&amp;About..." action="HelpAbout"/>
 		</popupmenu>
 	</menubar>

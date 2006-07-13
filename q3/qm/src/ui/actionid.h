@@ -235,10 +235,12 @@
 #define IDM_ADDRESS_EDIT                53002
 #define IDM_ADDRESS_NEW                 53003
 #define IDM_HELP_ABOUT                  54001
+#define IDM_HELP_OPENURL                54100
 
+#define MAX_ADDRESSBOOK_CATEGORY        100
 #define MAX_FOCUS_HEADEREDITITEM        100
 #define MAX_FOLDER_EMPTY                100
-#define MAX_ADDRESSBOOK_CATEGORY        100
+#define MAX_HELP_OPENURL                100
 #define MAX_MESSAGE_ATTACHMENT          100
 #define MAX_MESSAGE_CREATE              100
 #define MAX_MESSAGE_CREATEEXTERNAL      100

@@ -186,6 +186,9 @@
 			<menuitem text="オプション..." action="ToolOptions"/>
 		</popupmenu>
 		<popupmenu text="ヘルプ">
+			<menuitem text="ドキュメント" action="HelpOpenURL" param="http://q3.snak.org/doc/"/>
+			<menuitem text="Webサイト" action="HelpOpenURL" param="http://q3.snak.org/"/>
+			<separator/>
 			<menuitem text="バージョン情報..." action="HelpAbout"/>
 		</popupmenu>
 	</menubar>

@@ -70,6 +70,7 @@ class FolderShowSizeAction;
 class FolderSubscribeAction;
 class FolderUpdateAction;
 class HelpAboutAction;
+class HelpOpenURLAction;
 class MessageApplyRuleAction;
 class MessageCertificateAction;
 class MessageClearRecentsAction;
@@ -1583,6 +1584,30 @@ public:
 private:
 	HelpAboutAction(const HelpAboutAction&);
 	HelpAboutAction& operator=(const HelpAboutAction&);
+
+private:
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * HelpOpenURLAction
+ *
+ */
+
+class HelpOpenURLAction : public qs::AbstractAction
+{
+public:
+	explicit HelpOpenURLAction(HWND hwnd);
+	virtual ~HelpOpenURLAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	HelpOpenURLAction(const HelpOpenURLAction&);
+	HelpOpenURLAction& operator=(const HelpOpenURLAction&);
 
 private:
 	HWND hwnd_;
