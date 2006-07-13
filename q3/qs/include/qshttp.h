@@ -93,6 +93,20 @@ public:
 
 /****************************************************************************
  *
+ * DefaultHttpCallback
+ *
+ */
+
+class QSEXPORTCLASS DefaultHttpCallback : public HttpCallback
+{
+public:
+	DefaultHttpCallback();
+	virtual ~DefaultHttpCallback();
+};
+
+
+/****************************************************************************
+ *
  * HttpConnection
  *
  */
@@ -324,6 +338,7 @@ public:
 	};
 
 public:
+	static malloc_size_ptr<unsigned char> openURL(const WCHAR* pwszURL);
 	static wstring_ptr getRedirectLocation(const WCHAR* pwszURL,
 										   const Part& header,
 										   RedirectError* pError);

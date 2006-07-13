@@ -11,6 +11,8 @@
 #include <qsconv.h>
 #include <qsencoder.h>
 #include <qshttp.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsosutil.h>
 
 #include <wininet.h>
@@ -189,6 +191,21 @@ void qs::Http::setProxyPassword(const WCHAR* pwszPassword)
  */
 
 qs::HttpCallback::~HttpCallback()
+{
+}
+
+
+/****************************************************************************
+ *
+ * DefaultHttpCallback
+ *
+ */
+
+qs::DefaultHttpCallback::DefaultHttpCallback()
+{
+}
+
+qs::DefaultHttpCallback::~DefaultHttpCallback()
 {
 }
 
@@ -705,6 +722,26 @@ std::auto_ptr<HttpURL> qs::HttpURL::create(const WCHAR* pwszURL)
  * HttpUtility
  *
  */
+
+malloc_size_ptr<unsigned char> qs::HttpUtility::openURL(const WCHAR* pwszURL)
+{
+	DefaultSocketCallback socketCallback;
+	DefaultHttpCallback httpCallback;
+	Http http(&socketCallback, 0, &httpCallback,
+		InitThread::getInitThread().getLogger());
+	
+	wstring_ptr wstrProxyHost;
+	unsigned short nProxyPort = 8080;
+	if (getInternetProxySetting(&wstrProxyHost, &nProxyPort)) {
+		http.setProxyHost(wstrProxyHost.get());
+		http.setProxyPort(nProxyPort);
+	}
+	
+	HttpMethodGet method(pwszURL);
+	if (http.invoke(&method) != 200)
+		return malloc_size_ptr<unsigned char>();
+	return method.getResponseBody();
+}
 
 wstring_ptr qs::HttpUtility::getRedirectLocation(const WCHAR* pwszURL,
 												 const qs::Part& header,
