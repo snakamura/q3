@@ -615,6 +615,42 @@ qs::SocketCallback::~SocketCallback()
 
 /****************************************************************************
  *
+ * DefaultSocketCallback
+ *
+ */
+
+qs::DefaultSocketCallback::DefaultSocketCallback()
+{
+}
+
+qs::DefaultSocketCallback::~DefaultSocketCallback()
+{
+}
+
+bool qs::DefaultSocketCallback::isCanceled(bool bForce) const
+{
+	return false;
+}
+
+void qs::DefaultSocketCallback::initialize()
+{
+}
+
+void qs::DefaultSocketCallback::lookup()
+{
+}
+
+void qs::DefaultSocketCallback::connecting()
+{
+}
+
+void qs::DefaultSocketCallback::connected()
+{
+}
+
+
+/****************************************************************************
+ *
  * SocketInputStream
  *
  */

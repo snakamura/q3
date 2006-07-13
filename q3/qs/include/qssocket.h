@@ -211,6 +211,27 @@ public:
 
 /****************************************************************************
  *
+ * DefaultSocketCallback
+ *
+ */
+
+class QSEXPORTCLASS DefaultSocketCallback : public SocketCallback
+{
+public:
+	DefaultSocketCallback();
+	virtual ~DefaultSocketCallback();
+
+public:
+	virtual bool isCanceled(bool bForce) const;
+	virtual void initialize();
+	virtual void lookup();
+	virtual void connecting();
+	virtual void connected();
+};
+
+
+/****************************************************************************
+ *
  * SocketInputStream
  *
  */
