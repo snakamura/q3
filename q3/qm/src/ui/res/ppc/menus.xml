@@ -188,6 +188,8 @@
 			<menuitem text="Document" action="HelpOpenURL" param="http://q3.snak.org/doc/"/>
 			<menuitem text="Website" action="HelpOpenURL" param="http://q3.snak.org/"/>
 			<separator/>
+			<menuitem text="Check Update" action="HelpCheckUpdate"/>
+			<separator/>
 			<menuitem text="About..." action="HelpAbout"/>
 		</popupmenu>
 	</menubar>

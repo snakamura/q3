@@ -235,6 +235,7 @@
 #define IDM_ADDRESS_EDIT                53002
 #define IDM_ADDRESS_NEW                 53003
 #define IDM_HELP_ABOUT                  54001
+#define IDM_HELP_CHECKUPDATE            54002
 #define IDM_HELP_OPENURL                54100
 
 #define MAX_ADDRESSBOOK_CATEGORY        100

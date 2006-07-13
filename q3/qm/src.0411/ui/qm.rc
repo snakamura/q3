@@ -208,6 +208,7 @@ BEGIN
     IDS_CONFIRM_OPENURL     "ファイルを開いてもよろしいですか？"
     IDS_CONFIRM_IGNORECHECKERROR 
                             "キャッシュを検査中にエラーが発生しました。\nエラーを無視してこのメッセージを削除してもよろしいですか？\nフォルダ: %s\nID: %u\nオフセット: %u\nサイズ: %u"
+    IDS_CONFIRM_UPDATE      "新しいバージョンが存在します。\n新しいバージョンをダウンロードしますか？"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -239,6 +240,7 @@ BEGIN
     IDS_MESSAGE_CHECKMESSAGES "メッセージを調べています"
     IDS_MESSAGE_APPLYRULE   "メッセージを振り分けています"
     IDS_MESSAGE_FINDNOTFOUND "検索文字列が見つかりません"
+    IDS_MESSAGE_UPDATED     "最新のバージョンです"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -354,6 +356,7 @@ BEGIN
     IDS_ERROR_OUTBOXHASEXTRAFLAGS 
                             "送信箱は送信箱と草稿箱以外のフラグを持つことはできません"
     IDS_ERROR_OPENMESSAGE   "メッセージウィンドウが開けません"
+    IDS_ERROR_CHECKUPDATE   "最新のバージョンを取得できませんでした"
 END
 
 STRINGTABLE DISCARDABLE 

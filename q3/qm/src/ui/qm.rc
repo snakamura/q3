@@ -206,6 +206,7 @@ BEGIN
     IDS_CONFIRM_OPENURL     "Are you sure to open this file?"
     IDS_CONFIRM_IGNORECHECKERROR 
                             "Error occured while checking the cache.\nDo you want to ignore it and remove this message?\nFolder: %s\nID: %u\nOffset: %u\nLength: %u"
+    IDS_CONFIRM_UPDATE      "The new version is available.\nWould you like to download it?"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -237,6 +238,7 @@ BEGIN
     IDS_MESSAGE_CHECKMESSAGES "Checking messages..."
     IDS_MESSAGE_APPLYRULE   "Applying rules..."
     IDS_MESSAGE_FINDNOTFOUND "Not found."
+    IDS_MESSAGE_UPDATED     "This is the latest version."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -352,6 +354,7 @@ BEGIN
     IDS_ERROR_OUTBOXHASEXTRAFLAGS 
                             "Outbox must not have flags other than Outbox or Draftbox."
     IDS_ERROR_OPENMESSAGE   "Failed to open message window."
+    IDS_ERROR_CHECKUPDATE   "Could not get the latest version."
 END
 
 STRINGTABLE DISCARDABLE 

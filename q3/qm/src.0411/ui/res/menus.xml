@@ -213,6 +213,8 @@
 			<menuitem text="ドキュメント(&amp;D)" action="HelpOpenURL" param="http://q3.snak.org/doc/"/>
 			<menuitem text="&amp;Webサイト" action="HelpOpenURL" param="http://q3.snak.org/"/>
 			<separator/>
+			<menuitem text="更新を確認(&amp;C)" action="HelpCheckUpdate"/>
+			<separator/>
 			<menuitem text="バージョン情報(&amp;A)..." action="HelpAbout"/>
 		</popupmenu>
 	</menubar>

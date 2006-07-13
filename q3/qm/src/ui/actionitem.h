@@ -98,6 +98,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"FolderUpdate",					IDM_FOLDER_UPDATE,					1,							0 },
 	{ L"HeaderEditItem",				IDM_FOCUS_HEADEREDITITEM,			MAX_FOCUS_HEADEREDITITEM,	0 },
 	{ L"HelpAbout",						IDM_HELP_ABOUT,						1,							0 },
+	{ L"HelpCheckUpdate",				IDM_HELP_CHECKUPDATE,				1,							0 },
 	{ L"HelpOpenURL",					IDM_HELP_OPENURL,					MAX_HELP_OPENURL,			0 },
 	{ L"MessageAddClean",				IDM_MESSAGE_ADDCLEAN,				1,							0 },
 	{ L"MessageAddJunk",				IDM_MESSAGE_ADDJUNK,				1,							0 },
