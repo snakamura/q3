@@ -1552,6 +1552,7 @@ bool qm::HtmlMessageViewWindow::openLink()
 {
 	return true;
 }
+
 void qm::HtmlMessageViewWindow::copy()
 {
 	pWebBrowser_->ExecWB(OLECMDID_COPY, OLECMDEXECOPT_DONTPROMPTUSER, 0, 0);
