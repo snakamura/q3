@@ -85,6 +85,7 @@
 *((<FolderUpdateアクション|URL:FolderUpdateAction.html>))
 *((<HeaderEditItemアクション|URL:HeaderEditItemAction.html>))
 *((<HelpAboutアクション|URL:HelpAboutAction.html>))
+*((<HelpOpenURLアクション|URL:HelpOpenURLAction.html>))
 *((<MessageAddCleanアクション|URL:MessageAddCleanAction.html>))
 *((<MessageAddJunkアクション|URL:MessageAddJunkAction.html>))
 *((<MessageApplyRuleアクション|URL:MessageApplyRuleAction.html>))
