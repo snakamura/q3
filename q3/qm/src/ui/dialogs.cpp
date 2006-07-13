@@ -70,6 +70,16 @@ qm::AboutDialog::~AboutDialog()
 {
 }
 
+INT_PTR qm::AboutDialog::dialogProc(UINT uMsg,
+									WPARAM wParam,
+									LPARAM lParam)
+{
+	BEGIN_MESSAGE_HANDLER()
+		HANDLE_CTLCOLORSTATIC()
+	END_MESSAGE_HANDLER()
+	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
+}
+
 LRESULT qm::AboutDialog::onInitDialog(HWND hwndFocus,
 									  LPARAM lParam)
 {
@@ -83,26 +93,34 @@ LRESULT qm::AboutDialog::onInitDialog(HWND hwndFocus,
 	setDlgItemText(IDC_VERSION, app.getVersion(L' ', false).get());
 	
 	const WCHAR* pwszDescription =
-		L"RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n\r\n"
-		L"STLport\r\n"
-		L"http://stlport.org/\r\n\r\n"
-		L"boost\r\n"
-		L"http://boost.org/\r\n\r\n"
-		L"OpenSSL\r\n"
-		L"http://www.openssl.org/\r\n\r\n"
-		L"QDBM\r\n"
-		L"http://qdbm.sourceforge.net/\r\n\r\n"
-		L"Info-ZIP\r\n"
-		L"http://www.info-zip.org/\r\n\r\n"
-		L"famfamfam.com\r\n"
-		L"http://www.famfamfam.com/\r\n\r\n"
-		L"Petite Priere\r\n"
-		L"http://snow.if.tv/\r\n";
+		L"RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n"
+		L"STLport <http://stlport.org/>\r\n"
+		L"boost <http://boost.org/>\r\n"
+		L"OpenSSL <http://www.openssl.org/>\r\n"
+		L"QDBM <http://qdbm.sourceforge.net/>\r\n"
+		L"Info-ZIP <http://www.info-zip.org/>\r\n"
+		L"famfamfam.com <http://www.famfamfam.com/>\r\n"
+		L"Petite Priere <http://snow.if.tv/>";
 	setDlgItemText(IDC_DESCRIPTION, pwszDescription);
+	sendDlgItemMessage(IDC_DESCRIPTION, EM_SETSEL, 0, 0);
 	
 	init(true);
 	
+#ifdef _WIN32_WCE
 	return TRUE;
+#else
+	Window(getDlgItem(IDOK)).setFocus();
+	return FALSE;
+#endif
+}
+
+LRESULT qm::AboutDialog::onCtlColorStatic(HDC hdc,
+										  HWND hwnd)
+{
+	if (Window(hwnd).getId() == IDC_DESCRIPTION)
+		return DefaultDialog::onCtlColorEdit(hdc, hwnd);
+	else
+		return DefaultDialog::onCtlColorStatic(hdc, hwnd);
 }
 
 

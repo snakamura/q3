@@ -97,9 +97,18 @@ public:
 	AboutDialog();
 	~AboutDialog();
 
+public:
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
+
+protected:
+	LRESULT onCtlColorStatic(HDC hdc,
+							 HWND hwnd);
 
 private:
 	AboutDialog(const AboutDialog&);
