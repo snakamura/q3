@@ -267,9 +267,11 @@ inline void qs::DeviceContext::setHandle(HDC hdc)
 template<class Object>
 qs::ObjectSelector<Object>::ObjectSelector(DeviceContext& dc,
 										   Object o) :
-	dc_(dc)
+	dc_(dc),
+	o_(0)
 {
-	o_ = dc_.selectObject(o);
+	if (o)
+		o_ = dc_.selectObject(o);
 }
 
 template<class Object>
