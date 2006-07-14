@@ -112,7 +112,6 @@ public:
 							 bool* pbHandled);
 
 public:
-	virtual void offlineStatusChanged(const DocumentEvent& event);
 	virtual void documentInitialized(const DocumentEvent& event);
 
 public:
@@ -170,9 +169,11 @@ private:
 	void removeFolder(Folder* pFolder,
 					  bool bRecursive);
 	void sortFolders(Folder* pFolder);
+	void update(HTREEITEM hItem);
 	void processDragEvent(const DropTargetDragEvent& event);
-
-private:
+	bool isUnseen(const Folder* pFolder,
+				  bool bExpanded) const;
+	bool isUnseen(const Account* pAccount) const;
 	int getFolderImage(const Folder* pFolder,
 					   bool bSelected,
 					   bool bExpanded) const;
@@ -355,6 +356,9 @@ void qm::FolderWindowImpl::update(Folder* pFolder)
 			hRoot = hParent;
 	}
 	
+	update(hItem);
+	update(hRoot);
+	
 	HTREEITEM hItems[] = { hItem, hRoot };
 	for (int n = 0; n < countof(hItems); ++n) {
 		RECT rect;
@@ -484,24 +488,6 @@ LRESULT qm::FolderWindowImpl::onNotify(NMHDR* pnmhdr,
 		HANDLE_NOTIFY(TVN_SELCHANGED, nId_, onSelChanged)
 	END_NOTIFY_HANDLER()
 	return NotifyHandler::onNotify(pnmhdr, pbHandled);
-}
-
-void qm::FolderWindowImpl::offlineStatusChanged(const DocumentEvent& event)
-{
-	UINT nState = pDocument_->isOffline() ? 0 : TVIS_BOLD;
-	
-	HWND hwnd = pThis_->getHandle();
-	HTREEITEM hItem = TreeView_GetRoot(hwnd);
-	while (hItem) {
-		TVITEM item = {
-			TVIF_STATE,
-			hItem,
-			nState,
-			TVIS_BOLD
-		};
-		TreeView_SetItem(hwnd, &item);
-		hItem = TreeView_GetNextSibling(hwnd, hItem);
-	}
 }
 
 void qm::FolderWindowImpl::accountListChanged(const AccountManagerEvent& event)
@@ -832,12 +818,15 @@ LRESULT qm::FolderWindowImpl::onGetDispInfo(NMHDR* pnmhdr,
 	TVITEM& item = pnmtvDispInfo->item;
 	if (TreeView_GetParent(pThis_->getHandle(), item.hItem)) {
 		Folder* pFolder = reinterpret_cast<Folder*>(item.lParam);
-		if (item.mask & TVIF_IMAGE)
-			item.iImage = getFolderImage(pFolder,
-				false, (item.state & TVIS_EXPANDED) != 0);
-		if (item.mask & TVIF_SELECTEDIMAGE)
-			item.iSelectedImage = getFolderImage(pFolder,
-				true, (item.state & TVIS_EXPANDED) != 0);
+		if ((item.mask & TVIF_IMAGE) || (item.mask & TVIF_SELECTEDIMAGE)) {
+			bool bHasChild = TreeView_GetChild(pThis_->getHandle(), item.hItem) != 0;
+			if (item.mask & TVIF_IMAGE)
+				item.iImage = getFolderImage(pFolder, false,
+					(item.state & TVIS_EXPANDED) != 0 || !bHasChild);
+			if (item.mask & TVIF_SELECTEDIMAGE)
+				item.iSelectedImage = getFolderImage(pFolder, true,
+					(item.state & TVIS_EXPANDED) != 0 || !bHasChild);
+		}
 		if (item.mask & TVIF_TEXT) {
 			WCHAR wsz[64] = L"";
 			switch (nFlags_ & FLAG_FOLDER_MASK) {
@@ -908,10 +897,12 @@ LRESULT qm::FolderWindowImpl::onItemExpanded(NMHDR* pnmhdr,
 {
 	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
 	
+	HTREEITEM hItem = pnmtv->itemNew.hItem;
 	RECT rect;
-	if (TreeView_GetItemRect(pThis_->getHandle(),
-		pnmtv->itemNew.hItem, &rect, FALSE))
+	if (TreeView_GetItemRect(pThis_->getHandle(), hItem, &rect, FALSE)) {
 		pThis_->invalidateRect(rect);
+		update(hItem);
+	}
 	
 	return 0;
 }
@@ -984,7 +975,7 @@ void qm::FolderWindowImpl::addAccount(Account* pAccount)
 		{
 			TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_STATE,
 			0,
-			pDocument_->isOffline() ? 0 : TVIS_BOLD,
+			isUnseen(pAccount) ? TVIS_BOLD : 0,
 			TVIS_BOLD,
 			LPSTR_TEXTCALLBACK,
 			0,
@@ -1037,10 +1028,10 @@ void qm::FolderWindowImpl::insertFolders(HTREEITEM hItem,
 			hItem,
 			TVI_LAST,
 			{
-				TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
+				TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_STATE,
 				0,
-				0,
-				0,
+				isUnseen(pFolder, false) ? TVIS_BOLD : 0,
+				TVIS_BOLD,
 				LPSTR_TEXTCALLBACK,
 				0,
 				I_IMAGECALLBACK,
@@ -1090,10 +1081,10 @@ void qm::FolderWindowImpl::insertFolder(Folder* pFolder,
 		hItemParent,
 		hItemInsertAfter,
 		{
-			TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
+			TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_STATE,
 			0,
-			0,
-			0,
+			isUnseen(pFolder, false) ? TVIS_BOLD : 0,
+			TVIS_BOLD,
 			LPSTR_TEXTCALLBACK,
 			0,
 			I_IMAGECALLBACK,
@@ -1176,6 +1167,34 @@ void qm::FolderWindowImpl::sortFolders(Folder* pFolder)
 		0
 	};
 	TreeView_SortChildrenCB(hwnd, &sort, FALSE);
+}
+
+void qm::FolderWindowImpl::update(HTREEITEM hItem)
+{
+	HWND hwnd = pThis_->getHandle();
+	
+	bool bUnseen = false;
+	if (TreeView_GetParent(hwnd, hItem)) {
+		TVITEM item = {
+			TVIF_HANDLE | TVIF_STATE | TVIF_CHILDREN,
+			hItem,
+			0,
+			TVIS_EXPANDED
+		};
+		TreeView_GetItem(hwnd, &item);
+		bUnseen = isUnseen(getFolder(hItem),
+			(item.state & TVIS_EXPANDED) != 0 || item.cChildren == 0);
+	}
+	else {
+		bUnseen = isUnseen(getAccount(hItem));
+	}
+	TVITEM item = {
+		TVIF_HANDLE | TVIF_STATE,
+		hItem,
+		bUnseen ? TVIS_BOLD : 0,
+		TVIS_BOLD
+	};
+	TreeView_SetItem(hwnd, &item);
 }
 
 void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
@@ -1317,6 +1336,48 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 	ImageList_DragMove(pt.x, pt.y);
 }
 
+bool qm::FolderWindowImpl::isUnseen(const Folder* pFolder,
+									bool bExpanded) const
+{
+	if (bExpanded) {
+		return pFolder->getUnseenCount() != 0;
+	}
+	else {
+		const unsigned int nIgnore =
+			(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
+			Folder::FLAG_IGNOREUNSEEN;
+		
+		const Account::FolderList& l = pFolder->getAccount()->getFolders();
+		Account::FolderList::const_iterator it = l.begin();
+		while (it != l.end()) {
+			Folder* p = *it;
+			if ((p == pFolder || pFolder->isAncestorOf(p)) &&
+				(p->getFlags() & nIgnore) == 0 &&
+				p->getUnseenCount() != 0)
+				break;
+			++it;
+		}
+		return it != l.end();
+	}
+}
+
+bool qm::FolderWindowImpl::isUnseen(const Account* pAccount) const
+{
+	const unsigned int nIgnore =
+		(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
+		Folder::FLAG_IGNOREUNSEEN;
+	
+	const Account::FolderList& l = pAccount->getFolders();
+	Account::FolderList::const_iterator it = l.begin();
+	while (it != l.end()) {
+		const Folder* p = *it;
+		if (((p->getFlags() & nIgnore) == 0 && p->getUnseenCount() != 0))
+			break;
+		++it;
+	}
+	return it != l.end();
+}
+
 int qm::FolderWindowImpl::getFolderImage(const Folder* pFolder,
 										 bool bSelected,
 										 bool bExpanded) const
@@ -1349,20 +1410,7 @@ int qm::FolderWindowImpl::getAccountImage(const Account* pAccount,
 										  bool bSelected,
 										  bool bExpanded) const
 {
-	bool bUnseen = false;
-	
-	const unsigned int nIgnore =
-		(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
-		Folder::FLAG_IGNOREUNSEEN;
-	
-	const Account::FolderList& l = pAccount->getFolders();
-	for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && !bUnseen; ++it) {
-		Folder* pFolder = *it;
-		if ((pFolder->getFlags() & nIgnore) == 0)
-			bUnseen = pFolder->getUnseenCount() != 0;
-	}
-	
-	return pFolderImage_->getAccountImage(pAccount, bUnseen, bSelected);
+	return pFolderImage_->getAccountImage(pAccount, isUnseen(pAccount), bSelected);
 }
 
 
