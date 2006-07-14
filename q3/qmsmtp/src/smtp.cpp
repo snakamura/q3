@@ -369,11 +369,11 @@ bool qmsmtp::Smtp::helo(unsigned int* pnAuth,
 			const CHAR* pEnd = strstr(p, "\r\n");
 			if (!pEnd)
 				break;
-			if (*pnAuth == 0 &&
-				strncmp(p + 4, "AUTH", 4) == 0 &&
-				(*(p + 8) == ' ' || *(p + 8) == '=')) {
+			if (strncmp(p + 4, "AUTH", 4) == 0 &&
+				(*(p + 8) == ' ' || (*pnAuth == 0 && *(p + 8) == '='))) {
 				p += 9;
 				pEnd = p;
+				*pnAuth = 0;
 				while (true) {
 					while (*pEnd != ' ' && *pEnd != '\r')
 						++pEnd;
