@@ -171,15 +171,17 @@ private:
 	void sortFolders(Folder* pFolder);
 	void update(HTREEITEM hItem);
 	void processDragEvent(const DropTargetDragEvent& event);
-	bool isUnseen(const Folder* pFolder,
-				  bool bExpanded) const;
-	bool isUnseen(const Account* pAccount) const;
 	int getFolderImage(const Folder* pFolder,
 					   bool bSelected,
 					   bool bExpanded) const;
 	int getAccountImage(const Account* pAccount,
 						bool bSelected,
 						bool bExpanded) const;
+
+private:
+	static bool isUnseen(const Folder* pFolder,
+						 bool bExpanded);
+	static bool isUnseen(const Account* pAccount);
 
 public:
 	FolderWindow* pThis_;
@@ -1336,32 +1338,49 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 	ImageList_DragMove(pt.x, pt.y);
 }
 
-bool qm::FolderWindowImpl::isUnseen(const Folder* pFolder,
-									bool bExpanded) const
+int qm::FolderWindowImpl::getFolderImage(const Folder* pFolder,
+										 bool bSelected,
+										 bool bExpanded) const
 {
-	if (bExpanded) {
-		return pFolder->getUnseenCount() != 0;
-	}
-	else {
+	return pFolderImage_->getFolderImage(pFolder, pFolder->getCount() != 0,
+		isUnseen(pFolder, bExpanded), bSelected);
+}
+
+int qm::FolderWindowImpl::getAccountImage(const Account* pAccount,
+										  bool bSelected,
+										  bool bExpanded) const
+{
+	return pFolderImage_->getAccountImage(pAccount, isUnseen(pAccount), bSelected);
+}
+
+bool qm::FolderWindowImpl::isUnseen(const Folder* pFolder,
+									bool bExpanded)
+{
+	if (pFolder->isFlag(Folder::FLAG_TRASHBOX) ||
+		pFolder->isFlag(Folder::FLAG_JUNKBOX))
+		return false;
+	else if (pFolder->getUnseenCount() != 0)
+		return true;
+	
+	if (!bExpanded) {
 		const unsigned int nIgnore =
 			(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
 			Folder::FLAG_IGNOREUNSEEN;
 		
 		const Account::FolderList& l = pFolder->getAccount()->getFolders();
-		Account::FolderList::const_iterator it = l.begin();
-		while (it != l.end()) {
+		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* p = *it;
-			if ((p == pFolder || pFolder->isAncestorOf(p)) &&
-				(p->getFlags() & nIgnore) == 0 &&
-				p->getUnseenCount() != 0)
-				break;
-			++it;
+			if ((p->getFlags() & nIgnore) == 0 &&
+				p->getUnseenCount() != 0 &&
+				pFolder->isAncestorOf(p))
+				return true;
 		}
-		return it != l.end();
 	}
+	
+	return false;
 }
 
-bool qm::FolderWindowImpl::isUnseen(const Account* pAccount) const
+bool qm::FolderWindowImpl::isUnseen(const Account* pAccount)
 {
 	const unsigned int nIgnore =
 		(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
@@ -1376,41 +1395,6 @@ bool qm::FolderWindowImpl::isUnseen(const Account* pAccount) const
 		++it;
 	}
 	return it != l.end();
-}
-
-int qm::FolderWindowImpl::getFolderImage(const Folder* pFolder,
-										 bool bSelected,
-										 bool bExpanded) const
-{
-	bool bMessage = false;
-	bool bUnseen = false;
-	if (bExpanded) {
-		bMessage = pFolder->getCount() != 0;
-		bUnseen = pFolder->getUnseenCount() != 0;
-	}
-	else {
-		const unsigned int nIgnore = Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX;
-		
-		const Account::FolderList& l = pFolder->getAccount()->getFolders();
-		for (Account::FolderList::const_iterator it = l.begin(); it != l.end() && (!bMessage || !bUnseen); ++it) {
-			Folder* p = *it;
-			if (p == pFolder || ((p->getFlags() & nIgnore) == 0 && pFolder->isAncestorOf(p))) {
-				if (!bMessage)
-					bMessage = p->getCount() != 0;
-				if (!bUnseen && !p->isFlag(Folder::FLAG_IGNOREUNSEEN))
-					bUnseen = p->getUnseenCount() != 0;
-			}
-		}
-	}
-	
-	return pFolderImage_->getFolderImage(pFolder, bMessage, bUnseen, bSelected);
-}
-
-int qm::FolderWindowImpl::getAccountImage(const Account* pAccount,
-										  bool bSelected,
-										  bool bExpanded) const
-{
-	return pFolderImage_->getAccountImage(pAccount, isUnseen(pAccount), bSelected);
 }
 
 
