@@ -97,6 +97,7 @@ class qm::MainWindowImpl :
 	public FolderSelectionModel,
 	public ViewModelHolder,
 	public MessageWindowHandler,
+	public DefaultDocumentHandler,
 	public AccountManagerHandler
 #ifndef _WIN32_WCE_PSPC
 	,
@@ -158,6 +159,7 @@ public:
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
+	void updateTitleBar();
 	void updateStatusBar();
 	void reloadProfiles(bool bInitialize);
 
@@ -186,6 +188,9 @@ public:
 public:
 	virtual void messageChanged(const MessageWindowEvent& event);
 	virtual void statusTextChanged(const MessageWindowStatusTextEvent& event);
+
+public:
+	virtual void offlineStatusChanged(const DocumentEvent& event);
 
 public:
 	virtual void accountListChanged(const AccountManagerEvent& event);
@@ -1376,6 +1381,17 @@ void qm::MainWindowImpl::layoutChildren(int cx,
 	bLayouting_ = false;
 }
 
+void qm::MainWindowImpl::updateTitleBar()
+{
+	const Application& app = Application::getApplication();
+	wstring_ptr wstrTitle(app.getVersion(L' ', false));
+	if (pDocument_->isOffline()) {
+		wstring_ptr wstrOffline(loadString(app.getResourceHandle(), IDS_OFFLINE));
+		wstrTitle = concat(wstrTitle.get(), L" ", wstrOffline.get());
+	}
+	pThis_->setWindowText(wstrTitle.get());
+}
+
 void qm::MainWindowImpl::updateStatusBar()
 {
 	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(pThis_->getHandle(), 0));
@@ -1520,6 +1536,11 @@ void qm::MainWindowImpl::statusTextChanged(const MessageWindowStatusTextEvent& e
 {
 	if (bShowStatusBar_)
 		pStatusBar_->updateListParts(event.getText());
+}
+
+void qm::MainWindowImpl::offlineStatusChanged(const DocumentEvent& event)
+{
+	updateTitleBar();
 }
 
 void qm::MainWindowImpl::accountListChanged(const AccountManagerEvent& event)
@@ -2428,6 +2449,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSyncNotificationWindow_ = pSyncNotificationWindow.release();
 	
 	pImpl_->layoutChildren();
+	pImpl_->updateTitleBar();
 	
 	pImpl_->pOptionDialogManager_->initUIs(this, pImpl_->pFolderWindow_,
 		pImpl_->pFolderComboBox_, pImpl_->pListWindow_,
@@ -2440,6 +2462,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pAddressBookFrameWindowManager_.get());
 	
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());
+	pImpl_->pDocument_->addDocumentHandler(pImpl_);
 	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
 #ifdef QMTABWINDOW
 	pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
@@ -2472,6 +2495,7 @@ LRESULT qm::MainWindow::onDestroy()
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(
 		pImpl_->pDelayedFolderModelHandler_.get());
+	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
 	pImpl_->pDocument_->removeAccountManagerHandler(pImpl_);
 #ifdef QMTABWINDOW
 	pImpl_->pViewModelManager_->removeViewModelManagerHandler(pImpl_);

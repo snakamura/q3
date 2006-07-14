@@ -327,6 +327,7 @@ BEGIN
     IDS_ACTION              "&Action"
     IDS_EXECUTEMACRO        "Execute Macro"
     IDS_MACRO               "&Macro"
+    IDS_OFFLINE             "[Offline]"
 END
 
 STRINGTABLE DISCARDABLE 

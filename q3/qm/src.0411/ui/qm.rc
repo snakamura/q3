@@ -329,6 +329,7 @@ BEGIN
     IDS_ACTION              "アクション(&A)"
     IDS_EXECUTEMACRO        "マクロの実行"
     IDS_MACRO               "マクロ(&M)"
+    IDS_OFFLINE             "[オフライン]"
 END
 
 STRINGTABLE DISCARDABLE 
