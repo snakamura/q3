@@ -19,6 +19,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "color.h"
 
 using namespace qm;
@@ -242,22 +244,30 @@ void qm::ColorSet::clear()
  */
 
 qm::ColorEntry::ColorEntry() :
-	cr_(RGB(0, 0, 0))
+	crForeground_(RGB(0, 0, 0)),
+	crBackground_(RGB(255, 255, 255)),
+	nFontStyle_(FONTSTYLE_NORMAL)
 {
 }
 
 qm::ColorEntry::ColorEntry(std::auto_ptr<Macro> pCondition,
-						   COLORREF cr,
+						   COLORREF crForeground,
+						   COLORREF crBackground,
+						   unsigned int nFontStyle,
 						   const WCHAR* pwszDescription) :
 	pCondition_(pCondition),
-	cr_(cr)
+	crForeground_(crForeground),
+	crBackground_(crBackground),
+	nFontStyle_(nFontStyle)
 {
 	if (pwszDescription)
 		wstrDescription_ = allocWString(pwszDescription);
 }
 
 qm::ColorEntry::ColorEntry(const ColorEntry& color) :
-	cr_(color.cr_)
+	crForeground_(color.crForeground_),
+	crBackground_(color.crBackground_),
+	nFontStyle_(color.nFontStyle_)
 {
 	wstring_ptr wstrCondition(color.pCondition_->getString());
 	pCondition_ = MacroParser().parse(wstrCondition.get());
@@ -288,14 +298,34 @@ bool qm::ColorEntry::match(MacroContext* pContext) const
 	return pValue.get() && pValue->boolean();
 }
 
-COLORREF qm::ColorEntry::getColor() const
+COLORREF qm::ColorEntry::getForeground() const
 {
-	return cr_;
+	return crForeground_;
 }
 
-void qm::ColorEntry::setColor(COLORREF cr)
+void qm::ColorEntry::setForeground(COLORREF cr)
 {
-	cr_ = cr;
+	crForeground_ = cr;
+}
+
+COLORREF qm::ColorEntry::getBackground() const
+{
+	return crBackground_;
+}
+
+void qm::ColorEntry::setBackground(COLORREF cr)
+{
+	crBackground_ = cr;
+}
+
+unsigned int qm::ColorEntry::getFontStyle() const
+{
+	return nFontStyle_;
+}
+
+void qm::ColorEntry::setFontStyle(unsigned int nFontStyle)
+{
+	nFontStyle_ = nFontStyle;
 }
 
 const WCHAR* qm::ColorEntry::getDescription() const
@@ -327,17 +357,14 @@ qm::ColorList::~ColorList()
 {
 }
 
-COLORREF qm::ColorList::getColor(MacroContext* pContext) const
+const ColorEntry* qm::ColorList::getColor(MacroContext* pContext) const
 {
 	assert(pContext);
 	
-	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
-		const ColorEntry* pEntry = *it;
-		if (pEntry->match(pContext))
-			return pEntry->getColor();
-	}
-	
-	return 0xff000000;
+	List::const_iterator it = std::find_if(
+		list_.begin(), list_.end(),
+		boost::bind(&ColorEntry::match, _1, pContext));
+	return it != list_.end() ? *it : 0;
 }
 
 
@@ -350,7 +377,10 @@ COLORREF qm::ColorList::getColor(MacroContext* pContext) const
 qm::ColorContentHandler::ColorContentHandler(ColorManager* pManager) :
 	pManager_(pManager),
 	state_(STATE_ROOT),
-	pColorSet_(0)
+	pColorSet_(0),
+	crForeground_(0xff000000),
+	crBackground_(0xff000000),
+	nFontStyle_(ColorEntry::FONTSTYLE_NORMAL)
 {
 }
 
@@ -428,7 +458,18 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (pwszDescription)
 			wstrDescription_ = allocWString(pwszDescription);
 		
+		crForeground_ = 0xff000000;
+		crBackground_ = 0xff000000;
+		nFontStyle_ = ColorEntry::FONTSTYLE_NORMAL;
+		
 		state_ = STATE_COLOR;
+	}
+	else if (wcscmp(pwszLocalName, L"foreground") == 0 ||
+		wcscmp(pwszLocalName, L"background") == 0 ||
+		wcscmp(pwszLocalName, L"style") == 0) {
+		if (state_ != STATE_COLOR)
+			return false;
+		state_ = STATE_VALUE;
 	}
 	else {
 		return false;
@@ -453,11 +494,14 @@ bool qm::ColorContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"color") == 0) {
 		assert(state_ == STATE_COLOR);
 		
-		Color color(buffer_.getCharArray());
-		if (color.getColor() == 0xffffffff)
-			return false;
-		std::auto_ptr<ColorEntry> pEntry(new ColorEntry(
-			pCondition_, color.getColor(), wstrDescription_.get()));
+		if (crForeground_ == 0xff000000 && buffer_.getLength() != 0) {
+			Color color(buffer_.getCharArray());
+			if (color.getColor() != 0xffffffff)
+				crForeground_ = color.getColor();
+		}
+		
+		std::auto_ptr<ColorEntry> pEntry(new ColorEntry(pCondition_,
+			crForeground_, crBackground_, nFontStyle_, wstrDescription_.get()));
 		pCondition_.reset(0);
 		buffer_.remove();
 		wstrDescription_.reset(0);
@@ -466,6 +510,36 @@ bool qm::ColorContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		pColorSet_->addEntry(pEntry);
 		
 		state_ = STATE_COLORSET;
+	}
+	else if (wcscmp(pwszLocalName, L"foreground") == 0 ||
+		wcscmp(pwszLocalName, L"background") == 0) {
+		assert(state_ == STATE_VALUE);
+		
+		Color color(buffer_.getCharArray());
+		if (color.getColor() == 0xffffffff)
+			return false;
+		if (wcscmp(pwszLocalName, L"foreground") == 0)
+			crForeground_ = color.getColor();
+		else
+			crBackground_ = color.getColor();
+		buffer_.remove();
+		
+		state_ = STATE_COLOR;
+	}
+	else if (wcscmp(pwszLocalName, L"style") == 0) {
+		assert(state_ == STATE_VALUE);
+		
+		wstring_ptr wstrStyle(buffer_.getString());
+		const WCHAR* p = wcstok(wstrStyle.get(), L" ");
+		while (p) {
+			if (wcscmp(p, L"bold") == 0)
+				nFontStyle_ |= ColorEntry::FONTSTYLE_BOLD;
+			else if (wcscmp(p, L"italic") == 0)
+				nFontStyle_ |= ColorEntry::FONTSTYLE_ITALIC;
+			p = wcstok(0, L" ");
+		}
+		
+		state_ = STATE_COLOR;
 	}
 	else {
 		return false;
@@ -479,6 +553,15 @@ bool qm::ColorContentHandler::characters(const WCHAR* pwsz,
 										 size_t nLength)
 {
 	if (state_ == STATE_COLOR) {
+		const WCHAR* p = pwsz + nStart;
+		for (size_t n = 0; n < nLength; ++n, ++p) {
+			if (*p != L' ' && *p != L'\t' && *p != '\n') {
+				buffer_.append(pwsz + nStart, nLength);
+				break;
+			}
+		}
+	}
+	else if (state_ == STATE_VALUE) {
 		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
@@ -568,9 +651,38 @@ bool qm::ColorWriter::write(const ColorEntry* pColor)
 	if (!handler_.startElement(0, 0, L"color", attrs))
 		return false;
 	
-	wstring_ptr wstrColor(Color(pColor->getColor()).getString());
-	if (!handler_.characters(wstrColor.get(), 0, wcslen(wstrColor.get())))
-		return false;
+	struct {
+		COLORREF cr_;
+		const WCHAR* pwszName_;
+	} colors[] = {
+		{ pColor->getForeground(), L"foreground"	},
+		{ pColor->getBackground(), L"background"	}
+	};
+	for (int n = 0; n < countof(colors); ++n) {
+		if (colors[n].cr_ != 0xff000000) {
+			wstring_ptr wstrColor(Color(colors[n].cr_).getString());
+			if (!handler_.startElement(0, 0, colors[n].pwszName_, DefaultAttributes()) ||
+				!handler_.characters(wstrColor.get(), 0, wcslen(wstrColor.get())) ||
+				!handler_.endElement(0, 0, colors[n].pwszName_))
+				return false;
+		}
+	}
+	
+	unsigned int nFontStyle = pColor->getFontStyle();
+	if (nFontStyle != ColorEntry::FONTSTYLE_NORMAL) {
+		StringBuffer<WSTRING> buf;
+		if (nFontStyle & ColorEntry::FONTSTYLE_BOLD)
+			buf.append(L"bold");
+		if (nFontStyle & ColorEntry::FONTSTYLE_ITALIC) {
+			if (buf.getLength() != 0)
+				buf.append(L' ');
+			buf.append(L"italic");
+		}
+		if (!handler_.startElement(0, 0, L"style", DefaultAttributes()) ||
+			!handler_.characters(buf.getCharArray(), 0, buf.getLength()) ||
+			!handler_.endElement(0, 0, L"style"))
+			return false;
+	}
 	
 	if (!handler_.endElement(0, 0, L"color"))
 		return false;

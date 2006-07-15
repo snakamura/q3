@@ -206,8 +206,13 @@ public:
 	unsigned int getFlags() const;
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
-	COLORREF getColor() const;
-	void setColor(COLORREF cr);
+	COLORREF getForeground() const;
+	COLORREF getBackground() const;
+	bool isBold() const;
+	bool isItalic() const;
+	void setColors(COLORREF crForeground,
+				   COLORREF crBackground,
+				   unsigned char nFontStyle);
 	void invalidateColor();
 	unsigned int getMessageFlags() const;
 	void setMessageFlags(unsigned int nFlags);
@@ -234,8 +239,10 @@ private:
 private:
 	MessageHolder* pmh_;
 	ViewModelItem* pParentItem_;
-	unsigned int nFlags_;
-	COLORREF cr_;
+	unsigned char nFlags_;
+	unsigned char nFontStyle_;
+	COLORREF crForeground_;
+	COLORREF crBackground_;
 	unsigned int nMessageFlags_;
 	ViewModelItem* pLatestItem_;
 };

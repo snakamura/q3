@@ -614,6 +614,18 @@ public:
 	else if (nId == id && nCode == code) \
 		return handler(); \
 
+#define HANDLE_COMMAND_ID_EX(id, handler) \
+	else if (nId == id) \
+		return handler(nId); \
+
+#define HANDLE_COMMAND_CODE_EX(code, handler) \
+	else if (nCode == code) \
+		return handler(nId); \
+
+#define HANDLE_COMMAND_ID_CODE_EX(id, code, handler) \
+	else if (nId == id && nCode == code) \
+		return handler(nId); \
+
 #define HANDLE_COMMAND_ID_RANGE(idFrom, idTo, handler) \
 	else if (idFrom <= nId && nId <= idTo) \
 		return handler(nId); \

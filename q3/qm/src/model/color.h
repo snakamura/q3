@@ -176,9 +176,18 @@ private:
 class ColorEntry
 {
 public:
+	enum FontStyle {
+		FONTSTYLE_NORMAL	= 0x00,
+		FONTSTYLE_BOLD		= 0x01,
+		FONTSTYLE_ITALIC	= 0x02
+	};
+
+public:
 	ColorEntry();
 	ColorEntry(std::auto_ptr<Macro> pCondition,
-			   COLORREF cr,
+			   COLORREF crForeground,
+			   COLORREF crBackground,
+			   unsigned int nFontStyle,
 			   const WCHAR* pwszDescription);
 	ColorEntry(const ColorEntry& color);
 	~ColorEntry();
@@ -187,8 +196,12 @@ public:
 	const Macro* getCondition() const;
 	void setCondition(std::auto_ptr<Macro> pCondition);
 	bool match(MacroContext* pContext) const;
-	COLORREF getColor() const;
-	void setColor(COLORREF cr);
+	COLORREF getForeground() const;
+	void setForeground(COLORREF cr);
+	COLORREF getBackground() const;
+	void setBackground(COLORREF cr);
+	unsigned int getFontStyle() const;
+	void setFontStyle(unsigned int nFontStyle);
 	const WCHAR* getDescription() const;
 	void setDescription(const WCHAR* pwszDescription);
 
@@ -197,7 +210,9 @@ private:
 
 private:
 	std::auto_ptr<Macro> pCondition_;
-	COLORREF cr_;
+	COLORREF crForeground_;
+	COLORREF crBackground_;
+	unsigned int nFontStyle_;
 	qs::wstring_ptr wstrDescription_;
 };
 
@@ -218,7 +233,7 @@ public:
 	~ColorList();
 
 public:
-	COLORREF getColor(MacroContext* pContext) const;
+	const ColorEntry* getColor(MacroContext* pContext) const;
 
 private:
 	ColorList(const ColorList&);
@@ -262,7 +277,8 @@ private:
 		STATE_ROOT,
 		STATE_COLORS,
 		STATE_COLORSET,
-		STATE_COLOR
+		STATE_COLOR,
+		STATE_VALUE
 	};
 
 private:
@@ -271,6 +287,9 @@ private:
 	ColorSet* pColorSet_;
 	std::auto_ptr<Macro> pCondition_;
 	qs::wstring_ptr wstrDescription_;
+	COLORREF crForeground_;
+	COLORREF crBackground_;
+	unsigned int nFontStyle_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 

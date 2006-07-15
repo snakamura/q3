@@ -22,7 +22,9 @@ inline qm::ViewModelItem::ViewModelItem(MessageHolder* pmh) :
 	pmh_(pmh),
 	pParentItem_(0),
 	nFlags_(0),
-	cr_(0xffffffff),
+	nFontStyle_(ColorEntry::FONTSTYLE_NORMAL),
+	crForeground_(0xffffffff),
+	crBackground_(0xffffffff),
 	nMessageFlags_(pmh->getFlags()),
 	pLatestItem_(0)
 {
@@ -33,7 +35,9 @@ inline qm::ViewModelItem::ViewModelItem(const ViewModelItem& item) :
 	pmh_(0),
 	pParentItem_(0),
 	nFlags_(0),
-	cr_(0xffffffff),
+	nFontStyle_(ColorEntry::FONTSTYLE_NORMAL),
+	crForeground_(0xffffffff),
+	crBackground_(0xffffffff),
 	nMessageFlags_(item.nMessageFlags_),
 	pLatestItem_(0)
 {
@@ -44,7 +48,9 @@ inline qm::ViewModelItem::ViewModelItem(unsigned int nMessageIdHash) :
 	pmh_(0),
 	pParentItem_(0),
 	nFlags_(0),
-	cr_(0xffffffff),
+	nFontStyle_(ColorEntry::FONTSTYLE_NORMAL),
+	crForeground_(0xffffffff),
+	crBackground_(0xffffffff),
 	nMessageFlags_(nMessageIdHash),
 	pLatestItem_(0)
 {
@@ -92,22 +98,45 @@ inline void qm::ViewModelItem::setFlags(unsigned int nFlags,
 	nFlags_ |= nFlags & nMask;
 }
 
-inline COLORREF qm::ViewModelItem::getColor() const
+inline COLORREF qm::ViewModelItem::getForeground() const
 {
 	assert(pmh_);
-	return cr_;
+	return crForeground_;
 }
 
-inline void qm::ViewModelItem::setColor(COLORREF cr)
+inline COLORREF qm::ViewModelItem::getBackground() const
 {
 	assert(pmh_);
-	cr_ = cr;
+	return crBackground_;
+}
+
+inline bool qm::ViewModelItem::isBold() const
+{
+	assert(pmh_);
+	return (nFontStyle_ & ColorEntry::FONTSTYLE_BOLD) != 0;
+}
+
+inline bool qm::ViewModelItem::isItalic() const
+{
+	return (nFontStyle_ & ColorEntry::FONTSTYLE_ITALIC) != 0;
+}
+
+inline void qm::ViewModelItem::setColors(COLORREF crForeground,
+										 COLORREF crBackground,
+										 unsigned char nFontStyle)
+{
+	assert(pmh_);
+	crForeground_ = crForeground;
+	crBackground_ = crBackground;
+	nFontStyle_ = nFontStyle;
 }
 
 inline void qm::ViewModelItem::invalidateColor()
 {
 	assert(pmh_);
-	cr_ = 0xffffffff;
+	crForeground_ = 0xffffffff;
+	crBackground_ = 0xffffffff;
+	nFontStyle_ = ColorEntry::FONTSTYLE_NORMAL;
 }
 
 inline unsigned int qm::ViewModelItem::getMessageFlags() const

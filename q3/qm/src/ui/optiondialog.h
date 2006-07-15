@@ -1443,8 +1443,9 @@ protected:
 	virtual LRESULT onOk();
 
 private:
+	LRESULT onColor();
 	LRESULT onEdit();
-	LRESULT onChoose();
+	LRESULT onChoose(UINT nId);
 	LRESULT onConditionChange();
 	LRESULT onColorChange();
 

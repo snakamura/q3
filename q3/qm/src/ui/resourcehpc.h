@@ -406,6 +406,11 @@
 #define IDC_AUTOAPPLYRULESTOEXISTING    1454
 #define IDC_UNSEENINOTHERACCOUNTS       1455
 #define IDC_VERSION                     1456
+#define IDC_FOREGROUND                  1458
+#define IDC_BACKGROUND                  1459
+#define IDC_COLORFOREGROUND             1460
+#define IDC_COLORBACKGROUND             1461
+#define IDC_BOLD                        1462
 
 // Next default values for new objects
 // 
@@ -414,7 +419,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        224
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1458
+#define _APS_NEXT_CONTROL_VALUE         1463
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

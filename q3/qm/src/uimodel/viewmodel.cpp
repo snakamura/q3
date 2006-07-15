@@ -23,6 +23,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "securitymodel.h"
 #include "viewmodel.h"
 #include "../model/color.h"
@@ -559,19 +561,27 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 	
 	ViewModelItem* pItem = listItem_[n];
 	MessageHolder* pmh = pItem->getMessageHolder();
-	if (pItem->getColor() == 0xffffffff ||
+	if (pItem->getForeground() == 0xffffffff ||
 		pItem->getMessageFlags() != pmh->getFlags()) {
-		COLORREF cr = 0xff000000;
 		pItem->setMessageFlags(pmh->getFlags());
+		
+		COLORREF crForeground = 0xff000000;
+		COLORREF crBackground = 0xff000000;
+		unsigned int nFontStyle = ColorEntry::FONTSTYLE_NORMAL;
 		if (pColorList_.get()) {
 			Message msg;
 			MacroContext context(pmh, &msg, pFolder_->getAccount(),
 				MessageHolderList(), pFolder_, pDocument_, 0, pProfile_, 0,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
-			cr = pColorList_->getColor(&context);
+			const ColorEntry* pEntry = pColorList_->getColor(&context);
+			if (pEntry) {
+				crForeground = pEntry->getForeground();
+				crBackground = pEntry->getBackground();
+				nFontStyle = pEntry->getFontStyle();
+			}
 		}
-		pItem->setColor(cr);
+		pItem->setColors(crForeground, crBackground, nFontStyle);
 	}
 	
 	return pItem;
@@ -1911,12 +1921,8 @@ wstring_ptr qm::ViewModelManager::getViewsPath(Account* pAccount)
 
 void qm::ViewModelManager::invalidateColors()
 {
-//	std::for_each(listViewModel_.begin(), listViewModel_.end(),
-//		std::bind2nd(
-//			std::mem_fun(&ViewModel::invalidateColors),
-//			pColorManager_.get()));
-	for (ViewModelList::const_iterator it = listViewModel_.begin(); it != listViewModel_.end(); ++it)
-		(*it)->invalidateColors(pColorManager_.get());
+	std::for_each(listViewModel_.begin(), listViewModel_.end(),
+		boost::bind(&ViewModel::invalidateColors, _1, pColorManager_.get()));
 }
 
 void qm::ViewModelManager::fireViewModelSelected(ViewModel* pNewViewModel,

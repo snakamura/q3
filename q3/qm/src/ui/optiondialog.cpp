@@ -2855,7 +2855,18 @@ const WCHAR* qm::ColorsDialog::getName() const
 
 wstring_ptr qm::ColorsDialog::getLabelPrefix(const ColorEntry* p) const
 {
-	return concat(L"#", Color(p->getColor()).getString().get());
+	StringBuffer<WSTRING> buf;
+	if (p->getForeground() != 0xff000000) {
+		buf.append(L'#');
+		buf.append(Color(p->getForeground()).getString().get());
+	}
+	if (p->getBackground() != 0xff000000) {
+		buf.append(L"/#");
+		buf.append(Color(p->getBackground()).getString().get());
+	}
+	if (p->getFontStyle() & ColorEntry::FONTSTYLE_BOLD)
+		buf.append(L"[B]");
+	return buf.getString();
 }
 
 
@@ -2881,8 +2892,12 @@ LRESULT qm::ColorDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
-		HANDLE_COMMAND_ID(IDC_CHOOSE, onChoose)
-		HANDLE_COMMAND_ID_CODE(IDC_COLOR, EN_CHANGE, onColorChange)
+		HANDLE_COMMAND_ID(IDC_BACKGROUND, onColor)
+		HANDLE_COMMAND_ID(IDC_FOREGROUND, onColor)
+		HANDLE_COMMAND_ID_EX(IDC_CHOOSEBACKGROUND, onChoose)
+		HANDLE_COMMAND_ID_EX(IDC_CHOOSEFOREGROUND, onChoose)
+		HANDLE_COMMAND_ID_CODE(IDC_COLORBACKGROUND, EN_CHANGE, onColorChange)
+		HANDLE_COMMAND_ID_CODE(IDC_COLORFOREGROUND, EN_CHANGE, onColorChange)
 		HANDLE_COMMAND_ID_CODE(IDC_CONDITION, EN_CHANGE, onConditionChange)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
@@ -2897,10 +2912,27 @@ LRESULT qm::ColorDialog::onInitDialog(HWND hwndFocus,
 		setDlgItemText(IDC_CONDITION, wstrCondition.get());
 	}
 	
-	Color color(pColor_->getColor());
-	wstring_ptr wstrColor(color.getString());
-	setDlgItemText(IDC_COLOR, wstrColor.get());
+	struct {
+		UINT nId_;
+		UINT nTextId_;
+		COLORREF cr_;
+	} items[] = {
+		{ IDC_FOREGROUND,	IDC_COLORFOREGROUND,	pColor_->getForeground()	},
+		{ IDC_BACKGROUND,	IDC_COLORBACKGROUND,	pColor_->getBackground()	}
+	};
+	for (int n = 0; n < countof(items); ++n) {
+		bool bColor = items[n].cr_ != 0xff000000;
+		sendDlgItemMessage(items[n].nId_, BM_SETCHECK, bColor ? BST_CHECKED : BST_UNCHECKED);
+		if (bColor) {
+			Color color(items[n].cr_);
+			wstring_ptr wstrColor(color.getString());
+			setDlgItemText(items[n].nTextId_, wstrColor.get());
+		}
+	}
 	
+	sendDlgItemMessage(IDC_BOLD, BM_SETCHECK,
+		pColor_->getFontStyle() & ColorEntry::FONTSTYLE_BOLD ?
+			BST_CHECKED : BST_UNCHECKED);
 	
 	const WCHAR* pwszDescription = pColor_->getDescription();
 	if (pwszDescription)
@@ -2922,20 +2954,43 @@ LRESULT qm::ColorDialog::onOk()
 		return 0;
 	}
 	
-	wstring_ptr wstrColor(getDlgItemText(IDC_COLOR));
-	Color color(wstrColor.get());
-	if (color.getColor() == 0xffffffff) {
-		// TODO MSG
-		return 0;
+	struct {
+		UINT nId_;
+		UINT nIdText_;
+		COLORREF cr_;
+	} items[] = {
+		{ IDC_FOREGROUND,	IDC_COLORFOREGROUND,	0xff000000	},
+		{ IDC_BACKGROUND,	IDC_COLORBACKGROUND,	0xff000000	}
+	};
+	for (int n = 0; n < countof(items); ++n) {
+		if (sendDlgItemMessage(items[n].nId_, BM_GETCHECK) == BST_CHECKED) {
+			wstring_ptr wstrColor(getDlgItemText(items[n].nIdText_));
+			Color color(wstrColor.get());
+			if (color.getColor() == 0xffffffff) {
+				// TODO MSG
+				return 0;
+			}
+			items[n].cr_ = color.getColor();
+		}
 	}
+	
+	bool bBold = sendDlgItemMessage(IDC_BOLD, BM_GETCHECK) == BST_CHECKED;
 	
 	wstring_ptr wstrDescription(getDlgItemText(IDC_DESCRIPTION));
 	
 	pColor_->setCondition(pCondition);
-	pColor_->setColor(color.getColor());
+	pColor_->setForeground(items[0].cr_);
+	pColor_->setBackground(items[1].cr_);
+	pColor_->setFontStyle(bBold ? ColorEntry::FONTSTYLE_BOLD : ColorEntry::FONTSTYLE_NORMAL);
 	pColor_->setDescription(wstrDescription.get());
 	
 	return DefaultDialog::onOk();
+}
+
+LRESULT qm::ColorDialog::onColor()
+{
+	updateState();
+	return 0;
 }
 
 LRESULT qm::ColorDialog::onEdit()
@@ -2947,9 +3002,12 @@ LRESULT qm::ColorDialog::onEdit()
 	return 0;
 }
 
-LRESULT qm::ColorDialog::onChoose()
+LRESULT qm::ColorDialog::onChoose(UINT nId)
 {
-	wstring_ptr wstrColor(getDlgItemText(IDC_COLOR));
+	UINT nTextId = nId == IDC_CHOOSEFOREGROUND ?
+		IDC_COLORFOREGROUND : IDC_COLORBACKGROUND;
+	
+	wstring_ptr wstrColor(getDlgItemText(nTextId));
 	Color color(wstrColor.get());
 	COLORREF cr = color.getColor();
 	if (cr == 0xffffffff)
@@ -2970,7 +3028,7 @@ LRESULT qm::ColorDialog::onChoose()
 	if (::ChooseColor(&cc)) {
 		Color color(cc.rgbResult);
 		wstring_ptr wstrColor(color.getString());
-		setDlgItemText(IDC_COLOR, wstrColor.get());
+		setDlgItemText(nTextId, wstrColor.get());
 	}
 	return 0;
 }
@@ -2989,9 +3047,18 @@ LRESULT qm::ColorDialog::onColorChange()
 
 void qm::ColorDialog::updateState()
 {
+	bool bForeground = sendDlgItemMessage(IDC_FOREGROUND, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_COLORFOREGROUND)).enableWindow(bForeground);
+	Window(getDlgItem(IDC_CHOOSEFOREGROUND)).enableWindow(bForeground);
+	
+	bool bBackground = sendDlgItemMessage(IDC_BACKGROUND, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_COLORBACKGROUND)).enableWindow(bBackground);
+	Window(getDlgItem(IDC_CHOOSEBACKGROUND)).enableWindow(bBackground);
+	
 	Window(getDlgItem(IDOK)).enableWindow(
 		Window(getDlgItem(IDC_CONDITION)).getWindowTextLength() != 0 &&
-		Window(getDlgItem(IDC_COLOR)).getWindowTextLength() != 0);
+		(!bForeground || Window(getDlgItem(IDC_COLORFOREGROUND)).getWindowTextLength() != 0) &&
+		(!bBackground || Window(getDlgItem(IDC_COLORBACKGROUND)).getWindowTextLength() != 0));
 }
 
 

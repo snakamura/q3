@@ -137,6 +137,7 @@ public:
 	SyncDialogManager* pSyncDialogManager_;
 	
 	HFONT hfont_;
+	HFONT hfontBold_;
 	bool bUseSystemColor_;
 	COLORREF crForeground_;
 	COLORREF crBackground_;
@@ -204,17 +205,23 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 	
 	bool bHasFocus = pThis_->hasFocus();
 	bool bSelected = (pItem->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
+	
+	COLORREF crBackground = pItem->getBackground();
+	if (crBackground == 0xff000000)
+		crBackground = getColor(COLOR_WINDOW);
+	
 	if (bSelected) {
 		pdc->setTextColor(getColor(bHasFocus ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
 		pdc->setBkColor(getColor(bHasFocus ? COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER));
 	}
 	else {
-		COLORREF cr = pItem->getColor();
-		if (cr == 0xff000000)
-			cr = getColor(COLOR_WINDOWTEXT);
-		pdc->setTextColor(cr);
-		pdc->setBkColor(getColor(COLOR_WINDOW));
+		COLORREF crText = pItem->getForeground();
+		if (crText == 0xff000000)
+			crText = getColor(COLOR_WINDOWTEXT);
+		pdc->setTextColor(crText);
+		pdc->setBkColor(crBackground);
 	}
+	ObjectSelector<HFONT> fontSelector(*pdc, pItem->isBold() ? hfontBold_ : 0);
 	
 	RECT r = { rect.left, rect.top, rect.left, rect.bottom };
 #if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
@@ -273,14 +280,23 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		else {
 			unsigned int nValue = pColumn->getNumber(pViewModel, pItem);
 			
-			UINT nBkColorId = COLOR_WINDOW;
 #if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
-			if (bSelected)
-				nBkColorId = pThis_->hasFocus() ? COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER;
+			COLORREF crBk = bSelected ? 0xff000000 : pItem->getBackground();
+#else
+			COLORREF crBk = pItem->getBackground();
 #endif
-			COLORREF crOld = pdc->getBkColor();
-			pdc->fillSolidRect(r, getColor(nBkColorId));
-			pdc->setBkColor(crOld);
+			if (crBk == 0xff000000) {
+#if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
+				UINT nBkColorId = bSelected ? pThis_->hasFocus() ?
+					COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER : COLOR_WINDOW;
+#else
+				UINT nBkColorId = COLOR_WINDOW;
+#endif
+				crBk = getColor(nBkColorId);
+			}
+			COLORREF crBkOld = pdc->getBkColor();
+			pdc->fillSolidRect(r, crBk);
+			pdc->setBkColor(crBkOld);
 			
 #if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 			UINT nFlags = bSelected ? ILD_TRANSPARENT : ILD_NORMAL;
@@ -318,7 +334,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		r.left = r.right;
 	}
 	r.right = rect.right;
-	pdc->fillSolidRect(r, getColor(COLOR_WINDOW));
+	pdc->fillSolidRect(r, crBackground);
 	
 	if (((pViewModel->getSort() & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD) &&
 		nThreadLeft != -1) {
@@ -553,6 +569,17 @@ void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 		::DeleteObject(hfont_);
 	}
 	hfont_ = hfont;
+	
+	LOGFONT lf;
+	::GetObject(hfont, sizeof(lf), &lf);
+	lf.lfWeight = FW_BOLD;
+	HFONT hfontBold = ::CreateFontIndirect(&lf);
+	if (!bInitialize) {
+		assert(hfontBold_);
+		::DeleteObject(hfontBold_);
+	}
+	hfontBold_ = hfontBold;
+	
 	if (!bInitialize) {
 		updateLineHeight();
 		layoutChildren();
@@ -950,6 +977,7 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->pDocument_ = 0;
 	pImpl_->pViewModelManager_ = pViewModelManager;
 	pImpl_->hfont_ = 0;
+	pImpl_->hfontBold_ = 0;
 	pImpl_->bUseSystemColor_ = true;
 	pImpl_->crForeground_ = RGB(0, 0, 0);
 	pImpl_->crBackground_ = RGB(255, 255, 255);
@@ -1228,6 +1256,11 @@ LRESULT qm::ListWindow::onDestroy()
 	if (pImpl_->hfont_) {
 		::DeleteObject(pImpl_->hfont_);
 		pImpl_->hfont_ = 0;
+	}
+	
+	if (pImpl_->hfontBold_) {
+		::DeleteObject(pImpl_->hfontBold_);
+		pImpl_->hfontBold_ = 0;
 	}
 	
 	if (pImpl_->hImageList_) {
