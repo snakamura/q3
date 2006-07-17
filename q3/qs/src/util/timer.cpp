@@ -79,7 +79,7 @@ qs::Timer::Timer() :
 	
 	std::auto_ptr<WindowBase> pWindow(new WindowBase(true));
 	pWindow->setWindowHandler(pImpl_, false);
-#if WINVER >= 0x500
+#if !defined _WIN32_WCE && WINVER >= 0x500
 	HWND hwndParent = HWND_MESSAGE;
 #else
 	HWND hwndParent = 0;
