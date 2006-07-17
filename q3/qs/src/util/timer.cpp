@@ -79,8 +79,13 @@ qs::Timer::Timer() :
 	
 	std::auto_ptr<WindowBase> pWindow(new WindowBase(true));
 	pWindow->setWindowHandler(pImpl_, false);
+#if WINVER >= 0x500
+	HWND hwndParent = HWND_MESSAGE;
+#else
+	HWND hwndParent = 0;
+#endif
 	if (!pWindow->create(L"QsTimerWindow", 0,
-		WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+		WS_POPUP, 0, 0, 0, 0, hwndParent, 0, 0, 0, 0))
 		return;
 	pImpl_->pWindow_ = pWindow.release();
 }
