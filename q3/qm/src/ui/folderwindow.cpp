@@ -338,9 +338,14 @@ void qm::FolderWindowImpl::update(Folder* pFolder)
 	
 	HWND hwnd = pThis_->getHandle();
 	
+	typedef std::vector<HTREEITEM> ItemList;
+	ItemList listUpdate(1, hItem);
+	
+	HTREEITEM hRoot = 0;
 	HTREEITEM hParent = TreeView_GetParent(hwnd, hItem);
-	HTREEITEM hRoot = hParent;
 	while (hParent) {
+		hRoot = hParent;
+		
 		TVITEM item = {
 			TVIF_HANDLE | TVIF_STATE,
 			hParent,
@@ -349,19 +354,18 @@ void qm::FolderWindowImpl::update(Folder* pFolder)
 		};
 		TreeView_GetItem(hwnd, &item);
 		if (!(item.state & TVIS_EXPANDED))
-			hItem = hParent;
+			listUpdate.push_back(hParent);
 		hParent = TreeView_GetParent(hwnd, hParent);
-		if (hParent)
-			hRoot = hParent;
 	}
+	listUpdate.push_back(hRoot);
 	
-	update(hItem);
-	update(hRoot);
-	
-	HTREEITEM hItems[] = { hItem, hRoot };
-	for (int n = 0; n < countof(hItems); ++n) {
+	for (ItemList::const_iterator it = listUpdate.begin(); it != listUpdate.end(); ++it) {
+		HTREEITEM hItem = *it;
+		
+		update(hItem);
+		
 		RECT rect;
-		if (TreeView_GetItemRect(hwnd, hItems[n], &rect, FALSE))
+		if (TreeView_GetItemRect(hwnd, hItem, &rect, FALSE))
 			pThis_->invalidateRect(rect);
 	}
 }
@@ -897,11 +901,12 @@ LRESULT qm::FolderWindowImpl::onItemExpanded(NMHDR* pnmhdr,
 	NMTREEVIEW* pnmtv = reinterpret_cast<NMTREEVIEW*>(pnmhdr);
 	
 	HTREEITEM hItem = pnmtv->itemNew.hItem;
+	
+	update(hItem);
+	
 	RECT rect;
-	if (TreeView_GetItemRect(pThis_->getHandle(), hItem, &rect, FALSE)) {
+	if (TreeView_GetItemRect(pThis_->getHandle(), hItem, &rect, FALSE))
 		pThis_->invalidateRect(rect);
-		update(hItem);
-	}
 	
 	return 0;
 }
@@ -1170,6 +1175,8 @@ void qm::FolderWindowImpl::sortFolders(Folder* pFolder)
 
 void qm::FolderWindowImpl::update(HTREEITEM hItem)
 {
+	assert(hItem);
+	
 	HWND hwnd = pThis_->getHandle();
 	
 	bool bUnseen = false;
