@@ -199,7 +199,7 @@ bool qs::Window::centerWindow(HWND hwnd)
 				rectParent.top = 0;
 		}
 		else {
-#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+#if !defined _WIN32_WCE && WINVER >= 0x500
 			HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
 			MONITORINFO info = { sizeof(info) };
 			if (::GetMonitorInfo(hMonitor, &info))

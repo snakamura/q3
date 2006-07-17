@@ -67,7 +67,7 @@ int qm::UIUtil::loadWindowPlacement(Profile* pProfile,
 	if (items[2].n_ != 0 && items[3].n_ != 0) {
 		int nLeftOffset = 0;
 		int nTopOffset = 0;
-#if _WIN32_WINNT >= 0x500
+#if WINVER >= 0x500
 		RECT rect = {
 			items[0].n_,
 			items[1].n_,

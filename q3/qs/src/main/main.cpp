@@ -129,7 +129,7 @@ QSEXPORTPROC HINSTANCE qs::loadResourceDll(HINSTANCE hInst)
 	
 	_sntprintf(tszPath + dwLen, countof(tszPath) - dwLen, _T(".%04x.mui"),
 		static_cast<unsigned int>(::GetUserDefaultLangID()));
-#if 0 //!defined _WIN32_WCE && _WIN32_WINNT>=0x500
+#if 0 //!defined _WIN32_WCE && _WIN32_WINNT >=0x500
 	HINSTANCE hInstResource = ::LoadLibraryEx(tszPath, 0, LOAD_LIBRARY_AS_DATAFILE);
 #else
 	HINSTANCE hInstResource = ::LoadLibrary(tszPath);
