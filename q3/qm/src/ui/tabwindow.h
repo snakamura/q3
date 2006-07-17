@@ -22,6 +22,7 @@ namespace qm {
 class TabCtrlWindow;
 struct TabWindowCreateContext;
 
+class AccountManager;
 class FolderImage;
 class TabItem;
 class TabModel;
@@ -40,7 +41,7 @@ class TabCtrlWindow :
 	public qs::DropTargetHandler
 {
 public:
-	TabCtrlWindow(Document* pDocument,
+	TabCtrlWindow(AccountManager* pAccountManager,
 				  TabModel* pTabModel,
 				  qs::Profile* pProfile,
 				  const FolderImage* pFolderImage,
@@ -97,7 +98,7 @@ private:
 	};
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	TabModel* pTabModel_;
 	qs::Profile* pProfile_;
 	const FolderImage* pFolderImage_;
@@ -116,7 +117,7 @@ private:
 
 struct TabWindowCreateContext
 {
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	UIManager* pUIManager_;
 	const FolderImage* pFolderImage_;
 };

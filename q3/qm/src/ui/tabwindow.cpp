@@ -12,7 +12,6 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
-#include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
 
@@ -552,7 +551,7 @@ LRESULT qm::TabWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	
 	std::auto_ptr<TabCtrlWindow> pTabCtrl(new TabCtrlWindow(
-		pContext->pDocument_, pImpl_->pTabModel_, pImpl_->pProfile_,
+		pContext->pAccountManager_, pImpl_->pTabModel_, pImpl_->pProfile_,
 		pImpl_->pFolderImage_, pContext->pUIManager_->getMenuManager()));
 	if (!pTabCtrl->create(L"QmTabCtrlWindow", 0,
 		WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
@@ -622,13 +621,13 @@ LRESULT qm::TabWindow::onMessageChanged(WPARAM wParam,
  *
  */
 
-qm::TabCtrlWindow::TabCtrlWindow(Document* pDocument,
+qm::TabCtrlWindow::TabCtrlWindow(AccountManager* pAccountManager,
 								 TabModel* pTabModel,
 								 Profile* pProfile,
 								 const FolderImage* pFolderImage,
 								 MenuManager* pMenuManager) :
 	WindowBase(true),
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pTabModel_(pTabModel),
 	pProfile_(pProfile),
 	pFolderImage_(pFolderImage),
@@ -822,7 +821,7 @@ void qm::TabCtrlWindow::drop(const DropTargetDropEvent& event)
 	DWORD dwEffect = DROPEFFECT_NONE;
 	IDataObject* pDataObject = event.getDataObject();
 	if (FolderDataObject::canPasteFolder(pDataObject)) {
-		std::pair<Account*, Folder*> p(FolderDataObject::get(pDataObject, pDocument_));
+		std::pair<Account*, Folder*> p(FolderDataObject::get(pDataObject, pAccountManager_));
 		if (p.first) {
 			pTabModel_->open(p.first);
 			dwEffect = DROPEFFECT_MOVE;

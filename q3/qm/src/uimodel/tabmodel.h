@@ -108,8 +108,7 @@ public:
 
 class DefaultTabModel :
 	public TabModel,
-	public DefaultDocumentHandler,
-	public AccountManagerHandler,
+	public DefaultAccountManagerHandler,
 	public DefaultAccountHandler
 {
 public:
@@ -123,7 +122,7 @@ public:
 	typedef std::vector<TabItem*> ItemList;
 
 public:
-	DefaultTabModel(Document* pDocument,
+	DefaultTabModel(AccountManager* pAccountManager,
 					qs::Profile* pProfile,
 					const WCHAR* pwszPath);
 	virtual ~DefaultTabModel();
@@ -156,10 +155,8 @@ public:
 	virtual void removeTabModelHandler(TabModelHandler* pHandler);
 
 public:
-	virtual void documentInitialized(const DocumentEvent& event);
-
-public:
 	virtual void accountListChanged(const AccountManagerEvent& event);
+	virtual void accountManagerInitialized(const AccountManagerEvent& event);
 
 public:
 	virtual void folderListChanged(const FolderListChangedEvent& event);
@@ -213,7 +210,7 @@ private:
 	typedef std::vector<TabModelHandler*> HandlerList;
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrPath_;
 	ItemList listItem_;

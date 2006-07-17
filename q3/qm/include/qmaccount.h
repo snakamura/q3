@@ -701,6 +701,25 @@ public:
 
 public:
 	virtual void accountListChanged(const AccountManagerEvent& event) = 0;
+	virtual void accountManagerInitialized(const AccountManagerEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultAccountManagerHandler
+ *
+ */
+
+class QMEXPORTCLASS DefaultAccountManagerHandler : public AccountManagerHandler
+{
+public:
+	DefaultAccountManagerHandler();
+	virtual ~DefaultAccountManagerHandler();
+
+public:
+	virtual void accountListChanged(const AccountManagerEvent& event);
+	virtual void accountManagerInitialized(const AccountManagerEvent& event);
 };
 
 
@@ -716,10 +735,12 @@ public:
 	enum Type {
 		TYPE_ALL,
 		TYPE_ADD,
-		TYPE_REMOVE
+		TYPE_REMOVE,
+		TYPE_NONE
 	};
 
 public:
+	explicit AccountManagerEvent(AccountManager* pAccountManager);
 	AccountManagerEvent(AccountManager* pAccountManager,
 						Type type,
 						Account* pAccount);

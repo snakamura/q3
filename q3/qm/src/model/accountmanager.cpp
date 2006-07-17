@@ -35,9 +35,39 @@ qm::AccountManagerHandler::~AccountManagerHandler()
 
 /****************************************************************************
  *
+ * DefaultAccountManagerHandler
+ *
+ */
+
+qm::DefaultAccountManagerHandler::DefaultAccountManagerHandler()
+{
+}
+
+qm::DefaultAccountManagerHandler::~DefaultAccountManagerHandler()
+{
+}
+
+void qm::DefaultAccountManagerHandler::accountListChanged(const AccountManagerEvent& event)
+{
+}
+
+void qm::DefaultAccountManagerHandler::accountManagerInitialized(const AccountManagerEvent& event)
+{
+}
+
+
+/****************************************************************************
+ *
  * AccountManagerEvent
  *
  */
+
+qm::AccountManagerEvent::AccountManagerEvent(AccountManager* pAccountManager) :
+	pAccountManager_(pAccountManager),
+	type_(TYPE_NONE),
+	pAccount_(0)
+{
+}
 
 qm::AccountManagerEvent::AccountManagerEvent(AccountManager* pAccountManager,
 											 Type type,

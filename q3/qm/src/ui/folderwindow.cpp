@@ -10,7 +10,6 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
-#include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmfolderwindow.h>
@@ -54,8 +53,7 @@ using namespace qs;
 
 class qm::FolderWindowImpl :
 	public NotifyHandler,
-	public DefaultDocumentHandler,
-	public AccountManagerHandler,
+	public DefaultAccountManagerHandler,
 	public DefaultAccountHandler,
 	public DefaultFolderHandler,
 	public FolderModelHandler,
@@ -112,10 +110,8 @@ public:
 							 bool* pbHandled);
 
 public:
-	virtual void documentInitialized(const DocumentEvent& event);
-
-public:
 	virtual void accountListChanged(const AccountManagerEvent& event);
+	virtual void accountManagerInitialized(const AccountManagerEvent& event);
 
 public:
 	virtual void currentSubAccountChanged(const AccountEvent& event);
@@ -190,7 +186,8 @@ public:
 	MenuManager* pMenuManager_;
 	Profile* pProfile_;
 	std::auto_ptr<Accelerator> pAccelerator_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
+	UndoManager* pUndoManager_;
 	const FolderImage* pFolderImage_;
 	SyncManager* pSyncManager_;
 	
@@ -511,7 +508,7 @@ void qm::FolderWindowImpl::accountListChanged(const AccountManagerEvent& event)
 	}
 }
 
-void qm::FolderWindowImpl::documentInitialized(const DocumentEvent& event)
+void qm::FolderWindowImpl::accountManagerInitialized(const AccountManagerEvent& event)
 {
 	HWND hwnd = pThis_->getHandle();
 	
@@ -521,7 +518,7 @@ void qm::FolderWindowImpl::documentInitialized(const DocumentEvent& event)
 	StringListFree<Profile::StringList> free(listFolders);
 	pProfile_->getStringList(L"FolderWindow", L"ExpandedFolders", &listFolders);
 	for (Profile::StringList::const_iterator it = listFolders.begin(); it != listFolders.end(); ++it) {
-		std::pair<Account*, Folder*> p(Util::getAccountOrFolder(pDocument_, *it));
+		std::pair<Account*, Folder*> p(Util::getAccountOrFolder(pAccountManager_, *it));
 		HTREEITEM hItem = 0;
 		if (p.first)
 			hItem = getHandleFromAccount(p.first);
@@ -711,14 +708,14 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 					flag = MessageDataObject::FLAG_MOVE;
 				else
 					flag = MessageDataObject::getPasteFlag(
-						pDataObject, pDocument_, pNormalFolder);
+						pDataObject, pAccountManager_, pNormalFolder);
 				bool bMove = flag == MessageDataObject::FLAG_MOVE;
 				
 				UINT nId = bMove ? IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
 				ProgressDialogMessageOperationCallback callback(
 					pThis_->getParentFrame(), nId, nId);
-				if (!MessageDataObject::pasteMessages(pDataObject, pDocument_,
-					pNormalFolder, flag, &callback, pDocument_->getUndoManager()))
+				if (!MessageDataObject::pasteMessages(pDataObject, pAccountManager_,
+					pNormalFolder, flag, &callback, pUndoManager_))
 					messageBox(Application::getApplication().getResourceHandle(),
 						IDS_ERROR_COPYMESSAGES, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				
@@ -739,7 +736,7 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 				pAccount = getAccount(hItem);
 			}
 			
-			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
+			Folder* pFolder = FolderDataObject::get(pDataObject, pAccountManager_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
 				(!pTarget || (pTarget != pFolder && !pFolder->isAncestorOf(pTarget) &&
 					!pTarget->isFlag(Folder::FLAG_NOINFERIORS)))) {
@@ -944,8 +941,8 @@ void qm::FolderWindowImpl::clearAccountList()
 
 void qm::FolderWindowImpl::updateAccountList()
 {
-	const Document::AccountList& l = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
+	const AccountManager::AccountList& l = pAccountManager_->getAccounts();
+	for (AccountManager::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
 		addAccount(*it);
 }
 
@@ -1227,7 +1224,7 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 				else {
 					MessageDataObject::Flag flag =
 						MessageDataObject::getPasteFlag(pDataObject,
-							pDocument_, static_cast<NormalFolder*>(pFolder));
+							pAccountManager_, static_cast<NormalFolder*>(pFolder));
 					dwEffect = flag == MessageDataObject::FLAG_COPY ?
 						DROPEFFECT_COPY : DROPEFFECT_MOVE;
 				}
@@ -1249,7 +1246,7 @@ void qm::FolderWindowImpl::processDragEvent(const DropTargetDragEvent& event)
 				pAccount = getAccount(hItem);
 			}
 			
-			Folder* pFolder = FolderDataObject::get(pDataObject, pDocument_).second;
+			Folder* pFolder = FolderDataObject::get(pDataObject, pAccountManager_).second;
 			if (pFolder && pFolder->getAccount() == pAccount &&
 				(!pTarget || (pTarget != pFolder && !pFolder->isAncestorOf(pTarget) &&
 					!pTarget->isFlag(Folder::FLAG_NOINFERIORS))))
@@ -1416,7 +1413,8 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->pFolderModel_ = pFolderModel;
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pDocument_ = 0;
+	pImpl_->pAccountManager_ = 0;
+	pImpl_->pUndoManager_ = 0;
 	pImpl_->pSyncManager_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
@@ -1570,12 +1568,12 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	FolderWindowCreateContext* pContext =
 		static_cast<FolderWindowCreateContext*>(pCreateStruct->lpCreateParams);
-	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pAccountManager_ = pContext->pAccountManager_;
+	pImpl_->pUndoManager_ = pContext->pUndoManager_;
 	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
-	pImpl_->pDocument_->addDocumentHandler(pImpl_);
-	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
+	pImpl_->pAccountManager_->addAccountManagerHandler(pImpl_);
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -1615,8 +1613,7 @@ LRESULT qm::FolderWindow::onDestroy()
 	
 	pImpl_->pParentWindow_->removeNotifyHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(pImpl_);
-	pImpl_->pDocument_->removeDocumentHandler(pImpl_);
-	pImpl_->pDocument_->removeAccountManagerHandler(pImpl_);
+	pImpl_->pAccountManager_->removeAccountManagerHandler(pImpl_);
 	
 	pImpl_->pDropTarget_.reset(0);
 	

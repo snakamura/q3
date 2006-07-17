@@ -10,7 +10,6 @@
 
 #include <qmaccount.h>
 #include <qmapplication.h>
-#include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmlistwindow.h>
@@ -131,7 +130,7 @@ public:
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	MenuManager* pMenuManager_;
 	std::auto_ptr<Accelerator> pAccelerator_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	ViewModelManager* pViewModelManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
@@ -732,7 +731,7 @@ void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 	if (!hImageList)
 		return;
 	
-	std::auto_ptr<MessageDataObject> p(new MessageDataObject(pDocument_,
+	std::auto_ptr<MessageDataObject> p(new MessageDataObject(pAccountManager_,
 		pViewModel->getFolder(), l, MessageDataObject::FLAG_NONE));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
@@ -974,7 +973,7 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pMessageFrameWindowManager_ = pMessageFrameWindowManager;
 	pImpl_->pMenuManager_ = 0;
-	pImpl_->pDocument_ = 0;
+	pImpl_->pAccountManager_ = 0;
 	pImpl_->pViewModelManager_ = pViewModelManager;
 	pImpl_->hfont_ = 0;
 	pImpl_->hfontBold_ = 0;
@@ -1214,7 +1213,7 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	ListWindowCreateContext* pContext =
 		static_cast<ListWindowCreateContext*>(pCreateStruct->lpCreateParams);
-	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pAccountManager_ = pContext->pAccountManager_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;

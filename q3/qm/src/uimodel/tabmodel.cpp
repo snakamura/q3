@@ -102,10 +102,10 @@ qm::TabModel::~TabModel()
  *
  */
 
-qm::DefaultTabModel::DefaultTabModel(Document* pDocument,
+qm::DefaultTabModel::DefaultTabModel(AccountManager* pAccountManager,
 									 Profile* pProfile,
 									 const WCHAR* pwszPath) :
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
 	pProfile_(pProfile),
 	nCurrent_(-1),
 	nTemporary_(-1),
@@ -114,16 +114,14 @@ qm::DefaultTabModel::DefaultTabModel(Document* pDocument,
 	wstrPath_ = allocWString(pwszPath);
 	nReuse_ = pProfile_->getInt(L"TabWindow", L"Reuse");
 	
-	pDocument_->addDocumentHandler(this);
-	pDocument_->addAccountManagerHandler(this);
+	pAccountManager_->addAccountManagerHandler(this);
 }
 
 qm::DefaultTabModel::~DefaultTabModel()
 {
 	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<TabItem>());
 	
-	pDocument_->removeDocumentHandler(this);
-	pDocument_->removeAccountManagerHandler(this);
+	pAccountManager_->removeAccountManagerHandler(this);
 }
 
 unsigned int qm::DefaultTabModel::getReuse() const
@@ -327,10 +325,23 @@ void qm::DefaultTabModel::removeTabModelHandler(TabModelHandler* pHandler)
 	listHandler_.erase(it, listHandler_.end());
 }
 
-void qm::DefaultTabModel::documentInitialized(const DocumentEvent& event)
+void qm::DefaultTabModel::accountListChanged(const AccountManagerEvent& event)
+{
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
+	for (ItemList::reverse_iterator it = listItem_.rbegin(); it != listItem_.rend(); ++it) {
+		TabItem* pItem = *it;
+		std::pair<Account*, Folder*> p(pItem->get());
+		
+		Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
+		if (std::find(listAccount.begin(), listAccount.end(), pAccount) == listAccount.end())
+			removeItem(static_cast<int>(it.base() - 1 - listItem_.begin()));
+	}
+}
+
+void qm::DefaultTabModel::accountManagerInitialized(const AccountManagerEvent& event)
 {
 	XMLReader reader;
-	TabModelContentHandler handler(this, pDocument_);
+	TabModelContentHandler handler(this, pAccountManager_);
 	reader.setContentHandler(&handler);
 	if (!reader.parse(wstrPath_.get())) {
 		// TODO
@@ -340,19 +351,6 @@ void qm::DefaultTabModel::documentInitialized(const DocumentEvent& event)
 		int nItem = pProfile_->getInt(L"TabWindow", L"CurrentTab");
 		if (0 <= nItem && nItem < getCount())
 			setCurrent(nItem);
-	}
-}
-
-void qm::DefaultTabModel::accountListChanged(const AccountManagerEvent& event)
-{
-	const AccountManager::AccountList& listAccount = pDocument_->getAccounts();
-	for (ItemList::reverse_iterator it = listItem_.rbegin(); it != listItem_.rend(); ++it) {
-		TabItem* pItem = *it;
-		std::pair<Account*, Folder*> p(pItem->get());
-		
-		Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
-		if (std::find(listAccount.begin(), listAccount.end(), pAccount) == listAccount.end())
-			removeItem(static_cast<int>(it.base() - 1 - listItem_.begin()));
 	}
 }
 

@@ -14,10 +14,11 @@ namespace qm {
 
 struct FolderWindowCreateContext;
 
-class Document;
+class AccountManager;
 class FolderImage;
 class SyncManager;
 class UIManager;
+class UndoManager;
 
 
 /****************************************************************************
@@ -28,7 +29,8 @@ class UIManager;
 
 struct FolderWindowCreateContext
 {
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
+	UndoManager* pUndoManager_;
 	UIManager* pUIManager_;
 	const FolderImage* pFolderImage_;
 	SyncManager* pSyncManager_;

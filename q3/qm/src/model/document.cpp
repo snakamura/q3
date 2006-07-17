@@ -25,6 +25,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include <tchar.h>
 #include <shlobj.h>
 
@@ -55,10 +57,10 @@ struct qm::DocumentImpl
 	typedef std::vector<DocumentHandler*> DocumentHandlerList;
 	
 	void setOffline(bool bOffline);
+	void fireOfflineStatusChanged();
 	void fireAccountListChanged(AccountManagerEvent::Type type,
 								Account* pAccount) const;
-	void fireOfflineStatusChanged();
-	void fireDocumentInitialized();
+	void fireAccountManagerInitialized();
 	
 	Document* pThis_;
 	Profile* pProfile_;
@@ -82,32 +84,31 @@ struct qm::DocumentImpl
 
 void qm::DocumentImpl::setOffline(bool bOffline)
 {
-	for (Document::AccountList::iterator it = listAccount_.begin(); it != listAccount_.end(); ++it)
-		(*it)->setOffline(bOffline);
-	
+	std::for_each(listAccount_.begin(), listAccount_.end(),
+		boost::bind(&Account::setOffline, _1, bOffline));
 	fireOfflineStatusChanged();
+}
+
+void qm::DocumentImpl::fireOfflineStatusChanged()
+{
+	DocumentEvent event(pThis_);
+	std::for_each(listDocumentHandler_.begin(), listDocumentHandler_.end(),
+		boost::bind(&DocumentHandler::offlineStatusChanged, _1, boost::cref(event)));
 }
 
 void qm::DocumentImpl::fireAccountListChanged(AccountManagerEvent::Type type,
 											  Account* pAccount) const
 {
 	AccountManagerEvent event(pThis_, type, pAccount);
-	for (AccountManagerHandlerList::const_iterator it = listAccountManagerHandler_.begin(); it != listAccountManagerHandler_.end(); ++it)
-		(*it)->accountListChanged(event);
+	std::for_each(listAccountManagerHandler_.begin(), listAccountManagerHandler_.end(),
+		boost::bind(&AccountManagerHandler::accountListChanged, _1, boost::cref(event)));
 }
 
-void qm::DocumentImpl::fireOfflineStatusChanged()
+void qm::DocumentImpl::fireAccountManagerInitialized()
 {
-	DocumentEvent event(pThis_);
-	for (DocumentHandlerList::const_iterator it = listDocumentHandler_.begin(); it != listDocumentHandler_.end(); ++it)
-		(*it)->offlineStatusChanged(event);
-}
-
-void qm::DocumentImpl::fireDocumentInitialized()
-{
-	DocumentEvent event(pThis_);
-	for (DocumentHandlerList::const_iterator it = listDocumentHandler_.begin(); it != listDocumentHandler_.end(); ++it)
-		(*it)->documentInitialized(event);
+	AccountManagerEvent event(pThis_);
+	std::for_each(listAccountManagerHandler_.begin(), listAccountManagerHandler_.end(),
+		boost::bind(&AccountManagerHandler::accountManagerInitialized, _1, boost::cref(event)));
 }
 
 
@@ -435,7 +436,7 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 		setOffline(false);
 	
 	pImpl_->fireAccountListChanged(AccountManagerEvent::TYPE_ALL, 0);
-	pImpl_->fireDocumentInitialized();
+	pImpl_->fireAccountManagerInitialized();
 	
 	return true;
 }
@@ -585,10 +586,6 @@ qm::DefaultDocumentHandler::~DefaultDocumentHandler()
 }
 
 void qm::DefaultDocumentHandler::offlineStatusChanged(const DocumentEvent& event)
-{
-}
-
-void qm::DefaultDocumentHandler::documentInitialized(const DocumentEvent& event)
 {
 }
 

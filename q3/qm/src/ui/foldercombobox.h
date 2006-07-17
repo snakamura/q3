@@ -26,7 +26,7 @@ class UIManager;
 
 struct FolderComboBoxCreateContext
 {
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	UIManager* pUIManager_;
 };
 

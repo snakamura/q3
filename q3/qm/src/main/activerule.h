@@ -29,7 +29,7 @@ class SecurityModel;
  */
 
 class ActiveRuleInvoker :
-	public AccountManagerHandler,
+	public DefaultAccountManagerHandler,
 	public DefaultAccountHandler,
 	public FolderHook
 {

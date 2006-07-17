@@ -30,7 +30,7 @@ class SyncQueue;
 
 class ActiveSyncInvoker :
 	public AccountHook,
-	public AccountManagerHandler
+	public DefaultAccountManagerHandler
 {
 public:
 	ActiveSyncInvoker(Document* pDocument,

@@ -98,7 +98,7 @@ class qm::MainWindowImpl :
 	public ViewModelHolder,
 	public MessageWindowHandler,
 	public DefaultDocumentHandler,
-	public AccountManagerHandler
+	public DefaultAccountManagerHandler
 #ifndef _WIN32_WCE_PSPC
 	,
 	public ShellIconCallback
@@ -2282,6 +2282,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pFolderSplitterWindow, pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
 	FolderWindowCreateContext folderWindowContext = {
 		pContext->pDocument_,
+		pContext->pDocument_->getUndoManager(),
 		pContext->pUIManager_,
 		pContext->pFolderImage_,
 		pContext->pSyncManager_

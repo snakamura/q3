@@ -118,7 +118,6 @@ public:
 
 public:
 	virtual void offlineStatusChanged(const DocumentEvent& event) = 0;
-	virtual void documentInitialized(const DocumentEvent& event) = 0;
 };
 
 
@@ -136,7 +135,6 @@ public:
 
 public:
 	virtual void offlineStatusChanged(const DocumentEvent& event);
-	virtual void documentInitialized(const DocumentEvent& event);
 };
 
 

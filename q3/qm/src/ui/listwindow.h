@@ -21,7 +21,7 @@ namespace qm {
 class PaintInfo;
 struct ListWindowCreateContext;
 
-class Document;
+class AccountManager;
 class SyncDialogManager;
 class SyncManager;
 class UIManager;
@@ -70,7 +70,7 @@ private:
 
 struct ListWindowCreateContext
 {
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;

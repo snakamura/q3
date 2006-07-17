@@ -7,7 +7,6 @@
  */
 
 #include <qmaccount.h>
-#include <qmdocument.h>
 #include <qmfoldercombobox.h>
 
 #include <qsaccelerator.h>
@@ -41,7 +40,7 @@ using namespace qs;
 
 class qm::FolderComboBoxImpl :
 	public CommandHandler,
-	public AccountManagerHandler,
+	public DefaultAccountManagerHandler,
 	public DefaultAccountHandler,
 	public DefaultFolderHandler,
 	public FolderModelHandler
@@ -119,7 +118,7 @@ public:
 	MenuManager* pMenuManager_;
 	Profile* pProfile_;
 	std::auto_ptr<Accelerator> pAccelerator_;
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
 	
 	UINT nId_;
 	HFONT hfont_;
@@ -385,8 +384,8 @@ void qm::FolderComboBoxImpl::updateAccountList(bool bDropDown,
 {
 	clearAccountList(bRefreshHandler);
 	
-	const Document::AccountList& l = pDocument_->getAccounts();
-	for (Document::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
+	const AccountManager::AccountList& l = pAccountManager_->getAccounts();
+	for (AccountManager::AccountList::const_iterator it = l.begin(); it != l.end(); ++it)
 		addAccount(*it, bDropDown, bRefreshHandler);
 }
 
@@ -574,7 +573,7 @@ qm::FolderComboBox::FolderComboBox(WindowBase* pParentWindow,
 	pImpl_->pFolderModel_ = pFolderModel;
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pDocument_ = 0;
+	pImpl_->pAccountManager_ = 0;
 	pImpl_->nId_ = 0;
 	pImpl_->hfont_ = 0;
 	pImpl_->bShowAllCount_ = true;
@@ -662,9 +661,9 @@ LRESULT qm::FolderComboBox::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	FolderComboBoxCreateContext* pContext =
 		static_cast<FolderComboBoxCreateContext*>(pCreateStruct->lpCreateParams);
-	pImpl_->pDocument_ = pContext->pDocument_;
+	pImpl_->pAccountManager_ = pContext->pAccountManager_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
-	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
+	pImpl_->pAccountManager_->addAccountManagerHandler(pImpl_);
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -691,7 +690,7 @@ LRESULT qm::FolderComboBox::onDestroy()
 	
 	pImpl_->pParentWindow_->removeCommandHandler(pImpl_);
 	pImpl_->pFolderModel_->removeFolderModelHandler(pImpl_);
-	pImpl_->pDocument_->removeAccountManagerHandler(pImpl_);
+	pImpl_->pAccountManager_->removeAccountManagerHandler(pImpl_);
 	
 	return DefaultWindowHandler::onDestroy();
 }
