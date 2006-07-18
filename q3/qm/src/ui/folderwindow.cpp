@@ -212,6 +212,7 @@ public:
 
 Account* qm::FolderWindowImpl::getAccount(HTREEITEM hItem) const
 {
+	assert(hItem);
 	assert(!TreeView_GetParent(pThis_->getHandle(), hItem));
 	
 	TVITEM item = {
@@ -241,6 +242,7 @@ Account* qm::FolderWindowImpl::getSelectedAccount() const
 
 Folder* qm::FolderWindowImpl::getFolder(HTREEITEM hItem) const
 {
+	assert(hItem);
 	assert(TreeView_GetParent(pThis_->getHandle(), hItem));
 	
 	TVITEM item = {
@@ -267,6 +269,8 @@ Folder* qm::FolderWindowImpl::getSelectedFolder() const
 
 HTREEITEM qm::FolderWindowImpl::getHandleFromAccount(Account* pAccount) const
 {
+	assert(pAccount);
+	
 	HTREEITEM hItem = TreeView_GetRoot(pThis_->getHandle());
 	while (hItem) {
 		if (getAccount(hItem) == pAccount)
@@ -279,6 +283,8 @@ HTREEITEM qm::FolderWindowImpl::getHandleFromAccount(Account* pAccount) const
 
 HTREEITEM qm::FolderWindowImpl::getHandleFromFolder(Folder* pFolder) const
 {
+	assert(pFolder);
+	
 	FolderMap::const_iterator it = std::find_if(
 		mapFolder_.begin(), mapFolder_.end(),
 		std::bind2nd(
@@ -576,13 +582,17 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 			unsigned int nOldFlags = event.getOldFlags();
 			unsigned int nNewFlags = event.getNewFlags();
 			if ((nOldFlags & Folder::FLAG_HIDE) && !(nNewFlags & Folder::FLAG_HIDE)) {
-				if (!pFolder->isHidden())
+				if (!pFolder->isHidden()) {
 					insertFolder(pFolder, true);
+					TreeView_EnsureVisible(pThis_->getHandle(), getHandleFromFolder(pFolder));
+				}
 			}
 			else if (!(nOldFlags & Folder::FLAG_HIDE) && (nNewFlags & Folder::FLAG_HIDE)) {
 				Folder* pParent = pFolder->getParentFolder();
-				if (!pParent || !pParent->isHidden())
+				if (!pParent || !pParent->isHidden()) {
+					TreeView_EnsureVisible(pThis_->getHandle(), getHandleFromFolder(pFolder));
 					removeFolder(pFolder, true);
+				}
 			}
 			else if ((nOldFlags & Folder::FLAG_BOX_MASK) != (nNewFlags & Folder::FLAG_BOX_MASK)) {
 				sortFolders(pFolder);
