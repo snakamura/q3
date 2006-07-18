@@ -536,7 +536,7 @@ bool qmpop3::Pop3::receive(string_ptr* pstrResponse,
 					bContent = true;
 					
 					if (nContentSizeHint != 0)
-						bufContent.reserve(nContentSizeHint + sizeof(buf));
+						bufContent.reserve(nContentSizeHint + sizeof(buf)*2);
 					
 					size_t nContentLen = bufResponse.getLength() - (p - pRes) - 2;
 					char* pContent = buf + nLen - nContentLen;
