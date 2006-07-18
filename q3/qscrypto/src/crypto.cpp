@@ -571,8 +571,35 @@ bool qscrypto::StoreImpl::loadSystem()
 			
 			const unsigned char* p = pContext->pbCertEncoded;
 			X509Ptr x509(d2i_X509(0, &p, pContext->cbCertEncoded));
-			if (x509.get() && CertificateImpl(x509.get(), false).checkValidity())
+			if (!x509.get())
+				continue;
+			
+			CertificateImpl cert(x509.get(), false);
+			bool bAdd = cert.checkValidity();
+			if (bAdd)
 				X509_STORE_add_cert(pStore_, x509.get());
+			
+			if (log.isDebugEnabled()) {
+				wstring_ptr wstrSubject;
+				std::auto_ptr<Name> pSubject(cert.getSubject());
+				if (pSubject.get())
+					wstrSubject = pSubject->getText();
+				wstring_ptr wstrIssuer;
+				std::auto_ptr<Name> pIssuer(cert.getIssuer());
+				if (pIssuer.get())
+					wstrIssuer = pIssuer->getText();
+				const WCHAR* pwszMessage = bAdd ?
+					L"Added a certificate in the system store.\n" :
+					L"Ignored an invalid certificate in the system store.\n";
+				StringBuffer<WSTRING> buf(pwszMessage);
+				buf.append(L"Subject: ");
+				if (wstrSubject.get())
+					buf.append(wstrSubject.get());
+				buf.append(L"\nIssuer: ");
+				if (wstrIssuer.get())
+					buf.append(wstrIssuer.get());
+				log.debug(buf.getCharArray());
+			}
 		}
 		::CertFreeCertificateContext(pContext);
 		::CertCloseStore(hStore, 0);
