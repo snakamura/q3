@@ -1757,10 +1757,11 @@ bool qm::FileImportAction::readSingleMessage(NormalFolder* pFolder,
 			return false;
 		
 		XStringBuffer<WXSTRING> buf;
+		const size_t nBufferSize = 8192;
 		while (true) {
-			XStringBufferLock<WXSTRING> lock(&buf, 1024);
+			XStringBufferLock<WXSTRING> lock(&buf, nBufferSize);
 			
-			size_t nRead = reader.read(lock.get(), 1024);
+			size_t nRead = reader.read(lock.get(), nBufferSize);
 			if (nRead == -1)
 				return false;
 			else if (nRead == 0)
