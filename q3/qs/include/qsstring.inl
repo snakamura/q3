@@ -995,7 +995,7 @@ typename qs::XStringBuffer<XString>::Char* qs::XStringBuffer<XString>::lockBuffe
 {
 	size_t nNewSize = (pEnd_ - str_.get()) + nSize;
 	if (nNewSize > nLen_) {
-		if (!allocBuffer(nNewSize, true))
+		if (!allocBuffer(nNewSize, false))
 			return 0;
 	}
 	return pEnd_;
