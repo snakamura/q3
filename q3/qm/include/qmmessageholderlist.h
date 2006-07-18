@@ -39,8 +39,12 @@ void makeParentLink(const List& l,
 					SetParentItem setParentItem)
 {
 	List listSortedByMessageIdHash(l);
-	std::sort(listSortedByMessageIdHash.begin(), listSortedByMessageIdHash.end(),
-		binary_compose_f_gx_hy(std::less<unsigned int>(), getMessageIdHash, getMessageIdHash));
+	std::sort(listSortedByMessageIdHash.begin(),
+		listSortedByMessageIdHash.end(),
+		binary_compose_f_gx_hy(
+			std::less<unsigned int>(),
+			getMessageIdHash,
+			getMessageIdHash));
 	
 	List listSortedByPointer(l);
 	std::sort(listSortedByPointer.begin(), listSortedByPointer.end());
@@ -71,15 +75,17 @@ void makeItemParentLink(const List& listSortedByMessageIdHash,
 			List::const_iterator it = std::lower_bound(
 				listSortedByMessageIdHash.begin(),
 				listSortedByMessageIdHash.end(), &findItem,
-				binary_compose_f_gx_hy(std::less<unsigned int>(), getMessageIdHash, getMessageIdHash));
+				binary_compose_f_gx_hy(
+					std::less<unsigned int>(),
+					getMessageIdHash,
+					getMessageIdHash));
 			if  (it != listSortedByMessageIdHash.end() &&
 				getMessageHolder(*it)->getMessageIdHash() == nReferenceHash) {
 				bool bFound = false;
 				wstring_ptr wstrReference(pmh->getReference());
 				assert(*wstrReference.get());
 				while  (it != listSortedByMessageIdHash.end() &&
-					(*it)->getMessageHolder()->getMessageIdHash() == nReferenceHash &&
-					!bFound) {
+					(*it)->getMessageHolder()->getMessageIdHash() == nReferenceHash) {
 					wstring_ptr wstrMessageId(getMessageHolder(*it)->getMessageId());
 					if (wcscmp(wstrReference.get(), wstrMessageId.get()) == 0) {
 						bFound = true;
@@ -87,7 +93,7 @@ void makeItemParentLink(const List& listSortedByMessageIdHash,
 					}
 					++it;
 				}
-				if (bFound)
+				if (bFound && !isAncestorOf(item, *it, getParentItem))
 					setParentItem(item, *it);
 			}
 		}
@@ -99,6 +105,21 @@ void makeItemParentLink(const List& listSortedByMessageIdHash,
 		if (it == listSortedByPointer.end() || *it != parentItem)
 			setParentItem(item, 0);
 	}
+}
+
+template <class Item, class GetParentItem>
+bool isAncestorOf(const Item& item1,
+				  const Item& item2,
+				  GetParentItem getParentItem)
+{
+	if (item1 == item2)
+		return true;
+	
+	Item parent = getParentItem(item2);
+	if (!parent)
+		return false;
+	
+	return isAncestorOf(item1, parent, getParentItem);
 }
 
 }
