@@ -256,7 +256,7 @@ bool qmnntp::Nntp::getMessagesData(unsigned int nStart,
 	string_ptr strResponse;
 	xstring_size_ptr strContent;
 	if (!sendCommand(szCommand, pszCodes, countof(pszCodes),
-		&nCode, &strResponse, &strContent))
+		&nCode, &strResponse, &strContent, 0))
 		NNTP_ERROR_OR(NNTP_ERROR_XOVER);
 	else if (nCode != 224 && nCode != 420)
 		NNTP_ERROR(NNTP_ERROR_XOVER | NNTP_ERROR_RESPONSE);
@@ -313,7 +313,7 @@ bool qmnntp::Nntp::postMessage(const CHAR* pszMessage,
 	else if (nCode != 340)
 		NNTP_ERROR(NNTP_ERROR_POST | NNTP_ERROR_RESPONSE);
 	
-	if (!send(&listSendData[0], listSendData.size(), 0, 0, &nCode, 0, 0))
+	if (!send(&listSendData[0], listSendData.size(), 0, 0, &nCode, 0, 0, 0))
 		NNTP_ERROR_OR(NNTP_ERROR_POST);
 	else if (nCode != 240)
 		NNTP_ERROR(NNTP_ERROR_POST | NNTP_ERROR_RESPONSE);
@@ -333,7 +333,7 @@ bool qmnntp::Nntp::list(std::auto_ptr<GroupsData>* ppGroupsData)
 	string_ptr strResponse;
 	xstring_size_ptr strContent;
 	if (!sendCommand("LIST\r\n", pszCodes, countof(pszCodes),
-		&nCode, &strResponse, &strContent))
+		&nCode, &strResponse, &strContent, 0))
 		NNTP_ERROR_OR(NNTP_ERROR_LIST);
 	else if (nCode != 215)
 		NNTP_ERROR(NNTP_ERROR_LIST | NNTP_ERROR_RESPONSE);
@@ -373,7 +373,7 @@ bool qmnntp::Nntp::newGroups(const WCHAR* pwszDate,
 	string_ptr strResponse;
 	xstring_size_ptr strContent;
 	if (!sendCommand(szCommand, pszCodes, countof(pszCodes),
-		&nCode, &strResponse, &strContent))
+		&nCode, &strResponse, &strContent, 0))
 		NNTP_ERROR_OR(NNTP_ERROR_NEWGROUPS);
 	else if (nCode != 231)
 		NNTP_ERROR(NNTP_ERROR_NEWGROUPS | NNTP_ERROR_RESPONSE);
@@ -454,8 +454,8 @@ bool qmnntp::Nntp::getMessage(unsigned int n,
 	unsigned int nCode = 0;
 	string_ptr strResponse;
 	xstring_size_ptr strContent;
-	if (!sendCommand(buf.getCharArray(), pszCodes,
-		countof(pszCodes), &nCode, &strResponse, &strContent))
+	if (!sendCommand(buf.getCharArray(), pszCodes, countof(pszCodes), &nCode,
+		&strResponse, &strContent, nEstimatedSize != -1 ? nEstimatedSize : 0))
 		NNTP_ERROR_OR(error);
 	else if (nCode != types[flag].nCode_ && nCode != nCodeNotFound)
 		NNTP_ERROR(error | NNTP_ERROR_RESPONSE);
@@ -467,20 +467,21 @@ bool qmnntp::Nntp::getMessage(unsigned int n,
 
 bool qmnntp::Nntp::receive(unsigned int* pnCode)
 {
-	return receive(0, 0, pnCode, 0, 0);
+	return receive(0, 0, pnCode, 0, 0, 0);
 }
 
 bool qmnntp::Nntp::receive(unsigned int* pnCode,
 						   string_ptr* pstrResponse)
 {
-	return receive(0, 0, pnCode, pstrResponse, 0);
+	return receive(0, 0, pnCode, pstrResponse, 0, 0);
 }
 
 bool qmnntp::Nntp::receive(const CHAR* pszMultilineCodes[],
 						   size_t nCodeCount,
 						   unsigned int* pnCode,
 						   string_ptr* pstrResponse,
-						   xstring_size_ptr* pstrContent)
+						   xstring_size_ptr* pstrContent,
+						   size_t nContentSizeHint)
 {
 	assert((!pszMultilineCodes && !pstrContent && nCodeCount == 0) ||
 		(pszMultilineCodes && pstrContent && nCodeCount != 0));
@@ -536,6 +537,9 @@ bool qmnntp::Nntp::receive(const CHAR* pszMultilineCodes[],
 				const CHAR* p = strstr(pRes, "\r\n");
 				if (p) {
 					bContent = true;
+					
+					if (nContentSizeHint != 0)
+						bufContent.reserve(nContentSizeHint + sizeof(buf)*2);
 					
 					size_t nContentLen = bufResponse.getLength() - (p - pRes) - 2;
 					char* pContent = buf + nLen - nContentLen;
@@ -597,14 +601,14 @@ bool qmnntp::Nntp::receive(const CHAR* pszMultilineCodes[],
 bool qmnntp::Nntp::sendCommand(const CHAR* pszCommand,
 							   unsigned int* pnCode)
 {
-	return sendCommand(pszCommand, 0, 0, pnCode, 0, 0);
+	return sendCommand(pszCommand, 0, 0, pnCode, 0, 0, 0);
 }
 
 bool qmnntp::Nntp::sendCommand(const CHAR* pszCommand,
 							   unsigned int* pnCode,
 							   string_ptr* pstrResponse)
 {
-	return sendCommand(pszCommand, 0, 0, pnCode, pstrResponse, 0);
+	return sendCommand(pszCommand, 0, 0, pnCode, pstrResponse, 0, 0);
 }
 
 bool qmnntp::Nntp::sendCommand(const CHAR* pszCommand,
@@ -612,14 +616,15 @@ bool qmnntp::Nntp::sendCommand(const CHAR* pszCommand,
 							   size_t nCodeCount,
 							   unsigned int* pnCode,
 							   string_ptr* pstrResponse,
-							   xstring_size_ptr* pstrContent)
+							   xstring_size_ptr* pstrContent,
+							   size_t nContentSizeHint)
 {
 	SendData sd = {
 		pszCommand,
 		strlen(pszCommand)
 	};
-	return send(&sd, 1, pszMultilineCodes,
-		nCodeCount, pnCode, pstrResponse, pstrContent);
+	return send(&sd, 1, pszMultilineCodes, nCodeCount, pnCode,
+		pstrResponse, pstrContent, nContentSizeHint);
 }
 
 bool qmnntp::Nntp::send(const SendData* pSendData,
@@ -628,7 +633,8 @@ bool qmnntp::Nntp::send(const SendData* pSendData,
 						size_t nCodeCount,
 						unsigned int* pnCode,
 						string_ptr* pstrResponse,
-						xstring_size_ptr* pstrContent)
+						xstring_size_ptr* pstrContent,
+						size_t nContentSizeHint)
 {
 	assert(pSendData);
 	assert(nDataLen > 0);
@@ -667,7 +673,8 @@ bool qmnntp::Nntp::send(const SendData* pSendData,
 //		pNntpCallback_->setPos(0);
 //	}
 	
-	return receive(pszMultilineCodes, nCodeCount, pnCode, pstrResponse, pstrContent);
+	return receive(pszMultilineCodes, nCodeCount,
+		pnCode, pstrResponse, pstrContent, nContentSizeHint);
 }
 
 void qmnntp::Nntp::setErrorResponse(const CHAR* pszErrorResponse)

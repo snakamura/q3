@@ -147,7 +147,8 @@ private:
 				 size_t nCodeCount,
 				 unsigned int* pnCode,
 				 qs::string_ptr* pstrResponse,
-				 qs::xstring_size_ptr* pstrContent);
+				 qs::xstring_size_ptr* pstrContent,
+				 size_t nContentSizeHint);
 	bool sendCommand(const CHAR* pszCommand,
 					 unsigned int* pnCode);
 	bool sendCommand(const CHAR* pszCommand,
@@ -158,14 +159,16 @@ private:
 					 size_t nCodeCount,
 					 unsigned int* pnCode,
 					 qs::string_ptr* pstrResponse,
-					 qs::xstring_size_ptr* pstrContent);
+					 qs::xstring_size_ptr* pstrContent,
+					 size_t nContentSizeHint);
 	bool send(const SendData* pSendData,
 			  size_t nDataLen,
 			  const CHAR* pszMultilineCodes[],
 			  size_t nCodeCount,
 			  unsigned int* pnCode,
 			  qs::string_ptr* pstrResponse,
-			  qs::xstring_size_ptr* pstrContent);
+			  qs::xstring_size_ptr* pstrContent,
+			  size_t nContentSizeHint);
 	void setErrorResponse(const CHAR* pszErrorResponse);
 
 private:
