@@ -5399,7 +5399,7 @@ MacroValuePtr qm::MacroFunctionThread::value(MacroContext* pContext) const
 	}
 	assert(pItemThis);
 	
-	MessageThreadUtil::makeParentLink(listItemPtr,
+	MessageThreadUtil::makeParentLink(pAccount, listItemPtr,
 		std::mem_fun(&Item::getMessageHolder),
 		std::ptr_fun(&Item::createItemWithMessageIdHash),
 		std::mem_fun(&Item::getMessageIdHash),

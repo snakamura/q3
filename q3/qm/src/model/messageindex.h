@@ -49,6 +49,9 @@ public:
 						unsigned int nLength,
 						MessageIndexName name);
 	void remove(unsigned int nKey);
+	bool isPrepared(unsigned int nKey) const;
+	void prepare(unsigned int nKey,
+				 unsigned int nLength);
 	qs::malloc_size_ptr<unsigned char> createReplacedIndex(unsigned int nKey,
 														   unsigned int nLength,
 														   MessageIndexName name,
@@ -60,7 +63,7 @@ public:
 
 private:
 	MessageIndexItem* getItem(unsigned int nKey) const;
-	void insert(MessageIndexItem* pItem);
+	void insert(std::auto_ptr<MessageIndexItem> pItem);
 	void remove(ItemMap::iterator it);
 
 private:

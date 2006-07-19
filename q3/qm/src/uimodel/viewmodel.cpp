@@ -1389,7 +1389,7 @@ void qm::ViewModel::makeParentLink(bool bUpdateLatest)
 {
 	Lock<ViewModel> lock(*this);
 	
-	MessageThreadUtil::makeParentLink(listItem_,
+	MessageThreadUtil::makeParentLink(pFolder_->getAccount(), listItem_,
 		std::mem_fun(&ViewModelItem::getMessageHolder),
 		std::ptr_fun(&ViewModelItem::createItemWithMessageIdHash),
 		std::mem_fun(&ViewModelItem::getMessageIdHash),

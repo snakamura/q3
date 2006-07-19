@@ -257,6 +257,9 @@ public:
 	bool isSeen(const MessageHolder* pmh) const;
 	bool isSeen(unsigned int nFlags) const;
 	
+	bool isIndexPrepared(const MessageHolder* pmh) const;
+	void prepareIndex(MessageHolderList& l);
+	
 	void addAccountHandler(AccountHandler* pHandler);
 	void removeAccountHandler(AccountHandler* pHandler);
 	

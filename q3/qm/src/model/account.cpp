@@ -29,6 +29,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "account.h"
 #include "messageindex.h"
 #include "messagestore.h"
@@ -2441,6 +2443,43 @@ bool qm::Account::isSeen(unsigned int nFlags) const
 {
 	return nFlags & MessageHolder::FLAG_SEEN ||
 		(pImpl_->bDeletedAsSeen_ && nFlags & MessageHolder::FLAG_DELETED);
+}
+
+bool qm::Account::isIndexPrepared(const MessageHolder* pmh) const
+{
+	return pImpl_->pMessageIndex_->isPrepared(pmh->getMessageIndexKey().nKey_);
+}
+
+void qm::Account::prepareIndex(MessageHolderList& l)
+{
+#if 0
+	std::sort(l.begin(), l.end(),
+		boost::bind(std::less<unsigned int>(),
+			boost::bind(&MessageHolder::MessageIndexKey::nKey_,
+				boost::bind(&MessageHolder::getMessageIndexKey, _1)),
+			boost::bind(&MessageHolder::MessageIndexKey::nKey_,
+				boost::bind(&MessageHolder::getMessageIndexKey, _2))));
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&MessageIndex::prepare, pImpl_->pMessageIndex_.get(),
+			boost::bind(&MessageHolder::MessageIndexKey::nKey_,
+				boost::bind(&MessageHolder::getMessageIndexKey, _1)),
+			boost::bind(&MessageHolder::MessageIndexKey::nLength_,
+				boost::bind(&MessageHolder::getMessageIndexKey, _1))));
+#else
+	std::sort(l.begin(), l.end(),
+		binary_compose_f_gx_hy(
+			std::less<unsigned int>(),
+			unary_compose_f_gx(
+				mem_data_ref(&MessageHolder::MessageIndexKey::nKey_),
+				std::mem_fun(&MessageHolder::getMessageIndexKey)),
+			unary_compose_f_gx(
+				mem_data_ref(&MessageHolder::MessageIndexKey::nKey_),
+				std::mem_fun(&MessageHolder::getMessageIndexKey))));
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		const MessageHolder::MessageIndexKey& key = (*it)->getMessageIndexKey();
+		pImpl_->pMessageIndex_->prepare(key.nKey_, key.nLength_);
+	}
+#endif
 }
 
 void qm::Account::addAccountHandler(AccountHandler* pHandler)

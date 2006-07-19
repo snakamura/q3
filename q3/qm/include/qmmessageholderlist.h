@@ -21,6 +21,8 @@ class MessagePtr;
 typedef std::vector<MessageHolder*> MessageHolderList;
 typedef std::vector<MessagePtr> MessagePtrList;
 
+class Account;
+
 
 /****************************************************************************
  *
@@ -31,13 +33,24 @@ typedef std::vector<MessagePtr> MessagePtrList;
 namespace MessageThreadUtil {
 
 template<class List, class GetMessageHolder, class CreateItemWithMessageIdHash, class GetMessageIdHash, class GetParentItem, class SetParentItem>
-void makeParentLink(const List& l,
+void makeParentLink(Account* pAccount,
+					const List& l,
 					GetMessageHolder getMessageHolder,
 					CreateItemWithMessageIdHash createItemWithMessageIdHash,
 					GetMessageIdHash getMessageIdHash,
 					GetParentItem getParentItem,
 					SetParentItem setParentItem)
 {
+	if (l.empty())
+		return;
+	
+	if (!pAccount->isIndexPrepared(getMessageHolder(l[l.size()/2]))) {
+		MessageHolderList listMessageHolder;
+		listMessageHolder.resize(l.size());
+		std::transform(l.begin(), l.end(), listMessageHolder.begin(), getMessageHolder);
+		pAccount->prepareIndex(listMessageHolder);
+	}
+	
 	List listSortedByMessageIdHash(l);
 	std::sort(listSortedByMessageIdHash.begin(),
 		listSortedByMessageIdHash.end(),

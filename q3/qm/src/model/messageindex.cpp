@@ -60,6 +60,7 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 	if (pItem) {
 		const WCHAR* pwszValue = pItem->getValue(name);
 		wstrValue = allocWString(pwszValue ? pwszValue : L"");
+		
 		if (pItem != pNewFirst_) {
 			MessageIndexItem* pNext = pItem->pNewNext_;
 			MessageIndexItem* pPrev = pItem->pNewPrev_;
@@ -82,15 +83,15 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 		parseValues(reinterpret_cast<WCHAR*>(pData.get()), nLength/sizeof(WCHAR), pwszValues);
 		
 		if (nMaxSize_ != 0) {
-			pItem = new MessageIndexItem(nKey, pData, pwszValues);
-			
-			insert(pItem);
-			
+			std::auto_ptr<MessageIndexItem> p(new MessageIndexItem(nKey, pData, pwszValues));
+			pItem = p.get();
+			insert(p);
 			if (nSize_ >= nMaxSize_)
 				remove(pNewLast_->pNewPrev_->getKey());
 			else
 				++nSize_;
 		}
+		
 		const WCHAR* pwszValue = pwszValues[name];
 		wstrValue = allocWString(pwszValue ? pwszValue : L"");
 	}
@@ -105,6 +106,35 @@ void qm::MessageIndex::remove(unsigned int nKey)
 	ItemMap::iterator it = map_.find(nKey);
 	if (it != map_.end())
 		remove(it);
+}
+
+bool qm::MessageIndex::isPrepared(unsigned int nKey) const
+{
+	return getItem(nKey) != 0;
+}
+
+void qm::MessageIndex::prepare(unsigned int nKey,
+							   unsigned int nLength)
+{
+	if (nMaxSize_ == 0)
+		return;
+	
+	MessageIndexItem* pItem = getItem(nKey);
+	if (!pItem) {
+		malloc_ptr<unsigned char> pData(pMessageStore_->readIndex(nKey, nLength));
+		if (!pData.get())
+			return;
+		
+		const WCHAR* pwszValues[NAME_MAX] = { 0 };
+		parseValues(reinterpret_cast<WCHAR*>(pData.get()), nLength/sizeof(WCHAR), pwszValues);
+		
+		std::auto_ptr<MessageIndexItem> pItem(new MessageIndexItem(nKey, pData, pwszValues));
+		insert(pItem);
+		if (nSize_ >= nMaxSize_)
+			remove(pNewLast_->pNewPrev_->getKey());
+		else
+			++nSize_;
+	}
 }
 
 malloc_size_ptr<unsigned char> qm::MessageIndex::createReplacedIndex(unsigned int nKey,
@@ -195,20 +225,21 @@ MessageIndexItem* qm::MessageIndex::getItem(unsigned int nKey) const
 	return pItem;
 }
 
-void qm::MessageIndex::insert(MessageIndexItem* pItem)
+void qm::MessageIndex::insert(std::auto_ptr<MessageIndexItem> pItem)
 {
-	map_.insert(std::make_pair(pItem->getKey(), pItem));
+	map_.insert(std::make_pair(pItem->getKey(), pItem.get()));
+	MessageIndexItem* p = pItem.release();
 	
-	pNewFirst_->pNewPrev_ = pItem;
-	pItem->pNewNext_ = pNewFirst_;
-	pNewFirst_ = pItem;
+	pNewFirst_->pNewPrev_ = p;
+	p->pNewNext_ = pNewFirst_;
+	pNewFirst_ = p;
 }
 
 void qm::MessageIndex::remove(ItemMap::iterator it)
 {
 	assert(it != map_.end());
 	
-	MessageIndexItem* pItem = (*it).second;
+	std::auto_ptr<MessageIndexItem> pItem((*it).second);
 	
 #if defined _WIN32_WCE && _MSC_VER == 1202 && defined MIPS
 	map_.erase((*it).first);
@@ -216,16 +247,14 @@ void qm::MessageIndex::remove(ItemMap::iterator it)
 	map_.erase(it);
 #endif
 	
-	if (pItem == pNewFirst_)
+	if (pItem.get() == pNewFirst_)
 		pNewFirst_ = pItem->pNewNext_;
 	else
 		pItem->pNewPrev_->pNewNext_ = pItem->pNewNext_;
 	pItem->pNewNext_->pNewPrev_ = pItem->pNewPrev_;
 	
-	if (pItem == pLastGotten_)
+	if (pItem.get() == pLastGotten_)
 		pLastGotten_ = 0;
-	
-	delete pItem;
 }
 
 void qm::MessageIndex::parseValues(WCHAR* p,
