@@ -197,7 +197,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$R0\Uninstall.lnk"
   StrCpy $R0 "$SMPROGRAMS\$R0"
   startMenuDeleteLoop:
-	ClearErrors
+    ClearErrors
     RMDir $R0
     GetFullPathName $R0 "$R0\.."
     
