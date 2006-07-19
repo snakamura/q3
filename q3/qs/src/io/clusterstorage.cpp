@@ -32,7 +32,8 @@ struct qs::ClusterStorageImpl
 	enum {
 		CLUSTER_SIZE		= 128,
 		SEARCHBEGIN_SIZE	= 64,
-		BYTE_SIZE			= 8
+		BYTE_SIZE			= 8,
+		BUFFER_SIZE			= 8192
 	};
 	
 	typedef std::vector<unsigned char> Map;
@@ -159,14 +160,14 @@ bool qs::ClusterStorageImpl::reopen()
 	
 	if (nBlockSize_ == -1) {
 		std::auto_ptr<BinaryFile> pFile(new BinaryFile(wstrPath.get(),
-			BinaryFile::MODE_READ | BinaryFile::MODE_WRITE, 256));
+			BinaryFile::MODE_READ | BinaryFile::MODE_WRITE, BUFFER_SIZE));
 		if (!*pFile.get())
 			return false;
 		pFile_.reset(pFile.release());
 	}
 	else {
 		std::auto_ptr<DividedFile> pFile(new DividedFile(wstrPath.get(),
-			nBlockSize_, BinaryFile::MODE_READ | BinaryFile::MODE_WRITE, 256));
+			nBlockSize_, BinaryFile::MODE_READ | BinaryFile::MODE_WRITE, BUFFER_SIZE));
 		pFile_.reset(pFile.release());
 	}
 	
