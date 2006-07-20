@@ -393,6 +393,11 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 	}
 }
 
+void qm::TextMessageViewWindow::clearMessage()
+{
+	pTextModel_->setText(L"", 0);
+}
+
 bool qm::TextMessageViewWindow::scrollPage(bool bPrev)
 {
 	SCROLLINFO info = {
@@ -1143,13 +1148,7 @@ LRESULT qm::HtmlMessageViewWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pDocHostUIHandlerDispatch->Release();
 	
-	BSTRPtr bstrURL(::SysAllocString(L"about:blank"));
-	int n = 0;
-	Variant v[4];
-	v[0].vt = VT_I4;
-	v[0].lVal = navNoHistory | navNoReadFromCache | navNoWriteToCache;
-	hr = pWebBrowser_->Navigate(bstrURL.get(), &v[0], &v[1], &v[2], &v[3]);
-	if (FAILED(hr))
+	if (!navigate(L"about:blank"))
 		return -1;
 	
 	VARIANT_BOOL bBusy = VARIANT_TRUE;
@@ -1360,18 +1359,12 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 		}
 	}
 	
-	BSTRPtr bstrURL(::SysAllocString(wstrURL.get()));
-	if (!bstrURL.get())
-		return false;
-	int n = 0;
-	Variant v[4];
-	v[0].vt = VT_I4;
-	v[0].lVal = navNoHistory | navNoReadFromCache | navNoWriteToCache;
-	hr = pWebBrowser_->Navigate(bstrURL.get(), &v[0], &v[1], &v[2], &v[3]);
-	if (FAILED(hr))
-		return false;
-	
-	return true;
+	return navigate(wstrURL.get());
+}
+
+void qm::HtmlMessageViewWindow::clearMessage()
+{
+	navigate(L"about:blank");
 }
 
 bool qm::HtmlMessageViewWindow::scrollPage(bool bPrev)
@@ -1577,6 +1570,21 @@ void qm::HtmlMessageViewWindow::selectAll()
 bool qm::HtmlMessageViewWindow::canSelectAll()
 {
 	return true;
+}
+
+bool qm::HtmlMessageViewWindow::navigate(const WCHAR* pwszURL)
+{
+	assert(pwszURL);
+	
+	BSTRPtr bstrURL(::SysAllocString(pwszURL));
+	if (!bstrURL.get())
+		return false;
+	
+	Variant v[4];
+	v[0].vt = VT_I4;
+	v[0].lVal = navNoHistory | navNoReadFromCache | navNoWriteToCache;
+	HRESULT hr = pWebBrowser_->Navigate(bstrURL.get(), &v[0], &v[1], &v[2], &v[3]);
+	return SUCCEEDED(hr);
 }
 
 ComPtr<IHTMLDocument2> qm::HtmlMessageViewWindow::getHTMLDocument() const
@@ -2684,6 +2692,11 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	sendMessage(DTM_NAVIGATE, 0, reinterpret_cast<LPARAM>(wstrURL.get()));
 	
 	return true;
+}
+
+void qm::HtmlMessageViewWindow::clearMessage()
+{
+	sendMessage(DTM_CLEAR);
 }
 
 bool qm::HtmlMessageViewWindow::scrollPage(bool bPrev)

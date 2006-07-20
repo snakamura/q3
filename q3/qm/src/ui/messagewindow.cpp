@@ -266,8 +266,9 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	bool bLayout = false;
 	if (pMessageViewWindow_ != pMessageViewWindow) {
-		if (pMessageViewWindow_)
-			pMessageViewWindow_->getWindow().showWindow(SW_HIDE);
+		assert(pMessageViewWindow_);
+		pMessageViewWindow_->getWindow().showWindow(SW_HIDE);
+		pMessageViewWindow_->clearMessage();
 		pMessageViewWindow->getWindow().showWindow(SW_SHOW);
 		applyModeToMessageViewWindow(pMessageViewWindow, pMode);
 		pMessageViewWindow_ = pMessageViewWindow;

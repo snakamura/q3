@@ -94,6 +94,7 @@ public:
 							const WCHAR* pwszEncoding,
 							unsigned int nFlags,
 							unsigned int nSecurityMode) = 0;
+	virtual void clearMessage() = 0;
 	virtual bool scrollPage(bool bPrev) = 0;
 	virtual int getScrollPos() const = 0;
 	virtual void setScrollPos(int nPos) = 0;
@@ -233,6 +234,7 @@ public:
 							const WCHAR* pwszEncoding,
 							unsigned int nFlags,
 							unsigned int nSecurityMode);
+	virtual void clearMessage();
 	virtual bool scrollPage(bool bPrev);
 	virtual int getScrollPos() const;
 	virtual void setScrollPos(int nPos);
@@ -550,6 +552,7 @@ public:
 							const WCHAR* pwszEncoding,
 							unsigned int nFlags,
 							unsigned int nSecurityMode);
+	virtual void clearMessage();
 	virtual bool scrollPage(bool bPrev);
 	virtual int getScrollPos() const;
 	virtual void setScrollPos(int nPos);
@@ -571,6 +574,7 @@ public:
 	virtual bool canSelectAll();
 
 private:
+	bool navigate(const WCHAR* pwszURL);
 	qs::ComPtr<IHTMLDocument2> getHTMLDocument() const;
 	qs::ComPtr<IHTMLElement2> getHTMLBodyElement() const;
 
@@ -1044,6 +1048,7 @@ public:
 							const WCHAR* pwszEncoding,
 							unsigned int nFlags,
 							unsigned int nSecurityMode);
+	virtual void clearMessage();
 	virtual bool scrollPage(bool bPrev);
 	virtual int getScrollPos() const;
 	virtual void setScrollPos(int nPos);
