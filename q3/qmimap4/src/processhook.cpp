@@ -99,14 +99,10 @@ ProcessHook::Result qmimap4::AbstractMessageProcessHook::processFetchResponse(Re
 		std::pair<const CHAR*, size_t> content(pBody->getContent().get());
 		if (!getAccount()->updateMessage(mpl, content.first, content.second, 0))
 			return RESULT_ERROR;
-		unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
+		mpl->setFlags(bHeader ? MessageHolder::FLAG_HEADERONLY : 0,
+			MessageHolder::FLAG_DOWNLOAD |
 			MessageHolder::FLAG_DOWNLOADTEXT |
-			MessageHolder::FLAG_PARTIAL_MASK;
-		// TODO
-		// Should change the flag on server?
-		if (isMakeUnseen())
-			nMask |= MessageHolder::FLAG_SEEN;
-		mpl->setFlags(bHeader ? MessageHolder::FLAG_HEADERONLY : 0, nMask);
+			MessageHolder::FLAG_PARTIAL_MASK);
 	}
 	
 	processed();
@@ -175,14 +171,10 @@ ProcessHook::Result qmimap4::AbstractPartialMessageProcessHook::processFetchResp
 			listPart, listBody, (getOption() & OPTION_TRUSTBODYSTRUCTURE) != 0));
 		if (!getAccount()->updateMessage(mpl, strContent.get(), strContent.size(), 0))
 			return RESULT_ERROR;
-		unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
+		mpl->setFlags(isAll() ? 0 : MessageHolder::FLAG_TEXTONLY,
+			MessageHolder::FLAG_DOWNLOAD |
 			MessageHolder::FLAG_DOWNLOADTEXT |
-			MessageHolder::FLAG_PARTIAL_MASK;
-		// TODO
-		// Should change the flag on server?
-		if (isMakeUnseen())
-			nMask |= MessageHolder::FLAG_SEEN;
-		mpl->setFlags(isAll() ? 0 : MessageHolder::FLAG_TEXTONLY, nMask);
+			MessageHolder::FLAG_PARTIAL_MASK);
 	}
 	
 	return RESULT_PROCESSED;

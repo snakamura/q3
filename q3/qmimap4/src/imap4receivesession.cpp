@@ -780,11 +780,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			return bHeader_;
 		}
 		
-		virtual bool isMakeUnseen()
-		{
-			return false;
-		}
-		
 		virtual MessagePtr getMessagePtr(unsigned long nUid)
 		{
 			Imap4ReceiveSession::MessageDataList::const_iterator m = std::find_if(
@@ -878,11 +873,6 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			virtual unsigned int getPartCount()
 			{
 				return nPartCount_;
-			}
-			
-			virtual bool isMakeUnseen()
-			{
-				return false;
 			}
 			
 			virtual MessagePtr getMessagePtr(unsigned long nUid)
@@ -1086,11 +1076,6 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 				return false;
 			}
 			
-			virtual bool isMakeUnseen()
-			{
-				return true;
-			}
-			
 			virtual MessagePtr getMessagePtr(unsigned long nUid)
 			{
 				UidList::const_iterator it = std::lower_bound(
@@ -1209,11 +1194,6 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 			virtual unsigned int getPartCount()
 			{
 				return nPartCount_;
-			}
-			
-			virtual bool isMakeUnseen()
-			{
-				return true;
 			}
 			
 			virtual qm::MessagePtr getMessagePtr(unsigned long nUid)
