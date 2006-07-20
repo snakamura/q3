@@ -125,6 +125,7 @@ public:
 	void getTime(const ViewModel* pViewModel,
 				 const ViewModelItem* pItem,
 				 qs::Time* pTime) const;
+	bool isUseIndex() const;
 
 public:
 	static const WCHAR* getTimeFormat();

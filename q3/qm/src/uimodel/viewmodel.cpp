@@ -324,6 +324,15 @@ void qm::ViewColumn::getTime(const ViewModel* pViewModel,
 		*pTime = Time::getCurrentTime();
 }
 
+bool qm::ViewColumn::isUseIndex() const
+{
+	return type_ == TYPE_FROM ||
+		type_ == TYPE_TO ||
+		type_ == TYPE_FROMTO ||
+		type_ == TYPE_SUBJECT ||
+		type_ == TYPE_LABEL;
+}
+
 const WCHAR* qm::ViewColumn::getTimeFormat()
 {
 	return wstrTimeFormat__.get();
@@ -1360,9 +1369,23 @@ void qm::ViewModel::sort(unsigned int nSort,
 	assert(nSort & SORT_DIRECTION_MASK);
 	assert(nSort & SORT_THREAD_MASK);
 	
+	if (listItem_.empty())
+		return;
+	
 	Lock<ViewModel> lock(*this);
 	
 	SelectionRestorer restorer(this, false, !bRestoreSelection);
+	
+	Account* pAccount = pFolder_->getAccount();
+	const ViewColumn& column = getColumn(nSort & SORT_INDEX_MASK);
+	if (column.isUseIndex() &&
+		!pAccount->isIndexPrepared(listItem_[listItem_.size()/2]->getMessageHolder())) {
+		MessageHolderList l;
+		l.resize(listItem_.size());
+		std::transform(listItem_.begin(), listItem_.end(), l.begin(),
+			std::mem_fun(&ViewModelItem::getMessageHolder));
+		pAccount->prepareIndex(l);
+	}
 	
 	if (bUpdateParentLink && (nSort & SORT_THREAD_MASK) == SORT_THREAD)
 		makeParentLink(isFloatThread(nSort));
