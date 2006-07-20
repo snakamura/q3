@@ -87,6 +87,13 @@ public:
 	void reloadProfiles(bool bInitialize);
 	void updateLineHeight();
 	COLORREF getColor(int nIndex) const;
+	
+	void postRefreshMessage(UINT uMsg,
+							unsigned int nItem);
+	void handleRefreshMessage();
+	void postInvalidateMessage(UINT uMsg,
+							   unsigned int nItem);
+	void handleInvalidateMessage(unsigned int nItem);
 
 public:
 	virtual void viewModelSelected(const ViewModelManagerEvent& event);
@@ -151,6 +158,9 @@ public:
 	std::auto_ptr<DragGestureRecognizer> pDragGestureRecognizer_;
 	std::auto_ptr<DropTarget> pDropTarget_;
 	bool bCanDrop_;
+	
+	volatile LONG nRefreshing_;
+	volatile LONG nInvalidating_;
 };
 
 bool qm::ListWindowImpl::createHeaderColumn()
@@ -630,6 +640,40 @@ COLORREF qm::ListWindowImpl::getColor(int nIndex) const
 	return ::GetSysColor(nIndex);
 }
 
+void qm::ListWindowImpl::postRefreshMessage(UINT uMsg,
+											unsigned int nItem)
+{
+	if (InterlockedCompareExchange(&nRefreshing_, 1, 0))
+		return;
+	if (!pThis_->postMessage(uMsg, nItem, 0))
+		InterlockedExchange(&nRefreshing_, 0);
+}
+
+void qm::ListWindowImpl::handleRefreshMessage()
+{
+	InterlockedExchange(&nRefreshing_, 0);
+	pThis_->refresh();
+}
+
+void qm::ListWindowImpl::postInvalidateMessage(UINT uMsg,
+											   unsigned int nItem)
+{
+	if (InterlockedIncrement(&nInvalidating_) > 10) {
+		InterlockedDecrement(&nInvalidating_);
+		return;
+	}
+	if (!pThis_->postMessage(uMsg, nItem, 0))
+		InterlockedDecrement(&nInvalidating_);
+}
+
+void qm::ListWindowImpl::handleInvalidateMessage(unsigned int nItem)
+{
+	if (InterlockedDecrement(&nInvalidating_) >= 9)
+		pThis_->invalidate();
+	else
+		invalidateLine(nItem);
+}
+
 void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 {
 	ViewModel* pOldViewModel = event.getOldViewModel();
@@ -657,17 +701,17 @@ void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 
 void qm::ListWindowImpl::itemAdded(const ViewModelEvent& event)
 {
-	pThis_->postMessage(WM_VIEWMODEL_ITEMADDED, event.getItem(), 0);
+	postRefreshMessage(WM_VIEWMODEL_ITEMADDED, event.getItem());
 }
 
 void qm::ListWindowImpl::itemRemoved(const ViewModelEvent& event)
 {
-	pThis_->postMessage(WM_VIEWMODEL_ITEMREMOVED, event.getItem(), 0);
+	postRefreshMessage(WM_VIEWMODEL_ITEMREMOVED, event.getItem());
 }
 
 void qm::ListWindowImpl::itemChanged(const ViewModelEvent& event)
 {
-	pThis_->postMessage(WM_VIEWMODEL_ITEMCHANGED, event.getItem(), 0);
+	postInvalidateMessage(WM_VIEWMODEL_ITEMCHANGED, event.getItem());
 }
 
 void qm::ListWindowImpl::itemStateChanged(const ViewModelEvent& event)
@@ -992,6 +1036,8 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->hpenThreadLine_ = 0;
 	pImpl_->hpenFocusedThreadLine_ = 0;
 	pImpl_->bCanDrop_ = false;
+	pImpl_->nRefreshing_ = 0;
+	pImpl_->nInvalidating_ = 0;
 	
 	pImpl_->reloadProfiles(true);
 	
@@ -1696,21 +1742,21 @@ LRESULT qm::ListWindow::onVScroll(UINT nCode,
 LRESULT qm::ListWindow::onViewModelItemAdded(WPARAM wParam,
 											 LPARAM lParam)
 {
-	refresh();
+	pImpl_->handleRefreshMessage();
 	return 0;
 }
 
 LRESULT qm::ListWindow::onViewModelItemRemoved(WPARAM wParam,
 											   LPARAM lParam)
 {
-	refresh();
+	pImpl_->handleRefreshMessage();
 	return 0;
 }
 
 LRESULT qm::ListWindow::onViewModelItemChanged(WPARAM wParam,
 											   LPARAM lParam)
 {
-	pImpl_->invalidateLine(static_cast<unsigned int>(wParam));
+	pImpl_->handleInvalidateMessage(static_cast<unsigned int>(wParam));
 	return 0;
 }
 
