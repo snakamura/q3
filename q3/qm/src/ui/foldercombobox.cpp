@@ -61,6 +61,8 @@ public:
 	int getIndexFromAccount(Account* pAccount) const;
 	int getIndexFromFolder(Folder* pFolder) const;
 	void update(Folder* pFolder);
+	void postUpdateMessage(UINT uMsg,
+						   Folder* pFolder);
 	void handleUpdateMessage(LPARAM lParam);
 	void reloadProfiles(bool bInitialize);
 #ifdef _WIN32_WCE
@@ -127,6 +129,8 @@ public:
 #ifdef _WIN32_WCE
 	int nItemHeight_;
 #endif
+	
+	volatile Folder* pUpdatingFolder_;
 };
 
 Account* qm::FolderComboBoxImpl::getAccount(int nIndex) const
@@ -198,8 +202,19 @@ void qm::FolderComboBoxImpl::update(Folder* pFolder)
 	ComboBox_SetCurSel(pThis_->getHandle(), nSelectedItem);
 }
 
+void qm::FolderComboBoxImpl::postUpdateMessage(UINT uMsg,
+											   Folder* pFolder)
+{
+	if (pFolder == pUpdatingFolder_)
+		return;
+	pUpdatingFolder_ = pFolder;
+	pThis_->postMessage(uMsg, 0, reinterpret_cast<LPARAM>(pFolder));
+}
+
 void qm::FolderComboBoxImpl::handleUpdateMessage(LPARAM lParam)
 {
+	pUpdatingFolder_ = 0;
+	
 	MSG msg;
 	while (true) {
 		if (!::PeekMessage(&msg, pThis_->getHandle(),
@@ -321,26 +336,22 @@ void qm::FolderComboBoxImpl::folderListChanged(const FolderListChangedEvent& eve
 
 void qm::FolderComboBoxImpl::messageAdded(const FolderMessageEvent& event)
 {
-	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGEADDED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_FOLDERCOMBOBOX_MESSAGEADDED, event.getFolder());
 }
 
 void qm::FolderComboBoxImpl::messageRemoved(const FolderMessageEvent& event)
 {
-	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGEREMOVED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_FOLDERCOMBOBOX_MESSAGEREMOVED, event.getFolder());
 }
 
 void qm::FolderComboBoxImpl::messageRefreshed(const FolderEvent& event)
 {
-	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGEREFRESHED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_FOLDERCOMBOBOX_MESSAGEREFRESHED, event.getFolder());
 }
 
 void qm::FolderComboBoxImpl::unseenCountChanged(const FolderEvent& event)
 {
-	pThis_->postMessage(WM_FOLDERCOMBOBOX_MESSAGECHANGED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_FOLDERCOMBOBOX_MESSAGECHANGED, event.getFolder());
 }
 
 void qm::FolderComboBoxImpl::accountSelected(const FolderModelEvent& event)
@@ -581,6 +592,7 @@ qm::FolderComboBox::FolderComboBox(WindowBase* pParentWindow,
 #ifdef _WIN32_WCE
 	pImpl_->nItemHeight_ = 0;
 #endif
+	pImpl_->pUpdatingFolder_ = 0;
 	
 	pImpl_->reloadProfiles(true);
 	

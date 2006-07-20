@@ -60,6 +60,8 @@ public:
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
+	void postUpdateMessage(UINT uMsg,
+						   Folder* pFolder);
 	void handleUpdateMessage(LPARAM lParam);
 	void reloadProfiles(bool bInitialize);
 
@@ -112,6 +114,8 @@ public:
 	bool bLayouting_;
 	
 	FolderList listHandledFolder_;
+	
+	volatile Folder* pUpdatingFolder_;
 };
 
 void qm::TabWindowImpl::layoutChildren()
@@ -136,8 +140,19 @@ void qm::TabWindowImpl::layoutChildren(int cx,
 	bLayouting_ = false;
 }
 
+void qm::TabWindowImpl::postUpdateMessage(UINT uMsg,
+										  Folder* pFolder)
+{
+	if (pFolder == pUpdatingFolder_)
+		return;
+	pUpdatingFolder_ = pFolder;
+	pThis_->postMessage(uMsg, 0, reinterpret_cast<LPARAM>(pFolder));
+}
+
 void qm::TabWindowImpl::handleUpdateMessage(LPARAM lParam)
 {
+	pUpdatingFolder_ = 0;
+	
 	MSG msg;
 	while (true) {
 		if (!::PeekMessage(&msg, pThis_->getHandle(),
@@ -280,26 +295,22 @@ void qm::TabWindowImpl::currentChanged(const TabModelEvent& event)
 
 void qm::TabWindowImpl::messageAdded(const FolderMessageEvent& event)
 {
-	pThis_->postMessage(WM_TABWINDOW_MESSAGEADDED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_TABWINDOW_MESSAGEADDED, event.getFolder());
 }
 
 void qm::TabWindowImpl::messageRemoved(const FolderMessageEvent& event)
 {
-	pThis_->postMessage(WM_TABWINDOW_MESSAGEREMOVED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_TABWINDOW_MESSAGEREMOVED, event.getFolder());
 }
 
 void qm::TabWindowImpl::messageRefreshed(const FolderEvent& event)
 {
-	pThis_->postMessage(WM_TABWINDOW_MESSAGEREFRESHED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_TABWINDOW_MESSAGEREFRESHED, event.getFolder());
 }
 
 void qm::TabWindowImpl::unseenCountChanged(const FolderEvent& event)
 {
-	pThis_->postMessage(WM_TABWINDOW_MESSAGECHANGED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_TABWINDOW_MESSAGECHANGED, event.getFolder());
 }
 
 void qm::TabWindowImpl::folderRenamed(const FolderEvent& event)

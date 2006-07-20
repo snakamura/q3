@@ -102,6 +102,8 @@ public:
 	void update(Folder* pFolder);
 	void expand(HTREEITEM hItem,
 				bool bExpand);
+	void postUpdateMessage(UINT uMsg,
+						   Folder* pFolder);
 	void handleUpdateMessage(LPARAM lParam);
 	void reloadProfiles(bool bInitialize);
 
@@ -208,6 +210,8 @@ public:
 	HTREEITEM hItemDragOver_;
 	DWORD dwDragOverLastChangedTime_;
 	DWORD dwDragScrollStartTime_;
+	
+	volatile Folder* pUpdatingFolder_;
 };
 
 Account* qm::FolderWindowImpl::getAccount(HTREEITEM hItem) const
@@ -403,8 +407,19 @@ void qm::FolderWindowImpl::expand(HTREEITEM hItem,
 	expand(TreeView_GetNextSibling(hwnd, hItem), bExpand);
 }
 
+void qm::FolderWindowImpl::postUpdateMessage(UINT nMsg,
+											 Folder* pFolder)
+{
+	if (pFolder == pUpdatingFolder_)
+		return;
+	pUpdatingFolder_ = pFolder;
+	pThis_->postMessage(nMsg, 0, reinterpret_cast<LPARAM>(pFolder));
+}
+
 void qm::FolderWindowImpl::handleUpdateMessage(LPARAM lParam)
 {
+	pUpdatingFolder_ = 0;
+	
 	MSG msg;
 	while (true) {
 		if (!::PeekMessage(&msg, pThis_->getHandle(),
@@ -611,26 +626,22 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 
 void qm::FolderWindowImpl::messageAdded(const FolderMessageEvent& event)
 {
-	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEADDED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_FOLDERWINDOW_MESSAGEADDED, event.getFolder());
 }
 
 void qm::FolderWindowImpl::messageRemoved(const FolderMessageEvent& event)
 {
-	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEREMOVED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_FOLDERWINDOW_MESSAGEREMOVED, event.getFolder());
 }
 
 void qm::FolderWindowImpl::messageRefreshed(const FolderEvent& event)
 {
-	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGEREFRESHED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_FOLDERWINDOW_MESSAGEREFRESHED, event.getFolder());
 }
 
 void qm::FolderWindowImpl::unseenCountChanged(const FolderEvent& event)
 {
-	pThis_->postMessage(WM_FOLDERWINDOW_MESSAGECHANGED,
-		0, reinterpret_cast<LPARAM>(event.getFolder()));
+	postUpdateMessage(WM_FOLDERWINDOW_MESSAGECHANGED, event.getFolder());
 }
 
 void qm::FolderWindowImpl::accountSelected(const FolderModelEvent& event)
@@ -1449,6 +1460,7 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->hItemDragOver_ = 0;
 	pImpl_->dwDragOverLastChangedTime_ = -1;
 	pImpl_->dwDragScrollStartTime_ = -1;
+	pImpl_->pUpdatingFolder_ = 0;
 	
 	pImpl_->reloadProfiles(true);
 	
