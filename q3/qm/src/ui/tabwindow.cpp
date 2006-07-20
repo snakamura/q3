@@ -143,15 +143,15 @@ void qm::TabWindowImpl::layoutChildren(int cx,
 void qm::TabWindowImpl::postUpdateMessage(UINT uMsg,
 										  Folder* pFolder)
 {
-	if (pFolder == pUpdatingFolder_)
+	if (InterlockedExchangePointer(&pUpdatingFolder_, pFolder) == pFolder)
 		return;
-	pUpdatingFolder_ = pFolder;
-	pThis_->postMessage(uMsg, 0, reinterpret_cast<LPARAM>(pFolder));
+	if (!pThis_->postMessage(uMsg, 0, reinterpret_cast<LPARAM>(pFolder)))
+		InterlockedExchangePointer(&pUpdatingFolder_, 0);
 }
 
 void qm::TabWindowImpl::handleUpdateMessage(LPARAM lParam)
 {
-	pUpdatingFolder_ = 0;
+	InterlockedExchangePointer(&pUpdatingFolder_, 0);
 	update(reinterpret_cast<Folder*>(lParam));
 }
 
