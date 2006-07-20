@@ -419,20 +419,6 @@ void qm::FolderWindowImpl::postUpdateMessage(UINT nMsg,
 void qm::FolderWindowImpl::handleUpdateMessage(LPARAM lParam)
 {
 	pUpdatingFolder_ = 0;
-	
-	MSG msg;
-	while (true) {
-		if (!::PeekMessage(&msg, pThis_->getHandle(),
-			FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEADDED,
-			FolderWindowImpl::WM_FOLDERWINDOW_MESSAGECHANGED, PM_NOREMOVE))
-			break;
-		else if (msg.lParam != lParam)
-			break;
-		::PeekMessage(&msg, pThis_->getHandle(),
-			FolderWindowImpl::WM_FOLDERWINDOW_MESSAGEADDED,
-			FolderWindowImpl::WM_FOLDERWINDOW_MESSAGECHANGED, PM_REMOVE);
-	}
-	
 	update(reinterpret_cast<Folder*>(lParam));
 }
 

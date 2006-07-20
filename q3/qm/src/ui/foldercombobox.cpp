@@ -214,20 +214,6 @@ void qm::FolderComboBoxImpl::postUpdateMessage(UINT uMsg,
 void qm::FolderComboBoxImpl::handleUpdateMessage(LPARAM lParam)
 {
 	pUpdatingFolder_ = 0;
-	
-	MSG msg;
-	while (true) {
-		if (!::PeekMessage(&msg, pThis_->getHandle(),
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGECHANGED, PM_NOREMOVE))
-			break;
-		else if (msg.lParam != lParam)
-			break;
-		::PeekMessage(&msg, pThis_->getHandle(),
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGEADDED,
-			FolderComboBoxImpl::WM_FOLDERCOMBOBOX_MESSAGECHANGED, PM_REMOVE);
-	}
-	
 	update(reinterpret_cast<Folder*>(lParam));
 }
 

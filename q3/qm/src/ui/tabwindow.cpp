@@ -152,20 +152,6 @@ void qm::TabWindowImpl::postUpdateMessage(UINT uMsg,
 void qm::TabWindowImpl::handleUpdateMessage(LPARAM lParam)
 {
 	pUpdatingFolder_ = 0;
-	
-	MSG msg;
-	while (true) {
-		if (!::PeekMessage(&msg, pThis_->getHandle(),
-			WM_TABWINDOW_MESSAGEADDED,
-			WM_TABWINDOW_MESSAGECHANGED, PM_NOREMOVE))
-			break;
-		else if (msg.lParam != lParam)
-			break;
-		::PeekMessage(&msg, pThis_->getHandle(),
-			WM_TABWINDOW_MESSAGEADDED,
-			WM_TABWINDOW_MESSAGECHANGED, PM_REMOVE);
-	}
-	
 	update(reinterpret_cast<Folder*>(lParam));
 }
 
