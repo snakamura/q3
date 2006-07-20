@@ -397,6 +397,9 @@ void qm::ListWindowImpl::invalidateLine(unsigned int nLine)
 	getRect(&rect);
 	
 	int nPos = pThis_->getScrollPos(SB_VERT);
+	if (static_cast<int>(nLine) < nPos ||
+		nPos + (rect.bottom - rect.top)/nLineHeight_ + 1 < static_cast<int>(nLine))
+		return;
 	rect.top += (nLine - nPos)*nLineHeight_;
 	rect.bottom = rect.top + nLineHeight_;
 	
