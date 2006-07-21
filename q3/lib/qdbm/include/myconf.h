@@ -320,6 +320,7 @@ void *_qdbm_settsd(void *ptr, int size, const void *initval);
 #undef mmap
 #undef munmap
 #undef msync
+#undef mflush
 
 #define PROT_EXEC      (1 << 0)
 #define PROT_READ      (1 << 1)
@@ -345,9 +346,20 @@ void *_qdbm_settsd(void *ptr, int size, const void *initval);
   msync(start, length, flags) \
   _qdbm_msync(start, length, flags)
 
+#define \
+  mflush(start, length, flags) \
+  _qdbm_msync(start, length, flags)
+
 void *_qdbm_mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset);
 int _qdbm_munmap(void *start, size_t length);
 int _qdbm_msync(const void *start, size_t length, int flags);
+
+#else
+
+#undef mflush
+#define \
+  mflush(start, length, flags) \
+  (0)
 
 #endif
 

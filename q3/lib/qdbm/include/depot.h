@@ -427,8 +427,8 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.59"
-#define _QDBM_LIBVER   1220
+#define _QDBM_VERSION  "1.8.61"
+#define _QDBM_LIBVER   1222
 
 
 /* Name of the operating system. */
@@ -458,6 +458,12 @@ int *dpecodeptr(void);
    `depot' specifies a database handle connected as a writer.
    If successful, the return value is true, else, it is false. */
 int dpmemsync(DEPOT *depot);
+
+
+/* Synchronize updating contents on memory, not physically.
+   `depot' specifies a database handle connected as a writer.
+   If successful, the return value is true, else, it is false. */
+int dpmemflush(DEPOT *depot);
 
 
 /* Get flags of a database.

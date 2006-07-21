@@ -41,6 +41,8 @@ extern "C" {
  *************************************************************************************************/
 
 
+#define VL_LEVELMAX    64                /* max level of B+ tree */
+
 typedef struct {                         /* type of structure for a record */
   CBDATUM *key;                          /* datum of the key */
   CBDATUM *first;                        /* datum of the first value */
@@ -92,6 +94,10 @@ typedef struct {                         /* type of structure for a database han
   int rnum;                              /* number of records */
   CBMAP *leafc;                          /* cache for leaves */
   CBMAP *nodec;                          /* cache for nodes */
+  int hist[VL_LEVELMAX];                 /* array history of visited nodes */
+  int hnum;                              /* number of elements of the history */
+  int hleaf;                             /* ID number of the leaf referred by the history */
+  int lleaf;                             /* ID number of the last visited leaf */
   int curleaf;                           /* ID number of the leaf where the cursor is */
   int curknum;                           /* index of the key where the cursor is */
   int curvnum;                           /* index of the value where the cursor is */
@@ -561,6 +567,12 @@ int vlimportdb(VILLA *villa, const char *name);
 int vlmemsync(VILLA *villa);
 
 
+/* Synchronize updating contents on memory, not physically.
+   `villa' specifies a database handle connected as a writer.
+   If successful, the return value is true, else, it is false. */
+int vlmemflush(VILLA *villa);
+
+
 /* Refer to volatile cache of a value of a record.
    `villa' specifies a database handle.
    `kbuf' specifies the pointer to the region of a key.
@@ -604,7 +616,10 @@ const char *vlcurvalcache(VILLA *villa, int *sp);
 /* Get a multiple cursor handle.
    `villa' specifies a database handle connected as a reader.
    The return value is a multiple cursor handle or `NULL' if it is not successful.
-   The returned object is should be closed before the database handle is closed. */
+   The returned object is should be closed before the database handle is closed.  Even if plural
+   cursors are fetched out of a database handle, they does not share the locations with each
+   other.  Note that this function can be used only if the database handle is connected as a
+   reader. */
 VLMULCUR *vlmulcuropen(VILLA *villa);
 
 

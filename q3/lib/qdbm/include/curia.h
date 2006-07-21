@@ -442,6 +442,12 @@ int crrnumlob(CURIA *curia);
 int crmemsync(CURIA *curia);
 
 
+/* Synchronize updating contents on memory, not physically.
+   `curia' specifies a database handle connected as a writer.
+   If successful, the return value is true, else, it is false. */
+int crmemflush(CURIA *curia);
+
+
 /* Get flags of a database.
    `curia' specifies a database handle.
    The return value is the flags of a database. */

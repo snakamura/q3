@@ -102,6 +102,7 @@ extern "C" {
 #define vlexportdb     vstexportdb
 #define vlimportdb     vstimportdb
 #define vlmemsync      vstmemsync
+#define vlmemflush     vstmemflush
 #define vlgetcache     vstgetcache
 #define vlcurkeycache  vstcurkeycache
 #define vlcurvalcache  vstcurvalcache
