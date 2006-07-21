@@ -68,8 +68,10 @@ Section "Core (required)" Core
   File ..\bin\win\${CPU}\${CODE}\release\qs${POSTFIX}.dll
   File ..\bin\win\${CPU}\${CODE}\release\qmpop3${POSTFIX}.dll
   File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${POSTFIX}.dll
+!ifndef ANSI
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\msvcr80.dll"
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
+!endif
   
   WriteRegStr HKCU "SOFTWARE\sn\q3\Setting" "MailFolder" "$MAILBOX_FOLDER"
   CreateDirectory "$MAILBOX_FOLDER"
