@@ -5,6 +5,8 @@
  * All rights reserved.
  */
 
+#pragma warning(disable:4786)
+
 #include <qmfilenames.h>
 #include <qmaccount.h>
 #include <qmfolder.h>
