@@ -244,9 +244,9 @@ void qm::ColorSet::clear()
  */
 
 qm::ColorEntry::ColorEntry() :
-	crForeground_(RGB(0, 0, 0)),
-	crBackground_(RGB(255, 255, 255)),
-	nFontStyle_(FONTSTYLE_NORMAL)
+	crForeground_(0xff000000),
+	crBackground_(0xff000000),
+	nFontStyle_(FONTSTYLE_NONE)
 {
 }
 
@@ -357,14 +357,31 @@ qm::ColorList::~ColorList()
 {
 }
 
-const ColorEntry* qm::ColorList::getColor(MacroContext* pContext) const
+ColorList::Color qm::ColorList::getColor(MacroContext* pContext) const
 {
 	assert(pContext);
 	
-	List::const_iterator it = std::find_if(
-		list_.begin(), list_.end(),
-		boost::bind(&ColorEntry::match, _1, pContext));
-	return it != list_.end() ? *it : 0;
+	Color color = { 0xff000000, 0xff000000, ColorEntry::FONTSTYLE_NONE };
+	for (List::const_iterator it = list_.begin(); it != list_.end(); ++it) {
+		const ColorEntry* pEntry = *it;
+		if (((color.crForeground_ == 0xff000000 && pEntry->getForeground() != 0xff000000) ||
+			(color.crBackground_ == 0xff000000 && pEntry->getBackground() != 0xff000000) ||
+			(color.nFontStyle_ == ColorEntry::FONTSTYLE_NONE && pEntry->getFontStyle() != ColorEntry::FONTSTYLE_NONE)) &&
+			pEntry->match(pContext)) {
+			if (color.crForeground_ == 0xff000000)
+				color.crForeground_ = pEntry->getForeground();
+			if (color.crBackground_ == 0xff000000)
+				color.crBackground_ = pEntry->getBackground();
+			if (color.nFontStyle_ == ColorEntry::FONTSTYLE_NONE)
+				color.nFontStyle_ = pEntry->getFontStyle();
+			
+			if (color.crForeground_ != 0xff000000 &&
+				color.crBackground_ != 0xff000000 &&
+				color.nFontStyle_ != ColorEntry::FONTSTYLE_NONE)
+				break;
+		}
+	}
+	return color;
 }
 
 
@@ -380,7 +397,7 @@ qm::ColorContentHandler::ColorContentHandler(ColorManager* pManager) :
 	pColorSet_(0),
 	crForeground_(0xff000000),
 	crBackground_(0xff000000),
-	nFontStyle_(ColorEntry::FONTSTYLE_NORMAL)
+	nFontStyle_(ColorEntry::FONTSTYLE_NONE)
 {
 }
 
@@ -460,7 +477,7 @@ bool qm::ColorContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		crForeground_ = 0xff000000;
 		crBackground_ = 0xff000000;
-		nFontStyle_ = ColorEntry::FONTSTYLE_NORMAL;
+		nFontStyle_ = ColorEntry::FONTSTYLE_NONE;
 		
 		state_ = STATE_COLOR;
 	}
@@ -532,7 +549,9 @@ bool qm::ColorContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		wstring_ptr wstrStyle(buffer_.getString());
 		const WCHAR* p = wcstok(wstrStyle.get(), L" ");
 		while (p) {
-			if (wcscmp(p, L"bold") == 0)
+			if (wcscmp(p, L"regular") == 0)
+				nFontStyle_ |= ColorEntry::FONTSTYLE_REGULAR;
+			else if (wcscmp(p, L"bold") == 0)
 				nFontStyle_ |= ColorEntry::FONTSTYLE_BOLD;
 			else if (wcscmp(p, L"italic") == 0)
 				nFontStyle_ |= ColorEntry::FONTSTYLE_ITALIC;
@@ -669,14 +688,22 @@ bool qm::ColorWriter::write(const ColorEntry* pColor)
 	}
 	
 	unsigned int nFontStyle = pColor->getFontStyle();
-	if (nFontStyle != ColorEntry::FONTSTYLE_NORMAL) {
+	if (nFontStyle != ColorEntry::FONTSTYLE_NONE) {
+		struct {
+			ColorEntry::FontStyle style_;
+			const WCHAR* pwsz_;
+		} styles[] = {
+			{ ColorEntry::FONTSTYLE_REGULAR,	L"regular"	},
+			{ ColorEntry::FONTSTYLE_BOLD,		L"bold"		},
+			{ ColorEntry::FONTSTYLE_ITALIC,		L"italic"	}
+		};
 		StringBuffer<WSTRING> buf;
-		if (nFontStyle & ColorEntry::FONTSTYLE_BOLD)
-			buf.append(L"bold");
-		if (nFontStyle & ColorEntry::FONTSTYLE_ITALIC) {
-			if (buf.getLength() != 0)
-				buf.append(L' ');
-			buf.append(L"italic");
+		for (int n = 0; n < countof(styles); ++n) {
+			if (nFontStyle & styles[n].style_) {
+				if (buf.getLength() != 0)
+					buf.append(L' ');
+				buf.append(styles[n].pwsz_);
+			}
 		}
 		if (!handler_.startElement(0, 0, L"style", DefaultAttributes()) ||
 			!handler_.characters(buf.getCharArray(), 0, buf.getLength()) ||

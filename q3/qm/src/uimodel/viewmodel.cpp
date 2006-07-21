@@ -574,23 +574,16 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 		pItem->getMessageFlags() != pmh->getFlags()) {
 		pItem->setMessageFlags(pmh->getFlags());
 		
-		COLORREF crForeground = 0xff000000;
-		COLORREF crBackground = 0xff000000;
-		unsigned int nFontStyle = ColorEntry::FONTSTYLE_NORMAL;
+		ColorList::Color color = { 0xff000000, 0xff000000, ColorEntry::FONTSTYLE_NONE };
 		if (pColorList_.get()) {
 			Message msg;
 			MacroContext context(pmh, &msg, pFolder_->getAccount(),
 				MessageHolderList(), pFolder_, pDocument_, 0, pProfile_, 0,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
-			const ColorEntry* pEntry = pColorList_->getColor(&context);
-			if (pEntry) {
-				crForeground = pEntry->getForeground();
-				crBackground = pEntry->getBackground();
-				nFontStyle = pEntry->getFontStyle();
-			}
+			color = pColorList_->getColor(&context);
 		}
-		pItem->setColors(crForeground, crBackground, nFontStyle);
+		pItem->setColors(color.crForeground_, color.crBackground_, color.nFontStyle_);
 	}
 	
 	return pItem;

@@ -1011,8 +1011,10 @@ BEGIN
                     WS_TABSTOP,5,36,55,10
     EDITTEXT        IDC_COLORBACKGROUND,60,35,45,12,ES_AUTOHSCROLL
     PUSHBUTTON      "Choo&se...",IDC_CHOOSEBACKGROUND,110,35,50,12
-    CONTROL         "Bo&ld",IDC_BOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    51,40,10
+    CONTROL         "Fon&t",IDC_FONT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    51,50,10
+    CONTROL         "Bo&ld",IDC_BOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    60,51,40,10
     LTEXT           "&Description",IDC_STATIC,5,67,40,8
     EDITTEXT        IDC_DESCRIPTION,45,65,165,12,ES_AUTOHSCROLL
 END

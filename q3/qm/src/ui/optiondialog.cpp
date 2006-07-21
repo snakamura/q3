@@ -2894,6 +2894,7 @@ LRESULT qm::ColorDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
 		HANDLE_COMMAND_ID(IDC_BACKGROUND, onColor)
 		HANDLE_COMMAND_ID(IDC_FOREGROUND, onColor)
+		HANDLE_COMMAND_ID(IDC_FONT, onColor)
 		HANDLE_COMMAND_ID_EX(IDC_CHOOSEBACKGROUND, onChoose)
 		HANDLE_COMMAND_ID_EX(IDC_CHOOSEFOREGROUND, onChoose)
 		HANDLE_COMMAND_ID_CODE(IDC_COLORBACKGROUND, EN_CHANGE, onColorChange)
@@ -2930,9 +2931,11 @@ LRESULT qm::ColorDialog::onInitDialog(HWND hwndFocus,
 		}
 	}
 	
+	unsigned int nFontStyle = pColor_->getFontStyle();
+	sendDlgItemMessage(IDC_FONT, BM_SETCHECK,
+		nFontStyle != ColorEntry::FONTSTYLE_NONE ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_BOLD, BM_SETCHECK,
-		pColor_->getFontStyle() & ColorEntry::FONTSTYLE_BOLD ?
-			BST_CHECKED : BST_UNCHECKED);
+		nFontStyle & ColorEntry::FONTSTYLE_BOLD ? BST_CHECKED : BST_UNCHECKED);
 	
 	const WCHAR* pwszDescription = pColor_->getDescription();
 	if (pwszDescription)
@@ -2974,14 +2977,17 @@ LRESULT qm::ColorDialog::onOk()
 		}
 	}
 	
-	bool bBold = sendDlgItemMessage(IDC_BOLD, BM_GETCHECK) == BST_CHECKED;
+	unsigned int nFontStyle = ColorEntry::FONTSTYLE_NONE;
+	if (sendDlgItemMessage(IDC_FONT, BM_GETCHECK) == BST_CHECKED)
+		nFontStyle = sendDlgItemMessage(IDC_BOLD, BM_GETCHECK) == BST_CHECKED ?
+			ColorEntry::FONTSTYLE_BOLD : ColorEntry::FONTSTYLE_REGULAR;
 	
 	wstring_ptr wstrDescription(getDlgItemText(IDC_DESCRIPTION));
 	
 	pColor_->setCondition(pCondition);
 	pColor_->setForeground(items[0].cr_);
 	pColor_->setBackground(items[1].cr_);
-	pColor_->setFontStyle(bBold ? ColorEntry::FONTSTYLE_BOLD : ColorEntry::FONTSTYLE_NORMAL);
+	pColor_->setFontStyle(nFontStyle);
 	pColor_->setDescription(wstrDescription.get());
 	
 	return DefaultDialog::onOk();
@@ -3054,6 +3060,9 @@ void qm::ColorDialog::updateState()
 	bool bBackground = sendDlgItemMessage(IDC_BACKGROUND, BM_GETCHECK) == BST_CHECKED;
 	Window(getDlgItem(IDC_COLORBACKGROUND)).enableWindow(bBackground);
 	Window(getDlgItem(IDC_CHOOSEBACKGROUND)).enableWindow(bBackground);
+	
+	bool bFontStyle = sendDlgItemMessage(IDC_FONT, BM_GETCHECK) == BST_CHECKED;
+	Window(getDlgItem(IDC_BOLD)).enableWindow(bFontStyle);
 	
 	Window(getDlgItem(IDOK)).enableWindow(
 		Window(getDlgItem(IDC_CONDITION)).getWindowTextLength() != 0 &&

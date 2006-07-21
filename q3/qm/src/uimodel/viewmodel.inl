@@ -22,7 +22,7 @@ inline qm::ViewModelItem::ViewModelItem(MessageHolder* pmh) :
 	pmh_(pmh),
 	pParentItem_(0),
 	nFlags_(0),
-	nFontStyle_(ColorEntry::FONTSTYLE_NORMAL),
+	nFontStyle_(ColorEntry::FONTSTYLE_NONE),
 	crForeground_(0xffffffff),
 	crBackground_(0xffffffff),
 	nMessageFlags_(pmh->getFlags()),
@@ -35,7 +35,7 @@ inline qm::ViewModelItem::ViewModelItem(const ViewModelItem& item) :
 	pmh_(0),
 	pParentItem_(0),
 	nFlags_(0),
-	nFontStyle_(ColorEntry::FONTSTYLE_NORMAL),
+	nFontStyle_(ColorEntry::FONTSTYLE_NONE),
 	crForeground_(0xffffffff),
 	crBackground_(0xffffffff),
 	nMessageFlags_(item.nMessageFlags_),
@@ -48,7 +48,7 @@ inline qm::ViewModelItem::ViewModelItem(unsigned int nMessageIdHash) :
 	pmh_(0),
 	pParentItem_(0),
 	nFlags_(0),
-	nFontStyle_(ColorEntry::FONTSTYLE_NORMAL),
+	nFontStyle_(ColorEntry::FONTSTYLE_NONE),
 	crForeground_(0xffffffff),
 	crBackground_(0xffffffff),
 	nMessageFlags_(nMessageIdHash),
@@ -136,7 +136,7 @@ inline void qm::ViewModelItem::invalidateColor()
 	assert(pmh_);
 	crForeground_ = 0xffffffff;
 	crBackground_ = 0xffffffff;
-	nFontStyle_ = ColorEntry::FONTSTYLE_NORMAL;
+	nFontStyle_ = ColorEntry::FONTSTYLE_NONE;
 }
 
 inline unsigned int qm::ViewModelItem::getMessageFlags() const

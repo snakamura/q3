@@ -177,9 +177,10 @@ class ColorEntry
 {
 public:
 	enum FontStyle {
-		FONTSTYLE_NORMAL	= 0x00,
-		FONTSTYLE_BOLD		= 0x01,
-		FONTSTYLE_ITALIC	= 0x02
+		FONTSTYLE_NONE		= 0x00,
+		FONTSTYLE_REGULAR	= 0x01,
+		FONTSTYLE_BOLD		= 0x02,
+		FONTSTYLE_ITALIC	= 0x04
 	};
 
 public:
@@ -226,6 +227,14 @@ private:
 class ColorList
 {
 public:
+	struct Color
+	{
+		COLORREF crForeground_;
+		COLORREF crBackground_;
+		unsigned int nFontStyle_;
+	};
+
+public:
 	typedef std::vector<const ColorEntry*> List;
 
 public:
@@ -233,7 +242,7 @@ public:
 	~ColorList();
 
 public:
-	const ColorEntry* getColor(MacroContext* pContext) const;
+	Color getColor(MacroContext* pContext) const;
 
 private:
 	ColorList(const ColorList&);
