@@ -10,8 +10,11 @@ PROJECTTYPE		= dll
 LIBRARIES		= qs qm
 
 EXTERNALINCS	= -I"$(QDBMDIR)/include"
+ifdef OLDWINDOWS
+	EXLIBSUFFIX	= -vc6
+endif
 ifeq ($(PLATFORM),win)
-	EXTERNALLIBS= "$(QDBMDIR)/lib/win/$(EXLIBCPU)/qdbm$(DSUFFIX)_static.lib"
+	EXTERNALLIBS= "$(QDBMDIR)/lib/win/$(EXLIBCPU)/qdbm$(DSUFFIX)_static$(EXLIBSUFFIX).lib"
 else
 	EXTERNALLIBS= "$(QDBMDIR)/lib/wce/$(EXLIBCPU)/qdbm$(DSUFFIX)_static.lib"
 endif

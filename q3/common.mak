@@ -53,6 +53,9 @@ endif
 include ../function.mak
 
 
+ifdef OLDWINDOWS
+	VCVER				= 6
+endif
 ifeq ($(call cever,-ge,500),0)
 	EVCVER				= 8
 endif
