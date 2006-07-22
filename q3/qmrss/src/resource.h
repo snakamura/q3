@@ -14,6 +14,7 @@
 #define IDS_PROCESSRSS                  2006
 #define IDS_SUBSCRIBE                   2100
 #define IDS_CONTINUE                    2101
+#define IDS_DUPLICATEDFEED              2102
 #define IDS_ERROR_MESSAGE               10000
 #define IDS_ERROR_URL                   11000
 #define IDS_ERROR_GET                   11001

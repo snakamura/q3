@@ -80,6 +80,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_SUBSCRIBE           "フィードを購読(&B)..."
     IDS_CONTINUE            "指定されたフィードが取得できません。\n続行しますか？"
+    IDS_DUPLICATEDFEED      "指定されたフィードは既に購読されています。\n続行しますか？"
 END
 
 STRINGTABLE DISCARDABLE 

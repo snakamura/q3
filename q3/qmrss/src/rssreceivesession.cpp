@@ -728,6 +728,23 @@ void qmrss::RssReceiveSessionUI::subscribe(Document* pDocument,
 		return;
 #endif
 	
+	const Account::FolderList& listFolder = pAccount->getFolders();
+	Account::FolderList::const_iterator it = listFolder.begin();
+	while (it != listFolder.end()) {
+		const Folder* pFolder = *it;
+		if (pFolder->getType() == Folder::TYPE_NORMAL &&
+			pFolder->isFlag(Folder::FLAG_SYNCABLE)) {
+			const WCHAR* pwszURL = pFolder->getParam(L"URL");
+			if (pwszURL && _wcsicmp(pwszURL, data.wstrURL_.get()) == 0)
+				break;
+		}
+		++it;
+	}
+	if (it != listFolder.end()) {
+		if (messageBox(getResourceHandle(), IDS_DUPLICATEDFEED, MB_YESNO | MB_ICONQUESTION, hwnd) != IDYES)
+			return;
+	}
+	
 	NormalFolder* pNewFolder = pAccount->createNormalFolder(
 		data.wstrName_.get(), pFolder, false, true);
 	if (!pNewFolder) {
