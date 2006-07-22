@@ -643,32 +643,32 @@ COLORREF qm::ListWindowImpl::getColor(int nIndex) const
 void qm::ListWindowImpl::postRefreshMessage(UINT uMsg,
 											unsigned int nItem)
 {
-	if (InterlockedCompareExchange(&nRefreshing_, 1, 0))
+	if (InterlockedCompareExchange(UNVOLATILE(LONG*)(&nRefreshing_), 1, 0))
 		return;
 	if (!pThis_->postMessage(uMsg, nItem, 0))
-		InterlockedExchange(&nRefreshing_, 0);
+		InterlockedExchange(UNVOLATILE(LONG*)(&nRefreshing_), 0);
 }
 
 void qm::ListWindowImpl::handleRefreshMessage()
 {
-	InterlockedExchange(&nRefreshing_, 0);
+	InterlockedExchange(UNVOLATILE(LONG*)(&nRefreshing_), 0);
 	pThis_->refresh();
 }
 
 void qm::ListWindowImpl::postInvalidateMessage(UINT uMsg,
 											   unsigned int nItem)
 {
-	if (InterlockedIncrement(&nInvalidating_) > 10) {
-		InterlockedDecrement(&nInvalidating_);
+	if (InterlockedIncrement(UNVOLATILE(LONG*)(&nInvalidating_)) > 10) {
+		InterlockedDecrement(UNVOLATILE(LONG*)(&nInvalidating_));
 		return;
 	}
 	if (!pThis_->postMessage(uMsg, nItem, 0))
-		InterlockedDecrement(&nInvalidating_);
+		InterlockedDecrement(UNVOLATILE(LONG*)(&nInvalidating_));
 }
 
 void qm::ListWindowImpl::handleInvalidateMessage(unsigned int nItem)
 {
-	if (InterlockedDecrement(&nInvalidating_) >= 9)
+	if (InterlockedDecrement(UNVOLATILE(LONG*)(&nInvalidating_)) >= 9)
 		pThis_->invalidate();
 	else
 		invalidateLine(nItem);
