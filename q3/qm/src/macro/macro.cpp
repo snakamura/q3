@@ -158,8 +158,38 @@ MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken,
 		++p_;
 		return TOKEN_COMMA;
 	}
+	else if (*p_ == L'<' && *(p_ + 1) == L'<') {
+		p_ += 2;
+		while (*p_ == L' ' || *p_ == L'\t')
+			++p_;
+		
+		const WCHAR* pTag = p_;
+		while (*p_ && *p_ != L'\n')
+			++p_;
+		if (!*p_ || p_ == pTag)
+			return TOKEN_ERROR;
+		size_t nTagLen = p_ - pTag;
+		
+		++p_;
+		StringBuffer<WSTRING> buf;
+		while (true) {
+			const WCHAR* pLine = p_;
+			while (*p_ && *p_ != L'\n')
+				++p_;
+			if (p_ - pLine == nTagLen &&
+				wcsncmp(pTag, pLine, p_ - pLine) == 0)
+				break;
+			else if (!*p_)
+				return TOKEN_ERROR;
+			++p_;
+			buf.append(pLine, p_ - pLine);
+		}
+		*pwstrToken = buf.getString();
+		++p_;
+		return TOKEN_LITERAL;
+	}
 	else {
-		const WCHAR* pwszSep = L" \t\n,()#@$:%\"\'";
+		const WCHAR* pwszSep = L" \t\n,()<>#@$:%\"\'";
 		const WCHAR* pBegin = p_;
 		while (*p_ && !wcschr(pwszSep, *p_))
 			++p_;
