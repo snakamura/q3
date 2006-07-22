@@ -12,6 +12,36 @@
 #include <qs.h>
 #include <windows.h>
 
+#ifdef _WIN32_WCE
+#	define UNVOLATILE(type) const_cast<type>
+#else
+#	define UNVOLATILE(type)
+#endif
+
+#if !defined _WIN32_WCE && (!defined _WIN32_WINNT || WINVER <= 0x400) && (defined x86 || defined _X86_)
+#pragma warning(push)
+#pragma warning(disable:4035)
+inline LONG WINAPI InterlockedCompareExchange_(LONG volatile* Destination,
+											   LONG Exchange,
+											   LONG Comperand) {
+	__asm {
+		mov eax, Comperand
+		mov ecx, Destination
+		mov edx, Exchange
+		cmpxchg [ecx], edx
+	}
+}
+#pragma warning(pop)
+#	define InterlockedCompareExchange(ptr, newval, oldval) \
+		InterlockedCompareExchange_(ptr, newval, oldval)
+#	undef InterlockedCompareExchangePointer
+#	define InterlockedCompareExchangePointer(ptr, newval, oldval) \
+		InterlockedCompareExchange_((LPLONG)ptr, (LONG)newval, (LONG)oldval)
+#elif defined _WIN32_WCE && _WIN32_WCE < 0x300
+#	define InterlockedCompareExchange(ptr, newval, oldval) \
+	((PVOID)InterlockedTestExchange((LPLONG)ptr, (LONG)oldval, (LONG)newval))  
+#endif
+
 namespace qs {
 
 class Runnable;

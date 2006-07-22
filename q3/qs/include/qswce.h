@@ -70,6 +70,13 @@ extern "C" QSEXPORTPROC int isdigit(int c);
 
 #endif // _WIN32_WCE < 0x300
 
+#if _WIN32_WCE <= 0x300
+#	define InterlockedExchangePointer(Target, Value) \
+	((PVOID)InterlockedExchange((PLONG)(Target), (LONG)(Value)))
+#	define InterlockedCompareExchangePointer(Destination, ExChange, Comperand) \
+	((PVOID)InterlockedCompareExchange((PLONG)(Destination), (LONG)(ExChange), (LONG)(Comperand)))
+#endif // _WIN32_WCE <= 0x300
+
 #define GetWindowLongPtr GetWindowLong
 #define SetWindowLongPtr SetWindowLong
 
