@@ -163,6 +163,8 @@ MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken,
 		const WCHAR* pBegin = p_;
 		while (*p_ && !wcschr(pwszSep, *p_))
 			++p_;
+		if (p_ == pBegin)
+			return TOKEN_ERROR;
 		*pwstrToken = allocWString(pBegin, p_ - pBegin);
 		return TOKEN_TEXT;
 	}
