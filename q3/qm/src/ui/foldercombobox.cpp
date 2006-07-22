@@ -130,7 +130,7 @@ public:
 	int nItemHeight_;
 #endif
 	
-	volatile Folder* pUpdatingFolder_;
+	Folder* volatile pUpdatingFolder_;
 };
 
 Account* qm::FolderComboBoxImpl::getAccount(int nIndex) const
@@ -205,15 +205,15 @@ void qm::FolderComboBoxImpl::update(Folder* pFolder)
 void qm::FolderComboBoxImpl::postUpdateMessage(UINT uMsg,
 											   Folder* pFolder)
 {
-	if (InterlockedExchangePointer(&pUpdatingFolder_, pFolder) == pFolder)
+	if (InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), pFolder) == pFolder)
 		return;
 	if (!pThis_->postMessage(uMsg, 0, reinterpret_cast<LPARAM>(pFolder)))
-		InterlockedExchangePointer(&pUpdatingFolder_, 0);
+		InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), 0);
 }
 
 void qm::FolderComboBoxImpl::handleUpdateMessage(LPARAM lParam)
 {
-	InterlockedExchangePointer(&pUpdatingFolder_, 0);
+	InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), 0);
 	update(reinterpret_cast<Folder*>(lParam));
 }
 

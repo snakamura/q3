@@ -115,7 +115,7 @@ public:
 	
 	FolderList listHandledFolder_;
 	
-	volatile Folder* pUpdatingFolder_;
+	Folder* volatile pUpdatingFolder_;
 };
 
 void qm::TabWindowImpl::layoutChildren()
@@ -143,15 +143,15 @@ void qm::TabWindowImpl::layoutChildren(int cx,
 void qm::TabWindowImpl::postUpdateMessage(UINT uMsg,
 										  Folder* pFolder)
 {
-	if (InterlockedExchangePointer(&pUpdatingFolder_, pFolder) == pFolder)
+	if (InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), pFolder) == pFolder)
 		return;
 	if (!pThis_->postMessage(uMsg, 0, reinterpret_cast<LPARAM>(pFolder)))
-		InterlockedExchangePointer(&pUpdatingFolder_, 0);
+		InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), 0);
 }
 
 void qm::TabWindowImpl::handleUpdateMessage(LPARAM lParam)
 {
-	InterlockedExchangePointer(&pUpdatingFolder_, 0);
+	InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), 0);
 	update(reinterpret_cast<Folder*>(lParam));
 }
 

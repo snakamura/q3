@@ -211,7 +211,7 @@ public:
 	DWORD dwDragOverLastChangedTime_;
 	DWORD dwDragScrollStartTime_;
 	
-	volatile Folder* pUpdatingFolder_;
+	Folder* volatile pUpdatingFolder_;
 };
 
 Account* qm::FolderWindowImpl::getAccount(HTREEITEM hItem) const
@@ -410,15 +410,15 @@ void qm::FolderWindowImpl::expand(HTREEITEM hItem,
 void qm::FolderWindowImpl::postUpdateMessage(UINT uMsg,
 											 Folder* pFolder)
 {
-	if (InterlockedExchangePointer(&pUpdatingFolder_, pFolder) == pFolder)
+	if (InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), pFolder) == pFolder)
 		return;
 	if (!pThis_->postMessage(uMsg, 0, reinterpret_cast<LPARAM>(pFolder)))
-		InterlockedExchangePointer(&pUpdatingFolder_, 0);
+		InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), 0);
 }
 
 void qm::FolderWindowImpl::handleUpdateMessage(LPARAM lParam)
 {
-	InterlockedExchangePointer(&pUpdatingFolder_, 0);
+	InterlockedExchangePointer(reinterpret_cast<void* volatile*>(&pUpdatingFolder_), 0);
 	update(reinterpret_cast<Folder*>(lParam));
 }
 
