@@ -168,7 +168,7 @@ MacroTokenizer::Token qm::MacroTokenizer::getToken(wstring_ptr* pwstrToken,
 			++p_;
 		if (!*p_ || p_ == pTag)
 			return TOKEN_ERROR;
-		size_t nTagLen = p_ - pTag;
+		ptrdiff_t nTagLen = p_ - pTag;
 		
 		++p_;
 		StringBuffer<WSTRING> buf;
