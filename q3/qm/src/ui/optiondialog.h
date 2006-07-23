@@ -688,6 +688,10 @@ public:
 							   WPARAM wParam,
 							   LPARAM lParam);
 
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
@@ -699,6 +703,9 @@ protected:
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
+
+private:
+	LRESULT onRepair();
 
 private:
 	void layout();

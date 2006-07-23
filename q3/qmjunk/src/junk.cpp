@@ -43,15 +43,13 @@ qmjunk::DepotPtr::DepotPtr(DEPOT* pDepot) :
 }
 
 qmjunk::DepotPtr::DepotPtr(DepotPtr& ptr) :
-	pDepot_(ptr.pDepot_)
+	pDepot_(ptr.release())
 {
-	ptr.pDepot_ = 0;
 }
 
 qmjunk::DepotPtr::~DepotPtr()
 {
-	if (pDepot_)
-		dpclose(pDepot_);
+	reset(0);
 }
 
 DEPOT* qmjunk::DepotPtr::operator->() const
@@ -61,12 +59,8 @@ DEPOT* qmjunk::DepotPtr::operator->() const
 
 DepotPtr& qmjunk::DepotPtr::operator=(DepotPtr& ptr)
 {
-	if (&ptr != this && ptr.pDepot_ != pDepot_) {
-		if (pDepot_)
-			dpclose(pDepot_);
-		pDepot_ = ptr.pDepot_;
-		ptr.pDepot_ = 0;
-	}
+	if (&ptr != this && ptr.pDepot_ != pDepot_)
+		reset(ptr.release());
 	return *this;
 }
 
@@ -80,6 +74,13 @@ DEPOT* qmjunk::DepotPtr::release()
 	DEPOT* pDepot = pDepot_;
 	pDepot_ = 0;
 	return pDepot;
+}
+
+void qmjunk::DepotPtr::reset(DEPOT* pDepot)
+{
+	if (pDepot_)
+		dpclose(pDepot_);
+	pDepot_ = pDepot;
 }
 
 
@@ -552,6 +553,19 @@ void qmjunk::JunkFilterImpl::setBlackList(const WCHAR* pwszBlackList)
 		pBlackList_.reset(0);
 }
 
+bool qmjunk::JunkFilterImpl::repair()
+{
+	Lock<CriticalSection> lock(cs_);
+	
+	pDepotToken_.reset(0);
+	pDepotId_.reset(0);
+	
+	bool bTokenRepaired = repair(L"token");
+	bool bIdRepaired = repair(L"id");
+	
+	return bTokenRepaired && bIdRepaired;
+}
+
 bool qmjunk::JunkFilterImpl::save(bool bForce)
 {
 	if (!flush() && !bForce)
@@ -670,6 +684,23 @@ DepotPtr qmjunk::JunkFilterImpl::open(const WCHAR* pwszName) const
 	}
 	
 	return pDepot;
+}
+
+bool qmjunk::JunkFilterImpl::repair(const WCHAR* pwszName) const
+{
+	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
+	
+	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", pwszName));
+	W2T(wstrPath.get(), ptszPath);
+	if (::GetFileAttributes(ptszPath) == 0xffffffff)
+		return true;
+	
+	string_ptr strPath(wcs2mbs(wstrPath.get()));
+	if (!dprepair(strPath.get())) {
+		log.errorf(L"Could not repair the database: %s", pwszName);
+		return false;
+	}
+	return true;
 }
 
 string_ptr qmjunk::JunkFilterImpl::getId(const qs::Part& part)

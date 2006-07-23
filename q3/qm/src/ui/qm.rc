@@ -328,6 +328,7 @@ BEGIN
     IDS_EXECUTEMACRO        "Execute Macro"
     IDS_MACRO               "&Macro"
     IDS_OFFLINE             "[Offline]"
+    IDS_JUNKREPAIRED        "Junk database was successfully repaired."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -356,6 +357,7 @@ BEGIN
                             "Outbox must not have flags other than Outbox or Draftbox."
     IDS_ERROR_OPENMESSAGE   "Failed to open message window."
     IDS_ERROR_CHECKUPDATE   "Could not get the latest version."
+    IDS_ERROR_REPAIRJUNK    "Could not repair junk database."
 END
 
 STRINGTABLE DISCARDABLE 

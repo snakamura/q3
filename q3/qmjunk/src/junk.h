@@ -48,6 +48,7 @@ public:
 public:
 	DEPOT* get() const;
 	DEPOT* release();
+	void reset(DEPOT* pDepot);
 
 private:
 	DEPOT* pDepot_;
@@ -83,6 +84,7 @@ public:
 	virtual void setWhiteList(const WCHAR* pwszWhiteList);
 	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator);
 	virtual void setBlackList(const WCHAR* pwszBlackList);
+	virtual bool repair();
 	virtual bool save(bool bForce);
 
 private:
@@ -91,6 +93,7 @@ private:
 	DEPOT* getTokenDepot();
 	DEPOT* getIdDepot();
 	DepotPtr open(const WCHAR* pwszName) const;
+	bool repair(const WCHAR* pwszName) const;
 
 private:
 	static qs::string_ptr getId(const qs::Part& part);

@@ -330,6 +330,7 @@ BEGIN
     IDS_EXECUTEMACRO        "マクロの実行"
     IDS_MACRO               "マクロ(&M)"
     IDS_OFFLINE             "[オフライン]"
+    IDS_JUNKREPAIRED        "スパムデータベースを修復しました"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -358,6 +359,7 @@ BEGIN
                             "送信箱は送信箱と草稿箱以外のフラグを持つことはできません"
     IDS_ERROR_OPENMESSAGE   "メッセージウィンドウが開けません"
     IDS_ERROR_CHECKUPDATE   "最新のバージョンを取得できませんでした"
+    IDS_ERROR_REPAIRJUNK    "スパムデータベースが修復できませんでした"
 END
 
 STRINGTABLE DISCARDABLE 

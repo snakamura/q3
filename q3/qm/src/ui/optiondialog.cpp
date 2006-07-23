@@ -1548,6 +1548,15 @@ INT_PTR qm::OptionJunkDialog::dialogProc(UINT uMsg,
 	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
 }
 
+LRESULT qm::OptionJunkDialog::onCommand(WORD nCode,
+										WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID(IDC_REPAIR, onRepair)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
 LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 										   LPARAM lParam)
 {
@@ -1579,7 +1588,8 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 			IDC_THRESHOLD,
 			IDC_MAXSIZE,
 			IDC_WHITELIST,
-			IDC_BLACKLIST
+			IDC_BLACKLIST,
+			IDC_REPAIR
 		};
 		for (int n = 0; n < countof(nIds); ++n)
 			Window(getDlgItem(nIds[n])).enableWindow(false);
@@ -1623,6 +1633,18 @@ LRESULT qm::OptionJunkDialog::onSize(UINT nFlags,
 {
 	layout();
 	return DefaultDialog::onSize(nFlags, cx, cy);
+}
+
+LRESULT qm::OptionJunkDialog::onRepair()
+{
+	if (pJunkFilter_) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		if (pJunkFilter_->repair())
+			messageBox(hInst, IDS_JUNKREPAIRED, MB_OK, getHandle());
+		else
+			messageBox(hInst, IDS_ERROR_REPAIRJUNK, MB_OK | MB_ICONERROR, getHandle());
+	}
+	return 0;
 }
 
 void qm::OptionJunkDialog::layout()

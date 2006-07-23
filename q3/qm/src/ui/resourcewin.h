@@ -435,6 +435,7 @@
 #define IDC_COLORFOREGROUND             1460
 #define IDC_COLORBACKGROUND             1461
 #define IDC_BOLD                        1462
+#define IDC_REPAIR                      1463
 
 // Next default values for new objects
 // 

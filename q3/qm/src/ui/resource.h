@@ -167,6 +167,7 @@
 #define IDS_EXECUTEMACRO                3011
 #define IDS_MACRO                       3012
 #define IDS_OFFLINE                     3013
+#define IDS_JUNKREPAIRED                3014
 #define IDS_MESSAGE_UPDATEFOLDER        5000
 #define IDS_MESSAGE_FINISHED            5001
 #define IDS_MESSAGE_CHECKMESSAGES       5002
@@ -255,6 +256,7 @@
 #define IDS_ERROR_OUTBOXHASEXTRAFLAGS   10064
 #define IDS_ERROR_OPENMESSAGE           10065
 #define IDS_ERROR_CHECKUPDATE           10066
+#define IDS_ERROR_REPAIRJUNK            10067
 
 // Next default values for new objects
 // 

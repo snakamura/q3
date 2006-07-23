@@ -71,6 +71,7 @@ public:
 	virtual void setWhiteList(const WCHAR* pwszWhiteList) = 0;
 	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator) = 0;
 	virtual void setBlackList(const WCHAR* pwszBlackList) = 0;
+	virtual bool repair() = 0;
 	virtual bool save(bool bForce) = 0;
 
 public:
