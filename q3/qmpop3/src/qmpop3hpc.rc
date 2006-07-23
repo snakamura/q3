@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+//Microsoft eMbedded Visual C++ generated resource script.
 //
 #include "resourcehpc.h"
 
@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// âpåÍ (ÉAÉÅÉäÉJ) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -59,24 +59,23 @@ FONT 9, "Tahoma"
 BEGIN
     CONTROL         "Use AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,5,55,10
-    CONTROL         "&Delete messages on server",IDC_DELETEONSERVER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,105,10
-    LTEXT           "D&elete messages on server after",IDC_STATIC,5,27,100,8
-    EDITTEXT        IDC_DELETEBEFORE,105,25,20,12,ES_RIGHT | ES_AUTOHSCROLL | 
+    CONTROL         "Don'&t delete",IDC_DONTDELETE,"Button",
+                    BS_AUTORADIOBUTTON,10,25,60,10
+    CONTROL         "&Delete",IDC_DELETE,"Button",BS_AUTORADIOBUTTON,10,35,
+                    45,10
+    CONTROL         "Delete afte&r ",IDC_DELETEOLD,"Button",
+                    BS_AUTORADIOBUTTON,10,45,55,10
+    EDITTEXT        IDC_DELETEAFTER,65,44,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
-    LTEXT           "days",IDC_STATIC,125,27,25,8
+    LTEXT           "days",IDC_STATIC,92,45,20,8
     CONTROL         "Delete &local messages after deleting from server",
-                    IDC_DELETELOCAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    40,190,10
+                    IDC_DELETELOCAL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,
+                    60,175,10
+    GROUPBOX        "Messages on server",IDC_STATIC,5,15,185,60
     CONTROL         "&Make seen if Status: is RO",IDC_HANDLESTATUS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,105,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,105,10
     CONTROL         "&Force skip duplicated UID",IDC_SKIPDUPLICATEDUID,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,100,10
-    LTEXT           "&Noop Interval",IDC_STATIC,5,93,45,8,NOT WS_VISIBLE
-    EDITTEXT        IDC_NOOPINTERVAL,55,91,40,12,ES_AUTOHSCROLL | NOT 
-                    WS_VISIBLE
-    LTEXT           "&Get All",IDC_STATIC,110,93,22,8,NOT WS_VISIBLE
-    EDITTEXT        IDC_GETALL,140,90,40,12,ES_AUTOHSCROLL | NOT WS_VISIBLE
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,85,100,10
 END
 
 IDD_SEND DIALOG DISCARDABLE  0, 0, 225, 105
@@ -115,7 +114,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (U.S.) resources
+#endif    // âpåÍ (ÉAÉÅÉäÉJ) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

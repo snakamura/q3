@@ -40,7 +40,7 @@ public:
 							  WORD nId);
 
 private:
-	LRESULT onDeleteOnServer();
+	LRESULT onDelete(UINT nId);
 
 private:
 	void updateState();
