@@ -1552,6 +1552,7 @@ bool qmimap4::FolderListGetter::listFolders()
 	
 	std::sort(listFolderData_.begin(), listFolderData_.end(), FolderDataLess());
 	
+	listFolderInfo_.reserve(listFolderData_.size());
 	unsigned int nId = pAccount_->generateFolderId();
 	for (FolderDataList::iterator itFD = listFolderData_.begin(); itFD != listFolderData_.end(); ++itFD) {
 		const FolderData& data = *itFD;
@@ -1587,6 +1588,8 @@ Folder* qmimap4::FolderListGetter::getFolder(const WCHAR* pwszName,
 		wstring_ptr wstrParentName(allocWString(pwszName, pName - pwszName));
 		pParent = getFolder(wstrParentName.get(), cSeparator, Folder::FLAG_NOSELECT, pnId);
 		++pName;
+		it = std::lower_bound(listFolderInfo_.begin(),
+			listFolderInfo_.end(), info, FolderInfoLess());
 	}
 	else {
 		pName = pwszName;
