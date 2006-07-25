@@ -10,11 +10,17 @@ QMAIL3では、メニューやツールバーなどをカスタマイズ可能にするために初回起動時にこ
 
 このチェックの対象になるのは以下のファイルです。
 
+*images/account_mail.bmp
+*images/account_news.bmp
+*images/account_rss.bmp
+*images/folder.bmp
+*images/list.bmp
+*images/listdata.bmp
+*images/toolbar.bmp
 *profiles/header.xml
 *profiles/headeredit.xml
 *profiles/keymap.xml
 *profiles/menus.xml
-*profiles/toolbar.bmp
 *profiles/toolbars.xml
 *profiles/views.xml
 *templates/mail/new.template
