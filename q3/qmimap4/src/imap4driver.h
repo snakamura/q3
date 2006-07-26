@@ -396,12 +396,34 @@ private:
  *
  */
 
-struct Session
+class Session
 {
+public:
+	Session(qm::NormalFolder* pFolder,
+			std::auto_ptr<qs::Logger> pLogger,
+			std::auto_ptr<DriverCallback> pCallback,
+			std::auto_ptr<Imap4> pImap4,
+			unsigned int nLastSelectedTime);
+	~Session();
+
+public:
+	qm::NormalFolder* getFolder() const;
+	Imap4* getImap4() const;
+	DriverCallback* getCallback() const;
+	unsigned int getLastUsedTime() const;
+	void setLastUsedTime(unsigned int nLastUsedTime);
+	unsigned int getLastSelectedTime() const;
+	void setLastSelectedTime(unsigned int nLastSelectedTime);
+
+private:
+	Session(const Session&);
+	Session& operator=(const Session&);
+
+private:
 	qm::NormalFolder* pFolder_;
-	Imap4* pImap4_;
-	DriverCallback* pCallback_;
-	qs::Logger* pLogger_;
+	std::auto_ptr<qs::Logger> pLogger_;
+	std::auto_ptr<DriverCallback> pCallback_;
+	std::auto_ptr<Imap4> pImap4_;
 	unsigned int nLastUsedTime_;
 	unsigned int nLastSelectedTime_;
 };
@@ -423,18 +445,13 @@ public:
 	~SessionCache();
 
 public:
-	bool getSession(qm::NormalFolder* pFolder,
-					Session* pSession,
-					bool* pbNew);
-	void releaseSession(Session session);
+	std::auto_ptr<Session> getSession(qm::NormalFolder* pFolder,
+									  bool* pbNew);
+	void releaseSession(std::auto_ptr<Session> pSession);
 
 private:
-	bool getSessionWithoutSelect(qm::NormalFolder* pFolder,
-								 std::auto_ptr<qs::Logger>* ppLogger,
-								 std::auto_ptr<DriverCallback>* ppCallback,
-								 std::auto_ptr<Imap4>* ppImap4,
-								 unsigned int* pnLastSelectedTime,
-								 bool* pbNew);
+	std::auto_ptr<Session> getSessionWithoutSelect(qm::NormalFolder* pFolder,
+												   bool* pbNew);
 	bool isNeedSelect(qm::NormalFolder* pFolder,
 					  unsigned int nLastSelectedTime);
 	bool isForceDisconnect(unsigned int nLastUsedTime) const;
@@ -444,7 +461,7 @@ private:
 	SessionCache& operator=(const SessionCache&);
 
 private:
-	typedef std::vector<Session> SessionList;
+	typedef std::vector<Session*> SessionList;
 
 private:
 	qm::Account* pAccount_;
@@ -490,7 +507,7 @@ private:
 private:
 	SessionCache* pCache_;
 	qm::NormalFolder* pFolder_;
-	Session session_;
+	std::auto_ptr<Session> pSession_;
 	bool bNew_;
 };
 

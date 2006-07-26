@@ -1771,6 +1771,66 @@ bool qmimap4::FolderListGetter::CallbackImpl::processList(ResponseList* pList)
 
 /****************************************************************************
  *
+ * Session
+ *
+ */
+
+qmimap4::Session::Session(NormalFolder* pFolder,
+						  std::auto_ptr<Logger> pLogger,
+						  std::auto_ptr<DriverCallback> pCallback,
+						  std::auto_ptr<Imap4> pImap4,
+						  unsigned int nLastSelectedTime) :
+	pFolder_(pFolder),
+	pLogger_(pLogger),
+	pCallback_(pCallback),
+	pImap4_(pImap4),
+	nLastUsedTime_(0),
+	nLastSelectedTime_(nLastSelectedTime)
+{
+}
+
+qmimap4::Session::~Session()
+{
+}
+
+NormalFolder* qmimap4::Session::getFolder() const
+{
+	return pFolder_;
+}
+
+Imap4* qmimap4::Session::getImap4() const
+{
+	return pImap4_.get();
+}
+
+DriverCallback* qmimap4::Session::getCallback() const
+{
+	return pCallback_.get();
+}
+
+unsigned int qmimap4::Session::getLastUsedTime() const
+{
+	return nLastUsedTime_;
+}
+
+void qmimap4::Session::setLastUsedTime(unsigned int nLastUsedTime)
+{
+	nLastUsedTime_ = nLastUsedTime;
+}
+
+unsigned int qmimap4::Session::getLastSelectedTime() const
+{
+	return nLastSelectedTime_;
+}
+
+void qmimap4::Session::setLastSelectedTime(unsigned int nLastSelectedTime)
+{
+	nLastSelectedTime_ = nLastSelectedTime;
+}
+
+
+/****************************************************************************
+ *
  * SessionCache
  *
  */
@@ -1797,138 +1857,106 @@ qmimap4::SessionCache::SessionCache(Account* pAccount,
 qmimap4::SessionCache::~SessionCache()
 {
 	for (SessionList::iterator it = listSession_.begin(); it != listSession_.end(); ++it) {
-		if (!isForceDisconnect((*it).nLastUsedTime_) && (*it).pImap4_->checkConnection())
-			(*it).pImap4_->disconnect();
-		delete (*it).pImap4_;
-		delete (*it).pCallback_;
-		delete (*it).pLogger_;
+		std::auto_ptr<Session> p(*it);
+		if (!isForceDisconnect(p->getLastUsedTime()) &&
+			p->getImap4()->checkConnection())
+			p->getImap4()->disconnect();
 	}
 }
 
-bool qmimap4::SessionCache::getSession(NormalFolder* pFolder,
-									   Session* pSession,
-									   bool* pbNew)
+std::auto_ptr<Session> qmimap4::SessionCache::getSession(NormalFolder* pFolder,
+														 bool* pbNew)
 {
-	assert(pSession);
+	assert(pbNew);
+	
+	*pbNew = false;
 	
 	for (int n = 0; ; ++n) {
-		std::auto_ptr<Logger> pLogger;
-		std::auto_ptr<DriverCallback> pCallback;
-		std::auto_ptr<Imap4> pImap4;
-		unsigned int nLastSelectedTime = 0;
 		bool bNew = true;
-		if (!getSessionWithoutSelect(pFolder, &pLogger,
-			&pCallback, &pImap4, &nLastSelectedTime, &bNew))
-			return false;
+		std::auto_ptr<Session> pSession(getSessionWithoutSelect(pFolder, &bNew));
+		if (!pSession.get())
+			return std::auto_ptr<Session>();
 		
-		if (pFolder && isNeedSelect(pFolder, nLastSelectedTime)) {
+		if (pFolder && isNeedSelect(pFolder, pSession->getLastSelectedTime())) {
 			wstring_ptr wstrName(Util::getFolderName(pFolder));
-			if (pImap4->select(wstrName.get()))
-				nLastSelectedTime = ::GetTickCount();
-			else if (bNew || !(pImap4->getLastError() & Socket::SOCKET_ERROR_MASK_SOCKET))
-				return false;
+			if (pSession->getImap4()->select(wstrName.get()))
+				pSession->setLastSelectedTime(::GetTickCount());
+			else if (bNew || !(pSession->getImap4()->getLastError() & Socket::SOCKET_ERROR_MASK_SOCKET))
+				return std::auto_ptr<Session>();
 			else
 				continue;
 		}
 		
-		pSession->pFolder_ = pFolder;
-		pSession->pImap4_ = pImap4.release();
-		pSession->pCallback_ = pCallback.release();
-		pSession->pLogger_ = pLogger.release();
-		pSession->nLastUsedTime_ = 0;
-		pSession->nLastSelectedTime_ = nLastSelectedTime;
 		*pbNew = bNew;
-		
-		break;
+		return pSession;
 	}
-	
-	return true;
 }
 
-void qmimap4::SessionCache::releaseSession(Session session)
+void qmimap4::SessionCache::releaseSession(std::auto_ptr<Session> pSession)
 {
 	assert(listSession_.size() < nMaxSession_);
-	session.nLastUsedTime_ = ::GetTickCount();
-	listSession_.push_back(session);
+	pSession->setLastUsedTime(::GetTickCount());
+	listSession_.push_back(pSession.release());
 }
 
-bool qmimap4::SessionCache::getSessionWithoutSelect(NormalFolder* pFolder,
-													std::auto_ptr<Logger>* ppLogger,
-													std::auto_ptr<DriverCallback>* ppCallback,
-													std::auto_ptr<Imap4>* ppImap4,
-													unsigned int* pnLastSelectedTime,
-													bool* pbNew)
+std::auto_ptr<Session> qmimap4::SessionCache::getSessionWithoutSelect(NormalFolder* pFolder,
+																	  bool* pbNew)
 {
-	assert(ppLogger);
-	assert(ppCallback);
-	assert(ppImap4);
-	assert(pnLastSelectedTime);
 	assert(pbNew);
 	
-	std::auto_ptr<Logger> pLogger;
-	std::auto_ptr<DriverCallback> pCallback;
-	std::auto_ptr<Imap4> pImap4;
-	unsigned int nLastUsedTime = 0;
-	unsigned int nLastSelectedTime = 0;
-	bool bNew = false;
+	*pbNew = false;
+	
+	std::auto_ptr<Session> pSession;
 	SessionList::iterator it = std::find_if(
 		listSession_.begin(), listSession_.end(),
 		std::bind2nd(
 			binary_compose_f_gx_hy(
 				std::equal_to<NormalFolder*>(),
-				mem_data_ref(&Session::pFolder_),
+				std::mem_fun(&Session::getFolder),
 				std::identity<NormalFolder*>()),
 			pFolder));
 	if (it != listSession_.end()) {
-		pImap4.reset((*it).pImap4_);
-		pCallback.reset((*it).pCallback_);
-		pLogger.reset((*it).pLogger_);
-		nLastUsedTime = (*it).nLastUsedTime_;
-		nLastSelectedTime = (*it).nLastSelectedTime_;
+		pSession.reset(*it);
 		listSession_.erase(it);
 	}
 	else {
 		if (listSession_.size() >= nMaxSession_) {
 			it = listSession_.begin();
-			pImap4.reset((*it).pImap4_);
-			pCallback.reset((*it).pCallback_);
-			pLogger.reset((*it).pLogger_);
-			nLastUsedTime = (*it).nLastUsedTime_;
+			pSession.reset(*it);
+			if (!pFolder) {
+				if (!isForceDisconnect(pSession->getLastUsedTime()) &&
+					pSession->getImap4()->checkConnection())
+					pSession->getImap4()->disconnect();
+				pSession.reset(0);
+			}
 			listSession_.erase(it);
-			
-			if (!pFolder)
-				pImap4.reset(0);
 		}
 	}
 	
-	if (pImap4.get()) {
-		if (isForceDisconnect(nLastUsedTime) || !pImap4->checkConnection())
-			pImap4.reset(0);
+	if (pSession.get()) {
+		if (isForceDisconnect(pSession->getLastUsedTime()) ||
+			!pSession->getImap4()->checkConnection())
+			pSession.reset(0);
 	}
 	
-	if (!pImap4.get()) {
+	if (!pSession.get()) {
+		std::auto_ptr<Logger> pLogger;
 		if (pSubAccount_->isLog(Account::HOST_RECEIVE))
 			pLogger = pAccount_->openLogger(Account::HOST_RECEIVE);
-		pCallback.reset(new DriverCallback(
+		std::auto_ptr<DriverCallback> pCallback(new DriverCallback(
 			pSubAccount_, pPasswordCallback_, pSecurity_));
-		pImap4.reset(new Imap4(pSubAccount_->getTimeout(),
+		std::auto_ptr<Imap4> pImap4(new Imap4(pSubAccount_->getTimeout(),
 			pCallback.get(), pCallback.get(), pCallback.get(), pLogger.get()));
 		Imap4::Secure secure = Util::getSecure(pSubAccount_);
 		if (!pImap4->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 			pSubAccount_->getPort(Account::HOST_RECEIVE), secure))
-			return false;
+			return std::auto_ptr<Session>();
 		
-		nLastSelectedTime = 0;
-		bNew = true;
+		pSession.reset(new Session(pFolder, pLogger, pCallback, pImap4, 0));
+		*pbNew = true;
 	}
 	
-	*ppLogger = pLogger;
-	*ppCallback = pCallback;
-	*ppImap4 = pImap4;
-	*pnLastSelectedTime = nLastSelectedTime;
-	*pbNew = bNew;
-	
-	return true;
+	return pSession;
 }
 
 bool qmimap4::SessionCache::isNeedSelect(NormalFolder* pFolder,
@@ -1974,12 +2002,12 @@ qmimap4::SessionCacher::~SessionCacher()
 
 Imap4* qmimap4::SessionCacher::get() const
 {
-	return session_.pImap4_;
+	return pSession_.get() ? pSession_->getImap4() : 0;
 }
 
 DriverCallback* qmimap4::SessionCacher::getCallback() const
 {
-	return session_.pCallback_;
+	return pSession_.get() ? pSession_->getCallback() : 0;
 }
 
 bool qmimap4::SessionCacher::isNew() const
@@ -1989,12 +2017,8 @@ bool qmimap4::SessionCacher::isNew() const
 
 void qmimap4::SessionCacher::release()
 {
-	if (session_.pImap4_) {
-		pCache_->releaseSession(session_);
-		session_.pFolder_ = 0;
-		session_.pImap4_ = 0;
-		session_.pLogger_ = 0;
-	}
+	if (pSession_.get())
+		pCache_->releaseSession(pSession_);
 }
 
 bool qmimap4::SessionCacher::retry()
@@ -2005,28 +2029,18 @@ bool qmimap4::SessionCacher::retry()
 
 void qmimap4::SessionCacher::init()
 {
-	session_.pFolder_ = 0;
-	session_.pImap4_ = 0;
-	session_.pLogger_ = 0;
-	session_.nLastSelectedTime_ = 0;
+	assert(!pSession_.get());
 	bNew_ = true;
 }
 
 bool qmimap4::SessionCacher::create()
 {
-	if (!pCache_->getSession(pFolder_, &session_, &bNew_)) {
-		assert(!session_.pFolder_);
-		assert(!session_.pImap4_);
-		assert(!session_.pLogger_);
-		return false;
-	}
-	return true;
+	pSession_ = pCache_->getSession(pFolder_, &bNew_);
+	return pSession_.get() != 0;
 }
 
 void qmimap4::SessionCacher::destroy()
 {
-	delete session_.pImap4_;
-	delete session_.pLogger_;
-	
+	pSession_.reset(0);
 	init();
 }
