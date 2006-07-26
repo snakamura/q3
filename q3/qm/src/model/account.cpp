@@ -22,6 +22,8 @@
 
 #include <qsconv.h>
 #include <qsfile.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsosutil.h>
 #include <qsprofile.h>
 #include <qsstream.h>
@@ -1374,6 +1376,8 @@ void qm::Account::removeSubAccount(SubAccount* pSubAccount)
 		pImpl_->listSubAccount_.end(), pSubAccount) !=
 		pImpl_->listSubAccount_.end());
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::Account");
+	
 	AccountPasswordHelper helper(pImpl_->pPasswordManager_, this, pSubAccount);
 	helper.remove();
 	
@@ -1385,9 +1389,8 @@ void qm::Account::removeSubAccount(SubAccount* pSubAccount)
 	if (getCurrentSubAccount() == pSubAccount)
 		setCurrentSubAccount(pImpl_->listSubAccount_.front());
 	
-	if (!pSubAccount->deletePermanent()) {
-		// TODO LOG
-	}
+	if (!pSubAccount->deletePermanent())
+		log.errorf(L"Failed to delete subaccount permanetly: %s", pSubAccount->getName());
 	delete pSubAccount;
 }
 
@@ -1647,6 +1650,8 @@ QueryFolder* qm::Account::createQueryFolder(const WCHAR* pwszName,
 
 bool qm::Account::removeFolder(Folder* pFolder)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::Account");
+	
 	while (true) {
 		FolderList::iterator it = std::find(pImpl_->listFolder_.begin(),
 			pImpl_->listFolder_.end(), pFolder);
@@ -1672,9 +1677,8 @@ bool qm::Account::removeFolder(Folder* pFolder)
 	FolderListChangedEvent event(this, FolderListChangedEvent::TYPE_REMOVE, pFolder);
 	pImpl_->fireFolderListChanged(event);
 	
-	if (!pFolder->deletePermanent()) {
-		// TODO
-	}
+	if (!pFolder->deletePermanent())
+		log.errorf(L"Failed to delete folder permanetly: %s", pFolder->getName());
 	delete pFolder;
 	
 	return true;
@@ -1771,6 +1775,8 @@ void qm::Account::setFolderFlags(Folder* pFolder,
 
 bool qm::Account::updateFolders()
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::Account");
+	
 	typedef ProtocolDriver::RemoteFolderList List;
 	List l;
 	if (!pImpl_->pProtocolDriver_->getRemoteFolders(&l))
@@ -1841,9 +1847,8 @@ bool qm::Account::updateFolders()
 		}
 		else if ((*itF)->getType() == Folder::TYPE_NORMAL &&
 			!((*itF)->getFlags() & Folder::FLAG_LOCAL)) {
-			if (!(*itF)->deletePermanent()) {
-				// TODO
-			}
+			if (!(*itF)->deletePermanent())
+				log.errorf(L"Failed to delete folder permanetly: %s", (*itF)->getName());
 			listDelete.push_back(*itF);
 			itF = pImpl_->listFolder_.erase(itF);
 		}
@@ -2555,6 +2560,8 @@ unsigned int qm::Account::getLockCount() const
 
 void qm::Account::deletePermanent(bool bDeleteContent)
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::Account");
+	
 	if (bDeleteContent) {
 		pImpl_->pMessageIndex_.reset(0);
 		pImpl_->pMessageStore_.reset(0);
@@ -2563,14 +2570,12 @@ void qm::Account::deletePermanent(bool bDeleteContent)
 		wstring_ptr wstrMessageStorePath(
 			pImpl_->pProfile_->getString(L"Global", L"MessageStorePath"));
 		if (*wstrMessageStorePath.get()) {
-			if (!File::removeDirectory(wstrMessageStorePath.get())) {
-				// TODO LOG
-			}
+			if (!File::removeDirectory(wstrMessageStorePath.get()))
+				log.errorf(L"Failed to remove directory: %s", wstrMessageStorePath.get());
 		}
 		
-		if (!File::removeDirectory(pImpl_->wstrPath_.get())) {
-			// TODO LOG
-		}
+		if (!File::removeDirectory(pImpl_->wstrPath_.get()))
+			log.errorf(L"Failed to remove directory: %s", pImpl_->wstrPath_.get());
 	}
 	
 	pImpl_->fireAccountDestroyed();
@@ -2871,6 +2876,8 @@ bool qm::Account::unstoreMessages(const MessageHolderList& l,
 	if (l.empty())
 		return true;
 	
+	Log log(InitThread::getInitThread().getLogger(), L"qm::Account");
+	
 	NormalFolder* pFolder = l.front()->getFolder();
 	
 	typedef std::vector<std::pair<MessageHolder::MessageBoxKey, MessageHolder::MessageIndexKey> > KeyList;
@@ -2891,9 +2898,8 @@ bool qm::Account::unstoreMessages(const MessageHolderList& l,
 		const MessageHolder::MessageBoxKey& boxKey = (*it).first;
 		const MessageHolder::MessageIndexKey& indexKey = (*it).second;
 		if (!pImpl_->pMessageStore_->free(boxKey.nOffset_,
-			boxKey.nLength_, indexKey.nKey_, indexKey.nLength_)) {
-			// TODO LOG
-		}
+			boxKey.nLength_, indexKey.nKey_, indexKey.nLength_))
+			log.error(L"Failed to free space for a removed message.");
 		pImpl_->pMessageIndex_->remove(indexKey.nKey_);
 		
 		if (pCallback)

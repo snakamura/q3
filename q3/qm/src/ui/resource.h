@@ -257,6 +257,12 @@
 #define IDS_ERROR_OPENMESSAGE           10065
 #define IDS_ERROR_CHECKUPDATE           10066
 #define IDS_ERROR_REPAIRJUNK            10067
+#define IDS_ERROR_INVALIDACCOUNT        10068
+#define IDS_ERROR_INVALIDFOLDER         10069
+#define IDS_ERROR_INVALIDCOLOR          10070
+#define IDS_ERROR_INSERTSIGNATURE       10071
+#define IDS_ERROR_INSERTTEXT            10072
+#define IDS_ERROR_REFORM                10073
 
 // Next default values for new objects
 // 

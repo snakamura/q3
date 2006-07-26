@@ -173,9 +173,8 @@ void qm::MessageWindowImpl::layoutChildren(int cx,
 bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 									   bool bResetEncoding)
 {
-	class SettingMessage
+	struct SettingMessage
 	{
-	public:
 		SettingMessage(bool& b) :
 			b_(b)
 		{
@@ -186,10 +185,29 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		{
 			b_ = false;
 		}
-	
-	private:
+		
 		bool& b_;
-	} s(bSettingMessage_);
+	} settingMessage(bSettingMessage_);
+	
+	struct ErrorHandler
+	{
+		ErrorHandler(MessageWindowImpl* pImpl) :
+			pImpl_(pImpl)
+		{
+		}
+		
+		~ErrorHandler()
+		{
+			if (pImpl_)
+				pImpl_->setMessage(0, true);
+		}
+		
+		void success() {
+			pImpl_ = 0;
+		}
+		
+		MessageWindowImpl* pImpl_;
+	} errorHandler(this);
 	
 	bool bActive = pThis_->isActive();
 	
@@ -311,6 +329,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		pThis_->setActive();
 	
 	fireMessageChanged(pmh, msg);
+	
+	errorHandler.success();
 	
 	return true;
 }

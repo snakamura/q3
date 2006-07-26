@@ -392,6 +392,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 #endif
 							   AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 							   Profile* pProfile,
+							   Account* pCurrentAccount,
 							   Panel panel) :
 	DefaultDialog(IDD_OPTION),
 	pDocument_(pDocument),
@@ -413,6 +414,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 #endif
 	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pProfile_(pProfile),
+	pCurrentAccount_(pCurrentAccount),
 	panel_(panel),
 	pCurrentPanel_(0),
 	nEnd_(-1)
@@ -587,7 +589,9 @@ LRESULT qm::OptionDialog::onOk()
 		OptionDialogPanel* pPanel = *it;
 		if (pPanel) {
 			if (!pPanel->save(&context)) {
-				// TODO
+				messageBox(Application::getApplication().getResourceHandle(),
+					IDS_ERROR_SAVE, MB_OK | MB_ICONERROR, getHandle());
+				return 0;
 			}
 		}
 	}
@@ -805,8 +809,8 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL2(PANEL_TAB, OptionTab, pTabWindow_, pProfile_);
 #endif
 			PANEL3(PANEL_ADDRESSBOOK, OptionAddressBook, pDocument_->getAddressBook(), pAddressBookFrameWindowManager_, pProfile_);
-			PANEL3(PANEL_RULES, RuleSets, pDocument_->getRuleManager(), pDocument_, pProfile_);
-			PANEL3(PANEL_COLORS, ColorSets, pColorManager_, pDocument_, pProfile_);
+			PANEL4(PANEL_RULES, RuleSets, pDocument_->getRuleManager(), pDocument_, pProfile_, pCurrentAccount_);
+			PANEL4(PANEL_COLORS, ColorSets, pColorManager_, pDocument_, pProfile_, pCurrentAccount_);
 			PANEL4(PANEL_GOROUND, GoRound, pGoRound_, pDocument_, pSyncFilterManager_, pProfile_);
 			PANEL3(PANEL_SIGNATURES, Signatures, pDocument_->getSignatureManager(), pDocument_, pProfile_);
 			PANEL2(PANEL_FIXEDFORMTEXTS, FixedFormTexts, pDocument_->getFixedFormTextManager(), pProfile_);
@@ -1190,6 +1194,7 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 }
 
 int qm::OptionDialogManager::showDialog(HWND hwndParent,
+										Account* pCurrentAccount,
 										OptionDialog::Panel panel) const
 {
 	assert(pDocument_);
@@ -1220,7 +1225,7 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 #ifdef QMTABWINDOW
 		pTabWindow_,
 #endif
-		pAddressBookFrameWindowManager_, pProfile_, panel);
+		pAddressBookFrameWindowManager_, pProfile_, pCurrentAccount, panel);
 	return dialog.doModal(hwndParent);
 }
 
@@ -2847,10 +2852,11 @@ LRESULT qm::OptionTabDialog::onFont()
 
 qm::ColorSetsDialog::ColorSetsDialog(ColorManager* pColorManager,
 									 AccountManager* pAccountManager,
-									 Profile* pProfile) :
+									 Profile* pProfile,
+									 Account* pCurrentAccount) :
 	RuleColorSetsDialog<ColorSet, ColorManager::ColorSetList, ColorManager, ColorsDialog>(
-		pColorManager, pAccountManager, pProfile, IDS_TITLE_COLORSETS,
-		&ColorManager::getColorSets, &ColorManager::setColorSets)
+		pColorManager, pAccountManager, pProfile, pCurrentAccount,
+		IDS_TITLE_COLORSETS, &ColorManager::getColorSets, &ColorManager::setColorSets)
 {
 }
 
@@ -2863,10 +2869,11 @@ qm::ColorSetsDialog::ColorSetsDialog(ColorManager* pColorManager,
 
 qm::ColorsDialog::ColorsDialog(ColorSet* pColorSet,
 							   AccountManager* pAccountManager,
-							   Profile* pProfile) :
+							   Profile* pProfile,
+							   Account* pCurrentAccount) :
 	RulesColorsDialog<ColorEntry, ColorSet::ColorList, ColorSet, ColorDialog>(
-		pColorSet, pAccountManager, pProfile, IDS_TITLE_COLORS,
-		&ColorSet::getColors, &ColorSet::setColors)
+		pColorSet, pAccountManager, pProfile, pCurrentAccount,
+		IDS_TITLE_COLORS, &ColorSet::getColors, &ColorSet::setColors)
 {
 }
 
@@ -2899,7 +2906,8 @@ wstring_ptr qm::ColorsDialog::getLabelPrefix(const ColorEntry* p) const
  */
 
 qm::ColorDialog::ColorDialog(ColorEntry* pColor,
-							 AccountManager* pAccountManager) :
+							 AccountManager* pAccountManager,
+							 Account* pCurrentAccount) :
 	DefaultDialog(IDD_COLOR),
 	pColor_(pColor)
 {
@@ -2992,7 +3000,8 @@ LRESULT qm::ColorDialog::onOk()
 			wstring_ptr wstrColor(getDlgItemText(items[n].nIdText_));
 			Color color(wstrColor.get());
 			if (color.getColor() == 0xffffffff) {
-				// TODO MSG
+				messageBox(Application::getApplication().getResourceHandle(),
+					IDS_ERROR_INVALIDCOLOR, MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			items[n].cr_ = color.getColor();
@@ -3101,10 +3110,11 @@ void qm::ColorDialog::updateState()
 
 qm::RuleSetsDialog::RuleSetsDialog(RuleManager* pRuleManager,
 								   AccountManager* pAccountManager,
-								   Profile* pProfile) :
+								   Profile* pProfile,
+								   Account* pCurrentAccount) :
 	RuleColorSetsDialog<RuleSet, RuleManager::RuleSetList, RuleManager, RulesDialog>(
-		pRuleManager, pAccountManager, pProfile, IDS_TITLE_RULESETS,
-		&RuleManager::getRuleSets, &RuleManager::setRuleSets)
+		pRuleManager, pAccountManager, pProfile, pCurrentAccount,
+		IDS_TITLE_RULESETS, &RuleManager::getRuleSets, &RuleManager::setRuleSets)
 {
 }
 
@@ -3117,10 +3127,11 @@ qm::RuleSetsDialog::RuleSetsDialog(RuleManager* pRuleManager,
 
 qm::RulesDialog::RulesDialog(RuleSet* pRuleSet,
 							 AccountManager* pAccountManager,
-							 Profile* pProfile) :
+							 Profile* pProfile,
+							 Account* pCurrentAccount) :
 	RulesColorsDialog<Rule, RuleSet::RuleList, RuleSet, RuleDialog>(
-		pRuleSet, pAccountManager, pProfile, IDS_TITLE_RULES,
-		&RuleSet::getRules, &RuleSet::setRules)
+		pRuleSet, pAccountManager, pProfile, pCurrentAccount,
+		IDS_TITLE_RULES, &RuleSet::getRules, &RuleSet::setRules)
 {
 }
 
@@ -3162,10 +3173,12 @@ wstring_ptr qm::RulesDialog::getLabelPrefix(const Rule* p) const
  */
 
 qm::RuleDialog::RuleDialog(Rule* pRule,
-						   AccountManager* pAccountManager) :
+						   AccountManager* pAccountManager,
+						   Account* pCurrentAccount) :
 	DefaultDialog(IDD_RULE),
 	pRule_(pRule),
 	pAccountManager_(pAccountManager),
+	pCurrentAccount_(pCurrentAccount),
 	bInit_(false)
 {
 	RuleAction* pAction = pRule_->getAction();
@@ -3557,6 +3570,8 @@ void qm::RuleDialog::updateFolder(Account* pAccount)
 	
 	ComboBox_ResetContent(hwnd);
 	
+	if (!pAccount)
+		pAccount = pCurrentAccount_;
 	if (pAccount) {
 		Account::FolderList l(pAccount->getFolders());
 		std::sort(l.begin(), l.end(), FolderLess());
@@ -4942,7 +4957,8 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 		pwszFolder = 0;
 	Term folder;
 	if (pwszFolder && !folder.setValue(pwszFolder)) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -5398,7 +5414,8 @@ LRESULT qm::SignatureDialog::onOk()
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 	Term account;
 	if (*wstrAccount.get() && !account.setValue(wstrAccount.get())) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -5923,15 +5940,12 @@ LRESULT qm::SyncFilterDialog::onOk()
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	Term folder;
 	if (*wstrFolder.get() && !folder.setValue(wstrFolder.get())) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
 	int nAction = ComboBox_GetCurSel(getDlgItem(IDC_ACTION));
-	if (nAction == CB_ERR) {
-		// TODO MSG
-		return 0;
-	}
 	
 	const WCHAR* pwszName = 0;
 	switch (nAction) {
@@ -5966,10 +5980,6 @@ LRESULT qm::SyncFilterDialog::onOk()
 	case 1:
 		{
 			int nType = ComboBox_GetCurSel(getDlgItem(IDC_TYPE));
-			if (nType == CB_ERR) {
-				// TODO MSG
-				return 0;
-			}
 			const WCHAR* pwszTypes[] = {
 				L"all",
 				L"text",

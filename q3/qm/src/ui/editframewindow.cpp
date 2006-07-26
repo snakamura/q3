@@ -38,6 +38,7 @@
 #include "../action/editaction.h"
 #include "../action/findreplace.h"
 #include "../model/editmessage.h"
+#include "../uimodel/folderselectionmodel.h"
 
 using namespace qm;
 using namespace qs;
@@ -49,7 +50,7 @@ using namespace qs;
  *
  */
 
-class qm::EditFrameWindowImpl
+class qm::EditFrameWindowImpl : public AccountSelectionModel
 {
 public:
 	enum {
@@ -61,13 +62,16 @@ public:
 	};
 
 public:
+	typedef std::vector<DynamicMenuCreator*> MenuCreatorList;
+
+public:
 	void initActions();
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
 
 public:
-	typedef std::vector<DynamicMenuCreator*> MenuCreatorList;
+	virtual Account* getAccount();
 
 public:
 	EditFrameWindow* pThis_;
@@ -104,9 +108,10 @@ void qm::EditFrameWindowImpl::initActions()
 	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
 	pFindReplaceManager_.reset(new FindReplaceManager());
 	
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_TEXTS,
 		pOptionDialogManager_,
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_FIXEDFORMTEXTS);
 	ADD_ACTION2(EditAttachmentEditAddAction,
@@ -426,6 +431,12 @@ void qm::EditFrameWindowImpl::layoutChildren(int cx,
 	pStatusBar_->setParts(nWidth, countof(nWidth));
 	
 	bLayouting_ = false;
+}
+
+Account* qm::EditFrameWindowImpl::getAccount()
+{
+	EditMessage* pEditMessage = pEditWindow_->getEditMessageHolder()->getEditMessage();
+	return pEditMessage ? pEditMessage->getAccount() : 0;
 }
 
 

@@ -100,7 +100,7 @@ void qs::Logger::logf(Level level,
 					  const WCHAR* pwszFormat,
 					  va_list args)
 {
-	WCHAR wszMessage[256];
+	WCHAR wszMessage[1024];
 	_vsnwprintf(wszMessage, countof(wszMessage), pwszFormat, args);
 	log(level, pwszModule, wszMessage, 0, 0);
 }

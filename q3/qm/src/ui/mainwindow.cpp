@@ -175,11 +175,9 @@ public:
 	virtual void folderSelected(const FolderModelEvent& event);
 
 public:
-	virtual Account* getAccount();
+	virtual std::pair<Account*, Folder*> getFocusedAccountOrFolder();
 	virtual void getSelectedFolders(Account::FolderList* pList);
 	virtual bool hasSelectedFolder();
-	virtual Folder* getFocusedFolder();
-	virtual std::pair<Account*, Folder*> getTemporaryFocused();
 
 public:
 	virtual ViewModel* getViewModel() const;
@@ -321,44 +319,52 @@ void qm::MainWindowImpl::initActions()
 		true,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_AUTOPILOT,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_AUTOPILOT);
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_COLORS,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_COLORS);
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_FILTERS,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_FILTERS);
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_GOROUND,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_GOROUND);
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_RULES,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_RULES);
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_SIGNATURES,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_SIGNATURES);
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_SYNCFILTERS,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_SYNCFILTERS);
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_TEXTS,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_FIXEDFORMTEXTS);
 	ADD_ACTION2(ConfigViewsAction,
@@ -979,9 +985,10 @@ void qm::MainWindowImpl::initActions()
 		pActionInvoker_.get(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION3(ToolOptionsAction,
+	ADD_ACTION4(ToolOptionsAction,
 		IDM_TOOL_OPTIONS,
 		pOptionDialogManager_.get(),
+		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_NONE);
 	ADD_ACTION4(ToolScriptAction,
@@ -1466,26 +1473,40 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 			pThis_->getHandle(), pProfile_, pSecurityModel_->getSecurityMode());
 }
 
-Account* qm::MainWindowImpl::getAccount()
+std::pair<Account*, Folder*> qm::MainWindowImpl::getFocusedAccountOrFolder()
 {
-	if (pFolderListWindow_->isActive())
-		return pFolderListModel_->getFocusedFolder() ?
-			0 : pFolderListModel_->getAccount();
-	else
-		return pFolderModel_->getCurrent().first;
+	if (pFolderListWindow_->isActive()) {
+		Folder* pFolder = pFolderListModel_->getFocusedFolder();
+		return std::make_pair(pFolder ? 0 : pFolderListModel_->getAccount(), pFolder);
+	}
+	else {
+		std::pair<Account*, Folder*> p(pFolderModel_->getTemporary());
+		if (p.first || p.second)
+			return p;
+		return pFolderModel_->getCurrent();
+	}
 }
 
 void qm::MainWindowImpl::getSelectedFolders(Account::FolderList* pList)
 {
 	assert(pList);
+	assert(pList->empty());
 	
 	if (pFolderListWindow_->isActive()) {
 		pFolderListModel_->getSelectedFolders(pList);
 	}
 	else {
-		Folder* pFolder = pFolderModel_->getCurrent().second;
-		if (pFolder)
-			pList->push_back(pFolder);
+		std::pair<Account*, Folder*> p(pFolderModel_->getTemporary());
+		if (p.first) {
+		}
+		else if (p.second) {
+			pList->push_back(p.second);
+		}
+		else {
+			Folder* pFolder = pFolderModel_->getCurrent().second;
+			if (pFolder)
+				pList->push_back(pFolder);
+		}
 	}
 }
 
@@ -1494,23 +1515,8 @@ bool qm::MainWindowImpl::hasSelectedFolder()
 	if (pFolderListWindow_->isActive())
 		return pFolderListModel_->hasSelectedFolder();
 	else
-		return pFolderModel_->getCurrent().second != 0;
-}
-
-Folder* qm::MainWindowImpl::getFocusedFolder()
-{
-	if (pFolderListWindow_->isActive())
-		return pFolderListModel_->getFocusedFolder();
-	else
-		return pFolderModel_->getCurrent().second;
-}
-
-std::pair<Account*, Folder*> qm::MainWindowImpl::getTemporaryFocused()
-{
-	if (pFolderListWindow_->isActive())
-		return std::pair<Account*, Folder*>(0, 0);
-	else
-		return pFolderModel_->getTemporary();
+		return pFolderModel_->getTemporary().second ||
+			pFolderModel_->getCurrent().second;
 }
 
 ViewModel* qm::MainWindowImpl::getViewModel() const

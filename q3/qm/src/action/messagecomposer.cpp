@@ -225,6 +225,8 @@ bool qm::MessageComposer::compose(const WCHAR* pwszPath,
 	const size_t nBufferSize = 8192;
 	while (true) {
 		XStringBufferLock<WXSTRING> lock(&buf, nBufferSize);
+		if (!lock.get())
+			return false;
 		
 		size_t nRead = reader.read(lock.get(), nBufferSize);
 		if (nRead == -1)

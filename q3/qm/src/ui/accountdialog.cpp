@@ -1017,7 +1017,8 @@ LRESULT qm::AccountAdvancedPage::onEdit()
 		hwnd = Window(hwnd).getParent();
 	}
 	
-	if (pOptionDialogManager_->showDialog(hwnd, OptionDialog::PANEL_SYNCFILTERS) == IDOK)
+	if (pOptionDialogManager_->showDialog(hwnd,
+		pSubAccount_->getAccount(), OptionDialog::PANEL_SYNCFILTERS) == IDOK)
 		updateFilter();
 	
 	return 0;

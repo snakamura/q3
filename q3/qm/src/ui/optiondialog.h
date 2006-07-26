@@ -254,6 +254,7 @@ public:
 #endif
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 				 qs::Profile* pProfile,
+				 Account* pCurrentAccount,
 				 Panel panel);
 	~OptionDialog();
 
@@ -339,6 +340,7 @@ private:
 #endif
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	qs::Profile* pProfile_;
+	Account* pCurrentAccount_;
 	Panel panel_;
 	PanelList listPanel_;
 	OptionDialogPanel* pCurrentPanel_;
@@ -457,6 +459,7 @@ public:
 #endif
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager);
 	int showDialog(HWND hwndParent,
+				   Account* pCurrentAccount,
 				   OptionDialog::Panel panel) const;
 	bool canShowDialog() const;
 
@@ -1273,6 +1276,7 @@ public:
 	RuleColorSetsDialog(Manager* pManager,
 						AccountManager* pAccountManager,
 						qs::Profile* pProfile,
+						Account* pCurrentAccount,
 						UINT nTitleId,
 						PFN_GET pfnGet,
 						PFN_SET pfnSet);
@@ -1311,6 +1315,7 @@ private:
 	Manager* pManager_;
 	AccountManager* pAccountManager_;
 	qs::Profile* pProfile_;
+	Account* pCurrentAccount_;
 	UINT nTitleId_;
 	PFN_SET pfnSet_;
 };
@@ -1333,6 +1338,7 @@ public:
 	RulesColorsDialog(Container* pContainer,
 					  AccountManager* pAccountManager,
 					  qs::Profile* pProfile,
+					  Account* pCurrentAccount,
 					  UINT nTitleId,
 					  PFN_GET pfnGet,
 					  PFN_SET pfnSet);
@@ -1386,6 +1392,7 @@ private:
 	Container* pContainer_;
 	AccountManager* pAccountManager_;
 	qs::Profile* pProfile_;
+	Account* pCurrentAccount_;
 	UINT nTitleId_;
 	PFN_SET pfnSet_;
 };
@@ -1402,7 +1409,8 @@ class ColorSetsDialog : public RuleColorSetsDialog<ColorSet, ColorManager::Color
 public:
 	ColorSetsDialog(ColorManager* pColorManager,
 					AccountManager* pAccountManager,
-					qs::Profile* pProfile);
+					qs::Profile* pProfile,
+					Account* pCurrentAccount);
 };
 
 
@@ -1417,7 +1425,8 @@ class ColorsDialog : public RulesColorsDialog<ColorEntry, ColorSet::ColorList, C
 public:
 	ColorsDialog(ColorSet* pColorSet,
 				 AccountManager* pAccountManager,
-				 qs::Profile* pProfile);
+				 qs::Profile* pProfile,
+				 Account* pCurrentAccount);
 
 private:
 	virtual const WCHAR* getName() const;
@@ -1435,7 +1444,8 @@ class ColorDialog : public DefaultDialog
 {
 public:
 	ColorDialog(ColorEntry* pColor,
-				AccountManager* pAccountManager);
+				AccountManager* pAccountManager,
+				Account* pCurrentAccount);
 	virtual ~ColorDialog();
 
 public:
@@ -1479,7 +1489,8 @@ class RuleSetsDialog : public RuleColorSetsDialog<RuleSet, RuleManager::RuleSetL
 public:
 	RuleSetsDialog(RuleManager* pRuleManager,
 				   AccountManager* pAccountManager,
-				   qs::Profile* pProfile);
+				   qs::Profile* pProfile,
+				   Account* pCurrentAccount);
 };
 
 
@@ -1494,7 +1505,8 @@ class RulesDialog : public RulesColorsDialog<Rule, RuleSet::RuleList, RuleSet, R
 public:
 	RulesDialog(RuleSet* pRuleSet,
 				AccountManager* pAccountManager,
-				qs::Profile* pProfile);
+				qs::Profile* pProfile,
+				Account* pCurrentAccount);
 
 private:
 	virtual const WCHAR* getName() const;
@@ -1512,7 +1524,8 @@ class RuleDialog : public DefaultDialog
 {
 public:
 	RuleDialog(Rule* pRule,
-			   AccountManager* pAccountManager);
+			   AccountManager* pAccountManager,
+			   Account* pCurrentAccount);
 	virtual ~RuleDialog();
 
 public:
@@ -1548,6 +1561,7 @@ private:
 private:
 	Rule* pRule_;
 	AccountManager* pAccountManager_;
+	Account* pCurrentAccount_;
 	qs::wstring_ptr wstrTemplate_;
 	CopyRuleAction::ArgumentList listArgument_;
 	bool bInit_;

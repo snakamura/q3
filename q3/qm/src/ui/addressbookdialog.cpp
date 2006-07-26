@@ -155,12 +155,12 @@ LRESULT qm::AddressBookAddressDialog::onInitDialog(HWND hwndFocus,
 	if (pAddress_->getAlias())
 		setDlgItemText(IDC_ALIAS, pAddress_->getAlias());
 	
+	HWND hwndCategory = getDlgItem(IDC_CATEGORY);
 	AddressBook::CategoryList listAllCategory(pAddressBook_->getCategories());
 	std::sort(listAllCategory.begin(), listAllCategory.end(), AddressBookCategoryLess());
 	for (AddressBook::CategoryList::const_iterator it = listAllCategory.begin(); it != listAllCategory.end(); ++it) {
 		W2T((*it)->getName(), ptszName);
-		sendDlgItemMessage(IDC_CATEGORY, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(hwndCategory, ptszName);
 	}
 	
 	StringBuffer<WSTRING> bufCategory;

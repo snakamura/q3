@@ -592,18 +592,20 @@ bool qm::EditFileInsertAction::insertText(const WCHAR* pwszPath)
 	if (!reader)
 		return false;
 	
-	// TODO
-	// use malloc based buffer
-	StringBuffer<WSTRING> buf;
-	WCHAR wsz[1024];
+	XStringBuffer<WXSTRING> buf;
+	const size_t nBufferSize = 8192;
 	while (true) {
-		size_t nLen = reader.read(wsz, countof(wsz));
-		if (nLen == -1)
+		XStringBufferLock<WXSTRING> lock(&buf, nBufferSize);
+		if (!lock.get())
 			return false;
-		else if (nLen == 0)
+		
+		size_t nRead = reader.read(lock.get(), nBufferSize);
+		if (nRead == -1)
+			return false;
+		else if (nRead == 0)
 			break;
-		else
-			buf.append(wsz, nLen);
+		
+		lock.unlock(nRead);
 	}
 	
 	if (!pTextWindow_->insertText(buf.getCharArray(), buf.getLength()))
@@ -1066,7 +1068,8 @@ void qm::EditToolInsertSignatureAction::invoke(const ActionEvent& event)
 	wstring_ptr wstrSignature(pEditMessage->getSignatureText());
 	if (wstrSignature.get()) {
 		if (!pTextWindow_->insertText(wstrSignature.get(), -1)) {
-			// TODO MSG
+			ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_INSERTSIGNATURE);
+			return;
 		}
 		pEditMessage->setSignature(0);
 	}
@@ -1113,7 +1116,8 @@ void qm::EditToolInsertTextAction::invoke(const ActionEvent& event)
 		return;
 	
 	if (!pTextWindow_->insertText(pText->getText(), -1)) {
-		// TODO MSG
+		ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_INSERTSIGNATURE);
+		return;
 	}
 }
 
@@ -1241,14 +1245,16 @@ void qm::EditToolReformAllAction::invoke(const ActionEvent& event)
 		static_cast<EditableTextModel*>(pTextWindow_->getTextModel());
 	wxstring_ptr wstrText(pTextModel->getText());
 	if (!wstrText.get()) {
-		// TODO MSG
+		ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_REFORM);
+		return;
 	}
 	
 	int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength");
 	int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth");
 	wxstring_ptr wstrReformedText(TextUtil::fold(wstrText.get(), -1, nLineLen, 0, 0, nTabWidth));
 	if (!pTextModel->setText(wstrReformedText.get(), -1)) {
-		// TODO MSG
+		ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_REFORM);
+		return;
 	}
 }
 

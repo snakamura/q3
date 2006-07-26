@@ -19,6 +19,8 @@
 #include <qsassert.h>
 #include <qsconv.h>
 #include <qsfile.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsstl.h>
 #include <qsstream.h>
 #include <qsthread.h>
@@ -745,20 +747,7 @@ bool qm::NormalFolder::loadMessageHolders()
 	wstring_ptr wstrPath(pImpl_->getPath());
 	
 	MessageHolderList l;
-	struct Deleter
-	{
-		Deleter(MessageHolderList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(), qs::deleter<MessageHolder>());
-		}
-		
-		MessageHolderList& l_;
-	} deleter(l);
+	container_deleter<MessageHolderList> deleter(l);
 	
 	W2T(wstrPath.get(), ptszPath);
 	WIN32_FIND_DATA fd;
@@ -768,22 +757,30 @@ bool qm::NormalFolder::loadMessageHolders()
 		
 		l.reserve(fd.nFileSizeLow/sizeof(MessageHolder::Init));
 		
+		Log log(InitThread::getInitThread().getLogger(), L"qm::Folder");
+		
 		FileInputStream fileStream(wstrPath.get());
-		if (!fileStream)
+		if (!fileStream) {
+			log.errorf(L"Failed to open file: %s", wstrPath.get());
 			return false;
+		}
 		BufferedInputStream stream(&fileStream, false);
 		
-		MessageHolder::Init init;
-		size_t nRead = 0;
 		unsigned int nPrevId = 0;
 		while (true) {
+			MessageHolder::Init init;
 			size_t nRead = stream.read(reinterpret_cast<unsigned char*>(&init), sizeof(init));
-			if (nRead == 0)
+			if (nRead == 0) {
 				break;
-			else if (nRead != sizeof(init))
+			}
+			else if (nRead != sizeof(init)) {
+				log.errorf(L"Failed to read message index: %s", wstrPath.get());
 				return false;
-			else if (nPrevId != 0 && init.nId_ <= nPrevId)
+			}
+			else if (nPrevId != 0 && init.nId_ <= nPrevId) {
+				log.errorf(L"Message's ID is invalid: %s", wstrPath.get());
 				return false;
+			}
 			nPrevId = init.nId_;
 			
 			std::auto_ptr<MessageHolder> pmh(new MessageHolder(this, init));

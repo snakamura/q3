@@ -9,7 +9,17 @@
 #include "folderselectionmodel.h"
 
 using namespace qm;
-using namespace qs;
+
+
+/****************************************************************************
+ *
+ * AccountSelectionModel
+ *
+ */
+
+qm::AccountSelectionModel::~AccountSelectionModel()
+{
+}
 
 
 /****************************************************************************
@@ -20,4 +30,10 @@ using namespace qs;
 
 qm::FolderSelectionModel::~FolderSelectionModel()
 {
+}
+
+Account* qm::FolderSelectionModel::getAccount()
+{
+	std::pair<Account*, Folder*> p(getFocusedAccountOrFolder());
+	return p.first ? p.first : p.second->getAccount();
 }

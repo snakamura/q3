@@ -17,23 +17,44 @@
 
 namespace qm {
 
+class AccountSelectionModel;
+class FolderSelectionModel;
+
+
+/****************************************************************************
+ *
+ * AccountSelectionModel
+ *
+ */
+
+class AccountSelectionModel
+{
+public:
+	virtual ~AccountSelectionModel();
+
+public:
+	virtual Account* getAccount() = 0;
+};
+
+
 /****************************************************************************
  *
  * FolderSelectionModel
  *
  */
 
-class FolderSelectionModel
+class FolderSelectionModel : public AccountSelectionModel
 {
 public:
 	virtual ~FolderSelectionModel();
 
 public:
-	virtual Account* getAccount() = 0;
+	virtual Account* getAccount();
+
+public:
+	virtual std::pair<Account*, Folder*> getFocusedAccountOrFolder() = 0;
 	virtual void getSelectedFolders(Account::FolderList* pList) = 0;
 	virtual bool hasSelectedFolder() = 0;
-	virtual Folder* getFocusedFolder() = 0;
-	virtual std::pair<Account*, Folder*> getTemporaryFocused() = 0;
 };
 
 }

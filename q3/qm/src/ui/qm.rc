@@ -358,6 +358,12 @@ BEGIN
     IDS_ERROR_OPENMESSAGE   "Failed to open message window."
     IDS_ERROR_CHECKUPDATE   "Could not get the latest version."
     IDS_ERROR_REPAIRJUNK    "Could not repair junk database."
+    IDS_ERROR_INVALIDACCOUNT "The specified account is invalid."
+    IDS_ERROR_INVALIDFOLDER "The specified folder is invalid."
+    IDS_ERROR_INVALIDCOLOR  "The specified color is invalid."
+    IDS_ERROR_INSERTSIGNATURE "Could not insert the signature."
+    IDS_ERROR_INSERTTEXT    "Could not insert the text."
+    IDS_ERROR_REFORM        "Error occured while reforming text."
 END
 
 STRINGTABLE DISCARDABLE 

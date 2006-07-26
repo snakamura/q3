@@ -360,6 +360,12 @@ BEGIN
     IDS_ERROR_OPENMESSAGE   "メッセージウィンドウが開けません"
     IDS_ERROR_CHECKUPDATE   "最新のバージョンを取得できませんでした"
     IDS_ERROR_REPAIRJUNK    "スパムデータベースが修復できませんでした"
+    IDS_ERROR_INVALIDACCOUNT "指定されたアカウント名が不正です"
+    IDS_ERROR_INVALIDFOLDER "指定されたフォルダ名が不正です"
+    IDS_ERROR_INVALIDCOLOR  "指定された色が不正です"
+    IDS_ERROR_INSERTSIGNATURE "署名が挿入できません"
+    IDS_ERROR_INSERTTEXT    "定形文が挿入できません"
+    IDS_ERROR_REFORM        "整形中にエラーが発生しました"
 END
 
 STRINGTABLE DISCARDABLE 

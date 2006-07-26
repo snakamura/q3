@@ -48,6 +48,7 @@ template<class T, class List, class Manager, class EditDialog>
 qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::RuleColorSetsDialog(Manager* pManager,
 																		   AccountManager* pAccountManager,
 																		   qs::Profile* pProfile,
+																		   Account* pCurrentAccount,
 																		   UINT nTitleId,
 																		   PFN_GET pfnGet,
 																		   PFN_SET pfnSet) :
@@ -55,6 +56,7 @@ qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::RuleColorSetsDialog(Manag
 	pManager_(pManager),
 	pAccountManager_(pAccountManager),
 	pProfile_(pProfile),
+	pCurrentAccount_(pCurrentAccount),
 	nTitleId_(nTitleId),
 	pfnSet_(pfnSet)
 {
@@ -112,7 +114,7 @@ template<class T, class List, class Manager, class EditDialog>
 std::auto_ptr<T> qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::create() const
 {
 	std::auto_ptr<T> p(new T());
-	EditDialog dialog(p.get(), pAccountManager_, pProfile_);
+	EditDialog dialog(p.get(), pAccountManager_, pProfile_, pCurrentAccount_);
 	if (dialog.doModal(getParentPopup()) != IDOK)
 		return std::auto_ptr<T>();
 	return p;
@@ -121,7 +123,7 @@ std::auto_ptr<T> qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::create()
 template<class T, class List, class Manager, class EditDialog>
 T* qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::edit(T* p) const
 {
-	EditDialog dialog(p, pAccountManager_, pProfile_);
+	EditDialog dialog(p, pAccountManager_, pProfile_, pCurrentAccount_);
 	if (dialog.doModal(getParentPopup()) != IDOK)
 		return 0;
 	return p;
@@ -162,6 +164,7 @@ template<class T, class List, class Container, class EditDialog>
 qm::RulesColorsDialog<T, List, Container, EditDialog>::RulesColorsDialog(Container* pContainer,
 																		 AccountManager* pAccountManager,
 																		 qs::Profile* pProfile,
+																		 Account* pCurrentAccount,
 																		 UINT nTitleId,
 																		 PFN_GET pfnGet,
 																		 PFN_SET pfnSet) :
@@ -169,6 +172,7 @@ qm::RulesColorsDialog<T, List, Container, EditDialog>::RulesColorsDialog(Contain
 	pContainer_(pContainer),
 	pAccountManager_(pAccountManager),
 	pProfile_(pProfile),
+	pCurrentAccount_(pCurrentAccount),
 	nTitleId_(nTitleId),
 	pfnSet_(pfnSet)
 {
@@ -226,6 +230,8 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onInitDialog(HWND
 	wstring_ptr wstrTitle(loadString(hInst, nTitleId_));
 	setWindowText(wstrTitle.get());
 	
+	HWND hwnd = getDlgItem(IDC_ACCOUNT);
+	
 	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
 	std::sort(listAccount.begin(), listAccount.end(),
 		binary_compose_f_gx_hy(
@@ -235,8 +241,7 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onInitDialog(HWND
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
-		sendDlgItemMessage(IDC_ACCOUNT, CB_ADDSTRING,
-			0, reinterpret_cast<LPARAM>(ptszName));
+		ComboBox_AddString(hwnd, ptszName);
 	}
 	const WCHAR* pwszAccount = pContainer_->getAccount();
 	if (pwszAccount)
@@ -268,14 +273,16 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onOk()
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 	Term account;
 	if (*wstrAccount.get() && !account.setValue(wstrAccount.get())) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	Term folder;
 	if (*wstrFolder.get() && !folder.setValue(wstrFolder.get())) {
-		// TODO MSG
+		messageBox(Application::getApplication().getResourceHandle(),
+			IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -314,7 +321,7 @@ template<class T, class List, class Container, class EditDialog>
 std::auto_ptr<T> qm::RulesColorsDialog<T, List, Container, EditDialog>::create() const
 {
 	std::auto_ptr<T> p(new T());
-	EditDialog dialog(p.get(), pAccountManager_);
+	EditDialog dialog(p.get(), pAccountManager_, pCurrentAccount_);
 	if (dialog.doModal(getHandle()) != IDOK)
 		return std::auto_ptr<T>();
 	return p;
@@ -323,7 +330,7 @@ std::auto_ptr<T> qm::RulesColorsDialog<T, List, Container, EditDialog>::create()
 template<class T, class List, class Container, class EditDialog>
 T* qm::RulesColorsDialog<T, List, Container, EditDialog>::edit(T* p) const
 {
-	EditDialog dialog(p, pAccountManager_);
+	EditDialog dialog(p, pAccountManager_, pCurrentAccount_);
 	if (dialog.doModal(getHandle()) != IDOK)
 		return 0;
 	return p;
@@ -367,10 +374,14 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onAccountSelChang
 template<class T, class List, class Container, class EditDialog>
 void qm::RulesColorsDialog<T, List, Container, EditDialog>::updateFolder(Account* pAccount)
 {
+	HWND hwnd = getDlgItem(IDC_FOLDER);
+	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	
-	sendDlgItemMessage(IDC_FOLDER, CB_RESETCONTENT);
+	ComboBox_ResetContent(hwnd);
 	
+	if (!pAccount)
+		pAccount = pCurrentAccount_;
 	if (pAccount) {
 		Account::FolderList l(pAccount->getFolders());
 		std::sort(l.begin(), l.end(), FolderLess());
@@ -379,8 +390,7 @@ void qm::RulesColorsDialog<T, List, Container, EditDialog>::updateFolder(Account
 			
 			wstring_ptr wstrName(pFolder->getFullName());
 			W2T(wstrName.get(), ptszName);
-			sendDlgItemMessage(IDC_FOLDER, CB_ADDSTRING,
-				0, reinterpret_cast<LPARAM>(ptszName));
+			ComboBox_AddString(hwnd, ptszName);
 		}
 	}
 	

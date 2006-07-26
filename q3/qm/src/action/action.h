@@ -152,6 +152,7 @@ class MessageActionUtil;
 class TabActionUtil;
 #endif
 
+class AccountSelectionModel;
 class AddressBookFrameWindowManager;
 class AttachmentSelectionModel;
 class AutoPilot;
@@ -2787,6 +2788,7 @@ class ToolOptionsAction : public qs::AbstractAction
 {
 public:
 	ToolOptionsAction(OptionDialogManager* pOptionDialogManager,
+					  AccountSelectionModel* pAccountSelectionModel,
 					  HWND hwnd,
 					  OptionDialog::Panel panel);
 	virtual ~ToolOptionsAction();
@@ -2801,6 +2803,7 @@ private:
 
 private:
 	OptionDialogManager* pOptionDialogManager_;
+	AccountSelectionModel* pAccountSelectionModel_;
 	HWND hwnd_;
 	OptionDialog::Panel panel_;
 };
@@ -3812,11 +3815,6 @@ public:
 class FolderActionUtil
 {
 public:
-	static std::pair<Account*, Folder*> getFocused(FolderSelectionModel* pModel);
-	static void getSelected(FolderSelectionModel* pModel,
-							Account::FolderList* pListFolder);
-	static bool hasSelected(FolderSelectionModel* pModel);
-	static Account* getAccount(FolderSelectionModel* pModel);
 	static std::pair<Account*, Folder*> getCurrent(const FolderModelBase* pModel);
 	static Account* getAccount(const FolderModelBase* pModel);
 	static Folder* getFolder(const FolderModelBase* pModel);
