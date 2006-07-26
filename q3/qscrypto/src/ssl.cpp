@@ -238,8 +238,16 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	X509Ptr pX509(SSL_get_peer_certificate(pSSL_));
 	CertificateImpl cert(pX509.get(), false);
 	if (log.isDebugEnabled()) {
-		wstring_ptr wstrCert(cert.getText());
-		log.debug(wstrCert.get());
+		STACK_OF(X509)* pStackCert = SSL_get_peer_cert_chain(pSSL_);
+		if (pStackCert) {
+			StringBuffer<WSTRING> buf(L"Peer certificate chain:\n");
+			for (int n = 0; n < sk_X509_num(pStackCert); ++n) {
+				X509* p = sk_X509_value(pStackCert, n);
+				wstring_ptr wstrCert(CertificateImpl(p, false).getText());
+				buf.append(wstrCert.get());
+			}
+			log.debug(buf.getCharArray());
+		}
 	}
 	
 	if (!pCallback_->checkCertificate(cert, bVerified)) {
