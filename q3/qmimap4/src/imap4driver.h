@@ -22,6 +22,9 @@ namespace qmimap4 {
 
 class Imap4Driver;
 class Imap4Factory;
+class DriverProcessHook;
+	class FlagDriverProcessHook;
+class DriverCallback;
 class FolderUtil;
 class FolderListGetter;
 class SessionCache;
@@ -95,6 +98,7 @@ public:
 private:
 	bool prepareSessionCache(bool bClear);
 	bool setFlags(Imap4* pImap4,
+				  DriverCallback* pCallback,
 				  const Range& range,
 				  qm::NormalFolder* pFolder,
 				  const qm::MessageHolderList& l,
@@ -106,69 +110,11 @@ private:
 	Imap4Driver& operator=(const Imap4Driver&);
 
 private:
-	class ProcessHook
-	{
-	public:
-		virtual ~ProcessHook();
-	
-	public:
-		virtual bool processFetchResponse(ResponseFetch* pFetch);
-		virtual bool processListResponse(ResponseList* pList);
-		virtual bool processExpungeResponse(ResponseExpunge* pExpunge);
-		virtual bool processSearchResponse(ResponseSearch* pSearch);
-	};
-	
-	class CallbackImpl : public AbstractCallback
-	{
-	public:
-		CallbackImpl(qm::SubAccount* pSubAccount,
-					 qm::PasswordCallback* pPasswordCallback,
-					 const qm::Security* pSecurity);
-		virtual ~CallbackImpl();
-	
-	public:
-		void setProcessHook(ProcessHook* pProcessHook);
-	
-	public:
-		virtual bool isCanceled(bool bForce) const;
-		virtual void initialize();
-		virtual void lookup();
-		virtual void connecting();
-		virtual void connected();
-	
-	public:
-		virtual void authenticating();
-		virtual void setRange(size_t nMin,
-							  size_t nMax);
-		virtual void setPos(size_t nPos);
-		virtual bool response(Response* pResponse);
-	
-	private:
-		CallbackImpl(const CallbackImpl&);
-		CallbackImpl& operator=(const CallbackImpl&);
-	
-	private:
-		ProcessHook* pProcessHook_;
-	};
-	
-	class FlagProcessHook : public ProcessHook
-	{
-	public:
-		FlagProcessHook(qm::NormalFolder* pFolder);
-		virtual ~FlagProcessHook();
-	
-	public:
-		virtual bool processFetchResponse(ResponseFetch* pFetch);
-	
-	private:
-		qm::NormalFolder* pFolder_;
-	};
-	
 	class Hook
 	{
 	public:
-		Hook(CallbackImpl* pCallback,
-			 ProcessHook* pProcessHook);
+		Hook(DriverCallback* pCallback,
+			 DriverProcessHook* pProcessHook);
 		~Hook();
 	
 	private:
@@ -176,14 +122,13 @@ private:
 		Hook& operator=(const Hook&);
 	
 	private:
-		CallbackImpl* pCallback_;
+		DriverCallback* pCallback_;
 	};
 
 private:
 	qm::Account* pAccount_;
 	qm::PasswordCallback* pPasswordCallback_;
 	const qm::Security* pSecurity_;
-	std::auto_ptr<CallbackImpl> pCallback_;
 	std::auto_ptr<SessionCache> pSessionCache_;
 	std::auto_ptr<OfflineJobManager> pOfflineJobManager_;
 	qm::SubAccount* pSubAccount_;
@@ -221,6 +166,78 @@ private:
 
 private:
 	static Imap4Factory factory__;
+};
+
+
+/****************************************************************************
+ *
+ * DriverProcessHook
+ *
+ */
+
+class DriverProcessHook
+{
+public:
+	virtual ~DriverProcessHook();
+
+public:
+	virtual bool processFetchResponse(ResponseFetch* pFetch);
+	virtual bool processListResponse(ResponseList* pList);
+	virtual bool processExpungeResponse(ResponseExpunge* pExpunge);
+	virtual bool processSearchResponse(ResponseSearch* pSearch);
+};
+
+
+/****************************************************************************
+ *
+ * FlagDriverProcessHook
+ *
+ */
+
+class FlagDriverProcessHook : public DriverProcessHook
+{
+public:
+	FlagDriverProcessHook(qm::NormalFolder* pFolder);
+	virtual ~FlagDriverProcessHook();
+
+public:
+	virtual bool processFetchResponse(ResponseFetch* pFetch);
+
+private:
+	FlagDriverProcessHook(const FlagDriverProcessHook&);
+	FlagDriverProcessHook& operator=(const FlagDriverProcessHook&);
+
+private:
+	qm::NormalFolder* pFolder_;
+};
+
+
+/****************************************************************************
+ *
+ * DriverCallback
+ *
+ */
+
+class DriverCallback : public AbstractCallback
+{
+public:
+	DriverCallback(qm::SubAccount* pSubAccount,
+				   qm::PasswordCallback* pPasswordCallback,
+				   const qm::Security* pSecurity);
+	virtual ~DriverCallback();
+
+public:
+	void setProcessHook(DriverProcessHook* pProcessHook);
+
+public:
+	virtual bool response(Response* pResponse);
+
+private:
+	DriverCallback(const DriverCallback&);
+	DriverCallback& operator=(const DriverCallback&);
+
+private:
+	DriverProcessHook* pProcessHook_;
 };
 
 
@@ -341,17 +358,6 @@ private:
 		void setFolderDataList(FolderDataList* pListFolderData);
 	
 	public:
-		virtual bool isCanceled(bool bForce) const;
-		virtual void initialize();
-		virtual void lookup();
-		virtual void connecting();
-		virtual void connected();
-	
-	public:
-		virtual void authenticating();
-		virtual void setRange(size_t nMin,
-							  size_t nMax);
-		virtual void setPos(size_t nPos);
 		virtual bool response(Response* pResponse);
 	
 	private:
@@ -394,6 +400,7 @@ struct Session
 {
 	qm::NormalFolder* pFolder_;
 	Imap4* pImap4_;
+	DriverCallback* pCallback_;
 	qs::Logger* pLogger_;
 	unsigned int nLastUsedTime_;
 	unsigned int nLastSelectedTime_;
@@ -411,12 +418,11 @@ class SessionCache
 public:
 	SessionCache(qm::Account* pAccount,
 				 qm::SubAccount* pSubAccount,
-				 AbstractCallback* pCallback,
-				 size_t nMaxSession);
+				 qm::PasswordCallback* pPasswordCallback_,
+				 const qm::Security* pSecurity_);
 	~SessionCache();
 
 public:
-	qm::SubAccount* getSubAccount() const;
 	bool getSession(qm::NormalFolder* pFolder,
 					Session* pSession,
 					bool* pbNew);
@@ -425,6 +431,7 @@ public:
 private:
 	bool getSessionWithoutSelect(qm::NormalFolder* pFolder,
 								 std::auto_ptr<qs::Logger>* ppLogger,
+								 std::auto_ptr<DriverCallback>* ppCallback,
 								 std::auto_ptr<Imap4>* ppImap4,
 								 unsigned int* pnLastSelectedTime,
 								 bool* pbNew);
@@ -442,7 +449,8 @@ private:
 private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
-	AbstractCallback* pCallback_;
+	qm::PasswordCallback* pPasswordCallback_;
+	const qm::Security* pSecurity_;
 	size_t nMaxSession_;
 	bool bReselect_;
 	unsigned int nForceDisconnect_;
@@ -465,6 +473,7 @@ public:
 
 public:
 	Imap4* get() const;
+	DriverCallback* getCallback() const;
 	bool isNew() const;
 	void release();
 	bool retry();
