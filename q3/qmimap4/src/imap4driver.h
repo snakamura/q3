@@ -27,7 +27,10 @@ class DriverProcessHook;
 class DriverCallback;
 class FolderUtil;
 class FolderListGetter;
+class Session;
 class SessionCache;
+class SessionCacheHandler;
+class SessionCacheEvent;
 class SessionCacher;
 
 class OfflineJobManager;
@@ -448,6 +451,8 @@ public:
 	std::auto_ptr<Session> getSession(qm::NormalFolder* pFolder,
 									  bool* pbNew);
 	void releaseSession(std::auto_ptr<Session> pSession);
+	void addSessionCacheHandler(SessionCacheHandler* pHandler);
+	void removeSessionCacheHandler(SessionCacheHandler* pHandler);
 
 private:
 	std::auto_ptr<Session> getSessionWithoutSelect(qm::NormalFolder* pFolder,
@@ -455,6 +460,7 @@ private:
 	bool isNeedSelect(qm::NormalFolder* pFolder,
 					  unsigned int nLastSelectedTime);
 	bool isForceDisconnect(unsigned int nLastUsedTime) const;
+	void fireDestroyed();
 
 private:
 	SessionCache(const SessionCache&);
@@ -462,6 +468,7 @@ private:
 
 private:
 	typedef std::vector<Session*> SessionList;
+	typedef std::vector<SessionCacheHandler*> HandlerList;
 
 private:
 	qm::Account* pAccount_;
@@ -472,6 +479,47 @@ private:
 	bool bReselect_;
 	unsigned int nForceDisconnect_;
 	SessionList listSession_;
+	HandlerList listHandler_;
+};
+
+
+/****************************************************************************
+ *
+ * SessionCacheHandler
+ *
+ */
+
+class SessionCacheHandler
+{
+public:
+	virtual ~SessionCacheHandler();
+
+public:
+	virtual void destroyed(const SessionCacheEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * SessionCacheEvent
+ *
+ */
+
+class SessionCacheEvent
+{
+public:
+	SessionCacheEvent(SessionCache* pSessionCache);
+	~SessionCacheEvent();
+
+public:
+	SessionCache* getSessionCache() const;
+
+private:
+	SessionCacheEvent(const SessionCacheEvent&);
+	SessionCacheEvent& operator=(const SessionCacheEvent&);
+
+private:
+	SessionCache* pSessionCache_;
 };
 
 
