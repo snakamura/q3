@@ -840,6 +840,32 @@ qmimap4::AbstractCallback::~AbstractCallback()
 {
 }
 
+
+bool qmimap4::AbstractCallback::isCanceled(bool bForce) const
+{
+	return false;
+}
+
+void qmimap4::AbstractCallback::initialize()
+{
+}
+
+void qmimap4::AbstractCallback::lookup()
+{
+}
+
+void qmimap4::AbstractCallback::connecting()
+{
+}
+
+void qmimap4::AbstractCallback::connected()
+{
+}
+
+void qmimap4::AbstractCallback::authenticating()
+{
+}
+
 bool qmimap4::AbstractCallback::getUserInfo(wstring_ptr* pwstrUserName,
 											wstring_ptr* pwstrPassword)
 {
@@ -861,4 +887,13 @@ void qmimap4::AbstractCallback::setPassword(const WCHAR* pwszPassword)
 wstring_ptr qmimap4::AbstractCallback::getAuthMethods()
 {
 	return pSubAccount_->getPropertyString(L"Imap4", L"AuthMethods");
+}
+
+void qmimap4::AbstractCallback::setRange(size_t nMin,
+										 size_t nMax)
+{
+}
+
+void qmimap4::AbstractCallback::setPos(size_t nPos)
+{
 }

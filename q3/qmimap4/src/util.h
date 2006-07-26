@@ -167,10 +167,21 @@ public:
 	virtual ~AbstractCallback();
 
 public:
+	virtual bool isCanceled(bool bForce) const;
+	virtual void initialize();
+	virtual void lookup();
+	virtual void connecting();
+	virtual void connected();
+	virtual void authenticating();
+
+public:
 	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
 							 qs::wstring_ptr* pwstrPassword);
 	virtual void setPassword(const WCHAR* pwszPassword);
 	virtual qs::wstring_ptr getAuthMethods();
+	virtual void setRange(size_t nMin,
+						  size_t nMax);
+	virtual void setPos(size_t nPos);
 
 private:
 	AbstractCallback(const AbstractCallback&);
