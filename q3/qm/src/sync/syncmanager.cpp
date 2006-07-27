@@ -373,7 +373,8 @@ void qm::SyncData::addSend(Account* pAccount,
 
 qm::SyncManager::SyncManager(Profile* pProfile) :
 	pProfile_(pProfile),
-	pSynchronizer_(InitThread::getInitThread().getSynchronizer())
+	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
+	nDialupConnectionCount_(0)
 {
 	pSyncFilterManager_.reset(new SyncFilterManager(
 		Application::getApplication().getProfilePath(FileNames::SYNCFILTERS_XML).get()));
@@ -501,56 +502,63 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 	} caller(pCallback, pData);
 	
 	const SyncDialup* pDialup = pData->getDialup();
-	if (pDialup && pDialup->getFlags() & SyncDialup::FLAG_WHENEVERNOTCONNECTED &&
-		RasConnection::isNetworkConnected())
-		pDialup = 0;
-	
-	RasConnectionCallbackImpl rasCallback(pDialup, pCallback);
-	std::auto_ptr<RasConnection> pRasConnection;
 	if (pDialup) {
-		const WCHAR* pwszDialFrom = pDialup->getDialFrom();
-		if (pwszDialFrom)
-			RasConnection::setLocation(pwszDialFrom);
-		
-		pRasConnection.reset(new RasConnection(&rasCallback));
-		
-		const WCHAR* pwszEntry = pDialup->getEntry();
-		wstring_ptr wstrEntry;
-		if (!pwszEntry) {
-			wstrEntry = pCallback->selectDialupEntry();
-			if (!wstrEntry.get())
+		if (!(pDialup->getFlags() & SyncDialup::FLAG_WHENEVERNOTCONNECTED) ||
+			!RasConnection::isNetworkConnected()) {
+			const WCHAR* pwszDialFrom = pDialup->getDialFrom();
+			if (pwszDialFrom)
+				RasConnection::setLocation(pwszDialFrom);
+			
+			const WCHAR* pwszEntry = pDialup->getEntry();
+			wstring_ptr wstrEntry;
+			if (!pwszEntry) {
+				wstrEntry = pCallback->selectDialupEntry();
+				if (!wstrEntry.get())
+					return true;
+				pwszEntry = wstrEntry.get();
+			}
+			assert(pwszEntry);
+			
+			RasConnectionCallbackImpl rasCallback(pDialup, pCallback);
+			std::auto_ptr<RasConnection> pRasConnection(
+				new RasConnection(&rasCallback));
+			RasConnection::Result result = pRasConnection->connect(pwszEntry);
+			if (result == RasConnection::RAS_FAIL)
+				return false;
+			pCallback->setMessage(-1, L"");
+			if (result == RasConnection::RAS_CANCEL)
 				return true;
-			pwszEntry = wstrEntry.get();
 		}
-		assert(pwszEntry);
-		
-		RasConnection::Result result = pRasConnection->connect(pwszEntry);
-		if (result == RasConnection::RAS_FAIL)
-			return false;
-		pCallback->setMessage(-1, L"");
-		if (result == RasConnection::RAS_CANCEL)
-			return true;
+		::InterlockedIncrement(UNVOLATILE(LONG*)(&nDialupConnectionCount_));
 	}
 	
 	struct DialupDisconnector
 	{
-		DialupDisconnector(RasConnection* pRasConnection,
-						   unsigned int nWait) :
-			pRasConnection_(pRasConnection),
-			nWait_(nWait)
+		DialupDisconnector(const SyncDialup* pDialup,
+						   volatile LONG& nDialupConnectionCount) :
+			pDialup_(pDialup),
+			nDialupConnectionCount_(nDialupConnectionCount)
 		{
 		}
 		
 		~DialupDisconnector()
 		{
-			if (pRasConnection_)
-				pRasConnection_->disconnect(nWait_);
+			if (!pDialup_)
+				return;
+			else if (::InterlockedDecrement(UNVOLATILE(LONG*)(&nDialupConnectionCount_)) != 0)
+				return;
+			else if (pDialup_->getFlags() & SyncDialup::FLAG_NOTDISCONNECT)
+				return;
+			
+			std::auto_ptr<RasConnection> pRasConnection(
+				RasConnection::getActiveConnection(0));
+			if (pRasConnection.get())
+				pRasConnection->disconnect(pDialup_->getDisconnectWait());
 		}
 		
-		RasConnection* pRasConnection_;
-		unsigned int nWait_;
-	} disconnector(!pDialup || pDialup->getFlags() & SyncDialup::FLAG_NOTDISCONNECT ? 0 : pRasConnection.get(),
-		pDialup ? pDialup->getDisconnectWait() : 0);
+		const SyncDialup* pDialup_;
+		volatile LONG& nDialupConnectionCount_;
+	} disconnector(pDialup, nDialupConnectionCount_);
 	
 	struct InternalOnline
 	{
@@ -637,6 +645,7 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 		if (!pJunkFilter->save(false))
 			log.error(L"Failed to save junk filter.");
 	}
+	
 	return true;
 }
 

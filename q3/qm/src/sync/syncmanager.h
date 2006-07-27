@@ -534,6 +534,7 @@ private:
 	std::auto_ptr<SyncFilterManager> pSyncFilterManager_;
 	ThreadList listThread_;
 	SyncingFolderList listSyncingFolder_;
+	volatile LONG nDialupConnectionCount_;
 	qs::CriticalSection cs_;
 	SyncManagerHandlerList listHandler_;
 };
