@@ -952,8 +952,6 @@ std::auto_ptr<RuleAction> qm::NoneRuleAction::clone() const
 qm::CopyRuleAction::CopyRuleAction(const WCHAR* pwszAccount,
 								   const WCHAR* pwszFolder,
 								   bool bMove) :
-	wstrAccount_(0),
-	wstrFolder_(0),
 	bMove_(bMove)
 {
 	if (pwszAccount)

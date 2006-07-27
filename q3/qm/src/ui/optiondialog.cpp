@@ -3248,6 +3248,12 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		ComboBox_AddString(getDlgItem(IDC_ACTION), ptszType);
 	}
 	
+	HWND hwndAccount = getDlgItem(IDC_ACCOUNT);
+	
+	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	W2T(wstrUnspecified.get(), ptszUnspecified);
+	ComboBox_AddString(hwndAccount, ptszUnspecified);
+	
 	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
 	std::sort(listAccount.begin(), listAccount.end(),
 		binary_compose_f_gx_hy(
@@ -3257,8 +3263,9 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
-		ComboBox_AddString(getDlgItem(IDC_ACCOUNT), ptszName);
+		ComboBox_AddString(hwndAccount, ptszName);
 	}
+	setDlgItemText(IDC_ACCOUNT, wstrUnspecified.get());
 	
 	const UINT nLabelTypeIds[] = {
 		IDS_LABEL_SET,
@@ -3333,11 +3340,12 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::RuleDialog::onOk()
 {
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(hInst, IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -3351,12 +3359,18 @@ LRESULT qm::RuleDialog::onOk()
 	case RuleAction::TYPE_MOVE:
 	case RuleAction::TYPE_COPY:
 		{
+			wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+			
 			wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-			if (!*wstrAccount.get())
+			if (!*wstrAccount.get() ||
+				wcscmp(wstrAccount.get(), wstrUnspecified.get()) == 0)
 				wstrAccount.reset(0);
+			
 			wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
-			if (!*wstrFolder.get())
+			if (!*wstrFolder.get()) {
+				messageBox(hInst, IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
 				return 0;
+			}
 			
 			std::auto_ptr<CopyRuleAction> pCopyAction(new CopyRuleAction(
 				wstrAccount.get(), wstrFolder.get(), type == RuleAction::TYPE_MOVE));
@@ -3554,9 +3568,13 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 	Window(getDlgItem(IDC_CONTINUE)).enableWindow(bEnableContinue);
 	
 	if (bUpdateFolder) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+		
 		Account* pAccount = 0;
 		wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
-		if (wstrAccount.get())
+		if (*wstrAccount.get() &&
+			wcscmp(wstrAccount.get(), wstrUnspecified.get()) != 0)
 			pAccount = pAccountManager_->getAccount(wstrAccount.get());
 		updateFolder(pAccount);
 	}
@@ -5367,7 +5385,15 @@ LRESULT qm::SignatureDialog::onDestroy()
 LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	
 	setDlgItemText(IDC_NAME, pSignature_->getName());
+	
+	HWND hwndAccount = getDlgItem(IDC_ACCOUNT);
+	
+	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	W2T(wstrUnspecified.get(), ptszUnspecified);
+	ComboBox_AddString(hwndAccount, ptszUnspecified);
 	
 	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
 	std::sort(listAccount.begin(), listAccount.end(),
@@ -5377,10 +5403,12 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 			std::mem_fun(&Account::getName)));
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		W2T((*it)->getName(), ptszName);
-		ComboBox_AddString(getDlgItem(IDC_ACCOUNT), ptszName);
+		ComboBox_AddString(hwndAccount, ptszName);
 	}
 	if (pSignature_->getAccount())
 		setDlgItemText(IDC_ACCOUNT, pSignature_->getAccount());
+	else
+		setDlgItemText(IDC_ACCOUNT, wstrUnspecified.get());
 	
 	if (pSignature_->isDefault())
 		Button_SetCheck(getDlgItem(IDC_DEFAULT), BST_CHECKED);
@@ -5411,9 +5439,14 @@ LRESULT qm::SignatureDialog::onOk()
 {
 	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
 	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 	Term account;
-	if (*wstrAccount.get() && !account.setValue(wstrAccount.get())) {
+	if (*wstrAccount.get() &&
+		wcscmp(wstrAccount.get(), wstrUnspecified.get()) != 0 &&
+		!account.setValue(wstrAccount.get())) {
 		messageBox(Application::getApplication().getResourceHandle(),
 			IDS_ERROR_INVALIDACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
