@@ -48,10 +48,10 @@ QMAIL3に指定可能なコマンドラインは以下の通りです。
 基本的には、現在選択されているアカウントが使用されます。ただし、現在選択しているアカウントがメールアカウントでなかった場合には、以下のように使用するアカウントを決定します。
 
 (1)mailto URLの場合
-   (1)qmail.xmlのGlobal/DefaultMailAccountで指定されたアカウント
+   (1)((<qmail.xml|URL:QmailXml.html>))のGlobal/DefaultMailAccountで指定されたアカウント
    (2)指定されていなかった場合、一番上にあるメールアカウント
 (2)feed URLの場合
-   (1)qmail.xmlのGlobal/DefaultRssAccountで指定されたアカウント
+   (1)((<qmail.xml|URL:QmailXml.html>))のGlobal/DefaultRssAccountで指定されたアカウント
    (2)指定されていなかった場合、一番上にあるRSSアカウント
 
 そのようなアカウントが存在しない場合には何もしません。

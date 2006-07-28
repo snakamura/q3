@@ -15,23 +15,6 @@
   *((<アンインストール|URL:Uninstall.html>))
 *チュートリアル
   *((<起動|URL:Launch.html>))
-  *((<画面構成|URL:WindowsAndViews.html>))
-    *メインウィンドウ
-      *メニュー
-      *ツールバー
-      *ステータスバー
-    *メッセージウィンドウ
-      *メニュー
-      *ツールバー
-      *ステータスバー
-    *エディットウィンドウ
-      *メニュー
-      *ツールバー
-      *ステータスバー
-    *アドレス帳ウィンドウ
-      *メニュー
-      *ツールバー
-      *ステータスバー
   *POP3でメールを使う
     *((<アカウントの作成|URL:CreatePop3Account.html>))
     *((<メールを読む|URL:ReadPop3Message.html>))
@@ -50,6 +33,9 @@
     *((<フィードの購読|URL:SubscribeRssFeed.html>))
     *((<フィードを読む|URL:ReadRssFeed.html>))
   *振り分けルールを設定する
+*UI
+  *((<画面構成|URL:WindowsAndViews.html>))
+  *((<メニュー|URL:Menus.html>))
 *機能
   *((<アカウント|URL:Account.html>))
     *((<サブアカウント|URL:SubAccount.html>))
@@ -113,9 +99,6 @@
   *((<ログ|URL:Log.html>))
   *((<正規表現|URL:RegularExpression.html>))
   *((<プロファイル|URL:Profile.html>))
-  *((<メニューのカスタマイズ|URL:CustomizeMenus.html>))
-  *((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))
-  *((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))
 *アカウントの設定
   *((<アカウントの管理|URL:ManageAccount.html>))
   *((<アカウントの作成|URL:CreateAccount.html>))
@@ -126,6 +109,12 @@
   *((<型|URL:MacroType.html>))
   *((<変数|URL:MacroVariable.html>))
   *((<関数|URL:MacroFunction.html>))
+*カスタマイズ
+  *((<メニューのカスタマイズ|URL:CustomizeMenus.html>))
+  *((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))
+  *((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))
+  *((<ヘッダビューのカスタマイズ|URL:CustomizeHeaderView.html>))
+  *((<ヘッダエディットビューのカスタマイズ|URL:CustomizeHeaderEditView.html>))
 *設定ファイル
   *プロファイル
     *addressbook.xml
@@ -134,8 +123,8 @@
     *filters.xml
     *fonts.xml
     *goround.xml
-    *header.xml
-    *headeredit.xml
+    *((<header.xml|URL:HeaderXml.html>))
+    *((<headeredit.xml|URL:HeaderEditXml.html>))
     *keymap.xml
     *menus.xml
     *passwords.xml
