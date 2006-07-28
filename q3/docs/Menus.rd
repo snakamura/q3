@@ -8,7 +8,7 @@
 
 *メインウィンドウのメニューバー
 *((<メッセージウィンドウのメニューバー|URL:MessageWindowMenuBar.html>))
-*エディットウィンドウのメニューバー
+*((<エディットウィンドウのメニューバー|URL:EditWindowMenuBar.html>))
 *アドレス帳ウィンドウのメニューバー
 
 
@@ -22,8 +22,8 @@
 *((<プレビューのコンテキストメニュー|URL:MessageMenu.html>))
 *((<メッセージビューのコンテキストメニュー|URL:MessageMenu.html>))
 *((<添付ファイルのコンテキストメニュー|URL:AttachmentMenu.html>))
-*添付ファイル編集のコンテキストメニュー
-*エディットビューのコンテキストメニュー
+*((<添付ファイル編集のコンテキストメニュー|URL:AttachmentEditMenu.html>))
+*((<エディットビューのコンテキストメニュー|URL:EditMenu.html>))
 *アドレスビューのコンテキストメニュー
 
 =end
