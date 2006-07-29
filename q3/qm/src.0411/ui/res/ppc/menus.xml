@@ -516,7 +516,6 @@
 			<menuitem dynamic="MessageAttachment"/>
 			<separator/>
 			<menuitem text="ダイジェストを展開" action="MessageExpandDigest"/>
-			<menuitem text="結合" action="MessageCombine"/>
 		</popupmenu>
 		<separator/>
 		<popupmenu text="マーク">

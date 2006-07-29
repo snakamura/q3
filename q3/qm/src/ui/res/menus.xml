@@ -319,7 +319,6 @@
 				<menuitem dynamic="MessageAttachment"/>
 				<separator/>
 				<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
-				<menuitem text="&amp;Combine" action="MessageCombine"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="&amp;Property..." action="MessageProperty"/>
@@ -552,7 +551,6 @@
 			<menuitem dynamic="MessageAttachment"/>
 			<separator/>
 			<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
-			<menuitem text="&amp;Combine" action="MessageCombine"/>
 		</popupmenu>
 		<separator/>
 		<popupmenu text="Mar&amp;k">

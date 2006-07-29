@@ -516,7 +516,6 @@
 			<menuitem dynamic="MessageAttachment"/>
 			<separator/>
 			<menuitem text="Expand Digest" action="MessageExpandDigest"/>
-			<menuitem text="Combine" action="MessageCombine"/>
 		</popupmenu>
 		<separator/>
 		<popupmenu text="Mark">

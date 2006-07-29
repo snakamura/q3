@@ -318,7 +318,6 @@
 				<menuitem dynamic="MessageAttachment"/>
 				<separator/>
 				<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
-				<menuitem text="結合(&amp;C)" action="MessageCombine"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="プロパティ(&amp;P)..." action="MessageProperty"/>
@@ -551,7 +550,6 @@
 			<menuitem dynamic="MessageAttachment"/>
 			<separator/>
 			<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
-			<menuitem text="結合(&amp;C)" action="MessageCombine"/>
 		</popupmenu>
 		<separator/>
 		<popupmenu text="マーク(&amp;K)">
