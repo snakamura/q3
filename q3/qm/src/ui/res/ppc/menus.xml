@@ -430,8 +430,6 @@
 		<menuitem text="Empty" action="FolderEmpty"/>
 		<menuitem text="Empty Trash" action="FolderEmptyTrash"/>
 		<separator/>
-		<menuitem text="Show Size" action="FolderShowSize"/>
-		<separator/>
 		<menuitem text="Property..." action="FolderProperty"/>
 	</menu>
 	<menu name="folderlist">

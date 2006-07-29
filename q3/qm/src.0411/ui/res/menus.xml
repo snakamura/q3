@@ -460,8 +460,6 @@
 		<menuitem text="空にする(&amp;E)" action="FolderEmpty"/>
 		<menuitem text="ゴミ箱を空にする(&amp;T)" action="FolderEmptyTrash"/>
 		<separator/>
-		<menuitem text="サイズを表示(&amp;S)" action="FolderShowSize"/>
-		<separator/>
 		<menuitem text="プロパティ(&amp;P)..." action="FolderProperty"/>
 	</menu>
 	<menu name="folderlist">
