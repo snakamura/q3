@@ -695,10 +695,10 @@ qm::EditFileSaveAction::~EditFileSaveAction()
 
 void qm::EditFileSaveAction::invoke(const ActionEvent& event)
 {
-	wstring_ptr wstrFilter(loadString(
-		Application::getApplication().getResourceHandle(), IDS_FILTER_SAVE));
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_SAVE));
 	
-	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
+	FileDialog dialog(false, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT);
 	if (dialog.doModal(hwnd_) == IDOK) {
 		if (!save(dialog.getPath()))

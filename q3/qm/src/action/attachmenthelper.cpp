@@ -106,7 +106,7 @@ wstring_ptr DetachCallbackImpl::confirmOverwrite(const WCHAR* pwszPath)
 			}
 			
 			FileDialog dialog(false, wstrFilter.get(), pwszDir, 0, pwszFileName,
-				OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
+				OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT);
 			
 			if (dialog.doModal(hwnd_) == IDOK)
 				wstrPath = allocWString(dialog.getPath());
