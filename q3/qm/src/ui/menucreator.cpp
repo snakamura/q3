@@ -120,8 +120,8 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 				URI uri(mpl, &msg, (*it).second, URIFragment::TYPE_BODY);
 				wstring_ptr wstrURI(uri.toString());
 				std::auto_ptr<ActionParam> pParam(new ActionParam(
-					IDM_MESSAGE_ATTACHMENT, wstrURI.get()));
-				unsigned int nId = helper_.add(MAX_MESSAGE_ATTACHMENT, pParam);
+					IDM_MESSAGE_OPENATTACHMENT, wstrURI.get()));
+				unsigned int nId = helper_.add(MAX_MESSAGE_OPENATTACHMENT, pParam);
 				if (nId != -1) {
 					wstring_ptr wstrName(UIUtil::formatMenu((*it).first, &nMnemonic));
 					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), DATA);
@@ -134,7 +134,7 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_ATTACHMENT, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_OPENATTACHMENT, wstrNone.get(), DATA);
 	}
 	
 	return nIndex;

@@ -792,7 +792,7 @@ void qm::MainWindowImpl::initActions()
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION5(MessageOpenAttachmentAction,
-		IDM_MESSAGE_ATTACHMENT,
+		IDM_MESSAGE_OPENATTACHMENT,
 		pDocument_,
 		pSecurityModel_.get(),
 		pProfile_,
