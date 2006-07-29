@@ -39,7 +39,7 @@
 		<button image="14" action="EditRedo" text="やり直す"/>
 		<separator/>
 		<button image="18" action="ToolSelectAddress" text="アドレス帳"/>
-		<button image="17" action="ToolInsertText" param="@0" text="定形文" dropdown="inserttext"/>
+		<button image="17" action="ToolInsertText" param="@0" text="定型文" dropdown="inserttext"/>
 		<button image="19" action="ToolAttachment" text="添付ファイル"/>
 	</toolbar>
 	<toolbar name="addressbookframe" showText="true">

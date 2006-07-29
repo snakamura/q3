@@ -364,7 +364,7 @@ BEGIN
     IDS_ERROR_INVALIDFOLDER "指定されたフォルダ名が不正です"
     IDS_ERROR_INVALIDCOLOR  "指定された色が不正です"
     IDS_ERROR_INSERTSIGNATURE "署名が挿入できません"
-    IDS_ERROR_INSERTTEXT    "定形文が挿入できません"
+    IDS_ERROR_INSERTTEXT    "定型文が挿入できません"
     IDS_ERROR_REFORM        "整形中にエラーが発生しました"
 END
 
@@ -450,7 +450,7 @@ BEGIN
     IDS_PANEL_EDIT          "エディットビュー"
     IDS_PANEL_EDIT2         "エディットビュー2"
     IDS_PANEL_FILTERS       "フィルタ"
-    IDS_PANEL_FIXEDFORMTEXTS "定形文"
+    IDS_PANEL_FIXEDFORMTEXTS "定型文"
     IDS_PANEL_FOLDER        "フォルダビュー"
     IDS_PANEL_GOROUND       "巡回"
     IDS_PANEL_HEADER        "ヘッダビュー"

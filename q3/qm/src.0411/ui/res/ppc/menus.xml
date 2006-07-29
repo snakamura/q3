@@ -345,7 +345,7 @@
 		</popupmenu>
 		<popupmenu text="ツール">
 			<menuitem text="アドレス帳..." action="ToolSelectAddress"/>
-			<popupmenu text="定形文">
+			<popupmenu text="定型文">
 				<menuitem dynamic="ToolInsertText"/>
 				<separator/>
 				<menuitem text="編集..." action="ConfigTexts"/>
