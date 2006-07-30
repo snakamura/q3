@@ -61,7 +61,7 @@
 選択されているアカウントを同期します。右側の矢印をクリックするとメニューが表示され、((<送信のみ|URL:ToolSendAction.html>))や((<受信のみ|URL:ToolReceiveAction.html>))を行うことができます。
 
 
-+((<[巡回]|URL:ToolGoRoundAction.html>))
++((<[巡回]|URL:ToolGoroundAction.html>))
 ((<巡回|URL:GoRound.html>))します。右側の矢印をクリックすると巡回するコースをメニューから選択できます。左側のアイコンをクリックすると先頭の巡回コースで巡回します。
 
 

@@ -1,7 +1,7 @@
 =begin
 =ToolSMIMEEncryptアクション
 
-S/MIMEで暗号化するかどうかをOn/Offします。
+((<"S/MIME"|URL:SMIME.html>))で暗号化するかどうかをOn/Offします。
 
 デフォルトでOnになるかOffになるかは、((<エディットビュー2の設定|URL:OptionEdit2.html>))で設定します。
 

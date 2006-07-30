@@ -1,7 +1,7 @@
 =begin
 =ToolAutoPilotアクション
 
-自動巡回のOn/Offを切り替えます。
+((<自動巡回|URL:AutoPilot.html>))のOn/Offを切り替えます。
 
 
 ==引数

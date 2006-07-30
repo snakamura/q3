@@ -1,7 +1,7 @@
 =begin
 =ToolPGPMimeアクション
 
-PGP/MIMEを使うか、インラインのPGPを使うかを切り替えます。
+((<PGP|URL:PGP.html>))で暗号化や署名をするときに、PGP/MIMEを使うかインラインのPGPを使うかを切り替えます。
 
 デフォルトでどちらになるかは、((<エディットビュー2の設定|URL:OptionEdit2.html>))で設定します。
 

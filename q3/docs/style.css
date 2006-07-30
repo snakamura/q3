@@ -20,6 +20,12 @@ h3 {
     margin-top: 1em;
     border-bottom: gray 1px solid;
 }
+h4 {
+    font-size: 105%;
+}
+h5 {
+    font-size: 100%;
+}
 pre {
     background-color: #eeeeff;
     color: black;

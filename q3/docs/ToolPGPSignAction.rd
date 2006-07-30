@@ -1,7 +1,7 @@
 =begin
 =ToolPGPSignアクション
 
-PGPで署名するかどうかをOn/Offします。
+((<PGP|URL:PGP.html>))で署名するかどうかをOn/Offします。
 
 デフォルトでOnになるかOffになるかは、((<エディットビュー2の設定|URL:OptionEdit2.html>))で設定します。
 
