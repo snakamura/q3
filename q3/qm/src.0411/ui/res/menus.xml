@@ -113,8 +113,8 @@
 				<menuitem text="最小サイズ(&amp;A)" action="ViewZoom" param="0"/>
 				<menuitem text="デフォルト(&amp;D)" action="ViewZoom"/>
 				<separator/>
-				<menuitem text="大きくする(&amp;C)" action="ViewZoom" param="+1"/>
-				<menuitem text="小さくする(&amp;E)" action="ViewZoom" param="-1"/>
+				<menuitem text="大きくする(&amp;C)" action="ViewZoom" param="+"/>
+				<menuitem text="小さくする(&amp;E)" action="ViewZoom" param="-"/>
 			</popupmenu>
 			<separator/>
 			<menuitem text="カラムをカスタマイズ(&amp;Z)..." action="ConfigViews"/>
@@ -271,8 +271,8 @@
 				<menuitem text="最小サイズ(&amp;A)" action="ViewZoom" param="0"/>
 				<menuitem text="デフォルト(&amp;D)" action="ViewZoom"/>
 				<separator/>
-				<menuitem text="大きくする(&amp;C)" action="ViewZoom" param="+1"/>
-				<menuitem text="小さくする(&amp;E)" action="ViewZoom" param="-1"/>
+				<menuitem text="大きくする(&amp;C)" action="ViewZoom" param="+"/>
+				<menuitem text="小さくする(&amp;E)" action="ViewZoom" param="-"/>
 			</popupmenu>
 			<separator/>
 			<popupmenu text="コントロールの表示(&amp;C)">

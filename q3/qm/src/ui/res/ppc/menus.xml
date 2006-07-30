@@ -95,8 +95,8 @@
 				<menuitem text="Smallest" action="ViewZoom" param="0"/>
 				<menuitem text="Default" action="ViewZoom"/>
 				<separator/>
-				<menuitem text="Increase" action="ViewZoom" param="+1"/>
-				<menuitem text="Decrease" action="ViewZoom" param="-1"/>
+				<menuitem text="Increase" action="ViewZoom" param="+"/>
+				<menuitem text="Decrease" action="ViewZoom" param="-"/>
 				<separator/>
 				<menuitem text="Super Fit to Screen" action="ViewFit" param="super"/>
 				<menuitem text="Fit to Screen" action="ViewFit" param="normal"/>
@@ -246,8 +246,8 @@
 				<menuitem text="Smallest" action="ViewZoom" param="0"/>
 				<menuitem text="Default" action="ViewZoom"/>
 				<separator/>
-				<menuitem text="Increase" action="ViewZoom" param="+1"/>
-				<menuitem text="Decrease" action="ViewZoom" param="-1"/>
+				<menuitem text="Increase" action="ViewZoom" param="+"/>
+				<menuitem text="Decrease" action="ViewZoom" param="-"/>
 				<separator/>
 				<menuitem text="Super Fit to Screen" action="ViewFit" param="super"/>
 				<menuitem text="Fit to Screen" action="ViewFit" param="normal"/>
