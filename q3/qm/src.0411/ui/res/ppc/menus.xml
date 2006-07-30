@@ -112,7 +112,7 @@
 				<menuitem text="カラムを表示" action="ViewShowHeaderColumn"/>
 				<menuitem text="プレビューを表示" action="ViewShowPreview"/>
 				<menuitem text="ヘッダを表示" action="ViewShowHeader"/>
-				<menuitem text="同期ウィンドウを表示" action="ViewShowSyncDialog"/>
+				<menuitem text="同期ダイアログを表示" action="ViewShowSyncDialog"/>
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="メッセージ">
@@ -163,7 +163,6 @@
 					<separator/>
 					<menuitem text="編集..." action="ConfigGoRound"/>
 				</popupmenu>
-				<menuitem text="キャンセル" action="ToolCancel"/>
 				<separator/>
 				<menuitem text="ダイアルアップ接続..." action="ToolDialup"/>
 			</popupmenu>

@@ -112,7 +112,7 @@
 				<menuitem text="Show Header Column" action="ViewShowHeaderColumn"/>
 				<menuitem text="Show Preview" action="ViewShowPreview"/>
 				<menuitem text="Show Header" action="ViewShowHeader"/>
-				<menuitem text="Show Sync" action="ViewShowSyncDialog"/>
+				<menuitem text="Show Sync Dialog" action="ViewShowSyncDialog"/>
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="Msg">

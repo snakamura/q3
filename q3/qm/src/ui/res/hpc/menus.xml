@@ -125,7 +125,7 @@
 				<menuitem text="Show &amp;Header Column" action="ViewShowHeaderColumn"/>
 				<menuitem text="Show &amp;Preview" action="ViewShowPreview"/>
 				<menuitem text="Show &amp;Header" action="ViewShowHeader"/>
-				<menuitem text="Show S&amp;ync" action="ViewShowSyncDialog"/>
+				<menuitem text="Show S&amp;ync Dialog" action="ViewShowSyncDialog"/>
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="&amp;Message">
