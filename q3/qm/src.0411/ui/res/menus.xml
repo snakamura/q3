@@ -348,7 +348,7 @@
 			<menuitem text="切り取り(&amp;T)" action="EditCut"/>
 			<menuitem text="コピー(&amp;C)" action="EditCopy"/>
 			<menuitem text="貼り付け(&amp;P)" action="EditPaste"/>
-			<menuitem text="引用符付きで貼り付け(&amp;Q)" action="EditPasteWithQuote"/>
+			<menuitem text="引用符付き貼り付け(&amp;Q)" action="EditPasteWithQuote"/>
 			<separator/>
 			<menuitem text="すべて選択(&amp;A)" action="EditSelectAll"/>
 			<separator/>

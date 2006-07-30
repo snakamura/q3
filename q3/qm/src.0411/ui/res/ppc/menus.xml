@@ -328,7 +328,7 @@
 			<menuitem text="切り取り" action="EditCut"/>
 			<menuitem text="コピー" action="EditCopy"/>
 			<menuitem text="貼り付け" action="EditPaste"/>
-			<menuitem text="引用符付きで貼り付け" action="EditPasteWithQuote"/>
+			<menuitem text="引用符付き貼り付け" action="EditPasteWithQuote"/>
 			<separator/>
 			<menuitem text="すべて選択" action="EditSelectAll"/>
 			<separator/>
