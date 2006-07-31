@@ -216,6 +216,7 @@ struct qs::BinaryFileImpl
 	bool mapBuffer();
 	bool flushBuffer();
 	
+	size_t nBufferSize_;
 	HANDLE hFile_;
 	DWORD dwPosition_;
 	bool bWritten_;
@@ -283,10 +284,10 @@ bool qs::BinaryFileImpl::mapBuffer()
 	assert(pBufEnd_ == pBuf_.get());
 	assert(pCurrent_ = pBuf_.get());
 	
-	while (pBufEnd_ != pBuf_.get() + BUFFER_SIZE) {
+	while (pBufEnd_ != pBuf_.get() + nBufferSize_) {
 		DWORD dwRead = 0;
 		if (!::ReadFile(hFile_, pBufEnd_,
-			static_cast<DWORD>(pBuf_.get() + BUFFER_SIZE - pBufEnd_), &dwRead, 0))
+			static_cast<DWORD>(pBuf_.get() + nBufferSize_ - pBufEnd_), &dwRead, 0))
 			return false;
 		if (dwRead == 0)
 			break;
@@ -348,6 +349,7 @@ qs::BinaryFile::BinaryFile(const WCHAR* pwszPath,
 	auto_ptr_array<unsigned char> pBuf(new unsigned char[nBufferSize]);
 	
 	std::auto_ptr<BinaryFileImpl> pImpl(new BinaryFileImpl());
+	pImpl->nBufferSize_ = nBufferSize;
 	pImpl->hFile_ = 0;
 	pImpl->dwPosition_ = 0;
 	pImpl->bWritten_ = false;
@@ -402,7 +404,7 @@ size_t qs::BinaryFile::read(unsigned char* p,
 			pImpl_->pCurrent_ = pImpl_->pBufEnd_;
 		}
 		
-		if (nRead > BinaryFileImpl::BUFFER_SIZE/2) {
+		if (nRead > pImpl_->nBufferSize_/2) {
 			if (!pImpl_->flushBuffer())
 				return -1;
 			assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
@@ -458,7 +460,7 @@ size_t qs::BinaryFile::write(const unsigned char* p,
 			pImpl_->bWritten_ = true;
 		}
 		
-		if (nWrite > BinaryFileImpl::BUFFER_SIZE/2) {
+		if (nWrite > pImpl_->nBufferSize_/2) {
 			if (!pImpl_->flushBuffer())
 				return -1;
 			assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
