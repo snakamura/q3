@@ -185,8 +185,8 @@
 			<menuitem text="Options..." action="ToolOptions"/>
 		</popupmenu>
 		<popupmenu text="Help">
-			<menuitem text="Document" action="HelpOpenURL" param="http://q3.snak.org/doc/"/>
-			<menuitem text="Website" action="HelpOpenURL" param="http://q3.snak.org/"/>
+			<menuitem text="Documents" action="HelpOpenURL" param="http://q3.snak.org/doc/"/>
+			<menuitem text="Web site" action="HelpOpenURL" param="http://q3.snak.org/"/>
 			<separator/>
 			<menuitem text="Check Update" action="HelpCheckUpdate"/>
 			<separator/>
