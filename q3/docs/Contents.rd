@@ -115,32 +115,7 @@
   *((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))
   *((<ヘッダビューのカスタマイズ|URL:CustomizeHeaderView.html>))
   *((<ヘッダエディットビューのカスタマイズ|URL:CustomizeHeaderEditView.html>))
-*設定ファイル
-  *プロファイル
-    *addressbook.xml
-    *autopilot.xml
-    *colors.xml
-    *filters.xml
-    *fonts.xml
-    *goround.xml
-    *((<header.xml|URL:HeaderXml.html>))
-    *((<headeredit.xml|URL:HeaderEditXml.html>))
-    *keymap.xml
-    *menus.xml
-    *passwords.xml
-    *((<qmail.xml|URL:QmailXml.html>))
-    *resources.xml
-    *rules.xml
-    *signatures.xml
-    *syncfilters.xml
-    *tabs.xml
-    *texts.xml
-    *toolbars.xml
-    *views.xml
-  *アカウント
-    *account.xml
-    *folders.xml
-    *views.xml
+*((<設定ファイル|URL:Files.html>))
 *((<FAQ|URL:FAQ.html>))
 
 =end
