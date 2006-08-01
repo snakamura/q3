@@ -111,6 +111,7 @@
 #define IDC_LIST                        1016
 #define IDC_ADDRESS                     1017
 #define IDC_SELECTEDADDRESS             1018
+#define IDC_REPLYTO                     1018
 #define IDC_TO                          1019
 #define IDC_CC                          1020
 #define IDC_BCC                         1021

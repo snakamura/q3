@@ -99,6 +99,13 @@ bool qm::MessageComposer::compose(Message* pMessage,
 	if (!pMessage->setField(bResent ? L"Resent-From" : L"From", from))
 		return false;
 	
+	const WCHAR* pwszReplyTo = pSubAccount->getReplyTo();
+	if (pwszReplyTo && *pwszReplyTo) {
+		AddressParser replyTo(0, pwszReplyTo);
+		if (!pMessage->setField(L"Reply-To", replyTo))
+			return false;
+	}
+	
 	Time time(Time::getCurrentTime());
 	DateParser date(time);
 	if (!pMessage->setField(bResent ? L"Resent-Date" : L"Date", date))

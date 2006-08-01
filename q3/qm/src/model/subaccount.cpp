@@ -51,6 +51,7 @@ struct qm::SubAccountImpl
 	wstring_ptr wstrIdentity_;
 	wstring_ptr wstrSenderName_;
 	wstring_ptr wstrSenderAddress_;
+	wstring_ptr wstrReplyTo_;
 	wstring_ptr wstrHost_[Account::HOST_SIZE];
 	short nPort_[Account::HOST_SIZE];
 	wstring_ptr wstrUserName_[Account::HOST_SIZE];
@@ -80,6 +81,7 @@ void qm::SubAccountImpl::load()
 	LOAD_STRING(L"Global",	L"Identity",				wstrIdentity_						);
 	LOAD_STRING(L"Global",	L"SenderName",				wstrSenderName_						);
 	LOAD_STRING(L"Global",	L"SenderAddress",			wstrSenderAddress_					);
+	LOAD_STRING(L"Global",	L"ReplyTo",					wstrReplyTo_						);
 	LOAD_STRING(L"Send",	L"Host",					wstrHost_[Account::HOST_SEND]		);
 	LOAD_STRING(L"Receive",	L"Host",					wstrHost_[Account::HOST_RECEIVE]	);
 	LOAD_STRING(L"Send",	L"UserName",				wstrUserName_[Account::HOST_SEND]	);
@@ -198,6 +200,16 @@ const WCHAR* qm::SubAccount::getSenderAddress() const
 void qm::SubAccount::setSenderAddress(const WCHAR* pwszAddress)
 {
 	pImpl_->wstrSenderAddress_ = allocWString(pwszAddress);
+}
+
+const WCHAR* qm::SubAccount::getReplyTo() const
+{
+	return pImpl_->wstrReplyTo_.get();
+}
+
+void qm::SubAccount::setReplyTo(const WCHAR* pwszReplyTo)
+{
+	pImpl_->wstrReplyTo_ = allocWString(pwszReplyTo);
 }
 
 bool qm::SubAccount::isSelf(const WCHAR* pwszMailbox,
@@ -628,6 +640,7 @@ bool qm::SubAccount::save(bool bForce) const
 	SAVE_STRING(L"Global",	L"Identity",				wstrIdentity_						);
 	SAVE_STRING(L"Global",	L"SenderName",				wstrSenderName_						);
 	SAVE_STRING(L"Global",	L"SenderAddress",			wstrSenderAddress_					);
+	SAVE_STRING(L"Global",	L"ReplyTo",					wstrReplyTo_						);
 	SAVE_STRING(L"Send",	L"Host",					wstrHost_[Account::HOST_SEND]		);
 	SAVE_STRING(L"Receive",	L"Host",					wstrHost_[Account::HOST_RECEIVE]	);
 	SAVE_STRING(L"Send",	L"UserName",				wstrUserName_[Account::HOST_SEND]	);

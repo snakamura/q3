@@ -515,6 +515,7 @@ const qs::Profile::Default defaultAccountProfiles[] = {
 	{ L"Global",	L"IndexMaxSize",				L"-1"						},
 	{ L"Global",	L"LogTimeFormat",				L"%Y4/%M0/%D-%h:%m:%s%z"	},
 	{ L"Global",	L"MessageStorePath",			L""							},
+	{ L"Global",	L"ReplyTo",						L""							},
 	{ L"Global",	L"SenderAddress",				L""							},
 	{ L"Global",	L"SenderName",					L""							},
 	{ L"Global", 	L"ShowUnseenCountOnWelcome",	L"1"						},

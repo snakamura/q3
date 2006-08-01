@@ -409,6 +409,8 @@ public:
 	void setSenderName(const WCHAR* pwszName);
 	const WCHAR* getSenderAddress() const;
 	void setSenderAddress(const WCHAR* pwszAddress);
+	const WCHAR* getReplyTo() const;
+	void setReplyTo(const WCHAR* pwszReplyTo);
 	bool isSelf(const WCHAR* pwszMailbox,
 				const WCHAR* pwszHost) const;
 	bool isSelf(const qs::AddressListParser& address) const;

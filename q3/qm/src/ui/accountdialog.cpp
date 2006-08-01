@@ -1355,6 +1355,7 @@ LRESULT qm::AccountGeneralPage::onInitDialog(HWND hwndFocus,
 	setDlgItemText(IDC_SENDHOST, pSubAccount_->getHost(Account::HOST_SEND));
 	setDlgItemText(IDC_NAME, pSubAccount_->getSenderName());
 	setDlgItemText(IDC_ADDRESS, pSubAccount_->getSenderAddress());
+	setDlgItemText(IDC_REPLYTO, pSubAccount_->getReplyTo());
 	
 	if (!pReceiveUI_->isSupported(ReceiveSessionUI::SUPPORT_HOST))
 		Window(getDlgItem(IDC_RECEIVEHOST)).enableWindow(false);
@@ -1363,6 +1364,7 @@ LRESULT qm::AccountGeneralPage::onInitDialog(HWND hwndFocus,
 	if (!pSendUI_->isSupported(SendSessionUI::SUPPORT_USER)) {
 		Window(getDlgItem(IDC_NAME)).enableWindow(false);
 		Window(getDlgItem(IDC_ADDRESS)).enableWindow(false);
+		Window(getDlgItem(IDC_REPLYTO)).enableWindow(false);
 	}
 	
 	return TRUE;
@@ -1371,20 +1373,19 @@ LRESULT qm::AccountGeneralPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::AccountGeneralPage::onOk()
 {
 	wstring_ptr wstrReceiveHost(getDlgItemText(IDC_RECEIVEHOST));
-	if (wstrReceiveHost.get())
-		pSubAccount_->setHost(Account::HOST_RECEIVE, wstrReceiveHost.get());
+	pSubAccount_->setHost(Account::HOST_RECEIVE, wstrReceiveHost.get());
 	
 	wstring_ptr wstrSendHost(getDlgItemText(IDC_SENDHOST));
-	if (wstrSendHost.get())
-		pSubAccount_->setHost(Account::HOST_SEND, wstrSendHost.get());
+	pSubAccount_->setHost(Account::HOST_SEND, wstrSendHost.get());
 	
 	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
-	if (wstrName.get())
-		pSubAccount_->setSenderName(wstrName.get());
+	pSubAccount_->setSenderName(wstrName.get());
 	
 	wstring_ptr wstrAddress(getDlgItemText(IDC_ADDRESS));
-	if (wstrAddress.get())
-		pSubAccount_->setSenderAddress(wstrAddress.get());
+	pSubAccount_->setSenderAddress(wstrAddress.get());
+	
+	wstring_ptr wstrReplyTo(getDlgItemText(IDC_REPLYTO));
+	pSubAccount_->setReplyTo(wstrReplyTo.get());
 	
 	return DefaultPropertyPage::onOk();
 }
