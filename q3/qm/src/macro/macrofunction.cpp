@@ -1329,8 +1329,16 @@ MacroValuePtr qm::MacroFunctionDelete::value(MacroContext* pContext) const
 	if (!pContext->isFlag(MacroContext::FLAG_MODIFY))
 		return error(*pContext, MacroErrorHandler::CODE_NOTMODIFIABLE);
 	
-	if (!checkArgSize(pContext, 0))
+	if (!checkArgSizeRange(pContext, 0, 1))
 		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	bool bDirect = false;
+	if (nSize > 0) {
+		ARG(pValueDirect, 0);
+		bDirect = pValueDirect->boolean();
+	}
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
@@ -1341,7 +1349,9 @@ MacroValuePtr qm::MacroFunctionDelete::value(MacroContext* pContext) const
 	assert(pAccount->isLocked());
 	
 	MessageHolderList l(1, pmh->getMessageHolder());
-	if (!pAccount->removeMessages(l, 0, Account::OPFLAG_ACTIVE, 0, 0, 0))
+	unsigned int nFlags = Account::OPFLAG_ACTIVE |
+		(bDirect ? Account::REMOVEFLAG_DIRECT :0);
+	if (!pAccount->removeMessages(l, 0, nFlags, 0, 0, 0))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
 	// TODO
