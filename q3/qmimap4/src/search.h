@@ -58,8 +58,7 @@ public:
 	virtual int getIndex();
 	virtual const WCHAR* getName();
 	virtual qs::wstring_ptr getDisplayName();
-	virtual std::auto_ptr<qm::SearchPropertyPage> createPropertyPage(bool bAllFolder,
-																	 qm::SearchPropertyData* pData);
+	virtual std::auto_ptr<qm::SearchPropertyPage> createPropertyPage(qm::SearchPropertyData* pData);
 
 private:
 	Imap4SearchUI(const Imap4SearchUI&);
@@ -82,17 +81,12 @@ class Imap4SearchPage : public qm::SearchPropertyPage
 public:
 	Imap4SearchPage(qm::Account* pAccount,
 					qs::Profile* pProfile,
-					bool bAllFolderOnly,
 					qm::SearchPropertyData* pData);
 	virtual ~Imap4SearchPage();
 
 public:
 	virtual const WCHAR* getDriver() const;
 	virtual const WCHAR* getCondition() const;
-
-protected:
-	virtual void updateData(qm::SearchPropertyData* pData);
-	virtual void updateUI(const qm::SearchPropertyData* pData);
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -122,7 +116,6 @@ private:
 	qm::Account* pAccount_;
 	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrCondition_;
-	bool bAllFolderOnly_;
 };
 
 

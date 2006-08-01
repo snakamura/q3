@@ -280,6 +280,30 @@ private:
 	PasswordManager* pPasswordManager_;
 };
 
+
+/****************************************************************************
+ *
+ * FolderListComboBox
+ *
+ */
+
+class FolderListComboBox : public qs::Window
+{
+public:
+	FolderListComboBox(HWND hwnd);
+	~FolderListComboBox();
+
+public:
+	void addFolders(const Account* pAccount,
+					const Folder* pSelectFolder);
+	const Folder* getSelectedFolder() const;
+	void selectFolder(const Folder* pFolder);
+	
+private:
+	FolderListComboBox(const FolderListComboBox&);
+	FolderListComboBox& operator=(const FolderListComboBox&);
+};
+
 }
 
 #include "uiutil.inl"

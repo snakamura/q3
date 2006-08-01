@@ -181,11 +181,10 @@ wstring_ptr qm::FullTextSearchUI::getDisplayName()
 	return loadString(Application::getApplication().getResourceHandle(), IDS_TITLE_FULLTEXTSEARCH);
 }
 
-std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(bool bAllFolder,
-																		   SearchPropertyData* pData)
+std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(SearchPropertyData* pData)
 {
-	return std::auto_ptr<SearchPropertyPage>(new FullTextSearchPage(
-		pAccount_, pProfile_, bAllFolder, pData));
+	return std::auto_ptr<SearchPropertyPage>(
+		new FullTextSearchPage(pAccount_, pProfile_, pData));
 }
 
 
@@ -197,12 +196,11 @@ std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(bool 
 
 qm::FullTextSearchPage::FullTextSearchPage(Account* pAccount,
 										   Profile* pProfile,
-										   bool bAllFolderOnly,
 										   SearchPropertyData* pData) :
-	SearchPropertyPage(Application::getApplication().getResourceHandle(), IDD_FULLTEXTSEARCH, pData),
+	SearchPropertyPage(Application::getApplication().getResourceHandle(),
+		IDD_FULLTEXTSEARCH, IDC_CONDITION, IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
 	pAccount_(pAccount),
-	pProfile_(pProfile),
-	bAllFolderOnly_(bAllFolderOnly)
+	pProfile_(pProfile)
 {
 }
 
@@ -220,30 +218,6 @@ const WCHAR* qm::FullTextSearchPage::getCondition() const
 	return wstrCondition_.get();
 }
 
-void qm::FullTextSearchPage::updateData(SearchPropertyData* pData)
-{
-	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
-	pData->set(wstrCondition.get(),
-		sendDlgItemMessage(IDC_ALLFOLDER, BM_GETCHECK) == BST_CHECKED,
-		sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED,
-		sendDlgItemMessage(IDC_NEWFOLDER, BM_GETCHECK) == BST_CHECKED, getImeFlags());
-}
-
-void qm::FullTextSearchPage::updateUI(const SearchPropertyData* pData)
-{
-	if (pData->getCondition()) {
-		setDlgItemText(IDC_CONDITION, pData->getCondition());
-		
-		UINT nId = pData->isAllFolder() ? IDC_ALLFOLDER :
-			pData->isRecursive() ? IDC_RECURSIVE : IDC_CURRENT;
-		for (UINT n = IDC_CURRENT; n < IDC_CURRENT + 3; ++n)
-			sendDlgItemMessage(n, BM_SETCHECK, n == nId ? BST_CHECKED : BST_UNCHECKED);
-		
-		sendDlgItemMessage(IDC_NEWFOLDER, BM_SETCHECK, pData->isNewFolder() ? BST_CHECKED : BST_UNCHECKED);
-	}
-	setImeFlags(pData->getImeFlags());
-}
-
 LRESULT qm::FullTextSearchPage::onCommand(WORD nCode,
 										  WORD nId)
 {
@@ -256,6 +230,8 @@ LRESULT qm::FullTextSearchPage::onCommand(WORD nCode,
 LRESULT qm::FullTextSearchPage::onInitDialog(HWND hwndFocus,
 											 LPARAM lParam)
 {
+	SearchPropertyPage::onInitDialog(hwndFocus, lParam);
+	
 	History history(pProfile_, L"Search");
 	for (unsigned int n = 0; n < history.getSize(); ++n) {
 		wstring_ptr wstr(history.getValue(n));
@@ -267,11 +243,6 @@ LRESULT qm::FullTextSearchPage::onInitDialog(HWND hwndFocus,
 	}
 	if (sendDlgItemMessage(IDC_CONDITION, CB_GETCOUNT) != 0)
 		sendDlgItemMessage(IDC_CONDITION, CB_SETCURSEL, 0);
-	
-	if (bAllFolderOnly_) {
-		Window(getDlgItem(IDC_CURRENT)).enableWindow(false);
-		Window(getDlgItem(IDC_RECURSIVE)).enableWindow(false);
-	}
 	
 	return TRUE;
 }

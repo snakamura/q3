@@ -15,6 +15,8 @@
 #include <qsstl.h>
 #include <qsuiutil.h>
 
+#include "../ui/uiutil.h"
+
 using namespace qm;
 using namespace qs;
 
@@ -53,9 +55,10 @@ qm::SearchUI::~SearchUI()
 
 struct qm::SearchPropertyDataImpl
 {
+	const Account* pAccount_;
+	const Folder* pFolder_;
 	Profile* pProfile_;
 	wstring_ptr wstrCondition_;
-	bool bAllFolder_;
 	bool bRecursive_;
 	bool bNewFolder_;
 	unsigned int nImeFlags_;
@@ -68,24 +71,36 @@ struct qm::SearchPropertyDataImpl
  *
  */
 
-qm::SearchPropertyData::SearchPropertyData(Profile* pProfile,
-										   bool bAllFolderOnly) :
+qm::SearchPropertyData::SearchPropertyData(const Account* pAccount,
+										   const Folder* pFolder,
+										   Profile* pProfile) :
 	pImpl_(0)
 {
+	assert(pAccount);
+	assert(pProfile);
+	
+	bool bForceRecursive = false;
+	if (pFolder && pFolder->getType() == Folder::TYPE_QUERY) {
+		const QueryFolder* pQueryFolder = static_cast<const QueryFolder*>(pFolder);
+		const WCHAR* pwszTarget = pQueryFolder->getTargetFolder();
+		pFolder = pwszTarget ? pAccount->getFolder(pwszTarget) : 0;
+		if (pFolder)
+			bForceRecursive = pQueryFolder->isRecursive();
+	}
+	
 	pImpl_ = new SearchPropertyDataImpl();
+	pImpl_->pAccount_ = pAccount;
+	pImpl_->pFolder_ = pFolder;
 	pImpl_->pProfile_ = pProfile;
 	
 	pImpl_->wstrCondition_ = pProfile->getString(L"Search", L"Condition");
 	
-	if (bAllFolderOnly) {
-		pImpl_->bAllFolder_ = true;
+	if (!pFolder)
 		pImpl_->bRecursive_ = false;
-	}
-	else {
-		int nFolder = pProfile->getInt(L"Search", L"Folder");
-		pImpl_->bAllFolder_ = nFolder == 2;
-		pImpl_->bRecursive_ = nFolder == 1;
-	}
+	else if (bForceRecursive)
+		pImpl_->bRecursive_ = true;
+	else
+		pImpl_->bRecursive_ = pProfile->getInt(L"Search", L"Recursive") != 0;
 	
 	pImpl_->bNewFolder_ = pProfile->getInt(L"Search", L"NewFolder") != 0;
 	pImpl_->nImeFlags_ = pProfile->getInt(L"Search", L"Ime");
@@ -101,9 +116,14 @@ const WCHAR* qm::SearchPropertyData::getCondition() const
 	return pImpl_->wstrCondition_.get();
 }
 
-bool qm::SearchPropertyData::isAllFolder() const
+const Account* qm::SearchPropertyData::getAccount() const
 {
-	return pImpl_->bAllFolder_;
+	return pImpl_->pAccount_;
+}
+
+const Folder* qm::SearchPropertyData::getFolder() const
+{
+	return pImpl_->pFolder_;
 }
 
 bool qm::SearchPropertyData::isRecursive() const
@@ -122,13 +142,13 @@ unsigned int qm::SearchPropertyData::getImeFlags() const
 }
 
 void qm::SearchPropertyData::set(const WCHAR* pwszCondition,
-								 bool bAllFolder,
+								 const Folder* pFolder,
 								 bool bRecursive,
 								 bool bNewFolder,
 								 unsigned int nImeFlags)
 {
 	pImpl_->wstrCondition_ = allocWString(pwszCondition);
-	pImpl_->bAllFolder_ = bAllFolder;
+	pImpl_->pFolder_ = pFolder;
 	pImpl_->bRecursive_ = bRecursive;
 	pImpl_->bNewFolder_ = bNewFolder;
 	pImpl_->nImeFlags_ = nImeFlags;
@@ -137,8 +157,7 @@ void qm::SearchPropertyData::set(const WCHAR* pwszCondition,
 void qm::SearchPropertyData::save() const
 {
 	pImpl_->pProfile_->setString(L"Search", L"Condition", pImpl_->wstrCondition_.get());
-	pImpl_->pProfile_->setInt(L"Search", L"Folder",
-		pImpl_->bAllFolder_ ? 2 : pImpl_->bRecursive_ ? 1 : 0);
+	pImpl_->pProfile_->setInt(L"Search", L"Recursive", pImpl_->bRecursive_);
 	pImpl_->pProfile_->setInt(L"Search", L"NewFolder", pImpl_->bNewFolder_);
 	pImpl_->pProfile_->setInt(L"Search", L"Ime", pImpl_->nImeFlags_);
 }
@@ -152,8 +171,16 @@ void qm::SearchPropertyData::save() const
 
 qm::SearchPropertyPage::SearchPropertyPage(HINSTANCE hInst,
 										   UINT nId,
+										   UINT nConditionId,
+										   UINT nFolderId,
+										   UINT nRecursiveId,
+										   UINT nNewFolderId,
 										   SearchPropertyData* pData) :
 	DefaultPropertyPage(hInst, nId),
+	nConditionId_(nConditionId),
+	nFolderId_(nFolderId),
+	nRecursiveId_(nRecursiveId),
+	nNewFolderId_(nNewFolderId),
 	pData_(pData)
 {
 }
@@ -172,13 +199,46 @@ LRESULT qm::SearchPropertyPage::onNotify(NMHDR* pnmhdr,
 	return DefaultPropertyPage::onNotify(pnmhdr, pbHandled);
 }
 
+LRESULT qm::SearchPropertyPage::onInitDialog(HWND hwndFocus,
+											 LPARAM lParam)
+{
+	FolderListComboBox(getDlgItem(nFolderId_)).addFolders(
+		pData_->getAccount(), pData_->getFolder());
+	Button_SetCheck(getDlgItem(nRecursiveId_),
+		pData_->isRecursive() ? BST_CHECKED : BST_UNCHECKED);
+	
+	return TRUE;
+}
+
+void qm::SearchPropertyPage::updateData(SearchPropertyData* pData)
+{
+	wstring_ptr wstrCondition = getDlgItemText(nConditionId_);
+	const Folder* pFolder = FolderListComboBox(getDlgItem(nFolderId_)).getSelectedFolder();
+	bool bRecursive = Button_GetCheck(getDlgItem(nRecursiveId_)) == BST_CHECKED;
+	bool bNewFolder = Button_GetCheck(getDlgItem(nNewFolderId_)) == BST_CHECKED;
+	pData->set(wstrCondition.get(), pFolder, bRecursive, bNewFolder, getImeFlags());
+}
+
+void qm::SearchPropertyPage::updateUI(const SearchPropertyData* pData)
+{
+	if (pData->getCondition()) {
+		setDlgItemText(nConditionId_, pData->getCondition());
+		FolderListComboBox(getDlgItem(nFolderId_)).selectFolder(pData->getFolder());
+		Button_SetCheck(getDlgItem(nRecursiveId_),
+			pData->isRecursive() ? BST_CHECKED : BST_UNCHECKED);
+		Button_SetCheck(getDlgItem(nNewFolderId_),
+			pData->isNewFolder() ? BST_CHECKED : BST_UNCHECKED);
+	}
+	setImeFlags(pData->getImeFlags());
+}
+
 unsigned int qm::SearchPropertyPage::getImeFlags() const
 {
 	unsigned int nFlags = SearchPropertyData::IMEFLAG_NONE;
-	if (UIUtil::isImeEnabled(getHandle()))
+	if (qs::UIUtil::isImeEnabled(getHandle()))
 		nFlags |= SearchPropertyData::IMEFLAG_IME;
 #ifdef _WIN32_WCE_PSPC
-	if (UIUtil::isSipEnabled())
+	if (qs::UIUtil::isSipEnabled())
 		nFlags |= SearchPropertyData::IMEFLAG_SIP;
 #endif
 	return nFlags;
@@ -186,9 +246,9 @@ unsigned int qm::SearchPropertyPage::getImeFlags() const
 
 void qm::SearchPropertyPage::setImeFlags(unsigned int nFlags)
 {
-	UIUtil::setImeEnabled(getHandle(), (nFlags & SearchPropertyData::IMEFLAG_IME) != 0);
+	qs::UIUtil::setImeEnabled(getHandle(), (nFlags & SearchPropertyData::IMEFLAG_IME) != 0);
 #ifdef _WIN32_WCE_PSPC
-	UIUtil::setSipEnabled((nFlags & SearchPropertyData::IMEFLAG_SIP) != 0);
+	qs::UIUtil::setSipEnabled((nFlags & SearchPropertyData::IMEFLAG_SIP) != 0);
 #endif
 }
 

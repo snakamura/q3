@@ -4951,13 +4951,12 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	
 	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page"));
 	
-	bool bAllFolderOnly = pFolder == 0;
-	SearchPropertyData data(pProfile_, bAllFolderOnly);
+	SearchPropertyData data(pAccount, pFolder, pProfile_);
 	int nStartPage = 0;
 	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
 	for (UIList::size_type n = 0; n < listUI.size(); ++n) {
 		std::auto_ptr<SearchPropertyPage> pPage(
-			listUI[n].first->createPropertyPage(bAllFolderOnly, &data));
+			listUI[n].first->createPropertyPage(&data));
 		listUI[n].second = pPage.release();
 		sheet.add(listUI[n].second);
 		if (wcscmp(listUI[n].second->getDriver(), wstrStartName.get()) == 0)
@@ -4983,8 +4982,8 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 		WaitCursor cursor;
 		
 		wstring_ptr wstrFolder;
-		if (!data.isAllFolder())
-			wstrFolder = pFolder->getFullName();
+		if (data.getFolder())
+			wstrFolder = data.getFolder()->getFullName();
 		
 		if (data.isNewFolder()) {
 			wstring_ptr wstrName(allocWString(data.getCondition()));

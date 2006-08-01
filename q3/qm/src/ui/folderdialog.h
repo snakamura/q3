@@ -149,7 +149,6 @@ private:
 	QueryFolder* pFolder_;
 	qs::Profile* pProfile_;
 	UIList listUI_;
-	Account::FolderList listFolder_;
 };
 
 

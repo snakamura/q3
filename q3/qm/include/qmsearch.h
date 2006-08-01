@@ -64,8 +64,7 @@ public:
 	virtual int getIndex() = 0;
 	virtual const WCHAR* getName() = 0;
 	virtual qs::wstring_ptr getDisplayName() = 0;
-	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(bool bAllFolder,
-																 SearchPropertyData* pData) = 0;
+	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(SearchPropertyData* pData) = 0;
 };
 
 
@@ -85,18 +84,20 @@ public:
 	};
 
 public:
-	SearchPropertyData(qs::Profile* pProfile,
-					   bool bAllFolderOnly);
+	SearchPropertyData(const Account* pAccount,
+					   const Folder* pFolder,
+					   qs::Profile* pProfile);
 	~SearchPropertyData();
 
 public:
 	const WCHAR* getCondition() const;
-	bool isAllFolder() const;
+	const Account* getAccount() const;
+	const Folder* getFolder() const;
 	bool isRecursive() const;
 	bool isNewFolder() const;
 	unsigned int getImeFlags() const;
 	void set(const WCHAR* pwszCondition,
-			 bool bAllFolder,
+			 const Folder* pFolder,
 			 bool bRecursive,
 			 bool bNewFolder,
 			 unsigned int nImeFlags);
@@ -122,6 +123,10 @@ class QMEXPORTCLASS SearchPropertyPage : public qs::DefaultPropertyPage
 protected:
 	SearchPropertyPage(HINSTANCE hInst,
 					   UINT nId,
+					   UINT nConditionId,
+					   UINT nFolderId,
+					   UINT nRecursiveId,
+					   UINT nNewFolderId,
 					   SearchPropertyData* pData);
 
 public:
@@ -131,13 +136,17 @@ public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr,
 							 bool* pbHandled);
 
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
 public:
 	virtual const WCHAR* getDriver() const = 0;
 	virtual const WCHAR* getCondition() const = 0;
 
 protected:
-	virtual void updateData(SearchPropertyData* pData) = 0;
-	virtual void updateUI(const SearchPropertyData* pData) = 0;
+	virtual void updateData(SearchPropertyData* pData);
+	virtual void updateUI(const SearchPropertyData* pData);
 
 protected:
 	unsigned int getImeFlags() const;
@@ -155,6 +164,10 @@ private:
 
 private:
 	SearchPropertyData* pData_;
+	UINT nConditionId_;
+	UINT nFolderId_;
+	UINT nRecursiveId_;
+	UINT nNewFolderId_;
 };
 
 

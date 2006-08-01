@@ -63,8 +63,7 @@ public:
 	virtual int getIndex();
 	virtual const WCHAR* getName();
 	virtual qs::wstring_ptr getDisplayName();
-	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(bool bAllFolder,
-																 SearchPropertyData* pData);
+	virtual std::auto_ptr<SearchPropertyPage> createPropertyPage(SearchPropertyData* pData);
 
 private:
 	MacroSearchUI(const MacroSearchUI&);
@@ -85,17 +84,12 @@ class MacroSearchPage : public SearchPropertyPage
 {
 public:
 	MacroSearchPage(qs::Profile* pProfile,
-					bool bAllFolderOnly,
 					SearchPropertyData* pData);
 	virtual ~MacroSearchPage();
 
 public:
 	virtual const WCHAR* getDriver() const;
 	virtual const WCHAR* getCondition() const;
-
-protected:
-	virtual void updateData(SearchPropertyData* pData);
-	virtual void updateUI(const SearchPropertyData* pData);
 
 public:
 	virtual LRESULT onCommand(WORD nCode,
@@ -128,7 +122,6 @@ private:
 private:
 	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrCondition_;
-	bool bAllFolderOnly_;
 };
 
 

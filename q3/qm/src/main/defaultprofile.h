@@ -447,11 +447,11 @@ const qs::Profile::Default defaultProfiles[] = {
 #endif
 	
 	{ L"Search",	L"Condition",	L""		},
-	{ L"Search",	L"Folder",		L"0"	},
 	{ L"Search",	L"HistorySize",	L"10"	},
 	{ L"Search",	L"Ime",			L"0"	},
 	{ L"Search",	L"NewFolder",	L"0"	},
 	{ L"Search",	L"Page",		L""		},
+	{ L"Search",	L"Recursive",	L"0"	},
 	
 	{ L"Security",	L"DefaultMessageSecurity",	L"4112"	}, /*MESSAGESECURITY_SMIMEMULTIPARTSIGNED | MESSAGESECURITY_PGPMIME*/
 	{ L"Security",	L"LoadSystemStore",			L"1"	},

@@ -204,9 +204,7 @@
 #define IDC_SHOWHIDDEN                  1125
 #define IDC_IGNOREUNSEEN                1126
 #define IDC_CONDITION                   1127
-#define IDC_CURRENT                     1128
 #define IDC_RECURSIVE                   1129
-#define IDC_ALLFOLDER                   1130
 #define IDC_SEARCHBODY                  1131
 #define IDC_DRIVER                      1133
 #define IDC_FILTER                      1134
@@ -417,7 +415,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        224
+#define _APS_NEXT_RESOURCE_VALUE        226
 #define _APS_NEXT_COMMAND_VALUE         49000
 #define _APS_NEXT_CONTROL_VALUE         1464
 #define _APS_NEXT_SYMED_VALUE           101

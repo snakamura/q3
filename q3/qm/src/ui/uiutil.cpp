@@ -772,3 +772,86 @@ void qm::DefaultPasswordCallback::setPassword(SubAccount* pSubAccount,
 	AccountPasswordCondition condition(pAccount, pSubAccount, host);
 	pPasswordManager_->setPassword(condition, pwszPassword, bPermanent);
 }
+
+
+/****************************************************************************
+ *
+ * FolderListComboBox
+ *
+ */
+
+qm::FolderListComboBox::FolderListComboBox(HWND hwnd) :
+	Window(hwnd)
+{
+}
+
+qm::FolderListComboBox::~FolderListComboBox()
+{
+}
+
+void qm::FolderListComboBox::addFolders(const Account* pAccount,
+										const Folder* pSelectFolder)
+{
+	assert(pAccount);
+	
+	HWND hwnd = getHandle();
+	
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	wstring_ptr wstrAllFolder(loadString(hInst, IDS_ALLFOLDER));
+	W2T(wstrAllFolder.get(), ptszAllFolder);
+	ComboBox_AddString(hwnd, ptszAllFolder);
+	
+	Account::FolderList l(pAccount->getFolders());
+	std::sort(l.begin(), l.end(), FolderLess());
+	
+	int nSelectIndex = 0;
+	for (Account::FolderList::size_type n = 0; n < l.size(); ++n) {
+		Folder* pFolder = l[n];
+		
+		unsigned int nLevel = pFolder->getLevel();
+		StringBuffer<WSTRING> buf;
+		while (nLevel != 0) {
+			buf.append(L"  ");
+			--nLevel;
+		}
+		buf.append(pFolder->getName());
+		
+		W2T(buf.getCharArray(), ptszName);
+		int nIndex = ComboBox_AddString(hwnd, ptszName);
+		ComboBox_SetItemData(hwnd, nIndex, pFolder);
+		
+		if (pSelectFolder == pFolder)
+			nSelectIndex = static_cast<int>(n) + 1;
+	}
+	ComboBox_SetCurSel(hwnd, nSelectIndex);
+}
+
+const Folder* qm::FolderListComboBox::getSelectedFolder() const
+{
+	HWND hwnd = getHandle();
+	
+	int nIndex = ComboBox_GetCurSel(hwnd);
+	if (nIndex == 0 || nIndex == CB_ERR)
+		return 0;
+	return reinterpret_cast<const Folder*>(ComboBox_GetItemData(hwnd, nIndex));
+}
+
+void qm::FolderListComboBox::selectFolder(const Folder* pFolder)
+{
+	HWND hwnd = getHandle();
+	
+	int nItem = 0;
+	if (pFolder) {
+		int nCount = ComboBox_GetCount(hwnd);
+		while (nItem < nCount) {
+			const Folder* p = reinterpret_cast<const Folder*>(
+				ComboBox_GetItemData(hwnd, nItem));
+			if (p == pFolder)
+				break;
+			++nItem;
+		}
+		if (nItem == nCount)
+			return;
+	}
+	ComboBox_SetCurSel(hwnd, nItem);
+}

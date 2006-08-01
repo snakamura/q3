@@ -13,6 +13,7 @@
 
 #include "folderdialog.h"
 #include "resourceinc.h"
+#include "uiutil.h"
 
 using namespace qm;
 using namespace qs;
@@ -322,9 +323,9 @@ LRESULT qm::FolderConditionPage::onOk()
 	wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
 	
 	wstring_ptr wstrTargetFolder;
-	int nFolder = ComboBox_GetCurSel(getDlgItem(IDC_FOLDER));
-	if (nFolder != 0)
-		wstrTargetFolder = listFolder_[nFolder - 1]->getFullName();
+	const Folder* pFolder = FolderListComboBox(getDlgItem(IDC_FOLDER)).getSelectedFolder();
+	if (pFolder)
+		wstrTargetFolder = pFolder->getFullName();
 	
 	bool bRecursive = sendDlgItemMessage(IDC_RECURSIVE, BM_GETCHECK) == BST_CHECKED;
 	
@@ -365,40 +366,12 @@ void qm::FolderConditionPage::initDriver()
 
 void qm::FolderConditionPage::initFolder()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrAllFolder(loadString(hInst, IDS_ALLFOLDER));
-	W2T(wstrAllFolder.get(), ptszAllFolder);
-	ComboBox_AddString(getDlgItem(IDC_FOLDER), ptszAllFolder);
-	
 	Account* pAccount = pFolder_->getAccount();
-	const Account::FolderList& l = pAccount->getFolders();
-	listFolder_.assign(l.begin(), l.end());
-	std::sort(listFolder_.begin(), listFolder_.end(), FolderLess());
-	
-	Folder* pTargetFolder = 0;
+	Folder* pFolder = 0;
 	const WCHAR* pwszTargetFolder = pFolder_->getTargetFolder();
 	if (pwszTargetFolder)
-		pTargetFolder = pAccount->getFolder(pwszTargetFolder);
-	
-	int nIndex = 0;
-	for (Account::FolderList::size_type n = 0; n < listFolder_.size(); ++n) {
-		Folder* pFolder = listFolder_[n];
-		
-		unsigned int nLevel = pFolder->getLevel();
-		StringBuffer<WSTRING> buf;
-		while (nLevel != 0) {
-			buf.append(L"  ");
-			--nLevel;
-		}
-		buf.append(pFolder->getName());
-		
-		W2T(buf.getCharArray(), ptszName);
-		ComboBox_AddString(getDlgItem(IDC_FOLDER), ptszName);
-		
-		if (pTargetFolder == pFolder)
-			nIndex = static_cast<int>(n) + 1;
-	}
-	ComboBox_SetCurSel(getDlgItem(IDC_FOLDER), nIndex);
+		pFolder = pAccount->getFolder(pwszTargetFolder);
+	FolderListComboBox(getDlgItem(IDC_FOLDER)).addFolders(pAccount, pFolder);
 }
 
 

@@ -15,12 +15,11 @@
 #define IDC_SEARCHBODY                  1013
 #define IDC_IMAP4COMMAND                1014
 #define IDC_PERSONAL                    1015
+#define IDC_FOLDER                      1015
 #define IDC_OTHERS                      1016
 #define IDC_SHARED                      1017
 #define IDC_CONDITION                   1127
-#define IDC_CURRENT                     1128
 #define IDC_RECURSIVE                   1129
-#define IDC_ALLFOLDER                   1130
 #define IDC_NEWFOLDER                   1131
 
 // Next default values for new objects
