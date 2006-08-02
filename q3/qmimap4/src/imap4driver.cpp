@@ -68,11 +68,9 @@ qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
 								  PasswordCallback* pPasswordCallback,
 								  const Security* pSecurity) :
 	pAccount_(pAccount),
-	pPasswordCallback_(pPasswordCallback),
-	pSecurity_(pSecurity),
-	pSubAccount_(0),
-	bOffline_(true)
+	nOption_(0)
 {
+	pSessionCache_.reset(new SessionCache(pAccount, pPasswordCallback, pSecurity));
 	pOfflineJobManager_.reset(new OfflineJobManager(pAccount_->getPath()));
 }
 
@@ -94,30 +92,19 @@ bool qmimap4::Imap4Driver::isSupport(Account::Support support)
 
 void qmimap4::Imap4Driver::setOffline(bool bOffline)
 {
-	Lock<CriticalSection> lock(cs_);
-	
-	if (!bOffline_ && bOffline)
-		pSessionCache_.reset(0);
-	
-	bOffline_ = bOffline;
+	pSessionCache_->setOffline(bOffline);
 }
 
 void qmimap4::Imap4Driver::setSubAccount(SubAccount* pSubAccount)
 {
-	Lock<CriticalSection> lock(cs_);
-	
-	if (pSubAccount_ != pSubAccount) {
-		pSubAccount_ = pSubAccount;
-		pSessionCache_.reset(0);
-	}
+	pSessionCache_->setSubAccount(pSubAccount);
+	nOption_ = pSubAccount->getPropertyInt(L"Imap4", L"Option");
 }
 
 std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwszName,
 															   Folder* pParent)
 {
 	assert(pwszName);
-	
-	Lock<CriticalSection> lock(cs_);
 	
 	wstring_ptr wstrRootFolder(pAccount_->getPropertyString(L"Imap4", L"RootFolder"));
 	wstring_ptr wstrRootFolderSeparator(pAccount_->getPropertyString(L"Imap4", L"RootFolderSeparator"));
@@ -219,8 +206,6 @@ bool qmimap4::Imap4Driver::removeFolder(NormalFolder* pFolder)
 {
 	assert(pFolder);
 	
-	Lock<CriticalSection> lock(cs_);
-	
 	if (!prepareSessionCache(true))
 		return false;
 	
@@ -243,8 +228,6 @@ bool qmimap4::Imap4Driver::renameFolder(NormalFolder* pFolder,
 {
 	assert(pFolder);
 	assert(pwszName);
-	
-	Lock<CriticalSection> lock(cs_);
 	
 	if (!prepareSessionCache(true))
 		return false;
@@ -274,8 +257,6 @@ bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
 									  const WCHAR* pwszName)
 {
 	assert(pFolder);
-	
-	Lock<CriticalSection> lock(cs_);
 	
 	if (!pwszName)
 		pwszName = pFolder->getName();
@@ -318,9 +299,8 @@ bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 {
 	assert(pList);
 	
-	Lock<CriticalSection> lock(cs_);
-	
-	FolderListGetter getter(pAccount_, pSubAccount_, pPasswordCallback_, pSecurity_);
+	FolderListGetter getter(pAccount_, pSessionCache_->getSubAccount(),
+		pSessionCache_->getPasswordCallback(), pSessionCache_->getSecurity());
 	if (!getter.update())
 		return false;
 	getter.getFolders(pList);
@@ -347,12 +327,8 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	assert(!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL));
 	assert(!pmh->isFlag(MessageHolder::FLAG_LOCAL));
 	
-	Lock<CriticalSection> lock(cs_);
-	
-	if (bOffline_)
+	if (pSessionCache_->isOffline())
 		return true;
-	
-	unsigned int nOption = pSubAccount_->getPropertyInt(L"Imap4", L"Option");
 	
 	if (!prepareSessionCache(false))
 		return false;
@@ -591,11 +567,11 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				Util::getFetchArgFromPartList(listPart,
 					bHtml ? Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
 					(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0,
-					(nOption & OPTION_TRUSTBODYSTRUCTURE) == 0,
+					(nOption_ & OPTION_TRUSTBODYSTRUCTURE) == 0,
 					&strArg, &nPartCount, &bAll);
 				
 				BodyListProcessHook hook(pmh->getId(), pBodyStructure,
-					listPart, nPartCount, bHtml, pmh, nOption, pCallback);
+					listPart, nPartCount, bHtml, pmh, nOption_, pCallback);
 				Hook h(cacher.getCallback(), &hook);
 				
 				if (!pImap4->fetch(range, strArg.get()))
@@ -653,7 +629,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 	if (listUpdate.empty())
 		return true;
 	
-	if (bOffline_) {
+	if (pSessionCache_->isOffline()) {
 		Util::UidList listUid;
 		Util::createUidList(listUpdate, &listUid);
 		
@@ -669,8 +645,6 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 	}
 	else {
 		std::auto_ptr<MultipleRange> pRange(Util::createRange(listUpdate));
-		
-		Lock<CriticalSection> lock(cs_);
 		
 		if (!prepareSessionCache(false))
 			return false;
@@ -745,7 +719,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 		}
 	}
 	
-	if (bOffline_) {
+	if (pSessionCache_->isOffline()) {
 		Util::UidList listUid;
 		Util::createUidList(l, &listUid);
 		
@@ -758,8 +732,6 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 		}
 	}
 	else {
-		Lock<CriticalSection> lock(cs_);
-		
 		if (!prepareSessionCache(false))
 			return false;
 		
@@ -801,7 +773,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 	assert(pAccount_->isLocked());
 	assert(pszMessage);
 	
-	if (bOffline_) {
+	if (pSessionCache_->isOffline()) {
 		MessageHolder* pmh = pAccount_->storeMessage(pFolder,
 			pszMessage, nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL,
 			pwszLabel, -1, Account::STOREFLAG_NONE, 0);
@@ -814,8 +786,6 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 		pOfflineJobManager_->add(pJob);
 	}
 	else {
-		Lock<CriticalSection> lock(cs_);
-		
 		if (!prepareSessionCache(false))
 			return false;
 		
@@ -896,7 +866,7 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 	if (listUpdate.empty())
 		return true;
 	
-	if (bOffline_) {
+	if (pSessionCache_->isOffline()) {
 		CopyOfflineJob::ItemList listItemTo;
 		listItemTo.reserve(listUpdate.size());
 		
@@ -930,8 +900,6 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 	else {
 		std::auto_ptr<MultipleRange> pRange(Util::createRange(listUpdate));
 		
-		Lock<CriticalSection> lock(cs_);
-		
 		if (!prepareSessionCache(false))
 			return false;
 		
@@ -960,9 +928,7 @@ bool qmimap4::Imap4Driver::prepareFolder(NormalFolder* pFolder)
 	assert(pFolder);
 	assert(!pFolder->isFlag(Folder::FLAG_LOCAL));
 	
-	Lock<CriticalSection> lock(cs_);
-	
-	if (bOffline_)
+	if (pSessionCache_->isOffline())
 		return true;
 	
 	if (!prepareSessionCache(false))
@@ -988,9 +954,7 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 	assert(pwszCondition);
 	assert(pList);
 	
-	if (!bOffline_) {
-		Lock<CriticalSection> lock(cs_);
-		
+	if (!pSessionCache_->isOffline()) {
 		if (!prepareSessionCache(false))
 			return false;
 		
@@ -1045,12 +1009,7 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 bool qmimap4::Imap4Driver::prepareSessionCache(bool bClear)
 {
 	if (bClear)
-		pSessionCache_.reset(0);
-	
-	if (!pSessionCache_.get())
-		pSessionCache_.reset(new SessionCache(pAccount_, pSubAccount_,
-			pPasswordCallback_, pSecurity_));
-	
+		pSessionCache_->destroyAllSessions();
 	return true;
 }
 
@@ -1437,20 +1396,6 @@ qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
 
 qmimap4::FolderListGetter::~FolderListGetter()
 {
-	if (pImap4_.get()) {
-		pImap4_->disconnect();
-		pImap4_.reset(0);
-	}
-	
-	std::for_each(listNamespace_.begin(), listNamespace_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<NamespaceList::value_type>()));
-	std::for_each(listFolderData_.begin(), listFolderData_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			mem_data_ref(&FolderData::wstrMailbox_)));
-	
 	for (FolderInfoList::const_iterator it = listFolderInfo_.begin(); it != listFolderInfo_.end(); ++it) {
 		if ((*it).bNew_)
 			delete (*it).pFolder_;
@@ -1462,7 +1407,39 @@ qmimap4::FolderListGetter::~FolderListGetter()
 
 bool qmimap4::FolderListGetter::update()
 {
-	return connect() && listNamespaces() && listFolders();
+	std::auto_ptr<qs::Logger> pLogger;
+	if (pSubAccount_->isLog(Account::HOST_RECEIVE))
+		pLogger = pAccount_->openLogger(Account::HOST_RECEIVE);
+	std::auto_ptr<CallbackImpl> pCallback(new CallbackImpl(
+		this, pPasswordCallback_, pSecurity_));
+	std::auto_ptr<Imap4> pImap4(new Imap4(pSubAccount_->getTimeout(),
+		pCallback.get(), pCallback.get(), pCallback.get(), pLogger.get()));
+	Imap4::Secure secure = Util::getSecure(pSubAccount_);
+	if (!pImap4->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
+		pSubAccount_->getPort(Account::HOST_RECEIVE), secure))
+		return false;
+	
+	NamespaceList listNamespace;
+	struct Deleter
+	{
+		Deleter(NamespaceList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			std::for_each(l_.begin(), l_.end(),
+				unary_compose_f_gx(
+					string_free<WSTRING>(),
+					std::select1st<FolderListGetter::NamespaceList::value_type>()));
+		}
+		
+		NamespaceList& l_;
+	} deleter(listNamespace);
+	if (!listNamespaces(pImap4.get(), pCallback.get(), &listNamespace))
+		return false;
+	return listFolders(pImap4.get(), pCallback.get(), listNamespace);
 }
 
 void qmimap4::FolderListGetter::getFolders(Imap4Driver::RemoteFolderList* pList)
@@ -1478,67 +1455,76 @@ void qmimap4::FolderListGetter::getFolders(Imap4Driver::RemoteFolderList* pList)
 	listFolderInfo_.clear();
 }
 
-bool qmimap4::FolderListGetter::connect()
+bool qmimap4::FolderListGetter::listNamespaces(Imap4* pImap4,
+											   CallbackImpl* pCallback,
+											   NamespaceList* pListNamespace)
 {
-	pCallback_.reset(new CallbackImpl(this, pPasswordCallback_, pSecurity_));
-	
-	if (pSubAccount_->isLog(Account::HOST_RECEIVE))
-		pLogger_ = pAccount_->openLogger(Account::HOST_RECEIVE);
-	
-	pImap4_.reset(new Imap4(pSubAccount_->getTimeout(), pCallback_.get(),
-		pCallback_.get(), pCallback_.get(), pLogger_.get()));
-	
-	Imap4::Secure secure = Util::getSecure(pSubAccount_);
-	return pImap4_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE), secure);
-}
-
-bool qmimap4::FolderListGetter::listNamespaces()
-{
-	pCallback_->setNamespaceList(&listNamespace_);
+	pCallback->setNamespaceList(pListNamespace);
 	
 	bool bUseNamespace = pSubAccount_->getPropertyInt(L"Imap4", L"UseNamespace") &&
-		pImap4_->getCapability() & Imap4::CAPABILITY_NAMESPACE;
+		pImap4->getCapability() & Imap4::CAPABILITY_NAMESPACE;
 	if (bUseNamespace) {
-		if (!pImap4_->namespaceList())
+		if (!pImap4->namespaceList())
 			return false;
 	}
 	else {
-		if (!pImap4_->list(false, L"", L""))
+		if (!pImap4->list(false, L"", L""))
 			return false;
 	}
 	
-	if (pFolderUtil_->isRootFolderSpecified() && !listNamespace_.empty()) {
+	if (pFolderUtil_->isRootFolderSpecified() && !pListNamespace->empty()) {
 		wstring_ptr wstrInbox(allocWString(L"Inbox"));
-		listNamespace_.push_back(std::make_pair(
-			wstrInbox.get(), listNamespace_.front().second));
+		pListNamespace->push_back(std::make_pair(
+			wstrInbox.get(), pListNamespace->front().second));
 		wstrInbox.release();
 	}
 	
 	return true;
 }
 
-bool qmimap4::FolderListGetter::listFolders()
+bool qmimap4::FolderListGetter::listFolders(Imap4* pImap4,
+											CallbackImpl* pCallback,
+											const NamespaceList& listNamespace)
 {
-	pCallback_->setFolderDataList(&listFolderData_);
+	FolderDataList listFolderData;
+	struct Deleter
+	{
+		Deleter(FolderDataList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+//			std::for_each(l_.begin(), l_.end(),
+//				boost::bind(string_free<WSTRING>(),
+//					boost::bind(&FolderData::wstrMailbox_, _1)));
+			for (FolderListGetter::FolderDataList::iterator it = l_.begin(); it != l_.end(); ++it)
+				freeWString((*it).wstrMailbox_);
+		}
+		
+		FolderDataList& l_;
+	} deleter(listFolderData);
+	pCallback->setFolderDataList(&listFolderData);
 	
-	for (NamespaceList::iterator itNS = listNamespace_.begin(); itNS != listNamespace_.end(); ++itNS) {
+	for (NamespaceList::const_iterator itNS = listNamespace.begin(); itNS != listNamespace.end(); ++itNS) {
 		if (*(*itNS).first) {
-			if (!pImap4_->list(false, L"", (*itNS).first))
+			if (!pImap4->list(false, L"", (*itNS).first))
 				return false;
 		}
-		if (!pImap4_->list(false, (*itNS).first, L"*"))
+		if (!pImap4->list(false, (*itNS).first, L"*"))
 			return false;
 	}
 	
-	std::sort(listFolderData_.begin(), listFolderData_.end(), FolderDataLess());
+	std::sort(listFolderData.begin(), listFolderData.end(), FolderDataLess());
 	
-	listFolderInfo_.reserve(listFolderData_.size());
+	listFolderInfo_.reserve(listFolderData.size());
 	unsigned int nId = pAccount_->generateFolderId();
-	for (FolderDataList::iterator itFD = listFolderData_.begin(); itFD != listFolderData_.end(); ++itFD) {
-		const FolderData& data = *itFD;
-		getFolder(data.wstrMailbox_, data.cSeparator_, data.nFlags_, &nId);
-	}
+	std::for_each(listFolderData.begin(), listFolderData.end(),
+		boost::bind(&FolderListGetter::getFolder, this,
+			boost::bind(&FolderData::wstrMailbox_, _1),
+			boost::bind(&FolderData::cSeparator_, _1),
+			boost::bind(&FolderData::nFlags_, _1), &nId));
 	
 	return true;
 }
@@ -1777,13 +1763,15 @@ qmimap4::Session::Session(NormalFolder* pFolder,
 						  std::auto_ptr<Logger> pLogger,
 						  std::auto_ptr<DriverCallback> pCallback,
 						  std::auto_ptr<Imap4> pImap4,
-						  unsigned int nLastSelectedTime) :
+						  unsigned int nLastSelectedTime,
+						  unsigned int nId) :
 	pFolder_(pFolder),
 	pLogger_(pLogger),
 	pCallback_(pCallback),
 	pImap4_(pImap4),
 	nLastUsedTime_(0),
-	nLastSelectedTime_(nLastSelectedTime)
+	nLastSelectedTime_(nLastSelectedTime),
+	nId_(nId)
 {
 }
 
@@ -1826,6 +1814,11 @@ void qmimap4::Session::setLastSelectedTime(unsigned int nLastSelectedTime)
 	nLastSelectedTime_ = nLastSelectedTime;
 }
 
+unsigned int qmimap4::Session::getId() const
+{
+	return nId_;
+}
+
 
 /****************************************************************************
  *
@@ -1834,33 +1827,68 @@ void qmimap4::Session::setLastSelectedTime(unsigned int nLastSelectedTime)
  */
 
 qmimap4::SessionCache::SessionCache(Account* pAccount,
-									SubAccount* pSubAccount,
 									PasswordCallback* pPasswordCallback,
 									const Security* pSecurity) :
 	pAccount_(pAccount),
-	pSubAccount_(pSubAccount),
 	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity),
+	bOffline_(true),
+	pSubAccount_(0),
 	nMaxSession_(5),
 	bReselect_(true),
-	nForceDisconnect_(0)
+	nForceDisconnect_(0),
+	nSessionId_(0)
 {
-	nMaxSession_ = pSubAccount_->getPropertyInt(L"Imap4", L"MaxSession");
-	bReselect_ = pSubAccount->getPropertyInt(L"Imap4", L"Reselect") != 0;
-	nForceDisconnect_ = pSubAccount->getPropertyInt(L"Imap4", L"ForceDisconnect");
-	
-	listSession_.reserve(nMaxSession_);
 }
 
 qmimap4::SessionCache::~SessionCache()
 {
-	fireDestroyed();
-	
-	for (SessionList::iterator it = listSession_.begin(); it != listSession_.end(); ++it) {
-		std::auto_ptr<Session> p(*it);
-		if (!isForceDisconnect(p->getLastUsedTime()) &&
-			p->getImap4()->checkConnection())
-			p->getImap4()->disconnect();
+	destroyAllSessions();
+}
+
+Account* qmimap4::SessionCache::getAccount() const
+{
+	return pAccount_;
+}
+
+PasswordCallback* qmimap4::SessionCache::getPasswordCallback() const
+{
+	return pPasswordCallback_;
+}
+
+const Security* qmimap4::SessionCache::getSecurity() const
+{
+	return pSecurity_;
+}
+
+bool qmimap4::SessionCache::isOffline() const
+{
+	return bOffline_;
+}
+
+void qmimap4::SessionCache::setOffline(bool bOffline)
+{
+	if (bOffline != bOffline_) {
+		destroyAllSessions();
+		bOffline_ = bOffline;
+	}
+}
+
+SubAccount* qmimap4::SessionCache::getSubAccount() const
+{
+	return pSubAccount_;
+}
+
+void qmimap4::SessionCache::setSubAccount(SubAccount* pSubAccount)
+{
+	if (pSubAccount != pSubAccount_) {
+		destroyAllSessions();
+		
+		pSubAccount_ = pSubAccount;
+		nMaxSession_ = pSubAccount_->getPropertyInt(L"Imap4", L"MaxSession");
+		bReselect_ = pSubAccount_->getPropertyInt(L"Imap4", L"Reselect") != 0;
+		nForceDisconnect_ = pSubAccount_->getPropertyInt(L"Imap4", L"ForceDisconnect");
+		listSession_.reserve(nMaxSession_);
 	}
 }
 
@@ -1894,26 +1922,30 @@ std::auto_ptr<Session> qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 
 void qmimap4::SessionCache::releaseSession(std::auto_ptr<Session> pSession)
 {
-	assert(listSession_.size() < nMaxSession_);
-	pSession->setLastUsedTime(::GetTickCount());
-	listSession_.push_back(pSession.release());
+	assert(pSession.get());
+	
+	Lock<CriticalSection> lock(cs_);
+	
+	if (pSession->getId() == nSessionId_) {
+		assert(listSession_.size() < nMaxSession_);
+		pSession->setLastUsedTime(::GetTickCount());
+		listSession_.push_back(pSession.release());
+	}
 }
 
-void qmimap4::SessionCache::addSessionCacheHandler(SessionCacheHandler* pHandler)
+void qmimap4::SessionCache::destroyAllSessions()
 {
-	assert(pHandler);
+	Lock<CriticalSection> lock(cs_);
 	
-	listHandler_.push_back(pHandler);
-}
-
-void qmimap4::SessionCache::removeSessionCacheHandler(SessionCacheHandler* pHandler)
-{
-	assert(pHandler);
+	for (SessionList::iterator it = listSession_.begin(); it != listSession_.end(); ++it) {
+		std::auto_ptr<Session> p(*it);
+		if (!isForceDisconnect(p->getLastUsedTime()) &&
+			p->getImap4()->checkConnection())
+			p->getImap4()->disconnect();
+	}
+	listSession_.clear();
 	
-	HandlerList::iterator it = std::remove(
-		listHandler_.begin(), listHandler_.end(), pHandler);
-	assert(it != listHandler_.end());
-	listHandler_.erase(it, listHandler_.end());
+	++nSessionId_;
 }
 
 std::auto_ptr<Session> qmimap4::SessionCache::getSessionWithoutSelect(NormalFolder* pFolder,
@@ -1924,29 +1956,33 @@ std::auto_ptr<Session> qmimap4::SessionCache::getSessionWithoutSelect(NormalFold
 	*pbNew = false;
 	
 	std::auto_ptr<Session> pSession;
-	SessionList::iterator it = std::find_if(
-		listSession_.begin(), listSession_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<NormalFolder*>(),
-				std::mem_fun(&Session::getFolder),
-				std::identity<NormalFolder*>()),
-			pFolder));
-	if (it != listSession_.end()) {
-		pSession.reset(*it);
-		listSession_.erase(it);
-	}
-	else {
-		if (listSession_.size() >= nMaxSession_) {
-			it = listSession_.begin();
+	{
+		Lock<CriticalSection> lock(cs_);
+		
+		SessionList::iterator it = std::find_if(
+			listSession_.begin(), listSession_.end(),
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					std::equal_to<NormalFolder*>(),
+					std::mem_fun(&Session::getFolder),
+					std::identity<NormalFolder*>()),
+				pFolder));
+		if (it != listSession_.end()) {
 			pSession.reset(*it);
-			if (!pFolder) {
-				if (!isForceDisconnect(pSession->getLastUsedTime()) &&
-					pSession->getImap4()->checkConnection())
-					pSession->getImap4()->disconnect();
-				pSession.reset(0);
-			}
 			listSession_.erase(it);
+		}
+		else {
+			if (listSession_.size() >= nMaxSession_) {
+				it = listSession_.begin();
+				pSession.reset(*it);
+				if (!pFolder) {
+					if (!isForceDisconnect(pSession->getLastUsedTime()) &&
+						pSession->getImap4()->checkConnection())
+						pSession->getImap4()->disconnect();
+					pSession.reset(0);
+				}
+				listSession_.erase(it);
+			}
 		}
 	}
 	
@@ -1969,7 +2005,7 @@ std::auto_ptr<Session> qmimap4::SessionCache::getSessionWithoutSelect(NormalFold
 			pSubAccount_->getPort(Account::HOST_RECEIVE), secure))
 			return std::auto_ptr<Session>();
 		
-		pSession.reset(new Session(pFolder, pLogger, pCallback, pImap4, 0));
+		pSession.reset(new Session(pFolder, pLogger, pCallback, pImap4, 0, nSessionId_));
 		*pbNew = true;
 	}
 	
@@ -1993,45 +2029,6 @@ bool qmimap4::SessionCache::isNeedSelect(NormalFolder* pFolder,
 bool qmimap4::SessionCache::isForceDisconnect(unsigned int nLastUsedTime) const
 {
 	return nForceDisconnect_ != 0 && nLastUsedTime + nForceDisconnect_*1000 < ::GetTickCount();
-}
-
-void qmimap4::SessionCache::fireDestroyed()
-{
-	SessionCacheEvent event(this);
-	std::for_each(listHandler_.begin(), listHandler_.end(),
-		boost::bind(&SessionCacheHandler::destroyed, _1, boost::cref(event)));
-}
-
-
-/****************************************************************************
- *
- * SessionCacheHandler
- *
- */
-
-qmimap4::SessionCacheHandler::~SessionCacheHandler()
-{
-}
-
-
-/****************************************************************************
- *
- * SessionCacheEvent
- *
- */
-
-qmimap4::SessionCacheEvent::SessionCacheEvent(SessionCache* pSessionCache) :
-	pSessionCache_(pSessionCache)
-{
-}
-
-qmimap4::SessionCacheEvent::~SessionCacheEvent()
-{
-}
-
-SessionCache* qmimap4::SessionCacheEvent::getSessionCache() const
-{
-	return pSessionCache_;
 }
 
 

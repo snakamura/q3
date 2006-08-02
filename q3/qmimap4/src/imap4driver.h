@@ -29,8 +29,6 @@ class FolderUtil;
 class FolderListGetter;
 class Session;
 class SessionCache;
-class SessionCacheHandler;
-class SessionCacheEvent;
 class SessionCacher;
 
 class OfflineJobManager;
@@ -130,13 +128,9 @@ private:
 
 private:
 	qm::Account* pAccount_;
-	qm::PasswordCallback* pPasswordCallback_;
-	const qm::Security* pSecurity_;
 	std::auto_ptr<SessionCache> pSessionCache_;
 	std::auto_ptr<OfflineJobManager> pOfflineJobManager_;
-	qm::SubAccount* pSubAccount_;
-	bool bOffline_;
-	qs::CriticalSection cs_;
+	unsigned int nOption_;
 
 private:
 	static const unsigned int nSupport__;
@@ -303,9 +297,18 @@ public:
 	void getFolders(Imap4Driver::RemoteFolderList* pList);
 
 private:
-	bool connect();
-	bool listNamespaces();
-	bool listFolders();
+	class CallbackImpl;
+
+private:
+	typedef std::vector<std::pair<qs::WSTRING, WCHAR> > NamespaceList;
+
+private:
+	bool listNamespaces(Imap4* pImap4,
+						CallbackImpl* pCallback,
+						NamespaceList* pListNamespace);
+	bool listFolders(Imap4* pImap4,
+					 CallbackImpl* pCallback,
+					 const NamespaceList& listNamespace);
 	qm::Folder* getFolder(const WCHAR* pwszName,
 						  WCHAR cSeparator,
 						  unsigned int nFlags,
@@ -343,7 +346,6 @@ private:
 	};
 
 private:
-	typedef std::vector<std::pair<qs::WSTRING, WCHAR> > NamespaceList;
 	typedef std::vector<FolderData> FolderDataList;
 	typedef std::vector<FolderInfo> FolderInfoList;
 
@@ -384,11 +386,6 @@ private:
 	qm::PasswordCallback* pPasswordCallback_;
 	const qm::Security* pSecurity_;
 	std::auto_ptr<FolderUtil> pFolderUtil_;
-	std::auto_ptr<Imap4> pImap4_;
-	std::auto_ptr<CallbackImpl> pCallback_;
-	std::auto_ptr<qs::Logger> pLogger_;
-	NamespaceList listNamespace_;
-	FolderDataList listFolderData_;
 	FolderInfoList listFolderInfo_;
 };
 
@@ -406,7 +403,8 @@ public:
 			std::auto_ptr<qs::Logger> pLogger,
 			std::auto_ptr<DriverCallback> pCallback,
 			std::auto_ptr<Imap4> pImap4,
-			unsigned int nLastSelectedTime);
+			unsigned int nLastSelectedTime,
+			unsigned int nId);
 	~Session();
 
 public:
@@ -417,6 +415,7 @@ public:
 	void setLastUsedTime(unsigned int nLastUsedTime);
 	unsigned int getLastSelectedTime() const;
 	void setLastSelectedTime(unsigned int nLastSelectedTime);
+	unsigned int getId() const;
 
 private:
 	Session(const Session&);
@@ -429,6 +428,7 @@ private:
 	std::auto_ptr<Imap4> pImap4_;
 	unsigned int nLastUsedTime_;
 	unsigned int nLastSelectedTime_;
+	unsigned int nId_;
 };
 
 
@@ -442,17 +442,22 @@ class SessionCache
 {
 public:
 	SessionCache(qm::Account* pAccount,
-				 qm::SubAccount* pSubAccount,
-				 qm::PasswordCallback* pPasswordCallback_,
-				 const qm::Security* pSecurity_);
+				 qm::PasswordCallback* pPasswordCallback,
+				 const qm::Security* pSecurity);
 	~SessionCache();
 
 public:
+	qm::Account* getAccount() const;
+	qm::PasswordCallback* getPasswordCallback() const;
+	const qm::Security* getSecurity() const;
+	bool isOffline() const;
+	void setOffline(bool bOffline);
+	qm::SubAccount* getSubAccount() const;
+	void setSubAccount(qm::SubAccount* pSubAccount);
 	std::auto_ptr<Session> getSession(qm::NormalFolder* pFolder,
 									  bool* pbNew);
 	void releaseSession(std::auto_ptr<Session> pSession);
-	void addSessionCacheHandler(SessionCacheHandler* pHandler);
-	void removeSessionCacheHandler(SessionCacheHandler* pHandler);
+	void destroyAllSessions();
 
 private:
 	std::auto_ptr<Session> getSessionWithoutSelect(qm::NormalFolder* pFolder,
@@ -460,7 +465,6 @@ private:
 	bool isNeedSelect(qm::NormalFolder* pFolder,
 					  unsigned int nLastSelectedTime);
 	bool isForceDisconnect(unsigned int nLastUsedTime) const;
-	void fireDestroyed();
 
 private:
 	SessionCache(const SessionCache&);
@@ -468,58 +472,19 @@ private:
 
 private:
 	typedef std::vector<Session*> SessionList;
-	typedef std::vector<SessionCacheHandler*> HandlerList;
 
 private:
 	qm::Account* pAccount_;
-	qm::SubAccount* pSubAccount_;
 	qm::PasswordCallback* pPasswordCallback_;
 	const qm::Security* pSecurity_;
+	bool bOffline_;
+	qm::SubAccount* pSubAccount_;
 	size_t nMaxSession_;
 	bool bReselect_;
 	unsigned int nForceDisconnect_;
 	SessionList listSession_;
-	HandlerList listHandler_;
-};
-
-
-/****************************************************************************
- *
- * SessionCacheHandler
- *
- */
-
-class SessionCacheHandler
-{
-public:
-	virtual ~SessionCacheHandler();
-
-public:
-	virtual void destroyed(const SessionCacheEvent& event) = 0;
-};
-
-
-/****************************************************************************
- *
- * SessionCacheEvent
- *
- */
-
-class SessionCacheEvent
-{
-public:
-	SessionCacheEvent(SessionCache* pSessionCache);
-	~SessionCacheEvent();
-
-public:
-	SessionCache* getSessionCache() const;
-
-private:
-	SessionCacheEvent(const SessionCacheEvent&);
-	SessionCacheEvent& operator=(const SessionCacheEvent&);
-
-private:
-	SessionCache* pSessionCache_;
+	unsigned int nSessionId_;
+	qs::CriticalSection cs_;
 };
 
 
