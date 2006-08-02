@@ -413,10 +413,7 @@ MacroValuePtr qm::MacroFunctionAdditive::value(MacroContext* pContext) const
 
 const WCHAR* qm::MacroFunctionAdditive::getName() const
 {
-	if (bAdd_)
-		return L"Add";
-	else
-		return L"Subtract";
+	return bAdd_ ? L"Add" : L"Subtract";
 }
 
 
@@ -461,10 +458,7 @@ MacroValuePtr qm::MacroFunctionAddress::value(MacroContext* pContext) const
 
 const WCHAR* qm::MacroFunctionAddress::getName() const
 {
-	if (bName_)
-		return L"Name";
-	else
-		return L"Address";
+	return bName_ ? L"Name" : L"Address";
 }
 
 
@@ -1111,10 +1105,7 @@ MacroValuePtr qm::MacroFunctionContain::value(MacroContext* pContext) const
 
 const WCHAR* qm::MacroFunctionContain::getName() const
 {
-	if (bBeginWith_)
-		return L"BeginWith";
-	else
-		return L"Contain";
+	return bBeginWith_ ? L"BeginWith" : L"Contain";
 }
 
 
@@ -1153,10 +1144,11 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 	ARG(pValue, 0);
 	MacroValue::String wstrFolder(pValue->string());
 	
-	Folder* pFolderTo = pContext->getDocument()->getFolder(
+	Folder* pFolder = pContext->getDocument()->getFolder(
 		pContext->getAccount(), wstrFolder.get());
-	if (!pFolderTo || pFolderTo->getType() != Folder::TYPE_NORMAL)
+	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	NormalFolder* pFolderTo = static_cast<NormalFolder*>(pFolder);
 	
 	Account* pAccount = pmh->getAccount();
 	assert(pAccount->isLocked());
@@ -1166,18 +1158,19 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 		(bMove_ ? Account::COPYFLAG_MOVE : Account::COPYFLAG_NONE);
 	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
 		nCopyFlags |= Account::OPFLAG_BACKGROUND;
-	if (!pAccount->copyMessages(l, 0, static_cast<NormalFolder*>(pFolderTo), nCopyFlags, 0, 0, 0))
+	unsigned int nResultFlags = 0;
+	if (!pAccount->copyMessages(l, 0, pFolderTo, nCopyFlags, 0, 0, &nResultFlags))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
+	if (nResultFlags & Account::RESULTFLAG_DESTROYED)
+		pContext->clearMessage();
 	
 	return MacroValueFactory::getFactory().newBoolean(true);
 }
 
 const WCHAR* qm::MacroFunctionCopy::getName() const
 {
-	if (bMove_)
-		return L"Move";
-	else
-		return L"Copy";
+	return bMove_ ? L"Move" : L"Copy";
 }
 
 
@@ -1351,12 +1344,12 @@ MacroValuePtr qm::MacroFunctionDelete::value(MacroContext* pContext) const
 	MessageHolderList l(1, pmh->getMessageHolder());
 	unsigned int nFlags = Account::OPFLAG_ACTIVE |
 		(bDirect ? Account::REMOVEFLAG_DIRECT :0);
-	if (!pAccount->removeMessages(l, 0, nFlags, 0, 0, 0))
+	unsigned int nResultFlags = 0;
+	if (!pAccount->removeMessages(l, 0, nFlags, 0, 0, &nResultFlags))
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
-	// TODO
-	// The context message might be destroyed by removeMessages.
-	// What can I do when this happens?
+	if (nResultFlags & Account::RESULTFLAG_DESTROYED)
+		pContext->clearMessage();
 	
 	return MacroValueFactory::getFactory().newBoolean(true);
 }
@@ -4566,10 +4559,7 @@ MacroValuePtr qm::MacroFunctionRelative::value(MacroContext* pContext) const
 
 const WCHAR* qm::MacroFunctionRelative::getName() const
 {
-	if (bLess_)
-		return L"Less";
-	else
-		return L"Greater";
+	return bLess_ ? L"Less" : L"Greater";
 }
 
 
@@ -5333,10 +5323,7 @@ MacroValuePtr qm::MacroFunctionSubstringSep::value(MacroContext* pContext) const
 
 const WCHAR* qm::MacroFunctionSubstringSep::getName() const
 {
-	if (bAfter_)
-		return L"SubstringAfter";
-	else
-		return L"SubstringBefore";
+	return bAfter_ ? L"SubstringAfter" : L"SubstringBefore";
 }
 
 

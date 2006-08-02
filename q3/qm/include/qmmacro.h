@@ -185,6 +185,7 @@ public:
 	Message* getMessage() const;
 	Message* getMessage(MessageType type,
 						const WCHAR* pwszField) const;
+	void clearMessage();
 	Account* getAccount() const;
 	const MessageHolderList& getSelectedMessageHolders() const;
 	Folder* getFolder() const;

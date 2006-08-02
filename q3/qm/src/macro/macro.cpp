@@ -1764,6 +1764,12 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	return pMessage_;
 }
 
+void qm::MacroContext::clearMessage()
+{
+	pmh_ = 0;
+	pMessage_->clear();
+}
+
 Account* qm::MacroContext::getAccount() const
 {
 	return pAccount_;
