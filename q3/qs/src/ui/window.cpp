@@ -891,10 +891,10 @@ void qs::WindowBase::removeOwnerDrawHandler(OwnerDrawHandler* podh)
 
 Accelerator* qs::WindowBase::getAccelerator() const
 {
-	if (pImpl_->pOrgWindowBase_)
-		return pImpl_->pOrgWindowBase_->getAccelerator();
-	else
-		return pImpl_->pWindowHandler_->getAccelerator();
+	Accelerator* pAccelerator = pImpl_->pWindowHandler_->getAccelerator();
+	if (!pAccelerator && pImpl_->pOrgWindowBase_)
+		pAccelerator = pImpl_->pOrgWindowBase_->getAccelerator();
+	return pAccelerator;
 }
 
 bool qs::WindowBase::preTranslateAccelerator(const MSG& msg)
