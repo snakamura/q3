@@ -410,6 +410,17 @@
 		<action name="ToolReform">
 			<key code="d" shift="true"/>
 		</action>
+		<action name="ViewFocusPrevEditItem">
+			<key code="9" shift="true"/>
+		</action>
+	</keymap>
+	<keymap name="HeaderEditWindow">
+		<action name="ViewFocusNextEditItem">
+			<key code="9"/>
+		</action>
+		<action name="ViewFocusPrevEditItem">
+			<key code="9" shift="true"/>
+		</action>
 	</keymap>
 	<keymap name="AddressBookFrameWindow">
 		<action name="FileClose">

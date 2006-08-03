@@ -124,12 +124,12 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_->getAttachmentSelectionModel());
 	ADD_ACTION3(EditEditCommandAction,
 		IDM_EDIT_COPY,
-		pEditWindow_,
+		pEditWindow_->getFocusController(),
 		&EditWindowItem::copy,
 		&EditWindowItem::canCopy);
 	ADD_ACTION3(EditEditCommandAction,
 		IDM_EDIT_CUT,
-		pEditWindow_,
+		pEditWindow_->getFocusController(),
 		&EditWindowItem::cut,
 		&EditWindowItem::canCut);
 	
@@ -166,7 +166,7 @@ void qm::EditFrameWindowImpl::initActions()
 		pFindReplaceManager_.get());
 	ADD_ACTION3(EditEditCommandAction,
 		IDM_EDIT_PASTE,
-		pEditWindow_,
+		pEditWindow_->getFocusController(),
 		&EditWindowItem::paste,
 		&EditWindowItem::canPaste);
 	ADD_ACTION6(EditEditPasteWithQuoteAction,
@@ -179,7 +179,7 @@ void qm::EditFrameWindowImpl::initActions()
 		pThis_->getHandle());
 	ADD_ACTION3(EditEditCommandAction,
 		IDM_EDIT_REDO,
-		pEditWindow_,
+		pEditWindow_->getFocusController(),
 		&EditWindowItem::redo,
 		&EditWindowItem::canRedo);
 	ADD_ACTION3(EditEditReplaceAction,
@@ -189,12 +189,12 @@ void qm::EditFrameWindowImpl::initActions()
 		pFindReplaceManager_.get());
 	ADD_ACTION3(EditEditCommandAction,
 		IDM_EDIT_SELECTALL,
-		pEditWindow_,
+		pEditWindow_->getFocusController(),
 		&EditWindowItem::selectAll,
 		&EditWindowItem::canSelectAll);
 	ADD_ACTION3(EditEditCommandAction,
 		IDM_EDIT_UNDO,
-		pEditWindow_,
+		pEditWindow_->getFocusController(),
 		&EditWindowItem::undo,
 		&EditWindowItem::canUndo);
 	ADD_ACTION1(ViewShowStatusBarAction<EditFrameWindow>,
@@ -282,9 +282,18 @@ void qm::EditFrameWindowImpl::initActions()
 		pSyncManager_,
 		pSyncDialogManager_,
 		pSecurityModel_);
-	ADD_ACTION1(EditFocusItemAction,
+	ADD_ACTION2(EditFocusItemAction,
 		IDM_FOCUS_HEADEREDITITEM,
-		pEditWindow_);
+		pEditWindow_->getFocusController(),
+		EditFocusItemAction::TYPE_ITEM);
+	ADD_ACTION2(EditFocusItemAction,
+		IDM_VIEW_FOCUSNEXTEDITITEM,
+		pEditWindow_->getFocusController(),
+		EditFocusItemAction::TYPE_NEXT);
+	ADD_ACTION2(EditFocusItemAction,
+		IDM_VIEW_FOCUSPREVEDITITEM,
+		pEditWindow_->getFocusController(),
+		EditFocusItemAction::TYPE_PREV);
 #ifdef QMZIP
 	ADD_ACTION1(EditToolArchiveAttachmentAction,
 		IDM_TOOL_ARCHIVEATTACHMENT,

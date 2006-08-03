@@ -26,6 +26,7 @@
 
 #include "headereditwindow.h"
 #include "resourceinc.h"
+#include "uimanager.h"
 #include "uiutil.h"
 #include "../model/addressbook.h"
 #include "../model/dataobject.h"
@@ -56,11 +57,11 @@ public:
 
 public:
 	bool load(const WCHAR* pwszClass,
-			  MenuManager* pMenuManager,
+			  UIManager* pUIManager,
 			  HeaderEditLineCallback* pLineCallback,
 			  HeaderEditItemCallback* pItemCallback);
 	bool create(const WCHAR* pwszClass,
-				MenuManager* pMenuManager,
+				UIManager* pUIManager,
 				HeaderEditLineCallback* pLineCallback,
 				HeaderEditItemCallback* pItemCallback);
 	void reloadProfiles(bool bInitialize);
@@ -73,12 +74,11 @@ public:
 	HFONT hfontBold_;
 	HBRUSH hbrBackground_;
 	std::auto_ptr<LineLayout> pLayout_;
-	EditWindowFocusController* pController_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
 };
 
 bool qm::HeaderEditWindowImpl::load(const WCHAR* pwszClass,
-									MenuManager* pMenuManager,
+									UIManager* pUIManager,
 									HeaderEditLineCallback* pLineCallback,
 									HeaderEditItemCallback* pItemCallback)
 {
@@ -88,8 +88,8 @@ bool qm::HeaderEditWindowImpl::load(const WCHAR* pwszClass,
 	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::HEADEREDIT_XML));
 	
 	XMLReader reader;
-	HeaderEditWindowContentHandler contentHandler(pLayout_.get(), pwszClass,
-		pController_, pMenuManager, pProfile_, pLineCallback, pItemCallback);
+	HeaderEditWindowContentHandler contentHandler(pLayout_.get(),
+		pwszClass, pUIManager, pProfile_, pLineCallback, pItemCallback);
 	reader.setContentHandler(&contentHandler);
 	if (!reader.parse(wstrPath.get()))
 		return false;
@@ -99,11 +99,11 @@ bool qm::HeaderEditWindowImpl::load(const WCHAR* pwszClass,
 }
 
 bool qm::HeaderEditWindowImpl::create(const WCHAR* pwszClass,
-									  MenuManager* pMenuManager,
+									  UIManager* pUIManager,
 									  HeaderEditLineCallback* pLineCallback,
 									  HeaderEditItemCallback* pItemCallback)
 {
-	if (!load(pwszClass, pMenuManager, pLineCallback, pItemCallback))
+	if (!load(pwszClass, pUIManager, pLineCallback, pItemCallback))
 		return false;
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
@@ -149,7 +149,6 @@ qm::HeaderEditWindow::HeaderEditWindow(Profile* pProfile) :
 	pImpl_->hfont_ = 0;
 	pImpl_->hfontBold_ = 0;
 	pImpl_->hbrBackground_ = 0;
-	pImpl_->pController_ = 0;
 	
 	pImpl_->reloadProfiles(true);
 	
@@ -307,7 +306,6 @@ LRESULT qm::HeaderEditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	HeaderEditWindowCreateContext* pContext =
 		static_cast<HeaderEditWindowCreateContext*>(pCreateStruct->lpCreateParams);
-	pImpl_->pController_ = pContext->pController_;
 	
 	wstring_ptr wstrClassName(getClassName());
 	W2T(wstrClassName.get(), ptszClassName);
@@ -315,7 +313,7 @@ LRESULT qm::HeaderEditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	::GetClassInfo(getInstanceHandle(), ptszClassName, &wc);
 	pImpl_->hbrBackground_ = wc.hbrBackground;
 	
-	if (!pImpl_->create(pContext->pwszClass_, pContext->pMenuManager_,
+	if (!pImpl_->create(pContext->pwszClass_, pContext->pUIManager_,
 		pContext->pHeaderEditLineCallback_, pContext->pHeaderEditItemCallback_))
 		return -1;
 	
@@ -465,8 +463,8 @@ qm::HeaderEditLineCallback::~HeaderEditLineCallback()
  *
  */
 
-qm::HeaderEditItem::HeaderEditItem(EditWindowFocusController* pController) :
-	pController_(pController),
+qm::HeaderEditItem::HeaderEditItem(KeyMap* pKeyMap) :
+	pKeyMap_(pKeyMap),
 	nNumber_(-1),
 	initialFocus_(INITIALFOCUS_NONE)
 {
@@ -496,9 +494,9 @@ void qm::HeaderEditItem::setValue(const WCHAR* pwszValue)
 	wstrValue_ = allocWString(pwszValue);
 }
 
-EditWindowFocusController* qm::HeaderEditItem::getController() const
+KeyMap* qm::HeaderEditItem::getKeyMap() const
 {
-	return pController_;
+	return pKeyMap_;
 }
 
 HeaderEditItem::InitialFocus qm::HeaderEditItem::getInitialFocus() const
@@ -572,8 +570,8 @@ bool qm::HeaderEditItem::canRedo()
  *
  */
 
-qm::TextHeaderEditItem::TextHeaderEditItem(EditWindowFocusController* pController) :
-	HeaderEditItem(pController),
+qm::TextHeaderEditItem::TextHeaderEditItem(KeyMap* pKeyMap) :
+	HeaderEditItem(pKeyMap),
 	nStyle_(STYLE_NORMAL),
 	align_(ALIGN_LEFT),
 	type_(TYPE_UNSTRUCTURED),
@@ -651,7 +649,7 @@ bool qm::TextHeaderEditItem::create(WindowBase* pParent,
 	
 	Window(hwnd_).setFont((nStyle_ & STYLE_BOLD) ? fonts.second : fonts.first);
 	
-	pItemWindow_.reset(new EditWindowItemWindow(getController(), this, hwnd_));
+	pItemWindow_.reset(new EditWindowItemWindow(hwnd_, getKeyMap()));
 	
 	return true;
 }
@@ -781,8 +779,8 @@ TextHeaderEditItem::Type qm::TextHeaderEditItem::parseType(const WCHAR* pwszType
  *
  */
 
-qm::StaticHeaderEditItem::StaticHeaderEditItem(EditWindowFocusController* pController) :
-	TextHeaderEditItem(pController)
+qm::StaticHeaderEditItem::StaticHeaderEditItem(KeyMap* pKeyMap) :
+	TextHeaderEditItem(pKeyMap)
 {
 }
 
@@ -865,9 +863,9 @@ int qm::StaticHeaderEditItem::getTopOffset(const RECT& rect,
  *
  */
 
-qm::EditHeaderEditItem::EditHeaderEditItem(EditWindowFocusController* pController,
+qm::EditHeaderEditItem::EditHeaderEditItem(KeyMap* pKeyMap,
 										   Profile* pProfile) :
-	TextHeaderEditItem(pController),
+	TextHeaderEditItem(pKeyMap),
 	pProfile_(pProfile),
 	pEditMessage_(0),
 	pParent_(0),
@@ -1074,9 +1072,9 @@ LRESULT qm::EditHeaderEditItem::onKillFocus()
  *
  */
 
-qm::AddressHeaderEditItem::AddressHeaderEditItem(EditWindowFocusController* pController,
+qm::AddressHeaderEditItem::AddressHeaderEditItem(KeyMap* pKeyMap,
 												 Profile* pProfile) :
-	EditHeaderEditItem(pController, pProfile),
+	EditHeaderEditItem(pKeyMap, pProfile),
 	nFlags_(FLAG_EXPANDALIAS | FLAG_AUTOCOMPLETE),
 	pAddressBook_(0),
 	pRecentAddress_(0)
@@ -1329,10 +1327,10 @@ bool qm::AddressHeaderEditItem::matchAddress(const WCHAR* pwszAddress,
  *
  */
 
-qm::AttachmentHeaderEditItem::AttachmentHeaderEditItem(EditWindowFocusController* pController,
+qm::AttachmentHeaderEditItem::AttachmentHeaderEditItem(KeyMap* pKeyMap,
 													   MenuManager* pMenuManager,
 													   HeaderEditItemCallback* pCallback) :
-	HeaderEditItem(pController),
+	HeaderEditItem(pKeyMap),
 	wnd_(this),
 	pMenuManager_(pMenuManager),
 	pCallback_(pCallback),
@@ -1423,7 +1421,7 @@ bool qm::AttachmentHeaderEditItem::create(WindowBase* pParent,
 	
 	wnd_.setFont(fonts.first);
 	
-	pItemWindow_.reset(new EditWindowItemWindow(getController(), this, wnd_.getHandle()));
+	pItemWindow_.reset(new EditWindowItemWindow(wnd_.getHandle(), getKeyMap()));
 	
 	return true;
 }
@@ -1670,8 +1668,8 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onSize(UINT nFlags,
  *
  */
 
-qm::ComboBoxHeaderEditItem::ComboBoxHeaderEditItem(EditWindowFocusController* pController) :
-	HeaderEditItem(pController),
+qm::ComboBoxHeaderEditItem::ComboBoxHeaderEditItem(KeyMap* pKeyMap) :
+	HeaderEditItem(pKeyMap),
 	hwnd_(0),
 	pParent_(0),
 	nId_(0)
@@ -1737,7 +1735,7 @@ bool qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 	pComboBoxEditWindow_ = new ComboBoxEditWindow(hwnd_, calcItemHeight(fonts.first));
 #endif
 	
-	pItemWindow_.reset(new EditWindowItemWindow(getController(), this, hwnd_));
+	pItemWindow_.reset(new EditWindowItemWindow(hwnd_, getKeyMap()));
 	
 	pParent->addCommandHandler(this);
 	
@@ -1861,8 +1859,8 @@ LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::onWindowPosChanged(WINDO
  *
  */
 
-qm::SignatureHeaderEditItem::SignatureHeaderEditItem(EditWindowFocusController* pController) :
-	ComboBoxHeaderEditItem(pController),
+qm::SignatureHeaderEditItem::SignatureHeaderEditItem(KeyMap* pKeyMap) :
+	ComboBoxHeaderEditItem(pKeyMap),
 	pEditMessage_(0)
 {
 }
@@ -1964,8 +1962,8 @@ void qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
  *
  */
 
-qm::AccountHeaderEditItem::AccountHeaderEditItem(EditWindowFocusController* pController) :
-	ComboBoxHeaderEditItem(pController),
+qm::AccountHeaderEditItem::AccountHeaderEditItem(KeyMap* pKeyMap) :
+	ComboBoxHeaderEditItem(pKeyMap),
 	bShowFrom_(true),
 	pEditMessage_(0)
 {
@@ -2088,15 +2086,13 @@ qm::HeaderEditItemCallback::~HeaderEditItemCallback()
 
 qm::HeaderEditWindowContentHandler::HeaderEditWindowContentHandler(LineLayout* pLayout,
 																   const WCHAR* pwszClass,
-																   EditWindowFocusController* pController,
-																   MenuManager* pMenuManager,
+																   UIManager* pUIManager,
 																   Profile* pProfile,
 																   HeaderEditLineCallback* pLineCallback,
 																   HeaderEditItemCallback* pItemCallback) :
 	pLayout_(pLayout),
 	pwszClass_(pwszClass),
-	pController_(pController),
-	pMenuManager_(pMenuManager),
+	pUIManager_(pUIManager),
 	pProfile_(pProfile),
 	pLineCallback_(pLineCallback),
 	pItemCallback_(pItemCallback),
@@ -2185,13 +2181,13 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			std::auto_ptr<TextHeaderEditItem> pItem;
 			switch (type) {
 			case TYPE_STATIC:
-				pItem.reset(new StaticHeaderEditItem(pController_));
+				pItem.reset(new StaticHeaderEditItem(pUIManager_->getKeyMap()));
 				break;
 			case TYPE_EDIT:
-				pItem.reset(new EditHeaderEditItem(pController_, pProfile_));
+				pItem.reset(new EditHeaderEditItem(pUIManager_->getKeyMap(), pProfile_));
 				break;
 			case TYPE_ADDRESS:
-				pItem.reset(new AddressHeaderEditItem(pController_, pProfile_));
+				pItem.reset(new AddressHeaderEditItem(pUIManager_->getKeyMap(), pProfile_));
 				break;
 			}
 			
@@ -2248,13 +2244,13 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			std::auto_ptr<HeaderEditItem> pItem;
 			if (wcscmp(pwszLocalName, L"attachment") == 0) {
 				std::auto_ptr<AttachmentHeaderEditItem> p(
-					new AttachmentHeaderEditItem(pController_,
-						pMenuManager_, pItemCallback_));
+					new AttachmentHeaderEditItem(pUIManager_->getKeyMap(),
+						pUIManager_->getMenuManager(), pItemCallback_));
 				pAttachmentSelectionModel_ = p.get();
 				pItem.reset(p.release());
 			}
 			else if (wcscmp(pwszLocalName, L"signature") == 0) {
-				pItem.reset(new SignatureHeaderEditItem(pController_));
+				pItem.reset(new SignatureHeaderEditItem(pUIManager_->getKeyMap()));
 			}
 			
 			for (int n = 0; n < attributes.getLength(); ++n) {
@@ -2287,7 +2283,7 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			assert(pCurrentLine_);
 			
 			std::auto_ptr<AccountHeaderEditItem> pItem(
-				new AccountHeaderEditItem(pController_));
+				new AccountHeaderEditItem(pUIManager_->getKeyMap()));
 			
 			for (int n = 0; n < attributes.getLength(); ++n) {
 				const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);

@@ -27,6 +27,7 @@ class AttachmentSelectionModel;
 class EditFrameWindowManager;
 class EditMessage;
 class EditMessageHolder;
+class EditWindowFocusController;
 class EditWindowItem;
 
 
@@ -120,8 +121,7 @@ public:
 	EditMessageHolder* getEditMessageHolder() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	qs::TextWindow* getTextWindow() const;
-	EditWindowItem* getItemByNumber(unsigned int nNumber) const;
-	EditWindowItem* getFocusedItem() const;
+	EditWindowFocusController* getFocusController() const;
 	void saveFocusedItem();
 	void restoreFocusedItem();
 	bool isHeaderEdit() const;

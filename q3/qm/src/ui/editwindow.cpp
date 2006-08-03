@@ -74,8 +74,9 @@ public:
 	virtual void setFocus();
 
 public:
-	virtual void setFocus(EditWindowItem* pItem,
-						  Focus focus);
+	virtual EditWindowItem* getFocusedItem();
+	virtual void setFocus(Focus focus);
+	virtual void setFocus(unsigned int nItem);
 
 public:
 	virtual bool isHidden() const;
@@ -111,7 +112,6 @@ public:
 	EditMessage* pEditMessage_;
 	HeaderEditWindow* pHeaderEditWindow_;
 	EditTextWindow* pTextWindow_;
-	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
 	std::auto_ptr<DropTarget> pDropTarget_;
 	bool bCreated_;
 	bool bLayouting_;
@@ -252,9 +252,20 @@ void qm::EditWindowImpl::setFocus()
 	pTextWindow_->setFocus();
 }
 
-void qm::EditWindowImpl::setFocus(EditWindowItem* pItem,
-								  Focus focus)
+EditWindowItem* qm::EditWindowImpl::getFocusedItem()
 {
+	if (pTextWindow_->hasFocus())
+		return this;
+	else
+		return pHeaderEditWindow_->getFocusedItem();
+}
+
+void qm::EditWindowImpl::setFocus(Focus focus)
+{
+	EditWindowItem* pItem = getFocusedItem();
+	if (!pItem)
+		return;
+	
 	EditWindowItem* pNewItem = 0;
 	if (pItem == this) {
 		pNewItem = focus == FOCUS_PREV ?
@@ -269,6 +280,13 @@ void qm::EditWindowImpl::setFocus(EditWindowItem* pItem,
 			pNewItem = this;
 	}
 	pNewItem->setFocus();
+}
+
+void qm::EditWindowImpl::setFocus(unsigned int nItem)
+{
+	EditWindowItem* pItem = pHeaderEditWindow_->getItemByNumber(nItem);
+	if (pItem)
+		pItem->setFocus();
 }
 
 bool qm::EditWindowImpl::isHidden() const
@@ -442,17 +460,9 @@ AttachmentSelectionModel* qm::EditWindow::getAttachmentSelectionModel() const
 	return pImpl_->pHeaderEditWindow_->getAttachmentSelectionModel();
 }
 
-EditWindowItem* qm::EditWindow::getItemByNumber(unsigned int nNumber) const
+EditWindowFocusController* qm::EditWindow::getFocusController() const
 {
-	return pImpl_->pHeaderEditWindow_->getItemByNumber(nNumber);
-}
-
-EditWindowItem* qm::EditWindow::getFocusedItem() const
-{
-	if (pImpl_->pTextWindow_->hasFocus())
-		return pImpl_;
-	else
-		return pImpl_->pHeaderEditWindow_->getFocusedItem();
+	return pImpl_;
 }
 
 void qm::EditWindow::saveFocusedItem()
@@ -537,9 +547,8 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	std::auto_ptr<HeaderEditWindow> pHeaderEditWindow(
 		new HeaderEditWindow(pImpl_->pProfile_));
 	HeaderEditWindowCreateContext headerEditContext = {
-		pImpl_,
 		pContext->pwszClass_,
-		pContext->pUIManager_->getMenuManager(),
+		pContext->pUIManager_,
 		pImpl_,
 		pImpl_
 	};
@@ -567,9 +576,6 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pTextWindow_ = pTextWindow.release();
 	
-	pImpl_->pItemWindow_.reset(new EditWindowItemWindow(pImpl_,
-		pImpl_, pImpl_->pTextWindow_->getHandle(), true));
-	
 	pImpl_->pDropTarget_.reset(new DropTarget(getHandle()));
 	pImpl_->pDropTarget_->setDropTargetHandler(pImpl_);
 	
@@ -580,7 +586,6 @@ LRESULT qm::EditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::EditWindow::onDestroy()
 {
-	pImpl_->pItemWindow_->unsubclassWindow();
 	pImpl_->pDropTarget_.reset(0);
 	return DefaultWindowHandler::onDestroy();
 }
@@ -612,27 +617,14 @@ qm::EditWindowItem::~EditWindowItem()
  *
  */
 
-qm::EditWindowItemWindow::EditWindowItemWindow(EditWindowFocusController* pController,
-											   EditWindowItem* pItem,
-											   HWND hwnd) :
-	WindowBase(false),
-	pController_(pController),
-	pItem_(pItem),
-	bPrevOnly_(false)
+qm::EditWindowItemWindow::EditWindowItemWindow(HWND hwnd,
+											   KeyMap* pKeyMap) :
+	WindowBase(false)
 {
-	setWindowHandler(this, false);
-	subclassWindow(hwnd);
-}
-
-qm::EditWindowItemWindow::EditWindowItemWindow(EditWindowFocusController* pController,
-											   EditWindowItem* pItem,
-											   HWND hwnd,
-											   bool bPrevOnly) :
-	WindowBase(false),
-	pController_(pController),
-	pItem_(pItem),
-	bPrevOnly_(bPrevOnly)
-{
+	CustomAcceleratorFactory acceleratorFactory;
+	pAccelerator_ = pKeyMap->createAccelerator(
+		&acceleratorFactory, L"HeaderEditWindow");
+	
 	setWindowHandler(this, false);
 	subclassWindow(hwnd);
 }
@@ -641,43 +633,9 @@ qm::EditWindowItemWindow::~EditWindowItemWindow()
 {
 }
 
-LRESULT qm::EditWindowItemWindow::windowProc(UINT uMsg,
-											 WPARAM wParam,
-											 LPARAM lParam)
+Accelerator* qm::EditWindowItemWindow::getAccelerator()
 {
-	BEGIN_MESSAGE_HANDLER()
-		HANDLE_CHAR()
-		HANDLE_KEYDOWN()
-	END_MESSAGE_HANDLER()
-	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
-}
-
-LRESULT qm::EditWindowItemWindow::onChar(UINT nChar,
-										 UINT nRepeat,
-										 UINT nFlags)
-{
-	if (nChar == _T('\t')) {
-		bool bShift = ::GetKeyState(VK_SHIFT) < 0;
-		if (bShift || !bPrevOnly_)
-			return 0;
-	}
-	return DefaultWindowHandler::onChar(nChar, nRepeat, nFlags);
-}
-
-LRESULT qm::EditWindowItemWindow::onKeyDown(UINT nKey,
-											UINT nRepeat,
-											UINT nFlags)
-{
-	if (nKey == VK_TAB) {
-		bool bShift = ::GetKeyState(VK_SHIFT) < 0;
-		if (bShift || !bPrevOnly_) {
-			pController_->setFocus(pItem_,
-				bShift ? EditWindowFocusController::FOCUS_PREV :
-					EditWindowFocusController::FOCUS_NEXT);
-			return 0;
-		}
-	}
-	return DefaultWindowHandler::onKeyDown(nKey, nRepeat, nFlags);
+	return pAccelerator_.get();
 }
 
 

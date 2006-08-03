@@ -10,6 +10,7 @@
 #define __EDITWINDOW_H__
 
 #include <qs.h>
+#include <qskeymap.h>
 #include <qsmenu.h>
 #include <qsprofile.h>
 
@@ -66,36 +67,19 @@ class EditWindowItemWindow :
 	public qs::DefaultWindowHandler
 {
 public:
-	EditWindowItemWindow(EditWindowFocusController* pController,
-						 EditWindowItem* pItem,
-						 HWND hwnd);
-	EditWindowItemWindow(EditWindowFocusController* pController,
-						 EditWindowItem* pItem,
-						 HWND hwnd,
-						 bool bPrevOnly);
+	EditWindowItemWindow(HWND hwnd,
+						 qs::KeyMap* pKeyMap);
 	virtual ~EditWindowItemWindow();
 
 public:
-	virtual LRESULT windowProc(UINT uMsg,
-							   WPARAM wParam,
-							   LPARAM lParam);
-
-protected:
-	LRESULT onChar(UINT nChar,
-				   UINT nRepeat,
-				   UINT nFlags);
-	LRESULT onKeyDown(UINT nKey,
-					  UINT nRepeat,
-					  UINT nFlags);
+	virtual qs::Accelerator* getAccelerator();
 
 private:
 	EditWindowItemWindow(const EditWindowItemWindow&);
 	EditWindowItemWindow& operator=(const EditWindowItemWindow&);
 
 private:
-	EditWindowFocusController* pController_;
-	EditWindowItem* pItem_;
-	bool bPrevOnly_;
+	std::auto_ptr<qs::Accelerator> pAccelerator_;
 };
 
 
@@ -117,8 +101,9 @@ public:
 	virtual ~EditWindowFocusController();
 
 public:
-	virtual void setFocus(EditWindowItem* pItem,
-						  Focus focus) = 0;
+	virtual EditWindowItem* getFocusedItem() = 0;
+	virtual void setFocus(Focus focus) = 0;
+	virtual void setFocus(unsigned int nItem) = 0;
 };
 
 

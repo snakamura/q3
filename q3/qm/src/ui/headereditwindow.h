@@ -120,7 +120,7 @@ protected:
 	};
 
 protected:
-	explicit HeaderEditItem(EditWindowFocusController* pController);
+	explicit HeaderEditItem(qs::KeyMap* pKeyMap);
 
 public:
 	virtual ~HeaderEditItem();
@@ -143,7 +143,7 @@ public:
 	void setValue(const WCHAR* pwszValue);
 
 protected:
-	EditWindowFocusController* getController() const;
+	qs::KeyMap* getKeyMap() const;
 	InitialFocus getInitialFocus() const;
 	const WCHAR* getValue() const;
 
@@ -166,7 +166,7 @@ private:
 	HeaderEditItem& operator=(const HeaderEditItem&);
 
 private:
-	EditWindowFocusController* pController_;
+	qs::KeyMap* pKeyMap_;
 	unsigned int nNumber_;
 	InitialFocus initialFocus_;
 	qs::wstring_ptr wstrValue_;
@@ -203,7 +203,7 @@ public:
 	};
 
 protected:
-	explicit TextHeaderEditItem(EditWindowFocusController* pController);
+	explicit TextHeaderEditItem(qs::KeyMap* pKeyMap);
 
 public:
 	virtual ~TextHeaderEditItem();
@@ -279,7 +279,7 @@ private:
 class StaticHeaderEditItem : public TextHeaderEditItem
 {
 public:
-	explicit StaticHeaderEditItem(EditWindowFocusController* pController);
+	explicit StaticHeaderEditItem(qs::KeyMap* pKeyMap);
 	virtual ~StaticHeaderEditItem();
 
 public:
@@ -316,7 +316,7 @@ class EditHeaderEditItem :
 	public qs::CommandHandler
 {
 public:
-	EditHeaderEditItem(EditWindowFocusController* pController,
+	EditHeaderEditItem(qs::KeyMap* pKeyMap,
 					   qs::Profile* pProfile);
 	virtual ~EditHeaderEditItem();
 
@@ -393,7 +393,7 @@ public:
 	};
 
 public:
-	AddressHeaderEditItem(EditWindowFocusController* pController,
+	AddressHeaderEditItem(qs::KeyMap* pKeyMap,
 						  qs::Profile* pProfile);
 	virtual ~AddressHeaderEditItem();
 
@@ -475,7 +475,7 @@ class AttachmentHeaderEditItem :
 	public AttachmentSelectionModel
 {
 public:
-	AttachmentHeaderEditItem(EditWindowFocusController* pController,
+	AttachmentHeaderEditItem(qs::KeyMap* pKeyMap,
 							 qs::MenuManager* pMenuManager,
 							 HeaderEditItemCallback* pCallback);
 	virtual ~AttachmentHeaderEditItem();
@@ -581,7 +581,7 @@ class ComboBoxHeaderEditItem :
 	public qs::CommandHandler
 {
 public:
-	explicit ComboBoxHeaderEditItem(EditWindowFocusController* pController);
+	explicit ComboBoxHeaderEditItem(qs::KeyMap* pKeyMap);
 	virtual ~ComboBoxHeaderEditItem();
 
 public:
@@ -679,7 +679,7 @@ class SignatureHeaderEditItem :
 	public DefaultEditMessageHandler
 {
 public:
-	explicit SignatureHeaderEditItem(EditWindowFocusController* pController);
+	explicit SignatureHeaderEditItem(qs::KeyMap* pKeyMap);
 	virtual ~SignatureHeaderEditItem();
 
 public:
@@ -718,7 +718,7 @@ class AccountHeaderEditItem :
 	public DefaultEditMessageHandler
 {
 public:
-	explicit AccountHeaderEditItem(EditWindowFocusController* pController);
+	explicit AccountHeaderEditItem(qs::KeyMap* pKeyMap);
 	virtual ~AccountHeaderEditItem();
 
 public:
@@ -773,8 +773,7 @@ class HeaderEditWindowContentHandler : public qs::DefaultHandler
 public:
 	HeaderEditWindowContentHandler(LineLayout* pLayout,
 								   const WCHAR* pwszClass,
-								   EditWindowFocusController* pController,
-								   qs::MenuManager* pMenuManager,
+								   UIManager* pUIManager,
 								   qs::Profile* pProfile,
 								   HeaderEditLineCallback* pLineCallback,
 								   HeaderEditItemCallback* pItemCallback);
@@ -816,8 +815,7 @@ private:
 private:
 	LineLayout* pLayout_;
 	const WCHAR* pwszClass_;
-	EditWindowFocusController* pController_;
-	qs::MenuManager* pMenuManager_;
+	UIManager* pUIManager_;
 	qs::Profile* pProfile_;
 	HeaderEditLineCallback* pLineCallback_;
 	HeaderEditItemCallback* pItemCallback_;
@@ -838,9 +836,8 @@ private:
 
 struct HeaderEditWindowCreateContext
 {
-	EditWindowFocusController* pController_;
 	const WCHAR* pwszClass_;
-	qs::MenuManager* pMenuManager_;
+	UIManager* pUIManager_;
 	HeaderEditLineCallback* pHeaderEditLineCallback_;
 	HeaderEditItemCallback* pHeaderEditItemCallback_;
 };

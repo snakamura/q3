@@ -125,10 +125,10 @@ bool qm::EditAttachmentEditDeleteAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditEditCommandAction::EditEditCommandAction(EditWindow* pEditWindow,
+qm::EditEditCommandAction::EditEditCommandAction(EditWindowFocusController* pFocusController,
 												 PFN_DO pfnDo,
 												 PFN_CANDO pfnCanDo) :
-	pEditWindow_(pEditWindow),
+	pFocusController_(pFocusController),
 	pfnDo_(pfnDo),
 	pfnCanDo_(pfnCanDo)
 {
@@ -140,18 +140,15 @@ qm::EditEditCommandAction::~EditEditCommandAction()
 
 void qm::EditEditCommandAction::invoke(const ActionEvent& event)
 {
-	EditWindowItem* pItem = pEditWindow_->getFocusedItem();
+	EditWindowItem* pItem = pFocusController_->getFocusedItem();
 	if (pItem)
 		(pItem->*pfnDo_)();
 }
 
 bool qm::EditEditCommandAction::isEnabled(const ActionEvent& event)
 {
-	EditWindowItem* pItem = pEditWindow_->getFocusedItem();
-	if (pItem)
-		return (pItem->*pfnCanDo_)();
-	else
-		return false;
+	EditWindowItem* pItem = pFocusController_->getFocusedItem();
+	return pItem ? (pItem->*pfnCanDo_)() : false;
 }
 
 
@@ -876,8 +873,10 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::EditFocusItemAction::EditFocusItemAction(EditWindow* pEditWindow) :
-	pEditWindow_(pEditWindow)
+qm::EditFocusItemAction::EditFocusItemAction(EditWindowFocusController* pFocusController,
+											 Type type) :
+	pFocusController_(pFocusController),
+	type_(type)
 {
 }
 
@@ -887,13 +886,24 @@ qm::EditFocusItemAction::~EditFocusItemAction()
 
 void qm::EditFocusItemAction::invoke(const ActionEvent& event)
 {
-	unsigned int nItem = ActionParamUtil::getIndex(event.getParam(), 0);
-	if (nItem == -1)
-		return;
-	
-	EditWindowItem* pItem = pEditWindow_->getItemByNumber(nItem);
-	if (pItem)
-		pItem->setFocus();
+	switch (type_) {
+	case TYPE_ITEM:
+		{
+			unsigned int nItem = ActionParamUtil::getIndex(event.getParam(), 0);
+			if (nItem != -1)
+				pFocusController_->setFocus(nItem);
+		}
+		break;
+	case TYPE_NEXT:
+		pFocusController_->setFocus(EditWindowFocusController::FOCUS_NEXT);
+		break;
+	case TYPE_PREV:
+		pFocusController_->setFocus(EditWindowFocusController::FOCUS_PREV);
+		break;
+	default:
+		assert(false);
+		break;
+	}
 }
 
 

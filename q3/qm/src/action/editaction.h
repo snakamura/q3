@@ -123,7 +123,7 @@ public:
 	typedef bool (EditWindowItem::*PFN_CANDO)();
 
 public:
-	EditEditCommandAction(EditWindow* pEditWindow,
+	EditEditCommandAction(EditWindowFocusController* pFocusController,
 						  PFN_DO pfnDo,
 						  PFN_CANDO pfnCanDo);
 	virtual ~EditEditCommandAction();
@@ -137,7 +137,7 @@ private:
 	EditEditCommandAction& operator=(const EditEditCommandAction&);
 
 private:
-	EditWindow* pEditWindow_;
+	EditWindowFocusController* pFocusController_;
 	PFN_DO pfnDo_;
 	PFN_CANDO pfnCanDo_;
 };
@@ -448,7 +448,15 @@ private:
 class EditFocusItemAction : public qs::AbstractAction
 {
 public:
-	EditFocusItemAction(EditWindow* pEditWindow);
+	enum Type {
+		TYPE_ITEM,
+		TYPE_NEXT,
+		TYPE_PREV
+	};
+
+public:
+	EditFocusItemAction(EditWindowFocusController* pFocusController,
+						Type type);
 	virtual ~EditFocusItemAction();
 
 public:
@@ -459,7 +467,8 @@ private:
 	EditFocusItemAction& operator=(const EditFocusItemAction&);
 
 private:
-	EditWindow* pEditWindow_;
+	EditWindowFocusController* pFocusController_;
+	Type type_;
 };
 
 
