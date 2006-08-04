@@ -33,7 +33,8 @@ const WCHAR* qmrss::RssDriver::pwszParamNames__[] = {
 	L"MakeMultipart",
 	L"UseDescriptionAsContent",
 	L"UpdateIfModified",
-	L"Cookie"
+	L"Cookie",
+	L"Command"
 };
 
 const WCHAR* qmrss::RssDriver::pwszParamValues__[] = {
@@ -43,6 +44,7 @@ const WCHAR* qmrss::RssDriver::pwszParamValues__[] = {
 	L"true",
 	L"false",
 	L"false",
+	L"",
 	L""
 };
 

@@ -132,126 +132,31 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		return false;
 #endif
 	}
-	std::auto_ptr<HttpURL> pURL(HttpURL::create(pwszURL));
-	if (!pURL.get()) {
-		reportError(IDS_ERROR_URL, pwszURL, 0);
-		return false;
-	}
-	
-	// TODO
-	// Check if minimum duration has been exceeded since last update.
-	
-	log.debugf(L"Connecting to the site: %s", pwszURL);
-	
-	CallbackImpl callback(pSubAccount_, pURL->getHost(),
-		pDocument_->getSecurity(), pSessionCallback_);
-	callback.setMessage(IDS_REQUESTRSS);
-	pSessionCallback_->setRange(0, 0);
-	
-	std::auto_ptr<Http> pHttp(Util::createHttp(pSubAccount_,
-		&callback, &callback, &callback, pLogger_));
 	
 	const Feed* pFeed = pFeedList_->getFeed(pwszURL);
 	
-	wstring_ptr wstrURL(allocWString(pwszURL));
-	std::auto_ptr<HttpMethodGet> pMethod;
-	for (int nRedirect = 0; nRedirect < MAX_REDIRECT; ++nRedirect) {
-		pMethod.reset(new HttpMethodGet(wstrURL.get()));
-		if (pFeed) {
-			wstring_ptr wstrIfModifiedSince(pFeed->getLastModified().format(
-				L"%W, %D %M1 %Y4 %h:%m:%s", Time::FORMAT_UTC));
-			wstrIfModifiedSince = concat(wstrIfModifiedSince.get(), L" GMT");
-			pMethod->setRequestHeader(L"If-Modified-Since", wstrIfModifiedSince.get());
-		}
-		
-		const WCHAR* pwszUserName = pFolder_->getParam(L"UserName");
-		const WCHAR* pwszPassword = pFolder_->getParam(L"Password");
-		if (pwszUserName && *pwszUserName && pwszPassword && *pwszPassword)
-			pMethod->setCredential(pwszUserName, pwszPassword);
-		
-		wstring_ptr wstrUserAgent(Application::getApplication().getVersion(L'/', false));
-		pMethod->setRequestHeader(L"User-Agent", wstrUserAgent.get());
-		
-		const WCHAR* pwszCookie = pFolder_->getParam(L"Cookie");
-		wstring_ptr wstrCookie;
-		if (!pwszCookie || !*pwszCookie) {
-			wstrCookie = HttpUtility::getInternetCookie(wstrURL.get());
-			pwszCookie = wstrCookie.get();
-		}
-		if (pwszCookie && *pwszCookie)
-			pMethod->setRequestHeader(L"Cookie", pwszCookie);
-		
-		unsigned int nCode = pHttp->invoke(pMethod.get());
-		switch (nCode) {
-		case 200:
-			break;
-		case 301:
-		case 302:
-		case 303:
-		case 307:
-			if (nRedirect == MAX_REDIRECT - 1) {
-				reportError(IDS_ERROR_EXCEEDMAXREDIRECT, wstrURL.get(), pMethod.get());
-				return false;
-			}
-			else {
-				Part header;
-				if (!header.create(0, pMethod->getResponseHeader(), -1)) {
-					reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), pMethod.get());
-					return false;
-				}
-				HttpUtility::updateInternetCookies(wstrURL.get(), header);
-				
-				HttpUtility::RedirectError error = HttpUtility::REDIRECTERROR_SUCCESS;
-				wstrURL = HttpUtility::getRedirectLocation(wstrURL.get(), header, &error);
-				if (!wstrURL.get()) {
-					UINT nIds[] = {
-						0,
-						IDS_ERROR_PARSEREDIRECTLOCATION,
-						IDS_ERROR_INVALIDREDIRECTLOCATION
-					};
-					assert(error - HttpUtility::REDIRECTERROR_SUCCESS < countof(nIds));
-					reportError(nIds[error - HttpUtility::REDIRECTERROR_SUCCESS], wstrURL.get(), pMethod.get());
-					return false;
-				}
-				continue;
-			}
-		case 304:
+	std::auto_ptr<Channel> pChannel;
+	Time timeLastModified;
+	const WCHAR* pwszCommand = pFolder_->getParam(L"Command");
+	if (pwszCommand && *pwszCommand) {
+		pChannel = getExecChannel(pwszURL, pwszCommand);
+		timeLastModified = Time::getCurrentTime();
+	}
+	else {
+		bool bNoChange = false;
+		pChannel = getHttpChannel(pwszURL, pFeed, &timeLastModified, &bNoChange);
+		if (bNoChange)
 			return true;
-		default:
-			reportError(IDS_ERROR_GET, wstrURL.get(), pMethod.get());
-			return false;
-		}
-		break;
 	}
-	
-	callback.setMessage(IDS_PARSERSS);
-	
-	std::auto_ptr<Channel> pChannel(RssParser().parse(
-		pwszURL, pMethod->getResponseBodyAsStream()));
-	if (!pChannel.get()) {
-		reportError(IDS_ERROR_PARSE, wstrURL.get(), 0);
+	if (!pChannel.get())
 		return false;
-	}
-	
-	Part header;
-	if (!header.create(0, pMethod->getResponseHeader(), -1)) {
-		reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), 0);
-		return false;
-	}
-	HttpUtility::updateInternetCookies(wstrURL.get(), header);
 	
 	Time timePubDate(pChannel->getPubDate());
 	if (timePubDate.wYear == 0)
 		timePubDate = Time::getCurrentTime();
 	
-	callback.setMessage(IDS_PROCESSRSS);
+	setMessage(IDS_PROCESSRSS);
 	
-	Time timeLastModified;
-	DateParser lastModified;
-	if (header.getField(L"Last-Modified", &lastModified) == Part::FIELD_EXIST)
-		timeLastModified = lastModified.getTime();
-	else
-		timeLastModified = Time::getCurrentTime();
 	std::auto_ptr<Feed> pFeedNew(new Feed(pwszURL, timeLastModified));
 	
 	Content content = CONTENT_NONE;
@@ -300,7 +205,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 			
 			// TODO
 			// Sync filter.
-			if (false && link.second) {
+#if 0
+			if (link.second) {
 				HttpMethodGet method(link.first);
 				unsigned int nCode = pHttp->invoke(&method);
 				if (nCode != 200)
@@ -310,6 +216,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 					return false;
 				pBody = method.getResponseBody();
 			}
+#endif
 			
 			Message msg;
 			if (!createItemMessage(pChannel.get(), pItem, timePubDate,
@@ -365,6 +272,158 @@ bool qmrss::RssReceiveSession::applyOfflineJobs()
 	return true;
 }
 
+std::auto_ptr<Channel> qmrss::RssReceiveSession::getHttpChannel(const WCHAR* pwszURL,
+																const Feed* pFeed,
+																Time* pTimeLastModified,
+																bool* pbNoChange)
+{
+	assert(pwszURL && *pwszURL);
+	assert(pTimeLastModified);
+	assert(pbNoChange);
+	
+	Log log(pLogger_, L"qmrss::RssReceiveSession");
+	
+	std::auto_ptr<HttpURL> pURL(HttpURL::create(pwszURL));
+	if (!pURL.get()) {
+		reportError(IDS_ERROR_URL, pwszURL, 0);
+		return std::auto_ptr<Channel>();
+	}
+	
+	// TODO
+	// Check if minimum duration has been exceeded since last update.
+	
+	log.debugf(L"Connecting to the site: %s", pwszURL);
+	
+	CallbackImpl callback(pSubAccount_, pURL->getHost(),
+		pDocument_->getSecurity(), pSessionCallback_);
+	setMessage(IDS_REQUESTRSS);
+	pSessionCallback_->setRange(0, 0);
+	
+	std::auto_ptr<Http> pHttp(Util::createHttp(pSubAccount_,
+		&callback, &callback, &callback, pLogger_));
+	
+	wstring_ptr wstrURL(allocWString(pwszURL));
+	std::auto_ptr<HttpMethodGet> pMethod;
+	for (int nRedirect = 0; nRedirect < MAX_REDIRECT; ++nRedirect) {
+		pMethod.reset(new HttpMethodGet(wstrURL.get()));
+		if (pFeed) {
+			wstring_ptr wstrIfModifiedSince(pFeed->getLastModified().format(
+				L"%W, %D %M1 %Y4 %h:%m:%s", Time::FORMAT_UTC));
+			wstrIfModifiedSince = concat(wstrIfModifiedSince.get(), L" GMT");
+			pMethod->setRequestHeader(L"If-Modified-Since", wstrIfModifiedSince.get());
+		}
+		
+		const WCHAR* pwszUserName = pFolder_->getParam(L"UserName");
+		const WCHAR* pwszPassword = pFolder_->getParam(L"Password");
+		if (pwszUserName && *pwszUserName && pwszPassword && *pwszPassword)
+			pMethod->setCredential(pwszUserName, pwszPassword);
+		
+		wstring_ptr wstrUserAgent(Application::getApplication().getVersion(L'/', false));
+		pMethod->setRequestHeader(L"User-Agent", wstrUserAgent.get());
+		
+		const WCHAR* pwszCookie = pFolder_->getParam(L"Cookie");
+		wstring_ptr wstrCookie;
+		if (!pwszCookie || !*pwszCookie) {
+			wstrCookie = HttpUtility::getInternetCookie(wstrURL.get());
+			pwszCookie = wstrCookie.get();
+		}
+		if (pwszCookie && *pwszCookie)
+			pMethod->setRequestHeader(L"Cookie", pwszCookie);
+		
+		unsigned int nCode = pHttp->invoke(pMethod.get());
+		switch (nCode) {
+		case 200:
+			break;
+		case 301:
+		case 302:
+		case 303:
+		case 307:
+			if (nRedirect == MAX_REDIRECT - 1) {
+				reportError(IDS_ERROR_EXCEEDMAXREDIRECT, wstrURL.get(), pMethod.get());
+				return std::auto_ptr<Channel>();
+			}
+			else {
+				Part header;
+				if (!header.create(0, pMethod->getResponseHeader(), -1)) {
+					reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), pMethod.get());
+					return std::auto_ptr<Channel>();
+				}
+				HttpUtility::updateInternetCookies(wstrURL.get(), header);
+				
+				HttpUtility::RedirectError error = HttpUtility::REDIRECTERROR_SUCCESS;
+				wstrURL = HttpUtility::getRedirectLocation(wstrURL.get(), header, &error);
+				if (!wstrURL.get()) {
+					UINT nIds[] = {
+						0,
+						IDS_ERROR_PARSEREDIRECTLOCATION,
+						IDS_ERROR_INVALIDREDIRECTLOCATION
+					};
+					assert(error - HttpUtility::REDIRECTERROR_SUCCESS < countof(nIds));
+					reportError(nIds[error - HttpUtility::REDIRECTERROR_SUCCESS], wstrURL.get(), pMethod.get());
+					return std::auto_ptr<Channel>();
+				}
+				continue;
+			}
+		case 304:
+			*pbNoChange = true;
+			return std::auto_ptr<Channel>();
+		default:
+			reportError(IDS_ERROR_GET, wstrURL.get(), pMethod.get());
+			return std::auto_ptr<Channel>();
+		}
+		break;
+	}
+	
+	setMessage(IDS_PARSERSS);
+	
+	std::auto_ptr<Channel> pChannel(RssParser().parse(
+		pwszURL, pMethod->getResponseBodyAsStream()));
+	if (!pChannel.get()) {
+		reportError(IDS_ERROR_PARSE, wstrURL.get(), 0);
+		return std::auto_ptr<Channel>();
+	}
+	
+	Part header;
+	if (!header.create(0, pMethod->getResponseHeader(), -1)) {
+		reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), 0);
+		return std::auto_ptr<Channel>();
+	}
+	HttpUtility::updateInternetCookies(wstrURL.get(), header);
+	
+	DateParser lastModified;
+	if (header.getField(L"Last-Modified", &lastModified) == Part::FIELD_EXIST)
+		*pTimeLastModified = lastModified.getTime();
+	else
+		*pTimeLastModified = Time::getCurrentTime();
+	
+	return pChannel;
+}
+
+std::auto_ptr<Channel> qmrss::RssReceiveSession::getExecChannel(const WCHAR* pwszURL,
+																const WCHAR* pwszCommandLine)
+{
+	assert(pwszURL && *pwszURL);
+	assert(pwszCommandLine && *pwszCommandLine);
+	
+	Log log(pLogger_, L"qmrss::RssReceiveSession");
+	
+	setMessage(IDS_REQUESTRSS);
+	
+	ByteOutputStream os;
+	Process::exec(pwszCommandLine, 0, &os, 0);
+	
+	setMessage(IDS_PARSERSS);
+	
+	ByteInputStream is(os.getBuffer(), os.getLength(), false);
+	std::auto_ptr<Channel> pChannel(RssParser().parse(pwszURL, &is));
+	if (!pChannel.get()) {
+		reportError(IDS_ERROR_PARSE, pwszURL, 0);
+		return std::auto_ptr<Channel>();
+	}
+	
+	return pChannel;
+}
+
 void qmrss::RssReceiveSession::clearFeeds()
 {
 	if (!pFeedList_)
@@ -389,6 +448,12 @@ bool qmrss::RssReceiveSession::applyRules(MessagePtrList* pList)
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
 	return pRuleManager->applyAuto(pFolder_, pList,
 		pDocument_, pProfile_, RuleManager::AUTOFLAG_NONE, &callback);
+}
+
+void qmrss::RssReceiveSession::setMessage(UINT nId)
+{
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
+	pSessionCallback_->setMessage(wstrMessage.get());
 }
 
 void qmrss::RssReceiveSession::reportError(UINT nId,

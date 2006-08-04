@@ -70,8 +70,15 @@ public:
 	virtual bool applyOfflineJobs();
 
 private:
+	std::auto_ptr<Channel> getHttpChannel(const WCHAR* pwszURL,
+										  const Feed* pFeed,
+										  qs::Time* pTimeLastModified,
+										  bool* pbNoChange);
+	std::auto_ptr<Channel> getExecChannel(const WCHAR* pwszURL,
+										  const WCHAR* pwszCommandLine);
 	void clearFeeds();
 	bool applyRules(MessagePtrList* pList);
+	void setMessage(UINT nId);
 	void reportError(UINT nId,
 					 const WCHAR* pwszParam,
 					 qs::HttpMethod* pMethod);

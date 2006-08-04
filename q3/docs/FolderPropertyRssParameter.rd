@@ -17,5 +17,7 @@ RSSƒAƒJƒEƒ“ƒg‚ÌƒtƒHƒ‹ƒ_‚Ìƒpƒ‰ƒ[ƒ^‚ÍˆÈ‰º‚Ì‚Æ‚¨‚è‚Å‚·B‚±‚ê‚ç‚Ìƒpƒ‰ƒ[ƒ^‚ÍƒtƒB
   ƒGƒ“ƒgƒŠ‚É•ÏX‚ª‚ ‚Á‚½ê‡‚ÉŽæ“¾‚µ‚È‚¨‚·‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·Butruev‚ðŽw’è‚·‚é‚ÆAƒGƒ“ƒgƒŠ‚É•ÏX‚ª‚ ‚Á‚½ê‡‚É‚ÍŽæ“¾‚µ‚È‚¨‚µ‚Ü‚·Bufalsev‚ðŽw’è‚·‚é‚ÆA“¯‚¶IDi‚Ü‚½‚ÍURLj‚ÌƒGƒ“ƒgƒŠ‚Íˆê“x‚µ‚©Žæ“¾‚µ‚Ü‚¹‚ñB
 :Cookie
   Žw’è‚µ‚½Cookie‚ð‘—‚è‚½‚¢ê‡‚ÉAuname=valuev‚ÌŒ`‚ÅŽw’è‚µ‚Ü‚·B
+:Command
+  Žw’è‚·‚é‚ÆAŽw’è‚µ‚½URL‚©‚çƒtƒB[ƒh‚ðŽæ“¾‚·‚é‘ã‚í‚è‚ÉAŽw’è‚³‚ê‚½ƒRƒ}ƒ“ƒh‚ðŽÀs‚µ‚Ä•W€o—Í‚©‚çƒtƒB[ƒh‚ðŽæ“¾‚µ‚Ü‚·BŽÀs‚·‚éƒRƒ}ƒ“ƒh‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚éRSS‚Ü‚½‚ÍAtom‚ð•W€o—Í‚Éo—Í‚·‚é•K—v‚ª‚ ‚è‚Ü‚·B
 
 =end
