@@ -410,7 +410,10 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getExecChannel(const WCHAR* pws
 	setMessage(IDS_REQUESTRSS);
 	
 	ByteOutputStream os;
-	Process::exec(pwszCommandLine, 0, &os, 0);
+	if (Process::exec(pwszCommandLine, 0, &os, 0) != 0) {
+		reportError(IDS_ERROR_GET, pwszURL, 0);
+		return std::auto_ptr<Channel>();
+	}
 	
 	setMessage(IDS_PARSERSS);
 	
