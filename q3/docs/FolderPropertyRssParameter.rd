@@ -18,6 +18,6 @@ RSSƒAƒJƒEƒ“ƒg‚ÌƒtƒHƒ‹ƒ_‚Ìƒpƒ‰ƒ[ƒ^‚ÍˆÈ‰º‚Ì‚Æ‚¨‚è‚Å‚·B‚±‚ê‚ç‚Ìƒpƒ‰ƒ[ƒ^‚ÍƒtƒB
 :Cookie
   Žw’è‚µ‚½Cookie‚ð‘—‚è‚½‚¢ê‡‚ÉAuname=valuev‚ÌŒ`‚ÅŽw’è‚µ‚Ü‚·B
 :Command
-  Žw’è‚·‚é‚ÆAŽw’è‚µ‚½URL‚©‚çƒtƒB[ƒh‚ðŽæ“¾‚·‚é‘ã‚í‚è‚ÉAŽw’è‚³‚ê‚½ƒRƒ}ƒ“ƒh‚ðŽÀs‚µ‚Ä•W€o—Í‚©‚çƒtƒB[ƒh‚ðŽæ“¾‚µ‚Ü‚·BŽÀs‚·‚éƒRƒ}ƒ“ƒh‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚éRSS‚Ü‚½‚ÍAtom‚ð•W€o—Í‚Éo—Í‚·‚é•K—v‚ª‚ ‚è‚Ü‚·B
+  Žw’è‚·‚é‚ÆAŽw’è‚µ‚½URL‚©‚çƒtƒB[ƒh‚ðŽæ“¾‚·‚é‘ã‚í‚è‚ÉAŽw’è‚³‚ê‚½ƒRƒ}ƒ“ƒh‚ðŽÀs‚µ‚Ä•W€o—Í‚©‚çƒtƒB[ƒh‚ðŽæ“¾‚µ‚Ü‚·BŽÀs‚·‚éƒRƒ}ƒ“ƒh‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚éRSS‚Ü‚½‚ÍAtom‚ð•W€o—Í‚Éo—Í‚·‚é•K—v‚ª‚ ‚è‚Ü‚·B‚½‚¾‚µAWindows CE”Å‚Å‚Í–³Œø‚Å‚·B
 
 =end

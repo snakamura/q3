@@ -74,8 +74,10 @@ private:
 										  const Feed* pFeed,
 										  qs::Time* pTimeLastModified,
 										  bool* pbNoChange);
+#ifndef _WIN32_WCE
 	std::auto_ptr<Channel> getExecChannel(const WCHAR* pwszURL,
 										  const WCHAR* pwszCommandLine);
+#endif
 	void clearFeeds();
 	bool applyRules(MessagePtrList* pList);
 	void setMessage(UINT nId);

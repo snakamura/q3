@@ -139,8 +139,12 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	Time timeLastModified;
 	const WCHAR* pwszCommand = pFolder_->getParam(L"Command");
 	if (pwszCommand && *pwszCommand) {
+#ifndef _WIN32_WCE
 		pChannel = getExecChannel(pwszURL, pwszCommand);
 		timeLastModified = Time::getCurrentTime();
+#else
+		return true;
+#endif
 	}
 	else {
 		bool bNoChange = false;
@@ -399,6 +403,7 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getHttpChannel(const WCHAR* pws
 	return pChannel;
 }
 
+#ifndef _WIN32_WCE
 std::auto_ptr<Channel> qmrss::RssReceiveSession::getExecChannel(const WCHAR* pwszURL,
 																const WCHAR* pwszCommandLine)
 {
@@ -426,6 +431,7 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getExecChannel(const WCHAR* pws
 	
 	return pChannel;
 }
+#endif
 
 void qmrss::RssReceiveSession::clearFeeds()
 {
