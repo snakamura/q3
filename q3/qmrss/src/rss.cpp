@@ -1418,9 +1418,11 @@ bool qmrss::Atom10Handler::endElement(const WCHAR* pwszNamespaceURI,
 			bool bXHTML = pwszNamespaceURI &&
 				wcscmp(pwszNamespaceURI, L"http://www.w3.org/1999/xhtml") == 0;
 			if (nContentNest_ != 0 || !bXHTML || wcscmp(pwszLocalName, L"div") != 0) {
-				buffer_.append(L"</");
-				buffer_.append(bXHTML ? pwszLocalName : pwszQName);
-				buffer_.append(L">");
+				if (!bXHTML || !isXHTMLEmptyTag(pwszLocalName)) {
+					buffer_.append(L"</");
+					buffer_.append(bXHTML ? pwszLocalName : pwszQName);
+					buffer_.append(L">");
+				}
 			}
 		}
 		break;
@@ -1622,6 +1624,29 @@ void qmrss::Atom10Handler::escape(const WCHAR* pwsz,
 		else
 			pBuf->append(*p);
 	}
+}
+
+bool qmrss::Atom10Handler::isXHTMLEmptyTag(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	
+	const WCHAR* pwszEmpty[] = {
+		L"br",
+		L"img",
+		L"area",
+		L"link",
+		L"param",
+		L"hr",
+		L"input",
+		L"col",
+		L"base",
+		L"meta"
+	};
+	for (int n = 0; n < countof(pwszEmpty); ++n) {
+		if (_wcsicmp(pwszName, pwszEmpty[n]) == 0)
+			return true;
+	}
+	return false;
 }
 
 

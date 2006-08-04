@@ -456,6 +456,7 @@ private:
 					   size_t nLen,
 					   bool bAttribute,
 					   qs::StringBuffer<qs::WSTRING>* pBuf);
+	static bool isXHTMLEmptyTag(const WCHAR* pwszName);
 
 private:
 	Atom10Handler(const Atom10Handler&);
