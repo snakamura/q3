@@ -126,14 +126,11 @@ int qm::main(const WCHAR* pwszCommandLine)
 			DWORD dwAttributes = ::GetFileAttributes(ptszLocalMailFolder);
 			bLocal = dwAttributes != 0xffffffff && dwAttributes & FILE_ATTRIBUTE_DIRECTORY;
 		}
-		if (bLocal) {
+		if (bLocal)
 			wstrMailFolder = wstrLocalMailFolder;
-			if (!wstrProfile.get())
-				wstrProfile = allocWString(L"");
-		}
 	}
 	
-	if (!wstrMailFolder.get() || !wstrProfile.get()) {
+	if (!wstrMailFolder.get()) {
 		Registry reg(HKEY_CURRENT_USER, L"Software\\sn\\q3\\Setting");
 		if (!reg)
 			return 1;
@@ -149,20 +146,18 @@ int qm::main(const WCHAR* pwszCommandLine)
 					(dwAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
 			}
 			if (bSelect) {
-				// TODO
-				// Use resource handle
 #ifndef _WIN32_WCE
 				if (!wstrMailFolder.get() || !*wstrMailFolder.get()) {
-					typedef BOOL (STDAPICALLTYPE* PFN)(HWND, LPWSTR, int, BOOL);
-					PFN pfn = 0;
 					Library lib(L"shell32.dll");
-					if (lib)
-						pfn = reinterpret_cast<PFN>(::GetProcAddress(
+					if (lib) {
+						typedef BOOL (STDAPICALLTYPE* PFN)(HWND, LPWSTR, int, BOOL);
+						PFN pfn = reinterpret_cast<PFN>(::GetProcAddress(
 							lib, "SHGetSpecialFolderPathW"));
-					if (pfn) {
-						WCHAR wszAppDir[MAX_PATH];
-						if ((*pfn)(0, wszAppDir, CSIDL_APPDATA, TRUE))
-							wstrMailFolder = concat(wszAppDir, L"\\QMAIL3");
+						if (pfn) {
+							WCHAR wszAppDir[MAX_PATH];
+							if ((*pfn)(0, wszAppDir, CSIDL_APPDATA, TRUE))
+								wstrMailFolder = concat(wszAppDir, L"\\QMAIL3");
+						}
 					}
 				}
 #endif
@@ -177,13 +172,14 @@ int qm::main(const WCHAR* pwszCommandLine)
 				*(wstrMailFolder.get() + nLen - 1) = L'\0';
 		}
 		
-		if (!wstrProfile.get()) {
-			if (!reg.getValue(L"Profile", &wstrProfile) || !wstrProfile.get())
-				wstrProfile = allocWString(L"");
-		}
+		if (!wstrProfile.get())
+			reg.getValue(L"Profile", &wstrProfile);
 	}
 	if (!File::createDirectory(wstrMailFolder.get()))
 		return 1;
+	
+	if (!wstrProfile.get())
+		wstrProfile = allocWString(L"");
 	
 	bool bContinue = false;
 	HWND hwndPrev = 0;
