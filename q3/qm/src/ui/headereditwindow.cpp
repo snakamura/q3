@@ -22,6 +22,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include <tchar.h>
 
 #include "headereditwindow.h"
@@ -1184,54 +1186,97 @@ std::pair<size_t, size_t> qm::AddressHeaderEditItem::getInput(const WCHAR* pwszT
 void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 											  CandidateList* pList)
 {
-	getCandidates(pwszInput, pAddressBook_, pList);
-	getCandidates(pwszInput, pRecentAddress_, pAddressBook_, pList);
+	assert(pwszInput);
+	assert(pList);
+	
+	size_t nInputLen = wcslen(pwszInput);
+	const WCHAR* pwszDomain = getDomain(pwszInput);
+	size_t nDomainLen = wcslen(pwszDomain);
+	getCandidates(pwszInput, nInputLen, pwszDomain,
+		nDomainLen, pAddressBook_, pList);
+	getCandidates(pwszInput, nInputLen, pwszDomain,
+		nDomainLen, pRecentAddress_, pAddressBook_, pList);
 	std::sort(pList->begin(), pList->end(), string_less_i<WCHAR>());
 }
 
 void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+											  size_t nInputLen,
+											  const WCHAR* pwszDomain,
+											  size_t nDomainLen,
 											  const AddressBook* pAddressBook,
 											  CandidateList* pList)
 {
+	assert(pwszInput);
+	assert(pAddressBook);
+	assert(pList);
+	
 	const AddressBook::EntryList& listEntry = pAddressBook->getEntries();
 	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it)
-		getCandidates(pwszInput, *it, pList);
+		getCandidates(pwszInput, nInputLen, pwszDomain, nDomainLen, *it, pList);
 }
 
 void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+											  size_t nInputLen,
+											  const WCHAR* pwszDomain,
+											  size_t nDomainLen,
 											  const AddressBookEntry* pEntry,
 											  CandidateList* pList)
 {
-	size_t nLen = wcslen(pwszInput);
-	bool bMatchName = matchName(pEntry->getName(), pwszInput, nLen);
+	assert(pwszInput);
+	assert(pEntry);
+	assert(pList);
+	
+	bool bMatchName = matchName(pEntry->getName(), pwszInput, nInputLen);
 	
 	const AddressBookEntry::AddressList& listAddress = pEntry->getAddresses();
 	for (AddressBookEntry::AddressList::const_iterator it = listAddress.begin(); it != listAddress.end(); ++it) {
 		const AddressBookAddress* pAddress = *it;
-		if (bMatchName || match(pwszInput, nLen, pAddress)) {
+		if (bMatchName || match(pwszInput, nInputLen, pAddress)) {
 			wstring_ptr wstrValue(pAddress->getValue());
 			pList->push_back(wstrValue.get());
 			wstrValue.release();
 		}
 	}
+	
+	if (pwszDomain) {
+		for (AddressBookEntry::AddressList::const_iterator it = listAddress.begin(); it != listAddress.end(); ++it) {
+			const AddressBookAddress* pAddress = *it;
+			if (!pAddress->isRFC2822() && pAddress->getAddress()) {
+				const WCHAR* pwszHost = wcschr(pAddress->getAddress(), L'@');
+				if (pwszHost)
+					addDomainCandidate(pwszInput, pwszDomain, nDomainLen, pwszHost + 1, pList);
+			}
+		}
+	}
 }
 
 void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
+											  size_t nInputLen,
+											  const WCHAR* pwszDomain,
+											  size_t nDomainLen,
 											  const RecentAddress* pRecentAddress,
 											  const AddressBook* pAddressBook,
 											  CandidateList* pList)
 {
-	size_t nLen = wcslen(pwszInput);
+	assert(pwszInput);
+	assert(pRecentAddress);
+	assert(pAddressBook);
+	assert(pList);
 	
 	const RecentAddress::AddressList& l = pRecentAddress->getAddresses();
 	for (RecentAddress::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		const AddressParser* pAddress = *it;
-		if (match(pwszInput, nLen, *pAddress) &&
+		if (match(pwszInput, nInputLen, *pAddress) &&
 			!pAddressBook->getEntry(pAddress->getAddress().get())) {
 			wstring_ptr wstrValue(pAddress->getValue());
 			pList->push_back(wstrValue.get());
 			wstrValue.release();
 		}
+	}
+	
+	if (pwszDomain) {
+		for (RecentAddress::AddressList::const_iterator it = l.begin(); it != l.end(); ++it)
+			addDomainCandidate(pwszInput, pwszDomain, nDomainLen, (*it)->getHost(), pList);
 	}
 }
 
@@ -1239,6 +1284,9 @@ bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
 									  size_t nLen,
 									  const AddressBookAddress* pAddress)
 {
+	assert(pwszInput);
+	assert(pAddress);
+	
 	if (pAddress->isRFC2822()) {
 		AddressListParser addressList;
 		if (MessageCreator::getAddressList(pAddress->getAddress(), &addressList)) {
@@ -1257,6 +1305,8 @@ bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
 									  size_t nLen,
 									  const AddressListParser& addressList)
 {
+	assert(pwszInput);
+	
 	const AddressListParser::AddressList& addresses = addressList.getAddressList();
 	for (AddressListParser::AddressList::const_iterator it = addresses.begin(); it != addresses.end(); ++it) {
 		if (match(pwszInput, nLen, **it))
@@ -1269,6 +1319,8 @@ bool qm::AddressHeaderEditItem::match(const WCHAR* pwszInput,
 									  size_t nLen,
 									  const AddressParser& address)
 {
+	assert(pwszInput);
+	
 	const AddressListParser* pGroup = address.getGroup();
 	if (pGroup) {
 		return match(pwszInput, nLen, *pGroup);
@@ -1287,6 +1339,8 @@ bool qm::AddressHeaderEditItem::matchName(const WCHAR* pwszName,
 										  const WCHAR* pwszInput,
 										  size_t nInputLen)
 {
+	assert(pwszInput);
+	
 	if (!pwszName)
 		return false;
 	
@@ -1306,6 +1360,8 @@ bool qm::AddressHeaderEditItem::matchAddress(const WCHAR* pwszAddress,
 											 const WCHAR* pwszInput,
 											 size_t nInputLen)
 {
+	assert(pwszInput);
+	
 	if (!pwszAddress)
 		return false;
 	
@@ -1318,6 +1374,37 @@ bool qm::AddressHeaderEditItem::matchAddress(const WCHAR* pwszAddress,
 			return true;
 	}
 	return false;
+}
+
+void qm::AddressHeaderEditItem::addDomainCandidate(const WCHAR* pwszInput,
+												   const WCHAR* pwszDomain,
+												   size_t nDomainLen,
+												   const WCHAR* pwszHost,
+												   CandidateList* pList)
+{
+	assert(pwszInput);
+	assert(pwszDomain);
+	assert(pwszInput < pwszDomain && pwszDomain < pwszInput + wcslen(pwszInput));
+	assert(pwszHost);
+	assert(pList);
+	
+	if (wcslen(pwszHost) > nDomainLen &&
+		_wcsnicmp(pwszHost, pwszDomain, nDomainLen) == 0) {
+		wstring_ptr wstrValue(concat(pwszInput, pwszDomain - pwszInput, pwszHost, -1));
+		if (std::find_if(pList->begin(), pList->end(),
+			boost::bind(string_contain_i<WCHAR>(), _1, wstrValue.get())) == pList->end()) {
+			pList->push_back(wstrValue.get());
+			wstrValue.release();
+		}
+	}
+}
+
+const WCHAR* qm::AddressHeaderEditItem::getDomain(const WCHAR* pwszInput)
+{
+	assert(pwszInput);
+	
+	const WCHAR* p = wcschr(pwszInput, L'@');
+	return p && *(p + 1) ? p + 1 : 0;
 }
 
 

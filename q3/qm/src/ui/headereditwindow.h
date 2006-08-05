@@ -424,14 +424,21 @@ public:
 
 private:
 	static void getCandidates(const WCHAR* pwszInput,
+							  size_t nInputLen,
+							  const WCHAR* pwszDomain,
+							  size_t nDomainLen,
 							  const AddressBook* pAddressBook,
 							  CandidateList* pList);
 	static void getCandidates(const WCHAR* pwszInput,
+							  size_t nInputLen,
+							  const WCHAR* pwszDomain,
+							  size_t nDomainLen,
 							  const AddressBookEntry* pEntry,
 							  CandidateList* pList);
-	static bool isMatch(const WCHAR* pwszInput,
-						const AddressBookAddress* pAddress);
 	static void getCandidates(const WCHAR* pwszInput,
+							  size_t nInputLen,
+							  const WCHAR* pwszDomain,
+							  size_t nDomainLen,
 							  const RecentAddress* pRecentAddress,
 							  const AddressBook* pAddressBook,
 							  CandidateList* pList);
@@ -450,6 +457,12 @@ private:
 	static bool matchAddress(const WCHAR* pwszAddress,
 							 const WCHAR* pwszInput,
 							 size_t nInputLen);
+	static const WCHAR* getDomain(const WCHAR* pwszInput);
+	static void addDomainCandidate(const WCHAR* pwszInput,
+								   const WCHAR* pwszDomain,
+								   size_t nDomainLen,
+								   const WCHAR* pwszHost,
+								   CandidateList* pList);
 
 private:
 	AddressHeaderEditItem(const AddressHeaderEditItem&);
