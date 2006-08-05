@@ -840,6 +840,34 @@ struct string_less_i : public std::binary_function<const Char*, const Char*, boo
 
 /****************************************************************************
  *
+ * string_contain
+ *
+ */
+
+template<class Char>
+struct string_contain : public std::binary_function<const Char*, const Char*, bool>
+{
+	bool operator()(const Char* p,
+					const Char* pPattern) const;
+};
+
+
+/****************************************************************************
+ *
+ * string_contain_i
+ *
+ */
+
+template<class Char>
+struct string_contain_i : public std::binary_function<const Char*, const Char*, bool>
+{
+	bool operator()(const Char* p,
+					const Char* pPattern) const;
+};
+
+
+/****************************************************************************
+ *
  * string_free
  *
  */

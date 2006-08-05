@@ -572,6 +572,61 @@ bool qs::string_less_i<Char>::operator()(const Char* plhs,
 
 /****************************************************************************
  *
+ * string_contain
+ *
+ */
+
+template<class Char>
+bool qs::string_contain<Char>::operator()(const Char* p,
+										  const Char* pPattern) const
+{
+	assert(p);
+	assert(pPattern);
+	
+	size_t nPatternLen = CharTraits<Char>::getLength(pPattern);
+	size_t nLen = CharTraits<Char>::getLength(p);
+	
+	while (nLen >= nPatternLen) {
+		if (*p == *pPattern &&
+			CharTraits<Char>::compare(p, pPattern, nPatternLen) == 0)
+			return true;
+		++p;
+		--nLen;
+	}
+	return false;
+}
+
+
+/****************************************************************************
+ *
+ * string_contain_i
+ *
+ */
+
+template<class Char>
+bool qs::string_contain_i<Char>::operator()(const Char* p,
+											const Char* pPattern) const
+{
+	assert(p);
+	assert(pPattern);
+	
+	size_t nPatternLen = CharTraits<Char>::getLength(pPattern);
+	size_t nLen = CharTraits<Char>::getLength(p);
+	
+	Char c = CharTraits<Char>::toLower(*pPattern);
+	while (nLen >= nPatternLen) {
+		if (CharTraits<Char>::toLower(*p) == c &&
+			CharTraits<Char>::compareIgnoreCase(p, pPattern, nPatternLen) == 0)
+			return true;
+		++p;
+		--nLen;
+	}
+	return false;
+}
+
+
+/****************************************************************************
+ *
  * string_free
  *
  */
