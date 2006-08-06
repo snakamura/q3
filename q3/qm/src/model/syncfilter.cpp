@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "syncfilter.h"
-#include "../model/term.h"
+#include "term.h"
 #include "../util/confighelper.h"
 
 using namespace qm;
