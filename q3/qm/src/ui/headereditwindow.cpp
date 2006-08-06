@@ -22,8 +22,6 @@
 
 #include <algorithm>
 
-#include <boost/bind.hpp>
-
 #include <tchar.h>
 
 #include "headereditwindow.h"
@@ -1392,7 +1390,7 @@ void qm::AddressHeaderEditItem::addDomainCandidate(const WCHAR* pwszInput,
 		_wcsnicmp(pwszHost, pwszDomain, nDomainLen) == 0) {
 		wstring_ptr wstrValue(concat(pwszInput, pwszDomain - pwszInput, pwszHost, -1));
 		if (std::find_if(pList->begin(), pList->end(),
-			boost::bind(string_contain_i<WCHAR>(), _1, wstrValue.get())) == pList->end()) {
+			std::bind2nd(string_contain_i<WCHAR>(), wstrValue.get()))) {
 			pList->push_back(wstrValue.get());
 			wstrValue.release();
 		}
