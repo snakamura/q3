@@ -9,8 +9,6 @@
 #include <qmdocument.h>
 #include <qmsyncfilter.h>
 
-#include <boost/bind.hpp>
-
 #include "syncmanager.h"
 #include "syncqueue.h"
 #include "../ui/syncutil.h"
@@ -49,14 +47,28 @@ qm::SyncQueue::~SyncQueue()
 	clear();
 }
 
-void qm::SyncQueue::pushFolder(NormalFolder* pFolder)
+void qm::SyncQueue::pushFolder(NormalFolder* pFolder,
+							   bool bCancelable)
 {
 	wstring_ptr wstrFolder(Util::formatFolder(pFolder));
 	
 	bool bSyncing = false;
 	{
 		Lock<CriticalSection> lock(cs_);
-		listFolderName_.push_back(wstrFolder.get());
+		
+		if (bCancelable) {
+			for (FolderList::iterator it = listFolder_.begin(); it != listFolder_.end(); ) {
+				if ((*it).second) {
+					freeWString((*it).first);
+					it = listFolder_.erase(it);
+				}
+				else {
+					++it;
+				}
+			}
+		}
+		
+		listFolder_.push_back(std::make_pair(wstrFolder.get(), bCancelable));
 		wstrFolder.release();
 		bSyncing = bSyncing_;
 	}
@@ -65,19 +77,13 @@ void qm::SyncQueue::pushFolder(NormalFolder* pFolder)
 		pWindow_->postMessage(WM_SYNCQUEUE_SYNC);
 }
 
-void qm::SyncQueue::pushFolders(const Account::NormalFolderList& listFolder)
-{
-	std::for_each(listFolder.begin(), listFolder.end(),
-		boost::bind(&SyncQueue::pushFolder, this, _1));
-}
-
 void qm::SyncQueue::sync()
 {
 	NormalFolder* pFolder = 0;
 	{
 		Lock<CriticalSection> lock(cs_);
-		for (FolderNameList::const_iterator it = listFolderName_.begin(); it != listFolderName_.end(); ++it) {
-			Folder* p = Util::getAccountOrFolder(pDocument_, *it).second;
+		for (FolderList::const_iterator it = listFolder_.begin(); it != listFolder_.end(); ++it) {
+			Folder* p = Util::getAccountOrFolder(pDocument_, (*it).first).second;
 			if (p && p->getType() == Folder::TYPE_NORMAL)
 				pFolder = static_cast<NormalFolder*>(p);
 		}
@@ -99,8 +105,11 @@ void qm::SyncQueue::sync()
 
 void qm::SyncQueue::clear()
 {
-	std::for_each(listFolderName_.begin(), listFolderName_.end(), string_free<WSTRING>());
-	listFolderName_.clear();
+	std::for_each(listFolder_.begin(), listFolder_.end(),
+		unary_compose_f_gx(
+			string_free<WSTRING>(),
+			std::select1st<FolderList::value_type>()));
+	listFolder_.clear();
 }
 
 void qm::SyncQueue::getFolders(Account::NormalFolderList* pList)
@@ -111,9 +120,9 @@ void qm::SyncQueue::getFolders(Account::NormalFolderList* pList)
 	
 	assert(bSyncing_);
 	
-	pList->reserve(listFolderName_.size());
-	for (FolderNameList::const_iterator it = listFolderName_.begin(); it != listFolderName_.end(); ++it) {
-		Folder* p = Util::getAccountOrFolder(pDocument_, *it).second;
+	pList->reserve(listFolder_.size());
+	for (FolderList::const_iterator it = listFolder_.begin(); it != listFolder_.end(); ++it) {
+		Folder* p = Util::getAccountOrFolder(pDocument_, (*it).first).second;
 		if (p && p->getType() == Folder::TYPE_NORMAL)
 			pList->push_back(static_cast<NormalFolder*>(p));
 	}

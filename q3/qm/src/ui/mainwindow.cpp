@@ -1466,7 +1466,7 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 		pFolder->getType() == Folder::TYPE_NORMAL &&
 		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 		pFolder->isFlag(Folder::FLAG_ACTIVESYNC))
-		pSyncQueue_->pushFolder(static_cast<NormalFolder*>(pFolder));
+		pSyncQueue_->pushFolder(static_cast<NormalFolder*>(pFolder), true);
 	else if (pFolder->getType() == Folder::TYPE_QUERY &&
 		pFolder->isFlag(Folder::FLAG_ACTIVESYNC))
 		static_cast<QueryFolder*>(pFolder)->search(pDocument_,

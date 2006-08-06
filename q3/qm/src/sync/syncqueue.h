@@ -44,8 +44,8 @@ public:
 	~SyncQueue();
 
 public:
-	void pushFolder(NormalFolder* pFolder);
-	void pushFolders(const Account::NormalFolderList& listFolder);
+	void pushFolder(NormalFolder* pFolder,
+					bool bCancelable);
 
 private:
 	void sync();
@@ -101,13 +101,13 @@ private:
 	friend class WindowHandler;
 
 private:
-	typedef std::vector<qs::WSTRING> FolderNameList;
+	typedef std::vector<std::pair<qs::WSTRING, bool> > FolderList;
 
 private:
 	SyncManager* pSyncManager_;
 	Document* pDocument_;
 	SyncDialogManager* pSyncDialogManager_;
-	FolderNameList listFolderName_;
+	FolderList listFolder_;
 	bool bSyncing_;
 	qs::CriticalSection cs_;
 	qs::WindowBase* pWindow_;

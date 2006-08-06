@@ -80,5 +80,5 @@ void qm::ActiveSyncInvoker::sync(NormalFolder* pFolder)
 		!pFolder->isFlag(Folder::FLAG_LOCAL) &&
 		pFolder->isFlag(Folder::FLAG_SYNCABLE) &&
 		pFolder->isFlag(Folder::FLAG_ACTIVESYNC))
-		pSyncQueue_->pushFolder(pFolder);
+		pSyncQueue_->pushFolder(pFolder, false);
 }
