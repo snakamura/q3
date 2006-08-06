@@ -28,7 +28,6 @@ class SyncItem;
 	class SendSyncItem;
 class SyncData;
 	class StaticSyncData;
-	class DynamicSyncData;
 class SyncManager;
 class SyncManagerCallback;
 class SyncManagerHandler;

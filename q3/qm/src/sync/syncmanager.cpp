@@ -622,65 +622,67 @@ bool qm::SyncManager::syncData(SyncData* pData)
 		Synchronizer* pSynchronizer_;
 	} internalOnline(pData->getDocument(), pSynchronizer_);
 	
-	SyncData::ItemListList listItemList;
-	struct Deleter
-	{
-		Deleter(SyncData::ItemListList& l) :
-			l_(l)
+	while (true) {
+		SyncData::ItemListList listItemList;
+		struct Deleter
 		{
-		}
-		
-		~Deleter()
-		{
-			for (SyncData::ItemListList::iterator it = l_.begin(); it != l_.end(); ++it) {
-				SyncData::ItemList& l = *it;
-				std::for_each(l.begin(), l.end(), qs::deleter<SyncItem>());
-			}
-		}
-		
-		SyncData::ItemListList& l_;
-	} deleter(listItemList);
-	
-	pData->getItems(&listItemList);
-	if (listItemList.empty())
-		return true;
-	
-	if (listItemList.size() == 1) {
-		syncSlotData(pData, listItemList[0]);
-	}
-	else {
-		typedef std::vector<Thread*> ThreadList;
-		ThreadList listThread;
-		listThread.reserve(listItemList.size());
-		
-		struct Wait
-		{
-			typedef std::vector<Thread*> ThreadList;
-			
-			Wait(const ThreadList& l) :
+			Deleter(SyncData::ItemListList& l) :
 				l_(l)
 			{
 			}
 			
-			~Wait()
+			~Deleter()
 			{
-				for (ThreadList::const_iterator it = l_.begin(); it != l_.end(); ++it) {
-					std::auto_ptr<Thread> pThread(*it);
-					pThread->join();
+				for (SyncData::ItemListList::iterator it = l_.begin(); it != l_.end(); ++it) {
+					SyncData::ItemList& l = *it;
+					std::for_each(l.begin(), l.end(), qs::deleter<SyncItem>());
 				}
 			}
 			
-			const ThreadList& l_;
-		} wait(listThread);
+			SyncData::ItemListList& l_;
+		} deleter(listItemList);
 		
-		for (SyncData::ItemListList::size_type n = 0; n < listItemList.size() - 1; ++n) {
-			std::auto_ptr<ParallelSyncThread> pThread(new ParallelSyncThread(this, pData, listItemList[n]));
-			if (!pThread->start())
-				break;
-			listThread.push_back(pThread.release());
-			
+		pData->getItems(&listItemList);
+		if (listItemList.empty())
+			break;
+		
+		if (listItemList.size() == 1) {
+			syncSlotData(pData, listItemList[0]);
 		}
-		syncSlotData(pData, listItemList.back());
+		else {
+			typedef std::vector<Thread*> ThreadList;
+			ThreadList listThread;
+			listThread.reserve(listItemList.size());
+			
+			struct Wait
+			{
+				typedef std::vector<Thread*> ThreadList;
+				
+				Wait(const ThreadList& l) :
+					l_(l)
+				{
+				}
+				
+				~Wait()
+				{
+					for (ThreadList::const_iterator it = l_.begin(); it != l_.end(); ++it) {
+						std::auto_ptr<Thread> pThread(*it);
+						pThread->join();
+					}
+				}
+				
+				const ThreadList& l_;
+			} wait(listThread);
+			
+			for (SyncData::ItemListList::size_type n = 0; n < listItemList.size() - 1; ++n) {
+				std::auto_ptr<ParallelSyncThread> pThread(new ParallelSyncThread(this, pData, listItemList[n]));
+				if (!pThread->start())
+					break;
+				listThread.push_back(pThread.release());
+				
+			}
+			syncSlotData(pData, listItemList.back());
+		}
 	}
 	
 	JunkFilter* pJunkFilter = pData->getDocument()->getJunkFilter();
