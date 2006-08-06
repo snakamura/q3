@@ -5508,13 +5508,11 @@ qm::ToolDialupAction::~ToolDialupAction()
 void qm::ToolDialupAction::invoke(const ActionEvent& event)
 {
 	if (!isConnected()) {
-		std::auto_ptr<SyncData> pData(new SyncData(
-			pSyncManager_, pDocument_, SyncData::TYPE_MANUAL));
+		std::auto_ptr<SyncData> pData(new StaticSyncData(
+			pDocument_, SyncData::TYPE_MANUAL, pSyncManager_));
 		
-		std::auto_ptr<SyncDialup> pDialup(new SyncDialup(
-			static_cast<const WCHAR*>(0),
-			SyncDialup::FLAG_SHOWDIALOG | SyncDialup::FLAG_NOTDISCONNECT,
-			static_cast<const WCHAR*>(0), 0));
+		std::auto_ptr<SyncDialup> pDialup(new SyncDialup(0,
+			SyncDialup::FLAG_SHOWDIALOG | SyncDialup::FLAG_NOTDISCONNECT, 0, 0));
 		pData->setDialup(pDialup);
 		
 		SyncDialog* pSyncDialog = pSyncDialogManager_->open();

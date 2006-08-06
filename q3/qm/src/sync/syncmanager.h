@@ -27,6 +27,8 @@ class SyncItem;
 	class ReceiveSyncItem;
 	class SendSyncItem;
 class SyncData;
+	class StaticSyncData;
+	class DynamicSyncData;
 class SyncManager;
 class SyncManagerCallback;
 class SyncManagerHandler;
@@ -51,15 +53,13 @@ class SyncFilterSet;
 class SyncItem
 {
 protected:
-	SyncItem(unsigned int nSlot,
-			 Account* pAccount,
+	SyncItem(Account* pAccount,
 			 SubAccount* pSubAccount);
 
 public:
 	virtual ~SyncItem();
 
 public:
-	unsigned int getSlot() const;
 	Account* getAccount() const;
 	SubAccount* getSubAccount() const;
 
@@ -72,7 +72,6 @@ private:
 	SyncItem& operator=(const SyncItem&);
 
 private:
-	unsigned int nSlot_;
 	Account* pAccount_;
 	SubAccount* pSubAccount_;
 };
@@ -93,8 +92,7 @@ public:
 	};
 
 public:
-	ReceiveSyncItem(unsigned int nSlot,
-					Account* pAccount,
+	ReceiveSyncItem(Account* pAccount,
 					SubAccount* pSubAccount,
 					NormalFolder* pFolder,
 					std::auto_ptr<SyncFilterSet> pFilterSet,
@@ -136,8 +134,7 @@ public:
 	};
 
 public:
-	SendSyncItem(unsigned int nSlot,
-				 Account* pAccount,
+	SendSyncItem(Account* pAccount,
 				 SubAccount* pSubAccount,
 				 ConnectReceiveBeforeSend crbs,
 				 const WCHAR* pwszMessageId);
@@ -219,23 +216,57 @@ public:
 
 public:
 	typedef std::vector<SyncItem*> ItemList;
+	typedef std::vector<ItemList> ItemListList;
 
 public:
-	SyncData(SyncManager* pManager,
-			 Document* pDocument,
+	SyncData(Document* pDocument,
 			 Type type);
-	~SyncData();
+	virtual ~SyncData();
 
 public:
 	Document* getDocument() const;
 	Type getType() const;
 	const SyncDialup* getDialup() const;
-	bool isEmpty() const;
-	const ItemList& getItems() const;
-	unsigned int getSlotCount() const;
 	SyncManagerCallback* getCallback() const;
-	void setCallback(SyncManagerCallback* pCallback);
+
+public:
+	virtual void getItems(ItemListList* pList) = 0;
+
+public:
 	void setDialup(std::auto_ptr<SyncDialup> pDialup);
+	void setCallback(SyncManagerCallback* pCallback);
+
+private:
+	SyncData(const SyncData&);
+	SyncData& operator=(const SyncData&);
+
+private:
+	Document* pDocument_;
+	Type type_;
+	SyncManagerCallback* pCallback_;
+	std::auto_ptr<SyncDialup> pDialup_;
+};
+
+
+/****************************************************************************
+ *
+ * StaticSyncData
+ *
+ */
+
+class StaticSyncData : public SyncData
+{
+public:
+	StaticSyncData(Document* pDocument,
+				   Type type,
+				   SyncManager* pManager);
+	virtual ~StaticSyncData();
+
+public:
+	virtual void getItems(ItemListList* pList);
+
+public:
+	bool isEmpty() const;
 	void newSlot();
 	void addFolder(Account* pAccount,
 				   SubAccount* pSubAccount,
@@ -252,16 +283,15 @@ public:
 				 const WCHAR* pwszMessageId);
 
 private:
-	SyncData(const SyncData&);
-	SyncData& operator=(const SyncData&);
+	StaticSyncData(const StaticSyncData&);
+	StaticSyncData& operator=(const StaticSyncData&);
+
+private:
+	typedef std::vector<std::pair<unsigned int, SyncItem*> > SlotItemList;
 
 private:
 	SyncManager* pManager_;
-	Document* pDocument_;
-	Type type_;
-	SyncManagerCallback* pCallback_;
-	std::auto_ptr<SyncDialup> pDialup_;
-	ItemList listItem_;
+	SlotItemList listItem_;
 	unsigned int nSlot_;
 };
 
@@ -306,9 +336,9 @@ public:
 						 const WCHAR* pwszDescription);
 
 private:
-	bool syncData(const SyncData* pData);
+	bool syncData(SyncData* pData);
 	void syncSlotData(const SyncData* pData,
-					  unsigned int nSlot);
+					  const SyncData::ItemList& listItem);
 	bool syncFolder(Document* pDocument,
 					SyncManagerCallback* pSyncManagerCallback,
 					const SyncItem* pItem,
@@ -361,7 +391,7 @@ private:
 	public:
 		ParallelSyncThread(SyncManager* pSyncManager,
 						   const SyncData* pData,
-						   unsigned int nSlot);
+						   const SyncData::ItemList& listItem);
 		virtual ~ParallelSyncThread();
 	
 	public:
@@ -374,7 +404,7 @@ private:
 	private:
 		SyncManager* pSyncManager_;
 		const SyncData* pSyncData_;
-		unsigned int nSlot_;
+		const SyncData::ItemList& listItem_;
 	};
 	friend class ParallelSyncThread;
 	

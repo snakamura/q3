@@ -27,6 +27,8 @@
 #include <algorithm>
 #include <functional>
 
+#include <boost/bind.hpp>
+
 #include "syncmanager.h"
 #include "../model/term.h"
 #include "../model/uri.h"
@@ -42,10 +44,8 @@ using namespace qs;
  *
  */
 
-qm::SyncItem::SyncItem(unsigned int nSlot,
-					   Account* pAccount,
+qm::SyncItem::SyncItem(Account* pAccount,
 					   SubAccount* pSubAccount) :
-	nSlot_(nSlot),
 	pAccount_(pAccount),
 	pSubAccount_(pSubAccount)
 {
@@ -53,11 +53,6 @@ qm::SyncItem::SyncItem(unsigned int nSlot,
 
 qm::SyncItem::~SyncItem()
 {
-}
-
-unsigned int qm::SyncItem::getSlot() const
-{
-	return nSlot_;
 }
 
 Account* qm::SyncItem::getAccount() const
@@ -77,13 +72,12 @@ SubAccount* qm::SyncItem::getSubAccount() const
  *
  */
 
-qm::ReceiveSyncItem::ReceiveSyncItem(unsigned int nSlot,
-									 Account* pAccount,
+qm::ReceiveSyncItem::ReceiveSyncItem(Account* pAccount,
 									 SubAccount* pSubAccount,
 									 NormalFolder* pFolder,
 									 std::auto_ptr<SyncFilterSet> pFilterSet,
 									 unsigned int nFlags) :
-	SyncItem(nSlot, pAccount, pSubAccount),
+	SyncItem(pAccount, pSubAccount),
 	pFolder_(pFolder),
 	pFilterSet_(pFilterSet),
 	nFlags_(nFlags)
@@ -121,12 +115,11 @@ NormalFolder* qm::ReceiveSyncItem::getFolder() const
  *
  */
 
-qm::SendSyncItem::SendSyncItem(unsigned int nSlot,
-							   Account* pAccount,
+qm::SendSyncItem::SendSyncItem(Account* pAccount,
 							   SubAccount* pSubAccount,
 							   ConnectReceiveBeforeSend crbs,
 							   const WCHAR* pwszMessageId) :
-	SyncItem(nSlot, pAccount, pSubAccount),
+	SyncItem(pAccount, pSubAccount),
 	pOutbox_(0),
 	bConnectReceiveBeforeSend_(false)
 {
@@ -237,20 +230,16 @@ unsigned int qm::SyncDialup::getDisconnectWait() const
  *
  */
 
-qm::SyncData::SyncData(SyncManager* pManager,
-					   Document* pDocument,
+qm::SyncData::SyncData(Document* pDocument,
 					   Type type) :
-	pManager_(pManager),
 	pDocument_(pDocument),
 	type_(type),
-	pCallback_(0),
-	nSlot_(0)
+	pCallback_(0)
 {
 }
 
 qm::SyncData::~SyncData()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), deleter<SyncItem>());
 }
 
 Document* qm::SyncData::getDocument() const
@@ -268,29 +257,9 @@ const SyncDialup* qm::SyncData::getDialup() const
 	return pDialup_.get();
 }
 
-bool qm::SyncData::isEmpty() const
-{
-	return listItem_.empty();
-}
-
-const SyncData::ItemList& qm::SyncData::getItems() const
-{
-	return listItem_;
-}
-
-unsigned int qm::SyncData::getSlotCount() const
-{
-	return listItem_.empty() ? 0 : listItem_.back()->getSlot();
-}
-
 SyncManagerCallback* qm::SyncData::getCallback() const
 {
 	return pCallback_;
-}
-
-void qm::SyncData::setCallback(SyncManagerCallback* pCallback)
-{
-	pCallback_ = pCallback;
 }
 
 void qm::SyncData::setDialup(std::auto_ptr<SyncDialup> pDialup)
@@ -298,30 +267,81 @@ void qm::SyncData::setDialup(std::auto_ptr<SyncDialup> pDialup)
 	pDialup_ = pDialup;
 }
 
-void qm::SyncData::newSlot()
+void qm::SyncData::setCallback(SyncManagerCallback* pCallback)
 {
-	if (!listItem_.empty() && listItem_.back()->getSlot() == nSlot_)
+	pCallback_ = pCallback;
+}
+
+
+/****************************************************************************
+ *
+ * StaticSyncData
+ *
+ */
+
+qm::StaticSyncData::StaticSyncData(Document* pDocument,
+								   Type type,
+								   SyncManager* pManager) :
+	SyncData(pDocument, type),
+	pManager_(pManager),
+	nSlot_(0)
+{
+}
+
+qm::StaticSyncData::~StaticSyncData()
+{
+	std::for_each(listItem_.begin(), listItem_.end(),
+		unary_compose_f_gx(
+			deleter<SyncItem>(),
+			std::select2nd<SlotItemList::value_type>()));
+}
+
+void qm::StaticSyncData::getItems(ItemListList* pList)
+{
+	assert(pList);
+	
+	for (unsigned int nSlot = 0; nSlot <= nSlot_; ++nSlot) {
+		ItemList listItem;
+		for (SlotItemList::iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
+			if ((*it).first == nSlot)
+				listItem.push_back((*it).second);
+		}
+		if (!listItem.empty())
+			pList->push_back(listItem);
+	}
+	listItem_.clear();
+	nSlot_ = 0;
+}
+
+bool qm::StaticSyncData::isEmpty() const
+{
+	return listItem_.empty();
+}
+
+void qm::StaticSyncData::newSlot()
+{
+	if (!listItem_.empty() && listItem_.back().first == nSlot_)
 		++nSlot_;
 }
 
-void qm::SyncData::addFolder(Account* pAccount,
-							 SubAccount* pSubAccount,
-							 NormalFolder* pFolder,
-							 const WCHAR* pwszFilterName,
-							 unsigned int nFlags)
+void qm::StaticSyncData::addFolder(Account* pAccount,
+								   SubAccount* pSubAccount,
+								   NormalFolder* pFolder,
+								   const WCHAR* pwszFilterName,
+								   unsigned int nFlags)
 {
 	SyncFilterManager* pManager = pManager_->getSyncFilterManager();
 	std::auto_ptr<SyncFilterSet> pFilterSet(pManager->getFilterSet(pwszFilterName));
 	std::auto_ptr<ReceiveSyncItem> pItem(new ReceiveSyncItem(
-		nSlot_, pAccount, pSubAccount, pFolder, pFilterSet, nFlags));
-	listItem_.push_back(pItem.get());
+		pAccount, pSubAccount, pFolder, pFilterSet, nFlags));
+	listItem_.push_back(std::make_pair(nSlot_, pItem.get()));
 	pItem.release();
 }
 
-void qm::SyncData::addFolders(Account* pAccount,
-							  SubAccount* pSubAccount,
-							  const Term& folder,
-							  const WCHAR* pwszFilterName)
+void qm::StaticSyncData::addFolders(Account* pAccount,
+									SubAccount* pSubAccount,
+									const Term& folder,
+									const WCHAR* pwszFilterName)
 {
 	Account::FolderList listFolder;
 	
@@ -353,14 +373,14 @@ void qm::SyncData::addFolders(Account* pAccount,
 		addFolder(pAccount, pSubAccount, static_cast<NormalFolder*>(*it), pwszFilterName, 0);
 }
 
-void qm::SyncData::addSend(Account* pAccount,
-						   SubAccount* pSubAccount,
-						   SendSyncItem::ConnectReceiveBeforeSend crbs,
-						   const WCHAR* pwszMessageId)
+void qm::StaticSyncData::addSend(Account* pAccount,
+								 SubAccount* pSubAccount,
+								 SendSyncItem::ConnectReceiveBeforeSend crbs,
+								 const WCHAR* pwszMessageId)
 {
 	std::auto_ptr<SendSyncItem> pItem(new SendSyncItem(
-		nSlot_, pAccount, pSubAccount, crbs, pwszMessageId));
-	listItem_.push_back(pItem.get());
+		pAccount, pSubAccount, crbs, pwszMessageId));
+	listItem_.push_back(std::make_pair(nSlot_, pItem.get()));
 	pItem.release();
 }
 
@@ -477,7 +497,7 @@ void qm::SyncManager::addError(SyncManagerCallback* pCallback,
 	pCallback->addError(nId, info);
 }
 
-bool qm::SyncManager::syncData(const SyncData* pData)
+bool qm::SyncManager::syncData(SyncData* pData)
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qm::SyncManager::syncData");
 	
@@ -602,11 +622,36 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 		Synchronizer* pSynchronizer_;
 	} internalOnline(pData->getDocument(), pSynchronizer_);
 	
-	unsigned int nSlot = pData->getSlotCount();
-	if (nSlot > 0) {
+	SyncData::ItemListList listItemList;
+	struct Deleter
+	{
+		Deleter(SyncData::ItemListList& l) :
+			l_(l)
+		{
+		}
+		
+		~Deleter()
+		{
+			for (SyncData::ItemListList::iterator it = l_.begin(); it != l_.end(); ++it) {
+				SyncData::ItemList& l = *it;
+				std::for_each(l.begin(), l.end(), qs::deleter<SyncItem>());
+			}
+		}
+		
+		SyncData::ItemListList& l_;
+	} deleter(listItemList);
+	
+	pData->getItems(&listItemList);
+	if (listItemList.empty())
+		return true;
+	
+	if (listItemList.size() == 1) {
+		syncSlotData(pData, listItemList[0]);
+	}
+	else {
 		typedef std::vector<Thread*> ThreadList;
 		ThreadList listThread;
-		listThread.reserve(nSlot);
+		listThread.reserve(listItemList.size());
 		
 		struct Wait
 		{
@@ -628,16 +673,14 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 			const ThreadList& l_;
 		} wait(listThread);
 		
-		for (unsigned int n = 0; n < nSlot; ++n) {
-			std::auto_ptr<ParallelSyncThread> pThread(new ParallelSyncThread(this, pData, n));
+		for (SyncData::ItemListList::size_type n = 0; n < listItemList.size() - 1; ++n) {
+			std::auto_ptr<ParallelSyncThread> pThread(new ParallelSyncThread(this, pData, listItemList[n]));
 			if (!pThread->start())
 				break;
 			listThread.push_back(pThread.release());
+			
 		}
-		syncSlotData(pData, nSlot);
-	}
-	else {
-		syncSlotData(pData, 0);
+		syncSlotData(pData, listItemList.back());
 	}
 	
 	JunkFilter* pJunkFilter = pData->getDocument()->getJunkFilter();
@@ -650,7 +693,7 @@ bool qm::SyncManager::syncData(const SyncData* pData)
 }
 
 void qm::SyncManager::syncSlotData(const SyncData* pData,
-								   unsigned int nSlot)
+								   const SyncData::ItemList& listItem)
 {
 	SyncManagerCallback* pCallback = pData->getCallback();
 	assert(pCallback);
@@ -725,63 +768,61 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 	SubAccount* pSubAccount = 0;
 	typedef std::vector<SubAccount*> SubAccountList;
 	SubAccountList listConnectFailed;
-	const SyncData::ItemList& l = pData->getItems();
-	for (SyncData::ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
+	for (SyncData::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
 		const SyncItem* pItem = *it;
-		if (pItem->getSlot() == nSlot) {
-			bool bSync = true;
-			if (pItem->isSend())
-				bSync = pItem->getFolder() != 0;
-			
-			if (bSync || (pItem->isSend() && static_cast<const SendSyncItem*>(pItem)->isConnectReceiveBeforeSend())) {
-				if (pSubAccount != pItem->getSubAccount() ||
-					(session.get() && !session.get()->isConnected())) {
-					pSubAccount = 0;
-					session.clear();
-					pReceiveCallback.reset(0);
-					pLogger.reset(0);
-					
-					if (std::find(listConnectFailed.begin(), listConnectFailed.end(), pItem->getSubAccount()) != listConnectFailed.end())
-						continue;
-					
-					std::auto_ptr<ReceiveSession> pReceiveSession;
-					if (!openReceiveSession(pData->getDocument(),
-						pCallback, pItem, pData->getType(),
-						&pReceiveSession, &pReceiveCallback, &pLogger))
-						continue;
-					session.reset(pReceiveSession);
-					if (pCallback->isCanceled(nId, false))
-						break;
-					
-					if (!session.get()->connect()) {
-						listConnectFailed.push_back(pItem->getSubAccount());
-						continue;
-					}
-					session.setConnected();
-					if (pCallback->isCanceled(nId, false))
-						break;
-					
-					if (!session.get()->applyOfflineJobs())
-						continue;
-					if (pCallback->isCanceled(nId, false))
-						break;
-					
-					pSubAccount = pItem->getSubAccount();
+		
+		bool bSync = true;
+		if (pItem->isSend())
+			bSync = pItem->getFolder() != 0;
+		
+		if (bSync || (pItem->isSend() && static_cast<const SendSyncItem*>(pItem)->isConnectReceiveBeforeSend())) {
+			if (pSubAccount != pItem->getSubAccount() ||
+				(session.get() && !session.get()->isConnected())) {
+				pSubAccount = 0;
+				session.clear();
+				pReceiveCallback.reset(0);
+				pLogger.reset(0);
+				
+				if (std::find(listConnectFailed.begin(), listConnectFailed.end(), pItem->getSubAccount()) != listConnectFailed.end())
+					continue;
+				
+				std::auto_ptr<ReceiveSession> pReceiveSession;
+				if (!openReceiveSession(pData->getDocument(),
+					pCallback, pItem, pData->getType(),
+					&pReceiveSession, &pReceiveCallback, &pLogger))
+					continue;
+				session.reset(pReceiveSession);
+				if (pCallback->isCanceled(nId, false))
+					break;
+				
+				if (!session.get()->connect()) {
+					listConnectFailed.push_back(pItem->getSubAccount());
+					continue;
 				}
-				if (bSync) {
-					if (!syncFolder(pData->getDocument(), pCallback, pItem, session.get()))
-						continue;
-					if (pCallback->isCanceled(nId, false))
-						break;
-				}
+				session.setConnected();
+				if (pCallback->isCanceled(nId, false))
+					break;
+				
+				if (!session.get()->applyOfflineJobs())
+					continue;
+				if (pCallback->isCanceled(nId, false))
+					break;
+				
+				pSubAccount = pItem->getSubAccount();
 			}
-			
-			if (pItem->isSend()) {
-				if (!send(pData->getDocument(), pCallback, static_cast<const SendSyncItem*>(pItem)))
+			if (bSync) {
+				if (!syncFolder(pData->getDocument(), pCallback, pItem, session.get()))
 					continue;
 				if (pCallback->isCanceled(nId, false))
 					break;
 			}
+		}
+		
+		if (pItem->isSend()) {
+			if (!send(pData->getDocument(), pCallback, static_cast<const SendSyncItem*>(pItem)))
+				continue;
+			if (pCallback->isCanceled(nId, false))
+				break;
 		}
 	}
 }
@@ -1186,10 +1227,10 @@ void qm::SyncManager::SyncThread::run()
 
 qm::SyncManager::ParallelSyncThread::ParallelSyncThread(SyncManager* pSyncManager,
 														const SyncData* pData,
-														unsigned int nSlot) :
+														const SyncData::ItemList& listItem) :
 	pSyncManager_(pSyncManager),
 	pSyncData_(pData),
-	nSlot_(nSlot)
+	listItem_(listItem)
 {
 }
 
@@ -1201,7 +1242,7 @@ void qm::SyncManager::ParallelSyncThread::run()
 {
 	InitThread init(0);
 	
-	pSyncManager_->syncSlotData(pSyncData_, nSlot_);
+	pSyncManager_->syncSlotData(pSyncData_, listItem_);
 }
 
 
