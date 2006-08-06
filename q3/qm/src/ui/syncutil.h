@@ -70,6 +70,10 @@ public:
 						SyncDialogManager* pSyncDialogManager,
 						SyncData::Type type,
 						const GoRoundCourse* pCourse);
+	static bool syncData(SyncManager* pSyncManager,
+						 SyncDialogManager* pSyncDialogManager,
+						 const SubAccount* pSubAccount,
+						 std::auto_ptr<SyncData> pSyncData);
 
 private:
 	static void setDialup(SyncData* pSyncData,

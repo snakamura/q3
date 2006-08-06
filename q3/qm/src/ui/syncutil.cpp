@@ -60,8 +60,6 @@ bool qm::SyncUtil::syncFolders(SyncManager* pSyncManager,
 	Account* pAccount = listFolder.front()->getAccount();
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
 	
-	setDialup(pData.get(), pSubAccount);
-	
 	for (Account::NormalFolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		NormalFolder* pFolder = *it;
 		
@@ -72,12 +70,7 @@ bool qm::SyncUtil::syncFolders(SyncManager* pSyncManager,
 			pSubAccount->getSyncFilterName(), nFlags);
 	}
 	
-	SyncDialog* pSyncDialog = pSyncDialogManager->open();
-	if (!pSyncDialog)
-		return false;
-	pData->setCallback(pSyncDialog->getSyncManagerCallback());
-	
-	return pSyncManager->sync(pData);
+	return syncData(pSyncManager, pSyncDialogManager, pSubAccount, pData);
 }
 
 bool qm::SyncUtil::send(SyncManager* pSyncManager,
@@ -100,15 +93,8 @@ bool qm::SyncUtil::send(SyncManager* pSyncManager,
 		return false;
 	
 	std::auto_ptr<StaticSyncData> pData(new StaticSyncData(pDocument, type, pSyncManager));
-	setDialup(pData.get(), pSubAccount);
 	pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, pwszMessageId);
-	
-	SyncDialog* pSyncDialog = pSyncDialogManager->open();
-	if (!pSyncDialog)
-		return false;
-	pData->setCallback(pSyncDialog->getSyncManagerCallback());
-	
-	return pSyncManager->sync(pData);
+	return syncData(pSyncManager, pSyncDialogManager, pSubAccount, pData);
 }
 
 bool qm::SyncUtil::sync(SyncManager* pSyncManager,
@@ -129,8 +115,6 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
 	
 	std::auto_ptr<StaticSyncData> pData(new StaticSyncData(pDocument, type, pSyncManager));
-	
-	setDialup(pData.get(), pSubAccount);
 	
 	if (bSend) {
 		NormalFolder* pOutbox = static_cast<NormalFolder*>(
@@ -156,12 +140,7 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 	if (pData->isEmpty())
 		return true;
 	
-	SyncDialog* pSyncDialog = pSyncDialogManager->open();
-	if (!pSyncDialog)
-		return false;
-	pData->setCallback(pSyncDialog->getSyncManagerCallback());
-	
-	return pSyncManager->sync(pData);
+	return syncData(pSyncManager, pSyncDialogManager, pSubAccount, pData);
 }
 
 bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
@@ -224,6 +203,11 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 	}
 	else {
 		const Document::AccountList& listAccount = pDocument->getAccounts();
+		if (listAccount.empty())
+			return true;
+		
+		setDialup(pData.get(), listAccount.front()->getCurrentSubAccount());
+		
 		for (Document::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 			Account* pAccount = *it;
 			SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
@@ -236,6 +220,26 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 			pData->addFolders(pAccount, pSubAccount, Term(), pSubAccount->getSyncFilterName());
 		}
 	}
+	
+	SyncDialog* pSyncDialog = pSyncDialogManager->open();
+	if (!pSyncDialog)
+		return false;
+	pData->setCallback(pSyncDialog->getSyncManagerCallback());
+	
+	return pSyncManager->sync(pData);
+}
+
+bool qm::SyncUtil::syncData(SyncManager* pSyncManager,
+							SyncDialogManager* pSyncDialogManager,
+							const SubAccount* pSubAccount,
+							std::auto_ptr<SyncData> pData)
+{
+	assert(pSyncManager);
+	assert(pSyncDialogManager);
+	assert(pSubAccount);
+	assert(pData.get());
+	
+	setDialup(pData.get(), pSubAccount);
 	
 	SyncDialog* pSyncDialog = pSyncDialogManager->open();
 	if (!pSyncDialog)
