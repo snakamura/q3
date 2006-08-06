@@ -16,6 +16,8 @@
 #include <qsthread.h>
 #include <qswindow.h>
 
+#include "syncmanager.h"
+
 
 namespace qm {
 
@@ -48,6 +50,7 @@ public:
 private:
 	void sync();
 	void clear();
+	void getFolders(Account::NormalFolderList* pList);
 
 private:
 	SyncQueue(const SyncQueue&);
@@ -57,13 +60,27 @@ private:
 	enum {
 		WM_SYNCQUEUE_SYNC = WM_APP + 1501
 	};
-	
-	enum {
-		TIMER_ID	= 1001,
-		TIMER_DELAY	= 500
-	};
 
 private:
+	class DynamicSyncData : public SyncData
+	{
+	public:
+		DynamicSyncData(Document* pDocument,
+						SyncQueue* pSyncQueue);
+		virtual ~DynamicSyncData();
+	
+	public:
+		virtual void getItems(ItemListList* pList);
+	
+	private:
+		DynamicSyncData(const DynamicSyncData&);
+		DynamicSyncData& operator=(const DynamicSyncData&);
+	
+	private:
+		SyncQueue* pSyncQueue_;
+	};
+	friend class DynamicSyncData;
+	
 	class WindowHandler : public qs::DefaultWindowHandler
 	{
 	public:
@@ -75,7 +92,6 @@ private:
 								   LPARAM lParam);
 	
 	protected:
-		LRESULT onTimer(UINT_PTR nId);
 		LRESULT onSync(WPARAM wParam,
 					   LPARAM lParam);
 	
@@ -92,6 +108,7 @@ private:
 	Document* pDocument_;
 	SyncDialogManager* pSyncDialogManager_;
 	FolderNameList listFolderName_;
+	bool bSyncing_;
 	qs::CriticalSection cs_;
 	qs::WindowBase* pWindow_;
 };
