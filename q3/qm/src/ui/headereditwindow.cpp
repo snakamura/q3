@@ -1189,7 +1189,7 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 	
 	size_t nInputLen = wcslen(pwszInput);
 	const WCHAR* pwszDomain = getDomain(pwszInput);
-	size_t nDomainLen = wcslen(pwszDomain);
+	size_t nDomainLen = pwszDomain ? wcslen(pwszDomain) : 0;
 	getCandidates(pwszInput, nInputLen, pwszDomain,
 		nDomainLen, pAddressBook_, pList);
 	getCandidates(pwszInput, nInputLen, pwszDomain,
