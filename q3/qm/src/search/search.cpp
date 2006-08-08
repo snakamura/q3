@@ -79,31 +79,31 @@ qm::SearchPropertyData::SearchPropertyData(const Account* pAccount,
 	assert(pAccount);
 	assert(pProfile);
 	
-	bool bForceRecursive = false;
-	if (pFolder && pFolder->getType() == Folder::TYPE_QUERY) {
-		const QueryFolder* pQueryFolder = static_cast<const QueryFolder*>(pFolder);
-		const WCHAR* pwszTarget = pQueryFolder->getTargetFolder();
-		pFolder = pwszTarget ? pAccount->getFolder(pwszTarget) : 0;
-		if (pFolder)
-			bForceRecursive = pQueryFolder->isRecursive();
-	}
-	
 	pImpl_ = new SearchPropertyDataImpl();
 	pImpl_->pAccount_ = pAccount;
 	pImpl_->pFolder_ = pFolder;
 	pImpl_->pProfile_ = pProfile;
-	
 	pImpl_->wstrCondition_ = pProfile->getString(L"Search", L"Condition");
-	
-	if (!pFolder)
-		pImpl_->bRecursive_ = false;
-	else if (bForceRecursive)
-		pImpl_->bRecursive_ = true;
-	else
-		pImpl_->bRecursive_ = pProfile->getInt(L"Search", L"Recursive") != 0;
-	
+	pImpl_->bRecursive_ = pProfile->getInt(L"Search", L"Recursive") != 0;
 	pImpl_->bNewFolder_ = pProfile->getInt(L"Search", L"NewFolder") != 0;
 	pImpl_->nImeFlags_ = pProfile->getInt(L"Search", L"Ime");
+	
+	if (!pFolder) {
+		pImpl_->bRecursive_ = false;
+	}
+	else if (pFolder->getType() == Folder::TYPE_QUERY) {
+		const QueryFolder* pQueryFolder = static_cast<const QueryFolder*>(pFolder);
+		const WCHAR* pwszTarget = pQueryFolder->getTargetFolder();
+		pImpl_->pFolder_ = pwszTarget ? pAccount->getFolder(pwszTarget) : 0;
+		if (pImpl_->pFolder_)
+			pImpl_->bRecursive_ = pQueryFolder->isRecursive();
+		else
+			pImpl_->bRecursive_ = false;
+	}
+	else if (pProfile->getInt(L"Search", L"All")) {
+		pImpl_->pFolder_ = 0;
+		pImpl_->bRecursive_ = false;
+	}
 }
 
 qm::SearchPropertyData::~SearchPropertyData()
@@ -157,6 +157,7 @@ void qm::SearchPropertyData::set(const WCHAR* pwszCondition,
 void qm::SearchPropertyData::save() const
 {
 	pImpl_->pProfile_->setString(L"Search", L"Condition", pImpl_->wstrCondition_.get());
+	pImpl_->pProfile_->setInt(L"Search", L"All", pImpl_->pFolder_ == 0);
 	pImpl_->pProfile_->setInt(L"Search", L"Recursive", pImpl_->bRecursive_);
 	pImpl_->pProfile_->setInt(L"Search", L"NewFolder", pImpl_->bNewFolder_);
 	pImpl_->pProfile_->setInt(L"Search", L"Ime", pImpl_->nImeFlags_);

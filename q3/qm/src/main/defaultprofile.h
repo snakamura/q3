@@ -446,6 +446,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"RulesDialog",	L"Width",	L"620"	},
 #endif
 	
+	{ L"Search",	L"All",			L"0"	},
 	{ L"Search",	L"Condition",	L""		},
 	{ L"Search",	L"HistorySize",	L"10"	},
 	{ L"Search",	L"Ime",			L"0"	},
