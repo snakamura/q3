@@ -50,7 +50,11 @@ public:
 private:
 	void sync();
 	void clear();
-	void getFolders(Account::NormalFolderList* pList);
+	void getFolders(Account* pAccount,
+					Account::NormalFolderList* pList);
+	bool isSyncing(Account* pAccount) const;
+	void startSyncing(Account* pAccount);
+	void endSyncing(Account* pAccount);
 
 private:
 	SyncQueue(const SyncQueue&);
@@ -65,8 +69,9 @@ private:
 	class DynamicSyncData : public SyncData
 	{
 	public:
-		DynamicSyncData(Document* pDocument,
-						SyncQueue* pSyncQueue);
+		DynamicSyncData(SyncQueue* pSyncQueue,
+						Document* pDocument,
+						Account* pAccount);
 		virtual ~DynamicSyncData();
 	
 	public:
@@ -78,6 +83,7 @@ private:
 	
 	private:
 		SyncQueue* pSyncQueue_;
+		Account* pAccount_;
 	};
 	friend class DynamicSyncData;
 	
@@ -102,13 +108,14 @@ private:
 
 private:
 	typedef std::vector<std::pair<qs::WSTRING, bool> > FolderList;
+	typedef std::vector<Account*> AccountList;
 
 private:
 	SyncManager* pSyncManager_;
 	Document* pDocument_;
 	SyncDialogManager* pSyncDialogManager_;
 	FolderList listFolder_;
-	bool bSyncing_;
+	AccountList listSyncingAccount_;
 	qs::CriticalSection cs_;
 	qs::WindowBase* pWindow_;
 };

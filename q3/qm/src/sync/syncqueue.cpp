@@ -32,7 +32,6 @@ qm::SyncQueue::SyncQueue(SyncManager* pSyncManager,
 	pSyncManager_(pSyncManager),
 	pDocument_(pDocument),
 	pSyncDialogManager_(pSyncDialogManager),
-	bSyncing_(false),
 	pWindow_(0)
 {
 	std::auto_ptr<WindowBase> pWindow(new WindowBase(true));
@@ -72,7 +71,8 @@ void qm::SyncQueue::pushFolder(NormalFolder* pFolder,
 		
 		listFolder_.push_back(std::make_pair(wstrFolder.get(), bCancelable));
 		wstrFolder.release();
-		bSyncing = bSyncing_;
+		
+		bSyncing = isSyncing(pFolder->getAccount());
 	}
 	
 	if (!bSyncing)
@@ -81,28 +81,35 @@ void qm::SyncQueue::pushFolder(NormalFolder* pFolder,
 
 void qm::SyncQueue::sync()
 {
-	NormalFolder* pFolder = 0;
-	{
-		Lock<CriticalSection> lock(cs_);
-		for (FolderList::const_iterator it = listFolder_.begin(); it != listFolder_.end(); ++it) {
-			Folder* p = Util::getAccountOrFolder(pDocument_, (*it).first).second;
-			if (p && p->getType() == Folder::TYPE_NORMAL)
-				pFolder = static_cast<NormalFolder*>(p);
+	Lock<CriticalSection> lock(cs_);
+	
+	AccountList listAccount;
+	for (FolderList::iterator it = listFolder_.begin(); it != listFolder_.end(); ) {
+		Folder* pFolder = Util::getAccountOrFolder(pDocument_, (*it).first).second;
+		if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
+			listAccount.push_back(pFolder->getAccount());
+			++it;
+		}
+		else {
+			freeWString((*it).first);
+			it = listFolder_.erase(it);
 		}
 	}
-	if (!pFolder)
+	if (listAccount.empty())
 		return;
 	
-	{
-		Lock<CriticalSection> lock(cs_);
-		if (bSyncing_)
-			return;
-		bSyncing_ = true;
-	}
+	std::sort(listAccount.begin(), listAccount.end());
+	listAccount.erase(std::unique(listAccount.begin(), listAccount.end()), listAccount.end());
 	
-	std::auto_ptr<SyncData> pData(new DynamicSyncData(pDocument_, this));
-	SyncUtil::syncData(pSyncManager_, pSyncDialogManager_,
-		pFolder->getAccount()->getCurrentSubAccount(), pData);
+	for (AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
+		Account* pAccount = *it;
+		if (!isSyncing(pAccount)) {
+			std::auto_ptr<SyncData> pData(new DynamicSyncData(this, pDocument_, pAccount));
+			SyncUtil::syncData(pSyncManager_, pSyncDialogManager_,
+				pAccount->getCurrentSubAccount(), pData);
+			startSyncing(pAccount);
+		}
+	}
 }
 
 void qm::SyncQueue::clear()
@@ -114,27 +121,59 @@ void qm::SyncQueue::clear()
 	listFolder_.clear();
 }
 
-void qm::SyncQueue::getFolders(Account::NormalFolderList* pList)
+void qm::SyncQueue::getFolders(Account* pAccount,
+							   Account::NormalFolderList* pList)
 {
 	assert(pList);
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	assert(bSyncing_);
+	assert(isSyncing(pAccount));
 	
 	pList->reserve(listFolder_.size());
-	for (FolderList::const_iterator it = listFolder_.begin(); it != listFolder_.end(); ++it) {
-		Folder* p = Util::getAccountOrFolder(pDocument_, (*it).first).second;
-		if (p && p->getType() == Folder::TYPE_NORMAL)
-			pList->push_back(static_cast<NormalFolder*>(p));
+	for (FolderList::iterator it = listFolder_.begin(); it != listFolder_.end(); ) {
+		bool bRemove = true;
+		Folder* pFolder = Util::getAccountOrFolder(pDocument_, (*it).first).second;
+		if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
+			if (pFolder->getAccount() == pAccount)
+				pList->push_back(static_cast<NormalFolder*>(pFolder));
+			else
+				bRemove = false;
+		}
+		if (bRemove) {
+			freeWString((*it).first);
+			it = listFolder_.erase(it);
+		}
+		else {
+			++it;
+		}
 	}
 	
 	std::sort(pList->begin(), pList->end());
 	pList->erase(std::unique(pList->begin(), pList->end()), pList->end());
 	
-	clear();
-	
-	bSyncing_ = !pList->empty();
+	if (pList->empty())
+		endSyncing(pAccount);
+}
+
+bool qm::SyncQueue::isSyncing(Account* pAccount) const
+{
+	AccountList::const_iterator it = std::find(listSyncingAccount_.begin(),
+		listSyncingAccount_.end(), pAccount);
+	return it != listSyncingAccount_.end();
+}
+
+void qm::SyncQueue::startSyncing(Account* pAccount)
+{
+	assert(!isSyncing(pAccount));
+	listSyncingAccount_.push_back(pAccount);
+}
+
+void qm::SyncQueue::endSyncing(Account* pAccount)
+{
+	assert(isSyncing(pAccount));
+	listSyncingAccount_.erase(std::remove(listSyncingAccount_.begin(),
+		listSyncingAccount_.end(), pAccount), listSyncingAccount_.end());
 }
 
 
@@ -144,11 +183,15 @@ void qm::SyncQueue::getFolders(Account::NormalFolderList* pList)
  *
  */
 
-SyncQueue::DynamicSyncData::DynamicSyncData(Document* pDocument,
-											SyncQueue* pSyncQueue) :
+SyncQueue::DynamicSyncData::DynamicSyncData(SyncQueue* pSyncQueue,
+											Document* pDocument,
+											Account* pAccount) :
 	SyncData(pDocument, TYPE_ACTIVE),
-	pSyncQueue_(pSyncQueue)
+	pSyncQueue_(pSyncQueue),
+	pAccount_(pAccount)
 {
+	assert(pSyncQueue);
+	assert(pAccount);
 }
 
 SyncQueue::DynamicSyncData::~DynamicSyncData()
@@ -160,7 +203,7 @@ void SyncQueue::DynamicSyncData::getItems(ItemListList* pList)
 	assert(pList);
 	
 	Account::NormalFolderList l;
-	pSyncQueue_->getFolders(&l);
+	pSyncQueue_->getFolders(pAccount_, &l);
 	if (l.empty())
 		return;
 	
@@ -170,12 +213,12 @@ void SyncQueue::DynamicSyncData::getItems(ItemListList* pList)
 	listItem.reserve(l.size());
 	for (Account::NormalFolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		NormalFolder* pFolder = *it;
-		Account* pAccount = pFolder->getAccount();
-		SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+		assert(pFolder->getAccount() == pAccount_);
+		SubAccount* pSubAccount = pAccount_->getCurrentSubAccount();
 		std::auto_ptr<SyncFilterSet> pSyncFilterSet(
 			pSyncFilterManager->getFilterSet(pSubAccount->getSyncFilterName()));
 		std::auto_ptr<ReceiveSyncItem> pItem(new ReceiveSyncItem(
-			pAccount, pSubAccount, pFolder, pSyncFilterSet, 0));
+			pAccount_, pSubAccount, pFolder, pSyncFilterSet, 0));
 		listItem.push_back(pItem.release());
 	}
 	pList->push_back(listItem);
