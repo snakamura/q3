@@ -1533,7 +1533,7 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	};
 	Window toolTip(pImpl_->hwndToolTip_);
 	toolTip.sendMessage(TTM_ADDTOOL, 0, reinterpret_cast<LPARAM>(&ti));
-	int nInitialDelay = toolTip.sendMessage(TTM_GETDELAYTIME, TTDT_RESHOW);
+	int nInitialDelay = static_cast<int>(toolTip.sendMessage(TTM_GETDELAYTIME, TTDT_RESHOW));
 	toolTip.sendMessage(TTM_SETDELAYTIME, TTDT_INITIAL, MAKELONG(nInitialDelay, 0));
 #endif
 	
