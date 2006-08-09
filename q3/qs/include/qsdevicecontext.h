@@ -95,6 +95,7 @@ public:
 					int* pnDx);
 	bool extTextOutEllipsis(int x,
 							int y,
+							int nWidth,
 							UINT nOptions,
 							const RECT& rect,
 							const WCHAR* pwszString,

@@ -50,6 +50,7 @@ using namespace qs;
  */
 
 struct qm::ListWindowImpl :
+	public NotifyHandler,
 	public ViewModelManagerHandler,
 	public ViewModelHandler,
 	public DragGestureHandler,
@@ -58,11 +59,15 @@ struct qm::ListWindowImpl :
 {
 public:
 	enum {
-		ID_HEADERCOLUMN		= 1000
+		ID_HEADERCOLUMN		= 1000,
+#ifdef QMTOOLTIP
+		ID_TOOLTIP			= 1001
+#endif
 	};
 	enum {
 		LINE_SPACING		= 4,
-		HORIZONTAL_BORDER	= 2
+		HORIZONTAL_BORDER	= 2,
+		INDENT				= 15
 	};
 	enum {
 		WM_VIEWMODEL_ITEMADDED		= WM_APP + 1101,
@@ -84,9 +89,18 @@ public:
 	void scrollHorizontal(int nPos);
 	void updateScrollBar(bool bVertical);
 	unsigned int getLineFromPoint(const POINT& pt) const;
+	unsigned int getColumnFromPoint(const POINT& pt) const;
+	void getRect(unsigned int nLine,
+				 unsigned int nColumn,
+				 RECT* pRect);
 	void reloadProfiles(bool bInitialize);
 	void updateLineHeight();
 	COLORREF getColor(int nIndex) const;
+#ifdef QMTOOLTIP
+	void relayToolTipEvent(UINT uMsg,
+						   WPARAM wParam,
+						   LPARAM lParam);
+#endif
 	
 	void postRefreshMessage(UINT uMsg,
 							unsigned int nItem);
@@ -94,6 +108,10 @@ public:
 	void postInvalidateMessage(UINT uMsg,
 							   unsigned int nItem);
 	void handleInvalidateMessage(unsigned int nItem);
+
+public:
+	virtual LRESULT onNotify(NMHDR* pnmhdr,
+							 bool* pbHandled);
 
 public:
 	virtual void viewModelSelected(const ViewModelManagerEvent& event);
@@ -121,6 +139,12 @@ public:
 	virtual void dragOver(const DropTargetDragEvent& event);
 	virtual void dragExit(const DropTargetEvent& event);
 	virtual void drop(const DropTargetDropEvent& event);
+
+private:
+#ifdef QMTOOLTIP
+	LRESULT onShow(NMHDR* pnmhdr,
+				   bool* pbHandled);
+#endif
 
 private:
 	HIMAGELIST createDragImage(const POINT& ptCursor,
@@ -155,6 +179,14 @@ public:
 	HIMAGELIST hImageListData_;
 	HPEN hpenThreadLine_;
 	HPEN hpenFocusedThreadLine_;
+	
+#ifdef QMTOOLTIP
+	HWND hwndToolTip_;
+	unsigned int nToolTipLine_;
+	unsigned int nToolTipColumn_;
+	int nToolTipIndent_;
+#endif
+	
 	std::auto_ptr<DragGestureRecognizer> pDragGestureRecognizer_;
 	std::auto_ptr<DropTarget> pDropTarget_;
 	bool bCanDrop_;
@@ -200,6 +232,8 @@ void qm::ListWindowImpl::layoutChildren(int cx,
 
 void qm::ListWindowImpl::getRect(RECT* pRect)
 {
+	assert(pRect);
+	
 	pThis_->getClientRect(pRect);
 	pRect->top += pHeaderColumn_->getHeight();
 }
@@ -254,7 +288,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 		int nOffset = 0;
 		if (pColumn->isFlag(ViewColumn::FLAG_INDENT) &&
 			((pViewModel->getSort() & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD)) {
-			nOffset = nLevel*15;
+			nOffset = nLevel*INDENT;
 			if (pColumn->isFlag(ViewColumn::FLAG_LINE)) {
 				nThreadLeft = r.left;
 				nThreadRight = r.right;
@@ -269,15 +303,17 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 			if (pColumn->isFlag(ViewColumn::FLAG_RIGHTALIGN)) {
 				SIZE size;
 				pdc->getTextExtent(wstrText.get(), static_cast<int>(nLen), &size);
-				pt.x = r.right - size.cx - HORIZONTAL_BORDER;
+				int nX = r.right - size.cx - HORIZONTAL_BORDER;
+				if (nX > pt.x)
+					pt.x = nX;
 			}
 			else {
 				pt.x += nOffset;
 			}
 			
 			if (bEllipsis_)
-				pdc->extTextOutEllipsis(pt.x, pt.y, ETO_CLIPPED | ETO_OPAQUE,
-					r, wstrText.get(), static_cast<UINT>(nLen));
+				pdc->extTextOutEllipsis(pt.x, pt.y, r.right - pt.x - HORIZONTAL_BORDER,
+					ETO_CLIPPED | ETO_OPAQUE, r, wstrText.get(), static_cast<UINT>(nLen));
 			else
 				pdc->extTextOut(pt.x, pt.y, ETO_CLIPPED | ETO_OPAQUE,
 					r, wstrText.get(), static_cast<UINT>(nLen), 0);
@@ -386,7 +422,7 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 					}
 					pdc->polyline(points, nPoint);
 				}
-				nOffset += 15;
+				nOffset += INDENT;
 				if (nThreadLeft + nOffset > nThreadRight)
 					break;
 			}
@@ -568,6 +604,42 @@ unsigned int qm::ListWindowImpl::getLineFromPoint(const POINT& pt) const
 	return nLine < pViewModel->getCount() ? nLine : -1;
 }
 
+unsigned int qm::ListWindowImpl::getColumnFromPoint(const POINT& pt) const
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	assert(pViewModel);
+	
+	int nX = pt.x + pThis_->getScrollPos(SB_HORZ);
+	
+	const ViewColumnList& listColumn = pViewModel->getColumns();
+	for (unsigned int n = 0; n < listColumn.size(); ++n) {
+		int nWidth = listColumn[n]->getWidth();
+		if (nX < nWidth)
+			return n;
+		nX -= nWidth;
+	}
+	return -1;
+}
+
+void qm::ListWindowImpl::getRect(unsigned int nLine,
+								 unsigned int nColumn,
+								 RECT* pRect)
+{
+	assert(pRect);
+	
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	assert(pViewModel);
+	
+	pRect->top = pHeaderColumn_->getHeight() +
+		(nLine - pThis_->getScrollPos(SB_VERT))*nLineHeight_;
+	pRect->bottom = pRect->top + nLineHeight_;
+	
+	pRect->left = -pThis_->getScrollPos(SB_HORZ);
+	for (unsigned int n = 0; n < nColumn; ++n)
+		pRect->left += pViewModel->getColumn(n).getWidth();
+	pRect->right = pRect->left + pViewModel->getColumn(nColumn).getWidth();
+}
+
 void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 {
 	bSingleClickOpen_ = pProfile_->getInt(L"ListWindow", L"SingleClickOpen") != 0;
@@ -640,6 +712,99 @@ COLORREF qm::ListWindowImpl::getColor(int nIndex) const
 	return ::GetSysColor(nIndex);
 }
 
+#ifdef QMTOOLTIP
+void qm::ListWindowImpl::relayToolTipEvent(UINT uMsg,
+										   WPARAM wParam,
+										   LPARAM lParam)
+{
+	POINT pt = {
+		GET_X_LPARAM(lParam),
+		GET_Y_LPARAM(lParam)
+	};
+	
+	Window toolTip(hwndToolTip_);
+	
+	wstring_ptr wstrText;
+	bool bUpdate = false;
+	
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (pViewModel) {
+		Lock<ViewModel> lock(*pViewModel);
+		unsigned int nLine = getLineFromPoint(pt);
+		unsigned int nColumn = getColumnFromPoint(pt);
+		if (nLine != nToolTipLine_ || nColumn != nToolTipColumn_) {
+			nToolTipIndent_ = 0;
+			if (nLine != -1 && nColumn != -1) {
+				const ViewColumn& column = pViewModel->getColumn(nColumn);
+				const ViewModelItem* pItem = pViewModel->getItem(nLine);
+				if (!column.isFlag(ViewColumn::FLAG_ICON)) {
+					wstring_ptr wstr(column.getText(pViewModel, pItem));
+					
+					HFONT hfont = pItem->isBold() ? hfontBold_ : hfont_;
+					ClientDeviceContext dc(pThis_->getHandle());
+					ObjectSelector<HFONT> selector(dc, hfont);
+					SIZE size;
+					dc.getTextExtent(wstr.get(), static_cast<int>(wcslen(wstr.get())), &size);
+					
+					int nIndent = 0;
+					if ((pViewModel->getSort() & ViewModel::SORT_THREAD_MASK) == ViewModel::SORT_THREAD &&
+						column.isFlag(ViewColumn::FLAG_INDENT))
+						nIndent = pItem->getLevel()*INDENT;
+					int nWidth = size.cx + HORIZONTAL_BORDER*2 + nIndent;
+					
+					if (nWidth > static_cast<int>(column.getWidth())) {
+						wstrText = wstr;
+						
+						COLORREF crText = pItem->getForeground();
+						if (crText == 0xff000000)
+							crText = getColor(COLOR_WINDOWTEXT);
+						toolTip.sendMessage(TTM_SETTIPTEXTCOLOR, crText);
+						toolTip.setFont(hfont);
+						
+						nToolTipIndent_ = nIndent;
+					}
+				}
+			}
+			nToolTipLine_ = nLine;
+			nToolTipColumn_ = nColumn;
+			bUpdate = true;
+		}
+	}
+	else {
+		bUpdate = nToolTipLine_ != -1 || nToolTipColumn_ != -1;
+		nToolTipLine_ = -1;
+		nToolTipColumn_ = -1;
+		nToolTipIndent_ = 0;
+	}
+	
+	if (bUpdate) {
+		toolTip.sendMessage(TTM_POP);
+		toolTip.showWindow(SW_HIDE);
+		
+		W2T(wstrText.get(), ptszText);
+		TOOLINFO ti = {
+			sizeof(ti),
+			0,
+			pThis_->getHandle(),
+			ID_TOOLTIP,
+			{ 0, 0, 0, 0 },
+			0,
+			const_cast<LPTSTR>(ptszText)
+		};
+		toolTip.sendMessage(TTM_UPDATETIPTEXT,
+			0, reinterpret_cast<LPARAM>(&ti));
+	}
+	
+	MSG msg = {
+		pThis_->getHandle(),
+		uMsg,
+		wParam,
+		lParam
+	};
+	toolTip.sendMessage(TTM_RELAYEVENT, 0, reinterpret_cast<LPARAM>(&msg));
+}
+#endif
+
 void qm::ListWindowImpl::postRefreshMessage(UINT uMsg,
 											unsigned int nItem)
 {
@@ -672,6 +837,17 @@ void qm::ListWindowImpl::handleInvalidateMessage(unsigned int nItem)
 		pThis_->invalidate();
 	else
 		invalidateLine(nItem);
+}
+
+LRESULT qm::ListWindowImpl::onNotify(NMHDR* pnmhdr,
+									 bool* pbHandled)
+{
+#ifdef QMTOOLTIP
+	BEGIN_NOTIFY_HANDLER()
+		HANDLE_NOTIFY(TTN_SHOW, ID_TOOLTIP, onShow)
+	END_NOTIFY_HANDLER()
+#endif
+	return NotifyHandler::onNotify(pnmhdr, pbHandled);
 }
 
 void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
@@ -909,6 +1085,32 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 	ImageList_DragLeave(pThis_->getHandle());
 }
 
+#ifdef QMTOOLTIP
+LRESULT qm::ListWindowImpl::onShow(NMHDR* pnmhdr,
+								   bool* pbHandled)
+{
+	*pbHandled = true;
+	
+	if (nToolTipLine_ == -1 || nToolTipColumn_ == -1)
+		return 0;
+	
+	RECT rect;
+	getRect(nToolTipLine_, nToolTipColumn_, &rect);
+	rect.top += LINE_SPACING/2;
+	rect.bottom -= LINE_SPACING/2;
+	rect.left += HORIZONTAL_BORDER + nToolTipIndent_;
+	pThis_->clientToScreen(&rect);
+	
+	Window toolTip(hwndToolTip_);
+	toolTip.sendMessage(TTM_ADJUSTRECT,
+		TRUE, reinterpret_cast<LPARAM>(&rect));
+	toolTip.setWindowPos(HWND_TOP, rect.left,
+		rect.top, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+	
+	return 1;
+}
+#endif
+
 HIMAGELIST qm::ListWindowImpl::createDragImage(const POINT& ptCursor,
 											   POINT* pptHotspot)
 {
@@ -1035,6 +1237,12 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->hImageListData_ = 0;
 	pImpl_->hpenThreadLine_ = 0;
 	pImpl_->hpenFocusedThreadLine_ = 0;
+#ifdef QMTOOLTIP
+	pImpl_->hwndToolTip_ = 0;
+	pImpl_->nToolTipLine_ = -1;
+	pImpl_->nToolTipColumn_ = -1;
+	pImpl_->nToolTipIndent_ = 0;
+#endif
 	pImpl_->bCanDrop_ = false;
 	pImpl_->nRefreshing_ = 0;
 	pImpl_->nInvalidating_ = 0;
@@ -1055,7 +1263,14 @@ void qm::ListWindow::refresh()
 {
 	pImpl_->updateScrollBar(true);
 	pImpl_->updateScrollBar(false);
+	
 	invalidate();
+	
+#ifdef QMTOOLTIP
+	pImpl_->nToolTipLine_ = -1;
+	pImpl_->nToolTipColumn_ = -1;
+	pImpl_->nToolTipIndent_ = 0;
+#endif
 }
 
 void qm::ListWindow::moveSelection(MoveSelection m,
@@ -1193,6 +1408,11 @@ LRESULT qm::ListWindow::windowProc(UINT uMsg,
 								   WPARAM wParam,
 								   LPARAM lParam)
 {
+#ifdef QMTOOLTIP
+	if (WM_MOUSEFIRST <= uMsg && uMsg <= WM_MOUSELAST)
+		pImpl_->relayToolTipEvent(uMsg, wParam, lParam);
+#endif
+	
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CONTEXTMENU()
 		HANDLE_CREATE()
@@ -1280,27 +1500,59 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->hImageList_ = UIUtil::createImageListFromFile(
 		FileNames::LIST_BMP, 16, CLR_DEFAULT);
+	if (!pImpl_->hImageList_)
+		return -1;
 #ifdef _WIN32_WCE_PSPC
 	ImageList_SetBkColor(pImpl_->hImageList_, CLR_NONE);
 #endif
 	pImpl_->hImageListData_ = UIUtil::createImageListFromFile(
 		FileNames::LISTDATA_BMP, 8, RGB(255, 255, 255));
+	if (!pImpl_->hImageListData_)
+		return -1;
 	
 	pImpl_->hpenThreadLine_ = ::CreatePen(PS_SOLID, 1, RGB(0, 0x80, 0));
+	if (!pImpl_->hpenThreadLine_)
+		return -1;
 	pImpl_->hpenFocusedThreadLine_ = ::CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+	if (!pImpl_->hpenFocusedThreadLine_)
+		return -1;
 	
-	refresh();
+#ifdef QMTOOLTIP
+	pImpl_->hwndToolTip_ = ::CreateWindowEx(WS_EX_TRANSPARENT, TOOLTIPS_CLASS,
+		0, TTS_NOPREFIX, 0, 0, 0, 0, 0, 0, getInstanceHandle(), 0);
+	if (!pImpl_->hwndToolTip_)
+		return -1;
+	TOOLINFO ti = {
+		sizeof(ti),
+		TTF_TRANSPARENT,
+		getHandle(),
+		ListWindowImpl::ID_TOOLTIP,
+		{ 0, 0, 0, 0 },
+		0,
+		LPSTR_TEXTCALLBACK
+	};
+	Window toolTip(pImpl_->hwndToolTip_);
+	toolTip.sendMessage(TTM_ADDTOOL, 0, reinterpret_cast<LPARAM>(&ti));
+	int nInitialDelay = toolTip.sendMessage(TTM_GETDELAYTIME, TTDT_RESHOW);
+	toolTip.sendMessage(TTM_SETDELAYTIME, TTDT_INITIAL, MAKELONG(nInitialDelay, 0));
+#endif
 	
 	pImpl_->pDragGestureRecognizer_.reset(new DragGestureRecognizer(getHandle()));
 	pImpl_->pDragGestureRecognizer_->setDragGestureHandler(pImpl_);
 	pImpl_->pDropTarget_.reset(new DropTarget(getHandle()));
 	pImpl_->pDropTarget_->setDropTargetHandler(pImpl_);
 	
+	refresh();
+	
+	addNotifyHandler(pImpl_);
+	
 	return 0;
 }
 
 LRESULT qm::ListWindow::onDestroy()
 {
+	removeNotifyHandler(pImpl_);
+	
 	if (pImpl_->hfont_) {
 		::DeleteObject(pImpl_->hfont_);
 		pImpl_->hfont_ = 0;
@@ -1690,6 +1942,20 @@ LRESULT qm::ListWindow::onSize(UINT nFlags,
 {
 	if (pImpl_->pHeaderColumn_)
 		pImpl_->layoutChildren(cx, cy);
+	
+#ifdef QMTOOLTIP
+	if (pImpl_->hwndToolTip_) {
+		TOOLINFO ti = {
+			sizeof(ti),
+			0,
+			getHandle(),
+			ListWindowImpl::ID_TOOLTIP,
+		};
+		pImpl_->getRect(&ti.rect);
+		Window(pImpl_->hwndToolTip_).sendMessage(
+			TTM_NEWTOOLRECT, 0, reinterpret_cast<LPARAM>(&ti));
+	}
+#endif
 	
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }

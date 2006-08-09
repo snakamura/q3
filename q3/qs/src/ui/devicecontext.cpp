@@ -26,12 +26,12 @@ using namespace qs;
 
 bool qs::DeviceContext::extTextOutEllipsis(int x,
 										   int y,
+										   int nWidth,
 										   UINT nOptions,
 										   const RECT& rect,
 										   const WCHAR* pwszString,
 										   UINT nCount)
 {
-	int nWidth = rect.right - x;
 	if (nWidth > 0) {
 		int nFit = 0;
 		SIZE size;
@@ -40,18 +40,18 @@ bool qs::DeviceContext::extTextOutEllipsis(int x,
 		else if (size.cx <= nWidth)
 			return extTextOut(x, y, nOptions, rect, pwszString, nCount, 0);
 		
-		wstring_ptr str(allocWString(nFit + 4));
-		wcsncpy(str.get(), pwszString, nFit);
+		wstring_ptr wstr(allocWString(nFit + 4));
+		wcsncpy(wstr.get(), pwszString, nFit);
 		while (nFit >= 0) {
-			wcscpy(str.get() + nFit, L"...");
-			if (!getTextExtentEx(pwszString, nFit + 3, nWidth, 0, 0, &size))
+			wcscpy(wstr.get() + nFit, L"...");
+			if (!getTextExtentEx(wstr.get(), nFit + 3, nWidth, 0, 0, &size))
 				return false;
 			else if (size.cx <= nWidth)
 				break;
 			--nFit;
 		}
 		if (nFit >= 0)
-			return extTextOut(x, y, nOptions, rect, str.get(), nFit + 3, 0);
+			return extTextOut(x, y, nOptions, rect, wstr.get(), nFit + 3, 0);
 	}
 	return extTextOut(x, y, nOptions, rect, L"", 0, 0);
 }
