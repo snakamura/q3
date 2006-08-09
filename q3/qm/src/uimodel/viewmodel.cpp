@@ -579,7 +579,7 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 			Message msg;
 			MacroContext context(pmh, &msg, pFolder_->getAccount(),
 				MessageHolderList(), pFolder_, pDocument_, 0, pProfile_, 0,
-				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
+				MacroContext::FLAG_UITHREAD/* | MacroContext::FLAG_GETMESSAGEASPOSSIBLE*/,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 			color = pColorList_->getColor(&context);
 		}
@@ -961,7 +961,7 @@ MacroValuePtr qm::ViewModel::getValue(const Macro* pMacro,
 	Message msg;
 	MacroContext context(pmh, &msg, pFolder_->getAccount(),
 		MessageHolderList(), pFolder_, pDocument_, 0, pProfile_, 0,
-		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
+		MacroContext::FLAG_UITHREAD/* | MacroContext::FLAG_GETMESSAGEASPOSSIBLE*/,
 		/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 	return pMacro->value(&context);
 }
@@ -985,7 +985,7 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 			Message msg;
 			MacroContext context(pmh, &msg, pFolder_->getAccount(),
 				MessageHolderList(), pFolder_, pDocument_, 0, pProfile_, 0,
-				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
+				MacroContext::FLAG_UITHREAD/* | MacroContext::FLAG_GETMESSAGEASPOSSIBLE*/,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
 			bAdd = pFilter_->match(&context);
 		}
@@ -1334,7 +1334,7 @@ void qm::ViewModel::update(bool bRestoreSelection,
 			Message msg;
 			MacroContext context(pmh, &msg, pFolder_->getAccount(),
 				MessageHolderList(), pFolder_, pDocument_, 0, pProfile_, 0,
-				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_GETMESSAGEASPOSSIBLE,
+				MacroContext::FLAG_UITHREAD/* | MacroContext::FLAG_GETMESSAGEASPOSSIBLE*/,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, &globalVariable);
 			bAdd = pFilter_->match(&context);
 		}
