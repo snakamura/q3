@@ -1347,6 +1347,7 @@ private:
 	LRESULT onTypeSelChange();
 
 private:
+	ViewColumn::Type getType() const;
 	void updateState();
 
 private:

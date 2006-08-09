@@ -2866,8 +2866,7 @@ LRESULT qm::ViewsColumnDialog::onInitDialog(HWND hwndFocus,
 LRESULT qm::ViewsColumnDialog::onOk()
 {
 	wstring_ptr wstrTitle(getDlgItemText(IDC_TITLE));
-	ViewColumn::Type type = static_cast<ViewColumn::Type>(
-		ComboBox_GetCurSel(getDlgItem(IDC_TYPE)) + 1);
+	ViewColumn::Type type = getType();
 	std::auto_ptr<Macro> pMacro;
 	if (type == ViewColumn::TYPE_OTHER) {
 		wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
@@ -2906,14 +2905,22 @@ LRESULT qm::ViewsColumnDialog::onOk()
 
 LRESULT qm::ViewsColumnDialog::onTypeSelChange()
 {
+	Button_SetCheck(getDlgItem(IDC_CACHE),
+		getType() == ViewColumn::TYPE_OTHER ?
+			BST_CHECKED : BST_UNCHECKED);
 	updateState();
 	return 0;
 }
 
+ViewColumn::Type qm::ViewsColumnDialog::getType() const
+{
+	return static_cast<ViewColumn::Type>(
+		ComboBox_GetCurSel(getDlgItem(IDC_TYPE)) + 1);
+}
+
 void qm::ViewsColumnDialog::updateState()
 {
-	bool bEnable = ComboBox_GetCurSel(getDlgItem(IDC_TYPE)) ==
-		ComboBox_GetCount(getDlgItem(IDC_TYPE)) - 1;
+	bool bEnable = getType() == ViewColumn::TYPE_OTHER;
 	Window(getDlgItem(IDC_MACRO)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_CACHE)).enableWindow(bEnable);
 }
