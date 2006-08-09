@@ -11,9 +11,11 @@
 #include <qsosutil.h>
 
 extern "C" {
+#pragma pack(push, 4)
 #define API
 #include <zip/api.h>
 #undef API
+#pragma pack(pop)
 }
 
 #include "zip.h"
