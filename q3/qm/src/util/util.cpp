@@ -139,6 +139,59 @@ unsigned int qm::Util::getUnseenMessageCount(Account* pAccount)
 	return nCount;
 }
 
+bool qm::Util::setMessagesLabel(Account* pAccount,
+								const MessageHolderList& l,
+								LabelType type,
+								const WCHAR* pwszLabel,
+								UndoItemList* pUndoItemList)
+{
+	switch (type) {
+	case LABELTYPE_SET:
+		if (!pAccount->setMessagesLabel(l, pwszLabel, pUndoItemList))
+			return false;
+		break;
+	case LABELTYPE_ADD:
+		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessageHolder* pmh = *it;
+			wstring_ptr wstrLabel(pmh->getLabel());
+			if (*wstrLabel.get()) {
+				wstrLabel = concat(wstrLabel.get(), L" ", pwszLabel);
+				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), wstrLabel.get(), pUndoItemList))
+					return false;
+			}
+			else {
+				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), pwszLabel, pUndoItemList))
+					return false;
+			}
+		}
+		break;
+	case LABELTYPE_REMOVE:
+		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			MessageHolder* pmh = *it;
+			wstring_ptr wstrLabel(pmh->getLabel());
+			if (*wstrLabel.get()) {
+				StringBuffer<WSTRING> buf;
+				const WCHAR* p = wcstok(wstrLabel.get(), L" ");
+				while (p) {
+					if (wcscmp(p, pwszLabel) != 0) {
+						if (buf.getLength() != 0)
+							buf.append(L' ');
+						buf.append(p);
+					}
+					p = wcstok(0, L" ");
+				}
+				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), buf.getCharArray(), pUndoItemList))
+					return false;
+			}
+		}
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	return true;
+}
+
 bool qm::Util::hasFilesOrURIs(IDataObject* pDataObject)
 {
 #ifndef _WIN32_WCE

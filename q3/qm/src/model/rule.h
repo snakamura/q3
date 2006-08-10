@@ -25,6 +25,7 @@
 
 #include "term.h"
 #include "../util/confighelper.h"
+#include "../util/util.h"
 
 
 namespace qm {
@@ -308,14 +309,7 @@ private:
 class LabelRuleAction : public RuleAction
 {
 public:
-	enum LabelType {
-		LABELTYPE_SET,
-		LABELTYPE_ADD,
-		LABELTYPE_REMOVE
-	};
-
-public:
-	LabelRuleAction(LabelType type,
+	LabelRuleAction(Util::LabelType type,
 					const WCHAR* pwszLabel);
 
 private:
@@ -325,7 +319,7 @@ public:
 	virtual ~LabelRuleAction();
 
 public:
-	LabelType getLabelType() const;
+	Util::LabelType getLabelType() const;
 	const WCHAR* getLabel() const;
 
 public:
@@ -339,7 +333,7 @@ private:
 	LabelRuleAction& operator=(const LabelRuleAction&);
 
 private:
-	LabelType type_;
+	Util::LabelType type_;
 	qs::wstring_ptr wstrLabel_;
 };
 

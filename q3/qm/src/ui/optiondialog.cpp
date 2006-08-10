@@ -3390,7 +3390,7 @@ LRESULT qm::RuleDialog::onOk()
 		break;
 	case RuleAction::TYPE_LABEL:
 		{
-			LabelRuleAction::LabelType labelType = static_cast<LabelRuleAction::LabelType>(
+			Util::LabelType labelType = static_cast<Util::LabelType>(
 				ComboBox_GetCurSel(getDlgItem(IDC_LABELTYPE)));
 			wstring_ptr wstrLabel(getDlgItemText(IDC_LABEL));
 			pAction.reset(new LabelRuleAction(labelType, wstrLabel.get()));

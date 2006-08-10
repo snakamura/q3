@@ -1216,7 +1216,7 @@ std::auto_ptr<RuleAction> qm::DeleteRuleAction::clone() const
  *
  */
 
-qm::LabelRuleAction::LabelRuleAction(LabelType type,
+qm::LabelRuleAction::LabelRuleAction(Util::LabelType type,
 									 const WCHAR* pwszLabel) :
 	type_(type)
 {
@@ -1234,7 +1234,7 @@ qm::LabelRuleAction::~LabelRuleAction()
 {
 }
 
-LabelRuleAction::LabelType qm::LabelRuleAction::getLabelType() const
+Util::LabelType qm::LabelRuleAction::getLabelType() const
 {
 	return type_;
 }
@@ -1251,55 +1251,9 @@ RuleAction::Type qm::LabelRuleAction::getType() const
 
 bool qm::LabelRuleAction::apply(RuleContext* pContext) const
 {
-	Account* pAccount = pContext->getAccount();
-	const MessageHolderList& l = pContext->getMessageHolderList();
-	UndoItemList* pUndoItemList = pContext->getUndoItemList();
-	switch (type_) {
-	case LABELTYPE_SET:
-		if (!pAccount->setMessagesLabel(l, wstrLabel_.get(), pUndoItemList))
-			return false;
-		break;
-	case LABELTYPE_ADD:
-		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			MessageHolder* pmh = *it;
-			wstring_ptr wstrLabel(pmh->getLabel());
-			if (*wstrLabel.get()) {
-				wstrLabel = concat(wstrLabel.get(), L" ", wstrLabel_.get());
-				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), wstrLabel.get(), pUndoItemList))
-					return false;
-			}
-			else {
-				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), wstrLabel_.get(), pUndoItemList))
-					return false;
-			}
-		}
-		break;
-	case LABELTYPE_REMOVE:
-		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			MessageHolder* pmh = *it;
-			wstring_ptr wstrLabel(pmh->getLabel());
-			if (*wstrLabel.get()) {
-				StringBuffer<WSTRING> buf;
-				const WCHAR* p = wcstok(wstrLabel.get(), L" ");
-				while (p) {
-					if (wcscmp(p, wstrLabel_.get()) != 0) {
-						if (buf.getLength() != 0)
-							buf.append(L' ');
-						buf.append(p);
-					}
-					p = wcstok(0, L" ");
-				}
-				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), buf.getCharArray(), pUndoItemList))
-					return false;
-			}
-		}
-		break;
-	default:
-		assert(false);
-		break;
-	}
-	
-	return true;
+	return Util::setMessagesLabel(pContext->getAccount(),
+		pContext->getMessageHolderList(), type_,
+		wstrLabel_.get(), pContext->getUndoItemList());
 }
 
 wstring_ptr qm::LabelRuleAction::getDescription() const
@@ -1776,14 +1730,14 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (!pwszLabel)
 			return false;
 		
-		LabelRuleAction::LabelType type = LabelRuleAction::LABELTYPE_SET;
+		Util::LabelType type = Util::LABELTYPE_SET;
 		if (pwszType) {
 			if (wcscmp(pwszType, L"set") == 0)
-				type = LabelRuleAction::LABELTYPE_SET;
+				type = Util::LABELTYPE_SET;
 			else if (wcscmp(pwszType, L"add") == 0)
-				type = LabelRuleAction::LABELTYPE_ADD;
+				type = Util::LABELTYPE_ADD;
 			else if (wcscmp(pwszType, L"remove") == 0)
-				type = LabelRuleAction::LABELTYPE_REMOVE;
+				type = Util::LABELTYPE_REMOVE;
 			else
 				return false;
 		}
@@ -2117,12 +2071,12 @@ bool qm::RuleWriter::write(const LabelRuleAction* pAction)
 {
 	const WCHAR* pwszType = 0;
 	switch (pAction->getLabelType()) {
-	case LabelRuleAction::LABELTYPE_SET:
+	case Util::LABELTYPE_SET:
 		break;
-	case LabelRuleAction::LABELTYPE_ADD:
+	case Util::LABELTYPE_ADD:
 		pwszType = L"add";
 		break;
-	case LabelRuleAction::LABELTYPE_REMOVE:
+	case Util::LABELTYPE_REMOVE:
 		pwszType = L"remove";
 		break;
 	default:

@@ -4223,18 +4223,42 @@ void qm::MessageLabelAction::invoke(const ActionEvent& event)
 		return;
 	
 	wstring_ptr wstrLabel;
-	MessagePtrLock mpl(pModel_->getFocusedMessage());
-	if (mpl)
-		wstrLabel = mpl->getLabel();
+	Util::LabelType type = Util::LABELTYPE_SET;
 	
-	LabelDialog dialog(wstrLabel.get(), pProfile_);
-	if (dialog.doModal(hwnd_) != IDOK)
-		return;
-	const WCHAR* pwszLabel = dialog.getLabel();
+	const WCHAR* pwszLabel = ActionParamUtil::getString(event.getParam(), 0);
+	if (pwszLabel) {
+		if (*pwszLabel == L'=') {
+			type = Util::LABELTYPE_SET;
+			wstrLabel = allocWString(pwszLabel + 1);
+		}
+		else if (*pwszLabel == L'+') {
+			type = Util::LABELTYPE_ADD;
+			wstrLabel = allocWString(pwszLabel + 1);
+		}
+		else if (*pwszLabel == L'-') {
+			type = Util::LABELTYPE_REMOVE;
+			wstrLabel = allocWString(pwszLabel + 1);
+		}
+		else {
+			type = Util::LABELTYPE_SET;
+			wstrLabel = allocWString(pwszLabel);
+		}
+	}
+	else {
+		wstring_ptr wstrOldLabel;
+		MessagePtrLock mpl(pModel_->getFocusedMessage());
+		if (mpl)
+			wstrOldLabel = mpl->getLabel();
+		
+		LabelDialog dialog(wstrOldLabel.get(), pProfile_);
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		wstrLabel = allocWString(dialog.getLabel());
+	}
 	
 	Account* pAccount = lock.get();
 	UndoItemList undo;
-	if (!pAccount->setMessagesLabel(l, pwszLabel, &undo)) {
+	if (!Util::setMessagesLabel(pAccount, l, type, wstrLabel.get(), &undo)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_LABELMESSAGE);
 		return;
 	}

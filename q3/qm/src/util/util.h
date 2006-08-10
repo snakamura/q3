@@ -19,8 +19,6 @@ namespace qm {
 
 class Util;
 
-class AccountManager;
-
 
 /****************************************************************************
  *
@@ -30,6 +28,13 @@ class AccountManager;
 
 class Util
 {
+public:
+	enum LabelType {
+		LABELTYPE_SET,
+		LABELTYPE_ADD,
+		LABELTYPE_REMOVE
+	};
+
 public:
 	typedef std::vector<qs::WSTRING> PathList;
 
@@ -46,6 +51,12 @@ public:
 	
 	static unsigned int getMessageCount(Account* pAccount);
 	static unsigned int getUnseenMessageCount(Account* pAccount);
+	
+	static bool setMessagesLabel(Account* pAccount,
+								 const MessageHolderList& l,
+								 LabelType type,
+								 const WCHAR* pwszLabel,
+								 UndoItemList* pUndoItemList);
 	
 	static bool hasFilesOrURIs(IDataObject* pDataObject);
 	static void getFilesOrURIs(IDataObject* pDataObject,
