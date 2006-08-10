@@ -136,6 +136,7 @@ public:
 
 public:
 	typedef std::vector<qs::WSTRING> AttachmentList;
+	typedef std::vector<const WCHAR*> FileNameList;
 
 public:
 	MessageCreator();
@@ -179,14 +180,20 @@ public:
 						   qs::AddressParser* pAddress);
 	static bool makeMultipart(qs::Part* pParentPart,
 							  std::auto_ptr<qs::Part> pPart);
+	static bool attachFilesOrURIs(qs::Part* pPart,
+								  const AttachmentList& l,
+								  AccountManager* pAccountManager,
+								  unsigned int nSecurityMode,
+								  const WCHAR* pwszArchiveName,
+								  const WCHAR* pwszTempDir);
 	static bool attachFileOrURI(qs::Part* pPart,
-								const AttachmentList& l,
+								const WCHAR* pwszFileOrURI,
 								AccountManager* pAccountManager,
 								unsigned int nSecurityMode);
 #ifdef QMZIP
 	static bool attachArchivedFile(qs::Part* pPart,
 								   const WCHAR* pwszFileName,
-								   const AttachmentList& l,
+								   const FileNameList& l,
 								   const WCHAR* pwszTempDir);
 #endif
 	static std::auto_ptr<qs::Part> createPartFromFile(qs::Part* pParentPart,
@@ -196,6 +203,7 @@ public:
 	static std::auto_ptr<qs::Part> createClonedPart(const qs::Part& part);
 	static qs::wstring_ptr getContentTypeFromExtension(const WCHAR* pwszExtension);
 	static const WCHAR* getEncodingForCharset(const WCHAR* pwszCharset);
+	static bool isAttachmentURI(const WCHAR* pwszAttachment);
 
 private:
 	MessageCreator(const MessageCreator&);

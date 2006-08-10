@@ -25,6 +25,9 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+#include <boost/bind/make_adaptable.hpp>
+
 #include "message.h"
 #include "uri.h"
 #include "zip.h"
@@ -491,25 +494,17 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 				pPart = pParent;
 			}
 			
-#ifdef QMZIP
 			const WCHAR* pwszArchive = 0;
+#ifdef QMZIP
 			UnstructuredParser archive;
 			if (pPart->getField(L"X-QMAIL-ArchiveAttachment", &archive) == Part::FIELD_EXIST)
 				pwszArchive = archive.getValue();
-			if (pwszArchive && *pwszArchive) {
-				// TODO
-				// Get the temporary folder from application is ugly.
-				if (!attachArchivedFile(pPart.get(), pwszArchive, l,
-					Application::getApplication().getTemporaryFolder()))
-					return std::auto_ptr<Part>();
-			}
-			else {
-#else
-			{
 #endif
-				if (!attachFileOrURI(pPart.get(), l, pAccountManager, nSecurityMode_))
-					return std::auto_ptr<Part>(0);
-			}
+			// TODO
+			// Get the temporary folder from application is ugly.
+			if (!attachFilesOrURIs(pPart.get(), l, pAccountManager, nSecurityMode_,
+				pwszArchive, Application::getApplication().getTemporaryFolder()))
+				return std::auto_ptr<Part>();
 #ifdef QMZIP
 			pPart->removeField(L"X-QMAIL-ArchiveAttachment");
 #endif
@@ -884,72 +879,110 @@ bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 	return true;
 }
 
+bool qm::MessageCreator::attachFilesOrURIs(qs::Part* pPart,
+										   const AttachmentList& l,
+										   AccountManager* pAccountManager,
+										   unsigned int nSecurityMode,
+										   const WCHAR* pwszArchiveName,
+										   const WCHAR* pwszTempDir)
+{
+#ifdef QMZIP
+	bool bArchive = pwszArchiveName && *pwszArchiveName;
+#else
+	bool bArchive = false;
+#endif
+	
+	typedef std::vector<const WCHAR*> List;
+	List listAttach;
+	List listArchive;
+	
+	if (bArchive) {
+		std::remove_copy_if(l.begin(), l.end(), std::back_inserter(listAttach),
+			std::not1(std::ptr_fun(&MessageCreator::isAttachmentURI)));
+		std::remove_copy_if(l.begin(), l.end(),
+			std::back_inserter(listArchive), &MessageCreator::isAttachmentURI);
+	}
+	else {
+		std::copy(l.begin(), l.end(), std::back_inserter(listAttach));
+	}
+	
+#ifdef QMZIP
+	if (!listArchive.empty()) {
+		if (!attachArchivedFile(pPart, pwszArchiveName, listArchive, pwszTempDir))
+			return false;
+	}
+#endif
+	if (std::find_if(listAttach.begin(), listAttach.end(),
+		std::not1(boost::make_adaptable<bool, const WCHAR*>(
+			boost::bind(&MessageCreator::attachFileOrURI,
+				pPart, _1, pAccountManager, nSecurityMode)))) != listAttach.end())
+		return false;
+	
+	return true;
+}
+
 bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
-										 const AttachmentList& l,
+										 const WCHAR* pwszFileOrURI,
 										 AccountManager* pAccountManager,
 										 unsigned int nSecurityMode)
 {
 	assert(pPart->isMultipart());
 	
-	wstring_ptr wstrSchemePrefix(concat(URI::getScheme(), L"://"));
-	size_t nSchemePrefixLen = wcslen(wstrSchemePrefix.get());
-	for (AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		const WCHAR* pwszAttachment = *it;
-		std::auto_ptr<Part> pChildPart;
-		if (wcsncmp(pwszAttachment, wstrSchemePrefix.get(), nSchemePrefixLen) == 0) {
-			std::auto_ptr<URI> pURI(URI::parse(pwszAttachment));
-			if (!pURI.get())
-				return false;
-			
-			MessagePtrLock mpl(pAccountManager->getMessage(*pURI.get()));
-			if (!mpl)
-				return false;
-			
-			Message msg;
-			if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg))
-				return false;
-			
-			const URIFragment& fragment = pURI->getFragment();
-			const Part* pPart = fragment.getPart(&msg);
-			if (!pPart)
-				return false;
-			switch (fragment.getType()) {
-			case URIFragment::TYPE_NONE:
-				pChildPart = createRfc822Part(*pPart, false);
-				break;
-			case URIFragment::TYPE_MIME:
-				pChildPart = createRfc822Part(*pPart, true);
-				break;
-			case URIFragment::TYPE_BODY:
-				pChildPart = createClonedPart(*pPart);
-				break;
-			case URIFragment::TYPE_HEADER:
-				assert(pPart->getEnclosedPart());
-				pChildPart = createRfc822Part(*pPart->getEnclosedPart(), true);
-				break;
-			case URIFragment::TYPE_TEXT:
-				assert(pPart->getEnclosedPart());
-				pChildPart = createClonedPart(*pPart->getEnclosedPart());
-				break;
-			default:
-				assert(false);
-				break;
-			}
-		}
-		else {
-			pChildPart = createPartFromFile(pPart, pwszAttachment);
-		}
-		if (!pChildPart.get())
+	std::auto_ptr<Part> pChildPart;
+	if (isAttachmentURI(pwszFileOrURI)) {
+		std::auto_ptr<URI> pURI(URI::parse(pwszFileOrURI));
+		if (!pURI.get())
 			return false;
-		pPart->addPart(pChildPart);
+		
+		MessagePtrLock mpl(pAccountManager->getMessage(*pURI.get()));
+		if (!mpl)
+			return false;
+		
+		Message msg;
+		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg))
+			return false;
+		
+		const URIFragment& fragment = pURI->getFragment();
+		const Part* pPart = fragment.getPart(&msg);
+		if (!pPart)
+			return false;
+		switch (fragment.getType()) {
+		case URIFragment::TYPE_NONE:
+			pChildPart = createRfc822Part(*pPart, false);
+			break;
+		case URIFragment::TYPE_MIME:
+			pChildPart = createRfc822Part(*pPart, true);
+			break;
+		case URIFragment::TYPE_BODY:
+			pChildPart = createClonedPart(*pPart);
+			break;
+		case URIFragment::TYPE_HEADER:
+			assert(pPart->getEnclosedPart());
+			pChildPart = createRfc822Part(*pPart->getEnclosedPart(), true);
+			break;
+		case URIFragment::TYPE_TEXT:
+			assert(pPart->getEnclosedPart());
+			pChildPart = createClonedPart(*pPart->getEnclosedPart());
+			break;
+		default:
+			assert(false);
+			break;
+		}
 	}
+	else {
+		pChildPart = createPartFromFile(pPart, pwszFileOrURI);
+	}
+	if (!pChildPart.get())
+		return false;
+	pPart->addPart(pChildPart);
+	
 	return true;
 }
 
 #ifdef QMZIP
 bool qm::MessageCreator::attachArchivedFile(Part* pPart,
 											const WCHAR* pwszFileName,
-											const AttachmentList& l,
+											const FileNameList& l,
 											const WCHAR* pwszTempDir)
 {
 	assert(pPart);
@@ -1153,6 +1186,14 @@ const WCHAR* qm::MessageCreator::getEncodingForCharset(const WCHAR* pwszCharset)
 		return L"quoted-printable";
 	else
 		return L"base64";
+}
+
+bool qm::MessageCreator::isAttachmentURI(const WCHAR* pwszAttachment)
+{
+	wstring_ptr wstrPrefix(concat(URI::getScheme(), L"://"));
+	size_t nLen = wcslen(wstrPrefix.get());
+	return wcslen(pwszAttachment) > nLen &&
+		wcsncmp(pwszAttachment, wstrPrefix.get(), nLen) == 0;
 }
 
 

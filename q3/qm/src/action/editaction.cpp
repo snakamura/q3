@@ -22,6 +22,7 @@
 #include <qstextutil.h>
 
 #include <algorithm>
+#include <functional>
 
 #include <commdlg.h>
 
@@ -785,7 +786,12 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		pEditMessage->getAttachments(&l);
 		EditMessage::AttachmentList::const_iterator it = std::find_if(
 			l.begin(), l.end(),
-			mem_data_ref(&EditMessage::Attachment::bNew_));
+			unary_compose_f_gx_hy(
+				std::logical_and<bool>(),
+				mem_data_ref(&EditMessage::Attachment::bNew_),
+				unary_compose_f_gx(
+					std::not1(std::ptr_fun(MessageCreator::isAttachmentURI)),
+					mem_data_ref(&EditMessage::Attachment::wstrName_))));
 		if (it != l.end()) {
 			const WCHAR* pwszArchive = pEditMessage->getArchiveName();
 			wstring_ptr wstrArchive;

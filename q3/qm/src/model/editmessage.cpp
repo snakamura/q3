@@ -147,19 +147,13 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		
 #ifdef QMZIP
 		const WCHAR* pwszArchive = getArchiveName();
-		if (pwszArchive) {
-			if (!MessageCreator::attachArchivedFile(pMessage.get(),
-				pwszArchive, listAttachmentPath_, wstrTempDir_.get()))
-				return std::auto_ptr<Message>();
-		}
-		else {
 #else
-		{
+		const WCHAR* pwszArchive = 0;
 #endif
-			if (!MessageCreator::attachFileOrURI(pMessage.get(),
-				listAttachmentPath_, pDocument_, nSecurityMode_))
-				return std::auto_ptr<Message>();
-		}
+		if (!MessageCreator::attachFilesOrURIs(pMessage.get(),
+			listAttachmentPath_, pDocument_, nSecurityMode_,
+			pwszArchive, wstrTempDir_.get()))
+			return std::auto_ptr<Message>();
 	}
 	
 	if (!normalize(pBodyPart))
