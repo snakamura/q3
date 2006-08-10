@@ -170,6 +170,7 @@ UINT qm::EncodingMenuCreator::createMenu(HMENU hmenu,
 {
 	DWORD dwData = bView_ ? DATA_VIEW : DATA_TOOL;
 	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, dwData);
+	helper_.clear();
 	
 	typedef std::vector<WSTRING> StringList;
 	StringList listEncoding;
