@@ -1267,6 +1267,7 @@ void qm::ListWindow::refresh()
 	invalidate();
 	
 #ifdef QMTOOLTIP
+	Window(pImpl_->hwndToolTip_).sendMessage(TTM_POP);
 	pImpl_->nToolTipLine_ = -1;
 	pImpl_->nToolTipColumn_ = -1;
 	pImpl_->nToolTipIndent_ = 0;
