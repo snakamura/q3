@@ -143,6 +143,8 @@ public:
 	
 	wstring_ptr format(const WCHAR* pwszFormat,
 					   Format format) const;
+	wstring_ptr format() const;
+	bool parse(const WCHAR* pwszTime);
 
 public:
 	static Time getCurrentTime();

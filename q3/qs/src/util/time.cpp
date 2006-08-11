@@ -6,6 +6,7 @@
  *
  */
 
+#include <qsregex.h>
 #include <qsutil.h>
 
 #include <cstdio>
@@ -305,6 +306,12 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 				buf.append(wsz);
 				++p;
 				break;
+			case L'Z':
+				_snwprintf(wsz, countof(wsz), L"%c%02d:%02d",
+					nTimeZone < 0 ? L'-' : L'+', abs(nTimeZone)/100, abs(nTimeZone));
+				buf.append(wsz);
+				++p;
+				break;
 			case L'%':
 				buf.append(L'%');
 				break;
@@ -318,6 +325,33 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 	}
 	
 	return buf.getString();
+}
+
+wstring_ptr qs::Time::format() const
+{
+	return format(L"%Y4-%M0-%DT%h:%m:%s%Z", Time::FORMAT_UTC);
+}
+
+bool qs::Time::parse(const WCHAR* pwszTime)
+{
+	const WCHAR* pwszRegex = L"^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})(\\+|-)(\\d{2}):(\\d{2})$";
+	RegexRangeList l;
+	if (!Regex::match(pwszRegex, pwszTime, &l))
+		return false;
+	
+	wYear = l.list_[1].getInt();
+	wMonth = l.list_[2].getInt();
+	wDay = l.list_[3].getInt();
+	wDayOfWeek = getDayOfWeek(wYear, wMonth, wDay);
+	wHour = l.list_[4].getInt();
+	wMinute = l.list_[5].getInt();
+	wSecond = l.list_[6].getInt();
+	wMilliseconds = 0;
+	nTimeZone_ = l.list_[8].getInt()*100 + l.list_[9].getInt();
+	if (*l.list_[7].pStart_ == L'-')
+		nTimeZone_ = -nTimeZone_;
+	
+	return true;
 }
 
 Time qs::Time::getCurrentTime()
