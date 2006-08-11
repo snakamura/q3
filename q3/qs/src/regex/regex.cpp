@@ -29,6 +29,24 @@ qs::RegexRange::RegexRange() :
 {
 }
 
+wstring_ptr qs::RegexRange::getString() const
+{
+	if (!pStart_)
+		return 0;
+	assert(pEnd_);
+	return allocWString(pStart_, pEnd_ - pStart_);
+}
+
+int qs::RegexRange::getInt() const
+{
+	wstring_ptr wstr(getString());
+	WCHAR* pEnd = 0;
+	long n = wcstol(wstr.get(), &pEnd, 10);
+	if (*pEnd)
+		return 0;
+	return n;
+}
+
 
 /****************************************************************************
  *
@@ -179,4 +197,69 @@ std::auto_ptr<RegexPattern> qs::RegexCompiler::compile(const WCHAR* pwszPattern,
 	std::auto_ptr<RegexNfa> pNfa(compiler.compile(pNode));
 	
 	return std::auto_ptr<RegexPattern>(new RegexPattern(pNfa));
+}
+
+
+/****************************************************************************
+ *
+ * Regex
+ *
+ */
+
+bool qs::Regex::match(const WCHAR* pwszRegex,
+					  const WCHAR* pwsz)
+{
+	return match(pwszRegex, pwsz, -1, 0);
+}
+
+bool qs::Regex::match(const WCHAR* pwszRegex,
+					  const WCHAR* pwsz,
+					  size_t nLen)
+{
+	return match(pwszRegex, pwsz, nLen, 0);
+}
+
+bool qs::Regex::match(const WCHAR* pwszRegex,
+					  const WCHAR* pwsz,
+					  RegexRangeList* pList)
+{
+	return match(pwszRegex, pwsz, -1, pList);
+}
+
+bool qs::Regex::match(const WCHAR* pwszRegex,
+					  const WCHAR* pwsz,
+					  size_t nLen,
+					  RegexRangeList* pList)
+{
+	std::auto_ptr<RegexPattern> pPattern(RegexCompiler().compile(pwszRegex));
+	if (!pPattern.get())
+		return false;
+	return pPattern->match(pwsz, nLen, pList);
+}
+
+std::pair<const WCHAR*, const WCHAR*> qs::Regex::search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz)
+{
+	return search(pwszRegex, pwsz, -1, pwsz, false, 0);
+}
+
+std::pair<const WCHAR*, const WCHAR*> qs::Regex::search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz,
+														size_t nLen)
+{
+	return search(pwszRegex, pwsz, nLen, pwsz, false, 0);
+}
+
+std::pair<const WCHAR*, const WCHAR*> qs::Regex::search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz,
+														size_t nLen,
+														const WCHAR* p,
+														bool bReverse,
+														RegexRangeList* pList)
+{
+	std::pair<const WCHAR*, const WCHAR*> r(0, 0);
+	std::auto_ptr<RegexPattern> pPattern(RegexCompiler().compile(pwszRegex));
+	if (pPattern.get())
+		pPattern->search(pwsz, nLen, p, bReverse, &r.first, &r.second, pList);
+	return r;
 }

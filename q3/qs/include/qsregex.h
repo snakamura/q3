@@ -17,9 +17,10 @@
 
 namespace qs {
 
-struct RegexRange;
+class RegexRange;
 class RegexPattern;
 class RegexCompiler;
+struct Regex;
 
 class RegexNfa;
 
@@ -30,10 +31,16 @@ class RegexNfa;
  *
  */
 
-struct QSEXPORTCLASS RegexRange
+class QSEXPORTCLASS RegexRange
 {
+public:
 	RegexRange();
-	
+
+public:
+	wstring_ptr getString() const;
+	int getInt() const;
+
+public:
 	const WCHAR* pStart_;
 	const WCHAR* pEnd_;
 };
@@ -188,6 +195,40 @@ public:
 private:
 	RegexCompiler(const RegexCompiler&);
 	RegexCompiler& operator=(const RegexCompiler&);
+};
+
+
+/****************************************************************************
+ *
+ * Regex
+ *
+ */
+
+struct QSEXPORTCLASS Regex
+{
+	static bool match(const WCHAR* pwszRegex,
+					  const WCHAR* pwsz);
+	static bool match(const WCHAR* pwszRegex,
+					  const WCHAR* pwsz,
+					  size_t nLen);
+	static bool match(const WCHAR* pwszRegex,
+					  const WCHAR* pwsz,
+					  RegexRangeList* pList);
+	static bool match(const WCHAR* pwszRegex,
+					  const WCHAR* pwsz,
+					  size_t nLen,
+					  RegexRangeList* pList);
+	static std::pair<const WCHAR*, const WCHAR*> search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz);
+	static std::pair<const WCHAR*, const WCHAR*> search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz,
+														size_t nLen);
+	static std::pair<const WCHAR*, const WCHAR*> search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz,
+														size_t nLen,
+														const WCHAR* p,
+														bool bReverse,
+														RegexRangeList* pList);
 };
 
 }
