@@ -1448,8 +1448,8 @@ Folder* qm::Account::getFolder(Folder* pParent,
 {
 	FolderList::const_iterator it = std::find_if(
 		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
-		unary_compose_f_gx_hy(
-			binary_and_t<bool>(),
+		unary_compose_f_gx_hx(
+			std::logical_and<bool>(),
 			std::bind2nd(
 				binary_compose_f_gx_hy(
 					std::equal_to<Folder*>(),

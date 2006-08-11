@@ -786,7 +786,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		pEditMessage->getAttachments(&l);
 		EditMessage::AttachmentList::const_iterator it = std::find_if(
 			l.begin(), l.end(),
-			unary_compose_f_gx_hy(
+			unary_compose_f_gx_hx(
 				std::logical_and<bool>(),
 				mem_data_ref(&EditMessage::Attachment::bNew_),
 				unary_compose_f_gx(

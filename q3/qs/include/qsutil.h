@@ -121,10 +121,10 @@ public:
 		 int nDayOfWeek,
 		 int nDay,
 		 int nHour,
-		int nMinute,
-		int nSecond,
-		int nMilliseconds,
-		int nTimeZone);
+		 int nMinute,
+		 int nSecond,
+		 int nMilliseconds,
+		 int nTimeZone);
 	Time(const Time& time);
 	~Time();
 

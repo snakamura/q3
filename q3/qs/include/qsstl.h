@@ -329,15 +329,15 @@ unary_compose_f_gx_t<Op1, Op2> unary_compose_f_gx(const Op1& op1, const Op2& op2
 
 /****************************************************************************
  *
- * unary_compose_f_gx_hy_t
+ * unary_compose_f_gx_hx_t
  *
  */
 
 template<class Op1, class Op2, class Op3>
-struct unary_compose_f_gx_hy_t :
+struct unary_compose_f_gx_hx_t :
 	public std::unary_function<typename Op2::argument_type, typename Op1::result_type>
 {
-	unary_compose_f_gx_hy_t(const Op1& op1, const Op2& op2, const Op3& op3) :
+	unary_compose_f_gx_hx_t(const Op1& op1, const Op2& op2, const Op3& op3) :
 		op1_(op1), op2_(op2), op3_(op3) {}
 	result_type operator()(const argument_type& x) const
 		{ return op1_(op2_(x), op3_(x)); }
@@ -347,16 +347,16 @@ struct unary_compose_f_gx_hy_t :
 };
 
 template<class Op1, class Op2, class Op3>
-unary_compose_f_gx_hy_t<Op1, Op2, Op3> unary_compose_f_gx_hy(
+unary_compose_f_gx_hx_t<Op1, Op2, Op3> unary_compose_f_gx_hx(
 	const Op1& op1, const Op2& op2, const Op3& op3)
 {
-	return unary_compose_f_gx_hy_t<Op1, Op2, Op3>(op1, op2, op3);
+	return unary_compose_f_gx_hx_t<Op1, Op2, Op3>(op1, op2, op3);
 }
 
 
 /****************************************************************************
  *
- * unary_compose_fx_gx
+ * unary_compose_fx_gx_t
  *
  */
 
@@ -407,34 +407,6 @@ binary_compose_f_gx_hy_t<Op1, Op2, Op3> binary_compose_f_gx_hy(
 {
 	return binary_compose_f_gx_hy_t<Op1, Op2, Op3>(op1, op2, op3);
 }
-
-
-/****************************************************************************
- *
- * binary_and_t
- *
- */
-
-template<class T>
-struct binary_and_t : public std::binary_function<T, T, bool>
-{
-	bool operator()(const T& lhs, const T& rhs) const
-		{ return lhs && rhs; }
-};
-
-
-/****************************************************************************
- *
- * binary_or_t
- *
- */
-
-template<class T>
-struct binary_or_t : public std::binary_function<T, T, bool>
-{
-	bool operator()(const T& lhs, const T& rhs) const
-		{ return lhs || rhs; }
-};
 
 
 /****************************************************************************
