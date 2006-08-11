@@ -41,6 +41,7 @@
 #include "defaultprofile.h"
 #include "main.h"
 #include "resourcefile.h"
+#include "updatechecker.h"
 #ifndef DEPENDCHECK
 #	include "version.h"
 #endif
@@ -153,6 +154,7 @@ public:
 	std::auto_ptr<TempFileCleaner> pTempFileCleaner_;
 	std::auto_ptr<AutoPilotManager> pAutoPilotManager_;
 	std::auto_ptr<AutoPilot> pAutoPilot_;
+	std::auto_ptr<UpdateChecker> pUpdateChecker_;
 	std::auto_ptr<FolderImage> pFolderImage_;
 	std::auto_ptr<ActiveRuleInvoker> pActiveRuleInvoker_;
 	std::auto_ptr<ActiveSyncInvoker> pActiveSyncInvoker_;
@@ -844,6 +846,8 @@ bool qm::Application::initialize()
 		pImpl_->pProfile_.get(), pImpl_->pDocument_.get(),
 		pImpl_->pGoRound_.get(), pImpl_->pSyncManager_.get(),
 		pImpl_->pSyncDialogManager_.get(), pImpl_));
+	pImpl_->pUpdateChecker_.reset(new UpdateChecker(
+		pImpl_->pSyncManager_.get(), pImpl_->pProfile_.get()));
 	wstring_ptr wstrImageFolder(concat(
 		pImpl_->wstrMailFolder_.get(), L"\\images"));
 	pImpl_->pFolderImage_.reset(new FolderImage(wstrImageFolder.get()));
@@ -866,6 +870,7 @@ bool qm::Application::initialize()
 		pImpl_->pGoRound_.get(),
 		pImpl_->pTempFileCleaner_.get(),
 		pImpl_->pAutoPilot_.get(),
+		pImpl_->pUpdateChecker_.get(),
 		pImpl_->pFolderImage_.get()
 	};
 	wstring_ptr wstrTitle(getVersion(L' ', false));
@@ -904,6 +909,7 @@ void qm::Application::uninitialize()
 	
 	pImpl_->pLock_->unsetWindow();
 	
+	pImpl_->pUpdateChecker_.reset(0);
 	pImpl_->pAutoPilot_.reset(0);
 	
 #ifndef _WIN32_WCE
@@ -960,6 +966,7 @@ bool qm::Application::save(bool bForce)
 		return false;
 	pImpl_->pSyncDialogManager_->save();
 	pImpl_->pAutoPilot_->save();
+	pImpl_->pUpdateChecker_->save();
 	pImpl_->saveCurrentFolder();
 	if (!pImpl_->pProfile_->save() && !bForce)
 		return false;

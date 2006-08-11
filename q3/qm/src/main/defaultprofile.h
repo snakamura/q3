@@ -170,6 +170,7 @@ const qs::Profile::Default defaultProfiles[] = {
 #endif
 	
 	{ L"Global",	L"Action",							L""													},
+	{ L"Global",	L"AutoUpdateCheck",					L"1"												},
 	{ L"Global",	L"Bcc",								L"1"												},
 	{ L"Global",	L"ConfirmDeleteMessage",			L"0"												},
 	{ L"Global",	L"ConfirmEmptyFolder",				L"1"												},
@@ -196,6 +197,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Global",	L"HideWhenMinimized",				L"0"												},
 #endif
 	{ L"Global",	L"IncrementalSearch",				L"0"												},
+	{ L"Global",	L"LastUpdateCheck",					L""													},
 	{ L"Global",	L"Libraries",						L""													},
 	{ L"Global",	L"Log",								L"-1"												},
 	{ L"Global",	L"LogFilter",						L""													},

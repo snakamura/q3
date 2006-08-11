@@ -42,6 +42,7 @@ class SyncManager;
 class SyncQueue;
 class TempFileCleaner;
 class UIManager;
+class UpdateChecker;
 
 
 /****************************************************************************
@@ -329,6 +330,7 @@ struct MainWindowCreateContext
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
+	UpdateChecker* pUpdateChecker_;
 	const FolderImage* pFolderImage_;
 };
 

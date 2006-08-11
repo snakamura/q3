@@ -202,6 +202,7 @@ class TempFileCleaner;
 class Template;
 class UIManager;
 class UndoManager;
+class UpdateChecker;
 class View;
 class ViewModel;
 class ViewModelHolder;
@@ -1601,7 +1602,8 @@ private:
 class HelpCheckUpdateAction : public qs::AbstractAction
 {
 public:
-	explicit HelpCheckUpdateAction(HWND hwnd);
+	HelpCheckUpdateAction(UpdateChecker* pUpdateChecker,
+						  HWND hwnd);
 	virtual ~HelpCheckUpdateAction();
 
 public:
@@ -1612,6 +1614,7 @@ private:
 	HelpCheckUpdateAction& operator=(const HelpCheckUpdateAction&);
 
 private:
+	UpdateChecker* pUpdateChecker_;
 	HWND hwnd_;
 };
 

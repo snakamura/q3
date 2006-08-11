@@ -231,6 +231,7 @@ public:
 	GoRound* pGoRound_;
 	TempFileCleaner* pTempFileCleaner_;
 	AutoPilot* pAutoPilot_;
+	UpdateChecker* pUpdateChecker_;
 	const FolderImage* pFolderImage_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	std::auto_ptr<SplitterHelper> pSplitterHelper_;
@@ -653,8 +654,9 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(HelpAboutAction,
 		IDM_HELP_ABOUT,
 		pThis_->getHandle());
-	ADD_ACTION1(HelpCheckUpdateAction,
+	ADD_ACTION2(HelpCheckUpdateAction,
 		IDM_HELP_CHECKUPDATE,
+		pUpdateChecker_,
 		pThis_->getHandle());
 	ADD_ACTION1(HelpOpenURLAction,
 		IDM_HELP_OPENURL,
@@ -1765,6 +1767,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pGoRound_ = 0;
 	pImpl_->pTempFileCleaner_ = 0;
 	pImpl_->pAutoPilot_ = 0;
+	pImpl_->pUpdateChecker_ = 0;
 	pImpl_->pPrimarySplitterWindow_ = 0;
 	pImpl_->pSecondarySplitterWindow_ = 0;
 	pImpl_->pFolderWindow_ = 0;
@@ -2187,6 +2190,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pGoRound_ = pContext->pGoRound_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	pImpl_->pAutoPilot_ = pContext->pAutoPilot_;
+	pImpl_->pUpdateChecker_ = pContext->pUpdateChecker_;
 	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	
 	CustomAcceleratorFactory acceleratorFactory;

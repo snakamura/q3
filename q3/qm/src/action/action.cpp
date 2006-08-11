@@ -30,7 +30,6 @@
 
 #include <qsconv.h>
 #include <qsfile.h>
-#include <qshttp.h>
 #include <qsinit.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -49,6 +48,7 @@
 #include "action.h"
 #include "findreplace.h"
 #include "../junk/junk.h"
+#include "../main/updatechecker.h"
 #include "../model/dataobject.h"
 #include "../model/filter.h"
 #include "../model/goround.h"
@@ -3366,7 +3366,9 @@ void qm::HelpAboutAction::invoke(const qs::ActionEvent& event)
  *
  */
 
-qm::HelpCheckUpdateAction::HelpCheckUpdateAction(HWND hwnd) :
+qm::HelpCheckUpdateAction::HelpCheckUpdateAction(UpdateChecker* pUpdateChecker,
+												 HWND hwnd) :
+	pUpdateChecker_(pUpdateChecker),
 	hwnd_(hwnd)
 {
 }
@@ -3377,27 +3379,9 @@ qm::HelpCheckUpdateAction::~HelpCheckUpdateAction()
 
 void qm::HelpCheckUpdateAction::invoke(const qs::ActionEvent& event)
 {
-	malloc_size_ptr<unsigned char> p(HttpUtility::openURL(
-		L"http://q3.snak.org/q3/snapshot"));
-	if (!p.get() || p.size() > 32) {
+	if (!pUpdateChecker_->checkUpdate(hwnd_, true)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_CHECKUPDATE);
 		return;
-	}
-	
-	const Application& app = Application::getApplication();
-	HINSTANCE hInst = app.getResourceHandle();
-	
-	wstring_ptr wstrVersion(app.getVersion(L' ', false));
-	const WCHAR* pwszVersion = wcschr(wstrVersion.get(), L' ') + 1;
-	*wcsrchr(wstrVersion.get(), L'.') = L'\0';
-	
-	wstring_ptr wstrNewVersion(mbs2wcs(reinterpret_cast<char*>(p.get()), p.size()));
-	if (wcscmp(wstrNewVersion.get(), pwszVersion) != 0) {
-		if (messageBox(hInst, IDS_CONFIRM_UPDATE, MB_YESNO, hwnd_) == IDYES)
-			UIUtil::openURL(L"http://q3.snak.org/download/", hwnd_);
-	}
-	else {
-		messageBox(hInst, IDS_MESSAGE_UPDATED, hwnd_);
 	}
 }
 
