@@ -31,13 +31,22 @@ class UpdateCheckThread;
 class UpdateChecker : public SyncManagerHandler
 {
 public:
+	enum Update {
+		UPDATE_UPDATED,
+		UPDATE_LATEST,
+		UPDATE_ERROR
+	};
+
+public:
 	UpdateChecker(SyncManager* pSyncManager,
 				  qs::Profile* pProfile);
 	~UpdateChecker();
 
 public:
-	bool checkUpdate(HWND hwnd,
-					 bool bNotifyNoUpdate);
+	Update checkUpdate();
+	bool isUpdated() const;
+	void setUpdated();
+	void clearUpdated();
 	bool isAutoCheck() const;
 	void setAutoCheck(bool bAutoCheck);
 	void save();
@@ -54,6 +63,7 @@ private:
 	qs::Profile* pProfile_;
 	qs::Time timeLastCheck_;
 	qs::CriticalSection cs_;
+	volatile bool bUpdated_;
 	bool bAutoCheck_;
 	std::auto_ptr<UpdateCheckThread> pThread_;
 };

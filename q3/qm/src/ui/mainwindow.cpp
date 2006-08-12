@@ -63,6 +63,7 @@
 #include "../action/action.h"
 #include "../action/actionmacro.h"
 #include "../action/findreplace.h"
+#include "../main/updatechecker.h"
 #include "../model/filter.h"
 #include "../model/goround.h"
 #include "../model/tempfilecleaner.h"
@@ -1970,6 +1971,13 @@ void qm::MainWindow::processIdle()
 	FrameWindow::processIdle();
 	pImpl_->updateStatusBar();
 	pImpl_->pDocument_->getRecents()->removeSeens();
+	
+	if (pImpl_->pUpdateChecker_->isUpdated()) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		if (messageBox(hInst, IDS_CONFIRM_UPDATE, MB_YESNO, getHandle()) == IDYES)
+			UIUtil::openURL(L"http://q3.snak.org/download/", getHandle());
+		pImpl_->pUpdateChecker_->clearUpdated();
+	}
 }
 
 bool qm::MainWindow::getToolbarButtons(Toolbar* pToolbar)

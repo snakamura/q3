@@ -29,6 +29,7 @@ qm::UpdateChecker::UpdateChecker(SyncManager* pSyncManager,
 								 Profile* pProfile) :
 	pSyncManager_(pSyncManager),
 	pProfile_(pProfile),
+	bUpdated_(false),
 	bAutoCheck_(false)
 {
 	wstring_ptr wstrLastCheck(pProfile_->getString(L"Global", L"LastUpdateCheck"));
@@ -47,37 +48,40 @@ qm::UpdateChecker::~UpdateChecker()
 		pThread_->stop();
 }
 
-bool qm::UpdateChecker::checkUpdate(HWND hwnd,
-									bool bNotifyNoUpdate)
+UpdateChecker::Update qm::UpdateChecker::checkUpdate()
 {
 	malloc_size_ptr<unsigned char> p(HttpUtility::openURL(
-		L"http://q3.snak.org/q3/snapshot"));
+		L"http://q3.snak.org/q3/version.cgi"));
 	if (!p.get() || p.size() > 32)
-		return false;
+		return UPDATE_ERROR;
 	
 	{
 		Lock<CriticalSection> lock(cs_);
 		timeLastCheck_ = Time::getCurrentTime();
 	}
 	
-	const Application& app = Application::getApplication();
-	HINSTANCE hInst = app.getResourceHandle();
-	
-	wstring_ptr wstrVersion(app.getVersion(L' ', false));
+	wstring_ptr wstrVersion(Application::getApplication().getVersion(L' ', false));
 	const WCHAR* pwszVersion = wcschr(wstrVersion.get(), L' ') + 1;
 	*wcsrchr(wstrVersion.get(), L'.') = L'\0';
 	
 	wstring_ptr wstrNewVersion(mbs2wcs(reinterpret_cast<char*>(p.get()), p.size()));
-	if (wcscmp(wstrNewVersion.get(), pwszVersion) != 0) {
-		if (messageBox(hInst, IDS_CONFIRM_UPDATE, MB_YESNO, hwnd) == IDYES)
-			UIUtil::openURL(L"http://q3.snak.org/download/", hwnd);
-	}
-	else {
-		if (bNotifyNoUpdate)
-			messageBox(hInst, IDS_MESSAGE_UPDATED, hwnd);
-	}
-	
-	return true;
+	return wcscmp(wstrNewVersion.get(), pwszVersion) != 0 ?
+		UPDATE_UPDATED : UPDATE_LATEST;
+}
+
+bool qm::UpdateChecker::isUpdated() const
+{
+	return bUpdated_;
+}
+
+void qm::UpdateChecker::setUpdated()
+{
+	bUpdated_ = true;
+}
+
+void qm::UpdateChecker::clearUpdated()
+{
+	bUpdated_ = false;
 }
 
 bool qm::UpdateChecker::isAutoCheck() const
@@ -107,7 +111,7 @@ void qm::UpdateChecker::save()
 
 void qm::UpdateChecker::statusChanged(const SyncManagerEvent& event)
 {
-	if (pSyncManager_->isSyncing())
+	if (isUpdated() || pSyncManager_->isSyncing())
 		return;
 	
 	if (pThread_.get()) {
@@ -154,9 +158,6 @@ bool qm::UpdateCheckThread::isRunning() const
 
 void qm::UpdateCheckThread::stop()
 {
-	if (isRunning()) {
-		// TODO
-	}
 	join();
 }
 
@@ -164,9 +165,8 @@ void qm::UpdateCheckThread::run()
 {
 	InitThread init(0);
 	
-	pUpdateChecker_->checkUpdate(::GetDesktopWindow(), false);
-	
-	// TODO
+	if (pUpdateChecker_->checkUpdate() == UpdateChecker::UPDATE_UPDATED)
+		pUpdateChecker_->setUpdated();
 	
 	Lock<CriticalSection> lock(cs_);
 	bRunning_ = false;

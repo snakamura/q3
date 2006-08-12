@@ -3379,9 +3379,21 @@ qm::HelpCheckUpdateAction::~HelpCheckUpdateAction()
 
 void qm::HelpCheckUpdateAction::invoke(const qs::ActionEvent& event)
 {
-	if (!pUpdateChecker_->checkUpdate(hwnd_, true)) {
+	HINSTANCE hInst = Application::getApplication().getResourceHandle();
+	switch (pUpdateChecker_->checkUpdate()) {
+	case UpdateChecker::UPDATE_UPDATED:
+		if (messageBox(hInst, IDS_CONFIRM_UPDATE, MB_YESNO, hwnd_) == IDYES)
+			UIUtil::openURL(L"http://q3.snak.org/download/", hwnd_);
+		break;
+	case UpdateChecker::UPDATE_LATEST:
+		messageBox(hInst, IDS_MESSAGE_UPDATED, hwnd_);
+		break;
+	case UpdateChecker::UPDATE_ERROR:
 		ActionUtil::error(hwnd_, IDS_ERROR_CHECKUPDATE);
-		return;
+		break;
+	default:
+		assert(false);
+		break;
 	}
 }
 
