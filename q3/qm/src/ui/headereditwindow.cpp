@@ -1390,7 +1390,7 @@ void qm::AddressHeaderEditItem::addDomainCandidate(const WCHAR* pwszInput,
 		_wcsnicmp(pwszHost, pwszDomain, nDomainLen) == 0) {
 		wstring_ptr wstrValue(concat(pwszInput, pwszDomain - pwszInput, pwszHost, -1));
 		if (std::find_if(pList->begin(), pList->end(),
-			std::bind2nd(string_contain_i<WCHAR>(), wstrValue.get()))) {
+			std::bind2nd(string_contain_i<WCHAR>(), wstrValue.get())) == pList->end()) {
 			pList->push_back(wstrValue.get());
 			wstrValue.release();
 		}
