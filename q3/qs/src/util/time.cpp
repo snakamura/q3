@@ -308,7 +308,8 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 				break;
 			case L'Z':
 				_snwprintf(wsz, countof(wsz), L"%c%02d:%02d",
-					nTimeZone < 0 ? L'-' : L'+', abs(nTimeZone)/100, abs(nTimeZone));
+					nTimeZone < 0 ? L'-' : L'+',
+					abs(nTimeZone)/100, abs(nTimeZone)%100);
 				buf.append(wsz);
 				++p;
 				break;
@@ -329,7 +330,7 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 
 wstring_ptr qs::Time::format() const
 {
-	return format(L"%Y4-%M0-%DT%h:%m:%s%Z", Time::FORMAT_UTC);
+	return format(L"%Y4-%M0-%DT%h:%m:%s%Z", Time::FORMAT_LOCAL);
 }
 
 bool qs::Time::parse(const WCHAR* pwszTime)
