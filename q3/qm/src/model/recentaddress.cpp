@@ -106,10 +106,25 @@ void qm::RecentAddress::add(const AddressParser& address)
 		if (pAddressBook_->getEntry(wstrAddress.get()))
 			return;
 		
-		for (AddressList::const_iterator it = listAddress_.begin(); it != listAddress_.end(); ++it) {
-			if (_wcsicmp(address.getMailbox(), (*it)->getMailbox()) == 0 &&
-				_wcsicmp(address.getHost(), (*it)->getHost()) == 0)
-				return;
+		AddressList::iterator it = std::find_if(
+			listAddress_.begin(), listAddress_.end(),
+			unary_compose_f_gx_hx(
+				std::logical_and<bool>(),
+				std::bind2nd(
+					binary_compose_f_gx_hy(
+						string_equal_i<WCHAR>(),
+						std::mem_fun(&AddressParser::getMailbox),
+						std::identity<const WCHAR*>()),
+					address.getMailbox()),
+				std::bind2nd(
+					binary_compose_f_gx_hy(
+						string_equal_i<WCHAR>(),
+						std::mem_fun(&AddressParser::getHost),
+						std::identity<const WCHAR*>()),
+					address.getHost())));
+		if (it != listAddress_.end()) {
+			delete *it;
+			listAddress_.erase(it);
 		}
 		
 		std::auto_ptr<AddressParser> pAddress(new AddressParser(
