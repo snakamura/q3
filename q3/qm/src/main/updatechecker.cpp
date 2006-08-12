@@ -10,6 +10,7 @@
 
 #include <qshttp.h>
 #include <qsinit.h>
+#include <qsras.h>
 
 #include "updatechecker.h"
 #include "../ui/resourceinc.h"
@@ -50,6 +51,9 @@ qm::UpdateChecker::~UpdateChecker()
 
 UpdateChecker::Update qm::UpdateChecker::checkUpdate()
 {
+	if (!RasConnection::isNetworkConnected())
+		return UPDATE_ERROR;
+	
 	malloc_size_ptr<unsigned char> p(HttpUtility::openURL(
 		L"http://q3.snak.org/q3/version.cgi"));
 	if (!p.get() || p.size() > 32)
