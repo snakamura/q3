@@ -101,6 +101,7 @@ class Security;
 #ifdef QMTABWINDOW
 class TabWindow;
 #endif
+class UpdateChecker;
 
 
 /****************************************************************************
@@ -241,6 +242,7 @@ public:
 				 ColorManager* pColorManager,
 				 SyncFilterManager* pSyncFilterManager,
 				 AutoPilotManager* pAutoPilotManager,
+				 UpdateChecker* pUpdateChecker,
 				 MainWindow* pMainWindow,
 				 FolderWindow* pFolderWindow,
 				 FolderComboBox* pFolderComboBox,
@@ -327,6 +329,7 @@ private:
 	ColorManager* pColorManager_;
 	SyncFilterManager* pSyncFilterManager_;
 	AutoPilotManager* pAutoPilotManager_;
+	UpdateChecker* pUpdateChecker_;
 	MainWindow* pMainWindow_;
 	FolderWindow* pFolderWindow_;
 	FolderComboBox* pFolderComboBox_;
@@ -442,6 +445,7 @@ public:
 						ColorManager* pColorManager,
 						SyncManager* pSyncManager,
 						AutoPilotManager* pAutoPilotManager,
+						UpdateChecker* pUpdateChecker,
 						qs::Profile* pProfile);
 	~OptionDialogManager();
 
@@ -474,6 +478,7 @@ private:
 	ColorManager* pColorManager_;
 	SyncManager* pSyncManager_;
 	AutoPilotManager* pAutoPilotManager_;
+	UpdateChecker* pUpdateChecker_;
 	qs::Profile* pProfile_;
 	MainWindow* pMainWindow_;
 	FolderWindow* pFolderWindow_;
@@ -825,7 +830,8 @@ class OptionMisc2Dialog :
 	public AbstractOptionDialogPanel<OptionMisc2Dialog>
 {
 public:
-	explicit OptionMisc2Dialog(qs::Profile* pProfile);
+	OptionMisc2Dialog(UpdateChecker* pUpdateChecker,
+					  qs::Profile* pProfile);
 	virtual ~OptionMisc2Dialog();
 
 protected:
@@ -840,6 +846,7 @@ private:
 	OptionMisc2Dialog& operator=(const OptionMisc2Dialog&);
 
 private:
+	UpdateChecker* pUpdateChecker_;
 	qs::Profile* pProfile_;
 
 private:

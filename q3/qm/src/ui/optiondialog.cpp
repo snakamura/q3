@@ -36,6 +36,7 @@
 #include "optiondialog.h"
 #include "resourceinc.h"
 #include "syncdialog.h"
+#include "../main/updatechecker.h"
 #include "../model/addressbook.h"
 #include "../sync/syncmanager.h"
 #include "../uimodel/tabmodel.h"
@@ -379,6 +380,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   ColorManager* pColorManager,
 							   SyncFilterManager* pSyncFilterManager,
 							   AutoPilotManager* pAutoPilotManager,
+							   UpdateChecker* pUpdateChecker,
 							   MainWindow* pMainWindow,
 							   FolderWindow* pFolderWindow,
 							   FolderComboBox* pFolderComboBox,
@@ -401,6 +403,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pColorManager_(pColorManager),
 	pSyncFilterManager_(pSyncFilterManager),
 	pAutoPilotManager_(pAutoPilotManager),
+	pUpdateChecker_(pUpdateChecker),
 	pMainWindow_(pMainWindow),
 	pFolderWindow_(pFolderWindow),
 	pFolderComboBox_(pFolderComboBox),
@@ -825,7 +828,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL2(PANEL_SECURITY, OptionSecurity, pDocument_->getSecurity(), pProfile_);
 			PANEL1(PANEL_CONFIRM, OptionConfirm, pProfile_);
 			PANEL1(PANEL_MISC, OptionMisc, pProfile_);
-			PANEL1(PANEL_MISC2, OptionMisc2, pProfile_);
+			PANEL2(PANEL_MISC2, OptionMisc2, pUpdateChecker_, pProfile_);
 		END_PANEL()
 	}
 	
@@ -1139,6 +1142,7 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 											 ColorManager* pColorManager,
 											 SyncManager* pSyncManager,
 											 AutoPilotManager* pAutoPilotManager,
+											 UpdateChecker* pUpdateChecker,
 											 Profile* pProfile) :
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
@@ -1146,6 +1150,7 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 	pColorManager_(pColorManager),
 	pSyncManager_(pSyncManager),
 	pAutoPilotManager_(pAutoPilotManager),
+	pUpdateChecker_(pUpdateChecker),
 	pProfile_(pProfile),
 	pMainWindow_(0),
 	pFolderWindow_(0),
@@ -1203,6 +1208,7 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	assert(pColorManager_);
 	assert(pSyncManager_);
 	assert(pAutoPilotManager_);
+	assert(pUpdateChecker_);
 	assert(pProfile_);
 	assert(pMainWindow_);
 	assert(pFolderWindow_);
@@ -1219,8 +1225,8 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
 		pColorManager_, pSyncManager_->getSyncFilterManager(),
-		pAutoPilotManager_, pMainWindow_, pFolderWindow_, pFolderComboBox_,
-		pListWindow_, pFolderListWindow_, pPreviewWindow_,
+		pAutoPilotManager_, pUpdateChecker_, pMainWindow_, pFolderWindow_,
+		pFolderComboBox_, pListWindow_, pFolderListWindow_, pPreviewWindow_,
 		pMessageFrameWindowManager_, pEditFrameWindowManager_,
 #ifdef QMTABWINDOW
 		pTabWindow_,
@@ -1937,8 +1943,10 @@ DialogUtil::BoolProperty qm::OptionMisc2Dialog::boolProperties__[] = {
 	{ L"OpenAddressBook",				IDC_OPENADDRESSBOOK					}
 };
 
-qm::OptionMisc2Dialog::OptionMisc2Dialog(Profile* pProfile) :
+qm::OptionMisc2Dialog::OptionMisc2Dialog(UpdateChecker* pUpdateChecker,
+										 Profile* pProfile) :
 	DefaultDialog(IDD_OPTIONMISC2),
+	pUpdateChecker_(pUpdateChecker),
 	pProfile_(pProfile)
 {
 }
@@ -1953,6 +1961,9 @@ LRESULT qm::OptionMisc2Dialog::onInitDialog(HWND hwndFocus,
 	DialogUtil::loadBoolProperties(this, pProfile_,
 		L"Global", boolProperties__, countof(boolProperties__));
 	
+	Button_SetCheck(getDlgItem(IDC_CHECKUPDATE),
+		pUpdateChecker_->isAutoCheck() ? BST_CHECKED : BST_UNCHECKED);
+	
 	wstring_ptr wstrQuote(pProfile_->getString(L"Global", L"Quote"));
 	setDlgItemText(IDC_QUOTE, wstrQuote.get());
 	
@@ -1963,6 +1974,9 @@ bool qm::OptionMisc2Dialog::save(OptionDialogContext* pContext)
 {
 	DialogUtil::saveBoolProperties(this, pProfile_,
 		L"Global", boolProperties__, countof(boolProperties__));
+	
+	pUpdateChecker_->setAutoCheck(Button_GetCheck(
+		getDlgItem(IDC_CHECKUPDATE)) == BST_CHECKED);
 	
 	wstring_ptr wstrQuote(getDlgItemText(IDC_QUOTE));
 	pProfile_->setString(L"Global", L"Quote", wstrQuote.get());

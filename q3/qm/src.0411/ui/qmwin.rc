@@ -1694,19 +1694,21 @@ BEGIN
     CONTROL         "メッセージ表示モードをフォルダごとに保存する(&V)(*)",
                     IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,15,220,10
+    CONTROL         "新しいバージョンが出たら通知する(&N)",IDC_CHECKUPDATE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,220,12
     CONTROL         "自分を&Bccに含める",IDC_BCC,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,30,220,10
+                    WS_TABSTOP,5,40,220,10
     CONTROL         "元のメッセージが&ML宛てのときにはBccに含めない",
                     IDC_NOBCCFORML,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
-                    40,210,10
+                    50,210,10
     CONTROL         "転送するときにはmessage/rfc822を使う(&F)",
                     IDC_FORWARDRFC822,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    5,50,220,10
+                    5,60,220,10
     CONTROL         "メッセージ作成時にアドレス帳を開く(&A)",
                     IDC_OPENADDRESSBOOK,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,60,220,10
-    LTEXT           "引用符(&Q)",IDC_STATIC,5,78,30,8
-    EDITTEXT        IDC_QUOTE,40,75,40,14,ES_AUTOHSCROLL
+                    WS_TABSTOP,5,70,220,10
+    LTEXT           "引用符(&Q)",IDC_STATIC,5,88,30,8
+    EDITTEXT        IDC_QUOTE,40,85,40,14,ES_AUTOHSCROLL
 END
 
 IDD_ARCHIVE DIALOG DISCARDABLE  0, 0, 185, 54

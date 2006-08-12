@@ -2226,7 +2226,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pOptionDialogManager_.reset(new OptionDialogManager(pImpl_->pDocument_,
 		pImpl_->pGoRound_, pImpl_->pViewModelManager_->getFilterManager(),
 		pImpl_->pViewModelManager_->getColorManager(), pImpl_->pSyncManager_,
-		pImpl_->pAutoPilot_->getAutoPilotManager(), pImpl_->pProfile_));
+		pImpl_->pAutoPilot_->getAutoPilotManager(), pImpl_->pUpdateChecker_, pImpl_->pProfile_));
 	pImpl_->pEditFrameWindowManager_.reset(new EditFrameWindowManager(
 		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pPasswordManager_,
 		pImpl_->pSyncManager_, pImpl_->pSyncDialogManager_,
