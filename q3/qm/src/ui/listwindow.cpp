@@ -1519,7 +1519,7 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	
 #ifdef QMTOOLTIP
-	pImpl_->hwndToolTip_ = ::CreateWindowEx(WS_EX_TRANSPARENT, TOOLTIPS_CLASS,
+	pImpl_->hwndToolTip_ = ::CreateWindowEx(0/*WS_EX_TRANSPARENT*/, TOOLTIPS_CLASS,
 		0, TTS_NOPREFIX, 0, 0, 0, 0, 0, 0, getInstanceHandle(), 0);
 	if (!pImpl_->hwndToolTip_)
 		return -1;
