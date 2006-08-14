@@ -159,7 +159,7 @@
 				<menuitem text="送信" action="ToolSend"/>
 				<menuitem text="フォルダを同期" action="ToolReceiveFolder"/>
 				<popupmenu text="巡回">
-					<menuitem dynamic="ToolGoRound"/>
+					<menuitem dynamic="ToolGoround"/>
 					<separator/>
 					<menuitem text="編集..." action="ConfigGoRound"/>
 				</popupmenu>
@@ -293,7 +293,7 @@
 				<menuitem text="保存..." action="MessageDetach"/>
 				<menuitem text="削除" action="MessageDeleteAttachment"/>
 				<separator/>
-				<menuitem dynamic="MessageAttachment"/>
+				<menuitem dynamic="MessageOpenAttachment"/>
 				<separator/>
 				<menuitem text="ダイジェストを展開" action="MessageExpandDigest"/>
 				<menuitem text="結合" action="MessageCombine"/>
@@ -469,7 +469,7 @@
 			<menuitem text="保存..." action="MessageDetach"/>
 			<menuitem text="削除" action="MessageDeleteAttachment"/>
 			<separator/>
-			<menuitem dynamic="MessageAttachment"/>
+			<menuitem dynamic="MessageOpenAttachment"/>
 			<separator/>
 			<menuitem text="ダイジェストを展開" action="MessageExpandDigest"/>
 			<menuitem text="結合" action="MessageCombine"/>
@@ -512,7 +512,7 @@
 			<menuitem text="保存..." action="MessageDetach"/>
 			<menuitem text="削除" action="MessageDeleteAttachment"/>
 			<separator/>
-			<menuitem dynamic="MessageAttachment"/>
+			<menuitem dynamic="MessageOpenAttachment"/>
 			<separator/>
 			<menuitem text="ダイジェストを展開" action="MessageExpandDigest"/>
 		</popupmenu>

@@ -35,6 +35,7 @@
 #include "../model/uri.h"
 #include "../script/scriptmanager.h"
 #include "../uimodel/foldermodel.h"
+#include "../uimodel/folderselectionmodel.h"
 #include "../uimodel/messageselectionmodel.h"
 #include "../uimodel/securitymodel.h"
 #include "../uimodel/viewmodel.h"
@@ -46,6 +47,17 @@ using namespace qs;
 
 /****************************************************************************
  *
+ * MenuCreator
+ *
+ */
+
+qm::MenuCreator::~MenuCreator()
+{
+}
+
+
+/****************************************************************************
+ *
  * ActionParamHelper
  *
  */
@@ -53,6 +65,7 @@ using namespace qs;
 qm::ActionParamHelper::ActionParamHelper(ActionParamMap* pActionParamMap) :
 	pActionParamMap_(pActionParamMap)
 {
+	assert(pActionParamMap_);
 }
 
 qm::ActionParamHelper::~ActionParamHelper()
@@ -96,11 +109,12 @@ qm::AttachmentMenuCreator::~AttachmentMenuCreator()
 }
 
 UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
-										   UINT nIndex)
+										   UINT nIndex,
+										   const DynamicMenuItem* pItem)
 {
 	assert(hmenu);
 	
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	bool bAdded = false;
@@ -124,7 +138,7 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 				unsigned int nId = helper_.add(MAX_MESSAGE_OPENATTACHMENT, pParam);
 				if (nId != -1) {
 					wstring_ptr wstrName(UIUtil::formatMenu((*it).first, &nMnemonic));
-					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), DATA);
+					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), pItem->getId());
 					bAdded = true;
 				}
 			}
@@ -134,15 +148,15 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_OPENATTACHMENT, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_OPENATTACHMENT, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::AttachmentMenuCreator::getMenuItemData() const
+const WCHAR* qm::AttachmentMenuCreator::getName() const
 {
-	return DATA;
+	return L"MessageOpenAttachment";
 }
 
 
@@ -166,10 +180,10 @@ qm::EncodingMenuCreator::~EncodingMenuCreator()
 }
 
 UINT qm::EncodingMenuCreator::createMenu(HMENU hmenu,
-										 UINT nIndex)
+										 UINT nIndex,
+										 const DynamicMenuItem* pItem)
 {
-	DWORD dwData = bView_ ? DATA_VIEW : DATA_TOOL;
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, dwData);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	typedef std::vector<WSTRING> StringList;
@@ -188,22 +202,22 @@ UINT qm::EncodingMenuCreator::createMenu(HMENU hmenu,
 			unsigned int nId = helper_.add(nMax, pParam);
 			if (nId != -1) {
 				wstring_ptr wstrName(UIUtil::formatMenu(pwszEncoding, &nMnemonic));
-				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), dwData);
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), pItem->getId());
 			}
 		}
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nBaseId, wstrNone.get(), dwData);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nBaseId, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::EncodingMenuCreator::getMenuItemData() const
+const WCHAR* qm::EncodingMenuCreator::getName() const
 {
-	return bView_ ? DATA_VIEW : DATA_TOOL;
+	return bView_ ? L"ViewEncoding" : L"ToolEncoding";
 }
 
 
@@ -225,9 +239,10 @@ qm::FilterMenuCreator::~FilterMenuCreator()
 }
 
 UINT qm::FilterMenuCreator::createMenu(HMENU hmenu,
-									   UINT nIndex)
+									   UINT nIndex,
+									   const DynamicMenuItem* pItem)
 {
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	const FilterManager::FilterList& l = pFilterManager_->getFilters();
@@ -240,22 +255,22 @@ UINT qm::FilterMenuCreator::createMenu(HMENU hmenu,
 			unsigned int nId = helper_.add(MAX_VIEW_FILTER, pParam);
 			if (nId != -1) {
 				wstring_ptr wstrTitle(UIUtil::formatMenu(pFilter->getName(), &nMnemonic));
-				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), DATA);
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), pItem->getId());
 			}
 		}
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_FILTER, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_FILTER, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::FilterMenuCreator::getMenuItemData() const
+const WCHAR* qm::FilterMenuCreator::getName() const
 {
-	return DATA;
+	return L"ViewFilter";
 }
 
 
@@ -277,9 +292,10 @@ qm::GoRoundMenuCreator::~GoRoundMenuCreator()
 }
 
 UINT qm::GoRoundMenuCreator::createMenu(HMENU hmenu,
-										UINT nIndex)
+										UINT nIndex,
+										const DynamicMenuItem* pItem)
 {
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	const GoRound::CourseList& l = pGoRound_->getCourses();
@@ -293,22 +309,22 @@ UINT qm::GoRoundMenuCreator::createMenu(HMENU hmenu,
 			unsigned int nId = helper_.add(MAX_TOOL_GOROUND, pParam);
 			if (nId != -1) {
 				wstring_ptr wstrName(UIUtil::formatMenu(pCourse->getName(), &nMnemonic));
-				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), DATA);
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), pItem->getId());
 			}
 		}
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrName(loadString(hInst, IDS_MENU_GOROUND));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_GOROUND, wstrName.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_GOROUND, wstrName.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::GoRoundMenuCreator::getMenuItemData() const
+const WCHAR* qm::GoRoundMenuCreator::getName() const
 {
-	return DATA;
+	return L"ToolGoround";
 }
 
 
@@ -330,9 +346,10 @@ qm::InsertTextMenuCreator::~InsertTextMenuCreator()
 }
 
 UINT qm::InsertTextMenuCreator::createMenu(HMENU hmenu,
-										   UINT nIndex)
+										   UINT nIndex,
+										   const DynamicMenuItem* pItem)
 {
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	const FixedFormTextManager::TextList& l = pManager_->getTexts();
@@ -347,22 +364,22 @@ UINT qm::InsertTextMenuCreator::createMenu(HMENU hmenu,
 			unsigned int nId = helper_.add(MAX_TOOL_INSERTTEXT, pParam);
 			if (nId != -1) {
 				wstring_ptr wstrName(UIUtil::formatMenu(pText->getName(), &nMnemonic));
-				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), DATA);
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), pItem->getId());
 			}
 		}
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_INSERTTEXT, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_INSERTTEXT, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::InsertTextMenuCreator::getMenuItemData() const
+const WCHAR* qm::InsertTextMenuCreator::getName() const
 {
-	return DATA;
+	return L"ToolInsertText";
 }
 
 
@@ -386,13 +403,14 @@ qm::MoveMenuCreator::~MoveMenuCreator()
 }
 
 UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
-									 UINT nIndex)
+									 UINT nIndex,
+									 const DynamicMenuItem* pItem)
 {
 	assert(hmenu);
 	
 	bool bShowHidden = ::GetKeyState(VK_SHIFT) < 0;
 	
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	bool bAdded = false;
@@ -447,7 +465,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 				::InsertMenu(hmenuThis, stackFolder.back().nCount_, MF_POPUP | MF_BYPOSITION,
 					reinterpret_cast<UINT_PTR>(hmenuNew), ptszName);
 				if (stackFolder.size() == 1) {
-					MenuCreatorUtil::setMenuItemData(hmenuThis, stackFolder.back().nCount_, DATA);
+					MenuCreatorUtil::setMenuItemData(hmenuThis, stackFolder.back().nCount_, pItem->getId());
 					++nIndex;
 					bAdded = true;
 				}
@@ -467,7 +485,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 					::InsertMenu(hmenuThis, stackFolder.back().nCount_,
 						MF_STRING | MF_BYPOSITION, nId, ptszName);
 					if (stackFolder.size() == 1) {
-						MenuCreatorUtil::setMenuItemData(hmenuThis, stackFolder.back().nCount_, DATA);
+						MenuCreatorUtil::setMenuItemData(hmenuThis, stackFolder.back().nCount_, pItem->getId());
 						++nIndex;
 						bAdded = true;
 					}
@@ -489,15 +507,15 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_MOVE, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_MOVE, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::MoveMenuCreator::getMenuItemData() const
+const WCHAR* qm::MoveMenuCreator::getName() const
 {
-	return DATA;
+	return L"MessageMove";
 }
 
 bool qm::MoveMenuCreator::isMovableFolder(const Folder* pFolder)
@@ -566,9 +584,10 @@ qm::RecentsMenuCreator::~RecentsMenuCreator()
 }
 
 UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
-										UINT nIndex)
+										UINT nIndex,
+										const DynamicMenuItem* pItem)
 {
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	typedef std::vector<URI*> URIList;
@@ -615,7 +634,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 		if (mpl) {
 			if (pAccount != mpl->getAccount()) {
 				if (pAccount != 0)
-					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, -1, 0, DATA);
+					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, -1, 0, pItem->getId());
 				pAccount = mpl->getAccount();
 			}
 			
@@ -633,7 +652,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 				};
 				wstring_ptr wstrTitle(concat(wszMnemonic,
 					TextUtil::replaceAll(wstrSubject.get(), L"&", L"&&").get()));
-				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), DATA);
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), pItem->getId());
 				bAdded = true;
 				++nMnemonic;
 			}
@@ -643,15 +662,15 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_OPENRECENT, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_OPENRECENT, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::RecentsMenuCreator::getMenuItemData() const
+const WCHAR* qm::RecentsMenuCreator::getName() const
 {
-	return DATA;
+	return L"MessageOpenRecent";
 }
 
 bool RecentsMenuCreator::URIComp::operator()(const URI* pLhs,
@@ -679,11 +698,12 @@ qm::ScriptMenuCreator::~ScriptMenuCreator()
 }
 
 UINT qm::ScriptMenuCreator::createMenu(HMENU hmenu,
-									   UINT nIndex)
+									   UINT nIndex,
+									   const DynamicMenuItem* pItem)
 {
 	assert(hmenu);
 	
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	ScriptManager::NameList l;
@@ -699,22 +719,22 @@ UINT qm::ScriptMenuCreator::createMenu(HMENU hmenu,
 			unsigned int nId = helper_.add(MAX_TOOL_SCRIPT, pParam);
 			if (nId != -1) {
 				wstring_ptr wstrMenu(UIUtil::formatMenu(pwszName, &nMnemonic));
-				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrMenu.get(), DATA);
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrMenu.get(), pItem->getId());
 			}
 		}
 	}
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_SCRIPT, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_SCRIPT, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::ScriptMenuCreator::getMenuItemData() const
+const WCHAR* qm::ScriptMenuCreator::getName() const
 {
-	return DATA;
+	return L"ToolScript";
 }
 
 
@@ -736,9 +756,10 @@ qm::SortMenuCreator::~SortMenuCreator()
 }
 
 UINT qm::SortMenuCreator::createMenu(HMENU hmenu,
-									 UINT nIndex)
+									 UINT nIndex,
+									 const DynamicMenuItem* pItem)
 {
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
@@ -757,7 +778,7 @@ UINT qm::SortMenuCreator::createMenu(HMENU hmenu,
 				unsigned int nId = helper_.add(MAX_VIEW_SORT, pParam);
 				if (nId != -1) {
 					wstring_ptr wstrTitle(UIUtil::formatMenu(pwszTitle, &nMnemonic));
-					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), DATA);
+					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), pItem->getId());
 				}
 			}
 		}
@@ -765,15 +786,15 @@ UINT qm::SortMenuCreator::createMenu(HMENU hmenu,
 	else {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_SORT, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_SORT, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::SortMenuCreator::getMenuItemData() const
+const WCHAR* qm::SortMenuCreator::getName() const
 {
-	return DATA;
+	return L"ViewSort";
 }
 
 
@@ -795,9 +816,10 @@ qm::SubAccountMenuCreator::~SubAccountMenuCreator()
 }
 
 UINT qm::SubAccountMenuCreator::createMenu(HMENU hmenu,
-										   UINT nIndex)
+										   UINT nIndex,
+										   const DynamicMenuItem* pItem)
 {
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, DATA);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	bool bAdded = false;
@@ -816,7 +838,7 @@ UINT qm::SubAccountMenuCreator::createMenu(HMENU hmenu,
 			unsigned int nId = helper_.add(MAX_TOOL_SUBACCOUNT, pParam);
 			if (nId != -1) {
 				wstring_ptr wstrText(UIUtil::formatMenu(pSubAccount->getName(), &nMnemonic));
-				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrText.get(), DATA);
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrText.get(), pItem->getId());
 				bAdded = true;
 			}
 		}
@@ -825,15 +847,15 @@ UINT qm::SubAccountMenuCreator::createMenu(HMENU hmenu,
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_SUBACCOUNT, wstrNone.get(), DATA);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_SUBACCOUNT, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
 }
 
-DWORD qm::SubAccountMenuCreator::getMenuItemData() const
+const WCHAR* qm::SubAccountMenuCreator::getName() const
 {
-	return DATA;
+	return L"ToolSubAccount";
 }
 
 
@@ -857,15 +879,15 @@ qm::TemplateMenuCreator::~TemplateMenuCreator()
 }
 
 UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
-										 UINT nIndex)
+										 UINT nIndex,
+										 const DynamicMenuItem* pItem)
 {
 	assert(hmenu);
 	
 	const WCHAR* pwszPrefix = getPrefix();
 	size_t nPrefixLen = wcslen(pwszPrefix);
 	
-	DWORD dwData = getMenuItemData();
-	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, dwData);
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
 	UINT nBaseId = getBaseId();
@@ -879,7 +901,7 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 		pTemplateManager_->getTemplateNames(pAccount->getClass(), pwszPrefix, &listName);
 		
 		if (!listName.empty()) {
-			UINT nMax = getMax();
+			unsigned int nMax = getMax();
 			int nMnemonic = 1;
 			for (TemplateManager::NameList::const_iterator it = listName.begin(); it != listName.end(); ++it) {
 				const WCHAR* pwszName = *it;
@@ -888,7 +910,7 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 				unsigned int nId = helper_.add(nMax, pParam);
 				if (nId != -1) {
 					wstring_ptr wstrMenu(UIUtil::formatMenu(pwszName + nPrefixLen + 1, &nMnemonic));
-					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrMenu.get(), dwData);
+					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrMenu.get(), pItem->getId());
 					bAdded = true;
 				}
 			}
@@ -898,7 +920,7 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nBaseId, wstrNone.get(), dwData);
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nBaseId, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
@@ -924,9 +946,9 @@ qm::CreateTemplateMenuCreator::~CreateTemplateMenuCreator()
 {
 }
 
-DWORD qm::CreateTemplateMenuCreator::getMenuItemData() const
+const WCHAR* qm::CreateTemplateMenuCreator::getName() const
 {
-	return !bExternalEditor_ ? DATA : DATA_EXTERNAL;
+	return !bExternalEditor_ ? L"MessageCreate" : L"MessageCreateExternal";
 }
 
 const WCHAR* qm::CreateTemplateMenuCreator::getPrefix() const
@@ -939,7 +961,7 @@ UINT qm::CreateTemplateMenuCreator::getBaseId() const
 	return !bExternalEditor_ ? IDM_MESSAGE_CREATE : IDM_MESSAGE_CREATEEXTERNAL;
 }
 
-UINT qm::CreateTemplateMenuCreator::getMax() const
+unsigned int qm::CreateTemplateMenuCreator::getMax() const
 {
 	return !bExternalEditor_ ? MAX_MESSAGE_CREATE : MAX_MESSAGE_CREATEEXTERNAL;
 }
@@ -962,9 +984,9 @@ qm::ViewTemplateMenuCreator::~ViewTemplateMenuCreator()
 {
 }
 
-DWORD qm::ViewTemplateMenuCreator::getMenuItemData() const
+const WCHAR* qm::ViewTemplateMenuCreator::getName() const
 {
-	return DATA;
+	return L"ViewTemplate";
 }
 
 const WCHAR* qm::ViewTemplateMenuCreator::getPrefix() const
@@ -977,9 +999,223 @@ UINT qm::ViewTemplateMenuCreator::getBaseId() const
 	return IDM_VIEW_TEMPLATE;
 }
 
-UINT qm::ViewTemplateMenuCreator::getMax() const
+unsigned int qm::ViewTemplateMenuCreator::getMax() const
 {
 	return MAX_VIEW_TEMPLATE;
+}
+
+
+/****************************************************************************
+ *
+ * MacroMenuCreator
+ *
+ */
+
+qm::MacroMenuCreator::MacroMenuCreator(Document* pDocument,
+									   MessageSelectionModel* pMessageSelectionModel,
+									   SecurityModel* pSecurityModel,
+									   qs::Profile* pProfile,
+									   const qs::ActionItem* pActionItem,
+									   size_t nActionItemCount,
+									   ActionParamMap* pActionParamMap) :
+	pDocument_(pDocument),
+	pMessageSelectionModel_(pMessageSelectionModel),
+	pAccountSelectionModel_(0),
+	pSecurityModel_(pSecurityModel),
+	pProfile_(pProfile),
+	pActionItem_(pActionItem),
+	nActionItemCount_(nActionItemCount),
+	helper_(pActionParamMap)
+{
+	assert(pDocument);
+	assert(pMessageSelectionModel);
+	assert(pSecurityModel);
+	assert(pProfile);
+	assert(pActionItem);
+}
+
+qm::MacroMenuCreator::MacroMenuCreator(Document* pDocument,
+									   AccountSelectionModel* pAccountSelectionModel,
+									   SecurityModel* pSecurityModel,
+									   qs::Profile* pProfile,
+									   const qs::ActionItem* pActionItem,
+									   size_t nActionItemCount,
+									   ActionParamMap* pActionParamMap) :
+	pDocument_(pDocument),
+	pMessageSelectionModel_(0),
+	pAccountSelectionModel_(pAccountSelectionModel),
+	pSecurityModel_(pSecurityModel),
+	pProfile_(pProfile),
+	pActionItem_(pActionItem),
+	nActionItemCount_(nActionItemCount),
+	helper_(pActionParamMap)
+{
+	assert(pDocument);
+	assert(pAccountSelectionModel);
+	assert(pSecurityModel);
+	assert(pProfile);
+	assert(pActionItem);
+}
+
+qm::MacroMenuCreator::~MacroMenuCreator()
+{
+}
+
+UINT qm::MacroMenuCreator::createMenu(HMENU hmenu,
+									  UINT nIndex,
+									  const DynamicMenuItem* pItem)
+{
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
+	helper_.clear();
+	
+	bool bAdded = false;
+	
+	const ActionItem* pActionItem = getActionItem(pItem->getName());
+	assert(pItem);
+	
+	ItemList listItem;
+	wstring_ptr wstrItems(evalMacro(static_cast<const MacroDynamicMenuItem*>(pItem)->getMacro()));
+	if (wstrItems.get())
+		parseItems(wstrItems.get(), &listItem);
+	
+	int nMnemonic = 1;
+	for (ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
+		const WCHAR* pwszName = (*it).first;
+		const WCHAR* pwszParam = (*it).second;
+		std::auto_ptr<ActionParam> pParam(new ActionParam(pActionItem->nId_, pwszParam));
+		unsigned int nId = helper_.add(pActionItem->nMaxParamCount_, pParam);
+		if (nId != -1) {
+			wstring_ptr wstrText(UIUtil::formatMenu(pwszName, &nMnemonic));
+			MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrText.get(), pItem->getId());
+			bAdded = true;
+		}
+	}
+	
+	if (!bAdded) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_NONE, wstrNone.get(), pItem->getId());
+	}
+	
+	return nIndex;
+}
+
+wstring_ptr qm::MacroMenuCreator::evalMacro(const Macro* pMacro) const
+{
+	if (!pMacro)
+		return 0;
+	
+	Account* pAccount = 0;
+	AccountLock lock;
+	Folder* pFolder = 0;
+	MessageHolderList l;
+	MessagePtr ptr;
+	if (pMessageSelectionModel_) {
+		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
+		ptr = pMessageSelectionModel_->getFocusedMessage();
+		pAccount = lock.get();
+	}
+	else {
+		pAccount = pAccountSelectionModel_->getAccount();
+	}
+	MessagePtrLock mpl(ptr);
+	
+	MacroVariableHolder globalVariable;
+	Message msg;
+	MacroContext context(mpl, mpl ? &msg : 0, pAccount, l, pFolder,
+		pDocument_, 0, pProfile_, 0, MacroContext::FLAG_UITHREAD,
+		pSecurityModel_->getSecurityMode(), 0, &globalVariable);
+	MacroValuePtr pValue(pMacro->value(&context));
+	if (!pValue.get())
+		return 0;
+	
+	return pValue->string().release();
+}
+
+const ActionItem* qm::MacroMenuCreator::getActionItem(const WCHAR* pwszAction) const
+{
+	assert(pwszAction);
+	
+	ActionItem item = {
+		pwszAction,
+		0
+	};
+	
+	const ActionItem* pItem = std::lower_bound(
+		pActionItem_, pActionItem_ + nActionItemCount_, item,
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			mem_data_ref(&ActionItem::pwszAction_),
+			mem_data_ref(&ActionItem::pwszAction_)));
+	if (pItem == pActionItem_ + nActionItemCount_ ||
+		wcscmp(pItem->pwszAction_, pwszAction) != 0 ||
+		(pItem->nFlags_ != 0 && !(pItem->nFlags_ & ActionItem::FLAG_MENU)))
+		return 0;
+	return pItem;
+}
+
+void qm::MacroMenuCreator::parseItems(WCHAR* pwsz,
+									  ItemList* pList)
+{
+	assert(pwsz);
+	assert(pList);
+	
+	WCHAR* p = wcstok(pwsz, L"\n");
+	while (p) {
+		WCHAR* pParam = wcschr(p, L'\t');
+		if (pParam) {
+			*pParam = L'\0';
+			pList->push_back(std::make_pair(p, pParam + 1));
+		}
+		p = wcstok(0, L"\n");
+	}
+}
+
+
+/****************************************************************************
+ *
+ * MacroDynamicMenuItem
+ *
+ */
+
+qm::MacroDynamicMenuItem::MacroDynamicMenuItem(unsigned int nId,
+											   const WCHAR* pwszName,
+											   const WCHAR* pwszParam) :
+	DynamicMenuItem(nId, pwszName, pwszParam)
+{
+	if (pwszParam)
+		pMacro_ = MacroParser().parse(pwszParam);
+}
+
+qm::MacroDynamicMenuItem::~MacroDynamicMenuItem()
+{
+}
+
+const Macro* qm::MacroDynamicMenuItem::getMacro() const
+{
+	return pMacro_.get();
+}
+
+
+/****************************************************************************
+ *
+ * MacroDynamicMenuItem
+ *
+ */
+
+qm::MacroDynamicMenuMap::MacroDynamicMenuMap()
+{
+}
+
+qm::MacroDynamicMenuMap::~MacroDynamicMenuMap()
+{
+}
+
+std::auto_ptr<DynamicMenuItem> qm::MacroDynamicMenuMap::createItem(unsigned int nId,
+																   const WCHAR* pwszName,
+																   const WCHAR* pwszParam) const
+{
+	return std::auto_ptr<DynamicMenuItem>(new MacroDynamicMenuItem(nId, pwszName, pwszParam));
 }
 
 

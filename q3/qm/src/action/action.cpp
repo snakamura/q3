@@ -5049,6 +5049,30 @@ bool qm::MessageSearchAction::isEnabled(const ActionEvent& event)
 }
 
 
+/****************************************************************************
+ *
+ * NoneAction
+ *
+ */
+
+qm::NoneAction::NoneAction()
+{
+}
+
+qm::NoneAction::~NoneAction()
+{
+}
+
+void qm::NoneAction::invoke(const ActionEvent& event)
+{
+}
+
+bool qm::NoneAction::isEnabled(const ActionEvent& event)
+{
+	return false;
+}
+
+
 #ifdef QMTABWINDOW
 
 /****************************************************************************

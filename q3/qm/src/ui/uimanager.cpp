@@ -31,11 +31,11 @@ qm::UIManager::UIManager()
 	Application& app = Application::getApplication();
 	
 	pActionParamMap_.reset(new ActionParamMap());
+	pDynamicMenuMap_.reset(new MacroDynamicMenuMap());
 	
 	wstring_ptr wstrMenuPath(app.getProfilePath(FileNames::MENUS_XML));
 	pMenuManager_.reset(new MenuManager(wstrMenuPath.get(), actionItems,
-		countof(actionItems), dynamicMenuItems, countof(dynamicMenuItems),
-		pActionParamMap_.get()));
+		countof(actionItems), pActionParamMap_.get(), pDynamicMenuMap_.get()));
 	
 	wstring_ptr wstrBitmapPath(app.getImagePath(FileNames::TOOLBAR_BMP));
 	W2T(wstrBitmapPath.get(), ptszBitmapPath);
@@ -76,4 +76,9 @@ KeyMap* qm::UIManager::getKeyMap() const
 ActionParamMap* qm::UIManager::getActionParamMap() const
 {
 	return pActionParamMap_.get();
+}
+
+DynamicMenuMap* qm::UIManager::getDynamicMenuMap() const
+{
+	return pDynamicMenuMap_.get();
 }

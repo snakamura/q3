@@ -28,23 +28,28 @@
 
 namespace qm {
 
-class AttachmentMenuCreator;
-class EncodingMenuCreator;
-class FilterMenuCreator;
-class GoRoundMenuCreator;
-class InsertTextMenuCreator;
-class MoveMenuCreator;
-class RecentsMenuCreator;
-class ScriptMenuCreator;
-class SortMenuCreator;
-class SubAccountMenuCreator;
-class TemplateMenuCreator;
-	class CreateTemplateMenuCreator;
-	class ViewTemplateMenuCreator;
+class MenuCreator;
+	class AttachmentMenuCreator;
+	class EncodingMenuCreator;
+	class FilterMenuCreator;
+	class GoRoundMenuCreator;
+	class InsertTextMenuCreator;
+	class MoveMenuCreator;
+	class RecentsMenuCreator;
+	class ScriptMenuCreator;
+	class SortMenuCreator;
+	class SubAccountMenuCreator;
+	class TemplateMenuCreator;
+		class CreateTemplateMenuCreator;
+		class ViewTemplateMenuCreator;
+class MacroMenuCreator;
+class MacroDynamicMenuItem;
+class MacroDynamicMenuMap;
 class ActionParamHelper;
 class MenuCreatorUtil;
 
 class AccountManager;
+class AccountSelectionModel;
 class Filter;
 class FilterManager;
 class FixedFormText;
@@ -53,6 +58,7 @@ class FolderModel;
 class FolderModelBase;
 class GoRound;
 class GoRoundCourse;
+class Macro;
 class Message;
 class MessageHolder;
 class MessageSelectionModel;
@@ -64,38 +70,19 @@ class URI;
 class ViewModelManager;
 
 
-enum {
-	DMI_MESSAGE_ATTACHMENT	= 1,
-	DMI_MESSAGE_CREATE,
-	DMI_MESSAGE_CREATEEXTERNAL,
-	DMI_MESSAGE_MOVE,
-	DMI_MESSAGE_RECENTS,
-	DMI_TOOL_ENCODING,
-	DMI_TOOL_GOROUND,
-	DMI_TOOL_INSERTTEXT,
-	DMI_TOOL_SCRIPT,
-	DMI_TOOL_SUBACCOUNT,
-	DMI_VIEW_ENCODING,
-	DMI_VIEW_FILTER,
-	DMI_VIEW_SORT,
-	DMI_VIEW_TEMPLATE
-};
+/****************************************************************************
+ *
+ * MenuCreator
+ *
+ */
 
-const qs::DynamicMenuItem dynamicMenuItems[] = {
-	{ L"MessageAttachment",		DMI_MESSAGE_ATTACHMENT,		DMI_MESSAGE_ATTACHMENT		},
-	{ L"MessageCreate",			DMI_MESSAGE_CREATE,			DMI_MESSAGE_CREATE			},
-	{ L"MessageCreateExternal",	DMI_MESSAGE_CREATEEXTERNAL,	DMI_MESSAGE_CREATEEXTERNAL	},
-	{ L"MessageMove",			DMI_MESSAGE_MOVE,			DMI_MESSAGE_MOVE			},
-	{ L"MessageRecents",		DMI_MESSAGE_RECENTS,		DMI_MESSAGE_RECENTS			},
-	{ L"ToolEncoding",			DMI_TOOL_ENCODING,			DMI_TOOL_ENCODING			},
-	{ L"ToolGoRound",			DMI_TOOL_GOROUND,			DMI_TOOL_GOROUND			},
-	{ L"ToolInsertText",		DMI_TOOL_INSERTTEXT,		DMI_TOOL_INSERTTEXT			},
-	{ L"ToolScript",			DMI_TOOL_SCRIPT,			DMI_TOOL_SCRIPT				},
-	{ L"ToolSubAccount",		DMI_TOOL_SUBACCOUNT,		DMI_TOOL_SUBACCOUNT			},
-	{ L"ViewEncoding",			DMI_VIEW_ENCODING,			DMI_VIEW_ENCODING			},
-	{ L"ViewFilter",			DMI_VIEW_FILTER,			DMI_VIEW_FILTER				},
-	{ L"ViewSort",				DMI_VIEW_SORT,				DMI_VIEW_SORT				},
-	{ L"ViewTemplate",			DMI_VIEW_TEMPLATE,			DMI_VIEW_TEMPLATE			},
+class MenuCreator : public qs::DynamicMenuCreator
+{
+public:
+	virtual ~MenuCreator();
+
+public:
+	virtual const WCHAR* getName() const = 0;
 };
 
 
@@ -135,23 +122,21 @@ private:
  *
  */
 
-class AttachmentMenuCreator : public qs::DynamicMenuCreator
+class AttachmentMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_MESSAGE_ATTACHMENT
-	};
-
 public:
 	AttachmentMenuCreator(MessageSelectionModel* pMessageSelectionModel,
 						  SecurityModel* pSecurityModel,
 						  qs::ActionParamMap* pActionParamMap);
-	~AttachmentMenuCreator();
+	virtual ~AttachmentMenuCreator();
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	AttachmentMenuCreator(const AttachmentMenuCreator&);
@@ -170,14 +155,8 @@ private:
  *
  */
 
-class EncodingMenuCreator : public qs::DynamicMenuCreator
+class EncodingMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA_VIEW	= DMI_VIEW_ENCODING,
-		DATA_TOOL	= DMI_TOOL_ENCODING
-	};
-
 public:
 	EncodingMenuCreator(qs::Profile* pProfile,
 						bool bView,
@@ -186,8 +165,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	EncodingMenuCreator(const EncodingMenuCreator&);
@@ -206,13 +188,8 @@ private:
  *
  */
 
-class FilterMenuCreator : public qs::DynamicMenuCreator
+class FilterMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_VIEW_FILTER
-	};
-
 public:
 	FilterMenuCreator(FilterManager* pFilterManager,
 					  qs::ActionParamMap* pActionParamMap);
@@ -220,8 +197,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	FilterMenuCreator(const FilterMenuCreator&);
@@ -239,13 +219,8 @@ private:
  *
  */
 
-class GoRoundMenuCreator : public qs::DynamicMenuCreator
+class GoRoundMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_TOOL_GOROUND
-	};
-
 public:
 	GoRoundMenuCreator(GoRound* pGoRound,
 					   qs::ActionParamMap* pActionParamMap);
@@ -253,8 +228,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	GoRoundMenuCreator(const GoRoundMenuCreator&);
@@ -272,13 +250,8 @@ private:
  *
  */
 
-class InsertTextMenuCreator : public qs::DynamicMenuCreator
+class InsertTextMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_TOOL_INSERTTEXT
-	};
-
 public:
 	InsertTextMenuCreator(FixedFormTextManager* pManager,
 						  qs::ActionParamMap* pActionParamMap);
@@ -286,8 +259,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	InsertTextMenuCreator(const InsertTextMenuCreator&);
@@ -305,13 +281,8 @@ private:
  *
  */
 
-class MoveMenuCreator : public qs::DynamicMenuCreator
+class MoveMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_MESSAGE_MOVE
-	};
-
 public:
 	MoveMenuCreator(FolderModelBase* pFolderModel,
 					MessageSelectionModel* pMessageSelectionModel,
@@ -320,8 +291,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	static bool isMovableFolder(const Folder* pFolder);
@@ -359,13 +333,8 @@ private:
  *
  */
 
-class RecentsMenuCreator : public qs::DynamicMenuCreator
+class RecentsMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_MESSAGE_RECENTS
-	};
-
 public:
 	RecentsMenuCreator(Recents* pRecents,
 					   AccountManager* pAccountManager,
@@ -374,8 +343,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	struct URIComp : public std::binary_function<const URI*, const URI*, bool>
@@ -401,13 +373,8 @@ private:
  *
  */
 
-class ScriptMenuCreator : public qs::DynamicMenuCreator
+class ScriptMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_TOOL_SCRIPT
-	};
-
 public:
 	ScriptMenuCreator(ScriptManager* pScriptManager,
 					  qs::ActionParamMap* pActionParamMap);
@@ -415,8 +382,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	ScriptMenuCreator(const ScriptMenuCreator&);
@@ -434,13 +404,8 @@ private:
  *
  */
 
-class SortMenuCreator : public qs::DynamicMenuCreator
+class SortMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_VIEW_SORT
-	};
-
 public:
 	SortMenuCreator(ViewModelManager* pViewModelManager,
 					qs::ActionParamMap* pActionParamMap);
@@ -448,8 +413,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	SortMenuCreator(const SortMenuCreator&);
@@ -467,13 +435,8 @@ private:
  *
  */
 
-class SubAccountMenuCreator : public qs::DynamicMenuCreator
+class SubAccountMenuCreator : public MenuCreator
 {
-public:
-	enum {
-		DATA = DMI_TOOL_SUBACCOUNT
-	};
-
 public:
 	SubAccountMenuCreator(FolderModel* pFolderModel,
 						  qs::ActionParamMap* pActionParamMap);
@@ -481,8 +444,11 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
-	virtual DWORD getMenuItemData() const;
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
 
 private:
 	SubAccountMenuCreator(const SubAccountMenuCreator&);
@@ -500,7 +466,7 @@ private:
  *
  */
 
-class TemplateMenuCreator : public qs::DynamicMenuCreator
+class TemplateMenuCreator : public MenuCreator
 {
 protected:
 	TemplateMenuCreator(const TemplateManager* pTemplateManager,
@@ -510,12 +476,13 @@ protected:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex);
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
 
 protected:
 	virtual const WCHAR* getPrefix() const = 0;
 	virtual UINT getBaseId() const = 0;
-	virtual UINT getMax() const = 0;
+	virtual unsigned int getMax() const = 0;
 
 private:
 	TemplateMenuCreator(const TemplateMenuCreator&);
@@ -537,12 +504,6 @@ private:
 class CreateTemplateMenuCreator : public TemplateMenuCreator
 {
 public:
-	enum {
-		DATA			= DMI_MESSAGE_CREATE,
-		DATA_EXTERNAL	= DMI_MESSAGE_CREATEEXTERNAL
-	};
-
-public:
 	CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
 							  FolderModelBase* pFolderModel,
 							  qs::ActionParamMap* pActionParamMap,
@@ -550,12 +511,12 @@ public:
 	~CreateTemplateMenuCreator();
 
 public:
-	virtual DWORD getMenuItemData() const;
+	virtual const WCHAR* getName() const;
 
 protected:
 	virtual const WCHAR* getPrefix() const;
 	virtual UINT getBaseId() const;
-	virtual UINT getMax() const;
+	virtual unsigned int getMax() const;
 
 private:
 	CreateTemplateMenuCreator(const CreateTemplateMenuCreator&);
@@ -575,27 +536,128 @@ private:
 class ViewTemplateMenuCreator : public TemplateMenuCreator
 {
 public:
-	enum {
-		DATA = DMI_VIEW_TEMPLATE
-	};
-
-public:
 	ViewTemplateMenuCreator(const TemplateManager* pTemplateManager,
 							FolderModelBase* pFolderModel,
 							qs::ActionParamMap* pActionParamMap);
 	~ViewTemplateMenuCreator();
 
 public:
-	virtual DWORD getMenuItemData() const;
+	virtual const WCHAR* getName() const;
 
 protected:
 	virtual const WCHAR* getPrefix() const;
 	virtual UINT getBaseId() const;
-	virtual UINT getMax() const;
+	virtual unsigned int getMax() const;
 
 private:
 	ViewTemplateMenuCreator(const ViewTemplateMenuCreator&);
 	ViewTemplateMenuCreator& operator=(const ViewTemplateMenuCreator&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroMenuCreator
+ *
+ */
+
+class MacroMenuCreator : public qs::DynamicMenuCreator
+{
+private:
+	typedef std::vector<std::pair<const WCHAR*, const WCHAR*> > ItemList;
+
+public:
+	MacroMenuCreator(Document* pDocument,
+					 MessageSelectionModel* pMessageSelectionModel,
+					 SecurityModel* pSecurityModel,
+					 qs::Profile* pProfile,
+					 const qs::ActionItem* pActionItem,
+					 size_t nActionItemCount,
+					 qs::ActionParamMap* pActionParamMap);
+	MacroMenuCreator(Document* pDocument,
+					 AccountSelectionModel* pAccountSelectionModel,
+					 SecurityModel* pSecurityModel,
+					 qs::Profile* pProfile,
+					 const qs::ActionItem* pActionItem,
+					 size_t nActionItemCount,
+					 qs::ActionParamMap* pActionParamMap);
+	~MacroMenuCreator();
+
+public:
+	virtual UINT createMenu(HMENU hmenu,
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+private:
+	qs::wstring_ptr evalMacro(const Macro* pMacro) const;
+	const qs::ActionItem* getActionItem(const WCHAR* pwszAction) const;
+
+private:
+	static void parseItems(WCHAR* pwsz,
+						   ItemList* pList);
+
+private:
+	MacroMenuCreator(const MacroMenuCreator&);
+	MacroMenuCreator& operator=(const MacroMenuCreator&);
+
+private:
+	Document* pDocument_;
+	MessageSelectionModel* pMessageSelectionModel_;
+	AccountSelectionModel* pAccountSelectionModel_;
+	SecurityModel* pSecurityModel_;
+	qs::Profile* pProfile_;
+	const qs::ActionItem* pActionItem_;
+	size_t nActionItemCount_;
+	ActionParamHelper helper_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroDynamicMenuItem
+ *
+ */
+
+class MacroDynamicMenuItem : public qs::DynamicMenuItem
+{
+public:
+	MacroDynamicMenuItem(unsigned int nId,
+						 const WCHAR* pwszName,
+						 const WCHAR* pwszParam);
+	virtual ~MacroDynamicMenuItem();
+
+public:
+	const Macro* getMacro() const;
+
+private:
+	MacroDynamicMenuItem(const MacroDynamicMenuItem&);
+	MacroDynamicMenuItem& operator=(const MacroDynamicMenuItem&);
+
+private:
+	std::auto_ptr<Macro> pMacro_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroDynamicMenuMap
+ *
+ */
+
+class MacroDynamicMenuMap : public qs::DynamicMenuMap
+{
+public:
+	MacroDynamicMenuMap();
+	virtual ~MacroDynamicMenuMap();
+
+protected:
+	virtual std::auto_ptr<qs::DynamicMenuItem> createItem(unsigned int nId,
+														  const WCHAR* pwszName,
+														  const WCHAR* pwszParam) const;
+
+private:
+	MacroDynamicMenuMap(const MacroDynamicMenuMap&);
+	MacroDynamicMenuMap& operator=(const MacroDynamicMenuMap&);
 };
 
 

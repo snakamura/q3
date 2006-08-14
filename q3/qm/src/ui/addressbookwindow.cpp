@@ -96,6 +96,8 @@ void qm::AddressBookFrameWindowImpl::initActions()
 	
 	AddressBookSelectionModel* pSelectionModel = pListWindow_->getSelectionModel();
 	
+	ADD_ACTION0(NoneAction,
+		IDM_NONE);
 	ADD_ACTION2(AddressBookAddressDeleteAction,
 		IDM_ADDRESS_DELETE,
 		pAddressBookModel_.get(),

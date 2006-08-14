@@ -233,7 +233,12 @@ UINT qs::FrameWindow::getIconId()
 	return 0;
 }
 
-DynamicMenuCreator* qs::FrameWindow::getDynamicMenuCreator(DWORD dwData)
+const DynamicMenuItem* qs::FrameWindow::getDynamicMenuItem(unsigned int nId) const
+{
+	return 0;
+}
+
+DynamicMenuCreator* qs::FrameWindow::getDynamicMenuCreator(const DynamicMenuItem* pItem)
 {
 	return 0;
 }
@@ -572,12 +577,17 @@ LRESULT qs::FrameWindow::onInitMenuPopup(HMENU hmenu,
 				break;
 			
 			if (mii.dwItemData != 0) {
-				DynamicMenuCreator* pMenuCreator = getDynamicMenuCreator(
-					static_cast<DWORD>(mii.dwItemData));
+				DynamicMenuCreator* pMenuCreator = 0;
+				
+				const DynamicMenuItem* pItem = getDynamicMenuItem(
+					static_cast<unsigned int>(mii.dwItemData));
+				if (pItem)
+					pMenuCreator = getDynamicMenuCreator(pItem);
+				
 				if (pMenuCreator)
-					nIndex = pMenuCreator->createMenu(hmenu, nIndex);
+					nIndex = pMenuCreator->createMenu(hmenu, nIndex, pItem);
 				else
-					++nIndex;
+					::DeleteMenu(hmenu, nIndex, MF_BYPOSITION);
 			}
 			else {
 				++nIndex;

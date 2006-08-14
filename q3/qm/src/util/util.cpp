@@ -155,7 +155,13 @@ bool qm::Util::setMessagesLabel(Account* pAccount,
 			MessageHolder* pmh = *it;
 			wstring_ptr wstrLabel(pmh->getLabel());
 			if (*wstrLabel.get()) {
-				wstrLabel = concat(wstrLabel.get(), L" ", pwszLabel);
+				const WCHAR* p = wcstok(wstrLabel.get(), L" ");
+				while (p) {
+					if (wcscmp(p, pwszLabel) == 0)
+						return true;
+					p = wcstok(0, L" ");
+				}
+				wstrLabel = concat(pmh->getLabel().get(), L" ", pwszLabel);
 				if (!pAccount->setMessagesLabel(MessageHolderList(1, pmh), wstrLabel.get(), pUndoItemList))
 					return false;
 			}

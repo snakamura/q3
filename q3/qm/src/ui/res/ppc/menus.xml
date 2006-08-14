@@ -159,7 +159,7 @@
 				<menuitem text="Send" action="ToolSend"/>
 				<menuitem text="Sync Current Folder" action="ToolReceiveFolder"/>
 				<popupmenu text="Go Round">
-					<menuitem dynamic="ToolGoRound"/>
+					<menuitem dynamic="ToolGoround"/>
 					<separator/>
 					<menuitem text="Edit..." action="ConfigGoRound"/>
 				</popupmenu>
@@ -294,7 +294,7 @@
 				<menuitem text="Detach..." action="MessageDetach"/>
 				<menuitem text="Delete" action="MessageDeleteAttachment"/>
 				<separator/>
-				<menuitem dynamic="MessageAttachment"/>
+				<menuitem dynamic="MessageOpenAttachment"/>
 				<separator/>
 				<menuitem text="Expand Digest" action="MessageExpandDigest"/>
 				<menuitem text="Combine" action="MessageCombine"/>
@@ -470,7 +470,7 @@
 			<menuitem text="Detach..." action="MessageDetach"/>
 			<menuitem text="Delete" action="MessageDeleteAttachment"/>
 			<separator/>
-			<menuitem dynamic="MessageAttachment"/>
+			<menuitem dynamic="MessageOpenAttachment"/>
 			<separator/>
 			<menuitem text="Expand Digest" action="MessageExpandDigest"/>
 			<menuitem text="Combine" action="MessageCombine"/>

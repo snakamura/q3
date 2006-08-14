@@ -39,6 +39,7 @@ public:
 	qs::ToolbarManager* getToolbarManager() const;
 	qs::KeyMap* getKeyMap() const;
 	qs::ActionParamMap* getActionParamMap() const;
+	qs::DynamicMenuMap* getDynamicMenuMap() const;
 
 private:
 	UIManager(const UIManager&);
@@ -49,6 +50,7 @@ private:
 	std::auto_ptr<qs::ToolbarManager> pToolbarManager_;
 	std::auto_ptr<qs::KeyMap> pKeyMap_;
 	std::auto_ptr<qs::ActionParamMap> pActionParamMap_;
+	std::auto_ptr<qs::DynamicMenuMap> pDynamicMenuMap_;
 };
 
 }

@@ -16,7 +16,9 @@
 namespace qs {
 
 class MenuManager;
-struct DynamicMenuItem;
+class DynamicMenuCreator;
+class DynamicMenuItem;
+class DynamicMenuMap;
 
 struct ActionItem;
 class ActionParamMap;
@@ -42,9 +44,8 @@ public:
 	MenuManager(const WCHAR* pwszPath,
 				const ActionItem* pItem,
 				size_t nItemCount,
-				const DynamicMenuItem* pDynamicItem,
-				size_t nDynamicItemCount,
-				ActionParamMap* pActionParamMap);
+				ActionParamMap* pActionParamMap,
+				DynamicMenuMap* pDynamicMenuMap);
 	
 	~MenuManager();
 
@@ -85,20 +86,6 @@ private:
 
 /****************************************************************************
  *
- * DynamicMenuItem
- *
- */
-
-struct DynamicMenuItem
-{
-	const WCHAR* pwszName_;
-	UINT nId_;
-	DWORD dwMenuItemData_;
-};
-
-
-/****************************************************************************
- *
  * DynamicMenuCreator
  *
  */
@@ -110,11 +97,83 @@ public:
 
 public:
 	virtual UINT createMenu(HMENU hmenu,
-							UINT nIndex) = 0;
-	virtual DWORD getMenuItemData() const = 0;
+							UINT nIndex,
+							const DynamicMenuItem* pItem) = 0;
 };
 
 
+/****************************************************************************
+ *
+ * DynamicMenuItem
+ *
+ */
+
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS DynamicMenuItem
+{
+public:
+	DynamicMenuItem(unsigned int nId,
+					const WCHAR* pwszName,
+					const WCHAR* pwszParam);
+	virtual ~DynamicMenuItem();
+
+public:
+	unsigned int getId() const;
+	const WCHAR* getName() const;
+	const WCHAR* getParam() const;
+
+private:
+	DynamicMenuItem(const DynamicMenuItem&);
+	DynamicMenuItem& operator=(const DynamicMenuItem&);
+
+private:
+	unsigned int nId_;
+	wstring_ptr wstrName_;
+	wstring_ptr wstrParam_;
+};
+
+#pragma warning(pop)
+
+
+/****************************************************************************
+ *
+ * DynamicMenuMap
+ *
+ */
+
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS DynamicMenuMap
+{
+public:
+	DynamicMenuMap();
+	virtual ~DynamicMenuMap();
+
+public:
+	const DynamicMenuItem* getItem(unsigned int nId) const;
+	unsigned int addItem(const WCHAR* pwszName,
+						 const WCHAR* pwszParam);
+
+protected:
+	virtual std::auto_ptr<DynamicMenuItem> createItem(unsigned int nId,
+													  const WCHAR* pwszName,
+													  const WCHAR* pwszParam) const;
+
+private:
+	DynamicMenuMap(const DynamicMenuMap&);
+	DynamicMenuMap& operator=(const DynamicMenuMap&);
+
+private:
+	typedef std::vector<DynamicMenuItem*> ItemList;
+
+private:
+	ItemList listItem_;
+};
+
+#pragma warning(pop)
 
 }
 

@@ -170,7 +170,7 @@
 				<menuitem text="&amp;Detach..." action="MessageDetach"/>
 				<menuitem text="De&amp;lete" action="MessageDeleteAttachment"/>
 				<separator/>
-				<menuitem dynamic="MessageAttachment"/>
+				<menuitem dynamic="MessageOpenAttachment"/>
 				<separator/>
 				<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
 				<menuitem text="&amp;Combine" action="MessageCombine"/>
@@ -184,7 +184,7 @@
 			<menuitem text="&amp;Send" action="ToolSend"/>
 			<menuitem text="Sync Curren&amp;t Folder" action="ToolReceiveFolder"/>
 			<popupmenu text="&amp;Go Round">
-				<menuitem dynamic="ToolGoRound"/>
+				<menuitem dynamic="ToolGoround"/>
 				<separator/>
 				<menuitem text="&amp;Edit..." action="ConfigGoRound"/>
 			</popupmenu>
@@ -316,7 +316,7 @@
 				<menuitem text="&amp;Detach..." action="MessageDetach"/>
 				<menuitem text="De&amp;lete" action="MessageDeleteAttachment"/>
 				<separator/>
-				<menuitem dynamic="MessageAttachment"/>
+				<menuitem dynamic="MessageOpenAttachment"/>
 				<separator/>
 				<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
 			</popupmenu>
@@ -505,7 +505,7 @@
 			<menuitem text="&amp;Detach..." action="MessageDetach"/>
 			<menuitem text="De&amp;lete" action="MessageDeleteAttachment"/>
 			<separator/>
-			<menuitem dynamic="MessageAttachment"/>
+			<menuitem dynamic="MessageOpenAttachment"/>
 			<separator/>
 			<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
 			<menuitem text="&amp;Combine" action="MessageCombine"/>
@@ -548,7 +548,7 @@
 			<menuitem text="&amp;Detach..." action="MessageDetach"/>
 			<menuitem text="De&amp;lete" action="MessageDeleteAttachment"/>
 			<separator/>
-			<menuitem dynamic="MessageAttachment"/>
+			<menuitem dynamic="MessageOpenAttachment"/>
 			<separator/>
 			<menuitem text="&amp;Expand Digest" action="MessageExpandDigest"/>
 		</popupmenu>
@@ -616,7 +616,7 @@
 		<menuitem text="Sync Curren&amp;t Folder" action="ToolReceiveFolder"/>
 	</menu>
 	<menu name="goround">
-		<menuitem dynamic="ToolGoRound"/>
+		<menuitem dynamic="ToolGoround"/>
 		<separator/>
 		<menuitem text="&amp;Edit..." action="ConfigGoRound"/>
 	</menu>
@@ -626,7 +626,7 @@
 		<menuitem text="&amp;Edit..." action="ConfigTexts"/>
 	</menu>
 	<menu name="recents">
-		<menuitem dynamic="MessageRecents"/>
+		<menuitem dynamic="MessageOpenRecent"/>
 		<separator/>
 		<menuitem text="&amp;Clear" action="MessageClearRecents"/>
 		<separator/>

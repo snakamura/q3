@@ -44,9 +44,8 @@ struct qs::MenuManagerImpl
 	bool load(const WCHAR* pwszPath,
 			  const ActionItem* pItem,
 			  size_t nItemCount,
-			  const DynamicMenuItem* pDynamicItem,
-			  size_t nDynamicItemCount,
-			  ActionParamMap* pActionParamMap);
+			  ActionParamMap* pActionParamMap,
+			  DynamicMenuMap* pDynamicMenuMap);
 	
 	static HMENU cloneMenu(HMENU hmenu,
 						   bool bBar);
@@ -58,16 +57,16 @@ struct qs::MenuManagerImpl
 bool qs::MenuManagerImpl::load(const WCHAR* pwszPath,
 							   const ActionItem* pItem,
 							   size_t nItemCount,
-							   const DynamicMenuItem* pDynamicItem,
-							   size_t nDynamicItemCount,
-							   ActionParamMap* pActionParamMap)
+							   ActionParamMap* pActionParamMap,
+							   DynamicMenuMap* pDynamicMenuMap)
 {
 	assert(pwszPath);
 	assert(pActionParamMap);
+	assert(pDynamicMenuMap);
 	
 	XMLReader reader;
-	MenuContentHandler handler(pThis_, pItem, nItemCount,
-		pDynamicItem, nDynamicItemCount, pActionParamMap);
+	MenuContentHandler handler(pThis_, pItem,
+		nItemCount, pActionParamMap, pDynamicMenuMap);
 	reader.setContentHandler(&handler);
 	return reader.parse(pwszPath);
 }
@@ -140,9 +139,8 @@ HMENU qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar)
 qs::MenuManager::MenuManager(const WCHAR* pwszPath,
 							 const ActionItem* pItem,
 							 size_t nItemCount,
-							 const DynamicMenuItem* pDynamicItem,
-							 size_t nDynamicItemCount,
-							 ActionParamMap* pActionParamMap) :
+							 ActionParamMap* pActionParamMap,
+							 DynamicMenuMap* pDynamicMenuMap) :
 	pImpl_(0)
 {
 	assert(pwszPath);
@@ -153,8 +151,7 @@ qs::MenuManager::MenuManager(const WCHAR* pwszPath,
 	pImpl_ = new MenuManagerImpl();
 	pImpl_->pThis_ = this;
 	
-	if (!pImpl_->load(pwszPath, pItem, nItemCount,
-		pDynamicItem, nDynamicItemCount, pActionParamMap)) {
+	if (!pImpl_->load(pwszPath, pItem, nItemCount, pActionParamMap, pDynamicMenuMap)) {
 		log.error(L"Could not load menu.");
 		return;
 	}
@@ -219,6 +216,103 @@ qs::DynamicMenuCreator::~DynamicMenuCreator()
 
 /****************************************************************************
  *
+ * DynamicMenuItem
+ *
+ */
+
+qs::DynamicMenuItem::DynamicMenuItem(unsigned int nId,
+									 const WCHAR* pwszName,
+									 const WCHAR* pwszParam) :
+	nId_(nId)
+{
+	assert(pwszName);
+	
+	wstrName_ = allocWString(pwszName);
+	if (pwszParam)
+		wstrParam_ = allocWString(pwszParam);
+}
+
+qs::DynamicMenuItem::~DynamicMenuItem()
+{
+}
+
+unsigned int qs::DynamicMenuItem::getId() const
+{
+	return nId_;
+}
+
+const WCHAR* qs::DynamicMenuItem::getName() const
+{
+	return wstrName_.get();
+}
+
+const WCHAR* qs::DynamicMenuItem::getParam() const
+{
+	return wstrParam_.get();
+}
+
+
+/****************************************************************************
+ *
+ * DynamicMenuMap
+ *
+ */
+
+qs::DynamicMenuMap::DynamicMenuMap()
+{
+}
+
+qs::DynamicMenuMap::~DynamicMenuMap()
+{
+	std::for_each(listItem_.begin(), listItem_.end(),
+		qs::deleter<DynamicMenuItem>());
+}
+
+const DynamicMenuItem* qs::DynamicMenuMap::getItem(unsigned int nId) const
+{
+	ItemList::const_iterator it = std::find_if(
+		listItem_.begin(), listItem_.end(),
+		std::bind2nd(
+			binary_compose_f_gx_hy(
+				std::equal_to<unsigned int>(),
+				std::mem_fun(&DynamicMenuItem::getId),
+				std::identity<unsigned int>()),
+			nId));
+	return it != listItem_.end() ? *it : 0;
+}
+
+unsigned int qs::DynamicMenuMap::addItem(const WCHAR* pwszName,
+										 const WCHAR* pwszParam)
+{
+	assert(pwszName);
+	
+	ItemList::const_iterator it = listItem_.begin();
+	while (it != listItem_.end()) {
+		if (wcscmp((*it)->getName(), pwszName) == 0 &&
+			string_equal<WCHAR>()((*it)->getParam(), pwszParam))
+			break;
+		++it;
+	}
+	if (it != listItem_.end())
+		return (*it)->getId();
+	
+	unsigned int nId = listItem_.empty() ? 1 : listItem_.back()->getId() + 1;
+	std::auto_ptr<DynamicMenuItem> pItem(createItem(nId, pwszName, pwszParam));
+	listItem_.push_back(pItem.get());
+	pItem.release();
+	return nId;
+}
+
+std::auto_ptr<DynamicMenuItem> qs::DynamicMenuMap::createItem(unsigned int nId,
+															  const WCHAR* pwszName,
+															  const WCHAR* pwszParam) const
+{
+	return std::auto_ptr<DynamicMenuItem>(new DynamicMenuItem(nId, pwszName, pwszParam));
+}
+
+
+/****************************************************************************
+ *
  * MenuContentHandler
  *
  */
@@ -226,15 +320,13 @@ qs::DynamicMenuCreator::~DynamicMenuCreator()
 qs::MenuContentHandler::MenuContentHandler(MenuManager* pMenuManager,
 										   const ActionItem* pItem,
 										   size_t nItemCount,
-										   const DynamicMenuItem* pDynamicItem,
-										   size_t nDynamicItemCount,
-										   ActionParamMap* pActionParamMap) :
+										   ActionParamMap* pActionParamMap,
+										   DynamicMenuMap* pDynamicMenuMap) :
 	pMenuManager_(pMenuManager),
 	pActionItem_(pItem),
 	nActionItemCount_(nItemCount),
-	pDynamicItem_(pDynamicItem),
-	nDynamicItemCount_(nDynamicItemCount),
-	pActionParamMap_(pActionParamMap)
+	pActionParamMap_(pActionParamMap),
+	pDynamicMenuMap_(pDynamicMenuMap)
 {
 	stackState_.push_back(STATE_ROOT);
 }
@@ -338,9 +430,10 @@ bool qs::MenuContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		W2T(pwszText, ptszText);
 		
 		if (pwszDynamic) {
-			const DynamicMenuItem* pItem = getDynamicMenuItem(pwszDynamic);
-			if (pItem) {
-				::AppendMenu(hmenu, MF_STRING, pItem->nId_, _T(""));
+			const ActionItem* pItem = getActionItem(pwszDynamic);
+			if (pItem && pItem->nMaxParamCount_ > 1) {
+				unsigned int nId = pDynamicMenuMap_->addItem(pwszDynamic, pwszParam);
+				::AppendMenu(hmenu, MF_STRING, nId, _T(""));
 				int nItem = ::GetMenuItemCount(hmenu);
 				MENUITEMINFO mii = {
 					sizeof(mii),
@@ -351,7 +444,7 @@ bool qs::MenuContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 					0,
 					0,
 					0,
-					pItem->dwMenuItemData_
+					nId
 				};
 				::SetMenuItemInfo(hmenu, nItem - 1, TRUE, &mii);
 			}
@@ -487,6 +580,8 @@ bool qs::MenuContentHandler::characters(const WCHAR* pwsz,
 
 const ActionItem* qs::MenuContentHandler::getActionItem(const WCHAR* pwszAction) const
 {
+	assert(pwszAction);
+	
 	ActionItem item = {
 		pwszAction,
 		0
@@ -501,25 +596,6 @@ const ActionItem* qs::MenuContentHandler::getActionItem(const WCHAR* pwszAction)
 	if (pItem == pActionItem_ + nActionItemCount_ ||
 		wcscmp(pItem->pwszAction_, pwszAction) != 0 ||
 		(pItem->nFlags_ != 0 && !(pItem->nFlags_ & ActionItem::FLAG_MENU)))
-		return 0;
-	return pItem;
-}
-
-const DynamicMenuItem* qs::MenuContentHandler::getDynamicMenuItem(const WCHAR* pwszName) const
-{
-	DynamicMenuItem item = {
-		pwszName,
-		0
-	};
-	
-	const DynamicMenuItem* pItem = std::lower_bound(
-		pDynamicItem_, pDynamicItem_ + nDynamicItemCount_, item,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			mem_data_ref(&DynamicMenuItem::pwszName_),
-			mem_data_ref(&DynamicMenuItem::pwszName_)));
-	if (pItem == pDynamicItem_ + nDynamicItemCount_ ||
-		wcscmp(pItem->pwszName_, pwszName) != 0)
 		return 0;
 	return pItem;
 }

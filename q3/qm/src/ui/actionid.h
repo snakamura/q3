@@ -239,6 +239,7 @@
 #define IDM_HELP_ABOUT                  54001
 #define IDM_HELP_CHECKUPDATE            54002
 #define IDM_HELP_OPENURL                54100
+#define IDM_NONE                        55000
 
 #define MAX_ADDRESSBOOK_CATEGORY        100
 #define MAX_FOCUS_HEADEREDITITEM        100

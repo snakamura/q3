@@ -42,6 +42,7 @@
 #endif
 
 #include "actionid.h"
+#include "actionitem.h"
 #include "addressbookwindow.h"
 #include "editframewindow.h"
 #include "externaleditor.h"
@@ -209,7 +210,7 @@ public:
 #endif
 
 public:
-	typedef std::vector<DynamicMenuCreator*> MenuCreatorList;
+	typedef std::vector<MenuCreator*> MenuCreatorList;
 
 public:
 	MainWindow* pThis_;
@@ -275,6 +276,7 @@ public:
 	std::auto_ptr<ExternalEditorManager> pExternalEditorManager_;
 	std::auto_ptr<DelayedFolderModelHandler> pDelayedFolderModelHandler_;
 	MenuCreatorList listMenuCreator_;
+	std::auto_ptr<MacroMenuCreator> pMacroMenuCreator_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bCreated_;
 	int nInitialShow_;
@@ -288,6 +290,9 @@ void qm::MainWindowImpl::initActions()
 	pActionMap_.reset(new ActionMap());
 	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
 	pFindReplaceManager_.reset(new FindReplaceManager());
+	
+	ADD_ACTION0(NoneAction,
+		IDM_NONE);
 	
 	View* pViews[] = {
 		pFolderWindow_,
@@ -2045,17 +2050,32 @@ UINT qm::MainWindow::getIconId()
 	return IDI_MAINFRAME;
 }
 
-DynamicMenuCreator* qm::MainWindow::getDynamicMenuCreator(DWORD dwData)
+const DynamicMenuItem* qm::MainWindow::getDynamicMenuItem(unsigned int nId) const
 {
-	MainWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
-		pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<DWORD>(),
-				std::mem_fun(&DynamicMenuCreator::getMenuItemData),
-				std::identity<DWORD>()),
-			dwData));
-	return it != pImpl_->listMenuCreator_.end() ? *it : 0;
+	return pImpl_->pUIManager_->getDynamicMenuMap()->getItem(nId);
+}
+
+DynamicMenuCreator* qm::MainWindow::getDynamicMenuCreator(const DynamicMenuItem* pItem)
+{
+	if (pItem->getParam()) {
+		if (!pImpl_->pMacroMenuCreator_.get())
+			pImpl_->pMacroMenuCreator_.reset(new MacroMenuCreator(
+				pImpl_->pDocument_, pImpl_->pMessageSelectionModel_.get(),
+				pImpl_->pSecurityModel_.get(), pImpl_->pProfile_, actionItems,
+				countof(actionItems), pImpl_->pUIManager_->getActionParamMap()));
+		return pImpl_->pMacroMenuCreator_.get();
+	}
+	else {
+		MainWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
+			pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					string_equal<WCHAR>(),
+					std::mem_fun(&MenuCreator::getName),
+					std::identity<const WCHAR*>()),
+				pItem->getName()));
+		return it != pImpl_->listMenuCreator_.end() ? *it : 0;
+	}
 }
 
 void qm::MainWindow::getWindowClass(WNDCLASS* pwc)

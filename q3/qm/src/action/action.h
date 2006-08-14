@@ -93,6 +93,7 @@ class MessageOpenRecentAction;
 class MessageOpenURLAction;
 class MessagePropertyAction;
 class MessageSearchAction;
+class NoneAction;
 #ifdef QMTABWINDOW
 class TabCloseAction;
 class TabCreateAction;
@@ -2370,6 +2371,28 @@ private:
 	Document* pDocument_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
+ * NoneAction
+ *
+ */
+
+class NoneAction : public qs::AbstractAction
+{
+public:
+	NoneAction();
+	virtual ~NoneAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	NoneAction(const NoneAction&);
+	NoneAction& operator=(const NoneAction&);
 };
 
 

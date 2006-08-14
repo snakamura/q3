@@ -171,7 +171,7 @@
 				<menuitem text="保存(&amp;D)..." action="MessageDetach"/>
 				<menuitem text="削除(&amp;L)" action="MessageDeleteAttachment"/>
 				<separator/>
-				<menuitem dynamic="MessageAttachment"/>
+				<menuitem dynamic="MessageOpenAttachment"/>
 				<separator/>
 				<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
 				<menuitem text="結合(&amp;C)" action="MessageCombine"/>
@@ -185,7 +185,7 @@
 			<menuitem text="送信(&amp;S)" action="ToolSend"/>
 			<menuitem text="フォルダを同期(&amp;T)" action="ToolReceiveFolder"/>
 			<popupmenu text="巡回(&amp;G)">
-				<menuitem dynamic="ToolGoRound"/>
+				<menuitem dynamic="ToolGoround"/>
 				<separator/>
 				<menuitem text="編集(&amp;E)..." action="ConfigGoRound"/>
 			</popupmenu>
@@ -315,7 +315,7 @@
 				<menuitem text="保存(&amp;D)..." action="MessageDetach"/>
 				<menuitem text="削除(&amp;L)" action="MessageDeleteAttachment"/>
 				<separator/>
-				<menuitem dynamic="MessageAttachment"/>
+				<menuitem dynamic="MessageOpenAttachment"/>
 				<separator/>
 				<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
 			</popupmenu>
@@ -504,7 +504,7 @@
 			<menuitem text="保存(&amp;D)..." action="MessageDetach"/>
 			<menuitem text="削除(&amp;L)" action="MessageDeleteAttachment"/>
 			<separator/>
-			<menuitem dynamic="MessageAttachment"/>
+			<menuitem dynamic="MessageOpenAttachment"/>
 			<separator/>
 			<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
 			<menuitem text="結合(&amp;C)" action="MessageCombine"/>
@@ -547,7 +547,7 @@
 			<menuitem text="保存(&amp;D)..." action="MessageDetach"/>
 			<menuitem text="削除(&amp;L)" action="MessageDeleteAttachment"/>
 			<separator/>
-			<menuitem dynamic="MessageAttachment"/>
+			<menuitem dynamic="MessageOpenAttachment"/>
 			<separator/>
 			<menuitem text="ダイジェストを展開(&amp;E)" action="MessageExpandDigest"/>
 		</popupmenu>
@@ -615,7 +615,7 @@
 		<menuitem text="フォルダを同期(&amp;T)" action="ToolReceiveFolder"/>
 	</menu>
 	<menu name="goround">
-		<menuitem dynamic="ToolGoRound"/>
+		<menuitem dynamic="ToolGoround"/>
 		<separator/>
 		<menuitem text="編集(&amp;E)..." action="ConfigGoRound"/>
 	</menu>
@@ -625,7 +625,7 @@
 		<menuitem text="編集(&amp;E)..." action="ConfigTexts"/>
 	</menu>
 	<menu name="recents">
-		<menuitem dynamic="MessageRecents"/>
+		<menuitem dynamic="MessageOpenRecent"/>
 		<separator/>
 		<menuitem text="クリア(&amp;C)" action="MessageClearRecents"/>
 		<separator/>

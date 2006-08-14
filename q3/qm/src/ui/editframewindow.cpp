@@ -25,6 +25,7 @@
 #endif
 
 #include "actionid.h"
+#include "actionitem.h"
 #include "dialogs.h"
 #include "editframewindow.h"
 #include "editwindow.h"
@@ -62,7 +63,7 @@ public:
 	};
 
 public:
-	typedef std::vector<DynamicMenuCreator*> MenuCreatorList;
+	typedef std::vector<MenuCreator*> MenuCreatorList;
 
 public:
 	void initActions();
@@ -95,6 +96,7 @@ public:
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
 	MenuCreatorList listMenuCreator_;
+	std::auto_ptr<MacroMenuCreator> pMacroMenuCreator_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bIme_;
 	bool bCreated_;
@@ -108,6 +110,8 @@ void qm::EditFrameWindowImpl::initActions()
 	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
 	pFindReplaceManager_.reset(new FindReplaceManager());
 	
+	ADD_ACTION0(NoneAction,
+		IDM_NONE);
 	ADD_ACTION4(ToolOptionsAction,
 		IDM_CONFIG_TEXTS,
 		pOptionDialogManager_,
@@ -638,17 +642,32 @@ UINT qm::EditFrameWindow::getIconId()
 	return IDI_EDIT;
 }
 
-DynamicMenuCreator* qm::EditFrameWindow::getDynamicMenuCreator(DWORD dwData)
+const DynamicMenuItem* qm::EditFrameWindow::getDynamicMenuItem(unsigned int nId) const
 {
-	EditFrameWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
-		pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<DWORD>(),
-				std::mem_fun(&DynamicMenuCreator::getMenuItemData),
-				std::identity<DWORD>()),
-			dwData));
-	return it != pImpl_->listMenuCreator_.end() ? *it : 0;
+	return pImpl_->pUIManager_->getDynamicMenuMap()->getItem(nId);
+}
+
+DynamicMenuCreator* qm::EditFrameWindow::getDynamicMenuCreator(const DynamicMenuItem* pItem)
+{
+	if (pItem->getParam()) {
+		if (!pImpl_->pMacroMenuCreator_.get())
+			pImpl_->pMacroMenuCreator_.reset(new MacroMenuCreator(
+				pImpl_->pDocument_, pImpl_, pImpl_->pSecurityModel_,
+				pImpl_->pProfile_, actionItems, countof(actionItems),
+				pImpl_->pUIManager_->getActionParamMap()));
+		return pImpl_->pMacroMenuCreator_.get();
+	}
+	else {
+		EditFrameWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
+			pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					string_equal<WCHAR>(),
+					std::mem_fun(&MenuCreator::getName),
+					std::identity<const WCHAR*>()),
+				pItem->getName()));
+		return it != pImpl_->listMenuCreator_.end() ? *it : 0;
+	}
 }
 
 void qm::EditFrameWindow::getWindowClass(WNDCLASS* pwc)

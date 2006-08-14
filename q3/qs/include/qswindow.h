@@ -78,6 +78,7 @@ class WaitCursor;
 class Action;
 class ActionParam;
 class DynamicMenuCreator;
+class DynamicMenuItem;
 class InitThread;
 class Profile;
 
@@ -1436,7 +1437,8 @@ protected:
 	virtual HMENU getMenuHandle(void* pCreateParam);
 	virtual UINT getMenuId();
 	virtual UINT getIconId();
-	virtual DynamicMenuCreator* getDynamicMenuCreator(DWORD dwData);
+	virtual const DynamicMenuItem* getDynamicMenuItem(unsigned int nId) const;
+	virtual DynamicMenuCreator* getDynamicMenuCreator(const DynamicMenuItem* pItem);
 
 public:
 	virtual bool isFrame() const;
