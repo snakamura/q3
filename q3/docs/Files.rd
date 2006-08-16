@@ -11,7 +11,7 @@
 *((<header.xml|URL:HeaderXml.html>))
 *((<headeredit.xml|URL:HeaderEditXml.html>))
 *keymap.xml
-*menus.xml
+*((<menus.xml|URL:MenusXml.html>))
 *passwords.xml
 *((<qmail.xml|URL:QmailXml.html>))
 *resources.xml
