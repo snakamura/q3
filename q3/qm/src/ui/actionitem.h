@@ -171,6 +171,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ToolPGPEncrypt",				IDM_TOOL_PGPENCRYPT,				1,							0 },
 	{ L"ToolPGPMime",					IDM_TOOL_PGPMIME,					1,							0 },
 	{ L"ToolPGPSign",					IDM_TOOL_PGPSIGN,					1,							0 },
+	{ L"ToolPopupMenu",					IDM_TOOL_POPUPMENU,					MAX_TOOL_POPUPMENU,			0 },
 	{ L"ToolReceive",					IDM_TOOL_RECEIVE,					1,							0 },
 	{ L"ToolReceiveFolder",				IDM_TOOL_RECEIVEFOLDER,				1,							0 },
 	{ L"ToolReform",					IDM_TOOL_REFORM,					1,							0 },

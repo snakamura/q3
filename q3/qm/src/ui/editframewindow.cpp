@@ -341,6 +341,10 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_->getEditMessageHolder(),
 		MESSAGESECURITY_PGPSIGN,
 		Security::isPGPEnabled());
+	ADD_ACTION2(ToolPopupMenuAction,
+		IDM_TOOL_POPUPMENU,
+		pUIManager_->getMenuManager(),
+		pThis_->getHandle());
 	ADD_ACTION1(EditToolReformAction,
 		IDM_TOOL_REFORM,
 		pEditWindow_->getTextWindow());

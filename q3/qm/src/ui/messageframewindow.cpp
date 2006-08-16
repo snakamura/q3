@@ -380,6 +380,10 @@ void qm::MessageFrameWindowImpl::initActions()
 		pActionInvoker_.get(),
 		pProfile_,
 		pThis_->getHandle());
+	ADD_ACTION2(ToolPopupMenuAction,
+		IDM_TOOL_POPUPMENU,
+		pUIManager_->getMenuManager(),
+		pThis_->getHandle());
 	ADD_ACTION4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,
 		pDocument_->getScriptManager(),

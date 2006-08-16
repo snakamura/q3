@@ -144,8 +144,9 @@
 #define IDM_TOOL_GOROUND                45200
 #define IDM_TOOL_INSERTTEXT             45300
 #define IDM_TOOL_INVOKEACTION           45400
-#define IDM_TOOL_SCRIPT                 45500
-#define IDM_TOOL_SUBACCOUNT             45600
+#define IDM_TOOL_POPUPMENU              45500
+#define IDM_TOOL_SCRIPT                 45600
+#define IDM_TOOL_SUBACCOUNT             45700
 #define IDM_VIEW_DROPDOWN               46001
 #define IDM_VIEW_FILTERCUSTOM           46002
 #define IDM_VIEW_FOCUSNEXT              46003
@@ -257,6 +258,7 @@
 #define MAX_TOOL_GOROUND                100
 #define MAX_TOOL_INSERTTEXT             100
 #define MAX_TOOL_INVOKEACTION           100
+#define MAX_TOOL_POPUPMENU              100
 #define MAX_TOOL_SCRIPT                 100
 #define MAX_TOOL_SUBACCOUNT             100
 #define MAX_VIEW_ENCODING               100

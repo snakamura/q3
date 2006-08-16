@@ -5797,6 +5797,49 @@ bool qm::ToolOptionsAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ToolPopupMenuAction
+ *
+ */
+
+qm::ToolPopupMenuAction::ToolPopupMenuAction(MenuManager* pMenuManager,
+											 HWND hwnd) :
+	pMenuManager_(pMenuManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::ToolPopupMenuAction::~ToolPopupMenuAction()
+{
+}
+
+void qm::ToolPopupMenuAction::invoke(const ActionEvent& event)
+{
+	const WCHAR* pwszName = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszName || !*pwszName)
+		return;
+	
+	HMENU hmenu = pMenuManager_->getMenu(pwszName, false, false);
+	if (!hmenu)
+		return;
+	
+	UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+#ifndef _WIN32_WCE
+	nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+#endif
+	POINT pt;
+#ifdef _WIN32_WCE
+	DWORD dwPos = ::GetMessagePos();
+	pt.x = static_cast<int>(dwPos & 0x0000ffff);
+	pt.y = static_cast<int>(dwPos & 0xffff0000) >> 16;
+#else
+	::GetCursorPos(&pt);
+#endif
+	::TrackPopupMenu(hmenu, nFlags, pt.x, pt.y, 0, hwnd_, 0);
+}
+
+
+/****************************************************************************
+ *
  * ToolScriptAction
  *
  */

@@ -16,6 +16,7 @@
 #include <qmjunk.h>
 
 #include <qsaction.h>
+#include <qsmenu.h>
 #include <qsstream.h>
 
 #include "attachmenthelper.h"
@@ -111,6 +112,7 @@ class ToolDialupAction;
 class ToolGoRoundAction;
 class ToolInvokeActionAction;
 class ToolOptionsAction;
+class ToolPopupMenuAction;
 class ToolScriptAction;
 class ToolSubAccountAction;
 class ToolSyncAction;
@@ -2832,6 +2834,32 @@ private:
 	AccountSelectionModel* pAccountSelectionModel_;
 	HWND hwnd_;
 	OptionDialog::Panel panel_;
+};
+
+
+/****************************************************************************
+ *
+ * ToolPopupMenuAction
+ *
+ */
+
+class ToolPopupMenuAction : public qs::AbstractAction
+{
+public:
+	ToolPopupMenuAction(qs::MenuManager* pMenuManager,
+						HWND hwnd);
+	virtual ~ToolPopupMenuAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ToolPopupMenuAction(const ToolPopupMenuAction&);
+	ToolPopupMenuAction& operator=(const ToolPopupMenuAction&);
+
+private:
+	qs::MenuManager* pMenuManager_;
+	HWND hwnd_;
 };
 
 

@@ -999,6 +999,10 @@ void qm::MainWindowImpl::initActions()
 		this,
 		pThis_->getHandle(),
 		OptionDialog::PANEL_NONE);
+	ADD_ACTION2(ToolPopupMenuAction,
+		IDM_TOOL_POPUPMENU,
+		pUIManager_->getMenuManager(),
+		pThis_->getHandle());
 	ADD_ACTION4(ToolScriptAction,
 		IDM_TOOL_SCRIPT,
 		pDocument_->getScriptManager(),
