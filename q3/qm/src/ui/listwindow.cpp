@@ -21,6 +21,7 @@
 #include <qsdevicecontext.h>
 #include <qsdragdrop.h>
 #include <qsmenu.h>
+#include <qsosutil.h>
 #include <qsprofile.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -1519,7 +1520,12 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	
 #ifdef QMTOOLTIP
-	pImpl_->hwndToolTip_ = ::CreateWindowEx(0/*WS_EX_TRANSPARENT*/, TOOLTIPS_CLASS,
+	DWORD dwToolTipExStyle = 0;
+#if _WIN32_WINNT >= 0x500
+	if (Version::isWindowsXPOrLater())
+		dwToolTipExStyle = WS_EX_TRANSPARENT;
+#endif
+	pImpl_->hwndToolTip_ = ::CreateWindowEx(dwToolTipExStyle, TOOLTIPS_CLASS,
 		0, TTS_NOPREFIX, 0, 0, 0, 0, 0, 0, getInstanceHandle(), 0);
 	if (!pImpl_->hwndToolTip_)
 		return -1;
