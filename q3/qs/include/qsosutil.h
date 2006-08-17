@@ -32,6 +32,7 @@ class Library;
 class Registry;
 class Clipboard;
 class Process;
+class Version;
 
 class InputStream;
 class OutputStream;
@@ -641,6 +642,21 @@ public:
 					InputStream* pStdInput,
 					OutputStream* pStdOutput,
 					OutputStream* pStdError);
+#endif
+};
+
+
+/****************************************************************************
+ *
+ * Version
+ *
+ */
+
+class QSEXPORTCLASS Version
+{
+public:
+#if _WIN32_WINNT >= 0x500
+	static bool isWindowsXPOrLater();
 #endif
 };
 
