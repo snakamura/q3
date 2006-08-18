@@ -26,7 +26,8 @@ qm::ActiveSyncInvoker::ActiveSyncInvoker(Document* pDocument,
 	pSyncQueue_(pSyncQueue)
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
-	std::for_each(l.begin(), l.end(), boost::bind(&Account::setHook, _1, this));
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&ActiveSyncInvoker::setHook, _1, this));
 	pDocument_->addAccountManagerHandler(this);
 }
 
@@ -34,7 +35,7 @@ qm::ActiveSyncInvoker::~ActiveSyncInvoker()
 {
 	const Document::AccountList& l = pDocument_->getAccounts();
 	std::for_each(l.begin(), l.end(),
-		boost::bind(&Account::setHook, _1, static_cast<AccountHook*>(0)));
+		boost::bind(&ActiveSyncInvoker::setHook, _1, static_cast<AccountHook*>(0)));
 	pDocument_->removeAccountManagerHandler(this);
 }
 
