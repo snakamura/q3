@@ -144,6 +144,20 @@ bool qs::RegexPattern::match(const WCHAR* pwsz,
 	return matcher.match(pwsz, nLen, pList);
 }
 
+bool qs::RegexPattern::search(const WCHAR* pwsz) const
+{
+	return search(pwsz, -1);
+}
+	
+bool qs::RegexPattern::search(const WCHAR* pwsz,
+							  size_t nLen) const
+{
+	const WCHAR* pStart = 0;
+	const WCHAR* pEnd = 0;
+	search(pwsz, nLen, pwsz, false, &pStart, &pEnd, 0);
+	return pStart != 0;
+}
+
 void qs::RegexPattern::search(const WCHAR* pwsz,
 							  size_t nLen,
 							  const WCHAR* p,
@@ -248,6 +262,21 @@ std::pair<const WCHAR*, const WCHAR*> qs::Regex::search(const WCHAR* pwszRegex,
 														size_t nLen)
 {
 	return search(pwszRegex, pwsz, nLen, pwsz, false, 0);
+}
+
+std::pair<const WCHAR*, const WCHAR*> qs::Regex::search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz,
+														RegexRangeList* pList)
+{
+	return search(pwszRegex, pwsz, -1, pwsz, false, pList);
+}
+
+std::pair<const WCHAR*, const WCHAR*> qs::Regex::search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz,
+														size_t nLen,
+														RegexRangeList* pList)
+{
+	return search(pwszRegex, pwsz, nLen, pwsz, false, pList);
 }
 
 std::pair<const WCHAR*, const WCHAR*> qs::Regex::search(const WCHAR* pwszRegex,

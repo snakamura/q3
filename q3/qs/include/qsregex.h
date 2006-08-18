@@ -123,6 +123,26 @@ public:
 	 * Search the pattern in the specified string.
 	 *
 	 * @param pwsz [in] String.
+	 * @return true if found, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool search(const WCHAR* pwsz) const;
+	
+	/**
+	 * Search the pattern in the specified string.
+	 *
+	 * @param pwsz [in] String.
+	 * @param nLen [in] String length.
+	 * @return true if found, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	bool search(const WCHAR* pwsz,
+				size_t nLen) const;
+	
+	/**
+	 * Search the pattern in the specified string.
+	 *
+	 * @param pwsz [in] String.
 	 * @param nLen [in] String length;
 	 * @param p [in] Pointer to string where search starts.
 	 * @param bReverse [in] true if search in reverse order.
@@ -223,6 +243,13 @@ struct QSEXPORTCLASS Regex
 	static std::pair<const WCHAR*, const WCHAR*> search(const WCHAR* pwszRegex,
 														const WCHAR* pwsz,
 														size_t nLen);
+	static std::pair<const WCHAR*, const WCHAR*> search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz,
+														RegexRangeList* pList);
+	static std::pair<const WCHAR*, const WCHAR*> search(const WCHAR* pwszRegex,
+														const WCHAR* pwsz,
+														size_t nLen,
+														RegexRangeList* pList);
 	static std::pair<const WCHAR*, const WCHAR*> search(const WCHAR* pwszRegex,
 														const WCHAR* pwsz,
 														size_t nLen,
