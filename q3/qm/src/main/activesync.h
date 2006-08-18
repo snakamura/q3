@@ -40,6 +40,8 @@ public:
 public:
 	virtual void messageAppended(NormalFolder* pFolder,
 								 unsigned int nAppendFlags);
+	virtual void messageRemoved(NormalFolder* pFolder,
+								unsigned int nRemoveFlags);
 	virtual void messageCopied(NormalFolder* pFolderFrom,
 							   NormalFolder* pFolderTo,
 							   unsigned int nCopyFlags);
@@ -49,6 +51,16 @@ public:
 
 private:
 	void sync(NormalFolder* pFolder);
+	bool isSyncSource(NormalFolder* pFolder,
+					  unsigned int nOpFlags) const;
+	bool isSyncTarget(NormalFolder* pFolder,
+					  unsigned int nOpFlags) const;
+	bool isSync(NormalFolder* pFolder,
+				unsigned int nOpFlags) const;
+
+private:
+	static void setHook(Account* pAccount,
+						AccountHook* pHook);
 
 private:
 	ActiveSyncInvoker(const ActiveSyncInvoker&);

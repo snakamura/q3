@@ -657,6 +657,8 @@ public:
 public:
 	virtual void messageAppended(NormalFolder* pFolder,
 								 unsigned int nAppendFlags) = 0;
+	virtual void messageRemoved(NormalFolder* pFolder,
+								unsigned int nRemoveFlags) = 0;
 	virtual void messageCopied(NormalFolder* pFolderFrom,
 							   NormalFolder* pFolderTo,
 							   unsigned int nCopyFlags) = 0;

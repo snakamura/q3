@@ -559,6 +559,9 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 		}
 		if (pUndoItemList)
 			pUndoItemList->add(std::auto_ptr<UndoItem>());
+		
+		if (pHook_)
+			pHook_->messageRemoved(pFolder, nRemoveFlags);
 	}
 	
 	return true;
