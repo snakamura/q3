@@ -150,9 +150,12 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 #else
 		const WCHAR* pwszArchive = 0;
 #endif
+		wstring_ptr wstrExcludePattern;
+		if (pwszArchive)
+			wstrExcludePattern = pProfile_->getString(L"Global", L"ExcludeArchive");
 		if (!MessageCreator::attachFilesOrURIs(pMessage.get(),
 			listAttachmentPath_, pDocument_, nSecurityMode_,
-			pwszArchive, wstrTempDir_.get()))
+			pwszArchive, wstrExcludePattern.get(), wstrTempDir_.get()))
 			return std::auto_ptr<Message>();
 	}
 	

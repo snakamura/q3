@@ -61,6 +61,7 @@ public:
 				 unsigned int nMessageSecurity) const;
 	bool compose(const WCHAR* pwszPath,
 				 unsigned int nMessageSecurity) const;
+	bool isAttachmentArchiving(const WCHAR* pwszFileOrURI) const;
 
 private:
 	Account* getAccount(const Message& header) const;

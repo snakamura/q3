@@ -1674,7 +1674,7 @@ bool qm::FileImportAction::import(NormalFolder* pFolder,
 
 bool qm::FileImportAction::importShowDialog(NormalFolder* pFolder,
 											const PathList& listPath,
-											qs::Profile* pProfile,
+											Profile* pProfile,
 											HWND hwnd,
 											wstring_ptr* pwstrErrorPath,
 											unsigned int* pnErrorLine)
@@ -3353,7 +3353,7 @@ qm::HelpAboutAction::~HelpAboutAction()
 {
 }
 
-void qm::HelpAboutAction::invoke(const qs::ActionEvent& event)
+void qm::HelpAboutAction::invoke(const ActionEvent& event)
 {
 	AboutDialog dialog;
 	dialog.doModal(hwnd_);
@@ -3377,7 +3377,7 @@ qm::HelpCheckUpdateAction::~HelpCheckUpdateAction()
 {
 }
 
-void qm::HelpCheckUpdateAction::invoke(const qs::ActionEvent& event)
+void qm::HelpCheckUpdateAction::invoke(const ActionEvent& event)
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	switch (pUpdateChecker_->checkUpdate()) {
@@ -3413,7 +3413,7 @@ qm::HelpOpenURLAction::~HelpOpenURLAction()
 {
 }
 
-void qm::HelpOpenURLAction::invoke(const qs::ActionEvent& event)
+void qm::HelpOpenURLAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszURL = ActionParamUtil::getString(event.getParam(), 0);
 	if (!pwszURL)
@@ -4449,7 +4449,7 @@ qm::MessageMoveAction::MessageMoveAction(AccountManager* pAccountManager,
 										 bool bDontSelectNextIfDeletedFlag,
 										 UndoManager* pUndoManager,
 										 const FolderImage* pFolderImage,
-										 qs::Profile* pProfile,
+										 Profile* pProfile,
 										 HWND hwnd) :
 	pAccountManager_(pAccountManager),
 	pMessageSelectionModel_(pMessageSelectionModel),
@@ -6114,7 +6114,7 @@ void qm::ViewEncodingAction::invoke(const ActionEvent& event)
 		pEncodingModel_->setEncoding(0);
 }
 
-bool qm::ViewEncodingAction::isEnabled(const qs::ActionEvent& event)
+bool qm::ViewEncodingAction::isEnabled(const ActionEvent& event)
 {
 	return ActionParamUtil::getString(event.getParam(), 0) != 0;
 }
@@ -6754,7 +6754,7 @@ bool qm::ViewNavigateMessageAction::isEnabled(const ActionEvent& event)
 	return true;
 }
 
-void qm::ViewNavigateMessageAction::init(qs::Profile* pProfile)
+void qm::ViewNavigateMessageAction::init(Profile* pProfile)
 {
 	if (nType_ == TYPE_NEXTPAGE &&
 		pProfile->getInt(L"Global", L"NextUnseenWhenScrollEnd"))
@@ -7587,7 +7587,7 @@ void qm::ActionUtil::error(HWND hwnd,
  *
  */
 
-const WCHAR* qm::ActionParamUtil::getString(const qs::ActionParam* pParam,
+const WCHAR* qm::ActionParamUtil::getString(const ActionParam* pParam,
 											size_t n)
 {
 	if (!pParam || pParam->getCount() <= n)
@@ -7595,7 +7595,7 @@ const WCHAR* qm::ActionParamUtil::getString(const qs::ActionParam* pParam,
 	return pParam->getValue(n);
 }
 
-unsigned int qm::ActionParamUtil::getNumber(const qs::ActionParam* pParam,
+unsigned int qm::ActionParamUtil::getNumber(const ActionParam* pParam,
 											size_t n)
 {
 	const WCHAR* pwszParam = getString(pParam, n);
@@ -7610,7 +7610,7 @@ unsigned int qm::ActionParamUtil::getNumber(const qs::ActionParam* pParam,
 	return static_cast<unsigned int>(nParam);
 }
 
-unsigned int qm::ActionParamUtil::getIndex(const qs::ActionParam* pParam,
+unsigned int qm::ActionParamUtil::getIndex(const ActionParam* pParam,
 										   size_t n)
 {
 	const WCHAR* pwsz = getString(pParam, n);

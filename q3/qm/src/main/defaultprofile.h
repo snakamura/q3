@@ -185,6 +185,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Global",	L"Editor",							L"notepad.exe"										},
 	{ L"Global",	L"EmptyTrashOnExit",				L"0"												},
 	{ L"Global",	L"Encodings",						L"iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8"	},
+	{ L"Global",	L"ExcludeArchive",					L"\\.(?:zip|lzh|tgz|gz)$"							},
 	{ L"Global",	L"ExternalEditor",					L""													},
 	{ L"Global",	L"ExternalEditorAutoCreate",		L"1"												},
 #ifdef _WIN32_WCE_PSPC

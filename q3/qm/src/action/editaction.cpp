@@ -790,7 +790,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 				std::logical_and<bool>(),
 				mem_data_ref(&EditMessage::Attachment::bNew_),
 				unary_compose_f_gx(
-					std::not1(std::ptr_fun(MessageCreator::isAttachmentURI)),
+					std::bind1st(std::mem_fun(&MessageComposer::isAttachmentArchiving), &composer_),
 					mem_data_ref(&EditMessage::Attachment::wstrName_))));
 		if (it != l.end()) {
 			const WCHAR* pwszArchive = pEditMessage->getArchiveName();

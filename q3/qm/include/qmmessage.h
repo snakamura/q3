@@ -145,6 +145,11 @@ public:
 	MessageCreator(unsigned int nFlags,
 				   unsigned int nSecurityMode,
 				   const WCHAR* pwszTransferEncodingFor8Bit);
+	MessageCreator(unsigned int nFlags,
+				   unsigned int nSecurityMode,
+				   const WCHAR* pwszTransferEncodingFor8Bit,
+				   const WCHAR* pwszArchiveAttachmentExcludePattern,
+				   const WCHAR* pwszTempDir);
 	~MessageCreator();
 
 public:
@@ -185,6 +190,7 @@ public:
 								  AccountManager* pAccountManager,
 								  unsigned int nSecurityMode,
 								  const WCHAR* pwszArchiveName,
+								  const WCHAR* pwszExcludePattern,
 								  const WCHAR* pwszTempDir);
 	static bool attachFileOrURI(qs::Part* pPart,
 								const WCHAR* pwszFileOrURI,
@@ -213,6 +219,8 @@ private:
 	unsigned int nFlags_;
 	unsigned int nSecurityMode_;
 	qs::wstring_ptr wstrTransferEncodingFor8Bit_;
+	qs::wstring_ptr wstrArchiveAttachmentExcludePattern_;
+	qs::wstring_ptr wstrTempDir_;
 };
 
 #pragma warning(pop)

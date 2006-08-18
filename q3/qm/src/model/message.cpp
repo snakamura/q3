@@ -18,6 +18,7 @@
 #include <qsencoder.h>
 #include <qsfile.h>
 #include <qsosutil.h>
+#include <qsregex.h>
 #include <qsstl.h>
 #include <qsstream.h>
 #include <qsstring.h>
@@ -194,6 +195,7 @@ qm::MessageCreator::MessageCreator(unsigned int nFlags,
 	nFlags_(nFlags),
 	nSecurityMode_(nSecurityMode)
 {
+	assert(!(nFlags & FLAG_ENCODETEXT) && !(nFlags & FLAG_EXTRACTATTACHMENT));
 }
 
 qm::MessageCreator::MessageCreator(unsigned int nFlags,
@@ -202,8 +204,27 @@ qm::MessageCreator::MessageCreator(unsigned int nFlags,
 	nFlags_(nFlags),
 	nSecurityMode_(nSecurityMode)
 {
+	assert(!(nFlags & FLAG_EXTRACTATTACHMENT));
+	
 	if (pwszTransferEncodingFor8Bit && *pwszTransferEncodingFor8Bit)
 		wstrTransferEncodingFor8Bit_ = allocWString(pwszTransferEncodingFor8Bit);
+}
+
+qm::MessageCreator::MessageCreator(unsigned int nFlags,
+								   unsigned int nSecurityMode,
+								   const WCHAR* pwszTransferEncodingFor8Bit,
+								   const WCHAR* pwszArchiveAttachmentExcludePattern,
+								   const WCHAR* pwszTempDir) :
+	nFlags_(nFlags),
+	nSecurityMode_(nSecurityMode)
+{
+	assert(pwszTempDir);
+	
+	if (pwszTransferEncodingFor8Bit && *pwszTransferEncodingFor8Bit)
+		wstrTransferEncodingFor8Bit_ = allocWString(pwszTransferEncodingFor8Bit);
+	if (pwszArchiveAttachmentExcludePattern)
+		wstrArchiveAttachmentExcludePattern_ = allocWString(pwszArchiveAttachmentExcludePattern);
+	wstrTempDir_ = allocWString(pwszTempDir);
 }
 
 qm::MessageCreator::~MessageCreator()
@@ -500,10 +521,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 			if (pPart->getField(L"X-QMAIL-ArchiveAttachment", &archive) == Part::FIELD_EXIST)
 				pwszArchive = archive.getValue();
 #endif
-			// TODO
-			// Get the temporary folder from application is ugly.
 			if (!attachFilesOrURIs(pPart.get(), l, pAccountManager, nSecurityMode_,
-				pwszArchive, Application::getApplication().getTemporaryFolder()))
+				pwszArchive, wstrArchiveAttachmentExcludePattern_.get(), wstrTempDir_.get()))
 				return std::auto_ptr<Part>();
 #ifdef QMZIP
 			pPart->removeField(L"X-QMAIL-ArchiveAttachment");
@@ -884,6 +903,7 @@ bool qm::MessageCreator::attachFilesOrURIs(qs::Part* pPart,
 										   AccountManager* pAccountManager,
 										   unsigned int nSecurityMode,
 										   const WCHAR* pwszArchiveName,
+										   const WCHAR* pwszExcludePattern,
 										   const WCHAR* pwszTempDir)
 {
 #ifdef QMZIP
@@ -897,10 +917,18 @@ bool qm::MessageCreator::attachFilesOrURIs(qs::Part* pPart,
 	List listArchive;
 	
 	if (bArchive) {
-		std::remove_copy_if(l.begin(), l.end(), std::back_inserter(listAttach),
-			std::not1(std::ptr_fun(&MessageCreator::isAttachmentURI)));
-		std::remove_copy_if(l.begin(), l.end(),
-			std::back_inserter(listArchive), &MessageCreator::isAttachmentURI);
+		std::auto_ptr<RegexPattern> pExcludePattern;
+		if (pwszExcludePattern && *pwszExcludePattern)
+			pExcludePattern = RegexCompiler().compile(
+				pwszExcludePattern, RegexCompiler::MODE_CASEINSENSITIVE);
+		for (AttachmentList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			const WCHAR* pwszFileOrURI = *it;
+			if (isAttachmentURI(pwszFileOrURI) ||
+				(pExcludePattern.get() && pExcludePattern->search(pwszFileOrURI)))
+				listAttach.push_back(pwszFileOrURI);
+			else
+				listArchive.push_back(pwszFileOrURI);
+		}
 	}
 	else {
 		std::copy(l.begin(), l.end(), std::back_inserter(listAttach));

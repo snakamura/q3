@@ -21,6 +21,7 @@
 #include <qscrypto.h>
 #include <qsinit.h>
 #include <qslog.h>
+#include <qsregex.h>
 
 #include "messagecomposer.h"
 #include "../model/addressbook.h"
@@ -187,15 +188,10 @@ bool qm::MessageComposer::compose(const WCHAR* pwszMessage,
 	if (nLen == -1)
 		nLen = wcslen(pwszMessage);
 	
-	const unsigned int nFlags = MessageCreator::FLAG_ADDCONTENTTYPE |
-		MessageCreator::FLAG_EXPANDALIAS |
-		MessageCreator::FLAG_EXTRACTATTACHMENT |
-		MessageCreator::FLAG_ENCODETEXT;
-	
 	BMFindString<WSTRING> bmfs(L"\n\n");
 	const WCHAR* pBody = bmfs.find(pwszMessage);
 	size_t nHeaderLen = pBody ? pBody - pwszMessage + 2 : nLen;
-	MessageCreator headerCreator(nFlags, pSecurityModel_->getSecurityMode());
+	MessageCreator headerCreator;
 	std::auto_ptr<Message> pHeader(headerCreator.createMessage(
 		pDocument_, pwszMessage, nHeaderLen));
 	if (!pHeader.get())
@@ -205,8 +201,14 @@ bool qm::MessageComposer::compose(const WCHAR* pwszMessage,
 	if (!pSubAccount)
 		return false;
 	
+	const unsigned int nFlags = MessageCreator::FLAG_ADDCONTENTTYPE |
+		MessageCreator::FLAG_EXPANDALIAS |
+		MessageCreator::FLAG_EXTRACTATTACHMENT |
+		MessageCreator::FLAG_ENCODETEXT;
+	wstring_ptr wstrExcludePattern(pProfile_->getString(L"Global", L"ExcludeArchive"));
+	const WCHAR* pwszTempDir = Application::getApplication().getTemporaryFolder();
 	MessageCreator creator(nFlags, pSecurityModel_->getSecurityMode(),
-		pSubAccount->getTransferEncodingFor8Bit());
+		pSubAccount->getTransferEncodingFor8Bit(), wstrExcludePattern.get(), pwszTempDir);
 	std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, pwszMessage, nLen));
 	if (!pMessage.get())
 		return false;
@@ -252,6 +254,18 @@ bool qm::MessageComposer::compose(const WCHAR* pwszPath,
 	}
 	
 	return true;
+}
+
+bool qm::MessageComposer::isAttachmentArchiving(const WCHAR* pwszFileOrURI) const
+{
+	assert(pwszFileOrURI);
+	
+	if (MessageCreator::isAttachmentURI(pwszFileOrURI))
+		return false;
+	
+	wstring_ptr wstrPattern(pProfile_->getString(L"Global", L"ExcludeArchive"));
+	return !*wstrPattern.get() ||
+		Regex::search(wstrPattern.get(), pwszFileOrURI).first == 0;
 }
 
 Account* qm::MessageComposer::getAccount(const Message& header) const
