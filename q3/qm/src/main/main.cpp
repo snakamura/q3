@@ -187,7 +187,7 @@ int qm::main(const WCHAR* pwszCommandLine)
 		wstrMailFolder.get(), &bContinue, &hwndPrev));
 	if (!bContinue) {
 		if (hwndPrev)
-			handler.invoke(hwndPrev);
+			handler.invoke(hwndPrev, true);
 		return 0;
 	}
 	
@@ -200,7 +200,7 @@ int qm::main(const WCHAR* pwszCommandLine)
 	
 	assert(getMainWindow());
 	pLockTemp->setWindow(getMainWindow()->getHandle());
-	handler.invoke(getMainWindow()->getHandle());
+	handler.invoke(getMainWindow()->getHandle(), false);
 	
 	pApplication->run();
 	
@@ -236,7 +236,8 @@ const WCHAR* qm::MainCommandLineHandler::getProfile() const
 	return wstrProfile_.get();
 }
 
-void qm::MainCommandLineHandler::invoke(HWND hwnd)
+void qm::MainCommandLineHandler::invoke(HWND hwnd,
+										bool bPrev)
 {
 	struct {
 		unsigned int nAction_;
@@ -268,6 +269,10 @@ void qm::MainCommandLineHandler::invoke(HWND hwnd)
 	}
 	if (data.dwData != 0)
 		::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
+#ifdef _WIN32_WCE_PSPC
+	else if (bPrev)
+		::SetForegroundWindow(hwnd);
+#endif
 }
 
 bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
@@ -403,8 +408,10 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 {
 	assert(pwszMailFolder);
 	assert(pbContinue);
+	assert(phwnd);
 	
 	*pbContinue = false;
+	*phwnd = 0;
 	
 	wstring_ptr wstrPath(concat(pwszMailFolder, L"\\lock"));
 	tstring_ptr tstrPath(wcs2tcs(wstrPath.get()));
@@ -424,7 +431,6 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 			COPYDATASTRUCT data = { IDM_FILE_SHOW };
 			::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
 #endif
-			::SetForegroundWindow(hwnd);
 		}
 		*phwnd = hwnd;
 		
@@ -450,11 +456,10 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 			
 			HWND hwnd = 0;
 			if (read(hFileRead.get(), &hwnd, 0)) {
-	#ifndef _WIN32_WCE_PSPC
+#ifndef _WIN32_WCE_PSPC
 				COPYDATASTRUCT data = { IDM_FILE_SHOW };
 				::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
-	#endif
-				::SetForegroundWindow(hwnd);
+#endif
 			}
 			*phwnd = hwnd;
 		}

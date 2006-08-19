@@ -2196,6 +2196,8 @@ LRESULT qm::MainWindow::onCopyData(HWND hwnd,
 	if (Application::getApplication().isShutdown())
 		return 0;
 	
+	setForegroundWindow();
+	
 	UINT nId = static_cast<UINT>(pData->dwData);
 	const WCHAR* pwszParam = static_cast<const WCHAR*>(pData->lpData);
 	if (pwszParam)

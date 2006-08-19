@@ -33,7 +33,8 @@ public:
 public:
 	const WCHAR* getMailFolder() const;
 	const WCHAR* getProfile() const;
-	void invoke(HWND hwnd);
+	void invoke(HWND hwnd,
+				bool bPrev);
 
 public:
 	virtual bool process(const WCHAR* pwszOption);
