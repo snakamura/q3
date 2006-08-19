@@ -1826,7 +1826,7 @@ bool qm::MoveMessageDialog::insertAccount(HWND hwnd,
 	
 	TVINSERTSTRUCT tvisAccount = {
 		TVI_ROOT,
-		TVI_SORT,
+		TVI_LAST,
 		{
 			TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE,
 			0,

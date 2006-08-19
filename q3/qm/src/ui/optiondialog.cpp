@@ -3268,12 +3268,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 	W2T(wstrUnspecified.get(), ptszUnspecified);
 	ComboBox_AddString(hwndAccount, ptszUnspecified);
 	
-	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
-	std::sort(listAccount.begin(), listAccount.end(),
-		binary_compose_f_gx_hy(
-			string_less_i<WCHAR>(),
-			std::mem_fun(&Account::getName),
-			std::mem_fun(&Account::getName)));
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
@@ -4905,12 +4900,7 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 {
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
-	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
-	std::sort(listAccount.begin(), listAccount.end(),
-		binary_compose_f_gx_hy(
-			string_less_i<WCHAR>(),
-			std::mem_fun(&Account::getName),
-			std::mem_fun(&Account::getName)));
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
 		W2T(pAccount->getName(), ptszName);
@@ -5409,12 +5399,7 @@ LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 	W2T(wstrUnspecified.get(), ptszUnspecified);
 	ComboBox_AddString(hwndAccount, ptszUnspecified);
 	
-	AccountManager::AccountList listAccount(pAccountManager_->getAccounts());
-	std::sort(listAccount.begin(), listAccount.end(),
-		binary_compose_f_gx_hy(
-			string_less_i<WCHAR>(),
-			std::mem_fun(&Account::getName),
-			std::mem_fun(&Account::getName)));
+	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		W2T((*it)->getName(), ptszName);
 		ComboBox_AddString(hwndAccount, ptszName);

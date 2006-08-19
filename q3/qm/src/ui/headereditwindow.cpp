@@ -2067,7 +2067,7 @@ void qm::AccountHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 	ComboBox_ResetContent(getHandle());
 	
 	int nCurrentItem = -1;
-	const Document::AccountList& listAccount = pEditMessage->getDocument()->getAccounts();
+	const AccountManager::AccountList& listAccount = pEditMessage->getDocument()->getAccounts();
 	for (Document::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {
 		Account* pAccount = *itA;
 		if (wcscmp(pAccount->getClass(), pwszClass) == 0) {

@@ -26,6 +26,7 @@
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../model/account.h"
 #include "../uimodel/foldermodel.h"
 
 using namespace qm;
@@ -420,7 +421,7 @@ void qm::FolderComboBoxImpl::addAccount(Account* pAccount,
 	int nInsert = 0;
 	for (nInsert = 0; nInsert < nCount; ++nInsert) {
 		Account* p = getAccount(nInsert);
-		if (p && _wcsicmp(p->getName(), pAccount->getName()) > 0)
+		if (p && AccountLess::compare(p, pAccount) > 0)
 			break;
 	}
 	

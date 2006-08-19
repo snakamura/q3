@@ -424,7 +424,7 @@ void qm::AccountDialog::update()
 			int nOpenImage = pFolderImage_->getAccountImage(pAccount, false, true);
 			TVINSERTSTRUCT tis = {
 				TVI_ROOT,
-				TVI_SORT,
+				TVI_LAST,
 				{
 					TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM,
 					0,
