@@ -20,7 +20,7 @@
 *syncfilters.xml
 *tabs.xml
 *texts.xml
-*toolbars.xml
+*((<toolbars.xml|URL:ToolbarsXml.html>))
 *views.xml
 
 
