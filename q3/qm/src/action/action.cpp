@@ -2681,22 +2681,22 @@ bool qm::FolderDeleteAction::deleteFolder(FolderModel* pFolderModel,
 {
 	Account* pAccount = pFolder->getAccount();
 	
-	if (pFolderModel->getCurrent().second == pFolder) {
-		Folder* pParent = pFolder->getParentFolder();
+	Folder* pSelectedFolder = pFolderModel->getCurrent().second;
+	if (pSelectedFolder == pFolder ||
+		(pSelectedFolder && pFolder->isAncestorOf(pSelectedFolder))) {
 		Folder* pFolderNext = 0;
 		
-		Account::FolderList l(pAccount->getFolders());
+		Account::FolderList l;
+		pAccount->getShownFolders(&l);
 		std::sort(l.begin(), l.end(), FolderLess());
 		Account::FolderList::const_iterator it = std::find(l.begin(), l.end(), pFolder);
 		for (++it; it != l.end() && !pFolderNext; ++it) {
 			Folder* p = *it;
-			if (p->getAccount() != pAccount)
-				break;
-			else if (p->getParentFolder() == pParent)
+			if (!pFolder->isAncestorOf(p))
 				pFolderNext = p;
 		}
 		if (!pFolderNext)
-			pFolderNext = pParent;
+			pFolderNext = pFolder->getParentFolder();
 		
 		if (pFolderNext)
 			pFolderModel->setCurrent(0, pFolderNext, false);
