@@ -676,7 +676,7 @@ void qm::ApplicationImpl::restoreCurrentFolder()
 		pDocument_.get(), wstrFolder.get()));
 	if (p.first)
 		pFolderModel->setCurrent(p.first, 0, false);
-	else if (p.second)
+	else if (p.second && !p.second->isHidden())
 		pFolderModel->setCurrent(0, p.second, false);
 }
 
