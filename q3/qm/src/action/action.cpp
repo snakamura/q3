@@ -2908,13 +2908,11 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 	bool bSelected = false;
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Folder* pFolder = *it;
-		if (pFolder->getParentFolder() == pTrash) {
+		if (pFolder->getParentFolder() == pTrash)
 			listChildren.push_back(pFolder);
-			if (pFolderModel->getCurrent().second == pFolder)
-				bSelected = true;
-		}
 	}
-	if (bSelected)
+	Folder* pSelectedFolder = pFolderModel->getCurrent().second;
+	if (pSelectedFolder && pTrash->isAncestorOf(pSelectedFolder))
 		pFolderModel->setCurrent(0, pTrash, false);
 	for (Account::FolderList::const_iterator it = listChildren.begin(); it != listChildren.end(); ++it) {
 		if (!pAccount->removeFolder(*it)) {
