@@ -1527,6 +1527,14 @@ const Account::FolderList& qm::Account::getFolders() const
 	return pImpl_->listFolder_;
 }
 
+void qm::Account::getShownFolders(FolderList* pList) const
+{
+	assert(pList);
+	
+	std::remove_copy_if(pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
+		std::back_inserter(*pList), std::mem_fun(&Folder::isHidden));
+}
+
 void qm::Account::getChildFolders(const Folder* pFolder,
 								  FolderList* pList) const
 {

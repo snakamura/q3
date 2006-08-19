@@ -184,6 +184,7 @@ public:
 	Folder* getFolderByParam(const WCHAR* pwszName,
 							 const WCHAR* pwszValue) const;
 	const FolderList& getFolders() const;
+	void getShownFolders(FolderList* pList) const;
 	void getChildFolders(const Folder* pFolder,
 						 FolderList* pList) const;
 	void getNormalFolders(const WCHAR* pwszName,
