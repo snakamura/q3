@@ -6,6 +6,8 @@
  *
  */
 
+#include <qmfolder.h>
+
 #include <qsstl.h>
 
 #include <algorithm>
