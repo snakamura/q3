@@ -631,7 +631,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 		*it = 0;
 		
 		MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
-		if (mpl) {
+		if (mpl && !mpl->getFolder()->isHidden()) {
 			if (pAccount != mpl->getAccount()) {
 				if (pAccount != 0)
 					MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, -1, 0, pItem->getId());

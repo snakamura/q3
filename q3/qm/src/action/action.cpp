@@ -4700,6 +4700,9 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 			bOpenInPreview = !bOpenInPreview;
 		
 		NormalFolder* pFolder = mpl->getFolder();
+		if (pFolder->isHidden())
+			return;
+		
 		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
 		if (bOpenInPreview) {
 #ifndef _WIN32_WCE_PSPC
