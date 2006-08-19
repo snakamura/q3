@@ -6484,44 +6484,54 @@ void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 	case TYPE_NEXTFOLDER:
 	case TYPE_PREVFOLDER:
 		if (pFolder) {
-			const Account::FolderList& l = pAccount->getFolders();
+			Account::FolderList listFolder;
+			pAccount->getShownFolders(&listFolder);
+			std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 			Account::FolderList::const_iterator it = std::find(
-				l.begin(), l.end(), pFolder);
-			assert(it != l.end());
+				listFolder.begin(), listFolder.end(), pFolder);
+			assert(it != listFolder.end());
 			switch (type_) {
 			case TYPE_NEXTFOLDER:
 				++it;
 				break;
 			case TYPE_PREVFOLDER:
-				it = it != l.begin() ? it - 1 : l.end();
+				it = it != listFolder.begin() ? it - 1 : listFolder.end();
 				break;
 			default:
 				assert(false);
 				break;
 			}
-			pFolder = it != l.end() ? *it : 0;
+			pFolder = it != listFolder.end() ? *it : 0;
 		}
 		if (!pFolder) {
-			const AccountManager::AccountList& l = pAccountManager_->getAccounts();
+			const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 			AccountManager::AccountList::const_iterator it =
-				std::find(l.begin(), l.end(), pAccount);
-			assert(it != l.end());
+				std::find(listAccount.begin(), listAccount.end(), pAccount);
+			assert(it != listAccount.end());
 			switch (type_) {
 			case TYPE_NEXTFOLDER:
 				if (bFolderSelected)
 					++it;
-				while (it != l.end() && !pFolder) {
-					if (!(*it)->getFolders().empty())
-						pFolder = (*it)->getFolders().front();
+				while (it != listAccount.end() && !pFolder) {
+					Account::FolderList l;
+					(*it)->getShownFolders(&l);
+					if (!l.empty()) {
+						std::sort(l.begin(), l.end(), FolderLess());
+						pFolder = l.front();
+					}
 				}
 				break;
 			case TYPE_PREVFOLDER:
-				it = it != l.begin() ? it - 1 : l.end();
-				if (it != l.end()) {
+				it = it != listAccount.begin() ? it - 1 : listAccount.end();
+				if (it != listAccount.end()) {
 					while (!pFolder) {
-						if (!(*it)->getFolders().empty())
-							pFolder = (*it)->getFolders().back();
-						if (it == l.begin())
+						Account::FolderList l;
+						(*it)->getShownFolders(&l);
+						if (!l.empty()) {
+							std::sort(l.begin(), l.end(), FolderLess());
+							pFolder = l.back();
+						}
+						if (it == listAccount.begin())
 							break;
 						--it;
 					}
@@ -6838,13 +6848,7 @@ Folder* qm::ViewNavigateMessageAction::getNextUnseenFolder(Account* pAccountStar
 {
 	assert(pAccountStart);
 	
-	AccountManager::AccountList l(pAccountManager_->getAccounts());
-	std::sort(l.begin(), l.end(),
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::mem_fun(&Account::getName),
-			std::mem_fun(&Account::getName)));
-	
+	const AccountManager::AccountList& l = pAccountManager_->getAccounts();
 	AccountManager::AccountList::const_iterator itStart =
 		std::find(l.begin(), l.end(), pAccountStart);
 	assert(itStart != l.end());
