@@ -23,7 +23,7 @@ inline qm::AccountNameEqual::AccountNameEqual(const WCHAR* pwszName) :
 
 inline bool qm::AccountNameEqual::operator()(const Account* pAccount) const
 {
-	return wcscmp(pwszName_, pAccount->getName()) == 0;
+	return _wcsicmp(pwszName_, pAccount->getName()) == 0;
 }
 
 
@@ -36,7 +36,7 @@ inline bool qm::AccountNameEqual::operator()(const Account* pAccount) const
 inline bool qm::AccountEqual::operator()(const Account* pLhs,
 										 const Account* pRhs) const
 {
-	return wcscmp(pLhs->getName(), pRhs->getName()) == 0;
+	return _wcsicmp(pLhs->getName(), pRhs->getName()) == 0;
 }
 
 
@@ -49,7 +49,13 @@ inline bool qm::AccountEqual::operator()(const Account* pLhs,
 inline bool qm::AccountLess::operator()(const Account* pLhs,
 										const Account* pRhs) const
 {
-	return wcscmp(pLhs->getName(), pRhs->getName()) < 0;
+	return compare(pLhs, pRhs) < 0;
+}
+
+inline int qm::AccountLess::compare(const Account* pLhs,
+									const Account* pRhs)
+{
+	return _wcsicmp(pLhs->getName(), pRhs->getName());
 }
 
 

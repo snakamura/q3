@@ -56,6 +56,8 @@ struct AccountLess : public std::binary_function<Account*, Account*, bool>
 {
 	bool operator()(const Account* pLhs,
 					const Account* pRhs) const;
+	static int compare(const Account* pLhs,
+					   const Account* pRhs);
 };
 
 
