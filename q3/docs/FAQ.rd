@@ -7,7 +7,7 @@
 
 
 ==トラブル
-*((<起動時にLIBEAY32.DLLが見つからないというエラーがでます|URL:DllNotFound.html>))
+*((<起動時にLIBEAY32.DLL関係のエラーがでます|URL:OpenSSLNotFound.html>))
 *((<送信してもメッセージが送信されません|URL:MessagesAreNotSent.html>))
 *((<IMAP4アカウントで送信するとエラーになります|URL:FailToSendOnImap4Account.html>))
 *((<なぜ自分が送信したメッセージを受信するのですか?|URL:WhyReceiveSentMessage.html>))
