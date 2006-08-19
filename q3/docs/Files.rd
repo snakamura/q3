@@ -6,7 +6,7 @@
 *autopilot.xml
 *colors.xml
 *filters.xml
-*fonts.xml
+*((<fonts.xml|URL:FontsXml.html>))
 *goround.xml
 *((<header.xml|URL:HeaderXml.html>))
 *((<headeredit.xml|URL:HeaderEditXml.html>))

@@ -1,9 +1,19 @@
 =begin
 =アクション
 
-// TODO
+アクションは、メニューやツールバー、キーボードショートカットなどから実行できる機能のことです。例えばメニューやツールバーである項目を選んだときや、ショートカットキーを押したときには、関連付けられているアクションが実行されます。
+
+例えば、メニューから((<[ファイル]-[終了]|URL:FileExitAction.html>))を選択すると、((<FileExitアクション|URL:FileExitAction.html>))が実行されます。FileExitアクションは実行されるとQMAIL3を終了させます。この結果、メニューから[ファイル]-[終了]を選択するとQMAIL3が終了することになります。
+
+アクションによっては引数を取ることができ、引数の値によって動作が変わります。例えば、((<MessageMoveアクション|URL:MessageMoveAction.html>))は引数で指定されたフォルダにメッセージを移動します。
+
+メニューやツールバー、キーボードショートカットはそれぞれ選択されたときにどのアクションを実行するかを指定することによってカスタマイズすることができます。詳しくは、((<メニューのカスタマイズ|URL:CustomizeMenus.html>))、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))、
+((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))を参照してください。
+
 
 ==アクションのリスト
+以下のアクションを使用することができます。
+
 *((<AddressDeleteアクション|URL:AddressDeleteAction.html>))
 *((<AddressEditアクション|URL:AddressEditAction.html>))
 *((<AddressNewアクション|URL:AddressNewAction.html>))

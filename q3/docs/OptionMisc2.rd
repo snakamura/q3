@@ -27,7 +27,7 @@ WebƒTƒCƒg‚ÉƒAƒNƒZƒX‚µ‚ÄV‚µ‚¢ƒo[ƒWƒ‡ƒ“‚ªo‚Ä‚¢‚È‚¢‚©‚Ç‚¤‚©‚ðƒ`ƒFƒbƒN‚µ‚Ä’Ê’m‚·‚
 
 
 +[“]‘—‚·‚é‚Æ‚«‚É‚Ímessage/rfc822‚ðŽg‚¤]
-ƒƒbƒZ[ƒW‚ð“]‘—‚·‚é‚Æ‚«‚ÉAŒ³‚ÌƒƒbƒZ[ƒW‚ð((<"message/rfc822Œ`Ž®"|URL:URL:http://www.ietf.org/rfc/rfc2046.txt>))‚Å“Y•t‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·Bmessage/rfc822Œ`Ž®‚ðŽg—p‚µ‚È‚¢ê‡‚É‚ÍA–{•¶’†‚É“]‘—‚·‚éƒƒbƒZ[ƒW‚Ì“à—e‚ªŠÜ‚Ü‚ê‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚Ímessage/rfc822Œ`Ž®‚ðŽg—p‚µ‚Ü‚¹‚ñB
+ƒƒbƒZ[ƒW‚ð“]‘—‚·‚é‚Æ‚«‚ÉAŒ³‚ÌƒƒbƒZ[ƒW‚ð((<"message/rfc822Œ`Ž®"|URL:http://www.ietf.org/rfc/rfc2046.txt>))‚Å“Y•t‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·Bmessage/rfc822Œ`Ž®‚ðŽg—p‚µ‚È‚¢ê‡‚É‚ÍA–{•¶’†‚É“]‘—‚·‚éƒƒbƒZ[ƒW‚Ì“à—e‚ªŠÜ‚Ü‚ê‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚Ímessage/rfc822Œ`Ž®‚ðŽg—p‚µ‚Ü‚¹‚ñB
 
 
 +[ƒƒbƒZ[ƒWì¬Žž‚ÉƒAƒhƒŒƒX’ ‚ðŠJ‚­]
