@@ -364,7 +364,8 @@ void qm::DefaultTabModel::folderListChanged(const FolderListChangedEvent& event)
 		std::pair<Account*, Folder*> p(pItem->get());
 		
 		if (p.second && p.second->getAccount() == pAccount) {
-			if (std::find(listFolder.begin(), listFolder.end(), p.second) == listFolder.end())
+			if (std::find(listFolder.begin(), listFolder.end(), p.second) == listFolder.end(),
+				p.second->isHidden())
 				removeItem(static_cast<int>(it.base() - 1 - listItem_.begin()));
 		}
 	}
