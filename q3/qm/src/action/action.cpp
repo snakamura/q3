@@ -2892,7 +2892,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 											bool bConfirm)
 {
 	NormalFolder* pTrash = getTrash(pAccount);
-	if (!pTrash)
+	if (!pTrash || pTrash->isHidden())
 		return;
 	
 	if (bConfirm) {
@@ -4924,7 +4924,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	
 	QueryFolder* pSearch = static_cast<QueryFolder*>(
 		pAccount->getFolderByBoxFlag(Folder::FLAG_SEARCHBOX));
-	if (!pSearch)
+	if (!pSearch || pSearch->isHidden())
 		return;
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
