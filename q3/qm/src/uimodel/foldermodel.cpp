@@ -71,6 +71,7 @@ void qm::DefaultFolderModel::setCurrent(Account* pAccount,
 										bool bDelay)
 {
 	assert(!pAccount || !pFolder);
+	assert(!pFolder || !pFolder->isHidden());
 	
 	if (pFolder) {
 		if (pFolder != pCurrentFolder_) {
