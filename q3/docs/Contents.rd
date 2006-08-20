@@ -90,6 +90,7 @@
   *((<スクリプト|URL:Script.html>))
   *((<ドラッグアンドドロップ|URL:DragAndDrop.html>))
   *((<保守|URL:Maintenance.html>))
+  *((<特殊なヘッダ|URL:SpecialHeaders.html>))
   *((<コマンドライン|URL:CommandLine.html>))
   *((<ログ|URL:Log.html>))
   *((<正規表現|URL:RegularExpression.html>))

@@ -23,10 +23,10 @@ SSL‚Å‚ÌÚ‘±‚ÉŽ¸”s‚·‚éê‡AƒT[ƒoØ–¾‘‚ÌŒŸØ‚ÉŽ¸”s‚µ‚Ä‚¢‚éê‡‚ª–w‚Ç‚Å‚·B‚±‚Ì
 
 ƒeƒXƒg–Ú“I‚ÅAƒT[ƒoØ–¾‘‚ÌŒŸØ‚ð–³Œø‚É‚µ‚½‚¢ê‡‚É‚ÍA((<account.xml|URL:AccountXml.html>))‚ÌGlobal/SslOption‚ÉˆÈ‰º‚Ì’l‚Ì‘g‚Ý‡‚í‚¹‚ðÝ’è‚µ‚Ü‚·BÝ’è‚Å‚«‚é‚Ì‚ÍˆÈ‰º‚Ì’l‚Ìƒrƒbƒg˜a‚Å‚·‚ªAŽÀÛ‚ÉŽw’è‚·‚é‚Æ‚«‚É‚Í10i”‚ÅŽw’è‚µ‚Ü‚·B
 
-0x01:
+:0x01
   ƒT[ƒoØ–¾‘‚ÌŒŸØ‚ÉŽ¸”s‚µ‚Ä‚à‘±s‚µ‚Ü‚·
 
-0x02:
+:0x02
   Ø–¾‘‚ÌCN‚âsubjectAltName‚ÅŽw’è‚³‚ê‚½ƒzƒXƒg–¼‚ªÚ‘±æ‚ÌƒzƒXƒg–¼‚ÆˆÙ‚È‚Á‚Ä‚¢‚Ä‚à‘±s‚µ‚Ü‚·B
 
 ‚±‚ê‚ç‚Ì’l‚ðÝ’è‚µ‚½ê‡AÚ‘±æ‚ÌƒT[ƒo‚ª–{“–‚ÉŽw’è‚µ‚½ƒT[ƒo‚Å‚ ‚é‚©‚Ç‚¤‚©‚ÌŠm”F‚ª‚Å‚«‚È‚­‚È‚é‚½‚ßAƒZƒLƒ…ƒŠƒeƒB“I‚É‚ÍSSL‚ÅÚ‘±‚·‚éˆÓ–¡‚ª‚È‚­‚È‚è‚Ü‚·B‚ ‚­‚Ü‚Å‚àƒeƒXƒg—p‚Ì—p“r‚É‚Æ‚Ç‚ß‚Ä‚­‚¾‚³‚¢B
