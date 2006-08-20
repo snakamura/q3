@@ -973,7 +973,7 @@ bool qm::SyncManager::send(Document* pDocument,
 					bSend = wstrMessageId.get() && wcscmp(pwszMessageId, wstrMessageId.get()) == 0;
 				}
 				
-				if (bSend) {
+				if (bSend && *pwszIdentity) {
 					Message msg;
 					if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
 						L"X-QMAIL-SubAccount", SECURITYMODE_NONE, &msg)) {
@@ -981,15 +981,13 @@ bool qm::SyncManager::send(Document* pDocument,
 						return false;
 					}
 					
-					if (*pwszIdentity) {
-						UnstructuredParser subaccount;
-						if (msg.getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
-							SubAccount* p = pAccount->getSubAccount(subaccount.getValue());
-							bSend = p && wcscmp(p->getIdentity(), pwszIdentity) == 0;
-						}
-						else {
-							bSend = false;
-						}
+					UnstructuredParser subaccount;
+					if (msg.getField(L"X-QMAIL-SubAccount", &subaccount) == Part::FIELD_EXIST) {
+						SubAccount* p = pAccount->getSubAccount(subaccount.getValue());
+						bSend = p && wcscmp(p->getIdentity(), pwszIdentity) == 0;
+					}
+					else {
+						bSend = false;
 					}
 				}
 				
