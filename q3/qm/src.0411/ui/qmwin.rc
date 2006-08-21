@@ -1574,6 +1574,9 @@ BEGIN
     LTEXT           "これらの拡張子の添付ファイルを開くときに警告する(&A)",
                     IDC_STATIC,5,75,170,8
     EDITTEXT        IDC_WARNEXTENSION,5,85,170,14,ES_AUTOHSCROLL
+    CONTROL         "添付ファイルを保存するときにゾーンIDを設定する(&Z)",
+                    IDC_ZONEID,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,105,
+                    170,12
 END
 
 IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 231, 170

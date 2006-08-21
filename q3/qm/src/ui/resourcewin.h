@@ -436,6 +436,7 @@
 #define IDC_BOLD                        1462
 #define IDC_REPAIR                      1463
 #define IDC_CHECKUPDATE                 1464
+#define IDC_ZONEID                      1465
 
 // Next default values for new objects
 // 
@@ -444,7 +445,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        226
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1465
+#define _APS_NEXT_CONTROL_VALUE         1466
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

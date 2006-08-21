@@ -1566,6 +1566,8 @@ BEGIN
     LTEXT           "Warn before opening &attachments with these extensions",
                     IDC_STATIC,5,75,180,8
     EDITTEXT        IDC_WARNEXTENSION,5,85,170,12,ES_AUTOHSCROLL
+    CONTROL         "Set &ZoneId when saving attachments",IDC_ZONEID,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,100,170,10
 END
 
 IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 230, 170

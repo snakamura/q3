@@ -2115,7 +2115,13 @@ void qm::OptionSearchDialog::updateState()
  *
  */
 
-DialogUtil::BoolProperty qm::OptionSecurityDialog::boolProperties__[] = {
+#ifndef _WIN32_WCE
+DialogUtil::BoolProperty qm::OptionSecurityDialog::globalBoolProperties__[] = {
+	{ L"AddZoneId",			IDC_ZONEID		}
+};
+#endif
+
+DialogUtil::BoolProperty qm::OptionSecurityDialog::securityBoolProperties__[] = {
 	{ L"LoadSystemStore",	IDC_SYSTEMSTORE	}
 };
 
@@ -2134,8 +2140,12 @@ qm::OptionSecurityDialog::~OptionSecurityDialog()
 LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 											   LPARAM lParam)
 {
-	DialogUtil::loadBoolProperties(this, pProfile_,
-		L"Security", boolProperties__, countof(boolProperties__));
+#ifndef _WIN32_WCE
+	DialogUtil::loadBoolProperties(this, pProfile_, L"Global",
+		globalBoolProperties__, countof(globalBoolProperties__));
+#endif
+	DialogUtil::loadBoolProperties(this, pProfile_, L"Security",
+		securityBoolProperties__, countof(securityBoolProperties__));
 	
 #ifndef _WIN32_WCE
 	bool bGPG = pProfile_->getInt(L"PGP", L"UseGPG") != 0;
@@ -2159,8 +2169,12 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 
 bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
 {
-	DialogUtil::saveBoolProperties(this, pProfile_,
-		L"Security", boolProperties__, countof(boolProperties__));
+#ifndef _WIN32_WCE
+	DialogUtil::saveBoolProperties(this, pProfile_, L"Global",
+		globalBoolProperties__, countof(globalBoolProperties__));
+#endif
+	DialogUtil::saveBoolProperties(this, pProfile_, L"Security",
+		securityBoolProperties__, countof(securityBoolProperties__));
 	
 #ifndef _WIN32_WCE
 	bool bGPG = Button_GetCheck(getDlgItem(IDC_GNUPG)) == BST_CHECKED;

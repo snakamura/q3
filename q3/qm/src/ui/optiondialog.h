@@ -927,7 +927,10 @@ private:
 	qs::Profile* pProfile_;
 
 private:
-	static DialogUtil::BoolProperty boolProperties__[];
+#ifndef _WIN32_WCE
+	static DialogUtil::BoolProperty globalBoolProperties__[];
+#endif
+	static DialogUtil::BoolProperty securityBoolProperties__[];
 };
 
 
