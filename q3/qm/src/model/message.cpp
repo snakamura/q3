@@ -2182,6 +2182,7 @@ void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
 
 AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 													  const WCHAR* pwszName,
+													  bool bAddZoneId,
 													  DetachCallback* pCallback,
 													  wstring_ptr* pwstrPath) const
 {
@@ -2254,6 +2255,22 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	
 	if (!bufferedStream.close())
 		return RESULT_FAIL;
+	
+#ifndef _WIN32_WCE
+	if (bAddZoneId) {
+		wstring_ptr wstrZonePath = concat(wstrPath.get(), L":Zone.Identifier");
+		FileOutputStream zoneStream(wstrZonePath.get());
+		if (!!zoneStream) {
+			const CHAR* pszZoneInfo = "[ZoneTransfer]\r\nZoneId=3\r\n";
+			bool b = zoneStream.write(reinterpret_cast<const unsigned char*>(pszZoneInfo), strlen(pszZoneInfo)) != -1;
+			b = zoneStream.close() && b;
+			if (!b) {
+				W2T(wstrZonePath.get(), ptszZonePath);
+				::DeleteFile(ptszZonePath);
+			}
+		}
+	}
+#endif
 	
 	if (pwstrPath)
 		*pwstrPath = wstrPath;

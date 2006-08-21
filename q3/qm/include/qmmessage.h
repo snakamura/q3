@@ -364,6 +364,7 @@ public:
 						AttachmentList* pList) const;
 	Result detach(const WCHAR* pwszDir,
 				  const WCHAR* pwszName,
+				  bool bAddZoneId,
 				  DetachCallback* pCallback,
 				  qs::wstring_ptr* pwstrPath) const;
 	bool isAttachmentDeleted() const;

@@ -228,7 +228,7 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 			assert(n < l.size());
 			const AttachmentParser::AttachmentList::value_type& v = l[n];
 			if (AttachmentParser(*v.second).detach(pwszFolder, (*it).wstrName_,
-				&callback, 0) == AttachmentParser::RESULT_FAIL)
+				isAddZoneId(), &callback, 0) == AttachmentParser::RESULT_FAIL)
 				return AttachmentParser::RESULT_FAIL;
 		}
 	}
@@ -298,8 +298,8 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 	DetachCallbackImpl callback(pTempFileCleaner_, hwnd_);
 	const WCHAR* pwszTempDir = Application::getApplication().getTemporaryFolder();
 	wstring_ptr wstrPath;
-	AttachmentParser::Result result = parser.detach(
-		pwszTempDir, pwszName, &callback, &wstrPath);
+	AttachmentParser::Result result = parser.detach(pwszTempDir,
+		pwszName, isAddZoneId(), &callback, &wstrPath);
 	if (result != AttachmentParser::RESULT_OK)
 		return result;
 	assert(wstrPath.get());
@@ -356,4 +356,9 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 		return AttachmentParser::RESULT_FAIL;
 	
 	return AttachmentParser::RESULT_OK;
+}
+
+bool qm::AttachmentHelper::isAddZoneId() const
+{
+	return pProfile_->getInt(L"Global", L"AddZoneId") != 0;
 }

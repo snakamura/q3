@@ -170,6 +170,7 @@ const qs::Profile::Default defaultProfiles[] = {
 #endif
 	
 	{ L"Global",	L"Action",							L""													},
+	{ L"Global",	L"AddZoneId",						L"1"												},
 	{ L"Global",	L"AutoUpdateCheck",					L"1"												},
 	{ L"Global",	L"Bcc",								L"1"												},
 	{ L"Global",	L"ConfirmDeleteMessage",			L"0"												},

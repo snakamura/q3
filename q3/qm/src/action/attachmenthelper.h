@@ -51,6 +51,9 @@ public:
 								  bool bOpenWithEditor);
 
 private:
+	bool isAddZoneId() const;
+
+private:
 	AttachmentHelper(const AttachmentHelper&);
 	AttachmentHelper& operator=(const AttachmentHelper&);
 
