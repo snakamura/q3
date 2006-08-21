@@ -561,6 +561,15 @@ int vlimportdb(VILLA *villa, const char *name);
  *************************************************************************************************/
 
 
+/* Number of division of the database for Vista. */
+#define vlcrdnum       (*vlcrdnumptr())
+
+
+/* Get the pointer of the variable of the number of division of the database for Vista.
+   The return value is the pointer of the variable. */
+int *vlcrdnumptr(void);
+
+
 /* Synchronize updating contents on memory.
    `villa' specifies a database handle connected as a writer.
    If successful, the return value is true, else, it is false. */

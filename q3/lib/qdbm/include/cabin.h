@@ -39,6 +39,10 @@ extern "C" {
  *************************************************************************************************/
 
 
+#define CB_DATUMUNIT   12                /* allocation unit size of a datum handle */
+#define CB_LISTUNIT    64                /* allocation unit number of a list handle */
+#define CB_MAPBNUM     4093              /* bucket size of a map handle */
+
 typedef struct {                         /* type of structure for a basic datum */
   char *dptr;                            /* pointer to the region */
   int dsize;                             /* size of the region */
@@ -58,9 +62,7 @@ typedef struct {                         /* type of structure for a list */
 } CBLIST;
 
 typedef struct _CBMAPDATUM {             /* type of structure for an element of a map */
-  char *kbuf;                            /* pointer to the region of the key */
   int ksiz;                              /* size of the region of the key */
-  char *vbuf;                            /* pointer to the region of the value */
   int vsiz;                              /* size of the region of the value */
   int hash;                              /* second hash value */
   struct _CBMAPDATUM *left;              /* pointer to the left child */
@@ -77,6 +79,15 @@ typedef struct {                         /* type of structure for a map */
   int bnum;                              /* number of buckets */
   int rnum;                              /* number of records */
 } CBMAP;
+
+typedef struct {                         /* type of structure for a heap */
+  char *base;                            /* base pointer */
+  char *swap;                            /* region for swapping */
+  int size;                              /* size of each record */
+  int num;                               /* currnet number of records */
+  int max;                               /* maximum number of records */
+  int(*compar)(const void *, const void *);  /* comparing function */
+} CBHEAP;
 
 
 /* Call back function for handling a fatal error.
@@ -368,7 +379,7 @@ void cblistclose(CBLIST *list);
 int cblistnum(const CBLIST *list);
 
 
-/* Get the pointer to the region of an element.
+/* Get the pointer to the region of an element of a list.
    `list' specifies a list handle.
    `index' specifies the index of an element.
    `sp' specifies the pointer to a variable to which the size of the region of the return
@@ -514,7 +525,7 @@ CBMAP *cbmapdup(CBMAP *map);
 void cbmapclose(CBMAP *map);
 
 
-/* Store a record.
+/* Store a record into a map.
    `map' specifies a map handle.
    `kbuf' specifies the pointer to the region of a key.
    `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
@@ -539,7 +550,7 @@ int cbmapput(CBMAP *map, const char *kbuf, int ksiz, const char *vbuf, int vsiz,
 void cbmapputcat(CBMAP *map, const char *kbuf, int ksiz, const char *vbuf, int vsiz);
 
 
-/* Delete a record.
+/* Delete a record in a map.
    `map' specifies a map handle.
    `kbuf' specifies the pointer to the region of a key.
    `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
@@ -549,7 +560,7 @@ void cbmapputcat(CBMAP *map, const char *kbuf, int ksiz, const char *vbuf, int v
 int cbmapout(CBMAP *map, const char *kbuf, int ksiz);
 
 
-/* Retrieve a record.
+/* Retrieve a record in a map.
    `map' specifies a map handle.
    `kbuf' specifies the pointer to the region of a key.
    `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
@@ -563,7 +574,7 @@ int cbmapout(CBMAP *map, const char *kbuf, int ksiz);
 const char *cbmapget(const CBMAP *map, const char *kbuf, int ksiz, int *sp);
 
 
-/* Move a record to the edge.
+/* Move a record to the edge of a map.
    `map' specifies a map handle.
    `kbuf' specifies the pointer to the region of a key.
    `ksiz' specifies the size of the region of the key.  If it is negative, the size is assigned
@@ -574,13 +585,13 @@ const char *cbmapget(const CBMAP *map, const char *kbuf, int ksiz, int *sp);
 int cbmapmove(CBMAP *map, const char *kbuf, int ksiz, int head);
 
 
-/* Initialize the iterator of a map handle.
+/* Initialize the iterator of a map.
    `map' specifies a map handle.
    The iterator is used in order to access the key of every record stored in a map. */
 void cbmapiterinit(CBMAP *map);
 
 
-/* Get the next key of the iterator.
+/* Get the next key of the iterator of a map.
    `map' specifies a map handle.
    `sp' specifies the pointer to a variable to which the size of the region of the return
    value is assigned.  If it is `NULL', it is not used.
@@ -590,6 +601,16 @@ void cbmapiterinit(CBMAP *map);
    the return value can be treated as a character string.  The order of iteration is assured
    to be the same of the one of storing. */
 const char *cbmapiternext(CBMAP *map, int *sp);
+
+
+/* Get the value binded to the key fetched from the iterator of a map.
+   `kbuf' specifies the pointer to the region of a iteration key.
+   `sp' specifies the pointer to a variable to which the size of the region of the return
+   value is assigned.  If it is `NULL', it is not used.
+   The return value is the pointer to the region of the value of the corresponding record.
+   Because an additional zero code is appended at the end of the region of the return value,
+   the return value can be treated as a character string. */
+const char *cbmapiterval(const char *kbuf, int *sp);
 
 
 /* Get the number of the records stored in a map.
@@ -644,6 +665,64 @@ CBMAP *cbmapload(const char *ptr, int size);
    Because an additional zero code is appended at the end of the region of the return value,
    the return value can be treated as a character string. */
 char *cbmaploadone(const char *ptr, int size, const char *kbuf, int ksiz, int *sp);
+
+
+/* Get a heap handle.
+   `size' specifies the size of each record.
+   `max' specifies the maximum number of records in the heap.
+   `compar' specifies the pointer to comparing function.  The two arguments specify the pointers
+   of records.  The comparing function should returns positive if the former is big, negative
+   if the latter is big, 0 if both are equal.
+   The return value is a heap handle. */
+CBHEAP *cbheapopen(int size, int max, int(*compar)(const void *, const void *));
+
+
+/* Copy a heap.
+   `heap' specifies a heap handle.
+   The return value is a new heap handle. */
+CBHEAP *cbheapdup(CBHEAP *heap);
+
+
+/* Close a heap handle.
+   `heap' specifies a heap handle.
+   Because the region of a closed handle is released, it becomes impossible to use the handle. */
+void cbheapclose(CBHEAP *heap);
+
+
+/* Get the number of the records stored in a heap.
+   `heap' specifies a heap handle.
+   The return value is the number of the records stored in the heap. */
+int cbheapnum(CBHEAP *heap);
+
+
+/* Insert a record into a heap.
+   `heap' specifies a heap handle.
+   `ptr' specifies the pointer to the region of a record.
+   The return value is true if the record is added, else false.
+   If the new record is bigger than the biggest existing regord, the new record is not added.
+   If the new record is added and the number of records exceeds the maximum number, the biggest
+   existing record is removed. */
+int cbheapinsert(CBHEAP *heap, const void *ptr);
+
+
+/* Get the pointer to the region of a record in a heap.
+   `heap' specifies a heap handle.
+   `index' specifies the index of a record.
+   The return value is the pointer to the region of the record.
+   If `index' is equal to or more than the number of records, the return value is `NULL'.  Note
+   that records are organized by the nagative order the comparing function. */
+const void *cbheapval(CBHEAP *heap, int index);
+
+
+/* Convert a heap to an allocated region.
+   `heap' specifies a heap handle.
+   `np' specifies the pointer to a variable to which the number of records of the return value
+   is assigned.  If it is `NULL', it is not used.
+   The return value is the pointer to the region of the heap.  Records are sorted.
+   Because the region of the return value is allocated with the `malloc' call, it should be
+   released with the `free' call if it is no longer in use.  Because the region of the original
+   heap is released, it should not be released again. */
+void *cbheaptomalloc(CBHEAP *heap, int *np);
 
 
 /* Allocate a formatted string on memory.
@@ -1209,48 +1288,237 @@ void cblistpushbuf(CBLIST *list, char *ptr, int size);
 CBMAP *cbmapopenex(int bnum);
 
 
-/* Store a record with an allocated region.
-   `map' specifies a map handle.
-   `kbuf' specifies the pointer to the region of a key.
-   `ksiz' specifies the size of the region of the key.
-   `vbuf' specifies the pointer to the region of a value.  The region should be allocated with
-   malloc and it is released by the function.
-   `vsiz' specifies the size of the region of the value.
-   If the key overlaps, the existing record is overwritten. */
-void cbmapputvbuf(CBMAP *map, const char *kbuf, int ksiz, char *vbuf, int vsiz);
-
-
 /* Alias of `cbmalloc'. */
-#define CB_MALLOC(ptr, size) \
-  (((ptr) = malloc(size)) ? (ptr) : cbmyfatal("out of memory"))
+#define CB_MALLOC(CB_ptr, CB_size) \
+  (((CB_ptr) = malloc(CB_size)) ? (CB_ptr) : cbmyfatal("out of memory"))
 
 
 /* Alias of `cbrealloc'. */
-#define CB_REALLOC(ptr, size) \
-  (((ptr) = realloc((ptr), (size))) ? (ptr) : cbmyfatal("out of memory"))
+#define CB_REALLOC(CB_ptr, CB_size) \
+  (((CB_ptr) = realloc((CB_ptr), (CB_size))) ? (CB_ptr) : cbmyfatal("out of memory"))
+
+
+/* Alias of `cbmemdup'.
+   However, `size' should not be negative. */
+#define CB_MEMDUP(CB_res, CB_ptr, CB_size) \
+  do { \
+    CB_MALLOC((CB_res), (CB_size) + 1); \
+    memcpy((CB_res), (CB_ptr), (CB_size)); \
+    (CB_res)[(CB_size)] = '\0'; \
+  } while(FALSE)
+
+
+/* Get the size of padding bytes for pointer alignment.
+   `hsiz' specifies the header size of the object.
+   The return value is the size of padding bytes. */
+#define CB_ALIGNPAD(CB_hsiz) \
+  (((CB_hsiz | ~-(int)sizeof(void *)) + 1) - CB_hsiz)
+
+
+/* Alias of `cbdatumopen'.
+   However, no dafault data is specified. */
+#define CB_DATUMOPEN(CB_datum) \
+  do { \
+    CB_MALLOC((CB_datum), sizeof(*(CB_datum))); \
+    CB_MALLOC((CB_datum)->dptr, CB_DATUMUNIT); \
+    (CB_datum)->dptr[0] = '\0'; \
+    (CB_datum)->dsize = 0; \
+    (CB_datum)->asize = CB_DATUMUNIT; \
+  } while(FALSE)
+
+
+/* Alias of `cbdatumopen'.
+   However, `size' should not be negative. */
+#define CB_DATUMOPEN2(CB_datum, CB_ptr, CB_size) \
+  do { \
+    CB_DATUMOPEN((CB_datum)); \
+    CB_DATUMCAT((CB_datum), (CB_ptr), (CB_size)); \
+  } while(FALSE)
+
+
+/* Alias of `cbdatumclose'. */
+#define CB_DATUMCLOSE(CB_datum) \
+  do { \
+    free((CB_datum)->dptr); \
+    free((CB_datum)); \
+  } while(FALSE)
+
+
+/* Alias of `cbdatumcat'.
+   However, `size' should not be negative. */
+#define CB_DATUMCAT(CB_datum, CB_ptr, CB_size) \
+  do { \
+    if((CB_datum)->dsize + (CB_size) >= (CB_datum)->asize){ \
+      (CB_datum)->asize = (CB_datum)->asize * 2 + (CB_size) + 1; \
+      CB_REALLOC((CB_datum)->dptr, (CB_datum)->asize); \
+    } \
+    memcpy((CB_datum)->dptr + (CB_datum)->dsize, (CB_ptr), (CB_size)); \
+    (CB_datum)->dsize += (CB_size); \
+    (CB_datum)->dptr[(CB_datum)->dsize] = '\0'; \
+  } while(FALSE)
 
 
 /* Alias of `cbdatumptr'. */
-#define CB_DATUMPTR(datum) ((const char *)(datum->dptr))
+#define CB_DATUMPTR(CB_datum) ((const char *)((CB_datum)->dptr))
 
 
 /* Alias of `cbdatumsize'. */
-#define CB_DATUMSIZE(datum) ((int)(datum->dsize))
+#define CB_DATUMSIZE(CB_datum) ((int)((CB_datum)->dsize))
+
+
+/* Alias of `cbdatumsetsize'. */
+#define CB_DATUMSETSIZE(CB_datum, CB_size) \
+  do { \
+    if((CB_size) <= (CB_datum)->dsize){ \
+      (CB_datum)->dsize = (CB_size); \
+      (CB_datum)->dptr[(CB_size)] = '\0'; \
+    } else { \
+      if((CB_size) >= (CB_datum)->asize){ \
+        (CB_datum)->asize = (CB_datum)->asize * 2 + (CB_size) + 1; \
+        CB_REALLOC((CB_datum)->dptr, (CB_datum)->asize); \
+      } \
+      memset((CB_datum)->dptr + (CB_datum)->dsize, 0, ((CB_size) - (CB_datum)->dsize) + 1); \
+      (CB_datum)->dsize = (CB_size); \
+    } \
+  } while(FALSE)
+
+
+/* Alias of `cbdatumtomalloc'. */
+#define CB_DATUMTOMALLOC(CB_datum, CB_ptr, CB_size) \
+  do { \
+    (CB_ptr) = (CB_datum)->dptr; \
+    (CB_size) = (CB_datum)->dsize; \
+    free((CB_datum)); \
+  } while(FALSE)
+
+
+/* Alias of `cblistopen'. */
+#define CB_LISTOPEN(CB_list) \
+  do { \
+    CB_MALLOC((CB_list), sizeof(*(CB_list))); \
+    (CB_list)->anum = CB_LISTUNIT; \
+    CB_MALLOC((CB_list)->array, sizeof((CB_list)->array[0]) * (CB_list)->anum); \
+    (CB_list)->start = 0; \
+    (CB_list)->num = 0; \
+  } while(FALSE)
+
+
+/* Alias of `cblistopen'.
+   However, `anum' is specified for the number of initial allocated elements. */
+#define CB_LISTOPEN2(CB_list, CB_anum) \
+  do { \
+    CB_MALLOC((CB_list), sizeof(*(CB_list))); \
+    (CB_list)->anum = (CB_anum) > 4 ? (CB_anum) : 4; \
+    CB_MALLOC((CB_list)->array, sizeof((CB_list)->array[0]) * (CB_list)->anum); \
+    (CB_list)->start = 0; \
+    (CB_list)->num = 0; \
+  } while(FALSE)
+
+
+/* Alias of `cblistclose'. */
+#define CB_LISTCLOSE(CB_list) \
+  do { \
+    int _CB_i, _CB_end; \
+    _CB_end = (CB_list)->start + (CB_list)->num; \
+    for(_CB_i = (CB_list)->start; _CB_i < _CB_end; _CB_i++){ \
+      free((CB_list)->array[_CB_i].dptr); \
+    } \
+    free((CB_list)->array); \
+    free((CB_list)); \
+  } while(FALSE)
 
 
 /* Alias of `cblistnum'. */
-#define CB_LISTNUM(list) ((int)(list->num))
+#define CB_LISTNUM(CB_list) \
+  ((int)((CB_list)->num))
 
 
 /* Alias of `cblistval'.
    However, `sp' is ignored. */
-#define CB_LISTVAL(list,index,sp) ((const char *)(list->array[list->start+index].dptr))
+#define CB_LISTVAL(CB_list, CB_index) \
+  ((const char *)((CB_list)->array[(CB_list)->start+(CB_index)].dptr))
 
 
 /* Alias of `cblistval'.
-   However, `sp' is needed. */
-#define CB_LISTVAL2(list,index,sp) (*sp = list->array[list->start+index].dsize,\
-  (const char *)(list->array[list->start+index].dptr))
+   However, `size' is used instead of `sp'. */
+#define CB_LISTVAL2(CB_list, CB_index, CB_size) \
+  ((CB_size) = (CB_list)->array[(CB_list)->start+(CB_index)].dsize, \
+  (const char *)((CB_list)->array[(CB_list)->start+(CB_index)].dptr))
+
+
+/* Alias of `cblistpush'.
+   However, `size' should not be negative. */
+#define CB_LISTPUSH(CB_list, CB_ptr, CB_size) \
+  do { \
+    int _CB_index; \
+    _CB_index = (CB_list)->start + (CB_list)->num; \
+    if(_CB_index >= (CB_list)->anum){ \
+      (CB_list)->anum *= 2; \
+      CB_REALLOC((CB_list)->array, (CB_list)->anum * sizeof((CB_list)->array[0])); \
+    } \
+    CB_MALLOC((CB_list)->array[_CB_index].dptr, \
+              ((CB_size) < CB_DATUMUNIT ? CB_DATUMUNIT : (CB_size)) + 1); \
+    memcpy((CB_list)->array[_CB_index].dptr, (CB_ptr), (CB_size)); \
+    (CB_list)->array[_CB_index].dptr[(CB_size)] = '\0'; \
+    (CB_list)->array[_CB_index].dsize = (CB_size); \
+    (CB_list)->num++; \
+  } while(FALSE)
+
+
+/* Remove and free an element of the end of a list.
+   `list' specifies a list handle. */
+#define CB_LISTDROP(CB_list) \
+  do { \
+    if((CB_list)->num > 0){ \
+      free((CB_list)->array[(CB_list)->start+(CB_list)->num-1].dptr); \
+      (CB_list)->num--; \
+    } \
+  } while(FALSE)
+
+
+/* Alias of `cblistinsert'.
+   However, `index' is not checked and `size' should not be negative. */
+#define CB_LISTINSERT(CB_list, CB_index, CB_ptr, CB_size) \
+  do { \
+    int _CB_index = (CB_index); \
+    _CB_index += (CB_list)->start; \
+    if((CB_list)->start + (CB_list)->num >= (CB_list)->anum){ \
+      (CB_list)->anum *= 2; \
+      CB_REALLOC((CB_list)->array, (CB_list)->anum * sizeof((CB_list)->array[0])); \
+    } \
+    memmove((CB_list)->array + _CB_index + 1, (CB_list)->array + _CB_index, \
+            sizeof((CB_list)->array[0]) * ((CB_list)->start + (CB_list)->num - _CB_index)); \
+    CB_MEMDUP((CB_list)->array[_CB_index].dptr, (CB_ptr), (CB_size)); \
+    (CB_list)->array[_CB_index].dsize = (CB_size); \
+    (CB_list)->num++; \
+  } while(FALSE)
+
+
+/* Alias of `cblistpushbuf'. */
+#define CB_LISTPUSHBUF(CB_list, CB_ptr, CB_size) \
+  do{ \
+    int _CB_index; \
+    _CB_index = (CB_list)->start + (CB_list)->num; \
+    if(_CB_index >= (CB_list)->anum){ \
+      (CB_list)->anum *= 2; \
+      CB_REALLOC((CB_list)->array, (CB_list)->anum * sizeof((CB_list)->array[0])); \
+    } \
+    (CB_list)->array[_CB_index].dptr = (CB_ptr); \
+    (CB_list)->array[_CB_index].dsize = (CB_size); \
+    (CB_list)->num++; \
+  } while(FALSE) \
+
+
+/* Alias of `cbmapiterval'.
+   However, `size' is used instead of `sp'. */
+#define CB_MAPITERVAL(CB_vbuf, CB_kbuf, CB_vsiz) \
+  do { \
+    CBMAPDATUM *_CB_datum; \
+    _CB_datum = (CBMAPDATUM *)((CB_kbuf) - sizeof(*_CB_datum)); \
+    (CB_vsiz) = _CB_datum->vsiz; \
+    (CB_vbuf) = (char *)_CB_datum + sizeof(*_CB_datum) + \
+      _CB_datum->ksiz + CB_ALIGNPAD(_CB_datum->ksiz); \
+  } while(FALSE)
 
 
 

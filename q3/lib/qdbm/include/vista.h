@@ -101,6 +101,7 @@ extern "C" {
 #define vlrepair       vstrepair
 #define vlexportdb     vstexportdb
 #define vlimportdb     vstimportdb
+#define vlcrdnumptr    vstcrdnumptr
 #define vlmemsync      vstmemsync
 #define vlmemflush     vstmemflush
 #define vlgetcache     vstgetcache
@@ -126,25 +127,6 @@ extern "C" {
 #endif
 
 
-
-/*************************************************************************************************
- * features for experts
- *************************************************************************************************/
-
-
-#if defined(_MSC_VER) && !defined(QDBM_INTERNAL) && !defined(QDBM_STATIC)
-#define MYEXTERN extern __declspec(dllimport)
-#else
-#define MYEXTERN extern
-#endif
-
-
-/* Number of division of the database. */
-MYEXTERN int vscrdnum;
-
-
-
-#undef MYEXTERN
 
 #if defined(__cplusplus)                 /* export for C++ */
 }
