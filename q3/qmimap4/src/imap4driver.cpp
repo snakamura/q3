@@ -1292,35 +1292,35 @@ void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 	pwstrName->reset(0);
 	*pnFlags = 0;
 	
+	wstring_ptr wstrName(allocWString(pwszName));
+	if (_wcsnicmp(wstrName.get(), L"Inbox", 5) == 0 &&
+		(*(wstrName.get() + 5) == L'\0' || *(wstrName.get() + 5) == cSeparator))
+		wcsncpy(wstrName.get(), L"Inbox", 5);
+	
 	bool bChildOfRootFolder = false;
-	size_t nRootFolderLen = wcslen(wstrRootFolder_.get());
-	if (nRootFolderLen != 0) {
-		if (wcsncmp(pwszName, wstrRootFolder_.get(), nRootFolderLen) == 0) {
-			const WCHAR* p = pwszName + nRootFolderLen;
+	if (*wstrRootFolder_.get() && wcscmp(wstrName.get(), L"Inbox") != 0) {
+		size_t nRootFolderLen = wcslen(wstrRootFolder_.get());
+		if (wcsncmp(wstrName.get(), wstrRootFolder_.get(), nRootFolderLen) == 0) {
+			const WCHAR* p = wstrName.get() + nRootFolderLen;
 			if (*p == L'\0' || (*p == cSeparator && *(p + 1) == L'\0')) {
 				return;
 			}
 			else if (*p == cSeparator) {
 				bChildOfRootFolder = true;
-				pwszName += nRootFolderLen + 1;
+				wstrName = allocWString(wstrName.get() + nRootFolderLen + 1);
 			}
 		}
 	}
 	
-	wstring_ptr wstr(allocWString(pwszName));
-	size_t nLen = wcslen(wstr.get());
-	if (nLen != 1 && *(wstr.get() + nLen - 1) == cSeparator)
-		*(wstr.get() + nLen - 1) = L'\0';
+	size_t nLen = wcslen(wstrName.get());
+	if (nLen != 1 && *(wstrName.get() + nLen - 1) == cSeparator)
+		*(wstrName.get() + nLen - 1) = L'\0';
 	
 	unsigned int nFlags = Util::getFolderFlagsFromAttributes(nAttributes);
 	if (!(nFlags & Folder::FLAG_NOSELECT))
 		nFlags |= Folder::FLAG_SYNCABLE;
 	if (bChildOfRootFolder)
 		nFlags |= Folder::FLAG_CHILDOFROOT;
-	
-	if (_wcsnicmp(wstr.get(), L"Inbox", 5) == 0 &&
-		(*(wstr.get() + 5) == L'\0' || *(wstr.get() + 5) == cSeparator))
-		wcsncpy(wstr.get(), L"Inbox", 5);
 	
 	struct {
 		const WCHAR* pwszName_;
@@ -1334,11 +1334,11 @@ void qmimap4::FolderUtil::getFolderData(const WCHAR* pwszName,
 		{ wstrSpecialFolders_[4].get(),	Folder::FLAG_JUNKBOX						}
 	};
 	for (int n = 0; n < countof(flags); ++n) {
-		if (Util::isEqualFolderName(wstr.get(), flags[n].pwszName_, cSeparator))
+		if (Util::isEqualFolderName(wstrName.get(), flags[n].pwszName_, cSeparator))
 			nFlags |= flags[n].nFlags_;
 	}
 	
-	*pwstrName = wstr;
+	*pwstrName = wstrName;
 	*pnFlags = nFlags;
 }
 
