@@ -971,29 +971,30 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 void qm::AccountImpl::fireCurrentSubAccountChanged()
 {
 	AccountEvent event(pThis_);
-	for (AccountHandlerList::const_iterator it = listAccountHandler_.begin(); it != listAccountHandler_.end(); ++it)
-		(*it)->currentSubAccountChanged(event);
+	std::for_each(listAccountHandler_.begin(), listAccountHandler_.end(),
+		boost::bind(&AccountHandler::currentSubAccountChanged, _1, boost::cref(event)));
 }
 
 void qm::AccountImpl::fireSubAccountListChanged()
 {
 	AccountEvent event(pThis_);
-	for (AccountHandlerList::const_iterator it = listAccountHandler_.begin(); it != listAccountHandler_.end(); ++it)
-		(*it)->subAccountListChanged(event);
+	std::for_each(listAccountHandler_.begin(), listAccountHandler_.end(),
+		boost::bind(&AccountHandler::subAccountListChanged, _1, boost::cref(event)));
 }
 
 void qm::AccountImpl::fireFolderListChanged(const FolderListChangedEvent& event)
 {
-	for (AccountHandlerList::const_iterator it = listAccountHandler_.begin(); it != listAccountHandler_.end(); ++it)
-		(*it)->folderListChanged(event);
+	AccountHandlerList l(listAccountHandler_);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&AccountHandler::folderListChanged, _1, boost::cref(event)));
 }
 
 void qm::AccountImpl::fireAccountDestroyed()
 {
 	AccountHandlerList l(listAccountHandler_);
 	AccountEvent event(pThis_);
-	for (AccountHandlerList::const_iterator it = l.begin(); it != l.end(); ++it)
-		(*it)->accountDestroyed(event);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&AccountHandler::accountDestroyed, _1, boost::cref(event)));
 }
 
 bool qm::AccountImpl::createTemporaryMessage(MessageHolder* pmh, Message* pMessage)
