@@ -78,8 +78,7 @@ HMENU qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar)
 		return 0;
 	
 	TCHAR tszText[256];
-	UINT n = 0;
-	while (true) {
+	for (UINT n = 0; ; ++n) {
 		MENUITEMINFO mii = {
 			sizeof(mii),
 			/*MIIM_FTYPE |*/ MIIM_ID | MIIM_STATE |
@@ -105,25 +104,15 @@ HMENU qs::MenuManagerImpl::cloneMenu(HMENU hmenu, bool bBar)
 				reinterpret_cast<UINT_PTR>(hmenuSub), tszText);
 		}
 		else {
-			UINT nFlags = mii.fType == MFT_STRING ? MF_STRING : MF_SEPARATOR;
-			::AppendMenu(hmenuNew, nFlags, mii.wID, tszText);
+			if (mii.fType & MFT_SEPARATOR)
+				::AppendMenu(hmenuNew, MF_SEPARATOR, -1, 0);
+			else
+				::AppendMenu(hmenuNew, MF_STRING, mii.wID, tszText);
 		}
 		if (mii.dwItemData != 0) {
-			MENUITEMINFO miiNew = {
-				sizeof(miiNew),
-				MIIM_DATA,
-				0,
-				0,
-				0,
-				0,
-				0,
-				0,
-				mii.dwItemData
-			};
-			::SetMenuItemInfo(hmenuNew, n, TRUE, &miiNew);
+			mii.fMask = MIIM_DATA;
+			::SetMenuItemInfo(hmenuNew, n, TRUE, &mii);
 		}
-		
-		++n;
 	}
 	
 	return hmenuNew;
