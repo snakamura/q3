@@ -11,6 +11,7 @@
 *((<送信してもメッセージが送信されません|URL:MessagesAreNotSent.html>))
 *((<IMAP4アカウントで送信するとエラーになります|URL:FailToSendOnImap4Account.html>))
 *((<なぜ自分が送信したメッセージを受信するのですか?|URL:WhyReceiveSentMessage.html>))
+*((<なぜSSLの設定項目がグレーアウトしているのですか?|URL:WhyCantUseSSL.html>))
 *((<なぜ日本語化したのにメニューやツールバーが英語のままなのですか?|URL:WhyMenuAndToolbarAreNotLocalized.html>))
 *((<Windows CEで外部ストレージに実行ファイルやメールボックスを置くとハングアップします|URL:WindowsCEExternalStorage.html>))
 *((<IMAP4アカウントでサーバからのレスポンスのパースに失敗します|URL:FailToParseImap4Response.html>))
