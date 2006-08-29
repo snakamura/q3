@@ -734,15 +734,15 @@ bool qm::MessageCreator::setField(Part* pPart,
 	assert(pwszName);
 	assert(pwszValue);
 	
+	Part partDummy;
 	switch (type) {
 	case FIELDTYPE_ADDRESSLIST:
 		{
 			UTF8Parser field(pwszValue);
-			Part dummy;
-			if (!dummy.setField(pwszName, field))
+			if (!partDummy.setField(pwszName, field))
 				return false;
 			AddressListParser addressList(AddressListParser::FLAG_ALLOWUTF8);
-			if (dummy.getField(pwszName, &addressList) != Part::FIELD_EXIST)
+			if (partDummy.getField(pwszName, &addressList) != Part::FIELD_EXIST)
 				return false;
 			if (!pPart->replaceField(pwszName, addressList))
 				return false;
@@ -751,10 +751,10 @@ bool qm::MessageCreator::setField(Part* pPart,
 	case FIELDTYPE_CONTENTTYPE:
 		{
 			DummyParser field(pwszValue, DummyParser::FLAG_TSPECIAL);
-			if (!pPart->setField(pwszName, field))
+			if (!partDummy.setField(pwszName, field))
 				return false;
 			ContentTypeParser contentType;
-			if (pPart->getField(pwszName, &contentType) != Part::FIELD_EXIST)
+			if (partDummy.getField(pwszName, &contentType) != Part::FIELD_EXIST)
 				return false;
 			if (!pPart->replaceField(pwszName, contentType))
 				return false;
@@ -770,10 +770,10 @@ bool qm::MessageCreator::setField(Part* pPart,
 	case FIELDTYPE_CONTENTDISPOSITION:
 		{
 			DummyParser field(pwszValue, DummyParser::FLAG_TSPECIAL);
-			if (!pPart->setField(pwszName, field))
+			if (!partDummy.setField(pwszName, field))
 				return false;
 			ContentDispositionParser contentDisposition;
-			if (pPart->getField(pwszName, &contentDisposition) != Part::FIELD_EXIST)
+			if (partDummy.getField(pwszName, &contentDisposition) != Part::FIELD_EXIST)
 				return false;
 			if (!pPart->replaceField(pwszName, contentDisposition))
 				return false;
@@ -782,10 +782,10 @@ bool qm::MessageCreator::setField(Part* pPart,
 	case FIELDTYPE_MESSAGEID:
 		{
 			DummyParser field(pwszValue, 0);
-			if (!pPart->setField(pwszName, field))
+			if (!partDummy.setField(pwszName, field))
 				return false;
 			MessageIdParser messageId;
-			if (pPart->getField(pwszName, &messageId) != Part::FIELD_EXIST)
+			if (partDummy.getField(pwszName, &messageId) != Part::FIELD_EXIST)
 				return false;
 			if (!pPart->replaceField(pwszName, messageId))
 				return false;
@@ -794,10 +794,10 @@ bool qm::MessageCreator::setField(Part* pPart,
 	case FIELDTYPE_REFERENCES:
 		{
 			DummyParser field(pwszValue, 0);
-			if (!pPart->setField(pwszName, field))
+			if (!partDummy.setField(pwszName, field))
 				return false;
 			ReferencesParser references;
-			if (pPart->getField(pwszName, &references) != Part::FIELD_EXIST)
+			if (partDummy.getField(pwszName, &references) != Part::FIELD_EXIST)
 				return false;
 			if (!pPart->replaceField(pwszName, references))
 				return false;
@@ -806,10 +806,10 @@ bool qm::MessageCreator::setField(Part* pPart,
 	case FIELDTYPE_XQMAILATTACHMENT:
 		{
 			DummyParser field(pwszValue, 0);
-			if (!pPart->setField(pwszName, field))
+			if (!partDummy.setField(pwszName, field))
 				return false;
 			XQMAILAttachmentParser attachment;
-			if (pPart->getField(pwszName, &attachment) != Part::FIELD_EXIST)
+			if (partDummy.getField(pwszName, &attachment) != Part::FIELD_EXIST)
 				return false;
 			if (!pPart->replaceField(pwszName, attachment))
 				return false;
