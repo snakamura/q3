@@ -150,7 +150,7 @@ private:
 	Imap4Factory();
 
 public:
-	virtual ~Imap4Factory();
+	~Imap4Factory();
 
 protected:
 	virtual std::auto_ptr<qm::ProtocolDriver> createDriver(qm::Account* pAccount,

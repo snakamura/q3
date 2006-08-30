@@ -30,6 +30,7 @@
 namespace qm {
 
 class PasswordCallback;
+class ErrorCallback;
 	class SessionCallback;
 		class ReceiveSessionCallback;
 		class SendSessionCallback;
@@ -73,11 +74,29 @@ public:
 
 /****************************************************************************
  *
+ * ErrorCallback
+ *
+ */
+
+class QMEXPORTCLASS ErrorCallback
+{
+public:
+	virtual ~ErrorCallback();
+
+public:
+	virtual void addError(const SessionErrorInfo& info) = 0;
+};
+
+
+/****************************************************************************
+ *
  * SessionCallback
  *
  */
 
-class QMEXPORTCLASS SessionCallback : public PasswordCallback
+class QMEXPORTCLASS SessionCallback :
+	public PasswordCallback,
+	public ErrorCallback
 {
 public:
 	virtual ~SessionCallback();
@@ -91,7 +110,6 @@ public:
 	virtual void setSubRange(size_t nMin,
 							 size_t nMax) = 0;
 	virtual void setMessage(const WCHAR* pwszMessage) = 0;
-	virtual void addError(const SessionErrorInfo& info) = 0;
 };
 
 
@@ -198,9 +216,7 @@ public:
 
 protected:
 	ReceiveSessionFactory();
-
-public:
-	virtual ~ReceiveSessionFactory();
+	~ReceiveSessionFactory();
 
 public:
 	static std::auto_ptr<ReceiveSession> getSession(const WCHAR* pwszName);
@@ -302,9 +318,7 @@ public:
 
 protected:
 	SendSessionFactory();
-
-public:
-	virtual ~SendSessionFactory();
+	~SendSessionFactory();
 
 public:
 	static std::auto_ptr<SendSession> getSession(const WCHAR* pwszName);
@@ -350,6 +364,7 @@ public:
 	NormalFolder* getFolder() const;
 	const WCHAR* getMessage() const;
 	unsigned int getCode() const;
+	const WCHAR** getDescriptions() const;
 	const WCHAR* getDescription(size_t n) const;
 	size_t getDescriptionCount() const;
 

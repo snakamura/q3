@@ -353,26 +353,24 @@ BEGIN
     COMBOBOX        IDC_SYNCFILTER,50,5,42,30,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "編集(&E)...",IDC_EDIT,97,5,35,12
-    CONTROL         "送信前に受信サーバに接続する(&C)",
-                    IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,125,10
     CONTROL         "Message-Idを付加(&D)",IDC_ADDMESSAGEID,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,125,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,125,10
     CONTROL         "Content-Transfer-Encoding: 8bitを使用(&U)",IDC_USE8BIT,
                     "Button",BS_AUTOCHECKBOX | BS_TOP | BS_MULTILINE | 
-                    WS_TABSTOP,5,45,130,17
+                    WS_TABSTOP,5,35,130,17
     CONTROL         "自動で振り分ける(&L)",IDC_AUTOAPPLYRULES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,55,95,10
     CONTROL         "既存のメッセージも振り分ける(&X)",
                     IDC_AUTOAPPLYRULESTOEXISTING,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,15,75,110,10
+                    WS_TABSTOP,15,65,110,10
     CONTROL         "自分のアドレスからのメールは送信済みとみなす(&R)",
                     IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | BS_TOP | 
-                    BS_MULTILINE | WS_TABSTOP,5,85,120,17
-    LTEXT           "同一性(&I)",IDC_STATIC,5,107,30,8
-    EDITTEXT        IDC_IDENTITY,50,105,82,12,ES_AUTOHSCROLL
-    LTEXT           "タイムアウト(&T)",IDC_STATIC,5,122,45,8
-    EDITTEXT        IDC_TIMEOUT,50,121,45,12,ES_AUTOHSCROLL | ES_NUMBER
+                    BS_MULTILINE | WS_TABSTOP,5,75,120,17
+    LTEXT           "同一性(&I)",IDC_STATIC,5,97,30,8
+    EDITTEXT        IDC_IDENTITY,50,95,82,12,ES_AUTOHSCROLL
+    LTEXT           "タイムアウト(&T)",IDC_STATIC,5,112,45,8
+    EDITTEXT        IDC_TIMEOUT,50,110,30,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 137, 153
@@ -789,11 +787,8 @@ BEGIN
     CONTROL         "送信(&E)",IDC_SEND,"Button",BS_AUTORADIOBUTTON,10,105,
                     40,10
     GROUPBOX        "タイプ",IDC_STATIC,5,75,80,45
-    CONTROL         "送信前に受信サーバに接続する(&C)",
-                    IDC_CONNECTRECEIVEBEFORESEND,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,121,125,10
-    DEFPUSHBUTTON   "OK",IDOK,27,135,50,12
-    PUSHBUTTON      "キャンセル",IDCANCEL,82,135,50,12
+    DEFPUSHBUTTON   "OK",IDOK,27,125,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,82,125,50,12
 END
 
 IDD_GOROUNDDIALUP DIALOG DISCARDABLE  0, 0, 137, 153

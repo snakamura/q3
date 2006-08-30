@@ -925,8 +925,6 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 150);
 	updateFilter();
 	
-	sendDlgItemMessage(IDC_CONNECTRECEIVEHOSTBEFORESEND, BM_SETCHECK,
-		pSubAccount_->isConnectReceiveBeforeSend() ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_TREATASSENT, BM_SETCHECK,
 		pSubAccount_->isTreatAsSent() ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_ADDMESSAGEID, BM_SETCHECK,
@@ -964,8 +962,6 @@ LRESULT qm::AccountAdvancedPage::onOk()
 	if (wstrSyncFilter.get())
 		pSubAccount_->setSyncFilterName(wstrSyncFilter.get());
 	
-	pSubAccount_->setConnectReceiveBeforeSend(
-		sendDlgItemMessage(IDC_CONNECTRECEIVEHOSTBEFORESEND, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->setTreatAsSent(
 		sendDlgItemMessage(IDC_TREATASSENT, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->setAddMessageId(

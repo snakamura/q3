@@ -135,7 +135,7 @@ private:
 	NntpSendSessionFactory();
 
 public:
-	virtual ~NntpSendSessionFactory();
+	~NntpSendSessionFactory();
 
 public:
 	virtual std::auto_ptr<qm::SendSession> createSession();

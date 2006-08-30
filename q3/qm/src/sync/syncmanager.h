@@ -126,21 +126,12 @@ private:
 class SendSyncItem : public SyncItem
 {
 public:
-	enum ConnectReceiveBeforeSend {
-		CRBS_NONE,
-		CRBS_TRUE,
-		CRBS_FALSE
-	};
-
-public:
 	SendSyncItem(Account* pAccount,
 				 SubAccount* pSubAccount,
-				 ConnectReceiveBeforeSend crbs,
 				 const WCHAR* pwszMessageId);
 	virtual ~SendSyncItem();
 
 public:
-	bool isConnectReceiveBeforeSend() const;
 	const WCHAR* getMessageId() const;
 
 public:
@@ -153,7 +144,6 @@ private:
 
 private:
 	NormalFolder* pOutbox_;
-	bool bConnectReceiveBeforeSend_;
 	qs::wstring_ptr wstrMessageId_;
 };
 
@@ -278,7 +268,6 @@ public:
 					const WCHAR* pwszFilterName);
 	void addSend(Account* pAccount,
 				 SubAccount* pSubAccount,
-				 SendSyncItem::ConnectReceiveBeforeSend crbs,
 				 const WCHAR* pwszMessageId);
 
 private:
@@ -423,6 +412,9 @@ private:
 								 Account::Host host,
 								 const WCHAR* pwszPassword,
 								 bool bPermanent);
+		
+	public:
+		virtual void addError(const SessionErrorInfo& info);
 	
 	public:
 		virtual bool isCanceled(bool bForce);
@@ -433,7 +425,6 @@ private:
 		virtual void setSubRange(size_t nMin,
 								 size_t nMax);
 		virtual void setMessage(const WCHAR* pwszMessage);
-		virtual void addError(const SessionErrorInfo& info);
 	
 	public:
 		virtual void notifyNewMessage(MessagePtr ptr);
@@ -465,6 +456,9 @@ private:
 								 bool bPermanent);
 	
 	public:
+		virtual void addError(const SessionErrorInfo& info);
+	
+	public:
 		virtual bool isCanceled(bool bForce);
 		virtual void setPos(size_t n);
 		virtual void setRange(size_t nMin,
@@ -473,7 +467,6 @@ private:
 		virtual void setSubRange(size_t nMin,
 								 size_t nMax);
 		virtual void setMessage(const WCHAR* pwszMessage);
-		virtual void addError(const SessionErrorInfo& info);
 	
 	private:
 		SendSessionCallbackImpl(const SendSessionCallbackImpl&);

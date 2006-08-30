@@ -58,7 +58,6 @@ struct qm::SubAccountImpl
 	SubAccount::Secure secure_[Account::HOST_SIZE];
 	bool bLog_[Account::HOST_SIZE];
 	long nTimeout_;
-	bool bConnectReceiveBeforeSend_;
 	bool bTreatAsSent_;
 	bool bAddMessageId_;
 	unsigned int nAutoApplyRules_;
@@ -102,7 +101,6 @@ void qm::SubAccountImpl::load()
 	LOAD_INT(L"Send",		L"Log",							bLog_[Account::HOST_SEND],		bool,					nSendLog					);
 	LOAD_INT(L"Receive",	L"Log",							bLog_[Account::HOST_RECEIVE],	bool,					nReceiveLog					);
 	LOAD_INT(L"Global",		L"Timeout",						nTimeout_,						long,					nTimeout					);
-	LOAD_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_,		bool,					nConnectReceiveBeforeSend	);
 	LOAD_INT(L"Global",		L"TreatAsSent",					bTreatAsSent_,					bool,					nTreatAsSent				);
 	LOAD_INT(L"Global",		L"AddMessageId",				bAddMessageId_,					bool,					nAddMessageId				);
 	LOAD_INT(L"Global",		L"AutoApplyRules",				nAutoApplyRules_,				unsigned int,			nAutoApplyRules				);
@@ -142,7 +140,6 @@ qm::SubAccount::SubAccount(Account* pAccount,
 	pImpl_->bLog_[Account::HOST_SEND] = false;
 	pImpl_->bLog_[Account::HOST_RECEIVE] = false;
 	pImpl_->nTimeout_ = 60;
-	pImpl_->bConnectReceiveBeforeSend_ = false;
 	pImpl_->bTreatAsSent_ = true;
 	pImpl_->bAddMessageId_ = true;
 	pImpl_->nSslOption_ = 0;
@@ -310,16 +307,6 @@ long qm::SubAccount::getTimeout() const
 void qm::SubAccount::setTimeout(long nTimeout)
 {
 	pImpl_->nTimeout_ = nTimeout;
-}
-
-bool qm::SubAccount::isConnectReceiveBeforeSend() const
-{
-	return pImpl_->bConnectReceiveBeforeSend_;
-}
-
-void qm::SubAccount::setConnectReceiveBeforeSend(bool bConnectReceiveBeforeSend)
-{
-	pImpl_->bConnectReceiveBeforeSend_ = bConnectReceiveBeforeSend;
 }
 
 bool qm::SubAccount::isTreatAsSent() const
@@ -659,7 +646,6 @@ bool qm::SubAccount::save(bool bForce) const
 	SAVE_INT(L"Receive",	L"Secure",						secure_[Account::HOST_RECEIVE]	);
 	SAVE_INT(L"Send",		L"Log",							bLog_[Account::HOST_SEND]		);
 	SAVE_INT(L"Receive",	L"Log",							bLog_[Account::HOST_RECEIVE]	);
-	SAVE_INT(L"Global",		L"ConnectReceiveBeforeSend",	bConnectReceiveBeforeSend_		);
 	SAVE_INT(L"Global",		L"TreatAsSent",					bTreatAsSent_					);
 	SAVE_INT(L"Global",		L"AddMessageId",				bAddMessageId_					);
 	SAVE_INT(L"Global",		L"AutoApplyRules",				nAutoApplyRules_				);

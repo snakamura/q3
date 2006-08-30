@@ -188,7 +188,7 @@ private:
 	RssReceiveSessionFactory();
 
 public:
-	virtual ~RssReceiveSessionFactory();
+	~RssReceiveSessionFactory();
 
 protected:
 	virtual std::auto_ptr<qm::ReceiveSession> createSession();

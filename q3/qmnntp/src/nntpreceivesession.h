@@ -185,7 +185,7 @@ private:
 	NntpReceiveSessionFactory();
 
 public:
-	virtual ~NntpReceiveSessionFactory();
+	~NntpReceiveSessionFactory();
 
 protected:
 	virtual std::auto_ptr<qm::ReceiveSession> createSession();

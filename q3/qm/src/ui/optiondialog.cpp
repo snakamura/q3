@@ -4960,9 +4960,6 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	else if (pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
 		Button_SetCheck(getDlgItem(IDC_RECEIVE), BST_CHECKED);
 	
-	if (pEntry_->getConnectReceiveBeforeSend() == GoRoundEntry::CRBS_TRUE)
-		Button_SetCheck(getDlgItem(IDC_CONNECTRECEIVEBEFORESEND), BST_CHECKED);
-	
 	init(false);
 	updateState();
 	
@@ -5013,16 +5010,11 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	if (!*pwszFilter)
 		pwszFilter = 0;
 	
-	GoRoundEntry::ConnectReceiveBeforeSend crbs =
-		Button_GetCheck(getDlgItem(IDC_CONNECTRECEIVEBEFORESEND)) == BST_CHECKED ?
-		GoRoundEntry::CRBS_TRUE : GoRoundEntry::CRBS_NONE;
-	
 	pEntry_->setAccount(wstrAccount.get());
 	pEntry_->setSubAccount(pwszSubAccount);
 	pEntry_->setFolder(folder);
 	pEntry_->setFlags(nFlags);
 	pEntry_->setFilter(pwszFilter);
-	pEntry_->setConnectReceiveBeforeSend(crbs);
 	
 	return DefaultDialog::onOk();
 }

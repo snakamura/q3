@@ -58,7 +58,7 @@ private:
 	RssFactory();
 
 public:
-	virtual ~RssFactory();
+	~RssFactory();
 
 protected:
 	virtual std::auto_ptr<qm::ProtocolDriver> createDriver(qm::Account* pAccount,

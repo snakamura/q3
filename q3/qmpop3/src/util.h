@@ -32,12 +32,14 @@ class Util
 {
 public:
 	static void reportError(Pop3* pPop3,
-							qm::SessionCallback* pSessionCallback,
+							qm::ErrorCallback* pCallback,
 							qm::Account* pAccount,
 							qm::SubAccount* pSubAccount,
 							qm::NormalFolder* pFolder,
 							unsigned int nPop3Error);
-	static Pop3::Secure getSecure(qm::SubAccount* pSubAccount);
+	static Pop3::Secure getSecure(qm::SubAccount* pSubAccount,
+								  qm::Account::Host host);
+	static Pop3::Secure getSecure(qm::SubAccount::Secure secure);
 	static qm::PasswordState getUserInfo(qm::SubAccount* pSubAccount,
 										 qm::Account::Host host,
 										 qm::PasswordCallback* pPasswordCallback,

@@ -351,25 +351,23 @@ BEGIN
     COMBOBOX        IDC_SYNCFILTER,45,5,120,30,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "編集(&E)...",IDC_EDIT,170,5,50,12
-    CONTROL         "送信前に受信サーバに接続する(&C)",
-                    IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,20,125,10
     CONTROL         "Message-Idを付加(&D)",IDC_ADDMESSAGEID,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,30,125,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,20,125,10
     CONTROL         "Content-Transfer-Encoding: 8bitを使用(&U)",IDC_USE8BIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,40,131,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,30,131,10
     CONTROL         "自動で振り分ける(&L)",IDC_AUTOAPPLYRULES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,95,10
     CONTROL         "既存のメッセージも振り分ける(&X)",
                     IDC_AUTOAPPLYRULESTOEXISTING,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,15,60,125,10
+                    WS_TABSTOP,15,50,125,10
     CONTROL         "自分のアドレスからのメールは送信済みとみなす(&R)",
                     IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    70,145,10
-    LTEXT           "同一性(&I)",IDC_STATIC,5,86,30,8
-    EDITTEXT        IDC_IDENTITY,45,84,95,12,ES_AUTOHSCROLL
-    LTEXT           "タイムアウト(&T)",IDC_STATIC,145,86,30,8
-    EDITTEXT        IDC_TIMEOUT,180,84,40,12,ES_AUTOHSCROLL | ES_NUMBER
+                    60,145,10
+    LTEXT           "同一性(&I)",IDC_STATIC,5,77,30,8
+    EDITTEXT        IDC_IDENTITY,40,75,100,12,ES_AUTOHSCROLL
+    LTEXT           "タイムアウト(&T)",IDC_STATIC,145,77,30,8
+    EDITTEXT        IDC_TIMEOUT,180,75,40,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 285, 82
@@ -746,7 +744,7 @@ BEGIN
     PUSHBUTTON      "ダイアルアップ(&L)...",IDC_DIALUP,100,85,60,12
 END
 
-IDD_GOROUNDENTRY DIALOG DISCARDABLE  0, 0, 291, 82
+IDD_GOROUNDENTRY DIALOGEX 0, 0, 291, 82
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE 0x80000000L
 CAPTION "エントリ"
@@ -774,9 +772,6 @@ BEGIN
     CONTROL         "送信(&E)",IDC_SEND,"Button",BS_AUTORADIOBUTTON,155,35,
                     40,10
     GROUPBOX        "タイプ",IDC_STATIC,150,5,80,45
-    CONTROL         "送信前に受信サーバに接続する(&C)",
-                    IDC_CONNECTRECEIVEBEFORESEND,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,150,55,135,10
 END
 
 IDD_GOROUNDDIALUP DIALOG DISCARDABLE  0, 0, 215, 102

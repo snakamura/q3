@@ -39,6 +39,17 @@ qm::PasswordCallback::~PasswordCallback()
 
 /****************************************************************************
  *
+ * ErrorCallback
+ *
+ */
+
+qm::ErrorCallback::~ErrorCallback()
+{
+}
+
+
+/****************************************************************************
+ *
  * SessionCallback
  *
  */
@@ -361,6 +372,7 @@ qm::SessionErrorInfo::SessionErrorInfo(Account* pAccount,
 	ppwszDescription_(pwszDescriptions),
 	nDescriptionCount_(nDescriptionCount)
 {
+	assert(pwszMessage);
 }
 
 qm::SessionErrorInfo::~SessionErrorInfo()
@@ -390,6 +402,11 @@ const WCHAR* qm::SessionErrorInfo::getMessage() const
 unsigned int qm::SessionErrorInfo::getCode() const
 {
 	return nCode_;
+}
+
+const WCHAR** qm::SessionErrorInfo::getDescriptions() const
+{
+	return ppwszDescription_;
 }
 
 const WCHAR* qm::SessionErrorInfo::getDescription(size_t n) const

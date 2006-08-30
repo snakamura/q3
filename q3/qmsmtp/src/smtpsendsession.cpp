@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmconnection.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
 #include <qmmessage.h>
@@ -41,6 +42,7 @@ using namespace qs;
  */
 
 qmsmtp::SmtpSendSession::SmtpSendSession() :
+	pDocument_(0),
 	pAccount_(0),
 	pSubAccount_(0),
 	pLogger_(0),
@@ -59,10 +61,12 @@ bool qmsmtp::SmtpSendSession::init(Document* pDocument,
 								   Logger* pLogger,
 								   SendSessionCallback* pCallback)
 {
+	assert(pDocument);
 	assert(pAccount);
 	assert(pSubAccount);
 	assert(pCallback);
 	
+	pDocument_ = pDocument;
 	pAccount_ = pAccount;
 	pSubAccount_ = pSubAccount;
 	pLogger_ = pLogger;
@@ -84,6 +88,11 @@ bool qmsmtp::SmtpSendSession::connect()
 	
 	Log log(pLogger_, L"qmsmtp::SmtpSendSession");
 	log.debug(L"Connecting to the server...");
+	
+	if (pSubAccount_->getPropertyInt(L"Smtp", L"PopBeforeSmtp")) {
+		if (!popBeforeSmtp())
+			return false;
+	}
 	
 	pSmtp_.reset(new Smtp(pSubAccount_->getTimeout(), pCallback_.get(),
 		pCallback_.get(), pCallback_.get(), pLogger_));
@@ -247,6 +256,142 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	return true;
 }
 
+bool qmsmtp::SmtpSendSession::popBeforeSmtp()
+{
+	Log log(pLogger_, L"qmsmtp::SmtpSendSession");
+	log.debug(L"Processing POP before SMTP...");
+	
+	wstring_ptr wstrProtocol;
+	wstring_ptr wstrHost;
+	short nPort = 110;
+	SubAccount::Secure secure = SubAccount::SECURE_NONE;
+	bool bApop = false;
+	
+	bool bCustom = pSubAccount_->getPropertyInt(L"Smtp", L"PopBeforeSmtpCustom") != 0;
+	if (bCustom) {
+		wstrProtocol = pSubAccount_->getPropertyString(L"Smtp", L"PopBeforeSmtpProtocol");
+		wstrHost = pSubAccount_->getPropertyString(L"Smtp", L"PopBeforeSmtpHost");
+		nPort = pSubAccount_->getPropertyInt(L"Smtp", L"PopBeforeSmtpPort");
+		int nSecure = pSubAccount_->getPropertyInt(L"Smtp", L"PopBeforeSmtpSecure");
+		if (SubAccount::SECURE_NONE <= nSecure && nSecure <= SubAccount::SECURE_STARTTLS)
+			secure = static_cast<SubAccount::Secure>(nSecure);
+		bApop = pSubAccount_->getPropertyInt(L"Smtp", L"PopBeforeSmtpApop") != 0;
+	}
+	else {
+		wstrProtocol = allocWString(pAccount_->getType(Account::HOST_RECEIVE));
+		wstrHost = allocWString(pSubAccount_->getHost(Account::HOST_RECEIVE));
+		nPort = pSubAccount_->getPort(Account::HOST_RECEIVE);
+		secure = pSubAccount_->getSecure(Account::HOST_SEND);
+		bApop = pSubAccount_->getPropertyInt(L"Pop3", L"Apop") != 0;
+	}
+	
+	class Callback :
+		public SocketCallbackImpl,
+		public AbstractSSLSocketCallback,
+		public ConnectionCallback
+	{
+	public:
+		Callback(SubAccount* pSubAccount,
+				 const WCHAR* pwszHost,
+				 bool bCustom,
+				 const Security* pSecurity,
+				 SendSessionCallback* pSessionCallback) :
+			SocketCallbackImpl(pSessionCallback),
+			AbstractSSLSocketCallback(pSecurity),
+			pSubAccount_(pSubAccount),
+			pwszHost_(pwszHost),
+			bCustom_(bCustom),
+			state_(PASSWORDSTATE_ONETIME)
+		{
+		}
+		
+		virtual ~Callback()
+		{
+		}
+	
+	public:
+		virtual void addError(const SessionErrorInfo& info)
+		{
+			SessionErrorInfo i(pSubAccount_->getAccount(),
+				pSubAccount_, 0, info.getMessage(), info.getCode(),
+				info.getDescriptions(), info.getDescriptionCount());
+			getSessionCallback()->addError(i);
+		}
+
+	public:
+		virtual bool getUserInfo(wstring_ptr* pwstrUserName,
+								 wstring_ptr* pwstrPassword)
+		{
+			assert(pwstrUserName);
+			assert(pwstrPassword);
+			
+			Account::Host host = getUserHost();
+			*pwstrUserName = allocWString(pSubAccount_->getUserName(host));
+			state_ = getSessionCallback()->getPassword(pSubAccount_, host, pwstrPassword);
+			return state_ != PASSWORDSTATE_NONE;
+		}
+		
+		virtual void setPassword(const WCHAR* pwszPassword)
+		{
+			if (state_ == PASSWORDSTATE_SESSION || state_ == PASSWORDSTATE_SAVE)
+				getSessionCallback()->setPassword(pSubAccount_, getUserHost(),
+					pwszPassword, state_ == PASSWORDSTATE_SAVE);
+		}
+		
+		virtual void authenticating()
+		{
+			setMessage(IDS_AUTHENTICATING);
+		}
+	
+	protected:
+		virtual unsigned int getOption()
+		{
+			return pSubAccount_->getSslOption();
+		}
+		
+		virtual const WCHAR* getHost()
+		{
+			return pwszHost_;
+		}
+	
+	private:
+		Account::Host getUserHost() const
+		{
+			return bCustom_ ? Account::HOST_SEND : Account::HOST_RECEIVE;
+		}
+	
+	private:
+		SubAccount* pSubAccount_;
+		const WCHAR* pwszHost_;
+		bool bCustom_;
+		qm::PasswordState state_;
+	} callback(pSubAccount_, wstrHost.get(), bCustom,
+		pDocument_->getSecurity(), pSessionCallback_);
+	
+	std::auto_ptr<Connection> pConnection(ConnectionFactory::getConnection(
+		wstrProtocol.get(), pSubAccount_->getTimeout(),
+		&callback, &callback, &callback, pLogger_));
+	if (!pConnection.get()) {
+		log.errorf(L"Could not create connection for %s.", wstrProtocol.get());
+		return false;
+	}
+	if (!pConnection->setProperty(L"Apop", bApop ? L"true" : L"false") ||
+		!pConnection->connect(wstrHost.get(), nPort, secure)) {
+		log.error(L"Failed to process POP before SMTP.");
+		return false;
+	}
+	pConnection->disconnect();
+	
+	int nWait = pSubAccount_->getPropertyInt(L"Smtp", L"PopBeforeSmtpWait");
+	for (int n = 0; n < nWait; n += 100) {
+		if (pSessionCallback_->isCanceled(false))
+			return true;
+		::Sleep(100);
+	}
+	
+	return true;
+}
+
 void qmsmtp::SmtpSendSession::reportError()
 {
 	assert(pSmtp_.get());
@@ -313,6 +458,58 @@ void qmsmtp::SmtpSendSession::reportError()
 
 /****************************************************************************
  *
+ * SmtpSendSession::SocketCallbackImpl
+ *
+ */
+
+qmsmtp::SmtpSendSession::SocketCallbackImpl::SocketCallbackImpl(SendSessionCallback* pSessionCallback) :
+	pSessionCallback_(pSessionCallback)
+{
+}
+
+qmsmtp::SmtpSendSession::SocketCallbackImpl::~SocketCallbackImpl()
+{
+}
+
+void qmsmtp::SmtpSendSession::SocketCallbackImpl::setMessage(UINT nId)
+{
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
+	pSessionCallback_->setMessage(wstrMessage.get());
+}
+
+bool qmsmtp::SmtpSendSession::SocketCallbackImpl::isCanceled(bool bForce) const
+{
+	return pSessionCallback_->isCanceled(bForce);
+}
+
+void qmsmtp::SmtpSendSession::SocketCallbackImpl::initialize()
+{
+	setMessage(IDS_INITIALIZE);
+}
+
+void qmsmtp::SmtpSendSession::SocketCallbackImpl::lookup()
+{
+	setMessage(IDS_LOOKUP);
+}
+
+void qmsmtp::SmtpSendSession::SocketCallbackImpl::connecting()
+{
+	setMessage(IDS_CONNECTING);
+}
+
+void qmsmtp::SmtpSendSession::SocketCallbackImpl::connected()
+{
+	setMessage(IDS_CONNECTED);
+}
+
+SendSessionCallback* qmsmtp::SmtpSendSession::SocketCallbackImpl::getSessionCallback() const
+{
+	return pSessionCallback_;
+}
+
+
+/****************************************************************************
+ *
  * SmtpSendSession::CallbackImpl
  *
  */
@@ -320,9 +517,9 @@ void qmsmtp::SmtpSendSession::reportError()
 qmsmtp::SmtpSendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
 													const Security* pSecurity,
 													SendSessionCallback* pSessionCallback) :
+	SocketCallbackImpl(pSessionCallback),
 	DefaultSSLSocketCallback(pSubAccount, Account::HOST_SEND, pSecurity),
 	pSubAccount_(pSubAccount),
-	pSessionCallback_(pSessionCallback),
 	state_(PASSWORDSTATE_ONETIME)
 {
 }
@@ -331,49 +528,21 @@ qmsmtp::SmtpSendSession::CallbackImpl::~CallbackImpl()
 {
 }
 
-void qmsmtp::SmtpSendSession::CallbackImpl::setMessage(UINT nId)
-{
-	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
-	pSessionCallback_->setMessage(wstrMessage.get());
-}
-
-bool qmsmtp::SmtpSendSession::CallbackImpl::isCanceled(bool bForce) const
-{
-	return pSessionCallback_->isCanceled(bForce);
-}
-
-void qmsmtp::SmtpSendSession::CallbackImpl::initialize()
-{
-	setMessage(IDS_INITIALIZE);
-}
-
-void qmsmtp::SmtpSendSession::CallbackImpl::lookup()
-{
-	setMessage(IDS_LOOKUP);
-}
-
-void qmsmtp::SmtpSendSession::CallbackImpl::connecting()
-{
-	setMessage(IDS_CONNECTING);
-}
-
-void qmsmtp::SmtpSendSession::CallbackImpl::connected()
-{
-	setMessage(IDS_CONNECTED);
-}
-
 bool qmsmtp::SmtpSendSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
 														wstring_ptr* pwstrPassword)
 {
 	assert(pwstrUserName);
 	assert(pwstrPassword);
 	
+	if (pSubAccount_->getPropertyInt(L"Smtp", L"PopBeforeSmtp"))
+		return true;
+	
 	const WCHAR* pwszUserName = pSubAccount_->getUserName(Account::HOST_SEND);
 	if (!pwszUserName || !*pwszUserName)
 		return true;
 	*pwstrUserName = allocWString(pwszUserName);
 	
-	state_ = pSessionCallback_->getPassword(
+	state_ = getSessionCallback()->getPassword(
 		pSubAccount_, Account::HOST_SEND, pwstrPassword);
 	
 	return state_ != PASSWORDSTATE_NONE;
@@ -382,7 +551,7 @@ bool qmsmtp::SmtpSendSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserNa
 void qmsmtp::SmtpSendSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
 {
 	if (state_ == PASSWORDSTATE_SESSION || state_ == PASSWORDSTATE_SAVE)
-		pSessionCallback_->setPassword(pSubAccount_, Account::HOST_SEND,
+		getSessionCallback()->setPassword(pSubAccount_, Account::HOST_SEND,
 			pwszPassword, state_ == PASSWORDSTATE_SAVE);
 }
 
@@ -404,12 +573,12 @@ void qmsmtp::SmtpSendSession::CallbackImpl::authenticating()
 void qmsmtp::SmtpSendSession::CallbackImpl::setRange(size_t nMin,
 													 size_t nMax)
 {
-	pSessionCallback_->setSubRange(nMin, nMax);
+	getSessionCallback()->setSubRange(nMin, nMax);
 }
 
 void qmsmtp::SmtpSendSession::CallbackImpl::setPos(size_t nPos)
 {
-	pSessionCallback_->setSubPos(nPos);
+	getSessionCallback()->setSubPos(nPos);
 }
 
 

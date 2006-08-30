@@ -48,6 +48,7 @@ public:
 	virtual bool sendMessage(qm::Message* pMessage);
 
 private:
+	bool popBeforeSmtp();
 	void reportError();
 
 private:
@@ -55,16 +56,11 @@ private:
 	SmtpSendSession& operator=(const SmtpSendSession&);
 
 private:
-	class CallbackImpl :
-		public qs::SocketCallback,
-		public qm::DefaultSSLSocketCallback,
-		public SmtpCallback
+	class SocketCallbackImpl : public qs::SocketCallback
 	{
 	public:
-		CallbackImpl(qm::SubAccount* pSubAccount,
-					 const qm::Security* pSecurity,
-					 qm::SendSessionCallback* pSessionCallback);
-		virtual ~CallbackImpl();
+		SocketCallbackImpl(qm::SendSessionCallback* pSessionCallback);
+		virtual ~SocketCallbackImpl();
 	
 	public:
 		void setMessage(UINT nId);
@@ -75,6 +71,28 @@ private:
 		virtual void lookup();
 		virtual void connecting();
 		virtual void connected();
+	
+	protected:
+		qm::SendSessionCallback* getSessionCallback() const;
+	
+	private:
+		SocketCallbackImpl(const SocketCallbackImpl&);
+		SocketCallbackImpl& operator=(const SocketCallbackImpl&);
+	
+	private:
+		qm::SendSessionCallback* pSessionCallback_;
+	};
+	
+	class CallbackImpl :
+		public SocketCallbackImpl,
+		public qm::DefaultSSLSocketCallback,
+		public SmtpCallback
+	{
+	public:
+		CallbackImpl(qm::SubAccount* pSubAccount,
+					 const qm::Security* pSecurity,
+					 qm::SendSessionCallback* pSessionCallback);
+		virtual ~CallbackImpl();
 	
 	public:
 		virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
@@ -94,13 +112,13 @@ private:
 	
 	private:
 		qm::SubAccount* pSubAccount_;
-		qm::SendSessionCallback* pSessionCallback_;
 		qm::PasswordState state_;
 	};
 
 private:
 	std::auto_ptr<Smtp> pSmtp_;
 	std::auto_ptr<CallbackImpl> pCallback_;
+	qm::Document* pDocument_;
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	qs::Logger* pLogger_;
@@ -145,7 +163,7 @@ private:
 	SmtpSendSessionFactory();
 
 public:
-	virtual ~SmtpSendSessionFactory();
+	~SmtpSendSessionFactory();
 
 public:
 	virtual std::auto_ptr<qm::SendSession> createSession();

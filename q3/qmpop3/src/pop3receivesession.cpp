@@ -107,7 +107,7 @@ bool qmpop3::Pop3ReceiveSession::connect()
 		pCallback_.get(), pCallback_.get(), pLogger_));
 	
 	bool bApop = pSubAccount_->getPropertyInt(L"Pop3", L"Apop") != 0;
-	Pop3::Secure secure = Util::getSecure(pSubAccount_);
+	Pop3::Secure secure = Util::getSecure(pSubAccount_, Account::HOST_RECEIVE);
 	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 		pSubAccount_->getPort(Account::HOST_RECEIVE), bApop, secure))
 		HANDLE_ERROR();

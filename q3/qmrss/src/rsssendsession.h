@@ -81,7 +81,7 @@ private:
 	RssSendSessionFactory();
 
 public:
-	virtual ~RssSendSessionFactory();
+	~RssSendSessionFactory();
 
 public:
 	virtual std::auto_ptr<qm::SendSession> createSession();

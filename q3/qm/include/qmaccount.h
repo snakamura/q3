@@ -434,8 +434,6 @@ public:
 	
 	long getTimeout() const;
 	void setTimeout(long nTimeout);
-	bool isConnectReceiveBeforeSend() const;
-	void setConnectReceiveBeforeSend(bool bConnectReceiveBeforeSend);
 	bool isTreatAsSent() const;
 	void setTreatAsSent(bool bTreatAsSent);
 	bool isAddMessageId() const;

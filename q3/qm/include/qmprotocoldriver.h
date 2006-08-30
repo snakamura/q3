@@ -111,9 +111,7 @@ class QMEXPORTCLASS ProtocolFactory
 {
 protected:
 	ProtocolFactory();
-
-public:
-	virtual ~ProtocolFactory();
+	~ProtocolFactory();
 
 public:
 	static std::auto_ptr<ProtocolDriver> getDriver(Account* pAccount,

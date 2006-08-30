@@ -24,15 +24,13 @@ using namespace qs;
  */
 
 void qmpop3::Util::reportError(Pop3* pPop3,
-							   SessionCallback* pSessionCallback,
+							   ErrorCallback* pCallback,
 							   Account* pAccount,
 							   SubAccount* pSubAccount,
 							   NormalFolder* pFolder,
 							   unsigned int nPop3Error)
 {
-	assert(pSessionCallback);
-	assert(pAccount);
-	assert(pSubAccount);
+	assert(pCallback);
 	
 	struct
 	{
@@ -104,14 +102,18 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
-	pSessionCallback->addError(info);
+	pCallback->addError(info);
 }
 
-Pop3::Secure qmpop3::Util::getSecure(SubAccount* pSubAccount)
+Pop3::Secure qmpop3::Util::getSecure(SubAccount* pSubAccount,
+									 qm::Account::Host host)
 {
 	assert(pSubAccount);
-	
-	SubAccount::Secure secure = pSubAccount->getSecure(Account::HOST_RECEIVE);
+	return getSecure(pSubAccount->getSecure(host));
+}
+
+Pop3::Secure qmpop3::Util::getSecure(SubAccount::Secure secure)
+{
 	switch (secure) {
 	case SubAccount::SECURE_SSL:
 		return Pop3::SECURE_SSL;

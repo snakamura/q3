@@ -99,7 +99,14 @@ public:
 	static bool isEqualFolderName(const WCHAR* pwszLhs,
 								  const WCHAR* pwszRhs,
 								  WCHAR cSeparator);
+	static void reportError(Imap4* pImap4,
+							qm::ErrorCallback* pCallback,
+							qm::Account* pAccount,
+							qm::SubAccount* pSubAccount,
+							qm::NormalFolder* pFolder,
+							unsigned int nImap4Error);
 	static Imap4::Secure getSecure(qm::SubAccount* pSubAccount);
+	static Imap4::Secure getSecure(qm::SubAccount::Secure secure);
 
 private:
 	static std::pair<FetchDataBody*, FetchDataBody*> getBodyFromBodyList(const BodyList& listBody,

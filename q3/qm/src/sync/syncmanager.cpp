@@ -117,31 +117,14 @@ NormalFolder* qm::ReceiveSyncItem::getFolder() const
 
 qm::SendSyncItem::SendSyncItem(Account* pAccount,
 							   SubAccount* pSubAccount,
-							   ConnectReceiveBeforeSend crbs,
 							   const WCHAR* pwszMessageId) :
 	SyncItem(pAccount, pSubAccount),
-	pOutbox_(0),
-	bConnectReceiveBeforeSend_(false)
+	pOutbox_(0)
 {
 	NormalFolder* pOutbox = static_cast<NormalFolder*>(
 		pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
 	if (pOutbox && pOutbox->isFlag(Folder::FLAG_SYNCABLE))
 		pOutbox_ = pOutbox;
-	
-	switch (crbs) {
-	case CRBS_NONE:
-		bConnectReceiveBeforeSend_ = pSubAccount->isConnectReceiveBeforeSend();
-		break;
-	case CRBS_TRUE:
-		bConnectReceiveBeforeSend_ = true;
-		break;
-	case CRBS_FALSE:
-		bConnectReceiveBeforeSend_ = false;
-		break;
-	default:
-		assert(false);
-		break;
-	}
 	
 	if (pwszMessageId)
 		wstrMessageId_ = allocWString(pwszMessageId);
@@ -149,11 +132,6 @@ qm::SendSyncItem::SendSyncItem(Account* pAccount,
 
 qm::SendSyncItem::~SendSyncItem()
 {
-}
-
-bool qm::SendSyncItem::isConnectReceiveBeforeSend() const
-{
-	return bConnectReceiveBeforeSend_;
 }
 
 const WCHAR* qm::SendSyncItem::getMessageId() const
@@ -375,11 +353,10 @@ void qm::StaticSyncData::addFolders(Account* pAccount,
 
 void qm::StaticSyncData::addSend(Account* pAccount,
 								 SubAccount* pSubAccount,
-								 SendSyncItem::ConnectReceiveBeforeSend crbs,
 								 const WCHAR* pwszMessageId)
 {
 	std::auto_ptr<SendSyncItem> pItem(new SendSyncItem(
-		pAccount, pSubAccount, crbs, pwszMessageId));
+		pAccount, pSubAccount, pwszMessageId));
 	listItem_.push_back(std::make_pair(nSlot_, pItem.get()));
 	pItem.release();
 }
@@ -777,7 +754,7 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 		if (pItem->isSend())
 			bSync = pItem->getFolder() != 0;
 		
-		if (bSync || (pItem->isSend() && static_cast<const SendSyncItem*>(pItem)->isConnectReceiveBeforeSend())) {
+		if (bSync) {
 			if (pSubAccount != pItem->getSubAccount() ||
 				(session.get() && !session.get()->isConnected())) {
 				pSubAccount = 0;
@@ -812,12 +789,10 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 				
 				pSubAccount = pItem->getSubAccount();
 			}
-			if (bSync) {
-				if (!syncFolder(pData->getDocument(), pCallback, pItem, session.get()))
-					continue;
-				if (pCallback->isCanceled(nId, false))
-					break;
-			}
+			if (!syncFolder(pData->getDocument(), pCallback, pItem, session.get()))
+				continue;
+			if (pCallback->isCanceled(nId, false))
+				break;
 		}
 		
 		if (pItem->isSend()) {
@@ -1283,6 +1258,11 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::setPassword(SubAccount* pSubAc
 	pCallback_->setPassword(pSubAccount, host, pwszPassword, bPermanent);
 }
 
+void qm::SyncManager::ReceiveSessionCallbackImpl::addError(const SessionErrorInfo& info)
+{
+	pCallback_->addError(nId_, info);
+}
+
 bool qm::SyncManager::ReceiveSessionCallbackImpl::isCanceled(bool bForce)
 {
 	return pCallback_->isCanceled(nId_, bForce);
@@ -1313,11 +1293,6 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::setSubRange(size_t nMin,
 void qm::SyncManager::ReceiveSessionCallbackImpl::setMessage(const WCHAR* pwszMessage)
 {
 	pCallback_->setMessage(nId_, pwszMessage);
-}
-
-void qm::SyncManager::ReceiveSessionCallbackImpl::addError(const SessionErrorInfo& info)
-{
-	pCallback_->addError(nId_, info);
 }
 
 void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr ptr)
@@ -1369,6 +1344,11 @@ void qm::SyncManager::SendSessionCallbackImpl::setPassword(SubAccount* pSubAccou
 	pCallback_->setPassword(pSubAccount, host, pwszPassword, bPermanent);
 }
 
+void qm::SyncManager::SendSessionCallbackImpl::addError(const SessionErrorInfo& info)
+{
+	pCallback_->addError(nId_, info);
+}
+
 bool qm::SyncManager::SendSessionCallbackImpl::isCanceled(bool bForce)
 {
 	return pCallback_->isCanceled(nId_, bForce);
@@ -1399,11 +1379,6 @@ void qm::SyncManager::SendSessionCallbackImpl::setSubRange(size_t nMin,
 void qm::SyncManager::SendSessionCallbackImpl::setMessage(const WCHAR* pwszMessage)
 {
 	pCallback_->setMessage(nId_, pwszMessage);
-}
-
-void qm::SyncManager::SendSessionCallbackImpl::addError(const SessionErrorInfo& info)
-{
-	pCallback_->addError(nId_, info);
 }
 
 

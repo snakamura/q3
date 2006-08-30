@@ -160,7 +160,6 @@
 #define IDC_SENDUSERNAME                1073
 #define IDC_SENDPASSWORD                1074
 #define IDC_TIMEOUT                     1074
-#define IDC_CONNECTRECEIVEHOSTBEFORESEND 1075
 #define IDC_INCOMINGPROTOCOL            1077
 #define IDC_OUTGOINGPROTOCOL            1078
 #define IDC_SINGLEFILE                  1079
@@ -245,7 +244,6 @@
 #define IDC_RECEIVE                     1188
 #define IDC_SEND                        1189
 #define IDC_SELECTFOLDER                1191
-#define IDC_CONNECTRECEIVEBEFORESEND    1193
 #define IDC_RECEIVEPORT                 1201
 #define IDC_SENDPORT                    1202
 #define IDC_RECEIVENOSECURE             1204

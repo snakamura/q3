@@ -362,30 +362,28 @@ BEGIN
     COMBOBOX        IDC_SYNCFILTER,50,5,115,45,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "編集(&E)...",IDC_EDIT,170,5,50,14
-    CONTROL         "送信前に受信サーバに接続する(&C)",
-                    IDC_CONNECTRECEIVEHOSTBEFORESEND,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,140,10
     CONTROL         "Message-Idを付加(&D)",IDC_ADDMESSAGEID,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,35,140,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,140,10
     CONTROL         "Content-Transfer-Encoding: 8bitを使用(&U)",IDC_USE8BIT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,140,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,35,140,10
     CONTROL         "自動で振り分ける(&L)",IDC_AUTOAPPLYRULES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,55,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,95,10
     CONTROL         "既存のメッセージも振り分ける(&X)",
                     IDC_AUTOAPPLYRULESTOEXISTING,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,15,65,130,10
+                    WS_TABSTOP,15,55,130,10
     CONTROL         "スパムフィルタを有効にする(&J)",IDC_JUNKFILTER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,90,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,90,10
     CONTROL         "自分のアドレスからのメールは送信済みとみなす(&R)",
                     IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    85,150,10
+                    75,150,10
     CONTROL         "全文検索用に復号済みメッセージをキャッシュする(&Y)",
                     IDC_STOREDECODED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
-                    95,155,10
-    LTEXT           "同一性(&I)",IDC_STATIC,5,113,35,8
-    EDITTEXT        IDC_IDENTITY,45,110,90,14,ES_AUTOHSCROLL
-    LTEXT           "タイムアウト(&T)",IDC_STATIC,140,113,40,8
-    EDITTEXT        IDC_TIMEOUT,180,110,40,14,ES_AUTOHSCROLL | ES_NUMBER
+                    85,155,10
+    LTEXT           "同一性(&I)",IDC_STATIC,5,103,35,8
+    EDITTEXT        IDC_IDENTITY,40,100,95,14,ES_AUTOHSCROLL
+    LTEXT           "タイムアウト(&T)",IDC_STATIC,140,103,40,8
+    EDITTEXT        IDC_TIMEOUT,180,100,40,14,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
 END
 
 IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 179, 169
@@ -800,7 +798,7 @@ BEGIN
                     SBS_SIZEGRIP
 END
 
-IDD_GOROUNDENTRY DIALOG DISCARDABLE  0, 0, 150, 175
+IDD_GOROUNDENTRY DIALOG DISCARDABLE  0, 0, 150, 159
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "エントリ"
 FONT 9, "MS UI Gothic"
@@ -827,11 +825,8 @@ BEGIN
                     105,65,10
     CONTROL         "送信(&E)",IDC_SEND,"Button",BS_AUTORADIOBUTTON,10,115,
                     40,10
-    CONTROL         "送信前に受信サーバに接続する(&C)",
-                    IDC_CONNECTRECEIVEBEFORESEND,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,135,115,10
-    DEFPUSHBUTTON   "OK",IDOK,40,155,50,14
-    PUSHBUTTON      "キャンセル",IDCANCEL,95,155,50,14
+    DEFPUSHBUTTON   "OK",IDOK,40,140,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,95,140,50,14
 END
 
 IDD_GOROUNDDIALUP DIALOG DISCARDABLE  0, 0, 219, 135

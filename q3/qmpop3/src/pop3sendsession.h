@@ -138,7 +138,7 @@ private:
 	Pop3SendSessionFactory();
 
 public:
-	virtual ~Pop3SendSessionFactory();
+	~Pop3SendSessionFactory();
 
 public:
 	virtual std::auto_ptr<qm::SendSession> createSession();

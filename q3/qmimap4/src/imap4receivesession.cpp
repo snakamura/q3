@@ -37,7 +37,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		reportError(pImap4_.get(), 0); \
+		Util::reportError(pImap4_.get(), pSessionCallback_, \
+			pAccount_, pSubAccount_, pFolder_, 0); \
 		return false; \
 	} while (false) \
 
@@ -974,7 +975,8 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		
 		if (bApplyRules || bJunkFilter) {
 			if (!applyRules(listMessageData, bJunkFilter, !bApplyRules))
-				reportError(0, IMAP4ERROR_APPLYRULES);
+				Util::reportError(0, pSessionCallback_, pAccount_,
+					pSubAccount_, pFolder_, IMAP4ERROR_APPLYRULES);
 		}
 		
 		bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
@@ -1291,7 +1293,8 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 				else {
 					float fScore = pJunkFilter->getScore(msg);
 					if (fScore < 0)
-						reportError(0, IMAP4ERROR_FILTERJUNK);
+						Util::reportError(0, pSessionCallback_, pAccount_,
+							pSubAccount_, pFolder_, IMAP4ERROR_FILTERJUNK);
 					else if (fScore > pJunkFilter->getThresholdScore())
 						nOperation = JunkFilter::OPERATION_ADDJUNK;
 					else
@@ -1300,7 +1303,8 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 			}
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
-					reportError(0, IMAP4ERROR_MANAGEJUNK);
+					Util::reportError(0, pSessionCallback_, pAccount_,
+						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK);
 			}
 			
 			pSessionCallback_->setPos(n);
@@ -1329,7 +1333,8 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 			}
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
-					reportError(0, IMAP4ERROR_MANAGEJUNK);
+					Util::reportError(0, pSessionCallback_, pAccount_,
+						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK);
 			}
 			
 			pSessionCallback_->setPos(n);
@@ -1474,90 +1479,6 @@ bool qmimap4::Imap4ReceiveSession::processStatusResponse(ResponseStatus* pStatus
 {
 	// TODO
 	return true;
-}
-
-void qmimap4::Imap4ReceiveSession::reportError(Imap4* pImap4,
-											   unsigned int nImap4Error)
-{
-	struct
-	{
-		unsigned int nError_;
-		UINT nId_;
-	} maps[][23] = {
-		{
-			{ IMAP4ERROR_APPLYRULES,	IDS_ERROR_APPLYRULES	},
-			{ IMAP4ERROR_MANAGEJUNK,	IDS_ERROR_MANAGEJUNK	},
-			{ IMAP4ERROR_FILTERJUNK,	IDS_ERROR_FILTERJUNK	}
-		},
-		{
-			{ Imap4::IMAP4_ERROR_GREETING,		IDS_ERROR_GREETING		},
-			{ Imap4::IMAP4_ERROR_LOGIN,			IDS_ERROR_LOGIN			},
-			{ Imap4::IMAP4_ERROR_CAPABILITY,	IDS_ERROR_CAPABILITY	},
-			{ Imap4::IMAP4_ERROR_FETCH,			IDS_ERROR_FETCH			},
-			{ Imap4::IMAP4_ERROR_STORE,			IDS_ERROR_STORE			},
-			{ Imap4::IMAP4_ERROR_SELECT,		IDS_ERROR_SELECT		},
-			{ Imap4::IMAP4_ERROR_LSUB,			IDS_ERROR_LSUB			},
-			{ Imap4::IMAP4_ERROR_LIST,			IDS_ERROR_LIST			},
-			{ Imap4::IMAP4_ERROR_COPY,			IDS_ERROR_COPY			},
-			{ Imap4::IMAP4_ERROR_APPEND,		IDS_ERROR_APPEND		},
-			{ Imap4::IMAP4_ERROR_NOOP,			IDS_ERROR_NOOP			},
-			{ Imap4::IMAP4_ERROR_CREATE,		IDS_ERROR_CREATE		},
-			{ Imap4::IMAP4_ERROR_DELETE,		IDS_ERROR_DELETE		},
-			{ Imap4::IMAP4_ERROR_RENAME,		IDS_ERROR_RENAME		},
-			{ Imap4::IMAP4_ERROR_SUBSCRIBE,		IDS_ERROR_SUBSCRIBE		},
-			{ Imap4::IMAP4_ERROR_UNSUBSCRIBE,	IDS_ERROR_UNSUBSCRIBE	},
-			{ Imap4::IMAP4_ERROR_CLOSE,			IDS_ERROR_CLOSE			},
-			{ Imap4::IMAP4_ERROR_EXPUNGE,		IDS_ERROR_EXPUNGE		},
-			{ Imap4::IMAP4_ERROR_AUTHENTICATE,	IDS_ERROR_AUTHENTICATE	},
-			{ Imap4::IMAP4_ERROR_SEARCH,		IDS_ERROR_SEARCH		},
-			{ Imap4::IMAP4_ERROR_NAMESPACE,		IDS_ERROR_NAMESPACE		},
-			{ Imap4::IMAP4_ERROR_LOGOUT,		IDS_ERROR_LOGOUT		},
-			{ Imap4::IMAP4_ERROR_STARTTLS,		IDS_ERROR_STARTTLS		}
-		},
-		{
-			{ Imap4::IMAP4_ERROR_INITIALIZE,	IDS_ERROR_INITIALIZE	},
-			{ Imap4::IMAP4_ERROR_CONNECT,		IDS_ERROR_CONNECT		},
-			{ Imap4::IMAP4_ERROR_SELECTSOCKET,	IDS_ERROR_SELECTSOCKET	},
-			{ Imap4::IMAP4_ERROR_TIMEOUT,		IDS_ERROR_TIMEOUT		},
-			{ Imap4::IMAP4_ERROR_DISCONNECT,	IDS_ERROR_DISCONNECT	},
-			{ Imap4::IMAP4_ERROR_RECEIVE,		IDS_ERROR_RECEIVE		},
-			{ Imap4::IMAP4_ERROR_PARSE,			IDS_ERROR_PARSE			},
-			{ Imap4::IMAP4_ERROR_OTHER,			IDS_ERROR_OTHER			},
-			{ Imap4::IMAP4_ERROR_INVALIDSOCKET,	IDS_ERROR_INVALIDSOCKET	},
-			{ Imap4::IMAP4_ERROR_SEND,			IDS_ERROR_SEND			},
-			{ Imap4::IMAP4_ERROR_RESPONSE,		IDS_ERROR_RESPONSE		},
-			{ Imap4::IMAP4_ERROR_SSL,			IDS_ERROR_SSL			}
-		}
-	};
-	
-	unsigned int nError = (pImap4 ? pImap4->getLastError() : 0) | nImap4Error;
-	unsigned int nMasks[] = {
-		IMAP4ERROR_MASK,
-		Imap4::IMAP4_ERROR_MASK_HIGHLEVEL,
-		Imap4::IMAP4_ERROR_MASK_LOWLEVEL
-	};
-	wstring_ptr wstrDescriptions[countof(maps)];
-	for (int n = 0; n < countof(maps); ++n) {
-		for (int m = 0; m < countof(maps[n]) && !wstrDescriptions[n].get(); ++m) {
-			if (maps[n][m].nError_ != 0 && (nError & nMasks[n]) == maps[n][m].nError_)
-				wstrDescriptions[n] = loadString(getResourceHandle(), maps[n][m].nId_);
-		}
-	}
-	
-	wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_MESSAGE));
-	wstring_ptr wstrSocketDescription(SocketBase::getErrorDescription(
-		static_cast<SocketBase::Error>(nError & SocketBase::SOCKET_ERROR_MASK_SOCKET)));
-	
-	const WCHAR* pwszDescription[] = {
-		wstrDescriptions[0].get(),
-		wstrDescriptions[1].get(),
-		wstrDescriptions[2].get(),
-		wstrSocketDescription.get(),
-		pImap4 ? pImap4->getLastErrorResponse() : 0
-	};
-	SessionErrorInfo info(pAccount_, pSubAccount_, pFolder_, wstrMessage.get(),
-		nError, pwszDescription, countof(pwszDescription));
-	pSessionCallback_->addError(info);
 }
 
 

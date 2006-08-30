@@ -93,7 +93,7 @@ bool qm::SyncUtil::send(SyncManager* pSyncManager,
 		return false;
 	
 	std::auto_ptr<StaticSyncData> pData(new StaticSyncData(pDocument, type, pSyncManager));
-	pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, pwszMessageId);
+	pData->addSend(pAccount, pSubAccount, pwszMessageId);
 	return syncData(pSyncManager, pSyncDialogManager, pSubAccount, pData);
 }
 
@@ -120,7 +120,7 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 		NormalFolder* pOutbox = static_cast<NormalFolder*>(
 			pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
 		if (pOutbox)
-			pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, 0);
+			pData->addSend(pAccount, pSubAccount, 0);
 	}
 	
 	if (bReceive) {
@@ -183,9 +183,7 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 					NormalFolder* pOutbox = static_cast<NormalFolder*>(
 						pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
 					if (pOutbox)
-						pData->addSend(pAccount, pSubAccount,
-							static_cast<SendSyncItem::ConnectReceiveBeforeSend>(
-								pEntry->getConnectReceiveBeforeSend()), 0);
+						pData->addSend(pAccount, pSubAccount, 0);
 				}
 				if (pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE)) {
 					if (pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER)) {
@@ -215,7 +213,7 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 			NormalFolder* pOutbox = static_cast<NormalFolder*>(
 				pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
 			if (pOutbox)
-				pData->addSend(pAccount, pSubAccount, SendSyncItem::CRBS_NONE, 0);
+				pData->addSend(pAccount, pSubAccount, 0);
 			
 			pData->addFolders(pAccount, pSubAccount, Term(), pSubAccount->getSyncFilterName());
 		}

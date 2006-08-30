@@ -246,8 +246,7 @@ void qm::GoRoundCourse::addEntry(std::auto_ptr<GoRoundEntry> pEntry)
  */
 
 qm::GoRoundEntry::GoRoundEntry() :
-	nFlags_(FLAG_SEND | FLAG_RECEIVE),
-	crbs_(CRBS_NONE)
+	nFlags_(FLAG_SEND | FLAG_RECEIVE)
 {
 	wstrAccount_ = allocWString(L"");
 }
@@ -256,10 +255,8 @@ qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
 							   const WCHAR* pwszSubAccount,
 							   Term& folder,
 							   unsigned int nFlags,
-							   const WCHAR* pwszFilter,
-							   ConnectReceiveBeforeSend crbs) :
-	nFlags_(nFlags),
-	crbs_(crbs)
+							   const WCHAR* pwszFilter) :
+	nFlags_(nFlags)
 {
 	assert(pwszAccount);
 	
@@ -273,8 +270,7 @@ qm::GoRoundEntry::GoRoundEntry(const WCHAR* pwszAccount,
 
 qm::GoRoundEntry::GoRoundEntry(const GoRoundEntry& entry) :
 	folder_(entry.folder_),
-	nFlags_(entry.nFlags_),
-	crbs_(entry.crbs_)
+	nFlags_(entry.nFlags_)
 {
 	wstrAccount_ = allocWString(entry.wstrAccount_.get());
 	if (entry.wstrSubAccount_.get())
@@ -297,7 +293,6 @@ GoRoundEntry& qm::GoRoundEntry::operator=(const GoRoundEntry& entry)
 		nFlags_ = entry.nFlags_;
 		if (entry.wstrFilter_.get())
 			wstrFilter_ = allocWString(entry.wstrFilter_.get());
-		crbs_ = entry.crbs_;
 	}
 	return *this;
 }
@@ -357,16 +352,6 @@ void qm::GoRoundEntry::setFilter(const WCHAR* pwszFilter)
 		wstrFilter_ = allocWString(pwszFilter);
 	else
 		wstrFilter_.reset(0);
-}
-
-GoRoundEntry::ConnectReceiveBeforeSend qm::GoRoundEntry::getConnectReceiveBeforeSend() const
-{
-	return crbs_;
-}
-
-void qm::GoRoundEntry::setConnectReceiveBeforeSend(ConnectReceiveBeforeSend crbs)
-{
-	crbs_ = crbs;
 }
 
 
@@ -609,7 +594,6 @@ bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		const WCHAR* pwszFolder = 0;
 		const WCHAR* pwszFilter = 0;
 		unsigned int nFlags = 0;
-		GoRoundEntry::ConnectReceiveBeforeSend crbs = GoRoundEntry::CRBS_NONE;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrName, L"account") == 0) {
@@ -637,8 +621,7 @@ bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				pwszFilter = attributes.getValue(n);
 			}
 			else if (wcscmp(pwszAttrName, L"connectReceiveBeforeSend") == 0) {
-				crbs = wcscmp(attributes.getValue(n), L"true") == 0 ?
-					GoRoundEntry::CRBS_TRUE : GoRoundEntry::CRBS_FALSE;
+				// Just for compatibility
 			}
 			else {
 				return false;
@@ -655,8 +638,8 @@ bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (pwszFolder && !folder.setValue(pwszFolder))
 			return false;
 		
-		std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry(pwszAccount,
-			pwszSubAccount, folder, nFlags, pwszFilter, crbs));
+		std::auto_ptr<GoRoundEntry> pEntry(new GoRoundEntry(
+			pwszAccount, pwszSubAccount, folder, nFlags, pwszFilter));
 		
 		pCurrentEntry_ = pEntry.get();
 		pCurrentCourse_->addEntry(pEntry);
@@ -822,7 +805,6 @@ bool qm::GoRoundWriter::write(const GoRoundEntry* pEntry)
 	bool bSend = pEntry->isFlag(GoRoundEntry::FLAG_SEND);
 	bool bReceive = pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE);
 	bool bSelectFolder = pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER);
-	GoRoundEntry::ConnectReceiveBeforeSend crbs = pEntry->getConnectReceiveBeforeSend();
 	const SimpleAttributes::Item items[] = {
 		{ L"account",					pEntry->getAccount()																						},
 		{ L"subaccount",				pEntry->getSubAccount(),								!pEntry->getSubAccount()							},
@@ -830,8 +812,7 @@ bool qm::GoRoundWriter::write(const GoRoundEntry* pEntry)
 		{ L"filter",					pEntry->getFilter(),									!pEntry->getFilter()								},
 		{ L"send",						bSend ? L"true" : L"false",								!bSend || (bSend && bReceive)						},
 		{ L"receive",					bReceive ? L"true" : L"false",							!bReceive || (bSend && bReceive)					},
-		{ L"selectFolder",				bSelectFolder ? L"true" : L"false",						!bSelectFolder										},
-		{ L"connectReceiveBeforeSend",	crbs == GoRoundEntry::CRBS_TRUE ? L"true" : L"false",	crbs == GoRoundEntry::CRBS_NONE						}
+		{ L"selectFolder",				bSelectFolder ? L"true" : L"false",						!bSelectFolder										}
 	};
 	SimpleAttributes attrs(items, countof(items));
 	return handler_.startElement(0, 0, L"entry", attrs) &&

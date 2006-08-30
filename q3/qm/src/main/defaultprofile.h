@@ -514,7 +514,6 @@ const qs::Profile::Default defaultAccountProfiles[] = {
 	{ L"Global",	L"AutoApplyRules",				L"0"						},
 	{ L"Global",	L"BlockSize",					L"0"						},
 	{ L"Global",	L"Class",						L""							},
-	{ L"Global",	L"ConnectReceiveBeforeSend",	L"0"						},
 	{ L"Global",	L"Identity",					L""							},
 	{ L"Global",	L"IndexBlockSize",				L"-1"						},
 	{ L"Global",	L"IndexMaxSize",				L"-1"						},
@@ -597,9 +596,17 @@ const qs::Profile::Default defaultAccountProfiles[] = {
 	{ L"Send",	L"Type",		L""		},
 	{ L"Send",	L"UserName",	L""		},
 	
-	{ L"Smtp",			L"AuthMethods",		L""	},
-	{ L"Smtp",			L"EnvelopeFrom",	L""	},
-	{ L"Smtp",			L"LocalHost",		L""	},
+	{ L"Smtp",			L"AuthMethods",				L""		},
+	{ L"Smtp",			L"EnvelopeFrom",			L""		},
+	{ L"Smtp",			L"LocalHost",				L""		},
+	{ L"Smtp",			L"PopBeforeSmtp",			L"0"	},
+	{ L"Smtp",			L"PopBeforeSmtpApop",		L"0"	},
+	{ L"Smtp",			L"PopBeforeSmtpCustom",		L"0"	},
+	{ L"Smtp",			L"PopBeforeSmtpHost",		L""		},
+	{ L"Smtp",			L"PopBeforeSmtpPort",		L"110"	},
+	{ L"Smtp",			L"PopBeforeSmtpProtocol",	L"pop3"	},
+	{ L"Smtp",			L"PopBeforeSmtpSecure",		L"0"	},
+	{ L"Smtp",			L"PopBeforeSmtpWait",		L"3"	},
 	
 	{ L"UI",	L"FolderTo",	L""	},
 };

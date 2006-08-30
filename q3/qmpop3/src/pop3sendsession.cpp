@@ -83,7 +83,7 @@ bool qmpop3::Pop3SendSession::connect()
 		pCallback_.get(), pCallback_.get(), pLogger_));
 	
 	bool bApop = pSubAccount_->getPropertyInt(L"Pop3Send", L"Apop") != 0;
-	Pop3::Secure secure = Util::getSecure(pSubAccount_);
+	Pop3::Secure secure = Util::getSecure(pSubAccount_, Account::HOST_SEND);
 	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_SEND),
 		pSubAccount_->getPort(Account::HOST_SEND), bApop, secure))
 		HANDLE_ERROR();

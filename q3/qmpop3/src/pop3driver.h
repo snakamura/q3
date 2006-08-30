@@ -60,7 +60,7 @@ private:
 	Pop3Factory();
 
 public:
-	virtual ~Pop3Factory();
+	~Pop3Factory();
 
 protected:
 	virtual std::auto_ptr<qm::ProtocolDriver> createDriver(qm::Account* pAccount,

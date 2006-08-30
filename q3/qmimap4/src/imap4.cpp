@@ -1082,6 +1082,8 @@ string_ptr qmimap4::Imap4::getTag()
 unsigned int qmimap4::Imap4::getAuthMethods()
 {
 	wstring_ptr wstrAuthMethods(pImap4Callback_->getAuthMethods());
+	if (!wstrAuthMethods.get())
+		return 0xffffffff;
 	
 	struct {
 		const WCHAR* pwsz_;

@@ -90,10 +90,6 @@ private:
 	bool processStatusResponse(ResponseStatus* pStatus);
 
 private:
-	void reportError(Imap4* pImap4,
-					 unsigned int nImap4Error);
-
-private:
 	Imap4ReceiveSession(const Imap4ReceiveSession&);
 	Imap4ReceiveSession& operator=(const Imap4ReceiveSession&);
 
@@ -210,7 +206,7 @@ private:
 	Imap4ReceiveSessionFactory();
 
 public:
-	virtual ~Imap4ReceiveSessionFactory();
+	~Imap4ReceiveSessionFactory();
 
 protected:
 	virtual std::auto_ptr<qm::ReceiveSession> createSession();

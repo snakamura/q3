@@ -212,7 +212,7 @@ private:
 	Pop3ReceiveSessionFactory();
 
 public:
-	virtual ~Pop3ReceiveSessionFactory();
+	~Pop3ReceiveSessionFactory();
 
 protected:
 	virtual std::auto_ptr<qm::ReceiveSession> createSession();

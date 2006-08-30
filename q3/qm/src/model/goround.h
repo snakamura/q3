@@ -96,12 +96,6 @@ public:
 		FLAG_RECEIVE		= 0x02,
 		FLAG_SELECTFOLDER	= 0x04
 	};
-	
-	enum ConnectReceiveBeforeSend {
-		CRBS_NONE,
-		CRBS_TRUE,
-		CRBS_FALSE
-	};
 
 public:
 	GoRoundEntry();
@@ -109,8 +103,7 @@ public:
 				 const WCHAR* pwszSubAccount,
 				 Term& folder,
 				 unsigned int nFlags,
-				 const WCHAR* pwszFilter,
-				 ConnectReceiveBeforeSend crbs);
+				 const WCHAR* pwszFilter);
 	GoRoundEntry(const GoRoundEntry& entry);
 	~GoRoundEntry();
 
@@ -128,8 +121,6 @@ public:
 	void setFlags(unsigned int nFlags);
 	const WCHAR* getFilter() const;
 	void setFilter(const WCHAR* pwszFilter);
-	ConnectReceiveBeforeSend getConnectReceiveBeforeSend() const;
-	void setConnectReceiveBeforeSend(ConnectReceiveBeforeSend crbs);
 
 private:
 	qs::wstring_ptr wstrAccount_;
@@ -137,7 +128,6 @@ private:
 	Term folder_;
 	unsigned int nFlags_;
 	qs::wstring_ptr wstrFilter_;
-	ConnectReceiveBeforeSend crbs_;
 };
 
 
