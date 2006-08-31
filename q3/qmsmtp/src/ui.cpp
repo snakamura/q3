@@ -190,7 +190,7 @@ LRESULT qmsmtp::PopBeforeSmtpDialog::onInitDialog(HWND hwndFocus,
 		ComboBox_AddString(hwndProtocol, ptszName);
 		
 		if (wcscmp(pData_->wstrProtocol_.get(), pwszName) == 0)
-			nSelection = n;
+			nSelection = static_cast<int>(n);
 	}
 	ComboBox_SetCurSel(hwndProtocol, nSelection);
 	
