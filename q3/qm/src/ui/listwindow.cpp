@@ -813,7 +813,6 @@ void qm::ListWindowImpl::relayToolTipEvent(UINT uMsg,
 	};
 	toolTip.sendMessage(TTM_RELAYEVENT, 0, reinterpret_cast<LPARAM>(&msg));
 }
-#endif
 
 void qm::ListWindowImpl::hideToolTip()
 {
@@ -822,6 +821,7 @@ void qm::ListWindowImpl::hideToolTip()
 	nToolTipColumn_ = -1;
 	nToolTipIndent_ = 0;
 }
+#endif
 
 void qm::ListWindowImpl::postRefreshMessage(UINT uMsg,
 											unsigned int nItem)
