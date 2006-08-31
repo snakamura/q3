@@ -101,6 +101,7 @@ public:
 	void relayToolTipEvent(UINT uMsg,
 						   WPARAM wParam,
 						   LPARAM lParam);
+	void hideToolTip();
 #endif
 	
 	void postRefreshMessage(UINT uMsg,
@@ -520,6 +521,10 @@ void qm::ListWindowImpl::scrollVertical(int nPos)
 	pThis_->setScrollPos(SB_VERT, nPos);
 	pThis_->scrollWindow(0, (nOldPos - nPos)*nLineHeight_,
 		&rect, &rect, 0, 0, SW_INVALIDATE);
+	
+#ifdef QMTOOLTIP
+	hideToolTip();
+#endif
 }
 
 void qm::ListWindowImpl::scrollHorizontal(int nPos)
@@ -549,6 +554,10 @@ void qm::ListWindowImpl::scrollHorizontal(int nPos)
 	pHeaderColumn_->setWindowPos(0, -nPos, 0,
 		(rect.right - rect.left) + nPos, pHeaderColumn_->getHeight(),
 		SWP_NOZORDER | SWP_NOACTIVATE);
+	
+#ifdef QMTOOLTIP
+	hideToolTip();
+#endif
 }
 
 void qm::ListWindowImpl::updateScrollBar(bool bVertical)
@@ -805,6 +814,14 @@ void qm::ListWindowImpl::relayToolTipEvent(UINT uMsg,
 	toolTip.sendMessage(TTM_RELAYEVENT, 0, reinterpret_cast<LPARAM>(&msg));
 }
 #endif
+
+void qm::ListWindowImpl::hideToolTip()
+{
+	Window(hwndToolTip_).sendMessage(TTM_POP);
+	nToolTipLine_ = -1;
+	nToolTipColumn_ = -1;
+	nToolTipIndent_ = 0;
+}
 
 void qm::ListWindowImpl::postRefreshMessage(UINT uMsg,
 											unsigned int nItem)
@@ -1268,10 +1285,7 @@ void qm::ListWindow::refresh()
 	invalidate();
 	
 #ifdef QMTOOLTIP
-	Window(pImpl_->hwndToolTip_).sendMessage(TTM_POP);
-	pImpl_->nToolTipLine_ = -1;
-	pImpl_->nToolTipColumn_ = -1;
-	pImpl_->nToolTipIndent_ = 0;
+	pImpl_->hideToolTip();
 #endif
 }
 
