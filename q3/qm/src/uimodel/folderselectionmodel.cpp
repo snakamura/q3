@@ -35,5 +35,5 @@ qm::FolderSelectionModel::~FolderSelectionModel()
 Account* qm::FolderSelectionModel::getAccount()
 {
 	std::pair<Account*, Folder*> p(getFocusedAccountOrFolder());
-	return p.first ? p.first : p.second->getAccount();
+	return p.first ? p.first : p.second ? p.second->getAccount() : 0;
 }
