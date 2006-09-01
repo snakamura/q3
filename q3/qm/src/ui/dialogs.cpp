@@ -1055,7 +1055,8 @@ LRESULT qm::FindDialog::onInitDialog(HWND hwndFocus,
 		Button_SetCheck(getDlgItem(IDC_REGEX), nRegex ? BST_CHECKED : BST_UNCHECKED);
 	}
 	
-	wndFind_.subclassWindow(::GetWindow(getDlgItem(IDC_FIND), GW_CHILD));
+	if (pProfile_->getInt(L"Global", L"ImeControl"))
+		wndFind_.subclassWindow(::GetWindow(getDlgItem(IDC_FIND), GW_CHILD));
 	
 	updateState();
 	
@@ -1529,7 +1530,7 @@ qm::LabelDialog::LabelDialog(const WCHAR* pwszLabel,
 							 Profile* pProfile) :
 	DefaultDialog(IDD_LABEL),
 	pProfile_(pProfile),
-	wndFind_(pProfile, L"Label", L"", false)
+	wndLabel_(pProfile, L"Label", L"", false)
 {
 	if (pwszLabel)
 		wstrLabel_ = allocWString(pwszLabel);
@@ -1560,6 +1561,9 @@ LRESULT qm::LabelDialog::onInitDialog(HWND hwndFocus,
 	
 	if (wstrLabel_.get())
 		setDlgItemText(IDC_LABEL, wstrLabel_.get());
+	
+	if (pProfile_->getInt(L"Global", L"ImeControl"))
+		wndLabel_.subclassWindow(::GetWindow(getDlgItem(IDC_LABEL), GW_CHILD));
 	
 	return TRUE;
 }
@@ -2281,6 +2285,11 @@ LRESULT qm::ReplaceDialog::onInitDialog(HWND hwndFocus,
 	
 	bool bRegex = pProfile_->getInt(L"Find", L"Regex") != 0;
 	Button_SetCheck(getDlgItem(IDC_REGEX), bRegex ? BST_CHECKED : BST_UNCHECKED);
+	
+	if (pProfile_->getInt(L"Global", L"ImeControl")) {
+		wndFind_.subclassWindow(::GetWindow(getDlgItem(IDC_FIND), GW_CHILD));
+		wndReplace_.subclassWindow(::GetWindow(getDlgItem(IDC_REPLACE), GW_CHILD));
+	}
 	
 	updateState();
 	

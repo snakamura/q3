@@ -718,7 +718,8 @@ LRESULT qm::EditTextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pMenuManager_ = pContext->pMenuManager_;
 	pCallback_ = pContext->pCallback_;
 	
-	wndIme_.subclassWindow(getHandle());
+	if (pProfile_->getInt(L"Global", L"ImeControl"))
+		wndIme_.subclassWindow(getHandle());
 	
 	return 0;
 }

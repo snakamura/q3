@@ -222,6 +222,7 @@ public:
 #ifndef _WIN32_WCE_PSPC
 	bool bHideWhenMinimized_;
 #endif
+	bool bImeControl_;
 	
 	Profile* pProfile_;
 	Document* pDocument_;
@@ -1767,6 +1768,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 #ifndef _WIN32_WCE_PSPC
 	pImpl_->bHideWhenMinimized_ = false;
 #endif
+	pImpl_->bImeControl_ = pProfile->getInt(L"Global", L"ImeControl") != 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pDocument_ = 0;
 	pImpl_->pUIManager_ = 0;
@@ -2175,7 +2177,9 @@ LRESULT qm::MainWindow::onActivate(UINT nFlags,
 		if (!hwndFocus)
 			hwndFocus = pImpl_->pListWindow_->getHandle();
 		::SetFocus(hwndFocus);
-		qs::UIUtil::setImeEnabled(getHandle(), false);
+		
+		if (pImpl_->bImeControl_)
+			qs::UIUtil::setImeEnabled(getHandle(), false);
 	}
 	
 	return 0;

@@ -102,6 +102,7 @@ public:
 			 bool bNewFolder,
 			 unsigned int nImeFlags);
 	void save() const;
+	bool isImeControl() const;
 
 private:
 	SearchPropertyData(const SearchPropertyData&);

@@ -931,7 +931,7 @@ bool qm::EditHeaderEditItem::create(qs::WindowBase* pParent,
 	nId_ = nId;
 	
 	const WCHAR* pwszField = getField();
-	if (pwszField) {
+	if (pwszField && pProfile_->getInt(L"Global", L"ImeControl")) {
 		pImeWindow_.reset(new ImeWindow(pProfile_, L"HeaderEditWindow", pwszField, false));
 		pImeWindow_->subclassWindow(getHandle());
 	}

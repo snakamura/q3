@@ -62,6 +62,7 @@ struct qm::SearchPropertyDataImpl
 	bool bRecursive_;
 	bool bNewFolder_;
 	unsigned int nImeFlags_;
+	bool bImeControl_;
 };
 
 
@@ -87,6 +88,7 @@ qm::SearchPropertyData::SearchPropertyData(const Account* pAccount,
 	pImpl_->bRecursive_ = pProfile->getInt(L"Search", L"Recursive") != 0;
 	pImpl_->bNewFolder_ = pProfile->getInt(L"Search", L"NewFolder") != 0;
 	pImpl_->nImeFlags_ = pProfile->getInt(L"Search", L"Ime");
+	pImpl_->bImeControl_ = pProfile->getInt(L"Global", L"ImeControl") != 0;
 	
 	if (!pFolder) {
 		pImpl_->bRecursive_ = false;
@@ -163,6 +165,11 @@ void qm::SearchPropertyData::save() const
 	pImpl_->pProfile_->setInt(L"Search", L"Ime", pImpl_->nImeFlags_);
 }
 
+bool qm::SearchPropertyData::isImeControl() const
+{
+	return pImpl_->bImeControl_;
+}
+
 
 /****************************************************************************
  *
@@ -236,8 +243,10 @@ void qm::SearchPropertyPage::updateUI(const SearchPropertyData* pData)
 unsigned int qm::SearchPropertyPage::getImeFlags() const
 {
 	unsigned int nFlags = SearchPropertyData::IMEFLAG_NONE;
-	if (qs::UIUtil::isImeEnabled(getHandle()))
-		nFlags |= SearchPropertyData::IMEFLAG_IME;
+	if (pData_->isImeControl()) {
+		if (qs::UIUtil::isImeEnabled(getHandle()))
+			nFlags |= SearchPropertyData::IMEFLAG_IME;
+	}
 #ifdef _WIN32_WCE_PSPC
 	if (qs::UIUtil::isSipEnabled())
 		nFlags |= SearchPropertyData::IMEFLAG_SIP;
@@ -247,7 +256,8 @@ unsigned int qm::SearchPropertyPage::getImeFlags() const
 
 void qm::SearchPropertyPage::setImeFlags(unsigned int nFlags)
 {
-	qs::UIUtil::setImeEnabled(getHandle(), (nFlags & SearchPropertyData::IMEFLAG_IME) != 0);
+	if (pData_->isImeControl())
+		qs::UIUtil::setImeEnabled(getHandle(), (nFlags & SearchPropertyData::IMEFLAG_IME) != 0);
 #ifdef _WIN32_WCE_PSPC
 	qs::UIUtil::setSipEnabled((nFlags & SearchPropertyData::IMEFLAG_SIP) != 0);
 #endif

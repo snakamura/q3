@@ -812,7 +812,7 @@ private:
 private:
 	qs::wstring_ptr wstrLabel_;
 	qs::Profile* pProfile_;
-	qs::ImeWindow wndFind_;
+	qs::ImeWindow wndLabel_;
 };
 
 

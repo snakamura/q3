@@ -199,6 +199,7 @@ const qs::Profile::Default defaultProfiles[] = {
 #ifndef _WIN32_WCE_PSPC
 	{ L"Global",	L"HideWhenMinimized",				L"0"												},
 #endif
+	{ L"Global",	L"ImeControl",						L"1"												},
 	{ L"Global",	L"IncrementalSearch",				L"0"												},
 	{ L"Global",	L"LastUpdateCheck",					L""													},
 	{ L"Global",	L"Libraries",						L""													},

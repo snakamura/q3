@@ -109,6 +109,7 @@ public:
 	
 	bool bShowToolbar_;
 	bool bShowStatusBar_;
+	bool bImeControl_;
 	
 	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	Profile* pProfile_;
@@ -676,6 +677,7 @@ qm::MessageFrameWindow::MessageFrameWindow(MessageFrameWindowManager* pMessageFr
 	pImpl_->pThis_ = this;
 	pImpl_->bShowToolbar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowToolbar") != 0;
 	pImpl_->bShowStatusBar_ = pProfile->getInt(L"MessageFrameWindow", L"ShowStatusBar") != 0;
+	pImpl_->bImeControl_ = pProfile->getInt(L"Global", L"ImeControl") != 0;
 	pImpl_->pMessageFrameWindowManager_ = pMessageFrameWindowManager;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pViewModelManager_ = pViewModelManager;
@@ -919,7 +921,9 @@ LRESULT qm::MessageFrameWindow::onActivate(UINT nFlags,
 	
 	if (nFlags != WA_INACTIVE) {
 		pImpl_->pMessageWindow_->setActive();
-		qs::UIUtil::setImeEnabled(getHandle(), false);
+		
+		if (pImpl_->bImeControl_)
+			qs::UIUtil::setImeEnabled(getHandle(), false);
 	}
 	
 	return 0;
