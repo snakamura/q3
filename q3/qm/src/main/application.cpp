@@ -97,6 +97,7 @@ public:
 public:
 	bool ensureDirectories();
 	bool loadMainProfile();
+	void initConverterAliases();
 	void initTimeFormat();
 	void initMime();
 	void initLog();
@@ -207,6 +208,22 @@ bool qm::ApplicationImpl::loadMainProfile()
 		return false;
 	
 	return true;
+}
+
+void qm::ApplicationImpl::initConverterAliases()
+{
+	assert(pProfile_.get());
+	
+	wstring_ptr wstrAlias(pProfile_->getString(L"Global", L"CharsetAliases"));
+	WCHAR* pAlias = wcstok(wstrAlias.get(), L" ");
+	while (pAlias) {
+		WCHAR* p = wcschr(pAlias, L'=');
+		if (p) {
+			*p++ = L'\0';
+			ConverterFactory::addAlias(pAlias, p);
+		}
+		pAlias = wcstok(0, L" ");
+	}
 }
 
 void qm::ApplicationImpl::initTimeFormat()
@@ -812,6 +829,7 @@ bool qm::Application::initialize()
 	if (!pImpl_->ensureDirectories() ||
 		!pImpl_->loadMainProfile())
 		return false;
+	pImpl_->initConverterAliases();
 	pImpl_->initLog();
 	if (!pImpl_->ensureResources())
 		return false;

@@ -173,6 +173,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Global",	L"AddZoneId",						L"1"												},
 	{ L"Global",	L"AutoUpdateCheck",					L"1"												},
 	{ L"Global",	L"Bcc",								L"1"												},
+	{ L"Global",	L"CharsetAliases",					L"windows-31j=shift_jis"							},
 	{ L"Global",	L"ConfirmDeleteMessage",			L"0"												},
 	{ L"Global",	L"ConfirmEmptyFolder",				L"1"												},
 	{ L"Global",	L"ConfirmEmptyTrash",				L"1"												},
