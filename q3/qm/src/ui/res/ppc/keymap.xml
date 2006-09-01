@@ -2,18 +2,18 @@
 	<keymap name="MainWindow">
 		<action name="EditCopy">
 			<key key="C" ctrl="true"/>
-			<key code="2d" ctrl="true"/>
+			<key name="insert" ctrl="true"/>
 		</action>
 		<action name="EditCut">
 			<key key="X" ctrl="true"/>
-			<key code="2e" shift="true"/>
+			<key name="delete" shift="true"/>
 		</action>
 		<action name="EditFind">
 			<key key="F" ctrl="true"/>
 		</action>
 		<action name="EditPaste">
 			<key key="V" ctrl="true"/>
-			<key code="2d" shift="true"/>
+			<key name="insert" shift="true"/>
 		</action>
 		<action name="EditSelectAll">
 			<key key="A" ctrl="true"/>
@@ -31,10 +31,10 @@
 			<key key="S" ctrl="true"/>
 		</action>
 		<action name="ViewFocusNext">
-			<key code="9"/>
+			<key name="tab"/>
 		</action>
 		<action name="ViewFocusPrev">
-			<key code="9" shift="true"/>
+			<key name="tab" shift="true"/>
 		</action>
 		<action name="ViewRefresh">
 			<key key="R" ctrl="true"/>
@@ -57,40 +57,40 @@
 	</keymap>
 	<keymap name="FolderWindow">
 		<action name="FolderCollapse">
-			<key code="6d" shift="true"/>
+			<key name="subtract" shift="true"/>
 		</action>
 		<action name="FolderExpand">
-			<key code="6b" shift="true"/>
+			<key name="add" shift="true"/>
 		</action>
 		<action name="FolderProperty">
-			<key code="d" alt="true"/>
+			<key name="return" alt="true"/>
 		</action>
 		<action name="ViewNextAccount">
-			<key code="28" shift="true"/>
+			<key name="down" shift="true"/>
 		</action>
 		<action name="ViewPrevAccount">
-			<key code="26" shift="true"/>
+			<key name="up" shift="true"/>
 		</action>
 	</keymap>
 	<keymap name="FolderListWindow">
 		<action name="FolderProperty">
-			<key code="d" alt="true"/>
+			<key name="return" alt="true"/>
 		</action>
 	</keymap>
 	<keymap name="ListWindow">
 		<action name="EditDelete">
-			<key code="2e"/>
+			<key name="delete"/>
 			<key key="D"/>
 		</action>
 		<action name="EditDeleteDirect">
-			<key code="2e" shift="true"/>
+			<key name="delete" shift="true"/>
 			<key key="D" shift="true"/>
 		</action>
 		<action name="MessageApplyRule">
 			<key key="L"/>
 		</action>
 		<action name="MessageCreate" param="edit">
-			<key code="d" shift="true"/>
+			<key name="return" shift="true"/>
 		</action>
 		<action name="MessageCreate" param="forward">
 			<key key="F"/>
@@ -126,7 +126,7 @@
 			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
-			<key code="d" alt="true"/>
+			<key name="return" alt="true"/>
 		</action>
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
@@ -135,13 +135,13 @@
 			<key key="N"/>
 		</action>
 		<action name="ViewNextMessagePage">
-			<key code="20"/>
+			<key name="space"/>
 		</action>
 		<action name="ViewPrevMessage">
 			<key key="P"/>
 		</action>
 		<action name="ViewPrevMessagePage">
-			<key code="20" shift="true"/>
+			<key name="space" shift="true"/>
 		</action>
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
@@ -170,15 +170,15 @@
 	</keymap>
 	<keymap name="PreviewWindow">
 		<action name="EditDelete">
-			<key code="2e"/>
+			<key name="delete"/>
 			<key key="D"/>
 		</action>
 		<action name="EditDeleteDirect">
-			<key code="2e" shift="true"/>
+			<key name="delete" shift="true"/>
 			<key key="D" shift="true"/>
 		</action>
 		<action name="MessageCreate" param="edit">
-			<key code="d" shift="true"/>
+			<key name="return" shift="true"/>
 		</action>
 		<action name="MessageCreate" param="forward">
 			<key key="F"/>
@@ -211,30 +211,30 @@
 			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
-			<key code="d" alt="true"/>
+			<key name="return" alt="true"/>
 		</action>
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
 		</action>
 		<action name="ViewNextMessage">
 			<key key="N"/>
-			<key code="d"/>
+			<key name="return"/>
 		</action>
 		<action name="ViewNextMessagePage">
-			<key code="20"/>
+			<key name="space"/>
 		</action>
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
 		</action>
 		<action name="ViewOpenLink">
-			<key code="20" ctrl="true"/>
+			<key name="space" ctrl="true"/>
 		</action>
 		<action name="ViewPrevMessage">
 			<key key="P"/>
-			<key code="8"/>
+			<key name="back"/>
 		</action>
 		<action name="ViewPrevMessagePage">
-			<key code="20" shift="true"/>
+			<key name="space" shift="true"/>
 		</action>
 		<action name="ViewRawMode">
 			<key key="H"/>
@@ -252,15 +252,15 @@
 	<keymap name="MessageFrameWindow">
 		<action name="EditCopy">
 			<key key="C" ctrl="true"/>
-			<key code="2d" ctrl="true"/>
+			<key name="insert" ctrl="true"/>
 		</action>
 		<action name="EditCut">
 			<key key="X" ctrl="true"/>
-			<key code="2e" shift="true"/>
+			<key name="delete" shift="true"/>
 		</action>
 		<action name="EditPaste">
 			<key key="V" ctrl="true"/>
-			<key code="2d" shift="true"/>
+			<key name="insert" shift="true"/>
 		</action>
 		<action name="EditSelectAll">
 			<key key="A" ctrl="true"/>
@@ -269,20 +269,20 @@
 			<key key="Z" ctrl="true"/>
 		</action>
 		<action name="FileClose">
-			<key code="1b"/>
+			<key name="escape"/>
 		</action>
 	</keymap>
 	<keymap name="MessageWindow">
 		<action name="EditDelete">
-			<key code="2e"/>
+			<key name="delete"/>
 			<key key="D"/>
 		</action>
 		<action name="EditDeleteDirect">
-			<key code="2e" shift="true"/>
+			<key name="delete" shift="true"/>
 			<key key="D" shift="true"/>
 		</action>
 		<action name="MessageCreate" param="edit">
-			<key code="d" shift="true"/>
+			<key name="return" shift="true"/>
 		</action>
 		<action name="MessageCreate" param="forward">
 			<key key="F"/>
@@ -315,30 +315,30 @@
 			<key key="L" ctrl="true"/>
 		</action>
 		<action name="MessageProperty">
-			<key code="d" alt="true"/>
+			<key name="return" alt="true"/>
 		</action>
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
 		</action>
 		<action name="ViewNextMessage">
 			<key key="N"/>
-			<key code="d"/>
+			<key name="return"/>
 		</action>
 		<action name="ViewNextMessagePage">
-			<key code="20"/>
+			<key name="space"/>
 		</action>
 		<action name="ViewNextUnseenMessage">
 			<key key="M"/>
 		</action>
 		<action name="ViewOpenLink">
-			<key code="20" ctrl="true"/>
+			<key name="space" ctrl="true"/>
 		</action>
 		<action name="ViewPrevMessage">
 			<key key="P"/>
-			<key code="8"/>
+			<key name="back"/>
 		</action>
 		<action name="ViewPrevMessagePage">
-			<key code="20" shift="true"/>
+			<key name="space" shift="true"/>
 		</action>
 		<action name="ViewRawMode">
 			<key key="H"/>
@@ -355,24 +355,24 @@
 	</keymap>
 	<keymap name="EditFrameWindow">
 		<action name="FileClose">
-			<key code="1b"/>
+			<key name="escape"/>
 		</action>
 	</keymap>
 	<keymap name="EditWindow">
 		<action name="EditCopy">
 			<key key="C" ctrl="true"/>
-			<key code="2d" ctrl="true"/>
+			<key name="insert" ctrl="true"/>
 		</action>
 		<action name="EditCut">
 			<key key="X" ctrl="true"/>
-			<key code="2e" shift="true"/>
+			<key name="delete" shift="true"/>
 		</action>
 		<action name="EditFind">
 			<key key="F" ctrl="true"/>
 		</action>
 		<action name="EditPaste">
 			<key key="V" ctrl="true"/>
-			<key code="2d" shift="true"/>
+			<key name="insert" shift="true"/>
 		</action>
 		<action name="EditRedo">
 			<key key="Y" ctrl="true"/>
@@ -408,23 +408,23 @@
 			<key key="I" ctrl="true"/>
 		</action>
 		<action name="ToolReform">
-			<key code="d" shift="true"/>
+			<key name="return" shift="true"/>
 		</action>
 		<action name="ViewFocusPrevEditItem">
-			<key code="9" shift="true"/>
+			<key name="tab" shift="true"/>
 		</action>
 	</keymap>
 	<keymap name="HeaderEditWindow">
 		<action name="ViewFocusNextEditItem">
-			<key code="9"/>
+			<key name="tab"/>
 		</action>
 		<action name="ViewFocusPrevEditItem">
-			<key code="9" shift="true"/>
+			<key name="tab" shift="true"/>
 		</action>
 	</keymap>
 	<keymap name="AddressBookFrameWindow">
 		<action name="FileClose">
-			<key code="1b"/>
+			<key name="escape"/>
 		</action>
 		<action name="FileSave">
 			<key key="S" ctrl="true"/>
@@ -438,7 +438,7 @@
 			<key key="D" ctrl="true"/>
 		</action>
 		<action name="AddressEdit">
-			<key code="d"/>
+			<key name="return"/>
 		</action>
 		<action name="AddressNew">
 			<key key="N" ctrl="true"/>
