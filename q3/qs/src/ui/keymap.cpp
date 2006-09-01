@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <boost/bind.hpp>
+
 #include <windows.h>
 
 #include "keymap.h"
@@ -34,15 +36,95 @@ using namespace qs;
 
 struct qs::KeyMapImpl
 {
+public:
 	bool load(InputStream* pInputStream,
 			  const ActionItem* pItem,
 			  size_t nItemCount,
 			  ActionParamMap* pActionParamMap);
 	void clear();
+
+public:
+	static WORD getKey(const WCHAR* pwszName);
 	
+public:
+	struct Name
+	{
+		const WCHAR* pwszName_;
+		WORD nKey_;
+	};
+	
+public:
 	typedef std::vector<KeyMapItem*> ItemList;
 	
+public:
 	ItemList listItem_;
+	
+public:
+	static const Name names__[];
+};
+
+const KeyMapImpl::Name qs::KeyMapImpl::names__[] = {
+	{ L"add",			VK_ADD			},
+	{ L"apps",			VK_APPS			},
+	{ L"back",			VK_BACK			},
+	{ L"convert",		VK_CONVERT		},
+	{ L"delete",		VK_DELETE		},
+	{ L"divide",		VK_DIVIDE		},
+	{ L"down",			VK_DOWN			},
+	{ L"end",			VK_END			},
+	{ L"escape",		VK_ESCAPE		},
+	{ L"f1",			VK_F1			},
+	{ L"f2",			VK_F2			},
+	{ L"f3",			VK_F3			},
+	{ L"f4",			VK_F4			},
+	{ L"f5",			VK_F5			},
+	{ L"f6",			VK_F6			},
+	{ L"f7",			VK_F7			},
+	{ L"f8",			VK_F8			},
+	{ L"f9",			VK_F9			},
+	{ L"f10",			VK_F10			},
+	{ L"f11",			VK_F11			},
+	{ L"f12",			VK_F12			},
+	{ L"f13",			VK_F13			},
+	{ L"f14",			VK_F14			},
+	{ L"f15",			VK_F15			},
+	{ L"f16",			VK_F16			},
+	{ L"f17",			VK_F17			},
+	{ L"f18",			VK_F18			},
+	{ L"f19",			VK_F19			},
+	{ L"f20",			VK_F20			},
+	{ L"f21",			VK_F21			},
+	{ L"f22",			VK_F22			},
+	{ L"f23",			VK_F23			},
+	{ L"f24",			VK_F24			},
+	{ L"help",			VK_HELP			},
+	{ L"home",			VK_HOME			},
+	{ L"insert",		VK_INSERT		},
+	{ L"kana",			VK_KANA			},
+	{ L"kanji",			VK_KANJI		},
+	{ L"left",			VK_LEFT			},
+	{ L"lwin",			VK_LWIN			},
+	{ L"multiply",		VK_MULTIPLY		},
+	{ L"next",			VK_NEXT			},
+	{ L"nonconvert",	VK_NONCONVERT	},
+	{ L"numpad0",		VK_NUMPAD0		},
+	{ L"numpad1",		VK_NUMPAD1		},
+	{ L"numpad2",		VK_NUMPAD2		},
+	{ L"numpad3",		VK_NUMPAD3		},
+	{ L"numpad4",		VK_NUMPAD4		},
+	{ L"numpad5",		VK_NUMPAD5		},
+	{ L"numpad6",		VK_NUMPAD6		},
+	{ L"numpad7",		VK_NUMPAD7		},
+	{ L"numpad8",		VK_NUMPAD8		},
+	{ L"numpad9",		VK_NUMPAD9		},
+	{ L"prior",			VK_PRIOR		},
+	{ L"return",		VK_RETURN		},
+	{ L"right",			VK_RIGHT		},
+	{ L"rwin",			VK_RWIN			},
+	{ L"space",			VK_SPACE		},
+	{ L"subtract",		VK_SUBTRACT		},
+	{ L"tab",			VK_TAB			},
+	{ L"up",			VK_UP			}
 };
 
 bool qs::KeyMapImpl::load(InputStream* pInputStream,
@@ -65,6 +147,18 @@ void qs::KeyMapImpl::clear()
 {
 	std::for_each(listItem_.begin(), listItem_.end(), deleter<KeyMapItem>());
 	listItem_.clear();
+}
+
+WORD qs::KeyMapImpl::getKey(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	
+	Name name = { pwszName, 0 };
+	const Name* pName = std::lower_bound(names__, endof(names__), name,
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&Name::pwszName_, _1),
+			boost::bind(&Name::pwszName_, _2)));
+	return pName != endof(names__) ? pName->nKey_ : -1;
 }
 
 
@@ -287,6 +381,14 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 					accel.key = static_cast<WORD>(wcstol(pwszValue, &pEnd, 16));
 					if (*pEnd)
 						return false;
+				}
+				else if (wcscmp(pwszAttrName, L"name") == 0) {
+					if (accel.key != 0)
+						return false;
+					WORD nKey = KeyMapImpl::getKey(pwszValue);
+					if (nKey == -1)
+						return false;
+					accel.key = nKey;
 				}
 				else if (wcscmp(pwszAttrName, L"shift") == 0) {
 					if (wcscmp(pwszValue, L"true") == 0)
