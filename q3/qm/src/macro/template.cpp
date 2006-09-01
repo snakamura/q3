@@ -278,6 +278,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader,
 	StringBuffer<WSTRING> bufText;
 	StringBuffer<WSTRING> bufMacro;
 	bool bMacro = false;
+	bool bSpecialEscape = false;
 	WCHAR cNext = L'\0';
 	while (true) {
 		WCHAR c = L'\0';
@@ -302,6 +303,10 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader,
 				else if (nRead == 1 && c == L'{') {
 					bufText.append(L'{');
 				}
+				else if (nRead == 1 && c == L'-') {
+					bMacro = true;
+					bSpecialEscape = true;
+				}
 				else {
 					bMacro = true;
 					if (nRead == 1)
@@ -323,34 +328,50 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader,
 		else {
 			if (c == L'{') {
 				bufMacro.append(L'{');
-				size_t nRead = pReader->read(&c, 1);
-				if (nRead == -1)
-					return error(L"Could not read from the reader", pwszName);
-				else if (nRead == 1 && c != L'{')
-					cNext = c;
+				if (!bSpecialEscape) {
+					size_t nRead = pReader->read(&c, 1);
+					if (nRead == -1)
+						return error(L"Could not read from the reader", pwszName);
+					else if (nRead == 1 && c != L'{')
+						cNext = c;
+				}
 			}
 			else if (c == L'}') {
-				size_t nRead = pReader->read(&c, 1);
-				if (nRead == -1) {
-					return error(L"Could not read from the reader", pwszName);
-				}
-				else if (nRead == 1 && c == L'}') {
+				if (bSpecialEscape &&
+					(bufMacro.getLength() == 0 ||
+					bufMacro.get(bufMacro.getLength() - 1) != L'-')) {
 					bufMacro.append(L'}');
 				}
 				else {
-					std::auto_ptr<Macro> pMacro(parser.parse(bufMacro.getCharArray()));
-					if (!pMacro.get())
-						return error(L"Error occured while parsing macro: %s.", bufMacro.getCharArray());
-					
-					wstring_ptr wstrText(bufText.getString());
-					listValue.push_back(std::make_pair(wstrText.get(), pMacro.get()));
-					wstrText.release();
-					pMacro.release();
-					bufText.remove();
-					bufMacro.remove();
-					bMacro = false;
-					if (nRead == 1)
-						cNext = c;
+					size_t nRead = pReader->read(&c, 1);
+					if (nRead == -1) {
+						return error(L"Could not read from the reader", pwszName);
+					}
+					else if (nRead == 1 && c == L'}') {
+						bufMacro.append(L'}');
+					}
+					else {
+						if (bSpecialEscape) {
+							assert(bufMacro.getLength() != 0);
+							assert(bufMacro.get(bufMacro.getLength() - 1) == L'-');
+							bufMacro.remove(bufMacro.getLength() - 1);
+						}
+						
+						std::auto_ptr<Macro> pMacro(parser.parse(bufMacro.getCharArray()));
+						if (!pMacro.get())
+							return error(L"Error occured while parsing macro: %s.", bufMacro.getCharArray());
+						
+						wstring_ptr wstrText(bufText.getString());
+						listValue.push_back(std::make_pair(wstrText.get(), pMacro.get()));
+						wstrText.release();
+						pMacro.release();
+						bufText.remove();
+						bufMacro.remove();
+						bMacro = false;
+						bSpecialEscape = false;
+						if (nRead == 1)
+							cNext = c;
+					}
 				}
 			}
 			else {
