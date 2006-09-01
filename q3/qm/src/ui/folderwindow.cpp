@@ -569,8 +569,10 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 			removeFolder(pFolder, false);
 		break;
 	case FolderListChangedEvent::TYPE_RENAME:
-		if (!pFolder->isHidden())
-			update(event.getFolder());
+		if (!pFolder->isHidden()) {
+			sortFolders(pFolder);
+			update(pFolder);
+		}
 		break;
 	case FolderListChangedEvent::TYPE_MOVE:
 		if (!event.isOldHidden())
