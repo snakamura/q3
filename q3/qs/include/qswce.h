@@ -86,6 +86,8 @@ extern "C" QSEXPORTPROC int isdigit(int c);
 
 extern "C" QSEXPORTPROC int GetMenuItemCount(HMENU hmenu);
 
+#define VK_NONCONVERT VK_NOCONVERT
+
 #endif // _WIN32_WCE
 
 #endif // __QSWCE_H__

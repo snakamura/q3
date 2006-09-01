@@ -154,10 +154,17 @@ WORD qs::KeyMapImpl::getKey(const WCHAR* pwszName)
 	assert(pwszName);
 	
 	Name name = { pwszName, 0 };
+#if 0
 	const Name* pName = std::lower_bound(names__, endof(names__), name,
 		boost::bind(string_less<WCHAR>(),
 			boost::bind(&Name::pwszName_, _1),
 			boost::bind(&Name::pwszName_, _2)));
+#else
+	const Name* pName = std::lower_bound(names__, endof(names__), name,
+		binary_compose_f_gx_hy(string_less<WCHAR>(),
+			mem_data_ref(&Name::pwszName_),
+			mem_data_ref(&Name::pwszName_)));
+#endif
 	return pName != endof(names__) ? pName->nKey_ : -1;
 }
 

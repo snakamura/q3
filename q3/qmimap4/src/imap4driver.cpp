@@ -1496,11 +1496,14 @@ bool qmimap4::FolderListGetter::listFolders(Imap4* pImap4,
 		
 		~Deleter()
 		{
-//			std::for_each(l_.begin(), l_.end(),
-//				boost::bind(string_free<WSTRING>(),
-//					boost::bind(&FolderData::wstrMailbox_, _1)));
+#if 0
+			std::for_each(l_.begin(), l_.end(),
+				boost::bind(string_free<WSTRING>(),
+					boost::bind(&FolderData::wstrMailbox_, _1)));
+#else
 			for (FolderListGetter::FolderDataList::iterator it = l_.begin(); it != l_.end(); ++it)
 				freeWString((*it).wstrMailbox_);
+#endif
 		}
 		
 		FolderDataList& l_;
