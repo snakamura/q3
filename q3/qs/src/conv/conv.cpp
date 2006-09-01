@@ -345,6 +345,14 @@ bool qs::ConverterFactoryImpl::InitializerImpl::init()
 
 void qs::ConverterFactoryImpl::InitializerImpl::term()
 {
+	typedef ConverterFactoryImpl::AliasMap AliasMap;
+	AliasMap& m = ConverterFactoryImpl::mapAlias__;
+	for (AliasMap::iterator it = m.begin(); it != m.end(); ++it) {
+		freeWString((*it).first);
+		freeWString((*it).second);
+	}
+	m.clear();
+	
 	delete ConverterFactoryImpl::pMap__;
 	ConverterFactoryImpl::pMap__ = 0;
 }
