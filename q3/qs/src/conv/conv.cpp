@@ -307,10 +307,27 @@ struct qs::ConverterFactoryImpl
 		virtual bool init();
 		virtual void term();
 	} init__;
+	
+	static const WCHAR* lookupAlias(const WCHAR* pwszAlias);
+	typedef std::vector<std::pair<WSTRING, WSTRING> > AliasMap;
+	static AliasMap mapAlias__;
 };
 
 ConverterFactoryImpl::FactoryMap* qs::ConverterFactoryImpl::pMap__;
 ConverterFactoryImpl::InitializerImpl qs::ConverterFactoryImpl::init__;
+ConverterFactoryImpl::AliasMap qs::ConverterFactoryImpl::mapAlias__;
+
+const WCHAR* qs::ConverterFactoryImpl::lookupAlias(const WCHAR* pwszAlias)
+{
+	AliasMap::value_type alias(const_cast<WSTRING>(pwszAlias), 0);
+	AliasMap::const_iterator it = std::lower_bound(
+		mapAlias__.begin(), mapAlias__.end(), alias,
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			std::select1st<AliasMap::value_type>(),
+			std::select1st<AliasMap::value_type>()));
+	return it != mapAlias__.end() && wcscmp((*it).first, pwszAlias) == 0? (*it).second : 0;
+}
 
 qs::ConverterFactoryImpl::InitializerImpl::InitializerImpl()
 {
@@ -353,6 +370,12 @@ std::auto_ptr<Converter> qs::ConverterFactory::getInstance(const WCHAR* pwszName
 	
 	wstring_ptr wstrLowerName(tolower(pwszName));
 	
+	const WCHAR* pwsz = ConverterFactoryImpl::lookupAlias(wstrLowerName.get());
+	if (pwsz) {
+		pwszName = pwsz;
+		wstrLowerName = tolower(pwszName);
+	}
+	
 	typedef ConverterFactoryImpl::FactoryMap Map;
 	Map* pMap = ConverterFactoryImpl::pMap__;
 	
@@ -366,6 +389,30 @@ std::auto_ptr<Converter> qs::ConverterFactory::getInstance(const WCHAR* pwszName
 		return std::auto_ptr<Converter>(0);
 	
 	return (*it)->createInstance(pwszName);
+}
+
+void qs::ConverterFactory::addAlias(const WCHAR* pwszAlias,
+									const WCHAR* pwszName)
+{
+	typedef ConverterFactoryImpl::AliasMap AliasMap;
+	AliasMap::value_type alias(const_cast<WSTRING>(pwszAlias), 0);
+	AliasMap::iterator it = std::lower_bound(
+		ConverterFactoryImpl::mapAlias__.begin(),
+		ConverterFactoryImpl::mapAlias__.end(), alias,
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			std::select1st<AliasMap::value_type>(),
+			std::select1st<AliasMap::value_type>()));
+	if (it != ConverterFactoryImpl::mapAlias__.end() &&
+		wcscmp((*it).first, pwszAlias) == 0)
+		return;
+	
+	wstring_ptr wstrAlias(allocWString(pwszAlias));
+	wstring_ptr wstrName(allocWString(pwszName));
+	ConverterFactoryImpl::mapAlias__.insert(it,
+		AliasMap::value_type(wstrAlias.get(), wstrName.get()));
+	wstrAlias.release();
+	wstrName.release();
 }
 
 void qs::ConverterFactory::registerFactory(ConverterFactory* pFactory)

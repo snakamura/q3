@@ -325,6 +325,16 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	static std::auto_ptr<Converter> getInstance(const WCHAR* pwszName);
+	
+	/**
+	 * Add alias for the specified converter.
+	 *
+	 * @param pwszAlias [in] Alias
+	 * @param pwszName [in] Name
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	static void addAlias(const WCHAR* pwszAlias,
+						 const WCHAR* pwszName);
 
 protected:
 	/**
