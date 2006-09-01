@@ -165,7 +165,7 @@ WORD qs::KeyMapImpl::getKey(const WCHAR* pwszName)
 			mem_data_ref(&Name::pwszName_),
 			mem_data_ref(&Name::pwszName_)));
 #endif
-	return pName != endof(names__) ? pName->nKey_ : -1;
+	return pName != endof(names__) && wcscmp(pName->pwszName_, pwszName) == 0 ? pName->nKey_ : -1;
 }
 
 
