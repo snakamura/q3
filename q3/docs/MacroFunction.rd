@@ -79,6 +79,7 @@
 *((<@LookupAddressBook|URL:LookupAddressBookFunction.html>))
 *((<@Marked|URL:MarkedFunction.html>))
 *((<@MessageBox|URL:MessageBoxFunction.html>))
+*((<@MessageId|URL:MessageIdFunction.html>))
 *((<@Messages|URL:MessagesFunction.html>))
 *((<@Move|URL:MoveFunction.html>))
 *((<@Multipart|URL:MultipartFunction.html>))
