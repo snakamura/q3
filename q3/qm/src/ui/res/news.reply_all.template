@@ -4,12 +4,22 @@ Newsgroups: {
       Newsgroups)
 }
 Subject: Re: {@Subject(@True(), @True())}
-In-Reply-To: {Message-Id}
-References: {
-  @Progn(@Set('ref', @References(4)),
-         @Concat(@If($ref, @Concat($ref, ' '), ''), Message-Id))
-}
-X-QMAIL-Account: {@Account()}{
+{
+  @Progn(@Set('id', @MessageId()),
+         @Set('ref', @References(4)),
+         @Concat(@If($id,
+                     @Concat('In-Reply-To: ', $id, '\n'),
+                     ''),
+                 @If(@Or($ref, $id),
+                     @Concat('References: ',
+                             @If(@And($ref, $id),
+                                 @Concat($ref, ' ', $id),
+                                 $ref,
+                                 $ref,
+                                 $id),
+                             '\n'),
+                     '')))
+}X-QMAIL-Account: {@Account()}{
   @If(X-QMAIL-SubAccount,
       @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount),
       '')
