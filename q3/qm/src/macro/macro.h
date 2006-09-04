@@ -83,6 +83,7 @@ class MacroExpr;
 		class MacroFunctionLoad;
 		class MacroFunctionLookupAddressBook;
 		class MacroFunctionMessageBox;
+		class MacroFunctionMessageId;
 		class MacroFunctionMessages;
 		class MacroFunctionNew;
 		class MacroFunctionNot;
@@ -1932,6 +1933,30 @@ protected:
 private:
 	MacroFunctionMessageBox(const MacroFunctionMessageBox&);
 	MacroFunctionMessageBox& operator=(const MacroFunctionMessageBox&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionMessageId
+ *
+ */
+
+class MacroFunctionMessageId : public MacroFunction
+{
+public:
+	MacroFunctionMessageId();
+	virtual ~MacroFunctionMessageId();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionMessageId(const MacroFunctionMessageId&);
+	MacroFunctionMessageId& operator=(const MacroFunctionMessageId&);
 };
 
 

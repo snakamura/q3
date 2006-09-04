@@ -3413,6 +3413,54 @@ const WCHAR* qm::MacroFunctionMessageBox::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionMessageId
+ *
+ */
+
+qm::MacroFunctionMessageId::MacroFunctionMessageId()
+{
+}
+
+qm::MacroFunctionMessageId::~MacroFunctionMessageId()
+{
+}
+
+MacroValuePtr qm::MacroFunctionMessageId::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(MessageId);
+	
+	if (!checkArgSize(pContext, 0))
+		return MacroValuePtr();
+	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (!pmh)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+	
+	Message* pMessage = getMessage(pContext,
+		MacroContext::MESSAGETYPE_HEADER, L"Message-Id");
+	if (!pMessage)
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
+	
+	StringBuffer<WSTRING> buf;
+	MessageIdParser messageId;
+	if (pMessage->getField(L"Message-Id", &messageId) == Part::FIELD_EXIST) {
+		buf.append(L'<');
+		buf.append(messageId.getMessageId());
+		buf.append(L'>');
+	}
+	return MacroValueFactory::getFactory().newString(buf.getString());
+}
+
+const WCHAR* qm::MacroFunctionMessageId::getName() const
+{
+	return L"MessageId";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionMessages
  *
  */
@@ -5923,6 +5971,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 		BEGIN_BLOCK(L'm', L'M')
 			DECLARE_FUNCTION1(		Flag,				L"marked",			MessageHolder::FLAG_MARKED			)
 			DECLARE_FUNCTION0(		MessageBox,			L"messagebox"											)
+			DECLARE_FUNCTION0(		MessageId,			L"messageid"											)
 			DECLARE_FUNCTION0(		Messages,			L"messages"												)
 			DECLARE_FUNCTION1(		Additive,			L"minus",			false								)
 			DECLARE_FUNCTION1(		Copy,				L"move",			true								)
