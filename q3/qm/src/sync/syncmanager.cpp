@@ -371,7 +371,8 @@ void qm::StaticSyncData::addSend(Account* pAccount,
 qm::SyncManager::SyncManager(Profile* pProfile) :
 	pProfile_(pProfile),
 	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
-	nDialupConnectionCount_(0)
+	nDialupConnectionCount_(0),
+	bDialup_(false)
 {
 	pSyncFilterManager_.reset(new SyncFilterManager(
 		Application::getApplication().getProfilePath(FileNames::SYNCFILTERS_XML).get()));
@@ -500,8 +501,11 @@ bool qm::SyncManager::syncData(SyncData* pData)
 	
 	const SyncDialup* pDialup = pData->getDialup();
 	if (pDialup) {
-		if (!(pDialup->getFlags() & SyncDialup::FLAG_WHENEVERNOTCONNECTED) ||
-			!RasConnection::isNetworkConnected()) {
+		Lock<CriticalSection> lock(csDialup_);
+		
+		bool bDialup = !(pDialup->getFlags() & SyncDialup::FLAG_WHENEVERNOTCONNECTED) ||
+			!RasConnection::isNetworkConnected();
+		if (bDialup) {
 			const WCHAR* pwszDialFrom = pDialup->getDialFrom();
 			if (pwszDialFrom)
 				RasConnection::setLocation(pwszDialFrom);
@@ -526,15 +530,21 @@ bool qm::SyncManager::syncData(SyncData* pData)
 			if (result == RasConnection::RAS_CANCEL)
 				return true;
 		}
-		::InterlockedIncrement(UNVOLATILE(LONG*)(&nDialupConnectionCount_));
+		++nDialupConnectionCount_;
+		if (bDialup)
+			bDialup_ = true;
 	}
 	
 	struct DialupDisconnector
 	{
 		DialupDisconnector(const SyncDialup* pDialup,
-						   volatile LONG& nDialupConnectionCount) :
+						   LONG& nDialupConnectionCount,
+						   bool& bDialup,
+						   CriticalSection& cs) :
 			pDialup_(pDialup),
-			nDialupConnectionCount_(nDialupConnectionCount)
+			nDialupConnectionCount_(nDialupConnectionCount),
+			bDialup_(bDialup),
+			cs_(cs)
 		{
 		}
 		
@@ -542,9 +552,15 @@ bool qm::SyncManager::syncData(SyncData* pData)
 		{
 			if (!pDialup_)
 				return;
-			else if (::InterlockedDecrement(UNVOLATILE(LONG*)(&nDialupConnectionCount_)) != 0)
+			
+			Lock<CriticalSection> lock(cs_);
+			
+			if (--nDialupConnectionCount_ != 0 || !bDialup_)
 				return;
-			else if (pDialup_->getFlags() & SyncDialup::FLAG_NOTDISCONNECT)
+			
+			bDialup_ = false;
+			
+			if (pDialup_->getFlags() & SyncDialup::FLAG_NOTDISCONNECT)
 				return;
 			
 			std::auto_ptr<RasConnection> pRasConnection(
@@ -554,8 +570,10 @@ bool qm::SyncManager::syncData(SyncData* pData)
 		}
 		
 		const SyncDialup* pDialup_;
-		volatile LONG& nDialupConnectionCount_;
-	} disconnector(pDialup, nDialupConnectionCount_);
+		LONG& nDialupConnectionCount_;
+		bool& bDialup_;
+		CriticalSection& cs_;
+	} disconnector(pDialup, nDialupConnectionCount_, bDialup_, csDialup_);
 	
 	struct InternalOnline
 	{

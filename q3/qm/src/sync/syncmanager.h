@@ -554,10 +554,15 @@ private:
 	qs::Profile* pProfile_;
 	qs::Synchronizer* pSynchronizer_;
 	std::auto_ptr<SyncFilterManager> pSyncFilterManager_;
+	
 	ThreadList listThread_;
 	SyncingFolderList listSyncingFolder_;
-	volatile LONG nDialupConnectionCount_;
 	qs::CriticalSection cs_;
+	
+	LONG nDialupConnectionCount_;
+	bool bDialup_;
+	qs::CriticalSection csDialup_;
+	
 	SyncManagerHandlerList listHandler_;
 };
 
