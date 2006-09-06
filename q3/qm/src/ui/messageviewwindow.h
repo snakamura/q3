@@ -209,6 +209,9 @@ public:
 	virtual ~TextMessageViewWindow();
 
 public:
+	void reloadProfiles(const WCHAR* pwszSection);
+
+public:
 	virtual LRESULT windowProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);

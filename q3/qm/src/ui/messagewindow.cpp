@@ -640,9 +640,9 @@ void qm::MessageWindow::layout()
 
 void qm::MessageWindow::reloadProfiles()
 {
-	pImpl_->reloadProfiles(false);
 	pImpl_->pHeaderWindow_->reloadProfiles();
 	pImpl_->pFactory_->reloadProfiles();
+	pImpl_->reloadProfiles(false);
 }
 
 void qm::MessageWindow::save() const

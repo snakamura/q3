@@ -168,7 +168,7 @@ bool qm::MessageViewWindowFactory::isSupported(const ContentTypeParser* pContent
 
 void qm::MessageViewWindowFactory::reloadProfiles()
 {
-	pText_->reloadProfiles(pProfile_, pwszSection_);
+	pText_->reloadProfiles(pwszSection_);
 }
 
 #ifdef QMHTMLVIEW
@@ -242,6 +242,13 @@ qm::TextMessageViewWindow::TextMessageViewWindow(Document* pDocument,
 qm::TextMessageViewWindow::~TextMessageViewWindow()
 {
 	pTextModel_->removeReadOnlyTextModelHandler(this);
+}
+
+void qm::TextMessageViewWindow::reloadProfiles(const WCHAR* pwszSection)
+{
+	TextWindow::reloadProfiles(pProfile_, pwszSection);
+	
+	pFont_ = 0;
 }
 
 LRESULT qm::TextMessageViewWindow::windowProc(UINT uMsg,
