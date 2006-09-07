@@ -57,7 +57,7 @@ void qmpop3::Pop3Connection::disconnect()
 bool qmpop3::Pop3Connection::setProperty(const WCHAR* pwszName,
 										 const WCHAR* pwszValue)
 {
-	if (wcscmp(pwszName, L"apop") == 0) {
+	if (wcscmp(pwszName, L"Apop") == 0) {
 		bApop_ = pwszValue && wcscmp(pwszValue, L"true") == 0;
 		return true;
 	}
