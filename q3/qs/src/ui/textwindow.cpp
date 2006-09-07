@@ -3127,6 +3127,9 @@ void qs::TextWindow::setLineSpacing(unsigned int nLineSpacing)
 {
 	if (nLineSpacing != pImpl_->nLineSpacing_) {
 		pImpl_->nLineSpacing_ = nLineSpacing;
+		pImpl_->nLineHeight_ = 0;
+		pImpl_->nLineInWindow_ = 0;
+		pImpl_->updateScrollBar();
 		invalidate();
 	}
 }
