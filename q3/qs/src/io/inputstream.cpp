@@ -7,6 +7,8 @@
  */
 
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsosutil.h>
 #include <qsstream.h>
 #include <qsstring.h>
@@ -38,16 +40,23 @@ struct qs::FileInputStreamImpl
 	bool open(const WCHAR* pwszPath);
 	
 	HANDLE hFile_;
+	wstring_ptr wstrPath_;
 };
 
 bool qs::FileInputStreamImpl::open(const WCHAR* pwszPath)
 {
+	assert(pwszPath);
+	
 	W2T(pwszPath, ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ,
 		FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (!hFile.get())
+	if (!hFile.get()) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::FileInputStreamImpl");
+		log.errorf(L"Could not open file to read: %s, %x", pwszPath, ::GetLastError());
 		return false;
+	}
 	hFile_ = hFile.release();
+	wstrPath_ = allocWString(pwszPath);
 	
 	return true;
 }
@@ -90,6 +99,10 @@ bool qs::FileInputStream::close()
 	bool b = true;
 	if (pImpl_->hFile_) {
 		b = ::CloseHandle(pImpl_->hFile_) != 0;
+		if (!b) {
+			Log log(InitThread::getInitThread().getLogger(), L"qs::FileInputStream");
+			log.errorf(L"Failed to close file: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
+		}
 		pImpl_->hFile_ = 0;
 	}
 	return b;
@@ -107,9 +120,12 @@ size_t qs::FileInputStream::read(unsigned char* p,
 	
 	while (nRead != 0) {
 		DWORD dwRead = 0;
-		if (!::ReadFile(pImpl_->hFile_, p, static_cast<DWORD>(nRead), &dwRead, 0))
+		if (!::ReadFile(pImpl_->hFile_, p, static_cast<DWORD>(nRead), &dwRead, 0)) {
+			Log log(InitThread::getInitThread().getLogger(), L"qs::FileInputStream");
+			log.errorf(L"Failed to read file: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 			return -1;
-		if (dwRead == 0) {
+		}
+		else if (dwRead == 0) {
 			break;
 		}
 		else {

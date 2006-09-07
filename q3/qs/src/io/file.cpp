@@ -8,6 +8,8 @@
 
 #include <qsconv.h>
 #include <qsfile.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsosutil.h>
 #include <qsstring.h>
 
@@ -218,6 +220,7 @@ struct qs::BinaryFileImpl
 	
 	size_t nBufferSize_;
 	HANDLE hFile_;
+	wstring_ptr wstrPath_;
 	DWORD dwPosition_;
 	bool bWritten_;
 	auto_ptr_array<unsigned char> pBuf_;
@@ -258,9 +261,13 @@ bool qs::BinaryFileImpl::open(const WCHAR* pwszPath,
 	W2T(pwszPath, ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, dwMode, FILE_SHARE_READ,
 		0, dwDescription, FILE_ATTRIBUTE_NORMAL, 0));
-	if (!hFile.get())
+	if (!hFile.get()) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+		log.errorf(L"Could not open file: %s, %x", pwszPath, ::GetLastError());
 		return false;
+	}
 	hFile_ = hFile.release();
+	wstrPath_ = allocWString(pwszPath);
 	
 	return true;
 }
@@ -270,8 +277,11 @@ bool qs::BinaryFileImpl::close()
 	if (hFile_) {
 		if (!flushBuffer())
 			return false;
-		if (!::CloseHandle(hFile_))
+		if (!::CloseHandle(hFile_)) {
+			Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+			log.errorf(L"Could not close file: %s, %x", wstrPath_.get(), ::GetLastError());
 			return false;
+		}
 		hFile_ = 0;
 	}
 	return true;
@@ -287,8 +297,11 @@ bool qs::BinaryFileImpl::mapBuffer()
 	while (pBufEnd_ != pBuf_.get() + nBufferSize_) {
 		DWORD dwRead = 0;
 		if (!::ReadFile(hFile_, pBufEnd_,
-			static_cast<DWORD>(pBuf_.get() + nBufferSize_ - pBufEnd_), &dwRead, 0))
+			static_cast<DWORD>(pBuf_.get() + nBufferSize_ - pBufEnd_), &dwRead, 0)) {
+			Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+			log.errorf(L"Could not read file: %s, %x", wstrPath_.get(), ::GetLastError());
 			return false;
+		}
 		if (dwRead == 0)
 			break;
 		pBufEnd_ += dwRead;
@@ -309,8 +322,11 @@ bool qs::BinaryFileImpl::flushBuffer()
 		unsigned char* p = pBuf_.get();
 		while (p != pBufEnd_) {
 			DWORD dwWritten = 0;
-			if (!::WriteFile(hFile_, p, static_cast<DWORD>(pBufEnd_ - p), &dwWritten, 0))
+			if (!::WriteFile(hFile_, p, static_cast<DWORD>(pBufEnd_ - p), &dwWritten, 0)) {
+				Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+				log.errorf(L"Could not write file: %s, %x", wstrPath_.get(), ::GetLastError());
 				return false;
+			}
 			p += dwWritten;
 		}
 		bWritten_ = false;
@@ -319,8 +335,11 @@ bool qs::BinaryFileImpl::flushBuffer()
 	if (pCurrent_ != pBuf_.get()) {
 		DWORD dwNewPos = ::SetFilePointer(hFile_,
 			static_cast<LONG>(dwPosition_ + (pCurrent_ - pBuf_.get())), 0, FILE_BEGIN);
-		if (dwNewPos == INVALID_SET_FILE_POINTER)
+		if (dwNewPos == INVALID_SET_FILE_POINTER) {
+			Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+			log.errorf(L"Could not set file pointer: %s, %x", wstrPath_.get(), ::GetLastError());
 			return false;
+		}
 		dwPosition_ = dwNewPos;
 	}
 	
@@ -412,8 +431,11 @@ size_t qs::BinaryFile::read(unsigned char* p,
 			
 			while (nRead != 0) {
 				DWORD dwRead = 0;
-				if (!::ReadFile(pImpl_->hFile_, p, static_cast<DWORD>(nRead), &dwRead, 0))
+				if (!::ReadFile(pImpl_->hFile_, p, static_cast<DWORD>(nRead), &dwRead, 0)) {
+					Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+					log.errorf(L"Could not read file: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 					return -1;
+				}
 				if (dwRead == 0)
 					break;
 				nSize += dwRead;
@@ -469,8 +491,11 @@ size_t qs::BinaryFile::write(const unsigned char* p,
 			size_t n = nWrite;
 			while (n != 0) {
 				DWORD dwWritten = 0;
-				if (!::WriteFile(pImpl_->hFile_, p, static_cast<DWORD>(n), &dwWritten, 0))
+				if (!::WriteFile(pImpl_->hFile_, p, static_cast<DWORD>(n), &dwWritten, 0)) {
+					Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+					log.errorf(L"Could not write file: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 					return -1;
+				}
 				p += dwWritten;
 				n -= dwWritten;
 				pImpl_->dwPosition_ += dwWritten;
@@ -544,8 +569,11 @@ ssize_t qs::BinaryFile::setPosition(ssize_t nPosition,
 	assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
 	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_,
 		static_cast<DWORD>(nPosition), 0, dwMethod);
-	if (dwNewPos == INVALID_SET_FILE_POINTER)
+	if (dwNewPos == INVALID_SET_FILE_POINTER) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+		log.errorf(L"Could not set file pointer: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 		return -1;
+	}
 	pImpl_->dwPosition_ = dwNewPos;
 	
 	return getPosition();
@@ -562,18 +590,28 @@ bool qs::BinaryFile::setEndOfFile()
 	
 	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_,
 		static_cast<DWORD>(nPosition), 0, FILE_BEGIN);
-	if (dwNewPos == INVALID_SET_FILE_POINTER)
+	if (dwNewPos == INVALID_SET_FILE_POINTER) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+		log.errorf(L"Could not set file pointer: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 		return false;
+	}
 	pImpl_->dwPosition_ = dwNewPos;
 	
-	return ::SetEndOfFile(pImpl_->hFile_) != 0;
+	if (!::SetEndOfFile(pImpl_->hFile_)) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+		log.errorf(L"Could not set end of file: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
+	}
+	return true;
 }
 
 size_t qs::BinaryFile::getSize()
 {
 	DWORD dwSize = ::GetFileSize(pImpl_->hFile_, 0);
-	if (dwSize == -1)
+	if (dwSize == -1) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
+		log.errorf(L"Could not get file size: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 		return -1;
+	}
 	return QSMAX(dwSize, pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get()));
 }
 
@@ -901,6 +939,8 @@ const WCHAR* qs::TemporaryFileRenamer::getPath() const
 
 bool qs::TemporaryFileRenamer::rename()
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qs::TemporaryFileRenamer");
+	
 #ifdef UNICODE
 	const TCHAR* ptszOriginalPath = pImpl_->wstrOriginalPath_.get();
 	const TCHAR* ptszTemporaryPath = pImpl_->wstrTemporaryPath_.get();
@@ -909,11 +949,18 @@ bool qs::TemporaryFileRenamer::rename()
 	const TCHAR* ptszTemporaryPath = pImpl_->tstrTemporaryPath_.get();
 #endif
 	if (::GetFileAttributes(ptszOriginalPath) != 0xffffffff) {
-		if (!::DeleteFile(ptszOriginalPath))
+		if (!::DeleteFile(ptszOriginalPath)) {
+			T2W(ptszOriginalPath, pwszPath);
+			log.errorf(L"Could not delete file: %s, %x", pwszPath, ::GetLastError());
 			return false;
+		}
 	}
-	if (!::MoveFile(ptszTemporaryPath, ptszOriginalPath))
+	if (!::MoveFile(ptszTemporaryPath, ptszOriginalPath)) {
+		T2W(ptszTemporaryPath, pwszFromPath);
+		T2W(ptszOriginalPath, pwszToPath);
+		log.errorf(L"Could not move file: %s, %s, %x", pwszFromPath, pwszToPath, ::GetLastError());
 		return false;
+	}
 	
 	pImpl_->bRenamed_ = true;
 	

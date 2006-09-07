@@ -7,6 +7,8 @@
  */
 
 #include <qsconv.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsosutil.h>
 #include <qsstream.h>
 #include <qsstring.h>
@@ -38,16 +40,23 @@ struct qs::FileOutputStreamImpl
 	bool open(const WCHAR* pwszPath);
 	
 	HANDLE hFile_;
+	wstring_ptr wstrPath_;
 };
 
 bool qs::FileOutputStreamImpl::open(const WCHAR* pwszPath)
 {
+	assert(pwszPath);
+	
 	W2T(pwszPath, ptszPath);
 	AutoHandle hFile(::CreateFile(ptszPath, GENERIC_WRITE,
 		FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0));
-	if (!hFile.get())
+	if (!hFile.get()) {
+		Log log(InitThread::getInitThread().getLogger(), L"qs::FileOutputStreamImpl");
+		log.errorf(L"Could not open file to write: %s, %x", pwszPath, ::GetLastError());
 		return false;
+	}
 	hFile_ = hFile.release();
+	wstrPath_ = allocWString(pwszPath);
 	
 	return true;
 }
@@ -89,6 +98,10 @@ bool qs::FileOutputStream::close()
 	bool b = true;
 	if (pImpl_->hFile_) {
 		b = ::CloseHandle(pImpl_->hFile_) != 0;
+		if (!b) {
+			Log log(InitThread::getInitThread().getLogger(), L"qs::FileOutputStream");
+			log.errorf(L"Failed to close file: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
+		}
 		pImpl_->hFile_ = 0;
 	}
 	return b;
@@ -104,8 +117,11 @@ size_t qs::FileOutputStream::write(const unsigned char* p,
 	
 	while (nWrite != 0) {
 		DWORD dwWritten = 0;
-		if (!::WriteFile(pImpl_->hFile_, p, static_cast<DWORD>(nWrite), &dwWritten, 0))
+		if (!::WriteFile(pImpl_->hFile_, p, static_cast<DWORD>(nWrite), &dwWritten, 0)) {
+			Log log(InitThread::getInitThread().getLogger(), L"qs::FileOutputStream");
+			log.errorf(L"Failed to write file: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 			return -1;
+		}
 		nWrite -= dwWritten;
 		p += dwWritten;
 	}
