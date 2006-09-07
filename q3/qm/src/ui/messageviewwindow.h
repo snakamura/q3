@@ -282,7 +282,7 @@ private:
 	MessageModel* pMessageModel_;
 	qs::MenuManager* pMenuManager_;
 	const MessageWindowFontGroup* pFontGroup_;
-	const MessageWindowFontSet::Font* pFont_;
+	const MessageWindowFontSet* pFontSet_;
 	int nScrollPos_;
 };
 

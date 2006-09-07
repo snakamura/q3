@@ -161,12 +161,14 @@ public:
 	};
 
 public:
-	explicit MessageWindowFontSet(std::auto_ptr<Macro> pCondition);
+	MessageWindowFontSet(std::auto_ptr<Macro> pCondition,
+						 unsigned int nLineSpacing);
 	~MessageWindowFontSet();
 
 public:
 	bool match(MacroContext* pContext) const;
 	const Font* getFont() const;
+	unsigned int getLineSpacing() const;
 
 public:
 	void setFont(std::auto_ptr<Font> pFont);
@@ -179,6 +181,7 @@ private:
 private:
 	std::auto_ptr<Macro> pCondition_;
 	std::auto_ptr<Font> pFont_;
+	unsigned int nLineSpacing_;
 };
 
 

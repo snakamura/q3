@@ -999,8 +999,10 @@ bool qm::MessageWindowFontGroup::isSet() const
  *
  */
 
-qm::MessageWindowFontSet::MessageWindowFontSet(std::auto_ptr<Macro> pCondition) :
-	pCondition_(pCondition)
+qm::MessageWindowFontSet::MessageWindowFontSet(std::auto_ptr<Macro> pCondition,
+											   unsigned int nLineSpacing) :
+	pCondition_(pCondition),
+	nLineSpacing_(nLineSpacing)
 {
 }
 
@@ -1023,6 +1025,11 @@ bool qm::MessageWindowFontSet::match(MacroContext* pContext) const
 const MessageWindowFontSet::Font* qm::MessageWindowFontSet::getFont() const
 {
 	return pFont_.get();
+}
+
+unsigned int qm::MessageWindowFontSet::getLineSpacing() const
+{
+	return nLineSpacing_;
 }
 
 void qm::MessageWindowFontSet::setFont(std::auto_ptr<Font> pFont)
@@ -1117,10 +1124,13 @@ bool qm::MessageWindowFontContentHandler::startElement(const WCHAR* pwszNamespac
 			return false;
 		
 		const WCHAR* pwszMatch = 0;
+		const WCHAR* pwszLineSpacing = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
 			if (wcscmp(pwszAttrName, L"match") == 0)
 				pwszMatch = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"lineSpacing") == 0)
+				pwszLineSpacing = attributes.getValue(n);
 			else
 				return false;
 		}
@@ -1132,7 +1142,15 @@ bool qm::MessageWindowFontContentHandler::startElement(const WCHAR* pwszNamespac
 				return false;
 		}
 		
-		pFontSet_.reset(new MessageWindowFontSet(pCondition));
+		unsigned int nLineSpacing = -1;
+		if (pwszLineSpacing) {
+			WCHAR* pEnd = 0;
+			long n = wcstol(pwszLineSpacing, &pEnd, 10);
+			if (!*pEnd)
+				nLineSpacing = static_cast<unsigned int>(n);
+		}
+		
+		pFontSet_.reset(new MessageWindowFontSet(pCondition, nLineSpacing));
 		
 		state_ = STATE_FONTSET;
 	}

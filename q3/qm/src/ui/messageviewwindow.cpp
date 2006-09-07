@@ -230,7 +230,7 @@ qm::TextMessageViewWindow::TextMessageViewWindow(Document* pDocument,
 	pMessageModel_(pMessageModel),
 	pMenuManager_(pMenuManager),
 	pFontGroup_(pFontGroup),
-	pFont_(0),
+	pFontSet_(0),
 	nScrollPos_(0)
 {
 	pTextModel_.reset(new ReadOnlyTextModel());
@@ -248,7 +248,7 @@ void qm::TextMessageViewWindow::reloadProfiles(const WCHAR* pwszSection)
 {
 	TextWindow::reloadProfiles(pProfile_, pwszSection);
 	
-	pFont_ = 0;
+	pFontSet_ = 0;
 }
 
 LRESULT qm::TextMessageViewWindow::windowProc(UINT uMsg,
@@ -379,16 +379,19 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, 0, &globalVariable);
 			const MessageWindowFontSet* pFontSet = pFontGroup_->getFontSet(&context);
-			if (pFontSet) {
+			if (pFontSet && pFontSet != pFontSet_) {
 				const MessageWindowFontSet::Font* pFont = pFontSet->getFont();
-				if (pFont != pFont_) {
-					HFONT hfont = pFont->createFont();
-					if (hfont) {
-						pTextModel_->setText(L"", 0);
-						setFont(hfont);
-						pFont_ = pFont;
-					}
+				HFONT hfont = pFont->createFont();
+				if (hfont) {
+					pTextModel_->setText(L"", 0);
+					setFont(hfont);
 				}
+				
+				unsigned int nLineSpacing = pFontSet->getLineSpacing();
+				if (nLineSpacing != -1)
+					setLineSpacing(nLineSpacing);
+				
+				pFontSet_ = pFontSet;
 			}
 		}
 		
