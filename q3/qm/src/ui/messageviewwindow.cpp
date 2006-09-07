@@ -679,7 +679,6 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 		}
 		
 		if (wstrId.get()) {
-			wstring_ptr wstrMimeType;
 			const WCHAR* pwszMediaType = L"text";
 			const WCHAR* pwszSubType = L"plain";
 			wstring_ptr wstrCharset;
@@ -690,25 +689,29 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 				wstrCharset = pContentType->getParameter(L"charset");
 			}
 			
-			bool bText = _wcsicmp(pwszMediaType, L"text") == 0;
-			if (bText && pwszEncoding)
-				wstrCharset = allocWString(L"utf-16");
-			
-			size_t nMimeTypeLen = wcslen(pwszMediaType) + wcslen(pwszSubType) +
-				(wstrCharset.get() ? wcslen(wstrCharset.get()) + 12 : 0) + 2;
-			wstrMimeType = allocWString(nMimeTypeLen);
-			wcscpy(wstrMimeType.get(), pwszMediaType);
-			wcscat(wstrMimeType.get(), L"/");
-			wcscat(wstrMimeType.get(), pwszSubType);
-			if (wstrCharset.get()) {
-				wcscat(wstrMimeType.get(), L"; charset=\"");
-				wcscat(wstrMimeType.get(), wstrCharset.get());
-				wcscat(wstrMimeType.get(), L"\"");
+			if (_wcsicmp(pwszMediaType, L"text") == 0) {
+				if (!pwszEncoding)
+					pwszEncoding = wstrCharset.get();
 			}
-			assert(wcslen(wstrMimeType.get()) < nMimeTypeLen);
+			else {
+				pwszEncoding = 0;
+			}
+			
+			StringBuffer<WSTRING> bufMimeType;
+			bufMimeType.append(pwszMediaType);
+			bufMimeType.append(L'/');
+			bufMimeType.append(pwszSubType);
+			if (pwszEncoding) {
+				bufMimeType.append(L"; charset=utf-16");
+			}
+			else if (wstrCharset.get()) {
+				bufMimeType.append(L"; charset=\"");
+				bufMimeType.append(wstrCharset.get());
+				bufMimeType.append(L'\"');
+			}
 			
 			malloc_size_ptr<unsigned char> pData;
-			if (bText && pwszEncoding) {
+			if (pwszEncoding) {
 				wxstring_size_ptr wstrBody(part.getBodyText(pwszEncoding));
 				if (!wstrBody.get())
 					return;
@@ -727,7 +730,7 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 					return;
 			}
 			std::auto_ptr<HtmlContent> pContent(new HtmlContent(
-				wstrId.get(), wstrMimeType.get(), pData, pCookie));
+				wstrId.get(), bufMimeType.getCharArray(), pData, pCookie));
 			listContent_.push_back(pContent.get());
 			pContent.release();
 		}
