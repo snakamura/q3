@@ -164,6 +164,7 @@ public:
 	unsigned int getLineInWindow() const;
 	unsigned int getNextTabStop(unsigned int n) const;
 	unsigned int getAverageCharWidth() const;
+	unsigned int getUnderlineOffset() const;
 	
 	bool updateBitmaps();
 	
@@ -373,6 +374,7 @@ public:
 	mutable unsigned int nLineHeight_;
 	mutable unsigned int nLineInWindow_;
 	mutable unsigned int nAverageCharWidth_;
+	mutable unsigned int nUnderlineOffset_;
 	mutable bool bHorizontalScrollable_;
 	mutable Extent extent_;
 	mutable size_t nExtentLine_;
@@ -424,6 +426,30 @@ unsigned int qs::TextWindowImpl::getAverageCharWidth() const
 		nAverageCharWidth_ = tm.tmAveCharWidth + tm.tmOverhang;
 	}
 	return nAverageCharWidth_;
+}
+
+unsigned int qs::TextWindowImpl::getUnderlineOffset() const
+{
+	if (nUnderlineOffset_ == 0) {
+		nUnderlineOffset_ = getLineHeight() - 1;
+		
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x500
+		ClientDeviceContext dc(pThis_->getHandle());
+		ObjectSelector<HFONT> fontSelector(dc, hfont_);
+		UINT nSize = dc.getOutlineTextMetrics(0, 0);
+		if (nSize != 0) {
+			malloc_ptr<OUTLINETEXTMETRIC> p(static_cast<OUTLINETEXTMETRIC*>(allocate(nSize)));
+			if (dc.getOutlineTextMetrics(nSize, p.get())) {
+				const TEXTMETRIC& tm = p->otmTextMetrics;
+				unsigned int nOffset = tm.tmExternalLeading +
+					tm.tmAscent - p->otmDescent + nLineSpacing_;
+				if (nOffset < nUnderlineOffset_)
+					nUnderlineOffset_ = nOffset;
+			}
+		}
+#endif
+	}
+	return nUnderlineOffset_;
 }
 
 bool qs::TextWindowImpl::updateBitmaps()
@@ -1633,6 +1659,7 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 	nLineHeight_ = 0;
 	nLineInWindow_ = 0;
 	nAverageCharWidth_ = 0;
+	nUnderlineOffset_ = 0;
 	nExtentLine_ = -1;
 	bExtentNewLine_ = false;
 	
@@ -2136,6 +2163,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->nLineHeight_ = 0;
 	pImpl_->nLineInWindow_ = 0;
 	pImpl_->nAverageCharWidth_ = 0;
+	pImpl_->nUnderlineOffset_ = 0;
 	pImpl_->bHorizontalScrollable_ = false;
 	pImpl_->nExtentLine_ = -1;
 	pImpl_->bExtentNewLine_ = false;
@@ -3109,6 +3137,7 @@ void qs::TextWindow::setFont(HFONT hfont)
 	pImpl_->nLineHeight_ = 0;
 	pImpl_->nLineInWindow_ = 0;
 	pImpl_->nAverageCharWidth_ = 0;
+	pImpl_->nUnderlineOffset_ = 0;
 	pImpl_->nExtentLine_ = -1;
 	pImpl_->bExtentNewLine_ = false;
 	if (pImpl_->bShowRuler_)
@@ -3828,12 +3857,10 @@ LRESULT qs::TextWindow::onPaint()
 	dc.setBkColor(pImpl_->crBackground_);
 	
 	CompatibleDeviceContext dcNewLine(dc);
-	ObjectSelector<HBITMAP> bitmapSelectorNewLine(
-		dcNewLine, pImpl_->hbmNewLine_);
+	ObjectSelector<HBITMAP> bitmapSelectorNewLine(dcNewLine, pImpl_->hbmNewLine_);
 	
 	CompatibleDeviceContext dcTab(dc);
-	ObjectSelector<HBITMAP> bitmapSelectorTab(
-		dcTab, pImpl_->hbmTab_);
+	ObjectSelector<HBITMAP> bitmapSelectorTab(dcTab, pImpl_->hbmTab_);
 	
 	RECT rectClip;
 	dc.getClipBox(&rectClip);
@@ -3847,6 +3874,7 @@ LRESULT qs::TextWindow::onPaint()
 	unsigned int nAverageCharWidth = pImpl_->getAverageCharWidth();
 	unsigned int nLineHeight = pImpl_->getLineHeight();
 	unsigned int nLineInWindow = pImpl_->getLineInWindow();
+	unsigned int nUnderlineOffset = pImpl_->getUnderlineOffset();
 	
 	SIZE sizeTab = { nAverageCharWidth, nLineHeight };
 	POINT ptLink[2];
@@ -3919,8 +3947,8 @@ LRESULT qs::TextWindow::onPaint()
 						x, pBegin, pEnd, &dcTab, sizeTab);
 				}
 				else {
-					ptLink[0].y = rect.bottom - 1;
-					ptLink[1].y = rect.bottom - 1;
+					ptLink[0].y = rect.top + nUnderlineOffset;
+					ptLink[1].y = ptLink[0].y;
 					
 					size_t nOffset = 0;
 					for (size_t n = 0; n < nLinkCount; ++n) {
