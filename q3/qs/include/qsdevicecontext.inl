@@ -193,6 +193,15 @@ inline bool qs::DeviceContext::getTextMetrics(TEXTMETRIC* ptm) const
 	return ::GetTextMetrics(hdc_, ptm) != 0;
 }
 
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x500
+inline UINT qs::DeviceContext::getOutlineTextMetrics(UINT nSize,
+													 OUTLINETEXTMETRIC* potm) const
+{
+	assert(hdc_);
+	return ::GetOutlineTextMetrics(hdc_, nSize, potm);
+}
+#endif
+
 inline bool qs::DeviceContext::getTextExtent(const WCHAR* pwszString,
 											 int nCount,
 											 SIZE* pSize) const

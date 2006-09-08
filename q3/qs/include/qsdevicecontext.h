@@ -101,6 +101,10 @@ public:
 							const WCHAR* pwszString,
 							UINT nCount);
 	bool getTextMetrics(TEXTMETRIC* ptm) const;
+#if !defined _WIN32_WCE || _WIN32_WCE >= 0x500
+	UINT getOutlineTextMetrics(UINT nSize,
+							   OUTLINETEXTMETRIC* potm) const;
+#endif
 	bool getTextExtent(const WCHAR* pwszString,
 					   int nCount,
 					   SIZE* pSize) const;
