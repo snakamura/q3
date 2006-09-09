@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <headerEdit>
 	<line class="mail">
 		<static width="1max" style="bold" align="right">宛先:</static>

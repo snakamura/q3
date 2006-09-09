@@ -1,4 +1,5 @@
-﻿<menus>
+<?xml version="1.0" encoding="utf-8"?>
+<menus>
 	<menubar name="mainframe">
 		<popupmenu text="ファイル">
 			<menuitem text="保存" action="FileSave"/>
