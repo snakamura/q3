@@ -114,7 +114,7 @@ bool qmrss::FeedList::save()
 	if (!writer)
 		return false;
 	
-	FeedWriter w(&writer);
+	FeedWriter w(&writer, L"utf-8");
 	if (!w.write(*this))
 		return false;
 	
@@ -412,8 +412,9 @@ bool qmrss::FeedContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qmrss::FeedWriter::FeedWriter(Writer* pWriter) :
-	handler_(pWriter)
+qmrss::FeedWriter::FeedWriter(Writer* pWriter,
+							  const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

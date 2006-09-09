@@ -234,7 +234,8 @@ private:
 class GoRoundWriter
 {
 public:
-	explicit GoRoundWriter(qs::Writer* pWriter);
+	GoRoundWriter(qs::Writer* pWriter,
+				  const WCHAR* pwszEncoding);
 	~GoRoundWriter();
 
 public:

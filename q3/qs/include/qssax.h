@@ -481,10 +481,13 @@ private:
 class QSEXPORTCLASS OutputHandler : public DefaultHandler2
 {
 public:
-	explicit OutputHandler(Writer* pWriter);
+	OutputHandler(Writer* pWriter,
+				  const WCHAR* pwszEncoding);
 	virtual ~OutputHandler();
 
 public:
+	virtual bool startDocument();
+	virtual bool endDocument();
 	virtual bool startElement(const WCHAR* pwszNamespaceURI,
 							  const WCHAR* pwszLocalName,
 							  const WCHAR* pwszQName,

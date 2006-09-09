@@ -2172,7 +2172,7 @@ bool qm::ViewData::save() const
 	if (!writer)
 		return false;
 	
-	ViewDataWriter viewDataWriter(&writer);
+	ViewDataWriter viewDataWriter(&writer, L"utf-8");
 	if (!viewDataWriter.write(this))
 		return false;
 	
@@ -2954,8 +2954,9 @@ bool qm::ViewDataContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::ViewDataWriter::ViewDataWriter(qs::Writer* pWriter) :
-	handler_(pWriter)
+qm::ViewDataWriter::ViewDataWriter(Writer* pWriter,
+								   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

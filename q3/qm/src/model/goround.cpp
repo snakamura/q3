@@ -713,8 +713,9 @@ bool qm::GoRoundContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::GoRoundWriter::GoRoundWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::GoRoundWriter::GoRoundWriter(Writer* pWriter,
+								 const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

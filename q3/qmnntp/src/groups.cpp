@@ -90,7 +90,7 @@ bool qmnntp::Groups::save() const
 	if (!writer)
 		return false;
 	
-	GroupsWriter w(&writer);
+	GroupsWriter w(&writer, L"utf-8");
 	if (!w.write(this) ||
 		!writer.close() ||
 		!renamer.rename())
@@ -279,8 +279,9 @@ bool qmnntp::GroupsContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qmnntp::GroupsWriter::GroupsWriter(Writer* pWriter) :
-	handler_(pWriter)
+qmnntp::GroupsWriter::GroupsWriter(Writer* pWriter,
+								   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

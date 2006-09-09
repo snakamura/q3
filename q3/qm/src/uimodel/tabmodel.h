@@ -358,7 +358,8 @@ private:
 class TabModelWriter
 {
 public:
-	TabModelWriter(qs::Writer* pWriter);
+	TabModelWriter(qs::Writer* pWriter,
+				   const WCHAR* pwszEncoding);
 	~TabModelWriter();
 
 public:

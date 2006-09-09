@@ -208,7 +208,8 @@ private:
 class FolderWriter
 {
 public:
-	explicit FolderWriter(qs::Writer* pWriter);
+	FolderWriter(qs::Writer* pWriter,
+				 const WCHAR* pwszEncoding);
 	~FolderWriter();
 
 public:

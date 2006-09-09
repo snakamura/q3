@@ -259,7 +259,8 @@ private:
 class AutoPilotWriter
 {
 public:
-	explicit AutoPilotWriter(qs::Writer* pWriter);
+	AutoPilotWriter(qs::Writer* pWriter,
+					const WCHAR* pwszEncoding);
 	~AutoPilotWriter();
 
 public:

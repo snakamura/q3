@@ -1006,7 +1006,8 @@ private:
 class ViewDataWriter
 {
 public:
-	explicit ViewDataWriter(qs::Writer* pWriter);
+	ViewDataWriter(qs::Writer* pWriter,
+				   const WCHAR* pwszEncoding);
 	~ViewDataWriter();
 
 public:

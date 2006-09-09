@@ -942,7 +942,7 @@ bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const
 	if (!writer)
 		return false;
 	
-	OutputHandler handler(&writer);
+	OutputHandler handler(&writer, L"utf-8");
 	
 	if (!handler.startDocument())
 		return false;

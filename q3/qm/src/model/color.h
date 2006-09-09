@@ -312,7 +312,8 @@ private:
 class ColorWriter
 {
 public:
-	explicit ColorWriter(qs::Writer* pWriter);
+	ColorWriter(qs::Writer* pWriter,
+				const WCHAR* pwszEncoding);
 	~ColorWriter();
 
 public:

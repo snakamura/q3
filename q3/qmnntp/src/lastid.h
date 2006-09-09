@@ -155,7 +155,8 @@ private:
 class LastIdWriter
 {
 public:
-	explicit LastIdWriter(qs::Writer* pWriter);
+	LastIdWriter(qs::Writer* pWriter,
+				 const WCHAR* pwszEncoding);
 	~LastIdWriter();
 
 public:

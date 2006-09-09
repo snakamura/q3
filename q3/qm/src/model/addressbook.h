@@ -310,7 +310,8 @@ private:
 class AddressBookWriter
 {
 public:
-	explicit AddressBookWriter(qs::Writer* pWriter);
+	AddressBookWriter(qs::Writer* pWriter,
+					  const WCHAR* pwszEncoding);
 	~AddressBookWriter();
 
 public:

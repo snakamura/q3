@@ -168,7 +168,8 @@ private:
 class SignatureWriter
 {
 public:
-	explicit SignatureWriter(qs::Writer* pWriter);
+	SignatureWriter(qs::Writer* pWriter,
+					const WCHAR* pwszEncoding);
 	~SignatureWriter();
 
 public:

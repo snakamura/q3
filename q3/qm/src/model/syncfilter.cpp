@@ -688,8 +688,9 @@ bool qm::SyncFilterContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::SyncFilterWriter::SyncFilterWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::SyncFilterWriter::SyncFilterWriter(Writer* pWriter,
+									   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

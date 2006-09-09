@@ -128,7 +128,7 @@ bool qmnntp::LastIdList::save()
 	if (!writer)
 		return false;
 	
-	LastIdWriter w(&writer);
+	LastIdWriter w(&writer, L"utf-8");
 	if (!w.write(*this) ||
 		!writer.close() ||
 		!renamer.rename())
@@ -329,8 +329,9 @@ bool qmnntp::LastIdContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qmnntp::LastIdWriter::LastIdWriter(Writer* pWriter) :
-	handler_(pWriter)
+qmnntp::LastIdWriter::LastIdWriter(Writer* pWriter,
+								   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

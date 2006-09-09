@@ -660,8 +660,9 @@ bool qm::PasswordContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::PasswordWriter::PasswordWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::PasswordWriter::PasswordWriter(Writer* pWriter,
+								   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

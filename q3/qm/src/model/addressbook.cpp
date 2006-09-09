@@ -885,8 +885,9 @@ bool qm::AddressBookContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::AddressBookWriter::AddressBookWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::AddressBookWriter::AddressBookWriter(Writer* pWriter,
+										 const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

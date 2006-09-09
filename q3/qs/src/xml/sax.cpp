@@ -836,6 +836,7 @@ struct qs::OutputHandlerImpl
 	bool indent();
 	
 	Writer* pWriter_;
+	wstring_ptr wstrEncoding_;
 	State state_;
 	unsigned int nIndent_;
 };
@@ -858,11 +859,13 @@ bool qs::OutputHandlerImpl::indent()
  *
  */
 
-qs::OutputHandler::OutputHandler(Writer* pWriter) :
+qs::OutputHandler::OutputHandler(Writer* pWriter,
+								 const WCHAR* pwszEncoding) :
 	pImpl_(0)
 {
 	pImpl_ = new OutputHandlerImpl();
 	pImpl_->pWriter_ = pWriter;
+	pImpl_->wstrEncoding_ = allocWString(pwszEncoding);
 	pImpl_->state_ = OutputHandlerImpl::STATE_ROOT;
 	pImpl_->nIndent_ = 0;
 }
@@ -870,6 +873,18 @@ qs::OutputHandler::OutputHandler(Writer* pWriter) :
 qs::OutputHandler::~OutputHandler()
 {
 	delete pImpl_;
+}
+
+bool qs::OutputHandler::startDocument()
+{
+	return pImpl_->pWriter_->write(L"<?xml version=\"1.0\" encoding=\"", 30) != -1 &&
+		pImpl_->pWriter_->write(pImpl_->wstrEncoding_.get(), wcslen(pImpl_->wstrEncoding_.get())) != -1 &&
+		pImpl_->pWriter_->write(L"\"?>\n", 4) != -1;
+}
+
+bool qs::OutputHandler::endDocument()
+{
+	return pImpl_->pWriter_->write(L"\n", 1) != -1;
 }
 
 bool qs::OutputHandler::startElement(const WCHAR* pwszNamespaceURI,

@@ -252,8 +252,9 @@ bool qm::FixedFormTextContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::FixedFormTextWriter::FixedFormTextWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::FixedFormTextWriter::FixedFormTextWriter(Writer* pWriter,
+											 const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

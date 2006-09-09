@@ -429,8 +429,9 @@ bool qm::AutoPilotContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::AutoPilotWriter::AutoPilotWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::AutoPilotWriter::AutoPilotWriter(Writer* pWriter,
+									 const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

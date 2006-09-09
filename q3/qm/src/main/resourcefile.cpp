@@ -101,7 +101,7 @@ bool qm::ResourceFileList::save()
 	if (!writer)
 		return false;
 	
-	ResourceFileWriter resourceFileWriter(&writer);
+	ResourceFileWriter resourceFileWriter(&writer, L"utf-8");
 	if (!resourceFileWriter.write(this))
 		return false;
 	
@@ -305,8 +305,9 @@ bool qm::ResourceFileContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::ResourceFileWriter::ResourceFileWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::ResourceFileWriter::ResourceFileWriter(Writer* pWriter,
+										   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

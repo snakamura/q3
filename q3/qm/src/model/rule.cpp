@@ -1894,8 +1894,9 @@ bool qm::RuleContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::RuleWriter::RuleWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::RuleWriter::RuleWriter(Writer* pWriter,
+						   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

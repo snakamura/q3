@@ -266,8 +266,9 @@ bool qm::FilterContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::FilterWriter::FilterWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::FilterWriter::FilterWriter(Writer* pWriter,
+							   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

@@ -34,7 +34,7 @@ bool qm::ConfigSaver<T, Writer>::save(T t,
 	if (!writer)
 		return false;
 	
-	Writer w(&writer);
+	Writer w(&writer, L"utf-8");
 	if (!w.write(t))
 		return false;
 	

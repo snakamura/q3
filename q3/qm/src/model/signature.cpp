@@ -339,8 +339,9 @@ bool qm::SignatureContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::SignatureWriter::SignatureWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::SignatureWriter::SignatureWriter(Writer* pWriter,
+									 const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

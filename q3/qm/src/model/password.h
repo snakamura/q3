@@ -204,7 +204,8 @@ private:
 class PasswordWriter
 {
 public:
-	explicit PasswordWriter(qs::Writer* pWriter);
+	PasswordWriter(qs::Writer* pWriter,
+				   const WCHAR* pwszEncoding);
 	~PasswordWriter();
 
 public:

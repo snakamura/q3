@@ -155,7 +155,8 @@ private:
 class FilterWriter
 {
 public:
-	explicit FilterWriter(qs::Writer* pWriter);
+	FilterWriter(qs::Writer* pWriter,
+				 const WCHAR* pwszEncoding);
 	~FilterWriter();
 
 public:

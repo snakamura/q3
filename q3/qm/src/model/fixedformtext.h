@@ -148,7 +148,8 @@ private:
 class FixedFormTextWriter
 {
 public:
-	explicit FixedFormTextWriter(qs::Writer* pWriter);
+	FixedFormTextWriter(qs::Writer* pWriter,
+						const WCHAR* pwszEncoding);
 	~FixedFormTextWriter();
 
 public:

@@ -164,7 +164,7 @@ bool qmpop3::UIDList::save(const WCHAR* pwszPath) const
 	if (!writer)
 		return false;
 	
-	UIDListWriter w(&writer);
+	UIDListWriter w(&writer, L"utf-8");
 	if (!w.write(*this))
 		return false;
 	
@@ -344,8 +344,9 @@ bool qmpop3::UIDListContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qmpop3::UIDListWriter::UIDListWriter(Writer* pWriter) :
-	handler_(pWriter)
+qmpop3::UIDListWriter::UIDListWriter(Writer* pWriter,
+									 const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

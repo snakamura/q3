@@ -79,7 +79,8 @@ private:
 class SyncFilterWriter
 {
 public:
-	explicit SyncFilterWriter(qs::Writer* pWriter);
+	SyncFilterWriter(qs::Writer* pWriter,
+					 const WCHAR* pwszEncoding);
 	~SyncFilterWriter();
 
 public:

@@ -865,8 +865,9 @@ bool qm::TabModelContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::TabModelWriter::TabModelWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::TabModelWriter::TabModelWriter(Writer* pWriter,
+								   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

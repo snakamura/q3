@@ -214,7 +214,8 @@ private:
 class FeedWriter
 {
 public:
-	explicit FeedWriter(qs::Writer* pWriter);
+	FeedWriter(qs::Writer* pWriter,
+			   const WCHAR* pwszEncoding);
 	~FeedWriter();
 
 public:

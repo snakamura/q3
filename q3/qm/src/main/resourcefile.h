@@ -150,7 +150,8 @@ private:
 class ResourceFileWriter
 {
 public:
-	explicit ResourceFileWriter(qs::Writer* pWriter);
+	ResourceFileWriter(qs::Writer* pWriter,
+					   const WCHAR* pwszEncoding);
 	~ResourceFileWriter();
 
 public:

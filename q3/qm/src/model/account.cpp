@@ -3693,8 +3693,9 @@ bool qm::FolderContentHandler::getNumber(unsigned int* pn)
  *
  */
 
-qm::FolderWriter::FolderWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::FolderWriter::FolderWriter(Writer* pWriter,
+							   const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

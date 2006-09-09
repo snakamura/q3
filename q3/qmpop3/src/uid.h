@@ -162,7 +162,8 @@ private:
 class UIDListWriter
 {
 public:
-	explicit UIDListWriter(qs::Writer* pWriter);
+	UIDListWriter(qs::Writer* pWriter,
+				  const WCHAR* pwszEncoding);
 	~UIDListWriter();
 
 public:

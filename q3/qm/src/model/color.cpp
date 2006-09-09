@@ -601,8 +601,9 @@ bool qm::ColorContentHandler::characters(const WCHAR* pwsz,
  *
  */
 
-qm::ColorWriter::ColorWriter(Writer* pWriter) :
-	handler_(pWriter)
+qm::ColorWriter::ColorWriter(Writer* pWriter,
+							 const WCHAR* pwszEncoding) :
+	handler_(pWriter, pwszEncoding)
 {
 }
 

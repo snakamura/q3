@@ -147,7 +147,8 @@ private:
 class GroupsWriter
 {
 public:
-	explicit GroupsWriter(qs::Writer* pWriter);
+	GroupsWriter(qs::Writer* pWriter,
+				 const WCHAR* pwszEncoding);
 	~GroupsWriter();
 
 public:

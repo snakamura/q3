@@ -526,7 +526,8 @@ private:
 class RuleWriter
 {
 public:
-	explicit RuleWriter(qs::Writer* pWriter);
+	RuleWriter(qs::Writer* pWriter,
+			   const WCHAR* pwszEncoding);
 	~RuleWriter();
 
 public:
