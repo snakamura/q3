@@ -1,5 +1,3 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 element addressBook {
 	element entry {
 		## 名前
@@ -35,10 +33,10 @@ element addressBook {
 				attribute rfc2822 {
 					xsd:boolean
 				}?,
-                ## 証明書の名前
-                attribute certificate {
-                    xsd:string
-                }
+				## 証明書の名前
+				attribute certificate {
+					xsd:string
+				}?
 			}+
 		}
 	}*

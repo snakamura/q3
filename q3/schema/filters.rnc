@@ -1,8 +1,8 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 element filters {
 	element filter {
+		## マクロ
 		xsd:string,
+		## 名前
 		attribute name {
 			xsd:string
 		}

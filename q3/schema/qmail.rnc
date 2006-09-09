@@ -1,0 +1,16 @@
+element profile {
+	element section {
+		element key {
+			## 値
+			xsd:string,
+			## キーの名前
+			attribute name {
+				xsd:string
+			}
+		}*,
+		## セクションの名前
+		attribute name {
+			xsd:string
+		}
+	}*
+}

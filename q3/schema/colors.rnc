@@ -1,23 +1,36 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 element colors {
 	element colorSet {
 		element color {
-			## 色（RRGGBB形式）
-			xsd:string {
-				pattern = "[0-9a-fA-F]{6}"
-			},
+			## 文字色
+			element foreground {
+				xsd:string {
+					pattern = "[0-9a-fA-F]{6}"
+				}
+			}?,
+			## 背景色
+			element background {
+				xsd:string {
+					pattern = "[0-9a-fA-F]{6}"
+				}
+			}?,
+			## フォントスタイル
+			element style {
+				"regular" | "bold"
+			}?,
 			## 色が適用される条件（マクロ）
 			attribute match {
 				xsd:string
-			}
+			},
+			attribute description {
+				xsd:string
+			}?
 		}*,
-		## アカウント（正規表現）
+		## アカウント
 		## 指定されない場合、全てのアカウント
 		attribute account {
 			xsd:string
 		}?,
-		## フォルダ（正規表現）
+		## フォルダ
 		## 指定されない場合、全てのフォルダ
 		attribute folder {
 			xsd:string

@@ -1,5 +1,3 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 element filters {
 	element filterSet {
 		element filter {
@@ -17,7 +15,7 @@ element filters {
 					xsd:string
 				}
 			}+,
-			## フィルタが適用されるフォルダ（正規表現）
+			## フィルタが適用されるフォルダ
 			## 指定されない場合、全てのフォルダ
 			attribute folder {
 				xsd:string
@@ -30,11 +28,6 @@ element filters {
 		## フィルタセットの名前
 		attribute name {
 			xsd:string
-		},
-		## フィルタセットが適用されるアカウント（正規表現）
-		## 指定されない場合、全てのアカウント
-		attribute account {
-			xsd:string
-		}?
+		}
 	}*
 }

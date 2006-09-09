@@ -1,28 +1,33 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 start = element goround {
 	element course {
 		element dialup {
+			## ダイアルアップ名
 			attribute name {
 				xsd:string
 			}?,
+			## 発信元
 			attribute dialFrom {
 				xsd:string
 			}?,
+			## ダイアログを表示するかどうか
 			attribute showDialog {
 				xsd:boolean
 			}?,
+			## 切断するまでの待ち時間
 			attribute disconnectWait {
 				xsd:int
 			}?,
+			## ネットワークが接続されていないときのみダイアルアップするかどうか
 			attribute wheneverNotConnected {
 				xsd:boolean
 			}
 		}?,
 		method,
+		## コース名
 		attribute name {
 			xsd:string
 		},
+		## 巡回する前に確認するかどうか
 		attribute confirm {
 			xsd:boolean
 		}?
@@ -38,30 +43,34 @@ element parallel {
 
 entry = element entry {
 	empty,
+	## アカウント名
 	attribute account {
 		xsd:string
 	},
+	## サブアカウント名
 	attribute subaccount {
 		xsd:string
 	}?,
+	## 送信するかどうか
 	attribute send {
 		xsd:boolean
 	}?,
+	## 受信するかどうか
 	attribute receive {
 		xsd:boolean
-	},
+	}?,
 	(
+		## 受信するフォルダ
 		attribute folder {
 			xsd:string
 		} |
+		## 受信するフォルダを選択するかどうか
 		attribute selectFolder {
 			xsd:boolean
 		}
 	)?,
+	## 同期フィルタ
 	attribute filter {
 		xsd:string
-	}?,
-	attribute connectReceiveBeforeSend {
-		xsd:boolean
 	}?
 }

@@ -1,0 +1,37 @@
+element fonts {
+	element group {
+		element fontSet {
+			element font {
+				## フォント名
+				attribute face {
+					xsd:string
+				},
+				## サイズ（ポイント）
+				attribute size {
+					xsd:float
+				}?,
+				## スタイル
+				## bold, itelic, underline, strikeout
+				attribute style {
+					xsd:string
+				}?,
+				## 文字セット
+				attribute charset {
+					xsd:nonNegativeInteger
+				}?
+			},
+			## マクロ
+			attribute match {
+				xsd:string
+			}?,
+			## 行間
+			attribute lineSpacing {
+				xsd:nonNegativeInteger
+			}?
+		}*,
+		## グループ名
+		attribute name {
+			xsd:string
+		}
+	}*
+}

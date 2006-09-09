@@ -1,5 +1,3 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 start = element rules {
 	element ruleSet {
 		element rule {
@@ -10,19 +8,20 @@ start = element rules {
 				xsd:string
 			},
 			# ルールが適用される場面
-			# manualの時には手動時のみ
-			# autoの時には自動時のみ
-			# 指定されない場合には両方
+			# manualは手動振り分け
+			# autoは自動振り分け
+			# activeはアクティブ振り分け
+			# 指定されない場合には手動と自動
 			attribute use {
-				"manual" | "auto"
+				xsd:string
 			}?
 		}*,
-		## ルールが適用されるアカウント（正規表現）
+		## ルールが適用されるアカウント
 		## 指定されない場合、全てのアカウント
 		attribute account {
 			xsd:string
 		}?,
-		## ルールが適用されるフォルダ（正規表現）
+		## ルールが適用されるフォルダ
 		## 指定されない場合、全てのフォルダ
 		attribute folder {
 			xsd:string
@@ -57,19 +56,40 @@ element delete {
 		xsd:boolean
 	}?
 } |
+element label {
+	## タイプ
+	## 指定しない場合には設定
+	## addは追加
+	## removeは削除
+	attribute type {
+		"add|remove"
+	}?,
+	## ラベル
+	attribute label {
+		xsd:string
+	}
+} |
+element deleteCache {
+	empty
+} |
 element apply {
+	## 実行するマクロ
 	attribute macro {
 		xsd:string
 	}
 }
 
 template = element template {
+	## 引数
 	element argument {
+		## 引数の値
 		text,
+		## 引数の名前
 		attribute name {
 			xsd:string
 		}
 	}*,
+	## テンプレートの名前
 	attribute name {
 		xsd:string
 	}

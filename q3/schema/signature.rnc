@@ -1,5 +1,3 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 element signatures {
 	element signature {
 		## シグニチャ
@@ -8,7 +6,7 @@ element signatures {
 		attribute name {
 			xsd:string
 		},
-		## このシグニチャを使用するアカウント（正規表現）
+		## このシグニチャを使用するアカウント
 		## 指定されない場合、全てのアカウント
 		attribute account {
 			xsd:string

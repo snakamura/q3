@@ -1,5 +1,3 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 element keymaps {
 	element keymap {
 		element action {
@@ -13,6 +11,9 @@ element keymaps {
 						xsd:string {
 							pattern = "[0-9a-fA-F]+"
 						}
+					} |
+					attribute name {
+						xsd:string
 					}
 				),
 				attribute shift {
