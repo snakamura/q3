@@ -6,24 +6,24 @@ QMAIL3では設定はXMLファイルで行います。設定は基本的には((<オプションの設定|URL:O
 また、一部の設定ファイル以外の自動的に作られるファイルについても説明します。
 
 ==プロファイル
-*addressbook.xml
-*autopilot.xml
-*colors.xml
-*filters.xml
+*((<addressbook.xml|URL:AddressBookXml.html>))
+*((<autopilot.xml|URL:AutoPilotXml.html>))
+*((<colors.xml|URL:ColorsXml.html>))
+*((<filters.xml|URL:FiltersXml.html>))
 *((<fonts.xml|URL:FontsXml.html>))
-*goround.xml
+*((<goround.xml|URL:GoRoundXml.html>))
 *((<header.xml|URL:HeaderXml.html>))
 *((<headeredit.xml|URL:HeaderEditXml.html>))
-*keymap.xml
+*((<keymap.xml|URL:KeyMapXml.html>))
 *((<menus.xml|URL:MenusXml.html>))
 *passwords.xml
 *((<qmail.xml|URL:QmailXml.html>))
 *resources.xml
-*rules.xml
-*signatures.xml
-*syncfilters.xml
+*((<rules.xml|URL:RulesXml.html>))
+*((<signatures.xml|URL:SignaturesXml.html>))
+*((<syncfilters.xml|URL:SyncFiltersXml.html>))
 *tabs.xml
-*texts.xml
+*((<texts.xml|URL:TextsXml.html>))
 *((<toolbars.xml|URL:ToolbarsXml.html>))
 *views.xml
 
