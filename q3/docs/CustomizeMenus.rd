@@ -1,6 +1,6 @@
 =begin
 =メニューのカスタマイズ
 
-// TODO
+((<menus.xml|URL:MenusXml.html>))を編集することでメニューをカスタマイズできます。
 
 =end

@@ -1,6 +1,6 @@
 =begin
 =ヘッダビューのカスタマイズ
 
-// TODO
+((<header.xml|URL:HeaderXml.html>))を編集することでヘッダビューをカスタマイズできます。
 
 =end

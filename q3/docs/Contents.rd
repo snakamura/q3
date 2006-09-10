@@ -36,6 +36,7 @@
 *UI
   *((<画面構成|URL:WindowsAndViews.html>))
   *((<メニュー|URL:Menus.html>))
+  *((<ダイアログ|URL:Dialogs.html>))
 *機能
   *((<アカウント|URL:Account.html>))
     *((<サブアカウント|URL:SubAccount.html>))
