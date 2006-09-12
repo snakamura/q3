@@ -77,7 +77,7 @@ BEGIN
     CONTROL         "Use &custom settings",IDC_CUSTOM,"Button",
                     BS_AUTORADIOBUTTON,5,17,127,10
     LTEXT           "&Protocol",IDC_STATIC,15,32,35,8
-    COMBOBOX        IDC_PROTOCOL,50,30,60,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_PROTOCOL,50,30,60,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     LTEXT           "&Host",IDC_STATIC,15,47,20,8
     EDITTEXT        IDC_HOST,50,45,82,12,ES_AUTOHSCROLL
