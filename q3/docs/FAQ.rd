@@ -15,6 +15,7 @@
 *((<なぜ日本語化したのにメニューやツールバーが英語のままなのですか?|URL:WhyMenuAndToolbarAreNotLocalized.html>))
 *((<Windows CEで外部ストレージに実行ファイルやメールボックスを置くとハングアップします|URL:WindowsCEExternalStorage.html>))
 *((<IMAP4アカウントでサーバからのレスポンスのパースに失敗します|URL:FailToParseImap4Response.html>))
+*((<スパムフィルタでエラーが発生します|URL:JunkFilterCollapse.html>))
 
 
 ==Tips
