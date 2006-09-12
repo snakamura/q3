@@ -3,6 +3,8 @@
 
 QMAIL3‘S‘Ì‚ÉŠÖ‚·‚éİ’è‚ğ•Û‘¶‚·‚éXMLƒtƒ@ƒCƒ‹‚Å‚·B‚±‚Ìƒtƒ@ƒCƒ‹‚Åİ’è‚Å‚«‚é‘½‚­‚Ì€–Ú‚Í((<ƒIƒvƒVƒ‡ƒ“‚Ìİ’è|URL:Options.html>))‚È‚Ç‚Åİ’è‚Å‚«‚Ü‚·‚ªAˆê•”‚Ì€–Ú‚Í’¼Ú‚±‚Ìƒtƒ@ƒCƒ‹‚ğ•ÒW‚µ‚È‚¢‚Æİ’è‚Å‚«‚Ü‚¹‚ñBİ’è‚Å‚«‚é€–Ú‚Ìˆê——‚Í”õl‚ğQÆ‚µ‚Ä‚­‚¾‚³‚¢B
 
+‚±‚Ìƒtƒ@ƒCƒ‹‚ğ•ÒW‚·‚é‚Æ‚«‚É‚ÍQMAIL3‚ğI—¹‚³‚¹‚Ä‚©‚ç•ÒW‚µ‚Ä‚­‚¾‚³‚¢B
+
 
 ==‘®
 
@@ -185,7 +187,7 @@ keyƒGƒŒƒƒ“ƒg‚Íˆê‚Â‚ÌƒL[‚ğ•\‚µ‚Ü‚·Bname‘®«‚É‚ÍƒL[‚Ì–¼‘O‚ğw’è‚µ‚Ü‚·Bqƒm[ƒ
 ÅŒã‚Éw’è‚µ‚½ƒ_ƒCƒAƒ‹ƒAƒbƒv‚ÌƒGƒ“ƒgƒŠ–¼B
 
 
-===EditFrameWindow
+===EditFrameWindowƒZƒNƒVƒ‡ƒ“
 
 +Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
 ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE‚ÌˆÊ’u‚Æ‘å‚«‚³A•\¦•û–@‚Æ“§‰ß“xB
@@ -195,7 +197,7 @@ keyƒGƒŒƒƒ“ƒg‚Íˆê‚Â‚ÌƒL[‚ğ•\‚µ‚Ü‚·Bname‘®«‚É‚ÍƒL[‚Ì–¼‘O‚ğw’è‚µ‚Ü‚·Bqƒm[ƒ
 ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE‚Ìƒc[ƒ‹ƒo[‚ÆƒXƒe[ƒ^ƒXƒo[‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
 
 
-===EditWindow
+===EditWindowƒZƒNƒVƒ‡ƒ“
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
 ƒGƒfƒBƒbƒgƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
@@ -282,6 +284,461 @@ Ime‚Ìó‘ÔB
 +HideHeaderIfNoFocus (0 @ 0|1)
 ƒwƒbƒ_ƒGƒfƒBƒbƒgƒrƒ…[‚ªƒtƒH[ƒJƒX‚ğ¸‚Á‚½‚Æ‚«‚Éƒwƒbƒ_ƒGƒfƒBƒbƒgƒrƒ…[‚ğ‰B‚·‚©‚Ç‚¤‚©B
 
+
+===FindƒZƒNƒVƒ‡ƒ“
+
++Histroy?
+ŒŸõ‚µ‚½—š—ğB?‚Í0‚©‚çn‚Ü‚é”šB
+
+
++HistorySize (10)
+•Û‘¶‚·‚é—š—ğ‚ÌÅ‘å”B
+
+
++Ime (0)
+Ime‚Ìó‘ÔB
+
+
++MatchCase (0 @ 0|1)
+‘å•¶š‚Æ¬•¶š‚ğ‹æ•Ê‚·‚é‚©‚Ç‚¤‚©B
+
+
++Regex (0 @ 0|1)
+³‹K•\Œ»‚ğg‚¤‚©‚Ç‚¤‚©B
+
+
+===FixedFormTextDialogƒZƒNƒVƒ‡ƒ“
+
++Width (620), Height (450)
+’èŒ^•¶ƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
+
+
+===FolderComboBoxƒZƒNƒVƒ‡ƒ“
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒtƒHƒ‹ƒ_ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
++ShowAllCount (1 @ 0|1)
+ƒƒbƒZ[ƒW”‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++ShowUnseenCount (1 @ 0|1)
+–¢“ÇƒƒbƒZ[ƒW”‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
+
+
+===FolderListWindowƒZƒNƒVƒ‡ƒ“
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒtƒHƒ‹ƒ_ƒŠƒXƒgƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
++UseSystemColor (1 @ 0|1)
+ƒVƒXƒeƒ€‚Ì”zF‚ğg‚¤‚©‚Ç‚¤‚©B
+
+
++ForegroundColor (000000), BackgroundColor (ffffff)
+•¶šFA”wŒiFBŒ`®‚ÍRRGGBBB
+
+
++NameWidth (150), IdWidth (50), CountWidth (50), UnseenCountWidth (50), SizeWidth (150)
+–¼‘O—“AID—“AƒƒbƒZ[ƒW”—“A–¢“ÇƒƒbƒZ[ƒW”—“AƒTƒCƒY—“‚Ì•B
+
+
+
+===FolderWindowƒZƒNƒVƒ‡ƒ“
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒtƒHƒ‹ƒ_ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
++UseSystemColor (1 @ 0|1)
+ƒVƒXƒeƒ€‚Ì”zF‚ğg‚¤‚©‚Ç‚¤‚©B
+
+
++ForegroundColor (000000), BackgroundColor (ffffff)
+•¶šFA”wŒiFBŒ`®‚ÍRRGGBBB
+
+
++AccountShowAllCount (1 @ 0|1)
+ƒAƒJƒEƒ“ƒg‚ÉƒƒbƒZ[ƒW”‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++AccountShowUnseenCount (1 @ 0|1)
+ƒAƒJƒEƒ“ƒg‚É–¢“ÇƒƒbƒZ[ƒW”‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++FolderShowAllCount (1 @ 0|1)
+ƒtƒHƒ‹ƒ_‚ÉƒƒbƒZ[ƒW”‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++FolderShowUnseenCount (1 @ 0|1)
+ƒtƒHƒ‹ƒ_‚É–¢“ÇƒƒbƒZ[ƒW”‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++DragOpenWait (500)
+ƒhƒ‰ƒbƒOƒAƒ“ƒhƒhƒƒbƒv‚ÅƒtƒHƒ‹ƒ_‚Ìã‚Éƒhƒ‰ƒbƒO‚µ‚½‚Æ‚«‚ÉƒtƒHƒ‹ƒ_‚ªŠJ‚­‚Ü‚Å‚Ì‘Ò‚¿ŠÔB’PˆÊ‚Íƒ~ƒŠ•bB
+
+
++ExpandedFolders
+“WŠJ‚³‚ê‚Ä‚¢‚éƒAƒJƒEƒ“ƒg‚ÆƒtƒHƒ‹ƒ_B
+
+
+===FullTextSearchƒZƒNƒVƒ‡ƒ“
+
++Command (namazu -l -a "$condition" "$index")
+‘S•¶ŒŸõ‚Åg—p‚·‚éƒRƒ}ƒ“ƒhB
+
+
++IndexCommand (mknmz.bat -a -h -O \"$index\" \"$msg\")
+‘S•¶ŒŸõ‚ÌƒCƒ“ƒfƒbƒNƒXXV‚Åg—p‚·‚éƒRƒ}ƒ“ƒhB
+
+
+===GlobalƒZƒNƒVƒ‡ƒ“
+
++Action
+ToolInvokeActionƒAƒNƒVƒ‡ƒ“‚ÅÅŒã‚É‹N“®‚µ‚½ƒAƒNƒVƒ‡ƒ“B
+
+
++AddZoneId (1 @ 0|1)
+“Y•tƒtƒ@ƒCƒ‹‚ğ•Û‘¶‚·‚é‚Æ‚«‚ÉZoneId‚ğ•t‰Á‚·‚é‚©‚Ç‚¤‚©B
+
+
++AutoUpdateCheck (1 @ 0|1)
+©“®ƒo[ƒWƒ‡ƒ“ƒ`ƒFƒbƒN‚ª—LŒø‚©‚Ç‚¤‚©B
+
+
++Bcc (1 @ 0|1)
+ƒfƒtƒHƒ‹ƒg‚Å©•ª‚ÌƒAƒhƒŒƒX‚ğBcc‚É“ü‚ê‚é‚©‚Ç‚¤‚©B
+
+
++CharsetAliases (windows-31j=shift_jis)
+•¶šƒR[ƒh–¼‚ÌƒGƒCƒŠƒAƒXB
+
+ƒGƒCƒŠƒAƒX–¼=ƒGƒ“ƒR[ƒfƒBƒ“ƒO–¼‚ÌŒ`‚Å¬•¶š‚Åw’èB•¡”w’è‚·‚éê‡‚É‚Í‹ó”’‚Å‹æØ‚éB
+
+
++ConfirmDeleteMessage (0 @ 0|1)
+ƒƒbƒZ[ƒW‚ğíœ‚·‚é‚Æ‚«‚ÉŠm”F‚·‚é‚©‚Ç‚¤‚©B
+
+
++ConfirmEmptyFolder (1 @ 0|1)
+ƒtƒHƒ‹ƒ_‚ğ‹ó‚É‚·‚é‚Æ‚«‚ÉŠm”F‚·‚é‚©‚Ç‚¤‚©B
+
+
++ConfirmEmptyTrash (1 @ 0|1)
+ƒSƒ~” ‚ğ‹ó‚É‚·‚é‚Æ‚«‚ÉŠm”F‚·‚é‚©‚Ç‚¤‚©B
+
+
++CurrentFolder
+‘I‘ğ‚³‚ê‚Ä‚¢‚éƒtƒHƒ‹ƒ_B
+
+
++DefaultCharset
+ƒfƒtƒHƒ‹ƒg‚Ì•¶šƒR[ƒhBw’è‚³‚ê‚Ä‚¢‚È‚¢ê‡‚É‚Íƒvƒ‰ƒbƒgƒtƒH[ƒ€‚©‚ç©“®æ“¾B
+
+
++DefaultMailAccount
+ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚©‚ç-s‚ğg‚Á‚Ämailto URL‚ğw’è‚µ‚Ä‹N“®‚³‚ê‚½‚Æ‚«‚Ég—p‚³‚ê‚éƒAƒJƒEƒ“ƒgB
+
+
++DefaultRssAccount
+ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚©‚ç-s‚ğg‚Á‚Äfeed URL‚ğw’è‚µ‚Ä‹N“®‚³‚ê‚½‚Æ‚«‚Ég—p‚³‚ê‚éƒAƒJƒEƒ“ƒgB
+
+
++DefaultTimeFormat (%Y4/%M0/%D %h:%m:%s)
+ƒfƒtƒHƒ‹ƒg‚ÌŠÔ‚ÌƒtƒH[ƒ}ƒbƒgBw’è•û–@‚ÍA((<@FormatDate|URL:FormatDateFunction.html>))‚ğQÆB
+
+
++DetachFolder
+ƒfƒtƒHƒ‹ƒg‚Ì“Y•tƒtƒ@ƒCƒ‹‚ğ•Û‘¶‚·‚éƒtƒHƒ‹ƒ_B
+
+
++DetachOpenFolder (0 @ 0|1)
+“Y•tƒtƒ@ƒCƒ‹‚ğ•Û‘¶‚µ‚½Œã‚ÅA•Û‘¶æ‚ÌƒtƒHƒ‹ƒ_‚ğŠJ‚­‚©‚Ç‚¤‚©B
+
+
++Editor (notepad.exe)
+ŠO•”ƒGƒfƒBƒ^B
+
+
++EmptyTrashOnExit (0 @ 0|1)
+I—¹‚ÉƒSƒ~” ‚ğ‹ó‚É‚·‚é‚©‚Ç‚¤‚©B
+
+
++Encodings (iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8)
+‘I‘ğ‰Â”\‚È•¶šƒR[ƒhB•¡”w’è‚·‚é‚Æ‚«‚É‚Í‹ó”’‹æØ‚èB
+
+
++ExcludeArchive (\.(?:zip|lzh|tgz|gz)$)
+“Y•tƒtƒ@ƒCƒ‹‚ğˆ³k‚·‚é‚Æ‚«‚ÉœŠO‚·‚éƒtƒ@ƒCƒ‹‚ğw’è‚·‚é³‹K•\Œ»B
+
+
++ExternalEditor
+ŠO•”ƒGƒfƒBƒ^BEditor‚Åw’è‚µ‚½‚à‚Ì‚æ‚è‚à—Dæ‚³‚ê‚éB
+
+Editor‚Åw’è‚µ‚½ƒGƒfƒBƒ^‚ÍA“Y•tƒtƒ@ƒCƒ‹‚ğƒGƒfƒBƒ^‚ÅŠJ‚¢‚½‚è‚·‚é‚Æ‚«‚È‚Ç‚É‚àg—p‚³‚ê‚Ü‚·Bƒ[ƒ‹•ÒW—p‚ÌŠO•”ƒGƒfƒBƒ^‚Æ‚µ‚Ä‘¼‚ÌƒGƒfƒBƒ^‚ğg—p‚µ‚½‚¢ê‡‚É‚Í‚±‚¿‚ç‚Éw’è‚µ‚Ü‚·B
+
+
++ExternalEditorAutoCreate (1 @ 0|1)
+ŠO•”ƒGƒfƒBƒ^‚ÅƒƒbƒZ[ƒW‚ğì¬‚·‚é‚Æ‚«‚ÉAŠO•”ƒGƒfƒBƒ^‚ªI—¹‚µ‚½‚ç©“®‚ÅƒƒbƒZ[ƒW‚ğì¬‚·‚é‚©‚Ç‚¤‚©B
+
+
++Filer
+“Y•tƒtƒ@ƒCƒ‹‚ğ•Û‘¶‚µ‚½Œã‚ÅƒtƒHƒ‹ƒ_‚ğŠJ‚­‚Æ‚«‚Ég—p‚·‚éƒGƒfƒBƒ^Bw’è‚µ‚È‚¢ê‡‚É‚ÍŠÖ˜A•t‚¯‚ÅŠJ‚­B
+
+
++ForwardRfc822 (0 @ 0|1)
+“]‘—‚·‚é‚Æ‚«‚Émessage/rfc822Œ`®‚Å“]‘—‚·‚é‚©‚Ç‚¤‚©B
+
+
++HideWhenMinimized (0 @ 0|1)
+Å¬‰»‚³‚ê‚½‚Æ‚«‚É‰B‚·‚©‚Ç‚¤‚©B
+
+
++ImeControl (1 @ 0|1)
+IME‚ğ©“®‚Å§Œä‚·‚é‚©‚Ç‚¤‚©B
+
+
++IncrementalSearch (0 @ 0|1)
+ƒƒbƒZ[ƒW“àŒŸõ‚âƒGƒfƒBƒbƒgƒrƒ…[‚ÌŒŸõ‚ÅƒCƒ“ƒNƒŠƒƒ“ƒ^ƒ‹ƒT[ƒ`‚ğg‚¤‚©‚Ç‚¤‚©B
+
+
++LastUpdateCheck
+ÅŒã‚Éƒo[ƒWƒ‡ƒ“ƒ`ƒFƒbƒN‚ğ‚µ‚½“úB
+
+
++Libraries
+ƒ[ƒh‚·‚éŠO•”ƒ‰ƒCƒuƒ‰ƒŠB•¡”w’è‚·‚é‚Æ‚«‚É‚Í‹ó”’‹æØ‚èB
+
+
++Log (-1 @ -1|0|1|2|3|4)
+ƒVƒXƒeƒ€ƒƒO‚ÌƒƒOƒŒƒxƒ‹B
+
+:-1
+  None
+:0
+  Fatal
+:1
+  Error
+:2
+  Warn
+:3
+  Info
+:4
+  Debug
+
+
++LogFilter
+ƒVƒXƒeƒ€ƒƒO‚ğƒ‚ƒWƒ…[ƒ‹–¼‚ÅƒtƒBƒ‹ƒ^‚·‚é‚½‚ß‚Ì³‹K•\Œ»B
+
+
++LogTimeFormat (%Y4/%M0/%D-%h:%m:%s%z)
+ƒVƒXƒeƒ€ƒƒO‚Ì“ú•tƒtƒH[ƒ}ƒbƒgBw’è•û–@‚ÍA((<@FormatDate|URL:FormatDateFunction.html>))‚ğQÆB
+
+
++Macro
+MessageMacroƒAƒNƒVƒ‡ƒ“‚ÅÅŒã‚Éw’è‚µ‚½ƒ}ƒNƒB
+
+
++NextUnseenInOtherAccounts (0 @ 0|1)
+ViewNextUnseenMessageƒAƒNƒVƒ‡ƒ“‚Å‘¼‚ÌƒAƒJƒEƒ“ƒg‚Ì–¢“ÇƒƒbƒZ[ƒW‚ÉƒWƒƒƒ“ƒv‚·‚é‚©‚Ç‚¤‚©B
+
+
++NextUnseenWhenScrollEnd (0 @ 0|1)
+ViewNextMessagePageƒAƒNƒVƒ‡ƒ“‚ÅÅŒã‚Ü‚ÅƒXƒNƒ[ƒ‹‚µ‚½‚Æ‚«‚ÉŸ‚Ì–¢“ÇƒƒbƒZ[ƒW‚ÉƒWƒƒƒ“ƒv‚·‚é‚©‚Ç‚¤‚©B
+
+
++NoBccForML (0 @ 0|1)
+©•ª‚ğBcc‚ÉŠÜ‚ß‚éê‡‚ÉML‚©‚ç‚ÌƒƒbƒZ[ƒW‚ç‚µ‚¢‚Æ‚«‚É‚ÍBcc‚ğ•t‰Á‚µ‚È‚¢‚©‚Ç‚¤‚©B
+
+
++Offline (1 @ 0|1)
+ƒIƒtƒ‰ƒCƒ“‚©‚Ç‚¤‚©B
+
+
++OpenAddressBook (0 @ 0|1)
+ƒƒbƒZ[ƒWì¬‚É©“®‚ÅƒAƒhƒŒƒX‘I‘ğƒ_ƒCƒAƒƒO‚ğŠJ‚­‚©‚Ç‚¤‚©B
+
+
++OpenRecentInPreview (0 @ 0|1)
+V’…ƒƒbƒZ[ƒWƒŠƒXƒg‚©‚çƒƒbƒZ[ƒW‚ğŠJ‚­‚Æ‚«‚ÉƒvƒŒƒrƒ…[‚ÅŠJ‚­‚©‚Ç‚¤‚©B
+
+
++PrintExtension (html)
+ˆóü‚·‚é‚Æ‚«‚É‘‚«o‚·ƒtƒ@ƒCƒ‹‚ÌŠg’£qB
+
+
++Quote (> )
+EditPasteWithQuoteƒAƒNƒVƒ‡ƒ“‚È‚Ç‚Åg‚í‚ê‚éˆø—p•„B
+
+
++RFC2231 (0 @ 0|1)
+“Y•tƒtƒ@ƒCƒ‹‚Ìƒtƒ@ƒCƒ‹–¼‚È‚Ç‚ğRFC2231Œ`®‚ÅƒGƒ“ƒR[ƒh‚·‚é‚©‚Ç‚¤‚©B
+
+
++SaveMessageViewModePerFolder (1 @ 0|1)
+ƒƒbƒZ[ƒWƒ‚[ƒh‚ğƒtƒHƒ‹ƒ_‚²‚Æ‚É•Û‘¶‚·‚é‚©‚Ç‚¤‚©B
+
+
++SaveOnDeactivate (1 @ 0|1)
+”ñƒAƒNƒeƒBƒu‚É‚È‚Á‚½‚Æ‚«‚É•Û‘¶‚·‚é‚©‚Ç‚¤‚©B
+
+
++ShowUnseenCountOnWelcome (0 @ 0|1)
+Windows XP‚Ì‚æ‚¤‚±‚»‰æ–Ê‚É–¢“ÇƒƒbƒZ[ƒW”‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++TemporaryFolder
+ˆêƒtƒ@ƒCƒ‹‚ğ’u‚­ƒtƒHƒ‹ƒ_B
+
+
++UseExternalEditor (0 @ 0|1)
+ŠO•”ƒGƒfƒBƒ^‚ğg—p‚·‚é‚©‚Ç‚¤‚©B
+
+
++WarnExtensions (exe com pif bat scr htm html hta vbs js)
+“Y•tƒtƒ@ƒCƒ‹‚ğŠJ‚­‚Æ‚«‚ÉŒx‚·‚éŠg’£qB
+
+
++XMailerWithOSVersion (1 @ 0|1)
+X-Mailer‚ÉOS‚Ìƒo[ƒWƒ‡ƒ“‚ğŠÜ‚ß‚é‚©‚Ç‚¤‚©B
+
+
+===GoRoundCourseDialogƒZƒNƒVƒ‡ƒ“
+
++Width (620), Height(450)
+„‰ñƒR[ƒXƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
+
+
+
+===GPGƒZƒNƒVƒ‡ƒ“
+
++Command (gpg.exe)
+GPG‚ğ‹N“®‚·‚é‚Æ‚«‚ÌƒRƒ}ƒ“ƒhB
+
+
+===HeaderEditWindowƒZƒNƒVƒ‡ƒ“
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒwƒbƒ_ƒGƒfƒBƒbƒgƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
++ImeTo, ImeCc, ImeBcc, ImeSubject
+To, Cc, Bcc, Subject—“‚ÌIme‚Ìó‘ÔB
+
+
+===HeaderWindowƒZƒNƒVƒ‡ƒ“
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒwƒbƒ_ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
+===Imap4SearchƒZƒNƒVƒ‡ƒ“
+
++Command (0 @ 0|1)
+IMAP4ŒŸõ‚ÅƒRƒ}ƒ“ƒh‚ğw’è‚·‚é‚©‚Ç‚¤‚©B
+
+
++SearchBody (0 @ 0|1)
+IMAP4ŒŸõ‚Å–{•¶‚ğŒŸõ‚·‚é‚©‚Ç‚¤‚©B
+
+
+===InputBoxDialogƒZƒNƒVƒ‡ƒ“
+
++Width (400), Height (300)
+((<@InputBox|URL:InputBoxFunction.html>))‚Ì•¡”sƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
+
+
+===JunkFilterƒZƒNƒVƒ‡ƒ“
+
++BlackList, WhiteList
+ƒuƒ‰ƒbƒNƒŠƒXƒg‚ÆƒzƒƒCƒgƒŠƒXƒgB
+
+
++Flags (3)
+ƒtƒ‰ƒOBˆÈ‰º‚Ì‘g‚İ‡‚í‚¹‚ğ10i‚Åw’èB
+
+:0x01
+  ©“®‚ÅŠwK
+:0x02
+  è“®‚ÅŠwK
+
+
++MaxTextLen (32768)
+”»’è‘ÎÛ‚É‚·‚éƒeƒLƒXƒg‚ÌÅ‘åƒTƒCƒYB’PˆÊ‚ÍƒoƒCƒgB
+
+
++ThresholdScore (0.95)
+ƒXƒpƒ€‚Æ”»’è‚·‚éè‡’lB
+
+
+===LabelƒZƒNƒVƒ‡ƒ“
+
++Histroy?
+ƒ‰ƒxƒ‹‚Ì—š—ğB?‚Í0‚©‚çn‚Ü‚é”šB
+
+
++HistorySize (10)
+•Û‘¶‚·‚éƒ‰ƒxƒ‹‚ÌÅ‘å”B
+
+
+===ListWindowƒZƒNƒVƒ‡ƒ“
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒŠƒXƒgƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
++UseSystemColor (1 @ 0|1)
+ƒVƒXƒeƒ€‚Ì”zF‚ğg‚¤‚©‚Ç‚¤‚©B
+
+
++ForegroundColor (000000), BackgroundColor (ffffff)
+•¶šFA”wŒiFBŒ`®‚ÍRRGGBBB
+
+
++Ellipsis (1 @ 0|1)
+ƒJƒ‰ƒ€‚Ì•‚Éû‚Ü‚ç‚È‚¢•¶š—ñ‚ÌI’[‚ğ...‚É‚·‚é‚©‚Ç‚¤‚©B
+
+
++ShowHeaderColumn (1 @ 0|1)
+ƒwƒbƒ_ƒJƒ‰ƒ€‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++SingleClickOpen (0 @ 0|1)
+ƒVƒ“ƒOƒ‹ƒNƒŠƒbƒN‚ÅƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE‚ğŠJ‚­‚©‚Ç‚¤‚©B
+
+
++TimeFormat (%Y2/%M0/%D %h:%m)
+“ú•tƒtƒH[ƒ}ƒbƒgBw’è•û–@‚ÍA((<@FormatDate|URL:FormatDateFunction.html>))‚ğQÆB
+
+
+===MacroDialogƒZƒNƒVƒ‡ƒ“
+
++Width (620), Height(450)
+ƒ}ƒNƒƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
+
+
+===MacroSearchƒZƒNƒVƒ‡ƒ“
+
++Macro (0 @ 0|1)
+ŒŸõğŒ‚ªƒ}ƒNƒ‚©‚Ç‚¤‚©B
+
+
++MatchCase (0 @ 0|1)
+‘å•¶š‚Æ¬•¶š‚ğ‹æ•Ê‚·‚é‚©‚Ç‚¤‚©B
+
+
++SearchHeader (0 @ 0|1)
+ƒwƒbƒ_‚ğŒŸõ‚·‚é‚©‚Ç‚¤‚©B
+
+
++SearchBody (0 @ 0|1)
+–{•¶‚ğŒŸõ‚·‚é‚©‚Ç‚¤‚©B
+
+
++SearchMacro (@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case), @Contain(@Label(), $Search, $Case)))
+ŒŸõ‚Ég—p‚·‚éƒ}ƒNƒBÚ×‚ÍA((<Šî–{ŒŸõ|URL:MacroSearch.html>))‚ğQÆB
 
 // TODO
 
