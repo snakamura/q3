@@ -5509,6 +5509,10 @@ void qm::SignatureDialog::layout()
 	Window(getDlgItem(IDC_NAME)).getWindowRect(&rectName);
 	screenToClient(&rectName);
 	
+	RECT rectAccount;
+	Window(getDlgItem(IDC_ACCOUNT)).getWindowRect(&rectAccount);
+	screenToClient(&rectAccount);
+	
 	RECT rectText;
 	Window(getDlgItem(IDC_SIGNATURE)).getWindowRect(&rectText);
 	screenToClient(&rectText);
@@ -5518,7 +5522,7 @@ void qm::SignatureDialog::layout()
 		rect.right - rectName.left - 5, rectName.bottom - rectName.top,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 	hdwp = Window(getDlgItem(IDC_ACCOUNT)).deferWindowPos(hdwp, 0, 0, 0,
-		rect.right - rectName.left - 5, rectName.bottom - rectName.top,
+		rect.right - rectAccount.left - 5, rectAccount.bottom - rectAccount.top,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 	hdwp = Window(getDlgItem(IDC_SIGNATURE)).deferWindowPos(hdwp, 0, 0, 0,
 		rect.right - rectText.left - 5, rect.bottom - rectText.top - nButtonHeight - 10,
