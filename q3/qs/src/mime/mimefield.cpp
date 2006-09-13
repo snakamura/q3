@@ -384,6 +384,24 @@ Part::Field qs::AddrSpecParser::parseAddrSpec(const Part& part,
 
 /****************************************************************************
  *
+ * MimeUtil
+ *
+ */
+
+void MimeUtil::appendCharArrayReplaceNewLine(const CHAR* psz,
+											 size_t nLen,
+											 StringBuffer<WSTRING>* pBuf)
+{
+	assert(psz);
+	assert(pBuf);
+	
+	for (size_t n = 0; n < nLen; ++n, ++psz)
+		pBuf->append(*psz != '\n' && *psz != '\r' ? static_cast<WCHAR>(*psz) : L' ');
+}
+
+
+/****************************************************************************
+ *
  * FieldParser
  *
  */
@@ -407,6 +425,8 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 	
 	std::auto_ptr<Converter> pConverter;
 	std::auto_ptr<Encoder> pEncoder;
+	const CHAR* pEncodedPrefix = 0;
+	size_t nEncodedPrefixLen = 0;
 	bool bDecode = false;
 	bool bDecoded = false;
 	StringBuffer<WSTRING> space;
@@ -421,26 +441,34 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 					space.remove();
 				}
 				
+				assert(pConverter.get());
+				assert(pEncoder.get());
+				
+				bool b = false;
 				malloc_size_ptr<unsigned char> pDecoded(pEncoder->decode(
 					reinterpret_cast<const unsigned char*>(buf.getCharArray()), buf.getLength()));
-				if (!pDecoded.get())
-					return 0;
-				buf.remove();
-				
-				size_t nLen = pDecoded.size();
-				wxstring_size_ptr wstrConverted(pConverter->decode(
-					reinterpret_cast<const CHAR*>(pDecoded.get()), &nLen));
-				if (!wstrConverted.get())
-					return 0;
-				
-				{
-					WCHAR* p = wstrConverted.get();
-					for (size_t n = 0; n < wstrConverted.size(); ++n, ++p) {
-						if (*p == L'\n' || *p == L'\r')
-							*p = L' ';
+				if (pDecoded.get()) {
+					size_t nLen = pDecoded.size();
+					wxstring_size_ptr wstrConverted(pConverter->decode(
+						reinterpret_cast<const CHAR*>(pDecoded.get()), &nLen));
+					if (wstrConverted.get()) {
+						WCHAR* p = wstrConverted.get();
+						for (size_t n = 0; n < wstrConverted.size(); ++n, ++p) {
+							if (*p == L'\n' || *p == L'\r')
+								*p = L' ';
+						}
+						decoded.append(wstrConverted.get(), wstrConverted.size());
+						b = true;
 					}
 				}
-				decoded.append(wstrConverted.get(), wstrConverted.size());
+				if (!b) {
+					MimeUtil::appendCharArrayReplaceNewLine(
+						pEncodedPrefix, nEncodedPrefixLen, &decoded);
+					MimeUtil::appendCharArrayReplaceNewLine(
+						buf.getCharArray(), buf.getLength(), &decoded);
+					decoded.append(L"?=");
+				}
+				buf.remove();
 				
 				pConverter.reset(0);
 				pEncoder.reset(0);
@@ -459,9 +487,11 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 					assert(bAllowUTF8);
 					size_t nLen = buf.getLength();
 					wxstring_size_ptr wstr(UTF8Converter().decode(buf.getCharArray(), &nLen));
-					if (!wstr.get())
-						return 0;
-					decoded.append(wstr.get(), wstr.size());
+					if (wstr.get())
+						decoded.append(wstr.get(), wstr.size());
+					else
+						MimeUtil::appendCharArrayReplaceNewLine(
+							buf.getCharArray(), buf.getLength(), &decoded);
 					buf.remove();
 				}
 				
@@ -486,6 +516,8 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 					pEncoder = EncoderFactory::getInstance(wstrEncoding.get());
 				}
 				if (pConverter.get() && pEncoder.get()) {
+					pEncodedPrefix = p;
+					nEncodedPrefixLen = pEnd - p + 1;
 					bDecode = true;
 					p = pEnd;
 					space.remove();
@@ -515,15 +547,19 @@ wstring_ptr qs::FieldParser::decode(const CHAR* psz,
 	
 	if (buf.getLength()) {
 		if (bDecode) {
-			wstring_ptr wstr(mbs2wcs(buf.getCharArray(), buf.getLength()));
-			decoded.append(wstr.get());
+			MimeUtil::appendCharArrayReplaceNewLine(
+				pEncodedPrefix, nEncodedPrefixLen, &decoded);
+			MimeUtil::appendCharArrayReplaceNewLine(
+				buf.getCharArray(), buf.getLength(), &decoded);
 		}
 		else {
 			size_t nLen = buf.getLength();
 			wxstring_size_ptr wstr(UTF8Converter().decode(buf.getCharArray(), &nLen));
-			if (!wstr.get())
-				return 0;
-			decoded.append(wstr.get(), wstr.size());
+			if (wstr.get())
+				decoded.append(wstr.get(), wstr.size());
+			else
+				MimeUtil::appendCharArrayReplaceNewLine(
+					buf.getCharArray(), buf.getLength(), &decoded);
 		}
 	}
 	

@@ -138,6 +138,21 @@ public:
 					const std::pair<STRING, STRING>& rhs) const;
 };
 
+
+/****************************************************************************
+ *
+ * MimeUtil
+ *
+ */
+
+struct MimeUtil
+{
+public:
+	static void appendCharArrayReplaceNewLine(const CHAR* psz,
+											  size_t nLen,
+											  StringBuffer<WSTRING>* pBuf);
+};
+
 }
 
 #endif __MIME_H__
