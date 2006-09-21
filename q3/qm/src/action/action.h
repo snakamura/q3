@@ -3890,6 +3890,10 @@ public:
 	static void select(ViewModel* pViewModel,
 					   unsigned int nIndex,
 					   bool bDelay);
+	static void selectNextUndeleted(ViewModel* pViewModel,
+									unsigned int nIndex,
+									const MessageHolderList& listExclude,
+									MessageModel* pMessageModel);
 };
 
 

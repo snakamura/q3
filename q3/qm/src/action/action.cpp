@@ -624,10 +624,7 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 	if (bSelectNext) {
 		unsigned int nIndex = l.size() == 1 ?
 			pViewModel->getIndex(l.front()) : pViewModel->getFocused();
-		if (nIndex < pViewModel->getCount() - 1)
-			MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
-		else if (nIndex != 0)
-			MessageActionUtil::select(pViewModel, nIndex - 1, pMessageModel_);
+		MessageActionUtil::selectNextUndeleted(pViewModel, nIndex, l, pMessageModel_);
 	}
 	
 	if (!deleteMessages(l, pFolder))
@@ -4514,10 +4511,7 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 		if (bSelectNext) {
 			unsigned int nIndex = l.size() == 1 ?
 				pViewModel->getIndex(l.front()) : pViewModel->getFocused();
-			if (nIndex < pViewModel->getCount() - 1)
-				MessageActionUtil::select(pViewModel, nIndex + 1, pMessageModel_);
-			else if (nIndex != 0)
-				MessageActionUtil::select(pViewModel, nIndex - 1, pMessageModel_);
+			MessageActionUtil::selectNextUndeleted(pViewModel, nIndex, l, pMessageModel_);
 		}
 	}
 	
@@ -7698,7 +7692,7 @@ void qm::MessageActionUtil::select(ViewModel* pViewModel,
 		pMessageModel->setMessage(pmh);
 	}
 	
-	select(pViewModel, nIndex, true);
+	select(pViewModel, nIndex, pMessageModel == 0);
 }
 
 void qm::MessageActionUtil::select(ViewModel* pViewModel,
@@ -7713,6 +7707,34 @@ void qm::MessageActionUtil::select(ViewModel* pViewModel,
 	pViewModel->setSelection(nIndex);
 	pViewModel->setLastSelection(nIndex);
 	pViewModel->payAttention(nIndex);
+}
+
+void qm::MessageActionUtil::selectNextUndeleted(ViewModel* pViewModel,
+												unsigned int nIndex,
+												const MessageHolderList& listExclude,
+												MessageModel* pMessageModel)
+{
+	assert(pViewModel);
+	assert(pViewModel->isLocked());
+	assert(nIndex < pViewModel->getCount());
+	
+	unsigned int nCount = pViewModel->getCount();
+	for (unsigned int n = nIndex + 1; n < nCount; ++n) {
+		MessageHolder* pmh = pViewModel->getMessageHolder(n);
+		if (!pmh->isFlag(MessageHolder::FLAG_DELETED) &&
+			std::find(listExclude.begin(), listExclude.end(), pmh) == listExclude.end())
+			return select(pViewModel, n, pMessageModel);
+	}
+	if (nIndex != 0) {
+		unsigned int n = nIndex;
+		do {
+			--n;
+			MessageHolder* pmh = pViewModel->getMessageHolder(n);
+			if (!pmh->isFlag(MessageHolder::FLAG_DELETED) &&
+				std::find(listExclude.begin(), listExclude.end(), pmh) == listExclude.end())
+				return select(pViewModel, n, pMessageModel);
+		} while (n != 0);
+	}
 }
 
 
