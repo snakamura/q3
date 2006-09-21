@@ -124,6 +124,7 @@ keyƒGƒŒƒƒ“ƒg‚Íˆê‚Â‚ÌƒL[‚ð•\‚µ‚Ü‚·Bname‘®«‚É‚ÍƒL[‚Ì–¼‘O‚ðŽw’è‚µ‚Ü‚·BŽqƒm[ƒ
 
 
 ===AddressBookƒZƒNƒVƒ‡ƒ“
+ƒAƒhƒŒƒX’ ŠÖŒW‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +AddressOnly (0 @ 0|1)
 ŠO•”ƒAƒhƒŒƒX’ ‚©‚çƒAƒhƒŒƒX‚ðŽæ‚èž‚Þ‚Æ‚«‚É–¼‘O‚ðŽæ‚èž‚Ü‚¸ƒ[ƒ‹ƒAƒhƒŒƒX‚¾‚¯‚ðŽæ‚èž‚Þ‚©‚Ç‚¤‚©B
@@ -146,26 +147,29 @@ keyƒGƒŒƒƒ“ƒg‚Íˆê‚Â‚ÌƒL[‚ð•\‚µ‚Ü‚·Bname‘®«‚É‚ÍƒL[‚Ì–¼‘O‚ðŽw’è‚µ‚Ü‚·BŽqƒm[ƒ
 
 
 ===AddressBookFrameWindowƒZƒNƒVƒ‡ƒ“
+ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
-ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE‚ÌˆÊ’u‚Æ‘å‚«‚³A•\Ž¦•û–@‚Æ“§‰ß“xB
+ƒEƒBƒ“ƒhƒE‚ÌˆÊ’u‚Æ‘å‚«‚³A•\Ž¦•û–@‚Æ“§‰ß“xB
 
 
 +ShowToolbar (1 @ 0|1), ShowStatusBar (1 @ 0|1)
-ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE‚Ìƒc[ƒ‹ƒo[‚ÆƒXƒe[ƒ^ƒXƒo[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+ƒEƒBƒ“ƒhƒE‚Ìƒc[ƒ‹ƒo[‚ÆƒXƒe[ƒ^ƒXƒo[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
 
 
 ===AddressBookListWindowƒZƒNƒVƒ‡ƒ“
+ƒAƒhƒŒƒXƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +AddressWidth (150), NameWidth (150), CommentWidth (150)
-ƒAƒhƒŒƒXƒrƒ…[‚ÌƒAƒhƒŒƒX—“A–¼‘O—“AƒRƒƒ“ƒg—“‚Ì•B
+ƒrƒ…[‚ÌƒAƒhƒŒƒX—“A–¼‘O—“AƒRƒƒ“ƒg—“‚Ì•B
 
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-ƒAƒhƒŒƒXƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
 ===AutoPilotƒZƒNƒVƒ‡ƒ“
+((<Ž©“®„‰ñ|URL:AutoPilot.html>))‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Enabled (0 @ 0|1)
 Ž©“®„‰ñ‚ª—LŒø‚©‚Ç‚¤‚©
@@ -176,31 +180,35 @@ keyƒGƒŒƒƒ“ƒg‚Íˆê‚Â‚ÌƒL[‚ð•\‚µ‚Ü‚·Bname‘®«‚É‚ÍƒL[‚Ì–¼‘O‚ðŽw’è‚µ‚Ü‚·BŽqƒm[ƒ
 
 
 ===ColorsDialogƒZƒNƒVƒ‡ƒ“
+F‚ÌÝ’èƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Width (620), Height (450)
-F‚ÌÝ’èƒ_ƒCƒAƒƒO‚Ì‘å‚«‚³B
+ƒ_ƒCƒAƒƒO‚Ì‘å‚«‚³B
 
 
 ===DialupƒZƒNƒVƒ‡ƒ“
+ƒ_ƒCƒAƒ‹ƒAƒbƒv‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Entry
 ÅŒã‚ÉŽw’è‚µ‚½ƒ_ƒCƒAƒ‹ƒAƒbƒv‚ÌƒGƒ“ƒgƒŠ–¼B
 
 
 ===EditFrameWindowƒZƒNƒVƒ‡ƒ“
+ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
-ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE‚ÌˆÊ’u‚Æ‘å‚«‚³A•\Ž¦•û–@‚Æ“§‰ß“xB
+ƒEƒBƒ“ƒhƒE‚ÌˆÊ’u‚Æ‘å‚«‚³A•\Ž¦•û–@‚Æ“§‰ß“xB
 
 
 +ShowToolbar (1 @ 0|1), ShowStatusBar (1 @ 0|1)
-ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE‚Ìƒc[ƒ‹ƒo[‚ÆƒXƒe[ƒ^ƒXƒo[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+ƒEƒBƒ“ƒhƒE‚Ìƒc[ƒ‹ƒo[‚ÆƒXƒe[ƒ^ƒXƒo[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
 
 
 ===EditWindowƒZƒNƒVƒ‡ƒ“
+ƒGƒfƒBƒbƒgƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-ƒGƒfƒBƒbƒgƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
 +AdjustExtent (0 @ 0|1)
@@ -286,6 +294,7 @@ Ime‚Ìó‘ÔB
 
 
 ===FindƒZƒNƒVƒ‡ƒ“
+ŒŸõ‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Histroy?
 ŒŸõ‚µ‚½—š—ðB?‚Í0‚©‚çŽn‚Ü‚é”ŽšB
@@ -308,15 +317,17 @@ Ime‚Ìó‘ÔB
 
 
 ===FixedFormTextDialogƒZƒNƒVƒ‡ƒ“
+’èŒ^•¶ƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Width (620), Height (450)
-’èŒ^•¶ƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
+ƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
 
 
 ===FolderComboBoxƒZƒNƒVƒ‡ƒ“
+ƒtƒHƒ‹ƒ_ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-ƒtƒHƒ‹ƒ_ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
 +ShowAllCount (1 @ 0|1)
@@ -328,9 +339,10 @@ Ime‚Ìó‘ÔB
 
 
 ===FolderListWindowƒZƒNƒVƒ‡ƒ“
+ƒtƒHƒ‹ƒ_ƒŠƒXƒgƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-ƒtƒHƒ‹ƒ_ƒŠƒXƒgƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
 +UseSystemColor (1 @ 0|1)
@@ -347,9 +359,10 @@ Ime‚Ìó‘ÔB
 
 
 ===FolderWindowƒZƒNƒVƒ‡ƒ“
+ƒtƒHƒ‹ƒ_ƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-ƒtƒHƒ‹ƒ_ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
 +UseSystemColor (1 @ 0|1)
@@ -385,6 +398,7 @@ Ime‚Ìó‘ÔB
 
 
 ===FullTextSearchƒZƒNƒVƒ‡ƒ“
+((<‘S•¶ŒŸõ|URL:FullTextSearch.html>))‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Command (namazu -l -a "$condition" "$index")
 ‘S•¶ŒŸõ‚ÅŽg—p‚·‚éƒRƒ}ƒ“ƒhB
@@ -395,6 +409,7 @@ Ime‚Ìó‘ÔB
 
 
 ===GlobalƒZƒNƒVƒ‡ƒ“
+‘S”Ê“I‚ÈÝ’è‚ð‚µ‚Ü‚·B
 
 +Action
 ToolInvokeActionƒAƒNƒVƒ‡ƒ“‚ÅÅŒã‚É‹N“®‚µ‚½ƒAƒNƒVƒ‡ƒ“B
@@ -606,22 +621,24 @@ X-Mailer‚ÉOS‚Ìƒo[ƒWƒ‡ƒ“‚ðŠÜ‚ß‚é‚©‚Ç‚¤‚©B
 
 
 ===GoRoundCourseDialogƒZƒNƒVƒ‡ƒ“
+„‰ñƒR[ƒXƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Width (620), Height(450)
-„‰ñƒR[ƒXƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
-
+ƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
 
 
 ===GPGƒZƒNƒVƒ‡ƒ“
+GnuPG‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Command (gpg.exe)
-GPG‚ð‹N“®‚·‚é‚Æ‚«‚ÌƒRƒ}ƒ“ƒhB
+GnuPG‚ð‹N“®‚·‚é‚Æ‚«‚ÌƒRƒ}ƒ“ƒhB
 
 
 ===HeaderEditWindowƒZƒNƒVƒ‡ƒ“
+ƒwƒbƒ_ƒGƒfƒBƒbƒgƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-ƒwƒbƒ_ƒGƒfƒBƒbƒgƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
 +ImeTo, ImeCc, ImeBcc, ImeSubject
@@ -629,12 +646,14 @@ To, Cc, Bcc, Subject—“‚ÌIme‚Ìó‘ÔB
 
 
 ===HeaderWindowƒZƒNƒVƒ‡ƒ“
+ƒwƒbƒ_ƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-ƒwƒbƒ_ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
 ===Imap4SearchƒZƒNƒVƒ‡ƒ“
+((<IMAP4ŒŸõ|URL:Imap4Search.html>))‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Command (0 @ 0|1)
 IMAP4ŒŸõ‚ÅƒRƒ}ƒ“ƒh‚ðŽw’è‚·‚é‚©‚Ç‚¤‚©B
@@ -645,12 +664,14 @@ IMAP4ŒŸõ‚Å–{•¶‚ðŒŸõ‚·‚é‚©‚Ç‚¤‚©B
 
 
 ===InputBoxDialogƒZƒNƒVƒ‡ƒ“
+“ü—Íƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Width (400), Height (300)
 ((<@InputBox|URL:InputBoxFunction.html>))‚Ì•¡”sƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
 
 
 ===JunkFilterƒZƒNƒVƒ‡ƒ“
+((<ƒXƒpƒ€ƒtƒBƒ‹ƒ^|URL:JunkFilter.html>))‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +BlackList, WhiteList
 ƒuƒ‰ƒbƒNƒŠƒXƒg‚ÆƒzƒƒCƒgƒŠƒXƒgB
@@ -674,6 +695,7 @@ IMAP4ŒŸõ‚Å–{•¶‚ðŒŸõ‚·‚é‚©‚Ç‚¤‚©B
 
 
 ===LabelƒZƒNƒVƒ‡ƒ“
+((<ƒ‰ƒxƒ‹|URL:Label.html>))‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Histroy?
 ƒ‰ƒxƒ‹‚Ì—š—ðB?‚Í0‚©‚çŽn‚Ü‚é”ŽšB
@@ -684,9 +706,10 @@ IMAP4ŒŸõ‚Å–{•¶‚ðŒŸõ‚·‚é‚©‚Ç‚¤‚©B
 
 
 ===ListWindowƒZƒNƒVƒ‡ƒ“
+ƒŠƒXƒgƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-ƒŠƒXƒgƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
 +UseSystemColor (1 @ 0|1)
@@ -714,12 +737,14 @@ IMAP4ŒŸõ‚Å–{•¶‚ðŒŸõ‚·‚é‚©‚Ç‚¤‚©B
 
 
 ===MacroDialogƒZƒNƒVƒ‡ƒ“
+ƒ}ƒNƒƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Width (620), Height(450)
 ƒ}ƒNƒƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
 
 
 ===MacroSearchƒZƒNƒVƒ‡ƒ“
+((<Šî–{ŒŸõ|URL:MacroSearch.html>))‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
 +Macro (0 @ 0|1)
 ŒŸõðŒ‚ªƒ}ƒNƒ‚©‚Ç‚¤‚©B
@@ -740,6 +765,501 @@ IMAP4ŒŸõ‚Å–{•¶‚ðŒŸõ‚·‚é‚©‚Ç‚¤‚©B
 +SearchMacro (@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case), @Contain(@Label(), $Search, $Case)))
 ŒŸõ‚ÉŽg—p‚·‚éƒ}ƒNƒBÚ×‚ÍA((<Šî–{ŒŸõ|URL:MacroSearch.html>))‚ðŽQÆB
 
-// TODO
+
+===MainWindowƒZƒNƒVƒ‡ƒ“
+ƒƒCƒ“ƒEƒBƒ“ƒhƒE‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
+ƒEƒBƒ“ƒhƒE‚ÌˆÊ’u‚Æ‘å‚«‚³A•\Ž¦•û–@‚Æ“§‰ß“xB
+
+
++Placement (F|(L-P))
+ƒEƒBƒ“ƒhƒE‚Ì”z’u•û–@BŽw’è‚Å‚«‚é’l‚ÍA((<‚»‚Ì‘¼‚ÌÝ’è|URL:OptionMisc.html>))‚Ì[ƒrƒ…[‚Ì”z’u]‚ðŽQÆB
+
+
++PrimaryLocation (100)
+ŠO‘¤‚Ì•ªŠ„ƒEƒBƒ“ƒhƒE‚Ì•ªŠ„ˆÊ’uB
+
+
++SecondaryLocation (200)
+“à‘¤‚Ì•ªŠ„ƒEƒBƒ“ƒhƒE‚Ì•ªŠ„ˆÊ’uB
+
+
++SecurityMode (0)
+((<ƒZƒLƒ…ƒŠƒeƒBƒ‚[ƒh|URL:SecurityMode.html>))BˆÈ‰º‚Ì‘g‚Ý‡‚í‚¹B
+
+:0x01
+  S/MIMEƒ‚[ƒh
+:0x02
+  PGPƒ‚[ƒh
+
+
++ShowToolbar (1 @ 0|1), ShowStatusBar (1 @ 0|1), ShowFolderComboBox (0 @ 0|1), ShowFolderWindow (1 @ 0|1), ShowPreviewWindow (1 @ 0|1)
+ƒc[ƒ‹ƒo[AƒXƒe[ƒ^ƒXƒo[AƒtƒHƒ‹ƒ_ƒRƒ“ƒ{ƒ{ƒbƒNƒXAƒtƒHƒ‹ƒ_ƒEƒBƒ“ƒhƒEAƒvƒŒƒrƒ…[‚ð‚»‚ê‚¼‚ê•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
+===MessageFrameWindowƒZƒNƒVƒ‡ƒ“
+ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
+ƒEƒBƒ“ƒhƒE‚ÌˆÊ’u‚Æ‘å‚«‚³A•\Ž¦•û–@‚Æ“§‰ß“xB
+
+
++SecurityMode (0)
+((<ƒZƒLƒ…ƒŠƒeƒBƒ‚[ƒh|URL:SecurityMode.html>))BˆÈ‰º‚Ì‘g‚Ý‡‚í‚¹B
+
+:0x01
+  S/MIMEƒ‚[ƒh
+:0x02
+  PGPƒ‚[ƒh
+
+
++ShowToolbar (1 @ 0|1), ShowStatusBar (1 @ 0|1)
+ƒc[ƒ‹ƒo[AƒXƒe[ƒ^ƒXƒo[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
+===MessageWindow
+ƒƒbƒZ[ƒWƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
++AdjustExtent (0 @ 0|1)
+•¶Žš•‚ð’²ß‚·‚é‚©‚Ç‚¤‚©B
+
+
++UseSystemColor (1 @ 0|1)
+ƒVƒXƒeƒ€‚Ì”zF‚ðŽg‚¤‚©‚Ç‚¤‚©B
+
+
++ForegroundColor (000000), BackgroundColor (ffffff), LinkColor (0000ff), QuoteColor1 (008000), QuoteColor2 (000080)
+•¶ŽšFA”wŒiFAƒŠƒ“ƒN‚ÌFAˆø—p‚ÌF1, 2BŒ`Ž®‚ÍRRGGBBB
+
+
++CharInLine (0)
+ˆês‚Ì•¶Žš”B0‚Ìê‡‚É‚ÍƒEƒBƒ“ƒhƒE‚ÌÜ‚è•Ô‚µˆÊ’uBŽw’è‚µ‚½’l~x‚Ì•¶Žš•‚ÌˆÊ’u‚ÅÜ‚è•Ô‚³‚ê‚éB
+
+
++ClickableURL (1 @ 0|1)
+ƒNƒŠƒbƒJƒuƒ‹URL‚ª—LŒø‚©‚Ç‚¤‚©B
+
+
++DragScrollDelay (300), DragScrollInterval (300)
+ƒhƒ‰ƒbƒO‚Å‘I‘ð’†‚ÉƒXƒNƒ[ƒ‹‚·‚é‚Æ‚«‚Ì’x‰„‚ÆŠÔŠuB’PˆÊ‚Íƒ~ƒŠ•bB
+
+
++LineQuote (0 @ 0|1)
+ˆø—p‚ðü‚Å•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++LineSpacing (2)
+sŠÔ‚Ì‚‚³B’PˆÊ‚ÍƒsƒNƒZƒ‹B
+
+
++MarginLeft (10), MarginTop (10), MarginRight (10), MarginBottom (10)
+ƒ}[ƒWƒ“B’PˆÊ‚ÍƒsƒNƒZƒ‹B
+
+
++Quote1 (>), Quote2 (#)
+ˆø—p•¶Žš1, 2BŒó•â‚ð•¶Žš—ñ‚ÅŽw’èB
+
+Quote1‚ÅŽw’è‚µ‚½•¶Žš‚Ì‚¢‚¸‚ê‚©‚©‚çŽn‚Ü‚és‚ªQuoteColor1‚ÅŽw’è‚µ‚½F‚ÉAQuote2‚ÅŽw’è‚µ‚½•¶Žš‚Ì‚¢‚¸‚ê‚©‚©‚çŽn‚Ü‚és‚ªQuoteColor2‚ÅŽw’è‚µ‚½F‚É‚È‚éBLineQuote‚ª1‚Ìê‡‚É‚ÍAQuote1‚ÅŽw’è‚µ‚½•¶Žš‚Ì‚¢‚¸‚ê‚©‚©‚çŽn‚Ü‚és‚Íü‚Å•\Ž¦‚³‚ê‚éB
+
+
++ReformLineLength (74)
+®Œ`‚·‚é‚Æ‚«‚Ìˆês‚Ì•¶Žš”B
+
+
++ReformQuote (>|#)
+®Œ`‚·‚é‚Æ‚«‚Éˆø—p‚Æ‚µ‚Äˆµ‚í‚ê‚é•¶ŽšB
+
+
++ShowCaret (1 @ 0|1), ShowNewLine (1 @ 0|1), ShowTab (1 @ 0|1), ShowRuler (1 @ 0|1), ShowHorizontalScrollBar (0 @ 0|1), ShowVerticalScrollBar (1 @ 0|1)
+ƒLƒƒƒŒƒbƒgA‰üs•¶ŽšAƒ^ƒuAƒ‹[ƒ‰A…•½ƒXƒNƒ[ƒ‹ƒo[A‚’¼ƒXƒNƒ[ƒ‹ƒo[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++URLSchemas (http https ftp file mailto)
+ƒŠƒ“ƒN‚É‚·‚éƒXƒL[ƒ}BƒXƒy[ƒX‚Å‹æØ‚Á‚ÄŽw’èB
+
+
++WordWrap
+ƒ[ƒhƒ‰ƒbƒv‚Æ‹Ö‘¥‚ª—LŒø‚©‚Ç‚¤‚©B
+
+
++TabWidth
+ƒ^ƒu‚Ì•BŽw’è‚µ‚½’l~x‚Ì•¶Žš•‚ÌˆÊ’u‚ªƒ^ƒuˆÊ’u‚É‚È‚éB
+
+
++FontGroup
+ƒtƒHƒ“ƒgƒOƒ‹[ƒv–¼BÚ×‚ÍA((<ƒtƒHƒ“ƒg|URL:Font.html>))‚ðŽQÆB
+
+
++SeenWait (0)
+ƒƒbƒZ[ƒW‚ð•\Ž¦‚µ‚Ä‚©‚çŠù“Ç‚É‚·‚é‚Ü‚Å‚Ì‘Ò‚¿ŽžŠÔB’PˆÊ‚Í•bB-1‚É‚·‚é‚ÆŠù“Ç‚É‚µ‚È‚¢B
+
+
++ShowHeader (1 @ 0|1)
+ƒwƒbƒ_ƒrƒ…[‚ð‰B‚µ‚½‚Æ‚«‚ÉƒƒbƒZ[ƒWƒrƒ…[“à‚Éƒwƒbƒ_‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++ShowHeaderWindow (1 @ 0|1)
+ƒwƒbƒ_ƒrƒ…[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++Template
+((<•\Ž¦—pƒeƒ“ƒvƒŒ[ƒg|URL:ViewTemplate.html>))B
+
+
++ViewFit (0 @ 0|1|2)
+HTML•\Ž¦‚Ì”z’u•û–@B((<ViewFitƒAƒNƒVƒ‡ƒ“|URL:ViewFitAction.html>))‚ðŽQÆB
+
+
++ViewMode (32)
+((<ƒƒbƒZ[ƒW•\Ž¦ƒ‚[ƒh|URL:MessageViewMode.html>))B
+
+
++ViewZoom (-1 @ -1|0|1|2|3|4)
+HTML•\Ž¦‚Ì•¶ŽšƒTƒCƒYB((<ViewZoomƒAƒNƒVƒ‡ƒ“|URL:ViewZoomAction.html>))‚ðŽQÆB
+
+
+===MoveMessageDialogƒZƒNƒVƒ‡ƒ“
+ƒƒbƒZ[ƒW‚ÌˆÚ“®ƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++ShowHidden (0 @ 0|1)
+‰B‚³‚ê‚Ä‚¢‚éƒtƒHƒ‹ƒ_‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
+===OptionDialogƒZƒNƒVƒ‡ƒ“
+ƒIƒvƒVƒ‡ƒ“ƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Width (620), Height(450)
+ƒ}ƒNƒƒ_ƒCƒAƒƒO‚ÌƒTƒCƒYB
+
+
++Panel (0)
+‘I‘ð‚³‚ê‚Ä‚¢‚éƒpƒlƒ‹B
+
+
+===PGPƒZƒNƒVƒ‡ƒ“
+PGP‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Command (pgp.exe)
+PGP‚ð‹N“®‚·‚é‚Æ‚«‚ÌƒRƒ}ƒ“ƒhB
+
+
++UseGPG (1 @ 0|1)
+GnuPG‚ðŽg‚¤‚©APGP‚ðŽg‚¤‚©B
+
+
+===PreviewWindowƒZƒNƒVƒ‡ƒ“
+ƒvƒŒƒrƒ…[‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
++AdjustExtent (0 @ 0|1)
+•¶Žš•‚ð’²ß‚·‚é‚©‚Ç‚¤‚©B
+
+
++UseSystemColor (1 @ 0|1)
+ƒVƒXƒeƒ€‚Ì”zF‚ðŽg‚¤‚©‚Ç‚¤‚©B
+
+
++ForegroundColor (000000), BackgroundColor (ffffff), LinkColor (0000ff), QuoteColor1 (008000), QuoteColor2 (000080)
+•¶ŽšFA”wŒiFAƒŠƒ“ƒN‚ÌFAˆø—p‚ÌF1, 2BŒ`Ž®‚ÍRRGGBBB
+
+
++CharInLine (0)
+ˆês‚Ì•¶Žš”B0‚Ìê‡‚É‚ÍƒEƒBƒ“ƒhƒE‚ÌÜ‚è•Ô‚µˆÊ’uBŽw’è‚µ‚½’l~x‚Ì•¶Žš•‚ÌˆÊ’u‚ÅÜ‚è•Ô‚³‚ê‚éB
+
+
++ClickableURL (1 @ 0|1)
+ƒNƒŠƒbƒJƒuƒ‹URL‚ª—LŒø‚©‚Ç‚¤‚©B
+
+
++DragScrollDelay (300), DragScrollInterval (300)
+ƒhƒ‰ƒbƒO‚Å‘I‘ð’†‚ÉƒXƒNƒ[ƒ‹‚·‚é‚Æ‚«‚Ì’x‰„‚ÆŠÔŠuB’PˆÊ‚Íƒ~ƒŠ•bB
+
+
++LineQuote (0 @ 0|1)
+ˆø—p‚ðü‚Å•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++LineSpacing (2)
+sŠÔ‚Ì‚‚³B’PˆÊ‚ÍƒsƒNƒZƒ‹B
+
+
++MarginLeft (10), MarginTop (10), MarginRight (10), MarginBottom (10)
+ƒ}[ƒWƒ“B’PˆÊ‚ÍƒsƒNƒZƒ‹B
+
+
++Quote1 (>), Quote2 (#)
+ˆø—p•¶Žš1, 2BŒó•â‚ð•¶Žš—ñ‚ÅŽw’èB
+
+Quote1‚ÅŽw’è‚µ‚½•¶Žš‚Ì‚¢‚¸‚ê‚©‚©‚çŽn‚Ü‚és‚ªQuoteColor1‚ÅŽw’è‚µ‚½F‚ÉAQuote2‚ÅŽw’è‚µ‚½•¶Žš‚Ì‚¢‚¸‚ê‚©‚©‚çŽn‚Ü‚és‚ªQuoteColor2‚ÅŽw’è‚µ‚½F‚É‚È‚éBLineQuote‚ª1‚Ìê‡‚É‚ÍAQuote1‚ÅŽw’è‚µ‚½•¶Žš‚Ì‚¢‚¸‚ê‚©‚©‚çŽn‚Ü‚és‚Íü‚Å•\Ž¦‚³‚ê‚éB
+
+
++ReformLineLength (74)
+®Œ`‚·‚é‚Æ‚«‚Ìˆês‚Ì•¶Žš”B
+
+
++ReformQuote (>|#)
+®Œ`‚·‚é‚Æ‚«‚Éˆø—p‚Æ‚µ‚Äˆµ‚í‚ê‚é•¶ŽšB
+
+
++ShowCaret (1 @ 0|1), ShowNewLine (1 @ 0|1), ShowTab (1 @ 0|1), ShowRuler (1 @ 0|1), ShowHorizontalScrollBar (0 @ 0|1), ShowVerticalScrollBar (1 @ 0|1)
+ƒLƒƒƒŒƒbƒgA‰üs•¶ŽšAƒ^ƒuAƒ‹[ƒ‰A…•½ƒXƒNƒ[ƒ‹ƒo[A‚’¼ƒXƒNƒ[ƒ‹ƒo[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++URLSchemas (http https ftp file mailto)
+ƒŠƒ“ƒN‚É‚·‚éƒXƒL[ƒ}BƒXƒy[ƒX‚Å‹æØ‚Á‚ÄŽw’èB
+
+
++WordWrap
+ƒ[ƒhƒ‰ƒbƒv‚Æ‹Ö‘¥‚ª—LŒø‚©‚Ç‚¤‚©B
+
+
++TabWidth
+ƒ^ƒu‚Ì•BŽw’è‚µ‚½’l~x‚Ì•¶Žš•‚ÌˆÊ’u‚ªƒ^ƒuˆÊ’u‚É‚È‚éB
+
+
++Delay (300)
+ƒŠƒXƒgƒrƒ…[‚ÅƒƒbƒZ[ƒW‚ð‘I‘ð‚µ‚Ä‚©‚çƒvƒŒƒrƒ…[‚É”½‰f‚³‚¹‚é‚Ü‚Å‚Ì‘Ò‚¿ŽžŠÔB’PˆÊ‚Íƒ~ƒŠ•bB
+
+
++FontGroup
+ƒtƒHƒ“ƒgƒOƒ‹[ƒv–¼BÚ×‚ÍA((<ƒtƒHƒ“ƒg|URL:Font.html>))‚ðŽQÆB
+
+
++SeenWait (0)
+ƒƒbƒZ[ƒW‚ð•\Ž¦‚µ‚Ä‚©‚çŠù“Ç‚É‚·‚é‚Ü‚Å‚Ì‘Ò‚¿ŽžŠÔB’PˆÊ‚Í•bB-1‚É‚·‚é‚ÆŠù“Ç‚É‚µ‚È‚¢B
+
+
++ShowHeader (1 @ 0|1)
+ƒwƒbƒ_ƒrƒ…[‚ð‰B‚µ‚½‚Æ‚«‚ÉƒƒbƒZ[ƒWƒrƒ…[“à‚Éƒwƒbƒ_‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++ShowHeaderWindow (1 @ 0|1)
+ƒwƒbƒ_ƒrƒ…[‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++Template
+((<•\Ž¦—pƒeƒ“ƒvƒŒ[ƒg|URL:ViewTemplate.html>))B
+
+
++ViewFit (0 @ 0|1|2)
+HTML•\Ž¦‚Ì”z’u•û–@B((<ViewFitƒAƒNƒVƒ‡ƒ“|URL:ViewFitAction.html>))‚ðŽQÆB
+
+
++ViewMode (32)
+((<ƒƒbƒZ[ƒW•\Ž¦ƒ‚[ƒh|URL:MessageViewMode.html>))B
+
+
++ViewZoom (-1 @ -1|0|1|2|3|4)
+HTML•\Ž¦‚Ì•¶ŽšƒTƒCƒYB((<ViewZoomƒAƒNƒVƒ‡ƒ“|URL:ViewZoomAction.html>))‚ðŽQÆB
+
+
+===RecentAddressƒZƒNƒVƒ‡ƒ“
+((<ƒAƒhƒŒƒX‚ÌŽ©“®•âŠ®|URL:AddressAutoComplete.html>))‚ÅŽg‚í‚ê‚éÅ‹ßŽg—p‚µ‚½ƒ[ƒ‹ƒAƒhƒŒƒX‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Address?
+ƒAƒhƒŒƒX‚Ì—š—ðB?‚Í0‚©‚çŽn‚Ü‚é”ŽšB
+
++Max (10)
+Šo‚¦‚Ä‚¨‚­ƒAƒhƒŒƒX‚ÌÅ‘å”B
+
+
+===RecentsƒZƒNƒVƒ‡ƒ“
+((<V’…ƒƒbƒZ[ƒW’Ê’m|URL:Recents.html>))‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Filter
+ƒƒbƒZ[ƒW‚ðV’…ƒƒbƒZ[ƒW’Ê’m‚Ì‘ÎÛ‚É‚·‚é‚©‚Ç‚¤‚©‚ðŒˆ‚ß‚é³‹K•\Œ»BV’…ƒƒbƒZ[ƒW‚ÌURI‚ªŽw’è‚µ‚½³‹K•\Œ»‚Éƒ}ƒbƒ`‚·‚é‚Æ’Ê’m‚³‚ê‚éB
+
+
++HotKey (65)
+V’…ƒƒbƒZ[ƒWˆê——‚ð•\Ž¦‚·‚é‚½‚ß‚ÌƒzƒbƒgƒL[B‰¼‘zƒL[ƒR[ƒh‚ÅŽw’èBƒfƒtƒHƒ‹ƒg‚Í'A'B
+
+
++HotKeyModifiers (5)
+V’…ƒƒbƒZ[ƒWˆê——‚ð•\Ž¦‚·‚é‚½‚ß‚ÌƒzƒbƒgƒL[‚Ì‘•üƒL[B‰¼‘zƒL[ƒR[ƒh‚ÅŽw’èBƒfƒtƒHƒ‹ƒg‚ÍAAlt+ShiftB
+
+
++Max (20)
+Å‘å‚ÌV’…ƒƒbƒZ[ƒW”B
+
+
+===ReplaceƒZƒNƒVƒ‡ƒ“
+’uŠ·‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Histroy?
+’uŠ·‚µ‚½—š—ðB?‚Í0‚©‚çŽn‚Ü‚é”ŽšB
+
+
++HistorySize (10)
+•Û‘¶‚·‚é—š—ð‚ÌÅ‘å”B
+
+
++Ime (0)
+Ime‚Ìó‘ÔB
+
+
+===RulesDialogƒZƒNƒVƒ‡ƒ“
+U‚è•ª‚¯‚ÌÝ’èƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Width (620), Height (450)
+ƒ_ƒCƒAƒƒO‚Ì‘å‚«‚³B
+
+
+===SearchƒZƒNƒVƒ‡ƒ“
+ŒŸõ‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++All (0 @ 0|1)
+‚·‚×‚Ä‚ÌƒtƒHƒ‹ƒ_‚ð‘ÎÛ‚ÉŒŸõ‚·‚é‚©‚Ç‚¤‚©B
+
+
++Condition
+ŒŸõðŒ
+
+
++Histroy?
+ŒŸõ‚µ‚½—š—ðB?‚Í0‚©‚çŽn‚Ü‚é”ŽšB
+
+
++HistorySize (10)
+•Û‘¶‚·‚é—š—ð‚ÌÅ‘å”B
+
+
++Ime (0)
+Ime‚Ìó‘ÔB
+
+
++NewFolder (0)
+ŒŸõ‚µ‚½‚Æ‚«‚ÉV‚µ‚¢ŒŸõƒtƒHƒ‹ƒ_‚ðì‚é‚©‚Ç‚¤‚©B
+
+
++Page
+ŒŸõƒ_ƒCƒAƒƒO‚Ìƒy[ƒWB
+
+
++Recursive (0 @ 0|1)
+ƒtƒHƒ‹ƒ_‚ðÄ‹A“I‚ÉŒŸõ‚·‚é‚©‚Ç‚¤‚©B
+
+
+===SecurityƒZƒNƒVƒ‡ƒ“
+ƒZƒLƒ…ƒŠƒeƒB‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++DefaultMessageSecurity (4112)
+ƒfƒtƒHƒ‹ƒg‚ÌƒZƒLƒ…ƒŠƒeƒBÝ’èBˆÈ‰º‚Ì‘g‚Ý‡‚í‚¹B
+
+:0x0000
+  ‚È‚µ
+:0x0001
+  S/MIME‚Å–¼
+:0x0002
+  S/MIME‚ÅˆÃ†‰»
+:0x0010
+  S/MIME‚Åƒ}ƒ‹ƒ`ƒp[ƒg–¼‚ðŽg—p
+:0x0020
+  S/MIME‚ÅŽ©•ª‚ÌƒAƒhƒŒƒX‚Å‚àˆÃ†‰»‚·‚é
+:0x0100
+  PGP‚Å–¼
+:0x0200
+  PGP‚ÅˆÃ†‰»
+:0x1000
+  PGP/MIME‚ðŽg—p
+
+
++LoadSystemStore (1 @ 0|1)
+ƒVƒXƒeƒ€‚ÌØ–¾‘ƒXƒgƒA‚©‚çCA‚ÌØ–¾‘‚ð“Ç‚Ýž‚Þ‚©‚Ç‚¤‚©B
+
+
+===SignaturesDialogƒZƒNƒVƒ‡ƒ“
+–¼‚ÌÝ’èƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Width (620), Height (450)
+ƒ_ƒCƒAƒƒO‚Ì‘å‚«‚³B
+
+
+===SyncƒZƒNƒVƒ‡ƒ“
+“¯Šú‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Notify (0 @ 0|1|2)
+V’…ƒƒbƒZ[ƒW‚ð’Ê’m‚·‚é‚©‚Ç‚¤‚©B
+
+:0
+  í‚É’Ê’m‚·‚é
+:1
+  í‚É’Ê’m‚µ‚È‚¢
+:2
+  Ž©“®‚Å“¯Šú‚µ‚½‚Æ‚«‚¾‚¯’Ê’m‚·‚é
+
+
++Sound (C:\Windows\Media\notify.wav)
+V’…ƒƒbƒZ[ƒW‚ª‚ ‚Á‚½‚Æ‚«‚É–Â‚ç‚·ƒTƒEƒ“ƒhƒtƒ@ƒCƒ‹B
+
+
+===SyncDialogƒZƒNƒVƒ‡ƒ“
+
++Left (0), Top (0), Width (0), Height (0), Alpha (0 @ 0-255)
+ƒ_ƒCƒAƒƒO‚ÌˆÊ’u‚Æ‘å‚«‚³‚Æ“§‰ß“xB
+
+
++Show (2)
+ƒ_ƒCƒAƒƒO‚ð•\Ž¦‚·‚éðŒBˆÈ‰º‚Ì‚¢‚¸‚ê‚©B
+
+:0
+  í‚É•\Ž¦‚·‚é
+:1
+  í‚É•\Ž¦‚µ‚È‚¢
+:2
+  Žè“®‚Å“¯Šú‚µ‚½‚Æ‚«‚¾‚¯•\Ž¦‚·‚é
+
+
+===SyncFiltersDialogƒZƒNƒVƒ‡ƒ“
+“¯ŠúƒtƒBƒ‹ƒ^‚ÌÝ’èƒ_ƒCƒAƒƒO‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++Width (620), Height (450)
+ƒ_ƒCƒAƒƒO‚Ì‘å‚«‚³B
+
+
+===TabWindowƒZƒNƒVƒ‡ƒ“
+ƒ^ƒu‚ÌÝ’è‚ð‚µ‚Ü‚·B
+
++FontFace, FontSize (9), FontStyle (0), FontCharset (0)
+ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
+
+
++CurrentTab (0)
+Œ»Ý‚Ìƒ^ƒuB
+
+
++Multiline (0 @ 0|1)
+ƒ^ƒu‚ð•¡”s‚É‚·‚é‚©‚Ç‚¤‚©B
+
+
++Reuse (0 @ 0|1|2)
+ƒ^ƒu‚ðÄ—˜—p‚·‚é‚©‚Ç‚¤‚©BˆÈ‰º‚Ì‘g‚Ý‡‚í‚¹B
+
+:0x00
+  Ä—˜—p‚µ‚È‚¢
+:0x01
+  V‚µ‚¢ƒ^ƒu‚ðŠJ‚­‚Æ‚«‚ÉÄ—˜—p
+:0x02
+  ƒ^ƒu‚Å•\Ž¦‚·‚éƒtƒHƒ‹ƒ_‚ð•ÏX‚·‚é‚Æ‚«‚ÉÄ—˜—p
+
+
++Show (0 @ 0|1)
+ƒ^ƒu‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++ShowAllCount (1 @ 0|1)
+ƒƒbƒZ[ƒW”‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
++ShowUnseenCount (1 @ 0|1)
+–¢“ÇƒƒbƒZ[ƒW”‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
 
 =end
