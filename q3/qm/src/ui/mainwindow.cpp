@@ -439,7 +439,7 @@ void qm::MainWindowImpl::initActions()
 	for (int n = 0; n < countof(deletes); ++n) {
 		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction1(
 			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
-				this, 0, deletes[n].type_, true,
+				this, 0, deletes[n].type_, false,
 				pDocument_->getUndoManager(), pThis_->getHandle(), pProfile_));
 		std::auto_ptr<EditDeleteMessageAction> pEditDeleteMessageAction2(
 			new EditDeleteMessageAction(pMessageSelectionModel_.get(),
@@ -861,7 +861,7 @@ void qm::MainWindowImpl::initActions()
 	}
 	
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction1(new MessageMoveAction(
-		pDocument_, pMessageSelectionModel_.get(), this, 0, true,
+		pDocument_, pMessageSelectionModel_.get(), this, 0, false,
 		pDocument_->getUndoManager(), pFolderImage_, pProfile_, pThis_->getHandle()));
 	std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
 		pDocument_, pMessageSelectionModel_.get(), this, pPreviewModel_.get(),
