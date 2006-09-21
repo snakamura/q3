@@ -27,9 +27,14 @@ item = element menuitem {
 			xsd:string
 		}?
 	) |
-	attribute dynamic {
-		xsd:string
-	}
+	(
+		attribute dynamic {
+			xsd:string
+		},
+		attribute param {
+			xsd:string
+		}?
+	)
 } |
 element separator {
 	empty
