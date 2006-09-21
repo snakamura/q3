@@ -705,7 +705,7 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 			bufMimeType.append(L'/');
 			bufMimeType.append(pwszSubType);
 			if (pwszEncoding) {
-				bufMimeType.append(L"; charset=utf-16");
+				bufMimeType.append(L"; charset=utf-8");
 			}
 			else if (wstrCharset.get()) {
 				bufMimeType.append(L"; charset=\"");
@@ -718,14 +718,17 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 				wxstring_size_ptr wstrBody(part.getBodyText(pwszEncoding));
 				if (!wstrBody.get())
 					return;
-				malloc_ptr<WCHAR> p(static_cast<WCHAR*>(
-					allocate((wstrBody.size() + 2)*sizeof(WCHAR))));
-				if (!p.get())
+				
+				const unsigned char pszBOM[] = { 0xef, 0xbb, 0xbf };
+				XStringBuffer<XSTRING> buf;
+				if (!buf.append(reinterpret_cast<const CHAR*>(pszBOM), countof(pszBOM)) ||
+					UTF8Converter().encode(wstrBody.get(), wstrBody.size(), &buf) == -1)
 					return;
-				*p = 0xfeff;
-				wcscpy(p.get() + 1, wstrBody.get());
-				pData.reset(reinterpret_cast<unsigned char*>(p.release()),
-					(wstrBody.size() + 1)*sizeof(WCHAR));
+				
+				xstring_size_ptr strBody(buf.getXStringSize());
+				size_t nBodyLen = strBody.size();
+				pData.reset(reinterpret_cast<unsigned char*>(
+					strBody.release()), nBodyLen);
 			}
 			else {
 				pData = part.getBodyData();
