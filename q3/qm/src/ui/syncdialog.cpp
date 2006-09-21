@@ -23,6 +23,7 @@
 #include "dialogs.h"
 #include "resourceinc.h"
 #include "syncdialog.h"
+#include "uiutil.h"
 
 using namespace qm;
 using namespace qs;
@@ -437,6 +438,10 @@ LRESULT qm::SyncDialog::onInitDialog(HWND hwndFocus,
 	int nHeight = pProfile_->getInt(L"SyncDialog", L"Height");
 #endif
 	setWindowPos(0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER);
+	
+#if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
+	UIUtil::setWindowAlpha(getHandle(), pProfile_, L"SyncDialog");
+#endif
 	
 	return TRUE;
 }

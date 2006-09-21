@@ -480,6 +480,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"SyncDialog",	L"Left",	L"0"	},
 	{ L"SyncDialog",	L"Top",		L"0"	},
 	{ L"SyncDialog",	L"Width",	L"300"	},
+	{ L"SyncDialog",	L"Alpha",	L"0"	},
 #endif
 	{ L"SyncDialog",	L"Show",	L"2"	}, /*SyncDialog::SHOW_MANUAL*/
 	
