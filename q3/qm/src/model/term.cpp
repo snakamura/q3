@@ -87,10 +87,12 @@ void qm::Term::set(const WCHAR* pwszValue,
 				   std::auto_ptr<RegexPattern> pRegex)
 {
 #ifndef NDEBUG
-	if (pRegex.get())
+	if (pRegex.get()) {
 		assert(pwszValue);
-	else if (!pwszValue)
+	}
+	else if (!pwszValue) {
 		assert(!pRegex.get());
+	}
 #endif
 	
 	if (pwszValue)
