@@ -114,6 +114,12 @@ qm::AttachmentOpenAction::~AttachmentOpenAction()
 
 void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 {
+	AttachmentSelectionModel::NameList listName;
+	StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
+	pAttachmentSelectionModel_->getSelectedAttachment(&listName);
+	if (listName.empty())
+		return;
+	
 	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
 	if (!mpl)
 		return;
@@ -132,9 +138,6 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 	if (listAttachment.empty())
 		return;
 	
-	AttachmentSelectionModel::NameList listName;
-	StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
-	pAttachmentSelectionModel_->getSelectedAttachment(&listName);
 	for (AttachmentSelectionModel::NameList::const_iterator itN = listName.begin(); itN != listName.end(); ++itN) {
 		AttachmentParser::AttachmentList::const_iterator itA = std::find_if(
 			listAttachment.begin(), listAttachment.end(),
