@@ -1,9 +1,7 @@
 =begin
 =HelpAboutアクション
 
-バージョン情報ダイアログを開きます。
-
-((<[QMAILのバージョン情報]ダイアログ|"IMG:images/AboutDialog.png">))
+((<[QMAILのバージョン情報]ダイアログ|URL:AboutDialog.html>))を開きます。
 
 
 ==引数
