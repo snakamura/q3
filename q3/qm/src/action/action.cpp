@@ -7722,8 +7722,10 @@ void qm::MessageActionUtil::selectNextUndeleted(ViewModel* pViewModel,
 	for (unsigned int n = nIndex + 1; n < nCount; ++n) {
 		MessageHolder* pmh = pViewModel->getMessageHolder(n);
 		if (!pmh->isFlag(MessageHolder::FLAG_DELETED) &&
-			std::find(listExclude.begin(), listExclude.end(), pmh) == listExclude.end())
-			return select(pViewModel, n, pMessageModel);
+			std::find(listExclude.begin(), listExclude.end(), pmh) == listExclude.end()) {
+			select(pViewModel, n, pMessageModel);
+			return;
+		}
 	}
 	if (nIndex != 0) {
 		unsigned int n = nIndex;
@@ -7731,8 +7733,10 @@ void qm::MessageActionUtil::selectNextUndeleted(ViewModel* pViewModel,
 			--n;
 			MessageHolder* pmh = pViewModel->getMessageHolder(n);
 			if (!pmh->isFlag(MessageHolder::FLAG_DELETED) &&
-				std::find(listExclude.begin(), listExclude.end(), pmh) == listExclude.end())
-				return select(pViewModel, n, pMessageModel);
+				std::find(listExclude.begin(), listExclude.end(), pmh) == listExclude.end()) {
+				select(pViewModel, n, pMessageModel);
+				return;
+			}
 		} while (n != 0);
 	}
 }
