@@ -9,20 +9,21 @@
 
 例えば、Content-Typeのcharsetがus-asciiまたはiso-8859-xの場合にはTahomaで、「メルマガ」フォルダのメッセージはＭＳ ゴシックで、それ以外はＭＳ Ｐゴシックで表示するには以下のようなfonts.xmlを作成します。
 
+ <?xml version="1.0" encoding="utf-8"?>
  <fonts>
-   <group name="main">
-     <fontSet match="@Progn(@Set('charset', @BodyCharset()),
-                            @Or(@BeginWith($charset, 'iso-8859-'),
-                                @Equal($charset, 'us-ascii')))">
-       <font face="Tahoma" size="9"/>
-     </fontSet>
-     <fontSet match="@Equal(@Folder(), 'メルマガ')">
-       <font face="ＭＳ ゴシック" size="9"/>
-     </fontSet>
-     <fontSet>
-       <font face="ＭＳ Ｐゴシック" size="9"/>
-     </fontSet>
-   </group>
+  <group name="main">
+   <fontSet match="@Progn(@Set('charset', @BodyCharset()),
+                          @Or(@BeginWith($charset, 'iso-8859-'),
+                              @Equal($charset, 'us-ascii')))">
+    <font face="Tahoma" size="9"/>
+   </fontSet>
+   <fontSet match="@Equal(@Folder(), 'メルマガ')">
+    <font face="ＭＳ ゴシック" size="9"/>
+   </fontSet>
+   <fontSet>
+    <font face="ＭＳ Ｐゴシック" size="9"/>
+   </fontSet>
+  </group>
  </fonts>
 
 そして、qmail.xmlのPreviewWindow/FontGroupにmainと指定します。フォントグループの定義の仕方の詳細は、((<fonts.xml|URL:FontsXml.html>))を参照してください。

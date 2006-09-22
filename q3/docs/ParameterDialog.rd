@@ -1,6 +1,8 @@
 =begin
 =[パラメータ]ダイアログ
 
-// TODO
+フォルダのパラメータを指定するためのダイアログです。
+
+((<[パラメータ]ダイアログ|"IMG:images/ParameterDialog.png">))
 
 =end
