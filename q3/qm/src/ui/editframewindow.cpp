@@ -287,7 +287,7 @@ void qm::EditFrameWindowImpl::initActions()
 		pSyncDialogManager_,
 		pSecurityModel_);
 	ADD_ACTION2(EditFocusItemAction,
-		IDM_FOCUS_HEADEREDITITEM,
+		IDM_VIEW_FOCUSEDITITEM,
 		pEditWindow_->getFocusController(),
 		EditFocusItemAction::TYPE_ITEM);
 	ADD_ACTION2(EditFocusItemAction,

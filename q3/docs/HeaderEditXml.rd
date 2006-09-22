@@ -45,7 +45,7 @@ staticエレメントはスタティックコントロールを表します。コンテンツに表示する文字列
 
 width属性には幅を指定します。幅の指定については、((<header.xml|URL:HeaderXml.html>))の備考を参照してください。
 
-number属性にはコントロールの番号を指定します。この番号を((<HeaderEditItemアクション|URL:HeaderEditItemAction.html>))の引数に指定することで、フォーカスを移動することができます。
+number属性にはコントロールの番号を指定します。この番号を((<ViewFocusEditItemアクション|URL:ViewFocusEditItemAction.html>))の引数に指定することで、フォーカスを移動することができます。
 
 initialFocus属性にはエディットウィンドウを開いたときにフォーカスを受け取るかどうかを指定します。指定しない場合には、trueを指定したのと同じになります。
 
