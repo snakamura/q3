@@ -1,5 +1,3 @@
-datatypes xsd="http://www.w3.org/2001/XMLSchema-datatypes"
-
 start = element header {
 	element line {
 		(
@@ -7,7 +5,13 @@ start = element header {
 				textitem
 			} |
 			element edit {
-				textitem
+				textitem,
+				attribute multiline {
+					xsd:int
+				}?,
+				attribute wrap {
+					xsd:boolean
+				}?
 			} |
 			element attachment {
 				item
@@ -27,11 +31,14 @@ item = attribute name {
 }?,
 attribute width {
 	xsd:string {
-		pattern = "[0-9]+(px)?|[0-9]+%|[0-9]+(\.[0-9]+)?em"
+		pattern = "auto|[0-9]max|[0-9]min|[0-9]+(px)?|[0-9]+%|[0-9]+(\.[0-9]+)?em"
 	}
 }?,
 attribute showAlways {
 	xsd:boolean
+}?,
+attribute background {
+	xsd:string
 }?
 
 textitem = xsd:string,
@@ -39,6 +46,6 @@ item,
 attribute style {
 	xsd:string
 }?,
-attribute background {
-	xsd:string
+attribute align {
+	"left" | "center" | "right"
 }?
