@@ -1,7 +1,7 @@
 =begin
 =FileExportアクション
 
-対象のメッセージをエクスポートします。実行すると((<[書き出し]ダイアログ|URL:FileExportDialog.html>))が開きます。
+対象のメッセージをエクスポートします。実行すると((<[書き出し]ダイアログ|URL:ExportDialog.html>))が開きます。
 
 <<<selectedMessage.rd
 
