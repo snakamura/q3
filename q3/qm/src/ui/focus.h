@@ -36,7 +36,9 @@ public:
 	virtual ~FocusControllerBase();
 
 public:
-	virtual void setFocus(Focus focus) = 0;
+	virtual bool isPrimaryItemFocused() = 0;
+	virtual bool moveFocus(Focus focus,
+						   bool bCycle) = 0;
 	virtual void setFocus(unsigned int nItem) = 0;
 };
 

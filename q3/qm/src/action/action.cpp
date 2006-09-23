@@ -6345,6 +6345,14 @@ void qm::ViewFocusAction::invoke(const ActionEvent& event)
 	if (nView == nViewCount)
 		nView = 0;
 	
+	FocusControllerBase* pFocusController = listView_[nView]->getViewFocusController();
+	if (pFocusController && !pFocusController->isPrimaryItemFocused()) {
+		FocusControllerBase::Focus focus = bNext_ ?
+			FocusControllerBase::FOCUS_NEXT : FocusControllerBase::FOCUS_PREV;
+		if (pFocusController->moveFocus(focus, false))
+			return;
+	}
+	
 	int n = 0;
 	View* pView = 0;
 	if (bNext_) {
@@ -6400,10 +6408,10 @@ void qm::ViewFocusItemAction::invoke(const ActionEvent& event)
 		}
 		break;
 	case TYPE_NEXT:
-		pFocusController_->setFocus(FocusControllerBase::FOCUS_NEXT);
+		pFocusController_->moveFocus(FocusControllerBase::FOCUS_NEXT, true);
 		break;
 	case TYPE_PREV:
-		pFocusController_->setFocus(FocusControllerBase::FOCUS_PREV);
+		pFocusController_->moveFocus(FocusControllerBase::FOCUS_PREV, true);
 		break;
 	default:
 		assert(false);

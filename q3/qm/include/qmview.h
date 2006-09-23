@@ -16,6 +16,11 @@
 
 namespace qm {
 
+class View;
+
+class FocusControllerBase;
+
+
 /****************************************************************************
  *
  * View
@@ -31,6 +36,7 @@ public:
 	virtual bool isShow() const = 0;
 	virtual bool isActive() const = 0;
 	virtual void setActive() = 0;
+	virtual FocusControllerBase* getViewFocusController() const;
 };
 
 }

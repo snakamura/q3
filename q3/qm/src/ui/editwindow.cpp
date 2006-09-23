@@ -75,9 +75,11 @@ public:
 	virtual void setFocus();
 
 public:
-	virtual EditWindowItem* getFocusedItem();
-	virtual void setFocus(Focus focus);
+	virtual bool isPrimaryItemFocused();
+	virtual bool moveFocus(Focus focus,
+						   bool bCycle);
 	virtual void setFocus(unsigned int nItem);
+	virtual EditWindowItem* getFocusedItem();
 
 public:
 	virtual bool isHidden() const;
@@ -253,34 +255,50 @@ void qm::EditWindowImpl::setFocus()
 	pTextWindow_->setFocus();
 }
 
-EditWindowItem* qm::EditWindowImpl::getFocusedItem()
+bool qm::EditWindowImpl::isPrimaryItemFocused()
 {
-	if (pTextWindow_->hasFocus())
-		return this;
-	else
-		return pHeaderEditWindow_->getFocusedItem();
+	return getFocusedItem() == this;
 }
 
-void qm::EditWindowImpl::setFocus(Focus focus)
+bool qm::EditWindowImpl::moveFocus(Focus focus,
+								   bool bCycle)
 {
 	EditWindowItem* pItem = getFocusedItem();
 	if (!pItem)
-		return;
+		return false;
 	
 	EditWindowItem* pNewItem = 0;
-	if (pItem == this) {
-		pNewItem = focus == FOCUS_PREV ?
-			pHeaderEditWindow_->getPrevFocusItem(0) :
-			pHeaderEditWindow_->getNextFocusItem(0);
+	switch (focus) {
+	case FOCUS_PREV:
+		if (pItem == this) {
+			pNewItem = pHeaderEditWindow_->getPrevFocusItem(0);
+		}
+		else {
+			pNewItem = pHeaderEditWindow_->getPrevFocusItem(pItem);
+			if (!pNewItem && bCycle)
+				pNewItem = this;
+		}
+		break;
+	case FOCUS_NEXT:
+		if (pItem == this) {
+			if (bCycle)
+				pNewItem = pHeaderEditWindow_->getNextFocusItem(0);
+		}
+		else {
+			pNewItem = pHeaderEditWindow_->getNextFocusItem(pItem);
+			if (!pNewItem)
+				pNewItem = this;
+		}
+		break;
+	default:
+		assert(false);
+		break;
 	}
-	else {
-		pNewItem = focus == FOCUS_PREV ?
-			pHeaderEditWindow_->getPrevFocusItem(pItem) :
-			pHeaderEditWindow_->getNextFocusItem(pItem);
-		if (!pNewItem)
-			pNewItem = this;
-	}
+	if (!pNewItem)
+		return false;
 	pNewItem->setFocus();
+	
+	return true;
 }
 
 void qm::EditWindowImpl::setFocus(unsigned int nItem)
@@ -288,6 +306,14 @@ void qm::EditWindowImpl::setFocus(unsigned int nItem)
 	EditWindowItem* pItem = pHeaderEditWindow_->getItemByNumber(nItem);
 	if (pItem)
 		pItem->setFocus();
+}
+
+EditWindowItem* qm::EditWindowImpl::getFocusedItem()
+{
+	if (pTextWindow_->hasFocus())
+		return this;
+	else
+		return pHeaderEditWindow_->getFocusedItem();
 }
 
 bool qm::EditWindowImpl::isHidden() const

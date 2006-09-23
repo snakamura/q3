@@ -8,6 +8,8 @@
 
 #include <qmview.h>
 
+using namespace qm;
+
 
 /****************************************************************************
  *
@@ -18,3 +20,9 @@
 qm::View::~View()
 {
 }
+
+FocusControllerBase* qm::View::getViewFocusController() const
+{
+	return 0;
+}
+

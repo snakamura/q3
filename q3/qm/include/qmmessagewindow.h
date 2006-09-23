@@ -197,6 +197,7 @@ public:
 	virtual bool isShow() const;
 	virtual bool isActive() const;
 	virtual void setActive();
+	virtual FocusControllerBase* getViewFocusController() const;
 
 private:
 	MessageWindow(const MessageWindow&);
