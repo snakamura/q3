@@ -409,39 +409,6 @@ bool qm::EditClearDeletedAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
- * EditCommandAction
- *
- */
-
-qm::EditCommandAction::EditCommandAction(FocusController<MessageWindowItem>* pFocusController,
-										 PFN_DO pfnDo,
-										 PFN_CANDO pfnCanDo) :
-	pFocusController_(pFocusController),
-	pfnDo_(pfnDo),
-	pfnCanDo_(pfnCanDo)
-{
-}
-
-qm::EditCommandAction::~EditCommandAction()
-{
-}
-
-void qm::EditCommandAction::invoke(const ActionEvent& event)
-{
-	MessageWindowItem* pItem = pFocusController_->getFocusedItem();
-	if (pItem)
-		(pItem->*pfnDo_)();
-}
-
-bool qm::EditCommandAction::isEnabled(const ActionEvent& event)
-{
-	MessageWindowItem* pItem = pFocusController_->getFocusedItem();
-	return pItem ? (pItem->*pfnCanDo_)() : false;
-}
-
-
-/****************************************************************************
- *
  * EditCopyMessageAction
  *
  */

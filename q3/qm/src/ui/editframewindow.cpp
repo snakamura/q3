@@ -127,12 +127,12 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_ATTACHMENTEDIT_DELETE,
 		pEditWindow_->getEditMessageHolder(),
 		pEditWindow_->getAttachmentSelectionModel());
-	ADD_ACTION3(EditEditCommandAction,
+	ADD_ACTION3(EditCommandAction<EditWindowItem>,
 		IDM_EDIT_COPY,
 		pEditWindow_->getFocusController(),
 		&EditWindowItem::copy,
 		&EditWindowItem::canCopy);
-	ADD_ACTION3(EditEditCommandAction,
+	ADD_ACTION3(EditCommandAction<EditWindowItem>,
 		IDM_EDIT_CUT,
 		pEditWindow_->getFocusController(),
 		&EditWindowItem::cut,
@@ -169,7 +169,7 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_->getTextWindow(),
 		false,
 		pFindReplaceManager_.get());
-	ADD_ACTION3(EditEditCommandAction,
+	ADD_ACTION3(EditCommandAction<EditWindowItem>,
 		IDM_EDIT_PASTE,
 		pEditWindow_->getFocusController(),
 		&EditWindowItem::paste,
@@ -182,7 +182,7 @@ void qm::EditFrameWindowImpl::initActions()
 		pSecurityModel_,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION3(EditEditCommandAction,
+	ADD_ACTION3(EditCommandAction<EditWindowItem>,
 		IDM_EDIT_REDO,
 		pEditWindow_->getFocusController(),
 		&EditWindowItem::redo,
@@ -192,12 +192,12 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_->getTextWindow(),
 		pProfile_,
 		pFindReplaceManager_.get());
-	ADD_ACTION3(EditEditCommandAction,
+	ADD_ACTION3(EditCommandAction<EditWindowItem>,
 		IDM_EDIT_SELECTALL,
 		pEditWindow_->getFocusController(),
 		&EditWindowItem::selectAll,
 		&EditWindowItem::canSelectAll);
-	ADD_ACTION3(EditEditCommandAction,
+	ADD_ACTION3(EditCommandAction<EditWindowItem>,
 		IDM_EDIT_UNDO,
 		pEditWindow_->getFocusController(),
 		&EditWindowItem::undo,

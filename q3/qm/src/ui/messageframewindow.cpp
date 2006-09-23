@@ -172,7 +172,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		true,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION3(EditCommandAction,
+	ADD_ACTION3(EditCommandAction<MessageWindowItem>,
 		IDM_EDIT_COPY,
 		pMessageWindow_->getFocusController(),
 		&MessageWindowItem::copy,
@@ -222,7 +222,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageWindow_,
 		false,
 		pFindReplaceManager_.get());
-	ADD_ACTION3(EditCommandAction,
+	ADD_ACTION3(EditCommandAction<MessageWindowItem>,
 		IDM_EDIT_SELECTALL,
 		pMessageWindow_->getFocusController(),
 		&MessageWindowItem::selectAll,

@@ -34,7 +34,7 @@ class AttachmentSaveAction;
 class ConfigViewsAction;
 class DispatchAction;
 class EditClearDeletedAction;
-class EditCommandAction;
+template<class Item> class EditCommandAction;
 class EditCopyMessageAction;
 class EditCutMessageAction;
 class EditDeleteCacheAction;
@@ -392,14 +392,15 @@ private:
  *
  */
 
+template<class Item>
 class EditCommandAction : public qs::AbstractAction
 {
 public:
-	typedef void (MessageWindowItem::*PFN_DO)();
-	typedef bool (MessageWindowItem::*PFN_CANDO)();
+	typedef void (Item::*PFN_DO)();
+	typedef bool (Item::*PFN_CANDO)();
 
 public:
-	EditCommandAction(FocusController<MessageWindowItem>* pFocusController,
+	EditCommandAction(FocusController<Item>* pFocusController,
 					  PFN_DO pfnDo,
 					  PFN_CANDO pfnCanDo);
 	virtual ~EditCommandAction();
@@ -413,7 +414,7 @@ private:
 	EditCommandAction& operator=(const EditCommandAction&);
 
 private:
-	FocusController<MessageWindowItem>* pFocusController_;
+	FocusController<Item>* pFocusController_;
 	PFN_DO pfnDo_;
 	PFN_CANDO pfnCanDo_;
 };

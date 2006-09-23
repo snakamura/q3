@@ -14,6 +14,43 @@
 
 /****************************************************************************
  *
+ * EditCommandAction
+ *
+ */
+
+template<class Item>
+qm::EditCommandAction<Item>::EditCommandAction(FocusController<Item>* pFocusController,
+											   PFN_DO pfnDo,
+											   PFN_CANDO pfnCanDo) :
+	pFocusController_(pFocusController),
+	pfnDo_(pfnDo),
+	pfnCanDo_(pfnCanDo)
+{
+}
+
+template<class Item>
+qm::EditCommandAction<Item>::~EditCommandAction()
+{
+}
+
+template<class Item>
+void qm::EditCommandAction<Item>::invoke(const qs::ActionEvent& event)
+{
+	Item* pItem = pFocusController_->getFocusedItem();
+	if (pItem)
+		(pItem->*pfnDo_)();
+}
+
+template<class Item>
+bool qm::EditCommandAction<Item>::isEnabled(const qs::ActionEvent& event)
+{
+	Item* pItem = pFocusController_->getFocusedItem();
+	return pItem ? (pItem->*pfnCanDo_)() : false;
+}
+
+
+/****************************************************************************
+ *
  * ViewShowControlAction
  *
  */

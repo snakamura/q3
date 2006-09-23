@@ -22,7 +22,6 @@ namespace qm {
 
 class EditAttachmentEditAddAction;
 class EditAttachmentEditDeleteAction;
-class EditEditCommandAction;
 class EditEditDeleteAction;
 class EditEditFindAction;
 class EditEditMoveCaretAction;
@@ -106,39 +105,6 @@ private:
 private:
 	EditMessageHolder* pEditMessageHolder_;
 	AttachmentSelectionModel* pAttachmentSelectionModel_;
-};
-
-
-/****************************************************************************
- *
- * EditEditCommandAction
- *
- */
-
-class EditEditCommandAction : public qs::AbstractAction
-{
-public:
-	typedef void (EditWindowItem::*PFN_DO)();
-	typedef bool (EditWindowItem::*PFN_CANDO)();
-
-public:
-	EditEditCommandAction(FocusController<EditWindowItem>* pFocusController,
-						  PFN_DO pfnDo,
-						  PFN_CANDO pfnCanDo);
-	virtual ~EditEditCommandAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-	virtual bool isEnabled(const qs::ActionEvent& event);
-
-private:
-	EditEditCommandAction(const EditEditCommandAction&);
-	EditEditCommandAction& operator=(const EditEditCommandAction&);
-
-private:
-	FocusController<EditWindowItem>* pFocusController_;
-	PFN_DO pfnDo_;
-	PFN_CANDO pfnCanDo_;
 };
 
 

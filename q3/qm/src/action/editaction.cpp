@@ -123,39 +123,6 @@ bool qm::EditAttachmentEditDeleteAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
- * EditEditCommandAction
- *
- */
-
-qm::EditEditCommandAction::EditEditCommandAction(FocusController<EditWindowItem>* pFocusController,
-												 PFN_DO pfnDo,
-												 PFN_CANDO pfnCanDo) :
-	pFocusController_(pFocusController),
-	pfnDo_(pfnDo),
-	pfnCanDo_(pfnCanDo)
-{
-}
-
-qm::EditEditCommandAction::~EditEditCommandAction()
-{
-}
-
-void qm::EditEditCommandAction::invoke(const ActionEvent& event)
-{
-	EditWindowItem* pItem = pFocusController_->getFocusedItem();
-	if (pItem)
-		(pItem->*pfnDo_)();
-}
-
-bool qm::EditEditCommandAction::isEnabled(const ActionEvent& event)
-{
-	EditWindowItem* pItem = pFocusController_->getFocusedItem();
-	return pItem ? (pItem->*pfnCanDo_)() : false;
-}
-
-
-/****************************************************************************
- *
  * EditEditDeleteAction
  *
  */
