@@ -1,5 +1,5 @@
 =begin
-=ViewFocusPrevEditItemアクション
+=ViewFocusPrevItemアクション
 
 前のアイテムにフォーカスを移動します。
 
@@ -9,6 +9,7 @@
 
 
 ==有効なウィンドウ・ビュー
-*エディットウィンドウ
+*プレビュー
+*メッセージウィンドウ
 
 =end

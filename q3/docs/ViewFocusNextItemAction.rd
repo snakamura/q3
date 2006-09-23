@@ -1,5 +1,5 @@
 =begin
-=ViewFocusNextEditItemアクション
+=ViewFocusNextItemアクション
 
 次のアイテムにフォーカスを移動します。
 
@@ -9,6 +9,7 @@
 
 
 ==有効なウィンドウ・ビュー
-*エディットウィンドウ
+*プレビュー
+*メッセージウィンドウ
 
 =end

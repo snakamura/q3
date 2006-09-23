@@ -35,6 +35,7 @@ class‘®«‚É‚Í³‹K•\Œ»‚ðŽw’è‚µ‚Ü‚·BŽw’è‚µ‚½³‹K•\Œ»‚ÉƒAƒJƒEƒ“ƒgƒNƒ‰ƒX‚ªƒ}ƒbƒ`‚·‚
  <static
   name="ƒAƒCƒeƒ€–¼"
   width="•"
+  number="”Ô†"
   showAlways="true|false"
   background="”wŒiF"
   style="ƒtƒHƒ“ƒgƒXƒ^ƒCƒ‹"
@@ -47,6 +48,8 @@ staticƒGƒŒƒƒ“ƒg‚ÍƒXƒ^ƒeƒBƒbƒNƒRƒ“ƒgƒ[ƒ‹‚ð•\‚µ‚Ü‚·BƒRƒ“ƒeƒ“ƒc‚Éƒeƒ“ƒvƒŒ[ƒg‘
 name‘®«‚É‚ÍƒAƒCƒeƒ€–¼‚ðŽw’è‚µ‚Ü‚·BlineƒGƒŒƒƒ“ƒg‚ÌhideIfEmpty‘®«‚ÉŽw’è‚·‚éê‡‚É‚Í‚±‚±‚Å–¼‘O‚ðŽw’è‚µ‚Ä‚¨‚«‚Ü‚·B
 
 width‘®«‚É‚Í•‚ðŽw’è‚µ‚Ü‚·B•‚ÌŽw’è‚É‚Â‚¢‚Ä‚Í”õl‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+
+number‘®«‚É‚ÍƒRƒ“ƒgƒ[ƒ‹‚Ì”Ô†‚ðŽw’è‚µ‚Ü‚·B‚±‚Ì”Ô†‚ð((<ViewFocusItemƒAƒNƒVƒ‡ƒ“|URL:ViewFocusItemAction.html>))‚Ìˆø”‚ÉŽw’è‚·‚é‚±‚Æ‚ÅAƒtƒH[ƒJƒX‚ðˆÚ“®‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B
 
 showAlways‘®«‚É‚Ítrue‚Ü‚½‚Ífalse‚ðŽw’è‚µ‚Ü‚·Btrue‚ðŽw’è‚·‚é‚ÆƒRƒ“ƒeƒLƒXƒgƒAƒJƒEƒ“ƒg‚ª‚È‚¢ê‡‚Å‚àí‚ÉƒAƒCƒeƒ€‚É•¶Žš—ñ‚ð•\Ž¦‚µ‚Ü‚·B‚±‚Ìê‡Aƒeƒ“ƒvƒŒ[ƒg’†‚Éƒ}ƒNƒ‚ð‘‚­‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñBŽw’è‚µ‚È‚¢ê‡‚É‚Ífalseg‚ðŽw’è‚µ‚½ê‡‚Æ“¯‚¶‚É‚È‚è‚Ü‚·B
 
@@ -62,6 +65,7 @@ align‘®«‚É‚Íleft, center, right‚Ì‚¢‚¸‚ê‚©‚ðŽw’è‚µ‚Ü‚·B‚»‚ê‚¼‚êA¶Šñ‚¹A’†‰›Šñ
  <edit
   name="ƒAƒCƒeƒ€–¼"
   width="•"
+  number="”Ô†"
   showAlways="true|false"
   background="”wŒiF"
   style="ƒXƒ^ƒCƒ‹"
@@ -73,7 +77,7 @@ align‘®«‚É‚Íleft, center, right‚Ì‚¢‚¸‚ê‚©‚ðŽw’è‚µ‚Ü‚·B‚»‚ê‚¼‚êA¶Šñ‚¹A’†‰›Šñ
 
 editƒGƒŒƒƒ“ƒg‚ÍƒGƒfƒBƒbƒgƒRƒ“ƒgƒ[ƒ‹‚ð•\‚µ‚Ü‚·B‚½‚¾‚µ•ÒW‚Å‚«‚é‚í‚¯‚Å‚Í‚È‚­AƒXƒ^ƒeƒBƒbƒNƒRƒ“ƒgƒ[ƒ‹‚Æ‚ÌŽå‚Èˆá‚¢‚ÍŽ©“®ƒXƒNƒ[ƒ‹‚·‚é‚¾‚¯‚Å‚·BƒRƒ“ƒeƒ“ƒc‚Éƒeƒ“ƒvƒŒ[ƒg‘Ž®‚Å•\Ž¦‚·‚é•¶Žš—ñ‚ðŽw’è‚µ‚Ü‚·B
 
-name, width, showAlways, background, style, align‘®«‚É‚Â‚¢‚Ä‚ÍstaticƒGƒŒƒƒ“ƒg‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+name, width, number, showAlways, background, style, align‘®«‚É‚Â‚¢‚Ä‚ÍstaticƒGƒŒƒƒ“ƒg‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
 
 multiline‘®«‚É‚Í•¡”s‚É‚È‚Á‚½‚Æ‚«‚ÉÅ‘å‰½s‚Ü‚Å‘å‚«‚­‚·‚é‚©‚ðŽw’è‚µ‚Ü‚·B-1‚ðŽw’è‚·‚é‚Æ•¡”s‚É‚Í‚È‚è‚Ü‚¹‚ñB‚Ü‚½A0‚ðŽw’è‚·‚é‚Æ•K—v‚È‚¾‚¯s”‚ª‘‚¦‚Ü‚·BŽw’è‚µ‚È‚¢ê‡‚É‚Í•¡”s‚É‚È‚è‚Ü‚¹‚ñB
 
@@ -85,12 +89,13 @@ wrap‘®«‚É‚ÍƒRƒ“ƒgƒ[ƒ‹‚Ì•‚ÅŽ©“®‚ÅÜ‚è•Ô‚·‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BŽw’è‚µ‚È‚¢ê‡
  <attachment
   name="ƒAƒCƒeƒ€–¼"
   width="•"
+  number="”Ô†"
   showAlways="true|false"
   background="”wŒiF"/>
 
 attachmentƒGƒŒƒƒ“ƒg‚Í“Y•tƒtƒ@ƒCƒ‹ƒRƒ“ƒgƒ[ƒ‹‚ð•\‚µ‚Ü‚·BƒƒbƒZ[ƒW‚Ì“Y•tƒtƒ@ƒCƒ‹‚ð•\Ž¦‚µ‚Ü‚·B
 
-name, width, showAlways, background‘®«‚É‚Â‚¢‚Ä‚ÍstaticƒGƒŒƒƒ“ƒg‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+name, width, number, showAlways, background‘®«‚É‚Â‚¢‚Ä‚ÍstaticƒGƒŒƒƒ“ƒg‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
 
 
 ==ƒTƒ“ƒvƒ‹
