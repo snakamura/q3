@@ -59,9 +59,10 @@ public:
 
 public:
 	void setMessage(const TemplateContext* pContext);
-
-public:
 	void fixup();
+	MessageWindowItem* getNextFocusItem(MessageWindowItem** ppItem) const;
+	MessageWindowItem* getPrevFocusItem(MessageWindowItem** ppItem) const;
+	MessageWindowItem* getItemByNumber(unsigned int nNumber) const;
 
 public:
 	virtual bool isHidden() const;
@@ -101,17 +102,20 @@ public:
 public:
 	const WCHAR* getName() const;
 	unsigned int getFlags() const;
+	unsigned int getNumber() const;
 
 public:
 	void setName(const WCHAR* pwszName);
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
+	void setNumber(unsigned int nNumber);
 	void setValue(std::auto_ptr<Template> pValue);
 
 public:
 	virtual void setMessage(const TemplateContext* pContext) = 0;
 	virtual bool isEmptyValue() const = 0;
 	virtual bool isActive() const = 0;
+	virtual bool isFocusItem() const = 0;
 
 public:
 	virtual void copy();
@@ -129,6 +133,7 @@ private:
 private:
 	qs::wstring_ptr wstrName_;
 	unsigned int nFlags_;
+	unsigned int nNumber_;
 	std::auto_ptr<Template> pValue_;
 };
 
@@ -269,9 +274,15 @@ public:
 public:
 	virtual unsigned int getPreferredWidth() const;
 
+public:
+	virtual bool isFocusItem() const;
+
 protected:
 	virtual const TCHAR* getWindowClassName() const;
 	virtual UINT getWindowStyle() const;
+
+public:
+	virtual void setFocus();
 
 private:
 	StaticHeaderItem(const StaticHeaderItem&);
@@ -299,6 +310,9 @@ public:
 	virtual unsigned int getHeight(unsigned int nWidth,
 								   unsigned int nFontHeight) const;
 
+public:
+	virtual bool isFocusItem() const;
+
 protected:
 	virtual const TCHAR* getWindowClassName() const;
 	virtual UINT getWindowStyle() const;
@@ -309,6 +323,7 @@ public:
 	virtual bool canCopy();
 	virtual void selectAll();
 	virtual bool canSelectAll();
+	virtual void setFocus();
 
 private:
 	unsigned int getLineCount(unsigned int nWidth,
@@ -367,6 +382,10 @@ public:
 	virtual void setMessage(const TemplateContext* pContext);
 	virtual bool isEmptyValue() const;
 	virtual bool isActive() const;
+	virtual bool isFocusItem() const;
+
+public:
+	virtual void setFocus();
 
 public:
 	virtual bool hasAttachment();
@@ -471,6 +490,8 @@ public:
 private:
 	static void setWidth(LineLayoutItem* pItem,
 						 const WCHAR* pwszWidth);
+	static void setNumber(HeaderItem* pItem,
+						  const WCHAR* pwszNumber);
 	static std::auto_ptr<Template> parseTemplate(const WCHAR* pwszTemplate);
 
 private:

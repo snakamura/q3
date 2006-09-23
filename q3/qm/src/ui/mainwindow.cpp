@@ -1077,6 +1077,10 @@ void qm::MainWindowImpl::initActions()
 		pViews,
 		countof(pViews),
 		false);
+	ADD_ACTION2(ViewFocusItemAction,
+		IDM_VIEW_FOCUSITEM,
+		pMessageWindow_->getFocusController(),
+		ViewFocusItemAction::TYPE_ITEM);
 	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_HTMLINTERNETZONEMODE,
 		pMessageViewModeHolder_,

@@ -262,11 +262,9 @@ EditWindowItem* qm::HeaderEditWindow::getItemByNumber(unsigned int nNumber) cons
 	for (unsigned int n = 0; n < pImpl_->pLayout_->getLineCount(); ++n) {
 		HeaderEditLine* pLine = static_cast<HeaderEditLine*>(
 			pImpl_->pLayout_->getLine(n));
-		for (unsigned int m = 0; m < pLine->getItemCount(); ++m) {
-			HeaderEditItem* pItem = static_cast<HeaderEditItem*>(pLine->getItem(m));
-			if (pItem->getNumber() == nNumber)
-				return pItem;
-		}
+		EditWindowItem* pItem = pLine->getItemByNumber(nNumber);
+		if (pItem)
+			return pItem;
 	}
 	return 0;
 }
@@ -411,6 +409,20 @@ EditWindowItem* qm::HeaderEditLine::getPrevFocusItem(EditWindowItem** ppItem) co
 					return pItem;
 			}
 		}
+	}
+	
+	return 0;
+}
+
+EditWindowItem* qm::HeaderEditLine::getItemByNumber(unsigned int nNumber) const
+{
+	if (bHide_)
+		return 0;
+	
+	for (unsigned int n = 0; n < getItemCount(); ++n) {
+		HeaderEditItem* pItem = static_cast<HeaderEditItem*>(getItem(n));
+		if (pItem->getNumber() == nNumber)
+			return pItem;
 	}
 	
 	return 0;

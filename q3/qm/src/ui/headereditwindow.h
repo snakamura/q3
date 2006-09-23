@@ -65,6 +65,7 @@ public:
 						bool bReset);
 	EditWindowItem* getNextFocusItem(EditWindowItem** ppItem) const;
 	EditWindowItem* getPrevFocusItem(EditWindowItem** ppItem) const;
+	EditWindowItem* getItemByNumber(unsigned int nNumber) const;
 	HeaderEditItem* getFocusedItem() const;
 	HeaderEditItem* getInitialFocusItem() const;
 

@@ -524,6 +524,11 @@ bool qm::TextMessageViewWindow::canSelectAll()
 	return TextWindow::canSelectAll();
 }
 
+void qm::TextMessageViewWindow::setFocus()
+{
+	TextWindow::setFocus();
+}
+
 
 /****************************************************************************
  *
@@ -1586,6 +1591,11 @@ void qm::HtmlMessageViewWindow::selectAll()
 bool qm::HtmlMessageViewWindow::canSelectAll()
 {
 	return true;
+}
+
+void qm::HtmlMessageViewWindow::setFocus()
+{
+	setActive();
 }
 
 bool qm::HtmlMessageViewWindow::navigate(const WCHAR* pwszURL)
@@ -2825,6 +2835,11 @@ void qm::HtmlMessageViewWindow::selectAll()
 bool qm::HtmlMessageViewWindow::canSelectAll()
 {
 	return true;
+}
+
+void qm::HtmlMessageViewWindow::setFocus()
+{
+	WindowBase::setFocus();
 }
 
 LRESULT qm::HtmlMessageViewWindow::onContextMenu(NMHDR* pnmhdr,

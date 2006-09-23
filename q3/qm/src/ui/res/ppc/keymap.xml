@@ -321,6 +321,12 @@
 		<action name="MessageUnmark">
 			<key key="M" shift="true" ctrl="true"/>
 		</action>
+		<action name="ViewFocusNextItem">
+			<key name="tab"/>
+		</action>
+		<action name="ViewFocusPrevItem">
+			<key name="tab" shift="true"/>
+		</action>
 		<action name="ViewNextMessage">
 			<key key="N"/>
 			<key name="return"/>

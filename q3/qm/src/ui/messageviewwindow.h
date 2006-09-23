@@ -257,6 +257,7 @@ public:
 	virtual bool canCopy();
 	virtual void selectAll();
 	virtual bool canSelectAll();
+	virtual void setFocus();
 
 private:
 	TextMessageViewWindow(const TextMessageViewWindow&);
@@ -575,6 +576,7 @@ public:
 	virtual bool canCopy();
 	virtual void selectAll();
 	virtual bool canSelectAll();
+	virtual void setFocus();
 
 private:
 	bool navigate(const WCHAR* pwszURL);
@@ -1071,6 +1073,7 @@ public:
 	virtual bool canCopy();
 	virtual void selectAll();
 	virtual bool canSelectAll();
+	virtual void setFocus();
 
 private:
 	LRESULT onContextMenu(NMHDR* pnmhdr,

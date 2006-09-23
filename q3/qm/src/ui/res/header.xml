@@ -2,64 +2,64 @@
 <header>
 	<line class="mail">
 		<static width="auto" style="bold" showAlways="true">To:</static>
-		<edit>{@FormatAddress(To, 3)}</edit>
+		<edit number="0">{@FormatAddress(To, 3)}</edit>
 	</line>
 	<line class="mail" hideIfEmpty="cc">
 		<static width="auto" style="bold" showAlways="true">Cc:</static>
-		<edit name="cc">{@FormatAddress(Cc, 3)}</edit>
+		<edit name="cc" number="1">{@FormatAddress(Cc, 3)}</edit>
 	</line>
 	<line class="news">
 		<static width="auto" style="bold" showAlways="true">Newsgroups:</static>
-		<edit>{Newsgroups}</edit>
+		<edit number="2">{Newsgroups}</edit>
 	</line>
 	<line class="news" hideIfEmpty="followup-to">
 		<static width="auto" style="bold" showAlways="true">Followup-To:</static>
-		<edit name="followup-to">{FollowUp-To}</edit>
+		<edit name="followup-to" number="3">{FollowUp-To}</edit>
 	</line>
 	<line class="mail|news">
 		<static width="auto" style="bold" showAlways="true">From:</static>
-		<edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}">{@FormatAddress(From, 3)}</edit>
+		<edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}" number="4">{@FormatAddress(From, 3)}</edit>
 		<static width="auto" style="bold" align="right" showAlways="true">Date:</static>
-		<edit width="10em">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
+		<edit width="10em" number="5">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
 	</line>
 	<line class="mail|news">
 		<static width="auto" style="bold" showAlways="true">Subject:</static>
-		<edit>{@Subject()}</edit>
+		<edit number="6">{@Subject()}</edit>
 	</line>
 	<line hideIfEmpty="attachment" class="mail|news">
 		<static width="auto" style="bold" showAlways="true">Attachment:</static>
-		<attachment name="attachment" background="{@If(@Equal(X-QMAIL-AttachmentDeleted, 1), 'ccc7ba', '')}"/>
+		<attachment name="attachment" background="{@If(@Equal(X-QMAIL-AttachmentDeleted, 1), 'ccc7ba', '')}" number="7"/>
 	</line>
 	<line class="rss">
 		<static width="auto" style="bold" showAlways="true">Title:</static>
-		<edit>{@Subject()}</edit>
+		<edit number="6">{@Subject()}</edit>
 	</line>
 	<line class="rss">
 		<static width="auto" style="bold" showAlways="true">Date:</static>
-		<edit>{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
+		<edit number="5">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="creator">
 		<static width="auto" style="bold" showAlways="true">Creator:</static>
-		<edit name="creator">{X-RSS-Creator}</edit>
+		<edit name="creator" number="8">{X-RSS-Creator}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="category">
 		<static width="auto" style="bold" showAlways="true">Category:</static>
-		<edit name="category">{X-RSS-Category}</edit>
+		<edit name="category" number="9">{X-RSS-Category}</edit>
 	</line>
 	<line class="rss" hideIfEmpty="subject">
 		<static width="auto" style="bold" showAlways="true">Subject:</static>
-		<edit name="subject">{X-RSS-Subject}</edit>
+		<edit name="subject" number="10">{X-RSS-Subject}</edit>
 	</line>
 	<line class="rss">
 		<static width="auto" style="bold" showAlways="true">URL:</static>
-		<edit>{X-RSS-Link}</edit>
+		<edit number="11">{X-RSS-Link}</edit>
 	</line>
 	<line hideIfEmpty="label">
 		<static width="auto" style="bold" showAlways="true">Label:</static>
-		<edit name="label">{@Label()}</edit>
+		<edit name="label" number="12">{@Label()}</edit>
 	</line>
 	<line class="mail|news" hideIfEmpty="sign">
 		<static width="auto" style="bold" showAlways="true">Signed by:</static>
-		<edit name="sign" background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'Verified'), 'f5f6be', @Contain(@Param('Verify'), 'VerifyFailed'), 'ec7b95', '')}">{@Param('SignedBy')}</edit>
+		<edit name="sign" background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'Verified'), 'f5f6be', @Contain(@Param('Verify'), 'VerifyFailed'), 'ec7b95', '')}" number="13">{@Param('SignedBy')}</edit>
 	</line>
 </header>

@@ -6373,6 +6373,46 @@ void qm::ViewFocusAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ViewFocusItemAction
+ *
+ */
+
+qm::ViewFocusItemAction::ViewFocusItemAction(MessageWindowFocusController* pFocusController,
+											 Type type) :
+	pFocusController_(pFocusController),
+	type_(type)
+{
+}
+
+qm::ViewFocusItemAction::~ViewFocusItemAction()
+{
+}
+
+void qm::ViewFocusItemAction::invoke(const ActionEvent& event)
+{
+	switch (type_) {
+	case TYPE_ITEM:
+		{
+			unsigned int nItem = ActionParamUtil::getIndex(event.getParam(), 0);
+			if (nItem != -1)
+				pFocusController_->setFocus(nItem);
+		}
+		break;
+	case TYPE_NEXT:
+		pFocusController_->setFocus(MessageWindowFocusController::FOCUS_NEXT);
+		break;
+	case TYPE_PREV:
+		pFocusController_->setFocus(MessageWindowFocusController::FOCUS_PREV);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+}
+
+
+/****************************************************************************
+ *
  * ViewLockPreviewAction
  *
  */

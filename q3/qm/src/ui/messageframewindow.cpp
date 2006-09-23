@@ -397,6 +397,18 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(ViewFitAction,
 		IDM_VIEW_FIT,
 		pMessageViewModeHolder_);
+	ADD_ACTION2(ViewFocusItemAction,
+		IDM_VIEW_FOCUSITEM,
+		pMessageWindow_->getFocusController(),
+		ViewFocusItemAction::TYPE_ITEM);
+	ADD_ACTION2(ViewFocusItemAction,
+		IDM_VIEW_FOCUSNEXTITEM,
+		pMessageWindow_->getFocusController(),
+		ViewFocusItemAction::TYPE_NEXT);
+	ADD_ACTION2(ViewFocusItemAction,
+		IDM_VIEW_FOCUSPREVITEM,
+		pMessageWindow_->getFocusController(),
+		ViewFocusItemAction::TYPE_PREV);
 	ADD_ACTION3(ViewSecurityAction,
 		IDM_VIEW_SMIMEMODE,
 		pSecurityModel_.get(),
@@ -919,12 +931,13 @@ LRESULT qm::MessageFrameWindow::onActivate(UINT nFlags,
 {
 	FrameWindow::onActivate(nFlags, hwnd, bMinimized);
 	
-	if (nFlags != WA_INACTIVE) {
-		pImpl_->pMessageWindow_->setActive();
-		
-		if (pImpl_->bImeControl_)
-			qs::UIUtil::setImeEnabled(getHandle(), false);
-	}
+	if (nFlags == WA_INACTIVE)
+		pImpl_->pMessageWindow_->saveFocusedItem();
+	else
+		pImpl_->pMessageWindow_->restoreFocusedItem();
+	
+	if (nFlags != WA_INACTIVE && pImpl_->bImeControl_)
+		qs::UIUtil::setImeEnabled(getHandle(), false);
 	
 	return 0;
 }

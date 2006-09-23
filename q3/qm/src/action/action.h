@@ -122,6 +122,7 @@ class ViewFilterAction;
 class ViewFilterCustomAction;
 class ViewFitAction;
 class ViewFocusAction;
+class ViewFocusItemAction;
 class ViewLockPreviewAction;
 class ViewMessageModeAction;
 class ViewNavigateFolderAction;
@@ -3139,6 +3140,39 @@ private:
 private:
 	ViewList listView_;
 	bool bNext_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewFocusItemAction
+ *
+ */
+
+class ViewFocusItemAction : public qs::AbstractAction
+{
+public:
+	enum Type {
+		TYPE_ITEM,
+		TYPE_NEXT,
+		TYPE_PREV
+	};
+
+public:
+	ViewFocusItemAction(MessageWindowFocusController* pFocusController,
+						Type type);
+	virtual ~ViewFocusItemAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ViewFocusItemAction(const ViewFocusItemAction&);
+	ViewFocusItemAction& operator=(const ViewFocusItemAction&);
+
+private:
+	MessageWindowFocusController* pFocusController_;
+	Type type_;
 };
 
 

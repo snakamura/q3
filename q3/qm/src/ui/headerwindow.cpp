@@ -214,6 +214,39 @@ MessageWindowItem* qm::HeaderWindow::getFocusedItem() const
 	return 0;
 }
 
+MessageWindowItem* qm::HeaderWindow::getNextFocusItem(MessageWindowItem* pItem) const
+{
+	for (unsigned int n = 0; n < pImpl_->pLayout_->getLineCount(); ++n) {
+		HeaderLine* pLine = static_cast<HeaderLine*>(pImpl_->pLayout_->getLine(n));
+		MessageWindowItem* pNewItem = pLine->getNextFocusItem(&pItem);
+		if (pNewItem)
+			return pNewItem;
+	}
+	return 0;
+}
+
+MessageWindowItem* qm::HeaderWindow::getPrevFocusItem(MessageWindowItem* pItem) const
+{
+	for (unsigned int n = pImpl_->pLayout_->getLineCount(); n > 0; --n) {
+		HeaderLine* pLine = static_cast<HeaderLine*>(pImpl_->pLayout_->getLine(n - 1));
+		MessageWindowItem* pNewItem = pLine->getPrevFocusItem(&pItem);
+		if (pNewItem)
+			return pNewItem;
+	}
+	return 0;
+}
+
+MessageWindowItem* qm::HeaderWindow::getItemByNumber(unsigned int nNumber) const
+{
+	for (unsigned int n = 0; n < pImpl_->pLayout_->getLineCount(); ++n) {
+		HeaderLine* pLine = static_cast<HeaderLine*>(pImpl_->pLayout_->getLine(n));
+		MessageWindowItem* pItem = pLine->getItemByNumber(nNumber);
+		if (pItem)
+			return pItem;
+	}
+	return 0;
+}
+
 AttachmentSelectionModel* qm::HeaderWindow::getAttachmentSelectionModel() const
 {
 	return pImpl_->pAttachmentSelectionModel_;
@@ -370,6 +403,62 @@ void qm::HeaderLine::fixup()
 	}
 }
 
+MessageWindowItem* qm::HeaderLine::getNextFocusItem(MessageWindowItem** ppItem) const
+{
+	assert(ppItem);
+	
+	if (!isHidden()) {
+		for (unsigned int n = 0; n < getItemCount(); ++n) {
+			HeaderItem* pItem = static_cast<HeaderItem*>(getItem(n));
+			if (*ppItem) {
+				if (*ppItem == pItem)
+					*ppItem = 0;
+			}
+			else {
+				if (pItem->isFocusItem())
+					return pItem;
+			}
+		}
+	}
+	
+	return 0;
+}
+
+MessageWindowItem* qm::HeaderLine::getPrevFocusItem(MessageWindowItem** ppItem) const
+{
+	assert(ppItem);
+	
+	if (!isHidden()) {
+		for (unsigned int n = getItemCount(); n > 0; --n) {
+			HeaderItem* pItem = static_cast<HeaderItem*>(getItem(n - 1));
+			if (*ppItem) {
+				if (*ppItem == pItem)
+					*ppItem = 0;
+			}
+			else {
+				if (pItem->isFocusItem())
+					return pItem;
+			}
+		}
+	}
+	
+	return 0;
+}
+
+MessageWindowItem* qm::HeaderLine::getItemByNumber(unsigned int nNumber) const
+{
+	if (isHidden())
+		return 0;
+	
+	for (unsigned int n = 0; n < getItemCount(); ++n) {
+		HeaderItem* pItem = static_cast<HeaderItem*>(getItem(n));
+		if (pItem->getNumber() == nNumber)
+			return pItem;
+	}
+	
+	return 0;
+}
+
 bool qm::HeaderLine::isHidden() const
 {
 	if (bHide_)
@@ -394,7 +483,8 @@ bool qm::HeaderLine::isHidden() const
  */
 
 qm::HeaderItem::HeaderItem() :
-	nFlags_(0)
+	nFlags_(0),
+	nNumber_(-1)
 {
 }
 
@@ -412,6 +502,11 @@ unsigned int qm::HeaderItem::getFlags() const
 	return nFlags_;
 }
 
+unsigned int qm::HeaderItem::getNumber() const
+{
+	return nNumber_;
+}
+
 void qm::HeaderItem::setName(const WCHAR* pwszName)
 {
 	wstrName_ = allocWString(pwszName);
@@ -422,6 +517,11 @@ void qm::HeaderItem::setFlags(unsigned int nFlags,
 {
 	nFlags_ &= ~nMask;
 	nFlags_ |= nFlags & nMask;
+}
+
+void qm::HeaderItem::setNumber(unsigned int nNumber)
+{
+	nNumber_ = nNumber;
 }
 
 void qm::HeaderItem::setValue(std::auto_ptr<Template> pValue)
@@ -724,6 +824,11 @@ unsigned int qm::StaticHeaderItem::getPreferredWidth() const
 	return UIUtil::getPreferredWidth(getHandle(), true);
 }
 
+bool qm::StaticHeaderItem::isFocusItem() const
+{
+	return false;
+}
+
 const TCHAR* qm::StaticHeaderItem::getWindowClassName() const
 {
 	return _T("STATIC");
@@ -750,6 +855,10 @@ UINT qm::StaticHeaderItem::getWindowStyle() const
 		break;
 	}
 	return nStyle;
+}
+
+void qm::StaticHeaderItem::setFocus()
+{
 }
 
 
@@ -792,6 +901,11 @@ unsigned int qm::EditHeaderItem::getHeight(unsigned int nWidth,
 		else
 			return QSMIN(nLineCount, nMultiline_)*nFontHeight;
 	}
+}
+
+bool qm::EditHeaderItem::isFocusItem() const
+{
+	return true;
 }
 
 const TCHAR* qm::EditHeaderItem::getWindowClassName() const
@@ -856,6 +970,11 @@ void qm::EditHeaderItem::selectAll()
 bool qm::EditHeaderItem::canSelectAll()
 {
 	return true;
+}
+
+void qm::EditHeaderItem::setFocus()
+{
+	Window(getHandle()).setFocus();
 }
 
 unsigned int qm::EditHeaderItem::getLineCount(unsigned int nWidth,
@@ -1042,6 +1161,16 @@ bool qm::AttachmentHeaderItem::isEmptyValue() const
 bool qm::AttachmentHeaderItem::isActive() const
 {
 	return wnd_.hasFocus();
+}
+
+bool qm::AttachmentHeaderItem::isFocusItem() const
+{
+	return true;
+}
+
+void qm::AttachmentHeaderItem::setFocus()
+{
+	wnd_.setFocus();
 }
 
 bool qm::AttachmentHeaderItem::hasAttachment()
@@ -1347,6 +1476,9 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 					pItem->setFlags(HeaderItem::FLAG_SHOWALWAYS,
 						HeaderItem::FLAG_SHOWALWAYS);
 			}
+			else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
+				setNumber(pItem.get(), attributes.getValue(n));
+			}
 			else if (!bStatic && wcscmp(pwszAttrLocalName, L"multiline") == 0) {
 				static_cast<EditHeaderItem*>(pItem.get())->setMultiline(
 					EditHeaderItem::parseMultiline(attributes.getValue(n)));
@@ -1392,6 +1524,9 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				if (wcscmp(attributes.getValue(n), L"true") == 0)
 					pItem->setFlags(HeaderItem::FLAG_SHOWALWAYS,
 						HeaderItem::FLAG_SHOWALWAYS);
+			}
+			else if (wcscmp(pwszAttrLocalName, L"number") == 0) {
+				setNumber(pItem.get(), attributes.getValue(n));
 			}
 			else if (wcscmp(pwszAttrLocalName, L"background") == 0) {
 				std::auto_ptr<Template> pBackground(parseTemplate(attributes.getValue(n)));
@@ -1479,6 +1614,15 @@ void qm::HeaderWindowContentHandler::setWidth(LineLayoutItem* pItem,
 	LineLayoutItem::Unit unit;
 	if (LineLayoutItem::parseWidth(pwszWidth, &dWidth, &unit))
 		pItem->setWidth(dWidth, unit);
+}
+
+void qm::HeaderWindowContentHandler::setNumber(HeaderItem* pItem,
+											   const WCHAR* pwszNumber)
+{
+	WCHAR* pEnd = 0;
+	unsigned int nNumber = wcstol(pwszNumber, &pEnd, 10);
+	if (!*pEnd)
+		pItem->setNumber(nNumber);
 }
 
 std::auto_ptr<Template> qm::HeaderWindowContentHandler::parseTemplate(const WCHAR* pwszTemplate)

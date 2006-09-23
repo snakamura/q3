@@ -190,10 +190,13 @@ const qs::ActionItem actionItems[] = {
 	{ L"ViewFilterCustom",				IDM_VIEW_FILTERCUSTOM,				1,							0 },
 	{ L"ViewFit",						IDM_VIEW_FIT,						MAX_VIEW_FIT,				0 },
 	{ L"ViewFocusEditItem",				IDM_VIEW_FOCUSEDITITEM,				MAX_VIEW_FOCUSEDITITEM,		0 },
+	{ L"ViewFocusItem",					IDM_VIEW_FOCUSITEM,					MAX_VIEW_FOCUSITEM,			0 },
 	{ L"ViewFocusNext",					IDM_VIEW_FOCUSNEXT,					1,							0 },
 	{ L"ViewFocusNextEditItem",			IDM_VIEW_FOCUSNEXTEDITITEM,			1,							0 },
+	{ L"ViewFocusNextItem",				IDM_VIEW_FOCUSNEXTITEM,				1,							0 },
 	{ L"ViewFocusPrev",					IDM_VIEW_FOCUSPREV,					1,							0 },
 	{ L"ViewFocusPrevEditItem",			IDM_VIEW_FOCUSPREVEDITITEM,			1,							0 },
+	{ L"ViewFocusPrevItem",				IDM_VIEW_FOCUSPREVITEM,				1,							0 },
 #ifdef QMHTMLVIEW
 	{ L"ViewHtmlInternetZoneMode",		IDM_VIEW_HTMLINTERNETZONEMODE,		1,							0 },
 	{ L"ViewHtmlMode",					IDM_VIEW_HTMLMODE,					1,							0 },

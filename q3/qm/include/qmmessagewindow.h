@@ -36,6 +36,7 @@ class MessageHolder;
 class MessageMessageModel;
 class MessageModel;
 class MessageViewModeHolder;
+class MessageWindowFocusController;
 class MessageWindowItem;
 class ViewModel;
 class ViewModelManager;
@@ -161,10 +162,13 @@ public:
 	bool openLink();
 	MessageWindowItem* getFocusedItem() const;
 	
+	MessageWindowFocusController* getFocusController() const;
 	MessageModel* getMessageModel() const;
 	MessageViewModeHolder* getMessageViewModeHolder() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	
+	void saveFocusedItem();
+	void restoreFocusedItem();
 	void layout();
 	void reloadProfiles();
 	void save() const;
@@ -292,6 +296,9 @@ public:
 	void layout(const RECT& rect);
 	bool isActive() const;
 	MessageWindowItem* getFocusedItem() const;
+	MessageWindowItem* getNextFocusItem(MessageWindowItem* pItem) const;
+	MessageWindowItem* getPrevFocusItem(MessageWindowItem* pItem) const;
+	MessageWindowItem* getItemByNumber(unsigned int nNumber) const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	void reloadProfiles();
 

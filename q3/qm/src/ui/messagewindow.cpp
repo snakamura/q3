@@ -43,6 +43,7 @@ using namespace qs;
 
 class qm::MessageWindowImpl :
 	public MessageViewModeHolder,
+	public MessageWindowFocusController,
 	public MessageModelHandler,
 	public MessageViewModeHandler,
 	public MessageViewModeHolderHandler,
@@ -76,6 +77,11 @@ public:
 	virtual MessageViewMode* getMessageViewMode();
 	virtual void addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler);
 	virtual void removeMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler);
+
+public:
+	virtual MessageWindowItem* getFocusedItem();
+	virtual void setFocus(Focus focus);
+	virtual void setFocus(unsigned int nItem);
 
 public:
 	virtual void messageChanged(const MessageModelEvent& event);
@@ -135,6 +141,7 @@ public:
 	wstring_ptr wstrCertificate_;
 	unsigned int nSeenWait_;
 	bool bShowHeader_;
+	MessageWindowItem* pLastFocusedItem_;
 	
 	HandlerList listHandler_;
 };
@@ -359,6 +366,43 @@ void qm::MessageWindowImpl::removeMessageViewModeHolderHandler(MessageViewModeHo
 {
 }
 
+MessageWindowItem* qm::MessageWindowImpl::getFocusedItem()
+{
+	if (pMessageViewWindow_ && pMessageViewWindow_->isActive())
+		return pMessageViewWindow_;
+	else
+		return pHeaderWindow_->getFocusedItem();
+}
+
+void qm::MessageWindowImpl::setFocus(Focus focus)
+{
+	MessageWindowItem* pItem = getFocusedItem();
+	if (!pItem)
+		return;
+	
+	MessageWindowItem* pNewItem = 0;
+	if (pItem == pMessageViewWindow_) {
+		pNewItem = focus == FOCUS_PREV ?
+			pHeaderWindow_->getPrevFocusItem(0) :
+			pHeaderWindow_->getNextFocusItem(0);
+	}
+	else {
+		pNewItem = focus == FOCUS_PREV ?
+			pHeaderWindow_->getPrevFocusItem(pItem) :
+			pHeaderWindow_->getNextFocusItem(pItem);
+		if (!pNewItem)
+			pNewItem = pMessageViewWindow_;
+	}
+	pNewItem->setFocus();
+}
+
+void qm::MessageWindowImpl::setFocus(unsigned int nItem)
+{
+	MessageWindowItem* pItem = pHeaderWindow_->getItemByNumber(nItem);
+	if (pItem)
+		pItem->setFocus();
+}
+
 void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 {
 	bool bUIThread = ::GetCurrentThreadId() == ::GetWindowThreadProcessId(pThis_->getHandle(), 0);
@@ -527,6 +571,7 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
 	pImpl_->nSeenWait_ = 0;
 	pImpl_->bShowHeader_ = true;
+	pImpl_->pLastFocusedItem_ = 0;
 	
 	pImpl_->reloadProfiles(true);
 	
@@ -611,11 +656,12 @@ bool qm::MessageWindow::openLink()
 
 MessageWindowItem* qm::MessageWindow::getFocusedItem() const
 {
-	if (pImpl_->pMessageViewWindow_ &&
-		pImpl_->pMessageViewWindow_->isActive())
-		return pImpl_->pMessageViewWindow_;
-	else
-		return pImpl_->pHeaderWindow_->getFocusedItem();
+	return pImpl_->getFocusedItem();
+}
+
+MessageWindowFocusController* qm::MessageWindow::getFocusController() const
+{
+	return pImpl_;
 }
 
 MessageModel* qm::MessageWindow::getMessageModel() const
@@ -631,6 +677,23 @@ MessageViewModeHolder* qm::MessageWindow::getMessageViewModeHolder() const
 AttachmentSelectionModel* qm::MessageWindow::getAttachmentSelectionModel() const
 {
 	return pImpl_->pHeaderWindow_->getAttachmentSelectionModel();
+}
+
+void qm::MessageWindow::saveFocusedItem()
+{
+	pImpl_->pLastFocusedItem_ = pImpl_->pHeaderWindow_->getFocusedItem();
+	if (!pImpl_->pLastFocusedItem_)
+		pImpl_->pLastFocusedItem_ = pImpl_->pMessageViewWindow_;
+}
+
+void qm::MessageWindow::restoreFocusedItem()
+{
+	MessageWindowItem* pItem = pImpl_->pLastFocusedItem_;
+	if (!pItem)
+		pItem = pImpl_->pMessageViewWindow_;
+	assert(pItem);
+	
+	pItem->setFocus();
 }
 
 void qm::MessageWindow::layout()
@@ -899,6 +962,17 @@ const WCHAR* qm::MessageWindowStatusTextEvent::getText() const
  */
 
 qm::MessageWindowItem::~MessageWindowItem()
+{
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowFocusController
+ *
+ */
+
+qm::MessageWindowFocusController::~MessageWindowFocusController()
 {
 }
 
