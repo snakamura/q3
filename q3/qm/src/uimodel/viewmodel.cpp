@@ -446,7 +446,7 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	nSort_(SORT_ASCENDING | SORT_NOTHREAD),
 	nLastSelection_(0),
 	nFocused_(0),
-	nScroll_(-1),
+	scroll_(-1, -1),
 	nCacheCount_(0)
 {
 	assert(pFolder);
@@ -460,7 +460,7 @@ qm::ViewModel::ViewModel(ViewModelManager* pViewModelManager,
 	pColorList_ = pColorManager->getColorList(pFolder_);
 	
 	nFocused_ = pDataItem_->getFocus();
-	nScroll_ = pDataItem_->getScroll();
+	scroll_ = pDataItem_->getScroll();
 	nSort_ = pDataItem_->getSort();
 	if ((nSort_ & SORT_INDEX_MASK) >= getColumnCount())
 		nSort_ = SORT_ASCENDING | SORT_NOTHREAD | 1;
@@ -838,14 +838,16 @@ bool qm::ViewModel::isFocused(unsigned int n) const
 	return n == nFocused_;
 }
 
-unsigned int qm::ViewModel::getScroll() const
+std::pair<unsigned int, unsigned int> qm::ViewModel::getScroll() const
 {
-	return nScroll_;
+	return scroll_;
 }
 
-void qm::ViewModel::setScroll(unsigned int nScroll)
+void qm::ViewModel::setScroll(unsigned int nHScroll,
+							  unsigned int nVScroll)
 {
-	nScroll_ = nScroll;
+	scroll_.first = nHScroll;
+	scroll_.second = nVScroll;
 }
 
 void qm::ViewModel::payAttention(unsigned int n)
@@ -894,7 +896,8 @@ void qm::ViewModel::save() const
 	
 	pDataItem_->setSort(nSort_);
 	pDataItem_->setFocus(nFocused_);
-	pDataItem_->setScroll(nScroll_);
+	pDataItem_->setHorizontalScroll(scroll_.first);
+	pDataItem_->setVerticalScroll(scroll_.second);
 	pDataItem_->setFilter(pFilter_.get() ? pFilter_->getName() : 0);
 	
 	for (int n = 0; n < MODETYPE_COUNT; ++n) {
@@ -2361,7 +2364,7 @@ std::auto_ptr<ViewDataItem> qm::DefaultViewData::createDefaultItem()
 qm::ViewDataItem::ViewDataItem(unsigned int nFolderId) :
 	nFolderId_(nFolderId),
 	nFocus_(0),
-	nScroll_(-1),
+	scroll_(-1, -1),
 	nSort_(ViewModel::SORT_ASCENDING | ViewModel::SORT_NOTHREAD | 1),
 	nRestoreId_(-1),
 	nRestoreScroll_(-1)
@@ -2410,14 +2413,19 @@ void qm::ViewDataItem::setFocus(unsigned int nFocus)
 	nFocus_ = nFocus;
 }
 
-unsigned int qm::ViewDataItem::getScroll() const
+std::pair<unsigned int, unsigned int> qm::ViewDataItem::getScroll() const
 {
-	return nScroll_;
+	return scroll_;
 }
 
-void qm::ViewDataItem::setScroll(unsigned int nScroll)
+void qm::ViewDataItem::setHorizontalScroll(unsigned int nScroll)
 {
-	nScroll_ = nScroll;
+	scroll_.first = nScroll;
+}
+
+void qm::ViewDataItem::setVerticalScroll(unsigned int nScroll)
+{
+	scroll_.second = nScroll;
 }
 
 unsigned int qm::ViewDataItem::getSort() const
@@ -2737,7 +2745,11 @@ bool qm::ViewDataContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			{ L"macro",		STATE_COLUMN,	STATE_MACRO		},
 			{ L"width",		STATE_COLUMN,	STATE_WIDTH		},
 			{ L"focus",		STATE_VIEW,		STATE_FOCUS		},
+			// TODO
+			// Handle "scroll" for compatibility.
 			{ L"scroll",	STATE_VIEW,		STATE_SCROLL	},
+			{ L"hscroll",	STATE_VIEW,		STATE_SCROLL	},
+			{ L"vscroll",	STATE_VIEW,		STATE_SCROLL	},
 			{ L"filter",	STATE_VIEW,		STATE_FILTER	},
 		};
 		int n = 0;
@@ -2871,7 +2883,13 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		buffer_.remove();
 		state_ = STATE_VIEW;
 	}
-	else if (wcscmp(pwszLocalName, L"scroll") == 0) {
+	else if (wcscmp(pwszLocalName, L"scroll") == 0 ||
+		wcscmp(pwszLocalName, L"hscroll") == 0 ||
+		wcscmp(pwszLocalName, L"vscroll") == 0) {
+		// TODO
+		// Handle "scroll" element for compatibility.
+		// Remove this in the future.
+		
 		assert(state_ == STATE_SCROLL);
 		
 		WCHAR* pEnd = 0;
@@ -2879,7 +2897,10 @@ bool qm::ViewDataContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		if (*pEnd)
 			return false;
 		assert(pItem_.get());
-		pItem_->setScroll(nScroll);
+		if (wcscmp(pwszLocalName, L"hscroll") == 0)
+			pItem_->setHorizontalScroll(nScroll);
+		else
+			pItem_->setVerticalScroll(nScroll);
 		
 		buffer_.remove();
 		state_ = STATE_VIEW;
@@ -3116,9 +3137,9 @@ bool qm::ViewDataWriter::write(const ViewDataItem* pItem,
 	if (!handler_.endElement(0, 0, L"columns"))
 		return false;
 	
-	if (!HandlerHelper::numberElement(&handler_, L"focus", pItem->getFocus()))
-		return false;
-	if (!HandlerHelper::numberElement(&handler_, L"scroll", pItem->getScroll()))
+	if (!HandlerHelper::numberElement(&handler_, L"focus", pItem->getFocus()) ||
+		!HandlerHelper::numberElement(&handler_, L"hscroll", pItem->getScroll().first) ||
+		!HandlerHelper::numberElement(&handler_, L"vscroll", pItem->getScroll().second))
 		return false;
 	
 	unsigned int nSort = pItem->getSort();

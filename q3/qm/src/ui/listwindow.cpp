@@ -872,7 +872,8 @@ void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 {
 	ViewModel* pOldViewModel = event.getOldViewModel();
 	if (pOldViewModel) {
-		pOldViewModel->setScroll(pThis_->getScrollPos(SB_VERT));
+		pOldViewModel->setScroll(pThis_->getScrollPos(SB_HORZ),
+			pThis_->getScrollPos(SB_VERT));
 		pOldViewModel->removeViewModelHandler(this);
 	}
 	
@@ -885,9 +886,11 @@ void qm::ListWindowImpl::viewModelSelected(const ViewModelManagerEvent& event)
 	pThis_->refresh();
 	
 	if (pNewViewModel) {
-		unsigned int nScroll = pNewViewModel->getScroll();
-		if (nScroll != -1)
-			scrollVertical(nScroll);
+		std::pair<unsigned int, unsigned int> scroll(pNewViewModel->getScroll());
+		if (scroll.first != -1)
+			scrollHorizontal(scroll.first);
+		if (scroll.second != -1)
+			scrollVertical(scroll.second);
 		else
 			ensureVisible(pNewViewModel->getFocused());
 	}
@@ -1402,7 +1405,7 @@ void qm::ListWindow::save() const
 {
 	ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
 	if (pViewModel)
-		pViewModel->setScroll(getScrollPos(SB_VERT));
+		pViewModel->setScroll(getScrollPos(SB_HORZ), getScrollPos(SB_VERT));
 	
 	pImpl_->pHeaderColumn_->save();
 }

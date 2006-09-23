@@ -383,8 +383,9 @@ public:
 					bool bDelay);
 	unsigned int getFocused() const;
 	bool isFocused(unsigned int n) const;
-	unsigned int getScroll() const;
-	void setScroll(unsigned int nScroll);
+	std::pair<unsigned int, unsigned int> getScroll() const;
+	void setScroll(unsigned int nHScroll,
+				   unsigned int nVScroll);
 	
 	void payAttention(unsigned int n);
 	
@@ -495,7 +496,7 @@ private:
 	std::auto_ptr<Filter> pFilter_;
 	unsigned int nLastSelection_;
 	unsigned int nFocused_;
-	unsigned int nScroll_;
+	std::pair<unsigned int, unsigned int> scroll_;
 	std::auto_ptr<DefaultMessageViewMode> pMessageViewMode_[MODETYPE_COUNT];
 	unsigned int nCacheCount_;
 	RestoreInfo restoreInfo_;
@@ -900,8 +901,9 @@ public:
 	void addColumn(std::auto_ptr<ViewColumn> pColumn);
 	unsigned int getFocus() const;
 	void setFocus(unsigned int nFocus);
-	unsigned int getScroll() const;
-	void setScroll(unsigned int nScroll);
+	std::pair<unsigned int, unsigned int> getScroll() const;
+	void setHorizontalScroll(unsigned int nScroll);
+	void setVerticalScroll(unsigned int nScroll);
 	unsigned int getSort() const;
 	void setSort(unsigned int nSort);
 	const WCHAR* getFilter() const;
@@ -925,7 +927,7 @@ private:
 	unsigned int nFolderId_;
 	ViewColumnList listColumn_;
 	unsigned int nFocus_;
-	unsigned int nScroll_;
+	std::pair<unsigned int, unsigned int> scroll_;
 	unsigned int nSort_;
 	qs::wstring_ptr wstrFilter_;
 	unsigned int nRestoreId_;
