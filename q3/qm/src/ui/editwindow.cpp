@@ -16,6 +16,7 @@
 #include <tchar.h>
 
 #include "editwindow.h"
+#include "focus.h"
 #include "headereditwindow.h"
 #include "resourceinc.h"
 #include "uimanager.h"
@@ -37,7 +38,7 @@ using namespace qs;
 
 class qm::EditWindowImpl :
 	public EditWindowItem,
-	public EditWindowFocusController,
+	public FocusController<EditWindowItem>,
 	public HeaderEditLineCallback,
 	public HeaderEditItemCallback,
 	public EditTextWindowCallback,
@@ -460,7 +461,7 @@ AttachmentSelectionModel* qm::EditWindow::getAttachmentSelectionModel() const
 	return pImpl_->pHeaderEditWindow_->getAttachmentSelectionModel();
 }
 
-EditWindowFocusController* qm::EditWindow::getFocusController() const
+FocusController<EditWindowItem>* qm::EditWindow::getFocusController() const
 {
 	return pImpl_;
 }
@@ -636,17 +637,6 @@ qm::EditWindowItemWindow::~EditWindowItemWindow()
 Accelerator* qm::EditWindowItemWindow::getAccelerator()
 {
 	return pAccelerator_.get();
-}
-
-
-/****************************************************************************
- *
- * EditWindowFocusController
- *
- */
-
-qm::EditWindowFocusController::~EditWindowFocusController()
-{
 }
 
 

@@ -52,30 +52,6 @@ public:
 
 /****************************************************************************
  *
- * MessageWindowFocusController
- *
- */
-
-class MessageWindowFocusController
-{
-public:
-	enum Focus {
-		FOCUS_NEXT,
-		FOCUS_PREV
-	};
-
-public:
-	virtual ~MessageWindowFocusController();
-
-public:
-	virtual MessageWindowItem* getFocusedItem() = 0;
-	virtual void setFocus(Focus focus) = 0;
-	virtual void setFocus(unsigned int nItem) = 0;
-};
-
-
-/****************************************************************************
- *
  * MessageWindowCreateContext
  *
  */

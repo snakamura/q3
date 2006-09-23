@@ -29,6 +29,7 @@
 #include "dialogs.h"
 #include "editframewindow.h"
 #include "editwindow.h"
+#include "focus.h"
 #include "menucreator.h"
 #include "optiondialog.h"
 #include "statusbar.h"
@@ -286,18 +287,18 @@ void qm::EditFrameWindowImpl::initActions()
 		pSyncManager_,
 		pSyncDialogManager_,
 		pSecurityModel_);
-	ADD_ACTION2(EditFocusItemAction,
+	ADD_ACTION2(ViewFocusItemAction,
 		IDM_VIEW_FOCUSEDITITEM,
 		pEditWindow_->getFocusController(),
-		EditFocusItemAction::TYPE_ITEM);
-	ADD_ACTION2(EditFocusItemAction,
+		ViewFocusItemAction::TYPE_ITEM);
+	ADD_ACTION2(ViewFocusItemAction,
 		IDM_VIEW_FOCUSNEXTEDITITEM,
 		pEditWindow_->getFocusController(),
-		EditFocusItemAction::TYPE_NEXT);
-	ADD_ACTION2(EditFocusItemAction,
+		ViewFocusItemAction::TYPE_NEXT);
+	ADD_ACTION2(ViewFocusItemAction,
 		IDM_VIEW_FOCUSPREVEDITITEM,
 		pEditWindow_->getFocusController(),
-		EditFocusItemAction::TYPE_PREV);
+		ViewFocusItemAction::TYPE_PREV);
 #ifdef QMZIP
 	ADD_ACTION1(EditToolArchiveAttachmentAction,
 		IDM_TOOL_ARCHIVEATTACHMENT,

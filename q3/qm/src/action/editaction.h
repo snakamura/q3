@@ -32,7 +32,6 @@ class EditFileInsertAction;
 class EditFileOpenAction;
 class EditFileSaveAction;
 class EditFileSendAction;
-class EditFocusItemAction;
 #ifdef QMZIP
 class EditToolArchiveAttachmentAction;
 #endif
@@ -123,7 +122,7 @@ public:
 	typedef bool (EditWindowItem::*PFN_CANDO)();
 
 public:
-	EditEditCommandAction(EditWindowFocusController* pFocusController,
+	EditEditCommandAction(FocusController<EditWindowItem>* pFocusController,
 						  PFN_DO pfnDo,
 						  PFN_CANDO pfnCanDo);
 	virtual ~EditEditCommandAction();
@@ -137,7 +136,7 @@ private:
 	EditEditCommandAction& operator=(const EditEditCommandAction&);
 
 private:
-	EditWindowFocusController* pFocusController_;
+	FocusController<EditWindowItem>* pFocusController_;
 	PFN_DO pfnDo_;
 	PFN_CANDO pfnCanDo_;
 };
@@ -436,39 +435,6 @@ private:
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	SecurityModel* pSecurityModel_;
-};
-
-
-/****************************************************************************
- *
- * EditFocusItemAction
- *
- */
-
-class EditFocusItemAction : public qs::AbstractAction
-{
-public:
-	enum Type {
-		TYPE_ITEM,
-		TYPE_NEXT,
-		TYPE_PREV
-	};
-
-public:
-	EditFocusItemAction(EditWindowFocusController* pFocusController,
-						Type type);
-	virtual ~EditFocusItemAction();
-
-public:
-	virtual void invoke(const qs::ActionEvent& event);
-
-private:
-	EditFocusItemAction(const EditFocusItemAction&);
-	EditFocusItemAction& operator=(const EditFocusItemAction&);
-
-private:
-	EditWindowFocusController* pFocusController_;
-	Type type_;
 };
 
 

@@ -30,13 +30,13 @@ class HeaderWindow;
 
 class AttachmentSelectionModel;
 class Document;
+template<class Item> class FocusController;
 class Message;
 class MessageFrameWindowManager;
 class MessageHolder;
 class MessageMessageModel;
 class MessageModel;
 class MessageViewModeHolder;
-class MessageWindowFocusController;
 class MessageWindowItem;
 class ViewModel;
 class ViewModelManager;
@@ -160,9 +160,8 @@ public:
 	std::auto_ptr<Mark> mark() const;
 	void reset(const Mark& mark);
 	bool openLink();
-	MessageWindowItem* getFocusedItem() const;
 	
-	MessageWindowFocusController* getFocusController() const;
+	FocusController<MessageWindowItem>* getFocusController() const;
 	MessageModel* getMessageModel() const;
 	MessageViewModeHolder* getMessageViewModeHolder() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;

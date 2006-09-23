@@ -37,6 +37,7 @@
 #include "../ui/addressbookdialog.h"
 #include "../ui/dialogs.h"
 #include "../ui/editwindow.h"
+#include "../ui/focus.h"
 #include "../ui/syncutil.h"
 #include "../ui/uiutil.h"
 #include "../uimodel/attachmentselectionmodel.h"
@@ -126,7 +127,7 @@ bool qm::EditAttachmentEditDeleteAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditEditCommandAction::EditEditCommandAction(EditWindowFocusController* pFocusController,
+qm::EditEditCommandAction::EditEditCommandAction(FocusController<EditWindowItem>* pFocusController,
 												 PFN_DO pfnDo,
 												 PFN_CANDO pfnCanDo) :
 	pFocusController_(pFocusController),
@@ -870,46 +871,6 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	}
 	if (type_ == TYPE_SEND || type_ == TYPE_DRAFTCLOSE)
 		pEditFrameWindow_->close();
-}
-
-
-/****************************************************************************
- *
- * EditFocusItemAction
- *
- */
-
-qm::EditFocusItemAction::EditFocusItemAction(EditWindowFocusController* pFocusController,
-											 Type type) :
-	pFocusController_(pFocusController),
-	type_(type)
-{
-}
-
-qm::EditFocusItemAction::~EditFocusItemAction()
-{
-}
-
-void qm::EditFocusItemAction::invoke(const ActionEvent& event)
-{
-	switch (type_) {
-	case TYPE_ITEM:
-		{
-			unsigned int nItem = ActionParamUtil::getIndex(event.getParam(), 0);
-			if (nItem != -1)
-				pFocusController_->setFocus(nItem);
-		}
-		break;
-	case TYPE_NEXT:
-		pFocusController_->setFocus(EditWindowFocusController::FOCUS_NEXT);
-		break;
-	case TYPE_PREV:
-		pFocusController_->setFocus(EditWindowFocusController::FOCUS_PREV);
-		break;
-	default:
-		assert(false);
-		break;
-	}
 }
 
 

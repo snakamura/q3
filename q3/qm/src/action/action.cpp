@@ -65,6 +65,7 @@
 #include "../ui/addressbookwindow.h"
 #include "../ui/dialogs.h"
 #include "../ui/editframewindow.h"
+#include "../ui/focus.h"
 #include "../ui/folderdialog.h"
 #include "../ui/messageframewindow.h"
 #include "../ui/optiondialog.h"
@@ -412,10 +413,10 @@ bool qm::EditClearDeletedAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditCommandAction::EditCommandAction(MessageWindow* pMessageWindow,
+qm::EditCommandAction::EditCommandAction(FocusController<MessageWindowItem>* pFocusController,
 										 PFN_DO pfnDo,
 										 PFN_CANDO pfnCanDo) :
-	pMessageWindow_(pMessageWindow),
+	pFocusController_(pFocusController),
 	pfnDo_(pfnDo),
 	pfnCanDo_(pfnCanDo)
 {
@@ -427,14 +428,14 @@ qm::EditCommandAction::~EditCommandAction()
 
 void qm::EditCommandAction::invoke(const ActionEvent& event)
 {
-	MessageWindowItem* pItem = pMessageWindow_->getFocusedItem();
+	MessageWindowItem* pItem = pFocusController_->getFocusedItem();
 	if (pItem)
 		(pItem->*pfnDo_)();
 }
 
 bool qm::EditCommandAction::isEnabled(const ActionEvent& event)
 {
-	MessageWindowItem* pItem = pMessageWindow_->getFocusedItem();
+	MessageWindowItem* pItem = pFocusController_->getFocusedItem();
 	return pItem ? (pItem->*pfnCanDo_)() : false;
 }
 
@@ -6377,7 +6378,7 @@ void qm::ViewFocusAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ViewFocusItemAction::ViewFocusItemAction(MessageWindowFocusController* pFocusController,
+qm::ViewFocusItemAction::ViewFocusItemAction(FocusControllerBase* pFocusController,
 											 Type type) :
 	pFocusController_(pFocusController),
 	type_(type)
@@ -6399,10 +6400,10 @@ void qm::ViewFocusItemAction::invoke(const ActionEvent& event)
 		}
 		break;
 	case TYPE_NEXT:
-		pFocusController_->setFocus(MessageWindowFocusController::FOCUS_NEXT);
+		pFocusController_->setFocus(FocusControllerBase::FOCUS_NEXT);
 		break;
 	case TYPE_PREV:
-		pFocusController_->setFocus(MessageWindowFocusController::FOCUS_PREV);
+		pFocusController_->setFocus(FocusControllerBase::FOCUS_PREV);
 		break;
 	default:
 		assert(false);

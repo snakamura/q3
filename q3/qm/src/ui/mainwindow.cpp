@@ -46,6 +46,7 @@
 #include "addressbookwindow.h"
 #include "editframewindow.h"
 #include "externaleditor.h"
+#include "focus.h"
 #include "foldercombobox.h"
 #include "folderlistwindow.h"
 #include "folderwindow.h"
@@ -390,8 +391,9 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<EditCopyMessageAction> pCopyMessageAction(new EditCopyMessageAction(
 		pDocument_, pFolderModel_.get(), pMessageSelectionModel_.get(), pThis_->getHandle()));
-	std::auto_ptr<EditCommandAction> pCopyAction(new EditCommandAction(
-		pMessageWindow_, &MessageWindowItem::copy, &MessageWindowItem::canCopy));
+	std::auto_ptr<EditCommandAction> pCopyAction(
+		new EditCommandAction(pMessageWindow_->getFocusController(),
+		&MessageWindowItem::copy, &MessageWindowItem::canCopy));
 	Action* pEditCopyActions[] = {
 		0,
 		0,
@@ -496,8 +498,9 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<EditSelectAllMessageAction> pSelectAllMessageAction(
 		new EditSelectAllMessageAction(pMessageSelectionModel_.get()));
-	std::auto_ptr<EditCommandAction> pSelectAllAction(new EditCommandAction(
-		pMessageWindow_, &MessageWindowItem::selectAll, &MessageWindowItem::canSelectAll));
+	std::auto_ptr<EditCommandAction> pSelectAllAction(
+		new EditCommandAction(pMessageWindow_->getFocusController(),
+		&MessageWindowItem::selectAll, &MessageWindowItem::canSelectAll));
 	Action* pEditSelectAllActions[] = {
 		0,
 		0,

@@ -171,6 +171,7 @@ class Filter;
 class FilterManager;
 class FindReplaceManager;
 class FixedFormTextManager;
+class FocusControllerBase;
 class FolderComboBox;
 class FolderImage;
 class FolderListWindow;
@@ -398,7 +399,7 @@ public:
 	typedef bool (MessageWindowItem::*PFN_CANDO)();
 
 public:
-	EditCommandAction(MessageWindow* pMessageWindow,
+	EditCommandAction(FocusController<MessageWindowItem>* pFocusController,
 					  PFN_DO pfnDo,
 					  PFN_CANDO pfnCanDo);
 	virtual ~EditCommandAction();
@@ -412,7 +413,7 @@ private:
 	EditCommandAction& operator=(const EditCommandAction&);
 
 private:
-	MessageWindow* pMessageWindow_;
+	FocusController<MessageWindowItem>* pFocusController_;
 	PFN_DO pfnDo_;
 	PFN_CANDO pfnCanDo_;
 };
@@ -3159,7 +3160,7 @@ public:
 	};
 
 public:
-	ViewFocusItemAction(MessageWindowFocusController* pFocusController,
+	ViewFocusItemAction(FocusControllerBase* pFocusController,
 						Type type);
 	virtual ~ViewFocusItemAction();
 
@@ -3171,7 +3172,7 @@ private:
 	ViewFocusItemAction& operator=(const ViewFocusItemAction&);
 
 private:
-	MessageWindowFocusController* pFocusController_;
+	FocusControllerBase* pFocusController_;
 	Type type_;
 };
 

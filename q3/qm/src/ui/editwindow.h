@@ -19,7 +19,6 @@ namespace qm {
 
 class EditWindowItem;
 class EditWindowItemWindow;
-class EditWindowFocusController;
 struct EditWindowCreateContext;
 class EditTextWindow;
 struct EditTextWindowCreateContext;
@@ -80,30 +79,6 @@ private:
 
 private:
 	std::auto_ptr<qs::Accelerator> pAccelerator_;
-};
-
-
-/****************************************************************************
- *
- * EditWindowFocusController
- *
- */
-
-class EditWindowFocusController
-{
-public:
-	enum Focus {
-		FOCUS_NEXT,
-		FOCUS_PREV
-	};
-
-public:
-	virtual ~EditWindowFocusController();
-
-public:
-	virtual EditWindowItem* getFocusedItem() = 0;
-	virtual void setFocus(Focus focus) = 0;
-	virtual void setFocus(unsigned int nItem) = 0;
 };
 
 

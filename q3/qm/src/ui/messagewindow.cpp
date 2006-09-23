@@ -19,6 +19,7 @@
 #include <qsaccelerator.h>
 #include <qsprofile.h>
 
+#include "focus.h"
 #include "headerwindow.h"
 #include "messageviewwindow.h"
 #include "messagewindow.h"
@@ -43,7 +44,7 @@ using namespace qs;
 
 class qm::MessageWindowImpl :
 	public MessageViewModeHolder,
-	public MessageWindowFocusController,
+	public FocusController<MessageWindowItem>,
 	public MessageModelHandler,
 	public MessageViewModeHandler,
 	public MessageViewModeHolderHandler,
@@ -654,12 +655,7 @@ bool qm::MessageWindow::openLink()
 	return pImpl_->pMessageViewWindow_->openLink();
 }
 
-MessageWindowItem* qm::MessageWindow::getFocusedItem() const
-{
-	return pImpl_->getFocusedItem();
-}
-
-MessageWindowFocusController* qm::MessageWindow::getFocusController() const
+FocusController<MessageWindowItem>* qm::MessageWindow::getFocusController() const
 {
 	return pImpl_;
 }
@@ -962,17 +958,6 @@ const WCHAR* qm::MessageWindowStatusTextEvent::getText() const
  */
 
 qm::MessageWindowItem::~MessageWindowItem()
-{
-}
-
-
-/****************************************************************************
- *
- * MessageWindowFocusController
- *
- */
-
-qm::MessageWindowFocusController::~MessageWindowFocusController()
 {
 }
 

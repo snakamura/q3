@@ -26,6 +26,7 @@
 
 #include "actionid.h"
 #include "actionitem.h"
+#include "focus.h"
 #include "menucreator.h"
 #include "messageframewindow.h"
 #include "messagewindow.h"
@@ -173,7 +174,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		pThis_->getHandle());
 	ADD_ACTION3(EditCommandAction,
 		IDM_EDIT_COPY,
-		pMessageWindow_,
+		pMessageWindow_->getFocusController(),
 		&MessageWindowItem::copy,
 		&MessageWindowItem::canCopy);
 	ADD_ACTION8(EditDeleteMessageAction,
@@ -223,7 +224,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		pFindReplaceManager_.get());
 	ADD_ACTION3(EditCommandAction,
 		IDM_EDIT_SELECTALL,
-		pMessageWindow_,
+		pMessageWindow_->getFocusController(),
 		&MessageWindowItem::selectAll,
 		&MessageWindowItem::canSelectAll);
 	ADD_ACTION3(EditUndoMessageAction,
