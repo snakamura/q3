@@ -377,6 +377,9 @@ bool qm::MessageWindowImpl::isPrimaryItemFocused()
 bool qm::MessageWindowImpl::moveFocus(Focus focus,
 									  bool bCycle)
 {
+	if (!bShowHeaderWindow_)
+		return false;
+	
 	MessageWindowItem* pItem = getFocusedItem();
 	if (!pItem)
 		return false;
@@ -417,6 +420,9 @@ bool qm::MessageWindowImpl::moveFocus(Focus focus,
 
 void qm::MessageWindowImpl::setFocus(unsigned int nItem)
 {
+	if (!bShowHeaderWindow_)
+		return;
+	
 	MessageWindowItem* pItem = pHeaderWindow_->getItemByNumber(nItem);
 	if (pItem)
 		pItem->setFocus();
