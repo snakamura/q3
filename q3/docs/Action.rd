@@ -182,6 +182,7 @@
 *((<ViewFilterアクション|URL:ViewFilterAction.html>))
 *((<ViewFilterCustomアクション|URL:ViewFilterCustomAction.html>))
 *((<ViewFitアクション|URL:ViewFitAction.html>))
+*((<ViewFocusアクション|URL:ViewFocusAction.html>))
 *((<ViewFocusEditItemアクション|URL:ViewFocusEditItemAction.html>))
 *((<ViewFocusItemアクション|URL:ViewFocusItemAction.html>))
 *((<ViewFocusNextアクション|URL:ViewFocusNextAction.html>))
