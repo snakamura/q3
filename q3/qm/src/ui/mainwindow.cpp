@@ -303,6 +303,13 @@ void qm::MainWindowImpl::initActions()
 		pListWindow_,
 		pMessageWindow_
 	};
+	const WCHAR* pwszViewNames[] = {
+		L"Folder",
+		L"FolderComboBox",
+		L"FolderList",
+		L"List",
+		L"Preview"
+	};
 	
 	ADD_ACTION6(AttachmentOpenAction,
 		IDM_ATTACHMENT_OPEN,
@@ -1071,15 +1078,20 @@ void qm::MainWindowImpl::initActions()
 		IDM_VIEW_FIT,
 		pMessageViewModeHolder_);
 	ADD_ACTION3(ViewFocusAction,
+		IDM_VIEW_FOCUS,
+		pViews,
+		countof(pViews),
+		pwszViewNames);
+	ADD_ACTION3(ViewFocusAction,
 		IDM_VIEW_FOCUSNEXT,
 		pViews,
 		countof(pViews),
-		true);
+		ViewFocusAction::TYPE_NEXT);
 	ADD_ACTION3(ViewFocusAction,
 		IDM_VIEW_FOCUSPREV,
 		pViews,
 		countof(pViews),
-		false);
+		ViewFocusAction::TYPE_PREV);
 	ADD_ACTION2(ViewFocusItemAction,
 		IDM_VIEW_FOCUSITEM,
 		pMessageWindow_->getFocusController(),

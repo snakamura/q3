@@ -189,6 +189,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ViewFilter",					IDM_VIEW_FILTER,					MAX_VIEW_FILTER,			0 },
 	{ L"ViewFilterCustom",				IDM_VIEW_FILTERCUSTOM,				1,							0 },
 	{ L"ViewFit",						IDM_VIEW_FIT,						MAX_VIEW_FIT,				0 },
+	{ L"ViewFocus",						IDM_VIEW_FOCUS,						MAX_VIEW_FOCUS,				0 },
 	{ L"ViewFocusEditItem",				IDM_VIEW_FOCUSEDITITEM,				MAX_VIEW_FOCUSEDITITEM,		0 },
 	{ L"ViewFocusItem",					IDM_VIEW_FOCUSITEM,					MAX_VIEW_FOCUSITEM,			0 },
 	{ L"ViewFocusNext",					IDM_VIEW_FOCUSNEXT,					1,							0 },

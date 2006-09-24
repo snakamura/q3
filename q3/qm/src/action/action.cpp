@@ -6289,11 +6289,25 @@ std::pair<MessageViewMode::Fit, bool> qm::ViewFitAction::getParam(const ActionPa
 
 qm::ViewFocusAction::ViewFocusAction(View* pViews[],
 									 size_t nViewCount,
-									 bool bNext) :
-	bNext_(bNext)
+									 Type type) :
+	type_(type)
+{
+	assert(type == TYPE_NEXT || type == TYPE_PREV);
+	
+	listView_.resize(nViewCount);
+	std::copy(pViews, pViews + nViewCount, listView_.begin());
+}
+
+qm::ViewFocusAction::ViewFocusAction(View* pViews[],
+									 size_t nViewCount,
+									 const WCHAR* pwszNames[]) :
+	type_(TYPE_VIEW)
 {
 	listView_.resize(nViewCount);
 	std::copy(pViews, pViews + nViewCount, listView_.begin());
+	
+	listName_.resize(nViewCount);
+	std::copy(pwszNames, pwszNames + nViewCount, listName_.begin());
 }
 
 qm::ViewFocusAction::~ViewFocusAction()
@@ -6302,47 +6316,62 @@ qm::ViewFocusAction::~ViewFocusAction()
 
 void qm::ViewFocusAction::invoke(const ActionEvent& event)
 {
-	int nViewCount = static_cast<int>(listView_.size());
-	
-	int nView = 0;
-	for (nView = 0; nView < nViewCount; ++nView) {
-		if (listView_[nView]->isActive())
-			break;
-	}
-	if (nView == nViewCount)
-		nView = 0;
-	
-	FocusControllerBase* pFocusController = listView_[nView]->getViewFocusController();
-	if (pFocusController && !pFocusController->isPrimaryItemFocused()) {
-		FocusControllerBase::Focus focus = bNext_ ?
-			FocusControllerBase::FOCUS_NEXT : FocusControllerBase::FOCUS_PREV;
-		if (pFocusController->moveFocus(focus, false))
-			return;
-	}
-	
-	int n = 0;
 	View* pView = 0;
-	if (bNext_) {
-		for (n = nView + 1; n < nViewCount && !pView; ++n) {
-			if (listView_[n]->isShow())
-				pView = listView_[n];
-		}
-		for (n = 0; n < nView && !pView; ++n) {
-			if (listView_[n]->isShow())
-				pView = listView_[n];
-		}
+	
+	if (type_ == TYPE_VIEW) {
+		const WCHAR* pwszName = ActionParamUtil::getString(event.getParam(), 0);
+		if (!pwszName)
+			return;
+		NameList::const_iterator it = std::find_if(
+			listName_.begin(), listName_.end(),
+			std::bind2nd(string_equal<WCHAR>(), pwszName));
+		if (it == listName_.end())
+			return;
+		pView = listView_[it - listName_.begin()];
 	}
 	else {
-		for (n = nView - 1; n >= 0 && !pView; --n) {
-			if (listView_[n]->isShow())
-				pView = listView_[n];
+		int nViewCount = static_cast<int>(listView_.size());
+		
+		int nView = 0;
+		for (nView = 0; nView < nViewCount; ++nView) {
+			if (listView_[nView]->isActive())
+				break;
 		}
-		for (n = nViewCount - 1; n > nView && !pView; --n) {
-			if (listView_[n]->isShow())
-				pView = listView_[n];
+		if (nView == nViewCount)
+			nView = 0;
+		
+		FocusControllerBase* pFocusController = listView_[nView]->getViewFocusController();
+		if (pFocusController && !pFocusController->isPrimaryItemFocused()) {
+			FocusControllerBase::Focus focus = type_ == TYPE_NEXT ?
+				FocusControllerBase::FOCUS_NEXT : FocusControllerBase::FOCUS_PREV;
+			if (pFocusController->moveFocus(focus, false))
+				return;
+		}
+		
+		int n = 0;
+		if (type_ == TYPE_NEXT) {
+			for (n = nView + 1; n < nViewCount && !pView; ++n) {
+				if (listView_[n]->isShow())
+					pView = listView_[n];
+			}
+			for (n = 0; n < nView && !pView; ++n) {
+				if (listView_[n]->isShow())
+					pView = listView_[n];
+			}
+		}
+		else {
+			for (n = nView - 1; n >= 0 && !pView; --n) {
+				if (listView_[n]->isShow())
+					pView = listView_[n];
+			}
+			for (n = nViewCount - 1; n > nView && !pView; --n) {
+				if (listView_[n]->isShow())
+					pView = listView_[n];
+			}
 		}
 	}
-	if (pView)
+	
+	if (pView && pView->isShow())
 		pView->setActive();
 }
 

@@ -3124,9 +3124,19 @@ private:
 class ViewFocusAction : public qs::AbstractAction
 {
 public:
+	enum Type {
+		TYPE_VIEW,
+		TYPE_NEXT,
+		TYPE_PREV
+	};
+
+public:
 	ViewFocusAction(View* pViews[],
 					size_t nViewCount,
-					bool bNext);
+					Type type);
+	ViewFocusAction(View* pViews[],
+					size_t nViewCount,
+					const WCHAR* pwszNames[]);
 	virtual ~ViewFocusAction();
 
 public:
@@ -3138,10 +3148,12 @@ private:
 
 private:
 	typedef std::vector<View*> ViewList;
+	typedef std::vector<const WCHAR*> NameList;
 
 private:
 	ViewList listView_;
-	bool bNext_;
+	Type type_;
+	NameList listName_;
 };
 
 

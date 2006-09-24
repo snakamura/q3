@@ -203,11 +203,12 @@
 #define IDM_VIEW_ENCODING               46100
 #define IDM_VIEW_FILTER                 46200
 #define IDM_VIEW_FIT                    46300
-#define IDM_VIEW_FOCUSEDITITEM          46400
-#define IDM_VIEW_FOCUSITEM              46500
-#define IDM_VIEW_SORT                   46600
-#define IDM_VIEW_TEMPLATE               46700
-#define IDM_VIEW_ZOOM                   46800
+#define IDM_VIEW_FOCUS                  46400
+#define IDM_VIEW_FOCUSEDITITEM          46500
+#define IDM_VIEW_FOCUSITEM              46600
+#define IDM_VIEW_SORT                   46700
+#define IDM_VIEW_TEMPLATE               46800
+#define IDM_VIEW_ZOOM                   46900
 #define IDM_ADDRESSBOOK_ALLCATEGORY     48001
 #define IDM_ADDRESSBOOK_CHANGEBCC       48002
 #define IDM_ADDRESSBOOK_CHANGECC        48003
@@ -266,6 +267,7 @@
 #define MAX_VIEW_ENCODING               100
 #define MAX_VIEW_FILTER                 100
 #define MAX_VIEW_FIT                    100
+#define MAX_VIEW_FOCUS                  100
 #define MAX_VIEW_FOCUSEDITITEM          100
 #define MAX_VIEW_FOCUSITEM              100
 #define MAX_VIEW_SORT                   100
