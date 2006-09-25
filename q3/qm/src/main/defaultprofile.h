@@ -201,7 +201,7 @@ const qs::Profile::Default defaultProfiles[] = {
 #endif
 	{ L"Global",	L"ImeControl",						L"1"												},
 	{ L"Global",	L"IncrementalSearch",				L"0"												},
-	{ L"Global",	L"LastUpdateCheck",					L""													},
+	{ L"Global",	L"NextUpdateCheck",					L""													},
 	{ L"Global",	L"Libraries",						L""													},
 	{ L"Global",	L"Log",								L"-1"												},
 	{ L"Global",	L"LogFilter",						L""													},

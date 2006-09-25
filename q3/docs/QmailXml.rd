@@ -62,7 +62,7 @@ keyƒGƒŒƒƒ“ƒg‚Íˆê‚Â‚ÌƒL[‚ğ•\‚µ‚Ü‚·Bname‘®«‚É‚ÍƒL[‚Ì–¼‘O‚ğw’è‚µ‚Ü‚·Bqƒm[ƒ
   <section name="Global">
    <key name="CurrentFolder">//Main/ƒeƒXƒg</key>
    <key name="DetachFolder">C:\Temp</key>
-   <key name="LastUpdateCheck">2006-08-13T20:40:26+09:00</key>
+   <key name="NextUpdateCheck">2006-08-13T20:40:26+09:00</key>
    <key name="Offline">0</key>
   </section>
   <section name="HeaderEditWindow">
@@ -519,8 +519,8 @@ IME‚ğ©“®‚Å§Œä‚·‚é‚©‚Ç‚¤‚©B
 ƒƒbƒZ[ƒW“àŒŸõ‚âƒGƒfƒBƒbƒgƒrƒ…[‚ÌŒŸõ‚ÅƒCƒ“ƒNƒŠƒƒ“ƒ^ƒ‹ƒT[ƒ`‚ğg‚¤‚©‚Ç‚¤‚©B
 
 
-+LastUpdateCheck
-ÅŒã‚Éƒo[ƒWƒ‡ƒ“ƒ`ƒFƒbƒN‚ğ‚µ‚½“úB
++NextUpdateCheck
+Ÿ‚Éƒo[ƒWƒ‡ƒ“ƒ`ƒFƒbƒN‚ğ‚·‚é“úB
 
 
 +Libraries

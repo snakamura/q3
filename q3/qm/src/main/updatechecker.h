@@ -61,11 +61,12 @@ private:
 private:
 	SyncManager* pSyncManager_;
 	qs::Profile* pProfile_;
-	qs::Time timeLastCheck_;
-	qs::CriticalSection cs_;
-	volatile bool bUpdated_;
 	bool bAutoCheck_;
+	volatile bool bUpdated_;
+	
+	qs::Time timeNextCheck_;
 	std::auto_ptr<UpdateCheckThread> pThread_;
+	qs::CriticalSection cs_;
 };
 
 
@@ -94,8 +95,7 @@ private:
 
 private:
 	UpdateChecker* pUpdateChecker_;
-	bool bRunning_;
-	qs::CriticalSection cs_;
+	volatile bool bRunning_;
 };
 
 }

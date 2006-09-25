@@ -33,11 +33,9 @@ qm::UpdateChecker::UpdateChecker(SyncManager* pSyncManager,
 	bUpdated_(false),
 	bAutoCheck_(false)
 {
-	wstring_ptr wstrLastCheck(pProfile_->getString(L"Global", L"LastUpdateCheck"));
-	if (!timeLastCheck_.parse(wstrLastCheck.get())) {
-		timeLastCheck_ = Time::getCurrentTime();
-		timeLastCheck_.addDay(-1);
-	}
+	wstring_ptr wstrNextCheck(pProfile_->getString(L"Global", L"NextUpdateCheck"));
+	if (!timeNextCheck_.parse(wstrNextCheck.get()))
+		timeNextCheck_ = Time::getCurrentTime();
 	setAutoCheck(pProfile_->getInt(L"Global", L"AutoUpdateCheck") != 0);
 }
 
@@ -61,7 +59,7 @@ UpdateChecker::Update qm::UpdateChecker::checkUpdate()
 	
 	{
 		Lock<CriticalSection> lock(cs_);
-		timeLastCheck_ = Time::getCurrentTime();
+		timeNextCheck_ = Time::getCurrentTime().addDay(1);
 	}
 	
 	wstring_ptr wstrVersion(Application::getApplication().getVersion(L' ', false));
@@ -108,15 +106,17 @@ void qm::UpdateChecker::setAutoCheck(bool bAutoCheck)
 void qm::UpdateChecker::save()
 {
 	Lock<CriticalSection> lock(cs_);
-	wstring_ptr wstrLastCheck(timeLastCheck_.format());
-	pProfile_->setString(L"Global", L"LastUpdateCheck", wstrLastCheck.get());
+	
+	pProfile_->setString(L"Global", L"NextUpdateCheck", timeNextCheck_.format().get());
 	pProfile_->setInt(L"Global", L"AutoUpdateCheck", bAutoCheck_);
 }
 
 void qm::UpdateChecker::statusChanged(const SyncManagerEvent& event)
 {
-	if (isUpdated() || pSyncManager_->isSyncing())
+	if (isUpdated()/* || pSyncManager_->isSyncing()*/)
 		return;
+	
+	Lock<CriticalSection> lock(cs_);
 	
 	if (pThread_.get()) {
 		if (pThread_->isRunning())
@@ -124,12 +124,9 @@ void qm::UpdateChecker::statusChanged(const SyncManagerEvent& event)
 		pThread_->join();
 		pThread_.reset(0);
 	}
-
-	{
-		Lock<CriticalSection> lock(cs_);
-		if (Time(timeLastCheck_).addDay(1) > Time::getCurrentTime())
-			return;
-	}
+	
+	if (timeNextCheck_ > Time::getCurrentTime())
+		return;
 	
 	std::auto_ptr<UpdateCheckThread> pThread(new UpdateCheckThread(this));
 	if (!pThread->start())
@@ -156,7 +153,6 @@ qm::UpdateCheckThread::~UpdateCheckThread()
 
 bool qm::UpdateCheckThread::isRunning() const
 {
-	Lock<CriticalSection> lock(cs_);
 	return bRunning_;
 }
 
@@ -172,6 +168,5 @@ void qm::UpdateCheckThread::run()
 	if (pUpdateChecker_->checkUpdate() == UpdateChecker::UPDATE_UPDATED)
 		pUpdateChecker_->setUpdated();
 	
-	Lock<CriticalSection> lock(cs_);
 	bRunning_ = false;
 }
