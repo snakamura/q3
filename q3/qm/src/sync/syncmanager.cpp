@@ -450,9 +450,9 @@ void qm::SyncManager::removeSyncManagerHandler(SyncManagerHandler* pHandler)
 	listHandler_.erase(it, listHandler_.end());
 }
 
-void qm::SyncManager::fireStatusChanged() const
+void qm::SyncManager::fireStatusChanged()
 {
-	SyncManagerEvent event;
+	SyncManagerEvent event(this);
 	for (SyncManagerHandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		(*it)->statusChanged(event);
 }
@@ -1585,10 +1585,16 @@ qm::SyncManagerHandler::~SyncManagerHandler()
  *
  */
 
-qm::SyncManagerEvent::SyncManagerEvent()
+qm::SyncManagerEvent::SyncManagerEvent(SyncManager* pSyncManager) :
+	pSyncManager_(pSyncManager)
 {
 }
 
 qm::SyncManagerEvent::~SyncManagerEvent()
 {
+}
+
+SyncManager* qm::SyncManagerEvent::getSyncManager() const
+{
+	return pSyncManager_;
 }

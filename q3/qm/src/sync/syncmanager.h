@@ -312,7 +312,7 @@ public:
 	void removeSyncManagerHandler(SyncManagerHandler* pHandler);
 
 public:
-	void fireStatusChanged() const;
+	void fireStatusChanged();
 
 public:
 	static void addError(SyncManagerCallback* pCallback,
@@ -640,12 +640,18 @@ public:
 class SyncManagerEvent
 {
 public:
-	SyncManagerEvent();
+	explicit SyncManagerEvent(SyncManager* pSyncManager);
 	~SyncManagerEvent();
+
+public:
+	SyncManager* getSyncManager() const;
 
 private:
 	SyncManagerEvent(const SyncManagerEvent&);
 	SyncManagerEvent& operator=(const SyncManagerEvent&);
+
+private:
+	SyncManager* pSyncManager_;
 };
 
 }
