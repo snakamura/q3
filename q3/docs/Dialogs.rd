@@ -2,7 +2,7 @@
 =ダイアログ
 
 *((<[メールボックス]|URL:MailFolderDialog.html>))
-*((<[リソースダイアログ]|URL:ResourceDialog.html>))
+*((<[リソース]|URL:ResourceDialog.html>))
 *((<[書き出し]|URL:ExportDialog.html>))
 *((<[読み込み]|URL:ImportDialog.html>))
 *((<[フォルダの作成]|URL:CreateFolderDialog.html>))
