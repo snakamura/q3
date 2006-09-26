@@ -830,11 +830,16 @@ bool qmnntp::MessagesData::setData(xstring_ptr strData,
 			&item.nLine_
 		};
 		for (n = 0; n < countof(pn); ++n) {
-			*pn[n] = strtol(p, &pEnd, 10);
-			while (*pEnd == ' ')
-				++pEnd;
+			if (*p != L'\t') {
+				*pn[n] = strtol(p, &pEnd, 10);
+				while (*pEnd == ' ')
+					++pEnd;
+			}
+			else {
+				pEnd = p;
+			}
 			if (n == countof(pn) - 1) {
-				if (*pEnd != '\t' && *pEnd != '\r' && *p != '\0')
+				if (*pEnd != '\t' && *pEnd != '\r' && *pEnd != '\0')
 					return false;
 			}
 			else {
