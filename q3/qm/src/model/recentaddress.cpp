@@ -31,7 +31,7 @@ qm::RecentAddress::RecentAddress(AddressBook* pAddressBook,
 	pProfile_(pProfile)
 {
 	nMax_ = pProfile_->getInt(L"RecentAddress", L"Max");
-	if (nMax_ == 0 || nMax_ > 100)
+	if (nMax_ == 0)
 		nMax_ = 10;
 	
 	load();
