@@ -16,11 +16,13 @@
 *((<Windows CEで外部ストレージに実行ファイルやメールボックスを置くとハングアップします|URL:WindowsCEExternalStorage.html>))
 *((<IMAP4アカウントでサーバからのレスポンスのパースに失敗します|URL:FailToParseImap4Response.html>))
 *((<スパムフィルタでエラーが発生します|URL:JunkFilterCollapse.html>))
+*((<大量のメッセージをインポートしようとするとエラーになります|URL:ImportLargeNumberOfMessages.html>))
 
 
 ==Tips
 *((<どうやってプレビューで開いたメッセージを既読にしないようにできますか?|URL:HowToNotMakeSeenOnPreview.html>))
 *((<なぜリストビューでメッセージを選択してからプレビューで表示されるまでに時間がかかるのですか?|URL:WhyPreviewIsNotUpdatedImmediately.html>))
+*((<なぜリストビューで選択されたメッセージがプレビューに表示されないことがあるのですか?|URL:WhyMessageIsNotPreviewed.html>))
 *((<メールボックスディレクトリを移動するにはどうすれば良いですか?|URL:HowToChangeMailBoxDirectory.html>))
 *((<受信したメールの送信者をアドレス帳に登録した名前で表示するにはどうすれば良いですか?|URL:HowToShowNameInAddressBook.html>))
 *((<同じスレッドのメッセージをまとめて既読にするにはどうすれば良いですか?|URL:HowToKillThread.html>))
