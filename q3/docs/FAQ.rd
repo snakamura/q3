@@ -27,5 +27,6 @@
 *((<受信したメールの送信者をアドレス帳に登録した名前で表示するにはどうすれば良いですか?|URL:HowToShowNameInAddressBook.html>))
 *((<同じスレッドのメッセージをまとめて既読にするにはどうすれば良いですか?|URL:HowToKillThread.html>))
 *((<IMAP4アカウントでメッセージを移動・削除しても削除マークが付くだけで削除されません|URL:HowToClearDeletedMessage.html>))
+*((<印刷するときにも引用を線で表示するにはどうすればよいですか?|URL:HowToPrintWithQuote.html>))
 
 =end
