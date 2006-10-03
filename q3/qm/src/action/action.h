@@ -2042,6 +2042,11 @@ public:
 					   Document* pDocument,
 					   qs::Profile* pProfile,
 					   HWND hwnd);
+	MessageMacroAction(FolderSelectionModel* pFolderSelectionModel,
+					   SecurityModel* pSecurityModel,
+					   Document* pDocument,
+					   qs::Profile* pProfile,
+					   HWND hwnd);
 	virtual ~MessageMacroAction();
 
 public:
@@ -2049,11 +2054,15 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	std::auto_ptr<Macro> getMacro(const qs::ActionEvent& event) const;
+
+private:
 	MessageMacroAction(const MessageMacroAction&);
 	MessageMacroAction& operator=(const MessageMacroAction&);
 
 private:
 	MessageSelectionModel* pMessageSelectionModel_;
+	FolderSelectionModel* pFolderSelectionModel_;
 	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
 	qs::Profile* pProfile_;

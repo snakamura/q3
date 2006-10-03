@@ -803,13 +803,28 @@ void qm::MainWindowImpl::initActions()
 		pDocument_->getUndoManager(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION5(MessageMacroAction,
+	
+	std::auto_ptr<MessageMacroAction> pMessageMacroAction1(
+		new MessageMacroAction(pMessageSelectionModel_.get(),
+			pSecurityModel_.get(), pDocument_, pProfile_, pThis_->getHandle()));
+	std::auto_ptr<MessageMacroAction> pMessageMacroAction2(
+		new MessageMacroAction(this, pSecurityModel_.get(),
+			pDocument_, pProfile_, pThis_->getHandle()));
+	Action* pMessageMacroActions[] = {
+		pMessageMacroAction2.get(),
+		pMessageMacroAction2.get(),
+		pMessageMacroAction2.get(),
+		pMessageMacroAction1.get(),
+		pMessageMacroAction1.get()
+	};
+	ADD_ACTION3(DispatchAction,
 		IDM_MESSAGE_MACRO,
-		pMessageSelectionModel_.get(),
-		pSecurityModel_.get(),
-		pDocument_,
-		pProfile_,
-		pThis_->getHandle());
+		pViews,
+		pMessageMacroActions,
+		countof(pViews));
+	pMessageMacroAction1.release();
+	pMessageMacroAction2.release();
+	
 	ADD_ACTION5(MessageOpenAttachmentAction,
 		IDM_MESSAGE_OPENATTACHMENT,
 		pDocument_,

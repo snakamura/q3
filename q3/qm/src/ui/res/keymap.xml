@@ -34,6 +34,9 @@
 		<action name="FileOffline">
 			<key key="O" ctrl="true"/>
 		</action>
+		<action name="MessageMacro">
+			<key key="X" ctrl="true" alt="true"/>
+		</action>
 		<action name="MessageSearch">
 			<key key="S" ctrl="true"/>
 		</action>
@@ -173,9 +176,6 @@
 		</action>
 		<action name="MessageLabel">
 			<key key="L" shift="true"/>
-		</action>
-		<action name="MessageMacro">
-			<key key="X" ctrl="true" alt="true"/>
 		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>
@@ -428,9 +428,6 @@
 		</action>
 		<action name="MessageLabel">
 			<key key="L" shift="true"/>
-		</action>
-		<action name="MessageMacro">
-			<key key="X" ctrl="true" alt="true"/>
 		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>

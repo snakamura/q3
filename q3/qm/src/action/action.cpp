@@ -4245,6 +4245,21 @@ qm::MessageMacroAction::MessageMacroAction(MessageSelectionModel* pMessageSelect
 										   Profile* pProfile,
 										   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pFolderSelectionModel_(0),
+	pSecurityModel_(pSecurityModel),
+	pDocument_(pDocument),
+	pProfile_(pProfile),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageMacroAction::MessageMacroAction(FolderSelectionModel* pFolderSelectionModel,
+										   SecurityModel* pSecurityModel,
+										   Document* pDocument,
+										   Profile* pProfile,
+										   HWND hwnd) :
+	pMessageSelectionModel_(0),
+	pFolderSelectionModel_(pFolderSelectionModel),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
@@ -4260,11 +4275,59 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
 	Folder* pFolder = 0;
-	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
-	if (l.empty())
+	MessageHolderList listMessageHolder;
+	Account::FolderList listFolder;
+	
+	if (pMessageSelectionModel_)
+		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &listMessageHolder);
+	else if (pFolderSelectionModel_)
+		pFolderSelectionModel_->getSelectedFolders(&listFolder);
+	
+	if (listMessageHolder.empty() && listFolder.empty())
+		return;
+		
+	std::auto_ptr<Macro> pMacro(getMacro(event));
+	if (!pMacro.get())
 		return;
 	
+	MacroVariableHolder globalVariable;
+	const unsigned int nFlags = MacroContext::FLAG_UI |
+		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY;
+	if (!listMessageHolder.empty()) {
+		for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
+			Message msg;
+			MacroContext context(*it, &msg, lock.get(), listMessageHolder, pFolder, pDocument_,
+				hwnd_, pProfile_, 0, nFlags, pSecurityModel_->getSecurityMode(), 0, &globalVariable);
+			MacroValuePtr pValue(pMacro->value(&context));
+			if (!pValue.get() && context.getReturnType() == MacroContext::RETURNTYPE_NONE) {
+				ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
+				return;
+			}
+		}
+	}
+	else if (!listFolder.empty()) {
+		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+			Folder* pFolder = *it;
+			MacroContext context(0, 0, pFolder->getAccount(), MessageHolderList(),
+				pFolder, pDocument_, hwnd_, pProfile_, 0, nFlags,
+				pSecurityModel_->getSecurityMode(), 0, &globalVariable);
+			MacroValuePtr pValue(pMacro->value(&context));
+			if (!pValue.get() && context.getReturnType() == MacroContext::RETURNTYPE_NONE) {
+				ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
+				return;
+			}
+		}
+	}
+}
+
+bool qm::MessageMacroAction::isEnabled(const ActionEvent& event)
+{
+	return (pMessageSelectionModel_ && pMessageSelectionModel_->hasSelectedMessage()) ||
+		(pFolderSelectionModel_ && pFolderSelectionModel_->hasSelectedFolder());
+}
+
+std::auto_ptr<Macro> qm::MessageMacroAction::getMacro(const ActionEvent& event) const
+{
 	const WCHAR* pwszMacro = ActionParamUtil::getString(event.getParam(), 0);
 	wstring_ptr wstrMacro;
 	if (!pwszMacro) {
@@ -4276,37 +4339,17 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 		MultiLineInputBoxDialog dialog(wstrTitle.get(), wstrMessage.get(),
 			wstrPrevMacro.get(), false, pProfile_, L"MacroDialog");
 		if (dialog.doModal(hwnd_) != IDOK)
-			return;
+			return std::auto_ptr<Macro>();
 		
 		wstrMacro = allocWString(dialog.getValue());
 		pwszMacro = wstrMacro.get();
 		pProfile_->setString(L"Global", L"Macro", pwszMacro);
 	}
 	
-	MacroParser parser;
-	std::auto_ptr<Macro> pMacro(parser.parse(pwszMacro));
-	if (!pMacro.get()) {
+	std::auto_ptr<Macro> pMacro(MacroParser().parse(pwszMacro));
+	if (!pMacro.get())
 		ActionUtil::error(hwnd_, IDS_ERROR_INVALIDMACRO);
-		return;
-	}
-	
-	MacroVariableHolder globalVariable;
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		Message msg;
-		MacroContext context(*it, &msg, lock.get(), l, pFolder, pDocument_, hwnd_, pProfile_, 0,
-			MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY,
-			pSecurityModel_->getSecurityMode(), 0, &globalVariable);
-		MacroValuePtr pValue(pMacro->value(&context));
-		if (!pValue.get() && context.getReturnType() == MacroContext::RETURNTYPE_NONE) {
-			ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
-			return;
-		}
-	}
-}
-
-bool qm::MessageMacroAction::isEnabled(const ActionEvent& event)
-{
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMacro;
 }
 
 
