@@ -2055,6 +2055,11 @@ public:
 
 private:
 	std::auto_ptr<Macro> getMacro(const qs::ActionEvent& event) const;
+	bool eval(const Macro* pMacro,
+			  Folder* pFolder,
+			  const MessageHolderList& listMessageHolder,
+			  const MessageHolderList& listSelected,
+			  MacroVariableHolder* pGlobalVariable) const;
 
 private:
 	MessageMacroAction(const MessageMacroAction&);

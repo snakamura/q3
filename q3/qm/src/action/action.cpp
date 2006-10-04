@@ -4291,30 +4291,16 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 		return;
 	
 	MacroVariableHolder globalVariable;
-	const unsigned int nFlags = MacroContext::FLAG_UI |
-		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY;
 	if (!listMessageHolder.empty()) {
-		for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
-			Message msg;
-			MacroContext context(*it, &msg, lock.get(), listMessageHolder, pFolder, pDocument_,
-				hwnd_, pProfile_, 0, nFlags, pSecurityModel_->getSecurityMode(), 0, &globalVariable);
-			MacroValuePtr pValue(pMacro->value(&context));
-			if (!pValue.get() && context.getReturnType() == MacroContext::RETURNTYPE_NONE) {
-				ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
-				return;
-			}
-		}
+		eval(pMacro.get(), pFolder, listMessageHolder, listMessageHolder, &globalVariable);
 	}
 	else if (!listFolder.empty()) {
 		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 			Folder* pFolder = *it;
-			MacroContext context(0, 0, pFolder->getAccount(), MessageHolderList(),
-				pFolder, pDocument_, hwnd_, pProfile_, 0, nFlags,
-				pSecurityModel_->getSecurityMode(), 0, &globalVariable);
-			MacroValuePtr pValue(pMacro->value(&context));
-			if (!pValue.get() && context.getReturnType() == MacroContext::RETURNTYPE_NONE) {
-				ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
-				return;
+			Lock<Account> lock(*pFolder->getAccount());
+			if (pFolder->loadMessageHolders()) {
+				if (!eval(pMacro.get(), pFolder, pFolder->getMessages(), MessageHolderList(), &globalVariable))
+					return;
 			}
 		}
 	}
@@ -4350,6 +4336,33 @@ std::auto_ptr<Macro> qm::MessageMacroAction::getMacro(const ActionEvent& event) 
 	if (!pMacro.get())
 		ActionUtil::error(hwnd_, IDS_ERROR_INVALIDMACRO);
 	return pMacro;
+}
+
+bool qm::MessageMacroAction::eval(const Macro* pMacro,
+								  Folder* pFolder,
+								  const MessageHolderList& listMessageHolder,
+								  const MessageHolderList& listSelected,
+								  MacroVariableHolder* pGlobalVariable) const
+{
+	assert(pMacro);
+	assert(pFolder);
+	assert(pGlobalVariable);
+	
+	for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
+		Message msg;
+		MacroContext context(*it, &msg, pFolder->getAccount(),
+			listSelected, pFolder, pDocument_, hwnd_, pProfile_, 0,
+			MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY,
+			pSecurityModel_->getSecurityMode(), 0, pGlobalVariable);
+		MacroValuePtr pValue(pMacro->value(&context));
+		if (!pValue.get()) {
+			if (context.getReturnType() == MacroContext::RETURNTYPE_NONE)
+				ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
+			return false;
+		}
+	}
+	
+	return true;
 }
 
 
