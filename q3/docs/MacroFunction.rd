@@ -129,4 +129,77 @@
 *((<@Variable|URL:VariableFunction.html>))
 *((<@While|URL:WhileFunction.html>))
 
+
+==呼び出し可能な関数
+各関数は、状況に応じて呼び出し可能であるかどうかが決まっています。例えば、@AddressBookはUIが存在しない場合には呼び出せません。呼び出し可能であるかどうかを決定する条件には、以下のようなものがあります。
+
+*UIが必要
+*UIスレッドからのみ呼び出し可能
+*メッセージに対する変更が可能
+
+マクロを呼び出すことのできる各場面において、上記の条件は以下のように設定されます。
+
+*((<作成用のテンプレート|URL:CreateTemplate.html>))
+  *UIあり
+  *UIスレッド
+  *変更可能
+*((<表示用のテンプレート|URL:ViewTemplate.html>))
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<エクスポート・印刷・引用符付き貼り付けのテンプレート|URL:OtherTemplate.html>))
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<MessageMacroアクション|URL:MessageMacroAction.html>))
+  *UIあり
+  *UIスレッド
+  *変更可能
+*((<X-QMAIL-Macro, X-QMAIL-DraftMacro|URL:SpecialHeaders.html>))
+  *UIあり
+  *UIスレッド
+  *変更可能
+*((<手動振り分け・アクティブ振り分け|URL:ApplyRules.html>))（手動でのメッセージ移動や手動振り分けから引き起こされた場合）の条件
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<自動振り分け・アクティブ振り分け|URL:ApplyRules.html>))（自動振り分けから引き起こされた場合）の条件
+  *UIなし
+  *バックグラウンドスレッド
+  *変更不可
+*((<フィルタ|URL:Filter.html>))
+  *UIなし
+  *UIスレッド
+  *変更不可
+*((<同期フィルタ|URL:SyncFilter.html>))
+  *UIなし
+  *バックグラウンドスレッド
+  *変更不可
+*((<基本検索|URL:MacroSearch.html>))のマクロ
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<ヘッダビュー|URL:CustomizeHeaderView.html>))
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<リストビューの色|URL:Colors.html>))
+  *UIなし
+  *UIスレッド
+  *変更不可
+*((<ヘッダカラム|URL:CustomizeListView.html>))
+  *UIなし
+  *UIスレッド
+  *変更不可
+*((<動的メニュー|URL:CustomizeMenus.html>))
+  *UIなし
+  *UIスレッド
+  *変更不可
+*((<フォント|URL:Font.html>))
+  *UIあり
+  *UIスレッド
+  *変更不可
+
+各関数がどの条件で呼び出し可能かは各関数の説明を参照してください。
+
 =end
