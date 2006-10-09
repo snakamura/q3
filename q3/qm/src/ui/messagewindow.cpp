@@ -445,12 +445,7 @@ void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 			setMessage(pmh, true);
 	}
 	else {
-		// If this event occurs in other than UI thread, ignore it if pmh is not null,
-		// because pmh will be invalidated while posting a window event.
-		// This may happen if the synchronizing thread changes the keys of MessageHolder,
-		// such as updating its label.
-		if (!pmh)
-			pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED);
+		pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED);
 	}
 }
 
@@ -886,7 +881,8 @@ LRESULT qm::MessageWindow::onTimer(UINT_PTR nId)
 LRESULT qm::MessageWindow::onMessageModelMessageChanged(WPARAM wParam,
 														LPARAM lParam)
 {
-	pImpl_->setMessage(0, true);
+	MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
+	pImpl_->setMessage(mpl, true);
 	return 0;
 }
 

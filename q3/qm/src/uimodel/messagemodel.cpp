@@ -139,7 +139,7 @@ void qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)
 	
 	MessagePtrLock mpl(ptr_);
 	if (!mpl)
-		setMessage(0);
+		updateToViewModel(!isAlwaysUpdateToViewModel());
 }
 
 void qm::AbstractMessageModel::destroyed(const ViewModelEvent& event)
@@ -161,6 +161,23 @@ void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent
 	MessagePtrLock mpl(ptr_);
 	if (mpl && mpl == event.getMessageHolder())
 		setMessage(mpl);
+}
+
+void qm::AbstractMessageModel::updateToViewModel(bool bClearMessage)
+{
+	ViewModel* pViewModel = getViewModel();
+	assert(pViewModel);
+	
+	Lock<ViewModel> lock(*pViewModel);
+	
+	unsigned int nFocused = pViewModel->getFocused();
+	MessageHolder* pmh = 0;
+	if (nFocused < pViewModel->getCount())
+		pmh = pViewModel->getMessageHolder(nFocused);
+	
+	MessagePtrLock mpl(getCurrentMessage());
+	if (pmh != mpl)
+		setMessage(bClearMessage ? 0 : pmh);
 }
 
 void qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
@@ -208,6 +225,11 @@ MessageViewMode* qm::MessageMessageModel::getMessageViewMode(ViewModel* pViewMod
 	return pViewModel->getMessageViewMode(ViewModel::MODETYPE_MESSAGE);
 }
 
+bool qm::MessageMessageModel::isAlwaysUpdateToViewModel() const
+{
+	return false;
+}
+
 
 /****************************************************************************
  *
@@ -221,6 +243,7 @@ qm::PreviewMessageModel::PreviewMessageModel(ViewModelManager* pViewModelManager
 	pViewModelManager_(pViewModelManager),
 	pProfile_(pProfile),
 	nDelay_(300),
+	bUpdateAlways_(false),
 	bTimer_(false),
 	bConnectedToViewModel_(false)
 {
@@ -239,11 +262,12 @@ qm::PreviewMessageModel::~PreviewMessageModel()
 void qm::PreviewMessageModel::reloadProfiles()
 {
 	nDelay_ = pProfile_->getInt(L"PreviewWindow", L"Delay");
+	bUpdateAlways_ = pProfile_->getInt(L"PreviewWindow", L"UpdateAlways") != 0;
 }
 
 void qm::PreviewMessageModel::updateToViewModel()
 {
-	updateToViewModel(false);
+	AbstractMessageModel::updateToViewModel(false);
 }
 
 void qm::PreviewMessageModel::connectToViewModel()
@@ -302,7 +326,7 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 
 void qm::PreviewMessageModel::updated(const ViewModelEvent& event)
 {
-	updateToViewModel(true);
+	AbstractMessageModel::updateToViewModel(!bUpdateAlways_);
 }
 
 void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)
@@ -348,21 +372,9 @@ MessageViewMode* qm::PreviewMessageModel::getMessageViewMode(ViewModel* pViewMod
 	return pViewModel->getMessageViewMode(ViewModel::MODETYPE_PREVIEW);
 }
 
-void qm::PreviewMessageModel::updateToViewModel(bool bClearMessage)
+bool qm::PreviewMessageModel::isAlwaysUpdateToViewModel() const
 {
-	ViewModel* pViewModel = getViewModel();
-	assert(pViewModel);
-	
-	Lock<ViewModel> lock(*pViewModel);
-	
-	unsigned int nFocused = pViewModel->getFocused();
-	MessageHolder* pmh = 0;
-	if (nFocused < pViewModel->getCount())
-		pmh = pViewModel->getMessageHolder(nFocused);
-	
-	MessagePtrLock mpl(getCurrentMessage());
-	if (pmh != mpl)
-		setMessage(bClearMessage ? 0 : pmh);
+	return bUpdateAlways_;
 }
 
 void qm::PreviewMessageModel::killTimer()

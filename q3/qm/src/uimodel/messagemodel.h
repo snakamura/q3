@@ -106,6 +106,10 @@ public:
 
 protected:
 	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const = 0;
+	virtual bool isAlwaysUpdateToViewModel() const = 0;
+
+protected:
+	void updateToViewModel(bool bClearMessage);
 
 protected:
 	void fireMessageChanged(MessageHolder* pmh) const;
@@ -145,6 +149,7 @@ public:
 
 protected:
 	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const;
+	virtual bool isAlwaysUpdateToViewModel() const;
 
 private:
 	MessageMessageModel(const MessageMessageModel&);
@@ -191,9 +196,9 @@ public:
 
 protected:
 	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const;
+	virtual bool isAlwaysUpdateToViewModel() const;
 
 private:
-	void updateToViewModel(bool bClearMessage);
 	void killTimer();
 
 private:
@@ -209,6 +214,7 @@ private:
 	ViewModelManager* pViewModelManager_;
 	qs::Profile* pProfile_;
 	unsigned int nDelay_;
+	bool bUpdateAlways_;
 	std::auto_ptr<qs::Timer> pTimer_;
 	bool bTimer_;
 	bool bConnectedToViewModel_;

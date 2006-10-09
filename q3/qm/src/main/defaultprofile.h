@@ -433,6 +433,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"PreviewWindow",	L"ShowHeader",				L"1"							},
 	{ L"PreviewWindow",	L"ShowHeaderWindow",		L"1"							},
 	{ L"PreviewWindow",	L"Template",				L""								},
+	{ L"PreviewWindow",	L"UpdateAlways",			L"0"							},
 	{ L"PreviewWindow",	L"ViewFit",					L"0"							}, /*MessageViewMode::FIT_NONE*/
 	{ L"PreviewWindow",	L"ViewMode",				L"32"							}, /*MessageViewMode::MODE_QUOTE*/
 	{ L"PreviewWindow",	L"ViewZoom",				L"-1"							}, /*MessageViewMode::ZOOM_NONE*/
