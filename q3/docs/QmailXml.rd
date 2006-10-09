@@ -1049,6 +1049,10 @@ Quote1‚ÅŽw’è‚µ‚½•¶Žš‚Ì‚¢‚¸‚ê‚©‚©‚çŽn‚Ü‚és‚ªQuoteColor1‚ÅŽw’è‚µ‚½F‚ÉAQuote2‚ÅŽ
 ((<•\Ž¦—pƒeƒ“ƒvƒŒ[ƒg|URL:ViewTemplate.html>))B
 
 
++UpdateAlways (0 @ 0|1)
+ƒoƒbƒNƒOƒ‰ƒEƒ“ƒh‚ÅƒƒbƒZ[ƒW‚ªíœ‚³‚ê‚½‚È‚Ç‚Ìó‹µ‚Å‘I‘ð‚³‚ê‚½ƒƒbƒZ[ƒW‚ª•Ï‚í‚Á‚½ê‡‚É‚àAƒvƒŒƒrƒ…[‚É‘I‘ð‚³‚ê‚½ƒƒbƒZ[ƒW‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©B
+
+
 +ViewFit (0 @ 0|1|2)
 HTML•\Ž¦‚Ì”z’u•û–@B((<ViewFitƒAƒNƒVƒ‡ƒ“|URL:ViewFitAction.html>))‚ðŽQÆB
 
