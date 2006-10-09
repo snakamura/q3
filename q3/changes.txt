@@ -1,5 +1,7 @@
 [2.9.28]
 *フォルダビューやフォルダリストビューからもMessageMacroアクションを実行できるようにした
+*PreviewWindow/UpdateAlwaysを追加
+*keymap.xmlでf1からf24までを名前で指定すると正しく動作しないことがあるのを修正
 
 [2.9.27]
 *POP before SMTPを書き直した
