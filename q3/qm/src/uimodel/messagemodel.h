@@ -109,7 +109,8 @@ protected:
 	virtual bool isAlwaysUpdateToViewModel() const = 0;
 
 protected:
-	void updateToViewModel(bool bClearMessage);
+	void updateCurrentMessage();
+	void updateToViewModel();
 
 protected:
 	void fireMessageChanged(MessageHolder* pmh) const;

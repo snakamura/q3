@@ -139,7 +139,7 @@ void qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)
 	
 	MessagePtrLock mpl(ptr_);
 	if (!mpl)
-		updateToViewModel(!isAlwaysUpdateToViewModel());
+		updateCurrentMessage();
 }
 
 void qm::AbstractMessageModel::destroyed(const ViewModelEvent& event)
@@ -163,7 +163,15 @@ void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent
 		setMessage(mpl);
 }
 
-void qm::AbstractMessageModel::updateToViewModel(bool bClearMessage)
+void qm::AbstractMessageModel::updateCurrentMessage()
+{
+	if (isAlwaysUpdateToViewModel())
+		updateToViewModel();
+	else
+		setMessage(0);
+}
+
+void qm::AbstractMessageModel::updateToViewModel()
 {
 	ViewModel* pViewModel = getViewModel();
 	assert(pViewModel);
@@ -177,7 +185,7 @@ void qm::AbstractMessageModel::updateToViewModel(bool bClearMessage)
 	
 	MessagePtrLock mpl(getCurrentMessage());
 	if (pmh != mpl)
-		setMessage(bClearMessage ? 0 : pmh);
+		setMessage(pmh);
 }
 
 void qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
@@ -267,7 +275,7 @@ void qm::PreviewMessageModel::reloadProfiles()
 
 void qm::PreviewMessageModel::updateToViewModel()
 {
-	AbstractMessageModel::updateToViewModel(false);
+	AbstractMessageModel::updateToViewModel();
 }
 
 void qm::PreviewMessageModel::connectToViewModel()
@@ -326,7 +334,7 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 
 void qm::PreviewMessageModel::updated(const ViewModelEvent& event)
 {
-	AbstractMessageModel::updateToViewModel(!bUpdateAlways_);
+	updateCurrentMessage();
 }
 
 void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)
@@ -352,9 +360,13 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 		Lock<ViewModel> lock(*pNewViewModel);
 		ViewModel::RestoreInfo info = pNewViewModel->getRestoreInfo();
 		MessagePtrLock mpl(info.getMessagePtr());
-		setMessage(mpl);
-		if (mpl)
+		if (mpl) {
+			setMessage(mpl);
 			fireApplyRestoreInfo(&info);
+		}
+		else {
+			updateCurrentMessage();
+		}
 	}
 	else {
 		setMessage(0);
