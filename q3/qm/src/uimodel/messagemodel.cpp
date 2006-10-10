@@ -166,12 +166,12 @@ void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent
 void qm::AbstractMessageModel::updateCurrentMessage()
 {
 	if (isAlwaysUpdateToViewModel())
-		updateToViewModel();
+		updateToViewModel(false);
 	else
 		setMessage(0);
 }
 
-void qm::AbstractMessageModel::updateToViewModel()
+void qm::AbstractMessageModel::updateToViewModel(bool bClearIfChanged)
 {
 	ViewModel* pViewModel = getViewModel();
 	assert(pViewModel);
@@ -185,7 +185,7 @@ void qm::AbstractMessageModel::updateToViewModel()
 	
 	MessagePtrLock mpl(getCurrentMessage());
 	if (pmh != mpl)
-		setMessage(pmh);
+		setMessage(bClearIfChanged ? 0 : pmh);
 }
 
 void qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
@@ -275,7 +275,7 @@ void qm::PreviewMessageModel::reloadProfiles()
 
 void qm::PreviewMessageModel::updateToViewModel()
 {
-	AbstractMessageModel::updateToViewModel();
+	AbstractMessageModel::updateToViewModel(false);
 }
 
 void qm::PreviewMessageModel::connectToViewModel()
@@ -334,7 +334,7 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 
 void qm::PreviewMessageModel::updated(const ViewModelEvent& event)
 {
-	updateCurrentMessage();
+	AbstractMessageModel::updateToViewModel(!bUpdateAlways_);
 }
 
 void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)

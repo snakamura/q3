@@ -110,7 +110,7 @@ protected:
 
 protected:
 	void updateCurrentMessage();
-	void updateToViewModel();
+	void updateToViewModel(bool bClearIfChanged);
 
 protected:
 	void fireMessageChanged(MessageHolder* pmh) const;
