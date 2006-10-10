@@ -91,7 +91,6 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus,
 	if (listMessage_.size() == 1) {
 		MessageHolder* pmh = listMessage_.front();
 		
-		int n = 0;
 		struct
 		{
 			wstring_ptr (MessageHolder::*pfn_)() const;
@@ -101,7 +100,7 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus,
 			{ &MessageHolder::getTo,		IDC_TO		},
 			{ &MessageHolder::getSubject,	IDC_SUBJECT	}
 		};
-		for (n = 0; n < countof(texts); ++n) {
+		for (int n = 0; n < countof(texts); ++n) {
 			wstring_ptr wstr((pmh->*texts[n].pfn_)());
 			setDlgItemText(texts[n].nId_, wstr.get());
 		}
@@ -112,10 +111,13 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus,
 			UINT nId_;
 		} numbers[] = {
 			{ &MessageHolder::getId,		IDC_ID			},
-			{ &MessageHolder::getSize,		IDC_MESSAGESIZE	}
+//			{ &MessageHolder::getSize,		IDC_MESSAGESIZE	}
 		};
-		for (n = 0; n < countof(numbers); ++n)
+		for (int n = 0; n < countof(numbers); ++n)
 			setDlgItemInt(numbers[n].nId_, (pmh->*numbers[n].pfn_)());
+		
+		wstring_ptr wstrSize = formatSize(pmh->getSize());
+		setDlgItemText(IDC_MESSAGESIZE, wstrSize.get());
 		
 		wstring_ptr wstrFolder(pmh->getFolder()->getFullName());
 		setDlgItemText(IDC_FOLDER, wstrFolder.get());
@@ -126,7 +128,7 @@ LRESULT qm::MessagePropertyPage::onInitDialog(HWND hwndFocus,
 		setDlgItemText(IDC_DATE, wstrTime.get());
 		
 		unsigned int nFlags = pmh->getFlags();
-		for (n = 0; n < countof(flags); ++n) {
+		for (int n = 0; n < countof(flags); ++n) {
 			sendDlgItemMessage(flags[n].nId_, BM_SETCHECK,
 				nFlags & flags[n].flag_ ? BST_CHECKED : BST_UNCHECKED);
 			Window(getDlgItem(flags[n].nId_)).setStyle(
@@ -174,4 +176,33 @@ LRESULT qm::MessagePropertyPage::onOk()
 	}
 	
 	return DefaultPropertyPage::onOk();
+}
+
+wstring_ptr qm::MessagePropertyPage::formatSize(unsigned int nSize)
+{
+	unsigned int nKB = 0;
+	if (nSize != 0)
+		nKB = nSize/1024 + (nSize%1024 ? 1 : 0);
+	
+	StringBuffer<WSTRING> buf;
+	formatDigits(nKB, &buf);
+	buf.append(L"KB (");
+	formatDigits(nSize, &buf);
+	buf.append(L')');
+	return buf.getString();
+}
+
+void qm::MessagePropertyPage::formatDigits(unsigned int n,
+										   StringBuffer<WSTRING>* pBuf)
+{
+	assert(pBuf);
+	
+	WCHAR wsz[32];
+	_snwprintf(wsz, countof(wsz), L"%u", n);
+	size_t nLen = wcslen(wsz);
+	for (const WCHAR* p = wsz; *p; ++p, --nLen) {
+		pBuf->append(*p);
+		if (nLen % 3 == 1 && nLen != 1)
+			pBuf->append(L',');
+	}
 }

@@ -66,6 +66,11 @@ protected:
 	virtual LRESULT onOk();
 
 private:
+	static qs::wstring_ptr formatSize(unsigned int nSize);
+	static void formatDigits(unsigned int n,
+							 qs::StringBuffer<qs::WSTRING>* pBuf);
+
+private:
 	MessagePropertyPage(const MessagePropertyPage&);
 	MessagePropertyPage& operator=(const MessagePropertyPage&);
 

@@ -166,7 +166,12 @@ wstring_ptr qm::ViewColumn::getText(const ViewModel* pViewModel,
 		wstrText = pmh->getSubject();
 		break;
 	case ViewColumn::TYPE_SIZE:
-		_snwprintf(wsz, countof(wsz), L"%dKB", pmh->getSize()/1024 + 1);
+		{
+			unsigned int nSize = pmh->getSize();
+			if (nSize != 0)
+				nSize = nSize/1024 + (nSize%1024 ? 1 : 0);
+			_snwprintf(wsz, countof(wsz), L"%dKB", nSize);
+		}
 		break;
 	case ViewColumn::TYPE_FLAGS:
 		_snwprintf(wsz, countof(wsz), L"%u", pmh->getFlags());
