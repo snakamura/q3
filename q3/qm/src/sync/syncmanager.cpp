@@ -792,13 +792,14 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 				if (pCallback->isCanceled(nId, false))
 					break;
 				
-				if (!session.get()->connect()) {
+				bool bConnect = session.get()->connect();
+				if (pCallback->isCanceled(nId, false))
+					break;
+				if (!bConnect) {
 					listConnectFailed.push_back(pItem->getSubAccount());
 					continue;
 				}
 				session.setConnected();
-				if (pCallback->isCanceled(nId, false))
-					break;
 				
 				if (!session.get()->applyOfflineJobs())
 					continue;
