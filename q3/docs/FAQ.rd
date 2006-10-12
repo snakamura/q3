@@ -17,6 +17,7 @@
 *((<IMAP4アカウントでサーバからのレスポンスのパースに失敗します|URL:FailToParseImap4Response.html>))
 *((<スパムフィルタでエラーが発生します|URL:JunkFilterCollapse.html>))
 *((<大量のメッセージをインポートしようとするとエラーになります|URL:ImportLargeNumberOfMessages.html>))
+*((<同期中にキャンセルしてもすぐにキャンセルされません|URL:CancelDoesNotWork.html>))
 
 
 ==Tips
@@ -28,5 +29,6 @@
 *((<同じスレッドのメッセージをまとめて既読にするにはどうすれば良いですか?|URL:HowToKillThread.html>))
 *((<IMAP4アカウントでメッセージを移動・削除しても削除マークが付くだけで削除されません|URL:HowToClearDeletedMessage.html>))
 *((<印刷するときにも引用を線で表示するにはどうすればよいですか?|URL:HowToPrintWithQuote.html>))
+*((<全文検索のインデックスを自動で更新するにはどうすればよいですか?|URL:HowToUpdateFullTextSearchIndexAutomatically.html>))
 
 =end
