@@ -133,6 +133,8 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 #endif
 	}
 	
+	Time timeCurrent(Time::getCurrentTime());
+	
 	const Feed* pFeed = pFeedList_->getFeed(pwszURL);
 	
 	std::auto_ptr<Channel> pChannel;
@@ -141,7 +143,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	if (pwszCommand && *pwszCommand) {
 #ifndef _WIN32_WCE
 		pChannel = getExecChannel(pwszURL, pwszCommand);
-		timeLastModified = Time::getCurrentTime();
+		timeLastModified = timeCurrent;
 #else
 		return true;
 #endif
@@ -157,7 +159,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	
 	Time timePubDate(pChannel->getPubDate());
 	if (timePubDate.wYear == 0)
-		timePubDate = Time::getCurrentTime();
+		timePubDate = timeCurrent;
 	
 	setMessage(IDS_PROCESSRSS);
 	
@@ -176,6 +178,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	const WCHAR* pwszUpdateIfModified = pFolder_->getParam(L"UpdateIfModified");
 	bool bUpdateIfModified = pwszUpdateIfModified && wcscmp(pwszUpdateIfModified, L"true") == 0;
 	
+	FeedItem::Date currentDate(FeedItem::convertTimeToDate(timeCurrent));
 	MessagePtrList listDownloaded;
 	
 	const Channel::ItemList& listItem = pChannel->getItems();
@@ -239,7 +242,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 			listDownloaded.push_back(MessagePtr(pmh));
 		}
 		
-		std::auto_ptr<FeedItem> pFeedItem(new FeedItem(pwszKey));
+		std::auto_ptr<FeedItem> pFeedItem(new FeedItem(pwszKey, currentDate));
 		pFeedNew->addItem(pFeedItem);
 	}
 	

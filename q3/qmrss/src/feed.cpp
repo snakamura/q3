@@ -10,6 +10,8 @@
 
 #include <qsconv.h>
 #include <qsfile.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsmime.h>
 #include <qsstl.h>
 #include <qsstream.h>
@@ -33,7 +35,8 @@ qmrss::FeedList::FeedList(const WCHAR* pwszPath) :
 	wstrPath_ = allocWString(pwszPath);
 	
 	if (!load()) {
-		// TODO
+		Log log(InitThread::getInitThread().getLogger(), L"qmrss::FeedList");
+		log.errorf(L"Failed to load feed list: %s", pwszPath);
 	}
 }
 
@@ -74,6 +77,9 @@ void qmrss::FeedList::setFeed(std::auto_ptr<Feed> pFeed)
 				std::identity<const WCHAR*>()),
 			pFeed->getURL()));
 	if (it != list_.end()) {
+		Time time(Time::getCurrentTime());
+		time.addDay(-7);
+		pFeed->merge(*it, time);
 		delete *it;
 		*it = pFeed.release();
 	}
@@ -221,6 +227,25 @@ void qmrss::Feed::addItem(std::auto_ptr<FeedItem> pItem)
 	pItem.release();
 }
 
+void qmrss::Feed::merge(Feed* pFeed,
+						const qs::Time& timeAfter)
+{
+	ItemList& l = pFeed->listItem_;
+	for (ItemList::iterator it = l.begin(); it != l.end(); ) {
+		FeedItem* pItem = *it;
+		
+		const FeedItem::Date& date = pItem->getDate();
+		Time t(date.nYear_, date.nMonth_, 0, date.nDay_, 0, 0, 0, 0, 0);
+		if (t > timeAfter) {
+			listItem_.push_back(pItem);
+			it = l.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+}
+
 
 /****************************************************************************
  *
@@ -228,7 +253,9 @@ void qmrss::Feed::addItem(std::auto_ptr<FeedItem> pItem)
  *
  */
 
-qmrss::FeedItem::FeedItem(const WCHAR* pwszKey)
+qmrss::FeedItem::FeedItem(const WCHAR* pwszKey,
+						  const Date& date) :
+	date_(date)
 {
 	wstrKey_ = allocWString(pwszKey);
 }
@@ -240,6 +267,21 @@ qmrss::FeedItem::~FeedItem()
 const WCHAR* qmrss::FeedItem::getKey() const
 {
 	return wstrKey_.get();
+}
+
+const FeedItem::Date& qmrss::FeedItem::getDate() const
+{
+	return date_;
+}
+
+FeedItem::Date qmrss::FeedItem::convertTimeToDate(const qs::Time& time)
+{
+	Date date = {
+		time.wYear,
+		time.wMonth,
+		time.wDay
+	};
+	return date;
 }
 
 
@@ -344,6 +386,32 @@ bool qmrss::FeedContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (state_ != STATE_FEED)
 			return false;
 		
+		const WCHAR* pwszDate = 0;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"date") == 0)
+				pwszDate = attributes.getValue(n);
+			else
+				return false;
+		}
+		
+		// TODO
+		// Allow that time is not specified for compatibility.
+		// Make it error in the future.
+		if (pwszDate) {
+			int nYear = 0;
+			int nMonth = 0;
+			int nDay = 0;
+			if (swscanf(pwszDate, L"%04d-%02d-%02d", &nYear, &nMonth, &nDay) != 3)
+				return false;
+			itemDate_.nYear_ = nYear;
+			itemDate_.nMonth_ = nMonth;
+			itemDate_.nDay_ = nDay;
+		}
+		else {
+			itemDate_ = FeedItem::convertTimeToDate(Time::getCurrentTime());
+		}
+		
 		state_ = STATE_ITEM;
 	}
 	else {
@@ -373,7 +441,8 @@ bool qmrss::FeedContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		if (buffer_.getLength() == 0)
 			return false;
 		
-		std::auto_ptr<FeedItem> pItem(new FeedItem(buffer_.getCharArray()));
+		std::auto_ptr<FeedItem> pItem(new FeedItem(
+			buffer_.getCharArray(), itemDate_));
 		pCurrentFeed_->addItem(pItem);
 		
 		buffer_.remove();
@@ -445,7 +514,12 @@ bool qmrss::FeedWriter::write(const FeedList& l)
 		for (Feed::ItemList::const_iterator itI = listItem.begin(); itI != listItem.end(); ++itI) {
 			const FeedItem* pItem = *itI;
 			
-			if (!handler_.startElement(0, 0, L"item", DefaultAttributes()) ||
+			const FeedItem::Date& date = pItem->getDate();
+			WCHAR wszDate[32];
+			_snwprintf(wszDate, countof(wszDate), L"%04d-%02d-%02d",
+				date.nYear_, date.nMonth_, date.nDay_);
+			
+			if (!handler_.startElement(0, 0, L"item", SimpleAttributes(L"date", wszDate)) ||
 				!handler_.characters(pItem->getKey(), 0, wcslen(pItem->getKey())) ||
 				!handler_.endElement(0, 0, L"item"))
 				return false;

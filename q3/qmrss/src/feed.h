@@ -97,6 +97,8 @@ public:
 	const ItemList& getItems() const;
 	const FeedItem* getItem(const WCHAR* pwszKey) const;
 	void addItem(std::auto_ptr<FeedItem> pItem);
+	void merge(Feed* pFeed,
+			   const qs::Time& timeAfter);
 
 private:
 	Feed(const Feed&);
@@ -118,11 +120,24 @@ private:
 class FeedItem
 {
 public:
-	FeedItem(const WCHAR* pwszKey);
+	struct Date
+	{
+		short nYear_;
+		short nMonth_;
+		short nDay_;
+	};
+
+public:
+	FeedItem(const WCHAR* pwszKey,
+			 const Date& date);
 	~FeedItem();
 
 public:
 	const WCHAR* getKey() const;
+	const Date& getDate()const;
+
+public:
+	static Date convertTimeToDate(const qs::Time& time);
 
 private:
 	FeedItem(const FeedItem&);
@@ -130,6 +145,7 @@ private:
 
 private:
 	qs::wstring_ptr wstrKey_;
+	Date date_;
 };
 
 
@@ -201,6 +217,7 @@ private:
 	FeedList* pList_;
 	State state_;
 	Feed* pCurrentFeed_;
+	FeedItem::Date itemDate_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
