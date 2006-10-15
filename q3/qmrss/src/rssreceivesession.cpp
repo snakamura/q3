@@ -154,7 +154,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		pChannel = getHttpChannel(pwszURL, pFeed, &timeLastModified, &bNoChange);
 		if (bNoChange) {
 			std::auto_ptr<Feed> pFeedNew(new Feed(pFeed, timeCurrent));
-			pFeedList_->setFeed(pFeedNew);
+			pFeedList_->setFeed(pFeedNew, -1);
 			return true;
 		}
 	}
@@ -249,7 +249,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		pFeedNew->addItem(pFeedItem);
 	}
 	
-	pFeedList_->setFeed(pFeedNew);
+	pFeedList_->setFeed(pFeedNew, pSubAccount_->getPropertyInt(L"Rss", L"KeepDay"));
 	
 	// TODO
 	// Cache link.

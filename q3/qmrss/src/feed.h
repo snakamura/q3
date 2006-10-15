@@ -47,7 +47,8 @@ public:
 public:
 	const List& getFeeds() const;
 	const Feed* getFeed(const WCHAR* pwszURL) const;
-	void setFeed(std::auto_ptr<Feed> pFeed);
+	void setFeed(std::auto_ptr<Feed> pFeed,
+				 int nKeepDay);
 	void removeFeed(const Feed* pFeed);
 	bool save();
 	
@@ -59,6 +60,7 @@ public:
 
 private:
 	bool load();
+	void addFeed(std::auto_ptr<Feed> pFeed);
 
 private:
 	FeedList(const FeedList&);
@@ -188,7 +190,11 @@ private:
 class FeedContentHandler : public qs::DefaultHandler
 {
 public:
-	explicit FeedContentHandler(FeedList* pList);
+	typedef void (FeedList::*PFN_ADDFEED)(std::auto_ptr<Feed> pFeed);
+
+public:
+	FeedContentHandler(FeedList* pList,
+					   PFN_ADDFEED pfnAddFeed);
 	virtual ~FeedContentHandler();
 
 public:
@@ -217,6 +223,7 @@ private:
 
 private:
 	FeedList* pList_;
+	PFN_ADDFEED pfnAddFeed_;
 	State state_;
 	Feed* pCurrentFeed_;
 	FeedItem::Date itemDate_;

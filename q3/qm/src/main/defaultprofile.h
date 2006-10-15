@@ -592,6 +592,8 @@ const qs::Profile::Default defaultAccountProfiles[] = {
 	{ L"Receive",	L"Type",			L""		},
 	{ L"Receive",	L"UserName",		L""		},
 	
+	{ L"Rss",	L"KeepDay",	L"7"	},
+	
 	{ L"Send",	L"Host",		L""		},
 	{ L"Send",	L"Log",			L"0"	},
 	{ L"Send",	L"Port",		L"0"	},

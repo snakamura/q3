@@ -65,7 +65,8 @@ const Feed* qmrss::FeedList::getFeed(const WCHAR* pwszURL) const
 	return it != list_.end() ? *it : 0;
 }
 
-void qmrss::FeedList::setFeed(std::auto_ptr<Feed> pFeed)
+void qmrss::FeedList::setFeed(std::auto_ptr<Feed> pFeed,
+							  int nKeepDay)
 {
 	Lock<FeedList> lock(*this);
 	
@@ -77,9 +78,8 @@ void qmrss::FeedList::setFeed(std::auto_ptr<Feed> pFeed)
 				std::identity<const WCHAR*>()),
 			pFeed->getURL()));
 	if (it != list_.end()) {
-		Time time(Time::getCurrentTime());
-		time.addDay(-7);
-		pFeed->merge(*it, time);
+		if (nKeepDay != -1)
+			pFeed->merge(*it, Time::getCurrentTime().addDay(-nKeepDay));
 		delete *it;
 		*it = pFeed.release();
 	}
@@ -163,7 +163,7 @@ bool qmrss::FeedList::load()
 	W2T(wstrPath_.get(), ptszPath);
 	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
 		XMLReader reader;
-		FeedContentHandler handler(this);
+		FeedContentHandler handler(this, &FeedList::addFeed);
 		reader.setContentHandler(&handler);
 		if (!reader.parse(wstrPath_.get()))
 			return false;
@@ -172,6 +172,12 @@ bool qmrss::FeedList::load()
 	bModified_ = false;
 	
 	return true;
+}
+
+void qmrss::FeedList::addFeed(std::auto_ptr<Feed> pFeed)
+{
+	list_.push_back(pFeed.get());
+	pFeed.release();
 }
 
 
@@ -350,8 +356,10 @@ FeedList* qmrss::FeedManager::get(qm::Account* pAccount)
  *
  */
 
-qmrss::FeedContentHandler::FeedContentHandler(FeedList* pList) :
+qmrss::FeedContentHandler::FeedContentHandler(FeedList* pList,
+											  PFN_ADDFEED pfnAddFeed) :
 	pList_(pList),
+	pfnAddFeed_(pfnAddFeed),
 	state_(STATE_ROOT),
 	pCurrentFeed_(0)
 {
@@ -398,7 +406,7 @@ bool qmrss::FeedContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		assert(!pCurrentFeed_);
 		std::auto_ptr<Feed> pFeed(new Feed(pwszURL, timeLastModified));
 		pCurrentFeed_ = pFeed.get();
-		pList_->setFeed(pFeed);
+		(pList_->*pfnAddFeed_)(pFeed);
 		
 		state_ = STATE_FEED;
 	}
