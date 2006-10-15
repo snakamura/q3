@@ -89,6 +89,8 @@ public:
 public:
 	Feed(const WCHAR* pwszURL,
 		 const qs::Time& timeLastModified);
+	Feed(const Feed* pFeed,
+		 const qs::Time& time);
 	~Feed();
 
 public:

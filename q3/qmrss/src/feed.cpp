@@ -185,7 +185,27 @@ qmrss::Feed::Feed(const WCHAR* pwszURL,
 				  const Time& timeLastModified) :
 	timeLastModified_(timeLastModified)
 {
+	assert(pwszURL);
+	
 	wstrURL_ = allocWString(pwszURL);
+}
+
+qmrss::Feed::Feed(const Feed* pFeed,
+				  const Time& time) :
+	timeLastModified_(pFeed->getLastModified())
+{
+	assert(pFeed);
+	
+	wstrURL_ = allocWString(pFeed->getURL());
+	
+	FeedItem::Date date(FeedItem::convertTimeToDate(time));
+	
+	const ItemList& l = pFeed->listItem_;
+	listItem_.reserve(l.size());
+	for (ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		const FeedItem* pItem = *it;
+		listItem_.push_back(new FeedItem(pItem->getKey(), date));
+	}
 }
 
 qmrss::Feed::~Feed()

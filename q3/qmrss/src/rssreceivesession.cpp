@@ -134,6 +134,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	}
 	
 	Time timeCurrent(Time::getCurrentTime());
+	FeedItem::Date dateCurrent(FeedItem::convertTimeToDate(timeCurrent));
 	
 	const Feed* pFeed = pFeedList_->getFeed(pwszURL);
 	
@@ -151,8 +152,11 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	else {
 		bool bNoChange = false;
 		pChannel = getHttpChannel(pwszURL, pFeed, &timeLastModified, &bNoChange);
-		if (bNoChange)
+		if (bNoChange) {
+			std::auto_ptr<Feed> pFeedNew(new Feed(pFeed, timeCurrent));
+			pFeedList_->setFeed(pFeedNew);
 			return true;
+		}
 	}
 	if (!pChannel.get())
 		return false;
@@ -178,7 +182,6 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	const WCHAR* pwszUpdateIfModified = pFolder_->getParam(L"UpdateIfModified");
 	bool bUpdateIfModified = pwszUpdateIfModified && wcscmp(pwszUpdateIfModified, L"true") == 0;
 	
-	FeedItem::Date currentDate(FeedItem::convertTimeToDate(timeCurrent));
 	MessagePtrList listDownloaded;
 	
 	const Channel::ItemList& listItem = pChannel->getItems();
@@ -242,7 +245,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 			listDownloaded.push_back(MessagePtr(pmh));
 		}
 		
-		std::auto_ptr<FeedItem> pFeedItem(new FeedItem(pwszKey, currentDate));
+		std::auto_ptr<FeedItem> pFeedItem(new FeedItem(pwszKey, dateCurrent));
 		pFeedNew->addItem(pFeedItem);
 	}
 	
