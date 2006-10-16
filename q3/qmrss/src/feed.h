@@ -58,9 +58,14 @@ public:
 	bool isLocked() const;
 #endif
 
+public:
+	void setFeeds(List& l);
+
 private:
 	bool load();
-	void addFeed(std::auto_ptr<Feed> pFeed);
+
+private:
+	static void sortFeeds(List& l);
 
 private:
 	FeedList(const FeedList&);
@@ -101,9 +106,11 @@ public:
 	const ItemList& getItems() const;
 	const FeedItem* getItem(const WCHAR* pwszKey) const;
 	void addItem(std::auto_ptr<FeedItem> pItem);
-	void setItems(ItemList& listItem);
 	void merge(Feed* pFeed,
 			   const qs::Time& timeAfter);
+
+public:
+	void setItems(ItemList& listItem);
 
 private:
 	static void sortItems(ItemList& listItem);
@@ -194,11 +201,7 @@ private:
 class FeedContentHandler : public qs::DefaultHandler
 {
 public:
-	typedef void (FeedList::*PFN_ADDFEED)(std::auto_ptr<Feed> pFeed);
-
-public:
-	FeedContentHandler(FeedList* pList,
-					   PFN_ADDFEED pfnAddFeed);
+	explicit FeedContentHandler(FeedList* pList);
 	virtual ~FeedContentHandler();
 
 public:
@@ -227,7 +230,7 @@ private:
 
 private:
 	FeedList* pList_;
-	PFN_ADDFEED pfnAddFeed_;
+	FeedList::List list_;
 	State state_;
 	Feed* pCurrentFeed_;
 	Feed::ItemList listItem_;
