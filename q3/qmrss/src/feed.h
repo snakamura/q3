@@ -101,8 +101,12 @@ public:
 	const ItemList& getItems() const;
 	const FeedItem* getItem(const WCHAR* pwszKey) const;
 	void addItem(std::auto_ptr<FeedItem> pItem);
+	void setItems(ItemList& listItem);
 	void merge(Feed* pFeed,
 			   const qs::Time& timeAfter);
+
+private:
+	static void sortItems(ItemList& listItem);
 
 private:
 	Feed(const Feed&);
@@ -226,6 +230,7 @@ private:
 	PFN_ADDFEED pfnAddFeed_;
 	State state_;
 	Feed* pCurrentFeed_;
+	Feed::ItemList listItem_;
 	FeedItem::Date itemDate_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };

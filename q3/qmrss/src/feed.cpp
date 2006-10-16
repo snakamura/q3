@@ -236,40 +236,75 @@ const Feed::ItemList& qmrss::Feed::getItems() const
 
 const FeedItem* qmrss::Feed::getItem(const WCHAR* pwszKey) const
 {
-	ItemList::const_iterator it = std::find_if(
-		listItem_.begin(), listItem_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&FeedItem::getKey),
-				std::identity<const WCHAR*>()),
-			pwszKey));
-	return it != listItem_.end() ? *it : 0;
+	FeedItem::Date date = { 0, 0, 0 };
+	FeedItem item(pwszKey, date);
+	ItemList::const_iterator it = std::lower_bound(
+		listItem_.begin(), listItem_.end(), &item,
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			std::mem_fun(&FeedItem::getKey),
+			std::mem_fun(&FeedItem::getKey)));
+	return it != listItem_.end() && wcscmp((*it)->getKey(), pwszKey) == 0 ? *it : 0;
 }
 
 void qmrss::Feed::addItem(std::auto_ptr<FeedItem> pItem)
 {
-	listItem_.push_back(pItem.get());
-	pItem.release();
+	ItemList::iterator it = std::lower_bound(
+		listItem_.begin(), listItem_.end(), pItem.get(),
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			std::mem_fun(&FeedItem::getKey),
+			std::mem_fun(&FeedItem::getKey)));
+	if (it == listItem_.end() || wcscmp((*it)->getKey(), pItem->getKey()) != 0) {
+		listItem_.insert(it, pItem.get());
+		pItem.release();
+	}
+}
+
+void qmrss::Feed::setItems(ItemList& listItem)
+{
+	assert(listItem_.empty());
+	
+	sortItems(listItem);
+	listItem_.swap(listItem);
 }
 
 void qmrss::Feed::merge(Feed* pFeed,
-						const qs::Time& timeAfter)
+						const Time& timeAfter)
 {
 	ItemList& l = pFeed->listItem_;
+	bool bAdded = false;
 	for (ItemList::iterator it = l.begin(); it != l.end(); ) {
 		FeedItem* pItem = *it;
 		
-		const FeedItem::Date& date = pItem->getDate();
-		Time t(date.nYear_, date.nMonth_, 0, date.nDay_, 0, 0, 0, 0, 0);
-		if (t > timeAfter) {
-			listItem_.push_back(pItem);
-			it = l.erase(it);
+		if (!getItem(pItem->getKey())) {
+			const FeedItem::Date& date = pItem->getDate();
+			Time t(date.nYear_, date.nMonth_, 0, date.nDay_, 0, 0, 0, 0, 0);
+			if (t > timeAfter) {
+				listItem_.push_back(pItem);
+				it = l.erase(it);
+				bAdded = true;
+			}
+			else {
+				++it;
+			}
 		}
 		else {
 			++it;
 		}
 	}
+	
+	if (bAdded)
+		sortItems(listItem_);
+}
+
+void qmrss::Feed::sortItems(ItemList& listItem)
+{
+	std::sort(listItem.begin(), listItem.end(),
+		binary_compose_f_gx_hy(
+			string_less<WCHAR>(),
+			std::mem_fun(&FeedItem::getKey),
+			std::mem_fun(&FeedItem::getKey)));
 }
 
 
@@ -367,6 +402,7 @@ qmrss::FeedContentHandler::FeedContentHandler(FeedList* pList,
 
 qmrss::FeedContentHandler::~FeedContentHandler()
 {
+	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<FeedItem>());
 }
 
 bool qmrss::FeedContentHandler::startElement(const WCHAR* pwszNamespaceURI,
@@ -460,6 +496,9 @@ bool qmrss::FeedContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	else if (wcscmp(pwszLocalName, L"feed") == 0) {
 		assert(state_ == STATE_FEED);
 		assert(pCurrentFeed_);
+		
+		pCurrentFeed_->setItems(listItem_);
+		
 		pCurrentFeed_ = 0;
 		state_ = STATE_FEEDLIST;
 	}
@@ -471,7 +510,8 @@ bool qmrss::FeedContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		
 		std::auto_ptr<FeedItem> pItem(new FeedItem(
 			buffer_.getCharArray(), itemDate_));
-		pCurrentFeed_->addItem(pItem);
+		listItem_.push_back(pItem.get());
+		pItem.release();
 		
 		buffer_.remove();
 		
