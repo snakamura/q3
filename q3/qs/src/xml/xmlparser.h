@@ -77,6 +77,18 @@ private:
 	bool parseCDATASection(XMLParserContext& context);
 	bool parsePI(XMLParserContext& context);
 	bool parseDoctype(XMLParserContext& context);
+	bool parseInternalSubset(XMLParserContext& context);
+	bool parseElementDecl(XMLParserContext& context,
+						  WCHAR c);
+	bool parseAttlistDecl(XMLParserContext& context,
+						  WCHAR c);
+	bool parseEntityDecl(XMLParserContext& context,
+						 WCHAR c);
+	bool parseNotationDecl(XMLParserContext& context,
+						   WCHAR c);
+	bool parseExternalId(XMLParserContext& context,
+						 WCHAR c,
+						 WCHAR* pNext);
 	bool parsePublicId(XMLParserContext& context,
 					   WCHAR c);
 	bool parseSystemId(XMLParserContext& context,
@@ -159,6 +171,8 @@ public:
 				   WCHAR* pwszSeparator,
 				   wstring_ptr* pwstr,
 				   WCHAR* pNext);
+	bool eatWhitespaces(WCHAR c,
+						WCHAR* pNext);
 	bool expandReference(WCHAR* pcValue,
 						 wstring_ptr* pwstrValue);
 	const XMLParserContext* getParentContext() const;
