@@ -16,6 +16,7 @@
 *((<Windows CEで外部ストレージに実行ファイルやメールボックスを置くとハングアップします|URL:WindowsCEExternalStorage.html>))
 *((<IMAP4アカウントでサーバからのレスポンスのパースに失敗します|URL:FailToParseImap4Response.html>))
 *((<スパムフィルタでエラーが発生します|URL:JunkFilterCollapse.html>))
+*((<スパムフィルタが正しくスパムを判定しません|URL:JunkFilterDoesNotWorkWell.html>))
 *((<大量のメッセージをインポートしようとするとエラーになります|URL:ImportLargeNumberOfMessages.html>))
 *((<同期中にキャンセルしてもすぐにキャンセルされません|URL:CancelDoesNotWork.html>))
 
