@@ -31,5 +31,6 @@
 *((<IMAP4アカウントでメッセージを移動・削除しても削除マークが付くだけで削除されません|URL:HowToClearDeletedMessage.html>))
 *((<印刷するときにも引用を線で表示するにはどうすればよいですか?|URL:HowToPrintWithQuote.html>))
 *((<全文検索のインデックスを自動で更新するにはどうすればよいですか?|URL:HowToUpdateFullTextSearchIndexAutomatically.html>))
+*((<メッセージにメモを付けることはできませんか?|URL:HowToUseMemo.html>))
 
 =end
