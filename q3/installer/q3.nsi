@@ -4,10 +4,10 @@
 
 !ifdef ANSI
   !define CODE ansi
-  !define POSTFIX
+  !define SUFFIX
 !else
   !define CODE unicode
-  !define POSTFIX u
+  !define SUFFIX u
 !endif
 !ifdef x64
   !define CPU x64
@@ -21,7 +21,7 @@
   
 Name "QMAIL3"
 
-OutFile "q3${POSTFIX}-win-${CPU}-ja.exe"
+OutFile "q3${SUFFIX}-win-${CPU}-ja.exe"
 XPStyle on
 
 Var STARTMENU_FOLDER
@@ -43,7 +43,7 @@ Page custom MailBoxFolder
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "StartMenuFolder"
 !insertmacro MUI_PAGE_STARTMENU StartMenu $STARTMENU_FOLDER
 !insertmacro MUI_PAGE_INSTFILES
-!define MUI_FINISHPAGE_RUN $INSTDIR\q3${POSTFIX}.exe
+!define MUI_FINISHPAGE_RUN $INSTDIR\q3${SUFFIX}.exe
 !insertmacro MUI_PAGE_FINISH
 
 ;UninstPage uninstConfirm
@@ -63,11 +63,11 @@ Section "Core (required)" Core
   
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\q3${POSTFIX}.exe
-  File ..\bin\win\${CPU}\${CODE}\release\qm${POSTFIX}.dll
-  File ..\bin\win\${CPU}\${CODE}\release\qs${POSTFIX}.dll
-  File ..\bin\win\${CPU}\${CODE}\release\qmpop3${POSTFIX}.dll
-  File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\q3${SUFFIX}.exe
+  File ..\bin\win\${CPU}\${CODE}\release\qm${SUFFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qs${SUFFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmpop3${SUFFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${SUFFIX}.dll
 !ifndef ANSI
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\msvcr80.dll"
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
@@ -82,9 +82,9 @@ Section "Core (required)" Core
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "" "URL:MailTo Protocol"
   WriteRegBin HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "EditFlags" 02000000
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "URL Protocol" ""
-  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\DefaultIcon" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\",0"
-  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\shell\open\command" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\" -s $\"%1$\""
-  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${POSTFIX}.exe$\""
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\DefaultIcon" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\",0"
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -s $\"%1$\""
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\""
   
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "DisplayName" "QMAIL3"
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "UninstallString" "$INSTDIR\uninstall.exe"
@@ -96,7 +96,7 @@ Section "Core (required)" Core
   !insertmacro MUI_STARTMENU_WRITE_BEGIN StartMenu
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\QMAIL3.lnk" "$INSTDIR\q3${POSTFIX}.exe" "" "$INSTDIR\q3${POSTFIX}.exe" 0
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\QMAIL3.lnk" "$INSTDIR\q3${SUFFIX}.exe" "" "$INSTDIR\q3${SUFFIX}.exe" 0
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\$(DOCUMENT).lnk" "http://q3.snak.org/doc/"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\FAQ.lnk" "http://q3.snak.org/doc/FAQ.html"
   !insertmacro MUI_STARTMENU_WRITE_END
@@ -108,7 +108,7 @@ Section "IMAP4" Imap4
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\qmimap4${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmimap4${SUFFIX}.dll
   
 SectionEnd
 
@@ -117,7 +117,7 @@ Section "NNTP" Nntp
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\qmnntp${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmnntp${SUFFIX}.dll
   
 SectionEnd
 
@@ -126,7 +126,7 @@ Section "RSS, Atom" Rss
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\qmrss${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmrss${SUFFIX}.dll
   
 SectionEnd
 
@@ -135,7 +135,7 @@ Section "SSL, S/MIME" Crypto
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\qscrypto${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qscrypto${SUFFIX}.dll
   File ..\lib\openssl\lib\win\${CPU}\libeay32.dll
   File ..\lib\openssl\lib\win\${CPU}\ssleay32.dll
   
@@ -146,7 +146,7 @@ Section "PGP, GnuPG" Pgp
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\qmpgp${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmpgp${SUFFIX}.dll
   
 SectionEnd
 
@@ -155,7 +155,7 @@ Section "Junk Filter" Junk
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\qmjunk${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmjunk${SUFFIX}.dll
   
 SectionEnd
 
@@ -164,7 +164,7 @@ Section "Script" Script
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\qmscript${POSTFIX}.dll
+  File ..\bin\win\${CPU}\${CODE}\release\qmscript${SUFFIX}.dll
   
 SectionEnd
 
@@ -182,13 +182,13 @@ Section "Japanese" Japanese
 
   SetOutPath $INSTDIR
   
-  File ..\bin\win\${CPU}\${CODE}\release\qm${POSTFIX}.dll.0411.mui
-  File ..\bin\win\${CPU}\${CODE}\release\qs${POSTFIX}.dll.0411.mui
-  File ..\bin\win\${CPU}\${CODE}\release\qmpop3${POSTFIX}.dll.0411.mui
-  File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${POSTFIX}.dll.0411.mui
-  File ..\bin\win\${CPU}\${CODE}\release\qmimap4${POSTFIX}.dll.0411.mui
-  File ..\bin\win\${CPU}\${CODE}\release\qmnntp${POSTFIX}.dll.0411.mui
-  File ..\bin\win\${CPU}\${CODE}\release\qmrss${POSTFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qm${SUFFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qs${SUFFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmpop3${SUFFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${SUFFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmimap4${SUFFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmnntp${SUFFIX}.dll.0411.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmrss${SUFFIX}.dll.0411.mui
   
 SectionEnd
 
@@ -222,28 +222,28 @@ Section "Uninstall"
   
   DeleteRegKey HKLM SOFTWARE\Clients\Mail\QMAIL3
   
-  Delete $INSTDIR\q3${POSTFIX}.exe
-  Delete $INSTDIR\qm${POSTFIX}.dll
-  Delete $INSTDIR\qmpop3${POSTFIX}.dll
-  Delete $INSTDIR\qmimap4${POSTFIX}.dll
-  Delete $INSTDIR\qmsmtp${POSTFIX}.dll
-  Delete $INSTDIR\qmnntp${POSTFIX}.dll
-  Delete $INSTDIR\qmrss${POSTFIX}.dll
-  Delete $INSTDIR\qmpgp${POSTFIX}.dll
-  Delete $INSTDIR\qmjunk${POSTFIX}.dll
-  Delete $INSTDIR\qmscript${POSTFIX}.dll
-  Delete $INSTDIR\qs${POSTFIX}.dll
-  Delete $INSTDIR\qscrypto${POSTFIX}.dll
+  Delete $INSTDIR\q3${SUFFIX}.exe
+  Delete $INSTDIR\qm${SUFFIX}.dll
+  Delete $INSTDIR\qmpop3${SUFFIX}.dll
+  Delete $INSTDIR\qmimap4${SUFFIX}.dll
+  Delete $INSTDIR\qmsmtp${SUFFIX}.dll
+  Delete $INSTDIR\qmnntp${SUFFIX}.dll
+  Delete $INSTDIR\qmrss${SUFFIX}.dll
+  Delete $INSTDIR\qmpgp${SUFFIX}.dll
+  Delete $INSTDIR\qmjunk${SUFFIX}.dll
+  Delete $INSTDIR\qmscript${SUFFIX}.dll
+  Delete $INSTDIR\qs${SUFFIX}.dll
+  Delete $INSTDIR\qscrypto${SUFFIX}.dll
   Delete $INSTDIR\libeay32.dll
   Delete $INSTDIR\ssleay32.dll
   Delete $INSTDIR\zip32.dll
-  Delete $INSTDIR\qm${POSTFIX}.dll.0411.mui
-  Delete $INSTDIR\qs${POSTFIX}.dll.0411.mui
-  Delete $INSTDIR\qmpop3${POSTFIX}.dll.0411.mui
-  Delete $INSTDIR\qmsmtp${POSTFIX}.dll.0411.mui
-  Delete $INSTDIR\qmimap4${POSTFIX}.dll.0411.mui
-  Delete $INSTDIR\qmnntp${POSTFIX}.dll.0411.mui
-  Delete $INSTDIR\qmrss${POSTFIX}.dll.0411.mui
+  Delete $INSTDIR\qm${SUFFIX}.dll.0411.mui
+  Delete $INSTDIR\qs${SUFFIX}.dll.0411.mui
+  Delete $INSTDIR\qmpop3${SUFFIX}.dll.0411.mui
+  Delete $INSTDIR\qmsmtp${SUFFIX}.dll.0411.mui
+  Delete $INSTDIR\qmimap4${SUFFIX}.dll.0411.mui
+  Delete $INSTDIR\qmnntp${SUFFIX}.dll.0411.mui
+  Delete $INSTDIR\qmrss${SUFFIX}.dll.0411.mui
   Delete $INSTDIR\uninstall.exe
   
   RMDir "$INSTDIR"
