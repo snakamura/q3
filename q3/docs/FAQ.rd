@@ -19,6 +19,7 @@
 *((<スパムフィルタが正しくスパムを判定しません|URL:JunkFilterDoesNotWorkWell.html>))
 *((<大量のメッセージをインポートしようとするとエラーになります|URL:ImportLargeNumberOfMessages.html>))
 *((<同期中にキャンセルしてもすぐにキャンセルされません|URL:CancelDoesNotWork.html>))
+*((<メッセージをインポートすると送信者や宛先などが化けます|URL:UnreadableAddressAfterImport.html>))
 
 
 ==Tips
@@ -32,5 +33,6 @@
 *((<印刷するときにも引用を線で表示するにはどうすればよいですか?|URL:HowToPrintWithQuote.html>))
 *((<全文検索のインデックスを自動で更新するにはどうすればよいですか?|URL:HowToUpdateFullTextSearchIndexAutomatically.html>))
 *((<メッセージにメモを付けることはできませんか?|URL:HowToUseMemo.html>))
+*((<POP3アカウントで添付ファイル以外をダウンロードするにはどうすれば良いですか?|URL:HowToDownloadMessageWithoutAttachmentsUsingPop3.html>))
 
 =end

@@ -53,8 +53,16 @@
   *((<振り分け|URL:ApplyRules.html>))
   *プロトコル依存のトピック
     *POP3
-      *部分受信とダウンロード予約
-      *選択削除
+      *((<部分受信とダウンロード予約|URL:Pop3PartialDownload.html>))
+      *((<選択削除|URL:Pop3DeleteMessagesOnServer.html>))
+      *((<未読管理|URL:Pop3UnseenManagement.html>))
+    *IMAP4
+      *((<キャッシュ|URL:Imap4Cache.html>))
+      *((<オフラインでの操作|URL:Imap4Offline.html>))
+    *NNTP
+      *((<部分受信とダウンロード予約|URL:NntpPartialDownload.html>))
+    *RSS
+      *((<未読管理|URL:RssUnseenManagement.html>))
   *((<巡回|URL:GoRound.html>))
   *((<自動巡回|URL:AutoPilot.html>))
   *((<新着メッセージ通知|URL:Recents.html>))
