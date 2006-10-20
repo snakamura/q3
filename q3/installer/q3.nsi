@@ -97,6 +97,8 @@ Section "Core (required)" Core
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\QMAIL3.lnk" "$INSTDIR\q3${POSTFIX}.exe" "" "$INSTDIR\q3${POSTFIX}.exe" 0
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\$(DOCUMENT).lnk" "http://q3.snak.org/doc/"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\FAQ.lnk" "http://q3.snak.org/doc/FAQ.html"
   !insertmacro MUI_STARTMENU_WRITE_END
 
 SectionEnd
@@ -297,6 +299,7 @@ LangString DESC_SecJunk ${LANG_ENGLISH} "Junk filter support."
 LangString DESC_SecScript ${LANG_ENGLISH} "Script support."
 LangString DESC_SecZip ${LANG_ENGLISH} "Enable archiving attachments."
 LangString DESC_SecJapanese ${LANG_ENGLISH} "Japanese UI support."
+LangString DOCUMENT ${LANG_ENGLISH} "Document"
 LangString MAILBOXFOLDER_TITLE ${LANG_ENGLISH} "Choose Mailbox Location"
 LangString MAILBOXFOLDER_SUBTITLE ${LANG_ENGLISH} "Choose the folder in which to store mail data."
 LangString MAILBOXFOLDER_LABEL ${LANG_ENGLISH} "Mailbox folder"
@@ -314,6 +317,7 @@ LangString DESC_SecJunk ${LANG_JAPANESE} "スパムフィルタのサポート"
 LangString DESC_SecScript ${LANG_JAPANESE} "スクリプトのサポート"
 LangString DESC_SecZip ${LANG_JAPANESE} "添付ファイルの圧縮のサポート"
 LangString DESC_SecJapanese ${LANG_JAPANESE} "日本語UIのサポート"
+LangString DOCUMENT ${LANG_JAPANESE} "ドキュメント"
 LangString MAILBOXFOLDER_TITLE ${LANG_JAPANESE} "メールボックスの場所を選んでください"
 LangString MAILBOXFOLDER_SUBTITLE ${LANG_JAPANESE} "メールのデータを置くフォルダを選択してください。"
 LangString MAILBOXFOLDER_LABEL ${LANG_JAPANESE} "メールボックスフォルダ"
