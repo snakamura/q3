@@ -34,5 +34,6 @@
 *((<全文検索のインデックスを自動で更新するにはどうすればよいですか?|URL:HowToUpdateFullTextSearchIndexAutomatically.html>))
 *((<メッセージにメモを付けることはできませんか?|URL:HowToUseMemo.html>))
 *((<POP3アカウントで添付ファイル以外をダウンロードするにはどうすれば良いですか?|URL:HowToDownloadMessageWithoutAttachmentsUsingPop3.html>))
+*((<メッセージを削除するときにゴミ箱を使わないようにするにはどうすればよいですか?|URL:HowToDeleteWithoutTrash.html>))
 
 =end

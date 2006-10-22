@@ -57,6 +57,7 @@
       *((<選択削除|URL:Pop3DeleteMessagesOnServer.html>))
       *((<未読管理|URL:Pop3UnseenManagement.html>))
     *IMAP4
+      *((<削除済みメッセージ|URL:Imap4DeletedMessages.html>))
       *((<キャッシュ|URL:Imap4Cache.html>))
       *((<オフラインでの操作|URL:Imap4Offline.html>))
     *NNTP
