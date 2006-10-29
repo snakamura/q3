@@ -333,16 +333,16 @@ bool qs::Window::tapAndHold(const POINT& pt)
 {
 	assert(hwnd_);
 	
-	SHRGINFO rgi = { sizeof(rgi), hwnd_, { pt.x, pt.y }, SHRG_RETURNCMD };
-	if (::SHRecognizeGesture(&rgi) != GN_CONTEXTMENU)
-		return false;
-	
-	POINT ptScreen = pt;
-	clientToScreen(&ptScreen);
-	sendMessage(WM_CONTEXTMENU, reinterpret_cast<WPARAM>(hwnd_),
-		MAKELPARAM(ptScreen.x, ptScreen.y));
-	
-	return true;
+	SHRGINFO rgi = {
+		sizeof(rgi),
+		hwnd_,
+		{
+			pt.x,
+			pt.y
+		},
+		SHRG_RETURNCMD
+	};
+	return ::SHRecognizeGesture(&rgi) == GN_CONTEXTMENU;
 }
 #endif
 
