@@ -1034,7 +1034,7 @@ unsigned int qm::AttachmentHeaderItem::getHeight(unsigned int nWidth,
 {
 	int nCount = ListView_GetItemCount(wnd_.getHandle());
 	unsigned int nHeight = QSMAX(nFontHeight,
-		static_cast<unsigned int>(::GetSystemMetrics(SM_CYSMICON))) + 1;
+		static_cast<unsigned int>(::GetSystemMetrics(SM_CYSMICON))) + 2;
 	return QSMIN(nCount*nHeight, nHeight*4 + 2);
 }
 
