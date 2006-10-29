@@ -1378,9 +1378,9 @@ bool qm::AddressHeaderEditItem::matchAddress(const WCHAR* pwszAddress,
 	if (_wcsnicmp(pwszAddress, pwszInput, nInputLen) == 0)
 		return true;
 	
-	const WCHAR* p = wcschr(pwszAddress, L'@');
-	if (p) {
-		if (_wcsnicmp(p + 1, pwszInput, nInputLen) == 0)
+	for (const WCHAR* p = pwszAddress; *p; ++p) {
+		if (wcschr(L"@.-_", *p) &&
+			_wcsnicmp(p + 1, pwszInput, nInputLen) == 0)
 			return true;
 	}
 	return false;
