@@ -498,24 +498,7 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 				nId == IDOK || nId == IDCANCEL)
 				pAction = pThis_->getActionInternal(nId);
 			if (pAction) {
-				unsigned int nModifier = 0;
-				
-				if (HIWORD(wParam) != 1) {
-					struct {
-						int nKey_;
-						ActionEvent::Modifier modifier_;
-					} keys[] = {
-						{ VK_SHIFT,		ActionEvent::MODIFIER_SHIFT	},
-						{ VK_CONTROL,	ActionEvent::MODIFIER_CTRL	},
-						{ VK_MENU,		ActionEvent::MODIFIER_ALT	}
-					};
-					for (int n = 0; n < countof(keys); ++n) {
-						if (::GetKeyState(keys[n].nKey_) < 0)
-							nModifier |= keys[n].modifier_;
-					}
-				}
-				
-				ActionEvent event(LOWORD(wParam), nModifier, pParam);
+				ActionEvent event(LOWORD(wParam), ActionEvent::getSystemModifiers(), pParam);
 				if (pAction->isEnabled(event))
 					pAction->invoke(event);
 				return 0;

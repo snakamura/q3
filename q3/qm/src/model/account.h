@@ -10,6 +10,7 @@
 #define __ACCOUNT_H__
 
 #include <qmaccount.h>
+#include <qmpassword.h>
 
 #include <qssax.h>
 #include <qsstream.h>

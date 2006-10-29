@@ -444,6 +444,12 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Recents",	L"HotKey", 			L"65"	}, /*'A'*/
 	{ L"Recents",	L"HotKeyModifiers",	L"5"	}, /*MOD_ALT | MOD_SHIFT*/
 	{ L"Recents",	L"Max",				L"20"	},
+
+#ifdef QMRECENTSWINDOW
+	{ L"RecentsWindow",	L"Alpha",	L"192"	},
+	{ L"RecentsWindow",	L"Width",	L"400"	},
+	{ L"RecentsWindow",	L"Use",		L"1"	},
+#endif
 	
 	{ L"Replace",	L"HistorySize",	L"10"	},
 	{ L"Replace",	L"Ime",			L"0"	},

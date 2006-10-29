@@ -519,6 +519,12 @@ BEGIN
     IDS_SYNC_MANUAL         "Manual Only"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RECENTS_SHOW        "&Show"
+    IDS_RECENTS_CLEAR       "&Clear"
+END
+
 #endif    // âpåÍ (ÉAÉÅÉäÉJ) resources
 /////////////////////////////////////////////////////////////////////////////
 

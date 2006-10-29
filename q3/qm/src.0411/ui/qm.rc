@@ -521,6 +521,12 @@ BEGIN
     IDS_SYNC_MANUAL         "手動同期時のみ"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RECENTS_SHOW        "表示(&S)"
+    IDS_RECENTS_CLEAR       "クリア(&C)"
+END
+
 #endif    // 日本語 resources
 /////////////////////////////////////////////////////////////////////////////
 

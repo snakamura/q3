@@ -153,6 +153,8 @@
 #define IDS_SYNC_NEVER                  2801
 #define IDS_SYNC_AUTO                   2802
 #define IDS_SYNC_MANUAL                 2803
+#define IDS_RECENTS_SHOW                2900
+#define IDS_RECENTS_CLEAR               2901
 #define IDS_DEFAULTSUBACCOUNT           3000
 #define IDS_LOCALFOLDER                 3001
 #define IDS_SYNCABLELOCALFOLDER         3002

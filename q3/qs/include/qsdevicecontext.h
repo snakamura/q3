@@ -66,6 +66,7 @@ public:
 	
 	bool polyline(const POINT* ppt,
 				  int nPoints);
+	bool rectangle(const RECT& rect);
 	bool bitBlt(int x,
 				int y,
 				int nWidth,
@@ -86,6 +87,10 @@ public:
 					  int y,
 					  COLORREF cr);
 	
+	int drawText(const WCHAR* pwszText,
+				 int nCount,
+				 RECT* pRect,
+				 UINT nFormat);
 	bool extTextOut(int x,
 					int y,
 					UINT nOptions,

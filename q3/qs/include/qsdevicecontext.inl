@@ -135,6 +135,12 @@ inline bool qs::DeviceContext::polyline(const POINT* ppt,
 	return ::Polyline(hdc_, ppt, nPoints) != 0;
 }
 
+inline bool qs::DeviceContext::rectangle(const RECT& rect)
+{
+	assert(hdc_);
+	return ::Rectangle(hdc_, rect.left, rect.top, rect.right, rect.bottom) != 0;
+}
+
 inline bool qs::DeviceContext::bitBlt(int x,
 									  int y,
 									  int nWidth,
@@ -173,6 +179,17 @@ inline COLORREF qs::DeviceContext::setPixel(int x,
 	assert(hdc_);
 	return ::SetPixel(hdc_, x, y, cr);
 }
+
+#ifdef UNICODE
+inline int qs::DeviceContext::drawText(const WCHAR* pwszText,
+									   int nCount,
+									   RECT* pRect,
+									   UINT nFormat)
+{
+	assert(hdc_);
+	return ::DrawText(hdc_, pwszText, nCount, pRect, nFormat);
+}
+#endif
 
 inline bool qs::DeviceContext::extTextOut(int x,
 										  int y,

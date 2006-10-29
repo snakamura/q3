@@ -524,7 +524,7 @@ void qm::UIUtil::setWindowAlpha(HWND hwnd,
 								Profile* pProfile,
 								const WCHAR* pwszSection)
 {
-	unsigned int nAlpha = pProfile->getInt(pwszSection, L"Alpha", 0);
+	unsigned int nAlpha = pProfile->getInt(pwszSection, L"Alpha");
 	if (nAlpha > 255)
 		return;
 	

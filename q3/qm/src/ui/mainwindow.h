@@ -306,7 +306,7 @@ public:
 	virtual ~ShellIconCallback();
 
 public:
-	virtual void showRecentsMenu() = 0;
+	virtual void showRecentsMenu(bool bHotKey) = 0;
 	virtual void show() = 0;
 };
 

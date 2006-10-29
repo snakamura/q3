@@ -56,6 +56,7 @@
 #include "messageframewindow.h"
 #include "messagewindow.h"
 #include "optiondialog.h"
+#include "recentswindow.h"
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "syncdialog.h"
@@ -198,7 +199,7 @@ public:
 
 #ifndef _WIN32_WCE_PSPC
 public:
-	virtual void showRecentsMenu();
+	virtual void showRecentsMenu(bool bHotKey);
 	virtual void show();
 #endif
 
@@ -1604,8 +1605,19 @@ void qm::MainWindowImpl::accountListChanged(const AccountManagerEvent& event)
 }
 
 #ifndef _WIN32_WCE_PSPC
-void qm::MainWindowImpl::showRecentsMenu()
+void qm::MainWindowImpl::showRecentsMenu(bool bHotKey)
 {
+#ifdef QMRECENTSWINDOW
+	if (pProfile_->getInt(L"RecentsWindow", L"Use") != 0) {
+		std::auto_ptr<RecentsWindow> pRecentsWindow(new RecentsWindow(
+			pDocument_->getRecents(), pDocument_,
+			pActionMap_.get(), pFolderImage_, pProfile_));
+		pRecentsWindow->showPopup(pThis_->getHandle(), bHotKey);
+		pRecentsWindow.release();
+		return;
+	}
+#endif
+	
 	HMENU hmenu = pUIManager_->getMenuManager()->getMenu(L"recents", false, false);
 	if (hmenu) {
 		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
@@ -3106,7 +3118,7 @@ LRESULT qm::ShellIcon::onHotKey(UINT nId,
 								UINT nKey)
 {
 	if (nId == HOTKEY_RECENTS)
-		pCallback_->showRecentsMenu();
+		pCallback_->showRecentsMenu(true);
 	return 0;
 }
 
@@ -3124,7 +3136,7 @@ LRESULT qm::ShellIcon::onNotifyIcon(WPARAM wParam,
 		if (bShow)
 			pCallback_->show();
 		else if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN)
-			pCallback_->showRecentsMenu();
+			pCallback_->showRecentsMenu(false);
 	}
 	return 0;
 }

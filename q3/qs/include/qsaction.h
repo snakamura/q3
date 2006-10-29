@@ -73,6 +73,9 @@ public:
 	unsigned int getModifier() const;
 	const ActionParam* getParam() const;
 
+public:
+	static unsigned int getSystemModifiers();
+
 private:
 	ActionEvent(const ActionEvent&);
 	ActionEvent& operator=(const ActionEvent&);

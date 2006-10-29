@@ -24,6 +24,21 @@ using namespace qs;
  *
  */
 
+#ifndef UNICODE
+int qs::DeviceContext::drawText(const WCHAR* pwszText,
+								int nCount,
+								RECT* pRect,
+								UINT nFormat)
+{
+	assert(hdc_);
+	
+	tstring_ptr tstrText(wcs2mbs(pwszText, nCount));
+	const TCHAR* ptszText = tstrText.get();
+	nCount = _tcslen(ptszText);
+	return ::DrawText(hdc_, ptszText, nCount, pRect, nFormat);
+}
+#endif
+
 bool qs::DeviceContext::extTextOutEllipsis(int x,
 										   int y,
 										   int nWidth,
@@ -32,6 +47,8 @@ bool qs::DeviceContext::extTextOutEllipsis(int x,
 										   const WCHAR* pwszString,
 										   UINT nCount)
 {
+	assert(hdc_);
+	
 	if (nWidth > 0) {
 		int nFit = 0;
 		SIZE size;

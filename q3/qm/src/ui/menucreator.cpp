@@ -590,26 +590,12 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
 	helper_.clear();
 	
+	pRecents_->removeSeens();
+	
 	typedef std::vector<URI*> URIList;
 	URIList listURI;
-	struct Deleter
+	container_deleter<URIList> deleter(listURI);
 	{
-		Deleter(URIList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(), qs::deleter<URI>());
-			l_.clear();
-		}
-		
-		URIList& l_;
-	} deleter(listURI);
-	{
-		pRecents_->removeSeens();
-		
 		Lock<Recents> lock(*pRecents_);
 		
 		unsigned int nCount = pRecents_->getCount();
@@ -619,8 +605,8 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 		listURI.reserve(nCount - nOffset);
 		for (unsigned int n = nOffset; n < nCount; ++n)
 			listURI.push_back(new URI(*pRecents_->get(n)));
-		std::sort(listURI.begin(), listURI.end(), URIComp());
 	}
+	std::sort(listURI.begin(), listURI.end(), URIComp());
 	
 	bool bAdded = false;
 	

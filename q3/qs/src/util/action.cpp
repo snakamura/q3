@@ -46,7 +46,7 @@ qs::ActionEvent::ActionEvent(unsigned int nId,
 							 const ActionParam* pParam) :
 	nId_(nId),
 	nModifier_(nModifier),
-	pParam_(pParam)
+	pParam_(pParam && pParam->getCount() != 0 ? pParam : 0)
 {
 }
 
@@ -69,6 +69,26 @@ const ActionParam* qs::ActionEvent::getParam() const
 	return pParam_;
 }
 
+unsigned int qs::ActionEvent::getSystemModifiers()
+{
+	unsigned int nModifier = 0;
+	
+	struct {
+		int nKey_;
+		Modifier modifier_;
+	} keys[] = {
+		{ VK_SHIFT,		MODIFIER_SHIFT	},
+		{ VK_CONTROL,	MODIFIER_CTRL	},
+		{ VK_MENU,		MODIFIER_ALT	}
+	};
+	for (int n = 0; n < countof(keys); ++n) {
+		if (::GetKeyState(keys[n].nKey_) < 0)
+			nModifier |= keys[n].modifier_;
+	}
+	
+	return nModifier;
+}
+
 
 /****************************************************************************
  *
@@ -87,8 +107,10 @@ qs::ActionParam::ActionParam(unsigned int nBaseId,
 	nBaseId_(nBaseId),
 	nRef_(0)
 {
-	listValue_.resize(1);
-	listValue_[0] = allocWString(pwszValue).release();
+	if (pwszValue) {
+		listValue_.resize(1);
+		listValue_[0] = allocWString(pwszValue).release();
+	}
 }
 
 qs::ActionParam::ActionParam(unsigned int nBaseId,
@@ -97,9 +119,13 @@ qs::ActionParam::ActionParam(unsigned int nBaseId,
 	nBaseId_(nBaseId),
 	nRef_(0)
 {
+	assert(ppwszValue || nCount == 0);
+	
 	listValue_.resize(nCount);
-	for (size_t n = 0; n < nCount; ++n)
+	for (size_t n = 0; n < nCount; ++n) {
+		assert(*(ppwszValue + n));
 		listValue_[n] = allocWString(*(ppwszValue + n)).release();
+	}
 }
 
 qs::ActionParam::~ActionParam()
