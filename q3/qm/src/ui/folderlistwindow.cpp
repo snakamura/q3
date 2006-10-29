@@ -52,6 +52,8 @@ public:
 	void saveColumns();
 	void setCurrentAccount(Account* pAccount,
 						   bool bShowSize);
+	int getItem(const POINT& pt) const;
+	void selectItem(int nItem);
 	void open(int nItem);
 	Folder* getFolder(int nItem) const;
 	void reloadProfiles(bool bInitialize);
@@ -224,6 +226,25 @@ void qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount,
 	}
 	
 	updateFolderListModel();
+}
+
+int qm::FolderListWindowImpl::getItem(const POINT& pt) const
+{
+	LVHITTESTINFO info = {
+		{ pt.x, pt.y }
+	};
+	return ListView_HitTest(pThis_->getHandle(), &info);
+}
+
+void qm::FolderListWindowImpl::selectItem(int nItem)
+{
+	HWND hwnd = pThis_->getHandle();
+	
+	int nCount = ListView_GetItemCount(hwnd);
+	for (int n = 0; n < nCount; ++n)
+		ListView_SetItemState(hwnd, n,
+			n == nItem ? LVIS_SELECTED | LVIS_FOCUSED : 0,
+			LVIS_SELECTED | LVIS_FOCUSED);
 }
 
 void qm::FolderListWindowImpl::open(int nItem)
@@ -565,10 +586,7 @@ LRESULT qm::FolderListWindow::onKeyDown(UINT nKey,
 LRESULT qm::FolderListWindow::onLButtonDblClk(UINT nFlags,
 											  const POINT& pt)
 {
-	LVHITTESTINFO info = {
-		{ pt.x, pt.y }
-	};
-	int nItem = ListView_HitTest(getHandle(), &info);
+	int nItem = pImpl_->getItem(pt);
 	if (nItem != -1)
 		pImpl_->open(nItem);
 	
@@ -579,6 +597,8 @@ LRESULT qm::FolderListWindow::onLButtonDown(UINT nFlags,
 											const POINT& pt)
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
+	pImpl_->selectItem(pImpl_->getItem(pt));
+	
 	if (tapAndHold(pt))
 		return 0;
 #endif
