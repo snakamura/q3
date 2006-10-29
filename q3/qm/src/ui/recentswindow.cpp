@@ -256,7 +256,7 @@ LRESULT qm::RecentsWindow::onKeyDown(UINT nKey,
 LRESULT qm::RecentsWindow::onLButtonUp(UINT nFlags,
 									   const POINT& pt)
 {
-	int nItem = getSelectedItem(pt.y);
+	ItemList::size_type nItem = getSelectedItem(pt.y);
 	if (nItem != -1) {
 		open(nItem);
 	}
@@ -362,7 +362,7 @@ LRESULT qm::RecentsWindow::onPaint()
 				
 				int x = rect_.left + RecentsWindow::IMAGE_WIDTH + RecentsWindow::IMAGE_SPACING;
 				dc_.extTextOutEllipsis(x, nTop + nTextOffset_, rect_.right - x, ETO_CLIPPED,
-					rect_, pAccount->getName(), wcslen(pAccount->getName()));
+					rect_, pAccount->getName(), static_cast<UINT>(wcslen(pAccount->getName())));
 			}
 			
 			return true;
@@ -388,7 +388,7 @@ LRESULT qm::RecentsWindow::onPaint()
 				int x = rect_.left + RecentsWindow::FOLDER_OFFSET +
 					RecentsWindow::IMAGE_WIDTH + RecentsWindow::IMAGE_SPACING;
 				dc_.extTextOutEllipsis(x, nTop + nTextOffset_, rect_.right - x, ETO_CLIPPED,
-					rect_, pFolder->getName(), wcslen(pFolder->getName()));
+					rect_, pFolder->getName(), static_cast<UINT>(wcslen(pFolder->getName())));
 			}
 			
 			return true;
@@ -440,16 +440,16 @@ LRESULT qm::RecentsWindow::onPaint()
 				const WCHAR* pwszSubject = pItem->getSubject();
 				rect_.top = nTop;
 				rect_.bottom = nTop + nSubjectLineHeight;
-				dc_.extTextOutEllipsis(x, nTop + nTextOffset_, rect_.right - x,
-					ETO_CLIPPED, rect_, pwszSubject, wcslen(pwszSubject));
+				dc_.extTextOutEllipsis(x, nTop + nTextOffset_, rect_.right - x, ETO_CLIPPED,
+					rect_, pwszSubject, static_cast<UINT>(wcslen(pwszSubject)));
 				nTop += nSubjectLineHeight + RecentsWindow::LINE_SPACING;
 				
 				const WCHAR* pwszFrom = pItem->getFrom();
 				if (*pwszFrom) {
 					rect_.top = nTop;
 					rect_.bottom = nTop + nLineHeight_;
-					dc_.extTextOutEllipsis(x, nTop, rect_.right - x,
-						ETO_CLIPPED, rect_, pwszFrom, wcslen(pwszFrom));
+					dc_.extTextOutEllipsis(x, nTop, rect_.right - x, ETO_CLIPPED,
+						rect_, pwszFrom, static_cast<UINT>(wcslen(pwszFrom)));
 				}
 			}
 			
