@@ -476,6 +476,7 @@ LRESULT qm::RecentsWindow::onPaint()
 		nLineHeight_, nHeaderLineHeight_, nMnemonicWidth_, nSelectedItem_);
 	scanItems(&callback);
 	
+	paintSeparator(dc);
 	paintButtons(dc);
 	
 	return 0;
@@ -507,7 +508,7 @@ LRESULT qm::RecentsWindow::onThemeChanged()
 void qm::RecentsWindow::layout(HWND hwndOwner,
 							   bool bAtMousePosition)
 {
-	int nHeight = calcHeight() + nButtonHeight_ + BUTTON_MARGIN*2;
+	int nHeight = calcHeight() + ITEM_SPACING + nButtonHeight_ + BUTTON_MARGIN*2;
 	
 	POINT pt = { 0, 0 };
 	if (bAtMousePosition) {
@@ -542,6 +543,22 @@ void qm::RecentsWindow::layout(HWND hwndOwner,
 	}
 	
 	setWindowPos(0, pt.x, pt.y, nWidth_, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+}
+
+void qm::RecentsWindow::paintSeparator(qs::DeviceContext& dc)
+{
+	GdiObject<HPEN> hPen(::CreatePen(PS_SOLID, 1, RGB(128, 128, 128)));
+	ObjectSelector<HPEN> penSelector(dc, hPen.get());
+	
+	RECT rect;
+	getClientRect(&rect);
+	
+	int y = rect.bottom - (nButtonHeight_ + BUTTON_MARGIN*2);
+	POINT pt[] = {
+		{ rect.left + SEPARATOR_MARGIN, y },
+		{ rect.right - SEPARATOR_MARGIN, y }
+	};
+	dc.polyline(pt, countof(pt));
 }
 
 void qm::RecentsWindow::paintButtons(DeviceContext& dc)

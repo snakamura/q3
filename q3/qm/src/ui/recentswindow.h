@@ -91,6 +91,7 @@ protected:
 private:
 	void layout(HWND hwndOwner,
 				bool bAtMousePosition);
+	void paintSeparator(qs::DeviceContext& dc);
 	void paintButtons(qs::DeviceContext& dc);
 	void paintButton(qs::DeviceContext& dc,
 					 const WCHAR* pwszText,
@@ -194,6 +195,7 @@ public:
 		IMAGE_HEIGHT		= 16,
 		IMAGE_SPACING		= 4,
 		MNEMONIC_SPACING	= 3,
+		SEPARATOR_MARGIN	= 4,
 		BUTTON_WIDTH		= 50,
 		BUTTON_MARGIN		= 4,
 		BUTTON_PADDING		= 4
