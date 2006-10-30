@@ -73,11 +73,11 @@ qm::RecentsWindow::~RecentsWindow()
 	clearItems();
 }
 
-void qm::RecentsWindow::showPopup(HWND hwndOwner,
-								  bool bHotKey)
+void qm::RecentsWindow::showActive(HWND hwndOwner,
+								   bool bHotKey)
 {
+	prepareItems();
 	layout(hwndOwner, !bHotKey);
-	
 	showWindow(SW_SHOW);
 	setForegroundWindow();
 }
@@ -170,8 +170,6 @@ LRESULT qm::RecentsWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #if _WIN32_WINNT >= 0x500
 	UIUtil::setWindowAlpha(getHandle(), pProfile_, L"RecentsWindow");
 #endif
-	
-	prepareItems();
 	
 	return 0;
 }
@@ -624,6 +622,7 @@ void qm::RecentsWindow::prepareItems()
 void qm::RecentsWindow::clearItems()
 {
 	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<Item>());
+	listItem_.clear();
 }
 
 int qm::RecentsWindow::calcHeight() const
@@ -785,6 +784,7 @@ void qm::RecentsWindow::invokeAction(unsigned int nId,
 
 void qm::RecentsWindow::close()
 {
+	clearItems();
 	showWindow(SW_HIDE);
 }
 
@@ -978,7 +978,7 @@ bool qm::RecentsWindowManager::showPopup(HWND hwndOwner,
 		pRecentsWindow_ = pRecentsWindow.release();
 	}
 	
-	pRecentsWindow_->showPopup(hwndOwner, bHotKey);
+	pRecentsWindow_->showActive(hwndOwner, bHotKey);
 	
 	return true;
 }

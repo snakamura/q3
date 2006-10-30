@@ -55,8 +55,8 @@ public:
 	virtual ~RecentsWindow();
 
 public:
-	void showPopup(HWND hwndOwner,
-				   bool bHotKey);
+	void showActive(HWND hwndOwner,
+					bool bHotKey);
 
 public:
 	virtual LRESULT windowProc(UINT uMsg,
@@ -197,7 +197,7 @@ public:
 		IMAGE_SPACING		= 4,
 		MNEMONIC_SPACING	= 3,
 		SEPARATOR_MARGIN	= 4,
-		BUTTON_WIDTH		= 70,
+		BUTTON_WIDTH		= 60,
 		BUTTON_MARGIN		= 4,
 		BUTTON_PADDING		= 4
 	};
