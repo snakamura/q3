@@ -1097,7 +1097,7 @@ HTML表示の文字サイズ。((<ViewZoomアクション|URL:ViewZoomAction.html>))を参照。
 ===RecentsWindowセクション
 新着メッセージ通知ウィンドウの設定をします。
 
-+Alpha (192 @ 0-255)
++Alpha (224 @ 0-255)
 ウィンドウの透過度を指定します。
 
 +Width (400)
