@@ -21,6 +21,7 @@
 namespace qm {
 
 class RecentsWindow;
+class RecentsWindowManager;
 
 class AccountManager;
 class FolderImage;
@@ -54,7 +55,7 @@ public:
 	virtual ~RecentsWindow();
 
 public:
-	bool showPopup(HWND hwndOwner,
+	void showPopup(HWND hwndOwner,
 				   bool bHotKey);
 
 public:
@@ -196,7 +197,7 @@ public:
 		IMAGE_SPACING		= 4,
 		MNEMONIC_SPACING	= 3,
 		SEPARATOR_MARGIN	= 4,
-		BUTTON_WIDTH		= 50,
+		BUTTON_WIDTH		= 70,
 		BUTTON_MARGIN		= 4,
 		BUTTON_PADDING		= 4
 	};
@@ -225,6 +226,41 @@ private:
 
 private:
 	static Button buttons__[];
+};
+
+
+/****************************************************************************
+ *
+ * RecentsWindowManager
+ *
+ */
+
+class RecentsWindowManager
+{
+public:
+	RecentsWindowManager(Recents* pRecents,
+						 const AccountManager* pAccountManager,
+						 qs::ActionMap* pActionMap,
+						 const FolderImage* pFolderImage,
+						 qs::Profile* pProfile);
+	~RecentsWindowManager();
+
+public:
+	bool showPopup(HWND hwndOwner,
+				   bool bHotKey);
+
+private:
+	RecentsWindowManager(const RecentsWindowManager&);
+	RecentsWindowManager& operator=(const RecentsWindowManager&);
+
+private:
+	Recents* pRecents_;
+	const AccountManager* pAccountManager_;
+	qs::ActionMap* pActionMap_;
+	const FolderImage* pFolderImage_;
+	qs::Profile* pProfile_;
+	
+	RecentsWindow* pRecentsWindow_;
 };
 
 }

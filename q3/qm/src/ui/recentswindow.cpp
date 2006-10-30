@@ -73,27 +73,13 @@ qm::RecentsWindow::~RecentsWindow()
 	clearItems();
 }
 
-bool qm::RecentsWindow::showPopup(HWND hwndOwner,
+void qm::RecentsWindow::showPopup(HWND hwndOwner,
 								  bool bHotKey)
 {
-	DWORD dwExStyle = WS_EX_TOOLWINDOW;
-#if _WIN32_WINNT >= 0x500
-	dwExStyle |= WS_EX_LAYERED;
-#endif
-	if (!create(L"QmRecentsWindow", 0, WS_POPUP | WS_BORDER,
-		0, 0, 500, 500, 0, dwExStyle, 0, 0, 0))
-		return false;
-	
-#if _WIN32_WINNT >= 0x500
-	UIUtil::setWindowAlpha(getHandle(), pProfile_, L"RecentsWindow");
-#endif
-	
 	layout(hwndOwner, !bHotKey);
 	
 	showWindow(SW_SHOW);
 	setForegroundWindow();
-	
-	return true;
 }
 
 LRESULT qm::RecentsWindow::windowProc(UINT uMsg,
@@ -180,6 +166,10 @@ LRESULT qm::RecentsWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	nHeaderLineHeight_ = QSMAX(nLineHeight_, IMAGE_HEIGHT);
 	nMnemonicWidth_ = static_cast<int>(tm.tmAveCharWidth*1.2);
 	nButtonHeight_ = nLineHeight_ + BUTTON_PADDING*2;
+	
+#if _WIN32_WINNT >= 0x500
+	UIUtil::setWindowAlpha(getHandle(), pProfile_, L"RecentsWindow");
+#endif
 	
 	prepareItems();
 	
@@ -795,7 +785,7 @@ void qm::RecentsWindow::invokeAction(unsigned int nId,
 
 void qm::RecentsWindow::close()
 {
-	postMessage(WM_CLOSE);
+	showWindow(SW_HIDE);
 }
 
 int qm::RecentsWindow::getButtonByPos(const POINT& pt) const
@@ -944,6 +934,52 @@ bool qm::RecentsWindow::ScanCallback::item(const Item* pItem,
 										   int nTop,
 										   int nBottom)
 {
+	return true;
+}
+
+
+/****************************************************************************
+ *
+ * RecentsWindowManager
+ *
+ */
+
+qm::RecentsWindowManager::RecentsWindowManager(Recents* pRecents,
+											   const AccountManager* pAccountManager,
+											   qs::ActionMap* pActionMap,
+											   const FolderImage* pFolderImage,
+											   qs::Profile* pProfile) :
+	pRecents_(pRecents),
+	pAccountManager_(pAccountManager),
+	pActionMap_(pActionMap),
+	pFolderImage_(pFolderImage),
+	pProfile_(pProfile),
+	pRecentsWindow_(0)
+{
+}
+
+qm::RecentsWindowManager::~RecentsWindowManager()
+{
+	if (pRecentsWindow_)
+		pRecentsWindow_->destroyWindow();
+}
+
+bool qm::RecentsWindowManager::showPopup(HWND hwndOwner,
+										 bool bHotKey)
+{
+	if (!pRecentsWindow_) {
+		std::auto_ptr<RecentsWindow> pRecentsWindow(new RecentsWindow(pRecents_,
+			pAccountManager_, pActionMap_, pFolderImage_, pProfile_));
+		
+		if (!pRecentsWindow->create(L"QmRecentsWindow", 0,
+			WS_POPUP | WS_BORDER, 0, 0, 500, 500, 0, WS_EX_TOOLWINDOW, 0, 0, 0))
+			return false;
+	
+		pRecentsWindow_ = pRecentsWindow.release();
+	}
+	
+	pRecentsWindow_->showPopup(hwndOwner, bHotKey);
+	
 	return true;
 }
 

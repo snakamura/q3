@@ -256,6 +256,9 @@ public:
 #ifndef _WIN32_WCE_PSPC
 	std::auto_ptr<ShellIcon> pShellIcon_;
 #endif
+#ifdef QMRECENTSWINDOW
+	std::auto_ptr<RecentsWindowManager> pRecentsWindowManager_;
+#endif
 	std::auto_ptr<FolderModel> pFolderModel_;
 #ifdef QMTABWINDOW
 	std::auto_ptr<DefaultTabModel> pTabModel_;
@@ -1609,11 +1612,7 @@ void qm::MainWindowImpl::showRecentsMenu(bool bHotKey)
 {
 #ifdef QMRECENTSWINDOW
 	if (pProfile_->getInt(L"RecentsWindow", L"Use") != 0) {
-		std::auto_ptr<RecentsWindow> pRecentsWindow(new RecentsWindow(
-			pDocument_->getRecents(), pDocument_,
-			pActionMap_.get(), pFolderImage_, pProfile_));
-		pRecentsWindow->showPopup(pThis_->getHandle(), bHotKey);
-		pRecentsWindow.release();
+		pRecentsWindowManager_->showPopup(pThis_->getHandle(), bHotKey);
 		return;
 	}
 #endif
@@ -2572,6 +2571,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_, getHandle(), pImpl_));
 #endif
 	
+#ifdef QMRECENTSWINDOW
+	pImpl_->pRecentsWindowManager_.reset(new RecentsWindowManager(
+		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_,
+		pImpl_->pActionMap_.get(), pImpl_->pFolderImage_, pImpl_->pProfile_));
+#endif
+	
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
 	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"MainWindow");
 #endif
@@ -2583,6 +2588,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MainWindow::onDestroy()
 {
+#ifdef QMRECENTSWINDOW
+	pImpl_->pRecentsWindowManager_.reset(0);
+#endif
+	
 #ifndef _WIN32_WCE_PSPC
 	pImpl_->pShellIcon_.reset(0);
 #endif
