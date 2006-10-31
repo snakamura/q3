@@ -2383,10 +2383,21 @@ qm::FileShowAction::~FileShowAction()
 
 void qm::FileShowAction::invoke(const ActionEvent& event)
 {
-	if (bShow_)
-		pMainWindow_->show();
-	else
+	if (bShow_) {
+		if (pMainWindow_->isHidden()) {
+			pMainWindow_->show();
+		}
+		else {
+			if (pMainWindow_->isIconic())
+				pMainWindow_->showWindow(SW_RESTORE);
+			pMainWindow_->setWindowPos(HWND_TOP,
+				0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			pMainWindow_->setForegroundWindow();
+		}
+	}
+	else {
 		pMainWindow_->hide();
+	}
 }
 
 bool qm::FileShowAction::isEnabled(const ActionEvent& event)
