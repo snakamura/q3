@@ -1357,11 +1357,10 @@ bool qm::AddressHeaderEditItem::matchName(const WCHAR* pwszName,
 	if (_wcsnicmp(pwszName, pwszInput, nInputLen) == 0)
 		return true;
 	
-	const WCHAR* p = wcschr(pwszName, L' ');
-	while (p) {
-		if (_wcsnicmp(p + 1, pwszInput, nInputLen) == 0)
+	for (const WCHAR* p = pwszName; *p; ++p) {
+		if (wcschr(L" @.-_", *p) &&
+			_wcsnicmp(p + 1, pwszInput, nInputLen) == 0)
 			return true;
-		p = wcschr(p + 1, L' ');
 	}
 	return false;
 }
