@@ -29,7 +29,7 @@ struct qm::RecentsImpl
 	typedef std::vector<URI*> URIList;
 	typedef std::vector<RecentsHandler*> HandlerList;
 	
-	void fireRecentsChanged();
+	void fireRecentsChanged(RecentsEvent::Type type);
 	
 	Recents* pThis_;
 	AccountManager* pAccountManager_;
@@ -44,9 +44,9 @@ struct qm::RecentsImpl
 	HandlerList listHandler_;
 };
 
-void qm::RecentsImpl::fireRecentsChanged()
+void qm::RecentsImpl::fireRecentsChanged(RecentsEvent::Type type)
 {
-	RecentsEvent event(pThis_);
+	RecentsEvent event(pThis_, type);
 	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
 		(*it)->recentsChanged(event);
 }
@@ -139,7 +139,7 @@ void qm::Recents::add(std::auto_ptr<URI> pURI)
 		l.erase(l.begin());
 	}
 	
-	pImpl_->fireRecentsChanged();
+	pImpl_->fireRecentsChanged(RecentsEvent::TYPE_ADDED);
 }
 
 void qm::Recents::remove(const URI* pURI)
@@ -156,7 +156,7 @@ void qm::Recents::remove(const URI* pURI)
 		pImpl_->list_.erase(it);
 	}
 	
-	pImpl_->fireRecentsChanged();
+	pImpl_->fireRecentsChanged(RecentsEvent::TYPE_REMOVED);
 }
 
 void qm::Recents::clear()
@@ -169,7 +169,7 @@ void qm::Recents::clear()
 	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(), qs::deleter<URI>());
 	pImpl_->list_.clear();
 	
-	pImpl_->fireRecentsChanged();
+	pImpl_->fireRecentsChanged(RecentsEvent::TYPE_REMOVED);
 }
 
 void qm::Recents::removeSeens()
@@ -193,7 +193,7 @@ void qm::Recents::removeSeens()
 	}
 	
 	if (bChanged)
-		pImpl_->fireRecentsChanged();
+		pImpl_->fireRecentsChanged(RecentsEvent::TYPE_REMOVED);
 }
 
 void qm::Recents::save() const
@@ -254,8 +254,10 @@ qm::RecentsHandler::~RecentsHandler()
  *
  */
 
-qm::RecentsEvent::RecentsEvent(Recents* pRecents) :
-	pRecents_(pRecents)
+qm::RecentsEvent::RecentsEvent(Recents* pRecents,
+							   Type type) :
+	pRecents_(pRecents),
+	type_(type)
 {
 }
 
@@ -266,4 +268,9 @@ qm::RecentsEvent::~RecentsEvent()
 Recents* qm::RecentsEvent::getRecents() const
 {
 	return pRecents_;
+}
+
+RecentsEvent::Type qm::RecentsEvent::getType() const
+{
+	return type_;
 }

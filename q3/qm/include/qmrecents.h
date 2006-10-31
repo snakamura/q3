@@ -95,11 +95,19 @@ public:
 class RecentsEvent
 {
 public:
-	explicit RecentsEvent(Recents* pRecents);
+	enum Type {
+		TYPE_ADDED,
+		TYPE_REMOVED
+	};
+
+public:
+	RecentsEvent(Recents* pRecents,
+				 Type type);
 	~RecentsEvent();
 
 public:
 	Recents* getRecents() const;
+	Type getType() const;
 
 private:
 	RecentsEvent(const RecentsEvent&);
@@ -107,6 +115,7 @@ private:
 
 private:
 	Recents* pRecents_;
+	Type type_;
 };
 
 }
