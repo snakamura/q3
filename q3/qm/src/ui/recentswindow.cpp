@@ -524,20 +524,26 @@ LRESULT qm::RecentsWindow::onThemeChanged()
 
 LRESULT qm::RecentsWindow::onTimer(UINT_PTR nId)
 {
-	if (nId == TIMER_HIDE) {
+	switch (nId) {
+	case TIMER_HIDE:
 		killTimer(TIMER_HIDE);
 		if (show_ == SHOW_PASSIVE)
 			close();
-	}
-	else if (nId == TIMER_UPDATE) {
+		break;
+	case TIMER_UPDATE:
 		killTimer(TIMER_UPDATE);
 		
 		if (show_ == SHOW_PASSIVE) {
 			prepareItems(false);
-			layout(false, true);
+			if (listItem_.empty()) {
+				close();
+			}
+			else {
+				layout(false, true);
+				setTimer(TIMER_UPDATE, UPDATE_INTERVAL);
+			}
 		}
-		
-		setTimer(TIMER_UPDATE, UPDATE_INTERVAL);
+		break;
 	}
 	return 0;
 }
