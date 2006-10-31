@@ -149,7 +149,7 @@ LRESULT qm::RecentsWindow::onChar(UINT nChar,
 	if (L'0' <= nChar && nChar <= L'9') {
 		int nItem = nChar != L'0' ? nChar - L'1' : 9;
 		if (nItem != -1)
-			open(nItem);
+			openItem(nItem);
 	}
 	else {
 		int nButton = getButtonByMnemonic(nChar);
@@ -257,7 +257,7 @@ LRESULT qm::RecentsWindow::onKeyDown(UINT nKey,
 	else {
 		switch (nKey) {
 		case VK_RETURN:
-			open(nSelectedItem_);
+			openItem(nSelectedItem_);
 			break;
 		case VK_ESCAPE:
 			close();
@@ -275,12 +275,14 @@ LRESULT qm::RecentsWindow::onLButtonUp(UINT nFlags,
 {
 	ItemList::size_type nItem = getSelectedItem(pt.y);
 	if (nItem != -1) {
-		open(nItem);
+		openItem(nItem);
 	}
 	else {
 		int nButton = getButtonByPos(pt);
 		if (nButton != -1)
 			invokeAction(buttons__[nButton].nId_, 0);
+		else
+			close();
 	}
 	return 0;
 }
@@ -828,7 +830,7 @@ void qm::RecentsWindow::scanItems(ScanCallback* pCallback) const
 	}
 }
 
-void qm::RecentsWindow::open(ItemList::size_type nItem)
+void qm::RecentsWindow::openItem(ItemList::size_type nItem)
 {
 	if (nItem == -1 || nItem >= listItem_.size())
 		return;

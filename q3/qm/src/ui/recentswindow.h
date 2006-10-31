@@ -119,7 +119,7 @@ private:
 	void invalidateItem(ItemList::size_type nItem);
 	void scanItems(ScanCallback* pCallback) const;
 	
-	void open(ItemList::size_type nItem);
+	void openItem(ItemList::size_type nItem);
 	void invokeAction(unsigned int nId,
 					  const WCHAR* pwszParam);
 	
