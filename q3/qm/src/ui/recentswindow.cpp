@@ -136,7 +136,7 @@ LRESULT qm::RecentsWindow::onActivate(UINT nFlags,
 {
 	DefaultWindowHandler::onActivate(nFlags, hwnd, bMinimized);
 	
-	if (nFlags == WA_INACTIVE)
+	if (nFlags == WA_INACTIVE && show_ == SHOW_ACTIVE)
 		close();
 	
 	return 0;
