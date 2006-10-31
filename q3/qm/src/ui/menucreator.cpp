@@ -604,7 +604,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 		
 		listURI.reserve(nCount - nOffset);
 		for (unsigned int n = nOffset; n < nCount; ++n)
-			listURI.push_back(new URI(*pRecents_->get(n)));
+			listURI.push_back(new URI(*pRecents_->get(n).first));
 	}
 	std::sort(listURI.begin(), listURI.end(), URIComp());
 	

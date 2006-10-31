@@ -655,26 +655,29 @@ void qm::RecentsWindow::prepareItems(bool bActive)
 	
 	pRecents_->removeSeens();
 	
-	typedef std::vector<URI*> URIList;
-	URIList listURI;
-	container_deleter<URIList> deleter(listURI);
+	typedef std::vector<MessagePtr> MessageList;
+	MessageList listMessage;
 	{
 		Lock<Recents> lock(*pRecents_);
 		
-		// TODO
-		// If !bActive, ignore old items.
+		Time time;
+		if (!bActive) {
+			time = Time::getCurrentTime();
+			time.addSecond(-nHideTimeout_/1000);
+		}
 		
 		unsigned int nCount = pRecents_->getCount();
-		listURI.reserve(nCount);
-		for (unsigned int n = 0; n < nCount; ++n)
-			listURI.push_back(new URI(*pRecents_->get(n)));
+		listMessage.reserve(nCount);
+		for (unsigned int n = 0; n < nCount; ++n) {
+			const std::pair<URI*, Time>& p = pRecents_->get(n);
+			if (bActive || p.second > time)
+				listMessage.push_back(pAccountManager_->getMessage(*p.first));
+		}
 	}
 	
-	listItem_.reserve(listURI.size());
-	for (URIList::const_iterator it = listURI.begin(); it != listURI.end(); ++it) {
-		const URI* pURI = *it;
-		
-		MessagePtrLock mpl(pAccountManager_->getMessage(*pURI));
+	listItem_.reserve(listMessage.size());
+	for (MessageList::const_iterator it = listMessage.begin(); it != listMessage.end(); ++it) {
+		MessagePtrLock mpl(*it);
 		if (mpl) {
 			wstring_ptr wstrSubject(mpl->getSubject());
 			wstring_ptr wstrFrom(mpl->getFrom());

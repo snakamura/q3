@@ -45,7 +45,7 @@ public:
 	unsigned int getMax() const;
 	void setMax(unsigned int nMax);
 	unsigned int getCount() const;
-	const URI* get(unsigned int n) const;
+	const std::pair<URI*, qs::Time>& get(unsigned int n) const;
 	void add(std::auto_ptr<URI> pURI);
 	void remove(const URI* pURI);
 	void clear();

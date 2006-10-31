@@ -12,6 +12,8 @@
 
 #include <qsthread.h>
 
+#include <boost/bind.hpp>
+
 #include "uri.h"
 
 using namespace qm;
@@ -26,7 +28,7 @@ using namespace qs;
 
 struct qm::RecentsImpl
 {
-	typedef std::vector<URI*> URIList;
+	typedef std::vector<std::pair<URI*, Time> > URIList;
 	typedef std::vector<RecentsHandler*> HandlerList;
 	
 	void fireRecentsChanged(RecentsEvent::Type type);
@@ -47,8 +49,8 @@ struct qm::RecentsImpl
 void qm::RecentsImpl::fireRecentsChanged(RecentsEvent::Type type)
 {
 	RecentsEvent event(pThis_, type);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->recentsChanged(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&RecentsHandler::recentsChanged, _1, boost::cref(event)));
 }
 
 
@@ -104,7 +106,7 @@ unsigned int qm::Recents::getCount() const
 	return static_cast<unsigned int>(pImpl_->list_.size());
 }
 
-const URI* qm::Recents::get(unsigned int n) const
+const std::pair<URI*, qs::Time>& qm::Recents::get(unsigned int n) const
 {
 	assert(isLocked());
 	assert(n < pImpl_->list_.size());
@@ -131,11 +133,11 @@ void qm::Recents::add(std::auto_ptr<URI> pURI)
 	
 	RecentsImpl::URIList& l = pImpl_->list_;
 	
-	l.push_back(pURI.get());
+	l.push_back(std::make_pair(pURI.get(), Time::getCurrentTime()));
 	pURI.release();
 	
 	while (l.size() > pImpl_->nMax_) {
-		delete l.front();
+		delete l.front().first;
 		l.erase(l.begin());
 	}
 	
@@ -149,10 +151,10 @@ void qm::Recents::remove(const URI* pURI)
 	Lock<Recents> lock(*this);
 	
 	RecentsImpl::URIList::iterator it = pImpl_->list_.begin();
-	while (it != pImpl_->list_.end() && **it != *pURI)
+	while (it != pImpl_->list_.end() && *(*it).first != *pURI)
 		++it;
 	if (it != pImpl_->list_.end()) {
-		delete *it;
+		delete (*it).first;
 		pImpl_->list_.erase(it);
 	}
 	
@@ -166,7 +168,10 @@ void qm::Recents::clear()
 	if (pImpl_->list_.empty())
 		return;
 	
-	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(), qs::deleter<URI>());
+	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(),
+		unary_compose_f_gx(
+			qs::deleter<URI>(),
+			std::select1st<RecentsImpl::URIList::value_type>()));
 	pImpl_->list_.clear();
 	
 	pImpl_->fireRecentsChanged(RecentsEvent::TYPE_REMOVED);
@@ -179,11 +184,9 @@ void qm::Recents::removeSeens()
 	bool bChanged = false;
 	
 	for (RecentsImpl::URIList::iterator it = pImpl_->list_.begin(); it != pImpl_->list_.end(); ) {
-		const URI* pURI = *it;
-		
-		MessagePtrLock mpl(pImpl_->pAccountManager_->getMessage(*pURI));
+		MessagePtrLock mpl(pImpl_->pAccountManager_->getMessage(*(*it).first));
 		if (!mpl || mpl->isSeen()) {
-			delete *it;
+			delete (*it).first;
 			it = pImpl_->list_.erase(it);
 			bChanged = true;
 		}
