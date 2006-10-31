@@ -47,13 +47,15 @@ qm::RecentsWindow::RecentsWindow(Recents* pRecents,
 								 const AccountManager* pAccountManager,
 								 ActionMap* pActionMap,
 								 const FolderImage* pFolderImage,
-								 Profile* pProfile) :
+								 Profile* pProfile,
+								 HWND hwnd) :
 	WindowBase(true),
 	pRecents_(pRecents),
 	pAccountManager_(pAccountManager),
 	pActionMap_(pActionMap),
 	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
+	hwnd_(hwnd),
 	nSelectedItem_(-1),
 	nSelectedButton_(-1),
 	hfont_(0),
@@ -63,7 +65,9 @@ qm::RecentsWindow::RecentsWindow(Recents* pRecents,
 	nLineHeight_(0),
 	nHeaderLineHeight_(0),
 	nMnemonicWidth_(0),
-	nButtonHeight_(0)
+	nButtonHeight_(0),
+	nHideTimeout_(20*1000),
+	show_(SHOW_HIDDEN)
 {
 	setWindowHandler(this, false);
 }
@@ -73,13 +77,34 @@ qm::RecentsWindow::~RecentsWindow()
 	clearItems();
 }
 
-void qm::RecentsWindow::showActive(HWND hwndOwner,
-								   bool bHotKey)
+void qm::RecentsWindow::showActive(bool bHotKey)
 {
-	prepareItems();
-	layout(hwndOwner, !bHotKey);
+	if (show_ == SHOW_PASSIVE) {
+		killTimer(TIMER_HIDE);
+		killTimer(TIMER_UPDATE);
+	}
+	
+	prepareItems(true);
+	layout(!bHotKey, false);
+	show_ = SHOW_ACTIVE;
+	
 	showWindow(SW_SHOW);
 	setForegroundWindow();
+}
+
+void qm::RecentsWindow::showPassive()
+{
+	if (show_ == SHOW_ACTIVE)
+		return;
+	
+	prepareItems(false);
+	layout(false, true);
+	show_ = SHOW_PASSIVE;
+	
+	showWindow(SW_SHOWNOACTIVATE);
+	
+	setTimer(TIMER_HIDE, nHideTimeout_);
+	setTimer(TIMER_UPDATE, UPDATE_INTERVAL);
 }
 
 LRESULT qm::RecentsWindow::windowProc(UINT uMsg,
@@ -99,6 +124,8 @@ LRESULT qm::RecentsWindow::windowProc(UINT uMsg,
 		HANDLE_SETCURSOR()
 		HANDLE_SYSKEYDOWN()
 		HANDLE_THEMECHANGED()
+		HANDLE_TIMER()
+		HANDLE_MESSAGE(WM_RECENTSWINDOW_SHOWPASSIVE, onShowPassive)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -166,6 +193,8 @@ LRESULT qm::RecentsWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	nHeaderLineHeight_ = QSMAX(nLineHeight_, IMAGE_HEIGHT);
 	nMnemonicWidth_ = static_cast<int>(tm.tmAveCharWidth*1.2);
 	nButtonHeight_ = nLineHeight_ + BUTTON_PADDING*2;
+	
+	nHideTimeout_ = pProfile_->getInt(L"RecentsWindow", L"HideTimeout")*1000;
 	
 #if _WIN32_WINNT >= 0x500
 	UIUtil::setWindowAlpha(getHandle(), pProfile_, L"RecentsWindow");
@@ -493,8 +522,35 @@ LRESULT qm::RecentsWindow::onThemeChanged()
 	return 0;
 }
 
-void qm::RecentsWindow::layout(HWND hwndOwner,
-							   bool bAtMousePosition)
+LRESULT qm::RecentsWindow::onTimer(UINT_PTR nId)
+{
+	if (nId == TIMER_HIDE) {
+		killTimer(TIMER_HIDE);
+		if (show_ == SHOW_PASSIVE)
+			close();
+	}
+	else if (nId == TIMER_UPDATE) {
+		killTimer(TIMER_UPDATE);
+		
+		if (show_ == SHOW_PASSIVE) {
+			prepareItems(false);
+			layout(false, true);
+		}
+		
+		setTimer(TIMER_UPDATE, UPDATE_INTERVAL);
+	}
+	return 0;
+}
+
+LRESULT qm::RecentsWindow::onShowPassive(WPARAM wParam,
+										 LPARAM lParam)
+{
+	showPassive();
+	return 0;
+}
+
+void qm::RecentsWindow::layout(bool bAtMousePosition,
+							   bool bTopMost)
 {
 	int nHeight = calcHeight() + ITEM_SPACING + nButtonHeight_ + BUTTON_MARGIN*2;
 	
@@ -518,7 +574,7 @@ void qm::RecentsWindow::layout(HWND hwndOwner,
 	}
 	else {
 #if WINVER >= 0x500
-		HMONITOR hMonitor = ::MonitorFromWindow(hwndOwner, MONITOR_DEFAULTTONEAREST);
+		HMONITOR hMonitor = ::MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
 		MONITORINFO info = { sizeof(info) };
 		::GetMonitorInfo(hMonitor, &info);
 		RECT rect = info.rcWork;
@@ -530,7 +586,8 @@ void qm::RecentsWindow::layout(HWND hwndOwner,
 		pt.y = rect.bottom - nHeight;
 	}
 	
-	setWindowPos(0, pt.x, pt.y, nWidth_, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	setWindowPos(bTopMost ? HWND_TOPMOST : HWND_TOP,
+		pt.x, pt.y, nWidth_, nHeight, SWP_NOACTIVATE);
 }
 
 void qm::RecentsWindow::paintSeparator(qs::DeviceContext& dc)
@@ -586,7 +643,7 @@ void qm::RecentsWindow::paintButton(DeviceContext& dc,
 	dc.drawText(pwszText, -1, &r, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
 }
 
-void qm::RecentsWindow::prepareItems()
+void qm::RecentsWindow::prepareItems(bool bActive)
 {
 	clearItems();
 	
@@ -597,6 +654,9 @@ void qm::RecentsWindow::prepareItems()
 	container_deleter<URIList> deleter(listURI);
 	{
 		Lock<Recents> lock(*pRecents_);
+		
+		// TODO
+		// If !bActive, ignore old items.
 		
 		unsigned int nCount = pRecents_->getCount();
 		listURI.reserve(nCount);
@@ -784,7 +844,13 @@ void qm::RecentsWindow::invokeAction(unsigned int nId,
 
 void qm::RecentsWindow::close()
 {
+	if (show_ == SHOW_PASSIVE) {
+		killTimer(TIMER_HIDE);
+		killTimer(TIMER_UPDATE);
+	}
+	
 	clearItems();
+	show_ = SHOW_HIDDEN;
 	showWindow(SW_HIDE);
 }
 
@@ -948,38 +1014,53 @@ qm::RecentsWindowManager::RecentsWindowManager(Recents* pRecents,
 											   const AccountManager* pAccountManager,
 											   qs::ActionMap* pActionMap,
 											   const FolderImage* pFolderImage,
-											   qs::Profile* pProfile) :
+											   qs::Profile* pProfile,
+											   HWND hwnd) :
 	pRecents_(pRecents),
 	pAccountManager_(pAccountManager),
 	pActionMap_(pActionMap),
 	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
-	pRecentsWindow_(0)
+	pRecentsWindow_(0),
+	hwnd_(hwnd)
 {
+	createWindow();
+	pRecents_->addRecentsHandler(this);
 }
 
 qm::RecentsWindowManager::~RecentsWindowManager()
 {
+	pRecents_->removeRecentsHandler(this);
 	if (pRecentsWindow_)
 		pRecentsWindow_->destroyWindow();
 }
 
-bool qm::RecentsWindowManager::showPopup(HWND hwndOwner,
-										 bool bHotKey)
+void qm::RecentsWindowManager::recentsChanged(const RecentsEvent& event)
+{
+	if (event.getType() == RecentsEvent::TYPE_ADDED && pRecentsWindow_)
+		pRecentsWindow_->postMessage(RecentsWindow::WM_RECENTSWINDOW_SHOWPASSIVE);
+}
+
+bool qm::RecentsWindowManager::showPopup(bool bHotKey)
+{
+	if (!createWindow())
+		return false;
+	
+	pRecentsWindow_->showActive(bHotKey);
+	
+	return true;
+}
+
+bool qm::RecentsWindowManager::createWindow()
 {
 	if (!pRecentsWindow_) {
 		std::auto_ptr<RecentsWindow> pRecentsWindow(new RecentsWindow(pRecents_,
-			pAccountManager_, pActionMap_, pFolderImage_, pProfile_));
-		
+			pAccountManager_, pActionMap_, pFolderImage_, pProfile_, hwnd_));
 		if (!pRecentsWindow->create(L"QmRecentsWindow", 0,
-			WS_POPUP | WS_BORDER, 0, 0, 500, 500, 0, WS_EX_TOOLWINDOW, 0, 0, 0))
+			WS_POPUP | WS_BORDER, 0, 0, 0, 0, 0, WS_EX_TOOLWINDOW, 0, 0, 0))
 			return false;
-	
 		pRecentsWindow_ = pRecentsWindow.release();
 	}
-	
-	pRecentsWindow_->showActive(hwndOwner, bHotKey);
-	
 	return true;
 }
 

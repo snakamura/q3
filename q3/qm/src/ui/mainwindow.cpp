@@ -1612,7 +1612,7 @@ void qm::MainWindowImpl::showRecentsMenu(bool bHotKey)
 {
 #ifdef QMRECENTSWINDOW
 	if (pProfile_->getInt(L"RecentsWindow", L"Use") != 0) {
-		pRecentsWindowManager_->showPopup(pThis_->getHandle(), bHotKey);
+		pRecentsWindowManager_->showPopup(bHotKey);
 		return;
 	}
 #endif
@@ -2574,7 +2574,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #ifdef QMRECENTSWINDOW
 	pImpl_->pRecentsWindowManager_.reset(new RecentsWindowManager(
 		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_,
-		pImpl_->pActionMap_.get(), pImpl_->pFolderImage_, pImpl_->pProfile_));
+		pImpl_->pActionMap_.get(), pImpl_->pFolderImage_,
+		pImpl_->pProfile_, getHandle()));
 #endif
 	
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500

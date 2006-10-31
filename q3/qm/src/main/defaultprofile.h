@@ -446,9 +446,10 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Recents",	L"Max",				L"20"	},
 
 #ifdef QMRECENTSWINDOW
-	{ L"RecentsWindow",	L"Alpha",	L"224"	},
-	{ L"RecentsWindow",	L"Width",	L"400"	},
-	{ L"RecentsWindow",	L"Use",		L"1"	},
+	{ L"RecentsWindow",	L"Alpha",		L"224"	},
+	{ L"RecentsWindow",	L"HideTimeout",	L"20"	},
+	{ L"RecentsWindow",	L"Width",		L"400"	},
+	{ L"RecentsWindow",	L"Use",			L"1"	},
 #endif
 	
 	{ L"Replace",	L"HistorySize",	L"10"	},

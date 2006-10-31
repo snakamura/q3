@@ -12,6 +12,7 @@
 #ifdef QMRECENTSWINDOW
 
 #include <qm.h>
+#include <qmrecents.h>
 
 #include <qsdevicecontext.h>
 #include <qstheme.h>
@@ -38,6 +39,11 @@ class RecentsWindow :
 	public qs::WindowBase,
 	public qs::DefaultWindowHandler
 {
+public:
+	enum {
+		WM_RECENTSWINDOW_SHOWPASSIVE	= WM_APP + 1701
+	};
+
 private:
 	class Item;
 	class ScanCallback;
@@ -51,12 +57,13 @@ public:
 				  const AccountManager* pAccountManager,
 				  qs::ActionMap* pActionMap,
 				  const FolderImage* pFolderImage,
-				  qs::Profile* pProfile);
+				  qs::Profile* pProfile,
+				  HWND hwnd);
 	virtual ~RecentsWindow();
 
 public:
-	void showActive(HWND hwndOwner,
-					bool bHotKey);
+	void showActive(bool bHotKey);
+	void showPassive();
 
 public:
 	virtual LRESULT windowProc(UINT uMsg,
@@ -88,10 +95,13 @@ protected:
 						 UINT nRepeat,
 						 UINT nFlags);
 	LRESULT onThemeChanged();
+	LRESULT onTimer(UINT_PTR nId);
+	LRESULT onShowPassive(WPARAM wParam,
+						  LPARAM lParam);
 
 private:
-	void layout(HWND hwndOwner,
-				bool bAtMousePosition);
+	void layout(bool bAtMousePosition,
+				bool bTopMost);
 	void paintSeparator(qs::DeviceContext& dc);
 	void paintButtons(qs::DeviceContext& dc);
 	void paintButton(qs::DeviceContext& dc,
@@ -99,7 +109,7 @@ private:
 					 const RECT& rect,
 					 bool bSelected);
 	
-	void prepareItems();
+	void prepareItems(bool bActive);
 	void clearItems();
 	
 	int calcHeight() const;
@@ -201,6 +211,19 @@ public:
 		BUTTON_MARGIN		= 4,
 		BUTTON_PADDING		= 4
 	};
+	
+	enum {
+		TIMER_HIDE		= 1000,
+		TIMER_UPDATE	= 1001,
+		UPDATE_INTERVAL	= 1000
+	};
+
+private:
+	enum Show {
+		SHOW_HIDDEN,
+		SHOW_ACTIVE,
+		SHOW_PASSIVE
+	};
 
 private:
 	Recents* pRecents_;
@@ -208,6 +231,7 @@ private:
 	qs::ActionMap* pActionMap_;
 	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;
+	HWND hwnd_;
 	
 	ItemList listItem_;
 	ItemList::size_type nSelectedItem_;
@@ -223,6 +247,10 @@ private:
 	int nMnemonicWidth_;
 	int nButtonHeight_;
 	std::auto_ptr<qs::Theme> pTheme_;
+	
+	int nHideTimeout_;
+	
+	Show show_;
 
 private:
 	static Button buttons__[];
@@ -235,19 +263,25 @@ private:
  *
  */
 
-class RecentsWindowManager
+class RecentsWindowManager : private RecentsHandler
 {
 public:
 	RecentsWindowManager(Recents* pRecents,
 						 const AccountManager* pAccountManager,
 						 qs::ActionMap* pActionMap,
 						 const FolderImage* pFolderImage,
-						 qs::Profile* pProfile);
+						 qs::Profile* pProfile,
+						 HWND hwnd_);
 	~RecentsWindowManager();
 
 public:
-	bool showPopup(HWND hwndOwner,
-				   bool bHotKey);
+	bool showPopup(bool bHotKey);
+
+public:
+	virtual void recentsChanged(const RecentsEvent& event);
+
+private:
+	bool createWindow();
 
 private:
 	RecentsWindowManager(const RecentsWindowManager&);
@@ -259,6 +293,7 @@ private:
 	qs::ActionMap* pActionMap_;
 	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;
+	HWND hwnd_;
 	
 	RecentsWindow* pRecentsWindow_;
 };
