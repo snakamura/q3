@@ -1034,9 +1034,12 @@ qm::RecentsWindowManager::RecentsWindowManager(Recents* pRecents,
 	pActionMap_(pActionMap),
 	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
+	hwnd_(hwnd),
 	pRecentsWindow_(0),
-	hwnd_(hwnd)
+	bShowPassive_(true)
 {
+	bShowPassive_ = pProfile_->getInt(L"RecentsWindow", L"AutoPopup") != 0;
+	
 	createWindow();
 	pRecents_->addRecentsHandler(this);
 }
@@ -1050,7 +1053,7 @@ qm::RecentsWindowManager::~RecentsWindowManager()
 
 void qm::RecentsWindowManager::recentsChanged(const RecentsEvent& event)
 {
-	if (event.getType() == RecentsEvent::TYPE_ADDED && pRecentsWindow_)
+	if (bShowPassive_ && event.getType() == RecentsEvent::TYPE_ADDED)
 		pRecentsWindow_->postMessage(RecentsWindow::WM_RECENTSWINDOW_SHOWPASSIVE);
 }
 

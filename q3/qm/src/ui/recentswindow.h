@@ -296,6 +296,7 @@ private:
 	HWND hwnd_;
 	
 	RecentsWindow* pRecentsWindow_;
+	bool bShowPassive_;
 };
 
 }
