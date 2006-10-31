@@ -446,6 +446,10 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Recents",	L"Max",				L"20"	},
 
 #ifdef QMRECENTSWINDOW
+	{ L"RecentsWindow",	L"FontCharset",	L"0"	},
+/*	{ L"RecentsWindow",	L"FontFace",	L""		},*/
+	{ L"RecentsWindow",	L"FontSize",	L"9"	},
+	{ L"RecentsWindow",	L"FontStyle",	L"0"	},
 	{ L"RecentsWindow",	L"Alpha",		L"224"	},
 	{ L"RecentsWindow",	L"AutoPopup",	L"1"	},
 	{ L"RecentsWindow",	L"HideTimeout",	L"20"	},
