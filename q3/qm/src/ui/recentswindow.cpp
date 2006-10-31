@@ -694,6 +694,7 @@ void qm::RecentsWindow::clearItems()
 {
 	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<Item>());
 	listItem_.clear();
+	nSelectedItem_ = -1;
 }
 
 int qm::RecentsWindow::calcHeight() const
@@ -861,6 +862,7 @@ void qm::RecentsWindow::close()
 	}
 	
 	clearItems();
+	nSelectedButton_ = -1;
 	show_ = SHOW_HIDDEN;
 	showWindow(SW_HIDE);
 }
