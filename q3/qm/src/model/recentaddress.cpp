@@ -28,7 +28,8 @@ using namespace qs;
 qm::RecentAddress::RecentAddress(AddressBook* pAddressBook,
 								 Profile* pProfile) :
 	pAddressBook_(pAddressBook),
-	pProfile_(pProfile)
+	pProfile_(pProfile),
+	bModified_(false)
 {
 	nMax_ = pProfile_->getInt(L"RecentAddress", L"Max");
 	if (nMax_ == 0)
@@ -40,6 +41,7 @@ qm::RecentAddress::RecentAddress(AddressBook* pAddressBook,
 qm::RecentAddress::~RecentAddress()
 {
 	std::for_each(listAddress_.begin(), listAddress_.end(), qs::deleter<AddressParser>());
+	listAddress_.clear();
 }
 
 const RecentAddress::AddressList& qm::RecentAddress::getAddresses() const
@@ -61,8 +63,22 @@ void qm::RecentAddress::add(const Message& msg)
 	}
 }
 
+void qm::RecentAddress::remove(const WCHAR* pwsz)
+{
+	AddressList::iterator it = listAddress_.begin();
+	while (it != listAddress_.end() && wcscmp((*it)->getValue().get(), pwsz) != 0)
+		++it;
+	if (it != listAddress_.end()) {
+		listAddress_.erase(it);
+		bModified_ = true;
+	}
+}
+
 void qm::RecentAddress::save() const
 {
+	if (!bModified_)
+		return;
+	
 	for (unsigned int n = 0; n < nMax_; ++n) {
 		WCHAR wszKey[32];
 		_snwprintf(wszKey, countof(wszKey), L"Address%u", n);
@@ -70,22 +86,34 @@ void qm::RecentAddress::save() const
 			wstring_ptr wstrValue(listAddress_[n]->getValue());
 			pProfile_->setString(L"RecentAddress", wszKey, wstrValue.get());
 		}
+		else if (n == listAddress_.size()) {
+			pProfile_->setString(L"RecentAddress", wszKey, L"");
+		}
+		else {
+			break;
+		}
 	}
+	
+	bModified_ = false;
 }
 
 void qm::RecentAddress::load()
 {
 	listAddress_.reserve(nMax_);
+	
 	for (unsigned int n = 0; n < nMax_; ++n) {
 		WCHAR wszKey[32];
 		_snwprintf(wszKey, countof(wszKey), L"Address%u", n);
 		wstring_ptr wstrAddress(pProfile_->getString(L"RecentAddress", wszKey));
-		if (*wstrAddress.get()) {
-			std::auto_ptr<AddressParser> pAddress(new AddressParser());
-			if (MessageCreator::getAddress(wstrAddress.get(), pAddress.get()))
-				listAddress_.push_back(pAddress.release());
-		}
+		if (!*wstrAddress.get())
+			break;
+		
+		std::auto_ptr<AddressParser> pAddress(new AddressParser());
+		if (MessageCreator::getAddress(wstrAddress.get(), pAddress.get()))
+			listAddress_.push_back(pAddress.release());
 	}
+	
+	bModified_ = false;
 }
 
 void qm::RecentAddress::add(const qs::AddressListParser& addressList)
@@ -135,5 +163,7 @@ void qm::RecentAddress::add(const AddressParser& address)
 			listAddress_.resize(nMax_ - 1);
 		}
 		listAddress_.insert(listAddress_.begin(), pAddress.release());
+		
+		bModified_ = true;
 	}
 }

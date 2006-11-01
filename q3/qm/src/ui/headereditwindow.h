@@ -422,6 +422,7 @@ public:
 											   size_t nCaret);
 	virtual void getCandidates(const WCHAR* pwszInput,
 							   CandidateList* pList);
+	virtual void removeCandidate(const WCHAR* pwszCandidate);
 
 private:
 	static void getCandidates(const WCHAR* pwszInput,

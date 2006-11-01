@@ -1209,6 +1209,13 @@ void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 	std::sort(pList->begin(), pList->end(), string_less_i<WCHAR>());
 }
 
+void qm::AddressHeaderEditItem::removeCandidate(const WCHAR* pwszCandidate)
+{
+	assert(pwszCandidate);
+	
+	pRecentAddress_->remove(pwszCandidate);
+}
+
 void qm::AddressHeaderEditItem::getCandidates(const WCHAR* pwszInput,
 											  size_t nInputLen,
 											  const WCHAR* pwszDomain,

@@ -64,6 +64,7 @@ public:
 											   size_t nCaret) = 0;
 	virtual void getCandidates(const WCHAR* pwszInput,
 							   CandidateList* pList) = 0;
+	virtual void removeCandidate(const WCHAR* pwszCandidate);
 };
 
 
@@ -110,6 +111,7 @@ private:
 	void showCandidates(AutoCompleteCallback::CandidateList& listCandidate,
 						const WCHAR* pwszInput);
 	void hideCandidates();
+	void remove(const WCHAR* pwszText);
 
 private:
 	AutoCompleteEditSubclassWindow(const AutoCompleteEditSubclassWindow&);
@@ -161,7 +163,7 @@ public:
 	void showCandidates(CandidateList& listCandidate,
 						const WCHAR* pwszInput);
 	void select(Select select);
-	void fill();
+	const WCHAR* getSelectedCandidate() const;
 
 public:
 	virtual LRESULT windowProc(UINT uMsg,

@@ -44,6 +44,10 @@ qm::AutoCompleteCallback::~AutoCompleteCallback()
 {
 }
 
+void qm::AutoCompleteCallback::removeCandidate(const WCHAR* pwszCandidate)
+{
+}
+
 
 /****************************************************************************
  *
@@ -76,7 +80,9 @@ qm::AutoCompleteEditSubclassWindow::~AutoCompleteEditSubclassWindow()
 
 void qm::AutoCompleteEditSubclassWindow::fill(const WCHAR* pwszText)
 {
+	assert(pwszText);
 	assert(pListWindow_);
+	
 	hideCandidates();
 	
 	sendMessage(EM_SETSEL, input_.first, input_.first + input_.second);
@@ -101,11 +107,24 @@ bool qm::AutoCompleteEditSubclassWindow::preTranslateAccelerator(const MSG& msg)
 			pListWindow_->select(AutoCompleteListWindow::SELECT_NEXTPAGE);
 			return true;
 		case VK_RETURN:
-			pListWindow_->fill();
+			{
+				const WCHAR* pwsz = pListWindow_->getSelectedCandidate();
+				if (pwsz)
+					fill(pwsz);
+			}
 			return true;
 		case VK_ESCAPE:
 			hideCandidates();
 			return true;
+		case VK_DELETE:
+			if (::GetKeyState(VK_SHIFT) < 0) {
+				const WCHAR* pwsz = pListWindow_->getSelectedCandidate();
+				if (pwsz)
+					remove(pwsz);
+				showCandidates();
+				return true;
+			}
+			break;
 		default:
 			break;
 		}
@@ -231,6 +250,16 @@ void qm::AutoCompleteEditSubclassWindow::hideCandidates()
 		pListWindow_->showWindow(SW_HIDE);
 }
 
+void qm::AutoCompleteEditSubclassWindow::remove(const WCHAR* pwszText)
+{
+	assert(pwszText);
+	assert(pListWindow_);
+	
+	hideCandidates();
+	
+	pCallback_->removeCandidate(pwszText);
+}
+
 
 /****************************************************************************
  *
@@ -335,10 +364,12 @@ void qm::AutoCompleteListWindow::select(Select select)
 		invalidate();
 }
 
-void qm::AutoCompleteListWindow::fill()
+const WCHAR* qm::AutoCompleteListWindow::getSelectedCandidate() const
 {
 	if (0 <= nSelect_ && nSelect_ < static_cast<int>(listCandidate_.size()))
-		pEditWindow_->fill(listCandidate_[nSelect_]);
+		return listCandidate_[nSelect_];
+	else
+		return 0;
 }
 
 LRESULT qm::AutoCompleteListWindow::windowProc(UINT uMsg,

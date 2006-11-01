@@ -44,6 +44,7 @@ public:
 public:
 	const AddressList& getAddresses() const;
 	void add(const Message& msg);
+	void remove(const WCHAR* pwsz);
 	void save() const;
 
 private:
@@ -60,6 +61,7 @@ private:
 	qs::Profile* pProfile_;
 	unsigned int nMax_;
 	AddressList listAddress_;
+	mutable bool bModified_;
 };
 
 }
