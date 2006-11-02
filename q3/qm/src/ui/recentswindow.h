@@ -66,6 +66,7 @@ public:
 	void showPassive();
 
 public:
+	virtual void getWindowClass(WNDCLASS* pwc);
 	virtual LRESULT windowProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);

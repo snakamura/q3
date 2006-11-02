@@ -107,6 +107,12 @@ void qm::RecentsWindow::showPassive()
 	setTimer(TIMER_UPDATE, UPDATE_INTERVAL);
 }
 
+void qm::RecentsWindow::getWindowClass(WNDCLASS* pwc)
+{
+	DefaultWindowHandler::getWindowClass(pwc);
+	pwc->style |= CS_HREDRAW | CS_VREDRAW;
+}
+
 LRESULT qm::RecentsWindow::windowProc(UINT uMsg,
 									  WPARAM wParam,
 									  LPARAM lParam)
@@ -297,8 +303,7 @@ LRESULT qm::RecentsWindow::onMouseMove(UINT nFlags,
 		invalidateItem(nSelectedItem_);
 	}
 	
-	
-	int nButton = getButtonByPos(pt);
+	int nButton = nItem != -1 ? -1 : getButtonByPos(pt);
 	if (nButton != nSelectedButton_) {
 		invalidateButton(nSelectedButton_);
 		nSelectedButton_ = nButton;
