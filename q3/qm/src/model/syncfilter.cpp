@@ -291,8 +291,10 @@ qm::SyncFilter::SyncFilter(const SyncFilter& filter) :
 	
 	pImpl_->folder_ = filter.pImpl_->folder_;
 	
-	wstring_ptr wstrCondition(filter.pImpl_->pCondition_->getString());
-	pImpl_->pCondition_ = MacroParser().parse(wstrCondition.get());
+	if (filter.pImpl_->pCondition_.get()) {
+		wstring_ptr wstrCondition(filter.pImpl_->pCondition_->getString());
+		pImpl_->pCondition_ = MacroParser().parse(wstrCondition.get());
+	}
 	
 	if (filter.pImpl_->wstrDescription_.get())
 		pImpl_->wstrDescription_ = allocWString(filter.pImpl_->wstrDescription_.get());
