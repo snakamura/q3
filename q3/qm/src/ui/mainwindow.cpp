@@ -1961,6 +1961,19 @@ bool qm::MainWindow::isHidden() const
 {
 	return !isVisible();
 }
+
+void qm::MainWindow::activate()
+{
+	if (isHidden()) {
+		show();
+	}
+	else {
+		if (isIconic())
+			showWindow(SW_RESTORE);
+		setWindowPos(HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		setForegroundWindow();
+	}
+}
 #endif // _WIN32_WCE_PSPC
 
 bool qm::MainWindow::isShowToolbar() const

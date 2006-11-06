@@ -2383,21 +2383,10 @@ qm::FileShowAction::~FileShowAction()
 
 void qm::FileShowAction::invoke(const ActionEvent& event)
 {
-	if (bShow_) {
-		if (pMainWindow_->isHidden()) {
-			pMainWindow_->show();
-		}
-		else {
-			if (pMainWindow_->isIconic())
-				pMainWindow_->showWindow(SW_RESTORE);
-			pMainWindow_->setWindowPos(HWND_TOP,
-				0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-			pMainWindow_->setForegroundWindow();
-		}
-	}
-	else {
+	if (bShow_)
+		pMainWindow_->activate();
+	else
 		pMainWindow_->hide();
-	}
 }
 
 bool qm::FileShowAction::isEnabled(const ActionEvent& event)
@@ -4738,8 +4727,7 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
 		if (bOpenInPreview) {
 #ifndef _WIN32_WCE_PSPC
-			if (pMainWindow_->isHidden())
-				pMainWindow_->show();
+			pMainWindow_->activate();
 #endif
 			
 			pFolderModel_->setCurrent(0, pFolder, false);

@@ -51,6 +51,7 @@ public:
 	void show();
 	void hide();
 	bool isHidden() const;
+	void activate();
 #endif
 	
 	bool isShowToolbar() const;
