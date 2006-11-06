@@ -498,7 +498,9 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 				nId == IDOK || nId == IDCANCEL)
 				pAction = pThis_->getActionInternal(nId);
 			if (pAction) {
-				ActionEvent event(LOWORD(wParam), ActionEvent::getSystemModifiers(), pParam);
+				unsigned int nModifiers = HIWORD(wParam) != 1 ?
+					ActionEvent::getSystemModifiers() : 0;
+				ActionEvent event(LOWORD(wParam), nModifiers, pParam);
 				if (pAction->isEnabled(event))
 					pAction->invoke(event);
 				return 0;
