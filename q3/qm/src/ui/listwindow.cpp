@@ -96,6 +96,8 @@ public:
 				 RECT* pRect);
 	void reloadProfiles(bool bInitialize);
 	void updateLineHeight();
+	COLORREF getItemForeground(const ViewModelItem* pItem) const;
+	COLORREF getItemBackground(const ViewModelItem* pItem) const;
 	COLORREF getColor(int nIndex) const;
 #ifdef QMTOOLTIP
 	void relayToolTipEvent(UINT uMsg,
@@ -251,18 +253,13 @@ void qm::ListWindowImpl::paintMessage(const PaintInfo& pi)
 	bool bHasFocus = pThis_->hasFocus();
 	bool bSelected = (pItem->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
 	
-	COLORREF crBackground = pItem->getBackground();
-	if (crBackground == 0xff000000)
-		crBackground = getColor(COLOR_WINDOW);
-	
+	COLORREF crBackground = getItemBackground(pItem);
 	if (bSelected) {
 		pdc->setTextColor(getColor(bHasFocus ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
 		pdc->setBkColor(getColor(bHasFocus ? COLOR_HIGHLIGHT : COLOR_INACTIVEBORDER));
 	}
 	else {
-		COLORREF crText = pItem->getForeground();
-		if (crText == 0xff000000)
-			crText = getColor(COLOR_WINDOWTEXT);
+		COLORREF crText = getItemForeground(pItem);
 		pdc->setTextColor(crText);
 		pdc->setBkColor(crBackground);
 	}
@@ -707,6 +704,18 @@ void qm::ListWindowImpl::updateLineHeight()
 		tm.tmExternalLeading + ListWindowImpl::LINE_SPACING;
 }
 
+COLORREF qm::ListWindowImpl::getItemForeground(const ViewModelItem* pItem) const
+{
+	COLORREF cr = pItem->getForeground();
+	return cr != 0xff000000 ? cr : getColor(COLOR_WINDOWTEXT);
+}
+
+COLORREF qm::ListWindowImpl::getItemBackground(const ViewModelItem* pItem) const
+{
+	COLORREF cr = pItem->getBackground();
+	return cr != 0xff000000 ? cr : getColor(COLOR_WINDOW);
+}
+
 COLORREF qm::ListWindowImpl::getColor(int nIndex) const
 {
 	if (!bUseSystemColor_) {
@@ -764,13 +773,9 @@ void qm::ListWindowImpl::relayToolTipEvent(UINT uMsg,
 					
 					if (nWidth > static_cast<int>(column.getWidth())) {
 						wstrText = wstr;
-						
-						COLORREF crText = pItem->getForeground();
-						if (crText == 0xff000000)
-							crText = getColor(COLOR_WINDOWTEXT);
-						toolTip.sendMessage(TTM_SETTIPTEXTCOLOR, crText);
+						toolTip.sendMessage(TTM_SETTIPTEXTCOLOR, getItemForeground(pItem));
+						toolTip.sendMessage(TTM_SETTIPBKCOLOR, getItemBackground(pItem));
 						toolTip.setFont(hfont);
-						
 						nToolTipIndent_ = nIndent;
 					}
 				}
