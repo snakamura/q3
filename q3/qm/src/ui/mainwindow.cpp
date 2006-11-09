@@ -2558,16 +2558,6 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->layoutChildren();
 	pImpl_->updateTitleBar();
 	
-	pImpl_->pOptionDialogManager_->initUIs(this, pImpl_->pFolderWindow_,
-		pImpl_->pFolderComboBox_, pImpl_->pListWindow_,
-		pImpl_->pFolderListWindow_, pImpl_->pMessageWindow_,
-		pImpl_->pMessageFrameWindowManager_.get(),
-		pImpl_->pEditFrameWindowManager_.get(),
-#ifdef QMTABWINDOW
-		pImpl_->pTabWindow_,
-#endif
-		pImpl_->pAddressBookFrameWindowManager_.get());
-	
 	pImpl_->pFolderModel_->addFolderModelHandler(pImpl_->pDelayedFolderModelHandler_.get());
 	pImpl_->pDocument_->addDocumentHandler(pImpl_);
 	pImpl_->pDocument_->addAccountManagerHandler(pImpl_);
@@ -2590,6 +2580,19 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pActionMap_.get(), pImpl_->pFolderImage_,
 		pImpl_->pProfile_, getHandle()));
 #endif
+	
+	pImpl_->pOptionDialogManager_->initUIs(this, pImpl_->pFolderWindow_,
+		pImpl_->pFolderComboBox_, pImpl_->pListWindow_,
+		pImpl_->pFolderListWindow_, pImpl_->pMessageWindow_,
+		pImpl_->pMessageFrameWindowManager_.get(),
+		pImpl_->pEditFrameWindowManager_.get(),
+#ifdef QMTABWINDOW
+		pImpl_->pTabWindow_,
+#endif
+#ifdef QMRECENTSWINDOW
+		pImpl_->pRecentsWindowManager_.get(),
+#endif
+		pImpl_->pAddressBookFrameWindowManager_.get());
 	
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
 	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"MainWindow");

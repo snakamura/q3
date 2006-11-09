@@ -1043,7 +1043,7 @@ qm::RecentsWindowManager::RecentsWindowManager(Recents* pRecents,
 	pRecentsWindow_(0),
 	bShowPassive_(true)
 {
-	bShowPassive_ = pProfile_->getInt(L"RecentsWindow", L"AutoPopup") != 0;
+	reloadProfiles();
 	
 	createWindow();
 	pRecents_->addRecentsHandler(this);
@@ -1070,6 +1070,11 @@ bool qm::RecentsWindowManager::showPopup(bool bHotKey)
 	pRecentsWindow_->showActive(bHotKey);
 	
 	return true;
+}
+
+void qm::RecentsWindowManager::reloadProfiles()
+{
+	bShowPassive_ = pProfile_->getInt(L"RecentsWindow", L"AutoPopup") != 0;
 }
 
 bool qm::RecentsWindowManager::createWindow()

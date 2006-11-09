@@ -277,6 +277,7 @@ public:
 
 public:
 	bool showPopup(bool bHotKey);
+	void reloadProfiles();
 
 public:
 	virtual void recentsChanged(const RecentsEvent& event);

@@ -34,6 +34,7 @@
 #include "editframewindow.h"
 #include "messageframewindow.h"
 #include "optiondialog.h"
+#include "recentswindow.h"
 #include "resourceinc.h"
 #include "syncdialog.h"
 #include "../main/updatechecker.h"
@@ -392,6 +393,9 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 #ifdef QMTABWINDOW
 							   TabWindow* pTabWindow,
 #endif
+#ifdef QMRECENTSWINDOW
+							   RecentsWindowManager* pRecentsWindowManager,
+#endif
 							   AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 							   Profile* pProfile,
 							   Account* pCurrentAccount,
@@ -414,6 +418,9 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 #ifdef QMTABWINDOW
 	pTabWindow_(pTabWindow),
+#endif
+#ifdef QMRECENTSWINDOW
+	pRecentsWindowManager_(pRecentsWindowManager),
 #endif
 	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pProfile_(pProfile),
@@ -626,6 +633,10 @@ LRESULT qm::OptionDialog::onOk()
 	}
 	if (nFlags & OptionDialogContext::FLAG_RELOADSECURITY)
 		pDocument_->getSecurity()->reload();
+#ifdef QMRECENTSWINDOW
+	if (nFlags & OptionDialogContext::FLAG_RELOADRECENTS)
+		pRecentsWindowManager_->reloadProfiles();
+#endif
 	
 	if (nFlags & OptionDialogContext::FLAG_LAYOUTMAINWINDOW)
 		pMainWindow_->layout();
@@ -1163,6 +1174,9 @@ qm::OptionDialogManager::OptionDialogManager(Document* pDocument,
 #ifdef QMTABWINDOW
 	pTabWindow_(0),
 #endif
+#ifdef QMRECENTSWINDOW
+	pRecentsWindowManager_(0),
+#endif
 	pAddressBookFrameWindowManager_(0)
 {
 }
@@ -1182,6 +1196,9 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 #ifdef QMTABWINDOW
 									  TabWindow* pTabWindow,
 #endif
+#ifdef QMRECENTSWINDOW
+									  RecentsWindowManager* pRecentsWindowManager,
+#endif
 									  AddressBookFrameWindowManager* pAddressBookFrameWindowManager)
 {
 	pMainWindow_ = pMainWindow;
@@ -1194,6 +1211,9 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 	pEditFrameWindowManager_ = pEditFrameWindowManager;
 #ifdef QMTABWINDOW
 	pTabWindow_ = pTabWindow;
+#endif
+#ifdef QMRECENTSWINDOW
+	pRecentsWindowManager_ = pRecentsWindowManager;
 #endif
 	pAddressBookFrameWindowManager_ = pAddressBookFrameWindowManager;
 }
@@ -1221,6 +1241,9 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 #ifdef QMTABWINDOW
 	assert(pTabWindow_);
 #endif
+#ifdef QMRECENTSWINDOW
+	assert(pRecentsWindowManager_);
+#endif
 	assert(pAddressBookFrameWindowManager_);
 	
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
@@ -1230,6 +1253,9 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 		pMessageFrameWindowManager_, pEditFrameWindowManager_,
 #ifdef QMTABWINDOW
 		pTabWindow_,
+#endif
+#ifdef QMRECENTSWINDOW
+		pRecentsWindowManager_,
 #endif
 		pAddressBookFrameWindowManager_, pProfile_, pCurrentAccount, panel);
 	return dialog.doModal(hwndParent);
@@ -2196,9 +2222,15 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
  *
  */
 
-DialogUtil::BoolProperty qm::OptionSyncDialog::boolProperties__[] = {
+DialogUtil::BoolProperty qm::OptionSyncDialog::globalBoolProperties__[] = {
 	{ L"OpenRecentInPreview",	IDC_OPENINPREVIEW	}
 };
+
+#ifdef QMRECENTSWINDOW
+DialogUtil::BoolProperty qm::OptionSyncDialog::recentsBoolProperties__[] = {
+	{ L"AutoPopup",	IDC_AUTOPOPUP	}
+};
+#endif
 
 qm::OptionSyncDialog::OptionSyncDialog(Recents* pRecents,
 									   Profile* pProfile) :
@@ -2225,7 +2257,11 @@ LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 											   LPARAM lParam)
 {
 	DialogUtil::loadBoolProperties(this, pProfile_,
-		L"Global", boolProperties__, countof(boolProperties__));
+		L"Global", globalBoolProperties__, countof(globalBoolProperties__));
+#ifdef QMRECENTSWINDOW
+	DialogUtil::loadBoolProperties(this, pProfile_,
+		L"RecentsWindow", recentsBoolProperties__, countof(recentsBoolProperties__));
+#endif
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	
@@ -2290,7 +2326,11 @@ LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
 {
 	DialogUtil::saveBoolProperties(this, pProfile_,
-		L"Global", boolProperties__, countof(boolProperties__));
+		L"Global", globalBoolProperties__, countof(globalBoolProperties__));
+#ifdef QMRECENTSWINDOW
+	DialogUtil::saveBoolProperties(this, pProfile_,
+		L"RecentsWindow", recentsBoolProperties__, countof(recentsBoolProperties__));
+#endif
 	
 	SyncDialog::Show show = SyncDialog::SHOW_MANUAL;
 	HWND hwndSyncDialog = getDlgItem(IDC_SYNCDIALOG);
@@ -2321,6 +2361,8 @@ bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
 		pProfile_->setString(L"Sync", L"Sound", wstrSound.get());
 	
 	pRecents_->setMax(getDlgItemInt(IDC_MAX));
+	
+	pContext->setFlags(OptionDialogContext::FLAG_RELOADRECENTS);
 	
 	return true;
 }

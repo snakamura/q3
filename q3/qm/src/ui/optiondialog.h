@@ -97,6 +97,9 @@ class MainWindow;
 class MessageFrameWindowManager;
 class MessageWindow;
 class Recents;
+#ifdef QMRECENTSWINDOW
+class RecentsWindowManager;
+#endif
 class Security;
 #ifdef QMTABWINDOW
 class TabWindow;
@@ -254,6 +257,9 @@ public:
 #ifdef QMTABWINDOW
 				 TabWindow* pTabWindow,
 #endif
+#ifdef QMRECENTSWINDOW
+				 RecentsWindowManager* pRecentsWindowManager,
+#endif
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 				 qs::Profile* pProfile,
 				 Account* pCurrentAccount,
@@ -341,6 +347,9 @@ private:
 #ifdef QMTABWINDOW
 	TabWindow* pTabWindow_;
 #endif
+#ifdef QMRECENTSWINDOW
+	RecentsWindowManager* pRecentsWindowManager_;
+#endif
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 	qs::Profile* pProfile_;
 	Account* pCurrentAccount_;
@@ -405,6 +414,7 @@ public:
 		FLAG_RELOADTAB				= 0x00000040,
 		FLAG_RELOADADDRESSBOOK		= 0x00000080,
 		FLAG_RELOADSECURITY			= 0x00000100,
+		FLAG_RELOADRECENTS			= 0x00000200,
 		
 		FLAG_LAYOUTMAINWINDOW		= 0x00010000,
 		FLAG_LAYOUTMESSAGEWINDOW	= 0x00020000,
@@ -461,6 +471,9 @@ public:
 #ifdef QMTABWINDOW
 				 TabWindow* pTabWindow,
 #endif
+#ifdef QMRECENTSWINDOW
+				 RecentsWindowManager* pRecentsWindowManager,
+#endif
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager);
 	int showDialog(HWND hwndParent,
 				   Account* pCurrentAccount,
@@ -490,6 +503,9 @@ private:
 	EditFrameWindowManager* pEditFrameWindowManager_;
 #ifdef QMTABWINDOW
 	TabWindow* pTabWindow_;
+#endif
+#ifdef QMRECENTSWINDOW
+	RecentsWindowManager* pRecentsWindowManager_;
 #endif
 	AddressBookFrameWindowManager* pAddressBookFrameWindowManager_;
 };
@@ -972,7 +988,10 @@ private:
 	qs::Profile* pProfile_;
 
 private:
-	static DialogUtil::BoolProperty boolProperties__[];
+	static DialogUtil::BoolProperty globalBoolProperties__[];
+#ifdef QMRECENTSWINDOW
+	static DialogUtil::BoolProperty recentsBoolProperties__[];
+#endif
 };
 
 

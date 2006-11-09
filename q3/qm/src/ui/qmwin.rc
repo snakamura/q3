@@ -1833,17 +1833,19 @@ BEGIN
     LTEXT           "&Open",IDC_STATIC,10,17,18,8
     COMBOBOX        IDC_SYNCDIALOG,40,15,85,100,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Notification",IDC_STATIC,5,40,205,85
+    GROUPBOX        "Notification",IDC_STATIC,5,40,205,95
     LTEXT           "&When",IDC_STATIC,10,52,25,8
     COMBOBOX        IDC_NOTIFICATION,40,50,85,100,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "&Sound",IDC_SOUNDLABEL,10,72,25,8
     EDITTEXT        IDC_SOUND,40,70,110,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDC_BROWSE,155,70,50,12
-    CONTROL         "Open in &preview",IDC_OPENINPREVIEW,"Button",
+    CONTROL         "Popup au&tomatically",IDC_AUTOPOPUP,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,90,195,10
-    LTEXT           "&Max messages in recents",IDC_STATIC,10,107,85,8
-    EDITTEXT        IDC_MAX,100,105,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
+    CONTROL         "Open in &preview",IDC_OPENINPREVIEW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,100,195,10
+    LTEXT           "&Max messages in recents",IDC_STATIC,10,117,85,8
+    EDITTEXT        IDC_MAX,100,115,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
 END
 
