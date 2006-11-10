@@ -4792,24 +4792,33 @@ void qm::MessageOpenURLAction::invoke(const ActionEvent& event)
 	if (!pwszURL)
 		return;
 	
-	if (wcsncmp(pwszURL, L"feed:", 5) == 0)
+	if (wcsncmp(pwszURL, L"feed:", 5) == 0) {
 		openFeedURL(pwszURL);
-	else
-		openMailtoURL(pwszURL, (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
+	}
+	else {
+		const WCHAR* pwszAttachment = ActionParamUtil::getString(event.getParam(), 1);
+		openMailtoURL(pwszURL, pwszAttachment, (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0);
+	}
 }
 
 void qm::MessageOpenURLAction::openMailtoURL(const WCHAR* pwszURL,
+											 const WCHAR* pwszAttachmentPath,
 											 bool bExternalEditor) const
 {
 	std::pair<Account*, bool> account(getAccount(L"mail", L"DefaultMailAccount"));
 	if (!account.second)
 		return;
 	
-	TemplateContext::Argument arg = {
-		L"url",
-		pwszURL
-	};
-	TemplateContext::ArgumentList listArgument(1, arg);
+	TemplateContext::ArgumentList listArgument;
+	if (pwszURL) {
+		TemplateContext::Argument arg = { L"url", pwszURL };
+		listArgument.push_back(arg);
+	}
+	if (pwszAttachmentPath) {
+		TemplateContext::Argument arg = { L"attachment", pwszAttachmentPath };
+		listArgument.push_back(arg);
+	}
+	
 	if (!processor_.process(L"url", listArgument, bExternalEditor, account.first)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_OPENURL);
 		return;
@@ -4843,12 +4852,16 @@ std::pair<Account*, bool> qm::MessageOpenURLAction::getAccount(const WCHAR* pwsz
 			pAccount = pDocument_->getAccount(wstrAccount.get());
 		}
 		else {
-			pAccount = 0;
-			const Document::AccountList& l = pDocument_->getAccounts();
-			for (Document::AccountList::const_iterator it = l.begin(); it != l.end() && !pAccount; ++it) {
-				if (wcscmp((*it)->getClass(), pwszClass) == 0)
-					pAccount = *it;
-			}
+			const AccountManager::AccountList& l = pDocument_->getAccounts();
+			AccountManager::AccountList::const_iterator it = std::find_if(
+				l.begin(), l.end(),
+				std::bind2nd(
+					binary_compose_f_gx_hy(
+						string_equal<WCHAR>(),
+						std::mem_fun(&Account::getClass),
+						std::identity<const WCHAR*>()),
+					pwszClass));
+			pAccount = it != l.end() ? *it : 0;
 		}
 		if (!pAccount)
 			return std::pair<Account*, bool>(0, false);

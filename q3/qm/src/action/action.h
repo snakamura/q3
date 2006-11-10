@@ -2312,6 +2312,7 @@ public:
 
 private:
 	void openMailtoURL(const WCHAR* pwszURL,
+					   const WCHAR* pwszAttachmentPath,
 					   bool bExternalEditor) const;
 	void openFeedURL(const WCHAR* pwszURL) const;
 	std::pair<Account*, bool> getAccount(const WCHAR* pwszClass,

@@ -239,33 +239,52 @@ const WCHAR* qm::MainCommandLineHandler::getProfile() const
 void qm::MainCommandLineHandler::invoke(HWND hwnd,
 										bool bPrev)
 {
-	struct {
-		unsigned int nAction_;
-		unsigned int nActionNoParam_;
-		WCHAR* pwsz_;
-	} commands[] = {
-		{ IDM_TOOL_GOROUND,				0,									wstrGoRound_.get()	},
-		{ IDM_MESSAGE_OPENURL,			0,									wstrURL_.get()		},
-		{ IDM_MESSAGE_CREATEFROMFILE,	IDM_MESSAGE_CREATEFROMCLIPBOARD,	wstrPath_.get()		},
-		{ IDM_MESSAGE_DRAFTFROMFILE,	IDM_MESSAGE_DRAFTFROMCLIPBOARD,		wstrPath_.get()		}
-	};
-	
-	COPYDATASTRUCT data = {
-		0,
-		0,
-		0
-	};
-	for (int n = 0; n < countof(commands) && data.dwData == 0; ++n) {
-		if (commands[n].nAction_ == nAction_) {
-			if (commands[n].pwsz_) {
-				data.dwData = commands[n].nAction_;
-				data.cbData = static_cast<DWORD>((wcslen(commands[n].pwsz_) + 1)*sizeof(WCHAR));
-				data.lpData = commands[n].pwsz_;
+	COPYDATASTRUCT data = { 0, 0, 0 };
+	wstring_ptr wstrParams;
+	switch (nAction_) {
+	case IDM_TOOL_GOROUND:
+		if (wstrGoRound_.get()) {
+			data.dwData = nAction_;
+			data.cbData = static_cast<DWORD>((wcslen(wstrGoRound_.get()) + 1)*sizeof(WCHAR));
+			data.lpData = wstrGoRound_.get();
+		}
+		break;
+	case IDM_MESSAGE_OPENURL:
+		if (wstrURL_.get() || wstrAttachment_.get()) {
+			data.dwData = nAction_;
+			
+			size_t nLen = (wstrURL_.get() ? wcslen(wstrURL_.get()) : 0) + 1 +
+				(wstrAttachment_.get() ? wcslen(wstrAttachment_.get())  + 1 : 0);
+			wstrParams = allocWString(nLen + 1);
+			WCHAR* p = wstrParams.get();
+			if (wstrURL_.get()) {
+				wcscpy(p, wstrURL_.get());
+				p += wcslen(wstrURL_.get()) + 1;
 			}
 			else {
-				data.dwData = commands[n].nActionNoParam_;
+				*p++ = L'\0';
 			}
+			if (wstrAttachment_.get())
+				wcscpy(p, wstrAttachment_.get());
+			
+			data.cbData = static_cast<DWORD>(nLen*sizeof(WCHAR));
+			data.lpData = wstrParams.get();
 		}
+		break;
+	case IDM_MESSAGE_CREATEFROMFILE:
+	case IDM_MESSAGE_DRAFTFROMFILE:
+		if (wstrPath_.get()) {
+			data.dwData = nAction_;
+			data.cbData = static_cast<DWORD>((wcslen(wstrPath_.get()) + 1)*sizeof(WCHAR));
+			data.lpData = wstrPath_.get();
+		}
+		else {
+			data.dwData = nAction_ == IDM_MESSAGE_CREATEFROMFILE ?
+				IDM_MESSAGE_CREATEFROMCLIPBOARD : IDM_MESSAGE_DRAFTFROMCLIPBOARD;
+		}
+		break;
+	default:
+		break;
 	}
 	if (data.dwData != 0)
 		::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
@@ -285,6 +304,7 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		{ L"p",	STATE_PROFILE		},
 		{ L"g",	STATE_GOROUND		},
 		{ L"s",	STATE_URL			},
+		{ L"a",	STATE_ATTACHMENT	},
 		{ L"c",	STATE_CREATE		},
 		{ L"r",	STATE_DRAFT			}
 	};
@@ -293,11 +313,13 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		&wstrMailFolder_,
 		&wstrProfile_,
 		&wstrGoRound_,
-		&wstrURL_
+		&wstrURL_,
+		&wstrAttachment_
 	};
 	
 	unsigned int nActions[] = {
 		IDM_TOOL_GOROUND,
+		IDM_MESSAGE_OPENURL,
 		IDM_MESSAGE_OPENURL,
 		IDM_MESSAGE_CREATEFROMFILE,
 		IDM_MESSAGE_DRAFTFROMFILE
@@ -323,6 +345,7 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 	case STATE_PROFILE:
 	case STATE_GOROUND:
 	case STATE_URL:
+	case STATE_ATTACHMENT:
 		*pwstr[state_ - STATE_MAILFOLDER] = allocWString(pwszOption);
 		state_ = STATE_NONE;
 		break;

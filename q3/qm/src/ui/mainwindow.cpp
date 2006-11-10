@@ -2262,10 +2262,20 @@ LRESULT qm::MainWindow::onCopyData(HWND hwnd,
 	
 	UINT nId = static_cast<UINT>(pData->dwData);
 	const WCHAR* pwszParam = static_cast<const WCHAR*>(pData->lpData);
-	if (pwszParam)
-		pImpl_->pActionInvoker_->invoke(nId, &pwszParam, 1);
-	else
+	if (pwszParam) {
+		typedef std::vector<const WCHAR*> ParamList;
+		ParamList listParam;
+		const WCHAR* p = pwszParam;
+		size_t nSize = pData->cbData/sizeof(WCHAR);
+		while (static_cast<size_t>(p - pwszParam) < nSize) {
+			listParam.push_back(p);
+			p += wcslen(p) + 1;
+		}
+		pImpl_->pActionInvoker_->invoke(nId, &listParam[0], listParam.size());
+	}
+	else {
 		pImpl_->pActionInvoker_->invoke(nId, 0, 0);
+	}
 	
 	return 1;
 }
