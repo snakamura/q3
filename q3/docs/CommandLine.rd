@@ -55,6 +55,16 @@ QMAIL3に指定可能なコマンドラインは以下の通りです。
  -s feed://www.example.org/index.rdf
 
 
+==-a <ファイル名>
+
+===説明
+指定されたファイルを添付ファイルとして添付した状態でエディットビューを開きます。-sでのmailto URLの指定と同時に指定できます。
+
+===例
+ -a C:\temp\test.png
+ -s test@example.org -a "C:\Data Files\Test.doc"
+
+
 ==-c [<ファイル名>]
 
 ===説明
