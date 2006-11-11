@@ -7,6 +7,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmmacro.h>
 #include <qmmessageholder.h>
 #include <qmrecents.h>
 
@@ -34,10 +35,11 @@ struct qm::RecentsImpl
 	void fireRecentsChanged(RecentsEvent::Type type);
 	
 	Recents* pThis_;
-	AccountManager* pAccountManager_;
+	const AccountManager* pAccountManager_;
 	Profile* pProfile_;
 	unsigned int nMax_;
-	std::auto_ptr<qs::RegexPattern> pFilter_;
+	std::auto_ptr<Macro> pFilter_;
+	std::auto_ptr<qs::RegexPattern> pURLFilter_;
 	URIList list_;
 	CriticalSection cs_;
 #ifndef NDEBUG
@@ -60,14 +62,19 @@ void qm::RecentsImpl::fireRecentsChanged(RecentsEvent::Type type)
  *
  */
 
-qm::Recents::Recents(AccountManager* pAccountManager,
+qm::Recents::Recents(const AccountManager* pAccountManager,
 					 Profile* pProfile) :
 	pImpl_(0)
 {
-	std::auto_ptr<RegexPattern> pFilter;
+	std::auto_ptr<Macro> pFilter;
+	wstring_ptr wstrFilter(pProfile->getString(L"Recents", L"MacroFilter"));
+	if (*wstrFilter.get())
+		pFilter = MacroParser().parse(wstrFilter.get());
+	
+	std::auto_ptr<RegexPattern> pURLFilter;
 	wstring_ptr wstrPattern(pProfile->getString(L"Recents", L"Filter"));
 	if (*wstrPattern.get())
-		pFilter = RegexCompiler().compile(wstrPattern.get());
+		pURLFilter = RegexCompiler().compile(wstrPattern.get());
 	
 	pImpl_ = new RecentsImpl();
 	pImpl_->pThis_ = this;
@@ -75,6 +82,7 @@ qm::Recents::Recents(AccountManager* pAccountManager,
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->nMax_ = pProfile->getInt(L"Recents", L"Max");
 	pImpl_->pFilter_ = pFilter;
+	pImpl_->pURLFilter_ = pURLFilter;
 #ifndef NDEBUG
 	pImpl_->nLock_ = 0;
 #endif
@@ -90,14 +98,22 @@ qm::Recents::~Recents()
 
 unsigned int qm::Recents::getMax() const
 {
-	Lock<Recents> lock(*this);
 	return pImpl_->nMax_;
 }
 
 void qm::Recents::setMax(unsigned int nMax)
 {
-	Lock<Recents> lock(*this);
 	pImpl_->nMax_ = nMax;
+}
+
+const Macro* qm::Recents::getFilter() const
+{
+	return pImpl_->pFilter_.get();
+}
+
+void qm::Recents::setFilter(std::auto_ptr<Macro> pFilter)
+{
+	pImpl_->pFilter_ = pFilter;
 }
 
 unsigned int qm::Recents::getCount() const
@@ -120,11 +136,11 @@ void qm::Recents::add(std::auto_ptr<URI> pURI)
 	if (pImpl_->nMax_ == 0)
 		return;
 	
-	if (pImpl_->pFilter_.get()) {
+	if (pImpl_->pURLFilter_.get()) {
 		wstring_ptr wstrURI(pURI->toString());
 		const WCHAR* pStart = 0;
 		const WCHAR* pEnd = 0;
-		pImpl_->pFilter_->search(wstrURI.get(), -1, wstrURI.get(), false, &pStart, &pEnd, 0);
+		pImpl_->pURLFilter_->search(wstrURI.get(), -1, wstrURI.get(), false, &pStart, &pEnd, 0);
 		if (!pStart)
 			return;
 	}

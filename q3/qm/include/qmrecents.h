@@ -25,6 +25,7 @@ class RecentsHandler;
 class RecentsEvent;
 
 class AccountManager;
+class Macro;
 class URI;
 
 
@@ -37,13 +38,15 @@ class URI;
 class Recents
 {
 public:
-	Recents(AccountManager* pAccountManager,
+	Recents(const AccountManager* pAccountManager,
 			qs::Profile* pProfile);
 	~Recents();
 
 public:
 	unsigned int getMax() const;
 	void setMax(unsigned int nMax);
+	const Macro* getFilter() const;
+	void setFilter(std::auto_ptr<Macro> pFilter);
 	unsigned int getCount() const;
 	const std::pair<URI*, qs::Time>& get(unsigned int n) const;
 	void add(std::auto_ptr<URI> pURI);

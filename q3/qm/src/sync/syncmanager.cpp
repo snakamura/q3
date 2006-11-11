@@ -14,6 +14,7 @@
 #include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmjunk.h>
+#include <qmmacro.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmrecents.h>
@@ -1128,7 +1129,7 @@ bool qm::SyncManager::openReceiveSession(Document* pDocument,
 		return false;
 	
 	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(new ReceiveSessionCallbackImpl(
-		pSyncManagerCallback, pDocument->getRecents(), isNotify(type)));
+			pSyncManagerCallback, pDocument, pProfile_, isNotify(type)));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
 		pProfile_, pLogger.get(), pCallback.get()))
 		return false;
@@ -1247,15 +1248,18 @@ void qm::SyncManager::ParallelSyncThread::run()
  */
 
 qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
-																		Recents* pRecents,
+																		Document* pDocument,
+																		Profile* pProfile,
 																		bool bNotify) :
 	pCallback_(pCallback),
 	nId_(::GetCurrentThreadId()),
-	pRecents_(pRecents),
+	pDocument_(pDocument),
+	pProfile_(pProfile),
 	bNotify_(bNotify)
 {
 	assert(pCallback);
-	assert(pRecents);
+	assert(pDocument);
+	assert(pProfile);
 }
 
 qm::SyncManager::ReceiveSessionCallbackImpl::~ReceiveSessionCallbackImpl()
@@ -1319,14 +1323,30 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr pt
 	if (!bNotify_)
 		return;
 	
+	Recents* pRecents = pDocument_->getRecents();
+	
 	std::auto_ptr<URI> pURI;
 	{
 		MessagePtrLock mpl(ptr);
-		if (mpl && !mpl->getFolder()->isFlag(Folder::FLAG_IGNOREUNSEEN))
-			pURI.reset(new URI(mpl));
+		if (mpl && !mpl->getFolder()->isFlag(Folder::FLAG_IGNOREUNSEEN)) {
+			const Macro* pMacro = pRecents->getFilter();
+			if (pMacro) {
+				Message msg;
+				MacroVariableHolder globalVariable;
+				MacroContext context(mpl, &msg, mpl->getAccount(), MessageHolderList(),
+					mpl->getFolder(), pDocument_, 0, pProfile_, 0,
+					MacroContext::FLAG_NONE, SECURITYMODE_NONE, 0, &globalVariable);
+				MacroValuePtr pValue(pMacro->value(&context));
+				if (pValue.get() && pValue->boolean())
+					pURI.reset(new URI(mpl));
+			}
+			else {
+				pURI.reset(new URI(mpl));
+			}
+		}
 	}
 	if (pURI.get()) {
-		pRecents_->add(pURI);
+		pRecents->add(pURI);
 		pCallback_->notifyNewMessage(nId_);
 	}
 }

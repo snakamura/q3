@@ -400,7 +400,8 @@ private:
 	{
 	public:
 		explicit ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
-											Recents* pRecents,
+											Document* pDocument,
+											qs::Profile* pProfile,
 											bool bNotify);
 		virtual ~ReceiveSessionCallbackImpl();
 	
@@ -436,7 +437,8 @@ private:
 	private:
 		SyncManagerCallback* pCallback_;
 		unsigned int nId_;
-		Recents* pRecents_;
+		Document* pDocument_;
+		qs::Profile* pProfile_;
 		bool bNotify_;
 	};
 	

@@ -443,6 +443,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Recents",	L"Filter",			L""		},
 	{ L"Recents",	L"HotKey", 			L"65"	}, /*'A'*/
 	{ L"Recents",	L"HotKeyModifiers",	L"5"	}, /*MOD_ALT | MOD_SHIFT*/
+	{ L"Recents",	L"MacroFilter",		L""		},
 	{ L"Recents",	L"Max",				L"20"	},
 
 #ifdef QMRECENTSWINDOW
