@@ -978,6 +978,7 @@ public:
 
 private:
 	LRESULT onBrowse();
+	LRESULT onEdit();
 
 private:
 	OptionSyncDialog(const OptionSyncDialog&);

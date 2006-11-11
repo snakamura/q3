@@ -2249,6 +2249,7 @@ LRESULT qm::OptionSyncDialog::onCommand(WORD nCode,
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID(IDC_BROWSE, onBrowse)
+		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -2320,11 +2321,28 @@ LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 	
 	setDlgItemInt(IDC_MAX, pRecents_->getMax());
 	
+	wstring_ptr wstrFilter;
+	const Macro* pFilter = pRecents_->getFilter();
+	if (pFilter)
+		wstrFilter = pFilter->getString();
+	setDlgItemText(IDC_FILTER, wstrFilter.get());
+	
 	return FALSE;
 }
 
 bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
 {
+	std::auto_ptr<Macro> pFilter;
+	wstring_ptr wstrFilter(getDlgItemText(IDC_FILTER));
+	if (*wstrFilter.get()) {
+		pFilter = MacroParser().parse(wstrFilter.get());
+		if (!pFilter.get()) {
+			messageBox(Application::getApplication().getResourceHandle(),
+				IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+			return 0;
+		}
+	}
+	
 	DialogUtil::saveBoolProperties(this, pProfile_,
 		L"Global", globalBoolProperties__, countof(globalBoolProperties__));
 #ifdef QMRECENTSWINDOW
@@ -2361,6 +2379,7 @@ bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
 		pProfile_->setString(L"Sync", L"Sound", wstrSound.get());
 	
 	pRecents_->setMax(getDlgItemInt(IDC_MAX));
+	pRecents_->setFilter(pFilter);
 	
 	pContext->setFlags(OptionDialogContext::FLAG_RELOADRECENTS);
 	
@@ -2377,6 +2396,15 @@ LRESULT qm::OptionSyncDialog::onBrowse()
 	if (dialog.doModal(getHandle()) == IDOK)
 		setDlgItemText(IDC_SOUND, dialog.getPath());
 	
+	return 0;
+}
+
+LRESULT qm::OptionSyncDialog::onEdit()
+{
+	wstring_ptr wstrFilter(getDlgItemText(IDC_FILTER));
+	ConditionsDialog dialog(wstrFilter.get());
+	if (dialog.doModal(getHandle()) == IDOK)
+		setDlgItemText(IDC_FILTER, dialog.getCondition());
 	return 0;
 }
 
