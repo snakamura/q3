@@ -164,8 +164,7 @@ bool qmnntp::LastIdList::isLocked() const
 
 bool qmnntp::LastIdList::load()
 {
-	W2T(wstrPath_.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrPath_.get())) {
 		XMLReader reader;
 		LastIdContentHandler handler(this);
 		reader.setContentHandler(&handler);

@@ -412,10 +412,7 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 			};
 			wstrPath = concat(c, countof(c));
 			
-			W2T(wstrPath.get(), ptszPath);
-			DWORD dwAttributes = ::GetFileAttributes(ptszPath);
-			if (dwAttributes != 0xffffffff &&
-				!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+			if (File::isFileExisting(wstrPath.get())) {
 				WCHAR* p = wcsrchr(wstrPath.get(), L'\\');
 				assert(p);
 				*p = L'\0';

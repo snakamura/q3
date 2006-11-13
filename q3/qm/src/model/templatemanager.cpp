@@ -13,6 +13,7 @@
 
 #include <qsassert.h>
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsinit.h>
 #include <qsosutil.h>
 #include <qsstl.h>
@@ -66,8 +67,7 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 		
 		log.debugf(L"Checking template file: %s.", wstrPath.get());
 		
-		W2T(wstrPath.get(), ptszPath);
-		if (::GetFileAttributes(ptszPath) == 0xffffffff)
+		if (!File::isFileExisting(wstrPath.get()))
 			wstrPath.reset(0);
 	}
 	
@@ -82,8 +82,7 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 		
 		log.debugf(L"Checking template file: %s.", wstrPath.get());
 		
-		W2T(wstrPath.get(), ptszPath);
-		if (::GetFileAttributes(ptszPath) == 0xffffffff) {
+		if (!File::isFileExisting(wstrPath.get())) {
 			ConcatW c[] = {
 				{ wstrPath_.get(),		-1 },
 				{ L"\\templates\\",		-1 },

@@ -9,6 +9,7 @@
 #include <qmaccount.h>
 #include <qmfolder.h>
 
+#include <qsfile.h>
 #include <qsosutil.h>
 
 #include "util.h"
@@ -216,9 +217,8 @@ bool qm::Util::hasFilesOrURIs(IDataObject* pDataObject)
 			for (UINT n = 0; n < nCount; ++n) {
 				TCHAR tszPath[MAX_PATH];
 				::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
-				DWORD dwAttributes = ::GetFileAttributes(tszPath);
-				if (dwAttributes != 0xffffffff &&
-					!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				T2W(tszPath, pwszPath);
+				if (File::isFileExisting(pwszPath))
 					return true;
 			}
 		}
@@ -246,10 +246,8 @@ void qm::Util::getFilesOrURIs(IDataObject* pDataObject,
 		for (UINT n = 0; n < nCount; ++n) {
 			TCHAR tszPath[MAX_PATH];
 			::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
-			DWORD dwAttributes = ::GetFileAttributes(tszPath);
-			if (dwAttributes != 0xffffffff &&
-				!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-				wstring_ptr wstrPath(tcs2wcs(tszPath));
+			wstring_ptr wstrPath(tcs2wcs(tszPath));
+			if (File::isFileExisting(wstrPath.get())) {
 				pList->push_back(wstrPath.get());
 				wstrPath.release();
 			}

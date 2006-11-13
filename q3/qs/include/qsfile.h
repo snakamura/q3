@@ -110,9 +110,17 @@ public:
 	 * Check if the specified file exists.
 	 *
 	 * @param pwszPath path to the file.
-	 * @return true if it exists and it's file.
+	 * @return true if it exists and it's a file.
 	 */
 	static bool isFileExisting(const WCHAR* pwszPath);
+	
+	/**
+	 * Check if the specified directory exists.
+	 *
+	 * @param pwszPath path to the directory.
+	 * @return true if it exists and it's a directory.
+	 */
+	static bool isDirectoryExisting(const WCHAR* pwszPath);
 	
 	/**
 	 * Get temporary file name.

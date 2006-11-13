@@ -728,8 +728,7 @@ qs::TextProfile::~TextProfile()
 
 bool qs::TextProfile::loadImpl(const WCHAR* pwszPath)
 {
-	W2T(pwszPath, ptszPath);
-	if (::GetFileAttributes(ptszPath) == 0xffffffff)
+	if (!File::isFileExisting(pwszPath))
 		return true;
 	
 	FileInputStream stream(pwszPath);
@@ -812,7 +811,7 @@ bool qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
 		return false;
 	BufferedWriter bufferedWriter(&writer, false);
 	
-	bool bOrigFileExist = ::GetFileAttributes(ptszOrigPath) != 0xffffffff;
+	bool bOrigFileExist = File::isFileExisting(pwszPath);
 	bool bError = true;
 	if (bOrigFileExist) {
 		FileInputStream inputStream(pwszPath);
@@ -920,14 +919,14 @@ qs::XMLProfile::~XMLProfile()
 
 bool qs::XMLProfile::loadImpl(const WCHAR* pwszPath)
 {
-	W2T(pwszPath, ptszPath);
-	if (::GetFileAttributes(ptszPath) == 0xffffffff)
-		return true;
-	
-	XMLReader reader;
-	XMLProfileContentHandler handler(&getMap());
-	reader.setContentHandler(&handler);
-	return reader.parse(pwszPath);
+	if (File::isFileExisting(pwszPath)) {
+		XMLReader reader;
+		XMLProfileContentHandler handler(&getMap());
+		reader.setContentHandler(&handler);
+		if (!reader.parse(pwszPath))
+			return false;
+	}
+	return true;
 }
 
 bool qs::XMLProfile::saveImpl(const WCHAR* pwszPath) const

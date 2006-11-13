@@ -136,8 +136,7 @@ bool qmpop3::UIDList::load(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
 	
-	W2T(pwszPath, ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(pwszPath)) {
 		XMLReader reader;
 		UIDListContentHandler handler(this);
 		reader.setContentHandler(&handler);

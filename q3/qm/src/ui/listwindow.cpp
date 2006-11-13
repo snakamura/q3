@@ -1019,10 +1019,8 @@ void qm::ListWindowImpl::dragEnter(const DropTargetDragEvent& event)
 			for (UINT n = 0; n < nCount && !bCanDrop_; ++n) {
 				TCHAR tszPath[MAX_PATH];
 				::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
-				DWORD dwAttributes = ::GetFileAttributes(tszPath);
-				if (dwAttributes != 0xffffffff &&
-					!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY))
-					bCanDrop_ = true;
+				T2W(tszPath, pwszPath);
+				bCanDrop_ = File::isFileExisting(pwszPath);
 			}
 		}
 	}
@@ -1080,10 +1078,9 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 					for (int n = 0; n < nCount; ++n) {
 						TCHAR tszPath[MAX_PATH];
 						::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
-						DWORD dwFileAttributes = ::GetFileAttributes(tszPath);
-						if (dwFileAttributes != 0xffffffff &&
-							!(dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-							listPath.push_back(tcs2wcs(tszPath).release());
+						wstring_ptr wstrPath(tcs2wcs(tszPath));
+						if (File::isFileExisting(wstrPath.get()))
+							listPath.push_back(wstrPath.release());
 					}
 					
 					NormalFolder* pNormalFolder = static_cast<NormalFolder*>(pFolder);

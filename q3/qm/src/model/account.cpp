@@ -167,8 +167,7 @@ bool qm::AccountImpl::loadFolders()
 {
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", FileNames::FOLDERS_XML));
 	
-	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrPath.get())) {
 		FileInputStream stream(wstrPath.get());
 		if (!stream)
 			return false;
@@ -3023,8 +3022,8 @@ std::auto_ptr<Logger> qm::Account::openLogger(Host host) const
 		::GetCurrentThreadId());
 	
 	wstring_ptr wstrDir(concat(getPath(), L"\\log"));
-	W2T(wstrDir.get(), ptszDir);
-	if (::GetFileAttributes(ptszDir) == 0xffffffff) {
+	if (!File::isDirectoryExisting(wstrDir.get())) {
+		W2T(wstrDir.get(), ptszDir);
 		if (!::CreateDirectory(ptszDir, 0))
 			return std::auto_ptr<Logger>(0);
 	}

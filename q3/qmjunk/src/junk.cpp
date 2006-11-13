@@ -691,8 +691,7 @@ bool qmjunk::JunkFilterImpl::repair(const WCHAR* pwszName) const
 	Log log(InitThread::getInitThread().getLogger(), L"qmjunk::JunkFilterImpl");
 	
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", pwszName));
-	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) == 0xffffffff)
+	if (!File::isFileExisting(wstrPath.get()))
 		return true;
 	
 	string_ptr strPath(wcs2mbs(wstrPath.get()));

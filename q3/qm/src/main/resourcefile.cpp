@@ -127,15 +127,13 @@ void qm::ResourceFileList::setModified()
 
 bool qm::ResourceFileList::load()
 {
-	W2T(wstrPath_.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrPath_.get())) {
 		XMLReader reader;
 		ResourceFileContentHandler handler(this);
 		reader.setContentHandler(&handler);
 		if (!reader.parse(wstrPath_.get()))
 			return false;
 	}
-	
 	return true;
 }
 

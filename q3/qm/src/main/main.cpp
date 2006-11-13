@@ -121,11 +121,8 @@ int qm::main(const WCHAR* pwszCommandLine)
 			wstrLocalMailFolder = concat(wstrPath.get(), p - wstrPath.get(), L"\\mail", -1);
 		else
 			wstrLocalMailFolder = allocWString(L"\\mail");
-		if (!bLocal) {
-			W2T(wstrLocalMailFolder.get(), ptszLocalMailFolder);
-			DWORD dwAttributes = ::GetFileAttributes(ptszLocalMailFolder);
-			bLocal = dwAttributes != 0xffffffff && dwAttributes & FILE_ATTRIBUTE_DIRECTORY;
-		}
+		if (!bLocal)
+			bLocal = File::isDirectoryExisting(wstrLocalMailFolder.get());
 		if (bLocal)
 			wstrMailFolder = wstrLocalMailFolder;
 	}
@@ -138,13 +135,8 @@ int qm::main(const WCHAR* pwszCommandLine)
 		if (!wstrMailFolder.get()) {
 			bool bSelect = !reg.getValue(L"MailFolder", &wstrMailFolder);
 			if (!bSelect)
-				bSelect = !wstrMailFolder.get();
-			if (!bSelect) {
-				W2T(wstrMailFolder.get(), ptszMailFolder);
-				DWORD dwAttributes = ::GetFileAttributes(ptszMailFolder);
-				bSelect = dwAttributes == -1 ||
-					(dwAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
-			}
+				bSelect = !wstrMailFolder.get() ||
+					!File::isDirectoryExisting(wstrMailFolder.get());
 			if (bSelect) {
 #ifndef _WIN32_WCE
 				if (!wstrMailFolder.get() || !*wstrMailFolder.get()) {
@@ -461,7 +453,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 	}
 	else {
 #ifdef _WIN32_WCE
-		bool bAlreadyExists = ::GetFileAttributes(tstrPath.get()) != 0xffffffff;
+		bool bAlreadyExists = File::isFileExisting(wstrPath.get());
 #	define CHECK_ALREADY_EXISTS() (bAlreadyExists)
 #else
 #	define CHECK_ALREADY_EXISTS() (::GetLastError() == ERROR_ALREADY_EXISTS)

@@ -70,8 +70,7 @@ bool qs::ClusterStorageImpl::loadMap()
 {
 	wstring_ptr wstrPath(concat(wstrPath_.get(), wstrMapExt_.get()));
 	
-	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrPath.get())) {
 		FileInputStream fileStream(wstrPath.get());
 		if (!fileStream)
 			return false;
@@ -455,9 +454,9 @@ bool qs::ClusterStorage::rename(const WCHAR* pwszPath,
 			WCHAR wsz[16];
 			_snwprintf(wsz, countof(wsz), L"%03u", n);
 			wstring_ptr wstrOldPath(concat(pImpl_->wstrPath_.get(), wsz, pImpl_->wstrBoxExt_.get()));
-			W2T(wstrOldPath.get(), ptszOldPath);
-			if (::GetFileAttributes(ptszOldPath) == 0xffffffff)
+			if (!File::isFileExisting(wstrOldPath.get()))
 				break;
+			W2T(wstrOldPath.get(), ptszOldPath);
 			
 			wstring_ptr wstrNewPath(concat(wstrPath.get(), wsz, pImpl_->wstrBoxExt_.get()));
 			W2T(wstrNewPath.get(), ptszNewPath);

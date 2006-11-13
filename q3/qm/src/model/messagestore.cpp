@@ -391,18 +391,10 @@ public:
 bool qm::MultiMessageStoreImpl::init()
 {
 	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\msg"));
-	
-	W2T(wstrPath.get(), ptszPath);
-	
-	DWORD dwAttributes = ::GetFileAttributes(ptszPath);
-	if (dwAttributes == 0xffffffff) {
-		if (!::CreateDirectory(ptszPath, 0))
+	if (!File::isDirectoryExisting(wstrPath.get())) {
+		if (!File::createDirectory(wstrPath.get()))
 			return false;
 	}
-	else if (!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-		return false;
-	}
-	
 	return true;
 }
 
@@ -674,8 +666,7 @@ bool qm::MultiMessageStore::saveDecoded(unsigned int nOffset,
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	wstring_ptr wstrPath(pImpl_->getPath(nOffset, true));
-	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff)
+	if (File::isFileExisting(wstrPath.get()))
 		return true;
 	
 	xstring_size_ptr strContent(msg.getContent());

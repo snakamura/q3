@@ -132,8 +132,7 @@ void qmnntp::Groups::setDateTime(const WCHAR* pwszDate,
 
 bool qmnntp::Groups::load()
 {
-	W2T(wstrPath_.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrPath_.get())) {
 		XMLReader reader;
 		GroupsContentHandler handler(this);
 		reader.setContentHandler(&handler);

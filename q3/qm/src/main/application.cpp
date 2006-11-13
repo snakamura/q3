@@ -433,9 +433,9 @@ bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
 		buf.append(pwszExtension);
 	}
 	
-	W2T(buf.getCharArray(), ptszPath);
-	if (::GetFileAttributes(ptszPath) == 0xffffffff) {
-		if (!detachResource(buf.getCharArray(), pwszType, pwszName))
+	const WCHAR* pwsz = buf.getCharArray();
+	if (!File::isFileExisting(pwsz)) {
+		if (!detachResource(pwsz, pwszType, pwszName))
 			return false;
 	}
 	
@@ -558,7 +558,7 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 			if (p->nState_ & RS_BACKUP) {
 				wstring_ptr wstrBackupPath(concat(wstrPath.get(), L".bak"));
 				W2T(wstrBackupPath.get(), ptszNew);
-				if (::GetFileAttributes(ptszNew) != 0xffffffff) {
+				if (File::isFileExisting(wstrBackupPath.get())) {
 					if (!::DeleteFile(ptszNew)) {
 						log.errorf(L"Cound not delete the old backup file: %s", wstrBackupPath.get());
 						return false;
@@ -664,8 +664,7 @@ wstring_ptr qm::ApplicationImpl::getProfileNameBasedPath(const WCHAR* pwszBaseNa
 		};
 		wstrPath = concat(c, countof(c));
 		
-		W2T(wstrPath.get(), ptszPath);
-		if (::GetFileAttributes(ptszPath) == 0xffffffff)
+		if (!File::isFileExisting(wstrPath.get()))
 			wstrPath.reset(0);
 	}
 	

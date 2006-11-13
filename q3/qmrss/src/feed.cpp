@@ -167,8 +167,7 @@ void qmrss::FeedList::setFeeds(List& l)
 
 bool qmrss::FeedList::load()
 {
-	W2T(wstrPath_.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrPath_.get())) {
 		XMLReader reader;
 		FeedContentHandler handler(this);
 		reader.setContentHandler(&handler);

@@ -44,6 +44,13 @@ bool qs::File::isFileExisting(const WCHAR* pwszPath)
 	return dw != 0xffffffff && !(dw & FILE_ATTRIBUTE_DIRECTORY);
 }
 
+bool qs::File::isDirectoryExisting(const WCHAR* pwszPath)
+{
+	W2T(pwszPath, ptszPath);
+	DWORD dw = ::GetFileAttributes(ptszPath);
+	return dw != 0xffffffff && (dw & FILE_ATTRIBUTE_DIRECTORY);
+}
+
 wstring_ptr qs::File::getTempFileName(const WCHAR* pwszDir)
 {
 	assert(pwszDir);
@@ -60,8 +67,7 @@ wstring_ptr qs::File::getTempFileName(const WCHAR* pwszDir)
 	
 	for (int n = 0; ; ++n) {
 		::_snwprintf(p, 32, L"tmp%x", n);
-		W2T(pwszPath, ptszPath);
-		if (::GetFileAttributes(ptszPath) == 0xffffffff)
+		if (!isFileExisting(pwszPath))
 			break;
 	}
 	
@@ -852,9 +858,9 @@ bool qs::DividedFile::setEndOfFile()
 	
 	for (size_t n = nFile + 1; ; ++n) {
 		wstring_ptr wstrPath(pImpl_->getPath(n));
-		W2T(wstrPath.get(), ptszPath);
-		if (::GetFileAttributes(ptszPath) == 0xffffffff)
+		if (!File::isFileExisting(wstrPath.get()))
 			break;
+		W2T(wstrPath.get(), ptszPath);
 		::DeleteFile(ptszPath);
 	}
 	

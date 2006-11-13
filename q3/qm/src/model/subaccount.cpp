@@ -15,6 +15,7 @@
 #include <qmsecurity.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsinit.h>
 #include <qslog.h>
 #include <qsmime.h>
@@ -423,8 +424,7 @@ std::auto_ptr<PrivateKey> qm::SubAccount::getPrivateKey(PasswordManager* pPasswo
 			{ FileNames::PEM_EXT,						-1	}
 		};
 		wstrPath = concat(c, countof(c));
-		W2T(wstrPath.get(), ptszPath);
-		if (::GetFileAttributes(ptszPath) == -1)
+		if (!File::isFileExisting(wstrPath.get()))
 			wstrPath.reset(0);
 	}
 	if (!wstrPath.get()) {
@@ -473,8 +473,7 @@ std::auto_ptr<Certificate> qm::SubAccount::getCertificate(PasswordManager* pPass
 			{ FileNames::PEM_EXT,						-1	}
 		};
 		wstrPath = concat(c, countof(c));
-		W2T(wstrPath.get(), ptszPath);
-		if (::GetFileAttributes(ptszPath) == -1)
+		if (!File::isFileExisting(wstrPath.get()))
 			wstrPath.reset(0);
 	}
 	if (!wstrPath.get()) {

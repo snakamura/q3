@@ -2205,8 +2205,7 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	
 	wstring_ptr wstrPath(buf.getString());
 	
-	W2T(wstrPath.get(), ptszPath);
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrPath.get())) {
 		wstring_ptr wstr(pCallback->confirmOverwrite(wstrPath.get()));
 		if (!wstr.get())
 			return RESULT_CANCEL;

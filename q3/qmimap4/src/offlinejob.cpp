@@ -249,9 +249,7 @@ bool qmimap4::OfflineJobManager::copyJobs(NormalFolder* pFolderFrom,
 
 bool qmimap4::OfflineJobManager::load()
 {
-	W2T(wstrPath_.get(), ptszPath);
-	
-	if (::GetFileAttributes(ptszPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrPath_.get())) {
 		FileInputStream stream(wstrPath_.get());
 		if (!stream)
 			return false;

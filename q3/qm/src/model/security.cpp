@@ -12,6 +12,7 @@
 #include <qmsecurity.h>
 
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsinit.h>
 #include <qslog.h>
 #include <qsthread.h>
@@ -59,8 +60,7 @@ std::auto_ptr<Store> qm::SecurityImpl::loadCA()
 	}
 	
 	wstring_ptr wstrCAPath(concat(wstrPath_.get(), L"\\", FileNames::CA_PEM));
-	W2T(wstrCAPath.get(), ptszCAPath);
-	if (::GetFileAttributes(ptszCAPath) != 0xffffffff) {
+	if (File::isFileExisting(wstrCAPath.get())) {
 		if (!pStoreCA->load(wstrCAPath.get(), Store::FILETYPE_PEM))
 			log.warn(L"Failed to load certificates from ca.pem.");
 	}
