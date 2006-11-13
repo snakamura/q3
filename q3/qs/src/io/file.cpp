@@ -37,6 +37,13 @@ qs::File::~File()
 {
 }
 
+bool qs::File::isFileExisting(const WCHAR* pwszPath)
+{
+	W2T(pwszPath, ptszPath);
+	DWORD dw = ::GetFileAttributes(ptszPath);
+	return dw != 0xffffffff && !(dw & FILE_ATTRIBUTE_DIRECTORY);
+}
+
 wstring_ptr qs::File::getTempFileName(const WCHAR* pwszDir)
 {
 	assert(pwszDir);

@@ -107,6 +107,14 @@ public:
 
 public:
 	/**
+	 * Check if the specified file exists.
+	 *
+	 * @param pwszPath path to the file.
+	 * @return true if it exists and it's file.
+	 */
+	static bool isFileExisting(const WCHAR* pwszPath);
+	
+	/**
 	 * Get temporary file name.
 	 *
 	 * @param pwszDir [in] Directory where a temporary file is created.

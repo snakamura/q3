@@ -1033,6 +1033,9 @@ void qm::MessageWindowFontManager::addGroup(std::auto_ptr<MessageWindowFontGroup
 
 bool qm::MessageWindowFontManager::load(const WCHAR* pwszPath)
 {
+	if (!File::isFileExisting(pwszPath))
+		return true;
+	
 	XMLReader reader;
 	MessageWindowFontContentHandler contentHandler(this);
 	reader.setContentHandler(&contentHandler);
