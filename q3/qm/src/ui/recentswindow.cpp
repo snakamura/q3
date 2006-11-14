@@ -67,8 +67,11 @@ qm::RecentsWindow::RecentsWindow(Recents* pRecents,
 	nMnemonicWidth_(0),
 	nButtonHeight_(0),
 	nHideTimeout_(20*1000),
+	bImeControl_(true),
 	show_(SHOW_HIDDEN)
 {
+	bImeControl_ = pProfile_->getInt(L"Global", L"ImeControl") != 0;
+	
 	setWindowHandler(this, false);
 }
 
@@ -142,8 +145,14 @@ LRESULT qm::RecentsWindow::onActivate(UINT nFlags,
 {
 	DefaultWindowHandler::onActivate(nFlags, hwnd, bMinimized);
 	
-	if (nFlags == WA_INACTIVE && show_ == SHOW_ACTIVE)
-		close();
+	if (nFlags == WA_INACTIVE) {
+		if (show_ == SHOW_ACTIVE)
+			close();
+	}
+	else {
+		if (bImeControl_)
+			qs::UIUtil::setImeEnabled(getHandle(), false);
+	}
 	
 	return 0;
 }

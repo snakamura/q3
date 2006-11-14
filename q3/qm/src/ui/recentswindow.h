@@ -250,6 +250,7 @@ private:
 	std::auto_ptr<qs::Theme> pTheme_;
 	
 	int nHideTimeout_;
+	bool bImeControl_;
 	
 	Show show_;
 
