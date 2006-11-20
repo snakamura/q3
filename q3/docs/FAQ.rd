@@ -35,5 +35,6 @@
 *((<メッセージにメモを付けることはできませんか?|URL:HowToUseMemo.html>))
 *((<POP3アカウントで添付ファイル以外をダウンロードするにはどうすれば良いですか?|URL:HowToDownloadMessageWithoutAttachmentsUsingPop3.html>))
 *((<メッセージを削除するときにゴミ箱を使わないようにするにはどうすればよいですか?|URL:HowToDeleteWithoutTrash.html>))
+*((<ツールバーの文字列を表示しないようにするにはどうすればよいですか?|URL:HowToHideTextOnToolbars.html>))
 
 =end
