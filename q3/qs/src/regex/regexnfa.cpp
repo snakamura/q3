@@ -299,6 +299,7 @@ void qs::RegexNfaMatcher::match(const WCHAR* pStart,
 	assert(pCurrent);
 	assert(ppEnd);
 	assert(pStackMatch);
+	assert(pStackMatch->empty());
 	
 	*ppEnd = 0;
 	
@@ -403,6 +404,7 @@ void qs::RegexNfaMatcher::search(const WCHAR* pStart,
 			break;
 		}
 		bReverse ? --p : ++p;
+		pStackMatch->clear();
 	}
 }
 
