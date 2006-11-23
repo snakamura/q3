@@ -936,7 +936,8 @@ private:
 class PasswordDialog : public DefaultDialog
 {
 public:
-	explicit PasswordDialog(const WCHAR* pwszHint);
+	PasswordDialog(const WCHAR* pwszHint,
+				   PasswordState state);
 	virtual ~PasswordDialog();
 
 public:

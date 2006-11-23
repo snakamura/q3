@@ -839,7 +839,8 @@ bool qm::Application::initialize()
 	pImpl_->initMime();
 	Security::init();
 	
-	pImpl_->pPasswordManagerCallback_.reset(new DefaultPasswordManagerCallback());
+	pImpl_->pPasswordManagerCallback_.reset(
+		new DefaultPasswordManagerCallback(pImpl_->pProfile_.get()));
 	pImpl_->pPasswordManager_.reset(new PasswordManager(
 		getProfilePath(FileNames::PASSWORDS_XML).get(),
 		pImpl_->pPasswordManagerCallback_.get()));

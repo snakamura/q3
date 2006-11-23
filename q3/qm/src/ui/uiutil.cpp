@@ -697,7 +697,8 @@ qm::ProgressDialogInit::~ProgressDialogInit()
  *
  */
 
-qm::DefaultPasswordManagerCallback::DefaultPasswordManagerCallback()
+qm::DefaultPasswordManagerCallback::DefaultPasswordManagerCallback(Profile* pProfile) :
+	pProfile_(pProfile)
 {
 }
 
@@ -727,13 +728,21 @@ PasswordState qm::DefaultPasswordManagerCallback::getPassword(const PasswordCond
 	} modelHandler;
 	
 	wstring_ptr wstrHint(condition.getHint());
-	PasswordDialog dialog(wstrHint.get());
+	
+	int nState = pProfile_->getInt(L"Global", L"DefaultPasswordState");
+	if (nState < PASSWORDSTATE_ONETIME || PASSWORDSTATE_SAVE < nState)
+		nState = PASSWORDSTATE_SESSION;
+	
+	PasswordDialog dialog(wstrHint.get(), static_cast<PasswordState>(nState));
 	if (dialog.doModal(hwnd, hwnd ? 0 : &modelHandler) != IDOK)
 		return PASSWORDSTATE_NONE;
 	
+	PasswordState state = dialog.getState();
+	pProfile_->setInt(L"Global", L"DefaultPasswordState", state);
+	
 	*pwstrPassword = allocWString(dialog.getPassword());
 	
-	return dialog.getState();
+	return state;
 }
 
 

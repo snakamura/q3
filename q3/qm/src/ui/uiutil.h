@@ -238,7 +238,7 @@ typedef ProgressDialogMessageOperationCallbackBase<MessageOperationCallback> Pro
 class DefaultPasswordManagerCallback : public PasswordManagerCallback
 {
 public:
-	DefaultPasswordManagerCallback();
+	explicit DefaultPasswordManagerCallback(qs::Profile* pProfile);
 	virtual ~DefaultPasswordManagerCallback();
 
 public:
@@ -248,6 +248,9 @@ public:
 private:
 	DefaultPasswordManagerCallback(const DefaultPasswordManagerCallback&);
 	DefaultPasswordManagerCallback& operator=(const DefaultPasswordManagerCallback&);
+
+private:
+	qs::Profile* pProfile_;
 };
 
 

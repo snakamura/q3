@@ -180,6 +180,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Global",	L"CurrentFolder",					L""													},
 	{ L"Global",	L"DefaultCharset",					L""													},
 	{ L"Global",	L"DefaultMailAccount",				L""													},
+	{ L"Global",	L"DefaultPasswordState",			L"2"												}, /*PASSWORDSTATE_SESSION*/
 	{ L"Global",	L"DefaultRssAccount",				L""													},
 	{ L"Global",	L"DefaultTimeFormat",				L"%Y4/%M0/%D %h:%m:%s"								},
 	{ L"Global",	L"DetachFolder",					L""													},

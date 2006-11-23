@@ -1944,9 +1944,22 @@ void qm::MoveMessageDialog::updateState()
  *
  */
 
-qm::PasswordDialog::PasswordDialog(const WCHAR* pwszHint) :
+namespace {
+struct
+{
+	PasswordState state_;
+	UINT nId_;
+} passwordStates[] = {
+	{ PASSWORDSTATE_ONETIME,	IDC_DONTSAVE	},
+	{ PASSWORDSTATE_SESSION,	IDC_SESSION		},
+	{ PASSWORDSTATE_SAVE,		IDC_SAVE		}
+};
+}
+
+qm::PasswordDialog::PasswordDialog(const WCHAR* pwszHint,
+								   PasswordState state) :
 	DefaultDialog(IDD_PASSWORD),
-	state_(PASSWORDSTATE_ONETIME)
+	state_(state)
 {
 	wstrHint_ = allocWString(pwszHint);
 }
@@ -1980,7 +1993,13 @@ LRESULT qm::PasswordDialog::onInitDialog(HWND hwndFocus,
 	init(false);
 	
 	setDlgItemText(IDC_HINT, wstrHint_.get());
-	Button_SetCheck(getDlgItem(IDC_SESSION), BST_CHECKED);
+	
+	for (int n = 0; n < countof(passwordStates); ++n) {
+		if (passwordStates[n].state_ == state_) {
+			Button_SetCheck(getDlgItem(passwordStates[n].nId_), BST_CHECKED);
+			break;
+		}
+	}
 	
 	return TRUE;
 }
@@ -1989,12 +2008,12 @@ LRESULT qm::PasswordDialog::onOk()
 {
 	wstrPassword_ = getDlgItemText(IDC_PASSWORD);
 	
-	if (Button_GetCheck(getDlgItem(IDC_DONTSAVE)) == BST_CHECKED)
-		state_ = PASSWORDSTATE_ONETIME;
-	else if (Button_GetCheck(getDlgItem(IDC_SESSION)) == BST_CHECKED)
-		state_ = PASSWORDSTATE_SESSION;
-	else if (Button_GetCheck(getDlgItem(IDC_SAVE)) == BST_CHECKED)
-		state_ = PASSWORDSTATE_SAVE;
+	for (int n = 0; n < countof(passwordStates); ++n) {
+		if (Button_GetCheck(getDlgItem(passwordStates[n].nId_)) == BST_CHECKED) {
+			state_ = passwordStates[n].state_;
+			break;
+		}
+	}
 	
 	return DefaultDialog::onOk();
 }
