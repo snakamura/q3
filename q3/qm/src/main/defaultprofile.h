@@ -137,18 +137,21 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"FolderComboBox",	L"ShowAllCount",	L"1"	},
 	{ L"FolderComboBox",	L"ShowUnseenCount",	L"1"	},
 	
-	{ L"FolderListWindow",	L"FontCharset",			L"0"		},
-/*	{ L"FolderListWindow",	L"FontFace",			L""			},*/
-	{ L"FolderListWindow",	L"FontSize",			L"9"		},
-	{ L"FolderListWindow",	L"FontStyle",			L"0"		},
-	{ L"FolderListWindow",	L"BackgroundColor",		L"ffffff"	},
-	{ L"FolderListWindow",	L"ForegroundColor",		L"000000"	},
-	{ L"FolderListWindow",	L"UseSystemColor",		L"1"		},
-	{ L"FolderListWindow",	L"CountWidth",			L"50"		},
-	{ L"FolderListWindow",	L"IdWidth",				L"50"		},
-	{ L"FolderListWindow",	L"NameWidth",			L"150"		},
-	{ L"FolderListWindow",	L"SizeWidth",			L"150"		},
-	{ L"FolderListWindow",	L"UnseenCountWidth",	L"50"		},
+	{ L"FolderListWindow",	L"FontCharset",						L"0"	},
+/*	{ L"FolderListWindow",	L"FontFace",						L""		},*/
+	{ L"FolderListWindow",	L"FontSize",						L"9"	},
+	{ L"FolderListWindow",	L"FontStyle",						L"0"	},
+	{ L"FolderListWindow",	L"BackgroundColor",					L""		},
+	{ L"FolderListWindow",	L"ForegroundColor",					L""		},
+	{ L"FolderListWindow",	L"SelectedBackgroundColor",			L""		},
+	{ L"FolderListWindow",	L"SelectedNotFocusBackgroundColor",	L""		},
+	{ L"FolderListWindow",	L"SelectedForegroundColor",			L""		},
+	{ L"FolderListWindow",	L"UseSystemColor",					L"1"	},
+	{ L"FolderListWindow",	L"CountWidth",						L"50"	},
+	{ L"FolderListWindow",	L"IdWidth",							L"50"	},
+	{ L"FolderListWindow",	L"NameWidth",						L"150"	},
+	{ L"FolderListWindow",	L"SizeWidth",						L"150"	},
+	{ L"FolderListWindow",	L"UnseenCountWidth",				L"50"	},
 	
 	{ L"FolderWindow",	L"FontCharset",				L"0"		},
 /*	{ L"FolderWindow",	L"FontFace",				L""			},*/
