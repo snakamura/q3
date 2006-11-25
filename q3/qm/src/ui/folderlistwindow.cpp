@@ -283,16 +283,19 @@ void qm::FolderListWindowImpl::reloadProfiles(bool bInitialize)
 	if (!bUseSystemColor) {
 		struct {
 			const WCHAR* pwszKey_;
+			int nIndex_;
 			COLORREF* pcr_;
 		} colors[] = {
-			{ L"ForegroundColor",	&crForeground_	},
-			{ L"BackgroundColor",	&crBackground_	}
+			{ L"ForegroundColor",	COLOR_WINDOWTEXT,	&crForeground_	},
+			{ L"BackgroundColor",	COLOR_WINDOW,		&crBackground_	}
 		};
 		for (int n = 0; n < countof(colors); ++n) {
 			wstring_ptr wstr(pProfile_->getString(L"FolderListWindow", colors[n].pwszKey_));
 			Color color(wstr.get());
 			if (color.getColor() != 0xffffffff)
 				*colors[n].pcr_ = color.getColor();
+			else
+				*colors[n].pcr_ = ::GetSysColor(colors[n].nIndex_);
 		}
 	}
 	if (!bInitialize) {

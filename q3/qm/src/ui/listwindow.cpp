@@ -190,9 +190,6 @@ public:
 	HIMAGELIST hImageListData_;
 	HPEN hpenThreadLine_;
 	HPEN hpenFocusedThreadLine_;
-#ifndef _WIN32_WCE
-	std::auto_ptr<qs::Theme> pTheme_;
-#endif
 	
 #ifdef QMTOOLTIP
 	HWND hwndToolTip_;
@@ -691,74 +688,21 @@ void qm::ListWindowImpl::reloadProfiles(bool bInitialize)
 		struct {
 			const WCHAR* pwszKey_;
 			int nIndex_;
-#ifndef _WIN32_WCE
-			int nThemeStateId_;
-			int nThemePropId_;
-#endif
 			COLORREF* pcr_;
 		} colors[] = {
-			{
-				L"ForegroundColor",
-				COLOR_WINDOWTEXT,
-#ifndef _WIN32_WCE
-				LIS_NORMAL,
-				TMT_TEXTCOLOR,
-#endif
-				&crForeground_
-			},
-			{
-				L"BackgroundColor",
-				COLOR_WINDOW,
-#ifndef _WIN32_WCE
-				LIS_NORMAL,
-				TMT_FILLCOLOR,
-#endif
-				&crBackground_
-			},
-			{
-				L"SelectedForegroundColor",
-				COLOR_HIGHLIGHTTEXT,
-#ifndef _WIN32_WCE
-				LIS_SELECTED,
-				TMT_TEXTCOLOR,
-#endif
-				&crSelectedForeground_
-			},
-			{
-				L"SelectedBackgroundColor",
-				COLOR_HIGHLIGHT,
-#ifndef _WIN32_WCE
-				LIS_SELECTED,
-				TMT_FILLCOLOR,
-#endif
-				&crSelectedBackground_
-			},
-			{
-				L"SelectedNotFocusBackgroundColor",
-				COLOR_INACTIVEBORDER,
-#ifndef _WIN32_WCE
-				LIS_SELECTEDNOTFOCUS,
-				TMT_FILLCOLOR,
-#endif
-				&crSelectedNotFocusBackground_
-			}
+			{ L"ForegroundColor",					COLOR_WINDOWTEXT,		&crForeground_					},
+			{ L"BackgroundColor",					COLOR_WINDOW,			&crBackground_					},
+			{ L"SelectedForegroundColor",			COLOR_HIGHLIGHTTEXT,	&crSelectedForeground_			},
+			{ L"SelectedBackgroundColor",			COLOR_HIGHLIGHT,		&crSelectedBackground_			},
+			{ L"SelectedNotFocusBackgroundColor",	COLOR_INACTIVEBORDER,	&crSelectedNotFocusBackground_	}
 		};
 		for (int n = 0; n < countof(colors); ++n) {
 			wstring_ptr wstr(pProfile_->getString(L"ListWindow", colors[n].pwszKey_));
 			Color color(wstr.get());
-			if (color.getColor() != 0xffffffff) {
+			if (color.getColor() != 0xffffffff)
 				*colors[n].pcr_ = color.getColor();
-			}
-			else {
-				bool bTheme = false;
-#ifndef _WIN32_WCE
-				if (pTheme_->isActive())
-					bTheme = pTheme_->getColor(LVP_LISTITEM, colors[n].nThemeStateId_,
-						colors[n].nThemePropId_, colors[n].pcr_);
-#endif
-				if (!bTheme)
-					*colors[n].pcr_ = ::GetSysColor(colors[n].nIndex_);
-			}
+			else
+				*colors[n].pcr_ = ::GetSysColor(colors[n].nIndex_);
 		}
 	}
 }
@@ -1348,6 +1292,8 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->nRefreshing_ = 0;
 	pImpl_->nInvalidating_ = 0;
 	
+	pImpl_->reloadProfiles(true);
+	
 	pImpl_->pViewModelManager_->addViewModelManagerHandler(pImpl_);
 	
 	setWindowHandler(this, false);
@@ -1529,9 +1475,6 @@ LRESULT qm::ListWindow::windowProc(UINT uMsg,
 		HANDLE_RBUTTONUP()
 		HANDLE_SETFOCUS()
 		HANDLE_SIZE()
-#ifndef _WIN32_WCE
-		HANDLE_THEMECHANGED()
-#endif
 		HANDLE_VSCROLL()
 		HANDLE_MESSAGE(ListWindowImpl::WM_VIEWMODEL_ITEMADDED, onViewModelItemAdded)
 		HANDLE_MESSAGE(ListWindowImpl::WM_VIEWMODEL_ITEMREMOVED, onViewModelItemRemoved)
@@ -1579,11 +1522,6 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 {
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
-	
-#ifndef _WIN32_WCE
-	pImpl_->pTheme_.reset(new Theme(getHandle(), L"ListView"));
-#endif
-	pImpl_->reloadProfiles(true);
 	
 	ListWindowCreateContext* pContext =
 		static_cast<ListWindowCreateContext*>(pCreateStruct->lpCreateParams);
@@ -1662,10 +1600,6 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 LRESULT qm::ListWindow::onDestroy()
 {
 	removeNotifyHandler(pImpl_);
-	
-#ifndef _WIN32_WCE
-	pImpl_->pTheme_.reset(0);
-#endif
 	
 	if (pImpl_->hfont_) {
 		::DeleteObject(pImpl_->hfont_);
@@ -2073,14 +2007,6 @@ LRESULT qm::ListWindow::onSize(UINT nFlags,
 	
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
 }
-
-#ifndef _WIN32_WCE
-LRESULT qm::ListWindow::onThemeChanged()
-{
-	pImpl_->pTheme_.reset(new Theme(getHandle(), L"ListView"));
-	return 0;
-}
-#endif
 
 LRESULT qm::ListWindow::onVScroll(UINT nCode,
 								  UINT nPos,

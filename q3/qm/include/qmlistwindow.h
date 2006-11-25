@@ -14,7 +14,6 @@
 
 #include <qskeymap.h>
 #include <qsprofile.h>
-#include <qstheme.h>
 #include <qswindow.h>
 
 
@@ -110,9 +109,6 @@ protected:
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
-#ifndef _WIN32_WCE
-	LRESULT onThemeChanged();
-#endif
 	LRESULT onVScroll(UINT nCode,
 					  UINT nPos,
 					  HWND hwnd);
