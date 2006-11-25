@@ -1338,13 +1338,15 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 {
 	if (!bBodyOnly) {
 		if (part_.getHeader()) {
-			wxstring_ptr wstrHeader(a2w(part_.getHeader()));
-			if (!wstrHeader.get())
-				return false;
-			if (!pBuf->append(wstrHeader.get()))
-				return false;
+			Part::FieldList l;
+			Part::FieldListFree free(l);
+			part_.getFields(&l);
+			for (Part::FieldList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				if (!normalizeHeader((*it).second, pBuf) || !pBuf->append(L'\n'))
+					return false;
+			}
 		}
-		if (!pBuf->append(L"\n"))
+		if (!pBuf->append(L'\n'))
 			return false;
 	}
 	
@@ -1991,6 +1993,44 @@ bool qm::PartUtil::w2a(const WCHAR* pwsz,
 				return false;
 		}
 		if (!pBuf->append(static_cast<CHAR>(c)))
+			return false;
+	}
+	
+	return true;
+}
+
+bool qm::PartUtil::normalizeHeader(const CHAR* pszHeader,
+								   XStringBuffer<qs::WXSTRING>* pBuf)
+{
+	assert(pszHeader);
+	assert(pBuf);
+	
+	StringBuffer<STRING> buf;
+	bool bSkipWhitespace = false;
+	for (const CHAR* p = pszHeader; *p; ++p) {
+		if (*p == '\r' && *(p + 1) == '\n') {
+			buf.append(' ');
+			bSkipWhitespace = true;
+			++p;
+		}
+		else if (bSkipWhitespace) {
+			if (*p != ' ' && *p != '\t') {
+				bSkipWhitespace = false;
+				buf.append(*p);
+			}
+		}
+		else {
+			buf.append(*p);
+		}
+	}
+	
+	wstring_ptr wstr(FieldParser::decode(buf.getCharArray(), buf.getLength(), false, 0));
+	if (wstr.get()) {
+		if (!pBuf->append(wstr.get()))
+			return false;
+	}
+	else {
+		if (!a2w(buf.getCharArray(), buf.getLength(), pBuf))
 			return false;
 	}
 	

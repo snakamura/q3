@@ -301,6 +301,8 @@ public:
 	static bool w2a(const WCHAR* pwsz,
 					size_t nLen,
 					qs::XStringBuffer<qs::XSTRING>* pBuf);
+	static bool normalizeHeader(const CHAR* pszHeader,
+								qs::XStringBuffer<qs::WXSTRING>* pBuf);
 	static qs::wxstring_ptr quote(const WCHAR* pwsz,
 								  const WCHAR* pwszQuote);
 	static bool quote(const WCHAR* pwsz,
