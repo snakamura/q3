@@ -46,7 +46,11 @@ public:
 				  UINT nEdge,
 				  UINT nFlags,
 				  RECT* pRect);
-	int getSysSize(int nId);
+	bool getColor(int nPartId,
+				  int nStateId,
+				  int nPropId,
+				  COLORREF* pcr) const;
+	int getSysSize(int nId) const;
 
 private:
 	Theme(const Theme&);

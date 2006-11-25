@@ -108,7 +108,21 @@ bool qs::Theme::drawEdge(HDC hdc,
 	return (*pfnDrawThemeEdge)(pImpl_->hTheme_, hdc, nPartId, nStateId, &rect, nEdge, nFlags, pRect) == S_OK;
 }
 
-int qs::Theme::getSysSize(int nId)
+bool qs::Theme::getColor(int nPartId,
+						 int nStateId,
+						 int nPropId,
+						 COLORREF* pcr) const
+{
+	if (!pImpl_->hTheme_)
+		return false;
+	
+	typedef HRESULT (WINAPI* PFN_GETTHEMECOLOR)(HTHEME, int, int, int, COLORREF*);
+	PFN_GETTHEMECOLOR pfnGetThemeColor = reinterpret_cast<PFN_GETTHEMECOLOR>(
+		::GetProcAddress(pImpl_->hInstUxTheme_, "GetThemeColor"));
+	return (*pfnGetThemeColor)(pImpl_->hTheme_, nPartId, nStateId, nPropId, pcr) == S_OK;
+}
+
+int qs::Theme::getSysSize(int nId) const
 {
 	if (!pImpl_->hTheme_)
 		return ::GetSystemMetrics(nId);
