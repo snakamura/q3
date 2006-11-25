@@ -1110,6 +1110,10 @@ HTML表示の文字サイズ。((<ViewZoomアクション|URL:ViewZoomAction.html>))を参照。
 ウィンドウの透過度。
 
 
++ForegroundColor, BackgroundColor, SelectedForegroundColor, SelectedBackgroundColor
+文字色、背景色、選択文字色、選択背景色。形式はRRGGBB。
+
+
 +AutoPopup (1 @ 0|1)
 自動でポップアップするかどうか。
 
