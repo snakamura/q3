@@ -218,6 +218,11 @@ void qm::Recents::removeSeens()
 void qm::Recents::save() const
 {
 	pImpl_->pProfile_->setInt(L"Recents", L"Max", pImpl_->nMax_);
+	
+	wstring_ptr wstrFilter;
+	if (pImpl_->pFilter_.get())
+		wstrFilter = pImpl_->pFilter_->getString();
+	pImpl_->pProfile_->setString(L"Recents", L"MacroFilter", wstrFilter.get());
 }
 
 void qm::Recents::lock() const
