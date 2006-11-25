@@ -137,21 +137,18 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"FolderComboBox",	L"ShowAllCount",	L"1"	},
 	{ L"FolderComboBox",	L"ShowUnseenCount",	L"1"	},
 	
-	{ L"FolderListWindow",	L"FontCharset",						L"0"	},
-/*	{ L"FolderListWindow",	L"FontFace",						L""		},*/
-	{ L"FolderListWindow",	L"FontSize",						L"9"	},
-	{ L"FolderListWindow",	L"FontStyle",						L"0"	},
-	{ L"FolderListWindow",	L"BackgroundColor",					L""		},
-	{ L"FolderListWindow",	L"ForegroundColor",					L""		},
-	{ L"FolderListWindow",	L"SelectedBackgroundColor",			L""		},
-	{ L"FolderListWindow",	L"SelectedNotFocusBackgroundColor",	L""		},
-	{ L"FolderListWindow",	L"SelectedForegroundColor",			L""		},
-	{ L"FolderListWindow",	L"UseSystemColor",					L"1"	},
-	{ L"FolderListWindow",	L"CountWidth",						L"50"	},
-	{ L"FolderListWindow",	L"IdWidth",							L"50"	},
-	{ L"FolderListWindow",	L"NameWidth",						L"150"	},
-	{ L"FolderListWindow",	L"SizeWidth",						L"150"	},
-	{ L"FolderListWindow",	L"UnseenCountWidth",				L"50"	},
+	{ L"FolderListWindow",	L"FontCharset",						L"0"		},
+/*	{ L"FolderListWindow",	L"FontFace",						L""			},*/
+	{ L"FolderListWindow",	L"FontSize",						L"9"		},
+	{ L"FolderListWindow",	L"FontStyle",						L"0"		},
+	{ L"FolderListWindow",	L"BackgroundColor",					L"ffffff"	},
+	{ L"FolderListWindow",	L"ForegroundColor",					L"000000"	},
+	{ L"FolderListWindow",	L"UseSystemColor",					L"1"		},
+	{ L"FolderListWindow",	L"CountWidth",						L"50"		},
+	{ L"FolderListWindow",	L"IdWidth",							L"50"		},
+	{ L"FolderListWindow",	L"NameWidth",						L"150"		},
+	{ L"FolderListWindow",	L"SizeWidth",						L"150"		},
+	{ L"FolderListWindow",	L"UnseenCountWidth",				L"50"		},
 	
 	{ L"FolderWindow",	L"FontCharset",				L"0"		},
 /*	{ L"FolderWindow",	L"FontFace",				L""			},*/
@@ -269,21 +266,24 @@ const qs::Profile::Default defaultProfiles[] = {
 	
 	{ L"Label",	L"HistorySize",	L"10"	},
 	
-	{ L"ListWindow",	L"FontCharset",			L"0"				},
-/*	{ L"ListWindow",	L"FontFace",			L""					},*/
-	{ L"ListWindow",	L"FontSize",			L"9"				},
-	{ L"ListWindow",	L"FontStyle",			L"0"				},
-	{ L"ListWindow",	L"BackgroundColor",		L"ffffff"			},
-	{ L"ListWindow",	L"ForegroundColor",		L"000000"			},
-	{ L"ListWindow",	L"UseSystemColor",		L"1"				},
-	{ L"ListWindow",	L"Ellipsis",			L"1"				},
-	{ L"ListWindow",	L"ShowHeaderColumn",	L"1"				},
+	{ L"ListWindow",	L"FontCharset",						L"0"				},
+/*	{ L"ListWindow",	L"FontFace",						L""					},*/
+	{ L"ListWindow",	L"FontSize",						L"9"				},
+	{ L"ListWindow",	L"FontStyle",						L"0"				},
+	{ L"ListWindow",	L"BackgroundColor",					L"ffffff"			},
+	{ L"ListWindow",	L"ForegroundColor",					L"000000"			},
+	{ L"ListWindow",	L"SelectedBackgroundColor",			L""					},
+	{ L"ListWindow",	L"SelectedNotFocusBackgroundColor",	L""					},
+	{ L"ListWindow",	L"SelectedForegroundColor",			L""					},
+	{ L"ListWindow",	L"UseSystemColor",					L"1"				},
+	{ L"ListWindow",	L"Ellipsis",						L"1"				},
+	{ L"ListWindow",	L"ShowHeaderColumn",				L"1"				},
 #ifdef _WIN32_WCE_PSPC
-	{ L"ListWindow",	L"SingleClickOpen",		L"1"				},
+	{ L"ListWindow",	L"SingleClickOpen",					L"1"				},
 #else
-	{ L"ListWindow",	L"SingleClickOpen",		L"0"				},
+	{ L"ListWindow",	L"SingleClickOpen",					L"0"				},
 #endif
-	{ L"ListWindow",	L"TimeFormat",			L"%Y2/%M0/%D %h:%m"	},
+	{ L"ListWindow",	L"TimeFormat",						L"%Y2/%M0/%D %h:%m"	},
 	
 #ifndef _WIN32_WCE
 	{ L"MacroDialog",	L"Height",	L"300"	},
