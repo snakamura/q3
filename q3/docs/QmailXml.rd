@@ -716,8 +716,8 @@ IMAP4検索で本文を検索するかどうか。
 システムの配色を使うかどうか。
 
 
-+ForegroundColor (000000), BackgroundColor (ffffff)
-文字色、背景色。形式はRRGGBB。
++ForegroundColor, BackgroundColor, SelectedForegroundColor, SelectedBackgroundColor, SelectedNotFocusBackgroundColor
+文字色、背景色、選択文字色、選択背景色、選択非フォーカス背景色。形式はRRGGBB。
 
 
 +Ellipsis (1 @ 0|1)
