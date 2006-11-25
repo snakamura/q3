@@ -60,6 +60,10 @@ qm::RecentsWindow::RecentsWindow(Recents* pRecents,
 	nSelectedButton_(-1),
 	hfont_(0),
 	hfontBold_(0),
+	crForeground_(RGB(0, 0, 0)),
+	crBackground_(RGB(255, 255, 255)),
+	crSelectedForeground_(RGB(0, 0, 0)),
+	crSelectedBackground_(RGB(255, 255, 255)),
 	hImageList_(0),
 	nWidth_(400),
 	nLineHeight_(0),
@@ -71,6 +75,25 @@ qm::RecentsWindow::RecentsWindow(Recents* pRecents,
 	show_(SHOW_HIDDEN)
 {
 	bImeControl_ = pProfile_->getInt(L"Global", L"ImeControl") != 0;
+	
+	struct {
+		const WCHAR* pwszKey_;
+		int nIndex_;
+		COLORREF* pcr_;
+	} colors[] = {
+		{ L"ForegroundColor",					COLOR_WINDOWTEXT,		&crForeground_					},
+		{ L"BackgroundColor",					COLOR_WINDOW,			&crBackground_					},
+		{ L"SelectedForegroundColor",			COLOR_HIGHLIGHTTEXT,	&crSelectedForeground_			},
+		{ L"SelectedBackgroundColor",			COLOR_HIGHLIGHT,		&crSelectedBackground_			},
+	};
+	for (int n = 0; n < countof(colors); ++n) {
+		wstring_ptr wstr(pProfile_->getString(L"RecentsWindow", colors[n].pwszKey_));
+		Color color(wstr.get());
+		if (color.getColor() != 0xffffffff)
+			*colors[n].pcr_ = color.getColor();
+		else
+			*colors[n].pcr_ = ::GetSysColor(colors[n].nIndex_);
+	}
 	
 	setWindowHandler(this, false);
 }
@@ -328,7 +351,7 @@ LRESULT qm::RecentsWindow::onNcPaint(HRGN hrgn)
 	
 	if (pTheme_->isActive())
 		qs::UIUtil::drawThemeBorder(pTheme_.get(), getHandle(),
-			TTP_STANDARD, 0, ::GetSysColor(COLOR_WINDOW));
+			TTP_STANDARD, 0, getColor(COLOR_WINDOW));
 	
 	return 0;
 }
@@ -345,6 +368,10 @@ LRESULT qm::RecentsWindow::onPaint()
 		ScanCallbackImpl(DeviceContext& dc,
 						 HFONT hfont,
 						 HFONT hfontBold,
+						 COLORREF crForeground,
+						 COLORREF crBackground,
+						 COLORREF crSelectedForeground,
+						 COLORREF crSelectedBackground,
 						 HIMAGELIST hImageList,
 						 const FolderImage* pFolderImage,
 						 const RECT& rect,
@@ -355,6 +382,10 @@ LRESULT qm::RecentsWindow::onPaint()
 			dc_(dc),
 			hfont_(hfont),
 			hfontBold_(hfontBold),
+			crForeground_(crForeground),
+			crBackground_(crBackground),
+			crSelectedForeground_(crSelectedForeground),
+			crSelectedBackground_(crSelectedBackground),
 			hImageList_(hImageList),
 			pFolderImage_(pFolderImage),
 			rect_(rect),
@@ -366,11 +397,6 @@ LRESULT qm::RecentsWindow::onPaint()
 			rect_.right -= RecentsWindow::MARGIN;
 			
 			dc_.getClipBox(&rectClip_);
-			
-			crForeground_ = ::GetSysColor(COLOR_WINDOWTEXT);
-			crBackground_ = ::GetSysColor(COLOR_WINDOW);
-			crSelectedForeground_ = ::GetSysColor(COLOR_HIGHLIGHTTEXT);
-			crSelectedBackground_ = ::GetSysColor(COLOR_HIGHLIGHT);
 			
 			nTextOffset_ = (nHeaderLineHeight - nLineHeight_)/2;
 			nImageOffset_ = (nHeaderLineHeight - RecentsWindow::IMAGE_HEIGHT)/2;
@@ -492,20 +518,22 @@ LRESULT qm::RecentsWindow::onPaint()
 		DeviceContext& dc_;
 		HFONT hfont_;
 		HFONT hfontBold_;
+		COLORREF crForeground_;
+		COLORREF crBackground_;
+		COLORREF crSelectedForeground_;
+		COLORREF crSelectedBackground_;
 		HIMAGELIST hImageList_;
 		const FolderImage* pFolderImage_;
 		RECT rect_;
 		int nLineHeight_;
 		int nMnemonicWidth_;
 		RECT rectClip_;
-		COLORREF crForeground_;
-		COLORREF crBackground_;
-		COLORREF crSelectedForeground_;
-		COLORREF crSelectedBackground_;
 		int nTextOffset_;
 		int nImageOffset_;
 		ItemList::size_type nSelectedItem_;
-	} callback(dc, hfont_, hfontBold_, hImageList_, pFolderImage_, rect,
+	} callback(dc, hfont_, hfontBold_, getColor(COLOR_WINDOWTEXT),
+		getColor(COLOR_WINDOW), getColor(COLOR_HIGHLIGHTTEXT),
+		getColor(COLOR_HIGHLIGHT), hImageList_, pFolderImage_, rect,
 		nLineHeight_, nHeaderLineHeight_, nMnemonicWidth_, nSelectedItem_);
 	scanItems(&callback);
 	
@@ -650,19 +678,36 @@ void qm::RecentsWindow::paintButton(DeviceContext& dc,
 	COLORREF crText;
 	COLORREF crBk;
 	if (bSelected) {
-		crText = ::GetSysColor(COLOR_HIGHLIGHTTEXT);
-		crBk = ::GetSysColor(COLOR_HIGHLIGHT);
+		crText = getColor(COLOR_HIGHLIGHTTEXT);
+		crBk = getColor(COLOR_HIGHLIGHT);
 		dc.fillSolidRect(rect, crBk);
 	}
 	else {
-		crText = ::GetSysColor(COLOR_WINDOWTEXT);
-		crBk = ::GetSysColor(COLOR_WINDOW);
+		crText = getColor(COLOR_WINDOWTEXT);
+		crBk = getColor(COLOR_WINDOW);
 	}
 	dc.setTextColor(crText);
 	dc.setBkColor(crBk);
 	
 	RECT r = rect;
 	dc.drawText(pwszText, -1, &r, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
+}
+
+COLORREF qm::RecentsWindow::getColor(int nIndex) const
+{
+	switch (nIndex) {
+	case COLOR_WINDOWTEXT:
+		return crForeground_;
+	case COLOR_WINDOW:
+		return crBackground_;
+	case COLOR_HIGHLIGHTTEXT:
+		return crSelectedForeground_;
+	case COLOR_HIGHLIGHT:
+		return crSelectedBackground_;
+	default:
+		break;
+	}
+	return ::GetSysColor(nIndex);
 }
 
 void qm::RecentsWindow::prepareItems(bool bActive)

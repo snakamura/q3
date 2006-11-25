@@ -109,6 +109,7 @@ private:
 					 const WCHAR* pwszText,
 					 const RECT& rect,
 					 bool bSelected);
+	COLORREF getColor(int nIndex) const;
 	
 	void prepareItems(bool bActive);
 	void clearItems();
@@ -241,6 +242,10 @@ private:
 	
 	HFONT hfont_;
 	HFONT hfontBold_;
+	COLORREF crForeground_;
+	COLORREF crBackground_;
+	COLORREF crSelectedForeground_;
+	COLORREF crSelectedBackground_;
 	HIMAGELIST hImageList_;
 	int nWidth_;
 	int nLineHeight_;
