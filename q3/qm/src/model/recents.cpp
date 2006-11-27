@@ -222,6 +222,8 @@ void qm::Recents::save() const
 	wstring_ptr wstrFilter;
 	if (pImpl_->pFilter_.get())
 		wstrFilter = pImpl_->pFilter_->getString();
+	else
+		wstrFilter = allocWString(L"");
 	pImpl_->pProfile_->setString(L"Recents", L"MacroFilter", wstrFilter.get());
 }
 
