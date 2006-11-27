@@ -36,5 +36,6 @@
 *((<POP3アカウントで添付ファイル以外をダウンロードするにはどうすれば良いですか?|URL:HowToDownloadMessageWithoutAttachmentsUsingPop3.html>))
 *((<メッセージを削除するときにゴミ箱を使わないようにするにはどうすればよいですか?|URL:HowToDeleteWithoutTrash.html>))
 *((<ツールバーの文字列を表示しないようにするにはどうすればよいですか?|URL:HowToHideTextOnToolbars.html>))
+*((<関連付けでエディットビューを開いたときのアカウントを固定するにはどうすればよいですか?|URL:HowToSpecifyAccountWhenCreatingMessageWithMailtoUrl.html>))
 
 =end
