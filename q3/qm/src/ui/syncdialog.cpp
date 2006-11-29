@@ -370,6 +370,7 @@ INT_PTR qm::SyncDialog::dialogProc(UINT uMsg,
 		HANDLE_DESTROY()
 		HANDLE_INITDIALOG()
 		HANDLE_SIZE()
+		HANDLE_SYSCOMMAND()
 	END_DIALOG_HANDLER()
 	return DefaultDialogHandler::dialogProc(uMsg, wParam, lParam);
 }
@@ -452,6 +453,14 @@ LRESULT qm::SyncDialog::onSize(UINT nFlags,
 {
 	layout(cx, cy);
 	return DefaultDialogHandler::onSize(nFlags, cx, cy);
+}
+
+LRESULT qm::SyncDialog::onSysCommand(UINT nId,
+									 LPARAM lParam)
+{
+	if (nId == SC_CLOSE)
+		return 0;
+	return DefaultDialogHandler::onSysCommand(nId, lParam);
 }
 
 LRESULT qm::SyncDialog::onCancel()

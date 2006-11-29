@@ -127,6 +127,8 @@ protected:
 	LRESULT onSize(UINT nFlags,
 				   int cx,
 				   int cy);
+	LRESULT onSysCommand(UINT nId,
+						 LPARAM lParam);
 
 private:
 	LRESULT onCancel();
