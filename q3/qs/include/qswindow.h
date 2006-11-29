@@ -1092,6 +1092,11 @@ public:
 			static_cast<UINT>(lParam)); \
 		break; \
 
+#define HANDLE_SYSCOMMAND() \
+	case WM_SYSCOMMAND: \
+		lResult = onSysCommand(static_cast<UINT>(wParam), lParam); \
+		break; \
+
 #define HANDLE_SYSKEYDOWN() \
 	case WM_SYSKEYDOWN: \
 		lResult = onSysKeyDown(static_cast<UINT>(wParam), \
@@ -1292,6 +1297,8 @@ protected:
 	LRESULT onSysChar(UINT nKey,
 					  UINT nRepeat,
 					  UINT nFlags);
+	LRESULT onSysCommand(UINT nId,
+						 LPARAM lParam);
 	LRESULT onSysKeyDown(UINT nKey,
 						 UINT nRepeat,
 						 UINT nFlags);
