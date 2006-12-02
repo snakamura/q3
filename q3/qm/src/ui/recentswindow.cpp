@@ -72,7 +72,8 @@ qm::RecentsWindow::RecentsWindow(Recents* pRecents,
 	nButtonHeight_(0),
 	nHideTimeout_(20*1000),
 	bImeControl_(true),
-	show_(SHOW_HIDDEN)
+	show_(SHOW_HIDDEN),
+	bMouseTracking_(false)
 {
 	bImeControl_ = pProfile_->getInt(L"Global", L"ImeControl") != 0;
 	
@@ -150,6 +151,9 @@ LRESULT qm::RecentsWindow::windowProc(UINT uMsg,
 		HANDLE_DESTROY()
 		HANDLE_KEYDOWN()
 		HANDLE_LBUTTONUP()
+#if !defined _WIN32_WCE && (_WIN32_WINNT >= 0x0400 || WINVER >= 0x0500)
+		HANDLE_MOUSELEAVE()
+#endif
 		HANDLE_MOUSEMOVE()
 		HANDLE_NCPAINT()
 		HANDLE_PAINT()
@@ -325,6 +329,24 @@ LRESULT qm::RecentsWindow::onLButtonUp(UINT nFlags,
 	return 0;
 }
 
+#if !defined _WIN32_WCE && (_WIN32_WINNT >= 0x0400 || WINVER >= 0x0500)
+LRESULT qm::RecentsWindow::onMouseLeave()
+{
+	if (nSelectedItem_ != -1) {
+		invalidateItem(nSelectedItem_);
+		nSelectedItem_ = -1;
+	}
+	
+	if (nSelectedButton_ != -1) {
+		invalidateButton(nSelectedButton_);
+		nSelectedButton_ = -1;
+	}
+	
+	bMouseTracking_ = false;
+	
+	return 0;
+}
+#endif
 LRESULT qm::RecentsWindow::onMouseMove(UINT nFlags,
 									   const POINT& pt)
 {
@@ -341,6 +363,16 @@ LRESULT qm::RecentsWindow::onMouseMove(UINT nFlags,
 		nSelectedButton_ = nButton;
 		invalidateButton(nSelectedButton_);
 	}
+	
+#if !defined _WIN32_WCE && (_WIN32_WINNT >= 0x0400 || WINVER >= 0x0500)
+	TRACKMOUSEEVENT tme = {
+		sizeof(tme),
+		TME_LEAVE,
+		getHandle(),
+		HOVER_DEFAULT
+	};
+	bMouseTracking_ = ::TrackMouseEvent(&tme) != 0;
+#endif
 	
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
 }

@@ -85,6 +85,9 @@ protected:
 					  UINT nFlags);
 	LRESULT onLButtonUp(UINT nFlags,
 						const POINT& pt);
+#if !defined _WIN32_WCE && (_WIN32_WINNT >= 0x0400 || WINVER >= 0x0500)
+	LRESULT onMouseLeave();
+#endif
 	LRESULT onMouseMove(UINT nFlags,
 						const POINT& pt);
 	LRESULT onNcPaint(HRGN hrgn);
@@ -258,6 +261,7 @@ private:
 	bool bImeControl_;
 	
 	Show show_;
+	bool bMouseTracking_;
 
 private:
 	static Button buttons__[];
