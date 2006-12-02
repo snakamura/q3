@@ -365,13 +365,15 @@ LRESULT qm::RecentsWindow::onMouseMove(UINT nFlags,
 	}
 	
 #if !defined _WIN32_WCE && (_WIN32_WINNT >= 0x0400 || WINVER >= 0x0500)
-	TRACKMOUSEEVENT tme = {
-		sizeof(tme),
-		TME_LEAVE,
-		getHandle(),
-		HOVER_DEFAULT
-	};
-	bMouseTracking_ = ::TrackMouseEvent(&tme) != 0;
+	if (!bMouseTracking_) {
+		TRACKMOUSEEVENT tme = {
+			sizeof(tme),
+			TME_LEAVE,
+			getHandle(),
+			HOVER_DEFAULT
+		};
+		bMouseTracking_ = ::TrackMouseEvent(&tme) != 0;
+	}
 #endif
 	
 	return DefaultWindowHandler::onMouseMove(nFlags, pt);
