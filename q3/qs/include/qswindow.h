@@ -988,11 +988,28 @@ public:
 
 #endif
 
+#ifndef _WIN32_WCE
 #define HANDLE_MOUSEACTIVATE() \
 	case WM_MOUSEACTIVATE: \
 		lResult = onMouseActivate(reinterpret_cast<HWND>(wParam), \
 			LOWORD(lParam), HIWORD(lParam)); \
 		break; \
+
+#endif
+
+#if !defined _WIN32_WCE && (_WIN32_WINNT >= 0x0400 || WINVER >= 0x0500)
+#define HANDLE_MOUSEHOVER() \
+	case WM_MOUSEHOVER: \
+		lResult = onMouseHover(static_cast<UINT>(wParam), \
+			Point(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))); \
+		break; \
+
+#define HANDLE_MOUSELEAVE() \
+	case WM_MOUSELEAVE: \
+		lResult = onMouseLeave(); \
+		break; \
+
+#endif
 
 #define HANDLE_MOUSEMOVE() \
 	case WM_MOUSEMOVE: \
@@ -1260,6 +1277,11 @@ protected:
 	LRESULT onMouseActivate(HWND hwnd,
 							UINT nHitTest,
 							UINT uMsg);
+#endif
+#if !defined _WIN32_WCE && (_WIN32_WINNT >= 0x0400 || WINVER >= 0x0500)
+	LRESULT onMouseHover(UINT nFlags,
+						 const POINT& pt);
+	LRESULT onMouseLeave();
 #endif
 	LRESULT onMouseMove(UINT nFlags,
 						const POINT& pt);
