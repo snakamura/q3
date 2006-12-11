@@ -218,16 +218,14 @@ bool qm::SingleMessageStore::save(const Message& header,
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	if (!bIndexOnly) {
-		*pnOffset = static_cast<unsigned int>(
-			pImpl_->pStorage_->save(pMsg, nMsgLen, countof(pMsg)));
+		*pnOffset = pImpl_->pStorage_->save(pMsg, nMsgLen, countof(pMsg));
 		if (*pnOffset == -1)
 			return false;
 	}
 	
 	const unsigned char* p = pIndex.get();
 	size_t nIndexLength = pIndex.size();
-	*pnIndexKey = static_cast<unsigned int>(
-		pImpl_->pIndexStorage_->save(&p, &nIndexLength, 1));
+	*pnIndexKey = pImpl_->pIndexStorage_->save(&p, &nIndexLength, 1);
 	if (*pnIndexKey == -1)
 		return false;
 	*pnIndexLength = static_cast<unsigned int>(nIndexLength);
@@ -292,15 +290,14 @@ bool qm::SingleMessageStore::compact(DataList* pListData,
 	for (DataList::iterator it = pListData->begin(); it != pListData->end(); ++it) {
 		Data& data = *it;
 		
-		data.nIndexKey_ = static_cast<unsigned int>(pIndexStorage->compact(
-			data.nIndexKey_, data.nIndexLength_, pOldIndexStorage));
+		data.nIndexKey_ = pIndexStorage->compact(
+			data.nIndexKey_, data.nIndexLength_, pOldIndexStorage);
 		if (data.nIndexKey_ == -1)
 			return false;
 		
 		if (data.nOffset_ != -1) {
 			size_t nLen = data.nLength_ + SingleMessageStoreImpl::SEPARATOR_SIZE*2;
-			data.nOffset_ = static_cast<unsigned int>(
-				pImpl_->pStorage_->compact(data.nOffset_, nLen, 0));
+			data.nOffset_ = pImpl_->pStorage_->compact(data.nOffset_, nLen, 0);
 			if (data.nOffset_ == -1)
 				return false;
 		}
@@ -649,8 +646,7 @@ bool qm::MultiMessageStore::save(const Message& header,
 	
 	const unsigned char* p = pIndex.get();
 	size_t nIndexLength = pIndex.size();
-	*pnIndexKey = static_cast<unsigned int>(
-		pImpl_->pIndexStorage_->save(&p, &nIndexLength, 1));
+	*pnIndexKey = pImpl_->pIndexStorage_->save(&p, &nIndexLength, 1);
 	if (*pnIndexKey == -1)
 		return false;
 	*pnIndexLength = static_cast<unsigned int>(nIndexLength);
@@ -734,8 +730,8 @@ bool qm::MultiMessageStore::compact(DataList* pListData,
 	for (DataList::iterator it = pListData->begin(); it != pListData->end(); ++it) {
 		Data& data = *it;
 		
-		data.nIndexKey_ = static_cast<unsigned int>(pIndexStorage->compact(
-			data.nIndexKey_, data.nIndexLength_, pOldIndexStorage));
+		data.nIndexKey_ = pIndexStorage->compact(data.nIndexKey_,
+			data.nIndexLength_, pOldIndexStorage);
 		if (data.nIndexKey_ == -1)
 			return false;
 		
@@ -884,8 +880,7 @@ std::auto_ptr<ClusterStorage> qm::MessageStoreUtil::checkIndex(ClusterStorage* p
 			
 			const unsigned char* p = pIndex.get();
 			size_t nLength = pIndex.size();
-			unsigned int nKey = static_cast<unsigned int>(
-				pIndexStorage->save(&p, &nLength, 1));
+			unsigned int nKey = pIndexStorage->save(&p, &nLength, 1);
 			if (nKey == -1)
 				return std::auto_ptr<ClusterStorage>(0);
 			
@@ -933,7 +928,7 @@ bool qm::MessageStoreUtil::updateIndex(ClusterStorage* pStorage,
 	assert(pnIndexKey);
 	
 	size_t nLength = nIndexLength;
-	*pnIndexKey = static_cast<unsigned int>(pStorage->save(&pIndex, &nLength, 1));
+	*pnIndexKey = pStorage->save(&pIndex, &nLength, 1);
 	if (*pnIndexKey == -1)
 		return false;
 	

@@ -43,9 +43,9 @@ struct qs::ClusterStorageImpl
 	bool saveMap();
 	bool adjustMapSize();
 	bool reopen();
-	size_t getFreeOffset(size_t nSize);
-	size_t getFreeOffset(size_t nSize,
-						 size_t nCurrentOffset);
+	ClusterStorage::Offset getFreeOffset(size_t nSize);
+	ClusterStorage::Offset getFreeOffset(size_t nSize,
+										 ClusterStorage::Offset nCurrentOffset);
 	Map::size_type getSearchBegin(size_t nSize) const;
 	void setSearchBegin(size_t nSize,
 						Map::size_type nBegin,
@@ -173,13 +173,13 @@ bool qs::ClusterStorageImpl::reopen()
 	return true;
 }
 
-size_t qs::ClusterStorageImpl::getFreeOffset(size_t nSize)
+ClusterStorage::Offset qs::ClusterStorageImpl::getFreeOffset(size_t nSize)
 {
 	return getFreeOffset(nSize, -1);
 }
 
-size_t qs::ClusterStorageImpl::getFreeOffset(size_t nSize,
-											 size_t nCurrentOffset)
+ClusterStorage::Offset qs::ClusterStorageImpl::getFreeOffset(size_t nSize,
+															 ClusterStorage::Offset nCurrentOffset)
 {
 	assert(checkWorkMap());
 	
@@ -189,7 +189,7 @@ size_t qs::ClusterStorageImpl::getFreeOffset(size_t nSize,
 	assert(nSize%CLUSTER_SIZE == 0);
 	nSize /= CLUSTER_SIZE;
 	
-	size_t nCurrentBlock = nCurrentOffset != -1 ? nCurrentOffset / BYTE_SIZE : -1;
+	size_t nCurrentBlock = nCurrentOffset != -1 ? nCurrentOffset/BYTE_SIZE : -1;
 	size_t nBegin = 0;
 	unsigned char nBeginBit = 0;
 	size_t nEnd = 0;
@@ -281,7 +281,9 @@ size_t qs::ClusterStorageImpl::getFreeOffset(size_t nSize,
 		setSearchBegin(nSize, nBegin, false);
 	}
 	
-	return nBegin*BYTE_SIZE + nBeginBit;
+	// TODO
+	// Take care of overflow.
+	return static_cast<unsigned int>(nBegin)*BYTE_SIZE + nBeginBit;
 }
 
 ClusterStorageImpl::Map::size_type qs::ClusterStorageImpl::getSearchBegin(size_t nSize) const
@@ -486,7 +488,7 @@ bool qs::ClusterStorage::rename(const WCHAR* pwszPath,
 }
 
 size_t qs::ClusterStorage::load(unsigned char* p,
-								size_t nOffset,
+								Offset nOffset,
 								size_t nLength)
 {
 	assert(p);
@@ -503,9 +505,9 @@ size_t qs::ClusterStorage::load(unsigned char* p,
 	return pImpl_->pFile_->read(p, nLength);
 }
 
-size_t qs::ClusterStorage::save(const unsigned char* p[],
-								size_t nLength[],
-								size_t nCount)
+ClusterStorage::Offset qs::ClusterStorage::save(const unsigned char* p[],
+												size_t nLength[],
+												size_t nCount)
 {
 	assert(p);
 	
@@ -514,14 +516,14 @@ size_t qs::ClusterStorage::save(const unsigned char* p[],
 	
 	size_t nAllLength = std::accumulate(&nLength[0],
 		&nLength[nCount], static_cast<size_t>(0));
-	size_t nOffset = pImpl_->getFreeOffset(nAllLength);
+	Offset nOffset = pImpl_->getFreeOffset(nAllLength);
 	if (nOffset == -1)
 		return -1;
 	
 	struct Free
 	{
 		Free(ClusterStorage* pcs,
-			 size_t nOffset,
+			 Offset nOffset,
 			 size_t nLength) :
 			pcs_(pcs),
 			nOffset_(nOffset),
@@ -538,7 +540,7 @@ size_t qs::ClusterStorage::save(const unsigned char* p[],
 		void release() { pcs_ = 0; }
 		
 		ClusterStorage* pcs_;
-		size_t nOffset_;
+		Offset nOffset_;
 		size_t nLength_;
 	} free(this, nOffset, nAllLength);
 	
@@ -560,7 +562,7 @@ size_t qs::ClusterStorage::save(const unsigned char* p[],
 	return nOffset;
 }
 
-bool qs::ClusterStorage::free(size_t nOffset,
+bool qs::ClusterStorage::free(Offset nOffset,
 							  size_t nLength)
 {
 	assert(pImpl_->checkWorkMap());
@@ -618,16 +620,16 @@ bool qs::ClusterStorage::free(size_t nOffset,
 	return true;
 }
 
-size_t qs::ClusterStorage::compact(size_t nOffset,
-								   size_t nLength,
-								   ClusterStorage* pcsOld)
+ClusterStorage::Offset qs::ClusterStorage::compact(Offset nOffset,
+												   size_t nLength,
+												   ClusterStorage* pcsOld)
 {
 	assert(pImpl_->checkWorkMap());
 	
 	if (!pImpl_->reopen())
 		return -1;
 	
-	size_t nOffsetNew = pImpl_->getFreeOffset(nLength, pcsOld ? -1 : nOffset);
+	Offset nOffsetNew = pImpl_->getFreeOffset(nLength, pcsOld ? -1 : nOffset);
 	if (nOffsetNew == -1)
 		return -1;
 	if (pcsOld || nOffsetNew != nOffset) {
@@ -677,7 +679,7 @@ void qs::ClusterStorage::freeUnrefered(const ReferList& listRefer)
 	m.resize(pImpl_->mapWork_.size());
 	
 	for (ReferList::const_iterator it = listRefer.begin(); it != listRefer.end(); ++it) {
-		unsigned int nOffset = (*it).nOffset_;
+		Offset nOffset = (*it).nOffset_;
 		unsigned int nLength = (*it).nLength_ +
 			(ClusterStorageImpl::CLUSTER_SIZE -
 				(*it).nLength_%ClusterStorageImpl::CLUSTER_SIZE);

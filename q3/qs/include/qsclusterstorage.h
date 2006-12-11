@@ -25,9 +25,12 @@ namespace qs {
 class QSEXPORTCLASS ClusterStorage
 {
 public:
+	typedef unsigned int Offset;
+
+public:
 	struct Refer
 	{
-		unsigned int nOffset_;
+		Offset nOffset_;
 		unsigned int nLength_;
 	};
 
@@ -85,7 +88,7 @@ public:
 	 * @return Length read. -1 if error occured.
 	 */
 	size_t load(unsigned char* p,
-				size_t nOffset,
+				Offset nOffset,
 				size_t nLength);
 	
 	/**
@@ -94,9 +97,9 @@ public:
 	 * @param p [in] Array of buffer.
 	 * @param nLength [in] Array of buffer length.
 	 * @param nCount [in] Size of array.
-	 * @return Length written. -1 if error occured.
+	 * @return Offset. -1 if error occured.
 	 */
-	size_t save(const unsigned char* p[],
+	Offset save(const unsigned char* p[],
 				size_t nLength[],
 				size_t nCount);
 	
@@ -107,7 +110,7 @@ public:
 	 * @param nLength [in] Length.
 	 * @return true if success, false otherwise.
 	 */
-	bool free(size_t nOffset,
+	bool free(Offset nOffset,
 			  size_t nLength);
 	
 	/**
@@ -119,7 +122,7 @@ public:
 	 *                    If null, data will be loaded from this storage.
 	 * @return New offset. -1 if error occured.
 	 */
-	size_t compact(size_t nOffset,
+	Offset compact(Offset nOffset,
 				   size_t nLength,
 				   ClusterStorage* pcsOld);
 	
