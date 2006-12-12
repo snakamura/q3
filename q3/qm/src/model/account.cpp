@@ -1157,11 +1157,11 @@ qm::Account::Account(const WCHAR* pwszPath,
 	
 	Profile* pProfile = pImpl_->pProfile_;
 	
-	size_t nBlockSize = pProfile->getInt(L"Global", L"BlockSize");
+	unsigned int nBlockSize = pProfile->getInt(L"Global", L"BlockSize");
 	if (nBlockSize != -1)
 		nBlockSize *= 1024*1024;
 	
-	size_t nIndexBlockSize = pProfile->getInt(L"Global", L"IndexBlockSize");
+	unsigned int nIndexBlockSize = pProfile->getInt(L"Global", L"IndexBlockSize");
 	if (nIndexBlockSize == 0)
 		nIndexBlockSize = -1;
 	else if (nIndexBlockSize != -1)

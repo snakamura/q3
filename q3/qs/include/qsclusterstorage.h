@@ -42,7 +42,7 @@ public:
 				   const WCHAR* pwszName,
 				   const WCHAR* pwszBoxExt,
 				   const WCHAR* pwszMapExt,
-				   size_t nBlockSize);
+				   unsigned int nBlockSize);
 	
 	~ClusterStorage();
 

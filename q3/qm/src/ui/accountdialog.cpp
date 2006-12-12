@@ -683,6 +683,8 @@ LRESULT qm::CreateAccountDialog::onOk()
 		nBlockSize_ = getDlgItemInt(IDC_BLOCKSIZE);
 		if (nBlockSize_ == 0)
 			nBlockSize_ = -1;
+		else if (nBlockSize_ > 4096)
+			nBlockSize_ = 4096;
 	}
 	else {
 		nBlockSize_ = 0;
@@ -691,6 +693,8 @@ LRESULT qm::CreateAccountDialog::onOk()
 	nIndexBlockSize_ = getDlgItemInt(IDC_INDEXBLOCKSIZE);
 	if (nIndexBlockSize_ == 0)
 		nIndexBlockSize_ = -1;
+	else if (nIndexBlockSize_ > 4096)
+		nIndexBlockSize_ = 4096;
 	
 	return DefaultDialog::onOk();
 }

@@ -231,10 +231,14 @@ struct qs::BinaryFileImpl
 	bool mapBuffer();
 	bool flushBuffer();
 	
+	static LARGE_INTEGER convertPosition(File::Offset n);
+	static File::Offset convertPosition(DWORD nLow,
+										LONG nHigh);
+	
 	size_t nBufferSize_;
 	HANDLE hFile_;
 	wstring_ptr wstrPath_;
-	DWORD dwPosition_;
+	File::Offset nPosition_;
 	bool bWritten_;
 	auto_ptr_array<unsigned char> pBuf_;
 	unsigned char* pBufEnd_;
@@ -246,7 +250,7 @@ bool qs::BinaryFileImpl::open(const WCHAR* pwszPath,
 {
 	assert(pwszPath);
 	assert(!hFile_);
-	assert(dwPosition_ == 0);
+	assert(nPosition_ == 0);
 	assert(!bWritten_);
 	assert(pBuf_.get());
 	assert(pBufEnd_ == pBuf_.get());
@@ -329,7 +333,8 @@ bool qs::BinaryFileImpl::flushBuffer()
 		assert(pCurrent_ != pBuf_.get());
 		assert(pBufEnd_ != pBuf_.get());
 		
-		if (::SetFilePointer(hFile_, dwPosition_, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+		LARGE_INTEGER pos(convertPosition(nPosition_));
+		if (::SetFilePointer(hFile_, pos.LowPart, &pos.HighPart, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 			return false;
 		
 		unsigned char* p = pBuf_.get();
@@ -346,20 +351,36 @@ bool qs::BinaryFileImpl::flushBuffer()
 	}
 	
 	if (pCurrent_ != pBuf_.get()) {
-		DWORD dwNewPos = ::SetFilePointer(hFile_,
-			static_cast<LONG>(dwPosition_ + (pCurrent_ - pBuf_.get())), 0, FILE_BEGIN);
+		LARGE_INTEGER pos(convertPosition(nPosition_ + (pCurrent_ - pBuf_.get())));
+		DWORD dwNewPos = ::SetFilePointer(hFile_, pos.LowPart, &pos.HighPart, FILE_BEGIN);
 		if (dwNewPos == INVALID_SET_FILE_POINTER) {
 			Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
 			log.errorf(L"Could not set file pointer: %s, %x", wstrPath_.get(), ::GetLastError());
 			return false;
 		}
-		dwPosition_ = dwNewPos;
+		nPosition_ = convertPosition(dwNewPos, pos.HighPart);
 	}
 	
 	pCurrent_ = pBuf_.get();
 	pBufEnd_ = pBuf_.get();
 	
 	return true;
+}
+
+LARGE_INTEGER qs::BinaryFileImpl::convertPosition(File::Offset n)
+{
+	LARGE_INTEGER li;
+	li.QuadPart = n;
+	return li;
+}
+
+File::Offset qs::BinaryFileImpl::convertPosition(DWORD nLow,
+												 LONG nHigh)
+{
+	LARGE_INTEGER li;
+	li.LowPart = nLow;
+	li.HighPart = nHigh;
+	return li.QuadPart;
 }
 
 
@@ -383,7 +404,7 @@ qs::BinaryFile::BinaryFile(const WCHAR* pwszPath,
 	std::auto_ptr<BinaryFileImpl> pImpl(new BinaryFileImpl());
 	pImpl->nBufferSize_ = nBufferSize;
 	pImpl->hFile_ = 0;
-	pImpl->dwPosition_ = 0;
+	pImpl->nPosition_ = 0;
 	pImpl->bWritten_ = false;
 	pImpl->pBuf_ = pBuf;
 	pImpl->pBufEnd_ = pImpl->pBuf_.get();
@@ -454,7 +475,7 @@ size_t qs::BinaryFile::read(unsigned char* p,
 				nSize += dwRead;
 				p += dwRead;
 				nRead -= dwRead;
-				pImpl_->dwPosition_ += dwRead;
+				pImpl_->nPosition_ += dwRead;
 			}
 		}
 		else {
@@ -511,7 +532,7 @@ size_t qs::BinaryFile::write(const unsigned char* p,
 				}
 				p += dwWritten;
 				n -= dwWritten;
-				pImpl_->dwPosition_ += dwWritten;
+				pImpl_->nPosition_ += dwWritten;
 			}
 		}
 		else {
@@ -537,39 +558,38 @@ bool qs::BinaryFile::flush()
 	return true;
 }
 
-ssize_t qs::BinaryFile::getPosition()
+File::Offset qs::BinaryFile::getPosition()
 {
-	return pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get());
+	return pImpl_->nPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get());
 }
 
-ssize_t qs::BinaryFile::setPosition(ssize_t nPosition,
-									SeekOrigin seekOrigin)
+File::Offset qs::BinaryFile::setPosition(Offset nPosition,
+										 SeekOrigin seekOrigin)
 {
 	if (pImpl_->pBuf_.get() != pImpl_->pBufEnd_) {
-		DWORD dwNewPos = 0;
+		Offset nNewPos = 0;
 		switch (seekOrigin) {
 		case SEEKORIGIN_BEGIN:
-			dwNewPos = static_cast<DWORD>(nPosition);
+			nNewPos = nPosition;
 			break;
 		case SEEKORIGIN_END:
 			{
-				size_t nSize = getSize();
+				Offset nSize = getSize();
 				if (nSize == -1)
 					return -1;
-				dwNewPos = static_cast<DWORD>(nSize + nPosition);
+				nNewPos = nSize + nPosition;
 			}
 			break;
 		case SEEKORIGIN_CURRENT:
-			dwNewPos = static_cast<DWORD>(pImpl_->dwPosition_ +
-				(pImpl_->pCurrent_ - pImpl_->pBuf_.get()) + nPosition);
+			nNewPos = pImpl_->nPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get()) + nPosition;
 			break;
 		default:
 			assert(false);
 			return -1;
 		}
-		if (pImpl_->dwPosition_ <= dwNewPos &&
-			dwNewPos <= pImpl_->dwPosition_ + (pImpl_->pBufEnd_ - pImpl_->pBuf_.get())) {
-			pImpl_->pCurrent_ = pImpl_->pBuf_.get() + (dwNewPos - pImpl_->dwPosition_);
+		if (pImpl_->nPosition_ <= nNewPos &&
+			nNewPos <= pImpl_->nPosition_ + (pImpl_->pBufEnd_ - pImpl_->pBuf_.get())) {
+			pImpl_->pCurrent_ = pImpl_->pBuf_.get() + (nNewPos - pImpl_->nPosition_);
 			return getPosition();
 		}
 	}
@@ -580,35 +600,35 @@ ssize_t qs::BinaryFile::setPosition(ssize_t nPosition,
 		return -1;
 	assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
 	assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
-	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_,
-		static_cast<DWORD>(nPosition), 0, dwMethod);
+	LARGE_INTEGER pos(BinaryFileImpl::convertPosition(nPosition));
+	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_, pos.LowPart, &pos.HighPart, dwMethod);
 	if (dwNewPos == INVALID_SET_FILE_POINTER) {
 		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
 		log.errorf(L"Could not set file pointer: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 		return -1;
 	}
-	pImpl_->dwPosition_ = dwNewPos;
+	pImpl_->nPosition_ = BinaryFileImpl::convertPosition(dwNewPos, pos.HighPart);
 	
 	return getPosition();
 }
 
 bool qs::BinaryFile::setEndOfFile()
 {
-	ssize_t nPosition = getPosition();
+	Offset nPosition = getPosition();
 	
 	if (!pImpl_->flushBuffer())
 		return false;
 	assert(pImpl_->pBufEnd_ == pImpl_->pBuf_.get());
 	assert(pImpl_->pCurrent_ == pImpl_->pBuf_.get());
 	
-	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_,
-		static_cast<DWORD>(nPosition), 0, FILE_BEGIN);
+	LARGE_INTEGER pos(BinaryFileImpl::convertPosition(nPosition));
+	DWORD dwNewPos = ::SetFilePointer(pImpl_->hFile_, pos.LowPart, &pos.HighPart, FILE_BEGIN);
 	if (dwNewPos == INVALID_SET_FILE_POINTER) {
 		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
 		log.errorf(L"Could not set file pointer: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 		return false;
 	}
-	pImpl_->dwPosition_ = dwNewPos;
+	pImpl_->nPosition_ = BinaryFileImpl::convertPosition(dwNewPos, pos.HighPart);
 	
 	if (!::SetEndOfFile(pImpl_->hFile_)) {
 		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
@@ -617,15 +637,17 @@ bool qs::BinaryFile::setEndOfFile()
 	return true;
 }
 
-size_t qs::BinaryFile::getSize()
+File::Offset qs::BinaryFile::getSize()
 {
-	DWORD dwSize = ::GetFileSize(pImpl_->hFile_, 0);
-	if (dwSize == -1) {
+	DWORD dwSizeHigh = 0;
+	DWORD dwSizeLow = ::GetFileSize(pImpl_->hFile_, &dwSizeHigh);
+	if (dwSizeLow == -1 && ::GetLastError() != NO_ERROR) {
 		Log log(InitThread::getInitThread().getLogger(), L"qs::BinaryFileImpl");
 		log.errorf(L"Could not get file size: %s, %x", pImpl_->wstrPath_.get(), ::GetLastError());
 		return -1;
 	}
-	return QSMAX(dwSize, pImpl_->dwPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get()));
+	return QSMAX(BinaryFileImpl::convertPosition(dwSizeLow, dwSizeHigh),
+		pImpl_->nPosition_ + (pImpl_->pCurrent_ - pImpl_->pBuf_.get()));
 }
 
 
@@ -643,11 +665,11 @@ struct qs::DividedFileImpl
 	wstring_ptr getPath(size_t n) const;
 	
 	wstring_ptr wstrPath_;
-	size_t nBlockSize_;
+	unsigned int nBlockSize_;
 	unsigned int nMode_;
 	size_t nBufferSize_;
 	FileList listFile_;
-	ssize_t nPosition_;
+	File::Offset nPosition_;
 };
 
 BinaryFile* qs::DividedFileImpl::getFile(size_t n)
@@ -691,7 +713,7 @@ wstring_ptr qs::DividedFileImpl::getPath(size_t n) const
  */
 
 qs::DividedFile::DividedFile(const WCHAR* pwszPath,
-							 size_t nBlockSize,
+							 unsigned int nBlockSize,
 							 unsigned int nMode,
 							 size_t nBufferSize) :
 	pImpl_(0)
@@ -739,8 +761,8 @@ size_t qs::DividedFile::read(unsigned char* p,
 	if (nRead == 0)
 		return 0;
 	
-	size_t nStart = pImpl_->nPosition_/pImpl_->nBlockSize_;
-	size_t nEnd = (pImpl_->nPosition_ + nRead - 1)/pImpl_->nBlockSize_;
+	size_t nStart = static_cast<size_t>(pImpl_->nPosition_/pImpl_->nBlockSize_);
+	size_t nEnd = static_cast<size_t>((pImpl_->nPosition_ + nRead - 1)/pImpl_->nBlockSize_);
 	size_t nReadAll = 0;
 	for (size_t n = nStart; n <= nEnd; ++n) {
 		BinaryFile* pFile = pImpl_->getFile(n);
@@ -748,10 +770,10 @@ size_t qs::DividedFile::read(unsigned char* p,
 			return -1;
 		
 		size_t nReadSize = pImpl_->nBlockSize_;
-		ssize_t nPosition = 0;
+		Offset nPosition = 0;
 		if (n == nStart) {
 			nReadSize = QSMIN(nRead,
-				static_cast<size_t>((n + 1)*pImpl_->nBlockSize_ - pImpl_->nPosition_));
+				static_cast<size_t>((n + 1)*static_cast<Offset>(pImpl_->nBlockSize_) - pImpl_->nPosition_));
 			nPosition = pImpl_->nPosition_ - nStart*pImpl_->nBlockSize_;
 		}
 		else if (n == nEnd) {
@@ -780,8 +802,8 @@ size_t qs::DividedFile::write(const unsigned char* p,
 {
 	assert(p);
 	
-	size_t nStart = pImpl_->nPosition_/pImpl_->nBlockSize_;
-	size_t nEnd = (pImpl_->nPosition_ + nWrite - 1)/pImpl_->nBlockSize_;
+	size_t nStart = static_cast<size_t>(pImpl_->nPosition_/pImpl_->nBlockSize_);
+	size_t nEnd = static_cast<size_t>((pImpl_->nPosition_ + nWrite - 1)/pImpl_->nBlockSize_);
 	size_t nWriteAll = 0;
 	for (size_t n = nStart; n <= nEnd; ++n) {
 		BinaryFile* pFile = pImpl_->getFile(n);
@@ -789,7 +811,7 @@ size_t qs::DividedFile::write(const unsigned char* p,
 			return -1;
 		
 		size_t nWriteSize = pImpl_->nBlockSize_;
-		ssize_t nPosition = 0;
+		Offset nPosition = 0;
 		if (n == nStart) {
 			nWriteSize = QSMIN(nWrite,
 				static_cast<size_t>((n + 1)*pImpl_->nBlockSize_ - pImpl_->nPosition_));
@@ -824,13 +846,13 @@ bool qs::DividedFile::flush()
 	return !bFail;
 }
 
-ssize_t qs::DividedFile::getPosition()
+File::Offset qs::DividedFile::getPosition()
 {
 	return pImpl_->nPosition_;
 }
 
-ssize_t qs::DividedFile::setPosition(ssize_t nPosition,
-									 SeekOrigin seekOrigin)
+File::Offset qs::DividedFile::setPosition(Offset nPosition,
+										  SeekOrigin seekOrigin)
 {
 	assert(seekOrigin == SEEKORIGIN_BEGIN);
 	pImpl_->nPosition_ = nPosition;
@@ -839,7 +861,7 @@ ssize_t qs::DividedFile::setPosition(ssize_t nPosition,
 
 bool qs::DividedFile::setEndOfFile()
 {
-	size_t nFile = pImpl_->nPosition_/pImpl_->nBlockSize_;
+	size_t nFile = static_cast<size_t>(pImpl_->nPosition_/pImpl_->nBlockSize_);
 	
 	BinaryFile* pFile = pImpl_->getFile(nFile);
 	if (!pFile)
@@ -867,7 +889,7 @@ bool qs::DividedFile::setEndOfFile()
 	return true;
 }
 
-size_t qs::DividedFile::getSize()
+File::Offset qs::DividedFile::getSize()
 {
 	WIN32_FIND_DATA fd;
 	unsigned int n = 0;

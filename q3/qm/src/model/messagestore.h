@@ -111,9 +111,9 @@ class SingleMessageStore : public MessageStore
 {
 public:
 	SingleMessageStore(const WCHAR* pwszPath,
-					   size_t nBlockSize,
+					   unsigned int nBlockSize,
 					   const WCHAR* pwszIndexPath,
-					   size_t nIndexBlockSize);
+					   unsigned int nIndexBlockSize);
 	virtual ~SingleMessageStore();
 
 public:
@@ -172,7 +172,7 @@ class MultiMessageStore : public MessageStore
 public:
 	MultiMessageStore(const WCHAR* pwszPath,
 					  const WCHAR* pwszIndexPath,
-					  size_t nIndexBlockSize);
+					  unsigned int nIndexBlockSize);
 	virtual ~MultiMessageStore();
 
 public:
@@ -275,7 +275,7 @@ public:
 							  unsigned int nSeparatorSize);
 	static std::auto_ptr<qs::ClusterStorage> checkIndex(qs::ClusterStorage* pStorage,
 														const WCHAR* pwszPath,
-														size_t nBlockSize,
+														unsigned int nBlockSize,
 														MessageStoreCheckCallback* pCallback);
 	static qs::malloc_ptr<unsigned char> readIndex(qs::ClusterStorage* pStorage,
 												   unsigned int nKey,

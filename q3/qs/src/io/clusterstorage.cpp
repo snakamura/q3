@@ -58,7 +58,7 @@ struct qs::ClusterStorageImpl
 	wstring_ptr wstrPath_;
 	wstring_ptr wstrBoxExt_;
 	wstring_ptr wstrMapExt_;
-	size_t nBlockSize_;
+	unsigned int nBlockSize_;
 	std::auto_ptr<File> pFile_;
 	Map map_;
 	Map mapWork_;
@@ -137,10 +137,10 @@ bool qs::ClusterStorageImpl::adjustMapSize()
 		return false;
 	
 	const size_t nBlockSize = CLUSTER_SIZE*BYTE_SIZE;
-	size_t nSize = pFile_->getSize();
+	File::Offset nSize = pFile_->getSize();
 	if (nSize == -1)
 		return false;
-	size_t nBlock = nSize/nBlockSize + (nSize%nBlockSize == 0 ? 0 : 1);
+	size_t nBlock = static_cast<size_t>(nSize/nBlockSize) + (nSize%nBlockSize == 0 ? 0 : 1);
 	if (map_.size() < nBlock) {
 		map_.resize(nBlock, 0xff);
 		mapWork_ = map_;
@@ -271,7 +271,9 @@ ClusterStorage::Offset qs::ClusterStorageImpl::getFreeOffset(size_t nSize,
 			map_.push_back(bData);
 			mapWork_.push_back(bData);
 		}
-		if (pFile_->setPosition(map_.size()*BYTE_SIZE*CLUSTER_SIZE, File::SEEKORIGIN_BEGIN) == -1)
+		if (pFile_->setPosition(
+			static_cast<File::Offset>(map_.size())*BYTE_SIZE*CLUSTER_SIZE,
+			File::SEEKORIGIN_BEGIN) == -1)
 			return -1;
 		if (!pFile_->setEndOfFile())
 			return -1;
@@ -364,7 +366,7 @@ qs::ClusterStorage::ClusterStorage(const WCHAR* pwszPath,
 								   const WCHAR* pwszName,
 								   const WCHAR* pwszBoxExt,
 								   const WCHAR* pwszMapExt,
-								   size_t nBlockSize)
+								   unsigned int nBlockSize)
 {
 	wstring_ptr wstrPath(concat(pwszPath, L"\\", pwszName));
 	wstring_ptr wstrBoxExt(allocWString(pwszBoxExt));
@@ -498,7 +500,7 @@ size_t qs::ClusterStorage::load(unsigned char* p,
 		return -1;
 	
 	if (pImpl_->pFile_->setPosition(
-		nOffset*ClusterStorageImpl::CLUSTER_SIZE,
+		static_cast<File::Offset>(nOffset)*ClusterStorageImpl::CLUSTER_SIZE,
 		File::SEEKORIGIN_BEGIN) == -1)
 		return -1;
 	
@@ -546,7 +548,8 @@ ClusterStorage::Offset qs::ClusterStorage::save(const unsigned char* p[],
 	
 	File* pFile = pImpl_->pFile_.get();
 	
-	if (pFile->setPosition(nOffset*ClusterStorageImpl::CLUSTER_SIZE,
+	if (pFile->setPosition(
+		static_cast<File::Offset>(nOffset)*ClusterStorageImpl::CLUSTER_SIZE,
 		File::SEEKORIGIN_BEGIN) == -1)
 		return -1;
 	
@@ -605,8 +608,9 @@ bool qs::ClusterStorage::free(Offset nOffset,
 #ifndef NDEBUG
 	if (pImpl_->reopen()) {
 		File* pFile = pImpl_->pFile_.get();
-		if (pFile->setPosition(nOffset*ClusterStorageImpl::CLUSTER_SIZE,
-							   File::SEEKORIGIN_BEGIN) != -1) {
+		if (pFile->setPosition(
+			static_cast<File::Offset>(nOffset)*ClusterStorageImpl::CLUSTER_SIZE,
+			File::SEEKORIGIN_BEGIN) != -1) {
 			for (size_t n = 0; n < nLength; ++n) {
 				unsigned char c = 0;
 				if (pFile->write(&c, 1) == -1)
@@ -648,13 +652,16 @@ ClusterStorage::Offset qs::ClusterStorage::compact(Offset nOffset,
 				return false;
 			pFile = pcsOld->pImpl_->pFile_.get();
 		}
-		if (pFile->setPosition(nOffset*ClusterStorageImpl::CLUSTER_SIZE, File::SEEKORIGIN_BEGIN) == -1)
+		if (pFile->setPosition(
+			static_cast<File::Offset>(nOffset)*ClusterStorageImpl::CLUSTER_SIZE,
+			File::SEEKORIGIN_BEGIN) == -1)
 			return -1;
 		size_t nRead = pFile->read(p.get(), nLen);
 		if (nRead != nLen)
 			return -1;
 		*(p.get() + nLen) = '\0';
-		if (pImpl_->pFile_->setPosition(nOffsetNew*ClusterStorageImpl::CLUSTER_SIZE,
+		if (pImpl_->pFile_->setPosition(
+			static_cast<File::Offset>(nOffsetNew)*ClusterStorageImpl::CLUSTER_SIZE,
 			File::SEEKORIGIN_BEGIN) == -1)
 			return -1;
 		if (pImpl_->pFile_->write(p.get(), nLen) != nLen)
@@ -735,7 +742,7 @@ bool qs::ClusterStorage::freeUnused()
 		assert(pImpl_->mapWork_[n] == 0);
 #endif
 	pImpl_->mapWork_.resize(m.size());
-	if (pImpl_->pFile_->setPosition(m.size()*
+	if (pImpl_->pFile_->setPosition(static_cast<File::Offset>(m.size())*
 		ClusterStorageImpl::BYTE_SIZE*ClusterStorageImpl::CLUSTER_SIZE,
 		File::SEEKORIGIN_BEGIN) == -1)
 		return false;

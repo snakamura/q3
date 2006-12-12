@@ -35,6 +35,9 @@ public:
 	};
 
 public:
+	typedef __int64 Offset;
+
+public:
 	virtual ~File();
 
 public:
@@ -78,7 +81,7 @@ public:
 	 *
 	 * @return Current seek position.
 	 */
-	virtual ssize_t getPosition() = 0;
+	virtual Offset getPosition() = 0;
 	
 	/**
 	 * Set current seek position.
@@ -87,8 +90,8 @@ public:
 	 * @param seekOrigin [in] Seek origin.
 	 * @return New seek position. -1 if fail.
 	 */
-	virtual ssize_t setPosition(ssize_t nPosition,
-								SeekOrigin seekOrigin) = 0;
+	virtual Offset setPosition(Offset nPosition,
+							   SeekOrigin seekOrigin) = 0;
 	
 	/**
 	 * Set end of file at the current seek position.
@@ -103,7 +106,7 @@ public:
 	 *
 	 * @return File size. -1 if failed.
 	 */
-	virtual size_t getSize() = 0;
+	virtual Offset getSize() = 0;
 
 public:
 	/**
@@ -213,11 +216,11 @@ public:
 	virtual size_t write(const unsigned char* p,
 						 size_t nWrite);
 	virtual bool flush();
-	virtual ssize_t getPosition();
-	virtual ssize_t setPosition(ssize_t nPosition,
-								SeekOrigin seekOrigin);
+	virtual Offset getPosition();
+	virtual Offset setPosition(Offset nPosition,
+							   SeekOrigin seekOrigin);
 	virtual bool setEndOfFile();
-	virtual size_t getSize();
+	virtual Offset getSize();
 
 private:
 	BinaryFile(const BinaryFile&);
@@ -248,7 +251,7 @@ public:
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	DividedFile(const WCHAR* pwszPath,
-				size_t nBlockSize,
+				unsigned int nBlockSize,
 				unsigned int nMode,
 				size_t nBufferSize);
 	
@@ -261,11 +264,11 @@ public:
 	virtual size_t write(const unsigned char* p,
 						 size_t nWrite);
 	virtual bool flush();
-	virtual ssize_t getPosition();
-	virtual ssize_t setPosition(ssize_t nPosition,
-								SeekOrigin seekOrigin);
+	virtual Offset getPosition();
+	virtual Offset setPosition(Offset nPosition,
+							   SeekOrigin seekOrigin);
 	virtual bool setEndOfFile();
-	virtual size_t getSize();
+	virtual Offset getSize();
 
 private:
 	DividedFile(const DividedFile&);
