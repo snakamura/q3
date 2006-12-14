@@ -1158,73 +1158,93 @@ HIMAGELIST qm::ListWindowImpl::createDragImage(const POINT& ptCursor,
 {
 	assert(pptHotspot);
 	
-	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	assert(pViewModel);
-	
-	unsigned int nWidth = pHeaderColumn_->getWidth();
-	
-	SCROLLINFO si = {
-		sizeof(si),
-		SIF_PAGE | SIF_POS
-	};
-	pThis_->getScrollInfo(SB_VERT, &si);
-	
-	unsigned int nStart = -1;
-	unsigned int nEnd = -1;
-	unsigned int nCount = pViewModel->getCount();
-	for (unsigned int n = si.nPos; n < nCount && n <= si.nPos + si.nPage; ++n) {
-		if (pViewModel->isSelected(n)) {
-			if (nStart == -1)
-				nStart = n;
-			nEnd = n;
-		}
-	}
-	if (nStart == -1)
-		return 0;
-	unsigned int nHeight = nLineHeight_*(nEnd - nStart + 1);
-	
-	ClientDeviceContext dc(pThis_->getHandle());
-	GdiObject<HBITMAP> hbm(::CreateCompatibleBitmap(dc.getHandle(), nWidth, nHeight));
-	CompatibleDeviceContext dcMem(dc.getHandle());
-	{
-		ObjectSelector<HFONT> fontSelector(dcMem, hfont_);
-		ObjectSelector<HBITMAP> selector(dcMem, hbm.get());
-		RECT rect = {
-			0,
-			0,
-			nWidth,
-			nHeight
-		};
-		dcMem.fillSolidRect(rect, getColor(COLOR_WINDOW));
-		
-		int nTop = 0;
-		for (unsigned int n = nStart; n <= nEnd; ++n) {
-			if (pViewModel->isSelected(n)) {
-				RECT r = {
-					0,
-					nTop,
-					nWidth,
-					nTop + nLineHeight_
-				};
-				PaintInfo pi(&dcMem, pViewModel, n, r);
-				paintMessage(pi);
-			}
-			nTop += nLineHeight_;
-		}
-	}
-	
 #if defined _WIN32_WCE && _WIN32_WCE < 0x500
-	UINT nFlags = ILC_COLOR | ILC_MASK;
+	const UINT nFlags = ILC_COLOR | ILC_MASK;
 #else
-	UINT nFlags = ILC_COLOR32 | ILC_MASK;
+	const UINT nFlags = ILC_COLOR32 | ILC_MASK;
 #endif
-	HIMAGELIST hImageList = ImageList_Create(nWidth, nHeight, nFlags, 1, 0);
-	ImageList_AddMasked(hImageList, hbm.get(), getColor(COLOR_WINDOW));
-	
-	pptHotspot->x = ptCursor.x + pThis_->getScrollPos(SB_HORZ);
-	pptHotspot->y = ptCursor.y - pHeaderColumn_->getHeight() - (nStart - si.nPos)*nLineHeight_;
-	
-	return hImageList;
+	BOOL bImage = FALSE;
+	if (::SystemParametersInfo(SPI_GETDRAGFULLWINDOWS, 0, &bImage, 0) && bImage) {
+		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+		assert(pViewModel);
+		
+		unsigned int nWidth = pHeaderColumn_->getWidth();
+		
+		SCROLLINFO si = {
+			sizeof(si),
+			SIF_PAGE | SIF_POS
+		};
+		pThis_->getScrollInfo(SB_VERT, &si);
+		
+		unsigned int nStart = -1;
+		unsigned int nEnd = -1;
+		unsigned int nCount = pViewModel->getCount();
+		for (unsigned int n = si.nPos; n < nCount && n <= si.nPos + si.nPage; ++n) {
+			if (pViewModel->isSelected(n)) {
+				if (nStart == -1)
+					nStart = n;
+				nEnd = n;
+			}
+		}
+		if (nStart == -1)
+			return 0;
+		unsigned int nHeight = nLineHeight_*(nEnd - nStart + 1);
+		
+		ClientDeviceContext dc(pThis_->getHandle());
+		GdiObject<HBITMAP> hbm(::CreateCompatibleBitmap(dc.getHandle(), nWidth, nHeight));
+		CompatibleDeviceContext dcMem(dc.getHandle());
+		{
+			ObjectSelector<HFONT> fontSelector(dcMem, hfont_);
+			ObjectSelector<HBITMAP> selector(dcMem, hbm.get());
+			RECT rect = {
+				0,
+				0,
+				nWidth,
+				nHeight
+			};
+			dcMem.fillSolidRect(Rect(0, 0, nWidth, nHeight), getColor(COLOR_WINDOW));
+			
+			int nTop = 0;
+			for (unsigned int n = nStart; n <= nEnd; ++n) {
+				if (pViewModel->isSelected(n)) {
+					RECT r = {
+						0,
+						nTop,
+						nWidth,
+						nTop + nLineHeight_
+					};
+					PaintInfo pi(&dcMem, pViewModel, n, r);
+					paintMessage(pi);
+				}
+				nTop += nLineHeight_;
+			}
+		}
+		
+		HIMAGELIST hImageList = ImageList_Create(nWidth, nHeight, nFlags, 1, 0);
+		ImageList_AddMasked(hImageList, hbm.get(), getColor(COLOR_WINDOW));
+		
+		pptHotspot->x = ptCursor.x + pThis_->getScrollPos(SB_HORZ);
+		pptHotspot->y = ptCursor.y - pHeaderColumn_->getHeight() - (nStart - si.nPos)*nLineHeight_;
+		
+		return hImageList;
+	}
+	else {
+		ClientDeviceContext dc(pThis_->getHandle());
+		GdiObject<HBITMAP> hbm(::CreateCompatibleBitmap(dc.getHandle(), 1, 1));
+		CompatibleDeviceContext dcMem(dc.getHandle());
+		{
+			ObjectSelector<HBITMAP> selector(dcMem, hbm.get());
+			dcMem.fillSolidRect(Rect(0, 0, 1, 1), getColor(COLOR_WINDOW));
+		}
+		
+		HIMAGELIST hImageList = ImageList_Create(1, 1, nFlags, 1, 0);
+		ImageList_AddMasked(hImageList, hbm.get(), getColor(COLOR_WINDOW));
+		
+		pptHotspot->x = 0;
+		pptHotspot->y = 0;
+		
+		return hImageList;
+	}
 }
 
 int qm::ListWindowImpl::getMessageImage(MessageHolder* pmh,
