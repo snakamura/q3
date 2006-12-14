@@ -322,6 +322,11 @@ bool qm::SingleMessageStore::salvage(const DataList& listData,
 	return false;
 }
 
+bool qm::SingleMessageStore::isSalvageSupported() const
+{
+	return false;
+}
+
 bool qm::SingleMessageStore::check(MessageStoreCheckCallback* pCallback)
 {
 	std::auto_ptr<ClusterStorage> pIndexStorage(MessageStoreUtil::checkIndex(
@@ -791,6 +796,11 @@ bool qm::MultiMessageStore::salvage(const DataList& listData,
 		pCallback->step(1);
 	}
 	
+	return true;
+}
+
+bool qm::MultiMessageStore::isSalvageSupported() const
+{
 	return true;
 }
 

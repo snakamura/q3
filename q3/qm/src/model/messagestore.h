@@ -82,6 +82,7 @@ public:
 						 MessageOperationCallback* pCallback) = 0;
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback) = 0;
+	virtual bool isSalvageSupported() const = 0;
 	virtual bool check(MessageStoreCheckCallback* pCallback) = 0;
 	virtual bool freeUnused() = 0;
 	virtual qs::malloc_ptr<unsigned char> readIndex(unsigned int nKey,
@@ -147,6 +148,7 @@ public:
 						 MessageOperationCallback* pCallback);
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback);
+	virtual bool isSalvageSupported() const;
 	virtual bool check(MessageStoreCheckCallback* pCallback);
 	virtual bool freeUnused();
 	virtual qs::malloc_ptr<unsigned char> readIndex(unsigned int nKey,
@@ -206,6 +208,7 @@ public:
 						 MessageOperationCallback* pCallback);
 	virtual bool salvage(const DataList& listData,
 						 MessageStoreSalvageCallback* pCallback);
+	virtual bool isSalvageSupported() const;
 	virtual bool check(MessageStoreCheckCallback* pCallback);
 	virtual bool freeUnused();
 	virtual qs::malloc_ptr<unsigned char> readIndex(unsigned int nKey,

@@ -2322,7 +2322,10 @@ void qm::FileSalvageAction::invoke(const ActionEvent& event)
 bool qm::FileSalvageAction::isEnabled(const ActionEvent& event)
 {
 	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
-	return pFolder && pFolder->getType() == Folder::TYPE_NORMAL;
+	return pFolder &&
+		pFolder->getType() == Folder::TYPE_NORMAL &&
+		pFolder->isFlag(Folder::FLAG_LOCAL) &&
+		pFolder->getAccount()->isSupport(Account::SUPPORT_SALVAGE);
 }
 
 bool qm::FileSalvageAction::salvage(NormalFolder* pFolder) const

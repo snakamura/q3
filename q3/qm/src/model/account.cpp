@@ -1247,7 +1247,10 @@ const WCHAR* qm::Account::getType(Host host) const
 
 bool qm::Account::isSupport(Support support) const
 {
-	return pImpl_->pProtocolDriver_->isSupport(support);
+	if (support == SUPPORT_SALVAGE)
+		return pImpl_->pMessageStore_->isSalvageSupported();
+	else
+		return pImpl_->pProtocolDriver_->isSupport(support);
 }
 
 const WCHAR* qm::Account::getMessageStorePath() const
