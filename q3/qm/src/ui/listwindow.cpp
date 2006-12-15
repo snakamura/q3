@@ -1163,8 +1163,12 @@ HIMAGELIST qm::ListWindowImpl::createDragImage(const POINT& ptCursor,
 #else
 	const UINT nFlags = ILC_COLOR32 | ILC_MASK;
 #endif
-	BOOL bImage = FALSE;
-	if (::SystemParametersInfo(SPI_GETDRAGFULLWINDOWS, 0, &bImage, 0) && bImage) {
+	BOOL bImage = TRUE;
+#ifndef _WIN32_WCE
+	if (!::SystemParametersInfo(SPI_GETDRAGFULLWINDOWS, 0, &bImage, 0))
+		bImage = FALSE;
+#endif
+	if (bImage) {
 		ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
 		assert(pViewModel);
 		
