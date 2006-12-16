@@ -774,7 +774,7 @@ size_t qs::DividedFile::read(unsigned char* p,
 		if (n == nStart) {
 			nReadSize = QSMIN(nRead,
 				static_cast<size_t>((n + 1)*static_cast<Offset>(pImpl_->nBlockSize_) - pImpl_->nPosition_));
-			nPosition = pImpl_->nPosition_ - nStart*pImpl_->nBlockSize_;
+			nPosition = pImpl_->nPosition_ - nStart*static_cast<Offset>(pImpl_->nBlockSize_);
 		}
 		else if (n == nEnd) {
 			nReadSize = nRead;
@@ -815,7 +815,7 @@ size_t qs::DividedFile::write(const unsigned char* p,
 		if (n == nStart) {
 			nWriteSize = QSMIN(nWrite,
 				static_cast<size_t>((n + 1)*pImpl_->nBlockSize_ - pImpl_->nPosition_));
-			nPosition = pImpl_->nPosition_ - nStart*pImpl_->nBlockSize_;
+			nPosition = pImpl_->nPosition_ - nStart*static_cast<Offset>(pImpl_->nBlockSize_);
 		}
 		else if (n == nEnd) {
 			nWriteSize = nWrite;
