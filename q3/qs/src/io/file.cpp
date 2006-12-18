@@ -779,7 +779,7 @@ size_t qs::DividedFile::read(unsigned char* p,
 		else if (n == nEnd) {
 			nReadSize = nRead;
 		}
-		assert(static_cast<size_t>(nPosition) < pImpl_->nBlockSize_);
+		assert(nPosition < static_cast<Offset>(pImpl_->nBlockSize_));
 		assert(nReadSize <= pImpl_->nBlockSize_);
 		if (pFile->setPosition(nPosition, SEEKORIGIN_BEGIN) == -1)
 			return -1;
@@ -814,13 +814,13 @@ size_t qs::DividedFile::write(const unsigned char* p,
 		Offset nPosition = 0;
 		if (n == nStart) {
 			nWriteSize = QSMIN(nWrite,
-				static_cast<size_t>((n + 1)*pImpl_->nBlockSize_ - pImpl_->nPosition_));
+				static_cast<size_t>((n + 1)*static_cast<Offset>(pImpl_->nBlockSize_) - pImpl_->nPosition_));
 			nPosition = pImpl_->nPosition_ - nStart*static_cast<Offset>(pImpl_->nBlockSize_);
 		}
 		else if (n == nEnd) {
 			nWriteSize = nWrite;
 		}
-		assert(static_cast<size_t>(nPosition) < pImpl_->nBlockSize_);
+		assert(nPosition < static_cast<Offset>(pImpl_->nBlockSize_));
 		assert(nWriteSize <= pImpl_->nBlockSize_);
 		if (pFile->setPosition(nPosition, SEEKORIGIN_BEGIN) == -1)
 			return -1;
@@ -867,7 +867,8 @@ bool qs::DividedFile::setEndOfFile()
 	if (!pFile)
 		return false;
 	
-	if (pFile->setPosition(pImpl_->nPosition_ - nFile*pImpl_->nBlockSize_,
+	if (pFile->setPosition(
+		pImpl_->nPosition_ - nFile*static_cast<Offset>(pImpl_->nBlockSize_),
 		SEEKORIGIN_BEGIN) == -1)
 		return false;
 	if (!pFile->setEndOfFile())
@@ -904,7 +905,7 @@ File::Offset qs::DividedFile::getSize()
 	if (n == 0)
 		return 0;
 	
-	return pImpl_->nBlockSize_*(n - 1) + fd.nFileSizeLow;
+	return static_cast<Offset>(pImpl_->nBlockSize_)*(n - 1) + fd.nFileSizeLow;
 }
 
 
