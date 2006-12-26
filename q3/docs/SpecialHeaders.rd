@@ -85,4 +85,10 @@ SMTPƒT[ƒo‚É‘—M‚·‚éEnvelope From‚ðŽw’è‚µ‚Ü‚·B’ÊíAFromƒwƒbƒ_‚ÅŽw’è‚µ‚½ƒAƒhƒŒƒ
 
 ƒAƒJƒEƒ“ƒg’PˆÊ‚ÅEnvelope From‚ðŽw’è‚µ‚½‚¢ê‡‚É‚ÍA((<account.xml|URL:AccountXml.html>))‚ÌSmtp/EnvelopeFrom‚ÅŽw’è‚·‚é‚±‚Æ‚à‚Å‚«‚Ü‚·B
 
+
+==X-QMAIL-Sentbox
+ƒƒbƒZ[ƒW‚ª‘—M‚³‚ê‚½Œã‚ÉˆÚ“®‚³‚ê‚éƒtƒHƒ‹ƒ_‚ðŽw’è‚µ‚Ü‚·B’Êí‚Í‘—M‚³‚ê‚½ƒƒbƒZ[ƒW‚Í‘—M” ‚©‚ç‘—MT‚¦‚ÉˆÚ“®‚³‚ê‚Ü‚·‚ªA‚±‚Ìƒwƒbƒ_‚ªŽw’è‚³‚ê‚Ä‚¢‚éê‡‚É‚ÍŽw’è‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ÉˆÚ“®‚³‚ê‚Ü‚·B‚½‚¾‚µAŽw’è‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½‚èA’ÊíƒtƒHƒ‹ƒ_‚Å‚È‚©‚Á‚½ê‡‚É‚ÍA‘—MT‚¦‚ÉˆÚ“®‚³‚ê‚Ü‚·B
+
+‚½‚Æ‚¦‚ÎAreply.template‚Å•ÔMŒ³‚ÌƒƒbƒZ[ƒW‚ÌƒtƒHƒ‹ƒ_–¼‚ð‚±‚Ìƒwƒbƒ_‚ÉÝ’è‚·‚é‚±‚Æ‚ÅA‘—MT‚¦‚ð•ÔMŒ³‚ÌƒƒbƒZ[ƒW‚Æ“¯‚¶ƒtƒHƒ‹ƒ_‚É•Û‘¶‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B
+
 =end

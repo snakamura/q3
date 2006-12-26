@@ -1065,6 +1065,14 @@ bool qm::SyncManager::send(Document* pDocument,
 			}
 		}
 		if (bGet) {
+			NormalFolder* pMessageSentbox = pSentbox;
+			UnstructuredParser sentbox;
+			if (msg.getField(L"X-QMAIL-Sentbox", &sentbox) == Part::FIELD_EXIST) {
+				Folder* pFolder = pAccount->getFolder(sentbox.getValue());
+				if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL)
+					pMessageSentbox = static_cast<NormalFolder*>(pFolder);
+			}
+			
 			if (!pSession->sendMessage(&msg))
 				return false;
 			
@@ -1075,7 +1083,7 @@ bool qm::SyncManager::send(Document* pDocument,
 					Account::OPFLAG_ACTIVE | Account::OPFLAG_BACKGROUND;
 				if (!pAccount->setMessagesFlags(l,
 						MessageHolder::FLAG_SENT, MessageHolder::FLAG_SENT, 0) ||
-					!pAccount->copyMessages(l, pOutbox, pSentbox, nCopyFlags, 0, 0, 0)) {
+					!pAccount->copyMessages(l, pOutbox, pMessageSentbox, nCopyFlags, 0, 0, 0)) {
 					addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_MOVETOSENTBOX, 0);
 					return false;
 				}
