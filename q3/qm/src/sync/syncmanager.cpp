@@ -1065,13 +1065,6 @@ bool qm::SyncManager::send(Document* pDocument,
 			}
 		}
 		if (bGet) {
-			const WCHAR* pwszRemoveFields[] = {
-				L"X-QMAIL-Account",
-				L"X-QMAIL-SubAccount",
-				L"X-QMAIL-Signature"
-			};
-			for (int n = 0; n < countof(pwszRemoveFields); ++n)
-				msg.removeField(pwszRemoveFields[n]);
 			if (!pSession->sendMessage(&msg))
 				return false;
 			
