@@ -83,6 +83,7 @@ public:
 	const WCHAR* getParam(const WCHAR* pwszName) const;
 	void setParam(const WCHAR* pwszName,
 				  const WCHAR* pwszValue);
+	bool removePrivateFields();
 
 private:
 	Message(const Message&);

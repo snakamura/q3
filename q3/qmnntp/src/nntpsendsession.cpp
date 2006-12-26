@@ -107,6 +107,9 @@ void qmnntp::NntpSendSession::disconnect()
 
 bool qmnntp::NntpSendSession::sendMessage(Message* pMessage)
 {
+	if (!pMessage->removePrivateFields())
+		return false;
+	
 	xstring_size_ptr strContent(pMessage->getContent());
 	if (!strContent.get())
 		return false;

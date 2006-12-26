@@ -107,6 +107,9 @@ void qmpop3::Pop3SendSession::disconnect()
 
 bool qmpop3::Pop3SendSession::sendMessage(Message* pMessage)
 {
+	if (!pMessage->removePrivateFields())
+		return false;
+	
 	xstring_size_ptr strContent(pMessage->getContent());
 	if (!strContent.get())
 		return false;

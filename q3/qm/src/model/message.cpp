@@ -160,6 +160,12 @@ void qm::Message::setParam(const WCHAR* pwszName,
 	}
 }
 
+bool qm::Message::removePrivateFields()
+{
+	PrefixFieldFilter filter("x-qmail-");
+	return removeFields(&filter);
+}
+
 
 /****************************************************************************
  *

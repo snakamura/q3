@@ -234,11 +234,12 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	
 	const WCHAR* pwszRemoveFields[] = {
 		L"Bcc",
-		L"Resent-Bcc",
-		L"X-QMAIL-EnvelopeFrom"
+		L"Resent-Bcc"
 	};
 	for (int m = 0; m < countof(pwszRemoveFields); ++m)
 		pMessage->removeField(*(pwszRemoveFields + m));
+	if (!pMessage->removePrivateFields())
+		return false;
 	
 	xstring_size_ptr strContent(pMessage->getContent());
 	
