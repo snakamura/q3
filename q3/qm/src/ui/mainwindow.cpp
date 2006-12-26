@@ -1610,6 +1610,9 @@ void qm::MainWindowImpl::accountListChanged(const AccountManagerEvent& event)
 #ifndef _WIN32_WCE_PSPC
 void qm::MainWindowImpl::showRecentsMenu(bool bHotKey)
 {
+	if (pThis_->isShowingModalDialog())
+		return;
+	
 #ifdef QMRECENTSWINDOW
 	if (pProfile_->getInt(L"RecentsWindow", L"Use") != 0) {
 		pRecentsWindowManager_->showPopup(bHotKey);
@@ -1639,7 +1642,8 @@ void qm::MainWindowImpl::showRecentsMenu(bool bHotKey)
 
 void qm::MainWindowImpl::show()
 {
-	pThis_->show();
+	if (!pThis_->isShowingModalDialog())
+		pThis_->show();
 }
 #endif
 
