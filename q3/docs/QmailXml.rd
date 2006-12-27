@@ -600,6 +600,10 @@ EditPasteWithQuoteアクションなどで使われる引用符。
 非アクティブになったときに保存するかどうか。
 
 
++SaveSentInSameFolder (0 @ 0|1)
+返信メールを送信したときに送信控えを返信元のメッセージと同じフォルダに保存するかどうか。
+
+
 +ShowUnseenCountOnWelcome (0 @ 0|1)
 Windows XPのようこそ画面に未読メッセージ数を表示するかどうか。
 
