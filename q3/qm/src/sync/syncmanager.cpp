@@ -451,11 +451,11 @@ void qm::SyncManager::removeSyncManagerHandler(SyncManagerHandler* pHandler)
 	listHandler_.erase(it, listHandler_.end());
 }
 
-void qm::SyncManager::fireStatusChanged()
+void qm::SyncManager::fireStatusChanged(bool bStart)
 {
-	SyncManagerEvent event(this);
-	for (SyncManagerHandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->statusChanged(event);
+	SyncManagerEvent event(this, bStart ? SyncManagerEvent::STATUS_START : SyncManagerEvent::STATUS_END);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&SyncManagerHandler::statusChanged, _1, boost::cref(event)));
 }
 
 void qm::SyncManager::addError(SyncManagerCallback* pCallback,
@@ -1188,12 +1188,12 @@ void qm::SyncManager::SyncThread::run()
 		StatusChange(SyncManager* pSyncManager) :
 			pSyncManager_(pSyncManager)
 		{
-			pSyncManager_->fireStatusChanged();
+			pSyncManager_->fireStatusChanged(true);
 		}
 		
 		~StatusChange()
 		{
-			pSyncManager_->fireStatusChanged();
+			pSyncManager_->fireStatusChanged(false);
 		}
 		
 		SyncManager* pSyncManager_;
@@ -1607,8 +1607,10 @@ qm::SyncManagerHandler::~SyncManagerHandler()
  *
  */
 
-qm::SyncManagerEvent::SyncManagerEvent(SyncManager* pSyncManager) :
-	pSyncManager_(pSyncManager)
+qm::SyncManagerEvent::SyncManagerEvent(SyncManager* pSyncManager,
+									   Status status) :
+	pSyncManager_(pSyncManager),
+	status_(status)
 {
 }
 
@@ -1619,4 +1621,9 @@ qm::SyncManagerEvent::~SyncManagerEvent()
 SyncManager* qm::SyncManagerEvent::getSyncManager() const
 {
 	return pSyncManager_;
+}
+
+SyncManagerEvent::Status qm::SyncManagerEvent::getStatus() const
+{
+	return status_;
 }
