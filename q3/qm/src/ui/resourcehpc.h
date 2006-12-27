@@ -91,6 +91,7 @@
 #define IDD_OPTIONSEARCH                223
 #define IDD_OPTIONSYNC                  224
 #define IDD_ABOUT                       225
+#define IDD_SYNCWAIT                    226
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
 #define IDC_SIZEGRIP                    1003
@@ -415,7 +416,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        226
+#define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
 #define _APS_NEXT_CONTROL_VALUE         1469
 #define _APS_NEXT_SYMED_VALUE           101

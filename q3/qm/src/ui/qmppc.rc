@@ -1747,6 +1747,15 @@ BEGIN
                     ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
 END
 
+IDD_SYNCWAIT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Waiting"
+FONT 9, "Tahoma"
+BEGIN
+    CTEXT           "Waiting for finishing synchronization...",IDC_STATIC,5,
+                    35,127,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2055,6 +2064,14 @@ BEGIN
     END
 
     IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SYNCWAIT, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 130

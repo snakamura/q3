@@ -53,6 +53,7 @@ class DefaultDialog;
 	class SelectBoxDialog;
 	class SelectDialupEntryDialog;
 	class SelectSyncFilterDialog;
+	class SyncWaitDialog;
 #ifdef TABWINDOW
 	class TabTitleDialog;
 #endif
@@ -62,6 +63,7 @@ class DefaultDialog;
 class Account;
 class FolderImage;
 class SyncFilterManager;
+class SyncManager;
 class TemplateManager;
 
 
@@ -1285,6 +1287,50 @@ private:
 private:
 	SyncFilterManager* pManager_;
 	qs::wstring_ptr wstrName_;
+};
+
+
+/****************************************************************************
+ *
+ * SyncWaitDialog
+ *
+ */
+
+class SyncWaitDialog : public DefaultDialog
+{
+public:
+	explicit SyncWaitDialog(SyncManager* pSyncManager);
+	virtual ~SyncWaitDialog();
+
+public:
+	void wait(HWND hwnd);
+
+public:
+	virtual INT_PTR dialogProc(UINT uMsg,
+							   WPARAM wParam,
+							   LPARAM lParam);
+
+protected:
+	virtual LRESULT onInitDialog(HWND hwndFocus,
+								 LPARAM lParam);
+
+protected:
+	LRESULT onSysCommand(UINT nId,
+						 LPARAM lParam);
+	LRESULT onTimer(UINT_PTR nId);
+
+private:
+	SyncWaitDialog(const SyncWaitDialog&);
+	SyncWaitDialog& operator=(const SyncWaitDialog&);
+
+private:
+	enum {
+		TIMER_ID		= 1000,
+		TIMER_INTERVAL	= 100
+	};
+
+private:
+	SyncManager* pSyncManager_;
 };
 
 

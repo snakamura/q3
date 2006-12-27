@@ -33,6 +33,7 @@
 #include "uimanager.h"
 #include "uiutil.h"
 #include "../model/templatemanager.h"
+#include "../sync/syncmanager.h"
 #include "../util/util.h"
 
 using namespace qm;
@@ -2751,6 +2752,71 @@ LRESULT qm::SelectSyncFilterDialog::onOk()
 	wstrName_ = tcs2wcs(tstrName.get());
 	
 	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
+ * SyncWaitDialog
+ *
+ */
+
+qm::SyncWaitDialog::SyncWaitDialog(SyncManager* pSyncManager) :
+	DefaultDialog(IDD_SYNCWAIT),
+	pSyncManager_(pSyncManager)
+{
+}
+
+qm::SyncWaitDialog::~SyncWaitDialog()
+{
+}
+
+void qm::SyncWaitDialog::wait(HWND hwnd)
+{
+	if (pSyncManager_->isSyncing())
+		doModal(hwnd);
+}
+
+INT_PTR qm::SyncWaitDialog::dialogProc(UINT uMsg,
+									   WPARAM wParam,
+									   LPARAM lParam)
+{
+	BEGIN_DIALOG_HANDLER()
+		HANDLE_SYSCOMMAND()
+		HANDLE_TIMER()
+	END_DIALOG_HANDLER()
+	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
+}
+
+LRESULT qm::SyncWaitDialog::onInitDialog(HWND hwndFocus,
+										 LPARAM lParam)
+{
+	init(false);
+	setTimer(TIMER_ID, TIMER_INTERVAL);
+	return TRUE;
+}
+
+LRESULT qm::SyncWaitDialog::onSysCommand(UINT nId,
+										 LPARAM lParam)
+{
+	if (nId == SC_CLOSE)
+		return 0;
+	return DefaultDialog::onSysCommand(nId, lParam);
+}
+
+LRESULT qm::SyncWaitDialog::onTimer(UINT_PTR nId)
+{
+	if (nId == TIMER_ID) {
+		killTimer(TIMER_ID);
+		if (!pSyncManager_->isSyncing())
+			endDialog(IDOK);
+		else
+			setTimer(TIMER_ID, TIMER_INTERVAL);
+		return 0;
+	}
+	else {
+		return DefaultDialog::onTimer(nId);
+	}
 }
 
 

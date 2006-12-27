@@ -1208,9 +1208,12 @@ bool qm::FileExitAction::exit(bool bDestroy)
 		return false;
 	
 	bool bEmptyTrash = pProfile_->getInt(L"Global", L"EmptyTrashOnExit") != 0;
-	if (bEmptyTrash)
+	if (bEmptyTrash) {
 		FolderEmptyTrashAction::emptyAllTrash(pDocument_, pSyncManager_,
 			pSyncDialogManager_, pFolderModel_, hwnd_, pProfile_);
+		
+		SyncWaitDialog(pSyncManager_).wait(hwnd_);
+	}
 	
 	{
 		WaitCursor cursor;

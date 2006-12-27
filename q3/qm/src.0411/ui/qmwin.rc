@@ -1879,6 +1879,15 @@ BEGIN
                     ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
 END
 
+IDD_SYNCWAIT DIALOG DISCARDABLE  0, 0, 190, 80
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "ë“ã@íÜ"
+FONT 9, "MS UI Gothic"
+BEGIN
+    CTEXT           "ìØä˙èàóùÇ™èIóπÇ∑ÇÈÇÃÇë“Ç¡ÇƒÇ¢Ç‹Ç∑...",IDC_STATIC,5,35,
+                    180,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1972,6 +1981,14 @@ BEGIN
         RIGHTMARGIN, 238
         TOPMARGIN, 7
         BOTTOMMARGIN, 127
+    END
+
+    IDD_SYNCWAIT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 183
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 73
     END
 END
 #endif    // APSTUDIO_INVOKED
