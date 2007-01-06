@@ -108,6 +108,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"MessageCertificate",			IDM_MESSAGE_CERTIFICATE,			1,							0 },
 	{ L"MessageClearRecents",			IDM_MESSAGE_CLEARRECENTS,			1,							0 },
 	{ L"MessageCombine",				IDM_MESSAGE_COMBINE,				1,							0 },
+	{ L"MessageCopy",					IDM_MESSAGE_COPY,					MAX_MESSAGE_COPY,			0 },
 	{ L"MessageCreate",					IDM_MESSAGE_CREATE,					MAX_MESSAGE_CREATE,			0 },
 	{ L"MessageCreateExternal",			IDM_MESSAGE_CREATEEXTERNAL,			MAX_MESSAGE_CREATEEXTERNAL,	0 },
 	{ L"MessageCreateFromClipboard",	IDM_MESSAGE_CREATEFROMCLIPBOARD,	1,							0 },

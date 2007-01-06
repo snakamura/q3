@@ -2152,6 +2152,7 @@ public:
 					  MessageSelectionModel* pMessageSelectionModel,
 					  ViewModelHolder* pViewModelHolder,
 					  MessageModel* pMessageModel,
+					  bool bCopy,
 					  bool bDontSelectNextIfDeletedFlag,
 					  UndoManager* pUndoManager,
 					  const FolderImage* pFolderImage,
@@ -2178,6 +2179,7 @@ private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	ViewModelHolder* pViewModelHolder_;
 	MessageModel* pMessageModel_;
+	bool bCopy_;
 	bool bDontSelectNextIfDeletedFlag_;
 	UndoManager* pUndoManager_;
 	const FolderImage* pFolderImage_;

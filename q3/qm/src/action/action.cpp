@@ -4474,6 +4474,7 @@ qm::MessageMoveAction::MessageMoveAction(AccountManager* pAccountManager,
 										 MessageSelectionModel* pMessageSelectionModel,
 										 ViewModelHolder* pViewModelHolder,
 										 MessageModel* pMessageModel,
+										 bool bCopy,
 										 bool bDontSelectNextIfDeletedFlag,
 										 UndoManager* pUndoManager,
 										 const FolderImage* pFolderImage,
@@ -4483,6 +4484,7 @@ qm::MessageMoveAction::MessageMoveAction(AccountManager* pAccountManager,
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pViewModelHolder_(pViewModelHolder),
 	pMessageModel_(pMessageModel),
+	bCopy_(bCopy),
 	bDontSelectNextIfDeletedFlag_(bDontSelectNextIfDeletedFlag),
 	pUndoManager_(pUndoManager),
 	pFolderImage_(pFolderImage),
@@ -4512,7 +4514,7 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 	Account* pAccount = lock.get();
 	
 	NormalFolder* pFolderTo = 0;
-	bool bMove = true;
+	bool bMove = !bCopy_;
 	
 	const WCHAR* pwszFolder = ActionParamUtil::getString(event.getParam(), 0);
 	if (pwszFolder) {
@@ -4520,7 +4522,8 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 		if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
 			return;
 		pFolderTo = static_cast<NormalFolder*>(pFolder);
-		bMove = (event.getModifier() & ActionEvent::MODIFIER_CTRL) == 0;
+		if (event.getModifier() & ActionEvent::MODIFIER_CTRL)
+			bMove = !bMove;
 	}
 	else {
 		MoveMessageDialog dialog(pAccountManager_, pAccount, pFolderImage_, pProfile_);

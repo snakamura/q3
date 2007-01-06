@@ -351,12 +351,25 @@ void qm::MessageFrameWindowImpl::initActions()
 			pThis_->getHandle());
 	}
 	
-	ADD_ACTION9(MessageMoveAction,
+	ADD_ACTION10(MessageMoveAction,
+		IDM_MESSAGE_COPY,
+		pDocument_,
+		this,
+		pMessageModel_.get(),
+		pMessageModel_.get(),
+		true,
+		false,
+		pDocument_->getUndoManager(),
+		pFolderImage_,
+		pProfile_,
+		pThis_->getHandle());
+	ADD_ACTION10(MessageMoveAction,
 		IDM_MESSAGE_MOVE,
 		pDocument_,
 		this,
 		pMessageModel_.get(),
 		pMessageModel_.get(),
+		false,
 		false,
 		pDocument_->getUndoManager(),
 		pFolderImage_,

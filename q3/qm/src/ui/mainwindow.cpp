@@ -889,26 +889,36 @@ void qm::MainWindowImpl::initActions()
 			pThis_->getHandle());
 	}
 	
-	std::auto_ptr<MessageMoveAction> pMessageMoveAction1(new MessageMoveAction(
-		pDocument_, pMessageSelectionModel_.get(), this, 0, false,
-		pDocument_->getUndoManager(), pFolderImage_, pProfile_, pThis_->getHandle()));
-	std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
-		pDocument_, pMessageSelectionModel_.get(), this, pPreviewModel_.get(),
-		false, pDocument_->getUndoManager(), pFolderImage_, pProfile_, pThis_->getHandle()));
-	Action* pMessageMoveActions[] = {
-		0,
-		0,
-		0,
-		pMessageMoveAction1.get(),
-		pMessageMoveAction2.get()
+	struct {
+		UINT nId_;
+		bool bCopy_;
+	} moves[] = {
+		{ IDM_MESSAGE_COPY,	true	},
+		{ IDM_MESSAGE_MOVE,	false	}
 	};
-	ADD_ACTION3(DispatchAction,
-		IDM_MESSAGE_MOVE,
-		pViews,
-		pMessageMoveActions,
-		countof(pViews));
-	pMessageMoveAction1.release();
-	pMessageMoveAction2.release();
+	for (int n = 0; n < countof(moves); ++n) {
+		std::auto_ptr<MessageMoveAction> pMessageMoveAction1(new MessageMoveAction(
+			pDocument_, pMessageSelectionModel_.get(), this, 0, moves[n].bCopy_, false,
+			pDocument_->getUndoManager(), pFolderImage_, pProfile_, pThis_->getHandle()));
+		std::auto_ptr<MessageMoveAction> pMessageMoveAction2(new MessageMoveAction(
+			pDocument_, pMessageSelectionModel_.get(), this, pPreviewModel_.get(),
+			moves[n].bCopy_, false, pDocument_->getUndoManager(),
+			pFolderImage_, pProfile_, pThis_->getHandle()));
+		Action* pMessageMoveActions[] = {
+			0,
+			0,
+			0,
+			pMessageMoveAction1.get(),
+			pMessageMoveAction2.get()
+		};
+		ADD_ACTION3(DispatchAction,
+			moves[n].nId_,
+			pViews,
+			pMessageMoveActions,
+			countof(pViews));
+		pMessageMoveAction1.release();
+		pMessageMoveAction2.release();
+	}
 	
 	ADD_ACTION8(MessageOpenRecentAction,
 		IDM_MESSAGE_OPENRECENT,
