@@ -104,6 +104,7 @@
 *((<MessageCertificateアクション|URL:MessageCertificateAction.html>))
 *((<MessageClearRecentsアクション|URL:MessageClearRecentsAction.html>))
 *((<MessageCombineアクション|URL:MessageCombineAction.html>))
+*((<MessageCopyアクション|URL:MessageCopyAction.html>))
 *((<MessageCreateアクション|URL:MessageCreateAction.html>))
 *((<MessageCreateExternalアクション|URL:MessageCreateExternalAction.html>))
 *((<MessageCreateFromClipboardアクション|URL:MessageCreateFromClipboardAction.html>))
