@@ -84,7 +84,7 @@ bool qs::CommandLine::parse(Reader* pReader)
 			if (!bPrevSpace) {
 				if (!pImpl_->pHandler_->process(buffer.getCharArray()))
 					return false;
-				buffer.remove(0, static_cast<size_t>(-1));
+				buffer.remove(0, -1);
 			}
 			bSpace = true;
 		}

@@ -5727,40 +5727,12 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 	ActionList listAction;
 	StringListFree<ActionList> free(listAction);
 	parseActions(pwszActions, &listAction);
-	
-	struct CommandLineHandlerImpl : public CommandLineHandler
-	{
-		virtual ~CommandLineHandlerImpl()
-		{
-			std::for_each(listParam_.begin(), listParam_.end(), string_free<WSTRING>());
-		}
-		
-		virtual bool process(const WCHAR* pwszOption)
-		{
-			wstring_ptr wstr(allocWString(pwszOption));
-			if (!wstrAction_.get()) {
-				wstrAction_ = wstr;
-			}
-			else {
-				listParam_.push_back(wstr.get());
-				wstr.release();
-			}
-			
-			return true;
-		}
-		
-		typedef std::vector<WSTRING> ParamList;
-		
-		wstring_ptr wstrAction_;
-		ParamList listParam_;
-	};
-	
 	for (ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
-		CommandLineHandlerImpl handler;
-		CommandLine commandLine(&handler);
-		if (commandLine.parse(*it) && handler.wstrAction_.get())
-			pActionInvoker_->invoke(handler.wstrAction_.get(),
-				const_cast<const WCHAR**>(&handler.listParam_[0]), handler.listParam_.size());
+		ActionParam::ValueList l;
+		StringListFree<ActionParam::ValueList> free(l);
+		ActionParam::parse(*it, &l);
+		if (!l.empty())
+			pActionInvoker_->invoke(l[0], const_cast<const WCHAR**>(&l[1]), l.size() - 1);
 	}
 }
 

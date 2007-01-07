@@ -114,6 +114,23 @@ qs::ActionParam::ActionParam(unsigned int nBaseId,
 }
 
 qs::ActionParam::ActionParam(unsigned int nBaseId,
+							 const WCHAR* pwszValue,
+							 bool bParse) :
+	nBaseId_(nBaseId),
+	nRef_(0)
+{
+	if (pwszValue) {
+		if (bParse) {
+			parse(pwszValue, &listValue_);
+		}
+		else {
+			listValue_.resize(1);
+			listValue_[0] = allocWString(pwszValue).release();
+		}
+	}
+}
+
+qs::ActionParam::ActionParam(unsigned int nBaseId,
 							 const WCHAR** ppwszValue,
 							 size_t nCount) :
 	nBaseId_(nBaseId),
@@ -157,6 +174,45 @@ unsigned int qs::ActionParam::addRef()
 unsigned int qs::ActionParam::release()
 {
 	return --nRef_;
+}
+
+void qs::ActionParam::parse(const WCHAR* pwszValue,
+							ValueList* pList)
+{
+	assert(pwszValue);
+	assert(pList);
+	assert(pList->empty());
+	
+	StringBuffer<WSTRING> buf;
+	bool bInQuote = false;
+	for (const WCHAR* p = pwszValue; *p; ++p) {
+		if (*p == L'\"') {
+			bInQuote = !bInQuote;
+		}
+		else if (*p == L'\\' && bInQuote) {
+			if (*(p + 1)) {
+				++p;
+				buf.append(*p);
+			}
+		}
+		else if (*p == L' ' && !bInQuote) {
+			wstring_ptr wstr(buf.getString());
+			pList->push_back(wstr.get());
+			wstr.release();
+			
+			while (*(p + 1) == L' ')
+				++p;
+		}
+		else {
+			buf.append(*p);
+		}
+	}
+	
+	if (!*pwszValue || buf.getLength() != 0) {
+		wstring_ptr wstr(buf.getString());
+		pList->push_back(wstr.get());
+		wstr.release();
+	}
 }
 
 bool qs::operator==(const ActionParam& lhs,

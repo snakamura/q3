@@ -443,7 +443,7 @@ bool qs::MenuContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			if (pItem) {
 				unsigned int nId = pItem->nId_;
 				if (pwszParam) {
-					std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam));
+					std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam, true));
 					nId = pActionParamMap_->addActionParam(pItem->nMaxParamCount_, pParam);
 				}
 				if (nId != -1)

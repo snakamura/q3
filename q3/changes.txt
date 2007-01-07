@@ -14,6 +14,7 @@
 *qmail.xmlにGlobal/SaveSentInSameFolderを追加
 *終了時にゴミ箱を空にする設定で、IMAP4アカウントのゴミ箱にメッセージがあると、終了時にハングアップすることがあるのを修正
 *MessageCopyアクションを追加
+*menus.xml, keymap.xml, toolbars.xmlで指定するアクションの引数に複数の引数を指定できるようにした
 
 [2.9.28]
 *フォルダビューやフォルダリストビューからもMessageMacroアクションを実行できるようにした

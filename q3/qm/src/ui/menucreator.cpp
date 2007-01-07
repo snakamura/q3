@@ -1068,7 +1068,7 @@ UINT qm::MacroMenuCreator::createMenu(HMENU hmenu,
 	for (ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
 		const WCHAR* pwszName = (*it).first;
 		const WCHAR* pwszParam = (*it).second;
-		std::auto_ptr<ActionParam> pParam(new ActionParam(pActionItem->nId_, pwszParam));
+		std::auto_ptr<ActionParam> pParam(new ActionParam(pActionItem->nId_, pwszParam, true));
 		unsigned int nId = helper_.add(pActionItem->nMaxParamCount_, pParam);
 		if (nId != -1) {
 			wstring_ptr wstrText(UIUtil::formatMenu(pwszName, &nMnemonic));

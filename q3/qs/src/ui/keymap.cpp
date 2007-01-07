@@ -353,7 +353,7 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (pItem) {
 			nId = pItem->nId_;
 			if (pwszParam) {
-				std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam));
+				std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam, true));
 				nId = pActionParamMap_->addActionParam(pItem->nMaxParamCount_, pParam);
 			}
 		}

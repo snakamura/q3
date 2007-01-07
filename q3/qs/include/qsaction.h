@@ -99,9 +99,15 @@ private:
 class QSEXPORTCLASS ActionParam
 {
 public:
+	typedef std::vector<WSTRING> ValueList;
+
+public:
 	explicit ActionParam(unsigned int nBaseId);
 	ActionParam(unsigned int nBaseId,
 				const WCHAR* pwszValue);
+	ActionParam(unsigned int nBaseId,
+				const WCHAR* pwszValue,
+				bool bParse);
 	ActionParam(unsigned int nBaseId,
 				const WCHAR** ppwszValue,
 				size_t nCount);
@@ -116,12 +122,13 @@ public:
 	unsigned int addRef();
 	unsigned int release();
 
+public:
+	static void parse(const WCHAR* pwszValue,
+					  ValueList* pList);
+
 private:
 	ActionParam(const ActionParam&);
 	ActionParam& operator=(const ActionParam&);
-
-private:
-	typedef std::vector<WSTRING> ValueList;
 
 private:
 	unsigned int nBaseId_;
