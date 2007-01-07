@@ -811,12 +811,7 @@ bool qm::MessageCreator::setField(Part* pPart,
 		break;
 	case FIELDTYPE_XQMAILATTACHMENT:
 		{
-			DummyParser field(pwszValue, 0);
-			if (!partDummy.setField(pwszName, field))
-				return false;
-			XQMAILAttachmentParser attachment;
-			if (partDummy.getField(pwszName, &attachment) != Part::FIELD_EXIST)
-				return false;
+			XQMAILAttachmentParser attachment(pwszValue);
 			if (!pPart->replaceField(pwszName, attachment))
 				return false;
 		}
@@ -2412,6 +2407,13 @@ qm::XQMAILAttachmentParser::XQMAILAttachmentParser()
 {
 }
 
+qm::XQMAILAttachmentParser::XQMAILAttachmentParser(const WCHAR* pwsz)
+{
+	assert(pwsz);
+	
+	parse(pwsz, &listAttachment_);
+}
+
 qm::XQMAILAttachmentParser::~XQMAILAttachmentParser()
 {
 	std::for_each(listAttachment_.begin(),
@@ -2433,14 +2435,31 @@ Part::Field qm::XQMAILAttachmentParser::parse(const Part& part,
 		return Part::FIELD_NOTEXIST;
 	
 	wstring_ptr wstrValue(decode(strValue.get(), -1, false, 0));
+	parse(wstrValue.get(), &listAttachment_);
+	
+	return Part::FIELD_EXIST;
+}
+
+string_ptr qm::XQMAILAttachmentParser::unparse(const Part& part) const
+{
+	wstring_ptr wstrValue(format(listAttachment_));
+	return encode(wstrValue.get(), -1, L"utf-8", L"B", false, false);
+}
+
+void qm::XQMAILAttachmentParser::parse(const WCHAR* pwsz,
+									   AttachmentList* pList)
+{
+	assert(pwsz);
+	assert(pList);
+	assert(pList->empty());
 	
 	StringBuffer<WSTRING> buf;
-	const WCHAR* p = wstrValue.get();
+	const WCHAR* p = pwsz;
 	while (true) {
 		if (*p == L',' || *p == L'\0') {
 			wstring_ptr wstrName(buf.getString());
 			if (*wstrName.get()) {
-				listAttachment_.push_back(wstrName.get());
+				pList->push_back(wstrName.get());
 				wstrName.release();
 			}
 			
@@ -2459,14 +2478,6 @@ Part::Field qm::XQMAILAttachmentParser::parse(const Part& part,
 		}
 		++p;
 	}
-	
-	return Part::FIELD_EXIST;
-}
-
-string_ptr qm::XQMAILAttachmentParser::unparse(const Part& part) const
-{
-	wstring_ptr wstrValue(format(listAttachment_));
-	return encode(wstrValue.get(), -1, L"utf-8", L"B", false, false);
 }
 
 wstring_ptr qm::XQMAILAttachmentParser::format(const AttachmentList& l)

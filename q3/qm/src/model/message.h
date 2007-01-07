@@ -49,6 +49,7 @@ public:
 
 public:
 	XQMAILAttachmentParser();
+	explicit XQMAILAttachmentParser(const WCHAR* pwsz);
 	virtual ~XQMAILAttachmentParser();
 
 public:
@@ -60,6 +61,8 @@ public:
 	virtual qs::string_ptr unparse(const qs::Part& part) const;
 
 public:
+	static void parse(const WCHAR* pwsz,
+					  AttachmentList* pList);
 	static qs::wstring_ptr format(const AttachmentList& l);
 
 private:
