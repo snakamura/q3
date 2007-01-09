@@ -386,6 +386,9 @@
 		<action name="FileClose">
 			<key name="escape"/>
 		</action>
+		<action name="ToolInvokeAction">
+			<key key="X" alt="true" shift="true"/>
+		</action>
 	</keymap>
 	<keymap name="MessageWindow">
 		<action name="EditDelete">
@@ -531,6 +534,9 @@
 	<keymap name="EditFrameWindow">
 		<action name="FileClose">
 			<key name="escape"/>
+		</action>
+		<action name="ToolInvokeAction">
+			<key key="X" alt="true" shift="true"/>
 		</action>
 	</keymap>
 	<keymap name="EditWindow">
