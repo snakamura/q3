@@ -88,6 +88,7 @@ class MessageMacroAction;
 class MessageManageJunkAction;
 class MessageMarkAction;
 class MessageMoveAction;
+class MessageOpenAction;
 class MessageOpenAttachmentAction;
 class MessageOpenLinkAction;
 class MessageOpenRecentAction;
@@ -2184,6 +2185,46 @@ private:
 	UndoManager* pUndoManager_;
 	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageOpenAction
+ *
+ */
+
+class MessageOpenAction : public qs::AbstractAction
+{
+public:
+	MessageOpenAction(AccountManager* pAccountManager,
+					  ViewModelManager* pViewModelManager,
+					  FolderModel* pFolderModel,
+					  MessageFrameWindowManager* pMessageFrameWindowManager,
+					  HWND hwnd);
+	MessageOpenAction(AccountManager* pAccountManager,
+					  ViewModelManager* pViewModelManager,
+					  ViewModelHolder* pViewModelHolder,
+					  MessageModel* pMessageModel,
+					  MessageFrameWindowManager* pMessageFrameWindowManager,
+					  HWND hwnd);
+	virtual ~MessageOpenAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	MessageOpenAction(const MessageOpenAction&);
+	MessageOpenAction& operator=(const MessageOpenAction&);
+
+private:
+	AccountManager* pAccountManager_;
+	ViewModelManager* pViewModelManager_;
+	FolderModel* pFolderModel_;
+	ViewModelHolder* pViewModelHolder_;
+	MessageModel* pMessageModel_;
+	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	HWND hwnd_;
 };
 

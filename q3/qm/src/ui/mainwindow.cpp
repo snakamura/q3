@@ -829,14 +829,6 @@ void qm::MainWindowImpl::initActions()
 	pMessageMacroAction1.release();
 	pMessageMacroAction2.release();
 	
-	ADD_ACTION5(MessageOpenAttachmentAction,
-		IDM_MESSAGE_OPENATTACHMENT,
-		pDocument_,
-		pSecurityModel_.get(),
-		pProfile_,
-		pTempFileCleaner_,
-		pThis_->getHandle());
-	
 	struct {
 		UINT nId_;
 		unsigned int nFlags_;
@@ -920,6 +912,25 @@ void qm::MainWindowImpl::initActions()
 		pMessageMoveAction2.release();
 	}
 	
+	ADD_ACTION5(MessageOpenAction,
+		IDM_MESSAGE_OPEN,
+		pDocument_,
+		pViewModelManager_.get(),
+		pFolderModel_.get(),
+		pMessageFrameWindowManager_.get(),
+		pThis_->getHandle());
+	ADD_ACTION5(MessageOpenAttachmentAction,
+		IDM_MESSAGE_OPENATTACHMENT,
+		pDocument_,
+		pSecurityModel_.get(),
+		pProfile_,
+		pTempFileCleaner_,
+		pThis_->getHandle());
+	ADD_ACTION3(MessageOpenLinkAction,
+		IDM_MESSAGE_OPENLINK,
+		pMessageSelectionModel_.get(),
+		pProfile_,
+		pThis_->getHandle());
 	ADD_ACTION8(MessageOpenRecentAction,
 		IDM_MESSAGE_OPENRECENT,
 		pDocument_->getRecents(),
@@ -928,11 +939,6 @@ void qm::MainWindowImpl::initActions()
 		pFolderModel_.get(),
 		pThis_,
 		pMessageFrameWindowManager_.get(),
-		pProfile_,
-		pThis_->getHandle());
-	ADD_ACTION3(MessageOpenLinkAction,
-		IDM_MESSAGE_OPENLINK,
-		pMessageSelectionModel_.get(),
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION10(MessageOpenURLAction,

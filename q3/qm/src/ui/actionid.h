@@ -116,8 +116,9 @@
 #define IDM_MESSAGE_LABEL               44300
 #define IDM_MESSAGE_MACRO               44400
 #define IDM_MESSAGE_MOVE                44500
-#define IDM_MESSAGE_OPENATTACHMENT      45500
-#define IDM_MESSAGE_OPENRECENT          45600
+#define IDM_MESSAGE_OPEN                45500
+#define IDM_MESSAGE_OPENATTACHMENT      45600
+#define IDM_MESSAGE_OPENRECENT          45700
 #define IDM_TOOL_ACCOUNT                46001
 #define IDM_TOOL_ADDADDRESS             46002
 #define IDM_TOOL_ADDRESSBOOK            46003
@@ -256,6 +257,7 @@
 #define MAX_MESSAGE_LABEL               100
 #define MAX_MESSAGE_MACRO               100
 #define MAX_MESSAGE_MOVE                1000
+#define MAX_MESSAGE_OPEN                100
 #define MAX_MESSAGE_OPENATTACHMENT      100
 #define MAX_MESSAGE_OPENRECENT          100
 #define MAX_TAB_SELECT                  100

@@ -128,6 +128,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"MessageMarkUser3",				IDM_MESSAGE_MARKUSER3,				1,							0 },
 	{ L"MessageMarkUser4",				IDM_MESSAGE_MARKUSER4,				1,							0 },
 	{ L"MessageMove",					IDM_MESSAGE_MOVE,					MAX_MESSAGE_MOVE,			0 },
+	{ L"MessageOpen",					IDM_MESSAGE_OPEN,					MAX_MESSAGE_OPEN,			0 },
 	{ L"MessageOpenAttachment",			IDM_MESSAGE_OPENATTACHMENT,			MAX_MESSAGE_OPENATTACHMENT,	0 },
 	{ L"MessageOpenLink",				IDM_MESSAGE_OPENLINK,				1,							0 },
 	{ L"MessageOpenRecent",				IDM_MESSAGE_OPENRECENT,				MAX_MESSAGE_OPENRECENT,		0 },

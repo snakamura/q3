@@ -4579,6 +4579,87 @@ bool qm::MessageMoveAction::moveMessages(const MessageHolderList& l,
 
 /****************************************************************************
  *
+ * MessageOpenAction
+ *
+ */
+
+qm::MessageOpenAction::MessageOpenAction(AccountManager* pAccountManager,
+										 ViewModelManager* pViewModelManager,
+										 FolderModel* pFolderModel,
+										 MessageFrameWindowManager* pMessageFrameWindowManager,
+										 HWND hwnd) :
+	pAccountManager_(pAccountManager),
+	pViewModelManager_(pViewModelManager),
+	pFolderModel_(pFolderModel),
+	pViewModelHolder_(0),
+	pMessageModel_(0),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageOpenAction::MessageOpenAction(AccountManager* pAccountManager,
+										 ViewModelManager* pViewModelManager,
+										 ViewModelHolder* pViewModelHolder,
+										 MessageModel* pMessageModel,
+										 MessageFrameWindowManager* pMessageFrameWindowManager,
+										 HWND hwnd) :
+	pAccountManager_(pAccountManager),
+	pViewModelManager_(pViewModelManager),
+	pFolderModel_(0),
+	pViewModelHolder_(pViewModelHolder),
+	pMessageModel_(pMessageModel),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageOpenAction::~MessageOpenAction()
+{
+}
+
+void qm::MessageOpenAction::invoke(const ActionEvent& event)
+{
+	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszURI)
+		return;
+	
+	std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+	if (!pURI.get())
+		return;
+	
+	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
+	if (!mpl)
+		return;
+	
+	NormalFolder* pFolder = mpl->getFolder();
+	if (pFolder->isHidden())
+		return;
+	
+	ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
+	
+	const WCHAR* pwszOpen = ActionParamUtil::getString(event.getParam(), 1);
+	if (pwszOpen && wcscmp(pwszOpen, L"new") == 0) {
+		if (!pMessageFrameWindowManager_->open(pViewModel, mpl))
+			ActionUtil::error(hwnd_, IDS_ERROR_OPENMESSAGE);
+	}
+	else if (pFolderModel_) {
+		pFolderModel_->setCurrent(0, pFolder, false);
+		
+		Lock<ViewModel> lock(*pViewModel);
+		unsigned int nIndex = pViewModel->getIndex(mpl);
+		if (nIndex != -1)
+			MessageActionUtil::select(pViewModel, nIndex, false);
+	}
+	else {
+		pViewModelHolder_->setViewModel(pViewModel);
+		pMessageModel_->setMessage(mpl);
+	}
+}
+
+
+/****************************************************************************
+ *
  * MessageOpenAttachmentAction
  *
  */

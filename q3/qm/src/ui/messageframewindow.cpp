@@ -309,13 +309,6 @@ void qm::MessageFrameWindowImpl::initActions()
 		pDocument_,
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION5(MessageOpenAttachmentAction,
-		IDM_MESSAGE_OPENATTACHMENT,
-		pDocument_,
-		pSecurityModel_.get(),
-		pProfile_,
-		pTempFileCleaner_,
-		pThis_->getHandle());
 	
 	struct {
 		UINT nId_;
@@ -374,6 +367,21 @@ void qm::MessageFrameWindowImpl::initActions()
 		pDocument_->getUndoManager(),
 		pFolderImage_,
 		pProfile_,
+		pThis_->getHandle());
+	ADD_ACTION6(MessageOpenAction,
+		IDM_MESSAGE_OPEN,
+		pDocument_,
+		pViewModelManager_,
+		pMessageModel_.get(),
+		pMessageModel_.get(),
+		pMessageFrameWindowManager_,
+		pThis_->getHandle());
+	ADD_ACTION5(MessageOpenAttachmentAction,
+		IDM_MESSAGE_OPENATTACHMENT,
+		pDocument_,
+		pSecurityModel_.get(),
+		pProfile_,
+		pTempFileCleaner_,
 		pThis_->getHandle());
 	ADD_ACTION3(MessageOpenLinkAction,
 		IDM_MESSAGE_OPENLINK,
