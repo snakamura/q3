@@ -7166,17 +7166,13 @@ void qm::ViewSelectMessageAction::invoke(const ActionEvent& event)
 	if (!pViewModel)
 		return;
 	
-	Lock<ViewModel> lock(*pViewModel);
-	
-	MessagePtr ptr(pMessageSelectionModel_->getFocusedMessage());
-	MessagePtrLock mpl(ptr);
+	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
 	if (mpl) {
 		NormalFolder* pFolder = mpl->getFolder();
-		if (pFolder != pViewModel->getFolder() &&
-			!pFolder->isHidden()) {
+		if (pFolder != pViewModel->getFolder() && !pFolder->isHidden()) {
 			pFolderModel_->setCurrent(0, pFolder, false);
 			
-			pViewModel = pViewModelManager_->getViewModel(pFolder);
+			ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
 			Lock<ViewModel> lock(*pViewModel);
 			unsigned int nIndex = pViewModel->getIndex(mpl);
 			if (nIndex != -1)
