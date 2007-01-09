@@ -124,6 +124,8 @@
 *((<MessageMarkUser3アクション|URL:MessageMarkUser3Action.html>))
 *((<MessageMarkUser4アクション|URL:MessageMarkUser4Action.html>))
 *((<MessageMoveアクション|URL:MessageMoveAction.html>))
+*((<MessageOpenアクション|URL:MessageOpenAction.html>))
+*((<MessageOpenAttachmentアクション|URL:MessageOpenAttachmentAction.html>))
 *((<MessageOpenLinkアクション|URL:MessageOpenLinkAction.html>))
 *((<MessageOpenRecentアクション|URL:MessageOpenRecentAction.html>))
 *((<MessagePropertyアクション|URL:MessagePropertyAction.html>))
