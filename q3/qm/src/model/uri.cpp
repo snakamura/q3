@@ -12,6 +12,7 @@
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 
+#include <qstextutil.h>
 #include <qsthread.h>
 
 #include "uri.h"
@@ -167,7 +168,7 @@ wstring_ptr qm::URIFragment::toString() const
 	
 	if (wstrName_.get()) {
 		buf.append(L'!');
-		wstring_ptr wstrName(escape(wstrName_.get()));
+		wstring_ptr wstrName(TextUtil::escapeIURIComponent(wstrName_.get()));
 		buf.append(wstrName.get());
 	}
 	
@@ -210,51 +211,6 @@ const Part* qm::URIFragment::getPart(const Message* pMessage) const
 	}
 	
 	return pPart;
-}
-
-wstring_ptr qm::URIFragment::escape(const WCHAR* pwsz)
-{
-	const WCHAR* pwszEscape = L"%# ";
-	
-	StringBuffer<WSTRING> buf;
-	
-	while (*pwsz) {
-		if (wcschr(pwszEscape, *pwsz)) {
-			WCHAR wsz[16];
-			_snwprintf(wsz, countof(wsz), L"%%%02X", *pwsz);
-			buf.append(wsz);
-		}
-		else {
-			buf.append(*pwsz);
-		}
-		++pwsz;
-	}
-	
-	return buf.getString();
-}
-
-wstring_ptr qm::URIFragment::unescape(const WCHAR* pwsz)
-{
-	StringBuffer<WSTRING> buf;
-	
-	while (*pwsz) {
-		if (*pwsz == L'%') {
-			WCHAR wsz[3];
-			wcsncpy(wsz, pwsz + 1, 2);
-			wsz[2] = L'\0';
-			WCHAR* pEnd = 0;
-			long n = wcstol(wsz, &pEnd, 16);
-			if (n != 0)
-				buf.append(static_cast<WCHAR>(n));
-			pwsz += 3;
-		}
-		else {
-			buf.append(*pwsz);
-			++pwsz;
-		}
-	}
-	
-	return buf.getString();
 }
 
 bool qm::operator==(const URIFragment& lhs,
@@ -410,9 +366,11 @@ wstring_ptr qm::URI::toString() const
 	StringBuffer<WSTRING> buf;
 	buf.append(getScheme());
 	buf.append(L"://");
-	buf.append(wstrAccount_.get());
+	wstring_ptr wstrAccount(TextUtil::escapeIURIComponent(wstrAccount_.get()));
+	buf.append(wstrAccount.get());
 	buf.append(L'/');
-	buf.append(wstrFolder_.get());
+	wstring_ptr wstrFolder(TextUtil::escapeIURIComponent(wstrFolder_.get()));
+	buf.append(wstrFolder.get());
 	buf.append(L'/');
 	buf.append(wszValidity);
 	buf.append(L'/');
@@ -511,15 +469,18 @@ std::auto_ptr<URI> qm::URI::parse(const WCHAR* pwszURI)
 					return std::auto_ptr<URI>();
 				
 				if (pName)
-					wstrName = URIFragment::unescape(pName);
+					wstrName = TextUtil::unescapeIURIComponent(pName);
 				
 				break;
 			}
 		}
 	}
 	
-	return std::auto_ptr<URI>(new URI(pwszAccount, pwszFolder,
-		nValidity, nId, section, type, wstrName.get()));
+	wstring_ptr wstrAccount(TextUtil::unescapeIURIComponent(pwszAccount));
+	wstring_ptr wstrFolder(TextUtil::unescapeIURIComponent(pwszFolder));
+	
+	return std::auto_ptr<URI>(new URI(wstrAccount.get(),
+		wstrFolder.get(), nValidity, nId, section, type, wstrName.get()));
 }
 
 bool qm::operator==(const URI& lhs,

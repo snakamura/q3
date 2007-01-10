@@ -66,10 +66,6 @@ public:
 	qs::wstring_ptr toString() const;
 	const qs::Part* getPart(const Message* pMessage) const;
 
-public:
-	static qs::wstring_ptr escape(const WCHAR* pwsz);
-	static qs::wstring_ptr unescape(const WCHAR* pwsz);
-
 private:
 	URIFragment& operator=(const URIFragment&);
 
