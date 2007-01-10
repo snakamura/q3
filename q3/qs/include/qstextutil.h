@@ -45,11 +45,20 @@ public:
 	static bool isLineEndProhibited(WCHAR c);
 	static bool isDangling(WCHAR c);
 	
+	static bool isHex(WCHAR c);
+	
 	static std::pair<size_t, size_t> findURL(const WCHAR* pwszText,
 											 size_t nLen,
 											 const WCHAR* const* ppwszSchemas,
 											 size_t nSchemaCount);
+	static wstring_ptr escapeURLComponent(const WCHAR* pwsz);
+	static wstring_ptr unescapeURLComponent(const WCHAR* pwsz);
+	static wstring_ptr escapeIURIComponent(const WCHAR* pwsz);
+	static wstring_ptr unescapeIURIComponent(const WCHAR* pwsz);
+	static bool isURLChar(CHAR c);
 	static bool isURLChar(WCHAR c);
+	static bool isURLComponentChar(CHAR c);
+	static bool isURLComponentChar(WCHAR c);
 	static bool isFileNameChar(CHAR c);
 	static bool isFileNameChar(WCHAR c);
 	static bool isPathChar(CHAR c);

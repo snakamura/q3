@@ -6,6 +6,7 @@
  *
  */
 
+#include <qsconv.h>
 #include <qsencoder.h>
 #include <qsstl.h>
 #include <qstextutil.h>
@@ -260,6 +261,13 @@ const WCHAR* qs::TextUtil::getBreak(const WCHAR* pBegin,
 	return pBegin + nFit;
 }
 
+bool qs::TextUtil::isHex(WCHAR c)
+{
+	return (L'0' <= c && c <= L'9') ||
+		(L'A' <= c && c <= L'F') ||
+		(L'a' <= c && c <= L'f');
+}
+
 std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 												size_t nLen,
 												const WCHAR* const* ppwszSchemas,
@@ -399,12 +407,139 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 	return url;
 }
 
+wstring_ptr qs::TextUtil::escapeURLComponent(const WCHAR* pwsz)
+{
+	size_t nLen = wcslen(pwsz);
+	xstring_size_ptr str(UTF8Converter().encode(pwsz, &nLen));
+	if (!str.get())
+		return 0;
+	
+	StringBuffer<WSTRING> buf;
+	for (const CHAR* p = str.get(); *p; ++p) {
+		if (!isURLComponentChar(*p)) {
+			WCHAR wsz[16];
+			_snwprintf(wsz, countof(wsz), L"%%%02X",
+				static_cast<int>(static_cast<unsigned char>(*p)));
+			buf.append(wsz);
+		}
+		else {
+			buf.append(static_cast<WCHAR>(*p));
+		}
+	}
+	return buf.getString();
+}
+
+wstring_ptr qs::TextUtil::unescapeURLComponent(const WCHAR* pwsz)
+{
+	StringBuffer<STRING> bufUtf8;
+	StringBuffer<WSTRING> buf;
+	
+	for (const WCHAR* p = pwsz; *p; ++p) {
+		if (*p == L'%' && isHex(*(p + 1)) && isHex(*(p + 2))) {
+			WCHAR wsz[3];
+			wcsncpy(wsz, p + 1, 2);
+			wsz[2] = L'\0';
+			WCHAR* pEnd = 0;
+			unsigned char c = static_cast<unsigned char>(wcstol(wsz, &pEnd, 16));
+			if (c != 0)
+				bufUtf8.append(static_cast<CHAR>(c));
+			p += 2;
+		}
+		else if (*p < 0x80) {
+			bufUtf8.append(static_cast<CHAR>(*p));
+		}
+		else {
+			if (bufUtf8.getLength() != 0) {
+				size_t nLen = bufUtf8.getLength();
+				wxstring_size_ptr wstr(UTF8Converter().decode(bufUtf8.getCharArray(), &nLen));
+				if (!wstr.get())
+					return 0;
+				buf.append(wstr.get(), wstr.size());
+				bufUtf8.remove();
+			}
+			buf.append(*p);
+		}
+	}
+	if (bufUtf8.getLength() != 0) {
+		size_t nLen = bufUtf8.getLength();
+		wxstring_size_ptr wstr(UTF8Converter().decode(bufUtf8.getCharArray(), &nLen));
+		if (!wstr.get())
+			return 0;
+		buf.append(wstr.get(), wstr.size());
+		bufUtf8.remove();
+	}
+	
+	return buf.getString();
+}
+
+wstring_ptr qs::TextUtil::escapeIURIComponent(const WCHAR* pwsz)
+{
+	StringBuffer<WSTRING> buf;
+	for (const WCHAR* p = pwsz; *p; ++p) {
+		if (*p < 0x80 && !isURLComponentChar(*p)) {
+			WCHAR wsz[16];
+			_snwprintf(wsz, countof(wsz), L"%%%02X",
+				static_cast<int>(static_cast<unsigned char>(*p)));
+			buf.append(wsz);
+		}
+		else {
+			buf.append(static_cast<WCHAR>(*p));
+		}
+	}
+	return buf.getString();
+}
+
+wstring_ptr qs::TextUtil::unescapeIURIComponent(const WCHAR* pwsz)
+{
+	StringBuffer<WSTRING> buf;
+	for (const WCHAR* p = pwsz; *p; ++p) {
+		if (*p == L'%' && isHex(*(p + 1)) && isHex(*(p + 2))) {
+			WCHAR wsz[3];
+			wcsncpy(wsz, p + 1, 2);
+			wsz[2] = L'\0';
+			WCHAR* pEnd = 0;
+			unsigned char c = static_cast<unsigned char>(wcstol(wsz, &pEnd, 16));
+			if (c != 0)
+				buf.append(static_cast<WCHAR>(c));
+			p += 2;
+		}
+		else {
+			buf.append(*p);
+		}
+	}
+	return buf.getString();
+}
+
+bool qs::TextUtil::isURLChar(CHAR c)
+{
+	return ('A' <= c && c <= 'Z') ||
+		('a' <= c && c <= 'z') ||
+		('0' <= c && c <= '9') ||
+		strchr(".:/?%&@!#$~*=+-_;,()[]'", c) != 0;
+}
+
 bool qs::TextUtil::isURLChar(WCHAR c)
 {
 	return (L'A' <= c && c <= L'Z') ||
 		(L'a' <= c && c <= L'z') ||
 		(L'0' <= c && c <= L'9') ||
 		wcschr(L".:/?%&@!#$~*=+-_;,()[]'", c) != 0;
+}
+
+bool qs::TextUtil::isURLComponentChar(CHAR c)
+{
+	return ('A' <= c && c <= 'Z') ||
+		('a' <= c && c <= 'z') ||
+		('0' <= c && c <= '9') ||
+		strchr(".&!$~*=+-_;,()'", c) != 0;
+}
+
+bool qs::TextUtil::isURLComponentChar(WCHAR c)
+{
+	return (L'A' <= c && c <= L'Z') ||
+		(L'a' <= c && c <= L'z') ||
+		(L'0' <= c && c <= L'9') ||
+		wcschr(L".&!$~*=+-_;,()'", c) != 0;
 }
 
 bool qs::TextUtil::isFileNameChar(CHAR c)
