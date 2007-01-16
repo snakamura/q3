@@ -88,8 +88,17 @@ bool qm::MessageComposer::compose(Message* pMessage,
 			return false;
 	}
 	
-	NormalFolder* pFolder = static_cast<NormalFolder*>(pAccount->getFolderByBoxFlag(
-		bDraft_ ? Folder::FLAG_DRAFTBOX : Folder::FLAG_OUTBOX));
+	NormalFolder* pFolder = 0;
+	UnstructuredParser outbox;
+	if (pMessage->getField(L"X-QMAIL-Outbox", &outbox) == Part::FIELD_EXIST) {
+		Folder* p = pAccount->getFolder(outbox.getValue());
+		if (p && p->getType() == Folder::TYPE_NORMAL)
+			pFolder = static_cast<NormalFolder*>(p);
+		pMessage->removeField(L"X-QMAIL-Outbox");
+	}
+	if (!pFolder)
+		pFolder = static_cast<NormalFolder*>(pAccount->getFolderByBoxFlag(
+			bDraft_ ? Folder::FLAG_DRAFTBOX : Folder::FLAG_OUTBOX));
 	if (!pFolder)
 		return false;
 	

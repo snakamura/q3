@@ -69,13 +69,13 @@ URL‚ðŽw’è‚µ‚Ü‚·B
 
 
 ==X-QMAIL-Macro
-ƒƒbƒZ[ƒW‚ª‘—M” ‚É“ü‚ê‚ç‚ê‚½‚Æ‚«‚ÉŽÀs‚³‚ê‚éƒ}ƒNƒ‚ðŽw’è‚µ‚Ü‚·B
+ƒƒbƒZ[ƒW‚ª‘—M” ‚É“ü‚ê‚ç‚ê‚½‚Æ‚«‚ÉŽÀs‚³‚ê‚éƒ}ƒNƒ‚ðŽw’è‚µ‚Ü‚·B‚±‚Ìƒ}ƒNƒ‚ÍƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚ª–³‚¢ó‘Ô‚ÅŽÀs‚³‚ê‚Ü‚·B
 
 —á‚¦‚ÎA•W€‚Ìreply.template‚Å‚ÍAƒƒbƒZ[ƒW‚ª‘—M” ‚É“ü‚ê‚ç‚ê‚½‚Æ‚«‚É•ÔMŒ³‚ÌƒƒbƒZ[ƒW‚É•ÔMƒtƒ‰ƒO‚ð—§‚Ä‚é‚½‚ß‚Ìƒ}ƒNƒ‚ðÝ’è‚µ‚Ü‚·B
 
 
 ==X-QMAIL-DraftMacro
-ƒƒbƒZ[ƒW‚ª‘e‚Æ‚µ‚Ä‘e” ‚É•Û‘¶‚³‚ê‚½‚Æ‚«‚ÉŽÀs‚³‚ê‚éƒ}ƒNƒ‚ðŽw’è‚µ‚Ü‚·B
+ƒƒbƒZ[ƒW‚ª‘e‚Æ‚µ‚Ä‘e” ‚É•Û‘¶‚³‚ê‚½‚Æ‚«‚ÉŽÀs‚³‚ê‚éƒ}ƒNƒ‚ðŽw’è‚µ‚Ü‚·B‚±‚Ìƒ}ƒNƒ‚ÍƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚ª–³‚¢ó‘Ô‚ÅŽÀs‚³‚ê‚Ü‚·B
 
 —á‚¦‚ÎA•W€‚Ìedit.template‚Å‚ÍAƒƒbƒZ[ƒW‚ª‘e‚Æ‚µ‚Ä•Û‘¶‚³‚ê‚½‚Æ‚«‚ÉŒ³‚ÌƒƒbƒZ[ƒW‚ðíœ‚·‚é‚½‚ß‚Ìƒ}ƒNƒ‚ðÝ’è‚µ‚Ü‚·B
 
@@ -90,5 +90,11 @@ SMTPƒT[ƒo‚É‘—M‚·‚éEnvelope From‚ðŽw’è‚µ‚Ü‚·B’ÊíAFromƒwƒbƒ_‚ÅŽw’è‚µ‚½ƒAƒhƒŒƒ
 ƒƒbƒZ[ƒW‚ª‘—M‚³‚ê‚½Œã‚ÉˆÚ“®‚³‚ê‚éƒtƒHƒ‹ƒ_‚ðŽw’è‚µ‚Ü‚·B’Êí‚Í‘—M‚³‚ê‚½ƒƒbƒZ[ƒW‚Í‘—M” ‚©‚ç‘—MT‚¦‚ÉˆÚ“®‚³‚ê‚Ü‚·‚ªA‚±‚Ìƒwƒbƒ_‚ªŽw’è‚³‚ê‚Ä‚¢‚éê‡‚É‚ÍŽw’è‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ÉˆÚ“®‚³‚ê‚Ü‚·B‚½‚¾‚µAŽw’è‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½‚èA’ÊíƒtƒHƒ‹ƒ_‚Å‚È‚©‚Á‚½ê‡‚É‚ÍA‘—MT‚¦‚ÉˆÚ“®‚³‚ê‚Ü‚·B
 
 ‚½‚Æ‚¦‚ÎAreply.template‚Å•ÔMŒ³‚ÌƒƒbƒZ[ƒW‚ÌƒtƒHƒ‹ƒ_–¼‚ð‚±‚Ìƒwƒbƒ_‚ÉÝ’è‚·‚é‚±‚Æ‚ÅA‘—MT‚¦‚ð•ÔMŒ³‚ÌƒƒbƒZ[ƒW‚Æ“¯‚¶ƒtƒHƒ‹ƒ_‚É•Û‘¶‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B
+
+
+==X-QMAIL-Outbox
+ƒƒbƒZ[ƒW‚ðì¬‚µ‚½‚Æ‚«‚É•Û‘¶‚³‚ê‚éƒtƒHƒ‹ƒ_‚ðŽw’è‚µ‚Ü‚·B’Êí‚Íì¬‚³‚ê‚½ƒƒbƒZ[ƒW‚Í‘—M” iƒhƒ‰ƒtƒg‚Ìê‡‚É‚Í‘e” j‚É•Û‘¶‚³‚ê‚Ü‚·‚ªA‚±‚Ìƒwƒbƒ_‚ªŽw’è‚³‚ê‚Ä‚¢‚éê‡‚É‚ÍŽw’è‚³‚ê‚½ƒtƒHƒ‹ƒ_‚É•Û‘¶‚³‚ê‚Ü‚·B‚½‚¾‚µAŽw’è‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½‚èA’ÊíƒtƒHƒ‹ƒ_‚Å‚È‚©‚Á‚½ê‡‚É‚ÍA‘—M” i‚Ü‚½‚Í‘e” j‚É•Û‘¶‚³‚ê‚Ü‚·B
+
+Žw’è‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ª‘—M” ‚Å‚È‚©‚Á‚½ê‡‚É‚ÍA•Û‘¶‚³‚ê‚½ƒƒbƒZ[ƒW‚Í‘—M‚³‚ê‚Ü‚¹‚ñ‚Ì‚Å’ˆÓ‚µ‚Ä‚­‚¾‚³‚¢B‚±‚Ìƒwƒbƒ_‚ÍA‚½‚Æ‚¦‚Îƒƒ‚‚ð•Û‘¶‚µ‚½‚¢ê‡‚È‚Ç‚ÉŽg—p‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B
 
 =end
