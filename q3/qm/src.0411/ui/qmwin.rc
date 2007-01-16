@@ -1871,7 +1871,7 @@ FONT 9, "MS UI Gothic"
 BEGIN
     ICON            "",IDC_APPICON,5,5,20,20
     LTEXT           "",IDC_VERSION,35,5,205,8
-    LTEXT           "Copyright(C) 1998-2006 Satoshi Nakamura. All rights reserved.",
+    LTEXT           "Copyright(C) 1998-2007 Satoshi Nakamura. All rights reserved.",
                     -1,35,15,205,8
     LTEXT           "http://q3.snak.org/",-1,35,25,205,8
     DEFPUSHBUTTON   "OK",IDOK,190,115,50,14
