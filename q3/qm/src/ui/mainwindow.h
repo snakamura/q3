@@ -136,8 +136,8 @@ public:
 protected:
 	LRESULT onCreate(CREATESTRUCT* pCreateStruct);
 	LRESULT onDestroy();
-	LRESULT onLButtonDown(UINT nFlags,
-						  const POINT& pt);
+	LRESULT onLButtonUp(UINT nFlags,
+						const POINT& pt);
 	LRESULT onPaint();
 	LRESULT onStatusChanged(WPARAM wParam,
 							LPARAM lParam);
@@ -184,8 +184,8 @@ public:
 							   LPARAM lParam);
 
 protected:
-	LRESULT onLButtonDown(UINT nFlags,
-						  const POINT& pt);
+	LRESULT onLButtonUp(UINT nFlags,
+						const POINT& pt);
 
 protected:
 	virtual const WCHAR* getMenuName(int nPart);

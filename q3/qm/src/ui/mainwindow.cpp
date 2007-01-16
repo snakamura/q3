@@ -2870,7 +2870,7 @@ LRESULT qm::SyncNotificationWindow::windowProc(UINT uMsg,
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_CREATE()
 		HANDLE_DESTROY()
-		HANDLE_LBUTTONDOWN()
+		HANDLE_LBUTTONUP()
 		HANDLE_PAINT()
 		HANDLE_MESSAGE(WM_SYNCNOTIFICATION_STATUSCHANGED, onStatusChanged)
 	END_MESSAGE_HANDLER()
@@ -2898,13 +2898,13 @@ LRESULT qm::SyncNotificationWindow::onDestroy()
 	return DefaultWindowHandler::onDestroy();
 }
 
-LRESULT qm::SyncNotificationWindow::onLButtonDown(UINT nFlags,
-												  const POINT& pt)
+LRESULT qm::SyncNotificationWindow::onLButtonUp(UINT nFlags,
+												const POINT& pt)
 {
 	SyncDialog* pDialog = pSyncDialogManager_->open();
 	if (pDialog)
 		pDialog->show();
-	return DefaultWindowHandler::onLButtonDown(nFlags, pt);
+	return DefaultWindowHandler::onLButtonUp(nFlags, pt);
 }
 
 LRESULT qm::SyncNotificationWindow::onPaint()
@@ -3049,19 +3049,19 @@ LRESULT qm::MainWindowStatusBar::windowProc(UINT uMsg,
 											LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
-		HANDLE_LBUTTONDOWN()
+		HANDLE_LBUTTONUP()
 	END_MESSAGE_HANDLER()
 	return MessageStatusBar::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::MainWindowStatusBar::onLButtonDown(UINT nFlags,
-											   const POINT& pt)
+LRESULT qm::MainWindowStatusBar::onLButtonUp(UINT nFlags,
+											 const POINT& pt)
 {
 	int nPart = getPart(pt);
 	if (nPart == 1)
 		FileOfflineAction::toggleOffline(pDocument_, pSyncManager_);
 	
-	return MessageStatusBar::onLButtonDown(nFlags, pt);
+	return MessageStatusBar::onLButtonUp(nFlags, pt);
 }
 
 const WCHAR* qm::MainWindowStatusBar::getMenuName(int nPart)
@@ -3183,15 +3183,15 @@ LRESULT qm::ShellIcon::onNotifyIcon(WPARAM wParam,
 {
 	if (wParam == ID_NOTIFYICON) {
 #ifdef _WIN32_WCE
-		if (lParam == WM_LBUTTONDOWN && ::GetAsyncKeyState(VK_MENU))
-			lParam = WM_RBUTTONDOWN;
-		bool bShow = lParam == WM_LBUTTONDOWN && nState_ & STATE_HIDDEN;
+		if (lParam == WM_LBUTTONUP && ::GetAsyncKeyState(VK_MENU))
+			lParam = WM_RBUTTONUP;
+		bool bShow = lParam == WM_LBUTTONUP && nState_ & STATE_HIDDEN;
 #else
-		bool bShow = lParam == WM_LBUTTONDOWN;
+		bool bShow = lParam == WM_LBUTTONUP;
 #endif
 		if (bShow)
 			pCallback_->show();
-		else if (lParam == WM_LBUTTONDOWN || lParam == WM_RBUTTONDOWN)
+		else if (lParam == WM_LBUTTONUP || lParam == WM_RBUTTONUP)
 			pCallback_->showRecentsMenu(false);
 	}
 	return 0;
