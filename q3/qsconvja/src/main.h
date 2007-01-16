@@ -1,5 +1,5 @@
 /*
- * $Id: main.h 1722 2005-01-27 23:13:45Z snakamura $
+ * $Id$
  *
  * Copyright(C) 1998-2007 Satoshi Nakamura
  * All rights reserved.
