@@ -5508,9 +5508,10 @@ void qm::MacroFunctionThread::getItems(const Folder* pFolder,
 	for (unsigned int n = 0; n < nCount; ++n) {
 		MessageHolder* p = pFolder->getMessage(n);
 		pListItem->push_back(Item(p));
-		pListItemPtr->push_back(&(*pListItem)[n]);
+		Item* pItem = &pListItem->back();
+		pListItemPtr->push_back(pItem);
 		if (p == pmh)
-			*ppItemThis = &(*pListItem)[n];
+			*ppItemThis = pItem;
 	}
 }
 
