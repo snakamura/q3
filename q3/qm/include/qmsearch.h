@@ -96,11 +96,13 @@ public:
 	bool isRecursive() const;
 	bool isNewFolder() const;
 	unsigned int getImeFlags() const;
+	DWORD getImeStatus() const;
 	void set(const WCHAR* pwszCondition,
 			 const Folder* pFolder,
 			 bool bRecursive,
 			 bool bNewFolder,
-			 unsigned int nImeFlags);
+			 unsigned int nImeFlags,
+			 DWORD dwImeStatus);
 	void save() const;
 	bool isImeControl() const;
 
@@ -152,6 +154,8 @@ protected:
 protected:
 	unsigned int getImeFlags() const;
 	void setImeFlags(unsigned int nFlags);
+	DWORD getImeStatus() const;
+	void setImeStatus(DWORD dwStatus);
 
 private:
 	LRESULT onKillActive(NMHDR* pnmhdr,

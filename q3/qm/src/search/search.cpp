@@ -62,6 +62,7 @@ struct qm::SearchPropertyDataImpl
 	bool bRecursive_;
 	bool bNewFolder_;
 	unsigned int nImeFlags_;
+	DWORD dwImeStatus_;
 	bool bImeControl_;
 };
 
@@ -88,6 +89,7 @@ qm::SearchPropertyData::SearchPropertyData(const Account* pAccount,
 	pImpl_->bRecursive_ = pProfile->getInt(L"Search", L"Recursive") != 0;
 	pImpl_->bNewFolder_ = pProfile->getInt(L"Search", L"NewFolder") != 0;
 	pImpl_->nImeFlags_ = pProfile->getInt(L"Search", L"Ime");
+	pImpl_->dwImeStatus_ = pProfile->getInt(L"Search", L"ImeStatus");
 	pImpl_->bImeControl_ = pProfile->getInt(L"Global", L"ImeControl") != 0;
 	
 	if (!pFolder) {
@@ -143,17 +145,24 @@ unsigned int qm::SearchPropertyData::getImeFlags() const
 	return pImpl_->nImeFlags_;
 }
 
+DWORD qm::SearchPropertyData::getImeStatus() const
+{
+	return pImpl_->dwImeStatus_;
+}
+
 void qm::SearchPropertyData::set(const WCHAR* pwszCondition,
 								 const Folder* pFolder,
 								 bool bRecursive,
 								 bool bNewFolder,
-								 unsigned int nImeFlags)
+								 unsigned int nImeFlags,
+								 DWORD dwImeStatus)
 {
 	pImpl_->wstrCondition_ = allocWString(pwszCondition);
 	pImpl_->pFolder_ = pFolder;
 	pImpl_->bRecursive_ = bRecursive;
 	pImpl_->bNewFolder_ = bNewFolder;
 	pImpl_->nImeFlags_ = nImeFlags;
+	pImpl_->dwImeStatus_ = dwImeStatus;
 }
 
 void qm::SearchPropertyData::save() const
@@ -163,6 +172,7 @@ void qm::SearchPropertyData::save() const
 	pImpl_->pProfile_->setInt(L"Search", L"Recursive", pImpl_->bRecursive_);
 	pImpl_->pProfile_->setInt(L"Search", L"NewFolder", pImpl_->bNewFolder_);
 	pImpl_->pProfile_->setInt(L"Search", L"Ime", pImpl_->nImeFlags_);
+	pImpl_->pProfile_->setInt(L"Search", L"ImeStatus", pImpl_->dwImeStatus_);
 }
 
 bool qm::SearchPropertyData::isImeControl() const
@@ -224,7 +234,7 @@ void qm::SearchPropertyPage::updateData(SearchPropertyData* pData)
 	const Folder* pFolder = FolderListComboBox(getDlgItem(nFolderId_)).getSelectedFolder();
 	bool bRecursive = Button_GetCheck(getDlgItem(nRecursiveId_)) == BST_CHECKED;
 	bool bNewFolder = Button_GetCheck(getDlgItem(nNewFolderId_)) == BST_CHECKED;
-	pData->set(wstrCondition.get(), pFolder, bRecursive, bNewFolder, getImeFlags());
+	pData->set(wstrCondition.get(), pFolder, bRecursive, bNewFolder, getImeFlags(), getImeStatus());
 }
 
 void qm::SearchPropertyPage::updateUI(const SearchPropertyData* pData)
@@ -238,6 +248,7 @@ void qm::SearchPropertyPage::updateUI(const SearchPropertyData* pData)
 			pData->isNewFolder() ? BST_CHECKED : BST_UNCHECKED);
 	}
 	setImeFlags(pData->getImeFlags());
+	setImeStatus(pData->getImeStatus());
 }
 
 unsigned int qm::SearchPropertyPage::getImeFlags() const
@@ -260,6 +271,23 @@ void qm::SearchPropertyPage::setImeFlags(unsigned int nFlags)
 		qs::UIUtil::setImeEnabled(getHandle(), (nFlags & SearchPropertyData::IMEFLAG_IME) != 0);
 #ifdef _WIN32_WCE_PSPC
 	qs::UIUtil::setSipEnabled((nFlags & SearchPropertyData::IMEFLAG_SIP) != 0);
+#endif
+}
+
+DWORD qm::SearchPropertyPage::getImeStatus() const
+{
+#ifdef _WIN32_WCE_PSPC
+	if (pData_->isImeControl())
+		return qs::UIUtil::getImeStatus(getHandle());
+#endif
+	return -1;
+}
+
+void qm::SearchPropertyPage::setImeStatus(DWORD dwStatus)
+{
+#ifdef _WIN32_WCE_PSPC
+	if (pData_->isImeControl() && dwStatus != -1)
+		qs::UIUtil::setImeStatus(getHandle(), dwStatus);
 #endif
 }
 

@@ -110,6 +110,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"EditWindow",	L"WordWrap",				L"0"							},
 	{ L"EditWindow",	L"TabWidth",				L"4"							},
 	{ L"EditWindow",	L"Ime",						L"0"							},
+	{ L"EditWindow",	L"ImeStatus",				L"-1"							},
 #ifdef QMZIP
 	{ L"EditWindow",	L"ArchiveAttachments",		L"0"							},
 #endif
@@ -122,6 +123,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	
 	{ L"Find",	L"HistorySize",	L"10"	},
 	{ L"Find",	L"Ime",			L"0"	},
+	{ L"Find",	L"ImeStatus",	L"-1"	},
 	{ L"Find",	L"MatchCase",	L"0"	},
 	{ L"Find",	L"Regex",		L"0"	},
 	
@@ -234,14 +236,18 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"GPG",	L"Command",	L"gpg.exe"	},
 #endif
 	
-	{ L"HeaderEditWindow",	L"FontCharset",	L"0"	},
-/*	{ L"HeaderEditWindow",	L"FontFace",	L""		},*/
-	{ L"HeaderEditWindow",	L"FontSize",	L"9"	},
-	{ L"HeaderEditWindow",	L"FontStyle",	L"0"	},
-	{ L"HeaderEditWindow",	L"ImeBcc",		L"0"	},
-	{ L"HeaderEditWindow",	L"ImeCc",		L"0"	},
-	{ L"HeaderEditWindow",	L"ImeSubject",	L"0"	},
-	{ L"HeaderEditWindow",	L"ImeTo",		L"0"	},
+	{ L"HeaderEditWindow",	L"FontCharset",			L"0"	},
+/*	{ L"HeaderEditWindow",	L"FontFace",			L""		},*/
+	{ L"HeaderEditWindow",	L"FontSize",			L"9"	},
+	{ L"HeaderEditWindow",	L"FontStyle",			L"0"	},
+	{ L"HeaderEditWindow",	L"ImeBcc",				L"0"	},
+	{ L"HeaderEditWindow",	L"ImeCc",				L"0"	},
+	{ L"HeaderEditWindow",	L"ImeStatusBcc",		L"-1"	},
+	{ L"HeaderEditWindow",	L"ImeStatusCc",			L"-1"	},
+	{ L"HeaderEditWindow",	L"ImeStatusSubject",	L"-1"	},
+	{ L"HeaderEditWindow",	L"ImeStatusTo",			L"-1"	},
+	{ L"HeaderEditWindow",	L"ImeSubject",			L"0"	},
+	{ L"HeaderEditWindow",	L"ImeTo",				L"0"	},
 	
 	{ L"HeaderWindow",	L"FontCharset",	L"0"	},
 /*	{ L"HeaderWindow",	L"FontFace",	L""		},*/
@@ -468,6 +474,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	
 	{ L"Replace",	L"HistorySize",	L"10"	},
 	{ L"Replace",	L"Ime",			L"0"	},
+	{ L"Replace",	L"ImeStatus",	L"-1"	},
 	
 #ifndef _WIN32_WCE
 	{ L"RulesDialog",	L"Height",	L"450"	},
@@ -478,6 +485,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Search",	L"Condition",	L""		},
 	{ L"Search",	L"HistorySize",	L"10"	},
 	{ L"Search",	L"Ime",			L"0"	},
+	{ L"Search",	L"ImeStatus",	L"-1"	},
 	{ L"Search",	L"NewFolder",	L"0"	},
 	{ L"Search",	L"Page",		L""		},
 	{ L"Search",	L"Recursive",	L"0"	},
