@@ -42,13 +42,24 @@ void qm::AddressBookAddressDeleteAction::invoke(const ActionEvent& event)
 	typedef AddressBookSelectionModel::ItemList ItemList;
 	ItemList listItem;
 	pAddressBookSelectionModel_->getSelectedItems(&listItem);
-	for (ItemList::reverse_iterator it = listItem.rbegin(); it != listItem.rend(); ++it)
-		pAddressBookModel_->remove(*it);
+	for (ItemList::reverse_iterator it = listItem.rbegin(); it != listItem.rend(); ++it) {
+		const AddressBookEntry* pEntry = pAddressBookModel_->getEntry(*it);
+		if (!pEntry->isExternal())
+			pAddressBookModel_->remove(*it);
+	}
 }
 
 bool qm::AddressBookAddressDeleteAction::isEnabled(const ActionEvent& event)
 {
-	return pAddressBookSelectionModel_->hasSelectedItem();
+	typedef AddressBookSelectionModel::ItemList ItemList;
+	ItemList listItem;
+	pAddressBookSelectionModel_->getSelectedItems(&listItem);
+	for (ItemList::reverse_iterator it = listItem.rbegin(); it != listItem.rend(); ++it) {
+		const AddressBookEntry* pEntry = pAddressBookModel_->getEntry(*it);
+		if (!pEntry->isExternal())
+			return true;
+	}
+	return false;
 }
 
 
@@ -80,7 +91,7 @@ void qm::AddressBookAddressEditAction::invoke(const ActionEvent& event)
 	std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(
 		*pAddressBookModel_->getEntry(nItem)));
 	AddressBookEntryDialog dialog(pAddressBookModel_->getAddressBook(), pEntry.get());
-	if (dialog.doModal(hwnd_) == IDOK)
+	if (dialog.doModal(hwnd_) == IDOK && !pEntry->isExternal())
 		pAddressBookModel_->edit(nItem, pEntry);
 }
 

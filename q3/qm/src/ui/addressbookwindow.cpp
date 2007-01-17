@@ -584,7 +584,7 @@ void qm::AddressBookFrameWindowManager::open()
 		pFrameWindow_->setForegroundWindow();
 	}
 	else {
-		std::auto_ptr<AddressBookModel> pAddressBookModel(new AddressBookModel());
+		std::auto_ptr<AddressBookModel> pAddressBookModel(new AddressBookModel(pProfile_));
 		pAddressBookModel->addAddressBookModelHandler(this);
 		std::auto_ptr<AddressBookThread> pThread(new AddressBookThread(
 			this, pAddressBookModel, pUIManager_, pProfile_));
@@ -889,7 +889,7 @@ void qm::AddressBookListWindowImpl::open(int nItem)
 	std::auto_ptr<AddressBookEntry> pEntry(new AddressBookEntry(
 		*pAddressBookModel_->getEntry(nItem)));
 	AddressBookEntryDialog dialog(pAddressBookModel_->getAddressBook(), pEntry.get());
-	if (dialog.doModal(pThis_->getParentFrame()) == IDOK)
+	if (dialog.doModal(pThis_->getParentFrame()) == IDOK && !pEntry->isExternal())
 		pAddressBookModel_->edit(nItem, pEntry);
 }
 

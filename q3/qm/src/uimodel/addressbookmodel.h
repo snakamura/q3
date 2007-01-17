@@ -12,6 +12,7 @@
 #include <qm.h>
 
 #include <qs.h>
+#include <qsprofile.h>
 
 #include <memory>
 #include <vector>
@@ -49,7 +50,7 @@ public:
 	};
 
 public:
-	AddressBookModel();
+	explicit AddressBookModel(qs::Profile* pProfile);
 	~AddressBookModel();
 
 public:

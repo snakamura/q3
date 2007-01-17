@@ -24,12 +24,12 @@ using namespace qs;
  *
  */
 
-qm::AddressBookModel::AddressBookModel() :
+qm::AddressBookModel::AddressBookModel(Profile* pProfile) :
 	nSort_(0),
 	bModified_(false)
 {
 	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::ADDRESSBOOK_XML));
-	pAddressBook_.reset(new AddressBook(wstrPath.get(), 0, false));
+	pAddressBook_.reset(new AddressBook(wstrPath.get(), pProfile, true));
 	
 	initEntries();
 	
@@ -52,6 +52,7 @@ unsigned int qm::AddressBookModel::getCount() const
 
 const AddressBookEntry* qm::AddressBookModel::getEntry(unsigned int nItem) const
 {
+	assert(nItem < listEntry_.size());
 	return listEntry_[nItem];
 }
 
@@ -72,6 +73,7 @@ void qm::AddressBookModel::add(std::auto_ptr<AddressBookEntry> pEntry)
 void qm::AddressBookModel::remove(unsigned int nItem)
 {
 	const AddressBookEntry* pEntry = listEntry_[nItem];
+	assert(!pEntry->isExternal());
 	pAddressBook_->removeEntry(pEntry);
 	
 	listEntry_.erase(listEntry_.begin() + nItem);
@@ -83,6 +85,9 @@ void qm::AddressBookModel::remove(unsigned int nItem)
 void qm::AddressBookModel::edit(unsigned int nItem,
 								std::auto_ptr<AddressBookEntry> pEntry)
 {
+	assert(nItem != -1);
+	assert(!listEntry_[nItem]->isExternal());
+	
 	*listEntry_[nItem] = *pEntry;
 	bModified_ = true;
 	
@@ -157,12 +162,8 @@ void qm::AddressBookModel::initEntries()
 	listEntry_.clear();
 	
 	const AddressBook::EntryList& l = pAddressBook_->getEntries();
-	listEntry_.reserve(l.size());
-	for (AddressBook::EntryList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		AddressBookEntry* pEntry = *it;
-		assert(!pEntry->isExternal());
-		listEntry_.push_back(pEntry);
-	}
+	listEntry_.resize(l.size());
+	std::copy(l.begin(), l.end(), listEntry_.begin());
 }
 
 void qm::AddressBookModel::fireItemAdded(unsigned int nItem) const

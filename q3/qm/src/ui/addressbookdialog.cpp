@@ -63,19 +63,25 @@ LRESULT qm::AddressBookEntryDialog::onInitDialog(HWND hwndFocus,
 	if (pEntry_->getSortKey())
 		setDlgItemText(IDC_SORTKEY, pEntry_->getSortKey());
 	
+	if (pEntry_->isExternal()) {
+		Window(getDlgItem(IDC_NAME)).sendMessage(EM_SETREADONLY, TRUE);
+		Window(getDlgItem(IDC_SORTKEY)).sendMessage(EM_SETREADONLY, TRUE);
+	}
+	
 	return AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::onInitDialog(hwndFocus, lParam);
 }
 
 LRESULT qm::AddressBookEntryDialog::onOk()
 {
-	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
-	pEntry_->setName(wstrName.get());
-	
-	wstring_ptr wstrSortKey(getDlgItemText(IDC_SORTKEY));
-	pEntry_->setSortKey(*wstrSortKey.get() ? wstrSortKey.get() : 0);
-	
-	pEntry_->setAddresses(getList());
-	
+	if (!pEntry_->isExternal()) {
+		wstring_ptr wstrName(getDlgItemText(IDC_NAME));
+		pEntry_->setName(wstrName.get());
+		
+		wstring_ptr wstrSortKey(getDlgItemText(IDC_SORTKEY));
+		pEntry_->setSortKey(*wstrSortKey.get() ? wstrSortKey.get() : 0);
+		
+		pEntry_->setAddresses(getList());
+	}
 	return AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::onOk();
 }
 
@@ -104,6 +110,13 @@ AddressBookAddress* qm::AddressBookEntryDialog::edit(AddressBookAddress* p) cons
 void qm::AddressBookEntryDialog::updateState()
 {
 	AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>::updateState();
+	
+	if (pEntry_->isExternal()) {
+		Window(getDlgItem(IDC_ADD)).enableWindow(false);
+		Window(getDlgItem(IDC_REMOVE)).enableWindow(false);
+		Window(getDlgItem(IDC_UP)).enableWindow(false);
+		Window(getDlgItem(IDC_DOWN)).enableWindow(false);
+	}
 	
 	bool bEnable = Window(getDlgItem(IDC_NAME)).getWindowTextLength() != 0 &&
 		ListBox_GetCount(getDlgItem(IDC_ADDRESSES)) != 0;
@@ -177,6 +190,15 @@ LRESULT qm::AddressBookAddressDialog::onInitDialog(HWND hwndFocus,
 	if (pAddress_->getCertificate())
 		setDlgItemText(IDC_CERTIFICATE, pAddress_->getCertificate());
 	
+	if (pAddress_->getEntry()->isExternal()) {
+		Window(getDlgItem(IDC_ADDRESS)).sendMessage(EM_SETREADONLY, TRUE);
+		Window(getDlgItem(IDC_RFC2822)).enableWindow(false);
+		Window(getDlgItem(IDC_ALIAS)).sendMessage(EM_SETREADONLY, TRUE);
+		Window(getDlgItem(IDC_CATEGORY)).enableWindow(false);
+		Window(getDlgItem(IDC_COMMENT)).sendMessage(EM_SETREADONLY, TRUE);
+		Window(getDlgItem(IDC_CERTIFICATE)).enableWindow(false);
+	}
+	
 	updateState();
 	
 	return TRUE;
@@ -184,30 +206,31 @@ LRESULT qm::AddressBookAddressDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::AddressBookAddressDialog::onOk()
 {
-	wstring_ptr wstrAddress(getDlgItemText(IDC_ADDRESS));
-	if (!*wstrAddress.get())
-		return 0;
-	bool bRFC2822 = sendDlgItemMessage(IDC_RFC2822, BM_GETCHECK) == BST_CHECKED;
-	wstring_ptr wstrAlias(getDlgItemText(IDC_ALIAS));
-	
-	wstring_ptr wstrCategory(getDlgItemText(IDC_CATEGORY));
-	AddressBookAddress::CategoryList listCategory;
-	const WCHAR* p = wcstok(wstrCategory.get(), L", ");
-	while (p) {
-		listCategory.push_back(pAddressBook_->getCategory(p));
-		p = wcstok(0, L", ");
+	if (!pAddress_->getEntry()->isExternal()) {
+		wstring_ptr wstrAddress(getDlgItemText(IDC_ADDRESS));
+		if (!*wstrAddress.get())
+			return 0;
+		bool bRFC2822 = sendDlgItemMessage(IDC_RFC2822, BM_GETCHECK) == BST_CHECKED;
+		wstring_ptr wstrAlias(getDlgItemText(IDC_ALIAS));
+		
+		wstring_ptr wstrCategory(getDlgItemText(IDC_CATEGORY));
+		AddressBookAddress::CategoryList listCategory;
+		const WCHAR* p = wcstok(wstrCategory.get(), L", ");
+		while (p) {
+			listCategory.push_back(pAddressBook_->getCategory(p));
+			p = wcstok(0, L", ");
+		}
+		
+		wstring_ptr wstrComment(getDlgItemText(IDC_COMMENT));
+		wstring_ptr wstrCertificate(getDlgItemText(IDC_CERTIFICATE));
+		
+		pAddress_->setAddress(wstrAddress.get());
+		pAddress_->setAlias(*wstrAlias.get() ? wstrAlias.get() : 0);
+		pAddress_->setCategories(listCategory);
+		pAddress_->setComment(*wstrComment.get() ? wstrComment.get() : 0);
+		pAddress_->setCertificate(*wstrCertificate.get() ? wstrCertificate.get() : 0);
+		pAddress_->setRFC2822(bRFC2822);
 	}
-	
-	wstring_ptr wstrComment(getDlgItemText(IDC_COMMENT));
-	wstring_ptr wstrCertificate(getDlgItemText(IDC_CERTIFICATE));
-	
-	pAddress_->setAddress(wstrAddress.get());
-	pAddress_->setAlias(*wstrAlias.get() ? wstrAlias.get() : 0);
-	pAddress_->setCategories(listCategory);
-	pAddress_->setComment(*wstrComment.get() ? wstrComment.get() : 0);
-	pAddress_->setCertificate(*wstrCertificate.get() ? wstrCertificate.get() : 0);
-	pAddress_->setRFC2822(bRFC2822);
-	
 	return DefaultDialog::onOk();
 }
 
