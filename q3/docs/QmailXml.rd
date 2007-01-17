@@ -281,6 +281,10 @@ Quote1‚Åw’è‚µ‚½•¶š‚Ì‚¢‚¸‚ê‚©‚©‚çn‚Ü‚és‚ªQuoteColor1‚Åw’è‚µ‚½F‚ÉAQuote2‚Å
 Ime‚Ìó‘ÔB
 
 
++ImeStatus (-1)
+Ime‚Ì•ÏŠ·ƒXƒe[ƒ^ƒXB
+
+
 +ArchiveAttachments (0 @ 0|1)
 ƒfƒtƒHƒ‹ƒg‚Å“Y•tƒtƒ@ƒCƒ‹‚Ìˆ³k‚ª—LŒø‚©‚Ç‚¤‚©B
 
@@ -306,6 +310,10 @@ Ime‚Ìó‘ÔB
 
 +Ime (0)
 Ime‚Ìó‘ÔB
+
+
++ImeStatus (-1)
+Ime‚Ì•ÏŠ·ƒXƒe[ƒ^ƒXB
 
 
 +MatchCase (0 @ 0|1)
@@ -645,8 +653,12 @@ GnuPG‚ğ‹N“®‚·‚é‚Æ‚«‚ÌƒRƒ}ƒ“ƒhB
 ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
-+ImeTo, ImeCc, ImeBcc, ImeSubject
++ImeTo (0), ImeCc (0), ImeBcc (0), ImeSubject (0)
 To, Cc, Bcc, Subject—“‚ÌIme‚Ìó‘ÔB
+
+
++ImeStatusTo (-1), ImeStatusCc (-1), ImeStatusBcc (-1), ImeStatusSubject (-1)
+Ime‚Ì•ÏŠ·ƒXƒe[ƒ^ƒXB
 
 
 ===HeaderWindowƒZƒNƒVƒ‡ƒ“
@@ -1149,6 +1161,10 @@ HTML•\¦‚Ì•¶šƒTƒCƒYB((<ViewZoomƒAƒNƒVƒ‡ƒ“|URL:ViewZoomAction.html>))‚ğQÆB
 Ime‚Ìó‘ÔB
 
 
++ImeStatus (-1)
+Ime‚Ì•ÏŠ·ƒXƒe[ƒ^ƒXB
+
+
 ===RulesDialogƒZƒNƒVƒ‡ƒ“
 U‚è•ª‚¯‚Ìİ’èƒ_ƒCƒAƒƒO‚Ìİ’è‚ğ‚µ‚Ü‚·B
 
@@ -1177,6 +1193,10 @@ Ime‚Ìó‘ÔB
 
 +Ime (0)
 Ime‚Ìó‘ÔB
+
+
++ImeStatus (-1)
+Ime‚Ì•ÏŠ·ƒXƒe[ƒ^ƒXB
 
 
 +NewFolder (0)
