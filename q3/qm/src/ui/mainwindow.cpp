@@ -2256,8 +2256,13 @@ LRESULT qm::MainWindow::onActivate(UINT nFlags,
 			hwndFocus = pImpl_->pListWindow_->getHandle();
 		::SetFocus(hwndFocus);
 		
-		if (pImpl_->bImeControl_)
+		if (pImpl_->bImeControl_) {
+#ifdef _WIN32_WCE_PSPC
+			qs::UIUtil::setImeStatus(getHandle(), IME_CMODE_NOCONVERSION);
+#else
 			qs::UIUtil::setImeEnabled(getHandle(), false);
+#endif
+		}
 	}
 	
 	return 0;

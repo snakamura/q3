@@ -958,8 +958,13 @@ LRESULT qm::MessageFrameWindow::onActivate(UINT nFlags,
 	else
 		pImpl_->pMessageWindow_->restoreFocusedItem();
 	
-	if (nFlags != WA_INACTIVE && pImpl_->bImeControl_)
+	if (nFlags != WA_INACTIVE && pImpl_->bImeControl_) {
+#ifdef _WIN32_WCE_PSPC
+		qs::UIUtil::setImeStatus(getHandle(), IME_CMODE_NOCONVERSION);
+#else
 		qs::UIUtil::setImeEnabled(getHandle(), false);
+#endif
+	}
 	
 	return 0;
 }

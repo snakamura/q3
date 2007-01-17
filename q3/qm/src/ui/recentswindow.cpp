@@ -177,8 +177,13 @@ LRESULT qm::RecentsWindow::onActivate(UINT nFlags,
 			close();
 	}
 	else {
-		if (bImeControl_)
+		if (bImeControl_) {
+#ifdef _WIN32_WCE_PSPC
+			qs::UIUtil::setImeStatus(getHandle(), IME_CMODE_NOCONVERSION);
+#else
 			qs::UIUtil::setImeEnabled(getHandle(), false);
+#endif
+		}
 	}
 	
 	return 0;
