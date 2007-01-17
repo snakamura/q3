@@ -141,6 +141,33 @@ void qs::UIUtil::setImeEnabled(HWND hwnd,
 	}
 }
 
+DWORD qs::UIUtil::getImeStatus(HWND hwnd)
+{
+	DWORD dwConversion = -1;
+	
+	HIMC hImc = ::ImmGetContext(hwnd);
+	if (hImc) {
+		DWORD dwSentence = 0;
+		::ImmGetConversionStatus(hImc, &dwConversion, &dwSentence);
+		::ImmReleaseContext(hwnd, hImc);
+	}
+	
+	return dwConversion;
+}
+
+void qs::UIUtil::setImeStatus(HWND hwnd,
+							  DWORD dwStatus)
+{
+	HIMC hImc = ::ImmGetContext(hwnd);
+	if (hImc) {
+		DWORD dw = 0;
+		DWORD dwSentence = 0;
+		if (::ImmGetConversionStatus(hImc, &dw, &dwSentence))
+			::ImmSetConversionStatus(hImc, dwStatus, dwSentence);
+		::ImmReleaseContext(hwnd, hImc);
+	}
+}
+
 #ifdef _WIN32_WCE_PSPC
 bool qs::UIUtil::isSipEnabled()
 {

@@ -51,6 +51,9 @@ public:
 	static bool isImeEnabled(HWND hwnd);
 	static void setImeEnabled(HWND hwnd,
 							  bool bEnabled);
+	static DWORD getImeStatus(HWND hwnd);
+	static void setImeStatus(HWND hwnd,
+							 DWORD dwStatus);
 	
 #ifdef _WIN32_WCE_PSPC
 	static bool isSipEnabled();
