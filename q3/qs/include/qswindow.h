@@ -1648,6 +1648,7 @@ private:
 	const WCHAR* pwszSection_;
 	const WCHAR* pwszKeySuffix_;
 	unsigned int nFlags_;
+	DWORD dwConversionStatus_;
 };
 
 
