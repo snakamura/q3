@@ -420,7 +420,7 @@ POP before SMTPを使うかどうか。
 
 
 +PopBeforeSmtpWait
-POP before SMTPでPOP3で認証した後にSMTPで送信するまでの待ち時間。
+POP before SMTPでPOP3で認証した後にSMTPで送信するまでの待ち時間。単位は秒。
 
 
 +PopBeforeSmtpCustom (0 @ 0|1)
