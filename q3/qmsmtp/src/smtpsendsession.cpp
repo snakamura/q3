@@ -384,6 +384,8 @@ bool qmsmtp::SmtpSendSession::popBeforeSmtp()
 	pConnection->disconnect();
 	
 	int nWait = pSubAccount_->getPropertyInt(L"Smtp", L"PopBeforeSmtpWait");
+	if (nWait < 1000)
+		nWait *= 1000;
 	for (int n = 0; n < nWait; n += 100) {
 		if (pSessionCallback_->isCanceled(false))
 			return true;
