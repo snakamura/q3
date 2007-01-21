@@ -3205,9 +3205,11 @@ LRESULT qm::ShellIcon::onNotifyIcon(WPARAM wParam,
 LRESULT qm::ShellIcon::onRecentsChanged(WPARAM wParam,
 										LPARAM lParam)
 {
-	Lock<Recents> lock(*pRecents_);
-	
-	unsigned int nCount = pRecents_->getCount();
+	unsigned int nCount = 0;
+	{
+		Lock<Recents> lock(*pRecents_);
+		nCount = pRecents_->getCount();
+	}
 	if (nCount != 0 && !(nState_ & STATE_RECENT)) {
 		notifyIcon_.hIcon = hIconRecent_;
 		if (nState_ & STATE_HIDDEN)
