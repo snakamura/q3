@@ -94,7 +94,6 @@ bool qm::MessageComposer::compose(Message* pMessage,
 		Folder* p = pAccount->getFolder(outbox.getValue());
 		if (p && p->getType() == Folder::TYPE_NORMAL)
 			pFolder = static_cast<NormalFolder*>(p);
-		pMessage->removeField(L"X-QMAIL-Outbox");
 	}
 	if (!pFolder)
 		pFolder = static_cast<NormalFolder*>(pAccount->getFolderByBoxFlag(
