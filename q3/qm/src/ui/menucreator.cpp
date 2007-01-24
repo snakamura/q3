@@ -28,12 +28,15 @@
 #include "menucreator.h"
 #include "resourceinc.h"
 #include "uiutil.h"
+#include "../model/addressbook.h"
 #include "../model/filter.h"
 #include "../model/fixedformtext.h"
 #include "../model/goround.h"
 #include "../model/templatemanager.h"
 #include "../model/uri.h"
 #include "../script/scriptmanager.h"
+#include "../uimodel/addressbookmodel.h"
+#include "../uimodel/addressbookselectionmodel.h"
 #include "../uimodel/foldermodel.h"
 #include "../uimodel/folderselectionmodel.h"
 #include "../uimodel/messageselectionmodel.h"
@@ -86,6 +89,71 @@ void qm::ActionParamHelper::clear()
 	for (IdList::const_iterator it = listId_.begin(); it != listId_.end(); ++it)
 		pActionParamMap_->removeActionParam(*it);
 	listId_.clear();
+}
+
+
+/****************************************************************************
+ *
+ * AddressBookMenuCreator
+ *
+ */
+
+qm::AddressBookMenuCreator::AddressBookMenuCreator(AddressBookModel* pModel,
+												   AddressBookSelectionModel* pSelectionModel,
+												   ActionParamMap* pActionParamMap) :
+	pModel_(pModel),
+	pSelectionModel_(pSelectionModel),
+	helper_(pActionParamMap)
+{
+}
+
+qm::AddressBookMenuCreator::~AddressBookMenuCreator()
+{
+}
+
+UINT qm::AddressBookMenuCreator::createMenu(HMENU hmenu,
+											UINT nIndex,
+											const DynamicMenuItem* pItem)
+{
+	assert(hmenu);
+	
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
+	helper_.clear();
+	
+	bool bAdded = false;
+	
+	unsigned int nItem = pSelectionModel_->getFocusedItem();
+	if (nItem != -1) {
+		const AddressBookEntry* pEntry = pModel_->getEntry(nItem);
+		const AddressBookEntry::AddressList& l = pEntry->getAddresses();
+		
+		int nMnemonic = 1;
+		for (AddressBookEntry::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			const AddressBookAddress* pAddress = *it;
+			
+			wstring_ptr wstr(pAddress->getValue());
+			std::auto_ptr<ActionParam> pParam(new ActionParam(
+				IDM_ADDRESS_CREATEMESSAGE, wstr.get()));
+			unsigned int nId = helper_.add(MAX_ADDRESS_CREATEMESSAGE, pParam);
+			if (nId != -1) {
+				wstring_ptr wstrName(UIUtil::formatMenu(pAddress->getAddress(), &nMnemonic));
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrName.get(), pItem->getId());
+				bAdded = true;
+			}
+		}
+	}
+	if (!bAdded) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_ADDRESS_CREATEMESSAGE, wstrNone.get(), pItem->getId());
+	}
+	
+	return nIndex;
+}
+
+const WCHAR* qm::AddressBookMenuCreator::getName() const
+{
+	return L"AddressCreateMessage";
 }
 
 

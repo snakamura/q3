@@ -544,6 +544,8 @@
 		<menuitem text="削除" action="AttachmentEditDelete"/>
 	</menu>
 	<menu name="addressbooklist">
+		<menuitem dynamic="AddressCreateMessage"/>
+		<separator/>
 		<menuitem text="新規..." action="AddressNew"/>
 		<menuitem text="編集..." action="AddressEdit"/>
 		<menuitem text="削除" action="AddressDelete"/>

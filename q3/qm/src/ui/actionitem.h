@@ -17,6 +17,7 @@
 namespace qm {
 
 const qs::ActionItem actionItems[] = {
+	{ L"AddressCreateMessage",			IDM_ADDRESS_CREATEMESSAGE,			MAX_ADDRESS_CREATEMESSAGE,	0 },
 	{ L"AddressDelete",					IDM_ADDRESS_DELETE,					1,							0 },
 	{ L"AddressEdit",					IDM_ADDRESS_EDIT,					1,							0 },
 	{ L"AddressNew",					IDM_ADDRESS_NEW,					1,							0 },

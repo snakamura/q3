@@ -545,6 +545,8 @@
 		<menuitem text="Delete" action="AttachmentEditDelete"/>
 	</menu>
 	<menu name="addressbooklist">
+		<menuitem dynamic="AddressCreateMessage"/>
+		<separator/>
 		<menuitem text="New..." action="AddressNew"/>
 		<menuitem text="Edit..." action="AddressEdit"/>
 		<menuitem text="Delete" action="AddressDelete"/>

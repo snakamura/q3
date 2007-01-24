@@ -29,6 +29,7 @@
 namespace qm {
 
 class MenuCreator;
+	class AddressBookMenuCreator;
 	class AttachmentMenuCreator;
 	class EncodingMenuCreator;
 	class FilterMenuCreator;
@@ -52,6 +53,8 @@ class MenuCreatorListCallback;
 
 class AccountManager;
 class AccountSelectionModel;
+class AddressBookModel;
+class AddressBookSelectionModel;
 class Filter;
 class FilterManager;
 class FixedFormText;
@@ -115,6 +118,39 @@ private:
 private:
 	qs::ActionParamMap* pActionParamMap_;
 	IdList listId_;
+};
+
+
+/****************************************************************************
+ *
+ * AddressBookMenuCreator
+ *
+ */
+
+class AddressBookMenuCreator : public MenuCreator
+{
+public:
+	AddressBookMenuCreator(AddressBookModel* pModel,
+						   AddressBookSelectionModel* pSelectionModel,
+						   qs::ActionParamMap* pActionParamMap);
+	virtual ~AddressBookMenuCreator();
+
+public:
+	virtual UINT createMenu(HMENU hmenu,
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
+
+private:
+	AddressBookMenuCreator(const AddressBookMenuCreator&);
+	AddressBookMenuCreator& operator=(const AddressBookMenuCreator&);
+
+private:
+	AddressBookModel* pModel_;
+	AddressBookSelectionModel* pSelectionModel_;
+	ActionParamHelper helper_;
 };
 
 

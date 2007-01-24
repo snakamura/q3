@@ -587,6 +587,8 @@
 		<menuitem text="&amp;Lock" action="TabLock"/>
 	</menu>
 	<menu name="addressbooklist">
+		<menuitem dynamic="AddressCreateMessage"/>
+		<separator/>
 		<menuitem text="&amp;New..." action="AddressNew"/>
 		<menuitem text="&amp;Edit..." action="AddressEdit"/>
 		<menuitem text="&amp;Delete" action="AddressDelete"/>

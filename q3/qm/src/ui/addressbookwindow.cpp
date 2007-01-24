@@ -25,6 +25,8 @@
 #include "addressbookdialog.h"
 #include "addressbookwindow.h"
 #include "dialogs.h"
+#include "menucreator.h"
+#include "menucreatormacro.h"
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "uimanager.h"
@@ -64,6 +66,7 @@ public:
 
 public:
 	void initActions();
+	void initMenuCreators();
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
@@ -83,6 +86,7 @@ public:
 	std::auto_ptr<AddressBookModel> pAddressBookModel_;
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
+	std::auto_ptr<MenuCreatorList> pMenuCreatorList_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bCreated_;
 	int nInitialShow_;
@@ -161,6 +165,15 @@ void qm::AddressBookFrameWindowImpl::initActions()
 		pAddressBookModel_.get(),
 		AddressBookModel::SORT_NAME,
 		AddressBookModel::SORT_COLUMN_MASK);
+}
+
+void qm::AddressBookFrameWindowImpl::initMenuCreators()
+{
+	pMenuCreatorList_.reset(new MenuCreatorList(0));
+	
+	ADD_MENUCREATOR2(AddressBookMenuCreator,
+		pAddressBookModel_.get(),
+		pListWindow_->getSelectionModel());
 }
 
 void qm::AddressBookFrameWindowImpl::layoutChildren()
@@ -380,6 +393,16 @@ UINT qm::AddressBookFrameWindow::getIconId()
 	return IDI_ADDRESSBOOK;
 }
 
+const DynamicMenuItem* qm::AddressBookFrameWindow::getDynamicMenuItem(unsigned int nId) const
+{
+	return pImpl_->pUIManager_->getDynamicMenuMap()->getItem(nId);
+}
+
+DynamicMenuCreator* qm::AddressBookFrameWindow::getDynamicMenuCreator(const DynamicMenuItem* pItem)
+{
+	return pImpl_->pMenuCreatorList_->get(pItem);
+}
+
 void qm::AddressBookFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
@@ -502,6 +525,7 @@ LRESULT qm::AddressBookFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->layoutChildren();
 	
 	pImpl_->initActions();
+	pImpl_->initMenuCreators();
 	
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
 	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"AddressBookFrameWindow");

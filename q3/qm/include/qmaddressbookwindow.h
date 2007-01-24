@@ -65,6 +65,8 @@ protected:
 #endif
 	virtual HMENU getMenuHandle(void* pCreateParam);
 	virtual UINT getIconId();
+	virtual const qs::DynamicMenuItem* getDynamicMenuItem(unsigned int nId) const;
+	virtual qs::DynamicMenuCreator* getDynamicMenuCreator(const qs::DynamicMenuItem* pItem);
 
 public:
 	virtual void getWindowClass(WNDCLASS* pwc);
