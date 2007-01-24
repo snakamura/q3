@@ -1236,8 +1236,19 @@ void qs::Part::updateContentType()
 	
 	if (strHeader_.get()) {
 		std::auto_ptr<ContentTypeParser> pContentType(new ContentTypeParser());
-		if (getField(L"Content-Type", pContentType.get()) == FIELD_EXIST)
+		switch (getField(L"Content-Type", pContentType.get())) {
+		case FIELD_EXIST:
 			pContentType_ = pContentType;
+			break;
+		case FIELD_NOTEXIST:
+			break;
+		case FIELD_ERROR:
+			pContentType_.reset(new ContentTypeParser(L"application", L"octet-stream"));
+			break;
+		default:
+			assert(false);
+			break;
+		}
 	}
 }
 

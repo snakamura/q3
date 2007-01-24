@@ -7,6 +7,7 @@
 *POP before SMTPの待ち時間がミリ秒単位になっていたのを秒単位に修正
 *MessageOpenURLアクションを明示的に呼べるようにした
 *AddressCreateMessageアクションを追加
+*不正なContent-Typeが指定されていた場合には、application/octet-streamとして扱うようにした
 
 [2.9.29]
 *リストビューの選択色などを指定できるようにした
