@@ -14,6 +14,7 @@
 ==アクションのリスト
 以下のアクションを使用することができます。
 
+*((<AddressCreateMessageアクション|URL:AddressCreateMessageAction.html>))
 *((<AddressDeleteアクション|URL:AddressDeleteAction.html>))
 *((<AddressEditアクション|URL:AddressEditAction.html>))
 *((<AddressNewアクション|URL:AddressNewAction.html>))

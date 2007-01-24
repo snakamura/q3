@@ -102,6 +102,9 @@ void qm::AddressBookFrameWindowImpl::initActions()
 	
 	ADD_ACTION0(NoneAction,
 		IDM_NONE);
+	ADD_ACTION1(AddressBookAddressCreateMessageAction,
+		IDM_ADDRESS_CREATEMESSAGE,
+		pThis_->getHandle());
 	ADD_ACTION2(AddressBookAddressDeleteAction,
 		IDM_ADDRESS_DELETE,
 		pAddressBookModel_.get(),

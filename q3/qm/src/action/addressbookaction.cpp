@@ -8,16 +8,50 @@
 
 #pragma warning(disable:4786)
 
+#include <qstextutil.h>
+
 #include "action.h"
 #include "addressbookaction.h"
 #include "../model/addressbook.h"
 #include "../ui/addressbookdialog.h"
 #include "../ui/dialogs.h"
 #include "../ui/resourceinc.h"
+#include "../ui/uiutil.h"
 #include "../uimodel/addressbookselectionmodel.h"
 
 using namespace qm;
 using namespace qs;
+
+
+/****************************************************************************
+ *
+ * AddressBookAddressCreateMessageAction
+ *
+ */
+
+qm::AddressBookAddressCreateMessageAction::AddressBookAddressCreateMessageAction(HWND hwnd) :
+	hwnd_(hwnd)
+{
+}
+
+qm::AddressBookAddressCreateMessageAction::~AddressBookAddressCreateMessageAction()
+{
+}
+
+void qm::AddressBookAddressCreateMessageAction::invoke(const ActionEvent& event)
+{
+	const WCHAR* pwszAddress = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszAddress)
+		return;
+	
+	wstring_ptr wstrURI(concat(L"mailto:", TextUtil::escapeIURIComponent(pwszAddress).get()));
+	UIUtil::openURL(wstrURI.get(), hwnd_);
+}
+
+bool qm::AddressBookAddressCreateMessageAction::isEnabled(const qs::ActionEvent& event)
+{
+	return ActionParamUtil::getString(event.getParam(), 0) != 0;
+}
 
 
 /****************************************************************************

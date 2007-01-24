@@ -18,6 +18,7 @@
 
 namespace qm {
 
+class AddressBookAddressCreateMessageAction;
 class AddressBookAddressDeleteAction;
 class AddressBookAddressEditAction;
 class AddressBookAddressNewAction;
@@ -25,6 +26,31 @@ class AddressBookFileSaveAction;
 class AddressBookViewSortAction;
 
 class AddressBookSelectionModel;
+
+
+/****************************************************************************
+ *
+ * AddressBookAddressCreateMessageAction
+ *
+ */
+
+class AddressBookAddressCreateMessageAction : public qs::AbstractAction
+{
+public:
+	explicit AddressBookAddressCreateMessageAction(HWND hwnd);
+	virtual ~AddressBookAddressCreateMessageAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	AddressBookAddressCreateMessageAction(const AddressBookAddressCreateMessageAction&);
+	AddressBookAddressCreateMessageAction& operator=(const AddressBookAddressCreateMessageAction&);
+
+private:
+	HWND hwnd_;
+};
 
 
 /****************************************************************************
