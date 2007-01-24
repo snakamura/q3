@@ -786,6 +786,8 @@ void qm::RecentsWindow::prepareItems(bool bActive)
 	}
 	
 	std::sort(listItem_.begin(), listItem_.end(), ItemComparator());
+	
+	invalidate();
 }
 
 void qm::RecentsWindow::clearItems()
