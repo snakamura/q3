@@ -128,6 +128,7 @@
 *((<MessageOpenAttachmentアクション|URL:MessageOpenAttachmentAction.html>))
 *((<MessageOpenLinkアクション|URL:MessageOpenLinkAction.html>))
 *((<MessageOpenRecentアクション|URL:MessageOpenRecentAction.html>))
+*((<MessageOpenURLアクション|URL:MessageOpenURLAction.html>))
 *((<MessagePropertyアクション|URL:MessagePropertyAction.html>))
 *((<MessageRemoveCleanアクション|URL:MessageRemoveCleanAction.html>))
 *((<MessageRemoveJunkアクション|URL:MessageRemoveJunkAction.html>))
