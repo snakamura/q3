@@ -31,6 +31,7 @@
 #include "editwindow.h"
 #include "focus.h"
 #include "menucreator.h"
+#include "menucreatormacro.h"
 #include "optiondialog.h"
 #include "statusbar.h"
 #include "uimanager.h"
@@ -52,7 +53,9 @@ using namespace qs;
  *
  */
 
-class qm::EditFrameWindowImpl : public AccountSelectionModel
+class qm::EditFrameWindowImpl :
+	public AccountSelectionModel,
+	public MenuCreatorListCallback
 {
 public:
 	enum {
@@ -64,16 +67,17 @@ public:
 	};
 
 public:
-	typedef std::vector<MenuCreator*> MenuCreatorList;
-
-public:
 	void initActions();
+	void initMenuCreators();
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
 
 public:
 	virtual Account* getAccount();
+
+public:
+	virtual std::auto_ptr<MacroMenuCreator> createMacroMenuCreator();
 
 public:
 	EditFrameWindow* pThis_;
@@ -96,8 +100,7 @@ public:
 	std::auto_ptr<ActionMap> pActionMap_;
 	std::auto_ptr<ActionInvoker> pActionInvoker_;
 	std::auto_ptr<FindReplaceManager> pFindReplaceManager_;
-	MenuCreatorList listMenuCreator_;
-	std::auto_ptr<MacroMenuCreator> pMacroMenuCreator_;
+	std::auto_ptr<MenuCreatorList> pMenuCreatorList_;
 	ToolbarCookie* pToolbarCookie_;
 	bool bIme_;
 	bool bCreated_;
@@ -383,6 +386,19 @@ void qm::EditFrameWindowImpl::initActions()
 		pThis_);
 }
 
+void qm::EditFrameWindowImpl::initMenuCreators()
+{
+	pMenuCreatorList_.reset(new MenuCreatorList(this));
+	
+	ADD_MENUCREATOR1(InsertTextMenuCreator,
+		pDocument_->getFixedFormTextManager());
+	ADD_MENUCREATOR2(EncodingMenuCreator,
+		pProfile_,
+		false);
+	ADD_MENUCREATOR1(ScriptMenuCreator,
+		pDocument_->getScriptManager());
+}
+
 void qm::EditFrameWindowImpl::layoutChildren()
 {
 	RECT rect;
@@ -455,6 +471,13 @@ Account* qm::EditFrameWindowImpl::getAccount()
 {
 	EditMessage* pEditMessage = pEditWindow_->getEditMessageHolder()->getEditMessage();
 	return pEditMessage ? pEditMessage->getAccount() : 0;
+}
+
+std::auto_ptr<MacroMenuCreator> qm::EditFrameWindowImpl::createMacroMenuCreator()
+{
+	return std::auto_ptr<MacroMenuCreator>(new MacroMenuCreator(
+		pDocument_, this, pSecurityModel_, pProfile_, actionItems,
+		countof(actionItems), pUIManager_->getActionParamMap()));
 }
 
 
@@ -654,25 +677,7 @@ const DynamicMenuItem* qm::EditFrameWindow::getDynamicMenuItem(unsigned int nId)
 
 DynamicMenuCreator* qm::EditFrameWindow::getDynamicMenuCreator(const DynamicMenuItem* pItem)
 {
-	if (pItem->getParam()) {
-		if (!pImpl_->pMacroMenuCreator_.get())
-			pImpl_->pMacroMenuCreator_.reset(new MacroMenuCreator(
-				pImpl_->pDocument_, pImpl_, pImpl_->pSecurityModel_,
-				pImpl_->pProfile_, actionItems, countof(actionItems),
-				pImpl_->pUIManager_->getActionParamMap()));
-		return pImpl_->pMacroMenuCreator_.get();
-	}
-	else {
-		EditFrameWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
-			pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					string_equal<WCHAR>(),
-					std::mem_fun(&MenuCreator::getName),
-					std::identity<const WCHAR*>()),
-				pItem->getName()));
-		return it != pImpl_->listMenuCreator_.end() ? *it : 0;
-	}
+	return pImpl_->pMenuCreatorList_->get(pItem);
 }
 
 void qm::EditFrameWindow::getWindowClass(WNDCLASS* pwc)
@@ -794,19 +799,10 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pStatusBar_ = pStatusBar.release();
 	
-	pImpl_->listMenuCreator_.push_back(
-		new InsertTextMenuCreator(pImpl_->pDocument_->getFixedFormTextManager(),
-			pImpl_->pUIManager_->getActionParamMap()));
-	pImpl_->listMenuCreator_.push_back(
-		new EncodingMenuCreator(pImpl_->pProfile_, false,
-			pImpl_->pUIManager_->getActionParamMap()));
-	pImpl_->listMenuCreator_.push_back(
-		new ScriptMenuCreator(pImpl_->pDocument_->getScriptManager(),
-			pImpl_->pUIManager_->getActionParamMap()));
-	
 	pImpl_->layoutChildren();
 	
 	pImpl_->initActions();
+	pImpl_->initMenuCreators();
 	
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
 	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"EditFrameWindow");
@@ -826,9 +822,6 @@ LRESULT qm::EditFrameWindow::onDestroy()
 	
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
-	
-	std::for_each(pImpl_->listMenuCreator_.begin(),
-		pImpl_->listMenuCreator_.end(), qs::deleter<DynamicMenuCreator>());
 	
 	UIUtil::saveWindowPlacement(getHandle(), pProfile, L"EditFrameWindow");
 	FrameWindow::save();

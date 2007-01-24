@@ -13,13 +13,13 @@
 	do { \
 		std::auto_ptr< name > p(new name()); \
 		pActionMap_->addAction(id, p); \
-	} while(0)
+	} while (0)
 
 #define ADD_ACTION1(name, id, arg1) \
 	do { \
 		std::auto_ptr< name > p(new name(arg1)); \
 		pActionMap_->addAction(id, p); \
-	} while(0)
+	} while (0)
 
 #define ADD_ACTION2(name, id, arg1, arg2) \
 	do { \

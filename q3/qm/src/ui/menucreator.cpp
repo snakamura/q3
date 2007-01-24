@@ -921,8 +921,8 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 
 qm::CreateTemplateMenuCreator::CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
 														 FolderModelBase* pFolderModel,
-														 ActionParamMap* pActionParamMap,
-														 bool bExternalEditor) :
+														 bool bExternalEditor,
+														 ActionParamMap* pActionParamMap) :
 	TemplateMenuCreator(pTemplateManager, pFolderModel, pActionParamMap),
 	bExternalEditor_(bExternalEditor)
 {
@@ -1257,4 +1257,58 @@ void qm::MenuCreatorUtil::setMenuItemData(HMENU hmenu,
 		dwData
 	};
 	::SetMenuItemInfo(hmenu, nIndex, TRUE, &mii);
+}
+
+
+/****************************************************************************
+ *
+ * MenuCreatorList
+ *
+ */
+
+qm::MenuCreatorList::MenuCreatorList(MenuCreatorListCallback* pCallback) :
+	pCallback_(pCallback)
+{
+}
+
+qm::MenuCreatorList::~MenuCreatorList()
+{
+	std::for_each(list_.begin(), list_.end(), qs::deleter<MenuCreator>());
+}
+
+void qm::MenuCreatorList::add(std::auto_ptr<MenuCreator> pMenuCreator)
+{
+	list_.push_back(pMenuCreator.get());
+	pMenuCreator.release();
+}
+
+DynamicMenuCreator* qm::MenuCreatorList::get(const qs::DynamicMenuItem* pItem) const
+{
+	if (pItem->getParam()) {
+		if (!pMacroMenuCreator_.get() && pCallback_)
+			pMacroMenuCreator_ = pCallback_->createMacroMenuCreator();
+		return pMacroMenuCreator_.get();
+	}
+	else {
+		List::const_iterator it = std::find_if(
+			list_.begin(), list_.end(),
+			std::bind2nd(
+				binary_compose_f_gx_hy(
+					string_equal<WCHAR>(),
+					std::mem_fun(&MenuCreator::getName),
+					std::identity<const WCHAR*>()),
+				pItem->getName()));
+		return it != list_.end() ? *it : 0;
+	}
+}
+
+
+/****************************************************************************
+ *
+ * MenuCreatorListCallback
+ *
+ */
+
+qm::MenuCreatorListCallback::~MenuCreatorListCallback()
+{
 }

@@ -47,6 +47,8 @@ class MacroDynamicMenuItem;
 class MacroDynamicMenuMap;
 class ActionParamHelper;
 class MenuCreatorUtil;
+class MenuCreatorList;
+class MenuCreatorListCallback;
 
 class AccountManager;
 class AccountSelectionModel;
@@ -506,8 +508,8 @@ class CreateTemplateMenuCreator : public TemplateMenuCreator
 public:
 	CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
 							  FolderModelBase* pFolderModel,
-							  qs::ActionParamMap* pActionParamMap,
-							  bool bExternalEditor);
+							  bool bExternalEditor,
+							  qs::ActionParamMap* pActionParamMap);
 	~CreateTemplateMenuCreator();
 
 public:
@@ -681,6 +683,52 @@ public:
 	static void setMenuItemData(HMENU hmenu,
 								UINT nIndex,
 								DWORD dwData);
+};
+
+
+/****************************************************************************
+ *
+ * MenuCreatorList
+ *
+ */
+
+class MenuCreatorList
+{
+public:
+	explicit MenuCreatorList(MenuCreatorListCallback* pCallback);
+	~MenuCreatorList();
+
+public:
+	void add(std::auto_ptr<MenuCreator> pMenuCreator);
+	qs::DynamicMenuCreator* get(const qs::DynamicMenuItem* pItem) const;
+
+private:
+	MenuCreatorList(const MenuCreatorList&);
+	MenuCreatorList& operator=(const MenuCreatorList&);
+
+private:
+	typedef std::vector<MenuCreator*> List;
+
+private:
+	MenuCreatorListCallback* pCallback_;
+	List list_;
+	mutable std::auto_ptr<MacroMenuCreator> pMacroMenuCreator_;
+};
+
+
+/****************************************************************************
+ *
+ * MenuCreatorListCallback
+ *
+ */
+
+class MenuCreatorListCallback
+{
+public:
+	virtual ~MenuCreatorListCallback();
+
+public:
+	virtual std::auto_ptr<MacroMenuCreator> createMacroMenuCreator() = 0;
 };
 
 }

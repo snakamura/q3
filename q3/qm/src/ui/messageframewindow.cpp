@@ -28,6 +28,7 @@
 #include "actionitem.h"
 #include "focus.h"
 #include "menucreator.h"
+#include "menucreatormacro.h"
 #include "messageframewindow.h"
 #include "messagewindow.h"
 #include "resourceinc.h"
@@ -55,7 +56,8 @@ using namespace qs;
 class qm::MessageFrameWindowImpl :
 	public MessageWindowHandler,
 	public FolderModelBase,
-	public MessageSelectionModel
+	public MessageSelectionModel,
+	public MenuCreatorListCallback
 {
 public:
 	enum {
@@ -80,6 +82,7 @@ public:
 
 public:
 	void initActions();
+	void initMenuCreators();
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
@@ -103,7 +106,7 @@ public:
 	virtual bool canSelect();
 
 public:
-	typedef std::vector<MenuCreator*> MenuCreatorList;
+	virtual std::auto_ptr<MacroMenuCreator> createMacroMenuCreator();
 
 public:
 	MessageFrameWindow* pThis_;
@@ -131,8 +134,7 @@ public:
 	std::auto_ptr<DefaultEncodingModel> pEncodingModel_;
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
-	MenuCreatorList listMenuCreator_;
-	std::auto_ptr<MacroMenuCreator> pMacroMenuCreator_;
+	std::auto_ptr<MenuCreatorList> pMenuCreatorList_;
 	ToolbarCookie* pToolbarCookie_;
 	wstring_ptr wstrTitle_;
 	bool bCreated_;
@@ -525,6 +527,34 @@ void qm::MessageFrameWindowImpl::initActions()
 		pMessageViewModeHolder_);
 }
 
+void qm::MessageFrameWindowImpl::initMenuCreators()
+{
+	pMenuCreatorList_.reset(new MenuCreatorList(this));
+	
+	ADD_MENUCREATOR2(MoveMenuCreator,
+		this,
+		this);
+	ADD_MENUCREATOR2(AttachmentMenuCreator,
+		this,
+		pSecurityModel_.get());
+	ADD_MENUCREATOR2(ViewTemplateMenuCreator,
+		pDocument_->getTemplateManager(),
+		this);
+	ADD_MENUCREATOR3(CreateTemplateMenuCreator,
+		pDocument_->getTemplateManager(),
+		this,
+		false);
+	ADD_MENUCREATOR3(CreateTemplateMenuCreator,
+		pDocument_->getTemplateManager(),
+		this,
+		true);
+	ADD_MENUCREATOR2(EncodingMenuCreator,
+		pProfile_,
+		true);
+	ADD_MENUCREATOR1(ScriptMenuCreator,
+		pDocument_->getScriptManager());
+}
+
 void qm::MessageFrameWindowImpl::layoutChildren()
 {
 	RECT rect;
@@ -690,6 +720,13 @@ void qm::MessageFrameWindowImpl::selectAll()
 bool qm::MessageFrameWindowImpl::canSelect()
 {
 	return false;
+}
+
+std::auto_ptr<MacroMenuCreator> qm::MessageFrameWindowImpl::createMacroMenuCreator()
+{
+	return std::auto_ptr<MacroMenuCreator>(new MacroMenuCreator(
+		pDocument_, this, pSecurityModel_.get(), pProfile_, actionItems,
+		countof(actionItems), pUIManager_->getActionParamMap()));
 }
 
 
@@ -868,25 +905,7 @@ const DynamicMenuItem* qm::MessageFrameWindow::getDynamicMenuItem(unsigned int n
 
 DynamicMenuCreator* qm::MessageFrameWindow::getDynamicMenuCreator(const DynamicMenuItem* pItem)
 {
-	if (pItem->getParam()) {
-		if (!pImpl_->pMacroMenuCreator_.get())
-			pImpl_->pMacroMenuCreator_.reset(new MacroMenuCreator(
-				pImpl_->pDocument_, pImpl_, pImpl_->pSecurityModel_.get(),
-				pImpl_->pProfile_, actionItems, countof(actionItems),
-				pImpl_->pUIManager_->getActionParamMap()));
-		return pImpl_->pMacroMenuCreator_.get();
-	}
-	else {
-		MessageFrameWindowImpl::MenuCreatorList::const_iterator it = std::find_if(
-			pImpl_->listMenuCreator_.begin(), pImpl_->listMenuCreator_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					string_equal<WCHAR>(),
-					std::mem_fun(&MenuCreator::getName),
-					std::identity<const WCHAR*>()),
-				pItem->getName()));
-		return it != pImpl_->listMenuCreator_.end() ? *it : 0;
-	}
+	return pImpl_->pMenuCreatorList_->get(pItem);
 }
 
 void qm::MessageFrameWindow::getWindowClass(WNDCLASS* pwc)
@@ -1020,27 +1039,6 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pMessageWindow_ = pMessageWindow.release();
 	
-	pImpl_->listMenuCreator_.push_back(
-		new MoveMenuCreator(pImpl_, pImpl_, pImpl_->pUIManager_->getActionParamMap()));
-	pImpl_->listMenuCreator_.push_back(
-		new AttachmentMenuCreator(pImpl_, pImpl_->pSecurityModel_.get(),
-			pImpl_->pUIManager_->getActionParamMap()));
-	pImpl_->listMenuCreator_.push_back(
-		new ViewTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
-			pImpl_, pImpl_->pUIManager_->getActionParamMap()));
-	pImpl_->listMenuCreator_.push_back(
-		new CreateTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
-			pImpl_, pImpl_->pUIManager_->getActionParamMap(), false));
-	pImpl_->listMenuCreator_.push_back(
-		new CreateTemplateMenuCreator(pImpl_->pDocument_->getTemplateManager(),
-			pImpl_, pImpl_->pUIManager_->getActionParamMap(), true));
-	pImpl_->listMenuCreator_.push_back(
-		new EncodingMenuCreator(pImpl_->pProfile_, true,
-			pImpl_->pUIManager_->getActionParamMap()));
-	pImpl_->listMenuCreator_.push_back(
-		new ScriptMenuCreator(pImpl_->pDocument_->getScriptManager(),
-			pImpl_->pUIManager_->getActionParamMap()));
-	
 	DWORD dwStatusBarStyle = dwStyle;
 #if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
 	dwStatusBarStyle |= CCS_NOPARENTALIGN;
@@ -1057,6 +1055,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->layoutChildren();
 	
 	pImpl_->initActions();
+	pImpl_->initMenuCreators();
 	
 	pImpl_->pMessageWindow_->addMessageWindowHandler(pImpl_);
 	
@@ -1077,9 +1076,6 @@ LRESULT qm::MessageFrameWindow::onDestroy()
 	
 	if (pImpl_->pToolbarCookie_)
 		pImpl_->pUIManager_->getToolbarManager()->destroy(pImpl_->pToolbarCookie_);
-	
-	std::for_each(pImpl_->listMenuCreator_.begin(),
-		pImpl_->listMenuCreator_.end(), qs::deleter<DynamicMenuCreator>());
 	
 	return FrameWindow::onDestroy();
 }
