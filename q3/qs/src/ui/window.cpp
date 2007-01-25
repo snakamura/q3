@@ -489,8 +489,8 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 		{
 			UINT nId = LOWORD(wParam);
 			
-			const ActionParam* pParam = pThis_->getActionParamInternal(nId);
-			if (pParam)
+			std::auto_ptr<ActionParam> pParam(pThis_->getActionParamInternal(nId));
+			if (pParam.get())
 				nId = pParam->getBaseId();
 			
 			Action* pAction = 0;
@@ -500,7 +500,7 @@ LRESULT qs::WindowBaseImpl::windowProc(UINT uMsg,
 			if (pAction) {
 				unsigned int nModifiers = HIWORD(wParam) != 1 ?
 					ActionEvent::getSystemModifiers() : 0;
-				ActionEvent event(LOWORD(wParam), nModifiers, pParam);
+				ActionEvent event(LOWORD(wParam), nModifiers, pParam.get());
 				if (pAction->isEnabled(event))
 					pAction->invoke(event);
 				return 0;
@@ -925,10 +925,10 @@ Action* qs::WindowBase::getActionInternal(UINT nId) const
 	return pAction;
 }
 
-const ActionParam* qs::WindowBase::getActionParamInternal(UINT nId) const
+std::auto_ptr<ActionParam> qs::WindowBase::getActionParamInternal(UINT nId) const
 {
-	const ActionParam* pParam = pImpl_->pWindowHandler_->getActionParam(nId);
-	if (!pParam && pImpl_->pOrgWindowBase_)
+	std::auto_ptr<ActionParam> pParam(pImpl_->pWindowHandler_->getActionParam(nId));
+	if (!pParam.get() && pImpl_->pOrgWindowBase_)
 		pParam = pImpl_->pOrgWindowBase_->getActionParamInternal(nId);
 	return pParam;
 }
@@ -1669,9 +1669,9 @@ Action* qs::DefaultWindowHandler::getAction(UINT nId)
 	return 0;
 }
 
-const ActionParam* qs::DefaultWindowHandler::getActionParam(UINT nId)
+std::auto_ptr<ActionParam> qs::DefaultWindowHandler::getActionParam(UINT nId)
 {
-	return 0;
+	return std::auto_ptr<ActionParam>();
 }
 
 Accelerator* qs::DefaultWindowHandler::getAccelerator()

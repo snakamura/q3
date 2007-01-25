@@ -2223,7 +2223,7 @@ Action* qm::MainWindow::getAction(UINT nId)
 	return pImpl_->pActionMap_->getAction(nId);
 }
 
-const ActionParam* qm::MainWindow::getActionParam(UINT nId)
+std::auto_ptr<ActionParam> qm::MainWindow::getActionParam(UINT nId)
 {
 	return pImpl_->pUIManager_->getActionParamMap()->getActionParam(nId);
 }

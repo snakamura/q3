@@ -47,13 +47,13 @@ void qs::FrameWindowImpl::updateCommand(CommandUpdate* pcu,
 	
 	if ((ActionMap::ID_MIN <= nId && nId < ActionMap::ID_MAX) ||
 		nId == IDOK || nId == IDCANCEL) {
-		const ActionParam* pParam = pThis_->getActionParamInternal(nId);
-		if (pParam)
+		std::auto_ptr<ActionParam> pParam(pThis_->getActionParamInternal(nId));
+		if (pParam.get())
 			nId = pParam->getBaseId();
 		
 		Action* pAction = pThis_->getActionInternal(nId);
 		if (pAction) {
-			ActionEvent event(nId, 0, pParam);
+			ActionEvent event(nId, 0, pParam.get());
 			pcu->setEnable(pAction->isEnabled(event));
 			pcu->setCheck(pAction->isChecked(event));
 			if (bText) {

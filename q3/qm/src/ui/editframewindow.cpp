@@ -709,7 +709,7 @@ Action* qm::EditFrameWindow::getAction(UINT nId)
 	return pImpl_->pActionMap_->getAction(nId);
 }
 
-const ActionParam* qm::EditFrameWindow::getActionParam(UINT nId)
+std::auto_ptr<ActionParam> qm::EditFrameWindow::getActionParam(UINT nId)
 {
 	return pImpl_->pUIManager_->getActionParamMap()->getActionParam(nId);
 }

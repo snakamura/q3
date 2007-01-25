@@ -111,6 +111,7 @@ public:
 	ActionParam(unsigned int nBaseId,
 				const WCHAR** ppwszValue,
 				size_t nCount);
+	ActionParam(const ActionParam& param);
 	~ActionParam();
 
 public:
@@ -119,15 +120,10 @@ public:
 	const WCHAR* getValue(size_t n) const;
 
 public:
-	unsigned int addRef();
-	unsigned int release();
-
-public:
 	static void parse(const WCHAR* pwszValue,
 					  ValueList* pList);
 
 private:
-	ActionParam(const ActionParam&);
 	ActionParam& operator=(const ActionParam&);
 
 private:
@@ -215,7 +211,7 @@ public:
 	~ActionParamMap();
 
 public:
-	const ActionParam* getActionParam(unsigned int nId) const;
+	std::auto_ptr<ActionParam> getActionParam(unsigned int nId) const;
 	unsigned int addActionParam(unsigned int nMaxParamCount,
 								std::auto_ptr<ActionParam> pParam);
 	void removeActionParam(unsigned int nId);
