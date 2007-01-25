@@ -129,7 +129,6 @@ private:
 private:
 	unsigned int nBaseId_;
 	ValueList listValue_;
-	unsigned int nRef_;
 };
 
 bool operator==(const ActionParam& lhs,

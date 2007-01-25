@@ -100,15 +100,13 @@ unsigned int qs::ActionEvent::getSystemModifiers()
  */
 
 qs::ActionParam::ActionParam(unsigned int nBaseId) :
-	nBaseId_(nBaseId),
-	nRef_(0)
+	nBaseId_(nBaseId)
 {
 }
 
 qs::ActionParam::ActionParam(unsigned int nBaseId,
 							 const WCHAR* pwszValue) :
-	nBaseId_(nBaseId),
-	nRef_(0)
+	nBaseId_(nBaseId)
 {
 	if (pwszValue) {
 		listValue_.resize(1);
@@ -119,8 +117,7 @@ qs::ActionParam::ActionParam(unsigned int nBaseId,
 qs::ActionParam::ActionParam(unsigned int nBaseId,
 							 const WCHAR* pwszValue,
 							 bool bParse) :
-	nBaseId_(nBaseId),
-	nRef_(0)
+	nBaseId_(nBaseId)
 {
 	if (pwszValue) {
 		if (bParse) {
@@ -136,8 +133,7 @@ qs::ActionParam::ActionParam(unsigned int nBaseId,
 qs::ActionParam::ActionParam(unsigned int nBaseId,
 							 const WCHAR** ppwszValue,
 							 size_t nCount) :
-	nBaseId_(nBaseId),
-	nRef_(0)
+	nBaseId_(nBaseId)
 {
 	assert(ppwszValue || nCount == 0);
 	
@@ -149,8 +145,7 @@ qs::ActionParam::ActionParam(unsigned int nBaseId,
 }
 
 qs::ActionParam::ActionParam(const ActionParam& param) :
-	nBaseId_(param.nBaseId_),
-	nRef_(0)
+	nBaseId_(param.nBaseId_)
 {
 	listValue_.resize(param.listValue_.size());
 	for (ValueList::size_type n = 0; n < param.listValue_.size(); ++n)
