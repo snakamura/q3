@@ -20,6 +20,7 @@
 *((<大量のメッセージをインポートしようとするとエラーになります|URL:ImportLargeNumberOfMessages.html>))
 *((<同期中にキャンセルしてもすぐにキャンセルされません|URL:CancelDoesNotWork.html>))
 *((<メッセージをインポートすると送信者や宛先などが化けます|URL:UnreadableAddressAfterImport.html>))
+*((<ショートカットキーをカスタマイズしても有効になりません|URL:AcceleratorsAreNotEnabled.html>))
 
 
 ==Tips
@@ -37,5 +38,6 @@
 *((<メッセージを削除するときにゴミ箱を使わないようにするにはどうすればよいですか?|URL:HowToDeleteWithoutTrash.html>))
 *((<ツールバーの文字列を表示しないようにするにはどうすればよいですか?|URL:HowToHideTextOnToolbars.html>))
 *((<関連付けでエディットビューを開いたときのアカウントを固定するにはどうすればよいですか?|URL:HowToSpecifyAccountWhenCreatingMessageWithMailtoUrl.html>))
+*((<アカウントやフォルダの順番を変えることはできますか?|URL:HowToChangeOrderOfAccountsAndFolders.html>))
 
 =end
