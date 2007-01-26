@@ -4,6 +4,8 @@
 ==運用
 *((<どうやったらレジストリを使用しないようにできますか?|URL:HowToNotUseRegistry.html>))
 *((<どうやったらmailto URLへ関連付けられますか?|URL:HowToAssociateWithMailtoUrl.html>))
+*((<新しいPCにデータを移動するにはどうすればよいですか?|URL:HowToMoveToOtherPC.html>))
+*((<メールボックスディレクトリを移動するにはどうすれば良いですか?|URL:HowToChangeMailBoxDirectory.html>))
 
 
 ==トラブル
@@ -20,14 +22,15 @@
 *((<大量のメッセージをインポートしようとするとエラーになります|URL:ImportLargeNumberOfMessages.html>))
 *((<同期中にキャンセルしてもすぐにキャンセルされません|URL:CancelDoesNotWork.html>))
 *((<メッセージをインポートすると送信者や宛先などが化けます|URL:UnreadableAddressAfterImport.html>))
+*((<スレッド表示を有効にしてもメッセージのスレッドがつながりません|URL:MessagesAreNotConnectedByThread.html>))
 *((<ショートカットキーをカスタマイズしても有効になりません|URL:AcceleratorsAreNotEnabled.html>))
+*((<POP3サーバに接続するとUIDLをサポートしていないというエラーになります|URL:Pop3UidlIsNotSupported.html>))
 
 
 ==Tips
 *((<どうやってプレビューで開いたメッセージを既読にしないようにできますか?|URL:HowToNotMakeSeenOnPreview.html>))
 *((<なぜリストビューでメッセージを選択してからプレビューで表示されるまでに時間がかかるのですか?|URL:WhyPreviewIsNotUpdatedImmediately.html>))
 *((<なぜリストビューで選択されたメッセージがプレビューに表示されないことがあるのですか?|URL:WhyMessageIsNotPreviewed.html>))
-*((<メールボックスディレクトリを移動するにはどうすれば良いですか?|URL:HowToChangeMailBoxDirectory.html>))
 *((<受信したメールの送信者をアドレス帳に登録した名前で表示するにはどうすれば良いですか?|URL:HowToShowNameInAddressBook.html>))
 *((<同じスレッドのメッセージをまとめて既読にするにはどうすれば良いですか?|URL:HowToKillThread.html>))
 *((<IMAP4アカウントでメッセージを移動・削除しても削除マークが付くだけで削除されません|URL:HowToClearDeletedMessage.html>))
