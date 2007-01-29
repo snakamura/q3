@@ -43,6 +43,7 @@ void qm::MessageDate::getTime(unsigned int nDate,
 	pTime->wYear = (nDate >> 16) & 0xffff;
 	pTime->wMonth = (nDate >> 8) & 0xff;
 	pTime->wDay = nDate & 0xff;
+	pTime->wDayOfWeek = Time::getDayOfWeek(pTime->wYear, pTime->wMonth, pTime->wDay);
 	pTime->wHour = (nTime >> 25) & 0x3f;
 	pTime->wMinute = (nTime >> 19) & 0x3f;
 	pTime->wSecond = (nTime >> 13) & 0x3f;
