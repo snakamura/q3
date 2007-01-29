@@ -395,17 +395,12 @@ int qs::Time::getDayOfWeek(int nYear,
 	assert(0 < nMonth && nMonth <= 12);
 	assert(0 < nDay && nDay <= getDayCount(nYear, nMonth));
 	
-	if (nYear < 1996)
-		return 0;
-	int nDays = 0;
-	int n = 0;
-	for (n = 1996; n < nYear; ++n)
-		nDays += getDayCount(n);
-	for (n = 1; n < nMonth; ++n)
-		nDays += getDayCount(nYear, n);
-	nDays += nDay;
-	return nDays%7;
+	const int nOffset[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
+	if (nMonth < 3)
+		--nYear;
+	return (nYear + nYear/4 - nYear/100 + nYear/400 + nOffset[nMonth - 1] + nDay) % 7;
 }
+
 int qs::Time::getSystemTimeZone()
 {
 	static int nTimezone = -1;
