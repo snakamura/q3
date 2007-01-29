@@ -2413,7 +2413,7 @@ MacroValuePtr qm::MacroFunctionFormatDate::value(MacroContext* pContext) const
 	
 	if (!checkArgSizeRange(pContext, 2, 3))
 		return MacroValuePtr();
-
+	
 	size_t nSize = getArgSize();
 	
 	Time::Format format = Time::FORMAT_LOCAL;
@@ -2434,6 +2434,9 @@ MacroValuePtr qm::MacroFunctionFormatDate::value(MacroContext* pContext) const
 	MacroValue::String wstrFormat(pValueFormat->string());
 	
 	wstring_ptr wstrValue(pTime->getTime().format(wstrFormat.get(), format));
+	if (!wstrValue.get())
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
 	return MacroValueFactory::getFactory().newString(wstrValue);
 }
 
