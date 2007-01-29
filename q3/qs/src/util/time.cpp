@@ -20,6 +20,15 @@ using namespace qs;
  *
  */
 
+const WCHAR* qs::Time::pwszShortWeeks__[] = {
+	L"S",
+	L"M",
+	L"Tu",
+	L"W",
+	L"Th",
+	L"F",
+	L"S"
+};
 const WCHAR* qs::Time::pwszWeeks__[] = {
 	L"Sun",
 	L"Mon",
@@ -28,6 +37,15 @@ const WCHAR* qs::Time::pwszWeeks__[] = {
 	L"Thu",
 	L"Fri",
 	L"Sat"
+};
+const WCHAR* qs::Time::pwszLongWeeks__[] = {
+	L"Sunday",
+	L"Monday",
+	L"Tuesday",
+	L"Wednesday",
+	L"Thursday",
+	L"Friday",
+	L"Saturday"
 };
 const WCHAR* qs::Time::pwszMonths__[] = {
 	L"Jan",
@@ -42,6 +60,20 @@ const WCHAR* qs::Time::pwszMonths__[] = {
 	L"Oct",
 	L"Nov",
 	L"Dec"
+};
+const WCHAR* qs::Time::pwszLongMonths__[] = {
+	L"January",
+	L"February",
+	L"March",
+	L"April",
+	L"May",
+	L"June",
+	L"July",
+	L"August",
+	L"September",
+	L"October",
+	L"November",
+	L"December"
 };
 
 wstring_ptr qs::Time::wstrDefaultFormat__(allocWString(L"%Y4/%M0/%D %h:%m:%s"));
@@ -271,6 +303,9 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 				case L'1':
 					buf.append(pwszMonths__[time.wMonth - 1]);
 					break;
+				case L'2':
+					buf.append(pwszLongMonths__[time.wMonth - 1]);
+					break;
 				default:
 					return 0;
 				}
@@ -282,7 +317,23 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 				++p;
 				break;
 			case L'W':
-				buf.append(pwszWeeks__[time.wDayOfWeek]);
+				switch (*(p + 2)) {
+				case '0':
+					buf.append(pwszShortWeeks__[time.wDayOfWeek]);
+					++p;
+					break;
+				case '1':
+					buf.append(pwszWeeks__[time.wDayOfWeek]);
+					++p;
+					break;
+				case '2':
+					buf.append(pwszLongWeeks__[time.wDayOfWeek]);
+					++p;
+					break;
+				default:
+					buf.append(pwszWeeks__[time.wDayOfWeek]);
+					break;
+				}
 				++p;
 				break;
 			case L'h':

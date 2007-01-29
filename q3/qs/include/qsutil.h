@@ -165,8 +165,11 @@ private:
 	int nTimeZone_;
 
 private:
+	static const WCHAR* pwszShortWeeks__[];
 	static const WCHAR* pwszWeeks__[];
+	static const WCHAR* pwszLongWeeks__[];
 	static const WCHAR* pwszMonths__[];
+	static const WCHAR* pwszLongMonths__[];
 	static wstring_ptr wstrDefaultFormat__;
 };
 
