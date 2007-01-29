@@ -8,6 +8,7 @@
 *MessageOpenURLアクションを明示的に呼べるようにした
 *AddressCreateMessageアクションを追加
 *不正なContent-Typeが指定されていた場合には、application/octet-streamとして扱うようにした
+*リストビューの日付フォーマットで曜日が正しく表示されないのを修正
 
 [2.9.29]
 *リストビューの選択色などを指定できるようにした
