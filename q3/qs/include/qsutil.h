@@ -154,12 +154,21 @@ public:
 	static int getDayOfWeek(int nYear,
 							int nMonth,
 							int nDay);
+	static wstring_ptr getMonthName(int nMonth,
+									bool bLong);
+	static wstring_ptr getDayName(int nDayOfWeek,
+								  bool bLong);
 
 public:
 	static int getSystemTimeZone();
 	static Time getTransitionDate(const SYSTEMTIME& time);
+
+public:
 	static const WCHAR* getDefaultFormat();
 	static void setDefaultFormat(const WCHAR* pwszDefaultFormat);
+
+private:
+	static wstring_ptr getCalendarInfo(CALTYPE caltype);
 
 private:
 	int nTimeZone_;

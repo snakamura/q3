@@ -297,6 +297,15 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 				case L'2':
 					buf.append(pwszLongMonths__[time.wMonth - 1]);
 					break;
+				case '3':
+				case '4':
+					{
+						wstring_ptr wstr(getMonthName(time.wMonth, *(p + 2) == '4'));
+						if (!wstr.get())
+							return 0;
+						buf.append(wstr.get());
+					}
+					break;
 				default:
 					return 0;
 				}
@@ -316,6 +325,16 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 				case '1':
 					buf.append(pwszLongWeeks__[time.wDayOfWeek]);
 					++p;
+					break;
+				case '2':
+				case '3':
+					{
+						wstring_ptr wstr(getDayName(time.wDayOfWeek, *(p + 2) == '3'));
+						if (!wstr.get())
+							return 0;
+						buf.append(wstr.get());
+						++p;
+					}
 					break;
 				default:
 					buf.append(pwszWeeks__[time.wDayOfWeek]);
@@ -439,6 +458,58 @@ int qs::Time::getDayOfWeek(int nYear,
 	return (nYear + nYear/4 - nYear/100 + nYear/400 + nOffset[nMonth - 1] + nDay) % 7;
 }
 
+wstring_ptr qs::Time::getMonthName(int nMonth,
+								   bool bLong)
+{
+	assert(0 < nMonth && nMonth <= 12);
+	
+	const CALTYPE caltypeShort[] = {
+		CAL_SABBREVMONTHNAME1,
+		CAL_SABBREVMONTHNAME2,
+		CAL_SABBREVMONTHNAME3,
+		CAL_SABBREVMONTHNAME4,
+		CAL_SABBREVMONTHNAME5,
+		CAL_SABBREVMONTHNAME6,
+		CAL_SABBREVMONTHNAME7
+	};
+	const CALTYPE caltypeLong[] = {
+		CAL_SMONTHNAME1,
+		CAL_SMONTHNAME2,
+		CAL_SMONTHNAME3,
+		CAL_SMONTHNAME4,
+		CAL_SMONTHNAME5,
+		CAL_SMONTHNAME6,
+		CAL_SMONTHNAME7
+	};
+	return getCalendarInfo(bLong ? caltypeLong[nMonth - 1] : caltypeShort[nMonth - 1]);
+}
+
+wstring_ptr qs::Time::getDayName(int nDayOfWeek,
+								 bool bLong)
+{
+	assert(0 <= nDayOfWeek && nDayOfWeek < 7);
+	
+	const CALTYPE caltypeShort[] = {
+		CAL_SABBREVDAYNAME1,
+		CAL_SABBREVDAYNAME2,
+		CAL_SABBREVDAYNAME3,
+		CAL_SABBREVDAYNAME4,
+		CAL_SABBREVDAYNAME5,
+		CAL_SABBREVDAYNAME6,
+		CAL_SABBREVDAYNAME7
+	};
+	const CALTYPE caltypeLong[] = {
+		CAL_SDAYNAME1,
+		CAL_SDAYNAME2,
+		CAL_SDAYNAME3,
+		CAL_SDAYNAME4,
+		CAL_SDAYNAME5,
+		CAL_SDAYNAME6,
+		CAL_SDAYNAME7
+	};
+	return getCalendarInfo(bLong ? caltypeLong[nDayOfWeek] : caltypeShort[nDayOfWeek]);
+}
+
 int qs::Time::getSystemTimeZone()
 {
 	static int nTimezone = -1;
@@ -519,6 +590,19 @@ const WCHAR* qs::Time::getDefaultFormat()
 void qs::Time::setDefaultFormat(const WCHAR* pwszDefaultFormat)
 {
 	wstrDefaultFormat__ = allocWString(pwszDefaultFormat);
+}
+
+wstring_ptr qs::Time::getCalendarInfo(CALTYPE caltype)
+{
+	int nLen = ::GetCalendarInfo(LOCALE_USER_DEFAULT, CAL_GREGORIAN, caltype, 0, 0, 0);
+	if (nLen == 0)
+		return 0;
+	
+	wstring_ptr wstr(allocWString(nLen));
+	if (::GetCalendarInfo(LOCALE_USER_DEFAULT, CAL_GREGORIAN, caltype, wstr.get(), nLen, 0) == 0)
+		return 0;
+	
+	return wstr;
 }
 
 QSEXPORTPROC bool qs::operator==(const Time& lhs,
