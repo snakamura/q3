@@ -20,15 +20,6 @@ using namespace qs;
  *
  */
 
-const WCHAR* qs::Time::pwszShortWeeks__[] = {
-	L"S",
-	L"M",
-	L"Tu",
-	L"W",
-	L"Th",
-	L"F",
-	L"S"
-};
 const WCHAR* qs::Time::pwszWeeks__[] = {
 	L"Sun",
 	L"Mon",
@@ -319,14 +310,10 @@ wstring_ptr qs::Time::format(const WCHAR* pwszFormat,
 			case L'W':
 				switch (*(p + 2)) {
 				case '0':
-					buf.append(pwszShortWeeks__[time.wDayOfWeek]);
-					++p;
-					break;
-				case '1':
 					buf.append(pwszWeeks__[time.wDayOfWeek]);
 					++p;
 					break;
-				case '2':
+				case '1':
 					buf.append(pwszLongWeeks__[time.wDayOfWeek]);
 					++p;
 					break;
