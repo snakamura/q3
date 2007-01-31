@@ -168,7 +168,7 @@ public:
 	static void setDefaultFormat(const WCHAR* pwszDefaultFormat);
 
 private:
-	static wstring_ptr getCalendarInfo(CALTYPE caltype);
+	static wstring_ptr getLocaleInfo(LCTYPE type);
 
 private:
 	int nTimeZone_;

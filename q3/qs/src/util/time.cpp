@@ -464,24 +464,24 @@ wstring_ptr qs::Time::getMonthName(int nMonth,
 	assert(0 < nMonth && nMonth <= 12);
 	
 	const CALTYPE caltypeShort[] = {
-		CAL_SABBREVMONTHNAME1,
-		CAL_SABBREVMONTHNAME2,
-		CAL_SABBREVMONTHNAME3,
-		CAL_SABBREVMONTHNAME4,
-		CAL_SABBREVMONTHNAME5,
-		CAL_SABBREVMONTHNAME6,
-		CAL_SABBREVMONTHNAME7
+		LOCALE_SABBREVMONTHNAME1,
+		LOCALE_SABBREVMONTHNAME2,
+		LOCALE_SABBREVMONTHNAME3,
+		LOCALE_SABBREVMONTHNAME4,
+		LOCALE_SABBREVMONTHNAME5,
+		LOCALE_SABBREVMONTHNAME6,
+		LOCALE_SABBREVMONTHNAME7
 	};
 	const CALTYPE caltypeLong[] = {
-		CAL_SMONTHNAME1,
-		CAL_SMONTHNAME2,
-		CAL_SMONTHNAME3,
-		CAL_SMONTHNAME4,
-		CAL_SMONTHNAME5,
-		CAL_SMONTHNAME6,
-		CAL_SMONTHNAME7
+		LOCALE_SMONTHNAME1,
+		LOCALE_SMONTHNAME2,
+		LOCALE_SMONTHNAME3,
+		LOCALE_SMONTHNAME4,
+		LOCALE_SMONTHNAME5,
+		LOCALE_SMONTHNAME6,
+		LOCALE_SMONTHNAME7
 	};
-	return getCalendarInfo(bLong ? caltypeLong[nMonth - 1] : caltypeShort[nMonth - 1]);
+	return getLocaleInfo(bLong ? caltypeLong[nMonth - 1] : caltypeShort[nMonth - 1]);
 }
 
 wstring_ptr qs::Time::getDayName(int nDayOfWeek,
@@ -490,24 +490,24 @@ wstring_ptr qs::Time::getDayName(int nDayOfWeek,
 	assert(0 <= nDayOfWeek && nDayOfWeek < 7);
 	
 	const CALTYPE caltypeShort[] = {
-		CAL_SABBREVDAYNAME1,
-		CAL_SABBREVDAYNAME2,
-		CAL_SABBREVDAYNAME3,
-		CAL_SABBREVDAYNAME4,
-		CAL_SABBREVDAYNAME5,
-		CAL_SABBREVDAYNAME6,
-		CAL_SABBREVDAYNAME7
+		LOCALE_SABBREVDAYNAME1,
+		LOCALE_SABBREVDAYNAME2,
+		LOCALE_SABBREVDAYNAME3,
+		LOCALE_SABBREVDAYNAME4,
+		LOCALE_SABBREVDAYNAME5,
+		LOCALE_SABBREVDAYNAME6,
+		LOCALE_SABBREVDAYNAME7
 	};
 	const CALTYPE caltypeLong[] = {
-		CAL_SDAYNAME1,
-		CAL_SDAYNAME2,
-		CAL_SDAYNAME3,
-		CAL_SDAYNAME4,
-		CAL_SDAYNAME5,
-		CAL_SDAYNAME6,
-		CAL_SDAYNAME7
+		LOCALE_SDAYNAME1,
+		LOCALE_SDAYNAME2,
+		LOCALE_SDAYNAME3,
+		LOCALE_SDAYNAME4,
+		LOCALE_SDAYNAME5,
+		LOCALE_SDAYNAME6,
+		LOCALE_SDAYNAME7
 	};
-	return getCalendarInfo(bLong ? caltypeLong[nDayOfWeek] : caltypeShort[nDayOfWeek]);
+	return getLocaleInfo(bLong ? caltypeLong[nDayOfWeek] : caltypeShort[nDayOfWeek]);
 }
 
 int qs::Time::getSystemTimeZone()
@@ -592,14 +592,14 @@ void qs::Time::setDefaultFormat(const WCHAR* pwszDefaultFormat)
 	wstrDefaultFormat__ = allocWString(pwszDefaultFormat);
 }
 
-wstring_ptr qs::Time::getCalendarInfo(CALTYPE caltype)
+wstring_ptr qs::Time::getLocaleInfo(LCTYPE type)
 {
-	int nLen = ::GetCalendarInfo(LOCALE_USER_DEFAULT, CAL_GREGORIAN, caltype, 0, 0, 0);
+	int nLen = ::GetLocaleInfo(LOCALE_USER_DEFAULT, type, 0, 0);
 	if (nLen == 0)
 		return 0;
 	
 	wstring_ptr wstr(allocWString(nLen));
-	if (::GetCalendarInfo(LOCALE_USER_DEFAULT, CAL_GREGORIAN, caltype, wstr.get(), nLen, 0) == 0)
+	if (::GetLocaleInfo(LOCALE_USER_DEFAULT, type, wstr.get(), nLen) == 0)
 		return 0;
 	
 	return wstr;
