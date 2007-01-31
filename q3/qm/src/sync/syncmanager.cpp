@@ -898,8 +898,9 @@ bool qm::SyncManager::syncFolder(Document* pDocument,
 		}
 		RuleManager* pRuleManager = pDocument->getRuleManager();
 		RuleCallbackImpl callback(pSyncManagerCallback, nId);
-		return pRuleManager->applyAuto(pFolder, &l, pDocument,
-			pProfile_, RuleManager::AUTOFLAG_EXISTING, &callback);
+		if (!pRuleManager->applyAuto(pFolder, &l, pDocument,
+			pProfile_, RuleManager::AUTOFLAG_EXISTING, &callback))
+			return false;
 	}
 	
 	Account* pAccount = pItem->getAccount();
