@@ -6,6 +6,7 @@
  *
  */
 
+#include <qsconv.h>
 #include <qsregex.h>
 #include <qsutil.h>
 
@@ -598,11 +599,15 @@ wstring_ptr qs::Time::getLocaleInfo(LCTYPE type)
 	if (nLen == 0)
 		return 0;
 	
-	wstring_ptr wstr(allocWString(nLen));
-	if (::GetLocaleInfo(LOCALE_USER_DEFAULT, type, wstr.get(), nLen) == 0)
+	tstring_ptr tstr(allocTString(nLen));
+	if (::GetLocaleInfo(LOCALE_USER_DEFAULT, type, tstr.get(), nLen) == 0)
 		return 0;
-	
-	return wstr;
+
+#ifdef UNICODE
+	return tstr;
+#else
+	return tcs2wcs(tstr.get());
+#endif
 }
 
 QSEXPORTPROC bool qs::operator==(const Time& lhs,
