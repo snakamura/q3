@@ -65,18 +65,14 @@ element label {
 		"add|remove"
 	}?,
 	## ラベル
-	attribute label {
-		xsd:string
-	}
+	xsd:string
 } |
 element deleteCache {
 	empty
 } |
 element apply {
 	## 実行するマクロ
-	attribute macro {
-		xsd:string
-	}
+	xsd:string
 }
 
 template = element template {

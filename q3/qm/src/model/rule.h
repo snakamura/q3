@@ -509,6 +509,9 @@ private:
 	RuleSet* pCurrentRuleSet_;
 	CopyRuleAction* pCurrentCopyRuleAction_;
 	qs::wstring_ptr wstrTemplateArgumentName_;
+	Util::LabelType labelType_;
+	qs::wstring_ptr wstrLabel_;
+	qs::wstring_ptr wstrApply_;
 	std::auto_ptr<Macro> pCondition_;
 	unsigned int nUse_;
 	bool bContinue_;

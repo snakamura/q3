@@ -1516,6 +1516,7 @@ qm::RuleContentHandler::RuleContentHandler(RuleManager* pManager) :
 	state_(STATE_ROOT),
 	pCurrentRuleSet_(0),
 	pCurrentCopyRuleAction_(0),
+	labelType_(Util::LABELTYPE_SET),
 	nUse_(0),
 	bContinue_(false)
 {
@@ -1716,6 +1717,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		assert(pCondition_.get());
 		
+		// TODO
+		// Accept label attribute for compatibility.
+		// Remove it in the future.
 		const WCHAR* pwszType = 0;
 		const WCHAR* pwszLabel = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
@@ -1727,8 +1731,6 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else
 				return false;
 		}
-		if (!pwszLabel)
-			return false;
 		
 		Util::LabelType type = Util::LABELTYPE_SET;
 		if (pwszType) {
@@ -1742,11 +1744,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				return false;
 		}
 		
-		std::auto_ptr<RuleAction> pAction(new LabelRuleAction(type, pwszLabel));
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, bContinue_, wstrDescription_.get()));
-		wstrDescription_.reset(0);
-		pCurrentRuleSet_->addRule(pRule);
+		labelType_ = type;
+		if (pwszLabel)
+			wstrLabel_ = allocWString(pwszLabel);
 		
 		state_ = STATE_LABEL;
 	}
@@ -1768,6 +1768,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		assert(pCondition_.get());
 		
+		// TODO
+		// Accept macro attribute for compatibility.
+		// Remove it in the future.
 		const WCHAR* pwszMacro = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
@@ -1776,18 +1779,9 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else
 				return false;
 		}
-		if (!pwszMacro)
-			return false;
 		
-		std::auto_ptr<Macro> pMacroApply(MacroParser().parse(pwszMacro));
-		if (!pMacroApply.get())
-			return false;
-		
-		std::auto_ptr<RuleAction> pAction(new ApplyRuleAction(pMacroApply));
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, bContinue_, wstrDescription_.get()));
-		wstrDescription_.reset(0);
-		pCurrentRuleSet_->addRule(pRule);
+		if (pwszMacro)
+			wstrApply_ = allocWString(pwszMacro);
 		
 		state_ = STATE_APPLY;
 	}
@@ -1852,6 +1846,18 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	}
 	else if (wcscmp(pwszLocalName, L"label") == 0) {
 		assert(state_ == STATE_LABEL);
+		
+		if (!wstrLabel_.get())
+			wstrLabel_ = buffer_.getString();
+		
+		std::auto_ptr<RuleAction> pAction(new LabelRuleAction(labelType_, wstrLabel_.get()));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
+			pAction, nUse_, bContinue_, wstrDescription_.get()));
+		labelType_ = Util::LABELTYPE_SET;
+		wstrLabel_.reset(0);
+		wstrDescription_.reset(0);
+		pCurrentRuleSet_->addRule(pRule);
+		
 		state_ = STATE_RULE;
 	}
 	else if (wcscmp(pwszLocalName, L"deleteCache") == 0) {
@@ -1860,6 +1866,21 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 	}
 	else if (wcscmp(pwszLocalName, L"apply") == 0) {
 		assert(state_ == STATE_APPLY);
+		
+		if (!wstrApply_.get())
+			wstrApply_ = buffer_.getString();
+		
+		std::auto_ptr<Macro> pMacroApply(MacroParser().parse(wstrApply_.get()));
+		if (!pMacroApply.get())
+			return false;
+		
+		std::auto_ptr<RuleAction> pAction(new ApplyRuleAction(pMacroApply));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
+			pAction, nUse_, bContinue_, wstrDescription_.get()));
+		wstrApply_.reset(0);
+		wstrDescription_.reset(0);
+		pCurrentRuleSet_->addRule(pRule);
+		
 		state_ = STATE_RULE;
 	}
 	else {
@@ -1873,7 +1894,9 @@ bool qm::RuleContentHandler::characters(const WCHAR* pwsz,
 										size_t nStart,
 										size_t nLength)
 {
-	if (state_ == STATE_ARGUMENT) {
+	if (state_ == STATE_ARGUMENT ||
+		state_ == STATE_LABEL ||
+		state_ == STATE_APPLY) {
 		buffer_.append(pwsz + nStart, nLength);
 	}
 	else {
@@ -2085,11 +2108,12 @@ bool qm::RuleWriter::write(const LabelRuleAction* pAction)
 		return false;
 	}
 	const SimpleAttributes::Item items[] = {
-		{ L"type",	pwszType,				pwszType == 0	},
-		{ L"label",	pAction->getLabel(),	false			}
+		{ L"type",	pwszType,	pwszType == 0	}
 	};
 	SimpleAttributes attrs(items, countof(items));
+	const WCHAR* pwszLabel = pAction->getLabel();
 	return handler_.startElement(0, 0, L"label", attrs) &&
+		handler_.characters(pwszLabel, 0, wcslen(pwszLabel)) &&
 		handler_.endElement(0, 0, L"label");
 }
 
@@ -2102,7 +2126,7 @@ bool qm::RuleWriter::write(const DeleteCacheRuleAction* pAction)
 bool qm::RuleWriter::write(const ApplyRuleAction* pAction)
 {
 	wstring_ptr wstrMacro(pAction->getMacro()->getString());
-	SimpleAttributes attrs(L"macro", wstrMacro.get());
-	return handler_.startElement(0, 0, L"apply", attrs) &&
+	return handler_.startElement(0, 0, L"apply", DefaultAttributes()) &&
+		handler_.characters(wstrMacro.get(), 0, wcslen(wstrMacro.get())) &&
 		handler_.endElement(0, 0, L"apply");
 }

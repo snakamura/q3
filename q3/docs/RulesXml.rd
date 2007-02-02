@@ -102,10 +102,11 @@ deleteƒGƒŒƒƒ“ƒg‚ÍAíœƒRƒ}ƒ“ƒh‚ğw’è‚µ‚Ü‚·B‚±‚ÌƒAƒNƒVƒ‡ƒ“‚Í‘ÎÛ‚ÌƒƒbƒZ[ƒW‚ğ
 ===labelƒGƒŒƒƒ“ƒg
 
  <label
-  type="add|remove"
-  label="ƒ‰ƒxƒ‹"/>
+  type="add|remove">
+  ƒ‰ƒxƒ‹
+ </label>
 
-labelƒGƒŒƒƒ“ƒg‚ÍAƒ‰ƒxƒ‹İ’èƒRƒ}ƒ“ƒh‚ğw’è‚µ‚Ü‚·Btype‘®«‚ªw’è‚³‚ê‚È‚©‚Á‚½ê‡‚É‚Ílabel‘®«‚Åw’è‚³‚ê‚½ƒ‰ƒxƒ‹‚ğİ’è‚µ‚Ü‚·Btype‘®«‚Éadd‚ğw’è‚·‚é‚Ælabel‘®«‚Åw’è‚³‚ê‚½ƒ‰ƒxƒ‹‚ğ’Ç‰Á‚µAremove‚ğw’è‚·‚é‚Æíœ‚µ‚Ü‚·B
+labelƒGƒŒƒƒ“ƒg‚ÍAƒ‰ƒxƒ‹İ’èƒRƒ}ƒ“ƒh‚ğw’è‚µ‚Ü‚·Btype‘®«‚ªw’è‚³‚ê‚È‚©‚Á‚½ê‡‚É‚Íw’è‚³‚ê‚½ƒ‰ƒxƒ‹‚ğİ’è‚µ‚Ü‚·Btype‘®«‚Éadd‚ğw’è‚·‚é‚Æw’è‚³‚ê‚½ƒ‰ƒxƒ‹‚ğ’Ç‰Á‚µAremove‚ğw’è‚·‚é‚Æíœ‚µ‚Ü‚·B
 
 
 ===deleteCacheƒGƒŒƒƒ“ƒg
@@ -117,10 +118,11 @@ deleteCacheƒGƒŒƒƒ“ƒg‚ÍAƒLƒƒƒbƒVƒ…íœƒRƒ}ƒ“ƒh‚ğw’è‚µ‚Ü‚·B‚±‚ÌƒAƒNƒVƒ‡ƒ“‚Íƒƒ
 
 ===applyƒGƒŒƒƒ“ƒg
 
- <apply
-  macro="Às‚·‚éƒ}ƒNƒ"/>
+ <apply>
+  Às‚·‚éƒ}ƒNƒ
+ </apply>
 
-applyƒGƒŒƒƒ“ƒg‚Íƒ}ƒNƒ‚ÌÀs‚ğw’è‚µ‚Ü‚·B‘ÎÛ‚ÌƒƒbƒZ[ƒW‚É‘Î‚µ‚Ämacro‘®«‚Åw’è‚³‚ê‚½ƒ}ƒNƒ‚ğÀs‚µ‚Ü‚·B
+applyƒGƒŒƒƒ“ƒg‚Íƒ}ƒNƒ‚ÌÀs‚ğw’è‚µ‚Ü‚·B‘ÎÛ‚ÌƒƒbƒZ[ƒW‚É‘Î‚µ‚Äw’è‚³‚ê‚½ƒ}ƒNƒ‚ğÀs‚µ‚Ü‚·B
 
 
 ==ƒTƒ“ƒvƒ‹
@@ -216,18 +218,14 @@ applyƒGƒŒƒƒ“ƒg‚Íƒ}ƒNƒ‚ÌÀs‚ğw’è‚µ‚Ü‚·B‘ÎÛ‚ÌƒƒbƒZ[ƒW‚É‘Î‚µ‚Ämacro‘®«‚Åw
      "add|remove"
    }?,
    ## ƒ‰ƒxƒ‹
-   attribute label {
-     xsd:string
-   }
+   xsd:string
  } |
  element deleteCache {
    empty
  } |
  element apply {
    ## Às‚·‚éƒ}ƒNƒ
-   attribute macro {
-     xsd:string
-   }
+   xsd:string
  }
  
  template = element template {
