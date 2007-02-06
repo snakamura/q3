@@ -227,8 +227,14 @@ qmscript::ActiveScriptSite::ActiveScriptSite(const ScriptFactory::Init& init) :
 	std::auto_ptr<MainWindowObj> pMainWindowObj;
 	std::auto_ptr<EditFrameWindowObj> pEditFrameWindowObj;
 	std::auto_ptr<MessageFrameWindowObj> pMessageFrameWindowObj;
+	std::auto_ptr<ActionTargetObj> pActionTargetObj;
 	switch (init.type_) {
 	case ScriptFactory::TYPE_NONE:
+		if (init.pActionInvoker_) {
+			pActionTargetObj.reset(new ActionTargetObj());
+			pActionTargetObj->init(init.pActionInvoker_);
+			pActionTargetObj->AddRef();
+		}
 		break;
 	case ScriptFactory::TYPE_MAIN:
 		pMainWindowObj.reset(new MainWindowObj());
@@ -261,6 +267,7 @@ qmscript::ActiveScriptSite::ActiveScriptSite(const ScriptFactory::Init& init) :
 		pEditFrameWindow_ = ComPtr<IEditFrameWindow>(pEditFrameWindowObj.release());
 	if (pMessageFrameWindowObj.get())
 		pMessageFrameWindow_ = ComPtr<IMessageFrameWindow>(pMessageFrameWindowObj.release());
+	pActionTarget_ = ComPtr<IActionTarget>(pActionTargetObj.release());
 }
 
 qmscript::ActiveScriptSite::~ActiveScriptSite()
@@ -331,6 +338,8 @@ STDMETHODIMP qmscript::ActiveScriptSite::GetItemInfo(LPCOLESTR pwszName,
 		pActionTarget = pEditFrameWindow_.get();
 	else if (pMessageFrameWindow_.get())
 		pActionTarget = pMessageFrameWindow_.get();
+	else if (pActionTarget_.get())
+		pActionTarget = pActionTarget_.get();
 	
 	struct {
 		const WCHAR* pwszName_;

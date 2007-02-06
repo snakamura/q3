@@ -4846,8 +4846,9 @@ MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 	MacroValue::String wstrLanguage(pValueLanguage->string());
 	
 	ScriptManager* pScriptManager = pContext->getDocument()->getScriptManager();
-	std::auto_ptr<Script> pScript(pScriptManager->createScript(wstrScript.get(),
-		wstrLanguage.get(), pContext->getDocument(), pContext->getProfile(),
+	std::auto_ptr<Script> pScript(pScriptManager->createScript(
+		wstrScript.get(), wstrLanguage.get(), pContext->getDocument(),
+		pContext->getActionInvoker(), pContext->getProfile(),
 		pContext->getWindow(), InitThread::getInitThread().getModalHandler()));
 	if (!pScript.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);

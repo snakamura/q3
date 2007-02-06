@@ -20,6 +20,9 @@
 
 namespace qm {
 
+class ScriptManager;
+
+
 /****************************************************************************
  *
  * ScriptManager
@@ -63,6 +66,7 @@ public:
 	std::auto_ptr<Script> createScript(const WCHAR* pwszScript,
 									   const WCHAR* pwszLanguage,
 									   Document* pDocument,
+									   const ActionInvoker* pActionInvoker,
 									   qs::Profile* pProfile,
 									   HWND hwnd,
 									   qs::ModalHandler* pModalHandler) const;

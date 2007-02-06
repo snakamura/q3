@@ -6,6 +6,10 @@
  *
  */
 
+#include <qmeditwindow.h>
+#include <qmmainwindow.h>
+#include <qmmessagewindow.h>
+
 #include <qsconv.h>
 #include <qsosutil.h>
 #include <qsstream.h>
@@ -90,6 +94,7 @@ std::auto_ptr<Script> qm::ScriptManager::getScript(const WCHAR* pwszName,
 		0,
 		pModalHandler,
 		ScriptFactory::TYPE_NONE,
+		0,
 		0
 	};
 	
@@ -152,10 +157,17 @@ void qm::ScriptManager::getScriptNames(NameList* pList) const
 std::auto_ptr<Script> qm::ScriptManager::createScript(const WCHAR* pwszScript,
 													  const WCHAR* pwszLanguage,
 													  Document* pDocument,
+													  const ActionInvoker* pActionInvoker,
 													  Profile* pProfile,
 													  HWND hwnd,
 													  ModalHandler* pModalHandler) const
 {
+	assert(pwszScript);
+	assert(pwszLanguage);
+	assert(pDocument);
+	assert(pProfile);
+	assert(pModalHandler);
+	
 	ScriptFactory* pFactory = ScriptFactory::getFactory();
 	if (!pFactory)
 		return std::auto_ptr<Script>(0);
@@ -170,7 +182,9 @@ std::auto_ptr<Script> qm::ScriptManager::createScript(const WCHAR* pwszScript,
 		pProfile,
 		hwnd,
 		pModalHandler,
-		ScriptFactory::TYPE_NONE
+		ScriptFactory::TYPE_NONE,
+		0,
+		pActionInvoker
 	};
 	return pFactory->createScript(init);
 }

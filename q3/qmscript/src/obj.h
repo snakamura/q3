@@ -52,6 +52,7 @@ class MessageImpl;
 class MainWindowImpl;
 class EditFrameWindowImpl;
 class MessageFrameWindowImpl;
+class ActionTargetImpl;
 class MacroImpl;
 class ArgumentListImpl;
 class ResultImpl;
@@ -160,7 +161,9 @@ private:
  */
 
 template<class T>
-class ClassFactoryImpl : public ObjectBase, public IClassFactory
+class ClassFactoryImpl :
+	public ObjectBase,
+	public IClassFactory
 {
 protected:
 	ClassFactoryImpl();
@@ -373,7 +376,9 @@ typedef DispObject<AccountImpl, IAccount, &IID_IAccount> AccountObj;
  *
  */
 
-class AccountListImpl : public ObjectBase, public IAccountList
+class AccountListImpl :
+	public ObjectBase,
+	public IAccountList
 {
 protected:
 	AccountListImpl();
@@ -627,7 +632,9 @@ typedef DispObject<MessageHolderListImpl, IMessageHolderList, &IID_IMessageHolde
  *
  */
 
-class MessageImpl : public ObjectBase, public IMessage
+class MessageImpl :
+	public ObjectBase,
+	public IMessage
 {
 protected:
 	MessageImpl();
@@ -774,11 +781,49 @@ typedef DispObject<ActionInvokeHelper<MessageFrameWindowImpl>,
 
 /****************************************************************************
  *
+ * ActionTargetImpl
+ *
+ */
+
+class ActionTargetImpl :
+	public ObjectBase,
+	public IActionTarget
+{
+protected:
+	ActionTargetImpl();
+	~ActionTargetImpl();
+
+public:
+	void init(const qm::ActionInvoker* pActionInvoker);
+
+protected:
+	virtual HRESULT internalQueryInterface(REFIID riid,
+										   void** ppv);
+
+protected:
+	const qm::ActionInvoker* getActionInvoker() const;
+
+private:
+	ActionTargetImpl(const ActionTargetImpl&);
+	ActionTargetImpl& operator=(const ActionTargetImpl&);
+
+private:
+	const qm::ActionInvoker* pActionInvoker_;
+};
+
+typedef DispObject<ActionInvokeHelper<ActionTargetImpl>,
+	IActionTarget, &IID_IActionTarget> ActionTargetObj;
+
+
+/****************************************************************************
+ *
  * MacroImpl
  *
  */
 
-class MacroImpl : public ObjectBase, public IMacro
+class MacroImpl :
+	public ObjectBase,
+	public IMacro
 {
 protected:
 	MacroImpl();
@@ -828,7 +873,9 @@ typedef DispObject<MacroImpl, IMacro, &IID_IMacro> MacroObj;
  *
  */
 
-class MacroParserImpl : public ObjectBase, public IMacroParser
+class MacroParserImpl :
+	public ObjectBase,
+	public IMacroParser
 {
 protected:
 	MacroParserImpl();
@@ -908,7 +955,9 @@ typedef DispObject<ArgumentListImpl, IArgumentList, &IID_IArgumentList> Argument
  *
  */
 
-class ResultImpl : public ObjectBase, public IResult
+class ResultImpl :
+	public ObjectBase,
+	public IResult
 {
 protected:
 	ResultImpl();

@@ -921,6 +921,40 @@ const ActionInvoker* qmscript::MessageFrameWindowImpl::getActionInvoker() const
 
 /****************************************************************************
  *
+ * ActionTargetImpl
+ *
+ */
+
+qmscript::ActionTargetImpl::ActionTargetImpl() :
+	pActionInvoker_(0)
+{
+}
+
+qmscript::ActionTargetImpl::~ActionTargetImpl()
+{
+}
+
+void qmscript::ActionTargetImpl::init(const ActionInvoker* pActionInvoker)
+{
+	pActionInvoker_ = pActionInvoker;
+}
+
+HRESULT qmscript::ActionTargetImpl::internalQueryInterface(REFIID riid,
+													 void** ppv)
+{
+	BEGIN_INTERFACE_MAP()
+		INTERFACE_ENTRY(IID_IActionTarget, IActionTarget)
+	END_INTERFACE_MAP()
+}
+
+const ActionInvoker* qmscript::ActionTargetImpl::getActionInvoker() const
+{
+	return pActionInvoker_;
+}
+
+
+/****************************************************************************
+ *
  * MacroImpl
  *
  */

@@ -142,6 +142,7 @@ private:
 	qs::ComPtr<IMainWindow> pMainWindow_;
 	qs::ComPtr<IEditFrameWindow> pEditFrameWindow_;
 	qs::ComPtr<IMessageFrameWindow> pMessageFrameWindow_;
+	qs::ComPtr<IActionTarget> pActionTarget_;
 };
 
 

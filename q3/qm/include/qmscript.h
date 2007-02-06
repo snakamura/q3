@@ -9,10 +9,7 @@
 #ifndef __QMSCRIPT_H__
 #define __QMSCRIPT_H__
 
-#include <qmeditwindow.h>
-#include <qmdocument.h>
-#include <qmmainwindow.h>
-#include <qmmessagewindow.h>
+#include <qm.h>
 
 #include <qs.h>
 #include <qsprofile.h>
@@ -21,6 +18,16 @@
 
 
 namespace qm {
+
+class Script;
+class ScriptFactory;
+
+class ActionInvoker;
+class EditFrameWindow;
+class Document;
+class MainWindow;
+class MessageFrameWindow;
+
 
 /****************************************************************************
  *
@@ -71,6 +78,7 @@ public:
 			qm::EditFrameWindow* pEditFrameWindow_;
 			qm::MessageFrameWindow* pMessageFrameWindow_;
 		} window_;
+		const ActionInvoker* pActionInvoker_;
 	};
 
 protected:
