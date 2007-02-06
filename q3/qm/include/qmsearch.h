@@ -28,6 +28,7 @@ class SearchContext;
 
 class Account;
 class AccountLock;
+class ActionInvoker;
 class Document;
 class Folder;
 
@@ -197,6 +198,7 @@ public:
 	static std::auto_ptr<SearchDriver> getDriver(const WCHAR* pwszName,
 												 Document* pDocument,
 												 Account* pAccount,
+												 ActionInvoker* pActionInvoker,
 												 HWND hwnd,
 												 qs::Profile* pProfile);
 	static std::auto_ptr<SearchUI> getUI(const WCHAR* pwszName,
@@ -207,6 +209,7 @@ public:
 protected:
 	virtual std::auto_ptr<SearchDriver> createDriver(Document* pDocument,
 													 Account* pAccount,
+													 ActionInvoker* pActionInvoker,
 													 HWND hwnd,
 													 qs::Profile* pProfile) = 0;
 	virtual std::auto_ptr<SearchUI> createUI(Account* pAccount,

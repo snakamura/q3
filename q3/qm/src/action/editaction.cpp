@@ -314,12 +314,14 @@ qm::EditEditPasteWithQuoteAction::EditEditPasteWithQuoteAction(Document* pDocume
 															   EditMessageHolder* pEditMessageHolder,
 															   TextWindow* pTextWindow,
 															   SecurityModel* pSecurityModel,
+															   const ActionInvoker* pActionInvoker,
 															   Profile* pProfile,
 															   HWND hwnd) :
 	pDocument_(pDocument),
 	pEditMessageHolder_(pEditMessageHolder),
 	pTextWindow_(pTextWindow),
 	pSecurityModel_(pSecurityModel),
+	pActionInvoker_(pActionInvoker),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -345,8 +347,9 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		const TemplateManager* pManager = pDocument_->getTemplateManager();
 		const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
 		if (pTemplate) {
-			TemplateContext context(mpl, &msg, MessageHolderList(), pFolder, pAccount,
-				pDocument_, hwnd_, 0, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+			TemplateContext context(mpl, &msg, MessageHolderList(),
+				pFolder, pAccount, pDocument_, pActionInvoker_, hwnd_, 0,
+				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 			switch (pTemplate->getValue(context, &wstrMessage)) {
 			case Template::RESULT_SUCCESS:

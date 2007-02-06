@@ -129,6 +129,7 @@ public:
 	MessageViewModeHolder* pMessageViewModeHolder_;
 	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
+	const ActionInvoker* pActionInvoker_;
 	HeaderWindow* pHeaderWindow_;
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
@@ -308,8 +309,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			// TODO
 			// Get selected
 			TemplateContext context(pmh, pmh ? &msg : 0, MessageHolderList(), pFolder,
-				pAccount, pDocument_, pThis_->getHandle(), pEncodingModel_->getEncoding(),
-				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+				pAccount, pDocument_, pActionInvoker_, pThis_->getHandle(),
+				pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 			pHeaderWindow_->setMessage(&context);
 		}
@@ -789,6 +790,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pEncodingModel_->addEncodingModelHandler(pImpl_);
 	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
 	pImpl_->pSecurityModel_->addSecurityModelHandler(pImpl_);
+	pImpl_->pActionInvoker_ = pContext->pActionInvoker_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -809,8 +811,8 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	const MessageWindowFontGroup* pFontGroup = pContext->pFontManager_->getGroup(
 		pImpl_->pProfile_->getString(pImpl_->pwszSection_, L"FontGroup").get());
 	std::auto_ptr<MessageViewWindowFactory> pFactory(
-		new MessageViewWindowFactory(this, pImpl_->pDocument_,
-			pImpl_->pProfile_, pImpl_->pwszSection_, pImpl_->pMessageModel_,
+		new MessageViewWindowFactory(this, pImpl_->pDocument_, pImpl_->pProfile_,
+			pImpl_->pwszSection_, pImpl_->pMessageModel_, pImpl_->pActionInvoker_,
 			pContext->pUIManager_->getMenuManager(), pFontGroup, pImpl_, false));
 	pImpl_->pFactory_ = pFactory;
 	

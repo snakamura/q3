@@ -24,6 +24,7 @@ class Template;
 class TemplateContext;
 class TemplateParser;
 
+class ActionInvoker;
 class Message;
 class MessageHolderBase;
 class Account;
@@ -94,6 +95,7 @@ public:
 					Folder* pFolder,
 					Account* pAccount,
 					Document* pDocument,
+					const ActionInvoker* pActionInvoker,
 					HWND hwnd,
 					const WCHAR* pwszBodyCharset,
 					unsigned int nSecurityMode,
@@ -110,6 +112,7 @@ public:
 	Folder* getFolder() const;
 	Account* getAccount() const;
 	Document* getDocument() const;
+	const ActionInvoker* getActionInvoker() const;
 	HWND getWindow() const;
 	const WCHAR* getBodyCharset() const;
 	unsigned int getMacroFlags() const;
@@ -129,6 +132,7 @@ private:
 	Folder* pFolder_;
 	Account* pAccount_;
 	Document* pDocument_;
+	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::wstring_ptr wstrBodyCharset_;
 	unsigned int nMacroFlags_;

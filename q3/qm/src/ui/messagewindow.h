@@ -63,6 +63,7 @@ struct MessageWindowCreateContext
 	MessageViewModeHolder* pMessageViewModeHolder_;
 	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
+	const ActionInvoker* pActionInvoker_;
 	MessageWindowFontManager* pFontManager_;
 };
 

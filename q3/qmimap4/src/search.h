@@ -134,6 +134,7 @@ public:
 protected:
 	virtual std::auto_ptr<qm::SearchDriver> createDriver(qm::Document* pDocument,
 														 qm::Account* pAccount,
+														 qm::ActionInvoker* pActionInvoker,
 														 HWND hwnd,
 														 qs::Profile* pProfile);
 	virtual std::auto_ptr<qm::SearchUI> createUI(qm::Account* pAccount,

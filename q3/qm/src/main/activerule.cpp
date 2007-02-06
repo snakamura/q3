@@ -26,10 +26,12 @@ using namespace qs;
 
 qm::ActiveRuleInvoker::ActiveRuleInvoker(Document* pDocument,
 										 SecurityModel* pSecurityModel,
+										 const ActionInvoker* pActionInvoker,
 										 HWND hwnd,
 										 Profile* pProfile) :
 	pDocument_(pDocument),
 	pSecurityModel_(pSecurityModel),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -102,9 +104,9 @@ unsigned int qm::ActiveRuleInvoker::applyRules(Folder* pFolder,
 {
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	unsigned int nResultFlags = 0;
-	if (!pRuleManager->applyActive(pFolder, listMessageHolder,
-		pDocument_, hwnd_, pProfile_, pSecurityModel_->getSecurityMode(),
-		bBackground, &nResultFlags))
+	if (!pRuleManager->applyActive(pFolder, listMessageHolder, pDocument_,
+		bBackground ? 0 : pActionInvoker_, hwnd_, pProfile_,
+		pSecurityModel_->getSecurityMode(), bBackground, &nResultFlags))
 		nResultFlags |= Account::RESULTFLAG_ALL;
 	return nResultFlags;
 }

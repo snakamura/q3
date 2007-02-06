@@ -44,6 +44,7 @@ class MacroValuePtr;
 class MacroFactory;
 
 class Account;
+class ActionInvoker;
 class Document;
 class MacroExpr;
 	class MacroFunction;
@@ -168,6 +169,7 @@ public:
 				 const MessageHolderList& listSelected,
 				 Folder* pFolder,
 				 Document* pDocument,
+				 const ActionInvoker* pActionInvoker,
 				 HWND hwnd,
 				 qs::Profile* pProfile,
 				 const WCHAR* pwszBodyCharset,
@@ -190,6 +192,7 @@ public:
 	const MessageHolderList& getSelectedMessageHolders() const;
 	Folder* getFolder() const;
 	Document* getDocument() const;
+	const ActionInvoker* getActionInvoker() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	const WCHAR* getBodyCharset() const;

@@ -139,6 +139,7 @@ public:
 protected:
 	virtual std::auto_ptr<SearchDriver> createDriver(Document* pDocument,
 													 Account* pAccount,
+													 ActionInvoker* pActionInvoker,
 													 HWND hwnd,
 													 qs::Profile* pProfile);
 	virtual std::auto_ptr<SearchUI> createUI(Account* pAccount,

@@ -215,6 +215,7 @@ const WCHAR* qm::MacroTokenizer::getLastPosition() const
 qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected,
 										   Folder* pFolder,
 										   Document* pDocument,
+										   const ActionInvoker* pActionInvoker,
 										   HWND hwnd,
 										   Profile* pProfile,
 										   const WCHAR* pwszBodyCharset,
@@ -225,6 +226,7 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 	listSelected_(listSelected),
 	pFolder_(pFolder),
 	pDocument_(pDocument),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	nSecurityMode_(nSecurityMode),
@@ -262,6 +264,11 @@ Folder* qm::MacroGlobalContext::getFolder() const
 Document* qm::MacroGlobalContext::getDocument() const
 {
 	return pDocument_;
+}
+
+const ActionInvoker* qm::MacroGlobalContext::getActionInvoker() const
+{
+	return pActionInvoker_;
 }
 
 HWND qm::MacroGlobalContext::getWindow() const
@@ -1665,6 +1672,7 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 							   const MessageHolderList& listSelected,
 							   Folder* pFolder,
 							   Document* pDocument,
+							   const ActionInvoker* pActionInvoker,
 							   HWND hwnd,
 							   Profile* pProfile,
 							   const WCHAR* pwszBodyCharset,
@@ -1687,9 +1695,9 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	assert(hwnd || !(nFlags & FLAG_UI));
 	assert(pProfile);
 	
-	pGlobalContext_ = new MacroGlobalContext(listSelected, pFolder,
-		pDocument, hwnd, pProfile, pwszBodyCharset, nFlags & FLAG_GLOBAL_MASK,
-		nSecurityMode, pErrorHandler, pGlobalVariable);
+	pGlobalContext_ = new MacroGlobalContext(listSelected, pFolder, pDocument,
+		pActionInvoker, hwnd, pProfile, pwszBodyCharset,
+		nFlags & FLAG_GLOBAL_MASK, nSecurityMode, pErrorHandler, pGlobalVariable);
 }
 
 qm::MacroContext::MacroContext(MessageHolderBase* pmh,
@@ -1788,6 +1796,11 @@ Folder* qm::MacroContext::getFolder() const
 Document* qm::MacroContext::getDocument() const
 {
 	return pGlobalContext_->getDocument();
+}
+
+const ActionInvoker* qm::MacroContext::getActionInvoker() const
+{
+	return pGlobalContext_->getActionInvoker();
 }
 
 HWND qm::MacroContext::getWindow() const

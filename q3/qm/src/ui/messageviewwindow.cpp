@@ -79,6 +79,7 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(MessageWindow* pMessageWi
 													   Profile* pProfile,
 													   const WCHAR* pwszSection,
 													   MessageModel* pMessageModel,
+													   const ActionInvoker* pActionInvoker,
 													   MenuManager* pMenuManager,
 													   const MessageWindowFontGroup* pFontGroup,
 													   MessageViewWindowCallback* pCallback,
@@ -98,8 +99,8 @@ qm::MessageViewWindowFactory::MessageViewWindowFactory(MessageWindow* pMessageWi
 	pText_(0)
 #endif
 {
-	pText_ = new TextMessageViewWindow(pDocument_, pProfile_,
-		pwszSection_, pMessageModel_, pMenuManager_, pFontGroup);
+	pText_ = new TextMessageViewWindow(pDocument_, pProfile_, pwszSection_,
+		pMessageModel_, pActionInvoker, pMenuManager_, pFontGroup);
 }
 
 qm::MessageViewWindowFactory::~MessageViewWindowFactory()
@@ -222,12 +223,14 @@ qm::TextMessageViewWindow::TextMessageViewWindow(Document* pDocument,
 												 Profile* pProfile,
 												 const WCHAR* pwszSection,
 												 MessageModel* pMessageModel,
+												 const ActionInvoker* pActionInvoker,
 												 MenuManager* pMenuManager,
 												 const MessageWindowFontGroup* pFontGroup) :
 	TextWindow(0, pProfile, pwszSection, true),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	pMessageModel_(pMessageModel),
+	pActionInvoker_(pActionInvoker),
 	pMenuManager_(pMenuManager),
 	pFontGroup_(pFontGroup),
 	pFontSet_(0),
@@ -347,8 +350,8 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			// TODO
 			// Pass selected messages
 			TemplateContext context(pmh, pMessage, MessageHolderList(),
-				pFolder, pmh->getAccount(), pDocument_, getHandle(), pwszEncoding,
-				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+				pFolder, pmh->getAccount(), pDocument_, pActionInvoker_, getHandle(),
+				pwszEncoding, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 			if (pTemplate->getValue(context, &wstrText) != Template::RESULT_SUCCESS)
 				return false;
@@ -375,7 +378,7 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			// TODO
 			// Pass selected messages
 			MacroContext context(pmh, pMessage, pmh->getAccount(), MessageHolderList(),
-				pFolder, pDocument_, getHandle(), pProfile_, pwszEncoding,
+				pFolder, pDocument_, pActionInvoker_, getHandle(), pProfile_, pwszEncoding,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, 0, &globalVariable);
 			const MessageWindowFontSet* pFontSet = pFontGroup_->getFontSet(&context);

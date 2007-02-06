@@ -20,6 +20,7 @@ namespace qm {
 class RuleManager;
 class RuleCallback;
 
+class ActionInvoker;
 class Document;
 class Folder;
 class Rule;
@@ -55,6 +56,7 @@ public:
 	void setRuleSets(RuleSetList& listRuleSet);
 	bool applyManual(Folder* pFolder,
 					 Document* pDocument,
+					 const ActionInvoker* pActionInvoker,
 					 HWND hwnd,
 					 qs::Profile* pProfile,
 					 unsigned int nSecurityMode,
@@ -63,6 +65,7 @@ public:
 	bool applyManual(Folder* pFolder,
 					 const MessageHolderList& l,
 					 Document* pDocument,
+					 const ActionInvoker* pActionInvoker,
 					 HWND hwnd,
 					 qs::Profile* pProfile,
 					 unsigned int nSecurityMode,
@@ -77,6 +80,7 @@ public:
 	bool applyActive(Folder* pFolder,
 					 const MessageHolderList& l,
 					 Document* pDocument,
+					 const ActionInvoker* pActionInvoker,
 					 HWND hwnd,
 					 qs::Profile* pProfile,
 					 unsigned int nSecurityMode,

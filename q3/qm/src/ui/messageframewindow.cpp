@@ -237,20 +237,22 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(FileCloseAction,
 		IDM_FILE_CLOSE,
 		pThis_->getHandle());
-	ADD_ACTION6(FileExportAction,
+	ADD_ACTION7(FileExportAction,
 		IDM_FILE_EXPORT,
 		this,
 		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pDocument_,
+		pActionInvoker_.get(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION7(FilePrintAction,
+	ADD_ACTION8(FilePrintAction,
 		IDM_FILE_PRINT,
 		pDocument_,
 		this,
 		pEncodingModel_.get(),
 		pSecurityModel_.get(),
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		pTempFileCleaner_);
@@ -262,7 +264,7 @@ void qm::MessageFrameWindowImpl::initActions()
 	ADD_ACTION1(MessageCertificateAction,
 		IDM_MESSAGE_CERTIFICATE,
 		pMessageWindow_);
-	ADD_ACTION10(MessageCreateAction,
+	ADD_ACTION11(MessageCreateAction,
 		IDM_MESSAGE_CREATE,
 		pDocument_,
 		this,
@@ -271,10 +273,11 @@ void qm::MessageFrameWindowImpl::initActions()
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		false);
-	ADD_ACTION10(MessageCreateAction,
+	ADD_ACTION11(MessageCreateAction,
 		IDM_MESSAGE_CREATEEXTERNAL,
 		pDocument_,
 		this,
@@ -283,6 +286,7 @@ void qm::MessageFrameWindowImpl::initActions()
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		true);
@@ -304,11 +308,12 @@ void qm::MessageFrameWindowImpl::initActions()
 		pDocument_->getUndoManager(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION5(MessageMacroAction,
+	ADD_ACTION6(MessageMacroAction,
 		IDM_MESSAGE_MACRO,
 		this,
 		pSecurityModel_.get(),
 		pDocument_,
+		pActionInvoker_.get(),
 		pProfile_,
 		pThis_->getHandle());
 	
@@ -1031,6 +1036,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pMessageViewModeHolder_,
 		pImpl_->pEncodingModel_.get(),
 		pImpl_->pSecurityModel_.get(),
+		pImpl_->pActionInvoker_.get(),
 		pContext->pFontManager_
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle, CW_USEDEFAULT,

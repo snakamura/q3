@@ -32,10 +32,12 @@ using namespace qs;
 
 qm::MacroSearchDriver::MacroSearchDriver(Document* pDocument,
 										 Account* pAccount,
+										 ActionInvoker* pActionInvoker,
 										 HWND hwnd,
 										 Profile* pProfile) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -72,7 +74,7 @@ bool qm::MacroSearchDriver::search(const SearchContext& context,
 			
 			Message msg;
 			MacroContext context(pmh, &msg, pAccount_,  MessageHolderList(),
-				pFolder, pDocument_, hwnd_, pProfile_, 0,
+				pFolder, pDocument_, pActionInvoker_, hwnd_, pProfile_, 0,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				context.getSecurityMode(), 0, &globalVariable);
 			MacroValuePtr pValue(pMacro->value(&context));
@@ -306,11 +308,12 @@ qm::MacroSearchDriverFactory::~MacroSearchDriverFactory()
 
 std::auto_ptr<SearchDriver> qm::MacroSearchDriverFactory::createDriver(Document* pDocument,
 																	   Account* pAccount,
+																	   ActionInvoker* pActionInvoker,
 																	   HWND hwnd,
 																	   Profile* pProfile)
 {
 	return std::auto_ptr<SearchDriver>(new MacroSearchDriver(
-		pDocument, pAccount, hwnd, pProfile));
+		pDocument, pAccount, pActionInvoker, hwnd, pProfile));
 }
 
 std::auto_ptr<SearchUI> qm::MacroSearchDriverFactory::createUI(Account* pAccount,

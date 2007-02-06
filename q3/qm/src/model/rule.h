@@ -44,6 +44,7 @@ class RuleContentHandler;
 class RuleWriter;
 
 class Account;
+class ActionInvoker;
 class Document;
 class Macro;
 class MacroContext;
@@ -415,6 +416,7 @@ public:
 				Document* pDocument,
 				Account* pAccount,
 				Folder* pFolder,
+				const ActionInvoker* pActionInvoker,
 				HWND hwnd,
 				qs::Profile* pProfile,
 				MacroVariableHolder* pGlobalVariable,
@@ -429,6 +431,7 @@ public:
 	Document* getDocument() const;
 	Account* getAccount() const;
 	Folder* getFolder() const;
+	const ActionInvoker* getActionInvoker() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	MacroVariableHolder* getGlobalVariable() const;
@@ -449,6 +452,7 @@ private:
 	Document* pDocument_;
 	Account* pAccount_;
 	Folder* pFolder_;
+	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	MacroVariableHolder* pGlobalVariable_;

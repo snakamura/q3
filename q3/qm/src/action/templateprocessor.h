@@ -21,6 +21,7 @@ namespace qm {
 
 class TemplateProcessor;
 
+class ActionInvoker;
 class Document;
 class EditFrameWindowManager;
 class EncodingModel;
@@ -47,6 +48,7 @@ public:
 					  SecurityModel* pSecurityModel,
 					  EditFrameWindowManager* pEditFrameWindowManager,
 					  ExternalEditorManager* pExternalEditorManager,
+					  const ActionInvoker* pActionInvoker,
 					  HWND hwnd,
 					  qs::Profile* pProfile,
 					  bool bExternalEditor,
@@ -91,6 +93,7 @@ private:
 	SecurityModel* pSecurityModel_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	ExternalEditorManager* pExternalEditorManager_;
+	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	bool bExternalEditor_;

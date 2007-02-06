@@ -18,6 +18,7 @@ namespace qm {
 
 class ActiveRuleInvoker;
 
+class ActionInvoker;
 class Document;
 class SecurityModel;
 
@@ -36,6 +37,7 @@ class ActiveRuleInvoker :
 public:
 	ActiveRuleInvoker(Document* pDocument,
 					  SecurityModel* pSecurityModel,
+					  const ActionInvoker* pActionInvoker,
 					  HWND hwnd,
 					  qs::Profile* pProfile);
 	virtual ~ActiveRuleInvoker();
@@ -67,6 +69,7 @@ private:
 private:
 	Document* pDocument_;
 	SecurityModel* pSecurityModel_;
+	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };

@@ -352,6 +352,7 @@ qm::SearchDriverFactory::~SearchDriverFactory()
 std::auto_ptr<SearchDriver> qm::SearchDriverFactory::getDriver(const WCHAR* pwszName,
 															   Document* pDocument,
 															   Account* pAccount,
+															   ActionInvoker* pActionInvoker,
 															   HWND hwnd,
 															   Profile* pProfile)
 {
@@ -360,7 +361,7 @@ std::auto_ptr<SearchDriver> qm::SearchDriverFactory::getDriver(const WCHAR* pwsz
 	if (it == SearchDriverFactoryImpl::listFactory__.end())
 		return std::auto_ptr<SearchDriver>(0);
 	else
-		return (*it).second->createDriver(pDocument, pAccount, hwnd, pProfile);
+		return (*it).second->createDriver(pDocument, pAccount, pActionInvoker, hwnd, pProfile);
 }
 
 std::auto_ptr<SearchUI> qm::SearchDriverFactory::getUI(const WCHAR* pwszName,

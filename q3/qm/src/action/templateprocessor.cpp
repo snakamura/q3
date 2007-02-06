@@ -45,6 +45,7 @@ qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 										 SecurityModel* pSecurityModel,
 										 EditFrameWindowManager* pEditFrameWindowManager,
 										 ExternalEditorManager* pExternalEditorManager,
+										 const ActionInvoker* pActionInvoker,
 										 HWND hwnd,
 										 Profile* pProfile,
 										 bool bExternalEditor,
@@ -56,6 +57,7 @@ qm::TemplateProcessor::TemplateProcessor(Document* pDocument,
 	pSecurityModel_(pSecurityModel),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pExternalEditorManager_(pExternalEditorManager),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	bExternalEditor_(bExternalEditor),
@@ -76,8 +78,7 @@ qm::TemplateProcessor::~TemplateProcessor()
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 									bool bReverseExternalEditor) const
 {
-	TemplateContext::ArgumentList l;
-	return process(pwszTemplateName, l, bReverseExternalEditor, 0);
+	return process(pwszTemplateName, TemplateContext::ArgumentList(), bReverseExternalEditor, 0);
 }
 
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
@@ -118,8 +119,8 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	
 	MacroErrorHandlerImpl handler;
 	Message msg;
-	TemplateContext context(pmh, pmh ? &msg : 0, listSelected,
-		pFolder, pAccount, pDocument_, hwnd_, pwszBodyCharset,
+	TemplateContext context(pmh, pmh ? &msg : 0, listSelected, pFolder,
+		pAccount, pDocument_, pActionInvoker_, hwnd_, pwszBodyCharset,
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI | MacroContext::FLAG_MODIFY,
 		pSecurityModel_->getSecurityMode(), pProfile_, &handler, listArgument);
 	

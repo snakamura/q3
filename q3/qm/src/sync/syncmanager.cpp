@@ -1336,7 +1336,7 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr pt
 				Message msg;
 				MacroVariableHolder globalVariable;
 				MacroContext context(mpl, &msg, mpl->getAccount(), MessageHolderList(),
-					mpl->getFolder(), pDocument_, 0, pProfile_, 0,
+					mpl->getFolder(), pDocument_, 0, 0, pProfile_, 0,
 					MacroContext::FLAG_NONE, SECURITYMODE_NONE, 0, &globalVariable);
 				MacroValuePtr pValue(pMacro->value(&context));
 				if (pValue.get() && pValue->boolean())

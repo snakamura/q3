@@ -57,6 +57,7 @@ class MessageViewWindow;
 class MessageViewWindowCallback;
 class MessageViewWindowFactory;
 
+class ActionInvoker;
 class Document;
 class MessageHolder;
 class Message;
@@ -141,6 +142,7 @@ public:
 							 qs::Profile* pProfile,
 							 const WCHAR* pwszSection,
 							 MessageModel* pMessageModel,
+							 const ActionInvoker* pActionInvoker,
 							 qs::MenuManager* pMenuManager,
 							 const MessageWindowFontGroup* pFontGroup,
 							 MessageViewWindowCallback* pCallback,
@@ -204,6 +206,7 @@ public:
 						  qs::Profile* pProfile,
 						  const WCHAR* pwszSection,
 						  MessageModel* pMessageModel,
+						  const ActionInvoker* pActionInvoker,
 						  qs::MenuManager* pMenuManager,
 						  const MessageWindowFontGroup* pFontGroup);
 	virtual ~TextMessageViewWindow();
@@ -281,6 +284,7 @@ private:
 	Document* pDocument_;
 	qs::Profile* pProfile_;
 	MessageModel* pMessageModel_;
+	const ActionInvoker* pActionInvoker_;
 	qs::MenuManager* pMenuManager_;
 	const MessageWindowFontGroup* pFontGroup_;
 	const MessageWindowFontSet* pFontSet_;

@@ -269,6 +269,7 @@ qmimap4::Imap4SearchDriverFactory::~Imap4SearchDriverFactory()
 
 std::auto_ptr<SearchDriver> qmimap4::Imap4SearchDriverFactory::createDriver(Document* pDocument,
 																			Account* pAccount,
+																			ActionInvoker* pActionInvoker,
 																			HWND hwnd,
 																			Profile* pProfile)
 {

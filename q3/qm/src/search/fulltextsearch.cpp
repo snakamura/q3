@@ -324,6 +324,7 @@ qm::FullTextSearchDriverFactory::~FullTextSearchDriverFactory()
 
 std::auto_ptr<SearchDriver> qm::FullTextSearchDriverFactory::createDriver(Document* pDocument,
 																		  Account* pAccount,
+																		  ActionInvoker* pActionInvoker,
 																		  HWND hwnd,
 																		  Profile* pProfile)
 {

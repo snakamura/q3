@@ -77,6 +77,7 @@ class MacroExpr;
 		class MacroFunctionIdentity;
 		class MacroFunctionIf;
 		class MacroFunctionInputBox;
+		class MacroFunctionInvokeAction;
 		class MacroFunctionJunk;
 		class MacroFunctionLabel;
 		class MacroFunctionLength;
@@ -185,6 +186,7 @@ public:
 	MacroGlobalContext(const MessageHolderList& listSelected,
 					   Folder* pFolder,
 					   Document* pDocument,
+					   const ActionInvoker* pActionInvoker,
 					   HWND hwnd,
 					   qs::Profile* pProfile,
 					   const WCHAR* pwszBodyCharset,
@@ -198,6 +200,7 @@ public:
 	const MessageHolderList& getSelectedMessageHolders() const;
 	Folder* getFolder() const;
 	Document* getDocument() const;
+	const ActionInvoker* getActionInvoker() const;
 	HWND getWindow() const;
 	qs::Profile* getProfile() const;
 	const WCHAR* getBodyCharset() const;
@@ -233,6 +236,7 @@ private:
 	const MessageHolderList& listSelected_;
 	Folder* pFolder_;
 	Document* pDocument_;
+	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	qs::wstring_ptr wstrBodyCharset_;
@@ -1789,6 +1793,30 @@ protected:
 private:
 	MacroFunctionInputBox(const MacroFunctionInputBox&);
 	MacroFunctionInputBox& operator=(const MacroFunctionInputBox&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionInvokeAction
+ *
+ */
+
+class MacroFunctionInvokeAction : public MacroFunction
+{
+public:
+	MacroFunctionInvokeAction();
+	virtual ~MacroFunctionInvokeAction();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionInvokeAction(const MacroFunctionInvokeAction&);
+	MacroFunctionInvokeAction& operator=(const MacroFunctionInvokeAction&);
 };
 
 

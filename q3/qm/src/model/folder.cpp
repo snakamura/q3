@@ -1165,6 +1165,7 @@ void qm::QueryFolder::set(const WCHAR* pwszDriver,
 }
 
 bool qm::QueryFolder::search(Document* pDocument,
+							 ActionInvoker* pActionInvoker,
 							 HWND hwnd,
 							 Profile* pProfile,
 							 unsigned int nSecurityMode)
@@ -1174,7 +1175,8 @@ bool qm::QueryFolder::search(Document* pDocument,
 	pImpl_->listMessageHolder_.clear();
 	
 	std::auto_ptr<SearchDriver> pDriver(SearchDriverFactory::getDriver(
-		pImpl_->wstrDriver_.get(), pDocument, getAccount(), hwnd, pProfile));
+		pImpl_->wstrDriver_.get(), pDocument,
+		getAccount(), pActionInvoker, hwnd, pProfile));
 	if (!pDriver.get())
 		return true;
 	

@@ -215,6 +215,7 @@ public:
 								 EditMessageHolder* pEditMessageHolder,
 								 qs::TextWindow* pTextWindow,
 								 SecurityModel* pSecurityModel,
+								 const ActionInvoker* pActionInvoker,
 								 qs::Profile* pProfile,
 								 HWND hwnd);
 	virtual ~EditEditPasteWithQuoteAction();
@@ -232,6 +233,7 @@ private:
 	EditMessageHolder* pEditMessageHolder_;
 	qs::TextWindow* pTextWindow_;
 	SecurityModel* pSecurityModel_;
+	const ActionInvoker* pActionInvoker_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };

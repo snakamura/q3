@@ -64,9 +64,10 @@ Template::Result getTemplateValue(const Template::ValueList& listValue,
 		if ((*itV).second) {
 			MacroContext c(context.getMessageHolder(), context.getMessage(),
 				context.getAccount(), context.getSelectedMessageHolders(),
-				context.getFolder(), context.getDocument(), context.getWindow(),
-				context.getProfile(), context.getBodyCharset(), context.getMacroFlags(),
-				context.getSecurityMode(), context.getErrorHandler(), &globalVariable);
+				context.getFolder(), context.getDocument(), context.getActionInvoker(),
+				context.getWindow(), context.getProfile(), context.getBodyCharset(),
+				context.getMacroFlags(), context.getSecurityMode(),
+				context.getErrorHandler(), &globalVariable);
 			MacroValuePtr pValue((*itV).second->value(&c));
 			if (!pValue.get()) {
 				if (c.getReturnType() == MacroContext::RETURNTYPE_NONE)
@@ -134,6 +135,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 									 Folder* pFolder,
 									 Account* pAccount,
 									 Document* pDocument,
+									 const ActionInvoker* pActionInvoker,
 									 HWND hwnd,
 									 const WCHAR* pwszBodyCharset,
 									 unsigned int nMacroFlags,
@@ -147,6 +149,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 	pFolder_(pFolder),
 	pAccount_(pAccount),
 	pDocument_(pDocument),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	nMacroFlags_(nMacroFlags),
 	nSecurityMode_(nSecurityMode),
@@ -190,6 +193,11 @@ Account* qm::TemplateContext::getAccount() const
 Document* qm::TemplateContext::getDocument() const
 {
 	return pDocument_;
+}
+
+const ActionInvoker* qm::TemplateContext::getActionInvoker() const
+{
+	return pActionInvoker_;
 }
 
 HWND qm::TemplateContext::getWindow() const

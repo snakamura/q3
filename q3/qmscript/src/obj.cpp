@@ -990,7 +990,7 @@ STDMETHODIMP qmscript::MacroImpl::evaluate(IMessageHolder* pMessageHolder,
 	// Get selected?
 	// Get current folder?
 	MacroContext context(pmh, pmh ? &msg : 0, pAccountObj,
-		MessageHolderList(), 0, pDocument_, hwnd_, pProfile_, 0,
+		MessageHolderList(), 0, pDocument_, 0, hwnd_, pProfile_, 0,
 		MacroContext::FLAG_UI, SECURITYMODE_NONE, 0, &variable);
 	MacroValuePtr pValue(pMacro_->value(&context));
 	if (!pValue.get())

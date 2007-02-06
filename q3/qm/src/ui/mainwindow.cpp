@@ -555,12 +555,13 @@ void qm::MainWindowImpl::initActions()
 		pAddressBookFrameWindowManager_.get(),
 		pFolderModel_.get(),
 		pProfile_);
-	ADD_ACTION6(FileExportAction,
+	ADD_ACTION7(FileExportAction,
 		IDM_FILE_EXPORT,
 		pMessageSelectionModel_.get(),
 		pEncodingModel_.get(),
 		pSecurityModel_.get(),
 		pDocument_,
+		pActionInvoker_.get(),
 		pProfile_,
 		pThis_->getHandle());
 #ifndef _WIN32_WCE_PSPC
@@ -585,12 +586,13 @@ void qm::MainWindowImpl::initActions()
 		IDM_FILE_OFFLINE,
 		pDocument_,
 		pSyncManager_);
-	ADD_ACTION7(FilePrintAction,
+	ADD_ACTION8(FilePrintAction,
 		IDM_FILE_PRINT,
 		pDocument_,
 		pMessageSelectionModel_.get(),
 		pEncodingModel_.get(),
 		pSecurityModel_.get(),
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		pTempFileCleaner_);
@@ -682,7 +684,7 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(HelpOpenURLAction,
 		IDM_HELP_OPENURL,
 		pThis_->getHandle());
-	ADD_ACTION8(MessageApplyRuleAction,
+	ADD_ACTION9(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULE,
 		pDocument_->getRuleManager(),
 		pDocument_->getUndoManager(),
@@ -690,9 +692,10 @@ void qm::MainWindowImpl::initActions()
 		false,
 		pSecurityModel_.get(),
 		pDocument_,
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION8(MessageApplyRuleAction,
+	ADD_ACTION9(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULEALL,
 		pDocument_->getRuleManager(),
 		pDocument_->getUndoManager(),
@@ -700,15 +703,17 @@ void qm::MainWindowImpl::initActions()
 		true,
 		pSecurityModel_.get(),
 		pDocument_,
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_);
-	ADD_ACTION7(MessageApplyRuleAction,
+	ADD_ACTION8(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULESELECTED,
 		pDocument_->getRuleManager(),
 		pDocument_->getUndoManager(),
 		pMessageSelectionModel_.get(),
 		pSecurityModel_.get(),
 		pDocument_,
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_);
 	ADD_ACTION1(MessageCertificateAction,
@@ -729,7 +734,7 @@ void qm::MainWindowImpl::initActions()
 		pSecurityModel_.get(),
 		pDocument_->getUndoManager(),
 		pThis_->getHandle());
-	ADD_ACTION10(MessageCreateAction,
+	ADD_ACTION11(MessageCreateAction,
 		IDM_MESSAGE_CREATE,
 		pDocument_,
 		pFolderModel_.get(),
@@ -738,10 +743,11 @@ void qm::MainWindowImpl::initActions()
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_.get(),
 		pExternalEditorManager_.get(),
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		false);
-	ADD_ACTION10(MessageCreateAction,
+	ADD_ACTION11(MessageCreateAction,
 		IDM_MESSAGE_CREATEEXTERNAL,
 		pDocument_,
 		pFolderModel_.get(),
@@ -750,6 +756,7 @@ void qm::MainWindowImpl::initActions()
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_.get(),
 		pExternalEditorManager_.get(),
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		true);
@@ -810,10 +817,11 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<MessageMacroAction> pMessageMacroAction1(
 		new MessageMacroAction(pMessageSelectionModel_.get(),
-			pSecurityModel_.get(), pDocument_, pProfile_, pThis_->getHandle()));
+			pSecurityModel_.get(), pDocument_, pActionInvoker_.get(),
+			pProfile_, pThis_->getHandle()));
 	std::auto_ptr<MessageMacroAction> pMessageMacroAction2(
-		new MessageMacroAction(this, pSecurityModel_.get(),
-			pDocument_, pProfile_, pThis_->getHandle()));
+		new MessageMacroAction(this, pSecurityModel_.get(), pDocument_,
+			pActionInvoker_.get(), pProfile_, pThis_->getHandle()));
 	Action* pMessageMacroActions[] = {
 		pMessageMacroAction2.get(),
 		pMessageMacroAction2.get(),
@@ -941,7 +949,7 @@ void qm::MainWindowImpl::initActions()
 		pMessageFrameWindowManager_.get(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION10(MessageOpenURLAction,
+	ADD_ACTION11(MessageOpenURLAction,
 		IDM_MESSAGE_OPENURL,
 		pDocument_,
 		pPasswordManager_,
@@ -950,6 +958,7 @@ void qm::MainWindowImpl::initActions()
 		pSecurityModel_.get(),
 		pEditFrameWindowManager_.get(),
 		pExternalEditorManager_.get(),
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_,
 		false);
@@ -958,11 +967,12 @@ void qm::MainWindowImpl::initActions()
 		pMessageSelectionModel_.get(),
 		pDocument_->getUndoManager(),
 		pThis_->getHandle());
-	ADD_ACTION5(MessageSearchAction,
+	ADD_ACTION6(MessageSearchAction,
 		IDM_MESSAGE_SEARCH,
 		pFolderModel_.get(),
 		pSecurityModel_.get(),
 		pDocument_,
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_);
 #ifdef QMTABWINDOW
@@ -1205,13 +1215,14 @@ void qm::MainWindowImpl::initActions()
 		MessageViewMode::MODE_RAW,
 		MessageViewMode::MODE_SOURCE,
 		true);
-	ADD_ACTION7(ViewRefreshAction,
+	ADD_ACTION8(ViewRefreshAction,
 		IDM_VIEW_REFRESH,
 		pSyncManager_,
 		pDocument_,
 		pFolderModel_.get(),
 		pSecurityModel_.get(),
 		pSyncDialogManager_,
+		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_);
 	
@@ -1575,7 +1586,7 @@ void qm::MainWindowImpl::folderSelected(const FolderModelEvent& event)
 		pSyncQueue_->pushFolder(static_cast<NormalFolder*>(pFolder), true);
 	else if (pFolder->getType() == Folder::TYPE_QUERY &&
 		pFolder->isFlag(Folder::FLAG_ACTIVESYNC))
-		static_cast<QueryFolder*>(pFolder)->search(pDocument_,
+		static_cast<QueryFolder*>(pFolder)->search(pDocument_, pActionInvoker_.get(),
 			pThis_->getHandle(), pProfile_, pSecurityModel_->getSecurityMode());
 }
 
@@ -2541,6 +2552,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pMessageViewModeHolder_,
 		pImpl_->pEncodingModel_.get(),
 		pImpl_->pSecurityModel_.get(),
+		pImpl_->pActionInvoker_.get(),
 		pImpl_->pMessageWindowFontManager_.get()
 	};
 	if (!pMessageWindow->create(L"QmMessageWindow", 0, dwStyle,

@@ -1280,12 +1280,14 @@ qm::FileExportAction::FileExportAction(MessageSelectionModel* pMessageSelectionM
 									   EncodingModel* pEncodingModel,
 									   SecurityModel* pSecurityModel,
 									   Document* pDocument,
+									   const ActionInvoker* pActionInvoker,
 									   Profile* pProfile,
 									   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pEncodingModel_(pEncodingModel),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
+	pActionInvoker_(pActionInvoker),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -1429,8 +1431,8 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 {
 	Message msg;
 	TemplateContext context(pmh, &msg, MessageHolderList(), pFolder,
-		pmh->getAccount(), pDocument_, hwnd_, pEncodingModel_->getEncoding(),
-		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+		pmh->getAccount(), pDocument_, pActionInvoker_, hwnd_,
+		pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wxstring_size_ptr wstrValue;
@@ -2198,6 +2200,7 @@ qm::FilePrintAction::FilePrintAction(Document* pDocument,
 									 MessageSelectionModel* pMessageSelectionModel,
 									 EncodingModel* pEncodingModel,
 									 SecurityModel* pSecurityModel,
+									 const ActionInvoker* pActionInvoker,
 									 HWND hwnd,
 									 Profile* pProfile,
 									 TempFileCleaner* pTempFileCleaner) :
@@ -2205,6 +2208,7 @@ qm::FilePrintAction::FilePrintAction(Document* pDocument,
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pEncodingModel_(pEncodingModel),
 	pSecurityModel_(pSecurityModel),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile),
 	pTempFileCleaner_(pTempFileCleaner)
@@ -2249,8 +2253,9 @@ bool qm::FilePrintAction::print(Account* pAccount,
 		return false;
 	
 	Message msg;
-	TemplateContext context(pmh, &msg, listSelected, pFolder, pAccount, pDocument_, hwnd_,
-		pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+	TemplateContext context(pmh, &msg, listSelected, pFolder, pAccount,
+		pDocument_, pActionInvoker_, hwnd_, pEncodingModel_->getEncoding(),
+		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wxstring_size_ptr wstrValue;
@@ -3407,6 +3412,7 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 												   bool bAll,
 												   SecurityModel* pSecurityModel,
 												   Document* pDocument,
+												   const ActionInvoker* pActionInvoker,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
@@ -3416,6 +3422,7 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 	bAll_(bAll),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -3426,6 +3433,7 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 												   MessageSelectionModel* pMessageSelectionModel,
 												   SecurityModel* pSecurityModel,
 												   Document* pDocument,
+												   const ActionInvoker* pActionInvoker,
 												   HWND hwnd,
 												   Profile* pProfile) :
 	pRuleManager_(pRuleManager),
@@ -3435,6 +3443,7 @@ qm::MessageApplyRuleAction::MessageApplyRuleAction(RuleManager* pRuleManager,
 	bAll_(false),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -3545,8 +3554,8 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 					Folder* pFolder = *it;
 					if (pFolder->getType() == Folder::TYPE_NORMAL &&
 						!pFolder->isHidden()) {
-						if (!pRuleManager_->applyManual(pFolder, pDocument_, hwnd_, pProfile_,
-							pSecurityModel_->getSecurityMode(), &undo, &callback))
+						if (!pRuleManager_->applyManual(pFolder, pDocument_, pActionInvoker_,
+							hwnd_, pProfile_, pSecurityModel_->getSecurityMode(), &undo, &callback))
 							return false;
 					}
 				}
@@ -3567,8 +3576,8 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 						l[n] = pViewModel->getMessageHolder(n);
 					
 					ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
-					if (!pRuleManager_->applyManual(pFolder, l, pDocument_, hwnd_, pProfile_,
-						pSecurityModel_->getSecurityMode(), &undo, &callback))
+					if (!pRuleManager_->applyManual(pFolder, l, pDocument_, pActionInvoker_,
+						hwnd_, pProfile_, pSecurityModel_->getSecurityMode(), &undo, &callback))
 						return false;
 					pAccount = pFolder->getAccount();
 				}
@@ -3582,8 +3591,8 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
 		if (!l.empty()) {
 			ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
-			if (!pRuleManager_->applyManual(pFolder, l, pDocument_, hwnd_, pProfile_,
-				pSecurityModel_->getSecurityMode(), &undo, &callback))
+			if (!pRuleManager_->applyManual(pFolder, l, pDocument_, pActionInvoker_,
+				hwnd_, pProfile_, pSecurityModel_->getSecurityMode(), &undo, &callback))
 				return false;
 			pAccount = lock.get();
 		}
@@ -3823,13 +3832,14 @@ qm::MessageCreateAction::MessageCreateAction(Document* pDocument,
 											 SecurityModel* pSecurityModel,
 											 EditFrameWindowManager* pEditFrameWindowManager,
 											 ExternalEditorManager* pExternalEditorManager,
+											 const ActionInvoker* pActionInvoker,
 											 HWND hwnd,
 											 Profile* pProfile,
 											 bool bExternalEditor) :
 	processor_(pDocument, pFolderModel, pMessageSelectionModel,
 		pEncodingModel, pSecurityModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor,
-		Application::getApplication().getTemporaryFolder()),
+		pExternalEditorManager, pActionInvoker, hwnd, pProfile,
+		bExternalEditor, Application::getApplication().getTemporaryFolder()),
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
 {
@@ -4248,12 +4258,14 @@ bool qm::MessageLabelAction::isEnabled(const ActionEvent& event)
 qm::MessageMacroAction::MessageMacroAction(MessageSelectionModel* pMessageSelectionModel,
 										   SecurityModel* pSecurityModel,
 										   Document* pDocument,
+										   const ActionInvoker* pActionInvoker,
 										   Profile* pProfile,
 										   HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
 	pFolderSelectionModel_(0),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
+	pActionInvoker_(pActionInvoker),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -4262,12 +4274,14 @@ qm::MessageMacroAction::MessageMacroAction(MessageSelectionModel* pMessageSelect
 qm::MessageMacroAction::MessageMacroAction(FolderSelectionModel* pFolderSelectionModel,
 										   SecurityModel* pSecurityModel,
 										   Document* pDocument,
+										   const ActionInvoker* pActionInvoker,
 										   Profile* pProfile,
 										   HWND hwnd) :
 	pMessageSelectionModel_(0),
 	pFolderSelectionModel_(pFolderSelectionModel),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
+	pActionInvoker_(pActionInvoker),
 	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
@@ -4357,7 +4371,7 @@ bool qm::MessageMacroAction::eval(const Macro* pMacro,
 	for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
 		Message msg;
 		MacroContext context(*it, &msg, pFolder->getAccount(),
-			listSelected, pFolder, pDocument_, hwnd_, pProfile_, 0,
+			listSelected, pFolder, pDocument_, pActionInvoker_, hwnd_, pProfile_, 0,
 			MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY,
 			pSecurityModel_->getSecurityMode(), 0, pGlobalVariable);
 		MacroValuePtr pValue(pMacro->value(&context));
@@ -4857,12 +4871,13 @@ qm::MessageOpenURLAction::MessageOpenURLAction(Document* pDocument,
 											   SecurityModel* pSecurityModel,
 											   EditFrameWindowManager* pEditFrameWindowManager,
 											   ExternalEditorManager* pExternalEditorManager,
+											   const ActionInvoker* pActionInvoker,
 											   HWND hwnd,
 											   Profile* pProfile,
 											   bool bExternalEditor) :
-	processor_(pDocument, pFolderModel, pMessageSelectionModel,
-		0, pSecurityModel, pEditFrameWindowManager,
-		pExternalEditorManager, hwnd, pProfile, bExternalEditor,
+	processor_(pDocument, pFolderModel, pMessageSelectionModel, 0,
+		pSecurityModel, pEditFrameWindowManager, pExternalEditorManager,
+		pActionInvoker, hwnd, pProfile, bExternalEditor,
 		Application::getApplication().getTemporaryFolder()),
 	pDocument_(pDocument),
 	pPasswordManager_(pPasswordManager),
@@ -5023,11 +5038,13 @@ bool qm::MessagePropertyAction::isEnabled(const ActionEvent& event)
 qm::MessageSearchAction::MessageSearchAction(FolderModel* pFolderModel,
 											 SecurityModel* pSecurityModel,
 											 Document* pDocument,
+											 ActionInvoker* pActionInvoker,
 											 HWND hwnd,
 											 Profile* pProfile) :
 	pFolderModel_(pFolderModel),
 	pSecurityModel_(pSecurityModel),
 	pDocument_(pDocument),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -5155,7 +5172,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 			pFolderModel_->setCurrent(0, pSearch, false);
 		
 		if (pFolder == pSearch || !pSearch->isFlag(Folder::FLAG_ACTIVESYNC)) {
-			if (!pSearch->search(pDocument_, hwnd_,
+			if (!pSearch->search(pDocument_, pActionInvoker_, hwnd_,
 				pProfile_, pSecurityModel_->getSecurityMode())) {
 				ActionUtil::error(hwnd_, IDS_ERROR_SEARCH);
 				return;
@@ -5772,7 +5789,7 @@ void qm::ToolGoRoundAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::ToolInvokeActionAction::ToolInvokeActionAction(ActionInvoker* pActionInvoker,
+qm::ToolInvokeActionAction::ToolInvokeActionAction(const ActionInvoker* pActionInvoker,
 												   Profile* pProfile,
 												   HWND hwnd) :
 	pActionInvoker_(pActionInvoker),
@@ -7085,6 +7102,7 @@ qm::ViewRefreshAction::ViewRefreshAction(SyncManager* pSyncManager,
 										 FolderModel* pFolderModel,
 										 SecurityModel* pSecurityModel,
 										 SyncDialogManager* pSyncDialogManager,
+										 ActionInvoker* pActionInvoker,
 										 HWND hwnd,
 										 Profile* pProfile) :
 	pSyncManager_(pSyncManager),
@@ -7092,6 +7110,7 @@ qm::ViewRefreshAction::ViewRefreshAction(SyncManager* pSyncManager,
 	pFolderModel_(pFolderModel),
 	pSecurityModel_(pSecurityModel),
 	pSyncDialogManager_(pSyncDialogManager),
+	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
 	pProfile_(pProfile)
 {
@@ -7118,7 +7137,7 @@ void qm::ViewRefreshAction::invoke(const ActionEvent& event)
 		}
 		break;
 	case Folder::TYPE_QUERY:
-		if (!static_cast<QueryFolder*>(pFolder)->search(pDocument_,
+		if (!static_cast<QueryFolder*>(pFolder)->search(pDocument_, pActionInvoker_,
 			hwnd_, pProfile_, pSecurityModel_->getSecurityMode())) {
 			ActionUtil::error(hwnd_, IDS_ERROR_REFRESH);
 			return;

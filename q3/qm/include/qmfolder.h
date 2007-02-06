@@ -31,6 +31,7 @@ class FolderEvent;
 class FolderHook;
 
 class Account;
+class ActionInvoker;
 class Document;
 class Message;
 class MessageHolder;
@@ -258,6 +259,7 @@ public:
 			 const WCHAR* pwszTargetFolder,
 			 bool bRecursive);
 	bool search(Document* pDocument,
+				ActionInvoker* pActionInvoker,
 				HWND hwnd,
 				qs::Profile* pProfile,
 				unsigned int nSecurityMode);

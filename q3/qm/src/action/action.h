@@ -878,6 +878,7 @@ public:
 					 EncodingModel* pEncodingModel,
 					 SecurityModel* pSecurityModel,
 					 Document* pDocument,
+					 const ActionInvoker* pActionInvoker,
 					 qs::Profile* pProfile,
 					 HWND hwnd);
 	virtual ~FileExportAction();
@@ -911,6 +912,7 @@ private:
 	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
+	const ActionInvoker* pActionInvoker_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
@@ -1081,6 +1083,7 @@ public:
 					MessageSelectionModel* pMessageSelectionModel,
 					EncodingModel* pEncodingModel,
 					SecurityModel* pSecurityModel,
+					const ActionInvoker* pActionInvoker,
 					HWND hwnd,
 					qs::Profile* pProfile,
 					TempFileCleaner* pTempFileCleaner);
@@ -1105,6 +1108,7 @@ private:
 	MessageSelectionModel* pMessageSelectionModel_;
 	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
+	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 	TempFileCleaner* pTempFileCleaner_;
@@ -1665,6 +1669,7 @@ public:
 						   bool bAll,
 						   SecurityModel* pSecurityModel,
 						   Document* pDocument,
+						   const ActionInvoker* pActionInvoker,
 						   HWND hwnd,
 						   qs::Profile* pProfile);
 	MessageApplyRuleAction(RuleManager* pRuleManager,
@@ -1672,6 +1677,7 @@ public:
 						   MessageSelectionModel* pMessageSelectionModel,
 						   SecurityModel* pSecurityModel,
 						   Document* pDocument,
+						   const ActionInvoker* pActionInvoker,
 						   HWND hwnd,
 						   qs::Profile* pProfile);
 	virtual ~MessageApplyRuleAction();
@@ -1695,6 +1701,7 @@ private:
 	bool bAll_;
 	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
+	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };
@@ -1803,6 +1810,7 @@ public:
 						SecurityModel* pSecurityModel,
 						EditFrameWindowManager* pEditFrameWindowManager,
 						ExternalEditorManager* pExternalEditorManager,
+						const ActionInvoker* pActionInvoker,
 						HWND hwnd,
 						qs::Profile* pProfile,
 						bool bExternalEditor);
@@ -2041,11 +2049,13 @@ public:
 	MessageMacroAction(MessageSelectionModel* pMessageSelectionModel,
 					   SecurityModel* pSecurityModel,
 					   Document* pDocument,
+					   const ActionInvoker* pActionInvoker,
 					   qs::Profile* pProfile,
 					   HWND hwnd);
 	MessageMacroAction(FolderSelectionModel* pFolderSelectionModel,
 					   SecurityModel* pSecurityModel,
 					   Document* pDocument,
+					   const ActionInvoker* pActionInvoker,
 					   qs::Profile* pProfile,
 					   HWND hwnd);
 	virtual ~MessageMacroAction();
@@ -2071,6 +2081,7 @@ private:
 	FolderSelectionModel* pFolderSelectionModel_;
 	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
+	const ActionInvoker* pActionInvoker_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
@@ -2345,6 +2356,7 @@ public:
 						 SecurityModel* pSecurityModel,
 						 EditFrameWindowManager* pEditFrameWindowManager,
 						 ExternalEditorManager* pExternalEditorManager,
+						 const ActionInvoker* pActionInvoker,
 						 HWND hwnd,
 						 qs::Profile* pProfile,
 						 bool bExternalEditor);
@@ -2416,6 +2428,7 @@ public:
 	MessageSearchAction(FolderModel* pFolderModel,
 						SecurityModel* pSecurityModel,
 						Document* pDocument,
+						ActionInvoker* pActionInvoker,
 						HWND hwnd,
 						qs::Profile* pProfile);
 	virtual ~MessageSearchAction();
@@ -2432,6 +2445,7 @@ private:
 	FolderModel* pFolderModel_;
 	SecurityModel* pSecurityModel_;
 	Document* pDocument_;
+	ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };
@@ -2844,7 +2858,7 @@ private:
 	typedef std::vector<qs::WSTRING> ActionList;
 
 public:
-	ToolInvokeActionAction(ActionInvoker* pActionInvoker,
+	ToolInvokeActionAction(const ActionInvoker* pActionInvoker,
 						   qs::Profile* pProfile,
 						   HWND hwnd);
 	virtual ~ToolInvokeActionAction();
@@ -2861,7 +2875,7 @@ private:
 	ToolInvokeActionAction& operator=(const ToolInvokeActionAction&);
 
 private:
-	ActionInvoker* pActionInvoker_;
+	const ActionInvoker* pActionInvoker_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
@@ -3448,6 +3462,7 @@ public:
 					  FolderModel* pFolderModel,
 					  SecurityModel* pSecurityModel,
 					  SyncDialogManager* pSyncDialogManager,
+					  ActionInvoker* pActionInvoker,
 					  HWND hwnd,
 					  qs::Profile* pProfile);
 	virtual ~ViewRefreshAction();
@@ -3466,6 +3481,7 @@ private:
 	FolderModel* pFolderModel_;
 	SecurityModel* pSecurityModel_;
 	SyncDialogManager* pSyncDialogManager_;
+	ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
 };

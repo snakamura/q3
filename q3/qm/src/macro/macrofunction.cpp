@@ -9,6 +9,7 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
+#include <qmaction.h>
 #include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
@@ -2979,6 +2980,63 @@ const WCHAR* qm::MacroFunctionInputBox::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionInvokeAction
+ *
+ */
+
+qm::MacroFunctionInvokeAction::MacroFunctionInvokeAction()
+{
+}
+
+qm::MacroFunctionInvokeAction::~MacroFunctionInvokeAction()
+{
+}
+
+MacroValuePtr qm::MacroFunctionInvokeAction::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(InvokeAction);
+	
+	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
+	else if (!pContext->isFlag(MacroContext::FLAG_UI))
+		return error(*pContext, MacroErrorHandler::CODE_NOUI);
+	
+	if (!checkArgSizeMin(pContext, 1))
+		return MacroValuePtr();
+	
+	const ActionInvoker* pActionInvoker = pContext->getActionInvoker();
+	if (!pActionInvoker)
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
+	size_t nSize = getArgSize();
+	
+	ARG(pValueName, 0);
+	MacroValue::String wstrName(pValueName->string());
+	
+	typedef std::vector<WSTRING> ArgList;
+	ArgList listArg(nSize - 1);
+	StringListFree<ArgList> free(listArg);
+	for (size_t n = 1; n < nSize; ++n) {
+		ARG(pValue, n);
+		listArg[n - 1] = pValue->string().release().release();
+	}
+	
+	pActionInvoker->invoke(wstrName.get(),
+		const_cast<const WCHAR**>(&listArg[0]), listArg.size());
+	
+	return MacroValueFactory::getFactory().newBoolean(true);
+}
+
+const WCHAR* qm::MacroFunctionInvokeAction::getName() const
+{
+	return L"InvokeAction";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionJunk
  *
  */
@@ -3228,9 +3286,10 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		TemplateContext context(pContext->getMessageHolder(), pContext->getMessage(),
-			pContext->getSelectedMessageHolders(), pContext->getFolder(), pContext->getAccount(),
-			pContext->getDocument(), pContext->getWindow(), pContext->getBodyCharset(),
-			pContext->getFlags(), pContext->getSecurityMode(), pContext->getProfile(),
+			pContext->getSelectedMessageHolders(), pContext->getFolder(),
+			pContext->getAccount(), pContext->getDocument(), pContext->getActionInvoker(),
+			pContext->getWindow(), pContext->getBodyCharset(), pContext->getFlags(),
+			pContext->getSecurityMode(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());
 		switch (pTemplate->getValue(context, &wstrText)) {
 		case Template::RESULT_SUCCESS:
@@ -5961,6 +6020,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		If, 				L"if"													)
 			DECLARE_FUNCTION0(		Include,			L"include"												)
 			DECLARE_FUNCTION0(		InputBox,	 		L"inputbox"												)
+			DECLARE_FUNCTION0(		InvokeAction,		L"invokeaction"											)
 		END_BLOCK()
 		BEGIN_BLOCK(L'j', L'J')
 			DECLARE_FUNCTION0(		Junk, 				L"junk"													)

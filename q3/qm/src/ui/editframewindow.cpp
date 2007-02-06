@@ -177,12 +177,13 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_->getFocusController(),
 		&EditWindowItem::paste,
 		&EditWindowItem::canPaste);
-	ADD_ACTION6(EditEditPasteWithQuoteAction,
+	ADD_ACTION7(EditEditPasteWithQuoteAction,
 		IDM_EDIT_PASTEWITHQUOTE,
 		pDocument_,
 		pEditWindow_->getEditMessageHolder(),
 		pEditWindow_->getTextWindow(),
 		pSecurityModel_,
+		pActionInvoker_.get(),
 		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION3(EditCommandAction<EditWindowItem>,

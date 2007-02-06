@@ -907,6 +907,7 @@ bool qm::Application::initialize()
 	
 	pImpl_->pActiveRuleInvoker_.reset(new ActiveRuleInvoker(
 		pImpl_->pDocument_.get(), pImpl_->pMainWindow_->getSecurityModel(),
+		pImpl_->pMainWindow_->getActionInvoker(),
 		pImpl_->pMainWindow_->getHandle(), pImpl_->pProfile_.get()));
 	pImpl_->pActiveSyncInvoker_.reset(new ActiveSyncInvoker(
 		pImpl_->pDocument_.get(), pImpl_->pSyncQueue_.get()));
