@@ -71,6 +71,7 @@
 *((<@If|URL:IfFunction.html>))
 *((<@Include|URL:IncludeFunction.html>))
 *((<@InputBox|URL:InputBoxFunction.html>))
+*((<@InvokeAction|URL:InvokeActionFunction.html>))
 *((<@Junk|URL:JunkFunction.html>))
 *((<@Label|URL:LabelFunction.html>))
 *((<@Length|URL:LengthFunction.html>))
