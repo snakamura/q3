@@ -57,9 +57,11 @@ public:
 
 public:
 	bool process(const WCHAR* pwszTemplateName,
+				 const URI* pURI,
 				 bool bReverseExternalEditor) const;
 	bool process(const WCHAR* pwszTemplateName,
 				 const TemplateContext::ArgumentList& listArgument,
+				 const URI* pURI,
 				 bool bReverseExternalEditor,
 				 Account* pAccountForced) const;
 

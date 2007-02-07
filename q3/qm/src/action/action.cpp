@@ -3855,7 +3855,17 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 	if (!pwszTemplate)
 		return;
 	
-	if (!processor_.process(pwszTemplate,
+	std::auto_ptr<URI> pURI;
+	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 1);
+	if (pwszURI) {
+		pURI = URI::parse(pwszURI);
+		if (!pURI.get()) {
+			ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
+			return;
+		}
+	}
+	
+	if (!processor_.process(pwszTemplate, pURI.get(),
 		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
 		return;
@@ -4924,7 +4934,7 @@ void qm::MessageOpenURLAction::openMailtoURL(const WCHAR* pwszURL,
 		listArgument.push_back(arg);
 	}
 	
-	if (!processor_.process(L"url", listArgument, bExternalEditor, account.first)) {
+	if (!processor_.process(L"url", listArgument, 0, bExternalEditor, account.first)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_OPENURL);
 		return;
 	}

@@ -76,19 +76,37 @@ qm::TemplateProcessor::~TemplateProcessor()
 }
 
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
+									const URI* pURI,
 									bool bReverseExternalEditor) const
 {
-	return process(pwszTemplateName, TemplateContext::ArgumentList(), bReverseExternalEditor, 0);
+	return process(pwszTemplateName, TemplateContext::ArgumentList(),
+		pURI, bReverseExternalEditor, 0);
 }
 
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 									const TemplateContext::ArgumentList& listArgument,
+									const URI* pURI,
 									bool bReverseExternalEditor,
 									Account* pAccountForced) const
 {
 	assert(pwszTemplateName);
+	assert(!pURI || !pAccountForced);
 	
-	Account* pAccount = pAccountForced;
+	MessagePtr ptr;
+	if (pURI)
+		ptr = pDocument_->getMessage(*pURI);
+	else if (!pAccountForced)
+		ptr = pMessageSelectionModel_->getFocusedMessage();
+	MessagePtrLock mpl(ptr);
+	if (pURI && !mpl)
+		return false;
+	
+	Account* pAccount = 0;
+	if (pURI)
+		pAccount = mpl->getAccount();
+	else if (pAccountForced)
+		pAccount = pAccountForced;
+	
 	Folder* pFolder = 0;
 	if (!pAccount) {
 		std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
@@ -103,14 +121,9 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	if (!pTemplate)
 		return false;
 	
-	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
-	MessageHolder* pmh = 0;
-	if (!pAccountForced)
-		pmh = mpl;
-	
 	AccountLock lock;
 	MessageHolderList listSelected;
-	if (!pAccountForced)
+	if (!pAccountForced && !pURI)
 		pMessageSelectionModel_->getSelectedMessages(&lock, 0, &listSelected);
 	
 	const WCHAR* pwszBodyCharset = 0;
@@ -119,7 +132,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	
 	MacroErrorHandlerImpl handler;
 	Message msg;
-	TemplateContext context(pmh, pmh ? &msg : 0, listSelected, pFolder,
+	TemplateContext context(mpl, mpl ? &msg : 0, listSelected, pFolder,
 		pAccount, pDocument_, pActionInvoker_, hwnd_, pwszBodyCharset,
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI | MacroContext::FLAG_MODIFY,
 		pSecurityModel_->getSecurityMode(), pProfile_, &handler, listArgument);
