@@ -2,6 +2,7 @@
 *@InvokeActionを追加
 *@Scriptで指定したスクリプトの中から、actionTargetを使用してアクションを起動できるようにした
 *MessageCreateアクションの二番目の引数でコンテキストメッセージを指定できるようにした
+*マニフェストにVistaのUAC用のエントリを追加
 
 [2.9.30]
 *X-QMAIL-Outboxを追加
