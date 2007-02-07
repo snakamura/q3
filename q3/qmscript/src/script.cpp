@@ -267,7 +267,8 @@ qmscript::ActiveScriptSite::ActiveScriptSite(const ScriptFactory::Init& init) :
 		pEditFrameWindow_ = ComPtr<IEditFrameWindow>(pEditFrameWindowObj.release());
 	if (pMessageFrameWindowObj.get())
 		pMessageFrameWindow_ = ComPtr<IMessageFrameWindow>(pMessageFrameWindowObj.release());
-	pActionTarget_ = ComPtr<IActionTarget>(pActionTargetObj.release());
+	if (pActionTargetObj.get())
+		pActionTarget_ = ComPtr<IActionTarget>(pActionTargetObj.release());
 }
 
 qmscript::ActiveScriptSite::~ActiveScriptSite()
