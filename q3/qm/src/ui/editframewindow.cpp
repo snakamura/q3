@@ -42,6 +42,7 @@
 #include "../action/findreplace.h"
 #include "../model/editmessage.h"
 #include "../uimodel/folderselectionmodel.h"
+#include "../uimodel/securitymodel.h"
 
 using namespace qm;
 using namespace qs;
@@ -903,16 +904,26 @@ bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		0, dwExStyle, 0, 0, &context))
 		return false;
-	EditFrameWindow* p = pFrame.release();
+	EditFrameWindow* pFrame2 = pFrame.release();
 	
-	EditMessageHolder* pHolder = p->getEditWindow()->getEditMessageHolder();
+	EditMessageHolder* pHolder = pFrame2->getEditWindow()->getEditMessageHolder();
 	if (!pHolder->setEditMessage(pEditMessage.get()))
 		return false;
-	pEditMessage.release();
+	EditMessage* pEditMessage2 = pEditMessage.release();
 	
-	listFrame_.push_back(p);
+	listFrame_.push_back(pFrame2);
 	
-	p->initialShow();
+	const Macro* pMacro = pEditMessage2->getEditMacro();
+	if (pMacro) {
+		MacroContext context(0, 0, pEditMessage2->getAccount(), MessageHolderList(),
+			0, pDocument_, pFrame2->getActionInvoker(), pFrame2->getHandle(),
+			pProfile_, 0, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+			pSecurityModel_->getSecurityMode(), 0, 0);
+		MacroValuePtr pValue(pMacro->value(&context));
+	}
+	
+	if (std::find(listFrame_.begin(), listFrame_.end(), pFrame2) != listFrame_.end())
+		pFrame2->initialShow();
 	
 	return true;
 }

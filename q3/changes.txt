@@ -4,6 +4,7 @@
 *MessageCreateアクションの二番目の引数でコンテキストメッセージを指定できるようにした
 *マニフェストにVistaのUAC用のエントリを追加
 *MessageCreateアクションでテンプレートに渡す引数を指定できるようにした
+*X-QMAIL-EditMacroを追加
 
 [2.9.30]
 *X-QMAIL-Outboxを追加

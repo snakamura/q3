@@ -27,6 +27,7 @@ class EditMessageHolder;
 
 class Account;
 class Document;
+class Macro;
 class Message;
 class SubAccount;
 
@@ -145,6 +146,7 @@ public:
 	unsigned int getMessageSecurity() const;
 	void setMessageSecurity(MessageSecurity security,
 							bool b);
+	const Macro* getEditMacro() const;
 
 public:
 	void addEditMessageHandler(EditMessageHandler* pHandler);
@@ -212,6 +214,7 @@ private:
 	qs::wstring_ptr wstrSignature_;
 	bool bAutoReform_;
 	unsigned int nMessageSecurity_;
+	std::auto_ptr<Macro> pMacroEdit_;
 	qs::wstring_ptr wstrPreviousURI_;
 	HandlerList listHandler_;
 };

@@ -10,6 +10,7 @@
 
 #include <qmaccount.h>
 #include <qmdocument.h>
+#include <qmmacro.h>
 #include <qmmessage.h>
 #include <qmsecurity.h>
 
@@ -247,10 +248,15 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 		}
 	}
 	
+	UnstructuredParser macro;
+	if (pMessage_->getField(L"X-QMAIL-EditMacro", &macro) == Part::FIELD_EXIST)
+		pMacroEdit_ = MacroParser().parse(macro.getValue());
+	
 	const WCHAR* pwszFields[] = {
 		L"X-QMAIL-Account",
 		L"X-QMAIL-SubAccount",
-		L"X-QMAIL-Attachment"
+		L"X-QMAIL-Attachment",
+		L"X-QMAIL-EditMacro"
 	};
 	for (int n = 0; n < countof(pwszFields); ++n)
 		pMessage_->removeField(pwszFields[n]);
@@ -672,6 +678,11 @@ void qm::EditMessage::setMessageSecurity(MessageSecurity security,
 		nMessageSecurity_ |= security;
 	else
 		nMessageSecurity_ &= ~security;
+}
+
+const Macro* qm::EditMessage::getEditMacro() const
+{
+	return pMacroEdit_.get();
 }
 
 void qm::EditMessage::addEditMessageHandler(EditMessageHandler* pHandler)
