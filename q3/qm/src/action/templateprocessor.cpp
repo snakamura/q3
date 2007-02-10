@@ -76,11 +76,11 @@ qm::TemplateProcessor::~TemplateProcessor()
 }
 
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
+									const TemplateContext::ArgumentList& listArgument,
 									const URI* pURI,
 									bool bReverseExternalEditor) const
 {
-	return process(pwszTemplateName, TemplateContext::ArgumentList(),
-		pURI, bReverseExternalEditor, 0);
+	return process(pwszTemplateName, listArgument, pURI, bReverseExternalEditor, 0);
 }
 
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,

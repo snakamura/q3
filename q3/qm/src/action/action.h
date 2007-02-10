@@ -1821,6 +1821,14 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
+	typedef std::vector<qs::WSTRING> ArgList;
+
+private:
+	static void parseArgs(const WCHAR* pwszArgs,
+						  TemplateContext::ArgumentList* pListArg,
+						  ArgList* pList);
+
+private:
 	MessageCreateAction(const MessageCreateAction&);
 	MessageCreateAction& operator=(const MessageCreateAction&);
 

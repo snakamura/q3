@@ -3852,12 +3852,19 @@ qm::MessageCreateAction::~MessageCreateAction()
 void qm::MessageCreateAction::invoke(const ActionEvent& event)
 {
 	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
-	if (!pwszTemplate)
+	if (!pwszTemplate || !*pwszTemplate)
 		return;
 	
+	TemplateContext::ArgumentList listArg;
+	ArgList l;
+	StringListFree<ArgList> free(l);
+	const WCHAR* pwszArgs = ActionParamUtil::getString(event.getParam(), 1);
+	if (pwszArgs)
+		parseArgs(pwszArgs, &listArg, &l);
+	
 	std::auto_ptr<URI> pURI;
-	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 1);
-	if (pwszURI) {
+	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 2);
+	if (pwszURI && *pwszURI) {
 		pURI = URI::parse(pwszURI);
 		if (!pURI.get()) {
 			ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
@@ -3865,7 +3872,7 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 		}
 	}
 	
-	if (!processor_.process(pwszTemplate, pURI.get(),
+	if (!processor_.process(pwszTemplate, listArg, pURI.get(),
 		(event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
 		return;
@@ -3874,11 +3881,67 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 
 bool qm::MessageCreateAction::isEnabled(const ActionEvent& event)
 {
-	if (!ActionParamUtil::getString(event.getParam(), 0))
+	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszTemplate || !*pwszTemplate)
 		return false;
 	
 	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
 	return p.first || p.second;
+}
+
+void qm::MessageCreateAction::parseArgs(const WCHAR* pwszArgs,
+										TemplateContext::ArgumentList* pListArg,
+										ArgList* pList)
+{
+	assert(pwszArgs);
+	assert(pListArg);
+	assert(pList);
+	
+	const WCHAR* pName = pwszArgs;
+	while (true) {
+		const WCHAR* pValue = wcschr(pName, L'=');
+		if (!pValue)
+			break;
+		
+		wstring_ptr wstrName(allocWString(pName, pValue - pName));
+		
+		++pValue;
+		
+		const WCHAR* pEnd = 0;
+		wstring_ptr wstrValue;
+		if (*pValue == L'\"') {
+			StringBuffer<WSTRING> buf;
+			++pValue;
+			while (*pValue != L'\"') {
+				if (*pValue == L'\\')
+					++pValue;
+				buf.append(*pValue);
+				++pValue;
+			}
+			pEnd = wcschr(pValue, L';');
+			buf.append(pValue + 1, pEnd ? pEnd - pValue - 1 : -1);
+			wstrValue = buf.getString();
+		}
+		else {
+			pEnd = wcschr(pValue, L';');
+			wstrValue = allocWString(pValue, pEnd ? pEnd - pValue : -1);
+		}
+		
+		TemplateContext::Argument arg = {
+			wstrName.get(),
+			wstrValue.get()
+		};
+		pListArg->push_back(arg);
+		
+		pList->reserve(pList->size() + 2);
+		pList->push_back(wstrName.release());
+		pList->push_back(wstrValue.release());
+		
+		if (!pEnd)
+			break;
+		
+		pName = pEnd + 1;
+	}
 }
 
 
