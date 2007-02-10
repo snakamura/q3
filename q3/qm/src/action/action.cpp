@@ -3907,25 +3907,17 @@ void qm::MessageCreateAction::parseArgs(const WCHAR* pwszArgs,
 		
 		++pValue;
 		
-		const WCHAR* pEnd = 0;
-		wstring_ptr wstrValue;
-		if (*pValue == L'\"') {
-			StringBuffer<WSTRING> buf;
-			++pValue;
-			while (*pValue != L'\"') {
-				if (*pValue == L'\\')
-					++pValue;
-				buf.append(*pValue);
+		StringBuffer<WSTRING> buf;
+		while (*pValue && *pValue != L';') {
+			if (*pValue == L'\\') {
 				++pValue;
+				if (!*pValue)
+					break;
 			}
-			pEnd = wcschr(pValue, L';');
-			buf.append(pValue + 1, pEnd ? pEnd - pValue - 1 : -1);
-			wstrValue = buf.getString();
+			buf.append(*pValue);
+			++pValue;
 		}
-		else {
-			pEnd = wcschr(pValue, L';');
-			wstrValue = allocWString(pValue, pEnd ? pEnd - pValue : -1);
-		}
+		wstring_ptr wstrValue = buf.getString();
 		
 		TemplateContext::Argument arg = {
 			wstrName.get(),
@@ -3937,10 +3929,11 @@ void qm::MessageCreateAction::parseArgs(const WCHAR* pwszArgs,
 		pList->push_back(wstrName.release());
 		pList->push_back(wstrValue.release());
 		
-		if (!pEnd)
+		if (!*pValue)
 			break;
 		
-		pName = pEnd + 1;
+		assert(*pValue == L';');
+		pName = pValue + 1;
 	}
 }
 
