@@ -95,9 +95,6 @@ public:
 
 void qm::AddressBookFrameWindowImpl::initActions()
 {
-	pActionMap_.reset(new ActionMap());
-	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
-	
 	AddressBookSelectionModel* pSelectionModel = pListWindow_->getSelectionModel();
 	
 	ADD_ACTION0(NoneAction,
@@ -493,6 +490,9 @@ LRESULT qm::AddressBookFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		&acceleratorFactory, L"AddressBookFrameWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
+	
+	pImpl_->pActionMap_.reset(new ActionMap());
+	pImpl_->pActionInvoker_.reset(new ActionInvoker(pImpl_->pActionMap_.get()));
 	
 	pImpl_->pAddressBookModel_.reset(pContext->pAddressBookModel_);
 	

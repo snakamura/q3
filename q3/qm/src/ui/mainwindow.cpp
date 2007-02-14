@@ -293,10 +293,6 @@ public:
 
 void qm::MainWindowImpl::initActions()
 {
-	pActionMap_.reset(new ActionMap());
-	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
-	pFindReplaceManager_.reset(new FindReplaceManager());
-	
 	ADD_ACTION0(NoneAction,
 		IDM_NONE);
 	
@@ -2368,6 +2364,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		&acceleratorFactory, L"MainWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
+	
+	pImpl_->pActionMap_.reset(new ActionMap());
+	pImpl_->pActionInvoker_.reset(new ActionInvoker(pImpl_->pActionMap_.get()));
+	pImpl_->pFindReplaceManager_.reset(new FindReplaceManager());
 	
 	pImpl_->pSplitterHelper_.reset(new SplitterHelper(pImpl_->pProfile_));
 	

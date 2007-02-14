@@ -111,10 +111,6 @@ public:
 
 void qm::EditFrameWindowImpl::initActions()
 {
-	pActionMap_.reset(new ActionMap());
-	pActionInvoker_.reset(new ActionInvoker(pActionMap_.get()));
-	pFindReplaceManager_.reset(new FindReplaceManager());
-	
 	ADD_ACTION0(NoneAction,
 		IDM_NONE);
 	ADD_ACTION4(ToolOptionsAction,
@@ -777,6 +773,10 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		&acceleratorFactory, L"EditFrameWindow");
 	if (!pImpl_->pAccelerator_.get())
 		return -1;
+	
+	pImpl_->pActionMap_.reset(new ActionMap());
+	pImpl_->pActionInvoker_.reset(new ActionInvoker(pImpl_->pActionMap_.get()));
+	pImpl_->pFindReplaceManager_.reset(new FindReplaceManager());
 	
 	DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 	std::auto_ptr<EditWindow> pEditWindow(new EditWindow(pImpl_->pProfile_));
