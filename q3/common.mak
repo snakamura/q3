@@ -19,7 +19,7 @@ VCVER					= 8
 EVC3DIR					= C:/Program Files/Microsoft eMbedded Tools/EVC
 EVC4DIR					= C:/Program Files/Microsoft eMbedded C++ 4.0/EVC
 EVCVER					= 4
-PLATFORMSDKDIR			= C:/Program Files/Microsoft Platform SDK for Windows Server 2003 R2
+PLATFORMSDKDIR			= C:/Program Files/Microsoft SDKs/Windows/v6.0
 CESDKWM5JADIR			= C:/Program Files/Windows CE Tools/wce500/Windows Mobile 5.0 Pocket PC SDK
 CESDKWM5ENDIR			= C:/Program Files/Windows CE Tools/wce500/Windows Mobile 5.0 Pocket PC SDK
 CESDKPPC2003JADIR		= C:/Program Files/Windows CE Tools/wce420/POCKET PC 2003
@@ -73,6 +73,7 @@ ifeq ($(PLATFORM),win)
 		COMPILERDIR			= $(VC8DIR)
 		COMMONBINDIR		= $(VS8DIR)/common7/ide
 		COMMONTOOLBINDIR	= $(VS8DIR)/common7/tools/bin
+		COMMONTOOL2BINDIR	= $(VC8DIR)/vcpackages
 	endif
 	ifeq ($(VCVER),7)
 		COMPILERDIR			= $(VC7DIR)
@@ -827,7 +828,7 @@ $(TARGETDIR)/$(TARGETBASE).dll: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
 			if [ ! -z "$(EXTRADEFFILE)" -a -f "$(EXTRADEFFILE)" ]; then \
 				cat `echo $(EXTRADEFFILE)` >> `echo $(DEFFILE)`; \
 			fi; \
-			$(LD) $(LDFLAGS) -DLL -DEF:$(DEFFILE) -BASE:$(BASEADDRESS) -OUT:$@ $(OBJS) $(RESES) $(LIBS) 2>&1 | grep -v "LNK4197"; \
+			$(LD) $(LDFLAGS) -DLL -DEF:$(DEFFILE) -BASE:$(BASEADDRESS) -OUT:$@ $(OBJS) $(RESES) $(LIBS) 2>&1 | grep -v "LNK4197" | cat; \
 		else \
 			exit 1; \
 		fi; \
