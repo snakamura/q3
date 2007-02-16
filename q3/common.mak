@@ -84,6 +84,7 @@ ifeq ($(PLATFORM),win)
 	ifeq ($(VCVER),6)
 		COMPILERDIR			= $(VC6DIR)
 		COMMONBINDIR		= $(VS6DIR)/common/msdev98/bin
+		COMMONTOOLBINDIR	= $(VS6DIR)/common/msdev98/bin
 	endif
 	COMPILERBINDIR			= $(COMPILERDIR)/bin
 	SDKCOMMONBINDIR			= $(SDKDIR)/bin
