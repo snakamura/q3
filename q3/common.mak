@@ -20,6 +20,7 @@ EVC3DIR					= C:/Program Files/Microsoft eMbedded Tools/EVC
 EVC4DIR					= C:/Program Files/Microsoft eMbedded C++ 4.0/EVC
 EVCVER					= 4
 PLATFORMSDKDIR			= C:/Program Files/Microsoft SDKs/Windows/v6.0
+OLDPLATFORMSDKDIR		= C:/Program Files/Microsoft Platform SDK for Windows Server 2003 R2
 CESDKWM5JADIR			= C:/Program Files/Windows CE Tools/wce500/Windows Mobile 5.0 Pocket PC SDK
 CESDKWM5ENDIR			= C:/Program Files/Windows CE Tools/wce500/Windows Mobile 5.0 Pocket PC SDK
 CESDKPPC2003JADIR		= C:/Program Files/Windows CE Tools/wce420/POCKET PC 2003
@@ -55,6 +56,7 @@ include ../function.mak
 
 ifdef OLDWINDOWS
 	VCVER				= 6
+	PLATFORMSDKDIR		= $(OLDPLATFORMSDKDIR)
 endif
 ifeq ($(call cever,-ge,500),0)
 	EVCVER				= 8
@@ -112,7 +114,7 @@ ifeq ($(PLATFORM),win)
 		endif
 		
 		SDKINCLUDEDIR		= $(SDKDIR)/include
-		SDKLIBDIR			= $(SDKDIR)/lib/amd64
+		SDKLIBDIR			= $(SDKDIR)/lib/x64
 		ifeq ($(VCVER),8)
 			MFCINCLUDEDIR		= $(COMPILERDIR)/atlmfc/include
 			MFCLIBDIR			= $(COMPILERDIR)/atlmfc/lib/amd64
@@ -500,7 +502,7 @@ ifeq ($(PLATFORM),win)
 		LIBS			+= msvcirt$(DSUFFIX).lib
 	endif
 	ifeq ($(CPU),x64)
-		LIBS			+= bufferoverflowu.lib
+#		LIBS			+= bufferoverflowu.lib
 	endif
 	ifdef KCTRL
 		LIBS			+= $(KCTRLDIR)/lib/win/$(CPU)/kctrl.lib
