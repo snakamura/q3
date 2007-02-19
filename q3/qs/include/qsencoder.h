@@ -85,7 +85,7 @@ public:
 	 * Create instance of encoder.
 	 *
 	 * @param pwszName [in] Encoding name.
-	 * @return Created encoder. null if encoder is not found or error occured.
+	 * @return Created encoder. null if encoder is not found or error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	static std::auto_ptr<Encoder> getInstance(const WCHAR* pwszName);
@@ -101,7 +101,7 @@ protected:
 	/**
 	 * Create instance of encoder.
 	 *
-	 * @return Created encoder. null if encoder is not found or error occured.
+	 * @return Created encoder. null if encoder is not found or error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual std::auto_ptr<Encoder> createInstance() = 0;

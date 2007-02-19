@@ -141,7 +141,7 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 	
 	std::auto_ptr<Template> pTemplate(TemplateParser().parse(&reader, wstrPath.get()));
 	if (!pTemplate.get()) {
-		log.errorf(L"Error occured while parsing the template: %s.", pwszName);
+		log.errorf(L"Error occurred while parsing the template: %s.", pwszName);
 		return 0;
 	}
 	

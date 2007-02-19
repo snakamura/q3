@@ -215,7 +215,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 	Log log(InitThread::getInitThread().getLogger(), L"qm::RuleManagerImpl");
 	
 	if (!load()) {
-		log.error(L"Error occured while loading rules.");
+		log.error(L"Error occurred while loading rules.");
 		return false;
 	}
 	
@@ -1060,7 +1060,7 @@ bool qm::CopyRuleAction::apply(RuleContext* pContext) const
 				pContext->getSecurityMode(), pContext->getProfile(), 0, listArgument);
 			wstring_ptr wstrValue;
 			if (pTemplate->getValue(templateContext, &wstrValue) != Template::RESULT_SUCCESS) {
-				log.errorf(L"Error occured while processing template.");
+				log.errorf(L"Error occurred while processing template.");
 				return false;
 			}
 			

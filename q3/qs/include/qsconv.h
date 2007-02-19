@@ -321,7 +321,7 @@ public:
 	 * Create instance of converter.
 	 *
 	 * @param pwszName [in] Encoding name.
-	 * @return Created converter. null if converter is not found or error occured.
+	 * @return Created converter. null if converter is not found or error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	static std::auto_ptr<Converter> getInstance(const WCHAR* pwszName);
@@ -349,7 +349,7 @@ protected:
 	 * Create instance of converter.
 	 *
 	 * @param pwszName [in] Encoding name.
-	 * @return Created converter. null if converter is not found or error occured.
+	 * @return Created converter. null if converter is not found or error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual std::auto_ptr<Converter> createInstance(const WCHAR* pwszName) = 0;

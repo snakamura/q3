@@ -56,7 +56,7 @@ public:
 	 * @param pwszKey [in] Key name.
 	 * @param pwszDefault [in] Default value.
 	 * @return String value. Default value if there is no value
-	 *         or error occured. Can not be null.
+	 *         or error occurred. Can not be null.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual wstring_ptr getString(const WCHAR* pwszSection,
@@ -92,7 +92,7 @@ public:
 	 * @param pwszSection [in] Section name.
 	 * @param pwszKey [in] Key name.
 	 * @param nDefault [in] Default value.
-	 * @return Integer value. Default value if there is no value or error occured.
+	 * @return Integer value. Default value if there is no value or error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual int getInt(const WCHAR* pwszSection,

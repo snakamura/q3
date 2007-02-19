@@ -367,7 +367,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader,
 						
 						std::auto_ptr<Macro> pMacro(parser.parse(bufMacro.getCharArray()));
 						if (!pMacro.get())
-							return error(L"Error occured while parsing macro: %s.", bufMacro.getCharArray());
+							return error(L"Error occurred while parsing macro: %s.", bufMacro.getCharArray());
 						
 						wstring_ptr wstrText(bufText.getString());
 						listValue.push_back(std::make_pair(wstrText.get(), pMacro.get()));

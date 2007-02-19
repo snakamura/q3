@@ -87,14 +87,14 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_GREETING      "Error occured while greeting."
-    IDS_ERROR_GROUP         "Error occured while GROUP command."
-    IDS_ERROR_AUTHINFO      "Error occured while AUTHINFO command."
-    IDS_ERROR_ARTICLE       "Error occured while ARTICLE command."
-    IDS_ERROR_HEAD          "Error occured while HEAD command."
-    IDS_ERROR_BODY          "Error occured while BODY command."
-    IDS_ERROR_XOVER         "Error occured while XOVER command."
-    IDS_ERROR_MODEREADER    "Error occured while MODE READER command."
+    IDS_ERROR_GREETING      "Error occurred while greeting."
+    IDS_ERROR_GROUP         "Error occurred while GROUP command."
+    IDS_ERROR_AUTHINFO      "Error occurred while AUTHINFO command."
+    IDS_ERROR_ARTICLE       "Error occurred while ARTICLE command."
+    IDS_ERROR_HEAD          "Error occurred while HEAD command."
+    IDS_ERROR_BODY          "Error occurred while BODY command."
+    IDS_ERROR_XOVER         "Error occurred while XOVER command."
+    IDS_ERROR_MODEREADER    "Error occurred while MODE READER command."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -114,9 +114,9 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_POST          "Error occured while POST command."
-    IDS_ERROR_LIST          "Error occured while LIST command."
-    IDS_ERROR_NEWGROUPS     "Error occured while NEWGROUPS command."
+    IDS_ERROR_POST          "Error occurred while POST command."
+    IDS_ERROR_LIST          "Error occurred while LIST command."
+    IDS_ERROR_NEWGROUPS     "Error occurred while NEWGROUPS command."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -124,8 +124,8 @@ BEGIN
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
     IDS_ERROR_SUBSCRIBE     "Could not subscribe to the group."
     IDS_ERROR_REFRESH       "Could not download a group list from a server."
-    IDS_ERROR_MANAGEJUNK    "Error occured while managing junk messages."
-    IDS_ERROR_FILTERJUNK    "Error occured while filtering junk messages."
+    IDS_ERROR_MANAGEJUNK    "Error occurred while managing junk messages."
+    IDS_ERROR_FILTERJUNK    "Error occurred while filtering junk messages."
 END
 
 STRINGTABLE DISCARDABLE 

@@ -418,7 +418,7 @@ int qs::Socket::recv(char* p,
 	if (!pImpl_->bDebug_) {
 		nRecv = ::recv(pImpl_->socket_, p, nLen, nFlags);
 		if (nRecv == SOCKET_ERROR) {
-			log.debug(L"Error occured while receiving.");
+			log.debug(L"Error occurred while receiving.");
 			pImpl_->nError_ = SOCKET_ERROR_RECV;
 			return -1;
 		}
@@ -447,7 +447,7 @@ int qs::Socket::send(const char* p,
 	if (!pImpl_->bDebug_) {
 		nSent = ::send(pImpl_->socket_, p, nLen, nFlags);
 		if (nSent == SOCKET_ERROR) {
-			log.debug(L"Error occured while sending.");
+			log.debug(L"Error occurred while sending.");
 			pImpl_->nError_ = SOCKET_ERROR_SEND;
 			return -1;
 		}

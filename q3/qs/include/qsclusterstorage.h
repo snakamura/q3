@@ -85,7 +85,7 @@ public:
 	 * @param p [in] Buffer.
 	 * @param nOffset [in] Offset.
 	 * @param nLength [in] Length to load.
-	 * @return Length read. -1 if error occured.
+	 * @return Length read. -1 if error occurred.
 	 */
 	size_t load(unsigned char* p,
 				Offset nOffset,
@@ -97,7 +97,7 @@ public:
 	 * @param p [in] Array of buffer.
 	 * @param nLength [in] Array of buffer length.
 	 * @param nCount [in] Size of array.
-	 * @return Offset. -1 if error occured.
+	 * @return Offset. -1 if error occurred.
 	 */
 	Offset save(const unsigned char* p[],
 				size_t nLength[],
@@ -120,7 +120,7 @@ public:
 	 * @param nLength [in] Length.
 	 * @param pcsOld [in] Old storage. Can be null.
 	 *                    If null, data will be loaded from this storage.
-	 * @return New offset. -1 if error occured.
+	 * @return New offset. -1 if error occurred.
 	 */
 	Offset compact(Offset nOffset,
 				   size_t nLength,

@@ -84,33 +84,33 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_GREETING      "Error occured while greeting."
-    IDS_ERROR_LOGIN         "Error occured while LOGIN command."
-    IDS_ERROR_CAPABILITY    "Error occured while CAPABILITY command."
-    IDS_ERROR_FETCH         "Error occured while FETCH command."
-    IDS_ERROR_STORE         "Error occured while STORE command."
-    IDS_ERROR_SELECT        "Error occured while SELECT command."
-    IDS_ERROR_LSUB          "Error occured while LSUB command."
-    IDS_ERROR_LIST          "Error occured while LIST command."
+    IDS_ERROR_GREETING      "Error occurred while greeting."
+    IDS_ERROR_LOGIN         "Error occurred while LOGIN command."
+    IDS_ERROR_CAPABILITY    "Error occurred while CAPABILITY command."
+    IDS_ERROR_FETCH         "Error occurred while FETCH command."
+    IDS_ERROR_STORE         "Error occurred while STORE command."
+    IDS_ERROR_SELECT        "Error occurred while SELECT command."
+    IDS_ERROR_LSUB          "Error occurred while LSUB command."
+    IDS_ERROR_LIST          "Error occurred while LIST command."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_COPY          "Error occured while COPY command."
-    IDS_ERROR_APPEND        "Error occured while APPEND command."
-    IDS_ERROR_NOOP          "Error occured while NOOP command."
-    IDS_ERROR_CREATE        "Error occured while CREATE command."
-    IDS_ERROR_DELETE        "Error occured while DELETE command."
-    IDS_ERROR_RENAME        "Error occured while RENAME command."
-    IDS_ERROR_SUBSCRIBE     "Error occured while SUBSCRIBE command."
-    IDS_ERROR_UNSUBSCRIBE   "Error occured while UNSUBSCRIBE command."
-    IDS_ERROR_CLOSE         "Error occured while CLOSE command."
-    IDS_ERROR_EXPUNGE       "Error occured while EXPUNGE command."
-    IDS_ERROR_AUTHENTICATE  "Error occured while AUTHENTICATE command."
-    IDS_ERROR_SEARCH        "Error occured while SEARCH command."
-    IDS_ERROR_NAMESPACE     "Error occured while NAMESPACE command."
-    IDS_ERROR_LOGOUT        "Error occured while LOGOUT command."
-    IDS_ERROR_STARTTLS      "Error occured while STARTTLS command."
+    IDS_ERROR_COPY          "Error occurred while COPY command."
+    IDS_ERROR_APPEND        "Error occurred while APPEND command."
+    IDS_ERROR_NOOP          "Error occurred while NOOP command."
+    IDS_ERROR_CREATE        "Error occurred while CREATE command."
+    IDS_ERROR_DELETE        "Error occurred while DELETE command."
+    IDS_ERROR_RENAME        "Error occurred while RENAME command."
+    IDS_ERROR_SUBSCRIBE     "Error occurred while SUBSCRIBE command."
+    IDS_ERROR_UNSUBSCRIBE   "Error occurred while UNSUBSCRIBE command."
+    IDS_ERROR_CLOSE         "Error occurred while CLOSE command."
+    IDS_ERROR_EXPUNGE       "Error occurred while EXPUNGE command."
+    IDS_ERROR_AUTHENTICATE  "Error occurred while AUTHENTICATE command."
+    IDS_ERROR_SEARCH        "Error occurred while SEARCH command."
+    IDS_ERROR_NAMESPACE     "Error occurred while NAMESPACE command."
+    IDS_ERROR_LOGOUT        "Error occurred while LOGOUT command."
+    IDS_ERROR_STARTTLS      "Error occurred while STARTTLS command."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -132,8 +132,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
-    IDS_ERROR_MANAGEJUNK    "Error occured while managing junk messages."
-    IDS_ERROR_FILTERJUNK    "Error occured while filtering junk messages."
+    IDS_ERROR_MANAGEJUNK    "Error occurred while managing junk messages."
+    IDS_ERROR_FILTERJUNK    "Error occurred while filtering junk messages."
 END
 
 #endif    // âpåÍ (ÉAÉÅÉäÉJ) resources

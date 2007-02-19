@@ -263,7 +263,7 @@ QSEXPORTPROC void freeWXString(WXSTRING wstr) QNOTHROW();
  *
  * @param hInstResource [in] Instance handle of resource.
  * @param nId [in] Resource id.
- * @return Loaded string. null if error occured.
+ * @return Loaded string. null if error occurred.
  * @exception std::bad_alloc Out of memory.
  */
 QSEXPORTPROC wstring_ptr loadString(HINSTANCE hInstResource,

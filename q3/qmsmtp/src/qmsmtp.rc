@@ -69,15 +69,15 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_GREETING      "Error occured while greeting."
-    IDS_ERROR_HELO          "Error occured while HELO command."
-    IDS_ERROR_EHLO          "Error occured while EHLO command."
-    IDS_ERROR_AUTH          "Error occured while AUTH command."
-    IDS_ERROR_MAIL          "Error occured while MAIL command."
-    IDS_ERROR_RCPT          "Error occured while RCPT command."
-    IDS_ERROR_DATA          "Error occured while DATA command."
-    IDS_ERROR_STARTTLS      "Error occured while STARTTLS command."
-    IDS_ERROR_RSET          "Error occured while REST command."
+    IDS_ERROR_GREETING      "Error occurred while greeting."
+    IDS_ERROR_HELO          "Error occurred while HELO command."
+    IDS_ERROR_EHLO          "Error occurred while EHLO command."
+    IDS_ERROR_AUTH          "Error occurred while AUTH command."
+    IDS_ERROR_MAIL          "Error occurred while MAIL command."
+    IDS_ERROR_RCPT          "Error occurred while RCPT command."
+    IDS_ERROR_DATA          "Error occurred while DATA command."
+    IDS_ERROR_STARTTLS      "Error occurred while STARTTLS command."
+    IDS_ERROR_RSET          "Error occurred while REST command."
 END
 
 STRINGTABLE DISCARDABLE 

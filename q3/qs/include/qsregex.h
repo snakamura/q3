@@ -196,7 +196,7 @@ public:
 	 * Compile regular expression.
 	 *
 	 * @param pwszPattern [in] Pattern.
-	 * @return Compiled instance. null if error occured.
+	 * @return Compiled instance. null if error occurred.
 	 * @exception std::bad_alloc Out of memory;
 	 */
 	std::auto_ptr<RegexPattern> compile(const WCHAR* pwszPattern) const;
@@ -206,7 +206,7 @@ public:
 	 *
 	 * @param pwszPattern [in] Pattern.
 	 * @param nMode [in] Mode.
-	 * @return Compiled instance. null if error occured.
+	 * @return Compiled instance. null if error occurred.
 	 * @exception std::bad_alloc Out of memory;
 	 */
 	std::auto_ptr<RegexPattern> compile(const WCHAR* pwszPattern,

@@ -202,10 +202,10 @@ BEGIN
     IDS_CONFIRM_DELETEMESSAGE "Are you sure to delete selected messages?"
     IDS_CONFIRM_SAVEADDRESSBOOK 
                             "Address Book is not saved.\nWould you like to save changes?"
-    IDS_CONFIRM_EXIT        "Error occured while saving. Would you like to continue?\nSelect Yes to continue, No to retry, Cancel to cancel."
+    IDS_CONFIRM_EXIT        "Error occurred while saving. Would you like to continue?\nSelect Yes to continue, No to retry, Cancel to cancel."
     IDS_CONFIRM_OPENURL     "Are you sure to open this file?"
     IDS_CONFIRM_IGNORECHECKERROR 
-                            "Error occured while checking the cache.\nDo you want to ignore it and remove this message?\nFolder: %s\nID: %u\nOffset: %u\nLength: %u"
+                            "Error occurred while checking the cache.\nDo you want to ignore it and remove this message?\nFolder: %s\nID: %u\nOffset: %u\nLength: %u"
     IDS_CONFIRM_UPDATE      "The new version is available.\nWould you like to download it?"
 END
 
@@ -245,20 +245,20 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDS_ERROR_CREATEFOLDER  "Could not create folder."
     IDS_ERROR_EXECUTEATTACHMENT "Could not execute attachment file."
-    IDS_ERROR_DIALUP        "Error occured while dialing up"
+    IDS_ERROR_DIALUP        "Error occurred while dialing up"
     IDS_ERROR_CLEARDELETED  "Could not clear deleted messages."
     IDS_ERROR_COPYMESSAGES  "Could not copy messages."
     IDS_ERROR_CUTMESSAGES   "Could not cut messages."
     IDS_ERROR_DELETECACHE   "Could not delete cache."
     IDS_ERROR_DELETEMESSAGES "Could not delete messages."
     IDS_ERROR_PASTEMESSAGES "Could not paste messages."
-    IDS_ERROR_COMPACT       "Error occured while compacting message box."
-    IDS_ERROR_SAVE          "Error occured while saving."
-    IDS_ERROR_EXPORT        "Error occured while exporting."
-    IDS_ERROR_IMPORT        "Error occured while importing."
-    IDS_ERROR_PRINT         "Error occured while printing."
-    IDS_ERROR_SALVAGE       "Error occured while salvaging."
-    IDS_ERROR_DELETEFOLDER  "Error occured while deleting the folder."
+    IDS_ERROR_COMPACT       "Error occurred while compacting message box."
+    IDS_ERROR_SAVE          "Error occurred while saving."
+    IDS_ERROR_EXPORT        "Error occurred while exporting."
+    IDS_ERROR_IMPORT        "Error occurred while importing."
+    IDS_ERROR_PRINT         "Error occurred while printing."
+    IDS_ERROR_SALVAGE       "Error occurred while salvaging."
+    IDS_ERROR_DELETEFOLDER  "Error occurred while deleting the folder."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -333,22 +333,22 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_CREATEACCOUNT "Error occured while creating an account."
-    IDS_ERROR_MOVEFOLDER    "Error occured while moving folder."
+    IDS_ERROR_CREATEACCOUNT "Error occurred while creating an account."
+    IDS_ERROR_MOVEFOLDER    "Error occurred while moving folder."
     IDS_ERROR_SAVEADDRESSBOOK "Could not save address book."
     IDS_ERROR_UNDO          "Could not undo."
     IDS_ERROR_COMPLEXMACRO  "The macro is too complex."
     IDS_ERROR_NOOUTBOX      "Could not find Outbox."
-    IDS_ERROR_LOADOUTBOX    "Error occured while loading messages in Outbox."
+    IDS_ERROR_LOADOUTBOX    "Error occurred while loading messages in Outbox."
     IDS_ERROR_NOSENTBOX     "Cound not find Sentbox."
     IDS_ERROR_GETMESSAGE    "Could not get a message to be sent."
     IDS_ERROR_MOVETOSENTBOX "Could not move the sent message to Sentbox."
-    IDS_ERROR_LABELMESSAGE  "Error occured while labeling messages."
+    IDS_ERROR_LABELMESSAGE  "Error occurred while labeling messages."
     IDS_ERROR_SYNCHRONIZING "This operation is not allowed while synchronizing."
-    IDS_ERROR_EVALUATEMACRO "Error occured while evaluating macro."
-    IDS_ERROR_RENAMEACCOUNT "Error occured while renaming the account."
-    IDS_ERROR_RENAMESUBACCOUNT "Error occured while renaming the subaccount."
-    IDS_ERROR_CREATESUBACCOUNT "Error occured while creating a subaccount."
+    IDS_ERROR_EVALUATEMACRO "Error occurred while evaluating macro."
+    IDS_ERROR_RENAMEACCOUNT "Error occurred while renaming the account."
+    IDS_ERROR_RENAMESUBACCOUNT "Error occurred while renaming the subaccount."
+    IDS_ERROR_CREATESUBACCOUNT "Error occurred while creating a subaccount."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -363,7 +363,7 @@ BEGIN
     IDS_ERROR_INVALIDCOLOR  "The specified color is invalid."
     IDS_ERROR_INSERTSIGNATURE "Could not insert the signature."
     IDS_ERROR_INSERTTEXT    "Could not insert the text."
-    IDS_ERROR_REFORM        "Error occured while reforming text."
+    IDS_ERROR_REFORM        "Error occurred while reforming text."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -375,42 +375,42 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_EMPTYFOLDER   "Error occured while emptying the folder."
-    IDS_ERROR_EMPTYTRASH    "Error occured while emptying the trash."
-    IDS_ERROR_RENAMEFOLDER  "Error occured while renaming the folder."
-    IDS_ERROR_UPDATEFOLDER  "Error occured while updating folder."
-    IDS_ERROR_APPLYRULE     "Error occured while applying rule."
-    IDS_ERROR_APPLYTEMPLATE "Error occured while applying template."
-    IDS_ERROR_COMBINE       "Error occured while combining messages."
-    IDS_ERROR_CREATEMESSAGE "Error occured while creating message."
-    IDS_ERROR_DELETEATTACHMENT "Error occured while deleting attachments."
-    IDS_ERROR_DETACHATTACHMENT "Error occured while detaching attachments."
-    IDS_ERROR_EXPANDDIGEST  "Error occured while expanding digest."
-    IDS_ERROR_MARKMESSAGE   "Error occured while mark messages."
-    IDS_ERROR_MOVEMESSAGE   "Error occured while moving messages."
-    IDS_ERROR_COPYMESSAGE   "Error occured while copying messages."
-    IDS_ERROR_OPENURL       "Error occured while opening the URL."
-    IDS_ERROR_SETFLAGS      "Error occured while setting flags."
+    IDS_ERROR_EMPTYFOLDER   "Error occurred while emptying the folder."
+    IDS_ERROR_EMPTYTRASH    "Error occurred while emptying the trash."
+    IDS_ERROR_RENAMEFOLDER  "Error occurred while renaming the folder."
+    IDS_ERROR_UPDATEFOLDER  "Error occurred while updating folder."
+    IDS_ERROR_APPLYRULE     "Error occurred while applying rule."
+    IDS_ERROR_APPLYTEMPLATE "Error occurred while applying template."
+    IDS_ERROR_COMBINE       "Error occurred while combining messages."
+    IDS_ERROR_CREATEMESSAGE "Error occurred while creating message."
+    IDS_ERROR_DELETEATTACHMENT "Error occurred while deleting attachments."
+    IDS_ERROR_DETACHATTACHMENT "Error occurred while detaching attachments."
+    IDS_ERROR_EXPANDDIGEST  "Error occurred while expanding digest."
+    IDS_ERROR_MARKMESSAGE   "Error occurred while mark messages."
+    IDS_ERROR_MOVEMESSAGE   "Error occurred while moving messages."
+    IDS_ERROR_COPYMESSAGE   "Error occurred while copying messages."
+    IDS_ERROR_OPENURL       "Error occurred while opening the URL."
+    IDS_ERROR_SETFLAGS      "Error occurred while setting flags."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_ERROR_SEARCH        "Error occured while searching."
-    IDS_ERROR_DIALUPCONNECT "Error occured while connecting dialup."
-    IDS_ERROR_DIALUPDISCONNECT "Error occured while disconnecting dialup."
-    IDS_ERROR_GOROUND       "Error occured while going around."
-    IDS_ERROR_SYNC          "Error occured while synchronizing."
-    IDS_ERROR_OPENLINK      "Error occured while opening link."
-    IDS_ERROR_REFRESH       "Error occured while refreshing."
-    IDS_ERROR_INSERTFILE    "Error occured while inserting file."
-    IDS_ERROR_PASTE         "Error occured while pasting."
-    IDS_ERROR_OPENFILE      "Error occured while opening file."
-    IDS_ERROR_SAVEFILE      "Error occured while saving file."
-    IDS_ERROR_SEND          "Error occured while sending."
-    IDS_ERROR_DUMP          "Error occured while dumping messages."
-    IDS_ERROR_LOAD          "Error occured while loading messages."
-    IDS_ERROR_CHECK         "Error occured while checking messages."
-    IDS_ERROR_INVALIDMACRO  "Error occured while parsing the macro."
+    IDS_ERROR_SEARCH        "Error occurred while searching."
+    IDS_ERROR_DIALUPCONNECT "Error occurred while connecting dialup."
+    IDS_ERROR_DIALUPDISCONNECT "Error occurred while disconnecting dialup."
+    IDS_ERROR_GOROUND       "Error occurred while going around."
+    IDS_ERROR_SYNC          "Error occurred while synchronizing."
+    IDS_ERROR_OPENLINK      "Error occurred while opening link."
+    IDS_ERROR_REFRESH       "Error occurred while refreshing."
+    IDS_ERROR_INSERTFILE    "Error occurred while inserting file."
+    IDS_ERROR_PASTE         "Error occurred while pasting."
+    IDS_ERROR_OPENFILE      "Error occurred while opening file."
+    IDS_ERROR_SAVEFILE      "Error occurred while saving file."
+    IDS_ERROR_SEND          "Error occurred while sending."
+    IDS_ERROR_DUMP          "Error occurred while dumping messages."
+    IDS_ERROR_LOAD          "Error occurred while loading messages."
+    IDS_ERROR_CHECK         "Error occurred while checking messages."
+    IDS_ERROR_INVALIDMACRO  "Error occurred while parsing the macro."
 END
 
 STRINGTABLE DISCARDABLE 

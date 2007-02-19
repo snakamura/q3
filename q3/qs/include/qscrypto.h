@@ -150,7 +150,7 @@ public:
 	/**
 	 * Serialize this certificate to text.
 	 *
-	 * @return Serialized certificate. null if error occured.
+	 * @return Serialized certificate. null if error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual wstring_ptr getText() const = 0;
@@ -158,7 +158,7 @@ public:
 	/**
 	 * Get the subject of this certificate.
 	 *
-	 * @return Subject. null if error occured.
+	 * @return Subject. null if error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual std::auto_ptr<Name> getSubject() const = 0;
@@ -190,7 +190,7 @@ public:
 	/**
 	 * Get instance of new certificate.
 	 *
-	 * @return Certificate. null if error occured.
+	 * @return Certificate. null if error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	static std::auto_ptr<Certificate> getInstance();
@@ -445,7 +445,7 @@ public:
 	 * @param bMultipart [in] true if sign as multipart/signed, false otherwise.
 	 * @param pPrivateKey [in] Private key to sign.
 	 * @param pCertificate [in] Certificate collesponding to the private key.
-	 * @return Signed content. null if error occured.
+	 * @return Signed content. null if error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual xstring_size_ptr sign(Part* pPart,
@@ -459,7 +459,7 @@ public:
 	 * @param part [in] Part to be verified.
 	 * @param pStoreCA [in] Certificate store of CA.
 	 * @param pnVerify [out] Verified status.
-	 * @return Verified content. null if error occured.
+	 * @return Verified content. null if error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual xstring_size_ptr verify(const Part& part,
@@ -473,7 +473,7 @@ public:
 	 * @param pPart [in] Part to be signed. This part will be modified.
 	 * @param pCipher [in] Cipher to encrypt.
 	 * @param pCallback [in] Callback.
-	 * @return Encrypted content. null if error occured.
+	 * @return Encrypted content. null if error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual xstring_size_ptr encrypt(Part* pPart,
@@ -486,7 +486,7 @@ public:
 	 * @param part [in] Part to be decrypted.
 	 * @param pPrivateKey [in] Private key to decrypt.
 	 * @param pCertificate [in] Certificate collesponding to the private key.
-	 * @return Decrypted content. null if error occured.
+	 * @return Decrypted content. null if error occurred.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual xstring_size_ptr decrypt(const Part& part,
