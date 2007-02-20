@@ -263,6 +263,13 @@ void qm::MainCommandLineHandler::invoke(HWND hwnd,
 			data.lpData = wstrParams.get();
 		}
 		break;
+	case IDM_TOOL_INVOKEACTION:
+		if (wstrAction_.get()) {
+			data.dwData = nAction_;
+			data.cbData = static_cast<DWORD>((wcslen(wstrAction_.get()) + 1)*sizeof(WCHAR));
+			data.lpData = wstrAction_.get();
+		}
+		break;
 	case IDM_MESSAGE_CREATEFROMFILE:
 	case IDM_MESSAGE_DRAFTFROMFILE:
 		if (wstrPath_.get()) {
@@ -297,6 +304,7 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		{ L"g",	STATE_GOROUND		},
 		{ L"s",	STATE_URL			},
 		{ L"a",	STATE_ATTACHMENT	},
+		{ L"i",	STATE_ACTION		},
 		{ L"c",	STATE_CREATE		},
 		{ L"r",	STATE_DRAFT			}
 	};
@@ -306,13 +314,15 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		&wstrProfile_,
 		&wstrGoRound_,
 		&wstrURL_,
-		&wstrAttachment_
+		&wstrAttachment_,
+		&wstrAction_
 	};
 	
 	unsigned int nActions[] = {
 		IDM_TOOL_GOROUND,
 		IDM_MESSAGE_OPENURL,
 		IDM_MESSAGE_OPENURL,
+		IDM_TOOL_INVOKEACTION,
 		IDM_MESSAGE_CREATEFROMFILE,
 		IDM_MESSAGE_DRAFTFROMFILE
 	};
@@ -338,6 +348,7 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 	case STATE_GOROUND:
 	case STATE_URL:
 	case STATE_ATTACHMENT:
+	case STATE_ACTION:
 		*pwstr[state_ - STATE_MAILFOLDER] = allocWString(pwszOption);
 		state_ = STATE_NONE;
 		break;

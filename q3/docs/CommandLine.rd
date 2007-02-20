@@ -3,7 +3,14 @@
 
 QMAIL3に指定可能なコマンドラインは以下の通りです。
 
--dと-pは常に指定可能です。-g, -s, -a, -c, -rは排他です。ただし、-sと-aは組み合わせて指定することができます。
+-dと-pは常に指定可能です。-g, -s, -a, -c, -r, -iは排他です。ただし、-sと-aは組み合わせて指定することができます。
+
+コマンドラインオプションの引数に空白文字が含まれる場合には""で括ります。^を置くと次の文字がエスケープされて特殊な意味を失います。例えば、
+
+ -d "C:\Documents and Settings\test\"
+ -i "MessageCreate ^"Test Template^""
+
+のように使用します。
 
 
 ==-d <メールボックスディレクトリ>
@@ -95,5 +102,15 @@ QMAIL3に指定可能なコマンドラインは以下の通りです。
 ===例
  -r
  -r "C:\Temp\mail.txt"
+
+
+==-i <アクション>
+
+===説明
+指定されたアクションを実行します。アクションの指定は、((<ToolInvokeActionアクション|URL:ToolInvokeActionAction.html>))の引数の指定と同様に行います。
+
+===例
+ -i "MessageCreate new"
+ -i "MessageCreate ^"Test Template^""
 
 =end

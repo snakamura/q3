@@ -1,10 +1,11 @@
 [2.9.31]
-*@InvokeActionを追加
-*@Scriptで指定したスクリプトの中から、actionTargetを使用してアクションを起動できるようにした
+*@InvokeActionを追加してマクロからアクションを実行できるようにした
+*@Scriptで指定したスクリプトの中から、actionTargetを使用してアクションを実行できるようにした
 *MessageCreateアクションの二番目の引数でコンテキストメッセージを指定できるようにした
 *マニフェストにVistaのUAC用のエントリを追加
 *MessageCreateアクションでテンプレートに渡す引数を指定できるようにした
 *X-QMAIL-EditMacroを追加
+*コマンドラインからアクションを実行できるようにした
 
 [2.9.30]
 *X-QMAIL-Outboxを追加
