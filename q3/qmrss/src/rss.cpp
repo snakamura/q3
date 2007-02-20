@@ -926,33 +926,10 @@ bool qmrss::Atom03Handler::startElement(const WCHAR* pwszNamespaceURI,
 			}
 			else if (wcscmp(pwszLocalName, L"link") == 0) {
 				const WCHAR* pwszRel = attributes.getValue(L"rel");
-				if (!pwszRel || wcscmp(pwszRel, L"alternative") == 0) {
+				if (!pwszRel || wcscmp(pwszRel, L"alternate") == 0) {
 					const WCHAR* pwszHref = attributes.getValue(L"href");
 					if (pwszHref)
 						pChannel_->setLink(allocWString(pwszHref));
-				}
-				else if (wcscmp(pwszRel, L"enclosure") == 0) {
-					const WCHAR* pwszHref = 0;
-					const WCHAR* pwszLength = 0;
-					const WCHAR* pwszType = 0;
-					for (int n = 0; n < attributes.getLength(); ++n) {
-						const WCHAR* pwszAttrName = attributes.getLocalName(n);
-						if (wcscmp(pwszAttrName, L"href") == 0)
-							pwszHref = attributes.getValue(n);
-						else if (wcscmp(pwszAttrName, L"length") == 0)
-							pwszLength = attributes.getValue(n);
-						else if (wcscmp(pwszAttrName, L"type") == 0)
-							pwszType = attributes.getValue(n);
-					}
-					if (pwszHref && pwszLength && pwszType) {
-						WCHAR* pEnd = 0;
-						long nLength = wcstol(pwszLength, &pEnd, 10);
-						if (nLength != 0 && !*pEnd) {
-							std::auto_ptr<Item::Enclosure> pEnclosure(
-								new Item::Enclosure(pwszHref, nLength, pwszType));
-							pCurrentItem_->addEnclosure(pEnclosure);
-						}
-					}
 				}
 				stackState_.push_back(STATE_UNKNOWN);
 			}
@@ -987,9 +964,35 @@ bool qmrss::Atom03Handler::startElement(const WCHAR* pwszNamespaceURI,
 					stackState_.push_back(STATE_CONTENT);
 			}
 			else if (wcscmp(pwszLocalName, L"link") == 0) {
-				const WCHAR* pwszHref = attributes.getValue(L"href");
-				if (pwszHref)
-					pCurrentItem_->setLink(allocWString(pwszHref));
+				const WCHAR* pwszRel = attributes.getValue(L"rel");
+				if (!pwszRel || wcscmp(pwszRel, L"alternate") == 0) {
+					const WCHAR* pwszHref = attributes.getValue(L"href");
+					if (pwszHref)
+						pCurrentItem_->setLink(allocWString(pwszHref));
+				}
+				else if (wcscmp(pwszRel, L"enclosure") == 0) {
+					const WCHAR* pwszHref = 0;
+					const WCHAR* pwszLength = 0;
+					const WCHAR* pwszType = 0;
+					for (int n = 0; n < attributes.getLength(); ++n) {
+						const WCHAR* pwszAttrName = attributes.getLocalName(n);
+						if (wcscmp(pwszAttrName, L"href") == 0)
+							pwszHref = attributes.getValue(n);
+						else if (wcscmp(pwszAttrName, L"length") == 0)
+							pwszLength = attributes.getValue(n);
+						else if (wcscmp(pwszAttrName, L"type") == 0)
+							pwszType = attributes.getValue(n);
+					}
+					if (pwszHref && pwszLength && pwszType) {
+						WCHAR* pEnd = 0;
+						long nLength = wcstol(pwszLength, &pEnd, 10);
+						if (nLength != 0 && !*pEnd) {
+							std::auto_ptr<Item::Enclosure> pEnclosure(
+								new Item::Enclosure(pwszHref, nLength, pwszType));
+							pCurrentItem_->addEnclosure(pEnclosure);
+						}
+					}
+				}
 				stackState_.push_back(STATE_UNKNOWN);
 			}
 			else if (wcscmp(pwszLocalName, L"author") == 0) {
