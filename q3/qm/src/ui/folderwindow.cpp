@@ -598,11 +598,14 @@ void qm::FolderWindowImpl::folderListChanged(const FolderListChangedEvent& event
 				}
 			}
 			else if ((nOldFlags & Folder::FLAG_BOX_MASK) != (nNewFlags & Folder::FLAG_BOX_MASK)) {
-				sortFolders(pFolder);
-				update(pFolder);
+				if (!pFolder->isHidden()) {
+					sortFolders(pFolder);
+					update(pFolder);
+				}
 			}
 			else {
-				update(pFolder);
+				if (!pFolder->isHidden())
+					update(pFolder);
 			}
 		}
 		break;
