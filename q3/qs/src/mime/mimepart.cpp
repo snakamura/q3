@@ -122,8 +122,7 @@ void qs::Part::clear()
 	listPart_.clear();
 	pPartEnclosed_.reset(0);
 	pParent_ = 0;
-	
-	updateContentType();
+	pContentType_.reset(0);
 }
 
 std::auto_ptr<Part> qs::Part::clone() const
@@ -568,7 +567,7 @@ wstring_ptr qs::Part::getCharset() const
 	wstring_ptr wstrCharset;
 	const ContentTypeParser* pContentType = getContentType();
 	if (!pContentType) {
-		if (!isOption(O_ALLOW_USE_DEFAULT_ENCODING) && hasField(L"MIME-Version"))
+		if (!isOption(O_ALLOW_USE_DEFAULT_ENCODING) && getRootPart()->hasField(L"MIME-Version"))
 			wstrCharset = allocWString(L"us-ascii");
 		else
 			wstrCharset = allocWString(getDefaultCharset());
@@ -935,6 +934,11 @@ Part* qs::Part::getParentPart() const
 	return pParent_;
 }
 
+const Part* qs::Part::getRootPart() const
+{
+	return pParent_ ? pParent_->getRootPart() : this;
+}
+
 const CHAR* qs::Part::getPreamble() const
 {
 	return strPreamble_.get();
@@ -1102,7 +1106,8 @@ bool qs::Part::create(const Part* pParent,
 			*(strHeader_.get() + nHeaderLen) = '\0';
 	}
 	
-	updateContentType();
+	clearHeaderLower();
+	updateContentType(pParent || hasField(L"MIME-Version"));
 	
 	if (pBody) {
 		bool bProcessed = false;
@@ -1232,9 +1237,14 @@ void qs::Part::clearHeaderLower() const
 
 void qs::Part::updateContentType()
 {
+	updateContentType(getRootPart()->hasField(L"MIME-Version"));
+}
+
+void qs::Part::updateContentType(bool bMime)
+{
 	pContentType_.reset(0);
 	
-	if (strHeader_.get()) {
+	if (strHeader_.get() && bMime) {
 		std::auto_ptr<ContentTypeParser> pContentType(new ContentTypeParser());
 		switch (getField(L"Content-Type", pContentType.get())) {
 		case FIELD_EXIST:

@@ -207,6 +207,7 @@ public:
 					std::auto_ptr<Part> pPart);
 	void removePart(Part* pPart);
 	Part* getParentPart() const;
+	const Part* getRootPart() const;
 
 public:
 	const CHAR* getPreamble() const;
@@ -246,6 +247,7 @@ private:
 	const CHAR* getHeaderLower() const;
 	void clearHeaderLower() const;
 	void updateContentType();
+	void updateContentType(bool bMime);
 	CHAR* getFieldPos(const CHAR* pszName,
 					  unsigned int nIndex) const;
 	CHAR* getFieldEndPos(const CHAR* pBegin) const;

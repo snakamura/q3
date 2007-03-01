@@ -925,7 +925,7 @@ Part::Field qs::UnstructuredParser::parse(const Part& part,
 	
 	std::auto_ptr<Converter> pConverter;
 	if (isRawValue(strValue.get())) {
-		if (!part.hasField(L"MIME-Version"))
+		if (!part.getRootPart()->hasField(L"MIME-Version"))
 			pConverter = ConverterFactory::getInstance(part.getDefaultCharset());
 		else if (part.isOption(Part::O_ALLOW_RAW_FIELD))
 			pConverter = ConverterFactory::getInstance(part.getHeaderCharset().get());
