@@ -508,6 +508,10 @@ bool qmrss::RssReceiveSession::createItemMessage(const Channel* pChannel,
 	assert(pMessage);
 	assert((pHeader && pBody) || (!pHeader && !pBody));
 	
+	SimpleParser mimeVersion(L"1.0", 0);
+	if (!pMessage->setField(L"MIME-Version", mimeVersion))
+		return false;
+	
 	const WCHAR* pwszLink = getLink(pChannel, pItem).first;
 	
 	UnstructuredParser link(pwszLink, L"utf-8");
