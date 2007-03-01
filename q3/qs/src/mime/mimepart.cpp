@@ -1244,7 +1244,7 @@ void qs::Part::updateContentType(bool bMime)
 {
 	pContentType_.reset(0);
 	
-	if (strHeader_.get() && bMime) {
+	if (strHeader_.get()) {
 		std::auto_ptr<ContentTypeParser> pContentType(new ContentTypeParser());
 		switch (getField(L"Content-Type", pContentType.get())) {
 		case FIELD_EXIST:
@@ -1253,7 +1253,8 @@ void qs::Part::updateContentType(bool bMime)
 		case FIELD_NOTEXIST:
 			break;
 		case FIELD_ERROR:
-			pContentType_.reset(new ContentTypeParser(L"application", L"octet-stream"));
+			if (bMime)
+				pContentType_.reset(new ContentTypeParser(L"application", L"octet-stream"));
 			break;
 		default:
 			assert(false);
