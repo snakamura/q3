@@ -2403,7 +2403,7 @@ void qm::FileShowAction::invoke(const ActionEvent& event)
 bool qm::FileShowAction::isEnabled(const ActionEvent& event)
 {
 	if (bShow_)
-		return pMainWindow_->isHidden();
+		return pMainWindow_->isHidden() || pMainWindow_->isIconic();
 	else
 		return !pMainWindow_->isHidden();
 }
