@@ -287,10 +287,6 @@ void qm::MainCommandLineHandler::invoke(HWND hwnd,
 	}
 	if (data.dwData != 0)
 		::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
-#ifdef _WIN32_WCE_PSPC
-	else if (bPrev)
-		::SetForegroundWindow(hwnd);
-#endif
 }
 
 bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
@@ -457,6 +453,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 			COPYDATASTRUCT data = { IDM_FILE_SHOW };
 			::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
 #endif
+			::SetForegroundWindow(hwnd);
 		}
 		*phwnd = hwnd;
 		
@@ -486,6 +483,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 				COPYDATASTRUCT data = { IDM_FILE_SHOW };
 				::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
 #endif
+				::SetForegroundWindow(hwnd);
 			}
 			*phwnd = hwnd;
 		}
