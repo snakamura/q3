@@ -42,6 +42,7 @@
 *((<ツールバーの文字列を表示しないようにするにはどうすればよいですか?|URL:HowToHideTextOnToolbars.html>))
 *((<関連付けでエディットビューを開いたときのアカウントを固定するにはどうすればよいですか?|URL:HowToSpecifyAccountWhenCreatingMessageWithMailtoUrl.html>))
 *((<開封通知を送るにはどうすれば良いですか?|URL:HowToSendReceiptNotification.html>))
+*((<分割されて届いた大きな添付ファイルを保存するにはどうすればよいですか?|URL:HowToCombinePartialMessages.html>))
 *((<アカウントやフォルダの順番を変えることはできますか?|URL:HowToChangeOrderOfAccountsAndFolders.html>))
 *((<スペルチェックはできますか?|URL:HowToCheckSpell.html>))
 
