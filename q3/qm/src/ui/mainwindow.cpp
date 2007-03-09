@@ -1949,9 +1949,18 @@ bool qm::MainWindow::isShowingModalDialog() const
 	return pImpl_->nShowingModalDialog_ != 0;
 }
 
-void qm::MainWindow::initialShow()
+void qm::MainWindow::initialShow(bool bHidden)
 {
-	showWindow(pImpl_->nInitialShow_);
+	if (bHidden) {
+#ifndef _WIN32_WCE_PSPC
+		pImpl_->pShellIcon_->showHiddenIcon();
+#else
+		showWindow(SW_SHOWNOACTIVATE);
+#endif
+	}
+	else {
+		showWindow(pImpl_->nInitialShow_);
+	}
 }
 
 void qm::MainWindow::layout()

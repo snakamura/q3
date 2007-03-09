@@ -139,6 +139,7 @@ public:
 	Application* pThis_;
 	HINSTANCE hInst_;
 	HINSTANCE hInstResource_;
+	bool bQuiet_;
 	std::auto_ptr<MailFolderLock> pLock_;
 	std::auto_ptr<Winsock> pWinSock_;
 	wstring_ptr wstrMailFolder_;
@@ -794,6 +795,7 @@ qm::Application::Application(HINSTANCE hInst,
 							 HINSTANCE hInstResource,
 							 wstring_ptr wstrMailFolder,
 							 wstring_ptr wstrProfile,
+							 bool bQuiet,
 							 std::auto_ptr<MailFolderLock> pLock)
 {
 	assert(wstrMailFolder.get());
@@ -804,6 +806,7 @@ qm::Application::Application(HINSTANCE hInst,
 	pImpl_->pThis_ = this;
 	pImpl_->hInst_ = hInst;
 	pImpl_->hInstResource_ = hInstResource;
+	pImpl_->bQuiet_ = bQuiet;
 	pImpl_->pLock_ = pLock;
 	pImpl_->wstrMailFolder_ = wstrMailFolder;
 	pImpl_->wstrProfileName_ = wstrProfile;
@@ -898,7 +901,7 @@ bool qm::Application::initialize()
 		return false;
 	pImpl_->pMainWindow_ = pMainWindow.release();
 	setMainWindow(pImpl_->pMainWindow_);
-	pImpl_->pMainWindow_->initialShow();
+	pImpl_->pMainWindow_->initialShow(pImpl_->bQuiet_);
 	
 	wstring_ptr wstrAccountFolder(concat(
 		pImpl_->wstrMailFolder_.get(), L"\\accounts"));
@@ -912,8 +915,10 @@ bool qm::Application::initialize()
 	pImpl_->pActiveSyncInvoker_.reset(new ActiveSyncInvoker(
 		pImpl_->pDocument_.get(), pImpl_->pSyncQueue_.get()));
 	
-	pImpl_->pMainWindow_->updateWindow();
-	pImpl_->pMainWindow_->setForegroundWindow();
+	if (!pImpl_->bQuiet_) {
+		pImpl_->pMainWindow_->updateWindow();
+		pImpl_->pMainWindow_->setForegroundWindow();
+	}
 	
 	pImpl_->restoreCurrentFolder();
 	

@@ -36,6 +36,7 @@ public:
 				HINSTANCE hInstResource,
 				qs::wstring_ptr wstrMailFolder,
 				qs::wstring_ptr wstrProfile,
+				bool bQuiet,
 				std::auto_ptr<MailFolderLock> pLock);
 	~Application();
 

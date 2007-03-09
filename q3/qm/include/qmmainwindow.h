@@ -42,7 +42,7 @@ public:
 	SecurityModel* getSecurityModel() const;
 	const ActionInvoker* getActionInvoker() const;
 	bool isShowingModalDialog() const;
-	void initialShow();
+	void initialShow(bool bHidden);
 	void layout();
 	void reloadProfiles();
 	bool save(bool bForce);

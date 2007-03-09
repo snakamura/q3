@@ -33,6 +33,7 @@ public:
 public:
 	const WCHAR* getMailFolder() const;
 	const WCHAR* getProfile() const;
+	bool isQuiet() const;
 	void invoke(HWND hwnd,
 				bool bPrev);
 
@@ -66,6 +67,7 @@ private:
 	qs::wstring_ptr wstrPath_;
 	qs::wstring_ptr wstrAction_;
 	unsigned int nAction_;
+	bool bQuiet_;
 };
 
 
@@ -79,6 +81,7 @@ class MailFolderLock
 {
 public:
 	MailFolderLock(const WCHAR* pwszMailFolder,
+				   bool bQuiet,
 				   bool* pbContinue,
 				   HWND* phwnd);
 	~MailFolderLock();
@@ -89,6 +92,7 @@ public:
 
 private:
 	void lock(const WCHAR* pwszMailFolder,
+			  bool bQuiet,
 			  bool* pbContinue,
 			  HWND* phwnd);
 	void unlock();

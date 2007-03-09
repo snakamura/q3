@@ -173,10 +173,12 @@ int qm::main(const WCHAR* pwszCommandLine)
 	if (!wstrProfile.get())
 		wstrProfile = allocWString(L"");
 	
+	bool bQuiet = handler.isQuiet();
+	
 	bool bContinue = false;
 	HWND hwndPrev = 0;
 	std::auto_ptr<MailFolderLock> pLock(new MailFolderLock(
-		wstrMailFolder.get(), &bContinue, &hwndPrev));
+		wstrMailFolder.get(), bQuiet, &bContinue, &hwndPrev));
 	if (!bContinue) {
 		if (hwndPrev)
 			handler.invoke(hwndPrev, true);
@@ -184,8 +186,8 @@ int qm::main(const WCHAR* pwszCommandLine)
 	}
 	
 	MailFolderLock* pLockTemp = pLock.get();
-	std::auto_ptr<Application> pApplication(new Application(
-		g_hInst, g_hInstResource, wstrMailFolder, wstrProfile, pLock));
+	std::auto_ptr<Application> pApplication(new Application(g_hInst,
+		g_hInstResource, wstrMailFolder, wstrProfile, bQuiet, pLock));
 	
 	if (!pApplication->initialize())
 		return 1;
@@ -210,7 +212,8 @@ int qm::main(const WCHAR* pwszCommandLine)
 
 qm::MainCommandLineHandler::MainCommandLineHandler() :
 	state_(STATE_NONE),
-	nAction_(0)
+	nAction_(0),
+	bQuiet_(false)
 {
 }
 
@@ -226,6 +229,25 @@ const WCHAR* qm::MainCommandLineHandler::getMailFolder() const
 const WCHAR* qm::MainCommandLineHandler::getProfile() const
 {
 	return wstrProfile_.get();
+}
+
+bool qm::MainCommandLineHandler::isQuiet() const
+{
+	if (!bQuiet_)
+		return false;
+	
+	unsigned int nActions[] = {
+		0,
+		IDM_TOOL_GOROUND,
+		IDM_TOOL_INVOKEACTION,
+		IDM_MESSAGE_CREATEFROMFILE,
+		IDM_MESSAGE_DRAFTFROMFILE
+	};
+	for (int n = 0; n < countof(nActions); ++n) {
+		if (nAction_ == nActions[n])
+			return true;
+	}
+	return false;
 }
 
 void qm::MainCommandLineHandler::invoke(HWND hwnd,
@@ -331,12 +353,17 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 	switch (state_) {
 	case STATE_NONE:
 		if (*pwszOption == L'-' || *pwszOption == L'/') {
-			for (int n = 0; n < countof(options) && state_ == STATE_NONE; ++n) {
-				if (wcscmp(pwszOption + 1, options[n].pwsz_) == 0)
-					state_ = options[n].state_;
+			if (wcscmp(pwszOption + 1, L"q") == 0) {
+				bQuiet_ = true;
 			}
-			if (STATE_GOROUND <= state_ && state_ <= STATE_DRAFT)
-				nAction_ = nActions[state_ - STATE_GOROUND];
+			else {
+				for (int n = 0; n < countof(options) && state_ == STATE_NONE; ++n) {
+					if (wcscmp(pwszOption + 1, options[n].pwsz_) == 0)
+						state_ = options[n].state_;
+				}
+				if (STATE_GOROUND <= state_ && state_ <= STATE_DRAFT)
+					nAction_ = nActions[state_ - STATE_GOROUND];
+			}
 		}
 		break;
 	case STATE_MAILFOLDER:
@@ -367,11 +394,12 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
  */
 
 qm::MailFolderLock::MailFolderLock(const WCHAR* pwszMailFolder,
+								   bool bQuiet,
 								   bool* pbContinue,
 								   HWND* phwnd) :
 	hFile_(0)
 {
-	lock(pwszMailFolder, pbContinue, phwnd);
+	lock(pwszMailFolder, bQuiet, pbContinue, phwnd);
 }
 
 qm::MailFolderLock::~MailFolderLock()
@@ -425,6 +453,7 @@ void qm::MailFolderLock::unsetWindow()
 }
 
 void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
+							  bool bQuiet,
 							  bool* pbContinue,
 							  HWND* phwnd)
 {
@@ -448,7 +477,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 	
 	if (bPrevInstance) {
 		HWND hwnd = ::FindWindow(_T("QmMainWindow"), 0);
-		if (hwnd) {
+		if (hwnd && !bQuiet) {
 #ifndef _WIN32_WCE_PSPC
 			COPYDATASTRUCT data = { IDM_FILE_SHOW };
 			::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
@@ -478,7 +507,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 				return;
 			
 			HWND hwnd = 0;
-			if (read(hFileRead.get(), &hwnd, 0)) {
+			if (read(hFileRead.get(), &hwnd, 0) && !bQuiet) {
 #ifndef _WIN32_WCE_PSPC
 				COPYDATASTRUCT data = { IDM_FILE_SHOW };
 				::SendMessage(hwnd, WM_COPYDATA, 0, reinterpret_cast<LPARAM>(&data));
