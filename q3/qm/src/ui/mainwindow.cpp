@@ -1536,10 +1536,6 @@ void qm::MainWindowImpl::preModalDialog(HWND hwndParent,
 	if (bFirst) {
 		if (hwndParent != pThis_->getHandle())
 			pThis_->enableWindow(false);
-		
-		pMessageFrameWindowManager_->preModalDialog(hwndParent);
-		pEditFrameWindowManager_->preModalDialog(hwndParent);
-		
 		bShowingModalDialog_ = true;
 	}
 }
@@ -1550,10 +1546,6 @@ void qm::MainWindowImpl::postModalDialog(HWND hwndParent,
 	if (bLast) {
 		if (hwndParent != pThis_->getHandle())
 			pThis_->enableWindow(true);
-		
-		pMessageFrameWindowManager_->postModalDialog(hwndParent);
-		pEditFrameWindowManager_->postModalDialog(hwndParent);
-		
 		bShowingModalDialog_ = false;
 	}
 }

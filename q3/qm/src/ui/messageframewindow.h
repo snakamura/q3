@@ -61,8 +61,6 @@ public:
 			  MessageHolder* pmh);
 	void close(MessageFrameWindow* pMessageFrameWindow);
 	void closeAll();
-	void preModalDialog(HWND hwndParent);
-	void postModalDialog(HWND hwndParent);
 	void layout();
 	void reloadProfiles();
 	void save() const;

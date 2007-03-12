@@ -16,6 +16,7 @@
 
 #include <qsaccelerator.h>
 #include <qsaction.h>
+#include <qsinit.h>
 #include <qsuiutil.h>
 
 #include <algorithm>
@@ -54,6 +55,7 @@ using namespace qs;
  */
 
 class qm::MessageFrameWindowImpl :
+	public DefaultModalHandler,
 	public MessageWindowHandler,
 	public FolderModelBase,
 	public MessageSelectionModel,
@@ -86,6 +88,12 @@ public:
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
+
+protected:
+	virtual void preModalDialog(HWND hwndParent,
+								bool bFirst);
+	virtual void postModalDialog(HWND hwndParent,
+								 bool bLast);
 
 public:
 	virtual void messageChanged(const MessageWindowEvent& event);
@@ -642,6 +650,20 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 	bLayouting_ = false;
 }
 
+void qm::MessageFrameWindowImpl::preModalDialog(HWND hwndParent,
+												bool bFirst)
+{
+	if (bFirst && hwndParent != pThis_->getHandle())
+		pThis_->enableWindow(false);
+}
+
+void qm::MessageFrameWindowImpl::postModalDialog(HWND hwndParent,
+												 bool bLast)
+{
+	if (bLast && hwndParent != pThis_->getHandle())
+		pThis_->enableWindow(true);
+}
+
 void qm::MessageFrameWindowImpl::messageChanged(const MessageWindowEvent& event)
 {
 	MessageHolder* pmh = event.getMessageHolder();
@@ -760,6 +782,8 @@ qm::MessageFrameWindow::MessageFrameWindow(MessageFrameWindowManager* pMessageFr
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
+	
+	InitThread::getInitThread().addModalHandler(pImpl_);
 }
 
 qm::MessageFrameWindow::~MessageFrameWindow()
@@ -1208,22 +1232,6 @@ void qm::MessageFrameWindowManager::closeAll()
 	FrameList l(listFrame_);
 	for (FrameList::const_iterator it = l.begin(); it != l.end(); ++it)
 		close(*it);
-}
-
-void qm::MessageFrameWindowManager::preModalDialog(HWND hwndParent)
-{
-	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it) {
-		if ((*it)->getHandle() != hwndParent)
-			(*it)->enableWindow(false);
-	}
-}
-
-void qm::MessageFrameWindowManager::postModalDialog(HWND hwndParent)
-{
-	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it) {
-		if ((*it)->getHandle() != hwndParent)
-			(*it)->enableWindow(true);
-	}
 }
 
 void qm::MessageFrameWindowManager::layout()

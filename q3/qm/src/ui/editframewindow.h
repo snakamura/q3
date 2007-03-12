@@ -52,8 +52,6 @@ public:
 	bool closeAll();
 	void showAll();
 	void hideAll();
-	void preModalDialog(HWND hwndParent);
-	void postModalDialog(HWND hwndParent);
 	void layout();
 	void reloadProfiles();
 
