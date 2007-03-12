@@ -56,6 +56,7 @@ class CommandHandler;
 class NotifyHandler;
 class OwnerDrawHandler;
 class ModalHandler;
+	class DefaultModalHandler;
 class ModalHandlerInvoker;
 class Accelerator;
 class WindowHandler;
@@ -711,6 +712,33 @@ public:
 public:
 	virtual void preModalDialog(HWND hwndParent) = 0;
 	virtual void postModalDialog(HWND hwndParent) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultModalHandler
+ *
+ */
+
+class QSEXPORTCLASS DefaultModalHandler : public ModalHandler
+{
+public:
+	DefaultModalHandler();
+	virtual ~DefaultModalHandler();
+
+public:
+	virtual void preModalDialog(HWND hwndParent);
+	virtual void postModalDialog(HWND hwndParent);
+
+protected:
+	virtual void preModalDialog(HWND hwndParent,
+								bool bFirst) = 0;
+	virtual void postModalDialog(HWND hwndParent,
+								 bool bLast) = 0;
+
+private:
+	unsigned int n_;
 };
 
 

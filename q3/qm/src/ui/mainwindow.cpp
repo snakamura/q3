@@ -96,7 +96,7 @@ using namespace qs;
  */
 
 class qm::MainWindowImpl :
-	public ModalHandler,
+	public DefaultModalHandler,
 	public SplitterWindowHandler,
 	public FolderModelHandler,
 	public FolderSelectionModel,
@@ -168,9 +168,11 @@ public:
 	void updateStatusBar();
 	void reloadProfiles(bool bInitialize);
 
-public:
-	virtual void preModalDialog(HWND hwndParent);
-	virtual void postModalDialog(HWND hwndParent);
+protected:
+	virtual void preModalDialog(HWND hwndParent,
+								bool bFirst);
+	virtual void postModalDialog(HWND hwndParent,
+								 bool bLast);
 
 public:
 	virtual void sizeChanged(const SplitterWindowEvent& event);
@@ -287,7 +289,7 @@ public:
 	bool bCreated_;
 	int nInitialShow_;
 	bool bLayouting_;
-	int nShowingModalDialog_;
+	bool bShowingModalDialog_;
 	HWND hwndLastFocused_;
 };
 
@@ -1528,25 +1530,31 @@ void qm::MainWindowImpl::reloadProfiles(bool bInitialize)
 #endif
 }
 
-void qm::MainWindowImpl::preModalDialog(HWND hwndParent)
+void qm::MainWindowImpl::preModalDialog(HWND hwndParent,
+										bool bFirst)
 {
-	if (nShowingModalDialog_++ == 0) {
+	if (bFirst) {
 		if (hwndParent != pThis_->getHandle())
 			pThis_->enableWindow(false);
 		
 		pMessageFrameWindowManager_->preModalDialog(hwndParent);
 		pEditFrameWindowManager_->preModalDialog(hwndParent);
+		
+		bShowingModalDialog_ = true;
 	}
 }
 
-void qm::MainWindowImpl::postModalDialog(HWND hwndParent)
+void qm::MainWindowImpl::postModalDialog(HWND hwndParent,
+										 bool bLast)
 {
-	if (--nShowingModalDialog_ == 0) {
+	if (bLast) {
 		if (hwndParent != pThis_->getHandle())
 			pThis_->enableWindow(true);
 		
 		pMessageFrameWindowManager_->postModalDialog(hwndParent);
 		pEditFrameWindowManager_->postModalDialog(hwndParent);
+		
+		bShowingModalDialog_ = false;
 	}
 }
 
@@ -1916,7 +1924,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->pToolbarCookie_ = 0;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
-	pImpl_->nShowingModalDialog_ = 0;
+	pImpl_->bShowingModalDialog_ = false;
 	pImpl_->hwndLastFocused_ = 0;
 	
 	pImpl_->reloadProfiles(false);
@@ -1946,7 +1954,7 @@ const ActionInvoker* qm::MainWindow::getActionInvoker() const
 
 bool qm::MainWindow::isShowingModalDialog() const
 {
-	return pImpl_->nShowingModalDialog_ != 0;
+	return pImpl_->bShowingModalDialog_;
 }
 
 void qm::MainWindow::initialShow(bool bHidden)

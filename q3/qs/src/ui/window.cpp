@@ -1537,6 +1537,34 @@ qs::ModalHandler::~ModalHandler()
 
 /****************************************************************************
  *
+ * DefaultModalHandler
+ *
+ */
+
+qs::DefaultModalHandler::DefaultModalHandler() :
+	n_(0)
+{
+}
+
+qs::DefaultModalHandler::~DefaultModalHandler()
+{
+}
+
+void qs::DefaultModalHandler::preModalDialog(HWND hwndParent)
+{
+	preModalDialog(hwndParent, n_ == 0);
+	++n_;
+}
+
+void qs::DefaultModalHandler::postModalDialog(HWND hwndParent)
+{
+	--n_;
+	postModalDialog(hwndParent, n_ == 0);
+}
+
+
+/****************************************************************************
+ *
  * ModalHandlerInvoker
  *
  */
