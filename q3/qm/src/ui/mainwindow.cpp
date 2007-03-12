@@ -1921,7 +1921,7 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	
 	pImpl_->reloadProfiles(false);
 	
-	InitThread::getInitThread().setModalHandler(pImpl_);
+	InitThread::getInitThread().addModalHandler(pImpl_);
 }
 
 qm::MainWindow::~MainWindow()

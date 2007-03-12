@@ -22,6 +22,8 @@
 
 #include <commctrl.h>
 
+#include "init.h"
+
 using namespace qs;
 
 
@@ -353,7 +355,7 @@ struct qs::InitThreadImpl
 	bool createLogger();
 	
 	std::auto_ptr<Synchronizer> pSynchronizer_;
-	ModalHandler* pModalHandler_;
+	std::auto_ptr<MultiModalHandler> pModalHandler_;
 	std::auto_ptr<Logger> pLogger_;
 };
 
@@ -398,7 +400,6 @@ qs::InitThread::InitThread(unsigned int nFlags) :
 	pImpl_(0)
 {
 	pImpl_ = new InitThreadImpl();
-	pImpl_->pModalHandler_ = 0;
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {
@@ -436,12 +437,24 @@ Synchronizer* qs::InitThread::getSynchronizer() const
 
 ModalHandler* qs::InitThread::getModalHandler() const
 {
-	return pImpl_->pModalHandler_;
+	return pImpl_->pModalHandler_.get();
 }
 
-void qs::InitThread::setModalHandler(ModalHandler* pModalHandler)
+void qs::InitThread::addModalHandler(ModalHandler* pModalHandler)
 {
-	pImpl_->pModalHandler_ = pModalHandler;
+	assert(pModalHandler);
+	
+	if (!pImpl_->pModalHandler_.get())
+		pImpl_->pModalHandler_.reset(new MultiModalHandler());
+	pImpl_->pModalHandler_->add(pModalHandler);
+}
+
+void qs::InitThread::removeModalHandler(ModalHandler* pModalHandler)
+{
+	assert(pModalHandler);
+	assert(pImpl_->pModalHandler_.get());
+	
+	pImpl_->pModalHandler_->remove(pModalHandler);
 }
 
 Logger* qs::InitThread::getLogger() const
@@ -491,4 +504,47 @@ bool qs::Initializer::initThread()
 
 void qs::Initializer::termThread()
 {
+}
+
+
+/****************************************************************************
+ *
+ * MultiModalHandler
+ *
+ */
+
+qs::MultiModalHandler::MultiModalHandler()
+{
+}
+
+qs::MultiModalHandler::~MultiModalHandler()
+{
+}
+
+void qs::MultiModalHandler::add(ModalHandler* pModalHandler)
+{
+	assert(pModalHandler);
+	listHandler_.push_back(pModalHandler);
+}
+
+void qs::MultiModalHandler::remove(ModalHandler* pModalHandler)
+{
+	assert(pModalHandler);
+	
+	HandlerList::iterator it = std::remove(listHandler_.begin(),
+		listHandler_.end(), pModalHandler);
+	assert(it != listHandler_.end());
+	listHandler_.erase(it, listHandler_.end());
+}
+
+void qs::MultiModalHandler::preModalDialog(HWND hwndParent)
+{
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		std::bind2nd(std::mem_fun(&ModalHandler::preModalDialog), hwndParent));
+}
+
+void qs::MultiModalHandler::postModalDialog(HWND hwndParent)
+{
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		std::bind2nd(std::mem_fun(&ModalHandler::postModalDialog), hwndParent));
 }

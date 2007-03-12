@@ -93,7 +93,8 @@ public:
 public:
 	Synchronizer* getSynchronizer() const;
 	ModalHandler* getModalHandler() const;
-	void setModalHandler(ModalHandler* pModalHandler);
+	void addModalHandler(ModalHandler* pModalHandler);
+	void removeModalHandler(ModalHandler* pModalHandler);
 	Logger* getLogger() const;
 	void resetLogger();
 
