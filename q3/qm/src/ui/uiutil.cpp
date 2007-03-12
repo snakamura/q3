@@ -716,17 +716,6 @@ PasswordState qm::DefaultPasswordManagerCallback::getPassword(const PasswordCond
 	else if (::GetWindowThreadProcessId(hwnd, 0) != ::GetCurrentThreadId())
 		hwnd = hwndMain;
 	
-	struct ModalHandlerImpl : public ModalHandler
-	{
-		virtual void preModalDialog(HWND hwndParent)
-		{
-		}
-		
-		virtual void postModalDialog(HWND hwndParent)
-		{
-		}
-	} modelHandler;
-	
 	wstring_ptr wstrHint(condition.getHint());
 	
 	int nState = pProfile_->getInt(L"Global", L"DefaultPasswordState");
@@ -734,7 +723,7 @@ PasswordState qm::DefaultPasswordManagerCallback::getPassword(const PasswordCond
 		nState = PASSWORDSTATE_SESSION;
 	
 	PasswordDialog dialog(wstrHint.get(), static_cast<PasswordState>(nState));
-	if (dialog.doModal(hwnd, hwnd ? 0 : &modelHandler) != IDOK)
+	if (dialog.doModal(hwnd) != IDOK)
 		return PASSWORDSTATE_NONE;
 	
 	PasswordState state = dialog.getState();
