@@ -299,7 +299,6 @@ void qs::RegexNfaMatcher::match(const WCHAR* pStart,
 	assert(pCurrent);
 	assert(ppEnd);
 	assert(pStackMatch);
-	assert(pStackMatch->empty());
 	
 	*ppEnd = 0;
 	
