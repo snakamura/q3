@@ -1534,6 +1534,7 @@ void qm::MainWindowImpl::preModalDialog(HWND hwndParent,
 										bool bFirst)
 {
 	if (bFirst) {
+		pActionInvoker_->startPending();
 		if (hwndParent != pThis_->getHandle())
 			pThis_->enableWindow(false);
 		bShowingModalDialog_ = true;
@@ -1547,6 +1548,7 @@ void qm::MainWindowImpl::postModalDialog(HWND hwndParent,
 		if (hwndParent != pThis_->getHandle())
 			pThis_->enableWindow(true);
 		bShowingModalDialog_ = false;
+		pActionInvoker_->stopPending();
 	}
 }
 

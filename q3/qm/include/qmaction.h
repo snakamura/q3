@@ -38,13 +38,15 @@ public:
 	void invoke(const WCHAR* pwszAction,
 				const WCHAR** ppParams,
 				size_t nParams) const;
+	void startPending();
+	void stopPending();
 
 private:
 	ActionInvoker(const ActionInvoker&);
 	ActionInvoker& operator=(const ActionInvoker&);
 
 private:
-	const qs::ActionMap* pActionMap_;
+	struct ActionInvokerImpl* pImpl_;
 };
 
 }

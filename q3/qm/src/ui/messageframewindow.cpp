@@ -653,15 +653,19 @@ void qm::MessageFrameWindowImpl::layoutChildren(int cx,
 void qm::MessageFrameWindowImpl::preModalDialog(HWND hwndParent,
 												bool bFirst)
 {
-	if (bFirst && hwndParent != pThis_->getHandle())
+	if (bFirst && hwndParent != pThis_->getHandle()) {
+		pActionInvoker_->startPending();
 		pThis_->enableWindow(false);
+	}
 }
 
 void qm::MessageFrameWindowImpl::postModalDialog(HWND hwndParent,
 												 bool bLast)
 {
-	if (bLast && hwndParent != pThis_->getHandle())
+	if (bLast && hwndParent != pThis_->getHandle()) {
 		pThis_->enableWindow(true);
+		pActionInvoker_->stopPending();
+	}
 }
 
 void qm::MessageFrameWindowImpl::messageChanged(const MessageWindowEvent& event)
