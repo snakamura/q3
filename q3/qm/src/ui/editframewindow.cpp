@@ -527,8 +527,6 @@ qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
-	
-	InitThread::getInitThread().addModalHandler(pImpl_);
 }
 
 qm::EditFrameWindow::~EditFrameWindow()
@@ -834,6 +832,8 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"EditFrameWindow");
 #endif
 	
+	InitThread::getInitThread().addModalHandler(pImpl_);
+	
 	pImpl_->bCreated_ = true;
 	
 	return 0;
@@ -841,6 +841,8 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::EditFrameWindow::onDestroy()
 {
+	InitThread::getInitThread().removeModalHandler(pImpl_);
+	
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	pProfile->setInt(L"EditFrameWindow", L"ShowToolbar", pImpl_->bShowToolbar_);

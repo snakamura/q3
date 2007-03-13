@@ -782,8 +782,6 @@ qm::MessageFrameWindow::MessageFrameWindow(MessageFrameWindowManager* pMessageFr
 	pImpl_->bCreated_ = false;
 	pImpl_->nInitialShow_ = SW_SHOWNORMAL;
 	pImpl_->bLayouting_ = false;
-	
-	InitThread::getInitThread().addModalHandler(pImpl_);
 }
 
 qm::MessageFrameWindow::~MessageFrameWindow()
@@ -1095,6 +1093,8 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"MessageFrameWindow");
 #endif
 	
+	InitThread::getInitThread().addModalHandler(pImpl_);
+	
 	pImpl_->bCreated_ = true;
 	
 	return 0;
@@ -1102,6 +1102,8 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MessageFrameWindow::onDestroy()
 {
+	InitThread::getInitThread().removeModalHandler(pImpl_);
+	
 	pImpl_->pMessageWindow_->removeMessageWindowHandler(pImpl_);
 	
 	if (pImpl_->pToolbarCookie_)

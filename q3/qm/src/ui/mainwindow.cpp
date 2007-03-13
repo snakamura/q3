@@ -1920,8 +1920,6 @@ qm::MainWindow::MainWindow(Profile* pProfile) :
 	pImpl_->hwndLastFocused_ = 0;
 	
 	pImpl_->reloadProfiles(false);
-	
-	InitThread::getInitThread().addModalHandler(pImpl_);
 }
 
 qm::MainWindow::~MainWindow()
@@ -2645,6 +2643,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"MainWindow");
 #endif
 	
+	InitThread::getInitThread().addModalHandler(pImpl_);
+	
 	pImpl_->bCreated_ = true;
 	
 	return 0;
@@ -2652,6 +2652,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::MainWindow::onDestroy()
 {
+	InitThread::getInitThread().removeModalHandler(pImpl_);
+	
 #ifdef QMRECENTSWINDOW
 	pImpl_->pRecentsWindowManager_.reset(0);
 #endif
