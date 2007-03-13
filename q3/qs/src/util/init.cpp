@@ -15,10 +15,12 @@
 #include <qsthread.h>
 #include <qsutil.h>
 
+#include <algorithm>
 #include <memory>
 #include <vector>
-#include <algorithm>
 #include <new.h>
+
+#include <boost/bind.hpp>
 
 #include <commctrl.h>
 
@@ -540,11 +542,11 @@ void qs::MultiModalHandler::remove(ModalHandler* pModalHandler)
 void qs::MultiModalHandler::preModalDialog(HWND hwndParent)
 {
 	std::for_each(listHandler_.begin(), listHandler_.end(),
-		std::bind2nd(std::mem_fun(&ModalHandler::preModalDialog), hwndParent));
+		boost::bind(&ModalHandler::preModalDialog, _1, hwndParent));
 }
 
 void qs::MultiModalHandler::postModalDialog(HWND hwndParent)
 {
 	std::for_each(listHandler_.begin(), listHandler_.end(),
-		std::bind2nd(std::mem_fun(&ModalHandler::postModalDialog), hwndParent));
+		boost::bind(&ModalHandler::postModalDialog, _1, hwndParent));
 }
