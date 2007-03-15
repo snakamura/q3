@@ -257,8 +257,8 @@ void qm::MainCommandLineHandler::invoke(HWND hwnd,
 	wstring_ptr wstrParams;
 	switch (nAction_) {
 	case IDM_TOOL_GOROUND:
+		data.dwData = nAction_;
 		if (wstrGoRound_.get()) {
-			data.dwData = nAction_;
 			data.cbData = static_cast<DWORD>((wcslen(wstrGoRound_.get()) + 1)*sizeof(WCHAR));
 			data.lpData = wstrGoRound_.get();
 		}
@@ -345,7 +345,9 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		IDM_MESSAGE_DRAFTFROMFILE
 	};
 	
-	if (state_ == STATE_CREATE || state_ == STATE_DRAFT) {
+	if (state_ == STATE_GOROUND ||
+		state_ == STATE_CREATE ||
+		state_ == STATE_DRAFT) {
 		if (*pwszOption == L'-' || *pwszOption == L'/')
 			state_ = STATE_NONE;
 	}
