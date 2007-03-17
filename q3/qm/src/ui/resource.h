@@ -8,10 +8,9 @@
 #define IDI_UNVERIFIED                  103
 #define IDI_OFFLINE                     104
 #define IDI_ONLINE                      105
-#define IDI_NEWMAIL                     106
-#define IDI_MESSAGE                     107
-#define IDI_EDIT                        108
-#define IDI_ADDRESSBOOK                 109
+#define IDI_MESSAGE                     106
+#define IDI_EDIT                        107
+#define IDI_ADDRESSBOOK                 108
 #define IDB_HEADER                      200
 #define IDB_ADDRESSBOOK                 201
 #define IDB_SYNCNOTIFICATION            202

@@ -340,6 +340,7 @@ bool qm::ApplicationImpl::ensureResources()
 		DECLARE_IMAGE(FileNames::FOLDER_BMP,		FOLDER_BMP_REVISION,				true	),
 		DECLARE_IMAGE(FileNames::LIST_BMP,			LIST_BMP_REVISION,					true	),
 		DECLARE_IMAGE(FileNames::LISTDATA_BMP,		LISTDATA_BMP_REVISION,				true	),
+		DECLARE_IMAGE(FileNames::NOTIFY_BMP,		NOTIFY_BMP_REVISION,				true	),
 		DECLARE_IMAGE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP_REVISION,				true	),
 		DECLARE_IMAGE(L"account_mail.bmp",			ACCOUNT_MAIL_BMP_REVISION,			true	),
 		DECLARE_IMAGE(L"account_news.bmp",			ACCOUNT_NEWS_BMP_REVISION,			true	),

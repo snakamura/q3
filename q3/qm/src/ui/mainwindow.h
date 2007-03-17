@@ -226,12 +226,14 @@ private:
 class ShellIcon :
 	public qs::WindowBase,
 	public qs::DefaultWindowHandler,
-	public RecentsHandler
+	private RecentsHandler,
+	private SyncManagerHandler
 {
 public:
 	enum {
-		WM_SHELLICON_NOTIFYICON		= WM_APP + 1001,
-		WM_SHELLICON_RECENTSCHANGED	= WM_APP + 1002
+		WM_SHELLICON_NOTIFYICON			= WM_APP + 1001,
+		WM_SHELLICON_RECENTSCHANGED		= WM_APP + 1002,
+		WM_SHELLICON_SYNCSTATUSCHANGED	= WM_APP + 1003
 	};
 	
 	enum {
@@ -244,6 +246,7 @@ public:
 
 public:
 	ShellIcon(Recents* pRecents,
+			  SyncManager* pSyncManager,
 			  qs::Profile* pProfile,
 			  HWND hwnd,
 			  ShellIconCallback* pCallback);
@@ -258,19 +261,26 @@ public:
 							   WPARAM wParam,
 							   LPARAM lParam);
 
-#ifndef _WIN32_WCE_PSPC
 protected:
 	LRESULT onHotKey(UINT nId,
 					 UINT nModifier,
 					 UINT nKey);
+	LRESULT onTimer(UINT_PTR nId);
 	LRESULT onNotifyIcon(WPARAM wParam,
 						 LPARAM lParam);
 	LRESULT onRecentsChanged(WPARAM wParam,
 							 LPARAM lParam);
-#endif
+	LRESULT onSyncStatusChanged(WPARAM wParam,
+								LPARAM lParam);
 
 public:
 	virtual void recentsChanged(const RecentsEvent& event);
+
+public:
+	virtual void statusChanged(const SyncManagerEvent& event);
+
+private:
+	void updateIcon();
 
 private:
 	ShellIcon(const ShellIcon&);
@@ -282,15 +292,20 @@ private:
 		STATE_HIDDEN	= 0x01,
 		STATE_RECENT	= 0x02
 	};
+	enum {
+		TIMER_ID		= 1001,
+		TIMER_INTERVAL	= 100
+	};
 
 private:
 	Recents* pRecents_;
+	SyncManager* pSyncManager_;
 	qs::Profile* pProfile_;
 	ShellIconCallback* pCallback_;
+	HIMAGELIST hImageList_;
 	NOTIFYICONDATA notifyIcon_;
-	HICON hIconHidden_;
-	HICON hIconRecent_;
 	unsigned int nState_;
+	unsigned int nIndex_;
 };
 
 

@@ -68,7 +68,6 @@ IDB_SYNCNOTIFICATION    BITMAP  MOVEABLE PURE   "res\\syncnotification.bmp"
 // remains consistent on all systems.
 IDI_MAINFRAME           ICON    DISCARDABLE     "res\\qmail.ico"
 IDI_DECRYPTED           ICON    DISCARDABLE     "res\\decrypted.ico"
-IDI_NEWMAIL             ICON    DISCARDABLE     "res\\newmail.ico"
 IDI_OFFLINE             ICON    DISCARDABLE     "res\\offline.ico"
 IDI_ONLINE              ICON    DISCARDABLE     "res\\online.ico"
 IDI_UNVERIFIED          ICON    DISCARDABLE     "res\\unverified.ico"
@@ -127,6 +126,7 @@ ACCOUNT_RSS.BMP         IMAGE   DISCARDABLE     "res\\account_rss.bmp"
 FOLDER.BMP              IMAGE   DISCARDABLE     "res\\folder.bmp"
 LIST.BMP                IMAGE   DISCARDABLE     "res\\list.bmp"
 LISTDATA.BMP            IMAGE   DISCARDABLE     "res\\listdata.bmp"
+NOTIFY.BMP              IMAGE   DISCARDABLE     "res\\notify.bmp"
 TOOLBAR.BMP             IMAGE   DISCARDABLE     "res\\toolbar.bmp"
 
 /////////////////////////////////////////////////////////////////////////////

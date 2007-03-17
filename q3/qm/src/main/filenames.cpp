@@ -41,6 +41,7 @@ const WCHAR* qm::FileNames::LISTDATA_BMP	= L"listdata.bmp";
 const WCHAR* qm::FileNames::MAP_EXT			= L".map";
 const WCHAR* qm::FileNames::MENUS_XML		= L"menus.xml";
 const WCHAR* qm::FileNames::MSG				= L"msg";
+const WCHAR* qm::FileNames::NOTIFY_BMP		= L"notify.bmp";
 const WCHAR* qm::FileNames::PASSWORDS_XML	= L"passwords.xml";
 const WCHAR* qm::FileNames::PEM_EXT			= L".pem";
 const WCHAR* qm::FileNames::QMAIL_XML		= L"qmail.xml";

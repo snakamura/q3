@@ -2618,7 +2618,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 #ifndef _WIN32_WCE_PSPC
 	pImpl_->pShellIcon_.reset(new ShellIcon(pImpl_->pDocument_->getRecents(),
-		pImpl_->pProfile_, getHandle(), pImpl_));
+		pImpl_->pSyncManager_, pImpl_->pProfile_, getHandle(), pImpl_));
 #endif
 	
 #ifdef QMRECENTSWINDOW
@@ -3100,22 +3100,21 @@ const WCHAR* qm::MainWindowStatusBar::getMenuName(int nPart)
  */
 
 qm::ShellIcon::ShellIcon(Recents* pRecents,
+						 SyncManager* pSyncManager,
 						 Profile* pProfile,
 						 HWND hwnd,
 						 ShellIconCallback* pCallback) :
 	WindowBase(false),
 	pRecents_(pRecents),
+	pSyncManager_(pSyncManager),
 	pProfile_(pProfile),
 	pCallback_(pCallback),
-	hIconHidden_(0),
-	hIconRecent_(0),
-	nState_(STATE_NONE)
+	hImageList_(0),
+	nState_(0),
+	nIndex_(0)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	hIconHidden_ = reinterpret_cast<HICON>(::LoadImage(hInst,
-		MAKEINTRESOURCE(IDI_MAINFRAME), IMAGE_ICON, 16, 16, 0));
-	hIconRecent_ = reinterpret_cast<HICON>(::LoadImage(hInst,
-		MAKEINTRESOURCE(IDI_NEWMAIL), IMAGE_ICON, 16, 16, 0));
+	hImageList_ = UIUtil::createImageListFromFile(
+		FileNames::NOTIFY_BMP, 16, CLR_DEFAULT);
 	
 	notifyIcon_.cbSize = sizeof(notifyIcon_);
 	notifyIcon_.hWnd = hwnd;
@@ -3129,7 +3128,8 @@ qm::ShellIcon::ShellIcon(Recents* pRecents,
 	
 	subclassWindow(hwnd);
 	
-	pRecents->addRecentsHandler(this);
+	pRecents_->addRecentsHandler(this);
+	pSyncManager_->addSyncManagerHandler(this);
 	
 	UINT nHotKeyModifier = pProfile->getInt(L"Recents", L"HotKeyModifiers");
 	UINT nHotKey = pProfile->getInt(L"Recents", L"HotKey");
@@ -3141,38 +3141,25 @@ qm::ShellIcon::~ShellIcon()
 	::UnregisterHotKey(getHandle(), HOTKEY_RECENTS);
 	
 	pRecents_->removeRecentsHandler(this);
+	pSyncManager_->removeSyncManagerHandler(this);
 	unsubclassWindow();
-	if (nState_ != STATE_NONE)
+	if (notifyIcon_.hIcon) {
 		Shell_NotifyIcon(NIM_DELETE, &notifyIcon_);
+		::DestroyIcon(notifyIcon_.hIcon);
+	}
+	ImageList_Destroy(hImageList_);
 }
 
 void qm::ShellIcon::showHiddenIcon()
 {
-	if (nState_ & STATE_HIDDEN)
-		return;
-	
-	if (!(nState_ & STATE_RECENT)) {
-		notifyIcon_.hIcon = hIconHidden_;
-		Shell_NotifyIcon(NIM_ADD, &notifyIcon_);
-	}
-	
 	nState_ |= STATE_HIDDEN;
+	updateIcon();
 }
 
 void qm::ShellIcon::hideHiddenIcon()
 {
-	if (!(nState_ & STATE_HIDDEN))
-		return;
-	
-	if (nState_ & STATE_RECENT) {
-		notifyIcon_.hIcon = hIconRecent_;
-		Shell_NotifyIcon(NIM_MODIFY, &notifyIcon_);
-	}
-	else {
-		Shell_NotifyIcon(NIM_DELETE, &notifyIcon_);
-	}
-	
 	nState_ &= ~STATE_HIDDEN;
+	updateIcon();
 }
 
 LRESULT qm::ShellIcon::windowProc(UINT uMsg,
@@ -3181,8 +3168,10 @@ LRESULT qm::ShellIcon::windowProc(UINT uMsg,
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_HOTKEY()
+		HANDLE_TIMER()
 		HANDLE_MESSAGE(WM_SHELLICON_NOTIFYICON, onNotifyIcon)
 		HANDLE_MESSAGE(WM_SHELLICON_RECENTSCHANGED, onRecentsChanged)
+		HANDLE_MESSAGE(WM_SHELLICON_SYNCSTATUSCHANGED, onSyncStatusChanged)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -3193,6 +3182,17 @@ LRESULT qm::ShellIcon::onHotKey(UINT nId,
 {
 	if (nId == HOTKEY_RECENTS)
 		pCallback_->showRecentsMenu(true);
+	return 0;
+}
+
+LRESULT qm::ShellIcon::onTimer(UINT_PTR nId)
+{
+	if (nId == TIMER_ID) {
+		++nIndex_;
+		if (nIndex_ >= 10)
+			nIndex_ = 1;
+		updateIcon();
+	}
 	return 0;
 }
 
@@ -3218,29 +3218,31 @@ LRESULT qm::ShellIcon::onNotifyIcon(WPARAM wParam,
 LRESULT qm::ShellIcon::onRecentsChanged(WPARAM wParam,
 										LPARAM lParam)
 {
-	unsigned int nCount = 0;
 	{
 		Lock<Recents> lock(*pRecents_);
-		nCount = pRecents_->getCount();
-	}
-	if (nCount != 0 && !(nState_ & STATE_RECENT)) {
-		notifyIcon_.hIcon = hIconRecent_;
-		if (nState_ & STATE_HIDDEN)
-			Shell_NotifyIcon(NIM_MODIFY, &notifyIcon_);
+		if (pRecents_->getCount() != 0)
+			nState_ |= STATE_RECENT;
 		else
-			Shell_NotifyIcon(NIM_ADD, &notifyIcon_);
-		nState_ |= STATE_RECENT;
+			nState_ &= ~STATE_RECENT;
 	}
-	else if (nCount == 0 && nState_ & STATE_RECENT) {
-		if (nState_ & STATE_HIDDEN) {
-			notifyIcon_.hIcon = hIconHidden_;
-			Shell_NotifyIcon(NIM_MODIFY, &notifyIcon_);
-		}
-		else {
-			Shell_NotifyIcon(NIM_DELETE, &notifyIcon_);
-		}
-		nState_ &= ~STATE_RECENT;
+	updateIcon();
+	
+	return 0;
+}
+
+LRESULT qm::ShellIcon::onSyncStatusChanged(WPARAM wParam,
+										   LPARAM lParam)
+{
+	bool bStart = wParam != 0;
+	if (bStart) {
+		nIndex_ = 1;
+		setTimer(TIMER_ID, TIMER_INTERVAL);
 	}
+	else {
+		killTimer(TIMER_ID);
+		nIndex_ = 0;
+	}
+	updateIcon();
 	
 	return 0;
 }
@@ -3248,6 +3250,35 @@ LRESULT qm::ShellIcon::onRecentsChanged(WPARAM wParam,
 void qm::ShellIcon::recentsChanged(const RecentsEvent& event)
 {
 	postMessage(WM_SHELLICON_RECENTSCHANGED);
+}
+
+void qm::ShellIcon::statusChanged(const SyncManagerEvent& event)
+{
+	postMessage(WM_SHELLICON_SYNCSTATUSCHANGED,
+		event.getStatus() == SyncManagerEvent::STATUS_START);
+}
+
+void qm::ShellIcon::updateIcon()
+{
+	int nIndex = -1;
+	
+	if (nState_ & STATE_RECENT)
+		nIndex = nIndex_ + 10;
+	else if (nState_ & STATE_HIDDEN)
+		nIndex = nIndex_;
+	
+	if (nIndex != -1) {
+		HICON hIconOld = notifyIcon_.hIcon;
+		notifyIcon_.hIcon = ImageList_GetIcon(hImageList_, nIndex, ILD_NORMAL);
+		Shell_NotifyIcon(hIconOld ? NIM_MODIFY : NIM_ADD, &notifyIcon_);
+		if (hIconOld)
+			::DestroyIcon(hIconOld);
+	}
+	else if (notifyIcon_.hIcon) {
+		Shell_NotifyIcon(NIM_DELETE, &notifyIcon_);
+		::DestroyIcon(notifyIcon_.hIcon);
+		notifyIcon_.hIcon = 0;
+	}
 }
 
 
