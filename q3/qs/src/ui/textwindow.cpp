@@ -209,7 +209,8 @@ public:
 				   const WCHAR* pEnd,
 				   DeviceContext* pdcTab,
 				   const SIZE& sizeTab) const;
-	COLORREF getLineColor(const TextModel::Line& line) const;
+	COLORREF getLineColor(const TextModel::Line& line,
+						  unsigned int nQuoteDepth) const;
 	std::pair<unsigned char, unsigned char> getLineQuoteDepth(const TextModel::Line& line) const;
 	unsigned int getQuoteWidth() const;
 	
@@ -264,6 +265,8 @@ public:
 								   size_t nLinkCount);
 	static void freeLine(PhysicalLine* pLine);
 	static CharType getCharType(WCHAR c);
+	static COLORREF getAdjustedQuoteColor(COLORREF cr,
+										  unsigned int nQuoteDepth);
 
 private:
 	bool getTextExtent(const DeviceContext& dc,
@@ -808,12 +811,12 @@ void qs::TextWindowImpl::calcLines(size_t nStartLine,
 	for (size_t n = nStart; n < nEnd; ++n) {
 		TextModel::Line line = pTextModel_->getLine(n);
 		
-		COLORREF cr = getLineColor(line);
 		std::pair<unsigned char, unsigned char> quote(0, 0);
 		if (pThis_->isLineQuote())
 			quote = getLineQuoteDepth(line);
 		unsigned char nQuoteDepth = quote.first;
 		unsigned char nQuoteLength = quote.second;
+		COLORREF cr = getLineColor(line, pThis_->isLineQuote() ? nQuoteDepth : 0);
 		
 		if (line.getLength() - nQuoteLength == 0) {
 			PhysicalLinePtr ptr(allocLine(n, nQuoteLength, 0, cr, nQuoteDepth, nQuoteLength, 0, 0));
@@ -1071,7 +1074,8 @@ int qs::TextWindowImpl::paintBlock(DeviceContext* pdc,
 	return x;
 }
 
-COLORREF qs::TextWindowImpl::getLineColor(const TextModel::Line& line) const
+COLORREF qs::TextWindowImpl::getLineColor(const TextModel::Line& line,
+										  unsigned int nQuoteDepth) const
 {
 	const WCHAR* p = line.getText();
 	size_t n = 0;
@@ -1084,8 +1088,12 @@ COLORREF qs::TextWindowImpl::getLineColor(const TextModel::Line& line) const
 		int m = 0;
 		while (m < countof(wstrQuote_) && !wcschr(wstrQuote_[m].get(), *p))
 			++m;
-		if (m != countof(wstrQuote_))
-			return crQuote_[m];
+		if (m != countof(wstrQuote_)) {
+			if (m == 0 && nQuoteDepth != 0)
+				return getAdjustedQuoteColor(crQuote_[m], nQuoteDepth);
+			else
+				return crQuote_[m];
+		}
 	}
 	return crForeground_;
 }
@@ -1757,6 +1765,23 @@ TextWindowImpl::CharType qs::TextWindowImpl::getCharType(WCHAR c)
 		return CHARTYPE_MARK;
 	else
 		return CHARTYPE_ASCII;
+}
+
+COLORREF qs::TextWindowImpl::getAdjustedQuoteColor(COLORREF cr,
+												   unsigned int nQuoteDepth)
+{
+	switch (nQuoteDepth % 3) {
+	case 0:
+		return RGB(GetGValue(cr), GetBValue(cr), GetRValue(cr));
+	case 1:
+		return cr;
+	case 2:
+		return RGB(GetBValue(cr), GetRValue(cr), GetGValue(cr));
+	default:
+		assert(false);
+		break;
+	}
+	return cr;
 }
 
 bool qs::TextWindowImpl::getTextExtent(const DeviceContext& dc,
@@ -3848,7 +3873,11 @@ LRESULT qs::TextWindow::onPaint()
 	
 	GdiObject<HPEN> hpenLink(::CreatePen(PS_SOLID, 1, pImpl_->crLink_));
 	ObjectSelector<HPEN> penSelector(dc, hpenLink.get());
-	GdiObject<HPEN> hpenQuote(::CreatePen(PS_SOLID, 2, pImpl_->crQuote_[0]));
+	GdiObject<HPEN> hpenQuote[] = {
+		::CreatePen(PS_SOLID, 2, TextWindowImpl::getAdjustedQuoteColor(pImpl_->crQuote_[0], 0)),
+		::CreatePen(PS_SOLID, 2, TextWindowImpl::getAdjustedQuoteColor(pImpl_->crQuote_[0], 1)),
+		::CreatePen(PS_SOLID, 2, TextWindowImpl::getAdjustedQuoteColor(pImpl_->crQuote_[0], 2))
+	};
 	
 	ObjectSelector<HFONT> fontSelector(dc, pImpl_->hfont_);
 	ObjectSelector<HBRUSH> brushSelector(dc,
@@ -3919,8 +3948,8 @@ LRESULT qs::TextWindow::onPaint()
 				};
 				dc.fillSolidRect(r, pImpl_->crBackground_);
 				
-				ObjectSelector<HPEN> penSelector(dc, hpenQuote.get());
 				for (unsigned char n = 0; n < pPhysicalLine->nQuoteDepth_; ++n) {
+					ObjectSelector<HPEN> penSelector(dc, hpenQuote[(n + 1)%3].get());
 					POINT ptQuote[] = {
 						{ pt.x + nQuoteWidth*n + nQuoteWidth/2,	rect.top },
 						{ pt.x + nQuoteWidth*n + nQuoteWidth/2,	rect.bottom }
