@@ -305,7 +305,8 @@ private:
 	HIMAGELIST hImageList_;
 	NOTIFYICONDATA notifyIcon_;
 	unsigned int nState_;
-	unsigned int nIndex_;
+	unsigned int nSync_;
+	unsigned int nIconIndex_;
 };
 
 

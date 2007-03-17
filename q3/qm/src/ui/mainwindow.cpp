@@ -3111,7 +3111,8 @@ qm::ShellIcon::ShellIcon(Recents* pRecents,
 	pCallback_(pCallback),
 	hImageList_(0),
 	nState_(0),
-	nIndex_(0)
+	nSync_(0),
+	nIconIndex_(0)
 {
 	hImageList_ = UIUtil::createImageListFromFile(
 		FileNames::NOTIFY_BMP, 16, CLR_DEFAULT);
@@ -3188,10 +3189,12 @@ LRESULT qm::ShellIcon::onHotKey(UINT nId,
 LRESULT qm::ShellIcon::onTimer(UINT_PTR nId)
 {
 	if (nId == TIMER_ID) {
-		++nIndex_;
-		if (nIndex_ >= 10)
-			nIndex_ = 1;
-		updateIcon();
+		if (nIconIndex_ != 0) {
+			++nIconIndex_;
+			if (nIconIndex_ >= 10)
+				nIconIndex_ = 1;
+			updateIcon();
+		}
 	}
 	return 0;
 }
@@ -3235,12 +3238,16 @@ LRESULT qm::ShellIcon::onSyncStatusChanged(WPARAM wParam,
 {
 	bool bStart = wParam != 0;
 	if (bStart) {
-		nIndex_ = 1;
-		setTimer(TIMER_ID, TIMER_INTERVAL);
+		if (nSync_++ == 0) {
+			nIconIndex_ = 1;
+			setTimer(TIMER_ID, TIMER_INTERVAL);
+		}
 	}
 	else {
-		killTimer(TIMER_ID);
-		nIndex_ = 0;
+		if (--nSync_ == 0) {
+			killTimer(TIMER_ID);
+			nIconIndex_ = 0;
+		}
 	}
 	updateIcon();
 	
@@ -3263,9 +3270,9 @@ void qm::ShellIcon::updateIcon()
 	int nIndex = -1;
 	
 	if (nState_ & STATE_RECENT)
-		nIndex = nIndex_ + 10;
+		nIndex = nIconIndex_ + 10;
 	else if (nState_ & STATE_HIDDEN)
-		nIndex = nIndex_;
+		nIndex = nIconIndex_;
 	
 	if (nIndex != -1) {
 		HICON hIconOld = notifyIcon_.hIcon;
