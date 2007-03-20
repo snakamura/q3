@@ -267,6 +267,7 @@ public:
 public:
 	Object get() const;
 	Object release();
+	void reset(Object o);
 
 private:
 	GdiObject(const GdiObject&);

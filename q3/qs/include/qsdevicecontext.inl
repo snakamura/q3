@@ -323,8 +323,7 @@ qs::GdiObject<Object>::GdiObject(Object o) :
 template<class Object>
 qs::GdiObject<Object>::~GdiObject()
 {
-	if (o_)
-		::DeleteObject(o_);
+	reset(0);
 }
 
 template<class Object>
@@ -339,6 +338,14 @@ Object qs::GdiObject<Object>::release()
 	Object o = o_;
 	o_ = 0;
 	return o;
+}
+
+template<class Object>
+void qs::GdiObject<Object>::reset(Object o)
+{
+	if (o_)
+		::DeleteObject(o_);
+	o_ = o;
 }
 
 
