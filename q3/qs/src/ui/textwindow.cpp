@@ -3873,11 +3873,12 @@ LRESULT qs::TextWindow::onPaint()
 	
 	GdiObject<HPEN> hpenLink(::CreatePen(PS_SOLID, 1, pImpl_->crLink_));
 	ObjectSelector<HPEN> penSelector(dc, hpenLink.get());
-	GdiObject<HPEN> hpenQuote[] = {
-		::CreatePen(PS_SOLID, 2, TextWindowImpl::getAdjustedQuoteColor(pImpl_->crQuote_[0], 0)),
-		::CreatePen(PS_SOLID, 2, TextWindowImpl::getAdjustedQuoteColor(pImpl_->crQuote_[0], 1)),
-		::CreatePen(PS_SOLID, 2, TextWindowImpl::getAdjustedQuoteColor(pImpl_->crQuote_[0], 2))
-	};
+	GdiObject<HPEN> hpenQuote[] = { 0, 0, 0 };
+	if (isLineQuote()) {
+		for (size_t n = 0; n < countof(hpenQuote); ++n)
+			hpenQuote[n].reset(::CreatePen(PS_SOLID, 2,
+				TextWindowImpl::getAdjustedQuoteColor(pImpl_->crQuote_[0], n)));
+	}
 	
 	ObjectSelector<HFONT> fontSelector(dc, pImpl_->hfont_);
 	ObjectSelector<HBRUSH> brushSelector(dc,
