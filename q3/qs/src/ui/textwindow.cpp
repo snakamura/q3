@@ -3875,7 +3875,7 @@ LRESULT qs::TextWindow::onPaint()
 	ObjectSelector<HPEN> penSelector(dc, hpenLink.get());
 	GdiObject<HPEN> hpenQuote[] = { 0, 0, 0 };
 	if (isLineQuote()) {
-		for (size_t n = 0; n < countof(hpenQuote); ++n)
+		for (unsigned int n = 0; n < countof(hpenQuote); ++n)
 			hpenQuote[n].reset(::CreatePen(PS_SOLID, 2,
 				TextWindowImpl::getAdjustedQuoteColor(pImpl_->crQuote_[0], n)));
 	}
