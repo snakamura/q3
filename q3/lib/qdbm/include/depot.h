@@ -427,8 +427,8 @@ int dpprimenum(int num);
  *************************************************************************************************/
 
 
-#define _QDBM_VERSION  "1.8.73"
-#define _QDBM_LIBVER   1409
+#define _QDBM_VERSION  "1.8.75"
+#define _QDBM_LIBVER   1411
 
 
 /* Name of the operating system. */

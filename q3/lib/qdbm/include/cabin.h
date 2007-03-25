@@ -343,6 +343,16 @@ int cbdatumsize(const CBDATUM *datum);
 void cbdatumsetsize(CBDATUM *datum, int size);
 
 
+/* Perform formatted output into a datum.
+   `format' specifies a printf-like format string.
+   The conversion character `%' can be used with such flag characters as `s', `d', `o', `u',
+   `x', `X', `c', `e', `E', `f', `g', `G', `@', `?', `:', `%'.  `@' works as with `s' but escapes
+   meta characters of XML.  `?' works as with `s' but escapes meta characters of URL.  `:' works
+   as with `s' but performs MIME encoding as UTF-8.  The other conversion character work as with
+   each original. */
+void cbdatumprintf(CBDATUM *datum, const char *format, ...);
+
+
 /* Convert a datum to an allocated region.
    `datum' specifies a datum handle.
    `sp' specifies the pointer to a variable to which the size of the region of the return
