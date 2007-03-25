@@ -727,11 +727,25 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 				if (!wstrBody.get())
 					return;
 				
+				std::pair<size_t, const WCHAR*> meta = detectMetaContentType(
+					wstrBody.get(), wstrBody.size());
+				
 				const unsigned char pszBOM[] = { 0xef, 0xbb, 0xbf };
 				XStringBuffer<XSTRING> buf;
-				if (!buf.append(reinterpret_cast<const CHAR*>(pszBOM), countof(pszBOM)) ||
-					UTF8Converter().encode(wstrBody.get(), wstrBody.size(), &buf) == -1)
+				if (!buf.append(reinterpret_cast<const CHAR*>(pszBOM), countof(pszBOM)))
 					return;
+				if (meta.first != -1) {
+					if (UTF8Converter().encode(wstrBody.get(), meta.first, &buf) == -1 ||
+						!buf.append("<meta http-equiv=\"Content-Type\" content=\"") ||
+						UTF8Converter().encode(bufMimeType.getCharArray(), bufMimeType.getLength(), &buf) == -1 ||
+						!buf.append("\">", -1) ||
+						UTF8Converter().encode(meta.second, wstrBody.size() - (meta.second - wstrBody.get()), &buf) == -1)
+						return;
+				}
+				else {
+					if (UTF8Converter().encode(wstrBody.get(), wstrBody.size(), &buf) == -1)
+						return;
+				}
 				
 				xstring_size_ptr strBody(buf.getXStringSize());
 				size_t nBodyLen = strBody.size();
@@ -749,6 +763,38 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 			pContent.release();
 		}
 	}
+}
+
+std::pair<size_t, const WCHAR*> qm::HtmlContentManager::detectMetaContentType(const WCHAR* pwsz,
+																			  size_t nLen)
+{
+	assert(pwsz);
+	
+	BMFindString<WSTRING> bmfs(L"<meta ", -1, BMFindString<WSTRING>::FLAG_IGNORECASE);
+	
+	std::auto_ptr<RegexPattern> pMatch(RegexCompiler().compile(
+		L"<meta[^>]*http-equiv\\s*=\\s*\"?Content-Type\"?[^>]*>",
+		RegexCompiler::MODE_DOTALL | RegexCompiler::MODE_CASEINSENSITIVE));
+	
+	const WCHAR* p = pwsz;
+	while (true) {
+		const WCHAR* pBegin = bmfs.find(p, nLen - (p - pwsz));
+		if (!pBegin)
+			break;
+		
+		const WCHAR* pEnd = pBegin + 1;
+		for (size_t n = nLen - (pBegin - pwsz); n > 0; --n, ++pEnd) {
+			if (*pEnd == L'>')
+				break;
+		}
+		if (*pEnd == L'>' && pMatch->match(pBegin, pEnd - pBegin + 1, 0))
+			return std::make_pair(pBegin - pwsz, pEnd + 1);
+		
+		if (pBegin + 5 >= pwsz + nLen)
+			break;
+		p = pBegin + 5;
+	}
+	return std::pair<size_t, const WCHAR*>(-1, 0);
 }
 
 

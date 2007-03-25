@@ -355,6 +355,10 @@ private:
 				 const void* pCookie);
 
 private:
+	static std::pair<size_t, const WCHAR*> detectMetaContentType(const WCHAR* pwsz,
+																 size_t nLen);
+
+private:
 	HtmlContentManager(const HtmlContentManager&);
 	HtmlContentManager& operator=(const HtmlContentManager&);
 
