@@ -96,10 +96,17 @@ const WCHAR* qs::RegexRegexNode::getCandidate(const WCHAR* pStart,
 											  const WCHAR* p,
 											  bool bReverse) const
 {
-	if (listNode_.size() == 1)
-		return listNode_.front()->getCandidate(pStart, pEnd, p, bReverse);
-	else
-		return p;
+	const WCHAR* pCandidate = 0;
+	for (NodeList::const_iterator it = listNode_.begin(); it != listNode_.end(); ++it) {
+		const WCHAR* pThisCandidate = (*it)->getCandidate(pStart, pEnd, p, bReverse);
+		if (pThisCandidate == p)
+			return p;
+		
+		if (pThisCandidate &&
+			(!pCandidate || (bReverse ? pThisCandidate > pCandidate : pThisCandidate < pCandidate)))
+			pCandidate = pThisCandidate;
+	}
+	return pCandidate;
 }
 
 
