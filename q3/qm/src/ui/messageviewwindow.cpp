@@ -609,6 +609,11 @@ const void* qm::HtmlContent::getCookie() const
  *
  */
 
+std::auto_ptr<RegexPattern> qm::HtmlContentManager::pMetaPattern__(
+	RegexCompiler().compile(
+		L"<meta [^>]*http-equiv\\s*=\\s*\"?Content-Type\"?[^>]*>",
+		RegexCompiler::MODE_CASEINSENSITIVE));
+
 qm::HtmlContentManager::HtmlContentManager()
 {
 }
@@ -770,31 +775,13 @@ std::pair<size_t, const WCHAR*> qm::HtmlContentManager::detectMetaContentType(co
 {
 	assert(pwsz);
 	
-	BMFindString<WSTRING> bmfs(L"<meta ", -1, BMFindString<WSTRING>::FLAG_IGNORECASE);
-	
-	std::auto_ptr<RegexPattern> pMatch(RegexCompiler().compile(
-		L"<meta[^>]*http-equiv\\s*=\\s*\"?Content-Type\"?[^>]*>",
-		RegexCompiler::MODE_DOTALL | RegexCompiler::MODE_CASEINSENSITIVE));
-	
-	const WCHAR* p = pwsz;
-	while (true) {
-		const WCHAR* pBegin = bmfs.find(p, nLen - (p - pwsz));
-		if (!pBegin)
-			break;
-		
-		const WCHAR* pEnd = pBegin + 1;
-		for (size_t n = nLen - (pBegin - pwsz); n > 0; --n, ++pEnd) {
-			if (*pEnd == L'>')
-				break;
-		}
-		if (*pEnd == L'>' && pMatch->match(pBegin, pEnd - pBegin + 1, 0))
-			return std::make_pair(pBegin - pwsz, pEnd + 1);
-		
-		if (pBegin + 5 >= pwsz + nLen)
-			break;
-		p = pBegin + 5;
-	}
-	return std::pair<size_t, const WCHAR*>(-1, 0);
+	const WCHAR* pStart = 0;
+	const WCHAR* pEnd = 0;
+	pMetaPattern__->search(pwsz, nLen, pwsz, false, &pStart, &pEnd, 0);
+	if (pStart)
+		return std::make_pair(pStart - pwsz, pEnd + 1);
+	else
+		return std::pair<size_t, const WCHAR*>(-1, 0);
 }
 
 

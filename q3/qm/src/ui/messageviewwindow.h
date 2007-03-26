@@ -15,6 +15,7 @@
 
 #include <qsmenu.h>
 #include <qsmime.h>
+#include <qsregex.h>
 #include <qstextwindow.h>
 #include <qstheme.h>
 #include <qswindow.h>
@@ -367,6 +368,9 @@ private:
 
 private:
 	ContentList listContent_;
+
+private:
+	static std::auto_ptr<qs::RegexPattern> pMetaPattern__;
 };
 
 
