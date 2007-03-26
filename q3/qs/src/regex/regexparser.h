@@ -54,6 +54,10 @@ public:
 
 public:
 	virtual Type getType() const = 0;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const = 0;
 };
 
 
@@ -95,6 +99,10 @@ public:
 
 public:
 	virtual Type getType() const;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
 
 private:
 	RegexRegexNode(const RegexRegexNode&);
@@ -134,6 +142,10 @@ public:
 
 public:
 	virtual Type getType() const;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
 
 private:
 	RegexBrunchNode(const RegexBrunchNode&);
@@ -163,6 +175,10 @@ public:
 
 public:
 	virtual Type getType() const;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
 
 private:
 	RegexPieceNode(const RegexPieceNode&);
@@ -188,6 +204,10 @@ public:
 
 public:
 	virtual Type getType() const;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
 
 private:
 	RegexEmptyNode(const RegexEmptyNode&);
@@ -212,6 +232,10 @@ public:
 							   const WCHAR* pEnd,
 							   const WCHAR* p,
 							   RegexMatchCallback* pCallback) const;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
 
 protected:
 	virtual bool matchChar(WCHAR c) const;
@@ -230,6 +254,12 @@ public:
 	RegexCharAtom(WCHAR c,
 				  bool bCaseInsensitive);
 	virtual ~RegexCharAtom();
+
+public:
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
 
 protected:
 	virtual bool matchChar(WCHAR c) const;
@@ -263,6 +293,10 @@ public:
 							   const WCHAR* pEnd,
 							   const WCHAR* p,
 							   RegexMatchCallback* pCallback) const;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
 
 private:
 	RegexCharsAtom(const RegexCharsAtom&);
@@ -272,6 +306,8 @@ private:
 	wstring_ptr wstr_;
 	size_t nLen_;
 	bool bCaseInsensitive_;
+	mutable std::auto_ptr<qs::BMFindString<qs::WSTRING> > pBmfsForward_;
+	mutable std::auto_ptr<qs::BMFindString<qs::WSTRING> > pBmfsBackward_;
 };
 
 
@@ -444,6 +480,11 @@ public:
 							   const WCHAR* pEnd,
 							   const WCHAR* p,
 							   RegexMatchCallback* pCallback) const;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
+
 
 private:
 	RegexAnchorAtom(const RegexAnchorAtom&);

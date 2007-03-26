@@ -173,6 +173,12 @@ public:
 	void pushGroup(unsigned int nGroup);
 	void popGroup();
 
+public:
+	const WCHAR* getCandidate(const WCHAR* pStart,
+							  const WCHAR* pEnd,
+							  const WCHAR* p,
+							  bool bReverse) const;
+
 private:
 	RegexNfa(const RegexNfa&);
 	RegexNfa& operator=(const RegexNfa&);

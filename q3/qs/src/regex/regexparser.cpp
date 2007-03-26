@@ -91,6 +91,17 @@ RegexNode::Type qs::RegexRegexNode::getType() const
 	return TYPE_REGEX;
 }
 
+const WCHAR* qs::RegexRegexNode::getCandidate(const WCHAR* pStart,
+											  const WCHAR* pEnd,
+											  const WCHAR* p,
+											  bool bReverse) const
+{
+	if (listNode_.size() == 1)
+		return listNode_.front()->getCandidate(pStart, pEnd, p, bReverse);
+	else
+		return p;
+}
+
 
 /****************************************************************************
  *
@@ -126,6 +137,14 @@ RegexNode::Type qs::RegexBrunchNode::getType() const
 	return TYPE_BRUNCH;
 }
 
+const WCHAR* qs::RegexBrunchNode::getCandidate(const WCHAR* pStart,
+											   const WCHAR* pEnd,
+											   const WCHAR* p,
+											   bool bReverse) const
+{
+	return listNode_.front()->getCandidate(pStart, pEnd, p, bReverse);
+}
+
 
 /****************************************************************************
  *
@@ -159,6 +178,17 @@ RegexNode::Type qs::RegexPieceNode::getType() const
 	return TYPE_PIECE;
 }
 
+const WCHAR* qs::RegexPieceNode::getCandidate(const WCHAR* pStart,
+											  const WCHAR* pEnd,
+											  const WCHAR* p,
+											  bool bReverse) const
+{
+	if (!pQuantifier_.get() || pQuantifier_->getMin() != 0)
+		return pAtom_->getCandidate(pStart, pEnd, p, bReverse);
+	else
+		return p;
+}
+
 
 /****************************************************************************
  *
@@ -177,6 +207,14 @@ qs::RegexEmptyNode::~RegexEmptyNode()
 RegexNode::Type qs::RegexEmptyNode::getType() const
 {
 	return TYPE_EMPTY;
+}
+
+const WCHAR* qs::RegexEmptyNode::getCandidate(const WCHAR* pStart,
+											  const WCHAR* pEnd,
+											  const WCHAR* p,
+											  bool bReverse) const
+{
+	return p;
 }
 
 
@@ -207,6 +245,14 @@ const WCHAR* qs::RegexAtom::match(const WCHAR* pStart,
 		return 0;
 }
 
+const WCHAR* qs::RegexAtom::getCandidate(const WCHAR* pStart,
+										 const WCHAR* pEnd,
+										 const WCHAR* p,
+										 bool bReverse) const
+{
+	return p;
+}
+
 bool qs::RegexAtom::matchChar(WCHAR c) const
 {
 	assert(false);
@@ -229,6 +275,30 @@ qs::RegexCharAtom::RegexCharAtom(WCHAR c,
 
 qs::RegexCharAtom::~RegexCharAtom()
 {
+}
+
+const WCHAR* qs::RegexCharAtom::getCandidate(const WCHAR* pStart,
+											 const WCHAR* pEnd,
+											 const WCHAR* p,
+											 bool bReverse) const
+{
+	if (bReverse) {
+		while (true) {
+			if (*p == c_)
+				return p;
+			else if (p == pStart)
+				break;;
+			--p;
+		}
+	}
+	else {
+		while (p != pEnd) {
+			if (*p == c_)
+				return p;
+			++p;
+		}
+	}
+	return 0;
 }
 
 bool qs::RegexCharAtom::matchChar(WCHAR c) const
@@ -270,6 +340,27 @@ const WCHAR* qs::RegexCharsAtom::match(const WCHAR* pStart,
 	else {
 		return 0;
 	}
+}
+
+const WCHAR* qs::RegexCharsAtom::getCandidate(const WCHAR* pStart,
+											  const WCHAR* pEnd,
+											  const WCHAR* p,
+											  bool bReverse) const
+{
+	std::auto_ptr<qs::BMFindString<qs::WSTRING> >& pBmfs =
+		bReverse ? pBmfsBackward_ : pBmfsForward_;
+	if (!pBmfs.get()) {
+		unsigned int nFlags = 0;
+		if (bReverse)
+			nFlags |= BMFindString<WSTRING>::FLAG_REVERSE;
+		if (bCaseInsensitive_)
+			nFlags |= BMFindString<WSTRING>::FLAG_IGNORECASE;
+		pBmfs.reset(new BMFindString<WSTRING>(wstr_.get(), nLen_, nFlags));
+	}
+	if (bReverse)
+		return pBmfs->find(pStart, p - pStart + 1);
+	else
+		return pBmfs->find(p, pEnd - p);
 }
 
 
@@ -485,6 +576,44 @@ const WCHAR* qs::RegexAnchorAtom::match(const WCHAR* pStart,
 		break;
 	}
 	return bMatch ? p : 0;
+}
+
+const WCHAR* qs::RegexAnchorAtom::getCandidate(const WCHAR* pStart,
+											   const WCHAR* pEnd,
+											   const WCHAR* p,
+											   bool bReverse) const
+{
+	switch (type_) {
+	case TYPE_LINESTART:
+		if (bReverse) {
+			while (p != pStart && !RegexUtil::isLineTerminator(*(p - 1)))
+				--p;
+			return p;
+		}
+		else {
+			if (p == pStart)
+				return p;
+			while (p != pEnd) {
+				if (RegexUtil::isLineTerminator(*(p - 1)))
+					return p;
+				++p;
+			}
+			return 0;
+		}
+		break;
+	case TYPE_LINEEND:
+		break;
+	case TYPE_START:
+		return p == pStart ? p : 0;
+	case TYPE_END:
+	case TYPE_ENDSTRICT:
+	case TYPE_WORDBOUNDARY:
+	case TYPE_NOWORDBOUNDARY:
+	default:
+		assert(false);
+		break;
+	}
+	return p;
 }
 
 

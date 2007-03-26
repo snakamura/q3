@@ -397,6 +397,10 @@ void qs::RegexNfaMatcher::search(const WCHAR* pStart,
 	
 	const WCHAR* p = pCurrent - (bReverse ? 1 : 0);
 	while (bReverse ? p >= pStart : p <= pEnd) {
+		p = pNfa_->getCandidate(pStart, pEnd, p, bReverse);
+		if (!p)
+			break;
+		
 		match(pStart, pEnd, p, bMatchEnd, ppEnd, pStackMatch);
 		if (*ppEnd) {
 			*ppStart = p;
@@ -522,6 +526,19 @@ void qs::RegexNfa::popGroup()
 {
 	assert(!stackGroup_.empty());
 	stackGroup_.pop_back();
+}
+
+const WCHAR* qs::RegexNfa::getCandidate(const WCHAR* pStart,
+										const WCHAR* pEnd,
+										const WCHAR* p,
+										bool bReverse) const
+{
+	assert(pStart);
+	assert(pEnd);
+	assert(p);
+	assert(pStart <= p && p <= pEnd);
+	
+	return pNode_->getCandidate(pStart, pEnd, p, bReverse);
 }
 
 
