@@ -96,6 +96,9 @@ const WCHAR* qs::RegexRegexNode::getCandidate(const WCHAR* pStart,
 											  const WCHAR* p,
 											  bool bReverse) const
 {
+	if (groupType_ != GROUPTYPE_NORMAL)
+		return p;
+	
 	const WCHAR* pCandidate = 0;
 	for (NodeList::const_iterator it = listNode_.begin(); it != listNode_.end(); ++it) {
 		const WCHAR* pThisCandidate = (*it)->getCandidate(pStart, pEnd, p, bReverse);
@@ -524,6 +527,14 @@ qs::RegexNodeAtom::~RegexNodeAtom()
 RegexRegexNode* qs::RegexNodeAtom::getNode() const
 {
 	return pNode_.get();
+}
+
+const WCHAR* qs::RegexNodeAtom::getCandidate(const WCHAR* pStart,
+											 const WCHAR* pEnd,
+											 const WCHAR* p,
+											 bool bReverse) const
+{
+	return pNode_->getCandidate(pStart, pEnd, p, bReverse);
 }
 
 

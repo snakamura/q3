@@ -442,6 +442,10 @@ public:
 
 public:
 	virtual RegexRegexNode* getNode() const;
+	virtual const WCHAR* getCandidate(const WCHAR* pStart,
+									  const WCHAR* pEnd,
+									  const WCHAR* p,
+									  bool bReverse) const;
 
 private:
 	RegexNodeAtom(const RegexNodeAtom&);
