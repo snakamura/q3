@@ -2386,14 +2386,13 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 		}
 	}
 	
-	bool bPrevDecode = false;
+	bool bPrevDecoded = false;
 	bool bPrevPeriod = false;
 	StringBuffer<WSTRING> bufPhrase;
 	Phrases::iterator it = phrases.begin();
 	while (it != phrases.end()) {
 		const CHAR* psz = (*it).first;
 		bool bAtom = (*it).second;
-		bool bDecode = false;
 		bool bPeriod = bAtom && *psz == '.';
 		bool bDecoded = false;
 		
@@ -2401,7 +2400,7 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 			part.isOption(Part::O_ALLOW_ENCODED_QSTRING),
 			(nFlags_ & FLAG_ALLOWUTF8) != 0, &bDecoded));
 		if (it != phrases.begin()) {
-			if ((!bPrevDecode || !bDecode) && !bPeriod && !bPrevPeriod)
+			if ((!bPrevDecoded || !bDecoded) && !bPeriod && !bPrevPeriod)
 				bufPhrase.append(L" ");
 		}
 		
@@ -2426,7 +2425,7 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 			bufPhrase.append(wstrWord.get());
 		}
 		
-		bPrevDecode = bDecoded;
+		bPrevDecoded = bDecoded;
 		bPrevPeriod = bPeriod;
 		
 		++it;
