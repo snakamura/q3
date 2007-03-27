@@ -621,17 +621,16 @@ string_ptr qs::FieldParser::encode(const WCHAR* pwsz,
 	if (nLen == -1)
 		nLen = wcslen(pwsz);
 	
-	const WCHAR* pwszEncodingSymbol = pwszEncoding;
-	if (!pwszEncodingSymbol) {
+	if (!pwszEncoding) {
 		if (_wcsicmp(pwszCharset, L"us-ascii") == 0 ||
 			_wcsicmp(pwszCharset, L"iso-8859-1") == 0 ||
 			_wcsicmp(pwszCharset, L"utf-7") == 0)
-			pwszEncodingSymbol = L"Q";
+			pwszEncoding = L"Q";
 		else
-			pwszEncodingSymbol = L"B";
+			pwszEncoding = L"B";
 	}
 	
-	std::auto_ptr<Encoder> pEncoder(EncoderFactory::getInstance(pwszEncodingSymbol));
+	std::auto_ptr<Encoder> pEncoder(EncoderFactory::getInstance(pwszEncoding));
 	if (!pEncoder.get())
 		return 0;
 	
@@ -667,7 +666,7 @@ string_ptr qs::FieldParser::encode(const WCHAR* pwsz,
 		if (lines[n].first != lines[n].second) {
 			string_ptr str(encodeLine(lines[n].first,
 				lines[n].second - lines[n].first, pwszCharset, pConverter.get(),
-				pwszEncodingSymbol, pEncoder.get(), bOneBlock));
+				pwszEncoding, pEncoder.get(), bOneBlock));
 			if (!str.get())
 				return 0;
 			buf.append(str.get());
@@ -710,7 +709,7 @@ string_ptr qs::FieldParser::encodeLine(const WCHAR* pwsz,
 			blocks.push_back(Block(Item(pBegin, pEnd), Item(0, 0)));
 			if (pEnd != pwsz + nLen) {
 				pBegin = pEnd;
-				while (*pEnd == L' ' || *pEnd == L'\t')
+				while (pEnd < pwsz + nLen && (*pEnd == L' ' || *pEnd == L'\t'))
 					++pEnd;
 				blocks.back().second.first = pBegin;
 				blocks.back().second.second = pEnd;
@@ -730,9 +729,10 @@ string_ptr qs::FieldParser::encodeLine(const WCHAR* pwsz,
 		Item& s = b.second;
 		if (!FieldParserUtil<WSTRING>::isAscii(i.first, i.second - i.first)) {
 			Item itemAfter = (it + 1) != blocks.end() ? (*(it + 1)).first : Item(0, 0);
-			if ((itemAfter.first == itemAfter.second ||
-				!FieldParserUtil<WSTRING>::isAscii(itemAfter.first, itemAfter.second - itemAfter.first)) &&
-				s.first) {
+			bool bAsciiAfter = itemAfter.first == itemAfter.second ||
+				FieldParserUtil<WSTRING>::isAscii(itemAfter.first,
+					itemAfter.second - itemAfter.first);
+			if ((itemAfter.first == itemAfter.second || !bAsciiAfter) && s.first) {
 				i.second = s.second;
 				s.first = 0;
 				s.second = 0;
@@ -751,11 +751,13 @@ string_ptr qs::FieldParser::encodeLine(const WCHAR* pwsz,
 			
 			buf.append("=?");
 			buf.append(strCharset.get());
-			buf.append("?");
+			buf.append('?');
 			buf.append(strEncoding.get());
-			buf.append("?");
+			buf.append('?');
 			buf.append(reinterpret_cast<CHAR*>(encoded.get()), encoded.size());
 			buf.append("?=");
+			if (!bAsciiAfter)
+				buf.append(' ');
 		}
 		else {
 			if (i.first != i.second) {
