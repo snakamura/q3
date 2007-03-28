@@ -211,6 +211,25 @@ void qm::EditFrameWindowImpl::initActions()
 		pEditWindow_->getFocusController(),
 		&EditWindowItem::undo,
 		&EditWindowItem::canUndo);
+	
+	struct {
+		UINT nId_;
+		ViewScrollAction::Scroll scroll_;
+	} scrolls[] = {
+		{ IDM_VIEW_SCROLLLINEUP,		ViewScrollAction::SCROLL_LINEUP		},
+		{ IDM_VIEW_SCROLLLINEDOWN,		ViewScrollAction::SCROLL_LINEDOWN	},
+		{ IDM_VIEW_SCROLLPAGEUP,		ViewScrollAction::SCROLL_PAGEUP		},
+		{ IDM_VIEW_SCROLLPAGEDOWN,		ViewScrollAction::SCROLL_PAGEDOWN	},
+		{ IDM_VIEW_SCROLLTOP,			ViewScrollAction::SCROLL_TOP		},
+		{ IDM_VIEW_SCROLLBOTTOM,		ViewScrollAction::SCROLL_BOTTOM		},
+	};
+	for (int n = 0; n < countof(scrolls); ++n) {
+		ADD_ACTION2(ViewScrollAction,
+			scrolls[n].nId_,
+			pEditWindow_->getTextWindow()->getHandle(),
+			scrolls[n].scroll_);
+	}
+	
 	ADD_ACTION1(ViewShowStatusBarAction<EditFrameWindow>,
 		IDM_VIEW_SHOWSTATUSBAR,
 		pThis_);
