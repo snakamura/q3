@@ -218,6 +218,8 @@
 *((<ViewScrollBottomアクション|URL:ViewScrollBottomAction.html>))
 *((<ViewScrollLineDownアクション|URL:ViewScrollLineDownAction.html>))
 *((<ViewScrollLineUpアクション|URL:ViewScrollLineUpAction.html>))
+*((<ViewScrollMessagePageDownアクション|URL:ViewScrollMessagePageDownAction.html>))
+*((<ViewScrollMessagePageUpアクション|URL:ViewScrollMessagePageUpAction.html>))
 *((<ViewScrollPageDownアクション|URL:ViewScrollPageDownAction.html>))
 *((<ViewScrollPageUpアクション|URL:ViewScrollPageUpAction.html>))
 *((<ViewScrollTopアクション|URL:ViewScrollTopAction.html>))
