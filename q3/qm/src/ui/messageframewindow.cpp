@@ -504,15 +504,30 @@ void qm::MessageFrameWindowImpl::initActions()
 		MessageViewMode::MODE_RAW,
 		MessageViewMode::MODE_SOURCE,
 		true);
-	ADD_ACTION1(ViewOpenLinkAction,
-		IDM_VIEW_OPENLINK,
-		pMessageWindow_);
 	ADD_ACTION4(ViewMessageModeAction,
 		IDM_VIEW_SELECTMODE,
 		pMessageViewModeHolder_,
 		MessageViewMode::MODE_SELECT,
 		MessageViewMode::MODE_NONE,
 		true);
+	ADD_ACTION1(ViewOpenLinkAction,
+		IDM_VIEW_OPENLINK,
+		pMessageWindow_);
+	
+	struct {
+		UINT nId_;
+		ViewScrollMessageAction::Scroll scroll_;
+	} scrollMessages[] = {
+		{ IDM_VIEW_SCROLLMESSAGEPAGEUP,		ViewScrollMessageAction::SCROLL_PAGEUP		},
+		{ IDM_VIEW_SCROLLMESSAGEPAGEDOWN,	ViewScrollMessageAction::SCROLL_PAGEDOWN	},
+	};
+	for (int n = 0; n < countof(scrollMessages); ++n) {
+		ADD_ACTION2(ViewScrollMessageAction,
+			scrollMessages[n].nId_,
+			pMessageWindow_,
+			scrollMessages[n].scroll_);
+	}
+	
 	ADD_ACTION1(ViewShowHeaderAction,
 		IDM_VIEW_SHOWHEADER,
 		pMessageWindow_);

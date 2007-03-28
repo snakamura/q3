@@ -132,6 +132,7 @@ class ViewOpenLinkAction;
 class ViewRefreshAction;
 class ViewSecurityAction;
 class ViewScrollAction;
+class ViewScrollMessageAction;
 class ViewSelectMessageAction;
 template<class WindowX> class ViewShowControlAction;
 	class ViewShowFolderAction;
@@ -3524,6 +3525,7 @@ private:
 	bool bEnabled_;
 };
 
+
 /****************************************************************************
  *
  * ViewScrollAction
@@ -3567,6 +3569,38 @@ private:
 	HWND hwnd_;
 	UINT nMsg_;
 	int nRequest_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewScrollMessageAction
+ *
+ */
+
+class ViewScrollMessageAction : public qs::AbstractAction
+{
+public:
+	enum Scroll {
+		SCROLL_PAGEUP			= 0x01,
+		SCROLL_PAGEDOWN			= 0x02
+	};
+
+public:
+	ViewScrollMessageAction(MessageWindow* pMessageWindow,
+							Scroll scroll);
+	virtual ~ViewScrollMessageAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	ViewScrollMessageAction(const ViewScrollMessageAction&);
+	ViewScrollMessageAction& operator=(const ViewScrollMessageAction&);
+
+private:
+	MessageWindow* pMessageWindow_;
+	Scroll scroll_;
 };
 
 

@@ -7309,6 +7309,39 @@ void qm::ViewScrollAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ViewScrollMessageAction
+ *
+ */
+
+qm::ViewScrollMessageAction::ViewScrollMessageAction(MessageWindow* pMessageWindow,
+													 Scroll scroll) :
+	pMessageWindow_(pMessageWindow),
+	scroll_(scroll)
+{
+}
+
+qm::ViewScrollMessageAction::~ViewScrollMessageAction()
+{
+}
+
+void qm::ViewScrollMessageAction::invoke(const ActionEvent& event)
+{
+	switch (scroll_) {
+	case SCROLL_PAGEUP:
+		pMessageWindow_->scrollPage(true);
+		break;
+	case SCROLL_PAGEDOWN:
+		pMessageWindow_->scrollPage(false);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+}
+
+
+/****************************************************************************
+ *
  * ViewSelectMessageAction
  *
  */

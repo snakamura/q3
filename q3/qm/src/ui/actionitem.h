@@ -226,6 +226,8 @@ const qs::ActionItem actionItems[] = {
 	{ L"ViewScrollBottom",				IDM_VIEW_SCROLLBOTTOM,				1,							0 },
 	{ L"ViewScrollLineDown",			IDM_VIEW_SCROLLLINEDOWN,			1,							0 },
 	{ L"ViewScrollLineUp",				IDM_VIEW_SCROLLLINEUP,				1,							0 },
+	{ L"ViewScrollMessagePageDown",		IDM_VIEW_SCROLLMESSAGEPAGEDOWN,		1,							0 },
+	{ L"ViewScrollMessagePageUp",		IDM_VIEW_SCROLLMESSAGEPAGEUP,		1,							0 },
 	{ L"ViewScrollPageDown",			IDM_VIEW_SCROLLPAGEDOWN,			1,							0 },
 	{ L"ViewScrollPageUp",				IDM_VIEW_SCROLLPAGEUP,				1,							0 },
 	{ L"ViewScrollTop",					IDM_VIEW_SCROLLTOP,					1,							0 },

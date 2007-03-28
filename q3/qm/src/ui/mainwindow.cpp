@@ -1242,6 +1242,20 @@ void qm::MainWindowImpl::initActions()
 			scrolls[n].scroll_);
 	}
 	
+	struct {
+		UINT nId_;
+		ViewScrollMessageAction::Scroll scroll_;
+	} scrollMessages[] = {
+		{ IDM_VIEW_SCROLLMESSAGEPAGEUP,		ViewScrollMessageAction::SCROLL_PAGEUP		},
+		{ IDM_VIEW_SCROLLMESSAGEPAGEDOWN,	ViewScrollMessageAction::SCROLL_PAGEDOWN	},
+	};
+	for (int n = 0; n < countof(scrollMessages); ++n) {
+		ADD_ACTION2(ViewScrollMessageAction,
+			scrollMessages[n].nId_,
+			pMessageWindow_,
+			scrollMessages[n].scroll_);
+	}
+	
 	ADD_ACTION3(ViewSelectMessageAction,
 		IDM_VIEW_SELECTMESSAGE,
 		pViewModelManager_.get(),
