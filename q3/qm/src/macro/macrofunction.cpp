@@ -1509,54 +1509,7 @@ MacroValuePtr qm::MacroFunctionExecute::value(MacroContext* pContext) const
 #endif
 	}
 	else {
-		const WCHAR* pCommand = wstrCommand.get();
-		WCHAR* pParam = 0;
-		if (*pCommand == L'\"') {
-			++pCommand;
-			
-			pParam = wstrCommand.get() + 1;
-			while (*pParam) {
-				if (*pParam == L'\"') {
-					if (*(pParam + 1) == L' ' || *(pParam + 1) == L'\0')
-						break;
-				}
-				++pParam;
-			}
-			if (pParam) {
-				*pParam = L'\0';
-				++pParam;
-			}
-		}
-		else {
-			pParam = wstrCommand.get();
-			while (*pParam && *pParam != L' ')
-				++pParam;
-			if (*pParam) {
-				*pParam = L'\0';
-				++pParam;
-			}
-		}
-		while (*pParam == L' ')
-			++pParam;
-		
-		W2T(pCommand, ptszCommand);
-		W2T(pParam, ptszParam);
-		
-		SHELLEXECUTEINFO sei = {
-			sizeof(sei),
-			0,
-			pContext->getWindow(),
-#ifdef _WIN32_WCE
-			_T("open"),
-#else
-			0,
-#endif
-			ptszCommand,
-			ptszParam,
-			0,
-			SW_SHOW
-		};
-		if (!::ShellExecuteEx(&sei))
+		if (!Process::shellExecute(wstrCommand.get(), pContext->getWindow()))
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	}
 	
