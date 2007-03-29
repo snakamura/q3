@@ -186,3 +186,59 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 }
 
 #endif
+
+bool qs::Process::shellExecute(const WCHAR* pwszCommand,
+							   HWND hwnd)
+{
+	assert(pwszCommand);
+	
+	wstring_ptr wstr(allocWString(pwszCommand));
+	const WCHAR* pCommand = wstr.get();
+	WCHAR* pParam = 0;
+	if (*pCommand == L'\"') {
+		++pCommand;
+		
+		pParam = wstr.get() + 1;
+		while (*pParam) {
+			if (*pParam == L'\"') {
+				if (*(pParam + 1) == L' ' || *(pParam + 1) == L'\0')
+					break;
+			}
+			++pParam;
+		}
+		if (pParam) {
+			*pParam = L'\0';
+			++pParam;
+		}
+	}
+	else {
+		pParam = wstr.get();
+		while (*pParam && *pParam != L' ')
+			++pParam;
+		if (*pParam) {
+			*pParam = L'\0';
+			++pParam;
+		}
+	}
+	while (*pParam == L' ')
+		++pParam;
+	
+	W2T(pCommand, ptszCommand);
+	W2T(pParam, ptszParam);
+	
+	SHELLEXECUTEINFO sei = {
+		sizeof(sei),
+		0,
+		hwnd,
+#ifdef _WIN32_WCE
+		_T("open"),
+#else
+		0,
+#endif
+		ptszCommand,
+		ptszParam,
+		0,
+		SW_SHOW
+	};
+	return ::ShellExecuteEx(&sei) != 0;
+}

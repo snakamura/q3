@@ -643,6 +643,8 @@ public:
 					OutputStream* pStdOutput,
 					OutputStream* pStdError);
 #endif
+	static bool shellExecute(const WCHAR* pwszCommand,
+							 HWND hwnd);
 };
 
 
