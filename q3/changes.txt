@@ -5,6 +5,7 @@
 *アドレスヘッダをパースするときにデコードしたフレーズの間に余計な空白文字が入ることがあるのを修正
 *ViewScrollXxxアクションをエディットビューでも使えるようにした
 *ViewScrollMessagePageUp, ViewScrollMessagePageDownアクションを追加
+*qmail.xmlのSync/Commandで、新着メッセージがあったときに実行するコマンドを指定できるようにした
 
 [2.9.31]
 *@InvokeActionを追加してマクロからアクションを実行できるようにした

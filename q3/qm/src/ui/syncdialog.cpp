@@ -331,6 +331,10 @@ void qm::SyncDialog::notifyNewMessage() const
 		W2T(wstrSound.get(), ptszSound);
 		sndPlaySound(ptszSound, SND_ASYNC);
 	}
+	
+	wstring_ptr wstrCommand(pProfile_->getString(L"Sync", L"Command"));
+	if (*wstrCommand.get())
+		Process::shellExecute(wstrCommand.get(), getHandle());
 }
 
 bool qm::SyncDialog::isShowDialog(SyncData::Type type) const
