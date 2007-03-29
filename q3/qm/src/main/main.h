@@ -35,7 +35,8 @@ public:
 	const WCHAR* getProfile() const;
 	bool isQuiet() const;
 	void invoke(HWND hwnd,
-				bool bPrev);
+				bool bPrev,
+				bool bQuiet);
 
 public:
 	virtual bool process(const WCHAR* pwszOption);

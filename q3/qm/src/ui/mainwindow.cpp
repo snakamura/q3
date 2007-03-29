@@ -2341,7 +2341,12 @@ LRESULT qm::MainWindow::onCopyData(HWND hwnd,
 	if (Application::getApplication().isShutdown())
 		return 0;
 	
-	UINT nId = static_cast<UINT>(pData->dwData);
+#ifdef _WIN32_WCE_PSPC
+	if ((pData->dwData & 0xffff0000) == 0)
+		setForegroundWindow();
+#endif
+	
+	UINT nId = static_cast<UINT>(pData->dwData & 0xffff);
 	const WCHAR* pwszParam = static_cast<const WCHAR*>(pData->lpData);
 	if (pwszParam) {
 		typedef std::vector<const WCHAR*> ParamList;
