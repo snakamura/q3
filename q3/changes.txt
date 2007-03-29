@@ -6,6 +6,7 @@
 *ViewScrollXxxアクションをエディットビューでも使えるようにした
 *ViewScrollMessagePageUp, ViewScrollMessagePageDownアクションを追加
 *qmail.xmlのSync/Commandで、新着メッセージがあったときに実行するコマンドを指定できるようにした
+*Pocket PCで-sを使ったときに、QMAIL3が既に起動しているとエディットビューが前面に来ないのを修正
 
 [2.9.31]
 *@InvokeActionを追加してマクロからアクションを実行できるようにした
