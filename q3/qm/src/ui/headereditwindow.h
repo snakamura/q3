@@ -30,7 +30,8 @@ class HeaderEditItem;
 		class StaticHeaderEditItem;
 		class EditHeaderEditItem;
 	class AttachmentHeaderEditItem;
-	class ComboBoxHeaderEditItem;
+	class AbstractComboBoxHeaderEditItem;
+		class ComboBoxHeaderEditItem;
 		class SignatureHeaderEditItem;
 		class AccountHeaderEditItem;
 class HeaderEditItemCallback;
@@ -587,20 +588,19 @@ private:
 
 /****************************************************************************
  *
- * ComboBoxHeaderEditItem
+ * AbstractComboBoxHeaderEditItem
  *
  */
 
-class ComboBoxHeaderEditItem :
+class AbstractComboBoxHeaderEditItem :
 	public HeaderEditItem,
 	public qs::CommandHandler
 {
 public:
-	explicit ComboBoxHeaderEditItem(qs::KeyMap* pKeyMap);
-	virtual ~ComboBoxHeaderEditItem();
+	explicit AbstractComboBoxHeaderEditItem(qs::KeyMap* pKeyMap);
+	virtual ~AbstractComboBoxHeaderEditItem();
 
 public:
-	virtual void releaseEditMessage(EditMessage* pEditMessage);
 	virtual bool hasFocus() const;
 	virtual bool hasInitialFocus() const;
 	virtual bool isFocusItem() const;
@@ -628,6 +628,9 @@ public:
 
 protected:
 	virtual LRESULT onChange();
+
+protected:
+	virtual void postCreate();
 
 protected:
 	HWND getHandle() const;
@@ -669,8 +672,8 @@ private:
 #endif
 
 private:
-	ComboBoxHeaderEditItem(const ComboBoxHeaderEditItem&);
-	ComboBoxHeaderEditItem& operator=(const ComboBoxHeaderEditItem&);
+	AbstractComboBoxHeaderEditItem(const AbstractComboBoxHeaderEditItem&);
+	AbstractComboBoxHeaderEditItem& operator=(const AbstractComboBoxHeaderEditItem&);
 
 private:
 	HWND hwnd_;
@@ -685,12 +688,55 @@ private:
 
 /****************************************************************************
  *
+ * ComboBoxHeaderEditItem
+ *
+ */
+
+class ComboBoxHeaderEditItem :
+	public AbstractComboBoxHeaderEditItem,
+	public DefaultEditMessageHandler
+{
+public:
+	explicit ComboBoxHeaderEditItem(qs::KeyMap* pKeyMap);
+	virtual ~ComboBoxHeaderEditItem();
+
+public:
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset);
+	virtual void releaseEditMessage(EditMessage* pEditMessage);
+	virtual void updateEditMessage(EditMessage* pEditMessage);
+
+public:
+	void setField(const WCHAR* pwszField);
+	void addOption(const WCHAR* pwszOption);
+
+public:
+	virtual void fieldChanged(const EditMessageFieldEvent& event);
+
+protected:
+	virtual void postCreate();
+
+private:
+	ComboBoxHeaderEditItem(const ComboBoxHeaderEditItem&);
+	ComboBoxHeaderEditItem& operator=(const ComboBoxHeaderEditItem&);
+
+private:
+	typedef std::vector<qs::WSTRING> OptionList;
+
+private:
+	qs::wstring_ptr wstrField_;
+	OptionList listOption_;
+};
+
+
+/****************************************************************************
+ *
  * SignatureHeaderEditItem
  *
  */
 
 class SignatureHeaderEditItem :
-	public ComboBoxHeaderEditItem,
+	public AbstractComboBoxHeaderEditItem,
 	public DefaultEditMessageHandler
 {
 public:
@@ -729,7 +775,7 @@ private:
  */
 
 class AccountHeaderEditItem :
-	public ComboBoxHeaderEditItem,
+	public AbstractComboBoxHeaderEditItem,
 	public DefaultEditMessageHandler
 {
 public:
@@ -824,7 +870,9 @@ private:
 		STATE_ROOT,
 		STATE_HEADEREDIT,
 		STATE_LINE,
-		STATE_ITEM
+		STATE_ITEM,
+		STATE_COMBOBOX,
+		STATE_OPTION
 	};
 
 private:

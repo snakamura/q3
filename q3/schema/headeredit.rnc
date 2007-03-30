@@ -33,6 +33,17 @@ start = element headerEdit {
 			} |
 			element signature {
 				item
+			} |
+			element combobox {
+				item,
+				## ヘッダ名
+				attribute field {
+					xsd:string
+				},
+				## 選択肢
+				element option {
+					xsd:string
+				}+
 			}
 		)*,
 		## フォーカスがない場合に隠すかどうか

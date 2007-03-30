@@ -1768,11 +1768,11 @@ LRESULT qm::AttachmentHeaderEditItem::AttachmentEditWindow::onSize(UINT nFlags,
 
 /****************************************************************************
  *
- * ComboBoxHeaderEditItem
+ * AbstractComboBoxHeaderEditItem
  *
  */
 
-qm::ComboBoxHeaderEditItem::ComboBoxHeaderEditItem(KeyMap* pKeyMap) :
+qm::AbstractComboBoxHeaderEditItem::AbstractComboBoxHeaderEditItem(KeyMap* pKeyMap) :
 	HeaderEditItem(pKeyMap),
 	hwnd_(0),
 	pParent_(0),
@@ -1783,41 +1783,37 @@ qm::ComboBoxHeaderEditItem::ComboBoxHeaderEditItem(KeyMap* pKeyMap) :
 #endif
 }
 
-qm::ComboBoxHeaderEditItem::~ComboBoxHeaderEditItem()
+qm::AbstractComboBoxHeaderEditItem::~AbstractComboBoxHeaderEditItem()
 {
 }
 
-void qm::ComboBoxHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
-{
-}
-
-bool qm::ComboBoxHeaderEditItem::hasFocus() const
+bool qm::AbstractComboBoxHeaderEditItem::hasFocus() const
 {
 	return Window(hwnd_).hasFocus();
 }
 
-bool qm::ComboBoxHeaderEditItem::hasInitialFocus() const
+bool qm::AbstractComboBoxHeaderEditItem::hasInitialFocus() const
 {
 	return getInitialFocus() == INITIALFOCUS_TRUE;
 }
 
-bool qm::ComboBoxHeaderEditItem::isFocusItem() const
+bool qm::AbstractComboBoxHeaderEditItem::isFocusItem() const
 {
 	return true;
 }
 
-unsigned int qm::ComboBoxHeaderEditItem::getHeight(unsigned int nWidth,
-												   unsigned int nFontHeight) const
+unsigned int qm::AbstractComboBoxHeaderEditItem::getHeight(unsigned int nWidth,
+														   unsigned int nFontHeight) const
 {
 	RECT rect;
 	Window(hwnd_).getWindowRect(&rect);
 	return rect.bottom - rect.top + 1;
 }
 
-bool qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
-										const std::pair<HFONT, HFONT>& fonts,
-										UINT nId,
-										void* pParam)
+bool qm::AbstractComboBoxHeaderEditItem::create(WindowBase* pParent,
+												const std::pair<HFONT, HFONT>& fonts,
+												UINT nId,
+												void* pParam)
 {
 	assert(!hwnd_);
 	
@@ -1846,18 +1842,20 @@ bool qm::ComboBoxHeaderEditItem::create(WindowBase* pParent,
 	pParent_ = pParent;
 	nId_ = nId;
 	
+	postCreate();
+	
 	return true;
 }
 
-void qm::ComboBoxHeaderEditItem::destroy()
+void qm::AbstractComboBoxHeaderEditItem::destroy()
 {
 	if (pParent_)
 		pParent_->removeCommandHandler(this);
 }
 
-HDWP qm::ComboBoxHeaderEditItem::layout(HDWP hdwp,
-										const RECT& rect,
-										unsigned int nFontHeight)
+HDWP qm::AbstractComboBoxHeaderEditItem::layout(HDWP hdwp,
+												const RECT& rect,
+												unsigned int nFontHeight)
 {
 	unsigned int nFlags = SWP_NOZORDER | SWP_NOACTIVATE;
 	return Window(hwnd_).deferWindowPos(hdwp, 0,
@@ -1865,12 +1863,12 @@ HDWP qm::ComboBoxHeaderEditItem::layout(HDWP hdwp,
 		static_cast<int>(100*(qs::UIUtil::getLogPixel()/96.0)), nFlags);
 }
 
-void qm::ComboBoxHeaderEditItem::show(bool bShow)
+void qm::AbstractComboBoxHeaderEditItem::show(bool bShow)
 {
 	Window(hwnd_).showWindow(bShow ? SW_SHOW : SW_HIDE);
 }
 
-void qm::ComboBoxHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
+void qm::AbstractComboBoxHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
 {
 	Window(hwnd_).setFont(fonts.first);
 #ifdef _WIN32_WCE
@@ -1878,13 +1876,13 @@ void qm::ComboBoxHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
 #endif
 }
 
-void qm::ComboBoxHeaderEditItem::setFocus()
+void qm::AbstractComboBoxHeaderEditItem::setFocus()
 {
 	Window(hwnd_).setFocus();
 }
 
-LRESULT qm::ComboBoxHeaderEditItem::onCommand(WORD nCode,
-											  WORD nId)
+LRESULT qm::AbstractComboBoxHeaderEditItem::onCommand(WORD nCode,
+													  WORD nId)
 {
 	BEGIN_COMMAND_HANDLER()
 		HANDLE_COMMAND_ID_CODE(nId_, CBN_SELCHANGE, onChange)
@@ -1892,18 +1890,22 @@ LRESULT qm::ComboBoxHeaderEditItem::onCommand(WORD nCode,
 	return CommandHandler::onCommand(nCode, nId);
 }
 
-LRESULT qm::ComboBoxHeaderEditItem::onChange()
+LRESULT qm::AbstractComboBoxHeaderEditItem::onChange()
 {
 	return 0;
 }
 
-HWND qm::ComboBoxHeaderEditItem::getHandle() const
+void qm::AbstractComboBoxHeaderEditItem::postCreate()
+{
+}
+
+HWND qm::AbstractComboBoxHeaderEditItem::getHandle() const
 {
 	return hwnd_;
 }
 
 #ifdef _WIN32_WCE
-int qm::ComboBoxHeaderEditItem::calcItemHeight(HFONT hfont)
+int qm::AbstractComboBoxHeaderEditItem::calcItemHeight(HFONT hfont)
 {
 	ClientDeviceContext dc(hwnd_);
 	ObjectSelector<HFONT> selector(dc, hfont);
@@ -1916,12 +1918,12 @@ int qm::ComboBoxHeaderEditItem::calcItemHeight(HFONT hfont)
 #ifdef _WIN32_WCE
 /****************************************************************************
  *
- * ComboBoxHeaderEditItem::ComboBoxEditWindow
+ * AbstractComboBoxHeaderEditItem::ComboBoxEditWindow
  *
  */
 
-qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::ComboBoxEditWindow(HWND hwnd,
-																   int nItemHeight) :
+qm::AbstractComboBoxHeaderEditItem::ComboBoxEditWindow::ComboBoxEditWindow(HWND hwnd,
+																		   int nItemHeight) :
 	WindowBase(true),
 	nItemHeight_(nItemHeight)
 {
@@ -1929,18 +1931,18 @@ qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::ComboBoxEditWindow(HWND hwnd,
 	subclassWindow(hwnd);
 }
 
-qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::~ComboBoxEditWindow()
+qm::AbstractComboBoxHeaderEditItem::ComboBoxEditWindow::~ComboBoxEditWindow()
 {
 }
 
-void qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::setItemHeight(int nItemHeight)
+void qm::AbstractComboBoxHeaderEditItem::ComboBoxEditWindow::setItemHeight(int nItemHeight)
 {
 	nItemHeight_ = nItemHeight;
 }
 
-LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::windowProc(UINT uMsg,
-																   WPARAM wParam,
-																   LPARAM lParam)
+LRESULT qm::AbstractComboBoxHeaderEditItem::ComboBoxEditWindow::windowProc(UINT uMsg,
+																		   WPARAM wParam,
+																		   LPARAM lParam)
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_WINDOWPOSCHANGED()
@@ -1948,7 +1950,7 @@ LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::windowProc(UINT uMsg,
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
 
-LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::onWindowPosChanged(WINDOWPOS* pWindowPos)
+LRESULT qm::AbstractComboBoxHeaderEditItem::ComboBoxEditWindow::onWindowPosChanged(WINDOWPOS* pWindowPos)
 {
 	if (sendMessage(CB_GETITEMHEIGHT, -1) != nItemHeight_)
 		sendMessage(CB_SETITEMHEIGHT, -1, nItemHeight_);
@@ -1959,12 +1961,87 @@ LRESULT qm::ComboBoxHeaderEditItem::ComboBoxEditWindow::onWindowPosChanged(WINDO
 
 /****************************************************************************
  *
+ * ComboBoxHeaderEditItem
+ *
+ */
+
+qm::ComboBoxHeaderEditItem::ComboBoxHeaderEditItem(KeyMap* pKeyMap) :
+	AbstractComboBoxHeaderEditItem(pKeyMap)
+{
+}
+
+qm::ComboBoxHeaderEditItem::~ComboBoxHeaderEditItem()
+{
+	std::for_each(listOption_.begin(), listOption_.end(), string_free<WSTRING>());
+}
+
+void qm::ComboBoxHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
+												bool bReset)
+{
+	wstring_ptr wstrValue(pEditMessage->getField(
+		wstrField_.get(), EditMessage::FIELDTYPE_UNSTRUCTURED));
+	if (wstrValue.get()) {
+		W2T(wstrValue.get(), ptszValue);
+		ComboBox_SelectString(getHandle(), -1, ptszValue);
+	}
+	else {
+		ComboBox_SetCurSel(getHandle(), 0);
+	}
+	
+	if (!bReset)
+		pEditMessage->addEditMessageHandler(this);
+}
+
+void qm::ComboBoxHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
+{
+	pEditMessage->removeEditMessageHandler(this);
+}
+
+void qm::ComboBoxHeaderEditItem::updateEditMessage(EditMessage* pEditMessage)
+{
+	int n = ComboBox_GetCurSel(getHandle());
+	if (n != CB_ERR)
+		pEditMessage->setField(wstrField_.get(),
+			listOption_[n], EditMessage::FIELDTYPE_UNSTRUCTURED);
+}
+
+void qm::ComboBoxHeaderEditItem::setField(const WCHAR* pwszField)
+{
+	wstrField_ = allocWString(pwszField);
+}
+
+void qm::ComboBoxHeaderEditItem::addOption(const WCHAR* pwszOption)
+{
+	wstring_ptr wstrOption(allocWString(pwszOption));
+	listOption_.push_back(wstrOption.get());
+	wstrOption.release();
+}
+
+void qm::ComboBoxHeaderEditItem::fieldChanged(const EditMessageFieldEvent& event)
+{
+	if (_wcsicmp(event.getName(), wstrField_.get()) == 0) {
+		W2T(event.getValue(), ptszValue);
+		ComboBox_SelectString(getHandle(), -1, ptszValue);
+	}
+}
+
+void qm::ComboBoxHeaderEditItem::postCreate()
+{
+	for (OptionList::const_iterator it = listOption_.begin(); it != listOption_.end(); ++it) {
+		W2T(*it, ptsz);
+		ComboBox_AddString(getHandle(), ptsz);
+	}
+}
+
+
+/****************************************************************************
+ *
  * SignatureHeaderEditItem
  *
  */
 
 qm::SignatureHeaderEditItem::SignatureHeaderEditItem(KeyMap* pKeyMap) :
-	ComboBoxHeaderEditItem(pKeyMap),
+	AbstractComboBoxHeaderEditItem(pKeyMap),
 	pEditMessage_(0)
 {
 }
@@ -2067,7 +2144,7 @@ void qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
  */
 
 qm::AccountHeaderEditItem::AccountHeaderEditItem(KeyMap* pKeyMap) :
-	ComboBoxHeaderEditItem(pKeyMap),
+	AbstractComboBoxHeaderEditItem(pKeyMap),
 	bShowFrom_(true),
 	pEditMessage_(0)
 {
@@ -2338,23 +2415,38 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 		state_ = STATE_ITEM;
 	}
 	else if (wcscmp(pwszLocalName, L"attachment") == 0 ||
-		wcscmp(pwszLocalName, L"signature") == 0) {
+		wcscmp(pwszLocalName, L"signature") == 0 ||
+		wcscmp(pwszLocalName, L"combobox") == 0) {
 		if (state_ != STATE_LINE)
 			return false;
 		
 		if (!bIgnore_) {
 			assert(pCurrentLine_);
 			
+			enum Type {
+				TYPE_ATTACHMENT,
+				TYPE_SIGNATURE,
+				TYPE_COMBOBOX
+			};
+			Type type = TYPE_ATTACHMENT;
+			if (wcscmp(pwszLocalName, L"signature") == 0)
+				type = TYPE_SIGNATURE;
+			else if (wcscmp(pwszLocalName, L"combobox") == 0)
+				type = TYPE_COMBOBOX;
+			
 			std::auto_ptr<HeaderEditItem> pItem;
-			if (wcscmp(pwszLocalName, L"attachment") == 0) {
-				std::auto_ptr<AttachmentHeaderEditItem> p(
-					new AttachmentHeaderEditItem(pUIManager_->getKeyMap(),
-						pUIManager_->getMenuManager(), pItemCallback_));
-				pAttachmentSelectionModel_ = p.get();
-				pItem.reset(p.release());
-			}
-			else if (wcscmp(pwszLocalName, L"signature") == 0) {
+			switch (type) {
+			case TYPE_ATTACHMENT:
+				pItem.reset(new AttachmentHeaderEditItem(pUIManager_->getKeyMap(),
+					pUIManager_->getMenuManager(), pItemCallback_));
+				pAttachmentSelectionModel_ = static_cast<AttachmentHeaderEditItem*>(pItem.get());
+				break;
+			case TYPE_SIGNATURE:
 				pItem.reset(new SignatureHeaderEditItem(pUIManager_->getKeyMap()));
+				break;
+			case TYPE_COMBOBOX:
+				pItem.reset(new ComboBoxHeaderEditItem(pUIManager_->getKeyMap()));
+				break;
 			}
 			
 			for (int n = 0; n < attributes.getLength(); ++n) {
@@ -2368,6 +2460,9 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 				else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
 					pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
 				}
+				else if (wcscmp(pwszAttrLocalName, L"field") == 0 && type == TYPE_COMBOBOX) {
+					static_cast<ComboBoxHeaderEditItem*>(pItem.get())->setField(attributes.getValue(n));
+				}
 				else {
 					return false;
 				}
@@ -2375,9 +2470,12 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			
 			pCurrentItem_ = pItem.get();
 			pCurrentLine_->addItem(pItem);
+			
+			state_ = type != TYPE_COMBOBOX ? STATE_ITEM : STATE_COMBOBOX;
 		}
-		
-		state_ = STATE_ITEM;
+		else {
+			state_ = STATE_ITEM;
+		}
 	}
 	else if (wcscmp(pwszLocalName, L"account") == 0) {
 		if (state_ != STATE_LINE)
@@ -2413,6 +2511,11 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 		}
 		
 		state_ = STATE_ITEM;
+	}
+	else if (wcscmp(pwszLocalName, L"option") == 0) {
+		if (state_ != STATE_COMBOBOX)
+			return false;
+		state_ = STATE_OPTION;
 	}
 	else {
 		return false;
@@ -2457,6 +2560,26 @@ bool qm::HeaderEditWindowContentHandler::endElement(const WCHAR* pwszNamespaceUR
 		
 		state_ = STATE_LINE;
 	}
+	else if (wcscmp(pwszLocalName, L"combobox") == 0) {
+		assert(state_ == STATE_COMBOBOX);
+		
+		if (!bIgnore_) {
+			assert(pCurrentItem_);
+			pCurrentItem_ = 0;
+		}
+		
+		state_ = STATE_LINE;
+	}
+	else if (wcscmp(pwszLocalName, L"option") == 0) {
+		assert(state_ == STATE_OPTION);
+		
+		if (!bIgnore_) {
+			assert(pCurrentItem_);
+			static_cast<ComboBoxHeaderEditItem*>(pCurrentItem_)->addOption(buffer_.getCharArray());
+			buffer_.remove();
+		}
+		state_ = STATE_COMBOBOX;
+	}
 	else {
 		return false;
 	}
@@ -2468,7 +2591,8 @@ bool qm::HeaderEditWindowContentHandler::characters(const WCHAR* pwsz,
 													size_t nStart,
 													size_t nLength)
 {
-	if (state_ == STATE_ITEM) {
+	if (state_ == STATE_ITEM ||
+		state_ == STATE_OPTION) {
 		if (!bIgnore_)
 			buffer_.append(pwsz + nStart, nLength);
 	}

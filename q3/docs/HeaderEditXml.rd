@@ -132,6 +132,30 @@ signatureエレメントは((<署名|URL:Signature.html>))選択コントロールを表します。選
 width, number, initialFocus属性についてはstaticエレメントを参照してください。
 
 
+===comboboxエレメント
+
+ <combobox
+  width="幅"
+  number="番号"
+  initialFocus="true|false"
+  field="ヘッダ名">
+  <!-- option -->
+ </combobox>
+
+comboboxエレメントはコンボボックスを使った選択コントロールを表します。ひとつ以上のoption子エレメントで指定した選択したリストされます。
+
+width, number, initialFocus, field属性についてはstaticエレメントを参照してください。ヘッダの型はunstructuredになります。
+
+
+===optionエレメント
+
+ <option>
+  文字列
+ </option>
+
+optionエレメントはcomboboxエレメントの子エレメントとして、コンボボックスに表示される選択肢を指定します。
+
+
 ==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
@@ -210,6 +234,17 @@ width, number, initialFocus属性についてはstaticエレメントを参照してください。
        } |
        element signature {
          item
+       } |
+       element combobox {
+         item,
+         ## ヘッダ名
+         attribute field {
+           xsd:string
+         },
+         ## 選択肢
+         element option {
+           xsd:string
+         }+
        }
      )*,
      ## フォーカスがない場合に隠すかどうか
