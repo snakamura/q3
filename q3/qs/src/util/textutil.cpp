@@ -531,7 +531,7 @@ bool qs::TextUtil::isURLComponentChar(CHAR c)
 	return ('A' <= c && c <= 'Z') ||
 		('a' <= c && c <= 'z') ||
 		('0' <= c && c <= '9') ||
-		strchr(".&!$~*=+-_;,()'", c) != 0;
+		strchr(".&!$~*=+-_;()'", c) != 0;
 }
 
 bool qs::TextUtil::isURLComponentChar(WCHAR c)
@@ -539,7 +539,7 @@ bool qs::TextUtil::isURLComponentChar(WCHAR c)
 	return (L'A' <= c && c <= L'Z') ||
 		(L'a' <= c && c <= L'z') ||
 		(L'0' <= c && c <= L'9') ||
-		wcschr(L".&!$~*=+-_;,()'", c) != 0;
+		wcschr(L".&!$~*=+-_;()'", c) != 0;
 }
 
 bool qs::TextUtil::isFileNameChar(CHAR c)
