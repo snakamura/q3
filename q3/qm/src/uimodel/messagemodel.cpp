@@ -184,7 +184,7 @@ void qm::AbstractMessageModel::updateToViewModel(bool bClearIfChanged)
 		pmh = pViewModel->getMessageHolder(nFocused);
 	
 	MessagePtrLock mpl(getCurrentMessage());
-	if (pmh != mpl)
+	if (pmh != mpl || (!mpl && !pmh))
 		setMessage(bClearIfChanged ? 0 : pmh);
 }
 
