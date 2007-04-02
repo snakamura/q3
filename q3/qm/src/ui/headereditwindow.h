@@ -34,6 +34,9 @@ class HeaderEditItem;
 		class ComboBoxHeaderEditItem;
 		class SignatureHeaderEditItem;
 		class AccountHeaderEditItem;
+	class CheckBoxHeaderEditItem;
+class StyledHeaderEditItem;
+class FieldHeaderEditItem;
 class HeaderEditItemCallback;
 class HeaderEditWindowContentHandler;
 
@@ -177,13 +180,11 @@ private:
 
 /****************************************************************************
  *
- * TextHeaderEditItem
+ * StyledHeaderEditItem
  *
  */
 
-class TextHeaderEditItem :
-	public HeaderEditItem,
-	public DefaultEditMessageHandler
+class StyledHeaderEditItem
 {
 public:
 	enum Style {
@@ -191,7 +192,70 @@ public:
 		STYLE_BOLD		= 0x01,
 		STYLE_ITALIC	= 0x02
 	};
-	
+
+protected:
+	StyledHeaderEditItem();
+	~StyledHeaderEditItem();
+
+public:
+	unsigned int getStyle() const;
+	void setStyle(unsigned int nStyle);
+
+public:
+	static unsigned int parseStyle(const WCHAR* pwszStyle);
+
+private:
+	unsigned int nStyle_;
+};
+
+
+/****************************************************************************
+ *
+ * FieldHeaderEditItem
+ *
+ */
+
+class FieldHeaderEditItem : public DefaultEditMessageHandler
+{
+protected:
+	FieldHeaderEditItem();
+	virtual ~FieldHeaderEditItem();
+
+public:
+	const WCHAR* getField() const;
+	void setField(const WCHAR* pwszField);
+
+public:
+	virtual void fieldChanged(const EditMessageFieldEvent& event);
+
+protected:
+	void requestNotify(EditMessage* pEditMessage);
+	void revokeNotify(EditMessage* pEditMessage);
+
+protected:
+	virtual void fieldChanged(const WCHAR* pwszValue) = 0;
+
+private:
+	FieldHeaderEditItem(const FieldHeaderEditItem&);
+	FieldHeaderEditItem& operator=(const FieldHeaderEditItem&);
+
+private:
+	qs::wstring_ptr wstrField_;
+};
+
+
+/****************************************************************************
+ *
+ * TextHeaderEditItem
+ *
+ */
+
+class TextHeaderEditItem :
+	public HeaderEditItem,
+	public StyledHeaderEditItem,
+	public FieldHeaderEditItem
+{
+public:
 	enum Align {
 		ALIGN_LEFT,
 		ALIGN_CENTER,
@@ -217,9 +281,7 @@ public:
 	virtual bool hasFocus() const;
 
 public:
-	void setStyle(unsigned int nStyle);
 	void setAlign(Align align);
-	void setField(const WCHAR* pwszField);
 	void setType(Type type);
 
 public:
@@ -234,13 +296,12 @@ public:
 	virtual void show(bool bShow);
 	virtual void setFont(const std::pair<HFONT, HFONT>& fonts);
 
-public:
-	virtual void fieldChanged(const EditMessageFieldEvent& event);
+protected:
+	virtual void fieldChanged(const WCHAR* pwszValue);
 
 protected:
 	HWND getHandle() const;
 	Align getAlign() const;
-	const WCHAR* getField() const;
 	Type getType() const;
 
 protected:
@@ -254,7 +315,6 @@ public:
 	virtual void setFocus();
 
 public:
-	static unsigned int parseStyle(const WCHAR* pwszStyle);
 	static Align parseAlign(const WCHAR* pwszAlign);
 	static Type parseType(const WCHAR* pwszType);
 
@@ -263,9 +323,7 @@ private:
 	TextHeaderEditItem& operator=(const TextHeaderEditItem&);
 
 private:
-	unsigned int nStyle_;
 	Align align_;
-	qs::wstring_ptr wstrField_;
 	Type type_;
 	HWND hwnd_;
 	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
@@ -694,7 +752,7 @@ private:
 
 class ComboBoxHeaderEditItem :
 	public AbstractComboBoxHeaderEditItem,
-	public DefaultEditMessageHandler
+	public FieldHeaderEditItem
 {
 public:
 	explicit ComboBoxHeaderEditItem(qs::KeyMap* pKeyMap);
@@ -707,11 +765,10 @@ public:
 	virtual void updateEditMessage(EditMessage* pEditMessage);
 
 public:
-	void setField(const WCHAR* pwszField);
 	void addOption(const WCHAR* pwszOption);
 
-public:
-	virtual void fieldChanged(const EditMessageFieldEvent& event);
+protected:
+	virtual void fieldChanged(const WCHAR* pwszValue);
 
 protected:
 	virtual void postCreate();
@@ -724,7 +781,6 @@ private:
 	typedef std::vector<qs::WSTRING> OptionList;
 
 private:
-	qs::wstring_ptr wstrField_;
 	OptionList listOption_;
 };
 
@@ -804,6 +860,64 @@ private:
 private:
 	bool bShowFrom_;
 	EditMessage* pEditMessage_;
+};
+
+
+/****************************************************************************
+ *
+ * CheckBoxHeaderEditItem
+ *
+ */
+
+class CheckBoxHeaderEditItem :
+	public HeaderEditItem,
+	public StyledHeaderEditItem,
+	public FieldHeaderEditItem
+{
+public:
+	explicit CheckBoxHeaderEditItem(qs::KeyMap* pKeyMap);
+	virtual ~CheckBoxHeaderEditItem();
+
+public:
+	virtual void setEditMessage(EditMessage* pEditMessage,
+								bool bReset);
+	virtual void releaseEditMessage(EditMessage* pEditMessage);
+	virtual void updateEditMessage(EditMessage* pEditMessage);
+	virtual bool hasFocus() const;
+	virtual bool hasInitialFocus() const;
+	virtual bool isFocusItem() const;
+
+public:
+	void setValue(const WCHAR* pwszValue);
+
+public:
+	virtual unsigned int getHeight(unsigned int nWidth,
+								   unsigned int nFontHeight) const;
+	virtual bool create(qs::WindowBase* pParent,
+						const std::pair<HFONT, HFONT>& fonts,
+						UINT nId,
+						void* pParam);
+	virtual void destroy();
+	virtual HDWP layout(HDWP hdwp,
+						const RECT& rect,
+						unsigned int nFontHeight);
+	virtual void show(bool bShow);
+	virtual void setFont(const std::pair<HFONT, HFONT>& fonts);
+
+protected:
+	virtual void fieldChanged(const WCHAR* pwszValue);
+
+public:
+	virtual void setFocus();
+
+private:
+	CheckBoxHeaderEditItem(const CheckBoxHeaderEditItem&);
+	CheckBoxHeaderEditItem& operator=(const CheckBoxHeaderEditItem&);
+
+private:
+	qs::wstring_ptr wstrValue_;
+	HWND hwnd_;
+	std::auto_ptr<EditWindowItemWindow> pItemWindow_;
 };
 
 

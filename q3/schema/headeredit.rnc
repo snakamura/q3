@@ -44,6 +44,17 @@ start = element headerEdit {
 				element option {
 					xsd:string
 				}+
+			} |
+			element checkbox {
+				item,
+				## ヘッダ名
+				attribute field {
+					xsd:string
+				},
+				## チェックされたときに使われる値
+				attribute value {
+					xsd:string
+				}
 			}
 		)*,
 		## フォーカスがない場合に隠すかどうか

@@ -578,13 +578,107 @@ bool qm::HeaderEditItem::canRedo()
 
 /****************************************************************************
  *
+ * StyledHeaderEditItem
+ *
+ */
+
+qm::StyledHeaderEditItem::StyledHeaderEditItem() :
+	nStyle_(STYLE_NORMAL)
+{
+}
+
+qm::StyledHeaderEditItem::~StyledHeaderEditItem()
+{
+}
+
+unsigned int qm::StyledHeaderEditItem::getStyle() const
+{
+	return nStyle_;
+}
+
+void qm::StyledHeaderEditItem::setStyle(unsigned int nStyle)
+{
+	nStyle_ = nStyle;
+}
+
+unsigned int qm::StyledHeaderEditItem::parseStyle(const WCHAR* pwszStyle)
+{
+	unsigned int nStyle = 0;
+	
+	const WCHAR* p = pwszStyle;
+	while (p) {
+		const WCHAR* pEnd = wcschr(p, L',');
+		size_t nLen = pEnd ? pEnd - p : wcslen(p);
+		struct {
+			const WCHAR* pwszName_;
+			Style style_;
+		} styles[] = {
+			{ L"bold",		STYLE_BOLD		},
+			{ L"italic",	STYLE_ITALIC	}
+		};
+		for (int n = 0; n < countof(styles); ++n) {
+			if (wcsncmp(p, styles[n].pwszName_, nLen) == 0) {
+				nStyle |= styles[n].style_;
+				break;
+			}
+		}
+		p = pEnd ? pEnd + 1 : 0;
+	}
+	
+	return nStyle;
+}
+
+
+/****************************************************************************
+ *
+ * FieldHeaderEditItem
+ *
+ */
+
+qm::FieldHeaderEditItem::FieldHeaderEditItem()
+{
+}
+
+qm::FieldHeaderEditItem::~FieldHeaderEditItem()
+{
+}
+
+const WCHAR* qm::FieldHeaderEditItem::getField() const
+{
+	return wstrField_.get();
+}
+
+void qm::FieldHeaderEditItem::setField(const WCHAR* pwszField)
+{
+	assert(pwszField);
+	wstrField_ = allocWString(pwszField);
+}
+
+void qm::FieldHeaderEditItem::fieldChanged(const EditMessageFieldEvent& event)
+{
+	if (wstrField_.get() && _wcsicmp(event.getName(), wstrField_.get()) == 0)
+		fieldChanged(event.getValue());
+}
+
+void qm::FieldHeaderEditItem::requestNotify(EditMessage* pEditMessage)
+{
+	pEditMessage->addEditMessageHandler(this);
+}
+
+void qm::FieldHeaderEditItem::revokeNotify(EditMessage* pEditMessage)
+{
+	pEditMessage->removeEditMessageHandler(this);
+}
+
+
+/****************************************************************************
+ *
  * TextHeaderEditItem
  *
  */
 
 qm::TextHeaderEditItem::TextHeaderEditItem(KeyMap* pKeyMap) :
 	HeaderEditItem(pKeyMap),
-	nStyle_(STYLE_NORMAL),
 	align_(ALIGN_LEFT),
 	type_(TYPE_UNSTRUCTURED),
 	hwnd_(0)
@@ -598,26 +692,24 @@ qm::TextHeaderEditItem::~TextHeaderEditItem()
 void qm::TextHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 											bool bReset)
 {
-	const WCHAR* pwszValue = getValue();
-	if (pwszValue) {
-		Window(hwnd_).setWindowText(pwszValue);
+	const WCHAR* pwszField = getField();
+	if (pwszField) {
+		wstring_ptr wstrValue(pEditMessage->getField(getField(),
+			static_cast<EditMessage::FieldType>(type_)));
+		Window(hwnd_).setWindowText(wstrValue.get() ? wstrValue.get() : L"");
 	}
 	else {
-		wstring_ptr wstrValue(pEditMessage->getField(wstrField_.get(),
-			static_cast<EditMessage::FieldType>(type_)));
-		if (wstrValue.get())
-			Window(hwnd_).setWindowText(wstrValue.get());
-		else
-			Window(hwnd_).setWindowText(L"");
+		const WCHAR* pwszValue = getValue();
+		Window(hwnd_).setWindowText(pwszValue ? pwszValue : L"");
 	}
 	
 	if (!bReset)
-		pEditMessage->addEditMessageHandler(this);
+		requestNotify(pEditMessage);
 }
 
 void qm::TextHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
 {
-	pEditMessage->removeEditMessageHandler(this);
+	revokeNotify(pEditMessage);
 }
 
 bool qm::TextHeaderEditItem::hasFocus() const
@@ -625,19 +717,9 @@ bool qm::TextHeaderEditItem::hasFocus() const
 	return Window(hwnd_).hasFocus();
 }
 
-void qm::TextHeaderEditItem::setStyle(unsigned int nStyle)
-{
-	nStyle_ = nStyle;
-}
-
 void qm::TextHeaderEditItem::setAlign(Align align)
 {
 	align_ = align;
-}
-
-void qm::TextHeaderEditItem::setField(const WCHAR* pwszField)
-{
-	wstrField_ = allocWString(pwszField);
 }
 
 void qm::TextHeaderEditItem::setType(Type type)
@@ -659,7 +741,7 @@ bool qm::TextHeaderEditItem::create(WindowBase* pParent,
 	if (!hwnd_)
 		return false;
 	
-	Window(hwnd_).setFont((nStyle_ & STYLE_BOLD) ? fonts.second : fonts.first);
+	Window(hwnd_).setFont((getStyle() & STYLE_BOLD) ? fonts.second : fonts.first);
 	
 	pItemWindow_.reset(new EditWindowItemWindow(hwnd_, getKeyMap()));
 	
@@ -695,13 +777,12 @@ void qm::TextHeaderEditItem::show(bool bShow)
 
 void qm::TextHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
 {
-	Window(hwnd_).setFont((nStyle_ & STYLE_BOLD) ? fonts.second : fonts.first);
+	Window(hwnd_).setFont((getStyle() & STYLE_BOLD) ? fonts.second : fonts.first);
 }
 
-void qm::TextHeaderEditItem::fieldChanged(const EditMessageFieldEvent& event)
+void qm::TextHeaderEditItem::fieldChanged(const WCHAR* pwszValue)
 {
-	if (!getValue() && _wcsicmp(event.getName(), wstrField_.get()) == 0)
-		Window(hwnd_).setWindowText(event.getValue());
+	Window(hwnd_).setWindowText(pwszValue ? pwszValue : L"");
 }
 
 HWND qm::TextHeaderEditItem::getHandle() const
@@ -714,11 +795,6 @@ TextHeaderEditItem::Align qm::TextHeaderEditItem::getAlign() const
 	return align_;
 }
 
-const WCHAR* qm::TextHeaderEditItem::getField() const
-{
-	return wstrField_.get();
-}
-
 TextHeaderEditItem::Type qm::TextHeaderEditItem::getType() const
 {
 	return type_;
@@ -727,33 +803,6 @@ TextHeaderEditItem::Type qm::TextHeaderEditItem::getType() const
 void qm::TextHeaderEditItem::setFocus()
 {
 	Window(hwnd_).setFocus();
-}
-
-unsigned int qm::TextHeaderEditItem::parseStyle(const WCHAR* pwszStyle)
-{
-	unsigned int nStyle = 0;
-	
-	const WCHAR* p = pwszStyle;
-	while (p) {
-		const WCHAR* pEnd = wcschr(p, L',');
-		size_t nLen = pEnd ? pEnd - p : wcslen(p);
-		struct {
-			const WCHAR* pwszName_;
-			Style style_;
-		} styles[] = {
-			{ L"bold",		STYLE_BOLD		},
-			{ L"italic",	STYLE_ITALIC	}
-		};
-		for (int n = 0; n < countof(styles); ++n) {
-			if (wcsncmp(p, styles[n].pwszName_, nLen) == 0) {
-				nStyle |= styles[n].style_;
-				break;
-			}
-		}
-		p = pEnd ? pEnd + 1 : 0;
-	}
-	
-	return nStyle;
 }
 
 TextHeaderEditItem::Align qm::TextHeaderEditItem::parseAlign(const WCHAR* pwszAlign)
@@ -898,9 +947,10 @@ void qm::EditHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 
 void qm::EditHeaderEditItem::updateEditMessage(EditMessage* pEditMessage)
 {
-	if (!getValue()) {
+	const WCHAR* pwszField = getField();
+	if (pwszField) {
 		wstring_ptr wstrText(Window(getHandle()).getWindowText());
-		pEditMessage->setField(getField(), wstrText.get(),
+		pEditMessage->setField(pwszField, wstrText.get(),
 			static_cast<EditMessage::FieldType>(getType()));
 	}
 }
@@ -1979,7 +2029,7 @@ void qm::ComboBoxHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 												bool bReset)
 {
 	wstring_ptr wstrValue(pEditMessage->getField(
-		wstrField_.get(), EditMessage::FIELDTYPE_UNSTRUCTURED));
+		getField(), EditMessage::FIELDTYPE_UNSTRUCTURED));
 	if (wstrValue.get()) {
 		W2T(wstrValue.get(), ptszValue);
 		ComboBox_SelectString(getHandle(), -1, ptszValue);
@@ -1989,25 +2039,20 @@ void qm::ComboBoxHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
 	}
 	
 	if (!bReset)
-		pEditMessage->addEditMessageHandler(this);
+		requestNotify(pEditMessage);
 }
 
 void qm::ComboBoxHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
 {
-	pEditMessage->removeEditMessageHandler(this);
+	revokeNotify(pEditMessage);
 }
 
 void qm::ComboBoxHeaderEditItem::updateEditMessage(EditMessage* pEditMessage)
 {
 	int n = ComboBox_GetCurSel(getHandle());
 	if (n != CB_ERR)
-		pEditMessage->setField(wstrField_.get(),
-			listOption_[n], EditMessage::FIELDTYPE_UNSTRUCTURED);
-}
-
-void qm::ComboBoxHeaderEditItem::setField(const WCHAR* pwszField)
-{
-	wstrField_ = allocWString(pwszField);
+		pEditMessage->setField(getField(), listOption_[n],
+			EditMessage::FIELDTYPE_UNSTRUCTURED);
 }
 
 void qm::ComboBoxHeaderEditItem::addOption(const WCHAR* pwszOption)
@@ -2017,10 +2062,10 @@ void qm::ComboBoxHeaderEditItem::addOption(const WCHAR* pwszOption)
 	wstrOption.release();
 }
 
-void qm::ComboBoxHeaderEditItem::fieldChanged(const EditMessageFieldEvent& event)
+void qm::ComboBoxHeaderEditItem::fieldChanged(const WCHAR* pwszValue)
 {
-	if (_wcsicmp(event.getName(), wstrField_.get()) == 0) {
-		W2T(event.getValue(), ptszValue);
+	if (pwszValue) {
+		W2T(pwszValue, ptszValue);
 		ComboBox_SelectString(getHandle(), -1, ptszValue);
 	}
 }
@@ -2250,6 +2295,139 @@ LRESULT qm::AccountHeaderEditItem::onChange()
 
 /****************************************************************************
  *
+ * CheckBoxHeaderEditItem
+ *
+ */
+
+qm::CheckBoxHeaderEditItem::CheckBoxHeaderEditItem(KeyMap* pKeyMap) :
+	HeaderEditItem(pKeyMap),
+	hwnd_(0)
+{
+}
+
+qm::CheckBoxHeaderEditItem::~CheckBoxHeaderEditItem()
+{
+}
+
+void qm::CheckBoxHeaderEditItem::setEditMessage(EditMessage* pEditMessage,
+												bool bReset)
+{
+	wstring_ptr wstrValue(pEditMessage->getField(
+		getField(), EditMessage::FIELDTYPE_UNSTRUCTURED));
+	bool bCheck = wstrValue.get() && wcscmp(wstrValue.get(), wstrValue_.get()) == 0;
+	Button_SetCheck(hwnd_, bCheck ? BST_CHECKED : BST_UNCHECKED);
+	
+	if (!bReset)
+		requestNotify(pEditMessage);
+}
+
+void qm::CheckBoxHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
+{
+	revokeNotify(pEditMessage);
+}
+
+void qm::CheckBoxHeaderEditItem::updateEditMessage(EditMessage* pEditMessage)
+{
+	bool bCheck = Button_GetCheck(hwnd_) == BST_CHECKED;
+	if (bCheck)
+		pEditMessage->setField(getField(), wstrValue_.get(),
+			EditMessage::FIELDTYPE_UNSTRUCTURED);
+	else
+		pEditMessage->removeField(getField());
+}
+
+bool qm::CheckBoxHeaderEditItem::hasFocus() const
+{
+	return Window(hwnd_).hasFocus();
+}
+
+bool qm::CheckBoxHeaderEditItem::hasInitialFocus() const
+{
+	return getInitialFocus() == INITIALFOCUS_TRUE;
+}
+
+bool qm::CheckBoxHeaderEditItem::isFocusItem() const
+{
+	return true;
+}
+
+void qm::CheckBoxHeaderEditItem::setValue(const WCHAR* pwszValue)
+{
+	assert(pwszValue);
+	wstrValue_ = allocWString(pwszValue);
+}
+
+unsigned int qm::CheckBoxHeaderEditItem::getHeight(unsigned int nWidth,
+												   unsigned int nFontHeight) const
+{
+	return nFontHeight;
+}
+
+bool qm::CheckBoxHeaderEditItem::create(WindowBase* pParent,
+										const std::pair<HFONT, HFONT>& fonts,
+										UINT nId,
+										void* pParam)
+{
+	assert(!hwnd_);
+	
+	hwnd_ = ::CreateWindowEx(0, _T("BUTTON"), getValue(),
+		WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_VCENTER,
+		0, 0, 0, 0, pParent->getHandle(), reinterpret_cast<HMENU>(nId),
+		Init::getInit().getInstanceHandle(), 0);
+	if (!hwnd_)
+		return false;
+	
+	Window(hwnd_).setFont((getStyle() & STYLE_BOLD) ? fonts.second : fonts.first);
+	
+	pItemWindow_.reset(new EditWindowItemWindow(hwnd_, getKeyMap()));
+	
+	return true;
+}
+
+void qm::CheckBoxHeaderEditItem::destroy()
+{
+}
+
+HDWP qm::CheckBoxHeaderEditItem::layout(HDWP hdwp,
+										const RECT& rect,
+										unsigned int nFontHeight)
+{
+	unsigned int nFlags = SWP_NOZORDER | SWP_NOACTIVATE;
+#ifndef _WIN32_WCE
+	nFlags |= SWP_NOCOPYBITS;
+#endif
+	hdwp = Window(hwnd_).deferWindowPos(hdwp, 0, rect.left, rect.top,
+		rect.right - rect.left, rect.bottom - rect.top, nFlags);
+#ifdef _WIN32_WCE
+	Window(hwnd_).invalidate();
+#endif
+	return hdwp;
+}
+
+void qm::CheckBoxHeaderEditItem::show(bool bShow)
+{
+	Window(hwnd_).showWindow(bShow ? SW_SHOW : SW_HIDE);
+}
+
+void qm::CheckBoxHeaderEditItem::setFont(const std::pair<HFONT, HFONT>& fonts)
+{
+	Window(hwnd_).setFont((getStyle() & STYLE_BOLD) ? fonts.second : fonts.first);
+}
+
+void qm::CheckBoxHeaderEditItem::fieldChanged(const WCHAR* pwszValue)
+{
+	bool bCheck = pwszValue && wcscmp(pwszValue, wstrValue_.get()) == 0;
+	Button_SetCheck(hwnd_, bCheck ? BST_CHECKED : BST_UNCHECKED);
+}
+
+void qm::CheckBoxHeaderEditItem::setFocus()
+{
+	Window(hwnd_).setFocus();
+}
+
+
+/****************************************************************************
+ *
  * HeaderEditItemCallback
  *
  */
@@ -2378,7 +2556,7 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 					setWidth(pItem.get(), attributes.getValue(n));
 				}
 				else if (wcscmp(pwszAttrLocalName, L"style") == 0) {
-					pItem->setStyle(TextHeaderEditItem::parseStyle(attributes.getValue(n)));
+					pItem->setStyle(StyledHeaderEditItem::parseStyle(attributes.getValue(n)));
 				}
 				else if (wcscmp(pwszAttrLocalName, L"align") == 0) {
 					pItem->setAlign(TextHeaderEditItem::parseAlign(attributes.getValue(n)));
@@ -2416,7 +2594,8 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 	}
 	else if (wcscmp(pwszLocalName, L"attachment") == 0 ||
 		wcscmp(pwszLocalName, L"signature") == 0 ||
-		wcscmp(pwszLocalName, L"combobox") == 0) {
+		wcscmp(pwszLocalName, L"combobox") == 0 ||
+		wcscmp(pwszLocalName, L"checkbox") == 0) {
 		if (state_ != STATE_LINE)
 			return false;
 		
@@ -2426,13 +2605,16 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			enum Type {
 				TYPE_ATTACHMENT,
 				TYPE_SIGNATURE,
-				TYPE_COMBOBOX
+				TYPE_COMBOBOX,
+				TYPE_CHECKBOX
 			};
 			Type type = TYPE_ATTACHMENT;
 			if (wcscmp(pwszLocalName, L"signature") == 0)
 				type = TYPE_SIGNATURE;
 			else if (wcscmp(pwszLocalName, L"combobox") == 0)
 				type = TYPE_COMBOBOX;
+			else if (wcscmp(pwszLocalName, L"checkbox") == 0)
+				type = TYPE_CHECKBOX;
 			
 			std::auto_ptr<HeaderEditItem> pItem;
 			switch (type) {
@@ -2447,6 +2629,9 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			case TYPE_COMBOBOX:
 				pItem.reset(new ComboBoxHeaderEditItem(pUIManager_->getKeyMap()));
 				break;
+			case TYPE_CHECKBOX:
+				pItem.reset(new CheckBoxHeaderEditItem(pUIManager_->getKeyMap()));
+				break;
 			}
 			
 			for (int n = 0; n < attributes.getLength(); ++n) {
@@ -2460,8 +2645,18 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 				else if (wcscmp(pwszAttrLocalName, L"initialFocus") == 0) {
 					pItem->setInitialFocus(wcscmp(attributes.getValue(n), L"true") == 0);
 				}
-				else if (wcscmp(pwszAttrLocalName, L"field") == 0 && type == TYPE_COMBOBOX) {
-					static_cast<ComboBoxHeaderEditItem*>(pItem.get())->setField(attributes.getValue(n));
+				else if (wcscmp(pwszAttrLocalName, L"field") == 0) {
+					if (type == TYPE_COMBOBOX)
+						static_cast<ComboBoxHeaderEditItem*>(pItem.get())->setField(attributes.getValue(n));
+					else if (type == TYPE_CHECKBOX)
+						static_cast<CheckBoxHeaderEditItem*>(pItem.get())->setField(attributes.getValue(n));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"style") == 0 && type == TYPE_CHECKBOX) {
+					static_cast<CheckBoxHeaderEditItem*>(pItem.get())->setStyle(
+						StyledHeaderEditItem::parseStyle(attributes.getValue(n)));
+				}
+				else if (wcscmp(pwszAttrLocalName, L"value") == 0 && type == TYPE_CHECKBOX) {
+					static_cast<CheckBoxHeaderEditItem*>(pItem.get())->setValue(attributes.getValue(n));
 				}
 				else {
 					return false;
@@ -2546,7 +2741,8 @@ bool qm::HeaderEditWindowContentHandler::endElement(const WCHAR* pwszNamespaceUR
 		wcscmp(pwszLocalName, L"address") == 0 ||
 		wcscmp(pwszLocalName, L"attachment") == 0 ||
 		wcscmp(pwszLocalName, L"signature") == 0 ||
-		wcscmp(pwszLocalName, L"account") == 0) {
+		wcscmp(pwszLocalName, L"account") == 0 ||
+		wcscmp(pwszLocalName, L"checkbox") == 0) {
 		assert(state_ == STATE_ITEM);
 		
 		if (!bIgnore_) {

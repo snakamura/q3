@@ -156,6 +156,20 @@ width, number, initialFocus, field属性についてはstaticエレメントを参照してくださ
 optionエレメントはcomboboxエレメントの子エレメントとして、コンボボックスに表示される選択肢を指定します。
 
 
+===checkboxエレメント
+
+ <checkbox
+  width="幅"
+  number="番号"
+  initialFocus="true|false"
+  field="ヘッダ名"
+  value="値"/>
+
+checkboxエレメントはチェックボックスを表します。field属性で指定したヘッダの値がvalue属性で指定した値に一致する場合にチェックされ、それ以外の場合にはチェックされません。また、チェックを入れると指定したヘッダに指定した値が設定されます。ヘッダの型はunstructuredになります。
+
+width, number, initialFocus属性についてはstaticエレメントを参照してください。
+
+
 ==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
@@ -245,6 +259,17 @@ optionエレメントはcomboboxエレメントの子エレメントとして、コンボボックスに表示さ
          element option {
            xsd:string
          }+
+       }
+       element checkbox {
+         item,
+         ## ヘッダ名
+         attribute field {
+           xsd:string
+         },
+         ## チェックされたときに使われる値
+         attribute value {
+           xsd:string
+         }
        }
      )*,
      ## フォーカスがない場合に隠すかどうか
