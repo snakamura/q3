@@ -2370,7 +2370,8 @@ bool qm::CheckBoxHeaderEditItem::create(WindowBase* pParent,
 {
 	assert(!hwnd_);
 	
-	hwnd_ = ::CreateWindowEx(0, _T("BUTTON"), getValue(),
+	W2T(getValue(), ptszValue);
+	hwnd_ = ::CreateWindowEx(0, _T("BUTTON"), ptszValue,
 		WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX | BS_VCENTER,
 		0, 0, 0, 0, pParent->getHandle(), reinterpret_cast<HMENU>(nId),
 		Init::getInit().getInstanceHandle(), 0);
