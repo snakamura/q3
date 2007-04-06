@@ -1965,16 +1965,21 @@ STDMETHODIMP qm::HtmlMessageViewWindow::IDocHostUIHandlerDispatchImpl::ShowConte
 {
 	pWindow_->setActive();
 	
-	HMENU hmenu = pWindow_->pMenuManager_->getMenu(L"message", false, false);
-	if (hmenu) {
-		UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
-#ifndef _WIN32_WCE
-		nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
-#endif
-		::TrackPopupMenu(hmenu, nFlags, x, y, 0, pWindow_->getParentFrame(), 0);
+	if (::GetKeyState(VK_CONTROL) >= 0) {
+		HMENU hmenu = pWindow_->pMenuManager_->getMenu(L"message", false, false);
+		if (hmenu) {
+			UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN;
+	#ifndef _WIN32_WCE
+			nFlags |= TPM_LEFTBUTTON | TPM_RIGHTBUTTON;
+	#endif
+			::TrackPopupMenu(hmenu, nFlags, x, y, 0, pWindow_->getParentFrame(), 0);
+		}
+		
+		*phrResult = S_OK;
 	}
-	
-	*phrResult = S_OK;
+	else {
+		*phrResult = S_FALSE;
+	}
 	
 	return S_OK;
 }
