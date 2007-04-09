@@ -195,6 +195,7 @@ public:
 						 bool bScroll);
 	void clearSelection();
 	std::pair<size_t, size_t> getSelection(size_t nLine) const;
+	void selectWord(const POINT& pt);
 	
 	void calcLines(size_t nStartLine,
 				   size_t nOldEndLine,
@@ -772,6 +773,35 @@ std::pair<size_t, size_t> qs::TextWindowImpl::getSelection(size_t nLine) const
 		return std::pair<size_t, size_t>(0, s.nEndChar_);
 	else
 		return std::pair<size_t, size_t>(0, listLine_[nLine]->nLength_);
+}
+
+void qs::TextWindowImpl::selectWord(const POINT& pt)
+{
+	clearSelection();
+	
+	std::pair<size_t, size_t> pos(getPositionFromPoint(pt));
+	TextModel::Line line = pTextModel_->getLine(pos.first);
+	if (line.getLength() == 0)
+		return;
+	
+	CharType type = getCharType(*(line.getText() + pos.second));
+	size_t nStart = pos.second;
+	while (nStart != 0) {
+		if (getCharType(*(line.getText() + nStart - 1)) != type)
+			break;
+		--nStart;
+	}
+	size_t nEnd = pos.second + 1;
+	while (nEnd != line.getLength()) {
+		if (getCharType(*(line.getText() + nEnd)) != type)
+			break;
+		++nEnd;
+	}
+	
+	caret_.nLine_ = pos.first;
+	caret_.nChar_ = nEnd;
+	caret_.nPos_ = getPosFromChar(caret_.nLine_, caret_.nChar_);
+	expandSelection(pos.first, nStart, pos.first, nEnd);
 }
 
 void qs::TextWindowImpl::calcLines(size_t nStartLine,
@@ -1484,14 +1514,15 @@ std::pair<size_t, const TextWindowImpl::LinkItem*> qs::TextWindowImpl::getLinkIt
 
 bool qs::TextWindowImpl::openLink(const POINT& pt)
 {
-	if (pLinkHandler_) {
-		std::pair<size_t, const LinkItem*> item(getLinkItemFromPoint(pt));
-		if (item.second) {
-			wstring_ptr wstrURL(getURL(item.first, item.second));
-			if (!pLinkHandler_->openLink(wstrURL.get()))
-				return false;
-		}
-	}
+	if (!pLinkHandler_)
+		return false;
+	
+	std::pair<size_t, const LinkItem*> item(getLinkItemFromPoint(pt));
+	if (!item.second)
+		return false;
+	
+	wstring_ptr wstrURL(getURL(item.first, item.second));
+	pLinkHandler_->openLink(wstrURL.get());
 	
 	return true;
 }
@@ -3772,8 +3803,13 @@ LRESULT qs::TextWindow::onKillFocus(HWND hwnd)
 LRESULT qs::TextWindow::onLButtonDblClk(UINT nFlags,
 										const POINT& pt)
 {
+	bool bLink = false;
 	if (pImpl_->pTextModel_->isEditable())
-		pImpl_->openLink(pt);
+		bLink = pImpl_->openLink(pt);
+	
+	if (!bLink)
+		pImpl_->selectWord(pt);
+	
 	return DefaultWindowHandler::onLButtonDblClk(nFlags, pt);
 }
 
