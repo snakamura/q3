@@ -1554,6 +1554,17 @@ void qm::Account::getChildFolders(const Folder* pFolder,
 			pFolder)));
 }
 
+bool qm::Account::hasChildFolder(const Folder* pFolder) const
+{
+	return std::find_if(
+		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
+		std::bind2nd(binary_compose_f_gx_hy(
+			std::equal_to<const Folder*>(),
+			std::mem_fun(&Folder::getParentFolder),
+			std::identity<const Folder*>()),
+			pFolder)) != pImpl_->listFolder_.end();
+}
+
 void qm::Account::getNormalFolders(const WCHAR* pwszName,
 								   bool bRecursive,
 								   NormalFolderList* pList) const

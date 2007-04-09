@@ -188,6 +188,7 @@ public:
 	void getShownFolders(FolderList* pList) const;
 	void getChildFolders(const Folder* pFolder,
 						 FolderList* pList) const;
+	bool hasChildFolder(const Folder* pFolder) const;
 	void getNormalFolders(const WCHAR* pwszName,
 						  bool bRecursive,
 						  NormalFolderList* pList) const;

@@ -2934,7 +2934,7 @@ bool qm::FolderEmptyTrashAction::hasTrash(Account* pAccount)
 	if (!pTrash)
 		return false;
 	
-	return pTrash->getCount() != 0;
+	return pTrash->getCount() != 0 || pAccount->hasChildFolder(pTrash);
 }
 
 Account* qm::FolderEmptyTrashAction::getAccount() const
