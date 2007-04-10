@@ -25,6 +25,8 @@
 *((<スレッド表示を有効にしてもメッセージのスレッドがつながりません|URL:MessagesAreNotConnectedByThread.html>))
 *((<ショートカットキーをカスタマイズしても有効になりません|URL:AcceleratorsAreNotEnabled.html>))
 *((<POP3サーバに接続するとUIDLをサポートしていないというエラーになります|URL:Pop3UidlIsNotSupported.html>))
+*((<Pocket PC版に[フォルダ]メニューがありません|URL:NoFolderMenuOnPocketPC.html>))
+*((<メール送信時に「挨拶中にエラーが発生しました」というエラーが発生します|URL:OutboundPort25Blocking.html>))
 
 
 ==Tips
