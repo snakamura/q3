@@ -780,28 +780,35 @@ void qs::TextWindowImpl::selectWord(const POINT& pt)
 	clearSelection();
 	
 	std::pair<size_t, size_t> pos(getPositionFromPoint(pt));
-	TextModel::Line line = pTextModel_->getLine(pos.first);
+	const PhysicalLine* pLine = listLine_[pos.first];
+	TextModel::Line line = pTextModel_->getLine(pLine->nLogicalLine_);
 	if (line.getLength() == 0)
 		return;
 	
-	CharType type = getCharType(*(line.getText() + pos.second));
-	size_t nStart = pos.second;
+	CharType type = getCharType(*(line.getText() + pLine->nPosition_ + pos.second));
+	size_t nStart = pLine->nPosition_ + pos.second;
 	while (nStart != 0) {
 		if (getCharType(*(line.getText() + nStart - 1)) != type)
 			break;
 		--nStart;
 	}
-	size_t nEnd = pos.second + 1;
+	size_t nEnd = pLine->nPosition_ + pos.second + 1;
 	while (nEnd != line.getLength()) {
 		if (getCharType(*(line.getText() + nEnd)) != type)
 			break;
 		++nEnd;
 	}
 	
-	caret_.nLine_ = pos.first;
-	caret_.nChar_ = nEnd;
+	std::pair<size_t, size_t> start(getPhysicalLine(pLine->nLogicalLine_, nStart));
+	std::pair<size_t, size_t> end(getPhysicalLine(pLine->nLogicalLine_, nEnd));
+	
+	caret_.nLine_ = end.first;
+	caret_.nChar_ = end.second;
 	caret_.nPos_ = getPosFromChar(caret_.nLine_, caret_.nChar_);
-	expandSelection(pos.first, nStart, pos.first, nEnd);
+	caret_.nOldPos_ = caret_.nPos_;
+	expandSelection(start.first, start.second, end.first, end.second);
+	
+	updateCaret(false);
 }
 
 void qs::TextWindowImpl::calcLines(size_t nStartLine,
