@@ -202,6 +202,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ViewFocusPrev",					IDM_VIEW_FOCUSPREV,					1,							0 },
 	{ L"ViewFocusPrevEditItem",			IDM_VIEW_FOCUSPREVEDITITEM,			1,							0 },
 	{ L"ViewFocusPrevItem",				IDM_VIEW_FOCUSPREVITEM,				1,							0 },
+	{ L"ViewFontGroup",					IDM_VIEW_FONTGROUP,					MAX_VIEW_FONTGROUP,			0 },
 #ifdef QMHTMLVIEW
 	{ L"ViewHtmlInternetZoneMode",		IDM_VIEW_HTMLINTERNETZONEMODE,		1,							0 },
 	{ L"ViewHtmlMode",					IDM_VIEW_HTMLMODE,					1,							0 },

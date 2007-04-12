@@ -129,6 +129,7 @@ public:
 	UIManager* pUIManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	const FolderImage* pFolderImage_;
+	const MessageWindowFontManager* pFontManager_;
 	ViewModelManager* pViewModelManager_;
 	std::auto_ptr<MessageMessageModel> pMessageModel_;
 	MessageWindow* pMessageWindow_;
@@ -442,6 +443,9 @@ void qm::MessageFrameWindowImpl::initActions()
 		IDM_VIEW_FOCUSPREVITEM,
 		pMessageWindow_->getFocusController(),
 		ViewFocusItemAction::TYPE_PREV);
+	ADD_ACTION1(ViewFontGroupAction,
+		IDM_VIEW_FONTGROUP,
+		pMessageWindow_);
 	ADD_ACTION3(ViewSecurityAction,
 		IDM_VIEW_SMIMEMODE,
 		pSecurityModel_.get(),
@@ -561,6 +565,8 @@ void qm::MessageFrameWindowImpl::initMenuCreators()
 	ADD_MENUCREATOR2(AttachmentMenuCreator,
 		this,
 		pSecurityModel_.get());
+	ADD_MENUCREATOR1(FontGroupMenuCreator,
+		pFontManager_);
 	ADD_MENUCREATOR2(ViewTemplateMenuCreator,
 		pDocument_->getTemplateManager(),
 		this);
@@ -1049,6 +1055,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pExternalEditorManager_ = pContext->pExternalEditorManager_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	pImpl_->pFolderImage_ = pContext->pFolderImage_;
+	pImpl_->pFontManager_ = pContext->pFontManager_;
 	
 	pImpl_->pMessageModel_.reset(new MessageMessageModel());
 	pImpl_->pEncodingModel_.reset(new DefaultEncodingModel());

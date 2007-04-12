@@ -104,7 +104,7 @@ struct MessageFrameWindowCreateContext
 	ExternalEditorManager* pExternalEditorManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	const FolderImage* pFolderImage_;
-	MessageWindowFontManager* pFontManager_;
+	const MessageWindowFontManager* pFontManager_;
 };
 
 }

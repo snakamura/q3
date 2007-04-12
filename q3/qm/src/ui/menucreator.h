@@ -67,6 +67,7 @@ class Macro;
 class Message;
 class MessageHolder;
 class MessageSelectionModel;
+class MessageWindowFontManager;
 class Recents;
 class ScriptManager;
 class SecurityModel;
@@ -247,6 +248,37 @@ private:
 
 private:
 	FilterManager* pFilterManager_;
+	ActionParamHelper helper_;
+};
+
+
+/****************************************************************************
+ *
+ * FontGroupMenuCreator
+ *
+ */
+
+class FontGroupMenuCreator : public MenuCreator
+{
+public:
+	FontGroupMenuCreator(const MessageWindowFontManager* pFontManager,
+						 qs::ActionParamMap* pActionParamMap);
+	~FontGroupMenuCreator();
+
+public:
+	virtual UINT createMenu(HMENU hmenu,
+							UINT nIndex,
+							const qs::DynamicMenuItem* pItem);
+
+public:
+	virtual const WCHAR* getName() const;
+
+private:
+	FontGroupMenuCreator(const FontGroupMenuCreator&);
+	FontGroupMenuCreator& operator=(const FontGroupMenuCreator&);
+
+private:
+	const MessageWindowFontManager* pFontManager_;
 	ActionParamHelper helper_;
 };
 

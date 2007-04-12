@@ -6631,6 +6631,38 @@ void qm::ViewFocusItemAction::invoke(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * ViewFontGroupAction
+ *
+ */
+
+qm::ViewFontGroupAction::ViewFontGroupAction(MessageWindow* pMessageWindow) :
+	pMessageWindow_(pMessageWindow)
+{
+}
+
+qm::ViewFontGroupAction::~ViewFontGroupAction()
+{
+}
+
+void qm::ViewFontGroupAction::invoke(const ActionEvent& event)
+{
+	const WCHAR* pwszFontGroup = ActionParamUtil::getString(event.getParam(), 0);
+	pMessageWindow_->setFontGroup(pwszFontGroup);
+}
+
+bool qm::ViewFontGroupAction::isChecked(const ActionEvent& event)
+{
+	const WCHAR* pwszFontGroup = ActionParamUtil::getString(event.getParam(), 0);
+	const WCHAR* pwsz = pMessageWindow_->getFontGroup();
+	if (pwszFontGroup)
+		return pwsz && wcscmp(pwszFontGroup, pwsz) == 0;
+	else
+		return !pwsz;
+}
+
+
+/****************************************************************************
+ *
  * ViewLockPreviewAction
  *
  */

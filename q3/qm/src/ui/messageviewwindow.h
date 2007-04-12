@@ -214,6 +214,9 @@ public:
 
 public:
 	void reloadProfiles(const WCHAR* pwszSection);
+	const MessageWindowFontGroup* getFontGroup() const;
+	void setFontGroup(const MessageWindowFontGroup* pFontGroup,
+					  const WCHAR* pwszSection);
 
 public:
 	virtual LRESULT windowProc(UINT uMsg,

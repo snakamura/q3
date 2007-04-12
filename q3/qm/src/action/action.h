@@ -124,6 +124,7 @@ class ViewFilterCustomAction;
 class ViewFitAction;
 class ViewFocusAction;
 class ViewFocusItemAction;
+class ViewFontGroupAction;
 class ViewLockPreviewAction;
 class ViewMessageModeAction;
 class ViewNavigateFolderAction;
@@ -3268,6 +3269,31 @@ private:
 private:
 	FocusControllerBase* pFocusController_;
 	Type type_;
+};
+
+
+/****************************************************************************
+ *
+ * ViewFontGroupAction
+ *
+ */
+
+class ViewFontGroupAction : public qs::AbstractAction
+{
+public:
+	explicit ViewFontGroupAction(MessageWindow* pMessageWindow);
+	virtual ~ViewFontGroupAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isChecked(const qs::ActionEvent& event);
+
+private:
+	ViewFontGroupAction(const ViewFontGroupAction&);
+	ViewFontGroupAction& operator=(const ViewFontGroupAction&);
+
+private:
+	MessageWindow* pMessageWindow_;
 };
 
 

@@ -64,7 +64,7 @@ struct MessageWindowCreateContext
 	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
 	const ActionInvoker* pActionInvoker_;
-	MessageWindowFontManager* pFontManager_;
+	const MessageWindowFontManager* pFontManager_;
 };
 
 
@@ -77,11 +77,15 @@ struct MessageWindowCreateContext
 class MessageWindowFontManager
 {
 public:
+	typedef std::vector<MessageWindowFontGroup*> GroupList;
+
+public:
 	explicit MessageWindowFontManager(const WCHAR* pwszPath);
 	~MessageWindowFontManager();
 
 public:
 	const MessageWindowFontGroup* getGroup(const WCHAR* pwszName) const;
+	const GroupList& getGroups() const;
 
 public:
 	void addGroup(std::auto_ptr<MessageWindowFontGroup> pGroup);
@@ -92,9 +96,6 @@ private:
 private:
 	MessageWindowFontManager(const MessageWindowFontManager&);
 	MessageWindowFontManager& operator=(const MessageWindowFontManager&);
-
-private:
-	typedef std::vector<MessageWindowFontGroup*> GroupList;
 
 private:
 	GroupList listGroup_;

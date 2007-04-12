@@ -159,6 +159,8 @@ public:
 	unsigned int getSupportedFindFlags() const;
 	std::auto_ptr<Mark> mark() const;
 	void reset(const Mark& mark);
+	const WCHAR* getFontGroup() const;
+	void setFontGroup(const WCHAR* pwszName);
 	bool openLink();
 	
 	FocusController<MessageWindowItem>* getFocusController() const;

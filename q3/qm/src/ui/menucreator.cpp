@@ -26,6 +26,7 @@
 
 #include "actionid.h"
 #include "menucreator.h"
+#include "messagewindow.h"
 #include "resourceinc.h"
 #include "uiutil.h"
 #include "../model/addressbook.h"
@@ -339,6 +340,59 @@ UINT qm::FilterMenuCreator::createMenu(HMENU hmenu,
 const WCHAR* qm::FilterMenuCreator::getName() const
 {
 	return L"ViewFilter";
+}
+
+
+/****************************************************************************
+ *
+ * FontGroupMenuCreator
+ *
+ */
+
+qm::FontGroupMenuCreator::FontGroupMenuCreator(const MessageWindowFontManager* pFontManager,
+											   ActionParamMap* pActionParamMap) :
+	pFontManager_(pFontManager),
+	helper_(pActionParamMap)
+{
+}
+
+qm::FontGroupMenuCreator::~FontGroupMenuCreator()
+{
+}
+
+UINT qm::FontGroupMenuCreator::createMenu(HMENU hmenu,
+										  UINT nIndex,
+										  const DynamicMenuItem* pItem)
+{
+	MenuCreatorUtil::removeMenuItems(hmenu, nIndex, pItem->getId());
+	helper_.clear();
+	
+	const MessageWindowFontManager::GroupList& l = pFontManager_->getGroups();
+	if (!l.empty()) {
+		int nMnemonic = 1;
+		for (MessageWindowFontManager::GroupList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			const MessageWindowFontGroup* pFontGroup = *it;
+			
+			std::auto_ptr<ActionParam> pParam(new ActionParam(IDM_VIEW_FONTGROUP, pFontGroup->getName()));
+			unsigned int nId = helper_.add(MAX_VIEW_FONTGROUP, pParam);
+			if (nId != -1) {
+				wstring_ptr wstrTitle(UIUtil::formatMenu(pFontGroup->getName(), &nMnemonic));
+				MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nId, wstrTitle.get(), pItem->getId());
+			}
+		}
+	}
+	else {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_FONTGROUP, wstrNone.get(), pItem->getId());
+	}
+	
+	return nIndex;
+}
+
+const WCHAR* qm::FontGroupMenuCreator::getName() const
+{
+	return L"ViewFontGroup";
 }
 
 

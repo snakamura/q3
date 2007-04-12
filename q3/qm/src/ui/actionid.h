@@ -210,7 +210,8 @@
 #define IDM_VIEW_FOCUS                  47400
 #define IDM_VIEW_FOCUSEDITITEM          47500
 #define IDM_VIEW_FOCUSITEM              47600
-#define IDM_VIEW_SORT                   47700
+#define IDM_VIEW_FONTGROUP              47700
+#define IDM_VIEW_SORT                   47750
 #define IDM_VIEW_TEMPLATE               47800
 #define IDM_VIEW_ZOOM                   47900
 #define IDM_ADDRESSBOOK_ALLCATEGORY     48001
@@ -279,7 +280,8 @@
 #define MAX_VIEW_FOCUS                  100
 #define MAX_VIEW_FOCUSEDITITEM          100
 #define MAX_VIEW_FOCUSITEM              100
-#define MAX_VIEW_SORT                   100
+#define MAX_VIEW_FONTGROUP              50
+#define MAX_VIEW_SORT                   50
 #define MAX_VIEW_TEMPLATE               100
 #define MAX_VIEW_ZOOM                   100
 

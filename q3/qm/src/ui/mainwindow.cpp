@@ -1090,6 +1090,9 @@ void qm::MainWindowImpl::initActions()
 			pThis_->getHandle());
 	}
 	
+	ADD_ACTION1(ViewFontGroupAction,
+		IDM_VIEW_FONTGROUP,
+		pMessageWindow_);
 	ADD_ACTION2(ViewLockPreviewAction,
 		IDM_VIEW_LOCKPREVIEW,
 		pPreviewModel_.get(),
@@ -1343,6 +1346,8 @@ void qm::MainWindowImpl::initMenuCreators()
 		pMessageSelectionModel_.get());
 	ADD_MENUCREATOR1(FilterMenuCreator,
 		pViewModelManager_->getFilterManager());
+	ADD_MENUCREATOR1(FontGroupMenuCreator,
+		pMessageWindowFontManager_.get());
 	ADD_MENUCREATOR1(SortMenuCreator,
 		pViewModelManager_.get());
 	ADD_MENUCREATOR2(AttachmentMenuCreator,

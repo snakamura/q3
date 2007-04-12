@@ -130,6 +130,7 @@ public:
 	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
 	const ActionInvoker* pActionInvoker_;
+	const MessageWindowFontManager* pFontManager_;
 	HeaderWindow* pHeaderWindow_;
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
@@ -678,6 +679,28 @@ void qm::MessageWindow::reset(const Mark& mark)
 	pImpl_->pMessageViewWindow_->reset(mark);
 }
 
+const WCHAR* qm::MessageWindow::getFontGroup() const
+{
+	const MessageWindowFontGroup* pFontGroup =
+		pImpl_->pFactory_->getTextMessageViewWindow()->getFontGroup();
+	return pFontGroup ? pFontGroup->getName() : 0;
+}
+
+void qm::MessageWindow::setFontGroup(const WCHAR* pwszName)
+{
+	const MessageWindowFontGroup* pFontGroup = 0;
+	if (pwszName)
+		pFontGroup = pImpl_->pFontManager_->getGroup(pwszName);
+	
+	if (pFontGroup != pImpl_->pFactory_->getTextMessageViewWindow()->getFontGroup()) {
+		pImpl_->pFactory_->getTextMessageViewWindow()->setFontGroup(
+			pFontGroup, pImpl_->pwszSection_);
+		
+		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
+		pImpl_->setMessage(mpl, false);
+	}
+}
+
 bool qm::MessageWindow::openLink()
 {
 	return pImpl_->pMessageViewWindow_->openLink();
@@ -742,6 +765,8 @@ void qm::MessageWindow::save() const
 	pProfile->setInt(pImpl_->pwszSection_, L"ViewFit", pImpl_->pMessageViewMode_->getFit());
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
+	const WCHAR* pwszFontGroup = getFontGroup();
+	pProfile->setString(pImpl_->pwszSection_, L"FontGroup", pwszFontGroup ? pwszFontGroup : L"");
 }
 
 void qm::MessageWindow::addMessageWindowHandler(MessageWindowHandler* pHandler)
@@ -791,6 +816,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pSecurityModel_ = pContext->pSecurityModel_;
 	pImpl_->pSecurityModel_->addSecurityModelHandler(pImpl_);
 	pImpl_->pActionInvoker_ = pContext->pActionInvoker_;
+	pImpl_->pFontManager_ = pContext->pFontManager_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -808,7 +834,7 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		return -1;
 	pImpl_->pHeaderWindow_ = pHeaderWindow.release();
 	
-	const MessageWindowFontGroup* pFontGroup = pContext->pFontManager_->getGroup(
+	const MessageWindowFontGroup* pFontGroup = pImpl_->pFontManager_->getGroup(
 		pImpl_->pProfile_->getString(pImpl_->pwszSection_, L"FontGroup").get());
 	std::auto_ptr<MessageViewWindowFactory> pFactory(
 		new MessageViewWindowFactory(this, pImpl_->pDocument_, pImpl_->pProfile_,
@@ -1025,6 +1051,11 @@ const MessageWindowFontGroup* qm::MessageWindowFontManager::getGroup(const WCHAR
 				std::identity<const WCHAR*>()),
 			pwszName));
 	return it != listGroup_.end() ? *it : 0;
+}
+
+const MessageWindowFontManager::GroupList& qm::MessageWindowFontManager::getGroups() const
+{
+	return listGroup_;
 }
 
 void qm::MessageWindowFontManager::addGroup(std::auto_ptr<MessageWindowFontGroup> pGroup)

@@ -250,8 +250,25 @@ qm::TextMessageViewWindow::~TextMessageViewWindow()
 void qm::TextMessageViewWindow::reloadProfiles(const WCHAR* pwszSection)
 {
 	TextWindow::reloadProfiles(pProfile_, pwszSection);
-	
 	pFontSet_ = 0;
+}
+
+const MessageWindowFontGroup* qm::TextMessageViewWindow::getFontGroup() const
+{
+	return pFontGroup_;
+}
+
+void qm::TextMessageViewWindow::setFontGroup(const MessageWindowFontGroup* pFontGroup,
+											 const WCHAR* pwszSection)
+{
+	if (pFontGroup == pFontGroup_)
+		return;
+	
+	pFontGroup_ = pFontGroup;
+	pFontSet_ = 0;
+	
+	if (!pFontGroup_)
+		TextWindow::reloadProfiles(pProfile_, pwszSection);
 }
 
 LRESULT qm::TextMessageViewWindow::windowProc(UINT uMsg,
