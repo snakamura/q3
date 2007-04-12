@@ -196,6 +196,7 @@
 *((<ViewFocusPrevアクション|URL:ViewFocusPrevAction.html>))
 *((<ViewFocusPrevEditItemアクション|URL:ViewFocusPrevEditItemAction.html>))
 *((<ViewFocusPrevItemアクション|URL:ViewFocusPrevItemAction.html>))
+*((<ViewFontGroupアクション|URL:ViewFontGroupAction.html>))
 *((<ViewHtmlInternetZoneModeアクション|URL:ViewHtmlInternetZoneModeAction.html>))
 *((<ViewHtmlModeアクション|URL:ViewHtmlModeAction.html>))
 *((<ViewHtmlOnlineModeアクション|URL:ViewHtmlOnlineModeAction.html>))

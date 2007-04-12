@@ -139,6 +139,8 @@ param‘®«‚ÉŽw’è‚µ‚½ƒ}ƒNƒ‚ð•]‰¿‚µ‚½Œ‹‰Ê‚ÍˆÈ‰º‚Ì‚æ‚¤‚ÈƒtƒH[ƒ}ƒbƒg‚É‚È‚Á‚Ä‚¢‚é•K—
   ƒGƒ“ƒR[ƒfƒBƒ“ƒO‚ðƒŠƒXƒg‚µ‚Ü‚·
 :ViewFilter
   ƒtƒBƒ‹ƒ^‚ðƒŠƒXƒg‚µ‚Ü‚·
+:ViewFontGroup
+  ƒtƒHƒ“ƒgƒOƒ‹[ƒv‚ðƒŠƒXƒg‚µ‚Ü‚·
 :ViewSort
   ƒŠƒXƒgƒrƒ…[‚ÌƒJƒ‰ƒ€‚ðƒŠƒXƒg‚µ‚Ü‚·
 :ViewTemplate
