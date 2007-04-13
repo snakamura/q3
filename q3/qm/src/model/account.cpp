@@ -604,8 +604,8 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 			nJunkOperation = JunkFilter::OPERATION_ADDCLEAN |
 				(bMove ? JunkFilter::OPERATION_REMOVEJUNK : 0);
 		if (nJunkOperation != 0) {
-			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-				JunkFilterUtil::manage(pJunkFilter_, *it, nJunkOperation);
+			std::for_each(l.begin(), l.end(),
+				boost::bind(&JunkFilterUtil::manage, pJunkFilter_, _1, nJunkOperation));
 			pJunkFilter_->save(false);
 		}
 	}
@@ -2753,30 +2753,30 @@ void qm::Account::fireMessageHolderFlagsChanged(MessageHolder* pmh,
 {
 	assert(isLocked());
 	
-	typedef AccountImpl::MessageHolderHandlerList List;
 	MessageHolderEvent event(pmh, nOldFlags, nNewFlags);
-	for (List::const_iterator it = pImpl_->listMessageHolderHandler_.begin(); it != pImpl_->listMessageHolderHandler_.end(); ++it)
-		(*it)->messageHolderFlagsChanged(event);
+	std::for_each(pImpl_->listMessageHolderHandler_.begin(),
+		pImpl_->listMessageHolderHandler_.end(),
+		boost::bind(&MessageHolderHandler::messageHolderFlagsChanged, _1, boost::cref(event)));
 }
 
 void qm::Account::fireMessageHolderKeysChanged(MessageHolder* pmh)
 {
 	assert(isLocked());
 	
-	typedef AccountImpl::MessageHolderHandlerList List;
 	MessageHolderEvent event(pmh);
-	for (List::const_iterator it = pImpl_->listMessageHolderHandler_.begin(); it != pImpl_->listMessageHolderHandler_.end(); ++it)
-		(*it)->messageHolderKeysChanged(event);
+	std::for_each(pImpl_->listMessageHolderHandler_.begin(),
+		pImpl_->listMessageHolderHandler_.end(),
+		boost::bind(&MessageHolderHandler::messageHolderKeysChanged, _1, boost::cref(event)));
 }
 
 void qm::Account::fireMessageHolderDestroyed(MessageHolder* pmh)
 {
 	assert(isLocked());
 	
-	typedef AccountImpl::MessageHolderHandlerList List;
 	MessageHolderEvent event(pmh);
-	for (List::const_iterator it = pImpl_->listMessageHolderHandler_.begin(); it != pImpl_->listMessageHolderHandler_.end(); ++it)
-		(*it)->messageHolderDestroyed(event);
+	std::for_each(pImpl_->listMessageHolderHandler_.begin(),
+		pImpl_->listMessageHolderHandler_.end(),
+		boost::bind(&MessageHolderHandler::messageHolderDestroyed, _1, boost::cref(event)));
 }
 
 ProtocolDriver* qm::Account::getProtocolDriver() const

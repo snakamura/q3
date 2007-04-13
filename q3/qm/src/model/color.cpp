@@ -110,8 +110,8 @@ bool qm::ColorManager::load()
 void qm::ColorManager::fireColorSetsChanged()
 {
 	ColorManagerEvent event(this);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->colorSetsChanged(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&ColorManagerHandler::colorSetsChanged, _1, boost::cref(event)));
 }
 
 

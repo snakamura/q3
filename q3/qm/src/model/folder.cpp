@@ -25,8 +25,11 @@
 #include <qsstream.h>
 #include <qsthread.h>
 
-#include <memory>
 #include <algorithm>
+#include <memory>
+#include <numeric>
+
+#include <boost/bind.hpp>
 
 using namespace qm;
 using namespace qs;
@@ -94,8 +97,8 @@ void qm::FolderImpl::fireMessageAdded(const MessageHolderList& l)
 	assert(pAccount_->isLocked());
 	
 	FolderMessageEvent event(pThis_, l);
-	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
-		(*it)->messageAdded(event);
+	std::for_each(listFolderHandler_.begin(), listFolderHandler_.end(),
+		boost::bind(&FolderHandler::messageAdded, _1, boost::cref(event)));
 }
 
 void qm::FolderImpl::fireMessageRemoved(const MessageHolderList& l)
@@ -106,8 +109,8 @@ void qm::FolderImpl::fireMessageRemoved(const MessageHolderList& l)
 		return;
 	
 	FolderMessageEvent event(pThis_, l);
-	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
-		(*it)->messageRemoved(event);
+	std::for_each(listFolderHandler_.begin(), listFolderHandler_.end(),
+		boost::bind(&FolderHandler::messageRemoved, _1, boost::cref(event)));
 }
 
 void qm::FolderImpl::fireMessageRefreshed()
@@ -115,8 +118,8 @@ void qm::FolderImpl::fireMessageRefreshed()
 	assert(pAccount_->isLocked());
 	
 	FolderEvent event(pThis_);
-	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
-		(*it)->messageRefreshed(event);
+	std::for_each(listFolderHandler_.begin(), listFolderHandler_.end(),
+		boost::bind(&FolderHandler::messageRefreshed, _1, boost::cref(event)));
 }
 
 void qm::FolderImpl::fireUnseenCountChanged()
@@ -124,51 +127,52 @@ void qm::FolderImpl::fireUnseenCountChanged()
 	assert(pAccount_->isLocked());
 	
 	FolderEvent event(pThis_);
-	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
-		(*it)->unseenCountChanged(event);
+	std::for_each(listFolderHandler_.begin(), listFolderHandler_.end(),
+		boost::bind(&FolderHandler::unseenCountChanged, _1, boost::cref(event)));
 }
 
 void qm::FolderImpl::fireFolderRenamed()
 {
 	FolderEvent event(pThis_);
-	
-	for (FolderHandlerList::const_iterator it = listFolderHandler_.begin(); it != listFolderHandler_.end(); ++it)
-		(*it)->folderRenamed(event);
+	std::for_each(listFolderHandler_.begin(), listFolderHandler_.end(),
+		boost::bind(&FolderHandler::folderRenamed, _1, boost::cref(event)));
 }
 
 void qm::FolderImpl::fireFolderDestroyed()
 {
-	FolderEvent event(pThis_);
-	
 	FolderHandlerList l(listFolderHandler_);
-	for (FolderHandlerList::const_iterator it = l.begin(); it != l.end(); ++it)
-		(*it)->folderDestroyed(event);
+	FolderEvent event(pThis_);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&FolderHandler::folderDestroyed, _1, boost::cref(event)));
 }
 
 unsigned int qm::FolderImpl::getSize(Folder* pFolder)
 {
 	Lock<Account> lock(*pFolder->getAccount());
 	
-	unsigned int nSize = 0;
-	
 	const MessageHolderList& l = pFolder->getMessages();
+	unsigned int nSize = 0;
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
 		nSize += (*it)->getSize();
-	
 	return nSize;
+//	return std::accumulate(l.begin(), l.end(), 0,
+//		boost::bind(std::plus<unsigned int>(), _1,
+//			boost::bind(&MessageHolder::getSize, _2)));
 }
 
 unsigned int qm::FolderImpl::getBoxSize(Folder* pFolder)
 {
 	Lock<Account> lock(*pFolder->getAccount());
 	
-	unsigned int nSize = 0;
-	
 	const MessageHolderList& l = pFolder->getMessages();
+	unsigned int nSize = 0;
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
 		nSize += (*it)->getMessageBoxKey().nLength_;
-	
 	return nSize;
+//	return std::accumulate(l.begin(), l.end(), 0,
+//		boost::bind(std::plus<unsigned int>(), _1,
+//			boost::bind(&MessageHolder::MessageBoxKey::nLength_,
+//				boost::bind(&MessageHolder::getMessageBoxKey, _2))));
 }
 
 

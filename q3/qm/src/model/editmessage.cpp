@@ -19,6 +19,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "editmessage.h"
 #include "signature.h"
 #include "uri.h"
@@ -847,8 +849,8 @@ void qm::EditMessage::fireFieldChanged(const WCHAR* pwszName,
 									   const WCHAR* pwszValue)
 {
 	EditMessageFieldEvent event(this, pwszName, pwszValue);
-	for (HandlerList::iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->fieldChanged(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&EditMessageHandler::fieldChanged, _1, boost::cref(event)));
 }
 
 void qm::EditMessage::fireAttachmentsChanged()
@@ -869,8 +871,8 @@ void qm::EditMessage::fireSignatureChanged()
 void qm::EditMessage::fireEvent(const EditMessageEvent& event,
 								void (EditMessageHandler::*pfn)(const EditMessageEvent&))
 {
-	for (HandlerList::iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		((*it)->*pfn)(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(pfn, _1, boost::cref(event)));
 }
 
 Part* qm::EditMessage::getBodyPart(Part* pPart)
