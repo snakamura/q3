@@ -40,7 +40,7 @@
 
  <menuitem text="Mem&amp;o..."
            action="MessageMacro"
-           param="@Progn(@Include('macro/memo.macro'), @InputMemo())"/>
+           param="@Progn(@Include('macro/memo.macro'),@InputMemo())"/>
 
 必要に応じて、((<toolbars.xml|URL:ToolbarsXml.html>))にエントリを追加してツールバーのボタンにすることもできます。
 
