@@ -39,7 +39,8 @@ qs::RegexNode::~RegexNode()
 qs::RegexRegexNode::RegexRegexNode(unsigned int nGroup,
 								   GroupType groupType) :
 	nGroup_(nGroup),
-	groupType_(groupType)
+	groupType_(groupType),
+	originalGroupType_(groupType)
 {
 }
 
@@ -96,7 +97,7 @@ const WCHAR* qs::RegexRegexNode::getCandidate(const WCHAR* pStart,
 											  const WCHAR* p,
 											  bool bReverse) const
 {
-	if (groupType_ != GROUPTYPE_NORMAL)
+	if (originalGroupType_ != GROUPTYPE_NORMAL)
 		return p;
 	
 	const WCHAR* pCandidate = 0;

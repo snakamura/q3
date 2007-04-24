@@ -116,6 +116,7 @@ private:
 	FreeList listFree_;
 	unsigned int nGroup_;
 	GroupType groupType_;
+	GroupType originalGroupType_;
 };
 
 
