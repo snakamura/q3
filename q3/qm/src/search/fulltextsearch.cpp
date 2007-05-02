@@ -55,8 +55,10 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	if (!*wstrIndex.get())
 		wstrIndex = concat(pAccount_->getPath(), L"\\index");
 	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
-	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$encoding", Init::getInit().getSystemEncoding());
-	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$condition", context.getCondition());
+	wstrCommand = TextUtil::replace(wstrCommand.get(),
+		L"$encoding", Init::getInit().getSystemEncoding());
+	wstrCommand = TextUtil::replace(wstrCommand.get(),
+		L"$condition", escapeQuote(context.getCondition()).get());
 	
 	wstring_ptr wstrOutput(Process::exec(wstrCommand.get(), 0));
 	if (!wstrOutput.get())
@@ -146,6 +148,18 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	}
 	
 	return true;
+}
+
+wstring_ptr qm::FullTextSearchDriver::escapeQuote(const WCHAR* pwsz)
+{
+	StringBuffer<WSTRING> buf;
+	while (*pwsz) {
+		if (*pwsz == L'\"')
+			buf.append(L'\\');
+		buf.append(*pwsz);
+		++pwsz;
+	}
+	return buf.getString();
 }
 
 

@@ -35,9 +35,7 @@ public:
 						MessageHolderList* pList);
 
 private:
-	static qs::wstring_ptr replace(const WCHAR* pwsz,
-								   const WCHAR* pwszFind,
-								   const WCHAR* pwszReplace);
+	static qs::wstring_ptr escapeQuote(const WCHAR* pwsz);
 
 private:
 	FullTextSearchDriver(const FullTextSearchDriver&);
