@@ -135,7 +135,7 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 	AttachmentParser parser(msg);
 	AttachmentParser::AttachmentList listAttachment;
 	AttachmentParser::AttachmentListFree freeAttachment(listAttachment);
-	parser.getAttachments(false, &listAttachment);
+	parser.getAttachments(AttachmentParser::GAF_NONE, &listAttachment);
 	if (listAttachment.empty())
 		return;
 	

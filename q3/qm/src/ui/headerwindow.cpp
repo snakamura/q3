@@ -1121,7 +1121,7 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 				AttachmentParser parser(*pMessage);
 				AttachmentParser::AttachmentList list;
 				AttachmentParser::AttachmentListFree free(list);
-				parser.getAttachments(true, &list);
+				parser.getAttachments(AttachmentParser::GAF_INCLUDEDELETED, &list);
 				for (AttachmentParser::AttachmentList::size_type n = 0; n < list.size(); ++n) {
 					W2T(list[n].first, ptszName);
 					std::auto_ptr<URI> pURI(new URI(pmh->getMessageHolder(),

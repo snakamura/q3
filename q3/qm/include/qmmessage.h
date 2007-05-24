@@ -334,6 +334,12 @@ public:
 		RESULT_FAIL,
 		RESULT_CANCEL
 	};
+	
+	enum GetAttachmentsFlag {
+		GAF_NONE				= 0x00,
+		GAF_INCLUDEDELETED		= 0x01,
+		GAF_INCLUDEAPPLEFILE	= 0x02
+	};
 
 public:
 	typedef std::vector<std::pair<qs::WSTRING, qs::Part*> > AttachmentList;
@@ -363,7 +369,7 @@ public:
 public:
 	bool hasAttachment() const;
 	qs::wstring_ptr getName() const;
-	void getAttachments(bool bIncludeDeleted,
+	void getAttachments(unsigned int nFlags,
 						AttachmentList* pList) const;
 	Result detach(const WCHAR* pwszDir,
 				  const WCHAR* pwszName,

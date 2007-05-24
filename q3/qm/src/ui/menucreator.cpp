@@ -196,7 +196,7 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 			typedef AttachmentParser::AttachmentList List;
 			List list;
 			AttachmentParser::AttachmentListFree free(list);
-			parser.getAttachments(false, &list);
+			parser.getAttachments(AttachmentParser::GAF_NONE, &list);
 			
 			int nMnemonic = 1;
 			for (List::iterator it = list.begin(); it != list.end(); ++it) {

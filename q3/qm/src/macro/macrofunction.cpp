@@ -640,7 +640,7 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 	
 	AttachmentParser::AttachmentList l;
 	AttachmentParser::AttachmentListFree free(l);
-	AttachmentParser(*pMessage).getAttachments(true, &l);
+	AttachmentParser(*pMessage).getAttachments(AttachmentParser::GAF_INCLUDEDELETED, &l);
 	
 	StringBuffer<WSTRING> buf;
 	for (AttachmentParser::AttachmentList::iterator it = l.begin(); it != l.end(); ++it) {

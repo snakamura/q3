@@ -1615,7 +1615,7 @@ bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 	
 	AttachmentParser::AttachmentList names;
 	AttachmentParser::AttachmentListFree free(names);
-	AttachmentParser(part_).getAttachments(true, &names);
+	AttachmentParser(part_).getAttachments(AttachmentParser::GAF_INCLUDEDELETED, &names);
 	if (!names.empty()) {
 		if (!pBuf->append(L"Attach:  "))
 			return false;
@@ -2168,20 +2168,28 @@ wstring_ptr qm::AttachmentParser::getName() const
 	return wstrName;
 }
 
-void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
+void qm::AttachmentParser::getAttachments(unsigned int nFlags,
 										  AttachmentList* pList) const
 {
 	assert(pList);
 	
-	if (!bIncludeDeleted) {
-		if (isAttachmentDeleted())
-			return;
-	}
+	if ((nFlags & GAF_INCLUDEDELETED) == 0 && isAttachmentDeleted())
+		return;
 	
 	if (part_.isMultipart()) {
+		bool bAppleDouble = _wcsicmp(part_.getContentType()->getSubType(), L"appledouble") == 0;
 		const Part::PartList& l = part_.getPartList();
-		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it)
-			AttachmentParser(**it).getAttachments(bIncludeDeleted, pList);
+		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			const Part* p = *it;
+			if ((nFlags & GAF_INCLUDEAPPLEFILE) == 0 && bAppleDouble) {
+				const ContentTypeParser* pContentType = p->getContentType();
+				if (pContentType &&
+					_wcsicmp(pContentType->getMediaType(), L"application") == 0 &&
+					_wcsicmp(pContentType->getSubType(), L"applefile") == 0)
+					continue;
+			}
+			AttachmentParser(*p).getAttachments(nFlags, pList);
+		}
 	}
 	else if (part_.isAttachment()) {
 		wstring_ptr wstrName(getName());
@@ -2218,7 +2226,7 @@ void qm::AttachmentParser::getAttachments(bool bIncludeDeleted,
 	}
 	
 	if (part_.getEnclosedPart())
-		AttachmentParser(*part_.getEnclosedPart()).getAttachments(bIncludeDeleted, pList);
+		AttachmentParser(*part_.getEnclosedPart()).getAttachments(nFlags, pList);
 }
 
 AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,

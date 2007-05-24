@@ -170,7 +170,7 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 		AttachmentParser parser(msg);
 		AttachmentParser::AttachmentList l;
 		AttachmentParser::AttachmentListFree free(l);
-		parser.getAttachments(false, &l);
+		parser.getAttachments(AttachmentParser::GAF_NONE, &l);
 		for (AttachmentParser::AttachmentList::iterator itA = l.begin(); itA != l.end(); ++itA) {
 			wstring_ptr wstrName(allocWString((*itA).first));
 			
@@ -224,7 +224,7 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 					return AttachmentParser::RESULT_FAIL;
 			}
 			if (l.empty())
-				AttachmentParser(msg).getAttachments(false, &l);
+				AttachmentParser(msg).getAttachments(AttachmentParser::GAF_NONE, &l);
 			assert(n < l.size());
 			const AttachmentParser::AttachmentList::value_type& v = l[n];
 			if (AttachmentParser(*v.second).detach(pwszFolder, (*it).wstrName_,

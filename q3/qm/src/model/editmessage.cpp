@@ -238,7 +238,7 @@ bool qm::EditMessage::setMessage(std::auto_ptr<Message> pMessage)
 		wstrSignature_ = allocWString(pSignature->getName());
 	
 	AttachmentParser parser(*pMessage_.get());
-	parser.getAttachments(true, &listAttachment_);
+	parser.getAttachments(AttachmentParser::GAF_INCLUDEDELETED, &listAttachment_);
 	
 	XQMAILAttachmentParser attachment;
 	if (pMessage_->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST) {
