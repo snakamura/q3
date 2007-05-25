@@ -72,6 +72,7 @@ Section "Core (required)" Core
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\msvcr80.dll"
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
 !endif
+  File ..\lib\stlport\lib\win\${CPU}\stlport.5.1.dll
   
   WriteRegStr HKCU "SOFTWARE\sn\q3\Setting" "MailFolder" "$MAILBOX_FOLDER"
   CreateDirectory "$MAILBOX_FOLDER"
@@ -244,6 +245,11 @@ Section "Uninstall"
   Delete $INSTDIR\qmimap4${SUFFIX}.dll.0411.mui
   Delete $INSTDIR\qmnntp${SUFFIX}.dll.0411.mui
   Delete $INSTDIR\qmrss${SUFFIX}.dll.0411.mui
+!ifndef ANSI
+  Delete $INSTDIR\msvcr80.dll
+  Delete $INSTDIR\Microsoft.VC80.CRT.manifest
+!endif
+  Delete $INSTDIR\stlport.5.1.dll
   Delete $INSTDIR\uninstall.exe
   
   RMDir "$INSTDIR"
