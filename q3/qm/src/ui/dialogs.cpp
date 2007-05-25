@@ -95,7 +95,7 @@ LRESULT qm::AboutDialog::onInitDialog(HWND hwndFocus,
 	
 	const WCHAR* pwszDescription =
 		L"RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n"
-		L"STLport <http://stlport.org/>\r\n"
+		L"STLport <http://stlport.sourceforge.net/>\r\n"
 		L"boost <http://boost.org/>\r\n"
 		L"OpenSSL <http://www.openssl.org/>\r\n"
 		L"QDBM <http://qdbm.sourceforge.net/>\r\n"
