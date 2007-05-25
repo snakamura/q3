@@ -637,7 +637,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 			wstring_ptr wstrFolder(pFolder->getFullName());
 			std::auto_ptr<SetFlagsOfflineJob> pJob(new SetFlagsOfflineJob(
 				wstrFolder.get(), listUid, nFlags, nMask));
-			pOfflineJobManager_->add(pJob);
+			pOfflineJobManager_->add(std::auto_ptr<OfflineJob>(pJob));
 		}
 		
 		for (MessageHolderList::iterator it = listUpdate.begin(); it != listUpdate.end(); ++it)
@@ -728,7 +728,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 			std::auto_ptr<SetLabelOfflineJob> pJob(new SetLabelOfflineJob(
 				wstrFolder.get(), listUid, pwszLabel,
 				const_cast<const WCHAR**>(&listLabel[0]), listLabel.size()));
-			pOfflineJobManager_->add(pJob);
+			pOfflineJobManager_->add(std::auto_ptr<OfflineJob>(pJob));
 		}
 	}
 	else {
@@ -783,7 +783,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 		wstring_ptr wstrFolder(pFolder->getFullName());
 		std::auto_ptr<AppendOfflineJob> pJob(
 			new AppendOfflineJob(wstrFolder.get(), pmh->getId()));
-		pOfflineJobManager_->add(pJob);
+		pOfflineJobManager_->add(std::auto_ptr<OfflineJob>(pJob));
 	}
 	else {
 		if (!prepareSessionCache(false))
@@ -894,7 +894,7 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 			wstring_ptr wstrFolderTo(pFolderTo->getFullName());
 			std::auto_ptr<CopyOfflineJob> pJob(new CopyOfflineJob(
 				wstrFolderFrom.get(), wstrFolderTo.get(), listUidFrom, listItemTo, bMove));
-			pOfflineJobManager_->add(pJob);
+			pOfflineJobManager_->add(std::auto_ptr<OfflineJob>(pJob));
 		}
 	}
 	else {

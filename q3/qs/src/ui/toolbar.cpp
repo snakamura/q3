@@ -547,11 +547,9 @@ bool qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				std::auto_ptr<ActionParam> pParam(new ActionParam(nId, pwszParam, true));
 				nId = pActionParamMap_->addActionParam(pItem->nMaxParamCount_, pParam);
 			}
-			if (nId != -1) {
-				std::auto_ptr<ToolbarButton> pButton(new ToolbarButton(
-					nImage, pwszText, pwszToolTip, nId, pwszDropDown));
-				pToolbar_->add(pButton);
-			}
+			if (nId != -1)
+				pToolbar_->add(std::auto_ptr<ToolbarItem>(new ToolbarButton(
+					nImage, pwszText, pwszToolTip, nId, pwszDropDown)));
 		}
 		
 		state_ = STATE_BUTTON;
@@ -562,8 +560,7 @@ bool qs::ToolbarContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (attributes.getLength() != 0)
 			return false;
 		
-		std::auto_ptr<ToolbarSeparator> pSeparator(new ToolbarSeparator());
-		pToolbar_->add(pSeparator);
+		pToolbar_->add(std::auto_ptr<ToolbarItem>(new ToolbarSeparator()));
 		
 		state_ = STATE_SEPARATOR;
 	}

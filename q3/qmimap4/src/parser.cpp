@@ -78,7 +78,7 @@ bool qmimap4::Parser::parse(const CHAR* pszTag,
 			std::auto_ptr<ResponseContinue> pContinue(parseContinueResponse());
 			if (!pContinue.get())
 				return false;
-			if (!pCallback->response(pContinue))
+			if (!pCallback->response(std::auto_ptr<Response>(pContinue)))
 				return false;
 			if (bAcceptContinue)
 				break;
@@ -260,7 +260,7 @@ std::auto_ptr<List> qmimap4::Parser::parseList(Buffer* pBuffer,
 			std::auto_ptr<List> pChildList(parseList(pBuffer, pnIndex, pCallback));
 			if (!pChildList.get())
 				return std::auto_ptr<List>(0);
-			pList->add(pChildList);
+			pList->add(std::auto_ptr<ListItem>(pChildList));
 		}
 		else {
 			// Because of BUG of iMAIL,

@@ -216,8 +216,8 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 				return 0;
 			}
 			
-			std::auto_ptr<SubAccount> pSubAccount(
-				new SubAccount(pAccount, pProfile, pwszName));
+			std::auto_ptr<SubAccount> pSubAccount(new SubAccount(
+				pAccount, std::auto_ptr<Profile>(pProfile), pwszName));
 			pSubAccount_ = pSubAccount.get();
 			pAccount->addSubAccount(pSubAccount);
 			

@@ -70,7 +70,8 @@ bool qm::SyncUtil::syncFolders(SyncManager* pSyncManager,
 			pSubAccount->getSyncFilterName(), nFlags);
 	}
 	
-	return syncData(pSyncManager, pSyncDialogManager, pSubAccount, pData);
+	return syncData(pSyncManager, pSyncDialogManager,
+		pSubAccount, std::auto_ptr<SyncData>(pData));
 }
 
 bool qm::SyncUtil::send(SyncManager* pSyncManager,
@@ -94,7 +95,8 @@ bool qm::SyncUtil::send(SyncManager* pSyncManager,
 	
 	std::auto_ptr<StaticSyncData> pData(new StaticSyncData(pDocument, type, pSyncManager));
 	pData->addSend(pAccount, pSubAccount, pwszMessageId);
-	return syncData(pSyncManager, pSyncDialogManager, pSubAccount, pData);
+	return syncData(pSyncManager, pSyncDialogManager,
+		pSubAccount, std::auto_ptr<SyncData>(pData));
 }
 
 bool qm::SyncUtil::sync(SyncManager* pSyncManager,
@@ -140,7 +142,8 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 	if (pData->isEmpty())
 		return true;
 	
-	return syncData(pSyncManager, pSyncDialogManager, pSubAccount, pData);
+	return syncData(pSyncManager, pSyncDialogManager,
+		pSubAccount, std::auto_ptr<SyncData>(pData));
 }
 
 bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
@@ -224,7 +227,7 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 		return false;
 	pData->setCallback(pSyncDialog->getSyncManagerCallback());
 	
-	return pSyncManager->sync(pData);
+	return pSyncManager->sync(std::auto_ptr<SyncData>(pData));
 }
 
 bool qm::SyncUtil::syncData(SyncManager* pSyncManager,

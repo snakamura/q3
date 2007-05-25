@@ -925,7 +925,7 @@ std::auto_ptr<Message> qm::EditMessage::makeMultipartMixed(std::auto_ptr<Message
 		_wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
 		_wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
 		std::auto_ptr<Message> pNewMessage(new Message());
-		if (!MessageCreator::makeMultipart(pNewMessage.get(), pMessage))
+		if (!MessageCreator::makeMultipart(pNewMessage.get(), std::auto_ptr<Part>(pMessage)))
 			return std::auto_ptr<Message>();
 		pNewMessage->setFlag(Message::FLAG_NONE);
 		pMessage = pNewMessage;

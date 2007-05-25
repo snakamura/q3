@@ -415,7 +415,7 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			}
 		}
 		
-		std::auto_ptr<StringReader> pReader(new StringReader(wstrText));
+		std::auto_ptr<Reader> pReader(new StringReader(wstrText));
 		return pTextModel_->loadText(pReader, true);
 	}
 	else {

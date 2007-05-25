@@ -1439,7 +1439,7 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		std::auto_ptr<HeaderLine> pHeaderLine(
 			new HeaderLine(pwszHideIfEmpty, pClass));
 		pCurrentLine_ = pHeaderLine.get();
-		pLayout_->addLine(pHeaderLine);
+		pLayout_->addLine(std::auto_ptr<LineLayoutLine>(pHeaderLine));
 		
 		state_ = STATE_LINE;
 	}
@@ -1499,7 +1499,7 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		}
 		
 		pCurrentItem_ = pItem.get();
-		pCurrentLine_->addItem(pItem);
+		pCurrentLine_->addItem(std::auto_ptr<LineLayoutItem>(pItem));
 		
 		state_ = STATE_ITEM;
 	}
@@ -1541,7 +1541,7 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		pAttachmentSelectionModel_ = pItem.get();
 		pCurrentItem_ = pItem.get();
-		pCurrentLine_->addItem(pItem);
+		pCurrentLine_->addItem(std::auto_ptr<LineLayoutItem>(pItem));
 		
 		state_ = STATE_ITEM;
 	}

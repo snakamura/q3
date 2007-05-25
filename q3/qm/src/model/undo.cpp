@@ -319,7 +319,7 @@ void qm::SetFlagsUndoItem::add(MessageHolder* pmh,
 {
 	std::auto_ptr<URI> pURI(new URI(pmh));
 	std::auto_ptr<Item> pItem(new Item(pURI, nFlags, nMask));
-	MessageUndoItem::add(pmh, pItem);
+	MessageUndoItem::add(pmh, std::auto_ptr<MessageUndoItem::Item>(pItem));
 }
 
 std::auto_ptr<MessageUndoExecutor> qm::SetFlagsUndoItem::createExecutor(Account* pAccount) const
@@ -406,7 +406,7 @@ void qm::SetLabelUndoItem::add(MessageHolder* pmh,
 {
 	std::auto_ptr<URI> pURI(new URI(pmh));
 	std::auto_ptr<Item> pItem(new Item(pURI, pwszLabel));
-	MessageUndoItem::add(pmh, pItem);
+	MessageUndoItem::add(pmh, std::auto_ptr<MessageUndoItem::Item>(pItem));
 }
 
 std::auto_ptr<MessageUndoExecutor> qm::SetLabelUndoItem::createExecutor(Account* pAccount) const

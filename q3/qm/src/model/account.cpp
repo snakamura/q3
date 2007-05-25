@@ -216,8 +216,8 @@ bool qm::AccountImpl::loadSubAccounts()
 		return false;
 	
 	pProfile_ = pAccountProfile.get();
-	std::auto_ptr<SubAccount> pDefaultSubAccount(
-		new SubAccount(pThis_, pAccountProfile, L""));
+	std::auto_ptr<SubAccount> pDefaultSubAccount(new SubAccount(
+		pThis_, std::auto_ptr<Profile>(pAccountProfile), L""));
 	
 	listSubAccount_.push_back(pDefaultSubAccount.get());
 	pDefaultSubAccount.release();
@@ -249,11 +249,11 @@ bool qm::AccountImpl::loadSubAccounts()
 			wstring_ptr wstrPath(concat(
 				wstrPath_.get(), L"\\", pwszFileName));
 			
-			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get(),
+			std::auto_ptr<Profile> pProfile(new XMLProfile(wstrPath.get(),
 				defaultAccountProfiles, countof(defaultAccountProfiles)));
 			if (pProfile->load()) {
-				std::auto_ptr<SubAccount> pSubAccount(
-					new SubAccount(pThis_, pProfile, wstrName.get()));
+				std::auto_ptr<SubAccount> pSubAccount(new SubAccount(
+					pThis_, pProfile, wstrName.get()));
 				listSubAccount_.push_back(pSubAccount.get());
 				pSubAccount.release();
 			}
@@ -725,7 +725,7 @@ bool qm::AccountImpl::setMessagesFlags(NormalFolder* pFolder,
 			return false;
 	}
 	if (pUndoItemList)
-		pUndoItemList->add(pUndoItem);
+		pUndoItemList->add(std::auto_ptr<UndoItem>(pUndoItem));
 	
 	return true;
 }
@@ -769,7 +769,7 @@ bool qm::AccountImpl::setMessagesLabel(NormalFolder* pFolder,
 			return false;
 	}
 	if (pUndoItemList)
-		pUndoItemList->add(pUndoItem);
+		pUndoItemList->add(std::auto_ptr<UndoItem>(pUndoItem));
 	
 	return true;
 }

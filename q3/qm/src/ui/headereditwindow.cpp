@@ -2513,7 +2513,7 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			std::auto_ptr<HeaderEditLine> pHeaderEditLine(
 				new HeaderEditLine(pLineCallback_, nFlags));
 			pCurrentLine_ = pHeaderEditLine.get();
-			pLayout_->addLine(pHeaderEditLine);
+			pLayout_->addLine(std::auto_ptr<LineLayoutLine>(pHeaderEditLine));
 		}
 		
 		state_ = STATE_LINE;
@@ -2588,7 +2588,7 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			}
 			
 			pCurrentItem_ = pItem.get();
-			pCurrentLine_->addItem(pItem);
+			pCurrentLine_->addItem(std::auto_ptr<LineLayoutItem>(pItem));
 		}
 		
 		state_ = STATE_ITEM;
@@ -2665,7 +2665,7 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			}
 			
 			pCurrentItem_ = pItem.get();
-			pCurrentLine_->addItem(pItem);
+			pCurrentLine_->addItem(std::auto_ptr<LineLayoutItem>(pItem));
 			
 			state_ = type != TYPE_COMBOBOX ? STATE_ITEM : STATE_COMBOBOX;
 		}
@@ -2703,7 +2703,7 @@ bool qm::HeaderEditWindowContentHandler::startElement(const WCHAR* pwszNamespace
 			}
 			
 			pCurrentItem_ = pItem.get();
-			pCurrentLine_->addItem(pItem);
+			pCurrentLine_->addItem(std::auto_ptr<LineLayoutItem>(pItem));
 		}
 		
 		state_ = STATE_ITEM;
