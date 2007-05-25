@@ -462,6 +462,7 @@ ifeq ($(PLATFORM),win)
 		RCFLAGS			+= -Dx86 -D_X86_
 	endif
 	ifeq ($(CPU),x64)
+		CCFLAGS			+= -wd4103
 		DEFINES			+= -DWIN64 -D_WIN64 -D_AMD64_ -DWINVER=0x502 -D_WIN32_WINNT=0x502
 		LDFLAGS			+= -MACHINE:AMD64
 		RCFLAGS			+= -D_AMD64_
@@ -590,7 +591,7 @@ else
 	endif
 	
 	ifeq ($(EVCVER),8)
-		CCFLAGS			+= -FC -Zc:wchar_t-
+		CCFLAGS			+= -FC
 	endif
 	ifeq ($(EVCVER),4)
 		MIDLFLAGS		+= -msc_ver 1000
@@ -676,24 +677,16 @@ BSCTARGET				= $(TARGETBASE).bsc
 
 
 # STLPORT ###################################################################
-INCLUDES				= -I"$(STLPORTDIR)"
+INCLUDES				+= -I"$(STLPORTDIR)"
+ifeq ($(PLATFORM),win)
+	LIBS				+= $(STLPORTDIR)/lib/win/$(EXLIBCPU)/stlport$(DSUFFIX).5.1.lib
+else
+	LIBS				+= $(STLPORTDIR)/lib/wce/$(EXLIBCPU)/stlport$(DSUFFIX).5.1.lib
+endif
 
-STLPORTFLAGS			= -D_STLP_NO_IOSTREAMS
+STLPORTFLAGS			=
 ifdef DEBUG
 	STLPORTFLAGS		+= -D_STLP_USE_NEWALLOC
-endif
-ifeq ($(PLATFORM),win)
-	STLPORTFLAGS		+= -D_STLP_NEW_PLATFORM_SDK
-	ifeq ($(CPU),x64)
-		ifneq ($(VCVER),8)
-			STLPORTFLAGS	+= -D_STLP_USING_PLATFORM_SDK_COMPILER
-		endif
-	endif
-endif
-ifdef STLPORTEXPORT
-	STLPORTFLAGS		+= -D_STLP_EXPORT_NODE_ALLOC
-else
-	STLPORTFLAGS		+= -D_STLP_IMPORT_NODE_ALLOC
 endif
 DEFINES					+= $(STLPORTFLAGS)
 #############################################################################
