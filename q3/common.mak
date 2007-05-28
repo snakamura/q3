@@ -374,7 +374,7 @@ endif
 else
 	BASENAME			= release
 	DSUFFIX				=
-	CCFLAGS				= -O1 -Oi
+	CCFLAGS				= -O2 -Oi
 	DEFINES				= -DNDEBUG
 	RCFLAGS				= -d NDEBUG
 	LDFLAGS				= -OPT:REF -OPT:ICF
