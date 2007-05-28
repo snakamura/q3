@@ -434,7 +434,7 @@ else
 	#########################################################################
 endif
 
-CCFLAGS					+= -nologo -W3 -WX -GF -Gy -Zp8 -X
+CCFLAGS					+= -nologo -W3 -WX -GF -Gy -X
 DEFINES					+= -DWIN32 -D_WIN32 -D_MT -DSTRICT
 LDFLAGS					+= -NOLOGO -INCREMENTAL:NO -MAP -SUBSYSTEM:$(SUBSYSTEM),$(SUBSYSVER)
 ifneq ($(MUILANG),)
@@ -462,7 +462,6 @@ ifeq ($(PLATFORM),win)
 		RCFLAGS			+= -Dx86 -D_X86_
 	endif
 	ifeq ($(CPU),x64)
-		CCFLAGS			+= -wd4103
 		DEFINES			+= -DWIN64 -D_WIN64 -D_AMD64_ -DWINVER=0x502 -D_WIN32_WINNT=0x502
 		LDFLAGS			+= -MACHINE:AMD64
 		RCFLAGS			+= -D_AMD64_
