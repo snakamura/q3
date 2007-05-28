@@ -200,12 +200,14 @@ apidoc)
 
 installer)
 	"$MAKENSIS" installer/q3.nsi
+	"$MAKENSIS" /DX64 installer/q3.nsi
 #	"$MAKENSIS" /DANSI installer/q3.nsi
 	
 	VERSION=`cat version`
 	REVISION=`cat revision`
 	DATE=`date +%Y%m%d`
 	mv installer/q3u-win-x86-ja.exe installer/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
+	mv installer/q3u-win-x64-ja.exe installer/q3u-win-x64-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
 #	mv installer/q3-win-x86-ja.exe installer/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
     ;;
 

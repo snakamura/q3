@@ -9,12 +9,14 @@
   !define CODE unicode
   !define SUFFIX u
 !endif
-!ifdef x64
+!ifdef X64
   !define CPU x64
   !define CRTBASE amd64
+  !define PF $PROGRAMFILES64
 !else
   !define CPU x86
   !define CRTBASE x86
+  !define PF $PROGRAMFILES
 !endif
 
 !include "MUI.nsh"
@@ -28,7 +30,7 @@ Var STARTMENU_FOLDER
 Var MAILBOX_FOLDER
 Var REMOVE_MAILBOX
 
-InstallDir "$PROGRAMFILES\QMAIL3"
+InstallDir "${PF}\QMAIL3"
 InstallDirRegKey HKLM "SOFTWARE\sn\q3" "InstallDir"
 
 ;Page components
@@ -73,6 +75,10 @@ Section "Core (required)" Core
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
 !endif
   File ..\lib\stlport\lib\win\${CPU}\stlport.5.1.dll
+  
+!ifdef X64
+  SetRegView 64
+!endif
   
   WriteRegStr HKCU "SOFTWARE\sn\q3\Setting" "MailFolder" "$MAILBOX_FOLDER"
   CreateDirectory "$MAILBOX_FOLDER"
@@ -195,6 +201,10 @@ SectionEnd
 
 
 Section "Uninstall"
+  
+!ifdef X64
+  SetRegView 64
+!endif
   
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3"  
   !insertmacro MUI_STARTMENU_GETFOLDER StartMenu $R0
