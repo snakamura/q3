@@ -625,6 +625,9 @@ void qm::MessageWindow::setShowHeaderWindow(bool bShow)
 	if (bShow != pImpl_->bShowHeaderWindow_) {
 		pImpl_->bShowHeaderWindow_ = bShow;
 		pImpl_->layoutChildren();
+		
+		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
+		pImpl_->setMessage(mpl, false);
 	}
 }
 
