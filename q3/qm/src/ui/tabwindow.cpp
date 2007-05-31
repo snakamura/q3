@@ -362,12 +362,7 @@ void qm::TabWindowImpl::resetHandlers(Folder* pOldFolder,
 	if (pOldFolder) {
 		FolderList::iterator it = std::find_if(
 			listHandledFolder_.begin(), listHandledFolder_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::select1st<FolderList::value_type>(),
-					std::identity<Folder*>()),
-				pOldFolder));
+			boost::bind(&FolderList::value_type::first, _1) == pOldFolder);
 		assert(it != listHandledFolder_.end());
 		if (--(*it).second == 0) {
 			pOldFolder->removeFolderHandler(this);
@@ -378,12 +373,7 @@ void qm::TabWindowImpl::resetHandlers(Folder* pOldFolder,
 	if (pNewFolder) {
 		FolderList::iterator it = std::find_if(
 			listHandledFolder_.begin(), listHandledFolder_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::select1st<FolderList::value_type>(),
-					std::identity<Folder*>()),
-				pNewFolder));
+			boost::bind(&FolderList::value_type::first, _1) == pNewFolder);
 		if (it != listHandledFolder_.end()) {
 			++(*it).second;
 		}

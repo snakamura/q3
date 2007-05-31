@@ -15,6 +15,9 @@
 #include <qslog.h>
 #include <qsosutil.h>
 
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include <wininet.h>
 
 #include "http.h"
@@ -295,10 +298,11 @@ qs::AbstractHttpMethod::AbstractHttpMethod(const WCHAR* pwszURL)
 
 qs::AbstractHttpMethod::~AbstractHttpMethod()
 {
+	using namespace boost::lambda;
+	using boost::lambda::_1;
 	std::for_each(listRequestHeader_.begin(), listRequestHeader_.end(),
-		unary_compose_fx_gx(
-			string_free<WSTRING>(),
-			string_free<WSTRING>()));
+		(bind(&freeWString, bind(&HeaderList::value_type::first, _1)),
+		 bind(&freeWString, bind(&HeaderList::value_type::second, _1))));
 }
 
 void qs::AbstractHttpMethod::setRequestHeader(const WCHAR* pwszName,

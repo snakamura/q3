@@ -30,6 +30,8 @@
 #include <numeric>
 
 #include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
 
 using namespace qm;
 using namespace qs;
@@ -151,13 +153,9 @@ unsigned int qm::FolderImpl::getSize(Folder* pFolder)
 	Lock<Account> lock(*pFolder->getAccount());
 	
 	const MessageHolderList& l = pFolder->getMessages();
-	unsigned int nSize = 0;
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-		nSize += (*it)->getSize();
-	return nSize;
-//	return std::accumulate(l.begin(), l.end(), 0,
-//		boost::bind(std::plus<unsigned int>(), _1,
-//			boost::bind(&MessageHolder::getSize, _2)));
+	return std::accumulate(l.begin(), l.end(), 0,
+		boost::bind(std::plus<unsigned int>(), _1,
+			boost::bind(&MessageHolder::getSize, _2)));
 }
 
 unsigned int qm::FolderImpl::getBoxSize(Folder* pFolder)
@@ -165,14 +163,10 @@ unsigned int qm::FolderImpl::getBoxSize(Folder* pFolder)
 	Lock<Account> lock(*pFolder->getAccount());
 	
 	const MessageHolderList& l = pFolder->getMessages();
-	unsigned int nSize = 0;
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it)
-		nSize += (*it)->getMessageBoxKey().nLength_;
-	return nSize;
-//	return std::accumulate(l.begin(), l.end(), 0,
-//		boost::bind(std::plus<unsigned int>(), _1,
-//			boost::bind(&MessageHolder::MessageBoxKey::nLength_,
-//				boost::bind(&MessageHolder::getMessageBoxKey, _2))));
+	return std::accumulate(l.begin(), l.end(), 0,
+		boost::bind(std::plus<unsigned int>(), _1,
+			boost::bind(&MessageHolder::MessageBoxKey::nLength_,
+				boost::bind(&MessageHolder::getMessageBoxKey, _2))));
 }
 
 
@@ -205,9 +199,11 @@ qm::Folder::Folder(unsigned int nId,
 qm::Folder::~Folder()
 {
 	if (pImpl_) {
+		using namespace boost::lambda;
+		using boost::lambda::_1;
 		std::for_each(pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
-			unary_compose_fx_gx(string_free<WSTRING>(), string_free<WSTRING>()));
-		
+			(bind(&freeWString, bind(&ParamList::value_type::first, _1)),
+			 bind(&freeWString, bind(&ParamList::value_type::second, _1))));
 		delete pImpl_;
 	}
 }
@@ -269,12 +265,8 @@ const WCHAR* qm::Folder::getParam(const WCHAR* pwszName) const
 {
 	ParamList::const_iterator it = std::find_if(
 		pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ParamList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ParamList::value_type::first, _1), pwszName));
 	return it != pImpl_->listParam_.end() ? (*it).second : 0;
 }
 
@@ -283,12 +275,8 @@ void qm::Folder::setParam(const WCHAR* pwszName,
 {
 	ParamList::iterator it = std::find_if(
 		pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ParamList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ParamList::value_type::first, _1), pwszName));
 	wstring_ptr wstrValue(allocWString(pwszValue));
 	if (it != pImpl_->listParam_.end()) {
 		freeWString((*it).second);
@@ -307,12 +295,8 @@ void qm::Folder::removeParam(const WCHAR* pwszName)
 {
 	ParamList::iterator it = std::find_if(
 		pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ParamList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ParamList::value_type::first, _1), pwszName));
 	if (it != pImpl_->listParam_.end()) {
 		freeWString((*it).first);
 		freeWString((*it).second);
@@ -616,13 +600,8 @@ MessageHolder* qm::NormalFolder::getMessageHolderById(unsigned int nId) const
 	MessageHolder::Init init = { nId };
 	MessageHolder mh(0, init);
 	MessageHolderList::const_iterator it = std::lower_bound(
-		pImpl_->listMessageHolder_.begin(),
-		pImpl_->listMessageHolder_.end(),
-		&mh,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			std::mem_fun(&MessageHolder::getId),
-			std::mem_fun(&MessageHolder::getId)));
+		pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end(), &mh,
+		boost::bind(&MessageHolder::getId, _1) < boost::bind(&MessageHolder::getId, _2));
 	return it != pImpl_->listMessageHolder_.end() && (*it)->getId() == nId ? *it : 0;
 }
 
@@ -935,10 +914,7 @@ void qm::NormalFolder::removeMessages(const MessageHolderList& l)
 		
 		MessageHolderList::iterator itD = std::lower_bound(
 			pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end(), pmh,
-			binary_compose_f_gx_hy(
-				std::less<unsigned int>(),
-				std::mem_fun(&MessageHolder::getId),
-				std::mem_fun(&MessageHolder::getId)));
+			boost::bind(&MessageHolder::getId, _1) < boost::bind(&MessageHolder::getId, _2));
 		assert(itD != pImpl_->listMessageHolder_.end() && *itD == pmh);
 		pImpl_->listMessageHolder_.erase(itD);
 		
@@ -997,10 +973,8 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
 		
 		MessageHolderList::iterator itM = std::lower_bound(
 			listFrom.begin(), listFrom.end(), pmh,
-			binary_compose_f_gx_hy(
-				std::less<unsigned int>(),
-				std::mem_fun(&MessageHolder::getId),
-				std::mem_fun(&MessageHolder::getId)));
+			boost::bind(&MessageHolder::getId, _1) <
+			boost::bind(&MessageHolder::getId, _2));
 		assert(itM != listFrom.end() && *itM == pmh);
 		listFrom.erase(itM);
 		pmh->setFolder(pFolder);

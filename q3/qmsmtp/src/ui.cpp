@@ -157,7 +157,7 @@ qmsmtp::PopBeforeSmtpDialog::PopBeforeSmtpDialog(PopBeforeSmtpData* pData) :
 
 qmsmtp::PopBeforeSmtpDialog::~PopBeforeSmtpDialog()
 {
-	std::for_each(listName_.begin(), listName_.end(), string_free<WSTRING>());
+	std::for_each(listName_.begin(), listName_.end(), &freeWString);
 }
 
 LRESULT qmsmtp::PopBeforeSmtpDialog::onCommand(WORD nCode,

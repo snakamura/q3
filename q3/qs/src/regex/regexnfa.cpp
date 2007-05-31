@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <functional>
 
+#include <boost/bind.hpp>
+
 #include "regexnfa.h"
 #include "regexparser.h"
 
@@ -458,9 +460,8 @@ qs::RegexNfa::RegexNfa(std::auto_ptr<RegexRegexNode> pNode)
 qs::RegexNfa::~RegexNfa()
 {
 	std::for_each(listState_.begin(), listState_.end(),
-		unary_compose_f_gx(
-			deleter<RegexNfaState>(),
-			std::select1st<StateList::value_type>()));
+		boost::bind(deleter<RegexNfaState>(),
+			boost::bind(&StateList::value_type::first, _1)));
 }
 
 unsigned int qs::RegexNfa::getStateCount() const

@@ -16,6 +16,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "goround.h"
 #include "../util/confighelper.h"
 
@@ -95,12 +97,8 @@ GoRoundCourse* qm::GoRound::getCourse(const WCHAR* pwszCourse) const
 	
 	CourseList::const_iterator it = std::find_if(
 		pImpl_->listCourse_.begin(), pImpl_->listCourse_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&GoRoundCourse::getName),
-				std::identity<const WCHAR*>()),
-			pwszCourse));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&GoRoundCourse::getName, _1), pwszCourse));
 	return it != pImpl_->listCourse_.end() ? *it : 0;
 }
 

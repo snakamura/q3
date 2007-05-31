@@ -14,6 +14,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "actioninvoker.h"
 #include "../ui/actionitem.h"
 
@@ -98,10 +100,9 @@ void qm::ActionInvoker::invoke(const WCHAR* pwszAction,
 	
 	const ActionItem* pItem = std::lower_bound(
 		actionItems, actionItems + countof(actionItems), item,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			mem_data_ref(&ActionItem::pwszAction_),
-			mem_data_ref(&ActionItem::pwszAction_)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&ActionItem::pwszAction_, _1),
+			boost::bind(&ActionItem::pwszAction_, _2)));
 	if (pItem != actionItems + countof(actionItems) &&
 		wcscmp(pItem->pwszAction_, pwszAction) == 0)
 		invoke(pItem->nId_, ppParams, nParams);
@@ -180,7 +181,7 @@ qm::ActionInvokerQueueItem::ActionInvokerQueueItem(UINT nId,
 
 qm::ActionInvokerQueueItem::~ActionInvokerQueueItem()
 {
-	std::for_each(listParam_.begin(), listParam_.end(), string_free<WSTRING>());
+	std::for_each(listParam_.begin(), listParam_.end(), &freeWString);
 }
 
 UINT qm::ActionInvokerQueueItem::getId() const

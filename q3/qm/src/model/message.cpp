@@ -119,12 +119,8 @@ const WCHAR* qm::Message::getParam(const WCHAR* pwszName) const
 {
 	ParamList::const_iterator it = std::find_if(
 		listParam_.begin(), listParam_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ParamList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ParamList::value_type::first, _1), pwszName));
 	return it != listParam_.end() ? (*it).second : 0;
 }
 
@@ -139,12 +135,8 @@ void qm::Message::setParam(const WCHAR* pwszName,
 	
 	ParamList::iterator it = std::find_if(
 		listParam_.begin(), listParam_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ParamList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ParamList::value_type::first, _1), pwszName));
 	if (it != listParam_.end()) {
 		freeWString((*it).second);
 		if (wstrValue.get())
@@ -2199,14 +2191,9 @@ void qm::AttachmentParser::getAttachments(unsigned int nFlags,
 		
 		int n = 1;
 		while (true) {
-			AttachmentList::iterator it = std::find_if(
-				pList->begin(), pList->end(),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						string_equal<WCHAR>(),
-						std::select1st<AttachmentList::value_type>(),
-						std::identity<const WCHAR*>()),
-					wstrName.get()));
+			AttachmentList::iterator it = std::find_if(pList->begin(), pList->end(),
+				boost::bind(string_equal<WCHAR>(),
+					boost::bind(&AttachmentList::value_type::first, _1), wstrName.get()));
 			if (it == pList->end())
 				break;
 			
@@ -2387,9 +2374,8 @@ qm::AttachmentParser::AttachmentListFree::~AttachmentListFree()
 void qm::AttachmentParser::AttachmentListFree::free()
 {
 	std::for_each(l_.begin(), l_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<AttachmentList::value_type>()));
+		boost::bind(&freeWString,
+			boost::bind(&AttachmentList::value_type::first, _1)));
 	l_.clear();
 }
 
@@ -2424,8 +2410,7 @@ qm::XQMAILAttachmentParser::XQMAILAttachmentParser(const WCHAR* pwsz)
 
 qm::XQMAILAttachmentParser::~XQMAILAttachmentParser()
 {
-	std::for_each(listAttachment_.begin(),
-		listAttachment_.end(), string_free<WSTRING>());
+	std::for_each(listAttachment_.begin(), listAttachment_.end(), &freeWString);
 }
 
 const XQMAILAttachmentParser::AttachmentList& qm::XQMAILAttachmentParser::getAttachments() const

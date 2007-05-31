@@ -13,6 +13,9 @@
 #include <algorithm>
 #include <memory>
 
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include "mime.h"
 
 using namespace qs;
@@ -1408,10 +1411,11 @@ qs::Part::FieldListFree::~FieldListFree()
 
 void qs::Part::FieldListFree::free()
 {
+	using namespace boost::lambda;
+	using boost::lambda::_1;
 	std::for_each(l_.begin(), l_.end(),
-		unary_compose_fx_gx(
-			string_free<STRING>(),
-			string_free<STRING>()));
+		(bind(&freeString, bind(&FieldList::value_type::first, _1)),
+		 bind(&freeString, bind(&FieldList::value_type::second, _1))));
 	l_.clear();
 }
 

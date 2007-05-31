@@ -168,10 +168,9 @@ void qm::FolderListWindowImpl::setCurrentAccount(Account* pAccount,
 			listFolder.push_back(std::make_pair(pFolder, std::make_pair(nSize, nBoxSize)));
 		}
 		std::sort(listFolder.begin(), listFolder.end(),
-			binary_compose_f_gx_hy(
-				FolderLess(),
-				std::select1st<FolderList::value_type>(),
-				std::select1st<FolderList::value_type>()));
+			boost::bind(FolderLess(),
+				boost::bind(&FolderList::value_type::first, _1),
+				boost::bind(&FolderList::value_type::first, _2)));
 		
 		bInserting_ = true;
 		

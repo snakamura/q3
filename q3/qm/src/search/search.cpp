@@ -326,12 +326,8 @@ qm::SearchDriverFactoryImpl::FactoryList qm::SearchDriverFactoryImpl::listFactor
 qm::SearchDriverFactoryImpl::FactoryList::iterator qm::SearchDriverFactoryImpl::getIterator(const WCHAR* pwszName)
 {
 	return std::find_if(listFactory__.begin(), listFactory__.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<FactoryList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&FactoryList::value_type::first, _1), pwszName));
 }
 
 

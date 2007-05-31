@@ -485,9 +485,8 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 							const FetchDataBody::PartPath& path = pBody->getPartPath();
 							PartList::const_iterator part = std::find_if(
 								listPart_.begin(), listPart_.end(),
-								unary_compose_f_gx(
-									PathEqual(&path[0], path.size()),
-									std::select2nd<PartList::value_type>()));
+								boost::bind(PathEqual(&path[0], path.size()),
+									boost::bind(&PartList::value_type::second, _1)));
 							bAdd = part != listPart_.end();
 						}
 						if (bAdd)
@@ -607,13 +606,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 	assert(pAccount_->isLocked());
 	assert(!l.empty());
 	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
+		boost::bind(&MessageHolder::getFolder, _1) != pFolder) == l.end());
 	
 	MessageHolderList listUpdate;
 	listUpdate.reserve(l.size());
@@ -672,13 +665,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 	assert(pAccount_->isLocked());
 	assert(!l.empty());
 	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
+		boost::bind(&MessageHolder::getFolder, _1) != pFolder) == l.end());
 	
 	MessageHolderList listUpdate;
 	listUpdate.reserve(l.size());
@@ -816,13 +803,7 @@ bool qmimap4::Imap4Driver::removeMessages(NormalFolder* pFolder,
 	assert(pAccount_->isLocked());
 	assert(!l.empty());
 	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
+		boost::bind(&MessageHolder::getFolder, _1) != pFolder) == l.end());
 	
 	return setMessagesFlags(pFolder, l,
 		MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED);
@@ -840,13 +821,7 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 	assert(pFolderTo->getAccount() == pAccount_);
 	assert(pAccount_->isLocked());
 	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolderFrom))) == l.end());
+		boost::bind(&MessageHolder::getFolder, _1) != pFolderFrom) == l.end());
 	
 	MessageHolderList listUpdate;
 	listUpdate.reserve(l.size());
@@ -1430,9 +1405,8 @@ bool qmimap4::FolderListGetter::update()
 		~Deleter()
 		{
 			std::for_each(l_.begin(), l_.end(),
-				unary_compose_f_gx(
-					string_free<WSTRING>(),
-					std::select1st<FolderListGetter::NamespaceList::value_type>()));
+				boost::bind(&freeWString,
+					boost::bind(&NamespaceList::value_type::first, _1)));
 		}
 		
 		NamespaceList& l_;
@@ -1496,14 +1470,8 @@ bool qmimap4::FolderListGetter::listFolders(Imap4* pImap4,
 		
 		~Deleter()
 		{
-#if 0
 			std::for_each(l_.begin(), l_.end(),
-				boost::bind(string_free<WSTRING>(),
-					boost::bind(&FolderData::wstrMailbox_, _1)));
-#else
-			for (FolderListGetter::FolderDataList::iterator it = l_.begin(); it != l_.end(); ++it)
-				freeWString((*it).wstrMailbox_);
-#endif
+				boost::bind(&freeWString, boost::bind(&FolderData::wstrMailbox_, _1)));
 		}
 		
 		FolderDataList& l_;
@@ -1964,12 +1932,7 @@ std::auto_ptr<Session> qmimap4::SessionCache::getSessionWithoutSelect(NormalFold
 		
 		SessionList::iterator it = std::find_if(
 			listSession_.begin(), listSession_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<NormalFolder*>(),
-					std::mem_fun(&Session::getFolder),
-					std::identity<NormalFolder*>()),
-				pFolder));
+			boost::bind(&Session::getFolder, _1) == pFolder);
 		if (it != listSession_.end()) {
 			pSession.reset(*it);
 			listSession_.erase(it);

@@ -23,6 +23,8 @@
 #include <memory>
 #include <vector>
 
+#include <boost/bind.hpp>
+
 #include "macro.h"
 
 using namespace qm;
@@ -429,9 +431,7 @@ qm::MacroFunctionHolder::MacroFunctionHolder()
 qm::MacroFunctionHolder::~MacroFunctionHolder()
 {
 	std::for_each(mapFunction_.begin(), mapFunction_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<FunctionMap::value_type>()));
+		boost::bind(&freeWString, boost::bind(&FunctionMap::value_type::first, _1)));
 }
 
 const MacroExpr* qm::MacroFunctionHolder::getFunction(const WCHAR* pwszName) const
@@ -440,12 +440,8 @@ const MacroExpr* qm::MacroFunctionHolder::getFunction(const WCHAR* pwszName) con
 	
 	FunctionMap::const_iterator it = std::find_if(
 		mapFunction_.begin(), mapFunction_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal_i<WCHAR>(),
-				std::select1st<FunctionMap::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal_i<WCHAR>(),
+			boost::bind(&FunctionMap::value_type::first, _1), pwszName));
 	if (it != mapFunction_.end())
 		return (*it).second;
 	else
@@ -460,12 +456,8 @@ bool qm::MacroFunctionHolder::setFunction(const WCHAR* pwszName,
 	
 	FunctionMap::const_iterator it = std::find_if(
 		mapFunction_.begin(), mapFunction_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal_i<WCHAR>(),
-				std::select1st<FunctionMap::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal_i<WCHAR>(),
+			boost::bind(&FunctionMap::value_type::first, _1), pwszName));
 	if (it != mapFunction_.end())
 		return false;
 	
@@ -1600,12 +1592,8 @@ MacroValuePtr qm::MacroVariableHolder::getVariable(const WCHAR* pwszName) const
 	typedef MacroVariableHolderImpl::VariableMap Map;
 	Map::const_iterator it = std::find_if(
 		pImpl_->mapVariable_.begin(), pImpl_->mapVariable_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<Map::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&Map::value_type::first, _1), pwszName));
 	if (it != pImpl_->mapVariable_.end())
 		return (*it).second->clone();
 	else
@@ -1621,12 +1609,8 @@ void qm::MacroVariableHolder::setVariable(const WCHAR* pwszName,
 	typedef MacroVariableHolderImpl::VariableMap Map;
 	Map::iterator it = std::find_if(
 		pImpl_->mapVariable_.begin(), pImpl_->mapVariable_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<Map::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&Map::value_type::first, _1), pwszName));
 	if (it != pImpl_->mapVariable_.end()) {
 		MacroValuePtr pValueOld((*it).second);
 		(*it).second = pValue.release();
@@ -1646,12 +1630,8 @@ void qm::MacroVariableHolder::removeVariable(const WCHAR* pwszName)
 	typedef MacroVariableHolderImpl::VariableMap Map;
 	Map::iterator it = std::find_if(
 		pImpl_->mapVariable_.begin(), pImpl_->mapVariable_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<Map::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&Map::value_type::first, _1), pwszName));
 	if (it != pImpl_->mapVariable_.end()) {
 		freeWString((*it).first);
 		MacroValuePtr pValue((*it).second);

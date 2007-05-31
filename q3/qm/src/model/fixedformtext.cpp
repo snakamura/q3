@@ -16,6 +16,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "fixedformtext.h"
 
 using namespace qm;
@@ -56,12 +58,8 @@ const FixedFormText* qm::FixedFormTextManager::getText(const WCHAR* pwszName)
 	
 	TextList::const_iterator it = std::find_if(
 		listText_.begin(), listText_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&FixedFormText::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&FixedFormText::getName, _1), pwszName));
 	return it != listText_.end() ? *it : 0;
 }
 

@@ -2022,7 +2022,7 @@ qm::ComboBoxHeaderEditItem::ComboBoxHeaderEditItem(KeyMap* pKeyMap) :
 
 qm::ComboBoxHeaderEditItem::~ComboBoxHeaderEditItem()
 {
-	std::for_each(listOption_.begin(), listOption_.end(), string_free<WSTRING>());
+	std::for_each(listOption_.begin(), listOption_.end(), &freeWString);
 }
 
 void qm::ComboBoxHeaderEditItem::setEditMessage(EditMessage* pEditMessage,

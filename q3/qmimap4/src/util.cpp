@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <cstdio>
 
+#include <boost/bind.hpp>
+
 #include "imap4error.h"
 #include "main.h"
 #include "resourceinc.h"
@@ -374,9 +376,8 @@ xstring_size_ptr qmimap4::Util::getContentFromBodyStructureAndBodies(const PartL
 {
 	BodyList::const_iterator itH = std::find_if(
 		listBody.begin(), listBody.end(),
-		unary_compose_f_gx(
-			std::mem_fun_ref(&FetchDataBody::PartPath::empty),
-			std::mem_fun(&FetchDataBody::getPartPath)));
+		boost::bind(&FetchDataBody::PartPath::empty,
+			boost::bind(&FetchDataBody::getPartPath, _1)));
 	if (itH == listBody.end())
 		return xstring_size_ptr();
 	
@@ -783,14 +784,9 @@ const CHAR* qmimap4::Util::getBoundaryFromBodyStructure(const FetchDataBodyStruc
 	
 	typedef FetchDataBodyStructure::ParamList ParamList;
 	const ParamList& l = pBodyStructure->getContentParams();
-	ParamList::const_iterator it = std::find_if(
-		l.begin(), l.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal_i<CHAR>(),
-				std::select1st<ParamList::value_type>(),
-				std::identity<const CHAR*>()),
-			"boundary"));
+	ParamList::const_iterator it = std::find_if(l.begin(), l.end(),
+		boost::bind(string_equal_i<CHAR>(),
+			boost::bind(&ParamList::value_type::first, _1), "boundary"));
 	return it != l.end() ? (*it).second : 0;
 }
 
@@ -870,9 +866,8 @@ qmimap4::Util::PartListDeleter::PartListDeleter(Util::PartList& l) :
 qmimap4::Util::PartListDeleter::~PartListDeleter()
 {
 	std::for_each(l_.begin(), l_.end(),
-		unary_compose_f_gx(
-			PathFree()/*std::ptr_fun(free)*/,
-			std::select2nd<Util::PartList::value_type>()));
+		boost::bind(PathFree(),
+			boost::bind(&Util::PartList::value_type::second, _1)));
 	l_.clear();
 }
 

@@ -16,6 +16,8 @@
 #include <qsosutil.h>
 #include <qsstream.h>
 
+#include <boost/bind.hpp>
+
 #include <tchar.h>
 
 #include "externaleditor.h"
@@ -210,10 +212,8 @@ void qm::ExternalEditorManager::WaitThread::run()
 			Lock<CriticalSection> lock(pManager_->cs_);
 			listHandle.resize(pManager_->listItem_.size() + 1);
 			listHandle[0] = pManager_->pEvent_->getHandle();
-			std::transform(pManager_->listItem_.begin(),
-				pManager_->listItem_.end(),
-				listHandle.begin() + 1,
-				mem_data_ref(&Item::hProcess_));
+			std::transform(pManager_->listItem_.begin(), pManager_->listItem_.end(),
+				listHandle.begin() + 1, boost::bind(&Item::hProcess_, _1));
 		}
 		
 		DWORD dw = ::WaitForMultipleObjects(static_cast<DWORD>(listHandle.size()),
@@ -240,12 +240,7 @@ void qm::ExternalEditorManager::WaitThread::run()
 				Lock<CriticalSection> lock(pManager_->cs_);
 				ItemList::iterator it = std::find_if(
 					pManager_->listItem_.begin(), pManager_->listItem_.end(),
-					std::bind2nd(
-						binary_compose_f_gx_hy(
-							std::equal_to<HANDLE>(),
-							mem_data_ref(&Item::hProcess_),
-							std::identity<HANDLE>()),
-						handle));
+					boost::bind(&Item::hProcess_, _1) == handle);
 				assert(it != pManager_->listItem_.end());
 				
 				Item& item = *it;

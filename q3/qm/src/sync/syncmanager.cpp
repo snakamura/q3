@@ -270,9 +270,8 @@ qm::StaticSyncData::StaticSyncData(Document* pDocument,
 qm::StaticSyncData::~StaticSyncData()
 {
 	std::for_each(listItem_.begin(), listItem_.end(),
-		unary_compose_f_gx(
-			deleter<SyncItem>(),
-			std::select2nd<SlotItemList::value_type>()));
+		boost::bind(deleter<SyncItem>(),
+			boost::bind(&SlotItemList::value_type::second, _1)));
 }
 
 void qm::StaticSyncData::getItems(ItemListList* pList)
@@ -406,9 +405,8 @@ void qm::SyncManager::dispose()
 	}
 	
 	std::for_each(listSyncingFolder_.begin(), listSyncingFolder_.end(),
-		unary_compose_f_gx(
-			deleter<Event>(),
-			std::select2nd<SyncingFolderList::value_type>()));
+		boost::bind(deleter<Event>(),
+			boost::bind(&SyncingFolderList::value_type::second, _1)));
 	
 	pProfile_ = 0;
 	pSyncFilterManager_.reset(0);

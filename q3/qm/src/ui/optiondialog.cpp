@@ -5148,10 +5148,9 @@ void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
 	if (pAccount) {
 		Account::SubAccountList l(pAccount->getSubAccounts());
 		std::sort(l.begin(), l.end(),
-			binary_compose_f_gx_hy(
-				string_less_i<WCHAR>(),
-				std::mem_fun(&SubAccount::getName),
-				std::mem_fun(&SubAccount::getName)));
+			boost::bind(string_less_i<WCHAR>(),
+				boost::bind(&SubAccount::getName, _1),
+				boost::bind(&SubAccount::getName, _2)));
 		for (Account::SubAccountList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			SubAccount* pSubAccount = *it;
 			if (*pSubAccount->getName()) {

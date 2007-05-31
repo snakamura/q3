@@ -12,6 +12,8 @@
 #include <qsconv.h>
 #include <qsmenu.h>
 
+#include <boost/bind.hpp>
+
 #include <commctrl.h>
 #include <tchar.h>
 
@@ -59,12 +61,8 @@ const Toolbar* qs::ToolbarManagerImpl::getToolbar(const WCHAR* pwszName) const
 {
 	ToolbarList::const_iterator it = std::find_if(
 		listToolbar_.begin(), listToolbar_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&Toolbar::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&Toolbar::getName, _1), pwszName));
 	return it != listToolbar_.end() ? *it : 0;
 }
 
@@ -621,10 +619,9 @@ const ActionItem* qs::ToolbarContentHandler::getActionItem(const WCHAR* pwszActi
 	
 	const ActionItem* pItem = std::lower_bound(
 		pActionItem_, pActionItem_ + nActionItemCount_, item,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			mem_data_ref(&ActionItem::pwszAction_),
-			mem_data_ref(&ActionItem::pwszAction_)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&ActionItem::pwszAction_, _1),
+			boost::bind(&ActionItem::pwszAction_, _2)));
 	if (pItem == pActionItem_ + nActionItemCount_ ||
 		wcscmp(pItem->pwszAction_, pwszAction) != 0 ||
 		(pItem->nFlags_ != 0 && !(pItem->nFlags_ & ActionItem::FLAG_TOOLBAR)))

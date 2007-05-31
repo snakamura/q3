@@ -8,7 +8,7 @@
 
 #ifdef QMTABWINDOW
 
-#pragma warning(disable:4786)
+#pragma warning(disable:4786 4180)
 
 #include <qmaccount.h>
 #include <qmdocument.h>
@@ -16,6 +16,8 @@
 #include <qsassert.h>
 
 #include <algorithm>
+
+#include <boost/bind.hpp>
 
 #include "tabmodel.h"
 #include "../util/confighelper.h"
@@ -555,14 +557,8 @@ int qm::DefaultTabModel::getItem(Account* pAccount) const
 {
 	ItemList::const_iterator it = std::find_if(
 		listItem_.begin(), listItem_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Account*>(),
-				unary_compose_f_gx(
-					std::select1st<std::pair<Account*, Folder*> >(),
-					std::mem_fun(&TabItem::get)),
-				std::identity<Account*>()),
-			pAccount));
+		boost::bind(&std::pair<Account*, Folder*>::first,
+			boost::bind(&TabItem::get, _1)) == pAccount);
 	return it != listItem_.end() ? static_cast<int>(it - listItem_.begin()) : -1;
 }
 
@@ -570,14 +566,8 @@ int qm::DefaultTabModel::getItem(Folder* pFolder) const
 {
 	ItemList::const_iterator it = std::find_if(
 		listItem_.begin(), listItem_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Folder*>(),
-				unary_compose_f_gx(
-					std::select2nd<std::pair<Account*, Folder*> >(),
-					std::mem_fun(&TabItem::get)),
-				std::identity<Folder*>()),
-			pFolder));
+		boost::bind(&std::pair<Account*, Folder*>::second,
+			boost::bind(&TabItem::get, _1)) == pFolder);
 	return it != listItem_.end() ? static_cast<int>(it - listItem_.begin()) : -1;
 }
 
@@ -602,12 +592,7 @@ void qm::DefaultTabModel::resetHandlers(Account* pOldAccount,
 	if (pOldAccount) {
 		AccountList::iterator it = std::find_if(
 			listHandledAccount_.begin(), listHandledAccount_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Account*>(),
-					std::select1st<AccountList::value_type>(),
-					std::identity<Account*>()),
-				pOldAccount));
+			boost::bind(&AccountList::value_type::first, _1) == pOldAccount);
 		assert(it != listHandledAccount_.end());
 		if (--(*it).second == 0) {
 			pOldAccount->removeAccountHandler(this);
@@ -621,12 +606,7 @@ void qm::DefaultTabModel::resetHandlers(Account* pOldAccount,
 	if (pNewAccount) {
 		AccountList::iterator it = std::find_if(
 			listHandledAccount_.begin(), listHandledAccount_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Account*>(),
-					std::select1st<AccountList::value_type>(),
-					std::identity<Account*>()),
-				pNewAccount));
+			boost::bind(&AccountList::value_type::first, _1) == pNewAccount);
 		if (it != listHandledAccount_.end()) {
 			++(*it).second;
 		}

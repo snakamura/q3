@@ -11,6 +11,8 @@
 #include <qsconv.h>
 #include <qsfile.h>
 
+#include <boost/bind.hpp>
+
 #include "groups.h"
 #include "nntp.h"
 
@@ -105,10 +107,9 @@ void qmnntp::Groups::add(std::auto_ptr<Group> pGroup)
 {
 	GroupList::iterator it = std::lower_bound(
 		listGroup_.begin(), listGroup_.end(), pGroup.get(),
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::mem_fun(&Group::getName),
-			std::mem_fun(&Group::getName)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&Group::getName, _1),
+			boost::bind(&Group::getName, _2)));
 	if (it != listGroup_.end() && wcscmp((*it)->getName(), pGroup->getName()) == 0)
 		return;
 	

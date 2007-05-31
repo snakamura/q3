@@ -348,10 +348,8 @@ void qm::FolderConditionPage::initDriver()
 		}
 	}
 	std::sort(listUI_.begin(), listUI_.end(),
-		binary_compose_f_gx_hy(
-			std::less<int>(),
-			std::mem_fun(&SearchUI::getIndex),
-			std::mem_fun(&SearchUI::getIndex)));
+		boost::bind(&SearchUI::getIndex, _1) <
+		boost::bind(&SearchUI::getIndex, _2));
 	int nIndex = 0;
 	for (UIList::size_type n = 0; n < listUI_.size(); ++n) {
 		SearchUI* pUI = listUI_[n];

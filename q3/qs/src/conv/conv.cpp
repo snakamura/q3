@@ -21,6 +21,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #ifdef QS_KCONVERT
 #	include <kctrl.h>
 #endif
@@ -324,10 +326,9 @@ const WCHAR* qs::ConverterFactoryImpl::lookupAlias(const WCHAR* pwszAlias)
 	AliasMap::value_type alias(const_cast<WSTRING>(pwszAlias), 0);
 	AliasMap::const_iterator it = std::lower_bound(
 		mapAlias__.begin(), mapAlias__.end(), alias,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::select1st<AliasMap::value_type>(),
-			std::select1st<AliasMap::value_type>()));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&AliasMap::value_type::first, _1),
+			boost::bind(&AliasMap::value_type::first, _2)));
 	return it != mapAlias__.end() && wcscmp((*it).first, pwszAlias) == 0? (*it).second : 0;
 }
 
@@ -409,10 +410,9 @@ void qs::ConverterFactory::addAlias(const WCHAR* pwszAlias,
 	AliasMap::iterator it = std::lower_bound(
 		ConverterFactoryImpl::mapAlias__.begin(),
 		ConverterFactoryImpl::mapAlias__.end(), alias,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::select1st<AliasMap::value_type>(),
-			std::select1st<AliasMap::value_type>()));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&AliasMap::value_type::first, _1),
+			boost::bind(&AliasMap::value_type::first, _2)));
 	if (it != ConverterFactoryImpl::mapAlias__.end() &&
 		wcscmp((*it).first, pwszAlias) == 0)
 		return;

@@ -306,14 +306,8 @@ LRESULT qm::HeaderWindow::onCtlColorStatic(HDC hdc,
 	typedef HeaderWindowImpl::TextHeaderItemCallbackList List;
 	const List& l = pImpl_->listTextHeaderItemCallback_;
 	List::const_iterator it = std::find_if(l.begin(), l.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<HWND>(),
-				unary_compose_f_gx(
-					std::mem_fun(&TextHeaderItem::getHandle),
-					std::select1st<List::value_type>()),
-				std::identity<HWND>()),
-			hwnd));
+		boost::bind(&TextHeaderItem::getHandle,
+			boost::bind(&List::value_type::first, _1)) == hwnd);
 	if (it != l.end())
 		hbr = (*it).second->getColor(&dc);
 	
@@ -369,9 +363,7 @@ qm::HeaderLine::HeaderLine(const WCHAR* pwszHideIfEmpty,
 qm::HeaderLine::~HeaderLine()
 {
 	std::for_each(listHide_.begin(), listHide_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<HideList::value_type>()));
+		boost::bind(&freeWString, boost::bind(&HideList::value_type::first, _1)));
 }
 
 void qm::HeaderLine::setMessage(const TemplateContext* pContext)

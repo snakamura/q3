@@ -107,12 +107,8 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 	}
 	
 	ItemList::iterator it = std::find_if(listItem_.begin(), listItem_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&Item::getPath),
-				std::identity<const WCHAR*>()),
-			wstrPath.get()));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&Item::getPath, _1), wstrPath.get()));
 	if (it != listItem_.end()) {
 		Item* pItem = *it;
 		if (::CompareFileTime(&fd.ftLastWriteTime, &pItem->getFileTime()) == 0) {

@@ -147,9 +147,8 @@ ProcessHook::Result qmimap4::AbstractPartialMessageProcessHook::processFetchResp
 					const FetchDataBody::PartPath& path = pBody->getPartPath();
 					PartList::const_iterator part = std::find_if(
 						listPart.begin(), listPart.end(),
-						unary_compose_f_gx(
-							PathEqual(&path[0], path.size()),
-							std::select2nd<PartList::value_type>()));
+						boost::bind(PathEqual(&path[0], path.size()),
+							boost::bind(&PartList::value_type::second, _1)));
 					bAdd = part != listPart.end();
 				}
 				if (bAdd)

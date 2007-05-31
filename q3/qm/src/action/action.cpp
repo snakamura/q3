@@ -39,6 +39,9 @@
 #include <algorithm>
 
 #include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/construct.hpp>
+#include <boost/lambda/lambda.hpp>
 
 #ifndef _WIN32_WCE
 #	include <shlwapi.h>
@@ -142,12 +145,8 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 	for (AttachmentSelectionModel::NameList::const_iterator itN = listName.begin(); itN != listName.end(); ++itN) {
 		AttachmentParser::AttachmentList::const_iterator itA = std::find_if(
 			listAttachment.begin(), listAttachment.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					string_equal<WCHAR>(),
-					std::select1st<AttachmentParser::AttachmentList::value_type>(),
-					std::identity<const WCHAR*>()),
-				*itN));
+			boost::bind(string_equal<WCHAR>(),
+				boost::bind(&AttachmentParser::AttachmentList::value_type::first, _1), *itN));
 		if (itA != listAttachment.end()) {
 			bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
 			if (helper_.open((*itA).second, *itN, bExternalEditor) == AttachmentParser::RESULT_FAIL) {
@@ -278,20 +277,12 @@ qm::DispatchAction::DispatchAction(View* pViews[],
 qm::DispatchAction::~DispatchAction()
 {
 	std::sort(listItem_.begin(), listItem_.end(),
-		binary_compose_f_gx_hy(
-			std::less<Action*>(),
-			mem_data_ref(&Item::pAction_),
-			mem_data_ref(&Item::pAction_)));
+		boost::bind(&Item::pAction_, _1) < boost::bind(&Item::pAction_, _2));
 	ItemList::iterator it = std::unique(
 		listItem_.begin(), listItem_.end(),
-		binary_compose_f_gx_hy(
-			std::equal_to<Action*>(),
-			mem_data_ref(&Item::pAction_),
-			mem_data_ref(&Item::pAction_)));
+		boost::bind(&Item::pAction_, _1) == boost::bind(&Item::pAction_, _2));
 	std::for_each(listItem_.begin(), it,
-		unary_compose_f_gx(
-			qs::deleter<Action>(),
-			mem_data_ref(&Item::pAction_)));
+		boost::bind(qs::deleter<Action>(), boost::bind(&Item::pAction_, _1)));
 }
 
 void qm::DispatchAction::invoke(const ActionEvent& event)
@@ -5024,14 +5015,8 @@ std::pair<Account*, bool> qm::MessageOpenURLAction::getAccount(const WCHAR* pwsz
 		}
 		else {
 			const AccountManager::AccountList& l = pDocument_->getAccounts();
-			AccountManager::AccountList::const_iterator it = std::find_if(
-				l.begin(), l.end(),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						string_equal<WCHAR>(),
-						std::mem_fun(&Account::getClass),
-						std::identity<const WCHAR*>()),
-					pwszClass));
+			AccountManager::AccountList::const_iterator it = std::find_if(l.begin(), l.end(),
+				boost::bind(string_equal<WCHAR>(), boost::bind(&Account::getClass, _1), pwszClass));
 			pAccount = it != l.end() ? *it : 0;
 		}
 		if (!pAccount)
@@ -5149,10 +5134,11 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 		
 		~Deleter()
 		{
+			using namespace boost::lambda;
+			using boost::lambda::_1;
 			std::for_each(l_.begin(), l_.end(),
-				unary_compose_fx_gx(
-					qs::deleter<SearchUI>(),
-					qs::deleter<SearchPropertyPage>()));
+				(bind(delete_ptr(), bind(&UIList::value_type::first, _1)),
+				 bind(delete_ptr(), bind(&UIList::value_type::second, _1))));
 		}
 		
 		UIList& l_;
@@ -5167,14 +5153,8 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 			listUI.push_back(UIList::value_type(pUI.release(), 0));
 	}
 	std::sort(listUI.begin(), listUI.end(),
-		binary_compose_f_gx_hy(
-			std::less<int>(),
-			unary_compose_f_gx(
-				std::mem_fun(&SearchUI::getIndex),
-				std::select1st<UIList::value_type>()),
-			unary_compose_f_gx(
-				std::mem_fun(&SearchUI::getIndex),
-				std::select1st<UIList::value_type>())));
+		boost::bind(&SearchUI::getIndex, boost::bind(&UIList::value_type::first, _1)) <
+		boost::bind(&SearchUI::getIndex, boost::bind(&UIList::value_type::first, _2)));
 	
 	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page"));
 	

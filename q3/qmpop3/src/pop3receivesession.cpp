@@ -64,7 +64,7 @@ qmpop3::Pop3ReceiveSession::Pop3ReceiveSession() :
 
 qmpop3::Pop3ReceiveSession::~Pop3ReceiveSession()
 {
-	std::for_each(listUID_.begin(), listUID_.end(), string_free<WSTRING>());
+	std::for_each(listUID_.begin(), listUID_.end(), &freeWString);
 }
 
 bool qmpop3::Pop3ReceiveSession::init(Document* pDocument,

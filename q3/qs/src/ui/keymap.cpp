@@ -154,17 +154,10 @@ WORD qs::KeyMapImpl::getKey(const WCHAR* pwszName)
 	assert(pwszName);
 	
 	Name name = { pwszName, 0 };
-#if 0
 	const Name* pName = std::lower_bound(names__, endof(names__), name,
 		boost::bind(string_less<WCHAR>(),
 			boost::bind(&Name::pwszName_, _1),
 			boost::bind(&Name::pwszName_, _2)));
-#else
-	const Name* pName = std::lower_bound(names__, endof(names__), name,
-		binary_compose_f_gx_hy(string_less<WCHAR>(),
-			mem_data_ref(&Name::pwszName_),
-			mem_data_ref(&Name::pwszName_)));
-#endif
 	return pName != endof(names__) && wcscmp(pName->pwszName_, pwszName) == 0 ? pName->nKey_ : -1;
 }
 
@@ -228,12 +221,8 @@ std::auto_ptr<Accelerator> qs::KeyMap::createAccelerator(AcceleratorFactory* pFa
 	
 	KeyMapImpl::ItemList::const_iterator it = std::find_if(
 		pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&KeyMapItem::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&KeyMapItem::getName, _1), pwszName));
 	
 	KeyMapItem::AccelList listAccel;
 	const KeyMapItem::AccelList& l = it != pImpl_->listItem_.end() ?
@@ -483,10 +472,9 @@ const ActionItem* qs::KeyMapContentHandler::getActionItem(const WCHAR* pwszActio
 	
 	const ActionItem* pItem = std::lower_bound(
 		pActionItem_, pActionItem_ + nActionItemCount_, item,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			mem_data_ref(&ActionItem::pwszAction_),
-			mem_data_ref(&ActionItem::pwszAction_)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&ActionItem::pwszAction_, _1),
+			boost::bind(&ActionItem::pwszAction_, _2)));
 	if (pItem == pActionItem_ + nActionItemCount_ ||
 		wcscmp(pItem->pwszAction_, pwszAction) != 0 ||
 		(pItem->nFlags_ != 0 && !(pItem->nFlags_ & ActionItem::FLAG_ACCELERATOR)))

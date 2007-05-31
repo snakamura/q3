@@ -13,6 +13,8 @@
 
 #include <vector>
 
+#include <boost/bind.hpp>
+
 namespace qm {
 
 class MessageHolder;
@@ -52,12 +54,8 @@ void makeParentLink(Account* pAccount,
 	}
 	
 	List listSortedByMessageIdHash(l);
-	std::sort(listSortedByMessageIdHash.begin(),
-		listSortedByMessageIdHash.end(),
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			getMessageIdHash,
-			getMessageIdHash));
+	std::sort(listSortedByMessageIdHash.begin(), listSortedByMessageIdHash.end(),
+		boost::bind(getMessageIdHash, _1) < boost::bind(getMessageIdHash, _2));
 	
 	List listSortedByPointer(l);
 	std::sort(listSortedByPointer.begin(), listSortedByPointer.end());
@@ -88,10 +86,7 @@ void makeItemParentLink(const List& listSortedByMessageIdHash,
 			List::const_iterator it = std::lower_bound(
 				listSortedByMessageIdHash.begin(),
 				listSortedByMessageIdHash.end(), &findItem,
-				binary_compose_f_gx_hy(
-					std::less<unsigned int>(),
-					getMessageIdHash,
-					getMessageIdHash));
+				boost::bind(getMessageIdHash, _1) < boost::bind(getMessageIdHash, _2));
 			if  (it != listSortedByMessageIdHash.end() &&
 				getMessageHolder(*it)->getMessageIdHash() == nReferenceHash) {
 				bool bFound = false;

@@ -15,7 +15,10 @@
 #include <qsosutil.h>
 #include <qsthread.h>
 
-#include <stdio.h>
+#include <cstdio>
+
+#include <boost/bind.hpp>
+
 #include <tchar.h>
 
 #include "messageindex.h"
@@ -513,7 +516,7 @@ void qm::MultiMessageStoreImpl::freeUnrefered(const MessageStore::DataList& list
 	List l;
 	l.resize(listData.size());
 	std::transform(listData.begin(), listData.end(),
-		l.begin(), mem_data_ref(&MessageStore::Data::nOffset_));
+		l.begin(), boost::bind(&MessageStore::Data::nOffset_, _1));
 	std::sort(l.begin(), l.end());
 	
 	List::const_iterator it = l.begin();
@@ -765,7 +768,7 @@ bool qm::MultiMessageStore::salvage(const DataList& listData,
 	List l;
 	l.resize(listData.size());
 	std::transform(listData.begin(), listData.end(),
-		l.begin(), mem_data_ref(&Data::nOffset_));
+		l.begin(), boost::bind(&Data::nOffset_, _1));
 	std::sort(l.begin(), l.end());
 	
 	List::const_iterator it = l.begin();

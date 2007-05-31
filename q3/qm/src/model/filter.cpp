@@ -56,12 +56,8 @@ const Filter* qm::FilterManager::getFilter(const WCHAR* pwszName)
 	load();
 	FilterList::const_iterator it = std::find_if(
 		listFilter_.begin(), listFilter_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&Filter::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&Filter::getName, _1), pwszName));
 	return it != listFilter_.end() ? *it : 0;
 }
 

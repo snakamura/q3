@@ -293,7 +293,7 @@ qm::AutoCompleteListWindow::AutoCompleteListWindow(AutoCompleteEditSubclassWindo
 
 qm::AutoCompleteListWindow::~AutoCompleteListWindow()
 {
-	std::for_each(listCandidate_.begin(), listCandidate_.end(), qs::string_free<WSTRING>());
+	std::for_each(listCandidate_.begin(), listCandidate_.end(), &freeWString);
 }
 
 void qm::AutoCompleteListWindow::showCandidates(CandidateList& listCandidate,

@@ -24,6 +24,9 @@
 #include <algorithm>
 
 #include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/construct.hpp>
+#include <boost/lambda/lambda.hpp>
 
 #include "securitymodel.h"
 #include "viewmodel.h"
@@ -1172,12 +1175,7 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 				}
 			}
 			assert(std::find_if(listItem_.begin(), listItem_.end(),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						std::equal_to<ViewModelItem*>(),
-						std::mem_fun(&ViewModelItem::getParentItem),
-						std::identity<ViewModelItem*>()),
-					pItem)) == listItem_.end());
+				boost::bind(&ViewModelItem::getParentItem, _1) == pItem) == listItem_.end());
 		}
 		
 		ViewModelItem::deleteItem(*it, nCacheCount_);
@@ -1716,12 +1714,9 @@ qm::ViewModelManager::~ViewModelManager()
 {
 	pColorManager_->removeColorManagerHandler(this);
 	
-	std::for_each(listViewModel_.begin(),
-		listViewModel_.end(), deleter<ViewModel>());
+	std::for_each(listViewModel_.begin(), listViewModel_.end(), deleter<ViewModel>());
 	std::for_each(mapViewData_.begin(), mapViewData_.end(),
-		unary_compose_f_gx(
-			deleter<ViewData>(),
-			std::select2nd<ViewDataMap::value_type>()));
+		boost::bind(deleter<ViewData>(), boost::bind(&ViewDataMap::value_type::second, _1)));
 }
 
 DefaultViewData* qm::ViewModelManager::getDefaultViewData() const
@@ -1813,14 +1808,8 @@ void qm::ViewModelManager::removeViewModelManagerHandler(ViewModelManagerHandler
 void qm::ViewModelManager::removeViewModel(ViewModel* pViewModel)
 {
 	Folder* pFolder = pViewModel->getFolder();
-	ViewDataMap::iterator itD = std::find_if(
-		mapViewData_.begin(), mapViewData_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Account*>(),
-				std::select1st<ViewDataMap::value_type>(),
-				std::identity<Account*>()),
-			pFolder->getAccount()));
+	ViewDataMap::iterator itD = std::find_if(mapViewData_.begin(), mapViewData_.end(),
+		boost::bind(&ViewDataMap::value_type::first, _1) == pFolder->getAccount());
 	if (itD != mapViewData_.end())
 		(*itD).second->removeItem(pFolder->getId());
 	
@@ -1851,14 +1840,8 @@ void qm::ViewModelManager::accountDestroyed(const AccountEvent& event)
 		}
 	}
 	
-	ViewDataMap::iterator itD = std::find_if(
-		mapViewData_.begin(), mapViewData_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Account*>(),
-				std::select1st<ViewDataMap::value_type>(),
-				std::identity<Account*>()),
-			pAccount));
+	ViewDataMap::iterator itD = std::find_if(mapViewData_.begin(), mapViewData_.end(),
+		boost::bind(&ViewDataMap::value_type::first, _1) == pAccount);
 	if (itD != mapViewData_.end()) {
 		delete (*itD).second;
 		mapViewData_.erase(itD);
@@ -1902,14 +1885,8 @@ ViewDataItem* qm::ViewModelManager::getViewDataItem(Folder* pFolder)
 	
 	ViewData* pViewData = 0;
 	Account* pAccount = pFolder->getAccount();
-	ViewDataMap::iterator it = std::find_if(
-		mapViewData_.begin(), mapViewData_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Account*>(),
-				std::select1st<ViewDataMap::value_type>(),
-				std::identity<Account*>()),
-			pAccount));
+	ViewDataMap::iterator it = std::find_if(mapViewData_.begin(), mapViewData_.end(),
+		boost::bind(&ViewDataMap::value_type::first, _1) == pAccount);
 	if (it != mapViewData_.end()) {
 		pViewData = (*it).second;
 	}
@@ -2149,13 +2126,8 @@ ViewDataItem* qm::ViewData::getItem(const Folder* pFolder)
 	unsigned int nId = pFolder->getId();
 	
 	ViewDataItem item(nId);
-	ItemList::iterator it = std::lower_bound(
-		listItem_.begin(), listItem_.end(),
-		&item,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			std::mem_fun(&ViewDataItem::getFolderId),
-			std::mem_fun(&ViewDataItem::getFolderId)));
+	ItemList::iterator it = std::lower_bound(listItem_.begin(), listItem_.end(), &item,
+		boost::bind(&ViewDataItem::getFolderId, _1) < boost::bind(&ViewDataItem::getFolderId, _2));
 	if (it != listItem_.end() && (*it)->getFolderId() == nId) {
 		return *it;
 	}
@@ -2195,13 +2167,8 @@ bool qm::ViewData::save() const
 
 void qm::ViewData::addItem(std::auto_ptr<ViewDataItem> pItem)
 {
-	ItemList::iterator it = std::lower_bound(
-		listItem_.begin(), listItem_.end(),
-		pItem.get(),
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			std::mem_fun(&ViewDataItem::getFolderId),
-			std::mem_fun(&ViewDataItem::getFolderId)));
+	ItemList::iterator it = std::lower_bound(listItem_.begin(), listItem_.end(), pItem.get(),
+		boost::bind(&ViewDataItem::getFolderId, _1) < boost::bind(&ViewDataItem::getFolderId, _2));
 	if (it == listItem_.end() || (*it)->getFolderId() != pItem->getFolderId()) {
 		listItem_.insert(it, pItem.get());
 		pItem.release();
@@ -2211,13 +2178,8 @@ void qm::ViewData::addItem(std::auto_ptr<ViewDataItem> pItem)
 void qm::ViewData::removeItem(unsigned int nFolderId)
 {
 	ViewDataItem item(nFolderId);
-	ItemList::iterator it = std::lower_bound(
-		listItem_.begin(), listItem_.end(),
-		&item,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			std::mem_fun(&ViewDataItem::getFolderId),
-			std::mem_fun(&ViewDataItem::getFolderId)));
+	ItemList::iterator it = std::lower_bound(listItem_.begin(), listItem_.end(), &item,
+		boost::bind(&ViewDataItem::getFolderId, _1) < boost::bind(&ViewDataItem::getFolderId, _2));
 	if (it != listItem_.end() && (*it)->getFolderId() == nFolderId) {
 		delete *it;
 		listItem_.erase(it);
@@ -2245,10 +2207,11 @@ qm::DefaultViewData::DefaultViewData(const WCHAR* pwszPath)
 
 qm::DefaultViewData::~DefaultViewData()
 {
+	using namespace boost::lambda;
+	using boost::lambda::_1;
 	std::for_each(listItem_.begin(), listItem_.end(),
-		unary_compose_fx_gx(
-			string_free<WSTRING>(),
-			qs::deleter<ViewDataItem>()));
+		(bind(&freeWString, bind(&ItemList::value_type::first, _1)),
+		 bind(delete_ptr(), bind(&ItemList::value_type::second, _1))));
 }
 
 const DefaultViewData::ItemList& qm::DefaultViewData::getItems() const
@@ -2258,14 +2221,9 @@ const DefaultViewData::ItemList& qm::DefaultViewData::getItems() const
 
 ViewDataItem* qm::DefaultViewData::getItem(const WCHAR* pwszClass)
 {
-	ItemList::const_iterator it = std::find_if(
-		listItem_.begin(), listItem_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ItemList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszClass));
+	ItemList::const_iterator it = std::find_if(listItem_.begin(), listItem_.end(),
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ItemList::value_type::first, _1), pwszClass));
 	if (it == listItem_.end()) {
 		wstring_ptr wstrClass(allocWString(pwszClass));
 		std::auto_ptr<ViewDataItem> pItem(createDefaultItem());
@@ -2283,14 +2241,9 @@ void qm::DefaultViewData::setItem(const WCHAR* pwszClass,
 {
 	wstring_ptr wstrClass(allocWString(pwszClass));
 	
-	ItemList::iterator it = std::find_if(
-		listItem_.begin(), listItem_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ItemList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszClass));
+	ItemList::iterator it = std::find_if(listItem_.begin(), listItem_.end(),
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ItemList::value_type::first, _1), pwszClass));
 	if (it != listItem_.end()) {
 		freeWString((*it).first);
 		delete (*it).second;

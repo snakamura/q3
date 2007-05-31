@@ -181,7 +181,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 		
 		~Deleter()
 		{
-			std::for_each(v_.begin(), v_.end(), string_free<STRING>());
+			std::for_each(v_.begin(), v_.end(), &freeString);
 		}
 		
 		std::vector<STRING>& v_;

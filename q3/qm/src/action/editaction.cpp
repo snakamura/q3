@@ -24,6 +24,8 @@
 #include <algorithm>
 #include <functional>
 
+#include <boost/bind.hpp>
+
 #include <commdlg.h>
 
 #include "action.h"
@@ -757,12 +759,10 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 		pEditMessage->getAttachments(&l);
 		EditMessage::AttachmentList::const_iterator it = std::find_if(
 			l.begin(), l.end(),
-			unary_compose_f_gx_hx(
-				std::logical_and<bool>(),
-				mem_data_ref(&EditMessage::Attachment::bNew_),
-				unary_compose_f_gx(
-					std::bind1st(std::mem_fun(&MessageComposer::isAttachmentArchiving), &composer_),
-					mem_data_ref(&EditMessage::Attachment::wstrName_))));
+			boost::bind(std::logical_and<bool>(),
+				boost::bind(&EditMessage::Attachment::bNew_, _1),
+				boost::bind(&MessageComposer::isAttachmentArchiving, &composer_,
+					boost::bind(&EditMessage::Attachment::wstrName_, _1))));
 		if (it != l.end()) {
 			const WCHAR* pwszArchive = pEditMessage->getArchiveName();
 			wstring_ptr wstrArchive;

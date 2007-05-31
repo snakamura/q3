@@ -1251,10 +1251,9 @@ const ActionItem* qm::MacroMenuCreator::getActionItem(const WCHAR* pwszAction) c
 	
 	const ActionItem* pItem = std::lower_bound(
 		pActionItem_, pActionItem_ + nActionItemCount_, item,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			mem_data_ref(&ActionItem::pwszAction_),
-			mem_data_ref(&ActionItem::pwszAction_)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&ActionItem::pwszAction_, _1),
+			boost::bind(&ActionItem::pwszAction_, _2)));
 	if (pItem == pActionItem_ + nActionItemCount_ ||
 		wcscmp(pItem->pwszAction_, pwszAction) != 0 ||
 		(pItem->nFlags_ != 0 && !(pItem->nFlags_ & ActionItem::FLAG_MENU)))
@@ -1412,14 +1411,9 @@ DynamicMenuCreator* qm::MenuCreatorList::get(const qs::DynamicMenuItem* pItem) c
 		return pMacroMenuCreator_.get();
 	}
 	else {
-		List::const_iterator it = std::find_if(
-			list_.begin(), list_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					string_equal<WCHAR>(),
-					std::mem_fun(&MenuCreator::getName),
-					std::identity<const WCHAR*>()),
-				pItem->getName()));
+		List::const_iterator it = std::find_if(list_.begin(), list_.end(),
+			boost::bind(string_equal<WCHAR>(),
+				boost::bind(&MenuCreator::getName, _1), pItem->getName()));
 		return it != list_.end() ? *it : 0;
 	}
 }

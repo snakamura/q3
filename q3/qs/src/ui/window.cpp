@@ -23,6 +23,9 @@
 #include <memory>
 #include <vector>
 
+#include <boost/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include <tchar.h>
 #ifdef _WIN32_WCE_PSPC
 #	include <aygshell.h>
@@ -1145,15 +1148,8 @@ void qs::WindowDestroy::process(HWND hwnd)
 		for (DestroyList::iterator itD = listDestroy_.begin(); itD != listDestroy_.end(); ) {
 			WindowList& l = (*itD).second;
 			
-			WindowList::const_iterator it = std::find_if(
-				l.begin(), l.end(),
-				std::not1(
-					std::bind2nd(
-						binary_compose_f_gx_hy(
-							std::equal_to<HWND>(),
-							std::identity<HWND>(),
-							std::identity<HWND>()),
-						0)));
+			using boost::lambda::_1;
+			WindowList::const_iterator it = std::find_if(l.begin(), l.end(), _1 != HWND(0));
 			if (it == l.end()) {
 				listDestroy.push_back((*itD).first);
 				itD = listDestroy_.erase(itD);
@@ -1165,8 +1161,8 @@ void qs::WindowDestroy::process(HWND hwnd)
 		
 		destroy(hwnd);
 		
-		for (WindowList::reverse_iterator it = listDestroy.rbegin(); it != listDestroy.rend(); ++it)
-			destroy(*it);
+		std::for_each(listDestroy.rbegin(), listDestroy.rend(),
+			boost::bind(&WindowDestroy::destroy, this, _1));
 	}
 }
 

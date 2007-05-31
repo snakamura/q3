@@ -21,6 +21,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #ifndef _WIN32_WCE
 #	define USES_IID_IDistList
 #	define USES_IID_IMailUser
@@ -140,10 +142,9 @@ const AddressBookEntry* qm::AddressBook::getEntry(const WCHAR* pwszAddress) cons
 	EntryMap::value_type v(const_cast<WSTRING>(pwszAddress), 0);
 	EntryMap::const_iterator it = std::lower_bound(
 		mapEntry_.begin(), mapEntry_.end(), v,
-		binary_compose_f_gx_hy(
-			string_less_i<WCHAR>(),
-			std::select1st<EntryMap::value_type>(),
-			std::select1st<EntryMap::value_type>()));
+		boost::bind(string_less_i<WCHAR>(),
+			boost::bind(&EntryMap::value_type::first, _1),
+			boost::bind(&EntryMap::value_type::first, _2)));
 	if (it == mapEntry_.end() || _wcsicmp((*it).first, pwszAddress) != 0)
 		return 0;
 	return (*it).second;
@@ -208,12 +209,8 @@ const AddressBookCategory* qm::AddressBook::getCategory(const WCHAR* pwszCategor
 	
 	CategoryList::iterator it = std::find_if(
 		listCategory_.begin(), listCategory_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&AddressBookCategory::getName),
-				std::identity<const WCHAR*>()),
-			pwszCategory));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&AddressBookCategory::getName, _1), pwszCategory));
 	if (it != listCategory_.end()) {
 		return *it;
 	}
@@ -329,10 +326,9 @@ void qm::AddressBook::prepareEntryMap() const
 				
 				EntryMap::iterator itM = std::lower_bound(
 					mapEntry_.begin(), mapEntry_.end(), v,
-					binary_compose_f_gx_hy(
-						string_less_i<WCHAR>(),
-						std::select1st<EntryMap::value_type>(),
-						std::select1st<EntryMap::value_type>()));
+					boost::bind(string_less_i<WCHAR>(),
+						boost::bind(&EntryMap::value_type::first, _1),
+						boost::bind(&EntryMap::value_type::first, _2)));
 				if (itM == mapEntry_.end() || _wcsicmp((*itM).first, v.first) != 0) {
 					mapEntry_.insert(itM, v);
 					wstrAddress.release();
@@ -345,9 +341,7 @@ void qm::AddressBook::prepareEntryMap() const
 void qm::AddressBook::clearEntryMap()
 {
 	std::for_each(mapEntry_.begin(), mapEntry_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<EntryMap::value_type>()));
+		boost::bind(&freeWString, boost::bind(&EntryMap::value_type::first, _1)));
 	mapEntry_.clear();
 }
 
@@ -436,12 +430,8 @@ const AddressBookAddress* qm::AddressBookEntry::getAddress(const WCHAR* pwszAddr
 	
 	AddressList::const_iterator it = std::find_if(
 		listAddress_.begin(), listAddress_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal_i<WCHAR>(),
-				std::mem_fun(&AddressBookAddress::getAddress),
-				std::identity<const WCHAR*>()),
-			pwszAddress));
+		boost::bind(string_equal_i<WCHAR>(),
+			boost::bind(&AddressBookAddress::getAddress, _1), pwszAddress));
 	return it != listAddress_.end() ? *it : 0;
 }
 
@@ -1991,9 +1981,7 @@ bool qm::PocketOutlookAddressBook::load(AddressBook* pAddressBook)
 		~Deleter()
 		{
 			std::for_each(m_.begin(), m_.end(),
-				unary_compose_f_gx(
-					string_free<WSTRING>(),
-					std::select2nd<Map::value_type>()));
+				boost::bind(&freeWString, boost::bind(&Map::value_type::second, _1)));
 		}
 		Map& m_;
 	} deleter(mapCategory);
@@ -2041,10 +2029,8 @@ bool qm::PocketOutlookAddressBook::load(AddressBook* pAddressBook)
 	}
 	
 	std::sort(mapCategory.begin(), mapCategory.end(),
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			std::select1st<CategoryMap::value_type>(),
-			std::select1st<CategoryMap::value_type>()));
+		boost::bind(&CategoryMap::value_type::first, _1) <
+		boost::bind(&CategoryMap::value_type::first, _2));
 	
 	DWORD dwIndex = 0;
 	::CeSeekDatabase(hContactsDB_, CEDB_SEEK_BEGINNING, 0, &dwIndex);
@@ -2114,10 +2100,8 @@ bool qm::PocketOutlookAddressBook::load(AddressBook* pAddressBook)
 							CategoryMap::const_iterator it = std::lower_bound(
 								mapCategory.begin(), mapCategory.end(),
 								CategoryMap::value_type(nId, 0),
-								binary_compose_f_gx_hy(
-									std::less<unsigned int>(),
-									std::select1st<CategoryMap::value_type>(),
-									std::select1st<CategoryMap::value_type>()));
+								boost::bind(&CategoryMap::value_type::first, _1) <
+								boost::bind(&CategoryMap::value_type::first, _2));
 							if (it != mapCategory.end() && (*it).first == nId)
 								listCategory.push_back(pAddressBook->getCategory((*it).second));
 						}

@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 
+#include <boost/bind.hpp>
+
 using namespace qs;
 
 
@@ -70,10 +72,8 @@ qs::AbstractAccelerator::AbstractAccelerator(const ACCEL* pAccel,
 			AbstractAcceleratorImpl::IdKeyMap::value_type(
 				pAccel->cmd, MAKELONG(pAccel->key, pAccel->fVirt)));
 	std::sort(pImpl_->mapIdToKey_.begin(), pImpl_->mapIdToKey_.end(),
-		binary_compose_f_gx_hy(
-			std::less<AbstractAcceleratorImpl::IdKeyMap::value_type::first_type>(),
-			std::select1st<AbstractAcceleratorImpl::IdKeyMap::value_type>(),
-			std::select1st<AbstractAcceleratorImpl::IdKeyMap::value_type>()));
+		boost::bind(&AbstractAcceleratorImpl::IdKeyMap::value_type::first, _1) <
+		boost::bind(&AbstractAcceleratorImpl::IdKeyMap::value_type::first, _2));
 }
 
 qs::AbstractAccelerator::~AbstractAccelerator()
@@ -87,10 +87,8 @@ wstring_ptr qs::AbstractAccelerator::getKeyFromId(UINT nId)
 	AbstractAcceleratorImpl::IdKeyMap::const_iterator it = std::lower_bound(
 		pImpl_->mapIdToKey_.begin(), pImpl_->mapIdToKey_.end(),
 		AbstractAcceleratorImpl::IdKeyMap::value_type(nId, 0),
-		binary_compose_f_gx_hy(
-			std::less<AbstractAcceleratorImpl::IdKeyMap::value_type::first_type>(),
-			std::select1st<AbstractAcceleratorImpl::IdKeyMap::value_type>(),
-			std::select1st<AbstractAcceleratorImpl::IdKeyMap::value_type>()));
+		boost::bind(&AbstractAcceleratorImpl::IdKeyMap::value_type::first, _1) <
+		boost::bind(&AbstractAcceleratorImpl::IdKeyMap::value_type::first, _2));
 	if (it == pImpl_->mapIdToKey_.end() || (*it).first != nId)
 		return 0;
 	
@@ -255,10 +253,8 @@ qs::CustomAccelerator::CustomAccelerator(const ACCEL* pAccel,
 			CustomAcceleratorImpl::AccelMap::value_type(nKey, pAccel->cmd));
 	}
 	std::sort(pImpl_->mapAccel_.begin(), pImpl_->mapAccel_.end(),
-		binary_compose_f_gx_hy(
-			std::less<CustomAcceleratorImpl::AccelMap::value_type::first_type>(),
-			std::select1st<CustomAcceleratorImpl::AccelMap::value_type>(),
-			std::select1st<CustomAcceleratorImpl::AccelMap::value_type>()));
+		boost::bind(&CustomAcceleratorImpl::AccelMap::value_type::first, _1) <
+		boost::bind(&CustomAcceleratorImpl::AccelMap::value_type::first, _2));
 }
 
 qs::CustomAccelerator::~CustomAccelerator()
@@ -291,10 +287,8 @@ bool qs::CustomAccelerator::translateAccelerator(HWND hwnd,
 	CustomAcceleratorImpl::AccelMap::iterator it = std::lower_bound(
 		pImpl_->mapAccel_.begin(), pImpl_->mapAccel_.end(),
 		CustomAcceleratorImpl::AccelMap::value_type(nKey, 0),
-		binary_compose_f_gx_hy(
-			std::less<CustomAcceleratorImpl::AccelMap::value_type::first_type>(),
-			std::select1st<CustomAcceleratorImpl::AccelMap::value_type>(),
-			std::select1st<CustomAcceleratorImpl::AccelMap::value_type>()));
+		boost::bind(&CustomAcceleratorImpl::AccelMap::value_type::first, _1) <
+		boost::bind(&CustomAcceleratorImpl::AccelMap::value_type::first, _2));
 	if (it == pImpl_->mapAccel_.end() || (*it).first != nKey)
 		return false;
 	::SendMessage(hwnd, WM_COMMAND, MAKEWPARAM((*it).second, 1), 0);

@@ -14,6 +14,8 @@
 #include <qsosutil.h>
 #include <qsthread.h>
 
+#include <boost/bind.hpp>
+
 #include "macro.h"
 #include "main.h"
 #include "obj.h"
@@ -1057,12 +1059,8 @@ STDMETHODIMP qmscript::MacroImpl::setVariable(BSTR bstrName,
 {
 	VariableList::iterator it = std::find_if(
 		listVariable_.begin(), listVariable_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<VariableList::value_type>(),
-				std::identity<const WCHAR*>()),
-			bstrName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&VariableList::value_type::first, _1), bstrName));
 	if (it != listVariable_.end()) {
 		::VariantClear(&(*it).second);
 		HRESULT hr = ::VariantCopy(&(*it).second, &var);
@@ -1114,12 +1112,8 @@ STDMETHODIMP qmscript::MacroImpl::getVariable(BSTR bstrName,
 	
 	VariableList::iterator it = std::find_if(
 		listVariable_.begin(), listVariable_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<VariableList::value_type>(),
-				std::identity<const WCHAR*>()),
-			bstrName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&VariableList::value_type::first, _1), bstrName));
 	if (it != listVariable_.end()) {
 		HRESULT hr = ::VariantCopy(pVar, &(*it).second);
 		if (FAILED(hr))
@@ -1133,12 +1127,8 @@ STDMETHODIMP qmscript::MacroImpl::removeVariable(BSTR bstrName)
 {
 	VariableList::iterator it = std::find_if(
 		listVariable_.begin(), listVariable_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<VariableList::value_type>(),
-				std::identity<const WCHAR*>()),
-			bstrName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&VariableList::value_type::first, _1), bstrName));
 	if (it != listVariable_.end()) {
 		freeWString((*it).first);
 		::VariantClear(&(*it).second);

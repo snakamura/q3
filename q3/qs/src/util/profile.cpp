@@ -18,6 +18,10 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include "profile.h"
 
 using namespace qs;
@@ -408,10 +412,11 @@ qs::AbstractTextProfile::AbstractTextProfile(const WCHAR* pwszPath,
 qs::AbstractTextProfile::~AbstractTextProfile()
 {
 	if (pImpl_) {
+		using namespace boost::lambda;
+		using boost::lambda::_1;
 		std::for_each(pImpl_->map_.begin(), pImpl_->map_.end(),
-			unary_compose_fx_gx(
-				string_free<WSTRING>(),
-				string_free<WSTRING>()));
+			(bind(&freeWString, bind(&Map::value_type::first, _1)),
+			 bind(&freeWString, bind(&Map::value_type::second, _1))));
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -846,9 +851,9 @@ bool qs::TextProfile::saveImpl(const WCHAR* pwszPath) const
 					EntryList::iterator it = std::lower_bound(
 						listEntry.begin(), listEntry.end(),
 						std::make_pair(wstrKey.get(), std::make_pair(static_cast<WCHAR*>(0), false)),
-						binary_compose_f_gx_hy(string_less<WCHAR>(),
-							std::select1st<EntryList::value_type>(),
-							std::select1st<EntryList::value_type>()));
+						boost::bind(string_less<WCHAR>(),
+							boost::bind(&EntryList::value_type::first, _1),
+							boost::bind(&EntryList::value_type::first, _2)));
 					if (it != listEntry.end() && wcscmp((*it).first, wstrKey.get()) == 0) {
 						pwszValue = (*it).second.first;
 						(*it).second.second = true;

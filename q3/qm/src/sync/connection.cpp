@@ -79,12 +79,8 @@ ConnectionFactoryImpl::FactoryList::iterator qm::ConnectionFactoryImpl::getItera
 {
 	return std::find_if(ConnectionFactoryImpl::listFactory__.begin(),
 		ConnectionFactoryImpl::listFactory__.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ConnectionFactoryImpl::FactoryList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&FactoryList::value_type::first, _1), pwszName));
 }
 
 

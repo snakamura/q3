@@ -8,6 +8,8 @@
 
 #pragma warning(disable:4786)
 
+#include <boost/bind.hpp>
+
 #include "messageindex.h"
 #include "messagestore.h"
 
@@ -43,9 +45,8 @@ qm::MessageIndex::~MessageIndex()
 		delete (*it).second;
 #else
 	std::for_each(map_.begin(), map_.end(),
-		unary_compose_f_gx(
-			deleter<MessageIndexItem>(),
-			std::select2nd<ItemMap::value_type>()));
+		boost::bind(deleter<MessageIndexItem>(),
+			boost::bind(&ItemMap::value_type::second, _1)));
 #endif
 	delete pNewLast_;
 }

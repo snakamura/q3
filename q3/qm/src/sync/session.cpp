@@ -132,12 +132,8 @@ ReceiveSessionFactoryImpl::FactoryList qm::ReceiveSessionFactoryImpl::listFactor
 ReceiveSessionFactoryImpl::FactoryList::iterator qm::ReceiveSessionFactoryImpl::getIterator(const WCHAR* pwszName)
 {
 	return std::find_if(listFactory__.begin(), listFactory__.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<FactoryList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&FactoryList::value_type::first, _1), pwszName));
 }
 
 
@@ -277,12 +273,8 @@ SendSessionFactoryImpl::FactoryList qm::SendSessionFactoryImpl::listFactory__;
 SendSessionFactoryImpl::FactoryList::iterator qm::SendSessionFactoryImpl::getIterator(const WCHAR* pwszName)
 {
 	return std::find_if(listFactory__.begin(), listFactory__.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<FactoryList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&FactoryList::value_type::first, _1), pwszName));
 }
 
 

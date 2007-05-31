@@ -17,6 +17,11 @@
 #include <cstdio>
 #include <memory>
 
+#include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/construct.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include "mime.h"
 
 using namespace qs;
@@ -995,7 +1000,7 @@ qs::MultipleUnstructuredParser::MultipleUnstructuredParser()
 
 qs::MultipleUnstructuredParser::~MultipleUnstructuredParser()
 {
-	std::for_each(listValue_.begin(), listValue_.end(), string_free<WSTRING>());
+	std::for_each(listValue_.begin(), listValue_.end(), &freeWString);
 }
 
 const MultipleUnstructuredParser::ValueList& qs::MultipleUnstructuredParser::getValues() const
@@ -2105,9 +2110,7 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 		void clear()
 		{
 			std::for_each(phrases_.begin(), phrases_.end(),
-				unary_compose_f_gx(
-					string_free<STRING>(),
-					std::select1st<Phrases::value_type>()));
+				boost::bind(&freeString, boost::bind(&Phrases::value_type::first, _1)));
 			phrases_.clear();
 		}
 		
@@ -2886,9 +2889,7 @@ qs::ReferencesParser::ReferencesParser(size_t nMax) :
 qs::ReferencesParser::~ReferencesParser()
 {
 	std::for_each(listReference_.begin(), listReference_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<ReferenceList::value_type>()));
+		boost::bind(&freeWString, boost::bind(&ReferenceList::value_type::first, _1)));
 }
 
 const ReferencesParser::ReferenceList& qs::ReferencesParser::getReferences() const
@@ -3065,10 +3066,11 @@ qs::ParameterFieldParser::ParameterFieldParser(size_t nMax) :
 
 qs::ParameterFieldParser::~ParameterFieldParser()
 {
+	using namespace boost::lambda;
+	using boost::lambda::_1;
 	std::for_each(listParameter_.begin(), listParameter_.end(),
-		unary_compose_fx_gx(
-			string_free<WSTRING>(),
-			string_free<WSTRING>()));
+		(bind(&freeWString, bind(&ParameterList::value_type::first, _1)),
+		 bind(&freeWString, bind(&ParameterList::value_type::second, _1))));
 }
 
 wstring_ptr qs::ParameterFieldParser::getParameter(const WCHAR* pwszName) const

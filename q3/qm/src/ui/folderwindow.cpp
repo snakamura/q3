@@ -291,12 +291,7 @@ HTREEITEM qm::FolderWindowImpl::getHandleFromFolder(Folder* pFolder) const
 	
 	FolderMap::const_iterator it = std::find_if(
 		mapFolder_.begin(), mapFolder_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Folder*>(),
-				std::select1st<FolderMap::value_type>(),
-				std::identity<Folder*>()),
-			pFolder));
+		boost::bind(&FolderMap::value_type::first, _1) == pFolder);
 	assert(it != mapFolder_.end());
 	return (*it).second;
 }
@@ -1145,12 +1140,7 @@ void qm::FolderWindowImpl::removeFolder(Folder* pFolder,
 	
 	FolderMap::iterator it = std::find_if(
 		mapFolder_.begin(), mapFolder_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Folder*>(),
-				std::select1st<FolderMap::value_type>(),
-				std::identity<Folder*>()),
-			pFolder));
+		boost::bind(&FolderMap::value_type::first, _1) == pFolder);
 	assert(it != mapFolder_.end());
 	
 	HTREEITEM hItem = (*it).second;

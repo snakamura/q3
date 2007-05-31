@@ -17,6 +17,8 @@
 #include <qstextutil.h>
 #include <qswindow.h>
 
+#include <boost/bind.hpp>
+
 #include <commdlg.h>
 #include <tchar.h>
 
@@ -153,9 +155,8 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 		~Deleter()
 		{
 			std::for_each(l_.begin(), l_.end(),
-				unary_compose_f_gx(
-					string_free<WSTRING>(),
-					mem_data_ref(&DetachDialog::Item::wstrName_)));
+				boost::bind(&freeWString,
+					boost::bind(&DetachDialog::Item::wstrName_, _1)));
 		}
 		DetachDialog::List& l_;
 	} deleter(list);

@@ -16,6 +16,8 @@
 #include <qsstl.h>
 #include <qsstream.h>
 
+#include <boost/bind.hpp>
+
 #include "feed.h"
 
 using namespace qmrss;
@@ -58,10 +60,9 @@ const Feed* qmrss::FeedList::getFeed(const WCHAR* pwszURL) const
 	Feed feed(pwszURL, Time::getCurrentTime());
 	List::const_iterator it = std::lower_bound(
 		list_.begin(), list_.end(), &feed,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::mem_fun(&Feed::getURL),
-			std::mem_fun(&Feed::getURL)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&Feed::getURL, _1),
+			boost::bind(&Feed::getURL, _2)));
 	return it != list_.end() && wcscmp((*it)->getURL(), pwszURL) == 0 ? *it : 0;
 }
 
@@ -72,10 +73,9 @@ void qmrss::FeedList::setFeed(std::auto_ptr<Feed> pFeed,
 	
 	List::iterator it = std::lower_bound(
 		list_.begin(), list_.end(), pFeed.get(),
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::mem_fun(&Feed::getURL),
-			std::mem_fun(&Feed::getURL)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&Feed::getURL, _1),
+			boost::bind(&Feed::getURL, _2)));
 	if (it != list_.end() && wcscmp((*it)->getURL(), pFeed->getURL()) == 0) {
 		if (nKeepDay != -1)
 			pFeed->merge(*it, Time::getCurrentTime().addDay(-nKeepDay));
@@ -183,10 +183,9 @@ bool qmrss::FeedList::load()
 void qmrss::FeedList::sortFeeds(List& l)
 {
 	std::sort(l.begin(), l.end(),
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::mem_fun(&Feed::getURL),
-			std::mem_fun(&Feed::getURL)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&Feed::getURL, _1),
+			boost::bind(&Feed::getURL, _2)));
 }
 
 
@@ -249,10 +248,9 @@ const FeedItem* qmrss::Feed::getItem(const WCHAR* pwszKey) const
 	FeedItem item(pwszKey, date);
 	ItemList::const_iterator it = std::lower_bound(
 		listItem_.begin(), listItem_.end(), &item,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::mem_fun(&FeedItem::getKey),
-			std::mem_fun(&FeedItem::getKey)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&FeedItem::getKey, _1),
+			boost::bind(&FeedItem::getKey, _2)));
 	return it != listItem_.end() && wcscmp((*it)->getKey(), pwszKey) == 0 ? *it : 0;
 }
 
@@ -260,10 +258,9 @@ void qmrss::Feed::addItem(std::auto_ptr<FeedItem> pItem)
 {
 	ItemList::iterator it = std::lower_bound(
 		listItem_.begin(), listItem_.end(), pItem.get(),
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::mem_fun(&FeedItem::getKey),
-			std::mem_fun(&FeedItem::getKey)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&FeedItem::getKey, _1),
+			boost::bind(&FeedItem::getKey, _2)));
 	if (it == listItem_.end() || wcscmp((*it)->getKey(), pItem->getKey()) != 0) {
 		listItem_.insert(it, pItem.get());
 		pItem.release();
@@ -310,10 +307,9 @@ void qmrss::Feed::setItems(ItemList& listItem)
 void qmrss::Feed::sortItems(ItemList& listItem)
 {
 	std::sort(listItem.begin(), listItem.end(),
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			std::mem_fun(&FeedItem::getKey),
-			std::mem_fun(&FeedItem::getKey)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&FeedItem::getKey, _1),
+			boost::bind(&FeedItem::getKey, _2)));
 }
 
 
@@ -368,9 +364,8 @@ qmrss::FeedManager::FeedManager()
 qmrss::FeedManager::~FeedManager()
 {
 	std::for_each(map_.begin(), map_.end(),
-		unary_compose_f_gx(
-			qs::deleter<FeedList>(),
-			std::select2nd<Map::value_type>()));
+		boost::bind(qs::deleter<FeedList>(),
+			boost::bind(&Map::value_type::second, _1)));
 }
 
 FeedList* qmrss::FeedManager::get(qm::Account* pAccount)
@@ -378,12 +373,7 @@ FeedList* qmrss::FeedManager::get(qm::Account* pAccount)
 	Lock<CriticalSection> lock(cs_);
 	
 	Map::iterator it = std::find_if(map_.begin(), map_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Account*>(),
-				std::select1st<Map::value_type>(),
-				std::identity<Account*>()),
-			pAccount));
+		boost::bind(&Map::value_type::first, _1) == pAccount);
 	if (it != map_.end())
 		return (*it).second;
 	

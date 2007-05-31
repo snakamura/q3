@@ -645,12 +645,8 @@ const HtmlContent* qm::HtmlContentManager::get(const WCHAR* pwszContentId) const
 {
 	ContentList::const_iterator it = std::find_if(
 		listContent_.begin(), listContent_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&HtmlContent::getContentId),
-				std::identity<const WCHAR*>()),
-			pwszContentId));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&HtmlContent::getContentId, _1), pwszContentId));
 	return it != listContent_.end() ? *it : 0;
 }
 

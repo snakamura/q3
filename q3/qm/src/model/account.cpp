@@ -32,6 +32,8 @@
 #include <algorithm>
 
 #include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
 
 #include "account.h"
 #include "messageindex.h"
@@ -505,13 +507,7 @@ bool qm::AccountImpl::removeMessages(NormalFolder* pFolder,
 	assert(pFolder);
 	assert(pThis_->isLocked());
 	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
+		boost::bind(&MessageHolder::getFolder, _1) != pFolder) == l.end());
 	
 	if (l.empty())
 		return true;
@@ -578,13 +574,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 	assert(pFolderTo);
 	assert(pThis_->isLocked());
 	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<NormalFolder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<NormalFolder*>()),
-				pFolderFrom))) == l.end());
+		boost::bind(&MessageHolder::getFolder, _1) != pFolderFrom) == l.end());
 	assert(pFolderFrom->getAccount() == pThis_);
 	
 	bool bMove = (nCopyFlags & Account::COPYFLAG_MOVE) != 0;
@@ -697,13 +687,7 @@ bool qm::AccountImpl::setMessagesFlags(NormalFolder* pFolder,
 	assert(pFolder);
 	assert(pThis_->isLocked());
 	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
+		boost::bind(&MessageHolder::getFolder, _1) != pFolder) == l.end());
 	
 	if (l.empty())
 		return true;
@@ -738,13 +722,7 @@ bool qm::AccountImpl::setMessagesLabel(NormalFolder* pFolder,
 	assert(pFolder);
 	assert(pThis_->isLocked());
 	assert(std::find_if(l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<Folder*>()),
-				pFolder))) == l.end());
+		boost::bind(&MessageHolder::getFolder, _1) != pFolder) == l.end());
 	
 	if (l.empty())
 		return true;
@@ -1045,15 +1023,8 @@ bool qm::AccountImpl::callByFolder(const MessageHolderList& l,
 		return true;
 	
 	NormalFolder* pFolder = l.front()->getFolder();
-	MessageHolderList::const_iterator it = std::find_if(
-		l.begin(), l.end(),
-		std::not1(
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<NormalFolder*>(),
-					std::mem_fun(&MessageHolder::getFolder),
-					std::identity<NormalFolder*>()),
-				pFolder)));
+	MessageHolderList::const_iterator it = std::find_if(l.begin(), l.end(),
+		boost::bind(&MessageHolder::getFolder, _1) != pFolder);
 	if (it == l.end()) {
 		if (!pCallback->callback(pFolder, l))
 			return false;
@@ -1061,10 +1032,8 @@ bool qm::AccountImpl::callByFolder(const MessageHolderList& l,
 	else {
 		MessageHolderList listSort(l);
 		std::sort(listSort.begin(), listSort.end(),
-			binary_compose_f_gx_hy(
-				std::less<NormalFolder*>(),
-				std::mem_fun(&MessageHolder::getFolder),
-				std::mem_fun(&MessageHolder::getFolder)));
+			boost::bind(&MessageHolder::getFolder, _1) <
+			boost::bind(&MessageHolder::getFolder, _2));
 		
 		MessageHolderList listCopy;
 		for (MessageHolderList::const_iterator it = listSort.begin(); it != listSort.end(); ) {
@@ -1338,12 +1307,8 @@ SubAccount* qm::Account::getSubAccount(const WCHAR* pwszName) const
 {
 	SubAccountList::const_iterator it = std::find_if(
 		pImpl_->listSubAccount_.begin(), pImpl_->listSubAccount_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&SubAccount::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&SubAccount::getName, _1), pwszName));
 	return it != pImpl_->listSubAccount_.end() ? *it : 0;
 }
 
@@ -1351,12 +1316,8 @@ SubAccount* qm::Account::getSubAccountByIdentity(const WCHAR* pwszIdentity) cons
 {
 	SubAccountList::const_iterator it = std::find_if(
 		pImpl_->listSubAccount_.begin(), pImpl_->listSubAccount_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&SubAccount::getIdentity),
-				std::identity<const WCHAR*>()),
-			pwszIdentity));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&SubAccount::getIdentity, _1), pwszIdentity));
 	return it != pImpl_->listSubAccount_.end() ? *it : 0;
 }
 
@@ -1454,34 +1415,18 @@ Folder* qm::Account::getFolder(Folder* pParent,
 {
 	FolderList::const_iterator it = std::find_if(
 		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
-		unary_compose_f_gx_hx(
-			std::logical_and<bool>(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<Folder*>(),
-					std::mem_fun(&Folder::getParentFolder),
-					std::identity<Folder*>()),
-				pParent),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					string_equal<WCHAR>(),
-					std::mem_fun(&Folder::getName),
-					std::identity<const WCHAR*>()),
-				pwszName)));
+		boost::bind(std::logical_and<bool>(),
+			boost::bind(&Folder::getParentFolder, _1) == pParent,
+			boost::bind(string_equal<WCHAR>(),
+				boost::bind(&Folder::getName, _1), pwszName)));
 	return it != pImpl_->listFolder_.end() ? *it : 0;
 }
 
 Folder* qm::Account::getFolderById(unsigned int nId) const
 {
 	const FolderList& l = pImpl_->listFolder_;
-	FolderList::const_iterator it = std::find_if(
-		l.begin(), l.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<unsigned int>(),
-				std::mem_fun(&Folder::getId),
-				std::identity<unsigned int>()),
-			nId));
+	FolderList::const_iterator it = std::find_if(l.begin(), l.end(),
+		boost::bind(&Folder::getId, _1) == nId);
 	return it != l.end() ? *it : 0;
 }
 
@@ -1489,15 +1434,12 @@ Folder* qm::Account::getFolderByBoxFlag(unsigned int nBoxFlag) const
 {
 	assert((nBoxFlag & ~Folder::FLAG_BOX_MASK) == 0);
 	
+	using namespace boost::lambda;
+	using boost::lambda::_1;
+	
 	const FolderList& l = pImpl_->listFolder_;
-	FolderList::const_iterator it = std::find_if(
-		l.begin(), l.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				contains<unsigned int>(),
-				std::mem_fun(&Folder::getFlags),
-				std::identity<unsigned int>()),
-			nBoxFlag));
+	FolderList::const_iterator it = std::find_if(l.begin(), l.end(),
+		bind(&Folder::getFlags, _1) & nBoxFlag);
 	if (it == l.end())
 		return 0;
 	
@@ -1514,14 +1456,8 @@ Folder* qm::Account::getFolderByParam(const WCHAR* pwszName,
 {
 	FolderList::const_iterator it = std::find_if(
 		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::bind2nd(
-					std::mem_fun(&Folder::getParam),
-					pwszName),
-				std::identity<const WCHAR*>()),
-			pwszValue));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&Folder::getParam, _1, pwszName), pwszValue));
 	return it != pImpl_->listFolder_.end() ? *it : 0;
 }
 
@@ -1543,26 +1479,14 @@ void qm::Account::getChildFolders(const Folder* pFolder,
 {
 	assert(pList);
 	
-	std::remove_copy_if(
-		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
-		std::back_inserter(*pList),
-		std::not1(std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<const Folder*>(),
-				std::mem_fun(&Folder::getParentFolder),
-				std::identity<const Folder*>()),
-			pFolder)));
+	std::remove_copy_if(pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
+		std::back_inserter(*pList), boost::bind(&Folder::getParentFolder, _1) != pFolder);
 }
 
 bool qm::Account::hasChildFolder(const Folder* pFolder) const
 {
-	return std::find_if(
-		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
-		std::bind2nd(binary_compose_f_gx_hy(
-			std::equal_to<const Folder*>(),
-			std::mem_fun(&Folder::getParentFolder),
-			std::identity<const Folder*>()),
-			pFolder)) != pImpl_->listFolder_.end();
+	return std::find_if(pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
+		boost::bind(&Folder::getParentFolder, _1) == pFolder) != pImpl_->listFolder_.end();
 }
 
 void qm::Account::getNormalFolders(const WCHAR* pwszName,
@@ -2482,34 +2406,17 @@ bool qm::Account::isIndexPrepared(const MessageHolder* pmh) const
 
 void qm::Account::prepareIndex(MessageHolderList& l)
 {
-#if 0
 	std::sort(l.begin(), l.end(),
-		boost::bind(std::less<unsigned int>(),
-			boost::bind(&MessageHolder::MessageIndexKey::nKey_,
-				boost::bind(&MessageHolder::getMessageIndexKey, _1)),
-			boost::bind(&MessageHolder::MessageIndexKey::nKey_,
-				boost::bind(&MessageHolder::getMessageIndexKey, _2))));
+		boost::bind(&MessageHolder::MessageIndexKey::nKey_,
+			boost::bind(&MessageHolder::getMessageIndexKey, _1)) <
+		boost::bind(&MessageHolder::MessageIndexKey::nKey_,
+			boost::bind(&MessageHolder::getMessageIndexKey, _2)));
 	std::for_each(l.begin(), l.end(),
 		boost::bind(&MessageIndex::prepare, pImpl_->pMessageIndex_.get(),
 			boost::bind(&MessageHolder::MessageIndexKey::nKey_,
 				boost::bind(&MessageHolder::getMessageIndexKey, _1)),
 			boost::bind(&MessageHolder::MessageIndexKey::nLength_,
 				boost::bind(&MessageHolder::getMessageIndexKey, _1))));
-#else
-	std::sort(l.begin(), l.end(),
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			unary_compose_f_gx(
-				mem_data_ref(&MessageHolder::MessageIndexKey::nKey_),
-				std::mem_fun(&MessageHolder::getMessageIndexKey)),
-			unary_compose_f_gx(
-				mem_data_ref(&MessageHolder::MessageIndexKey::nKey_),
-				std::mem_fun(&MessageHolder::getMessageIndexKey))));
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		const MessageHolder::MessageIndexKey& key = (*it)->getMessageIndexKey();
-		pImpl_->pMessageIndex_->prepare(key.nKey_, key.nLength_);
-	}
-#endif
 }
 
 void qm::Account::addAccountHandler(AccountHandler* pHandler)
@@ -2754,8 +2661,7 @@ void qm::Account::fireMessageHolderFlagsChanged(MessageHolder* pmh,
 	assert(isLocked());
 	
 	MessageHolderEvent event(pmh, nOldFlags, nNewFlags);
-	std::for_each(pImpl_->listMessageHolderHandler_.begin(),
-		pImpl_->listMessageHolderHandler_.end(),
+	std::for_each(pImpl_->listMessageHolderHandler_.begin(), pImpl_->listMessageHolderHandler_.end(),
 		boost::bind(&MessageHolderHandler::messageHolderFlagsChanged, _1, boost::cref(event)));
 }
 
@@ -2764,8 +2670,7 @@ void qm::Account::fireMessageHolderKeysChanged(MessageHolder* pmh)
 	assert(isLocked());
 	
 	MessageHolderEvent event(pmh);
-	std::for_each(pImpl_->listMessageHolderHandler_.begin(),
-		pImpl_->listMessageHolderHandler_.end(),
+	std::for_each(pImpl_->listMessageHolderHandler_.begin(), pImpl_->listMessageHolderHandler_.end(),
 		boost::bind(&MessageHolderHandler::messageHolderKeysChanged, _1, boost::cref(event)));
 }
 
@@ -2774,8 +2679,7 @@ void qm::Account::fireMessageHolderDestroyed(MessageHolder* pmh)
 	assert(isLocked());
 	
 	MessageHolderEvent event(pmh);
-	std::for_each(pImpl_->listMessageHolderHandler_.begin(),
-		pImpl_->listMessageHolderHandler_.end(),
+	std::for_each(pImpl_->listMessageHolderHandler_.begin(), pImpl_->listMessageHolderHandler_.end(),
 		boost::bind(&MessageHolderHandler::messageHolderDestroyed, _1, boost::cref(event)));
 }
 
@@ -3331,8 +3235,11 @@ qm::FolderContentHandler::FolderContentHandler(Account* pAccount,
 
 qm::FolderContentHandler::~FolderContentHandler()
 {
+	using namespace boost::lambda;
+	using boost::lambda::_1;
 	std::for_each(listParam_.begin(), listParam_.end(),
-		unary_compose_fx_gx(string_free<WSTRING>(), string_free<WSTRING>()));
+		(bind(&freeWString, bind(&Folder::ParamList::value_type::first, _1)),
+		 bind(&freeWString, bind(&Folder::ParamList::value_type::second, _1))));
 }
 
 bool qm::FolderContentHandler::startElement(const WCHAR* pwszNamespaceURI,
@@ -3676,12 +3583,7 @@ Folder* qm::FolderContentHandler::getFolder(unsigned int nId) const
 {
 	Account::FolderList::const_iterator it = std::find_if(
 		pList_->begin(), pList_->end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<unsigned int>(),
-				std::mem_fun(&Folder::getId),
-				std::identity<unsigned int>()),
-			nId));
+		boost::bind(&Folder::getId, _1) == nId);
 	return it != pList_->end() ? *it : 0;
 }
 

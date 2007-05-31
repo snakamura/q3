@@ -15,6 +15,8 @@
 
 #include <qsras.h>
 
+#include <boost/bind.hpp>
+
 #include <tchar.h>
 
 #include "accountdialog.h"
@@ -791,14 +793,10 @@ void qm::CreateAccountDialog::updateProtocols()
 void qm::CreateAccountDialog::clearProtocols()
 {
 	std::for_each(listReceiveProtocol_.begin(), listReceiveProtocol_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			mem_data_ref(&Protocol::wstrName_)));
+		boost::bind(&freeWString, boost::bind(&Protocol::wstrName_, _1)));
 	listReceiveProtocol_.clear();
 	std::for_each(listSendProtocol_.begin(), listSendProtocol_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			mem_data_ref(&Protocol::wstrName_)));
+		boost::bind(&freeWString, boost::bind(&Protocol::wstrName_, _1)));
 	listSendProtocol_.clear();
 }
 

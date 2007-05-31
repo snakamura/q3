@@ -308,10 +308,9 @@ LRESULT qm::AddAddressDialog::onInitDialog(HWND hwndFocus,
 		std::back_inserter(listEntry),
 		std::mem_fun(&AddressBookEntry::isExternal));
 	std::sort(listEntry.begin(), listEntry.end(),
-		binary_compose_f_gx_hy(
-			string_less_i<WCHAR>(),
-			std::mem_fun(&AddressBookEntry::getActualSortKey),
-			std::mem_fun(&AddressBookEntry::getActualSortKey)));
+		boost::bind(string_less_i<WCHAR>(),
+			boost::bind(&AddressBookEntry::getActualSortKey, _1),
+			boost::bind(&AddressBookEntry::getActualSortKey, _2)));
 	for (AddressBook::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
 		const AddressBookEntry* pEntry = *it;
 		W2T(pEntry->getName(), ptszName);
@@ -468,8 +467,7 @@ qm::SelectAddressDialog::SelectAddressDialog(AddressBook* pAddressBook,
 qm::SelectAddressDialog::~SelectAddressDialog()
 {
 	for (int n = 0; n < countof(listAddress_); ++n)
-		std::for_each(listAddress_[n].begin(),
-			listAddress_[n].end(), string_free<WSTRING>());
+		std::for_each(listAddress_[n].begin(), listAddress_[n].end(), &freeWString);
 }
 
 const SelectAddressDialog::AddressList& qm::SelectAddressDialog::getAddresses(Type type) const
@@ -970,9 +968,8 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 		~Deleter()
 		{
 			std::for_each(s_.begin(), s_.end(),
-				unary_compose_f_gx(
-					string_free<WSTRING>(),
-					std::select2nd<MenuStack::value_type>()));
+				boost::bind(&freeWString,
+					boost::bind(&MenuStack::value_type::second, _1)));
 		}
 		
 		MenuStack& s_;

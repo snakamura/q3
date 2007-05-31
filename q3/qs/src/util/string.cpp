@@ -486,8 +486,7 @@ qs::StringTokenizerImpl::StringTokenizerImpl()
 
 qs::StringTokenizerImpl::~StringTokenizerImpl()
 {
-	std::for_each(listToken_.begin(),
-		listToken_.end(), string_free<WSTRING>());
+	std::for_each(listToken_.begin(), listToken_.end(), &freeWString);
 }
 
 

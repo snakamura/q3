@@ -517,12 +517,7 @@ bool qmimap4::CopyOfflineJob::isCreateMessage(const WCHAR* pwszFolder,
 {
 	return wcscmp(pwszFolder, wstrFolderTo_.get()) == 0 &&
 		std::find_if(listItemTo_.begin(), listItemTo_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					std::equal_to<unsigned long>(),
-					mem_data_ref(&Item::nId_),
-					std::identity<unsigned long>()),
-				nId)) != listItemTo_.end();
+			boost::bind(&Item::nId_, _1) == nId) != listItemTo_.end();
 }
 
 bool qmimap4::CopyOfflineJob::merge(OfflineJob* pOfflineJob)
@@ -752,7 +747,7 @@ qmimap4::SetLabelOfflineJob::SetLabelOfflineJob(const WCHAR* pwszFolder,
 
 qmimap4::SetLabelOfflineJob::~SetLabelOfflineJob()
 {
-	std::for_each(listLabel_.begin(), listLabel_.end(), qs::string_free<WSTRING>());
+	std::for_each(listLabel_.begin(), listLabel_.end(), &freeWString);
 }
 
 OfflineJob::Type qmimap4::SetLabelOfflineJob::getType() const

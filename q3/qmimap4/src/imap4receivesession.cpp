@@ -20,6 +20,8 @@
 #include <cstdio>
 #include <functional>
 
+#include <boost/bind.hpp>
+
 #include "imap4.h"
 #include "imap4driver.h"
 #include "imap4error.h"
@@ -252,8 +254,8 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 			virtual ~UpdateFlagsProcessHook()
 			{
 				std::for_each(listMessageInfo_.begin(), listMessageInfo_.end(),
-					unary_compose_f_gx(qs::string_free<WSTRING>(),
-						mem_data_ref(&NormalFolder::MessageInfo::wstrLabel_)));
+					boost::bind(&freeWString,
+						boost::bind(&NormalFolder::MessageInfo::wstrLabel_, _1)));
 			}
 			
 			virtual Result processFetchResponse(ResponseFetch* pFetch)
@@ -700,12 +702,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			{
 				Imap4ReceiveSession::MessageDataList::iterator it = std::find_if(
 					listMessageData_.begin(), listMessageData_.end(),
-					std::bind2nd(
-						binary_compose_f_gx_hy(
-							std::equal_to<unsigned long>(),
-							std::mem_fun_ref(&MessageData::getId),
-							std::identity<unsigned long>()),
-						nUid));
+					boost::bind(&MessageData::getId, _1) == nUid);
 				if (it != listMessageData_.end()) {
 					listBodyStructure_.push_back(pBodyStructure);
 					(*it).setBodyStructure(pBodyStructure);
@@ -785,20 +782,10 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		{
 			Imap4ReceiveSession::MessageDataList::const_iterator m = std::find_if(
 				it_, listMessageData_.end(),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						std::equal_to<unsigned long>(),
-						std::mem_fun_ref(&MessageData::getId),
-						std::identity<unsigned long>()),
-					nUid));
+				boost::bind(&MessageData::getId, _1) == nUid);
 			if (m == listMessageData_.end()) {
 				m = std::find_if(listMessageData_.begin(), it_,
-					std::bind2nd(
-						binary_compose_f_gx_hy(
-							std::equal_to<unsigned long>(),
-							std::mem_fun_ref(&MessageData::getId),
-							std::identity<unsigned long>()),
-						nUid));
+					boost::bind(&MessageData::getId, _1) == nUid);
 				if (m == it_)
 					return 0;
 			}
@@ -880,20 +867,10 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			{
 				Imap4ReceiveSession::MessageDataList::const_iterator m = std::find_if(
 					it_, listMessageData_.end(),
-					std::bind2nd(
-						binary_compose_f_gx_hy(
-							std::equal_to<unsigned long>(),
-							std::mem_fun_ref(&MessageData::getId),
-							std::identity<unsigned long>()),
-						nUid));
+					boost::bind(&MessageData::getId, _1) == nUid);
 				if (m == listMessageData_.end()) {
 					m = std::find_if(listMessageData_.begin(), it_,
-						std::bind2nd(
-							binary_compose_f_gx_hy(
-								std::equal_to<unsigned long>(),
-								std::mem_fun_ref(&MessageData::getId),
-								std::identity<unsigned long>()),
-							nUid));
+						boost::bind(&MessageData::getId, _1) == nUid);
 					if (m == it_)
 						return 0;
 				}

@@ -20,6 +20,10 @@
 #include <algorithm>
 #include <vector>
 
+#include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include "syncfilter.h"
 #include "term.h"
 #include "../util/confighelper.h"
@@ -97,12 +101,8 @@ std::auto_ptr<SyncFilterSet> qm::SyncFilterManager::getFilterSet(const WCHAR* pw
 	
 	FilterSetList::const_iterator it = std::find_if(
 		pImpl_->listFilterSet_.begin(), pImpl_->listFilterSet_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&SyncFilterSet::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&SyncFilterSet::getName, _1), pwszName));
 	if (it == pImpl_->listFilterSet_.end())
 		return std::auto_ptr<SyncFilterSet>();
 	
@@ -443,8 +443,11 @@ qm::SyncFilterAction::SyncFilterAction(const SyncFilterAction& action)
 qm::SyncFilterAction::~SyncFilterAction()
 {
 	if (pImpl_) {
+		using namespace boost::lambda;
+		using boost::lambda::_1;
 		std::for_each(pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
-			unary_compose_fx_gx(string_free<WSTRING>(), string_free<WSTRING>()));
+			(bind(&freeWString, bind(&ParamList::value_type::first, _1)),
+			 bind(&freeWString, bind(&ParamList::value_type::second, _1))));
 		delete pImpl_;
 	}
 }
@@ -458,12 +461,8 @@ const WCHAR* qm::SyncFilterAction::getParam(const WCHAR* pwszName) const
 {
 	ParamList::const_iterator it = std::find_if(
 		pImpl_->listParam_.begin(), pImpl_->listParam_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ParamList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ParamList::value_type::first, _1), pwszName));
 	return it != pImpl_->listParam_.end() ? (*it).second : 0;
 }
 

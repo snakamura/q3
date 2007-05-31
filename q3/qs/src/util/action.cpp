@@ -154,7 +154,7 @@ qs::ActionParam::ActionParam(const ActionParam& param) :
 
 qs::ActionParam::~ActionParam()
 {
-	std::for_each(listValue_.begin(), listValue_.end(), qs::string_free<WSTRING>());
+	std::for_each(listValue_.begin(), listValue_.end(), &freeWString);
 }
 
 unsigned int qs::ActionParam::getBaseId() const
@@ -298,9 +298,8 @@ qs::ActionMap::ActionMap() :
 qs::ActionMap::~ActionMap()
 {
 	std::for_each(pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
-		unary_compose_f_gx(
-			deleter<Action>(),
-			mem_data_ref(&ActionMapImpl::ActionItem::pAction_)));
+		boost::bind(deleter<Action>(),
+			boost::bind(&ActionMapImpl::ActionItem::pAction_, _1)));
 	delete pImpl_;
 }
 
@@ -317,20 +316,10 @@ Action* qs::ActionMap::getAction(unsigned int nId) const
 		nId + 1,
 		0
 	};
-#if 1
 	ActionMapImpl::ItemList::const_iterator it = std::lower_bound(
 		l.begin(), l.end(), item,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			mem_data_ref(&ActionMapImpl::ActionItem::nFrom_),
-			mem_data_ref(&ActionMapImpl::ActionItem::nFrom_)));
-#else
-	ActionMapImpl::ItemList::const_iterator it = std::lower_bound(
-		l.begin(), l.end(), item,
-		boost::bind(std::less<unsigned int>(),
-			boost::bind(&ActionMapImpl::ActionItem::nFrom_, _1),
-			boost::bind(&ActionMapImpl::ActionItem::nFrom_, _2)));
-#endif
+		boost::bind(&ActionMapImpl::ActionItem::nFrom_, _1) <
+		boost::bind(&ActionMapImpl::ActionItem::nFrom_, _2));
 	if (it == l.end() || ((*it).nFrom_ != nId && it != l.begin()))
 		--it;
 	if ((*it).nFrom_ <= nId && nId < (*it).nTo_)
@@ -357,20 +346,10 @@ void qs::ActionMap::addAction(unsigned int nIdFrom,
 		nIdTo,
 		pAction.get()
 	};
-#if 1
 	ActionMapImpl::ItemList::iterator it = std::lower_bound(
 		pImpl_->listItem_.begin(), pImpl_->listItem_.end(), item,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			mem_data_ref(&ActionMapImpl::ActionItem::nFrom_),
-			mem_data_ref(&ActionMapImpl::ActionItem::nFrom_)));
-#else
-	ActionMapImpl::ItemList::iterator it = std::lower_bound(
-		pImpl_->listItem_.begin(), pImpl_->listItem_.end(), item,
-		boost::bind(std::less<unsigned int>(),
-			boost::bind(&ActionMapImpl::ActionItem::nFrom_, _1),
-			boost::bind(&ActionMapImpl::ActionItem::nFrom_, _2)));
-#endif
+		boost::bind(&ActionMapImpl::ActionItem::nFrom_, _1) <
+		boost::bind(&ActionMapImpl::ActionItem::nFrom_, _2));
 	pImpl_->listItem_.insert(it, item);
 	pAction.release();
 }
@@ -413,9 +392,8 @@ qs::ActionParamMap::ActionParamMap() :
 qs::ActionParamMap::~ActionParamMap()
 {
 	std::for_each(pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
-		unary_compose_f_gx(
-			deleter<ActionParam>(),
-			mem_data_ref(&ActionParamMapImpl::Item::pParam_)));
+		boost::bind(deleter<ActionParam>(),
+			boost::bind(&ActionParamMapImpl::Item::pParam_, _1)));
 	delete pImpl_;
 }
 
@@ -429,20 +407,10 @@ std::auto_ptr<ActionParam> qs::ActionParamMap::getActionParam(unsigned int nId) 
 		0,
 		0
 	};
-#if 1
 	ActionParamMapImpl::ItemList::const_iterator it = std::lower_bound(
 		pImpl_->listItem_.begin(), pImpl_->listItem_.end(), item,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			mem_data_ref(&ActionParamMapImpl::Item::nId_),
-			mem_data_ref(&ActionParamMapImpl::Item::nId_)));
-#else
-	ActionParamMapImpl::ItemList::const_iterator it = std::lower_bound(
-		pImpl_->listItem_.begin(), pImpl_->listItem_.end(), item,
-		boost::bind(std::less<unsigned int>(),
-			boost::bind(&ActionParamMapImpl::Item::nId_, _1),
-			boost::bind(&ActionParamMapImpl::Item::nId_, _2)));
-#endif
+		boost::bind(&ActionParamMapImpl::Item::nId_, _1) <
+		boost::bind(&ActionParamMapImpl::Item::nId_, _2));
 	if (it == pImpl_->listItem_.end() || (*it).nId_ != nId)
 		return std::auto_ptr<ActionParam>();
 	return std::auto_ptr<ActionParam>(new ActionParam(*(*it).pParam_));
@@ -461,20 +429,10 @@ unsigned int qs::ActionParamMap::addActionParam(unsigned int nMaxParamCount,
 		0,
 		0
 	};
-#if 1
 	ActionParamMapImpl::ItemList::iterator it = std::lower_bound(
 		pImpl_->listItem_.begin(), pImpl_->listItem_.end(), item,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			mem_data_ref(&ActionParamMapImpl::Item::nBaseId_),
-			mem_data_ref(&ActionParamMapImpl::Item::nBaseId_)));
-#else
-	ActionParamMapImpl::ItemList::const_iterator it = std::lower_bound(
-		pImpl_->listItem_.begin(), pImpl_->listItem_.end(), item,
-		boost::bind(std::less<unsigned int>(),
-			boost::bind(&ActionParamMapImpl::Item::nBaseId_, _1),
-			boost::bind(&ActionParamMapImpl::Item::nBaseId_, _2)));
-#endif
+		boost::bind(&ActionParamMapImpl::Item::nBaseId_, _1) <
+		boost::bind(&ActionParamMapImpl::Item::nBaseId_, _2));
 	if (it != pImpl_->listItem_.end() && (*it).nBaseId_ == nBaseId) {
 		while (it != pImpl_->listItem_.end() && (*it).nBaseId_ == nBaseId) {
 			if (*(*it).pParam_ == *pParam.get()) {
@@ -513,20 +471,10 @@ void qs::ActionParamMap::removeActionParam(unsigned int nId)
 		0,
 		0
 	};
-#if 1
 	ActionParamMapImpl::ItemList::iterator it = std::lower_bound(
 		pImpl_->listItem_.begin(), pImpl_->listItem_.end(), item,
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			mem_data_ref(&ActionParamMapImpl::Item::nId_),
-			mem_data_ref(&ActionParamMapImpl::Item::nId_)));
-#else
-	ActionParamMapImpl::ItemList::iterator it = std::lower_bound(
-		pImpl_->listItem_.begin(), pImpl_->listItem_.end(), item,
-		boost::bind(std::less<unsigned int>(),
-			boost::bind(&ActionParamMapImpl::Item::nId_, _1),
-			boost::bind(&ActionParamMapImpl::Item::nId_, _2)));
-#endif
+		boost::bind(&ActionParamMapImpl::Item::nId_, _1) <
+		boost::bind(&ActionParamMapImpl::Item::nId_, _2));
 	if (it != pImpl_->listItem_.end() && (*it).nId_ == nId) {
 		if (--(*it).nRef_ == 0) {
 			delete (*it).pParam_;

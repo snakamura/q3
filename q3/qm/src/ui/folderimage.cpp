@@ -45,9 +45,7 @@ qm::FolderImage::FolderImage(const WCHAR* pwszPath) :
 qm::FolderImage::~FolderImage()
 {
 	std::for_each(listImage_.begin(), listImage_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<ImageList::value_type>()));
+		boost::bind(&freeWString, boost::bind(&ImageList::value_type::first, _1)));
 	ImageList_Destroy(hImageList_);
 }
 
@@ -64,19 +62,13 @@ int qm::FolderImage::getAccountImage(const Account* pAccount,
 	
 	ImageList::const_iterator it = std::find_if(
 		listImage_.begin(), listImage_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<ImageList::value_type>(),
-				std::identity<const WCHAR*>()),
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ImageList::value_type::first, _1),
 			pAccount->getType(Account::HOST_RECEIVE)));
 	if (it == listImage_.end())
 		it = std::find_if(listImage_.begin(), listImage_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					string_equal<WCHAR>(),
-					std::select1st<ImageList::value_type>(),
-					std::identity<const WCHAR*>()),
+			boost::bind(string_equal<WCHAR>(),
+				boost::bind(&ImageList::value_type::first, _1),
 				pAccount->getClass()));
 	if (it != listImage_.end())
 		nImage = (*it).second;

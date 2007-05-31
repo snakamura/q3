@@ -33,6 +33,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include <windows.h>
 #include <tchar.h>
 
@@ -460,9 +462,8 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 		~Deleter()
 		{
 			std::for_each(l_.begin(), l_.end(),
-				unary_compose_f_gx(
-					string_free<WSTRING>(),
-					std::select1st<ResourceDialog::ResourceList::value_type>()));
+				boost::bind(&freeWString,
+					boost::bind(&ResourceDialog::ResourceList::value_type::first, _1)));
 		}
 		ResourceDialog::ResourceList& l_;
 	} deleter(listResource);

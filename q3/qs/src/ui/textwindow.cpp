@@ -1666,7 +1666,7 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 	}
 	
 	if (!bInitialize) {
-		std::for_each(listURLSchema_.begin(), listURLSchema_.end(), string_free<WSTRING>());
+		std::for_each(listURLSchema_.begin(), listURLSchema_.end(), &freeWString);
 		
 		::DeleteObject(hfont_);
 		hfont_ = 0;
@@ -2240,7 +2240,7 @@ qs::TextWindow::~TextWindow()
 {
 	if (pImpl_) {
 		std::for_each(pImpl_->listURLSchema_.begin(),
-			pImpl_->listURLSchema_.end(), string_free<WSTRING>());
+			pImpl_->listURLSchema_.end(), &freeWString);
 		std::for_each(pImpl_->listLine_.begin(),
 			pImpl_->listLine_.end(), &TextWindowImpl::freeLine);
 		delete pImpl_;

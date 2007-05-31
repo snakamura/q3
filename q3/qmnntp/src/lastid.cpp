@@ -13,6 +13,8 @@
 #include <qsstl.h>
 #include <qsstream.h>
 
+#include <boost/bind.hpp>
+
 #include "lastid.h"
 
 using namespace qmnntp;
@@ -43,9 +45,7 @@ qmnntp::LastIdList::LastIdList(const WCHAR* pwszPath) :
 qmnntp::LastIdList::~LastIdList()
 {
 	std::for_each(listId_.begin(), listId_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<IdList::value_type>()));
+		boost::bind(&freeWString, boost::bind(&IdList::value_type::first, _1)));
 }
 
 const LastIdList::IdList& qmnntp::LastIdList::getList() const
@@ -59,12 +59,8 @@ unsigned int qmnntp::LastIdList::getLastId(const WCHAR* pwszName) const
 	Lock<LastIdList> lock(*this);
 	
 	IdList::const_iterator it = std::find_if(listId_.begin(), listId_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<IdList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&IdList::value_type::first, _1), pwszName));
 	return it != listId_.end() ? (*it).second : 0;
 }
 
@@ -74,12 +70,8 @@ void qmnntp::LastIdList::setLastId(const WCHAR* pwszName,
 	Lock<LastIdList> lock(*this);
 	
 	IdList::iterator it = std::find_if(listId_.begin(), listId_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<IdList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&IdList::value_type::first, _1), pwszName));
 	if (it != listId_.end()) {
 		(*it).second = nId;
 	}
@@ -97,12 +89,8 @@ void qmnntp::LastIdList::removeLastId(const WCHAR* pwszName)
 	assert(isLocked());
 	
 	IdList::iterator it = std::find_if(listId_.begin(), listId_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<IdList::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&IdList::value_type::first, _1), pwszName));
 	if (it != listId_.end()) {
 		freeWString((*it).first);
 		listId_.erase(it);
@@ -191,9 +179,8 @@ qmnntp::LastIdManager::LastIdManager()
 qmnntp::LastIdManager::~LastIdManager()
 {
 	std::for_each(map_.begin(), map_.end(),
-		unary_compose_f_gx(
-			qs::deleter<LastIdList>(),
-			std::select2nd<Map::value_type>()));
+		boost::bind(qs::deleter<LastIdList>(),
+			boost::bind(&Map::value_type::second, _1)));
 }
 
 LastIdList* qmnntp::LastIdManager::get(Account* pAccount)
@@ -201,12 +188,7 @@ LastIdList* qmnntp::LastIdManager::get(Account* pAccount)
 	Lock<CriticalSection> lock(cs_);
 	
 	Map::iterator it = std::find_if(map_.begin(), map_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Account*>(),
-				std::select1st<Map::value_type>(),
-				std::identity<Account*>()),
-			pAccount));
+		boost::bind(&Map::value_type::first, _1) == pAccount);
 	if (it != map_.end())
 		return (*it).second;
 	

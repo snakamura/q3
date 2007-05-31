@@ -16,6 +16,10 @@
 #include <algorithm>
 #include <cstdio>
 
+#include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include "error.h"
 #include "imap4.h"
 #include "parser.h"
@@ -780,11 +784,8 @@ bool qmimap4::Imap4::processCapability()
 		IMAP4_ERROR(IMAP4_ERROR_CAPABILITY | IMAP4_ERROR_PARSE);
 	
 	const ListParserCallback::ResponseList& l = callback.getResponseList();
-	ListParserCallback::ResponseList::const_iterator it = std::find_if(
-		l.begin(), l.end(),
-		std::bind2nd(binary_compose_f_gx_hy(std::equal_to<Response::Type>(),
-			std::mem_fun(&Response::getType), std::identity<Response::Type>()),
-			Response::TYPE_CAPABILITY));
+	ListParserCallback::ResponseList::const_iterator it = std::find_if(l.begin(), l.end(),
+		boost::bind(&Response::getType, _1) == Response::TYPE_CAPABILITY);
 	if (it == l.end())
 		IMAP4_ERROR(IMAP4_ERROR_CAPABILITY | IMAP4_ERROR_PARSE);
 	
@@ -1372,7 +1373,7 @@ qmimap4::Flags::Flags(unsigned int nSystemFlags,
 
 qmimap4::Flags::~Flags()
 {
-	std::for_each(listFlag_.begin(), listFlag_.end(), string_free<STRING>());
+	std::for_each(listFlag_.begin(), listFlag_.end(), &freeString);
 }
 
 string_ptr qmimap4::Flags::getString() const
@@ -1580,9 +1581,8 @@ qmimap4::ResponseCapability::ResponseCapability() :
 
 qmimap4::ResponseCapability::~ResponseCapability()
 {
-	std::for_each(listCapability_.begin(),
-		listCapability_.end(), string_free<STRING>());
-	std::for_each(listAuth_.begin(), listAuth_.end(), string_free<STRING>());
+	std::for_each(listCapability_.begin(), listCapability_.end(), &freeString);
+	std::for_each(listAuth_.begin(), listAuth_.end(), &freeString);
 }
 
 bool qmimap4::ResponseCapability::isSupport(const CHAR* pszCapability) const
@@ -1925,8 +1925,7 @@ qmimap4::ResponseFlags::ResponseFlags(unsigned int nSystemFlags,
 
 qmimap4::ResponseFlags::~ResponseFlags()
 {
-	std::for_each(listCustomFlag_.begin(),
-		listCustomFlag_.end(), string_free<STRING>());
+	std::for_each(listCustomFlag_.begin(), listCustomFlag_.end(), &freeString);
 }
 
 unsigned int qmimap4::ResponseFlags::getSystemFlags() const
@@ -1953,8 +1952,7 @@ std::auto_ptr<ResponseFlags> qmimap4::ResponseFlags::create(List* pList)
 		
 		~Deleter()
 		{
-			std::for_each(listCustomFlag_.begin(),
-				listCustomFlag_.end(), string_free<STRING>());
+			std::for_each(listCustomFlag_.begin(), listCustomFlag_.end(), &freeString);
 		}
 		
 		FlagList& listCustomFlag_;
@@ -2089,9 +2087,8 @@ qmimap4::ResponseNamespace::~ResponseNamespace()
 	};
 	for (int n = 0; n < countof(p); ++n)
 		std::for_each(p[n]->begin(), p[n]->end(),
-			unary_compose_f_gx(
-				string_free<WSTRING>(),
-				std::select1st<NamespaceList::value_type>()));
+			boost::bind(&freeWString,
+				boost::bind(&NamespaceList::value_type::first, _1)));
 }
 
 const ResponseNamespace::NamespaceList& qmimap4::ResponseNamespace::getPersonal() const
@@ -2134,9 +2131,8 @@ std::auto_ptr<ResponseNamespace> qmimap4::ResponseNamespace::create(List* pListP
 		{
 			for (int n = 0; n < countof(p_); ++n)
 				std::for_each(p_[n]->begin(), p_[n]->end(),
-					unary_compose_f_gx(
-						string_free<WSTRING>(),
-						std::select1st<ResponseNamespace::NamespaceList::value_type>()));
+					boost::bind(&freeWString,
+						boost::bind(&NamespaceList::value_type::first, _1)));
 		}
 		
 		NamespaceList* p_[3];
@@ -2394,7 +2390,7 @@ qmimap4::FetchDataBody::FetchDataBody(Section section,
 
 qmimap4::FetchDataBody::~FetchDataBody()
 {
-	std::for_each(listField_.begin(), listField_.end(), string_free<STRING>());
+	std::for_each(listField_.begin(), listField_.end(), &freeString);
 }
 
 FetchDataBody::Section qmimap4::FetchDataBody::getSection() const
@@ -2437,7 +2433,7 @@ std::auto_ptr<FetchDataBody> qmimap4::FetchDataBody::create(const CHAR* pszSecti
 		
 		~Deleter()
 		{
-			std::for_each(listField_.begin(), listField_.end(), string_free<STRING>());
+			std::for_each(listField_.begin(), listField_.end(), &freeString);
 		}
 		
 		FieldList& listField_;
@@ -2556,12 +2552,15 @@ qmimap4::FetchDataBodyStructure::FetchDataBodyStructure(string_ptr strContentTyp
 
 qmimap4::FetchDataBodyStructure::~FetchDataBodyStructure()
 {
+	using namespace boost::lambda;
+	using boost::lambda::_1;
 	std::for_each(listContentTypeParam_.begin(), listContentTypeParam_.end(),
-		unary_compose_fx_gx(string_free<STRING>(), string_free<STRING>()));
+		(bind(&freeString, bind(&ParamList::value_type::first, _1)),
+		 bind(&freeString, bind(&ParamList::value_type::second, _1))));
 	std::for_each(listDispositionParam_.begin(), listDispositionParam_.end(),
-		unary_compose_fx_gx(string_free<STRING>(), string_free<STRING>()));
-	std::for_each(listLanguage_.begin(),
-		listLanguage_.end(), string_free<STRING>());
+		(bind(&freeString, bind(&ParamList::value_type::first, _1)),
+		 bind(&freeString, bind(&ParamList::value_type::second, _1))));
+	std::for_each(listLanguage_.begin(), listLanguage_.end(), &freeString);
 	std::for_each(listChild_.begin(), listChild_.end(),
 		deleter<FetchDataBodyStructure>());
 }
@@ -2685,12 +2684,15 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 		
 		~Deleter()
 		{
+			using namespace boost::lambda;
+			using boost::lambda::_1;
 			std::for_each(listContentTypeParam_.begin(), listContentTypeParam_.end(),
-				unary_compose_fx_gx(string_free<STRING>(), string_free<STRING>()));
+				(bind(&freeString, bind(&ParamList::value_type::first, _1)),
+				 bind(&freeString, bind(&ParamList::value_type::second, _1))));
 			std::for_each(listDispositionParam_.begin(), listDispositionParam_.end(),
-				unary_compose_fx_gx(string_free<STRING>(), string_free<STRING>()));
-			std::for_each(listLanguage_.begin(),
-				listLanguage_.end(), string_free<STRING>());
+				(bind(&freeString, bind(&ParamList::value_type::first, _1)),
+				 bind(&freeString, bind(&ParamList::value_type::second, _1))));
+			std::for_each(listLanguage_.begin(), listLanguage_.end(), &freeString);
 			std::for_each(listChild_.begin(), listChild_.end(),
 				qs::deleter<FetchDataBodyStructure>());
 		}
@@ -3174,8 +3176,7 @@ qmimap4::FetchDataFlags::FetchDataFlags(unsigned int nSystemFlags,
 
 qmimap4::FetchDataFlags::~FetchDataFlags()
 {
-	std::for_each(listCustomFlag_.begin(), listCustomFlag_.end(),
-		string_free<STRING>());
+	std::for_each(listCustomFlag_.begin(), listCustomFlag_.end(), &freeString);
 }
 
 unsigned int qmimap4::FetchDataFlags::getSystemFlags() const

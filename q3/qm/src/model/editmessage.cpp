@@ -319,14 +319,8 @@ wstring_ptr qm::EditMessage::getField(const WCHAR* pwszName,
 	
 	wstring_ptr wstrValue;
 	
-	FieldList::iterator it = std::find_if(
-		listField_.begin(), listField_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				mem_data_ref(&Field::wstrName_),
-				std::identity<const WCHAR*>()),
-			pwszName));
+	FieldList::iterator it = std::find_if(listField_.begin(), listField_.end(),
+		boost::bind(string_equal<WCHAR>(), boost::bind(&Field::wstrName_, _1), pwszName));
 	if (it != listField_.end()) {
 		wstrValue = allocWString((*it).wstrValue_);
 	}
@@ -373,14 +367,8 @@ void qm::EditMessage::setField(const WCHAR* pwszName,
 	
 	wstring_ptr wstrValue(allocWString(pwszValue));
 	
-	FieldList::iterator it = std::find_if(
-		listField_.begin(), listField_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				mem_data_ref(&Field::wstrName_),
-				std::identity<const WCHAR*>()),
-			pwszName));
+	FieldList::iterator it = std::find_if(listField_.begin(), listField_.end(),
+		boost::bind(string_equal<WCHAR>(), boost::bind(&Field::wstrName_, _1), pwszName));
 	if (it != listField_.end()) {
 		if (wcscmp((*it).wstrValue_, wstrValue.get()) == 0) {
 			bChange = false;
@@ -413,14 +401,8 @@ void qm::EditMessage::removeField(const WCHAR* pwszName)
 {
 	assert(pwszName);
 	
-	FieldList::iterator it = std::find_if(
-		listField_.begin(), listField_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				mem_data_ref(&Field::wstrName_),
-				std::identity<const WCHAR*>()),
-			pwszName));
+	FieldList::iterator it = std::find_if(listField_.begin(), listField_.end(),
+		boost::bind(string_equal<WCHAR>(), boost::bind(&Field::wstrName_, _1), pwszName));
 	if (it != listField_.end()) {
 		freeWString((*it).wstrName_);
 		freeWString((*it).wstrValue_);
@@ -531,7 +513,7 @@ void qm::EditMessage::getAttachments(AttachmentList* pList) const
 void qm::EditMessage::setAttachments(const AttachmentList& listAttachment)
 {
 	std::for_each(listAttachmentPath_.begin(),
-		listAttachmentPath_.end(), string_free<WSTRING>());
+		listAttachmentPath_.end(), &freeWString);
 	listAttachmentPath_.clear();
 	
 	listAttachmentPath_.reserve(listAttachment_.size());
@@ -585,12 +567,8 @@ void qm::EditMessage::removeAttachment(const WCHAR* pwszPath)
 	else {
 		AttachmentParser::AttachmentList::iterator itO = std::find_if(
 			listAttachment_.begin(), listAttachment_.end(),
-			std::bind2nd(
-				binary_compose_f_gx_hy(
-					string_equal<WCHAR>(),
-					std::select1st<AttachmentParser::AttachmentList::value_type>(),
-					std::identity<const WCHAR*>()),
-				pwszPath));
+			boost::bind(string_equal<WCHAR>(),
+				boost::bind(&AttachmentParser::AttachmentList::value_type::first, _1), pwszPath));
 		if (itO != listAttachment_.end()) {
 			removePart((*itO).second);
 			freeWString((*itO).first);
@@ -720,8 +698,7 @@ void qm::EditMessage::clear()
 	
 	AttachmentParser::AttachmentListFree free(listAttachment_);
 	
-	std::for_each(listAttachmentPath_.begin(),
-		listAttachmentPath_.end(), string_free<WSTRING>());
+	std::for_each(listAttachmentPath_.begin(), listAttachmentPath_.end(), &freeWString);
 	listAttachmentPath_.clear();
 	
 	wstrSignature_.reset(0);
@@ -973,9 +950,7 @@ qm::EditMessage::AttachmentListFree::AttachmentListFree(AttachmentList& l) :
 qm::EditMessage::AttachmentListFree::~AttachmentListFree()
 {
 	std::for_each(l_.begin(), l_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			mem_data_ref(&EditMessage::Attachment::wstrName_)));
+		boost::bind(&freeWString, boost::bind(&EditMessage::Attachment::wstrName_, _1)));
 }
 
 

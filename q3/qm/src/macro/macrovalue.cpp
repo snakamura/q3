@@ -560,7 +560,7 @@ void qm::MacroValueAddress::init(AddressList& l)
 
 void qm::MacroValueAddress::term()
 {
-	std::for_each(listAddress_.begin(), listAddress_.end(), string_free<WSTRING>());
+	std::for_each(listAddress_.begin(), listAddress_.end(), &freeWString);
 	listAddress_.clear();
 }
 

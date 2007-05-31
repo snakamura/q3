@@ -185,9 +185,8 @@ void qm::Recents::clear()
 		return;
 	
 	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(),
-		unary_compose_f_gx(
-			qs::deleter<URI>(),
-			std::select1st<RecentsImpl::URIList::value_type>()));
+		boost::bind(qs::deleter<URI>(),
+			boost::bind(&RecentsImpl::URIList::value_type::first, _1)));
 	pImpl_->list_.clear();
 	
 	pImpl_->fireRecentsChanged(RecentsEvent::TYPE_REMOVED);

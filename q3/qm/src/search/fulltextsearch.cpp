@@ -108,14 +108,10 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	}
 	
 	std::sort(listMessageHolder.begin(), listMessageHolder.end(),
-		binary_compose_f_gx_hy(
-			std::less<unsigned int>(),
-			unary_compose_f_gx(
-				mem_data_ref(&MessageHolder::MessageBoxKey::nOffset_),
-				std::mem_fun(&MessageHolder::getMessageBoxKey)),
-			unary_compose_f_gx(
-				mem_data_ref(&MessageHolder::MessageBoxKey::nOffset_),
-				std::mem_fun(&MessageHolder::getMessageBoxKey))));
+		boost::bind(&MessageHolder::MessageBoxKey::nOffset_,
+			boost::bind(&MessageHolder::getMessageBoxKey, _1)) <
+		boost::bind(&MessageHolder::MessageBoxKey::nOffset_,
+			boost::bind(&MessageHolder::getMessageBoxKey, _2)));
 	
 	pList->reserve(listOffset.size());
 	
@@ -132,14 +128,10 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 		
 		MessageHolderList::const_iterator itM = std::lower_bound(
 			listMessageHolder.begin(), listMessageHolder.end(), &mh,
-			binary_compose_f_gx_hy(
-				std::less<unsigned int>(),
-				unary_compose_f_gx(
-					mem_data_ref(&MessageHolder::MessageBoxKey::nOffset_),
-					std::mem_fun(&MessageHolder::getMessageBoxKey)),
-				unary_compose_f_gx(
-					mem_data_ref(&MessageHolder::MessageBoxKey::nOffset_),
-					std::mem_fun(&MessageHolder::getMessageBoxKey))));
+			boost::bind(&MessageHolder::MessageBoxKey::nOffset_,
+				boost::bind(&MessageHolder::getMessageBoxKey, _1)) <
+			boost::bind(&MessageHolder::MessageBoxKey::nOffset_,
+				boost::bind(&MessageHolder::getMessageBoxKey, _2)));
 		if (itM != listMessageHolder.end() &&
 			(*itM)->getMessageBoxKey().nOffset_ == nOffset)
 			pList->push_back(*itM);

@@ -723,12 +723,8 @@ const Condition* qm::ConditionFactory::getCondition(const WCHAR* pwszName) const
 {
 	List::const_iterator it = std::find_if(
 		list_.begin(), list_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&Condition::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&Condition::getName, _1), pwszName));
 	return it != list_.end() ? *it : 0;
 }
 

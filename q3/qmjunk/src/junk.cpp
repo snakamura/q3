@@ -19,6 +19,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "junk.h"
 
 using namespace qmjunk;
@@ -206,9 +208,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 		virtual ~TokenizerCallbackImpl()
 		{
 			std::for_each(listTokenRate_.begin(), listTokenRate_.end(),
-				 unary_compose_f_gx(
-					 string_free<WSTRING>(),
-					 std::select1st<TokenRateList::value_type>()));
+				boost::bind(&freeWString, boost::bind(&TokenRateList::value_type::first, _1)));
 		}
 		
 		virtual bool token(const WCHAR* pwszToken,
@@ -930,7 +930,7 @@ qmjunk::AddressList::AddressList(const WCHAR* pwszAddressList)
 
 qmjunk::AddressList::~AddressList()
 {
-	std::for_each(list_.begin(), list_.end(), string_free<WSTRING>());
+	std::for_each(list_.begin(), list_.end(), &freeWString);
 }
 
 bool qmjunk::AddressList::match(const qm::Message& msg) const

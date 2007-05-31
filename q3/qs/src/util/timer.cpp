@@ -11,6 +11,8 @@
 #include <qstimer.h>
 #include <qswindow.h>
 
+#include <boost/bind.hpp>
+
 using namespace qs;
 
 
@@ -52,12 +54,7 @@ LRESULT qs::TimerImpl::onTimer(UINT_PTR nId)
 {
 	TimerImpl::HandlerMap::iterator it = std::find_if(
 		mapHandler_.begin(), mapHandler_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Timer::Id>(),
-				std::select1st<HandlerMap::value_type>(),
-				std::identity<Timer::Id>()),
-			nId));
+		boost::bind(&HandlerMap::value_type::first, _1) == nId);
 	if (it != mapHandler_.end())
 		(*it).second->timerTimeout(nId);
 	
@@ -107,14 +104,8 @@ bool qs::Timer::setTimer(Id nId,
 	
 	TimerImpl::HandlerMap& m = pImpl_->mapHandler_;
 	
-	TimerImpl::HandlerMap::iterator it = std::find_if(
-		m.begin(), m.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Id>(),
-				std::select1st<TimerImpl::HandlerMap::value_type>(),
-				std::identity<Id>()),
-			nId));
+	TimerImpl::HandlerMap::iterator it = std::find_if(m.begin(), m.end(),
+		boost::bind(&TimerImpl::HandlerMap::value_type::first, _1) == nId);
 	if (it != m.end())
 		m.erase(it);
 	
@@ -129,14 +120,8 @@ bool qs::Timer::setTimer(Id nId,
 void qs::Timer::killTimer(Id nId)
 {
 	TimerImpl::HandlerMap& m = pImpl_->mapHandler_;
-	TimerImpl::HandlerMap::iterator it = std::find_if(
-		m.begin(), m.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<Id>(),
-				std::select1st<TimerImpl::HandlerMap::value_type>(),
-				std::identity<Id>()),
-			nId));
+	TimerImpl::HandlerMap::iterator it = std::find_if(m.begin(), m.end(),
+		boost::bind(&TimerImpl::HandlerMap::value_type::first, _1) == nId);
 	if (it == m.end())
 		return;
 	m.erase(it);

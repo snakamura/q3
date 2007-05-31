@@ -17,6 +17,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include <tchar.h>
 
 #include "menu.h"
@@ -163,12 +165,8 @@ HMENU qs::MenuManager::getMenu(const WCHAR* pwszName,
 {
 	MenuManagerImpl::MenuMap::const_iterator it = std::find_if(
 		pImpl_->mapMenu_.begin(), pImpl_->mapMenu_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				mem_data_ref(&MenuManagerImpl::Menu::wstrName_),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&MenuManagerImpl::Menu::wstrName_, _1), pwszName));
 	if (it == pImpl_->mapMenu_.end() || (*it).bBar_ != bBar)
 		return 0;
 	
@@ -261,12 +259,7 @@ const DynamicMenuItem* qs::DynamicMenuMap::getItem(unsigned int nId) const
 {
 	ItemList::const_iterator it = std::find_if(
 		listItem_.begin(), listItem_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				std::equal_to<unsigned int>(),
-				std::mem_fun(&DynamicMenuItem::getId),
-				std::identity<unsigned int>()),
-			nId));
+		boost::bind(&DynamicMenuItem::getId, _1) == nId);
 	return it != listItem_.end() ? *it : 0;
 }
 
@@ -578,10 +571,9 @@ const ActionItem* qs::MenuContentHandler::getActionItem(const WCHAR* pwszAction)
 	
 	const ActionItem* pItem = std::lower_bound(
 		pActionItem_, pActionItem_ + nActionItemCount_, item,
-		binary_compose_f_gx_hy(
-			string_less<WCHAR>(),
-			mem_data_ref(&ActionItem::pwszAction_),
-			mem_data_ref(&ActionItem::pwszAction_)));
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&ActionItem::pwszAction_, _1),
+			boost::bind(&ActionItem::pwszAction_, _2)));
 	if (pItem == pActionItem_ + nActionItemCount_ ||
 		wcscmp(pItem->pwszAction_, pwszAction) != 0 ||
 		(pItem->nFlags_ != 0 && !(pItem->nFlags_ & ActionItem::FLAG_MENU)))

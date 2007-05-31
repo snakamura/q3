@@ -17,6 +17,10 @@
 
 #include <algorithm>
 
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/construct.hpp>
+#include <boost/lambda/lambda.hpp>
+
 using namespace qm;
 using namespace qs;
 
@@ -92,8 +96,11 @@ qm::Template::Template(const ValueList& l) :
 
 qm::Template::~Template()
 {
+	using namespace boost::lambda;
+	using boost::lambda::_1;
 	std::for_each(listValue_.begin(), listValue_.end(),
-		unary_compose_fx_gx(string_free<WSTRING>(), deleter<Macro>()));
+		(bind(&freeWString, bind(&ValueList::value_type::first, _1)),
+		 bind(delete_ptr(), bind(&ValueList::value_type::second, _1))));
 }
 
 Template::Result qm::Template::getValue(const TemplateContext& context,
@@ -266,9 +273,11 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader,
 		~Deleter()
 		{
 			if (p_) {
+				using namespace boost::lambda;
+				using boost::lambda::_1;
 				std::for_each(p_->begin(), p_->end(),
-					unary_compose_fx_gx(
-						string_free<WSTRING>(), qs::deleter<Macro>()));
+					(bind(&freeWString, bind(&Template::ValueList::value_type::first, _1)),
+					 bind(delete_ptr(), bind(&Template::ValueList::value_type::second, _1))));
 				p_->clear();
 			}
 		}

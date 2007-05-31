@@ -12,6 +12,8 @@
 #include <qsosutil.h>
 #include <qsstl.h>
 
+#include <boost/bind.hpp>
+
 #include "tempfilecleaner.h"
 
 using namespace qm;
@@ -31,19 +33,14 @@ qm::TempFileCleaner::TempFileCleaner()
 qm::TempFileCleaner::~TempFileCleaner()
 {
 	std::for_each(list_.begin(), list_.end(),
-		unary_compose_f_gx(string_free<WSTRING>(),
-			std::select1st<List::value_type>()));
+		boost::bind(&freeWString, boost::bind(&List::value_type::first, _1)));
 }
 
 void qm::TempFileCleaner::add(const WCHAR* pwszPath)
 {
 	List::iterator it = std::find_if(list_.begin(), list_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<List::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszPath));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&List::value_type::first, _1), pwszPath));
 	if (it != list_.end()) {
 		freeWString((*it).first);
 		list_.erase(it);
@@ -62,12 +59,8 @@ void qm::TempFileCleaner::add(const WCHAR* pwszPath)
 bool qm::TempFileCleaner::isModified(const WCHAR* pwszPath) const
 {
 	List::const_iterator it = std::find_if(list_.begin(), list_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<List::value_type>(),
-				std::identity<const WCHAR*>()),
-			pwszPath));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&List::value_type::first, _1), pwszPath));
 	if (it == list_.end())
 		return false;
 	

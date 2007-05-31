@@ -15,6 +15,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "sax.h"
 #include "xmlparser.h"
 
@@ -1322,12 +1324,8 @@ bool qs::XMLParserContext::addNamespace(const WCHAR* pwszQName,
 	
 	NamespaceMap::iterator it = std::find_if(
 		mapNamespace_.begin(), mapNamespace_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::select1st<NamespaceMap::value_type>(),
-				std::identity<const WCHAR*>()),
-			wstrPrefix.get()));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&NamespaceMap::value_type::first, _1), wstrPrefix.get()));
 	if (it != mapNamespace_.end())
 		return false;
 	

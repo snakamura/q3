@@ -12,6 +12,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "addressbook.h"
 #include "recentaddress.h"
 
@@ -136,20 +138,11 @@ void qm::RecentAddress::add(const AddressParser& address)
 		
 		AddressList::iterator it = std::find_if(
 			listAddress_.begin(), listAddress_.end(),
-			unary_compose_f_gx_hx(
-				std::logical_and<bool>(),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						string_equal_i<WCHAR>(),
-						std::mem_fun(&AddressParser::getMailbox),
-						std::identity<const WCHAR*>()),
-					address.getMailbox()),
-				std::bind2nd(
-					binary_compose_f_gx_hy(
-						string_equal_i<WCHAR>(),
-						std::mem_fun(&AddressParser::getHost),
-						std::identity<const WCHAR*>()),
-					address.getHost())));
+			boost::bind(std::logical_and<bool>(),
+				boost::bind(string_equal_i<WCHAR>(),
+					boost::bind(&AddressParser::getMailbox, _1), address.getMailbox()),
+				boost::bind(string_equal_i<WCHAR>(),
+					boost::bind(&AddressParser::getHost, _1), address.getHost())));
 		if (it != listAddress_.end()) {
 			delete *it;
 			listAddress_.erase(it);

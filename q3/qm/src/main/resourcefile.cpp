@@ -12,6 +12,8 @@
 #include <qsfile.h>
 #include <qsstream.h>
 
+#include <boost/bind.hpp>
+
 #include "resourcefile.h"
 
 using namespace qm;
@@ -45,12 +47,8 @@ const ResourceFileList::List& qm::ResourceFileList::getResourceFiles() const
 const ResourceFile* qm::ResourceFileList::getResourceFile(const WCHAR* pwszName) const
 {
 	List::const_iterator it = std::find_if(list_.begin(), list_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&ResourceFile::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ResourceFile::getName, _1), pwszName));
 	return it != list_.end() ? *it : 0;
 }
 
@@ -59,12 +57,8 @@ void qm::ResourceFileList::setResourceFile(const WCHAR* pwszName,
 										   const FILETIME* pftModified)
 {
 	List::iterator it = std::find_if(list_.begin(), list_.end(),
-		std::bind2nd(
-			binary_compose_f_gx_hy(
-				string_equal<WCHAR>(),
-				std::mem_fun(&ResourceFile::getName),
-				std::identity<const WCHAR*>()),
-			pwszName));
+		boost::bind(string_equal<WCHAR>(),
+			boost::bind(&ResourceFile::getName, _1), pwszName));
 	if (it != list_.end()) {
 		(*it)->setRevision(nRevision);
 		if (pftModified)

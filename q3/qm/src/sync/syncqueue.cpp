@@ -115,9 +115,7 @@ void qm::SyncQueue::sync()
 void qm::SyncQueue::clear()
 {
 	std::for_each(listFolder_.begin(), listFolder_.end(),
-		unary_compose_f_gx(
-			string_free<WSTRING>(),
-			std::select1st<FolderList::value_type>()));
+		boost::bind(&freeWString, boost::bind(&FolderList::value_type::first, _1)));
 	listFolder_.clear();
 }
 
