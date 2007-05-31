@@ -2,6 +2,7 @@
 *multipart/appledoubleの下にあるapplication/applefileは添付ファイルとして扱わないようにした
 *STLport-5.1.3に更新（stlport.5.1.dllと（Windows Mobile 5.0版では）msvcr80.dllが必要）
 *boost-1.34.0に更新
+*コマンドラインで-fが指定された場合には、ロックファイルが検出されてもそのまま続行するようにした
 
 [3.0.0]
 

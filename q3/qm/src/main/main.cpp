@@ -182,8 +182,8 @@ int qm::main(const WCHAR* pwszCommandLine)
 #endif
 	bool bContinue = false;
 	HWND hwndPrev = 0;
-	std::auto_ptr<MailFolderLock> pLock(new MailFolderLock(
-		wstrMailFolder.get(), bShow, &bContinue, &hwndPrev));
+	std::auto_ptr<MailFolderLock> pLock(new MailFolderLock(wstrMailFolder.get(),
+		bShow, handler.isForceContinue(), &bContinue, &hwndPrev));
 	if (!bContinue) {
 		if (hwndPrev)
 			handler.invoke(hwndPrev);
@@ -218,7 +218,8 @@ int qm::main(const WCHAR* pwszCommandLine)
 qm::MainCommandLineHandler::MainCommandLineHandler() :
 	state_(STATE_NONE),
 	nAction_(0),
-	bQuiet_(false)
+	bQuiet_(false),
+	bForceContinue_(false)
 {
 }
 
@@ -253,6 +254,11 @@ bool qm::MainCommandLineHandler::isQuiet() const
 			return true;
 	}
 	return false;
+}
+
+bool qm::MainCommandLineHandler::isForceContinue() const
+{
+	return bForceContinue_;
 }
 
 bool qm::MainCommandLineHandler::isInvoke() const
@@ -372,6 +378,9 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 			if (wcscmp(pwszOption + 1, L"q") == 0) {
 				bQuiet_ = true;
 			}
+			else if (wcscmp(pwszOption + 1, L"f") == 0) {
+				bForceContinue_ = true;
+			}
 			else {
 				for (int n = 0; n < countof(options) && state_ == STATE_NONE; ++n) {
 					if (wcscmp(pwszOption + 1, options[n].pwsz_) == 0)
@@ -411,11 +420,12 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 
 qm::MailFolderLock::MailFolderLock(const WCHAR* pwszMailFolder,
 								   bool bShow,
+								   bool bForceContinue,
 								   bool* pbContinue,
 								   HWND* phwnd) :
 	hFile_(0)
 {
-	lock(pwszMailFolder, bShow, pbContinue, phwnd);
+	lock(pwszMailFolder, bShow, bForceContinue, pbContinue, phwnd);
 }
 
 qm::MailFolderLock::~MailFolderLock()
@@ -470,6 +480,7 @@ void qm::MailFolderLock::unsetWindow()
 
 void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 							  bool bShow,
+							  bool bForceContinue,
 							  bool* pbContinue,
 							  HWND* phwnd)
 {
@@ -533,19 +544,24 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 			*phwnd = hwnd;
 		}
 		else if (CHECK_ALREADY_EXISTS()) {
-			const WCHAR* pwszName = L"Unknown";
-			wstring_ptr wstrName;
-			if (read(hFile.get(), 0, &wstrName))
-				pwszName = wstrName.get();
-			
-			wstring_ptr wstrTemplate(loadString(g_hInstResource, IDS_CONFIRM_IGNORELOCK));
-			const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(pwszName);
-			wstring_ptr wstrMessage(allocWString(nLen));
-			_snwprintf(wstrMessage.get(), nLen, wstrTemplate.get(), pwszName);
-			
-			int nRet= messageBox(wstrMessage.get(),
-				MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
-			*pbContinue = nRet == IDYES;
+			if (bForceContinue) {
+				*pbContinue = true;
+			}
+			else {
+				const WCHAR* pwszName = L"Unknown";
+				wstring_ptr wstrName;
+				if (read(hFile.get(), 0, &wstrName))
+					pwszName = wstrName.get();
+				
+				wstring_ptr wstrTemplate(loadString(g_hInstResource, IDS_CONFIRM_IGNORELOCK));
+				const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(pwszName);
+				wstring_ptr wstrMessage(allocWString(nLen));
+				_snwprintf(wstrMessage.get(), nLen, wstrTemplate.get(), pwszName);
+				
+				int nRet= messageBox(wstrMessage.get(),
+					MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2);
+				*pbContinue = nRet == IDYES;
+			}
 		}
 		else {
 			*pbContinue = true;
