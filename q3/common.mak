@@ -811,7 +811,7 @@ $(TARGETDIR)/$(TARGETBASE).exe: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(LD) $(LDFLAGS) -OUT:$@ $(OBJS) $(RESES) $(LIBS)
 	if [ "$(PLATFORM)" = "win" -a $(VCVER) -eq 8 ]; then \
-		$(MT) -inputresource:$@ -manifest $@.manifest -outputresource:$@; \
+		$(MT) -nologo -inputresource:$@ -manifest $@.manifest -outputresource:$@; \
 	fi
 
 $(TARGETDIR)/$(TARGETBASE).dll: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
@@ -824,6 +824,9 @@ $(TARGETDIR)/$(TARGETBASE).dll: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
 				cat `echo $(EXTRADEFFILE)` >> `echo $(DEFFILE)`; \
 			fi; \
 			$(LD) $(LDFLAGS) -DLL -DEF:$(DEFFILE) -BASE:$(BASEADDRESS) -OUT:$@ $(OBJS) $(RESES) $(LIBS) 2>&1 | grep -v "LNK4197" | cat; \
+			if [ "$(PLATFORM)" = "win" -a $(VCVER) -eq 8 ]; then \
+				$(MT) -nologo -manifest $@.manifest -outputresource:$@\;#2; \
+			fi \
 		else \
 			exit 1; \
 		fi; \
@@ -836,6 +839,9 @@ $(TARGETDIR)/$(TARGETBASE).lib: $(OBJS)
 $(TARGETDIR)/$(MUITARGET): $(OBJS) $(RESES)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(LD) $(LDFLAGS) -DLL -OUT:$@ $(OBJS) $(RESES) $(LIBS)
+	if [ "$(PLATFORM)" = "win" -a $(VCVER) -eq 8 ]; then \
+		$(MT) -nologo -manifest $@.manifest -outputresource:$@\;#2; \
+	fi
 
 $(TARGETDIR)/$(TARGETBASE).bsc: $(SBRS)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
