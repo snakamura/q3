@@ -4,6 +4,7 @@
 
 
 MAKE=${MAKE:=make}
+VCDIR=${VCDIR:=C:/Program Files/Microsoft Visual Studio 8/VC}
 MSDEV=${MSDEV:=C:/Program Files/Microsoft Visual Studio/Common/MSDev98/Bin/MSDEV.exe}
 PURIFY=${PURIFY:=C:/Program Files/Rational/Purify/purify.exe}
 MAKENSIS=${MAKENSIS:=C:/Program Files/NSIS/makensis.exe}
@@ -24,6 +25,22 @@ if [ $# -eq 0 ]; then
 else
 	COMMAND=$1
 fi
+
+cpu() {
+	echo $1 | sed -e 's/^[^.]\+\.\([^.]\+\)\..\+$/\1/'
+}
+
+basecpu() {
+	c=`cpu $1`
+	case $c in
+	arm*)
+		echo arm
+		;;
+	*)
+		echo $c
+		;;
+	esac
+}
 
 case $COMMAND in
 clean | clean.win | clean.wce)
@@ -173,17 +190,27 @@ zip)
 	zip -j $ZIPDIR/q3u-win-x86-ja-$SUFFIX.zip \
 		*/bin/win/x86/unicode/release/*.exe \
 		*/lib/win/x86/unicode/release/*.dll \
-		*/lib/win/x86/unicode/release/*.mui
+		*/lib/win/x86/unicode/release/*.mui \
+		lib/stlport/lib/win/x86/stlport.5.1.dll \
+		lib/openssl/lib/win/x86/libeay32.dll \
+		lib/openssl/lib/win/x86/ssleay32.dll
 	zip -j $ZIPDIR/q3u-win-x64-ja-$SUFFIX.zip \
 		*/bin/win/x64/unicode/release/*.exe \
 		*/lib/win/x64/unicode/release/*.dll \
-		*/lib/win/x64/unicode/release/*.mui
+		*/lib/win/x64/unicode/release/*.mui \
+		lib/stlport/lib/win/x64/stlport.5.1.dll \
+		lib/openssl/lib/win/x64/libeay32.dll \
+		lib/openssl/lib/win/x64/ssleay32.dll
 	
 	for t in $WCETARGETS; do
 		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip \
 			*/bin/`printf $t | tr . /`/release/*.exe \
 			*/lib/`printf $t | tr . /`/release/*.dll \
-			*/lib/`printf $t | tr . /`/release/*.mui
+			*/lib/`printf $t | tr . /`/release/*.mui \
+			"$VCDIR/ce/Dll/`cpu $t`/msvcr80.dll" \
+			lib/stlport/lib/wce/`basecpu $t`/stlport.5.1.dll \
+			lib/openssl/lib/wce/`basecpu $t`/libeay32.dll \
+			lib/openssl/lib/wce/`basecpu $t`/ssleay32.dll
 	done
 	
 	(cd docs; make zip)
