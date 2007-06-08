@@ -28,6 +28,7 @@
 *((<Pocket PC版に[フォルダ]メニューがありません|URL:NoFolderMenuOnPocketPC.html>))
 *((<メール送信時に「挨拶中にエラーが発生しました」というエラーが発生します|URL:OutboundPort25Blocking.html>))
 *((<同じメールを何度も受信してしまいます|URL:DownloadSameMessage.html>))
+*((<他のメーラでは送信できるのにQMAIL3でメールの送信に失敗します|URL:FirewallBlocking.html>))
 
 
 ==Tips
