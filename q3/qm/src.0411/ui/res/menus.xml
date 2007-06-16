@@ -223,6 +223,8 @@
 		<popupmenu text="ファイル(&amp;F)">
 			<menuitem text="印刷(&amp;P)" action="FilePrint"/>
 			<separator/>
+			<menuitem text="書き出し(&amp;T)..." action="FileExport"/>
+			<separator/>
 			<menuitem text="閉じる(&amp;C)" action="FileClose"/>
 		</popupmenu>
 		<popupmenu text="編集(&amp;E)">

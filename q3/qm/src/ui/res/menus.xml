@@ -160,6 +160,7 @@
 				<separator/>
 				<menuitem text="&amp;Others..." action="MessageMove"/>
 			</popupmenu>
+			<menuitem text="La&amp;bel..." action="MessageLabel"/>
 			<separator/>
 			<menuitem text="Appl&amp;y Rules" action="MessageApplyRule"/>
 			<menuitem text="Apply Rules t&amp;o All" action="MessageApplyRuleAll"/>
