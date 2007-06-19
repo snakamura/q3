@@ -126,7 +126,8 @@ class QMEXPORTCLASS SearchPropertyPage : public qs::DefaultPropertyPage
 {
 protected:
 	SearchPropertyPage(HINSTANCE hInst,
-					   UINT nId,
+					   UINT nIdPortrait,
+					   UINT nIdLandscape,
 					   UINT nConditionId,
 					   UINT nFolderId,
 					   UINT nRecursiveId,

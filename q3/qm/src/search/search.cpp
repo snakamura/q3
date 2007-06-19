@@ -188,13 +188,14 @@ bool qm::SearchPropertyData::isImeControl() const
  */
 
 qm::SearchPropertyPage::SearchPropertyPage(HINSTANCE hInst,
-										   UINT nId,
+										   UINT nIdPortrait,
+										   UINT nIdLandscape,
 										   UINT nConditionId,
 										   UINT nFolderId,
 										   UINT nRecursiveId,
 										   UINT nNewFolderId,
 										   SearchPropertyData* pData) :
-	DefaultPropertyPage(hInst, nId),
+	DefaultPropertyPage(hInst, nIdPortrait, nIdLandscape),
 	nConditionId_(nConditionId),
 	nFolderId_(nFolderId),
 	nRecursiveId_(nRecursiveId),

@@ -23,7 +23,14 @@ using namespace qs;
  */
 
 qm::DefaultPropertyPage::DefaultPropertyPage(UINT nId) :
-	qs::DefaultPropertyPage(Application::getApplication().getResourceHandle(), nId)
+	qs::DefaultPropertyPage(Application::getApplication().getResourceHandle(), nId, nId)
+{
+}
+
+qm::DefaultPropertyPage::DefaultPropertyPage(UINT nIdPortrait,
+											 UINT nIdLandscape) :
+	qs::DefaultPropertyPage(Application::getApplication().getResourceHandle(),
+		nIdPortrait, nIdLandscape)
 {
 }
 

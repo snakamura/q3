@@ -115,8 +115,8 @@ std::auto_ptr<SearchPropertyPage> qmimap4::Imap4SearchUI::createPropertyPage(Sea
 qmimap4::Imap4SearchPage::Imap4SearchPage(Account* pAccount,
 										  Profile* pProfile,
 										  SearchPropertyData* pData) :
-	SearchPropertyPage(getResourceHandle(), IDD_SEARCH, IDC_CONDITION,
-		IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
+	SearchPropertyPage(getResourceHandle(), IDD_SEARCH, IDD_SEARCH,
+		IDC_CONDITION, IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
 	pAccount_(pAccount),
 	pProfile_(pProfile)
 {

@@ -12,6 +12,10 @@
 #include <qsdialog.h>
 #include <qsinit.h>
 
+#ifdef _WIN32_WCE_PSPC
+#	include <deviceresolutionaware.h>
+#endif
+
 #include "window.h"
 
 
@@ -51,6 +55,11 @@ public:
 
 private:
 	DialogBase* pThis_;
+#ifdef _WIN32_WCE_PSPC
+	HINSTANCE hInstResource_;
+	UINT nIdPortrait_;
+	UINT nIdLandscape_;
+#endif
 	bool bDeleteThis_;
 	DialogHandler* pDialogHandler_;
 	bool bDeleteHandler_;
@@ -58,6 +67,9 @@ private:
 	NotifyHandlerList listNotifyHandler_;
 	OwnerDrawHandlerList listOwnerDrawHandler_;
 	InitThread* pInitThread_;
+#ifdef _WIN32_WCE_PSPC
+	DRA::DisplayMode displayMode_;
+#endif
 
 private:
 	static DialogMap* pMap__;

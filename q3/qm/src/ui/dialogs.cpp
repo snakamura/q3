@@ -36,6 +36,12 @@
 #include "../sync/syncmanager.h"
 #include "../util/util.h"
 
+#ifdef _WIN32_WCE_PSPC
+#	define LANDSCAPE(x) (x##_L)
+#else
+#	define LANDSCAPE(x) (x)
+#endif
+
 using namespace qm;
 using namespace qs;
 
@@ -47,7 +53,14 @@ using namespace qs;
  */
 
 qm::DefaultDialog::DefaultDialog(UINT nId) :
-	qs::DefaultDialog(Application::getApplication().getResourceHandle(), nId)
+	qs::DefaultDialog(Application::getApplication().getResourceHandle(), nId, nId)
+{
+}
+
+qm::DefaultDialog::DefaultDialog(UINT nIdPortrait,
+								 UINT nIdLandscape) :
+	qs::DefaultDialog(Application::getApplication().getResourceHandle(),
+		nIdPortrait, nIdLandscape)
 {
 }
 
@@ -63,7 +76,7 @@ qm::DefaultDialog::~DefaultDialog()
  */
 
 qm::AboutDialog::AboutDialog() :
-	DefaultDialog(IDD_ABOUT)
+	DefaultDialog(IDD_ABOUT, LANDSCAPE(IDD_ABOUT))
 {
 }
 
@@ -80,6 +93,13 @@ INT_PTR qm::AboutDialog::dialogProc(UINT uMsg,
 	END_MESSAGE_HANDLER()
 	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
 }
+
+#ifdef _WIN32_WCE_PSPC
+void qm::AboutDialog::displayModeChanged()
+{
+	setDlgItemText(IDC_VERSION, Application::getApplication().getVersion(L' ', false).get());
+}
+#endif
 
 LRESULT qm::AboutDialog::onInitDialog(HWND hwndFocus,
 									  LPARAM lParam)
@@ -1586,7 +1606,7 @@ LRESULT qm::LabelDialog::onOk()
 
 qm::MailFolderDialog::MailFolderDialog(HINSTANCE hInstResource,
 									   const WCHAR* pwszMailFolder) :
-	DefaultDialog(hInstResource, IDD_MAILFOLDER)
+	DefaultDialog(hInstResource, IDD_MAILFOLDER, IDD_MAILFOLDER)
 {
 	if (pwszMailFolder)
 		wstrMailFolder_ = allocWString(pwszMailFolder);

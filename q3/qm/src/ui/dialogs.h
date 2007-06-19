@@ -76,7 +76,9 @@ class TemplateManager;
 class DefaultDialog : public qs::DefaultDialog
 {
 protected:
-	DefaultDialog(UINT nId);
+	explicit DefaultDialog(UINT nId);
+	DefaultDialog(UINT nIdPortrait,
+				  UINT nIdLandscape);
 
 public:
 	virtual ~DefaultDialog();
@@ -103,6 +105,9 @@ public:
 	virtual INT_PTR dialogProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);
+#ifdef _WIN32_WCE_PSPC
+	virtual void displayModeChanged();
+#endif
 
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,

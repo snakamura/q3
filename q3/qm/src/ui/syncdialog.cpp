@@ -103,7 +103,7 @@ void qm::SyncDialogManager::save() const
 
 qm::SyncDialog::SyncDialog(Profile* pProfile,
 						   PasswordManager* pPasswordManager) :
-	Dialog(Application::getApplication().getResourceHandle(), IDD_SYNC, false),
+	Dialog(Application::getApplication().getResourceHandle(), IDD_SYNC, IDD_SYNC, false),
 	pProfile_(pProfile),
 	pPasswordManager_(pPasswordManager),
 	pStatusWindow_(0),

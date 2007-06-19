@@ -1747,9 +1747,9 @@ CAPTION "QMAILのバージョン情報"
 FONT 9, "Tahoma"
 BEGIN
     LTEXT           "",IDC_VERSION,5,5,127,8
-    LTEXT           "(C) 1998-2006 Satoshi Nakamura.\nAll rights reserved.",
-                    IDC_STATIC,5,15,127,20
-    LTEXT           "http://q3.snak.org/",IDC_STATIC,5,40,127,8
+    LTEXT           "(C) 1998-2007 Satoshi Nakamura.\nAll rights reserved.",
+                    IDC_COPYRIGHT,5,15,127,20
+    LTEXT           "http://q3.snak.org/",IDC_URL,5,40,127,8
     EDITTEXT        IDC_DESCRIPTION,5,55,127,55,ES_MULTILINE | 
                     ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
 END
@@ -1761,6 +1761,19 @@ FONT 9, "Tahoma"
 BEGIN
     CTEXT           "同期処理が終了するのを待っています...",IDC_STATIC,5,35,
                     127,8
+END
+
+IDD_ABOUT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAILのバージョン情報"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_VERSION,5,5,172,8
+    LTEXT           "(C) 1998-2007 Satoshi Nakamura.\nAll rights reserved.",
+                    IDC_COPYRIGHT,5,15,172,20
+    LTEXT           "http://q3.snak.org/",IDC_URL,5,40,172,8
+    EDITTEXT        IDC_DESCRIPTION,5,55,172,47,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
 END
 
 
@@ -2084,6 +2097,14 @@ BEGIN
         RIGHTMARGIN, 130
         TOPMARGIN, 7
         BOTTOMMARGIN, 146
+    END
+
+    IDD_ABOUT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
     END
 END
 #endif    // APSTUDIO_INVOKED

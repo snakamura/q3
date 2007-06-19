@@ -204,7 +204,8 @@ qm::FullTextSearchPage::FullTextSearchPage(Account* pAccount,
 										   Profile* pProfile,
 										   SearchPropertyData* pData) :
 	SearchPropertyPage(Application::getApplication().getResourceHandle(),
-		IDD_FULLTEXTSEARCH, IDC_CONDITION, IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
+		IDD_FULLTEXTSEARCH, IDD_FULLTEXTSEARCH, IDC_CONDITION,
+		IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
 	pAccount_(pAccount),
 	pProfile_(pProfile)
 {

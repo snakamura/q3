@@ -92,6 +92,7 @@
 #define IDD_OPTIONSYNC                  224
 #define IDD_ABOUT                       225
 #define IDD_SYNCWAIT                    226
+#define IDD_ABOUT_L                     725
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
 #define IDC_SIZEGRIP                    1003
@@ -409,6 +410,8 @@
 #define IDC_COLORBACKGROUND             1461
 #define IDC_BOLD                        1462
 #define IDC_CHECKUPDATE                 1464
+#define IDC_COPYRIGHT                   1469
+#define IDC_URL                         1470
 
 // Next default values for new objects
 // 
@@ -417,7 +420,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1469
+#define _APS_NEXT_CONTROL_VALUE         1471
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

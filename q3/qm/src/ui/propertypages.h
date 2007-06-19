@@ -32,6 +32,8 @@ class DefaultPropertyPage : public qs::DefaultPropertyPage
 {
 protected:
 	explicit DefaultPropertyPage(UINT nId);
+	DefaultPropertyPage(UINT nIdPortrait,
+						UINT nIdLandscape);
 
 public:
 	virtual ~DefaultPropertyPage();

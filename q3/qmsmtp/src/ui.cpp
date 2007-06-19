@@ -63,7 +63,7 @@ void qmsmtp::PopBeforeSmtpData::save(SubAccount* pSubAccount) const
  */
 
 qmsmtp::SendPage::SendPage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(getResourceHandle(), IDD_SEND),
+	DefaultPropertyPage(getResourceHandle(), IDD_SEND, IDD_SEND),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -149,7 +149,7 @@ void qmsmtp::SendPage::updateState()
  */
 
 qmsmtp::PopBeforeSmtpDialog::PopBeforeSmtpDialog(PopBeforeSmtpData* pData) :
-	DefaultDialog(getResourceHandle(), IDD_POPBEFORESMTP),
+	DefaultDialog(getResourceHandle(), IDD_POPBEFORESMTP, IDD_POPBEFORESMTP),
 	pData_(pData)
 {
 	ConnectionFactory::getNames(&listName_);

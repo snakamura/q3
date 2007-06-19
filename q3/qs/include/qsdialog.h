@@ -42,7 +42,10 @@ class QSEXPORTCLASS DialogBase :
 	public DefWindowProcHolder
 {
 protected:
-	explicit DialogBase(bool bDeleteThis);
+	DialogBase(HINSTANCE hInstResource,
+			   UINT nIdPortrait,
+			   UINT nIdLandscape,
+			   bool bDeleteThis);
 
 public:
 	virtual ~DialogBase();
@@ -101,7 +104,8 @@ class QSEXPORTCLASS Dialog : public DialogBase
 {
 public:
 	Dialog(HINSTANCE hInstResource,
-		   UINT nId,
+		   UINT nIdPortrait,
+		   UINT nIdLandscape,
 		   bool bDeleteThis);
 	~Dialog();
 
@@ -140,6 +144,9 @@ public:
 							   LPARAM lParam) = 0;
 	virtual void initProcResult() = 0;
 	virtual INT_PTR getProcResult() const = 0;
+#ifdef _WIN32_WCE_PSPC
+	virtual void displayModeChanged() = 0;
+#endif
 };
 
 #define BEGIN_DIALOG_HANDLER() \
@@ -196,6 +203,9 @@ public:
 							   LPARAM lParam);
 	virtual void initProcResult();
 	virtual INT_PTR getProcResult() const;
+#ifdef _WIN32_WCE_PSPC
+	virtual void displayModeChanged();
+#endif
 
 public:
 	virtual DefWindowProcHolder* getDefWindowProcHolder();
@@ -226,7 +236,8 @@ class QSEXPORTCLASS DefaultDialog :
 {
 protected:
 	DefaultDialog(HINSTANCE hInst,
-				  UINT nId);
+				  UINT nIdPortrait,
+				  UINT nIdLandscape);
 
 public:
 	virtual ~DefaultDialog();
@@ -311,7 +322,8 @@ class QSEXPORTCLASS PropertyPage : public DialogBase
 {
 public:
 	PropertyPage(HINSTANCE hInstResource,
-				 UINT nId,
+				 UINT nIdPortrait,
+				 UINT nIdLandscape,
 				 bool bDeleteThis);
 	virtual ~PropertyPage();
 
@@ -346,7 +358,8 @@ class QSEXPORTCLASS DefaultPropertyPage :
 {
 protected:
 	DefaultPropertyPage(HINSTANCE hInst,
-						UINT nId);
+						UINT nIdPortrait,
+						UINT nIdLandscape);
 
 public:
 	virtual ~DefaultPropertyPage();

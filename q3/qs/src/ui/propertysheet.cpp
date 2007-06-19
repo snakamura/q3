@@ -26,7 +26,6 @@ using namespace qs;
 
 struct qs::PropertyPageImpl
 {
-	UINT nId_;
 	PROPSHEETPAGE psp_;
 	HPROPSHEETPAGE hpsp_;
 	PropertySheetBase* pSheet_;
@@ -320,18 +319,18 @@ int CALLBACK qs::propertySheetProc(HWND hwnd,
  */
 
 qs::PropertyPage::PropertyPage(HINSTANCE hInstResource,
-							   UINT nId,
+							   UINT nIdPortrait,
+							   UINT nIdLandscape,
 							   bool bDeleteThis) :
-	DialogBase(bDeleteThis),
+	DialogBase(hInstResource, nIdPortrait, nIdLandscape, bDeleteThis),
 	pImpl_(0)
 {
 	pImpl_ = new PropertyPageImpl();
-	pImpl_->nId_ = nId;
 	memset(&pImpl_->psp_, 0, sizeof(pImpl_->psp_));
 	pImpl_->psp_.dwSize = sizeof(pImpl_->psp_);
 	pImpl_->psp_.dwFlags = PSP_DEFAULT;
 	pImpl_->psp_.hInstance = hInstResource;
-	pImpl_->psp_.pszTemplate = MAKEINTRESOURCE(nId);
+	pImpl_->psp_.pszTemplate = MAKEINTRESOURCE(nIdPortrait);
 	pImpl_->psp_.pfnDlgProc = propertyPageProc;
 	pImpl_->hpsp_ = 0;
 	pImpl_->pSheet_ = 0;
@@ -421,8 +420,9 @@ INT_PTR CALLBACK qs::propertyPageProc(HWND hwnd,
  */
 
 qs::DefaultPropertyPage::DefaultPropertyPage(HINSTANCE hInst,
-											 UINT nId) :
-	PropertyPage(hInst, nId, false)
+											 UINT nIdPortrait,
+											 UINT nIdLandscape) :
+	PropertyPage(hInst, nIdPortrait, nIdLandscape, false)
 {
 	addCommandHandler(this);
 	addNotifyHandler(this);

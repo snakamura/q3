@@ -109,6 +109,21 @@ INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg,
 	case WM_MEASUREITEM:
 		measureOwnerDrawHandlers(reinterpret_cast<LPMEASUREITEMSTRUCT>(lParam));
 		break;
+
+#ifdef _WIN32_WCE_PSPC
+	case WM_SIZE:
+		if (nIdPortrait_ != nIdLandscape_) {
+			DRA::DisplayMode mode = DRA::GetDisplayMode();
+			if (mode != displayMode_) {
+				UINT nId = mode == DRA::Portrait ? nIdPortrait_ : nIdLandscape_;
+				if (DRA::RelayoutDialog(hInstResource_, pThis_->getHandle(), MAKEINTRESOURCE(nId))) {
+					pDialogHandler_->displayModeChanged();
+					displayMode_ = mode;
+				}
+			}
+		}
+		break;
+#endif
 	
 	default:
 		break;
@@ -217,15 +232,26 @@ void qs::DialogBaseImpl::InitializerImpl::termThread()
  *
  */
 
-qs::DialogBase::DialogBase(bool bDeleteThis) :
+qs::DialogBase::DialogBase(HINSTANCE hInstResource,
+						   UINT nIdPortrait,
+						   UINT nIdLandscape,
+						   bool bDeleteThis) :
 	Window(0)
 {
 	pImpl_ = new DialogBaseImpl();
 	pImpl_->pThis_ = this;
+#ifdef _WIN32_WCE_PSPC
+	pImpl_->hInstResource_ = hInstResource;
+	pImpl_->nIdPortrait_ = nIdPortrait;
+	pImpl_->nIdLandscape_ = nIdLandscape;
+#endif
 	pImpl_->bDeleteThis_ = bDeleteThis;
 	pImpl_->pDialogHandler_ = 0;
 	pImpl_->bDeleteHandler_ = false;
 	pImpl_->pInitThread_ = &InitThread::getInitThread();
+#ifdef _WIN32_WCE_PSPC
+	pImpl_->displayMode_ = DRA::Portrait;
+#endif
 }
 
 qs::DialogBase::~DialogBase()
@@ -340,14 +366,15 @@ struct qs::DialogImpl
  */
 
 qs::Dialog::Dialog(HINSTANCE hInstResource,
-				   UINT nId,
+				   UINT nIdPortrait,
+				   UINT nIdLandscape,
 				   bool bDeleteThis) :
-	DialogBase(bDeleteThis),
+	DialogBase(hInstResource, nIdPortrait, nIdLandscape, bDeleteThis),
 	pImpl_(0)
 {
 	pImpl_ = new DialogImpl();
 	pImpl_->hInstResource_ = hInstResource;
-	pImpl_->nId_ = nId;
+	pImpl_->nId_ = nIdPortrait;
 }
 
 qs::Dialog::~Dialog()
@@ -472,6 +499,10 @@ INT_PTR qs::DefaultDialogHandler::getProcResult() const
 	return nResult_;
 }
 
+void qs::DefaultDialogHandler::displayModeChanged()
+{
+}
+
 DefWindowProcHolder* qs::DefaultDialogHandler::getDefWindowProcHolder()
 {
 	assert(pDialogBase_);
@@ -491,8 +522,9 @@ void qs::DefaultDialogHandler::setProcResult(INT_PTR nResult)
  */
 
 qs::DefaultDialog::DefaultDialog(HINSTANCE hInst,
-								 UINT nId) :
-	Dialog(hInst, nId, false)
+								 UINT nIdPortrait,
+								 UINT nIdLandscape) :
+	Dialog(hInst, nIdPortrait, nIdLandscape, false)
 {
 	addCommandHandler(this);
 	setDialogHandler(this, false);
@@ -910,7 +942,7 @@ LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr,
 
 qs::BrowseFolderDialog::BrowseFolderDialog(const WCHAR* pwszTitle,
 										   const WCHAR* pwszInitialPath) :
-	DefaultDialog(getResourceDllInstanceHandle(), IDD_BROWSEFOLDER),
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_BROWSEFOLDER, IDD_BROWSEFOLDER),
 	pImpl_(0)
 {
 	wstring_ptr wstrPath;
@@ -1059,7 +1091,7 @@ static int CALLBACK enumFontFamProc(ENUMLOGFONT* pelf,
 }
 
 qs::FontDialog::FontDialog(const LOGFONT& lf) :
-	DefaultDialog(getResourceDllInstanceHandle(), IDD_FONT),
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_FONT, IDD_FONT),
 	lf_(lf)
 {
 }
@@ -1178,7 +1210,7 @@ LRESULT qs::FontDialog::onOk()
  */
 
 qs::FolderNameDialog::FolderNameDialog() :
-	DefaultDialog(getResourceDllInstanceHandle(), IDD_FOLDERNAME)
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_FOLDERNAME, IDD_FOLDERNAME)
 {
 }
 
