@@ -92,6 +92,7 @@
 #define IDD_OPTIONSYNC                  224
 #define IDD_ABOUT                       225
 #define IDD_SYNCWAIT                    226
+#define IDD_SELECTADDRESS_L             615
 #define IDD_ABOUT_L                     725
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001

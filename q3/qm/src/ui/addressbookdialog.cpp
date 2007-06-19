@@ -429,7 +429,7 @@ int CALLBACK selectedItemComp(LPARAM lParam1,
 qm::SelectAddressDialog::SelectAddressDialog(AddressBook* pAddressBook,
 											 Profile* pProfile,
 											 const WCHAR* pwszAddress[]) :
-	DefaultDialog(IDD_SELECTADDRESS),
+	DefaultDialog(IDD_SELECTADDRESS, LANDSCAPE(IDD_SELECTADDRESS)),
 	pAddressBook_(pAddressBook),
 	pProfile_(pProfile),
 	nSort_(SORT_NAME | SORT_ASCENDING),

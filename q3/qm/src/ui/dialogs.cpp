@@ -36,12 +36,6 @@
 #include "../sync/syncmanager.h"
 #include "../util/util.h"
 
-#ifdef _WIN32_WCE_PSPC
-#	define LANDSCAPE(x) (x##_L)
-#else
-#	define LANDSCAPE(x) (x)
-#endif
-
 using namespace qm;
 using namespace qs;
 
