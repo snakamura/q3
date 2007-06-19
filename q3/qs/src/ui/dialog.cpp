@@ -499,9 +499,11 @@ INT_PTR qs::DefaultDialogHandler::getProcResult() const
 	return nResult_;
 }
 
+#ifdef _WIN32_WCE_PSPC
 void qs::DefaultDialogHandler::displayModeChanged()
 {
 }
+#endif
 
 DefWindowProcHolder* qs::DefaultDialogHandler::getDefWindowProcHolder()
 {
