@@ -66,7 +66,8 @@ void qmrss::Channel::setTitle(wstring_ptr wstrTitle)
 
 void qmrss::Channel::setLink(wstring_ptr wstrLink)
 {
-	wstrLink_ = wstrLink;
+	if (wstrLink.get() && *wstrLink.get())
+		wstrLink_ = wstrLink;
 }
 
 void qmrss::Channel::setPubDate(const Time& time)
@@ -184,7 +185,8 @@ void qmrss::Item::setTitle(wstring_ptr wstrTitle)
 
 void qmrss::Item::setLink(wstring_ptr wstrLink)
 {
-	wstrLink_ = wstrLink;
+	if (wstrLink.get() && *wstrLink.get())
+		wstrLink_ = wstrLink;
 }
 
 void qmrss::Item::setDescription(wstring_ptr wstrDescription)
@@ -228,7 +230,8 @@ void qmrss::Item::setContentEncoded(wstring_ptr wstrContentEncoded)
 
 void qmrss::Item::setId(wstring_ptr wstrId)
 {
-	wstrId_ = wstrId;
+	if (wstrId.get() && *wstrId.get())
+		wstrId_ = wstrId;
 }
 
 void qmrss::Item::addEnclosure(std::auto_ptr<Enclosure> pEnclosure)
