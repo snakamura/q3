@@ -44,7 +44,7 @@ qm::AccountDialog::AccountDialog(AccountManager* pAccountManager,
 								 const FolderImage* pFolderImage,
 								 OptionDialogManager* pOptionDialogManager,
 								 Profile* pProfile) :
-	DefaultDialog(IDD_ACCOUNT),
+	DefaultDialog(IDD_ACCOUNT, LANDSCAPE(IDD_ACCOUNT)),
 	pAccountManager_(pAccountManager),
 	pPasswordManager_(pPasswordManager),
 	pSubAccount_(pAccount ? pAccount->getCurrentSubAccount() : 0),

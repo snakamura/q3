@@ -211,7 +211,7 @@ void qm::ArchiveDialog::updateState()
  */
 
 qm::AttachmentDialog::AttachmentDialog(EditMessage::AttachmentList& listAttachment) :
-	DefaultDialog(IDD_ATTACHMENT),
+	DefaultDialog(IDD_ATTACHMENT, LANDSCAPE(IDD_ATTACHMENT)),
 	listAttachment_(listAttachment)
 {
 	std::sort(listAttachment_.begin(), listAttachment_.end(),
@@ -535,7 +535,7 @@ LRESULT qm::CustomFilterDialog::onEdit()
 
 qm::DetachDialog::DetachDialog(Profile* pProfile,
 							   List& list) :
-	DefaultDialog(IDD_DETACH),
+	DefaultDialog(IDD_DETACH, LANDSCAPE(IDD_DETACH)),
 	pProfile_(pProfile),
 	list_(list),
 	bOpenFolder_(false)
@@ -2390,7 +2390,7 @@ void qm::ReplaceDialog::updateState()
  */
 
 qm::ResourceDialog::ResourceDialog(ResourceList& listResource) :
-	DefaultDialog(IDD_RESOURCE),
+	DefaultDialog(IDD_RESOURCE, LANDSCAPE(IDD_RESOURCE)),
 	listResource_(listResource),
 	bBackup_(false)
 {
