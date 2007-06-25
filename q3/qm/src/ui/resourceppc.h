@@ -96,7 +96,14 @@
 #define IDD_SELECTADDRESS_L             615
 #define IDD_ATTACHMENT_L                617
 #define IDD_ACCOUNT_L                   632
+#define IDD_MAILFOLDER_L                640
+#define IDD_FIND_L                      641
+#define IDD_REPLACE_L                   642
+#define IDD_MOVEMESSAGE_L               651
+#define IDD_RENAME_L                    652
 #define IDD_RESOURCE_L                  666
+#define IDD_ADDADDRESS_L                690
+#define IDD_CERTIFICATE_L               722
 #define IDD_ABOUT_L                     725
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
@@ -417,6 +424,10 @@
 #define IDC_CHECKUPDATE                 1464
 #define IDC_COPYRIGHT                   1469
 #define IDC_URL                         1470
+#define IDC_MAILFOLDERLABEL             1471
+#define IDC_FINDLABEL                   1472
+#define IDC_REPLACELABEL                1473
+#define IDC_NAMELABEL                   1474
 
 // Next default values for new objects
 // 
@@ -425,7 +436,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1471
+#define _APS_NEXT_CONTROL_VALUE         1475
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

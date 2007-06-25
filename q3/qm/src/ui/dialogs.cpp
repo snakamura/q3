@@ -373,7 +373,7 @@ void qm::AttachmentDialog::updateState()
  */
 
 qm::CertificateDialog::CertificateDialog(const WCHAR* pwszCertificate) :
-	DefaultDialog(IDD_CERTIFICATE)
+	DefaultDialog(IDD_CERTIFICATE, LANDSCAPE(IDD_CERTIFICATE))
 {
 	assert(pwszCertificate);
 	
@@ -998,7 +998,7 @@ void qm::ExportDialog::updateState()
 qm::FindDialog::FindDialog(Profile* pProfile,
 						   bool bSupportRegex,
 						   Callback* pCallback) :
-	DefaultDialog(IDD_FIND),
+	DefaultDialog(IDD_FIND, LANDSCAPE(IDD_FIND)),
 	pProfile_(pProfile),
 	bSupportRegex_(bSupportRegex),
 	pCallback_(pCallback),
@@ -1600,7 +1600,7 @@ LRESULT qm::LabelDialog::onOk()
 
 qm::MailFolderDialog::MailFolderDialog(HINSTANCE hInstResource,
 									   const WCHAR* pwszMailFolder) :
-	DefaultDialog(hInstResource, IDD_MAILFOLDER, IDD_MAILFOLDER)
+	DefaultDialog(hInstResource, IDD_MAILFOLDER, LANDSCAPE(IDD_MAILFOLDER))
 {
 	if (pwszMailFolder)
 		wstrMailFolder_ = allocWString(pwszMailFolder);
@@ -1676,7 +1676,7 @@ qm::MoveMessageDialog::MoveMessageDialog(AccountManager* pAccountManager,
 										 Account* pAccount,
 										 const FolderImage* pFolderImage,
 										 Profile* pProfile) :
-	DefaultDialog(IDD_MOVEMESSAGE),
+	DefaultDialog(IDD_MOVEMESSAGE, LANDSCAPE(IDD_MOVEMESSAGE)),
 	pAccountManager_(pAccountManager),
 	pAccount_(pAccount),
 	pFolderImage_(pFolderImage),
@@ -2179,7 +2179,7 @@ void qm::ProgressDialog::pumpMessage(HWND hwnd)
  */
 
 qm::RenameDialog::RenameDialog(const WCHAR* pwszName) :
-	DefaultDialog(IDD_RENAME)
+	DefaultDialog(IDD_RENAME, LANDSCAPE(IDD_RENAME))
 {
 	wstrName_ = allocWString(pwszName);
 }
@@ -2237,7 +2237,7 @@ void qm::RenameDialog::updateState()
  */
 
 qm::ReplaceDialog::ReplaceDialog(Profile* pProfile) :
-	DefaultDialog(IDD_REPLACE),
+	DefaultDialog(IDD_REPLACE, LANDSCAPE(IDD_REPLACE)),
 	pProfile_(pProfile),
 	bMatchCase_(false),
 	bRegex_(false),

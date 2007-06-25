@@ -254,7 +254,7 @@ void qm::AddressBookAddressDialog::updateState()
  */
 
 qm::AddAddressDialog::AddAddressDialog(AddressBook* pAddressBook) :
-	DefaultDialog(IDD_ADDADDRESS),
+	DefaultDialog(IDD_ADDADDRESS, LANDSCAPE(IDD_ADDADDRESS)),
 	pAddressBook_(pAddressBook),
 	type_(TYPE_NEWENTRY),
 	pEntry_(0)
