@@ -139,7 +139,8 @@ template<class T, class List>
 class AbstractListDialog : public DefaultDialog
 {
 protected:
-	AbstractListDialog(UINT nId,
+	AbstractListDialog(UINT nIdPortrait,
+					   UINT nIdLandscape,
 					   UINT nListId,
 					   bool bFocus);
 	virtual ~AbstractListDialog();

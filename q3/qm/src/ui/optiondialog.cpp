@@ -3936,7 +3936,7 @@ void qm::CopyRuleTemplateDialog::updateState()
 
 qm::ArgumentDialog::ArgumentDialog(const WCHAR* pwszName,
 								   const WCHAR* pwszValue) :
-	DefaultDialog(IDD_ARGUMENT)
+	DefaultDialog(IDD_ARGUMENT, LANDSCAPE(IDD_ARGUMENT))
 {
 	if (pwszName)
 		wstrName_ = allocWString(pwszName);
@@ -4011,7 +4011,8 @@ void qm::ArgumentDialog::updateState()
 qm::AutoPilotDialog::AutoPilotDialog(AutoPilotManager* pManager,
 									 GoRound* pGoRound,
 									 Profile* pProfile) :
-	AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>(IDD_AUTOPILOT, IDC_ENTRIES, false),
+	AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>(
+		IDD_AUTOPILOT, IDD_AUTOPILOT, IDC_ENTRIES, false),
 	pManager_(pManager),
 	pGoRound_(pGoRound),
 	pProfile_(pProfile)
@@ -4212,7 +4213,8 @@ void qm::AutoPilotEntryDialog::updateState()
  */
 
 qm::FiltersDialog::FiltersDialog(FilterManager* pManager) :
-	AbstractListDialog<Filter, FilterManager::FilterList>(IDD_FILTERS, IDC_FILTERS, false),
+	AbstractListDialog<Filter, FilterManager::FilterList>(
+		IDD_FILTERS, IDD_FILTERS, IDC_FILTERS, false),
 	pManager_(pManager)
 {
 	const FilterManager::FilterList& l = pManager->getFilters();
@@ -4375,7 +4377,8 @@ void qm::FilterDialog::updateState()
 
 qm::FixedFormTextsDialog::FixedFormTextsDialog(FixedFormTextManager* pManager,
 											   qs::Profile* pProfile) :
-	AbstractListDialog<FixedFormText, FixedFormTextManager::TextList>(IDD_FIXEDFORMTEXTS, IDC_TEXTS, false),
+	AbstractListDialog<FixedFormText, FixedFormTextManager::TextList>(
+		IDD_FIXEDFORMTEXTS, IDD_FIXEDFORMTEXTS, IDC_TEXTS, false),
 	pManager_(pManager),
 	pProfile_(pProfile)
 {
@@ -4609,7 +4612,8 @@ qm::GoRoundDialog::GoRoundDialog(GoRound* pGoRound,
 								 AccountManager* pAccountManager,
 								 SyncFilterManager* pSyncFilterManager,
 								 Profile* pProfile) :
-	AbstractListDialog<GoRoundCourse, GoRound::CourseList>(IDD_GOROUND, IDC_COURSE, false),
+	AbstractListDialog<GoRoundCourse, GoRound::CourseList>(
+		IDD_GOROUND, IDD_GOROUND, IDC_COURSE, false),
 	pGoRound_(pGoRound),
 	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager),
@@ -4690,7 +4694,8 @@ qm::GoRoundCourseDialog::GoRoundCourseDialog(GoRoundCourse* pCourse,
 											 AccountManager* pAccountManager,
 											 SyncFilterManager* pSyncFilterManager,
 											 Profile* pProfile) :
-	AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>(IDD_GOROUNDCOURSE, IDC_ENTRY, true),
+	AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>(
+		IDD_GOROUNDCOURSE, IDD_GOROUNDCOURSE, IDC_ENTRY, true),
 	pCourse_(pCourse),
 	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager),
@@ -5333,7 +5338,8 @@ void qm::GoRoundDialupDialog::updateState()
 qm::SignaturesDialog::SignaturesDialog(SignatureManager* pSignatureManager,
 									   AccountManager* pAccountManager,
 									   Profile* pProfile) :
-	AbstractListDialog<Signature, SignatureManager::SignatureList>(IDD_SIGNATURES, IDC_SIGNATURES, false),
+	AbstractListDialog<Signature, SignatureManager::SignatureList>(
+		IDD_SIGNATURES, IDD_SIGNATURES, IDC_SIGNATURES, false),
 	pSignatureManager_(pSignatureManager),
 	pAccountManager_(pAccountManager),
 	pProfile_(pProfile)
@@ -5623,7 +5629,8 @@ void qm::SignatureDialog::layout()
 
 qm::SyncFilterSetsDialog::SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager,
 											   Profile* pProfile) :
-	AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>(IDD_SYNCFILTERSETS, IDC_FILTERSETS, false),
+	AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>(
+		IDD_SYNCFILTERSETS, IDD_SYNCFILTERSETS, IDC_FILTERSETS, false),
 	pSyncFilterManager_(pSyncFilterManager),
 	pProfile_(pProfile)
 {
@@ -5700,7 +5707,8 @@ void qm::SyncFilterSetsDialog::layout()
 
 qm::SyncFiltersDialog::SyncFiltersDialog(SyncFilterSet* pSyncFilterSet,
 										 Profile* pProfile) :
-	AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>(IDD_SYNCFILTERS, IDC_FILTERS, true),
+	AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>(
+		IDD_SYNCFILTERS, IDD_SYNCFILTERS, IDC_FILTERS, true),
 	pSyncFilterSet_(pSyncFilterSet),
 	pProfile_(pProfile)
 {

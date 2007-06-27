@@ -30,7 +30,8 @@ using namespace qs;
 
 qm::AddressBookEntryDialog::AddressBookEntryDialog(AddressBook* pAddressBook,
 												   AddressBookEntry* pEntry) :
-	AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>(IDD_ADDRESSBOOKENTRY, IDC_ADDRESSES, true),
+	AbstractListDialog<AddressBookAddress, AddressBookEntry::AddressList>(
+		IDD_ADDRESSBOOKENTRY, LANDSCAPE(IDD_ADDRESSBOOKENTRY), IDC_ADDRESSES, true),
 	pAddressBook_(pAddressBook),
 	pEntry_(pEntry)
 {
@@ -138,7 +139,7 @@ LRESULT qm::AddressBookEntryDialog::onNameChange()
 
 qm::AddressBookAddressDialog::AddressBookAddressDialog(AddressBook* pAddressBook,
 													   AddressBookAddress* pAddress) :
-	DefaultDialog(IDD_ADDRESSBOOKADDRESS),
+	DefaultDialog(IDD_ADDRESSBOOKADDRESS, LANDSCAPE(IDD_ADDRESSBOOKADDRESS)),
 	pAddressBook_(pAddressBook),
 	pAddress_(pAddress)
 {

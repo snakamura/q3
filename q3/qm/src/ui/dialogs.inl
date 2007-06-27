@@ -17,10 +17,11 @@
  */
 
 template<class T, class List>
-qm::AbstractListDialog<T, List>::AbstractListDialog(UINT nId,
+qm::AbstractListDialog<T, List>::AbstractListDialog(UINT nIdPortrait,
+													UINT nIdLandscape,
 													UINT nListId,
 													bool bFocus) :
-	DefaultDialog(nId),
+	DefaultDialog(nIdPortrait, nIdLandscape),
 	nListId_(nListId),
 	bFocus_(bFocus)
 {

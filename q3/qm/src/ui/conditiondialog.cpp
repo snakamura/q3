@@ -25,7 +25,8 @@ using namespace qs;
  */
 
 qm::ConditionsDialog::ConditionsDialog(const WCHAR* pwszCondition) :
-	AbstractListDialog<Condition, ConditionList::List>(IDD_CONDITIONS, IDC_CONDITIONS, true)
+	AbstractListDialog<Condition, ConditionList::List>(
+		IDD_CONDITIONS, IDD_CONDITIONS, IDC_CONDITIONS, true)
 {
 	assert(pwszCondition);
 	wstrCondition_ = allocWString(pwszCondition);
@@ -238,12 +239,12 @@ wstring_ptr qm::ConditionsDialog::getMacroFromConditions()
  */
 
 qm::ConditionDialog::ConditionDialog() :
-	DefaultDialog(IDD_CONDITION)
+	DefaultDialog(IDD_CONDITION, LANDSCAPE(IDD_CONDITION))
 {
 }
 
 qm::ConditionDialog::ConditionDialog(const Condition* pCondition) :
-	DefaultDialog(IDD_CONDITION),
+	DefaultDialog(IDD_CONDITION, LANDSCAPE(IDD_CONDITION)),
 	pCondition_(pCondition->clone())
 {
 }

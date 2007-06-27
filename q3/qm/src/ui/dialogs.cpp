@@ -820,7 +820,7 @@ qm::ExportDialog::ExportDialog(Account* pAccount,
 							   const TemplateManager* pTemplateManager,
 							   Profile* pProfile,
 							   bool bSingleMessage) :
-	DefaultDialog(IDD_EXPORT),
+	DefaultDialog(IDD_EXPORT, LANDSCAPE(IDD_EXPORT)),
 	pAccount_(pAccount),
 	pTemplateManager_(pTemplateManager),
 	pProfile_(pProfile),
@@ -1165,7 +1165,7 @@ qm::FindDialog::Callback::~Callback()
 
 qm::ImportDialog::ImportDialog(const WCHAR* pwszPath,
 							   Profile* pProfile) :
-	DefaultDialog(IDD_IMPORT),
+	DefaultDialog(IDD_IMPORT, LANDSCAPE(IDD_IMPORT)),
 	pProfile_(pProfile),
 	bMultiple_(false),
 	nFlags_(0)

@@ -95,6 +95,8 @@
 #define IDD_DETACH_L                    614
 #define IDD_SELECTADDRESS_L             615
 #define IDD_ATTACHMENT_L                617
+#define IDD_EXPORT_L                    620
+#define IDD_IMPORT_L                    621
 #define IDD_ACCOUNT_L                   632
 #define IDD_MAILFOLDER_L                640
 #define IDD_FIND_L                      641
@@ -102,7 +104,11 @@
 #define IDD_MOVEMESSAGE_L               651
 #define IDD_RENAME_L                    652
 #define IDD_RESOURCE_L                  666
+#define IDD_ARGUMENT_L                  678
+#define IDD_ADDRESSBOOKENTRY_L          688
+#define IDD_ADDRESSBOOKADDRESS_L        689
 #define IDD_ADDADDRESS_L                690
+#define IDD_CONDITION_L                 717
 #define IDD_CERTIFICATE_L               722
 #define IDD_ABOUT_L                     725
 #define IDC_SYNCSTATUS                  1000
@@ -428,6 +434,20 @@
 #define IDC_FINDLABEL                   1472
 #define IDC_REPLACELABEL                1473
 #define IDC_NAMELABEL                   1474
+#define IDC_SORTKEYLABEL                1475
+#define IDC_ADDRESSESLABEL              1476
+#define IDC_ADDRESSLABEL                1477
+#define IDC_ALIASLABEL                  1478
+#define IDC_CATEGORYLABEL               1479
+#define IDC_COMMENTLABEL                1480
+#define IDC_CERTIFICATELABEL            1481
+#define IDC_VALUELABEL                  1482
+#define IDC_CONDITIONLABEL              1483
+#define IDC_ARGUMENTSLABEL              1484
+#define IDC_PATHLABEL                   1485
+#define IDC_TEMPLATELABEL               1486
+#define IDC_ENCODINGLABEL               1487
+#define IDC_FLAGS                       1488
 
 // Next default values for new objects
 // 
@@ -436,7 +456,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1475
+#define _APS_NEXT_CONTROL_VALUE         1489
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
