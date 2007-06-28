@@ -28,6 +28,9 @@
 
 #include <commdlg.h>
 #include <tchar.h>
+#ifdef _WIN32_WCE_PSPC
+#	include <deviceresolutionaware.h>
+#endif
 
 #include "addressbookwindow.h"
 #include "conditiondialog.h"
@@ -400,7 +403,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   Profile* pProfile,
 							   Account* pCurrentAccount,
 							   Panel panel) :
-	DefaultDialog(IDD_OPTION),
+	DefaultDialog(IDD_OPTION, LANDSCAPE(IDD_OPTION)),
 	pDocument_(pDocument),
 	pGoRound_(pGoRound),
 	pFilterManager_(pFilterManager),
@@ -749,13 +752,20 @@ void qm::OptionDialog::layout()
 	selector.getWindowRect(&rectSelector);
 	screenToClient(&rectSelector);
 	
-	RECT rectButton;
-	Window(getDlgItem(IDOK)).getWindowRect(&rectButton);
-	screenToClient(&rectButton);
+	int nButtonHeight = 0;
+	int nGap = 0;
+	if (DRA::GetDisplayMode() == DRA::Portrait) {
+		RECT rectButton;
+		Window(getDlgItem(IDOK)).getWindowRect(&rectButton);
+		screenToClient(&rectButton);
+		nButtonHeight = rectButton.bottom - rectButton.top;
+		nGap = 5;
+	}
 	
 	Window(pCurrentPanel_->getWindow()).setWindowPos(0,
 		0, rectSelector.bottom, rect.right - rect.left,
-		rectButton.top - rectSelector.bottom, SWP_NOACTIVATE | SWP_NOZORDER);
+		rect.bottom - rectSelector.bottom - nButtonHeight - nGap,
+		SWP_NOACTIVATE | SWP_NOZORDER);
 #endif
 }
 
@@ -1418,7 +1428,7 @@ DialogUtil::BoolProperty qm::OptionFolderDialog::comboBoxBoolProperties__[] = {
 qm::OptionFolderDialog::OptionFolderDialog(FolderWindow* pFolderWindow,
 										   FolderComboBox* pFolderComboBox,
 										   Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONFOLDER),
+	DefaultDialog(IDD_OPTIONFOLDER, LANDSCAPE(IDD_OPTIONFOLDER)),
 	pFolderWindow_(pFolderWindow),
 	pFolderComboBox_(pFolderComboBox),
 	pProfile_(pProfile)
@@ -1511,7 +1521,7 @@ LRESULT qm::OptionFolderDialog::onWindowFont()
 qm::OptionHeaderDialog::OptionHeaderDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
 										   MessageWindow* pPreviewWindow,
 										   Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONHEADER),
+	DefaultDialog(IDD_OPTIONHEADER, LANDSCAPE(IDD_OPTIONHEADER)),
 	pMessageFrameWindowManager_(pMessageFrameWindowManager),
 	pPreviewWindow_(pPreviewWindow),
 	pProfile_(pProfile)
@@ -1714,7 +1724,7 @@ DialogUtil::BoolProperty qm::OptionListDialog::boolProperties__[] = {
 qm::OptionListDialog::OptionListDialog(ListWindow* pListWindow,
 									   FolderListWindow* pFolderListWindow,
 									   Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONLIST),
+	DefaultDialog(IDD_OPTIONLIST, LANDSCAPE(IDD_OPTIONLIST)),
 	pListWindow_(pListWindow),
 	pFolderListWindow_(pFolderListWindow),
 	pProfile_(pProfile),
@@ -2426,10 +2436,11 @@ DialogUtil::IntProperty qm::AbstractOptionTextDialog::intProperties__[] = {
 	{ L"TabWidth",	IDC_TABWIDTH	}
 };
 
-qm::AbstractOptionTextDialog::AbstractOptionTextDialog(UINT nId,
+qm::AbstractOptionTextDialog::AbstractOptionTextDialog(UINT nIdPortrait,
+													   UINT nIdLandscape,
 													   Profile* pProfile,
 													   const WCHAR* pwszSection) :
-	DefaultDialog(nId),
+	DefaultDialog(nIdPortrait, nIdLandscape),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection),
 	color_(pProfile, pwszSection, true)
@@ -2536,7 +2547,7 @@ DialogUtil::BoolProperty qm::OptionEditDialog::boolProperties__[] = {
 
 qm::OptionEditDialog::OptionEditDialog(EditFrameWindowManager* pEditFrameWindowManager,
 									   Profile* pProfile) :
-	AbstractOptionTextDialog(IDD_OPTIONEDIT, pProfile, L"EditWindow"),
+	AbstractOptionTextDialog(IDD_OPTIONEDIT, IDD_OPTIONEDIT, pProfile, L"EditWindow"),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pProfile_(pProfile)
 {
@@ -2776,7 +2787,7 @@ DialogUtil::BoolProperty qm::OptionMessageDialog::boolProperties__[] = {
 
 qm::OptionMessageDialog::OptionMessageDialog(MessageFrameWindowManager* pMessageFrameWindowManager,
 											 Profile* pProfile) :
-	AbstractOptionTextDialog(IDD_OPTIONMESSAGE, pProfile, L"MessageWindow"),
+	AbstractOptionTextDialog(IDD_OPTIONMESSAGE, LANDSCAPE(IDD_OPTIONMESSAGE), pProfile, L"MessageWindow"),
 	pMessageFrameWindowManager_(pMessageFrameWindowManager),
 	pProfile_(pProfile)
 {
@@ -2825,7 +2836,7 @@ DialogUtil::IntProperty qm::OptionPreviewDialog::intProperties__[] = {
 
 qm::OptionPreviewDialog::OptionPreviewDialog(MessageWindow* pPreviewWindow,
 											 Profile* pProfile) :
-	AbstractOptionTextDialog(IDD_OPTIONPREVIEW, pProfile, L"PreviewWindow"),
+	AbstractOptionTextDialog(IDD_OPTIONPREVIEW, LANDSCAPE(IDD_OPTIONPREVIEW), pProfile, L"PreviewWindow"),
 	pPreviewWindow_(pPreviewWindow),
 	pProfile_(pProfile)
 {

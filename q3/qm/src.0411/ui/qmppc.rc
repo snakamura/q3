@@ -1362,13 +1362,35 @@ BEGIN
     CONTROL         "フォルダに未読数を表示(&S)",IDC_FOLDERSHOWUNSEEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,40,110,10
     PUSHBUTTON      "フォント(&F)...",IDC_WINDOWFONT,77,50,50,12
-    GROUPBOX        "ウィンドウ",IDC_STATIC,5,0,127,65
+    GROUPBOX        "ウィンドウ",IDC_WINDOW,5,0,127,65
     CONTROL         "メッセージ数を表示(&C)",IDC_SHOWALL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,75,85,10
     CONTROL         "未読数を表示(&E)",IDC_SHOWUNSEEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,85,65,10
     PUSHBUTTON      "フォント(&O)...",IDC_COMBOBOXFONT,77,95,50,12
-    GROUPBOX        "コンボボックス",IDC_STATIC,5,65,127,45
+    GROUPBOX        "コンボボックス",IDC_COMBOBOX,5,65,127,45
+END
+
+IDD_OPTIONFOLDER_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "アカウントにメッセージ数を表示(&A)",IDC_ACCOUNTSHOWALL,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,10,105,10
+    CONTROL         "アカウントに未読数を表示(&U)",IDC_ACCOUNTSHOWUNSEEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,20,115,10
+    CONTROL         "フォルダにメッセージ数を表示(&L)",IDC_FOLDERSHOWALL,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,10
+    CONTROL         "フォルダに未読数を表示(&S)",IDC_FOLDERSHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,40,95,10
+    PUSHBUTTON      "フォント(&F)...",IDC_WINDOWFONT,122,38,50,12
+    GROUPBOX        "ウィンドウ",IDC_WINDOW,5,0,172,55
+    CONTROL         "メッセージ数を表示(&C)",IDC_SHOWALL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,65,85,10
+    CONTROL         "未読数を表示(&E)",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,75,65,10
+    PUSHBUTTON      "フォント(&O)...",IDC_COMBOBOXFONT,122,73,50,12
+    GROUPBOX        "コンボボックス",IDC_COMBOBOX,5,55,172,35
 END
 
 IDD_OPTIONLIST DIALOG DISCARDABLE  0, 0, 137, 119
@@ -1425,23 +1447,24 @@ BEGIN
                     BS_AUTORADIOBUTTON,10,10,84,10
     CONTROL         "指定されたカラム数で折り返す(&S)",IDC_WRAPCOLUMN,"Button",
                     BS_AUTORADIOBUTTON,10,20,102,10
-    LTEXT           "カラム数(&C)",IDC_STATIC,20,32,35,8
+    LTEXT           "カラム数(&C)",IDC_COLUMNLABEL,20,32,35,8
     EDITTEXT        IDC_CHARINLINE,55,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "ワードラップ(&O)",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,78,32,51,10
-    GROUPBOX        "折り返し",IDC_STATIC,5,0,127,45
-    LTEXT           "タブの幅(&T)",IDC_STATIC,5,52,34,8
+    GROUPBOX        "折り返し",IDC_WRAP,5,0,127,45
+    LTEXT           "タブの幅(&T)",IDC_TABLABEL,5,52,34,8
     EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "ルーラ(&R)",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,65,40,10
     CONTROL         "垂直スクロールバー(&V)",IDC_SHOWVERTICALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,75,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,75,10
     CONTROL         "水平スクロールバー(&H)",IDC_SHOWHORIZONTALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,85,75,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,75,10
+    CONTROL         "ルーラ(&R)",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,85,40,10
     CONTROL         "ヘッダ表示(&D)",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,80,85,52,10
-    EDITTEXT        IDC_SEENWAIT,5,95,18,14,ES_AUTOHSCROLL,WS_EX_RIGHT
-    LTEXT           "秒待ってから既読にする(&I)",IDC_STATIC,25,97,90,8
+    EDITTEXT        IDC_SEENWAIT,5,100,18,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    LTEXT           "秒待ってから既読にする(&I)",IDC_SEENWAITLABELAFTER,25,
+                    102,90,8
     PUSHBUTTON      "フォント(&F)...",IDC_FONT,82,50,50,12
     PUSHBUTTON      "色(&L)...",IDC_COLORS,82,65,50,12
 END
@@ -1454,19 +1477,19 @@ BEGIN
                     BS_AUTORADIOBUTTON,10,10,84,10
     CONTROL         "指定されたカラム数で折り返す(&S)",IDC_WRAPCOLUMN,"Button",
                     BS_AUTORADIOBUTTON,10,20,102,10
-    LTEXT           "カラム数(&C)",IDC_STATIC,20,32,33,8
+    LTEXT           "カラム数(&C)",IDC_COLUMNLABEL,20,32,33,8
     EDITTEXT        IDC_CHARINLINE,55,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "ワードラップ(&O)",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,78,32,51,10
-    GROUPBOX        "折り返し",IDC_STATIC,5,0,127,45
-    LTEXT           "タブの幅(&T)",IDC_STATIC,5,52,34,8
+    GROUPBOX        "折り返し",IDC_WRAP,5,0,127,45
+    LTEXT           "タブの幅(&T)",IDC_TABLABEL,5,52,34,8
     EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "ルーラ(&R)",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,65,45,10
     CONTROL         "垂直スクロールバー(&V)",IDC_SHOWVERTICALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,75,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,75,10
     CONTROL         "水平スクロールバー(&H)",IDC_SHOWHORIZONTALSCROLLBAR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,85,75,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,75,10
+    CONTROL         "ルーラ(&R)",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,85,45,10
     CONTROL         "ヘッダ表示(&D)",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,80,85,52,10
     PUSHBUTTON      "フォント(&F)...",IDC_FONT,82,50,50,12
@@ -2084,6 +2107,91 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,127,83,50,12
 END
 
+IDD_OPTION_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "オプション"
+FONT 9, "Tahoma"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,102,5,35,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,142,5,35,12
+    COMBOBOX        IDC_SELECTOR,5,5,92,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_OPTIONLIST_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "クリックでメッセージを開く(&S)",IDC_SINGLECLICK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,105,10
+    PUSHBUTTON      "フォント(&F)...",IDC_FONT,5,20,50,12
+    PUSHBUTTON      "色(&C)...",IDC_COLORS,60,20,50,12
+END
+
+IDD_OPTIONHEADER_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    PUSHBUTTON      "フォント(&F)...",IDC_FONT,5,5,50,12
+END
+
+IDD_OPTIONMESSAGE_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "ウィンドウ幅で折り返す(&W)",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "指定されたカラム数で折り返す(&S)",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "カラム数(&C)",IDC_COLUMNLABEL,20,32,33,8
+    EDITTEXT        IDC_CHARINLINE,55,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "ワードラップ(&O)",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,78,32,51,10
+    GROUPBOX        "折り返し",IDC_WRAP,5,0,127,45
+    LTEXT           "タブの幅(&T)",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "垂直スクロールバー(&V)",IDC_SHOWVERTICALSCROLLBAR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,75,10
+    CONTROL         "水平スクロールバー(&H)",IDC_SHOWHORIZONTALSCROLLBAR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,75,10
+    CONTROL         "ルーラ(&R)",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,65,45,10
+    CONTROL         "ヘッダ表示(&D)",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,75,52,10
+    PUSHBUTTON      "フォント(&F)...",IDC_FONT,137,5,40,12
+    PUSHBUTTON      "色(&L)...",IDC_COLORS,137,20,40,12
+END
+
+IDD_OPTIONPREVIEW_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "ウィンドウ幅で折り返す(&W)",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "指定されたカラム数で折り返す(&S)",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "カラム数(&C)",IDC_COLUMNLABEL,20,32,35,8
+    EDITTEXT        IDC_CHARINLINE,55,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "ワードラップ(&O)",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,78,32,51,10
+    GROUPBOX        "折り返し",IDC_WRAP,5,0,127,45
+    LTEXT           "タブの幅(&T)",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_SEENWAIT,85,50,18,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    LTEXT           "秒待ってから既読にする(&I)",IDC_SEENWAITLABELAFTER,105,
+                    53,75,8
+    CONTROL         "垂直スクロールバー(&V)",IDC_SHOWVERTICALSCROLLBAR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,75,10
+    CONTROL         "水平スクロールバー(&H)",IDC_SHOWHORIZONTALSCROLLBAR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,75,10
+    CONTROL         "ルーラ(&R)",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,65,40,10
+    CONTROL         "ヘッダ表示(&D)",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,75,52,10
+    PUSHBUTTON      "フォント(&F)...",IDC_FONT,137,5,40,12
+    PUSHBUTTON      "色(&L)...",IDC_COLORS,137,20,40,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2528,6 +2636,24 @@ BEGIN
         RIGHTMARGIN, 175
         TOPMARGIN, 7
         BOTTOMMARGIN, 100
+    END
+
+    IDD_OPTION_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_OPTIONMESSAGE_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+    END
+
+    IDD_OPTIONPREVIEW_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
     END
 END
 #endif    // APSTUDIO_INVOKED

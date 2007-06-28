@@ -108,6 +108,12 @@
 #define IDD_ADDRESSBOOKENTRY_L          688
 #define IDD_ADDRESSBOOKADDRESS_L        689
 #define IDD_ADDADDRESS_L                690
+#define IDD_OPTION_L                    697
+#define IDD_OPTIONFOLDER_L              698
+#define IDD_OPTIONLIST_L                700
+#define IDD_OPTIONPREVIEW_L             704
+#define IDD_OPTIONMESSAGE_L             705
+#define IDD_OPTIONHEADER_L              706
 #define IDD_CONDITION_L                 717
 #define IDD_CERTIFICATE_L               722
 #define IDD_ABOUT_L                     725
@@ -448,6 +454,13 @@
 #define IDC_TEMPLATELABEL               1486
 #define IDC_ENCODINGLABEL               1487
 #define IDC_FLAGS                       1488
+#define IDC_WINDOW                      1489
+#define IDC_WRAP                        1489
+#define IDC_COMBOBOX                    1490
+#define IDC_COLUMNLABEL                 1490
+#define IDC_TABLABEL                    1491
+#define IDC_SEENWAITLABELBEFORE         1492
+#define IDC_SEENWAITLABELAFTER          1493
 
 // Next default values for new objects
 // 
@@ -456,7 +469,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1489
+#define _APS_NEXT_CONTROL_VALUE         1494
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

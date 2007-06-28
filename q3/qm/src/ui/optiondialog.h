@@ -1007,7 +1007,8 @@ class AbstractOptionTextDialog :
 	public AbstractOptionDialogPanel<AbstractOptionTextDialog>
 {
 public:
-	AbstractOptionTextDialog(UINT nId,
+	AbstractOptionTextDialog(UINT nIdPortrait,
+							 UINT nIdLandscape,
 							 qs::Profile* pProfile,
 							 const WCHAR* pwszSection);
 	virtual ~AbstractOptionTextDialog();

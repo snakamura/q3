@@ -1319,13 +1319,35 @@ BEGIN
     CONTROL         "Show un&seen count on folders",IDC_FOLDERSHOWUNSEEN,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,110,10
     PUSHBUTTON      "&Font...",IDC_WINDOWFONT,77,50,50,12
-    GROUPBOX        "Window",IDC_STATIC,5,0,127,65
+    GROUPBOX        "Window",IDC_WINDOW,5,0,127,65
     CONTROL         "Show all &count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,75,65,10
     CONTROL         "Show uns&een count",IDC_SHOWUNSEEN,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,85,85,10
     PUSHBUTTON      "F&ont...",IDC_COMBOBOXFONT,77,95,50,12
-    GROUPBOX        "Combo Box",IDC_STATIC,5,65,127,45
+    GROUPBOX        "Combo Box",IDC_COMBOBOX,5,65,127,45
+END
+
+IDD_OPTIONFOLDER_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Show &all count on accounts",IDC_ACCOUNTSHOWALL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,105,10
+    CONTROL         "Show &unseen count on accounts",IDC_ACCOUNTSHOWUNSEEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,20,115,10
+    CONTROL         "Show a&ll count on folders",IDC_FOLDERSHOWALL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,10
+    CONTROL         "Show un&seen count on folders",IDC_FOLDERSHOWUNSEEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,110,10
+    PUSHBUTTON      "&Font...",IDC_WINDOWFONT,127,38,45,12
+    GROUPBOX        "Window",IDC_WINDOW,5,0,172,55
+    CONTROL         "Show all &count",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,65,65,10
+    CONTROL         "Show uns&een count",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,75,85,10
+    PUSHBUTTON      "F&ont...",IDC_COMBOBOXFONT,127,73,45,12
+    GROUPBOX        "Combo Box",IDC_COMBOBOX,5,55,172,35
 END
 
 IDD_OPTIONLIST DIALOG DISCARDABLE  0, 0, 137, 119
@@ -1381,24 +1403,25 @@ BEGIN
                     BS_AUTORADIOBUTTON,10,10,84,10
     CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
                     BS_AUTORADIOBUTTON,10,20,102,10
-    LTEXT           "&Column",IDC_STATIC,20,32,24,8
+    LTEXT           "&Column",IDC_COLUMNLABEL,20,32,24,8
     EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,80,32,47,10
-    GROUPBOX        "Wrap",IDC_STATIC,5,0,127,45
-    LTEXT           "&Tab Width",IDC_STATIC,5,52,34,8
+    GROUPBOX        "Wrap",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Width",IDC_TABLABEL,5,52,34,8
     EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,65,30,10
     CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
     CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,85,30,10
     CONTROL         "Show Hea&der",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,65,85,60,10
-    LTEXT           "Wa&it",IDC_STATIC,5,97,15,8
-    EDITTEXT        IDC_SEENWAIT,22,95,18,12,ES_AUTOHSCROLL,WS_EX_RIGHT
-    LTEXT           "s before making msg seen",IDC_STATIC,40,97,90,8
+    LTEXT           "Wa&it",IDC_SEENWAITLABELBEFORE,5,102,15,8
+    EDITTEXT        IDC_SEENWAIT,22,100,18,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    LTEXT           "s before making msg seen",IDC_SEENWAITLABELAFTER,40,102,
+                    90,8
     PUSHBUTTON      "&Font...",IDC_FONT,82,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,82,65,50,12
 END
@@ -1411,21 +1434,21 @@ BEGIN
                     BS_AUTORADIOBUTTON,10,10,84,10
     CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
                     BS_AUTORADIOBUTTON,10,20,102,10
-    LTEXT           "&Column",IDC_STATIC,20,32,24,8
+    LTEXT           "&Column",IDC_COLUMNLABEL,20,32,24,8
     EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,80,32,47,10
-    GROUPBOX        "Wrap",IDC_STATIC,5,0,127,45
-    LTEXT           "&Tab Width",IDC_STATIC,5,52,34,8
+    GROUPBOX        "Wrap",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Width",IDC_TABLABEL,5,52,34,8
     EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,65,30,10
     CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
     CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,50,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,85,30,10
     CONTROL         "Show Hea&der",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,65,85,60,10
+                    WS_TABSTOP,60,85,60,10
     PUSHBUTTON      "&Font...",IDC_FONT,82,50,50,12
     PUSHBUTTON      "Co&lors...",IDC_COLORS,82,65,50,12
 END
@@ -2076,6 +2099,91 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,127,83,50,12
 END
 
+IDD_OPTION_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Option"
+FONT 9, "Tahoma"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,102,5,35,12
+    PUSHBUTTON      "Cancel",IDCANCEL,142,5,35,12
+    COMBOBOX        IDC_SELECTOR,5,5,92,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_OPTIONLIST_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Single click to open message",IDC_SINGLECLICK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,105,10
+    PUSHBUTTON      "&Font...",IDC_FONT,5,20,50,12
+    PUSHBUTTON      "&Colors...",IDC_COLORS,60,20,50,12
+END
+
+IDD_OPTIONHEADER_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    PUSHBUTTON      "&Font...",IDC_FONT,5,5,50,12
+END
+
+IDD_OPTIONPREVIEW_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Wrap at &window width",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Column",IDC_COLUMNLABEL,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,32,47,10
+    GROUPBOX        "Wrap",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Width",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Wa&it",IDC_SEENWAITLABELBEFORE,80,52,15,8
+    EDITTEXT        IDC_SEENWAIT,95,50,18,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    LTEXT           "s before seen",IDC_SEENWAITLABELAFTER,115,52,45,8
+    CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,65,30,10
+    CONTROL         "Show Hea&der",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,75,60,10
+    PUSHBUTTON      "&Font...",IDC_FONT,137,5,40,12
+    PUSHBUTTON      "Co&lors...",IDC_COLORS,137,20,40,12
+END
+
+IDD_OPTIONMESSAGE_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Wrap at &window width",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "Wrap at the &specified column",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Column",IDC_COLUMNLABEL,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "W&ord Wrap",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,32,47,10
+    GROUPBOX        "Wrap",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Width",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Ruler",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,65,30,10
+    CONTROL         "Show Hea&der",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,75,60,10
+    PUSHBUTTON      "&Font...",IDC_FONT,137,5,40,12
+    PUSHBUTTON      "Co&lors...",IDC_COLORS,137,20,40,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2519,6 +2627,24 @@ BEGIN
         RIGHTMARGIN, 175
         TOPMARGIN, 7
         BOTTOMMARGIN, 100
+    END
+
+    IDD_OPTION_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_OPTIONHEADER_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+    END
+
+    IDD_OPTIONMESSAGE_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
     END
 END
 #endif    // APSTUDIO_INVOKED
