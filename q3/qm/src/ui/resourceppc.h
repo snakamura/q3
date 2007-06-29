@@ -103,20 +103,35 @@
 #define IDD_REPLACE_L                   642
 #define IDD_MOVEMESSAGE_L               651
 #define IDD_RENAME_L                    652
+#define IDD_GOROUND_L                   661
 #define IDD_RESOURCE_L                  666
+#define IDD_SIGNATURES_L                667
+#define IDD_FIXEDFORMTEXTS_L            670
+#define IDD_RULECOLORSETS_L             673
 #define IDD_ARGUMENT_L                  678
+#define IDD_FILTERS_L                   680
+#define IDD_SYNCFILTERSETS_L            682
+#define IDD_AUTOPILOT_L                 685
 #define IDD_ADDRESSBOOKENTRY_L          688
 #define IDD_ADDRESSBOOKADDRESS_L        689
 #define IDD_ADDADDRESS_L                690
+#define IDD_TABTITLE_L                  691
 #define IDD_OPTION_L                    697
 #define IDD_OPTIONFOLDER_L              698
 #define IDD_OPTIONLIST_L                700
+#define IDD_OPTIONADDRESSBOOK_L         701
+#define IDD_OPTIONTAB_L                 702
 #define IDD_OPTIONPREVIEW_L             704
 #define IDD_OPTIONMESSAGE_L             705
 #define IDD_OPTIONHEADER_L              706
+#define IDD_OPTIONSECURITY_L            708
+#define IDD_OPTIONCONFIRM_L             715
 #define IDD_CONDITION_L                 717
 #define IDD_CERTIFICATE_L               722
+#define IDD_OPTIONSEARCH_L              723
+#define IDD_OPTIONSYNC_L                724
 #define IDD_ABOUT_L                     725
+#define IDD_SYNCWAIT_L                  726
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
 #define IDC_SIZEGRIP                    1003
@@ -461,6 +476,15 @@
 #define IDC_TABLABEL                    1491
 #define IDC_SEENWAITLABELBEFORE         1492
 #define IDC_SEENWAITLABELAFTER          1493
+#define IDC_SIMPLE                      1494
+#define IDC_EXTERNAL                    1495
+#define IDC_WARNEXTENSIONLABEL          1496
+#define IDC_CERTIFICATES                1497
+#define IDC_SYNCDIALOGS                 1498
+#define IDC_SYNCDIALOGLABEL             1499
+#define IDC_NOTIFICATIONS               1500
+#define IDC_NOTIFICATIONLABEL           1501
+#define IDC_MAXLABEL                    1502
 
 // Next default values for new objects
 // 
@@ -469,7 +493,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1494
+#define _APS_NEXT_CONTROL_VALUE         1503
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

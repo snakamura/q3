@@ -1295,7 +1295,7 @@ OptionAddressBookDialog::External qm::OptionAddressBookDialog::externals__[] = {
 qm::OptionAddressBookDialog::OptionAddressBookDialog(AddressBook* pAddressBook,
 													 AddressBookFrameWindowManager* pAddressBookFrameWindowManager,
 													 Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONADDRESSBOOK),
+	DefaultDialog(IDD_OPTIONADDRESSBOOK, LANDSCAPE(IDD_OPTIONADDRESSBOOK)),
 	pAddressBook_(pAddressBook),
 	pAddressBookFrameWindowManager_(pAddressBookFrameWindowManager),
 	pProfile_(pProfile)
@@ -1380,7 +1380,7 @@ DialogUtil::BoolProperty qm::OptionConfirmDialog::boolProperties__[] = {
 };
 
 qm::OptionConfirmDialog::OptionConfirmDialog(Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONCONFIRM),
+	DefaultDialog(IDD_OPTIONCONFIRM, LANDSCAPE(IDD_OPTIONCONFIRM)),
 	pProfile_(pProfile)
 {
 }
@@ -2049,7 +2049,7 @@ struct {
 #endif
 
 qm::OptionSearchDialog::OptionSearchDialog(Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONSEARCH),
+	DefaultDialog(IDD_OPTIONSEARCH, LANDSCAPE(IDD_OPTIONSEARCH)),
 	pProfile_(pProfile)
 {
 }
@@ -2163,7 +2163,7 @@ DialogUtil::BoolProperty qm::OptionSecurityDialog::securityBoolProperties__[] = 
 
 qm::OptionSecurityDialog::OptionSecurityDialog(Security* pSecurity,
 											   Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONSECURITY),
+	DefaultDialog(IDD_OPTIONSECURITY, LANDSCAPE(IDD_OPTIONSECURITY)),
 	pSecurity_(pSecurity),
 	pProfile_(pProfile)
 {
@@ -2244,7 +2244,7 @@ DialogUtil::BoolProperty qm::OptionSyncDialog::recentsBoolProperties__[] = {
 
 qm::OptionSyncDialog::OptionSyncDialog(Recents* pRecents,
 									   Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONSYNC),
+	DefaultDialog(IDD_OPTIONSYNC, LANDSCAPE(IDD_OPTIONSYNC)),
 	pRecents_(pRecents),
 	pProfile_(pProfile)
 {
@@ -2888,7 +2888,7 @@ DialogUtil::BoolProperty qm::OptionTabDialog::boolProperties__[] = {
 
 qm::OptionTabDialog::OptionTabDialog(TabWindow* pTabWindow,
 									 Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONTAB),
+	DefaultDialog(IDD_OPTIONTAB, LANDSCAPE(IDD_OPTIONTAB)),
 	pTabWindow_(pTabWindow),
 	pProfile_(pProfile)
 {
@@ -4023,7 +4023,7 @@ qm::AutoPilotDialog::AutoPilotDialog(AutoPilotManager* pManager,
 									 GoRound* pGoRound,
 									 Profile* pProfile) :
 	AbstractListDialog<AutoPilotEntry, AutoPilotManager::EntryList>(
-		IDD_AUTOPILOT, IDD_AUTOPILOT, IDC_ENTRIES, false),
+		IDD_AUTOPILOT, LANDSCAPE(IDD_AUTOPILOT), IDC_ENTRIES, false),
 	pManager_(pManager),
 	pGoRound_(pGoRound),
 	pProfile_(pProfile)
@@ -4225,7 +4225,7 @@ void qm::AutoPilotEntryDialog::updateState()
 
 qm::FiltersDialog::FiltersDialog(FilterManager* pManager) :
 	AbstractListDialog<Filter, FilterManager::FilterList>(
-		IDD_FILTERS, IDD_FILTERS, IDC_FILTERS, false),
+		IDD_FILTERS, LANDSCAPE(IDD_FILTERS), IDC_FILTERS, false),
 	pManager_(pManager)
 {
 	const FilterManager::FilterList& l = pManager->getFilters();
@@ -4389,7 +4389,7 @@ void qm::FilterDialog::updateState()
 qm::FixedFormTextsDialog::FixedFormTextsDialog(FixedFormTextManager* pManager,
 											   qs::Profile* pProfile) :
 	AbstractListDialog<FixedFormText, FixedFormTextManager::TextList>(
-		IDD_FIXEDFORMTEXTS, IDD_FIXEDFORMTEXTS, IDC_TEXTS, false),
+		IDD_FIXEDFORMTEXTS, LANDSCAPE(IDD_FIXEDFORMTEXTS), IDC_TEXTS, false),
 	pManager_(pManager),
 	pProfile_(pProfile)
 {
@@ -4624,7 +4624,7 @@ qm::GoRoundDialog::GoRoundDialog(GoRound* pGoRound,
 								 SyncFilterManager* pSyncFilterManager,
 								 Profile* pProfile) :
 	AbstractListDialog<GoRoundCourse, GoRound::CourseList>(
-		IDD_GOROUND, IDD_GOROUND, IDC_COURSE, false),
+		IDD_GOROUND, LANDSCAPE(IDD_GOROUND), IDC_COURSE, false),
 	pGoRound_(pGoRound),
 	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager),
@@ -5350,7 +5350,7 @@ qm::SignaturesDialog::SignaturesDialog(SignatureManager* pSignatureManager,
 									   AccountManager* pAccountManager,
 									   Profile* pProfile) :
 	AbstractListDialog<Signature, SignatureManager::SignatureList>(
-		IDD_SIGNATURES, IDD_SIGNATURES, IDC_SIGNATURES, false),
+		IDD_SIGNATURES, LANDSCAPE(IDD_SIGNATURES), IDC_SIGNATURES, false),
 	pSignatureManager_(pSignatureManager),
 	pAccountManager_(pAccountManager),
 	pProfile_(pProfile)
@@ -5641,7 +5641,7 @@ void qm::SignatureDialog::layout()
 qm::SyncFilterSetsDialog::SyncFilterSetsDialog(SyncFilterManager* pSyncFilterManager,
 											   Profile* pProfile) :
 	AbstractListDialog<SyncFilterSet, SyncFilterManager::FilterSetList>(
-		IDD_SYNCFILTERSETS, IDD_SYNCFILTERSETS, IDC_FILTERSETS, false),
+		IDD_SYNCFILTERSETS, LANDSCAPE(IDD_SYNCFILTERSETS), IDC_FILTERSETS, false),
 	pSyncFilterManager_(pSyncFilterManager),
 	pProfile_(pProfile)
 {

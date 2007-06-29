@@ -2776,7 +2776,7 @@ LRESULT qm::SelectSyncFilterDialog::onOk()
  */
 
 qm::SyncWaitDialog::SyncWaitDialog(SyncManager* pSyncManager) :
-	DefaultDialog(IDD_SYNCWAIT),
+	DefaultDialog(IDD_SYNCWAIT, LANDSCAPE(IDD_SYNCWAIT)),
 	pSyncManager_(pSyncManager)
 {
 }
@@ -2842,7 +2842,7 @@ LRESULT qm::SyncWaitDialog::onTimer(UINT_PTR nId)
  */
 
 qm::TabTitleDialog::TabTitleDialog(const WCHAR* pwszTitle) :
-	DefaultDialog(IDD_TABTITLE)
+	DefaultDialog(IDD_TABTITLE, LANDSCAPE(IDD_TABTITLE))
 {
 	if (pwszTitle)
 		wstrTitle_ = allocWString(pwszTitle);

@@ -52,7 +52,7 @@ qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::RuleColorSetsDialog(Manag
 																		   UINT nTitleId,
 																		   PFN_GET pfnGet,
 																		   PFN_SET pfnSet) :
-	AbstractListDialog<T, List>(IDD_RULECOLORSETS, IDD_RULECOLORSETS, IDC_RULECOLORSETS, false),
+	AbstractListDialog<T, List>(IDD_RULECOLORSETS, LANDSCAPE(IDD_RULECOLORSETS), IDC_RULECOLORSETS, false),
 	pManager_(pManager),
 	pAccountManager_(pAccountManager),
 	pProfile_(pProfile),
