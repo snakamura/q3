@@ -93,21 +93,26 @@
 #define IDD_ABOUT                       225
 #define IDD_SYNCWAIT                    226
 #define IDD_SELECTSYNCFILTER_L          611
+#define IDD_CREATEFOLDER_L              612
 #define IDD_DETACH_L                    614
 #define IDD_SELECTADDRESS_L             615
 #define IDD_ATTACHMENT_L                617
 #define IDD_EXPORT_L                    620
 #define IDD_IMPORT_L                    621
 #define IDD_ACCOUNT_L                   632
+#define IDD_CREATEACCOUNT_L             639
 #define IDD_MAILFOLDER_L                640
 #define IDD_FIND_L                      641
 #define IDD_REPLACE_L                   642
+#define IDD_CREATESUBACCOUNT_L          643
 #define IDD_SELECTDIALUPENTRY_L         645
+#define IDD_CUSTOMFILTER_L              650
 #define IDD_MOVEMESSAGE_L               651
 #define IDD_RENAME_L                    652
 #define IDD_GOROUND_L                   661
 #define IDD_RESOURCE_L                  666
 #define IDD_SIGNATURES_L                667
+#define IDD_SIGNATURE_L                 668
 #define IDD_FIXEDFORMTEXTS_L            670
 #define IDD_FIXEDFORMTEXT_L             671
 #define IDD_RULECOLORSETS_L             673
@@ -118,6 +123,7 @@
 #define IDD_SYNCFILTERSETS_L            682
 #define IDD_SYNCFILTERS_L               683
 #define IDD_AUTOPILOT_L                 685
+#define IDD_AUTOPILOTENTRY_L            686
 #define IDD_ADDRESSBOOKENTRY_L          688
 #define IDD_ADDRESSBOOKADDRESS_L        689
 #define IDD_ADDADDRESS_L                690
@@ -136,6 +142,7 @@
 #define IDD_SECURITY_L                  712
 #define IDD_OPTIONCONFIRM_L             715
 #define IDD_CONDITION_L                 717
+#define IDD_LABEL_L                     721
 #define IDD_CERTIFICATE_L               722
 #define IDD_OPTIONSEARCH_L              723
 #define IDD_OPTIONSYNC_L                724
@@ -498,6 +505,16 @@
 #define IDC_REFORM                      1504
 #define IDC_EXTERNALEDITOR              1505
 #define IDC_EDITORLABEL                 1506
+#define IDC_COURSELABEL                 1507
+#define IDC_INTERVALLABEL               1508
+#define IDC_CLASSLABEL                  1509
+#define IDC_INCOMINGPROTOCOLLABEL       1510
+#define IDC_OUTGOINGPROTOCOLLABEL       1511
+#define IDC_MESSAGEBOX                  1512
+#define IDC_BLOCKSIZELABEL              1513
+#define IDC_INDEXBLOCKSIZELABEL         1514
+#define IDC_BLOCKSIZEAFTERLABEL         1515
+#define IDC_INDEXBLOCKSIZEAFTERLABEL    1516
 
 // Next default values for new objects
 // 
@@ -506,7 +523,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1507
+#define _APS_NEXT_CONTROL_VALUE         1517
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

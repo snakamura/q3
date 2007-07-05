@@ -27,7 +27,7 @@ using namespace qs;
 
 qm::CreateFolderDialog::CreateFolderDialog(Type type,
 										   unsigned int nFlags) :
-	DefaultDialog(IDD_CREATEFOLDER),
+	DefaultDialog(IDD_CREATEFOLDER, LANDSCAPE(IDD_CREATEFOLDER)),
 	type_(type),
 	nFlags_(nFlags)
 {

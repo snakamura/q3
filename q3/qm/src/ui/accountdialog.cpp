@@ -580,7 +580,7 @@ void qm::AccountDialog::initProfileForClass(const WCHAR* pwszClass,
  */
 
 qm::CreateAccountDialog::CreateAccountDialog(Profile* pProfile) :
-	DefaultDialog(IDD_CREATEACCOUNT),
+	DefaultDialog(IDD_CREATEACCOUNT, LANDSCAPE(IDD_CREATEACCOUNT)),
 	pProfile_(pProfile),
 	nReceiveProtocol_(0),
 	nSendProtocol_(0),
@@ -820,7 +820,7 @@ void qm::CreateAccountDialog::updateState()
  */
 
 qm::CreateSubAccountDialog::CreateSubAccountDialog(AccountManager* pAccountManager) :
-	DefaultDialog(IDD_CREATESUBACCOUNT),
+	DefaultDialog(IDD_CREATESUBACCOUNT, LANDSCAPE(IDD_CREATESUBACCOUNT)),
 	pAccountManager_(pAccountManager)
 {
 }

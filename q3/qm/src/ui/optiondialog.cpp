@@ -4137,7 +4137,7 @@ void qm::AutoPilotDialog::layout()
 
 qm::AutoPilotEntryDialog::AutoPilotEntryDialog(AutoPilotEntry* pEntry,
 											   GoRound* pGoRound) :
-	DefaultDialog(IDD_AUTOPILOTENTRY),
+	DefaultDialog(IDD_AUTOPILOTENTRY, LANDSCAPE(IDD_AUTOPILOTENTRY)),
 	pEntry_(pEntry),
 	pGoRound_(pGoRound)
 {
@@ -5437,7 +5437,7 @@ void qm::SignaturesDialog::layout()
 qm::SignatureDialog::SignatureDialog(Signature* pSignature,
 									 AccountManager* pAccountManager,
 									 Profile* pProfile) :
-	DefaultDialog(IDD_SIGNATURE),
+	DefaultDialog(IDD_SIGNATURE, LANDSCAPE(IDD_SIGNATURE)),
 	pSignature_(pSignature),
 	pAccountManager_(pAccountManager),
 	pProfile_(pProfile)

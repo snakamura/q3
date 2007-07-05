@@ -468,7 +468,7 @@ LRESULT qm::ConfirmSendDialog::onDiscard()
  */
 
 qm::CustomFilterDialog::CustomFilterDialog(const WCHAR* pwszCondition) :
-	DefaultDialog(IDD_CUSTOMFILTER)
+	DefaultDialog(IDD_CUSTOMFILTER, LANDSCAPE(IDD_CUSTOMFILTER))
 {
 	if (pwszCondition)
 		wstrCondition_ = allocWString(pwszCondition);
@@ -1543,7 +1543,7 @@ void qm::MultiLineInputBoxDialog::layout()
 
 qm::LabelDialog::LabelDialog(const WCHAR* pwszLabel,
 							 Profile* pProfile) :
-	DefaultDialog(IDD_LABEL),
+	DefaultDialog(IDD_LABEL, LANDSCAPE(IDD_LABEL)),
 	pProfile_(pProfile),
 	wndLabel_(pProfile, L"Label", L"", false)
 {
