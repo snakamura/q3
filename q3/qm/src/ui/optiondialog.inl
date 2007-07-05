@@ -168,7 +168,7 @@ qm::RulesColorsDialog<T, List, Container, EditDialog>::RulesColorsDialog(Contain
 																		 UINT nTitleId,
 																		 PFN_GET pfnGet,
 																		 PFN_SET pfnSet) :
-	AbstractListDialog<T, List>(IDD_RULESCOLORS, IDD_RULESCOLORS, IDC_RULESCOLORS, false),
+	AbstractListDialog<T, List>(IDD_RULESCOLORS, LANDSCAPE(IDD_RULESCOLORS), IDC_RULESCOLORS, false),
 	pContainer_(pContainer),
 	pAccountManager_(pAccountManager),
 	pProfile_(pProfile),

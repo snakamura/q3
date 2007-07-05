@@ -2547,7 +2547,7 @@ DialogUtil::BoolProperty qm::OptionEditDialog::boolProperties__[] = {
 
 qm::OptionEditDialog::OptionEditDialog(EditFrameWindowManager* pEditFrameWindowManager,
 									   Profile* pProfile) :
-	AbstractOptionTextDialog(IDD_OPTIONEDIT, IDD_OPTIONEDIT, pProfile, L"EditWindow"),
+	AbstractOptionTextDialog(IDD_OPTIONEDIT, LANDSCAPE(IDD_OPTIONEDIT), pProfile, L"EditWindow"),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pProfile_(pProfile)
 {
@@ -2618,7 +2618,7 @@ SecurityDialog::Item qm::SecurityDialog::items__[] = {
 };
 
 qm::SecurityDialog::SecurityDialog(unsigned int nMessageSecurity) :
-	DefaultDialog(IDD_SECURITY),
+	DefaultDialog(IDD_SECURITY, LANDSCAPE(IDD_SECURITY)),
 	nMessageSecurity_(nMessageSecurity)
 {
 }
@@ -2694,7 +2694,7 @@ DialogUtil::IntProperty qm::OptionEdit2Dialog::intProperties__[] = {
 
 qm::OptionEdit2Dialog::OptionEdit2Dialog(EditFrameWindowManager* pEditFrameWindowManager,
 										 Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONEDIT2),
+	DefaultDialog(IDD_OPTIONEDIT2, LANDSCAPE(IDD_OPTIONEDIT2)),
 	pEditFrameWindowManager_(pEditFrameWindowManager),
 	pProfile_(pProfile),
 	nMessageSecurity_(0)
@@ -4300,7 +4300,7 @@ void qm::FiltersDialog::layout()
  */
 
 qm::FilterDialog::FilterDialog(Filter* pFilter) :
-	DefaultDialog(IDD_FILTER),
+	DefaultDialog(IDD_FILTER, LANDSCAPE(IDD_FILTER)),
 	pFilter_(pFilter)
 {
 }
@@ -4466,7 +4466,7 @@ void qm::FixedFormTextsDialog::layout()
 
 qm::FixedFormTextDialog::FixedFormTextDialog(FixedFormText* pText,
 											 qs::Profile* pProfile) :
-	DefaultDialog(IDD_FIXEDFORMTEXT),
+	DefaultDialog(IDD_FIXEDFORMTEXT, LANDSCAPE(IDD_FIXEDFORMTEXT)),
 	pText_(pText),
 	pProfile_(pProfile)
 {
@@ -5719,7 +5719,7 @@ void qm::SyncFilterSetsDialog::layout()
 qm::SyncFiltersDialog::SyncFiltersDialog(SyncFilterSet* pSyncFilterSet,
 										 Profile* pProfile) :
 	AbstractListDialog<SyncFilter, SyncFilterSet::FilterList>(
-		IDD_SYNCFILTERS, IDD_SYNCFILTERS, IDC_FILTERS, true),
+		IDD_SYNCFILTERS, LANDSCAPE(IDD_SYNCFILTERS), IDC_FILTERS, true),
 	pSyncFilterSet_(pSyncFilterSet),
 	pProfile_(pProfile)
 {

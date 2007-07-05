@@ -2622,7 +2622,7 @@ HWND qm::SelectBoxDialog::getList()
  */
 
 qm::SelectDialupEntryDialog::SelectDialupEntryDialog(Profile* pProfile) :
-	DefaultDialog(IDD_SELECTDIALUPENTRY),
+	DefaultDialog(IDD_SELECTDIALUPENTRY, LANDSCAPE(IDD_SELECTDIALUPENTRY)),
 	pProfile_(pProfile)
 {
 }
@@ -2709,7 +2709,7 @@ void qm::SelectDialupEntryDialog::updateState()
 
 qm::SelectSyncFilterDialog::SelectSyncFilterDialog(SyncFilterManager* pManager,
 												   const WCHAR* pwszDefaultName) :
-	DefaultDialog(IDD_SELECTSYNCFILTER),
+	DefaultDialog(IDD_SELECTSYNCFILTER, LANDSCAPE(IDD_SELECTSYNCFILTER)),
 	pManager_(pManager)
 {
 	if (pwszDefaultName)
