@@ -61,6 +61,8 @@ public:
 			  MessageHolder* pmh);
 	void close(MessageFrameWindow* pMessageFrameWindow);
 	void closeAll();
+	void showAll();
+	void hideAll();
 	void layout();
 	void reloadProfiles();
 	void save() const;

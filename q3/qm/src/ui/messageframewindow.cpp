@@ -1258,14 +1258,26 @@ void qm::MessageFrameWindowManager::close(MessageFrameWindow* pMessageFrameWindo
 void qm::MessageFrameWindowManager::closeAll()
 {
 	FrameList l(listFrame_);
-	for (FrameList::const_iterator it = l.begin(); it != l.end(); ++it)
-		close(*it);
+	std::for_each(l.begin(), l.end(),
+		boost::bind(&MessageFrameWindowManager::close, this, _1));
+}
+
+void qm::MessageFrameWindowManager::showAll()
+{
+	std::for_each(listFrame_.begin(), listFrame_.end(),
+		boost::bind(&MessageFrameWindow::showWindow, _1, SW_SHOW));
+}
+
+void qm::MessageFrameWindowManager::hideAll()
+{
+	std::for_each(listFrame_.begin(), listFrame_.end(),
+		boost::bind(&MessageFrameWindow::showWindow, _1, SW_HIDE));
 }
 
 void qm::MessageFrameWindowManager::layout()
 {
-	for (FrameList::const_iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
-		(*it)->layout();
+	std::for_each(listFrame_.begin(), listFrame_.end(),
+		boost::mem_fn(&MessageFrameWindow::layout));
 }
 
 void qm::MessageFrameWindowManager::reloadProfiles()

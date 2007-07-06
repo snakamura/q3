@@ -2037,6 +2037,7 @@ void qm::MainWindow::show()
 	setForegroundWindow();
 	showWindow(isIconic() ? SW_RESTORE : SW_SHOW);
 	
+	pImpl_->pMessageFrameWindowManager_->showAll();
 	pImpl_->pEditFrameWindowManager_->showAll();
 	pImpl_->pAddressBookFrameWindowManager_->showAll();
 	
@@ -2049,7 +2050,7 @@ void qm::MainWindow::hide()
 		return;
 	
 	pImpl_->pSyncDialogManager_->hide();
-	pImpl_->pMessageFrameWindowManager_->closeAll();
+	pImpl_->pMessageFrameWindowManager_->hideAll();
 	pImpl_->pEditFrameWindowManager_->hideAll();
 	pImpl_->pAddressBookFrameWindowManager_->hideAll();
 	

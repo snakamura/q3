@@ -21,6 +21,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #ifdef _WIN32_WCE_PSPC
 #	include <aygshell.h>
 #endif
@@ -997,30 +999,29 @@ bool qm::EditFrameWindowManager::closeAll()
 		if (!pWindow->tryClose())
 			break;
 	}
-	
 	return listFrame_.empty();
 }
 
 void qm::EditFrameWindowManager::showAll()
 {
-	for (FrameList::const_iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
-		(*it)->showWindow();
+	std::for_each(listFrame_.begin(), listFrame_.end(),
+		boost::bind(&EditFrameWindow::showWindow, _1, SW_SHOW));
 }
 
 void qm::EditFrameWindowManager::hideAll()
 {
-	for (FrameList::const_iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
-		(*it)->showWindow(SW_HIDE);
+	std::for_each(listFrame_.begin(), listFrame_.end(),
+		boost::bind(&EditFrameWindow::showWindow, _1, SW_HIDE));
 }
 
 void qm::EditFrameWindowManager::layout()
 {
-	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
-		(*it)->layout();
+	std::for_each(listFrame_.begin(), listFrame_.end(),
+		boost::mem_fn(&EditFrameWindow::layout));
 }
 
 void qm::EditFrameWindowManager::reloadProfiles()
 {
-	for (FrameList::iterator it = listFrame_.begin(); it != listFrame_.end(); ++it)
-		(*it)->reloadProfiles();
+	std::for_each(listFrame_.begin(), listFrame_.end(),
+		boost::mem_fn(&EditFrameWindow::reloadProfiles));
 }
