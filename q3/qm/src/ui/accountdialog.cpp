@@ -898,7 +898,7 @@ qm::AccountAdvancedPage::AccountAdvancedPage(SubAccount* pSubAccount,
 											 JunkFilter* pJunkFilter,
 											 SyncFilterManager* pSyncFilterManager,
 											 OptionDialogManager* pOptionDialogManager) :
-	DefaultPropertyPage(IDD_ACCOUNTADVANCED),
+	DefaultPropertyPage(IDD_ACCOUNTADVANCED, LANDSCAPE(IDD_ACCOUNTADVANCED)),
 	pSubAccount_(pSubAccount),
 	pJunkFilter_(pJunkFilter),
 	pSyncFilterManager_(pSyncFilterManager),
@@ -1055,7 +1055,7 @@ void qm::AccountAdvancedPage::updateFilter()
 qm::AccountDetailPage::AccountDetailPage(SubAccount* pSubAccount,
 										 ReceiveSessionUI* pReceiveUI,
 										 SendSessionUI* pSendUI) :
-	DefaultPropertyPage(IDD_ACCOUNTDETAIL),
+	DefaultPropertyPage(IDD_ACCOUNTDETAIL, LANDSCAPE(IDD_ACCOUNTDETAIL)),
 	pSubAccount_(pSubAccount),
 	pReceiveUI_(pReceiveUI),
 	pSendUI_(pSendUI)
@@ -1201,7 +1201,7 @@ struct {
 }
 
 qm::AccountDialupPage::AccountDialupPage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(IDD_ACCOUNTDIALUP),
+	DefaultPropertyPage(IDD_ACCOUNTDIALUP, LANDSCAPE(IDD_ACCOUNTDIALUP)),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -1335,7 +1335,7 @@ void qm::AccountDialupPage::updateState()
 qm::AccountGeneralPage::AccountGeneralPage(SubAccount* pSubAccount,
 										   ReceiveSessionUI* pReceiveUI,
 										   SendSessionUI* pSendUI) :
-	DefaultPropertyPage(IDD_ACCOUNTGENERAL),
+	DefaultPropertyPage(IDD_ACCOUNTGENERAL, LANDSCAPE(IDD_ACCOUNTGENERAL)),
 	pSubAccount_(pSubAccount),
 	pReceiveUI_(pReceiveUI),
 	pSendUI_(pSendUI)
@@ -1399,7 +1399,7 @@ qm::AccountUserPage::AccountUserPage(SubAccount* pSubAccount,
 									 PasswordManager* pPasswordManager,
 									 ReceiveSessionUI* pReceiveUI,
 									 SendSessionUI* pSendUI) :
-	DefaultPropertyPage(IDD_ACCOUNTUSER),
+	DefaultPropertyPage(IDD_ACCOUNTUSER, LANDSCAPE(IDD_ACCOUNTUSER)),
 	pPasswordManager_(pPasswordManager),
 	pSubAccount_(pSubAccount),
 	pReceiveUI_(pReceiveUI),

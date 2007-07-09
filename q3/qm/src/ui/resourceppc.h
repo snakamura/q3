@@ -100,6 +100,10 @@
 #define IDD_EXPORT_L                    620
 #define IDD_IMPORT_L                    621
 #define IDD_ACCOUNT_L                   632
+#define IDD_ACCOUNTGENERAL_L            633
+#define IDD_ACCOUNTUSER_L               634
+#define IDD_ACCOUNTDIALUP_L             635
+#define IDD_ACCOUNTADVANCED_L           636
 #define IDD_CREATEACCOUNT_L             639
 #define IDD_MAILFOLDER_L                640
 #define IDD_FIND_L                      641
@@ -148,6 +152,7 @@
 #define IDD_OPTIONSYNC_L                724
 #define IDD_ABOUT_L                     725
 #define IDD_SYNCWAIT_L                  726
+#define IDD_ACCOUNTDETAIL_L             727
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
 #define IDC_SIZEGRIP                    1003
@@ -515,6 +520,27 @@
 #define IDC_INDEXBLOCKSIZELABEL         1514
 #define IDC_BLOCKSIZEAFTERLABEL         1515
 #define IDC_INDEXBLOCKSIZEAFTERLABEL    1516
+#define IDC_RECEIVEHOSTLABEL            1517
+#define IDC_SENDHOSTLABEL               1518
+#define IDC_HOST                        1519
+#define IDC_USER                        1520
+#define IDC_REPLYTOLABEL                1521
+#define IDC_INCOMING                    1522
+#define IDC_RECEIVEUSERNAMELABEL        1523
+#define IDC_RECEIVEPASSWORDLABEL        1524
+#define IDC_OUTGOING                    1525
+#define IDC_SENDUSERNAMELABEL           1526
+#define IDC_SENDPASSWORDLABEL           1527
+#define IDC_RECEIVEPORTLABEL            1528
+#define IDC_RECEIVESECURE               1529
+#define IDC_SENDPORTLABEL               1530
+#define IDC_SENDSECURE                  1531
+#define IDC_SYNCFILTERLABEL             1532
+#define IDC_IDENTITYLABEL               1533
+#define IDC_TIMEOUTLABEL                1534
+#define IDC_ENTRYLABEL                  1535
+#define IDC_WAITLABELBEFORE             1536
+#define IDC_WAITLABELAFTER              1537
 
 // Next default values for new objects
 // 
@@ -523,7 +549,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1517
+#define _APS_NEXT_CONTROL_VALUE         1538
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

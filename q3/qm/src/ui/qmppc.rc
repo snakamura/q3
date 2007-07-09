@@ -284,18 +284,18 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "General"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Incoming",IDC_STATIC,10,17,30,8
+    LTEXT           "&Incoming",IDC_RECEIVEHOSTLABEL,10,17,30,8
     EDITTEXT        IDC_RECEIVEHOST,45,15,82,12,ES_AUTOHSCROLL
-    LTEXT           "&Outgoing",IDC_STATIC,10,32,30,8
+    LTEXT           "&Outgoing",IDC_SENDHOSTLABEL,10,32,30,8
     EDITTEXT        IDC_SENDHOST,45,30,82,12,ES_AUTOHSCROLL
-    GROUPBOX        "Host information",IDC_STATIC,5,5,127,45
-    LTEXT           "&Name",IDC_STATIC,10,67,30,8
+    GROUPBOX        "Host information",IDC_HOST,5,5,127,45
+    LTEXT           "&Name",IDC_NAMELABEL,10,67,30,8
     EDITTEXT        IDC_NAME,45,65,82,12,ES_AUTOHSCROLL
-    LTEXT           "&Address",IDC_STATIC,10,82,30,8
+    LTEXT           "&Address",IDC_ADDRESSLABEL,10,82,30,8
     EDITTEXT        IDC_ADDRESS,45,80,82,12,ES_AUTOHSCROLL
-    GROUPBOX        "User information",IDC_STATIC,5,55,127,60
-    LTEXT           "&Reply-To",IDC_STATIC,10,97,30,8
+    LTEXT           "&Reply-To",IDC_REPLYTOLABEL,10,97,30,8
     EDITTEXT        IDC_REPLYTO,45,95,82,12,ES_AUTOHSCROLL
+    GROUPBOX        "User information",IDC_USER,5,55,127,60
 END
 
 IDD_ACCOUNTUSER DIALOG DISCARDABLE  0, 0, 137, 153
@@ -303,20 +303,20 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "User"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Username",IDC_STATIC,10,17,35,8
+    LTEXT           "&Username",IDC_RECEIVEUSERNAMELABEL,10,17,35,8
     EDITTEXT        IDC_RECEIVEUSERNAME,50,15,77,12,ES_AUTOHSCROLL
-    LTEXT           "&Password",IDC_STATIC,10,32,30,8
+    LTEXT           "&Password",IDC_RECEIVEPASSWORDLABEL,10,32,30,8
     EDITTEXT        IDC_RECEIVEPASSWORD,50,30,77,12,ES_PASSWORD | 
                     ES_AUTOHSCROLL
-    GROUPBOX        "Incoming",IDC_STATIC,5,5,127,45
+    GROUPBOX        "Incoming",IDC_INCOMING,5,5,127,45
     CONTROL         "&Authenticate",IDC_SENDAUTHENTICATE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,65,53,10
-    LTEXT           "U&sername",IDC_STATIC,10,82,35,8
+    LTEXT           "U&sername",IDC_SENDUSERNAMELABEL,10,82,35,8
     EDITTEXT        IDC_SENDUSERNAME,50,80,77,12,ES_AUTOHSCROLL
-    LTEXT           "Pass&word",IDC_STATIC,10,97,35,8
+    LTEXT           "Pass&word",IDC_SENDPASSWORDLABEL,10,97,35,8
     EDITTEXT        IDC_SENDPASSWORD,50,95,77,12,ES_PASSWORD | 
                     ES_AUTOHSCROLL
-    GROUPBOX        "Outgoing",IDC_STATIC,5,55,127,60
+    GROUPBOX        "Outgoing",IDC_OUTGOING,5,55,127,60
 END
 
 IDD_ACCOUNTDIALUP DIALOG DISCARDABLE  0, 0, 137, 153
@@ -331,16 +331,16 @@ BEGIN
                     BS_TOP | BS_MULTILINE,5,15,127,16
     CONTROL         "&Always dial a connection",IDC_CONNECT,"Button",
                     BS_AUTORADIOBUTTON,5,32,127,10
-    LTEXT           "&Entry Name",IDC_STATIC,15,45,45,8
+    LTEXT           "&Entry Name",IDC_ENTRYLABEL,15,45,45,8
     COMBOBOX        IDC_ENTRY,15,55,117,100,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "&Dial Properties...",IDC_DIALPROPERTY,65,70,67,12
     CONTROL         "&Show dialog box before connect",IDC_SHOWDIALOG,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,90,117,10
-    LTEXT           "&Wait",IDC_STATIC,15,108,20,8
+    LTEXT           "&Wait",IDC_WAITLABELBEFORE,15,108,20,8
     EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,107,20,12,ES_AUTOHSCROLL | 
                     ES_NUMBER
-    LTEXT           "s before disconnect",IDC_STATIC,55,108,72,8
+    LTEXT           "s before disconnect",IDC_WAITLABELAFTER,55,108,72,8
 END
 
 IDD_ACCOUNTADVANCED DIALOG DISCARDABLE  0, 0, 137, 153
@@ -348,7 +348,7 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Advanced"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Sync Filter",IDC_STATIC,5,7,40,8
+    LTEXT           "&Sync Filter",IDC_SYNCFILTERLABEL,5,7,40,8
     COMBOBOX        IDC_SYNCFILTER,45,5,47,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "&Edit...",IDC_EDIT,97,5,35,12
@@ -364,9 +364,9 @@ BEGIN
     CONTROL         "T&reat messages from my address as sent",
                     IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | BS_TOP | 
                     BS_MULTILINE | WS_TABSTOP,5,65,120,17
-    LTEXT           "&Identity",IDC_STATIC,5,87,30,8
+    LTEXT           "&Identity",IDC_IDENTITYLABEL,5,87,30,8
     EDITTEXT        IDC_IDENTITY,45,85,87,12,ES_AUTOHSCROLL
-    LTEXT           "&Timeout",IDC_STATIC,5,102,30,8
+    LTEXT           "&Timeout",IDC_TIMEOUTLABEL,5,102,30,8
     EDITTEXT        IDC_TIMEOUT,45,100,30,12,ES_RIGHT | ES_AUTOHSCROLL | 
                     ES_NUMBER
 END
@@ -821,7 +821,7 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Detail"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Port",IDC_STATIC,10,17,20,8
+    LTEXT           "&Port",IDC_RECEIVEPORTLABEL,10,17,20,8
     EDITTEXT        IDC_RECEIVEPORT,35,15,40,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "L&og",IDC_RECEIVELOG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,85,17,26,10
@@ -831,9 +831,9 @@ BEGIN
                     BS_AUTORADIOBUTTON,15,50,50,10
     CONTROL         "&SSL",IDC_RECEIVESSL,"Button",BS_AUTORADIOBUTTON,55,40,
                     35,10
-    GROUPBOX        "Secure",IDC_STATIC,10,30,85,35
-    GROUPBOX        "Incoming mail",IDC_STATIC,5,5,127,65
-    LTEXT           "Po&rt",IDC_STATIC,10,87,20,8
+    GROUPBOX        "Secure",IDC_RECEIVESECURE,10,30,85,35
+    GROUPBOX        "Incoming mail",IDC_INCOMING,5,5,127,65
+    LTEXT           "Po&rt",IDC_SENDPORTLABEL,10,87,20,8
     EDITTEXT        IDC_SENDPORT,35,85,40,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Lo&g",IDC_SENDLOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     85,87,26,10
@@ -843,8 +843,8 @@ BEGIN
                     10
     CONTROL         "ST&ARTTLS",IDC_SENDSTARTTLS,"Button",BS_AUTORADIOBUTTON,
                     15,120,50,10
-    GROUPBOX        "Secure",IDC_STATIC,10,100,85,35
-    GROUPBOX        "Outgoing mail",IDC_STATIC,5,75,127,65
+    GROUPBOX        "Secure",IDC_SENDSECURE,10,100,85,35
+    GROUPBOX        "Outgoing mail",IDC_OUTGOING,5,75,127,65
 END
 
 IDD_RESOURCE DIALOG DISCARDABLE  0, 0, 137, 153
@@ -2678,6 +2678,129 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,127,90,50,12
 END
 
+IDD_ACCOUNTGENERAL_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "General"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Incoming",IDC_RECEIVEHOSTLABEL,10,12,30,8
+    EDITTEXT        IDC_RECEIVEHOST,45,10,127,12,ES_AUTOHSCROLL
+    LTEXT           "&Outgoing",IDC_SENDHOSTLABEL,10,26,30,8
+    EDITTEXT        IDC_SENDHOST,45,24,127,12,ES_AUTOHSCROLL
+    GROUPBOX        "Host information",IDC_HOST,5,0,172,39
+    LTEXT           "&Name",IDC_NAMELABEL,10,51,30,8
+    EDITTEXT        IDC_NAME,45,49,127,12,ES_AUTOHSCROLL
+    LTEXT           "&Address",IDC_ADDRESSLABEL,10,65,30,8
+    EDITTEXT        IDC_ADDRESS,45,63,127,12,ES_AUTOHSCROLL
+    LTEXT           "&Reply-To",IDC_REPLYTOLABEL,10,79,30,8
+    EDITTEXT        IDC_REPLYTO,45,77,127,12,ES_AUTOHSCROLL
+    GROUPBOX        "User information",IDC_USER,5,39,172,53
+END
+
+IDD_ACCOUNTUSER_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "User"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Username",IDC_RECEIVEUSERNAMELABEL,10,12,35,8
+    EDITTEXT        IDC_RECEIVEUSERNAME,50,10,122,12,ES_AUTOHSCROLL
+    LTEXT           "&Password",IDC_RECEIVEPASSWORDLABEL,10,26,30,8
+    EDITTEXT        IDC_RECEIVEPASSWORD,50,24,122,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    GROUPBOX        "Incoming",IDC_INCOMING,5,0,172,40
+    CONTROL         "&Authenticate",IDC_SENDAUTHENTICATE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,49,53,10
+    LTEXT           "U&sername",IDC_SENDUSERNAMELABEL,10,62,35,8
+    EDITTEXT        IDC_SENDUSERNAME,50,60,122,12,ES_AUTOHSCROLL
+    LTEXT           "Pass&word",IDC_SENDPASSWORDLABEL,10,76,35,8
+    EDITTEXT        IDC_SENDPASSWORD,50,74,122,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    GROUPBOX        "Outgoing",IDC_OUTGOING,5,40,172,50
+END
+
+IDD_ACCOUNTDETAIL_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Detail"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Port",IDC_RECEIVEPORTLABEL,10,12,20,8
+    EDITTEXT        IDC_RECEIVEPORT,35,10,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "L&og",IDC_RECEIVELOG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,12,26,10
+    CONTROL         "&None",IDC_RECEIVENOSECURE,"Button",BS_AUTORADIOBUTTON,
+                    15,29,35,10
+    CONTROL         "START&TLS",IDC_RECEIVESTARTTLS,"Button",
+                    BS_AUTORADIOBUTTON,90,29,50,10
+    CONTROL         "&SSL",IDC_RECEIVESSL,"Button",BS_AUTORADIOBUTTON,55,29,
+                    35,10
+    GROUPBOX        "Secure",IDC_RECEIVESECURE,10,21,162,21
+    GROUPBOX        "Incoming mail",IDC_INCOMING,5,0,172,45
+    LTEXT           "Po&rt",IDC_SENDPORTLABEL,10,57,20,8
+    EDITTEXT        IDC_SENDPORT,35,55,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Lo&g",IDC_SENDLOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    85,57,26,10
+    CONTROL         "Non&e",IDC_SENDNOSECURE,"Button",BS_AUTORADIOBUTTON,15,
+                    74,35,10
+    CONTROL         "SS&L",IDC_SENDSSL,"Button",BS_AUTORADIOBUTTON,55,74,35,
+                    10
+    CONTROL         "ST&ARTTLS",IDC_SENDSTARTTLS,"Button",BS_AUTORADIOBUTTON,
+                    90,74,50,10
+    GROUPBOX        "Secure",IDC_SENDSECURE,10,66,162,21
+    GROUPBOX        "Outgoing mail",IDC_OUTGOING,5,45,172,45
+END
+
+IDD_ACCOUNTADVANCED_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Advanced"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Sync Filter",IDC_SYNCFILTERLABEL,5,7,40,8
+    COMBOBOX        IDC_SYNCFILTER,45,5,92,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Edit...",IDC_EDIT,142,5,35,12
+    CONTROL         "A&dd Message-Id",IDC_ADDMESSAGEID,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,20,170,10
+    CONTROL         "&Use Content-Transfer-Encoding: 8bit",IDC_USE8BIT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,30,170,10
+    CONTROL         "App&ly rules automatically",IDC_AUTOAPPLYRULES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,170,10
+    CONTROL         "Apply rules to e&xisting messages",
+                    IDC_AUTOAPPLYRULESTOEXISTING,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | WS_TABSTOP,15,50,165,10
+    CONTROL         "T&reat messages from my address as sent",
+                    IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,5,60,175,10
+    LTEXT           "&Identity",IDC_IDENTITYLABEL,5,77,25,8
+    EDITTEXT        IDC_IDENTITY,35,75,75,12,ES_AUTOHSCROLL
+    LTEXT           "&Timeout",IDC_TIMEOUTLABEL,117,77,27,8
+    EDITTEXT        IDC_TIMEOUT,147,75,30,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+END
+
+IDD_ACCOUNTDIALUP_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialup"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Never dial a connection",IDC_NEVER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,5,5,172,10
+    CONTROL         "Dial whenever a network &connection is not present",
+                    IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON | 
+                    BS_TOP | BS_MULTILINE,5,15,172,16
+    CONTROL         "&Always dial a connection",IDC_CONNECT,"Button",
+                    BS_AUTORADIOBUTTON,5,32,172,10
+    LTEXT           "&Entry Name",IDC_ENTRYLABEL,15,47,40,8
+    COMBOBOX        IDC_ENTRY,55,45,52,100,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Dial Properties...",IDC_DIALPROPERTY,112,45,65,12
+    CONTROL         "&Show dialog box before connect",IDC_SHOWDIALOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,60,160,10
+    LTEXT           "&Wait",IDC_WAITLABELBEFORE,15,71,20,8
+    EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,70,20,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "s before disconnect",IDC_WAITLABELAFTER,55,71,72,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3218,6 +3341,38 @@ BEGIN
         RIGHTMARGIN, 175
         TOPMARGIN, 7
         BOTTOMMARGIN, 100
+    END
+
+    IDD_ACCOUNTGENERAL_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_ACCOUNTUSER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_ACCOUNTADVANCED_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_ACCOUNTDIALUP_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
     END
 END
 #endif    // APSTUDIO_INVOKED
