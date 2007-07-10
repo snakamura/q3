@@ -603,10 +603,10 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "基本"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "検索文字列(&S)",IDC_STATIC,5,7,45,8
+    LTEXT           "検索文字列(&S)",IDC_CONDITIONLABEL,5,7,45,8
     COMBOBOX        IDC_CONDITION,50,5,82,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "フォルダ(&F)",IDC_STATIC,5,22,40,8
+    LTEXT           "フォルダ(&F)",IDC_FOLDERLABEL,5,22,40,8
     COMBOBOX        IDC_FOLDER,50,20,82,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     CONTROL         "サブフォルダも検索する(&I)",IDC_RECURSIVE,"Button",
@@ -2816,6 +2816,31 @@ BEGIN
                     ES_NUMBER
 END
 
+IDD_MACROSEARCH_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "基本"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "検索文字列(&S)",IDC_CONDITIONLABEL,5,7,45,8
+    COMBOBOX        IDC_CONDITION,50,5,127,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "フォルダ(&F)",IDC_FOLDERLABEL,5,22,40,8
+    COMBOBOX        IDC_FOLDER,50,20,127,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "サブフォルダも検索する(&I)",IDC_RECURSIVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,50,35,85,9
+    CONTROL         "大文字小文字を区別する(&C)",IDC_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,95,10
+    CONTROL         "すべてのヘッダを検索する(&E)",IDC_SEARCHHEADER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,60,95,10
+    CONTROL         "本文を検索する(&B)",IDC_SEARCHBODY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,105,50,65,10
+    CONTROL         "マクロ(&M)",IDC_MACRO,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,105,60,70,10
+    CONTROL         "新しい検索フォルダを作成(&Q)",IDC_NEWFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,127,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3400,6 +3425,14 @@ BEGIN
         RIGHTMARGIN, 175
         TOPMARGIN, 7
         BOTTOMMARGIN, 87
+    END
+
+    IDD_MACROSEARCH_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 84
     END
 END
 #endif    // APSTUDIO_INVOKED

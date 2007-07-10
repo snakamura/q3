@@ -132,7 +132,7 @@ std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(SearchPr
 qm::MacroSearchPage::MacroSearchPage(Profile* pProfile,
 									 SearchPropertyData* pData) :
 	SearchPropertyPage(Application::getApplication().getResourceHandle(),
-		IDD_MACROSEARCH, IDD_MACROSEARCH, IDC_CONDITION,
+		IDD_MACROSEARCH, LANDSCAPE(IDD_MACROSEARCH), IDC_CONDITION,
 		IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
 	pProfile_(pProfile)
 {

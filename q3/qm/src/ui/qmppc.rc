@@ -598,10 +598,10 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Simple"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Search for",IDC_STATIC,5,7,40,8
+    LTEXT           "&Search for",IDC_CONDITIONLABEL,5,7,40,8
     COMBOBOX        IDC_CONDITION,45,5,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Folder",IDC_STATIC,5,22,30,8
+    LTEXT           "&Folder",IDC_FOLDERLABEL,5,22,30,8
     COMBOBOX        IDC_FOLDER,45,20,87,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     CONTROL         "&Include subfolders",IDC_RECURSIVE,"Button",
@@ -2801,6 +2801,31 @@ BEGIN
     LTEXT           "s before disconnect",IDC_WAITLABELAFTER,55,71,72,8
 END
 
+IDD_MACROSEARCH_L DIALOG DISCARDABLE  0, 0, 183, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Simple"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Search for",IDC_CONDITIONLABEL,5,7,40,8
+    COMBOBOX        IDC_CONDITION,45,5,132,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Folder",IDC_FOLDERLABEL,5,22,30,8
+    COMBOBOX        IDC_FOLDER,45,20,132,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "&Include subfolders",IDC_RECURSIVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,45,35,70,10
+    CONTROL         "Match &Case",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,50,75,10
+    CONTROL         "S&earch All Headers",IDC_SEARCHHEADER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,60,75,10
+    CONTROL         "Search &Body",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,50,75,10
+    CONTROL         "&Macro",IDC_MACRO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    85,60,75,10
+    CONTROL         "Create New &Query Folder",IDC_NEWFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,127,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3373,6 +3398,14 @@ BEGIN
         RIGHTMARGIN, 175
         TOPMARGIN, 7
         BOTTOMMARGIN, 87
+    END
+
+    IDD_MACROSEARCH_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
     END
 END
 #endif    // APSTUDIO_INVOKED
