@@ -114,6 +114,7 @@
 #define IDD_MOVEMESSAGE_L               651
 #define IDD_RENAME_L                    652
 #define IDD_MACROSEARCH_L               653
+#define IDD_PARAMETER_L                 660
 #define IDD_GOROUND_L                   661
 #define IDD_RESOURCE_L                  666
 #define IDD_SIGNATURES_L                667

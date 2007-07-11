@@ -544,7 +544,7 @@ void qm::FolderParameterPage::updateState()
 
 qm::ParameterDialog::ParameterDialog(const WCHAR* pwszName,
 									 const WCHAR* pwszValue) :
-	DefaultDialog(IDD_PARAMETER)
+	DefaultDialog(IDD_PARAMETER, LANDSCAPE(IDD_PARAMETER))
 {
 	wstrName_ = allocWString(pwszName);
 	wstrValue_ = allocWString(pwszValue);

@@ -2841,6 +2841,17 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,75,127,10
 END
 
+IDD_PARAMETER_L DIALOG DISCARDABLE  0, 0, 183, 109
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "パラメータ"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_NAME,5,5,172,8
+    EDITTEXT        IDC_VALUE,5,20,172,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,40,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,127,40,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3433,6 +3444,14 @@ BEGIN
         RIGHTMARGIN, 175
         TOPMARGIN, 7
         BOTTOMMARGIN, 84
+    END
+
+    IDD_PARAMETER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 102
     END
 END
 #endif    // APSTUDIO_INVOKED
