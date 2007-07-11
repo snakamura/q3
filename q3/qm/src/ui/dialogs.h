@@ -31,7 +31,7 @@
 namespace qm {
 
 class DefaultDialog;
-	class AbountDialog;
+	class AboutDialog;
 	template<class T, class List> class AbstractListDialog;
 #ifndef _WIN32_WCE
 	class ArchiveDialog;
@@ -111,9 +111,6 @@ public:
 	virtual INT_PTR dialogProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);
-#ifdef _WIN32_WCE_PSPC
-	virtual void displayModeChanged();
-#endif
 
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,

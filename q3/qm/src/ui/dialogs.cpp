@@ -88,13 +88,6 @@ INT_PTR qm::AboutDialog::dialogProc(UINT uMsg,
 	return DefaultDialog::dialogProc(uMsg, wParam, lParam);
 }
 
-#ifdef _WIN32_WCE_PSPC
-void qm::AboutDialog::displayModeChanged()
-{
-	setDlgItemText(IDC_VERSION, Application::getApplication().getVersion(L' ', false).get());
-}
-#endif
-
 LRESULT qm::AboutDialog::onInitDialog(HWND hwndFocus,
 									  LPARAM lParam)
 {

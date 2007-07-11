@@ -2,6 +2,8 @@
 #
 # Makefile for qs
 
+DRADIR			= ../lib/dra
+
 PROJECTNAME		= qs
 PROJECTTYPE		= dll
 
@@ -11,12 +13,12 @@ ifdef KCONVERT
 	KCTRL		= 1
 endif
 
+EXTERNALINCS	= -I"$(DRADIR)/include"
+
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*/*.cpp)) $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*/*.c))
 RESES			= $(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res
 DEFFILE			= $(OBJDIR)/$(PROJECTNAME).def
 BASEADDRESS		= 0x20000000
-
-STLPORTEXPORT	= 1
 
 include ../common.mak
 

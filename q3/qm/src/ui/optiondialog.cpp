@@ -29,7 +29,7 @@
 #include <commdlg.h>
 #include <tchar.h>
 #ifdef _WIN32_WCE_PSPC
-#	include <deviceresolutionaware.h>
+#	include <dra.h>
 #endif
 
 #include "addressbookwindow.h"

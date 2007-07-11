@@ -5,6 +5,7 @@
 include ../function.mak
 
 ZIPDIR			= ../lib/zip
+DRADIR			= ../lib/dra
 
 PROJECTNAME		= qm
 PROJECTTYPE		= dll
@@ -24,7 +25,7 @@ ifneq ($(call platform,wm5 ppc2003se ppc2003 ppc2002),)
 	CPROJS		+= -DQMHTMLVIEW -DQMHTMLVIEWHTMLCTRL
 endif
 
-EXTERNALINCS	= -I"$(ZIPDIR)/include"
+EXTERNALINCS	= -I"$(ZIPDIR)/include" -I"$(DRADIR)/include"
 
 OBJS			= $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.obj, $(wildcard $(SRCDIR)/*/*.cpp))
 RESES			= $(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res

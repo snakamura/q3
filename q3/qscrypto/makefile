@@ -5,7 +5,6 @@
 OPENSSLDIR		= ../lib/openssl
 WCECOMPATDIR	= ../lib/wcecompat
 
-
 PROJECTNAME		= qscrypto
 PROJECTTYPE		= dll
 LIBRARIES		= qs
