@@ -18,7 +18,6 @@
 #include <qsuiutil.h>
 
 #include "macrosearch.h"
-#include "../ui/dialogs.h"
 #include "../ui/resourceinc.h"
 
 using namespace qm;

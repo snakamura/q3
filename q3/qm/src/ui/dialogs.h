@@ -21,12 +21,6 @@
 #include "../model/editmessage.h"
 #include "../uimodel/viewmodel.h"
 
-#ifdef _WIN32_WCE_PSPC
-#	define LANDSCAPE(x) (x##_L)
-#else
-#	define LANDSCAPE(x) (x)
-#endif
-
 
 namespace qm {
 

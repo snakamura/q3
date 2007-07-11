@@ -12,6 +12,12 @@
 #include <qs.h>
 #include <qswindow.h>
 
+#ifdef _WIN32_WCE_PSPC
+#	define LANDSCAPE(x) (x##_L)
+#else
+#	define LANDSCAPE(x) (x)
+#endif
+
 namespace qs {
 
 class Window;
