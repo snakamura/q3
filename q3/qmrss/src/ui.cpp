@@ -30,7 +30,7 @@ using namespace qs;
  */
 
 qmrss::ReceivePage::ReceivePage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, IDD_RECEIVE),
+	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, LANDSCAPE(IDD_RECEIVE)),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -136,7 +136,7 @@ void qmrss::ReceivePage::updateState()
  */
 
 qmrss::SendPage::SendPage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(getResourceHandle(), IDD_SEND, IDD_SEND),
+	DefaultPropertyPage(getResourceHandle(), IDD_SEND, LANDSCAPE(IDD_SEND)),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -187,9 +187,9 @@ qmrss::SubscribeURLPage::SubscribeURLPage(Document* pDocument,
 										  Account* pAccount,
 										  SubscribeData* pData) :
 #if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
-	DefaultPropertyPage(getResourceHandle(), IDD_SUBSCRIBEURL, IDD_SUBSCRIBEURL),
+	DefaultPropertyPage(getResourceHandle(), IDD_SUBSCRIBEURL, LANDSCAPE(IDD_SUBSCRIBEURL)),
 #else
-	DefaultDialog(getResourceHandle(), IDD_SUBSCRIBEURL, IDD_SUBSCRIBEURL),
+	DefaultDialog(getResourceHandle(), IDD_SUBSCRIBEURL, LANDSCAPE(IDD_SUBSCRIBEURL)),
 #endif
 	pDocument_(pDocument),
 	pAccount_(pAccount),
@@ -432,9 +432,9 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 
 qmrss::SubscribePropertyPage::SubscribePropertyPage(SubscribeData* pData) :
 #if !defined _WIN32_WCE || _WIN32_WCE < 0x300 || !defined _WIN32_WCE_PSPC
-	DefaultPropertyPage(getResourceHandle(), IDD_SUBSCRIBEPROPERTY, IDD_SUBSCRIBEPROPERTY),
+	DefaultPropertyPage(getResourceHandle(), IDD_SUBSCRIBEPROPERTY, LANDSCAPE(IDD_SUBSCRIBEPROPERTY)),
 #else
-	DefaultDialog(getResourceHandle(), IDD_SUBSCRIBEPROPERTY, IDD_SUBSCRIBEPROPERTY),
+	DefaultDialog(getResourceHandle(), IDD_SUBSCRIBEPROPERTY, LANDSCAPE(IDD_SUBSCRIBEPROPERTY)),
 #endif
 	pData_(pData)
 {

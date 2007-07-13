@@ -4,6 +4,8 @@
 //
 #define IDD_RECEIVE                     101
 #define IDD_SEARCH                      102
+#define IDD_RECEIVE_L                   601
+#define IDD_SEARCH_L                    602
 #define IDC_ROOTFOLDER                  1001
 #define IDC_FETCHCOUNT                  1004
 #define IDC_USEENVELOPE                 1006
@@ -18,6 +20,11 @@
 #define IDC_FOLDER                      1015
 #define IDC_OTHERS                      1016
 #define IDC_SHARED                      1017
+#define IDC_ROOTFOLDERLABEL             1018
+#define IDC_FETCHCOUNTLABEL             1019
+#define IDC_MAXSESSIONLABEL             1020
+#define IDC_CONDITIONLABEL              1021
+#define IDC_FOLDERLABEL                 1022
 #define IDC_CONDITION                   1127
 #define IDC_RECURSIVE                   1129
 #define IDC_NEWFOLDER                   1131
@@ -28,7 +35,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40002
-#define _APS_NEXT_CONTROL_VALUE         1018
+#define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

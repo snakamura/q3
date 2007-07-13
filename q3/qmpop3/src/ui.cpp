@@ -22,7 +22,7 @@ using namespace qs;
  */
 
 qmpop3::ReceivePage::ReceivePage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, IDD_RECEIVE),
+	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, LANDSCAPE(IDD_RECEIVE)),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -112,7 +112,7 @@ void qmpop3::ReceivePage::updateState()
  */
 
 qmpop3::SendPage::SendPage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(getResourceHandle(), IDD_SEND, IDD_SEND),
+	DefaultPropertyPage(getResourceHandle(), IDD_SEND, LANDSCAPE(IDD_SEND)),
 	pSubAccount_(pSubAccount)
 {
 }

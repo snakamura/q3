@@ -28,7 +28,7 @@ using namespace qs;
  */
 
 qmnntp::ReceivePage::ReceivePage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, IDD_RECEIVE),
+	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, LANDSCAPE(IDD_RECEIVE)),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -71,7 +71,7 @@ LRESULT qmnntp::ReceivePage::onOk()
  */
 
 qmnntp::SendPage::SendPage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(getResourceHandle(), IDD_SEND, IDD_SEND),
+	DefaultPropertyPage(getResourceHandle(), IDD_SEND, LANDSCAPE(IDD_SEND)),
 	pSubAccount_(pSubAccount)
 {
 }
@@ -101,7 +101,7 @@ LRESULT qmnntp::SendPage::onOk()
 qmnntp::SubscribeDialog::SubscribeDialog(Document* pDocument,
 										 Account* pAccount,
 										 PasswordCallback* pPasswordCallback) :
-	DefaultDialog(getResourceHandle(), IDD_SUBSCRIBE, IDD_SUBSCRIBE),
+	DefaultDialog(getResourceHandle(), IDD_SUBSCRIBE, LANDSCAPE(IDD_SUBSCRIBE)),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
 	pPasswordCallback_(pPasswordCallback),

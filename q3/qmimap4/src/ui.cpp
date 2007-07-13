@@ -23,7 +23,7 @@ using namespace qs;
  */
 
 qmimap4::ReceivePage::ReceivePage(SubAccount* pSubAccount) :
-	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, IDD_RECEIVE),
+	DefaultPropertyPage(getResourceHandle(), IDD_RECEIVE, LANDSCAPE(IDD_RECEIVE)),
 	pSubAccount_(pSubAccount)
 {
 }

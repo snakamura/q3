@@ -4,6 +4,8 @@
 //
 #define IDD_RECEIVE                     101
 #define IDD_SEND                        102
+#define IDD_RECEIVE_L                   601
+#define IDD_SEND_L                      602
 #define IDC_APOP                        1001
 #define IDC_DONTDELETE                  1002
 #define IDC_DELETE                      1003
@@ -12,6 +14,8 @@
 #define IDC_DELETELOCAL                 1006
 #define IDC_HANDLESTATUS                1007
 #define IDC_SKIPDUPLICATEDUID           1008
+#define IDC_MESSAGES                    1009
+#define IDC_DELETEAFTERLABEL            1010
 
 // Next default values for new objects
 // 
@@ -19,7 +23,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        101
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1009
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
