@@ -15,7 +15,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Japanese resources
+// 日本語 resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 #ifdef _WIN32
@@ -85,7 +85,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "フォルダ名"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "フォルダ名(&F)",IDC_STATIC,5,5,38,8
+    LTEXT           "フォルダ名(&F)",IDC_FOLDERNAMELABEL,5,5,38,8
     EDITTEXT        IDC_FOLDERNAME,5,15,127,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,27,35,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,82,35,50,12
@@ -96,17 +96,59 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "フォント"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "フォント(&F)",IDC_STATIC,5,7,30,8
+    LTEXT           "フォント(&F)",IDC_FONTFACELABEL,5,7,30,8
     COMBOBOX        IDC_FONTFACE,40,5,65,100,CBS_DROPDOWN | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "スタイル(&Y)",IDC_STATIC,5,22,35,8
+    LTEXT           "スタイル(&Y)",IDC_FONTSTYLELABEL,5,22,35,8
     COMBOBOX        IDC_FONTSTYLE,40,20,48,100,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "サイズ(&S)",IDC_STATIC,5,37,30,8
+    LTEXT           "サイズ(&S)",IDC_FONTSIZELABEL,5,37,30,8
     COMBOBOX        IDC_FONTSIZE,40,35,25,100,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,27,55,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,82,55,50,12
+END
+
+IDD_BROWSEFOLDER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "フォルダの参照"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Tree1",IDC_FOLDER,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,5,5,172,80
+    PUSHBUTTON      "新規フォルダ(&N)...",IDC_NEWFOLDER,5,90,60,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,127,90,50,12
+END
+
+IDD_FOLDERNAME_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "フォルダ名"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "フォルダ名(&F)",IDC_FOLDERNAMELABEL,5,5,38,8
+    EDITTEXT        IDC_FOLDERNAME,5,15,172,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,35,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,127,35,50,12
+END
+
+IDD_FONT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "フォント"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "フォント(&F)",IDC_FONTFACELABEL,5,7,30,8
+    COMBOBOX        IDC_FONTFACE,40,5,65,100,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "スタイル(&Y)",IDC_FONTSTYLELABEL,5,22,35,8
+    COMBOBOX        IDC_FONTSTYLE,40,20,48,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "サイズ(&S)",IDC_FONTSIZELABEL,5,37,30,8
+    COMBOBOX        IDC_FONTSIZE,40,35,25,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,55,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,127,55,50,12
 END
 
 
@@ -141,6 +183,30 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 146
     END
+
+    IDD_BROWSEFOLDER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_FOLDERNAME_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_FONT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -155,7 +221,7 @@ BEGIN
     IDS_ERROR_CREATEFOLDER  "新しいフォルダの作成に失敗しました。"
 END
 
-#endif    // Japanese resources
+#endif    // 日本語 resources
 /////////////////////////////////////////////////////////////////////////////
 
 

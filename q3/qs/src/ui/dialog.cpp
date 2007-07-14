@@ -944,7 +944,7 @@ LRESULT qs::BrowseFolderDialogImpl::onItemExpanding(NMHDR* pnmhdr,
 
 qs::BrowseFolderDialog::BrowseFolderDialog(const WCHAR* pwszTitle,
 										   const WCHAR* pwszInitialPath) :
-	DefaultDialog(getResourceDllInstanceHandle(), IDD_BROWSEFOLDER, IDD_BROWSEFOLDER),
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_BROWSEFOLDER, LANDSCAPE(IDD_BROWSEFOLDER)),
 	pImpl_(0)
 {
 	wstring_ptr wstrPath;
@@ -1093,7 +1093,7 @@ static int CALLBACK enumFontFamProc(ENUMLOGFONT* pelf,
 }
 
 qs::FontDialog::FontDialog(const LOGFONT& lf) :
-	DefaultDialog(getResourceDllInstanceHandle(), IDD_FONT, IDD_FONT),
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_FONT, LANDSCAPE(IDD_FONT)),
 	lf_(lf)
 {
 }
@@ -1212,7 +1212,7 @@ LRESULT qs::FontDialog::onOk()
  */
 
 qs::FolderNameDialog::FolderNameDialog() :
-	DefaultDialog(getResourceDllInstanceHandle(), IDD_FOLDERNAME, IDD_FOLDERNAME)
+	DefaultDialog(getResourceDllInstanceHandle(), IDD_FOLDERNAME, LANDSCAPE(IDD_FOLDERNAME))
 {
 }
 
