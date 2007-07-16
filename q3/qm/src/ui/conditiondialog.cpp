@@ -498,7 +498,7 @@ void qm::ConditionDialog::updateState()
 qm::ConditionArgumentDialog::ConditionArgumentDialog(const WCHAR* pwszName,
 													 Condition::Type type,
 													 const WCHAR* pwszValue) :
-	DefaultDialog(IDD_CONDITIONARGUMENT),
+	DefaultDialog(IDD_CONDITIONARGUMENT, LANDSCAPE(IDD_CONDITIONARGUMENT)),
 	type_(type)
 {
 	assert(pwszName);

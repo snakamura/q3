@@ -1303,12 +1303,13 @@ void qm::ImportDialog::updateState()
  *
  */
 
-qm::InputBoxDialog::InputBoxDialog(UINT nId,
+qm::InputBoxDialog::InputBoxDialog(UINT nIdPortrait,
+								   UINT nIdLandscape,
 								   const WCHAR* pwszTitle,
 								   const WCHAR* pwszMessage,
 								   const WCHAR* pwszValue,
 								   bool bAllowEmpty) :
-	DefaultDialog(nId),
+	DefaultDialog(nIdPortrait, nIdLandscape),
 	bAllowEmpty_(bAllowEmpty)
 {
 	if (pwszTitle)
@@ -1394,7 +1395,8 @@ qm::SingleLineInputBoxDialog::SingleLineInputBoxDialog(const WCHAR* pwszTitle,
 													   const WCHAR* pwszMessage,
 													   const WCHAR* pwszValue,
 													   bool bAllowEmpty) :
-	InputBoxDialog(IDD_SINGLEINPUTBOX, pwszTitle, pwszMessage, pwszValue, bAllowEmpty)
+	InputBoxDialog(IDD_SINGLEINPUTBOX, LANDSCAPE(IDD_SINGLEINPUTBOX),
+		pwszTitle, pwszMessage, pwszValue, bAllowEmpty)
 {
 }
 
@@ -1415,7 +1417,8 @@ qm::MultiLineInputBoxDialog::MultiLineInputBoxDialog(const WCHAR* pwszTitle,
 													 bool bAllowEmpty,
 													 Profile* pProfile,
 													 const WCHAR* pwszSection) :
-	InputBoxDialog(IDD_MULTIINPUTBOX, pwszTitle, pwszMessage, pwszValue, bAllowEmpty),
+	InputBoxDialog(IDD_MULTIINPUTBOX, LANDSCAPE(IDD_MULTIINPUTBOX),
+		pwszTitle, pwszMessage, pwszValue, bAllowEmpty),
 	pProfile_(pProfile),
 	pwszSection_(pwszSection)
 {
@@ -2495,7 +2498,8 @@ qm::SelectBoxDialog::SelectBoxDialog(Type type,
 									 const WCHAR* pwszMessage,
 									 const CandidateList& listCandidate,
 									 const WCHAR* pwszValue) :
-	DefaultDialog(type == TYPE_LIST ? IDD_LISTSELECTBOX : IDD_COMBOSELECTBOX),
+	DefaultDialog(type == TYPE_LIST ? IDD_LISTSELECTBOX : IDD_COMBOSELECTBOX,
+		type == TYPE_LIST ? LANDSCAPE(IDD_LISTSELECTBOX) : LANDSCAPE(IDD_COMBOSELECTBOX)),
 	type_(type),
 	listCandidate_(listCandidate)
 {

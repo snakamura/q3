@@ -110,6 +110,8 @@
 #define IDD_REPLACE_L                   642
 #define IDD_CREATESUBACCOUNT_L          643
 #define IDD_SELECTDIALUPENTRY_L         645
+#define IDD_SINGLEINPUTBOX_L            647
+#define IDD_MULTIINPUTBOX_L             648
 #define IDD_CUSTOMFILTER_L              650
 #define IDD_MOVEMESSAGE_L               651
 #define IDD_RENAME_L                    652
@@ -148,6 +150,9 @@
 #define IDD_SECURITY_L                  712
 #define IDD_OPTIONCONFIRM_L             715
 #define IDD_CONDITION_L                 717
+#define IDD_CONDITIONARGUMENT_L         718
+#define IDD_LISTSELECTBOX_L             719
+#define IDD_COMBOSELECTBOX_L            720
 #define IDD_LABEL_L                     721
 #define IDD_CERTIFICATE_L               722
 #define IDD_OPTIONSEARCH_L              723

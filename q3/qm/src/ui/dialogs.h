@@ -672,7 +672,8 @@ private:
 class InputBoxDialog : public DefaultDialog
 {
 protected:
-	InputBoxDialog(UINT nId,
+	InputBoxDialog(UINT nIdPortrait,
+				   UINT nIdLandscape,
 				   const WCHAR* pwszTitle,
 				   const WCHAR* pwszMessage,
 				   const WCHAR* pwszValue,
