@@ -1,5 +1,10 @@
 element autoPilot {
 	element entry {
+		## 有効かどうか
+		## 指定されない場合には有効
+		attribute enabled {
+			xsd:boolean
+		},
 		## コース
 		element course {
 			xsd:string

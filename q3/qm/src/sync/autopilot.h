@@ -185,7 +185,8 @@ class AutoPilotEntry
 public:
 	AutoPilotEntry();
 	AutoPilotEntry(const WCHAR* pwszCourse,
-				   int nInterval);
+				   int nInterval,
+				   bool bEnabled);
 	AutoPilotEntry(const AutoPilotEntry& entry);
 	~AutoPilotEntry();
 
@@ -194,6 +195,8 @@ public:
 	void setCourse(const WCHAR* pwszCourse);
 	int getInterval() const;
 	void setInterval(int nInterval);
+	bool isEnabled() const;
+	void setEnabled(bool bEnabled);
 
 private:
 	AutoPilotEntry& operator=(const AutoPilotEntry& entry);
@@ -201,6 +204,7 @@ private:
 private:
 	qs::wstring_ptr wstrCourse_;
 	int nInterval_;
+	bool bEnabled_;
 };
 
 
@@ -246,6 +250,7 @@ private:
 	State state_;
 	qs::wstring_ptr wstrCourse_;
 	int nInterval_;
+	bool bEnabled_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 

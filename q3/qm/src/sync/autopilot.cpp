@@ -99,11 +99,11 @@ void qm::AutoPilot::timerTimeout(Timer::Id nId)
 		const AutoPilotManager::EntryList& l = pAutoPilotManager_->getEntries();
 		for (AutoPilotManager::EntryList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			const AutoPilotEntry* pEntry = *it;
-			if (nCount_ % pEntry->getInterval() == 0) {
+			if (pEntry->isEnabled() && nCount_ % pEntry->getInterval() == 0) {
 				const GoRoundCourse* pCourse = pGoRound_->getCourse(pEntry->getCourse());
 				if (pCourse)
-					SyncUtil::goRound(pSyncManager_, pDocument_, pSyncDialogManager_,
-						SyncData::TYPE_AUTO, pCourse);
+					SyncUtil::goRound(pSyncManager_, pDocument_,
+						pSyncDialogManager_, SyncData::TYPE_AUTO, pCourse);
 			}
 		}
 	}
@@ -255,20 +255,24 @@ bool qm::AutoPilotManager::load()
  */
 
 qm::AutoPilotEntry::AutoPilotEntry() :
-	nInterval_(5)
+	nInterval_(5),
+	bEnabled_(true)
 {
 	wstrCourse_ = allocWString(L"");
 }
 
 qm::AutoPilotEntry::AutoPilotEntry(const WCHAR* pwszCourse,
-								   int nInterval) :
-	nInterval_(nInterval)
+								   int nInterval,
+								   bool bEnabled) :
+	nInterval_(nInterval),
+	bEnabled_(bEnabled)
 {
 	wstrCourse_ = allocWString(pwszCourse);
 }
 
 qm::AutoPilotEntry::AutoPilotEntry(const AutoPilotEntry& entry) :
-	nInterval_(entry.nInterval_)
+	nInterval_(entry.nInterval_),
+	bEnabled_(entry.bEnabled_)
 {
 	wstrCourse_ = allocWString(entry.wstrCourse_.get());
 }
@@ -298,6 +302,16 @@ void qm::AutoPilotEntry::setInterval(int nInterval)
 	nInterval_ = nInterval;
 }
 
+bool qm::AutoPilotEntry::isEnabled() const
+{
+	return bEnabled_;
+}
+
+void qm::AutoPilotEntry::setEnabled(bool bEnabled)
+{
+	bEnabled_ = bEnabled;
+}
+
 
 /****************************************************************************
  *
@@ -308,7 +322,8 @@ void qm::AutoPilotEntry::setInterval(int nInterval)
 qm::AutoPilotContentHandler::AutoPilotContentHandler(AutoPilotManager* pManager) :
 	pManager_(pManager),
 	state_(STATE_ROOT),
-	nInterval_(-1)
+	nInterval_(-1),
+	bEnabled_(true)
 {
 }
 
@@ -321,30 +336,46 @@ bool qm::AutoPilotContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 											   const WCHAR* pwszQName,
 											   const Attributes& attributes)
 {
-	struct {
-		const WCHAR* pwszName_;
-		State stateBefore_;
-		State stateAfter_;
-	} states[] = {
-		{ L"autoPilot",	STATE_ROOT,			STATE_AUTOPILOT	},
-		{ L"entry",		STATE_AUTOPILOT,	STATE_ENTRY		},
-		{ L"course",	STATE_ENTRY,		STATE_COURSE	},
-		{ L"interval",	STATE_ENTRY,		STATE_INTERVAL	}
-	};
-	
-	int n = 0;
-	for (n = 0; n < countof(states); ++n) {
-		if (wcscmp(pwszLocalName, states[n].pwszName_) == 0) {
-			if (state_ != states[n].stateBefore_)
+	if (wcscmp(pwszLocalName, L"entry") == 0) {
+		if (state_ != STATE_AUTOPILOT)
+			return false;
+		
+		bEnabled_ = true;
+		for (int n = 0; n < attributes.getLength(); ++n) {
+			const WCHAR* pwszAttrName = attributes.getLocalName(n);
+			if (wcscmp(pwszAttrName, L"enabled") == 0)
+				bEnabled_ = wcscmp(attributes.getValue(n), L"false") != 0;
+			else
 				return false;
-			if (attributes.getLength() != 0)
-				return false;
-			state_ = states[n].stateAfter_;
-			break;
 		}
+		
+		state_ = STATE_ENTRY;
 	}
-	if (n == countof(states))
-		return false;
+	else {
+		struct {
+			const WCHAR* pwszName_;
+			State stateBefore_;
+			State stateAfter_;
+		} states[] = {
+			{ L"autoPilot",	STATE_ROOT,			STATE_AUTOPILOT	},
+			{ L"course",	STATE_ENTRY,		STATE_COURSE	},
+			{ L"interval",	STATE_ENTRY,		STATE_INTERVAL	}
+		};
+		
+		int n = 0;
+		for (n = 0; n < countof(states); ++n) {
+			if (wcscmp(pwszLocalName, states[n].pwszName_) == 0) {
+				if (state_ != states[n].stateBefore_)
+					return false;
+				if (attributes.getLength() != 0)
+					return false;
+				state_ = states[n].stateAfter_;
+				break;
+			}
+		}
+		if (n == countof(states))
+			return false;
+	}
 	
 	return true;
 }
@@ -363,8 +394,8 @@ bool qm::AutoPilotContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		if (!wstrCourse_.get() || nInterval_ == -1)
 			return false;
 		
-		std::auto_ptr<AutoPilotEntry> pEntry(
-			new AutoPilotEntry(wstrCourse_.get(), nInterval_));
+		std::auto_ptr<AutoPilotEntry> pEntry(new AutoPilotEntry(
+			wstrCourse_.get(), nInterval_, bEnabled_));
 		pManager_->addEntry(pEntry);
 		
 		wstrCourse_.reset(0);
@@ -466,7 +497,11 @@ bool qm::AutoPilotWriter::write(const AutoPilotEntry* pEntry)
 	WCHAR wszInterval[32];
 	_snwprintf(wszInterval, countof(wszInterval), L"%d", pEntry->getInterval());
 	
-	return handler_.startElement(0, 0, L"entry", DefaultAttributes()) &&
+	const SimpleAttributes::Item items[] = {
+		{ L"enabled",	L"false",	pEntry->isEnabled()	}
+	};
+	SimpleAttributes attrs(items, countof(items));
+	return handler_.startElement(0, 0, L"entry", attrs) &&
 		handler_.startElement(0, 0, L"course", DefaultAttributes()) &&
 		handler_.characters(pEntry->getCourse(), 0, wcslen(pEntry->getCourse())) &&
 		handler_.endElement(0, 0, L"course") &&

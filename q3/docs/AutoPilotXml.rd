@@ -17,11 +17,12 @@ autoPilotƒGƒŒƒƒ“ƒg‚ªƒgƒbƒvƒŒƒxƒ‹ƒGƒŒƒƒ“ƒg‚É‚È‚è‚Ü‚·B‚±‚Ì‰º‚É0ŒÂˆÈã‚ÌentryƒGƒ
 
 ===entryƒGƒŒƒƒ“ƒg
 
- <entry>
+ <entry
+  enabled="true|false">
   <!-- course, interval -->
  </entry>
 
-entryƒGƒŒƒƒ“ƒg‚ªŠe„‰ñ‚ÌƒR[ƒX‚ÆƒCƒ“ƒ^[ƒoƒ‹‚ğw’è‚µ‚Ü‚·B‚±‚Ì‰º‚ÉAcourseƒGƒŒƒƒ“ƒg‚ÆintervalƒGƒŒƒƒ“ƒg‚ª‚Ğ‚Æ‚Â‚¸‚Â’u‚©‚ê‚Ü‚·B
+entryƒGƒŒƒƒ“ƒg‚ªŠe„‰ñ‚ÌƒR[ƒX‚ÆƒCƒ“ƒ^[ƒoƒ‹‚ğw’è‚µ‚Ü‚·Benabled‘®«‚Éfalse‚ğw’è‚·‚é‚Æ–³Œø‚É‚È‚è‚Ü‚·B‚±‚Ì‰º‚ÉAcourseƒGƒŒƒƒ“ƒg‚ÆintervalƒGƒŒƒƒ“ƒg‚ª‚Ğ‚Æ‚Â‚¸‚Â’u‚©‚ê‚Ü‚·B
 
 
 ===courseƒGƒŒƒƒ“ƒg
@@ -61,6 +62,11 @@ entryƒGƒŒƒƒ“ƒg‚ªŠe„‰ñ‚ÌƒR[ƒX‚ÆƒCƒ“ƒ^[ƒoƒ‹‚ğw’è‚µ‚Ü‚·B‚±‚Ì‰º‚ÉAcourseƒGƒŒƒ
 
  element autoPilot {
    element entry {
+     ## —LŒø‚©‚Ç‚¤‚©
+     ## w’è‚³‚ê‚È‚¢ê‡‚É‚Í—LŒø
+     attribute enabled {
+       xsd:boolean
+     },
      ## ƒR[ƒX
      element course {
        xsd:string
