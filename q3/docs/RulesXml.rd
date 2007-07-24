@@ -34,7 +34,8 @@ ruleSetƒGƒŒƒƒ“ƒg‚ÍU‚è•ª‚¯‚Ég—p‚³‚ê‚éƒ‹[ƒ‹ƒZƒbƒg‚ğw’è‚µ‚Ü‚·Baccount‘®«‚É
   match="ƒ}ƒNƒ"
   use="manual|auto|active"
   continue="true|false"
-  description="à–¾">
+  description="à–¾",
+  enabled="true|false">
   <!-- move/copy/delete/label/deleteCache/apply -->
  </rule>
 
@@ -45,6 +46,8 @@ use‘®«‚É‚Ímanual, auto, active‚Ì‘g‚İ‡‚í‚¹‚ğw’è‚µ‚Ü‚·Bmanual‚ğw’è‚·‚é‚Æè“®
 continue‘®«‚É‚Í‚±‚Ìƒ‹[ƒ‹‚Éƒ}ƒbƒ`‚µ‚Äˆ—‚µ‚½Œã‚ÅŒã‘±‚Ìƒ‹[ƒ‹‚ğˆ—‚·‚é‚©‚Ç‚¤‚©‚ğw’è‚µ‚Ü‚·B
 
 description‘®«‚É‚Íà–¾‚ğw’è‚µ‚Ü‚·B
+
+enabled‘®«‚Éfalse‚ğw’è‚·‚é‚Æƒ‹[ƒ‹‚ª–³Œø‚É‚È‚è‚Ü‚·B
 
 
 ===moveƒGƒŒƒƒ“ƒg
@@ -167,6 +170,20 @@ applyƒGƒŒƒƒ“ƒg‚Íƒ}ƒNƒ‚ÌÀs‚ğw’è‚µ‚Ü‚·B‘ÎÛ‚ÌƒƒbƒZ[ƒW‚É‘Î‚µ‚Äw’è‚³‚ê‚½ƒ}ƒ
        # w’è‚³‚ê‚È‚¢ê‡‚É‚Íè“®‚Æ©“®
        attribute use {
          xsd:string
+       }?
+       ## Ÿ‚Ìƒ‹[ƒ‹‚Éi‚Ş‚©‚Ç‚¤‚©
+       ## w’è‚³‚ê‚È‚¢ê‡‚É‚Ífalse
+       attribute continue {
+         xsd:boolean
+       }?,
+       ## à–¾
+       attribute description {
+         xsd:string
+       }?,
+       ## —LŒø‚©‚Ç‚¤‚©
+       ## w’è‚³‚ê‚È‚¢ê‡‚É‚Ítrue
+       attribute enabled {
+         xsd:boolean
        }?
      }*,
      ## ƒ‹[ƒ‹‚ª“K—p‚³‚ê‚éƒAƒJƒEƒ“ƒg

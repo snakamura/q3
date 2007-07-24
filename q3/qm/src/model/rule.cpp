@@ -276,6 +276,9 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 			Message msg;
 			for (RuleList::size_type nRule = 0; nRule < listRule.size(); ++nRule) {
 				const Rule* pRule = listRule[nRule];
+				if (!pRule->isEnabled())
+					continue;
+				
 				unsigned int nMacroFlags = (bBackground ? MacroContext::FLAG_NONE :
 					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI) |
 					(nFlags & FLAG_NEW ? MacroContext::FLAG_NEW : 0);
@@ -364,7 +367,7 @@ std::auto_ptr<Rule> qm::RuleManagerImpl::createJunkRule(Account* pAccount)
 		L"@And(@Not(@Deleted()), @Junk(@Seen()))" : L"@Junk()";
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(pwszCondition));
 	std::auto_ptr<RuleAction> pAction(new CopyRuleAction(0, wstrJunk.get(), true));
-	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO, false, 0));
+	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO, false, 0, false));
 }
 
 bool qm::RuleManagerImpl::isNeedPrepare(Accessor* pAccessor,
@@ -782,7 +785,8 @@ void qm::RuleSet::clear()
 
 qm::Rule::Rule() :
 	nUse_(USE_MANUAL | USE_AUTO),
-	bContinue_(false)
+	bContinue_(false),
+	bEnabled_(true)
 {
 	pAction_.reset(new NoneRuleAction());
 }
@@ -791,11 +795,13 @@ qm::Rule::Rule(std::auto_ptr<Macro> pCondition,
 			   std::auto_ptr<RuleAction> pAction,
 			   unsigned int nUse,
 			   bool bContinue,
-			   const WCHAR* pwszDescription) :
+			   const WCHAR* pwszDescription,
+			   bool bEnabled) :
 	pCondition_(pCondition),
 	pAction_(pAction),
 	nUse_(nUse),
-	bContinue_(bContinue)
+	bContinue_(bContinue),
+	bEnabled_(bEnabled)
 {
 	if (pwszDescription)
 		wstrDescription_ = allocWString(pwszDescription);
@@ -803,7 +809,8 @@ qm::Rule::Rule(std::auto_ptr<Macro> pCondition,
 
 qm::Rule::Rule(const Rule& rule) :
 	nUse_(rule.nUse_),
-	bContinue_(rule.bContinue_)
+	bContinue_(rule.bContinue_),
+	bEnabled_(rule.bEnabled_)
 {
 	wstring_ptr wstrCondition(rule.pCondition_->getString());
 	pCondition_ = MacroParser().parse(wstrCondition.get());
@@ -873,6 +880,16 @@ void qm::Rule::setDescription(const WCHAR* pwszDescription)
 		wstrDescription_ = allocWString(pwszDescription);
 	else
 		wstrDescription_.reset(0);
+}
+
+bool qm::Rule::isEnabled() const
+{
+	return bEnabled_;
+}
+
+void qm::Rule::setEnabled(bool bEnabled)
+{
+	bEnabled_ = bEnabled;
 }
 
 bool qm::Rule::match(MacroContext* pContext) const
@@ -1531,7 +1548,8 @@ qm::RuleContentHandler::RuleContentHandler(RuleManager* pManager) :
 	pCurrentCopyRuleAction_(0),
 	labelType_(Util::LABELTYPE_SET),
 	nUse_(0),
-	bContinue_(false)
+	bContinue_(false),
+	bEnabled_(true)
 {
 }
 
@@ -1586,9 +1604,11 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		if (state_ != STATE_RULESET)
 			return false;
 		
+		bContinue_ = false;
+		bEnabled_ = true;
+		
 		const WCHAR* pwszMatch = 0;
 		const WCHAR* pwszUse = 0;
-		const WCHAR* pwszContinue = 0;
 		const WCHAR* pwszDescription = 0;
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrName = attributes.getLocalName(n);
@@ -1597,9 +1617,11 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			else if (wcscmp(pwszAttrName, L"use") == 0)
 				pwszUse = attributes.getValue(n);
 			else if (wcscmp(pwszAttrName, L"continue") == 0)
-				pwszContinue = attributes.getValue(n);
+				bContinue_ = wcscmp(attributes.getValue(n), L"true") == 0;
 			else if (wcscmp(pwszAttrName, L"description") == 0)
 				pwszDescription = attributes.getValue(n);
+			else if (wcscmp(pwszAttrName, L"enabled") == 0)
+				bEnabled_ = wcscmp(attributes.getValue(n), L"false") != 0;
 			else
 				return false;
 		}
@@ -1623,8 +1645,6 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		else {
 			nUse_ = Rule::USE_MANUAL | Rule::USE_AUTO;
 		}
-		
-		bContinue_ = pwszContinue && wcscmp(pwszContinue, L"true") == 0;
 		
 		if (pwszDescription)
 			wstrDescription_ = allocWString(pwszDescription);
@@ -1656,8 +1676,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			pwszAccount, pwszFolder, bMove));
 		assert(!pCurrentCopyRuleAction_);
 		pCurrentCopyRuleAction_ = static_cast<CopyRuleAction*>(pAction.get());
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, bContinue_, wstrDescription_.get()));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction,
+			nUse_, bContinue_, wstrDescription_.get(), bEnabled_));
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
@@ -1718,8 +1738,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		}
 		
 		std::auto_ptr<RuleAction> pAction(new DeleteRuleAction(bDirect));
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, bContinue_, wstrDescription_.get()));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction,
+			nUse_, bContinue_, wstrDescription_.get(), bEnabled_));
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
@@ -1769,8 +1789,8 @@ bool qm::RuleContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		assert(pCondition_.get());
 		
 		std::auto_ptr<RuleAction> pAction(new DeleteCacheRuleAction());
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, bContinue_, wstrDescription_.get()));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction,
+			nUse_, bContinue_, wstrDescription_.get(), bEnabled_));
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
 		
@@ -1824,8 +1844,8 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		
 		if (pCondition_.get()) {
 			std::auto_ptr<RuleAction> pAction(new NoneRuleAction());
-			std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-				pAction, nUse_, bContinue_, wstrDescription_.get()));
+			std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction,
+				nUse_, bContinue_, wstrDescription_.get(), bEnabled_));
 			wstrDescription_.reset(0);
 			pCurrentRuleSet_->addRule(pRule);
 		}
@@ -1864,8 +1884,8 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 			wstrLabel_ = buffer_.getString();
 		
 		std::auto_ptr<RuleAction> pAction(new LabelRuleAction(labelType_, wstrLabel_.get()));
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, bContinue_, wstrDescription_.get()));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction,
+			nUse_, bContinue_, wstrDescription_.get(), bEnabled_));
 		labelType_ = Util::LABELTYPE_SET;
 		wstrLabel_.reset(0);
 		wstrDescription_.reset(0);
@@ -1888,8 +1908,8 @@ bool qm::RuleContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		
 		std::auto_ptr<RuleAction> pAction(new ApplyRuleAction(pMacroApply));
-		std::auto_ptr<Rule> pRule(new Rule(pCondition_,
-			pAction, nUse_, bContinue_, wstrDescription_.get()));
+		std::auto_ptr<Rule> pRule(new Rule(pCondition_, pAction,
+			nUse_, bContinue_, wstrDescription_.get(), bEnabled_));
 		wstrApply_.reset(0);
 		wstrDescription_.reset(0);
 		pCurrentRuleSet_->addRule(pRule);
@@ -2006,13 +2026,13 @@ bool qm::RuleWriter::write(const Rule* pRule)
 			bufUse.append(L"active");
 		}
 	}
-	bool bContinue = pRule->isContinue();
 	const WCHAR* pwszDescription = pRule->getDescription();
 	const SimpleAttributes::Item items[] = {
-		{ L"match",			wstrCondition.get(),			false					},
-		{ L"use",			bufUse.getCharArray(),			bufUse.getLength() == 0	},
-		{ L"continue",		bContinue ? L"true" : L"false",	!bContinue				},
-		{ L"description",	pwszDescription,				!pwszDescription		}
+		{ L"match",			wstrCondition.get(),	false					},
+		{ L"use",			bufUse.getCharArray(),	bufUse.getLength() == 0	},
+		{ L"continue",		L"true",				!pRule->isContinue()	},
+		{ L"description",	pwszDescription,		!pwszDescription		},
+		{ L"enabled",		L"false",				pRule->isEnabled()		}
 	};
 	SimpleAttributes attrs(items, countof(items));
 	if (!handler_.startElement(0, 0, L"rule", attrs))
@@ -2097,7 +2117,7 @@ bool qm::RuleWriter::write(const DeleteRuleAction* pAction)
 {
 	bool bDirect = pAction->isDirect();
 	const SimpleAttributes::Item items[] = {
-		{ L"direct",	bDirect ? L"true" : L"false",	!bDirect	}
+		{ L"direct",	L"true",	!bDirect	}
 	};
 	SimpleAttributes attrs(items, countof(items));
 	return handler_.startElement(0, 0, L"delete", attrs) &&

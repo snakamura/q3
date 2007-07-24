@@ -14,6 +14,20 @@ start = element rules {
 			# 指定されない場合には手動と自動
 			attribute use {
 				xsd:string
+			}?,
+			## 次のルールに進むかどうか
+			## 指定されない場合にはfalse
+			attribute continue {
+				xsd:boolean
+			}?,
+			## 説明
+			attribute description {
+				xsd:string
+			}?,
+			## 有効かどうか
+			## 指定されない場合にはtrue
+			attribute enabled {
+				xsd:boolean
 			}?
 		}*,
 		## ルールが適用されるアカウント

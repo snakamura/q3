@@ -116,7 +116,8 @@ public:
 		 std::auto_ptr<RuleAction> pAction,
 		 unsigned int nUse,
 		 bool bContinue,
-		 const WCHAR* pwszDescription);
+		 const WCHAR* pwszDescription,
+		 bool bEnabled);
 	Rule(const Rule& rule);
 	virtual ~Rule();
 
@@ -132,6 +133,8 @@ public:
 	void setContinue(bool bContinue);
 	const WCHAR* getDescription() const;
 	void setDescription(const WCHAR* pwszDescription);
+	bool isEnabled() const;
+	void setEnabled(bool bEnabled);
 	bool match(MacroContext* pContext) const;
 	bool apply(RuleContext* pContext) const;
 	bool isContinuable() const;
@@ -146,6 +149,7 @@ private:
 	unsigned int nUse_;
 	bool bContinue_;
 	qs::wstring_ptr wstrDescription_;
+	bool bEnabled_;
 };
 
 
@@ -520,6 +524,7 @@ private:
 	unsigned int nUse_;
 	bool bContinue_;
 	qs::wstring_ptr wstrDescription_;
+	bool bEnabled_;
 	qs::StringBuffer<qs::WSTRING> buffer_;
 };
 
