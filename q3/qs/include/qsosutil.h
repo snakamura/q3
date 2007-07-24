@@ -626,6 +626,17 @@ private:
 class QSEXPORTCLASS Process
 {
 public:
+	typedef size_t (*PFN_READ)(unsigned char* p,
+							   size_t n,
+							   void* pParam);
+	typedef size_t (*PFN_WRITE)(unsigned char* p,
+								size_t n,
+								void* pParam);
+	typedef bool (*PFN_WAIT)(const HANDLE* pHandles,
+							 size_t n,
+							 void* pParam);
+
+public:
 #ifndef _WIN32_WCE
 	/**
 	 * Execute the specified command.
@@ -642,6 +653,15 @@ public:
 					InputStream* pStdInput,
 					OutputStream* pStdOutput,
 					OutputStream* pStdError);
+	static int exec(const WCHAR* pwszCommand,
+					PFN_READ pfnReadStdInput,
+					void* pParamStdInput,
+					PFN_WRITE pfnWriteStdOutput,
+					void* pParamStdOutput,
+					PFN_WRITE pfnWriteStdError,
+					void* pParamStdError,
+					PFN_WAIT pfnWait,
+					void* pParamWait);
 #endif
 	static bool shellExecute(const WCHAR* pwszCommand,
 							 HWND hwnd);

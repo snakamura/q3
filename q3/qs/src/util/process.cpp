@@ -9,6 +9,8 @@
 #include <qsosutil.h>
 #include <qsstream.h>
 
+#include <boost/tuple/tuple.hpp>
+
 using namespace qs;
 
 
@@ -24,13 +26,14 @@ namespace {
 
 DWORD WINAPI readProc(void* pParam)
 {
-	std::auto_ptr<std::pair<OutputStream*, HANDLE> > p(
-		static_cast<std::pair<OutputStream*, HANDLE>*>(pParam));
-	OutputStream* pOutputStream = p->first;
-	AutoHandle hOutput(p->second);
+	std::auto_ptr<boost::tuple<Process::PFN_WRITE, void*, HANDLE> > p(
+		static_cast<boost::tuple<Process::PFN_WRITE, void*, HANDLE>*>(pParam));
+	Process::PFN_WRITE pfnWrite = p->get<0>();
+	void* pWriteParam = p->get<1>();
+	AutoHandle hOutput(p->get<2>());
 	
+	unsigned char buf[1024];
 	while (true) {
-		unsigned char buf[1024];
 		DWORD dwRead = 0;
 		BOOL b = ::ReadFile(hOutput.get(), buf, sizeof(buf), &dwRead, 0);
 		if (!b && ::GetLastError() != ERROR_BROKEN_PIPE)
@@ -38,11 +41,51 @@ DWORD WINAPI readProc(void* pParam)
 		else if (!b || dwRead == 0)
 			break;
 		
-		if (pOutputStream->write(buf, dwRead) == -1)
+		if ((*pfnWrite)(buf, dwRead, pWriteParam) == -1)
 			return 1;
 	}
 	
 	return 0;
+}
+
+DWORD WINAPI writeProc(void* pParam)
+{
+	std::auto_ptr<boost::tuple<Process::PFN_READ, void*, HANDLE> > p(
+		static_cast<boost::tuple<Process::PFN_READ, void*, HANDLE>*>(pParam));
+	Process::PFN_READ pfnRead = p->get<0>();
+	void* pReadParam = p->get<1>();
+	AutoHandle hInput(p->get<2>());
+	
+	unsigned char buf[1024];
+	while (true) {
+		size_t nLen = (*pfnRead)(buf, sizeof(buf), pReadParam);
+		if (nLen == 0)
+			break;
+		else if (nLen == -1)
+			return 1;
+		
+		DWORD dwWritten = 0;
+		if (!::WriteFile(hInput.get(), buf, static_cast<DWORD>(nLen), &dwWritten, 0) || dwWritten != nLen)
+			return 1;
+	}
+	
+	return 0;
+}
+
+size_t readStreamProc(unsigned char* p,
+					  size_t n,
+					  void* pParam)
+{
+	OutputStream* pOutputStream = static_cast<OutputStream*>(pParam);
+	return pOutputStream->write(p, n);
+}
+
+size_t writeStreamProc(unsigned char* p,
+					   size_t n,
+					   void* pParam)
+{
+	InputStream* pInputStream = static_cast<InputStream*>(pParam);
+	return pInputStream->read(p, n);
 }
 
 }
@@ -68,13 +111,29 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 					  OutputStream* pStdOutput,
 					  OutputStream* pStdError)
 {
+	return exec(pwszCommand,
+		pStdInput ? writeStreamProc : 0, pStdInput,
+		pStdOutput ? readStreamProc : 0, pStdOutput,
+		pStdError ? readStreamProc : 0, pStdError, 0, 0);
+}
+
+int qs::Process::exec(const WCHAR* pwszCommand,
+					  PFN_READ pfnReadStdInput,
+					  void* pParamStdInput,
+					  PFN_WRITE pfnWriteStdOutput,
+					  void* pParamStdOutput,
+					  PFN_WRITE pfnWriteStdError,
+					  void* pParamStdError,
+					  PFN_WAIT pfnWait,
+					  void* pParamWait)
+{
 	assert(pwszCommand);
 	
 	SECURITY_ATTRIBUTES sa = { sizeof(sa), 0, TRUE };
 	
 	AutoHandle hStdinRead;
 	AutoHandle hStdin;
-	if (pStdInput) {
+	if (pfnReadStdInput) {
 		AutoHandle hStdinWrite;
 		if (!::CreatePipe(&hStdinRead, &hStdinWrite, &sa, 0))
 			return -1;
@@ -85,7 +144,7 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 	
 	AutoHandle hStdoutWrite;
 	AutoHandle hStdout;
-	if (pStdOutput) {
+	if (pfnWriteStdOutput) {
 		AutoHandle hStdoutRead;
 		if (!::CreatePipe(&hStdoutRead, &hStdoutWrite, &sa, 0))
 			return -1;
@@ -96,7 +155,7 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 	
 	AutoHandle hStderrWrite;
 	AutoHandle hStderr;
-	if (pStdError) {
+	if (pfnWriteStdError) {
 		AutoHandle hStderrRead;
 		if (!::CreatePipe(&hStderrRead, &hStderrWrite, &sa, 0))
 			return -1;
@@ -122,9 +181,10 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 	hStderrWrite.close();
 	
 	HANDLE hThreadStdout = 0;
-	if (pStdOutput) {
-		std::auto_ptr<std::pair<OutputStream*, HANDLE> > p(
-			new std::pair<OutputStream*, HANDLE>(pStdOutput, hStdout.get()));
+	if (pfnWriteStdOutput) {
+		std::auto_ptr<boost::tuple<PFN_WRITE, void*, HANDLE> > p(
+			new boost::tuple<PFN_WRITE, void*, HANDLE>(
+				pfnWriteStdOutput, pParamStdOutput, hStdout.get()));
 		DWORD dwThreadId = 0;
 		hThreadStdout = ::CreateThread(0, 0, &readProc, p.get(), 0, &dwThreadId);
 		if (!hThreadStdout)
@@ -135,9 +195,10 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 	AutoHandle ahThreadStdout(hThreadStdout);
 	
 	HANDLE hThreadStderr = 0;
-	if (pStdError) {
-		std::auto_ptr<std::pair<OutputStream*, HANDLE> > p(
-			new std::pair<OutputStream*, HANDLE>(pStdError, hStderr.get()));
+	if (pfnWriteStdError) {
+		std::auto_ptr<boost::tuple<PFN_WRITE, void*, HANDLE> > p(
+			new boost::tuple<PFN_WRITE, void*, HANDLE>(
+				pfnWriteStdError, pParamStdError, hStderr.get()));
 		DWORD dwThreadId = 0;
 		hThreadStderr = ::CreateThread(0, 0, &readProc, p.get(), 0, &dwThreadId);
 		if (!hThreadStderr)
@@ -147,21 +208,19 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 	}
 	AutoHandle ahThreadStderr(hThreadStderr);
 	
-	if (pStdInput) {
-		while (true) {
-			unsigned char buf[1024];
-			size_t nLen = pStdInput->read(buf, sizeof(buf));
-			if (nLen == 0)
-				break;
-			else if (nLen == -1)
-				return -1;
-			
-			DWORD dwWritten = 0;
-			if (!::WriteFile(hStdin.get(), buf, static_cast<DWORD>(nLen), &dwWritten, 0) || dwWritten != nLen)
-				return -1;
-		}
-		hStdin.close();
+	HANDLE hThreadStdin = 0;
+	if (pfnReadStdInput) {
+		std::auto_ptr<boost::tuple<PFN_READ, void*, HANDLE> > p(
+			new boost::tuple<PFN_READ, void*, HANDLE>(
+				pfnReadStdInput, pParamStdInput, hStdin.get()));
+		DWORD dwThreadId = 0;
+		hThreadStdin = ::CreateThread(0, 0, &writeProc, p.get(), 0, &dwThreadId);
+		if (!hThreadStdin)
+			return -1;
+		p.release();
+		hStdin.release();
 	}
+	AutoHandle ahThreadStdin(hThreadStdin);
 	
 	typedef std::vector<HANDLE> HandleList;
 	HandleList listHandle;
@@ -170,7 +229,17 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 		listHandle.push_back(hThreadStdout);
 	if (hThreadStderr)
 		listHandle.push_back(hThreadStderr);
+	if (hThreadStdin)
+		listHandle.push_back(hThreadStdin);
+	
+	bool b = true;
+	if (pfnWait)
+		b = (*pfnWait)(&listHandle[0], listHandle.size(), pParamWait);
+	
 	::WaitForMultipleObjects(static_cast<DWORD>(listHandle.size()), &listHandle[0], TRUE, INFINITE);
+	
+	if (!b)
+		return -1;
 	
 	for (HandleList::const_iterator it = listHandle.begin() + 1; it != listHandle.end(); ++it) {
 		DWORD dwExitCode = 0;
