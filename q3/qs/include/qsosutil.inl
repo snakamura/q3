@@ -89,9 +89,20 @@ inline qs::AutoHandle::AutoHandle(HANDLE handle) :
 {
 }
 
+inline qs::AutoHandle::AutoHandle(AutoHandle& handle) :
+	handle_(handle.release())
+{
+}
+
 inline qs::AutoHandle::~AutoHandle()
 {
 	close();
+}
+
+inline qs::AutoHandle& qs::AutoHandle::operator=(AutoHandle& handle)
+{
+	reset(handle.release());
+	return *this;
 }
 
 inline HANDLE qs::AutoHandle::get() const
@@ -104,6 +115,12 @@ inline HANDLE qs::AutoHandle::release()
 	HANDLE handle = handle_;
 	handle_ = 0;
 	return handle;
+}
+
+inline void qs::AutoHandle::reset(HANDLE handle)
+{
+	close();
+	handle_ = handle;
 }
 
 inline void qs::AutoHandle::close()

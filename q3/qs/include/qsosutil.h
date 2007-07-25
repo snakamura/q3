@@ -93,17 +93,18 @@ class QSEXPORTCLASS AutoHandle
 public:
 	AutoHandle();
 	explicit AutoHandle(HANDLE handle);
+	AutoHandle(AutoHandle& handle);
 	~AutoHandle();
+
+public:
+	AutoHandle& operator=(AutoHandle& handle);
 
 public:
 	HANDLE get() const;
 	HANDLE release();
+	void reset(HANDLE handle);
 	void close();
 	HANDLE* operator&();
-
-private:
-	AutoHandle(const AutoHandle&);
-	AutoHandle& operator=(const AutoHandle&);
 
 private:
 	HANDLE handle_;
@@ -654,6 +655,12 @@ public:
 					OutputStream* pStdOutput,
 					OutputStream* pStdError);
 	static int exec(const WCHAR* pwszCommand,
+					InputStream* pStdInput,
+					OutputStream* pStdOutput,
+					OutputStream* pStdError,
+					PFN_WAIT pfnWait,
+					void* pParamWait);
+	static int exec(const WCHAR* pwszCommand,
 					PFN_READ pfnReadStdInput,
 					void* pParamStdInput,
 					PFN_WRITE pfnWriteStdOutput,
@@ -662,6 +669,16 @@ public:
 					void* pParamStdError,
 					PFN_WAIT pfnWait,
 					void* pParamWait);
+	
+	static bool createInheritablePipe(HANDLE* phRead,
+									  HANDLE* phWrite,
+									  bool bRead);
+	static AutoHandle createWriteThread(PFN_READ pfnRead,
+										void *pParam,
+										AutoHandle& hWrite);
+	static AutoHandle createReadThread(PFN_WRITE pfnWrite,
+									   void *pParam,
+									   AutoHandle& hRead);
 #endif
 	static bool shellExecute(const WCHAR* pwszCommand,
 							 HWND hwnd);

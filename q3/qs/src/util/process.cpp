@@ -24,6 +24,25 @@ using namespace qs;
 
 namespace {
 
+typedef DWORD (WINAPI *PFN_THREAD)(void*);
+
+template<typename PFN>
+AutoHandle createThread(PFN_THREAD pfnThread,
+						PFN pfn,
+						void* pParam,
+						AutoHandle& h)
+{
+	std::auto_ptr<boost::tuple<PFN, void*, HANDLE> > p(
+		new boost::tuple<PFN, void*, HANDLE>(pfn, pParam, h.get()));
+	DWORD dwThreadId = 0;
+	AutoHandle hThread(::CreateThread(0, 0, pfnThread, p.get(), 0, &dwThreadId));
+	if (hThread.get()) {
+		p.release();
+		h.release();
+	}
+	return hThread;
+}
+
 DWORD WINAPI readProc(void* pParam)
 {
 	std::auto_ptr<boost::tuple<Process::PFN_WRITE, void*, HANDLE> > p(
@@ -111,10 +130,21 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 					  OutputStream* pStdOutput,
 					  OutputStream* pStdError)
 {
+	return exec(pwszCommand, pStdInput, pStdOutput, pStdError, 0, 0);
+}
+
+int qs::Process::exec(const WCHAR* pwszCommand,
+					  InputStream* pStdInput,
+					  OutputStream* pStdOutput,
+					  OutputStream* pStdError,
+					  PFN_WAIT pfnWait,
+					  void* pParamWait)
+{
 	return exec(pwszCommand,
 		pStdInput ? writeStreamProc : 0, pStdInput,
 		pStdOutput ? readStreamProc : 0, pStdOutput,
-		pStdError ? readStreamProc : 0, pStdError, 0, 0);
+		pStdError ? readStreamProc : 0, pStdError,
+		pfnWait, pParamWait);
 }
 
 int qs::Process::exec(const WCHAR* pwszCommand,
@@ -129,38 +159,24 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 {
 	assert(pwszCommand);
 	
-	SECURITY_ATTRIBUTES sa = { sizeof(sa), 0, TRUE };
-	
 	AutoHandle hStdinRead;
 	AutoHandle hStdin;
 	if (pfnReadStdInput) {
-		AutoHandle hStdinWrite;
-		if (!::CreatePipe(&hStdinRead, &hStdinWrite, &sa, 0))
-			return -1;
-		if (!::DuplicateHandle(::GetCurrentProcess(), hStdinWrite.get(),
-			::GetCurrentProcess(), &hStdin, 0, FALSE, DUPLICATE_SAME_ACCESS))
+		if (!createInheritablePipe(&hStdinRead, &hStdin, true))
 			return -1;
 	}
 	
 	AutoHandle hStdoutWrite;
 	AutoHandle hStdout;
 	if (pfnWriteStdOutput) {
-		AutoHandle hStdoutRead;
-		if (!::CreatePipe(&hStdoutRead, &hStdoutWrite, &sa, 0))
-			return -1;
-		if (!::DuplicateHandle(::GetCurrentProcess(), hStdoutRead.get(),
-			::GetCurrentProcess(), &hStdout, 0, FALSE, DUPLICATE_SAME_ACCESS))
+		if (!createInheritablePipe(&hStdout, &hStdoutWrite, false))
 			return -1;
 	}
 	
 	AutoHandle hStderrWrite;
 	AutoHandle hStderr;
 	if (pfnWriteStdError) {
-		AutoHandle hStderrRead;
-		if (!::CreatePipe(&hStderrRead, &hStderrWrite, &sa, 0))
-			return -1;
-		if (!::DuplicateHandle(::GetCurrentProcess(), hStderrRead.get(),
-			::GetCurrentProcess(), &hStderr, 0, FALSE, DUPLICATE_SAME_ACCESS))
+		if (!createInheritablePipe(&hStderr, &hStderrWrite, false))
 			return -1;
 	}
 	
@@ -180,57 +196,27 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 	hStdoutWrite.close();
 	hStderrWrite.close();
 	
-	HANDLE hThreadStdout = 0;
-	if (pfnWriteStdOutput) {
-		std::auto_ptr<boost::tuple<PFN_WRITE, void*, HANDLE> > p(
-			new boost::tuple<PFN_WRITE, void*, HANDLE>(
-				pfnWriteStdOutput, pParamStdOutput, hStdout.get()));
-		DWORD dwThreadId = 0;
-		hThreadStdout = ::CreateThread(0, 0, &readProc, p.get(), 0, &dwThreadId);
-		if (!hThreadStdout)
-			return -1;
-		p.release();
-		hStdout.release();
-	}
-	AutoHandle ahThreadStdout(hThreadStdout);
+	AutoHandle hThreadStdout;
+	if (pfnWriteStdOutput)
+		hThreadStdout = createReadThread(pfnWriteStdOutput, pParamStdOutput, hStdout);
 	
-	HANDLE hThreadStderr = 0;
-	if (pfnWriteStdError) {
-		std::auto_ptr<boost::tuple<PFN_WRITE, void*, HANDLE> > p(
-			new boost::tuple<PFN_WRITE, void*, HANDLE>(
-				pfnWriteStdError, pParamStdError, hStderr.get()));
-		DWORD dwThreadId = 0;
-		hThreadStderr = ::CreateThread(0, 0, &readProc, p.get(), 0, &dwThreadId);
-		if (!hThreadStderr)
-			return -1;
-		p.release();
-		hStderr.release();
-	}
-	AutoHandle ahThreadStderr(hThreadStderr);
+	AutoHandle hThreadStderr;
+	if (pfnWriteStdError)
+		hThreadStderr = createReadThread(pfnWriteStdError, pParamStdError, hStderr);
 	
-	HANDLE hThreadStdin = 0;
-	if (pfnReadStdInput) {
-		std::auto_ptr<boost::tuple<PFN_READ, void*, HANDLE> > p(
-			new boost::tuple<PFN_READ, void*, HANDLE>(
-				pfnReadStdInput, pParamStdInput, hStdin.get()));
-		DWORD dwThreadId = 0;
-		hThreadStdin = ::CreateThread(0, 0, &writeProc, p.get(), 0, &dwThreadId);
-		if (!hThreadStdin)
-			return -1;
-		p.release();
-		hStdin.release();
-	}
-	AutoHandle ahThreadStdin(hThreadStdin);
+	AutoHandle hThreadStdin;
+	if (pfnReadStdInput)
+		hThreadStdin = createWriteThread(pfnReadStdInput, pParamStdInput, hStdin);
 	
 	typedef std::vector<HANDLE> HandleList;
 	HandleList listHandle;
 	listHandle.push_back(hProcess.get());
-	if (hThreadStdout)
-		listHandle.push_back(hThreadStdout);
-	if (hThreadStderr)
-		listHandle.push_back(hThreadStderr);
-	if (hThreadStdin)
-		listHandle.push_back(hThreadStdin);
+	if (hThreadStdout.get())
+		listHandle.push_back(hThreadStdout.get());
+	if (hThreadStderr.get())
+		listHandle.push_back(hThreadStderr.get());
+	if (hThreadStdin.get())
+		listHandle.push_back(hThreadStdin.get());
 	
 	bool b = true;
 	if (pfnWait)
@@ -252,6 +238,49 @@ int qs::Process::exec(const WCHAR* pwszCommand,
 		return -1;
 	
 	return dwExitCode;
+}
+
+bool qs::Process::createInheritablePipe(HANDLE* phRead,
+										HANDLE* phWrite,
+										bool bRead)
+{
+	assert(phRead);
+	assert(phWrite);
+	
+	AutoHandle hRead;
+	AutoHandle hWrite;
+	SECURITY_ATTRIBUTES sa = { sizeof(sa), 0, TRUE };
+	if (!::CreatePipe(&hRead, &hWrite, &sa, 0))
+		return false;
+	
+	HANDLE hProcess = ::GetCurrentProcess();
+	if (bRead) {
+		if (!::DuplicateHandle(hProcess, hWrite.get(),
+			hProcess, phWrite, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return false;
+		*phRead = hRead.release();
+	}
+	else {
+		if (!::DuplicateHandle(hProcess, hRead.get(),
+			hProcess, phRead, 0, FALSE, DUPLICATE_SAME_ACCESS))
+			return false;
+		*phWrite = hWrite.release();
+	}
+	return true;
+}
+
+AutoHandle qs::Process::createWriteThread(PFN_READ pfnRead,
+										  void *pParam,
+										  AutoHandle& hWrite)
+{
+	return createThread(&writeProc, pfnRead, pParam, hWrite);
+}
+
+AutoHandle qs::Process::createReadThread(PFN_WRITE pfnWrite,
+										 void *pParam,
+										 AutoHandle& hRead)
+{
+	return createThread(&readProc, pfnWrite, pParam, hRead);
 }
 
 #endif
