@@ -11,8 +11,9 @@
 #include <qsconv.h>
 #include <qsinit.h>
 #include <qslog.h>
-#include <qsosutil.h>
 #include <qsstream.h>
+
+#include <process.h>
 
 #include "gpgdriver.h"
 #include "util.h"
@@ -37,6 +38,23 @@ qmpgp::GPGDriver::~GPGDriver()
 {
 }
 
+namespace {
+
+size_t readPassphrase(unsigned char* p,
+					  size_t n,
+					  void* pParam)
+{
+	const char** pp = static_cast<const char**>(pParam);
+	size_t nLen = QSMIN(n, strlen(*pp));
+	if (nLen) {
+		memcpy(p, *pp, nLen);
+		*pp += nLen;
+	}
+	return nLen;
+}
+
+}
+
 xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 										size_t nLen,
 										SignFlag signFlag,
@@ -47,6 +65,10 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 	
 	if (nLen == -1)
 		nLen = strlen(pszText);
+	
+	StatusHandler statusHandler(this, pwszPassphrase);
+	if (!statusHandler.open())
+		return xstring_size_ptr();
 	
 	wstring_ptr wstrGPG(getCommand());
 	
@@ -69,21 +91,21 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 	}
 	command.append(L" --local-user \"");
 	command.append(pwszUserId);
-	command.append(L"\" --armor --batch --no-tty --passphrase-fd 0");
+	command.append(L"\" --armor --no-tty");
+	command.append(statusHandler.getOption().get());
 	
 	log.debugf(L"Signing with commandline: %s", command.getCharArray());
 	
-	XStringBuffer<STRING> buf;
-	string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
-	if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszText, nLen))
-		return xstring_size_ptr();
-	const unsigned char* p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
+	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
 	
-	log.debug(L"Data into stdin", p, buf.getLength());
+	log.debug(L"Data into stdin", p, nLen);
 	
-	ByteInputStream stdinStream(p, buf.getLength(), false);
+	ByteInputStream stdinStream(p, nLen, false);
 	ByteOutputStream stdoutStream;
 	ByteOutputStream stderrStream;
+	
+	if (!statusHandler.start())
+		return xstring_size_ptr();
 	
 	int nCode = Process::exec(command.getCharArray(), &stdinStream,
 		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0);
@@ -91,6 +113,9 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 	log.debugf(L"Command exited with: %d", nCode);
 	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
 	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
+	
+	if (!statusHandler.stop())
+		return xstring_size_ptr();
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
@@ -159,6 +184,10 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 	if (nLen == -1)
 		nLen = strlen(pszText);
 	
+	StatusHandler statusHandler(this, pwszPassphrase);
+	if (!statusHandler.open())
+		return xstring_size_ptr();
+	
 	wstring_ptr wstrGPG(getCommand());
 	
 	StringBuffer<WSTRING> command;
@@ -172,21 +201,21 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 		command.append(*it);
 		command.append(L"\"");
 	}
-	command.append(L" --armor --batch --no-tty --passphrase-fd 0");
+	command.append(L" --armor --no-tty");
+	command.append(statusHandler.getOption().get());
 	
 	log.debugf(L"Signing and encrypting with commandline: %s", command.getCharArray());
 	
-	XStringBuffer<STRING> buf;
-	string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
-	if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszText, nLen))
-		return xstring_size_ptr();
-	const unsigned char* p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
+	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszText);
 	
-	log.debug(L"Data into stdin", p, buf.getLength());
+	log.debug(L"Data into stdin", p, nLen);
 	
-	ByteInputStream stdinStream(p, buf.getLength(), false);
+	ByteInputStream stdinStream(p, nLen, false);
 	ByteOutputStream stdoutStream;
 	ByteOutputStream stderrStream;
+	
+	if (!statusHandler.start())
+		return xstring_size_ptr();
 	
 	int nCode = Process::exec(command.getCharArray(), &stdinStream,
 		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0);
@@ -194,6 +223,9 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 	log.debugf(L"Command exited with: %d", nCode);
 	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
 	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
+	
+	if (!statusHandler.stop())
+		return xstring_size_ptr();
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
@@ -218,6 +250,10 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	if (nLen == -1)
 		nLen = strlen(pszContent);
 	
+	StatusHandler statusHandler(this, 0, pFrom, pSender);
+	if (!statusHandler.open())
+		return false;
+	
 	wstring_ptr wstrGPG(getCommand());
 	
 	size_t nSignatureLen = strlen(pszSignature);
@@ -233,7 +269,8 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	StringBuffer<WSTRING> command;
 	command.append(wstrGPG.get());
 	command.append(L" --verify --verify-options show-uid-validity");
-	command.append(L" --batch --no-tty --status-fd 2");
+	command.append(L" --no-tty");
+	command.append(statusHandler.getOption().get());
 	command.append(L" \"");
 	command.append(wstrSignaturePath.get());
 	command.append(L"\" -");
@@ -248,6 +285,9 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	ByteOutputStream stdoutStream;
 	ByteOutputStream stderrStream;
 	
+	if (!statusHandler.start())
+		return false;
+	
 	int nCode = Process::exec(command.getCharArray(),
 		&stdinStream, &stdoutStream, &stderrStream);
 	
@@ -255,8 +295,12 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
 	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
 	
-	*pnVerify = parseStatus(stderrStream.getBuffer(), stderrStream.getLength(),
-		pFrom, pSender, pwstrUserId, pwstrInfo);
+	if (!statusHandler.stop())
+		return false;
+	
+	*pnVerify = statusHandler.getVerify();
+	*pwstrUserId = statusHandler.getUserId();
+	*pwstrInfo = mbs2wcs(reinterpret_cast<const CHAR*>(stderrStream.getBuffer()), stderrStream.getLength());
 	
 	return true;
 }
@@ -275,35 +319,30 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	if (nLen == -1)
 		nLen = strlen(pszContent);
 	
+	StatusHandler statusHandler(this, pwszPassphrase, pFrom, pSender);
+	if (!statusHandler.open())
+		return xstring_size_ptr();
+	
 	wstring_ptr wstrGPG(getCommand());
 	
 	StringBuffer<WSTRING> command;
 	command.append(wstrGPG.get());
-	if (pwszPassphrase)
-		command.append(L" --passphrase-fd 0");
 	command.append(L" --verify-options show-uid-validity");
-	command.append(L" --batch --no-tty --status-fd 2");
+	command.append(L" --no-tty");
+	command.append(statusHandler.getOption().get());
 	
 	log.debugf(L"Decrypting and verifying with commandline: %s", command.getCharArray());
 	
-	const unsigned char* p = 0;
-	XStringBuffer<STRING> buf;
-	if (pwszPassphrase) {
-		string_ptr strPassphrase(wcs2mbs(pwszPassphrase));
-		if (!buf.append(strPassphrase.get()) || !buf.append('\n') || !buf.append(pszContent, nLen))
-			return xstring_size_ptr();
-		p = reinterpret_cast<const unsigned char*>(buf.getCharArray());
-		nLen = buf.getLength();
-	}
-	else {
-		p = reinterpret_cast<const unsigned char*>(pszContent);
-	}
+	const unsigned char* p = reinterpret_cast<const unsigned char*>(pszContent);
 	
 	log.debug(L"Data into stdin", p, nLen);
 	
 	ByteInputStream stdinStream(p, nLen, false);
 	ByteOutputStream stdoutStream;
 	ByteOutputStream stderrStream;
+	
+	if (!statusHandler.start())
+		return xstring_size_ptr();
 	
 	int nCode = Process::exec(command.getCharArray(),
 		&stdinStream, &stdoutStream, &stderrStream);
@@ -312,8 +351,12 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
 	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
 	
-	*pnVerify = parseStatus(stderrStream.getBuffer(),
-		stderrStream.getLength(), pFrom, pSender, pwstrUserId, pwstrInfo);
+	if (!statusHandler.stop())
+		return xstring_size_ptr();
+	
+	*pnVerify = statusHandler.getVerify();
+	*pwstrUserId = statusHandler.getUserId();
+	*pwstrInfo = mbs2wcs(reinterpret_cast<const CHAR*>(stderrStream.getBuffer()), stderrStream.getLength());
 	
 	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(
 		stdoutStream.getBuffer()), stdoutStream.getLength()), stdoutStream.getLength());
@@ -322,66 +365,6 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 wstring_ptr qmpgp::GPGDriver::getCommand() const
 {
 	return pProfile_->getString(L"GPG", L"Command");
-}
-
-unsigned int qmpgp::GPGDriver::parseStatus(const unsigned char* pBuf,
-										   size_t nLen,
-										   const AddressListParser* pFrom,
-										   const AddressListParser* pSender,
-										   wstring_ptr* pwstrUserId,
-										   wstring_ptr* pwstrInfo) const
-{
-	unsigned int nVerify = PGPUtility::VERIFY_NONE;
-	StringBuffer<STRING> bufInfo;
-	
-	const CHAR* pBegin = reinterpret_cast<const CHAR*>(pBuf);
-	const CHAR* pEnd = pBegin + nLen;
-	const CHAR* p = pBegin;
-	while (pBegin < pEnd) {
-		while (p < pEnd && *p != '\r' && *p != '\n')
-			++p;
-		
-		if (p - pBegin > 9 && strncmp(pBegin, "[GNUPG:] ", 9) == 0) {
-			if (p - pBegin > 18 && strncmp(pBegin + 9, "VALIDSIG ", 8) == 0) {
-				nVerify = PGPUtility::VERIFY_OK;
-				
-				const CHAR* pFingerPrint = pBegin + 18;
-				const CHAR* pFingerPrintEnd = pFingerPrint;
-				while (pFingerPrintEnd < p && *pFingerPrintEnd != ' ')
-					++pFingerPrintEnd;
-				if (pFingerPrint != pFingerPrintEnd) {
-					wstring_ptr wstrFingerPrint(mbs2wcs(pFingerPrint, pFingerPrintEnd - pFingerPrint));
-					bool bMatch = false;
-					if (!getUserIdFromFingerPrint(wstrFingerPrint.get(), pFrom, pSender, pwstrUserId, &bMatch))
-						nVerify = PGPUtility::VERIFY_FAILED;
-					else if (!bMatch)
-						nVerify |= PGPUtility::VERIFY_ADDRESSNOTMATCH;
-				}
-				else {
-					nVerify = PGPUtility::VERIFY_FAILED;
-				}
-			}
-			else if (p - pBegin > 16 &&
-				(strncmp(pBegin + 9, "BADSIG ", 7) == 0 ||
-				strncmp(pBegin + 9, "ERRSIG ", 7) == 0)) {
-				nVerify = PGPUtility::VERIFY_FAILED;
-			}
-		}
-		else {
-			bufInfo.append(pBegin, p - pBegin);
-			bufInfo.append('\n');
-		}
-		
-		if (p + 1 < pEnd && *p == '\r' && *(p + 1) == '\n')
-			++p;
-		++p;
-		
-		pBegin = p;
-	}
-	
-	*pwstrInfo = mbs2wcs(bufInfo.getCharArray(), bufInfo.getLength());
-	
-	return nVerify;
 }
 
 bool qmpgp::GPGDriver::getUserIdFromFingerPrint(const WCHAR* pwszFingerPrint,
@@ -495,4 +478,196 @@ const CHAR* qmpgp::GPGDriver::getToken(CHAR** pp,
 	++*pp;
 	
 	return p;
+}
+
+wstring_ptr qmpgp::GPGDriver::formatHandle(HANDLE h)
+{
+	WCHAR wsz[32];
+	wsprintf(wsz, L"%lu", reinterpret_cast<long>(h));
+	return allocWString(wsz);
+}
+
+
+/****************************************************************************
+ *
+ * GPGDriver::StatusHandler
+ *
+ */
+
+qmpgp::GPGDriver::StatusHandler::StatusHandler(const GPGDriver* pDriver,
+											   const WCHAR* pwszPassphrase) :
+	pDriver_(pDriver),
+	pwszPassphrase_(pwszPassphrase),
+	pFrom_(0),
+	pSender_(0),
+	nVerify_(PGPUtility::VERIFY_NONE)
+{
+}
+
+qmpgp::GPGDriver::StatusHandler::StatusHandler(const GPGDriver* pDriver,
+											   const WCHAR* pwszPassphrase,
+											   const AddressListParser* pFrom,
+											   const AddressListParser* pSender) :
+	pDriver_(pDriver),
+	pwszPassphrase_(pwszPassphrase),
+	pFrom_(pFrom),
+	pSender_(pSender),
+	nVerify_(PGPUtility::VERIFY_NONE)
+{
+}
+
+qmpgp::GPGDriver::StatusHandler::~StatusHandler()
+{
+}
+
+bool qmpgp::GPGDriver::StatusHandler::open()
+{
+	return Process::createInheritablePipe(&hReadCommand_, &hWriteCommand_, true) &&
+		Process::createInheritablePipe(&hReadStatus_, &hWriteStatus_, false);
+}
+
+bool qmpgp::GPGDriver::StatusHandler::start()
+{
+	hThread_.reset(reinterpret_cast<HANDLE>(_beginthreadex(
+		0, 0, &StatusHandler::threadProc, this, 0, 0)));
+	return hThread_.get() != 0;
+}
+
+bool qmpgp::GPGDriver::StatusHandler::stop()
+{
+	hWriteStatus_.close();
+	hReadCommand_.close();
+	hWriteCommand_.close();
+	
+	::WaitForSingleObject(hThread_.get(), INFINITE);
+	DWORD dwExitCode = 0;
+	return ::GetExitCodeThread(hThread_.get(), &dwExitCode) && dwExitCode == 0;
+}
+
+wstring_ptr qmpgp::GPGDriver::StatusHandler::getOption() const
+{
+	StringBuffer<WSTRING> buf;
+	buf.append(L" --command-fd ");
+	buf.append(GPGDriver::formatHandle(hReadCommand_.get()).get());
+	buf.append(L" --status-fd ");
+	buf.append(GPGDriver::formatHandle(hWriteStatus_.get()).get());
+	return buf.getString();
+}
+
+unsigned int qmpgp::GPGDriver::StatusHandler::getVerify() const
+{
+	return nVerify_;
+}
+
+wstring_ptr qmpgp::GPGDriver::StatusHandler::getUserId() const
+{
+	if (!wstrUserId_.get())
+		return 0;
+	return allocWString(wstrUserId_.get());
+}
+
+unsigned int qmpgp::GPGDriver::StatusHandler::process()
+{
+	XStringBuffer<STRING> buf;
+	const size_t nSize = 1024;
+	while (true) {
+		XStringBufferLock<STRING> lock(&buf, nSize);
+		unsigned char* p = reinterpret_cast<unsigned char*>(lock.get());
+		if (!p)
+			return 1;
+		
+		DWORD dwRead = 0;
+		BOOL b = ::ReadFile(hReadStatus_.get(), p, nSize, &dwRead, 0);
+		if (!b && ::GetLastError() != ERROR_BROKEN_PIPE)
+			return 1;
+		else if (!b || dwRead == 0)
+			break;
+		
+		lock.unlock(dwRead);
+		
+		if (!processBuffer(&buf))
+			return 1;
+	}
+	
+	return 0;
+}
+
+bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
+{
+	assert(pBuf);
+	
+	while (true) {
+		string_ptr strLine(fetchLine(pBuf));
+		if (!strLine.get())
+			break;
+		
+		size_t nLen = strlen(strLine.get());
+		if (nLen <= 9 || strncmp(strLine.get(), "[GNUPG:] ", 9) != 0)
+			continue;
+		
+		if (pwszPassphrase_) {
+			if (nLen > 21 && strncmp(strLine.get() + 9, "USERID_HINT ", 12) == 0) {
+				// TODO
+			}
+			else if (nLen > 25 && strncmp(strLine.get() + 9, "NEED_PASSPHRASE ", 16) == 0) {
+				string_ptr str(wcs2mbs(concat(pwszPassphrase_, L"\n").get()));
+				size_t nLen = strlen(str.get());
+				DWORD dwWritten = 0;
+				if (!::WriteFile(hWriteCommand_.get(), str.get(), nLen, &dwWritten, 0) || dwWritten != nLen)
+					return false;
+			}
+		}
+		if (nLen > 18 && strncmp(strLine.get() + 9, "VALIDSIG ", 9) == 0) {
+			nVerify_ = PGPUtility::VERIFY_OK;
+			
+			const CHAR* pFingerPrint = strLine.get() + 18;
+			const CHAR* pFingerPrintEnd = pFingerPrint;
+			while (*pFingerPrintEnd && *pFingerPrintEnd != ' ')
+				++pFingerPrintEnd;
+			if (pFingerPrint != pFingerPrintEnd) {
+				wstring_ptr wstrFingerPrint(mbs2wcs(pFingerPrint, pFingerPrintEnd - pFingerPrint));
+				bool bMatch = false;
+				if (!pDriver_->getUserIdFromFingerPrint(wstrFingerPrint.get(),
+					pFrom_, pSender_, &wstrUserId_, &bMatch))
+					nVerify_ = PGPUtility::VERIFY_FAILED;
+				else if (!bMatch)
+					nVerify_ |= PGPUtility::VERIFY_ADDRESSNOTMATCH;
+			}
+			else {
+				nVerify_ = PGPUtility::VERIFY_FAILED;
+			}
+		}
+		else if (nLen > 16 &&
+			(strncmp(strLine.get() + 9, "BADSIG ", 7) == 0 ||
+			strncmp(strLine.get() + 9, "ERRSIG ", 7) == 0)) {
+			nVerify_ = PGPUtility::VERIFY_FAILED;
+		}
+	}
+	
+	return true;
+}
+
+string_ptr qmpgp::GPGDriver::StatusHandler::fetchLine(XStringBuffer<qs::STRING>* pBuf)
+{
+	assert(pBuf);
+	
+	const CHAR* pBegin = pBuf->getCharArray();
+	const CHAR* p = pBegin;
+	while (*p && *p != '\n' && *p != '\r')
+		++p;
+	if (!*p)
+		return 0;
+	
+	string_ptr strLine(allocString(pBegin, p - pBegin));
+	if (*p == '\r' && *(p + 1) == '\n')
+		++p;
+	pBuf->remove(0, p - pBegin + 1);
+	
+	return strLine;
+}
+
+unsigned int __stdcall qmpgp::GPGDriver::StatusHandler::threadProc(void* pParam)
+{
+	InitThread initThread(0);
+	return static_cast<StatusHandler*>(pParam)->process();
 }
