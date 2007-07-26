@@ -39,4 +39,6 @@ GnuPGを使うかPGPを使うかは、((<セキュリティの設定|URL:OptionSecurity.html>))で指
 
 署名時に((<パスワード|URL:Password.html>))が必要な場合には、[パスワード]ダイアログが開きます。
 
+GnuPGを使う場合には、暗号化するときにBccや、ToもしくはCcにグループアドレスが含まれ、そのアドレスがFrom, Sender, Reply-Toのいずれにも現れない場合には匿名で暗号化します。
+
 =end

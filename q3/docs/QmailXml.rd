@@ -964,6 +964,10 @@ PGPの設定をします。
 PGPを起動するときのコマンド。
 
 
++ThrowKeyId (1 @ 0|1)
+GnuPGで暗号化するときにBccや、ToもしくはCcにグループアドレスが含まれ、そのアドレスがFrom, Sender, Reply-Toのいずれにも現れない場合には匿名で暗号化するかどうか。
+
+
 +UseGPG (1 @ 0|1)
 GnuPGを使うか、PGPを使うか。
 
