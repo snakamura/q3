@@ -95,11 +95,14 @@ private:
 	
 	public:
 		bool open();
-		bool start();
-		bool stop();
 		qs::wstring_ptr getOption() const;
 		unsigned int getVerify() const;
 		qs::wstring_ptr getUserId() const;
+	
+	public:
+		static bool process(const HANDLE* pHandles,
+							size_t n,
+							void* pParam);
 	
 	private:
 		bool process();
@@ -107,9 +110,6 @@ private:
 	
 	private:
 		static qs::string_ptr fetchLine(qs::XStringBuffer<qs::STRING>* pBuf);
-	
-	private:
-		static unsigned int __stdcall threadProc(void* pParam);
 	
 	private:
 		StatusHandler(const StatusHandler&);
@@ -122,7 +122,6 @@ private:
 		qs::AutoHandle hWriteCommand_;
 		qs::AutoHandle hReadStatus_;
 		qs::AutoHandle hWriteStatus_;
-		qs::AutoHandle hThread_;
 		const qs::AddressListParser* pFrom_;
 		const qs::AddressListParser* pSender_;
 		unsigned int nVerify_;

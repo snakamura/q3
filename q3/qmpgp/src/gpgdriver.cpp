@@ -104,18 +104,13 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 	ByteOutputStream stdoutStream;
 	ByteOutputStream stderrStream;
 	
-	if (!statusHandler.start())
-		return xstring_size_ptr();
-	
 	int nCode = Process::exec(command.getCharArray(), &stdinStream,
-		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0);
+		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0,
+		&StatusHandler::process, &statusHandler);
 	
 	log.debugf(L"Command exited with: %d", nCode);
 	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
 	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
-	
-	if (!statusHandler.stop())
-		return xstring_size_ptr();
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
@@ -214,18 +209,13 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 	ByteOutputStream stdoutStream;
 	ByteOutputStream stderrStream;
 	
-	if (!statusHandler.start())
-		return xstring_size_ptr();
-	
 	int nCode = Process::exec(command.getCharArray(), &stdinStream,
-		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0);
+		&stdoutStream, log.isDebugEnabled() ? &stderrStream : 0,
+		&StatusHandler::process, &statusHandler);
 	
 	log.debugf(L"Command exited with: %d", nCode);
 	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
 	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
-	
-	if (!statusHandler.stop())
-		return xstring_size_ptr();
 	
 	if (nCode != 0) {
 		log.errorf(L"Command exited with: %d", nCode);
@@ -285,18 +275,13 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 	ByteOutputStream stdoutStream;
 	ByteOutputStream stderrStream;
 	
-	if (!statusHandler.start())
-		return false;
-	
 	int nCode = Process::exec(command.getCharArray(),
-		&stdinStream, &stdoutStream, &stderrStream);
+		&stdinStream, &stdoutStream, &stderrStream,
+		&StatusHandler::process, &statusHandler);
 	
 	log.debugf(L"Command exited with: %d", nCode);
 	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
 	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
-	
-	if (!statusHandler.stop())
-		return false;
 	
 	*pnVerify = statusHandler.getVerify();
 	*pwstrUserId = statusHandler.getUserId();
@@ -341,18 +326,13 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	ByteOutputStream stdoutStream;
 	ByteOutputStream stderrStream;
 	
-	if (!statusHandler.start())
-		return xstring_size_ptr();
-	
 	int nCode = Process::exec(command.getCharArray(),
-		&stdinStream, &stdoutStream, &stderrStream);
+		&stdinStream, &stdoutStream, &stderrStream,
+		&StatusHandler::process, &statusHandler);
 	
 	log.debugf(L"Command exited with: %d", nCode);
 	log.debug(L"Data from stdout", stdoutStream.getBuffer(), stdoutStream.getLength());
 	log.debug(L"Data from stderr", stderrStream.getBuffer(), stderrStream.getLength());
-	
-	if (!statusHandler.stop())
-		return xstring_size_ptr();
 	
 	*pnVerify = statusHandler.getVerify();
 	*pwstrUserId = statusHandler.getUserId();
@@ -526,24 +506,6 @@ bool qmpgp::GPGDriver::StatusHandler::open()
 		Process::createInheritablePipe(&hReadStatus_, &hWriteStatus_, false);
 }
 
-bool qmpgp::GPGDriver::StatusHandler::start()
-{
-	hThread_.reset(reinterpret_cast<HANDLE>(_beginthreadex(
-		0, 0, &StatusHandler::threadProc, this, 0, 0)));
-	return hThread_.get() != 0;
-}
-
-bool qmpgp::GPGDriver::StatusHandler::stop()
-{
-	hWriteStatus_.close();
-	hReadCommand_.close();
-	hWriteCommand_.close();
-	
-	::WaitForSingleObject(hThread_.get(), INFINITE);
-	DWORD dwExitCode = 0;
-	return ::GetExitCodeThread(hThread_.get(), &dwExitCode) && dwExitCode == 0;
-}
-
 wstring_ptr qmpgp::GPGDriver::StatusHandler::getOption() const
 {
 	StringBuffer<WSTRING> buf;
@@ -566,8 +528,19 @@ wstring_ptr qmpgp::GPGDriver::StatusHandler::getUserId() const
 	return allocWString(wstrUserId_.get());
 }
 
+bool qmpgp::GPGDriver::StatusHandler::process(const HANDLE* pHandles,
+											  size_t n,
+											  void* pParam)
+{
+	StatusHandler* p = static_cast<StatusHandler*>(pParam);
+	return p->process();
+}
+
 bool qmpgp::GPGDriver::StatusHandler::process()
 {
+	hWriteStatus_.close();
+	hReadCommand_.close();
+	
 	XStringBuffer<STRING> buf;
 	const size_t nSize = 1024;
 	while (true) {
@@ -588,6 +561,9 @@ bool qmpgp::GPGDriver::StatusHandler::process()
 		if (!processBuffer(&buf))
 			return false;
 	}
+	
+	hWriteCommand_.close();
+	hReadStatus_.close();
 	
 	return true;
 }
@@ -664,10 +640,4 @@ string_ptr qmpgp::GPGDriver::StatusHandler::fetchLine(XStringBuffer<qs::STRING>*
 	pBuf->remove(0, p - pBegin + 1);
 	
 	return strLine;
-}
-
-unsigned int __stdcall qmpgp::GPGDriver::StatusHandler::threadProc(void* pParam)
-{
-	InitThread initThread(0);
-	return static_cast<StatusHandler*>(pParam)->process() ? 0 : 1;
 }
