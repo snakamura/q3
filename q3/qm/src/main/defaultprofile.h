@@ -400,6 +400,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	
 #ifndef _WIN32_WCE
 	{ L"PGP",	L"Command",	L"pgp.exe"	},
+	{ L"PGP",	L"ThrowId",	L"1"		},
 	{ L"PGP",	L"UseGPG",	L"1"		},
 #endif
 	

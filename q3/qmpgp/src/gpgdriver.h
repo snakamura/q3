@@ -40,12 +40,14 @@ public:
 									  qm::PGPPassphraseCallback* pPassphraseCallback) const;
 	virtual qs::xstring_size_ptr encrypt(const CHAR* pszText,
 										 size_t nLen,
-										 const UserIdList& listRecipient) const;
+										 const UserIdList& listRecipient,
+										 bool bThrowKeyId) const;
 	virtual qs::xstring_size_ptr signAndEncrypt(const CHAR* pszText,
 												size_t nLen,
 												const WCHAR* pwszUserId,
 												qm::PGPPassphraseCallback* pPassphraseCallback,
-												const UserIdList& listRecipient) const;
+												const UserIdList& listRecipient,
+												bool bThrowKeyId) const;
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
 						const CHAR* pszSignature,

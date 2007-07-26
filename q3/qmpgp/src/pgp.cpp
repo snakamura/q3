@@ -9,6 +9,8 @@
 #include <qsconv.h>
 #include <qsencoder.h>
 
+#include <boost/bind.hpp>
+
 #include "driver.h"
 #include "gpgdriver.h"
 #include "pgp.h"
@@ -160,7 +162,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 	
 	Driver::UserIdList listRecipient;
 	StringListFree<Driver::UserIdList> free(listRecipient);
-	getRecipients(*pPart, &listRecipient);
+	bool bThrowKeyId = false;
+	getRecipients(*pPart, &listRecipient, &bThrowKeyId);
 	
 	if (bMime) {
 		xstring_ptr strHeader(allocXString(pPart->getHeader()));
@@ -175,7 +178,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 		if (!strContent.get())
 			return xstring_size_ptr();
 		
-		xstring_size_ptr strBody(pDriver->encrypt(strContent.get(), -1, listRecipient));
+		xstring_size_ptr strBody(pDriver->encrypt(strContent.get(), -1, listRecipient, bThrowKeyId));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -187,7 +190,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 			return xstring_size_ptr();
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
-		xstring_size_ptr strBody(pDriver->encrypt(pBody, -1, listRecipient));
+		xstring_size_ptr strBody(pDriver->encrypt(pBody, -1, listRecipient, bThrowKeyId));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -211,7 +214,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 	
 	Driver::UserIdList listRecipient;
 	StringListFree<Driver::UserIdList> free(listRecipient);
-	getRecipients(*pPart, &listRecipient);
+	bool bThrowKeyId = false;
+	getRecipients(*pPart, &listRecipient, &bThrowKeyId);
 	
 	if (bMime) {
 		xstring_ptr strHeader(allocXString(pPart->getHeader()));
@@ -227,7 +231,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 			return xstring_size_ptr();
 		
 		xstring_size_ptr strBody(pDriver->signAndEncrypt(strContent.get(),
-			-1, pwszUserId, pPassphraseCallback, listRecipient));
+			-1, pwszUserId, pPassphraseCallback, listRecipient, bThrowKeyId));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -239,8 +243,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 			return xstring_size_ptr();
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
-		xstring_size_ptr strBody(pDriver->signAndEncrypt(pBody,
-			-1, pwszUserId, pPassphraseCallback, listRecipient));
+		xstring_size_ptr strBody(pDriver->signAndEncrypt(pBody, -1,
+			pwszUserId, pPassphraseCallback, listRecipient, bThrowKeyId));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -388,24 +392,44 @@ std::auto_ptr<Driver> qmpgp::PGPUtilityImpl::getDriver() const
 }
 
 void qmpgp::PGPUtilityImpl::getRecipients(const Part& part,
-										  Driver::UserIdList* pListUserId)
+										  Driver::UserIdList* pListUserId,
+										  bool* pbThrowKeyId) const
 {
+	assert(pListUserId);
+	assert(pbThrowKeyId);
+	
+	bool bCheckThrowKeyId = pProfile_->getInt(L"PGP", L"ThrowKeyId") != 0;
+	Driver::UserIdList listSelf;
+	StringListFree<Driver::UserIdList> free(listSelf);
+	if (bCheckThrowKeyId) {
+		const WCHAR* pwszSelves[] = {
+			L"From",
+			L"Sender",
+			L"Reply-To"
+		};
+		for (int n = 0; n < countof(pwszSelves); ++n)
+			getUserIds(part, pwszSelves[n], &listSelf, 0);
+	}
+	
 	const WCHAR* pwszAddresses[] = {
 		L"To",
 		L"Cc",
 		L"Bcc"
 	};
 	for (int n = 0; n < countof(pwszAddresses); ++n) {
-		AddressListParser addressList;
-		Part::Field f = part.getField(pwszAddresses[n], &addressList);
-		if (f == Part::FIELD_EXIST) {
-			wstring_ptr wstrAddresses(addressList.getAddresses());
-			
-			const WCHAR* p = wcstok(wstrAddresses.get(), L",");
-			while (p) {
-				wstring_ptr wstr(allocWString(p));
-				pListUserId->push_back(wstr.release());
-				p = wcstok(0, L",");
+		Driver::UserIdList l;
+		StringListFree<Driver::UserIdList> f(l);
+		getUserIds(part, pwszAddresses[n], pListUserId, bCheckThrowKeyId ? &l : 0);
+		
+		if (!l.empty()) {
+			for (Driver::UserIdList::const_iterator it = l.begin(); it != l.end(); ++it) {
+				Driver::UserIdList::const_iterator itS = std::find_if(
+					listSelf.begin(), listSelf.end(),
+					std::bind2nd(string_equal_i<WCHAR>(), *it));
+				if (itS == listSelf.end()) {
+					*pbThrowKeyId = true;
+					break;
+				}
 			}
 		}
 	}
@@ -609,6 +633,52 @@ const CHAR* qmpgp::PGPUtilityImpl::findInline(const CHAR* pszMarker,
 	}
 	
 	return 0;
+}
+
+void qmpgp::PGPUtilityImpl::getUserIds(const Part& part,
+									   const WCHAR* pwszField,
+									   Driver::UserIdList* pListUserId,
+									   Driver::UserIdList* pListHiddenUserId)
+{
+	assert(pwszField);
+	assert(pListUserId);
+	
+	AddressListParser addressList;
+	Part::Field f = part.getField(pwszField, &addressList);
+	if (f == Part::FIELD_EXIST) {
+		bool bBcc = _wcsicmp(pwszField, L"bcc") == 0;
+		
+		const AddressListParser::AddressList& l = addressList.getAddressList();
+		for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+			const AddressParser* pAddress = *it;
+			if (pAddress->getGroup()) {
+				const AddressListParser::AddressList& l = pAddress->getGroup()->getAddressList();
+				for (AddressListParser::AddressList::const_iterator it = l.begin(); it != l.end(); ++it) {
+					const AddressParser* p = *it;
+					assert(!p->getGroup());
+					
+					wstring_ptr wstrAddress(p->getAddress());
+					if (pListHiddenUserId) {
+						wstring_ptr wstr(allocWString(wstrAddress.get()));
+						pListHiddenUserId->push_back(wstr.get());
+						wstr.release();
+					}
+					pListUserId->push_back(wstrAddress.get());
+					wstrAddress.release();
+				}
+			}
+			else {
+				wstring_ptr wstrAddress(pAddress->getAddress());
+				if (pListHiddenUserId && bBcc) {
+					wstring_ptr wstr(allocWString(wstrAddress.get()));
+					pListHiddenUserId->push_back(wstr.get());
+					wstr.release();
+				}
+				pListUserId->push_back(wstrAddress.get());
+				wstrAddress.release();
+			}
+		}
+	}
 }
 
 

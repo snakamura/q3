@@ -62,10 +62,11 @@ public:
 
 private:
 	std::auto_ptr<Driver> getDriver() const;
+	void getRecipients(const qs::Part& part,
+					   Driver::UserIdList* pListUserId,
+					   bool* pbThrowKeyId) const;
 
 private:
-	static void getRecipients(const qs::Part& part,
-							  Driver::UserIdList* pListUserId);
 	static qs::xstring_size_ptr createMessage(const CHAR* pszHeader,
 											  const CHAR* pszBody,
 											  size_t nBodyLen);
@@ -84,6 +85,10 @@ private:
 	static const CHAR* findInline(const CHAR* pszMarker,
 								  const CHAR* psz,
 								  size_t nLen);
+	static void getUserIds(const qs::Part& part,
+						   const WCHAR* pwszField,
+						   Driver::UserIdList* pListUserId,
+						   Driver::UserIdList* pListHiddenUserId);
 
 private:
 	PGPUtilityImpl(const PGPUtilityImpl&);

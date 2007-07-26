@@ -106,7 +106,8 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 
 xstring_size_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
 										   size_t nLen,
-										   const UserIdList& listRecipient) const
+										   const UserIdList& listRecipient,
+										   bool bThrowKeyId) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -123,6 +124,8 @@ xstring_size_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
 		command.append(*it);
 		command.append(L"\"");
 	}
+	if (bThrowKeyId)
+		command.append(L" --throw-keyid");
 	command.append(L" --armor --batch --no-tty");
 	
 	log.debugf(L"Encrypting with commandline: %s", command.getCharArray());
@@ -155,7 +158,8 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 												  size_t nLen,
 												  const WCHAR* pwszUserId,
 												  PGPPassphraseCallback* pPassphraseCallback,
-												  const UserIdList& listRecipient) const
+												  const UserIdList& listRecipient,
+												  bool bThrowKeyId) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -179,6 +183,8 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 		command.append(*it);
 		command.append(L"\"");
 	}
+	if (bThrowKeyId)
+		command.append(L" --throw-keyid");
 	command.append(L" --armor --no-tty");
 	command.append(statusHandler.getOption().get());
 	
