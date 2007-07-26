@@ -284,15 +284,14 @@ xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	if (nLen == -1)
 		nLen = strlen(pszContent);
 	
-	wstring_ptr wstrPassphrase(pPassphraseCallback->getPassphrase(0));
-	if (!wstrPassphrase.get())
-		return xstring_size_ptr();
-	
 	wstring_ptr wstrPGP(getCommand());
 	
 	StringBuffer<WSTRING> command;
 	command.append(wstrPGP.get());
-	if (wstrPassphrase.get()) {
+	if (pPassphraseCallback) {
+		wstring_ptr wstrPassphrase(pPassphraseCallback->getPassphrase(0));
+		if (!wstrPassphrase.get())
+			return xstring_size_ptr();
 		command.append(L" -z \"");
 		command.append(wstrPassphrase.get());
 		command.append(L"\"");
