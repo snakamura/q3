@@ -11,6 +11,10 @@
 
 #include <boost/tuple/tuple.hpp>
 
+#ifndef _WIN32_WCE
+#	include <process.h>
+#endif
+
 using namespace qs;
 
 
@@ -24,7 +28,7 @@ using namespace qs;
 
 namespace {
 
-typedef DWORD (WINAPI *PFN_THREAD)(void*);
+typedef unsigned int (__stdcall *PFN_THREAD)(void*);
 
 template<typename PFN>
 AutoHandle createThread(PFN_THREAD pfnThread,
@@ -34,8 +38,8 @@ AutoHandle createThread(PFN_THREAD pfnThread,
 {
 	std::auto_ptr<boost::tuple<PFN, void*, HANDLE> > p(
 		new boost::tuple<PFN, void*, HANDLE>(pfn, pParam, h.get()));
-	DWORD dwThreadId = 0;
-	AutoHandle hThread(::CreateThread(0, 0, pfnThread, p.get(), 0, &dwThreadId));
+	AutoHandle hThread(reinterpret_cast<HANDLE>(
+		_beginthreadex(0, 0, pfnThread, p.get(), 0, 0)));
 	if (hThread.get()) {
 		p.release();
 		h.release();
@@ -43,7 +47,7 @@ AutoHandle createThread(PFN_THREAD pfnThread,
 	return hThread;
 }
 
-DWORD WINAPI readProc(void* pParam)
+unsigned int __stdcall readProc(void* pParam)
 {
 	std::auto_ptr<boost::tuple<Process::PFN_WRITE, void*, HANDLE> > p(
 		static_cast<boost::tuple<Process::PFN_WRITE, void*, HANDLE>*>(pParam));
@@ -67,7 +71,7 @@ DWORD WINAPI readProc(void* pParam)
 	return 0;
 }
 
-DWORD WINAPI writeProc(void* pParam)
+unsigned int __stdcall writeProc(void* pParam)
 {
 	std::auto_ptr<boost::tuple<Process::PFN_READ, void*, HANDLE> > p(
 		static_cast<boost::tuple<Process::PFN_READ, void*, HANDLE>*>(pParam));
