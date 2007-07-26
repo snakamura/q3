@@ -41,13 +41,13 @@ public:
 	virtual qs::xstring_size_ptr sign(qs::Part* pPart,
 									  bool bMime,
 									  const WCHAR* pwszUserId,
-									  const WCHAR* pwszPassphrase) const;
+									  qm::PGPPassphraseCallback* pPassphraseCallback) const;
 	virtual qs::xstring_size_ptr encrypt(qs::Part* pPart,
 										 bool bMime) const;
 	virtual qs::xstring_size_ptr signAndEncrypt(qs::Part* pPart,
 												bool bMime,
 												const WCHAR* pwszUserId,
-												const WCHAR* pwszPassphrase) const;
+												qm::PGPPassphraseCallback* pPassphraseCallback) const;
 	virtual qs::xstring_size_ptr verify(const qs::Part& part,
 										bool bMime,
 										unsigned int* pnVerify,
@@ -55,7 +55,7 @@ public:
 										qs::wstring_ptr* pwstrInfo) const;
 	virtual qs::xstring_size_ptr decryptAndVerify(const qs::Part& part,
 												  bool bMime,
-												  const WCHAR* pwszPassphrase,
+												  qm::PGPPassphraseCallback* pPassphraseCallback,
 												  unsigned int* pnVerify,
 												  qs::wstring_ptr* pwstrSignedBy,
 												  qs::wstring_ptr* pwstrInfo) const;

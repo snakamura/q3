@@ -101,11 +101,11 @@ PGPUtility::Type qmpgp::PGPUtilityImpl::getType(const ContentTypeParser* pConten
 xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 											 bool bMime,
 											 const WCHAR* pwszUserId,
-											 const WCHAR* pwszPassphrase) const
+											 PGPPassphraseCallback* pPassphraseCallback) const
 {
 	assert(pPart);
 	assert(pwszUserId);
-	assert(pwszPassphrase);
+	assert(pPassphraseCallback);
 	
 	std::auto_ptr<Driver> pDriver(getDriver());
 	
@@ -126,7 +126,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 			return xstring_size_ptr();
 		
 		xstring_size_ptr strSignature(pDriver->sign(strContent.get(),
-			-1, Driver::SIGNFLAG_DETACH, pwszUserId, pwszPassphrase));
+			-1, Driver::SIGNFLAG_DETACH, pwszUserId, pPassphraseCallback));
 		if (!strSignature.get())
 			return xstring_size_ptr();
 		
@@ -140,7 +140,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
 		xstring_size_ptr strBody(pDriver->sign(pBody, -1,
-			Driver::SIGNFLAG_CLEARTEXT, pwszUserId, pwszPassphrase));
+			Driver::SIGNFLAG_CLEARTEXT, pwszUserId, pPassphraseCallback));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -198,11 +198,11 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 													   bool bMime,
 													   const WCHAR* pwszUserId,
-													   const WCHAR* pwszPassphrase) const
+													   PGPPassphraseCallback* pPassphraseCallback) const
 {
 	assert(pPart);
 	assert(pwszUserId);
-	assert(pwszPassphrase);
+	assert(pPassphraseCallback);
 	
 	std::auto_ptr<Driver> pDriver(getDriver());
 	
@@ -227,7 +227,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 			return xstring_size_ptr();
 		
 		xstring_size_ptr strBody(pDriver->signAndEncrypt(strContent.get(),
-			-1, pwszUserId, pwszPassphrase, listRecipient));
+			-1, pwszUserId, pPassphraseCallback, listRecipient));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -240,7 +240,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
 		xstring_size_ptr strBody(pDriver->signAndEncrypt(pBody,
-			-1, pwszUserId, pwszPassphrase, listRecipient));
+			-1, pwszUserId, pPassphraseCallback, listRecipient));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -305,7 +305,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::verify(const Part& part,
 
 xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 														 bool bMime,
-														 const WCHAR* pwszPassphrase,
+														 PGPPassphraseCallback* pPassphraseCallback,
 														 unsigned int* pnVerify,
 														 wstring_ptr* pwstrSignedBy,
 														 qs::wstring_ptr* pwstrInfo) const
@@ -328,7 +328,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 		assert(getType(part, false) == TYPE_MIMEENCRYPTED);
 		
 		xstring_size_ptr strContent(pDriver->decryptAndVerify(part.getPart(1)->getBody(),
-			-1, pwszPassphrase, pFrom, pSender, pnVerify, pwstrSignedBy, pwstrInfo));
+			-1, pPassphraseCallback, pFrom, pSender, pnVerify, pwstrSignedBy, pwstrInfo));
 		if (!strContent.get())
 			return xstring_size_ptr();
 		return createMessage(strContent.get(), strContent.size(), part);
@@ -356,7 +356,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::decryptAndVerify(const Part& part,
 					nLen = pEnd - pBegin + 27;
 				
 				xstring_size_ptr strBody(pDriver->decryptAndVerify(pBegin, nLen,
-					pwszPassphrase, pFrom, pSender, pnVerify, pwstrSignedBy, pwstrInfo));
+					pPassphraseCallback, pFrom, pSender, pnVerify, pwstrSignedBy, pwstrInfo));
 				if (!strBody.get())
 					return xstring_size_ptr();
 				if (*pnVerify != VERIFY_NONE) {

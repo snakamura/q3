@@ -40,12 +40,16 @@ xstring_size_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 										size_t nLen,
 										SignFlag signFlag,
 										const WCHAR* pwszUserId,
-										const WCHAR* pwszPassphrase) const
+										PGPPassphraseCallback* pPassphraseCallback) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
 	
 	if (nLen == -1)
 		nLen = strlen(pszText);
+	
+	wstring_ptr wstrPassphrase(pPassphraseCallback->getPassphrase(0));
+	if (!wstrPassphrase.get())
+		return xstring_size_ptr();
 	
 	wstring_ptr wstrPGP(getCommand());
 	
@@ -69,7 +73,7 @@ xstring_size_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 	command.append(L" -u \"");
 	command.append(pwszUserId);
 	command.append(L"\" -z \"");
-	command.append(pwszPassphrase);
+	command.append(wstrPassphrase.get());
 	command.append(L"\" -a -f");
 	
 	log.debugf(L"Signing with commandline: %s", command.getCharArray());
@@ -148,13 +152,17 @@ xstring_size_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 												  size_t nLen,
 												  const WCHAR* pwszUserId,
-												  const WCHAR* pwszPassphrase,
+												  PGPPassphraseCallback* pPassphraseCallback,
 												  const UserIdList& listRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
 	
 	if (nLen == -1)
 		nLen = strlen(pszText);
+	
+	wstring_ptr wstrPassphrase(pPassphraseCallback->getPassphrase(0));
+	if (!wstrPassphrase.get())
+		return xstring_size_ptr();
 	
 	wstring_ptr wstrPGP(getCommand());
 	
@@ -164,7 +172,7 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 	command.append(L" -u \"");
 	command.append(pwszUserId);
 	command.append(L"\" -z \"");
-	command.append(pwszPassphrase);
+	command.append(wstrPassphrase.get());
 	command.append(L"\"");
 	for (UserIdList::const_iterator it = listRecipient.begin(); it != listRecipient.end(); ++it) {
 		command.append(L" \"");
@@ -264,7 +272,7 @@ bool qmpgp::PGPDriver::verify(const CHAR* pszContent,
 
 xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 													size_t nLen,
-													const WCHAR* pwszPassphrase,
+													PGPPassphraseCallback* pPassphraseCallback,
 													const AddressListParser* pFrom,
 													const AddressListParser* pSender,
 													unsigned int* pnVerify,
@@ -276,13 +284,17 @@ xstring_size_ptr qmpgp::PGPDriver::decryptAndVerify(const CHAR* pszContent,
 	if (nLen == -1)
 		nLen = strlen(pszContent);
 	
+	wstring_ptr wstrPassphrase(pPassphraseCallback->getPassphrase(0));
+	if (!wstrPassphrase.get())
+		return xstring_size_ptr();
+	
 	wstring_ptr wstrPGP(getCommand());
 	
 	StringBuffer<WSTRING> command;
 	command.append(wstrPGP.get());
-	if (pwszPassphrase) {
+	if (wstrPassphrase.get()) {
 		command.append(L" -z \"");
-		command.append(pwszPassphrase);
+		command.append(wstrPassphrase.get());
 		command.append(L"\"");
 	}
 	command.append(L" -f");

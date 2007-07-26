@@ -22,6 +22,7 @@ namespace qm {
 
 class PGPUtility;
 class PGPFactory;
+class PGPPassphraseCallback;
 
 
 /****************************************************************************
@@ -58,13 +59,13 @@ public:
 	virtual qs::xstring_size_ptr sign(qs::Part* pPart,
 									  bool bMime,
 									  const WCHAR* pwszUserId,
-									  const WCHAR* pwszPasspharse) const = 0;
+									  PGPPassphraseCallback* pPassphraseCallback) const = 0;
 	virtual qs::xstring_size_ptr encrypt(qs::Part* pPart,
 										 bool bMime) const = 0;
 	virtual qs::xstring_size_ptr signAndEncrypt(qs::Part* pPart,
 												bool bMime,
 												const WCHAR* pwszUserId,
-												const WCHAR* pwszPassphrase) const = 0;
+												PGPPassphraseCallback* pPassphraseCallback) const = 0;
 	virtual qs::xstring_size_ptr verify(const qs::Part& part,
 										bool bMime,
 										unsigned int* pnVerify,
@@ -72,7 +73,7 @@ public:
 										qs::wstring_ptr* pwstrInfo) const = 0;
 	virtual qs::xstring_size_ptr decryptAndVerify(const qs::Part& part,
 												  bool bMime,
-												  const WCHAR* pwszPassphrase,
+												  PGPPassphraseCallback* pPassphraseCallback,
 												  unsigned int* pnVerify,
 												  qs::wstring_ptr* pwstrSignedBy,
 												  qs::wstring_ptr* pwstrInfo) const = 0;
@@ -109,6 +110,23 @@ protected:
 private:
 	PGPFactory(const PGPFactory&);
 	PGPFactory& operator=(const PGPFactory&);
+};
+
+
+/****************************************************************************
+ *
+ * PGPPassphraseCallback
+ *
+ */
+
+class PGPPassphraseCallback
+{
+public:
+	virtual ~PGPPassphraseCallback();
+
+public:
+	virtual qs::wstring_ptr getPassphrase(const WCHAR* pwszUserId) = 0;
+	virtual void clear() = 0;
 };
 
 }

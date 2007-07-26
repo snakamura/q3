@@ -38,35 +38,18 @@ qmpgp::GPGDriver::~GPGDriver()
 {
 }
 
-namespace {
-
-size_t readPassphrase(unsigned char* p,
-					  size_t n,
-					  void* pParam)
-{
-	const char** pp = static_cast<const char**>(pParam);
-	size_t nLen = QSMIN(n, strlen(*pp));
-	if (nLen) {
-		memcpy(p, *pp, nLen);
-		*pp += nLen;
-	}
-	return nLen;
-}
-
-}
-
 xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 										size_t nLen,
 										SignFlag signFlag,
 										const WCHAR* pwszUserId,
-										const WCHAR* pwszPassphrase) const
+										PGPPassphraseCallback* pPassphraseCallback) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
 	if (nLen == -1)
 		nLen = strlen(pszText);
 	
-	StatusHandler statusHandler(this, pwszPassphrase);
+	StatusHandler statusHandler(this, pPassphraseCallback);
 	if (!statusHandler.open())
 		return xstring_size_ptr();
 	
@@ -171,7 +154,7 @@ xstring_size_ptr qmpgp::GPGDriver::encrypt(const CHAR* pszText,
 xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 												  size_t nLen,
 												  const WCHAR* pwszUserId,
-												  const WCHAR* pwszPassphrase,
+												  PGPPassphraseCallback* pPassphraseCallback,
 												  const UserIdList& listRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
@@ -179,7 +162,7 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 	if (nLen == -1)
 		nLen = strlen(pszText);
 	
-	StatusHandler statusHandler(this, pwszPassphrase);
+	StatusHandler statusHandler(this, pPassphraseCallback);
 	if (!statusHandler.open())
 		return xstring_size_ptr();
 	
@@ -292,7 +275,7 @@ bool qmpgp::GPGDriver::verify(const CHAR* pszContent,
 
 xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 													size_t nLen,
-													const WCHAR* pwszPassphrase,
+													PGPPassphraseCallback* pPassphraseCallback,
 													const AddressListParser* pFrom,
 													const AddressListParser* pSender,
 													unsigned int* pnVerify,
@@ -304,7 +287,7 @@ xstring_size_ptr qmpgp::GPGDriver::decryptAndVerify(const CHAR* pszContent,
 	if (nLen == -1)
 		nLen = strlen(pszContent);
 	
-	StatusHandler statusHandler(this, pwszPassphrase, pFrom, pSender);
+	StatusHandler statusHandler(this, pPassphraseCallback, pFrom, pSender);
 	if (!statusHandler.open())
 		return xstring_size_ptr();
 	
@@ -475,9 +458,9 @@ wstring_ptr qmpgp::GPGDriver::formatHandle(HANDLE h)
  */
 
 qmpgp::GPGDriver::StatusHandler::StatusHandler(const GPGDriver* pDriver,
-											   const WCHAR* pwszPassphrase) :
+											   PGPPassphraseCallback* pPassphraseCallback) :
 	pDriver_(pDriver),
-	pwszPassphrase_(pwszPassphrase),
+	pPassphraseCallback_(pPassphraseCallback),
 	pFrom_(0),
 	pSender_(0),
 	nVerify_(PGPUtility::VERIFY_NONE)
@@ -485,11 +468,11 @@ qmpgp::GPGDriver::StatusHandler::StatusHandler(const GPGDriver* pDriver,
 }
 
 qmpgp::GPGDriver::StatusHandler::StatusHandler(const GPGDriver* pDriver,
-											   const WCHAR* pwszPassphrase,
+											   qm::PGPPassphraseCallback* pPassphraseCallback,
 											   const AddressListParser* pFrom,
 											   const AddressListParser* pSender) :
 	pDriver_(pDriver),
-	pwszPassphrase_(pwszPassphrase),
+	pPassphraseCallback_(pPassphraseCallback),
 	pFrom_(pFrom),
 	pSender_(pSender),
 	nVerify_(PGPUtility::VERIFY_NONE)
@@ -581,19 +564,23 @@ bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
 		if (nLen <= 9 || strncmp(strLine.get(), "[GNUPG:] ", 9) != 0)
 			continue;
 		
-		if (pwszPassphrase_) {
-			if (nLen > 21 && strncmp(strLine.get() + 9, "USERID_HINT ", 12) == 0) {
-				// TODO
-			}
-			else if (nLen > 25 && strncmp(strLine.get() + 9, "NEED_PASSPHRASE ", 16) == 0) {
-				string_ptr str(wcs2mbs(concat(pwszPassphrase_, L"\n").get()));
-				size_t nLen = strlen(str.get());
-				DWORD dwWritten = 0;
-				if (!::WriteFile(hWriteCommand_.get(), str.get(), nLen, &dwWritten, 0) || dwWritten != nLen)
-					return false;
-			}
+		if (nLen > 21 && strncmp(strLine.get() + 9, "USERID_HINT ", 12) == 0) {
+			// TODO
 		}
-		if (nLen > 18 && strncmp(strLine.get() + 9, "VALIDSIG ", 9) == 0) {
+		else if (nLen > 25 && strncmp(strLine.get() + 9, "NEED_PASSPHRASE ", 16) == 0) {
+			// TODO
+			// Pass userid
+			wstring_ptr wstrPassphrase(pPassphraseCallback_->getPassphrase(0));
+			string_ptr str(wcs2mbs(concat(wstrPassphrase.get() ? wstrPassphrase.get() : L"", L"\n").get()));
+			size_t nLen = strlen(str.get());
+			DWORD dwWritten = 0;
+			if (!::WriteFile(hWriteCommand_.get(), str.get(), nLen, &dwWritten, 0) || dwWritten != nLen)
+				return false;
+		}
+		else if (nLen > 24 && strncmp(strLine.get() + 9, "BAD_PASSPHRASE ", 15) == 0) {
+			pPassphraseCallback_->clear();
+		}
+		else if (nLen > 18 && strncmp(strLine.get() + 9, "VALIDSIG ", 9) == 0) {
 			nVerify_ = PGPUtility::VERIFY_OK;
 			
 			const CHAR* pFingerPrint = strLine.get() + 18;

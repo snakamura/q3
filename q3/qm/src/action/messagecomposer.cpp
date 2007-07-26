@@ -14,8 +14,6 @@
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
-#include <qmpassword.h>
-#include <qmpgp.h>
 #include <qmsecurity.h>
 
 #include <qscrypto.h>
@@ -27,6 +25,7 @@
 #include "../model/addressbook.h"
 #include "../model/message.h"
 #include "../model/recentaddress.h"
+#include "../pgp/pgp.h"
 #include "../uimodel/foldermodel.h"
 #include "../uimodel/securitymodel.h"
 
@@ -382,21 +381,14 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 	}
 	
 	const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
-	wstring_ptr wstrPassword;
-	PasswordState state = PASSWORDSTATE_ONETIME;
-	if (nMessageSecurity & MESSAGESECURITY_PGPSIGN) {
-		PGPPasswordCondition condition(pwszUserId);
-		wstrPassword = pPasswordManager_->getPassword(condition, false, &state);
-		if (!wstrPassword.get())
-			return false;
-	}
+	PGPPassphraseCallbackImpl passphraseCallback(pPasswordManager_, pwszUserId);
 	
 	bool bMime = (nMessageSecurity & MESSAGESECURITY_PGPMIME) != 0;
 	if (nMessageSecurity & MESSAGESECURITY_PGPSIGN &&
 		nMessageSecurity & MESSAGESECURITY_PGPENCRYPT) {
 		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
 		xstring_size_ptr strMessage(pPGPUtility->signAndEncrypt(
-			pMessage, bMime, pwszUserId, wstrPassword.get()));
+			pMessage, bMime, pwszUserId, &passphraseCallback));
 		if (!strMessage.get()) {
 			log.error(L"Failed to sign and encrypt with PGP.");
 			return false;
@@ -407,7 +399,7 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 	else if (nMessageSecurity & MESSAGESECURITY_PGPSIGN) {
 		const WCHAR* pwszUserId = pSubAccount->getSenderAddress();
 		xstring_size_ptr strMessage(pPGPUtility->sign(pMessage,
-			bMime, pwszUserId, wstrPassword.get()));
+			bMime, pwszUserId, &passphraseCallback));
 		if (!strMessage.get()) {
 			log.error(L"Failed to sign with PGP.");
 			return false;
@@ -425,11 +417,7 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 			return false;
 	}
 	
-	if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE) {
-		PGPPasswordCondition condition(pwszUserId);
-		pPasswordManager_->setPassword(condition,
-			wstrPassword.get(), state == PASSWORDSTATE_SAVE);
-	}
+	passphraseCallback.save();
 	
 	return true;
 }
@@ -437,7 +425,7 @@ bool qm::MessageComposer::processPGP(Message* pMessage,
 
 /****************************************************************************
  *
- * AddressBook::SMIMECallbackImpl
+ * SMIMECallbackImpl
  *
  */
 

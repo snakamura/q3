@@ -42,6 +42,7 @@
 #include "undo.h"
 #include "../junk/junk.h"
 #include "../main/defaultprofile.h"
+#include "../pgp/pgp.h"
 #include "../util/confighelper.h"
 
 using namespace qm;
@@ -874,15 +875,8 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 								 PGPUtility::Type type,
 								 Message* pMessage)
 {
-	PasswordState state = PASSWORDSTATE_ONETIME;
-	wstring_ptr wstrPassword;
-	if (type == PGPUtility::TYPE_MIMEENCRYPTED ||
-		type == PGPUtility::TYPE_INLINEENCRYPTED) {
-		PGPPasswordCondition condition(pThis_->getCurrentSubAccount()->getSenderAddress());
-		wstrPassword = pPasswordManager_->getPassword(condition, false, &state);
-		if (!wstrPassword.get())
-			return false;
-	}
+	PGPPassphraseCallbackImpl passphraseCallback(pPasswordManager_,
+		pThis_->getCurrentSubAccount()->getSenderAddress());
 	
 	xstring_size_ptr strMessage;
 	unsigned int nVerify = 0;
@@ -892,7 +886,7 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 	switch (type) {
 	case PGPUtility::TYPE_MIMEENCRYPTED:
 		strMessage = pPGPUtility->decryptAndVerify(*pMessage, true,
-			wstrPassword.get(), &nVerify, &wstrSignedBy, &wstrInfo);
+			&passphraseCallback, &nVerify, &wstrSignedBy, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		nSecurity |= Message::SECURITY_DECRYPTED;
@@ -905,7 +899,7 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 		break;
 	case PGPUtility::TYPE_INLINEENCRYPTED:
 		strMessage = pPGPUtility->decryptAndVerify(*pMessage, false,
-			wstrPassword.get(), &nVerify, &wstrSignedBy, &wstrInfo);
+			&passphraseCallback, &nVerify, &wstrSignedBy, &wstrInfo);
 		if (!strMessage.get())
 			return false;
 		nSecurity |= Message::SECURITY_DECRYPTED;
@@ -918,11 +912,7 @@ bool qm::AccountImpl::processPGP(const PGPUtility* pPGPUtility,
 		break;
 	}
 	
-	if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE) {
-		PGPPasswordCondition condition(pThis_->getCurrentSubAccount()->getSenderAddress());
-		pPasswordManager_->setPassword(condition,
-			wstrPassword.get(), state == PASSWORDSTATE_SAVE);
-	}
+	passphraseCallback.save();
 	
 	if (nVerify != PGPUtility::VERIFY_NONE) {
 		nSecurity &= ~Message::SECURITY_VERIFY_MASK;

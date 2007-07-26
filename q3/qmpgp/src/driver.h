@@ -47,14 +47,14 @@ public:
 									  size_t nLen,
 									  SignFlag signFlag,
 									  const WCHAR* pwszUserId,
-									  const WCHAR* pwszPassphrase) const = 0;
+									  qm::PGPPassphraseCallback* pPassphraseCallback) const = 0;
 	virtual qs::xstring_size_ptr encrypt(const CHAR* pszText,
 										 size_t nLen,
 										 const UserIdList& listRecipient) const = 0;
 	virtual qs::xstring_size_ptr signAndEncrypt(const CHAR* pszText,
 												size_t nLen,
 												const WCHAR* pwszUserId,
-												const WCHAR* pwszPassphrase,
+												qm::PGPPassphraseCallback* pPassphraseCallback,
 												const UserIdList& listRecipient) const = 0;
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
@@ -66,7 +66,7 @@ public:
 						qs::wstring_ptr* pwstrInfo) const = 0;
 	virtual qs::xstring_size_ptr decryptAndVerify(const CHAR* pszContent,
 												  size_t nLen,
-												  const WCHAR* pwszPassphrase,
+												  qm::PGPPassphraseCallback* pPassphraseCallback,
 												  const qs::AddressListParser* pFrom,
 												  const qs::AddressListParser* pSender,
 												  unsigned int* pnVerify,
