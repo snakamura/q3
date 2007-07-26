@@ -102,7 +102,7 @@ private:
 		qs::wstring_ptr getUserId() const;
 	
 	private:
-		unsigned int process();
+		bool process();
 		bool processBuffer(qs::XStringBuffer<qs::STRING>* pBuf);
 	
 	private:

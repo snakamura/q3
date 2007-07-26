@@ -566,7 +566,7 @@ wstring_ptr qmpgp::GPGDriver::StatusHandler::getUserId() const
 	return allocWString(wstrUserId_.get());
 }
 
-unsigned int qmpgp::GPGDriver::StatusHandler::process()
+bool qmpgp::GPGDriver::StatusHandler::process()
 {
 	XStringBuffer<STRING> buf;
 	const size_t nSize = 1024;
@@ -574,22 +574,22 @@ unsigned int qmpgp::GPGDriver::StatusHandler::process()
 		XStringBufferLock<STRING> lock(&buf, nSize);
 		unsigned char* p = reinterpret_cast<unsigned char*>(lock.get());
 		if (!p)
-			return 1;
+			return false;
 		
 		DWORD dwRead = 0;
 		BOOL b = ::ReadFile(hReadStatus_.get(), p, nSize, &dwRead, 0);
 		if (!b && ::GetLastError() != ERROR_BROKEN_PIPE)
-			return 1;
+			return false;
 		else if (!b || dwRead == 0)
 			break;
 		
 		lock.unlock(dwRead);
 		
 		if (!processBuffer(&buf))
-			return 1;
+			return false;
 	}
 	
-	return 0;
+	return true;
 }
 
 bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
@@ -669,5 +669,5 @@ string_ptr qmpgp::GPGDriver::StatusHandler::fetchLine(XStringBuffer<qs::STRING>*
 unsigned int __stdcall qmpgp::GPGDriver::StatusHandler::threadProc(void* pParam)
 {
 	InitThread initThread(0);
-	return static_cast<StatusHandler*>(pParam)->process();
+	return static_cast<StatusHandler*>(pParam)->process() ? 0 : 1;
 }
