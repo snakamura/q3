@@ -584,17 +584,23 @@ bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
 					pwszUserId = wstrHintUserId_.get();
 				
 				wstring_ptr wstrPassphrase(pPassphraseCallback_->getPassphrase(pwszUserId));
-				string_ptr str(wcs2mbs(concat(wstrPassphrase.get() ? wstrPassphrase.get() : L"", L"\n").get()));
+				if (!wstrPassphrase.get()) {
+					hWriteCommand_.close();
+					return false;
+				}
+				string_ptr str(wcs2mbs(concat(wstrPassphrase.get(), L"\n").get()));
 				size_t nLen = strlen(str.get());
 				DWORD dwWritten = 0;
-				if (!::WriteFile(hWriteCommand_.get(), str.get(), nLen, &dwWritten, 0) || dwWritten != nLen)
+				if (!::WriteFile(hWriteCommand_.get(), str.get(), nLen, &dwWritten, 0) || dwWritten != nLen) {
+					hWriteCommand_.close();
 					return false;
+				}
+			}
+			else if (nLen > 24 && strncmp(strLine.get() + 9, "BAD_PASSPHRASE ", 15) == 0) {
+				pPassphraseCallback_->clear();
 			}
 		}
-		if (nLen > 24 && strncmp(strLine.get() + 9, "BAD_PASSPHRASE ", 15) == 0) {
-			pPassphraseCallback_->clear();
-		}
-		else if (nLen > 18 && strncmp(strLine.get() + 9, "VALIDSIG ", 9) == 0) {
+		if (nLen > 18 && strncmp(strLine.get() + 9, "VALIDSIG ", 9) == 0) {
 			nVerify_ = PGPUtility::VERIFY_OK;
 			
 			const CHAR* pFingerPrint = strLine.get() + 18;
