@@ -126,6 +126,8 @@ private:
 		const qs::AddressListParser* pSender_;
 		unsigned int nVerify_;
 		qs::wstring_ptr wstrUserId_;
+		qs::string_ptr strHintKeyId_;
+		qs::wstring_ptr wstrHintUserId_;
 	};
 
 private:

@@ -565,12 +565,24 @@ bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
 			continue;
 		
 		if (nLen > 21 && strncmp(strLine.get() + 9, "USERID_HINT ", 12) == 0) {
-			// TODO
+			const CHAR* pKeyId = strLine.get() + 21;
+			const CHAR* pUserId = strchr(pKeyId, ' ');
+			if (pUserId) {
+				strHintKeyId_ = allocString(pKeyId, pUserId - pKeyId);
+				wstrHintUserId_ = mbs2wcs(pUserId + 1);
+			}
 		}
 		else if (nLen > 25 && strncmp(strLine.get() + 9, "NEED_PASSPHRASE ", 16) == 0) {
-			// TODO
-			// Pass userid
-			wstring_ptr wstrPassphrase(pPassphraseCallback_->getPassphrase(0));
+			const WCHAR* pwszUserId = 0;
+			
+			const CHAR* pKeyId = strLine.get() + 25;
+			const CHAR* pKeyIdEnd = strchr(pKeyId, ' ');
+			if (pKeyIdEnd &&
+				pKeyIdEnd - pKeyId == strlen(strHintKeyId_.get()) &&
+				strncmp(pKeyId, strHintKeyId_.get(), pKeyIdEnd - pKeyId) == 0)
+				pwszUserId = wstrHintUserId_.get();
+			
+			wstring_ptr wstrPassphrase(pPassphraseCallback_->getPassphrase(pwszUserId));
 			string_ptr str(wcs2mbs(concat(wstrPassphrase.get() ? wstrPassphrase.get() : L"", L"\n").get()));
 			size_t nLen = strlen(str.get());
 			DWORD dwWritten = 0;
