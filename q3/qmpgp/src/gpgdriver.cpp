@@ -597,7 +597,8 @@ bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
 				string_ptr str(wcs2mbs(concat(wstrPassphrase.get(), L"\n").get()));
 				size_t nLen = strlen(str.get());
 				DWORD dwWritten = 0;
-				if (!::WriteFile(hWriteCommand_.get(), str.get(), nLen, &dwWritten, 0) || dwWritten != nLen) {
+				if (!::WriteFile(hWriteCommand_.get(), str.get(), static_cast<DWORD>(nLen), &dwWritten, 0) ||
+					dwWritten != nLen) {
 					hWriteCommand_.close();
 					return false;
 				}
