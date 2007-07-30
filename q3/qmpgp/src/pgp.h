@@ -64,7 +64,7 @@ private:
 	std::auto_ptr<Driver> getDriver() const;
 	void getRecipients(const qs::Part& part,
 					   Driver::UserIdList* pListUserId,
-					   bool* pbThrowKeyId) const;
+					   Driver::UserIdList* pListHiddenUserId) const;
 
 private:
 	static qs::xstring_size_ptr createMessage(const CHAR* pszHeader,

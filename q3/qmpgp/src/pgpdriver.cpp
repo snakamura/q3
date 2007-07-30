@@ -105,7 +105,7 @@ xstring_size_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 xstring_size_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 										   size_t nLen,
 										   const UserIdList& listRecipient,
-										   bool bThrowKeyId) const
+										   const UserIdList& listHiddenRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
 	
@@ -118,6 +118,11 @@ xstring_size_ptr qmpgp::PGPDriver::encrypt(const CHAR* pszText,
 	command.append(wstrPGP.get());
 	command.append(L" -e");
 	for (UserIdList::const_iterator it = listRecipient.begin(); it != listRecipient.end(); ++it) {
+		command.append(L" \"");
+		command.append(*it);
+		command.append(L"\"");
+	}
+	for (UserIdList::const_iterator it = listHiddenRecipient.begin(); it != listHiddenRecipient.end(); ++it) {
 		command.append(L" \"");
 		command.append(*it);
 		command.append(L"\"");
@@ -155,7 +160,7 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 												  const WCHAR* pwszUserId,
 												  PGPPassphraseCallback* pPassphraseCallback,
 												  const UserIdList& listRecipient,
-												  bool bThrowKeyId) const
+												  const UserIdList& listHiddenRecipient) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
 	
@@ -177,6 +182,11 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 	command.append(wstrPassphrase.get());
 	command.append(L"\"");
 	for (UserIdList::const_iterator it = listRecipient.begin(); it != listRecipient.end(); ++it) {
+		command.append(L" \"");
+		command.append(*it);
+		command.append(L"\"");
+	}
+	for (UserIdList::const_iterator it = listHiddenRecipient.begin(); it != listHiddenRecipient.end(); ++it) {
 		command.append(L" \"");
 		command.append(*it);
 		command.append(L"\"");

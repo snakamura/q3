@@ -51,13 +51,13 @@ public:
 	virtual qs::xstring_size_ptr encrypt(const CHAR* pszText,
 										 size_t nLen,
 										 const UserIdList& listRecipient,
-										 bool bThrowId) const = 0;
+										 const UserIdList& listHiddenRecipient) const = 0;
 	virtual qs::xstring_size_ptr signAndEncrypt(const CHAR* pszText,
 												size_t nLen,
 												const WCHAR* pwszUserId,
 												qm::PGPPassphraseCallback* pPassphraseCallback,
 												const UserIdList& listRecipient,
-												bool bThrowId) const = 0;
+												const UserIdList& listHiddenRecipient) const = 0;
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
 						const CHAR* pszSignature,

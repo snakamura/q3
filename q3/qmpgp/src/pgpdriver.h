@@ -40,13 +40,13 @@ public:
 	virtual qs::xstring_size_ptr encrypt(const CHAR* pszText,
 										 size_t nLen,
 										 const UserIdList& listRecipient,
-										 bool bThrowKeyId) const;
+										 const UserIdList& listHiddenRecipient) const;
 	virtual qs::xstring_size_ptr signAndEncrypt(const CHAR* pszText,
 												size_t nLen,
 												const WCHAR* pwszUserId,
 												qm::PGPPassphraseCallback* pPassphraseCallback,
 												const UserIdList& listRecipient,
-												bool bThrowKeyId) const;
+												const UserIdList& listHiddenRecipient) const;
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
 						const CHAR* pszSignature,
