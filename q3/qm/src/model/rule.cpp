@@ -367,7 +367,7 @@ std::auto_ptr<Rule> qm::RuleManagerImpl::createJunkRule(Account* pAccount)
 		L"@And(@Not(@Deleted()), @Junk(@Seen()))" : L"@Junk()";
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(pwszCondition));
 	std::auto_ptr<RuleAction> pAction(new CopyRuleAction(0, wstrJunk.get(), true));
-	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO, false, 0, false));
+	return std::auto_ptr<Rule>(new Rule(pCondition, pAction, Rule::USE_AUTO, false, 0, true));
 }
 
 bool qm::RuleManagerImpl::isNeedPrepare(Accessor* pAccessor,
