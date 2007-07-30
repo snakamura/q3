@@ -109,6 +109,7 @@ private:
 	private:
 		bool process();
 		bool processBuffer(qs::XStringBuffer<qs::STRING>* pBuf);
+		bool writeCommand(const WCHAR* pwszCommand);
 	
 	private:
 		static qs::string_ptr fetchLine(qs::XStringBuffer<qs::STRING>* pBuf);

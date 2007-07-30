@@ -600,14 +600,8 @@ bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
 					hWriteCommand_.close();
 					return false;
 				}
-				string_ptr str(wcs2mbs(concat(wstrPassphrase.get(), L"\n").get()));
-				size_t nLen = strlen(str.get());
-				DWORD dwWritten = 0;
-				if (!::WriteFile(hWriteCommand_.get(), str.get(), static_cast<DWORD>(nLen), &dwWritten, 0) ||
-					dwWritten != nLen) {
-					hWriteCommand_.close();
+				if (!writeCommand(wstrPassphrase.get()))
 					return false;
-				}
 			}
 			else if (nLen > 24 && strncmp(strLine.get() + 9, "BAD_PASSPHRASE ", 15) == 0) {
 				pPassphraseCallback_->clear();
@@ -638,8 +632,26 @@ bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
 			strncmp(strLine.get() + 9, "ERRSIG ", 7) == 0)) {
 			nVerify_ = PGPUtility::VERIFY_FAILED;
 		}
+		else if (nLen > 18 && strncmp(strLine.get() + 9, "GET_BOOL ", 9) == 0) {
+			if (!writeCommand(L"n"))
+				return false;
+		}
 	}
 	
+	return true;
+}
+
+bool qmpgp::GPGDriver::StatusHandler::writeCommand(const WCHAR* pwszCommand)
+{
+	string_ptr str(wcs2mbs(concat(pwszCommand, L"\n").get()));
+	size_t nLen = strlen(str.get());
+	DWORD dwWritten = 0;
+	BOOL b = ::WriteFile(hWriteCommand_.get(), str.get(),
+		static_cast<DWORD>(nLen), &dwWritten, 0);
+	if (!b || dwWritten != nLen) {
+		hWriteCommand_.close();
+		return false;
+	}
 	return true;
 }
 
