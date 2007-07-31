@@ -403,7 +403,7 @@ xstring_size_ptr qmimap4::Util::getContentFromBodyStructureAndBodies(const PartL
 		}
 		else {
 			stack.pop_back();
-			while (nPathLen < stack.size() - 1) {
+			while (nPathLen < stack.size()) {
 				if (!appendBoundaryToBuffer(stack.back().first, stack.back().second, &buf, true))
 					return xstring_size_ptr();
 				stack.pop_back();
