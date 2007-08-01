@@ -3017,7 +3017,7 @@ wstring_ptr qm::ColorsDialog::getLabelPrefix(const ColorEntry* p) const
 qm::ColorDialog::ColorDialog(ColorEntry* pColor,
 							 AccountManager* pAccountManager,
 							 Account* pCurrentAccount) :
-	DefaultDialog(IDD_COLOR),
+	DefaultDialog(IDD_COLOR, LANDSCAPE(IDD_COLOR)),
 	pColor_(pColor)
 {
 }

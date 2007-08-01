@@ -125,6 +125,7 @@
 #define IDD_FIXEDFORMTEXT_L             671
 #define IDD_RULECOLORSETS_L             673
 #define IDD_RULESCOLORS_L               674
+#define IDD_COLOR_L                     676
 #define IDD_ARGUMENT_L                  678
 #define IDD_FILTERS_L                   680
 #define IDD_FILTER_L                    681
@@ -548,6 +549,7 @@
 #define IDC_ENTRYLABEL                  1535
 #define IDC_WAITLABELBEFORE             1536
 #define IDC_WAITLABELAFTER              1537
+#define IDC_DESCRIPTIONLABEL            1538
 
 // Next default values for new objects
 // 
@@ -556,7 +558,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1538
+#define _APS_NEXT_CONTROL_VALUE         1539
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
