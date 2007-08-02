@@ -80,8 +80,8 @@ public:
 						  unsigned int nMask);
 	virtual unsigned int getMaxTextLength();
 	virtual void setMaxTextLength(unsigned int nMaxTextLength);
-	virtual bool isFilterAttachment();
-	virtual void setFilterAttachment(bool bFilterAttachment);
+	virtual bool isScanAttachment();
+	virtual void setScanAttachment(bool bScanAttachment);
 	virtual unsigned int getMaxAttachmentSize();
 	virtual void setMaxAttachmentSize(unsigned int nMaxAttachmentSize);
 	virtual qs::wstring_ptr getAttachmentExtensions();
@@ -118,7 +118,7 @@ private:
 	float fThresholdScore_;
 	unsigned int nFlags_;
 	unsigned int nMaxTextLen_;
-	bool bFilterAttachment_;
+	bool bScanAttachment_;
 	unsigned int nMaxAttachmentSize_;
 	qs::wstring_ptr wstrAttachmentExtensions_;
 	std::auto_ptr<AddressList> pWhiteList_;
@@ -163,7 +163,7 @@ class Tokenizer
 {
 public:
 	Tokenizer(size_t nMaxTextLen,
-			  bool bFilterAttachment,
+			  bool bScanAttachment,
 			  size_t nMaxAttachmentSize,
 			  const WCHAR* pwszAttachmentExtensions);
 	~Tokenizer();
@@ -176,8 +176,8 @@ public:
 				   TokenizerCallback* pCallback) const;
 
 private:
-	bool isFilteredAttachment(const qs::Part& part,
-							  qs::wstring_ptr* pwstrExt) const;
+	bool isScanAttachment(const qs::Part& part,
+						  qs::wstring_ptr* pwstrExt) const;
 
 private:
 	enum Token {
@@ -201,7 +201,7 @@ private:
 
 private:
 	size_t nMaxTextLen_;
-	bool bFilterAttachment_;
+	bool bScanAttachment_;
 	size_t nMaxAttachmentSize_;
 	qs::wstring_ptr wstrAttachmentExtensions_;
 };

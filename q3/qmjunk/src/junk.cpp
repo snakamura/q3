@@ -103,7 +103,7 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	fThresholdScore_(0.95f),
 	nFlags_(FLAG_AUTOLEARN | FLAG_MANUALLEARN),
 	nMaxTextLen_(32*1024),
-	bFilterAttachment_(false),
+	bScanAttachment_(false),
 	nMaxAttachmentSize_(32*1024),
 	bModified_(false)
 {
@@ -117,7 +117,7 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	
 	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags");
 	nMaxTextLen_ = pProfile->getInt(L"JunkFilter", L"MaxTextLen");
-	bFilterAttachment_ = pProfile->getInt(L"JunkFilter", L"FilterAttachment") != 0;
+	bScanAttachment_ = pProfile->getInt(L"JunkFilter", L"ScanAttachment") != 0;
 	nMaxAttachmentSize_ = pProfile->getInt(L"JunkFilter", L"MaxAttachmentSize");
 	wstrAttachmentExtensions_ = pProfile->getString(L"JunkFilter", L"AttachmentExtensions");
 	
@@ -309,7 +309,7 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 	if (!pDepotToken)
 		return -1.0F;
 	
-	Tokenizer t(nMaxTextLen_, bFilterAttachment_,
+	Tokenizer t(nMaxTextLen_, bScanAttachment_,
 		nMaxAttachmentSize_, wstrAttachmentExtensions_.get());
 	TokenizerCallbackImpl callback(pDepotToken, nCleanCount_, nJunkCount_, cs_);
 	if (!t.getTokens(msg, &callback))
@@ -457,7 +457,7 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	if (!pDepotToken)
 		return false;
 	
-	Tokenizer t(nMaxTextLen_, bFilterAttachment_,
+	Tokenizer t(nMaxTextLen_, bScanAttachment_,
 		nMaxAttachmentSize_, wstrAttachmentExtensions_.get());
 	TokenizerCallbackImpl callback(nOperation, pDepotToken, cs_, log);
 	if (!t.getTokens(msg, &callback))
@@ -537,14 +537,14 @@ void qmjunk::JunkFilterImpl::setMaxTextLength(unsigned int nMaxTextLength)
 	nMaxTextLen_ = nMaxTextLength;
 }
 
-bool qmjunk::JunkFilterImpl::isFilterAttachment()
+bool qmjunk::JunkFilterImpl::isScanAttachment()
 {
-	return bFilterAttachment_;
+	return bScanAttachment_;
 }
 
-void qmjunk::JunkFilterImpl::setFilterAttachment(bool bFilterAttachment)
+void qmjunk::JunkFilterImpl::setScanAttachment(bool bScanAttachment)
 {
-	bFilterAttachment_ = bFilterAttachment;
+	bScanAttachment_ = bScanAttachment;
 }
 
 unsigned int qmjunk::JunkFilterImpl::getMaxAttachmentSize()
@@ -621,7 +621,7 @@ bool qmjunk::JunkFilterImpl::save(bool bForce)
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
 	pProfile_->setInt(L"JunkFilter", L"MaxTextLen", nMaxTextLen_);
-	pProfile_->setInt(L"JunkFilter", L"FilterAttachment", bFilterAttachment_);
+	pProfile_->setInt(L"JunkFilter", L"ScanAttachment", bScanAttachment_);
 	pProfile_->setInt(L"JunkFilter", L"MaxAttachmentSize", nMaxAttachmentSize_);
 	pProfile_->setString(L"JunkFilter", L"AttachmentExtensions", wstrAttachmentExtensions_.get());
 	
@@ -798,11 +798,11 @@ std::auto_ptr<JunkFilter> qmjunk::JunkFilterFactoryImpl::createJunkFilter(const 
  */
 
 qmjunk::Tokenizer::Tokenizer(size_t nMaxTextLen,
-							 bool bFilterAttachment,
+							 bool bScanAttachment,
 							 size_t nMaxAttachmentSize,
 							 const WCHAR* pwszAttachmentExtensions) :
 	nMaxTextLen_(nMaxTextLen),
-	bFilterAttachment_(bFilterAttachment),
+	bScanAttachment_(bScanAttachment),
 	nMaxAttachmentSize_(nMaxAttachmentSize)
 {
 	assert(pwszAttachmentExtensions);
@@ -845,7 +845,7 @@ bool qmjunk::Tokenizer::getTokens(const Part& part,
 	}
 	else {
 		wstring_ptr wstrExt;
-		if (isFilteredAttachment(part, &wstrExt)) {
+		if (isScanAttachment(part, &wstrExt)) {
 			malloc_size_ptr<unsigned char> pData(part.getBodyData());
 			if (pData.get()) {
 				wstring_ptr wstr(getAttachmentText(pData.get(), pData.size(), wstrExt.get()));
@@ -931,12 +931,12 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 	return true;
 }
 
-bool qmjunk::Tokenizer::isFilteredAttachment(const Part& part,
-											 wstring_ptr* pwstrExt) const
+bool qmjunk::Tokenizer::isScanAttachment(const Part& part,
+										 wstring_ptr* pwstrExt) const
 {
 	assert(pwstrExt);
 	
-	if (!bFilterAttachment_ ||
+	if (!bScanAttachment_ ||
 		!part.isAttachment() ||
 		strlen(part.getBody()) > nMaxAttachmentSize_)
 		return false;

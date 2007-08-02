@@ -1622,8 +1622,8 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 		unsigned int nMaxSize = pJunkFilter_->getMaxTextLength();
 		setDlgItemInt(IDC_MAXSIZE, nMaxSize);
 		
-		sendDlgItemMessage(IDC_FILTERATTACHMENT, BM_SETCHECK,
-			pJunkFilter_->isFilterAttachment() ? BST_CHECKED : BST_UNCHECKED);
+		sendDlgItemMessage(IDC_SCANATTACHMENT, BM_SETCHECK,
+			pJunkFilter_->isScanAttachment() ? BST_CHECKED : BST_UNCHECKED);
 		
 		unsigned int nAttachmentMaxSize = pJunkFilter_->getMaxAttachmentSize();
 		setDlgItemInt(IDC_ATTACHMENTMAXSIZE, nAttachmentMaxSize);
@@ -1640,7 +1640,7 @@ LRESULT qm::OptionJunkDialog::onInitDialog(HWND hwndFocus,
 			IDC_AUTOLEARN,
 			IDC_THRESHOLD,
 			IDC_MAXSIZE,
-			IDC_FILTERATTACHMENT,
+			IDC_SCANATTACHMENT,
 			IDC_ATTACHMENTMAXSIZE,
 			IDC_WHITELIST,
 			IDC_BLACKLIST,
@@ -1672,8 +1672,8 @@ bool qm::OptionJunkDialog::save(OptionDialogContext* pContext)
 		unsigned int nMaxSize = getDlgItemInt(IDC_MAXSIZE);
 		pJunkFilter_->setMaxTextLength(nMaxSize);
 		
-		pJunkFilter_->setFilterAttachment(sendDlgItemMessage(
-			IDC_FILTERATTACHMENT, BM_GETCHECK) == BST_CHECKED);
+		pJunkFilter_->setScanAttachment(sendDlgItemMessage(
+			IDC_SCANATTACHMENT, BM_GETCHECK) == BST_CHECKED);
 		
 		unsigned int nAttachmentMaxSize = getDlgItemInt(IDC_ATTACHMENTMAXSIZE);
 		pJunkFilter_->setMaxAttachmentSize(nAttachmentMaxSize);

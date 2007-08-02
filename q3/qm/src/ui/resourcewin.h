@@ -438,7 +438,7 @@
 #define IDC_CHECKUPDATE                 1464
 #define IDC_ZONEID                      1465
 #define IDC_AUTOPOPUP                   1466
-#define IDC_FILTERATTACHMENT            1469
+#define IDC_SCANATTACHMENT              1467
 
 // Next default values for new objects
 // 
@@ -447,7 +447,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1470
+#define _APS_NEXT_CONTROL_VALUE         1468
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
