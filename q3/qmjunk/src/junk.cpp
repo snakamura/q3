@@ -1019,8 +1019,9 @@ wstring_ptr qmjunk::Tokenizer::getAttachmentText(const unsigned char* p,
 	stream.close();
 	
 	StringBuffer<WSTRING> command;
-	command.append(L"xdoc2txt.exe -n -o=0 ");
+	command.append(L"xdoc2txt.exe -n -o=0 \"");
 	command.append(wstrPath.get());
+	command.append(L"\"");
 	
 	wstring_ptr wstr(Process::exec(command.getCharArray(), 0));
 	
