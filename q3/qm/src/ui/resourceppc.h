@@ -94,6 +94,7 @@
 #define IDD_SYNCWAIT                    226
 #define IDD_SELECTSYNCFILTER_L          611
 #define IDD_CREATEFOLDER_L              612
+#define IDD_PROGRESS_L                  613
 #define IDD_DETACH_L                    614
 #define IDD_SELECTADDRESS_L             615
 #define IDD_ATTACHMENT_L                617
@@ -109,13 +110,17 @@
 #define IDD_FIND_L                      641
 #define IDD_REPLACE_L                   642
 #define IDD_CREATESUBACCOUNT_L          643
+#define IDD_DIALUP_L                    644
 #define IDD_SELECTDIALUPENTRY_L         645
+#define IDD_FOLDERPROPERTY_L            646
 #define IDD_SINGLEINPUTBOX_L            647
 #define IDD_MULTIINPUTBOX_L             648
 #define IDD_CUSTOMFILTER_L              650
 #define IDD_MOVEMESSAGE_L               651
 #define IDD_RENAME_L                    652
 #define IDD_MACROSEARCH_L               653
+#define IDD_FOLDERCONDITION_L           655
+#define IDD_FOLDERPARAMETER_L           659
 #define IDD_PARAMETER_L                 660
 #define IDD_GOROUND_L                   661
 #define IDD_RESOURCE_L                  666
@@ -123,9 +128,11 @@
 #define IDD_SIGNATURE_L                 668
 #define IDD_FIXEDFORMTEXTS_L            670
 #define IDD_FIXEDFORMTEXT_L             671
+#define IDD_PASSWORD_L                  672
 #define IDD_RULECOLORSETS_L             673
 #define IDD_RULESCOLORS_L               674
 #define IDD_COLOR_L                     676
+#define IDD_COPYRULETEMPLATE_L          677
 #define IDD_ARGUMENT_L                  678
 #define IDD_FILTERS_L                   680
 #define IDD_FILTER_L                    681
@@ -550,6 +557,15 @@
 #define IDC_WAITLABELBEFORE             1536
 #define IDC_WAITLABELAFTER              1537
 #define IDC_DESCRIPTIONLABEL            1538
+#define IDC_ARGUMENTLABEL               1539
+#define IDC_USERNAMELABEL               1540
+#define IDC_PASSWORDLABEL               1541
+#define IDC_DOMAINLABEL                 1542
+#define IDC_DIALFROMLABEL               1543
+#define IDC_DRIVERLABEL                 1544
+#define IDC_IDLABEL                     1545
+#define IDC_FLAG                        1546
+#define IDC_BOXTYPE                     1547
 
 // Next default values for new objects
 // 
@@ -558,7 +574,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1539
+#define _APS_NEXT_CONTROL_VALUE         1548
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

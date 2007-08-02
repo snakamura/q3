@@ -136,7 +136,7 @@ struct
 };
 
 qm::FolderPropertyPage::FolderPropertyPage(const Account::FolderList& l) :
-	DefaultPropertyPage(IDD_FOLDERPROPERTY),
+	DefaultPropertyPage(IDD_FOLDERPROPERTY, LANDSCAPE(IDD_FOLDERPROPERTY)),
 	listFolder_(l)
 {
 	assert(!l.empty());
@@ -291,7 +291,7 @@ LRESULT qm::FolderPropertyPage::onOk()
 
 qm::FolderConditionPage::FolderConditionPage(QueryFolder* pFolder,
 											 Profile* pProfile) :
-	DefaultPropertyPage(IDD_FOLDERCONDITION),
+	DefaultPropertyPage(IDD_FOLDERCONDITION, LANDSCAPE(IDD_FOLDERCONDITION)),
 	pFolder_(pFolder),
 	pProfile_(pProfile)
 {
@@ -382,7 +382,7 @@ void qm::FolderConditionPage::initFolder()
 qm::FolderParameterPage::FolderParameterPage(Folder* pFolder,
 											 const WCHAR** ppwszParams,
 											 size_t nParamCount) :
-	DefaultPropertyPage(IDD_FOLDERPARAMETER),
+	DefaultPropertyPage(IDD_FOLDERPARAMETER, LANDSCAPE(IDD_FOLDERPARAMETER)),
 	pFolder_(pFolder),
 	ppwszParams_(ppwszParams),
 	nParamCount_(nParamCount)

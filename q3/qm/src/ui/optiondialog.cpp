@@ -3718,7 +3718,7 @@ void qm::RuleDialog::updateFolder(Account* pAccount)
 
 qm::CopyRuleTemplateDialog::CopyRuleTemplateDialog(const WCHAR* pwszName,
 												   CopyRuleAction::ArgumentList* pListArgument) :
-	DefaultDialog(IDD_COPYRULETEMPLATE),
+	DefaultDialog(IDD_COPYRULETEMPLATE, LANDSCAPE(IDD_COPYRULETEMPLATE)),
 	pListArgument_(pListArgument)
 {
 	if (pwszName)

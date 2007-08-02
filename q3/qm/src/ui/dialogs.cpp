@@ -705,7 +705,7 @@ qm::DialupDialog::DialupDialog(const WCHAR* pwszEntry,
 							   const WCHAR* pwszUserName,
 							   const WCHAR* pwszPassword,
 							   const WCHAR* pwszDomain) :
-	DefaultDialog(IDD_DIALUP)
+	DefaultDialog(IDD_DIALUP, LANDSCAPE(IDD_DIALUP))
 {
 	wstrEntry_ = allocWString(pwszEntry);
 	wstrUserName_ = allocWString(pwszUserName);
@@ -2049,7 +2049,7 @@ void qm::PasswordDialog::updateState()
  */
 
 qm::ProgressDialog::ProgressDialog() :
-	DefaultDialog(IDD_PROGRESS),
+	DefaultDialog(IDD_PROGRESS, LANDSCAPE(IDD_PROGRESS)),
 	bCancelable_(true),
 	bCanceled_(false),
 	nLastMessagePumpPos_(0)
