@@ -625,7 +625,7 @@ Windows XPのようこそ画面に未読メッセージ数を表示するかどうか。
 
 
 +WarnExtensions (exe com pif bat scr htm html hta vbs js)
-添付ファイルを開くときに警告する拡張子。
+添付ファイルを開くときに警告する拡張子。空白文字で区切る。
 
 
 +XMailerWithOSVersion (1 @ 0|1)
@@ -689,8 +689,16 @@ IMAP4検索で本文を検索するかどうか。
 ===JunkFilterセクション
 ((<スパムフィルタ|URL:JunkFilter.html>))の設定をします。
 
++AttachmentExtensions (pdf doc docx xls xlsx ppt pptx rtf)
+スキャンする添付ファイルの拡張子。空白で区切る。
+
+
 +BlackList, WhiteList
 ブラックリストとホワイトリスト。
+
+
++FilterAttachment (0 @ 0|1)
+添付ファイルをスキャンするかどうか。
 
 
 +Flags (3)
@@ -704,6 +712,10 @@ IMAP4検索で本文を検索するかどうか。
 
 +MaxTextLen (32768)
 判定対象にするテキストの最大サイズ。単位はバイト。
+
+
++MaxAttachmentSize (32768)
+スキャンする添付ファイルの最大サイズ。単位はバイト。
 
 
 +ThresholdScore (0.95)
