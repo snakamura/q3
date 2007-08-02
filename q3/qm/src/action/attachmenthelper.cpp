@@ -312,8 +312,9 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 		if (p) {
 			++p;
 			
-			wstring_ptr wstrExtensions(pProfile_->getString(L"Global", L"WarnExtensions"));
-			if (wcsstr(wstrExtensions.get(), p)) {
+			wstring_ptr wstrExt(concat(L" ", tolower(p).get(), L" "));
+			wstring_ptr wstrExtensions(concat(L" ", pProfile_->getString(L"Global", L"WarnExtensions").get(), L" "));
+			if (wcsstr(wstrExtensions.get(), wstrExt.get())) {
 				int nMsg = messageBox(
 					Application::getApplication().getResourceHandle(),
 					IDS_CONFIRM_EXECUTEATTACHMENT,
