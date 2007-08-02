@@ -67,6 +67,12 @@ public:
 						  unsigned int nMask) = 0;
 	virtual unsigned int getMaxTextLength() = 0;
 	virtual void setMaxTextLength(unsigned int nMaxTextLength) = 0;
+	virtual bool isFilterAttachment() = 0;
+	virtual void setFilterAttachment(bool bFilterAttachment) = 0;
+	virtual unsigned int getMaxAttachmentSize() = 0;
+	virtual void setMaxAttachmentSize(unsigned int nMaxAttachmentSize) = 0;
+	virtual qs::wstring_ptr getAttachmentExtensions() = 0;
+	virtual void setAttachmentExtensions(const WCHAR* pwszAttachmentExtensions) = 0;
 	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator) = 0;
 	virtual void setWhiteList(const WCHAR* pwszWhiteList) = 0;
 	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator) = 0;

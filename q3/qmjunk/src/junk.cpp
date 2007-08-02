@@ -8,6 +8,7 @@
 
 #pragma warning(disable:4786)
 
+#include <qmapplication.h>
 #include <qmmessage.h>
 
 #include <qsconv.h>
@@ -15,7 +16,9 @@
 #include <qsinit.h>
 #include <qslog.h>
 #include <qsmd5.h>
+#include <qsosutil.h>
 #include <qsprofile.h>
+#include <qsstream.h>
 
 #include <algorithm>
 
@@ -100,6 +103,8 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	fThresholdScore_(0.95f),
 	nFlags_(FLAG_AUTOLEARN | FLAG_MANUALLEARN),
 	nMaxTextLen_(32*1024),
+	bFilterAttachment_(false),
+	nMaxAttachmentSize_(32*1024),
 	bModified_(false)
 {
 	wstrPath_ = allocWString(pwszPath);
@@ -112,6 +117,9 @@ qmjunk::JunkFilterImpl::JunkFilterImpl(const WCHAR* pwszPath,
 	
 	nFlags_ = pProfile->getInt(L"JunkFilter", L"Flags");
 	nMaxTextLen_ = pProfile->getInt(L"JunkFilter", L"MaxTextLen");
+	bFilterAttachment_ = pProfile->getInt(L"JunkFilter", L"FilterAttachment") != 0;
+	nMaxAttachmentSize_ = pProfile->getInt(L"JunkFilter", L"MaxAttachmentSize");
+	wstrAttachmentExtensions_ = pProfile->getString(L"JunkFilter", L"AttachmentExtensions");
 	
 	wstring_ptr wstrWhiteList(pProfile->getString(L"JunkFilter", L"WhiteList"));
 	if (*wstrWhiteList.get())
@@ -301,8 +309,10 @@ float qmjunk::JunkFilterImpl::getScore(const Message& msg)
 	if (!pDepotToken)
 		return -1.0F;
 	
+	Tokenizer t(nMaxTextLen_, bFilterAttachment_,
+		nMaxAttachmentSize_, wstrAttachmentExtensions_.get());
 	TokenizerCallbackImpl callback(pDepotToken, nCleanCount_, nJunkCount_, cs_);
-	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
+	if (!t.getTokens(msg, &callback))
 		return -1.0F;
 	
 	typedef TokenizerCallbackImpl::TokenRateList List;
@@ -447,8 +457,10 @@ bool qmjunk::JunkFilterImpl::manage(const Message& msg,
 	if (!pDepotToken)
 		return false;
 	
+	Tokenizer t(nMaxTextLen_, bFilterAttachment_,
+		nMaxAttachmentSize_, wstrAttachmentExtensions_.get());
 	TokenizerCallbackImpl callback(nOperation, pDepotToken, cs_, log);
-	if (!Tokenizer(nMaxTextLen_).getTokens(msg, &callback))
+	if (!t.getTokens(msg, &callback))
 		return false;
 	
 	{
@@ -525,6 +537,38 @@ void qmjunk::JunkFilterImpl::setMaxTextLength(unsigned int nMaxTextLength)
 	nMaxTextLen_ = nMaxTextLength;
 }
 
+bool qmjunk::JunkFilterImpl::isFilterAttachment()
+{
+	return bFilterAttachment_;
+}
+
+void qmjunk::JunkFilterImpl::setFilterAttachment(bool bFilterAttachment)
+{
+	bFilterAttachment_ = bFilterAttachment;
+}
+
+unsigned int qmjunk::JunkFilterImpl::getMaxAttachmentSize()
+{
+	return nMaxAttachmentSize_;
+}
+
+void qmjunk::JunkFilterImpl::setMaxAttachmentSize(unsigned int nMaxAttachmentSize)
+{
+	nMaxAttachmentSize_ = nMaxAttachmentSize;
+}
+
+wstring_ptr qmjunk::JunkFilterImpl::getAttachmentExtensions()
+{
+	return allocWString(wstrAttachmentExtensions_.get());
+}
+
+void qmjunk::JunkFilterImpl::setAttachmentExtensions(const WCHAR* pwszAttachmentExtensions)
+{
+	if (!pwszAttachmentExtensions)
+		pwszAttachmentExtensions = L"";
+	wstrAttachmentExtensions_ = allocWString(pwszAttachmentExtensions);
+}
+
 wstring_ptr qmjunk::JunkFilterImpl::getWhiteList(const WCHAR* pwszSeparator)
 {
 	wstring_ptr wstrWhiteList(pWhiteList_.get() ? pWhiteList_->toString(pwszSeparator) : 0);
@@ -577,6 +621,9 @@ bool qmjunk::JunkFilterImpl::save(bool bForce)
 	
 	pProfile_->setInt(L"JunkFilter", L"Flags", nFlags_);
 	pProfile_->setInt(L"JunkFilter", L"MaxTextLen", nMaxTextLen_);
+	pProfile_->setInt(L"JunkFilter", L"FilterAttachment", bFilterAttachment_);
+	pProfile_->setInt(L"JunkFilter", L"MaxAttachmentSize", nMaxAttachmentSize_);
+	pProfile_->setString(L"JunkFilter", L"AttachmentExtensions", wstrAttachmentExtensions_.get());
 	
 	wstring_ptr wstrWhiteList(getWhiteList(L" "));
 	pProfile_->setString(L"JunkFilter", L"WhiteList", wstrWhiteList.get());
@@ -702,7 +749,7 @@ bool qmjunk::JunkFilterImpl::repair(const WCHAR* pwszName) const
 	return true;
 }
 
-string_ptr qmjunk::JunkFilterImpl::getId(const qs::Part& part)
+string_ptr qmjunk::JunkFilterImpl::getId(const Part& part)
 {
 	MessageIdParser messageId;
 	if (part.getField(L"Message-Id", &messageId) == Part::FIELD_EXIST) {
@@ -750,16 +797,24 @@ std::auto_ptr<JunkFilter> qmjunk::JunkFilterFactoryImpl::createJunkFilter(const 
  *
  */
 
-qmjunk::Tokenizer::Tokenizer(size_t nMaxTextLen) :
-	nMaxTextLen_(nMaxTextLen)
+qmjunk::Tokenizer::Tokenizer(size_t nMaxTextLen,
+							 bool bFilterAttachment,
+							 size_t nMaxAttachmentSize,
+							 const WCHAR* pwszAttachmentExtensions) :
+	nMaxTextLen_(nMaxTextLen),
+	bFilterAttachment_(bFilterAttachment),
+	nMaxAttachmentSize_(nMaxAttachmentSize)
 {
+	assert(pwszAttachmentExtensions);
+	
+	wstrAttachmentExtensions_ = concat(L" ", tolower(pwszAttachmentExtensions).get(), L" ");
 }
 
 qmjunk::Tokenizer::~Tokenizer()
 {
 }
 
-bool qmjunk::Tokenizer::getTokens(const qs::Part& part,
+bool qmjunk::Tokenizer::getTokens(const Part& part,
 								  TokenizerCallback* pCallback) const
 {
 	Part::FieldList listField;
@@ -787,6 +842,19 @@ bool qmjunk::Tokenizer::getTokens(const qs::Part& part,
 			return false;
 		if (!getTokens(wstrBody.get(), wstrBody.size(), pCallback))
 			return false;
+	}
+	else {
+		wstring_ptr wstrExt;
+		if (isFilteredAttachment(part, &wstrExt)) {
+			malloc_size_ptr<unsigned char> pData(part.getBodyData());
+			if (pData.get()) {
+				wstring_ptr wstr(getAttachmentText(pData.get(), pData.size(), wstrExt.get()));
+				if (wstr.get()) {
+					if (!getTokens(wstr.get(), -1, pCallback))
+						return false;
+				}
+			}
+		}
 	}
 	
 	return true;
@@ -863,6 +931,34 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 	return true;
 }
 
+bool qmjunk::Tokenizer::isFilteredAttachment(const Part& part,
+											 wstring_ptr* pwstrExt) const
+{
+	assert(pwstrExt);
+	
+	if (!bFilterAttachment_ ||
+		!part.isAttachment() ||
+		strlen(part.getBody()) > nMaxAttachmentSize_)
+		return false;
+	
+	wstring_ptr wstrName(AttachmentParser(part).getName());
+	if (!wstrName.get())
+		return false;
+	
+	const WCHAR* pExt = wcsrchr(wstrName.get(), '.');
+	if (!pExt)
+		return false;
+	++pExt;
+	
+	wstring_ptr wstrExt(concat(L" ", tolower(pExt).get(), L" "));
+	if (!wcsstr(wstrAttachmentExtensions_.get(), wstrExt.get()))
+		return false;
+	
+	*pwstrExt = allocWString(pExt);
+	
+	return true;
+}
+
 qmjunk::Tokenizer::Token qmjunk::Tokenizer::getToken(WCHAR c)
 {
 	if ((L'a' <= c && c <= L'z') ||
@@ -894,6 +990,44 @@ bool qmjunk::Tokenizer::isIgnoredToken(const WCHAR* pwsz)
 		++pwsz;
 	}
 	return false;
+}
+
+wstring_ptr qmjunk::Tokenizer::getAttachmentText(const unsigned char* p,
+												 size_t nLen,
+												 const WCHAR* pwszExtension)
+{
+	const WCHAR* pwszDir = Application::getApplication().getTemporaryFolder();
+	WCHAR wszName[128];
+	Time time(Time::getCurrentTime());
+	_snwprintf(wszName, countof(wszName),
+		L"%04d%02d%02d%02d%02d%02d%03d%04d",
+		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
+		time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
+	ConcatW c[] = {
+		{ pwszDir,			-1	},
+		{ L"\\",			1	},
+		{ wszName,			-1	},
+		{ L".",				1	},
+		{ pwszExtension,	-1	}
+	};
+	wstring_ptr wstrPath(concat(c, countof(c)));
+	
+	FileOutputStream stream(wstrPath.get());
+	if (!stream)
+		return 0;
+	stream.write(p, nLen);
+	stream.close();
+	
+	StringBuffer<WSTRING> command;
+	command.append(L"xdoc2txt.exe -n -o=0 ");
+	command.append(wstrPath.get());
+	
+	wstring_ptr wstr(Process::exec(command.getCharArray(), 0));
+	
+	W2T(wstrPath.get(), ptszPath);
+	::DeleteFile(ptszPath);
+	
+	return wstr;
 }
 
 

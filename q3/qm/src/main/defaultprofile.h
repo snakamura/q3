@@ -263,11 +263,14 @@ const qs::Profile::Default defaultProfiles[] = {
 #endif
 	
 #ifndef _WIN32_WCE
-	{ L"JunkFilter",	L"BlackList",		L""			},
-	{ L"JunkFilter",	L"Flags",			L"3"		}, /*JunkFilter::FLAG_AUTOLEARN | JunkFilter::FLAG_MANUALLEARN*/
-	{ L"JunkFilter",	L"MaxTextLen",		L"32768"	}, /*32*1024*/
-	{ L"JunkFilter",	L"ThresholdScore",	L"0.95"		},
-	{ L"JunkFilter",	L"WhiteList",		L""			},
+	{ L"JunkFilter",	L"AttachmentExtensions",	L"pdf doc docx xls xlsx ppt pptx rtf"	},
+	{ L"JunkFilter",	L"BlackList",				L""										},
+	{ L"JunkFilter",	L"FilterAttachment",		L"0"									},
+	{ L"JunkFilter",	L"Flags",					L"3"									}, /*JunkFilter::FLAG_AUTOLEARN | JunkFilter::FLAG_MANUALLEARN*/
+	{ L"JunkFilter",	L"MaxAttachmentSize",		L"32768"								}, /*32*1024*/
+	{ L"JunkFilter",	L"MaxTextLen",				L"32768"								}, /*32*1024*/
+	{ L"JunkFilter",	L"ThresholdScore",			L"0.95"									},
+	{ L"JunkFilter",	L"WhiteList",				L""										},
 #endif
 	
 	{ L"Label",	L"HistorySize",	L"10"	},

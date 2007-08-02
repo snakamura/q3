@@ -80,6 +80,12 @@ public:
 						  unsigned int nMask);
 	virtual unsigned int getMaxTextLength();
 	virtual void setMaxTextLength(unsigned int nMaxTextLength);
+	virtual bool isFilterAttachment();
+	virtual void setFilterAttachment(bool bFilterAttachment);
+	virtual unsigned int getMaxAttachmentSize();
+	virtual void setMaxAttachmentSize(unsigned int nMaxAttachmentSize);
+	virtual qs::wstring_ptr getAttachmentExtensions();
+	virtual void setAttachmentExtensions(const WCHAR* pwszAttachmentExtensions);
 	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator);
 	virtual void setWhiteList(const WCHAR* pwszWhiteList);
 	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator);
@@ -112,6 +118,9 @@ private:
 	float fThresholdScore_;
 	unsigned int nFlags_;
 	unsigned int nMaxTextLen_;
+	bool bFilterAttachment_;
+	unsigned int nMaxAttachmentSize_;
+	qs::wstring_ptr wstrAttachmentExtensions_;
 	std::auto_ptr<AddressList> pWhiteList_;
 	std::auto_ptr<AddressList> pBlackList_;
 	mutable bool bModified_;
@@ -153,7 +162,10 @@ private:
 class Tokenizer
 {
 public:
-	explicit Tokenizer(size_t nMaxTextLen);
+	Tokenizer(size_t nMaxTextLen,
+			  bool bFilterAttachment,
+			  size_t nMaxAttachmentSize,
+			  const WCHAR* pwszAttachmentExtensions);
 	~Tokenizer();
 
 public:
@@ -162,6 +174,10 @@ public:
 	bool getTokens(const WCHAR* pwszText,
 				   size_t nLen,
 				   TokenizerCallback* pCallback) const;
+
+private:
+	bool isFilteredAttachment(const qs::Part& part,
+							  qs::wstring_ptr* pwstrExt) const;
 
 private:
 	enum Token {
@@ -175,6 +191,9 @@ private:
 private:
 	static Token getToken(WCHAR c);
 	static bool isIgnoredToken(const WCHAR* pwsz);
+	static qs::wstring_ptr getAttachmentText(const unsigned char* p,
+											 size_t nLen,
+											 const WCHAR* pwszExtension);
 
 private:
 	Tokenizer(const Tokenizer&);
@@ -182,6 +201,9 @@ private:
 
 private:
 	size_t nMaxTextLen_;
+	bool bFilterAttachment_;
+	size_t nMaxAttachmentSize_;
+	qs::wstring_ptr wstrAttachmentExtensions_;
 };
 
 
