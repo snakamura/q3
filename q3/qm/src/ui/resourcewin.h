@@ -361,6 +361,7 @@
 #define IDC_AUTOLEARN                   1375
 #define IDC_THRESHOLD                   1376
 #define IDC_MAXSIZE                     1377
+#define IDC_ATTACHMENTMAXSIZE           1378
 #define IDC_HIDEHEADERIFNOFOCUS         1379
 #define IDC_COLUMN                      1380
 #define IDC_AUTOREFORM                  1381
@@ -437,6 +438,7 @@
 #define IDC_CHECKUPDATE                 1464
 #define IDC_ZONEID                      1465
 #define IDC_AUTOPOPUP                   1466
+#define IDC_FILTERATTACHMENT            1469
 
 // Next default values for new objects
 // 
@@ -445,7 +447,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1469
+#define _APS_NEXT_CONTROL_VALUE         1470
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
