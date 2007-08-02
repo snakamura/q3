@@ -644,7 +644,7 @@ public:
 	 *
 	 * @param pwszCommand [in] Command.
 	 * @param pwszInput [in] String witch is written to stdin. Can be null.
-	 * @return String witch is written to stdout.
+	 * @return String which is written to stdout.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	static wstring_ptr exec(const WCHAR* pwszCommand,
