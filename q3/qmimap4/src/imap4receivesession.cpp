@@ -1258,8 +1258,9 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 				MessagePtrLock mpl(l[n].getMessagePtr());
 				if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
 					bSeen = pAccount_->isSeen(mpl);
-					bProcess = mpl->getMessage(Account::GETMESSAGEFLAG_TEXT,
-						0, SECURITYMODE_NONE, &msg);
+					unsigned int nFlags = pJunkFilter->isScanAttachment() ?
+						Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT;
+					bProcess = mpl->getMessage(nFlags, 0, SECURITYMODE_NONE, &msg);
 				}
 			}
 			unsigned int nOperation = 0;
@@ -1303,7 +1304,9 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 				if (mpl && !mpl->isFlag(MessageHolder::FLAG_DELETED)) {
 					wstring_ptr wstrId(mpl->getMessageId());
 					if (pJunkFilter->getStatus(wstrId.get()) != JunkFilter::STATUS_JUNK) {
-						if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg))
+						unsigned int nFlags = pJunkFilter->isScanAttachment() ?
+							Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT;
+						if (mpl->getMessage(nFlags, 0, SECURITYMODE_NONE, &msg))
 							nOperation = JunkFilter::OPERATION_ADDJUNK;
 					}
 				}

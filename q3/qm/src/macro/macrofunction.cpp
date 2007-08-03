@@ -3036,7 +3036,9 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 			if (!pmh)
 				return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 			
-			pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_TEXT, 0);
+			MacroContext::MessageType type = pJunkFilter->isScanAttachment() ?
+				MacroContext::MESSAGETYPE_ALL : MacroContext::MESSAGETYPE_TEXT;
+			pMessage = getMessage(pContext, type, 0);
 			if (!pMessage)
 				return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
 		}

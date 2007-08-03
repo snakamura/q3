@@ -129,7 +129,9 @@ bool qm::JunkFilterUtil::manage(JunkFilter* pJunkFilter,
 	}
 	
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, SECURITYMODE_NONE, &msg)) {
+	unsigned int nFlags = pJunkFilter->isScanAttachment() ?
+		Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT;
+	if (!pmh->getMessage(nFlags, 0, SECURITYMODE_NONE, &msg)) {
 		log.error(L"Could not get a message while managing a junk filter.");
 		return false;
 	}

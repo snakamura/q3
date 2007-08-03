@@ -497,8 +497,9 @@ bool qmnntp::NntpReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 				MessagePtrLock mpl(l[n]);
 				if (mpl) {
 					bSeen = pAccount_->isSeen(mpl);
-					bProcess = mpl->getMessage(Account::GETMESSAGEFLAG_TEXT,
-						0, SECURITYMODE_NONE, &msg);
+					unsigned int nFlags = pJunkFilter->isScanAttachment() ?
+						Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT;
+					bProcess = mpl->getMessage(nFlags, 0, SECURITYMODE_NONE, &msg);
 				}
 			}
 			unsigned int nOperation = 0;
