@@ -693,6 +693,10 @@ IMAP4検索で本文を検索するかどうか。
 スキャンする添付ファイルの拡張子。空白で区切る。
 
 
++AttachmentScanCommand (xdoc2txt.exe -n -o=0)
+添付ファイルをスキャンするときに使用するコマンド。
+
+
 +BlackList, WhiteList
 ブラックリストとホワイトリスト。
 
