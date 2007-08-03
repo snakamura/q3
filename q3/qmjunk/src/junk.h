@@ -25,6 +25,7 @@ class JunkFilterFactoryImpl;
 class Tokenizer;
 class TokenizerCallback;
 class AddressList;
+class AttachmentScanner;
 
 
 /****************************************************************************
@@ -73,22 +74,20 @@ public:
 	virtual bool manage(const qm::Message& msg,
 						unsigned int nOperation);
 	virtual Status getStatus(const WCHAR* pwszId);
-	virtual float getThresholdScore();
+	virtual float getThresholdScore() const;
 	virtual void setThresholdScore(float fThresholdScore);
-	virtual unsigned int getFlags();
+	virtual unsigned int getFlags() const;
 	virtual void setFlags(unsigned int nFlags,
 						  unsigned int nMask);
-	virtual unsigned int getMaxTextLength();
+	virtual unsigned int getMaxTextLength() const;
 	virtual void setMaxTextLength(unsigned int nMaxTextLength);
-	virtual bool isScanAttachment();
+	virtual bool isScanAttachment() const;
 	virtual void setScanAttachment(bool bScanAttachment);
-	virtual unsigned int getMaxAttachmentSize();
+	virtual unsigned int getMaxAttachmentSize() const;
 	virtual void setMaxAttachmentSize(unsigned int nMaxAttachmentSize);
-	virtual qs::wstring_ptr getAttachmentExtensions();
-	virtual void setAttachmentExtensions(const WCHAR* pwszAttachmentExtensions);
-	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator);
+	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator) const;
 	virtual void setWhiteList(const WCHAR* pwszWhiteList);
-	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator);
+	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator) const;
 	virtual void setBlackList(const WCHAR* pwszBlackList);
 	virtual bool repair();
 	virtual bool save(bool bForce);
@@ -118,9 +117,7 @@ private:
 	float fThresholdScore_;
 	unsigned int nFlags_;
 	unsigned int nMaxTextLen_;
-	bool bScanAttachment_;
-	unsigned int nMaxAttachmentSize_;
-	qs::wstring_ptr wstrAttachmentExtensions_;
+	std::auto_ptr<AttachmentScanner> pAttachmentScanner_;
 	std::auto_ptr<AddressList> pWhiteList_;
 	std::auto_ptr<AddressList> pBlackList_;
 	mutable bool bModified_;
@@ -163,9 +160,7 @@ class Tokenizer
 {
 public:
 	Tokenizer(size_t nMaxTextLen,
-			  bool bScanAttachment,
-			  size_t nMaxAttachmentSize,
-			  const WCHAR* pwszAttachmentExtensions);
+			  const AttachmentScanner& scanner);
 	~Tokenizer();
 
 public:
@@ -174,10 +169,6 @@ public:
 	bool getTokens(const WCHAR* pwszText,
 				   size_t nLen,
 				   TokenizerCallback* pCallback) const;
-
-private:
-	bool isScanAttachment(const qs::Part& part,
-						  qs::wstring_ptr* pwstrExt) const;
 
 private:
 	enum Token {
@@ -191,9 +182,6 @@ private:
 private:
 	static Token getToken(WCHAR c);
 	static bool isIgnoredToken(const WCHAR* pwsz);
-	static qs::wstring_ptr getAttachmentText(const unsigned char* p,
-											 size_t nLen,
-											 const WCHAR* pwszExtension);
 
 private:
 	Tokenizer(const Tokenizer&);
@@ -201,9 +189,7 @@ private:
 
 private:
 	size_t nMaxTextLen_;
-	bool bScanAttachment_;
-	size_t nMaxAttachmentSize_;
-	qs::wstring_ptr wstrAttachmentExtensions_;
+	const AttachmentScanner& scanner_;
 };
 
 
@@ -255,6 +241,43 @@ private:
 
 private:
 	List list_;
+};
+
+
+/****************************************************************************
+ *
+ * AttachmentScanner
+ *
+ */
+
+class AttachmentScanner
+{
+public:
+	explicit AttachmentScanner(qs::Profile* pProfile);
+	~AttachmentScanner();
+
+public:
+	bool isEnabled() const;
+	void setEnabled(bool bEnabled);
+	unsigned int getMaxSize() const;
+	void setMaxSize(unsigned int nMaxSize);
+	bool check(const qs::Part& part,
+			   qs::wstring_ptr* pwstrExt) const;
+	qs::wstring_ptr getText(const unsigned char* p,
+							size_t nLen,
+							const WCHAR* pwszExtension) const;
+	void save() const;
+
+private:
+	AttachmentScanner(const AttachmentScanner&);
+	AttachmentScanner& operator=(const AttachmentScanner&);
+
+private:
+	qs::Profile* pProfile_;
+	bool bEnabled_;
+	unsigned int nMaxSize_;
+	qs::wstring_ptr wstrCommand_;
+	qs::wstring_ptr wstrExtensions_;
 };
 
 

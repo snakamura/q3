@@ -60,22 +60,20 @@ public:
 	virtual bool manage(const Message& msg,
 						unsigned int nOperation) = 0;
 	virtual Status getStatus(const WCHAR* pwszId) = 0;
-	virtual float getThresholdScore() = 0;
+	virtual float getThresholdScore() const = 0;
 	virtual void setThresholdScore(float fThresholdScore) = 0;
-	virtual unsigned int getFlags() = 0;
+	virtual unsigned int getFlags() const = 0;
 	virtual void setFlags(unsigned int nFlags,
 						  unsigned int nMask) = 0;
-	virtual unsigned int getMaxTextLength() = 0;
+	virtual unsigned int getMaxTextLength() const = 0;
 	virtual void setMaxTextLength(unsigned int nMaxTextLength) = 0;
-	virtual bool isScanAttachment() = 0;
+	virtual bool isScanAttachment() const = 0;
 	virtual void setScanAttachment(bool bScanAttachment) = 0;
-	virtual unsigned int getMaxAttachmentSize() = 0;
+	virtual unsigned int getMaxAttachmentSize() const = 0;
 	virtual void setMaxAttachmentSize(unsigned int nMaxAttachmentSize) = 0;
-	virtual qs::wstring_ptr getAttachmentExtensions() = 0;
-	virtual void setAttachmentExtensions(const WCHAR* pwszAttachmentExtensions) = 0;
-	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator) = 0;
+	virtual qs::wstring_ptr getWhiteList(const WCHAR* pwszSeparator) const = 0;
 	virtual void setWhiteList(const WCHAR* pwszWhiteList) = 0;
-	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator) = 0;
+	virtual qs::wstring_ptr getBlackList(const WCHAR* pwszSeparator) const = 0;
 	virtual void setBlackList(const WCHAR* pwszBlackList) = 0;
 	virtual bool repair() = 0;
 	virtual bool save(bool bForce) = 0;

@@ -264,6 +264,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	
 #ifndef _WIN32_WCE
 	{ L"JunkFilter",	L"AttachmentExtensions",	L"pdf doc docx xls xlsx ppt pptx rtf"	},
+	{ L"JunkFilter",	L"AttachmentScanCommand",	L"xdoc2txt.exe -n -o=0"					},
 	{ L"JunkFilter",	L"BlackList",				L""										},
 	{ L"JunkFilter",	L"Flags",					L"3"									}, /*JunkFilter::FLAG_AUTOLEARN | JunkFilter::FLAG_MANUALLEARN*/
 	{ L"JunkFilter",	L"MaxAttachmentSize",		L"32768"								}, /*32*1024*/
