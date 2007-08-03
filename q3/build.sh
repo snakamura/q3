@@ -193,14 +193,16 @@ zip)
 		*/lib/win/x86/unicode/release/*.mui \
 		lib/stlport/lib/win/x86/stlport.5.1.dll \
 		lib/openssl/lib/win/x86/libeay32.dll \
-		lib/openssl/lib/win/x86/ssleay32.dll
+		lib/openssl/lib/win/x86/ssleay32.dll \
+		lib/zip/lib/win/x86/zip32.dll
 	zip -j $ZIPDIR/q3u-win-x64-ja-$SUFFIX.zip \
 		*/bin/win/x64/unicode/release/*.exe \
 		*/lib/win/x64/unicode/release/*.dll \
 		*/lib/win/x64/unicode/release/*.mui \
 		lib/stlport/lib/win/x64/stlport.5.1.dll \
 		lib/openssl/lib/win/x64/libeay32.dll \
-		lib/openssl/lib/win/x64/ssleay32.dll
+		lib/openssl/lib/win/x64/ssleay32.dll \
+		lib/zip/lib/win/x64/zip32.dll
 	
 	for t in $WCETARGETS; do
 		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip \
