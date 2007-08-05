@@ -1633,7 +1633,7 @@ BEGIN
     PUSHBUTTON      "修復(&R)",IDC_REPAIR,5,150,50,14
     CONTROL         "添付ファイルをスキャンする(&C)",IDC_SCANATTACHMENT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,47,95,10
-    LTEXT           "最大サイズ(&S)",IDC_STATIC,105,49,40,8
+    LTEXT           "最大サイズ(&I)",IDC_STATIC,105,49,40,8
     EDITTEXT        IDC_ATTACHMENTMAXSIZE,150,45,40,14,ES_AUTOHSCROLL | 
                     ES_NUMBER
 END
