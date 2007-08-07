@@ -511,10 +511,10 @@ const WCHAR* qm::InsertTextMenuCreator::getName() const
  *
  */
 
-qm::MoveMenuCreator::MoveMenuCreator(FolderModelBase* pFolderModel,
+qm::MoveMenuCreator::MoveMenuCreator(AccountSelectionModel* pAccountSelectionModel,
 									 MessageSelectionModel* pMessageSelectionModel,
 									 qs::ActionParamMap* pActionParamMap) :
-	pFolderModel_(pFolderModel),
+	pAccountSelectionModel_(pAccountSelectionModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	helper_(pActionParamMap)
 {
@@ -537,8 +537,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 	
 	bool bAdded = false;
 	
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
+	Account* pAccount = pAccountSelectionModel_->getAccount();
 	if (pAccount) {
 		bool bEnabled = pMessageSelectionModel_->hasSelectedMessage();
 		
@@ -912,9 +911,9 @@ const WCHAR* qm::SortMenuCreator::getName() const
  *
  */
 
-qm::SubAccountMenuCreator::SubAccountMenuCreator(FolderModel* pFolderModel,
+qm::SubAccountMenuCreator::SubAccountMenuCreator(AccountSelectionModel* pAccountSelectionModel,
 												 ActionParamMap* pActionParamMap) :
-	pFolderModel_(pFolderModel),
+	pAccountSelectionModel_(pAccountSelectionModel),
 	helper_(pActionParamMap)
 {
 }
@@ -932,8 +931,7 @@ UINT qm::SubAccountMenuCreator::createMenu(HMENU hmenu,
 	
 	bool bAdded = false;
 	
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
+	Account* pAccount = pAccountSelectionModel_->getAccount();
 	if (pAccount) {
 		const Account::SubAccountList& l = pAccount->getSubAccounts();
 		assert(!l.empty());
@@ -974,10 +972,10 @@ const WCHAR* qm::SubAccountMenuCreator::getName() const
  */
 
 qm::TemplateMenuCreator::TemplateMenuCreator(const TemplateManager* pTemplateManager,
-											 FolderModelBase* pFolderModel,
+											 AccountSelectionModel* pAccountSelectionModel,
 											 ActionParamMap* pActionParamMap) :
 	pTemplateManager_(pTemplateManager),
-	pFolderModel_(pFolderModel),
+	pAccountSelectionModel_(pAccountSelectionModel),
 	helper_(pActionParamMap)
 {
 }
@@ -1001,8 +999,7 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 	UINT nBaseId = getBaseId();
 	bool bAdded = false;
 	
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
+	Account* pAccount = pAccountSelectionModel_->getAccount();
 	if (pAccount) {
 		TemplateManager::NameList listName;
 		StringListFree<TemplateManager::NameList> free(listName);
@@ -1042,10 +1039,10 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
  */
 
 qm::CreateTemplateMenuCreator::CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
-														 FolderModelBase* pFolderModel,
+														 AccountSelectionModel* pAccountSelectionModel,
 														 bool bExternalEditor,
 														 ActionParamMap* pActionParamMap) :
-	TemplateMenuCreator(pTemplateManager, pFolderModel, pActionParamMap),
+	TemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap),
 	bExternalEditor_(bExternalEditor)
 {
 }
@@ -1082,9 +1079,9 @@ unsigned int qm::CreateTemplateMenuCreator::getMax() const
  */
 
 qm::ViewTemplateMenuCreator::ViewTemplateMenuCreator(const TemplateManager* pTemplateManager,
-													 FolderModelBase* pFolderModel,
+													 AccountSelectionModel* pAccountSelectionModel,
 													 ActionParamMap* pActionParamMap) :
-	TemplateMenuCreator(pTemplateManager, pFolderModel, pActionParamMap)
+	TemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap)
 {
 }
 

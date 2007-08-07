@@ -399,7 +399,7 @@ void qm::MainWindowImpl::initActions()
 		pProfile_);
 	
 	std::auto_ptr<EditCopyMessageAction> pCopyMessageAction(new EditCopyMessageAction(
-		pDocument_, pFolderModel_.get(), pMessageSelectionModel_.get(), pThis_->getHandle()));
+		pDocument_, pMessageSelectionModel_.get(), pThis_->getHandle()));
 	std::auto_ptr<EditCommandAction<MessageWindowItem> > pCopyAction(
 		new EditCommandAction<MessageWindowItem>(pMessageWindow_->getFocusController(),
 		&MessageWindowItem::copy, &MessageWindowItem::canCopy));
@@ -419,7 +419,7 @@ void qm::MainWindowImpl::initActions()
 	pCopyAction.release();
 	
 	std::auto_ptr<EditCutMessageAction> pCutMessageAction(new EditCutMessageAction(
-		pDocument_, pFolderModel_.get(), pMessageSelectionModel_.get(), pThis_->getHandle()));
+		pDocument_, pMessageSelectionModel_.get(), pThis_->getHandle()));
 	Action* pEditCutActions[] = {
 		0,
 		0,
@@ -765,7 +765,7 @@ void qm::MainWindowImpl::initActions()
 		pPasswordManager_,
 		pProfile_,
 		pThis_->getHandle(),
-		pFolderModel_.get(),
+		this,
 		pSecurityModel_.get());
 	ADD_ACTION7(MessageCreateFromFileAction,
 		IDM_MESSAGE_CREATEFROMFILE,
@@ -774,7 +774,7 @@ void qm::MainWindowImpl::initActions()
 		pPasswordManager_,
 		pProfile_,
 		pThis_->getHandle(),
-		pFolderModel_.get(),
+		this,
 		pSecurityModel_.get());
 	ADD_ACTION4(MessageDeleteAttachmentAction,
 		IDM_MESSAGE_DELETEATTACHMENT,
@@ -795,7 +795,7 @@ void qm::MainWindowImpl::initActions()
 		pPasswordManager_,
 		pProfile_,
 		pThis_->getHandle(),
-		pFolderModel_.get(),
+		this,
 		pSecurityModel_.get());
 	ADD_ACTION7(MessageCreateFromFileAction,
 		IDM_MESSAGE_DRAFTFROMFILE,
@@ -804,7 +804,7 @@ void qm::MainWindowImpl::initActions()
 		pPasswordManager_,
 		pProfile_,
 		pThis_->getHandle(),
-		pFolderModel_.get(),
+		this,
 		pSecurityModel_.get());
 	ADD_ACTION4(MessageLabelAction,
 		IDM_MESSAGE_LABEL,
@@ -1011,7 +1011,7 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION8(ToolAccountAction,
 		IDM_TOOL_ACCOUNT,
 		pDocument_,
-		pFolderModel_.get(),
+		this,
 		pPasswordManager_,
 		pSyncManager_,
 		pFolderImage_,
@@ -1066,7 +1066,7 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION4(ToolSubAccountAction,
 		IDM_TOOL_SUBACCOUNT,
 		pDocument_,
-		pFolderModel_.get(),
+		this,
 		pSyncManager_,
 		pThis_->getHandle());
 	
@@ -1342,7 +1342,7 @@ void qm::MainWindowImpl::initMenuCreators()
 	pMenuCreatorList_.reset(new MenuCreatorList(this));
 	
 	ADD_MENUCREATOR2(MoveMenuCreator,
-		pFolderModel_.get(),
+		this,
 		pMessageSelectionModel_.get());
 	ADD_MENUCREATOR1(FilterMenuCreator,
 		pViewModelManager_->getFilterManager());
@@ -1355,20 +1355,20 @@ void qm::MainWindowImpl::initMenuCreators()
 		pSecurityModel_.get());
 	ADD_MENUCREATOR2(ViewTemplateMenuCreator,
 		pDocument_->getTemplateManager(),
-		pFolderModel_.get());
+		this);
 	ADD_MENUCREATOR3(CreateTemplateMenuCreator,
 		pDocument_->getTemplateManager(),
-		pFolderModel_.get(),
+		this,
 		false);
 	ADD_MENUCREATOR3(CreateTemplateMenuCreator,
 		pDocument_->getTemplateManager(),
-		pFolderModel_.get(),
+		this,
 		true);
 	ADD_MENUCREATOR2(EncodingMenuCreator,
 		pProfile_,
 		true);
 	ADD_MENUCREATOR1(SubAccountMenuCreator,
-		pFolderModel_.get());
+		this);
 	ADD_MENUCREATOR1(GoRoundMenuCreator,
 		pGoRound_);
 	ADD_MENUCREATOR1(ScriptMenuCreator,
@@ -2429,9 +2429,8 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pAddressBookFrameWindowManager_.reset(new AddressBookFrameWindowManager(
 		pImpl_->pDocument_->getAddressBook(), pImpl_->pUIManager_, pImpl_->pProfile_));
 	pImpl_->pExternalEditorManager_.reset(new ExternalEditorManager(
-		pImpl_->pDocument_, pImpl_->pPasswordManager_,
-		pImpl_->pProfile_, getHandle(), pImpl_->pTempFileCleaner_,
-		pImpl_->pFolderModel_.get(), pImpl_->pSecurityModel_.get()));
+		pImpl_->pDocument_, pImpl_->pPasswordManager_, pImpl_->pProfile_,
+		getHandle(), pImpl_->pTempFileCleaner_, pImpl_, pImpl_->pSecurityModel_.get()));
 	pImpl_->pMessageWindowFontManager_.reset(new MessageWindowFontManager(
 		Application::getApplication().getProfilePath(FileNames::FONTS_XML).get()));
 	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(

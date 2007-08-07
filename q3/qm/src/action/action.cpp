@@ -328,7 +328,7 @@ Action* qm::DispatchAction::getAction() const
 
 qm::EditClearDeletedAction::EditClearDeletedAction(SyncManager* pSyncManager,
 												   Document* pDocument,
-												   FolderModel* pFolderModel,
+												   FolderModelBase* pFolderModel,
 												   SyncDialogManager* pSyncDialogManager,
 												   HWND hwnd,
 												   Profile* pProfile) :
@@ -405,11 +405,9 @@ bool qm::EditClearDeletedAction::isEnabled(const ActionEvent& event)
  */
 
 qm::EditCopyMessageAction::EditCopyMessageAction(AccountManager* pAccountManager,
-												 FolderModel* pFolderModel,
 												 MessageSelectionModel* pMessageSelectionModel,
 												 HWND hwnd) :
 	pAccountManager_(pAccountManager),
-	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
 {
@@ -451,11 +449,9 @@ bool qm::EditCopyMessageAction::isEnabled(const ActionEvent& event)
  */
 
 qm::EditCutMessageAction::EditCutMessageAction(AccountManager* pAccountManager,
-											   FolderModel* pFolderModel,
 											   MessageSelectionModel* pMessageSelectionModel,
 											   HWND hwnd) :
 	pAccountManager_(pAccountManager),
-	pFolderModel_(pFolderModel),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
 {
@@ -770,7 +766,7 @@ bool qm::EditFindAction::isEnabled(const ActionEvent& event)
  */
 
 qm::EditPasteMessageAction::EditPasteMessageAction(Document* pDocument,
-												   FolderModel* pFolderModel,
+												   FolderModelBase* pFolderModel,
 												   SyncManager* pSyncManager,
 												   SyncDialogManager* pSyncDialogManager,
 												   Profile* pProfile,
@@ -903,7 +899,7 @@ bool qm::EditUndoMessageAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::FileCheckAction::FileCheckAction(FolderModel* pFolderModel,
+qm::FileCheckAction::FileCheckAction(FolderModelBase* pFolderModel,
 									 HWND hwnd) :
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
@@ -993,7 +989,7 @@ void qm::FileCloseAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::FileCompactAction::FileCompactAction(FolderModel* pFolderModel,
+qm::FileCompactAction::FileCompactAction(FolderModelBase* pFolderModel,
 										 HWND hwnd) :
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
@@ -1033,7 +1029,7 @@ bool qm::FileCompactAction::compact(Account* pAccount) const
  *
  */
 
-qm::FileDumpAction::FileDumpAction(FolderModel* pFolderModel,
+qm::FileDumpAction::FileDumpAction(FolderModelBase* pFolderModel,
 								   HWND hwnd) :
 								   pFolderModel_(pFolderModel),
 								   hwnd_(hwnd)
@@ -1531,7 +1527,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
  *
  */
 
-qm::FileImportAction::FileImportAction(FolderModel* pFolderModel,
+qm::FileImportAction::FileImportAction(FolderModelBase* pFolderModel,
 									   Document* pDocument,
 									   SyncManager* pSyncManager,
 									   SyncDialogManager* pSyncDialogManager,
@@ -1982,7 +1978,7 @@ bool qm::FileImportAction::readLine(InputStream* pStream,
  *
  */
 
-qm::FileLoadAction::FileLoadAction(FolderModel* pFolderModel,
+qm::FileLoadAction::FileLoadAction(FolderModelBase* pFolderModel,
 								   HWND hwnd) :
 								   pFolderModel_(pFolderModel),
 								   hwnd_(hwnd)
@@ -2297,7 +2293,7 @@ bool qm::FilePrintAction::print(Account* pAccount,
  *
  */
 
-qm::FileSalvageAction::FileSalvageAction(FolderModel* pFolderModel,
+qm::FileSalvageAction::FileSalvageAction(FolderModelBase* pFolderModel,
 										 HWND hwnd) :
 	pFolderModel_(pFolderModel),
 	hwnd_(hwnd)
@@ -3940,9 +3936,9 @@ qm::MessageCreateFromClipboardAction::MessageCreateFromClipboardAction(bool bDra
 																	   PasswordManager* pPasswordManager,
 																	   Profile* pProfile,
 																	   HWND hwnd,
-																	   FolderModel* pFolderModel,
+																	   AccountSelectionModel* pAccountSelectionModel,
 																	   SecurityModel* pSecurityModel) :
-	composer_(bDraft, pDocument, pPasswordManager, pProfile, hwnd, pFolderModel, pSecurityModel),
+	composer_(bDraft, pDocument, pPasswordManager, pProfile, hwnd, pAccountSelectionModel, pSecurityModel),
 	pDocument_(pDocument),
 	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
@@ -3982,9 +3978,9 @@ qm::MessageCreateFromFileAction::MessageCreateFromFileAction(bool bDraft,
 															 PasswordManager* pPasswordManager,
 															 Profile* pProfile,
 															 HWND hwnd,
-															 FolderModel* pFolderModel,
+															 AccountSelectionModel* pAccountSelectionModel,
 															 SecurityModel* pSecurityModel) :
-	composer_(bDraft, pDocument, pPasswordManager, pProfile, hwnd, pFolderModel, pSecurityModel),
+	composer_(bDraft, pDocument, pPasswordManager, pProfile, hwnd, pAccountSelectionModel, pSecurityModel),
 	pDocument_(pDocument),
 	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
@@ -5525,7 +5521,7 @@ int qm::TabSelectAction::getItem(const ActionParam* pParam) const
  */
 
 qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
-										 FolderModel* pFolderModel,
+										 AccountSelectionModel* pAccountSelectionModel,
 										 PasswordManager* pPasswordManager,
 										 SyncManager* pSyncManager,
 										 const FolderImage* pFolderImage,
@@ -5533,7 +5529,7 @@ qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
 										 Profile* pProfile,
 										 HWND hwnd) :
 	pDocument_(pDocument),
-	pFolderModel_(pFolderModel),
+	pAccountSelectionModel_(pAccountSelectionModel),
 	pPasswordManager_(pPasswordManager),
 	pSyncManager_(pSyncManager),
 	pFolderImage_(pFolderImage),
@@ -5558,7 +5554,7 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 	if (!bOffline)
 		pDocument_->setOffline(true);
 	
-	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+	Account* pAccount = pAccountSelectionModel_->getAccount();
 	AccountDialog dialog(pDocument_, pAccount, pPasswordManager_,
 		pSyncManager_->getSyncFilterManager(), pDocument_->getSecurity(),
 		pDocument_->getJunkFilter(), pFolderImage_, pOptionDialogManager_, pProfile_);
@@ -6093,11 +6089,11 @@ bool qm::ToolScriptAction::isEnabled(const ActionEvent& event)
  */
 
 qm::ToolSubAccountAction::ToolSubAccountAction(AccountManager* pAccountManager,
-											   FolderModel* pFolderModel,
+											   AccountSelectionModel* pAccountSelectionModel,
 											   SyncManager* pSyncManager,
 											   HWND hwnd) :
 	pAccountManager_(pAccountManager),
-	pFolderModel_(pFolderModel),
+	pAccountSelectionModel_(pAccountSelectionModel),
 	pSyncManager_(pSyncManager),
 	hwnd_(hwnd)
 {
@@ -6136,14 +6132,12 @@ bool qm::ToolSubAccountAction::isEnabled(const ActionEvent& event)
 	if (pSyncManager_->isSyncing())
 		return false;
 	
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	return p.first || p.second;
+	return pAccountSelectionModel_->getAccount() != 0;
 }
 
 bool qm::ToolSubAccountAction::isChecked(const ActionEvent& event)
 {
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
+	Account* pAccount = pAccountSelectionModel_->getAccount();
 	if (!pAccount)
 		return false;
 	
@@ -6164,7 +6158,7 @@ bool qm::ToolSubAccountAction::isChecked(const ActionEvent& event)
 
 qm::ToolSyncAction::ToolSyncAction(SyncManager* pSyncManager,
 								   Document* pDocument,
-								   FolderModel* pFolderModel,
+								   FolderModelBase* pFolderModel,
 								   SyncDialogManager* pSyncDialogManager,
 								   Type type,
 								   HWND hwnd) :
@@ -7177,7 +7171,7 @@ void qm::ViewOpenLinkAction::invoke(const ActionEvent& event)
 
 qm::ViewRefreshAction::ViewRefreshAction(SyncManager* pSyncManager,
 										 Document* pDocument,
-										 FolderModel* pFolderModel,
+										 FolderModelBase* pFolderModel,
 										 SecurityModel* pSecurityModel,
 										 SyncDialogManager* pSyncDialogManager,
 										 ActionInvoker* pActionInvoker,

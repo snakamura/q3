@@ -21,9 +21,9 @@ namespace qm {
 class MessageComposer;
 
 class Account;
+class AccountSelectionModel;
 class AddressBook;
 class Document;
-class FolderModel;
 class Message;
 class MessagePtr;
 class PasswordManager;
@@ -46,7 +46,7 @@ public:
 					PasswordManager* pPasswordManager,
 					qs::Profile* pProfile,
 					HWND hwnd,
-					FolderModel* pFolderModel,
+					AccountSelectionModel* pAccountSelectionModel,
 					SecurityModel* pSecurityModel);
 	~MessageComposer();
 
@@ -84,7 +84,7 @@ private:
 	PasswordManager* pPasswordManager_;
 	qs::Profile* pProfile_;
 	HWND hwnd_;
-	FolderModel* pFolderModel_;
+	AccountSelectionModel* pAccountSelectionModel_;
 	SecurityModel* pSecurityModel_;
 };
 

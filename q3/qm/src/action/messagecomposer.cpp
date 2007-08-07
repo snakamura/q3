@@ -26,7 +26,7 @@
 #include "../model/message.h"
 #include "../model/recentaddress.h"
 #include "../pgp/pgp.h"
-#include "../uimodel/foldermodel.h"
+#include "../uimodel/folderselectionmodel.h"
 #include "../uimodel/securitymodel.h"
 
 using namespace qm;
@@ -44,14 +44,14 @@ qm::MessageComposer::MessageComposer(bool bDraft,
 									 PasswordManager* pPasswordManager,
 									 Profile* pProfile,
 									 HWND hwnd,
-									 FolderModel* pFolderModel,
+									 AccountSelectionModel* pAccountSelectionModel,
 									 SecurityModel* pSecurityModel) :
 	bDraft_(bDraft),
 	pDocument_(pDocument),
 	pPasswordManager_(pPasswordManager),
 	pProfile_(pProfile),
 	hwnd_(hwnd),
-	pFolderModel_(pFolderModel),
+	pAccountSelectionModel_(pAccountSelectionModel),
 	pSecurityModel_(pSecurityModel)
 {
 	assert(pDocument);
@@ -71,7 +71,7 @@ bool qm::MessageComposer::compose(Message* pMessage,
 								  SubAccount* pSubAccount,
 								  MessagePtr* pptr) const
 {
-	assert(pAccount || pFolderModel_);
+	assert(pAccount || pAccountSelectionModel_);
 	assert((!pAccount && !pSubAccount) ||
 		(pAccount && !pSubAccount) || (pAccount && pSubAccount));
 	assert(pMessage);
@@ -190,7 +190,7 @@ bool qm::MessageComposer::compose(const WCHAR* pwszMessage,
 								  unsigned int nMessageSecurity) const
 {
 	assert(pwszMessage);
-	assert(pFolderModel_);
+	assert(pAccountSelectionModel_);
 	
 	if (nLen == -1)
 		nLen = wcslen(pwszMessage);
@@ -227,7 +227,7 @@ bool qm::MessageComposer::compose(const WCHAR* pwszPath,
 								  unsigned int nMessageSecurity) const
 {
 	assert(pwszPath);
-	assert(pFolderModel_);
+	assert(pAccountSelectionModel_);
 	
 	FileInputStream stream(pwszPath);
 	if (!stream)
@@ -277,16 +277,13 @@ bool qm::MessageComposer::isAttachmentArchiving(const WCHAR* pwszFileOrURI) cons
 
 Account* qm::MessageComposer::getAccount(const Message& header) const
 {
-	assert(pFolderModel_);
+	assert(pAccountSelectionModel_);
 	
 	UnstructuredParser account;
-	if (header.getField(L"X-QMAIL-Account", &account) == Part::FIELD_EXIST) {
+	if (header.getField(L"X-QMAIL-Account", &account) == Part::FIELD_EXIST)
 		return pDocument_->getAccount(account.getValue());
-	}
-	else {
-		std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-		return p.first ? p.first : p.second ? p.second->getAccount() : 0;
-	}
+	else
+		return pAccountSelectionModel_->getAccount();
 }
 
 SubAccount* qm::MessageComposer::getSubAccount(Account* pAccount,

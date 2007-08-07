@@ -40,6 +40,7 @@
 #include "../action/actionmacro.h"
 #include "../action/findreplace.h"
 #include "../uimodel/encodingmodel.h"
+#include "../uimodel/folderselectionmodel.h"
 #include "../uimodel/messagemodel.h"
 #include "../uimodel/messageselectionmodel.h"
 #include "../uimodel/securitymodel.h"
@@ -58,6 +59,7 @@ class qm::MessageFrameWindowImpl :
 	public DefaultModalHandler,
 	public MessageWindowHandler,
 	public FolderModelBase,
+	public AccountSelectionModel,
 	public MessageSelectionModel,
 	public MenuCreatorListCallback
 {
@@ -102,6 +104,9 @@ public:
 public:
 	virtual std::pair<Account*, Folder*> getCurrent() const;
 	virtual std::pair<Account*, Folder*> getTemporary() const;
+
+public:
+	virtual Account* getAccount();
 
 public:
 	virtual void getSelectedMessages(AccountLock* pAccountLock,
@@ -727,6 +732,11 @@ std::pair<Account*, Folder*> qm::MessageFrameWindowImpl::getTemporary() const
 	return std::pair<Account*, Folder*>(0, 0);
 }
 
+Account* qm::MessageFrameWindowImpl::getAccount()
+{
+	return pMessageModel_->getCurrentAccount();
+}
+
 void qm::MessageFrameWindowImpl::getSelectedMessages(AccountLock* pAccountLock,
 													 Folder** ppFolder,
 													 MessageHolderList* pList)
@@ -773,7 +783,8 @@ bool qm::MessageFrameWindowImpl::canSelect()
 std::auto_ptr<MacroMenuCreator> qm::MessageFrameWindowImpl::createMacroMenuCreator()
 {
 	return std::auto_ptr<MacroMenuCreator>(new MacroMenuCreator(
-		pDocument_, this, pSecurityModel_.get(), pProfile_, actionItems,
+		pDocument_, static_cast<MessageSelectionModel*>(this),
+		pSecurityModel_.get(), pProfile_, actionItems,
 		countof(actionItems), pUIManager_->getActionParamMap()));
 }
 

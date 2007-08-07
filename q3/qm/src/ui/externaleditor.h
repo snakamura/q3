@@ -22,8 +22,8 @@ namespace qm {
 
 class ExternalEditorManager;
 
+class AccountSelectionModel;
 class Document;
-class FolderModel;
 class PasswordManager;
 class SecurityModel;
 class TempFileCleaner;
@@ -43,7 +43,7 @@ public:
 						  qs::Profile* pProfile,
 						  HWND hwnd,
 						  TempFileCleaner* pTempFileCleaner,
-						  FolderModel* pFolderModel,
+						  AccountSelectionModel* pAccountSelectionModel,
 						  SecurityModel* pSecurityModel);
 	~ExternalEditorManager();
 

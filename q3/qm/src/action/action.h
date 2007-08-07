@@ -365,7 +365,7 @@ class EditClearDeletedAction : public qs::AbstractAction
 public:
 	EditClearDeletedAction(SyncManager* pSyncManager,
 						   Document* pDocument,
-						   FolderModel* pFolderModel,
+						   FolderModelBase* pFolderModel,
 						   SyncDialogManager* pSyncDialogManager,
 						   HWND hwnd,
 						   qs::Profile* pProfile);
@@ -382,7 +382,7 @@ private:
 private:
 	SyncManager* pSyncManager_;
 	Document* pDocument_;
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
@@ -433,7 +433,6 @@ class EditCopyMessageAction : public qs::AbstractAction
 {
 public:
 	EditCopyMessageAction(AccountManager* pAccountManager,
-						  FolderModel* pFolderModel,
 						  MessageSelectionModel* pMessageSelectionModel,
 						  HWND hwnd);
 	virtual ~EditCopyMessageAction();
@@ -448,7 +447,6 @@ private:
 
 private:
 	AccountManager* pAccountManager_;
-	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
 };
@@ -464,7 +462,6 @@ class EditCutMessageAction : public qs::AbstractAction
 {
 public:
 	EditCutMessageAction(AccountManager* pAccountManager,
-						 FolderModel* pFolderModel,
 						 MessageSelectionModel* pMessageSelectionModel,
 						 HWND hwnd);
 	virtual ~EditCutMessageAction();
@@ -479,7 +476,6 @@ private:
 
 private:
 	AccountManager* pAccountManager_;
-	FolderModel* pFolderModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
 };
@@ -613,7 +609,7 @@ class EditPasteMessageAction : public qs::AbstractAction
 {
 public:
 	EditPasteMessageAction(Document* pDocument,
-						   FolderModel* pFolderModel,
+						   FolderModelBase* pFolderModel,
 						   SyncManager* pSyncManager,
 						   SyncDialogManager* pSyncDialogManager,
 						   qs::Profile* pProfile,
@@ -633,7 +629,7 @@ private:
 
 private:
 	Document* pDocument_;
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	qs::Profile* pProfile_;
@@ -704,7 +700,7 @@ private:
 class FileCheckAction : public qs::AbstractAction
 {
 public:
-	FileCheckAction(FolderModel* pFolderModel,
+	FileCheckAction(FolderModelBase* pFolderModel,
 					HWND hwnd);
 	virtual ~FileCheckAction();
 
@@ -720,7 +716,7 @@ private:
 	FileCheckAction& operator=(const FileCheckAction&);
 
 private:
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	HWND hwnd_;
 };
 
@@ -758,7 +754,7 @@ private:
 class FileCompactAction : public qs::AbstractAction
 {
 public:
-	FileCompactAction(FolderModel* pFolderModel,
+	FileCompactAction(FolderModelBase* pFolderModel,
 					  HWND hwnd);
 	virtual ~FileCompactAction();
 
@@ -774,7 +770,7 @@ private:
 	FileCompactAction& operator=(const FileCompactAction&);
 
 private:
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	HWND hwnd_;
 };
 
@@ -788,7 +784,7 @@ private:
 class FileDumpAction : public qs::AbstractAction
 {
 public:
-	FileDumpAction(FolderModel* pFolderModel,
+	FileDumpAction(FolderModelBase* pFolderModel,
 				   HWND hwnd);
 	virtual ~FileDumpAction();
 
@@ -813,7 +809,7 @@ private:
 	FileDumpAction& operator=(const FileDumpAction&);
 
 private:
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	HWND hwnd_;
 };
 
@@ -932,7 +928,7 @@ public:
 	typedef std::vector<qs::WSTRING> PathList;
 
 public:
-	FileImportAction(FolderModel* pFolderModel,
+	FileImportAction(FolderModelBase* pFolderModel,
 					 Document* pDocument,
 					 SyncManager* pSyncManager,
 					 SyncDialogManager* pSyncDialogManager,
@@ -989,7 +985,7 @@ private:
 	FileImportAction& operator=(const FileImportAction&);
 
 private:
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	Document* pDocument_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
@@ -1007,7 +1003,7 @@ private:
 class FileLoadAction : public qs::AbstractAction
 {
 public:
-	FileLoadAction(FolderModel* pFolderModel,
+	FileLoadAction(FolderModelBase* pFolderModel,
 				   HWND hwnd);
 	virtual ~FileLoadAction();
 
@@ -1035,7 +1031,7 @@ private:
 	FileLoadAction& operator=(const FileLoadAction&);
 
 private:
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	HWND hwnd_;
 };
 
@@ -1126,7 +1122,7 @@ private:
 class FileSalvageAction : public qs::AbstractAction
 {
 public:
-	FileSalvageAction(FolderModel* pFolderModel,
+	FileSalvageAction(FolderModelBase* pFolderModel,
 					  HWND hwnd);
 	virtual ~FileSalvageAction();
 
@@ -1142,7 +1138,7 @@ private:
 	FileSalvageAction& operator=(const FileSalvageAction&);
 
 private:
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	HWND hwnd_;
 };
 
@@ -1855,7 +1851,7 @@ public:
 									 PasswordManager* pPasswordManager,
 									 qs::Profile* pProfile,
 									 HWND hwnd,
-									 FolderModel* pFolderModel,
+									 AccountSelectionModel* pAccountSelectionModel,
 									 SecurityModel* pSecurityModel);
 	virtual ~MessageCreateFromClipboardAction();
 
@@ -1889,7 +1885,7 @@ public:
 								PasswordManager* pPasswordManager,
 								qs::Profile* pProfile,
 								HWND hwnd,
-								FolderModel* pFolderModel,
+								AccountSelectionModel* pAccountSelectionModel,
 								SecurityModel* pSecurityModel);
 	virtual ~MessageCreateFromFileAction();
 
@@ -2683,7 +2679,7 @@ class ToolAccountAction : public qs::AbstractAction
 {
 public:
 	ToolAccountAction(Document* pDocument,
-					  FolderModel* pFolderModel,
+					  AccountSelectionModel* pAccountSelectionModel,
 					  PasswordManager* pPasswordManager,
 					  SyncManager* pSyncManager,
 					  const FolderImage* pFolderImage,
@@ -2702,7 +2698,7 @@ private:
 
 private:
 	Document* pDocument_;
-	FolderModel* pFolderModel_;
+	AccountSelectionModel* pAccountSelectionModel_;
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	const FolderImage* pFolderImage_;
@@ -2999,7 +2995,7 @@ class ToolSubAccountAction : public qs::AbstractAction
 {
 public:
 	ToolSubAccountAction(AccountManager* pAccountManager,
-						 FolderModel* pFolderModel,
+						 AccountSelectionModel* pAccountSelectionModel,
 						 SyncManager* pSyncManager,
 						 HWND hwnd);
 	virtual ~ToolSubAccountAction();
@@ -3015,7 +3011,7 @@ private:
 
 private:
 	AccountManager* pAccountManager_;
-	FolderModel* pFolderModel_;
+	AccountSelectionModel* pAccountSelectionModel_;
 	SyncManager* pSyncManager_;
 	HWND hwnd_;
 };
@@ -3040,7 +3036,7 @@ public:
 public:
 	ToolSyncAction(SyncManager* pSyncManager,
 				   Document* pDocument,
-				   FolderModel* pFolderModel,
+				   FolderModelBase* pFolderModel,
 				   SyncDialogManager* pSyncDialogManager,
 				   Type type,
 				   HWND hwnd);
@@ -3057,7 +3053,7 @@ private:
 private:
 	SyncManager* pSyncManager_;
 	Document* pDocument_;
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	Type type_;
 	HWND hwnd_;
@@ -3494,7 +3490,7 @@ class ViewRefreshAction : public qs::AbstractAction
 public:
 	ViewRefreshAction(SyncManager* pSyncManager,
 					  Document* pDocument,
-					  FolderModel* pFolderModel,
+					  FolderModelBase* pFolderModel,
 					  SecurityModel* pSecurityModel,
 					  SyncDialogManager* pSyncDialogManager,
 					  ActionInvoker* pActionInvoker,
@@ -3513,7 +3509,7 @@ private:
 private:
 	SyncManager* pSyncManager_;
 	Document* pDocument_;
-	FolderModel* pFolderModel_;
+	FolderModelBase* pFolderModel_;
 	SecurityModel* pSecurityModel_;
 	SyncDialogManager* pSyncDialogManager_;
 	ActionInvoker* pActionInvoker_;

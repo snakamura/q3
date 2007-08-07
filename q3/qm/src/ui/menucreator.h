@@ -354,7 +354,7 @@ private:
 class MoveMenuCreator : public MenuCreator
 {
 public:
-	MoveMenuCreator(FolderModelBase* pFolderModel,
+	MoveMenuCreator(AccountSelectionModel* pAccountSelectionModel,
 					MessageSelectionModel* pMessageSelectionModel,
 					qs::ActionParamMap* pActionParamMap);
 	~MoveMenuCreator();
@@ -391,7 +391,7 @@ private:
 	};
 
 private:
-	FolderModelBase* pFolderModel_;
+	AccountSelectionModel* pAccountSelectionModel_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	ActionParamHelper helper_;
 };
@@ -508,7 +508,7 @@ private:
 class SubAccountMenuCreator : public MenuCreator
 {
 public:
-	SubAccountMenuCreator(FolderModel* pFolderModel,
+	SubAccountMenuCreator(AccountSelectionModel* pAccountSelectionModel,
 						  qs::ActionParamMap* pActionParamMap);
 	~SubAccountMenuCreator();
 
@@ -525,7 +525,7 @@ private:
 	SubAccountMenuCreator& operator=(const SubAccountMenuCreator&);
 
 private:
-	FolderModel* pFolderModel_;
+	AccountSelectionModel* pAccountSelectionModel_;
 	ActionParamHelper helper_;
 };
 
@@ -540,7 +540,7 @@ class TemplateMenuCreator : public MenuCreator
 {
 protected:
 	TemplateMenuCreator(const TemplateManager* pTemplateManager,
-						FolderModelBase* pFolderModel,
+						AccountSelectionModel* pAccountSelectionModel,
 						qs::ActionParamMap* pActionParamMap);
 	~TemplateMenuCreator();
 
@@ -560,7 +560,7 @@ private:
 
 private:
 	const TemplateManager* pTemplateManager_;
-	FolderModelBase* pFolderModel_;
+	AccountSelectionModel* pAccountSelectionModel_;
 	ActionParamHelper helper_;
 };
 
@@ -575,7 +575,7 @@ class CreateTemplateMenuCreator : public TemplateMenuCreator
 {
 public:
 	CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
-							  FolderModelBase* pFolderModel,
+							  AccountSelectionModel* pAccountSelectionModel,
 							  bool bExternalEditor,
 							  qs::ActionParamMap* pActionParamMap);
 	~CreateTemplateMenuCreator();
@@ -607,7 +607,7 @@ class ViewTemplateMenuCreator : public TemplateMenuCreator
 {
 public:
 	ViewTemplateMenuCreator(const TemplateManager* pTemplateManager,
-							FolderModelBase* pFolderModel,
+							AccountSelectionModel* pAccountSelectionModel,
 							qs::ActionParamMap* pActionParamMap);
 	~ViewTemplateMenuCreator();
 
