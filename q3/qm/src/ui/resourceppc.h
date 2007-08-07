@@ -123,6 +123,9 @@
 #define IDD_FOLDERPARAMETER_L           659
 #define IDD_PARAMETER_L                 660
 #define IDD_GOROUND_L                   661
+#define IDD_GOROUNDCOURSE_L             662
+#define IDD_GOROUNDENTRY_L              663
+#define IDD_GOROUNDDIALUP_L             664
 #define IDD_RESOURCE_L                  666
 #define IDD_SIGNATURES_L                667
 #define IDD_SIGNATURE_L                 668
@@ -566,6 +569,7 @@
 #define IDC_IDLABEL                     1545
 #define IDC_FLAG                        1546
 #define IDC_BOXTYPE                     1547
+#define IDC_SUBACCOUNTLABEL             1548
 
 // Next default values for new objects
 // 
@@ -574,7 +578,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1548
+#define _APS_NEXT_CONTROL_VALUE         1549
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

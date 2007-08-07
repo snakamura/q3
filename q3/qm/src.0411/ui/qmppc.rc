@@ -742,7 +742,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "巡回コース"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "名前(&N)",IDC_STATIC,5,7,25,8
+    LTEXT           "名前(&N)",IDC_NAMELABEL,5,7,25,8
     EDITTEXT        IDC_NAME,35,5,97,12,ES_AUTOHSCROLL
     LISTBOX         IDC_ENTRY,5,20,82,60,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
                     WS_TABSTOP
@@ -755,7 +755,7 @@ BEGIN
                     95,35,10
     CONTROL         "並列(&P)",IDC_PARALLEL,"Button",BS_AUTORADIOBUTTON,10,
                     105,40,10
-    GROUPBOX        "タイプ",IDC_STATIC,5,85,60,35
+    GROUPBOX        "タイプ",IDC_TYPE,5,85,60,35
     CONTROL         "確認する(&C)",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,122,55,10
     PUSHBUTTON      "ダイアルアップ(&L)...",IDC_DIALUP,75,110,57,12
@@ -768,18 +768,18 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "エントリ"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "アカウント(&A)",IDC_STATIC,5,7,40,8
+    LTEXT           "アカウント(&A)",IDC_ACCOUNTLABEL,5,7,40,8
     COMBOBOX        IDC_ACCOUNT,55,5,77,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "サブアカウント(&S)",IDC_STATIC,5,22,48,8
+    LTEXT           "サブアカウント(&S)",IDC_SUBACCOUNTLABEL,5,22,48,8
     COMBOBOX        IDC_SUBACCOUNT,55,20,77,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "フォルダ(&F)",IDC_STATIC,5,37,35,8
+    LTEXT           "フォルダ(&F)",IDC_FOLDERLABEL,5,37,35,8
     COMBOBOX        IDC_FOLDER,55,35,77,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "フォルダを選択する(&L)",IDC_SELECTFOLDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,55,48,75,10
-    LTEXT           "同期フィルタ(&I)",IDC_STATIC,5,62,45,8
+    LTEXT           "同期フィルタ(&I)",IDC_SYNCFILTERLABEL,5,62,45,8
     COMBOBOX        IDC_SYNCFILTER,55,60,77,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "編集(&E)...",IDC_EDIT,95,60,37,12,NOT WS_VISIBLE
@@ -789,7 +789,7 @@ BEGIN
                     65,10
     CONTROL         "送信(&E)",IDC_SEND,"Button",BS_AUTORADIOBUTTON,10,105,
                     40,10
-    GROUPBOX        "タイプ",IDC_STATIC,5,75,80,45
+    GROUPBOX        "タイプ",IDC_TYPE,5,75,80,45
     DEFPUSHBUTTON   "OK",IDOK,27,125,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,82,125,50,12
 END
@@ -806,15 +806,16 @@ BEGIN
                     BS_TOP | BS_MULTILINE,5,15,127,16
     CONTROL         "常にダイアルアップ接続する(&A)",IDC_CONNECT,"Button",
                     BS_AUTORADIOBUTTON,5,32,127,10
-    LTEXT           "エントリ名(&E)",IDC_STATIC,15,45,45,8
+    LTEXT           "エントリ名(&E)",IDC_ENTRYLABEL,15,45,45,8
     COMBOBOX        IDC_ENTRY,15,55,117,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "ダイアル元(&D)",IDC_STATIC,15,70,50,8
+    LTEXT           "ダイアル元(&D)",IDC_DIALFROMLABEL,15,70,50,8
     COMBOBOX        IDC_DIALFROM,15,80,117,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "接続前にダイアログを表示する(&S)",IDC_SHOWDIALOG,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,98,117,10
-    LTEXT           "秒待ってから切断する(&W)",IDC_STATIC,36,117,74,8
+    LTEXT           "秒待ってから切断する(&W)",IDC_WAITLABELAFTER,36,117,74,
+                    8
     EDITTEXT        IDC_WAITBEFOREDISCONNECT,15,115,20,12,ES_AUTOHSCROLL | 
                     ES_NUMBER
     DEFPUSHBUTTON   "OK",IDOK,26,135,50,12
@@ -3075,6 +3076,90 @@ BEGIN
     GROUPBOX        "タイプ",IDC_BOXTYPE,75,40,102,45
 END
 
+IDD_GOROUNDCOURSE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "巡回コース"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "名前(&N)",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,97,12,ES_AUTOHSCROLL
+    LISTBOX         IDC_ENTRY,5,20,127,35,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "追加(&A)...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "削除(&R)",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "編集(&E)...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "上へ(&U)",IDC_UP,137,45,40,12
+    PUSHBUTTON      "下へ(&D)",IDC_DOWN,137,58,40,12
+    CONTROL         "逐次(&S)",IDC_SEQUENTIAL,"Button",BS_AUTORADIOBUTTON,10,
+                    70,35,10
+    CONTROL         "並列(&P)",IDC_PARALLEL,"Button",BS_AUTORADIOBUTTON,55,
+                    70,40,10
+    GROUPBOX        "タイプ",IDC_TYPE,5,60,95,25
+    CONTROL         "確認する(&C)",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,90,55,10
+    PUSHBUTTON      "ダイアルアップ(&L)...",IDC_DIALUP,120,75,57,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,127,90,50,12
+END
+
+IDD_GOROUNDDIALUP_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "ダイアルアップ"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "ダイアルアップ接続をしない(&N)",IDC_NEVER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,5,5,127,10
+    CONTROL         "ネットワークに接続していないときにダイアルアップ接続する(&C)",
+                    IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON | 
+                    BS_TOP,5,15,175,10
+    CONTROL         "常にダイアルアップ接続する(&A)",IDC_CONNECT,"Button",
+                    BS_AUTORADIOBUTTON,5,25,127,10
+    LTEXT           "エントリ名(&E)",IDC_ENTRYLABEL,15,42,40,8
+    COMBOBOX        IDC_ENTRY,60,40,117,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "ダイアル元(&D)",IDC_DIALFROMLABEL,15,57,40,8
+    COMBOBOX        IDC_DIALFROM,60,55,47,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "ダイアログを表示(&S)",IDC_SHOWDIALOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,112,56,65,10
+    LTEXT           "秒待ってから切断する(&W)",IDC_WAITLABELAFTER,36,73,74,8
+    EDITTEXT        IDC_WAITBEFOREDISCONNECT,15,70,20,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,72,85,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,127,85,50,12
+END
+
+IDD_GOROUNDENTRY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "エントリ"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "アカウント(&A)",IDC_ACCOUNTLABEL,5,7,40,8
+    COMBOBOX        IDC_ACCOUNT,55,5,62,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "サブアカウント(&S)",IDC_SUBACCOUNTLABEL,5,22,48,8
+    COMBOBOX        IDC_SUBACCOUNT,55,20,62,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "フォルダ(&F)",IDC_FOLDERLABEL,5,37,35,8
+    COMBOBOX        IDC_FOLDER,55,35,62,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "フォルダを選択(&L)",IDC_SELECTFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,55,48,64,10
+    LTEXT           "同期フィルタ(&I)",IDC_SYNCFILTERLABEL,5,62,45,8
+    COMBOBOX        IDC_SYNCFILTER,55,60,62,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "編集(&E)...",IDC_EDIT,95,60,37,12,NOT WS_VISIBLE
+    CONTROL         "送受信(&D)",IDC_SENDRECEIVE,"Button",BS_AUTORADIOBUTTON,
+                    127,15,45,10
+    CONTROL         "受信(&R)",IDC_RECEIVE,"Button",BS_AUTORADIOBUTTON,127,
+                    25,40,10
+    CONTROL         "送信(&E)",IDC_SEND,"Button",BS_AUTORADIOBUTTON,127,35,
+                    40,10
+    GROUPBOX        "タイプ",IDC_TYPE,122,5,55,45
+    DEFPUSHBUTTON   "OK",IDOK,72,80,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,127,80,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3709,6 +3794,11 @@ BEGIN
         RIGHTMARGIN, 175
         TOPMARGIN, 7
         BOTTOMMARGIN, 87
+    END
+
+    IDD_GOROUNDDIALUP_L, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 39
     END
 END
 #endif    // APSTUDIO_INVOKED

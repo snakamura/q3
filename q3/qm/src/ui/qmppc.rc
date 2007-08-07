@@ -736,7 +736,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Course"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Name",IDC_STATIC,5,7,25,8
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
     EDITTEXT        IDC_NAME,30,5,102,12,ES_AUTOHSCROLL
     LISTBOX         IDC_ENTRY,5,20,82,60,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
                     WS_TABSTOP
@@ -749,7 +749,7 @@ BEGIN
                     10,95,55,10
     CONTROL         "&Parallel",IDC_PARALLEL,"Button",BS_AUTORADIOBUTTON,10,
                     105,60,10
-    GROUPBOX        "Type",IDC_STATIC,5,85,75,35
+    GROUPBOX        "Type",IDC_TYPE,5,85,75,35
     CONTROL         "&Confirm",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,122,40,10
     PUSHBUTTON      "Dia&lup...",IDC_DIALUP,92,110,40,12
@@ -762,18 +762,18 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Entry"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "&Account",IDC_STATIC,5,7,30,8
+    LTEXT           "&Account",IDC_ACCOUNTLABEL,5,7,30,8
     COMBOBOX        IDC_ACCOUNT,45,5,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Subaccount",IDC_STATIC,5,22,40,8
+    LTEXT           "&Subaccount",IDC_SUBACCOUNTLABEL,5,22,40,8
     COMBOBOX        IDC_SUBACCOUNT,45,20,87,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Folder",IDC_STATIC,5,37,35,8
+    LTEXT           "&Folder",IDC_FOLDERLABEL,5,37,35,8
     COMBOBOX        IDC_FOLDER,45,35,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Se&lect Folder",IDC_SELECTFOLDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,45,48,65,10
-    LTEXT           "Sync F&ilter",IDC_STATIC,5,62,35,8
+    LTEXT           "Sync F&ilter",IDC_SYNCFILTERLABEL,5,62,35,8
     COMBOBOX        IDC_SYNCFILTER,45,60,87,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "&Edit...",IDC_EDIT,100,60,32,12,NOT WS_VISIBLE
@@ -783,7 +783,7 @@ BEGIN
                     65,10
     CONTROL         "S&end",IDC_SEND,"Button",BS_AUTORADIOBUTTON,10,105,40,
                     10
-    GROUPBOX        "Type",IDC_STATIC,5,75,80,45
+    GROUPBOX        "Type",IDC_TYPE,5,75,80,45
     DEFPUSHBUTTON   "OK",IDOK,27,125,50,12
     PUSHBUTTON      "Cancel",IDCANCEL,82,125,50,12
 END
@@ -800,18 +800,18 @@ BEGIN
                     BS_TOP | BS_MULTILINE,5,15,127,16
     CONTROL         "&Always dial a connection",IDC_CONNECT,"Button",
                     BS_AUTORADIOBUTTON,5,32,127,10
-    LTEXT           "&Entry Name",IDC_STATIC,15,45,45,8
+    LTEXT           "&Entry Name",IDC_ENTRYLABEL,15,45,45,8
     COMBOBOX        IDC_ENTRY,15,55,117,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Dial From",IDC_STATIC,15,70,35,8
+    LTEXT           "&Dial From",IDC_DIALFROMLABEL,15,70,35,8
     COMBOBOX        IDC_DIALFROM,15,80,117,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Show dialog box before connect",IDC_SHOWDIALOG,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,98,117,10
-    LTEXT           "&Wait",IDC_STATIC,15,117,20,8
+    LTEXT           "&Wait",IDC_WAITLABELBEFORE,15,117,20,8
     EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,115,20,12,ES_AUTOHSCROLL | 
                     ES_NUMBER
-    LTEXT           "s before disconnect",IDC_STATIC,55,117,72,8
+    LTEXT           "s before disconnect",IDC_WAITLABELAFTER,55,117,72,8
     DEFPUSHBUTTON   "OK",IDOK,26,135,50,12
     PUSHBUTTON      "Cancel",IDCANCEL,82,135,50,12
 END
@@ -3059,6 +3059,91 @@ BEGIN
     GROUPBOX        "Box Type",IDC_BOXTYPE,80,40,97,45
 END
 
+IDD_GOROUNDENTRY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Entry"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Account",IDC_ACCOUNTLABEL,5,7,30,8
+    COMBOBOX        IDC_ACCOUNT,45,5,80,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Subaccount",IDC_SUBACCOUNTLABEL,5,22,40,8
+    COMBOBOX        IDC_SUBACCOUNT,45,20,80,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Folder",IDC_FOLDERLABEL,5,37,35,8
+    COMBOBOX        IDC_FOLDER,45,35,80,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Se&lect Folder",IDC_SELECTFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,45,48,50,10
+    LTEXT           "Sync F&ilter",IDC_SYNCFILTERLABEL,5,62,35,8
+    COMBOBOX        IDC_SYNCFILTER,45,60,80,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Edit...",IDC_EDIT,100,60,32,12,NOT WS_VISIBLE
+    CONTROL         "Sen&d && Receive",IDC_SENDRECEIVE,"Button",
+                    BS_AUTORADIOBUTTON | BS_MULTILINE,135,15,40,20
+    CONTROL         "&Receive",IDC_RECEIVE,"Button",BS_AUTORADIOBUTTON,135,
+                    35,40,10
+    CONTROL         "S&end",IDC_SEND,"Button",BS_AUTORADIOBUTTON,135,45,40,
+                    10
+    GROUPBOX        "Type",IDC_TYPE,130,5,47,55
+    DEFPUSHBUTTON   "OK",IDOK,72,80,50,12
+    PUSHBUTTON      "Cancel",IDCANCEL,127,80,50,12
+END
+
+IDD_GOROUNDDIALUP_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialup"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Never dial a connection",IDC_NEVER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,5,5,127,10
+    CONTROL         "Dial whenever a network &connection is not present",
+                    IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON | 
+                    BS_TOP,5,15,175,10
+    CONTROL         "&Always dial a connection",IDC_CONNECT,"Button",
+                    BS_AUTORADIOBUTTON,5,25,127,10
+    LTEXT           "&Entry Name",IDC_ENTRYLABEL,15,42,40,8
+    COMBOBOX        IDC_ENTRY,60,40,117,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Dial From",IDC_DIALFROMLABEL,15,57,30,8
+    COMBOBOX        IDC_DIALFROM,60,55,47,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Show dialog box",IDC_SHOWDIALOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,112,56,65,10
+    LTEXT           "&Wait",IDC_WAITLABELBEFORE,15,73,20,8
+    EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,70,20,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "s before disconnect",IDC_WAITLABELAFTER,55,73,72,8
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Cancel",IDCANCEL,127,90,50,12
+END
+
+IDD_GOROUNDCOURSE_L DIALOG DISCARDABLE  0, 0, 183, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Course"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,30,5,102,12,ES_AUTOHSCROLL
+    LISTBOX         IDC_ENTRY,5,20,127,40,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Add...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Remove",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Edit...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Up",IDC_UP,137,45,40,12
+    PUSHBUTTON      "&Down",IDC_DOWN,137,58,40,12
+    CONTROL         "&Sequential",IDC_SEQUENTIAL,"Button",BS_AUTORADIOBUTTON,
+                    10,72,45,10
+    CONTROL         "&Parallel",IDC_PARALLEL,"Button",BS_AUTORADIOBUTTON,60,
+                    72,45,10
+    GROUPBOX        "Type",IDC_TYPE,5,62,127,25
+    CONTROL         "&Confirm",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,90,40,10
+    PUSHBUTTON      "Dia&lup...",IDC_DIALUP,137,75,40,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Cancel",IDCANCEL,127,90,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3676,6 +3761,11 @@ BEGIN
         RIGHTMARGIN, 176
         TOPMARGIN, 7
         BOTTOMMARGIN, 87
+    END
+
+    IDD_GOROUNDDIALUP_L, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 39
     END
 END
 #endif    // APSTUDIO_INVOKED

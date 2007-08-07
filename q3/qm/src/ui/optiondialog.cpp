@@ -4720,7 +4720,7 @@ qm::GoRoundCourseDialog::GoRoundCourseDialog(GoRoundCourse* pCourse,
 											 SyncFilterManager* pSyncFilterManager,
 											 Profile* pProfile) :
 	AbstractListDialog<GoRoundEntry, GoRoundCourse::EntryList>(
-		IDD_GOROUNDCOURSE, IDD_GOROUNDCOURSE, IDC_ENTRY, true),
+		IDD_GOROUNDCOURSE, LANDSCAPE(IDD_GOROUNDCOURSE), IDC_ENTRY, true),
 	pCourse_(pCourse),
 	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager),
@@ -4986,7 +4986,7 @@ void qm::GoRoundCourseDialog::layout()
 qm::GoRoundEntryDialog::GoRoundEntryDialog(GoRoundEntry* pEntry,
 										   AccountManager* pAccountManager,
 										   SyncFilterManager* pSyncFilterManager) :
-	DefaultDialog(IDD_GOROUNDENTRY),
+	DefaultDialog(IDD_GOROUNDENTRY, LANDSCAPE(IDD_GOROUNDENTRY)),
 	pEntry_(pEntry),
 	pAccountManager_(pAccountManager),
 	pSyncFilterManager_(pSyncFilterManager)
@@ -5255,7 +5255,7 @@ void qm::GoRoundEntryDialog::updateFilter()
 
 qm::GoRoundDialupDialog::GoRoundDialupDialog(GoRoundDialup* pDialup,
 											 bool bNoDialup) :
-	DefaultDialog(IDD_GOROUNDDIALUP),
+	DefaultDialog(IDD_GOROUNDDIALUP, LANDSCAPE(IDD_GOROUNDDIALUP)),
 	pDialup_(pDialup),
 	bNoDialup_(bNoDialup)
 {
