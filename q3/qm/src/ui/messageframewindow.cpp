@@ -132,6 +132,7 @@ public:
 	Profile* pProfile_;
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	SyncManager* pSyncManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	const FolderImage* pFolderImage_;
 	const MessageWindowFontManager* pFontManager_;
@@ -430,6 +431,12 @@ void qm::MessageFrameWindowImpl::initActions()
 		pDocument_,
 		pProfile_,
 		pThis_);
+	ADD_ACTION4(ToolSubAccountAction,
+		IDM_TOOL_SUBACCOUNT,
+		pDocument_,
+		this,
+		pSyncManager_,
+		pThis_->getHandle());
 	ADD_ACTION1(ViewEncodingAction,
 		IDM_VIEW_ENCODING,
 		pEncodingModel_.get());
@@ -586,6 +593,8 @@ void qm::MessageFrameWindowImpl::initMenuCreators()
 	ADD_MENUCREATOR2(EncodingMenuCreator,
 		pProfile_,
 		true);
+	ADD_MENUCREATOR1(SubAccountMenuCreator,
+		this);
 	ADD_MENUCREATOR1(ScriptMenuCreator,
 		pDocument_->getScriptManager());
 }
@@ -810,6 +819,12 @@ qm::MessageFrameWindow::MessageFrameWindow(MessageFrameWindowManager* pMessageFr
 	pImpl_->bImeControl_ = pProfile->getInt(L"Global", L"ImeControl") != 0;
 	pImpl_->pMessageFrameWindowManager_ = pMessageFrameWindowManager;
 	pImpl_->pProfile_ = pProfile;
+	pImpl_->pDocument_ = 0;
+	pImpl_->pUIManager_ = 0;
+	pImpl_->pSyncManager_ = 0;
+	pImpl_->pTempFileCleaner_ = 0;
+	pImpl_->pFolderImage_ = 0;
+	pImpl_->pFontManager_ = 0;
 	pImpl_->pViewModelManager_ = pViewModelManager;
 	pImpl_->pMessageWindow_ = 0;
 	pImpl_->pStatusBar_ = 0;
@@ -1062,6 +1077,7 @@ LRESULT qm::MessageFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<MessageFrameWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pDocument_ = pContext->pDocument_;
 	pImpl_->pUIManager_ = pContext->pUIManager_;
+	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pEditFrameWindowManager_ = pContext->pEditFrameWindowManager_;
 	pImpl_->pExternalEditorManager_ = pContext->pExternalEditorManager_;
 	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
@@ -1169,6 +1185,7 @@ LRESULT qm::MessageFrameWindow::onSize(UINT nFlags,
 
 qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
 														 UIManager* pUIManager,
+														 SyncManager* pSyncManager,
 														 TempFileCleaner* pTempFileCleaner,
 														 const FolderImage* pFolderImage,
 														 Profile* pProfile,
@@ -1178,6 +1195,7 @@ qm::MessageFrameWindowManager::MessageFrameWindowManager(Document* pDocument,
 														 MessageWindowFontManager* pFontManager) :
 	pDocument_(pDocument),
 	pUIManager_(pUIManager),
+	pSyncManager_(pSyncManager),
 	pTempFileCleaner_(pTempFileCleaner),
 	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
@@ -1332,6 +1350,7 @@ MessageFrameWindow* qm::MessageFrameWindowManager::create()
 	MessageFrameWindowCreateContext context = {
 		pDocument_,
 		pUIManager_,
+		pSyncManager_,
 		pEditFrameWindowManager_,
 		pExternalEditorManager_,
 		pTempFileCleaner_,

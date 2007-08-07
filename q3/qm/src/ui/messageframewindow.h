@@ -31,6 +31,7 @@ class MessageHolder;
 class MessageModel;
 class MessageWindow;
 class MessageWindowFontManager;
+class SyncManager;
 class TempFileCleaner;
 class UIManager;
 class ViewModelManager;
@@ -47,6 +48,7 @@ class MessageFrameWindowManager
 public:
 	MessageFrameWindowManager(Document* pDocument,
 							  UIManager* pUIManager,
+							  SyncManager* pSyncManager,
 							  TempFileCleaner* pTempFileCleaner,
 							  const FolderImage* pFolderImage,
 							  qs::Profile* pProfile,
@@ -80,6 +82,7 @@ private:
 private:
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	SyncManager* pSyncManager_;
 	TempFileCleaner* pTempFileCleaner_;
 	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;
@@ -102,6 +105,7 @@ struct MessageFrameWindowCreateContext
 {
 	Document* pDocument_;
 	UIManager* pUIManager_;
+	SyncManager* pSyncManager_;
 	EditFrameWindowManager* pEditFrameWindowManager_;
 	ExternalEditorManager* pExternalEditorManager_;
 	TempFileCleaner* pTempFileCleaner_;

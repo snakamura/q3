@@ -2434,10 +2434,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pMessageWindowFontManager_.reset(new MessageWindowFontManager(
 		Application::getApplication().getProfilePath(FileNames::FONTS_XML).get()));
 	pImpl_->pMessageFrameWindowManager_.reset(new MessageFrameWindowManager(
-		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pTempFileCleaner_,
-		pImpl_->pFolderImage_, pImpl_->pProfile_, pImpl_->pViewModelManager_.get(),
-		pImpl_->pEditFrameWindowManager_.get(), pImpl_->pExternalEditorManager_.get(),
-		pImpl_->pMessageWindowFontManager_.get()));
+		pImpl_->pDocument_, pImpl_->pUIManager_, pImpl_->pSyncManager_,
+		pImpl_->pTempFileCleaner_, pImpl_->pFolderImage_, pImpl_->pProfile_,
+		pImpl_->pViewModelManager_.get(), pImpl_->pEditFrameWindowManager_.get(),
+		pImpl_->pExternalEditorManager_.get(), pImpl_->pMessageWindowFontManager_.get()));
 	pImpl_->pMessageSelectionModel_.reset(
 		new MainWindowImpl::MessageSelectionModelImpl(pImpl_, false));
 	pImpl_->pListOnlyMessageSelectionModel_.reset(
