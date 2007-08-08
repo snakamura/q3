@@ -57,7 +57,7 @@ using namespace qs;
  */
 
 qm::TextColorDialog::TextColorDialog(const Data& data) :
-	DefaultDialog(IDD_TEXTCOLOR),
+	DefaultDialog(IDD_TEXTCOLOR, LANDSCAPE(IDD_TEXTCOLOR)),
 	data_(data),
 	hbrBackground_(0)
 {

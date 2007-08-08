@@ -98,6 +98,7 @@
 #define IDD_DETACH_L                    614
 #define IDD_SELECTADDRESS_L             615
 #define IDD_ATTACHMENT_L                617
+#define IDD_MESSAGEPROPERTY_L           619
 #define IDD_EXPORT_L                    620
 #define IDD_IMPORT_L                    621
 #define IDD_ACCOUNT_L                   632
@@ -137,6 +138,7 @@
 #define IDD_COLOR_L                     676
 #define IDD_COPYRULETEMPLATE_L          677
 #define IDD_ARGUMENT_L                  678
+#define IDD_CONDITIONS_L                679
 #define IDD_FILTERS_L                   680
 #define IDD_FILTER_L                    681
 #define IDD_SYNCFILTERSETS_L            682
@@ -156,6 +158,7 @@
 #define IDD_OPTIONPREVIEW_L             704
 #define IDD_OPTIONMESSAGE_L             705
 #define IDD_OPTIONHEADER_L              706
+#define IDD_TEXTCOLOR_L                 707
 #define IDD_OPTIONSECURITY_L            708
 #define IDD_OPTIONEDIT2_L               711
 #define IDD_SECURITY_L                  712
@@ -570,6 +573,14 @@
 #define IDC_FLAG                        1546
 #define IDC_BOXTYPE                     1547
 #define IDC_SUBACCOUNTLABEL             1548
+#define IDC_STATUS                      1549
+#define IDC_FROMLABEL                   1550
+#define IDC_TOLABEL                     1551
+#define IDC_SUBJECTLABEL                1552
+#define IDC_DATELABEL                   1553
+#define IDC_SIZELABEL                   1554
+#define IDC_TITLELABEL                  1555
+#define IDC_SAVELABEL                   1556
 
 // Next default values for new objects
 // 
@@ -578,7 +589,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1549
+#define _APS_NEXT_CONTROL_VALUE         1557
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

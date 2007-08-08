@@ -116,7 +116,7 @@ BEGIN
                     LVS_SINGLESEL | LVS_NOLABELWRAP | LVS_EDITLABELS | 
                     LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,5,5,127,65
     PUSHBUTTON      "名前の変更(&R)",IDC_RENAME,82,75,50,12
-    LTEXT           "フォルダ(&F)",IDC_STATIC,5,92,30,8
+    LTEXT           "フォルダ(&F)",IDC_FOLDERLABEL,5,92,30,8
     EDITTEXT        IDC_FOLDER,40,90,92,12,ES_AUTOHSCROLL
     PUSHBUTTON      "参照(&B)...",IDC_BROWSE,82,105,50,12
     CONTROL         "保存した後でフォルダを開く(&O)",IDC_OPENFOLDER,"Button",
@@ -164,25 +164,25 @@ STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "General"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "送信者",IDC_STATIC,5,5,25,8
+    LTEXT           "送信者",IDC_FROMLABEL,5,5,25,8
     CONTROL         "",IDC_FROM,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
                     WS_GROUP,35,5,97,8
-    LTEXT           "宛先",IDC_STATIC,5,15,25,8
+    LTEXT           "宛先",IDC_TOLABEL,5,15,25,8
     CONTROL         "",IDC_TO,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
                     WS_GROUP,35,15,97,8
-    LTEXT           "件名",IDC_STATIC,5,25,25,8
+    LTEXT           "件名",IDC_SUBJECTLABEL,5,25,25,8
     CONTROL         "",IDC_SUBJECT,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
                     WS_GROUP,35,25,97,8
-    LTEXT           "日付",IDC_STATIC,5,35,25,8
+    LTEXT           "日付",IDC_DATELABEL,5,35,25,8
     CONTROL         "",IDC_DATE,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
                     WS_GROUP,35,35,97,8
-    LTEXT           "フォルダ",IDC_STATIC,5,45,25,8
+    LTEXT           "フォルダ",IDC_FOLDERLABEL,5,45,25,8
     CONTROL         "",IDC_FOLDER,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
                     WS_GROUP,35,45,97,8
-    LTEXT           "ID",IDC_STATIC,5,55,25,8
+    LTEXT           "ID",IDC_IDLABEL,5,55,25,8
     CONTROL         "",IDC_ID,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
                     WS_GROUP,35,55,30,8
-    LTEXT           "サイズ",IDC_STATIC,70,55,15,8
+    LTEXT           "サイズ",IDC_SIZELABEL,70,55,18,8
     CONTROL         "",IDC_MESSAGESIZE,"Static",SS_LEFTNOWORDWRAP | 
                     SS_NOPREFIX | WS_GROUP,90,55,42,8
     CONTROL         "既読(&S)",IDC_SEEN,"Button",BS_AUTO3STATE | WS_TABSTOP,
@@ -215,7 +215,7 @@ BEGIN
                     55,125,35,10
     CONTROL         "ユーザ&4",IDC_USER4,"Button",BS_AUTO3STATE | WS_TABSTOP,
                     95,125,35,10
-    GROUPBOX        "状況",IDC_STATIC,5,65,127,83
+    GROUPBOX        "状況",IDC_STATUS,5,65,127,83
 END
 
 IDD_EXPORT DIALOG DISCARDABLE  0, 0, 137, 153
@@ -259,7 +259,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,10,85,115,10
     CONTROL         "無視(&I)",IDC_IGNORE,"Button",BS_AUTORADIOBUTTON,10,95,
                     115,10
-    GROUPBOX        "フラグ",IDC_STATIC,5,66,127,45
+    GROUPBOX        "フラグ",IDC_FLAG,5,66,127,45
     DEFPUSHBUTTON   "OK",IDOK,26,115,50,12,WS_GROUP
     PUSHBUTTON      "キャンセル",IDCANCEL,82,115,50,12
 END
@@ -958,7 +958,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,10,65,120,10
     CONTROL         "保存する(&S)",IDC_SAVE,"Button",BS_AUTORADIOBUTTON,10,
                     75,100,10
-    GROUPBOX        "",IDC_STATIC,5,45,127,45
+    GROUPBOX        "",IDC_SAVELABEL,5,45,127,45
     DEFPUSHBUTTON   "OK",IDOK,26,95,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,82,95,50,12
 END
@@ -1334,7 +1334,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "タイトル"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "タイトル(&T)",IDC_STATIC,5,5,40,8
+    LTEXT           "タイトル(&T)",IDC_TITLELABEL,5,5,40,8
     EDITTEXT        IDC_TITLE,5,15,127,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,27,35,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,82,35,50,12
@@ -1900,7 +1900,7 @@ BEGIN
     CONTROL         "List1",IDC_ATTACHMENT,"SysListView32",LVS_LIST | 
                     LVS_SINGLESEL | LVS_NOLABELWRAP | LVS_EDITLABELS | 
                     LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,5,5,115,65
-    LTEXT           "フォルダ(&F)",IDC_STATIC,5,77,30,8
+    LTEXT           "フォルダ(&F)",IDC_FOLDERLABEL,5,77,30,8
     EDITTEXT        IDC_FOLDER,40,75,80,12,ES_AUTOHSCROLL
     PUSHBUTTON      "参照(&B)...",IDC_BROWSE,125,75,50,12
     CONTROL         "保存した後でフォルダを開く(&O)",IDC_OPENFOLDER,"Button",
@@ -2106,7 +2106,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,10,70,105,10
     CONTROL         "無視(&I)",IDC_IGNORE,"Button",BS_AUTORADIOBUTTON,10,79,
                     105,10
-    GROUPBOX        "フラグ",IDC_STATIC,5,51,117,44
+    GROUPBOX        "フラグ",IDC_FLAG,5,51,117,44
     DEFPUSHBUTTON   "OK",IDOK,127,68,50,12,WS_GROUP
     PUSHBUTTON      "キャンセル",IDCANCEL,127,83,50,12
 END
@@ -2267,7 +2267,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "タイトル"
 FONT 9, "Tahoma"
 BEGIN
-    LTEXT           "タイトル(&T)",IDC_STATIC,5,5,172,8
+    LTEXT           "タイトル(&T)",IDC_TITLELABEL,5,5,172,8
     EDITTEXT        IDC_TITLE,5,15,172,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,72,35,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,127,35,50,12
@@ -3009,7 +3009,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,10,60,120,10
     CONTROL         "保存する(&S)",IDC_SAVE,"Button",BS_AUTORADIOBUTTON,10,
                     70,100,10
-    GROUPBOX        "",IDC_STATIC,5,40,172,45
+    GROUPBOX        "",IDC_SAVELABEL,5,40,172,45
     DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,127,90,50,12
 END
@@ -3158,6 +3158,116 @@ BEGIN
     GROUPBOX        "タイプ",IDC_TYPE,122,5,55,45
     DEFPUSHBUTTON   "OK",IDOK,72,80,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,127,80,50,12
+END
+
+IDD_TEXTCOLOR_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "色"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "システムの色(&S)",IDC_SYSTEMCOLOR,"Button",
+                    BS_AUTORADIOBUTTON,5,5,54,10
+    CONTROL         "カスタム(&U)",IDC_CUSTOMCOLOR,"Button",
+                    BS_AUTORADIOBUTTON,5,15,54,10
+    EDITTEXT        IDC_COLOR,15,25,52,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "前景色(&F)...",IDC_CHOOSEFOREGROUND,72,25,50,12
+    PUSHBUTTON      "背景色(&B)...",IDC_CHOOSEBACKGROUND,127,25,50,12
+    LTEXT           "引用&1",IDC_LABELQUOTE1,5,42,24,8
+    EDITTEXT        IDC_QUOTE1,35,40,47,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "選択(&C)...",IDC_CHOOSEQUOTE1,87,40,45,12
+    LTEXT           "引用&2",IDC_LABELQUOTE2,5,57,24,8
+    EDITTEXT        IDC_QUOTE2,35,55,47,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "選択(&H)...",IDC_CHOOSEQUOTE2,87,55,45,12
+    LTEXT           "リンク(&L)",IDC_LABELLINK,5,72,25,8
+    EDITTEXT        IDC_LINK,35,70,47,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "選択(&O)...",IDC_CHOOSELINK,87,70,45,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,127,90,50,12
+END
+
+IDD_CONDITIONS_L DIALOG DISCARDABLE  0, 0, 183, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "条件"
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_CONDITIONS,5,5,87,45,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "追加(&A)...",IDC_ADD,97,5,40,12
+    PUSHBUTTON      "削除(&R)",IDC_REMOVE,97,18,40,12
+    PUSHBUTTON      "編集(&E)...",IDC_EDIT,97,31,40,12
+    PUSHBUTTON      "上へ(&U)",IDC_UP,97,45,40,12
+    PUSHBUTTON      "下へ(&D)",IDC_DOWN,97,58,40,12
+    CONTROL         "すべて(&N)",IDC_AND,"Button",BS_AUTORADIOBUTTON,5,50,40,
+                    10
+    CONTROL         "いずれか(&O)",IDC_OR,"Button",BS_AUTORADIOBUTTON,45,50,
+                    45,10
+    CONTROL         "カスタム(&C)",IDC_CUSTOM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,63,50,10
+    EDITTEXT        IDC_MACRO,5,75,172,27,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,142,5,35,12
+    PUSHBUTTON      "キャンセル",IDCANCEL,142,20,35,12
+END
+
+IDD_MESSAGEPROPERTY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "一般"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "送信者",IDC_FROMLABEL,5,5,25,8
+    CONTROL         "",IDC_FROM,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,5,97,8
+    LTEXT           "宛先",IDC_TOLABEL,5,15,25,8
+    CONTROL         "",IDC_TO,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,15,97,8
+    LTEXT           "件名",IDC_SUBJECTLABEL,5,25,25,8
+    CONTROL         "",IDC_SUBJECT,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,25,97,8
+    LTEXT           "日付",IDC_DATELABEL,5,35,25,8
+    CONTROL         "",IDC_DATE,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,35,65,8
+    LTEXT           "フォルダ",IDC_FOLDERLABEL,105,35,25,8
+    CONTROL         "",IDC_FOLDER,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,135,35,40,8
+    LTEXT           "ID",IDC_IDLABEL,5,45,25,8
+    CONTROL         "",IDC_ID,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,45,65,8
+    LTEXT           "サイズ",IDC_SIZELABEL,105,45,18,8
+    CONTROL         "",IDC_MESSAGESIZE,"Static",SS_LEFTNOWORDWRAP | 
+                    SS_NOPREFIX | WS_GROUP,135,45,42,8
+    CONTROL         "既読(&S)",IDC_SEEN,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    10,62,40,10
+    CONTROL         "返信済(&R)",IDC_REPLIED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,11,72,44,10
+    CONTROL         "転送済(&F)",IDC_FORWARDED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,11,82,44,10
+    CONTROL         "送信済(&T)",IDC_SENT,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,11,92,44,10
+    CONTROL         "草稿(&D)",IDC_DRAFT,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    55,62,39,10
+    CONTROL         "マーク(&M)",IDC_MARKED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,55,72,39,10
+    CONTROL         "削除(&L)",IDC_DELETED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,55,82,39,10
+    CONTROL         "ダウンロード(&O)",IDC_DOWNLOAD,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,55,92,42,10
+    CONTROL         "本文ダウンロード(&X)",IDC_DOWNLOADTEXT,"Button",
+                    BS_AUTO3STATE | WS_TABSTOP,100,62,70,10
+    CONTROL         "宛先(&E)",IDC_TOME,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    100,72,35,10
+    CONTROL         "Cc(&I)",IDC_CCME,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,72,31,10
+    CONTROL         "ユーザ&1",IDC_USER1,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    100,82,35,10
+    CONTROL         "ユーザ&2",IDC_USER2,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,82,35,10
+    CONTROL         "ユーザ&3",IDC_USER3,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    100,92,35,10
+    CONTROL         "ユーザ&4",IDC_USER4,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,92,35,10
+    GROUPBOX        "状況",IDC_STATUS,5,54,172,50
 END
 
 
@@ -3799,6 +3909,14 @@ BEGIN
     IDD_GOROUNDDIALUP_L, DIALOG
     BEGIN
         BOTTOMMARGIN, 39
+    END
+
+    IDD_MESSAGEPROPERTY_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
     END
 END
 #endif    // APSTUDIO_INVOKED

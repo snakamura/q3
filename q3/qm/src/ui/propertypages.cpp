@@ -70,7 +70,7 @@ struct
 }
 
 qm::MessagePropertyPage::MessagePropertyPage(const MessageHolderList& l) :
-	DefaultPropertyPage(IDD_MESSAGEPROPERTY),
+	DefaultPropertyPage(IDD_MESSAGEPROPERTY, LANDSCAPE(IDD_MESSAGEPROPERTY)),
 	listMessage_(l),
 	nFlags_(0),
 	nMask_(0)

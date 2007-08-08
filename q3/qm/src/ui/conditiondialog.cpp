@@ -26,7 +26,7 @@ using namespace qs;
 
 qm::ConditionsDialog::ConditionsDialog(const WCHAR* pwszCondition) :
 	AbstractListDialog<Condition, ConditionList::List>(
-		IDD_CONDITIONS, IDD_CONDITIONS, IDC_CONDITIONS, true)
+		IDD_CONDITIONS, LANDSCAPE(IDD_CONDITIONS), IDC_CONDITIONS, true)
 {
 	assert(pwszCondition);
 	wstrCondition_ = allocWString(pwszCondition);
