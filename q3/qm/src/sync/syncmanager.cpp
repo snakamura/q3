@@ -902,7 +902,7 @@ bool qm::SyncManager::syncFolder(Document* pDocument,
 	}
 	
 	Account* pAccount = pItem->getAccount();
-	if (!pAccount->saveMessages(false)) {
+	if (!pAccount->saveMessages(false) || !pAccount->saveFolders()) {
 		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_SAVE, 0);
 		return false;
 	}

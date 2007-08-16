@@ -222,6 +222,7 @@ public:
 	bool check(AccountCheckCallback* pCallback);
 	bool save(bool bForce) const;
 	bool saveMessages(bool bForce) const;
+	bool saveFolders() const;
 	bool flushMessageStore() const;
 	bool importMessage(NormalFolder* pFolder,
 					   const CHAR* pszMessage,
