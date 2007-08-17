@@ -812,6 +812,10 @@ bool qmjunk::Tokenizer::getTokens(const Part& part,
 				return false;
 		}
 	}
+	else if (part.getEnclosedPart()) {
+		if (!getTokens(*part.getEnclosedPart(), pCallback))
+			return false;
+	}
 	else if (part.isText()) {
 		wxstring_size_ptr wstrBody(part.getBodyText());
 		if (!wstrBody.get())
@@ -1083,6 +1087,7 @@ bool qmjunk::AttachmentScanner::check(const Part& part,
 	
 	if (!bEnabled_ ||
 		!part.isAttachment() ||
+		part.getEnclosedPart() ||
 		strlen(part.getBody()) > nMaxSize_)
 		return false;
 	
