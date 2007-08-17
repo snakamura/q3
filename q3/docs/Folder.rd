@@ -43,7 +43,7 @@ IMAP4ˆÈŠO‚ÌƒAƒJƒEƒ“ƒg‚Å‚Í•K—v‚È“ÁŽêƒtƒHƒ‹ƒ_‚ÍƒAƒJƒEƒ“ƒgì¬Žž‚ÉŽ©“®“I‚Éì¬‚³‚ê‚
 IMAP4ˆÈŠO‚ÌƒAƒJƒEƒ“ƒg‚Å‚àŽ©“®‚Åì¬‚³‚ê‚½‚Ì‚Æ‚Í•Ê‚ÌƒtƒHƒ‹ƒ_‚ð“ÁŽêƒtƒHƒ‹ƒ_‚É‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B‚±‚Ì‚Æ‚«Aˆê‚Â‚ÌƒtƒHƒ‹ƒ_‚ð•¡”‚Ì“ÁŽêƒtƒHƒ‹ƒ_‚Æ‚µ‚ÄŽw’è‚·‚é‚±‚Æ‚à‚Å‚«‚Ü‚·B‚½‚Æ‚¦‚ÎAŽóM” ‚Æ‘—MT‚¦‚ð“¯‚¶ƒtƒHƒ‹ƒ_‚ÉŽw’è‚·‚é‚ÆA‘—M‚µ‚½ƒ[ƒ‹‚ÌT‚¦‚ªŽóM” ‚ÉŠi”[‚³‚ê‚é‚Ì‚ÅAƒXƒŒƒbƒh•\Ž¦‚È‚Ç‚ªs‚¢‚â‚·‚­‚È‚è‚Ü‚·B“ÁŽêƒtƒHƒ‹ƒ_‚ÌŽw’è•û–@‚ÍAƒtƒHƒ‹ƒ_‚ÌƒvƒƒpƒeƒB‚Ì((<ˆê”Ê|URL:FolderPropertyPage.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B”CˆÓ‚ÌƒtƒHƒ‹ƒ_‚ð“ÁŽêƒtƒHƒ‹ƒ_‚É‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·‚ªˆÈ‰º‚Ì§ŒÀ‚ª‚ ‚è‚Ü‚·B
 
 *IMAP4ƒAƒJƒEƒ“ƒg‚ÌŽóM” ‚Í•ÏX‚Å‚«‚Ü‚¹‚ñ
-*‘—M” ‚ÉŽw’è‚µ‚½ƒtƒHƒ‹ƒ_‚Í‘—MT‚¦ˆÈŠO‚Ì“ÁŽêƒtƒHƒ‹ƒ_‚É‚·‚é‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ
+*‘—M” ‚ÉŽw’è‚µ‚½ƒtƒHƒ‹ƒ_‚Í‘e” ˆÈŠO‚Ì“ÁŽêƒtƒHƒ‹ƒ_‚É‚·‚é‚±‚Æ‚Í‚Å‚«‚Ü‚¹‚ñ
 *ŒŸõŒ‹‰Ê‚ÍŒŸõƒtƒHƒ‹ƒ_‚ÉŽw’è‚·‚é•K—v‚ª‚ ‚è‚Ü‚·
 *ŒŸõŒ‹‰ÊˆÈŠO‚Í’ÊíƒtƒHƒ‹ƒ_‚ÉŽw’è‚·‚é•K—v‚ª‚ ‚è‚Ü‚·
 
