@@ -2880,7 +2880,7 @@ LRESULT qm::TabTitleDialog::onOk()
  */
 
 qm::ViewsColumnDialog::ViewsColumnDialog(ViewColumn* pColumn) :
-	DefaultDialog(IDD_VIEWSCOLUMN),
+	DefaultDialog(IDD_VIEWSCOLUMN, LANDSCAPE(IDD_VIEWSCOLUMN)),
 	pColumn_(pColumn)
 {
 }
@@ -3039,7 +3039,7 @@ void qm::ViewsColumnDialog::updateState()
 
 qm::ViewsDialog::ViewsDialog(ViewModelManager* pViewModelManager,
 							 ViewModel* pViewModel) :
-	DefaultDialog(IDD_VIEWS),
+	DefaultDialog(IDD_VIEWS, LANDSCAPE(IDD_VIEWS)),
 	pViewModelManager_(pViewModelManager),
 	pViewModel_(pViewModel)
 {

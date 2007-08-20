@@ -121,6 +121,8 @@
 #define IDD_RENAME_L                    652
 #define IDD_MACROSEARCH_L               653
 #define IDD_FOLDERCONDITION_L           655
+#define IDD_VIEWS_L                     657
+#define IDD_VIEWSCOLUMN_L               658
 #define IDD_FOLDERPARAMETER_L           659
 #define IDD_PARAMETER_L                 660
 #define IDD_GOROUND_L                   661
@@ -160,8 +162,10 @@
 #define IDD_OPTIONHEADER_L              706
 #define IDD_TEXTCOLOR_L                 707
 #define IDD_OPTIONSECURITY_L            708
+#define IDD_OPTIONMISC_L                709
 #define IDD_OPTIONEDIT2_L               711
 #define IDD_SECURITY_L                  712
+#define IDD_OPTIONMISC2_L               713
 #define IDD_OPTIONCONFIRM_L             715
 #define IDD_CONDITION_L                 717
 #define IDD_CONDITIONARGUMENT_L         718
@@ -581,6 +585,14 @@
 #define IDC_SIZELABEL                   1554
 #define IDC_TITLELABEL                  1555
 #define IDC_SAVELABEL                   1556
+#define IDC_VIEWPLACEMENTLABEL          1557
+#define IDC_DEFAULTENCODINGLABEL        1558
+#define IDC_LOGLABEL                    1559
+#define IDC_TEMPORARYFOLDERLABEL        1560
+#define IDC_QUOTELABEL                  1561
+#define IDC_WIDTHLABEL                  1562
+#define IDC_SORT                        1563
+#define IDC_ALIGN                       1564
 
 // Next default values for new objects
 // 
@@ -589,7 +601,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1557
+#define _APS_NEXT_CONTROL_VALUE         1565
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

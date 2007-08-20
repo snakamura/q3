@@ -1820,7 +1820,7 @@ DialogUtil::BoolProperty qm::OptionMiscDialog::boolProperties__[] = {
 };
 
 qm::OptionMiscDialog::OptionMiscDialog(Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONMISC),
+	DefaultDialog(IDD_OPTIONMISC, LANDSCAPE(IDD_OPTIONMISC)),
 	pProfile_(pProfile)
 {
 }
@@ -1995,7 +1995,7 @@ DialogUtil::BoolProperty qm::OptionMisc2Dialog::boolProperties__[] = {
 
 qm::OptionMisc2Dialog::OptionMisc2Dialog(UpdateChecker* pUpdateChecker,
 										 Profile* pProfile) :
-	DefaultDialog(IDD_OPTIONMISC2),
+	DefaultDialog(IDD_OPTIONMISC2, LANDSCAPE(IDD_OPTIONMISC2)),
 	pUpdateChecker_(pUpdateChecker),
 	pProfile_(pProfile)
 {
