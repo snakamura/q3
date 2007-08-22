@@ -3298,7 +3298,7 @@ wstring_ptr qm::RulesDialog::getLabelPrefix(const Rule* p) const
 qm::RuleDialog::RuleDialog(Rule* pRule,
 						   AccountManager* pAccountManager,
 						   Account* pCurrentAccount) :
-	DefaultDialog(IDD_RULE),
+	DefaultDialog(IDD_RULE, LANDSCAPE(IDD_RULE)),
 	pRule_(pRule),
 	pAccountManager_(pAccountManager),
 	pCurrentAccount_(pCurrentAccount),
@@ -5947,7 +5947,7 @@ void qm::SyncFiltersDialog::layout()
  */
 
 qm::SyncFilterDialog::SyncFilterDialog(SyncFilter* pSyncFilter) :
-	DefaultDialog(IDD_SYNCFILTER),
+	DefaultDialog(IDD_SYNCFILTER, LANDSCAPE(IDD_SYNCFILTER)),
 	pSyncFilter_(pSyncFilter)
 {
 }

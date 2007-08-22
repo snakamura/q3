@@ -137,6 +137,7 @@
 #define IDD_PASSWORD_L                  672
 #define IDD_RULECOLORSETS_L             673
 #define IDD_RULESCOLORS_L               674
+#define IDD_RULE_L                      675
 #define IDD_COLOR_L                     676
 #define IDD_COPYRULETEMPLATE_L          677
 #define IDD_ARGUMENT_L                  678
@@ -145,6 +146,7 @@
 #define IDD_FILTER_L                    681
 #define IDD_SYNCFILTERSETS_L            682
 #define IDD_SYNCFILTERS_L               683
+#define IDD_SYNCFILTER_L                684
 #define IDD_AUTOPILOT_L                 685
 #define IDD_AUTOPILOTENTRY_L            686
 #define IDD_ADDRESSBOOKENTRY_L          688
@@ -593,6 +595,8 @@
 #define IDC_WIDTHLABEL                  1562
 #define IDC_SORT                        1563
 #define IDC_ALIGN                       1564
+#define IDC_ACTIONLABEL                 1565
+#define IDC_USE                         1566
 
 // Next default values for new objects
 // 
@@ -601,7 +605,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1565
+#define _APS_NEXT_CONTROL_VALUE         1567
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
