@@ -72,6 +72,7 @@ Section "Core (required)" Core
   File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${SUFFIX}.dll
 !ifndef ANSI
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\msvcr80.dll"
+  File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\msvcp80.dll"
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
 !endif
   File ..\lib\stlport\lib\win\${CPU}\stlport.5.1.dll
@@ -257,6 +258,7 @@ Section "Uninstall"
   Delete $INSTDIR\qmrss${SUFFIX}.dll.0411.mui
 !ifndef ANSI
   Delete $INSTDIR\msvcr80.dll
+  Delete $INSTDIR\msvcp80.dll
   Delete $INSTDIR\Microsoft.VC80.CRT.manifest
 !endif
   Delete $INSTDIR\stlport.5.1.dll
