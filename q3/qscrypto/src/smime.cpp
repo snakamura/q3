@@ -215,8 +215,10 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	}
 	
 	X509StackPtr certs(PKCS7_get0_signers(pPKCS7.get(), 0, 0), false);
-	if (!certs.get())
+	if (!certs.get()) {
+		Util::logError(log, L"Failed to get signers.");
 		return xstring_size_ptr();
+	}
 	
 	AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
 	const AddressListParser* pFrom = part.getField(L"From", &from) == Part::FIELD_EXIST ? &from : 0;
@@ -318,8 +320,10 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 	
 	BIOPtr pIn(BIO_new_mem_buf(buf.get(), static_cast<int>(buf.size())));
 	PKCS7Ptr pPKCS7(d2i_PKCS7_bio(pIn.get(), 0));
-	if (!pPKCS7.get())
+	if (!pPKCS7.get()) {
+		Util::logError(log, L"Failed to load PKCS#7.");
 		return xstring_size_ptr();
+	}
 	
 	EVP_PKEY* pKey = static_cast<const PrivateKeyImpl*>(pPrivateKey)->getKey();
 	X509* pX509 = static_cast<const CertificateImpl*>(pCertificate)->getX509();
