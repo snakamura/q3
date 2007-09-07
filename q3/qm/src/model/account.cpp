@@ -2081,6 +2081,8 @@ bool qm::Account::saveMessages(bool bForce) const
 
 bool qm::Account::saveFolders() const
 {
+	Lock<Account> lock(*this);
+	
 	wstring_ptr wstrPath(concat(pImpl_->wstrPath_.get(), L"\\", FileNames::FOLDERS_XML));
 	FolderList l(pImpl_->listFolder_);
 	std::sort(l.begin(), l.end(), FolderLess());
