@@ -244,6 +244,7 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
 	if (!pBuf)
 		return xstring_size_ptr();
+	log.debug(L"Verified data.", reinterpret_cast<const unsigned char*>(pBuf), nBufLen);
 	
 	return createMessage(pBuf, nBufLen, part);
 }
@@ -338,6 +339,8 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::decrypt(const Part& part,
 	int nBufLen = BIO_get_mem_data(pOut.get(), &pBuf);
 	if (!pBuf)
 		return xstring_size_ptr();
+	log.debug(L"Decrypted data.", reinterpret_cast<const unsigned char*>(pBuf), nBufLen);
+	
 	return createMessage(pBuf, nBufLen, part);
 }
 
