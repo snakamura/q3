@@ -985,7 +985,7 @@ bool qs::TemporaryFileRenamer::rename()
 	const TCHAR* ptszTemporaryPath = pImpl_->tstrTemporaryPath_.get();
 #endif
 	if (::GetFileAttributes(ptszOriginalPath) != 0xffffffff) {
-		if (!::DeleteFile(ptszOriginalPath)) {
+		if (!::DeleteFile(ptszOriginalPath) && ::GetLastError() != ERROR_FILE_NOT_FOUND) {
 			T2W(ptszOriginalPath, pwszPath);
 			log.errorf(L"Could not delete file: %s, %x", pwszPath, ::GetLastError());
 			return false;
