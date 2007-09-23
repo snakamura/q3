@@ -679,11 +679,8 @@ bool qm::SyncManager::syncData(SyncData* pData)
 		}
 	}
 	
-	JunkFilter* pJunkFilter = pData->getDocument()->getJunkFilter();
-	if (pJunkFilter) {
-		if (!pJunkFilter->save(false))
-			log.error(L"Failed to save junk filter.");
-	}
+	if (!pData->getDocument()->save(false))
+		log.error(L"Failed to save.");
 	
 	return true;
 }
@@ -902,7 +899,7 @@ bool qm::SyncManager::syncFolder(Document* pDocument,
 	}
 	
 	Account* pAccount = pItem->getAccount();
-	if (!pAccount->saveMessages(false) || !pAccount->saveFolders()) {
+	if (!pAccount->saveMessages(false)) {
 		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_SAVE, 0);
 		return false;
 	}

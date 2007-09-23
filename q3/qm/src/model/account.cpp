@@ -71,6 +71,7 @@ public:
 
 public:
 	bool loadFolders();
+	bool saveFolders() const;
 	
 	bool loadSubAccounts();
 	bool saveSubAccounts(bool bForce) const;
@@ -198,6 +199,14 @@ bool qm::AccountImpl::loadFolders()
 	}
 	
 	return true;
+}
+
+bool qm::AccountImpl::saveFolders() const
+{
+	wstring_ptr wstrPath(concat(wstrPath_.get(), L"\\", FileNames::FOLDERS_XML));
+	Account::FolderList l(listFolder_);
+	std::sort(l.begin(), l.end(), FolderLess());
+	return ConfigSaver<const Account::FolderList&, FolderWriter>::save(l, wstrPath.get());
 }
 
 bool qm::AccountImpl::loadSubAccounts()
@@ -2056,7 +2065,7 @@ bool qm::Account::save(bool bForce) const
 	
 	if (!saveMessages(bForce))
 		return false;
-	if (!saveFolders() && !bForce)
+	if (!pImpl_->saveFolders() && !bForce)
 		return false;
 	if (!pImpl_->saveSubAccounts(bForce))
 		return false;
@@ -2077,16 +2086,6 @@ bool qm::Account::saveMessages(bool bForce) const
 	}
 	
 	return true;
-}
-
-bool qm::Account::saveFolders() const
-{
-	Lock<Account> lock(*this);
-	
-	wstring_ptr wstrPath(concat(pImpl_->wstrPath_.get(), L"\\", FileNames::FOLDERS_XML));
-	FolderList l(pImpl_->listFolder_);
-	std::sort(l.begin(), l.end(), FolderLess());
-	return ConfigSaver<const FolderList&, FolderWriter>::save(l, wstrPath.get());
 }
 
 bool qm::Account::flushMessageStore() const
