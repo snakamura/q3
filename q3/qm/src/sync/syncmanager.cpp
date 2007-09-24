@@ -1534,12 +1534,8 @@ qm::SyncManager::FolderWait::FolderWait(SyncManager* pSyncManager,
 		List& l = pSyncManager_->listSyncingFolder_;
 		
 		Lock<CriticalSection> lock(pSyncManager_->cs_);
-		List::iterator it = l.begin();
-		while (it != l.end()) {
-			if ((*it).first == pFolder)
-				break;
-			++it;
-		}
+		List::iterator it = std::find_if(l.begin(), l.end(),
+			boost::bind(&List::value_type::first, _1) == pFolder);
 		if (it == l.end()) {
 			std::auto_ptr<Event> pEvent(new Event(false, false));
 			l.push_back(std::make_pair(pFolder, pEvent.get()));
