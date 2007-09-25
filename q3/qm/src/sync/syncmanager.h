@@ -542,7 +542,6 @@ private:
 	
 	private:
 		SyncManager* pSyncManager_;
-		NormalFolder* pFolder_;
 		qs::Event* pEvent_;
 	};
 	friend class FolderWait;

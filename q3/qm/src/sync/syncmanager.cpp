@@ -404,9 +404,7 @@ void qm::SyncManager::dispose()
 		listThread_.clear();
 	}
 	
-	std::for_each(listSyncingFolder_.begin(), listSyncingFolder_.end(),
-		boost::bind(deleter<Event>(),
-			boost::bind(&SyncingFolderList::value_type::second, _1)));
+	assert(listSyncingFolder_.empty());
 	
 	pProfile_ = 0;
 	pSyncFilterManager_.reset(0);
@@ -673,7 +671,6 @@ bool qm::SyncManager::syncData(SyncData* pData)
 				if (!pThread->start())
 					break;
 				listThread.push_back(pThread.release());
-				
 			}
 			syncSlotData(pData, listItemList.back());
 		}
@@ -1522,52 +1519,45 @@ wstring_ptr qm::SyncManager::RuleCallbackImpl::getMessage(UINT nId,
 
 qm::SyncManager::FolderWait::FolderWait(SyncManager* pSyncManager,
 										NormalFolder* pFolder) :
-	pSyncManager_(pSyncManager),
-	pFolder_(pFolder),
-	pEvent_(0)
+	pSyncManager_(pSyncManager)
 {
 	assert(pFolder);
 	
-	bool bWait = false;
+	std::auto_ptr<Event> pEvent;
 	{
 		typedef SyncManager::SyncingFolderList List;
 		List& l = pSyncManager_->listSyncingFolder_;
 		
 		Lock<CriticalSection> lock(pSyncManager_->cs_);
-		List::iterator it = std::find_if(l.begin(), l.end(),
+		List::reverse_iterator it = std::find_if(l.rbegin(), l.rend(),
 			boost::bind(&List::value_type::first, _1) == pFolder);
-		if (it == l.end()) {
-			std::auto_ptr<Event> pEvent(new Event(false, false));
-			l.push_back(std::make_pair(pFolder, pEvent.get()));
-			pEvent_ = pEvent.release();
+		if (it != l.rend()) {
+			pEvent.reset((*it).second);
+			l.erase(it.base() - 1);
 		}
-		else {
-			pEvent_ = (*it).second;
-			bWait = true;
-		}
+		std::auto_ptr<Event> pEvent(new Event(false, false));
+		l.push_back(std::make_pair(pFolder, pEvent.get()));
+		pEvent_ = pEvent.release();
 	}
-	if (bWait)
-		pEvent_->wait();
-	
-#ifndef NDEBUG
-	{
-		Account* pAccount = pFolder_->getAccount();
-		Lock<Account> lock(*pAccount);
-		assert(pAccount->getLockCount() == 1);
-	}
-#endif
+	if (pEvent.get())
+		pEvent->wait();
 }
 
 qm::SyncManager::FolderWait::~FolderWait()
 {
-#ifndef NDEBUG
-	{
-		Account* pAccount = pFolder_->getAccount();
-		Lock<Account> lock(*pAccount);
-		assert(pAccount->getLockCount() == 1);
+	typedef SyncManager::SyncingFolderList List;
+	List& l = pSyncManager_->listSyncingFolder_;
+	
+	Lock<CriticalSection> lock(pSyncManager_->cs_);
+	List::iterator it = std::find_if(l.begin(), l.end(),
+		boost::bind(&List::value_type::second, _1) == pEvent_);
+	if (it != l.end()) {
+		delete (*it).second;
+		l.erase(it);
 	}
-#endif
-	pEvent_->set();
+	else {
+		pEvent_->set();
+	}
 }
 
 
