@@ -608,6 +608,10 @@ bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				if (wcscmp(attributes.getValue(n), L"true") == 0)
 					nFlags |= GoRoundEntry::FLAG_RECEIVE;
 			}
+			else if (wcscmp(pwszAttrName, L"applyRules") == 0) {
+				if (wcscmp(attributes.getValue(n), L"true") == 0)
+					nFlags |= GoRoundEntry::FLAG_APPLYRULES;
+			}
 			else if (wcscmp(pwszAttrName, L"folder") == 0) {
 				pwszFolder = attributes.getValue(n);
 			}
@@ -629,7 +633,8 @@ bool qm::GoRoundContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 			return false;
 		
 		if (!(nFlags & GoRoundEntry::FLAG_SEND) &&
-			!(nFlags & GoRoundEntry::FLAG_RECEIVE))
+			!(nFlags & GoRoundEntry::FLAG_RECEIVE) &&
+			!(nFlags & GoRoundEntry::FLAG_APPLYRULES))
 			nFlags |= GoRoundEntry::FLAG_SEND | GoRoundEntry::FLAG_RECEIVE;
 		
 		Term folder;
@@ -803,6 +808,7 @@ bool qm::GoRoundWriter::write(const GoRoundEntry* pEntry)
 {
 	bool bSend = pEntry->isFlag(GoRoundEntry::FLAG_SEND);
 	bool bReceive = pEntry->isFlag(GoRoundEntry::FLAG_RECEIVE);
+	bool bApplyRules = pEntry->isFlag(GoRoundEntry::FLAG_APPLYRULES);
 	bool bSelectFolder = pEntry->isFlag(GoRoundEntry::FLAG_SELECTFOLDER);
 	const SimpleAttributes::Item items[] = {
 		{ L"account",					pEntry->getAccount()																						},
@@ -811,6 +817,7 @@ bool qm::GoRoundWriter::write(const GoRoundEntry* pEntry)
 		{ L"filter",					pEntry->getFilter(),									!pEntry->getFilter()								},
 		{ L"send",						bSend ? L"true" : L"false",								!bSend || (bSend && bReceive)						},
 		{ L"receive",					bReceive ? L"true" : L"false",							!bReceive || (bSend && bReceive)					},
+		{ L"applyRules",				bApplyRules ? L"true" : L"false",						!bApplyRules										},
 		{ L"selectFolder",				bSelectFolder ? L"true" : L"false",						!bSelectFolder										}
 	};
 	SimpleAttributes attrs(items, countof(items));

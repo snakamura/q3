@@ -94,7 +94,8 @@ public:
 	enum Flag {
 		FLAG_SEND			= 0x01,
 		FLAG_RECEIVE		= 0x02,
-		FLAG_SELECTFOLDER	= 0x04
+		FLAG_APPLYRULES		= 0x04,
+		FLAG_SELECTFOLDER	= 0x10
 	};
 
 public:

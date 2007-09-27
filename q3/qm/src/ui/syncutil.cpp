@@ -66,7 +66,7 @@ bool qm::SyncUtil::syncFolders(SyncManager* pSyncManager,
 		assert(pFolder->getAccount() == pAccount);
 		assert(pFolder->isFlag(Folder::FLAG_SYNCABLE));
 		
-		pData->addFolder(pAccount, pSubAccount, pFolder,
+		pData->addReceiveFolder(pAccount, pSubAccount, pFolder,
 			pSubAccount->getSyncFilterName(), nFlags);
 	}
 	
@@ -131,10 +131,10 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 				pSubAccount->getSyncFilterName());
 			if (dialog.doModal(hwnd) != IDOK)
 				return true;
-			pData->addFolders(pAccount, pSubAccount, Term(), dialog.getName());
+			pData->addReceiveFolders(pAccount, pSubAccount, Term(), dialog.getName());
 		}
 		else {
-			pData->addFolders(pAccount, pSubAccount,
+			pData->addReceiveFolders(pAccount, pSubAccount,
 				Term(), pSubAccount->getSyncFilterName());
 		}
 	}
@@ -193,10 +193,12 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 						// TODO
 					}
 					else {
-						pData->addFolders(pAccount, pSubAccount,
+						pData->addReceiveFolders(pAccount, pSubAccount,
 							pEntry->getFolder(), pwszFilter);
 					}
 				}
+				if (pEntry->isFlag(GoRoundEntry::FLAG_APPLYRULES))
+					pData->addApplyRulesFolders(pAccount, pSubAccount, pEntry->getFolder());
 			}
 			if (bParallel)
 				pData->newSlot();
@@ -218,7 +220,8 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 			if (pOutbox)
 				pData->addSend(pAccount, pSubAccount, 0);
 			
-			pData->addFolders(pAccount, pSubAccount, Term(), pSubAccount->getSyncFilterName());
+			pData->addReceiveFolders(pAccount, pSubAccount,
+				Term(), pSubAccount->getSyncFilterName());
 		}
 	}
 	

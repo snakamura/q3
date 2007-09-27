@@ -51,26 +51,36 @@ class SyncFilterSet;
 
 class SyncItem
 {
+public:
+	enum Type {
+		TYPE_RECEIVE,
+		TYPE_SEND,
+		TYPE_APPLYRULES
+	};
+
 protected:
-	SyncItem(Account* pAccount,
+	SyncItem(Type type,
+			 Account* pAccount,
 			 SubAccount* pSubAccount);
 
 public:
 	virtual ~SyncItem();
 
 public:
+	Type getType() const;
 	Account* getAccount() const;
 	SubAccount* getSubAccount() const;
 
 public:
-	virtual bool isSend() const = 0;
-	virtual NormalFolder* getFolder() const = 0;
+	virtual NormalFolder* getSyncFolder() const = 0;
+	virtual bool isSync() const = 0;
 
 private:
 	SyncItem(const SyncItem&);
 	SyncItem& operator=(const SyncItem&);
 
 private:
+	Type type_;
 	Account* pAccount_;
 	SubAccount* pSubAccount_;
 };
@@ -103,8 +113,8 @@ public:
 	bool isFlag(Flag flag) const;
 
 public:
-	virtual bool isSend() const;
-	virtual NormalFolder* getFolder() const;
+	virtual NormalFolder* getSyncFolder() const;
+	virtual bool isSync() const;
 
 private:
 	ReceiveSyncItem(const ReceiveSyncItem&);
@@ -135,8 +145,8 @@ public:
 	const WCHAR* getMessageId() const;
 
 public:
-	virtual bool isSend() const;
-	virtual NormalFolder* getFolder() const;
+	virtual NormalFolder* getSyncFolder() const;
+	virtual bool isSync() const;
 
 private:
 	SendSyncItem(const SendSyncItem&);
@@ -145,6 +155,36 @@ private:
 private:
 	NormalFolder* pOutbox_;
 	qs::wstring_ptr wstrMessageId_;
+};
+
+
+/****************************************************************************
+ *
+ * ApplyRulesSyncItem
+ *
+ */
+
+class ApplyRulesSyncItem : public SyncItem
+{
+public:
+	ApplyRulesSyncItem(Account* pAccount,
+					   SubAccount* pSubAccount,
+					   Folder* pFolder);
+	virtual ~ApplyRulesSyncItem();
+
+public:
+	Folder* getFolder() const;
+
+public:
+	virtual NormalFolder* getSyncFolder() const;
+	virtual bool isSync() const;
+
+private:
+	ApplyRulesSyncItem(const ApplyRulesSyncItem&);
+	ApplyRulesSyncItem& operator=(const ApplyRulesSyncItem&);
+
+private:
+	Folder* pFolder_;
 };
 
 
@@ -257,18 +297,24 @@ public:
 public:
 	bool isEmpty() const;
 	void newSlot();
-	void addFolder(Account* pAccount,
-				   SubAccount* pSubAccount,
-				   NormalFolder* pFolder,
-				   const WCHAR* pwszFilterName,
-				   unsigned int nFlags);
-	void addFolders(Account* pAccount,
-					SubAccount* pSubAccount,
-					const Term& folder,
-					const WCHAR* pwszFilterName);
+	void addReceiveFolder(Account* pAccount,
+						  SubAccount* pSubAccount,
+						  NormalFolder* pFolder,
+						  const WCHAR* pwszFilterName,
+						  unsigned int nFlags);
+	void addReceiveFolders(Account* pAccount,
+						   SubAccount* pSubAccount,
+						   const Term& folder,
+						   const WCHAR* pwszFilterName);
 	void addSend(Account* pAccount,
 				 SubAccount* pSubAccount,
 				 const WCHAR* pwszMessageId);
+	void addApplyRulesFolder(Account* pAccount,
+							 SubAccount* pSubAccount,
+							 Folder* pFolder);
+	void addApplyRulesFolders(Account* pAccount,
+							  SubAccount* pSubAccount,
+							  const Term& folder);
 
 private:
 	StaticSyncData(const StaticSyncData&);
@@ -327,14 +373,21 @@ private:
 	bool syncData(SyncData* pData);
 	void syncSlotData(const SyncData* pData,
 					  const SyncData::ItemList& listItem);
-	bool syncFolder(Document* pDocument,
+	bool syncFolder(unsigned int nId,
+					Document* pDocument,
 					SyncManagerCallback* pSyncManagerCallback,
 					const SyncItem* pItem,
 					ReceiveSession* pSession);
-	bool send(Document* pDocument,
+	bool send(unsigned int nId,
+			  Document* pDocument,
 			  SyncManagerCallback* pSyncManagerCallback,
 			  const SendSyncItem* pItem);
-	bool openReceiveSession(Document* pDocument,
+	bool applyRules(unsigned int nId,
+					Document* pDocument,
+					SyncManagerCallback* pSyncManagerCallback,
+					const ApplyRulesSyncItem* pItem);
+	bool openReceiveSession(unsigned int nId,
+							Document* pDocument,
 							SyncManagerCallback* pSyncManagerCallback,
 							const SyncItem* pItem,
 							SyncData::Type type,
@@ -400,6 +453,7 @@ private:
 	{
 	public:
 		explicit ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
+											unsigned int nId,
 											Document* pDocument,
 											qs::Profile* pProfile,
 											bool bNotify);
@@ -445,7 +499,8 @@ private:
 	class SendSessionCallbackImpl : public SendSessionCallback
 	{
 	public:
-		explicit SendSessionCallbackImpl(SyncManagerCallback* pCallback);
+		SendSessionCallbackImpl(SyncManagerCallback* pCallback,
+								unsigned int nId);
 		virtual ~SendSessionCallbackImpl();
 	
 	public:
