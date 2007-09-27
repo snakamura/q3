@@ -2114,7 +2114,7 @@ private:
 	LRESULT onEdit();
 	LRESULT onAccountEditChange();
 	LRESULT onAccountSelChange();
-	LRESULT onSelectFolderClicked();
+	LRESULT onClicked();
 
 private:
 	void updateState();

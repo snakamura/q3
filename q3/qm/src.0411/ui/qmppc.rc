@@ -782,13 +782,13 @@ BEGIN
     COMBOBOX        IDC_SYNCFILTER,55,60,77,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "編集(&E)...",IDC_EDIT,95,60,37,12,NOT WS_VISIBLE
-    CONTROL         "送受信(&D)",IDC_SENDRECEIVE,"Button",BS_AUTORADIOBUTTON,
-                    10,85,65,10
-    CONTROL         "受信(&R)",IDC_RECEIVE,"Button",BS_AUTORADIOBUTTON,10,95,
-                    65,10
-    CONTROL         "送信(&E)",IDC_SEND,"Button",BS_AUTORADIOBUTTON,10,105,
-                    40,10
-    GROUPBOX        "タイプ",IDC_TYPE,5,75,80,45
+    CONTROL         "受信(&R)",IDC_RECEIVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,85,45,10
+    CONTROL         "送信(&N)",IDC_SEND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,95,40,10
+    CONTROL         "振り分け(&P)",IDC_APPLYRULES,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,105,55,10
+    GROUPBOX        "タイプ",IDC_TYPE,5,75,127,45
     DEFPUSHBUTTON   "OK",IDOK,27,125,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,82,125,50,12
 END
@@ -3149,13 +3149,13 @@ BEGIN
     COMBOBOX        IDC_SYNCFILTER,55,60,62,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "編集(&E)...",IDC_EDIT,95,60,37,12,NOT WS_VISIBLE
-    CONTROL         "送受信(&D)",IDC_SENDRECEIVE,"Button",BS_AUTORADIOBUTTON,
-                    127,15,45,10
-    CONTROL         "受信(&R)",IDC_RECEIVE,"Button",BS_AUTORADIOBUTTON,127,
-                    25,40,10
-    CONTROL         "送信(&E)",IDC_SEND,"Button",BS_AUTORADIOBUTTON,127,35,
-                    40,10
-    GROUPBOX        "タイプ",IDC_TYPE,122,5,55,45
+    CONTROL         "受信(&R)",IDC_RECEIVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,125,15,35,10
+    CONTROL         "送信(&N)",IDC_SEND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,125,25,35,10
+    CONTROL         "振り分け(&P)",IDC_APPLYRULES,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,125,35,48,10
+    GROUPBOX        "タイプ",IDC_TYPE,120,5,57,45
     DEFPUSHBUTTON   "OK",IDOK,72,80,50,12
     PUSHBUTTON      "キャンセル",IDCANCEL,127,80,50,12
 END

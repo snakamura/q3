@@ -5004,7 +5004,10 @@ LRESULT qm::GoRoundEntryDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID(IDC_EDIT, onEdit)
 		HANDLE_COMMAND_ID_CODE(IDC_ACCOUNT, CBN_EDITCHANGE, onAccountEditChange)
 		HANDLE_COMMAND_ID_CODE(IDC_ACCOUNT, CBN_SELCHANGE, onAccountSelChange)
-		HANDLE_COMMAND_ID_CODE(IDC_SELECTFOLDER, BN_CLICKED, onSelectFolderClicked)
+		HANDLE_COMMAND_ID_CODE(IDC_SELECTFOLDER, BN_CLICKED, onClicked)
+		HANDLE_COMMAND_ID_CODE(IDC_RECEIVE, BN_CLICKED, onClicked)
+		HANDLE_COMMAND_ID_CODE(IDC_SEND, BN_CLICKED, onClicked)
+		HANDLE_COMMAND_ID_CODE(IDC_APPLYRULES, BN_CLICKED, onClicked)
 	END_COMMAND_HANDLER()
 	return DefaultDialog::onCommand(nCode, nId);
 }
@@ -5052,13 +5055,12 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 		setDlgItemText(IDC_SYNCFILTER, pwszFilter);
 	sendDlgItemMessage(IDC_SYNCFILTER, CB_SETDROPPEDWIDTH, 150);
 	
-	if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND) &&
-		pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
-		Button_SetCheck(getDlgItem(IDC_SENDRECEIVE), BST_CHECKED);
-	else if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND))
-		Button_SetCheck(getDlgItem(IDC_SEND), BST_CHECKED);
-	else if (pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
+	if (pEntry_->isFlag(GoRoundEntry::FLAG_RECEIVE))
 		Button_SetCheck(getDlgItem(IDC_RECEIVE), BST_CHECKED);
+	if (pEntry_->isFlag(GoRoundEntry::FLAG_SEND))
+		Button_SetCheck(getDlgItem(IDC_SEND), BST_CHECKED);
+	if (pEntry_->isFlag(GoRoundEntry::FLAG_APPLYRULES))
+		Button_SetCheck(getDlgItem(IDC_APPLYRULES), BST_CHECKED);
 	
 	init(false);
 	updateState();
@@ -5098,12 +5100,12 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	unsigned int nFlags = 0;
 	if (Button_GetCheck(getDlgItem(IDC_SELECTFOLDER)) == BST_CHECKED)
 		nFlags |= GoRoundEntry::FLAG_SELECTFOLDER;
-	if (Button_GetCheck(getDlgItem(IDC_SENDRECEIVE)) == BST_CHECKED)
-		nFlags |= GoRoundEntry::FLAG_SEND | GoRoundEntry::FLAG_RECEIVE;
-	else if (Button_GetCheck(getDlgItem(IDC_RECEIVE)) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_RECEIVE)) == BST_CHECKED)
 		nFlags |= GoRoundEntry::FLAG_RECEIVE;
-	else if (Button_GetCheck(getDlgItem(IDC_SEND)) == BST_CHECKED)
+	if (Button_GetCheck(getDlgItem(IDC_SEND)) == BST_CHECKED)
 		nFlags |= GoRoundEntry::FLAG_SEND;
+	if (Button_GetCheck(getDlgItem(IDC_APPLYRULES)) == BST_CHECKED)
+		nFlags |= GoRoundEntry::FLAG_APPLYRULES;
 	
 	wstring_ptr wstrFilter(getDlgItemText(IDC_SYNCFILTER));
 	const WCHAR* pwszFilter = wstrFilter.get();
@@ -5139,7 +5141,7 @@ LRESULT qm::GoRoundEntryDialog::onAccountSelChange()
 	return 0;
 }
 
-LRESULT qm::GoRoundEntryDialog::onSelectFolderClicked()
+LRESULT qm::GoRoundEntryDialog::onClicked()
 {
 	updateState();
 	return 0;
@@ -5157,8 +5159,18 @@ void qm::GoRoundEntryDialog::updateState()
 	updateFolder(pAccount);
 	updateFilter();
 	
-	Window(getDlgItem(IDC_FOLDER)).enableWindow(
+	bool bFolder = Button_GetCheck(getDlgItem(IDC_RECEIVE)) == BST_CHECKED ||
+		Button_GetCheck(getDlgItem(IDC_APPLYRULES)) == BST_CHECKED;
+	Window(getDlgItem(IDC_FOLDER)).enableWindow(bFolder &&
 		Button_GetCheck(getDlgItem(IDC_SELECTFOLDER)) != BST_CHECKED);
+	Window(getDlgItem(IDC_SELECTFOLDER)).enableWindow(bFolder);
+	Window(getDlgItem(IDC_RECEIVE)).enableWindow(
+		Button_GetCheck(getDlgItem(IDC_APPLYRULES)) != BST_CHECKED);
+	Window(getDlgItem(IDC_SEND)).enableWindow(
+		Button_GetCheck(getDlgItem(IDC_APPLYRULES)) != BST_CHECKED);
+	Window(getDlgItem(IDC_APPLYRULES)).enableWindow(
+		Button_GetCheck(getDlgItem(IDC_RECEIVE)) != BST_CHECKED &&
+		Button_GetCheck(getDlgItem(IDC_SEND)) != BST_CHECKED);
 	Window(getDlgItem(IDOK)).enableWindow(*wstrAccount.get() != L'\0');
 }
 

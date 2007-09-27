@@ -241,9 +241,9 @@
 #define IDC_PARALLEL                    1174
 #define IDC_DIALUP                      1184
 #define IDC_SUBACCOUNT                  1186
-#define IDC_SENDRECEIVE                 1187
 #define IDC_RECEIVE                     1188
 #define IDC_SEND                        1189
+#define IDC_APPLYRULES                  1190
 #define IDC_SELECTFOLDER                1191
 #define IDC_RECEIVEPORT                 1201
 #define IDC_SENDPORT                    1202
@@ -447,7 +447,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        227
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1468
+#define _APS_NEXT_CONTROL_VALUE         1570
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
