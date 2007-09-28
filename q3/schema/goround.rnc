@@ -59,6 +59,10 @@ entry = element entry {
 	attribute receive {
 		xsd:boolean
 	}?,
+	## 振り分けるかどうか
+	attribute applyRules {
+		xsd:boolean
+	}?,
 	(
 		## 受信するフォルダ
 		attribute folder {
