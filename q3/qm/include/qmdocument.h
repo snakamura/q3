@@ -38,6 +38,7 @@ class RuleManager;
 class ScriptManager;
 class Security;
 class SignatureManager;
+class SyncFilterManager;
 class JunkFilter;
 class TemplateManager;
 class UndoManager;
@@ -80,6 +81,7 @@ public:
 	ScriptManager* getScriptManager() const;
 	SignatureManager* getSignatureManager() const;
 	FixedFormTextManager* getFixedFormTextManager() const;
+	SyncFilterManager* getSyncFilterManager() const;
 	AddressBook* getAddressBook() const;
 	RecentAddress* getRecentAddress() const;
 	Security* getSecurity() const;

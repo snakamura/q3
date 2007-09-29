@@ -382,7 +382,6 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 							   GoRound* pGoRound,
 							   FilterManager* pFilterManager,
 							   ColorManager* pColorManager,
-							   SyncFilterManager* pSyncFilterManager,
 							   AutoPilotManager* pAutoPilotManager,
 							   UpdateChecker* pUpdateChecker,
 							   MainWindow* pMainWindow,
@@ -408,7 +407,6 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pGoRound_(pGoRound),
 	pFilterManager_(pFilterManager),
 	pColorManager_(pColorManager),
-	pSyncFilterManager_(pSyncFilterManager),
 	pAutoPilotManager_(pAutoPilotManager),
 	pUpdateChecker_(pUpdateChecker),
 	pMainWindow_(pMainWindow),
@@ -835,11 +833,11 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL3(PANEL_ADDRESSBOOK, OptionAddressBook, pDocument_->getAddressBook(), pAddressBookFrameWindowManager_, pProfile_);
 			PANEL4(PANEL_RULES, RuleSets, pDocument_->getRuleManager(), pDocument_, pProfile_, pCurrentAccount_);
 			PANEL4(PANEL_COLORS, ColorSets, pColorManager_, pDocument_, pProfile_, pCurrentAccount_);
-			PANEL4(PANEL_GOROUND, GoRound, pGoRound_, pDocument_, pSyncFilterManager_, pProfile_);
+			PANEL4(PANEL_GOROUND, GoRound, pGoRound_, pDocument_, pDocument_->getSyncFilterManager(), pProfile_);
 			PANEL3(PANEL_SIGNATURES, Signatures, pDocument_->getSignatureManager(), pDocument_, pProfile_);
 			PANEL2(PANEL_FIXEDFORMTEXTS, FixedFormTexts, pDocument_->getFixedFormTextManager(), pProfile_);
 			PANEL1(PANEL_FILTERS, Filters, pFilterManager_);
-			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pSyncFilterManager_, pProfile_);
+			PANEL2(PANEL_SYNCFILTERS, SyncFilterSets, pDocument_->getSyncFilterManager(), pProfile_);
 			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
 			PANEL2(PANEL_SYNC, OptionSync, pDocument_->getRecents(), pProfile_);
 			PANEL1(PANEL_SEARCH, OptionSearch, pProfile_);
@@ -1257,9 +1255,9 @@ int qm::OptionDialogManager::showDialog(HWND hwndParent,
 	assert(pAddressBookFrameWindowManager_);
 	
 	OptionDialog dialog(pDocument_, pGoRound_, pFilterManager_,
-		pColorManager_, pSyncManager_->getSyncFilterManager(),
-		pAutoPilotManager_, pUpdateChecker_, pMainWindow_, pFolderWindow_,
-		pFolderComboBox_, pListWindow_, pFolderListWindow_, pPreviewWindow_,
+		pColorManager_, pAutoPilotManager_, pUpdateChecker_,
+		pMainWindow_, pFolderWindow_, pFolderComboBox_,
+		pListWindow_, pFolderListWindow_, pPreviewWindow_,
 		pMessageFrameWindowManager_, pEditFrameWindowManager_,
 #ifdef QMTABWINDOW
 		pTabWindow_,

@@ -346,7 +346,8 @@ public:
 	};
 
 public:
-	explicit SyncManager(qs::Profile* pProfile);
+	SyncManager(SyncFilterManager* pSyncFilterManager,
+				qs::Profile* pProfile);
 	~SyncManager();
 
 public:
@@ -609,7 +610,7 @@ private:
 private:
 	qs::Profile* pProfile_;
 	qs::Synchronizer* pSynchronizer_;
-	std::auto_ptr<SyncFilterManager> pSyncFilterManager_;
+	SyncFilterManager* pSyncFilterManager_;
 	
 	ThreadList listThread_;
 	SyncingFolderList listSyncingFolder_;

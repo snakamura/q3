@@ -5556,7 +5556,7 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 	
 	Account* pAccount = pAccountSelectionModel_->getAccount();
 	AccountDialog dialog(pDocument_, pAccount, pPasswordManager_,
-		pSyncManager_->getSyncFilterManager(), pDocument_->getSecurity(),
+		pDocument_->getSyncFilterManager(), pDocument_->getSecurity(),
 		pDocument_->getJunkFilter(), pFolderImage_, pOptionDialogManager_, pProfile_);
 	dialog.doModal(hwnd_, 0);
 	

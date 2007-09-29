@@ -15,6 +15,7 @@
 #include <qmpassword.h>
 #include <qmrecents.h>
 #include <qmsecurity.h>
+#include <qmsyncfilter.h>
 #include <qmjunk.h>
 
 #include <qsconv.h>
@@ -73,6 +74,7 @@ struct qm::DocumentImpl
 	std::auto_ptr<ScriptManager> pScriptManager_;
 	std::auto_ptr<SignatureManager> pSignatureManager_;
 	std::auto_ptr<FixedFormTextManager> pFixedFormTextManager_;
+	std::auto_ptr<SyncFilterManager> pSyncFilterManager_;
 	std::auto_ptr<AddressBook> pAddressBook_;
 	std::auto_ptr<RecentAddress> pRecentAddress_;
 	std::auto_ptr<Security> pSecurity_;
@@ -129,12 +131,18 @@ qm::Document::Document(Profile* pProfile,
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pPasswordManager_ = pPasswordManager;
-	pImpl_->pRuleManager_.reset(new RuleManager(app.getProfilePath(FileNames::RULES_XML).get()));
+	pImpl_->pRuleManager_.reset(new RuleManager(
+		app.getProfilePath(FileNames::RULES_XML).get()));
 	pImpl_->pTemplateManager_.reset(new TemplateManager(pwszMailFolder));
 	pImpl_->pScriptManager_.reset(new ScriptManager(pwszMailFolder));
-	pImpl_->pSignatureManager_.reset(new SignatureManager(app.getProfilePath(FileNames::SIGNATURES_XML).get()));
-	pImpl_->pFixedFormTextManager_.reset(new FixedFormTextManager(app.getProfilePath(FileNames::TEXTS_XML).get()));
-	pImpl_->pAddressBook_.reset(new AddressBook(app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(), pProfile, true));
+	pImpl_->pSignatureManager_.reset(new SignatureManager(
+		app.getProfilePath(FileNames::SIGNATURES_XML).get()));
+	pImpl_->pFixedFormTextManager_.reset(new FixedFormTextManager(
+		app.getProfilePath(FileNames::TEXTS_XML).get()));
+	pImpl_->pSyncFilterManager_.reset(new SyncFilterManager(
+		app.getProfilePath(FileNames::SYNCFILTERS_XML).get()));
+	pImpl_->pAddressBook_.reset(new AddressBook(
+		app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(), pProfile, true));
 	pImpl_->pRecentAddress_.reset(new RecentAddress(pImpl_->pAddressBook_.get(), pProfile));
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
 	pImpl_->pRecents_.reset(new Recents(this, pProfile));
@@ -461,6 +469,11 @@ SignatureManager* qm::Document::getSignatureManager() const
 FixedFormTextManager* qm::Document::getFixedFormTextManager() const
 {
 	return pImpl_->pFixedFormTextManager_.get();
+}
+
+SyncFilterManager* qm::Document::getSyncFilterManager() const
+{
+	return pImpl_->pSyncFilterManager_.get();
 }
 
 AddressBook* qm::Document::getAddressBook() const

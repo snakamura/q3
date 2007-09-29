@@ -243,7 +243,6 @@ public:
 				 GoRound* pGoRound,
 				 FilterManager* pFilterManager,
 				 ColorManager* pColorManager,
-				 SyncFilterManager* pSyncFilterManager,
 				 AutoPilotManager* pAutoPilotManager,
 				 UpdateChecker* pUpdateChecker,
 				 MainWindow* pMainWindow,
@@ -333,7 +332,6 @@ private:
 	GoRound* pGoRound_;
 	FilterManager* pFilterManager_;
 	ColorManager* pColorManager_;
-	SyncFilterManager* pSyncFilterManager_;
 	AutoPilotManager* pAutoPilotManager_;
 	UpdateChecker* pUpdateChecker_;
 	MainWindow* pMainWindow_;

@@ -462,20 +462,19 @@ void qm::StaticSyncData::addApplyRulesFolders(Account* pAccount,
  *
  */
 
-qm::SyncManager::SyncManager(Profile* pProfile) :
+qm::SyncManager::SyncManager(SyncFilterManager* pSyncFilterManager,
+							 Profile* pProfile) :
+	pSyncFilterManager_(pSyncFilterManager),
 	pProfile_(pProfile),
 	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
 	nDialupConnectionCount_(0),
 	bDialup_(false)
 {
-	pSyncFilterManager_.reset(new SyncFilterManager(
-		Application::getApplication().getProfilePath(FileNames::SYNCFILTERS_XML).get()));
 }
 
 qm::SyncManager::~SyncManager()
 {
-	if (pSyncFilterManager_.get())
-		dispose();
+	dispose();
 }
 
 void qm::SyncManager::dispose()
@@ -501,7 +500,6 @@ void qm::SyncManager::dispose()
 	assert(listSyncingFolder_.empty());
 	
 	pProfile_ = 0;
-	pSyncFilterManager_.reset(0);
 }
 
 bool qm::SyncManager::sync(std::auto_ptr<SyncData> pData)
@@ -525,7 +523,7 @@ bool qm::SyncManager::isSyncing() const
 
 SyncFilterManager* qm::SyncManager::getSyncFilterManager() const
 {
-	return pSyncFilterManager_.get();
+	return pSyncFilterManager_;
 }
 
 void qm::SyncManager::addSyncManagerHandler(SyncManagerHandler* pHandler)

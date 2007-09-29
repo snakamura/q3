@@ -856,7 +856,9 @@ bool qm::Application::initialize()
 	
 	pImpl_->pDocument_.reset(new Document(pImpl_->pProfile_.get(),
 		pImpl_->pPasswordManager_.get()));
-	pImpl_->pSyncManager_.reset(new SyncManager(pImpl_->pProfile_.get()));
+	pImpl_->pSyncManager_.reset(new SyncManager(
+		pImpl_->pDocument_->getSyncFilterManager(),
+		pImpl_->pProfile_.get()));
 	pImpl_->pSyncDialogManager_.reset(new SyncDialogManager(
 		pImpl_->pProfile_.get(), pImpl_->pPasswordManager_.get()));
 	pImpl_->pSyncQueue_.reset(new SyncQueue(pImpl_->pSyncManager_.get(),
