@@ -3594,6 +3594,68 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 
 /****************************************************************************
  *
+ * MessageApplyRuleBackgroundAction
+ *
+ */
+
+qm::MessageApplyRuleBackgroundAction::MessageApplyRuleBackgroundAction(SyncManager* pSyncManager,
+																	   Document* pDocument,
+																	   FolderModelBase* pFolderModel,
+																	   SyncDialogManager* pSyncDialogManager,
+																	   bool bAll,
+																	   HWND hwnd) :
+	pSyncManager_(pSyncManager),
+	pDocument_(pDocument),
+	pFolderModel_(pFolderModel),
+	pSyncDialogManager_(pSyncDialogManager),
+	bAll_(bAll),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageApplyRuleBackgroundAction::~MessageApplyRuleBackgroundAction()
+{
+}
+
+void qm::MessageApplyRuleBackgroundAction::invoke(const ActionEvent& event)
+{
+	Account::FolderList listFolder;
+	
+	if (bAll_) {
+		Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+		if (!pAccount)
+			return;
+		
+		const Account::FolderList & l = pAccount->getFolders();
+		std::remove_copy_if(l.begin(), l.end(), std::back_inserter(listFolder),
+			boost::bind(std::logical_or<bool>(),
+				boost::bind(&Folder::getType, _1) != Folder::TYPE_NORMAL,
+				boost::bind(&Folder::isHidden, _1)));
+	}
+	else {
+		Folder* pFolder = pFolderModel_->getCurrent().second;
+		if (!pFolder)
+			return;
+		listFolder.push_back(pFolder);
+	}
+	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
+	if (!SyncUtil::applyRules(pSyncManager_, pDocument_, pSyncDialogManager_, listFolder)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_APPLYRULE);
+		return;
+	}
+}
+
+bool qm::MessageApplyRuleBackgroundAction::isEnabled(const ActionEvent& event)
+{
+	if (bAll_)
+		return FolderActionUtil::getAccount(pFolderModel_) != 0;
+	else
+		return pFolderModel_->getCurrent().second != 0;
+}
+
+
+/****************************************************************************
+ *
  * MessageCertificateAction
  *
  */

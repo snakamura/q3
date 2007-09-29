@@ -74,6 +74,7 @@ class HelpAboutAction;
 class HelpCheckUpdateAction;
 class HelpOpenURLAction;
 class MessageApplyRuleAction;
+class MessageApplyRuleBackgroundAction;
 class MessageCertificateAction;
 class MessageClearRecentsAction;
 class MessageCombineAction;
@@ -1702,6 +1703,41 @@ private:
 	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;
 	qs::Profile* pProfile_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageApplyRuleBackgroundAction
+ *
+ */
+
+class MessageApplyRuleBackgroundAction : public qs::AbstractAction
+{
+public:
+	MessageApplyRuleBackgroundAction(SyncManager* pSyncManager,
+									 Document* pDocument,
+									 FolderModelBase* pFolderModel,
+									 SyncDialogManager* pSyncDialogManager,
+									 bool bAll,
+									 HWND hwnd);
+	virtual ~MessageApplyRuleBackgroundAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	MessageApplyRuleBackgroundAction(const MessageApplyRuleBackgroundAction&);
+	MessageApplyRuleBackgroundAction& operator=(const MessageApplyRuleBackgroundAction&);
+
+private:
+	SyncManager* pSyncManager_;
+	Document* pDocument_;
+	FolderModelBase* pFolderModel_;
+	SyncDialogManager* pSyncDialogManager_;
+	bool bAll_;
+	HWND hwnd_;
 };
 
 

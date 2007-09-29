@@ -62,39 +62,12 @@ bool qm::SyncUtil::syncFolders(SyncManager* pSyncManager,
 	
 	for (Account::NormalFolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		NormalFolder* pFolder = *it;
-		
 		assert(pFolder->getAccount() == pAccount);
 		assert(pFolder->isFlag(Folder::FLAG_SYNCABLE));
-		
 		pData->addReceiveFolder(pAccount, pSubAccount, pFolder,
 			pSubAccount->getSyncFilterName(), nFlags);
 	}
 	
-	return syncData(pSyncManager, pSyncDialogManager,
-		pSubAccount, std::auto_ptr<SyncData>(pData));
-}
-
-bool qm::SyncUtil::send(SyncManager* pSyncManager,
-						Document* pDocument,
-						SyncDialogManager* pSyncDialogManager,
-						SyncData::Type type,
-						Account* pAccount,
-						SubAccount* pSubAccount,
-						const WCHAR* pwszMessageId)
-{
-	assert(pSyncManager);
-	assert(pDocument);
-	assert(pSyncDialogManager);
-	assert(pAccount);
-	assert(pSubAccount);
-	
-	NormalFolder* pOutbox = static_cast<NormalFolder*>(
-		pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
-	if (!pOutbox)
-		return false;
-	
-	std::auto_ptr<StaticSyncData> pData(new StaticSyncData(pDocument, type, pSyncManager));
-	pData->addSend(pAccount, pSubAccount, pwszMessageId);
 	return syncData(pSyncManager, pSyncDialogManager,
 		pSubAccount, std::auto_ptr<SyncData>(pData));
 }
@@ -141,6 +114,56 @@ bool qm::SyncUtil::sync(SyncManager* pSyncManager,
 	
 	if (pData->isEmpty())
 		return true;
+	
+	return syncData(pSyncManager, pSyncDialogManager,
+		pSubAccount, std::auto_ptr<SyncData>(pData));
+}
+
+bool qm::SyncUtil::send(SyncManager* pSyncManager,
+						Document* pDocument,
+						SyncDialogManager* pSyncDialogManager,
+						SyncData::Type type,
+						Account* pAccount,
+						SubAccount* pSubAccount,
+						const WCHAR* pwszMessageId)
+{
+	assert(pSyncManager);
+	assert(pDocument);
+	assert(pSyncDialogManager);
+	assert(pAccount);
+	assert(pSubAccount);
+	
+	NormalFolder* pOutbox = static_cast<NormalFolder*>(
+		pAccount->getFolderByBoxFlag(Folder::FLAG_OUTBOX));
+	if (!pOutbox)
+		return false;
+	
+	std::auto_ptr<StaticSyncData> pData(new StaticSyncData(pDocument, type, pSyncManager));
+	pData->addSend(pAccount, pSubAccount, pwszMessageId);
+	return syncData(pSyncManager, pSyncDialogManager,
+		pSubAccount, std::auto_ptr<SyncData>(pData));
+}
+
+bool qm::SyncUtil::applyRules(SyncManager* pSyncManager,
+							  Document* pDocument,
+							  SyncDialogManager* pSyncDialogManager,
+							  const Account::FolderList& listFolder)
+{
+	assert(pSyncManager);
+	assert(pDocument);
+	assert(pSyncDialogManager);
+	assert(!listFolder.empty());
+	
+	std::auto_ptr<StaticSyncData> pData(new StaticSyncData(
+		pDocument, SyncData::TYPE_MANUAL, pSyncManager));
+	
+	Account* pAccount = listFolder.front()->getAccount();
+	SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
+	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
+		Folder* pFolder = *it;
+		assert(pFolder->getAccount() == pAccount);
+		pData->addApplyRulesFolder(pAccount, pSubAccount, pFolder);
+	}
 	
 	return syncData(pSyncManager, pSyncDialogManager,
 		pSubAccount, std::auto_ptr<SyncData>(pData));

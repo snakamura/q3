@@ -65,6 +65,10 @@ public:
 					 Account* pAccount,
 					 SubAccount* pSubAccount,
 					 const WCHAR* pwszMessageId);
+	static bool applyRules(SyncManager* pSyncManager,
+						   Document* pDocument,
+						   SyncDialogManager* pSyncDialogManager,
+						   const Account::FolderList& listFolder);
 	static bool goRound(SyncManager* pSyncManager,
 						Document* pDocument,
 						SyncDialogManager* pSyncDialogManager,

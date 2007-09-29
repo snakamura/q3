@@ -714,6 +714,22 @@ void qm::MainWindowImpl::initActions()
 		pActionInvoker_.get(),
 		pThis_->getHandle(),
 		pProfile_);
+	ADD_ACTION6(MessageApplyRuleBackgroundAction,
+		IDM_MESSAGE_APPLYRULEBACKGROUND,
+		pSyncManager_,
+		pDocument_,
+		pFolderModel_.get(),
+		pSyncDialogManager_,
+		false,
+		pThis_->getHandle());
+	ADD_ACTION6(MessageApplyRuleBackgroundAction,
+		IDM_MESSAGE_APPLYRULEBACKGROUNDALL,
+		pSyncManager_,
+		pDocument_,
+		pFolderModel_.get(),
+		pSyncDialogManager_,
+		true,
+		pThis_->getHandle());
 	ADD_ACTION1(MessageCertificateAction,
 		IDM_MESSAGE_CERTIFICATE,
 		pMessageWindow_);
