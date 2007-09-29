@@ -20,6 +20,8 @@
 
 メニューから((<[メッセージ]-[振り分け]|URL:MessageApplyRuleAction.html>))を選択すると現在選択しているフォルダ内の表示されているメッセージを振り分けます。((<フィルタ|URL:Filter.html>))によって表示されないようになっているメッセージは振り分けられません。((<[メッセージ]-[すべてのフォルダを振り分け]|URL:MessageApplyRuleAllAction.html>))を選択すると、アカウント内の全ての通常フォルダ内にあるメッセージを振り分けます。ただし、隠されているフォルダは振り分け対象になりません。選択されているメッセージだけ振り分けるには、((<[メッセージ]-[選択されたメッセージを振り分け]|URL:MessageApplyRuleSelectedAction.html>))を選択します。
 
+さらに、((<MessageApplyRuleBackgroundアクション|URL:MessageApplyRuleBackgroundAction.html>))や((<MessageApplyRuleBackgroundAllアクション|URL:MessageApplyRuleBackgroundAllAction.html>))を使うと、振り分けをバックグラウンドで実行することができます。この場合、自動振り分けで既存のメッセージを振り分けるのと同じように振り分けられます。
+
 
 ==自動振り分け
 メッセージをサーバから受信したときに自動で振り分けを実行します。

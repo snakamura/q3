@@ -101,6 +101,8 @@
 *((<MessageAddJunkアクション|URL:MessageAddJunkAction.html>))
 *((<MessageApplyRuleアクション|URL:MessageApplyRuleAction.html>))
 *((<MessageApplyRuleAllアクション|URL:MessageApplyRuleAllAction.html>))
+*((<MessageApplyRuleBackgroundアクション|URL:MessageApplyRuleBackgroundAction.html>))
+*((<MessageApplyRuleBackgroundAllアクション|URL:MessageApplyRuleBackgroundAllAction.html>))
 *((<MessageApplyRuleSelectedアクション|URL:MessageApplyRuleSelectedAction.html>))
 *((<MessageCertificateアクション|URL:MessageCertificateAction.html>))
 *((<MessageClearRecentsアクション|URL:MessageClearRecentsAction.html>))
