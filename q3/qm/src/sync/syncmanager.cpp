@@ -923,7 +923,7 @@ bool qm::SyncManager::syncFolder(unsigned int nId,
 	assert(pSession);
 	
 	const ReceiveSyncItem* pReceiveItem = pItem->getType() == SyncItem::TYPE_RECEIVE ?
-		0 : static_cast<const ReceiveSyncItem*>(pItem);
+		static_cast<const ReceiveSyncItem*>(pItem) : 0;
 	
 	NormalFolder* pFolder = pItem->getSyncFolder();
 	if (!pFolder || !pFolder->isFlag(Folder::FLAG_SYNCABLE))
