@@ -1,5 +1,9 @@
 [3.0.2]
+*msvcp80.dllがインストールされず、起動できないことがあったのを修正
 *同期終了時のfolders.xmlの保存でエラーが発生することがあるのを修正
+*同じフォルダを同時に同期しないための仕組みが正しく動いていなかったのを修正
+*巡回の設定を使ってバックグラウンドで振り分けることができるようにした
+*MessageApplyRuleBackgroundアクションとMessageApplyRuleBackgroundAllアクションを追加
 
 [3.0.1]
 *multipart/appledoubleの下にあるapplication/applefileは添付ファイルとして扱わないようにした
