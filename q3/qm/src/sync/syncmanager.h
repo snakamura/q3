@@ -23,9 +23,11 @@
 
 namespace qm {
 
-class SyncItem;
-	class ReceiveSyncItem;
-	class SendSyncItem;
+class SyncDataItem;
+	class SyncItem;
+		class ReceiveSyncItem;
+		class SendSyncItem;
+	class ApplyRulesSyncDataItem;
 class SyncData;
 	class StaticSyncData;
 class SyncManager;
@@ -45,11 +47,11 @@ class SyncFilterSet;
 
 /****************************************************************************
  *
- * SyncItem
+ * SyncDataItem
  *
  */
 
-class SyncItem
+class SyncDataItem
 {
 public:
 	enum Type {
@@ -59,6 +61,38 @@ public:
 	};
 
 protected:
+	SyncDataItem(Type type,
+				 Account* pAccount);
+
+public:
+	virtual ~SyncDataItem();
+
+public:
+	Type getType() const;
+	Account* getAccount() const;
+
+public:
+	virtual const SyncItem* getSyncItem() const = 0;
+
+private:
+	SyncDataItem(const SyncDataItem&);
+	SyncDataItem& operator=(const SyncDataItem&);
+
+private:
+	Type type_;
+	Account* pAccount_;
+};
+
+
+/****************************************************************************
+ *
+ * SyncItem
+ *
+ */
+
+class SyncItem : public SyncDataItem
+{
+protected:
 	SyncItem(Type type,
 			 Account* pAccount,
 			 SubAccount* pSubAccount);
@@ -67,21 +101,18 @@ public:
 	virtual ~SyncItem();
 
 public:
-	Type getType() const;
-	Account* getAccount() const;
 	SubAccount* getSubAccount() const;
 
 public:
 	virtual NormalFolder* getSyncFolder() const = 0;
-	virtual bool isSync() const = 0;
+	virtual unsigned int getSelectFlags() const = 0;
+	virtual const SyncFilterSet* getSyncFilterSet() const = 0;
 
 private:
 	SyncItem(const SyncItem&);
 	SyncItem& operator=(const SyncItem&);
 
 private:
-	Type type_;
-	Account* pAccount_;
 	SubAccount* pSubAccount_;
 };
 
@@ -109,12 +140,12 @@ public:
 	virtual ~ReceiveSyncItem();
 
 public:
-	const SyncFilterSet* getFilterSet() const;
-	bool isFlag(Flag flag) const;
+	virtual const SyncItem* getSyncItem() const;
 
 public:
 	virtual NormalFolder* getSyncFolder() const;
-	virtual bool isSync() const;
+	virtual unsigned int getSelectFlags() const;
+	virtual const SyncFilterSet* getSyncFilterSet() const;
 
 private:
 	ReceiveSyncItem(const ReceiveSyncItem&);
@@ -145,8 +176,12 @@ public:
 	const WCHAR* getMessageId() const;
 
 public:
+	virtual const SyncItem* getSyncItem() const;
+
+public:
 	virtual NormalFolder* getSyncFolder() const;
-	virtual bool isSync() const;
+	virtual unsigned int getSelectFlags() const;
+	virtual const SyncFilterSet* getSyncFilterSet() const;
 
 private:
 	SendSyncItem(const SendSyncItem&);
@@ -160,28 +195,26 @@ private:
 
 /****************************************************************************
  *
- * ApplyRulesSyncItem
+ * ApplyRulesSyncDataItem
  *
  */
 
-class ApplyRulesSyncItem : public SyncItem
+class ApplyRulesSyncDataItem : public SyncDataItem
 {
 public:
-	ApplyRulesSyncItem(Account* pAccount,
-					   SubAccount* pSubAccount,
-					   Folder* pFolder);
-	virtual ~ApplyRulesSyncItem();
+	ApplyRulesSyncDataItem(Account* pAccount,
+						   Folder* pFolder);
+	virtual ~ApplyRulesSyncDataItem();
 
 public:
 	Folder* getFolder() const;
 
 public:
-	virtual NormalFolder* getSyncFolder() const;
-	virtual bool isSync() const;
+	virtual const SyncItem* getSyncItem() const;
 
 private:
-	ApplyRulesSyncItem(const ApplyRulesSyncItem&);
-	ApplyRulesSyncItem& operator=(const ApplyRulesSyncItem&);
+	ApplyRulesSyncDataItem(const ApplyRulesSyncDataItem&);
+	ApplyRulesSyncDataItem& operator=(const ApplyRulesSyncDataItem&);
 
 private:
 	Folder* pFolder_;
@@ -244,7 +277,7 @@ public:
 	};
 
 public:
-	typedef std::vector<SyncItem*> ItemList;
+	typedef std::vector<SyncDataItem*> ItemList;
 	typedef std::vector<ItemList> ItemListList;
 
 public:
@@ -310,10 +343,8 @@ public:
 				 SubAccount* pSubAccount,
 				 const WCHAR* pwszMessageId);
 	void addApplyRulesFolder(Account* pAccount,
-							 SubAccount* pSubAccount,
 							 Folder* pFolder);
 	void addApplyRulesFolders(Account* pAccount,
-							  SubAccount* pSubAccount,
 							  const Term& folder);
 
 private:
@@ -321,7 +352,7 @@ private:
 	StaticSyncData& operator=(const StaticSyncData&);
 
 private:
-	typedef std::vector<std::pair<unsigned int, SyncItem*> > SlotItemList;
+	typedef std::vector<std::pair<unsigned int, SyncDataItem*> > SlotItemList;
 
 private:
 	SyncManager* pManager_;
@@ -386,7 +417,7 @@ private:
 	bool applyRules(unsigned int nId,
 					Document* pDocument,
 					SyncManagerCallback* pSyncManagerCallback,
-					const ApplyRulesSyncItem* pItem);
+					const ApplyRulesSyncDataItem* pItem);
 	bool openReceiveSession(unsigned int nId,
 							Document* pDocument,
 							SyncManagerCallback* pSyncManagerCallback,

@@ -41,6 +41,35 @@ using namespace qs;
 
 /****************************************************************************
  *
+ * SyncDataItem
+ *
+ */
+
+qm::SyncDataItem::SyncDataItem(Type type,
+							   Account* pAccount) :
+	type_(type),
+	pAccount_(pAccount)
+{
+	assert(pAccount);
+}
+
+qm::SyncDataItem::~SyncDataItem()
+{
+}
+
+SyncDataItem::Type qm::SyncDataItem::getType() const
+{
+	return type_;
+}
+
+Account* qm::SyncDataItem::getAccount() const
+{
+	return pAccount_;
+}
+
+
+/****************************************************************************
+ *
  * SyncItem
  *
  */
@@ -48,26 +77,13 @@ using namespace qs;
 qm::SyncItem::SyncItem(Type type,
 					   Account* pAccount,
 					   SubAccount* pSubAccount) :
-	type_(type),
-	pAccount_(pAccount),
+	SyncDataItem(type, pAccount),
 	pSubAccount_(pSubAccount)
 {
-	assert(pAccount);
-	assert(pSubAccount);
 }
 
 qm::SyncItem::~SyncItem()
 {
-}
-
-SyncItem::Type qm::SyncItem::getType() const
-{
-	return type_;
-}
-
-Account* qm::SyncItem::getAccount() const
-{
-	return pAccount_;
 }
 
 SubAccount* qm::SyncItem::getSubAccount() const
@@ -99,14 +115,9 @@ qm::ReceiveSyncItem::~ReceiveSyncItem()
 {
 }
 
-const SyncFilterSet* qm::ReceiveSyncItem::getFilterSet() const
+const SyncItem* qm::ReceiveSyncItem::getSyncItem() const
 {
-	return pFilterSet_.get();
-}
-
-bool qm::ReceiveSyncItem::isFlag(Flag flag) const
-{
-	return (nFlags_ & flag) != 0;
+	return this;
 }
 
 NormalFolder* qm::ReceiveSyncItem::getSyncFolder() const
@@ -114,9 +125,15 @@ NormalFolder* qm::ReceiveSyncItem::getSyncFolder() const
 	return pFolder_;
 }
 
-bool qm::ReceiveSyncItem::isSync() const
+unsigned int qm::ReceiveSyncItem::getSelectFlags() const
 {
-	return true;
+	return (nFlags_ & FLAG_EMPTY ? ReceiveSession::SELECTFLAG_EMPTY : 0) |
+		(nFlags_ & ReceiveSyncItem::FLAG_EXPUNGE ? ReceiveSession::SELECTFLAG_EXPUNGE : 0);
+}
+
+const SyncFilterSet* qm::ReceiveSyncItem::getSyncFilterSet() const
+{
+	return pFilterSet_.get();
 }
 
 
@@ -150,49 +167,53 @@ const WCHAR* qm::SendSyncItem::getMessageId() const
 	return wstrMessageId_.get();
 }
 
+const SyncItem* qm::SendSyncItem::getSyncItem() const
+{
+	return pOutbox_ ? this : 0;
+}
+
 NormalFolder* qm::SendSyncItem::getSyncFolder() const
 {
 	return pOutbox_;
 }
 
-bool qm::SendSyncItem::isSync() const
+unsigned int qm::SendSyncItem::getSelectFlags() const
 {
-	return pOutbox_ != 0;
+	return 0;
+}
+
+const SyncFilterSet* qm::SendSyncItem::getSyncFilterSet() const
+{
+	return 0;
 }
 
 
 /****************************************************************************
  *
- * ApplyRulesSyncItem
+ * ApplyRulesSyncDataItem
  *
  */
 
-qm::ApplyRulesSyncItem::ApplyRulesSyncItem(Account* pAccount,
-										   SubAccount* pSubAccount,
-										   Folder* pFolder) :
-	SyncItem(TYPE_APPLYRULES, pAccount, pSubAccount),
+qm::ApplyRulesSyncDataItem::ApplyRulesSyncDataItem(Account* pAccount,
+												   Folder* pFolder) :
+	SyncDataItem(TYPE_APPLYRULES, pAccount),
 	pFolder_(pFolder)
 {
 	assert(pFolder);
 }
 
-qm::ApplyRulesSyncItem::~ApplyRulesSyncItem()
+qm::ApplyRulesSyncDataItem::~ApplyRulesSyncDataItem()
 {
 }
 
-Folder* qm::ApplyRulesSyncItem::getFolder() const
+Folder* qm::ApplyRulesSyncDataItem::getFolder() const
 {
 	return pFolder_;
 }
 
-NormalFolder* qm::ApplyRulesSyncItem::getSyncFolder() const
+const SyncItem* qm::ApplyRulesSyncDataItem::getSyncItem() const
 {
 	return 0;
-}
-
-bool qm::ApplyRulesSyncItem::isSync() const
-{
-	return false;
 }
 
 
@@ -315,7 +336,7 @@ qm::StaticSyncData::StaticSyncData(Document* pDocument,
 qm::StaticSyncData::~StaticSyncData()
 {
 	std::for_each(listItem_.begin(), listItem_.end(),
-		boost::bind(deleter<SyncItem>(),
+		boost::bind(deleter<SyncDataItem>(),
 			boost::bind(&SlotItemList::value_type::second, _1)));
 }
 
@@ -413,25 +434,21 @@ void qm::StaticSyncData::addSend(Account* pAccount,
 }
 
 void qm::StaticSyncData::addApplyRulesFolder(Account* pAccount,
-											 SubAccount* pSubAccount,
 											 Folder* pFolder)
 {
 	assert(pAccount);
-	assert(pSubAccount);
 	assert(pFolder);
 	
-	std::auto_ptr<ApplyRulesSyncItem> pItem(
-		new ApplyRulesSyncItem(pAccount, pSubAccount, pFolder));
+	std::auto_ptr<ApplyRulesSyncDataItem> pItem(
+		new ApplyRulesSyncDataItem(pAccount, pFolder));
 	listItem_.push_back(std::make_pair(nSlot_, pItem.get()));
 	pItem.release();
 }
 
 void qm::StaticSyncData::addApplyRulesFolders(Account* pAccount,
-											  SubAccount* pSubAccount,
 											  const Term& folder)
 {
 	assert(pAccount);
-	assert(pSubAccount);
 	
 	Account::FolderList listFolder;
 	
@@ -451,8 +468,7 @@ void qm::StaticSyncData::addApplyRulesFolders(Account* pAccount,
 	
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 	std::for_each(listFolder.begin(), listFolder.end(),
-		boost::bind(&StaticSyncData::addApplyRulesFolder,
-			this, pAccount, pSubAccount, _1));
+		boost::bind(&StaticSyncData::addApplyRulesFolder, this, pAccount, _1));
 }
 
 
@@ -720,7 +736,7 @@ bool qm::SyncManager::syncData(SyncData* pData)
 			{
 				for (SyncData::ItemListList::iterator it = l_.begin(); it != l_.end(); ++it) {
 					SyncData::ItemList& l = *it;
-					std::for_each(l.begin(), l.end(), qs::deleter<SyncItem>());
+					std::for_each(l.begin(), l.end(), qs::deleter<SyncDataItem>());
 				}
 			}
 			
@@ -734,7 +750,7 @@ bool qm::SyncManager::syncData(SyncData* pData)
 		for (SyncData::ItemListList::const_iterator it = listItemList.begin(); it != listItemList.end(); ++it) {
 			const SyncData::ItemList& l = *it;
 			std::transform(l.begin(), l.end(), std::back_inserter(listAccount),
-				boost::bind(&SyncItem::getAccount, _1));
+				boost::bind(&SyncDataItem::getAccount, _1));
 		}
 		
 		if (listItemList.size() == 1) {
@@ -864,22 +880,23 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 	typedef std::vector<SubAccount*> SubAccountList;
 	SubAccountList listConnectFailed;
 	for (SyncData::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
-		const SyncItem* pItem = *it;
+		const SyncDataItem* pItem = *it;
 		
-		if (pItem->isSync()) {
-			if (pSubAccount != pItem->getSubAccount() ||
+		const SyncItem* pSyncItem = pItem->getSyncItem();
+		if (pSyncItem) {
+			if (pSubAccount != pSyncItem->getSubAccount() ||
 				(session.get() && !session.get()->isConnected())) {
 				pSubAccount = 0;
 				session.clear();
 				pReceiveCallback.reset(0);
 				pLogger.reset(0);
 				
-				if (std::find(listConnectFailed.begin(), listConnectFailed.end(), pItem->getSubAccount()) != listConnectFailed.end())
+				if (std::find(listConnectFailed.begin(), listConnectFailed.end(), pSyncItem->getSubAccount()) != listConnectFailed.end())
 					continue;
 				
 				std::auto_ptr<ReceiveSession> pReceiveSession;
 				if (!openReceiveSession(nId, pData->getDocument(),
-					pCallback, pItem, pData->getType(),
+					pCallback, pSyncItem, pData->getType(),
 					&pReceiveSession, &pReceiveCallback, &pLogger))
 					continue;
 				session.reset(pReceiveSession);
@@ -890,7 +907,7 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 				if (pCallback->isCanceled(nId, false))
 					break;
 				if (!bConnect) {
-					listConnectFailed.push_back(pItem->getSubAccount());
+					listConnectFailed.push_back(pSyncItem->getSubAccount());
 					continue;
 				}
 				session.setConnected();
@@ -900,9 +917,9 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 				if (pCallback->isCanceled(nId, false))
 					break;
 				
-				pSubAccount = pItem->getSubAccount();
+				pSubAccount = pSyncItem->getSubAccount();
 			}
-			if (!syncFolder(nId, pData->getDocument(), pCallback, pItem, session.get()))
+			if (!syncFolder(nId, pData->getDocument(), pCallback, pSyncItem, session.get()))
 				continue;
 			if (pCallback->isCanceled(nId, false))
 				break;
@@ -912,8 +929,8 @@ void qm::SyncManager::syncSlotData(const SyncData* pData,
 			if (!send(nId, pData->getDocument(), pCallback, static_cast<const SendSyncItem*>(pItem)))
 				continue;
 		}
-		else if (pItem->getType() == SyncItem::TYPE_APPLYRULES) {
-			if (!applyRules(nId, pData->getDocument(), pCallback, static_cast<const ApplyRulesSyncItem*>(pItem)))
+		else if (pItem->getType() == SyncDataItem::TYPE_APPLYRULES) {
+			if (!applyRules(nId, pData->getDocument(), pCallback, static_cast<const ApplyRulesSyncDataItem*>(pItem)))
 				continue;
 		}
 		if (pCallback->isCanceled(nId, false))
@@ -932,9 +949,6 @@ bool qm::SyncManager::syncFolder(unsigned int nId,
 	assert(pItem);
 	assert(pSession);
 	
-	const ReceiveSyncItem* pReceiveItem = pItem->getType() == SyncItem::TYPE_RECEIVE ?
-		static_cast<const ReceiveSyncItem*>(pItem) : 0;
-	
 	NormalFolder* pFolder = pItem->getSyncFolder();
 	if (!pFolder || !pFolder->isFlag(Folder::FLAG_SYNCABLE))
 		return true;
@@ -946,14 +960,7 @@ bool qm::SyncManager::syncFolder(unsigned int nId,
 	if (!pFolder->loadMessageHolders())
 		return false;
 	
-	unsigned int nSelectFlags = 0;
-	if (pReceiveItem) {
-		if (pReceiveItem->isFlag(ReceiveSyncItem::FLAG_EMPTY))
-			nSelectFlags |= ReceiveSession::SELECTFLAG_EMPTY;
-		if (pReceiveItem->isFlag(ReceiveSyncItem::FLAG_EXPUNGE))
-			nSelectFlags |= ReceiveSession::SELECTFLAG_EXPUNGE;
-	}
-	if (!pSession->selectFolder(pFolder, nSelectFlags))
+	if (!pSession->selectFolder(pFolder, pItem->getSelectFlags()))
 		return false;
 	pFolder->setLastSyncTime(::GetTickCount());
 	if (pSyncManagerCallback->isCanceled(nId, false))
@@ -976,9 +983,7 @@ bool qm::SyncManager::syncFolder(unsigned int nId,
 			nLastId = pFolder->getMessage(nCount - 1)->getId();
 	}
 	
-	const SyncFilterSet* pFilterSet = pReceiveItem ?
-		pReceiveItem->getFilterSet() : 0;
-	if (!pSession->downloadMessages(pFilterSet))
+	if (!pSession->downloadMessages(pItem->getSyncFilterSet()))
 		return false;
 	if (pSyncManagerCallback->isCanceled(nId, false))
 		return true;
@@ -1208,7 +1213,7 @@ bool qm::SyncManager::send(unsigned int nId,
 bool qm::SyncManager::applyRules(unsigned int nId,
 								 Document* pDocument,
 								 SyncManagerCallback* pSyncManagerCallback,
-								 const ApplyRulesSyncItem* pItem)
+								 const ApplyRulesSyncDataItem* pItem)
 {
 	assert(pDocument);
 	assert(pSyncManagerCallback);

@@ -162,7 +162,7 @@ bool qm::SyncUtil::applyRules(SyncManager* pSyncManager,
 	for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 		Folder* pFolder = *it;
 		assert(pFolder->getAccount() == pAccount);
-		pData->addApplyRulesFolder(pAccount, pSubAccount, pFolder);
+		pData->addApplyRulesFolder(pAccount, pFolder);
 	}
 	
 	return syncData(pSyncManager, pSyncDialogManager,
@@ -221,7 +221,7 @@ bool qm::SyncUtil::goRound(SyncManager* pSyncManager,
 					}
 				}
 				if (pEntry->isFlag(GoRoundEntry::FLAG_APPLYRULES))
-					pData->addApplyRulesFolders(pAccount, pSubAccount, pEntry->getFolder());
+					pData->addApplyRulesFolders(pAccount, pEntry->getFolder());
 			}
 			if (bParallel)
 				pData->newSlot();
