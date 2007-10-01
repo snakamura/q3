@@ -706,6 +706,7 @@ bool qm::SyncManager::syncData(SyncData* pData)
 		Synchronizer* pSynchronizer_;
 	} internalOnline(pData->getDocument(), pSynchronizer_);
 	
+	AccountManager::AccountList listAccount;
 	while (true) {
 		SyncData::ItemListList listItemList;
 		struct Deleter
@@ -729,6 +730,12 @@ bool qm::SyncManager::syncData(SyncData* pData)
 		pData->getItems(&listItemList);
 		if (listItemList.empty())
 			break;
+		
+		for (SyncData::ItemListList::const_iterator it = listItemList.begin(); it != listItemList.end(); ++it) {
+			const SyncData::ItemList& l = *it;
+			std::transform(l.begin(), l.end(), std::back_inserter(listAccount),
+				boost::bind(&SyncItem::getAccount, _1));
+		}
 		
 		if (listItemList.size() == 1) {
 			syncSlotData(pData, listItemList[0]);
@@ -768,8 +775,13 @@ bool qm::SyncManager::syncData(SyncData* pData)
 		}
 	}
 	
-	if (!pData->getDocument()->save(false))
-		log.error(L"Failed to save.");
+	std::sort(listAccount.begin(), listAccount.end());
+	AccountManager::AccountList::iterator itA = std::unique(
+		listAccount.begin(), listAccount.end());
+	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != itA; ++it) {
+		if (!(*it)->save(false))
+			log.error(L"Failed to save an account.");
+	}
 	
 	return true;
 }
