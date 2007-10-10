@@ -4,6 +4,7 @@
 *同じフォルダを同時に同期しないための仕組みが正しく動いていなかったのを修正
 *巡回の設定を使ってバックグラウンドで振り分けることができるようにした
 *MessageApplyRuleBackgroundアクションとMessageApplyRuleBackgroundAllアクションを追加
+*STLport-5.1.4に更新
 
 [3.0.1]
 *multipart/appledoubleの下にあるapplication/applefileは添付ファイルとして扱わないようにした
