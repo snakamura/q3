@@ -70,6 +70,10 @@ copy)
 
 install)
 	cp */bin/win/x86/unicode/release/*.exe */lib/win/x86/unicode/release/*.dll "$INSTALLDIR"
+	cp lib/openssl/lib/win/x86/libeay32.dll "$INSTALLDIR"
+	cp lib/openssl/lib/win/x86/ssleay32.dll "$INSTALLDIR"
+	cp lib/stlport/lib/win/x86/stlport.5.1.dll "$INSTALLDIR"
+	cp lib/zip/lib/win/x86/zip32.dll "$INSTALLDIR"
 	;;
 
 install-mui)
