@@ -24,7 +24,7 @@ clean:
 
 $(HTMLDIR)/%.html: %.rd
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	cat $(HEAD) $< $(FOOT) | ruby -Ks $(RD2) -r rd/rd2html-ext-lib.rb --ref-extension --headline-title --head-element --with-part=head --with-part=html:include > $@
+	cat $(HEAD) $< $(FOOT) | ruby -W0 -Ks $(RD2) -r rd/rd2html-ext-lib.rb --ref-extension --headline-title --head-element --with-part=head --with-part=html:include > $@
 
 $(HTMLDIR)/%.css: %.css
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
