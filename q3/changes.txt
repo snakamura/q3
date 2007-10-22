@@ -5,7 +5,7 @@
 *巡回の設定を使ってバックグラウンドで振り分けることができるようにした
 *MessageApplyRuleBackgroundアクションとMessageApplyRuleBackgroundAllアクションを追加
 *STLport-5.1.4に更新
-*OpenSSL 0.9.8fに更新
+*OpenSSL 0.9.8gに更新
 
 [3.0.1]
 *multipart/appledoubleの下にあるapplication/applefileは添付ファイルとして扱わないようにした
