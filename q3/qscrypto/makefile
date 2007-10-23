@@ -2,8 +2,8 @@
 #
 # Makefile for qscrypto
 
-OPENSSLDIR		= ../lib/openssl
-WCECOMPATDIR	= ../lib/wcecompat
+OPENSSLDIR		= ../../lib/openssl
+WCECOMPATDIR	= ../../lib/wcecompat
 
 PROJECTNAME		= qscrypto
 PROJECTTYPE		= dll

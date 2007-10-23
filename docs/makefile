@@ -5,7 +5,7 @@
 RD2		= /usr/local/bin/rd2
 
 HTMLDIR	= html
-ZIPDIR	= ../zip
+DISTDIR	= ../dist
 
 HTMLS	= $(patsubst %.rd, $(HTMLDIR)/%.html, $(wildcard [A-Z]*.rd))
 HEAD	= head.rd
@@ -16,8 +16,8 @@ CSSS	= $(patsubst %.css, $(HTMLDIR)/%.css, $(wildcard *.css))
 all: $(HTMLS) $(IMGS) $(CSSS)
 
 zip: all
-	if [ ! -d $(ZIPDIR) ]; then mkdir -p $(ZIPDIR); fi
-	(cd $(HTMLDIR); zip -r ../$(ZIPDIR)/doc.zip *)
+	if [ ! -d $(DISTDIR) ]; then mkdir -p $(DISTDIR); fi
+	(cd $(HTMLDIR); zip -r ../$(DISTDIR)/doc.zip *)
 
 clean:
 	rm -rf $(HTMLDIR)

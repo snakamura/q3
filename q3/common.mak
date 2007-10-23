@@ -35,9 +35,9 @@ CESDKPPCENDIR			= C:/Program Files/Windows CE Tools/wce300/MS Pocket PC
 CESDKHPCPROJADIR		= C:/Program Files/Windows CE Tools/wce211/MS HPC Pro
 CESDKHPCPROENDIR		= C:/Program Files/Windows CE Tools/wce211/MS HPC Pro
 SVNDIR					= C:/Program Files/Subversion
-STLPORTDIR				= ../lib/stlport
-BOOSTDIR				= ../lib/boost
-KCTRLDIR				= ../lib/kctrl
+STLPORTDIR				= ../../lib/stlport
+BOOSTDIR				= ../../lib/boost
+KCTRLDIR				= ../../lib/kctrl
 
 -include ../env.mak
 

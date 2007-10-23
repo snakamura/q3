@@ -2,7 +2,7 @@
 #
 # Makefile for qs
 
-DRADIR			= ../lib/dra
+DRADIR			= ../../lib/dra
 
 PROJECTNAME		= qs
 PROJECTTYPE		= dll

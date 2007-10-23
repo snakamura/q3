@@ -8,7 +8,7 @@ VCDIR=${VCDIR:=C:/Program Files/Microsoft Visual Studio 8/VC}
 MSDEV=${MSDEV:=C:/Program Files/Microsoft Visual Studio/Common/MSDev98/Bin/MSDEV.exe}
 PURIFY=${PURIFY:=C:/Program Files/Rational/Purify/purify.exe}
 MAKENSIS=${MAKENSIS:=C:/Program Files/NSIS/makensis.exe}
-DOXYGEN=${DOXYGEN:=C:/Program Files/doxygen/doxygen.exe}
+DOXYGEN=${DOXYGEN:=C:/Program Files/doxygen/bin/doxygen.exe}
 
 INSTALLDIR="C:/Program Files/QMAIL3"
 
@@ -55,7 +55,7 @@ clean | clean.win | clean.wce)
 	;;
 
 copy)
-	bindir=`pwd`/bin
+	bindir=`pwd`/../bin
 	mkdir -p $bindir
 	for p in $PROJECTS; do
 		for dir in bin lib; do
@@ -182,16 +182,16 @@ zip)
 	VERSION=`cat version`
 	REVISION=`cat revision`
 	DATE=`date +%Y%m%d`
-	ZIPDIR=./zip
+	DISTDIR=`pwd`/../dist
 	SUFFIX=`printf $VERSION | tr . _`_$REVISION-$DATE
 	
-	mkdir -p $ZIPDIR
+	mkdir -p $DISTDIR
 	
-#	zip -j $ZIPDIR/q3-win-x86-ja-$SUFFIX.zip \
+#	zip -j $DISTDIR/q3-win-x86-ja-$SUFFIX.zip \
 #		*/bin/win/x86/ansi/release/*.exe \
 #		*/lib/win/x86/ansi/release/*.dll \
 #		*/lib/win/x86/ansi/release/*.mui
-	zip -j $ZIPDIR/q3u-win-x86-ja-$SUFFIX.zip \
+	zip -j $DISTDIR/q3u-win-x86-ja-$SUFFIX.zip \
 		*/bin/win/x86/unicode/release/*.exe \
 		*/lib/win/x86/unicode/release/*.dll \
 		*/lib/win/x86/unicode/release/*.mui \
@@ -199,7 +199,7 @@ zip)
 		lib/openssl/lib/win/x86/libeay32.dll \
 		lib/openssl/lib/win/x86/ssleay32.dll \
 		lib/zip/lib/win/x86/zip32.dll
-	zip -j $ZIPDIR/q3u-win-x64-ja-$SUFFIX.zip \
+	zip -j $DISTDIR/q3u-win-x64-ja-$SUFFIX.zip \
 		*/bin/win/x64/unicode/release/*.exe \
 		*/lib/win/x64/unicode/release/*.dll \
 		*/lib/win/x64/unicode/release/*.mui \
@@ -209,7 +209,7 @@ zip)
 		lib/zip/lib/win/x64/zip32.dll
 	
 	for t in $WCETARGETS; do
-		zip -j $ZIPDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip \
+		zip -j $DISTDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip \
 			*/bin/`printf $t | tr . /`/release/*.exe \
 			*/lib/`printf $t | tr . /`/release/*.dll \
 			*/lib/`printf $t | tr . /`/release/*.mui \
@@ -219,12 +219,12 @@ zip)
 			lib/openssl/lib/wce/`basecpu $t`/ssleay32.dll
 	done
 	
-	(cd docs; make zip)
-	mv $ZIPDIR/doc.zip $ZIPDIR/q3-doc-$SUFFIX.zip
+	(cd ../docs; make zip)
+	mv $DISTDIR/doc.zip $DISTDIR/q3-doc-$SUFFIX.zip
 	;;
 
 doc)
-	(cd docs; make)
+	(cd ../docs; make)
 	;;
 
 apidoc)
@@ -232,16 +232,17 @@ apidoc)
 	;;
 
 installer)
-	"$MAKENSIS" installer/q3.nsi
-	"$MAKENSIS" /DX64 installer/q3.nsi
-#	"$MAKENSIS" /DANSI installer/q3.nsi
+	"$MAKENSIS" ../installer/q3.nsi
+	"$MAKENSIS" /DX64 ../installer/q3.nsi
+#	"$MAKENSIS" /DANSI ../installer/q3.nsi
 	
 	VERSION=`cat version`
 	REVISION=`cat revision`
 	DATE=`date +%Y%m%d`
-	mv installer/q3u-win-x86-ja.exe installer/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
-	mv installer/q3u-win-x64-ja.exe installer/q3u-win-x64-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
-#	mv installer/q3-win-x86-ja.exe installer/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
+	DISTDIR=`pwd`/../dist
+	mv $DISTDIR/q3u-win-x86-ja.exe $DISTDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
+	mv $DISTDIR/q3u-win-x64-ja.exe $DISTDIR/q3u-win-x64-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
+#	mv $DISTDIR/q3-win-x86-ja.exe $DISTDIR/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
     ;;
 
 *)

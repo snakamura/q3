@@ -1,6 +1,7 @@
 ; $Id$
 
 !define VC8DIR "C:\Program Files\Microsoft Visual Studio 8\VC"
+!define DISTDIR "..\dist"
 
 !ifdef ANSI
   !define CODE ansi
@@ -23,7 +24,7 @@
   
 Name "QMAIL3"
 
-OutFile "q3${SUFFIX}-win-${CPU}-ja.exe"
+OutFile "${DISTDIR}\q3${SUFFIX}-win-${CPU}-ja.exe"
 XPStyle on
 
 Var STARTMENU_FOLDER

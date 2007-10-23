@@ -2,7 +2,7 @@
 #
 # Makefile for qmpgp
 
-QDBMDIR			= ../lib/qdbm
+QDBMDIR			= ../../lib/qdbm
 
 
 PROJECTNAME		= qmjunk

@@ -4,8 +4,8 @@
 
 include ../function.mak
 
-ZIPDIR			= ../lib/zip
-DRADIR			= ../lib/dra
+ZIPDIR			= ../../lib/zip
+DRADIR			= ../../lib/dra
 
 PROJECTNAME		= qm
 PROJECTTYPE		= dll
