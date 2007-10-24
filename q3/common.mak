@@ -676,7 +676,7 @@ BSCTARGET				= $(TARGETBASE).bsc
 
 
 # STLPORT ###################################################################
-INCLUDES				+= -I"$(STLPORTDIR)"
+INCLUDES				+= -I"$(STLPORTDIR)/stlport"
 ifeq ($(PLATFORM),win)
 	LIBS				+= $(STLPORTDIR)/lib/win/$(EXLIBCPU)/stlport$(DSUFFIX).5.1.lib
 else
