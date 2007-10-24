@@ -77,6 +77,7 @@ Section "Core (required)" Core
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
 !endif
   File ..\lib\stlport\lib\win\${CPU}\stlport.5.1.dll
+  File ..\LICENSE
   
 !ifdef X64
   SetRegView 64
@@ -263,6 +264,7 @@ Section "Uninstall"
   Delete $INSTDIR\Microsoft.VC80.CRT.manifest
 !endif
   Delete $INSTDIR\stlport.5.1.dll
+  Delete $INSTDIR\LICENSE
   Delete $INSTDIR\uninstall.exe
   
   RMDir "$INSTDIR"
