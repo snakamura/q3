@@ -79,6 +79,8 @@ Section "Core (required)" Core
   File ..\lib\stlport\lib\win\${CPU}\stlport.5.1.dll
   File ..\LICENSE
   File ..\misc\THIRDPARTYLICENSE
+  File ..\misc\README.en.txt
+  File ..\misc\README.ja.txt
   
 !ifdef X64
   SetRegView 64
@@ -267,6 +269,8 @@ Section "Uninstall"
   Delete $INSTDIR\stlport.5.1.dll
   Delete $INSTDIR\LICENSE
   Delete $INSTDIR\THIRDPARTYLICENSE
+  Delete $INSTDIR\README.en.txt
+  Delete $INSTDIR\README.ja.txt
   Delete $INSTDIR\uninstall.exe
   
   RMDir "$INSTDIR"

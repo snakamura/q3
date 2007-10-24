@@ -75,7 +75,9 @@ install)
 	cp ../lib/stlport/lib/win/x86/stlport.5.1.dll "$INSTALLDIR"
 	cp ../lib/zip/lib/win/x86/zip32.dll "$INSTALLDIR"
 	cp ../LICENSE "$INSTALLDIR"
-	cp ../THIRDPARTYLICENSE "$INSTALLDIR"
+	cp ../misc/THIRDPARTYLICENSE "$INSTALLDIR"
+	cp ../misc/README.en.txt "$INSTALLDIR"
+	cp ../misc/README.ja.txt "$INSTALLDIR"
 	;;
 
 install-mui)
@@ -205,7 +207,9 @@ zip)
 		../lib/openssl/lib/win/x86/ssleay32.dll \
 		../lib/zip/lib/win/x86/zip32.dll \
 		../LICENSE \
-		../THIRDPARTYLICENSE
+		../misc/THIRDPARTYLICENSE \
+		../misc/README.en.txt \
+		../misc/README.ja.txt
 	zip -j $DISTDIR/q3u-win-x64-ja-$SUFFIX.zip \
 		*/bin/win/x64/unicode/release/*.exe \
 		*/lib/win/x64/unicode/release/*.dll \
@@ -218,7 +222,9 @@ zip)
 		../lib/openssl/lib/win/x64/ssleay32.dll \
 		../lib/zip/lib/win/x64/zip32.dll \
 		../LICENSE \
-		../THIRDPARTYLICENSE
+		../misc/THIRDPARTYLICENSE \
+		../misc/README.en.txt \
+		../misc/README.ja.txt
 	
 	for t in $WCETARGETS; do
 		zip -j $DISTDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip \
@@ -230,7 +236,9 @@ zip)
 			../lib/openssl/lib/wce/`basecpu $t`/libeay32.dll \
 			../lib/openssl/lib/wce/`basecpu $t`/ssleay32.dll \
 			../LICENSE \
-			../THIRDPARTYLICENSE
+			../misc/THIRDPARTYLICENSE \
+			../misc/README.en.txt \
+			../misc/README.ja.txt
 	done
 	
 	(cd ../docs; make zip)
