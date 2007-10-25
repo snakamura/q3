@@ -6,6 +6,8 @@
 *MessageApplyRuleBackgroundアクションとMessageApplyRuleBackgroundAllアクションを追加
 *STLport-5.1.4に更新
 *OpenSSL 0.9.8gに更新
+*ライセンスを変更
+*READMEとライセンスを添付
 
 [3.0.1]
 *multipart/appledoubleの下にあるapplication/applefileは添付ファイルとして扱わないようにした
