@@ -16,6 +16,9 @@ QMAIL3‚ÍAWindows‚¨‚æ‚ÑWindows CEŒn‚ÌOS‚Å“®ì‚·‚éƒ[ƒ‰‚Å‚·BˆÈ‰º‚Ì‚æ‚¤‚È“Á’¥‚ª‚
 *ŠwKŒ^ƒXƒpƒ€ƒtƒBƒ‹ƒ^(Windows”Å‚Ì‚Ý)
 *ƒJƒXƒ^ƒ}ƒCƒY‰Â”\‚È‰æ–Ê•\Ž¦Aƒƒjƒ…[AƒL[ƒAƒTƒCƒ“Aƒc[ƒ‹ƒo[
 
+==ƒjƒ…[ƒX
+*2007/10/25 - 3.0.2‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
+
 ==((<ƒ_ƒEƒ“ƒ[ƒh|URL:download.html>))
 
 ==((<ƒŠƒŠ[ƒXƒm[ƒg|URL:releasenotes.html>))

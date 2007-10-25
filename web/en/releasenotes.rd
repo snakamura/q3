@@ -1,6 +1,24 @@
 =begin
 =Release Notes
 
+==3.0.2
+===Notes
+License has been changed. Please visit ((<License|URL:license.html>)) to see the new license.
+
+===New features
+*Enable applying rules in background using go-round settings.
+*Add MessageApplyRuleBackground and MessageApplyRuleBackgroundAll action.
+
+===Changes
+*Update to STLport-5.1.4.
+*Update to OpenSSL 0.9.8g.
+
+===Bug fixes
+*Fixed it caused an error when saving folders.xml after synchronizing.
+*Fixed the locking mechanism to prohibit synchronizing the same folders didn't work.
+*Fixed it might not launch because msvcp80.dll was not installed.
+
+
 ==3.0.1
 ===Notes
 Runtime libraries which are required to run Windows version have been updated. Please download the new runtime libraries from ((<download page|URL:download.html>)) and install them.
@@ -22,8 +40,8 @@ Runtime libraries which are required to run Windows version have been updated. P
 *Don't treat application/applefile parts under multipart/appledouble aprts as attachments.
 *Save folders.xml after finishing synchronization.
 *Spam filter scans inside message/rfc822 parts.
-*Update to STLport-5.1.3 (It needs stlport.5.1.dll and msvcr80.dll (Windows Mobile 5.0 only))
-*Update to boost-1.34.0
+*Update to STLport-5.1.3. (It needs stlport.5.1.dll and msvcr80.dll (Windows Mobile 5.0 only))
+*Update to boost-1.34.0.
 
 ===Bug fixes
 *Refresh message after showing or hiding a header view.

@@ -16,6 +16,9 @@ QMAIL3 is a mail client which runs on Windows and Windows CE families. It has fe
 *Spam filter (Windows version only)
 *Customizable menus, keyboard shotcuts and toolbars
 
+==News
+*Oct 25 2007 - Released 3.0.2.
+
 ==((<Download|URL:download.html>))
 
 ==((<Release Notes|URL:releasenotes.html>))
