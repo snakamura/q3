@@ -18,7 +18,7 @@ QMAIL3‚ÍAWindows‚¨‚æ‚ÑWindows CEŒn‚ÌOS‚Å“®ì‚·‚éƒ[ƒ‰‚Å‚·BˆÈ‰º‚Ì‚æ‚¤‚È“Á’¥‚ª‚
 
 ==((<ƒ_ƒEƒ“ƒ[ƒh|URL:download.html>))
 
-==((<•ÏX—š—ð|URL:releasenotes.html>))
+==((<ƒŠƒŠ[ƒXƒm[ƒg|URL:releasenotes.html>))
 
 ==((<ƒhƒLƒ…ƒƒ“ƒg|URL:/doc/>))
 
