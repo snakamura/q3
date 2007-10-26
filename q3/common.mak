@@ -8,7 +8,6 @@
 #     clean.win
 #     clean.wce
 
-BINDIR					= C:/cygwin/bin
 VS6DIR					= C:/Program Files/Microsoft Visual Studio
 VC6DIR					= $(VS6DIR)/VC98
 VS7DIR					= C:/Program Files/Microsoft Visual Studio .NET 2003
@@ -708,7 +707,7 @@ SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(REVISION)
 RCDEFINES				= -DNVERSION="$(NVERSION)" -DSVERSION="\"$(SVERSION)\"" -DSUFFIX="\"$(SUFFIX)\""
 RCDEFINES				+= $(CPROJS)
 
-RCHEADER				= $(dir $(subst $(OBJDIR),$(SRCDIR),$(RESES)))resource$(shell echo $(RESES) | sed -e 's/\(.*\($(BASEPLATFORM)\)\|.*\)\.res/\2/').h
+RCHEADER				= $(dir $(subst $(OBJDIR),$(SRCDIR),$(RESES)))resource$(shell echo `basename $(RESES)` | sed -e 's/\(.*\($(BASEPLATFORM)\)\|.*\)\.res/\2/').h
 
 ifneq ($(TLBS),)
 	INCLUDES			+= -I$(TLBDIR)
@@ -734,7 +733,7 @@ LIBS					+= $(DEPENDLIBS)
 INCLUDES				+= $(EXTERNALINCS)
 LIBS					+= $(EXTERNALLIBS)
 
-export PATH				= $(call win2unix,$(BINDIR)):$(call win2unix,$(COMPILER64BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(COMMONTOOLBINDIR)):$(call win2unix,$(COMMONTOOL2BINDIR)):$(call win2unix,$(SVNDIR)/bin)
+export PATH				= /bin:$(call win2unix,$(COMPILER64BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(COMMONTOOLBINDIR)):$(call win2unix,$(COMMONTOOL2BINDIR)):$(call win2unix,$(SVNDIR)/bin)
 ifeq ($(VCVER),8)
 	export INCLUDE		= $(COMPILERINCLUDEDIR);$(SDKINCLUDEDIR);$(MFCINCLUDEDIR);$(ATLINCLUDEDIR)
 	export LIB			= $(COMPILERLIBDIR);$(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR)
