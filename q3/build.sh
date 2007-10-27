@@ -73,6 +73,7 @@ install)
 	cp ../lib/openssl/lib/win/x86/libeay32.dll "$INSTALLDIR"
 	cp ../lib/openssl/lib/win/x86/ssleay32.dll "$INSTALLDIR"
 	cp ../lib/stlport/lib/win/x86/stlport.5.1.dll "$INSTALLDIR"
+	cp ../lib/qdbm/lib/win/x86/qdbm.dll "$INSTALLDIR"
 	cp ../lib/zip/lib/win/x86/zip32.dll "$INSTALLDIR"
 	cp ../LICENSE "$INSTALLDIR"
 	cp ../misc/THIRDPARTYLICENSE "$INSTALLDIR"
@@ -205,6 +206,7 @@ zip)
 		../lib/stlport/lib/win/x86/stlport.5.1.dll \
 		../lib/openssl/lib/win/x86/libeay32.dll \
 		../lib/openssl/lib/win/x86/ssleay32.dll \
+		../lib/qdbm/lib/win/x86/qdbm.dll \
 		../lib/zip/lib/win/x86/zip32.dll \
 		../LICENSE \
 		../misc/THIRDPARTYLICENSE \
@@ -220,6 +222,7 @@ zip)
 		../lib/stlport/lib/win/x64/stlport.5.1.dll \
 		../lib/openssl/lib/win/x64/libeay32.dll \
 		../lib/openssl/lib/win/x64/ssleay32.dll \
+		../lib/qdbm/lib/win/x64/qdbm.dll \
 		../lib/zip/lib/win/x64/zip32.dll \
 		../LICENSE \
 		../misc/THIRDPARTYLICENSE \
@@ -241,7 +244,6 @@ zip)
 			../misc/README.ja.txt
 	done
 	
-	(cd ../docs; make zip)
 	mv $DISTDIR/doc.zip $DISTDIR/q3-doc-$SUFFIX.zip
 	;;
 
@@ -267,7 +269,7 @@ installer)
 #	mv $DISTDIR/q3-win-x86-ja.exe $DISTDIR/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
     ;;
 
-*)
+revision)
 	REVISION=`LC_MESSAGES=C svn info .. | grep "Last Changed Rev" | cut -f 4 -d ' '`
 	if [ -f revision ]; then
 		OLDREVISION=`cat revision`
@@ -275,6 +277,10 @@ installer)
 	if [ "$REVISION" != "$OLDREVISION" ]; then
 		echo $REVISION > revision
 	fi
+	;;
+
+*)
+	./build.sh revision
 	for p in $PROJECTS; do
 		cd $p
 		if [ ! -f platforms ] || grep $COMMAND platforms; then

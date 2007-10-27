@@ -169,6 +169,7 @@ Section "Junk Filter" Junk
   SetOutPath $INSTDIR
   
   File ..\bin\win\${CPU}\${CODE}\release\qmjunk${SUFFIX}.dll
+  File ..\lib\qdbm\lib\win\${CPU}\qdbm.dll
   
 SectionEnd
 
@@ -253,6 +254,7 @@ Section "Uninstall"
   Delete $INSTDIR\qscrypto${SUFFIX}.dll
   Delete $INSTDIR\libeay32.dll
   Delete $INSTDIR\ssleay32.dll
+  Delete $INSTDIR\qdbm.dll
   Delete $INSTDIR\zip32.dll
   Delete $INSTDIR\qm${SUFFIX}.dll.0411.mui
   Delete $INSTDIR\qs${SUFFIX}.dll.0411.mui
