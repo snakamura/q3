@@ -244,6 +244,7 @@ zip)
 			../misc/README.ja.txt
 	done
 	
+	(cd ../docs; make zip)
 	mv $DISTDIR/doc.zip $DISTDIR/q3-doc-$SUFFIX.zip
 	;;
 
@@ -257,8 +258,8 @@ apidoc)
 
 installer)
 	"$MAKENSIS" ../installer/q3.nsi
-	"$MAKENSIS" /DX64 ../installer/q3.nsi
-#	"$MAKENSIS" /DANSI ../installer/q3.nsi
+	"$MAKENSIS" -DX64 ../installer/q3.nsi
+#	"$MAKENSIS" -DANSI ../installer/q3.nsi
 	
 	VERSION=`cat version`
 	REVISION=`cat revision`
