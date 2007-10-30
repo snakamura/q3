@@ -39,6 +39,8 @@ Webチャットです。コメント欄代わりに使っていただいても結構です。
 ==((<メモ|URL:http://snak.tdiary.net/>))
 Nightly Buildでの変更はこちらのメモに書かれることが多いです。
 
+==((<ソースコード|URL:source.html>))
+
 ==((<ライセンス|URL:license.html>))
 
 ==連絡先

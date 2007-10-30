@@ -42,6 +42,8 @@ Linger is a web chat system. Please use freely to talk about QMAIL3.
 
 ==((<Memos|URL:http://snak.tdiary.net/>)) (in Japanese)
 
+==((<Source Code|URL:source.html>))
+
 ==((<License|URL:license.html>))
 
 ==Contact
