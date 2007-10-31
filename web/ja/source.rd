@@ -5,6 +5,6 @@
 
  svn co http://svn.snak.org/svn/q3/trunk
 
-ビルドするには、Visual Studio 8とSDKに加えてCygwinまたはMinGW+MSYSが必要です。
+ビルドするには、Visual Studio 2005 Service Pack 1とSDKに加えてCygwinまたはMinGW+MSYSが必要です。
 
 =end

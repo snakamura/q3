@@ -26,10 +26,12 @@ QMAIL3 is a mail client which runs on Windows and Windows CE families. It has fe
 ==((<Documents|URL:/doc/>)) (in Japanese)
 *((<Translation by Google|URL:http://translate.google.com/translate?u=http%3A%2F%2Fq3.snak.org%2Fdoc%2F&langpair=ja%7Cen&hl=ja&ie=UTF8>))
 *((<Translation by Excite|URL:http://www.excite.co.jp/world/english/web/?wb_lp=JAEN&wb_dis=2&wb_url=http%3A%2F%2Fq3.snak.org%2Fdoc%2F>))
+*((<Translation by Windows Live|URL:http://www.windowslivetranslator.com/BV.aspx?MKT=ja-JP&lp=ja_en&a=http%3A%2F%2Fq3.snak.org%2Fdoc%2F>))
 
 ==((<Frequently Asked Questions|URL:/doc/FAQ.html>)) (in Japanese)
 *((<Translation by Google|URL:http://translate.google.com/translate?u=http%3A%2F%2Fq3.snak.org%2Fdoc%2FFAQ.html&langpair=ja%7Cen&hl=ja&ie=UTF8>))
 *((<Translation by Excite|URL:http://www.excite.co.jp/world/english/web/?wb_lp=JAEN&wb_dis=2&wb_url=http%3A%2F%2Fq3.snak.org%2Fdoc%2FFAQ.html>))
+*((<Translation by Windows Live|URL:http://www.windowslivetranslator.com/BV.aspx?MKT=ja-JP&lp=ja_en&a=http%3A%2F%2Fq3.snak.org%2Fdoc%2FFAQ.html>))
 
 ==((<Mailing List|URL:http://qs.snak.org/cgi-bin/mailman/listinfo/qs>)) (in Japanese)
 Please post your questions to the mailing list. Once you become a member, you can view its archives.
