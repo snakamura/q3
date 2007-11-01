@@ -305,6 +305,7 @@ void qs::BoundaryFinder<Char, String>::getNextBoundary(const Char* p,
 			*pbEnd = bEnd;
 		}
 		
+		nLen -= pBegin - p + 1;
 		p = pBegin + 1;
 	}
 }
