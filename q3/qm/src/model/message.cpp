@@ -1347,6 +1347,12 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 		const ContentTypeParser* pContentType = part_.getContentType();
 		wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
 		
+		const CHAR* pszPreamble = part_.getPreamble();
+		if (pszPreamble) {
+			if (!pBuf->append(mbs2wcs(pszPreamble).get()) || !pBuf->append(L"\n"))
+				return false;
+		}
+		
 		const Part::PartList& l = part_.getPartList();
 		if (!l.empty()) {
 			for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -1359,6 +1365,12 @@ bool qm::PartUtil::getAllText(const WCHAR* pwszQuote,
 			if (!pBuf->append(L"\n--") ||
 				!pBuf->append(wstrBoundary.get()) ||
 				!pBuf->append(L"--\n"))
+				return false;
+		}
+		
+		const CHAR* pszEpilogue = part_.getEpilogue();
+		if (pszEpilogue) {
+			if (!pBuf->append(L"\n") || !pBuf->append(mbs2wcs(pszEpilogue).get()))
 				return false;
 		}
 	}
