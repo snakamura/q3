@@ -68,7 +68,7 @@ actionエレメントはアクションを表します。name属性にアクションの名前を指定します。
 
 param属性にはアクションの引数を指定します。引数はスペースで区切って複数指定することができます。一つの引数にスペースを含めたい場合には""で括ります。""で括った場合には、その中に含まれる"と\を\でエスケープします。例えば、param属性に@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")を指定する場合には、XML中では以下のようにエスケープされます。
 
- param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe&quot;)&quot;"
+ param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe\&quot;)&quot;"
 
 actionエレメント以下には0個以上のkeyエレメントを置くことができます。
 

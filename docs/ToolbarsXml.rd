@@ -57,7 +57,7 @@ action属性にはボタンがクリックされたときに実行されるアクションを指定します。指定
 
 param属性にはアクションのパラメータを指定します。引数はスペースで区切って複数指定することができます。一つの引数にスペースを含めたい場合には""で括ります。""で括った場合には、その中に含まれる"と\を\でエスケープします。例えば、param属性に@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")を指定する場合には、XML中では以下のようにエスケープされます。
 
- param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe&quot;)&quot;"
+ param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe\&quot;)&quot;"
 
 dropdown属性にはボタンがクリックされたときに表示するメニューを指定します。メニューは別途、((<menus.xml|URL:MenusXml.html>))で作成しておきます。
 

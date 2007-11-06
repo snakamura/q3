@@ -101,7 +101,7 @@ action属性にはそのアイテムが選択されたときに実行される((<アクション|URL:Action.h
 
 param属性には必要があればアクションに渡す引数を指定します。引数はスペースで区切って複数指定することができます。一つの引数にスペースを含めたい場合には""で括ります。""で括った場合には、その中に含まれる"と\を\でエスケープします。例えば、param属性に@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")を指定する場合には、XML中では以下のようにエスケープされます。
 
- param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe&quot;)&quot;"
+ param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe\&quot;)&quot;"
 
 動的なアイテムは実行時に決まるアイテムで、通常は実行時に複数のアイテムになります。動的なアイテムは、dynamic属性とparam属性を使って指定します。dynamic属性にはアイテムが選択されたときに実行される((<アクション|URL:Action.html>))を指定します。param属性にはアクションに渡される引数を生成するマクロを指定します。
 
