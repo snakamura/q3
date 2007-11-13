@@ -199,29 +199,13 @@ LRESULT qm::TextColorDialog::onChoose(UINT nId)
 	};
 	COLORREF& cr = *pcrs[nId - IDC_CHOOSEFOREGROUND];
 	
-	COLORREF crCustom[16];
-	CHOOSECOLOR cc = {
-		sizeof(cc),
-		getHandle(),
-		0,
-		cr,
-		crCustom,
-		CC_ANYCOLOR | CC_RGBINIT,
-		0,
-		0,
-		0
-	};
-	if (::ChooseColor(&cc)) {
-		cr = cc.rgbResult;
-		
+	if (qs::UIUtil::browseColor(getHandle(), &cr)) {
 		if (nId == IDC_CHOOSEBACKGROUND)
 			updateBackgroundBrush();
-		
 		invalidate();
 	}
 	
 	return 0;
-	
 }
 
 LRESULT qm::TextColorDialog::onColor(UINT nId)
@@ -3171,23 +3155,12 @@ LRESULT qm::ColorDialog::onChoose(UINT nId)
 	if (cr == 0xffffffff)
 		cr = RGB(0, 0, 0);
 	
-	COLORREF crCustom[16];
-	CHOOSECOLOR cc = {
-		sizeof(cc),
-		getHandle(),
-		0,
-		cr,
-		crCustom,
-		CC_ANYCOLOR | CC_RGBINIT,
-		0,
-		0,
-		0
-	};
-	if (::ChooseColor(&cc)) {
-		Color color(cc.rgbResult);
+	if (qs::UIUtil::browseColor(getHandle(), &cr)) {
+		Color color(cr);
 		wstring_ptr wstrColor(color.getString());
 		setDlgItemText(nTextId, wstrColor.get());
 	}
+	
 	return 0;
 }
 

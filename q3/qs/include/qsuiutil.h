@@ -66,6 +66,9 @@ public:
 									const WCHAR* pwszTitle,
 									const WCHAR* pwszInitialPath);
 	
+	static bool browseColor(HWND hwnd,
+							COLORREF* pcr);
+	
 #ifndef _WIN32_WCE
 	static bool drawThemeBorder(Theme* pTheme,
 								HWND hwnd,

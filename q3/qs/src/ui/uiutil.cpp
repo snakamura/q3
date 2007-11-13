@@ -184,6 +184,8 @@ void qs::UIUtil::setSipEnabled(bool bEnabled)
 bool qs::UIUtil::browseFont(HWND hwnd,
 							LOGFONT* pLogFont)
 {
+	assert(pLogFont);
+	
 #if 0//!defined _WIN32_WCE || (_WIN32_WCE >= 0x400 && !defined _WIN32_WCE_PSPC)
 	CHOOSEFONT cf = {
 		sizeof(cf),
@@ -258,6 +260,31 @@ wstring_ptr qs::UIUtil::browseFolder(HWND hwnd,
 #endif
 	
 	return wstrPath;
+}
+
+bool qs::UIUtil::browseColor(HWND hwnd,
+							 COLORREF* pcr)
+{
+	assert(pcr);
+	
+	COLORREF crCustom[16];
+	CHOOSECOLOR cc = {
+		sizeof(cc),
+		hwnd,
+		0,
+		*pcr,
+		crCustom,
+		CC_ANYCOLOR | CC_RGBINIT,
+		0,
+		0,
+		0
+	};
+	if (!::ChooseColor(&cc))
+		return false;
+	
+	*pcr = cc.rgbResult;
+	
+	return true;
 }
 
 #ifndef _WIN32_WCE
