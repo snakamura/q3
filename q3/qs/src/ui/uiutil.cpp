@@ -267,6 +267,9 @@ bool qs::UIUtil::browseColor(HWND hwnd,
 {
 	assert(pcr);
 	
+#ifdef PLATFORM_WM6STD
+	return false;
+#else
 	COLORREF crCustom[16];
 	CHOOSECOLOR cc = {
 		sizeof(cc),
@@ -285,6 +288,7 @@ bool qs::UIUtil::browseColor(HWND hwnd,
 	*pcr = cc.rgbResult;
 	
 	return true;
+#endif
 }
 
 #ifndef _WIN32_WCE

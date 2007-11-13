@@ -20,6 +20,8 @@ EVC4DIR					= C:/Program Files/Microsoft eMbedded C++ 4.0/EVC
 EVCVER					= 4
 PLATFORMSDKDIR			= C:/Program Files/Microsoft SDKs/Windows/v6.0
 OLDPLATFORMSDKDIR		= C:/Program Files/Microsoft Platform SDK for Windows Server 2003 R2
+CESDKWM6PRODIR			= C:/Program Files/Windows Mobile 6 SDK/PocketPC
+CESDKWM6STDDIR			= C:/Program Files/Windows Mobile 6 SDK/Smartphone
 CESDKWM5JADIR			= C:/Program Files/Windows CE Tools/wce500/Windows Mobile 5.0 Pocket PC SDK
 CESDKWM5ENDIR			= C:/Program Files/Windows CE Tools/wce500/Windows Mobile 5.0 Pocket PC SDK
 CESDKPPC2003JADIR		= C:/Program Files/Windows CE Tools/wce420/POCKET PC 2003
@@ -136,6 +138,18 @@ ifeq ($(PLATFORM),win)
 	#########################################################################
 else
 	# WINCE #################################################################
+	ifeq ($(PLATFORM),wm6pro)
+		# WM6PRO ############################################################
+		SDKDIR			= $(CESDKWM6PRODIR)
+		BASEPLATFORM	= ppc
+		#####################################################################
+	endif
+	ifeq ($(PLATFORM),wm6std)
+		# WM6STD ############################################################
+		SDKDIR			= $(CESDKWM6STDDIR)
+		BASEPLATFORM	= ppc
+		#####################################################################
+	endif
 	ifeq ($(PLATFORM),wm5)
 		# WM5 ###############################################################
 		ifeq ($(BASELANG),ja)
@@ -571,7 +585,7 @@ else
 		RCFLAGS			+= -D _WIN32_WCE_PSPC -DWIN32_PLATFORM_PSPC
 	endif
 	
-	ifeq ($(PLATFORM),wm5)
+	ifneq ($(call platform,wm6pro wm6std wm5),)
 		DEFINES			+= -D_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA
 	endif
 	
@@ -603,16 +617,18 @@ else
 						  uuid.lib \
 						  commctrl.lib \
 						  ceshell.lib \
-						  commdlg.lib \
 						  wininet.lib \
 						  htmlview.lib
+	ifneq ($(PLATFORM),wm6std)
+		LIBS			+= commdlg.lib
+	endif
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif
 	ifneq ($(call platform,ppc2003se ppc2003),)
 		LIBS			+= ccrtrtti.lib
 	endif
-	ifneq ($(call platform,wm5 ppc2003se ppc2003 ppc2002),)
+	ifneq ($(call platform,wm6pro wm6std wm5 ppc2003se ppc2003 ppc2002),)
 		LIBS			+= wvuuid.lib
 	endif
 	ifeq ($(if $(call platform,ppc2002),0,$(call cever,-ge,400)),0)
@@ -765,7 +781,7 @@ clean.win:
 
 clean.wce:
 	-for d in $(OBJDIRBASE) $(TLBDIRBASE) $(TARGETDIRBASE); do \
-		for p in wm5 ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3; do \
+		for p in wm6pro wm6std wm5 ppc2003se ppc2003 ppc2002 hpc2000 ppc hpcpro sig3; do \
 			if [ -d $$d/$$p ]; then rm -rf $$d/$$p; fi \
 		done \
 	done
