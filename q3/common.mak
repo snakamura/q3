@@ -619,9 +619,9 @@ else
 						  ceshell.lib \
 						  wininet.lib \
 						  htmlview.lib
-	ifneq ($(PLATFORM),wm6std)
-		LIBS			+= commdlg.lib
-	endif
+#	ifneq ($(PLATFORM),wm6std)
+#		LIBS			+= commdlg.lib
+#	endif
 	ifeq ($(BASEPLATFORM),ppc)
 		LIBS			+= aygshell.lib
 	endif

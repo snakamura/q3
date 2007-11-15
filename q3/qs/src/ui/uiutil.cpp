@@ -267,9 +267,18 @@ bool qs::UIUtil::browseColor(HWND hwnd,
 {
 	assert(pcr);
 	
-#ifdef PLATFORM_WM6STD
-	return false;
-#else
+#ifdef _WIN32_WCE
+	typedef BOOL (*PFN_CHOOSECOLOR)(LPCHOOSECOLOR);
+	Library lib(L"commdlg.dll");
+	if (!lib)
+		return false;
+	PFN_CHOOSECOLOR pfnChooseColor = reinterpret_cast<PFN_CHOOSECOLOR>(
+		::GetProcAddress(lib, L"ChooseColor"));
+	if (!pfnChooseColor)
+		return false;
+#define ChooseColor (*pfnChooseColor)
+#endif
+	
 	COLORREF crCustom[16];
 	CHOOSECOLOR cc = {
 		sizeof(cc),
@@ -282,13 +291,16 @@ bool qs::UIUtil::browseColor(HWND hwnd,
 		0,
 		0
 	};
-	if (!::ChooseColor(&cc))
+	if (!ChooseColor(&cc))
 		return false;
 	
 	*pcr = cc.rgbResult;
 	
-	return true;
+#ifdef _WIN32_WCE
+#undef ChooseColor
 #endif
+	
+	return true;
 }
 
 #ifndef _WIN32_WCE
