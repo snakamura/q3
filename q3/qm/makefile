@@ -21,7 +21,7 @@ endif
 ifneq ($(call platform,hpc2000 hpcpro),)
 	CPROJS		+= -DQMTABWINDOW
 endif
-ifneq ($(call platform,wm5 ppc2003se ppc2003 ppc2002),)
+ifneq ($(call platform,wm6pro wm6std wm5 ppc2003se ppc2003 ppc2002),)
 	CPROJS		+= -DQMHTMLVIEW -DQMHTMLVIEWHTMLCTRL
 endif
 
