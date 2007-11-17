@@ -978,7 +978,10 @@ void qm::Application::uninitialize()
 
 void qm::Application::run()
 {
+	Log log(InitThread::getInitThread().getLogger(), L"qm::Application");
+	log.debug(L"Start running.");
 	MessageLoop::getMessageLoop().run();
+	log.debug(L"Stop running.");
 }
 
 bool qm::Application::save(bool bForce)
