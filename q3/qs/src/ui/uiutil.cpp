@@ -348,10 +348,13 @@ void qs::UIUtil::getWorkArea(RECT* pRect)
 	int nMenuHeight = static_cast<int>(nDefaultMenuHeight*(getLogPixel()/96.0));
 	
 	SIPINFO si = { sizeof(si) };
-	::SHSipInfo(SPI_GETSIPINFO, 0, &si, 0);
-	
-	*pRect = si.rcVisibleDesktop;
-	if ((si.fdwFlags & SIPF_ON) == 0)
-		pRect->bottom -= nMenuHeight;
+	if (::SHSipInfo(SPI_GETSIPINFO, 0, &si, 0)) {
+		*pRect = si.rcVisibleDesktop;
+		if ((si.fdwFlags & SIPF_ON) == 0)
+			pRect->bottom -= nMenuHeight;
+	}
+	else {
+		::SystemParametersInfo(SPI_GETWORKAREA, 0, pRect, 0);
+	}
 }
 #endif
