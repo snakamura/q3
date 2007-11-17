@@ -45,9 +45,9 @@ $(SRCDIR)/main/version.h: version revision
 		printf "const int QMAIL_REVISION = %d;\n" $(REVISION); \
 		printf "\n"; \
 		for r in $(SRCDIR)/ui/res/*.xml $(SRCDIR)/ui/res/*.template $(SRCDIR)/ui/res/*.bmp; do \
-			printf "const int %s_REVISION = %d;\n" \
-				`basename $$r | tr 'a-z.' 'A-Z_'` \
-				`getNewestRevision $$r`; \
+			p=`basename $$r | tr 'a-z.' 'A-Z_'`; \
+			printf "const int %s_REVISION = %d;\n" $$p `getNewestRevision $$r`; \
+			printf "const size_t %s_SIZE = %d;\n" $$p `getSize $$r`; \
 		done \
 	) > $@
 

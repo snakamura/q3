@@ -91,6 +91,7 @@ public:
 		const WCHAR* pwszFileName_;
 		const WCHAR* pwszResourceType_;
 		const WCHAR* pwszResourceName_;
+		size_t nSize_;
 		unsigned int nRevision_;
 		bool bOverwrite_;
 		unsigned int nState_;
@@ -113,12 +114,14 @@ public:
 					const WCHAR* pwszFileName,
 					const WCHAR* pwszExtension,
 					const WCHAR* pwszType,
-					const WCHAR* pwszName);
+					const WCHAR* pwszName,
+					size_t nLen);
 	bool ensureResources(Resource* pResource,
 						 size_t nCount);
 	bool detachResource(const WCHAR* pwszPath,
 						const WCHAR* pwszType,
-						const WCHAR* pwszName);
+						const WCHAR* pwszName,
+						size_t nSize);
 	wstring_ptr getProfileNameBasedPath(const WCHAR* pwszBaseName,
 										const WCHAR* pwszName) const;
 	void restoreCurrentFolder();
@@ -201,7 +204,7 @@ bool qm::ApplicationImpl::loadMainProfile()
 	wstring_ptr wstrProfileDir(concat(wstrMailFolder_.get(), L"\\profiles"));
 	if (!ensureFile(wstrProfileDir.get(),
 		*wstrProfileName_.get() ? wstrProfileName_.get() : 0,
-		FileNames::QMAIL_XML, 0, L"PROFILE", FileNames::QMAIL_XML))
+		FileNames::QMAIL_XML, 0, L"PROFILE", FileNames::QMAIL_XML, QMAIL_XML_SIZE))
 		return false;
 	
 	wstring_ptr wstrProfilePath(pThis_->getProfilePath(FileNames::QMAIL_XML));
@@ -293,7 +296,7 @@ bool qm::ApplicationImpl::ensureResources()
 	wstring_ptr wstrTemplateDir(concat(wstrMailFolder_.get(), L"\\templates"));
 	wstring_ptr wstrImageDir(concat(wstrMailFolder_.get(), L"\\images"));
 	
-#define DECLARE_PROFILE(name, revision, overwrite) \
+#define DECLARE_PROFILE(name, prefix, overwrite) \
 	{ \
 		wstrProfileDir.get(), \
 		0, \
@@ -301,11 +304,12 @@ bool qm::ApplicationImpl::ensureResources()
 		name, \
 		L"PROFILE", \
 		name, \
-		revision, \
+		prefix##_SIZE, \
+		prefix##_REVISION, \
 		overwrite, \
 	} \
 
-#define DECLARE_IMAGE(name, revision, overwrite) \
+#define DECLARE_IMAGE(name, prefix, overwrite) \
 	{ \
 		wstrImageDir.get(), \
 		0, \
@@ -313,11 +317,12 @@ bool qm::ApplicationImpl::ensureResources()
 		name, \
 		L"IMAGE", \
 		name, \
-		revision, \
+		prefix##_SIZE, \
+		prefix##_REVISION, \
 		overwrite, \
 	} \
 
-#define DECLARE_TEMPLATE(classname, name, revision) \
+#define DECLARE_TEMPLATE(classname, name, prefix) \
 	{ \
 		wstrTemplateDir.get(), \
 		classname, \
@@ -325,43 +330,44 @@ bool qm::ApplicationImpl::ensureResources()
 		name L".template", \
 		L"TEMPLATE", \
 		classname L"." name, \
-		revision, \
+		prefix##_SIZE, \
+		prefix##_REVISION, \
 		true, \
 	} \
 
 	ApplicationImpl::Resource resources[] = {
-		DECLARE_PROFILE(FileNames::COLORS_XML,		COLORS_XML_REVISION,				false	),
-		DECLARE_PROFILE(FileNames::FILTERS_XML,		FILTERS_XML_REVISION,				false	),
-		DECLARE_PROFILE(FileNames::HEADER_XML,		HEADER_XML_REVISION,				true	),
-		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	HEADEREDIT_XML_REVISION,			true	),
-		DECLARE_PROFILE(FileNames::KEYMAP_XML,		KEYMAP_XML_REVISION,				true	),
-		DECLARE_PROFILE(FileNames::MENUS_XML,		MENUS_XML_REVISION,					true	),
-		DECLARE_PROFILE(FileNames::SYNCFILTERS_XML,	SYNCFILTERS_XML_REVISION,			false	),
-		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	TOOLBARS_XML_REVISION,				true	),
-		DECLARE_PROFILE(FileNames::VIEWS_XML,		VIEWS_XML_REVISION,					false	),
-		DECLARE_IMAGE(FileNames::FOLDER_BMP,		FOLDER_BMP_REVISION,				true	),
-		DECLARE_IMAGE(FileNames::LIST_BMP,			LIST_BMP_REVISION,					true	),
-		DECLARE_IMAGE(FileNames::LISTDATA_BMP,		LISTDATA_BMP_REVISION,				true	),
-		DECLARE_IMAGE(FileNames::NOTIFY_BMP,		NOTIFY_BMP_REVISION,				true	),
-		DECLARE_IMAGE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP_REVISION,				true	),
-		DECLARE_IMAGE(L"account_mail.bmp",			ACCOUNT_MAIL_BMP_REVISION,			true	),
-		DECLARE_IMAGE(L"account_news.bmp",			ACCOUNT_NEWS_BMP_REVISION,			true	),
-		DECLARE_IMAGE(L"account_rss.bmp",			ACCOUNT_RSS_BMP_REVISION,			true	),
-		DECLARE_TEMPLATE(L"mail",	L"new",			MAIL_NEW_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"mail",	L"reply",		MAIL_REPLY_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"mail",	L"reply_all",	MAIL_REPLY_ALL_TEMPLATE_REVISION			),
-		DECLARE_TEMPLATE(L"mail",	L"forward",		MAIL_FORWARD_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"mail",	L"edit",		MAIL_EDIT_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"mail",	L"url",			MAIL_URL_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"mail",	L"print",		MAIL_PRINT_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"mail",	L"quote",		MAIL_QUOTE_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"news",	L"new",			NEWS_NEW_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"news",	L"reply",		NEWS_REPLY_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"news",	L"reply_all",	NEWS_REPLY_ALL_TEMPLATE_REVISION			),
-		DECLARE_TEMPLATE(L"news",	L"forward",		NEWS_FORWARD_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"news",	L"edit",		NEWS_EDIT_TEMPLATE_REVISION					),
-		DECLARE_TEMPLATE(L"news",	L"print",		NEWS_PRINT_TEMPLATE_REVISION				),
-		DECLARE_TEMPLATE(L"news",	L"quote",		NEWS_QUOTE_TEMPLATE_REVISION				),
+		DECLARE_PROFILE(FileNames::COLORS_XML,		COLORS_XML,				false	),
+		DECLARE_PROFILE(FileNames::FILTERS_XML,		FILTERS_XML,			false	),
+		DECLARE_PROFILE(FileNames::HEADER_XML,		HEADER_XML,				true	),
+		DECLARE_PROFILE(FileNames::HEADEREDIT_XML,	HEADEREDIT_XML,			true	),
+		DECLARE_PROFILE(FileNames::KEYMAP_XML,		KEYMAP_XML,				true	),
+		DECLARE_PROFILE(FileNames::MENUS_XML,		MENUS_XML,				true	),
+		DECLARE_PROFILE(FileNames::SYNCFILTERS_XML,	SYNCFILTERS_XML,		false	),
+		DECLARE_PROFILE(FileNames::TOOLBARS_XML,	TOOLBARS_XML,			true	),
+		DECLARE_PROFILE(FileNames::VIEWS_XML,		VIEWS_XML,				false	),
+		DECLARE_IMAGE(FileNames::FOLDER_BMP,		FOLDER_BMP,				true	),
+		DECLARE_IMAGE(FileNames::LIST_BMP,			LIST_BMP,				true	),
+		DECLARE_IMAGE(FileNames::LISTDATA_BMP,		LISTDATA_BMP,			true	),
+		DECLARE_IMAGE(FileNames::NOTIFY_BMP,		NOTIFY_BMP,				true	),
+		DECLARE_IMAGE(FileNames::TOOLBAR_BMP,		TOOLBAR_BMP,			true	),
+		DECLARE_IMAGE(L"account_mail.bmp",			ACCOUNT_MAIL_BMP,		true	),
+		DECLARE_IMAGE(L"account_news.bmp",			ACCOUNT_NEWS_BMP,		true	),
+		DECLARE_IMAGE(L"account_rss.bmp",			ACCOUNT_RSS_BMP,		true	),
+		DECLARE_TEMPLATE(L"mail",	L"new",			MAIL_NEW_TEMPLATE				),
+		DECLARE_TEMPLATE(L"mail",	L"reply",		MAIL_REPLY_TEMPLATE				),
+		DECLARE_TEMPLATE(L"mail",	L"reply_all",	MAIL_REPLY_ALL_TEMPLATE			),
+		DECLARE_TEMPLATE(L"mail",	L"forward",		MAIL_FORWARD_TEMPLATE			),
+		DECLARE_TEMPLATE(L"mail",	L"edit",		MAIL_EDIT_TEMPLATE				),
+		DECLARE_TEMPLATE(L"mail",	L"url",			MAIL_URL_TEMPLATE				),
+		DECLARE_TEMPLATE(L"mail",	L"print",		MAIL_PRINT_TEMPLATE				),
+		DECLARE_TEMPLATE(L"mail",	L"quote",		MAIL_QUOTE_TEMPLATE				),
+		DECLARE_TEMPLATE(L"news",	L"new",			NEWS_NEW_TEMPLATE				),
+		DECLARE_TEMPLATE(L"news",	L"reply",		NEWS_REPLY_TEMPLATE				),
+		DECLARE_TEMPLATE(L"news",	L"reply_all",	NEWS_REPLY_ALL_TEMPLATE			),
+		DECLARE_TEMPLATE(L"news",	L"forward",		NEWS_FORWARD_TEMPLATE			),
+		DECLARE_TEMPLATE(L"news",	L"edit",		NEWS_EDIT_TEMPLATE				),
+		DECLARE_TEMPLATE(L"news",	L"print",		NEWS_PRINT_TEMPLATE				),
+		DECLARE_TEMPLATE(L"news",	L"quote",		NEWS_QUOTE_TEMPLATE				),
 	};
 	if (!ensureResources(resources, countof(resources)))
 		return false;
@@ -414,7 +420,8 @@ bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
 									 const WCHAR* pwszFileName,
 									 const WCHAR* pwszExtension,
 									 const WCHAR* pwszType,
-									 const WCHAR* pwszName)
+									 const WCHAR* pwszName,
+									 size_t nSize)
 {
 	assert(pwszPath);
 	assert(pwszFileName);
@@ -439,7 +446,7 @@ bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
 	
 	const WCHAR* pwsz = buf.getCharArray();
 	if (!File::isFileExisting(pwsz)) {
-		if (!detachResource(pwsz, pwszType, pwszName))
+		if (!detachResource(pwsz, pwszType, pwszName, nSize))
 			return false;
 	}
 	
@@ -573,7 +580,7 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 				}
 			}
 			
-			if (!detachResource(wstrPath.get(), p->pwszResourceType_, p->pwszResourceName_))
+			if (!detachResource(wstrPath.get(), p->pwszResourceType_, p->pwszResourceName_, p->nSize_))
 				return false;
 			
 			WIN32_FIND_DATA fd;
@@ -599,7 +606,8 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 
 bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
 										 const WCHAR* pwszType,
-										 const WCHAR* pwszName)
+										 const WCHAR* pwszName,
+										 size_t nSize)
 {
 	assert(pwszPath);
 	assert(pwszType);
@@ -625,26 +633,21 @@ bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
 		log.errorf(L"Counld not lock the resource: %s", pwszName);
 		return false;
 	}
-	int nLen = ::SizeofResource(hInstResource_, hrsrc);
-	if (nLen == 0) {
-		log.errorf(L"Counld not get size of the resource: %s", pwszName);
-		return false;
-	}
 	
 #ifndef _WIN32_WCE
 	const unsigned char* p = static_cast<const unsigned char*>(pResource);
 #else
-	malloc_ptr<unsigned char> pCopy(static_cast<unsigned char*>(allocate(nLen)));
+	malloc_ptr<unsigned char> pCopy(static_cast<unsigned char*>(allocate(nSize)));
 	if (!pCopy.get()) {
 		log.errorf(L"Counld not alloc memory for the resource: %s", pwszName);
 		return false;
 	}
-	memcpy(pCopy.get(), pResource, nLen);
+	memcpy(pCopy.get(), pResource, nSize);
 	const unsigned char* p = pCopy.get();
 #endif
 	
 	FileOutputStream stream(pwszPath);
-	if (!stream || stream.write(p, nLen) == -1 || !stream.close()) {
+	if (!stream || stream.write(p, nSize) == -1 || !stream.close()) {
 		log.errorf(L"Counld not write the resource to the file: %s", pwszPath);
 		return false;
 	}

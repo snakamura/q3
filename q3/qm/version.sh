@@ -34,3 +34,7 @@ getNewestRevision() {
 	done
 	echo $rev
 }
+
+getSize() {
+	wc -c $1 | cut -d ' ' -f 1
+}
