@@ -118,25 +118,10 @@ This is the documents at the time when these versions were released.
 
 
 ==Runtime Library
-You may need to install Microsoft Visual C++ 2005 SP1 Redistributable below to run QMAIL3 on Windows.
+You may need to install Microsoft Visual C++ 2005 SP1 Redistributable to run QMAIL3 on Windows.
 
-((:<table>
-<tr>
-<th>Platform</th>
-<th>CPU</th>
-<th>Download</th>
-</tr>
-<tr>
-<td>Windows</td>
-<td>x86</td>
-<td><a href="/download/crt/vcredist_x86.exe">Zip</a></td>
-</tr>
-<tr>
-<td>Windows</td>
-<td>x64</td>
-<td><a href="/download/crt/vcredist_x64.exe">Zip</a></td>
-</tr>
-</table>:))
+*((<Microsoft Visual C++ 2005 SP1 Redistributable Package (x86)|URL:http://www.microsoft.com/downloads/details.aspx?displaylang=en&FamilyID=200b2fd9-ae1a-4a14-984d-389c36f85647>))
+*((<Microsoft Visual C++ 2005 SP1 Redistributable Package (x64)|URL:http://www.microsoft.com/downloads/details.aspx?displaylang=en&FamilyID=eb4ebe2d-33c0-4a47-9dd4-b9a6d7bd44da>))
 
 Or download the file below and put msvcr80.dll and Microsoft.VC80.CRT.manifest into the same directory where q3u.exe is installed.
 

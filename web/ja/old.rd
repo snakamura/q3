@@ -118,25 +118,10 @@
 
 
 ==ランタイムライブラリ
-Windows版でランタイムライブラリがなくて起動しない場合には、以下のMicrosoft Visual C++ 2005 SP1 再頒布可能パッケージをインストールしてください。
+Windows版でランタイムライブラリがなくて起動しない場合には、以下からMicrosoft Visual C++ 2005 SP1 再頒布可能パッケージをダウンロードしてインストールしてください。
 
-((:<table>
-<tr>
-<th>プラットフォーム</th>
-<th>CPU</th>
-<th>ダウンロード</th>
-</tr>
-<tr>
-<td>Windows</td>
-<td>x86</td>
-<td><a href="/download/crt/vcredist_x86.exe">Zip</a></td>
-</tr>
-<tr>
-<td>Windows</td>
-<td>x64</td>
-<td><a href="/download/crt/vcredist_x64.exe">Zip</a></td>
-</tr>
-</table>:))
+*((<Microsoft Visual C++ 2005 SP1 再頒布可能パッケージ (x86)|URL:http://www.microsoft.com/downloads/details.aspx?FamilyID=200b2fd9-ae1a-4a14-984d-389c36f85647&DisplayLang=ja>))
+*((<Microsoft Visual C++ 2005 SP1 再頒布可能パッケージ (x64)|URL:http://www.microsoft.com/downloads/details.aspx?FamilyID=eb4ebe2d-33c0-4a47-9dd4-b9a6d7bd44da&DisplayLang=ja>))
 
 または、以下のファイルをダウンロードして、展開してできるmsvcr80.dllとMicrosoft.VC80.CRT.manifestを他のEXEやDLLと同じディレクトリに入れてください。
 
