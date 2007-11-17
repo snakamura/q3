@@ -298,9 +298,21 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 			0,
 			0,
 		};
-		bool bToolbar = getToolbarButtons(&toolbar);
-		if (bToolbar) {
+		if (getToolbarButtons(&toolbar)) {
 #if _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
+#if _WIN32_WCE >= 0x500
+			SHMENUBARINFO mbi = {
+				sizeof(mbi),
+				getHandle(),
+				SHCMBF_HMENU,
+				reinterpret_cast<UINT>(hmenu),
+				pImpl_->hInstResource_,
+				0,
+				0
+			};
+			if (!::SHCreateMenuBar(&mbi))
+				return -1;
+#else
 			SHMENUBARINFO mbi = {
 				sizeof(mbi),
 				getHandle(),
@@ -349,6 +361,7 @@ LRESULT qs::FrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 					;
 				::DestroyMenu(hmenu);
 			}
+#endif
 			std::auto_ptr<MenuBarWindow> pMenuBarWindow(
 				new MenuBarWindow(getHandle()));
 			if (!pMenuBarWindow->subclassWindow(mbi.hwndMB))
