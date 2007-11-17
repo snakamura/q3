@@ -626,6 +626,10 @@ bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
 		return false;
 	}
 	int nLen = ::SizeofResource(hInstResource_, hrsrc);
+	if (nLen == 0) {
+		log.errorf(L"Counld not get size of the resource: %s", pwszName);
+		return false;
+	}
 	
 #ifndef _WIN32_WCE
 	const unsigned char* p = static_cast<const unsigned char*>(pResource);
