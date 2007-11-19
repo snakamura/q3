@@ -35,16 +35,21 @@ public:
 	typedef std::vector<DialogBase*> ModelessList;
 
 public:
+	INT_PTR dialogProc(UINT uMsg,
+					   WPARAM wParam,
+					   LPARAM lParam);
+	void destroy();
+
+private:
 	LRESULT notifyCommandHandlers(WORD wCode,
 								  WORD wId) const;
 	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr,
 								 bool* pbHandled) const;
 	void notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const;
 	void measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const;
-	INT_PTR dialogProc(UINT uMsg,
-					   WPARAM wParam,
-					   LPARAM lParam);
-	void destroy();
+#ifdef _WIN32_WCE_PSPC
+	void layout(bool bNotify);
+#endif
 
 public:
 	static DialogMap* getDialogMap();

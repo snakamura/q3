@@ -376,17 +376,19 @@ public:
 	typedef ControllerMap<WindowBase> WindowMap;
 
 public:
+	LRESULT windowProc(UINT uMsg,
+					   WPARAM wParam,
+					   LPARAM lParam);
+	void destroy();
+	void destroy(WindowBase* pWindowBase);
+
+private:
 	LRESULT notifyCommandHandlers(WORD wCode,
 								  WORD wId) const;
 	LRESULT notifyNotifyHandlers(NMHDR* pnmhdr,
 								 bool* pbHandled) const;
 	void notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const;
 	void measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const;
-	LRESULT windowProc(UINT uMsg,
-					   WPARAM wParam,
-					   LPARAM lParam);
-	void destroy();
-	void destroy(WindowBase* pWindowBase);
 
 public:
 	static WindowMap* getWindowMap();
@@ -428,57 +430,6 @@ friend LRESULT CALLBACK windowProc(HWND,
 
 WindowBaseImpl::WindowMap* qs::WindowBaseImpl::pMap__;
 WindowBaseImpl::InitializerImpl qs::WindowBaseImpl::init__;
-
-LRESULT qs::WindowBaseImpl::notifyCommandHandlers(WORD wCode,
-												  WORD wId) const
-{
-	for (CommandHandlerList::const_iterator it = listCommandHandler_.begin(); it != listCommandHandler_.end(); ++it) {
-		LRESULT lResult = (*it)->onCommand(wCode, wId);
-		if (lResult == 0)
-			return lResult;
-	}
-	if (pOrgWindowBase_) {
-		LRESULT lResult = pOrgWindowBase_->pImpl_->notifyCommandHandlers(wCode, wId);
-		if (lResult == 0)
-			return lResult;
-	}
-	return 1;
-}
-
-LRESULT qs::WindowBaseImpl::notifyNotifyHandlers(NMHDR* pnmhdr,
-												 bool* pbHandled) const
-{
-	assert(pbHandled);
-	
-	for (NotifyHandlerList::const_iterator it = listNotifyHandler_.begin(); it != listNotifyHandler_.end(); ++it) {
-		LRESULT lResult = (*it)->onNotify(pnmhdr, pbHandled);
-		if (*pbHandled)
-			return lResult;
-	}
-	if (pOrgWindowBase_) {
-		LRESULT lResult = pOrgWindowBase_->pImpl_->notifyNotifyHandlers(
-			pnmhdr, pbHandled);
-		if (lResult == 0)
-			return lResult;
-	}
-	return 1;
-}
-
-void qs::WindowBaseImpl::notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const
-{
-	for (OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin(); it != listOwnerDrawHandler_.end(); ++it)
-		(*it)->onDrawItem(pDrawItem);
-	if (pOrgWindowBase_)
-		pOrgWindowBase_->pImpl_->notifyOwnerDrawHandlers(pDrawItem);
-}
-
-void qs::WindowBaseImpl::measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const
-{
-	for (OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin(); it != listOwnerDrawHandler_.end(); ++it)
-		(*it)->onMeasureItem(pMeasureItem);
-	if (pOrgWindowBase_)
-		pOrgWindowBase_->pImpl_->measureOwnerDrawHandlers(pMeasureItem);
-}
 
 #pragma warning(disable:4060)
 
@@ -602,6 +553,57 @@ void qs::WindowBaseImpl::destroy(WindowBase* pWindowBase)
 		delete pWindowBase;
 	if (pOrgWindowBase)
 		destroy(pOrgWindowBase);
+}
+
+LRESULT qs::WindowBaseImpl::notifyCommandHandlers(WORD wCode,
+												  WORD wId) const
+{
+	for (CommandHandlerList::const_iterator it = listCommandHandler_.begin(); it != listCommandHandler_.end(); ++it) {
+		LRESULT lResult = (*it)->onCommand(wCode, wId);
+		if (lResult == 0)
+			return lResult;
+	}
+	if (pOrgWindowBase_) {
+		LRESULT lResult = pOrgWindowBase_->pImpl_->notifyCommandHandlers(wCode, wId);
+		if (lResult == 0)
+			return lResult;
+	}
+	return 1;
+}
+
+LRESULT qs::WindowBaseImpl::notifyNotifyHandlers(NMHDR* pnmhdr,
+												 bool* pbHandled) const
+{
+	assert(pbHandled);
+	
+	for (NotifyHandlerList::const_iterator it = listNotifyHandler_.begin(); it != listNotifyHandler_.end(); ++it) {
+		LRESULT lResult = (*it)->onNotify(pnmhdr, pbHandled);
+		if (*pbHandled)
+			return lResult;
+	}
+	if (pOrgWindowBase_) {
+		LRESULT lResult = pOrgWindowBase_->pImpl_->notifyNotifyHandlers(
+			pnmhdr, pbHandled);
+		if (lResult == 0)
+			return lResult;
+	}
+	return 1;
+}
+
+void qs::WindowBaseImpl::notifyOwnerDrawHandlers(DRAWITEMSTRUCT* pDrawItem) const
+{
+	for (OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin(); it != listOwnerDrawHandler_.end(); ++it)
+		(*it)->onDrawItem(pDrawItem);
+	if (pOrgWindowBase_)
+		pOrgWindowBase_->pImpl_->notifyOwnerDrawHandlers(pDrawItem);
+}
+
+void qs::WindowBaseImpl::measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureItem) const
+{
+	for (OwnerDrawHandlerList::const_iterator it = listOwnerDrawHandler_.begin(); it != listOwnerDrawHandler_.end(); ++it)
+		(*it)->onMeasureItem(pMeasureItem);
+	if (pOrgWindowBase_)
+		pOrgWindowBase_->pImpl_->measureOwnerDrawHandlers(pMeasureItem);
 }
 
 WindowBaseImpl::WindowMap* qs::WindowBaseImpl::getWindowMap()

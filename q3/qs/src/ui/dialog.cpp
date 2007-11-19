@@ -45,6 +45,75 @@ DialogBaseImpl::DialogMap* qs::DialogBaseImpl::pMap__;
 ThreadLocal* qs::DialogBaseImpl::pModelessList__;
 DialogBaseImpl::InitializerImpl qs::DialogBaseImpl::init__;
 
+INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg,
+									   WPARAM wParam,
+									   LPARAM lParam)
+{
+	INT_PTR nResult = 0;
+	switch (uMsg) {
+	case WM_COMMAND:
+		nResult = notifyCommandHandlers(HIWORD(wParam), LOWORD(wParam));
+		if (nResult == 0)
+			return TRUE;
+		break;
+	
+#ifdef _WIN32_WCE_PSPC
+	case WM_INITDIALOG:
+		layout(false);
+		break;
+#endif
+	case WM_NOTIFY:
+		{
+			bool bHandled = false;
+			nResult = notifyNotifyHandlers(reinterpret_cast<NMHDR*>(lParam), &bHandled);
+			if (bHandled)
+				return nResult;
+		}
+		break;
+	
+	case WM_DRAWITEM:
+		notifyOwnerDrawHandlers(reinterpret_cast<LPDRAWITEMSTRUCT>(lParam));
+		break;
+	
+	case WM_MEASUREITEM:
+		measureOwnerDrawHandlers(reinterpret_cast<LPMEASUREITEMSTRUCT>(lParam));
+		break;
+
+#ifdef _WIN32_WCE_PSPC
+	case WM_SIZE:
+		layout(true);
+		break;
+#endif
+	
+	default:
+		break;
+	}
+	
+	nResult = pDialogHandler_->dialogProc(uMsg, wParam, lParam);
+	
+#if !defined _WIN32_WCE || defined _WIN32_WCE_EMULATION
+	switch (uMsg) {
+	case WM_NCDESTROY:
+		destroy();
+		break;
+	}
+#endif
+	
+	return nResult;
+}
+
+void qs::DialogBaseImpl::destroy()
+{
+	DialogMap* pMap = getDialogMap();
+	pMap->removeController(pThis_->getHandle());
+	DialogBaseImpl::removeModelessDialog(pThis_);
+	assert(listCommandHandler_.size() == 0);
+	assert(listNotifyHandler_.size() == 0);
+	assert(listOwnerDrawHandler_.size() == 0);
+	if (bDeleteThis_)
+		delete pThis_;
+}
+
 LRESULT qs::DialogBaseImpl::notifyCommandHandlers(WORD wCode,
 												  WORD wId) const
 {
@@ -81,78 +150,22 @@ void qs::DialogBaseImpl::measureOwnerDrawHandlers(MEASUREITEMSTRUCT* pMeasureIte
 		(*it)->onMeasureItem(pMeasureItem);
 }
 
-INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg,
-									   WPARAM wParam,
-									   LPARAM lParam)
-{
-	INT_PTR nResult = 0;
-	switch (uMsg) {
-	case WM_COMMAND:
-		nResult = notifyCommandHandlers(HIWORD(wParam), LOWORD(wParam));
-		if (nResult == 0)
-			return TRUE;
-		break;
-	
-	case WM_NOTIFY:
-		{
-			bool bHandled = false;
-			nResult = notifyNotifyHandlers(reinterpret_cast<NMHDR*>(lParam), &bHandled);
-			if (bHandled)
-				return nResult;
-		}
-		break;
-	
-	case WM_DRAWITEM:
-		notifyOwnerDrawHandlers(reinterpret_cast<LPDRAWITEMSTRUCT>(lParam));
-		break;
-	
-	case WM_MEASUREITEM:
-		measureOwnerDrawHandlers(reinterpret_cast<LPMEASUREITEMSTRUCT>(lParam));
-		break;
-
 #ifdef _WIN32_WCE_PSPC
-	case WM_SIZE:
-		if (nIdPortrait_ != nIdLandscape_) {
-			DRA::DisplayMode mode = DRA::GetDisplayMode();
-			if (mode != displayMode_) {
-				UINT nId = mode == DRA::Portrait ? nIdPortrait_ : nIdLandscape_;
-				if (DRA::RelayoutDialog(hInstResource_, pThis_->getHandle(), MAKEINTRESOURCE(nId))) {
+void qs::DialogBaseImpl::layout(bool bNotify)
+{
+	if (nIdPortrait_ != nIdLandscape_) {
+		DRA::DisplayMode mode = DRA::GetDisplayMode();
+		if (mode != displayMode_) {
+			UINT nId = mode == DRA::Portrait ? nIdPortrait_ : nIdLandscape_;
+			if (DRA::RelayoutDialog(hInstResource_, pThis_->getHandle(), MAKEINTRESOURCE(nId))) {
+				if (bNotify)
 					pDialogHandler_->displayModeChanged();
-					displayMode_ = mode;
-				}
+				displayMode_ = mode;
 			}
 		}
-		break;
-#endif
-	
-	default:
-		break;
 	}
-	
-	nResult = pDialogHandler_->dialogProc(uMsg, wParam, lParam);
-	
-#if !defined _WIN32_WCE || defined _WIN32_WCE_EMULATION
-	switch (uMsg) {
-	case WM_NCDESTROY:
-		destroy();
-		break;
-	}
+}
 #endif
-	
-	return nResult;
-}
-
-void qs::DialogBaseImpl::destroy()
-{
-	DialogMap* pMap = getDialogMap();
-	pMap->removeController(pThis_->getHandle());
-	DialogBaseImpl::removeModelessDialog(pThis_);
-	assert(listCommandHandler_.size() == 0);
-	assert(listNotifyHandler_.size() == 0);
-	assert(listOwnerDrawHandler_.size() == 0);
-	if (bDeleteThis_)
-		delete pThis_;
-}
 
 DialogBaseImpl::DialogMap* qs::DialogBaseImpl::getDialogMap()
 {
