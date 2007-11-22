@@ -552,6 +552,20 @@ qs::DefaultDialog::~DefaultDialog()
 void qs::DefaultDialog::init(bool bDoneButton)
 {
 #if defined _WIN32_WCE && _WIN32_WCE >= 0x300 && defined _WIN32_WCE_PSPC
+#if defined QSDIALOGMENU
+	SHMENUBARINFO shmbi = {
+		sizeof(shmbi),
+		getHandle(),
+		SHCMBF_HMENU,
+		IDR_OK,
+		getResourceDllInstanceHandle(),
+		0,
+		0,
+		0,
+		0
+	};
+	::SHCreateMenuBar(&shmbi);
+#endif
 	SHINITDLGINFO shidi = {
 		SHIDIM_FLAGS,
 		getHandle(),

@@ -3,6 +3,7 @@
 // Used by qsppc.rc
 //
 #define IDR_EMPTY                       101
+#define IDR_OK                          102
 #define IDD_BROWSEFOLDER                101
 #define IDD_FOLDERNAME                  102
 #define IDD_FONT                        103

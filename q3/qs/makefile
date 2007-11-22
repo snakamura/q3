@@ -12,6 +12,9 @@ ifdef KCONVERT
 	CPROJS		+= -DQS_KCONVERT
 	KCTRL		= 1
 endif
+ifeq ($(call platform,wm6std),)
+	CPROJS		+= -DQSDIALOGMENU
+endif
 
 EXTERNALINCS	= -I"$(DRADIR)/include"
 
