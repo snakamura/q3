@@ -14,7 +14,7 @@ INSTALLDIR="C:/Program Files/QMAIL3"
 
 PROJECTS="qs qscrypto qsconvja qm qmpop3 qmimap4 qmsmtp qmnntp qmrss qmscript qmpgp qmjunk q3"
 WINTARGETS="win.x86.unicode.release win.x64.unicode.release"
-WCETARGETS="wm6pro.armv4i.ja wm6std.armv4i.ja wm5.armv4i.ja"
+WCETARGETS="wm6std.armv4i.ja wm5.armv4i.ja"
 #WINTARGETS="win.x86.unicode.release win.x86.ansi.release win.x64.unicode.release"
 #WCETARGETS="wm5.armv4i.ja ppc2003se.armv4.ja ppc2003.armv4.ja sig3.armv4i.ja ppc2002.arm.ja hpc2000.arm.ja hpc2000.mips.ja ppc.arm.ja ppc.sh3.ja ppc.mips.ja hpcpro.arm.ja hpcpro.mips.ja hpcpro.sh3.ja hpcpro.sh4.ja"
 TARGETS="$WINTARGETS $WCETARGETS"
