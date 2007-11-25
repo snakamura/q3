@@ -26,7 +26,7 @@
 <td><a href="/q3/nph-snapshot.cgi?q3u-win-x64-ja.zip">Zip</a></td>
 </tr>
 <tr>
-<td>Windows Mobile 5.0</td>
+<td>Windows Mobile 6 Professional/Classic,<br>Windows Mobile 5.0</td>
 <td>armv4i</td>
 <td></td>
 <td><a href="/q3/nph-snapshot.cgi?q3u-wm5-armv4i-ja.zip">Zip</a></td>
