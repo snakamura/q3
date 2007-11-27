@@ -702,7 +702,7 @@ void qm::HtmlContentManager::prepare(const qs::Part& part,
 			wstrId = allocWString(pwszId);
 		}
 		else {
-			MessageIdParser contentId;
+			LooseMessageIdParser contentId;
 			if (part.getField(L"Content-Id", &contentId) == Part::FIELD_EXIST)
 				wstrId = allocWString(contentId.getMessageId());
 		}
