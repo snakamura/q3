@@ -36,6 +36,7 @@ class FieldParser;
 	class AddressParser;
 	class AddressListParser;
 	class MessageIdParser;
+	class LooseMessageIdParser;
 	class ReferencesParser;
 	class ParameterFieldParser;
 		class SimpleParameterParser;
@@ -925,6 +926,42 @@ public:
 private:
 	MessageIdParser(const MessageIdParser&);
 	MessageIdParser& operator=(const MessageIdParser&);
+
+private:
+	enum State {
+		S_BEGIN,
+		S_ADDRSPEC,
+		S_END
+	};
+
+private:
+	wstring_ptr wstrMessageId_;
+};
+
+
+/****************************************************************************
+ *
+ * LooseMessageIdParser
+ *
+ */
+
+class QSEXPORTCLASS LooseMessageIdParser : public FieldParser
+{
+public:
+	LooseMessageIdParser();
+	virtual ~LooseMessageIdParser();
+
+public:
+	const WCHAR* getMessageId() const;
+
+public:
+	virtual Part::Field parse(const Part& part,
+							  const WCHAR* pwszName);
+	virtual string_ptr unparse(const Part& part) const;
+
+private:
+	LooseMessageIdParser(const LooseMessageIdParser&);
+	LooseMessageIdParser& operator=(const LooseMessageIdParser&);
 
 private:
 	enum State {

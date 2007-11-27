@@ -2870,6 +2870,82 @@ string_ptr qs::MessageIdParser::unparse(const Part& part) const
 
 /****************************************************************************
  *
+ * LooseMessageIdParser
+ *
+ */
+
+qs::LooseMessageIdParser::LooseMessageIdParser()
+{
+}
+
+qs::LooseMessageIdParser::~LooseMessageIdParser()
+{
+}
+
+const WCHAR* qs::LooseMessageIdParser::getMessageId() const
+{
+	return wstrMessageId_.get();
+}
+
+Part::Field qs::LooseMessageIdParser::parse(const Part& part,
+									   const WCHAR* pwszName)
+{
+	assert(pwszName);
+	
+	string_ptr strValue(part.getRawField(pwszName, 0));
+	if (!strValue.get())
+		return Part::FIELD_NOTEXIST;
+	
+	Tokenizer t(strValue.get(), -1,
+		Tokenizer::F_RECOGNIZECOMMENT | Tokenizer::F_SPECIAL);
+	State state = S_BEGIN;
+	StringBuffer<STRING> buf;
+	while (state != S_END) {
+		Tokenizer::Token token(t.getToken());
+		
+		if (token.type_ == Tokenizer::T_COMMENT)
+			continue;
+		
+		switch (state) {
+		case S_BEGIN:
+			if (token.type_ != Tokenizer::T_SPECIAL || *token.str_.get() != '<')
+				return parseError();
+			else
+				state = S_ADDRSPEC;
+			break;
+		case S_ADDRSPEC:
+			if (token.type_ == Tokenizer::T_SPECIAL) {
+				if (*token.str_.get() == '>')
+					state = S_END;
+				else
+					buf.append(token.str_.get());
+			}
+			else if (token.type_ == Tokenizer::T_ATOM) {
+				buf.append(token.str_.get());
+			}
+			else {
+				return parseError();
+			}
+			break;
+		case S_END:
+			break;
+		}
+	}
+	
+	wstrMessageId_ = mbs2wcs(buf.getCharArray());
+	
+	return Part::FIELD_EXIST;
+}
+
+string_ptr qs::LooseMessageIdParser::unparse(const Part& part) const
+{
+	assert(false);
+	return 0;
+}
+
+
+/****************************************************************************
+ *
  * ReferencesParser
  *
  */
