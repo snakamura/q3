@@ -168,6 +168,12 @@ keyƒGƒŒƒƒ“ƒg‚Íˆê‚Â‚ÌƒL[‚ð•\‚µ‚Ü‚·Bname‘®«‚É‚ÍƒL[‚Ì–¼‘O‚ðŽw’è‚µ‚Ü‚·BŽqƒm[ƒ
 ƒrƒ…[‚ÌƒtƒHƒ“ƒgBƒtƒHƒ“ƒgƒTƒCƒY‚Íƒ|ƒCƒ“ƒgB
 
 
+===AssociationƒZƒNƒVƒ‡ƒ“
+URL‚ðŠJ‚­‚Æ‚«‚ÌŠÖ˜A•t‚¯‚ÌÝ’è‚ð‚µ‚Ü‚·B’ÊíAURL‚ðŠJ‚­‚Æ‚«‚É‚ÍƒVƒXƒeƒ€‚ÌŠÖ˜A•t‚¯‚É]‚¢‚Ü‚·‚ªAƒVƒXƒeƒ€‚ÌÝ’è‚ð•ÏX‚Å‚«‚È‚¢ê‡‚È‚Ç‚É‚Í‚±‚±‚ÅŽw’è‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B‚½‚Æ‚¦‚ÎAhttpƒvƒƒgƒRƒ‹‚ÉŠÖ˜A•t‚¯‚ðs‚¤‚É‚ÍAhttp‚Æ‚¢‚¤ƒL[‚ðì‚Á‚ÄA’l‚Æ‚µ‚Ä‹N“®‚·‚éƒRƒ}ƒ“ƒh‚ðŽw’è‚µ‚Ü‚·B%1‚ðŽw’è‚µ‚½êŠ‚ÉURL‚ª’uŠ·‚³‚ê‚Ü‚·B
+
+‚½‚Æ‚¦‚ÎAhttpƒvƒƒgƒRƒ‹‚ðInternet Explorer‚ÉŠÖ˜A•t‚¯‚é‚É‚ÍAhttpƒL[‚Éuiexplore.exe "%1"v‚Ì‚æ‚¤‚ÉŽw’è‚µ‚Ü‚·B
+
+
 ===AutoPilotƒZƒNƒVƒ‡ƒ“
 ((<Ž©“®„‰ñ|URL:AutoPilot.html>))‚ÌÝ’è‚ð‚µ‚Ü‚·B
 
