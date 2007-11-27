@@ -195,9 +195,9 @@ wstring_ptr qm::UIUtil::formatMenu(const WCHAR* pwszText,
 	return buf.getString();
 }
 
-bool qm::UIUtil::openURL(const WCHAR* pwszURL,
-						 Profile* pProfile,
-						 HWND hwnd)
+bool qm::UIUtil::openURLWithWarning(const WCHAR* pwszURL,
+									Profile* pProfile,
+									HWND hwnd)
 {
 	assert(pwszURL);
 	assert(pProfile);
@@ -218,30 +218,53 @@ bool qm::UIUtil::openURL(const WCHAR* pwszURL,
 		}
 	}
 	
-	return openURL(pwszURL, hwnd);
+	return openURL(pwszURL, pProfile, hwnd);
 }
 
 bool qm::UIUtil::openURL(const WCHAR* pwszURL,
+						 qs::Profile* pProfile,
 						 HWND hwnd)
 {
 	assert(pwszURL);
 	
-	W2T(pwszURL, ptszURL);
-	SHELLEXECUTEINFO info = {
-		sizeof(info),
-		0,
-		hwnd,
+	wstring_ptr wstrAssoc;
+	if (pProfile) {
+		WCHAR wszSchema[16];
+		DWORD dwLen = 0;
+		HRESULT hr = ::CoInternetParseUrl(pwszURL, PARSE_SCHEMA,
+			0, wszSchema, countof(wszSchema) - 1, &dwLen, 0);
+		if (hr == S_OK && dwLen != 0) {
+			wszSchema[dwLen] = L'\0';
+			wstring_ptr wstr = pProfile->getString(L"Association", wszSchema);
+			if (*wstr.get())
+				wstrAssoc = wstr;
+		}
+	}
+	
+	if (wstrAssoc.get()) {
+		wstring_ptr wstrCommand = TextUtil::replaceAll(wstrAssoc.get(), L"%1", pwszURL);
+		if (!wstrCommand.get())
+			return false;
+		return Process::shellExecute(wstrCommand.get(), hwnd);
+	}
+	else {
+		W2T(pwszURL, ptszURL);
+		SHELLEXECUTEINFO info = {
+			sizeof(info),
+			0,
+			hwnd,
 #ifdef _WIN32_WCE
-		_T("open"),
+			_T("open"),
 #else
-		0,
+			0,
 #endif
-		ptszURL,
-		0,
-		0,
-		SW_SHOW
-	};
-	return ::ShellExecuteEx(&info) != 0;
+			ptszURL,
+			0,
+			0,
+			SW_SHOW
+		};
+		return ::ShellExecuteEx(&info) != 0;
+	}
 }
 
 HIMAGELIST qm::UIUtil::createImageListFromFile(const WCHAR* pwszName,

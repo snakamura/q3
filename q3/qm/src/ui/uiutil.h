@@ -66,10 +66,11 @@ public:
 	
 	static qs::wstring_ptr formatMenu(const WCHAR* pwszText,
 									  int* pnMnemonic);
+	static bool openURLWithWarning(const WCHAR* pwszURL,
+								   qs::Profile* pProfile,
+								   HWND hwnd);
 	static bool openURL(const WCHAR* pwszURL,
 						qs::Profile* pProfile,
-						HWND hwnd);
-	static bool openURL(const WCHAR* pwszURL,
 						HWND hwnd);
 	
 	static HIMAGELIST createImageListFromFile(const WCHAR* pwszName,

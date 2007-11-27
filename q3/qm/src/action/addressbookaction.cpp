@@ -29,7 +29,9 @@ using namespace qs;
  *
  */
 
-qm::AddressBookAddressCreateMessageAction::AddressBookAddressCreateMessageAction(HWND hwnd) :
+qm::AddressBookAddressCreateMessageAction::AddressBookAddressCreateMessageAction(Profile* pProfile,
+																				 HWND hwnd) :
+	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
 }
@@ -45,7 +47,7 @@ void qm::AddressBookAddressCreateMessageAction::invoke(const ActionEvent& event)
 		return;
 	
 	wstring_ptr wstrURI(concat(L"mailto:", TextUtil::escapeIURIComponent(pwszAddress).get()));
-	UIUtil::openURL(wstrURI.get(), hwnd_);
+	UIUtil::openURL(wstrURI.get(), pProfile_, hwnd_);
 }
 
 bool qm::AddressBookAddressCreateMessageAction::isEnabled(const qs::ActionEvent& event)

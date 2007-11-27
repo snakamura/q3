@@ -675,12 +675,14 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION1(HelpAboutAction,
 		IDM_HELP_ABOUT,
 		pThis_->getHandle());
-	ADD_ACTION2(HelpCheckUpdateAction,
+	ADD_ACTION3(HelpCheckUpdateAction,
 		IDM_HELP_CHECKUPDATE,
 		pUpdateChecker_,
+		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION1(HelpOpenURLAction,
+	ADD_ACTION2(HelpOpenURLAction,
 		IDM_HELP_OPENURL,
+		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION9(MessageApplyRuleAction,
 		IDM_MESSAGE_APPLYRULE,
@@ -2156,13 +2158,14 @@ void qm::MainWindow::setShowPreviewWindow(bool bShow)
 void qm::MainWindow::processIdle()
 {
 	FrameWindow::processIdle();
+	
 	pImpl_->updateStatusBar();
 	pImpl_->pDocument_->getRecents()->removeSeens();
 	
 	if (pImpl_->pUpdateChecker_->isUpdated()) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		if (messageBox(hInst, IDS_CONFIRM_UPDATE, MB_YESNO, getHandle()) == IDYES)
-			UIUtil::openURL(L"http://q3.snak.org/download/", getHandle());
+			UIUtil::openURL(L"http://q3.snak.org/download/", pImpl_->pProfile_, getHandle());
 		pImpl_->pUpdateChecker_->clearUpdated();
 	}
 }

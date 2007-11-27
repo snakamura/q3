@@ -3331,8 +3331,10 @@ void qm::HelpAboutAction::invoke(const ActionEvent& event)
  */
 
 qm::HelpCheckUpdateAction::HelpCheckUpdateAction(UpdateChecker* pUpdateChecker,
+												 Profile* pProfile,
 												 HWND hwnd) :
 	pUpdateChecker_(pUpdateChecker),
+	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
 }
@@ -3347,7 +3349,7 @@ void qm::HelpCheckUpdateAction::invoke(const ActionEvent& event)
 	switch (pUpdateChecker_->checkUpdate()) {
 	case UpdateChecker::UPDATE_UPDATED:
 		if (messageBox(hInst, IDS_CONFIRM_UPDATE, MB_YESNO, hwnd_) == IDYES)
-			UIUtil::openURL(L"http://q3.snak.org/download/", hwnd_);
+			UIUtil::openURL(L"http://q3.snak.org/download/", pProfile_, hwnd_);
 		break;
 	case UpdateChecker::UPDATE_LATEST:
 		messageBox(hInst, IDS_MESSAGE_UPDATED, hwnd_);
@@ -3368,7 +3370,9 @@ void qm::HelpCheckUpdateAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::HelpOpenURLAction::HelpOpenURLAction(HWND hwnd) :
+qm::HelpOpenURLAction::HelpOpenURLAction(Profile* pProfile,
+										 HWND hwnd) :
+	pProfile_(pProfile),
 	hwnd_(hwnd)
 {
 }
@@ -3383,7 +3387,7 @@ void qm::HelpOpenURLAction::invoke(const ActionEvent& event)
 	if (!pwszURL)
 		return;
 	
-	UIUtil::openURL(pwszURL, hwnd_);
+	UIUtil::openURL(pwszURL, pProfile_, hwnd_);
 }
 
 
@@ -4884,7 +4888,7 @@ void qm::MessageOpenLinkAction::invoke(const ActionEvent& event)
 		
 		UnstructuredParser link;
 		if (msg.getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST)
-			UIUtil::openURL(link.getValue(), pProfile_, hwnd_);
+			UIUtil::openURLWithWarning(link.getValue(), pProfile_, hwnd_);
 	}
 }
 

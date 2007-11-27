@@ -1613,6 +1613,7 @@ class HelpCheckUpdateAction : public qs::AbstractAction
 {
 public:
 	HelpCheckUpdateAction(UpdateChecker* pUpdateChecker,
+						  qs::Profile* pProfile,
 						  HWND hwnd);
 	virtual ~HelpCheckUpdateAction();
 
@@ -1625,6 +1626,7 @@ private:
 
 private:
 	UpdateChecker* pUpdateChecker_;
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 
@@ -1638,7 +1640,8 @@ private:
 class HelpOpenURLAction : public qs::AbstractAction
 {
 public:
-	explicit HelpOpenURLAction(HWND hwnd);
+	HelpOpenURLAction(qs::Profile* pProfile,
+					  HWND hwnd);
 	virtual ~HelpOpenURLAction();
 
 public:
@@ -1649,6 +1652,7 @@ private:
 	HelpOpenURLAction& operator=(const HelpOpenURLAction&);
 
 private:
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 

@@ -766,7 +766,7 @@ LRESULT qm::EditTextWindow::onSetFocus(HWND hwnd)
 
 bool qm::EditTextWindow::openLink(const WCHAR* pwszURL)
 {
-	return UIUtil::openURL(pwszURL, pProfile_, getParentFrame());
+	return UIUtil::openURLWithWarning(pwszURL, pProfile_, getParentFrame());
 }
 
 

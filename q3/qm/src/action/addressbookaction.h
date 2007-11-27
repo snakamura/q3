@@ -37,7 +37,8 @@ class AddressBookSelectionModel;
 class AddressBookAddressCreateMessageAction : public qs::AbstractAction
 {
 public:
-	explicit AddressBookAddressCreateMessageAction(HWND hwnd);
+	AddressBookAddressCreateMessageAction(qs::Profile* pProfile,
+										  HWND hwnd);
 	virtual ~AddressBookAddressCreateMessageAction();
 
 public:
@@ -49,6 +50,7 @@ private:
 	AddressBookAddressCreateMessageAction& operator=(const AddressBookAddressCreateMessageAction&);
 
 private:
+	qs::Profile* pProfile_;
 	HWND hwnd_;
 };
 
