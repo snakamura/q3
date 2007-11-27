@@ -1,6 +1,6 @@
 =begin
 =ヘッダエディットビューのカスタマイズ
 
-((<headeredit.xml|URL:HeaderXml.html>))を編集することでヘッダエディットビューをカスタマイズできます。
+((<headeredit.xml|URL:HeaderEditXml.html>))を編集することでヘッダエディットビューをカスタマイズできます。
 
 =end
