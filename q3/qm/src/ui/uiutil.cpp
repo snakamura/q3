@@ -22,6 +22,7 @@
 #include <qswindow.h>
 
 #include <tchar.h>
+#include <urlmon.h>
 
 #include "dialogs.h"
 #include "resourceinc.h"
