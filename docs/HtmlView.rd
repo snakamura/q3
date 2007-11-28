@@ -4,10 +4,10 @@
 以下のプラットフォームのQMAIL3はHTMLの表示をサポートしています。
 
 *Windows版
-*Pocket PC 2003 SE, Pocket PC 2003, Pocket PC 2002版
+*Windows Mobile 6, Windows Mobile 5.0, Pocket PC 2003 SE, Pocket PC 2003, Pocket PC 2002版
 *sigmarion III版
 
-Windows版およびsigmarion III版ではWebBrowserコントロールを使用し、Pocket PC版ではHTMLコントロールを使用しています。このため、表現力はこれらのコントロールの表現力に依存します。
+Windows版およびsigmarion III版ではWebBrowserコントロールを使用し、Windows MobileとPocket PC版ではHTMLコントロールを使用しています。このため、表現力はこれらのコントロールの表現力に依存します。
 
 HTML表示をするには、リストビューで表示したいHTMLメールを選択して、((<[表示]-[HTML]-[HTMLを表示]|URL:ViewHtmlModeAction.html>))をOnにします。メッセージにHTMLパートが含まれている場合には、そのパートをHTMLとして表示します。HTMLパートが含まれていない場合には何もしません。
 
