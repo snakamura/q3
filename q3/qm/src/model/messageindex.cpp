@@ -27,7 +27,6 @@ qm::MessageIndex::MessageIndex(MessageStore* pMessageStore,
 							   size_t nMaxSize) :
 	pMessageStore_(pMessageStore),
 	nMaxSize_(nMaxSize),
-	nSize_(0),
 	pNewFirst_(0),
 	pNewLast_(0),
 	pLastGotten_(0)
@@ -87,10 +86,8 @@ wstring_ptr qm::MessageIndex::get(unsigned int nKey,
 			std::auto_ptr<MessageIndexItem> p(new MessageIndexItem(nKey, pData, pwszValues));
 			pItem = p.get();
 			insert(p);
-			if (nSize_ >= nMaxSize_)
+			if (map_.size() > nMaxSize_)
 				remove(pNewLast_->pNewPrev_->getKey());
-			else
-				++nSize_;
 		}
 		
 		const WCHAR* pwszValue = pwszValues[name];
@@ -131,10 +128,8 @@ void qm::MessageIndex::prepare(unsigned int nKey,
 		
 		std::auto_ptr<MessageIndexItem> pItem(new MessageIndexItem(nKey, pData, pwszValues));
 		insert(pItem);
-		if (nSize_ >= nMaxSize_)
+		if (map_.size() > nMaxSize_)
 			remove(pNewLast_->pNewPrev_->getKey());
-		else
-			++nSize_;
 	}
 }
 

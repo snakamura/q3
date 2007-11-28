@@ -80,7 +80,6 @@ private:
 private:
 	MessageStore* pMessageStore_;
 	size_t nMaxSize_;
-	size_t nSize_;
 	ItemMap map_;
 	MessageIndexItem* pNewFirst_;
 	MessageIndexItem* pNewLast_;
