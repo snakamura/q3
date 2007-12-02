@@ -792,7 +792,7 @@ std::pair<size_t, const WCHAR*> qm::HtmlContentManager::detectMetaContentType(co
 	const WCHAR* pEnd = 0;
 	pMetaPattern__->search(pwsz, nLen, pwsz, false, &pStart, &pEnd, 0);
 	if (pStart)
-		return std::make_pair(pStart - pwsz, pEnd + 1);
+		return std::make_pair(pStart - pwsz, pEnd);
 	else
 		return std::pair<size_t, const WCHAR*>(-1, 0);
 }
