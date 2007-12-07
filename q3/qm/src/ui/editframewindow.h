@@ -52,6 +52,7 @@ public:
 	bool closeAll();
 	void showAll();
 	void hideAll();
+	bool isOpen() const;
 	void layout();
 	void reloadProfiles();
 

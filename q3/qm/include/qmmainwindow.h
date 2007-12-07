@@ -21,6 +21,7 @@ namespace qm {
 
 class MainWindow;
 
+class EditFrameWindowManager;
 class FolderModel;
 class SecurityModel;
 
@@ -41,6 +42,7 @@ public:
 	FolderModel* getFolderModel() const;
 	SecurityModel* getSecurityModel() const;
 	const ActionInvoker* getActionInvoker() const;
+	const EditFrameWindowManager* getEditFrameWindowManager() const;
 	bool isShowingModalDialog() const;
 	void initialShow(bool bHidden);
 	void layout();

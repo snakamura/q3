@@ -1981,6 +1981,11 @@ const ActionInvoker* qm::MainWindow::getActionInvoker() const
 	return pImpl_->pActionInvoker_.get();
 }
 
+const EditFrameWindowManager* qm::MainWindow::getEditFrameWindowManager() const
+{
+	return pImpl_->pEditFrameWindowManager_.get();
+}
+
 bool qm::MainWindow::isShowingModalDialog() const
 {
 	return pImpl_->bShowingModalDialog_;

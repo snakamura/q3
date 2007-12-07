@@ -53,6 +53,7 @@
 #include "../sync/syncmanager.h"
 #include "../sync/syncqueue.h"
 #include "../ui/dialogs.h"
+#include "../ui/editframewindow.h"
 #include "../ui/folderimage.h"
 #include "../ui/mainwindow.h"
 #include "../ui/syncdialog.h"
@@ -723,6 +724,7 @@ void qm::ApplicationImpl::saveCurrentFolder()
 bool qm::ApplicationImpl::canAutoPilot()
 {
 	return !pMainWindow_->isShowingModalDialog() &&
+		!pMainWindow_->getEditFrameWindowManager()->isOpen() &&
 		!pSyncManager_->isSyncing();
 }
 

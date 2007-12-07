@@ -1014,6 +1014,11 @@ void qm::EditFrameWindowManager::hideAll()
 		boost::bind(&EditFrameWindow::showWindow, _1, SW_HIDE));
 }
 
+bool qm::EditFrameWindowManager::isOpen() const
+{
+	return !listFrame_.empty();
+}
+
 void qm::EditFrameWindowManager::layout()
 {
 	std::for_each(listFrame_.begin(), listFrame_.end(),
