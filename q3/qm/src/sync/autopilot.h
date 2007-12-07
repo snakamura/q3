@@ -198,6 +198,10 @@ public:
 	bool isEnabled() const;
 	void setEnabled(bool bEnabled);
 
+public:
+	bool isPending() const;
+	void setPending(bool bPending) const;
+
 private:
 	AutoPilotEntry& operator=(const AutoPilotEntry& entry);
 
@@ -205,6 +209,7 @@ private:
 	qs::wstring_ptr wstrCourse_;
 	int nInterval_;
 	bool bEnabled_;
+	mutable bool bPending_;
 };
 
 

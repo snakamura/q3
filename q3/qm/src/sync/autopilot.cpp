@@ -95,15 +95,20 @@ void qm::AutoPilot::timerTimeout(Timer::Id nId)
 	bool bPilot = bEnabled_ &&
 		(!bOnlyWhenConnected || RasConnection::isNetworkConnected()) &&
 		pCallback_->canAutoPilot();
-	if (bPilot) {
-		const AutoPilotManager::EntryList& l = pAutoPilotManager_->getEntries();
-		for (AutoPilotManager::EntryList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			const AutoPilotEntry* pEntry = *it;
-			if (pEntry->isEnabled() && nCount_ % pEntry->getInterval() == 0) {
+	
+	const AutoPilotManager::EntryList& l = pAutoPilotManager_->getEntries();
+	for (AutoPilotManager::EntryList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		const AutoPilotEntry* pEntry = *it;
+		if (pEntry->isEnabled() && (nCount_ % pEntry->getInterval() == 0 || pEntry->isPending())) {
+			if (bPilot) {
 				const GoRoundCourse* pCourse = pGoRound_->getCourse(pEntry->getCourse());
 				if (pCourse)
 					SyncUtil::goRound(pSyncManager_, pDocument_,
 						pSyncDialogManager_, SyncData::TYPE_AUTO, pCourse);
+				pEntry->setPending(false);
+			}
+			else {
+				pEntry->setPending(true);
 			}
 		}
 	}
@@ -256,7 +261,8 @@ bool qm::AutoPilotManager::load()
 
 qm::AutoPilotEntry::AutoPilotEntry() :
 	nInterval_(5),
-	bEnabled_(true)
+	bEnabled_(true),
+	bPending_(false)
 {
 	wstrCourse_ = allocWString(L"");
 }
@@ -265,14 +271,16 @@ qm::AutoPilotEntry::AutoPilotEntry(const WCHAR* pwszCourse,
 								   int nInterval,
 								   bool bEnabled) :
 	nInterval_(nInterval),
-	bEnabled_(bEnabled)
+	bEnabled_(bEnabled),
+	bPending_(false)
 {
 	wstrCourse_ = allocWString(pwszCourse);
 }
 
 qm::AutoPilotEntry::AutoPilotEntry(const AutoPilotEntry& entry) :
 	nInterval_(entry.nInterval_),
-	bEnabled_(entry.bEnabled_)
+	bEnabled_(entry.bEnabled_),
+	bPending_(false)
 {
 	wstrCourse_ = allocWString(entry.wstrCourse_.get());
 }
@@ -310,6 +318,16 @@ bool qm::AutoPilotEntry::isEnabled() const
 void qm::AutoPilotEntry::setEnabled(bool bEnabled)
 {
 	bEnabled_ = bEnabled;
+}
+
+bool qm::AutoPilotEntry::isPending() const
+{
+	return bPending_;
+}
+
+void qm::AutoPilotEntry::setPending(bool bPending) const
+{
+	bPending_ = bPending;
 }
 
 
