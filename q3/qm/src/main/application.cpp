@@ -104,7 +104,7 @@ public:
 	void initConverterAliases();
 	void initTimeFormat();
 	void initMime();
-	void initLog();
+	void initLog(int nLogLevel);
 	bool ensureResources();
 	void ensureTempDirectory();
 	void loadLibraries();
@@ -145,7 +145,6 @@ public:
 	Application* pThis_;
 	HINSTANCE hInst_;
 	HINSTANCE hInstResource_;
-	bool bQuiet_;
 	std::auto_ptr<MailFolderLock> pLock_;
 	std::auto_ptr<Winsock> pWinSock_;
 	wstring_ptr wstrMailFolder_;
@@ -267,7 +266,7 @@ void qm::ApplicationImpl::initMime()
 	}
 }
 
-void qm::ApplicationImpl::initLog()
+void qm::ApplicationImpl::initLog(int nLogLevel)
 {
 	assert(pProfile_.get());
 	
@@ -276,7 +275,7 @@ void qm::ApplicationImpl::initLog()
 	wstring_ptr wstrLogDir(concat(wstrMailFolder_.get(), L"\\logs"));
 	init.setLogDirectory(wstrLogDir.get());
 	
-	int nLog = pProfile_->getInt(L"Global", L"Log");
+	int nLog = nLogLevel != -1 ? nLogLevel : pProfile_->getInt(L"Global", L"Log");
 	if (nLog >= 0) {
 		if (nLog > Logger::LEVEL_DEBUG)
 			nLog = Logger::LEVEL_DEBUG;
@@ -806,7 +805,6 @@ qm::Application::Application(HINSTANCE hInst,
 							 HINSTANCE hInstResource,
 							 wstring_ptr wstrMailFolder,
 							 wstring_ptr wstrProfile,
-							 bool bQuiet,
 							 std::auto_ptr<MailFolderLock> pLock)
 {
 	assert(wstrMailFolder.get());
@@ -817,7 +815,6 @@ qm::Application::Application(HINSTANCE hInst,
 	pImpl_->pThis_ = this;
 	pImpl_->hInst_ = hInst;
 	pImpl_->hInstResource_ = hInstResource;
-	pImpl_->bQuiet_ = bQuiet;
 	pImpl_->pLock_ = pLock;
 	pImpl_->wstrMailFolder_ = wstrMailFolder;
 	pImpl_->wstrProfileName_ = wstrProfile;
@@ -836,14 +833,15 @@ qm::Application::~Application()
 	delete pImpl_;
 }
 
-bool qm::Application::initialize()
+bool qm::Application::initialize(int nLogLevel,
+								 bool bQuiet)
 {
 	pImpl_->pWinSock_.reset(new Winsock());
 	if (!pImpl_->ensureDirectories() ||
 		!pImpl_->loadMainProfile())
 		return false;
 	pImpl_->initConverterAliases();
-	pImpl_->initLog();
+	pImpl_->initLog(nLogLevel);
 	if (!pImpl_->ensureResources())
 		return false;
 	pImpl_->ensureTempDirectory();
@@ -914,7 +912,7 @@ bool qm::Application::initialize()
 		return false;
 	pImpl_->pMainWindow_ = pMainWindow.release();
 	setMainWindow(pImpl_->pMainWindow_);
-	pImpl_->pMainWindow_->initialShow(pImpl_->bQuiet_);
+	pImpl_->pMainWindow_->initialShow(bQuiet);
 	
 	wstring_ptr wstrAccountFolder(concat(
 		pImpl_->wstrMailFolder_.get(), L"\\accounts"));
@@ -928,7 +926,7 @@ bool qm::Application::initialize()
 	pImpl_->pActiveSyncInvoker_.reset(new ActiveSyncInvoker(
 		pImpl_->pDocument_.get(), pImpl_->pSyncQueue_.get()));
 	
-	if (!pImpl_->bQuiet_) {
+	if (!bQuiet) {
 		pImpl_->pMainWindow_->updateWindow();
 		pImpl_->pMainWindow_->setForegroundWindow();
 	}

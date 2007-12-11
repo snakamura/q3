@@ -36,12 +36,12 @@ public:
 				HINSTANCE hInstResource,
 				qs::wstring_ptr wstrMailFolder,
 				qs::wstring_ptr wstrProfile,
-				bool bQuiet,
 				std::auto_ptr<MailFolderLock> pLock);
 	~Application();
 
 public:
-	bool initialize();
+	bool initialize(int nLogLevel,
+					bool bQuiet);
 	void uninitialize();
 	void run();
 	bool save(bool bForce);

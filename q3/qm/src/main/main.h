@@ -33,6 +33,7 @@ public:
 public:
 	const WCHAR* getMailFolder() const;
 	const WCHAR* getProfile() const;
+	int getLogLevel() const;
 	bool isQuiet() const;
 	bool isForceContinue() const;
 	bool isInvoke() const;
@@ -50,6 +51,7 @@ private:
 		STATE_NONE,
 		STATE_MAILFOLDER,
 		STATE_PROFILE,
+		STATE_LOGLEVEL,
 		STATE_GOROUND,
 		STATE_URL,
 		STATE_ATTACHMENT,
@@ -62,6 +64,7 @@ private:
 	State state_;
 	qs::wstring_ptr wstrMailFolder_;
 	qs::wstring_ptr wstrProfile_;
+	int nLogLevel_;
 	qs::wstring_ptr wstrGoRound_;
 	qs::wstring_ptr wstrURL_;
 	qs::wstring_ptr wstrAttachment_;

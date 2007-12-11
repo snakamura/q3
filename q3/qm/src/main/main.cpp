@@ -192,9 +192,9 @@ int qm::main(const WCHAR* pwszCommandLine)
 	
 	MailFolderLock* pLockTemp = pLock.get();
 	std::auto_ptr<Application> pApplication(new Application(g_hInst,
-		g_hInstResource, wstrMailFolder, wstrProfile, bQuiet, pLock));
+		g_hInstResource, wstrMailFolder, wstrProfile, pLock));
 	
-	if (!pApplication->initialize())
+	if (!pApplication->initialize(handler.getLogLevel(), bQuiet))
 		return 1;
 	
 	assert(getMainWindow());
@@ -217,6 +217,7 @@ int qm::main(const WCHAR* pwszCommandLine)
 
 qm::MainCommandLineHandler::MainCommandLineHandler() :
 	state_(STATE_NONE),
+	nLogLevel_(-1),
 	nAction_(0),
 	bQuiet_(false),
 	bForceContinue_(false)
@@ -235,6 +236,11 @@ const WCHAR* qm::MainCommandLineHandler::getMailFolder() const
 const WCHAR* qm::MainCommandLineHandler::getProfile() const
 {
 	return wstrProfile_.get();
+}
+
+int qm::MainCommandLineHandler::getLogLevel() const
+{
+	return nLogLevel_;
 }
 
 bool qm::MainCommandLineHandler::isQuiet() const
@@ -339,6 +345,7 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 	} options[] = {
 		{ L"d",	STATE_MAILFOLDER	},
 		{ L"p",	STATE_PROFILE		},
+		{ L"l",	STATE_LOGLEVEL		},
 		{ L"g",	STATE_GOROUND		},
 		{ L"s",	STATE_URL			},
 		{ L"a",	STATE_ATTACHMENT	},
@@ -347,9 +354,11 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		{ L"r",	STATE_DRAFT			}
 	};
 	
+	wstring_ptr wstrLogLevel;
 	wstring_ptr* pwstr[] = {
 		&wstrMailFolder_,
 		&wstrProfile_,
+		&wstrLogLevel,
 		&wstrGoRound_,
 		&wstrURL_,
 		&wstrAttachment_,
@@ -393,6 +402,7 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		break;
 	case STATE_MAILFOLDER:
 	case STATE_PROFILE:
+	case STATE_LOGLEVEL:
 	case STATE_GOROUND:
 	case STATE_URL:
 	case STATE_ATTACHMENT:
@@ -406,6 +416,13 @@ bool qm::MainCommandLineHandler::process(const WCHAR* pwszOption)
 		break;
 	default:
 		break;
+	}
+	
+	if (wstrLogLevel.get()) {
+		WCHAR* pEnd = 0;
+		long n = wcstol(wstrLogLevel.get(), &pEnd, 10);
+		if (!*pEnd && Logger::LEVEL_FATAL <= n && n <= Logger::LEVEL_DEBUG)
+			nLogLevel_ = static_cast<int>(n);
 	}
 	
 	return true;
