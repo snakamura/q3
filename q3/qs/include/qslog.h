@@ -56,7 +56,7 @@ public:
 	void logf(Level level,
 			  const WCHAR* pwszModule,
 			  const WCHAR* pwszFormat,
-			 ...);
+			  ...);
 	void logf(Level level,
 			  const WCHAR* pwszModule,
 			  const WCHAR* pwszFormat,
