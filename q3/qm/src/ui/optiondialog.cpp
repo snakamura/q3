@@ -3621,11 +3621,11 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 	case RuleAction::TYPE_NONE:
 		break;
 	case RuleAction::TYPE_MOVE:
+		bEnableContinue = false;
 	case RuleAction::TYPE_COPY:
 		nStart = 0;
 		nEnd = 5;
 		bEnable = Window(getDlgItem(IDC_FOLDER)).getWindowTextLength() != 0;
-		bEnableContinue = false;
 		break;
 	case RuleAction::TYPE_DELETE:
 		nStart = 5;

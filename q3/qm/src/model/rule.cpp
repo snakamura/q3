@@ -1120,7 +1120,7 @@ bool qm::CopyRuleAction::apply(RuleContext* pContext) const
 
 unsigned int qm::CopyRuleAction::getFlags() const
 {
-	return FLAG_NONE;
+	return bMove_ ? FLAG_NONE : FLAG_CONTINUABLE;
 }
 
 wstring_ptr qm::CopyRuleAction::getDescription() const
@@ -1379,12 +1379,11 @@ RuleAction::Type qm::ApplyRuleAction::getType() const
 bool qm::ApplyRuleAction::apply(RuleContext* pContext) const
 {
 	const MessageHolderList& l = pContext->getMessageHolderList();
-	unsigned int nMacroFlags = pContext->getMacroFlags();
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Message msg;
 		MacroContext c(*it, &msg, pContext->getAccount(), MessageHolderList(),
 			pContext->getFolder(), pContext->getDocument(), pContext->getActionInvoker(),
-			pContext->getWindow(), pContext->getProfile(), 0, nMacroFlags,
+			pContext->getWindow(), pContext->getProfile(), 0, pContext->getMacroFlags(),
 			pContext->getSecurityMode(), 0, pContext->getGlobalVariable());
 		MacroValuePtr pValue(pMacro_->value(&c));
 		if (!pValue.get())
