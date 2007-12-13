@@ -34,23 +34,23 @@ BASEADDRESS		= 0x30000000
 
 include ../common.mak
 
-%: %.sh
-
-$(SRCDIR)/main/version.h: version revision
+$(SRCDIR)/main/version$(BASEPLATFORM).h: version revision
 	( \
-		source version.sh; \
-		\
 		printf "const int QMAIL_VERSION = %d%02d%03d;\n" \
 			`cat version | tr '.' ' '`; \
 		printf "const int QMAIL_REVISION = %d;\n" $(REVISION); \
 		printf "\n"; \
 		for r in $(SRCDIR)/ui/res/*.xml $(SRCDIR)/ui/res/*.template $(SRCDIR)/ui/res/*.bmp; do \
 			p=`basename $$r | tr 'a-z.' 'A-Z_'`; \
-			printf "const int %s_REVISION = %d;\n" $$p `getNewestRevision $$r`; \
-			printf "const size_t %s_SIZE = %d;\n" $$p `getSize $$r`; \
+			pr=`dirname $$r`/$(BASEPLATFORM)/`basename $$r`; \
+			if [ -f $$pr ]; then \
+				r=$$pr; \
+			fi; \
+			printf "const int %s_REVISION = %d;\n" $$p `LC_MESSAGES=C svn info $$r | grep "Last Changed Rev" | cut -f 4 -d ' '`; \
+			printf "const size_t %s_SIZE = %d;\n" $$p `wc -c $$r | sed -e 's/^ *\([0-9]\+\).*$$/\1/'`; \
 		done \
 	) > $@
 
-$(OBJDIR)/main/application.obj: $(SRCDIR)/main/version.h
+$(OBJDIR)/main/application.obj: $(SRCDIR)/main/version$(BASEPLATFORM).h
 
 $(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res: $(SRCDIR)/ui/$(PROJECTNAME).rc $(SRCDIR)/ui/resource.h $(SRCDIR)/model/model.rc $(SRCDIR)/model/modelresource.h
