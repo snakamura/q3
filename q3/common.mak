@@ -641,7 +641,7 @@ else
 	#########################################################################
 endif
 
-CPROJS					+= -DPLATFORM_$(shell echo $(PLATFORM) | tr [a-z] [A-Z])
+CPROJS					+= -DPLATFORM_$(shell echo $(PLATFORM) | tr [a-z] [A-Z]) -DBASEPLATFORM_$(shell echo $(BASEPLATFORM) | tr [a-z] [A-Z])
 
 ifeq ($(BASELANG),ja)
 	CPROJS				+= -DJAPAN
