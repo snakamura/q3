@@ -6,7 +6,8 @@
  *
  */
 
-#include <qmresourceversion.h>
+#ifndef __RESOURCEVERSION_H__
+#define __RESOURCEVERSION_H__
 
 #if defined BASEPLATFORM_WIN
 #	include "resourceversionwin.h"
@@ -18,8 +19,4 @@
 #	error "Unsupported platform"
 #endif
 
-using namespace qm;
-
-extern "C" QMEXPORTPROC const ResourceVersion* getResourceVersions() {
-	return resourceVersions;
-}
+#endif // __RESOURCEVERSION_H__

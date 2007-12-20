@@ -57,6 +57,7 @@
 #include "../ui/editframewindow.h"
 #include "../ui/folderimage.h"
 #include "../ui/mainwindow.h"
+#include "../ui/resourceversion.h"
 #include "../ui/syncdialog.h"
 #include "../ui/uimanager.h"
 #include "../ui/uiutil.h"
@@ -426,7 +427,7 @@ void qm::ApplicationImpl::loadResourceVersions()
 	
 	pResourceVersions_ = loadResourceVersions(hInstResource_);
 	if (!pResourceVersions_) {
-		pResourceVersions_ = loadResourceVersions(hInst_);
+		pResourceVersions_ = resourceVersions;
 		hInstResource_ = hInst_;
 	}
 	

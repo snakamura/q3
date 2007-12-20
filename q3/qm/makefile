@@ -50,7 +50,7 @@ $(SRCDIR)/main/version.h: version revision
 $(SRCDIR)/ui/resourceversion$(BASEPLATFORM).h:
 	sh resourceversion.sh $(SRCDIR) $(BASEPLATFORM) > $@
 
-$(OBJDIR)/main/application.obj: $(SRCDIR)/main/version.h
+$(OBJDIR)/main/application.obj: $(SRCDIR)/main/version.h $(SRCDIR)/ui/resourceversion$(BASEPLATFORM).h
 
 $(OBJDIR)/ui/$(PROJECTNAME)$(BASEPLATFORM).res: $(SRCDIR)/ui/$(PROJECTNAME).rc $(SRCDIR)/ui/resource.h $(SRCDIR)/model/model.rc $(SRCDIR)/model/modelresource.h
 $(SRCDIR)/ui/resourceversion.cpp: $(SRCDIR)/ui/resourceversion$(BASEPLATFORM).h

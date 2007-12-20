@@ -10,6 +10,8 @@ basesrcdir=${srcdir%%\.*}
 cat <<END
 #include <qmresourceversion.h>
 
+namespace {
+
 const qm::ResourceVersion resourceVersions[] = {
 END
 
@@ -31,4 +33,6 @@ done
 
 cat <<END
 };
+
+}
 END
