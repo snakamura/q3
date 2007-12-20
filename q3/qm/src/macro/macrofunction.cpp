@@ -2638,13 +2638,13 @@ MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 	
 	LOG(I);
 	
-	if (!pContext->isFlag(MacroContext::FLAG_UITHREAD))
-		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
-	
 	if (!checkArgSizeRange(pContext, 0, 2))
 		return MacroValuePtr();
 	
 	size_t nSize = getArgSize();
+	
+	if (nSize < 2 && !pContext->isFlag(MacroContext::FLAG_UITHREAD))
+		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
 	
 	ARG_IF(pValueSubAccount, 1, nSize);
 	MacroValue::String wstrSubAccount;
