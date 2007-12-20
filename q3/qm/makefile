@@ -47,7 +47,7 @@ $(SRCDIR)/main/version.h: version revision
 		done \
 	) > $@
 
-$(SRCDIR)/ui/resourceversion$(BASEPLATFORM).h:
+$(SRCDIR)/ui/resourceversion$(BASEPLATFORM).h: revision
 	sh resourceversion.sh $(SRCDIR) $(BASEPLATFORM) > $@
 
 $(OBJDIR)/main/application.obj: $(SRCDIR)/main/version.h $(SRCDIR)/ui/resourceversion$(BASEPLATFORM).h
