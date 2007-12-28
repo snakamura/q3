@@ -2101,11 +2101,13 @@ qm::ViewData::ViewData(DefaultViewData* pDefaultViewData,
 {
 	wstrPath_ = allocWString(pwszPath);
 	
-	XMLReader reader;
-	ViewDataContentHandler contentHandler(this);
-	reader.setContentHandler(&contentHandler);
-	if (!reader.parse(wstrPath_.get())) {
-		// TODO
+	if (File::isFileExisting(wstrPath_.get())) {
+		XMLReader reader;
+		ViewDataContentHandler contentHandler(this);
+		reader.setContentHandler(&contentHandler);
+		if (!reader.parse(wstrPath_.get())) {
+			// TODO
+		}
 	}
 }
 
