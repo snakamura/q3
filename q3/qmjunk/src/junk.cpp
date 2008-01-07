@@ -859,10 +859,13 @@ bool qmjunk::Tokenizer::getTokens(const WCHAR* pwszText,
 		switch (token) {
 		case TOKEN_LATIN:
 			{
+				bool bLower = false;
 				const WCHAR* pBegin = p;
 				do {
+					if (!bLower && 'a' <= *p && *p < 'z')
+						bLower = true;
 					++p;
-				} while (p < pEnd && getToken(*p) == token);
+				} while (p < pEnd && getToken(*p) == token && (!bLower || *p < 'A' || 'Z' < *p));
 				
 				if (!pCallback->token(pBegin, p - pBegin))
 					return false;
