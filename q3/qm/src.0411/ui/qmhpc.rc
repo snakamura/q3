@@ -1708,7 +1708,7 @@ CAPTION "QMAILÇÃÉoÅ[ÉWÉáÉìèÓïÒ"
 FONT 9, "Tahoma"
 BEGIN
     LTEXT           "",IDC_VERSION,5,5,195,8
-    LTEXT           "(C) 1998-2007 Satoshi Nakamura. All rights reserved.",
+    LTEXT           "(C) 1998-2008 Satoshi Nakamura",
                     IDC_STATIC,5,15,195,8
     LTEXT           "http://q3.snak.org/",IDC_STATIC,5,30,195,8
     EDITTEXT        IDC_DESCRIPTION,5,45,195,55,ES_MULTILINE | 

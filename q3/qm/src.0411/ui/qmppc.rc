@@ -1813,10 +1813,10 @@ CAPTION "QMAILのバージョン情報"
 FONT 9, "Tahoma"
 BEGIN
     LTEXT           "",IDC_VERSION,5,5,127,8
-    LTEXT           "(C) 1998-2007 Satoshi Nakamura.\nAll rights reserved.",
-                    IDC_COPYRIGHT,5,15,127,20
-    LTEXT           "http://q3.snak.org/",IDC_URL,5,40,127,8
-    EDITTEXT        IDC_DESCRIPTION,5,55,127,55,ES_MULTILINE | 
+    LTEXT           "(C) 1998-2008 Satoshi Nakamura",IDC_COPYRIGHT,5,15,127,
+                    10
+    LTEXT           "http://q3.snak.org/",IDC_URL,5,25,127,8
+    EDITTEXT        IDC_DESCRIPTION,5,40,127,70,ES_MULTILINE | 
                     ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
 END
 
@@ -1835,10 +1835,10 @@ CAPTION "QMAILのバージョン情報"
 FONT 9, "Tahoma"
 BEGIN
     LTEXT           "",IDC_VERSION,5,5,172,8
-    LTEXT           "(C) 1998-2007 Satoshi Nakamura.\nAll rights reserved.",
-                    IDC_COPYRIGHT,5,15,172,20
-    LTEXT           "http://q3.snak.org/",IDC_URL,5,40,172,8
-    EDITTEXT        IDC_DESCRIPTION,5,55,172,47,ES_MULTILINE | 
+    LTEXT           "(C) 1998-2008 Satoshi Nakamura",IDC_COPYRIGHT,5,15,172,
+                    10
+    LTEXT           "http://q3.snak.org/",IDC_URL,5,25,172,8
+    EDITTEXT        IDC_DESCRIPTION,5,40,172,62,ES_MULTILINE | 
                     ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
 END
 
