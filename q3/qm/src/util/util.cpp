@@ -108,6 +108,16 @@ std::pair<Account*, Folder*> qm::Util::getAccountOrFolder(AccountManager* pAccou
 	return p;
 }
 
+std::pair<Account*, Folder*> qm::Util::getAccountOrFolder(AccountManager* pAccountManager,
+														  Account* pAccount,
+														  const WCHAR* pwsz)
+{
+	std::pair<Account*, Folder*> p(0, pAccountManager->getFolder(pAccount, pwsz));
+	if (!p.second)
+		p = getAccountOrFolder(pAccountManager, pwsz);
+	return p;
+}
+
 unsigned int qm::Util::getMessageCount(Account* pAccount)
 {
 	unsigned int nCount = 0;

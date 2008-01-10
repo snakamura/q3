@@ -48,6 +48,9 @@ public:
 										 const WCHAR* pwszSeparator);
 	static std::pair<Account*, Folder*> getAccountOrFolder(AccountManager* pAccountManager,
 														   const WCHAR* pwsz);
+	static std::pair<Account*, Folder*> getAccountOrFolder(AccountManager* pAccountManager,
+														   Account* pAccount,
+														   const WCHAR* pwsz);
 	
 	static unsigned int getMessageCount(Account* pAccount);
 	static unsigned int getUnseenMessageCount(Account* pAccount);

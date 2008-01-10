@@ -6896,6 +6896,20 @@ void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 				pFolderModel_->setCurrent(*it, 0, true);
 		}
 		break;
+	case TYPE_SELECT:
+		{
+			const WCHAR* pwszFolder = ActionParamUtil::getString(event.getParam(), 0);
+			if (!pwszFolder)
+				return;
+			
+			std::pair<Account*, Folder*> p(Util::getAccountOrFolder(
+				pAccountManager_, pAccount, pwszFolder));
+			if (!p.first && !p.second)
+				return;
+			assert(!p.first || !p.second);
+			pFolderModel_->setCurrent(p.first, p.second, true);
+		}
+		break;
 	default:
 		break;
 	}
@@ -6903,8 +6917,22 @@ void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 
 bool qm::ViewNavigateFolderAction::isEnabled(const ActionEvent& event)
 {
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	return p.first || p.second;
+	Account* pAccount = FolderActionUtil::getAccount(pFolderModel_);
+	if (!pAccount)
+		return false;
+	
+	if (type_ == TYPE_SELECT) {
+		const WCHAR* pwszFolder = ActionParamUtil::getString(event.getParam(), 0);
+		if (!pwszFolder)
+			return false;
+		
+		std::pair<Account*, Folder*> p(Util::getAccountOrFolder(
+			pAccountManager_, pAccount, pwszFolder));
+		if (!p.first && !p.second)
+			return false;
+	}
+	
+	return true;
 }
 
 

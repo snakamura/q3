@@ -1186,7 +1186,8 @@ void qm::MainWindowImpl::initActions()
 		{ IDM_VIEW_NEXTACCOUNT,		ViewNavigateFolderAction::TYPE_NEXTACCOUNT	},
 		{ IDM_VIEW_PREVACCOUNT,		ViewNavigateFolderAction::TYPE_PREVACCOUNT	},
 		{ IDM_VIEW_NEXTFOLDER,		ViewNavigateFolderAction::TYPE_NEXTFOLDER	},
-		{ IDM_VIEW_PREVFOLDER,		ViewNavigateFolderAction::TYPE_PREVFOLDER	}
+		{ IDM_VIEW_PREVFOLDER,		ViewNavigateFolderAction::TYPE_PREVFOLDER	},
+		{ IDM_VIEW_SELECTFOLDER,	ViewNavigateFolderAction::TYPE_SELECT		}
 	};
 	for (int n = 0; n < countof(navigateFolders); ++n) {
 		ADD_ACTION3(ViewNavigateFolderAction,

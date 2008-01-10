@@ -234,6 +234,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ViewScrollPageDown",			IDM_VIEW_SCROLLPAGEDOWN,			1,							0 },
 	{ L"ViewScrollPageUp",				IDM_VIEW_SCROLLPAGEUP,				1,							0 },
 	{ L"ViewScrollTop",					IDM_VIEW_SCROLLTOP,					1,							0 },
+	{ L"ViewSelectFolder",				IDM_VIEW_SELECTFOLDER,				MAX_VIEW_SELECTFOLDER,		0 },
 	{ L"ViewSelectMessage",				IDM_VIEW_SELECTMESSAGE,				1,							0 },
 	{ L"ViewSelectMode",				IDM_VIEW_SELECTMODE,				1,							0 },
 	{ L"ViewShowFolder",				IDM_VIEW_SHOWFOLDER,				1,							0 },
