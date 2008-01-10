@@ -226,6 +226,7 @@
 *((<ViewScrollPageDownアクション|URL:ViewScrollPageDownAction.html>))
 *((<ViewScrollPageUpアクション|URL:ViewScrollPageUpAction.html>))
 *((<ViewScrollTopアクション|URL:ViewScrollTopAction.html>))
+*((<ViewSelectFolderアクション|URL:ViewSelectFolderAction.html>))
 *((<ViewSelectMessageアクション|URL:ViewSelectMessageAction.html>))
 *((<ViewSelectModeアクション|URL:ViewSelectModeAction.html>))
 *((<ViewShowFolderアクション|URL:ViewShowFolderAction.html>))
