@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2007 Satoshi Nakamura
+ * Copyright(C) 1998-2008 Satoshi Nakamura
  * All rights reserved
  *
  */

@@ -2,7 +2,6 @@
  * $Id$
  *
  * Copyright(C) 1998 Satoshi Nakamura
- * All rights reserved.
  *
  */
 

@@ -1,8 +1,7 @@
 /*
  * $Id$
  *
- * Copyright(C) 1998-2007 Satoshi Nakamura
- * All rights reserved.
+ * Copyright(C) 1998-2008 Satoshi Nakamura
  */
 
 #ifndef __QMRESOURCEVERSION_H__
