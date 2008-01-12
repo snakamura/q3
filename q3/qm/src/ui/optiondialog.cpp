@@ -981,8 +981,8 @@ void qm::OptionDialog::processTab(bool bShift)
 		hwnd = getDlgItem(bShift ? IDOK : IDC_SELECTOR);
 	}
 #endif
-	else if (pCurrentPanel_ && Window(hwnd).getParent() == pCurrentPanel_->getWindow()) {
-		HWND hwndSibling = Window(hwnd).getWindow(bShift ? GW_HWNDPREV : GW_HWNDNEXT);
+	else if (pCurrentPanel_ && getParentDialog(hwnd) == pCurrentPanel_->getWindow()) {
+		HWND hwndSibling = Window(getControl(hwnd)).getWindow(bShift ? GW_HWNDPREV : GW_HWNDNEXT);
 		while (hwndSibling) {
 			if (isTabStop(hwndSibling)) {
 				hwnd = hwndSibling;
@@ -1086,6 +1086,31 @@ void qm::OptionDialog::clearDefaultButton(HWND hwnd)
 		wnd.sendDlgItemMessage(LOWORD(dwDefId), BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
 		wnd.sendMessage(DM_SETDEFID, IDOK);
 	}
+}
+
+HWND qm::OptionDialog::getControl(HWND hwnd)
+{
+	HWND hwndParent = ::GetParent(hwnd);
+	while (hwndParent) {
+		wstring_ptr wstrClass = Window(hwndParent).getClassName();
+		if (wcscmp(wstrClass.get(), L"#32770") == 0)
+			return hwnd;
+		hwnd = hwndParent;
+		hwndParent = ::GetParent(hwndParent);
+	}
+	return 0;
+}
+
+HWND qm::OptionDialog::getParentDialog(HWND hwnd)
+{
+	HWND hwndParent = ::GetParent(hwnd);
+	while (hwndParent) {
+		wstring_ptr wstrClass = Window(hwndParent).getClassName();
+		if (wcscmp(wstrClass.get(), L"#32770") == 0)
+			return hwndParent;
+		hwndParent = ::GetParent(hwndParent);
+	}
+	return 0;
 }
 
 

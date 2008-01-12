@@ -318,6 +318,8 @@ private:
 	static WCHAR getMnemonic(HWND hwnd);
 	static WCHAR getMnemonic(WCHAR c);
 	static void clearDefaultButton(HWND hwnd);
+	static HWND getControl(HWND hwnd);
+	static HWND getParentDialog(HWND hwnd);
 
 private:
 	OptionDialog(const OptionDialog&);
