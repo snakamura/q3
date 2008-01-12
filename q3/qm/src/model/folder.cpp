@@ -413,8 +413,8 @@ public:
 public:
 	NormalFolder* pThis_;
 	unsigned int nValidity_;
-	unsigned int nCount_;
-	unsigned int nUnseenCount_;
+	volatile unsigned int nCount_;
+	volatile unsigned int nUnseenCount_;
 	unsigned int nDownloadCount_;
 	unsigned int nDeletedCount_;
 	unsigned int nLastSyncTime_;
@@ -672,16 +672,11 @@ Folder::Type qm::NormalFolder::getType() const
 
 unsigned int qm::NormalFolder::getCount() const
 {
-	Lock<Account> lock(*getAccount());
-	if (pImpl_->bLoad_)
-		return static_cast<unsigned int>(pImpl_->listMessageHolder_.size());
-	else
-		return pImpl_->nCount_;
+	return pImpl_->nCount_;
 }
 
 unsigned int qm::NormalFolder::getUnseenCount() const
 {
-	Lock<Account> lock(*getAccount());
 	return pImpl_->nUnseenCount_;
 }
 
@@ -721,15 +716,16 @@ bool qm::NormalFolder::loadMessageHolders()
 	if (pImpl_->bLoad_)
 		return true;
 	
-	pImpl_->nUnseenCount_ = 0;
-	pImpl_->nDownloadCount_ = 0;
-	pImpl_->nDeletedCount_ = 0;
 	pImpl_->bModified_ = false;
 	
 	wstring_ptr wstrPath(pImpl_->getPath());
 	
 	MessageHolderList l;
 	container_deleter<MessageHolderList> deleter(l);
+	
+	unsigned int nUnseenCount = 0;
+	unsigned int nDownloadCount = 0;
+	unsigned int nDeletedCount = 0;
 	
 	W2T(wstrPath.get(), ptszPath);
 	WIN32_FIND_DATA fd;
@@ -770,17 +766,21 @@ bool qm::NormalFolder::loadMessageHolders()
 			MessageHolder* p = pmh.release();
 			
 			if (!p->isSeen())
-				++pImpl_->nUnseenCount_;
+				++nUnseenCount;
 			if (p->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
 				p->isFlag(MessageHolder::FLAG_DOWNLOADTEXT))
-				++pImpl_->nDownloadCount_;
+				++nDownloadCount;
 			if (p->isFlag(MessageHolder::FLAG_DELETED))
-				++pImpl_->nDeletedCount_;
+				++nDeletedCount;
 		}
 	}
 	
 	pImpl_->nMaxId_ = l.empty() ? 0 : l.back()->getId();
 	pImpl_->listMessageHolder_.swap(l);
+	
+	pImpl_->nUnseenCount_ = nUnseenCount;
+	pImpl_->nDownloadCount_ = nDownloadCount;
+	pImpl_->nDeletedCount_ = nDeletedCount;
 	
 	pImpl_->bLoad_ = true;
 	
@@ -877,6 +877,7 @@ bool qm::NormalFolder::appendMessage(std::auto_ptr<MessageHolder> pmh,
 	pImpl_->listMessageHolder_.push_back(pmh.get());
 	MessageHolder* p = pmh.release();
 	
+	++pImpl_->nCount_;
 	if (!p->isSeen())
 		++pImpl_->nUnseenCount_;
 	if (p->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
@@ -917,6 +918,7 @@ void qm::NormalFolder::removeMessages(const MessageHolderList& l)
 		assert(itD != pImpl_->listMessageHolder_.end() && *itD == pmh);
 		pImpl_->listMessageHolder_.erase(itD);
 		
+		--pImpl_->nCount_;
 		if (!pmh->isSeen())
 			--pImpl_->nUnseenCount_;
 		if (pmh->isFlag(MessageHolder::FLAG_DOWNLOAD) ||
@@ -985,6 +987,8 @@ bool qm::NormalFolder::moveMessages(const MessageHolderList& l,
 		pmh->setId(nId);
 		listTo.push_back(pmh);
 		
+		--pImpl_->nCount_;
+		++pFolder->pImpl_->nCount_;
 		if (!pmh->isSeen()) {
 			--pImpl_->nUnseenCount_;
 			++pFolder->pImpl_->nUnseenCount_;
@@ -1031,7 +1035,8 @@ public:
 	wstring_ptr wstrTargetFolder_;
 	bool bRecursive_;
 	MessageHolderList listMessageHolder_;
-	unsigned int nUnseenCount_;
+	volatile unsigned int nCount_;
+	volatile unsigned int nUnseenCount_;
 };
 
 void qm::QueryFolderImpl::messageHolderFlagsChanged(const MessageHolderEvent& event)
@@ -1062,9 +1067,10 @@ void qm::QueryFolderImpl::messageHolderDestroyed(const MessageHolderEvent& event
 	MessageHolderList::iterator it = std::lower_bound(
 		listMessageHolder_.begin(), listMessageHolder_.end(), pmh);
 	if (it != listMessageHolder_.end() && *it == pmh) {
+		listMessageHolder_.erase(it);
+		--nCount_;
 		if (!pmh->isSeen())
 			--nUnseenCount_;
-		listMessageHolder_.erase(it);
 		pThis_->getImpl()->fireMessageRemoved(MessageHolderList(1, pmh));
 	}
 }
@@ -1094,6 +1100,7 @@ qm::QueryFolder::QueryFolder(unsigned int nId,
 	pImpl_ = new QueryFolderImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->bRecursive_ = false;
+	pImpl_->nCount_ = 0;
 	pImpl_->nUnseenCount_ = 0;
 	
 	set(pwszDriver, pwszCondition, pwszTargetFolder, bRecursive);
@@ -1168,12 +1175,11 @@ bool qm::QueryFolder::search(Document* pDocument,
 		return false;
 	std::sort(pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end());
 	
-	bool (MessageHolder::*pfn)() const = &MessageHolder::isSeen;
+	pImpl_->nCount_ = pImpl_->listMessageHolder_.size();
 	pImpl_->nUnseenCount_ = static_cast<unsigned int>(
-		std::count_if(
-			pImpl_->listMessageHolder_.begin(),
+		std::count_if(pImpl_->listMessageHolder_.begin(),
 			pImpl_->listMessageHolder_.end(),
-			std::not1(std::mem_fun(pfn))));
+			std::not1(std::mem_fun(&MessageHolder::isSeen))));
 	
 	getImpl()->fireMessageRefreshed();
 	
@@ -1187,8 +1193,7 @@ Folder::Type qm::QueryFolder::getType() const
 
 unsigned int qm::QueryFolder::getCount() const
 {
-	Lock<Account> lock(*getAccount());
-	return static_cast<unsigned int>(pImpl_->listMessageHolder_.size());
+	return pImpl_->nCount_;
 }
 
 unsigned int qm::QueryFolder::getUnseenCount() const
@@ -1253,6 +1258,7 @@ void qm::QueryFolder::removeMessages(const MessageHolderList& l)
 		itS = std::lower_bound(itS, pImpl_->listMessageHolder_.end(), pmh);
 		if (itS != pImpl_->listMessageHolder_.end() && *itS == pmh) {
 			itS = pImpl_->listMessageHolder_.erase(itS);
+			--pImpl_->nCount_;
 			if (!pmh->isSeen())
 				--pImpl_->nUnseenCount_;
 			++itR;
