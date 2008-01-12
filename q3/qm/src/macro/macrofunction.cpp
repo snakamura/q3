@@ -615,8 +615,7 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_TEXT, 0);
@@ -631,13 +630,15 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 		pwszSep = wstrSep.get();
 	}
 	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	
 	bool bURI = false;
 	if (nSize > 1) {
 		ARG(pValue, 1);
 		bURI = pValue->boolean();
 	}
-	if (bURI && !pmh->getMessageHolder())
-		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	if (bURI && (pmh && !pmh->getMessageHolder()))
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	
 	AttachmentParser::AttachmentList l;
 	AttachmentParser::AttachmentListFree free(l);
@@ -649,8 +650,20 @@ MacroValuePtr qm::MacroFunctionAttachment::value(MacroContext* pContext) const
 			buf.append(pwszSep);
 		
 		if (bURI) {
-			URI uri(pmh->getMessageHolder(), pMessage, (*it).second, URIFragment::TYPE_BODY);
-			wstring_ptr wstrURI(uri.toString());
+			wstring_ptr wstrURI;;
+			if (pmh) {
+				MessageHolderURI uri(pmh->getMessageHolder(),
+					pMessage, (*it).second, URIFragment::TYPE_BODY);
+				wstrURI = uri.toString();
+			}
+			else {
+				URIResolver* pURIResolver = pContext->getDocument()->getURIResolver();
+				std::auto_ptr<URI> pURI(pURIResolver->getTemporaryURI(
+					(*it).second, URIFragment::TYPE_BODY, pContext->getSecurityMode()));
+				if (!pURI.get())
+					return error(*pContext, MacroErrorHandler::CODE_FAIL);
+				wstrURI = pURI->toString();
+			}
 			buf.append(wstrURI.get());
 		}
 		else {
@@ -697,8 +710,7 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	const Part* pPart = 0;
@@ -743,8 +755,8 @@ MacroValuePtr qm::MacroFunctionBody::value(MacroContext* pContext) const
 	if (nView == VIEW_NONE)
 		wstrBody = util.getAllText(wstrQuote.get(), pContext->getBodyCharset(), true);
 	else
-		wstrBody = util.getBodyText(wstrQuote.get(),
-			pContext->getBodyCharset(), nView == VIEW_FORCERFC822INLINE);
+		wstrBody = util.getBodyText(wstrQuote.get(), pContext->getBodyCharset(),
+			nView == VIEW_FORCERFC822INLINE ? PartUtil::RFC822_INLINE : PartUtil::RFC822_AUTO);
 	if (!wstrBody.get())
 		return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	
@@ -787,8 +799,7 @@ MacroValuePtr qm::MacroFunctionBodyCharset::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	const Part* pPart = 0;
@@ -827,7 +838,8 @@ MacroValuePtr qm::MacroFunctionBodyCharset::value(MacroContext* pContext) const
 		if (nView == VIEW_NONE)
 			wstrCharset = util.getAllTextCharset();
 		else
-			wstrCharset = util.getBodyTextCharset(nView == VIEW_FORCERFC822INLINE);
+			wstrCharset = util.getBodyTextCharset(
+				nView == VIEW_FORCERFC822INLINE ? PartUtil::RFC822_INLINE : PartUtil::RFC822_AUTO);
 		pwszCharset = wstrCharset.get();
 	}
 	
@@ -901,7 +913,25 @@ MacroValuePtr qm::MacroFunctionCatch::value(MacroContext* pContext) const
 	if (!checkArgSize(pContext, 2))
 		return MacroValuePtr();
 	
-	MacroValuePtr pValue(getArg(0)->value(pContext));
+	MacroValuePtr pValue;
+	{
+		struct Push
+		{
+			Push(MacroContext* pContext) :
+				pContext_(pContext)
+			{
+				pContext_->pushCatch();
+			}
+			
+			~Push()
+			{
+				pContext_->popCatch();
+			}
+			
+			MacroContext* pContext_;
+		} push(pContext);
+		pValue = getArg(0)->value(pContext);
+	}
 	if (!pValue.get() &&
 		pContext->getReturnType() == MacroContext::RETURNTYPE_NONE)
 		return getArg(1)->value(pContext);
@@ -1140,7 +1170,7 @@ MacroValuePtr qm::MacroFunctionCopy::value(MacroContext* pContext) const
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	assert(pmh->getMessageHolder());
 	
 	ARG(pValue, 0);
@@ -1337,7 +1367,7 @@ MacroValuePtr qm::MacroFunctionDelete::value(MacroContext* pContext) const
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	assert(pmh->getMessageHolder());
 	
 	Account* pAccount = pmh->getAccount();
@@ -1549,8 +1579,7 @@ MacroValuePtr qm::MacroFunctionExist::value(MacroContext* pContext) const
 	if (!checkArgSize(pContext, 1))
 		return MacroValuePtr();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	ARG(pValue, 0);
@@ -1636,8 +1665,7 @@ MacroValuePtr qm::MacroFunctionField::value(MacroContext* pContext) const
 
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	ARG(pValue, 0);
@@ -1698,8 +1726,7 @@ MacroValuePtr qm::MacroFunctionFieldParameter::value(MacroContext* pContext) con
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	ARG(pValue, 0);
@@ -1922,7 +1949,7 @@ MacroValuePtr qm::MacroFunctionFlag::value(MacroContext* pContext) const
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	
 	size_t nSize = getArgSize();
 	unsigned int nFlags = flag_;
@@ -2036,9 +2063,8 @@ MacroValuePtr qm::MacroFunctionFolder::value(MacroContext* pContext) const
 	}
 	else {
 		MessageHolderBase* pmh = pContext->getMessageHolder();
-		if (!pmh)
-			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
-		pFolder = pmh->getFolder();
+		if (pmh)
+			pFolder = pmh->getFolder();
 	}
 	
 	const WCHAR* pwszName = L"";
@@ -2504,8 +2530,7 @@ MacroValuePtr qm::MacroFunctionHeader::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_HEADER, 0);
@@ -2712,7 +2737,7 @@ MacroValuePtr qm::MacroFunctionId::value(MacroContext* pContext) const
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	
 	return MacroValueFactory::getFactory().newNumber(pmh->getId());
 }
@@ -3033,8 +3058,7 @@ MacroValuePtr qm::MacroFunctionJunk::value(MacroContext* pContext) const
 		
 		Message* pMessage = 0;
 		if ((!bWhite && !bBlack) || bLearn) {
-			MessageHolderBase* pmh = pContext->getMessageHolder();
-			if (!pmh)
+			if (!pContext->getMessage())
 				return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 			
 			MacroContext::MessageType type = pJunkFilter->isScanAttachment() ?
@@ -3098,12 +3122,12 @@ MacroValuePtr qm::MacroFunctionLabel::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	wstring_ptr wstrLabel;
 	if (nSize > 0) {
-		if (!pmh->getMessageHolder())
+		if (!pmh)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
+		else if (!pmh->getMessageHolder())
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
 		ARG(pValue, 0);
@@ -3117,8 +3141,10 @@ MacroValuePtr qm::MacroFunctionLabel::value(MacroContext* pContext) const
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 	}
 	else {
-		if (pmh->getMessageHolder())
+		if (pmh && pmh->getMessageHolder())
 			wstrLabel = pmh->getMessageHolder()->getLabel();
+		else
+			wstrLabel = allocWString(L"");
 	}
 	
 	return MacroValueFactory::getFactory().newString(wstrLabel);
@@ -3505,8 +3531,7 @@ MacroValuePtr qm::MacroFunctionMessageId::value(MacroContext* pContext) const
 	if (!checkArgSize(pContext, 0))
 		return MacroValuePtr();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	Message* pMessage = getMessage(pContext,
@@ -3949,8 +3974,7 @@ MacroValuePtr qm::MacroFunctionParam::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_HEADER, 0);
@@ -3995,8 +4019,7 @@ MacroValuePtr qm::MacroFunctionPart::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_ALL, 0);
@@ -4059,7 +4082,7 @@ MacroValuePtr qm::MacroFunctionPassed::value(MacroContext* pContext) const
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	
 	enum Unit {
 		UNIT_DAY,
@@ -4344,8 +4367,7 @@ MacroValuePtr qm::MacroFunctionReferences::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	Message* pMessage = getMessage(pContext,
@@ -4867,12 +4889,18 @@ MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 	struct Deleter
 	{
 		typedef std::vector<VARIANT> ArgumentList;
-		Deleter(ArgumentList& l) : l_(l) {}
+		
+		Deleter(ArgumentList& l) :
+			l_(l)
+		{
+		}
+		
 		~Deleter()
 		{
 			for (ArgumentList::iterator it = l_.begin(); it != l_.end(); ++it)
 				::VariantClear(&(*it));
 		}
+		
 		ArgumentList& l_;
 	} deleter(listArgs);
 	listArgs.resize(nSize - 2);
@@ -5103,7 +5131,7 @@ MacroValuePtr qm::MacroFunctionSize::value(MacroContext* pContext) const
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	
 	bool bTextOnly = false;
 	if (nArgSize == 1) {
@@ -5247,8 +5275,7 @@ MacroValuePtr qm::MacroFunctionSubject::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	Message* pMessage = getMessage(pContext,
@@ -5474,7 +5501,7 @@ MacroValuePtr qm::MacroFunctionThread::value(MacroContext* pContext) const
 	
 	MessageHolderBase* pmhBase = pContext->getMessageHolder();
 	if (!pmhBase || !pmhBase->getMessageHolder())
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	MessageHolder* pmh = pmhBase->getMessageHolder();
 	
 	bool bAllFolder = false;
@@ -5789,23 +5816,53 @@ MacroValuePtr qm::MacroFunctionURI::value(MacroContext* pContext) const
 	size_t nSize = getArgSize();
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh || !pmh->getMessageHolder())
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	wstring_ptr wstrURI;
-	if (nSize > 0) {
-		const Part* pPart = getPart(pContext, 0);
-		if (!pPart)
-			return MacroValuePtr();
+	if (pmh) {
+		if (!pmh || !pmh->getMessageHolder())
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
+		
+		if (nSize > 0) {
+			const Part* pPart = getPart(pContext, 0);
+			if (!pPart)
+				return MacroValuePtr();
+			
+			Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_ALL, 0);
+			if (!pMessage)
+				return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
+			
+			wstrURI = MessageHolderURI(pmh->getMessageHolder(),
+					pMessage, pPart, URIFragment::TYPE_NONE).toString();
+		}
+		else {
+			wstrURI = MessageHolderURI(pmh->getMessageHolder()).toString();
+		}
+	}
+	else {
+		URIResolver* pURIResolver = pContext->getDocument()->getURIResolver();
+		unsigned int nSecurityMode = pContext->getSecurityMode();
 		
 		Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_ALL, 0);
 		if (!pMessage)
 			return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
-		
-		wstrURI = URI(pmh->getMessageHolder(), pMessage, pPart, URIFragment::TYPE_NONE).toString();
-	}
-	else {
-		wstrURI = URI(pmh->getMessageHolder()).toString();
+			
+		if (nSize > 0) {
+			const Part* pPart = getPart(pContext, 0);
+			if (!pPart)
+				return MacroValuePtr();
+			
+			std::auto_ptr<URI> pURI(pURIResolver->getTemporaryURI(
+				pPart, URIFragment::TYPE_NONE, nSecurityMode));
+			if (!pURI.get())
+				return error(*pContext, MacroErrorHandler::CODE_FAIL);
+			wstrURI = pURI->toString();
+		}
+		else {
+			std::auto_ptr<URI> pURI(pURIResolver->getTemporaryURI(pMessage, nSecurityMode));
+			if (!pURI.get())
+				return error(*pContext, MacroErrorHandler::CODE_FAIL);
+			wstrURI = pURI->toString();
+		}
 	}
 	
 	return MacroValueFactory::getFactory().newString(wstrURI);

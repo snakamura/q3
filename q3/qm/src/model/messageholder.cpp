@@ -438,12 +438,16 @@ qm::MessagePtr::MessagePtr(const MessagePtr& ptr) :
 	bLock_(false)
 {
 	assert(!ptr.bLock_);
-	bLock_ = false;
 }
 
 qm::MessagePtr::~MessagePtr()
 {
 	assert(!bLock_);
+}
+
+bool qm::MessagePtr::operator!() const
+{
+	return pFolder_ == 0;
 }
 
 qm::MessagePtr& qm::MessagePtr::operator=(const MessagePtr& ptr)

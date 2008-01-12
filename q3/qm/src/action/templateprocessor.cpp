@@ -18,9 +18,13 @@
 #include <qsconv.h>
 #include <qsosutil.h>
 
+#include "actionutil.h"
 #include "templateprocessor.h"
 #include "../model/editmessage.h"
+#include "../model/messagecontext.h"
+#include "../model/messageenumerator.h"
 #include "../model/templatemanager.h"
+#include "../model/uri.h"
 #include "../ui/editframewindow.h"
 #include "../ui/externaleditor.h"
 #include "../uimodel/encodingmodel.h"
@@ -77,7 +81,7 @@ qm::TemplateProcessor::~TemplateProcessor()
 
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 									const TemplateContext::ArgumentList& listArgument,
-									const URI* pURI,
+									const MessageHolderURI* pURI,
 									bool bReverseExternalEditor) const
 {
 	return process(pwszTemplateName, listArgument, pURI, bReverseExternalEditor, 0);
@@ -85,36 +89,75 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 
 bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 									const TemplateContext::ArgumentList& listArgument,
-									const URI* pURI,
+									bool bReverseExternalEditor,
+									const WCHAR* pwszClass) const
+{
+	assert(pwszClass);
+	
+	Account* pAccount = getAccount(pwszClass);
+	if (!pAccount)
+		return false;
+	
+	return process(pwszTemplateName, listArgument, 0, bReverseExternalEditor, pAccount);
+}
+
+bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
+									const TemplateContext::ArgumentList& listArgument,
+									const MessageHolderURI* pURI,
 									bool bReverseExternalEditor,
 									Account* pAccountForced) const
 {
 	assert(pwszTemplateName);
 	assert(!pURI || !pAccountForced);
 	
-	MessagePtr ptr;
-	if (pURI)
-		ptr = pDocument_->getMessage(*pURI);
-	else if (!pAccountForced)
-		ptr = pMessageSelectionModel_->getFocusedMessage();
-	MessagePtrLock mpl(ptr);
-	if (pURI && !mpl)
+	std::auto_ptr<MessageContext> pContext;
+	std::auto_ptr<MessageEnumerator> pEnum;
+	if (pURI) {
+		pContext = pURI->resolve(pDocument_->getURIResolver());
+		pEnum.reset(new MessageContextMessageEnumerator(pContext.get()));
+	}
+	else if (!pAccountForced) {
+		pEnum = pMessageSelectionModel_->getFocusedMessage();
+	}
+	if (pEnum.get() && !pEnum->next())
 		return false;
 	
 	Account* pAccount = 0;
-	if (pURI)
-		pAccount = mpl->getAccount();
-	else if (pAccountForced)
-		pAccount = pAccountForced;
-	
-	Folder* pFolder = 0;
-	if (!pAccount) {
-		std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-		pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
-		if (!pAccount)
-			return false;
-		pFolder = p.second;
+	if (pEnum.get()) {
+		pAccount = pEnum->getAccount();
+		if (!pAccount) {
+			MessagePtrLock mpl(pEnum->getOriginMessagePtr());
+			if (mpl) {
+				pAccount = mpl->getAccount();
+			}
+			else {
+				pAccount = getAccount(L"mail");
+				if (!pAccount)
+					return false;
+			}
+		}
 	}
+	else {
+		pAccount = pAccountForced;
+	}
+	assert(pAccount);
+	
+	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
+	
+	MessageHolder* pmh = pEnum.get() ? pEnum->getMessageHolder() : 0;
+	Message* pMessage = 0;
+	Message msg;
+	if (pmh) {
+		pMessage = &msg;
+	}
+	else if (pEnum.get()) {
+		pMessage = pEnum->getMessage(
+			Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+		if (!pMessage)
+			return false;
+	}
+	
+	Folder* pFolder = pFolderModel_->getCurrent().second;
 	
 	const Template* pTemplate = pDocument_->getTemplateManager()->getTemplate(
 		pAccount, pFolder, pwszTemplateName);
@@ -124,18 +167,17 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	AccountLock lock;
 	MessageHolderList listSelected;
 	if (!pAccountForced && !pURI)
-		pMessageSelectionModel_->getSelectedMessages(&lock, 0, &listSelected);
+		pMessageSelectionModel_->getSelectedMessageHolders(&lock, 0, &listSelected);
 	
 	const WCHAR* pwszBodyCharset = 0;
 	if (pEncodingModel_)
 		pwszBodyCharset = pEncodingModel_->getEncoding();
 	
 	MacroErrorHandlerImpl handler;
-	Message msg;
-	TemplateContext context(mpl, mpl ? &msg : 0, listSelected, pFolder,
+	TemplateContext context(pmh, pMessage, listSelected, pFolder,
 		pAccount, pDocument_, pActionInvoker_, hwnd_, pwszBodyCharset,
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI | MacroContext::FLAG_MODIFY,
-		pSecurityModel_->getSecurityMode(), pProfile_, &handler, listArgument);
+		nSecurityMode, pProfile_, &handler, listArgument);
 	
 	wxstring_size_ptr wstrValue;
 	switch (pTemplate->getValue(context, &wstrValue)) {
@@ -163,7 +205,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		MessageCreator creator(MessageCreator::FLAG_ADDNODEFAULTCONTENTTYPE |
 			MessageCreator::FLAG_RECOVERHEADER, SECURITYMODE_NONE);
 		std::auto_ptr<Message> pMessage(creator.createMessage(
-			pDocument_, wstrValue.get(), wstrValue.size()));
+			wstrValue.get(), wstrValue.size(), pDocument_->getURIResolver()));
 		if (!pMessage.get())
 			return false;
 		
@@ -177,6 +219,12 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	}
 	
 	return true;
+}
+
+Account* qm::TemplateProcessor::getAccount(const WCHAR* pwszClass) const
+{
+	return FolderActionUtil::getAccount(pDocument_,
+		pFolderModel_, pProfile_, pwszClass);
 }
 
 

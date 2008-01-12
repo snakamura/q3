@@ -628,7 +628,8 @@ bool qs::Part::isAttachment() const
 		const WCHAR* pwszMediaType = pContentType_->getMediaType();
 		const WCHAR* pwszSubType = pContentType_->getSubType();
 		bool bCanInline = _wcsicmp(pwszMediaType, L"text") == 0 ||
-			(_wcsicmp(pwszMediaType, L"message") == 0 &&
+			(!isOption(O_TREAT_RFC822_AS_ATTACHMENT) &&
+			 	_wcsicmp(pwszMediaType, L"message") == 0 &&
 				_wcsicmp(pwszSubType, L"rfc822") == 0);
 		if (!bCanInline) {
 			return true;
@@ -644,7 +645,6 @@ bool qs::Part::isAttachment() const
 			if (wstrName.get())
 				return true;
 		}
-	
 	}
 	
 	return false;
@@ -858,6 +858,8 @@ bool qs::Part::getBodyText(const WCHAR* pwszCharset,
 
 malloc_size_ptr<unsigned char> qs::Part::getBodyData() const
 {
+	assert(strBody_.get());
+	
 	std::auto_ptr<Encoder> pEncoder(getEncoder());
 	malloc_size_ptr<unsigned char> decoded;
 	if (pEncoder.get()) {

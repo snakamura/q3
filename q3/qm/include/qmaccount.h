@@ -48,7 +48,6 @@ class ProtocolDriver;
 class Security;
 class JunkFilter;
 class UndoItemList;
-class URI;
 
 
 /****************************************************************************
@@ -350,6 +349,7 @@ class AccountLock
 public:
 	AccountLock();
 	AccountLock(Account* pAccount);
+	AccountLock(const AccountLock& lock);
 	~AccountLock();
 
 public:
@@ -690,7 +690,6 @@ public:
 							   const WCHAR* pwszName) = 0;
 	virtual Folder* getFolder(Account* pAccount,
 							  const WCHAR* pwszName) const = 0;
-	virtual MessagePtr getMessage(const URI& uri) const = 0;
 	virtual void addAccountManagerHandler(AccountManagerHandler* pHandler) = 0;
 	virtual void removeAccountManagerHandler(AccountManagerHandler* pHandler) = 0;
 };

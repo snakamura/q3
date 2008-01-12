@@ -31,7 +31,7 @@ unit‚É‚Ívalue‚ÅŽw’è‚µ‚½”’l‚Ì’PˆÊ‚ðŽw’è‚µ‚Ü‚·BŽw’è‚Å‚«‚é‚Ì‚ÍˆÈ‰º‚Ì‚¢‚¸‚ê‚©‚Å‚·
 
 ==ƒGƒ‰[
 *ˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
-*ƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚ª‚È‚¢ê‡
+*ƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒWƒzƒ‹ƒ_‚ª‚È‚¢ê‡
 
 
 ==ðŒ

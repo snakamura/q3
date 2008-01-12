@@ -326,6 +326,8 @@
 			<menuitem text="プロパティ(&amp;P)..." action="MessageProperty"/>
 		</popupmenu>
 		<popupmenu text="ツール(&amp;T)">
+			<menuitem text="送信者をアドレス帳に追加(&amp;F)..." action="ToolAddAddress"/>
+			<separator/>
 			<popupmenu text="スクリプト(&amp;P)">
 				<menuitem dynamic="ToolScript"/>
 			</popupmenu>

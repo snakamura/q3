@@ -11,6 +11,8 @@
 
 #include <qssax.h>
 
+#include "../uimodel/messageviewmode.h"
+
 
 namespace qm {
 
@@ -65,6 +67,38 @@ struct MessageWindowCreateContext
 	SecurityModel* pSecurityModel_;
 	const ActionInvoker* pActionInvoker_;
 	const MessageWindowFontManager* pFontManager_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageWindowMessageViewModeHolder
+ *
+ */
+
+class MessageWindowMessageViewModeHolder : public MessageViewModeHolder
+{
+public:
+	MessageWindowMessageViewModeHolder(qs::Profile* pProfile,
+									   const WCHAR* pwszSection);
+	virtual ~MessageWindowMessageViewModeHolder();
+
+public:
+	void save() const;
+
+public:
+	virtual MessageViewMode* getMessageViewMode();
+	virtual void addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler);
+	virtual void removeMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler);
+
+private:
+	MessageWindowMessageViewModeHolder(const MessageWindowMessageViewModeHolder&);
+	MessageWindowMessageViewModeHolder& operator=(const MessageWindowMessageViewModeHolder&);
+
+private:
+	qs::Profile* pProfile_;
+	const WCHAR* pwszSection_;
+	std::auto_ptr<DefaultMessageViewMode> pMessageViewMode_;
 };
 
 

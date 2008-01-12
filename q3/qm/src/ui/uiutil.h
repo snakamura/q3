@@ -33,6 +33,7 @@ class Account;
 class EncodingModel;
 class Folder;
 class Message;
+class MessageContext;
 class MessageHolder;
 class MessageWindow;
 class PasswordManager;
@@ -88,8 +89,8 @@ public:
 	
 	static bool addMessageToClipboard(HWND hwnd,
 									  MessageHolder* pmh);
-	static MessagePtr getMessageFromClipboard(HWND hwnd,
-											  AccountManager* pAccountManager);
+	static std::auto_ptr<MessageContext> getMessageFromClipboard(HWND hwnd,
+																 const URIResolver* pURIResolver);
 	
 	static unsigned int getPreferredWidth(HWND hwnd,
 										  bool bNoPrefix);

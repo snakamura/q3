@@ -19,7 +19,7 @@ direct‚ÉTrue‚ðŽw’è‚·‚é‚ÆƒSƒ~” ‚É“ü‚ç‚¸’¼Úíœ‚³‚ê‚Ü‚·BFalse‚ðŽw’è‚µ‚½ê‡A‚Ü‚
 
 ==ƒGƒ‰[
 *ˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
-*ƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚ª‚È‚¢ê‡
+*ƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒWƒzƒ‹ƒ_‚ª‚È‚¢ê‡
 *íœ‚Å‚«‚È‚¢ê‡
 
 

@@ -16,6 +16,7 @@
 #include <qmmacro.h>
 #include <qmmessage.h>
 #include <qmsecurity.h>
+#include <qmtemplate.h>
 
 #include <qsstl.h>
 #include <qsstream.h>
@@ -28,12 +29,13 @@
 
 #include <commdlg.h>
 
-#include "action.h"
+#include "actionutil.h"
 #include "editaction.h"
 #include "findreplace.h"
 #include "../model/dataobject.h"
 #include "../model/editmessage.h"
 #include "../model/fixedformtext.h"
+#include "../model/messagecontext.h"
 #include "../model/templatemanager.h"
 #include "../model/uri.h"
 #include "../ui/addressbookdialog.h"
@@ -76,13 +78,14 @@ void qm::EditAttachmentEditAddAction::invoke(const ActionEvent& event)
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT);
 	
-	if (dialog.doModal(hwnd_) == IDOK) {
-		const WCHAR* pwszPath = dialog.getPath();
-		const WCHAR* p = pwszPath;
-		while (*p) {
-			pEditMessage->addAttachment(p);
-			p += wcslen(p) + 1;
-		}
+	if (dialog.doModal(hwnd_) != IDOK)
+		return;
+	
+	const WCHAR* pwszPath = dialog.getPath();
+	const WCHAR* p = pwszPath;
+	while (*p) {
+		pEditMessage->addAttachment(p);
+		p += wcslen(p) + 1;
 	}
 }
 
@@ -335,46 +338,55 @@ qm::EditEditPasteWithQuoteAction::~EditEditPasteWithQuoteAction()
 
 void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 {
-	MessagePtr ptr(UIUtil::getMessageFromClipboard(pTextWindow_->getHandle(), pDocument_));
+	std::auto_ptr<MessageContext> pContext(UIUtil::getMessageFromClipboard(
+		pTextWindow_->getHandle(), pDocument_->getURIResolver()));
 	
 	wxstring_size_ptr wstrMessage;
 	wstring_ptr wstrMessageId;
 	
-	MessagePtrLock mpl(ptr);
-	if (mpl) {
+	if (pContext.get()) {
+		unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
 		Message msg;
+		Message* pMessage = &msg;
+		MessagePtr ptr(pContext->getMessagePtr());
+		if (!ptr)
+			pMessage = pContext->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode);
 		
-		NormalFolder* pFolder = mpl->getFolder();
-		Account* pAccount = pFolder->getAccount();
-		const TemplateManager* pManager = pDocument_->getTemplateManager();
-		const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
-		if (pTemplate) {
-			TemplateContext context(mpl, &msg, MessageHolderList(),
-				pFolder, pAccount, pDocument_, pActionInvoker_, hwnd_, 0,
-				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
-				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
-			switch (pTemplate->getValue(context, &wstrMessage)) {
-			case Template::RESULT_SUCCESS:
-				break;
-			case Template::RESULT_ERROR:
-				ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
-				return;
-			case Template::RESULT_CANCEL:
-				return;
+		if (pMessage) {
+			MessagePtrLock mpl(ptr);
+			NormalFolder* pFolder = mpl ? mpl->getFolder() : 0;
+			Account* pAccount = pFolder ? pFolder->getAccount() : 0;
+			const TemplateManager* pManager = pDocument_->getTemplateManager();
+			const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
+			if (pTemplate) {
+				TemplateContext context(mpl, pMessage, MessageHolderList(),
+					pFolder, pAccount, pDocument_, pActionInvoker_, hwnd_, 0,
+					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+					nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
+				switch (pTemplate->getValue(context, &wstrMessage)) {
+				case Template::RESULT_SUCCESS:
+					break;
+				case Template::RESULT_ERROR:
+					ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
+					return;
+				case Template::RESULT_CANCEL:
+					return;
+				}
 			}
-		}
-		
-		if (msg.getFlag() == Message::FLAG_EMPTY ||
-			msg.getFlag() == Message::FLAG_TEMPORARY) {
-			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
-				L"Message-Id", pSecurityModel_->getSecurityMode(), &msg)) {
-				ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
-				return;
+			
+			if (mpl &&
+				pMessage->getFlag() == Message::FLAG_EMPTY ||
+				pMessage->getFlag() == Message::FLAG_TEMPORARY) {
+				if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
+					L"Message-Id", pSecurityModel_->getSecurityMode(), pMessage)) {
+					ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
+					return;
+				}
 			}
+			MessageIdParser messageId;
+			if (pMessage->getField(L"Message-Id", &messageId) == Part::FIELD_EXIST)
+				wstrMessageId = allocWString(messageId.getMessageId());
 		}
-		MessageIdParser messageId;
-		if (msg.getField(L"Message-Id", &messageId) == Part::FIELD_EXIST)
-			wstrMessageId = allocWString(messageId.getMessageId());
 	}
 	if (wstrMessage.get()) {
 		if (!pTextWindow_->insertText(wstrMessage.get(), wstrMessage.size())) {
@@ -542,10 +554,11 @@ void qm::EditFileInsertAction::invoke(const ActionEvent& event)
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
-	if (dialog.doModal(hwnd) == IDOK) {
-		if (!insertText(dialog.getPath()))
-			ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_INSERTFILE);
-	}
+	if (dialog.doModal(hwnd) != IDOK)
+		return;
+	
+	if (!insertText(dialog.getPath()))
+		ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_INSERTFILE);
 }
 
 bool qm::EditFileInsertAction::isEnabled(const ActionEvent& event)
@@ -605,15 +618,22 @@ qm::EditFileOpenAction::~EditFileOpenAction()
 
 void qm::EditFileOpenAction::invoke(const ActionEvent& event)
 {
-	wstring_ptr wstrFilter(loadString(
-		Application::getApplication().getResourceHandle(), IDS_FILTER_OPEN));
-	
-	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
-	if (dialog.doModal(hwnd_) == IDOK) {
-		if (!open(dialog.getPath()))
-			ActionUtil::error(hwnd_, IDS_ERROR_OPENFILE);
+	const WCHAR* pwszPath = ActionParamUtil::getString(event.getParam(), 0);
+	wstring_ptr wstrPath;
+	if (!pwszPath) {
+		wstring_ptr wstrFilter(loadString(
+			Application::getApplication().getResourceHandle(), IDS_FILTER_OPEN));
+		
+		FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
+			OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		wstrPath = allocWString(dialog.getPath());
+		pwszPath = wstrPath.get();
 	}
+	
+	if (!open(pwszPath))
+		ActionUtil::error(hwnd_, IDS_ERROR_OPENFILE);
 }
 
 bool qm::EditFileOpenAction::open(const WCHAR* pwszPath)
@@ -666,15 +686,22 @@ qm::EditFileSaveAction::~EditFileSaveAction()
 
 void qm::EditFileSaveAction::invoke(const ActionEvent& event)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_SAVE));
-	
-	FileDialog dialog(false, wstrFilter.get(), 0, 0, 0,
-		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT);
-	if (dialog.doModal(hwnd_) == IDOK) {
-		if (!save(dialog.getPath()))
-			ActionUtil::error(hwnd_, IDS_ERROR_SAVEFILE);
+	const WCHAR* pwszPath = ActionParamUtil::getString(event.getParam(), 0);
+	wstring_ptr wstrPath;
+	if (!pwszPath) {
+		wstring_ptr wstrFilter(loadString(
+			Application::getApplication().getResourceHandle(), IDS_FILTER_SAVE));
+		
+		FileDialog dialog(false, wstrFilter.get(), 0, 0, 0,
+			OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT);
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		wstrPath = allocWString(dialog.getPath());
+		pwszPath = wstrPath.get();
 	}
+	
+	if (!save(pwszPath))
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVEFILE);
 }
 
 bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
@@ -818,9 +845,9 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	
 	const WCHAR* pwszURI = pEditMessage->getPreviousURI();
 	if (pwszURI) {
-		std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+		std::auto_ptr<MessageHolderURI> pURI(URIFactory::parseMessageHolderURI(pwszURI));
 		if (pURI.get()) {
-			MessagePtrLock mpl(pDocument_->getMessage(*pURI));
+			MessagePtrLock mpl(pURI->resolveMessagePtr(pDocument_->getURIResolver()));
 			if (mpl) {
 				Account* p = mpl->getAccount();
 				if (!p->removeMessages(MessageHolderList(1, mpl),
@@ -834,7 +861,7 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	if (type_ != TYPE_SEND) {
 		MessagePtrLock mpl(ptr);
 		if (mpl) {
-			wstring_ptr wstrURI(URI(mpl).toString());
+			wstring_ptr wstrURI(MessageHolderURI(mpl).toString());
 			pEditMessage->setPreviousURI(wstrURI.get());
 		}
 		pEditMessage->removeField(L"X-QMAIL-DraftMacro");

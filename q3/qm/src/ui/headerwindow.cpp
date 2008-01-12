@@ -368,10 +368,13 @@ qm::HeaderLine::~HeaderLine()
 
 void qm::HeaderLine::setMessage(const TemplateContext* pContext)
 {
-	if (pContext && pClass_.get())
-		bHide_ = !pClass_->match(pContext->getAccount()->getClass());
-	else
+	if (pContext && pClass_.get()) {
+		Account* pAccount = pContext->getAccount();
+		bHide_ = !pClass_->match(pAccount ? pAccount->getClass() : L"mail");
+	}
+	else {
 		bHide_ = false;
+	}
 	
 	if (!bHide_) {
 		for (unsigned int n = 0; n < getItemCount(); ++n) {
@@ -542,7 +545,7 @@ bool qm::HeaderItem::canSelectAll()
 wstring_ptr qm::HeaderItem::getValue(const TemplateContext& context) const
 {
 	wstring_ptr wstrValue;
-	if (context.getMessageHolder() || (nFlags_ & FLAG_SHOWALWAYS)) {
+	if (context.getMessage() || (nFlags_ & FLAG_SHOWALWAYS)) {
 		if (pValue_->getValue(context, &wstrValue) != Template::RESULT_SUCCESS)
 			return 0;
 	}
@@ -1006,7 +1009,7 @@ qm::AttachmentHeaderItem::AttachmentHeaderItem(MenuManager* pMenuManager) :
 	wnd_(this),
 	pMenuManager_(pMenuManager),
 	pParent_(0),
-	pAccountManager_(0),
+	pURIResolver_(0),
 	nSecurityMode_(SECURITYMODE_NONE),
 	bAttachmentDeleted_(false)
 {
@@ -1102,22 +1105,31 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 	clear();
 	
 	if (pContext) {
-		pAccountManager_ = pContext->getDocument();
+		pURIResolver_ = pContext->getDocument()->getURIResolver();
 		nSecurityMode_ = pContext->getSecurityMode();
 		
 		MessageHolderBase* pmh = pContext->getMessageHolder();
-		if (pmh) {
-			Message* pMessage = pContext->getMessage();
-			if (pmh->getMessage(Account::GETMESSAGEFLAG_TEXT,
-				0, nSecurityMode_, pMessage)) {
+		Message* pMessage = pContext->getMessage();
+		if (pMessage) {
+			bool b = true;
+			if (pmh)
+				b = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT,
+					0, nSecurityMode_, pMessage);
+			if (b) {
 				AttachmentParser parser(*pMessage);
 				AttachmentParser::AttachmentList list;
 				AttachmentParser::AttachmentListFree free(list);
 				parser.getAttachments(AttachmentParser::GAF_INCLUDEDELETED, &list);
 				for (AttachmentParser::AttachmentList::size_type n = 0; n < list.size(); ++n) {
 					W2T(list[n].first, ptszName);
-					std::auto_ptr<URI> pURI(new URI(pmh->getMessageHolder(),
-						pMessage, list[n].second, URIFragment::TYPE_BODY));
+					std::auto_ptr<URI> pURI;
+					if (pmh)
+						pURI.reset(new MessageHolderURI(pmh->getMessageHolder(),
+							pMessage, list[n].second, URIFragment::TYPE_BODY));
+					else
+						pURI = pURIResolver_->getTemporaryURI(list[n].second,
+							URIFragment::TYPE_BODY, nSecurityMode_);
+					assert(pURI.get());
 					
 					SHFILEINFO info = { 0 };
 					::SHGetFileInfo(ptszName, FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
@@ -1210,7 +1222,7 @@ LRESULT qm::AttachmentHeaderItem::onNotify(NMHDR* pnmhdr,
 LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 											  bool* pbHandled)
 {
-	assert(pAccountManager_);
+	assert(pURIResolver_);
 	
 	if (bAttachmentDeleted_)
 		return 0;
@@ -1229,12 +1241,14 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 			0
 		};
 		ListView_GetItem(hwnd, &item);
-		listURI.push_back(new URI(*reinterpret_cast<URI*>(item.lParam)));
+		listURI.push_back(reinterpret_cast<URI*>(item.lParam)->clone().release());
 		nItem = ListView_GetNextItem(hwnd, nItem, LVNI_ALL | LVNI_SELECTED);
 	}
+	if (listURI.empty())
+		return 0;
 	
 	std::auto_ptr<URIDataObject> p(new URIDataObject(
-		pAccountManager_, nSecurityMode_, listURI));
+		pURIResolver_, nSecurityMode_, listURI));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
@@ -1271,7 +1285,7 @@ void qm::AttachmentHeaderItem::clear()
 	}
 	ListView_DeleteAllItems(hwnd);
 	
-	pAccountManager_ = 0;
+	pURIResolver_ = 0;
 	nSecurityMode_ = SECURITYMODE_NONE;
 	bAttachmentDeleted_ = false;
 }

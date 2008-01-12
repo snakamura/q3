@@ -116,7 +116,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT,
 		SECURITYMODE_NONE, pSubAccount_->getTransferEncodingFor8Bit());
 	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
-		pDocument_, buf.getCharArray(), buf.getLength()));
+		buf.getCharArray(), buf.getLength(), pDocument_->getURIResolver()));
 	if (!pBodyMessage.get())
 		return std::auto_ptr<Message>();
 	
@@ -157,7 +157,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		if (pwszArchive)
 			wstrExcludePattern = pProfile_->getString(L"Global", L"ExcludeArchive");
 		if (!MessageCreator::attachFilesOrURIs(pMessage.get(),
-			listAttachmentPath_, pDocument_, nSecurityMode_,
+			listAttachmentPath_, pDocument_->getURIResolver(), nSecurityMode_,
 			pwszArchive, wstrExcludePattern.get(), wstrTempDir_.get()))
 			return std::auto_ptr<Message>();
 	}
@@ -447,7 +447,8 @@ bool qm::EditMessage::setBodyPartHeader(const WCHAR* pwszHeader,
 	clearFields();
 	
 	MessageCreator creator;
-	std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, pwszHeader, nLen));
+	std::auto_ptr<Message> pMessage(creator.createMessage(
+		pwszHeader, nLen, pDocument_->getURIResolver()));
 	if (!pMessage.get())
 		return false;
 	
@@ -898,9 +899,7 @@ bool qm::EditMessage::normalize(Part* pPart)
 std::auto_ptr<Message> qm::EditMessage::makeMultipartMixed(std::auto_ptr<Message> pMessage)
 {
 	const ContentTypeParser* pContentType = pMessage->getContentType();
-	if (!pContentType ||
-		_wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
-		_wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
+	if (!PartUtil::isContentType(pMessage->getContentType(), L"multipart", L"mixed")) {
 		std::auto_ptr<Message> pNewMessage(new Message());
 		if (!MessageCreator::makeMultipart(pNewMessage.get(), std::auto_ptr<Part>(pMessage)))
 			return std::auto_ptr<Message>();

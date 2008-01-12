@@ -105,15 +105,14 @@ qm::MessageStatusBar::~MessageStatusBar()
 {
 }
 
-void qm::MessageStatusBar::updateMessageParts(MessageHolder* pmh,
-											  const Message& msg)
+void qm::MessageStatusBar::updateMessageParts(const Message* pMessage)
 {
-	if (pmh) {
+	if (pMessage) {
 #ifndef _WIN32_WCE_PSPC
 		const WCHAR* pwszEncoding = pEncodingModel_->getEncoding();
 		wstring_ptr wstrCharset;
 		if (!pwszEncoding) {
-			wstrCharset = PartUtil(msg).getBodyTextCharset(false);
+			wstrCharset = PartUtil(*pMessage).getBodyTextCharset(PartUtil::RFC822_AUTO);
 			pwszEncoding = wstrCharset.get();
 		}
 		setText(nOffset_ + 1, pwszEncoding);
@@ -130,7 +129,7 @@ void qm::MessageStatusBar::updateMessageParts(MessageHolder* pmh,
 		setText(nOffset_ + 2, pwszTemplate);
 #endif
 		
-		unsigned int nSecurity = msg.getSecurity();
+		unsigned int nSecurity = pMessage->getSecurity();
 		if (nSecurity & Message::SECURITY_DECRYPTED)
 			setIconOrText(nOffset_ + 3, IDI_DECRYPTED, L"D");
 		else

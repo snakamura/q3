@@ -381,6 +381,8 @@
 				<menuitem text="プロパティ..." action="MessageProperty"/>
 			</popupmenu>
 			<popupmenu text="ツール">
+				<menuitem text="送信者をアドレス帳に追加..." action="ToolAddAddress"/>
+				<separator/>
 				<popupmenu text="スクリプト">
 					<menuitem dynamic="ToolScript"/>
 				</popupmenu>

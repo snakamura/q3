@@ -236,7 +236,8 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 	pErrorHandler_(pErrorHandler),
 	pGlobalVariable_(pGlobalVariable),
 	returnType_(MacroContext::RETURNTYPE_NONE),
-	nRegexResultCount_(0)
+	nRegexResultCount_(0),
+	nCatch_(0)
 {
 	assert(pDocument_);
 	
@@ -409,6 +410,21 @@ void qm::MacroGlobalContext::clearRegexResult()
 	nRegexResultCount_ = 0;
 }
 
+bool qm::MacroGlobalContext::isInCatch() const
+{
+	return nCatch_ != 0;
+}
+
+void qm::MacroGlobalContext::pushCatch()
+{
+	++nCatch_;
+}
+
+void qm::MacroGlobalContext::popCatch()
+{
+	--nCatch_;
+}
+
 void qm::MacroGlobalContext::storeParsedMacro(std::auto_ptr<Macro> pMacro)
 {
 	assert(pMacro.get());
@@ -539,13 +555,15 @@ MacroValuePtr qm::MacroExpr::error(const MacroContext& context,
 		context.getErrorHandler()->processError(code, wstr.get());
 	}
 	
-	Log log(InitThread::getInitThread().getLogger(), L"qm::MacroExpr");
-	if (log.isErrorEnabled()) {
-		WCHAR wsz[128];
-		_snwprintf(wsz, countof(wsz), L"Error occurred while processing macro: code=%u at ", code);
-		wstring_ptr wstr(getString());
-		wstring_ptr wstrLog(concat(wsz, wstr.get()));
-		log.error(wstrLog.get());
+	if (!context.isInCatch()) {
+		Log log(InitThread::getInitThread().getLogger(), L"qm::MacroExpr");
+		if (log.isErrorEnabled()) {
+			WCHAR wsz[128];
+			_snwprintf(wsz, countof(wsz), L"Error occurred while processing macro: code=%u at ", code);
+			wstring_ptr wstr(getString());
+			wstring_ptr wstrLog(concat(wsz, wstr.get()));
+			log.error(wstrLog.get());
+		}
 	}
 	
 	return MacroValuePtr();
@@ -576,8 +594,7 @@ MacroValuePtr qm::MacroField::value(MacroContext* pContext) const
 {
 	assert(pContext);
 	
-	MessageHolderBase* pmh = pContext->getMessageHolder();
-	if (!pmh)
+	if (!pContext->getMessage())
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
 	
 	Message* pMessage = pContext->getMessage(
@@ -631,7 +648,7 @@ MacroValuePtr qm::MacroFieldCache::value(MacroContext* pContext) const
 	
 	MessageHolderBase* pmh = pContext->getMessageHolder();
 	if (!pmh)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGE);
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
 	
 	unsigned int (qm::MessageHolderBase::*pfnGetNumber)() const = 0;
 	wstring_ptr (qm::MessageHolderBase::*pfnGetString)() const = 0;
@@ -1340,22 +1357,7 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro) const
 	
 	typedef std::vector<MacroFunction*> FunctionStack;
 	FunctionStack stackFunction;
-	struct Deleter
-	{
-		typedef std::vector<MacroFunction*> FunctionStack;
-		
-		Deleter(FunctionStack& stack) :
-			stack_(stack)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(stack_.begin(), stack_.end(), qs::deleter<MacroFunction>());
-		}
-		
-		FunctionStack& stack_;
-	} deleter(stackFunction);
+	container_deleter<FunctionStack> deleter(stackFunction);
 	
 	const MacroTokenizer::Token exprTokens[] = {
 		MacroTokenizer::TOKEN_TEXT,
@@ -1667,7 +1669,8 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	pGlobalContext_(0),
 	bOwnGlobalContext_(true)
 {
-	assert((!pmh && !pMessage) || (pmh && pMessage));
+	assert((!pmh && !pMessage) || pMessage);
+	assert(pmh || !pMessage || pMessage->getFlag() == Message::FLAG_NONE);
 	assert(!pmh || pmh->getAccount() == pAccount);
 	assert(!pmh || pmh->getAccount()->isLocked());
 	assert(!pmh || pAccount);
@@ -1744,7 +1747,7 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	if (nFlags) {
 		if (isFlag(FLAG_GETMESSAGEASPOSSIBLE))
 			nFlags = Account::GETMESSAGEFLAG_POSSIBLE;
-		
+		assert(pmh_);
 		if (!pmh_->getMessage(nFlags, pwszField, getSecurityMode(), pMessage_))
 			return 0;
 	}
@@ -1874,6 +1877,21 @@ bool qm::MacroContext::setRegexResult(const RegexRangeList& listRange)
 void qm::MacroContext::clearRegexResult()
 {
 	pGlobalContext_->clearRegexResult();
+}
+
+bool qm::MacroContext::isInCatch() const
+{
+	return pGlobalContext_->isInCatch();
+}
+
+void qm::MacroContext::pushCatch()
+{
+	pGlobalContext_->pushCatch();
+}
+
+void qm::MacroContext::popCatch()
+{
+	pGlobalContext_->popCatch();
 }
 
 void qm::MacroContext::storeParsedMacro(std::auto_ptr<Macro> pMacro)

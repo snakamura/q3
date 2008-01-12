@@ -19,6 +19,7 @@ class FolderImage;
 class SyncManager;
 class UIManager;
 class UndoManager;
+class URIResolver;
 
 
 /****************************************************************************
@@ -30,6 +31,7 @@ class UndoManager;
 struct FolderWindowCreateContext
 {
 	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	UndoManager* pUndoManager_;
 	UIManager* pUIManager_;
 	const FolderImage* pFolderImage_;

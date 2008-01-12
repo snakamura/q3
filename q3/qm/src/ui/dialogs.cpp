@@ -809,15 +809,17 @@ void qm::DialupDialog::updateLocation()
  *
  */
 
-qm::ExportDialog::ExportDialog(Account* pAccount,
-							   const TemplateManager* pTemplateManager,
+qm::ExportDialog::ExportDialog(const TemplateManager* pTemplateManager,
+							   const WCHAR* pwszClass,
 							   Profile* pProfile,
-							   bool bSingleMessage) :
+							   bool bSingleMessage,
+							   bool bCanExportFlags) :
 	DefaultDialog(IDD_EXPORT, LANDSCAPE(IDD_EXPORT)),
-	pAccount_(pAccount),
 	pTemplateManager_(pTemplateManager),
+	pwszClass_(pwszClass),
 	pProfile_(pProfile),
 	bSingleMessage_(bSingleMessage),
+	bCanExportFlags_(bCanExportFlags),
 	nFlags_(0)
 {
 }
@@ -872,6 +874,9 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 	if (bSingleMessage_)
 		Window(getDlgItem(IDC_FILEPERMESSAGE)).enableWindow(false);
 	
+	if (!bCanExportFlags_)
+		Window(getDlgItem(IDC_EXPORTFLAGS)).enableWindow(false);
+	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
 	W2T(wstrNone.get(), ptszNone);
@@ -879,7 +884,7 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 	
 	TemplateManager::NameList listTemplate;
 	StringListFree<TemplateManager::NameList> freeTemplate(listTemplate);
-	pTemplateManager_->getTemplateNames(pAccount_->getClass(), L"export", &listTemplate);
+	pTemplateManager_->getTemplateNames(pwszClass_, L"export", &listTemplate);
 	for (TemplateManager::NameList::const_iterator it = listTemplate.begin(); it != listTemplate.end(); ++it) {
 		W2T(*it + 7, ptszTemplate);
 		ComboBox_AddString(getDlgItem(IDC_TEMPLATE), ptszTemplate);

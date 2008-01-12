@@ -17,7 +17,10 @@
 #include <qmsecurity.h>
 
 #include <qsaccelerator.h>
+#include <qsinit.h>
 #include <qsprofile.h>
+
+#include <boost/bind.hpp>
 
 #include "focus.h"
 #include "headerwindow.h"
@@ -25,6 +28,7 @@
 #include "messagewindow.h"
 #include "resourceinc.h"
 #include "uimanager.h"
+#include "../model/messagecontext.h"
 #include "../model/templatemanager.h"
 #include "../uimodel/encodingmodel.h"
 #include "../uimodel/messagemodel.h"
@@ -43,7 +47,6 @@ using namespace qs;
  */
 
 class qm::MessageWindowImpl :
-	public MessageViewModeHolder,
 	public FocusController<MessageWindowItem>,
 	public MessageModelHandler,
 	public MessageViewModeHandler,
@@ -57,9 +60,6 @@ public:
 		ID_HEADERWINDOW	= 1001
 	};
 	enum {
-		WM_MESSAGEMODEL_MESSAGECHANGED	= WM_APP + 1201
-	};
-	enum {
 		TIMER_MAKESEEN	= 20
 	};
 
@@ -70,14 +70,9 @@ public:
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
-	bool setMessage(MessageHolder* pmh,
+	bool setMessage(MessageContext* pContext,
 					bool bResetEncoding);
 	void reloadProfiles(bool bInitialize);
-
-public:
-	virtual MessageViewMode* getMessageViewMode();
-	virtual void addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler);
-	virtual void removeMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler);
 
 public:
 	virtual bool isPrimaryItemFocused();
@@ -114,7 +109,7 @@ public:
 
 private:
 	void fireMessageChanged(MessageHolder* pmh,
-							const Message& msg) const;
+							const Message* pMessage) const;
 	void fireStatusTextChanged(const WCHAR* pwszText) const;
 
 public:
@@ -140,7 +135,6 @@ public:
 	
 	MessageModel* pMessageModel_;
 	std::auto_ptr<MessageViewWindowFactory> pFactory_;
-	std::auto_ptr<DefaultMessageViewMode> pMessageViewMode_;
 	
 	wstring_ptr wstrTemplate_;
 	wstring_ptr wstrCertificate_;
@@ -182,7 +176,7 @@ void qm::MessageWindowImpl::layoutChildren(int cx,
 	bLayouting_ = false;
 }
 
-bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
+bool qm::MessageWindowImpl::setMessage(MessageContext* pContext,
 									   bool bResetEncoding)
 {
 	struct SettingMessage
@@ -228,8 +222,10 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	
 	wstrCertificate_.reset(0);
 	
+	MessagePtrLock mpl(MessagePtr(pContext ? pContext->getMessagePtr() : MessagePtr()));
+	
 	Account* pAccount = pMessageModel_->getCurrentAccount();
-	assert(!pmh || pmh->getAccount() == pAccount);
+	assert(!mpl || mpl->getAccount() == pAccount);
 	Folder* pFolder = pMessageModel_->getCurrentFolder();
 	
 	if (bSeenTimer_) {
@@ -243,8 +239,8 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	bool bSourceMode = (nMode & MessageViewMode::MODE_SOURCE) != 0;
 	bool bHtmlMode = (nMode & MessageViewMode::MODE_HTML) != 0;
 	
-	Message msg;
-	if (pmh) {
+	Message* pMessage = 0;
+	if (pContext) {
 		unsigned int nFlags = Account::GETMESSAGEFLAG_FALLBACK;
 		if (nSeenWait_ == 0)
 			nFlags |= Account::GETMESSAGEFLAG_MAKESEEN;
@@ -254,28 +250,33 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 			nFlags |= Account::GETMESSAGEFLAG_HTML;
 		else
 			nFlags |= Account::GETMESSAGEFLAG_TEXT;
-		if (!pmh->getMessage(nFlags, 0, pSecurityModel_->getSecurityMode(), &msg))
+		pMessage = pContext->getMessage(nFlags, 0, pSecurityModel_->getSecurityMode());
+		if (!pMessage)
 			return false;
-		
-		const WCHAR* pwszCertificate = msg.getParam(L"Certificate");
+	}
+	
+	if (pMessage) {
+		const WCHAR* pwszCertificate = pMessage->getParam(L"Certificate");
 		if (pwszCertificate)
 			wstrCertificate_ = allocWString(pwszCertificate);
-		
-		if (!pmh->isFlag(MessageHolder::FLAG_SEEN) &&
+	}
+	
+	if (mpl) {
+		if (!mpl->isFlag(MessageHolder::FLAG_SEEN) &&
 			nSeenWait_ != 0 && nSeenWait_ != -1)
 			bSeenTimer_ = pThis_->setTimer(TIMER_MAKESEEN, nSeenWait_*1000) != 0;
 	}
 	
 	const ContentTypeParser* pContentType = 0;
 	MessageViewWindow* pMessageViewWindow = 0;
-	if (pmh && !bRawMode && !bSourceMode && bHtmlMode && !wstrTemplate_.get()) {
-		if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
-			!msg.isMultipart() &&
-			msg.hasField(L"X-QMAIL-Link")) {
+	if (pMessage && !bRawMode && !bSourceMode && bHtmlMode && !wstrTemplate_.get()) {
+		if (pAccount && pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
+			!pMessage->isMultipart() &&
+			pMessage->hasField(L"X-QMAIL-Link")) {
 			pMessageViewWindow = pFactory_->getLinkMessageViewWindow();
 		}
 		else {
-			PartUtil util(msg);
+			PartUtil util(*pMessage);
 			PartUtil::ContentTypeList l;
 			util.getAlternativeContentTypes(&l);
 			
@@ -306,10 +307,10 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 	}
 	
 	if (bShowHeaderWindow_) {
-		if (pAccount) {
+		if (pAccount || pMessage) {
 			// TODO
 			// Get selected
-			TemplateContext context(pmh, pmh ? &msg : 0, MessageHolderList(), pFolder,
+			TemplateContext context(mpl, pMessage, MessageHolderList(), pFolder,
 				pAccount, pDocument_, pActionInvoker_, pThis_->getHandle(),
 				pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
@@ -325,22 +326,22 @@ bool qm::MessageWindowImpl::setMessage(MessageHolder* pmh,
 		layoutChildren();
 	
 	const Template* pTemplate = 0;
-	if (pmh && wstrTemplate_.get())
+	if (pMessage && wstrTemplate_.get())
 		pTemplate = pDocument_->getTemplateManager()->getTemplate(
-			pAccount, pmh->getFolder(), wstrTemplate_.get());
+			pAccount, pFolder, wstrTemplate_.get());
 	
 	unsigned int nFlags = (bRawMode ? MessageViewWindow::FLAG_RAWMODE : 0) |
 		(bSourceMode ? MessageViewWindow::FLAG_SOURCEMODE : 0) |
 		(!bShowHeaderWindow_ && bShowHeader_ ? MessageViewWindow::FLAG_INCLUDEHEADER : 0) |
 		(nMode & MessageViewMode::MODE_HTMLONLINE ? MessageViewWindow::FLAG_ONLINEMODE : 0) |
 		(nMode & MessageViewMode::MODE_INTERNETZONE ? MessageViewWindow::FLAG_INTERNETZONE : 0);
-	if (!pMessageViewWindow->setMessage(pmh, pmh ? &msg : 0, pFolder, pTemplate,
+	if (!pMessageViewWindow->setMessage(mpl, pMessage, pFolder, pTemplate,
 		pEncodingModel_->getEncoding(), nFlags, pSecurityModel_->getSecurityMode()))
 		return false;
 	if (bActive)
 		pThis_->setActive();
 	
-	fireMessageChanged(pmh, msg);
+	fireMessageChanged(mpl, pMessage);
 	
 	errorHandler.success();
 	
@@ -352,23 +353,8 @@ void qm::MessageWindowImpl::reloadProfiles(bool bInitialize)
 	nSeenWait_ = pProfile_->getInt(pwszSection_, L"SeenWait");
 	bShowHeader_ = pProfile_->getInt(pwszSection_, L"ShowHeader") != 0;
 	
-	if (!bInitialize) {
-		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-		setMessage(mpl, false);
-	}
-}
-
-MessageViewMode* qm::MessageWindowImpl::getMessageViewMode()
-{
-	return pMessageViewMode_.get();
-}
-
-void qm::MessageWindowImpl::addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler)
-{
-}
-
-void qm::MessageWindowImpl::removeMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler)
-{
+	if (!bInitialize)
+		setMessage(pMessageModel_->getCurrentMessage(), false);
 }
 
 bool qm::MessageWindowImpl::isPrimaryItemFocused()
@@ -440,25 +426,24 @@ MessageWindowItem* qm::MessageWindowImpl::getFocusedItem()
 
 void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 {
-	bool bUIThread = ::GetCurrentThreadId() == ::GetWindowThreadProcessId(pThis_->getHandle(), 0);
-	MessageHolder* pmh = event.getMessageHolder();
-	if (bUIThread) {
-		if (!bSettingMessage_)
-			setMessage(pmh, true);
-	}
-	else {
-		pThis_->postMessage(WM_MESSAGEMODEL_MESSAGECHANGED);
-	}
+	assert(Init::getInit().isPrimaryThread());
+	
+	if (!bSettingMessage_)
+		setMessage(event.getMessageContext(), true);
 }
 
 void qm::MessageWindowImpl::updateRestoreInfo(const MessageModelRestoreEvent& event)
 {
+	assert(Init::getInit().isPrimaryThread());
+	
 	ViewModel::RestoreInfo* pRestoreInfo = event.getRestoreInfo();
 	pRestoreInfo->setScrollPos(pMessageViewWindow_->getScrollPos());
 }
 
 void qm::MessageWindowImpl::applyRestoreInfo(const MessageModelRestoreEvent& event)
 {
+	assert(Init::getInit().isPrimaryThread());
+	
 	ViewModel::RestoreInfo* pRestoreInfo = event.getRestoreInfo();
 	pMessageViewWindow_->setScrollPos(pRestoreInfo->getScrollPos());
 }
@@ -474,10 +459,8 @@ void qm::MessageWindowImpl::modeChanged(const MessageViewModeEvent& event)
 	
 	unsigned int nAdded = event.getAddedMode();
 	unsigned int nRemoved = event.getRemovedMode();
-	if (nAdded & nSetMode || nRemoved & nSetMode) {
-		MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-		setMessage(mpl, false);
-	}
+	if (nAdded & nSetMode || nRemoved & nSetMode)
+		setMessage(pMessageModel_->getCurrentMessage(), false);
 	
 	if (nAdded & MessageViewMode::MODE_SELECT)
 		pMessageViewWindow_->setSelectMode(true);
@@ -517,14 +500,12 @@ void qm::MessageWindowImpl::messageViewModeChanged(const MessageViewModeHolderEv
 
 void qm::MessageWindowImpl::encodingChanged(const EncodingModelEvent& event)
 {
-	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-	setMessage(mpl, false);
+	setMessage(pMessageModel_->getCurrentMessage(), false);
 }
 
 void qm::MessageWindowImpl::securityModeChanged(const SecurityModelEvent& event)
 {
-	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-	setMessage(mpl, false);
+	setMessage(pMessageModel_->getCurrentMessage(), false);
 }
 
 void qm::MessageWindowImpl::statusTextChanged(const WCHAR* pwszText)
@@ -543,18 +524,18 @@ void qm::MessageWindowImpl::applyModeToMessageViewWindow(MessageViewWindow* pMes
 }
 
 void qm::MessageWindowImpl::fireMessageChanged(MessageHolder* pmh,
-											   const Message& msg) const
+											   const Message* pMessage) const
 {
-	MessageWindowEvent event(pmh, msg);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->messageChanged(event);
+	MessageWindowEvent event(pmh, pMessage);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&MessageWindowHandler::messageChanged, _1, boost::cref(event)));
 }
 
 void qm::MessageWindowImpl::fireStatusTextChanged(const WCHAR* pwszText) const
 {
 	MessageWindowStatusTextEvent event(pwszText);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->statusTextChanged(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&MessageWindowHandler::statusTextChanged, _1, boost::cref(event)));
 }
 
 
@@ -570,13 +551,6 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	WindowBase(true),
 	pImpl_(0)
 {
-	int nZoom = pProfile->getInt(pwszSection, L"ViewZoom");
-	if (nZoom != MessageViewMode::ZOOM_NONE &&
-		(nZoom < MessageViewMode::ZOOM_MIN || MessageViewMode::ZOOM_MAX < nZoom))
-		nZoom = MessageViewMode::ZOOM_NONE;
-	int nFit = pProfile->getInt(pwszSection, L"ViewFit");
-	if (nFit < MessageViewMode::FIT_NONE || MessageViewMode::FIT_SUPER < nFit)
-		nFit = MessageViewMode::FIT_NONE;
 	wstring_ptr wstrTemplate(pProfile->getString(pwszSection, L"Template"));
 	
 	pImpl_ = new MessageWindowImpl();
@@ -595,9 +569,6 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->bSettingMessage_ = false;
 	pImpl_->bSeenTimer_ = false;
 	pImpl_->pMessageModel_ = pMessageModel;
-	pImpl_->pMessageViewMode_.reset(new DefaultMessageViewMode(
-		pProfile->getInt(pwszSection, L"ViewMode"),
-		nZoom, static_cast<MessageViewMode::Fit>(nFit)));
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;
 	pImpl_->nSeenWait_ = 0;
 	pImpl_->bShowHeader_ = true;
@@ -625,9 +596,7 @@ void qm::MessageWindow::setShowHeaderWindow(bool bShow)
 	if (bShow != pImpl_->bShowHeaderWindow_) {
 		pImpl_->bShowHeaderWindow_ = bShow;
 		pImpl_->layoutChildren();
-		
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		pImpl_->setMessage(mpl, false);
+		pImpl_->setMessage(pImpl_->pMessageModel_->getCurrentMessage(), false);
 	}
 }
 
@@ -645,9 +614,7 @@ void qm::MessageWindow::setTemplate(const WCHAR* pwszTemplate)
 			pImpl_->wstrTemplate_ = allocWString(pwszTemplate);
 		else
 			pImpl_->wstrTemplate_.reset(0);
-		
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		pImpl_->setMessage(mpl, false);
+		pImpl_->setMessage(pImpl_->pMessageModel_->getCurrentMessage(), false);
 	}
 }
 
@@ -698,9 +665,7 @@ void qm::MessageWindow::setFontGroup(const WCHAR* pwszName)
 	if (pFontGroup != pImpl_->pFactory_->getTextMessageViewWindow()->getFontGroup()) {
 		pImpl_->pFactory_->getTextMessageViewWindow()->setFontGroup(
 			pFontGroup, pImpl_->pwszSection_);
-		
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		pImpl_->setMessage(mpl, false);
+		pImpl_->setMessage(pImpl_->pMessageModel_->getCurrentMessage(), false);
 	}
 }
 
@@ -717,11 +682,6 @@ FocusController<MessageWindowItem>* qm::MessageWindow::getFocusController() cons
 MessageModel* qm::MessageWindow::getMessageModel() const
 {
 	return pImpl_->pMessageModel_;
-}
-
-MessageViewModeHolder* qm::MessageWindow::getMessageViewModeHolder() const
-{
-	return pImpl_;
 }
 
 AttachmentSelectionModel* qm::MessageWindow::getAttachmentSelectionModel() const
@@ -763,9 +723,6 @@ void qm::MessageWindow::save() const
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	pProfile->setInt(pImpl_->pwszSection_, L"ShowHeaderWindow", pImpl_->bShowHeaderWindow_);
-	pProfile->setInt(pImpl_->pwszSection_, L"ViewMode", pImpl_->pMessageViewMode_->getMode());
-	pProfile->setInt(pImpl_->pwszSection_, L"ViewZoom", pImpl_->pMessageViewMode_->getZoom());
-	pProfile->setInt(pImpl_->pwszSection_, L"ViewFit", pImpl_->pMessageViewMode_->getFit());
 	pProfile->setString(pImpl_->pwszSection_, L"Template",
 		pImpl_->wstrTemplate_.get() ? pImpl_->wstrTemplate_.get() : L"");
 	const WCHAR* pwszFontGroup = getFontGroup();
@@ -799,7 +756,6 @@ LRESULT qm::MessageWindow::windowProc(UINT uMsg,
 		HANDLE_LBUTTONDOWN()
 		HANDLE_SIZE()
 		HANDLE_TIMER()
-		HANDLE_MESSAGE(MessageWindowImpl::WM_MESSAGEMODEL_MESSAGECHANGED, onMessageModelMessageChanged)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -896,24 +852,19 @@ LRESULT qm::MessageWindow::onSize(UINT nFlags,
 LRESULT qm::MessageWindow::onTimer(UINT_PTR nId)
 {
 	if (nId == MessageWindowImpl::TIMER_MAKESEEN) {
-		MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-		if (mpl) {
-			Account* pAccount = mpl->getAccount();
-			pAccount->setMessagesFlags(MessageHolderList(1, mpl),
-				MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
+		MessageContext* pContext = pImpl_->pMessageModel_->getCurrentMessage();
+		if (pContext) {
+			MessagePtrLock mpl(pContext->getMessagePtr());
+			if (mpl) {
+				Account* pAccount = mpl->getAccount();
+				pAccount->setMessagesFlags(MessageHolderList(1, mpl),
+					MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
+			}
 		}
 		
 		killTimer(MessageWindowImpl::TIMER_MAKESEEN);
 		pImpl_->bSeenTimer_ = false;
 	}
-	return 0;
-}
-
-LRESULT qm::MessageWindow::onMessageModelMessageChanged(WPARAM wParam,
-														LPARAM lParam)
-{
-	MessagePtrLock mpl(pImpl_->pMessageModel_->getCurrentMessage());
-	pImpl_->setMessage(mpl, true);
 	return 0;
 }
 
@@ -973,9 +924,9 @@ qm::MessageWindowHandler::~MessageWindowHandler()
  */
 
 qm::MessageWindowEvent::MessageWindowEvent(MessageHolder* pmh,
-										   const Message& msg) :
+										   const Message* pMessage) :
 	pmh_(pmh),
-	msg_(msg)
+	pMessage_(pMessage)
 {
 }
 
@@ -988,9 +939,9 @@ MessageHolder* qm::MessageWindowEvent::getMessageHolder() const
 	return pmh_;
 }
 
-const Message& qm::MessageWindowEvent::getMessage() const
+const Message* qm::MessageWindowEvent::getMessage() const
 {
-	return msg_;
+	return pMessage_;
 }
 
 
@@ -1022,6 +973,55 @@ const WCHAR* qm::MessageWindowStatusTextEvent::getText() const
  */
 
 qm::MessageWindowItem::~MessageWindowItem()
+{
+}
+
+
+/****************************************************************************
+ *
+ * MessageWindowMessageViewModeHolder
+ *
+ */
+
+qm::MessageWindowMessageViewModeHolder::MessageWindowMessageViewModeHolder(Profile* pProfile,
+																		   const WCHAR* pwszSection) :
+	pProfile_(pProfile),
+	pwszSection_(pwszSection)
+{
+	int nZoom = pProfile->getInt(pwszSection, L"ViewZoom");
+	if (nZoom != MessageViewMode::ZOOM_NONE &&
+		(nZoom < MessageViewMode::ZOOM_MIN || MessageViewMode::ZOOM_MAX < nZoom))
+		nZoom = MessageViewMode::ZOOM_NONE;
+	int nFit = pProfile->getInt(pwszSection, L"ViewFit");
+	if (nFit < MessageViewMode::FIT_NONE || MessageViewMode::FIT_SUPER < nFit)
+		nFit = MessageViewMode::FIT_NONE;
+	
+	pMessageViewMode_.reset(new DefaultMessageViewMode(
+		pProfile->getInt(pwszSection, L"ViewMode"),
+		nZoom, static_cast<MessageViewMode::Fit>(nFit)));
+}
+
+void qm::MessageWindowMessageViewModeHolder::save() const
+{
+	pProfile_->setInt(pwszSection_, L"ViewMode", pMessageViewMode_->getMode());
+	pProfile_->setInt(pwszSection_, L"ViewZoom", pMessageViewMode_->getZoom());
+	pProfile_->setInt(pwszSection_, L"ViewFit", pMessageViewMode_->getFit());
+}
+
+qm::MessageWindowMessageViewModeHolder::~MessageWindowMessageViewModeHolder()
+{
+}
+
+MessageViewMode* qm::MessageWindowMessageViewModeHolder::getMessageViewMode()
+{
+	return pMessageViewMode_.get();
+}
+
+void qm::MessageWindowMessageViewModeHolder::addMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler)
+{
+}
+
+void qm::MessageWindowMessageViewModeHolder::removeMessageViewModeHolderHandler(MessageViewModeHolderHandler* pHandler)
 {
 }
 

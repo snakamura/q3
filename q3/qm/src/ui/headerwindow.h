@@ -36,9 +36,9 @@ class TextHeaderItemSite;
 class HeaderWindowContentHandler;
 struct HeaderWindowCreateContext;
 
-class AccountManager;
 class Template;
 class TemplateContext;
+class URIResolver;
 
 
 /****************************************************************************
@@ -453,7 +453,7 @@ private:
 	AttachmentWindow wnd_;
 	qs::MenuManager* pMenuManager_;
 	qs::WindowBase* pParent_;
-	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	unsigned int nSecurityMode_;
 	bool bAttachmentDeleted_;
 };

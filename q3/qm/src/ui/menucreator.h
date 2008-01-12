@@ -51,7 +51,6 @@ class MenuCreatorUtil;
 class MenuCreatorList;
 class MenuCreatorListCallback;
 
-class AccountManager;
 class AccountSelectionModel;
 class AddressBookModel;
 class AddressBookSelectionModel;
@@ -66,13 +65,14 @@ class GoRoundCourse;
 class Macro;
 class Message;
 class MessageHolder;
+class MessageHolderURI;
 class MessageSelectionModel;
 class MessageWindowFontManager;
 class Recents;
 class ScriptManager;
 class SecurityModel;
 class TemplateManager;
-class URI;
+class URIResolver;
 class ViewModelManager;
 
 
@@ -407,7 +407,7 @@ class RecentsMenuCreator : public MenuCreator
 {
 public:
 	RecentsMenuCreator(Recents* pRecents,
-					   AccountManager* pAccountManager,
+					   const URIResolver* pURIResolver,
 					   qs::ActionParamMap* pActionParamMap);
 	~RecentsMenuCreator();
 
@@ -420,10 +420,10 @@ public:
 	virtual const WCHAR* getName() const;
 
 private:
-	struct URIComp : public std::binary_function<const URI*, const URI*, bool>
+	struct URIComp : public std::binary_function<const MessageHolderURI*, const MessageHolderURI*, bool>
 	{
-		bool operator()(const URI* pLhs,
-						const URI* pRhs);
+		bool operator()(const MessageHolderURI* pLhs,
+						const MessageHolderURI* pRhs);
 	};
 
 private:
@@ -432,7 +432,7 @@ private:
 
 private:
 	Recents* pRecents_;
-	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	ActionParamHelper helper_;
 };
 

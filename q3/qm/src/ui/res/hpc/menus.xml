@@ -321,6 +321,8 @@
 			<menuitem text="&amp;Property..." action="MessageProperty"/>
 		</popupmenu>
 		<popupmenu text="&amp;Tool">
+			<menuitem text="Add &amp;From to Address Book..." action="ToolAddAddress"/>
+			<separator/>
 			<popupmenu text="Scri&amp;pt">
 				<menuitem dynamic="ToolScript"/>
 			</popupmenu>

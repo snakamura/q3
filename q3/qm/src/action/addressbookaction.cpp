@@ -10,7 +10,7 @@
 
 #include <qstextutil.h>
 
-#include "action.h"
+#include "actionutil.h"
 #include "addressbookaction.h"
 #include "../model/addressbook.h"
 #include "../ui/addressbookdialog.h"

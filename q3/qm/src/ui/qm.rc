@@ -305,6 +305,7 @@ BEGIN
     IDS_FILTER_ATTACHMENT   "All Files (*.*)|*.*||"
     IDS_FILTER_SOUND        "Wave Files (*.wav)|*.wav|All Files (*.*)|*.*||"
     IDS_FILTER_EXECUTABLE   "Executable Files (*.exe)|*.exe|All Files (*.*)|*.*||"
+    IDS_FILTER_MESSAGE      "Message Files (*.eml)|*.eml|Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
 END
 
 STRINGTABLE DISCARDABLE 

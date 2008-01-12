@@ -61,8 +61,9 @@ struct qs::InitImpl
 	
 	bool setSystemEncodingAndFonts(const WCHAR* pwszEncoding);
 	
-	std::auto_ptr<ThreadLocal> pInitThread_;
+	std::auto_ptr<ThreadLocal<InitThread*> > pInitThread_;
 	HINSTANCE hInst_;
+	DWORD dwThreadId_;
 	wstring_ptr wstrTitle_;
 	wstring_ptr wstrSystemEncoding_;
 	wstring_ptr wstrMailEncoding_;
@@ -167,6 +168,7 @@ qs::Init::Init(HINSTANCE hInst,
 	
 	pImpl_ = new InitImpl();
 	pImpl_->hInst_ = hInst;
+	pImpl_->dwThreadId_ = ::GetCurrentThreadId();
 	pImpl_->bLogEnabled_ = false;
 	pImpl_->logLevel_ = Logger::LEVEL_DEBUG;
 	
@@ -198,7 +200,7 @@ qs::Init::Init(HINSTANCE hInst,
 	pImpl_->listEncoderFactory_.push_back(new UuencodeEncoderFactory());
 	pImpl_->listEncoderFactory_.push_back(new XUuencodeEncoderFactory());
 	
-	pImpl_->pInitThread_.reset(new ThreadLocal());
+	pImpl_->pInitThread_.reset(new ThreadLocal<InitThread*>());
 	InitImpl::pInit__ = this;
 	pImpl_->pInitThread_->set(new InitThread(nThreadFlags));
 }
@@ -237,6 +239,11 @@ HINSTANCE qs::Init::getInstanceHandle() const
 	return pImpl_->hInst_;
 }
 
+bool qs::Init::isPrimaryThread() const
+{
+	return pImpl_->dwThreadId_ == ::GetCurrentThreadId();
+}
+
 const WCHAR* qs::Init::getTitle() const
 {
 	return pImpl_->wstrTitle_.get();
@@ -269,7 +276,7 @@ const WCHAR* qs::Init::getDefaultUIFont() const
 
 InitThread* qs::Init::getInitThread()
 {
-	return static_cast<InitThread*>(pImpl_->pInitThread_->get());
+	return pImpl_->pInitThread_->get();
 }
 
 bool qs::Init::isLogEnabled() const

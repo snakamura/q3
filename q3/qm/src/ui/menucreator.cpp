@@ -30,6 +30,7 @@
 #include "resourceinc.h"
 #include "uiutil.h"
 #include "../model/addressbook.h"
+#include "../model/messageenumerator.h"
 #include "../model/filter.h"
 #include "../model/fixedformtext.h"
 #include "../model/goround.h"
@@ -187,12 +188,13 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 	helper_.clear();
 	
 	bool bAdded = false;
-	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
-	if (mpl) {
+	std::auto_ptr<MessageEnumerator> pEnum(pMessageSelectionModel_->getFocusedMessage());
+	if (pEnum->next()) {
 		Message msg;
-		if (mpl->getMessage(Account::GETMESSAGEFLAG_TEXT,
-			0, pSecurityModel_->getSecurityMode(), &msg)) {
-			AttachmentParser parser(msg);
+		Message* pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_TEXT,
+			0, pSecurityModel_->getSecurityMode(), &msg);
+		if (pMessage) {
+			AttachmentParser parser(*pMessage);
 			typedef AttachmentParser::AttachmentList List;
 			List list;
 			AttachmentParser::AttachmentListFree free(list);
@@ -200,8 +202,10 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 			
 			int nMnemonic = 1;
 			for (List::iterator it = list.begin(); it != list.end(); ++it) {
-				URI uri(mpl, &msg, (*it).second, URIFragment::TYPE_BODY);
-				wstring_ptr wstrURI(uri.toString());
+				std::auto_ptr<URI> pURI(pEnum->getURI(pMessage,
+					(*it).second, URIFragment::TYPE_BODY));
+				assert(pURI.get());
+				wstring_ptr wstrURI(pURI->toString());
 				std::auto_ptr<ActionParam> pParam(new ActionParam(
 					IDM_MESSAGE_OPENATTACHMENT, wstrURI.get()));
 				unsigned int nId = helper_.add(MAX_MESSAGE_OPENATTACHMENT, pParam);
@@ -539,7 +543,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 	
 	Account* pAccount = pAccountSelectionModel_->getAccount();
 	if (pAccount) {
-		bool bEnabled = pMessageSelectionModel_->hasSelectedMessage();
+		bool bEnabled = pMessageSelectionModel_->hasSelectedMessageHolders();
 		
 		const Account::FolderList& l = pAccount->getFolders();
 		Account::FolderList listFolder;
@@ -628,7 +632,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 	if (!bAdded) {
 		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
-		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_MOVE, wstrNone.get(), pItem->getId());
+		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_MOVENONE, wstrNone.get(), pItem->getId());
 	}
 	
 	return nIndex;
@@ -692,10 +696,10 @@ qm::MoveMenuCreator::MenuInserter::MenuInserter(HMENU hmenu,
  */
 
 qm::RecentsMenuCreator::RecentsMenuCreator(Recents* pRecents,
-										   AccountManager* pAccountManager,
+										   const URIResolver* pURIResolver,
 										   qs::ActionParamMap* pActionParamMap) :
 	pRecents_(pRecents),
-	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	helper_(pActionParamMap)
 {
 }
@@ -713,7 +717,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 	
 	pRecents_->removeSeens();
 	
-	typedef std::vector<URI*> URIList;
+	typedef std::vector<MessageHolderURI*> URIList;
 	URIList listURI;
 	container_deleter<URIList> deleter(listURI);
 	{
@@ -725,7 +729,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 		
 		listURI.reserve(nCount - nOffset);
 		for (unsigned int n = nOffset; n < nCount; ++n)
-			listURI.push_back(new URI(*pRecents_->get(n).first));
+			listURI.push_back(new MessageHolderURI(*pRecents_->get(n).first));
 	}
 	std::sort(listURI.begin(), listURI.end(), URIComp());
 	
@@ -734,10 +738,10 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 	Account* pAccount = 0;
 	int nMnemonic = 1;
 	for (URIList::iterator it = listURI.begin(); it != listURI.end(); ++it) {
-		std::auto_ptr<URI> pURI(*it);
+		std::auto_ptr<MessageHolderURI> pURI(*it);
 		*it = 0;
 		
-		MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
+		MessagePtrLock mpl(pURI->resolveMessagePtr(pURIResolver_));
 		if (mpl && !mpl->getFolder()->isHidden()) {
 			if (pAccount != mpl->getAccount()) {
 				if (pAccount != 0)
@@ -780,8 +784,8 @@ const WCHAR* qm::RecentsMenuCreator::getName() const
 	return L"MessageOpenRecent";
 }
 
-bool RecentsMenuCreator::URIComp::operator()(const URI* pLhs,
-											 const URI* pRhs)
+bool RecentsMenuCreator::URIComp::operator()(const MessageHolderURI* pLhs,
+											 const MessageHolderURI* pRhs)
 {
 	return *pLhs < *pRhs;
 }
@@ -1214,22 +1218,38 @@ wstring_ptr qm::MacroMenuCreator::evalMacro(const Macro* pMacro) const
 	AccountLock lock;
 	Folder* pFolder = 0;
 	MessageHolderList l;
-	MessagePtr ptr;
+	std::auto_ptr<MessageEnumerator> pEnum;
 	if (pMessageSelectionModel_) {
-		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
-		ptr = pMessageSelectionModel_->getFocusedMessage();
-		pAccount = lock.get();
+		pMessageSelectionModel_->getSelectedMessageHolders(&lock, &pFolder, &l);
+		if (!l.empty())
+			pAccount = lock.get();
+		pEnum = pMessageSelectionModel_->getFocusedMessage();
 	}
 	else {
 		pAccount = pAccountSelectionModel_->getAccount();
 	}
-	MessagePtrLock mpl(ptr);
+	
+	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
+	MessageHolder* pmh = 0;
+	Message msg;
+	Message* pMessage = 0;
+	if (pEnum.get() && pEnum->next()) {
+		pmh = pEnum->getMessageHolder();
+		if (pmh) {
+			pMessage = &msg;
+		}
+		else {
+			pMessage = pEnum->getMessage(
+				Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+			if (!pMessage)
+				return 0;
+		}
+	}
 	
 	MacroVariableHolder globalVariable;
-	Message msg;
-	MacroContext context(mpl, mpl ? &msg : 0, pAccount, l, pFolder,
+	MacroContext context(pmh, pMessage, pAccount, l, pFolder,
 		pDocument_, 0, 0, pProfile_, 0, MacroContext::FLAG_UITHREAD,
-		pSecurityModel_->getSecurityMode(), 0, &globalVariable);
+		nSecurityMode, 0, &globalVariable);
 	MacroValuePtr pValue(pMacro->value(&context));
 	if (!pValue.get())
 		return 0;

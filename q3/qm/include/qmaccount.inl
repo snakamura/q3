@@ -24,7 +24,15 @@ inline qm::AccountLock::AccountLock() :
 inline qm::AccountLock::AccountLock(Account* pAccount) :
 	pAccount_(pAccount)
 {
-	pAccount_->lock();
+	if (pAccount_)
+		pAccount_->lock();
+}
+
+inline qm::AccountLock::AccountLock(const AccountLock& lock) :
+	pAccount_(lock.pAccount_)
+{
+	if (pAccount_)
+		pAccount_->lock();
 }
 
 inline qm::AccountLock::~AccountLock()
@@ -35,7 +43,6 @@ inline qm::AccountLock::~AccountLock()
 
 inline qm::Account* qm::AccountLock::get() const
 {
-	assert(pAccount_);
 	return pAccount_;
 }
 

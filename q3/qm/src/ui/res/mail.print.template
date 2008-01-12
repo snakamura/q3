@@ -43,7 +43,7 @@
 			<td colspan="2"><hr size="3" style="color: lightblue"></td>
 		</tr>
 		<tr>
-			<td colspan="2" class="body"><p>{@RegexReplace(@HtmlEscape(@Body('', 1)), '\n', '<br>', @True())}</p></td>
+			<td colspan="2" class="body"><p>{@RegexReplace(@HtmlEscape(@Body('', :BODY-RFC822INLINE)), '\n', '<br>', @True())}</p></td>
 		</tr>
 	</table>
 </body>

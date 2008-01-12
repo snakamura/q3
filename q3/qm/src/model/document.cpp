@@ -78,6 +78,7 @@ struct qm::DocumentImpl
 	std::auto_ptr<AddressBook> pAddressBook_;
 	std::auto_ptr<RecentAddress> pRecentAddress_;
 	std::auto_ptr<Security> pSecurity_;
+	std::auto_ptr<URIResolver> pURIResolver_;
 	std::auto_ptr<Recents> pRecents_;
 	std::auto_ptr<UndoManager> pUndoManager_;
 	std::auto_ptr<JunkFilter> pJunkFilter_;
@@ -145,7 +146,8 @@ qm::Document::Document(Profile* pProfile,
 		app.getProfilePath(FileNames::ADDRESSBOOK_XML).get(), pProfile, true));
 	pImpl_->pRecentAddress_.reset(new RecentAddress(pImpl_->pAddressBook_.get(), pProfile));
 	pImpl_->pSecurity_.reset(new Security(pwszMailFolder, pProfile));
-	pImpl_->pRecents_.reset(new Recents(this, pProfile));
+	pImpl_->pURIResolver_.reset(new URIResolver(this));
+	pImpl_->pRecents_.reset(new Recents(pImpl_->pURIResolver_.get(), pProfile));
 	pImpl_->pUndoManager_.reset(new UndoManager());
 	
 	JunkFilterFactory* pJunkFilterFactory = JunkFilterFactory::getFactory();
@@ -295,7 +297,7 @@ qm::Folder* qm::Document::getFolder(Account* pAccount,
 	
 	return pAccount->getFolder(pwszName);
 }
-
+/*
 MessagePtr qm::Document::getMessage(const URI& uri) const
 {
 	Account* pAccount = getAccount(uri.getAccount());
@@ -309,7 +311,7 @@ MessagePtr qm::Document::getMessage(const URI& uri) const
 		return MessagePtr();
 	return MessagePtr(static_cast<NormalFolder*>(pFolder)->getMessageById(uri.getId()));
 }
-
+*/
 void qm::Document::addAccountManagerHandler(AccountManagerHandler* pHandler)
 {
 	pImpl_->listAccountManagerHandler_.push_back(pHandler);
@@ -504,6 +506,11 @@ UndoManager* qm::Document::getUndoManager() const
 JunkFilter* qm::Document::getJunkFilter() const
 {
 	return pImpl_->pJunkFilter_.get();
+}
+
+URIResolver* qm::Document::getURIResolver() const
+{
+	return pImpl_->pURIResolver_.get();
 }
 
 bool qm::Document::isOffline() const

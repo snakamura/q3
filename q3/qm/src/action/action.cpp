@@ -43,18 +43,22 @@
 #include <boost/lambda/construct.hpp>
 #include <boost/lambda/lambda.hpp>
 
+#include <commdlg.h>
 #ifndef _WIN32_WCE
 #	include <shlwapi.h>
 #endif
 #include <tchar.h>
 
 #include "action.h"
+#include "actionutil.h"
 #include "findreplace.h"
 #include "../junk/junk.h"
 #include "../main/updatechecker.h"
 #include "../model/dataobject.h"
 #include "../model/filter.h"
 #include "../model/goround.h"
+#include "../model/messagecontext.h"
+#include "../model/messageenumerator.h"
 #include "../model/rule.h"
 #include "../model/tempfilecleaner.h"
 #include "../model/templatemanager.h"
@@ -101,14 +105,15 @@ using namespace qs;
 qm::AttachmentOpenAction::AttachmentOpenAction(MessageModel* pMessageModel,
 											   AttachmentSelectionModel* pAttachmentSelectionModel,
 											   SecurityModel* pSecurityModel,
-											   Profile* pProfile,
+											   MessageFrameWindowManager* pMessageFrameWindowManager,
 											   TempFileCleaner* pTempFileCleaner,
+											   Profile* pProfile,
 											   HWND hwnd) :
 	pMessageModel_(pMessageModel),
 	pAttachmentSelectionModel_(pAttachmentSelectionModel),
 	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd),
-	helper_(pSecurityModel, pProfile, pTempFileCleaner, hwnd)
+	helper_(pMessageFrameWindowManager, pTempFileCleaner, pProfile, hwnd)
 {
 }
 
@@ -124,18 +129,19 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 	if (listName.empty())
 		return;
 	
-	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-	if (!mpl)
+	MessageContext* pContext = pMessageModel_->getCurrentMessage();
+	if (!pContext)
 		return;
 	
-	Message msg;
-	if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL,
-		0, pSecurityModel_->getSecurityMode(), &msg)) {
+	const Message* pMessage = pContext->getMessage(
+		Account::GETMESSAGEFLAG_ALL, 0,
+		pSecurityModel_->getSecurityMode());
+	if (!pMessage) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
 	}
 	
-	AttachmentParser parser(msg);
+	AttachmentParser parser(*pMessage);
 	AttachmentParser::AttachmentList listAttachment;
 	AttachmentParser::AttachmentListFree freeAttachment(listAttachment);
 	parser.getAttachments(AttachmentParser::GAF_NONE, &listAttachment);
@@ -149,7 +155,7 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 				boost::bind(&AttachmentParser::AttachmentList::value_type::first, _1), *itN));
 		if (itA != listAttachment.end()) {
 			bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
-			if (helper_.open((*itA).second, *itN, bExternalEditor) == AttachmentParser::RESULT_FAIL) {
+			if (helper_.open((*itA).second, *itN, pContext->getOriginMessagePtr(), bExternalEditor) == AttachmentParser::RESULT_FAIL) {
 				ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 				return;
 			}
@@ -179,7 +185,7 @@ qm::AttachmentSaveAction::AttachmentSaveAction(MessageModel* pMessageModel,
 	pMessageModel_(pMessageModel),
 	pAttachmentSelectionModel_(pAttachmentSelectionModel),
 	bAll_(bAll),
-	helper_(pSecurityModel, pProfile, 0, hwnd),
+	helper_(pSecurityModel, pProfile, hwnd),
 	hwnd_(hwnd)
 {
 }
@@ -190,14 +196,12 @@ qm::AttachmentSaveAction::~AttachmentSaveAction()
 
 void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 {
-	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-	if (!mpl)
+	MessageContext* pContext = pMessageModel_->getCurrentMessage();
+	if (!pContext)
 		return;
 	
-	MessageHolderList listMessageHolder(1, mpl);
-	
 	if (bAll_) {
-		if (helper_.detach(listMessageHolder, 0) == AttachmentParser::RESULT_FAIL) {
+		if (helper_.detach(pContext, 0) == AttachmentParser::RESULT_FAIL) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
 			return;
 		}
@@ -208,7 +212,7 @@ void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 		pAttachmentSelectionModel_->getSelectedAttachment(&listName);
 		
 		AttachmentHelper::NameList l(listName.begin(), listName.end());
-		if (helper_.detach(listMessageHolder, &l) == AttachmentParser::RESULT_FAIL) {
+		if (helper_.detach(pContext, &l) == AttachmentParser::RESULT_FAIL) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
 			return;
 		}
@@ -405,9 +409,11 @@ bool qm::EditClearDeletedAction::isEnabled(const ActionEvent& event)
  */
 
 qm::EditCopyMessageAction::EditCopyMessageAction(AccountManager* pAccountManager,
+												 const URIResolver* pURIResolver,
 												 MessageSelectionModel* pMessageSelectionModel,
 												 HWND hwnd) :
 	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
 {
@@ -422,23 +428,23 @@ void qm::EditCopyMessageAction::invoke(const ActionEvent& event)
 	AccountLock lock;
 	Folder* pFolder = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, &pFolder, &l);
+	if (l.empty())
+		return;
 	
-	if (!l.empty()) {
-		MessageDataObject* p = new MessageDataObject(pAccountManager_,
-			pFolder, l, MessageDataObject::FLAG_COPY);
-		p->AddRef();
-		ComPtr<IDataObject> pDataObject(p);
-		if (!MessageDataObject::setClipboard(pDataObject.get())) {
-			ActionUtil::error(hwnd_, IDS_ERROR_COPYMESSAGES);
-			return;
-		}
+	MessageDataObject* p = new MessageDataObject(pAccountManager_,
+		pURIResolver_, pFolder, l, MessageDataObject::FLAG_COPY);
+	p->AddRef();
+	ComPtr<IDataObject> pDataObject(p);
+	if (!MessageDataObject::setClipboard(pDataObject.get())) {
+		ActionUtil::error(hwnd_, IDS_ERROR_COPYMESSAGES);
+		return;
 	}
 }
 
 bool qm::EditCopyMessageAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessageHolders();
 }
 
 
@@ -449,9 +455,11 @@ bool qm::EditCopyMessageAction::isEnabled(const ActionEvent& event)
  */
 
 qm::EditCutMessageAction::EditCutMessageAction(AccountManager* pAccountManager,
+											   const URIResolver* pURIResolver,
 											   MessageSelectionModel* pMessageSelectionModel,
 											   HWND hwnd) :
 	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
 {
@@ -466,23 +474,23 @@ void qm::EditCutMessageAction::invoke(const ActionEvent& event)
 	AccountLock lock;
 	Folder* pFolder = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, &pFolder, &l);
+	if (l.empty())
+		return;
 	
-	if (!l.empty()) {
-		MessageDataObject* p = new MessageDataObject(pAccountManager_,
-			pFolder, l, MessageDataObject::FLAG_MOVE);
-		p->AddRef();
-		ComPtr<IDataObject> pDataObject(p);
-		if (!MessageDataObject::setClipboard(pDataObject.get())) {
-			ActionUtil::error(hwnd_, IDS_ERROR_CUTMESSAGES);
-			return;
-		}
+	MessageDataObject* p = new MessageDataObject(pAccountManager_,
+		pURIResolver_, pFolder, l, MessageDataObject::FLAG_MOVE);
+	p->AddRef();
+	ComPtr<IDataObject> pDataObject(p);
+	if (!MessageDataObject::setClipboard(pDataObject.get())) {
+		ActionUtil::error(hwnd_, IDS_ERROR_CUTMESSAGES);
+		return;
 	}
 }
 
 bool qm::EditCutMessageAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessageHolders();
 }
 
 
@@ -507,20 +515,20 @@ void qm::EditDeleteCacheAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, 0, &l);
+	if (l.empty())
+		return;
 	
 	Account* pAccount = lock.get();
-	if (!l.empty()) {
-		if (!pAccount->deleteMessagesCache(l)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_DELETECACHE);
-			return;
-		}
+	if (!pAccount->deleteMessagesCache(l)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_DELETECACHE);
+		return;
 	}
 }
 
 bool qm::EditDeleteCacheAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessageHolders();
 }
 
 
@@ -556,14 +564,14 @@ qm::EditDeleteMessageAction::~EditDeleteMessageAction()
 void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelHolder_->getViewModel();
-	assert(pViewModel);
+	if (!pViewModel)
+		return;
 	Lock<ViewModel> lockViewModel(*pViewModel);
 	
 	AccountLock lock;
 	Folder* pFolder = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
-	
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, &pFolder, &l);
 	if (l.empty())
 		return;
 	
@@ -588,13 +596,14 @@ void qm::EditDeleteMessageAction::invoke(const ActionEvent& event)
 
 bool qm::EditDeleteMessageAction::isEnabled(const ActionEvent& event)
 {
-	if (!pMessageSelectionModel_->hasSelectedMessage())
+	if (!pMessageSelectionModel_->hasSelectedMessageHolders())
 		return false;
 	
 	if (type_ == TYPE_JUNK) {
-		AccountLock lock;
-		pMessageSelectionModel_->getSelectedMessages(&lock, 0, 0);
-		Account* pAccount = lock.get();
+		ViewModel* pViewModel = pViewModelHolder_->getViewModel();
+		if (!pViewModel)
+			return false;
+		Account* pAccount = pViewModel->getFolder()->getAccount();
 		if (!pAccount->getFolderByBoxFlag(Folder::FLAG_JUNKBOX))
 			return false;
 	}
@@ -765,13 +774,17 @@ bool qm::EditFindAction::isEnabled(const ActionEvent& event)
  *
  */
 
-qm::EditPasteMessageAction::EditPasteMessageAction(Document* pDocument,
+qm::EditPasteMessageAction::EditPasteMessageAction(AccountManager* pAccountManager,
+												   const URIResolver* pURIResolver,
+												   UndoManager* pUndoManager,
 												   FolderModelBase* pFolderModel,
 												   SyncManager* pSyncManager,
 												   SyncDialogManager* pSyncDialogManager,
 												   Profile* pProfile,
 												   HWND hwnd) :
-	pDocument_(pDocument),
+	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
+	pUndoManager_(pUndoManager),
 	pFolderModel_(pFolderModel),
 	pSyncManager_(pSyncManager),
 	pSyncDialogManager_(pSyncDialogManager),
@@ -816,15 +829,16 @@ bool qm::EditPasteMessageAction::isEnabled(const ActionEvent& event)
 
 bool qm::EditPasteMessageAction::pasteMessages(NormalFolder* pFolder) const
 {
-	ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pDocument_));
+	ComPtr<IDataObject> pDataObject(
+		MessageDataObject::getClipboard(pAccountManager_, pURIResolver_));
 	
 	MessageDataObject::Flag flag = MessageDataObject::getPasteFlag(
-		pDataObject.get(), pDocument_, pFolder);
+		pDataObject.get(), pAccountManager_, pFolder);
 	UINT nId = flag == MessageDataObject::FLAG_MOVE ?
 		IDS_PROGRESS_MOVEMESSAGE : IDS_PROGRESS_COPYMESSAGE;
 	ProgressDialogMessageOperationCallback callback(hwnd_, nId, nId);
-	return MessageDataObject::pasteMessages(pDataObject.get(), pDocument_,
-		pFolder, flag, &callback, pDocument_->getUndoManager());
+	return MessageDataObject::pasteMessages(pDataObject.get(), pAccountManager_,
+		pURIResolver_, pFolder, flag, &callback, pUndoManager_);
 }
 
 
@@ -862,9 +876,11 @@ bool qm::EditSelectAllMessageAction::isEnabled(const ActionEvent& event)
 
 qm::EditUndoMessageAction::EditUndoMessageAction(UndoManager* pUndoManager,
 												 AccountManager* pAccountManager,
+												 const URIResolver* pURIResolver,
 												 HWND hwnd) :
 	pUndoManager_(pUndoManager),
 	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	hwnd_(hwnd)
 {
 }
@@ -880,7 +896,7 @@ void qm::EditUndoMessageAction::invoke(const ActionEvent& event)
 		return;
 	
 	std::auto_ptr<UndoExecutor> pExecutor(
-		pUndoItem->getExecutor(UndoContext(pAccountManager_)));
+		pUndoItem->getExecutor(UndoContext(pAccountManager_, pURIResolver_)));
 	if (!pExecutor.get() || !pExecutor->execute()) {
 		ActionUtil::error(hwnd_, IDS_ERROR_UNDO);
 		return;
@@ -1286,141 +1302,171 @@ qm::FileExportAction::~FileExportAction()
 
 void qm::FileExportAction::invoke(const ActionEvent& event)
 {
-	AccountLock lock;
-	Folder* pFolder = 0;
-	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
+	std::auto_ptr<MessageEnumerator> pEnum(pMessageSelectionModel_->getSelectedMessages());
+	if (pEnum->size() == 0)
+		return;
 	
-	if (!l.empty()) {
-		if (!exportMessages(lock.get(), pFolder, l)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_EXPORT);
-			return;
-		}
+	if (!exportMessages(pEnum.get())) {
+		ActionUtil::error(hwnd_, IDS_ERROR_EXPORT);
+		return;
 	}
 }
 
 bool qm::FileExportAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessages();
 }
 
-bool qm::FileExportAction::exportMessages(Account* pAccount,
-										  Folder* pFolder,
-										  const MessageHolderList& l)
+bool qm::FileExportAction::exportMessages(MessageEnumerator* pEnum)
 {
 	const TemplateManager* pTemplateManager = pDocument_->getTemplateManager();
 	
-	ExportDialog dialog(pAccount, pTemplateManager, pProfile_, l.size() == 1);
-	if (dialog.doModal(hwnd_) == IDOK) {
-		const Template* pTemplate = 0;
-		const WCHAR* pwszEncoding = 0;
-		const WCHAR* pwszTemplate = dialog.getTemplate();
-		if (pwszTemplate) {
-			pTemplate = pTemplateManager->getTemplate(pAccount, pFolder, pwszTemplate);
-			if (!pTemplate)
-				return false;
-			pwszEncoding = dialog.getEncoding();
-		}
+	Account* pAccount = pEnum->getAccount();
+	Folder* pFolder = pEnum->getFolder();
+	
+	const WCHAR* pwszClass = pAccount ? pAccount->getClass() : L"mail";
+	ExportDialog dialog(pTemplateManager, pwszClass,
+		pProfile_, pEnum->size() == 1, pAccount != 0);
+	if (dialog.doModal(hwnd_) != IDOK)
+		return true;
+	
+	const Template* pTemplate = 0;
+	const WCHAR* pwszEncoding = 0;
+	const WCHAR* pwszTemplate = dialog.getTemplate();
+	if (pwszTemplate) {
+		pTemplate = pTemplateManager->getTemplate(pAccount, pFolder, pwszTemplate);
+		if (!pTemplate)
+			return false;
+		pwszEncoding = dialog.getEncoding();
+	}
+	
+	unsigned int nFlags = 0;
+	if (dialog.isExportFlags())
+		nFlags |= FLAG_ADDFLAGS;
+	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
+	
+	ProgressDialog progressDialog;
+	ProgressDialogInit init(&progressDialog, hwnd_,
+		IDS_PROGRESS_EXPORT, IDS_PROGRESS_EXPORT, 0, pEnum->size(), 0);
+	
+	if (dialog.isFilePerMessage()) {
+		const WCHAR* pwszPath = dialog.getPath();
+		const WCHAR* pFileName = wcsrchr(pwszPath, L'\\');
+		pFileName = pFileName ? pFileName + 1 : pwszPath;
+		const WCHAR* pExt = wcsrchr(pFileName, L'.');
+		if (!pExt)
+			pExt = pFileName + wcslen(pFileName);
 		
-		unsigned int nFlags = 0;
-		if (dialog.isExportFlags())
-			nFlags |= FLAG_ADDFLAGS;
-		unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
-		
-		ProgressDialog progressDialog;
-		ProgressDialogInit init(&progressDialog, hwnd_,
-			IDS_PROGRESS_EXPORT, IDS_PROGRESS_EXPORT, 0, l.size(), 0);
-		
-		if (dialog.isFilePerMessage()) {
-			const WCHAR* pwszPath = dialog.getPath();
-			const WCHAR* pFileName = wcsrchr(pwszPath, L'\\');
-			pFileName = pFileName ? pFileName + 1 : pwszPath;
-			const WCHAR* pExt = wcsrchr(pFileName, L'.');
-			if (!pExt)
-				pExt = pFileName + wcslen(pFileName);
-			
-			MessageHolderList::size_type n = 0;
-			while (n < l.size()) {
-				if (progressDialog.isCanceled())
-					break;
-				progressDialog.setPos(n);
-				
-				WCHAR wszNumber[32];
-				_snwprintf(wszNumber, countof(wszNumber), L"%d", n);
-				ConcatW c[] = {
-					{ pwszPath,		pExt - pwszPath	},
-					{ wszNumber,	-1				},
-					{ pExt,			-1				}
-				};
-				wstring_ptr wstrPath(concat(c, countof(c)));
-				
-				FileOutputStream fileStream(wstrPath.get());
-				if (!fileStream)
-					return false;
-				BufferedOutputStream stream(&fileStream, false);
-				if (pTemplate) {
-					if (!writeMessage(&stream, pTemplate, pFolder, l[n], pwszEncoding))
-						return false;
-				}
-				else {
-					if (!writeMessage(&stream, l[n], nFlags, nSecurityMode))
-						return false;
-				}
-				if (!stream.close())
-					return false;
-				
-				++n;
-			}
+		size_t n = 0;
+		while (pEnum->next()) {
+			if (progressDialog.isCanceled())
+				break;
 			progressDialog.setPos(n);
-		}
-		else {
-			FileOutputStream fileStream(dialog.getPath());
+			
+			WCHAR wszNumber[32];
+			_snwprintf(wszNumber, countof(wszNumber), L"%d", n);
+			ConcatW c[] = {
+				{ pwszPath,		pExt - pwszPath	},
+				{ wszNumber,	-1				},
+				{ pExt,			-1				}
+			};
+			wstring_ptr wstrPath(concat(c, countof(c)));
+			
+			FileOutputStream fileStream(wstrPath.get());
 			if (!fileStream)
 				return false;
 			BufferedOutputStream stream(&fileStream, false);
-			
-			int nPos = 0;
-			if (l.size() == 1 && !pTemplate) {
-				if (!writeMessage(&stream, l.front(), nFlags, nSecurityMode))
+			if (pTemplate) {
+				if (!writeMessage(&stream, pEnum, pTemplate, pwszEncoding))
 					return false;
-				++nPos;
 			}
 			else {
-				for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-					if (progressDialog.isCanceled())
-						break;
-					progressDialog.setPos(nPos++);
-					
-					if (pTemplate) {
-						if (!writeMessage(&stream, pTemplate, pFolder, *it, pwszEncoding))
-							return false;
-					}
-					else {
-						if (!writeMessage(&stream, *it, nFlags | FLAG_WRITESEPARATOR, nSecurityMode))
-							return false;
-					}
-				}
+				if (!writeMessage(&stream, pEnum, nFlags))
+					return false;
 			}
-			progressDialog.setPos(nPos);
-			
 			if (!stream.close())
 				return false;
+			
+			++n;
 		}
+		progressDialog.setPos(n);
+	}
+	else {
+		FileOutputStream fileStream(dialog.getPath());
+		if (!fileStream)
+			return false;
+		BufferedOutputStream stream(&fileStream, false);
+		
+		int nPos = 0;
+		if (pEnum->size() == 1 && !pTemplate) {
+			pEnum->next();
+			if (!writeMessage(&stream, pEnum, nFlags))
+				return false;
+			++nPos;
+		}
+		else {
+			while (pEnum->next()) {
+				if (progressDialog.isCanceled())
+					break;
+				progressDialog.setPos(nPos++);
+				
+				if (pTemplate) {
+					if (!writeMessage(&stream, pEnum, pTemplate, pwszEncoding))
+						return false;
+				}
+				else {
+					if (!writeMessage(&stream, pEnum, nFlags | FLAG_WRITESEPARATOR))
+						return false;
+				}
+			}
+		}
+		progressDialog.setPos(nPos);
+		
+		if (!stream.close())
+			return false;
 	}
 	return true;
 }
 
+bool qm::FileExportAction::writeMessage(qs::OutputStream* pStream,
+										MessageEnumerator* pEnum,
+										unsigned int nFlags)
+{
+	assert(pStream);
+	assert(pEnum);
+	
+	Message msg;
+	Message* pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_ALL,
+		0, pSecurityModel_->getSecurityMode(), &msg);
+	if (!pMessage)
+		return false;
+	
+	return writeMessage(pStream, pEnum->getMessageHolder(), pMessage, nFlags);
+}
+
 bool qm::FileExportAction::writeMessage(OutputStream* pStream,
+										MessageEnumerator* pEnum,
 										const Template* pTemplate,
-										Folder* pFolder,
-										MessageHolder* pmh,
 										const WCHAR* pwszEncoding)
 {
+	assert(pStream);
+	assert(pEnum);
+	assert(pTemplate);
+	assert(pwszEncoding);
+	
+	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
+	
+	MessageHolder* pmh = pEnum->getMessageHolder();
 	Message msg;
-	TemplateContext context(pmh, &msg, MessageHolderList(), pFolder,
-		pmh->getAccount(), pDocument_, pActionInvoker_, hwnd_,
+	Message* pMessage = pEnum->getMessage(
+		Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+	if (!pMessage)
+		return false;
+	
+	TemplateContext context(pmh, pMessage, MessageHolderList(), pEnum->getFolder(),
+		pEnum->getAccount(), pDocument_, pActionInvoker_, hwnd_,
 		pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
-		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
+		nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wxstring_size_ptr wstrValue;
 	if (pTemplate->getValue(context, &wstrValue) != Template::RESULT_SUCCESS)
@@ -1446,27 +1492,36 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 										unsigned int nFlags,
 										unsigned int nSecurityMode)
 {
-	assert(pStream);
 	assert(pmh);
 	
 	Message msg;
 	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg))
 		return false;
+	return writeMessage(pStream, pmh, &msg, nFlags);
+}
+
+bool qm::FileExportAction::writeMessage(OutputStream* pStream,
+										MessageHolder* pmh,
+										Message* pMessage,
+										unsigned int nFlags)
+{
+	assert(pStream);
+	assert(pMessage);
 	
-	if (nFlags & FLAG_ADDFLAGS) {
+	if (pmh && nFlags & FLAG_ADDFLAGS) {
 		NumberParser flags(pmh->getFlags() & MessageHolder::FLAG_USER_MASK, NumberParser::FLAG_HEX);
-		if (!msg.replaceField(L"X-QMAIL-Flags", flags))
+		if (!pMessage->replaceField(L"X-QMAIL-Flags", flags))
 			return false;
 	}
 	
-	xstring_size_ptr strContent(msg.getContent());
+	xstring_size_ptr strContent(pMessage->getContent());
 	if (!strContent.get())
 		return false;
 	
 	if (nFlags & FLAG_WRITESEPARATOR) {
 		string_ptr strFrom;
 		AddressListParser from;
-		if (msg.getField(L"From", &from) == Part::FIELD_EXIST) {
+		if (pMessage->getField(L"From", &from) == Part::FIELD_EXIST) {
 			const AddressListParser::AddressList& l = from.getAddressList();
 			if (!l.empty() && !l.front()->getGroup())
 				strFrom = wcs2mbs(l.front()->getAddress().get());
@@ -1549,32 +1604,33 @@ qm::FileImportAction::~FileImportAction()
 void qm::FileImportAction::invoke(const ActionEvent& event)
 {
 	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
-	if (pFolder && pFolder->getType() == Folder::TYPE_NORMAL) {
-		wstring_ptr wstrErrorPath;
-		unsigned int nErrorLine = -1;
-		if (!import(static_cast<NormalFolder*>(pFolder), &wstrErrorPath, &nErrorLine)) {
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			wstring_ptr wstrMessage(loadString(hInst, IDS_ERROR_IMPORT));
-			if (wstrErrorPath.get()) {
-				StringBuffer<WSTRING> buf(wstrMessage.get());
-				buf.append(L'\n');
-				buf.append(wstrErrorPath.get());
-				if (nErrorLine != -1) {
-					buf.append(L" (");
-					WCHAR wszLine[32];
-					_snwprintf(wszLine, countof(wszLine), L"%u", nErrorLine);
-					buf.append(wszLine);
-					buf.append(L")");
-				}
-				wstrMessage = buf.getString();
+	if (!pFolder || pFolder->getType() != Folder::TYPE_NORMAL)
+		return;
+	
+	wstring_ptr wstrErrorPath;
+	unsigned int nErrorLine = -1;
+	if (!import(static_cast<NormalFolder*>(pFolder), &wstrErrorPath, &nErrorLine)) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrMessage(loadString(hInst, IDS_ERROR_IMPORT));
+		if (wstrErrorPath.get()) {
+			StringBuffer<WSTRING> buf(wstrMessage.get());
+			buf.append(L'\n');
+			buf.append(wstrErrorPath.get());
+			if (nErrorLine != -1) {
+				buf.append(L" (");
+				WCHAR wszLine[32];
+				_snwprintf(wszLine, countof(wszLine), L"%u", nErrorLine);
+				buf.append(wszLine);
+				buf.append(L")");
 			}
-			ActionUtil::error(hwnd_, wstrMessage.get());
-			return;
+			wstrMessage = buf.getString();
 		}
-		if (!pFolder->getAccount()->save(false)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
-			return;
-		}
+		ActionUtil::error(hwnd_, wstrMessage.get());
+		return;
+	}
+	if (!pFolder->getAccount()->save(false)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+		return;
 	}
 }
 
@@ -1739,7 +1795,7 @@ bool qm::FileImportAction::readSingleMessage(NormalFolder* pFolder,
 		
 		MessageCreator creator(MessageCreator::FLAG_RECOVER, SECURITYMODE_NONE);
 		std::auto_ptr<Message> pMessage(creator.createMessage(
-			0, buf.getCharArray(), buf.getLength()));
+			buf.getCharArray(), buf.getLength(), 0));
 		if (!pMessage.get())
 			return false;
 		
@@ -1872,7 +1928,7 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 					
 					MessageCreator creator(MessageCreator::FLAG_RECOVER, SECURITYMODE_NONE);
 					std::auto_ptr<Message> pMessage(creator.createMessage(
-						0, wstrMessage.get(), wstrMessage.size()));
+						wstrMessage.get(), wstrMessage.size(), 0));
 					if (!pMessage.get())
 						return false;
 					
@@ -2179,6 +2235,68 @@ void qm::FileOfflineAction::toggleOffline(Document* pDocument,
 
 /****************************************************************************
  *
+ * FileOpenAction
+ *
+ */
+
+qm::FileOpenAction::FileOpenAction(MessageFrameWindowManager* pMessageFrameWindowManager,
+								   HWND hwnd) :
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::FileOpenAction::~FileOpenAction()
+{
+}
+
+void qm::FileOpenAction::invoke(const ActionEvent& event)
+{
+	const WCHAR* pwszPath = ActionParamUtil::getString(event.getParam(), 0);
+	wstring_ptr wstrPath;
+	if (!pwszPath) {
+		wstring_ptr wstrFilter(loadString(
+			Application::getApplication().getResourceHandle(), IDS_FILTER_MESSAGE));
+		
+		FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
+			OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		wstrPath = allocWString(dialog.getPath());
+		pwszPath = wstrPath.get();
+	}
+	
+	if (!open(pwszPath))
+		ActionUtil::error(hwnd_, IDS_ERROR_OPENFILE);
+}
+
+bool qm::FileOpenAction::open(const WCHAR* pwszPath)
+{
+	FileInputStream stream(pwszPath);
+	if (!stream)
+		return false;
+	BufferedInputStream bufferedStream(&stream, false);
+	
+	const size_t nSize = 8096;
+	XStringBuffer<XSTRING> buf;
+	while (true) {
+		XStringBufferLock<XSTRING> lock(&buf, nSize);
+		unsigned char* p = reinterpret_cast<unsigned char*>(lock.get());
+		if (!p)
+			return false;
+		size_t n = bufferedStream.read(p, nSize);
+		lock.unlock(n);
+		if (n == 0)
+			break;
+	}
+	
+	return pMessageFrameWindowManager_->open(
+		buf.getCharArray(), buf.getLength(), MessagePtr());
+}
+
+
+/****************************************************************************
+ *
  * FilePrintAction
  *
  */
@@ -2208,42 +2326,52 @@ qm::FilePrintAction::~FilePrintAction()
 
 void qm::FilePrintAction::invoke(const ActionEvent& event)
 {
-	AccountLock lock;
-	Folder* pFolder = 0;
-	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
+	std::auto_ptr<MessageEnumerator> pEnum(pMessageSelectionModel_->getSelectedMessages());
+	if (!pEnum->next())
+		return;
 	
-	Account* pAccount = lock.get();
-	if (!l.empty()) {
-		for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			if (!print(pAccount, pFolder, *it, l)) {
-				ActionUtil::error(hwnd_, IDS_ERROR_PRINT);
-				return;
-			}
+	AccountLock lock;
+	MessageHolderList l;
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, 0, &l);
+	
+	do {
+		if (!print(pEnum.get(), l)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_PRINT);
+			return;
 		}
-	}
+	} while (pEnum->next());
 }
 
 bool qm::FilePrintAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessages();
 }
 
-bool qm::FilePrintAction::print(Account* pAccount,
-								Folder* pFolder,
-								MessageHolder* pmh,
+bool qm::FilePrintAction::print(MessageEnumerator* pEnum,
 								const MessageHolderList& listSelected)
 {
+	Account* pAccount = pEnum->getAccount();
+	Folder* pFolder = pEnum->getFolder();
+	
 	const Template* pTemplate = pDocument_->getTemplateManager()->getTemplate(
 		pAccount, pFolder, L"print");
 	if (!pTemplate)
 		return false;
 	
+	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
+	MessageHolder* pmh = pEnum->getMessageHolder();
 	Message msg;
-	TemplateContext context(pmh, &msg, listSelected, pFolder, pAccount,
+	Message* pMessage = &msg;
+	if (!pmh) {
+		pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+		if (!pMessage)
+			return false;
+	}
+	
+	TemplateContext context(pmh, pMessage, listSelected, pFolder, pAccount,
 		pDocument_, pActionInvoker_, hwnd_, pEncodingModel_->getEncoding(),
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
-		pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
+		nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 	
 	wxstring_size_ptr wstrValue;
 	switch (pTemplate->getValue(context, &wstrValue)) {
@@ -3465,7 +3593,7 @@ bool qm::MessageApplyRuleAction::isEnabled(const ActionEvent& event)
 			return pViewModelManager_->getCurrentViewModel() != 0;
 	}
 	else {
-		return pMessageSelectionModel_->hasSelectedMessage();
+		return pMessageSelectionModel_->hasSelectedMessageHolders();
 	}
 }
 
@@ -3579,7 +3707,7 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 		AccountLock lock;
 		Folder* pFolder = 0;
 		MessageHolderList l;
-		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
+		pMessageSelectionModel_->getSelectedMessageHolders(&lock, &pFolder, &l);
 		if (!l.empty()) {
 			ProgressDialogInit init(&dialog, hwnd_, IDS_PROGRESS_APPLYRULES);
 			if (!pRuleManager_->applyManual(pFolder, l, pDocument_, pActionInvoker_,
@@ -3735,33 +3863,33 @@ void qm::MessageCombineAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, 0, &l);
+	if (l.empty())
+		return;
 	
-	Account* pAccount = lock.get();
-	if (!l.empty()) {
-		Message msg;
-		if (!combine(l, &msg)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
-			return;
-		}
-		
-		// TODO
-		// Which folder should I put a new message?
-		NormalFolder* pFolder = l.front()->getFolder();
-		unsigned int nFlags = 0;
-		UndoItemList undo;
-		if (!pAccount->appendMessage(pFolder, msg, nFlags,
-			0, Account::OPFLAG_NONE, &undo, 0)) {
-			ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
-			return;
-		}
-		pUndoManager_->pushUndoItem(undo.getUndoItem());
+	Message msg;
+	if (!combine(l, &msg)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
+		return;
 	}
+	
+	// TODO
+	// Which folder should I put a new message?
+	Account* pAccount = lock.get();
+	NormalFolder* pFolder = l.front()->getFolder();
+	unsigned int nFlags = 0;
+	UndoItemList undo;
+	if (!pAccount->appendMessage(pFolder, msg, nFlags,
+		0, Account::OPFLAG_NONE, &undo, 0)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_COMBINE);
+		return;
+	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::MessageCombineAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessageHolders();
 }
 
 bool qm::MessageCombineAction::combine(const MessageHolderList& l,
@@ -3915,10 +4043,10 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 	if (pwszArgs)
 		parseArgs(pwszArgs, &listArg, &l);
 	
-	std::auto_ptr<URI> pURI;
+	std::auto_ptr<MessageHolderURI> pURI;
 	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 2);
 	if (pwszURI && *pwszURI) {
-		pURI = URI::parse(pwszURI);
+		pURI = URIFactory::parseMessageHolderURI(pwszURI);
 		if (!pURI.get()) {
 			ActionUtil::error(hwnd_, IDS_ERROR_CREATEMESSAGE);
 			return;
@@ -3938,8 +4066,9 @@ bool qm::MessageCreateAction::isEnabled(const ActionEvent& event)
 	if (!pwszTemplate || !*pwszTemplate)
 		return false;
 	
-	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-	return p.first || p.second;
+//	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
+//	return p.first || p.second;
+	return true;
 }
 
 void qm::MessageCreateAction::parseArgs(const WCHAR* pwszArgs,
@@ -4096,8 +4225,7 @@ void qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 	AccountLock lock;
 	Folder* pFolder = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &l);
-	
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, &pFolder, &l);
 	if (l.empty())
 		return;
 	
@@ -4110,7 +4238,7 @@ void qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 
 bool qm::MessageDeleteAttachmentAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessageHolders();
 }
 
 bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
@@ -4166,7 +4294,7 @@ qm::MessageDetachAction::MessageDetachAction(Profile* pProfile,
 											 SecurityModel* pSecurityModel,
 											 HWND hwnd) :
 	pMessageSelectionModel_(pMessageSelectionModel),
-	helper_(pSecurityModel, pProfile, 0, hwnd),
+	helper_(pSecurityModel, pProfile, hwnd),
 	hwnd_(hwnd)
 {
 }
@@ -4177,21 +4305,16 @@ qm::MessageDetachAction::~MessageDetachAction()
 
 void qm::MessageDetachAction::invoke(const ActionEvent& event)
 {
-	AccountLock lock;
-	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	
-	if (!l.empty()) {
-		if (helper_.detach(l, 0) == AttachmentParser::RESULT_FAIL) {
-			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
-			return;
-		}
+	std::auto_ptr<MessageEnumerator> pEnum(pMessageSelectionModel_->getSelectedMessages());
+	if (helper_.detach(pEnum.get(), 0) == AttachmentParser::RESULT_FAIL) {
+		ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
+		return;
 	}
 }
 
 bool qm::MessageDetachAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessages();
 }
 
 
@@ -4220,8 +4343,7 @@ void qm::MessageExpandDigestAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, 0, &l);
 	if (l.empty())
 		return;
 	
@@ -4234,7 +4356,7 @@ void qm::MessageExpandDigestAction::invoke(const ActionEvent& event)
 
 bool qm::MessageExpandDigestAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessageHolders();
 }
 
 bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
@@ -4259,20 +4381,7 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 		return false;
 	
 	PartUtil::MessageList l;
-	struct Deleter
-	{
-		Deleter(PartUtil::MessageList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(), qs::deleter<Message>());
-		}
-		
-		PartUtil::MessageList& l_;
-	} deleter(l);
+	container_deleter<PartUtil::MessageList> deleter(l);
 	if (!PartUtil(msg).getDigest(&l))
 		return false;
 	
@@ -4314,8 +4423,7 @@ void qm::MessageLabelAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
 	MessageHolderList l;
-	pModel_->getSelectedMessages(&lock, 0, &l);
-	
+	pModel_->getSelectedMessageHolders(&lock, 0, &l);
 	if (l.empty())
 		return;
 	
@@ -4343,7 +4451,7 @@ void qm::MessageLabelAction::invoke(const ActionEvent& event)
 	}
 	else {
 		wstring_ptr wstrOldLabel;
-		MessagePtrLock mpl(pModel_->getFocusedMessage());
+		MessagePtrLock mpl(pModel_->getFocusedMessagePtr());
 		if (mpl)
 			wstrOldLabel = mpl->getLabel();
 		
@@ -4364,7 +4472,7 @@ void qm::MessageLabelAction::invoke(const ActionEvent& event)
 
 bool qm::MessageLabelAction::isEnabled(const ActionEvent& event)
 {
-	return pModel_->hasSelectedMessage();
+	return pModel_->hasSelectedMessageHolders();
 }
 
 
@@ -4412,17 +4520,20 @@ qm::MessageMacroAction::~MessageMacroAction()
 
 void qm::MessageMacroAction::invoke(const ActionEvent& event)
 {
+	std::auto_ptr<MessageEnumerator> pEnum;
 	AccountLock lock;
-	Folder* pFolder = 0;
 	MessageHolderList listMessageHolder;
 	Account::FolderList listFolder;
 	
-	if (pMessageSelectionModel_)
-		pMessageSelectionModel_->getSelectedMessages(&lock, &pFolder, &listMessageHolder);
-	else if (pFolderSelectionModel_)
+	if (pMessageSelectionModel_) {
+		pEnum = pMessageSelectionModel_->getSelectedMessages();
+		pMessageSelectionModel_->getSelectedMessageHolders(&lock, 0, &listMessageHolder);
+	}
+	else if (pFolderSelectionModel_) {
 		pFolderSelectionModel_->getSelectedFolders(&listFolder);
+	}
 	
-	if (listMessageHolder.empty() && listFolder.empty())
+	if (!pEnum.get() && listFolder.empty())
 		return;
 		
 	std::auto_ptr<Macro> pMacro(getMacro(event));
@@ -4430,15 +4541,17 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 		return;
 	
 	MacroVariableHolder globalVariable;
-	if (!listMessageHolder.empty()) {
-		eval(pMacro.get(), pFolder, listMessageHolder, listMessageHolder, &globalVariable);
+	if (pEnum.get()) {
+		eval(pMacro.get(), pEnum.get(), listMessageHolder, &globalVariable);
 	}
 	else if (!listFolder.empty()) {
 		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ++it) {
 			Folder* pFolder = *it;
-			Lock<Account> lock(*pFolder->getAccount());
+			AccountLock lock(pFolder->getAccount());
 			if (pFolder->loadMessageHolders()) {
-				if (!eval(pMacro.get(), pFolder, pFolder->getMessages(), MessageHolderList(), &globalVariable))
+				MessageHolderList l(pFolder->getMessages());
+				MessageHolderListMessageEnumerator e(lock.get(), pFolder, l);
+				if (!eval(pMacro.get(), &e, MessageHolderList(), &globalVariable))
 					return;
 			}
 		}
@@ -4447,7 +4560,7 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 
 bool qm::MessageMacroAction::isEnabled(const ActionEvent& event)
 {
-	return (pMessageSelectionModel_ && pMessageSelectionModel_->hasSelectedMessage()) ||
+	return (pMessageSelectionModel_ && pMessageSelectionModel_->hasSelectedMessages()) ||
 		(pFolderSelectionModel_ && pFolderSelectionModel_->hasSelectedFolder());
 }
 
@@ -4478,21 +4591,28 @@ std::auto_ptr<Macro> qm::MessageMacroAction::getMacro(const ActionEvent& event) 
 }
 
 bool qm::MessageMacroAction::eval(const Macro* pMacro,
-								  Folder* pFolder,
-								  const MessageHolderList& listMessageHolder,
+								  MessageEnumerator* pEnum,
 								  const MessageHolderList& listSelected,
 								  MacroVariableHolder* pGlobalVariable) const
 {
 	assert(pMacro);
-	assert(pFolder);
+	assert(pEnum);
 	assert(pGlobalVariable);
 	
-	for (MessageHolderList::const_iterator it = listMessageHolder.begin(); it != listMessageHolder.end(); ++it) {
+	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
+	while (pEnum->next()) {
+		MessageHolder* pmh = pEnum->getMessageHolder();
 		Message msg;
-		MacroContext context(*it, &msg, pFolder->getAccount(),
-			listSelected, pFolder, pDocument_, pActionInvoker_, hwnd_, pProfile_, 0,
+		Message* pMessage = &msg;
+		if (!pmh) {
+			pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+			if (!pMessage)
+				return false;
+		}
+		MacroContext context(pmh, pMessage, pEnum->getAccount(),
+			listSelected, pEnum->getFolder(), pDocument_, pActionInvoker_, hwnd_, pProfile_, 0,
 			MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY,
-			pSecurityModel_->getSecurityMode(), 0, pGlobalVariable);
+			nSecurityMode, 0, pGlobalVariable);
 		MacroValuePtr pValue(pMacro->value(&context));
 		if (!pValue.get()) {
 			if (context.getReturnType() == MacroContext::RETURNTYPE_NONE)
@@ -4528,25 +4648,26 @@ qm::MessageManageJunkAction::~MessageManageJunkAction()
 
 void qm::MessageManageJunkAction::invoke(const ActionEvent& event)
 {
-	AccountLock lock;
-	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
+	std::auto_ptr<MessageEnumerator> pEnum(pMessageSelectionModel_->getSelectedMessages());
+	if (pEnum->size() == 0)
+		return;
 	
 	ProgressDialog progressDialog;
 	ProgressDialogInit init(&progressDialog, hwnd_,
-		IDS_PROGRESS_PROCESS, IDS_PROGRESS_PROCESS, 0, l.size(), 0);
+		IDS_PROGRESS_PROCESS, IDS_PROGRESS_PROCESS, 0, pEnum->size(), 0);
 	
-	for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
-		JunkFilterUtil::manage(pJunkFilter_, l[n], operation_);
+	size_t n = 0;
+	while (pEnum->next()) {
+		JunkFilterUtil::manageMessageEnumerator(pJunkFilter_, pEnum.get(), operation_);
 		if (progressDialog.isCanceled())
 			break;
-		progressDialog.setPos(n);
+		progressDialog.setPos(n++);
 	}
 }
 
 bool qm::MessageManageJunkAction::isEnabled(const ActionEvent& event)
 {
-	return pJunkFilter_ != 0;
+	return pJunkFilter_ != 0 && pMessageSelectionModel_->hasSelectedMessages();
 }
 
 
@@ -4577,8 +4698,7 @@ void qm::MessageMarkAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
 	MessageHolderList l;
-	pModel_->getSelectedMessages(&lock, 0, &l);
-	
+	pModel_->getSelectedMessageHolders(&lock, 0, &l);
 	if (l.empty())
 		return;
 	
@@ -4593,7 +4713,7 @@ void qm::MessageMarkAction::invoke(const ActionEvent& event)
 
 bool qm::MessageMarkAction::isEnabled(const ActionEvent& event)
 {
-	return pModel_->hasSelectedMessage();
+	return pModel_->hasSelectedMessageHolders();
 }
 
 
@@ -4639,10 +4759,10 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 	AccountLock lock;
 	Folder* pFolderFrom = 0;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, &pFolderFrom, &l);
-	assert(pFolderFrom == pViewModel->getFolder());
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, &pFolderFrom, &l);
 	if (l.empty())
 		return;
+	assert(pFolderFrom == pViewModel->getFolder());
 	
 	Account* pAccount = lock.get();
 	
@@ -4687,7 +4807,7 @@ void qm::MessageMoveAction::invoke(const ActionEvent& event)
 
 bool qm::MessageMoveAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessageHolders();
 }
 
 bool qm::MessageMoveAction::moveMessages(const MessageHolderList& l,
@@ -4716,12 +4836,12 @@ bool qm::MessageMoveAction::moveMessages(const MessageHolderList& l,
  *
  */
 
-qm::MessageOpenAction::MessageOpenAction(AccountManager* pAccountManager,
+qm::MessageOpenAction::MessageOpenAction(const URIResolver* pURIResolver,
 										 ViewModelManager* pViewModelManager,
 										 FolderModel* pFolderModel,
 										 MessageFrameWindowManager* pMessageFrameWindowManager,
 										 HWND hwnd) :
-	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
 	pViewModelHolder_(0),
@@ -4731,13 +4851,13 @@ qm::MessageOpenAction::MessageOpenAction(AccountManager* pAccountManager,
 {
 }
 
-qm::MessageOpenAction::MessageOpenAction(AccountManager* pAccountManager,
+qm::MessageOpenAction::MessageOpenAction(const URIResolver* pURIResolver,
 										 ViewModelManager* pViewModelManager,
 										 ViewModelHolder* pViewModelHolder,
 										 MessageModel* pMessageModel,
 										 MessageFrameWindowManager* pMessageFrameWindowManager,
 										 HWND hwnd) :
-	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(0),
 	pViewModelHolder_(pViewModelHolder),
@@ -4757,11 +4877,14 @@ void qm::MessageOpenAction::invoke(const ActionEvent& event)
 	if (!pwszURI)
 		return;
 	
-	std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+	std::auto_ptr<MessageHolderURI> pURI(URIFactory::parseMessageHolderURI(pwszURI));
 	if (!pURI.get())
 		return;
 	
-	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
+	std::auto_ptr<MessageContext> pContext(pURI->resolve(pURIResolver_));
+	if (!pContext.get())
+		return;
+	MessagePtrLock mpl(pContext->getMessagePtr());
 	if (!mpl)
 		return;
 	
@@ -4786,7 +4909,8 @@ void qm::MessageOpenAction::invoke(const ActionEvent& event)
 	}
 	else {
 		pViewModelHolder_->setViewModel(pViewModel);
-		pMessageModel_->setMessage(mpl);
+		pMessageModel_->setMessage(std::auto_ptr<MessageContext>(
+			new MessagePtrMessageContext(mpl)));
 	}
 }
 
@@ -4797,14 +4921,15 @@ void qm::MessageOpenAction::invoke(const ActionEvent& event)
  *
  */
 
-qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(AccountManager* pAccountManager,
+qm::MessageOpenAttachmentAction::MessageOpenAttachmentAction(const URIResolver* pURIResolver,
 															 SecurityModel* pSecurityModel,
-															 Profile* pProfile,
+															 MessageFrameWindowManager* pMessageFrameWindowManager,
 															 TempFileCleaner* pTempFileCleaner,
+															 Profile* pProfile,
 															 HWND hwnd) :
-	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pSecurityModel_(pSecurityModel),
-	helper_(pSecurityModel, pProfile, pTempFileCleaner, hwnd),
+	helper_(pMessageFrameWindowManager, pTempFileCleaner, pProfile, hwnd),
 	hwnd_(hwnd)
 {
 }
@@ -4819,27 +4944,28 @@ void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 	if (!pwszURI)
 		return;
 	
-	std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+	std::auto_ptr<URI> pURI(URIFactory::parseURI(pwszURI));
 	if (!pURI.get())
 		return;
 	
-	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
-	if (!mpl)
+	std::auto_ptr<MessageContext> pContext(pURI->resolve(pURIResolver_));
+	if (!pContext.get())
 		return;
 	
-	Message msg;
-	if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, pSecurityModel_->getSecurityMode(), &msg)) {
+	Message* pMessage = pContext->getMessage(
+		Account::GETMESSAGEFLAG_ALL, 0, pSecurityModel_->getSecurityMode());
+	if (!pMessage) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
 	}
 	
-	const Part* pPart = pURI->getFragment().getPart(&msg);
+	const Part* pPart = pURI->getFragment().getPart(pMessage);
 	if (!pPart)
 		return;
 	const WCHAR* pwszName = pURI->getFragment().getName();
 	
 	bool bExternalEditor = (event.getModifier() & ActionEvent::MODIFIER_SHIFT) != 0;
-	if (helper_.open(pPart, pwszName, bExternalEditor) == AttachmentParser::RESULT_FAIL) {
+	if (helper_.open(pPart, pwszName, pContext->getOriginMessagePtr(), bExternalEditor) == AttachmentParser::RESULT_FAIL) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
 	}
@@ -4847,10 +4973,7 @@ void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 
 bool qm::MessageOpenAttachmentAction::isEnabled(const ActionEvent& event)
 {
-	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 0);
-	if (!pwszURI)
-		return false;
-	return true;
+	return ActionParamUtil::getString(event.getParam(), 0) != 0;
 }
 
 
@@ -4875,26 +4998,27 @@ qm::MessageOpenLinkAction::~MessageOpenLinkAction()
 
 void qm::MessageOpenLinkAction::invoke(const ActionEvent& event)
 {
-	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
-	if (mpl) {
-		Account* pAccount = mpl->getAccount();
-		if (!pAccount->isSupport(Account::SUPPORT_EXTERNALLINK))
-			return;
-		
-		Message msg;
-		if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
-			L"X-QMAIL-Link", SECURITYMODE_NONE, &msg))
-			return;
-		
-		UnstructuredParser link;
-		if (msg.getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST)
-			UIUtil::openURLWithWarning(link.getValue(), pProfile_, hwnd_);
-	}
+	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessagePtr());
+	if (!mpl)
+		return;
+	
+	Account* pAccount = mpl->getAccount();
+	if (!pAccount->isSupport(Account::SUPPORT_EXTERNALLINK))
+		return;
+	
+	Message msg;
+	if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
+		L"X-QMAIL-Link", SECURITYMODE_NONE, &msg))
+		return;
+	
+	UnstructuredParser link;
+	if (msg.getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST)
+		UIUtil::openURLWithWarning(link.getValue(), pProfile_, hwnd_);
 }
 
 bool qm::MessageOpenLinkAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasFocusedMessage();
+	return pMessageSelectionModel_->hasFocusedMessagePtr();
 }
 
 
@@ -4905,7 +5029,7 @@ bool qm::MessageOpenLinkAction::isEnabled(const ActionEvent& event)
  */
 
 qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
-													 AccountManager* pAccountManager,
+													 const URIResolver* pURIResolver,
 													 ViewModelManager* pViewModelManager,
 													 FolderModel* pFolderModel,
 													 MainWindow* pMainWindow,
@@ -4913,7 +5037,7 @@ qm::MessageOpenRecentAction::MessageOpenRecentAction(Recents* pRecents,
 													 Profile* pProfile,
 													 HWND hwnd) :
 	pRecents_(pRecents),
-	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pViewModelManager_(pViewModelManager),
 	pFolderModel_(pFolderModel),
 	pMainWindow_(pMainWindow),
@@ -4933,11 +5057,11 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 	if (!pwszURI)
 		return;
 	
-	std::auto_ptr<URI> pURI(URI::parse(pwszURI));
+	std::auto_ptr<MessageHolderURI> pURI(URIFactory::parseMessageHolderURI(pwszURI));
 	if (!pURI.get())
 		return;
 	
-	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI.get()));
+	MessagePtrLock mpl(pURI->resolveMessagePtr(pURIResolver_));
 	if (mpl) {
 		bool bOpenInPreview = pProfile_->getInt(L"Global", L"OpenRecentInPreview") != 0;
 		if (event.getModifier() & ActionEvent::MODIFIER_SHIFT)
@@ -4970,10 +5094,7 @@ void qm::MessageOpenRecentAction::invoke(const ActionEvent& event)
 
 bool qm::MessageOpenRecentAction::isEnabled(const ActionEvent& event)
 {
-	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 0);
-	if (!pwszURI)
-		return false;
-	return true;
+	return ActionParamUtil::getString(event.getParam(), 0) != 0;
 }
 
 
@@ -5029,10 +5150,6 @@ void qm::MessageOpenURLAction::openMailtoURL(const WCHAR* pwszURL,
 											 const WCHAR* pwszAttachmentPath,
 											 bool bExternalEditor) const
 {
-	std::pair<Account*, bool> account(getAccount(L"mail", L"DefaultMailAccount"));
-	if (!account.second)
-		return;
-	
 	TemplateContext::ArgumentList listArgument;
 	if (pwszURL) {
 		TemplateContext::Argument arg = { L"url", pwszURL };
@@ -5043,7 +5160,7 @@ void qm::MessageOpenURLAction::openMailtoURL(const WCHAR* pwszURL,
 		listArgument.push_back(arg);
 	}
 	
-	if (!processor_.process(L"url", listArgument, 0, bExternalEditor, account.first)) {
+	if (!processor_.process(L"url", listArgument, bExternalEditor, L"mail")) {
 		ActionUtil::error(hwnd_, IDS_ERROR_OPENURL);
 		return;
 	}
@@ -5051,8 +5168,9 @@ void qm::MessageOpenURLAction::openMailtoURL(const WCHAR* pwszURL,
 
 void qm::MessageOpenURLAction::openFeedURL(const WCHAR* pwszURL) const
 {
-	std::pair<Account*, bool> account(getAccount(L"rss", L"DefaultRssAccount"));
-	if (!account.second)
+	Account* pAccount = FolderActionUtil::getAccount(
+		pDocument_, pFolderModel_, pProfile_, L"rss");
+	if (!pAccount)
 		return;
 	
 	wstring_ptr wstrURL;
@@ -5061,33 +5179,8 @@ void qm::MessageOpenURLAction::openFeedURL(const WCHAR* pwszURL) const
 	else
 		wstrURL = allocWString(pwszURL + 5);
 	
-	FolderSubscribeAction::subscribe(pDocument_, account.first,
+	FolderSubscribeAction::subscribe(pDocument_, pAccount,
 		0, pPasswordManager_, hwnd_, wstrURL.get());
-}
-
-std::pair<Account*, bool> qm::MessageOpenURLAction::getAccount(const WCHAR* pwszClass,
-															   const WCHAR* pwszDefaultKey) const
-{
-	std::pair<Account*, Folder*> p(FolderActionUtil::getCurrent(pFolderModel_));
-	Account* pAccount = p.first ? p.first : p.second ? p.second->getAccount() : 0;
-	if (!pAccount || wcscmp(pAccount->getClass(), pwszClass) != 0) {
-		wstring_ptr wstrAccount(pProfile_->getString(L"Global", pwszDefaultKey));
-		if (*wstrAccount.get()) {
-			pAccount = pDocument_->getAccount(wstrAccount.get());
-		}
-		else {
-			const AccountManager::AccountList& l = pDocument_->getAccounts();
-			AccountManager::AccountList::const_iterator it = std::find_if(l.begin(), l.end(),
-				boost::bind(string_equal<WCHAR>(), boost::bind(&Account::getClass, _1), pwszClass));
-			pAccount = it != l.end() ? *it : 0;
-		}
-		if (!pAccount)
-			return std::pair<Account*, bool>(0, false);
-	}
-	else {
-		pAccount = 0;
-	}
-	return std::make_pair(pAccount, true);
 }
 
 
@@ -5114,9 +5207,9 @@ void qm::MessagePropertyAction::invoke(const ActionEvent& event)
 {
 	AccountLock lock;
 	MessageHolderList l;
-	pMessageSelectionModel_->getSelectedMessages(&lock, 0, &l);
-	
-	Account* pAccount = lock.get();
+	pMessageSelectionModel_->getSelectedMessageHolders(&lock, 0, &l);
+	if (l.empty())
+		return;
 	
 	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_PROPERTY));
@@ -5128,6 +5221,7 @@ void qm::MessagePropertyAction::invoke(const ActionEvent& event)
 	if (sheet.doModal(hwnd_) != IDOK)
 		return;
 	
+	Account* pAccount = lock.get();
 	UndoItemList undo;
 	if (!pAccount->setMessagesFlags(l, page.getFlags(), page.getMask(), &undo)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_SETFLAGS);
@@ -5138,7 +5232,7 @@ void qm::MessagePropertyAction::invoke(const ActionEvent& event)
 
 bool qm::MessagePropertyAction::isEnabled(const ActionEvent& event)
 {
-	return pMessageSelectionModel_->hasSelectedMessage();
+	return pMessageSelectionModel_->hasSelectedMessageHolders();
 }
 
 
@@ -5660,15 +5754,17 @@ qm::ToolAddAddressAction::~ToolAddAddressAction()
 
 void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 {
-	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
-	if (!mpl)
+	std::auto_ptr<MessageEnumerator> pEnum(pMessageSelectionModel_->getFocusedMessage());
+	if (!pEnum->next())
 		return;
 	
 	Message msg;
-	if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER, L"From", SECURITYMODE_NONE, &msg))
+	Message* pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_HEADER, L"From", SECURITYMODE_NONE, &msg);
+	if (!pMessage)
 		return;
+	
 	AddressListParser from;
-	if (msg.getField(L"From", &from) != Part::FIELD_EXIST || from.getAddressList().empty())
+	if (pMessage->getField(L"From", &from) != Part::FIELD_EXIST || from.getAddressList().empty())
 		return;
 	AddressParser* pFrom = from.getAddressList().front();
 	
@@ -6722,11 +6818,11 @@ void qm::ViewLockPreviewAction::invoke(const ActionEvent& event)
 {
 	if (pPreviewMessageModel_->isConnectedToViewModel()) {
 		pPreviewMessageModel_->disconnectFromViewModel();
-		pPreviewMessageModel_->setMessage(0);
+		pPreviewMessageModel_->clearMessage();
 	}
 	else {
 		pPreviewMessageModel_->connectToViewModel();
-		pPreviewMessageModel_->updateToViewModel();
+		pPreviewMessageModel_->updateToViewModel(false);
 	}
 }
 
@@ -6990,34 +7086,32 @@ qm::ViewNavigateMessageAction::~ViewNavigateMessageAction()
 void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 {
 	Type type = static_cast<Type>(nType_ & TYPE_TYPE_MASK);
-	bool bPreview = pFolderModel_ != 0;
+	bool bPreview = isPreview();
 	assert((bPreview && pFolderModel_ && pMainWindow_) ||
 		(!bPreview && !pFolderModel_ && !pMainWindow_));
 	
 	MessageModel* pMessageModel = pMessageWindow_->getMessageModel();
 	
+	MessageContext* pContext = pMessageModel->getCurrentMessage();
 	if (bPreview && (type == TYPE_NEXTPAGE || type == TYPE_PREVPAGE)) {
-		MessagePtrLock mpl(pMessageModel->getCurrentMessage());
-		if (!mpl)
+		if (!pContext)
 			type = TYPE_SELF;
 	}
 	
 	if (bPreview &&
 		(!pMainWindow_->isShowPreviewWindow() ||
 		 !static_cast<PreviewMessageModel*>(pMessageModel)->isConnectedToViewModel()) &&
-		(type == TYPE_NEXTPAGE || type == TYPE_NEXTPAGE || type == TYPE_SELF))
+		(type == TYPE_NEXTPAGE || type == TYPE_PREVPAGE || type == TYPE_SELF))
 		return;
 	
-	bool bScrolled = true;
 	bool bDelay = true;
 	switch (type) {
 	case TYPE_NEXTPAGE:
 		if (pMessageWindow_->scrollPage(false))
 			return;
 		if (bPreview) {
-			MessagePtrLock mpl(pMessageModel->getCurrentMessage());
-			assert(mpl);
-			if (!mpl->isFlag(MessageHolder::FLAG_SEEN))
+			MessagePtrLock mpl(pContext->getMessagePtr());
+			if (mpl && !mpl->isFlag(MessageHolder::FLAG_SEEN))
 				mpl->getAccount()->setMessagesFlags(MessageHolderList(1, mpl),
 					MessageHolder::FLAG_SEEN, MessageHolder::FLAG_SEEN, 0);
 		}
@@ -7034,15 +7128,9 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 		break;
 	}
 	
-	ViewModel* pViewModel = 0;
-	if (bPreview) {
-		pViewModel = pViewModelManager_->getCurrentViewModel();
-		if (!pViewModel)
-			return;
-	}
-	else {
-		pViewModel = pViewModelHolder_->getViewModel();
-	}
+	ViewModel* pViewModel = getViewModel();
+	if (!pViewModel)
+		return;
 	
 	Lock<ViewModel> lock(*pViewModel);
 	
@@ -7053,7 +7141,7 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			nIndex = pViewModel->getFocused();
 	}
 	else {
-		MessagePtrLock mpl(pMessageModel->getCurrentMessage());
+		MessagePtrLock mpl(pContext->getMessagePtr());
 		if (mpl)
 			nIndex = pViewModel->getIndex(mpl);
 	}
@@ -7103,21 +7191,22 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			MessageHolder* pmh = 0;
 			if (nIndex != -1)
 				pmh = pViewModel->getMessageHolder(nIndex);
-			pMessageModel->setMessage(pmh);
+			
+			pMessageModel->setMessage(std::auto_ptr<MessageContext>(
+				new MessagePtrMessageContext(pmh)));
 		}
 		
 		if (nIndex != -1 && type != TYPE_SELF)
 			MessageActionUtil::select(pViewModel, nIndex, bDelay);
 	}
 	else {
-		pMessageModel->setMessage(0);
+		pMessageModel->clearMessage();
 	}
 }
 
 bool qm::ViewNavigateMessageAction::isEnabled(const ActionEvent& event)
 {
-	// TODO
-	return true;
+	return getViewModel() != 0;
 }
 
 void qm::ViewNavigateMessageAction::init(Profile* pProfile)
@@ -7128,6 +7217,19 @@ void qm::ViewNavigateMessageAction::init(Profile* pProfile)
 	else if (nType_ == TYPE_NEXTUNSEEN &&
 		pProfile->getInt(L"Global", L"NextUnseenInOtherAccounts"))
 		nType_ |= TYPE_UNSEENINOTHERACCOUNT;
+}
+
+bool qm::ViewNavigateMessageAction::isPreview() const
+{
+	return pFolderModel_ != 0;
+}
+
+ViewModel* qm::ViewNavigateMessageAction::getViewModel() const
+{
+	if (isPreview())
+		return pViewModelManager_->getCurrentViewModel();
+	else
+		return pViewModelHolder_->getViewModel();
 }
 
 std::pair<ViewModel*, unsigned int> qm::ViewNavigateMessageAction::getNextUnseen(ViewModel* pViewModel,
@@ -7465,25 +7567,26 @@ void qm::ViewSelectMessageAction::invoke(const ActionEvent& event)
 	if (!pViewModel)
 		return;
 	
-	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessage());
-	if (mpl) {
-		NormalFolder* pFolder = mpl->getFolder();
-		if (pFolder != pViewModel->getFolder() && !pFolder->isHidden()) {
-			pFolderModel_->setCurrent(0, pFolder, false);
-			
-			ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
-			Lock<ViewModel> lock(*pViewModel);
-			unsigned int nIndex = pViewModel->getIndex(mpl);
-			if (nIndex != -1)
-				MessageActionUtil::select(pViewModel, nIndex, false);
-		}
+	MessagePtrLock mpl(pMessageSelectionModel_->getFocusedMessagePtr());
+	if (!mpl)
+		return;
+	
+	NormalFolder* pFolder = mpl->getFolder();
+	if (pFolder != pViewModel->getFolder() && !pFolder->isHidden()) {
+		pFolderModel_->setCurrent(0, pFolder, false);
+		
+		ViewModel* pViewModel = pViewModelManager_->getViewModel(pFolder);
+		Lock<ViewModel> lock(*pViewModel);
+		unsigned int nIndex = pViewModel->getIndex(mpl);
+		if (nIndex != -1)
+			MessageActionUtil::select(pViewModel, nIndex, false);
 	}
 }
 
 bool qm::ViewSelectMessageAction::isEnabled(const ActionEvent& event)
 {
 	return pViewModelManager_->getCurrentViewModel() &&
-		pMessageSelectionModel_->hasFocusedMessage();
+		pMessageSelectionModel_->hasFocusedMessagePtr();
 }
 
 
@@ -7944,203 +8047,3 @@ std::pair<ViewZoomAction::Type, unsigned int> qm::ViewZoomAction::getParam(const
 		return std::pair<ViewZoomAction::Type, unsigned int>(TYPE_ZOOM, -1);
 	}
 }
-
-
-/****************************************************************************
- *
- * ActionUtil
- *
- */
-
-void qm::ActionUtil::info(HWND hwnd,
-						  UINT nMessage)
-{
-	messageBox(Application::getApplication().getResourceHandle(),
-		nMessage, MB_OK | MB_ICONINFORMATION, hwnd);
-}
-
-void qm::ActionUtil::error(HWND hwnd,
-						   UINT nMessage)
-{
-	messageBox(Application::getApplication().getResourceHandle(),
-		nMessage, MB_OK | MB_ICONERROR, hwnd);
-}
-
-void qm::ActionUtil::error(HWND hwnd,
-						   const WCHAR* pwszMessage)
-{
-	messageBox(pwszMessage, MB_OK | MB_ICONERROR, hwnd);
-}
-
-
-/****************************************************************************
- *
- * ActionParamUtil
- *
- */
-
-const WCHAR* qm::ActionParamUtil::getString(const ActionParam* pParam,
-											size_t n)
-{
-	if (!pParam || pParam->getCount() <= n)
-		return 0;
-	return pParam->getValue(n);
-}
-
-unsigned int qm::ActionParamUtil::getNumber(const ActionParam* pParam,
-											size_t n)
-{
-	const WCHAR* pwszParam = getString(pParam, n);
-	if (!pwszParam)
-		return -1;
-	
-	WCHAR* pEnd = 0;
-	long nParam = wcstol(pwszParam, &pEnd, 10);
-	if (*pEnd)
-		return -1;
-	
-	return static_cast<unsigned int>(nParam);
-}
-
-unsigned int qm::ActionParamUtil::getIndex(const ActionParam* pParam,
-										   size_t n)
-{
-	const WCHAR* pwsz = getString(pParam, n);
-	if (!pwsz || *pwsz != L'@')
-		return -1;
-	
-	WCHAR* pEnd = 0;
-	unsigned int nIndex = wcstol(pwsz + 1, &pEnd, 10);
-	if (*pEnd)
-		return -1;
-	
-	return nIndex;
-}
-
-std::pair<const WCHAR*, unsigned int> qm::ActionParamUtil::getStringOrIndex(const ActionParam* pParam,
-																			size_t n)
-{
-	if (!pParam || pParam->getCount() <= n)
-		return std::pair<const WCHAR*, unsigned int>(0, -1);
-	
-	const WCHAR* pwszParam = pParam->getValue(n);
-	
-	if (*pwszParam == L'@') {
-		WCHAR* pEnd = 0;
-		unsigned int nParam = wcstol(pwszParam + 1, &pEnd, 10);
-		if (!*pEnd)
-			return std::pair<const WCHAR*, unsigned int>(0, nParam);
-	}
-	
-	return std::pair<const WCHAR*, unsigned int>(pwszParam, -1);
-}
-
-
-/****************************************************************************
- *
- * FolderActionUtil
- *
- */
-
-std::pair<Account*, Folder*> qm::FolderActionUtil::getCurrent(const FolderModelBase* pModel)
-{
-	std::pair<Account*, Folder*> p(pModel->getTemporary());
-	if (!p.first && !p.second)
-		p = pModel->getCurrent();
-	return p;
-}
-
-Account* qm::FolderActionUtil::getAccount(const FolderModelBase* pModel)
-{
-	std::pair<Account*, Folder*> p(getCurrent(pModel));
-	return p.first ? p.first : p.second ? p.second->getAccount() : 0;
-}
-
-Folder* qm::FolderActionUtil::getFolder(const FolderModelBase* pModel)
-{
-	return getCurrent(pModel).second;
-}
-
-
-/****************************************************************************
- *
- * MessageActionUtil
- *
- */
-
-void qm::MessageActionUtil::select(ViewModel* pViewModel,
-								   unsigned int nIndex,
-								   MessageModel* pMessageModel)
-{
-	assert(pViewModel);
-	assert(pViewModel->isLocked());
-	assert(nIndex < pViewModel->getCount());
-	
-	if (pMessageModel) {
-		MessageHolder* pmh = pViewModel->getMessageHolder(nIndex);
-		pMessageModel->setMessage(pmh);
-	}
-	
-	select(pViewModel, nIndex, pMessageModel == 0);
-}
-
-void qm::MessageActionUtil::select(ViewModel* pViewModel,
-								   unsigned int nIndex,
-								   bool bDelay)
-{
-	assert(pViewModel);
-	assert(pViewModel->isLocked());
-	assert(nIndex < pViewModel->getCount());
-	
-	pViewModel->setFocused(nIndex, bDelay);
-	pViewModel->setSelection(nIndex);
-	pViewModel->setLastSelection(nIndex);
-	pViewModel->payAttention(nIndex);
-}
-
-void qm::MessageActionUtil::selectNextUndeleted(ViewModel* pViewModel,
-												unsigned int nIndex,
-												const MessageHolderList& listExclude,
-												MessageModel* pMessageModel)
-{
-	assert(pViewModel);
-	assert(pViewModel->isLocked());
-	assert(nIndex < pViewModel->getCount());
-	
-	unsigned int nCount = pViewModel->getCount();
-	for (unsigned int n = nIndex + 1; n < nCount; ++n) {
-		MessageHolder* pmh = pViewModel->getMessageHolder(n);
-		if (!pmh->isFlag(MessageHolder::FLAG_DELETED) &&
-			std::find(listExclude.begin(), listExclude.end(), pmh) == listExclude.end()) {
-			select(pViewModel, n, pMessageModel);
-			return;
-		}
-	}
-	if (nIndex != 0) {
-		unsigned int n = nIndex;
-		do {
-			--n;
-			MessageHolder* pmh = pViewModel->getMessageHolder(n);
-			if (!pmh->isFlag(MessageHolder::FLAG_DELETED) &&
-				std::find(listExclude.begin(), listExclude.end(), pmh) == listExclude.end()) {
-				select(pViewModel, n, pMessageModel);
-				return;
-			}
-		} while (n != 0);
-	}
-}
-
-
-#ifdef QMTABWINDOW
-/****************************************************************************
- *
- * TabActionUtil
- *
- */
-
-int TabActionUtil::getCurrent(TabModel* pModel)
-{
-	int nItem = pModel->getTemporary();
-	return nItem != -1 ? nItem : pModel->getCurrent();
-}
-#endif

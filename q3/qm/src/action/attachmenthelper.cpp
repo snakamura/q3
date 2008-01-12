@@ -23,9 +23,13 @@
 #include <tchar.h>
 
 #include "attachmenthelper.h"
+#include "../model/messagecontext.h"
+#include "../model/messageenumerator.h"
 #include "../model/tempfilecleaner.h"
 #include "../ui/dialogs.h"
+#include "../ui/messageframewindow.h"
 #include "../ui/resourceinc.h"
+#include "../uimodel/messagemodel.h"
 #include "../uimodel/securitymodel.h"
 
 using namespace qm;
@@ -39,6 +43,7 @@ using namespace qs;
  */
 
 namespace {
+
 class DetachCallbackImpl : public AttachmentParser::DetachCallback
 {
 public:
@@ -57,6 +62,7 @@ private:
 	TempFileCleaner* pTempFileCleaner_;
 	HWND hwnd_;
 };
+
 }
 
 DetachCallbackImpl::DetachCallbackImpl(TempFileCleaner* pTempFileCleaner,
@@ -130,13 +136,29 @@ wstring_ptr DetachCallbackImpl::confirmOverwrite(const WCHAR* pwszPath)
 
 qm::AttachmentHelper::AttachmentHelper(SecurityModel* pSecurityModel,
 									   Profile* pProfile,
-									   TempFileCleaner* pTempFileCleaner,
 									   HWND hwnd) :
 	pSecurityModel_(pSecurityModel),
+	pTempFileCleaner_(0),
 	pProfile_(pProfile),
-	pTempFileCleaner_(pTempFileCleaner),
 	hwnd_(hwnd)
 {
+	assert(pSecurityModel);
+	assert(pProfile);
+	assert(hwnd);
+}
+
+qm::AttachmentHelper::AttachmentHelper(MessageFrameWindowManager* pMessageFrameWindowManager,
+									   TempFileCleaner* pTempFileCleaner,
+									   Profile* pProfile,
+									   HWND hwnd) :
+	pSecurityModel_(0),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	pTempFileCleaner_(pTempFileCleaner),
+	pProfile_(pProfile),
+	hwnd_(hwnd)
+{
+	assert(pMessageFrameWindowManager);
+	assert(pTempFileCleaner);
 	assert(pProfile);
 	assert(hwnd);
 }
@@ -145,54 +167,23 @@ qm::AttachmentHelper::~AttachmentHelper()
 {
 }
 
-AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& listMessageHolder,
+AttachmentParser::Result qm::AttachmentHelper::detach(MessageEnumerator* pEnum,
 													  const NameList* pListName)
 {
+	assert(pSecurityModel_);
+	
+	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
+	
 	DetachDialog::List list;
-	struct Deleter
-	{
-		Deleter(DetachDialog::List& l) : l_(l) {}
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(),
-				boost::bind(&freeWString,
-					boost::bind(&DetachDialog::Item::wstrName_, _1)));
-		}
-		DetachDialog::List& l_;
-	} deleter(list);
-	
-	for (MessageHolderList::const_iterator itM = listMessageHolder.begin(); itM != listMessageHolder.end(); ++itM) {
-		MessageHolder* pmh = *itM;
-		
+	DetachDialogListFree freeList(list);
+	while (pEnum->next()) {
 		Message msg;
-		if (!pmh->getMessage(Account::GETMESSAGEFLAG_TEXT, 0, pSecurityModel_->getSecurityMode(), &msg))
+		Message* pMessage = pEnum->getMessage(
+			Account::GETMESSAGEFLAG_TEXT, 0, nSecurityMode, &msg);
+		if (!pMessage)
 			return AttachmentParser::RESULT_FAIL;
-		
-		AttachmentParser parser(msg);
-		AttachmentParser::AttachmentList l;
-		AttachmentParser::AttachmentListFree free(l);
-		parser.getAttachments(AttachmentParser::GAF_NONE, &l);
-		for (AttachmentParser::AttachmentList::iterator itA = l.begin(); itA != l.end(); ++itA) {
-			wstring_ptr wstrName(allocWString((*itA).first));
-			
-			bool bSelected = true;
-			if (pListName) {
-				NameList::const_iterator itN = std::find_if(
-					pListName->begin(), pListName->end(),
-					std::bind2nd(string_equal<WCHAR>(), wstrName.get()));
-				bSelected = itN != pListName->end();
-			}
-			
-			DetachDialog::Item item = {
-				pmh,
-				wstrName.get(),
-				bSelected
-			};
-			list.push_back(item);
-			wstrName.release();
-		}
+		addItems(*pMessage, pEnum->getMessageHolder(), pListName, &list);
 	}
-	
 	if (list.empty())
 		return AttachmentParser::RESULT_OK;
 	
@@ -202,94 +193,119 @@ AttachmentParser::Result qm::AttachmentHelper::detach(const MessageHolderList& l
 	
 	const WCHAR* pwszFolder = dialog.getFolder();
 	
+	pEnum->reset();
+	pEnum->next();
+	
 	MessageHolder* pmh = 0;
 	Message msg;
+	Message* pMessage = 0;
 	AttachmentParser::AttachmentList l;
 	AttachmentParser::AttachmentListFree free(l);
+	bool bAddZoneId = isAddZoneId();
 	DetachCallbackImpl callback(0, hwnd_);
 	unsigned int n = 0;
 	for (DetachDialog::List::iterator it = list.begin(); it != list.end(); ++it) {
-		if ((*it).pmh_ != pmh) {
+		if (it == list.begin() || (*it).pmh_ != pmh) {
 			pmh = (*it).pmh_;
+			while (pEnum->getMessageHolder() != pmh)
+				pEnum->next();
 			n = 0;
 			msg.clear();
+			pMessage = 0;
 			free.free();
 		}
 		else {
 			++n;
 		}
 		if ((*it).wstrName_) {
-			if (msg.getFlag() == Message::FLAG_EMPTY) {
-				if (!(*it).pmh_->getMessage(Account::GETMESSAGEFLAG_ALL,
-					0, pSecurityModel_->getSecurityMode(), &msg))
+			if (!pMessage) {
+				pMessage = pEnum->getMessage(
+					Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+				if (!pMessage)
 					return AttachmentParser::RESULT_FAIL;
+				AttachmentParser(*pMessage).getAttachments(AttachmentParser::GAF_NONE, &l);
 			}
-			if (l.empty())
-				AttachmentParser(msg).getAttachments(AttachmentParser::GAF_NONE, &l);
 			assert(n < l.size());
 			const AttachmentParser::AttachmentList::value_type& v = l[n];
 			if (AttachmentParser(*v.second).detach(pwszFolder, (*it).wstrName_,
-				isAddZoneId(), &callback, 0) == AttachmentParser::RESULT_FAIL)
+				bAddZoneId, &callback, 0) == AttachmentParser::RESULT_FAIL)
 				return AttachmentParser::RESULT_FAIL;
 		}
 	}
 	
-	if (dialog.isOpenFolder()) {
-		const WCHAR* pwszCommand = 0;
-		WCHAR* pParam = 0;
-		
-		wstring_ptr wstrCommand(pProfile_->getString(L"Global", L"Filer"));
-		if (*wstrCommand.get()) {
-			wstrCommand = TextUtil::replace(wstrCommand.get(), L"%d", pwszFolder);
-			
-			pwszCommand = wstrCommand.get();
-			if (*pwszCommand == L'\"') {
-				++pwszCommand;
-				pParam = wcschr(wstrCommand.get(), L'\"');
-			}
-			else {
-				pParam = wcschr(wstrCommand.get(), L' ');
-			}
-			if (pParam) {
-				*pParam = L'\0';
-				++pParam;
-				while (*pParam == L' ')
-					++pParam;
-			}
+	if (dialog.isOpenFolder())
+		openFolder(pwszFolder);
+	
+	return AttachmentParser::RESULT_OK;
+}
+
+
+AttachmentParser::Result qm::AttachmentHelper::detach(MessageContext* pContext,
+													  const NameList* pListName)
+{
+	assert(pContext);
+	assert(pSecurityModel_);
+	
+	Message* pMessage = pContext->getMessage(Account::GETMESSAGEFLAG_ALL,
+		0, pSecurityModel_->getSecurityMode());
+	if (!pMessage)
+		return AttachmentParser::RESULT_FAIL;
+	
+	DetachDialog::List list;
+	DetachDialogListFree freeList(list);
+	addItems(*pMessage, 0, pListName, &list);
+	if (list.empty())
+		return AttachmentParser::RESULT_OK;
+	
+	DetachDialog dialog(pProfile_, list);
+	if (dialog.doModal(hwnd_) != IDOK)
+		return AttachmentParser::RESULT_CANCEL;
+	
+	const WCHAR* pwszFolder = dialog.getFolder();
+	
+	AttachmentParser::AttachmentList l;
+	AttachmentParser::AttachmentListFree free(l);
+	AttachmentParser(*pMessage).getAttachments(AttachmentParser::GAF_NONE, &l);
+	bool bAddZoneId = isAddZoneId();
+	DetachCallbackImpl callback(0, hwnd_);
+	unsigned int n = 0;
+	for (DetachDialog::List::iterator it = list.begin(); it != list.end(); ++it, ++n) {
+		if ((*it).wstrName_) {
+			const AttachmentParser::AttachmentList::value_type& v = l[n];
+			if (AttachmentParser(*v.second).detach(pwszFolder, (*it).wstrName_,
+				bAddZoneId, &callback, 0) == AttachmentParser::RESULT_FAIL)
+				return AttachmentParser::RESULT_FAIL;
 		}
-		else {
-			pwszCommand = pwszFolder;
-		}
-		
-		W2T(pwszCommand, ptszCommand);
-		W2T(pParam, ptszParam);
-		SHELLEXECUTEINFO info = {
-			sizeof(info),
-			0,
-			hwnd_,
-#ifdef _WIN32_WCE
-			_T("open"),
-#else
-			0,
-#endif
-			ptszCommand,
-			ptszParam,
-			0,
-#ifdef _WIN32_WCE
-		SW_SHOWNORMAL,
-#else
-		SW_SHOWDEFAULT,
-#endif
-		};
-		::ShellExecuteEx(&info);
 	}
+	
+	if (dialog.isOpenFolder())
+		openFolder(pwszFolder);
 	
 	return AttachmentParser::RESULT_OK;
 }
 
 AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 													const WCHAR* pwszName,
+													const MessagePtr& parentPtr,
 													bool bOpenWithEditor)
+{
+	assert(pPart);
+	assert(pMessageFrameWindowManager_);
+	
+	if (PartUtil::isContentType(pPart->getContentType(), L"message", L"rfc822")) {
+		xstring_size_ptr strContent(pPart->getEnclosedPart()->getContent());
+		return pMessageFrameWindowManager_->open(
+			strContent.get(), strContent.size(), parentPtr) ?
+			AttachmentParser::RESULT_OK : AttachmentParser::RESULT_FAIL;
+	}
+	else {
+		return openFile(pPart, pwszName, bOpenWithEditor);
+	}
+}
+
+AttachmentParser::Result qm::AttachmentHelper::openFile(const Part* pPart,
+														const WCHAR* pwszName,
+														bool bOpenWithEditor)
 {
 	assert(pPart);
 	assert(pwszName);
@@ -360,7 +376,109 @@ AttachmentParser::Result qm::AttachmentHelper::open(const Part* pPart,
 	return AttachmentParser::RESULT_OK;
 }
 
+bool qm::AttachmentHelper::openFolder(const WCHAR* pwszFolder)
+{
+	const WCHAR* pwszCommand = 0;
+	WCHAR* pParam = 0;
+	
+	wstring_ptr wstrCommand(pProfile_->getString(L"Global", L"Filer"));
+	if (*wstrCommand.get()) {
+		wstrCommand = TextUtil::replace(wstrCommand.get(), L"%d", pwszFolder);
+		
+		pwszCommand = wstrCommand.get();
+		if (*pwszCommand == L'\"') {
+			++pwszCommand;
+			pParam = wcschr(wstrCommand.get(), L'\"');
+		}
+		else {
+			pParam = wcschr(wstrCommand.get(), L' ');
+		}
+		if (pParam) {
+			*pParam = L'\0';
+			++pParam;
+			while (*pParam == L' ')
+				++pParam;
+		}
+	}
+	else {
+		pwszCommand = pwszFolder;
+	}
+	
+	W2T(pwszCommand, ptszCommand);
+	W2T(pParam, ptszParam);
+	SHELLEXECUTEINFO info = {
+		sizeof(info),
+		0,
+		hwnd_,
+#ifdef _WIN32_WCE
+		_T("open"),
+#else
+		0,
+#endif
+		ptszCommand,
+		ptszParam,
+		0,
+#ifdef _WIN32_WCE
+	SW_SHOWNORMAL,
+#else
+	SW_SHOWDEFAULT,
+#endif
+	};
+	return ::ShellExecuteEx(&info) != 0;
+}
+
 bool qm::AttachmentHelper::isAddZoneId() const
 {
 	return pProfile_->getInt(L"Global", L"AddZoneId") != 0;
+}
+
+void qm::AttachmentHelper::addItems(const Message& msg,
+									MessageHolder* pmh,
+									const NameList* pListName,
+									DetachDialog::List* pList)
+{
+	assert(pList);
+	
+	AttachmentParser parser(msg);
+	AttachmentParser::AttachmentList l;
+	AttachmentParser::AttachmentListFree free(l);
+	parser.getAttachments(AttachmentParser::GAF_NONE, &l);
+	for (AttachmentParser::AttachmentList::iterator itA = l.begin(); itA != l.end(); ++itA) {
+		wstring_ptr wstrName(allocWString((*itA).first));
+		
+		bool bSelected = true;
+		if (pListName) {
+			NameList::const_iterator itN = std::find_if(
+				pListName->begin(), pListName->end(),
+				std::bind2nd(string_equal<WCHAR>(), wstrName.get()));
+			bSelected = itN != pListName->end();
+		}
+		
+		DetachDialog::Item item = {
+			pmh,
+			wstrName.get(),
+			bSelected
+		};
+		pList->push_back(item);
+		wstrName.release();
+	}
+}
+
+
+/****************************************************************************
+ *
+ * AttachmentHelper::DetachDialogListFree
+ *
+ */
+
+qm::AttachmentHelper::DetachDialogListFree::DetachDialogListFree(DetachDialog::List& l) :
+	l_(l)
+{
+}
+
+qm::AttachmentHelper::DetachDialogListFree::~DetachDialogListFree()
+{
+	std::for_each(l_.begin(), l_.end(),
+		boost::bind(&freeWString,
+			boost::bind(&DetachDialog::Item::wstrName_, _1)));
 }

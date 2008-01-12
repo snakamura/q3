@@ -30,6 +30,7 @@
 #include <boost/bind/make_adaptable.hpp>
 
 #include "message.h"
+#include "messagecontext.h"
 #include "uri.h"
 #include "zip.h"
 
@@ -241,11 +242,11 @@ void qm::MessageCreator::setFlags(unsigned int nFlags,
 	nFlags_ |= nFlags & nMask;
 }
 
-std::auto_ptr<Message> qm::MessageCreator::createMessage(AccountManager* pAccountManager,
-														 const WCHAR* pwszMessage,
-														 size_t nLen) const
+std::auto_ptr<Message> qm::MessageCreator::createMessage(const WCHAR* pwszMessage,
+														 size_t nLen,
+														 const URIResolver* pURIResolver) const
 {
-	std::auto_ptr<Part> pPart(createPart(pAccountManager, pwszMessage, nLen, 0, true));
+	std::auto_ptr<Part> pPart(createPart(pwszMessage, nLen, 0, pURIResolver, true));
 	if (!pPart.get())
 		return std::auto_ptr<Message>(0);
 	
@@ -255,10 +256,10 @@ std::auto_ptr<Message> qm::MessageCreator::createMessage(AccountManager* pAccoun
 	return pMessage;
 }
 
-std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManager,
-												   const WCHAR* pwszMessage,
+std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 												   size_t nLen,
 												   Part* pParent,
+												   const URIResolver* pURIResolver,
 												   bool bMessage) const
 {
 	if (nLen == -1)
@@ -297,20 +298,15 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 	const ContentTypeParser* pContentType = pPart->getContentType();
 	const WCHAR* pwszMediaType = pContentType ?
 		pContentType->getMediaType() : L"text";
-	bool bMultipart = _wcsicmp(pwszMediaType, L"multipart") == 0;
+	bool bMultipart = PartUtil::isMultipart(pContentType);
 	
 	if (pBody) {
 		bool bRFC822 = false;
 		if (!bMultipart) {
-			bRFC822 = _wcsicmp(pwszMediaType, L"message") == 0 &&
-				_wcsicmp(pContentType->getSubType(), L"rfc822") == 0;
-			if (!bRFC822 && !pContentType && pParent) {
-				const ContentTypeParser* pParentContentType =
-					pParent->getContentType();
-				bRFC822 = pParentContentType &&
-					_wcsicmp(pParentContentType->getMediaType(), L"multipart") == 0 &&
-					_wcsicmp(pParentContentType->getSubType(), L"digest") == 0;
-			}
+			bRFC822 = PartUtil::isContentType(pContentType, L"message", L"rfc822");
+			if (!bRFC822 && !pContentType && pParent)
+				bRFC822 = PartUtil::isContentType(pParent->getContentType(),
+					L"multipart", L"digest");
 		}
 		if (bMultipart) {
 			wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
@@ -328,8 +324,8 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 					return std::auto_ptr<Part>(0);
 				if (pBegin) {
 					MessageCreator creator(getCreatorForChild());
-					std::auto_ptr<Part> pChild(creator.createPart(
-						pAccountManager, pBegin, pEnd - pBegin, pPart.get(), false));
+					std::auto_ptr<Part> pChild(creator.createPart(pBegin,
+						pEnd - pBegin, pPart.get(), pURIResolver, false));
 					if (!pChild.get())
 						return std::auto_ptr<Part>(0);
 					pPart->addPart(pChild);
@@ -352,7 +348,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 		else if (bRFC822) {
 			MessageCreator creator(getCreatorForChild());
 			std::auto_ptr<Part> pEnclosed(creator.createPart(
-				pAccountManager, pBody, nBodyLen, 0, false));
+				pBody, nBodyLen, 0, pURIResolver, false));
 			if (!pEnclosed.get())
 				return std::auto_ptr<Part>(0);
 			pPart->setEnclosedPart(pEnclosed);
@@ -498,15 +494,14 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 	}
 	
 	if (bMessage && nFlags_ & FLAG_EXTRACTATTACHMENT) {
-		assert(pAccountManager);
+		assert(pURIResolver);
 		
 		XQMAILAttachmentParser attachment;
 		if (pPart->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST &&
 			!attachment.getAttachments().empty()) {
 			const XQMAILAttachmentParser::AttachmentList& l = attachment.getAttachments();
 			assert(pContentType);
-			if (_wcsicmp(pContentType->getMediaType(), L"multipart") != 0 ||
-				_wcsicmp(pContentType->getSubType(), L"mixed") != 0) {
+			if (!PartUtil::isContentType(pContentType, L"multipart", L"mixed")) {
 				std::auto_ptr<Message> pParent(new Message());
 				if (!makeMultipart(pParent.get(), pPart))
 					return std::auto_ptr<Part>(0);
@@ -519,7 +514,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(AccountManager* pAccountManag
 			if (pPart->getField(L"X-QMAIL-ArchiveAttachment", &archive) == Part::FIELD_EXIST)
 				pwszArchive = archive.getValue();
 #endif
-			if (!attachFilesOrURIs(pPart.get(), l, pAccountManager, nSecurityMode_,
+			if (!attachFilesOrURIs(pPart.get(), l, pURIResolver, nSecurityMode_,
 				pwszArchive, wstrArchiveAttachmentExcludePattern_.get(), wstrTempDir_.get()))
 				return std::auto_ptr<Part>();
 #ifdef QMZIP
@@ -893,7 +888,7 @@ bool qm::MessageCreator::makeMultipart(Part* pParentPart,
 
 bool qm::MessageCreator::attachFilesOrURIs(qs::Part* pPart,
 										   const AttachmentList& l,
-										   AccountManager* pAccountManager,
+										   const URIResolver* pURIResolver,
 										   unsigned int nSecurityMode,
 										   const WCHAR* pwszArchiveName,
 										   const WCHAR* pwszExcludePattern,
@@ -936,7 +931,7 @@ bool qm::MessageCreator::attachFilesOrURIs(qs::Part* pPart,
 	if (std::find_if(listAttach.begin(), listAttach.end(),
 		std::not1(boost::make_adaptable<bool, const WCHAR*>(
 			boost::bind(&MessageCreator::attachFileOrURI,
-				pPart, _1, pAccountManager, nSecurityMode)))) != listAttach.end())
+				pPart, _1, pURIResolver, nSecurityMode)))) != listAttach.end())
 		return false;
 	
 	return true;
@@ -944,27 +939,28 @@ bool qm::MessageCreator::attachFilesOrURIs(qs::Part* pPart,
 
 bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 										 const WCHAR* pwszFileOrURI,
-										 AccountManager* pAccountManager,
+										 const URIResolver* pURIResolver,
 										 unsigned int nSecurityMode)
 {
 	assert(pPart->isMultipart());
 	
 	std::auto_ptr<Part> pChildPart;
 	if (isAttachmentURI(pwszFileOrURI)) {
-		std::auto_ptr<URI> pURI(URI::parse(pwszFileOrURI));
+		std::auto_ptr<URI> pURI(URIFactory::parseURI(pwszFileOrURI));
 		if (!pURI.get())
 			return false;
 		
-		MessagePtrLock mpl(pAccountManager->getMessage(*pURI.get()));
-		if (!mpl)
+		std::auto_ptr<MessageContext> pContext(pURI->resolve(pURIResolver));
+		if (!pContext.get())
 			return false;
 		
-		Message msg;
-		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg))
+		Message* pMessage = pContext->getMessage(
+			Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode);
+		if (!pMessage)
 			return false;
 		
 		const URIFragment& fragment = pURI->getFragment();
-		const Part* pPart = fragment.getPart(&msg);
+		const Part* pPart = fragment.getPart(pMessage);
 		if (!pPart)
 			return false;
 		switch (fragment.getType()) {
@@ -1143,9 +1139,9 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Part& part,
 	wstring_ptr wstrFileName;
 	UnstructuredParser subject;
 	if (part.getField(L"Subject", &subject) == Part::FIELD_EXIST && *subject.getValue())
-		wstrFileName = concat(subject.getValue(), L".msg");
+		wstrFileName = concat(subject.getValue(), L".eml");
 	else
-		wstrFileName = allocWString(L"Untitled.msg");
+		wstrFileName = allocWString(L"Untitled.eml");
 	
 	ContentDispositionParser contentDisposition(L"attachment");
 	contentDisposition.setParameter(L"filename", wstrFileName.get());
@@ -1211,10 +1207,7 @@ const WCHAR* qm::MessageCreator::getEncodingForCharset(const WCHAR* pwszCharset)
 
 bool qm::MessageCreator::isAttachmentURI(const WCHAR* pwszAttachment)
 {
-	wstring_ptr wstrPrefix(concat(URI::getScheme(), L"://"));
-	size_t nLen = wcslen(wstrPrefix.get());
-	return wcslen(pwszAttachment) > nLen &&
-		wcsncmp(pwszAttachment, wstrPrefix.get(), nLen) == 0;
+	return URIFactory::isURI(pwszAttachment);
 }
 
 
@@ -1435,17 +1428,17 @@ qs::wstring_ptr qm::PartUtil::getAllTextCharset() const
 
 wxstring_size_ptr qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 											const WCHAR* pwszCharset,
-											bool bForceRfc822Inline) const
+											Rfc822Mode rfc822Mode) const
 {
 	XStringBuffer<WXSTRING> buf;
-	if (!getBodyText(pwszQuote, pwszCharset, bForceRfc822Inline, &buf))
+	if (!getBodyText(pwszQuote, pwszCharset, rfc822Mode, &buf))
 		return wxstring_size_ptr();
 	return buf.getXStringSize();
 }
 
 bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 							   const WCHAR* pwszCharset,
-							   bool bForceRfc822Inline,
+							   Rfc822Mode rfc822Mode,
 							   XStringBuffer<WXSTRING>* pBuf) const
 {
 	if (part_.isMultipart()) {
@@ -1477,7 +1470,7 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 			}
 			
 			size_t nPrevLen = pBuf->getLength();
-			if (!PartUtil(**it).getBodyText(pwszQuote, pwszCharset, bForceRfc822Inline, pBuf))
+			if (!PartUtil(**it).getBodyText(pwszQuote, pwszCharset, rfc822Mode, pBuf))
 				return false;
 			if (pBuf->getLength() == nPrevLen)
 				pBuf->remove(nLen, -1);
@@ -1490,9 +1483,9 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 		bool bAttachment = part_.isAttachment();
 		if (pwszQuote && *pwszQuote) {
 			wxstring_size_ptr wstrBody;
-			if (part_.getEnclosedPart() && (!bAttachment || bForceRfc822Inline)) {
+			if (part_.getEnclosedPart() && isRfc822Rendered(rfc822Mode, bAttachment)) {
 				PartUtil util(*part_.getEnclosedPart());
-				wstrBody = util.getFormattedText(false, pwszCharset, bForceRfc822Inline);
+				wstrBody = util.getFormattedText(false, pwszCharset, rfc822Mode);
 				if (!wstrBody.get())
 					return false;
 			}
@@ -1508,9 +1501,9 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 			}
 		}
 		else {
-			if (part_.getEnclosedPart() && (!bAttachment || bForceRfc822Inline)) {
+			if (part_.getEnclosedPart() && isRfc822Rendered(rfc822Mode, bAttachment)) {
 				PartUtil util(*part_.getEnclosedPart());
-				if (!util.getFormattedText(false, pwszCharset, bForceRfc822Inline, pBuf))
+				if (!util.getFormattedText(false, pwszCharset, rfc822Mode, pBuf))
 					return false;
 			}
 			else if (!bAttachment) {
@@ -1523,7 +1516,7 @@ bool qm::PartUtil::getBodyText(const WCHAR* pwszQuote,
 	return true;
 }
 
-qs::wstring_ptr qm::PartUtil::getBodyTextCharset(bool bForceRfc822Inline) const
+qs::wstring_ptr qm::PartUtil::getBodyTextCharset(Rfc822Mode rfc822Mode) const
 {
 	wstring_ptr wstrAllCharset;
 	if (part_.isMultipart()) {
@@ -1532,7 +1525,7 @@ qs::wstring_ptr qm::PartUtil::getBodyTextCharset(bool bForceRfc822Inline) const
 		bool bAlternative = _wcsicmp(pContentType->getSubType(), L"alternative") == 0;
 		const Part::PartList& l = part_.getPartList();
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end(); ++it) {
-			wstring_ptr wstrCharset = PartUtil(**it).getBodyTextCharset(bForceRfc822Inline);
+			wstring_ptr wstrCharset = PartUtil(**it).getBodyTextCharset(rfc822Mode);
 			if (wstrAllCharset.get()) {
 				if (_wcsicmp(wstrAllCharset.get(), L"us-ascii") == 0) {
 					wstrAllCharset = wstrCharset;
@@ -1552,8 +1545,8 @@ qs::wstring_ptr qm::PartUtil::getBodyTextCharset(bool bForceRfc822Inline) const
 	}
 	else {
 		bool bAttachment = part_.isAttachment();
-		if (part_.getEnclosedPart() && (!bAttachment || bForceRfc822Inline))
-			wstrAllCharset = PartUtil(*part_.getEnclosedPart()).getBodyTextCharset(bForceRfc822Inline);
+		if (part_.getEnclosedPart() && isRfc822Rendered(rfc822Mode, bAttachment))
+			wstrAllCharset = PartUtil(*part_.getEnclosedPart()).getBodyTextCharset(rfc822Mode);
 		else if (!bAttachment)
 			wstrAllCharset = part_.getCharset();
 	}
@@ -1562,17 +1555,17 @@ qs::wstring_ptr qm::PartUtil::getBodyTextCharset(bool bForceRfc822Inline) const
 
 wxstring_size_ptr qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 												 const WCHAR* pwszCharset,
-												 bool bForceRfc822Inline) const
+												 Rfc822Mode rfc822Mode) const
 {
 	XStringBuffer<WXSTRING> buf;
-	if (!getFormattedText(bUseSendersTimeZone, pwszCharset, bForceRfc822Inline, &buf))
+	if (!getFormattedText(bUseSendersTimeZone, pwszCharset, rfc822Mode, &buf))
 		return wxstring_size_ptr();
 	return buf.getXStringSize();
 }
 
 bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 									const WCHAR* pwszCharset,
-									bool bForceRfc822Inline,
+									Rfc822Mode rfc822Mode,
 									XStringBuffer<WXSTRING>* pBuf) const
 {
 	const WCHAR* pwszFields[] = {
@@ -1637,7 +1630,7 @@ bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 	
 	if (!pBuf->append(L"\n"))
 		return false;
-	if (!getBodyText(0, pwszCharset, bForceRfc822Inline, pBuf))
+	if (!getBodyText(0, pwszCharset, rfc822Mode, pBuf))
 		return false;
 	
 	return true;
@@ -1738,7 +1731,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 				if (!pEnd)
 					break;
 				
-				std::auto_ptr<Message> pMessage(creator.createMessage(0, p, pEnd - p));
+				std::auto_ptr<Message> pMessage(creator.createMessage(p, pEnd - p, 0));
 				
 				if (!pMessage->hasField(L"To") && fieldTo == Part::FIELD_EXIST) {
 					if (!pMessage->setField(L"To", to))
@@ -1786,7 +1779,7 @@ PartUtil::DigestMode qm::PartUtil::getDigestMode() const
 			}
 		}
 	}
-	else if (_wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
+	else if (PartUtil::isMultipart(pContentType)) {
 		if (_wcsicmp(pContentType->getSubType(), L"mixed") == 0 ||
 			_wcsicmp(pContentType->getSubType(), L"digest") == 0) {
 			const Part::PartList& l = part_.getPartList();
@@ -1838,7 +1831,7 @@ void qm::PartUtil::getAlternativeContentTypes(ContentTypeList* pList) const
 	assert(pList);
 	
 	const ContentTypeParser* pContentType = part_.getContentType();
-	if (pContentType && _wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
+	if (PartUtil::isMultipart(pContentType)) {
 		const Part::PartList& l = part_.getPartList();
 		if (_wcsicmp(pContentType->getSubType(), L"alternative") == 0) {
 			for (Part::PartList::const_reverse_iterator it = l.rbegin(); it != l.rend(); ++it)
@@ -1861,7 +1854,7 @@ const Part* qm::PartUtil::getAlternativePart(const WCHAR* pwszMediaType,
 	assert(pwszSubType);
 	
 	const ContentTypeParser* pContentType = part_.getContentType();
-	if (pContentType && _wcsicmp(pContentType->getMediaType(), L"multipart") == 0) {
+	if (PartUtil::isMultipart(pContentType)) {
 		const Part::PartList& l = part_.getPartList();
 		if (_wcsicmp(pContentType->getSubType(), L"alternative") == 0) {
 			for (Part::PartList::const_reverse_iterator it = l.rbegin(); it != l.rend(); ++it) {
@@ -1905,11 +1898,11 @@ const Part* qm::PartUtil::getPartByContentId(const WCHAR* pwszContentId) const
 	return 0;
 }
 
-Part* qm::PartUtil::getEnclosingPart(Part* pCandidatePart) const
+const Part* qm::PartUtil::getEnclosingPart(const Part* pCandidatePart) const
 {
 	assert(pCandidatePart);
 	
-	Part* pPart = 0;
+	const Part* pPart = 0;
 	if (pCandidatePart->isMultipart()) {
 		const Part::PartList& l = pCandidatePart->getPartList();
 		for (Part::PartList::const_iterator it = l.begin(); it != l.end() && !pPart; ++it)
@@ -1924,6 +1917,11 @@ Part* qm::PartUtil::getEnclosingPart(Part* pCandidatePart) const
 	}
 	
 	return pPart;
+}
+
+Part* qm::PartUtil::getEnclosingPart(Part* pCandidatePart) const
+{
+	return const_cast<Part*>(getEnclosingPart(static_cast<const Part*>(pCandidatePart)));
 }
 
 bool qm::PartUtil::copyContentFields(Part* pPart) const
@@ -2100,6 +2098,27 @@ bool qm::PartUtil::isContentType(const ContentTypeParser* pContentType,
 			_wcsicmp(pwszSubType, L"plain") == 0;
 }
 
+bool qm::PartUtil::isMultipart(const qs::ContentTypeParser* pContentType)
+{
+	return pContentType && _wcsicmp(pContentType->getMediaType(), L"multipart") == 0;
+}
+
+bool qm::PartUtil::isRfc822Rendered(Rfc822Mode rfc822Mode,
+									bool bAttachment)
+{
+	switch (rfc822Mode) {
+	case RFC822_AUTO:
+		return !bAttachment;
+	case RFC822_INLINE:
+		return true;
+	case RFC822_ATTACHMENT:
+		return false;
+	default:
+		assert(false);
+		return false;
+	}
+}
+
 
 /****************************************************************************
  *
@@ -2224,7 +2243,7 @@ void qm::AttachmentParser::getAttachments(unsigned int nFlags,
 		wstrName.release();
 	}
 	
-	if (part_.getEnclosedPart())
+	if (nFlags & GAF_INCLUDERFC822 && part_.getEnclosedPart())
 		AttachmentParser(*part_.getEnclosedPart()).getAttachments(nFlags, pList);
 }
 
@@ -2260,15 +2279,19 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 		wstrPath = wstr;
 	}
 	
+	const Part* pEnclosedPart = part_.getEnclosedPart();
+	
 	std::auto_ptr<Encoder> pEncoder;
-	ContentTransferEncodingParser contentTransferEncoding;
-	if (part_.getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
-		const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
-		if (_wcsicmp(pwszEncoding, L"7bit") != 0 &&
-			_wcsicmp(pwszEncoding, L"8bit") != 0) {
-			pEncoder= EncoderFactory::getInstance(pwszEncoding);
-			if (!pEncoder.get())
-				return RESULT_FAIL;
+	if (!pEnclosedPart) {
+		ContentTransferEncodingParser contentTransferEncoding;
+		if (part_.getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
+			const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
+			if (_wcsicmp(pwszEncoding, L"7bit") != 0 &&
+				_wcsicmp(pwszEncoding, L"8bit") != 0) {
+				pEncoder= EncoderFactory::getInstance(pwszEncoding);
+				if (!pEncoder.get())
+					return RESULT_FAIL;
+			}
 		}
 	}
 	
@@ -2277,7 +2300,6 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 		return RESULT_FAIL;
 	BufferedOutputStream bufferedStream(&stream, false);
 	
-	const Part* pEnclosedPart = part_.getEnclosedPart();
 	if (pEnclosedPart) {
 		xstring_size_ptr strContent(pEnclosedPart->getContent());
 		size_t nLen = strContent.size();

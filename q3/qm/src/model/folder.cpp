@@ -929,7 +929,11 @@ void qm::NormalFolder::removeMessages(const MessageHolderList& l)
 	
 	struct Deleter
 	{
-		Deleter(const MessageHolderList& l) : l_(l) {}
+		Deleter(const MessageHolderList& l) :
+			l_(l)
+		{
+		}
+		
 		~Deleter()
 		{
 			for (MessageHolderList::const_iterator it = l_.begin(); it != l_.end(); ++it) {
@@ -937,6 +941,7 @@ void qm::NormalFolder::removeMessages(const MessageHolderList& l)
 				pmh->destroy();
 			}
 		}
+		
 		const MessageHolderList& l_;
 	} deleter(l);
 	getImpl()->fireMessageRemoved(l);

@@ -382,6 +382,7 @@ public:
 	~MessagePtr();
 
 public:
+	bool operator!() const;
 	MessagePtr& operator=(const MessagePtr& ptr);
 
 public:

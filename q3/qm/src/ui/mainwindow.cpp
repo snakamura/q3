@@ -70,6 +70,8 @@
 #include "../main/updatechecker.h"
 #include "../model/filter.h"
 #include "../model/goround.h"
+#include "../model/messagecontext.h"
+#include "../model/messageenumerator.h"
 #include "../model/tempfilecleaner.h"
 #include "../sync/autopilot.h"
 #include "../sync/syncmanager.h"
@@ -140,11 +142,15 @@ public:
 		virtual ~MessageSelectionModelImpl();
 	
 	public:
-		virtual void getSelectedMessages(AccountLock* pAccountLock,
-										 Folder** ppFolder,
-										 MessageHolderList* pList);
-		virtual bool hasSelectedMessage();
-		virtual MessagePtr getFocusedMessage();
+		virtual void getSelectedMessageHolders(AccountLock* pAccountLock,
+											   Folder** ppFolder,
+											   MessageHolderList* pList);
+		virtual bool hasSelectedMessageHolders();
+		virtual MessagePtr getFocusedMessagePtr();
+		virtual bool hasFocusedMessagePtr();
+		virtual std::auto_ptr<MessageEnumerator> getSelectedMessages();
+		virtual bool hasSelectedMessages();
+		virtual std::auto_ptr<MessageEnumerator> getFocusedMessage();
 		virtual bool hasFocusedMessage();
 		virtual void selectAll();
 		virtual bool canSelect();
@@ -274,6 +280,7 @@ public:
 	std::auto_ptr<EncodingModel> pEncodingModel_;
 	std::auto_ptr<DefaultSecurityModel> pSecurityModel_;
 	MessageViewModeHolder* pMessageViewModeHolder_;
+	std::auto_ptr<MessageWindowMessageViewModeHolder> pMessageWindowMessageViewModeHolder_;
 	std::auto_ptr<OptionDialogManager> pOptionDialogManager_;
 	std::auto_ptr<MessageWindowFontManager> pMessageWindowFontManager_;
 	std::auto_ptr<MessageFrameWindowManager> pMessageFrameWindowManager_;
@@ -313,13 +320,14 @@ void qm::MainWindowImpl::initActions()
 		L"Preview"
 	};
 	
-	ADD_ACTION6(AttachmentOpenAction,
+	ADD_ACTION7(AttachmentOpenAction,
 		IDM_ATTACHMENT_OPEN,
 		pPreviewModel_.get(),
 		pMessageWindow_->getAttachmentSelectionModel(),
 		pSecurityModel_.get(),
-		pProfile_,
+		pMessageFrameWindowManager_.get(),
 		pTempFileCleaner_,
+		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION6(AttachmentSaveAction,
 		IDM_ATTACHMENT_SAVE,
@@ -398,8 +406,9 @@ void qm::MainWindowImpl::initActions()
 		pThis_->getHandle(),
 		pProfile_);
 	
-	std::auto_ptr<EditCopyMessageAction> pCopyMessageAction(new EditCopyMessageAction(
-		pDocument_, pMessageSelectionModel_.get(), pThis_->getHandle()));
+	std::auto_ptr<EditCopyMessageAction> pCopyMessageAction(
+		new EditCopyMessageAction(pDocument_, pDocument_->getURIResolver(),
+			pMessageSelectionModel_.get(), pThis_->getHandle()));
 	std::auto_ptr<EditCommandAction<MessageWindowItem> > pCopyAction(
 		new EditCommandAction<MessageWindowItem>(pMessageWindow_->getFocusController(),
 		&MessageWindowItem::copy, &MessageWindowItem::canCopy));
@@ -418,8 +427,9 @@ void qm::MainWindowImpl::initActions()
 	pCopyMessageAction.release();
 	pCopyAction.release();
 	
-	std::auto_ptr<EditCutMessageAction> pCutMessageAction(new EditCutMessageAction(
-		pDocument_, pMessageSelectionModel_.get(), pThis_->getHandle()));
+	std::auto_ptr<EditCutMessageAction> pCutMessageAction(
+		new EditCutMessageAction(pDocument_, pDocument_->getURIResolver(),
+			pMessageSelectionModel_.get(), pThis_->getHandle()));
 	Action* pEditCutActions[] = {
 		0,
 		0,
@@ -489,8 +499,9 @@ void qm::MainWindowImpl::initActions()
 		pFindReplaceManager_.get());
 	
 	std::auto_ptr<EditPasteMessageAction> pPasteMessageAction(
-		new EditPasteMessageAction(pDocument_, pFolderModel_.get(),
-			pSyncManager_, pSyncDialogManager_, pProfile_, pThis_->getHandle()));
+		new EditPasteMessageAction(pDocument_, pDocument_->getURIResolver(),
+			pDocument_->getUndoManager(), pFolderModel_.get(), pSyncManager_,
+			pSyncDialogManager_, pProfile_, pThis_->getHandle()));
 	Action* pEditPasteActions[] = {
 		pPasteMessageAction.get(),
 		pPasteMessageAction.get(),
@@ -525,10 +536,11 @@ void qm::MainWindowImpl::initActions()
 	pSelectAllMessageAction.release();
 	pSelectAllAction.release();
 	
-	ADD_ACTION3(EditUndoMessageAction,
+	ADD_ACTION4(EditUndoMessageAction,
 		IDM_EDIT_UNDO,
 		pDocument_->getUndoManager(),
 		pDocument_,
+		pDocument_->getURIResolver(),
 		pThis_->getHandle());
 	ADD_ACTION2(FileCheckAction,
 		IDM_FILE_CHECK,
@@ -584,6 +596,10 @@ void qm::MainWindowImpl::initActions()
 		IDM_FILE_OFFLINE,
 		pDocument_,
 		pSyncManager_);
+	ADD_ACTION2(FileOpenAction,
+		IDM_FILE_OPEN,
+		pMessageFrameWindowManager_.get(),
+		pThis_->getHandle());
 	ADD_ACTION8(FilePrintAction,
 		IDM_FILE_PRINT,
 		pDocument_,
@@ -938,17 +954,18 @@ void qm::MainWindowImpl::initActions()
 	
 	ADD_ACTION5(MessageOpenAction,
 		IDM_MESSAGE_OPEN,
-		pDocument_,
+		pDocument_->getURIResolver(),
 		pViewModelManager_.get(),
 		pFolderModel_.get(),
 		pMessageFrameWindowManager_.get(),
 		pThis_->getHandle());
-	ADD_ACTION5(MessageOpenAttachmentAction,
+	ADD_ACTION6(MessageOpenAttachmentAction,
 		IDM_MESSAGE_OPENATTACHMENT,
-		pDocument_,
+		pDocument_->getURIResolver(),
 		pSecurityModel_.get(),
-		pProfile_,
+		pMessageFrameWindowManager_.get(),
 		pTempFileCleaner_,
+		pProfile_,
 		pThis_->getHandle());
 	ADD_ACTION3(MessageOpenLinkAction,
 		IDM_MESSAGE_OPENLINK,
@@ -958,7 +975,7 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION8(MessageOpenRecentAction,
 		IDM_MESSAGE_OPENRECENT,
 		pDocument_->getRecents(),
-		pDocument_,
+		pDocument_->getURIResolver(),
 		pViewModelManager_.get(),
 		pFolderModel_.get(),
 		pThis_,
@@ -1394,7 +1411,7 @@ void qm::MainWindowImpl::initMenuCreators()
 		pDocument_->getScriptManager());
 	ADD_MENUCREATOR2(RecentsMenuCreator,
 		pDocument_->getRecents(),
-		pDocument_);
+		pDocument_->getURIResolver());
 }
 
 void qm::MainWindowImpl::layoutChildren()
@@ -1687,7 +1704,7 @@ void qm::MainWindowImpl::messageChanged(const MessageWindowEvent& event)
 	if (bShowStatusBar_) {
 		pStatusBar_->updateListParts(L"");
 		if (pThis_->isShowPreviewWindow())
-			pStatusBar_->updateMessageParts(event.getMessageHolder(), event.getMessage());
+			pStatusBar_->updateMessageParts(event.getMessage());
 	}
 }
 
@@ -1800,11 +1817,12 @@ qm::MainWindowImpl::MessageSelectionModelImpl::~MessageSelectionModelImpl()
 {
 }
 
-void qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(AccountLock* pAccountLock,
-																		Folder** ppFolder,
-																		MessageHolderList* pList)
+void qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessageHolders(AccountLock* pAccountLock,
+																			  Folder** ppFolder,
+																			  MessageHolderList* pList)
 {
 	assert(pAccountLock);
+	assert(pList);
 	
 	if (ppFolder)
 		*ppFolder = 0;
@@ -1816,23 +1834,24 @@ void qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages(AccountL
 			pAccountLock->set(pViewModel->getFolder()->getAccount());
 			if (ppFolder)
 				*ppFolder = pViewModel->getFolder();
-			if (pList)
-				pViewModel->getSelection(pList);
+			pViewModel->getSelection(pList);
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		MessagePtrLock mpl(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
-		if (mpl) {
-			pAccountLock->set(mpl->getAccount());
-			if (ppFolder)
-				*ppFolder = mpl->getFolder();
-			if (pList)
+		MessageContext* pContext = pMainWindowImpl_->pPreviewModel_->getCurrentMessage();
+		if (pContext) {
+			MessagePtrLock mpl(pContext->getMessagePtr());
+			if (mpl) {
+				pAccountLock->set(mpl->getAccount());
+				if (ppFolder)
+					*ppFolder = mpl->getFolder();
 				pList->push_back(mpl);
+			}
 		}
 	}
 }
 
-bool qm::MainWindowImpl::MessageSelectionModelImpl::hasSelectedMessage()
+bool qm::MainWindowImpl::MessageSelectionModelImpl::hasSelectedMessageHolders()
 {
 	if (pMainWindowImpl_->pListWindow_->isActive()) {
 		ViewModel* pViewModel = pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
@@ -1842,32 +1861,34 @@ bool qm::MainWindowImpl::MessageSelectionModelImpl::hasSelectedMessage()
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		MessagePtrLock mpl(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
-		return mpl != 0;
+		MessageContext* pContext = pMainWindowImpl_->pPreviewModel_->getCurrentMessage();
+		if (pContext) {
+			MessagePtrLock mpl(pContext->getMessagePtr());
+			return mpl != 0;
+		}
 	}
 	return false;
 }
 
-MessagePtr qm::MainWindowImpl::MessageSelectionModelImpl::getFocusedMessage()
+MessagePtr qm::MainWindowImpl::MessageSelectionModelImpl::getFocusedMessagePtr()
 {
 	if (pMainWindowImpl_->pListWindow_->isActive()) {
 		ViewModel* pViewModel = pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
 		if (pViewModel) {
 			Lock<ViewModel> lock(*pViewModel);
-			if (pViewModel->getCount() != 0) {
-				unsigned int nItem = pViewModel->getFocused();
-				return MessagePtr(pViewModel->getMessageHolder(nItem));
-			}
+			if (pViewModel->getCount() != 0)
+				return MessagePtr(pViewModel->getMessageHolder(pViewModel->getFocused()));
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		return pMainWindowImpl_->pPreviewModel_->getCurrentMessage();
+		MessageContext* pContext = pMainWindowImpl_->pPreviewModel_->getCurrentMessage();
+		if (pContext)
+			return pContext->getMessagePtr();
 	}
-	
 	return MessagePtr();
 }
 
-bool qm::MainWindowImpl::MessageSelectionModelImpl::hasFocusedMessage()
+bool qm::MainWindowImpl::MessageSelectionModelImpl::hasFocusedMessagePtr()
 {
 	if (pMainWindowImpl_->pListWindow_->isActive()) {
 		ViewModel* pViewModel = pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
@@ -1877,10 +1898,52 @@ bool qm::MainWindowImpl::MessageSelectionModelImpl::hasFocusedMessage()
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
-		MessagePtrLock mpl(pMainWindowImpl_->pPreviewModel_->getCurrentMessage());
-		return mpl != 0;
+		MessageContext* pContext = pMainWindowImpl_->pPreviewModel_->getCurrentMessage();
+		if (pContext)
+			return !!pContext->getMessagePtr();
 	}
 	return false;
+}
+
+std::auto_ptr<MessageEnumerator> qm::MainWindowImpl::MessageSelectionModelImpl::getSelectedMessages()
+{
+	AccountLock lock;
+	Folder* pFolder = 0;
+	MessageHolderList l;
+	getSelectedMessageHolders(&lock, &pFolder, &l);
+	return std::auto_ptr<MessageEnumerator>(
+		new MessageHolderListMessageEnumerator(lock.get(), pFolder, l));
+}
+
+bool qm::MainWindowImpl::MessageSelectionModelImpl::hasSelectedMessages()
+{
+	return hasSelectedMessageHolders();
+}
+
+std::auto_ptr<MessageEnumerator> qm::MainWindowImpl::MessageSelectionModelImpl::getFocusedMessage()
+{
+	if (pMainWindowImpl_->pListWindow_->isActive()) {
+		ViewModel* pViewModel = pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
+		if (pViewModel) {
+			Lock<ViewModel> lock(*pViewModel);
+			if (pViewModel->getCount() != 0) {
+				MessageHolder* pmh = pViewModel->getMessageHolder(pViewModel->getFocused());
+				return std::auto_ptr<MessageEnumerator>(
+					new MessageHolderListMessageEnumerator(pmh->getAccount(),
+						pViewModel->getFolder(), MessageHolderList(1, pmh)));
+			}
+		}
+	}
+	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
+		return std::auto_ptr<MessageEnumerator>(new MessageContextMessageEnumerator(
+			pMainWindowImpl_->pPreviewModel_->getCurrentMessage()));
+	}
+	return std::auto_ptr<MessageEnumerator>(new MessageContextMessageEnumerator(0));
+}
+
+bool qm::MainWindowImpl::MessageSelectionModelImpl::hasFocusedMessage()
+{
+	return hasFocusedMessagePtr();
 }
 
 void qm::MainWindowImpl::MessageSelectionModelImpl::selectAll()
@@ -2032,6 +2095,8 @@ bool qm::MainWindow::save(bool bForce)
 	if (!pImpl_->pTabModel_->save(bForce))
 		return false;
 #endif
+	if (pImpl_->pMessageWindowMessageViewModeHolder_.get())
+		pImpl_->pMessageWindowMessageViewModeHolder_->save();
 	
 	Profile* pProfile = pImpl_->pProfile_;
 	pProfile->setInt(L"MainWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
@@ -2156,7 +2221,7 @@ void qm::MainWindow::setShowPreviewWindow(bool bShow)
 		}
 		else {
 			pImpl_->pPreviewModel_->disconnectFromViewModel();
-			pImpl_->pPreviewModel_->setMessage(0);
+			pImpl_->pPreviewModel_->clearMessage();
 		}
 	}
 }
@@ -2439,9 +2504,12 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pProfile_->getInt(L"MainWindow", L"SecurityMode")));
 	pImpl_->pViewModelManager_.reset(new ViewModelManager(pImpl_->pDocument_,
 		pImpl_->pProfile_, pImpl_->pSecurityModel_.get()));
+	pImpl_->pMessageWindowMessageViewModeHolder_.reset(
+		new MessageWindowMessageViewModeHolder(pImpl_->pProfile_, L"PreviewWindow"));
 	pImpl_->pPreviewModel_.reset(new PreviewMessageModel(
 		pImpl_->pViewModelManager_.get(), pImpl_->pProfile_,
-		pImpl_->pSplitterHelper_->isVisible(SplitterHelper::COMPONENT_PREVIEW)));
+		pImpl_->pSplitterHelper_->isVisible(SplitterHelper::COMPONENT_PREVIEW),
+		pImpl_->pMessageWindowMessageViewModeHolder_->getMessageViewMode()));
 	pImpl_->pOptionDialogManager_.reset(new OptionDialogManager(pImpl_->pDocument_,
 		pImpl_->pGoRound_, pImpl_->pViewModelManager_->getFilterManager(),
 		pImpl_->pViewModelManager_->getColorManager(), pImpl_->pSyncManager_,
@@ -2518,6 +2586,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pFolderSplitterWindow, pImpl_->pFolderModel_.get(), pImpl_->pProfile_));
 	FolderWindowCreateContext folderWindowContext = {
 		pContext->pDocument_,
+		pContext->pDocument_->getURIResolver(),
 		pContext->pDocument_->getUndoManager(),
 		pContext->pUIManager_,
 		pContext->pFolderImage_,
@@ -2583,6 +2652,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pMessageFrameWindowManager_.get()));
 	ListWindowCreateContext listContext = {
 		pContext->pDocument_,
+		pContext->pDocument_->getURIResolver(),
 		pContext->pUIManager_,
 		pImpl_->pSyncManager_,
 		pImpl_->pSyncDialogManager_
@@ -2599,9 +2669,10 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		SplitterHelper::COMPONENT_PREVIEW);
 	std::auto_ptr<MessageWindow> pMessageWindow(new MessageWindow(
 		pImpl_->pPreviewModel_.get(), pImpl_->pProfile_, L"PreviewWindow"));
-	pImpl_->pMessageViewModeHolder_ =
-		pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder") != 0 ?
-		pImpl_->pPreviewModel_.get() : pMessageWindow->getMessageViewModeHolder();
+	if (pImpl_->pProfile_->getInt(L"Global", L"SaveMessageViewModePerFolder"))
+		pImpl_->pMessageViewModeHolder_ = pImpl_->pPreviewModel_.get();
+	else
+		pImpl_->pMessageViewModeHolder_ = pImpl_->pMessageWindowMessageViewModeHolder_.get();
 	MessageWindowCreateContext messageContext = {
 		pContext->pDocument_,
 		pContext->pUIManager_,
@@ -2672,7 +2743,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 #ifdef QMRECENTSWINDOW
 	pImpl_->pRecentsWindowManager_.reset(new RecentsWindowManager(
-		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_,
+		pImpl_->pDocument_->getRecents(), pImpl_->pDocument_->getURIResolver(),
 		pImpl_->pActionMap_.get(), pImpl_->pFolderImage_,
 		pImpl_->pProfile_, getHandle()));
 #endif

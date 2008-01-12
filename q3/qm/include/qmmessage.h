@@ -24,7 +24,7 @@ class MessageCreator;
 class PartUtil;
 class AttachmentParser;
 
-class AccountManager;
+class URIResolver;
 
 
 /****************************************************************************
@@ -157,13 +157,13 @@ public:
 	unsigned int getFlags() const;
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
-	std::auto_ptr<Message> createMessage(AccountManager* pAccountManager,
-										 const WCHAR* pwszMessage,
-									     size_t nLen) const;
-	std::auto_ptr<qs::Part> createPart(AccountManager* pAccountManager,
-									   const WCHAR* pwszMessage,
+	std::auto_ptr<Message> createMessage(const WCHAR* pwszMessage,
+									     size_t nLen,
+										 const URIResolver* pURIResolver) const;
+	std::auto_ptr<qs::Part> createPart(const WCHAR* pwszMessage,
 									   size_t nLen,
 									   qs::Part* pParent,
+									   const URIResolver* pURIResolver,
 									   bool bMessage) const;
 	bool createHeader(qs::Part* pPart,
 					  const WCHAR* pwszMessage,
@@ -188,14 +188,14 @@ public:
 							  std::auto_ptr<qs::Part> pPart);
 	static bool attachFilesOrURIs(qs::Part* pPart,
 								  const AttachmentList& l,
-								  AccountManager* pAccountManager,
+								  const URIResolver* pURIResolver,
 								  unsigned int nSecurityMode,
 								  const WCHAR* pwszArchiveName,
 								  const WCHAR* pwszExcludePattern,
 								  const WCHAR* pwszTempDir);
 	static bool attachFileOrURI(qs::Part* pPart,
 								const WCHAR* pwszFileOrURI,
-								AccountManager* pAccountManager,
+								const URIResolver* pURIResolver,
 								unsigned int nSecurityMode);
 #ifdef QMZIP
 	static bool attachArchivedFile(qs::Part* pPart,
@@ -241,6 +241,12 @@ public:
 		DIGEST_MULTIPART,
 		DIGEST_RFC1153
 	};
+	
+	enum Rfc822Mode {
+		RFC822_AUTO,
+		RFC822_INLINE,
+		RFC822_ATTACHMENT
+	};
 
 public:
 	typedef std::vector<qs::WSTRING> ReferenceList;
@@ -266,18 +272,18 @@ public:
 	qs::wstring_ptr getAllTextCharset() const;
 	qs::wxstring_size_ptr getBodyText(const WCHAR* pwszQuote,
 									  const WCHAR* pwszCharset,
-									  bool bForceRfc822Inline) const;
+									  Rfc822Mode rfc822Mode) const;
 	bool getBodyText(const WCHAR* pwszQuote,
 					 const WCHAR* pwszCharset,
-					 bool bForceRfc288Inline,
+					 Rfc822Mode rfc822Mode,
 					 qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
-	qs::wstring_ptr getBodyTextCharset(bool bForceRfc822Inline) const;
+	qs::wstring_ptr getBodyTextCharset(Rfc822Mode rfc822Mode) const;
 	qs::wxstring_size_ptr getFormattedText(bool bUseSendersTimeZone,
 										   const WCHAR* pwszCharset,
-										   bool bForceRfc822Inline) const;
+										   Rfc822Mode rfc822Mode) const;
 	bool getFormattedText(bool bUseSendersTimeZone,
 						  const WCHAR* pwszCharset,
-						  bool bForceRfc822Inline,
+						  Rfc822Mode rfc822Mode,
 						  qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
 	bool getDigest(MessageList* pList) const;
 	DigestMode getDigestMode() const;
@@ -286,6 +292,7 @@ public:
 	const qs::Part* getAlternativePart(const WCHAR* pwszMediaType,
 									   const WCHAR* pwszSubType) const;
 	const qs::Part* getPartByContentId(const WCHAR* pwszContentId) const;
+	const qs::Part* getEnclosingPart(const qs::Part* pCandidatePart) const;
 	qs::Part* getEnclosingPart(qs::Part* pCandidatePart) const;
 	bool copyContentFields(qs::Part* pPart) const;
 
@@ -314,6 +321,11 @@ public:
 	static bool isContentType(const qs::ContentTypeParser* pContentType,
 							  const WCHAR* pwszMediaType,
 							  const WCHAR* pwszSubType);
+	static bool isMultipart(const qs::ContentTypeParser* pContentType);
+
+private:
+	static bool isRfc822Rendered(Rfc822Mode rfc822Mode,
+								 bool bAttachment);
 
 private:
 	const qs::Part& part_;
@@ -338,7 +350,8 @@ public:
 	enum GetAttachmentsFlag {
 		GAF_NONE				= 0x00,
 		GAF_INCLUDEDELETED		= 0x01,
-		GAF_INCLUDEAPPLEFILE	= 0x02
+		GAF_INCLUDEAPPLEFILE	= 0x02,
+		GAF_INCLUDERFC822		= 0x04
 	};
 
 public:

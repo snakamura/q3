@@ -31,8 +31,7 @@ class MessageModelHandler;
 class MessageModelEvent;
 class MessageModelRestoreEvent;
 
-class MessageHolder;
-class Message;
+class MessageContext;
 
 
 /****************************************************************************
@@ -48,10 +47,10 @@ public:
 
 public:
 	virtual Account* getCurrentAccount() const = 0;
-	virtual void setCurrentAccount(Account* pAccount) = 0;
 	virtual Folder* getCurrentFolder() const = 0;
-	virtual MessagePtr getCurrentMessage() const = 0;
-	virtual void setMessage(MessageHolder* pmh) = 0;
+	virtual MessageContext* getCurrentMessage() const = 0;
+	virtual void setMessage(std::auto_ptr<MessageContext> pContext) = 0;
+	virtual void clearMessage() = 0;
 	virtual void reloadProfiles() = 0;
 	virtual void addMessageModelHandler(MessageModelHandler* pHandler) = 0;
 	virtual void removeMessageModelHandler(MessageModelHandler* pHandler) = 0;
@@ -73,17 +72,17 @@ class AbstractMessageModel :
 	public DefaultMessageHolderHandler
 {
 protected:
-	AbstractMessageModel();
+	AbstractMessageModel(MessageViewMode* pDefaultMessageViewMode);
 
 public:
 	virtual ~AbstractMessageModel();
 
 public:
 	virtual Account* getCurrentAccount() const;
-	virtual void setCurrentAccount(Account* pAccount);
 	virtual Folder* getCurrentFolder() const;
-	virtual MessagePtr getCurrentMessage() const;
-	virtual void setMessage(MessageHolder* pmh);
+	virtual MessageContext* getCurrentMessage() const;
+	virtual void setMessage(std::auto_ptr<MessageContext> pContext);
+	virtual void clearMessage();
 	virtual void addMessageModelHandler(MessageModelHandler* pHandler);
 	virtual void removeMessageModelHandler(MessageModelHandler* pHandler);
 
@@ -105,15 +104,15 @@ public:
 	virtual void messageHolderKeysChanged(const MessageHolderEvent& event);
 
 protected:
+	virtual void updateCurrentMessage() = 0;
 	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const = 0;
-	virtual bool isAlwaysUpdateToViewModel() const = 0;
 
 protected:
-	void updateCurrentMessage();
-	void updateToViewModel(bool bClearIfChanged);
+	void setCurrentAccount(Account* pAccount);
+	void asyncExec(qs::Runnable* pRunnable);
 
 protected:
-	void fireMessageChanged(MessageHolder* pmh) const;
+	void fireMessageChanged(MessageContext* pContext) const;
 	void fireUpdateRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const;
 	void fireApplyRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const;
 
@@ -126,10 +125,12 @@ private:
 	typedef std::vector<MessageModelHandler*> HandlerList;
 
 private:
+	MessageViewMode* pDefaultMessageViewMode_;
 	Account* pAccount_;
-	MessagePtr ptr_;
+	std::auto_ptr<MessageContext> pContext_;
 	HandlerList listHandler_;
 	ViewModel* pViewModel_;
+	qs::Synchronizer* pSynchronizer_;
 };
 
 
@@ -142,15 +143,15 @@ private:
 class MessageMessageModel : public AbstractMessageModel
 {
 public:
-	MessageMessageModel();
+	explicit MessageMessageModel(MessageViewMode* pDefaultMessageViewMode);
 	virtual ~MessageMessageModel();
 
 public:
 	virtual void reloadProfiles();
 
 protected:
+	virtual void updateCurrentMessage();
 	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const;
-	virtual bool isAlwaysUpdateToViewModel() const;
 
 private:
 	MessageMessageModel(const MessageMessageModel&);
@@ -172,14 +173,15 @@ class PreviewMessageModel :
 public:
 	PreviewMessageModel(ViewModelManager* pViewModelManager,
 						qs::Profile* pProfile,
-						bool bConnectToViewModel);
+						bool bConnectToViewModel,
+						MessageViewMode* pDefaultMessageViewMode);
 	virtual ~PreviewMessageModel();
 
 public:
 	virtual void reloadProfiles();
 
 public:
-	void updateToViewModel();
+	void updateToViewModel(bool bClearIfChanged);
 	void connectToViewModel();
 	void disconnectFromViewModel();
 	bool isConnectedToViewModel() const;
@@ -196,8 +198,8 @@ public:
 	virtual void timerTimeout(qs::Timer::Id nId);
 
 protected:
+	virtual void updateCurrentMessage();
 	virtual MessageViewMode* getMessageViewMode(ViewModel* pViewModel) const;
-	virtual bool isAlwaysUpdateToViewModel() const;
 
 private:
 	void killTimer();
@@ -250,12 +252,12 @@ class MessageModelEvent
 {
 public:
 	MessageModelEvent(const MessageModel* pModel,
-					  MessageHolder* pmh);
+					  MessageContext* pContext);
 	~MessageModelEvent();
 
 public:
 	const MessageModel* getMessageModel() const;
-	MessageHolder* getMessageHolder() const;
+	MessageContext* getMessageContext() const;
 
 public:
 	MessageModelEvent(const MessageModelEvent&);
@@ -263,7 +265,7 @@ public:
 
 private:
 	const MessageModel* pModel_;
-	MessageHolder* pmh_;
+	MessageContext* pContext_;
 };
 
 

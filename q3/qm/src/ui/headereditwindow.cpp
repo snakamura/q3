@@ -1612,7 +1612,9 @@ void qm::AttachmentHeaderEditItem::setFocus()
 void qm::AttachmentHeaderEditItem::paste()
 {
 #ifdef _WIN32_WCE
-	ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pEditMessage_->getDocument()));
+	Document* pDocument = pEditMessage_->getDocument();
+	ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(
+		pDocument, pDocument->getURIResolver()));
 	if (!pDataObject.get())
 		return;
 #else
@@ -1631,7 +1633,9 @@ void qm::AttachmentHeaderEditItem::paste()
 bool qm::AttachmentHeaderEditItem::canPaste()
 {
 #ifdef _WIN32_WCE
-	ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(pEditMessage_->getDocument()));
+	Document* pDocument = pEditMessage_->getDocument();
+	ComPtr<IDataObject> pDataObject(MessageDataObject::getClipboard(
+		pDocument, pDocument->getURIResolver()));
 	if (!pDataObject.get())
 		return false;
 #else

@@ -42,8 +42,9 @@ class UndoContext;
 
 class Account;
 class AccountManager;
+class MessageHolderURI;
 class NormalFolder;
-class URI;
+class URIResolver;
 
 
 /****************************************************************************
@@ -216,20 +217,20 @@ public:
 	class Item
 	{
 	protected:
-		Item(std::auto_ptr<URI> pURI);
+		Item(std::auto_ptr<MessageHolderURI> pURI);
 	
 	public:
 		virtual ~Item();
 	
 	public:
-		const URI* getURI() const;
+		const MessageHolderURI* getURI() const;
 	
 	private:
 		Item(const Item&);
 		Item& operator=(const Item&);
 	
 	private:
-		std::auto_ptr<URI> pURI_;
+		std::auto_ptr<MessageHolderURI> pURI_;
 	};
 
 public:
@@ -317,7 +318,7 @@ public:
 	class Item : public MessageUndoItem::Item
 	{
 	public:
-		Item(std::auto_ptr<URI> pURI,
+		Item(std::auto_ptr<MessageHolderURI> pURI,
 			 unsigned int nFlags,
 			 unsigned int nMask);
 		virtual ~Item();
@@ -388,7 +389,7 @@ public:
 	class Item : public MessageUndoItem::Item
 	{
 	public:
-		Item(std::auto_ptr<URI> pURI,
+		Item(std::auto_ptr<MessageHolderURI> pURI,
 			 const WCHAR* pwszLabel);
 		virtual ~Item();
 	
@@ -473,7 +474,7 @@ private:
 	MessageListUndoItem& operator=(const MessageListUndoItem&);
 
 private:
-	typedef std::vector<URI*> URIList;
+	typedef std::vector<MessageHolderURI*> URIList;
 
 private:
 	URIList listURI_;
@@ -685,11 +686,13 @@ private:
 class UndoContext
 {
 public:
-	explicit UndoContext(AccountManager* pAccountManager);
+	UndoContext(AccountManager* pAccountManager,
+				const URIResolver* pURIResolver);
 	~UndoContext();
 
 public:
 	AccountManager* getAccountManager() const;
+	const URIResolver* getURIResolver() const;
 
 private:
 	UndoContext(const UndoContext&);
@@ -697,6 +700,7 @@ private:
 
 private:
 	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 };
 
 }

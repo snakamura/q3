@@ -28,6 +28,7 @@
 #include "resourceinc.h"
 #include "uiutil.h"
 #include "../model/dataobject.h"
+#include "../model/messagecontext.h"
 #include "../model/tempfilecleaner.h"
 #include "../model/uri.h"
 
@@ -338,15 +339,16 @@ void qm::UIUtil::getAttachmentInfo(const EditMessage::Attachment& attachment,
 	wstring_ptr wstrName;
 	wstring_ptr wstrFileName;
 	if (attachment.bNew_) {
-		if (wcsncmp(pwszPath, URI::getScheme(), wcslen(URI::getScheme())) == 0) {
-			std::auto_ptr<URI> pURI(URI::parse(pwszPath));
-			if (pURI.get() && pURI->getFragment().getName()) {
+		std::auto_ptr<URI> pURI(URIFactory::parseURI(pwszPath));
+		if (pURI.get()) {
+			if (pURI->getFragment().getName()) {
 				wstrFileName = allocWString(pURI->getFragment().getName());
 				pwszFileName = wstrFileName.get();
 				wstrName = concat(L"<", pwszFileName, L">");
 			}
-			else
+			else {
 				wstrName = allocWString(pwszPath);
+			}
 		}
 		else {
 			const WCHAR* p  = wcsrchr(pwszPath, L'\\');
@@ -378,7 +380,7 @@ bool qm::UIUtil::addMessageToClipboard(HWND hwnd,
 	if (!clipboard)
 		return false;
 	
-	wstring_ptr wstrURI(URI(pmh).toString());
+	wstring_ptr wstrURI(MessageHolderURI(pmh).toString());
 	size_t nLen = wcslen(wstrURI.get());
 	HANDLE hMem = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
 		(nLen + 2)*sizeof(WCHAR));
@@ -395,24 +397,24 @@ bool qm::UIUtil::addMessageToClipboard(HWND hwnd,
 	return true;
 }
 
-MessagePtr qm::UIUtil::getMessageFromClipboard(HWND hwnd,
-											   AccountManager* pAccountManager)
+std::auto_ptr<MessageContext> qm::UIUtil::getMessageFromClipboard(HWND hwnd,
+																  const URIResolver* pURIResolver)
 {
 	Clipboard clipboard(hwnd);
 	if (!clipboard)
-		return MessagePtr();
+		return std::auto_ptr<MessageContext>();
 	
 	HANDLE hMem = clipboard.getData(MessageDataObject::nFormats__[MessageDataObject::FORMAT_MESSAGEHOLDERLIST]);
 	if (!hMem)
-		return MessagePtr();
+		return std::auto_ptr<MessageContext>();
 	
 	LockGlobal lock(hMem);
 	void* p = lock.get();
-	std::auto_ptr<URI> pURI(URI::parse(static_cast<WCHAR*>(p)));
+	std::auto_ptr<URI> pURI(URIFactory::parseURI(static_cast<WCHAR*>(p)));
 	if (!pURI.get())
-		return MessagePtr();
+		return std::auto_ptr<MessageContext>();
 	
-	return pAccountManager->getMessage(*pURI.get());
+	return pURI->resolve(pURIResolver);
 }
 
 unsigned int qm::UIUtil::getPreferredWidth(HWND hwnd,

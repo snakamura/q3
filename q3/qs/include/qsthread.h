@@ -46,7 +46,7 @@ namespace qs {
 
 class Runnable;
 class Thread;
-class ThreadLocal;
+template<class T> class ThreadLocal;
 class CriticalSection;
 class SpinLock;
 class NoLock;
@@ -116,6 +116,7 @@ private:
  *
  */
 
+template<class T>
 class ThreadLocal
 {
 public:
@@ -123,8 +124,8 @@ public:
 	~ThreadLocal();
 
 public:
-	void* get() const;
-	void set(void* pValue);
+	T get() const;
+	void set(const T& pValue);
 
 private:
 	ThreadLocal(const ThreadLocal&);
@@ -402,6 +403,7 @@ public:
 
 public:
 	void syncExec(Runnable* pRunnable);
+	void asyncExec(std::auto_ptr<Runnable> pRunnable);
 
 private:
 	Synchronizer(const Synchronizer&);

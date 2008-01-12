@@ -78,7 +78,7 @@ private:
 
 private:
 	static DialogMap* pMap__;
-	static ThreadLocal* pModelessList__;
+	static ThreadLocal<ModelessList*>* pModelessList__;
 	static class InitializerImpl : public Initializer
 	{
 	public:

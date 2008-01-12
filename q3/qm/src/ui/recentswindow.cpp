@@ -44,14 +44,14 @@ RecentsWindow::Button qm::RecentsWindow::buttons__[] = {
 };
 
 qm::RecentsWindow::RecentsWindow(Recents* pRecents,
-								 const AccountManager* pAccountManager,
+								 const URIResolver* pURIResolver,
 								 ActionMap* pActionMap,
 								 const FolderImage* pFolderImage,
 								 Profile* pProfile,
 								 HWND hwnd) :
 	WindowBase(true),
 	pRecents_(pRecents),
-	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pActionMap_(pActionMap),
 	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
@@ -769,9 +769,9 @@ void qm::RecentsWindow::prepareItems(bool bActive)
 		unsigned int nCount = pRecents_->getCount();
 		listMessage.reserve(nCount);
 		for (unsigned int n = 0; n < nCount; ++n) {
-			const std::pair<URI*, Time>& p = pRecents_->get(n);
+			const std::pair<MessageHolderURI*, Time>& p = pRecents_->get(n);
 			if (bActive || p.second > time)
-				listMessage.push_back(pAccountManager_->getMessage(*p.first));
+				listMessage.push_back(p.first->resolveMessagePtr(pURIResolver_));
 		}
 	}
 	
@@ -938,7 +938,7 @@ void qm::RecentsWindow::openItem(ItemList::size_type nItem)
 	
 	MessagePtrLock mpl(listItem_[nItem]->getMessagePtr());
 	if (mpl) {
-		wstring_ptr wstrURI(URI(mpl).toString());
+		wstring_ptr wstrURI(MessageHolderURI(mpl).toString());
 		invokeAction(IDM_MESSAGE_OPENRECENT, wstrURI.get());
 	}
 }
@@ -1124,13 +1124,13 @@ bool qm::RecentsWindow::ScanCallback::item(const Item* pItem,
  */
 
 qm::RecentsWindowManager::RecentsWindowManager(Recents* pRecents,
-											   const AccountManager* pAccountManager,
+											   const URIResolver* pURIResolver,
 											   qs::ActionMap* pActionMap,
 											   const FolderImage* pFolderImage,
 											   qs::Profile* pProfile,
 											   HWND hwnd) :
 	pRecents_(pRecents),
-	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pActionMap_(pActionMap),
 	pFolderImage_(pFolderImage),
 	pProfile_(pProfile),
@@ -1176,7 +1176,7 @@ bool qm::RecentsWindowManager::createWindow()
 {
 	if (!pRecentsWindow_) {
 		std::auto_ptr<RecentsWindow> pRecentsWindow(new RecentsWindow(pRecents_,
-			pAccountManager_, pActionMap_, pFolderImage_, pProfile_, hwnd_));
+			pURIResolver_, pActionMap_, pFolderImage_, pProfile_, hwnd_));
 		if (!pRecentsWindow->create(L"QmRecentsWindow", 0,
 			WS_POPUP | WS_BORDER, 0, 0, 0, 0, 0, WS_EX_TOOLWINDOW, 0, 0, 0))
 			return false;

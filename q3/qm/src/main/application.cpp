@@ -251,6 +251,7 @@ void qm::ApplicationImpl::initMime()
 	
 	unsigned int nOptions = Part::O_USE_COMMENT_AS_PHRASE |
 		Part::O_INTERPRET_FORMAT_FLOWED |
+		Part::O_TREAT_RFC822_AS_ATTACHMENT |
 		Part::O_ALLOW_ALL;
 	if (pProfile_->getInt(L"Global", L"RFC2231"))
 		nOptions |= Part::O_RFC2231;

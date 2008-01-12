@@ -61,7 +61,7 @@ private:
 
 private:
 	static PropertySheetMap* pMap__;
-	static ThreadLocal* pModelessList__;
+	static ThreadLocal<ModelessList*>* pModelessList__;
 	static class InitializerImpl : public Initializer
 	{
 	public:
@@ -80,7 +80,7 @@ friend class PropertySheetBase;
 };
 
 PropertySheetBaseImpl::PropertySheetMap* qs::PropertySheetBaseImpl::pMap__;
-ThreadLocal* qs::PropertySheetBaseImpl::pModelessList__;
+ThreadLocal<PropertySheetBaseImpl::ModelessList*>* qs::PropertySheetBaseImpl::pModelessList__;
 PropertySheetBaseImpl::InitializerImpl qs::PropertySheetBaseImpl::init__;
 
 PropertySheetBaseImpl::PropertySheetMap* qs::PropertySheetBaseImpl::getPropertySheetMap()
@@ -90,18 +90,17 @@ PropertySheetBaseImpl::PropertySheetMap* qs::PropertySheetBaseImpl::getPropertyS
 
 const PropertySheetBaseImpl::ModelessList* qs::PropertySheetBaseImpl::getModelessList()
 {
-	return static_cast<ModelessList*>(pModelessList__->get());
+	return pModelessList__->get();
 }
 
 void qs::PropertySheetBaseImpl::addModelessPropertySheet(PropertySheetBase* pPropertySheetBase)
 {
-	ModelessList* pList = static_cast<ModelessList*>(pModelessList__->get());
-	pList->push_back(pPropertySheetBase);
+	pModelessList__->get()->push_back(pPropertySheetBase);
 }
 
 void qs::PropertySheetBaseImpl::removeModelessPropertySheet(PropertySheetBase* pPropertySheetBase)
 {
-	ModelessList* pList = static_cast<ModelessList*>(pModelessList__->get());
+	ModelessList* pList = pModelessList__->get();
 	ModelessList::iterator it = std::remove(
 		pList->begin(), pList->end(), pPropertySheetBase);
 	pList->erase(it, pList->end());
@@ -118,7 +117,7 @@ qs::PropertySheetBaseImpl::InitializerImpl::~InitializerImpl()
 bool qs::PropertySheetBaseImpl::InitializerImpl::init()
 {
 	PropertySheetBaseImpl::pMap__ = new PropertySheetBaseImpl::PropertySheetMap();
-	PropertySheetBaseImpl::pModelessList__ = new ThreadLocal();
+	PropertySheetBaseImpl::pModelessList__ = new ThreadLocal<ModelessList*>();
 	return true;
 }
 
@@ -143,7 +142,7 @@ bool qs::PropertySheetBaseImpl::InitializerImpl::initThread()
 
 void qs::PropertySheetBaseImpl::InitializerImpl::termThread()
 {
-	delete static_cast<ModelessList*>(pModelessList__->get());
+	delete pModelessList__->get();
 	PropertySheetBaseImpl::pMap__->termThread();
 }
 

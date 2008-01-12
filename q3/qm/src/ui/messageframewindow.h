@@ -61,6 +61,9 @@ public:
 public:
 	bool open(ViewModel* pViewModel,
 			  MessageHolder* pmh);
+	bool open(const CHAR* pszMessage,
+			  size_t nLen,
+			  const MessagePtr& parentPtr);
 	void close(MessageFrameWindow* pMessageFrameWindow);
 	void closeAll();
 	void showAll();
@@ -71,6 +74,7 @@ public:
 
 private:
 	MessageFrameWindow* create();
+	MessageFrameWindow* prepare();
 
 private:
 	MessageFrameWindowManager(const MessageFrameWindowManager&);

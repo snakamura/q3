@@ -268,9 +268,6 @@
 		<action name="MessageLabel">
 			<key key="L" shift="true"/>
 		</action>
-		<action name="MessageMacro">
-			<key key="X" ctrl="true" alt="true"/>
-		</action>
 		<action name="MessageMark">
 			<key key="M" ctrl="true"/>
 		</action>
@@ -385,6 +382,9 @@
 		</action>
 		<action name="FileClose">
 			<key name="escape"/>
+		</action>
+		<action name="MessageMacro">
+			<key key="X" ctrl="true" alt="true"/>
 		</action>
 		<action name="ToolInvokeAction">
 			<key key="X" alt="true" shift="true"/>

@@ -1,4 +1,4 @@
-At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', 2)} {@Name(From)} wrote:
+At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', :TZ-ORIGINAL)} {@Name(From)} wrote:
 {@Progn(@Set('quote', @Profile('', 'Global', 'Quote', '> ')),
         @Set('clipboard', @Clipboard()),
         @If($clipboard,

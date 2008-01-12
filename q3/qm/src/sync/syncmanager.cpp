@@ -1463,7 +1463,7 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr pt
 	
 	Recents* pRecents = pDocument_->getRecents();
 	
-	std::auto_ptr<URI> pURI;
+	std::auto_ptr<MessageHolderURI> pURI;
 	{
 		MessagePtrLock mpl(ptr);
 		if (mpl && !mpl->getFolder()->isFlag(Folder::FLAG_IGNOREUNSEEN)) {
@@ -1476,10 +1476,10 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr pt
 					MacroContext::FLAG_NONE, SECURITYMODE_NONE, 0, &globalVariable);
 				MacroValuePtr pValue(pMacro->value(&context));
 				if (pValue.get() && pValue->boolean())
-					pURI.reset(new URI(mpl));
+					pURI.reset(new MessageHolderURI(mpl));
 			}
 			else {
-				pURI.reset(new URI(mpl));
+				pURI.reset(new MessageHolderURI(mpl));
 			}
 		}
 	}

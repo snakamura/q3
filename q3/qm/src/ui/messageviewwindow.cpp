@@ -39,6 +39,7 @@
 
 #include "messageviewwindow.h"
 #include "uiutil.h"
+#include "../model/messagecontext.h"
 #include "../model/uri.h"
 #include "../uimodel/messagemodel.h"
 
@@ -124,11 +125,7 @@ bool qm::MessageViewWindowFactory::create()
 MessageViewWindow* qm::MessageViewWindowFactory::getMessageViewWindow(const ContentTypeParser* pContentType)
 {
 #ifdef QMHTMLVIEW
-	bool bHtml = !bTextOnly_ &&
-		pContentType &&
-		_wcsicmp(pContentType->getMediaType(), L"text") == 0 &&
-		_wcsicmp(pContentType->getSubType(), L"html") == 0;
-	
+	bool bHtml = !bTextOnly_ && PartUtil::isContentType(pContentType, L"text", L"html");
 	if (bHtml && !pHtml_ && isHtmlViewSupported()) {
 		if (!createHtmlView())
 			bHtml = false;
@@ -345,11 +342,11 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 										   unsigned int nFlags,
 										   unsigned int nSecurityMode)
 {
-	assert((pmh && pMessage) || (!pmh && !pMessage));
-	
 	nScrollPos_ = 0;
 	
-	if (pmh) {
+	if (pMessage) {
+		Account* pAccount = pmh ? pmh->getAccount() : 0;
+		
 		PartUtil util(*pMessage);
 		wxstring_size_ptr wstrText;
 		if (nFlags & FLAG_RAWMODE) {
@@ -367,14 +364,14 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			// TODO
 			// Pass selected messages
 			TemplateContext context(pmh, pMessage, MessageHolderList(),
-				pFolder, pmh->getAccount(), pDocument_, pActionInvoker_, getHandle(),
+				pFolder, pAccount, pDocument_, pActionInvoker_, getHandle(),
 				pwszEncoding, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 			if (pTemplate->getValue(context, &wstrText) != Template::RESULT_SUCCESS)
 				return false;
 		}
 		else if (nFlags & FLAG_INCLUDEHEADER) {
-			wstrText = util.getFormattedText(false, pwszEncoding, true);
+			wstrText = util.getFormattedText(false, pwszEncoding, PartUtil::RFC822_AUTO);
 		}
 		else {
 			const Part* pPart = 0;
@@ -382,9 +379,9 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 				pPart = util.getAlternativePart(L"text", L"plain");
 			
 			if (pPart)
-				wstrText = PartUtil(*pPart).getBodyText(0, pwszEncoding, true);
+				wstrText = PartUtil(*pPart).getBodyText(0, pwszEncoding, PartUtil::RFC822_AUTO);
 			else
-				wstrText = util.getBodyText(0, pwszEncoding, true);
+				wstrText = util.getBodyText(0, pwszEncoding, PartUtil::RFC822_AUTO);
 		}
 		
 		if (!wstrText.get())
@@ -394,7 +391,7 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			MacroVariableHolder globalVariable;
 			// TODO
 			// Pass selected messages
-			MacroContext context(pmh, pMessage, pmh->getAccount(), MessageHolderList(),
+			MacroContext context(pmh, pMessage, pAccount, MessageHolderList(),
 				pFolder, pDocument_, pActionInvoker_, getHandle(), pProfile_, pwszEncoding,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, 0, &globalVariable);
@@ -524,9 +521,12 @@ void qm::TextMessageViewWindow::copy()
 {
 	TextWindow::copy();
 	
-	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-	if (mpl)
-		UIUtil::addMessageToClipboard(getHandle(), mpl);
+	MessageContext* pContext = pMessageModel_->getCurrentMessage();
+	if (pContext) {
+		MessagePtrLock mpl(pContext->getMessagePtr());
+		if (mpl)
+			UIUtil::addMessageToClipboard(getHandle(), mpl);
+	}
 }
 
 bool qm::TextMessageViewWindow::canCopy()
@@ -1354,11 +1354,11 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 										   unsigned int nFlags,
 										   unsigned int nSecurityMode)
 {
-	assert(pmh && pMessage);
+	assert(pMessage);
 	
 	nScrollPos_ = 0;
 	
-	Account* pAccount = pmh->getAccount();
+	Account* pAccount = pmh ? pmh->getAccount() : 0;
 	
 	HRESULT hr = S_OK;
 	
@@ -1380,7 +1380,7 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	bool bClear = true;
 	
 	UnstructuredParser link;
-	if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
+	if (pAccount && pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
 		!pMessage->isMultipart() &&
 		pMessage->getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST) {
 		wstrURL = allocWString(link.getValue());
@@ -1620,9 +1620,12 @@ void qm::HtmlMessageViewWindow::copy()
 {
 	pWebBrowser_->ExecWB(OLECMDID_COPY, OLECMDEXECOPT_DONTPROMPTUSER, 0, 0);
 	
-	MessagePtrLock mpl(pMessageModel_->getCurrentMessage());
-	if (mpl)
-		UIUtil::addMessageToClipboard(getHandle(), mpl);
+	MessageContext* pContext = pMessageModel_->getCurrentMessage();
+	if (pContext) {
+		MessagePtrLock mpl(pContext->getMessagePtr());
+		if (mpl)
+			UIUtil::addMessageToClipboard(getHandle(), mpl);
+	}
 }
 
 bool qm::HtmlMessageViewWindow::canCopy()
@@ -2722,11 +2725,11 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 										   unsigned int nFlags,
 										   unsigned int nSecurityMode)
 {
-	assert(pmh && pMessage);
+	assert(pMessage);
 	
 	nScrollPos_ = 0;
 	
-	Account* pAccount = pmh->getAccount();
+	Account* pAccount = pmh ? pmh->getAccount() : 0;
 	
 	HRESULT hr = S_OK;
 	
@@ -2738,7 +2741,7 @@ bool qm::HtmlMessageViewWindow::setMessage(MessageHolder* pmh,
 	bool bClear = true;
 	
 	UnstructuredParser link;
-	if (pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
+	if (pAccount && pAccount->isSupport(Account::SUPPORT_EXTERNALLINK) &&
 		!pMessage->isMultipart() &&
 		pMessage->getField(L"X-QMAIL-Link", &link) == Part::FIELD_EXIST) {
 		wstrURL = allocWString(link.getValue());

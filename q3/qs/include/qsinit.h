@@ -39,6 +39,7 @@ public:
 
 public:
 	HINSTANCE getInstanceHandle() const;
+	bool isPrimaryThread() const;
 	const WCHAR* getTitle() const;
 	const WCHAR* getSystemEncoding() const;
 	const WCHAR* getMailEncoding() const;

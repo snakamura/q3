@@ -99,6 +99,9 @@ Section "Core (required)" Core
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -s $\"%1$\""
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\""
   
+  WriteRegStr HKCR "Microsoft Internet Mail Message\shell\Open_with_QMAIL3" "" "$(OPEN_WITH_QMAIL3)"
+  WriteRegStr HKCR "Microsoft Internet Mail Message\shell\Open_with_QMAIL3\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -o $\"%1$\""
+  
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "DisplayName" "QMAIL3"
   WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\QMAIL3" "NoModify" 1
@@ -335,6 +338,7 @@ LangString MAILBOXFOLDER_LABEL ${LANG_ENGLISH} "Mailbox folder"
 LangString REMOVEMAILBOX_TITLE ${LANG_ENGLISH} "Remove Mailbox"
 LangString REMOVEMAILBOX_SUBTITLE ${LANG_ENGLISH} "Choose whether you want to remove the folder in which mail data are stored."
 LangString REMOVEMAILBOX_LABEL ${LANG_ENGLISH} "Remove mail data"
+LangString OPEN_WITH_QMAIL3 ${LANG_ENGLISH} "Open with &QMAIL3"
 
 LangString DESC_SecCore ${LANG_JAPANESE} "POP3/SMTPのサポートを含むコアモジュール"
 LangString DESC_SecImap4 ${LANG_JAPANESE} "IMAP4のサポート"
@@ -353,6 +357,7 @@ LangString MAILBOXFOLDER_LABEL ${LANG_JAPANESE} "メールボックスフォルダ"
 LangString REMOVEMAILBOX_TITLE ${LANG_JAPANESE} "メールボックスの削除"
 LangString REMOVEMAILBOX_SUBTITLE ${LANG_JAPANESE} "メールのデータが置いてあるフォルダを削除するかどうかを指定してください。"
 LangString REMOVEMAILBOX_LABEL ${LANG_JAPANESE} "メールボックスを削除"
+LangString OPEN_WITH_QMAIL3 ${LANG_JAPANESE} "&QMAIL3で開く"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${Core} $(DESC_SecCore)

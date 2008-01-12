@@ -742,7 +742,7 @@ MacroValue::String qm::MacroValueMessageList::string() const
 		if (mpl) {
 			if (buf.getLength() != 0)
 				buf.append(L", ");
-			wstring_ptr wstrURI(URI(mpl).toString());
+			wstring_ptr wstrURI(MessageHolderURI(mpl).toString());
 			buf.append(wstrURI.get());
 		}
 	}

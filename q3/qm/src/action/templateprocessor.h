@@ -27,6 +27,7 @@ class EditFrameWindowManager;
 class EncodingModel;
 class ExternalEditorManager;
 class FolderModelBase;
+class MessageHolderURI;
 class MessageSelectionModel;
 class SecurityModel;
 class TemplateManager;
@@ -58,13 +59,20 @@ public:
 public:
 	bool process(const WCHAR* pwszTemplateName,
 				 const TemplateContext::ArgumentList& listArgument,
-				 const URI* pURI,
+				 const MessageHolderURI* pURI,
 				 bool bReverseExternalEditor) const;
 	bool process(const WCHAR* pwszTemplateName,
 				 const TemplateContext::ArgumentList& listArgument,
-				 const URI* pURI,
+				 bool bReverseExternalEditor,
+				 const WCHAR* pwszClass) const;
+
+private:
+	bool process(const WCHAR* pwszTemplateName,
+				 const TemplateContext::ArgumentList& listArgument,
+				 const MessageHolderURI* pURI,
 				 bool bReverseExternalEditor,
 				 Account* pAccountForced) const;
+	Account* getAccount(const WCHAR* pwszClass) const;
 
 private:
 	class MacroErrorHandlerImpl : public MacroErrorHandler

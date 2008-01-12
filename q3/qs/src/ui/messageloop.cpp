@@ -36,7 +36,7 @@ public:
 	FrameList listFrame_;
 
 public:
-	static ThreadLocal* pMessageLoop__;
+	static ThreadLocal<MessageLoop*>* pMessageLoop__;
 	static class InitializerImpl : public Initializer
 	{
 	public:
@@ -51,7 +51,7 @@ public:
 	} init__;
 };
 
-ThreadLocal* qs::MessageLoopImpl::pMessageLoop__;
+ThreadLocal<MessageLoop*>* qs::MessageLoopImpl::pMessageLoop__;
 MessageLoopImpl::InitializerImpl qs::MessageLoopImpl::init__;
 
 void qs::MessageLoopImpl::processIdle()
@@ -76,7 +76,7 @@ bool qs::MessageLoopImpl::isIdleMessage(const MSG& msg)
 
 MessageLoop* qs::MessageLoopImpl::getMessageLoop()
 {
-	return static_cast<MessageLoop*>(pMessageLoop__->get());
+	return pMessageLoop__->get();
 }
 
 
@@ -96,7 +96,7 @@ qs::MessageLoopImpl::InitializerImpl::~InitializerImpl()
 
 bool qs::MessageLoopImpl::InitializerImpl::init()
 {
-	pMessageLoop__ = new ThreadLocal();
+	pMessageLoop__ = new ThreadLocal<MessageLoop*>();
 	return true;
 }
 
@@ -113,7 +113,7 @@ bool qs::MessageLoopImpl::InitializerImpl::initThread()
 
 void qs::MessageLoopImpl::InitializerImpl::termThread()
 {
-	delete static_cast<MessageLoop*>(pMessageLoop__->get());
+	delete pMessageLoop__->get();
 }
 
 

@@ -24,9 +24,9 @@ namespace qm {
 class RecentsWindow;
 class RecentsWindowManager;
 
-class AccountManager;
 class FolderImage;
 class Recents;
+class URIResolver;
 
 
 /****************************************************************************
@@ -54,7 +54,7 @@ private:
 
 public:
 	RecentsWindow(Recents* pRecents,
-				  const AccountManager* pAccountManager,
+				  const URIResolver* pURIResolver,
 				  qs::ActionMap* pActionMap,
 				  const FolderImage* pFolderImage,
 				  qs::Profile* pProfile,
@@ -232,7 +232,7 @@ private:
 
 private:
 	Recents* pRecents_;
-	const AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	qs::ActionMap* pActionMap_;
 	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;
@@ -278,7 +278,7 @@ class RecentsWindowManager : private RecentsHandler
 {
 public:
 	RecentsWindowManager(Recents* pRecents,
-						 const AccountManager* pAccountManager,
+						 const URIResolver* pURIResolver,
 						 qs::ActionMap* pActionMap,
 						 const FolderImage* pFolderImage,
 						 qs::Profile* pProfile,
@@ -301,7 +301,7 @@ private:
 
 private:
 	Recents* pRecents_;
-	const AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	qs::ActionMap* pActionMap_;
 	const FolderImage* pFolderImage_;
 	qs::Profile* pProfile_;

@@ -15,6 +15,7 @@
 
 #include <boost/bind.hpp>
 
+#include "messagecontext.h"
 #include "uri.h"
 
 using namespace qm;
@@ -29,13 +30,13 @@ using namespace qs;
 
 struct qm::RecentsImpl
 {
-	typedef std::vector<std::pair<URI*, Time> > URIList;
+	typedef std::vector<std::pair<MessageHolderURI*, Time> > URIList;
 	typedef std::vector<RecentsHandler*> HandlerList;
 	
 	void fireRecentsChanged(RecentsEvent::Type type);
 	
 	Recents* pThis_;
-	const AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	Profile* pProfile_;
 	unsigned int nMax_;
 	std::auto_ptr<Macro> pFilter_;
@@ -62,7 +63,7 @@ void qm::RecentsImpl::fireRecentsChanged(RecentsEvent::Type type)
  *
  */
 
-qm::Recents::Recents(const AccountManager* pAccountManager,
+qm::Recents::Recents(const URIResolver* pURIResolver,
 					 Profile* pProfile) :
 	pImpl_(0)
 {
@@ -78,7 +79,7 @@ qm::Recents::Recents(const AccountManager* pAccountManager,
 	
 	pImpl_ = new RecentsImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->pAccountManager_ = pAccountManager;
+	pImpl_->pURIResolver_ = pURIResolver;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->nMax_ = pProfile->getInt(L"Recents", L"Max");
 	pImpl_->pFilter_ = pFilter;
@@ -122,14 +123,14 @@ unsigned int qm::Recents::getCount() const
 	return static_cast<unsigned int>(pImpl_->list_.size());
 }
 
-const std::pair<URI*, qs::Time>& qm::Recents::get(unsigned int n) const
+const std::pair<MessageHolderURI*, qs::Time>& qm::Recents::get(unsigned int n) const
 {
 	assert(isLocked());
 	assert(n < pImpl_->list_.size());
 	return pImpl_->list_[n];
 }
 
-void qm::Recents::add(std::auto_ptr<URI> pURI)
+void qm::Recents::add(std::auto_ptr<MessageHolderURI> pURI)
 {
 	assert(pURI.get());
 	
@@ -160,7 +161,7 @@ void qm::Recents::add(std::auto_ptr<URI> pURI)
 	pImpl_->fireRecentsChanged(RecentsEvent::TYPE_ADDED);
 }
 
-void qm::Recents::remove(const URI* pURI)
+void qm::Recents::remove(const MessageHolderURI* pURI)
 {
 	assert(pURI);
 	
@@ -185,7 +186,7 @@ void qm::Recents::clear()
 		return;
 	
 	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(),
-		boost::bind(qs::deleter<URI>(),
+		boost::bind(qs::deleter<MessageHolderURI>(),
 			boost::bind(&RecentsImpl::URIList::value_type::first, _1)));
 	pImpl_->list_.clear();
 	
@@ -199,7 +200,8 @@ void qm::Recents::removeSeens()
 	bool bChanged = false;
 	
 	for (RecentsImpl::URIList::iterator it = pImpl_->list_.begin(); it != pImpl_->list_.end(); ) {
-		MessagePtrLock mpl(pImpl_->pAccountManager_->getMessage(*(*it).first));
+		const MessageHolderURI* pURI = (*it).first;
+		MessagePtrLock mpl(pURI->resolveMessagePtr(pImpl_->pURIResolver_));
 		if (!mpl || mpl->isSeen()) {
 			delete (*it).first;
 			it = pImpl_->list_.erase(it);

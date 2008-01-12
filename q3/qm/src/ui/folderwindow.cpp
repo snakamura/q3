@@ -189,6 +189,7 @@ public:
 	Profile* pProfile_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	UndoManager* pUndoManager_;
 	const FolderImage* pFolderImage_;
 	SyncManager* pSyncManager_;
@@ -726,7 +727,7 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 				ProgressDialogMessageOperationCallback callback(
 					pThis_->getParentFrame(), nId, nId);
 				if (!MessageDataObject::pasteMessages(pDataObject, pAccountManager_,
-					pNormalFolder, flag, &callback, pUndoManager_))
+					pURIResolver_, pNormalFolder, flag, &callback, pUndoManager_))
 					messageBox(Application::getApplication().getResourceHandle(),
 						IDS_ERROR_COPYMESSAGES, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				
@@ -1423,6 +1424,7 @@ qm::FolderWindow::FolderWindow(WindowBase* pParentWindow,
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pProfile_ = pProfile;
 	pImpl_->pAccountManager_ = 0;
+	pImpl_->pURIResolver_ = 0;
 	pImpl_->pUndoManager_ = 0;
 	pImpl_->pSyncManager_ = 0;
 	pImpl_->nId_ = 0;
@@ -1579,6 +1581,7 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	FolderWindowCreateContext* pContext =
 		static_cast<FolderWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pAccountManager_ = pContext->pAccountManager_;
+	pImpl_->pURIResolver_ = pContext->pURIResolver_;
 	pImpl_->pUndoManager_ = pContext->pUndoManager_;
 	pImpl_->pFolderImage_ = pContext->pFolderImage_;
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;

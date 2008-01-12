@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <functional>
 
+#include "messagecontext.h"
 #include "undo.h"
 #include "uri.h"
 #include "../util/util.h"
@@ -208,8 +209,8 @@ std::auto_ptr<UndoExecutor> qm::MessageUndoItem::getExecutor(const UndoContext& 
 	if (listItem_.empty())
 		return std::auto_ptr<UndoExecutor>(new EmptyUndoExecutor());
 	
-	AccountManager* pAccountManager = context.getAccountManager();
-	Account* pAccount = Util::getAccountOrFolder(pAccountManager, wstrAccount_.get()).first;
+	Account* pAccount = Util::getAccountOrFolder(
+		context.getAccountManager(), wstrAccount_.get()).first;
 	if (!pAccount)
 		return std::auto_ptr<UndoExecutor>();
 	Lock<Account> lock(*pAccount);
@@ -217,7 +218,7 @@ std::auto_ptr<UndoExecutor> qm::MessageUndoItem::getExecutor(const UndoContext& 
 	std::auto_ptr<MessageUndoExecutor> pExecutor(createExecutor(pAccount));
 	for (ItemList::const_iterator it = listItem_.begin(); it != listItem_.end(); ++it) {
 		const Item* pItem = *it;
-		MessagePtrLock mpl(pAccountManager->getMessage(*pItem->getURI()));
+		MessagePtrLock mpl(pItem->getURI()->resolveMessagePtr(context.getURIResolver()));
 		if (!mpl)
 			return std::auto_ptr<UndoExecutor>();
 		pExecutor->add(mpl, pItem);
@@ -247,7 +248,7 @@ void qm::MessageUndoItem::add(MessageHolder* pmh,
  *
  */
 
-qm::MessageUndoItem::Item::Item(std::auto_ptr<URI> pURI) :
+qm::MessageUndoItem::Item::Item(std::auto_ptr<MessageHolderURI> pURI) :
 	pURI_(pURI)
 {
 }
@@ -256,7 +257,7 @@ qm::MessageUndoItem::Item::~Item()
 {
 }
 
-const URI* qm::MessageUndoItem::Item::getURI() const
+const MessageHolderURI* qm::MessageUndoItem::Item::getURI() const
 {
 	return pURI_.get();
 }
@@ -317,7 +318,7 @@ void qm::SetFlagsUndoItem::add(MessageHolder* pmh,
 							   unsigned int nFlags,
 							   unsigned int nMask)
 {
-	std::auto_ptr<URI> pURI(new URI(pmh));
+	std::auto_ptr<MessageHolderURI> pURI(new MessageHolderURI(pmh));
 	std::auto_ptr<Item> pItem(new Item(pURI, nFlags, nMask));
 	MessageUndoItem::add(pmh, std::auto_ptr<MessageUndoItem::Item>(pItem));
 }
@@ -334,7 +335,7 @@ std::auto_ptr<MessageUndoExecutor> qm::SetFlagsUndoItem::createExecutor(Account*
  *
  */
 
-qm::SetFlagsUndoItem::Item::Item(std::auto_ptr<URI> pURI,
+qm::SetFlagsUndoItem::Item::Item(std::auto_ptr<MessageHolderURI> pURI,
 								 unsigned int nFlags,
 								 unsigned int nMask) :
 	MessageUndoItem::Item(pURI),
@@ -404,7 +405,7 @@ qm::SetLabelUndoItem::~SetLabelUndoItem()
 void qm::SetLabelUndoItem::add(MessageHolder* pmh,
 							   const WCHAR* pwszLabel)
 {
-	std::auto_ptr<URI> pURI(new URI(pmh));
+	std::auto_ptr<MessageHolderURI> pURI(new MessageHolderURI(pmh));
 	std::auto_ptr<Item> pItem(new Item(pURI, pwszLabel));
 	MessageUndoItem::add(pmh, std::auto_ptr<MessageUndoItem::Item>(pItem));
 }
@@ -421,7 +422,7 @@ std::auto_ptr<MessageUndoExecutor> qm::SetLabelUndoItem::createExecutor(Account*
  *
  */
 
-qm::SetLabelUndoItem::Item::Item(std::auto_ptr<URI> pURI,
+qm::SetLabelUndoItem::Item::Item(std::auto_ptr<MessageHolderURI> pURI,
 								 const WCHAR* pwszLabel) :
 	MessageUndoItem::Item(pURI)
 {
@@ -486,7 +487,7 @@ qm::MessageListUndoItem::MessageListUndoItem(const MessageHolderList& l)
 			pFolder = pmh->getFolder();
 		assert(pmh->getFolder() == pFolder);
 		
-		listURI_.push_back(new URI(pmh));
+		listURI_.push_back(new MessageHolderURI(pmh));
 	}
 	
 	if (pFolder)
@@ -495,7 +496,7 @@ qm::MessageListUndoItem::MessageListUndoItem(const MessageHolderList& l)
 
 qm::MessageListUndoItem::~MessageListUndoItem()
 {
-	std::for_each(listURI_.begin(), listURI_.end(), qs::deleter<URI>());
+	std::for_each(listURI_.begin(), listURI_.end(), qs::deleter<MessageHolderURI>());
 }
 
 std::auto_ptr<UndoExecutor> qm::MessageListUndoItem::getExecutor(const UndoContext& context)
@@ -503,9 +504,7 @@ std::auto_ptr<UndoExecutor> qm::MessageListUndoItem::getExecutor(const UndoConte
 	if (listURI_.empty())
 		return std::auto_ptr<UndoExecutor>(new EmptyUndoExecutor());
 	
-	AccountManager* pAccountManager = context.getAccountManager();
-	
-	NormalFolder* pFolder = getFolder(pAccountManager, wstrFolder_.get());
+	NormalFolder* pFolder = getFolder(context.getAccountManager(), wstrFolder_.get());
 	if (!pFolder)
 		return std::auto_ptr<UndoExecutor>();
 	
@@ -514,8 +513,8 @@ std::auto_ptr<UndoExecutor> qm::MessageListUndoItem::getExecutor(const UndoConte
 	MessageHolderList l;
 	l.reserve(listURI_.size());
 	for (URIList::const_iterator it = listURI_.begin(); it != listURI_.end(); ++it) {
-		URI* pURI = *it;
-		MessagePtrLock mpl(pAccountManager->getMessage(*pURI));
+		const MessageHolderURI* pURI = *it;
+		MessagePtrLock mpl(pURI->resolveMessagePtr(context.getURIResolver()));
 		if (!mpl)
 			return std::auto_ptr<UndoExecutor>();
 		l.push_back(mpl);
@@ -730,8 +729,10 @@ bool qm::GroupUndoExecutor::execute()
  *
  */
 
-qm::UndoContext::UndoContext(AccountManager* pAccountManager) :
-	pAccountManager_(pAccountManager)
+qm::UndoContext::UndoContext(AccountManager* pAccountManager,
+							 const URIResolver* pURIResolver) :
+	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver)
 {
 }
 
@@ -742,4 +743,9 @@ qm::UndoContext::~UndoContext()
 AccountManager* qm::UndoContext::getAccountManager() const
 {
 	return pAccountManager_;
+}
+
+const URIResolver* qm::UndoContext::getURIResolver() const
+{
+	return pURIResolver_;
 }

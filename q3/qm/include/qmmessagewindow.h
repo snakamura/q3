@@ -36,7 +36,6 @@ class MessageFrameWindowManager;
 class MessageHolder;
 class MessageMessageModel;
 class MessageModel;
-class MessageViewModeHolder;
 class MessageWindowItem;
 class ViewModel;
 class ViewModelManager;
@@ -165,7 +164,6 @@ public:
 	
 	FocusController<MessageWindowItem>* getFocusController() const;
 	MessageModel* getMessageModel() const;
-	MessageViewModeHolder* getMessageViewModeHolder() const;
 	AttachmentSelectionModel* getAttachmentSelectionModel() const;
 	
 	void saveFocusedItem();
@@ -192,8 +190,6 @@ protected:
 				   int cx,
 				   int cy);
 	LRESULT onTimer(UINT_PTR nId);
-	LRESULT onMessageModelMessageChanged(WPARAM wParam,
-										 LPARAM lParam);
 
 public:
 	virtual bool isShow() const;
@@ -237,12 +233,12 @@ class MessageWindowEvent
 {
 public:
 	MessageWindowEvent(MessageHolder* pmh,
-					   const Message& msg);
+					   const Message* pMessage);
 	~MessageWindowEvent();
 
 public:
 	MessageHolder* getMessageHolder() const;
-	const Message& getMessage() const;
+	const Message* getMessage() const;
 
 private:
 	MessageWindowEvent(const MessageWindowEvent&);
@@ -250,7 +246,7 @@ private:
 
 private:
 	MessageHolder* pmh_;
-	const Message& msg_;
+	const Message* pMessage_;
 };
 
 

@@ -47,13 +47,14 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 												 Folder* pFolder,
 												 const WCHAR* pwszName) const
 {
-	assert(pAccount);
 	assert(pwszName);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qm::TemplateManager");
 	
 	wstring_ptr wstrPath;
 	if (pFolder) {
+		assert(pAccount);
+		
 		WCHAR wszFolder[16];
 		_snwprintf(wszFolder, countof(wszFolder), L"_%d", pFolder->getId());
 		ConcatW c[] = {
@@ -71,7 +72,7 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 			wstrPath.reset(0);
 	}
 	
-	if (!wstrPath.get()) {
+	if (!wstrPath.get() && pAccount) {
 		ConcatW c[] = {
 			{ pAccount->getPath(),	-1 },
 			{ L"\\templates\\",		-1 },
@@ -82,20 +83,24 @@ const Template* qm::TemplateManager::getTemplate(Account* pAccount,
 		
 		log.debugf(L"Checking template file: %s.", wstrPath.get());
 		
-		if (!File::isFileExisting(wstrPath.get())) {
-			ConcatW c[] = {
-				{ wstrPath_.get(),		-1 },
-				{ L"\\templates\\",		-1 },
-				{ pAccount->getClass(),	-1 },
-				{ L"\\",				-1 },
-				{ pwszName,				-1 },
-				{ L".template",			-1 }
-			};
-			wstrPath = concat(c, countof(c));
-			
-			log.debugf(L"Checking template file: %s.", wstrPath.get());
-		}
+		if (!File::isFileExisting(wstrPath.get()))
+			wstrPath.reset(0);
 	}
+	
+	if (!wstrPath.get()) {
+		ConcatW c[] = {
+			{ wstrPath_.get(),								-1 },
+			{ L"\\templates\\",								-1 },
+			{ pAccount ? pAccount->getClass() : L"mail",	-1 },
+			{ L"\\",										-1 },
+			{ pwszName,										-1 },
+			{ L".template",									-1 }
+		};
+		wstrPath = concat(c, countof(c));
+		
+		log.debugf(L"Checking template file: %s.", wstrPath.get());
+	}
+	
 	assert(wstrPath.get());
 	
 	W2T(wstrPath.get(), ptszPath);

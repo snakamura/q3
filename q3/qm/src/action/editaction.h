@@ -53,6 +53,8 @@ class EditMessageHolder;
 class EditWindow;
 class FindReplaceManager;
 class SecurityModel;
+class SyncDialogManager;
+class SyncManager;
 
 
 /****************************************************************************

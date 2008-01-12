@@ -89,6 +89,7 @@
 #define IDS_FILTER_ATTACHMENT           1805
 #define IDS_FILTER_SOUND                1806
 #define IDS_FILTER_EXECUTABLE           1807
+#define IDS_FILTER_MESSAGE              1808
 #define IDS_COLUMN_TITLE                1900
 #define IDS_COLUMN_TYPE                 1901
 #define IDS_COLUMN_WIDTH                1902

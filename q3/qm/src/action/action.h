@@ -53,6 +53,7 @@ class FileHideAction;
 class FileImportAction;
 class FileLoadAction;
 class FileOfflineAction;
+class FileOpenAction;
 class FilePrintAction;
 class FileSalvageAction;
 class FileSaveAction;
@@ -185,6 +186,7 @@ class FolderWindow;
 class GoRound;
 class ListWindow;
 class MainWindow;
+class MessageEnumerator;
 class MessageFrameWindow;
 class MessageHolder;
 class MessageModel;
@@ -212,6 +214,7 @@ class Template;
 class UIManager;
 class UndoManager;
 class UpdateChecker;
+class URIResolver;
 class View;
 class ViewModel;
 class ViewModelHolder;
@@ -230,8 +233,9 @@ public:
 	AttachmentOpenAction(MessageModel* pMessageModel,
 						 AttachmentSelectionModel* pAttachmentSelectionModel,
 						 SecurityModel* pSecurityModel,
-						 qs::Profile* pProfile,
+						 MessageFrameWindowManager* pMessageFrameWindowManager,
 						 TempFileCleaner* pTempFileCleaner,
+						 qs::Profile* pProfile,
 						 HWND hwnd);
 	virtual ~AttachmentOpenAction();
 
@@ -434,6 +438,7 @@ class EditCopyMessageAction : public qs::AbstractAction
 {
 public:
 	EditCopyMessageAction(AccountManager* pAccountManager,
+						  const URIResolver* pURIResolver,
 						  MessageSelectionModel* pMessageSelectionModel,
 						  HWND hwnd);
 	virtual ~EditCopyMessageAction();
@@ -448,6 +453,7 @@ private:
 
 private:
 	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
 };
@@ -463,6 +469,7 @@ class EditCutMessageAction : public qs::AbstractAction
 {
 public:
 	EditCutMessageAction(AccountManager* pAccountManager,
+						 const URIResolver* pURIResolver,
 						 MessageSelectionModel* pMessageSelectionModel,
 						 HWND hwnd);
 	virtual ~EditCutMessageAction();
@@ -477,6 +484,7 @@ private:
 
 private:
 	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
 };
@@ -609,7 +617,9 @@ private:
 class EditPasteMessageAction : public qs::AbstractAction
 {
 public:
-	EditPasteMessageAction(Document* pDocument,
+	EditPasteMessageAction(AccountManager* pAccountManager,
+						   const URIResolver* pURIResolver,
+						   UndoManager* pUndoManager,
 						   FolderModelBase* pFolderModel,
 						   SyncManager* pSyncManager,
 						   SyncDialogManager* pSyncDialogManager,
@@ -629,7 +639,9 @@ private:
 	EditPasteMessageAction& operator=(const EditPasteMessageAction&);
 
 private:
-	Document* pDocument_;
+	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
+	UndoManager* pUndoManager_;
 	FolderModelBase* pFolderModel_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
@@ -674,6 +686,7 @@ class EditUndoMessageAction : public qs::AbstractAction
 public:
 	EditUndoMessageAction(UndoManager* pUndoManager,
 						  AccountManager* pAccountManager,
+						  const URIResolver* pURIResolver,
 						  HWND hwnd);
 	virtual ~EditUndoMessageAction();
 
@@ -688,6 +701,7 @@ private:
 private:
 	UndoManager* pUndoManager_;
 	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	HWND hwnd_;
 };
 
@@ -887,13 +901,13 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	bool exportMessages(Account* pAccount,
-						Folder* pFolder,
-						const MessageHolderList& l);
+	bool exportMessages(MessageEnumerator* pEnum);
 	bool writeMessage(qs::OutputStream* pStream,
+					  MessageEnumerator* pEnum,
+					  unsigned int nFlags);
+	bool writeMessage(qs::OutputStream* pStream,
+					  MessageEnumerator* pEnum,
 					  const Template* pTemplate,
-					  Folder* pFolder,
-					  MessageHolder* pmh,
 					  const WCHAR* pwszEncoding);
 
 public:
@@ -901,6 +915,10 @@ public:
 							 MessageHolder* pmh,
 							 unsigned int nFlags,
 							 unsigned int nSecurityMode);
+	static bool writeMessage(qs::OutputStream* pStream,
+							 MessageHolder* pmh,
+							 Message* pMessage,
+							 unsigned int nFlags);
 
 private:
 	FileExportAction(const FileExportAction&);
@@ -1071,6 +1089,35 @@ private:
 
 /****************************************************************************
  *
+ * FileOpenAction
+ *
+ */
+
+class FileOpenAction : public qs::AbstractAction
+{
+public:
+	FileOpenAction(MessageFrameWindowManager* pMessageFrameWindowManager,
+				   HWND hwnd);
+	virtual ~FileOpenAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	bool open(const WCHAR* pwszPath);
+
+private:
+	FileOpenAction(const FileOpenAction&);
+	FileOpenAction& operator=(const FileOpenAction&);
+
+private:
+	MessageFrameWindowManager* pMessageFrameWindowManager_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
  * FilePrintAction
  *
  */
@@ -1093,9 +1140,7 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	bool print(Account* pAccount,
-			   Folder* pFolder,
-			   MessageHolder* pmh,
+	bool print(MessageEnumerator* pEnum,
 			   const MessageHolderList& listSelected);
 
 private:
@@ -2113,8 +2158,7 @@ public:
 private:
 	std::auto_ptr<Macro> getMacro(const qs::ActionEvent& event) const;
 	bool eval(const Macro* pMacro,
-			  Folder* pFolder,
-			  const MessageHolderList& listMessageHolder,
+			  MessageEnumerator* pEnum,
 			  const MessageHolderList& listSelected,
 			  MacroVariableHolder* pGlobalVariable) const;
 
@@ -2255,12 +2299,12 @@ private:
 class MessageOpenAction : public qs::AbstractAction
 {
 public:
-	MessageOpenAction(AccountManager* pAccountManager,
+	MessageOpenAction(const URIResolver* pURIResolver,
 					  ViewModelManager* pViewModelManager,
 					  FolderModel* pFolderModel,
 					  MessageFrameWindowManager* pMessageFrameWindowManager,
 					  HWND hwnd);
-	MessageOpenAction(AccountManager* pAccountManager,
+	MessageOpenAction(const URIResolver* pURIResolver,
 					  ViewModelManager* pViewModelManager,
 					  ViewModelHolder* pViewModelHolder,
 					  MessageModel* pMessageModel,
@@ -2276,7 +2320,7 @@ private:
 	MessageOpenAction& operator=(const MessageOpenAction&);
 
 private:
-	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
 	ViewModelHolder* pViewModelHolder_;
@@ -2295,10 +2339,11 @@ private:
 class MessageOpenAttachmentAction : public qs::AbstractAction
 {
 public:
-	MessageOpenAttachmentAction(AccountManager* pAccountManager,
+	MessageOpenAttachmentAction(const URIResolver* pURIResolver,
 								SecurityModel* pSecurityModel,
-								qs::Profile* pProfile,
+								MessageFrameWindowManager* pMessageFrameWindowManager,
 								TempFileCleaner* pTempFileCleaner,
+								qs::Profile* pProfile,
 								HWND hwnd);
 	virtual ~MessageOpenAttachmentAction();
 
@@ -2311,7 +2356,7 @@ private:
 	MessageOpenAttachmentAction& operator=(const MessageOpenAttachmentAction&);
 
 private:
-	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	SecurityModel* pSecurityModel_;
 	AttachmentHelper helper_;
 	HWND hwnd_;
@@ -2357,7 +2402,7 @@ class MessageOpenRecentAction : public qs::AbstractAction
 {
 public:
 	MessageOpenRecentAction(Recents* pRecents,
-							AccountManager* pAccountManager,
+							const URIResolver* pURIResolver,
 							ViewModelManager* pViewModelManager,
 							FolderModel* pFolderModel,
 							MainWindow* pMainWindow,
@@ -2376,7 +2421,7 @@ private:
 
 private:
 	Recents* pRecents_;
-	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	ViewModelManager* pViewModelManager_;
 	FolderModel* pFolderModel_;
 	MainWindow* pMainWindow_;
@@ -2416,8 +2461,6 @@ private:
 					   const WCHAR* pwszAttachmentPath,
 					   bool bExternalEditor) const;
 	void openFeedURL(const WCHAR* pwszURL) const;
-	std::pair<Account*, bool> getAccount(const WCHAR* pwszClass,
-										 const WCHAR* pwszDefaultKey) const;
 
 private:
 	MessageOpenURLAction(const MessageOpenURLAction&);
@@ -3474,6 +3517,8 @@ public:
 
 private:
 	void init(qs::Profile* pProfile);
+	bool isPreview() const;
+	ViewModel* getViewModel() const;
 	std::pair<ViewModel*, unsigned int> getNextUnseen(ViewModel* pViewModel,
 													  unsigned int nIndex) const;
 	Folder* getNextUnseenFolder(Account* pAccount,
@@ -4047,96 +4092,6 @@ private:
 private:
 	MessageViewModeHolder* pMessageViewModeHolder_;
 };
-
-
-/****************************************************************************
- *
- * ActionUtil
- *
- */
-
-class ActionUtil
-{
-public:
-	static void info(HWND hwnd,
-					 UINT nMessage);
-	static void error(HWND hwnd,
-					  UINT nMessage);
-	static void error(HWND hwnd,
-					  const WCHAR* pwszMessage);
-};
-
-
-/****************************************************************************
- *
- * ActionParamUtil
- *
- */
-
-class ActionParamUtil
-{
-public:
-	static const WCHAR* getString(const qs::ActionParam* pParam,
-								  size_t n);
-	static unsigned int getNumber(const qs::ActionParam* pParam,
-								  size_t n);
-	static unsigned int getIndex(const qs::ActionParam* pParam,
-								 size_t n);
-	static std::pair<const WCHAR*, unsigned int> getStringOrIndex(const qs::ActionParam* pParam,
-																  size_t n);
-};
-
-
-/****************************************************************************
- *
- * FolderActionUtil
- *
- */
-
-class FolderActionUtil
-{
-public:
-	static std::pair<Account*, Folder*> getCurrent(const FolderModelBase* pModel);
-	static Account* getAccount(const FolderModelBase* pModel);
-	static Folder* getFolder(const FolderModelBase* pModel);
-};
-
-
-/****************************************************************************
- *
- * MessageActionUtil
- *
- */
-
-class MessageActionUtil
-{
-public:
-	static void select(ViewModel* pViewModel,
-					   unsigned int nIndex,
-					   MessageModel* pMessageModel);
-	static void select(ViewModel* pViewModel,
-					   unsigned int nIndex,
-					   bool bDelay);
-	static void selectNextUndeleted(ViewModel* pViewModel,
-									unsigned int nIndex,
-									const MessageHolderList& listExclude,
-									MessageModel* pMessageModel);
-};
-
-
-#ifdef QMTABWINDOW
-/****************************************************************************
- *
- * TabActionUtil
- *
- */
-
-class TabActionUtil
-{
-public:
-	static int getCurrent(TabModel* pModel);
-};
-#endif
 
 }
 

@@ -24,9 +24,9 @@ class Recents;
 class RecentsHandler;
 class RecentsEvent;
 
-class AccountManager;
 class Macro;
-class URI;
+class MessageHolderURI;
+class URIResolver;
 
 
 /****************************************************************************
@@ -38,7 +38,7 @@ class URI;
 class Recents
 {
 public:
-	Recents(const AccountManager* pAccountManager,
+	Recents(const URIResolver* pURIResolver,
 			qs::Profile* pProfile);
 	~Recents();
 
@@ -48,9 +48,9 @@ public:
 	const Macro* getFilter() const;
 	void setFilter(std::auto_ptr<Macro> pFilter);
 	unsigned int getCount() const;
-	const std::pair<URI*, qs::Time>& get(unsigned int n) const;
-	void add(std::auto_ptr<URI> pURI);
-	void remove(const URI* pURI);
+	const std::pair<MessageHolderURI*, qs::Time>& get(unsigned int n) const;
+	void add(std::auto_ptr<MessageHolderURI> pURI);
+	void remove(const MessageHolderURI* pURI);
 	void clear();
 	void removeSeens();
 	void save() const;

@@ -38,14 +38,18 @@
       @Concat('\nX-QMAIL-SubAccount: ', X-QMAIL-SubAccount),
       '')
 }
-X-QMAIL-Macro: @ForEach(@Messages('{@Concat('//', @Account(), '/', @Folder())}', {@Id()}), @Replied(@True()))
-X-QMAIL-OriginalCharset: {@BodyCharset(1)}{
+{
+  @Catch(@Concat('X-QMAIL-Macro: @ForEach(@Messages(\'',
+                 @Concat('//', @Account(), '/', @Folder()),
+                 '\', ',
+                 @Id(),
+                 '), @Replied(@True()))\n'),
+         '')
+}X-QMAIL-OriginalCharset: {@BodyCharset(:BODY-RFC822INLINE)}{
   @If(@Equal(@Profile('', 'Global', 'SaveSentInSameFolder', '0'), '1'),
       @Concat('\nX-QMAIL-Sentbox: ', @Folder()),
       '')
 }
 
-At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', 2)} {@Name(From)} wrote:
-{
-	@Body(@Profile('', 'Global', 'Quote', '> '), 1)
-}
+At {@FormatDate(@Date(Date), '%D %M1 %Y4 %h:%m:%s %z', :TZ-ORIGINAL)} {@Name(From)} wrote:
+{@Body(@Profile('', 'Global', 'Quote', '> '), :BODY-RFC822INLINE)}

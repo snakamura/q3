@@ -16,7 +16,7 @@ namespace qm {
 class JunkFilterUtil;
 
 class JunkFilter;
-class MessageHolder;
+class MessageEnumerator;
 
 
 /****************************************************************************
@@ -28,8 +28,17 @@ class MessageHolder;
 class JunkFilterUtil
 {
 public:
+	static bool manageMessageHolder(JunkFilter* pJunkFilter,
+									MessageHolder* pmh,
+									unsigned int nOperation);
+	static bool manageMessageEnumerator(JunkFilter* pJunkFilter,
+										MessageEnumerator* pEnum,
+										unsigned int nOperation);
+
+private:
 	static bool manage(JunkFilter* pJunkFilter,
 					   MessageHolder* pmh,
+					   MessageEnumerator* pEnum,
 					   unsigned int nOperation);
 };
 

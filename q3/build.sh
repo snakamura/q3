@@ -257,6 +257,9 @@ apidoc)
 	;;
 
 installer)
+	DISTDIR=`pwd`/../dist
+	mkdir -p $DISTDIR
+	
 	"$MAKENSIS" ../installer/q3.nsi
 	"$MAKENSIS" -DX64 ../installer/q3.nsi
 #	"$MAKENSIS" -DANSI ../installer/q3.nsi
@@ -264,7 +267,6 @@ installer)
 	VERSION=`cat version`
 	REVISION=`cat revision`
 	DATE=`date +%Y%m%d`
-	DISTDIR=`pwd`/../dist
 	mv $DISTDIR/q3u-win-x86-ja.exe $DISTDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
 	mv $DISTDIR/q3u-win-x64-ja.exe $DISTDIR/q3u-win-x64-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
 #	mv $DISTDIR/q3-win-x86-ja.exe $DISTDIR/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe

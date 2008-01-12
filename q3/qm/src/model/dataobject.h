@@ -31,9 +31,11 @@ class URIDataObject;
 class Account;
 class AccountManager;
 class MessageHolder;
+class MessageHolderURI;
 class MessageOperationCallback;
 class UndoManager;
 class URI;
+class URIResolver;
 
 
 /****************************************************************************
@@ -65,8 +67,10 @@ public:
 	typedef std::vector<URI*> URIList;
 
 public:
-	MessageDataObject(AccountManager* pAccountManager);
 	MessageDataObject(AccountManager* pAccountManager,
+					  const URIResolver* pURIResolver);
+	MessageDataObject(AccountManager* pAccountManager,
+					  const URIResolver* pURIResolver,
 					  Folder* pFolder,
 					  const MessageHolderList& l,
 					  Flag flag);
@@ -100,10 +104,12 @@ public:
 
 public:
 	static bool setClipboard(IDataObject* pDataObject);
-	static qs::ComPtr<IDataObject> getClipboard(AccountManager* pAccountManager);
+	static qs::ComPtr<IDataObject> getClipboard(AccountManager* pAccountManager,
+												const URIResolver* pURIResolver);
 	static bool queryClipboard();
 	static bool pasteMessages(IDataObject* pDataObject,
 							  AccountManager* pAccountManager,
+							  const URIResolver* pURIResolver,
 							  NormalFolder* pFolderTo,
 							  Flag flag,
 							  MessageOperationCallback* pCallback,
@@ -127,6 +133,7 @@ private:
 private:
 	ULONG nRef_;
 	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	Folder* pFolder_;
 	MessagePtrList listMessagePtr_;
 	Flag flag_;
@@ -221,7 +228,7 @@ public:
 	typedef std::vector<URI*> URIList;
 
 public:
-	URIDataObject(AccountManager* pAccountManager,
+	URIDataObject(const URIResolver* pURIResolver,
 				  unsigned int nSecurityMode,
 				  URIList& listURI);
 	~URIDataObject();
@@ -253,17 +260,12 @@ public:
 	STDMETHOD(EnumDAdvise)(IEnumSTATDATA** ppEnum);
 
 private:
-	const qs::Part* getPart(URIList::size_type n,
-							bool bBody,
-							Message* pMessage);
-
-private:
 	URIDataObject(const URIDataObject&);
 	URIDataObject& operator=(const URIDataObject&);
 
 private:
 	ULONG nRef_;
-	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	unsigned int nSecurityMode_;
 	URIList listURI_;
 

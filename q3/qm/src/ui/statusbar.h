@@ -78,8 +78,7 @@ public:
 	virtual ~MessageStatusBar();
 
 public:
-	void updateMessageParts(MessageHolder* pmh,
-							const Message& msg);
+	void updateMessageParts(const Message* pMessage);
 
 public:
 	virtual LRESULT windowProc(UINT uMsg,

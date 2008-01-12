@@ -149,34 +149,6 @@ void qs::Thread::init(Runnable* pRunnable)
 
 /****************************************************************************
  *
- * ThreadLocal
- *
- */
-
-qs::ThreadLocal::ThreadLocal() :
-	dwTls_(0xffffffff)
-{
-	dwTls_ = ::TlsAlloc();
-}
-
-qs::ThreadLocal::~ThreadLocal()
-{
-	::TlsFree(dwTls_);
-}
-
-void* qs::ThreadLocal::get() const
-{
-	return ::TlsGetValue(dwTls_);
-}
-
-void qs::ThreadLocal::set(void* pValue)
-{
-	::TlsSetValue(dwTls_, pValue);
-}
-
-
-/****************************************************************************
- *
  * SpinLock
  *
  */
@@ -420,6 +392,12 @@ void qs::Synchronizer::syncExec(Runnable* pRunnable)
 		0, reinterpret_cast<LPARAM>(pRunnable));
 }
 
+void qs::Synchronizer::asyncExec(std::auto_ptr<Runnable> pRunnable)
+{
+	pWindow_->postMessage(SynchronizerWindow::WM_ASYNCEXEC,
+		0, reinterpret_cast<LPARAM>(pRunnable.release()));
+}
+
 
 /****************************************************************************
  *
@@ -443,6 +421,7 @@ LRESULT qs::SynchronizerWindow::windowProc(UINT uMsg,
 {
 	BEGIN_MESSAGE_HANDLER()
 		HANDLE_MESSAGE(WM_SYNCEXEC, onSyncExec)
+		HANDLE_MESSAGE(WM_ASYNCEXEC, onAsyncExec)
 	END_MESSAGE_HANDLER()
 	return DefaultWindowHandler::windowProc(uMsg, wParam, lParam);
 }
@@ -451,6 +430,19 @@ LRESULT qs::SynchronizerWindow::onSyncExec(WPARAM wParam,
 										   LPARAM lParam)
 {
 	Runnable* pRunnable = reinterpret_cast<Runnable*>(lParam);
+	QTRY {
+		pRunnable->run();
+	}
+	QCATCH_ALL() {
+		;
+	}
+	return 0;
+}
+
+LRESULT qs::SynchronizerWindow::onAsyncExec(WPARAM wParam,
+											LPARAM lParam)
+{
+	std::auto_ptr<Runnable> pRunnable(reinterpret_cast<Runnable*>(lParam));
 	QTRY {
 		pRunnable->run();
 	}

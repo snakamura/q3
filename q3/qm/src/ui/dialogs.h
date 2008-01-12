@@ -490,10 +490,11 @@ private:
 class ExportDialog : public DefaultDialog
 {
 public:
-	ExportDialog(Account* pAccount,
-				 const TemplateManager* pTemplateManager,
+	ExportDialog(const TemplateManager* pTemplateManager,
+				 const WCHAR* pwszClass,
 				 qs::Profile* pProfile,
-				 bool bSingleMessage);
+				 bool bSingleMessage,
+				 bool bCanExportFlags);
 	virtual ~ExportDialog();
 
 public:
@@ -535,10 +536,11 @@ private:
 	};
 
 private:
-	Account* pAccount_;
 	const TemplateManager* pTemplateManager_;
+	const WCHAR* pwszClass_;
 	qs::Profile* pProfile_;
 	bool bSingleMessage_;
+	bool bCanExportFlags_;
 	qs::wstring_ptr wstrPath_;
 	unsigned int nFlags_;
 	qs::wstring_ptr wstrTemplate_;

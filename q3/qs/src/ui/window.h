@@ -55,8 +55,8 @@ private:
 	ControllerMapBase& operator=(const ControllerMapBase&);
 
 private:
-	std::auto_ptr<ThreadLocal> pThis_;
-	std::auto_ptr<ThreadLocal> pMap_;
+	std::auto_ptr<ThreadLocal<void*> > pThis_;
+	std::auto_ptr<ThreadLocal<Map*> > pMap_;
 };
 
 
@@ -128,7 +128,7 @@ private:
 	DestroyList listDestroy_;
 
 private:
-	static ThreadLocal* pWindowDestroy__;
+	static ThreadLocal<WindowDestroy*>* pWindowDestroy__;
 	static class InitializerImpl : public Initializer
 	{
 	public:

@@ -1446,21 +1446,18 @@ void qm::ViewModel::updateCacheCount()
 void qm::ViewModel::fireItemAdded() const
 {
 	assert(isLocked());
-	
 	fireEvent(ViewModelEvent(this), &ViewModelHandler::itemAdded);
 }
 
 void qm::ViewModel::fireItemRemoved() const
 {
 	assert(isLocked());
-	
 	fireEvent(ViewModelEvent(this), &ViewModelHandler::itemRemoved);
 }
 
 void qm::ViewModel::fireItemChanged(unsigned int nItem) const
 {
 	assert(isLocked());
-	
 	fireEvent(ViewModelEvent(this, nItem), &ViewModelHandler::itemChanged);
 }
 
@@ -1509,8 +1506,8 @@ void qm::ViewModel::fireDestroyed() const
 void qm::ViewModel::fireEvent(const ViewModelEvent& event,
 							  void (ViewModelHandler::*pfn)(const ViewModelEvent&)) const
 {
-	for (ViewModelHandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		((*it)->*pfn)(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(pfn, _1, boost::cref(event)));
 }
 
 

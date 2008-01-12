@@ -55,6 +55,7 @@ private:
 		STATE_GOROUND,
 		STATE_URL,
 		STATE_ATTACHMENT,
+		STATE_OPEN,
 		STATE_ACTION,
 		STATE_CREATE,
 		STATE_DRAFT
@@ -68,6 +69,7 @@ private:
 	qs::wstring_ptr wstrGoRound_;
 	qs::wstring_ptr wstrURL_;
 	qs::wstring_ptr wstrAttachment_;
+	qs::wstring_ptr wstrOpenPath_;
 	qs::wstring_ptr wstrPath_;
 	qs::wstring_ptr wstrAction_;
 	unsigned int nAction_;

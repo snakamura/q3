@@ -8,14 +8,19 @@
 
 #pragma warning(disable:4786)
 
+#include <qmaccount.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
-#include <qmaccount.h>
+#include <qmsecurity.h>
 
+#include <qsinit.h>
 #include <qsstl.h>
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
+#include "../model/messagecontext.h"
 #include "messagemodel.h"
 
 using namespace qm;
@@ -39,9 +44,11 @@ qm::MessageModel::~MessageModel()
  *
  */
 
-qm::AbstractMessageModel::AbstractMessageModel() :
+qm::AbstractMessageModel::AbstractMessageModel(MessageViewMode* pDefaultMessageViewMode) :
+	pDefaultMessageViewMode_(pDefaultMessageViewMode),
 	pAccount_(0),
-	pViewModel_(0)
+	pViewModel_(0),
+	pSynchronizer_(InitThread::getInitThread().getSynchronizer())
 {
 }
 
@@ -57,40 +64,27 @@ Account* qm::AbstractMessageModel::getCurrentAccount() const
 	return pAccount_;
 }
 
-void qm::AbstractMessageModel::setCurrentAccount(Account* pAccount)
-{
-	if (pAccount != pAccount_) {
-		if (pAccount_) {
-			pAccount_->removeMessageHolderHandler(this);
-			pAccount_->removeAccountHandler(this);
-		}
-		pAccount_ = pAccount;
-		if (pAccount_) {
-			pAccount_->addAccountHandler(this);
-			pAccount_->addMessageHolderHandler(this);
-		}
-	}
-}
-
 Folder* qm::AbstractMessageModel::getCurrentFolder() const
 {
 	return pViewModel_ ? pViewModel_->getFolder() : 0;
 }
 
-MessagePtr qm::AbstractMessageModel::getCurrentMessage() const
+MessageContext* qm::AbstractMessageModel::getCurrentMessage() const
 {
-	return ptr_;
+	return pContext_.get();
 }
 
-void qm::AbstractMessageModel::setMessage(MessageHolder* pmh)
+void qm::AbstractMessageModel::setMessage(std::auto_ptr<MessageContext> pContext)
 {
-	Message msg;
-	if (pmh)
-		setCurrentAccount(pmh->getAccount());
-	
-	ptr_.reset(pmh);
-	
-	fireMessageChanged(pmh);
+	if (pContext.get())
+		setCurrentAccount(pContext->getAccount());
+	pContext_ = pContext;
+	fireMessageChanged(pContext_.get());
+}
+
+void qm::AbstractMessageModel::clearMessage()
+{
+	setMessage(std::auto_ptr<MessageContext>());
 }
 
 void qm::AbstractMessageModel::addMessageModelHandler(MessageModelHandler* pHandler)
@@ -130,83 +124,104 @@ void qm::AbstractMessageModel::setViewModel(ViewModel* pViewModel)
 
 MessageViewMode* qm::AbstractMessageModel::getMessageViewMode()
 {
-	return pViewModel_ ? getMessageViewMode(pViewModel_) : 0;
+	return pViewModel_ ? getMessageViewMode(pViewModel_) : pDefaultMessageViewMode_;
 }
 
 void qm::AbstractMessageModel::itemRemoved(const ViewModelEvent& event)
 {
-	Lock<ViewModel> lock(*pViewModel_);
-	
-	MessagePtrLock mpl(ptr_);
-	if (!mpl)
-		updateCurrentMessage();
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(AbstractMessageModel* pModel) :
+			pModel_(pModel)
+		{
+		}
+		
+		virtual void run()
+		{
+			MessageContext* pContext = pModel_->pContext_.get();
+			if (!pContext)
+				return;
+			MessagePtr ptr(pContext->getMessagePtr());
+			if (!ptr)
+				return;
+			MessagePtrLock mpl(ptr);
+			if (!mpl)
+				pModel_->updateCurrentMessage();
+		}
+		
+		AbstractMessageModel* pModel_;
+	};
+	asyncExec(new RunnableImpl(this));
 }
 
 void qm::AbstractMessageModel::destroyed(const ViewModelEvent& event)
 {
+	assert(Init::getInit().isPrimaryThread());
 	assert(pViewModel_);
 	
 	setViewModel(0);
-	setMessage(0);
+	clearMessage();
 }
 
 void qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
 {
-	setMessage(0);
+	clearMessage();
 	setCurrentAccount(0);
 }
 
 void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent& event)
 {
-	MessagePtrLock mpl(ptr_);
-	if (mpl && mpl == event.getMessageHolder())
-		setMessage(mpl);
+	if (pContext_.get()) {
+		MessagePtrLock mpl(pContext_->getMessagePtr());
+		if (mpl && mpl == event.getMessageHolder())
+			setMessage(std::auto_ptr<MessageContext>(
+				new MessagePtrMessageContext(mpl)));
+	}
 }
 
-void qm::AbstractMessageModel::updateCurrentMessage()
+void qm::AbstractMessageModel::setCurrentAccount(Account* pAccount)
 {
-	if (isAlwaysUpdateToViewModel())
-		updateToViewModel(false);
+	if (pAccount != pAccount_) {
+		if (pAccount_) {
+			pAccount_->removeMessageHolderHandler(this);
+			pAccount_->removeAccountHandler(this);
+		}
+		pAccount_ = pAccount;
+		if (pAccount_) {
+			pAccount_->addAccountHandler(this);
+			pAccount_->addMessageHolderHandler(this);
+		}
+	}
+}
+
+void qm::AbstractMessageModel::asyncExec(Runnable* pRunnable)
+{
+	std::auto_ptr<Runnable> p(pRunnable);
+	if (Init::getInit().isPrimaryThread())
+		p->run();
 	else
-		setMessage(0);
+		pSynchronizer_->asyncExec(p);
 }
 
-void qm::AbstractMessageModel::updateToViewModel(bool bClearIfChanged)
+void qm::AbstractMessageModel::fireMessageChanged(MessageContext* pContext) const
 {
-	ViewModel* pViewModel = getViewModel();
-	assert(pViewModel);
-	
-	Lock<ViewModel> lock(*pViewModel);
-	
-	unsigned int nFocused = pViewModel->getFocused();
-	MessageHolder* pmh = 0;
-	if (nFocused < pViewModel->getCount())
-		pmh = pViewModel->getMessageHolder(nFocused);
-	
-	MessagePtrLock mpl(getCurrentMessage());
-	if (pmh != mpl || (!mpl && !pmh))
-		setMessage(bClearIfChanged ? 0 : pmh);
-}
-
-void qm::AbstractMessageModel::fireMessageChanged(MessageHolder* pmh) const
-{
-	MessageModelEvent event(this, pmh);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->messageChanged(event);
+	MessageModelEvent event(this, pContext);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&MessageModelHandler::messageChanged, _1, boost::cref(event)));
 }
 
 void qm::AbstractMessageModel::fireUpdateRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const
 {
 	MessageModelRestoreEvent event(this, pRestoreInfo);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->updateRestoreInfo(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&MessageModelHandler::updateRestoreInfo, _1, boost::cref(event)));
 }
 
 void qm::AbstractMessageModel::fireApplyRestoreInfo(ViewModel::RestoreInfo* pRestoreInfo) const
 {
 	MessageModelRestoreEvent event(this, pRestoreInfo);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->applyRestoreInfo(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&MessageModelHandler::applyRestoreInfo, _1, boost::cref(event)));
 }
 
 
@@ -216,7 +231,8 @@ void qm::AbstractMessageModel::fireApplyRestoreInfo(ViewModel::RestoreInfo* pRes
  *
  */
 
-qm::MessageMessageModel::MessageMessageModel()
+qm::MessageMessageModel::MessageMessageModel(MessageViewMode* pDefaultMessageViewMode) :
+	AbstractMessageModel(pDefaultMessageViewMode)
 {
 }
 
@@ -228,14 +244,14 @@ void qm::MessageMessageModel::reloadProfiles()
 {
 }
 
+void qm::MessageMessageModel::updateCurrentMessage()
+{
+	clearMessage();
+}
+
 MessageViewMode* qm::MessageMessageModel::getMessageViewMode(ViewModel* pViewModel) const
 {
 	return pViewModel->getMessageViewMode(ViewModel::MODETYPE_MESSAGE);
-}
-
-bool qm::MessageMessageModel::isAlwaysUpdateToViewModel() const
-{
-	return false;
 }
 
 
@@ -247,7 +263,9 @@ bool qm::MessageMessageModel::isAlwaysUpdateToViewModel() const
 
 qm::PreviewMessageModel::PreviewMessageModel(ViewModelManager* pViewModelManager,
 											 Profile* pProfile,
-											 bool bConnectToViewModel) :
+											 bool bConnectToViewModel,
+											 MessageViewMode* pDefaultMessageViewMode) :
+	AbstractMessageModel(pDefaultMessageViewMode),
 	pViewModelManager_(pViewModelManager),
 	pProfile_(pProfile),
 	nDelay_(300),
@@ -273,9 +291,27 @@ void qm::PreviewMessageModel::reloadProfiles()
 	bUpdateAlways_ = pProfile_->getInt(L"PreviewWindow", L"UpdateAlways") != 0;
 }
 
-void qm::PreviewMessageModel::updateToViewModel()
+void qm::PreviewMessageModel::updateToViewModel(bool bClearIfChanged)
 {
-	AbstractMessageModel::updateToViewModel(false);
+	ViewModel* pViewModel = getViewModel();
+	assert(pViewModel);
+	
+	Lock<ViewModel> lock(*pViewModel);
+	
+	unsigned int nFocused = pViewModel->getFocused();
+	MessageHolder* pmh = 0;
+	if (nFocused < pViewModel->getCount())
+		pmh = pViewModel->getMessageHolder(nFocused);
+	
+	MessageContext* pContext = getCurrentMessage();
+	MessagePtrLock mpl(pContext ? pContext->getMessagePtr() : MessagePtr());
+	if (pmh != mpl || (!mpl && !pmh)) {
+		if (bClearIfChanged || !pmh)
+			clearMessage();
+		else
+			setMessage(std::auto_ptr<MessageContext>(
+				new MessagePtrMessageContext(pmh)));
+	}
 }
 
 void qm::PreviewMessageModel::connectToViewModel()
@@ -307,7 +343,8 @@ void qm::PreviewMessageModel::save() const
 {
 	ViewModel* pViewModel = getViewModel();
 	if (pViewModel) {
-		MessagePtrLock mpl(getCurrentMessage());
+		MessageContext* pContext = getCurrentMessage();
+		MessagePtrLock mpl(pContext ? pContext->getMessagePtr() : MessagePtr());
 		ViewModel::RestoreInfo info(mpl);
 		if (mpl)
 			fireUpdateRestoreInfo(&info);
@@ -317,6 +354,8 @@ void qm::PreviewMessageModel::save() const
 
 void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 {
+	assert(Init::getInit().isPrimaryThread());
+	
 	if (!(event.getMask() & ViewModelItem::FLAG_FOCUSED))
 		return;
 	
@@ -328,13 +367,27 @@ void qm::PreviewMessageModel::itemStateChanged(const ViewModelEvent& event)
 		if (event.isDelay() && nDelay_ != 0)
 			bTimer_ = pTimer_->setTimer(TIMER_ITEMSTATECHANGED, nDelay_, this);
 		else
-			updateToViewModel();
+			updateToViewModel(false);
 	}
 }
 
 void qm::PreviewMessageModel::updated(const ViewModelEvent& event)
 {
-	AbstractMessageModel::updateToViewModel(!bUpdateAlways_);
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(PreviewMessageModel* pModel) :
+			pModel_(pModel)
+		{
+		}
+		
+		virtual void run()
+		{
+			pModel_->updateToViewModel(!pModel_->bUpdateAlways_);
+		}
+		
+		PreviewMessageModel* pModel_;
+	};
+	asyncExec(new RunnableImpl(this));
 }
 
 void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& event)
@@ -345,7 +398,8 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 	assert(pOldViewModel == event.getOldViewModel());
 	
 	if (pOldViewModel) {
-		MessagePtrLock mpl(getCurrentMessage());
+		MessageContext* pContext = getCurrentMessage();
+		MessagePtrLock mpl(pContext ? pContext->getMessagePtr() : MessagePtr());
 		ViewModel::RestoreInfo info(mpl);
 		if (mpl)
 			fireUpdateRestoreInfo(&info);
@@ -361,7 +415,8 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 		ViewModel::RestoreInfo info = pNewViewModel->getRestoreInfo();
 		MessagePtrLock mpl(info.getMessagePtr());
 		if (mpl) {
-			setMessage(mpl);
+			setMessage(std::auto_ptr<MessageContext>(
+				new MessagePtrMessageContext(mpl)));
 			fireApplyRestoreInfo(&info);
 		}
 		else {
@@ -369,24 +424,27 @@ void qm::PreviewMessageModel::viewModelSelected(const ViewModelManagerEvent& eve
 		}
 	}
 	else {
-		setMessage(0);
+		clearMessage();
 	}
 }
 
 void qm::PreviewMessageModel::timerTimeout(Timer::Id nId)
 {
 	killTimer();
-	updateToViewModel();
+	updateToViewModel(false);
+}
+
+void qm::PreviewMessageModel::updateCurrentMessage()
+{
+	if (bUpdateAlways_)
+		updateToViewModel(false);
+	else
+		clearMessage();
 }
 
 MessageViewMode* qm::PreviewMessageModel::getMessageViewMode(ViewModel* pViewModel) const
 {
 	return pViewModel->getMessageViewMode(ViewModel::MODETYPE_PREVIEW);
-}
-
-bool qm::PreviewMessageModel::isAlwaysUpdateToViewModel() const
-{
-	return bUpdateAlways_;
 }
 
 void qm::PreviewMessageModel::killTimer()
@@ -417,9 +475,9 @@ qm::MessageModelHandler::~MessageModelHandler()
  */
 
 qm::MessageModelEvent::MessageModelEvent(const MessageModel* pModel,
-										 MessageHolder* pmh) :
+										 MessageContext* pContext) :
 	pModel_(pModel),
-	pmh_(pmh)
+	pContext_(pContext)
 {
 }
 
@@ -432,9 +490,9 @@ const MessageModel* qm::MessageModelEvent::getMessageModel() const
 	return pModel_;
 }
 
-MessageHolder* qm::MessageModelEvent::getMessageHolder() const
+MessageContext* qm::MessageModelEvent::getMessageContext() const
 {
-	return pmh_;
+	return pContext_;
 }
 
 

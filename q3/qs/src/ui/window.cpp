@@ -1029,8 +1029,8 @@ qs::ControllerMapBase::ControllerMapBase() :
 	pThis_(0),
 	pMap_(0)
 {
-	std::auto_ptr<ThreadLocal> pThis(new ThreadLocal());
-	std::auto_ptr<ThreadLocal> pMap(new ThreadLocal());
+	std::auto_ptr<ThreadLocal<void*> > pThis(new ThreadLocal<void*>());
+	std::auto_ptr<ThreadLocal<Map*> > pMap(new ThreadLocal<Map*>());
 	
 	pThis_ = pThis;
 	pMap_ = pMap;
@@ -1048,7 +1048,7 @@ bool qs::ControllerMapBase::initThread()
 
 void qs::ControllerMapBase::termThread()
 {
-	Map* pMap = static_cast<Map*>(pMap_->get());
+	Map* pMap = pMap_->get();
 	assert(pMap->empty());
 	delete pMap;
 }
@@ -1067,7 +1067,7 @@ void* qs::ControllerMapBase::getController(HWND hwnd)
 {
 	assert(hwnd);
 	
-	Map* pMap = static_cast<Map*>(pMap_->get());
+	Map* pMap = pMap_->get();
 	Map::iterator it = pMap->find(hwnd);
 	if (it != pMap->end())
 		return (*it).second;
@@ -1081,14 +1081,14 @@ void qs::ControllerMapBase::setController(HWND hwnd,
 	assert(hwnd);
 	assert(pController);
 	
-	Map* pMap = static_cast<Map*>(pMap_->get());
+	Map* pMap = pMap_->get();
 	pMap->insert(Map::value_type(hwnd, pController));
 }
 
 void qs::ControllerMapBase::removeController(HWND hwnd)
 {
 	assert(hwnd);
-	Map* pMap = static_cast<Map*>(pMap_->get());
+	Map* pMap = pMap_->get();
 	pMap->erase(hwnd);
 }
 
@@ -1100,7 +1100,7 @@ void qs::ControllerMapBase::removeController(HWND hwnd)
  *
  */
 
-ThreadLocal* qs::WindowDestroy::pWindowDestroy__;
+ThreadLocal<WindowDestroy*>* qs::WindowDestroy::pWindowDestroy__;
 WindowDestroy::InitializerImpl qs::WindowDestroy::init__;
 
 qs::WindowDestroy::WindowDestroy()
@@ -1170,7 +1170,7 @@ void qs::WindowDestroy::process(HWND hwnd)
 
 WindowDestroy* qs::WindowDestroy::getWindowDestroy()
 {
-	return static_cast<WindowDestroy*>(pWindowDestroy__->get());
+	return pWindowDestroy__->get();
 }
 
 bool qs::WindowDestroy::isMapped(HWND hwnd)
@@ -1233,7 +1233,7 @@ qs::WindowDestroy::InitializerImpl::~InitializerImpl()
 
 bool qs::WindowDestroy::InitializerImpl::init()
 {
-	WindowDestroy::pWindowDestroy__ = new ThreadLocal();
+	WindowDestroy::pWindowDestroy__ = new ThreadLocal<WindowDestroy*>();
 	return true;
 }
 

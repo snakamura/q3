@@ -405,7 +405,7 @@ bool qs::ClusterStorage::close()
 		return false;
 	
 	if (pImpl_->pFile_.get()) {
-		/// TODO
+		// TODO
 		if (!pImpl_->pFile_->close())
 			return false;
 		pImpl_->pFile_.reset(0);

@@ -35,7 +35,7 @@ value‚ªŽw’è‚³‚ê‚Ä‚¢‚È‚¢ê‡‚É‚ÍAƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚Ìƒtƒ‰ƒO‚ðŽæ“¾‚µ‚Ü‚·BŽw’
 
 ==ƒGƒ‰[
 *ˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
-*ƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚ª‚È‚¢ê‡
+*ƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒWƒzƒ‹ƒ_‚ª‚È‚¢ê‡
 *ƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚ªˆêŽž“I‚Èê‡iƒtƒ‰ƒO‚ðÝ’è‚·‚éê‡j
 *ƒtƒ‰ƒO‚ÌÝ’è‚ÉŽ¸”s‚µ‚½ê‡iƒtƒ‰ƒO‚ðÝ’è‚·‚éê‡j
 

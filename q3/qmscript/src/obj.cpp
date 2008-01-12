@@ -802,8 +802,8 @@ STDMETHODIMP qmscript::MessageImpl::get_bodyText(BSTR bstrQuote,
 	if (bstrCharset && *bstrCharset)
 		pwszCharset = bstrCharset;
 	
-	wxstring_size_ptr wstrBody(PartUtil(msg_).getBodyText(pwszQuote,
-		pwszCharset, bForceRfc822Inline == VARIANT_TRUE));
+	wxstring_size_ptr wstrBody(PartUtil(msg_).getBodyText(pwszQuote, pwszCharset,
+		bForceRfc822Inline == VARIANT_TRUE ? PartUtil::RFC822_INLINE : PartUtil::RFC822_AUTO));
 	if (!wstrBody.get())
 		return E_FAIL;
 	

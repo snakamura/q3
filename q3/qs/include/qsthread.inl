@@ -12,6 +12,38 @@
 
 /****************************************************************************
  *
+ * ThreadLocal
+ *
+ */
+
+template<class T>
+qs::ThreadLocal<T>::ThreadLocal() :
+	dwTls_(0xffffffff)
+{
+	dwTls_ = ::TlsAlloc();
+}
+
+template<class T>
+qs::ThreadLocal<T>::~ThreadLocal()
+{
+	::TlsFree(dwTls_);
+}
+
+template<class T>
+T qs::ThreadLocal<T>::get() const
+{
+	return static_cast<T>(::TlsGetValue(dwTls_));
+}
+
+template<class T>
+void qs::ThreadLocal<T>::set(const T& pValue)
+{
+	::TlsSetValue(dwTls_, pValue);
+}
+
+
+/****************************************************************************
+ *
  * CriticalSection
  *
  */

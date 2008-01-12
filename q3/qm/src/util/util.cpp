@@ -266,12 +266,7 @@ void qm::Util::getFilesOrURIs(IDataObject* pDataObject,
 #endif
 	
 	MessageDataObject::URIList listURI;
-	struct Deleter
-	{
-		Deleter(MessageDataObject::URIList& l) : l_(l) {}
-		~Deleter() { std::for_each(l_.begin(), l_.end(), qs::deleter<URI>()); }
-		MessageDataObject::URIList& l_;
-	} deleter(listURI);
+	container_deleter<MessageDataObject::URIList> deleter(listURI);
 	if (MessageDataObject::getURIs(pDataObject, &listURI)) {
 		for (MessageDataObject::URIList::const_iterator it = listURI.begin(); it != listURI.end(); ++it) {
 			wstring_ptr wstrURI((*it)->toString());

@@ -200,7 +200,7 @@ bool qm::MessageComposer::compose(const WCHAR* pwszMessage,
 	size_t nHeaderLen = pBody ? pBody - pwszMessage + 2 : nLen;
 	MessageCreator headerCreator;
 	std::auto_ptr<Message> pHeader(headerCreator.createMessage(
-		pDocument_, pwszMessage, nHeaderLen));
+		pwszMessage, nHeaderLen, pDocument_->getURIResolver()));
 	if (!pHeader.get())
 		return false;
 	
@@ -216,7 +216,8 @@ bool qm::MessageComposer::compose(const WCHAR* pwszMessage,
 	const WCHAR* pwszTempDir = Application::getApplication().getTemporaryFolder();
 	MessageCreator creator(nFlags, pSecurityModel_->getSecurityMode(),
 		pSubAccount->getTransferEncodingFor8Bit(), wstrExcludePattern.get(), pwszTempDir);
-	std::auto_ptr<Message> pMessage(creator.createMessage(pDocument_, pwszMessage, nLen));
+	std::auto_ptr<Message> pMessage(creator.createMessage(
+		pwszMessage, nLen, pDocument_->getURIResolver()));
 	if (!pMessage.get())
 		return false;
 	

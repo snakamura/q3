@@ -42,7 +42,7 @@ using namespace qs;
  */
 
 DialogBaseImpl::DialogMap* qs::DialogBaseImpl::pMap__;
-ThreadLocal* qs::DialogBaseImpl::pModelessList__;
+ThreadLocal<DialogBaseImpl::ModelessList*>* qs::DialogBaseImpl::pModelessList__;
 DialogBaseImpl::InitializerImpl qs::DialogBaseImpl::init__;
 
 INT_PTR qs::DialogBaseImpl::dialogProc(UINT uMsg,
@@ -174,18 +174,17 @@ DialogBaseImpl::DialogMap* qs::DialogBaseImpl::getDialogMap()
 
 const DialogBaseImpl::ModelessList* qs::DialogBaseImpl::getModelessList()
 {
-	return static_cast<ModelessList*>(pModelessList__->get());
+	return pModelessList__->get();
 }
 
 void qs::DialogBaseImpl::addModelessDialog(DialogBase* pDialogBase)
 {
-	ModelessList* pList = static_cast<ModelessList*>(pModelessList__->get());
-	pList->push_back(pDialogBase);
+	pModelessList__->get()->push_back(pDialogBase);
 }
 
 void qs::DialogBaseImpl::removeModelessDialog(DialogBase* pDialogBase)
 {
-	ModelessList* pList = static_cast<ModelessList*>(pModelessList__->get());
+	ModelessList* pList = pModelessList__->get();
 	ModelessList::iterator it = std::remove(
 		pList->begin(), pList->end(), pDialogBase);
 	pList->erase(it, pList->end());
@@ -209,7 +208,7 @@ qs::DialogBaseImpl::InitializerImpl::~InitializerImpl()
 bool qs::DialogBaseImpl::InitializerImpl::init()
 {
 	DialogBaseImpl::pMap__ = new DialogMap();
-	DialogBaseImpl::pModelessList__ = new ThreadLocal();
+	DialogBaseImpl::pModelessList__ = new ThreadLocal<ModelessList*>();
 	return true;
 }
 
@@ -234,7 +233,7 @@ bool qs::DialogBaseImpl::InitializerImpl::initThread()
 
 void qs::DialogBaseImpl::InitializerImpl::termThread()
 {
-	delete static_cast<ModelessList*>(pModelessList__->get());
+	delete pModelessList__->get();
 	DialogBaseImpl::pMap__->termThread();
 }
 

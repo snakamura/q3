@@ -224,6 +224,9 @@ public:
 	MacroValuePtr getArgument(unsigned int n) const;
 	bool setRegexResult(const qs::RegexRangeList& listRange);
 	void clearRegexResult();
+	bool isInCatch() const;
+	void pushCatch();
+	void popCatch();
 	void storeParsedMacro(std::auto_ptr<Macro> pMacro);
 
 private:
@@ -250,6 +253,7 @@ private:
 	std::auto_ptr<MacroFunctionHolder> pFunction_;
 	std::auto_ptr<MacroArgumentHolder> pArgument_;
 	size_t nRegexResultCount_;
+	unsigned int nCatch_;
 	MacroList listParsedMacro_;
 };
 

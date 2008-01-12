@@ -25,7 +25,8 @@ class SynchronizerWindow :
 {
 public:
 	enum {
-		WM_SYNCEXEC	= WM_APP + 1001
+		WM_SYNCEXEC	= WM_APP + 1001,
+		WM_ASYNCEXEC
 	};
 
 public:
@@ -40,6 +41,8 @@ public:
 protected:
 	LRESULT onSyncExec(WPARAM wParam,
 					   LPARAM lParam);
+	LRESULT onAsyncExec(WPARAM wParam,
+						LPARAM lParam);
 
 private:
 	SynchronizerWindow(const SynchronizerWindow&);

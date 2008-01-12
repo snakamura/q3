@@ -25,6 +25,7 @@
 #include <tchar.h>
 
 #include "dataobject.h"
+#include "messagecontext.h"
 #include "undo.h"
 #include "uri.h"
 #include "../util/util.h"
@@ -89,25 +90,31 @@ FORMATETC qm::MessageDataObject::formats__[] = {
 #endif
 };
 
-qm::MessageDataObject::MessageDataObject(AccountManager* pAccountManager) :
+qm::MessageDataObject::MessageDataObject(AccountManager* pAccountManager,
+										 const URIResolver* pURIResolver) :
 	nRef_(0),
 	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pFolder_(0),
 	flag_(FLAG_NONE)
 {
 	assert(pAccountManager);
+	assert(pURIResolver);
 }
 
 qm::MessageDataObject::MessageDataObject(AccountManager* pAccountManager,
+										 const URIResolver* pURIResolver,
 										 Folder* pFolder,
 										 const MessageHolderList& l,
 										 Flag flag) :
 	nRef_(0),
 	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	pFolder_(pFolder),
 	flag_(flag)
 {
 	assert(pAccountManager);
+	assert(pURIResolver);
 	assert(pFolder);
 	assert(pFolder->getAccount()->isLocked());
 	assert(!l.empty());
@@ -169,7 +176,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 		for (MessagePtrList::const_iterator it = listMessagePtr_.begin(); it != listMessagePtr_.end(); ++it) {
 			MessagePtrLock mpl(*it);
 			if (mpl) {
-				wstring_ptr wstrURI(URI(mpl).toString());
+				wstring_ptr wstrURI(MessageHolderURI(mpl).toString());
 				size_t nLen = wcslen(wstrURI.get());
 				Buffer::size_type n = buf.size();
 				buf.resize(buf.size() + nLen + 1);
@@ -317,10 +324,10 @@ STDMETHODIMP qm::MessageDataObject::SetData(FORMATETC* pFormat,
 	else if (pFormat->cfFormat == nFormats__[FORMAT_MESSAGEHOLDERLIST]) {
 		const WCHAR* p = static_cast<const WCHAR*>(pData);
 		while (*p) {
-			std::auto_ptr<URI> pURI(URI::parse(p));
+			std::auto_ptr<MessageHolderURI> pURI(URIFactory::parseMessageHolderURI(p));
 			if (!pURI.get())
 				return E_FAIL;
-			listMessagePtr_.push_back(pAccountManager_->getMessage(*pURI.get()));
+			listMessagePtr_.push_back(pURI->resolveMessagePtr(pURIResolver_));
 			p += wcslen(p) + 1;
 		}
 	}
@@ -395,12 +402,14 @@ bool qm::MessageDataObject::setClipboard(IDataObject* pDataObject)
 	return true;
 }
 
-ComPtr<IDataObject> qm::MessageDataObject::getClipboard(AccountManager* pAccountManager)
+ComPtr<IDataObject> qm::MessageDataObject::getClipboard(AccountManager* pAccountManager,
+														const URIResolver* pURIResolver)
 {
 	assert(pAccountManager);
 	
 #ifdef _WIN32_WCE
-	std::auto_ptr<MessageDataObject> pDataObject(new MessageDataObject(pAccountManager));
+	std::auto_ptr<MessageDataObject> pDataObject(
+		new MessageDataObject(pAccountManager, pURIResolver));
 	
 	Clipboard clipboard(0);
 	if (!clipboard)
@@ -444,6 +453,7 @@ bool qm::MessageDataObject::queryClipboard()
 
 bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 										  AccountManager* pAccountManager,
+										  const URIResolver* pURIResolver,
 										  NormalFolder* pFolderTo,
 										  Flag flag,
 										  MessageOperationCallback* pCallback,
@@ -451,6 +461,7 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 {
 	assert(pDataObject);
 	assert(pAccountManager);
+	assert(pURIResolver);
 	assert(pFolderTo);
 	
 	if (flag == FLAG_NONE)
@@ -467,10 +478,10 @@ bool qm::MessageDataObject::pasteMessages(IDataObject* pDataObject,
 	const WCHAR* p = static_cast<const WCHAR*>(lock.get());
 	MessagePtrList listMessagePtr;
 	while (*p) {
-		std::auto_ptr<URI> pURI(URI::parse(p));
+		std::auto_ptr<MessageHolderURI> pURI(URIFactory::parseMessageHolderURI(p));
 		if (!pURI.get())
 			return false;
-		listMessagePtr.push_back(pAccountManager->getMessage(*pURI.get()));
+		listMessagePtr.push_back(pURI->resolveMessagePtr(pURIResolver));
 		p += wcslen(p) + 1;
 	}
 	
@@ -595,7 +606,7 @@ bool qm::MessageDataObject::getURIs(IDataObject* pDataObject,
 	LockGlobal lock(stm.hGlobal);
 	const WCHAR* p = reinterpret_cast<const WCHAR*>(lock.get());
 	while (*p) {
-		std::auto_ptr<URI> pURI(URI::parse(p));
+		std::auto_ptr<URI> pURI(URIFactory::parseURI(p));
 		pList->push_back(pURI.get());
 		pURI.release();
 		p += wcslen(p) + 1;
@@ -845,11 +856,11 @@ FORMATETC qm::URIDataObject::formats__[] = {
 	}
 };
 
-qm::URIDataObject::URIDataObject(AccountManager* pAccountManager,
+qm::URIDataObject::URIDataObject(const URIResolver* pURIResolver,
 								 unsigned int nSecurityMode,
 								 URIList& listURI) :
 	nRef_(0),
-	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
 	nSecurityMode_(nSecurityMode)
 {
 	listURI_.swap(listURI);
@@ -899,19 +910,38 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 			static_cast<LONG>(listURI_.size()) <= pFormat->lindex)
 			return E_FAIL;
 		
-		Message msg;
-		const Part* pPart = getPart(pFormat->lindex, true, &msg);
+		const URI* pURI = listURI_[pFormat->lindex];
+		std::auto_ptr<MessageContext> pContext(pURI->resolve(pURIResolver_));
+		if (!pContext.get())
+			return E_FAIL;
+		Message* pMessage = pContext->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode_);
+		if (!pMessage)
+			return E_FAIL;
+		const Part* pPart = pURI->getFragment().getPart(pMessage);
 		if (!pPart)
 			return E_FAIL;
 		
-		malloc_size_ptr<unsigned char> pBody(pPart->getBodyData());
-		if (!pBody.get())
-			return E_FAIL;
-		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, pBody.size());
-		if (!hGlobal)
-			return E_OUTOFMEMORY;
-		LockGlobal lock(hGlobal);
-		memcpy(static_cast<CHAR*>(lock.get()), pBody.get(), pBody.size());
+		const Part* pEnclosedPart = pPart->getEnclosedPart();
+		if (pEnclosedPart) {
+			xstring_size_ptr str(pEnclosedPart->getContent());
+			if (!str.get())
+				return E_FAIL;
+			hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, str.size());
+			if (!hGlobal)
+				return E_OUTOFMEMORY;
+			LockGlobal lock(hGlobal);
+			memcpy(static_cast<CHAR*>(lock.get()), str.get(), str.size());
+		}
+		else {
+			malloc_size_ptr<unsigned char> pBody(pPart->getBodyData());
+			if (!pBody.get())
+				return E_FAIL;
+			hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, pBody.size());
+			if (!hGlobal)
+				return E_OUTOFMEMORY;
+			LockGlobal lock(hGlobal);
+			memcpy(static_cast<CHAR*>(lock.get()), pBody.get(), pBody.size());
+		}
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_FILEDESCRIPTOR]) {
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
@@ -924,17 +954,14 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 		pfgd->cItems = static_cast<UINT>(listURI_.size());
 		URIList::size_type n = 0;
 		while (n < listURI_.size()) {
-			Message msg;
-			const Part* pPart = getPart(n, false, &msg);
-			if (!pPart)
-				break;
+			const URI* pURI = listURI_[n];
 			
 			pfgd->fgd[n].dwFlags = 0;
 			
-			wstring_ptr wstrName(AttachmentParser(*pPart).getName());
-			if (!wstrName.get())
-				wstrName = allocWString(L"Untitled");
-			W2T(wstrName.get(), ptszName);
+			const WCHAR* pwszName = pURI->getFragment().getName();
+			if (!pwszName)
+				pwszName = L"Untitled";
+			W2T(pwszName, ptszName);
 			_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
 			
 			++n;
@@ -1028,22 +1055,6 @@ STDMETHODIMP qm::URIDataObject::DUnadvise(DWORD dwConnection)
 STDMETHODIMP qm::URIDataObject::EnumDAdvise(IEnumSTATDATA** ppEnum)
 {
 	return E_NOTIMPL;
-}
-
-const Part* qm::URIDataObject::getPart(URIList::size_type n,
-									   bool bBody,
-									   Message* pMessage)
-{
-	URI* pURI = listURI_[n];
-	MessagePtrLock mpl(pAccountManager_->getMessage(*pURI));
-	if (!mpl)
-		return 0;
-	
-	unsigned int nFlags = (bBody ? Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT);
-	if (!mpl->getMessage(nFlags, 0, nSecurityMode_, pMessage))
-		return 0;
-	
-	return pURI->getFragment().getPart(pMessage);
 }
 
 #endif

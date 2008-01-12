@@ -1081,8 +1081,8 @@ bool qm::CopyRuleAction::apply(RuleContext* pContext) const
 				return false;
 			}
 			
-			std::auto_ptr<Message> pMessage(MessageCreator().createMessage(
-				pContext->getDocument(), wstrValue.get(), wcslen(wstrValue.get())));
+			std::auto_ptr<Message> pMessage(MessageCreator().createMessage(wstrValue.get(),
+				wcslen(wstrValue.get()), pContext->getDocument()->getURIResolver()));
 			unsigned int nAppendFlags = pContext->isBackground() ?
 				Account::OPFLAG_BACKGROUND : Account::OPFLAG_NONE;
 			if (!pAccountTo->appendMessage(static_cast<NormalFolder*>(pFolderTo),

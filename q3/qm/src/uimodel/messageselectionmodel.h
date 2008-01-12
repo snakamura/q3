@@ -19,8 +19,11 @@
 
 namespace qm {
 
+class MessageSelectionModel;
+
 class AccountLock;
 class Folder;
+class MessageEnumerator;
 
 
 /****************************************************************************
@@ -35,11 +38,15 @@ public:
 	virtual ~MessageSelectionModel();
 
 public:
-	virtual void getSelectedMessages(AccountLock* pAccountLock,
-									 Folder** ppFolder,
-									 MessageHolderList* pList) = 0;
-	virtual bool hasSelectedMessage() = 0;
-	virtual MessagePtr getFocusedMessage() = 0;
+	virtual void getSelectedMessageHolders(AccountLock* pAccountLock,
+										   Folder** ppFolder,
+										   MessageHolderList* pList) = 0;
+	virtual bool hasSelectedMessageHolders() = 0;
+	virtual MessagePtr getFocusedMessagePtr() = 0;
+	virtual bool hasFocusedMessagePtr() = 0;
+	virtual std::auto_ptr<MessageEnumerator> getSelectedMessages() = 0;
+	virtual bool hasSelectedMessages() = 0;
+	virtual std::auto_ptr<MessageEnumerator> getFocusedMessage() = 0;
 	virtual bool hasFocusedMessage() = 0;
 	virtual void selectAll() = 0;
 	virtual bool canSelect() = 0;

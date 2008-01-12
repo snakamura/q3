@@ -17,4 +17,4 @@ X-QMAIL-Account: {@Account()}{
       '')}
 X-QMAIL-Attachment: {@Attachment(',', @True())}
 
-{@Body('', 2)}
+{@Body('', :BODY-INLINE)}

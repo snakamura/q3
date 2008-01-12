@@ -596,7 +596,8 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 				(bMove ? JunkFilter::OPERATION_REMOVEJUNK : 0);
 		if (nJunkOperation != 0) {
 			std::for_each(l.begin(), l.end(),
-				boost::bind(&JunkFilterUtil::manage, pJunkFilter_, _1, nJunkOperation));
+				boost::bind(&JunkFilterUtil::manageMessageHolder,
+					pJunkFilter_, _1, nJunkOperation));
 			pJunkFilter_->save(false);
 		}
 	}
@@ -792,20 +793,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 {
 	xstring_size_ptr strMessage;
 	SMIMEUtility::CertificateList listCertificate;
-	struct Deleter
-	{
-		Deleter(SMIMEUtility::CertificateList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(), qs::deleter<Certificate>());
-		}
-		
-		SMIMEUtility::CertificateList& l_;
-	} deleter(listCertificate);
+	container_deleter<SMIMEUtility::CertificateList> deleter(listCertificate);
 	unsigned int nSecurity = pMessage->getSecurity();
 	switch (type) {
 	case SMIMEUtility::TYPE_SIGNED:

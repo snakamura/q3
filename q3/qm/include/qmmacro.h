@@ -78,6 +78,7 @@ public:
 		CODE_INVALIDARGTYPE,
 		CODE_INVALIDARGVALUE,
 		CODE_NOCONTEXTMESSAGE,
+		CODE_NOCONTEXTMESSAGEHOLDER,
 		CODE_UNKNOWNFUNCTION,
 		CODE_INVALIDPART,
 		CODE_UNKNOWNACCOUNT,
@@ -214,6 +215,9 @@ public:
 	MacroValuePtr getArgument(unsigned int n) const;
 	bool setRegexResult(const qs::RegexRangeList& listRange);
 	void clearRegexResult();
+	bool isInCatch() const;
+	void pushCatch();
+	void popCatch();
 	void storeParsedMacro(std::auto_ptr<Macro> pMacro);
 	qs::wstring_ptr resolvePath(const WCHAR* pwszPath);
 

@@ -42,7 +42,7 @@ class SyncFilterManager;
 class JunkFilter;
 class TemplateManager;
 class UndoManager;
-class URI;
+class URIResolver;
 
 
 /****************************************************************************
@@ -68,7 +68,6 @@ public:
 							   const WCHAR* pwszName);
 	virtual Folder* getFolder(Account* pAccount,
 							  const WCHAR* pwszName) const;
-	virtual MessagePtr getMessage(const URI& uri) const;
 	virtual void addAccountManagerHandler(AccountManagerHandler* pHandler);
 	virtual void removeAccountManagerHandler(AccountManagerHandler* pHandler);
 
@@ -88,6 +87,7 @@ public:
 	Recents* getRecents() const;
 	UndoManager* getUndoManager() const;
 	JunkFilter* getJunkFilter() const;
+	URIResolver* getURIResolver() const;
 	
 	bool isOffline() const;
 	void setOffline(bool bOffline);

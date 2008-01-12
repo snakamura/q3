@@ -25,6 +25,7 @@ class AccountManager;
 class SyncDialogManager;
 class SyncManager;
 class UIManager;
+class URIResolver;
 
 
 /****************************************************************************
@@ -71,6 +72,7 @@ private:
 struct ListWindowCreateContext
 {
 	AccountManager* pAccountManager_;
+	const URIResolver* pURIResolver_;
 	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;

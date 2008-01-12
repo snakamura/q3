@@ -307,6 +307,7 @@ BEGIN
     IDS_FILTER_ATTACHMENT   "すべてのファイル (*.*)|*.*||"
     IDS_FILTER_SOUND        "サウンドファイル (*.wav)|*.wav|すべてのファイル (*.*)|*.*||"
     IDS_FILTER_EXECUTABLE   "実行ファイル (*.exe)|*.exe|すべてのファイル (*.*)|*.*||"
+    IDS_FILTER_MESSAGE      "メッセージファイル (*.eml)|*.eml|テキストファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*||"
 END
 
 STRINGTABLE DISCARDABLE 
