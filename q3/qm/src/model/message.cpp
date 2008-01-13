@@ -2166,6 +2166,12 @@ wstring_ptr qm::AttachmentParser::getName() const
 			wstrName = pContentType->getParameter(L"name");
 	}
 	
+	if (!wstrName.get() && PartUtil::isContentType(part_.getContentType(), L"message", L"rfc822")) {
+		UnstructuredParser subject;
+		if (part_.getEnclosedPart()->getField(L"Subject", &subject) == Part::FIELD_EXIST)
+			wstrName = concat(subject.getValue(), L".eml");
+	}
+	
 	if (wstrName.get()) {
 		if (File::isDeviceName(wstrName.get()))
 			wstrName = concat(L"_", wstrName.get());
