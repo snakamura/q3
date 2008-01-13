@@ -20,6 +20,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include <tchar.h>
 #ifndef _WIN32_WCE
 #	include <tmschema.h>
@@ -1558,14 +1560,15 @@ wstring_ptr qs::TextWindowImpl::getURL(size_t nLine,
 	if (wcsncmp(wstrURL.get(), L"\\\\", 2) != 0 &&
 		(wcslen(wstrURL.get()) <= 2 || !TextUtil::isDriveLetterChar(*wstrURL.get()) ||
 		*(wstrURL.get() + 1) != L':' || *(wstrURL.get() + 2) != L'\\')) {
-		URLSchemaList::const_iterator it = listURLSchema_.begin();
-		while (it != listURLSchema_.end()) {
-			if (wcsncmp(*it, wstrURL.get(), wcslen(*it)) == 0)
-				break;
-			++it;
+		URLSchemaList::const_iterator it = std::find_if(
+			listURLSchema_.begin(), listURLSchema_.end(),
+			boost::bind(&wcsncmp, _1, wstrURL.get(), boost::bind(&wcslen, _1)) == 0);
+		if (it == listURLSchema_.end()) {
+			if (TextUtil::isPhoneNumber(wstrURL.get()))
+				wstrURL = concat(L"tel:", wstrURL.get());
+			else
+				wstrURL = concat(L"mailto:", wstrURL.get());
 		}
-		if (it == listURLSchema_.end())
-			wstrURL = concat(L"mailto:", wstrURL.get());
 	}
 	
 	return wstrURL;

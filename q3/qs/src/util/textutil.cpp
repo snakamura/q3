@@ -279,7 +279,8 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 	enum {
 		TYPE_URL,
 		TYPE_EMAIL,
-		TYPE_PATH
+		TYPE_PATH,
+		TYPE_TEL
 	} type = TYPE_URL;
 	
 	const WCHAR* p = pwszText;
@@ -341,6 +342,20 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 				break;
 			}
 		}
+		if (L'0' <= *p && *p <= L'9') {
+			const WCHAR* pEnd = p + 1;
+			size_t nCount = 1;
+			for (size_t n = nLen - 1; n > 0; --n, ++pEnd) {
+				if (L'0' <= *pEnd && *pEnd <= L'9')
+					++nCount;
+				else if (*pEnd != L'-' && *pEnd != '.')
+					break;
+			}
+			if (nCount >= 10 && L'0' <= *(pEnd - 1) && *(pEnd - 1) <= L'9') {
+				type = TYPE_TEL;
+				break;
+			}
+		}
 		--nLen;
 		++p;
 	}
@@ -391,6 +406,14 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 				if (!isPathChar(*p) ||
 					(cQuote != L'\0' && *p == cQuote) ||
 					(cQuote == L'\0' && *p == L' '))
+					break;
+				--nLen;
+				++p;
+			}
+			break;
+		case TYPE_TEL:
+			while (nLen > 0) {
+				if ((*p < L'0' || L'9' < *p) && *p != L'-' && *p != '.')
 					break;
 				--nLen;
 				++p;
@@ -572,6 +595,16 @@ bool qs::TextUtil::isCommonEmailAddressChar(WCHAR c)
 		(L'A' <= c && c <= L'Z') ||
 		(L'0' <= c && c <= L'9') ||
 		wcschr(L".$%+-=_'", c);
+}
+
+bool qs::TextUtil::isPhoneNumber(const WCHAR* pwsz)
+{
+	while (*pwsz) {
+		if ((*pwsz < L'0' || L'9' < *pwsz) && *pwsz != L'-' && *pwsz != L'.')
+			return false;
+		++pwsz;
+	}
+	return true;
 }
 
 wstring_ptr qs::TextUtil::replace(const WCHAR* pwsz,
