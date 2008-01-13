@@ -7191,8 +7191,10 @@ void qm::ViewNavigateMessageAction::invoke(const ActionEvent& event)
 			if (nIndex != -1)
 				pmh = pViewModel->getMessageHolder(nIndex);
 			
-			pMessageModel->setMessage(std::auto_ptr<MessageContext>(
-				new MessagePtrMessageContext(pmh)));
+			std::auto_ptr<MessageContext> pContext;
+			if (pmh)
+				pContext.reset(new MessagePtrMessageContext(pmh));
+			pMessageModel->setMessage(pContext);
 		}
 		
 		if (nIndex != -1 && type != TYPE_SELF)
