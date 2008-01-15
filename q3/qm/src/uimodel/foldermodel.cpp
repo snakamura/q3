@@ -11,6 +11,8 @@
 
 #include <algorithm>
 
+#include <boost/bind.hpp>
+
 #include "foldermodel.h"
 
 using namespace qm;
@@ -113,8 +115,8 @@ void qm::DefaultFolderModel::fireAccountSelected(Account* pAccount,
 												 bool bDelay) const
 {
 	FolderModelEvent event(pAccount, bDelay);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->accountSelected(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&FolderModelHandler::accountSelected, _1, boost::cref(event)));
 }
 
 void qm::DefaultFolderModel::fireFolderSelected(Folder* pFolder,
@@ -123,8 +125,8 @@ void qm::DefaultFolderModel::fireFolderSelected(Folder* pFolder,
 	assert(pFolder);
 	
 	FolderModelEvent event(pFolder, bDelay);
-	for (HandlerList::const_iterator it = listHandler_.begin(); it != listHandler_.end(); ++it)
-		(*it)->folderSelected(event);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&FolderModelHandler::folderSelected, _1, boost::cref(event)));
 }
 
 
