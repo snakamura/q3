@@ -7002,7 +7002,7 @@ void qm::ViewNavigateFolderAction::invoke(const ActionEvent& event)
 			if (!p.first && !p.second)
 				return;
 			assert(!p.first || !p.second);
-			pFolderModel_->setCurrent(p.first, p.second, true);
+			pFolderModel_->setCurrent(p.first, p.second, false);
 		}
 		break;
 	default:
