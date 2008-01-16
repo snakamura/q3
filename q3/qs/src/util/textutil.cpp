@@ -342,16 +342,16 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 				break;
 			}
 		}
-		if (L'0' <= *p && *p <= L'9') {
+		if ((L'0' <= *p && *p <= L'9') || *p == L'+') {
 			const WCHAR* pEnd = p + 1;
-			size_t nCount = 1;
-			for (size_t n = nLen - 1; n > 0; --n, ++pEnd) {
+			size_t nCount = *p == L'+' ? 0 : 1;
+			for (size_t n = nLen - 1; n > 0 && nCount < 10; --n, ++pEnd) {
 				if (L'0' <= *pEnd && *pEnd <= L'9')
 					++nCount;
 				else if (*pEnd != L'-' && *pEnd != '.')
 					break;
 			}
-			if (nCount >= 10 && L'0' <= *(pEnd - 1) && *(pEnd - 1) <= L'9') {
+			if (nCount >= 10) {
 				type = TYPE_TEL;
 				break;
 			}
@@ -412,11 +412,15 @@ std::pair<size_t, size_t> qs::TextUtil::findURL(const WCHAR* pwszText,
 			}
 			break;
 		case TYPE_TEL:
-			while (nLen > 0) {
-				if ((*p < L'0' || L'9' < *p) && *p != L'-' && *p != '.')
-					break;
+			do {
 				--nLen;
 				++p;
+				if ((*p < L'0' || L'9' < *p) && *p != L'-' && *p != L'.')
+					break;
+			} while (nLen > 0);
+			while (*(p - 1) < L'0' || L'9' < *(p - 1)) {
+				++nLen;
+				--p;
 			}
 			break;
 		default:
