@@ -115,7 +115,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		MessageCreator::FLAG_EXPANDALIAS | MessageCreator::FLAG_ENCODETEXT,
 		SECURITYMODE_NONE, pSubAccount_->getTransferEncodingFor8Bit());
 	std::auto_ptr<Message> pBodyMessage(creator.createMessage(
-		buf.getCharArray(), buf.getLength(), pDocument_->getURIResolver()));
+		buf.getCharArray(), buf.getLength()));
 	if (!pBodyMessage.get())
 		return std::auto_ptr<Message>();
 	
@@ -446,8 +446,7 @@ bool qm::EditMessage::setBodyPartHeader(const WCHAR* pwszHeader,
 	clearFields();
 	
 	MessageCreator creator;
-	std::auto_ptr<Message> pMessage(creator.createMessage(
-		pwszHeader, nLen, pDocument_->getURIResolver()));
+	std::auto_ptr<Message> pMessage(creator.createMessage(pwszHeader, nLen));
 	if (!pMessage.get())
 		return false;
 	

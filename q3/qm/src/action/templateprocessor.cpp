@@ -204,7 +204,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		MessageCreator creator(MessageCreator::FLAG_ADDNODEFAULTCONTENTTYPE |
 			MessageCreator::FLAG_RECOVERHEADER, SECURITYMODE_NONE);
 		std::auto_ptr<Message> pMessage(creator.createMessage(
-			wstrValue.get(), wstrValue.size(), pDocument_->getURIResolver()));
+			wstrValue.get(), wstrValue.size()));
 		if (!pMessage.get())
 			return false;
 		

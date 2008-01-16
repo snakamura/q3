@@ -1794,7 +1794,7 @@ bool qm::FileImportAction::readSingleMessage(NormalFolder* pFolder,
 		
 		MessageCreator creator(MessageCreator::FLAG_RECOVER, SECURITYMODE_NONE);
 		std::auto_ptr<Message> pMessage(creator.createMessage(
-			buf.getCharArray(), buf.getLength(), 0));
+			buf.getCharArray(), buf.getLength()));
 		if (!pMessage.get())
 			return false;
 		
@@ -1927,7 +1927,7 @@ bool qm::FileImportAction::readMultipleMessages(NormalFolder* pFolder,
 					
 					MessageCreator creator(MessageCreator::FLAG_RECOVER, SECURITYMODE_NONE);
 					std::auto_ptr<Message> pMessage(creator.createMessage(
-						wstrMessage.get(), wstrMessage.size(), 0));
+						wstrMessage.get(), wstrMessage.size()));
 					if (!pMessage.get())
 						return false;
 					

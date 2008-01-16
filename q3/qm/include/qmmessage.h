@@ -23,6 +23,9 @@ class MessageCreator;
 class PartUtil;
 class AttachmentParser;
 
+class Account;
+class Signature;
+class SignatureManager;
 class URIResolver;
 
 
@@ -113,6 +116,7 @@ public:
 		FLAG_EXPANDALIAS				= 0x0004,
 		FLAG_EXTRACTATTACHMENT			= 0x0008,
 		FLAG_ENCODETEXT					= 0x0010,
+		FLAG_ADDSIGNATURE				= 0x0020,
 		FLAG_RECOVERHEADER				= 0x0100,
 		FLAG_RECOVERBODY				= 0x0200,
 		FLAG_RECOVER					= 0x0300
@@ -148,6 +152,9 @@ public:
 	MessageCreator(unsigned int nFlags,
 				   unsigned int nSecurityMode,
 				   const WCHAR* pwszTransferEncodingFor8Bit,
+				   const URIResolver* pURIResolver,
+				   SignatureManager* pSignatureManager,
+				   Account* pAccount,
 				   const WCHAR* pwszArchiveAttachmentExcludePattern,
 				   const WCHAR* pwszTempDir);
 	~MessageCreator();
@@ -157,12 +164,10 @@ public:
 	void setFlags(unsigned int nFlags,
 				  unsigned int nMask);
 	std::auto_ptr<Message> createMessage(const WCHAR* pwszMessage,
-									     size_t nLen,
-										 const URIResolver* pURIResolver) const;
+									     size_t nLen) const;
 	std::auto_ptr<qs::Part> createPart(const WCHAR* pwszMessage,
 									   size_t nLen,
 									   qs::Part* pParent,
-									   const URIResolver* pURIResolver,
 									   bool bMessage) const;
 	bool createHeader(qs::Part* pPart,
 					  const WCHAR* pwszMessage,
@@ -172,6 +177,9 @@ private:
 	qs::xstring_size_ptr convertBody(qs::Converter* pConverter,
 									 const WCHAR* pwszBody,
 									 size_t nBodyLen) const;
+	std::auto_ptr<qs::Part> createPartWithSignature(const qs::Part* pPart,
+													qs::Part* pParent,
+													const Signature* pSignature) const;
 	MessageCreator getCreatorForChild() const;
 
 public:
@@ -219,6 +227,9 @@ private:
 	unsigned int nFlags_;
 	unsigned int nSecurityMode_;
 	qs::wstring_ptr wstrTransferEncodingFor8Bit_;
+	const URIResolver* pURIResolver_;
+	SignatureManager* pSignatureManager_;
+	Account* pAccount_;
 	qs::wstring_ptr wstrArchiveAttachmentExcludePattern_;
 	qs::wstring_ptr wstrTempDir_;
 };

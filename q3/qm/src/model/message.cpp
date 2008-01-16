@@ -30,6 +30,7 @@
 
 #include "message.h"
 #include "messagecontext.h"
+#include "signature.h"
 #include "uri.h"
 #include "zip.h"
 
@@ -184,25 +185,37 @@ struct Header
 
 qm::MessageCreator::MessageCreator() :
 	nFlags_(0),
-	nSecurityMode_(SECURITYMODE_NONE)
+	nSecurityMode_(SECURITYMODE_NONE),
+	pURIResolver_(0),
+	pSignatureManager_(0),
+	pAccount_(0)
 {
 }
 
 qm::MessageCreator::MessageCreator(unsigned int nFlags,
 								   unsigned int nSecurityMode) :
 	nFlags_(nFlags),
-	nSecurityMode_(nSecurityMode)
+	nSecurityMode_(nSecurityMode),
+	pURIResolver_(0),
+	pSignatureManager_(0),
+	pAccount_(0)
 {
-	assert(!(nFlags & FLAG_ENCODETEXT) && !(nFlags & FLAG_EXTRACTATTACHMENT));
+	assert(!(nFlags & FLAG_ENCODETEXT) &&
+		!(nFlags & FLAG_EXTRACTATTACHMENT) &&
+		!(nFlags & FLAG_ADDSIGNATURE));
 }
 
 qm::MessageCreator::MessageCreator(unsigned int nFlags,
 								   unsigned int nSecurityMode,
 								   const WCHAR* pwszTransferEncodingFor8Bit) :
 	nFlags_(nFlags),
-	nSecurityMode_(nSecurityMode)
+	nSecurityMode_(nSecurityMode),
+	pURIResolver_(0),
+	pSignatureManager_(0),
+	pAccount_(0)
 {
-	assert(!(nFlags & FLAG_EXTRACTATTACHMENT));
+	assert(!(nFlags & FLAG_EXTRACTATTACHMENT) &&
+		!(nFlags & FLAG_ADDSIGNATURE));
 	
 	if (pwszTransferEncodingFor8Bit && *pwszTransferEncodingFor8Bit)
 		wstrTransferEncodingFor8Bit_ = allocWString(pwszTransferEncodingFor8Bit);
@@ -211,11 +224,20 @@ qm::MessageCreator::MessageCreator(unsigned int nFlags,
 qm::MessageCreator::MessageCreator(unsigned int nFlags,
 								   unsigned int nSecurityMode,
 								   const WCHAR* pwszTransferEncodingFor8Bit,
+								   const URIResolver* pURIResolver,
+								   SignatureManager* pSignatureManager,
+								   Account* pAccount,
 								   const WCHAR* pwszArchiveAttachmentExcludePattern,
 								   const WCHAR* pwszTempDir) :
 	nFlags_(nFlags),
-	nSecurityMode_(nSecurityMode)
+	nSecurityMode_(nSecurityMode),
+	pURIResolver_(pURIResolver),
+	pSignatureManager_(pSignatureManager),
+	pAccount_(pAccount)
 {
+	assert(pURIResolver);
+	assert(pSignatureManager);
+	assert(pAccount);
 	assert(pwszTempDir);
 	
 	if (pwszTransferEncodingFor8Bit && *pwszTransferEncodingFor8Bit)
@@ -242,12 +264,11 @@ void qm::MessageCreator::setFlags(unsigned int nFlags,
 }
 
 std::auto_ptr<Message> qm::MessageCreator::createMessage(const WCHAR* pwszMessage,
-														 size_t nLen,
-														 const URIResolver* pURIResolver) const
+														 size_t nLen) const
 {
-	std::auto_ptr<Part> pPart(createPart(pwszMessage, nLen, 0, pURIResolver, true));
+	std::auto_ptr<Part> pPart(createPart(pwszMessage, nLen, 0, true));
 	if (!pPart.get())
-		return std::auto_ptr<Message>(0);
+		return std::auto_ptr<Message>();
 	
 	std::auto_ptr<Message> pMessage(static_cast<Message*>(pPart.release()));
 	pMessage->setFlag(Message::FLAG_NONE);
@@ -258,7 +279,6 @@ std::auto_ptr<Message> qm::MessageCreator::createMessage(const WCHAR* pwszMessag
 std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 												   size_t nLen,
 												   Part* pParent,
-												   const URIResolver* pURIResolver,
 												   bool bMessage) const
 {
 	if (nLen == -1)
@@ -281,7 +301,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 		pBody = bmfs.find(pwszMessage, nLen);
 		if (pBody) {
 			if (!createHeader(pPart.get(), pwszMessage, pBody - pwszMessage + 1))
-				return std::auto_ptr<Part>(0);
+				return std::auto_ptr<Part>();
 			pBody += 2;
 			nBodyLen = nLen - (pBody - pwszMessage);
 		}
@@ -290,7 +310,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 			if (*(buf.getCharArray() + buf.getLength() - 1) != L'\n')
 				buf.append(L'\n');
 			if (!createHeader(pPart.get(), buf.getCharArray(), buf.getLength()))
-				return std::auto_ptr<Part>(0);
+				return std::auto_ptr<Part>();
 		}
 	}
 	
@@ -310,7 +330,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 		if (bMultipart) {
 			wstring_ptr wstrBoundary(pContentType->getParameter(L"boundary"));
 			if (!wstrBoundary.get())
-				return std::auto_ptr<Part>(0);
+				return std::auto_ptr<Part>();
 			
 			BoundaryFinder<WCHAR, WSTRING> finder(pBody - 1, nBodyLen + 1,
 				wstrBoundary.get(), L"\n", (nFlags_ & FLAG_RECOVERBODY) != 0);
@@ -320,13 +340,13 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 				const WCHAR* pEnd = 0;
 				bool bEnd = false;
 				if (!finder.getNext(&pBegin, &pEnd, &bEnd))
-					return std::auto_ptr<Part>(0);
+					return std::auto_ptr<Part>();
 				if (pBegin) {
 					MessageCreator creator(getCreatorForChild());
-					std::auto_ptr<Part> pChild(creator.createPart(pBegin,
-						pEnd - pBegin, pPart.get(), pURIResolver, false));
+					std::auto_ptr<Part> pChild(creator.createPart(
+						pBegin, pEnd - pBegin, pPart.get(), false));
 					if (!pChild.get())
-						return std::auto_ptr<Part>(0);
+						return std::auto_ptr<Part>();
 					pPart->addPart(pChild);
 				}
 				if (bEnd)
@@ -336,20 +356,19 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 			std::pair<const WCHAR*, size_t> preamble(finder.getPreamble());
 			if (preamble.first) {
 				if (!pPart->setPreamble(wcs2mbs(preamble.first, preamble.second).get()))
-					return std::auto_ptr<Part>(0);
+					return std::auto_ptr<Part>();
 			}
 			std::pair<const WCHAR*, size_t> epilogue(finder.getEpilogue());
 			if (epilogue.first) {
 				if (!pPart->setEpilogue(wcs2mbs(epilogue.first, epilogue.second).get()))
-					return std::auto_ptr<Part>(0);
+					return std::auto_ptr<Part>();
 			}
 		}
 		else if (bRFC822) {
 			MessageCreator creator(getCreatorForChild());
-			std::auto_ptr<Part> pEnclosed(creator.createPart(
-				pBody, nBodyLen, 0, pURIResolver, false));
+			std::auto_ptr<Part> pEnclosed(creator.createPart(pBody, nBodyLen, 0, false));
 			if (!pEnclosed.get())
-				return std::auto_ptr<Part>(0);
+				return std::auto_ptr<Part>();
 			pPart->setEnclosedPart(pEnclosed);
 		}
 		else if (_wcsicmp(pwszMediaType, L"text") == 0) {
@@ -399,7 +418,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 					ContentTypeParser contentType(L"text", L"plain");
 					contentType.setParameter(L"charset", wstrCharset.get());
 					if (!pPart->replaceField(L"Content-Type", contentType))
-						return std::auto_ptr<Part>(0);
+						return std::auto_ptr<Part>();
 					pContentType = pPart->getContentType();
 				}
 			}
@@ -410,7 +429,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 			if (!strBody.get()) {
 				strBody = convertBody(pConverter.get(), pBody, nBodyLen);
 				if (!strBody.get())
-					return std::auto_ptr<Part>(0);
+					return std::auto_ptr<Part>();
 			}
 			
 			std::auto_ptr<Encoder> pEncoder;
@@ -448,13 +467,13 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 							pwszEncoding = getEncodingForCharset(wstrCharset.get());
 						pEncoder = EncoderFactory::getInstance(pwszEncoding);
 						if (!pEncoder.get())
-							return std::auto_ptr<Part>(0);
+							return std::auto_ptr<Part>();
 					}
 					
 					if (nFlags_ & FLAG_ADDCONTENTTYPE) {
 						ContentTransferEncodingParser contentTransferEncoding(pwszEncoding);
 						if (!pPart->replaceField(L"Content-Transfer-Encoding", contentTransferEncoding))
-							return std::auto_ptr<Part>(0);
+							return std::auto_ptr<Part>();
 					}
 				}
 			}
@@ -463,10 +482,10 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 				malloc_size_ptr<unsigned char> pBody(pEncoder->encode(
 					reinterpret_cast<unsigned char*>(strBody.get()), strBody.size()));
 				if (!pBody.get())
-					return std::auto_ptr<Part>(0);
+					return std::auto_ptr<Part>();
 				
 				if (!pPart->setBody(reinterpret_cast<CHAR*>(pBody.get()), pBody.size()))
-					return std::auto_ptr<Part>(0);
+					return std::auto_ptr<Part>();
 			}
 			else {
 				pPart->setBody(xstring_ptr(strBody.release()));
@@ -481,19 +500,68 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 				strBody.reset(pConverter->encode(pBody, &nLen).release());
 			}
 			if (!strBody.get())
-				return std::auto_ptr<Part>(0);
+				return std::auto_ptr<Part>();
 			pPart->setBody(strBody);
 		}
 	}
 	
-	if ((nFlags_ & FLAG_ADDCONTENTTYPE || nFlags_ & FLAG_ADDNODEFAULTCONTENTTYPE) && bMessage) {
+	if (bMessage && (nFlags_ & FLAG_ADDCONTENTTYPE || nFlags_ & FLAG_ADDNODEFAULTCONTENTTYPE)) {
 		SimpleParser mimeVersion(L"1.0", 0);
 		if (!pPart->replaceField(L"MIME-Version", mimeVersion))
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
+	}
+	
+	if (bMessage && nFlags_ & FLAG_ADDSIGNATURE) {
+		assert(pSignatureManager_);
+		
+		UnstructuredParser signature;
+		if (pPart->getField(L"X-QMAIL-Signature", &signature) == Part::FIELD_EXIST) {
+			const Signature* pSignature = pSignatureManager_->getSignature(
+				pAccount_, signature.getValue());
+			if (pSignature && *pSignature->getSignature()) {
+				if (PartUtil::isContentType(pContentType, L"text", L"plain")) {
+					std::auto_ptr<Part> p(createPartWithSignature(pPart.get(), 0, pSignature));
+					if (!p.get())
+						return std::auto_ptr<Part>();
+					pPart = p;
+				}
+				else if (PartUtil::isContentType(pContentType, L"multipart", L"mixed")) {
+					if (pPart->getPartCount() != 0 &&
+						PartUtil::isContentType(pPart->getPart(0)->getContentType(), L"text", L"plain")) {
+						Part* pTextPart = pPart->getPart(0);
+						std::auto_ptr<Part> p(createPartWithSignature(pTextPart, pPart.get(), pSignature));
+						if (!p.get())
+							return std::auto_ptr<Part>();
+						pPart->removePart(pTextPart);
+						delete pTextPart;
+						pPart->insertPart(0, p);
+					}
+					else {
+						std::auto_ptr<Part> p(createPartWithSignature(0, pPart.get(), pSignature));
+						if (!p.get())
+							return std::auto_ptr<Part>();
+						pPart->insertPart(0, p);
+					}
+				}
+				else {
+					std::auto_ptr<Message> pParent(new Message());
+					if (!makeMultipart(pParent.get(), pPart))
+						return std::auto_ptr<Part>();
+					pPart = pParent;
+					
+					std::auto_ptr<Part> p(createPartWithSignature(0, pPart.get(), pSignature));
+					if (!p.get())
+						return std::auto_ptr<Part>();
+					pPart->insertPart(0, p);
+				}
+				pContentType = pPart->getContentType();
+			}
+			pPart->removeField(L"X-QMAIL-Signature");
+		}
 	}
 	
 	if (bMessage && nFlags_ & FLAG_EXTRACTATTACHMENT) {
-		assert(pURIResolver);
+		assert(pURIResolver_);
 		
 		XQMAILAttachmentParser attachment;
 		if (pPart->getField(L"X-QMAIL-Attachment", &attachment) == Part::FIELD_EXIST &&
@@ -503,8 +571,9 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 			if (!PartUtil::isContentType(pContentType, L"multipart", L"mixed")) {
 				std::auto_ptr<Message> pParent(new Message());
 				if (!makeMultipart(pParent.get(), pPart))
-					return std::auto_ptr<Part>(0);
+					return std::auto_ptr<Part>();
 				pPart = pParent;
+				pContentType = pPart->getContentType();
 			}
 			
 			const WCHAR* pwszArchive = 0;
@@ -513,7 +582,7 @@ std::auto_ptr<Part> qm::MessageCreator::createPart(const WCHAR* pwszMessage,
 			if (pPart->getField(L"X-QMAIL-ArchiveAttachment", &archive) == Part::FIELD_EXIST)
 				pwszArchive = archive.getValue();
 #endif
-			if (!attachFilesOrURIs(pPart.get(), l, pURIResolver, nSecurityMode_,
+			if (!attachFilesOrURIs(pPart.get(), l, pURIResolver_, nSecurityMode_,
 				pwszArchive, wstrArchiveAttachmentExcludePattern_.get(), wstrTempDir_.get()))
 				return std::auto_ptr<Part>();
 #ifdef QMZIP
@@ -709,6 +778,31 @@ xstring_size_ptr qm::MessageCreator::convertBody(Converter* pConverter,
 	}
 	
 	return buf.getXStringSize();
+}
+
+std::auto_ptr<Part> qm::MessageCreator::createPartWithSignature(const Part* pPart,
+																Part* pParent,
+																const Signature* pSignature) const
+{
+	assert(pSignature);
+	
+	XStringBuffer<WXSTRING> buf;
+	if (pPart) {
+		if (!PartUtil::a2w(pPart->getHeader(), -1, &buf) ||
+			!buf.append(L'\n') ||
+			!pPart->getBodyText(0, &buf))
+			return std::auto_ptr<Part>();
+	}
+	else {
+		if (!buf.append(L'\n'))
+			return std::auto_ptr<Part>();
+	}
+	buf.append(pSignature->getSignature());
+	
+	MessageCreator creator(nFlags_ & ~FLAG_ADDSIGNATURE, SECURITYMODE_NONE,
+		wstrTransferEncodingFor8Bit_.get(), pURIResolver_, pSignatureManager_,
+		pAccount_, wstrArchiveAttachmentExcludePattern_.get(), wstrTempDir_.get());
+	return creator.createPart(buf.getCharArray(), buf.getLength(), pParent, pParent == 0);
 }
 
 MessageCreator qm::MessageCreator::getCreatorForChild() const
@@ -1067,59 +1161,59 @@ std::auto_ptr<Part> qm::MessageCreator::createPartFromFile(Part* pParentPart,
 	
 	DummyParser dummyContentType(pwszContentType, 0);
 	if (!pPart->setField(L"Content-Type", dummyContentType))
-		return std::auto_ptr<Part>(0);
+		return std::auto_ptr<Part>();
 	ContentTypeParser contentType;
 	if (pPart->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST) {
 		ContentTypeParser dummyContentType(L"application", L"octet-stream");
 		if (!pPart->setField(L"Content-Type", dummyContentType))
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
 		if (pPart->getField(L"Content-Type", &contentType) != Part::FIELD_EXIST)
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
 	}
 	contentType.setParameter(L"name", pFileName);
 	if (!pPart->replaceField(L"Content-Type", contentType))
-		return std::auto_ptr<Part>(0);
+		return std::auto_ptr<Part>();
 	
 	bool bBase64 = !PartUtil::isContentType(&contentType, L"message", L"rfc822");
 	if (bBase64) {
 		ContentTransferEncodingParser contentTransferEncoding(L"base64");
 		if (!pPart->setField(L"Content-Transfer-Encoding", contentTransferEncoding))
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
 	}
 	
 	ContentDispositionParser contentDisposition(L"attachment");
 	contentDisposition.setParameter(L"filename", pFileName);
 	if (!pPart->setField(L"Content-Disposition", contentDisposition))
-		return std::auto_ptr<Part>(0);
+		return std::auto_ptr<Part>();
 	
 	W2T(pwszPath, ptszPath);
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
 	if (!hFind.get())
-		return std::auto_ptr<Part>(0);
+		return std::auto_ptr<Part>();
 	size_t nSize = fd.nFileSizeLow;
 	hFind.close();
 	
 	FileInputStream stream(pwszPath);
 	if (!stream)
-		return std::auto_ptr<Part>(0);
+		return std::auto_ptr<Part>();
 	BufferedInputStream bufferedStream(&stream, false);
 	
 	if (bBase64) {
 		Base64Encoder encoder(true);
 		XStringOutputStream outputStream;
 		if (!outputStream.reserve((nSize/3 + 1)*4 + nSize/45*2))
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
 		if (!encoder.encode(&bufferedStream, &outputStream))
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
 		pPart->setBody(outputStream.getXString());
 	}
 	else {
 		xstring_ptr strBody(allocXString(nSize));
 		if (!strBody.get())
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
 		if (bufferedStream.read(reinterpret_cast<unsigned char*>(strBody.get()), nSize) != nSize)
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
 		pPart->setBody(strBody);
 	}
 	
@@ -1133,7 +1227,7 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Part& part,
 	
 	ContentTypeParser contentType(L"message", L"rfc822");
 	if (!pPart->setField(L"Content-Type", contentType))
-		return std::auto_ptr<Part>(0);
+		return std::auto_ptr<Part>();
 	
 	wstring_ptr wstrFileName;
 	UnstructuredParser subject;
@@ -1145,7 +1239,7 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Part& part,
 	ContentDispositionParser contentDisposition(L"attachment");
 	contentDisposition.setParameter(L"filename", wstrFileName.get());
 	if (!pPart->setField(L"Content-Disposition", contentDisposition))
-		return std::auto_ptr<Part>(0);
+		return std::auto_ptr<Part>();
 	
 	if (bHeaderOnly) {
 		pPart->setBody(part.getHeader(), -1);
@@ -1153,7 +1247,7 @@ std::auto_ptr<Part> qm::MessageCreator::createRfc822Part(const Part& part,
 	else {
 		xstring_size_ptr strContent(part.getContent());
 		if (!strContent.get())
-			return std::auto_ptr<Part>(0);
+			return std::auto_ptr<Part>();
 		xstring_ptr strBody(strContent.release());
 		pPart->setBody(strBody);
 	}
@@ -1730,7 +1824,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 				if (!pEnd)
 					break;
 				
-				std::auto_ptr<Message> pMessage(creator.createMessage(p, pEnd - p, 0));
+				std::auto_ptr<Message> pMessage(creator.createMessage(p, pEnd - p));
 				
 				if (!pMessage->hasField(L"To") && fieldTo == Part::FIELD_EXIST) {
 					if (!pMessage->setField(L"To", to))

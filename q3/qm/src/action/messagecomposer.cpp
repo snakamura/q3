@@ -198,25 +198,28 @@ bool qm::MessageComposer::compose(const WCHAR* pwszMessage,
 	const WCHAR* pBody = bmfs.find(pwszMessage);
 	size_t nHeaderLen = pBody ? pBody - pwszMessage + 2 : nLen;
 	MessageCreator headerCreator;
-	std::auto_ptr<Message> pHeader(headerCreator.createMessage(
-		pwszMessage, nHeaderLen, pDocument_->getURIResolver()));
+	std::auto_ptr<Message> pHeader(headerCreator.createMessage(pwszMessage, nHeaderLen));
 	if (!pHeader.get())
 		return false;
 	
-	SubAccount* pSubAccount = getSubAccount(getAccount(*pHeader.get()), *pHeader.get());
+	Account* pAccount = getAccount(*pHeader.get());
+	if (!pAccount)
+		return false;
+	SubAccount* pSubAccount = getSubAccount(pAccount, *pHeader.get());
 	if (!pSubAccount)
 		return false;
 	
 	const unsigned int nFlags = MessageCreator::FLAG_ADDCONTENTTYPE |
 		MessageCreator::FLAG_EXPANDALIAS |
 		MessageCreator::FLAG_EXTRACTATTACHMENT |
-		MessageCreator::FLAG_ENCODETEXT;
+		MessageCreator::FLAG_ENCODETEXT |
+		MessageCreator::FLAG_ADDSIGNATURE;
 	wstring_ptr wstrExcludePattern(pProfile_->getString(L"Global", L"ExcludeArchive"));
 	const WCHAR* pwszTempDir = Application::getApplication().getTemporaryFolder();
 	MessageCreator creator(nFlags, pSecurityModel_->getSecurityMode(),
-		pSubAccount->getTransferEncodingFor8Bit(), wstrExcludePattern.get(), pwszTempDir);
-	std::auto_ptr<Message> pMessage(creator.createMessage(
-		pwszMessage, nLen, pDocument_->getURIResolver()));
+		pSubAccount->getTransferEncodingFor8Bit(), pDocument_->getURIResolver(),
+		pDocument_->getSignatureManager(), pAccount, wstrExcludePattern.get(), pwszTempDir);
+	std::auto_ptr<Message> pMessage(creator.createMessage(pwszMessage, nLen));
 	if (!pMessage.get())
 		return false;
 	
