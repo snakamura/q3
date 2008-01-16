@@ -1925,12 +1925,13 @@ std::auto_ptr<MessageEnumerator> qm::MainWindowImpl::MessageSelectionModelImpl::
 		ViewModel* pViewModel = pMainWindowImpl_->pViewModelManager_->getCurrentViewModel();
 		if (pViewModel) {
 			Lock<ViewModel> lock(*pViewModel);
-			if (pViewModel->getCount() != 0) {
-				MessageHolder* pmh = pViewModel->getMessageHolder(pViewModel->getFocused());
-				return std::auto_ptr<MessageEnumerator>(
-					new MessageHolderListMessageEnumerator(pmh->getAccount(),
-						pViewModel->getFolder(), MessageHolderList(1, pmh)));
-			}
+			MessageHolderList l;
+			if (pViewModel->getCount() != 0)
+				l.push_back(pViewModel->getMessageHolder(pViewModel->getFocused()));
+			Folder* pFolder = pViewModel->getFolder();
+			return std::auto_ptr<MessageEnumerator>(
+				new MessageHolderListMessageEnumerator(
+					pFolder->getAccount(), pFolder, l));
 		}
 	}
 	else if (pMainWindowImpl_->pMessageWindow_->isActive() && !bListOnly_) {
