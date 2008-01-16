@@ -118,45 +118,45 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 	else if (!pAccountForced) {
 		pEnum = pMessageSelectionModel_->getFocusedMessage();
 	}
-	if (pEnum.get() && !pEnum->next())
-		return false;
+	
+	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
 	
 	Account* pAccount = 0;
+	MessageHolder* pmh = 0;
+	Message* pMessage = 0;
+	Message msg;
 	if (pEnum.get()) {
 		pAccount = pEnum->getAccount();
-		if (!pAccount) {
-			MessagePtrLock mpl(pEnum->getOriginMessagePtr());
-			if (mpl) {
-				pAccount = mpl->getAccount();
+		
+		if (pEnum->next()) {
+			if (!pAccount) {
+				MessagePtrLock mpl(pEnum->getOriginMessagePtr());
+				pAccount = mpl ? mpl->getAccount() : getAccount(L"mail");
+			}
+			
+			pmh = pEnum->getMessageHolder();
+			if (pmh) {
+				pMessage = &msg;
 			}
 			else {
-				pAccount = getAccount(L"mail");
-				if (!pAccount)
+				pMessage = pEnum->getMessage(
+					Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+				if (!pMessage)
 					return false;
 			}
+		}
+		else {
+			if (!pAccount)
+				pAccount = FolderActionUtil::getAccount(pFolderModel_);
 		}
 	}
 	else {
 		pAccount = pAccountForced;
 	}
-	assert(pAccount);
+	if (!pAccount)
+		return false;
 	
-	unsigned int nSecurityMode = pSecurityModel_->getSecurityMode();
-	
-	MessageHolder* pmh = pEnum.get() ? pEnum->getMessageHolder() : 0;
-	Message* pMessage = 0;
-	Message msg;
-	if (pmh) {
-		pMessage = &msg;
-	}
-	else if (pEnum.get()) {
-		pMessage = pEnum->getMessage(
-			Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
-		if (!pMessage)
-			return false;
-	}
-	
-	Folder* pFolder = pFolderModel_->getCurrent().second;
+	Folder* pFolder = FolderActionUtil::getFolder(pFolderModel_);
 	
 	const Template* pTemplate = pDocument_->getTemplateManager()->getTemplate(
 		pAccount, pFolder, pwszTemplateName);
