@@ -3598,6 +3598,10 @@ MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 		if (!pFolder)
 			return error(*pContext, MacroErrorHandler::CODE_FAIL);
 		
+		if (pFolder->getAccount() != pContext->getAccount() &&
+			!pContext->isFlag(MacroContext::FLAG_UITHREAD))
+			return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
+		
 		if (nSize > 1) {
 			if (pFolder->getType() != Folder::TYPE_NORMAL)
 				return error(*pContext, MacroErrorHandler::CODE_FAIL);
@@ -3618,6 +3622,9 @@ MacroValuePtr qm::MacroFunctionMessages::value(MacroContext* pContext) const
 	}
 	else {
 		Account* pAccount = pContext->getAccount();
+		if (!pAccount)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
+		
 		Lock<Account> lock(*pAccount);
 		const Account::FolderList& listFolder = pAccount->getFolders();
 		
