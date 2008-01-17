@@ -296,21 +296,7 @@ qm::Folder* qm::Document::getFolder(Account* pAccount,
 	
 	return pAccount->getFolder(pwszName);
 }
-/*
-MessagePtr qm::Document::getMessage(const URI& uri) const
-{
-	Account* pAccount = getAccount(uri.getAccount());
-	if (!pAccount)
-		return MessagePtr();
-	
-	Folder* pFolder = pAccount->getFolder(uri.getFolder());
-	if (!pFolder ||
-		pFolder->getType() != Folder::TYPE_NORMAL ||
-		static_cast<NormalFolder*>(pFolder)->getValidity() != uri.getValidity())
-		return MessagePtr();
-	return MessagePtr(static_cast<NormalFolder*>(pFolder)->getMessageById(uri.getId()));
-}
-*/
+
 void qm::Document::addAccountManagerHandler(AccountManagerHandler* pHandler)
 {
 	pImpl_->listAccountManagerHandler_.push_back(pHandler);
