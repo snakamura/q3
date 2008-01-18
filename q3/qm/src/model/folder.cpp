@@ -1175,7 +1175,7 @@ bool qm::QueryFolder::search(Document* pDocument,
 		return false;
 	std::sort(pImpl_->listMessageHolder_.begin(), pImpl_->listMessageHolder_.end());
 	
-	pImpl_->nCount_ = pImpl_->listMessageHolder_.size();
+	pImpl_->nCount_ = static_cast<unsigned int>(pImpl_->listMessageHolder_.size());
 	pImpl_->nUnseenCount_ = static_cast<unsigned int>(
 		std::count_if(pImpl_->listMessageHolder_.begin(),
 			pImpl_->listMessageHolder_.end(),
