@@ -962,9 +962,9 @@ void qm::OptionDialogManager::initUIs(MainWindow* pMainWindow,
 	pAddressBookFrameWindowManager_ = pAddressBookFrameWindowManager;
 }
 
-int qm::OptionDialogManager::showDialog(HWND hwndParent,
-										Account* pCurrentAccount,
-										OptionDialog::Panel panel) const
+INT_PTR qm::OptionDialogManager::showDialog(HWND hwndParent,
+											Account* pCurrentAccount,
+											OptionDialog::Panel panel) const
 {
 	assert(pDocument_);
 	assert(pGoRound_);

@@ -455,9 +455,9 @@ public:
 				 RecentsWindowManager* pRecentsWindowManager,
 #endif
 				 AddressBookFrameWindowManager* pAddressBookFrameWindowManager);
-	int showDialog(HWND hwndParent,
-				   Account* pCurrentAccount,
-				   OptionDialog::Panel panel) const;
+	INT_PTR showDialog(HWND hwndParent,
+					   Account* pCurrentAccount,
+					   OptionDialog::Panel panel) const;
 	bool canShowDialog() const;
 
 private:
