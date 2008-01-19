@@ -259,7 +259,7 @@ void qm::MessageActionUtil::selectNextUndeleted(ViewModel* pViewModel,
  *
  */
 
-int TabActionUtil::getCurrent(TabModel* pModel)
+int qm::TabActionUtil::getCurrent(TabModel* pModel)
 {
 	int nItem = pModel->getTemporary();
 	return nItem != -1 ? nItem : pModel->getCurrent();
@@ -273,10 +273,10 @@ int TabActionUtil::getCurrent(TabModel* pModel)
  *
  */
 
-std::auto_ptr<Macro> MacroActionUtil::getMacro(const qs::ActionParam* pParam,
-											   size_t n,
-											   qs::Profile* pProfile,
-											   HWND hwnd)
+std::auto_ptr<Macro> qm::MacroActionUtil::getMacro(const ActionParam* pParam,
+												   size_t n,
+												   Profile* pProfile,
+												   HWND hwnd)
 {
 	assert(pProfile);
 	
@@ -302,4 +302,63 @@ std::auto_ptr<Macro> MacroActionUtil::getMacro(const qs::ActionParam* pParam,
 		ActionUtil::error(hwnd, IDS_ERROR_INVALIDMACRO);
 	
 	return pMacro;
+}
+
+
+/****************************************************************************
+ *
+ * TemplateActionUtil
+ *
+ */
+
+void qm::TemplateActionUtil::parseArgs(const qs::ActionParam* pParam,
+									   size_t n,
+									   TemplateContext::ArgumentList* pListArg,
+									   ArgList* pList)
+{
+	assert(pListArg);
+	assert(pList);
+	
+	const WCHAR* pwszArgs = ActionParamUtil::getString(pParam, n);
+	if (!pwszArgs)
+		return;
+	
+	const WCHAR* pName = pwszArgs;
+	while (true) {
+		const WCHAR* pValue = wcschr(pName, L'=');
+		if (!pValue)
+			break;
+		
+		wstring_ptr wstrName(allocWString(pName, pValue - pName));
+		
+		++pValue;
+		
+		StringBuffer<WSTRING> buf;
+		while (*pValue && *pValue != L';') {
+			if (*pValue == L'\\') {
+				++pValue;
+				if (!*pValue)
+					break;
+			}
+			buf.append(*pValue);
+			++pValue;
+		}
+		wstring_ptr wstrValue = buf.getString();
+		
+		TemplateContext::Argument arg = {
+			wstrName.get(),
+			wstrValue.get()
+		};
+		pListArg->push_back(arg);
+		
+		pList->reserve(pList->size() + 2);
+		pList->push_back(wstrName.release());
+		pList->push_back(wstrValue.release());
+		
+		if (!*pValue)
+			break;
+		
+		assert(*pValue == L';');
+		pName = pValue + 1;
+	}
 }

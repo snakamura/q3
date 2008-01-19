@@ -862,6 +862,88 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 }
 
 
+/****************************************************************************
+ *
+ * EditToolApplyTemplateAction
+ *
+ */
+
+qm::EditToolApplyTemplateAction::EditToolApplyTemplateAction(EditMessageHolder* pEditMessageHolder,
+															 const ActionInvoker* pActionInvoker,
+															 Profile* pProfile,
+															 HWND hwnd) :
+	pEditMessageHolder_(pEditMessageHolder),
+	pActionInvoker_(pActionInvoker),
+	pProfile_(pProfile),
+	hwnd_(hwnd)
+{
+}
+
+qm::EditToolApplyTemplateAction::~EditToolApplyTemplateAction()
+{
+}
+
+void qm::EditToolApplyTemplateAction::invoke(const ActionEvent& event)
+{
+	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
+	if (!pwszTemplate || !*pwszTemplate)
+		return;
+	
+	TemplateContext::ArgumentList listArg;
+	TemplateActionUtil::ArgList l;
+	StringListFree<TemplateActionUtil::ArgList> free(l);
+	TemplateActionUtil::parseArgs(event.getParam(), 1, &listArg, &l);
+	
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	Document* pDocument = pEditMessage->getDocument();
+	const Template* pTemplate = pDocument->getTemplateManager()->getTemplate(
+		pEditMessage->getAccount(), 0, pwszTemplate);
+	if (!pTemplate) {
+		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
+		return;
+	}
+	
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(false));
+	if (!pMessage.get()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
+		return;
+	}
+	
+	TemplateContext context(0, pMessage.get(), MessageHolderList(), 0,
+		pEditMessage->getAccount(), pDocument, pActionInvoker_, hwnd_,
+		0, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+		SECURITYMODE_NONE, pProfile_, 0, listArg);
+	wstring_ptr wstr;
+	Template::Result r = pTemplate->getValue(context, &wstr);
+	switch (r) {
+	case Template::RESULT_SUCCESS:
+		break;
+	case Template::RESULT_ERROR:
+		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
+		return;
+	case Template::RESULT_CANCEL:
+		return;
+	}
+	
+	std::auto_ptr<Message> p(MessageCreator().createMessage(wstr.get(), -1));
+	if (!p.get()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
+		return;
+	}
+	
+	if (!pEditMessage->setMessage(p)) {
+		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
+		return;
+	}
+}
+
+bool qm::EditToolApplyTemplateAction::isEnabled(const ActionEvent& event)
+{
+	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
+	return pwszTemplate && *pwszTemplate;
+}
+
+
 #ifdef QMZIP
 /****************************************************************************
  *
@@ -1041,7 +1123,7 @@ void qm::EditToolInsertMacroAction::invoke(const ActionEvent& event)
 		return;
 	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(true));
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(false));
 	if (!pMessage.get()) {
 		ActionUtil::error(hwnd_, IDS_ERROR_INSERTMACRO);
 		return;

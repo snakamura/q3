@@ -23,13 +23,14 @@ class Template;
 class TemplateContext;
 class TemplateParser;
 
-class ActionInvoker;
-class Message;
-class MessageHolderBase;
 class Account;
+class ActionInvoker;
 class Document;
+class Folder;
 class Macro;
 class MacroErrorHandler;
+class Message;
+class MessageHolderBase;
 
 
 /****************************************************************************
@@ -51,7 +52,7 @@ public:
 	typedef std::vector<std::pair<qs::WSTRING, Macro*> > ValueList;
 
 public:
-	Template(const ValueList& l);
+	explicit Template(const ValueList& l);
 	~Template();
 
 public:

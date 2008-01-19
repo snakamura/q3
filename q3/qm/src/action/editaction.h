@@ -30,6 +30,7 @@ class EditFileInsertAction;
 class EditFileOpenAction;
 class EditFileSaveAction;
 class EditFileSendAction;
+class EditToolApplyTemplateAction;
 #ifdef QMZIP
 class EditToolArchiveAttachmentAction;
 #endif
@@ -405,6 +406,37 @@ private:
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
 	SecurityModel* pSecurityModel_;
+};
+
+
+/****************************************************************************
+ *
+ * EditToolApplyTemplateAction
+ *
+ */
+
+class EditToolApplyTemplateAction : public qs::AbstractAction
+{
+public:
+	EditToolApplyTemplateAction(EditMessageHolder* pEditMessageHolder,
+								const ActionInvoker* pActionInvoker,
+								qs::Profile* pProfile,
+								HWND hwnd);
+	virtual ~EditToolApplyTemplateAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+	virtual bool isEnabled(const qs::ActionEvent& event);
+
+private:
+	EditToolApplyTemplateAction(const EditToolApplyTemplateAction&);
+	EditToolApplyTemplateAction& operator=(const EditToolApplyTemplateAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
+	const ActionInvoker* pActionInvoker_;
+	qs::Profile* pProfile_;
+	HWND hwnd_;
 };
 
 

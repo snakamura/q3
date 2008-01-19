@@ -4022,11 +4022,9 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 		return;
 	
 	TemplateContext::ArgumentList listArg;
-	ArgList l;
-	StringListFree<ArgList> free(l);
-	const WCHAR* pwszArgs = ActionParamUtil::getString(event.getParam(), 1);
-	if (pwszArgs)
-		parseArgs(pwszArgs, &listArg, &l);
+	TemplateActionUtil::ArgList l;
+	StringListFree<TemplateActionUtil::ArgList> free(l);
+	TemplateActionUtil::parseArgs(event.getParam(), 1, &listArg, &l);
 	
 	std::auto_ptr<MessageHolderURI> pURI;
 	const WCHAR* pwszURI = ActionParamUtil::getString(event.getParam(), 2);
@@ -4048,60 +4046,7 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 bool qm::MessageCreateAction::isEnabled(const ActionEvent& event)
 {
 	const WCHAR* pwszTemplate = ActionParamUtil::getString(event.getParam(), 0);
-	if (!pwszTemplate || !*pwszTemplate)
-		return false;
-	
-//	std::pair<Account*, Folder*> p(pFolderModel_->getCurrent());
-//	return p.first || p.second;
-	return true;
-}
-
-void qm::MessageCreateAction::parseArgs(const WCHAR* pwszArgs,
-										TemplateContext::ArgumentList* pListArg,
-										ArgList* pList)
-{
-	assert(pwszArgs);
-	assert(pListArg);
-	assert(pList);
-	
-	const WCHAR* pName = pwszArgs;
-	while (true) {
-		const WCHAR* pValue = wcschr(pName, L'=');
-		if (!pValue)
-			break;
-		
-		wstring_ptr wstrName(allocWString(pName, pValue - pName));
-		
-		++pValue;
-		
-		StringBuffer<WSTRING> buf;
-		while (*pValue && *pValue != L';') {
-			if (*pValue == L'\\') {
-				++pValue;
-				if (!*pValue)
-					break;
-			}
-			buf.append(*pValue);
-			++pValue;
-		}
-		wstring_ptr wstrValue = buf.getString();
-		
-		TemplateContext::Argument arg = {
-			wstrName.get(),
-			wstrValue.get()
-		};
-		pListArg->push_back(arg);
-		
-		pList->reserve(pList->size() + 2);
-		pList->push_back(wstrName.release());
-		pList->push_back(wstrValue.release());
-		
-		if (!*pValue)
-			break;
-		
-		assert(*pValue == L';');
-		pName = pValue + 1;
-	}
+	return pwszTemplate && *pwszTemplate;
 }
 
 

@@ -162,6 +162,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ToolAccount",					IDM_TOOL_ACCOUNT,					1,							0 },
 	{ L"ToolAddAddress",				IDM_TOOL_ADDADDRESS,				1,							0 },
 	{ L"ToolAddressBook",				IDM_TOOL_ADDRESSBOOK,				1,							0 },
+	{ L"ToolApplyTemplate",				IDM_TOOL_APPLYTEMPLATE,				MAX_TOOL_APPLYTEMPLATE,		0 },
 	{ L"ToolArchiveAttachment",			IDM_TOOL_ARCHIVEATTACHMENT,			1,							0 },
 	{ L"ToolAttachment",				IDM_TOOL_ATTACHMENT,				1,							0 },
 	{ L"ToolAutoPilot",					IDM_TOOL_AUTOPILOT,					1,							0 },

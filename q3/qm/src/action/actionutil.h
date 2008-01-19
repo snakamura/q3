@@ -10,6 +10,7 @@
 
 #include <qm.h>
 #include <qmmessageholderlist.h>
+#include <qmtemplate.h>
 
 #include <qsaction.h>
 #include <qsprofile.h>
@@ -25,6 +26,7 @@ class MessageActionUtil;
 class TabActionUtil;
 #endif
 class MacroActionUtil;
+class TemplateActionUtil;
 
 class Account;
 class AccountManager;
@@ -147,6 +149,25 @@ public:
 										 size_t n,
 										 qs::Profile* pProfile,
 										 HWND hwnd);
+};
+
+
+/****************************************************************************
+ *
+ * TemplateActionUtil
+ *
+ */
+
+class TemplateActionUtil
+{
+public:
+	typedef std::vector<qs::WSTRING> ArgList;
+
+public:
+	static void parseArgs(const qs::ActionParam* pParam,
+						  size_t n,
+						  TemplateContext::ArgumentList* pListArg,
+						  ArgList* pList);
 };
 
 }

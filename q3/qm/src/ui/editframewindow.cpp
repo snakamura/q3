@@ -328,6 +328,12 @@ void qm::EditFrameWindowImpl::initActions()
 		IDM_VIEW_FOCUSPREVEDITITEM,
 		pEditWindow_->getFocusController(),
 		ViewFocusItemAction::TYPE_PREV);
+	ADD_ACTION4(EditToolApplyTemplateAction,
+		IDM_TOOL_APPLYTEMPLATE,
+		pEditWindow_->getEditMessageHolder(),
+		pActionInvoker_.get(),
+		pProfile_,
+		pThis_->getHandle());
 #ifdef QMZIP
 	ADD_ACTION1(EditToolArchiveAttachmentAction,
 		IDM_TOOL_ARCHIVEATTACHMENT,
