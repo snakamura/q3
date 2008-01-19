@@ -7,6 +7,8 @@
 
 #pragma warning(disable:4786)
 
+#include <qswindow.h>
+
 #include <tchar.h>
 
 #include "conditiondialog.h"
