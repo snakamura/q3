@@ -220,6 +220,7 @@ public:
 	void scrollVertical(int nLine);
 	void updateScrollBar();
 	void updateRuler();
+	void updateCursor();
 	
 	void showCaret();
 	void hideCaret();
@@ -371,6 +372,7 @@ public:
 	mutable int nLastWindowWidth_;
 	HIMC hImc_;
 	bool bAtok_;
+	HCURSOR hCursorNormal_;
 	HCURSOR hCursorLink_;
 #ifndef _WIN32_WCE
 	std::auto_ptr<Theme> pTheme_;
@@ -1174,8 +1176,9 @@ void qs::TextWindowImpl::scrollHorizontal(int nPos)
 			&rectClip, &rectClip, 0, 0, SW_INVALIDATE);
 		
 		scrollPos_.nPos_ = nPos;
-		updateScrollBar();
 		
+		updateScrollBar();
+		updateCursor();
 		if (bShowRuler_)
 			updateRuler();
 	}
@@ -1191,7 +1194,9 @@ void qs::TextWindowImpl::scrollVertical(int nLine)
 			&rectClip, &rectClip, 0, 0, SW_INVALIDATE);
 		
 		scrollPos_.nLine_ = nLine;
+		
 		updateScrollBar();
+		updateCursor();
 	}
 }
 
@@ -1267,6 +1272,14 @@ void qs::TextWindowImpl::updateRuler()
 	
 	pRuler_->setWindowPos(0, -pThis_->getScrollPos(SB_HORZ), 0, nWidth,
 		TextWindowImpl::RULER_HEIGHT, SWP_NOZORDER | SWP_NOACTIVATE);
+}
+
+void qs::TextWindowImpl::updateCursor()
+{
+	POINT pt;
+	::GetCursorPos(&pt);
+	pThis_->screenToClient(&pt);
+	::SetCursor(getLinkItemFromPoint(pt).second ? hCursorLink_ : hCursorNormal_);
 }
 
 void qs::TextWindowImpl::showCaret()
@@ -1721,6 +1734,7 @@ void qs::TextWindowImpl::reloadProfiles(Profile* pProfile,
 			updateRuler();
 		recalcLines(true);
 		updateScrollBar();
+		updateCursor();
 		pThis_->setWindowPos(0, 0, 0, 0, 0,
 			SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER |
 			SWP_NOACTIVATE | SWP_FRAMECHANGED);
@@ -1737,9 +1751,9 @@ bool qs::TextWindowImpl::isAdjustExtent(HFONT hfont) const
 
 void qs::TextWindowImpl::textUpdated(const TextModelEvent& event)
 {
-	calcLines(event.getStartLine(),
-		event.getOldEndLine(), event.getNewEndLine());
+	calcLines(event.getStartLine(), event.getOldEndLine(), event.getNewEndLine());
 	updateScrollBar();
+	updateCursor();
 }
 
 void qs::TextWindowImpl::textSet(const TextModelEvent& event)
@@ -1753,6 +1767,7 @@ void qs::TextWindowImpl::textSet(const TextModelEvent& event)
 	scrollHorizontal(0);
 	scrollVertical(0);
 	updateScrollBar();
+	updateCursor();
 	updateCaret(true);
 }
 
@@ -2223,6 +2238,7 @@ qs::TextWindow::TextWindow(TextModel* pTextModel,
 	pImpl_->nLastWindowWidth_ = 0;
 	pImpl_->hImc_ = 0;
 	pImpl_->bAtok_ = false;
+	pImpl_->hCursorNormal_ = 0;
 	pImpl_->hCursorLink_ = ::LoadCursor(getResourceDllInstanceHandle(),
 		MAKEINTRESOURCE(IDC_LINK));
 	pImpl_->nLineHeight_ = 0;
@@ -3209,6 +3225,7 @@ void qs::TextWindow::setFont(HFONT hfont)
 		pImpl_->updateRuler();
 	pImpl_->recalcLines(true);
 	pImpl_->updateScrollBar();
+	pImpl_->updateCursor();
 	invalidate();
 }
 
@@ -3224,6 +3241,7 @@ void qs::TextWindow::setLineSpacing(unsigned int nLineSpacing)
 		pImpl_->nLineHeight_ = 0;
 		pImpl_->nLineInWindow_ = 0;
 		pImpl_->updateScrollBar();
+		pImpl_->updateCursor();
 		invalidate();
 	}
 }
@@ -3456,6 +3474,7 @@ void qs::TextWindow::getWindowClass(WNDCLASS* pwc)
 #if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 	pwc->hCursor = ::LoadCursor(0, IDC_IBEAM);
 #endif // _WIN32_WCE
+	pImpl_->hCursorNormal_ = pwc->hCursor;
 }
 
 bool qs::TextWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
@@ -3580,6 +3599,7 @@ LRESULT qs::TextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->updateCaret(false);
 	pImpl_->updateScrollBar();
+	pImpl_->updateCursor();
 	
 	return 0;
 }
@@ -4107,16 +4127,8 @@ LRESULT qs::TextWindow::onSetCursor(HWND hwnd,
 									UINT nMessage)
 {
 	if (nHitTest == HTCLIENT) {
-		POINT pt;
-		::GetCursorPos(&pt);
-		screenToClient(&pt);
-		
-		std::pair<size_t, const TextWindowImpl::LinkItem*> item(
-			pImpl_->getLinkItemFromPoint(pt));
-		if (item.second) {
-			::SetCursor(pImpl_->hCursorLink_);
-			return 0;
-		}
+		pImpl_->updateCursor();
+		return 0;
 	}
 	return DefaultWindowHandler::onSetCursor(hwnd, nHitTest, nMessage);
 }
