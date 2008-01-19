@@ -164,6 +164,7 @@
 *((<ToolEncodingアクション|URL:ToolEncodingAction.html>))
 *((<ToolGoroundアクション|URL:ToolGoroundAction.html>))
 *((<ToolHeaderEditアクション|URL:ToolHeaderEditAction.html>))
+*((<ToolInsertMacroアクション|URL:ToolInsertMacroAction.html>))
 *((<ToolInsertSignatureアクション|URL:ToolInsertSignatureAction.html>))
 *((<ToolInsertTextアクション|URL:ToolInsertTextAction.html>))
 *((<ToolInvokeActionアクション|URL:ToolInvokeActionAction.html>))
