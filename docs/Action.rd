@@ -157,6 +157,7 @@
 *((<ToolAccountアクション|URL:ToolAccountAction.html>))
 *((<ToolAddAddressアクション|URL:ToolAddAddressAction.html>))
 *((<ToolAddressBookアクション|URL:ToolAddressBookAction.html>))
+*((<ToolApplyTemplateアクション|URL:ToolApplyTemplateAction.html>))
 *((<ToolArchiveAttachmentアクション|URL:ToolArchiveAttachmentAction.html>))
 *((<ToolAttachmentアクション|URL:ToolAttachmentAction.html>))
 *((<ToolAutoPilotアクション|URL:ToolAutoPilotAction.html>))
