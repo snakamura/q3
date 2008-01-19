@@ -29,9 +29,13 @@ using namespace qs;
  *
  */
 
+namespace {
+
 HINSTANCE g_hInstDll = 0;
 HINSTANCE g_hInstResourceDll = 0;
 Window* g_pMainWindow = 0;
+
+}
 
 
 /****************************************************************************

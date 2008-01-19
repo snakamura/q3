@@ -22,7 +22,6 @@ namespace qmpop3 {
 HINSTANCE getInstanceHandle();
 HINSTANCE getResourceHandle();
 
-
 }
 
 #endif // __MAIN_H__

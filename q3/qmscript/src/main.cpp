@@ -23,9 +23,13 @@ using namespace qs;
  *
  */
 
+namespace {
+
 HINSTANCE g_hInst = 0;
 HINSTANCE g_hInstResource = 0;
 ITypeLib* g_pTypeLib  = 0;
+
+}
 
 
 /****************************************************************************

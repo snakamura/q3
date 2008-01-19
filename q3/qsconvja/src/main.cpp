@@ -25,8 +25,12 @@ using namespace qsconvja;
  *
  */
 
+namespace {
+
 HINSTANCE g_hInst = 0;
 HINSTANCE g_hInstResource = 0;
+
+}
 
 
 /****************************************************************************

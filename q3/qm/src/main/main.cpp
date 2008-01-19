@@ -29,7 +29,7 @@ using namespace qm;
 using namespace qs;
 
 
-namespace qm{
+namespace qm {
 
 int main(const WCHAR* pwszCommandLine);
 
@@ -42,8 +42,12 @@ int main(const WCHAR* pwszCommandLine);
  *
  */
 
+namespace {
+
 HINSTANCE g_hInst = 0;
 HINSTANCE g_hInstResource = 0;
+
+}
 
 
 /****************************************************************************
