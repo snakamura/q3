@@ -12,6 +12,7 @@
 
 #include "actionutil.h"
 #include "../model/messagecontext.h"
+#include "../ui/dialogs.h"
 #include "../uimodel/foldermodel.h"
 #include "../uimodel/messagemodel.h"
 #ifdef QMTABWINDOW
@@ -266,3 +267,42 @@ int TabActionUtil::getCurrent(TabModel* pModel)
 	return nItem != -1 ? nItem : pModel->getCurrent();
 }
 #endif
+
+
+/****************************************************************************
+ *
+ * MacroActionUtil
+ *
+ */
+
+std::auto_ptr<Macro> MacroActionUtil::getMacro(const qs::ActionParam* pParam,
+											   size_t n,
+											   qs::Profile* pProfile,
+											   HWND hwnd)
+{
+	assert(pProfile);
+	
+	const WCHAR* pwszMacro = ActionParamUtil::getString(pParam, n);
+	wstring_ptr wstrMacro;
+	if (!pwszMacro) {
+		HINSTANCE hInst = Application::getApplication().getResourceHandle();
+		wstring_ptr wstrTitle(loadString(hInst, IDS_EXECUTEMACRO));
+		wstring_ptr wstrMessage(loadString(hInst, IDS_MACRO));
+		wstring_ptr wstrPrevMacro(pProfile->getString(L"Global", L"Macro"));
+		
+		MultiLineInputBoxDialog dialog(wstrTitle.get(), wstrMessage.get(),
+			wstrPrevMacro.get(), false, pProfile, L"MacroDialog");
+		if (dialog.doModal(hwnd) != IDOK)
+			return std::auto_ptr<Macro>();
+		
+		wstrMacro = allocWString(dialog.getValue());
+		pwszMacro = wstrMacro.get();
+		pProfile->setString(L"Global", L"Macro", pwszMacro);
+	}
+	
+	std::auto_ptr<Macro> pMacro(MacroParser().parse(pwszMacro));
+	if (!pMacro.get())
+		ActionUtil::error(hwnd, IDS_ERROR_INVALIDMACRO);
+	
+	return pMacro;
+}

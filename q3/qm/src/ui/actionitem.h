@@ -169,6 +169,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"ToolEncoding",					IDM_TOOL_ENCODING,					MAX_TOOL_ENCODING,			0 },
 	{ L"ToolGoround",					IDM_TOOL_GOROUND,					MAX_TOOL_GOROUND,			0 },
 	{ L"ToolHeaderEdit",				IDM_TOOL_HEADEREDIT,				1,							0 },
+	{ L"ToolInsertMacro",				IDM_TOOL_INSERTMACRO,				MAX_TOOL_INSERTMACRO,		0 },
 	{ L"ToolInsertSignature",			IDM_TOOL_INSERTSIGNATURE,			1,							0 },
 	{ L"ToolInsertText",				IDM_TOOL_INSERTTEXT,				MAX_TOOL_INSERTTEXT,		0 },
 	{ L"ToolInvokeAction",				IDM_TOOL_INVOKEACTION,				MAX_TOOL_INVOKEACTION,		0 },

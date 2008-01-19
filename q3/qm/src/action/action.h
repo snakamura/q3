@@ -2155,7 +2155,6 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	std::auto_ptr<Macro> getMacro(const qs::ActionEvent& event) const;
 	bool eval(const Macro* pMacro,
 			  MessageEnumerator* pEnum,
 			  const MessageHolderList& listSelected,

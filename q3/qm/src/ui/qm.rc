@@ -364,6 +364,7 @@ BEGIN
     IDS_ERROR_INVALIDCOLOR  "The specified color is invalid."
     IDS_ERROR_INSERTSIGNATURE "Could not insert the signature."
     IDS_ERROR_INSERTTEXT    "Could not insert the text."
+    IDS_ERROR_INSERTMACRO   "Could not insert the macro."
     IDS_ERROR_REFORM        "Error occurred while reforming text."
 END
 

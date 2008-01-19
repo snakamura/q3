@@ -4531,7 +4531,8 @@ void qm::MessageMacroAction::invoke(const ActionEvent& event)
 	if (!pEnum.get() && listFolder.empty())
 		return;
 		
-	std::auto_ptr<Macro> pMacro(getMacro(event));
+	std::auto_ptr<Macro> pMacro(MacroActionUtil::getMacro(
+		event.getParam(), 0, pProfile_, hwnd_));
 	if (!pMacro.get())
 		return;
 	
@@ -4557,32 +4558,6 @@ bool qm::MessageMacroAction::isEnabled(const ActionEvent& event)
 {
 	return (pMessageSelectionModel_ && pMessageSelectionModel_->hasSelectedMessages()) ||
 		(pFolderSelectionModel_ && pFolderSelectionModel_->hasSelectedFolder());
-}
-
-std::auto_ptr<Macro> qm::MessageMacroAction::getMacro(const ActionEvent& event) const
-{
-	const WCHAR* pwszMacro = ActionParamUtil::getString(event.getParam(), 0);
-	wstring_ptr wstrMacro;
-	if (!pwszMacro) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrTitle(loadString(hInst, IDS_EXECUTEMACRO));
-		wstring_ptr wstrMessage(loadString(hInst, IDS_MACRO));
-		wstring_ptr wstrPrevMacro(pProfile_->getString(L"Global", L"Macro"));
-		
-		MultiLineInputBoxDialog dialog(wstrTitle.get(), wstrMessage.get(),
-			wstrPrevMacro.get(), false, pProfile_, L"MacroDialog");
-		if (dialog.doModal(hwnd_) != IDOK)
-			return std::auto_ptr<Macro>();
-		
-		wstrMacro = allocWString(dialog.getValue());
-		pwszMacro = wstrMacro.get();
-		pProfile_->setString(L"Global", L"Macro", pwszMacro);
-	}
-	
-	std::auto_ptr<Macro> pMacro(MacroParser().parse(pwszMacro));
-	if (!pMacro.get())
-		ActionUtil::error(hwnd_, IDS_ERROR_INVALIDMACRO);
-	return pMacro;
 }
 
 bool qm::MessageMacroAction::eval(const Macro* pMacro,

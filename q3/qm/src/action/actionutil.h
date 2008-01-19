@@ -24,11 +24,13 @@ class MessageActionUtil;
 #ifdef QMTABWINDOW
 class TabActionUtil;
 #endif
+class MacroActionUtil;
 
 class Account;
 class AccountManager;
 class Folder;
 class FolderModelBase;
+class Macro;
 class MessageModel;
 #ifdef QMTABWINDOW
 class TabModel;
@@ -130,6 +132,22 @@ public:
 	static int getCurrent(TabModel* pModel);
 };
 #endif
+
+
+/****************************************************************************
+ *
+ * MacroActionUtil
+ *
+ */
+
+class MacroActionUtil
+{
+public:
+	static std::auto_ptr<Macro> getMacro(const qs::ActionParam* pParam,
+										 size_t n,
+										 qs::Profile* pProfile,
+										 HWND hwnd);
+};
 
 }
 

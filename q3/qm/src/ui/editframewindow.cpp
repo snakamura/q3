@@ -343,6 +343,13 @@ void qm::EditFrameWindowImpl::initActions()
 	ADD_ACTION1(EditToolHeaderEditAction,
 		IDM_TOOL_HEADEREDIT,
 		pEditWindow_);
+	ADD_ACTION5(EditToolInsertMacroAction,
+		IDM_TOOL_INSERTMACRO,
+		pEditWindow_->getEditMessageHolder(),
+		pEditWindow_->getTextWindow(),
+		pActionInvoker_.get(),
+		pProfile_,
+		pThis_->getHandle());
 	ADD_ACTION2(EditToolInsertSignatureAction,
 		IDM_TOOL_INSERTSIGNATURE,
 		pEditWindow_->getEditMessageHolder(),

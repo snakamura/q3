@@ -36,6 +36,7 @@ class EditToolArchiveAttachmentAction;
 class EditToolAttachmentAction;
 class EditToolEncodingAction;
 class EditToolFlagAction;
+class EditToolInsertMacroAction;
 class EditToolInsertSignatureAction;
 class EditToolInsertTextAction;
 class EditToolHeaderEditAction;
@@ -519,6 +520,38 @@ private:
 	PFN_IS pfnIs_;
 	PFN_SET pfnSet_;
 	bool bEnabled_;
+};
+
+
+/****************************************************************************
+ *
+ * EditToolInsertMacroAction
+ *
+ */
+
+class EditToolInsertMacroAction : public qs::AbstractAction
+{
+public:
+	EditToolInsertMacroAction(EditMessageHolder* pEditMessageHolder,
+							  qs::TextWindow* pTextWindow,
+							  const ActionInvoker* pActionInvoker,
+							  qs::Profile* pProfile,
+							  HWND hwnd);
+	virtual ~EditToolInsertMacroAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	EditToolInsertMacroAction(const EditToolInsertMacroAction&);
+	EditToolInsertMacroAction& operator=(const EditToolInsertMacroAction&);
+
+private:
+	EditMessageHolder* pEditMessageHolder_;
+	qs::TextWindow* pTextWindow_;
+	const ActionInvoker* pActionInvoker_;
+	qs::Profile* pProfile_;
+	HWND hwnd_;
 };
 
 

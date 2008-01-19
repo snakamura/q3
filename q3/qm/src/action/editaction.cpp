@@ -1020,6 +1020,62 @@ bool qm::EditToolFlagAction::isChecked(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * EditToolInsertMacroAction
+ *
+ */
+
+qm::EditToolInsertMacroAction::EditToolInsertMacroAction(EditMessageHolder* pEditMessageHolder,
+														 TextWindow* pTextWindow,
+														 const ActionInvoker* pActionInvoker,
+														 Profile* pProfile,
+														 HWND hwnd) :
+	pEditMessageHolder_(pEditMessageHolder),
+	pTextWindow_(pTextWindow),
+	pActionInvoker_(pActionInvoker),
+	pProfile_(pProfile),
+	hwnd_(hwnd)
+{
+}
+
+qm::EditToolInsertMacroAction::~EditToolInsertMacroAction()
+{
+}
+
+void qm::EditToolInsertMacroAction::invoke(const ActionEvent& event)
+{
+	std::auto_ptr<Macro> pMacro(MacroActionUtil::getMacro(
+		event.getParam(), 0, pProfile_, hwnd_));
+	if (!pMacro.get())
+		return;
+	
+	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(true));
+	if (!pMessage.get()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_INSERTMACRO);
+		return;
+	}
+	
+	MacroVariableHolder globalVariable;
+	MacroContext context(0, pMessage.get(), pEditMessage->getAccount(),
+		MessageHolderList(), 0, pEditMessage->getDocument(), pActionInvoker_,
+		hwnd_, pProfile_, 0, MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD,
+		SECURITYMODE_NONE, 0, &globalVariable);
+	MacroValuePtr pValue(pMacro->value(&context));
+	if (pValue.get()) {
+		if (!pTextWindow_->insertText(pValue->string().get(), -1)) {
+			ActionUtil::error(hwnd_, IDS_ERROR_INSERTMACRO);
+			return;
+		}
+	}
+	else {
+		if (context.getReturnType() == MacroContext::RETURNTYPE_NONE)
+			ActionUtil::error(hwnd_, IDS_ERROR_EVALUATEMACRO);
+	}
+}
+
+
+/****************************************************************************
+ *
  * EditToolInsertSignatureAction
  *
  */

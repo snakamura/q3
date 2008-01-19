@@ -264,7 +264,8 @@
 #define IDS_ERROR_INVALIDCOLOR          10070
 #define IDS_ERROR_INSERTSIGNATURE       10071
 #define IDS_ERROR_INSERTTEXT            10072
-#define IDS_ERROR_REFORM                10073
+#define IDS_ERROR_INSERTMACRO           10073
+#define IDS_ERROR_REFORM                10074
 
 // Next default values for new objects
 // 
