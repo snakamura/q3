@@ -177,8 +177,7 @@ AttachmentParser::Result qm::AttachmentHelper::detach(MessageEnumerator* pEnum,
 	DetachDialogListFree freeList(list);
 	while (pEnum->next()) {
 		Message msg;
-		Message* pMessage = pEnum->getMessage(
-			Account::GETMESSAGEFLAG_TEXT, 0, nSecurityMode, &msg);
+		Message* pMessage = pEnum->getMessage(Account::GMF_TEXT, 0, nSecurityMode, &msg);
 		if (!pMessage)
 			return AttachmentParser::RESULT_FAIL;
 		addItems(*pMessage, pEnum->getMessageHolder(), pListName, &list);
@@ -218,8 +217,7 @@ AttachmentParser::Result qm::AttachmentHelper::detach(MessageEnumerator* pEnum,
 		}
 		if ((*it).wstrName_) {
 			if (!pMessage) {
-				pMessage = pEnum->getMessage(
-					Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+				pMessage = pEnum->getMessage(Account::GMF_ALL, 0, nSecurityMode, &msg);
 				if (!pMessage)
 					return AttachmentParser::RESULT_FAIL;
 				AttachmentParser(*pMessage).getAttachments(AttachmentParser::GAF_NONE, &l);
@@ -245,8 +243,8 @@ AttachmentParser::Result qm::AttachmentHelper::detach(MessageContext* pContext,
 	assert(pContext);
 	assert(pSecurityModel_);
 	
-	Message* pMessage = pContext->getMessage(Account::GETMESSAGEFLAG_ALL,
-		0, pSecurityModel_->getSecurityMode());
+	Message* pMessage = pContext->getMessage(
+		Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode());
 	if (!pMessage)
 		return AttachmentParser::RESULT_FAIL;
 	

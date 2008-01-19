@@ -529,16 +529,16 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	bool bHeaderOnly = false;
 	bool bHtml = false;
 	
-	switch (nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) {
-	case Account::GETMESSAGEFLAG_ALL:
+	switch (nFlags & Account::GMF_METHOD_MASK) {
+	case Account::GMF_ALL:
 		break;
-	case Account::GETMESSAGEFLAG_HEADER:
+	case Account::GMF_HEADER:
 		bHeaderOnly = true;
 		break;
-	case Account::GETMESSAGEFLAG_TEXT:
+	case Account::GMF_TEXT:
 		bBodyStructure = pmh->isFlag(MessageHolder::FLAG_MULTIPART);
 		break;
-	case Account::GETMESSAGEFLAG_HTML:
+	case Account::GMF_HTML:
 		bBodyStructure = pmh->isFlag(MessageHolder::FLAG_MULTIPART);
 		bHtml = true;
 		break;
@@ -564,7 +564,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				bool bAll = false;
 				Util::getFetchArgFromPartList(listPart,
 					bHtml ? Util::FETCHARG_HTML : Util::FETCHARG_TEXT,
-					(nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0,
+					(nFlags & Account::GMF_MAKESEEN) == 0,
 					(nOption_ & OPTION_TRUSTBODYSTRUCTURE) == 0,
 					&strArg, &nPartCount, &bAll);
 				
@@ -581,12 +581,12 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		if (bHeaderOnly) {
 			BodyProcessHook hook(pmh->getId(), true, pmh, pCallback);
 			Hook h(cacher.getCallback(), &hook);
-			RETRY_COND(pImap4->getHeader(range, (nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0), hook.bProcessed_);
+			RETRY_COND(pImap4->getHeader(range, (nFlags & Account::GMF_MAKESEEN) == 0), hook.bProcessed_);
 		}
 		else {
 			BodyProcessHook hook(pmh->getId(), false, pmh, pCallback);
 			Hook h(cacher.getCallback(), &hook);
-			RETRY_COND(pImap4->getMessage(range, (nFlags & Account::GETMESSAGEFLAG_MAKESEEN) == 0), hook.bProcessed_);
+			RETRY_COND(pImap4->getMessage(range, (nFlags & Account::GMF_MAKESEEN) == 0), hook.bProcessed_);
 		}
 	}
 	

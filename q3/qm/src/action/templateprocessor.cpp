@@ -139,8 +139,7 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 				pMessage = &msg;
 			}
 			else {
-				pMessage = pEnum->getMessage(
-					Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+				pMessage = pEnum->getMessage(Account::GMF_ALL, 0, nSecurityMode, &msg);
 				if (!pMessage)
 					return false;
 			}

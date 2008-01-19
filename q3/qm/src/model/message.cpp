@@ -1047,8 +1047,7 @@ bool qm::MessageCreator::attachFileOrURI(qs::Part* pPart,
 		if (!pContext.get())
 			return false;
 		
-		Message* pMessage = pContext->getMessage(
-			Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode);
+		Message* pMessage = pContext->getMessage(Account::GMF_ALL, 0, nSecurityMode);
 		if (!pMessage)
 			return false;
 		

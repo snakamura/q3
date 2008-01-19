@@ -240,15 +240,15 @@ bool qm::MessageWindowImpl::setMessage(MessageContext* pContext,
 	
 	Message* pMessage = 0;
 	if (pContext) {
-		unsigned int nFlags = Account::GETMESSAGEFLAG_FALLBACK;
+		unsigned int nFlags = Account::GMF_FALLBACK;
 		if (nSeenWait_ == 0)
-			nFlags |= Account::GETMESSAGEFLAG_MAKESEEN;
+			nFlags |= Account::GMF_MAKESEEN;
 		if (bRawMode || bSourceMode)
-			nFlags |= Account::GETMESSAGEFLAG_ALL;
+			nFlags |= Account::GMF_ALL;
 		else if (bHtmlMode)
-			nFlags |= Account::GETMESSAGEFLAG_HTML;
+			nFlags |= Account::GMF_HTML;
 		else
-			nFlags |= Account::GETMESSAGEFLAG_TEXT;
+			nFlags |= Account::GMF_TEXT;
 		pMessage = pContext->getMessage(nFlags, 0, pSecurityModel_->getSecurityMode());
 		if (!pMessage)
 			return false;

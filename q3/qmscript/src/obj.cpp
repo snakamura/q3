@@ -661,7 +661,7 @@ STDMETHODIMP qmscript::MessageHolderImpl::get_folder(IFolder** ppFolder)
 STDMETHODIMP qmscript::MessageHolderImpl::get_message(IMessage** ppMessage)
 {
 	std::auto_ptr<MessageObj> pMessage(new MessageObj());
-	if (!pmh_->getMessage(Account::GETMESSAGEFLAG_ALL,
+	if (!pmh_->getMessage(Account::GMF_ALL,
 		0, SECURITYMODE_NONE, pMessage->getMessage()))
 		return E_FAIL;
 	

@@ -211,7 +211,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			return E_FAIL;
 		
 		Message msg;
-		if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
+		if (!mpl->getMessage(Account::GMF_ALL, 0, SECURITYMODE_NONE, &msg))
 			return E_FAIL;
 		xstring_size_ptr strContent(msg.getContent());
 		if (!strContent.get())
@@ -913,7 +913,7 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 		std::auto_ptr<MessageContext> pContext(pURI->resolve(pURIResolver_));
 		if (!pContext.get())
 			return E_FAIL;
-		Message* pMessage = pContext->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode_);
+		Message* pMessage = pContext->getMessage(Account::GMF_ALL, 0, nSecurityMode_);
 		if (!pMessage)
 			return E_FAIL;
 		const Part* pPart = pURI->getFragment().getPart(pMessage);

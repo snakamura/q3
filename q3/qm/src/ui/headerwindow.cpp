@@ -1112,8 +1112,7 @@ void qm::AttachmentHeaderItem::setMessage(const TemplateContext* pContext)
 		if (pMessage) {
 			bool b = true;
 			if (pmh)
-				b = pmh->getMessage(Account::GETMESSAGEFLAG_TEXT,
-					0, nSecurityMode_, pMessage);
+				b = pmh->getMessage(Account::GMF_TEXT, 0, nSecurityMode_, pMessage);
 			if (b) {
 				AttachmentParser parser(*pMessage);
 				AttachmentParser::AttachmentList list;

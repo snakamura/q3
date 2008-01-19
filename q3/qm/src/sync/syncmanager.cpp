@@ -1078,7 +1078,7 @@ bool qm::SyncManager::send(unsigned int nId,
 				
 				if (bSend && *pwszIdentity) {
 					Message msg;
-					if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
+					if (!pmh->getMessage(Account::GMF_HEADER,
 						L"X-QMAIL-SubAccount", SECURITYMODE_NONE, &msg)) {
 						addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_GETMESSAGE, 0);
 						return false;
@@ -1165,7 +1165,7 @@ bool qm::SyncManager::send(unsigned int nId,
 		{
 			MessagePtrLock mpl(listMessagePtr[m]);
 			if (mpl) {
-				if (!mpl->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg)) {
+				if (!mpl->getMessage(Account::GMF_ALL, 0, SECURITYMODE_NONE, &msg)) {
 					addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_GETMESSAGE, 0);
 					return false;
 				}

@@ -280,31 +280,31 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 {
 	assert(pmh);
 	assert(pMessage);
-	assert((nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) != 0);
+	assert((nFlags & Account::GMF_METHOD_MASK) != 0);
 	assert(pThis_->isLocked());
 	
 #ifndef NDEBUG
 	Message::Flag flag = pMessage->getFlag();
-	switch (nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) {
-	case Account::GETMESSAGEFLAG_ALL:
+	switch (nFlags & Account::GMF_METHOD_MASK) {
+	case Account::GMF_ALL:
 		assert(flag != Message::FLAG_NONE);
 		break;
-	case Account::GETMESSAGEFLAG_HEADER:
+	case Account::GMF_HEADER:
 		assert(flag != Message::FLAG_NONE &&
 			flag != Message::FLAG_HEADERONLY &&
 			flag != Message::FLAG_TEXTONLY &&
 			flag != Message::FLAG_HTMLONLY);
 		break;
-	case Account::GETMESSAGEFLAG_TEXT:
+	case Account::GMF_TEXT:
 		assert(flag != Message::FLAG_NONE &&
 			flag != Message::FLAG_TEXTONLY &&
 			flag != Message::FLAG_HTMLONLY);
 		break;
-	case Account::GETMESSAGEFLAG_HTML:
+	case Account::GMF_HTML:
 		assert(flag != Message::FLAG_NONE &&
 			flag != Message::FLAG_HTMLONLY);
 		break;
-	case Account::GETMESSAGEFLAG_POSSIBLE:
+	case Account::GMF_POSSIBLE:
 		break;
 	default:
 		assert(false);
@@ -315,19 +315,19 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 	bool bLoadFromStore = false;
 	Message::Flag msgFlag = Message::FLAG_NONE;
 	unsigned int nPartialMask = pmh->getFlags() & MessageHolder::FLAG_PARTIAL_MASK;
-	switch (nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) {
-	case Account::GETMESSAGEFLAG_ALL:
+	switch (nFlags & Account::GMF_METHOD_MASK) {
+	case Account::GMF_ALL:
 		bLoadFromStore = nPartialMask == 0;
 		msgFlag = Message::FLAG_NONE;
 		break;
-	case Account::GETMESSAGEFLAG_HEADER:
+	case Account::GMF_HEADER:
 		bLoadFromStore = nPartialMask == 0 ||
 			nPartialMask == MessageHolder::FLAG_HTMLONLY ||
 			nPartialMask == MessageHolder::FLAG_TEXTONLY ||
 			nPartialMask == MessageHolder::FLAG_HEADERONLY;
 		msgFlag = Message::FLAG_HEADERONLY;
 		break;
-	case Account::GETMESSAGEFLAG_TEXT:
+	case Account::GMF_TEXT:
 		bLoadFromStore = nPartialMask == 0 ||
 			nPartialMask == MessageHolder::FLAG_HTMLONLY ||
 			nPartialMask == MessageHolder::FLAG_TEXTONLY;
@@ -335,12 +335,12 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 			nPartialMask == MessageHolder::FLAG_HTMLONLY ?
 			Message::FLAG_HTMLONLY : Message::FLAG_TEXTONLY;
 		break;
-	case Account::GETMESSAGEFLAG_HTML:
+	case Account::GMF_HTML:
 		bLoadFromStore = nPartialMask == 0 ||
 			nPartialMask == MessageHolder::FLAG_HTMLONLY;
 		msgFlag = nPartialMask == 0 ? Message::FLAG_NONE : Message::FLAG_HTMLONLY;
 		break;
-	case Account::GETMESSAGEFLAG_POSSIBLE:
+	case Account::GMF_POSSIBLE:
 		bLoadFromStore = true;
 		msgFlag = nPartialMask == 0 ? Message::FLAG_NONE :
 			nPartialMask == MessageHolder::FLAG_INDEXONLY ? Message::FLAG_TEMPORARY :
@@ -414,7 +414,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 			return false;
 		bGet = callback.bGet_;
 		bMadeSeen = callback.bMadeSeen_;
-		if (!bGet && !(nFlags & Account::GETMESSAGEFLAG_FALLBACK))
+		if (!bGet && !(nFlags & Account::GMF_FALLBACK))
 			return false;
 	}
 	
@@ -422,7 +422,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 		const MessageHolder::MessageBoxKey& key = pmh->getMessageBoxKey();
 		if (key.nOffset_ != -1) {
 			unsigned int nLength =
-				(nFlags & Account::GETMESSAGEFLAG_METHOD_MASK) == Account::GETMESSAGEFLAG_HEADER ?
+				(nFlags & Account::GMF_METHOD_MASK) == Account::GMF_HEADER ?
 				key.nHeaderLength_ : key.nLength_;
 			if (!pMessageStore_->load(key.nOffset_, nLength, pMessage))
 				return false;
@@ -436,7 +436,7 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 		}
 	}
 	
-	if ((nFlags & Account::GETMESSAGEFLAG_MAKESEEN) &&
+	if ((nFlags & Account::GMF_MAKESEEN) &&
 		!bMadeSeen &&
 		!pmh->isFlag(MessageHolder::FLAG_SEEN)) {
 		MessageHolderList l(1, pmh);
@@ -626,7 +626,7 @@ bool qm::AccountImpl::copyMessages(NormalFolder* pFolderFrom,
 		for (MessageHolderList::size_type n = 0; n < l.size(); ++n) {
 			MessageHolder* pmh = l[n];
 			Message msg;
-			if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, SECURITYMODE_NONE, &msg))
+			if (!pmh->getMessage(Account::GMF_ALL, 0, SECURITYMODE_NONE, &msg))
 				return false;
 			unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
 			wstring_ptr wstrLabel(pmh->getLabel());
@@ -1981,8 +1981,8 @@ bool qm::Account::check(AccountCheckCallback* pCallback)
 		virtual bool getHeader(unsigned int n,
 							   Message* pMessage)
 		{
-			return listMessageHolder_[n]->getMessage(
-				Account::GETMESSAGEFLAG_HEADER, 0, SECURITYMODE_NONE, pMessage);
+			return listMessageHolder_[n]->getMessage(Account::GMF_HEADER,
+				0, SECURITYMODE_NONE, pMessage);
 		}
 		
 		virtual wstring_ptr getLabel(unsigned int n)
@@ -2507,8 +2507,8 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 	bool bPGP = Security::isPGPEnabled() && nSecurityMode & SECURITYMODE_PGP;
 	
 	if ((bSMIME || bPGP) && pmh->isFlag(MessageHolder::FLAG_ENVELOPED)) {
-		nFlags &= ~GETMESSAGEFLAG_METHOD_MASK;
-		nFlags |= GETMESSAGEFLAG_ALL;
+		nFlags &= ~GMF_METHOD_MASK;
+		nFlags |= GMF_ALL;
 	}
 	
 	if (!pImpl_->getMessage(pmh, nFlags, pMessage))
@@ -2521,7 +2521,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 		if  (type != SMIMEUtility::TYPE_NONE) {
 			if (pMessage->getFlag() != Message::FLAG_NONE) {
 				pMessage->clear();
-				if (!pImpl_->getMessage(pmh, GETMESSAGEFLAG_ALL, pMessage))
+				if (!pImpl_->getMessage(pmh, GMF_ALL, pMessage))
 					return false;
 			}
 			type = pSMIMEUtility->getType(*pMessage);
@@ -2541,7 +2541,7 @@ bool qm::Account::getMessage(MessageHolder* pmh,
 			 type == PGPUtility::TYPE_MIMESIGNED) {
 			if (pMessage->getFlag() != Message::FLAG_NONE) {
 				pMessage->clear();
-				if (!pImpl_->getMessage(pmh, GETMESSAGEFLAG_ALL, pMessage))
+				if (!pImpl_->getMessage(pmh, GMF_ALL, pMessage))
 					return false;
 			}
 			type = pPGPUtility->getType(*pMessage, false);
@@ -2837,7 +2837,7 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 	}
 	else {
 		Message msg;
-		if (!pmh->getMessage(GETMESSAGEFLAG_POSSIBLE, 0, SECURITYMODE_NONE, &msg))
+		if (!pmh->getMessage(GMF_POSSIBLE, 0, SECURITYMODE_NONE, &msg))
 			return 0;
 		xstring_size_ptr strContent(msg.getContent());
 		if (!strContent.get())

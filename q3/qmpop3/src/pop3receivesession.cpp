@@ -308,7 +308,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					MessageHolder* pmh = pFolder->getMessage(n);
 					if (pmh->isFlag(MessageHolder::FLAG_DELETED)) {
 						Message msg;
-						if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
+						if (!pmh->getMessage(Account::GMF_HEADER,
 							0, SECURITYMODE_NONE, &msg))
 							return false;
 						
@@ -589,7 +589,7 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 			pSessionCallback_->setPos(++(*pnPos));
 			
 			Message msg;
-			if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
+			if (!mpl->getMessage(Account::GMF_HEADER,
 				0, SECURITYMODE_NONE, &msg))
 				return false;
 			
@@ -646,7 +646,7 @@ bool qmpop3::Pop3ReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 				if (mpl) {
 					bSeen = pAccount_->isSeen(mpl);
 					unsigned int nFlags = pJunkFilter->isScanAttachment() ?
-						Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT;
+						Account::GMF_ALL : Account::GMF_TEXT;
 					bProcess = mpl->getMessage(nFlags, 0, SECURITYMODE_NONE, &msg);
 				}
 			}
@@ -983,17 +983,17 @@ bool qmpop3::Pop3SyncFilterCallback::getMessage(unsigned int nFlag)
 {
 	bool bDownload = false;
 	unsigned int nMaxLine = -1;
-	switch (nFlag & Account::GETMESSAGEFLAG_METHOD_MASK) {
-	case Account::GETMESSAGEFLAG_ALL:
-	case Account::GETMESSAGEFLAG_TEXT:
-	case Account::GETMESSAGEFLAG_HTML:
+	switch (nFlag & Account::GMF_METHOD_MASK) {
+	case Account::GMF_ALL:
+	case Account::GMF_TEXT:
+	case Account::GMF_HTML:
 		bDownload = *pState_ != Pop3ReceiveSession::STATE_ALL;
 		break;
-	case Account::GETMESSAGEFLAG_HEADER:
+	case Account::GMF_HEADER:
 		bDownload = *pState_ == Pop3ReceiveSession::STATE_NONE;
 		nMaxLine = 0;
 		break;
-	case Account::GETMESSAGEFLAG_POSSIBLE:
+	case Account::GMF_POSSIBLE:
 		break;
 	default:
 		assert(false);
@@ -1052,14 +1052,14 @@ qmpop3::Pop3MessageHolder::~Pop3MessageHolder()
 
 wstring_ptr qmpop3::Pop3MessageHolder::getFrom() const
 {
-	if (!getMessage(Account::GETMESSAGEFLAG_HEADER))
+	if (!getMessage(Account::GMF_HEADER))
 		return allocWString(L"");
 	return AbstractMessageHolder::getFrom();
 }
 
 wstring_ptr qmpop3::Pop3MessageHolder::getTo() const
 {
-	if (!getMessage(Account::GETMESSAGEFLAG_HEADER))
+	if (!getMessage(Account::GMF_HEADER))
 		return allocWString(L"");
 	return AbstractMessageHolder::getTo();
 }
@@ -1071,14 +1071,14 @@ wstring_ptr qmpop3::Pop3MessageHolder::getFromTo() const
 
 wstring_ptr qmpop3::Pop3MessageHolder::getSubject() const
 {
-	if (!getMessage(Account::GETMESSAGEFLAG_HEADER))
+	if (!getMessage(Account::GMF_HEADER))
 		return allocWString(L"");
 	return AbstractMessageHolder::getSubject();
 }
 
 void qmpop3::Pop3MessageHolder::getDate(Time* pTime) const
 {
-	if (!getMessage(Account::GETMESSAGEFLAG_HEADER))
+	if (!getMessage(Account::GMF_HEADER))
 		*pTime = Time::getCurrentTime();
 	AbstractMessageHolder::getDate(pTime);
 }

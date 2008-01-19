@@ -763,7 +763,7 @@ std::auto_ptr<URI> qm::URIResolver::getTemporaryURI(const Message* pMessage,
 		mapMessageContext_.begin(), mapMessageContext_.end(),
 		boost::bind(&MessageContext::getMessage,
 			boost::bind(std::select2nd<MessageContextMap::value_type>(), _1),
-			Account::GETMESSAGEFLAG_ALL, static_cast<const WCHAR*>(0), nSecurityMode) == pMessage);
+			Account::GMF_ALL, static_cast<const WCHAR*>(0), nSecurityMode) == pMessage);
 	if (it == mapMessageContext_.end())
 		return std::auto_ptr<URI>();
 	return (*it).second->getURI();
@@ -779,7 +779,7 @@ std::auto_ptr<URI> qm::URIResolver::getTemporaryURI(const qs::Part* pPart,
 		mapMessageContext_.begin(), mapMessageContext_.end(),
 		boost::bind(&MessageContext::getMessage,
 			boost::bind(std::select2nd<MessageContextMap::value_type>(), _1),
-			Account::GETMESSAGEFLAG_ALL, static_cast<const WCHAR*>(0), nSecurityMode) == pMessage);
+			Account::GMF_ALL, static_cast<const WCHAR*>(0), nSecurityMode) == pMessage);
 	if (it == mapMessageContext_.end())
 		return std::auto_ptr<URI>();
 	return (*it).second->getURI(pPart, type);

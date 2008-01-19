@@ -190,7 +190,7 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 	std::auto_ptr<MessageEnumerator> pEnum(pMessageSelectionModel_->getFocusedMessage());
 	if (pEnum->next()) {
 		Message msg;
-		Message* pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_TEXT,
+		Message* pMessage = pEnum->getMessage(Account::GMF_TEXT,
 			0, pSecurityModel_->getSecurityMode(), &msg);
 		if (pMessage) {
 			AttachmentParser parser(*pMessage);
@@ -1238,8 +1238,7 @@ wstring_ptr qm::MacroMenuCreator::evalMacro(const Macro* pMacro) const
 			pMessage = &msg;
 		}
 		else {
-			pMessage = pEnum->getMessage(
-				Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+			pMessage = pEnum->getMessage(Account::GMF_ALL, 0, nSecurityMode, &msg);
 			if (!pMessage)
 				return 0;
 		}

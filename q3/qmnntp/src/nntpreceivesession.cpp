@@ -497,7 +497,7 @@ bool qmnntp::NntpReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 				if (mpl) {
 					bSeen = pAccount_->isSeen(mpl);
 					unsigned int nFlags = pJunkFilter->isScanAttachment() ?
-						Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT;
+						Account::GMF_ALL : Account::GMF_TEXT;
 					bProcess = mpl->getMessage(nFlags, 0, SECURITYMODE_NONE, &msg);
 				}
 			}
@@ -748,16 +748,16 @@ qmnntp::NntpSyncFilterCallback::~NntpSyncFilterCallback()
 bool qmnntp::NntpSyncFilterCallback::getMessage(unsigned int nFlag)
 {
 	bool bDownload = false;
-	switch (nFlag & Account::GETMESSAGEFLAG_METHOD_MASK) {
-	case Account::GETMESSAGEFLAG_ALL:
-	case Account::GETMESSAGEFLAG_TEXT:
-	case Account::GETMESSAGEFLAG_HTML:
+	switch (nFlag & Account::GMF_METHOD_MASK) {
+	case Account::GMF_ALL:
+	case Account::GMF_TEXT:
+	case Account::GMF_HTML:
 		bDownload = *pState_ != NntpReceiveSession::STATE_ALL;
 		break;
-	case Account::GETMESSAGEFLAG_HEADER:
+	case Account::GMF_HEADER:
 		bDownload = *pState_ == NntpReceiveSession::STATE_NONE;
 		break;
-	case Account::GETMESSAGEFLAG_POSSIBLE:
+	case Account::GMF_POSSIBLE:
 		break;
 	default:
 		assert(false);

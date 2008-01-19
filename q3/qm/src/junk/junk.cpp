@@ -131,7 +131,7 @@ bool qm::JunkFilterUtil::manage(JunkFilter* pJunkFilter,
 	else {
 		Message msg;
 		Message* pMessage = pEnum->getMessage(
-			Account::GETMESSAGEFLAG_HEADER, 0, SECURITYMODE_NONE, &msg);
+			Account::GMF_HEADER, 0, SECURITYMODE_NONE, &msg);
 		if (!pMessage) {
 			log.error(L"Could not get a message while managing a junk filter.");
 			return false;
@@ -168,7 +168,7 @@ bool qm::JunkFilterUtil::manage(JunkFilter* pJunkFilter,
 	
 	Message msg;
 	unsigned int nFlags = pJunkFilter->isScanAttachment() ?
-		Account::GETMESSAGEFLAG_ALL : Account::GETMESSAGEFLAG_TEXT;
+		Account::GMF_ALL : Account::GMF_TEXT;
 	const Message* pMessage = 0;
 	if (pEnum) {
 		pMessage = pEnum->getMessage(nFlags, 0, SECURITYMODE_NONE, &msg);

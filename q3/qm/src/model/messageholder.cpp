@@ -132,25 +132,25 @@ bool qm::MessageHolder::getMessage(unsigned int nFlags,
 								   unsigned int nSecurityMode,
 								   Message* pMessage)
 {
-	int nMethod = nFlags & Account::GETMESSAGEFLAG_METHOD_MASK;
+	int nMethod = nFlags & Account::GMF_METHOD_MASK;
 	switch (pMessage->getFlag()) {
 	case Message::FLAG_EMPTY:
 		break;
 	case Message::FLAG_NONE:
 		return true;
 	case Message::FLAG_HEADERONLY:
-		if (nMethod == Account::GETMESSAGEFLAG_HEADER)
+		if (nMethod == Account::GMF_HEADER)
 			return true;
 		break;
 	case Message::FLAG_TEXTONLY:
-		if (nMethod == Account::GETMESSAGEFLAG_HEADER ||
-			nMethod == Account::GETMESSAGEFLAG_TEXT)
+		if (nMethod == Account::GMF_HEADER ||
+			nMethod == Account::GMF_TEXT)
 			return true;
 		break;
 	case Message::FLAG_HTMLONLY:
-		if (nMethod == Account::GETMESSAGEFLAG_HEADER ||
-			nMethod == Account::GETMESSAGEFLAG_TEXT ||
-			nMethod == Account::GETMESSAGEFLAG_HTML)
+		if (nMethod == Account::GMF_HEADER ||
+			nMethod == Account::GMF_TEXT ||
+			nMethod == Account::GMF_HTML)
 			return true;
 		break;
 	case Message::FLAG_TEMPORARY:

@@ -1723,20 +1723,20 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	case MESSAGETYPE_HEADER:
 		if (flag == Message::FLAG_EMPTY ||
 			flag == Message::FLAG_TEMPORARY)
-			nFlags = Account::GETMESSAGEFLAG_HEADER;
+			nFlags = Account::GMF_HEADER;
 		break;
 	case MESSAGETYPE_TEXT:
 		if (flag == Message::FLAG_EMPTY ||
 			flag == Message::FLAG_HEADERONLY ||
 			flag == Message::FLAG_TEMPORARY)
-			nFlags = Account::GETMESSAGEFLAG_TEXT;
+			nFlags = Account::GMF_TEXT;
 		break;
 	case MESSAGETYPE_ALL:
 		if (flag == Message::FLAG_EMPTY ||
 			flag == Message::FLAG_HEADERONLY ||
 			flag == Message::FLAG_TEXTONLY ||
 			flag == Message::FLAG_TEMPORARY)
-			nFlags = Account::GETMESSAGEFLAG_ALL;
+			nFlags = Account::GMF_ALL;
 		break;
 	default:
 		assert(false);
@@ -1745,7 +1745,7 @@ Message* qm::MacroContext::getMessage(MessageType type,
 	
 	if (nFlags) {
 		if (isFlag(FLAG_GETMESSAGEASPOSSIBLE))
-			nFlags = Account::GETMESSAGEFLAG_POSSIBLE;
+			nFlags = Account::GMF_POSSIBLE;
 		assert(pmh_);
 		if (!pmh_->getMessage(nFlags, pwszField, getSecurityMode(), pMessage_))
 			return 0;

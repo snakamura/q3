@@ -133,8 +133,7 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 		return;
 	
 	const Message* pMessage = pContext->getMessage(
-		Account::GETMESSAGEFLAG_ALL, 0,
-		pSecurityModel_->getSecurityMode());
+		Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode());
 	if (!pMessage) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
@@ -1435,7 +1434,7 @@ bool qm::FileExportAction::writeMessage(qs::OutputStream* pStream,
 	assert(pEnum);
 	
 	Message msg;
-	Message* pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_ALL,
+	Message* pMessage = pEnum->getMessage(Account::GMF_ALL,
 		0, pSecurityModel_->getSecurityMode(), &msg);
 	if (!pMessage)
 		return false;
@@ -1457,8 +1456,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	
 	MessageHolder* pmh = pEnum->getMessageHolder();
 	Message msg;
-	Message* pMessage = pEnum->getMessage(
-		Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+	Message* pMessage = pEnum->getMessage(Account::GMF_ALL, 0, nSecurityMode, &msg);
 	if (!pMessage)
 		return false;
 	
@@ -1494,7 +1492,7 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	assert(pmh);
 	
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg))
+	if (!pmh->getMessage(Account::GMF_ALL, 0, nSecurityMode, &msg))
 		return false;
 	return writeMessage(pStream, pmh, &msg, nFlags);
 }
@@ -2362,7 +2360,7 @@ bool qm::FilePrintAction::print(MessageEnumerator* pEnum,
 	Message msg;
 	Message* pMessage = &msg;
 	if (!pmh) {
-		pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+		pMessage = pEnum->getMessage(Account::GMF_ALL, 0, nSecurityMode, &msg);
 		if (!pMessage)
 			return false;
 	}
@@ -3905,8 +3903,8 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 		MessageHolder* pmh = *it;
 		
 		Message msg;
-		if (!pmh->getMessage(Account::GETMESSAGEFLAG_HEADER,
-			L"Content-Type", pSecurityModel_->getSecurityMode(), &msg))
+		if (!pmh->getMessage(Account::GMF_HEADER, L"Content-Type",
+			pSecurityModel_->getSecurityMode(), &msg))
 			return false;
 		
 		const ContentTypeParser* pContentType = msg.getContentType();
@@ -3952,8 +3950,7 @@ bool qm::MessageCombineAction::combine(const MessageHolderList& l,
 		MessageHolder* pmh = *it;
 		
 		Message msg;
-		if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
-			0, pSecurityModel_->getSecurityMode(), &msg))
+		if (!pmh->getMessage(Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode(), &msg))
 			return false;
 		
 		if (it == listMessageHolder.begin())
@@ -4260,8 +4257,7 @@ bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
 														 UndoItemList* pUndoItemList) const
 {
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL,
-		0, pSecurityModel_->getSecurityMode(), &msg))
+	if (!pmh->getMessage(Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode(), &msg))
 		return false;
 	
 	AttachmentParser::removeAttachments(&msg);
@@ -4376,7 +4372,7 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 												 UndoItemList* pUndoItemList)
 {
 	Message msg;
-	if (!pmh->getMessage(Account::GETMESSAGEFLAG_ALL, 0, pSecurityModel_->getSecurityMode(), &msg))
+	if (!pmh->getMessage(Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode(), &msg))
 		return false;
 	
 	PartUtil::MessageList l;
@@ -4604,7 +4600,7 @@ bool qm::MessageMacroAction::eval(const Macro* pMacro,
 		Message msg;
 		Message* pMessage = &msg;
 		if (!pmh) {
-			pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode, &msg);
+			pMessage = pEnum->getMessage(Account::GMF_ALL, 0, nSecurityMode, &msg);
 			if (!pMessage)
 				return false;
 		}
@@ -4952,7 +4948,7 @@ void qm::MessageOpenAttachmentAction::invoke(const ActionEvent& event)
 		return;
 	
 	Message* pMessage = pContext->getMessage(
-		Account::GETMESSAGEFLAG_ALL, 0, pSecurityModel_->getSecurityMode());
+		Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode());
 	if (!pMessage) {
 		ActionUtil::error(hwnd_, IDS_ERROR_EXECUTEATTACHMENT);
 		return;
@@ -5006,7 +5002,7 @@ void qm::MessageOpenLinkAction::invoke(const ActionEvent& event)
 		return;
 	
 	Message msg;
-	if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
+	if (!mpl->getMessage(Account::GMF_HEADER,
 		L"X-QMAIL-Link", SECURITYMODE_NONE, &msg))
 		return;
 	
@@ -5758,7 +5754,7 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 		return;
 	
 	Message msg;
-	Message* pMessage = pEnum->getMessage(Account::GETMESSAGEFLAG_HEADER, L"From", SECURITYMODE_NONE, &msg);
+	Message* pMessage = pEnum->getMessage(Account::GMF_HEADER, L"From", SECURITYMODE_NONE, &msg);
 	if (!pMessage)
 		return;
 	

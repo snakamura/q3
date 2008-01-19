@@ -349,7 +349,7 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 		Message* pMessage = &msg;
 		MessagePtr ptr(pContext->getMessagePtr());
 		if (!ptr)
-			pMessage = pContext->getMessage(Account::GETMESSAGEFLAG_ALL, 0, nSecurityMode);
+			pMessage = pContext->getMessage(Account::GMF_ALL, 0, nSecurityMode);
 		
 		if (pMessage) {
 			MessagePtrLock mpl(ptr);
@@ -376,8 +376,8 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 			if (mpl &&
 				pMessage->getFlag() == Message::FLAG_EMPTY ||
 				pMessage->getFlag() == Message::FLAG_TEMPORARY) {
-				if (!mpl->getMessage(Account::GETMESSAGEFLAG_HEADER,
-					L"Message-Id", pSecurityModel_->getSecurityMode(), pMessage)) {
+				if (!mpl->getMessage(Account::GMF_HEADER, L"Message-Id",
+					pSecurityModel_->getSecurityMode(), pMessage)) {
 					ActionUtil::error(pTextWindow_->getParentFrame(), IDS_ERROR_PASTE);
 					return;
 				}
