@@ -38,7 +38,7 @@ class OptionAddressBookDialog;
 class OptionConfirmDialog;
 class OptionFolderDialog;
 class OptionHeaderDialog;
-#ifndef _WIN32_WCE
+#ifdef QMJUNKFILTER
 class OptionJunkDialog;
 #endif
 class OptionListDialog;
@@ -226,7 +226,7 @@ public:
 		PANEL_AUTOPILOT,
 		PANEL_SYNC,
 		PANEL_SEARCH,
-#ifndef _WIN32_WCE
+#ifdef QMJUNKFILTER
 		PANEL_JUNK,
 #endif
 		PANEL_SECURITY,
@@ -691,7 +691,7 @@ private:
 };
 
 
-#ifndef _WIN32_WCE
+#ifdef QMJUNKFILTER
 /****************************************************************************
  *
  * OptionJunkDialog

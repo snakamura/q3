@@ -519,7 +519,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_AUTOPILOT,		IDS_PANEL_AUTOPILOT			},
 		{ PANEL_SYNC,			IDS_PANEL_SYNC				},
 		{ PANEL_SEARCH,			IDS_PANEL_SEARCH			},
-#ifndef _WIN32_WCE
+#ifdef QMJUNKFILTER
 		{ PANEL_JUNK,			IDS_PANEL_JUNK				},
 #endif
 		{ PANEL_SECURITY,		IDS_PANEL_SECURITY			},
@@ -824,7 +824,7 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 			PANEL3(PANEL_AUTOPILOT, AutoPilot, pAutoPilotManager_, pGoRound_, pProfile_);
 			PANEL2(PANEL_SYNC, OptionSync, pDocument_->getRecents(), pProfile_);
 			PANEL1(PANEL_SEARCH, OptionSearch, pProfile_);
-#ifndef _WIN32_WCE
+#ifdef QMJUNKFILTER
 			PANEL1(PANEL_JUNK, OptionJunk, pDocument_->getJunkFilter());
 #endif
 			PANEL2(PANEL_SECURITY, OptionSecurity, pDocument_->getSecurity(), pProfile_);

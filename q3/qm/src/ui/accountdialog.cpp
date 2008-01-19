@@ -940,7 +940,7 @@ LRESULT qm::AccountAdvancedPage::onInitDialog(HWND hwndFocus,
 		nAutoApplyRules & SubAccount::AUTOAPPLYRULES_NEW ? BST_CHECKED : BST_UNCHECKED);
 	sendDlgItemMessage(IDC_AUTOAPPLYRULESTOEXISTING, BM_SETCHECK,
 		nAutoApplyRules & SubAccount::AUTOAPPLYRULES_EXISTING ? BST_CHECKED : BST_UNCHECKED);
-#ifndef _WIN32_WCE
+#ifdef QMJUNKFILTER
 	sendDlgItemMessage(IDC_JUNKFILTER, BM_SETCHECK,
 		pSubAccount_->isJunkFilterEnabled() ? BST_CHECKED : BST_UNCHECKED);
 	if (!pJunkFilter_ || !pSubAccount_->getAccount()->isSupport(Account::SUPPORT_JUNKFILTER))
@@ -984,7 +984,7 @@ LRESULT qm::AccountAdvancedPage::onOk()
 			nAutoApplyRules |= SubAccount::AUTOAPPLYRULES_EXISTING;
 	}
 	pSubAccount_->setAutoApplyRules(nAutoApplyRules);
-#ifndef _WIN32_WCE
+#ifdef QMJUNKFILTER
 	pSubAccount_->setJunkFilterEnabled(
 		sendDlgItemMessage(IDC_JUNKFILTER, BM_GETCHECK) == BST_CHECKED);
 	pSubAccount_->getAccount()->setStoreDecodedMessage(

@@ -261,7 +261,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"InputBoxDialog",	L"Width",	L"400"	},
 #endif
 	
-#ifndef _WIN32_WCE
+#ifdef QMJUNKFILTER
 	{ L"JunkFilter",	L"AttachmentExtensions",	L"pdf doc docx xls xlsx ppt pptx rtf"	},
 	{ L"JunkFilter",	L"AttachmentScanCommand",	L"xdoc2txt.exe -n -o=0"					},
 	{ L"JunkFilter",	L"BlackList",				L""										},
