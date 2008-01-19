@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
@@ -30,6 +29,7 @@
 #include <boost/bind.hpp>
 
 #include "syncmanager.h"
+#include "../main/main.h"
 #include "../model/term.h"
 #include "../model/uri.h"
 #include "../ui/resourceinc.h"
@@ -569,8 +569,7 @@ void qm::SyncManager::addError(SyncManagerCallback* pCallback,
 							   UINT nMessageId,
 							   const WCHAR* pwszDescription)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrMessage(loadString(hInst, nMessageId));
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nMessageId));
 	const WCHAR* pwszDescriptions[] = {
 		pwszDescription
 	};
@@ -1648,8 +1647,7 @@ void qm::SyncManager::RuleCallbackImpl::setPos(size_t nPos)
 wstring_ptr qm::SyncManager::RuleCallbackImpl::getMessage(UINT nId,
 														  Folder* pFolder)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrMessage(loadString(hInst, nId));
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
 	wstring_ptr wstrName(pFolder->getFullName());
 	return concat(wstrMessage.get(), L" : ", wstrName.get());
 }

@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmgoround.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
@@ -28,6 +27,7 @@
 #include "messagewindow.h"
 #include "resourceinc.h"
 #include "uiutil.h"
+#include "../main/main.h"
 #include "../model/addressbook.h"
 #include "../model/messageenumerator.h"
 #include "../model/filter.h"
@@ -144,8 +144,7 @@ UINT qm::AddressBookMenuCreator::createMenu(HMENU hmenu,
 		}
 	}
 	if (!bAdded) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_ADDRESS_CREATEMESSAGE, wstrNone.get(), pItem->getId());
 	}
 	
@@ -218,8 +217,7 @@ UINT qm::AttachmentMenuCreator::createMenu(HMENU hmenu,
 	}
 	
 	if (!bAdded) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_OPENATTACHMENT, wstrNone.get(), pItem->getId());
 	}
 	
@@ -279,8 +277,7 @@ UINT qm::EncodingMenuCreator::createMenu(HMENU hmenu,
 		}
 	}
 	else {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nBaseId, wstrNone.get(), pItem->getId());
 	}
 	
@@ -332,8 +329,7 @@ UINT qm::FilterMenuCreator::createMenu(HMENU hmenu,
 		}
 	}
 	else {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_FILTER, wstrNone.get(), pItem->getId());
 	}
 	
@@ -385,8 +381,7 @@ UINT qm::FontGroupMenuCreator::createMenu(HMENU hmenu,
 		}
 	}
 	else {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_FONTGROUP, wstrNone.get(), pItem->getId());
 	}
 	
@@ -439,8 +434,7 @@ UINT qm::GoRoundMenuCreator::createMenu(HMENU hmenu,
 		}
 	}
 	else {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrName(loadString(hInst, IDS_MENU_GOROUND));
+		wstring_ptr wstrName(loadString(getResourceHandle(), IDS_MENU_GOROUND));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_GOROUND, wstrName.get(), pItem->getId());
 	}
 	
@@ -494,8 +488,7 @@ UINT qm::InsertTextMenuCreator::createMenu(HMENU hmenu,
 		}
 	}
 	else {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_INSERTTEXT, wstrNone.get(), pItem->getId());
 	}
 	
@@ -558,8 +551,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 		FolderStack stackFolder;
 		stackFolder.push_back(MenuInserter(hmenu, 0));
 		
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrThisFolder(loadString(hInst, IDS_MENU_THISFOLDER));
+		wstring_ptr wstrThisFolder(loadString(getResourceHandle(), IDS_MENU_THISFOLDER));
 		W2T(wstrThisFolder.get(), ptszThisFolder);
 		
 		for (Account::FolderList::const_iterator it = listFolder.begin(); it != listFolder.end(); ) {
@@ -629,8 +621,7 @@ UINT qm::MoveMenuCreator::createMenu(HMENU hmenu,
 	}
 	
 	if (!bAdded) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_MOVENONE, wstrNone.get(), pItem->getId());
 	}
 	
@@ -770,8 +761,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 	}
 	
 	if (!bAdded) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_MESSAGE_OPENRECENT, wstrNone.get(), pItem->getId());
 	}
 	
@@ -834,8 +824,7 @@ UINT qm::ScriptMenuCreator::createMenu(HMENU hmenu,
 		}
 	}
 	else {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_SCRIPT, wstrNone.get(), pItem->getId());
 	}
 	
@@ -894,8 +883,7 @@ UINT qm::SortMenuCreator::createMenu(HMENU hmenu,
 		}
 	}
 	else {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_VIEW_SORT, wstrNone.get(), pItem->getId());
 	}
 	
@@ -954,8 +942,7 @@ UINT qm::SubAccountMenuCreator::createMenu(HMENU hmenu,
 	}
 	
 	if (!bAdded) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_TOOL_SUBACCOUNT, wstrNone.get(), pItem->getId());
 	}
 	
@@ -1026,8 +1013,7 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 	}
 	
 	if (!bAdded) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, nBaseId, wstrNone.get(), pItem->getId());
 	}
 	
@@ -1200,8 +1186,7 @@ UINT qm::MacroMenuCreator::createMenu(HMENU hmenu,
 	}
 	
 	if (!bAdded) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+		wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 		MenuCreatorUtil::insertMenuItem(hmenu, nIndex++, IDM_NONE, wstrNone.get(), pItem->getId());
 	}
 	

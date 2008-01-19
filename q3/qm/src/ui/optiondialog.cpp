@@ -39,6 +39,7 @@
 #include "recentswindow.h"
 #include "resourceinc.h"
 #include "syncdialog.h"
+#include "../main/main.h"
 #include "../main/updatechecker.h"
 #include "../model/addressbook.h"
 #include "../sync/syncmanager.h"
@@ -491,8 +492,6 @@ LRESULT qm::OptionDialog::onDestroy()
 LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 									   LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	HWND hwndSelector = getDlgItem(IDC_SELECTOR);
 	struct {
 		Panel panel_;
@@ -528,7 +527,7 @@ LRESULT qm::OptionDialog::onInitDialog(HWND hwndFocus,
 		{ PANEL_MISC2,			IDS_PANEL_MISC2				}
 	};
 	for (int n = 0; n < countof(items); ++n) {
-		wstring_ptr wstrName(loadString(hInst, items[n].nId_));
+		wstring_ptr wstrName(loadString(getResourceHandle(), items[n].nId_));
 		W2T(wstrName.get(), ptszName);
 #ifndef _WIN32_WCE_PSPC
 		TVINSERTSTRUCT tvis = {
@@ -583,8 +582,8 @@ LRESULT qm::OptionDialog::onOk()
 		OptionDialogPanel* pPanel = *it;
 		if (pPanel) {
 			if (!pPanel->save(&context)) {
-				messageBox(Application::getApplication().getResourceHandle(),
-					IDS_ERROR_SAVE, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_SAVE,
+					MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 		}
@@ -1705,11 +1704,10 @@ LRESULT qm::OptionJunkDialog::onSize(UINT nFlags,
 LRESULT qm::OptionJunkDialog::onRepair()
 {
 	if (pJunkFilter_) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		if (pJunkFilter_->repair())
-			messageBox(hInst, IDS_JUNKREPAIRED, MB_OK, getHandle());
+			messageBox(getResourceHandle(), IDS_JUNKREPAIRED, MB_OK, getHandle());
 		else
-			messageBox(hInst, IDS_ERROR_REPAIRJUNK, MB_OK | MB_ICONERROR, getHandle());
+			messageBox(getResourceHandle(), IDS_ERROR_REPAIRJUNK, MB_OK | MB_ICONERROR, getHandle());
 	}
 	return 0;
 }
@@ -1913,7 +1911,7 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 	pProfile_->setString(L"Global", L"Encodings", wstrEncodings.get());
 	
 	wstring_ptr wstrDefaultEncoding(getDlgItemText(IDC_DEFAULTENCODING));
-	wstring_ptr wstrOSDefault(loadString(Application::getApplication().getResourceHandle(), IDS_OSDEFAULT));
+	wstring_ptr wstrOSDefault(loadString(getResourceHandle(), IDS_OSDEFAULT));
 	if (wcscmp(wstrDefaultEncoding.get(), wstrOSDefault.get()) == 0 ||
 		!ConverterFactory::getInstance(wstrDefaultEncoding.get()).get())
 		pProfile_->setString(L"Global", L"DefaultCharset", L"");
@@ -1943,8 +1941,7 @@ bool qm::OptionMiscDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionMiscDialog::onBrowse()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_TEMPORARYFOLDER));
+	wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_TITLE_TEMPORARYFOLDER));
 	wstring_ptr wstrPath(getDlgItemText(IDC_TEMPORARYFOLDER));
 	wstrPath = qs::UIUtil::browseFolder(getParentPopup(), wstrTitle.get(), wstrPath.get());
 	if (wstrPath.get())
@@ -1967,7 +1964,7 @@ void qm::OptionMiscDialog::updateDefaultEncodings()
 	
 	ComboBox_ResetContent(hwnd);
 	
-	wstring_ptr wstrOSDefault(loadString(Application::getApplication().getResourceHandle(), IDS_OSDEFAULT));
+	wstring_ptr wstrOSDefault(loadString(getResourceHandle(), IDS_OSDEFAULT));
 	W2T(wstrOSDefault.get(), ptszOSDefault);
 	ComboBox_AddString(hwnd, ptszOSDefault);
 	
@@ -2294,8 +2291,6 @@ LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 		L"RecentsWindow", recentsBoolProperties__, countof(recentsBoolProperties__));
 #endif
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	HWND hwndSyncDialog = getDlgItem(IDC_SYNCDIALOG);
 	UINT nSyncDialogIds[] = {
 		IDS_SYNC_ALWAYS,
@@ -2303,7 +2298,7 @@ LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 		IDS_SYNC_NEVER
 	};
 	for (int n = 0; n < countof(nSyncDialogIds); ++n) {
-		wstring_ptr wstr(loadString(hInst, nSyncDialogIds[n]));
+		wstring_ptr wstr(loadString(getResourceHandle(), nSyncDialogIds[n]));
 		W2T(wstr.get(), ptsz);
 		ComboBox_AddString(hwndSyncDialog, ptsz);
 	}
@@ -2328,7 +2323,7 @@ LRESULT qm::OptionSyncDialog::onInitDialog(HWND hwndFocus,
 		IDS_SYNC_NEVER
 	};
 	for (int n = 0; n <countof(nNotificationIds); ++n) {
-		wstring_ptr wstr(loadString(hInst, nNotificationIds[n]));
+		wstring_ptr wstr(loadString(getResourceHandle(), nNotificationIds[n]));
 		W2T(wstr.get(), ptsz);
 		ComboBox_AddString(hwndNotification, ptsz);
 	}
@@ -2367,8 +2362,8 @@ bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
 	if (*wstrFilter.get()) {
 		pFilter = MacroParser().parse(wstrFilter.get());
 		if (!pFilter.get()) {
-			messageBox(Application::getApplication().getResourceHandle(),
-				IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+			messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+				MB_OK | MB_ICONERROR, getHandle());
 			return 0;
 		}
 	}
@@ -2418,9 +2413,7 @@ bool qm::OptionSyncDialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionSyncDialog::onBrowse()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_SOUND));
-	
+	wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_SOUND));
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
 	if (dialog.doModal(getHandle()) == IDOK)
@@ -2771,9 +2764,7 @@ bool qm::OptionEdit2Dialog::save(OptionDialogContext* pContext)
 
 LRESULT qm::OptionEdit2Dialog::onBrowse()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_EXECUTABLE));
-	
+	wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_EXECUTABLE));
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
 	if (dialog.doModal(getHandle()) == IDOK) {
@@ -3111,8 +3102,8 @@ LRESULT qm::ColorDialog::onOk()
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+			MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -3129,8 +3120,8 @@ LRESULT qm::ColorDialog::onOk()
 			wstring_ptr wstrColor(getDlgItemText(items[n].nIdText_));
 			Color color(wstrColor.get());
 			if (color.getColor() == 0xffffffff) {
-				messageBox(Application::getApplication().getResourceHandle(),
-					IDS_ERROR_INVALIDCOLOR, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_INVALIDCOLOR,
+					MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			items[n].cr_ = color.getColor();
@@ -3343,8 +3334,6 @@ LRESULT qm::RuleDialog::onCommand(WORD nCode,
 LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 									 LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	const Macro* pCondition = pRule_->getCondition();
 	if (pCondition) {
 		wstring_ptr wstrCondition(pCondition->getString());
@@ -3361,14 +3350,14 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		IDS_RULE_APPLY
 	};
 	for (int n = 0; n < countof(nTypeIds); ++n) {
-		wstring_ptr wstrType(loadString(hInst, nTypeIds[n]));
+		wstring_ptr wstrType(loadString(getResourceHandle(), nTypeIds[n]));
 		W2T(wstrType.get(), ptszType);
 		ComboBox_AddString(getDlgItem(IDC_ACTION), ptszType);
 	}
 	
 	HWND hwndAccount = getDlgItem(IDC_ACCOUNT);
 	
-	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 	W2T(wstrUnspecified.get(), ptszUnspecified);
 	ComboBox_AddString(hwndAccount, ptszUnspecified);
 	
@@ -3386,7 +3375,7 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 		IDS_LABEL_REMOVE
 	};
 	for (int n = 0; n < countof(nLabelTypeIds); ++n) {
-		wstring_ptr wstrLabelType(loadString(hInst, nLabelTypeIds[n]));
+		wstring_ptr wstrLabelType(loadString(getResourceHandle(), nLabelTypeIds[n]));
 		W2T(wstrLabelType.get(), ptszLabelType);
 		ComboBox_AddString(getDlgItem(IDC_LABELTYPE), ptszLabelType);
 	}
@@ -3453,12 +3442,11 @@ LRESULT qm::RuleDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::RuleDialog::onOk()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		messageBox(hInst, IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+			MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -3472,7 +3460,7 @@ LRESULT qm::RuleDialog::onOk()
 	case RuleAction::TYPE_MOVE:
 	case RuleAction::TYPE_COPY:
 		{
-			wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+			wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 			
 			wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 			if (!*wstrAccount.get() ||
@@ -3481,7 +3469,8 @@ LRESULT qm::RuleDialog::onOk()
 			
 			wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 			if (!*wstrFolder.get()) {
-				messageBox(hInst, IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_INVALIDFOLDER,
+					MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
@@ -3517,8 +3506,8 @@ LRESULT qm::RuleDialog::onOk()
 			wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
 			std::auto_ptr<Macro> pMacro(MacroParser().parse(wstrMacro.get()));
 			if (!pMacro.get()) {
-				messageBox(Application::getApplication().getResourceHandle(),
-					IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+					MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			pAction.reset(new ApplyRuleAction(pMacro));
@@ -3681,8 +3670,7 @@ void qm::RuleDialog::updateState(bool bUpdateFolder)
 	Window(getDlgItem(IDC_CONTINUE)).enableWindow(bEnableContinue);
 	
 	if (bUpdateFolder) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+		wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 		
 		Account* pAccount = 0;
 		wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
@@ -3766,7 +3754,6 @@ LRESULT qm::CopyRuleTemplateDialog::onInitDialog(HWND hwndFocus,
 	if (wstrName_.get())
 		setDlgItemText(IDC_NAME, wstrName_.get());
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	HWND hwndList = getDlgItem(IDC_ARGUMENT);
 	
 	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_FULLROWSELECT);
@@ -3779,7 +3766,7 @@ LRESULT qm::CopyRuleTemplateDialog::onInitDialog(HWND hwndFocus,
 		{ IDS_ARGUMENT_VALUE,	100	},
 	};
 	for (int n = 0; n < countof(columns); ++n) {
-		wstring_ptr wstrColumn(loadString(hInst, columns[n].nId_));
+		wstring_ptr wstrColumn(loadString(getResourceHandle(), columns[n].nId_));
 		W2T(wstrColumn.get(), ptszColumn);
 		
 		LVCOLUMN column = {
@@ -4348,8 +4335,8 @@ LRESULT qm::FilterDialog::onOk()
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+			MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	pFilter_->setCondition(pCondition);
@@ -5010,8 +4997,6 @@ LRESULT qm::GoRoundEntryDialog::onCommand(WORD nCode,
 LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 											 LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 	for (AccountManager::AccountList::const_iterator it = listAccount.begin(); it != listAccount.end(); ++it) {
 		Account* pAccount = *it;
@@ -5022,11 +5007,11 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 	
 	const WCHAR* pwszSubAccount = pEntry_->getSubAccount();
 	if (!pwszSubAccount) {
-		wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+		wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 		setDlgItemText(IDC_SUBACCOUNT, wstrUnspecified.get());
 	}
 	else if (!*pwszSubAccount) {
-		wstring_ptr wstrUnspecified(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
+		wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_DEFAULTSUBACCOUNT));
 		setDlgItemText(IDC_SUBACCOUNT, wstrUnspecified.get());
 	}
 	else {
@@ -5038,7 +5023,7 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 		setDlgItemText(IDC_FOLDER, folder.getValue());
 	}
 	else {
-		wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
+		wstring_ptr wstrAll(loadString(getResourceHandle(), IDS_ALLFOLDER));
 		setDlgItemText(IDC_FOLDER, wstrAll.get());
 	}
 	
@@ -5065,16 +5050,14 @@ LRESULT qm::GoRoundEntryDialog::onInitDialog(HWND hwndFocus,
 
 LRESULT qm::GoRoundEntryDialog::onOk()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 	if (!*wstrAccount.get())
 		return 0;
 	
 	wstring_ptr wstrSubAccount(getDlgItemText(IDC_SUBACCOUNT));
 	const WCHAR* pwszSubAccount = wstrSubAccount.get();
-	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
-	wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
+	wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
+	wstring_ptr wstrDefault(loadString(getResourceHandle(), IDS_DEFAULTSUBACCOUNT));
 	if (wcscmp(pwszSubAccount, wstrUnspecified.get()) == 0)
 		pwszSubAccount = 0;
 	else if (wcscmp(pwszSubAccount, wstrDefault.get()) == 0)
@@ -5082,13 +5065,13 @@ LRESULT qm::GoRoundEntryDialog::onOk()
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	const WCHAR* pwszFolder = wstrFolder.get();
-	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
+	wstring_ptr wstrAll(loadString(getResourceHandle(), IDS_ALLFOLDER));
 	if (!*pwszFolder || wcscmp(pwszFolder, wstrAll.get()) == 0)
 		pwszFolder = 0;
 	Term folder;
 	if (pwszFolder && !folder.setValue(pwszFolder)) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDFOLDER,
+			MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -5172,13 +5155,10 @@ void qm::GoRoundEntryDialog::updateState()
 void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
 {
 	HWND hwnd = getDlgItem(IDC_SUBACCOUNT);
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	wstring_ptr wstrSubAccount(getDlgItemText(IDC_SUBACCOUNT));
-	
 	ComboBox_ResetContent(hwnd);
 	
-	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 	W2T(wstrUnspecified.get(), ptszUnspecified);
 	ComboBox_AddString(hwnd, ptszUnspecified);
 	
@@ -5195,7 +5175,7 @@ void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
 				ComboBox_AddString(hwnd, ptszName);
 			}
 			else {
-				wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
+				wstring_ptr wstrDefault(loadString(getResourceHandle(), IDS_DEFAULTSUBACCOUNT));
 				W2T(wstrDefault.get(), ptszDefault);
 				ComboBox_AddString(hwnd, ptszDefault);
 			}
@@ -5208,13 +5188,10 @@ void qm::GoRoundEntryDialog::updateSubAccount(Account* pAccount)
 void qm::GoRoundEntryDialog::updateFolder(Account* pAccount)
 {
 	HWND hwnd = getDlgItem(IDC_FOLDER);
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
-	
 	ComboBox_ResetContent(hwnd);
 	
-	wstring_ptr wstrAll(loadString(hInst, IDS_ALLFOLDER));
+	wstring_ptr wstrAll(loadString(getResourceHandle(), IDS_ALLFOLDER));
 	W2T(wstrAll.get(), ptszAll);
 	ComboBox_AddString(hwnd, ptszAll);
 	
@@ -5236,10 +5213,7 @@ void qm::GoRoundEntryDialog::updateFolder(Account* pAccount)
 void qm::GoRoundEntryDialog::updateFilter()
 {
 	HWND hwnd = getDlgItem(IDC_SYNCFILTER);
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	wstring_ptr wstrFilter(getDlgItemText(IDC_SYNCFILTER));
-	
 	ComboBox_ResetContent(hwnd);
 	
 	ComboBox_AddString(hwnd, _T(""));
@@ -5502,13 +5476,11 @@ LRESULT qm::SignatureDialog::onDestroy()
 LRESULT qm::SignatureDialog::onInitDialog(HWND hwndFocus,
 										  LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	setDlgItemText(IDC_NAME, pSignature_->getName());
 	
 	HWND hwndAccount = getDlgItem(IDC_ACCOUNT);
 	
-	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 	W2T(wstrUnspecified.get(), ptszUnspecified);
 	ComboBox_AddString(hwndAccount, ptszUnspecified);
 	
@@ -5551,16 +5523,15 @@ LRESULT qm::SignatureDialog::onOk()
 {
 	wstring_ptr wstrName(getDlgItemText(IDC_NAME));
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 	Term account;
 	if (*wstrAccount.get() &&
 		wcscmp(wstrAccount.get(), wstrUnspecified.get()) != 0 &&
 		!account.setValue(wstrAccount.get())) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDACCOUNT,
+			MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -5976,8 +5947,6 @@ LRESULT qm::SyncFilterDialog::onCommand(WORD nCode,
 LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 										   LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	wstring_ptr wstrCondition(pSyncFilter_->getCondition()->getString());
 	setDlgItemText(IDC_CONDITION, wstrCondition.get());
 	
@@ -5991,7 +5960,7 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 		IDS_SYNCFILTERACTION_IGNORE
 	};
 	for (int n = 0; n < countof(nActions); ++n) {
-		wstring_ptr wstr(loadString(hInst, nActions[n]));
+		wstring_ptr wstr(loadString(getResourceHandle(), nActions[n]));
 		W2T(wstr.get(), ptsz);
 		ComboBox_AddString(getDlgItem(IDC_ACTION), ptsz);
 	}
@@ -6003,7 +5972,7 @@ LRESULT qm::SyncFilterDialog::onInitDialog(HWND hwndFocus,
 		IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HEADER
 	};
 	for (int n = 0; n < countof(nTypes); ++n) {
-		wstring_ptr wstr(loadString(hInst, nTypes[n]));
+		wstring_ptr wstr(loadString(getResourceHandle(), nTypes[n]));
 		W2T(wstr.get(), ptsz);
 		ComboBox_AddString(getDlgItem(IDC_TYPE), ptsz);
 	}
@@ -6083,16 +6052,16 @@ LRESULT qm::SyncFilterDialog::onOk()
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+			MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	Term folder;
 	if (*wstrFolder.get() && !folder.setValue(wstrFolder.get())) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDFOLDER,
+			MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	

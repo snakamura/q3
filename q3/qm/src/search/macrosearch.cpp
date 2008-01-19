@@ -7,7 +7,6 @@
 
 #pragma warning(disable:4786)
 
-#include <qmapplication.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
 #include <qmmessage.h>
@@ -17,6 +16,7 @@
 #include <qsuiutil.h>
 
 #include "macrosearch.h"
+#include "../main/main.h"
 #include "../ui/resourceinc.h"
 
 using namespace qm;
@@ -113,7 +113,7 @@ const WCHAR* qm::MacroSearchUI::getName()
 
 wstring_ptr qm::MacroSearchUI::getDisplayName()
 {
-	return loadString(Application::getApplication().getResourceHandle(), IDS_TITLE_MACROSEARCH);
+	return loadString(getResourceHandle(), IDS_TITLE_MACROSEARCH);
 }
 
 std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(SearchPropertyData* pData)
@@ -130,9 +130,8 @@ std::auto_ptr<SearchPropertyPage> qm::MacroSearchUI::createPropertyPage(SearchPr
 
 qm::MacroSearchPage::MacroSearchPage(Profile* pProfile,
 									 SearchPropertyData* pData) :
-	SearchPropertyPage(Application::getApplication().getResourceHandle(),
-		IDD_MACROSEARCH, LANDSCAPE(IDD_MACROSEARCH), IDC_CONDITION,
-		IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
+	SearchPropertyPage(getResourceHandle(), IDD_MACROSEARCH, LANDSCAPE(IDD_MACROSEARCH),
+		IDC_CONDITION, IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
 	pProfile_(pProfile)
 {
 }

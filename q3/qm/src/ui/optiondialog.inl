@@ -86,8 +86,7 @@ template<class T, class List, class Manager, class EditDialog>
 LRESULT qm::RuleColorSetsDialog<T, List, Manager, EditDialog>::onInitDialog(HWND hwndFocus,
 																			LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, nTitleId_));
+	wstring_ptr wstrTitle(loadString(getResourceHandle(), nTitleId_));
 	setWindowText(wstrTitle.get());
 	
 	return AbstractListDialog<T, List>::onInitDialog(hwndFocus, lParam);
@@ -225,13 +224,12 @@ template<class T, class List, class Container, class EditDialog>
 LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onInitDialog(HWND hwndFocus,
 																			LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, nTitleId_));
+	wstring_ptr wstrTitle(loadString(getResourceHandle(), nTitleId_));
 	setWindowText(wstrTitle.get());
 	
 	HWND hwnd = getDlgItem(IDC_ACCOUNT);
 	
-	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 	W2T(wstrUnspecified.get(), ptszUnspecified);
 	ComboBox_AddString(hwnd, ptszUnspecified);
 	
@@ -272,16 +270,14 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onInitDialog(HWND
 template<class T, class List, class Container, class EditDialog>
 LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onOk()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 	
 	wstring_ptr wstrAccount(getDlgItemText(IDC_ACCOUNT));
 	Term account;
 	if (*wstrAccount.get() &&
 		wcscmp(wstrAccount.get(), wstrUnspecified.get()) != 0 &&
 		!account.setValue(wstrAccount.get())) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDACCOUNT, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -290,8 +286,7 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onOk()
 	if (*wstrFolder.get() &&
 		wcscmp(wstrFolder.get(), wstrUnspecified.get()) != 0 &&
 		!folder.setValue(wstrFolder.get())) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDFOLDER, MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	
@@ -383,14 +378,13 @@ LRESULT qm::RulesColorsDialog<T, List, Container, EditDialog>::onAccountSelChang
 template<class T, class List, class Container, class EditDialog>
 void qm::RulesColorsDialog<T, List, Container, EditDialog>::updateFolder(Account* pAccount)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	HWND hwnd = getDlgItem(IDC_FOLDER);
 	
 	wstring_ptr wstrFolder(getDlgItemText(IDC_FOLDER));
 	
 	ComboBox_ResetContent(hwnd);
 	
-	wstring_ptr wstrUnspecified(loadString(hInst, IDS_UNSPECIFIED));
+	wstring_ptr wstrUnspecified(loadString(getResourceHandle(), IDS_UNSPECIFIED));
 	W2T(wstrUnspecified.get(), ptszUnspecified);
 	ComboBox_AddString(hwnd, ptszUnspecified);
 	

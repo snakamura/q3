@@ -66,6 +66,7 @@
 #include "../action/action.h"
 #include "../action/actionmacro.h"
 #include "../action/findreplace.h"
+#include "../main/main.h"
 #include "../main/updatechecker.h"
 #include "../model/filter.h"
 #include "../model/goround.h"
@@ -1562,7 +1563,7 @@ void qm::MainWindowImpl::updateTitleBar()
 	const Application& app = Application::getApplication();
 	wstring_ptr wstrTitle(app.getVersion(L' ', false));
 	if (pDocument_->isOffline()) {
-		wstring_ptr wstrOffline(loadString(app.getResourceHandle(), IDS_OFFLINE));
+		wstring_ptr wstrOffline(loadString(getResourceHandle(), IDS_OFFLINE));
 		wstrTitle = concat(wstrTitle.get(), L" ", wstrOffline.get());
 	}
 	pThis_->setWindowText(wstrTitle.get());
@@ -1975,7 +1976,7 @@ bool qm::MainWindowImpl::MessageSelectionModelImpl::canSelect()
  */
 
 qm::MainWindow::MainWindow(Profile* pProfile) :
-	FrameWindow(Application::getApplication().getResourceHandle(), true),
+	FrameWindow(getResourceHandle(), true),
 	pImpl_(0)
 {
 	assert(pProfile);
@@ -2234,8 +2235,7 @@ void qm::MainWindow::processIdle()
 	pImpl_->pDocument_->getRecents()->removeSeens();
 	
 	if (pImpl_->pUpdateChecker_->isUpdated()) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		if (messageBox(hInst, IDS_CONFIRM_UPDATE, MB_YESNO, getHandle()) == IDYES)
+		if (messageBox(getResourceHandle(), IDS_CONFIRM_UPDATE, MB_YESNO, getHandle()) == IDYES)
 			UIUtil::openURL(L"http://q3.snak.org/download/", pImpl_->pProfile_, getHandle());
 		pImpl_->pUpdateChecker_->clearUpdated();
 	}
@@ -2318,9 +2318,8 @@ DynamicMenuCreator* qm::MainWindow::getDynamicMenuCreator(const DynamicMenuItem*
 
 void qm::MainWindow::getWindowClass(WNDCLASS* pwc)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	FrameWindow::getWindowClass(pwc);
-	pwc->hIcon = ::LoadIcon(hInst, MAKEINTRESOURCE(IDI_MAINFRAME));
+	pwc->hIcon = ::LoadIcon(getResourceHandle(), MAKEINTRESOURCE(IDI_MAINFRAME));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
 }
 
@@ -3020,8 +3019,7 @@ LRESULT qm::SyncNotificationWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (DefaultWindowHandler::onCreate(pCreateStruct) == -1)
 		return -1;
 	
-	hbm_ = static_cast<HBITMAP>(::LoadImage(
-		Application::getApplication().getResourceHandle(),
+	hbm_ = static_cast<HBITMAP>(::LoadImage(getResourceHandle(),
 		MAKEINTRESOURCE(IDB_SYNCNOTIFICATION), IMAGE_BITMAP, 0, 0, 0));
 	
 	pSyncManager_->addSyncManagerHandler(this);
@@ -3104,8 +3102,6 @@ qm::MainWindowStatusBar::~MainWindowStatusBar()
 
 void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	if (pwszText) {
 		if (*pwszText) {
 			if (!wstrText_.get() || wcscmp(wstrText_.get(), pwszText) != 0) {
@@ -3136,12 +3132,15 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 				nUnseenCount != nUnseenCount_ ||
 				nSelectedCount != nSelectedCount_) {
 #ifndef _WIN32_WCE_PSPC
-				wstring_ptr wstrTemplate(loadString(hInst, IDS_STATUS_VIEWMODELTEMPLATE));
+				wstring_ptr wstrTemplate(loadString(getResourceHandle(),
+					IDS_STATUS_VIEWMODELTEMPLATE));
 #else
-				wstring_ptr wstrTemplate(loadString(hInst, IDS_STATUS_VIEWMODELTEMPLATESHORT));
+				wstring_ptr wstrTemplate(loadString(getResourceHandle(),
+					IDS_STATUS_VIEWMODELTEMPLATESHORT));
 #endif
 				WCHAR wsz[256];
-				_snwprintf(wsz, countof(wsz), wstrTemplate.get(), nCount_, nUnseenCount_, nSelectedCount_);
+				_snwprintf(wsz, countof(wsz), wstrTemplate.get(),
+					nCount_, nUnseenCount_, nSelectedCount_);
 				setText(0, wsz);
 			}
 		}
@@ -3154,10 +3153,10 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 			if (*pwszName)
 				wstrFilter_ = allocWString(pwszName);
 			else
-				wstrFilter_ = loadString(hInst, IDS_STATUS_CUSTOM);
+				wstrFilter_ = loadString(getResourceHandle(), IDS_STATUS_CUSTOM);
 		}
 		else {
-			wstrFilter_ = loadString(hInst, IDS_STATUS_NONE);
+			wstrFilter_ = loadString(getResourceHandle(), IDS_STATUS_NONE);
 		}
 		if (!wstrFilter.get() || wcscmp(wstrFilter.get(), wstrFilter_.get()) != 0)
 			setText(2, wstrFilter_.get());
@@ -3176,7 +3175,8 @@ void qm::MainWindowStatusBar::updateListParts(const WCHAR* pwszText)
 	Offline offline = pDocument_->isOffline() ? OFFLINE_OFFLINE : OFFLINE_ONLINE;
 	if (offline != offline_) {
 		bool bOffline = offline == OFFLINE_OFFLINE;
-		wstring_ptr wstrOnline(loadString(hInst, bOffline ? IDS_STATUS_OFFLINE : IDS_STATUS_ONLINE));
+		wstring_ptr wstrOnline(loadString(getResourceHandle(),
+			bOffline ? IDS_STATUS_OFFLINE : IDS_STATUS_ONLINE));
 		setIconOrText(1, bOffline ? IDI_OFFLINE : IDI_ONLINE, wstrOnline.get());
 		offline_ = offline;
 	}

@@ -26,6 +26,7 @@
 #include "dialogs.h"
 #include "resourceinc.h"
 #include "uiutil.h"
+#include "../main/main.h"
 #include "../model/dataobject.h"
 #include "../model/messagecontext.h"
 #include "../model/tempfilecleaner.h"
@@ -211,8 +212,8 @@ bool qm::UIUtil::openURLWithWarning(const WCHAR* pwszURL,
 		if (pExt) {
 			wstring_ptr wstrExtensions(pProfile->getString(L"Global", L"WarnExtensions"));
 			if (wcsstr(wstrExtensions.get(), pExt + 1)) {
-				int nMsg = messageBox(Application::getApplication().getResourceHandle(),
-					IDS_CONFIRM_OPENURL, MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd, 0, 0);
+				int nMsg = messageBox(getResourceHandle(), IDS_CONFIRM_OPENURL,
+					MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd, 0, 0);
 				if (nMsg != IDYES)
 					return true;
 			}
@@ -819,8 +820,7 @@ void qm::FolderListComboBox::addFolders(const Account* pAccount,
 	
 	HWND hwnd = getHandle();
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrAllFolder(loadString(hInst, IDS_ALLFOLDER));
+	wstring_ptr wstrAllFolder(loadString(getResourceHandle(), IDS_ALLFOLDER));
 	W2T(wstrAllFolder.get(), ptszAllFolder);
 	ComboBox_AddString(hwnd, ptszAllFolder);
 	

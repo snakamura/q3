@@ -52,6 +52,7 @@
 #include "actionutil.h"
 #include "findreplace.h"
 #include "../junk/junk.h"
+#include "../main/main.h"
 #include "../main/updatechecker.h"
 #include "../model/dataobject.h"
 #include "../model/filter.h"
@@ -641,7 +642,7 @@ bool qm::EditDeleteMessageAction::deleteMessages(const MessageHolderList& l,
 bool qm::EditDeleteMessageAction::confirm() const
 {
 	if (pProfile_->getInt(L"Global", L"ConfirmDeleteMessage"))
-		return messageBox(Application::getApplication().getResourceHandle(),
+		return messageBox(getResourceHandle(),
 			IDS_CONFIRM_DELETEMESSAGE, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd_) == IDYES;
 	else
 		return true;
@@ -954,8 +955,7 @@ bool qm::FileCheckAction::check(Account* pAccount) const
 	public:
 		virtual Ignore isIgnoreError(MessageHolder* pmh)
 		{
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			wstring_ptr wstrTemplate(loadString(hInst, IDS_CONFIRM_IGNORECHECKERROR));
+			wstring_ptr wstrTemplate(loadString(getResourceHandle(), IDS_CONFIRM_IGNORECHECKERROR));
 			wstring_ptr wstrFolderName(pmh->getFolder()->getFullName());
 			const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(wstrFolderName.get()) + 100;
 			wstring_ptr wstrMessage(allocWString(nLen));
@@ -1225,7 +1225,7 @@ bool qm::FileExitAction::exit(bool bDestroy)
 				break;
 			assert(!bForce);
 			
-			int nId = messageBox(app.getResourceHandle(), IDS_CONFIRM_EXIT,
+			int nId = messageBox(getResourceHandle(), IDS_CONFIRM_EXIT,
 				MB_YESNOCANCEL | MB_ICONERROR | MB_DEFBUTTON3, hwnd_);
 			switch (nId) {
 			case IDYES:
@@ -1247,9 +1247,7 @@ bool qm::FileExitAction::exit(bool bDestroy)
 	{
 		virtual bool confirmDelete(const WCHAR* pwszPath)
 		{
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			
-			wstring_ptr wstr(loadString(hInst, IDS_CONFIRM_DELETETEMPFILE));
+			wstring_ptr wstr(loadString(getResourceHandle(), IDS_CONFIRM_DELETETEMPFILE));
 			wstring_ptr wstrMessage(concat(wstr.get(), pwszPath));
 			
 			int nMsg = messageBox(wstrMessage.get(),
@@ -1607,8 +1605,7 @@ void qm::FileImportAction::invoke(const ActionEvent& event)
 	wstring_ptr wstrErrorPath;
 	unsigned int nErrorLine = -1;
 	if (!import(static_cast<NormalFolder*>(pFolder), &wstrErrorPath, &nErrorLine)) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrMessage(loadString(hInst, IDS_ERROR_IMPORT));
+		wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ERROR_IMPORT));
 		if (wstrErrorPath.get()) {
 			StringBuffer<WSTRING> buf(wstrMessage.get());
 			buf.append(L'\n');
@@ -2252,9 +2249,7 @@ void qm::FileOpenAction::invoke(const ActionEvent& event)
 	const WCHAR* pwszPath = ActionParamUtil::getString(event.getParam(), 0);
 	wstring_ptr wstrPath;
 	if (!pwszPath) {
-		wstring_ptr wstrFilter(loadString(
-			Application::getApplication().getResourceHandle(), IDS_FILTER_MESSAGE));
-		
+		wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_MESSAGE));
 		FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 			OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
 		if (dialog.doModal(hwnd_) != IDOK)
@@ -2713,8 +2708,7 @@ void qm::FolderDeleteAction::invoke(const ActionEvent& event)
 	if (l.empty())
 		return;
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVEFOLDER));
+	wstring_ptr wstrConfirm(loadString(getResourceHandle(), IDS_CONFIRM_REMOVEFOLDER));
 	wstring_ptr wstrName(Util::formatFolders(l, L", "));
 	const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64;
 	wstring_ptr wstrMessage(allocWString(nLen));
@@ -2848,8 +2842,7 @@ void qm::FolderEmptyAction::invoke(const ActionEvent& event)
 		return;
 	
 	if (pProfile_->getInt(L"Global", L"ConfirmEmptyFolder")) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_EMPTYFOLDER));
+		wstring_ptr wstrConfirm(loadString(getResourceHandle(), IDS_CONFIRM_EMPTYFOLDER));
 		wstring_ptr wstrName(Util::formatFolders(l, L", "));
 		const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64;
 		wstring_ptr wstrMessage(allocWString(nLen));
@@ -2965,7 +2958,7 @@ void qm::FolderEmptyTrashAction::emptyAllTrash(Document* pDocument,
 		return;
 	
 	if (pProfile->getInt(L"Global", L"ConfirmEmptyTrash")) {
-		if (messageBox(Application::getApplication().getResourceHandle(),
+		if (messageBox(getResourceHandle(),
 			IDS_CONFIRM_EMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
 			return;
 	}
@@ -2987,7 +2980,7 @@ void qm::FolderEmptyTrashAction::emptyTrash(Account* pAccount,
 		return;
 	
 	if (bConfirm) {
-		if (messageBox(Application::getApplication().getResourceHandle(),
+		if (messageBox(getResourceHandle(),
 			IDS_CONFIRM_EMPTYTRASH, MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION, hwnd) != IDYES)
 			return;
 	}
@@ -3138,10 +3131,8 @@ void qm::FolderPropertyAction::openProperty(const Account::FolderList& listFolde
 	if (listFolder.empty())
 		return;
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_PROPERTY));
-	
-	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
+	wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_TITLE_PROPERTY));
+	PropertySheetBase sheet(getResourceHandle(), wstrTitle.get(), false);
 	FolderPropertyPage pageProperty(listFolder);
 	sheet.add(&pageProperty);
 	
@@ -3353,7 +3344,7 @@ wstring_ptr qm::FolderSubscribeAction::getText(const ActionEvent& event)
 	}
 	
 	if (!wstrText.get())
-		wstrText = loadString(Application::getApplication().getResourceHandle(), IDS_ACTION_SUBSCRIBE);
+		wstrText = loadString(getResourceHandle(), IDS_ACTION_SUBSCRIBE);
 	
 	return wstrText;
 }
@@ -3470,14 +3461,13 @@ qm::HelpCheckUpdateAction::~HelpCheckUpdateAction()
 
 void qm::HelpCheckUpdateAction::invoke(const ActionEvent& event)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	switch (pUpdateChecker_->checkUpdate()) {
 	case UpdateChecker::UPDATE_UPDATED:
-		if (messageBox(hInst, IDS_CONFIRM_UPDATE, MB_YESNO, hwnd_) == IDYES)
+		if (messageBox(getResourceHandle(), IDS_CONFIRM_UPDATE, MB_YESNO, hwnd_) == IDYES)
 			UIUtil::openURL(L"http://q3.snak.org/download/", pProfile_, hwnd_);
 		break;
 	case UpdateChecker::UPDATE_LATEST:
-		messageBox(hInst, IDS_MESSAGE_UPDATED, hwnd_);
+		messageBox(getResourceHandle(), IDS_MESSAGE_UPDATED, hwnd_);
 		break;
 	case UpdateChecker::UPDATE_ERROR:
 		ActionUtil::error(hwnd_, IDS_ERROR_CHECKUPDATE);
@@ -3642,8 +3632,7 @@ bool qm::MessageApplyRuleAction::applyRule(Account** ppAccount) const
 		wstring_ptr getMessage(UINT nId,
 							   Folder* pFolder)
 		{
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			wstring_ptr wstrMessage(loadString(hInst, nId));
+			wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
 			wstring_ptr wstrName(pFolder->getFullName());
 			return concat(wstrMessage.get(), L" : ", wstrName.get());
 		}
@@ -5181,11 +5170,9 @@ void qm::MessagePropertyAction::invoke(const ActionEvent& event)
 	if (l.empty())
 		return;
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_PROPERTY));
-	
+	wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_TITLE_PROPERTY));
 	MessagePropertyPage page(l);
-	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
+	PropertySheetBase sheet(getResourceHandle(), wstrTitle.get(), false);
 	sheet.add(&page);
 	
 	if (sheet.doModal(hwnd_) != IDOK)
@@ -5244,9 +5231,6 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	if (!pSearch || pSearch->isHidden())
 		return;
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_SEARCH));
-	
 	typedef std::vector<std::pair<SearchUI*, SearchPropertyPage*> > UIList;
 	UIList listUI;
 	struct Deleter
@@ -5284,9 +5268,10 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	
 	wstring_ptr wstrStartName(pProfile_->getString(L"Search", L"Page"));
 	
+	wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_TITLE_SEARCH));
 	SearchPropertyData data(pAccount, pFolder, pProfile_);
 	int nStartPage = 0;
-	PropertySheetBase sheet(hInst, wstrTitle.get(), false);
+	PropertySheetBase sheet(getResourceHandle(), wstrTitle.get(), false);
 	for (UIList::size_type n = 0; n < listUI.size(); ++n) {
 		std::auto_ptr<SearchPropertyPage> pPage(
 			listUI[n].first->createPropertyPage(&data));
@@ -5901,9 +5886,8 @@ void qm::ToolDialupAction::invoke(const ActionEvent& event)
 
 wstring_ptr qm::ToolDialupAction::getText(const ActionEvent& event)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	UINT nId = isConnected() ? IDS_ACTION_DIALUPDISCONNECT : IDS_ACTION_DIALUPCONNECT;
-	return loadString(hInst, nId);
+	return loadString(getResourceHandle(), nId);
 }
 
 bool qm::ToolDialupAction::isConnected() const
@@ -5981,9 +5965,8 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 	const WCHAR* pwszActions = ActionParamUtil::getString(event.getParam(), 0);
 	wstring_ptr wstrActions;
 	if (!pwszActions) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrTitle(loadString(hInst, IDS_INVOKEACTION));
-		wstring_ptr wstrMessage(loadString(hInst, IDS_ACTION));
+		wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_INVOKEACTION));
+		wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_ACTION));
 		wstring_ptr wstrPrevActions(pProfile_->getString(L"Global", L"Action"));
 		
 		SingleLineInputBoxDialog dialog(wstrTitle.get(),

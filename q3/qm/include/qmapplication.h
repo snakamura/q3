@@ -20,6 +20,7 @@ class Application;
 
 class Document;
 class MailFolderLock;
+struct ResourceVersion;
 
 
 /****************************************************************************
@@ -31,11 +32,10 @@ class MailFolderLock;
 class QMEXPORTCLASS Application
 {
 public:
-	Application(HINSTANCE hInst,
-				HINSTANCE hInstResource,
-				qs::wstring_ptr wstrMailFolder,
+	Application(qs::wstring_ptr wstrMailFolder,
 				qs::wstring_ptr wstrProfile,
-				std::auto_ptr<MailFolderLock> pLock);
+				std::auto_ptr<MailFolderLock> pLock,
+				const ResourceVersion* pResourceVersions);
 	~Application();
 
 public:
@@ -47,7 +47,6 @@ public:
 	void startShutdown();
 	bool isShutdown() const;
 	
-	HINSTANCE getResourceHandle() const;
 	HINSTANCE getAtlHandle() const;
 	const WCHAR* getMailFolder() const;
 	const WCHAR* getTemporaryFolder() const;

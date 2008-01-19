@@ -7,7 +7,6 @@
 
 #pragma warning(disable:4786)
 
-#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmmessage.h>
 #include <qmmessagewindow.h>
@@ -38,6 +37,7 @@
 #include "../action/action.h"
 #include "../action/actionmacro.h"
 #include "../action/findreplace.h"
+#include "../main/main.h"
 #include "../model/messagecontext.h"
 #include "../model/messageenumerator.h"
 #include "../model/uri.h"
@@ -851,7 +851,7 @@ std::auto_ptr<MacroMenuCreator> qm::MessageFrameWindowImpl::createMacroMenuCreat
 qm::MessageFrameWindow::MessageFrameWindow(MessageFrameWindowManager* pMessageFrameWindowManager,
 										   ViewModelManager* pViewModelManager,
 										   Profile* pProfile) :
-	FrameWindow(Application::getApplication().getResourceHandle(), true),
+	FrameWindow(getResourceHandle(), true),
 	pImpl_(0)
 {
 	assert(pProfile);
@@ -1031,8 +1031,7 @@ DynamicMenuCreator* qm::MessageFrameWindow::getDynamicMenuCreator(const DynamicM
 void qm::MessageFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
-	pwc->hIcon = ::LoadIcon(Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDI_MESSAGE));
+	pwc->hIcon = ::LoadIcon(getResourceHandle(), MAKEINTRESOURCE(IDI_MESSAGE));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
 }
 

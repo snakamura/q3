@@ -23,6 +23,7 @@
 #include "optiondialog.h"
 #include "resourceinc.h"
 #include "../main/defaultprofile.h"
+#include "../main/main.h"
 
 using namespace qm;
 using namespace qs;
@@ -109,13 +110,12 @@ LRESULT qm::AccountDialog::onNotify(NMHDR* pnmhdr,
 
 LRESULT qm::AccountDialog::onAddAccount()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	CreateAccountDialog dialog(pProfile_);
 	if (dialog.doModal(getHandle()) == IDOK) {
 		const WCHAR* pwszName = dialog.getName();
 		if (pAccountManager_->hasAccount(pwszName)) {
-			messageBox(hInst, IDS_ERROR_CREATEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+			messageBox(getResourceHandle(), IDS_ERROR_CREATEACCOUNT,
+				MB_OK | MB_ICONERROR, getHandle());
 			return 0;
 		}
 		
@@ -123,7 +123,8 @@ LRESULT qm::AccountDialog::onAddAccount()
 			L"\\accounts\\", pwszName));
 		W2T(wstrDir.get(), ptszDir);
 		if (!::CreateDirectory(ptszDir, 0)) {
-			messageBox(hInst, IDS_ERROR_CREATEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+			messageBox(getResourceHandle(), IDS_ERROR_CREATEACCOUNT,
+				MB_OK | MB_ICONERROR, getHandle());
 			return 0;
 		}
 		
@@ -138,7 +139,8 @@ LRESULT qm::AccountDialog::onAddAccount()
 		profile.setInt(L"Send", L"Port", dialog.getSendPort());
 		initProfileForClass(dialog.getClass(), &profile);
 		if (!profile.save()) {
-			messageBox(hInst, IDS_ERROR_CREATEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+			messageBox(getResourceHandle(), IDS_ERROR_CREATEACCOUNT,
+				MB_OK | MB_ICONERROR, getHandle());
 			return 0;
 		}
 		
@@ -178,15 +180,15 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 		if (dialog.doModal(getHandle()) == IDOK) {
 			const WCHAR* pwszName = dialog.getName();
 			
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			
 			if (pAccount->getSubAccount(pwszName)) {
-				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_CREATESUBACCOUNT,
+					MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
 			if (!pAccount->save(false)) {
-				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_CREATESUBACCOUNT,
+					MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
@@ -206,14 +208,16 @@ LRESULT qm::AccountDialog::onAddSubAccount()
 			W2T(wstrAccountPath.get(), ptszAccountPath);
 			W2T(wstrPath.get(), ptszPath);
 			if (!::CopyFile(ptszAccountPath, ptszPath, FALSE)) {
-				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_CREATESUBACCOUNT,
+					MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
 			std::auto_ptr<XMLProfile> pProfile(new XMLProfile(wstrPath.get(),
 				defaultAccountProfiles, countof(defaultAccountProfiles)));
 			if (!pProfile->load()) {
-				messageBox(hInst, IDS_ERROR_CREATESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_CREATESUBACCOUNT,
+					MB_OK | MB_ICONERROR, getHandle());
 				return 0;
 			}
 			
@@ -244,13 +248,11 @@ LRESULT qm::AccountDialog::onRemove()
 		};
 		TreeView_GetItem(hwnd, &item);
 		
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		
 		if (TreeView_GetParent(hwnd, hItem)) {
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
 			Account* pAccount = pSubAccount->getAccount();
 			
-			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVESUBACCOUNT));
+			wstring_ptr wstrConfirm(loadString(getResourceHandle(), IDS_CONFIRM_REMOVESUBACCOUNT));
 			wstring_ptr wstrName(concat(pAccount->getName(), L"/", pSubAccount->getName()));
 			const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(wstrName.get()) + 64;
 			wstring_ptr wstrMessage(allocWString(nLen));
@@ -265,7 +267,7 @@ LRESULT qm::AccountDialog::onRemove()
 		else {
 			Account* pAccount = reinterpret_cast<Account*>(item.lParam);
 			
-			wstring_ptr wstrConfirm(loadString(hInst, IDS_CONFIRM_REMOVEACCOUNT));
+			wstring_ptr wstrConfirm(loadString(getResourceHandle(), IDS_CONFIRM_REMOVEACCOUNT));
 			const size_t nLen = wcslen(wstrConfirm.get()) + wcslen(pAccount->getName()) + 64;
 			wstring_ptr wstrMessage(allocWString(nLen));
 			_snwprintf(wstrMessage.get(), nLen, wstrConfirm.get(), pAccount->getName());
@@ -294,8 +296,6 @@ LRESULT qm::AccountDialog::onRename()
 		};
 		TreeView_GetItem(hwnd, &item);
 		
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		
 		if (TreeView_GetParent(hwnd, hItem)) {
 			SubAccount* pSubAccount = reinterpret_cast<SubAccount*>(item.lParam);
 			
@@ -303,7 +303,8 @@ LRESULT qm::AccountDialog::onRename()
 			if (dialog.doModal(getHandle()) == IDOK) {
 				Account* pAccount = pSubAccount->getAccount();
 				if (!pAccount->renameSubAccount(pSubAccount, dialog.getName())) {
-					messageBox(hInst, IDS_ERROR_RENAMESUBACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+					messageBox(getResourceHandle(), IDS_ERROR_RENAMESUBACCOUNT,
+						MB_OK | MB_ICONERROR, getHandle());
 					return 0;
 				}
 				update();
@@ -315,7 +316,8 @@ LRESULT qm::AccountDialog::onRename()
 			RenameDialog dialog(pAccount->getName());
 			if (dialog.doModal(getHandle()) == IDOK) {
 				if (!pAccountManager_->renameAccount(pAccount, dialog.getName())) {
-					messageBox(hInst, IDS_ERROR_RENAMEACCOUNT, MB_OK | MB_ICONERROR, getHandle());
+					messageBox(getResourceHandle(), IDS_ERROR_RENAMEACCOUNT,
+						MB_OK | MB_ICONERROR, getHandle());
 					return 0;
 				}
 				update();
@@ -348,8 +350,7 @@ LRESULT qm::AccountDialog::onProperty()
 		}
 		assert(pSubAccount);
 		
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_ACCOUNT));
+		wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_TITLE_ACCOUNT));
 		
 		Account* pAccount = pSubAccount->getAccount();
 		PropertyPage* pPage = 0;
@@ -368,7 +369,7 @@ LRESULT qm::AccountDialog::onProperty()
 		AccountDialupPage dialupPage(pSubAccount);
 		AccountAdvancedPage advancedPage(pSubAccount, pJunkFilter_,
 			pSyncFilterManager_, pOptionDialogManager_);
-		PropertySheetBase sheet(hInst, wstrTitle.get(), false);
+		PropertySheetBase sheet(getResourceHandle(), wstrTitle.get(), false);
 		sheet.add(&generalPage);
 		sheet.add(&userPage);
 		sheet.add(&detailPage);
@@ -380,10 +381,11 @@ LRESULT qm::AccountDialog::onProperty()
 		sheet.doModal(getHandle());
 		
 		if (bAccountAdded_ && pAccount->isSupport(Account::SUPPORT_REMOTEFOLDER)) {
-			HINSTANCE hInst = Application::getApplication().getResourceHandle();
-			if (messageBox(hInst, IDS_MESSAGE_UPDATEFOLDER, MB_YESNO | MB_ICONQUESTION, getHandle()) == IDYES) {
+			if (messageBox(getResourceHandle(), IDS_MESSAGE_UPDATEFOLDER,
+					MB_YESNO | MB_ICONQUESTION, getHandle()) == IDYES) {
 				if (!pAccount->updateFolders())
-					messageBox(hInst, IDS_ERROR_UPDATEFOLDER, MB_OK | MB_ICONERROR, getHandle());
+					messageBox(getResourceHandle(), IDS_ERROR_UPDATEFOLDER,
+						MB_OK | MB_ICONERROR, getHandle());
 			}
 		}
 	}
@@ -413,8 +415,7 @@ void qm::AccountDialog::update()
 		
 		TreeView_DeleteAllItems(hwnd);
 		
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrDefault(loadString(hInst, IDS_DEFAULTSUBACCOUNT));
+		wstring_ptr wstrDefault(loadString(getResourceHandle(), IDS_DEFAULTSUBACCOUNT));
 		
 		const AccountManager::AccountList& listAccount = pAccountManager_->getAccounts();
 		for (AccountManager::AccountList::const_iterator itA = listAccount.begin(); itA != listAccount.end(); ++itA) {

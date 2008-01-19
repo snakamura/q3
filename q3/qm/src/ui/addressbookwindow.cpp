@@ -33,6 +33,7 @@
 #include "../action/action.h"
 #include "../action/actionmacro.h"
 #include "../action/addressbookaction.h"
+#include "../main/main.h"
 #include "../model/addressbook.h"
 #include "../uimodel/addressbookmodel.h"
 #include "../uimodel/addressbookselectionmodel.h"
@@ -239,7 +240,7 @@ void qm::AddressBookFrameWindowImpl::layoutChildren(int cx,
 
 qm::AddressBookFrameWindow::AddressBookFrameWindow(AddressBookFrameWindowManager* pManager,
 												   Profile* pProfile) :
-	FrameWindow(Application::getApplication().getResourceHandle(), true),
+	FrameWindow(getResourceHandle(), true),
 	pImpl_(0)
 {
 	pImpl_ = new AddressBookFrameWindowImpl();
@@ -270,15 +271,13 @@ void qm::AddressBookFrameWindow::initialShow()
 bool qm::AddressBookFrameWindow::tryClose(bool bAsync)
 {
 	if (pImpl_->pAddressBookModel_->isModified()) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		HWND hwnd = getHandle();
-		
-		int nMsg = messageBox(hInst, IDS_CONFIRM_SAVEADDRESSBOOK,
-			MB_YESNOCANCEL | MB_ICONQUESTION, hwnd);
+		int nMsg = messageBox(getResourceHandle(), IDS_CONFIRM_SAVEADDRESSBOOK,
+			MB_YESNOCANCEL | MB_ICONQUESTION, getHandle());
 		switch (nMsg) {
 		case IDYES:
 			if (!pImpl_->pAddressBookModel_->save()) {
-				messageBox(hInst, IDS_ERROR_SAVEADDRESSBOOK, MB_OK | MB_ICONERROR, hwnd);
+				messageBox(getResourceHandle(), IDS_ERROR_SAVEADDRESSBOOK,
+					MB_OK | MB_ICONERROR, getHandle());
 				return false;
 			}
 			break;
@@ -406,8 +405,7 @@ DynamicMenuCreator* qm::AddressBookFrameWindow::getDynamicMenuCreator(const Dyna
 void qm::AddressBookFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
-	pwc->hIcon = ::LoadIcon(Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDI_ADDRESSBOOK));
+	pwc->hIcon = ::LoadIcon(getResourceHandle(), MAKEINTRESOURCE(IDI_ADDRESSBOOK));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
 }
 
@@ -844,7 +842,6 @@ public:
 
 void qm::AddressBookListWindowImpl::loadColumns()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	struct {
 		UINT nId_;
 		const WCHAR* pwszWidthKey_;
@@ -854,7 +851,7 @@ void qm::AddressBookListWindowImpl::loadColumns()
 		{ IDS_ADDRESSBOOK_COLUMN_COMMENT,	L"CommentWidth"	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
-		wstring_ptr wstrTitle(loadString(hInst, columns[n].nId_));
+		wstring_ptr wstrTitle(loadString(getResourceHandle(), columns[n].nId_));
 		W2T(wstrTitle.get(), ptszTitle);
 		
 		int nWidth = pProfile_->getInt(L"AddressBookListWindow", columns[n].pwszWidthKey_);
@@ -1372,8 +1369,7 @@ void qm::AddressBookThread::run()
 {
 	InitThread init(InitThread::FLAG_SYNCHRONIZER);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_TITLE_ADDRESSBOOK));
+	wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_TITLE_ADDRESSBOOK));
 	
 	std::auto_ptr<AddressBookFrameWindow> pWindow;
 	{

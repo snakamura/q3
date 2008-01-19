@@ -5,7 +5,6 @@
  *
  */
 
-#include <qmapplication.h>
 #include <qmmessage.h>
 #include <qmmessagewindow.h>
 
@@ -13,6 +12,7 @@
 #include "resourceinc.h"
 #include "statusbar.h"
 #include "uiutil.h"
+#include "../main/main.h"
 #include "../uimodel/encodingmodel.h"
 
 using namespace qm;
@@ -122,7 +122,7 @@ void qm::MessageStatusBar::updateMessageParts(const Message* pMessage)
 			pwszTemplate += 5;
 		}
 		else {
-			wstrNone = loadString(Application::getApplication().getResourceHandle(), IDS_STATUS_NONE);
+			wstrNone = loadString(getResourceHandle(), IDS_STATUS_NONE);
 			pwszTemplate = wstrNone.get();
 		}
 		setText(nOffset_ + 2, pwszTemplate);
@@ -234,8 +234,7 @@ void qm::MessageStatusBar::setIconId(int nPart,
 {
 	HICON hIcon = 0;
 	if (nIcon != 0)
-		hIcon = reinterpret_cast<HICON>(::LoadImage(
-			Application::getApplication().getResourceHandle(),
+		hIcon = reinterpret_cast<HICON>(::LoadImage(getResourceHandle(),
 			MAKEINTRESOURCE(nIcon), IMAGE_ICON, 16, 16, LR_SHARED));
 	setIcon(nPart, hIcon);
 }

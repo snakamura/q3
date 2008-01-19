@@ -10,6 +10,7 @@
 #include <qm.h>
 #include <qmapplication.h>
 #include <qmmain.h>
+#include <qmresourceversion.h>
 
 #include <qsfile.h>
 #include <qsosutil.h>
@@ -24,6 +25,7 @@
 #include "main.h"
 #include "../ui/actionid.h"
 #include "../ui/dialogs.h"
+#include "../ui/resourceversion.h"
 
 using namespace qm;
 using namespace qs;
@@ -32,6 +34,7 @@ using namespace qs;
 namespace qm {
 
 int main(const WCHAR* pwszCommandLine);
+const ResourceVersion* loadResourceVersions(HINSTANCE hInst);
 
 }
 
@@ -46,7 +49,25 @@ namespace {
 
 HINSTANCE g_hInst = 0;
 HINSTANCE g_hInstResource = 0;
+const ResourceVersion* g_pResourceVersions;
 
+}
+
+
+/****************************************************************************
+ *
+ * Global Functions
+ *
+ */
+
+HINSTANCE qm::getInstanceHandle()
+{
+	return g_hInst;
+}
+
+HINSTANCE qm::getResourceHandle()
+{
+	return g_hInstResource;
 }
 
 
@@ -71,6 +92,12 @@ BOOL WINAPI DllMain(HANDLE hInst,
 #endif
 		g_hInst = static_cast<HINSTANCE>(hInst);
 		g_hInstResource = loadResourceDll(g_hInst);
+		
+		g_pResourceVersions = loadResourceVersions(g_hInstResource);
+		if (!g_pResourceVersions) {
+			g_pResourceVersions = resourceVersions;
+			g_hInstResource = g_hInst;
+		}
 		break;
 	case DLL_PROCESS_DETACH:
 		break;
@@ -156,7 +183,7 @@ int qm::main(const WCHAR* pwszCommandLine)
 					}
 				}
 #endif
-				MailFolderDialog dialog(g_hInstResource, wstrMailFolder.get());
+				MailFolderDialog dialog(getResourceHandle(), wstrMailFolder.get());
 				if (dialog.doModal(0) != IDOK)
 					return 1;
 				wstrMailFolder = allocWString(dialog.getMailFolder());
@@ -194,8 +221,8 @@ int qm::main(const WCHAR* pwszCommandLine)
 	}
 	
 	MailFolderLock* pLockTemp = pLock.get();
-	std::auto_ptr<Application> pApplication(new Application(g_hInst,
-		g_hInstResource, wstrMailFolder, wstrProfile, pLock));
+	std::auto_ptr<Application> pApplication(new Application(
+		wstrMailFolder, wstrProfile, pLock, g_pResourceVersions));
 	
 	if (!pApplication->initialize(handler.getLogLevel(), bQuiet))
 		return 1;
@@ -210,6 +237,17 @@ int qm::main(const WCHAR* pwszCommandLine)
 	
 	return 0;
 }
+
+const ResourceVersion* qm::loadResourceVersions(HINSTANCE hInst)
+{
+	assert(hInst);
+	
+	typedef const ResourceVersion* (__stdcall *PFN_GET)();
+	PFN_GET pfnGet = reinterpret_cast<PFN_GET>(
+		::GetProcAddress(hInst, WCE_T("getResourceVersions")));
+	return pfnGet ? (*pfnGet)() : 0;
+}
+
 
 
 /****************************************************************************
@@ -584,7 +622,7 @@ void qm::MailFolderLock::lock(const WCHAR* pwszMailFolder,
 				if (read(hFile.get(), 0, &wstrName))
 					pwszName = wstrName.get();
 				
-				wstring_ptr wstrTemplate(loadString(g_hInstResource, IDS_CONFIRM_IGNORELOCK));
+				wstring_ptr wstrTemplate(loadString(getResourceHandle(), IDS_CONFIRM_IGNORELOCK));
 				const size_t nLen = wcslen(wstrTemplate.get()) + wcslen(pwszName);
 				wstring_ptr wstrMessage(allocWString(nLen));
 				_snwprintf(wstrMessage.get(), nLen, wstrTemplate.get(), pwszName);

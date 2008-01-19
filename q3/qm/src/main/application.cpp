@@ -56,7 +56,6 @@
 #include "../ui/editframewindow.h"
 #include "../ui/folderimage.h"
 #include "../ui/mainwindow.h"
-#include "../ui/resourceversion.h"
 #include "../ui/syncdialog.h"
 #include "../ui/uimanager.h"
 #include "../ui/uiutil.h"
@@ -109,7 +108,6 @@ public:
 	bool ensureResources();
 	void ensureTempDirectory();
 	void loadLibraries();
-	void loadResourceVersions();
 
 public:
 	bool ensureFile(const WCHAR* pwszPath,
@@ -138,7 +136,6 @@ public:
 								const WCHAR* pwszName);
 	static bool ensureParentDirectory(const WCHAR* pwszPath);
 	static void loadLibrary(const WCHAR* pwszName);
-	static const ResourceVersion* loadResourceVersions(HINSTANCE hInst);
 
 private:
 	static qs::wstring_ptr getResourcePath(const Resource& resource,
@@ -146,8 +143,6 @@ private:
 
 public:
 	Application* pThis_;
-	HINSTANCE hInst_;
-	HINSTANCE hInstResource_;
 	std::auto_ptr<MailFolderLock> pLock_;
 	std::auto_ptr<Winsock> pWinSock_;
 	wstring_ptr wstrMailFolder_;
@@ -421,19 +416,6 @@ void qm::ApplicationImpl::loadLibraries()
 	}
 }
 
-void qm::ApplicationImpl::loadResourceVersions()
-{
-	assert(!pResourceVersions_);
-	
-	pResourceVersions_ = loadResourceVersions(hInstResource_);
-	if (!pResourceVersions_) {
-		pResourceVersions_ = resourceVersions;
-		hInstResource_ = hInst_;
-	}
-	
-	assert(pResourceVersions_);
-}
-
 bool qm::ApplicationImpl::ensureFile(const WCHAR* pwszPath,
 									 const WCHAR* pwszDir,
 									 const WCHAR* pwszFileName,
@@ -637,12 +619,12 @@ bool qm::ApplicationImpl::detachResource(const WCHAR* pwszPath,
 	
 	W2T(pwszName, ptszName);
 	W2T(pwszType, ptszType);
-	HRSRC hrsrc = ::FindResource(hInstResource_, ptszName, ptszType);
+	HRSRC hrsrc = ::FindResource(getResourceHandle(), ptszName, ptszType);
 	if (!hrsrc) {
 		log.errorf(L"Counld not find a resource: %s, %s", pwszName, pwszType);
 		return false;
 	}
-	HGLOBAL hResource = ::LoadResource(hInstResource_, hrsrc);
+	HGLOBAL hResource = ::LoadResource(getResourceHandle(), hrsrc);
 	if (!hResource) {
 		log.errorf(L"Counld not load the resource: %s", pwszName);
 		return false;
@@ -792,16 +774,6 @@ void qm::ApplicationImpl::loadLibrary(const WCHAR* pwszName)
 	::LoadLibrary(ptszLib);
 }
 
-const ResourceVersion* qm::ApplicationImpl::loadResourceVersions(HINSTANCE hInst)
-{
-	assert(hInst);
-	
-	typedef const ResourceVersion* (__stdcall *PFN_GET)();
-	PFN_GET pfnGet = reinterpret_cast<PFN_GET>(
-		::GetProcAddress(hInst, WCE_T("getResourceVersions")));
-	return pfnGet ? (*pfnGet)() : 0;
-}
-
 wstring_ptr qm::ApplicationImpl::getResourcePath(const Resource& resource,
 												 bool bProfile)
 {
@@ -830,32 +802,28 @@ wstring_ptr qm::ApplicationImpl::getResourcePath(const Resource& resource,
  *
  */
 
-qm::Application::Application(HINSTANCE hInst,
-							 HINSTANCE hInstResource,
-							 wstring_ptr wstrMailFolder,
+qm::Application::Application(wstring_ptr wstrMailFolder,
 							 wstring_ptr wstrProfile,
-							 std::auto_ptr<MailFolderLock> pLock)
+							 std::auto_ptr<MailFolderLock> pLock,
+							 const ResourceVersion* pResourceVersions)
 {
 	assert(wstrMailFolder.get());
 	assert(wstrProfile.get());
 	assert(pLock.get());
+	assert(pResourceVersions);
 	
 	pImpl_ = new ApplicationImpl();
 	pImpl_->pThis_ = this;
-	pImpl_->hInst_ = hInst;
-	pImpl_->hInstResource_ = hInstResource;
 	pImpl_->pLock_ = pLock;
 	pImpl_->wstrMailFolder_ = wstrMailFolder;
 	pImpl_->wstrProfileName_ = wstrProfile;
 	pImpl_->pMainWindow_ = 0;
 	pImpl_->hInstAtl_ = 0;
-	pImpl_->pResourceVersions_ = 0;
+	pImpl_->pResourceVersions_ = pResourceVersions;
 	pImpl_->bShutdown_ = false;
 	
 	assert(!ApplicationImpl::pApplication__);
 	ApplicationImpl::pApplication__ = this;
-	
-	pImpl_->loadResourceVersions();
 }
 
 qm::Application::~Application()
@@ -1057,11 +1025,6 @@ void qm::Application::startShutdown()
 bool qm::Application::isShutdown() const
 {
 	return pImpl_->bShutdown_;
-}
-
-HINSTANCE qm::Application::getResourceHandle() const
-{
-	return pImpl_->hInstResource_;
 }
 
 HINSTANCE qm::Application::getAtlHandle() const

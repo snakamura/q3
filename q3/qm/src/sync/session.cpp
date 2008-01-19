@@ -7,12 +7,12 @@
 
 #pragma warning(disable:4786)
 
-#include <qmapplication.h>
 #include <qmsecurity.h>
 #include <qmsession.h>
 
 #include <qsstl.h>
 
+#include "../main/main.h"
 #include "../ui/resourceinc.h"
 
 using namespace qm;
@@ -581,8 +581,7 @@ void qm::DefaultReceiveSessionRuleCallback::setPos(size_t nPos)
 wstring_ptr qm::DefaultReceiveSessionRuleCallback::getMessage(UINT nId,
 															  Folder* pFolder)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrMessage(loadString(hInst, nId));
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
 	wstring_ptr wstrName(pFolder->getFullName());
 	return concat(wstrMessage.get(), L" : ", wstrName.get());
 }

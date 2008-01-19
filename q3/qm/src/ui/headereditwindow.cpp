@@ -27,6 +27,7 @@
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../main/main.h"
 #include "../model/addressbook.h"
 #include "../model/dataobject.h"
 #include "../model/editmessage.h"
@@ -2159,8 +2160,7 @@ void qm::SignatureHeaderEditItem::update(EditMessage* pEditMessage)
 	
 	ComboBox_ResetContent(getHandle());
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrNone(loadString(hInst, IDS_SIGNATURE_NONE));
+	wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_SIGNATURE_NONE));
 	W2T(wstrNone.get(), ptszNone);
 	ComboBox_AddString(getHandle(), ptszNone);
 	

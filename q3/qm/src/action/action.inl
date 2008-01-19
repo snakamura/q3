@@ -8,7 +8,7 @@
 #ifndef __ACTION_INL__
 #define __ACTION_INL__
 
-#include <qmapplication.h>
+#include "../main/main.h"
 
 
 /****************************************************************************
@@ -82,8 +82,7 @@ void qm::ViewShowControlAction<WindowX>::invoke(const qs::ActionEvent& event)
 template<class WindowX>
 qs::wstring_ptr qm::ViewShowControlAction<WindowX>::getText(const qs::ActionEvent& event)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	return loadString(hInst, (pWindow_->*pfnIs_)() ? nHideId_ : nShowId_);
+	return loadString(getResourceHandle(), (pWindow_->*pfnIs_)() ? nHideId_ : nShowId_);
 }
 
 

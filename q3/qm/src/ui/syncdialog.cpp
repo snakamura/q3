@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmfolder.h>
 #include <qmpassword.h>
 
@@ -23,6 +22,7 @@
 #include "resourceinc.h"
 #include "syncdialog.h"
 #include "uiutil.h"
+#include "../main/main.h"
 
 using namespace qm;
 using namespace qs;
@@ -102,7 +102,7 @@ void qm::SyncDialogManager::save() const
 
 qm::SyncDialog::SyncDialog(Profile* pProfile,
 						   PasswordManager* pPasswordManager) :
-	Dialog(Application::getApplication().getResourceHandle(), IDD_SYNC, IDD_SYNC, false),
+	Dialog(getResourceHandle(), IDD_SYNC, IDD_SYNC, false),
 	pProfile_(pProfile),
 	pPasswordManager_(pPasswordManager),
 	pStatusWindow_(0),
@@ -572,8 +572,7 @@ qm::SyncStatusWindow::SyncStatusWindow(SyncDialog* pSyncDialog) :
 	bNewMessage_(false),
 	nFontHeight_(0)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstrFinished_ = loadString(hInst, IDS_MESSAGE_FINISHED);
+	wstrFinished_ = loadString(getResourceHandle(), IDS_MESSAGE_FINISHED);
 	
 	setWindowHandler(this, false);
 }

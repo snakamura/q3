@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmmessageholder.h>
@@ -41,6 +40,7 @@
 #include "undo.h"
 #include "../junk/junk.h"
 #include "../main/defaultprofile.h"
+#include "../main/main.h"
 #include "../pgp/pgp.h"
 #include "../util/confighelper.h"
 
@@ -187,8 +187,7 @@ bool qm::AccountImpl::loadFolders()
 	}
 	
 	if (!pThis_->getFolderByBoxFlag(Folder::FLAG_SEARCHBOX)) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrName(loadString(hInst, IDS_FOLDER_SEARCH));
+		wstring_ptr wstrName(loadString(getResourceHandle(), IDS_FOLDER_SEARCH));
 		std::auto_ptr<QueryFolder> pFolder(new QueryFolder(
 			pThis_->generateFolderId(), wstrName.get(), L'/',
 			Folder::FLAG_LOCAL | Folder::FLAG_SEARCHBOX,

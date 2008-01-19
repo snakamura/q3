@@ -5,11 +5,11 @@
  *
  */
 
-#include <qmapplication.h>
 #include <qmmessageholder.h>
 
 #include "propertypages.h"
 #include "resourceinc.h"
+#include "../main/main.h"
 
 using namespace qm;
 using namespace qs;
@@ -22,14 +22,13 @@ using namespace qs;
  */
 
 qm::DefaultPropertyPage::DefaultPropertyPage(UINT nId) :
-	qs::DefaultPropertyPage(Application::getApplication().getResourceHandle(), nId, nId)
+	qs::DefaultPropertyPage(getResourceHandle(), nId, nId)
 {
 }
 
 qm::DefaultPropertyPage::DefaultPropertyPage(UINT nIdPortrait,
 											 UINT nIdLandscape) :
-	qs::DefaultPropertyPage(Application::getApplication().getResourceHandle(),
-		nIdPortrait, nIdLandscape)
+	qs::DefaultPropertyPage(getResourceHandle(), nIdPortrait, nIdLandscape)
 {
 }
 

@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
@@ -28,6 +27,7 @@
 #include "resourceinc.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../main/main.h"
 #include "../uimodel/folderlistmodel.h"
 #include "../uimodel/foldermodel.h"
 
@@ -100,7 +100,6 @@ public:
 
 void qm::FolderListWindowImpl::loadColumns()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	struct {
 		UINT nId_;
 		const WCHAR* pwszWidthKey_;
@@ -113,7 +112,7 @@ void qm::FolderListWindowImpl::loadColumns()
 		{ IDS_FOLDERLIST_SIZE,			L"SizeWidth",			false	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
-		wstring_ptr wstrTitle(loadString(hInst, columns[n].nId_));
+		wstring_ptr wstrTitle(loadString(getResourceHandle(), columns[n].nId_));
 		W2T(wstrTitle.get(), ptszTitle);
 		
 		int nWidth = pProfile_->getInt(L"FolderListWindow", columns[n].pwszWidthKey_);

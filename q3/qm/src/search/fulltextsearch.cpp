@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmfolder.h>
 #include <qmuiutil.h>
 
@@ -20,6 +19,7 @@
 #include <qsuiutil.h>
 
 #include "fulltextsearch.h"
+#include "../main/main.h"
 #include "../ui/resourceinc.h"
 
 using namespace qm;
@@ -183,7 +183,7 @@ const WCHAR* qm::FullTextSearchUI::getName()
 
 wstring_ptr qm::FullTextSearchUI::getDisplayName()
 {
-	return loadString(Application::getApplication().getResourceHandle(), IDS_TITLE_FULLTEXTSEARCH);
+	return loadString(getResourceHandle(), IDS_TITLE_FULLTEXTSEARCH);
 }
 
 std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(SearchPropertyData* pData)
@@ -202,9 +202,8 @@ std::auto_ptr<SearchPropertyPage> qm::FullTextSearchUI::createPropertyPage(Searc
 qm::FullTextSearchPage::FullTextSearchPage(Account* pAccount,
 										   Profile* pProfile,
 										   SearchPropertyData* pData) :
-	SearchPropertyPage(Application::getApplication().getResourceHandle(),
-		IDD_FULLTEXTSEARCH, IDD_FULLTEXTSEARCH, IDC_CONDITION,
-		IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
+	SearchPropertyPage(getResourceHandle(), IDD_FULLTEXTSEARCH, IDD_FULLTEXTSEARCH,
+		IDC_CONDITION, IDC_FOLDER, IDC_RECURSIVE, IDC_NEWFOLDER, pData),
 	pAccount_(pAccount),
 	pProfile_(pProfile)
 {

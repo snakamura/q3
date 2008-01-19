@@ -540,7 +540,7 @@ std::auto_ptr<MacroMenuCreator> qm::EditFrameWindowImpl::createMacroMenuCreator(
 
 qm::EditFrameWindow::EditFrameWindow(EditFrameWindowManager* pManager,
 									 Profile* pProfile) :
-	FrameWindow(Application::getApplication().getResourceHandle(), true),
+	FrameWindow(getResourceHandle(), true),
 	pImpl_(0)
 {
 	pImpl_ = new EditFrameWindowImpl();
@@ -734,8 +734,7 @@ DynamicMenuCreator* qm::EditFrameWindow::getDynamicMenuCreator(const DynamicMenu
 void qm::EditFrameWindow::getWindowClass(WNDCLASS* pwc)
 {
 	FrameWindow::getWindowClass(pwc);
-	pwc->hIcon = ::LoadIcon(Application::getApplication().getResourceHandle(),
-		MAKEINTRESOURCE(IDI_EDIT));
+	pwc->hIcon = ::LoadIcon(getResourceHandle(), MAKEINTRESOURCE(IDI_EDIT));
 	pwc->hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1);
 }
 

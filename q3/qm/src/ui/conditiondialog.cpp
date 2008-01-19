@@ -7,11 +7,10 @@
 
 #pragma warning(disable:4786)
 
-#include <qmapplication.h>
-
 #include <tchar.h>
 
 #include "conditiondialog.h"
+#include "../main/main.h"
 
 using namespace qm;
 using namespace qs;
@@ -85,8 +84,8 @@ LRESULT qm::ConditionsDialog::onOk()
 		wstring_ptr wstrCondition = getDlgItemText(IDC_MACRO);
 		std::auto_ptr<Macro> pMacro(MacroParser().parse(wstrCondition.get()));
 		if (!pMacro.get()) {
-			messageBox(Application::getApplication().getResourceHandle(),
-				IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+			messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+				MB_OK | MB_ICONERROR, getHandle());
 			return 0;
 		}
 		wstrCondition_ = wstrCondition;
@@ -160,14 +159,14 @@ LRESULT qm::ConditionsDialog::onCustom()
 		if (*wstrMacro.get()) {
 			std::auto_ptr<Macro> pMacro(MacroParser().parse(wstrMacro.get()));
 			if (!pMacro.get()) {
-				messageBox(Application::getApplication().getResourceHandle(),
-					IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+				messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+					MB_OK | MB_ICONERROR, getHandle());
 			}
 			else {
 				pConditionList = ConditionFactory::getInstance().parse(pMacro.get());
 				if (!pConditionList.get())
-					messageBox(Application::getApplication().getResourceHandle(),
-						IDS_ERROR_COMPLEXMACRO, MB_OK | MB_ICONERROR, getHandle());
+					messageBox(getResourceHandle(), IDS_ERROR_COMPLEXMACRO,
+						MB_OK | MB_ICONERROR, getHandle());
 			}
 		}
 		else {
@@ -308,7 +307,6 @@ LRESULT qm::ConditionDialog::onInitDialog(HWND hwndFocus,
 	HWND hwndArguments = getDlgItem(IDC_ARGUMENTS);
 	ListView_SetExtendedListViewStyle(hwndArguments, LVS_EX_FULLROWSELECT);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	struct {
 		UINT nId_;
 		int nWidth_;
@@ -322,7 +320,7 @@ LRESULT qm::ConditionDialog::onInitDialog(HWND hwndFocus,
 #endif
 	};
 	for (int n = 0; n < countof(columns); ++n) {
-		wstring_ptr wstrColumn(loadString(hInst, columns[n].nId_));
+		wstring_ptr wstrColumn(loadString(getResourceHandle(), columns[n].nId_));
 		W2T(wstrColumn.get(), ptszColumn);
 		
 		LVCOLUMN column = {

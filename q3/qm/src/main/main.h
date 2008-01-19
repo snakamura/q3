@@ -19,6 +19,16 @@ namespace qm {
 
 /****************************************************************************
  *
+ * Global Functions
+ *
+ */
+
+HINSTANCE getInstanceHandle();
+HINSTANCE getResourceHandle();
+
+
+/****************************************************************************
+ *
  * MainCommandLineHandler
  *
  */

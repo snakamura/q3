@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmeditwindow.h>
 #include <qmfolder.h>
@@ -31,6 +30,7 @@
 #include "actionutil.h"
 #include "editaction.h"
 #include "findreplace.h"
+#include "../main/main.h"
 #include "../model/dataobject.h"
 #include "../model/editmessage.h"
 #include "../model/fixedformtext.h"
@@ -71,9 +71,7 @@ void qm::EditAttachmentEditAddAction::invoke(const ActionEvent& event)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	
-	wstring_ptr wstrFilter(loadString(
-		Application::getApplication().getResourceHandle(), IDS_FILTER_ATTACHMENT));
-	
+	wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_ATTACHMENT));
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT);
 	
@@ -548,9 +546,7 @@ void qm::EditFileInsertAction::invoke(const ActionEvent& event)
 {
 	HWND hwnd = pTextWindow_->getParentFrame();
 	
-	wstring_ptr wstrFilter(loadString(
-		Application::getApplication().getResourceHandle(), IDS_FILTER_INSERT));
-	
+	wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_INSERT));
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
 	if (dialog.doModal(hwnd) != IDOK)
@@ -620,9 +616,7 @@ void qm::EditFileOpenAction::invoke(const ActionEvent& event)
 	const WCHAR* pwszPath = ActionParamUtil::getString(event.getParam(), 0);
 	wstring_ptr wstrPath;
 	if (!pwszPath) {
-		wstring_ptr wstrFilter(loadString(
-			Application::getApplication().getResourceHandle(), IDS_FILTER_OPEN));
-		
+		wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_OPEN));
 		FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 			OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES);
 		if (dialog.doModal(hwnd_) != IDOK)
@@ -688,9 +682,7 @@ void qm::EditFileSaveAction::invoke(const ActionEvent& event)
 	const WCHAR* pwszPath = ActionParamUtil::getString(event.getParam(), 0);
 	wstring_ptr wstrPath;
 	if (!pwszPath) {
-		wstring_ptr wstrFilter(loadString(
-			Application::getApplication().getResourceHandle(), IDS_FILTER_SAVE));
-		
+		wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_SAVE));
 		FileDialog dialog(false, wstrFilter.get(), 0, 0, 0,
 			OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT);
 		if (dialog.doModal(hwnd_) != IDOK)

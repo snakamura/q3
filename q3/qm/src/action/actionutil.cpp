@@ -5,12 +5,12 @@
  *
  */
 
-#include <qmapplication.h>
 #include <qmfolder.h>
 
 #include <qswindow.h>
 
 #include "actionutil.h"
+#include "../main/main.h"
 #include "../model/messagecontext.h"
 #include "../ui/dialogs.h"
 #include "../uimodel/foldermodel.h"
@@ -33,15 +33,13 @@ using namespace qs;
 void qm::ActionUtil::info(HWND hwnd,
 						  UINT nMessage)
 {
-	messageBox(Application::getApplication().getResourceHandle(),
-		nMessage, MB_OK | MB_ICONINFORMATION, hwnd);
+	messageBox(getResourceHandle(), nMessage, MB_OK | MB_ICONINFORMATION, hwnd);
 }
 
 void qm::ActionUtil::error(HWND hwnd,
 						   UINT nMessage)
 {
-	messageBox(Application::getApplication().getResourceHandle(),
-		nMessage, MB_OK | MB_ICONERROR, hwnd);
+	messageBox(getResourceHandle(), nMessage, MB_OK | MB_ICONERROR, hwnd);
 }
 
 void qm::ActionUtil::error(HWND hwnd,
@@ -285,9 +283,8 @@ std::auto_ptr<Macro> MacroActionUtil::getMacro(const qs::ActionParam* pParam,
 	const WCHAR* pwszMacro = ActionParamUtil::getString(pParam, n);
 	wstring_ptr wstrMacro;
 	if (!pwszMacro) {
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
-		wstring_ptr wstrTitle(loadString(hInst, IDS_EXECUTEMACRO));
-		wstring_ptr wstrMessage(loadString(hInst, IDS_MACRO));
+		wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_EXECUTEMACRO));
+		wstring_ptr wstrMessage(loadString(getResourceHandle(), IDS_MACRO));
 		wstring_ptr wstrPrevMacro(pProfile->getString(L"Global", L"Macro"));
 		
 		MultiLineInputBoxDialog dialog(wstrTitle.get(), wstrMessage.get(),

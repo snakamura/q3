@@ -8,7 +8,6 @@
 #ifdef QMRECENTSWINDOW
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmfilenames.h>
 #include <qmmessageholder.h>
 #include <qmrecents.h>
@@ -24,6 +23,7 @@
 #include "recentswindow.h"
 #include "resourceinc.h"
 #include "uiutil.h"
+#include "../main/main.h"
 #include "../model/account.h"
 #include "../model/uri.h"
 
@@ -696,14 +696,12 @@ void qm::RecentsWindow::paintSeparator(qs::DeviceContext& dc)
 
 void qm::RecentsWindow::paintButtons(DeviceContext& dc)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	ObjectSelector<HFONT> fontSelector(dc, hfont_);
 	
 	for (int n = 0; n < countof(buttons__); ++n) {
 		RECT r;
 		getButtonRect(n, &r);
-		wstring_ptr wstrText(loadString(hInst, buttons__[n].nTextId_));
+		wstring_ptr wstrText(loadString(getResourceHandle(), buttons__[n].nTextId_));
 		paintButton(dc, wstrText.get(), r, n == nSelectedButton_);
 	}
 }

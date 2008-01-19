@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmlistwindow.h>
@@ -40,6 +39,7 @@
 #include "syncutil.h"
 #include "uimanager.h"
 #include "../action/action.h"
+#include "../main/main.h"
 #include "../model/dataobject.h"
 #include "../uimodel/viewmodel.h"
 
@@ -1106,16 +1106,16 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 					if (event.getKeyState() & MK_ALT) {
 						if (!FileImportAction::importShowDialog(pNormalFolder,
 							listPath, pProfile_, pThis_->getParentFrame(), 0, 0)) {
-							messageBox(Application::getApplication().getResourceHandle(),
-								IDS_ERROR_IMPORT, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
+							messageBox(getResourceHandle(), IDS_ERROR_IMPORT,
+								MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 						}
 					}
 					else {
 						if (!FileImportAction::import(pNormalFolder,
 							listPath, false, 0, Account::IMPORTFLAG_NORMALFLAGS,
 							pThis_->getParentFrame(), 0, 0)) {
-							messageBox(Application::getApplication().getResourceHandle(),
-								IDS_ERROR_IMPORT, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
+							messageBox(getResourceHandle(), IDS_ERROR_IMPORT,
+								MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 						}
 					}
 				}
@@ -1763,8 +1763,8 @@ LRESULT qm::ListWindow::onKeyDown(UINT nKey,
 				if (nItem < pViewModel->getCount()) {
 					if (!pImpl_->pMessageFrameWindowManager_->open(
 						pViewModel, pViewModel->getMessageHolder(nItem)))
-						messageBox(Application::getApplication().getResourceHandle(),
-							IDS_ERROR_OPENMESSAGE, MB_OK | MB_ICONERROR, getParentFrame());
+						messageBox(getResourceHandle(), IDS_ERROR_OPENMESSAGE,
+							MB_OK | MB_ICONERROR, getParentFrame());
 				}
 			}
 		}
@@ -1794,8 +1794,8 @@ LRESULT qm::ListWindow::onLButtonDblClk(UINT nFlags,
 			if (nLine != -1) {
 				if (!pImpl_->pMessageFrameWindowManager_->open(
 					pViewModel, pViewModel->getMessageHolder(nLine)))
-					messageBox(Application::getApplication().getResourceHandle(),
-						IDS_ERROR_OPENMESSAGE, MB_OK | MB_ICONERROR, getParentFrame());
+					messageBox(getResourceHandle(), IDS_ERROR_OPENMESSAGE,
+						MB_OK | MB_ICONERROR, getParentFrame());
 			}
 		}
 	}
@@ -1854,8 +1854,8 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 			if (pImpl_->bSingleClickOpen_) {
 				if (!pImpl_->pMessageFrameWindowManager_->open(
 					pViewModel, pViewModel->getMessageHolder(nLine)))
-					messageBox(Application::getApplication().getResourceHandle(),
-						IDS_ERROR_OPENMESSAGE, MB_OK | MB_ICONERROR, getParentFrame());
+					messageBox(getResourceHandle(), IDS_ERROR_OPENMESSAGE,
+						MB_OK | MB_ICONERROR, getParentFrame());
 			}
 		}
 	}
@@ -2369,8 +2369,7 @@ LRESULT qm::ListHeaderColumn::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	pImpl_->nId_ = getId();
 	
-	HIMAGELIST hImageList = ImageList_LoadImage(
-		Application::getApplication().getResourceHandle(),
+	HIMAGELIST hImageList = ImageList_LoadImage(getResourceHandle(),
 		MAKEINTRESOURCE(IDB_HEADER), 16, 0, CLR_DEFAULT, IMAGE_BITMAP, 0);
 	Header_SetImageList(getHandle(), hImageList);
 	

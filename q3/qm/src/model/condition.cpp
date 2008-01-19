@@ -7,12 +7,11 @@
 
 #pragma warning(disable:4786)
 
-#include <qmapplication.h>
-
 #include <qsutil.h>
 
 #include "condition.h"
 #include "modelresource.h"
+#include "../main/main.h"
 
 using namespace qm;
 using namespace qs;
@@ -89,7 +88,7 @@ void qm::NoArgumentCondition::setArgumentValue(size_t n,
 
 wstring_ptr qm::NoArgumentCondition::getDescription(bool bValue) const
 {
-	return loadString(Application::getApplication().getResourceHandle(), nDescriptionId_);
+	return loadString(getResourceHandle(), nDescriptionId_);
 }
 
 wstring_ptr qm::NoArgumentCondition::getMacro() const
@@ -173,7 +172,7 @@ wstring_ptr qm::FieldCondition::getArgumentName(size_t n) const
 		assert(false);
 		break;
 	}
-	return loadString(Application::getApplication().getResourceHandle(), nId);
+	return loadString(getResourceHandle(), nId);
 }
 
 Condition::Type qm::FieldCondition::getArgumentType(size_t n) const
@@ -226,7 +225,7 @@ void qm::FieldCondition::setArgumentValue(size_t n,
 
 wstring_ptr qm::FieldCondition::getDescription(bool bValue) const
 {
-	wstring_ptr wstrTemplate = loadString(Application::getApplication().getResourceHandle(), nDescriptionId_);
+	wstring_ptr wstrTemplate = loadString(getResourceHandle(), nDescriptionId_);
 	wstring_ptr wstrArg0(bValue ? getArgumentValue(0) : getArgumentName(0));
 	wstring_ptr wstrArg1(bValue ? getArgumentValue(1) : getArgumentName(1));
 	return MessageFormat::format(wstrTemplate.get(), wstrArg0.get(), wstrArg1.get());
@@ -316,7 +315,7 @@ size_t qm::SizeCondition::getArgumentCount() const
 
 wstring_ptr qm::SizeCondition::getArgumentName(size_t n) const
 {
-	return loadString(Application::getApplication().getResourceHandle(), nValueId_);
+	return loadString(getResourceHandle(), nValueId_);
 }
 
 Condition::Type qm::SizeCondition::getArgumentType(size_t n) const
@@ -343,7 +342,7 @@ void qm::SizeCondition::setArgumentValue(size_t n,
 
 wstring_ptr qm::SizeCondition::getDescription(bool bValue) const
 {
-	wstring_ptr wstrTemplate = loadString(Application::getApplication().getResourceHandle(), nDescriptionId_);
+	wstring_ptr wstrTemplate = loadString(getResourceHandle(), nDescriptionId_);
 	wstring_ptr wstrArg0(bValue ? getArgumentValue(0) : getArgumentName(0));
 	return MessageFormat::format(wstrTemplate.get(), wstrArg0.get());
 }
@@ -411,7 +410,7 @@ size_t qm::PassedCondition::getArgumentCount() const
 
 wstring_ptr qm::PassedCondition::getArgumentName(size_t n) const
 {
-	return loadString(Application::getApplication().getResourceHandle(), nValueId_);
+	return loadString(getResourceHandle(), nValueId_);
 }
 
 Condition::Type qm::PassedCondition::getArgumentType(size_t n) const
@@ -438,8 +437,7 @@ void qm::PassedCondition::setArgumentValue(size_t n,
 
 wstring_ptr qm::PassedCondition::getDescription(bool bValue) const
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTemplate = loadString(hInst, nDescriptionId_);
+	wstring_ptr wstrTemplate = loadString(getResourceHandle(), nDescriptionId_);
 	wstring_ptr wstrArg0(bValue ? getArgumentValue(0) : getArgumentName(0));
 	return MessageFormat::format(wstrTemplate.get(), wstrArg0.get());
 }
@@ -530,7 +528,7 @@ wstring_ptr qm::ConditionList::getDescription(bool bValue) const
 		return list_.front()->getDescription(bValue);
 	}
 	else {
-		wstring_ptr wstrSep(loadString(Application::getApplication().getResourceHandle(),
+		wstring_ptr wstrSep(loadString(getResourceHandle(),
 			type_ == TYPE_AND ? IDS_CONDITIONTYPE_AND : IDS_CONDITIONTYPE_OR));
 		
 		StringBuffer<WSTRING> buf;

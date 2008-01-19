@@ -31,6 +31,7 @@
 #include "folderimage.h"
 #include "uimanager.h"
 #include "uiutil.h"
+#include "../main/main.h"
 #include "../model/templatemanager.h"
 #include "../sync/syncmanager.h"
 #include "../util/util.h"
@@ -46,14 +47,13 @@ using namespace qs;
  */
 
 qm::DefaultDialog::DefaultDialog(UINT nId) :
-	qs::DefaultDialog(Application::getApplication().getResourceHandle(), nId, nId)
+	qs::DefaultDialog(getResourceHandle(), nId, nId)
 {
 }
 
 qm::DefaultDialog::DefaultDialog(UINT nIdPortrait,
 								 UINT nIdLandscape) :
-	qs::DefaultDialog(Application::getApplication().getResourceHandle(),
-		nIdPortrait, nIdLandscape)
+	qs::DefaultDialog(getResourceHandle(), nIdPortrait, nIdLandscape)
 {
 }
 
@@ -90,14 +90,12 @@ INT_PTR qm::AboutDialog::dialogProc(UINT uMsg,
 LRESULT qm::AboutDialog::onInitDialog(HWND hwndFocus,
 									  LPARAM lParam)
 {
-	const Application& app = Application::getApplication();
-	
 #ifndef _WIN32_WCE
-	HICON hIcon = ::LoadIcon(app.getResourceHandle(), MAKEINTRESOURCE(IDI_MAINFRAME));
+	HICON hIcon = ::LoadIcon(getResourceHandle(), MAKEINTRESOURCE(IDI_MAINFRAME));
 	Static_SetIcon(getDlgItem(IDC_APPICON), hIcon);
 #endif
 	
-	setDlgItemText(IDC_VERSION, app.getVersion(L' ', false).get());
+	setDlgItemText(IDC_VERSION, Application::getApplication().getVersion(L' ', false).get());
 	
 	const WCHAR* pwszDescription =
 		L"RSA Data Security, Inc. MD5 Message-Digest Algorithm\r\n"
@@ -262,8 +260,7 @@ LRESULT qm::AttachmentDialog::onNotify(NMHDR* pnmhdr,
 
 LRESULT qm::AttachmentDialog::onAdd()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_ATTACHMENT));
+	wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_ATTACHMENT));
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT);
@@ -500,8 +497,8 @@ LRESULT qm::CustomFilterDialog::onOk()
 	wstring_ptr wstrCondition(getDlgItemText(IDC_CONDITION));
 	std::auto_ptr<Macro> pCondition(MacroParser().parse(wstrCondition.get()));
 	if (!pCondition.get()) {
-		messageBox(Application::getApplication().getResourceHandle(),
-			IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+		messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+			MB_OK | MB_ICONERROR, getHandle());
 		return 0;
 	}
 	wstrCondition_ = wstrCondition;
@@ -876,8 +873,7 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 	if (!bCanExportFlags_)
 		Window(getDlgItem(IDC_EXPORTFLAGS)).enableWindow(false);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrNone(loadString(hInst, IDS_MENU_NONE));
+	wstring_ptr wstrNone(loadString(getResourceHandle(), IDS_MENU_NONE));
 	W2T(wstrNone.get(), ptszNone);
 	ComboBox_AddString(getDlgItem(IDC_TEMPLATE), ptszNone);
 	
@@ -937,8 +933,7 @@ LRESULT qm::ExportDialog::onOk()
 
 LRESULT qm::ExportDialog::onBrowse()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_EXPORT));
+	wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_EXPORT));
 	
 	FileDialog dialog(false, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_OVERWRITEPROMPT);
@@ -1257,8 +1252,7 @@ LRESULT qm::ImportDialog::onOk()
 
 LRESULT qm::ImportDialog::onBrowse()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_IMPORT));
+	wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_IMPORT));
 	
 	FileDialog dialog(true, wstrFilter.get(), 0, 0, 0,
 		OFN_EXPLORER | OFN_HIDEREADONLY | OFN_LONGNAMES | OFN_ALLOWMULTISELECT);
@@ -2099,15 +2093,13 @@ void qm::ProgressDialog::setCancelable(bool bCancelable)
 
 void qm::ProgressDialog::setTitle(UINT nId)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrMessage(loadString(hInst, nId));
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
 	setWindowText(wstrMessage.get());
 }
 
 void qm::ProgressDialog::setMessage(UINT nId)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrMessage(loadString(hInst, nId));
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
 	setDlgItemText(IDC_MESSAGE, wstrMessage.get());
 }
 
@@ -2420,7 +2412,6 @@ LRESULT qm::ResourceDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	HWND hwnd = getDlgItem(IDC_RESOURCE);
 	
 	ListView_SetExtendedListViewStyle(hwnd, LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
@@ -2428,7 +2419,7 @@ LRESULT qm::ResourceDialog::onInitDialog(HWND hwndFocus,
 	RECT rect;
 	Window(hwnd).getClientRect(&rect);
 	int nWidth = rect.right - rect.left - ::GetSystemMetrics(SM_CXVSCROLL);
-	wstring_ptr wstrPath(loadString(hInst, IDS_RESOURCEPATH));
+	wstring_ptr wstrPath(loadString(getResourceHandle(), IDS_RESOURCEPATH));
 	W2T(wstrPath.get(), ptszPath);
 	LVCOLUMN column = {
 		LVCF_FMT | LVCF_TEXT | LVCF_WIDTH,
@@ -2907,8 +2898,6 @@ LRESULT qm::ViewsColumnDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	setDlgItemText(IDC_TITLE, pColumn_->getTitle());
 	
 	UINT nTypes[] = {
@@ -2924,7 +2913,7 @@ LRESULT qm::ViewsColumnDialog::onInitDialog(HWND hwndFocus,
 		IDS_COLUMNTYPE_OTHER
 	};
 	for (int n = 0; n < countof(nTypes); ++n) {
-		wstring_ptr wstrType(loadString(hInst, nTypes[n]));
+		wstring_ptr wstrType(loadString(getResourceHandle(), nTypes[n]));
 		W2T(wstrType.get(), ptszType);
 		ComboBox_AddString(getDlgItem(IDC_TYPE), ptszType);
 	}
@@ -2981,8 +2970,8 @@ LRESULT qm::ViewsColumnDialog::onOk()
 		wstring_ptr wstrMacro(getDlgItemText(IDC_MACRO));
 		pMacro = MacroParser().parse(wstrMacro.get());
 		if (!pMacro.get()) {
-			messageBox(Application::getApplication().getResourceHandle(),
-				IDS_ERROR_INVALIDMACRO, MB_OK | MB_ICONERROR, getHandle());
+			messageBox(getResourceHandle(), IDS_ERROR_INVALIDMACRO,
+				MB_OK | MB_ICONERROR, getHandle());
 			return 0;
 		}
 	}
@@ -3094,8 +3083,6 @@ LRESULT qm::ViewsDialog::onInitDialog(HWND hwndFocus,
 {
 	init(false);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
 	HWND hwndList = getDlgItem(IDC_COLUMNS);
 	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_FULLROWSELECT);
 	
@@ -3114,7 +3101,7 @@ LRESULT qm::ViewsDialog::onInitDialog(HWND hwndFocus,
 #endif
 	};
 	for (int n = 0; n < countof(columns); ++n) {
-		wstring_ptr wstrColumn(loadString(hInst, columns[n].nId_));
+		wstring_ptr wstrColumn(loadString(getResourceHandle(), columns[n].nId_));
 		W2T(wstrColumn.get(), ptszColumn);
 		
 		LVCOLUMN column = {
@@ -3301,7 +3288,6 @@ LRESULT qm::ViewsDialog::onColumnsItemChanged(NMHDR* pnmhdr,
 
 void qm::ViewsDialog::update()
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	HWND hwndList = getDlgItem(IDC_COLUMNS);
 	
 	DisableRedraw disable(hwndList);
@@ -3340,7 +3326,7 @@ void qm::ViewsDialog::update()
 		};
 		ListView_InsertItem(hwndList, &item);
 		
-		wstring_ptr wstrType(loadString(hInst, nTypes[pColumn->getType()]));
+		wstring_ptr wstrType(loadString(getResourceHandle(), nTypes[pColumn->getType()]));
 		W2T(wstrType.get(), ptszType);
 		ListView_SetItemText(hwndList, n, 1, const_cast<LPTSTR>(ptszType));
 		

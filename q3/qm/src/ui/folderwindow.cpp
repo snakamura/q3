@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmfilenames.h>
 #include <qmfolder.h>
 #include <qmfolderwindow.h>
@@ -35,6 +34,7 @@
 #include "uimanager.h"
 #include "uiutil.h"
 #include "../action/action.h"
+#include "../main/main.h"
 #include "../model/dataobject.h"
 #include "../sync/syncmanager.h"
 #include "../uimodel/foldermodel.h"
@@ -727,8 +727,8 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 					pThis_->getParentFrame(), nId, nId);
 				if (!MessageDataObject::pasteMessages(pDataObject, pAccountManager_,
 					pURIResolver_, pNormalFolder, flag, &callback, pUndoManager_))
-					messageBox(Application::getApplication().getResourceHandle(),
-						IDS_ERROR_COPYMESSAGES, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
+					messageBox(getResourceHandle(), IDS_ERROR_COPYMESSAGES,
+						MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				
 				dwEffect = bMove ? DROPEFFECT_MOVE : DROPEFFECT_COPY;
 			}
@@ -753,13 +753,13 @@ void qm::FolderWindowImpl::drop(const DropTargetDropEvent& event)
 					!pTarget->isFlag(Folder::FLAG_NOINFERIORS)))) {
 				if (pTarget && pTarget->isFlag(Folder::FLAG_TRASHBOX)) {
 					if (!FolderDeleteAction::deleteFolder(pFolderModel_, pFolder))
-						messageBox(Application::getApplication().getResourceHandle(),
-							IDS_ERROR_MOVEFOLDER, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
+						messageBox(getResourceHandle(), IDS_ERROR_MOVEFOLDER,
+							MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				}
 				else {
 					if (!pAccount->moveFolder(pFolder, pTarget, 0))
-						messageBox(Application::getApplication().getResourceHandle(),
-							IDS_ERROR_MOVEFOLDER, MB_OK | MB_ICONERROR, pThis_->getParentFrame());
+						messageBox(getResourceHandle(), IDS_ERROR_MOVEFOLDER,
+							MB_OK | MB_ICONERROR, pThis_->getParentFrame());
 				}
 				
 				dwEffect = DROPEFFECT_MOVE;

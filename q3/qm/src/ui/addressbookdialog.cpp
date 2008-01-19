@@ -7,14 +7,13 @@
 
 #pragma warning(disable:4786)
 
-#include <qmapplication.h>
-
 #include <tchar.h>
 
 #include "addressbookdialog.h"
 #include "actionid.h"
 #include "resourceinc.h"
 #include "uiutil.h"
+#include "../main/main.h"
 #include "../model/addressbook.h"
 
 using namespace qm;
@@ -548,7 +547,6 @@ LRESULT qm::SelectAddressDialog::onDestroy()
 LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	HWND hwndList = getDlgItem(IDC_ADDRESS);
 	
 	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_FULLROWSELECT);
@@ -562,7 +560,7 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 		{ IDS_ADDRESSBOOK_COLUMN_COMMENT,	L"CommentWidth"	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
-		wstring_ptr wstrName(loadString(hInst, columns[n].nId_));
+		wstring_ptr wstrName(loadString(getResourceHandle(), columns[n].nId_));
 		W2T(wstrName.get(), ptszName);
 		
 		int nWidth = pProfile_->getInt(L"AddressBook", columns[n].pwszKey_);
@@ -579,7 +577,7 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 	
 	HWND hwndSelected = getDlgItem(IDC_SELECTEDADDRESS);
 	
-	HIMAGELIST hImageList = ImageList_LoadBitmap(hInst,
+	HIMAGELIST hImageList = ImageList_LoadBitmap(getResourceHandle(),
 		MAKEINTRESOURCE(IDB_ADDRESSBOOK), 16, 0, RGB(255, 255, 255));
 	ListView_SetImageList(hwndSelected, hImageList, LVSIL_SMALL);
 	
@@ -975,8 +973,7 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 		MenuStack& s_;
 	} deleter(stackMenu);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrThisCategory(loadString(hInst, IDS_ADDRESSBOOK_THISCATEGORY));
+	wstring_ptr wstrThisCategory(loadString(getResourceHandle(), IDS_ADDRESSBOOK_THISCATEGORY));
 	W2T(wstrThisCategory.get(), ptszThisCategory);
 	
 	UINT nId = IDM_ADDRESSBOOK_CATEGORY;
@@ -1048,7 +1045,7 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 	
 	::AppendMenu(hmenu.get(), MF_SEPARATOR, -1, 0);
 	
-	wstring_ptr wstrAll(loadString(hInst, IDS_ADDRESSBOOK_ALLCATEGORY));
+	wstring_ptr wstrAll(loadString(getResourceHandle(), IDS_ADDRESSBOOK_ALLCATEGORY));
 	W2T(wstrAll.get(), ptszAll);
 	::AppendMenu(hmenu.get(), MF_STRING | (!wstrCategory_.get() ? MF_CHECKED : 0),
 		IDM_ADDRESSBOOK_ALLCATEGORY, ptszAll);
@@ -1063,9 +1060,8 @@ void qm::SelectAddressDialog::setCurrentCategory(const WCHAR* pwszCategory)
 	else
 		wstrCategory_.reset(0);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	wstring_ptr wstrTitle(loadString(hInst, IDS_ADDRESSBOOK_CATEGORY));
-	wstring_ptr wstrAll(loadString(hInst, IDS_ADDRESSBOOK_CATEGORYALL));
+	wstring_ptr wstrTitle(loadString(getResourceHandle(), IDS_ADDRESSBOOK_CATEGORY));
+	wstring_ptr wstrAll(loadString(getResourceHandle(), IDS_ADDRESSBOOK_CATEGORYALL));
 	
 	ConcatW c[] = {
 		{ wstrTitle.get(),												-1	},
@@ -1271,8 +1267,7 @@ LRESULT qm::SelectAddressDialog::SelectedAddressListWindow::onContextMenu(HWND h
 																		  const POINT& pt)
 {
 	POINT ptMenu = UIUtil::getListViewContextMenuPosition(getHandle(), pt);
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	AutoMenuHandle hmenu(::LoadMenu(hInst, MAKEINTRESOURCE(IDR_ADDRESSBOOK)));
+	AutoMenuHandle hmenu(::LoadMenu(getResourceHandle(), MAKEINTRESOURCE(IDR_ADDRESSBOOK)));
 	HMENU hmenuSub = ::GetSubMenu(hmenu.get(), 0);
 	UINT nFlags = TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD;
 #ifndef _WIN32_WCE

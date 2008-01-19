@@ -8,7 +8,6 @@
 #pragma warning(disable:4786)
 
 #include <qmaccount.h>
-#include <qmapplication.h>
 #include <qmdocument.h>
 #include <qmfolder.h>
 #include <qmmacro.h>
@@ -30,6 +29,7 @@
 #include "rule.h"
 #include "templatemanager.h"
 #include "undo.h"
+#include "../main/main.h"
 
 using namespace qm;
 using namespace qs;
@@ -955,8 +955,7 @@ unsigned int qm::NoneRuleAction::getFlags() const
 
 wstring_ptr qm::NoneRuleAction::getDescription() const
 {
-	return loadString(Application::getApplication().getResourceHandle(),
-		IDS_RULEACTION_NONE);
+	return loadString(getResourceHandle(), IDS_RULEACTION_NONE);
 }
 
 std::auto_ptr<RuleAction> qm::NoneRuleAction::clone() const
@@ -1124,7 +1123,7 @@ unsigned int qm::CopyRuleAction::getFlags() const
 
 wstring_ptr qm::CopyRuleAction::getDescription() const
 {
-	wstring_ptr wstrTemplate(loadString(Application::getApplication().getResourceHandle(),
+	wstring_ptr wstrTemplate(loadString(getResourceHandle(),
 		bMove_ ? IDS_RULEACTION_MOVE : IDS_RULEACTION_COPY));
 	StringBuffer<WSTRING> buf;
 	if (wstrAccount_.get()) {
@@ -1217,7 +1216,7 @@ bool qm::DeleteRuleAction::apply(RuleContext* pContext) const
 
 wstring_ptr qm::DeleteRuleAction::getDescription() const
 {
-	return loadString(Application::getApplication().getResourceHandle(),
+	return loadString(getResourceHandle(),
 		bDirect_ ? IDS_RULEACTION_DELETEDIRECT : IDS_RULEACTION_DELETE);
 }
 
@@ -1280,8 +1279,7 @@ bool qm::LabelRuleAction::apply(RuleContext* pContext) const
 
 wstring_ptr qm::LabelRuleAction::getDescription() const
 {
-	wstring_ptr wstrTemplate(loadString(Application::getApplication().getResourceHandle(),
-		IDS_RULEACTION_LABEL));
+	wstring_ptr wstrTemplate(loadString(getResourceHandle(), IDS_RULEACTION_LABEL));
 	const WCHAR* pwszType = L"=+-";
 	WCHAR szType[] = { pwszType[type_], L'\0' };
 	return MessageFormat::format(wstrTemplate.get(), wstrLabel_.get(), szType);
@@ -1329,8 +1327,7 @@ bool qm::DeleteCacheRuleAction::apply(RuleContext* pContext) const
 
 wstring_ptr qm::DeleteCacheRuleAction::getDescription() const
 {
-	return loadString(Application::getApplication().getResourceHandle(),
-		IDS_RULEACTION_DELETECACHE);
+	return loadString(getResourceHandle(), IDS_RULEACTION_DELETECACHE);
 }
 
 unsigned int qm::DeleteCacheRuleAction::getFlags() const
@@ -1393,8 +1390,7 @@ bool qm::ApplyRuleAction::apply(RuleContext* pContext) const
 
 wstring_ptr qm::ApplyRuleAction::getDescription() const
 {
-	wstring_ptr wstrTemplate(loadString(Application::getApplication().getResourceHandle(),
-		IDS_RULEACTION_APPLYMACRO));
+	wstring_ptr wstrTemplate(loadString(getResourceHandle(), IDS_RULEACTION_APPLYMACRO));
 	wstring_ptr wstrMacro(pMacro_->getString());
 	return MessageFormat::format(wstrTemplate.get(), wstrMacro.get());
 }

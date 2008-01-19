@@ -22,6 +22,7 @@
 #include <tchar.h>
 
 #include "attachmenthelper.h"
+#include "../main/main.h"
 #include "../model/messagecontext.h"
 #include "../model/messageenumerator.h"
 #include "../model/tempfilecleaner.h"
@@ -82,9 +83,7 @@ wstring_ptr DetachCallbackImpl::confirmOverwrite(const WCHAR* pwszPath)
 	if (pTempFileCleaner_ && !pTempFileCleaner_->isModified(pwszPath))
 		return allocWString(pwszPath);
 	
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
-	
-	wstring_ptr wstr(loadString(hInst, IDS_CONFIRM_OVERWRITE));
+	wstring_ptr wstr(loadString(getResourceHandle(), IDS_CONFIRM_OVERWRITE));
 	wstring_ptr wstrMessage(concat(wstr.get(), pwszPath));
 	
 	wstring_ptr wstrPath;
@@ -97,7 +96,7 @@ wstring_ptr DetachCallbackImpl::confirmOverwrite(const WCHAR* pwszPath)
 		break;
 	case IDNO:
 		{
-			wstring_ptr wstrFilter(loadString(hInst, IDS_FILTER_ATTACHMENT));
+			wstring_ptr wstrFilter(loadString(getResourceHandle(), IDS_FILTER_ATTACHMENT));
 			
 			const WCHAR* pwszDir = 0;
 			const WCHAR* pwszFileName = 0;
@@ -328,8 +327,7 @@ AttachmentParser::Result qm::AttachmentHelper::openFile(const Part* pPart,
 			wstring_ptr wstrExt(concat(L" ", tolower(p).get(), L" "));
 			wstring_ptr wstrExtensions(concat(L" ", pProfile_->getString(L"Global", L"WarnExtensions").get(), L" "));
 			if (wcsstr(wstrExtensions.get(), wstrExt.get())) {
-				int nMsg = messageBox(
-					Application::getApplication().getResourceHandle(),
+				int nMsg = messageBox(getResourceHandle(),
 					IDS_CONFIRM_EXECUTEATTACHMENT,
 					MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING, hwnd_, 0, 0);
 				if (nMsg != IDYES)

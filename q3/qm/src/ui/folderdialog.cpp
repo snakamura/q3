@@ -7,12 +7,12 @@
 
 #pragma warning(disable:4786)
 
-#include <qmapplication.h>
 #include <qmsearch.h>
 
 #include "folderdialog.h"
 #include "resourceinc.h"
 #include "uiutil.h"
+#include "../main/main.h"
 
 using namespace qm;
 using namespace qs;
@@ -156,22 +156,21 @@ LRESULT qm::FolderPropertyPage::onInitDialog(HWND hwndFocus,
 		
 		setDlgItemInt(IDC_ID, pFolder->getId());
 		
-		HINSTANCE hInst = Application::getApplication().getResourceHandle();
 		wstring_ptr wstrType;
 		switch (pFolder->getType()) {
 		case Folder::TYPE_NORMAL:
 			if (pFolder->isFlag(Folder::FLAG_LOCAL)) {
 				if (pFolder->isFlag(Folder::FLAG_SYNCABLE))
-					wstrType = loadString(hInst, IDS_SYNCABLELOCALFOLDER);
+					wstrType = loadString(getResourceHandle(), IDS_SYNCABLELOCALFOLDER);
 				else
-					wstrType = loadString(hInst, IDS_LOCALFOLDER);
+					wstrType = loadString(getResourceHandle(), IDS_LOCALFOLDER);
 			}
 			else {
-				wstrType = loadString(hInst, IDS_REMOTEFOLDER);
+				wstrType = loadString(getResourceHandle(), IDS_REMOTEFOLDER);
 			}
 			break;
 		case Folder::TYPE_QUERY:
-			wstrType = loadString(hInst, IDS_QUERYFOLDER);
+			wstrType = loadString(getResourceHandle(), IDS_QUERYFOLDER);
 			break;
 		default:
 			assert(false);
@@ -406,7 +405,6 @@ LRESULT qm::FolderParameterPage::onCommand(WORD nCode,
 LRESULT qm::FolderParameterPage::onInitDialog(HWND hwndFocus,
 											  LPARAM lParam)
 {
-	HINSTANCE hInst = Application::getApplication().getResourceHandle();
 	HWND hwndList = getDlgItem(IDC_PARAMETER);
 	
 	ListView_SetExtendedListViewStyle(hwndList, LVS_EX_FULLROWSELECT);
@@ -419,7 +417,7 @@ LRESULT qm::FolderParameterPage::onInitDialog(HWND hwndFocus,
 		{ IDS_PROPERTY_VALUE,	200	}
 	};
 	for (int n = 0; n < countof(columns); ++n) {
-		wstring_ptr wstrName(loadString(hInst, columns[n].nId_));
+		wstring_ptr wstrName(loadString(getResourceHandle(), columns[n].nId_));
 		W2T(wstrName.get(), ptszName);
 		
 		LVCOLUMN column = {
