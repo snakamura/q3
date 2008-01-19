@@ -523,6 +523,12 @@
 		<action name="FileClose">
 			<key name="escape"/>
 		</action>
+		<action name="ToolInsertMacro">
+			<key key="X" ctrl="true" alt="true"/>
+		</action>
+		<action name="ToolInvokeAction">
+			<key key="X" alt="true" shift="true"/>
+		</action>
 	</keymap>
 	<keymap name="EditWindow">
 		<action name="EditCopy">
