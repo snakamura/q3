@@ -411,8 +411,7 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 	pProfile_(pProfile),
 	pCurrentAccount_(pCurrentAccount),
 	panel_(panel),
-	pCurrentPanel_(0),
-	nEnd_(-1)
+	pCurrentPanel_(0)
 {
 	listPanel_.resize(MAX_PANEL);
 	
@@ -427,29 +426,6 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 qm::OptionDialog::~OptionDialog()
 {
 	std::for_each(listPanel_.begin(), listPanel_.end(), qs::deleter<OptionDialogPanel>());
-}
-
-int qm::OptionDialog::doModal(HWND hwndParent)
-{
-	ModalHandler* pModalHandler = InitThread::getInitThread().getModalHandler();
-	ModalHandlerInvoker invoker(pModalHandler, hwndParent);
-	
-	if (!create(hwndParent))
-		return -1;
-	Window(hwndParent).enableWindow(false);
-	showWindow();
-	
-	MSG msg;
-	while (nEnd_ == -1 && ::GetMessage(&msg, 0, 0, 0)) {
-		if (!processDialogMessage(msg)) {
-			::TranslateMessage(&msg);
-			::DispatchMessage(&msg);
-		}
-	}
-	Window(hwndParent).enableWindow(true);
-	destroyWindow();
-	
-	return nEnd_;
 }
 
 INT_PTR qm::OptionDialog::dialogProc(UINT uMsg,
@@ -470,6 +446,9 @@ LRESULT qm::OptionDialog::onCommand(WORD nCode,
 		HANDLE_COMMAND_ID_CODE(IDC_SELECTOR, CBN_SELCHANGE, onSelectorSelChange)
 	END_COMMAND_HANDLER()
 #endif
+	if (nCode == BN_CLICKED)
+		Window(pCurrentPanel_->getWindow()).postMessage(
+			WM_COMMAND, MAKEWPARAM(nId, nCode), 0);
 	return DefaultDialog::onCommand(nCode, nId);
 }
 
@@ -628,15 +607,7 @@ LRESULT qm::OptionDialog::onOk()
 	if (nFlags & OptionDialogContext::FLAG_LAYOUTEDITWINDOW)
 		pEditFrameWindowManager_->layout();
 	
-	nEnd_ = IDOK;
-	
-	return 0;
-}
-
-LRESULT qm::OptionDialog::onCancel()
-{
-	nEnd_ = IDCANCEL;
-	return 0;
+	return DefaultDialog::onOk();
 }
 
 LRESULT qm::OptionDialog::onNotify(NMHDR* pnmhdr,
@@ -864,252 +835,10 @@ void qm::OptionDialog::setCurrentPanel(Panel panel,
 		Window(pCurrentPanel_->getWindow()).showWindow(SW_HIDE);
 	panel_ = panel;
 	pCurrentPanel_ = listPanel_[panel_];
+	Window(pCurrentPanel_->getWindow()).setWindowPos(hwndSelector,
+		0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	Window(pCurrentPanel_->getWindow()).showWindow();
 	layout();
-}
-
-bool qm::OptionDialog::processDialogMessage(const MSG& msg)
-{
-	if (msg.message == WM_KEYDOWN) {
-		Window wndFocus(Window::getFocus());
-		int nCode = 0;
-		if (wndFocus.getHandle())
-			nCode = static_cast<int>(wndFocus.sendMessage(WM_GETDLGCODE));
-			
-		UINT nKey = static_cast<UINT>(msg.wParam);
-		switch (nKey) {
-		case VK_TAB:
-			if (!(nCode & DLGC_WANTTAB)) {
-				bool bShift = ::GetKeyState(VK_SHIFT) < 0;
-				processTab(bShift);
-				return true;
-			}
-			break;
-		case VK_RETURN:
-			if (!(nCode & DLGC_WANTALLKEYS)) {
-				DWORD dwDefId = 0;
-				if (pCurrentPanel_)
-					dwDefId = static_cast<DWORD>(Window(pCurrentPanel_->getWindow()).sendMessage(DM_GETDEFID));
-				if (HIWORD(dwDefId) == DC_HASDEFID && LOWORD(dwDefId) != IDOK && LOWORD(dwDefId) != IDCANCEL)
-					Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND, MAKEWPARAM(LOWORD(dwDefId), 0), 0);
-				else
-					postMessage(WM_COMMAND, MAKEWPARAM(IDOK, 0), 0);
-				return true;
-			}
-			break;
-		case VK_ESCAPE:
-			postMessage(WM_COMMAND, MAKEWPARAM(IDCANCEL, 0), 0);
-			return true;
-		case VK_LEFT:
-		case VK_RIGHT:
-		case VK_UP:
-		case VK_DOWN:
-			if (!(nCode & DLGC_WANTARROWS) && nCode & DLGC_BUTTON) {
-				processTab(nKey == VK_LEFT || nKey == VK_UP);
-				return true;
-			}
-			break;
-		}
-	}
-	else if (msg.message == WM_SYSKEYDOWN) {
-		UINT nKey = static_cast<UINT>(msg.wParam);
-		if ((('A' <= nKey && nKey <= 'Z') || ('0' <= nKey && nKey <= '9')) &&
-			::GetKeyState(VK_MENU) < 0) {
-			processMnemonic(static_cast<char>(nKey));
-			return true;
-		}
-	}
-	
-	return false;
-}
-
-void qm::OptionDialog::processTab(bool bShift)
-{
-	HWND hwnd = getFocus();
-	if (!hwnd)
-		return;
-	
-	UINT nId = Window(hwnd).getId();
-	if (nId == IDC_SELECTOR) {
-		if (bShift) {
-#ifndef _WIN32_WCE
-			hwnd = getDlgItem(IDCANCEL);
-#else
-			HWND hwndChild = Window(pCurrentPanel_->getWindow()).getWindow(GW_CHILD);
-			if (hwndChild)
-				hwndChild = Window(hwndChild).getWindow(GW_HWNDLAST);
-			while (hwndChild) {
-				if (isTabStop(hwndChild)) {
-					hwnd = hwndChild;
-					break;
-				}
-				hwndChild = Window(hwndChild).getWindow(GW_HWNDPREV);
-			}
-#endif
-		}
-		else {
-			HWND hwndChild = Window(pCurrentPanel_->getWindow()).getWindow(GW_CHILD);
-			while (hwndChild) {
-				if (isTabStop(hwndChild)) {
-					hwnd = hwndChild;
-					break;
-				}
-				hwndChild = Window(hwndChild).getWindow(GW_HWNDNEXT);
-			}
-		}
-	}
-#ifndef _WIN32_WCE
-	else if (nId == IDOK) {
-		if (bShift) {
-			HWND hwndChild = Window(pCurrentPanel_->getWindow()).getWindow(GW_CHILD);
-			if (hwndChild)
-				hwndChild = Window(hwndChild).getWindow(GW_HWNDLAST);
-			while (hwndChild) {
-				if (isTabStop(hwndChild)) {
-					hwnd = hwndChild;
-					break;
-				}
-				hwndChild = Window(hwndChild).getWindow(GW_HWNDPREV);
-			}
-		}
-		else {
-			hwnd = getDlgItem(IDCANCEL);
-		}
-	}
-	else if (nId == IDCANCEL) {
-		hwnd = getDlgItem(bShift ? IDOK : IDC_SELECTOR);
-	}
-#endif
-	else if (pCurrentPanel_ && getParentDialog(hwnd) == pCurrentPanel_->getWindow()) {
-		HWND hwndSibling = Window(getControl(hwnd)).getWindow(bShift ? GW_HWNDPREV : GW_HWNDNEXT);
-		while (hwndSibling) {
-			if (isTabStop(hwndSibling)) {
-				hwnd = hwndSibling;
-				break;
-			}
-			hwndSibling = Window(hwndSibling).getWindow(bShift ? GW_HWNDPREV : GW_HWNDNEXT);
-		}
-		if (!hwndSibling) {
-#ifndef _WIN32_WCE
-			hwnd = getDlgItem(bShift ? IDC_SELECTOR : IDOK);
-#else
-			hwnd = getDlgItem(IDC_SELECTOR);
-#endif
-		}
-	}
-	
-	setFocus(hwnd);
-}
-
-bool qm::OptionDialog::isTabStop(HWND hwnd) const
-{
-	int nStyle = Window(hwnd).getStyle();
-	return nStyle & WS_TABSTOP && nStyle & WS_VISIBLE && !(nStyle & WS_DISABLED);
-}
-
-void qm::OptionDialog::processMnemonic(char c)
-{
-	HWND hwnd = Window(pCurrentPanel_->getWindow()).getWindow(GW_CHILD);
-	while (hwnd) {
-		if (getMnemonic(hwnd) == c)
-			break;
-		hwnd = Window(hwnd).getWindow(GW_HWNDNEXT);
-	}
-	if (hwnd) {
-		if (Window(hwnd).sendMessage(WM_GETDLGCODE) & DLGC_STATIC)
-			hwnd = Window(hwnd).getWindow(GW_HWNDNEXT);
-		if (hwnd) {
-			int nCode = static_cast<int>(Window(hwnd).sendMessage(WM_GETDLGCODE));
-			if (nCode & DLGC_DEFPUSHBUTTON || nCode & DLGC_UNDEFPUSHBUTTON)
-				Window(pCurrentPanel_->getWindow()).postMessage(WM_COMMAND,
-					MAKEWPARAM(Window(hwnd).getId(), BN_CLICKED),
-					reinterpret_cast<LPARAM>(hwnd));
-			else if (nCode & DLGC_BUTTON)
-				Window(hwnd).sendMessage(BM_CLICK);
-			else
-				setFocus(hwnd);
-		}
-	}
-}
-
-void qm::OptionDialog::setFocus(HWND hwnd)
-{
-	Window wnd(hwnd);
-	
-	int nCode = static_cast<int>(wnd.sendMessage(WM_GETDLGCODE));
-	if (nCode & DLGC_DEFPUSHBUTTON || nCode & DLGC_UNDEFPUSHBUTTON) {
-		Window parent(wnd.getParent());
-		parent.sendMessage(DM_SETDEFID, wnd.getId());
-		
-		if (parent.getHandle() == getHandle())
-			clearDefaultButton(pCurrentPanel_->getWindow());
-		else
-			clearDefaultButton(getHandle());
-	}
-	else {
-		sendMessage(DM_SETDEFID, IDOK);
-		clearDefaultButton(pCurrentPanel_->getWindow());
-	}
-	
-	wnd.setFocus();
-	
-	if (nCode & DLGC_HASSETSEL)
-		wnd.sendMessage(EM_SETSEL, 0, -1);
-}
-
-WCHAR qm::OptionDialog::getMnemonic(HWND hwnd)
-{
-	wstring_ptr wstrText(Window(hwnd).getWindowText());
-	const WCHAR* p = wstrText.get();
-	while (true) {
-		p = wcschr(p, L'&');
-		if (!p)
-			return L'\0';
-		if (*(p + 1) != L'&')
-			return getMnemonic(*(p + 1));
-		++p;
-	}
-	return L'\0';
-}
-
-WCHAR qm::OptionDialog::getMnemonic(WCHAR c)
-{
-	return (L'a' <= c && c <= L'z') ? c - L'a' + L'A' : c;
-}
-
-void qm::OptionDialog::clearDefaultButton(HWND hwnd)
-{
-	Window wnd(hwnd);
-	DWORD dwDefId = static_cast<DWORD>(wnd.sendMessage(DM_GETDEFID));
-	if (HIWORD(dwDefId) == DC_HASDEFID) {
-		wnd.sendDlgItemMessage(LOWORD(dwDefId), BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
-		wnd.sendMessage(DM_SETDEFID, IDOK);
-	}
-}
-
-HWND qm::OptionDialog::getControl(HWND hwnd)
-{
-	HWND hwndParent = ::GetParent(hwnd);
-	while (hwndParent) {
-		wstring_ptr wstrClass = Window(hwndParent).getClassName();
-		if (wcscmp(wstrClass.get(), L"#32770") == 0)
-			return hwnd;
-		hwnd = hwndParent;
-		hwndParent = ::GetParent(hwndParent);
-	}
-	return 0;
-}
-
-HWND qm::OptionDialog::getParentDialog(HWND hwnd)
-{
-	HWND hwndParent = ::GetParent(hwnd);
-	while (hwndParent) {
-		wstring_ptr wstrClass = Window(hwndParent).getClassName();
-		if (wcscmp(wstrClass.get(), L"#32770") == 0)
-			return hwndParent;
-		hwndParent = ::GetParent(hwndParent);
-	}
-	return 0;
 }
 
 

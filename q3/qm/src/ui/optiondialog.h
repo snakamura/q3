@@ -265,9 +265,6 @@ public:
 	~OptionDialog();
 
 public:
-	int doModal(HWND hwndParent);
-
-public:
 	virtual INT_PTR dialogProc(UINT uMsg,
 							   WPARAM wParam,
 							   LPARAM lParam);
@@ -283,7 +280,6 @@ protected:
 
 protected:
 	virtual LRESULT onOk();
-	virtual LRESULT onCancel();
 
 public:
 	virtual LRESULT onNotify(NMHDR* pnmhdr,
@@ -306,20 +302,6 @@ private:
 	void layout();
 	void setCurrentPanel(Panel panel,
 						 bool bForce);
-
-private:
-	bool processDialogMessage(const MSG& msg);
-	void processTab(bool bShift);
-	bool isTabStop(HWND hwnd) const;
-	void processMnemonic(char c);
-	void setFocus(HWND hwnd);
-
-private:
-	static WCHAR getMnemonic(HWND hwnd);
-	static WCHAR getMnemonic(WCHAR c);
-	static void clearDefaultButton(HWND hwnd);
-	static HWND getControl(HWND hwnd);
-	static HWND getParentDialog(HWND hwnd);
 
 private:
 	OptionDialog(const OptionDialog&);
@@ -355,7 +337,6 @@ private:
 	Panel panel_;
 	PanelList listPanel_;
 	OptionDialogPanel* pCurrentPanel_;
-	int nEnd_;
 };
 
 
