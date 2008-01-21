@@ -3474,7 +3474,6 @@ void qs::TextWindow::getWindowClass(WNDCLASS* pwc)
 #if !defined _WIN32_WCE || _WIN32_WCE >= 0x211
 	pwc->hCursor = ::LoadCursor(0, IDC_IBEAM);
 #endif // _WIN32_WCE
-	pImpl_->hCursorNormal_ = pwc->hCursor;
 }
 
 bool qs::TextWindow::preCreateWindow(CREATESTRUCT* pCreateStruct)
@@ -3570,6 +3569,10 @@ LRESULT qs::TextWindow::onCreate(CREATESTRUCT* pCreateStruct)
 #ifndef _WIN32_WCE
 	pImpl_->pTheme_.reset(new Theme(getHandle(), L"Edit"));
 #endif
+	
+	WNDCLASS wc;
+	if (::GetClassInfo(pCreateStruct->hInstance, pCreateStruct->lpszClass, &wc))
+		pImpl_->hCursorNormal_ = wc.hCursor;
 	
 	pImpl_->pRuler_ = new TextWindowRuler(pImpl_);
 	if (!pImpl_->pRuler_->create(L"QsTextWindowRuler",
