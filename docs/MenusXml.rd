@@ -119,20 +119,22 @@ param‘®«‚Éw’è‚µ‚½ƒ}ƒNƒ‚ğ•]‰¿‚µ‚½Œ‹‰Ê‚ÍˆÈ‰º‚Ì‚æ‚¤‚ÈƒtƒH[ƒ}ƒbƒg‚É‚È‚Á‚Ä‚¢‚é•K—
 
 ‚±‚Ì—á‚Å‚Íparam‚Ìƒ}ƒNƒ‚ªí‚É“¯‚¶’l‚ğ•Ô‚·‚Ì‚Å“®“I‚É‚·‚éˆÓ–¡‚ª‚ ‚è‚Ü‚¹‚ñ‚ªAó‹µ‚É‰‚¶‚Ä•Ô‚·•¶š—ñ‚ª•Ô‚·•¶š—ñ‚ğ•Ï‚¦‚é‚æ‚¤‚Èƒ}ƒNƒ‚ğw’è‚·‚é‚±‚Æ‚Å“®“I‚Éƒƒjƒ…[‚ğ¶¬‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B
 
-‚±‚ê‚É‰Á‚¦‚ÄAˆÈ‰º‚ÌƒAƒNƒVƒ‡ƒ“‚ğdynamic‘®«‚Éw’è‚µAparam‘®«‚ğÈ—ª‚·‚é‚Æà–¾‚É‚ ‚é‚æ‚¤‚Èƒƒjƒ…[‚ª“®“I‚É¶¬‚³‚ê‚Ü‚·B
+‚±‚ê‚É‰Á‚¦‚ÄAˆÈ‰º‚ÌƒAƒNƒVƒ‡ƒ“‚ğdynamic‘®«‚Éw’è‚µparam‘®«‚ğÈ—ª‚·‚é‚ÆAˆÈ‰º‚Ìà–¾‚É‚ ‚é‚æ‚¤‚Èƒƒjƒ…[‚ª“®“I‚É¶¬‚³‚ê‚Ü‚·B
 
 :AddressCreateMessage
   ‘I‘ğ‚³‚ê‚Ä‚¢‚éƒAƒhƒŒƒX’ ‚ÌƒGƒ“ƒgƒŠ‚É“o˜^‚³‚ê‚Ä‚¢‚éƒAƒhƒŒƒX‚ğƒŠƒXƒg‚µ‚Ü‚·
 :MessageCreate
-  ƒtƒ@ƒCƒ‹–¼‚ªcreate_‚©‚çn‚Ü‚éì¬—pƒeƒ“ƒvƒŒ[ƒg‚ğƒŠƒXƒg‚µ‚Ü‚·
+  ƒtƒ@ƒCƒ‹–¼‚ªcreate_‚©‚çn‚Ü‚é((<ì¬—pƒeƒ“ƒvƒŒ[ƒg|URL:CreateTemplate.html>))‚ğƒŠƒXƒg‚µ‚Ü‚·
 :MessageCreateExternal
-  ƒtƒ@ƒCƒ‹–¼‚ªcreate_‚©‚çn‚Ü‚éì¬—pƒeƒ“ƒvƒŒ[ƒg‚ğƒŠƒXƒg‚µ‚Ü‚·
+  ƒtƒ@ƒCƒ‹–¼‚ªcreate_‚©‚çn‚Ü‚é((<ì¬—pƒeƒ“ƒvƒŒ[ƒg|URL:CreateTemplate.html>))‚ğƒŠƒXƒg‚µ‚Ü‚·
 :MessageMove
   Œ»İ‚ÌƒAƒJƒEƒ“ƒg‚Ì‚·‚×‚Ä‚ÌƒtƒHƒ‹ƒ_‚ğŠK‘w“I‚ÉƒŠƒXƒg‚µ‚Ü‚·
 :MessageOpenAttachment
   Œ»İ‚ÌƒƒbƒZ[ƒW‚Ì“Y•tƒtƒ@ƒCƒ‹‚ğƒŠƒXƒg‚µ‚Ü‚·
 :MessageOpenRecent
   V’…ƒƒbƒZ[ƒW‚ğƒŠƒXƒg‚µ‚Ü‚·
+:ToolApplyTemplate
+  ƒtƒ@ƒCƒ‹–¼‚ªedit_‚©‚çn‚Ü‚é((<•ÒW—pƒeƒ“ƒvƒŒ[ƒg|URL:EditTemplate.html>))‚ğƒŠƒXƒg‚µ‚Ü‚·
 :ToolEncoding
   ƒGƒ“ƒR[ƒfƒBƒ“ƒO‚ğƒŠƒXƒg‚µ‚Ü‚·
 :ToolGoround
@@ -152,7 +154,7 @@ param‘®«‚Éw’è‚µ‚½ƒ}ƒNƒ‚ğ•]‰¿‚µ‚½Œ‹‰Ê‚ÍˆÈ‰º‚Ì‚æ‚¤‚ÈƒtƒH[ƒ}ƒbƒg‚É‚È‚Á‚Ä‚¢‚é•K—
 :ViewSort
   ƒŠƒXƒgƒrƒ…[‚ÌƒJƒ‰ƒ€‚ğƒŠƒXƒg‚µ‚Ü‚·
 :ViewTemplate
-  ƒtƒ@ƒCƒ‹–¼‚ªview_‚©‚çn‚Ü‚é•\¦—pƒeƒ“ƒvƒŒ[ƒg‚ğƒŠƒXƒg‚µ‚Ü‚·
+  ƒtƒ@ƒCƒ‹–¼‚ªview_‚©‚çn‚Ü‚é((<•\¦—pƒeƒ“ƒvƒŒ[ƒg|URL:ViewTemplate.html>))‚ğƒŠƒXƒg‚µ‚Ü‚·
 
 
 ===separatorƒGƒŒƒƒ“ƒg
