@@ -431,6 +431,9 @@ void qm::EditFrameWindowImpl::initMenuCreators()
 	
 	ADD_MENUCREATOR1(InsertTextMenuCreator,
 		pDocument_->getFixedFormTextManager());
+	ADD_MENUCREATOR2(EditTemplateMenuCreator,
+		pDocument_->getTemplateManager(),
+		this);
 	ADD_MENUCREATOR2(EncodingMenuCreator,
 		pProfile_,
 		false);

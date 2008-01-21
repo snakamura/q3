@@ -591,10 +591,10 @@ private:
 	TemplateMenuCreatorImpl& operator=(const TemplateMenuCreatorImpl&);
 };
 
-#define DECLARE_TEMPLATEMENUCREATOR(className, name, prefix, baseId, max) \
+#define DECLARE_TEMPLATEMENUCREATOR(className, name, prefix, id) \
 	extern const WCHAR className##_name[]; \
 	extern const WCHAR className##_prefix[]; \
-	typedef TemplateMenuCreatorImpl<className##_name, className##_prefix, baseId, max> className##TemplateMenuCreator
+	typedef TemplateMenuCreatorImpl<className##_name, className##_prefix, IDM_##id, MAX_##id> className##TemplateMenuCreator
 
 #define IMPLEMENT_TEMPLATEMENUCREATOR(className, name, prefix) \
 	const WCHAR qm::className##_name[] = name; \
@@ -603,18 +603,19 @@ private:
 DECLARE_TEMPLATEMENUCREATOR(Create,
 	L"MessageCreate",
 	L"create",
-	IDM_MESSAGE_CREATE,
-	MAX_MESSAGE_CREATE);
+	MESSAGE_CREATE);
 DECLARE_TEMPLATEMENUCREATOR(CreateExternal,
 	L"MessageCreateExternal",
 	L"create",
-	IDM_MESSAGE_CREATEEXTERNAL,
-	MAX_MESSAGE_CREATEEXTERNAL);
+	MESSAGE_CREATEEXTERNAL);
 DECLARE_TEMPLATEMENUCREATOR(View,
 	L"ViewTemplate",
 	L"view",
-	IDM_VIEW_TEMPLATE,
-	MAX_VIEW_TEMPLATE);
+	VIEW_TEMPLATE);
+DECLARE_TEMPLATEMENUCREATOR(Edit,
+	L"ToolApplyTemplate",
+	L"edit",
+	TOOL_APPLYTEMPLATE);
 
 
 /****************************************************************************

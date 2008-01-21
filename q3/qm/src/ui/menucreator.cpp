@@ -1029,6 +1029,9 @@ IMPLEMENT_TEMPLATEMENUCREATOR(CreateExternal,
 IMPLEMENT_TEMPLATEMENUCREATOR(View,
 	L"ViewTemplate",
 	L"view");
+IMPLEMENT_TEMPLATEMENUCREATOR(Edit,
+	L"ToolApplyTemplate",
+	L"edit");
 
 
 /****************************************************************************
