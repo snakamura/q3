@@ -592,14 +592,12 @@ void qm::MessageFrameWindowImpl::initMenuCreators()
 	ADD_MENUCREATOR2(ViewTemplateMenuCreator,
 		pDocument_->getTemplateManager(),
 		this);
-	ADD_MENUCREATOR3(CreateTemplateMenuCreator,
+	ADD_MENUCREATOR2(CreateTemplateMenuCreator,
 		pDocument_->getTemplateManager(),
-		this,
-		false);
-	ADD_MENUCREATOR3(CreateTemplateMenuCreator,
+		this);
+	ADD_MENUCREATOR2(CreateExternalTemplateMenuCreator,
 		pDocument_->getTemplateManager(),
-		this,
-		true);
+		this);
 	ADD_MENUCREATOR2(EncodingMenuCreator,
 		pProfile_,
 		true);

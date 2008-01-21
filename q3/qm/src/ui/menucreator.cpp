@@ -1020,92 +1020,15 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 	return nIndex;
 }
 
-
-/****************************************************************************
- *
- * DefaultTemplateMenuCreator
- *
- */
-
-qm::DefaultTemplateMenuCreator::DefaultTemplateMenuCreator(const TemplateManager* pTemplateManager,
-														   AccountSelectionModel* pAccountSelectionModel,
-														   ActionParamMap* pActionParamMap,
-														   const WCHAR* pwszName,
-														   const WCHAR* pwszPrefix,
-														   UINT nBaseId,
-														   unsigned int nMax) :
-	TemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap),
-	pwszName_(pwszName),
-	pwszPrefix_(pwszPrefix),
-	nBaseId_(nBaseId),
-	nMax_(nMax)
-{
-}
-
-qm::DefaultTemplateMenuCreator::~DefaultTemplateMenuCreator()
-{
-}
-
-const WCHAR* qm::DefaultTemplateMenuCreator::getName() const
-{
-	return pwszName_;
-}
-
-const WCHAR* qm::DefaultTemplateMenuCreator::getPrefix() const
-{
-	return pwszPrefix_;
-}
-
-UINT qm::DefaultTemplateMenuCreator::getBaseId() const
-{
-	return nBaseId_;
-}
-
-unsigned int qm::DefaultTemplateMenuCreator::getMax() const
-{
-	return nMax_;
-}
-
-
-/****************************************************************************
- *
- * CreateTemplateMenuCreator
- *
- */
-
-qm::CreateTemplateMenuCreator::CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
-														 AccountSelectionModel* pAccountSelectionModel,
-														 bool bExternalEditor,
-														 ActionParamMap* pActionParamMap) :
-	DefaultTemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap,
-		!bExternalEditor ? L"MessageCreate" : L"MessageCreateExternal", L"create",
-		!bExternalEditor ? IDM_MESSAGE_CREATE : IDM_MESSAGE_CREATEEXTERNAL,
-		!bExternalEditor ? MAX_MESSAGE_CREATE : MAX_MESSAGE_CREATEEXTERNAL)
-{
-}
-
-qm::CreateTemplateMenuCreator::~CreateTemplateMenuCreator()
-{
-}
-
-
-/****************************************************************************
- *
- * ViewTemplateMenuCreator
- *
- */
-
-qm::ViewTemplateMenuCreator::ViewTemplateMenuCreator(const TemplateManager* pTemplateManager,
-													 AccountSelectionModel* pAccountSelectionModel,
-													 ActionParamMap* pActionParamMap) :
-	DefaultTemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap,
-		L"ViewTemplate", L"view", IDM_VIEW_TEMPLATE, MAX_VIEW_TEMPLATE)
-{
-}
-
-qm::ViewTemplateMenuCreator::~ViewTemplateMenuCreator()
-{
-}
+IMPLEMENT_TEMPLATEMENUCREATOR(Create,
+	L"MessageCreate",
+	L"create");
+IMPLEMENT_TEMPLATEMENUCREATOR(CreateExternal,
+	L"MessageCreateExternal",
+	L"create");
+IMPLEMENT_TEMPLATEMENUCREATOR(View,
+	L"ViewTemplate",
+	L"view");
 
 
 /****************************************************************************

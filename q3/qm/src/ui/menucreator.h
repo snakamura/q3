@@ -40,10 +40,7 @@ class MenuCreator;
 	class SortMenuCreator;
 	class SubAccountMenuCreator;
 	class TemplateMenuCreator;
-		class DefaultTemplateMenuCreator;
-			class ApplyTemplateMenuCreator;
-			class CreateTemplateMenuCreator;
-			class ViewTemplateMenuCreator;
+		template<const WCHAR* pwszName, const WCHAR* pwszPrefix, UINT nBaseId, unsigned int nMax> class TemplateMenuCreatorImpl;
 class MacroMenuCreator;
 class MacroDynamicMenuItem;
 class MacroDynamicMenuMap;
@@ -568,21 +565,18 @@ private:
 
 /****************************************************************************
  *
- * DefaultTemplateMenuCreator
+ * TemplateMenuCreatorImpl
  *
  */
 
-class DefaultTemplateMenuCreator : public TemplateMenuCreator
+template<const WCHAR* pwszName, const WCHAR* pwszPrefix, UINT nBaseId, unsigned int nMax>
+class TemplateMenuCreatorImpl : public TemplateMenuCreator
 {
 public:
-	DefaultTemplateMenuCreator(const TemplateManager* pTemplateManager,
-							   AccountSelectionModel* pAccountSelectionModel,
-							   qs::ActionParamMap* pActionParamMap,
-							   const WCHAR* pwszName,
-							   const WCHAR* pwszPrefix,
-							   UINT nBaseId,
-							   unsigned int nMax);
-	~DefaultTemplateMenuCreator();
+	TemplateMenuCreatorImpl(const TemplateManager* pTemplateManager,
+							AccountSelectionModel* pAccountSelectionModel,
+							qs::ActionParamMap* pActionParamMap);
+	~TemplateMenuCreatorImpl();
 
 public:
 	virtual const WCHAR* getName() const;
@@ -593,56 +587,34 @@ protected:
 	virtual unsigned int getMax() const;
 
 private:
-	DefaultTemplateMenuCreator(const DefaultTemplateMenuCreator&);
-	DefaultTemplateMenuCreator& operator=(const DefaultTemplateMenuCreator&);
-
-private:
-	const WCHAR* pwszName_;
-	const WCHAR* pwszPrefix_;
-	UINT nBaseId_;
-	unsigned int nMax_;
+	TemplateMenuCreatorImpl(const TemplateMenuCreatorImpl&);
+	TemplateMenuCreatorImpl& operator=(const TemplateMenuCreatorImpl&);
 };
 
+#define DECLARE_TEMPLATEMENUCREATOR(className, name, prefix, baseId, max) \
+	extern const WCHAR className##_name[]; \
+	extern const WCHAR className##_prefix[]; \
+	typedef TemplateMenuCreatorImpl<className##_name, className##_prefix, baseId, max> className##TemplateMenuCreator
 
-/****************************************************************************
- *
- * CreateTemplateMenuCreator
- *
- */
+#define IMPLEMENT_TEMPLATEMENUCREATOR(className, name, prefix) \
+	const WCHAR qm::className##_name[] = name; \
+	const WCHAR qm::className##_prefix[] = prefix
 
-class CreateTemplateMenuCreator : public DefaultTemplateMenuCreator
-{
-public:
-	CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
-							  AccountSelectionModel* pAccountSelectionModel,
-							  bool bExternalEditor,
-							  qs::ActionParamMap* pActionParamMap);
-	~CreateTemplateMenuCreator();
-
-private:
-	CreateTemplateMenuCreator(const CreateTemplateMenuCreator&);
-	CreateTemplateMenuCreator& operator=(const CreateTemplateMenuCreator&);
-};
-
-
-/****************************************************************************
- *
- * ViewTemplateMenuCreator
- *
- */
-
-class ViewTemplateMenuCreator : public DefaultTemplateMenuCreator
-{
-public:
-	ViewTemplateMenuCreator(const TemplateManager* pTemplateManager,
-							AccountSelectionModel* pAccountSelectionModel,
-							qs::ActionParamMap* pActionParamMap);
-	~ViewTemplateMenuCreator();
-
-private:
-	ViewTemplateMenuCreator(const ViewTemplateMenuCreator&);
-	ViewTemplateMenuCreator& operator=(const ViewTemplateMenuCreator&);
-};
+DECLARE_TEMPLATEMENUCREATOR(Create,
+	L"MessageCreate",
+	L"create",
+	IDM_MESSAGE_CREATE,
+	MAX_MESSAGE_CREATE);
+DECLARE_TEMPLATEMENUCREATOR(CreateExternal,
+	L"MessageCreateExternal",
+	L"create",
+	IDM_MESSAGE_CREATEEXTERNAL,
+	MAX_MESSAGE_CREATEEXTERNAL);
+DECLARE_TEMPLATEMENUCREATOR(View,
+	L"ViewTemplate",
+	L"view",
+	IDM_VIEW_TEMPLATE,
+	MAX_VIEW_TEMPLATE);
 
 
 /****************************************************************************
@@ -820,5 +792,7 @@ public:
 };
 
 }
+
+#include "menucreator.inl"
 
 #endif // __MENUCREATOR_H__
