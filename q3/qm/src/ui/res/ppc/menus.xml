@@ -445,6 +445,9 @@
 					<menuitem text="Edit..." action="ConfigTexts"/>
 				</popupmenu>
 				<menuitem text="Insert Signature" action="ToolInsertSignature"/>
+				<popupmenu text="Template">
+					<menuitem dynamic="ToolApplyTemplate"/>
+				</popupmenu>
 				<popupmenu text="Encoding">
 					<menuitem text="Default" action="ToolEncoding" param=""/>
 					<separator/>

@@ -376,6 +376,9 @@
 				<menuitem text="&amp;Edit..." action="ConfigTexts"/>
 			</popupmenu>
 			<menuitem text="Insert Si&amp;gnature" action="ToolInsertSignature"/>
+			<popupmenu text="&amp;Template">
+				<menuitem dynamic="ToolApplyTemplate"/>
+			</popupmenu>
 			<popupmenu text="&amp;Encoding">
 				<menuitem text="&amp;Default" action="ToolEncoding" param=""/>
 				<separator/>

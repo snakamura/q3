@@ -445,6 +445,9 @@
 					<menuitem text="編集..." action="ConfigTexts"/>
 				</popupmenu>
 				<menuitem text="署名を挿入" action="ToolInsertSignature"/>
+				<popupmenu text="テンプレート">
+					<menuitem dynamic="ToolApplyTemplate"/>
+				</popupmenu>
 				<popupmenu text="エンコーディング">
 					<menuitem text="デフォルト" action="ToolEncoding" param=""/>
 					<separator/>
