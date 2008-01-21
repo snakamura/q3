@@ -40,8 +40,10 @@ class MenuCreator;
 	class SortMenuCreator;
 	class SubAccountMenuCreator;
 	class TemplateMenuCreator;
-		class CreateTemplateMenuCreator;
-		class ViewTemplateMenuCreator;
+		class DefaultTemplateMenuCreator;
+			class ApplyTemplateMenuCreator;
+			class CreateTemplateMenuCreator;
+			class ViewTemplateMenuCreator;
 class MacroMenuCreator;
 class MacroDynamicMenuItem;
 class MacroDynamicMenuMap;
@@ -566,18 +568,21 @@ private:
 
 /****************************************************************************
  *
- * CreateTemplateMenuCreator
+ * DefaultTemplateMenuCreator
  *
  */
 
-class CreateTemplateMenuCreator : public TemplateMenuCreator
+class DefaultTemplateMenuCreator : public TemplateMenuCreator
 {
 public:
-	CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
-							  AccountSelectionModel* pAccountSelectionModel,
-							  bool bExternalEditor,
-							  qs::ActionParamMap* pActionParamMap);
-	~CreateTemplateMenuCreator();
+	DefaultTemplateMenuCreator(const TemplateManager* pTemplateManager,
+							   AccountSelectionModel* pAccountSelectionModel,
+							   qs::ActionParamMap* pActionParamMap,
+							   const WCHAR* pwszName,
+							   const WCHAR* pwszPrefix,
+							   UINT nBaseId,
+							   unsigned int nMax);
+	~DefaultTemplateMenuCreator();
 
 public:
 	virtual const WCHAR* getName() const;
@@ -588,11 +593,35 @@ protected:
 	virtual unsigned int getMax() const;
 
 private:
-	CreateTemplateMenuCreator(const CreateTemplateMenuCreator&);
-	CreateTemplateMenuCreator& operator=(const CreateTemplateMenuCreator&);
+	DefaultTemplateMenuCreator(const DefaultTemplateMenuCreator&);
+	DefaultTemplateMenuCreator& operator=(const DefaultTemplateMenuCreator&);
 
 private:
-	bool bExternalEditor_;
+	const WCHAR* pwszName_;
+	const WCHAR* pwszPrefix_;
+	UINT nBaseId_;
+	unsigned int nMax_;
+};
+
+
+/****************************************************************************
+ *
+ * CreateTemplateMenuCreator
+ *
+ */
+
+class CreateTemplateMenuCreator : public DefaultTemplateMenuCreator
+{
+public:
+	CreateTemplateMenuCreator(const TemplateManager* pTemplateManager,
+							  AccountSelectionModel* pAccountSelectionModel,
+							  bool bExternalEditor,
+							  qs::ActionParamMap* pActionParamMap);
+	~CreateTemplateMenuCreator();
+
+private:
+	CreateTemplateMenuCreator(const CreateTemplateMenuCreator&);
+	CreateTemplateMenuCreator& operator=(const CreateTemplateMenuCreator&);
 };
 
 
@@ -602,21 +631,13 @@ private:
  *
  */
 
-class ViewTemplateMenuCreator : public TemplateMenuCreator
+class ViewTemplateMenuCreator : public DefaultTemplateMenuCreator
 {
 public:
 	ViewTemplateMenuCreator(const TemplateManager* pTemplateManager,
 							AccountSelectionModel* pAccountSelectionModel,
 							qs::ActionParamMap* pActionParamMap);
 	~ViewTemplateMenuCreator();
-
-public:
-	virtual const WCHAR* getName() const;
-
-protected:
-	virtual const WCHAR* getPrefix() const;
-	virtual UINT getBaseId() const;
-	virtual unsigned int getMax() const;
 
 private:
 	ViewTemplateMenuCreator(const ViewTemplateMenuCreator&);

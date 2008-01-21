@@ -1023,6 +1023,52 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 
 /****************************************************************************
  *
+ * DefaultTemplateMenuCreator
+ *
+ */
+
+qm::DefaultTemplateMenuCreator::DefaultTemplateMenuCreator(const TemplateManager* pTemplateManager,
+														   AccountSelectionModel* pAccountSelectionModel,
+														   ActionParamMap* pActionParamMap,
+														   const WCHAR* pwszName,
+														   const WCHAR* pwszPrefix,
+														   UINT nBaseId,
+														   unsigned int nMax) :
+	TemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap),
+	pwszName_(pwszName),
+	pwszPrefix_(pwszPrefix),
+	nBaseId_(nBaseId),
+	nMax_(nMax)
+{
+}
+
+qm::DefaultTemplateMenuCreator::~DefaultTemplateMenuCreator()
+{
+}
+
+const WCHAR* qm::DefaultTemplateMenuCreator::getName() const
+{
+	return pwszName_;
+}
+
+const WCHAR* qm::DefaultTemplateMenuCreator::getPrefix() const
+{
+	return pwszPrefix_;
+}
+
+UINT qm::DefaultTemplateMenuCreator::getBaseId() const
+{
+	return nBaseId_;
+}
+
+unsigned int qm::DefaultTemplateMenuCreator::getMax() const
+{
+	return nMax_;
+}
+
+
+/****************************************************************************
+ *
  * CreateTemplateMenuCreator
  *
  */
@@ -1031,33 +1077,15 @@ qm::CreateTemplateMenuCreator::CreateTemplateMenuCreator(const TemplateManager* 
 														 AccountSelectionModel* pAccountSelectionModel,
 														 bool bExternalEditor,
 														 ActionParamMap* pActionParamMap) :
-	TemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap),
-	bExternalEditor_(bExternalEditor)
+	DefaultTemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap,
+		!bExternalEditor ? L"MessageCreate" : L"MessageCreateExternal", L"create",
+		!bExternalEditor ? IDM_MESSAGE_CREATE : IDM_MESSAGE_CREATEEXTERNAL,
+		!bExternalEditor ? MAX_MESSAGE_CREATE : MAX_MESSAGE_CREATEEXTERNAL)
 {
 }
 
 qm::CreateTemplateMenuCreator::~CreateTemplateMenuCreator()
 {
-}
-
-const WCHAR* qm::CreateTemplateMenuCreator::getName() const
-{
-	return !bExternalEditor_ ? L"MessageCreate" : L"MessageCreateExternal";
-}
-
-const WCHAR* qm::CreateTemplateMenuCreator::getPrefix() const
-{
-	return L"create";
-}
-
-UINT qm::CreateTemplateMenuCreator::getBaseId() const
-{
-	return !bExternalEditor_ ? IDM_MESSAGE_CREATE : IDM_MESSAGE_CREATEEXTERNAL;
-}
-
-unsigned int qm::CreateTemplateMenuCreator::getMax() const
-{
-	return !bExternalEditor_ ? MAX_MESSAGE_CREATE : MAX_MESSAGE_CREATEEXTERNAL;
 }
 
 
@@ -1070,32 +1098,13 @@ unsigned int qm::CreateTemplateMenuCreator::getMax() const
 qm::ViewTemplateMenuCreator::ViewTemplateMenuCreator(const TemplateManager* pTemplateManager,
 													 AccountSelectionModel* pAccountSelectionModel,
 													 ActionParamMap* pActionParamMap) :
-	TemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap)
+	DefaultTemplateMenuCreator(pTemplateManager, pAccountSelectionModel, pActionParamMap,
+		L"ViewTemplate", L"view", IDM_VIEW_TEMPLATE, MAX_VIEW_TEMPLATE)
 {
 }
 
 qm::ViewTemplateMenuCreator::~ViewTemplateMenuCreator()
 {
-}
-
-const WCHAR* qm::ViewTemplateMenuCreator::getName() const
-{
-	return L"ViewTemplate";
-}
-
-const WCHAR* qm::ViewTemplateMenuCreator::getPrefix() const
-{
-	return L"view";
-}
-
-UINT qm::ViewTemplateMenuCreator::getBaseId() const
-{
-	return IDM_VIEW_TEMPLATE;
-}
-
-unsigned int qm::ViewTemplateMenuCreator::getMax() const
-{
-	return MAX_VIEW_TEMPLATE;
 }
 
 
