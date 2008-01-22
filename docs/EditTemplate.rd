@@ -5,6 +5,8 @@
 
 編集用のテンプレートは現在編集中のメッセージをコンテキストメッセージとして評価されます。
 
-編集用のテンプレートは((<ToolApplyTemplateアクション|URL:ToolApplyTemplateAction.html>))を使って適用することができます。メニューやツールバーなどをカスタマイズして、このアクションを割り当てることにより、任意のテンプレートを適用できます。詳細は、((<メニューのカスタマイズ|URL:CustomizeMenus.html>))、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))、((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))と、((<MessageCreateアクション|URL:MessageCreateAction.html>))を参照してください。
+デフォルトでは編集用のテンプレートは含まれていませんが、「edit_」から始まるファイル名でテンプレートを作成すると、エディットウィンドウの[ツール]-[テンプレート]メニューの下にリストされます。たとえば、edit_Test.templateというファイル名でテンプレートを作成すると、[ツール]-[テンプレート]-[Test]として表示されます。
+
+また、編集用のテンプレートは((<ToolApplyTemplateアクション|URL:ToolApplyTemplateAction.html>))を使って適用することができます。メニューやツールバーなどをカスタマイズして、このアクションを割り当てることにより、任意のテンプレートを適用できます。詳細は、((<メニューのカスタマイズ|URL:CustomizeMenus.html>))、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))、((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))と、((<MessageCreateアクション|URL:MessageCreateAction.html>))を参照してください。
 
 =end
