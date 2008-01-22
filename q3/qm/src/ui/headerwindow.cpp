@@ -282,11 +282,9 @@ LRESULT qm::HeaderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	HeaderWindowCreateContext* pContext =
 		static_cast<HeaderWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	
-	wstring_ptr wstrClassName(getClassName());
-	W2T(wstrClassName.get(), ptszClassName);
 	WNDCLASS wc;
-	::GetClassInfo(getInstanceHandle(), ptszClassName, &wc);
-	pImpl_->hbrBackground_ = wc.hbrBackground;
+	if (::GetClassInfo(pCreateStruct->hInstance, pCreateStruct->lpszClass, &wc))
+		pImpl_->hbrBackground_ = wc.hbrBackground;
 	
 	if (!pImpl_->create(pContext->pMenuManager_))
 		return false;

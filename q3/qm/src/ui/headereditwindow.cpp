@@ -305,11 +305,9 @@ LRESULT qm::HeaderEditWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	HeaderEditWindowCreateContext* pContext =
 		static_cast<HeaderEditWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	
-	wstring_ptr wstrClassName(getClassName());
-	W2T(wstrClassName.get(), ptszClassName);
 	WNDCLASS wc;
-	::GetClassInfo(getInstanceHandle(), ptszClassName, &wc);
-	pImpl_->hbrBackground_ = wc.hbrBackground;
+	if (::GetClassInfo(pCreateStruct->hInstance, pCreateStruct->lpszClass, &wc))
+		pImpl_->hbrBackground_ = wc.hbrBackground;
 	
 	if (!pImpl_->create(pContext->pwszClass_, pContext->pUIManager_,
 		pContext->pHeaderEditLineCallback_, pContext->pHeaderEditItemCallback_))

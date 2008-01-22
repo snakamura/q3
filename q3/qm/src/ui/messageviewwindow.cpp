@@ -174,7 +174,7 @@ bool qm::MessageViewWindowFactory::isHtmlViewSupported() const
 #ifdef QMHTMLVIEWWEBBROWSER
 	return Application::getApplication().getAtlHandle() != 0;
 #else
-	return InitHTMLControl(getInstanceHandle()) != 0;
+	return InitHTMLControl(Init::getInit().getInstanceHandle()) != 0;
 #endif
 }
 
