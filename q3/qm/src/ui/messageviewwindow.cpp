@@ -16,6 +16,7 @@
 #include <qmtemplate.h>
 
 #include <qsconv.h>
+#include <qsinit.h>
 #include <qsstream.h>
 #include <qsuiutil.h>
 
