@@ -1534,7 +1534,7 @@ Folder* qmimap4::FolderListGetter::getFolder(const WCHAR* pwszName,
 	
 	bool bNew = false;
 	Folder* pFolder = pAccount_->getFolder(pwszName);
-	if (pFolder) {
+	if (pFolder && pFolder->getSeparator() == cSeparator) {
 		// TODO
 		// What happen if this folder is local folder or
 		// this folder is query folder
