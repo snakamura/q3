@@ -90,16 +90,12 @@ qm::Security::~Security()
 
 const Store* qm::Security::getCA() const
 {
-#if 1
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
 	if (!pImpl_->pStoreCA_.get())
 		pImpl_->pStoreCA_ = pImpl_->loadCA();
 	
 	return pImpl_->pStoreCA_.get();
-#else
-	return pImpl_->loadCA().release();
-#endif
 }
 
 const SMIMEUtility* qm::Security::getSMIMEUtility() const

@@ -129,7 +129,6 @@ public:
 	MessageViewWindow* pMessageViewWindow_;
 	bool bCreated_;
 	bool bLayouting_;
-	bool bSettingMessage_;
 	bool bSeenTimer_;
 	
 	MessageModel* pMessageModel_;
@@ -178,22 +177,6 @@ void qm::MessageWindowImpl::layoutChildren(int cx,
 bool qm::MessageWindowImpl::setMessage(MessageContext* pContext,
 									   bool bResetEncoding)
 {
-	struct SettingMessage
-	{
-		SettingMessage(bool& b) :
-			b_(b)
-		{
-			b_ = true;
-		}
-		
-		~SettingMessage()
-		{
-			b_ = false;
-		}
-		
-		bool& b_;
-	} settingMessage(bSettingMessage_);
-	
 	struct ErrorHandler
 	{
 		ErrorHandler(MessageWindowImpl* pImpl) :
@@ -426,9 +409,7 @@ MessageWindowItem* qm::MessageWindowImpl::getFocusedItem()
 void qm::MessageWindowImpl::messageChanged(const MessageModelEvent& event)
 {
 	assert(Init::getInit().isPrimaryThread());
-	
-	if (!bSettingMessage_)
-		setMessage(event.getMessageContext(), true);
+	setMessage(event.getMessageContext(), true);
 }
 
 void qm::MessageWindowImpl::updateRestoreInfo(const MessageModelRestoreEvent& event)
@@ -565,7 +546,6 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->pMessageViewWindow_ = 0;
 	pImpl_->bCreated_ = false;
 	pImpl_->bLayouting_ = false;
-	pImpl_->bSettingMessage_ = false;
 	pImpl_->bSeenTimer_ = false;
 	pImpl_->pMessageModel_ = pMessageModel;
 	pImpl_->wstrTemplate_ = *wstrTemplate.get() ? wstrTemplate : 0;

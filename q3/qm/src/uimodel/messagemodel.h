@@ -130,6 +130,7 @@ private:
 	HandlerList listHandler_;
 	ViewModel* pViewModel_;
 	qs::Synchronizer* pSynchronizer_;
+	bool bSettingMessage_;
 };
 
 

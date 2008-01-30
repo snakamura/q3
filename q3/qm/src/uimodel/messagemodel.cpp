@@ -47,7 +47,8 @@ qm::AbstractMessageModel::AbstractMessageModel(MessageViewMode* pDefaultMessageV
 	pDefaultMessageViewMode_(pDefaultMessageViewMode),
 	pAccount_(0),
 	pViewModel_(0),
-	pSynchronizer_(InitThread::getInitThread().getSynchronizer())
+	pSynchronizer_(InitThread::getInitThread().getSynchronizer()),
+	bSettingMessage_(false)
 {
 }
 
@@ -75,6 +76,22 @@ MessageContext* qm::AbstractMessageModel::getCurrentMessage() const
 
 void qm::AbstractMessageModel::setMessage(std::auto_ptr<MessageContext> pContext)
 {
+	struct SettingMessage
+	{
+		SettingMessage(bool& b) :
+			b_(b)
+		{
+			b_ = true;
+		}
+		
+		~SettingMessage()
+		{
+			b_ = false;
+		}
+		
+		bool& b_;
+	} settingMessage(bSettingMessage_);
+	
 	if (pContext.get())
 		setCurrentAccount(pContext->getAccount());
 	pContext_ = pContext;
@@ -170,6 +187,9 @@ void qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
 
 void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent& event)
 {
+	if (bSettingMessage_)
+		return;
+	
 	if (pContext_.get()) {
 		MessagePtrLock mpl(pContext_->getMessagePtr());
 		if (mpl && mpl == event.getMessageHolder())
