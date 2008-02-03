@@ -2116,11 +2116,16 @@ void qm::SignatureHeaderEditItem::releaseEditMessage(EditMessage* pEditMessage)
 void qm::SignatureHeaderEditItem::updateEditMessage(EditMessage* pEditMessage)
 {
 	int nItem = ComboBox_GetCurSel(getHandle());
-	int nLen = ComboBox_GetLBTextLen(getHandle(), nItem);
-	tstring_ptr tstrName(allocTString(nLen + 1));
-	ComboBox_GetLBText(getHandle(), nItem, tstrName.get());
-	T2W(tstrName.get(), pwszName);
-	pEditMessage->setSignature(pwszName);
+	if (nItem != 0 && nItem != CB_ERR) {
+		int nLen = ComboBox_GetLBTextLen(getHandle(), nItem);
+		tstring_ptr tstrName(allocTString(nLen + 1));
+		ComboBox_GetLBText(getHandle(), nItem, tstrName.get());
+		T2W(tstrName.get(), pwszName);
+		pEditMessage->setSignature(pwszName);
+	}
+	else {
+		pEditMessage->setSignature(0);
+	}
 }
 
 void qm::SignatureHeaderEditItem::accountChanged(const EditMessageEvent& event)
