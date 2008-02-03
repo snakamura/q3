@@ -164,18 +164,22 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 	if (!normalize(pBodyPart))
 		return std::auto_ptr<Message>();
 	
-	if (*pSubAccount_->getIdentity()) {
-		UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
-		if (!pMessage->setField(L"X-QMAIL-SubAccount", subaccount))
+	if (!bFixup) {
+		UnstructuredParser account(pAccount_->getName(), L"utf-8");
+		if (!pMessage->setField(L"X-QMAIL-Account", account))
+			return std::auto_ptr<Message>();
+		
+		if (*pSubAccount_->getIdentity()) {
+			UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
+			if (!pMessage->setField(L"X-QMAIL-SubAccount", subaccount))
+				return std::auto_ptr<Message>();
+		}
+		
+		const WCHAR* pwszSignature = wstrSignature_.get() ? wstrSignature_.get() : L"";
+		UnstructuredParser signature(pwszSignature, L"utf-8");
+		if (!pMessage->replaceField(L"X-QMAIL-Signature", signature))
 			return std::auto_ptr<Message>();
 	}
-	
-	const WCHAR* pwszSignature = L"";
-	if (!bFixup && wstrSignature_.get())
-		pwszSignature = wstrSignature_.get();
-	UnstructuredParser signature(pwszSignature, L"utf-8");
-	if (!pMessage->replaceField(L"X-QMAIL-Signature", signature))
-		return std::auto_ptr<Message>();
 	
 	SimpleParser mimeVersion(L"1.0", 0);
 	if (!pMessage->replaceField(L"MIME-Version", mimeVersion))
