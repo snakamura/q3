@@ -182,6 +182,7 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
 	} items[] = {
 		{ IDC_MACRO,		L"Macro"		},
 		{ IDC_MATCHCASE,	L"MatchCase"	},
+		{ IDC_REGEX,		L"Regex"		},
 		{ IDC_SEARCHHEADER,	L"SearchHeader"	},
 		{ IDC_SEARCHBODY,	L"SearchBody"	}
 	};
@@ -199,35 +200,54 @@ LRESULT qm::MacroSearchPage::onInitDialog(HWND hwndFocus,
 LRESULT qm::MacroSearchPage::onOk()
 {
 	if (PropSheet_GetCurrentPageHwnd(getSheet()->getHandle()) == getHandle()) {
-		wstring_ptr wstrSearch = getDlgItemText(IDC_CONDITION);
-		if (*wstrSearch.get()) {
-			History(pProfile_, L"Search").addValue(wstrSearch.get());
+		wstring_ptr wstrCondition = getDlgItemText(IDC_CONDITION);
+		if (*wstrCondition.get()) {
+			History(pProfile_, L"Search").addValue(wstrCondition.get());
 			bool bMacro = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) == BST_CHECKED;
 			bool bCase = sendDlgItemMessage(IDC_MATCHCASE, BM_GETCHECK) == BST_CHECKED;
+			bool bRegex = sendDlgItemMessage(IDC_REGEX, BM_GETCHECK) == BST_CHECKED;
 			bool bSearchHeader = sendDlgItemMessage(IDC_SEARCHHEADER, BM_GETCHECK) == BST_CHECKED;
 			bool bSearchBody = sendDlgItemMessage(IDC_SEARCHBODY, BM_GETCHECK) == BST_CHECKED;
 			if (bMacro) {
-				wstrCondition_ = wstrSearch;
+				wstrCondition_ = wstrCondition;
 			}
 			else {
 				wstring_ptr wstrMacro(pProfile_->getString(L"MacroSearch", L"SearchMacro"));
-				wstring_ptr wstrLiteral(getLiteral(wstrSearch.get()));
+				wstring_ptr wstrSearch;
+				if (bRegex) {
+					ConcatW c[] = {
+						L"/",					1,
+						wstrCondition.get(),	-1,
+						L"/",					1,
+						bCase ? L"" : L"i",		-1
+					};
+					wstrSearch = concat(c, countof(c));
+				}
+				else {
+					wstrSearch = getLiteral(wstrCondition.get());
+				}
 				
 				StringBuffer<WSTRING> buf;
 				buf.append(L"@Progn(@Set('Search', ");
-				buf.append(wstrLiteral.get());
+				buf.append(wstrSearch.get());
 				buf.append(L"), @Set('Case', ");
 				buf.append(bCase ? L'1' : L'0');
+				buf.append(L"), @Set('Regex', ");
+				buf.append(bRegex ? L'1' : L'0');
 				buf.append(L"), ");
+				if (bRegex)
+					buf.append(L"@Defun('F', @RegexMatch($1, $2)), ");
+				else
+					buf.append(L"@Defun('F', @Contain($1, $2, $3)), ");
 				if (bSearchHeader || bSearchBody)
 					buf.append(L"@Or(");
 				buf.append(wstrMacro.get());
 				if (bSearchHeader && bSearchBody)
-					buf.append(L", @Contain(@Decode(@Header()), $Search, $Case), @Contain(@Body(), $Search, $Case))");
+					buf.append(L", @F(@Decode(@Header()), $Search, $Case), @F(@Body(), $Search, $Case))");
 				else if (bSearchHeader)
-					buf.append(L", @Contain(@Decode(@Header()), $Search, $Case))");
+					buf.append(L", @F(@Decode(@Header()), $Search, $Case))");
 				else if (bSearchBody)
-					buf.append(L", @Contain(@Body(), $Search, $Case))");
+					buf.append(L", @F(@Body(), $Search, $Case))");
 				buf.append(L")");
 				
 				wstrCondition_ = buf.getString();
@@ -235,6 +255,7 @@ LRESULT qm::MacroSearchPage::onOk()
 			
 			pProfile_->setInt(L"MacroSearch", L"Macro", bMacro);
 			pProfile_->setInt(L"MacroSearch", L"MatchCase", bCase);
+			pProfile_->setInt(L"MacroSearch", L"Regex", bRegex);
 			pProfile_->setInt(L"MacroSearch", L"SearchHeader", bSearchHeader);
 			pProfile_->setInt(L"MacroSearch", L"SearchBody", bSearchBody);
 		}
@@ -252,6 +273,7 @@ void qm::MacroSearchPage::updateState()
 {
 	bool bEnable = sendDlgItemMessage(IDC_MACRO, BM_GETCHECK) != BST_CHECKED;
 	Window(getDlgItem(IDC_MATCHCASE)).enableWindow(bEnable);
+	Window(getDlgItem(IDC_REGEX)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_SEARCHHEADER)).enableWindow(bEnable);
 	Window(getDlgItem(IDC_SEARCHBODY)).enableWindow(bEnable);
 }
@@ -269,20 +291,6 @@ wstring_ptr qm::MacroSearchPage::getLiteral(const WCHAR* pwsz)
 	buf.append(L'\'');
 	
 	return buf.getString();
-}
-
-void qm::MacroSearchPage::createMacro(StringBuffer<WSTRING>* pBuf,
-									  const WCHAR* pwszField,
-									  const WCHAR* pwszLiteral,
-									  bool bCase)
-{
-	pBuf->append(L"@Contain(");
-	pBuf->append(pwszField);
-	pBuf->append(L", ");
-	pBuf->append(pwszLiteral);
-	pBuf->append(L", ");
-	pBuf->append(bCase ? L"@True()" : L"@False()");
-	pBuf->append(L')');
 }
 
 

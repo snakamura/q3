@@ -298,12 +298,19 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"MacroDialog",	L"Height",	L"300"	},
 	{ L"MacroDialog",	L"Width",	L"400"	},
 #endif
-	
-	{ L"MacroSearch",	L"Macro",			L"0"																																			},
-	{ L"MacroSearch",	L"MatchCase",		L"0"																																			},
-	{ L"MacroSearch",	L"SearchHeader",	L"0"																																			},
-	{ L"MacroSearch",	L"SearchBody",		L"0"																																			},
-	{ L"MacroSearch",	L"SearchMacro",		L"@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case), @Contain(@Label(), $Search, $Case))"	},
+
+#define SEARCHMACRO \
+	L"@Or(@F(%Subject, $Search, $Case), " \
+	L"@F(%From, $Search, $Case), " \
+	L"@F(%To, $Search, $Case), " \
+	L"@F(@Label(), $Search, $Case))"
+
+	{ L"MacroSearch",	L"Macro",			L"0"		},
+	{ L"MacroSearch",	L"MatchCase",		L"0"		},
+	{ L"MacroSearch",	L"Regex",			L"0"		},
+	{ L"MacroSearch",	L"SearchHeader",	L"0"		},
+	{ L"MacroSearch",	L"SearchBody",		L"0"		},
+	{ L"MacroSearch",	L"SearchMacro",		SEARCHMACRO	},
 	
 #ifndef _WIN32_WCE
 	{ L"MainWindow",	L"Height",	L"0"	},

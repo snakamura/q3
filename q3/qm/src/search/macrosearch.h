@@ -111,10 +111,6 @@ private:
 
 private:
 	static qs::wstring_ptr getLiteral(const WCHAR* pwsz);
-	static void createMacro(qs::StringBuffer<qs::WSTRING>* pBuf,
-							const WCHAR* pwszField,
-							const WCHAR* pwszLiteral,
-							bool bCase);
 
 private:
 	MacroSearchPage(const MacroSearchPage&);
