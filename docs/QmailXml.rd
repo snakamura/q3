@@ -800,7 +800,7 @@ IMAP4検索で本文を検索するかどうか。
 本文を検索するかどうか。
 
 
-+SearchMacro (@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case), @Contain(@Label(), $Search, $Case)))
++SearchMacro (@Or(@F(%Subject, $Search, $Case), @F(%From, $Search, $Case), @F(%To, $Search, $Case), @F(@Label(), $Search, $Case)))
 検索に使用するマクロ。詳細は、((<基本検索|URL:MacroSearch.html>))を参照。
 
 

@@ -10,7 +10,7 @@
 基本検索の設定を行います。
 
 +[マクロ]
-基本検索で使われるマクロを指定します。$Conditionと$Caseはそれぞれ検索文字列と大文字小文字を区別するかどうかの値を実行時に割り当てられます。デフォルトでは「@Or(@Contain(%Subject, $Search, $Case), @Contain(%From, $Search, $Case), @Contain(%To, $Search, $Case), @Contain(@Label(), $Search, $Case))」です。詳細については、((<検索|URL:Search.html>))を参照してください。
+基本検索で使われるマクロを指定します。@Fは、正規表現を使うかどうかによって、@Containか@RegexMatchを呼び出す関数です。$Search, $Caseと$Regexにはそれぞれ検索文字列と大文字小文字を区別するかどうか、正規表現を使うかどうかの値が実行時に割り当てられます。デフォルトでは「@Or(@F(%Subject, $Search, $Case), @F(%From, $Search, $Case), @F(%To, $Search, $Case), @F(@Label(), $Search, $Case))」です。詳細については、((<検索|URL:Search.html>))を参照してください。
 
 
 ====[全文検索]
