@@ -67,6 +67,13 @@ public:
 		FIELDTYPE_ADDRESSLIST,
 		FIELDTYPE_REFERENCES
 	};
+	
+	enum GetMessageFlag {
+		GMF_NONE			= 0x00,
+		GMF_REFORM			= 0x01,
+		GMF_EXPANDSIGNATURE	= 0x02,
+		GMF_ADDACCOUNT		= 0x04
+	};
 
 public:
 	struct Attachment
@@ -102,7 +109,7 @@ public:
 	~EditMessage();
 
 public:
-	std::auto_ptr<Message> getMessage(bool bFixup);
+	std::auto_ptr<Message> getMessage(unsigned int nFlags);
 	bool setMessage(std::auto_ptr<Message> pMessage);
 	void update();
 	const WCHAR* getPreviousURI() const;

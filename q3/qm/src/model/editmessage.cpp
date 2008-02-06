@@ -65,7 +65,7 @@ qm::EditMessage::~EditMessage()
 	clear();
 }
 
-std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
+std::auto_ptr<Message> qm::EditMessage::getMessage(unsigned int nFlags)
 {
 	fireMessageUpdate();
 	
@@ -85,7 +85,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 	
 	const WCHAR* pwszBody = wstrBody_.get();
 	wxstring_ptr wstrBody;
-	if (bFixup && bAutoReform_) {
+	if (nFlags & GMF_REFORM && bAutoReform_) {
 		int nLineLen = pProfile_->getInt(L"EditWindow", L"ReformLineLength");
 		int nTabWidth = pProfile_->getInt(L"EditWindow", L"TabWidth");
 		
@@ -103,7 +103,7 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 		!buf.append(pwszBody))
 		return std::auto_ptr<Message>();
 	
-	if (bFixup) {
+	if (nFlags & GMF_EXPANDSIGNATURE) {
 		wstring_ptr wstrSignature(getSignatureText());
 		if (wstrSignature.get()) {
 			if (!buf.append(wstrSignature.get()))
@@ -164,22 +164,24 @@ std::auto_ptr<Message> qm::EditMessage::getMessage(bool bFixup)
 	if (!normalize(pBodyPart))
 		return std::auto_ptr<Message>();
 	
-	if (!bFixup) {
+	if (nFlags & GMF_ADDACCOUNT) {
 		UnstructuredParser account(pAccount_->getName(), L"utf-8");
 		if (!pMessage->setField(L"X-QMAIL-Account", account))
 			return std::auto_ptr<Message>();
-		
-		if (*pSubAccount_->getIdentity()) {
-			UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
-			if (!pMessage->setField(L"X-QMAIL-SubAccount", subaccount))
-				return std::auto_ptr<Message>();
-		}
-		
-		const WCHAR* pwszSignature = wstrSignature_.get() ? wstrSignature_.get() : L"";
-		UnstructuredParser signature(pwszSignature, L"utf-8");
-		if (!pMessage->replaceField(L"X-QMAIL-Signature", signature))
+	}
+	
+	if (*pSubAccount_->getIdentity()) {
+		UnstructuredParser subaccount(pSubAccount_->getName(), L"utf-8");
+		if (!pMessage->setField(L"X-QMAIL-SubAccount", subaccount))
 			return std::auto_ptr<Message>();
 	}
+	
+	const WCHAR* pwszSignature = L"";
+	if (!(nFlags & GMF_EXPANDSIGNATURE) && wstrSignature_.get())
+		pwszSignature = wstrSignature_.get();
+	UnstructuredParser signature(pwszSignature, L"utf-8");
+	if (!pMessage->replaceField(L"X-QMAIL-Signature", signature))
+		return std::auto_ptr<Message>();
 	
 	SimpleParser mimeVersion(L"1.0", 0);
 	if (!pMessage->replaceField(L"MIME-Version", mimeVersion))

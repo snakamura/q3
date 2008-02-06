@@ -698,7 +698,7 @@ void qm::EditFileSaveAction::invoke(const ActionEvent& event)
 bool qm::EditFileSaveAction::save(const WCHAR* pwszPath)
 {
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(false));
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(EditMessage::GMF_ADDACCOUNT));
 	if (!pMessage.get())
 		return false;
 	
@@ -805,7 +805,9 @@ void qm::EditFileSendAction::invoke(const ActionEvent& event)
 	}
 #endif
 	
-	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(type_ == TYPE_SEND));
+	unsigned int nFlags = type_ != TYPE_SEND ? EditMessage::GMF_NONE :
+		EditMessage::GMF_REFORM | EditMessage::GMF_EXPANDSIGNATURE;
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(nFlags));
 	if (!pMessage.get()) {
 		ActionUtil::error(pEditFrameWindow_->getHandle(), IDS_ERROR_SEND);
 		return;
@@ -903,7 +905,7 @@ void qm::EditToolApplyTemplateAction::invoke(const ActionEvent& event)
 		return;
 	}
 	
-	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(false));
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(EditMessage::GMF_NONE));
 	if (!pMessage.get()) {
 		ActionUtil::error(hwnd_, IDS_ERROR_APPLYTEMPLATE);
 		return;
@@ -1123,7 +1125,7 @@ void qm::EditToolInsertMacroAction::invoke(const ActionEvent& event)
 		return;
 	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
-	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(false));
+	std::auto_ptr<Message> pMessage(pEditMessage->getMessage(EditMessage::GMF_NONE));
 	if (!pMessage.get()) {
 		ActionUtil::error(hwnd_, IDS_ERROR_INSERTMACRO);
 		return;
