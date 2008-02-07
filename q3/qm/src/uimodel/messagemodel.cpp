@@ -208,6 +208,7 @@ void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent
 			if (!pContext)
 				return;
 			MessagePtr ptr(pContext->getMessagePtr());
+			using qm::operator!=; // To avoid a bug of VC8
 			if (ptr != ptr_)
 				return;
 			MessagePtrLock mpl(ptr);
