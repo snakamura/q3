@@ -76,6 +76,8 @@ MessageContext* qm::AbstractMessageModel::getCurrentMessage() const
 
 void qm::AbstractMessageModel::setMessage(std::auto_ptr<MessageContext> pContext)
 {
+	assert(Init::getInit().isPrimaryThread());
+	
 	struct SettingMessage
 	{
 		SettingMessage(bool& b) :
@@ -95,6 +97,7 @@ void qm::AbstractMessageModel::setMessage(std::auto_ptr<MessageContext> pContext
 	if (pContext.get())
 		setCurrentAccount(pContext->getAccount());
 	pContext_ = pContext;
+	
 	fireMessageChanged(pContext_.get());
 }
 
@@ -187,15 +190,36 @@ void qm::AbstractMessageModel::accountDestroyed(const AccountEvent& event)
 
 void qm::AbstractMessageModel::messageHolderKeysChanged(const MessageHolderEvent& event)
 {
-	if (bSettingMessage_)
+	if (Init::getInit().isPrimaryThread() && bSettingMessage_)
 		return;
 	
-	if (pContext_.get()) {
-		MessagePtrLock mpl(pContext_->getMessagePtr());
-		if (mpl && mpl == event.getMessageHolder())
-			setMessage(std::auto_ptr<MessageContext>(
-				new MessagePtrMessageContext(mpl)));
-	}
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(AbstractMessageModel* pModel,
+					 const MessagePtr& ptr) :
+			pModel_(pModel),
+			ptr_(ptr)
+		{
+		}
+		
+		virtual void run()
+		{
+			MessageContext* pContext = pModel_->pContext_.get();
+			if (!pContext)
+				return;
+			MessagePtr ptr(pContext->getMessagePtr());
+			if (ptr != ptr_)
+				return;
+			MessagePtrLock mpl(ptr);
+			if (mpl)
+				pModel_->setMessage(std::auto_ptr<MessageContext>(
+					new MessagePtrMessageContext(mpl)));
+		}
+		
+		AbstractMessageModel* pModel_;
+		MessagePtr ptr_;
+	};
+	asyncExec(new RunnableImpl(this, event.getMessageHolder()));
 }
 
 void qm::AbstractMessageModel::setCurrentAccount(Account* pAccount)
