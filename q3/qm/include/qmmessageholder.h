@@ -385,6 +385,10 @@ public:
 	MessagePtr& operator=(const MessagePtr& ptr);
 
 public:
+	friend bool operator==(const MessagePtr& lhs,
+						   const MessagePtr& rhs);
+
+public:
 	NormalFolder* getFolder() const;
 	MessageHolder* lock() const;
 	void unlock() const;
@@ -395,6 +399,9 @@ private:
 	unsigned int nId_;
 	mutable bool bLock_;
 };
+
+bool operator!=(const MessagePtr& lhs,
+				const MessagePtr& rhs);
 
 
 /****************************************************************************

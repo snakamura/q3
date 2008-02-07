@@ -274,6 +274,119 @@ inline qm::Message* qm::AbstractMessageHolder::getMessage() const
 
 /****************************************************************************
  *
+ * MessagePtr
+ *
+ */
+
+inline qm::MessagePtr::MessagePtr() :
+	pFolder_(0),
+	nId_(0),
+	bLock_(false)
+{
+}
+
+inline qm::MessagePtr::MessagePtr(MessageHolder* pmh) :
+	pFolder_(0),
+	nId_(0),
+	bLock_(false)
+{
+	reset(pmh);
+}
+
+inline qm::MessagePtr::MessagePtr(const MessagePtr& ptr) :
+	pFolder_(ptr.pFolder_),
+	nId_(ptr.nId_),
+	bLock_(false)
+{
+	assert(!ptr.bLock_);
+}
+
+inline qm::MessagePtr::~MessagePtr()
+{
+	assert(!bLock_);
+}
+
+inline bool qm::MessagePtr::operator!() const
+{
+	return pFolder_ == 0;
+}
+
+inline qm::MessagePtr& qm::MessagePtr::operator=(const MessagePtr& ptr)
+{
+	assert(!bLock_);
+	assert(!ptr.bLock_);
+	
+	if (&ptr != this) {
+		pFolder_ = ptr.pFolder_;
+		nId_ = ptr.nId_;
+	}
+	return *this;
+}
+
+inline qm::NormalFolder* qm::MessagePtr::getFolder() const
+{
+	return pFolder_;
+}
+
+inline qm::MessageHolder* qm::MessagePtr::lock() const
+{
+	assert(!bLock_);
+	
+	bLock_ = true;
+	
+	if (pFolder_) {
+		pFolder_->getAccount()->lock();
+		return pFolder_->getMessageHolderById(nId_);
+	}
+	else {
+		return 0;
+	}
+}
+
+inline void qm::MessagePtr::unlock() const
+{
+	assert(bLock_);
+	
+	bLock_ = false;
+	
+	if (pFolder_)
+		pFolder_->getAccount()->unlock();
+}
+
+inline void qm::MessagePtr::reset(MessageHolder* pmh)
+{
+	bool bLock = bLock_;
+	if (bLock)
+		unlock();
+	
+	if (pmh) {
+		pFolder_ = pmh->getFolder();
+		nId_ = pmh->getId();
+	}
+	else {
+		pFolder_ = 0;
+		nId_ = 0;
+	}
+	
+	if (bLock)
+		lock();
+}
+
+inline bool qm::operator==(const MessagePtr& lhs,
+						   const MessagePtr& rhs)
+{
+	return lhs.pFolder_ == rhs.pFolder_ && lhs.nId_ == rhs.nId_;
+}
+
+inline bool qm::operator!=(const MessagePtr& lhs,
+						   const MessagePtr& rhs)
+{
+	return !(lhs == rhs);
+}
+
+
+/****************************************************************************
+ *
  * MessagePtrLock
  *
  */
