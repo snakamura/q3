@@ -589,6 +589,11 @@ bool qmjunk::JunkFilterImpl::repair()
 	bool bTokenRepaired = repair(L"token");
 	bool bIdRepaired = repair(L"id");
 	
+	// Open depots here to ensure that depots are optimized.
+	// After reparing a depot, it's highly likely that it needs to be optimized.
+	getTokenDepot();
+	getIdDepot();
+	
 	return bTokenRepaired && bIdRepaired;
 }
 
