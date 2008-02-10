@@ -75,14 +75,15 @@ public:
 		SELECT_EXCEPT	= 0x04,
 	};
 
+protected:
+	SocketBase();
+
 public:
 	virtual ~SocketBase();
 
 public:
 	virtual long getTimeout() const = 0;
 	virtual void setTimeout(long nTimeout) = 0;
-	virtual unsigned int getLastError() const = 0;
-	virtual void setLastError(unsigned int nError) = 0;
 	virtual bool close() = 0;
 	virtual int recv(char* p,
 				int nLen,
@@ -97,7 +98,14 @@ public:
 	virtual OutputStream* getOutputStream() = 0;
 
 public:
+	Error getLastError() const;
+	void setLastError(Error error);
+
+public:
 	static wstring_ptr getErrorDescription(Error error);
+
+private:
+	Error error_;
 };
 
 
@@ -135,8 +143,6 @@ public:
 public:
 	virtual long getTimeout() const;
 	virtual void setTimeout(long nTimeout);
-	virtual unsigned int getLastError() const;
-	virtual void setLastError(unsigned int nError);
 	virtual bool close();
 	virtual int recv(char* p,
 					 int nLen,
@@ -155,7 +161,7 @@ private:
 	Socket& operator=(const Socket&);
 
 private:
-	struct SocketImpl* pImpl_;
+	class SocketImpl* pImpl_;
 };
 
 

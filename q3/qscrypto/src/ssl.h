@@ -36,8 +36,6 @@ public:
 public:
 	virtual long getTimeout() const;
 	virtual void setTimeout(long nTimeout);
-	virtual unsigned int getLastError() const;
-	virtual void setLastError(unsigned int nError);
 	virtual bool close();
 	virtual int recv(char* p,
 					 int nLen,
@@ -67,7 +65,6 @@ private:
 	qs::SocketOutputStream* pOutputStream_;
 	SSL_CTX* pCTX_;
 	SSL* pSSL_;
-	unsigned int nError_;
 };
 
 

@@ -40,8 +40,23 @@ qs::Winsock::~Winsock()
  *
  */
 
+qs::SocketBase::SocketBase() :
+	error_(Socket::SOCKET_ERROR_SUCCESS)
+{
+}
+
 qs::SocketBase::~SocketBase()
 {
+}
+
+SocketBase::Error qs::SocketBase::getLastError() const
+{
+	return error_;
+}
+
+void qs::SocketBase::setLastError(Error error)
+{
+	error_ = error;
 }
 
 wstring_ptr qs::SocketBase::getErrorDescription(Error error)
@@ -77,41 +92,51 @@ wstring_ptr qs::SocketBase::getErrorDescription(Error error)
  *
  */
 
-struct qs::SocketImpl
+class qs::SocketImpl
 {
-	bool init(SOCKET socket,
-			  long nTimeout,
-			  SocketCallback* pSocketCallback,
-			  Logger* pLogger);
+public:
+	SocketImpl(Socket* pThis,
+			   long nTimeout,
+			   SocketCallback* pSocketCallback,
+			   Logger* pLogger);
+
+public:
+	bool init(SOCKET socket);
 	bool connect(const WCHAR* pwszHost,
 				 short nPort);
 	int select(int nSelect,
 			   long nTimeout);
 	
+public:
+	Socket* pThis_;
 	SOCKET socket_;
 	long nTimeout_;
 	SocketCallback* pSocketCallback_;
 	Logger* pLogger_;
-	unsigned int nError_;
 	bool bDebug_;
 	
 	SocketInputStream* pInputStream_;
 	SocketOutputStream* pOutputStream_;
 };
 
-bool qs::SocketImpl::init(SOCKET socket,
-						  long nTimeout,
-						  SocketCallback* pSocketCallback,
-						  Logger* pLogger)
+qs::SocketImpl::SocketImpl(Socket* pThis,
+						   long nTimeout,
+						   SocketCallback* pSocketCallback,
+						   Logger* pLogger) :
+	pThis_(pThis),
+	socket_(0),
+	nTimeout_(nTimeout),
+	pSocketCallback_(pSocketCallback),
+	pLogger_(pLogger),
+	bDebug_(false),
+	pInputStream_(0),
+	pOutputStream_(0)
+{
+}
+
+bool qs::SocketImpl::init(SOCKET socket)
 {
 	socket_ = socket;
-	nTimeout_ = nTimeout;
-	pSocketCallback_ = pSocketCallback;
-	pLogger_ = pLogger;
-	nError_ = Socket::SOCKET_ERROR_SUCCESS;
-	bDebug_ = false;
-	pInputStream_ = 0;
-	pOutputStream_ = 0;
 	
 	if (!socket_) {
 		if (pSocketCallback_)
@@ -157,7 +182,7 @@ bool qs::SocketImpl::connect(const WCHAR* pwszHost,
 			if (!phe || !phe->h_addr_list[0])
 				phe = gethostbyname(strHost.get());
 			if (!phe || !phe->h_addr_list[0]) {
-				nError_ = Socket::SOCKET_ERROR_LOOKUPNAME;
+				pThis_->setLastError(Socket::SOCKET_ERROR_LOOKUPNAME);
 				return false;
 			}
 			::memcpy(&sockAddr.sin_addr.s_addr,
@@ -195,14 +220,14 @@ bool qs::SocketImpl::connect(const WCHAR* pwszHost,
 		
 		if (::connect(socket_, reinterpret_cast<sockaddr*>(&sockAddr), sizeof(sockAddr))) {
 			bool bConnect = false;
-			nError_ = Socket::SOCKET_ERROR_SUCCESS;
+			pThis_->setLastError(Socket::SOCKET_ERROR_SUCCESS);
 			if (::WSAGetLastError() == WSAEWOULDBLOCK) {
 				int n = 0;
 				while (n < nTimeout_) {
 					assert(pSocketCallback_);
 					if (pSocketCallback_->isCanceled(false)) {
 						log.debug(L"Connection canceled.");
-						nError_ = Socket::SOCKET_ERROR_CANCEL;
+						pThis_->setLastError(Socket::SOCKET_ERROR_CANCEL);
 						break;
 					}
 					fd_set fdset;
@@ -217,11 +242,11 @@ bool qs::SocketImpl::connect(const WCHAR* pwszHost,
 				}
 				if (n == nTimeout_) {
 					log.debug(L"Connection timeout.");
-					nError_ = Socket::SOCKET_ERROR_CONNECTTIMEOUT;
+					pThis_->setLastError(Socket::SOCKET_ERROR_CONNECTTIMEOUT);
 				}
 			}
 			else {
-				nError_ = Socket::SOCKET_ERROR_CONNECT;
+				pThis_->setLastError(Socket::SOCKET_ERROR_CONNECT);
 			}
 			if (!bConnect)
 				return false;
@@ -265,7 +290,7 @@ int qs::SocketImpl::select(int nSelect,
 			nSelect & Socket::SELECT_EXCEPT ? &fdset[2] : 0,
 			&tvTimeout);
 		if (nRet == SOCKET_ERROR) {
-			nError_ = Socket::SOCKET_ERROR_SELECT;
+			pThis_->setLastError(Socket::SOCKET_ERROR_SELECT);
 			return -1;
 		}
 		else if (nRet != 0) {
@@ -297,8 +322,9 @@ qs::Socket::Socket(long nTimeout,
 				   Logger* pLogger) :
 	pImpl_(0)
 {
-	std::auto_ptr<SocketImpl> pImpl(new SocketImpl());
-	if (!pImpl->init(0, nTimeout, pSocketCallback, pLogger))
+	std::auto_ptr<SocketImpl> pImpl(new SocketImpl(
+		this, nTimeout, pSocketCallback, pLogger));
+	if (!pImpl->init(0))
 		return;
 	pImpl_ = pImpl.release();
 }
@@ -309,8 +335,9 @@ qs::Socket::Socket(SOCKET socket,
 				   Logger* pLogger) :
 	pImpl_(0)
 {
-	std::auto_ptr<SocketImpl> pImpl(new SocketImpl());
-	if (!pImpl->init(socket, nTimeout, pSocketCallback, pLogger))
+	std::auto_ptr<SocketImpl> pImpl(new SocketImpl(
+		this, nTimeout, pSocketCallback, pLogger));
+	if (!pImpl->init(socket))
 		return;
 	pImpl_ = pImpl.release();
 }
@@ -322,8 +349,9 @@ qs::Socket::Socket(const WCHAR* pwszHost,
 				   Logger* pLogger) :
 	pImpl_(0)
 {
-	std::auto_ptr<SocketImpl> pImpl(new SocketImpl());
-	if (!pImpl->init(0, nTimeout, pSocketCallback, pLogger))
+	std::auto_ptr<SocketImpl> pImpl(new SocketImpl(
+		this, nTimeout, pSocketCallback, pLogger));
+	if (!pImpl->init(0))
 		return;
 	if (!pImpl->connect(pwszHost, nPort))
 		return;
@@ -369,16 +397,6 @@ void qs::Socket::setTimeout(long nTimeout)
 	pImpl_->nTimeout_ = nTimeout;
 }
 
-unsigned int qs::Socket::getLastError() const
-{
-	return pImpl_ ? pImpl_->nError_ : SOCKET_ERROR_UNKNOWN;
-}
-
-void qs::Socket::setLastError(unsigned int nError)
-{
-	pImpl_->nError_ = nError;
-}
-
 bool qs::Socket::close()
 {
 	Log log(pImpl_->pLogger_, L"qs::Socket");
@@ -391,7 +409,7 @@ bool qs::Socket::close()
 			pImpl_->socket_ = 0;
 			
 			if (::closesocket(s)) {
-				pImpl_->nError_ = SOCKET_ERROR_CLOSESOCKET;
+				setLastError(SOCKET_ERROR_CLOSESOCKET);
 				return false;
 			}
 			
@@ -418,7 +436,7 @@ int qs::Socket::recv(char* p,
 		nRecv = ::recv(pImpl_->socket_, p, nLen, nFlags);
 		if (nRecv == SOCKET_ERROR) {
 			log.debug(L"Error occurred while receiving.");
-			pImpl_->nError_ = SOCKET_ERROR_RECV;
+			setLastError(SOCKET_ERROR_RECV);
 			return -1;
 		}
 		
@@ -447,7 +465,7 @@ int qs::Socket::send(const char* p,
 		nSent = ::send(pImpl_->socket_, p, nLen, nFlags);
 		if (nSent == SOCKET_ERROR) {
 			log.debug(L"Error occurred while sending.");
-			pImpl_->nError_ = SOCKET_ERROR_SEND;
+			setLastError(SOCKET_ERROR_SEND);
 			return -1;
 		}
 		
@@ -479,7 +497,7 @@ int qs::Socket::select(int nSelect,
 		do {
 			if (pImpl_->pSocketCallback_->isCanceled(true)) {
 				log.debug(L"Canceled while selecting.");
-				pImpl_->nError_ = SOCKET_ERROR_CANCEL;
+				setLastError(SOCKET_ERROR_CANCEL);
 				return -1;
 			}
 			

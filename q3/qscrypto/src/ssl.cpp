@@ -72,16 +72,6 @@ void qscrypto::SSLSocketImpl::setTimeout(long nTimeout)
 	pSocket_->setTimeout(nTimeout);
 }
 
-unsigned int qscrypto::SSLSocketImpl::getLastError() const
-{
-	return nError_;
-}
-
-void qscrypto::SSLSocketImpl::setLastError(unsigned int nError)
-{
-	nError_ = nError;
-}
-
 bool qscrypto::SSLSocketImpl::close()
 {
 	if (!pSocket_)
@@ -99,7 +89,7 @@ bool qscrypto::SSLSocketImpl::close()
 	
 	if (bDeleteSocket_) {
 		if (!pSocket_->close()) {
-			nError_ = pSocket_->getLastError();
+			setLastError(pSocket_->getLastError());
 			return false;
 		}
 	}
@@ -118,7 +108,7 @@ int qscrypto::SSLSocketImpl::recv(char* p,
 	int nRead = SSL_read(pSSL_, p, nLen);
 	if (nRead < 0) {
 		Util::logError(log, L"Error occurred while receiving.");
-		nError_ = SOCKET_ERROR_RECV;
+		setLastError(SOCKET_ERROR_RECV);
 		return -1;
 	}
 	
@@ -138,7 +128,7 @@ int qscrypto::SSLSocketImpl::send(const char* p,
 	int nWritten = SSL_write(pSSL_, p, nLen);
 	if (nWritten < 0) {
 		Util::logError(log, L"Error occurred while sending.");
-		nError_ = SOCKET_ERROR_SEND;
+		setLastError(SOCKET_ERROR_SEND);
 		return -1;
 	}
 	
@@ -161,7 +151,7 @@ int qscrypto::SSLSocketImpl::select(int nSelect,
 	else {
 		int n = pSocket_->select(nSelect, nTimeout);
 		if (n == -1)
-			nError_ = pSocket_->getLastError();
+			setLastError(pSocket_->getLastError());
 		return n;
 	}
 }
@@ -189,7 +179,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	pCTX_ = SSL_CTX_new(SSLv23_method());
 	if (!pCTX_) {
 		Util::logError(log, L"Error occurred while creating SSL context.");
-		nError_ = SOCKET_ERROR_CONNECT;
+		setLastError(SOCKET_ERROR_CONNECT);
 		return false;
 	}
 	
@@ -205,7 +195,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	pSSL_ = SSL_new(pCTX_);
 	if (!pSSL_) {
 		Util::logError(log, L"Error occurred while create SSL.");
-		nError_ = SOCKET_ERROR_CONNECT;
+		setLastError(SOCKET_ERROR_CONNECT);
 		return false;
 	}
 	
@@ -215,7 +205,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	if (SSL_connect(pSSL_) <= 0) {
 		Util::logError(log, L"Error occurred while connecting.");
-		nError_ = SOCKET_ERROR_CONNECT;
+		setLastError(SOCKET_ERROR_CONNECT);
 		return false;
 	}
 	
@@ -251,7 +241,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	if (!pCallback_->checkCertificate(cert, bVerified)) {
 		log.error(L"Failed to check server certificate");
-		nError_ = SOCKET_ERROR_CONNECT;
+		setLastError(SOCKET_ERROR_CONNECT);
 		return false;
 	}
 	
