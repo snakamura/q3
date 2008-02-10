@@ -406,11 +406,11 @@ ifndef DEBUG
 			CCFLAGS		+= -GL
 			LDFLAGS		+= -LTCG
 		endif
-	else
-		ifeq ($(EVCVER),8)
-			CCFLAGS		+= -GL
-			LDFLAGS		+= -LTCG
-		endif
+#	else
+#		ifeq ($(EVCVER),8)
+#			CCFLAGS		+= -GL
+#			LDFLAGS		+= -LTCG
+#		endif
 	endif
 endif
 
