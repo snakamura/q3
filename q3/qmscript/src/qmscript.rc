@@ -55,6 +55,7 @@ END
 #if defined(APSTUDIO_INVOKED) || \
     !(defined(PLATFORM_PPC) || defined(PLATFORM_PPC2002) || defined(PLATFORM_HPC2000) || \
     defined(PLATFORM_HPCPRO) || defined(PLATFORM_PPC2003) || defined(PLATFORM_PPC2003SE) || \
+    defined(PLATFORM_WM5) || defined(PLATFORM_WM6PRO) || defined(PLATFORM_WM6STD) || \
     defined(PLATFORM_SIG3))
 IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\win\\qmobj.tlb"
 #endif
@@ -98,6 +99,27 @@ IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\ppc2003\\qmobj.tlb"
 IDR_TYPELIB$(PLATFORM_PPC2003SE) TYPELIB DISCARDABLE     "..\\tlb\\ppc2003se\\qmobj.tlb"
 #else
 IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\ppc2003se\\qmobj.tlb"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(PLATFORM_WM5)
+#if defined(APSTUDIO_INVOKED)
+IDR_TYPELIB$(PLATFORM_WM5) TYPELIB DISCARDABLE     "..\\tlb\\wm5\\qmobj.tlb"
+#else
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\wm5\\qmobj.tlb"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(PLATFORM_WM6PRO)
+#if defined(APSTUDIO_INVOKED)
+IDR_TYPELIB$(PLATFORM_WM6PRO) TYPELIB DISCARDABLE     "..\\tlb\\wm6pro\\qmobj.tlb"
+#else
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\wm6pro\\qmobj.tlb"
+#endif
+#endif
+#if defined(APSTUDIO_INVOKED) || defined(PLATFORM_WM6STD)
+#if defined(APSTUDIO_INVOKED)
+IDR_TYPELIB$(PLATFORM_WM6STD) TYPELIB DISCARDABLE     "..\\tlb\\wm6std\\qmobj.tlb"
+#else
+IDR_TYPELIB             TYPELIB DISCARDABLE     "..\\tlb\\wm6std\\qmobj.tlb"
 #endif
 #endif
 #if defined(APSTUDIO_INVOKED) || defined(PLATFORM_SIG3)
