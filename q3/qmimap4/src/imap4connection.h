@@ -46,10 +46,13 @@ private:
 	Imap4Connection& operator=(const Imap4Connection&);
 
 private:
-	class CallbackImpl : public Imap4Callback
+	class CallbackImpl :
+		public qs::DefaultFilterSocketCallback,
+		public Imap4Callback
 	{
 	public:
-		CallbackImpl(qm::ConnectionCallback* pConnectionCallback);
+		CallbackImpl(qs::SocketCallback* pSocketCallback,
+					 qm::ConnectionCallback* pConnectionCallback);
 		~CallbackImpl();
 	
 	public:

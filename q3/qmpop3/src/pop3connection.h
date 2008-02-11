@@ -48,10 +48,13 @@ private:
 	Pop3Connection& operator=(const Pop3Connection&);
 
 private:
-	class CallbackImpl : public Pop3Callback
+	class CallbackImpl :
+		public qs::DefaultFilterSocketCallback,
+		public Pop3Callback
 	{
 	public:
-		CallbackImpl(qm::ConnectionCallback* pConnectionCallback);
+		CallbackImpl(qs::SocketCallback* pSocketCallback,
+					 qm::ConnectionCallback* pConnectionCallback);
 		~CallbackImpl();
 	
 	public:

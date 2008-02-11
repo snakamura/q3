@@ -27,8 +27,8 @@ qmimap4::Imap4Connection::Imap4Connection(long nTimeout,
 										  ConnectionCallback* pConnectionCallback,
 										  Logger* pLogger)
 {
-	pCallback_.reset(new CallbackImpl(pConnectionCallback));
-	pImap4_.reset(new Imap4(nTimeout, pSocketCallback,
+	pCallback_.reset(new CallbackImpl(pSocketCallback, pConnectionCallback));
+	pImap4_.reset(new Imap4(nTimeout, pCallback_.get(),
 		pSSLSocketCallback, pCallback_.get(), pLogger));
 }
 
@@ -41,9 +41,8 @@ bool qmimap4::Imap4Connection::connect(const WCHAR* pwszHost,
 									   SubAccount::Secure secure)
 {
 	if (!pImap4_->connect(pwszHost, nPort, Util::getSecure(secure))) {
-		/// TODO
-		/// Handle socket error message.
-		Util::reportError(pImap4_.get(), pCallback_->getConnectionCallback(), 0, 0, 0, 0, 0);
+		Util::reportError(pImap4_.get(), pCallback_->getConnectionCallback(),
+			0, 0, 0, 0, pCallback_->getErrorMessage());
 		return false;
 	}
 	return true;
@@ -61,7 +60,9 @@ void qmimap4::Imap4Connection::disconnect()
  *
  */
 
-qmimap4::Imap4Connection::CallbackImpl::CallbackImpl(ConnectionCallback* pConnectionCallback) :
+qmimap4::Imap4Connection::CallbackImpl::CallbackImpl(SocketCallback* pSocketCallback,
+													 ConnectionCallback* pConnectionCallback) :
+	DefaultFilterSocketCallback(pSocketCallback),
 	pConnectionCallback_(pConnectionCallback)
 {
 }

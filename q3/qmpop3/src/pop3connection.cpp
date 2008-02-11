@@ -28,8 +28,8 @@ qmpop3::Pop3Connection::Pop3Connection(long nTimeout,
 									   Logger* pLogger) :
 	bApop_(false)
 {
-	pCallback_.reset(new CallbackImpl(pConnectionCallback));
-	pPop3_.reset(new Pop3(nTimeout, pSocketCallback,
+	pCallback_.reset(new CallbackImpl(pSocketCallback, pConnectionCallback));
+	pPop3_.reset(new Pop3(nTimeout, pCallback_.get(),
 		pSSLSocketCallback, pCallback_.get(), pLogger));
 }
 
@@ -42,9 +42,8 @@ bool qmpop3::Pop3Connection::connect(const WCHAR* pwszHost,
 									 SubAccount::Secure secure)
 {
 	if (!pPop3_->connect(pwszHost, nPort, bApop_, Util::getSecure(secure))) {
-		/// TODO
-		/// Handle socket error message.
-		Util::reportError(pPop3_.get(), pCallback_->getConnectionCallback(), 0, 0, 0, 0, 0);
+		Util::reportError(pPop3_.get(), pCallback_->getConnectionCallback(),
+			0, 0, 0, 0, pCallback_->getErrorMessage());
 		return false;
 	}
 	return true;
@@ -72,7 +71,9 @@ bool qmpop3::Pop3Connection::setProperty(const WCHAR* pwszName,
  *
  */
 
-qmpop3::Pop3Connection::CallbackImpl::CallbackImpl(ConnectionCallback* pConnectionCallback) :
+qmpop3::Pop3Connection::CallbackImpl::CallbackImpl(SocketCallback* pSocketCallback,
+												   ConnectionCallback* pConnectionCallback) :
+	DefaultFilterSocketCallback(pSocketCallback),
 	pConnectionCallback_(pConnectionCallback)
 {
 }
