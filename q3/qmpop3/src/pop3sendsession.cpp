@@ -22,8 +22,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		Util::reportError(pPop3_.get(), pSessionCallback_, \
-			pAccount_, pSubAccount_, 0, 0); \
+		Util::reportError(pPop3_.get(), pSessionCallback_, pAccount_, \
+			pSubAccount_, 0, 0, pCallback_->getErrorMessage()); \
 		return false; \
 	} while (false) \
 
@@ -61,7 +61,7 @@ bool qmpop3::Pop3SendSession::init(Document* pDocument,
 	pSubAccount_ = pSubAccount;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
-	pCallback_.reset(new CallbackImpl(pSubAccount_,
+	pCallback_.reset(new DefaultCallback(pSubAccount_, Account::HOST_SEND,
 		pDocument->getSecurity(), pSessionCallback_));
 	
 	return true;
@@ -117,89 +117,6 @@ bool qmpop3::Pop3SendSession::sendMessage(Message* pMessage)
 		HANDLE_ERROR();
 	
 	return true;
-}
-
-
-/****************************************************************************
- *
- * Pop3SendSession::CallbackImpl
- *
- */
-
-qmpop3::Pop3SendSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
-													const Security* pSecurity,
-													SendSessionCallback* pSessionCallback) :
-	DefaultSSLSocketCallback(pSubAccount, Account::HOST_SEND, pSecurity),
-	pSubAccount_(pSubAccount),
-	pSessionCallback_(pSessionCallback),
-	state_(PASSWORDSTATE_ONETIME)
-{
-}
-
-qmpop3::Pop3SendSession::CallbackImpl::~CallbackImpl()
-{
-}
-
-void qmpop3::Pop3SendSession::CallbackImpl::setMessage(UINT nId)
-{
-	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
-	pSessionCallback_->setMessage(wstrMessage.get());
-}
-
-bool qmpop3::Pop3SendSession::CallbackImpl::isCanceled(bool bForce) const
-{
-	return pSessionCallback_->isCanceled(bForce);
-}
-
-void qmpop3::Pop3SendSession::CallbackImpl::initialize()
-{
-	setMessage(IDS_INITIALIZE);
-}
-
-void qmpop3::Pop3SendSession::CallbackImpl::lookup()
-{
-	setMessage(IDS_LOOKUP);
-}
-
-void qmpop3::Pop3SendSession::CallbackImpl::connecting()
-{
-	setMessage(IDS_CONNECTING);
-}
-
-void qmpop3::Pop3SendSession::CallbackImpl::connected()
-{
-	setMessage(IDS_CONNECTED);
-}
-
-bool qmpop3::Pop3SendSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
-														wstring_ptr* pwstrPassword)
-{
-	state_ = Util::getUserInfo(pSubAccount_, Account::HOST_SEND,
-		pSessionCallback_, pwstrUserName, pwstrPassword);
-	return state_ != PASSWORDSTATE_NONE;
-}
-
-void qmpop3::Pop3SendSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
-{
-	Util::setPassword(pSubAccount_, Account::HOST_SEND,
-		state_, pSessionCallback_, pwszPassword);
-}
-
-
-void qmpop3::Pop3SendSession::CallbackImpl::authenticating()
-{
-	setMessage(IDS_AUTHENTICATING);
-}
-
-void qmpop3::Pop3SendSession::CallbackImpl::setRange(size_t nMin,
-													 size_t nMax)
-{
-	pSessionCallback_->setSubRange(nMin, nMax);
-}
-
-void qmpop3::Pop3SendSession::CallbackImpl::setPos(size_t nPos)
-{
-	pSessionCallback_->setSubPos(nPos);
 }
 
 

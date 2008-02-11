@@ -29,8 +29,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		Util::reportError(pNntp_.get(), pSessionCallback_, \
-			pAccount_, pSubAccount_, pFolder_, 0); \
+		Util::reportError(pNntp_.get(), pSessionCallback_, pAccount_, \
+			pSubAccount_, pFolder_, 0, pCallback_->getErrorMessage()); \
 		return false; \
 	} while (false) \
 
@@ -325,7 +325,7 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		if (bApplyRules || bJunkFilter) {
 			if (!applyRules(&listDownloaded, bJunkFilter, !bApplyRules))
 				Util::reportError(0, pSessionCallback_, pAccount_,
-					pSubAccount_, pFolder_, NNTPERROR_APPLYRULES);
+					pSubAccount_, pFolder_, NNTPERROR_APPLYRULES, 0);
 		}
 		for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
 			bool bNotify = false;
@@ -510,7 +510,7 @@ bool qmnntp::NntpReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 					float fScore = pJunkFilter->getScore(msg);
 					if (fScore < 0)
 						Util::reportError(0, pSessionCallback_, pAccount_,
-							pSubAccount_, pFolder_, NNTPERROR_FILTERJUNK);
+							pSubAccount_, pFolder_, NNTPERROR_FILTERJUNK, 0);
 					else if (fScore > pJunkFilter->getThresholdScore())
 						nOperation = JunkFilter::OPERATION_ADDJUNK;
 					else
@@ -520,7 +520,7 @@ bool qmnntp::NntpReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
 					Util::reportError(0, pSessionCallback_, pAccount_,
-						pSubAccount_, pFolder_, NNTPERROR_MANAGEJUNK);
+						pSubAccount_, pFolder_, NNTPERROR_MANAGEJUNK, 0);
 			}
 			
 			pSessionCallback_->setPos(n);

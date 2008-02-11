@@ -40,7 +40,7 @@ public:
  */
 
 class DefaultCallback :
-	public qs::SocketCallback,
+	public qs::DefaultSocketCallback,
 	public qm::AbstractSSLSocketCallback,
 	public qs::HttpCallback
 {

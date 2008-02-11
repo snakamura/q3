@@ -106,7 +106,13 @@ public:
 				 short nPort);
 	int select(int nSelect,
 			   long nTimeout);
-	
+	void error(SocketBase::Error error,
+			   int nLastError);
+
+public:
+	static wstring_ptr formatMessage(int n,
+									 LANGID langId);
+
 public:
 	Socket* pThis_;
 	SOCKET socket_;
@@ -114,7 +120,6 @@ public:
 	SocketCallback* pSocketCallback_;
 	Logger* pLogger_;
 	bool bDebug_;
-	
 	SocketInputStream* pInputStream_;
 	SocketOutputStream* pOutputStream_;
 };
@@ -182,7 +187,7 @@ bool qs::SocketImpl::connect(const WCHAR* pwszHost,
 			if (!phe || !phe->h_addr_list[0])
 				phe = gethostbyname(strHost.get());
 			if (!phe || !phe->h_addr_list[0]) {
-				pThis_->setLastError(Socket::SOCKET_ERROR_LOOKUPNAME);
+				error(Socket::SOCKET_ERROR_LOOKUPNAME, ::WSAGetLastError());
 				return false;
 			}
 			::memcpy(&sockAddr.sin_addr.s_addr,
@@ -227,7 +232,7 @@ bool qs::SocketImpl::connect(const WCHAR* pwszHost,
 					assert(pSocketCallback_);
 					if (pSocketCallback_->isCanceled(false)) {
 						log.debug(L"Connection canceled.");
-						pThis_->setLastError(Socket::SOCKET_ERROR_CANCEL);
+						error(Socket::SOCKET_ERROR_CANCEL, ERROR_SUCCESS);
 						break;
 					}
 					fd_set fdset;
@@ -242,11 +247,11 @@ bool qs::SocketImpl::connect(const WCHAR* pwszHost,
 				}
 				if (n == nTimeout_) {
 					log.debug(L"Connection timeout.");
-					pThis_->setLastError(Socket::SOCKET_ERROR_CONNECTTIMEOUT);
+					error(Socket::SOCKET_ERROR_CONNECTTIMEOUT, ERROR_SUCCESS);
 				}
 			}
 			else {
-				pThis_->setLastError(Socket::SOCKET_ERROR_CONNECT);
+				error(Socket::SOCKET_ERROR_CONNECT, ::WSAGetLastError());
 			}
 			if (!bConnect)
 				return false;
@@ -290,7 +295,7 @@ int qs::SocketImpl::select(int nSelect,
 			nSelect & Socket::SELECT_EXCEPT ? &fdset[2] : 0,
 			&tvTimeout);
 		if (nRet == SOCKET_ERROR) {
-			pThis_->setLastError(Socket::SOCKET_ERROR_SELECT);
+			error(Socket::SOCKET_ERROR_SELECT, ::WSAGetLastError());
 			return -1;
 		}
 		else if (nRet != 0) {
@@ -308,6 +313,41 @@ int qs::SocketImpl::select(int nSelect,
 	}
 	
 	return nSelected;
+}
+
+void SocketImpl::error(SocketBase::Error error,
+					   int nLastError)
+{
+	pThis_->setLastError(error);
+	
+	if (pSocketCallback_) {
+		wstring_ptr wstr;
+		if (nLastError != ERROR_SUCCESS) {
+			wstr = formatMessage(nLastError, ::GetUserDefaultLangID());
+			if (!wstr.get())
+				wstr = formatMessage(nLastError, 0);
+		}
+		pSocketCallback_->error(error, wstr.get());
+	}
+}
+
+wstring_ptr SocketImpl::formatMessage(int n,
+									  LANGID langId)
+{
+	LPVOID p = 0;
+	if (!::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		0, n, langId, reinterpret_cast<LPTSTR>(&p), 0, 0))
+		return 0;
+	
+#ifdef UNICODE
+	wstring_ptr wstr(allocWString(static_cast<const WCHAR*>(p)));
+#else
+	wstring_ptr wstr(tcs2wcs(static_cast<const CHAR*>(p)));
+#endif
+	::LocalFree(p);
+	return wstr;
 }
 
 
@@ -409,7 +449,7 @@ bool qs::Socket::close()
 			pImpl_->socket_ = 0;
 			
 			if (::closesocket(s)) {
-				setLastError(SOCKET_ERROR_CLOSESOCKET);
+				pImpl_->error(SOCKET_ERROR_CLOSESOCKET, ::WSAGetLastError());
 				return false;
 			}
 			
@@ -436,7 +476,7 @@ int qs::Socket::recv(char* p,
 		nRecv = ::recv(pImpl_->socket_, p, nLen, nFlags);
 		if (nRecv == SOCKET_ERROR) {
 			log.debug(L"Error occurred while receiving.");
-			setLastError(SOCKET_ERROR_RECV);
+			pImpl_->error(SOCKET_ERROR_RECV, ::WSAGetLastError());
 			return -1;
 		}
 		
@@ -465,7 +505,7 @@ int qs::Socket::send(const char* p,
 		nSent = ::send(pImpl_->socket_, p, nLen, nFlags);
 		if (nSent == SOCKET_ERROR) {
 			log.debug(L"Error occurred while sending.");
-			setLastError(SOCKET_ERROR_SEND);
+			pImpl_->error(SOCKET_ERROR_SEND, ::WSAGetLastError());
 			return -1;
 		}
 		
@@ -497,7 +537,7 @@ int qs::Socket::select(int nSelect,
 		do {
 			if (pImpl_->pSocketCallback_->isCanceled(true)) {
 				log.debug(L"Canceled while selecting.");
-				setLastError(SOCKET_ERROR_CANCEL);
+				pImpl_->error(SOCKET_ERROR_CANCEL, ERROR_SUCCESS);
 				return -1;
 			}
 			
@@ -644,6 +684,11 @@ qs::DefaultSocketCallback::~DefaultSocketCallback()
 {
 }
 
+const WCHAR* qs::DefaultSocketCallback::getErrorMessage() const
+{
+	return wstrErrorMessage_.get();
+}
+
 bool qs::DefaultSocketCallback::isCanceled(bool bForce) const
 {
 	return false;
@@ -663,6 +708,15 @@ void qs::DefaultSocketCallback::connecting()
 
 void qs::DefaultSocketCallback::connected()
 {
+}
+
+void qs::DefaultSocketCallback::error(SocketBase::Error error,
+									  const WCHAR* pwszMessage)
+{
+	if (pwszMessage)
+		wstrErrorMessage_ = allocWString(pwszMessage);
+	else
+		wstrErrorMessage_.reset(0);
 }
 
 

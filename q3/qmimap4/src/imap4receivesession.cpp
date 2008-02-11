@@ -38,8 +38,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		Util::reportError(pImap4_.get(), pSessionCallback_, \
-			pAccount_, pSubAccount_, pFolder_, 0); \
+		Util::reportError(pImap4_.get(), pSessionCallback_, pAccount_, \
+			pSubAccount_, pFolder_, 0, pCallback_->getErrorMessage()); \
 		return false; \
 	} while (false) \
 
@@ -952,7 +952,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		if (bApplyRules || bJunkFilter) {
 			if (!applyRules(listMessageData, bJunkFilter, !bApplyRules))
 				Util::reportError(0, pSessionCallback_, pAccount_,
-					pSubAccount_, pFolder_, IMAP4ERROR_APPLYRULES);
+					pSubAccount_, pFolder_, IMAP4ERROR_APPLYRULES, 0);
 		}
 		
 		bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
@@ -1271,7 +1271,7 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 					float fScore = pJunkFilter->getScore(msg);
 					if (fScore < 0)
 						Util::reportError(0, pSessionCallback_, pAccount_,
-							pSubAccount_, pFolder_, IMAP4ERROR_FILTERJUNK);
+							pSubAccount_, pFolder_, IMAP4ERROR_FILTERJUNK, 0);
 					else if (fScore > pJunkFilter->getThresholdScore())
 						nOperation = JunkFilter::OPERATION_ADDJUNK;
 					else
@@ -1281,7 +1281,7 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
 					Util::reportError(0, pSessionCallback_, pAccount_,
-						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK);
+						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK, 0);
 			}
 			
 			pSessionCallback_->setPos(n);
@@ -1313,7 +1313,7 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
 					Util::reportError(0, pSessionCallback_, pAccount_,
-						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK);
+						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK, 0);
 			}
 			
 			pSessionCallback_->setPos(n);
@@ -1511,7 +1511,6 @@ void qmimap4::Imap4ReceiveSession::CallbackImpl::connected()
 {
 	setMessage(IDS_CONNECTED);
 }
-
 
 void qmimap4::Imap4ReceiveSession::CallbackImpl::authenticating()
 {

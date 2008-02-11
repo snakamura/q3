@@ -103,7 +103,8 @@ public:
 							qm::Account* pAccount,
 							qm::SubAccount* pSubAccount,
 							qm::NormalFolder* pFolder,
-							unsigned int nImap4Error);
+							unsigned int nImap4Error,
+							const WCHAR* pwszSocketErrorMessage);
 	static Imap4::Secure getSecure(qm::SubAccount* pSubAccount);
 	static Imap4::Secure getSecure(qm::SubAccount::Secure secure);
 
@@ -162,7 +163,7 @@ struct PathFree : public std::unary_function<unsigned int*, void*>
  */
 
 class AbstractCallback :
-	public qs::SocketCallback,
+	public qs::DefaultSocketCallback,
 	public qm::DefaultSSLSocketCallback,
 	public Imap4Callback
 {
@@ -178,13 +179,13 @@ public:
 	virtual void lookup();
 	virtual void connecting();
 	virtual void connected();
-	virtual void authenticating();
 
 public:
 	virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
 							 qs::wstring_ptr* pwstrPassword);
 	virtual void setPassword(const WCHAR* pwszPassword);
 	virtual qs::wstring_ptr getAuthMethods();
+	virtual void authenticating();
 	virtual void setRange(size_t nMin,
 						  size_t nMax);
 	virtual void setPos(size_t nPos);

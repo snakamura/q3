@@ -450,6 +450,7 @@ void qmsmtp::SmtpSendSession::reportError()
 		wstrDescriptions[0].get(),
 		wstrDescriptions[1].get(),
 		wstrSocketDescription.get(),
+		pCallback_->getErrorMessage(),
 		pSmtp_->getLastErrorResponse()
 	};
 	SessionErrorInfo info(pAccount_, pSubAccount_, 0, wstrMessage.get(),

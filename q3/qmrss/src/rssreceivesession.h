@@ -82,7 +82,8 @@ private:
 	void setMessage(UINT nId);
 	void reportError(UINT nId,
 					 const WCHAR* pwszParam,
-					 qs::HttpMethod* pMethod);
+					 qs::HttpMethod* pMethod,
+					 const WCHAR* pwszSocketErrorMessage);
 
 private:
 	static bool createItemMessage(const Channel* pChannel,

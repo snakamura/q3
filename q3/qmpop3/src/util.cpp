@@ -27,7 +27,8 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 							   Account* pAccount,
 							   SubAccount* pSubAccount,
 							   NormalFolder* pFolder,
-							   unsigned int nPop3Error)
+							   unsigned int nPop3Error,
+							   const WCHAR* pwszSocketErrorMessage)
 {
 	assert(pCallback);
 	
@@ -97,6 +98,7 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 		wstrDescriptions[1].get(),
 		wstrDescriptions[2].get(),
 		wstrSocketDescription.get(),
+		pwszSocketErrorMessage,
 		pPop3 ? pPop3->getLastErrorResponse() : 0
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),
@@ -145,4 +147,88 @@ void qmpop3::Util::setPassword(SubAccount* pSubAccount,
 	if (state == PASSWORDSTATE_SESSION || state == PASSWORDSTATE_SAVE)
 		pPasswordCallback->setPassword(pSubAccount, host,
 			pwszPassword, state == PASSWORDSTATE_SAVE);
+}
+
+
+/****************************************************************************
+ *
+ * DefaultCallback
+ *
+ */
+
+qmpop3::DefaultCallback::DefaultCallback(SubAccount* pSubAccount,
+										 qm::Account::Host host,
+										 const Security* pSecurity,
+										 SessionCallback* pSessionCallback) :
+	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
+	pSubAccount_(pSubAccount),
+	host_(host),
+	pSessionCallback_(pSessionCallback),
+	state_(PASSWORDSTATE_ONETIME)
+{
+}
+
+qmpop3::DefaultCallback::~DefaultCallback()
+{
+}
+
+void qmpop3::DefaultCallback::setMessage(UINT nId)
+{
+	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
+	pSessionCallback_->setMessage(wstrMessage.get());
+}
+
+bool qmpop3::DefaultCallback::isCanceled(bool bForce) const
+{
+	return pSessionCallback_->isCanceled(bForce);
+}
+
+void qmpop3::DefaultCallback::initialize()
+{
+	setMessage(IDS_INITIALIZE);
+}
+
+void qmpop3::DefaultCallback::lookup()
+{
+	setMessage(IDS_LOOKUP);
+}
+
+void qmpop3::DefaultCallback::connecting()
+{
+	setMessage(IDS_CONNECTING);
+}
+
+void qmpop3::DefaultCallback::connected()
+{
+	setMessage(IDS_CONNECTED);
+}
+
+bool qmpop3::DefaultCallback::getUserInfo(wstring_ptr* pwstrUserName,
+										  wstring_ptr* pwstrPassword)
+{
+	state_ = Util::getUserInfo(pSubAccount_, host_,
+		pSessionCallback_, pwstrUserName, pwstrPassword);
+	return state_ != PASSWORDSTATE_NONE;
+}
+
+void qmpop3::DefaultCallback::setPassword(const WCHAR* pwszPassword)
+{
+	Util::setPassword(pSubAccount_, host_,
+		state_, pSessionCallback_, pwszPassword);
+}
+
+void qmpop3::DefaultCallback::authenticating()
+{
+	setMessage(IDS_AUTHENTICATING);
+}
+
+void qmpop3::DefaultCallback::setRange(size_t nMin,
+									   size_t nMax)
+{
+	pSessionCallback_->setSubRange(nMin, nMax);
+}
+
+void qmpop3::DefaultCallback::setPos(size_t nPos)
+{
+	pSessionCallback_->setSubPos(nPos);
 }

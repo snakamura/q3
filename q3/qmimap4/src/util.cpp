@@ -625,7 +625,8 @@ void qmimap4::Util::reportError(Imap4* pImap4,
 								Account* pAccount,
 								SubAccount* pSubAccount,
 								NormalFolder* pFolder,
-								unsigned int nImap4Error)
+								unsigned int nImap4Error,
+								const WCHAR* pwszSocketErrorMessage)
 {
 	assert(pCallback);
 	
@@ -703,6 +704,7 @@ void qmimap4::Util::reportError(Imap4* pImap4,
 		wstrDescriptions[1].get(),
 		wstrDescriptions[2].get(),
 		wstrSocketDescription.get(),
+		pwszSocketErrorMessage,
 		pImap4 ? pImap4->getLastErrorResponse() : 0
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),
@@ -952,10 +954,6 @@ void qmimap4::AbstractCallback::connected()
 {
 }
 
-void qmimap4::AbstractCallback::authenticating()
-{
-}
-
 bool qmimap4::AbstractCallback::getUserInfo(wstring_ptr* pwstrUserName,
 											wstring_ptr* pwstrPassword)
 {
@@ -977,6 +975,10 @@ void qmimap4::AbstractCallback::setPassword(const WCHAR* pwszPassword)
 wstring_ptr qmimap4::AbstractCallback::getAuthMethods()
 {
 	return pSubAccount_->getPropertyString(L"Imap4", L"AuthMethods");
+}
+
+void qmimap4::AbstractCallback::authenticating()
+{
 }
 
 void qmimap4::AbstractCallback::setRange(size_t nMin,

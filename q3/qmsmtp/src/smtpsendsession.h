@@ -55,7 +55,7 @@ private:
 	SmtpSendSession& operator=(const SmtpSendSession&);
 
 private:
-	class SocketCallbackImpl : public qs::SocketCallback
+	class SocketCallbackImpl : public qs::DefaultSocketCallback
 	{
 	public:
 		SocketCallbackImpl(qm::SendSessionCallback* pSessionCallback);

@@ -37,7 +37,8 @@ public:
 							qm::Account* pAccount,
 							qm::SubAccount* pSubAccount,
 							qm::NormalFolder* pFolder,
-							unsigned int nNntpError);
+							unsigned int nNntpError,
+							const WCHAR* pwszSocketErrorMessage);
 	static qm::PasswordState getUserInfo(qm::SubAccount* pSubAccount,
 										 qm::Account::Host host,
 										 qm::PasswordCallback* pPasswordCallback,
@@ -58,7 +59,7 @@ public:
  */
 
 class DefaultCallback :
-	public qs::SocketCallback,
+	public qs::DefaultSocketCallback,
 	public qm::DefaultSSLSocketCallback,
 	public NntpCallback
 {

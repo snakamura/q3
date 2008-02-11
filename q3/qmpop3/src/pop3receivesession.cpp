@@ -36,8 +36,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		Util::reportError(pPop3_.get(), pSessionCallback_, \
-			pAccount_, pSubAccount_, pFolder_, 0); \
+		Util::reportError(pPop3_.get(), pSessionCallback_, pAccount_, \
+			pSubAccount_, pFolder_, 0, pCallback_->getErrorMessage()); \
 		return false; \
 	} while (false) \
 
@@ -85,7 +85,7 @@ bool qmpop3::Pop3ReceiveSession::init(Document* pDocument,
 	pProfile_ = pProfile;
 	pLogger_ = pLogger;
 	pSessionCallback_ = pCallback;
-	pCallback_.reset(new CallbackImpl(pSubAccount_,
+	pCallback_.reset(new DefaultCallback(pSubAccount_, Account::HOST_RECEIVE,
 		pDocument_->getSecurity(), pSessionCallback_));
 	
 	return true;
@@ -401,7 +401,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		if (bApplyRules || bJunkFilter) {
 			if (!applyRules(&listDownloaded, bJunkFilter, !bApplyRules))
 				Util::reportError(0, pSessionCallback_, pAccount_,
-					pSubAccount_, pFolder_, POP3ERROR_APPLYRULES);
+					pSubAccount_, pFolder_, POP3ERROR_APPLYRULES, 0);
 		}
 		for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
 			bool bNotify = false;
@@ -659,7 +659,7 @@ bool qmpop3::Pop3ReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 					float fScore = pJunkFilter->getScore(msg);
 					if (fScore < 0)
 						Util::reportError(0, pSessionCallback_, pAccount_,
-							pSubAccount_, pFolder_, POP3ERROR_FILTERJUNK);
+							pSubAccount_, pFolder_, POP3ERROR_FILTERJUNK, 0);
 					else if (fScore > pJunkFilter->getThresholdScore())
 						nOperation = JunkFilter::OPERATION_ADDJUNK;
 					else
@@ -669,7 +669,7 @@ bool qmpop3::Pop3ReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
 					Util::reportError(0, pSessionCallback_, pAccount_,
-						pSubAccount_, pFolder_, POP3ERROR_MANAGEJUNK);
+						pSubAccount_, pFolder_, POP3ERROR_MANAGEJUNK, 0);
 			}
 			
 			pSessionCallback_->setPos(n);
@@ -764,88 +764,6 @@ bool qmpop3::Pop3ReceiveSession::setSubAccount(Message* pMessage,
 		pMessage->removeField(L"X-QMAIL-SubAccount");
 	}
 	return true;
-}
-
-
-/****************************************************************************
- *
- * Pop3ReceiveSession::CallbackImpl
- *
- */
-
-qmpop3::Pop3ReceiveSession::CallbackImpl::CallbackImpl(SubAccount* pSubAccount,
-													   const Security* pSecurity,
-													   ReceiveSessionCallback* pSessionCallback) :
-	DefaultSSLSocketCallback(pSubAccount, Account::HOST_RECEIVE, pSecurity),
-	pSubAccount_(pSubAccount),
-	pSessionCallback_(pSessionCallback),
-	state_(PASSWORDSTATE_ONETIME)
-{
-}
-
-qmpop3::Pop3ReceiveSession::CallbackImpl::~CallbackImpl()
-{
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::setMessage(UINT nId)
-{
-	wstring_ptr wstrMessage(loadString(getResourceHandle(), nId));
-	pSessionCallback_->setMessage(wstrMessage.get());
-}
-
-bool qmpop3::Pop3ReceiveSession::CallbackImpl::isCanceled(bool bForce) const
-{
-	return pSessionCallback_->isCanceled(bForce);
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::initialize()
-{
-	setMessage(IDS_INITIALIZE);
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::lookup()
-{
-	setMessage(IDS_LOOKUP);
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::connecting()
-{
-	setMessage(IDS_CONNECTING);
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::connected()
-{
-	setMessage(IDS_CONNECTED);
-}
-
-bool qmpop3::Pop3ReceiveSession::CallbackImpl::getUserInfo(wstring_ptr* pwstrUserName,
-														   wstring_ptr* pwstrPassword)
-{
-	state_ = Util::getUserInfo(pSubAccount_, Account::HOST_RECEIVE,
-		pSessionCallback_, pwstrUserName, pwstrPassword);
-	return state_ != PASSWORDSTATE_NONE;
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::setPassword(const WCHAR* pwszPassword)
-{
-	Util::setPassword(pSubAccount_, Account::HOST_RECEIVE,
-		state_, pSessionCallback_, pwszPassword);
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::authenticating()
-{
-	setMessage(IDS_AUTHENTICATING);
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::setRange(size_t nMin,
-														size_t nMax)
-{
-	pSessionCallback_->setSubRange(nMin, nMax);
-}
-
-void qmpop3::Pop3ReceiveSession::CallbackImpl::setPos(size_t nPos)
-{
-	pSessionCallback_->setSubPos(nPos);
 }
 
 

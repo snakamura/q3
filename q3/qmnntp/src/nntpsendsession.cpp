@@ -22,8 +22,8 @@ using namespace qs;
 
 #define HANDLE_ERROR() \
 	do { \
-		Util::reportError(pNntp_.get(), pSessionCallback_, \
-			pAccount_, pSubAccount_, 0, 0); \
+		Util::reportError(pNntp_.get(), pSessionCallback_, pAccount_, \
+			pSubAccount_, 0, 0, pCallback_->getErrorMessage()); \
 		return false; \
 	} while (false) \
 

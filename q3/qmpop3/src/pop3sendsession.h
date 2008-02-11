@@ -20,6 +20,13 @@
 
 namespace qmpop3 {
 
+class Pop3SendSession;
+class Pop3SendSessionUI;
+class Pop3SendSessionFactory;
+
+class DefaultCallback;
+
+
 /****************************************************************************
  *
  * Pop3SendSession
@@ -49,50 +56,8 @@ private:
 	Pop3SendSession& operator=(const Pop3SendSession&);
 
 private:
-	class CallbackImpl :
-		public qs::SocketCallback,
-		public qm::DefaultSSLSocketCallback,
-		public Pop3Callback
-	{
-	public:
-		CallbackImpl(qm::SubAccount* pSubAccount,
-					 const qm::Security* pSecurity,
-					 qm::SendSessionCallback* pSessionCallback);
-		virtual ~CallbackImpl();
-	
-	public:
-		void setMessage(UINT nId);
-	
-	public:
-		virtual bool isCanceled(bool bForce) const;
-		virtual void initialize();
-		virtual void lookup();
-		virtual void connecting();
-		virtual void connected();
-	
-	public:
-		virtual bool getUserInfo(qs::wstring_ptr* pwstrUserName,
-								 qs::wstring_ptr* pwstrPassword);
-		virtual void setPassword(const WCHAR* pwszPassword);
-		
-		virtual void authenticating();
-		virtual void setRange(size_t nMin,
-							  size_t nMax);
-		virtual void setPos(size_t nPos);
-	
-	private:
-		CallbackImpl(const CallbackImpl&);
-		CallbackImpl& operator=(const CallbackImpl&);
-	
-	private:
-		qm::SubAccount* pSubAccount_;
-		qm::SendSessionCallback* pSessionCallback_;
-		qm::PasswordState state_;
-	};
-
-private:
 	std::auto_ptr<Pop3> pPop3_;
-	std::auto_ptr<CallbackImpl> pCallback_;
+	std::auto_ptr<DefaultCallback> pCallback_;
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
 	qs::Logger* pLogger_;

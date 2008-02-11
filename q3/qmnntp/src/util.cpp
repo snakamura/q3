@@ -29,7 +29,8 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 							   Account* pAccount,
 							   SubAccount* pSubAccount,
 							   NormalFolder* pFolder,
-							   unsigned int nNntpError)
+							   unsigned int nNntpError,
+							   const WCHAR* pwszSocketErrorMessage)
 {
 	assert(pSessionCallback);
 	assert(pAccount);
@@ -97,6 +98,7 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 		wstrDescriptions[1].get(),
 		wstrDescriptions[2].get(),
 		wstrSocketDescription.get(),
+		pwszSocketErrorMessage,
 		pNntp ? pNntp->getLastErrorResponse() : 0
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),

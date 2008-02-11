@@ -111,9 +111,9 @@ private:
 		virtual void lookup();
 		virtual void connecting();
 		virtual void connected();
-		virtual void authenticating();
 	
 	public:
+		virtual void authenticating();
 		virtual void setRange(size_t nMin,
 							  size_t nMax);
 		virtual void setPos(size_t nPos);

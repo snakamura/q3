@@ -211,6 +211,8 @@ public:
 	virtual void lookup() = 0;
 	virtual void connecting() = 0;
 	virtual void connected() = 0;
+	virtual void error(SocketBase::Error error,
+					   const WCHAR* pwszMessage) = 0;
 };
 
 
@@ -220,6 +222,9 @@ public:
  *
  */
 
+#pragma warning(push)
+#pragma warning(disable:4251)
+
 class QSEXPORTCLASS DefaultSocketCallback : public SocketCallback
 {
 public:
@@ -227,12 +232,26 @@ public:
 	virtual ~DefaultSocketCallback();
 
 public:
+	const WCHAR* getErrorMessage() const;
+
+public:
 	virtual bool isCanceled(bool bForce) const;
 	virtual void initialize();
 	virtual void lookup();
 	virtual void connecting();
 	virtual void connected();
+	virtual void error(SocketBase::Error error,
+					   const WCHAR* pwszMessage);
+
+private:
+	DefaultSocketCallback(const DefaultSocketCallback&);
+	DefaultSocketCallback& operator=(const DefaultSocketCallback&);
+
+private:
+	wstring_ptr wstrErrorMessage_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************

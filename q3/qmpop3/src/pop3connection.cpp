@@ -42,7 +42,9 @@ bool qmpop3::Pop3Connection::connect(const WCHAR* pwszHost,
 									 SubAccount::Secure secure)
 {
 	if (!pPop3_->connect(pwszHost, nPort, bApop_, Util::getSecure(secure))) {
-		Util::reportError(pPop3_.get(), pCallback_->getConnectionCallback(), 0, 0, 0, 0);
+		/// TODO
+		/// Handle socket error message.
+		Util::reportError(pPop3_.get(), pCallback_->getConnectionCallback(), 0, 0, 0, 0, 0);
 		return false;
 	}
 	return true;

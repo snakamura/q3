@@ -47,7 +47,7 @@ private:
 
 private:
 	class CallbackImpl :
-		public qs::SocketCallback,
+		public qs::DefaultSocketCallback,
 		public qm::DefaultSSLSocketCallback,
 		public NntpCallback
 	{

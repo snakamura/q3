@@ -127,7 +127,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 		// See <BTS:872> for details.
 		return true;
 #else
-		reportError(IDS_ERROR_URL, pwszURL, 0);
+		reportError(IDS_ERROR_URL, pwszURL, 0, 0);
 		return false;
 #endif
 	}
@@ -259,7 +259,7 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;
 	if (bApplyRules) {
 		if (!applyRules(&listDownloaded))
-			reportError(IDS_ERROR_APPLYRULES, 0, 0);
+			reportError(IDS_ERROR_APPLYRULES, 0, 0, 0);
 	}
 	for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
 		bool bNotify = false;
@@ -294,7 +294,7 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getHttpChannel(const WCHAR* pws
 	
 	std::auto_ptr<HttpURL> pURL(HttpURL::create(pwszURL));
 	if (!pURL.get()) {
-		reportError(IDS_ERROR_URL, pwszURL, 0);
+		reportError(IDS_ERROR_URL, pwszURL, 0, 0);
 		return std::auto_ptr<Channel>();
 	}
 	
@@ -348,13 +348,13 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getHttpChannel(const WCHAR* pws
 		case 303:
 		case 307:
 			if (nRedirect == MAX_REDIRECT - 1) {
-				reportError(IDS_ERROR_EXCEEDMAXREDIRECT, wstrURL.get(), pMethod.get());
+				reportError(IDS_ERROR_EXCEEDMAXREDIRECT, wstrURL.get(), pMethod.get(), 0);
 				return std::auto_ptr<Channel>();
 			}
 			else {
 				Part header;
 				if (!header.create(0, pMethod->getResponseHeader(), -1)) {
-					reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), pMethod.get());
+					reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), pMethod.get(), 0);
 					return std::auto_ptr<Channel>();
 				}
 				HttpUtility::updateInternetCookies(wstrURL.get(), header);
@@ -368,7 +368,7 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getHttpChannel(const WCHAR* pws
 						IDS_ERROR_INVALIDREDIRECTLOCATION
 					};
 					assert(error - HttpUtility::REDIRECTERROR_SUCCESS < countof(nIds));
-					reportError(nIds[error - HttpUtility::REDIRECTERROR_SUCCESS], wstrURL.get(), pMethod.get());
+					reportError(nIds[error - HttpUtility::REDIRECTERROR_SUCCESS], wstrURL.get(), pMethod.get(), 0);
 					return std::auto_ptr<Channel>();
 				}
 				continue;
@@ -377,7 +377,8 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getHttpChannel(const WCHAR* pws
 			*pbNoChange = true;
 			return std::auto_ptr<Channel>();
 		default:
-			reportError(IDS_ERROR_GET, wstrURL.get(), pMethod.get());
+			reportError(IDS_ERROR_GET, wstrURL.get(),
+				pMethod.get(), callback.getErrorMessage());
 			return std::auto_ptr<Channel>();
 		}
 		break;
@@ -388,13 +389,13 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getHttpChannel(const WCHAR* pws
 	std::auto_ptr<Channel> pChannel(RssParser().parse(
 		pwszURL, pMethod->getResponseBodyAsStream()));
 	if (!pChannel.get()) {
-		reportError(IDS_ERROR_PARSE, wstrURL.get(), 0);
+		reportError(IDS_ERROR_PARSE, wstrURL.get(), 0, 0);
 		return std::auto_ptr<Channel>();
 	}
 	
 	Part header;
 	if (!header.create(0, pMethod->getResponseHeader(), -1)) {
-		reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), 0);
+		reportError(IDS_ERROR_PARSERESPONSEHEADER, wstrURL.get(), 0, 0);
 		return std::auto_ptr<Channel>();
 	}
 	HttpUtility::updateInternetCookies(wstrURL.get(), header);
@@ -421,7 +422,7 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getExecChannel(const WCHAR* pws
 	
 	ByteOutputStream os;
 	if (Process::exec(pwszCommandLine, 0, &os, 0) != 0) {
-		reportError(IDS_ERROR_GET, pwszURL, 0);
+		reportError(IDS_ERROR_GET, pwszURL, 0, 0);
 		return std::auto_ptr<Channel>();
 	}
 	
@@ -430,7 +431,7 @@ std::auto_ptr<Channel> qmrss::RssReceiveSession::getExecChannel(const WCHAR* pws
 	ByteInputStream is(os.getBuffer(), os.getLength(), false);
 	std::auto_ptr<Channel> pChannel(RssParser().parse(pwszURL, &is));
 	if (!pChannel.get()) {
-		reportError(IDS_ERROR_PARSE, pwszURL, 0);
+		reportError(IDS_ERROR_PARSE, pwszURL, 0, 0);
 		return std::auto_ptr<Channel>();
 	}
 	
@@ -472,7 +473,8 @@ void qmrss::RssReceiveSession::setMessage(UINT nId)
 
 void qmrss::RssReceiveSession::reportError(UINT nId,
 										   const WCHAR* pwszParam,
-										   HttpMethod* pMethod)
+										   HttpMethod* pMethod,
+										   const WCHAR* pwszSocketErrorMessage)
 {
 	HINSTANCE hInst = getResourceHandle();
 	
@@ -486,6 +488,7 @@ void qmrss::RssReceiveSession::reportError(UINT nId,
 	const WCHAR* pwszDescription[] = {
 		wstrDescription.get(),
 		pwszParam,
+		pwszSocketErrorMessage,
 		wstrResponse.get()
 	};
 	

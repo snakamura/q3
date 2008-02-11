@@ -41,7 +41,9 @@ bool qmimap4::Imap4Connection::connect(const WCHAR* pwszHost,
 									   SubAccount::Secure secure)
 {
 	if (!pImap4_->connect(pwszHost, nPort, Util::getSecure(secure))) {
-		Util::reportError(pImap4_.get(), pCallback_->getConnectionCallback(), 0, 0, 0, 0);
+		/// TODO
+		/// Handle socket error message.
+		Util::reportError(pImap4_.get(), pCallback_->getConnectionCallback(), 0, 0, 0, 0, 0);
 		return false;
 	}
 	return true;
