@@ -722,6 +722,85 @@ void qs::DefaultSocketCallback::error(SocketBase::Error error,
 
 /****************************************************************************
  *
+ * FilterSocketCallback
+ *
+ */
+
+qs::FilterSocketCallback::FilterSocketCallback(SocketCallback* pCallback) :
+	pCallback_(pCallback)
+{
+}
+
+qs::FilterSocketCallback::~FilterSocketCallback()
+{
+}
+
+bool qs::FilterSocketCallback::isCanceled(bool bForce) const
+{
+	return pCallback_->isCanceled(bForce);
+}
+
+void qs::FilterSocketCallback::initialize()
+{
+	pCallback_->initialize();
+}
+
+void qs::FilterSocketCallback::lookup()
+{
+	pCallback_->lookup();
+}
+
+void qs::FilterSocketCallback::connecting()
+{
+	pCallback_->connecting();
+}
+
+void qs::FilterSocketCallback::connected()
+{
+	pCallback_->connected();
+}
+
+void qs::FilterSocketCallback::error(SocketBase::Error error,
+									 const WCHAR* pwszMessage)
+{
+	pCallback_->error(error, pwszMessage);
+}
+
+
+/****************************************************************************
+ *
+ * DefaultFilterSocketCallback
+ *
+ */
+
+qs::DefaultFilterSocketCallback::DefaultFilterSocketCallback(SocketCallback* pCallback) :
+	FilterSocketCallback(pCallback)
+{
+}
+
+DefaultFilterSocketCallback::~DefaultFilterSocketCallback()
+{
+}
+
+const WCHAR* qs::DefaultFilterSocketCallback::getErrorMessage() const
+{
+	return wstrErrorMessage_.get();
+}
+
+void DefaultFilterSocketCallback::error(SocketBase::Error error,
+										const WCHAR* pwszMessage)
+{
+	if (pwszMessage)
+		wstrErrorMessage_ = allocWString(pwszMessage);
+	else
+		wstrErrorMessage_.reset(0);
+	
+	FilterSocketCallback::error(error, pwszMessage);
+}
+
+
+/****************************************************************************
+ *
  * SocketInputStream
  *
  */

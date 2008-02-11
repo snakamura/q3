@@ -17,8 +17,12 @@
 namespace qs {
 
 class Winsock;
-class Socket;
+class SocketBase;
+	class Socket;
+class ServerSocket;
 class SocketCallback;
+	class DefaultSocketCallback;
+	class FilterSocketCallback;
 
 class InputStream;
 class Logger;
@@ -246,6 +250,69 @@ public:
 private:
 	DefaultSocketCallback(const DefaultSocketCallback&);
 	DefaultSocketCallback& operator=(const DefaultSocketCallback&);
+
+private:
+	wstring_ptr wstrErrorMessage_;
+};
+
+#pragma warning(pop)
+
+
+/****************************************************************************
+ *
+ * FilterSocketCallback
+ *
+ */
+
+class QSEXPORTCLASS FilterSocketCallback : public SocketCallback
+{
+public:
+	FilterSocketCallback(SocketCallback* pCallback);
+	virtual ~FilterSocketCallback();
+
+public:
+	virtual bool isCanceled(bool bForce) const;
+	virtual void initialize();
+	virtual void lookup();
+	virtual void connecting();
+	virtual void connected();
+	virtual void error(SocketBase::Error error,
+					   const WCHAR* pwszMessage);
+
+private:
+	FilterSocketCallback(const FilterSocketCallback&);
+	FilterSocketCallback& operator=(const FilterSocketCallback&);
+
+private:
+	SocketCallback* pCallback_;
+};
+
+
+/****************************************************************************
+ *
+ * DefaultFilterSocketCallback
+ *
+ */
+
+#pragma warning(push)
+#pragma warning(disable:4251)
+
+class QSEXPORTCLASS DefaultFilterSocketCallback : public FilterSocketCallback
+{
+public:
+	DefaultFilterSocketCallback(SocketCallback* pCallback);
+	virtual ~DefaultFilterSocketCallback();
+
+public:
+	const WCHAR* getErrorMessage() const;
+
+public:
+	virtual void error(SocketBase::Error error,
+					   const WCHAR* pwszMessage);
+
+private:
+	DefaultFilterSocketCallback(const DefaultFilterSocketCallback&);
+	DefaultFilterSocketCallback& operator=(const DefaultFilterSocketCallback&);
 
 private:
 	wstring_ptr wstrErrorMessage_;
