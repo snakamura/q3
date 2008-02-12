@@ -184,6 +184,13 @@ public:
 	 * @return true if valid, false otherwise.
 	 */
 	virtual bool checkValidity() const = 0;
+	
+	/**
+	 * Clone this certificate.
+	 *
+	 * @return Cloned certificate, or null if it failed.
+	 */
+	virtual std::auto_ptr<Certificate> clone() const = 0;
 
 public:
 	/**

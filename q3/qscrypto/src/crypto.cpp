@@ -293,6 +293,11 @@ bool qscrypto::CertificateImpl::checkValidity() const
 		X509_cmp_current_time(X509_get_notAfter(pX509_)) > 0;
 }
 
+std::auto_ptr<Certificate> qscrypto::CertificateImpl::clone() const
+{
+	return std::auto_ptr<Certificate>(new CertificateImpl(pX509_, true));
+}
+
 
 /****************************************************************************
  *
