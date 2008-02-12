@@ -20,10 +20,12 @@ using namespace qm;
 using namespace qs;
 
 
-#define HANDLE_ERROR() \
+#define HANDLE_ERROR() HANDLE_ERROR_(0)
+#define HANDLE_ERROR_SSL() HANDLE_ERROR_(pCallback_->getSSLErrorMessage().get())
+#define HANDLE_ERROR_(s) \
 	do { \
 		Util::reportError(pPop3_.get(), pSessionCallback_, pAccount_, \
-			pSubAccount_, 0, 0, pCallback_->getErrorMessage()); \
+			pSubAccount_, 0, 0, pCallback_->getErrorMessage(), s); \
 		return false; \
 	} while (false) \
 
@@ -85,7 +87,7 @@ bool qmpop3::Pop3SendSession::connect()
 	Pop3::Secure secure = Util::getSecure(pSubAccount_, Account::HOST_SEND);
 	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_SEND),
 		pSubAccount_->getPort(Account::HOST_SEND), bApop, secure))
-		HANDLE_ERROR();
+		HANDLE_ERROR_SSL();
 	
 	log.debug(L"Connected to the server.");
 	

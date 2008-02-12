@@ -28,7 +28,8 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 							   SubAccount* pSubAccount,
 							   NormalFolder* pFolder,
 							   unsigned int nPop3Error,
-							   const WCHAR* pwszSocketErrorMessage)
+							   const WCHAR* pwszSocketErrorMessage,
+							   const WCHAR* pwszSSLErrorMessage)
 {
 	assert(pCallback);
 	
@@ -99,6 +100,7 @@ void qmpop3::Util::reportError(Pop3* pPop3,
 		wstrDescriptions[2].get(),
 		wstrSocketDescription.get(),
 		pwszSocketErrorMessage,
+		pwszSSLErrorMessage,
 		pPop3 ? pPop3->getLastErrorResponse() : 0
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),

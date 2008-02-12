@@ -305,6 +305,10 @@ BEGIN
     IDS_FILTER_ATTACHMENT   "All Files (*.*)|*.*||"
     IDS_FILTER_SOUND        "Wave Files (*.wav)|*.wav|All Files (*.*)|*.*||"
     IDS_FILTER_EXECUTABLE   "Executable Files (*.exe)|*.exe|All Files (*.*)|*.*||"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     IDS_FILTER_MESSAGE      "Message Files (*.eml)|*.eml|Text Files (*.txt)|*.txt|All Files (*.*)|*.*||"
 END
 
@@ -330,6 +334,8 @@ BEGIN
     IDS_MACRO               "&Macro"
     IDS_OFFLINE             "[Offline]"
     IDS_JUNKREPAIRED        "Junk database was successfully repaired."
+    IDS_SUBJECT             "Subject"
+    IDS_ISSURE              "Issure"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -366,6 +372,8 @@ BEGIN
     IDS_ERROR_INSERTTEXT    "Could not insert the text."
     IDS_ERROR_INSERTMACRO   "Could not insert the macro."
     IDS_ERROR_REFORM        "Error occurred while reforming text."
+    IDS_ERROR_VERIFICATIONFAILED "Failed to verify the peer certificate."
+    IDS_ERROR_HOSTNAMENOTMATCH "The name in the certificate is different from the name of the connected host."
 END
 
 STRINGTABLE DISCARDABLE 

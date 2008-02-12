@@ -626,7 +626,8 @@ void qmimap4::Util::reportError(Imap4* pImap4,
 								SubAccount* pSubAccount,
 								NormalFolder* pFolder,
 								unsigned int nImap4Error,
-								const WCHAR* pwszSocketErrorMessage)
+								const WCHAR* pwszSocketErrorMessage,
+								const WCHAR* pwszSSLErrorMessage)
 {
 	assert(pCallback);
 	
@@ -705,6 +706,7 @@ void qmimap4::Util::reportError(Imap4* pImap4,
 		wstrDescriptions[2].get(),
 		wstrSocketDescription.get(),
 		pwszSocketErrorMessage,
+		pwszSSLErrorMessage,
 		pImap4 ? pImap4->getLastErrorResponse() : 0
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),

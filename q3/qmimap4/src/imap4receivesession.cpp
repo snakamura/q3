@@ -36,12 +36,15 @@ using namespace qmimap4;
 using namespace qm;
 using namespace qs;
 
-#define HANDLE_ERROR() \
+#define HANDLE_ERROR() HANDLE_ERROR_(0)
+#define HANDLE_ERROR_SSL() HANDLE_ERROR_(pCallback_->getSSLErrorMessage().get())
+#define HANDLE_ERROR_(s) \
 	do { \
 		Util::reportError(pImap4_.get(), pSessionCallback_, pAccount_, \
-			pSubAccount_, pFolder_, 0, pCallback_->getErrorMessage()); \
+			pSubAccount_, pFolder_, 0, pCallback_->getErrorMessage(), s); \
 		return false; \
 	} while (false) \
+
 
 
 /****************************************************************************
@@ -113,7 +116,7 @@ bool qmimap4::Imap4ReceiveSession::connect()
 	Imap4::Secure secure = Util::getSecure(pSubAccount_);
 	if (!pImap4_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 		pSubAccount_->getPort(Account::HOST_RECEIVE), secure))
-		HANDLE_ERROR();
+		HANDLE_ERROR_SSL();
 	
 	log.debug(L"Connected to the server.");
 	
@@ -952,7 +955,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		if (bApplyRules || bJunkFilter) {
 			if (!applyRules(listMessageData, bJunkFilter, !bApplyRules))
 				Util::reportError(0, pSessionCallback_, pAccount_,
-					pSubAccount_, pFolder_, IMAP4ERROR_APPLYRULES, 0);
+					pSubAccount_, pFolder_, IMAP4ERROR_APPLYRULES, 0, 0);
 		}
 		
 		bool bNotifyNewMessage = !pFolder_->isFlag(Folder::FLAG_OUTBOX) &&
@@ -1271,7 +1274,7 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 					float fScore = pJunkFilter->getScore(msg);
 					if (fScore < 0)
 						Util::reportError(0, pSessionCallback_, pAccount_,
-							pSubAccount_, pFolder_, IMAP4ERROR_FILTERJUNK, 0);
+							pSubAccount_, pFolder_, IMAP4ERROR_FILTERJUNK, 0, 0);
 					else if (fScore > pJunkFilter->getThresholdScore())
 						nOperation = JunkFilter::OPERATION_ADDJUNK;
 					else
@@ -1281,7 +1284,7 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
 					Util::reportError(0, pSessionCallback_, pAccount_,
-						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK, 0);
+						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK, 0, 0);
 			}
 			
 			pSessionCallback_->setPos(n);
@@ -1313,7 +1316,7 @@ bool qmimap4::Imap4ReceiveSession::applyJunkFilter(const MessageDataList& l)
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
 					Util::reportError(0, pSessionCallback_, pAccount_,
-						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK, 0);
+						pSubAccount_, pFolder_, IMAP4ERROR_MANAGEJUNK, 0, 0);
 			}
 			
 			pSessionCallback_->setPos(n);

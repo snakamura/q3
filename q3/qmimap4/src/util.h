@@ -104,7 +104,8 @@ public:
 							qm::SubAccount* pSubAccount,
 							qm::NormalFolder* pFolder,
 							unsigned int nImap4Error,
-							const WCHAR* pwszSocketErrorMessage);
+							const WCHAR* pwszSocketErrorMessage,
+							const WCHAR* pwszSSLErrorMessage);
 	static Imap4::Secure getSecure(qm::SubAccount* pSubAccount);
 	static Imap4::Secure getSecure(qm::SubAccount::Secure secure);
 

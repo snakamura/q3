@@ -332,6 +332,8 @@ BEGIN
     IDS_MACRO               "マクロ(&M)"
     IDS_OFFLINE             "[オフライン]"
     IDS_JUNKREPAIRED        "スパムデータベースを修復しました"
+    IDS_SUBJECT             "発行先"
+    IDS_ISSURE              "発行者"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -367,6 +369,8 @@ BEGIN
     IDS_ERROR_INSERTSIGNATURE "署名が挿入できません"
     IDS_ERROR_INSERTTEXT    "定型文が挿入できません"
     IDS_ERROR_REFORM        "整形中にエラーが発生しました"
+    IDS_ERROR_VERIFICATIONFAILED "証明書の検証に失敗しました"
+    IDS_ERROR_HOSTNAMENOTMATCH "証明書のホスト名が接続先と異なります"
 END
 
 STRINGTABLE DISCARDABLE 

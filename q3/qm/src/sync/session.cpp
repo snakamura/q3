@@ -419,12 +419,66 @@ size_t qm::SessionErrorInfo::getDescriptionCount() const
  */
 
 qm::AbstractSSLSocketCallback::AbstractSSLSocketCallback(const Security* pSecurity) :
-	pSecurity_(pSecurity)
+	pSecurity_(pSecurity),
+	nErrors_(ERROR_NONE)
 {
 }
 
 qm::AbstractSSLSocketCallback::~AbstractSSLSocketCallback()
 {
+}
+
+unsigned int qm::AbstractSSLSocketCallback::getErrors() const
+{
+	return nErrors_;
+}
+
+const Certificate* qm::AbstractSSLSocketCallback::getCertificate() const
+{
+	return pCertificate_.get();
+}
+
+const WCHAR* qm::AbstractSSLSocketCallback::getVerifyError() const
+{
+	return wstrVerifyError_.get();
+}
+
+wstring_ptr qm::AbstractSSLSocketCallback::getSSLErrorMessage() const
+{
+	if (nErrors_ == ERROR_NONE)
+		return 0;
+	
+	StringBuffer<WSTRING> buf;
+	
+	if (nErrors_ & ERROR_VERIFICATIONFAILED) {
+		buf.append(loadString(getResourceHandle(), IDS_ERROR_VERIFICATIONFAILED).get());
+		buf.append(L'\n');
+		if (wstrVerifyError_.get()) {
+			buf.append(L' ');
+			buf.append(wstrVerifyError_.get());
+			buf.append(L'\n');
+		}
+	}
+	
+	if (nErrors_ & ERROR_HOSTNAMENOTMATCH) {
+		buf.append(loadString(getResourceHandle(), IDS_ERROR_HOSTNAMENOTMATCH).get());
+		buf.append(L'\n');
+	}
+	
+	if (pCertificate_.get()) {
+		buf.append(L' ');
+		buf.append(loadString(getResourceHandle(), IDS_SUBJECT).get());
+		buf.append(L": ");
+		buf.append(pCertificate_->getSubject()->getText().get());
+		buf.append(L'\n');
+		buf.append(L' ');
+		buf.append(loadString(getResourceHandle(), IDS_ISSURE).get());
+		buf.append(L": ");
+		buf.append(pCertificate_->getIssuer()->getText().get());
+		buf.append(L'\n');
+	}
+	
+	return buf.getString();
 }
 
 const Store* qm::AbstractSSLSocketCallback::getCertStore()
@@ -433,37 +487,50 @@ const Store* qm::AbstractSSLSocketCallback::getCertStore()
 }
 
 bool qm::AbstractSSLSocketCallback::checkCertificate(const Certificate& cert,
-													 bool bVerified)
+													 bool bVerified,
+													 const WCHAR* pwszVerifyError)
 {
-	unsigned int nSslOption = getOption();
+	bool bHostMatch = checkHostName(getHost(), cert);
 	
+	nErrors_ = (bVerified ? ERROR_NONE : ERROR_VERIFICATIONFAILED) |
+		(bHostMatch ? ERROR_NONE : ERROR_HOSTNAMENOTMATCH);
+	pCertificate_ = cert.clone();
+	if (pwszVerifyError)
+		wstrVerifyError_ = allocWString(pwszVerifyError);
+	else
+		wstrVerifyError_.reset(0);
+	
+	unsigned int nSslOption = getOption();
 	if (!bVerified && (nSslOption & SubAccount::SSLOPTION_ALLOWUNVERIFIEDCERTIFICATE) == 0)
 		return false;
-	
-	if ((nSslOption & SubAccount::SSLOPTION_ALLOWDIFFERENTHOST) == 0) {
-		const WCHAR* pwszHost = getHost();
-		
-		std::auto_ptr<GeneralNames> pSubjectAltName(cert.getSubjectAltNames());
-		int nAltNameCount = pSubjectAltName.get() ? pSubjectAltName->getCount() : 0;
-		if (nAltNameCount != 0) {
-			int n = 0;
-			for (n = 0; n < nAltNameCount; ++n) {
-				std::auto_ptr<GeneralName> pName(pSubjectAltName->getGeneralName(n));
-				if (pName->getType() == GeneralName::TYPE_DNS &&
-					checkHostName(pwszHost, pName->getValue().get()))
-					break;
-			}
-			if (n == nAltNameCount)
-				return false;
+	else if (!bHostMatch && (nSslOption & SubAccount::SSLOPTION_ALLOWDIFFERENTHOST) == 0)
+		return false;
+	else
+		return true;
+}
+
+bool qm::AbstractSSLSocketCallback::checkHostName(const WCHAR* pwszHostName,
+												  const Certificate& cert)
+{
+	std::auto_ptr<GeneralNames> pSubjectAltName(cert.getSubjectAltNames());
+	int nAltNameCount = pSubjectAltName.get() ? pSubjectAltName->getCount() : 0;
+	if (nAltNameCount != 0) {
+		int n = 0;
+		for (n = 0; n < nAltNameCount; ++n) {
+			std::auto_ptr<GeneralName> pName(pSubjectAltName->getGeneralName(n));
+			if (pName->getType() == GeneralName::TYPE_DNS &&
+				checkHostName(pwszHostName, pName->getValue().get()))
+				break;
 		}
-		else {
-			std::auto_ptr<Name> pSubject(cert.getSubject());
-			if (!pSubject.get() ||
-				!checkHostName(pwszHost, pSubject->getCommonName().get()))
-				return false;
-		}
+		if (n == nAltNameCount)
+			return false;
 	}
-	
+	else {
+		std::auto_ptr<Name> pSubject(cert.getSubject());
+		if (!pSubject.get() ||
+			!checkHostName(pwszHostName, pSubject->getCommonName().get()))
+			return false;
+	}
 	return true;
 }
 

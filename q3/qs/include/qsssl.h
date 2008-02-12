@@ -59,10 +59,13 @@ public:
 	 *
 	 * @param cert [in] Server certificate.
 	 * @param bVerified [in] true if certificate was verified, false otherwise.
+	 * @param pwszVerifyError [in] An error message why verification failed.
+	 *                             null if verification successed.
 	 * @return true if ok, flase otherwise.
 	 */
 	virtual bool checkCertificate(const Certificate& cert,
-								  bool bVerified) = 0;
+								  bool bVerified,
+								  const WCHAR* pwszVerifyError) = 0;
 };
 
 

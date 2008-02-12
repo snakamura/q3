@@ -34,12 +34,15 @@ using namespace qm;
 using namespace qs;
 
 
-#define HANDLE_ERROR() \
+#define HANDLE_ERROR() HANDLE_ERROR_(0)
+#define HANDLE_ERROR_SSL() HANDLE_ERROR_(pCallback_->getSSLErrorMessage().get())
+#define HANDLE_ERROR_(s) \
 	do { \
 		Util::reportError(pPop3_.get(), pSessionCallback_, pAccount_, \
-			pSubAccount_, pFolder_, 0, pCallback_->getErrorMessage()); \
+			pSubAccount_, pFolder_, 0, pCallback_->getErrorMessage(), s); \
 		return false; \
 	} while (false) \
+
 
 
 /****************************************************************************
@@ -109,7 +112,7 @@ bool qmpop3::Pop3ReceiveSession::connect()
 	Pop3::Secure secure = Util::getSecure(pSubAccount_, Account::HOST_RECEIVE);
 	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 		pSubAccount_->getPort(Account::HOST_RECEIVE), bApop, secure))
-		HANDLE_ERROR();
+		HANDLE_ERROR_SSL();
 	
 	log.debug(L"Connected to the server.");
 	
@@ -401,7 +404,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		if (bApplyRules || bJunkFilter) {
 			if (!applyRules(&listDownloaded, bJunkFilter, !bApplyRules))
 				Util::reportError(0, pSessionCallback_, pAccount_,
-					pSubAccount_, pFolder_, POP3ERROR_APPLYRULES, 0);
+					pSubAccount_, pFolder_, POP3ERROR_APPLYRULES, 0, 0);
 		}
 		for (MessagePtrList::const_iterator it = listDownloaded.begin(); it != listDownloaded.end(); ++it) {
 			bool bNotify = false;
@@ -659,7 +662,7 @@ bool qmpop3::Pop3ReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 					float fScore = pJunkFilter->getScore(msg);
 					if (fScore < 0)
 						Util::reportError(0, pSessionCallback_, pAccount_,
-							pSubAccount_, pFolder_, POP3ERROR_FILTERJUNK, 0);
+							pSubAccount_, pFolder_, POP3ERROR_FILTERJUNK, 0, 0);
 					else if (fScore > pJunkFilter->getThresholdScore())
 						nOperation = JunkFilter::OPERATION_ADDJUNK;
 					else
@@ -669,7 +672,7 @@ bool qmpop3::Pop3ReceiveSession::applyJunkFilter(const qm::MessagePtrList& l) co
 			if (nOperation != 0) {
 				if (!pJunkFilter->manage(msg, nOperation))
 					Util::reportError(0, pSessionCallback_, pAccount_,
-						pSubAccount_, pFolder_, POP3ERROR_MANAGEJUNK, 0);
+						pSubAccount_, pFolder_, POP3ERROR_MANAGEJUNK, 0, 0);
 			}
 			
 			pSessionCallback_->setPos(n);

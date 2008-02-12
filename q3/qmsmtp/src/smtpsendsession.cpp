@@ -27,9 +27,11 @@ using namespace qmsmtp;
 using namespace qm;
 using namespace qs;
 
-#define HANDLE_ERROR() \
+#define HANDLE_ERROR() HANDLE_ERROR_(0)
+#define HANDLE_ERROR_SSL() HANDLE_ERROR_(pCallback_->getSSLErrorMessage().get())
+#define HANDLE_ERROR_(s) \
 	do { \
-		reportError(); \
+		reportError(s); \
 		return false; \
 	} while (false) \
 
@@ -108,7 +110,7 @@ bool qmsmtp::SmtpSendSession::connect()
 	
 	if (!pSmtp_->connect(pSubAccount_->getHost(Account::HOST_SEND),
 		pSubAccount_->getPort(Account::HOST_SEND), secure))
-		HANDLE_ERROR();
+		HANDLE_ERROR_SSL();
 	
 	log.debug(L"Connected to the server.");
 	
@@ -394,7 +396,7 @@ bool qmsmtp::SmtpSendSession::popBeforeSmtp()
 	return true;
 }
 
-void qmsmtp::SmtpSendSession::reportError()
+void qmsmtp::SmtpSendSession::reportError(const WCHAR* pwszSSLErrorMessage)
 {
 	assert(pSmtp_.get());
 	
@@ -451,6 +453,7 @@ void qmsmtp::SmtpSendSession::reportError()
 		wstrDescriptions[1].get(),
 		wstrSocketDescription.get(),
 		pCallback_->getErrorMessage(),
+		pwszSSLErrorMessage,
 		pSmtp_->getLastErrorResponse()
 	};
 	SessionErrorInfo info(pAccount_, pSubAccount_, 0, wstrMessage.get(),

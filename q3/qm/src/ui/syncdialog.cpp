@@ -832,9 +832,21 @@ void qm::SyncStatusWindow::addError(unsigned int nId,
 	for (size_t n = 0; n < info.getDescriptionCount(); ++n) {
 		const WCHAR* p = info.getDescription(n);
 		if (p) {
-			buf.append(L"  ");
-			buf.append(p);
-			buf.append(L"\r\n");
+			while (p && *p) {
+				const WCHAR* pNewLine = wcschr(p, L'\n');
+				if (pNewLine) {
+					buf.append(L"  ");
+					buf.append(p, pNewLine - p);
+					buf.append(L"\r\n");
+					p = pNewLine + 1;
+				}
+				else {
+					buf.append(L"  ");
+					buf.append(p);
+					buf.append(L"\r\n");
+					p = 0;
+				}
+			}
 		}
 	}
 	

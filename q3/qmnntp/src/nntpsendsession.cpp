@@ -20,10 +20,12 @@ using namespace qmnntp;
 using namespace qm;
 using namespace qs;
 
-#define HANDLE_ERROR() \
+#define HANDLE_ERROR() HANDLE_ERROR_(0)
+#define HANDLE_ERROR_SSL() HANDLE_ERROR_(pCallback_->getSSLErrorMessage().get())
+#define HANDLE_ERROR_(s) \
 	do { \
 		Util::reportError(pNntp_.get(), pSessionCallback_, pAccount_, \
-			pSubAccount_, 0, 0, pCallback_->getErrorMessage()); \
+			pSubAccount_, 0, 0, pCallback_->getErrorMessage(), s); \
 		return false; \
 	} while (false) \
 
@@ -85,7 +87,7 @@ bool qmnntp::NntpSendSession::connect()
 	if (!pNntp_->connect(pSubAccount_->getHost(Account::HOST_SEND),
 		pSubAccount_->getPort(Account::HOST_SEND),
 		pSubAccount_->getSecure(Account::HOST_SEND) == SubAccount::SECURE_SSL))
-		HANDLE_ERROR();
+		HANDLE_ERROR_SSL();
 	
 	log.debug(L"Connected to the server.");
 	

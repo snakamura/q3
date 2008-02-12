@@ -83,7 +83,8 @@ private:
 	void reportError(UINT nId,
 					 const WCHAR* pwszParam,
 					 qs::HttpMethod* pMethod,
-					 const WCHAR* pwszSocketErrorMessage);
+					 const WCHAR* pwszSocketErrorMessage,
+					 const WCHAR* pwszSSLErrorMessage);
 
 private:
 	static bool createItemMessage(const Channel* pChannel,

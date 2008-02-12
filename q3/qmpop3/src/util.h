@@ -37,7 +37,8 @@ public:
 							qm::SubAccount* pSubAccount,
 							qm::NormalFolder* pFolder,
 							unsigned int nPop3Error,
-							const WCHAR* pwszSocketErrorMessage);
+							const WCHAR* pwszSocketErrorMessage,
+							const WCHAR* pwszSSLErrorMessage);
 	static Pop3::Secure getSecure(qm::SubAccount* pSubAccount,
 								  qm::Account::Host host);
 	static Pop3::Secure getSecure(qm::SubAccount::Secure secure);

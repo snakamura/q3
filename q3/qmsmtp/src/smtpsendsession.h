@@ -48,7 +48,7 @@ public:
 
 private:
 	bool popBeforeSmtp();
-	void reportError();
+	void reportError(const WCHAR* pwszSSLErrorMessage);
 
 private:
 	SmtpSendSession(const SmtpSendSession&);

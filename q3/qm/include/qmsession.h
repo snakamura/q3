@@ -388,22 +388,41 @@ private:
  *
  */
 
+#pragma warning(push)
+#pragma warning(disable:4251)
+
 class QMEXPORTCLASS AbstractSSLSocketCallback : public qs::SSLSocketCallback
 {
+public:
+	enum Error {
+		ERROR_NONE					= 0x00,
+		ERROR_VERIFICATIONFAILED	= 0x01,
+		ERROR_HOSTNAMENOTMATCH		= 0x02
+	};
+
 public:
 	explicit AbstractSSLSocketCallback(const Security* pSecurity);
 	virtual ~AbstractSSLSocketCallback();
 
 public:
+	unsigned int getErrors() const;
+	const qs::Certificate* getCertificate() const;
+	const WCHAR* getVerifyError() const;
+	qs::wstring_ptr getSSLErrorMessage() const;
+
+public:
 	virtual const qs::Store* getCertStore();
 	virtual bool checkCertificate(const qs::Certificate& cert,
-								  bool bVerified);
+								  bool bVerified,
+								  const WCHAR* pwszVerifyError);
 
 protected:
 	virtual unsigned int getOption() = 0;
 	virtual const WCHAR* getHost() = 0;
 
 private:
+	static bool checkHostName(const WCHAR* pwszHostName,
+							  const qs::Certificate& cert);
 	static bool checkHostName(const WCHAR* pwszHostName,
 							  const WCHAR* pwszCertName);
 
@@ -413,7 +432,12 @@ private:
 
 private:
 	const Security* pSecurity_;
+	unsigned int nErrors_;
+	std::auto_ptr<qs::Certificate> pCertificate_;
+	qs::wstring_ptr wstrVerifyError_;
 };
+
+#pragma warning(pop)
 
 
 /****************************************************************************

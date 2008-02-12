@@ -42,8 +42,10 @@ bool qmpop3::Pop3Connection::connect(const WCHAR* pwszHost,
 									 SubAccount::Secure secure)
 {
 	if (!pPop3_->connect(pwszHost, nPort, bApop_, Util::getSecure(secure))) {
+		// TODO
+		// Handle SSL error
 		Util::reportError(pPop3_.get(), pCallback_->getConnectionCallback(),
-			0, 0, 0, 0, pCallback_->getErrorMessage());
+			0, 0, 0, 0, pCallback_->getErrorMessage(), 0);
 		return false;
 	}
 	return true;

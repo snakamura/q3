@@ -5,6 +5,7 @@
  *
  */
 
+#include <qsconv.h>
 #include <qslog.h>
 
 #include <openssl/err.h>
@@ -213,15 +214,15 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 	
 	long nVerify = SSL_get_verify_result(pSSL_);
 	bool bVerified = nVerify == X509_V_OK;
+	wstring_ptr wstrVerifyError;
 	if (bVerified) {
 		log.debug(L"Server certificate is verified.");
 	}
 	else {
-		if (log.isWarnEnabled()) {
-			const char* p = X509_verify_cert_error_string(nVerify);
-			log.warn(L"Failed to verify server certificate:",
-				reinterpret_cast<const unsigned char*>(p), strlen(p));
-		}
+		const char* p = X509_verify_cert_error_string(nVerify);
+		log.warn(L"Failed to verify server certificate:",
+			reinterpret_cast<const unsigned char*>(p), strlen(p));
+		wstrVerifyError = mbs2wcs(p);
 	}
 	
 	X509Ptr pX509(SSL_get_peer_certificate(pSSL_));
@@ -239,7 +240,7 @@ bool qscrypto::SSLSocketImpl::connect(Socket* pSocket)
 		}
 	}
 	
-	if (!pCallback_->checkCertificate(cert, bVerified)) {
+	if (!pCallback_->checkCertificate(cert, bVerified, wstrVerifyError.get())) {
 		log.error(L"Failed to check server certificate");
 		setLastError(SOCKET_ERROR_CONNECT);
 		return false;

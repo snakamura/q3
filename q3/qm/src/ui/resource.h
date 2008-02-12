@@ -170,6 +170,8 @@
 #define IDS_MACRO                       3012
 #define IDS_OFFLINE                     3013
 #define IDS_JUNKREPAIRED                3014
+#define IDS_SUBJECT                     3015
+#define IDS_ISSURE                      3016
 #define IDS_MESSAGE_UPDATEFOLDER        5000
 #define IDS_MESSAGE_FINISHED            5001
 #define IDS_MESSAGE_CHECKMESSAGES       5002
@@ -266,6 +268,8 @@
 #define IDS_ERROR_INSERTTEXT            10072
 #define IDS_ERROR_INSERTMACRO           10073
 #define IDS_ERROR_REFORM                10074
+#define IDS_ERROR_VERIFICATIONFAILED    10075
+#define IDS_ERROR_HOSTNAMENOTMATCH      10076
 
 // Next default values for new objects
 // 

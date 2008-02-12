@@ -38,7 +38,8 @@ public:
 							qm::SubAccount* pSubAccount,
 							qm::NormalFolder* pFolder,
 							unsigned int nNntpError,
-							const WCHAR* pwszSocketErrorMessage);
+							const WCHAR* pwszSocketErrorMessage,
+							const WCHAR* pwszSSLErrorMessage);
 	static qm::PasswordState getUserInfo(qm::SubAccount* pSubAccount,
 										 qm::Account::Host host,
 										 qm::PasswordCallback* pPasswordCallback,
