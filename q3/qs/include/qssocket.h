@@ -22,7 +22,8 @@ class SocketBase;
 class ServerSocket;
 class SocketCallback;
 	class DefaultSocketCallback;
-	class FilterSocketCallback;
+	template<class T> class FilterSocketCallback;
+	class DefaultFilterSocketCallback;
 
 class InputStream;
 class Logger;
@@ -264,7 +265,8 @@ private:
  *
  */
 
-class QSEXPORTCLASS FilterSocketCallback : public SocketCallback
+template<class T>
+class FilterSocketCallback : public T
 {
 public:
 	FilterSocketCallback(SocketCallback* pCallback);
@@ -294,17 +296,11 @@ private:
  *
  */
 
-#pragma warning(push)
-#pragma warning(disable:4251)
-
-class QSEXPORTCLASS DefaultFilterSocketCallback : public FilterSocketCallback
+class QSEXPORTCLASS DefaultFilterSocketCallback : public FilterSocketCallback<DefaultSocketCallback>
 {
 public:
 	DefaultFilterSocketCallback(SocketCallback* pCallback);
 	virtual ~DefaultFilterSocketCallback();
-
-public:
-	const WCHAR* getErrorMessage() const;
 
 public:
 	virtual void error(SocketBase::Error error,
@@ -313,12 +309,7 @@ public:
 private:
 	DefaultFilterSocketCallback(const DefaultFilterSocketCallback&);
 	DefaultFilterSocketCallback& operator=(const DefaultFilterSocketCallback&);
-
-private:
-	wstring_ptr wstrErrorMessage_;
 };
-
-#pragma warning(pop)
 
 
 /****************************************************************************
@@ -373,5 +364,7 @@ private:
 };
 
 }
+
+#include <qssocket.inl>
 
 #endif // __QSSOCKET_H__
