@@ -1712,28 +1712,26 @@ bool qm::Account::updateFolders()
 		typedef ProtocolDriver::RemoteFolderList List;
 		
 		Deleter(const List& l) :
-			l_(l),
-			bReleased_(false)
+			p_(&l)
 		{
 		}
 		
 		~Deleter()
 		{
-			if (bReleased_)
-				return;
-			for (List::const_iterator it = l_.begin(); it != l_.end(); ++it) {
-				if ((*it).second)
-					delete (*it).first;
+			if (p_) {
+				for (List::const_iterator it = p_->begin(); it != p_->end(); ++it) {
+					if ((*it).second)
+						delete (*it).first;
+				}
 			}
 		}
 		
 		void release()
 		{
-			bReleased_ = true;
+			p_ = 0;
 		}
 		
-		const List& l_;
-		bool bReleased_;
+		const List* p_;
 	} deleter(l);
 	
 	pImpl_->listFolder_.reserve(pImpl_->listFolder_.size() + l.size());
@@ -1747,20 +1745,7 @@ bool qm::Account::updateFolders()
 	deleter.release();
 	
 	FolderList listDelete;
-	struct Deleter2
-	{
-		Deleter2(const FolderList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter2()
-		{
-			std::for_each(l_.begin(), l_.end(), qs::deleter<Folder>());
-		}
-		
-		const FolderList& l_;
-	} deleter2(listDelete);
+	container_deleter<FolderList> free(listDelete);
 	
 	std::sort(l.begin(), l.end(), RemoteFolderLess());
 	for (FolderList::iterator itF = pImpl_->listFolder_.begin(); itF != pImpl_->listFolder_.end(); ) {
