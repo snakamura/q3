@@ -124,7 +124,7 @@ qm::AttachmentOpenAction::~AttachmentOpenAction()
 void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 {
 	AttachmentSelectionModel::NameList listName;
-	StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
+	CONTAINER_DELETER_D(freeName, listName, &freeWString);
 	pAttachmentSelectionModel_->getSelectedAttachment(&listName);
 	if (listName.empty())
 		return;
@@ -207,7 +207,7 @@ void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 	}
 	else {
 		AttachmentSelectionModel::NameList listName;
-		StringListFree<AttachmentSelectionModel::NameList> freeName(listName);
+		CONTAINER_DELETER_D(freeName, listName, &freeWString);
 		pAttachmentSelectionModel_->getSelectedAttachment(&listName);
 		
 		AttachmentHelper::NameList l(listName.begin(), listName.end());
@@ -1700,7 +1700,7 @@ bool qm::FileImportAction::importShowDialog(NormalFolder* pFolder,
 	ImportDialog dialog(bufPath.getCharArray(), pProfile);
 	if (dialog.doModal(hwnd) == IDOK) {
 		PathList listPath;
-		StringListFree<PathList> free(listPath);
+		CONTAINER_DELETER_D(free, listPath, &freeWString);
 		
 		const WCHAR* pwszPath = dialog.getPath();
 		const WCHAR* pBegin = pwszPath;
@@ -4024,7 +4024,7 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 	
 	TemplateContext::ArgumentList listArg;
 	TemplateActionUtil::ArgList l;
-	StringListFree<TemplateActionUtil::ArgList> free(l);
+	CONTAINER_DELETER_D(free, l, &freeWString);
 	TemplateActionUtil::parseArgs(event.getParam(), 1, &listArg, &l);
 	
 	std::auto_ptr<MessageHolderURI> pURI;
@@ -5909,11 +5909,11 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 	}
 	
 	ActionList listAction;
-	StringListFree<ActionList> free(listAction);
+	CONTAINER_DELETER_D(free, listAction, &freeWString);
 	parseActions(pwszActions, &listAction);
 	for (ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
 		ActionParam::ValueList l;
-		StringListFree<ActionParam::ValueList> free(l);
+		CONTAINER_DELETER_D(free, l, &freeWString);
 		ActionParam::parse(*it, &l);
 		if (!l.empty())
 			pActionInvoker_->invoke(l[0], const_cast<const WCHAR**>(&l[1]), l.size() - 1);

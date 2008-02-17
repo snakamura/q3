@@ -656,7 +656,7 @@ LRESULT qm::CreateAccountDialog::onInitDialog(HWND hwndFocus,
 	
 	typedef ReceiveSessionFactory::NameList ClassList;
 	ClassList listClasses;
-	StringListFree<ClassList> free(listClasses);
+	CONTAINER_DELETER_D(free, listClasses, &freeWString);
 	ReceiveSessionFactory::getClasses(&listClasses);
 	for (ClassList::iterator it = listClasses.begin(); it != listClasses.end(); ++it) {
 		W2T(*it, ptsz);
@@ -742,7 +742,7 @@ void qm::CreateAccountDialog::updateProtocols()
 	ComboBox_ResetContent(getDlgItem(IDC_OUTGOINGPROTOCOL));
 	
 	ReceiveSessionFactory::NameList listReceiveName;
-	StringListFree<ReceiveSessionFactory::NameList> freeReceive(listReceiveName);
+	CONTAINER_DELETER_D(freeReceive, listReceiveName, &freeWString);
 	ReceiveSessionFactory::getNames(&listReceiveName);
 	listReceiveProtocol_.reserve(listReceiveName.size());
 	for (ReceiveSessionFactory::NameList::iterator itR = listReceiveName.begin(); itR != listReceiveName.end(); ++itR) {
@@ -765,7 +765,7 @@ void qm::CreateAccountDialog::updateProtocols()
 	ComboBox_SetCurSel(getDlgItem(IDC_INCOMINGPROTOCOL), 0);
 	
 	SendSessionFactory::NameList listSendName;
-	StringListFree<SendSessionFactory::NameList> freeSend(listSendName);
+	CONTAINER_DELETER_D(freeSend, listSendName, &freeWString);
 	SendSessionFactory::getNames(&listSendName);
 	listSendProtocol_.reserve(listSendName.size());
 	for (SendSessionFactory::NameList::iterator itS = listSendName.begin(); itS != listSendName.end(); ++itS) {
@@ -1231,7 +1231,7 @@ LRESULT qm::AccountDialupPage::onInitDialog(HWND hwndFocus,
 	}
 	
 	RasConnection::EntryList listEntry;
-	StringListFree<RasConnection::EntryList> free(listEntry);
+	CONTAINER_DELETER_D(free, listEntry, &freeWString);
 	RasConnection::getEntries(&listEntry);
 	
 	if (listEntry.empty()) {

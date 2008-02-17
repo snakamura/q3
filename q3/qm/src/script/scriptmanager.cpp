@@ -128,7 +128,7 @@ void qm::ScriptManager::getScriptNames(NameList* pList) const
 		return;
 	
 	NameList l;
-	StringListFree<NameList> free(l);
+	CONTAINER_DELETER_D(free, l, &freeWString);
 	
 	wstring_ptr wstrFind(concat(wstrPath_.get(), L"\\scripts\\*.*"));
 	

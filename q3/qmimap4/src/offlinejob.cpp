@@ -831,7 +831,7 @@ std::auto_ptr<OfflineJob> qmimap4::SetLabelOfflineJob::create(InputStream* pStre
 	READ(&nLabelSize, sizeof(nLabelSize));
 	LabelList listLabel;
 	listLabel.reserve(nLabelSize);
-	StringListFree<LabelList> free(listLabel);
+	CONTAINER_DELETER_D(free, listLabel, &freeWString);
 	for (unsigned int n = 0; n < nLabelSize; ++n) {
 		wstring_ptr wstrLabel;
 		READ_STRING(WSTRING, wstrLabel);

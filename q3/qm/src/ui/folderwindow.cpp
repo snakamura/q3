@@ -521,7 +521,7 @@ void qm::FolderWindowImpl::accountManagerInitialized(const AccountManagerEvent& 
 	DisableRedraw disable(hwnd);
 	
 	Profile::StringList listFolders;
-	StringListFree<Profile::StringList> free(listFolders);
+	CONTAINER_DELETER_D(free, listFolders, &freeWString);
 	pProfile_->getStringList(L"FolderWindow", L"ExpandedFolders", &listFolders);
 	for (Profile::StringList::const_iterator it = listFolders.begin(); it != listFolders.end(); ++it) {
 		std::pair<Account*, Folder*> p(Util::getAccountOrFolder(pAccountManager_, *it));
@@ -1470,7 +1470,7 @@ void qm::FolderWindow::save() const
 	pImpl_->getItems(&listItem);
 	
 	Profile::StringList listValue;
-	StringListFree<Profile::StringList> free(listValue);
+	CONTAINER_DELETER_D(free, listValue, &freeWString);
 	listValue.reserve(listItem.size());
 	for (FolderWindowImpl::ItemList::const_iterator it = listItem.begin(); it != listItem.end(); ++it) {
 		HTREEITEM hItem = *it;

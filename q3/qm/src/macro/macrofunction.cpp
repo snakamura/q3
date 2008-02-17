@@ -448,7 +448,7 @@ MacroValuePtr qm::MacroFunctionAddress::value(MacroContext* pContext) const
 	
 	MacroValueField* pValueField = static_cast<MacroValueField*>(pValue.get());
 	MacroValueAddress::AddressList l;
-	StringListFree<MacroValueAddress::AddressList> free(l);
+	CONTAINER_DELETER_D(free, l, &freeWString);
 	if (bName_)
 		pValueField->getNames(&l);
 	else
@@ -2995,7 +2995,7 @@ MacroValuePtr qm::MacroFunctionInvokeAction::value(MacroContext* pContext) const
 	
 	typedef std::vector<WSTRING> ArgList;
 	ArgList listArg(nSize - 1);
-	StringListFree<ArgList> free(listArg);
+	CONTAINER_DELETER_D(free, listArg, &freeWString);
 	for (size_t n = 1; n < nSize; ++n) {
 		ARG(pValue, n);
 		listArg[n - 1] = pValue->string().release().release();
@@ -4388,7 +4388,7 @@ MacroValuePtr qm::MacroFunctionReferences::value(MacroContext* pContext) const
 	}
 	
 	PartUtil::ReferenceList l;
-	StringListFree<PartUtil::ReferenceList> free(l);
+	CONTAINER_DELETER_D(free, l, &freeWString);
 	PartUtil(*pMessage).getReferences(&l);
 	
 	PartUtil::ReferenceList::size_type n = 0;

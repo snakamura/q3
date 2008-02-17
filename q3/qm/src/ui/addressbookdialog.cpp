@@ -698,7 +698,7 @@ LRESULT qm::SelectAddressDialog::onCategory()
 	std::sort(listCategory.begin(), listCategory.end(), AddressBookCategoryLess());
 	
 	CategoryNameList listName;
-	StringListFree<CategoryNameList> free(listName);
+	CONTAINER_DELETER_D(free, listName, &freeWString);
 	AutoMenuHandle hmenu(createCategoryMenu(listCategory, &listName));
 	if (hmenu.get()) {
 		unsigned int nFlags = TPM_LEFTALIGN |

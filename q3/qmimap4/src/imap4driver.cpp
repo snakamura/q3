@@ -684,7 +684,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 	
 	typedef std::vector<WSTRING> LabelList;
 	LabelList listLabel;
-	StringListFree<LabelList> free(listLabel);
+	CONTAINER_DELETER_D(free, listLabel, &freeWString);
 	for (MessageHolderList::const_iterator it = listUpdate.begin(); it != listUpdate.end(); ++it) {
 		MessageHolder* pmh = *it;
 		wstring_ptr wstrLabel(pmh->getLabel());

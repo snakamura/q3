@@ -153,7 +153,7 @@ std::auto_ptr<Flags> qmimap4::Util::getImap4FlagsFromLabels(unsigned int nFlags,
 {
 	typedef std::vector<STRING> FlagList;
 	FlagList listFlag;
-	StringListFree<FlagList> free(listFlag);
+	CONTAINER_DELETER_D(free, listFlag, &freeString);
 	listFlag.reserve(nCount);
 	for (size_t n = 0; n < nCount; ++n) {
 		const WCHAR* pwszLabel = ppwszLabel[n];

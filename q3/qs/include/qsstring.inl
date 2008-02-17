@@ -1299,31 +1299,4 @@ typename qs::BMFindString<String>::Char qs::BMFindString<String>::getChar(const 
 	return nFlags_ & FLAG_IGNORECASE ? CharTraits<Char>::toLower(c) : c;
 }
 
-
-/****************************************************************************
- *
- * StringListFree
- *
- */
-
-template<class StringList>
-qs::StringListFree<StringList>::StringListFree(StringList& l) :
-	p_(&l)
-{
-}
-
-template<class StringList>
-qs::StringListFree<StringList>::~StringListFree()
-{
-	if (p_)
-		std::for_each(p_->begin(), p_->end(),
-			string_free<StringList::value_type>());
-}
-
-template<class StringList>
-void qs::StringListFree<StringList>::release()
-{
-	p_ = 0;
-}
-
 #endif // __QSSTRING_INL__

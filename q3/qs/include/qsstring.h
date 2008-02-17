@@ -1456,31 +1456,6 @@ private:
 	unsigned int nFlags_;
 };
 
-
-/****************************************************************************
- *
- * StringListFree
- *
- */
-
-template<class StringList>
-class StringListFree
-{
-public:
-	StringListFree(StringList& l);
-	~StringListFree();
-
-public:
-	void release();
-
-private:
-	StringListFree(const StringListFree&);
-	StringListFree& operator=(const StringListFree&);
-
-private:
-	StringList* p_;
-};
-
 }
 
 #include <qsstring.inl>

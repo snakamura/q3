@@ -1093,7 +1093,7 @@ void qm::ListWindowImpl::drop(const DropTargetDropEvent& event)
 					
 					FileImportAction::PathList listPath;
 					listPath.reserve(nCount);
-					StringListFree<FileImportAction::PathList> free(listPath);
+					CONTAINER_DELETER_D(free, listPath, &freeWString);
 					
 					for (int n = 0; n < nCount; ++n) {
 						TCHAR tszPath[MAX_PATH];
