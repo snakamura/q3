@@ -712,7 +712,12 @@ DEFINES					+= $(STLPORTFLAGS)
 
 # BOOST #####################################################################
 INCLUDES				+= -I"$(BOOSTDIR)"
-#DEFINES					+= -DBOOST_BIND_ENABLE_STDCALL
+
+BOOSTFLAGS				=
+ifeq ($(PLATFORM),win)
+	BOOSTFLAGS			+= -DBOOST_BIND_ENABLE_STDCALL
+endif
+DEFINES					+= $(BOOSTFLAGS)
 #############################################################################
 
 # KCTRL #####################################################################
