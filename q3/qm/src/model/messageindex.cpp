@@ -43,7 +43,7 @@ qm::MessageIndex::~MessageIndex()
 		delete (*it).second;
 #else
 	std::for_each(map_.begin(), map_.end(),
-		boost::bind(deleter<MessageIndexItem>(),
+		boost::bind(boost::checked_deleter<MessageIndexItem>(),
 			boost::bind(&ItemMap::value_type::second, _1)));
 #endif
 	delete pNewLast_;

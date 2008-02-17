@@ -106,7 +106,7 @@ qs::ToolbarManager::~ToolbarManager()
 {
 	if (pImpl_) {
 		std::for_each(pImpl_->listToolbar_.begin(),
-			pImpl_->listToolbar_.end(), deleter<Toolbar>());
+			pImpl_->listToolbar_.end(), boost::checked_deleter<Toolbar>());
 		ImageList_Destroy(pImpl_->hImageList_);
 		delete pImpl_;
 	}
@@ -208,7 +208,8 @@ qs::Toolbar::Toolbar(const WCHAR* pwszName,
 
 qs::Toolbar::~Toolbar()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), deleter<ToolbarItem>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<ToolbarItem>());
 }
 
 const WCHAR* qs::Toolbar::getName() const

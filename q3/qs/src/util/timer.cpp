@@ -10,6 +10,8 @@
 #include <qstimer.h>
 #include <qswindow.h>
 
+#include <vector>
+
 #include <boost/bind.hpp>
 
 using namespace qs;

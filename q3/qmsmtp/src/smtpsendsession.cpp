@@ -172,21 +172,9 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	if (!wstrEnvelopeFrom.get())
 		return false;
 	
-	std::vector<STRING> vecAddress;
-	struct Deleter
-	{
-		Deleter(std::vector<STRING>& v) :
-			v_(v)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(v_.begin(), v_.end(), &freeString);
-		}
-		
-		std::vector<STRING>& v_;
-	} deleter(vecAddress);
+	typedef std::vector<STRING> AddressList;
+	AddressList listAddress;
+	CONTAINER_DELETER_D(deleter, listAddress, &freeString);
 	const WCHAR* pwszNormalFields[] = {
 		L"To",
 		L"Cc",
@@ -212,7 +200,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 					for (AddressListParser::AddressList::const_iterator itG = groups.begin(); itG != groups.end(); ++itG) {
 						wstring_ptr wstrAddress((*itG)->getAddress());
 						string_ptr strAddress(wcs2mbs(wstrAddress.get()));
-						vecAddress.push_back(strAddress.get());
+						listAddress.push_back(strAddress.get());
 						strAddress.release();
 					}
 					pGroup->removeAllAddresses();
@@ -221,7 +209,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 				else {
 					wstring_ptr wstrAddress(pAddress->getAddress());
 					string_ptr strAddress(wcs2mbs(wstrAddress.get()));
-					vecAddress.push_back(strAddress.get());
+					listAddress.push_back(strAddress.get());
 					strAddress.release();
 				}
 			}
@@ -247,8 +235,8 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	string_ptr strEnvelopeFrom(wcs2mbs(wstrEnvelopeFrom.get()));
 	Smtp::SendMessageData data = {
 		strEnvelopeFrom.get(),
-		const_cast<const CHAR**>(&vecAddress[0]),
-		vecAddress.size(),
+		const_cast<const CHAR**>(&listAddress[0]),
+		listAddress.size(),
 		strContent.get(),
 		strContent.size()
 	};

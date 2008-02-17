@@ -173,8 +173,8 @@ public:
 
 void qs::EditableTextModelImpl::clear()
 {
-	std::for_each(listLine_.begin(),
-		listLine_.end(), deleter<EditLine>());
+	std::for_each(listLine_.begin(), listLine_.end(),
+		boost::checked_deleter<EditLine>());
 	listLine_.clear();
 	pUndoManager_->clear();
 }
@@ -185,7 +185,7 @@ void qs::EditableTextModelImpl::clearLines(size_t nStart,
 	LineList::iterator begin = listLine_.begin() + nStart;
 	LineList::iterator end = listLine_.begin() + nEnd;
 	
-	std::for_each(begin, end, deleter<EditLine>());
+	std::for_each(begin, end, boost::checked_deleter<EditLine>());
 	listLine_.erase(begin, end);
 }
 
@@ -387,24 +387,7 @@ void qs::EditableTextModel::update(size_t nStartLine,
 		
 		typedef EditableTextModelImpl::LineList LineList;
 		LineList l;
-		struct Deleter
-		{
-			Deleter(LineList& l) :
-				p_(&l)
-			{
-			}
-			
-			~Deleter()
-			{
-				if (p_)
-					std::for_each(p_->begin(), p_->end(),
-						qs::deleter<EditableTextModelImpl::EditLine>());
-			}
-			
-			void release() { p_ = 0; }
-			
-			LineList* p_;
-		} deleter(l);
+		CONTAINER_DELETER(deleter, l);
 		
 		const WCHAR* pBegin = p;
 		while (n < nLen) {
@@ -911,7 +894,8 @@ bool qs::TextModelUndoManager::hasRedoItem() const
 
 void qs::TextModelUndoManager::clearRedoItems()
 {
-	std::for_each(listRedo_.begin(), listRedo_.end(), deleter<Item>());
+	std::for_each(listRedo_.begin(), listRedo_.end(),
+		boost::checked_deleter<Item>());
 	listRedo_.clear();
 }
 
@@ -922,7 +906,8 @@ void qs::TextModelUndoManager::clear()
 		&listRedo_
 	};
 	for (int n = 0; n < countof(pLists); ++n) {
-		std::for_each(pLists[n]->begin(), pLists[n]->end(), deleter<Item>());
+		std::for_each(pLists[n]->begin(), pLists[n]->end(),
+			boost::checked_deleter<Item>());
 		pLists[n]->clear();
 	}
 }

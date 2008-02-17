@@ -121,8 +121,8 @@ bool qm::SyncFilterManager::save() const
 
 void qm::SyncFilterManager::clear()
 {
-	std::for_each(pImpl_->listFilterSet_.begin(),
-		pImpl_->listFilterSet_.end(), deleter<SyncFilterSet>());
+	std::for_each(pImpl_->listFilterSet_.begin(), pImpl_->listFilterSet_.end(),
+		boost::checked_deleter<SyncFilterSet>());
 	pImpl_->listFilterSet_.clear();
 }
 
@@ -149,7 +149,8 @@ struct qm::SyncFilterSetImpl
 
 void qm::SyncFilterSetImpl::clear()
 {
-	std::for_each(listFilter_.begin(), listFilter_.end(), deleter<SyncFilter>());
+	std::for_each(listFilter_.begin(), listFilter_.end(),
+		boost::checked_deleter<SyncFilter>());
 	listFilter_.clear();
 }
 
@@ -253,7 +254,8 @@ struct qm::SyncFilterImpl
 
 void qm::SyncFilterImpl::clear()
 {
-	std::for_each(listAction_.begin(), listAction_.end(), deleter<SyncFilterAction>());
+	std::for_each(listAction_.begin(), listAction_.end(),
+		boost::checked_deleter<SyncFilterAction>());
 	listAction_.clear();
 }
 

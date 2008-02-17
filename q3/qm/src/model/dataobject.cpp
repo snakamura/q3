@@ -867,7 +867,8 @@ qm::URIDataObject::URIDataObject(const URIResolver* pURIResolver,
 
 qm::URIDataObject::~URIDataObject()
 {
-	std::for_each(listURI_.begin(), listURI_.end(), qs::deleter<URI>());
+	std::for_each(listURI_.begin(), listURI_.end(),
+		boost::checked_deleter<URI>());
 }
 
 STDMETHODIMP_(ULONG) qm::URIDataObject::AddRef()

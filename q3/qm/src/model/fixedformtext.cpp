@@ -76,8 +76,8 @@ void qm::FixedFormTextManager::addText(std::auto_ptr<FixedFormText> pText)
 
 void qm::FixedFormTextManager::clear()
 {
-	std::for_each(listText_.begin(),
-		listText_.end(), deleter<FixedFormText>());
+	std::for_each(listText_.begin(), listText_.end(),
+		boost::checked_deleter<FixedFormText>());
 	listText_.clear();
 }
 

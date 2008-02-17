@@ -108,8 +108,8 @@ bool qm::GoRound::save() const
 
 void qm::GoRound::clear()
 {
-	std::for_each(pImpl_->listCourse_.begin(),
-		pImpl_->listCourse_.end(), deleter<GoRoundCourse>());
+	std::for_each(pImpl_->listCourse_.begin(), pImpl_->listCourse_.end(),
+		boost::checked_deleter<GoRoundCourse>());
 	pImpl_->listCourse_.clear();
 }
 
@@ -139,7 +139,8 @@ qm::GoRoundCourse::GoRoundCourse(const WCHAR* pwszName,
 
 qm::GoRoundCourse::~GoRoundCourse()
 {
-	std::for_each(listEntry_.begin(), listEntry_.end(), deleter<GoRoundEntry>());
+	std::for_each(listEntry_.begin(), listEntry_.end(),
+		boost::checked_deleter<GoRoundEntry>());
 }
 
 qm::GoRoundCourse::GoRoundCourse(const GoRoundCourse& course) :
@@ -224,7 +225,8 @@ const GoRoundCourse::EntryList& qm::GoRoundCourse::getEntries() const
 
 void qm::GoRoundCourse::setEntries(EntryList& listEntry)
 {
-	std::for_each(listEntry_.begin(), listEntry_.end(), deleter<GoRoundEntry>());
+	std::for_each(listEntry_.begin(), listEntry_.end(),
+		boost::checked_deleter<GoRoundEntry>());
 	listEntry_.clear();
 	listEntry_.swap(listEntry);
 }

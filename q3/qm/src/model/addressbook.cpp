@@ -291,7 +291,7 @@ void qm::AddressBook::clear(unsigned int nType)
 	}
 	
 	std::for_each(listCategory_.begin(), listCategory_.end(),
-		deleter<AddressBookCategory>());
+		boost::checked_deleter<AddressBookCategory>());
 	listCategory_.clear();
 	
 	clearEntryMap();
@@ -454,7 +454,7 @@ bool qm::AddressBookEntry::isExternal() const
 void qm::AddressBookEntry::clearAddresses()
 {
 	std::for_each(listAddress_.begin(), listAddress_.end(),
-		deleter<AddressBookAddress>());
+		boost::checked_deleter<AddressBookAddress>());
 	listAddress_.clear();
 }
 
@@ -1017,7 +1017,7 @@ qm::ExternalAddressBookManager::ExternalAddressBookManager(Profile* pProfile) :
 qm::ExternalAddressBookManager::~ExternalAddressBookManager()
 {
 	std::for_each(listAddressBook_.begin(), listAddressBook_.end(),
-		qs::deleter<ExternalAddressBook>());
+		boost::checked_deleter<ExternalAddressBook>());
 }
 
 bool qm::ExternalAddressBookManager::load(AddressBook* pAddressBook)
@@ -1970,20 +1970,8 @@ bool qm::PocketOutlookAddressBook::load(AddressBook* pAddressBook)
 	
 	typedef std::vector<std::pair<unsigned int, WSTRING> > CategoryMap;
 	CategoryMap mapCategory;
-	struct Deleter
-	{
-		typedef CategoryMap Map;
-		Deleter(Map& m) :
-			m_(m)
-		{
-		}
-		~Deleter()
-		{
-			std::for_each(m_.begin(), m_.end(),
-				boost::bind(&freeWString, boost::bind(&Map::value_type::second, _1)));
-		}
-		Map& m_;
-	} deleter(mapCategory);
+	CONTAINER_DELETER_D(deleter, mapCategory,
+		boost::bind(&freeWString, boost::bind(&Map::value_type::second, _1)));
 	
 	struct LocalFreeCaller
 	{

@@ -265,7 +265,7 @@ void qm::Util::getFilesOrURIs(IDataObject* pDataObject,
 #endif
 	
 	MessageDataObject::URIList listURI;
-	container_deleter<MessageDataObject::URIList> deleter(listURI);
+	CONTAINER_DELETER(deleter, listURI);
 	if (MessageDataObject::getURIs(pDataObject, &listURI)) {
 		for (MessageDataObject::URIList::const_iterator it = listURI.begin(); it != listURI.end(); ++it) {
 			wstring_ptr wstrURI((*it)->toString());

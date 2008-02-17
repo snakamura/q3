@@ -122,8 +122,8 @@ void qm::SignatureManager::addSignature(std::auto_ptr<Signature> pSignature)
 
 void qm::SignatureManager::clear()
 {
-	std::for_each(listSignature_.begin(),
-		listSignature_.end(), deleter<Signature>());
+	std::for_each(listSignature_.begin(), listSignature_.end(),
+		boost::checked_deleter<Signature>());
 	listSignature_.clear();
 }
 

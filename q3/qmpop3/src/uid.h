@@ -11,6 +11,8 @@
 #include <qssax.h>
 #include <qsstring.h>
 
+#include <vector>
+
 
 namespace qmpop3 {
 

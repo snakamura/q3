@@ -43,7 +43,7 @@ qmrss::FeedList::FeedList(const WCHAR* pwszPath) :
 
 qmrss::FeedList::~FeedList()
 {
-	std::for_each(list_.begin(), list_.end(), qs::deleter<Feed>());
+	std::for_each(list_.begin(), list_.end(), boost::checked_deleter<Feed>());
 }
 
 const FeedList::List& qmrss::FeedList::getFeeds() const
@@ -223,7 +223,8 @@ qmrss::Feed::Feed(const Feed* pFeed,
 
 qmrss::Feed::~Feed()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<FeedItem>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<FeedItem>());
 }
 
 const WCHAR* qmrss::Feed::getURL() const
@@ -363,7 +364,7 @@ qmrss::FeedManager::FeedManager()
 qmrss::FeedManager::~FeedManager()
 {
 	std::for_each(map_.begin(), map_.end(),
-		boost::bind(qs::deleter<FeedList>(),
+		boost::bind(boost::checked_deleter<FeedList>(),
 			boost::bind(&Map::value_type::second, _1)));
 }
 
@@ -398,8 +399,10 @@ qmrss::FeedContentHandler::FeedContentHandler(FeedList* pList) :
 
 qmrss::FeedContentHandler::~FeedContentHandler()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<FeedItem>());
-	std::for_each(list_.begin(), list_.end(), qs::deleter<Feed>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<FeedItem>());
+	std::for_each(list_.begin(), list_.end(),
+		boost::checked_deleter<Feed>());
 }
 
 bool qmrss::FeedContentHandler::startElement(const WCHAR* pwszNamespaceURI,

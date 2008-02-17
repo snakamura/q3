@@ -30,7 +30,8 @@ qmrss::Channel::Channel(const WCHAR* pwszURL)
 
 qmrss::Channel::~Channel()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<Item>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<Item>());
 }
 
 const WCHAR* qmrss::Channel::getURL() const
@@ -93,7 +94,8 @@ qmrss::Item::Item()
 
 qmrss::Item::~Item()
 {
-	std::for_each(listEnclosure_.begin(), listEnclosure_.end(), qs::deleter<Enclosure>());
+	std::for_each(listEnclosure_.begin(), listEnclosure_.end(),
+		boost::checked_deleter<Enclosure>());
 }
 
 const WCHAR* qmrss::Item::getTitle() const

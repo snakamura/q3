@@ -13,6 +13,8 @@
 
 #include "uiutil.h"
 
+#include <hash_map>
+
 #ifdef _WIN32_WCE
 #	define	QS_CUSTOMDRAGDROP
 #endif

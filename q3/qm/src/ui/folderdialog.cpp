@@ -297,7 +297,8 @@ qm::FolderConditionPage::FolderConditionPage(QueryFolder* pFolder,
 
 qm::FolderConditionPage::~FolderConditionPage()
 {
-	std::for_each(listUI_.begin(), listUI_.end(), deleter<SearchUI>());
+	std::for_each(listUI_.begin(), listUI_.end(),
+		boost::checked_deleter<SearchUI>());
 }
 
 LRESULT qm::FolderConditionPage::onInitDialog(HWND hwndFocus,

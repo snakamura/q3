@@ -1732,28 +1732,7 @@ bool qm::PartUtil::getDigest(MessageList* pList) const
 {
 	assert(pList);
 	
-	struct Deleter
-	{
-		Deleter(MessageList* p) :
-			p_(p)
-		{
-		}
-		
-		~Deleter()
-		{
-			if (p_) {
-				std::for_each(p_->begin(), p_->end(), qs::deleter<Message>());
-				p_->clear();
-			}
-		}
-		
-		void release()
-		{
-			p_ = 0;
-		}
-		
-		MessageList* p_;
-	} deleter(pList);
+	CONTAINER_DELETER(deleter, *pList);
 	
 	DigestMode mode = getDigestMode();
 	if (mode == DIGEST_NONE)

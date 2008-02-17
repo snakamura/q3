@@ -235,7 +235,8 @@ bool qm::AutoPilotManager::save(bool bForce) const
 
 void qm::AutoPilotManager::clear()
 {
-	std::for_each(listEntry_.begin(), listEntry_.end(), qs::deleter<AutoPilotEntry>());
+	std::for_each(listEntry_.begin(), listEntry_.end(),
+		boost::checked_deleter<AutoPilotEntry>());
 	listEntry_.clear();
 }
 

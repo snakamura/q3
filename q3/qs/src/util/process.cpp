@@ -8,6 +8,8 @@
 #include <qsosutil.h>
 #include <qsstream.h>
 
+#include <vector>
+
 #include <boost/tuple/tuple.hpp>
 
 #ifndef _WIN32_WCE

@@ -335,7 +335,7 @@ qm::StaticSyncData::StaticSyncData(Document* pDocument,
 qm::StaticSyncData::~StaticSyncData()
 {
 	std::for_each(listItem_.begin(), listItem_.end(),
-		boost::bind(deleter<SyncDataItem>(),
+		boost::bind(boost::checked_deleter<SyncDataItem>(),
 			boost::bind(&SlotItemList::value_type::second, _1)));
 }
 
@@ -507,8 +507,10 @@ void qm::SyncManager::dispose()
 	}
 	
 	if (!handles.empty()) {
-		::WaitForMultipleObjects(static_cast<DWORD>(handles.size()), &handles[0], TRUE, INFINITE);
-		std::for_each(listThread_.begin(), listThread_.end(), deleter<SyncThread>());
+		::WaitForMultipleObjects(static_cast<DWORD>(handles.size()),
+			&handles[0], TRUE, INFINITE);
+		std::for_each(listThread_.begin(), listThread_.end(),
+			boost::checked_deleter<SyncThread>());
 		listThread_.clear();
 	}
 	
@@ -734,7 +736,7 @@ bool qm::SyncManager::syncData(SyncData* pData)
 			{
 				for (SyncData::ItemListList::iterator it = l_.begin(); it != l_.end(); ++it) {
 					SyncData::ItemList& l = *it;
-					std::for_each(l.begin(), l.end(), qs::deleter<SyncDataItem>());
+					std::for_each(l.begin(), l.end(), boost::checked_deleter<SyncDataItem>());
 				}
 			}
 			

@@ -144,7 +144,7 @@ bool qs::KeyMapImpl::load(InputStream* pInputStream,
 
 void qs::KeyMapImpl::clear()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), deleter<KeyMapItem>());
+	std::for_each(listItem_.begin(), listItem_.end(), boost::checked_deleter<KeyMapItem>());
 	listItem_.clear();
 }
 

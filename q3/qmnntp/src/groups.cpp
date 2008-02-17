@@ -147,7 +147,8 @@ bool qmnntp::Groups::load()
 
 void qmnntp::Groups::clear()
 {
-	std::for_each(listGroup_.begin(), listGroup_.end(), qs::deleter<Group>());
+	std::for_each(listGroup_.begin(), listGroup_.end(),
+		boost::checked_deleter<Group>());
 }
 
 

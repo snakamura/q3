@@ -4892,23 +4892,9 @@ MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 	
 	typedef std::vector<VARIANT> ArgumentList;
 	ArgumentList listArgs;
-	struct Deleter
-	{
-		typedef std::vector<VARIANT> ArgumentList;
-		
-		Deleter(ArgumentList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			for (ArgumentList::iterator it = l_.begin(); it != l_.end(); ++it)
-				::VariantClear(&(*it));
-		}
-		
-		ArgumentList& l_;
-	} deleter(listArgs);
+	CONTAINER_DELETER_D(deleter, listArgs,
+		boost::bind(&::VariantClear, boost::bind(&boost::addressof<VARIANT>, _1)));
+	
 	listArgs.resize(nSize - 2);
 	Variant v;
 	std::fill(listArgs.begin(), listArgs.end(), v);

@@ -956,24 +956,8 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 	MenuStack stackMenu;
 	stackMenu.push_back(MenuStack::value_type(hmenu.get(), 0));
 	
-	struct Deleter
-	{
-		typedef std::vector<std::pair<HMENU, WSTRING> > MenuStack;
-		
-		Deleter(MenuStack& s) :
-			s_(s)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(s_.begin(), s_.end(),
-				boost::bind(&freeWString,
-					boost::bind(&MenuStack::value_type::second, _1)));
-		}
-		
-		MenuStack& s_;
-	} deleter(stackMenu);
+	CONTAINER_DELETER_D(deleter, stackMenu,
+		boost::bind(&freeWString, boost::bind(&MenuStack::value_type::second, _1)));
 	
 	wstring_ptr wstrThisCategory(loadString(getResourceHandle(), IDS_ADDRESSBOOK_THISCATEGORY));
 	W2T(wstrThisCategory.get(), ptszThisCategory);

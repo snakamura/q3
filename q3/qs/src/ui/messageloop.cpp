@@ -10,6 +10,8 @@
 #include <qsthread.h>
 #include <qswindow.h>
 
+#include <vector>
+
 using namespace qs;
 
 

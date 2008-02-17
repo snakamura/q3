@@ -6,9 +6,10 @@
  */
 
 #include <qsassert.h>
-#include <qsstl.h>
 
 #include <algorithm>
+
+#include <boost/utility.hpp>
 
 #include <openssl/crypto.h>
 
@@ -37,7 +38,8 @@ qscrypto::Locks::Locks()
 qscrypto::Locks::~Locks()
 {
 	std::for_each(listCriticalSection_.begin(),
-		listCriticalSection_.end(), qs::deleter<CriticalSection>());
+		listCriticalSection_.end(),
+		boost::checked_deleter<CriticalSection>());
 }
 
 CriticalSection& qscrypto::Locks::get(unsigned int n)

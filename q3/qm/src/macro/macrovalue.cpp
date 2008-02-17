@@ -924,24 +924,24 @@ qm::MacroValueFactory::MacroValueFactory() :
 qm::MacroValueFactory::~MacroValueFactory()
 {
 	if (pImpl_) {
-		std::for_each(pImpl_->listBoolean_.begin(),
-			pImpl_->listBoolean_.end(), deleter<MacroValueBoolean>());
-		std::for_each(pImpl_->listString_.begin(),
-			pImpl_->listString_.end(), deleter<MacroValueString>());
-		std::for_each(pImpl_->listNumber_.begin(),
-			pImpl_->listNumber_.end(), deleter<MacroValueNumber>());
-		std::for_each(pImpl_->listRegex_.begin(),
-			pImpl_->listRegex_.end(), deleter<MacroValueRegex>());
-		std::for_each(pImpl_->listField_.begin(),
-			pImpl_->listField_.end(), deleter<MacroValueField>());
-		std::for_each(pImpl_->listAddress_.begin(),
-			pImpl_->listAddress_.end(), deleter<MacroValueAddress>());
-		std::for_each(pImpl_->listTime_.begin(),
-			pImpl_->listTime_.end(), deleter<MacroValueTime>());
-		std::for_each(pImpl_->listPart_.begin(),
-			pImpl_->listPart_.end(), deleter<MacroValuePart>());
-		std::for_each(pImpl_->listMessageList_.begin(),
-			pImpl_->listMessageList_.end(), deleter<MacroValueMessageList>());
+		std::for_each(pImpl_->listBoolean_.begin(), pImpl_->listBoolean_.end(),
+			boost::checked_deleter<MacroValueBoolean>());
+		std::for_each(pImpl_->listString_.begin(), pImpl_->listString_.end(),
+			boost::checked_deleter<MacroValueString>());
+		std::for_each(pImpl_->listNumber_.begin(), pImpl_->listNumber_.end(),
+			boost::checked_deleter<MacroValueNumber>());
+		std::for_each(pImpl_->listRegex_.begin(), pImpl_->listRegex_.end(),
+			boost::checked_deleter<MacroValueRegex>());
+		std::for_each(pImpl_->listField_.begin(), pImpl_->listField_.end(),
+			boost::checked_deleter<MacroValueField>());
+		std::for_each(pImpl_->listAddress_.begin(), pImpl_->listAddress_.end(),
+			boost::checked_deleter<MacroValueAddress>());
+		std::for_each(pImpl_->listTime_.begin(), pImpl_->listTime_.end(),
+			boost::checked_deleter<MacroValueTime>());
+		std::for_each(pImpl_->listPart_.begin(), pImpl_->listPart_.end(),
+			boost::checked_deleter<MacroValuePart>());
+		std::for_each(pImpl_->listMessageList_.begin(), pImpl_->listMessageList_.end(),
+			boost::checked_deleter<MacroValueMessageList>());
 		delete pImpl_;
 	}
 }

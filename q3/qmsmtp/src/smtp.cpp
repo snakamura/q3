@@ -9,7 +9,7 @@
 #include <qsencoder.h>
 #include <qsmd5.h>
 
-#include <stdio.h>
+#include <vector>
 
 #include "smtp.h"
 

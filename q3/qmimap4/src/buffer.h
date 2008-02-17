@@ -11,6 +11,8 @@
 #include <qssocket.h>
 #include <qsstring.h>
 
+#include <vector>
+
 
 namespace qmimap4 {
 

@@ -9,7 +9,6 @@
 #define __QSENCODER_H__
 
 #include <qs.h>
-#include <qsstl.h>
 #include <qsstream.h>
 
 

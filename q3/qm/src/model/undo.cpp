@@ -73,7 +73,8 @@ qm::UndoItemList::UndoItemList()
 
 qm::UndoItemList::~UndoItemList()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<UndoItem>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<UndoItem>());
 }
 
 void qm::UndoItemList::add(std::auto_ptr<UndoItem> pItem)
@@ -200,7 +201,8 @@ qm::MessageUndoItem::MessageUndoItem()
 
 qm::MessageUndoItem::~MessageUndoItem()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<Item>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<Item>());
 }
 
 std::auto_ptr<UndoExecutor> qm::MessageUndoItem::getExecutor(const UndoContext& context)
@@ -495,7 +497,8 @@ qm::MessageListUndoItem::MessageListUndoItem(const MessageHolderList& l)
 
 qm::MessageListUndoItem::~MessageListUndoItem()
 {
-	std::for_each(listURI_.begin(), listURI_.end(), qs::deleter<MessageHolderURI>());
+	std::for_each(listURI_.begin(), listURI_.end(),
+		boost::checked_deleter<MessageHolderURI>());
 }
 
 std::auto_ptr<UndoExecutor> qm::MessageListUndoItem::getExecutor(const UndoContext& context)
@@ -678,7 +681,8 @@ qm::GroupUndoItem::GroupUndoItem(ItemList& listItem)
 
 qm::GroupUndoItem::~GroupUndoItem()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<UndoItem>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<UndoItem>());
 }
 
 std::auto_ptr<UndoExecutor> qm::GroupUndoItem::getExecutor(const UndoContext& context)
@@ -706,7 +710,8 @@ qm::GroupUndoExecutor::GroupUndoExecutor()
 
 qm::GroupUndoExecutor::~GroupUndoExecutor()
 {
-	std::for_each(listExecutor_.begin(), listExecutor_.end(), qs::deleter<UndoExecutor>());
+	std::for_each(listExecutor_.begin(), listExecutor_.end(),
+		boost::checked_deleter<UndoExecutor>());
 }
 
 void qm::GroupUndoExecutor::add(std::auto_ptr<UndoExecutor> pExecutor)

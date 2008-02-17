@@ -789,7 +789,8 @@ void qm::RecentsWindow::prepareItems(bool bActive)
 
 void qm::RecentsWindow::clearItems()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<Item>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<Item>());
 	listItem_.clear();
 	nSelectedItem_ = -1;
 }

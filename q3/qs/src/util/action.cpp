@@ -297,7 +297,7 @@ qs::ActionMap::ActionMap() :
 qs::ActionMap::~ActionMap()
 {
 	std::for_each(pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
-		boost::bind(deleter<Action>(),
+		boost::bind(boost::checked_deleter<Action>(),
 			boost::bind(&ActionMapImpl::ActionItem::pAction_, _1)));
 	delete pImpl_;
 }
@@ -391,7 +391,7 @@ qs::ActionParamMap::ActionParamMap() :
 qs::ActionParamMap::~ActionParamMap()
 {
 	std::for_each(pImpl_->listItem_.begin(), pImpl_->listItem_.end(),
-		boost::bind(deleter<ActionParam>(),
+		boost::bind(boost::checked_deleter<ActionParam>(),
 			boost::bind(&ActionParamMapImpl::Item::pParam_, _1)));
 	delete pImpl_;
 }

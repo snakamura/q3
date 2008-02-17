@@ -1710,9 +1710,11 @@ qm::ViewModelManager::~ViewModelManager()
 {
 	pColorManager_->removeColorManagerHandler(this);
 	
-	std::for_each(listViewModel_.begin(), listViewModel_.end(), deleter<ViewModel>());
+	std::for_each(listViewModel_.begin(), listViewModel_.end(),
+		boost::checked_deleter<ViewModel>());
 	std::for_each(mapViewData_.begin(), mapViewData_.end(),
-		boost::bind(deleter<ViewData>(), boost::bind(&ViewDataMap::value_type::second, _1)));
+		boost::bind(boost::checked_deleter<ViewData>(),
+			boost::bind(&ViewDataMap::value_type::second, _1)));
 }
 
 DefaultViewData* qm::ViewModelManager::getDefaultViewData() const
@@ -2109,7 +2111,8 @@ qm::ViewData::ViewData(DefaultViewData* pDefaultViewData,
 
 qm::ViewData::~ViewData()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), deleter<ViewDataItem>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<ViewDataItem>());
 }
 
 const ViewData::ItemList& qm::ViewData::getItems() const
@@ -2334,7 +2337,8 @@ qm::ViewDataItem::ViewDataItem(unsigned int nFolderId) :
 
 qm::ViewDataItem::~ViewDataItem()
 {
-	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+	std::for_each(listColumn_.begin(), listColumn_.end(),
+		boost::checked_deleter<ViewColumn>());
 }
 
 unsigned int qm::ViewDataItem::getFolderId() const
@@ -2349,7 +2353,8 @@ const ViewColumnList& qm::ViewDataItem::getColumns() const
 
 void qm::ViewDataItem::setColumns(const ViewColumnList& listColumn)
 {
-	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+	std::for_each(listColumn_.begin(), listColumn_.end(),
+		boost::checked_deleter<ViewColumn>());
 	listColumn_ = listColumn;
 }
 

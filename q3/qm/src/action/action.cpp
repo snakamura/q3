@@ -285,7 +285,8 @@ qm::DispatchAction::~DispatchAction()
 		listItem_.begin(), listItem_.end(),
 		boost::bind(&Item::pAction_, _1) == boost::bind(&Item::pAction_, _2));
 	std::for_each(listItem_.begin(), it,
-		boost::bind(qs::deleter<Action>(), boost::bind(&Item::pAction_, _1)));
+		boost::bind(boost::checked_deleter<Action>(),
+			boost::bind(&Item::pAction_, _1)));
 }
 
 void qm::DispatchAction::invoke(const ActionEvent& event)
@@ -4310,7 +4311,7 @@ bool qm::MessageExpandDigestAction::expandDigest(Account* pAccount,
 		return false;
 	
 	PartUtil::MessageList l;
-	container_deleter<PartUtil::MessageList> deleter(l);
+	CONTAINER_DELETER(deleter, l);
 	if (!PartUtil(msg).getDigest(&l))
 		return false;
 	
@@ -5178,26 +5179,9 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	
 	typedef std::vector<std::pair<SearchUI*, SearchPropertyPage*> > UIList;
 	UIList listUI;
-	struct Deleter
-	{
-		typedef std::vector<std::pair<SearchUI*, SearchPropertyPage*> > UIList;
-		
-		Deleter(UIList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			using namespace boost::lambda;
-			using boost::lambda::_1;
-			std::for_each(l_.begin(), l_.end(),
-				(bind(delete_ptr(), bind(&UIList::value_type::first, _1)),
-				 bind(delete_ptr(), bind(&UIList::value_type::second, _1))));
-		}
-		
-		UIList& l_;
-	} deleter(listUI);
+	CONTAINER_DELETER_D(deleter, listUI,
+		(boost::lambda::bind(boost::lambda::delete_ptr(), bind(&UIList::value_type::first, boost::lambda::_1)),
+		 boost::lambda::bind(boost::lambda::delete_ptr(), bind(&UIList::value_type::second, boost::lambda::_1))));
 	
 	SearchDriverFactory::NameList listName;
 	SearchDriverFactory::getNames(&listName);

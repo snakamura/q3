@@ -96,7 +96,8 @@ bool qmimap4::ListParserCallback::response(std::auto_ptr<Response> pResponse)
 
 void qmimap4::ListParserCallback::clear()
 {
-	std::for_each(listResponse_.begin(), listResponse_.end(), deleter<Response>());
+	std::for_each(listResponse_.begin(), listResponse_.end(),
+		boost::checked_deleter<Response>());
 	listResponse_.clear();
 }
 
@@ -1698,7 +1699,8 @@ qmimap4::ResponseFetch::ResponseFetch(unsigned long nNumber,
 
 qmimap4::ResponseFetch::~ResponseFetch()
 {
-	std::for_each(listData_.begin(), listData_.end(), deleter<FetchData>());
+	std::for_each(listData_.begin(), listData_.end(),
+		boost::checked_deleter<FetchData>());
 }
 
 unsigned long qmimap4::ResponseFetch::getNumber() const
@@ -1733,20 +1735,7 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 {
 	unsigned long nUid = -1;
 	FetchDataList listData;
-	struct Deleter
-	{
-		Deleter(FetchDataList& listData) :
-			listData_(listData)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(listData_.begin(), listData_.end(), qs::deleter<FetchData>());
-		}
-		
-		FetchDataList& listData_;
-	} deleter(listData);
+	CONTAINER_DELETER(deleter, listData);
 	
 	const List::ItemList& l = pList->getList();
 	if (l.size() % 2 != 0)
@@ -1941,21 +1930,7 @@ std::auto_ptr<ResponseFlags> qmimap4::ResponseFlags::create(List* pList)
 {
 	unsigned int nSystemFlags = 0;
 	FlagList listCustomFlag;
-	
-	struct Deleter
-	{
-		Deleter(FlagList& listCustomFlag) :
-			listCustomFlag_(listCustomFlag)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(listCustomFlag_.begin(), listCustomFlag_.end(), &freeString);
-		}
-		
-		FlagList& listCustomFlag_;
-	} deleter(listCustomFlag);
+	CONTAINER_DELETER_D(deleter, listCustomFlag, &freeString);
 	
 	const List::ItemList& l = pList->getList();
 	for (List::ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -2423,20 +2398,7 @@ std::auto_ptr<FetchDataBody> qmimap4::FetchDataBody::create(const CHAR* pszSecti
 	PartPath partPath;
 	FieldList listField;
 	
-	struct Deleter
-	{
-		Deleter(FieldList& listField) :
-			listField_(listField)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(listField_.begin(), listField_.end(), &freeString);
-		}
-		
-		FieldList& listField_;
-	} deleter(listField);
+	CONTAINER_DELETER_D(deleter, listField, &freeString);
 	
 	string_ptr strSection(allocString(pszSection, nSectionLen));
 	const CHAR* p = strSection.get();
@@ -2561,7 +2523,7 @@ qmimap4::FetchDataBodyStructure::~FetchDataBodyStructure()
 		 bind(&freeString, bind(&ParamList::value_type::second, _1))));
 	std::for_each(listLanguage_.begin(), listLanguage_.end(), &freeString);
 	std::for_each(listChild_.begin(), listChild_.end(),
-		deleter<FetchDataBodyStructure>());
+		boost::checked_deleter<FetchDataBodyStructure>());
 }
 
 const CHAR* qmimap4::FetchDataBodyStructure::getContentType() const
@@ -2693,7 +2655,7 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 				 bind(&freeString, bind(&ParamList::value_type::second, _1))));
 			std::for_each(listLanguage_.begin(), listLanguage_.end(), &freeString);
 			std::for_each(listChild_.begin(), listChild_.end(),
-				qs::deleter<FetchDataBodyStructure>());
+				boost::checked_deleter<FetchDataBodyStructure>());
 		}
 		
 		ParamList& listContentTypeParam_;
@@ -3035,7 +2997,7 @@ qmimap4::FetchDataEnvelope::~FetchDataEnvelope()
 {
 	for (int n = 0; n < countof(listAddress_); ++n)
 		std::for_each(listAddress_[n].begin(), listAddress_[n].end(),
-			deleter<EnvelopeAddress>());
+			boost::checked_deleter<EnvelopeAddress>());
 }
 
 const FetchDataEnvelope::AddressList& qmimap4::FetchDataEnvelope::getAddresses(
@@ -3509,7 +3471,7 @@ qmimap4::List::List() :
 
 qmimap4::List::~List()
 {
-	std::for_each(list_.begin(), list_.end(), deleter<ListItem>());
+	std::for_each(list_.begin(), list_.end(), boost::checked_deleter<ListItem>());
 }
 
 const List::ItemList& qmimap4::List::getList() const

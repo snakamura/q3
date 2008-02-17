@@ -791,7 +791,7 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 {
 	xstring_size_ptr strMessage;
 	SMIMEUtility::CertificateList listCertificate;
-	container_deleter<SMIMEUtility::CertificateList> deleter(listCertificate);
+	CONTAINER_DELETER(deleter, listCertificate);
 	unsigned int nSecurity = pMessage->getSecurity();
 	switch (type) {
 	case SMIMEUtility::TYPE_SIGNED:
@@ -1162,9 +1162,9 @@ qm::Account::~Account()
 {
 	if (pImpl_) {
 		std::for_each(pImpl_->listSubAccount_.begin(),
-			pImpl_->listSubAccount_.end(), deleter<SubAccount>());
+			pImpl_->listSubAccount_.end(), boost::checked_deleter<SubAccount>());
 		std::for_each(pImpl_->listFolder_.begin(),
-			pImpl_->listFolder_.end(), deleter<Folder>());
+			pImpl_->listFolder_.end(), boost::checked_deleter<Folder>());
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -1707,32 +1707,10 @@ bool qm::Account::updateFolders()
 	if (!pImpl_->pProtocolDriver_->getRemoteFolders(&l))
 		return false;
 	
-	struct Deleter
-	{
-		typedef ProtocolDriver::RemoteFolderList List;
-		
-		Deleter(const List& l) :
-			p_(&l)
-		{
-		}
-		
-		~Deleter()
-		{
-			if (p_) {
-				for (List::const_iterator it = p_->begin(); it != p_->end(); ++it) {
-					if ((*it).second)
-						delete (*it).first;
-				}
-			}
-		}
-		
-		void release()
-		{
-			p_ = 0;
-		}
-		
-		const List* p_;
-	} deleter(l);
+	CONTAINER_DELETER_DP(deleter, l,
+		boost::bind(boost::checked_deleter<Folder>(),
+			boost::bind(std::select1st<List::value_type>(), _1)),
+		std::select2nd<List::value_type>());
 	
 	pImpl_->listFolder_.reserve(pImpl_->listFolder_.size() + l.size());
 	for (List::const_iterator itR = l.begin(); itR != l.end(); ++itR) {
@@ -1745,7 +1723,7 @@ bool qm::Account::updateFolders()
 	deleter.release();
 	
 	FolderList listDelete;
-	container_deleter<FolderList> free(listDelete);
+	CONTAINER_DELETER(deleter2, listDelete);
 	
 	std::sort(l.begin(), l.end(), RemoteFolderLess());
 	for (FolderList::iterator itF = pImpl_->listFolder_.begin(); itF != pImpl_->listFolder_.end(); ) {
@@ -3114,7 +3092,7 @@ qm::AccountPasswordHelper::AccountPasswordHelper(PasswordManager* pPasswordManag
 qm::AccountPasswordHelper::~AccountPasswordHelper()
 {
 	std::for_each(listCondition_.begin(), listCondition_.end(),
-		qs::deleter<AccountPasswordCondition>());
+		boost::checked_deleter<AccountPasswordCondition>());
 }
 
 void qm::AccountPasswordHelper::remove() const

@@ -162,7 +162,7 @@ qm::Document::~Document()
 {
 	if (pImpl_) {
 		AccountList& l = pImpl_->listAccount_;
-		std::for_each(l.begin(), l.end(), deleter<Account>());
+		std::for_each(l.begin(), l.end(), boost::checked_deleter<Account>());
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -319,30 +319,7 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 	W2T(wstrFind.get(), ptszFind);
 	
 	AccountList& l = pImpl_->listAccount_;
-	
-	struct AccountDestroy
-	{
-		AccountDestroy(AccountList& l) :
-			p_(&l)
-		{
-		}
-		
-		~AccountDestroy()
-		{
-			if (p_) {
-				std::for_each(p_->begin(), p_->end(), deleter<Account>());
-				p_->clear();
-			}
-		};
-		
-		void release()
-		{
-			p_ = 0;
-		}
-		
-		AccountList* p_;
-	} accountDestroy(l);
-	
+	CONTAINER_DELETER(deleter, l);
 	
 	WIN32_FIND_DATA fd;
 	AutoFindHandle hFind(::FindFirstFile(ptszFind, &fd));
@@ -421,7 +398,7 @@ bool qm::Document::loadAccounts(const WCHAR* pwszPath)
 		} while (::FindNextFile(hFind.get(), &fd));
 	}
 	
-	accountDestroy.release();
+	deleter.release();
 	std::sort(l.begin(), l.end(), AccountLess());
 	
 	if (!pImpl_->pProfile_->getInt(L"Global", L"Offline"))

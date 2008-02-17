@@ -126,8 +126,8 @@ qs::RegexBrunchNode::RegexBrunchNode(std::auto_ptr<RegexPieceNode> pPieceNode)
 
 qs::RegexBrunchNode::~RegexBrunchNode()
 {
-	std::for_each(listNode_.begin(),
-		listNode_.end(), deleter<RegexPieceNode>());
+	std::for_each(listNode_.begin(), listNode_.end(),
+		boost::checked_deleter<RegexPieceNode>());
 }
 
 const RegexBrunchNode::NodeList& qs::RegexBrunchNode::getNodeList() const
@@ -466,8 +466,8 @@ qs::RegexCharGroupAtom::RegexCharGroupAtom() :
 
 qs::RegexCharGroupAtom::~RegexCharGroupAtom()
 {
-	std::for_each(listCharGroup_.begin(),
-		listCharGroup_.end(), deleter<CharGroup>());
+	std::for_each(listCharGroup_.begin(), listCharGroup_.end(),
+		boost::checked_deleter<CharGroup>());
 }
 
 bool qs::RegexCharGroupAtom::matchChar(WCHAR c) const

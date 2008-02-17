@@ -669,8 +669,8 @@ void qm::RuleManager::addRuleSet(std::auto_ptr<RuleSet> pRuleSet)
 
 void qm::RuleManager::clear()
 {
-	std::for_each(pImpl_->listRuleSet_.begin(),
-		pImpl_->listRuleSet_.end(), deleter<RuleSet>());
+	std::for_each(pImpl_->listRuleSet_.begin(), pImpl_->listRuleSet_.end(),
+		boost::checked_deleter<RuleSet>());
 	pImpl_->listRuleSet_.clear();
 }
 
@@ -771,7 +771,8 @@ void qm::RuleSet::addRule(std::auto_ptr<Rule> pRule)
 
 void qm::RuleSet::clear()
 {
-	std::for_each(listRule_.begin(), listRule_.end(), deleter<Rule>());
+	std::for_each(listRule_.begin(), listRule_.end(),
+		boost::checked_deleter<Rule>());
 	listRule_.clear();
 }
 

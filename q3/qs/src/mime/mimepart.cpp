@@ -120,7 +120,7 @@ void qs::Part::clear()
 	strHeader_.reset(0);
 	clearHeaderLower();
 	strBody_.reset(0);
-	std::for_each(listPart_.begin(), listPart_.end(), deleter<Part>());
+	std::for_each(listPart_.begin(), listPart_.end(), boost::checked_deleter<Part>());
 	listPart_.clear();
 	pPartEnclosed_.reset(0);
 	pParent_ = 0;

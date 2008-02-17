@@ -29,7 +29,8 @@ qm::LineLayout::LineLayout() :
 
 qm::LineLayout::~LineLayout()
 {
-	std::for_each(listLine_.begin(), listLine_.end(), deleter<LineLayoutLine>());
+	std::for_each(listLine_.begin(), listLine_.end(),
+		boost::checked_deleter<LineLayoutLine>());
 }
 
 unsigned int qm::LineLayout::getLineCount() const
@@ -151,7 +152,7 @@ qm::LineLayoutLine::LineLayoutLine()
 qm::LineLayoutLine::~LineLayoutLine()
 {
 	std::for_each(listItem_.begin(), listItem_.end(),
-		deleter<LineLayoutItem>());
+		boost::checked_deleter<LineLayoutItem>());
 }
 
 unsigned int qm::LineLayoutLine::getItemCount() const

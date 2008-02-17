@@ -351,7 +351,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	
 	typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
 	BodyStructureList listBodyStructure;
-	container_deleter<BodyStructureList> deleter(listBodyStructure);
+	CONTAINER_DELETER(deleter, listBodyStructure);
 	
 	MessageDataList listMessageData;
 	listMessageData.reserve(nExists_ - nIdStart_);
@@ -1088,7 +1088,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 	if (!listText.empty()) {
 		typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
 		BodyStructureList listBodyStructure;
-		container_deleter<BodyStructureList> deleter(listBodyStructure);
+		CONTAINER_DELETER(deleter, listBodyStructure);
 		listBodyStructure.resize(listText.size());
 		
 		class BodyStructureProcessHook : public AbstractBodyStructureProcessHook

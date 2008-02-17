@@ -13,6 +13,7 @@
 #include <qsstring.h>
 
 #include <algorithm>
+#include <vector>
 
 #include <windows.h>
 #include <tchar.h>

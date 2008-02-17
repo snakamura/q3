@@ -11,6 +11,8 @@
 #include <qs.h>
 #include <qssax.h>
 
+#include <vector>
+
 
 namespace qs {
 

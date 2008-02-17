@@ -185,7 +185,7 @@ void qm::Recents::clear()
 		return;
 	
 	std::for_each(pImpl_->list_.begin(), pImpl_->list_.end(),
-		boost::bind(qs::deleter<MessageHolderURI>(),
+		boost::bind(boost::checked_deleter<MessageHolderURI>(),
 			boost::bind(&RecentsImpl::URIList::value_type::first, _1)));
 	pImpl_->list_.clear();
 	

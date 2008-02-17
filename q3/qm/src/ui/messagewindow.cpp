@@ -1019,7 +1019,7 @@ qm::MessageWindowFontManager::MessageWindowFontManager(const WCHAR* pwszPath)
 qm::MessageWindowFontManager::~MessageWindowFontManager()
 {
 	std::for_each(listGroup_.begin(), listGroup_.end(),
-		qs::deleter<MessageWindowFontGroup>());
+		boost::checked_deleter<MessageWindowFontGroup>());
 }
 
 const MessageWindowFontGroup* qm::MessageWindowFontManager::getGroup(const WCHAR* pwszName) const
@@ -1070,7 +1070,7 @@ qm::MessageWindowFontGroup::MessageWindowFontGroup(const WCHAR* pwszName)
 qm::MessageWindowFontGroup::~MessageWindowFontGroup()
 {
 	std::for_each(listFontSet_.begin(), listFontSet_.end(),
-		qs::deleter<MessageWindowFontSet>());
+		boost::checked_deleter<MessageWindowFontSet>());
 }
 
 const WCHAR* qm::MessageWindowFontGroup::getName() const

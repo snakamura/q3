@@ -157,8 +157,8 @@ void qm::PasswordManager::clear()
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
 	
-	std::for_each(pImpl_->listPassword_.begin(),
-		pImpl_->listPassword_.end(), qs::deleter<Password>());
+	std::for_each(pImpl_->listPassword_.begin(), pImpl_->listPassword_.end(),
+		boost::checked_deleter<Password>());
 	pImpl_->bModified_ = true;
 }
 

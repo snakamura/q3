@@ -35,7 +35,7 @@ qm::ResourceFileList::ResourceFileList(const WCHAR* pwszPath) :
 
 qm::ResourceFileList::~ResourceFileList()
 {
-	std::for_each(list_.begin(), list_.end(), qs::deleter<ResourceFile>());
+	std::for_each(list_.begin(), list_.end(), boost::checked_deleter<ResourceFile>());
 }
 
 const ResourceFileList::List& qm::ResourceFileList::getResourceFiles() const

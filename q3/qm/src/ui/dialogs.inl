@@ -29,7 +29,7 @@ qm::AbstractListDialog<T, List>::AbstractListDialog(UINT nIdPortrait,
 template<class T, class List>
 qm::AbstractListDialog<T, List>::~AbstractListDialog()
 {
-	std::for_each(list_.begin(), list_.end(), qs::deleter<T>());
+	std::for_each(list_.begin(), list_.end(), boost::checked_deleter<T>());
 }
 
 template<class T, class List>

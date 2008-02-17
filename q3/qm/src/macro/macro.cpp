@@ -250,7 +250,8 @@ qm::MacroGlobalContext::MacroGlobalContext(const MessageHolderList& listSelected
 
 qm::MacroGlobalContext::~MacroGlobalContext()
 {
-	std::for_each(listParsedMacro_.begin(), listParsedMacro_.end(), qs::deleter<Macro>());
+	std::for_each(listParsedMacro_.begin(), listParsedMacro_.end(),
+		boost::checked_deleter<Macro>());
 }
 
 const MessageHolderList& qm::MacroGlobalContext::getSelectedMessageHolders() const
@@ -1356,7 +1357,7 @@ std::auto_ptr<Macro> qm::MacroParser::parse(const WCHAR* pwszMacro) const
 	
 	typedef std::vector<MacroFunction*> FunctionStack;
 	FunctionStack stackFunction;
-	container_deleter<FunctionStack> deleter(stackFunction);
+	CONTAINER_DELETER(deleter, stackFunction);
 	
 	const MacroTokenizer::Token exprTokens[] = {
 		MacroTokenizer::TOKEN_TEXT,

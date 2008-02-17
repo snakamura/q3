@@ -120,7 +120,8 @@ qm::DefaultTabModel::DefaultTabModel(AccountManager* pAccountManager,
 
 qm::DefaultTabModel::~DefaultTabModel()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), qs::deleter<TabItem>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<TabItem>());
 	
 	pAccountManager_->removeAccountManagerHandler(this);
 }

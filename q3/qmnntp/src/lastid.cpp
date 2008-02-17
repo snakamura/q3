@@ -178,7 +178,7 @@ qmnntp::LastIdManager::LastIdManager()
 qmnntp::LastIdManager::~LastIdManager()
 {
 	std::for_each(map_.begin(), map_.end(),
-		boost::bind(qs::deleter<LastIdList>(),
+		boost::bind(boost::checked_deleter<LastIdList>(),
 			boost::bind(&Map::value_type::second, _1)));
 }
 

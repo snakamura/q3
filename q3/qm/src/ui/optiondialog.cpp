@@ -425,7 +425,8 @@ qm::OptionDialog::OptionDialog(Document* pDocument,
 
 qm::OptionDialog::~OptionDialog()
 {
-	std::for_each(listPanel_.begin(), listPanel_.end(), qs::deleter<OptionDialogPanel>());
+	std::for_each(listPanel_.begin(), listPanel_.end(),
+		boost::checked_deleter<OptionDialogPanel>());
 }
 
 INT_PTR qm::OptionDialog::dialogProc(UINT uMsg,

@@ -637,7 +637,8 @@ qm::HtmlContentManager::HtmlContentManager()
 
 qm::HtmlContentManager::~HtmlContentManager()
 {
-	std::for_each(listContent_.begin(), listContent_.end(), qs::deleter<HtmlContent>());
+	std::for_each(listContent_.begin(), listContent_.end(),
+		boost::checked_deleter<HtmlContent>());
 	listContent_.clear();
 }
 

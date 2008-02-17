@@ -459,7 +459,7 @@ qs::RegexNfa::RegexNfa(std::auto_ptr<RegexRegexNode> pNode)
 qs::RegexNfa::~RegexNfa()
 {
 	std::for_each(listState_.begin(), listState_.end(),
-		boost::bind(deleter<RegexNfaState>(),
+		boost::bind(boost::checked_deleter<RegexNfaState>(),
 			boost::bind(&StateList::value_type::first, _1)));
 }
 

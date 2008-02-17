@@ -76,7 +76,7 @@ qmpop3::UIDList::UIDList() :
 
 qmpop3::UIDList::~UIDList()
 {
-	std::for_each(list_.begin(), list_.end(), deleter<UID>());
+	std::for_each(list_.begin(), list_.end(), boost::checked_deleter<UID>());
 }
 
 unsigned int qmpop3::UIDList::getCount() const

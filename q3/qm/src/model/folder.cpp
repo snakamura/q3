@@ -532,7 +532,8 @@ qm::NormalFolder::~NormalFolder()
 	if (pImpl_) {
 		getAccount()->removeMessageHolderHandler(pImpl_);
 		std::for_each(pImpl_->listMessageHolder_.begin(),
-			pImpl_->listMessageHolder_.end(), deleter<MessageHolder>());
+			pImpl_->listMessageHolder_.end(),
+			boost::checked_deleter<MessageHolder>());
 		delete pImpl_;
 		pImpl_ = 0;
 	}
@@ -721,7 +722,7 @@ bool qm::NormalFolder::loadMessageHolders()
 	wstring_ptr wstrPath(pImpl_->getPath());
 	
 	MessageHolderList l;
-	container_deleter<MessageHolderList> deleter(l);
+	CONTAINER_DELETER(deleter, l);
 	
 	unsigned int nUnseenCount = 0;
 	unsigned int nDownloadCount = 0;

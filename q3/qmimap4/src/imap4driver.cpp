@@ -1394,22 +1394,8 @@ bool qmimap4::FolderListGetter::update()
 		return false;
 	
 	NamespaceList listNamespace;
-	struct Deleter
-	{
-		Deleter(NamespaceList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(),
-				boost::bind(&freeWString,
-					boost::bind(&NamespaceList::value_type::first, _1)));
-		}
-		
-		NamespaceList& l_;
-	} deleter(listNamespace);
+	CONTAINER_DELETER_D(deleter, listNamespace,
+		boost::bind(&freeWString, boost::bind(&NamespaceList::value_type::first, _1)));
 	if (!listNamespaces(pImap4.get(), pCallback.get(), &listNamespace))
 		return false;
 	return listFolders(pImap4.get(), pCallback.get(), listNamespace);
@@ -1460,21 +1446,8 @@ bool qmimap4::FolderListGetter::listFolders(Imap4* pImap4,
 											const NamespaceList& listNamespace)
 {
 	FolderDataList listFolderData;
-	struct Deleter
-	{
-		Deleter(FolderDataList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(),
-				boost::bind(&freeWString, boost::bind(&FolderData::wstrMailbox_, _1)));
-		}
-		
-		FolderDataList& l_;
-	} deleter(listFolderData);
+	CONTAINER_DELETER_D(deleter, listFolderData,
+		boost::bind(&freeWString, boost::bind(&FolderData::wstrMailbox_, _1)));
 	pCallback->setFolderDataList(&listFolderData);
 	
 	for (NamespaceList::const_iterator itNS = listNamespace.begin(); itNS != listNamespace.end(); ++itNS) {

@@ -212,7 +212,7 @@ LRESULT qm::ConditionsDialog::onType()
 void qm::ConditionsDialog::setConditionList(const ConditionList* pConditionList)
 {
 	ConditionList::List& list = getList();
-	std::for_each(list.begin(), list.end(), qs::deleter<Condition>());
+	std::for_each(list.begin(), list.end(), boost::checked_deleter<Condition>());
 	list.clear();
 	
 	if (pConditionList) {

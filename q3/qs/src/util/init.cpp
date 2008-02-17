@@ -213,10 +213,11 @@ qs::Init::~Init()
 	InitImpl::pInit__ = 0;
 	
 	std::for_each(pImpl_->listEncoderFactory_.begin(),
-		pImpl_->listEncoderFactory_.end(), deleter<EncoderFactory>());
-	
+		pImpl_->listEncoderFactory_.end(),
+		boost::checked_deleter<EncoderFactory>());
 	std::for_each(pImpl_->listConverterFactory_.begin(),
-		pImpl_->listConverterFactory_.end(), deleter<ConverterFactory>());
+		pImpl_->listConverterFactory_.end(),
+		boost::checked_deleter<ConverterFactory>());
 	
 	Initializer* pInitializer = InitImpl::pInitializer__;
 	while (pInitializer) {

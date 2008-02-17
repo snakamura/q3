@@ -262,32 +262,12 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader,
 	assert(pReader);
 	
 	Template::ValueList listValue;
-	struct Deleter
-	{
-		Deleter(Template::ValueList&l ) :
-			p_(&l)
-		{
-		}
-		
-		~Deleter()
-		{
-			if (p_) {
-				using namespace boost::lambda;
-				using boost::lambda::_1;
-				std::for_each(p_->begin(), p_->end(),
-					(bind(&freeWString, bind(&Template::ValueList::value_type::first, _1)),
-					 bind(delete_ptr(), bind(&Template::ValueList::value_type::second, _1))));
-				p_->clear();
-			}
-		}
-		
-		void release()
-		{
-			p_ = 0;
-		}
-
-		Template::ValueList* p_;
-	} deleter(listValue);
+	
+	using namespace boost::lambda;
+	using boost::lambda::_1;
+	CONTAINER_DELETER_D(deleter, listValue,
+		(bind(&freeWString, bind(&Template::ValueList::value_type::first, _1)),
+		 bind(delete_ptr(), bind(&Template::ValueList::value_type::second, _1))));
 	
 	MacroParser parser;
 	

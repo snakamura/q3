@@ -73,7 +73,8 @@ bool qm::FilterManager::save() const
 
 void qm::FilterManager::clear()
 {
-	std::for_each(listFilter_.begin(), listFilter_.end(), deleter<Filter>());
+	std::for_each(listFilter_.begin(), listFilter_.end(),
+		boost::checked_deleter<Filter>());
 	listFilter_.clear();
 }
 

@@ -2643,7 +2643,7 @@ void qs::AddressListParser::removeAddress(AddressParser* pAddress)
 
 void qs::AddressListParser::removeAllAddresses()
 {
-	std::for_each(listAddress_.begin(), listAddress_.end(), deleter<AddressParser>());
+	std::for_each(listAddress_.begin(), listAddress_.end(), boost::checked_deleter<AddressParser>());
 	listAddress_.clear();
 }
 
@@ -2730,26 +2730,7 @@ Part::Field qs::AddressListParser::parseAddressList(const Part& part,
 	if (nFlags_ & FLAG_ALLOWUTF8)
 		nFlags |= AddressParser::FLAG_ALLOWUTF8;
 	
-	struct Deleter
-	{
-		Deleter(AddressListParser::AddressList& l) :
-			p_(&l)
-		{
-		}
-		
-		~Deleter()
-		{
-			if (p_) {
-				std::for_each(p_->begin(), p_->end(), qs::deleter<AddressParser>());
-				p_->clear();
-			}
-		}
-		
-		void release() { p_ = 0; }
-		
-		AddressListParser::AddressList* p_;
-	} deleter(listAddress_);
-	
+	CONTAINER_DELETER(deleter, listAddress_);
 	while (true) {
 		std::auto_ptr<AddressParser> pParser(new AddressParser(nFlags));
 		

@@ -41,7 +41,8 @@ qm::RecentAddress::RecentAddress(AddressBook* pAddressBook,
 
 qm::RecentAddress::~RecentAddress()
 {
-	std::for_each(listAddress_.begin(), listAddress_.end(), qs::deleter<AddressParser>());
+	std::for_each(listAddress_.begin(), listAddress_.end(),
+		boost::checked_deleter<AddressParser>());
 	listAddress_.clear();
 }
 
@@ -151,7 +152,7 @@ void qm::RecentAddress::add(const AddressParser& address)
 			address.getPhrase(), address.getMailbox(), address.getHost()));
 		if (listAddress_.size() >= nMax_) {
 			std::for_each(listAddress_.begin() + nMax_ - 1,
-				listAddress_.end(), qs::deleter<AddressParser>());
+				listAddress_.end(), boost::checked_deleter<AddressParser>());
 			listAddress_.resize(nMax_ - 1);
 		}
 		listAddress_.insert(listAddress_.begin(), pAddress.release());

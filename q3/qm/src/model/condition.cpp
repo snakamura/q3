@@ -484,7 +484,8 @@ qm::ConditionList::ConditionList(const List& listCondition,
 
 qm::ConditionList::~ConditionList()
 {
-	std::for_each(list_.begin(), list_.end(), qs::deleter<Condition>());
+	std::for_each(list_.begin(), list_.end(),
+		boost::checked_deleter<Condition>());
 }
 
 const ConditionList::List& qm::ConditionList::getConditions() const

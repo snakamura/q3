@@ -460,21 +460,9 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 	Log log(InitThread::getInitThread().getLogger(), L"qm::ApplicationImpl");
 	
 	ResourceDialog::ResourceList listResource;
-	struct Deleter
-	{
-		Deleter(ResourceDialog::ResourceList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			std::for_each(l_.begin(), l_.end(),
-				boost::bind(&freeWString,
-					boost::bind(&ResourceDialog::ResourceList::value_type::first, _1)));
-		}
-		ResourceDialog::ResourceList& l_;
-	} deleter(listResource);
+	CONTAINER_DELETER_D(deleter, listResource,
+		boost::bind(&freeWString,
+			boost::bind(&ResourceDialog::ResourceList::value_type::first, _1)));
 	
 	wstring_ptr wstrResourceFilePath(concat(wstrMailFolder_.get(),
 		L"\\profiles\\", FileNames::RESOURCES_XML));

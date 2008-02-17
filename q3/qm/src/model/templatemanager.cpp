@@ -39,7 +39,8 @@ qm::TemplateManager::TemplateManager(const WCHAR* pwszPath)
 
 qm::TemplateManager::~TemplateManager()
 {
-	std::for_each(listItem_.begin(), listItem_.end(), deleter<Item>());
+	std::for_each(listItem_.begin(), listItem_.end(),
+		boost::checked_deleter<Item>());
 }
 
 const Template* qm::TemplateManager::getTemplate(Account* pAccount,

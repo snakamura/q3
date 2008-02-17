@@ -3041,7 +3041,8 @@ qm::ViewsDialog::ViewsDialog(ViewModelManager* pViewModelManager,
 
 qm::ViewsDialog::~ViewsDialog()
 {
-	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+	std::for_each(listColumn_.begin(), listColumn_.end(),
+		boost::checked_deleter<ViewColumn>());
 }
 
 LRESULT qm::ViewsDialog::onCommand(WORD nCode,
@@ -3370,7 +3371,8 @@ void qm::ViewsDialog::updateState()
 
 void qm::ViewsDialog::setColumns(const ViewColumnList& listColumn)
 {
-	std::for_each(listColumn_.begin(), listColumn_.end(), deleter<ViewColumn>());
+	std::for_each(listColumn_.begin(), listColumn_.end(),
+		boost::checked_deleter<ViewColumn>());
 	listColumn_.clear();
 	cloneColumns(listColumn, &listColumn_);
 }

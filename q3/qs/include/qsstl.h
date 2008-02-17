@@ -11,10 +11,12 @@
 #pragma warning(disable:4284)
 
 #include <qs.h>
-#include <qsassert.h>
 
-#include <vector>
-#include <hash_map>
+#include <functional>
+
+#include <boost/type_traits.hpp>
+#include <boost/utility.hpp>
+
 
 namespace qs {
 
@@ -159,48 +161,98 @@ private:
 
 /****************************************************************************
  *
- * deleter
+ * const_function
  *
  */
 
-template<class T>
-struct deleter : public std::unary_function<T*, T*>
+template<class R, class A>
+class const_function : public std::unary_function<R, A>
 {
-	T* operator()(T* p) const { delete p; return 0; }
+public:
+	const_function(const R& r) : r_(r) {}
+	R operator()(const A&) const { return r_; }
+
+private:
+	R r_;
 };
 
 
 /****************************************************************************
  *
- * container_deleter
+ * container_deleter_base
  *
  */
 
-template<class Container>
-class container_deleter
+struct container_deleter_base
+{
+	virtual ~container_deleter_base() = 0 {}
+	virtual void release() const = 0;
+};
+
+
+/****************************************************************************
+ *
+ * container_deleter_t
+ *
+ */
+
+template<class Container, class Deleter, class Pred>
+class container_deleter_t : public container_deleter_base
 {
 public:
-	container_deleter(Container& c) : p_(&c) {}
-	~container_deleter()
+	container_deleter_t(Container& c, const Deleter& deleter, const Pred& pred) :
+		p_(&c), deleter_(deleter), pred_(pred) {}
+	~container_deleter_t()
 	{
-		if (p_) {
-			Container::iterator it = p_->begin();
-			while (it != p_->end())
-				delete *it++;
-			p_->clear();
+		if (!p_)
+			return;
+		
+		Container::iterator it = p_->begin();
+		while (it != p_->end()) {
+			if (pred_(*it))
+				deleter_(*it);
+			++it;
 		}
+		p_->clear();
 	}
 
 public:
-	void release() { p_ = 0; }
+	virtual void release() const { p_ = 0; }
 
 private:
-	container_deleter(const container_deleter&);
-	container_deleter& operator=(const container_deleter&);
-
-private:
-	Container* p_;
+	mutable Container* p_;
+	Deleter deleter_;
+	Pred pred_;
 };
+
+template<class Container, class Deleter, class Pred>
+container_deleter_t<Container, Deleter, Pred> container_deleter(Container& c, const Deleter& deleter, const Pred& pred)
+{
+	return container_deleter_t<Container, Deleter, Pred>(c, deleter, pred);
+}
+
+template<class Container, class Deleter>
+container_deleter_t<Container, Deleter, const_function<bool, typename Container::value_type> > container_deleter(Container& c, const Deleter& deleter)
+{
+	return container_deleter_t<Container, Deleter, const_function<bool, typename Container::value_type> >(
+		c, deleter, const_function<bool, typename Container::value_type>(true));
+}
+
+template<class Container>
+container_deleter_t<Container, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type>, const_function<bool, typename Container::value_type> > container_deleter(Container& c)
+{
+	return container_deleter_t<Container, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type>, const_function<bool, typename Container::value_type> >(
+		c, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type>(), const_function<bool, typename Container::value_type>(true));
+}
+
+#define CONTAINER_DELETER(name, c) \
+	const container_deleter_base& name(container_deleter(c))
+
+#define CONTAINER_DELETER_D(name, c, d) \
+	const container_deleter_base& name(container_deleter(c, d))
+
+#define CONTAINER_DELETER_DP(name, c, d, p) \
+	const container_deleter_base& name(container_deleter(c, d, p))
 
 
 /****************************************************************************

@@ -84,7 +84,7 @@ qmimap4::OfflineJobManager::OfflineJobManager(const WCHAR* pwszPath) :
 
 qmimap4::OfflineJobManager::~OfflineJobManager()
 {
-	std::for_each(listJob_.begin(), listJob_.end(), deleter<OfflineJob>());
+	std::for_each(listJob_.begin(), listJob_.end(), boost::checked_deleter<OfflineJob>());
 }
 
 void qmimap4::OfflineJobManager::add(std::auto_ptr<OfflineJob> pJob)

@@ -96,7 +96,8 @@ void qm::ColorManager::addColorSet(std::auto_ptr<ColorSet> pSet)
 
 void qm::ColorManager::clear()
 {
-	std::for_each(listColorSet_.begin(), listColorSet_.end(), deleter<ColorSet>());
+	std::for_each(listColorSet_.begin(), listColorSet_.end(),
+		boost::checked_deleter<ColorSet>());
 	listColorSet_.clear();
 }
 
@@ -231,7 +232,8 @@ void qm::ColorSet::addEntry(std::auto_ptr<ColorEntry> pEntry)
 
 void qm::ColorSet::clear()
 {
-	std::for_each(listColor_.begin(), listColor_.end(), deleter<ColorEntry>());
+	std::for_each(listColor_.begin(), listColor_.end(),
+		boost::checked_deleter<ColorEntry>());
 	listColor_.clear();
 }
 

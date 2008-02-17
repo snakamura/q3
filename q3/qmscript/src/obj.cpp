@@ -260,23 +260,8 @@ STDMETHODIMP qmscript::AccountListImpl::_newEnum(IUnknown** ppUnk)
 {
 	typedef std::vector<VARIANT> List;
 	List l;
-	struct Deleter
-	{
-		typedef std::vector<VARIANT> List;
-		
-		Deleter(List& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			for (List::iterator it = l_.begin(); it != l_.end(); ++it)
-				::VariantClear(&(*it));
-		}
-		
-		List& l_;
-	} deleter(l);
+	CONTAINER_DELETER_D(deleter, l,
+		boost::bind(&::VariantClear, boost::bind(&boost::addressof<VARIANT>, _1)));
 	
 	const Document::AccountList& listAccount = pDocument_->getAccounts();
 	
@@ -532,23 +517,8 @@ STDMETHODIMP qmscript::FolderListImpl::_newEnum(IUnknown** ppUnk)
 {
 	typedef std::vector<VARIANT> List;
 	List l;
-	struct Deleter
-	{
-		typedef std::vector<VARIANT> List;
-		
-		Deleter(List& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			for (List::iterator it = l_.begin(); it != l_.end(); ++it)
-				::VariantClear(&(*it));
-		}
-		
-		List& l_;
-	} deleter(l);
+	CONTAINER_DELETER_D(deleter, l,
+		boost::bind(&::VariantClear, boost::bind(&boost::addressof<VARIANT>, _1)));
 	
 	const Account::FolderList& listFolder = pAccount_->getFolders();
 	

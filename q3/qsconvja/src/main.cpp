@@ -8,6 +8,8 @@
 #include <qs.h>
 #include <qsinit.h>
 
+#include <vector>
+
 #include <windows.h>
 
 #include <kctrl.h>
@@ -73,7 +75,8 @@ public:
 	virtual void term()
 	{
 		std::for_each(listConverterFactory_.begin(),
-			listConverterFactory_.end(), deleter<ConverterFactory>());
+			listConverterFactory_.end(),
+			boost::checked_deleter<ConverterFactory>());
 		listConverterFactory_.clear();
 	}
 

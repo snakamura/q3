@@ -709,7 +709,7 @@ UINT qm::RecentsMenuCreator::createMenu(HMENU hmenu,
 	
 	typedef std::vector<MessageHolderURI*> URIList;
 	URIList listURI;
-	container_deleter<URIList> deleter(listURI);
+	CONTAINER_DELETER(deleter, listURI);
 	{
 		Lock<Recents> lock(*pRecents_);
 		
@@ -1329,7 +1329,8 @@ qm::MenuCreatorList::MenuCreatorList(MenuCreatorListCallback* pCallback) :
 
 qm::MenuCreatorList::~MenuCreatorList()
 {
-	std::for_each(list_.begin(), list_.end(), qs::deleter<MenuCreator>());
+	std::for_each(list_.begin(), list_.end(),
+		boost::checked_deleter<MenuCreator>());
 }
 
 void qm::MenuCreatorList::add(std::auto_ptr<MenuCreator> pMenuCreator)

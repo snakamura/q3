@@ -251,7 +251,7 @@ qs::DynamicMenuMap::DynamicMenuMap()
 qs::DynamicMenuMap::~DynamicMenuMap()
 {
 	std::for_each(listItem_.begin(), listItem_.end(),
-		qs::deleter<DynamicMenuItem>());
+		boost::checked_deleter<DynamicMenuItem>());
 }
 
 const DynamicMenuItem* qs::DynamicMenuMap::getItem(unsigned int nId) const
