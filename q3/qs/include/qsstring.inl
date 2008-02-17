@@ -1213,7 +1213,7 @@ const typename qs::BMFindString<String>::Char* qs::BMFindString<String>::find(co
 		}
 		if (m < 0)
 			break;
-		n += QSMAX(*(skip_ + (getChar(psz, nLen, n) & 0xff)), *(pNext_.get() + m));
+		n += QSMAX(skip_[getChar(psz, nLen, n) & 0xff], next_[m]);
 	}
 	return n < static_cast<ssize_t>(nLen) ? nFlags_ & FLAG_REVERSE ?
 		psz + nLen - (n + nPatternLen + 1) : psz + (n + 1) : 0;
@@ -1238,48 +1238,52 @@ void qs::BMFindString<String>::init(const Char* pszPattern,
 		std::reverse(strPattern_.get(), strPattern_.get() + nLen);
 	
 	createSkipTable(strPattern_.get(), nLen, skip_);
-	pNext_ = createNextTable(strPattern_.get(), nLen);
+	createNextTable(strPattern_.get(), nLen, next_);
 }
 
 template<class String>
 void qs::BMFindString<String>::createSkipTable(const Char* pszPattern,
 											   size_t nLen,
-											   size_t* pSkip)
+											   std::vector<size_t>& skip)
 {
-	for (int n = 0; n < 256; ++n)
-		*(pSkip + n) = nLen;
+	assert(pszPattern);
+	assert(skip.empty());
+	
+	skip.resize(256, nLen);
 	if (nLen != 0) {
 		for (size_t m = 0; m < nLen - 1; ++m)
-			*(pSkip + (pszPattern[m] & 0xff)) = nLen - m - 1;
+			skip[pszPattern[m] & 0xff] = nLen - m - 1;
 	}
 }
 
 template<class String>
-qs::auto_ptr_array<size_t> qs::BMFindString<String>::createNextTable(const Char* pszPattern,
-																	 size_t nLen)
+void qs::BMFindString<String>::createNextTable(const Char* pszPattern,
+											   size_t nLen,
+											   std::vector<size_t>& next)
 {
-	auto_ptr_array<size_t> pNext(new size_t[nLen]);
+	assert(pszPattern);
+	assert(next.empty());
+	
+	next.resize(nLen);
 	
 	size_t n = 0;
 	for (n = 0; n < nLen; ++n)
-		*(pNext.get() + n) = nLen*2 - n - 1;
+		next[n] = nLen*2 - n - 1;
 	auto_ptr_array<size_t> pTemp(new size_t[nLen]);
 	for (ssize_t m = nLen - 1; m >= 0; --m) {
 		*(pTemp.get() + m) = n;
 		while (n != nLen && pszPattern[n] != pszPattern[m]) {
-			*(pNext.get() + n) = QSMIN(*(pNext.get() + n), static_cast<size_t>(nLen - m - 1));
+			next[n] = QSMIN(next[n], static_cast<size_t>(nLen - m - 1));
 			n = *(pTemp.get() + n);
 		}
 		--n;
 	}
 	size_t l = n;
 	for (n = 0; n < nLen; ++n) {
-		*(pNext.get() + n) = QSMIN(*(pNext.get() + n), nLen + l - n);
+		next[n] = QSMIN(next[n], nLen + l - n);
 		if (n >= l)
 			l = *(pTemp.get() + l);
 	}
-	
-	return pNext;
 }
 
 template<class String>

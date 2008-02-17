@@ -12,6 +12,7 @@
 #include <qsmenu.h>
 
 #include <boost/bind.hpp>
+#include <boost/utility.hpp>
 
 #include <commctrl.h>
 #include <tchar.h>

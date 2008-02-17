@@ -9,9 +9,9 @@
 #define __QSSTRING_H__
 
 #include <qs.h>
-#include <qsstl.h>
 
 #include <functional>
+#include <vector>
 
 
 namespace qs {
@@ -1441,17 +1441,18 @@ private:
 private:
 	static void createSkipTable(const Char* pszPattern,
 								size_t nLen,
-								size_t* pSkip);
-	static auto_ptr_array<size_t> createNextTable(const Char* pszPattern,
-												  size_t nLen);
+								std::vector<size_t>& skip);
+	static void createNextTable(const Char* pszPattern,
+								size_t nLen,
+								std::vector<size_t>& next);
 
 private:
 	BMFindString(const BMFindString&);
 	BMFindString& operator=(const BMFindString&);
 
 private:
-	size_t skip_[256];
-	auto_ptr_array<size_t> pNext_;
+	std::vector<size_t> skip_;
+	std::vector<size_t> next_;
 	basic_string_ptr<String> strPattern_;
 	unsigned int nFlags_;
 };

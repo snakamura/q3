@@ -12,6 +12,7 @@
 #include <qsinit.h>
 #include <qsprofile.h>
 #include <qsregex.h>
+#include <qsstl.h>
 #include <qstextutil.h>
 #include <qstextwindow.h>
 #include <qstheme.h>

@@ -10,6 +10,8 @@
 
 #include <vector>
 
+#include <boost/utility.hpp>
+
 #include <windows.h>
 
 #include <kctrl.h>

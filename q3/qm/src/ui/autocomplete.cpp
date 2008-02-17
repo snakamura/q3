@@ -6,6 +6,7 @@
  */
 
 #include <qsinit.h>
+#include <qsstl.h>
 
 #include <tchar.h>
 

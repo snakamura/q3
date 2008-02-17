@@ -8,6 +8,7 @@
 
 #include <qsfile.h>
 #include <qsosutil.h>
+#include <qsstl.h>
 
 extern "C" {
 #pragma pack(push, 4)

@@ -10,6 +10,7 @@
 #include <qsinit.h>
 #include <qslog.h>
 #include <qsosutil.h>
+#include <qsstl.h>
 #include <qsstring.h>
 
 #include <algorithm>

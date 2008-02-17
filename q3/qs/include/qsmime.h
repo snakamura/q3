@@ -9,6 +9,7 @@
 #define __QSMIME_H__
 
 #include <qs.h>
+#include <qsstl.h>
 #include <qsstring.h>
 #include <qsutil.h>
 
