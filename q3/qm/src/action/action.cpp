@@ -5565,7 +5565,7 @@ int qm::TabSelectAction::getItem(const ActionParam* pParam) const
  */
 
 qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
-										 AccountSelectionModel* pAccountSelectionModel,
+										 FolderModel* pFolderModel,
 										 PasswordManager* pPasswordManager,
 										 SyncManager* pSyncManager,
 										 const FolderImage* pFolderImage,
@@ -5573,7 +5573,7 @@ qm::ToolAccountAction::ToolAccountAction(Document* pDocument,
 										 Profile* pProfile,
 										 HWND hwnd) :
 	pDocument_(pDocument),
-	pAccountSelectionModel_(pAccountSelectionModel),
+	pFolderModel_(pFolderModel),
 	pPasswordManager_(pPasswordManager),
 	pSyncManager_(pSyncManager),
 	pFolderImage_(pFolderImage),
@@ -5598,14 +5598,19 @@ void qm::ToolAccountAction::invoke(const ActionEvent& event)
 	if (!bOffline)
 		pDocument_->setOffline(true);
 	
-	Account* pAccount = pAccountSelectionModel_->getAccount();
-	AccountDialog dialog(pDocument_, pAccount, pPasswordManager_,
-		pDocument_->getSyncFilterManager(), pDocument_->getSecurity(),
+	AccountDialog dialog(pDocument_, FolderActionUtil::getAccount(pFolderModel_),
+		pPasswordManager_, pDocument_->getSyncFilterManager(), pDocument_->getSecurity(),
 		pDocument_->getJunkFilter(), pFolderImage_, pOptionDialogManager_, pProfile_);
 	dialog.doModal(hwnd_, 0);
 	
 	if (!Application::getApplication().save(false))
 		ActionUtil::error(hwnd_, IDS_ERROR_SAVE);
+	
+	if (!FolderActionUtil::getAccount(pFolderModel_)) {
+		const AccountManager::AccountList& l = pDocument_->getAccounts();
+		if (!l.empty())
+			pFolderModel_->setCurrent(l.front(), 0, false);
+	}
 	
 	if (!bOffline)
 		pDocument_->setOffline(false);

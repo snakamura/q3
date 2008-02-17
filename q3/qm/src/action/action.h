@@ -2752,7 +2752,7 @@ class ToolAccountAction : public qs::AbstractAction
 {
 public:
 	ToolAccountAction(Document* pDocument,
-					  AccountSelectionModel* pAccountSelectionModel,
+					  FolderModel* pFolderModel,
 					  PasswordManager* pPasswordManager,
 					  SyncManager* pSyncManager,
 					  const FolderImage* pFolderImage,
@@ -2771,7 +2771,7 @@ private:
 
 private:
 	Document* pDocument_;
-	AccountSelectionModel* pAccountSelectionModel_;
+	FolderModel* pFolderModel_;
 	PasswordManager* pPasswordManager_;
 	SyncManager* pSyncManager_;
 	const FolderImage* pFolderImage_;

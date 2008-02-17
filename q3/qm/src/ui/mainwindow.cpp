@@ -1046,7 +1046,7 @@ void qm::MainWindowImpl::initActions()
 	ADD_ACTION8(ToolAccountAction,
 		IDM_TOOL_ACCOUNT,
 		pDocument_,
-		this,
+		pFolderModel_.get(),
 		pPasswordManager_,
 		pSyncManager_,
 		pFolderImage_,
