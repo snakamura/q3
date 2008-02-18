@@ -70,8 +70,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,115,10
     CONTROL         "&Trust BODYSTRUCTURE",IDC_TRUSTBODYSTRUCTURE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,70,105,10
-    CONTROL         "Send &CLOSE",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,80,55,10
+    CONTROL         "Expun&ge deleted messages",IDC_CLOSEFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,80,102,10
     CONTROL         "Use &NAMESPACE",IDC_NAMESPACE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,125,50,75,10
     CONTROL         "&Personal",IDC_PERSONAL,"Button",BS_AUTOCHECKBOX | 
@@ -88,8 +88,8 @@ CAPTION "IMAP4"
 FONT 9, "Tahoma"
 BEGIN
     LTEXT           "&Search for",IDC_STATIC,5,7,40,8
-    COMBOBOX        IDC_CONDITION,45,5,140,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_CONDITION,45,5,140,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     LTEXT           "&Folder",IDC_STATIC,5,22,30,8
     COMBOBOX        IDC_FOLDER,45,20,140,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP

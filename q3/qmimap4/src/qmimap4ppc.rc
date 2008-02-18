@@ -70,8 +70,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,115,10
     CONTROL         "&Trust BODYSTRUCTURE",IDC_TRUSTBODYSTRUCTURE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,75,105,10
-    CONTROL         "Send &CLOSE",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,85,60,10
+    CONTROL         "Expun&ge deleted messages",IDC_CLOSEFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,105,10
     CONTROL         "Use &NAMESPACE",IDC_NAMESPACE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,95,75,10
     CONTROL         "&Personal",IDC_PERSONAL,"Button",BS_AUTOCHECKBOX | 
@@ -117,11 +117,12 @@ BEGIN
     CONTROL         "Use &ENVELOPE",IDC_USEENVELOPE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,35,85,10
     CONTROL         "Always use &BODYSTRUCTURE",IDC_USEBODYSTRUCTUREALWAYS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,115,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,105,10
     CONTROL         "&Trust BODYSTRUCTURE",IDC_TRUSTBODYSTRUCTURE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,55,105,10
-    CONTROL         "Send &CLOSE",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,115,55,60,10
+    CONTROL         "Expun&ge deleted messages",IDC_CLOSEFOLDER,"Button",
+                    BS_AUTOCHECKBOX | BS_TOP | BS_MULTILINE | WS_TABSTOP,115,
+                    45,65,20
     CONTROL         "Use &NAMESPACE",IDC_NAMESPACE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,65,75,10
     CONTROL         "&Personal",IDC_PERSONAL,"Button",BS_AUTOCHECKBOX | 

@@ -71,8 +71,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,115,10
     CONTROL         "BODYSTRUCTUREを信頼(&T)",IDC_TRUSTBODYSTRUCTURE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,75,105,10
-    CONTROL         "&CLOSEを送信",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,85,60,10
+    CONTROL         "削除済みメッセージを破棄(&G)",IDC_CLOSEFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,105,10
     CONTROL         "&NAMESPACEを使用",IDC_NAMESPACE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,95,70,10
     CONTROL         "個人(&P)",IDC_PERSONAL,"Button",BS_AUTOCHECKBOX | 

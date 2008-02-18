@@ -65,7 +65,8 @@ qmimap4::Imap4ReceiveSession::Imap4ReceiveSession() :
 	nUidValidity_(0),
 	bReadOnly_(false),
 	nUidStart_(0),
-	nIdStart_(0)
+	nIdStart_(0),
+	bSync_(false)
 {
 }
 
@@ -150,6 +151,7 @@ bool qmimap4::Imap4ReceiveSession::selectFolder(NormalFolder* pFolder,
 	wstring_ptr wstrName(Util::getFolderName(pFolder));
 	
 	pFolder_ = 0;
+	bSync_ = false;
 	
 	if (!pImap4_->select(wstrName.get()))
 		HANDLE_ERROR();
@@ -182,31 +184,12 @@ bool qmimap4::Imap4ReceiveSession::closeFolder()
 	
 	if (pSubAccount_->getPropertyInt(L"Imap4", L"CloseFolder")) {
 		pCallback_->setMessage(IDS_CLOSEFOLDER);
-		if (!pImap4_->close())
+		if (!pImap4_->expunge())
 			HANDLE_ERROR();
-		
-		Lock<Account> lock(*pAccount_);
-		if (pFolder_->getDeletedCount() != 0) {
-			const MessageHolderList& l = pFolder_->getMessages();
-			NormalFolder::MessageInfoList listMessageInfo;
-			listMessageInfo.reserve(l.size());
-			for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-				MessageHolder* pmh = *it;
-				if (!pmh->isFlag(MessageHolder::FLAG_DELETED)) {
-					NormalFolder::MessageInfo info = {
-						pmh->getId(),
-						pmh->getFlags(),
-						0
-					};
-					listMessageInfo.push_back(info);
-				}
-			}
-			if (!pFolder_->updateMessageInfos(listMessageInfo, false, 0))
-				return false;
-		}
 	}
 	
 	pFolder_ = 0;
+	bSync_ = false;
 	
 	return true;
 }
@@ -333,6 +316,7 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 	pSessionCallback_->setPos(nIdStart_);
 	
 	++nUidStart_;
+	bSync_ = true;
 	
 	return true;
 }
@@ -1345,13 +1329,11 @@ bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
 
 bool qmimap4::Imap4ReceiveSession::processCapabilityResponse(ResponseCapability* pCapability)
 {
-	// TODO
 	return true;
 }
 
 bool qmimap4::Imap4ReceiveSession::processContinueResponse(ResponseContinue* pContinue)
 {
-	// TODO
 	return true;
 }
 
@@ -1363,7 +1345,19 @@ bool qmimap4::Imap4ReceiveSession::processExistsResponse(ResponseExists* pExists
 
 bool qmimap4::Imap4ReceiveSession::processExpungeResponse(ResponseExpunge* pExpunge)
 {
-	// TODO
+	if (bSync_) {
+		assert(pFolder_);
+		
+		Account* pAccount = pFolder_->getAccount();
+		unsigned int n = pExpunge->getExpunge() - 1;
+		
+		Lock<Account> lock(*pAccount);
+		if (n < pFolder_->getCount()) {
+			MessageHolder* pmh = pFolder_->getMessage(n);
+			if (!pAccount_->unstoreMessages(MessageHolderList(1, pmh), 0))
+				return false;
+		}
+	}
 	return true;
 }
 
@@ -1376,26 +1370,22 @@ bool qmimap4::Imap4ReceiveSession::processFetchResponse(ResponseFetch* pFetch)
 			return false;
 	}
 	if (result == ProcessHook::RESULT_UNPROCESSED) {
-		// TODO
 	}
 	return true;
 }
 
 bool qmimap4::Imap4ReceiveSession::processFlagsResponse(ResponseFlags* pFlags)
 {
-	// TODO
 	return true;
 }
 
 bool qmimap4::Imap4ReceiveSession::processListResponse(ResponseList* pList)
 {
-	// TODO
 	return true;
 }
 
 bool qmimap4::Imap4ReceiveSession::processNamespaceResponse(ResponseNamespace* pNamespace)
 {
-	// TODO
 	return true;
 }
 
@@ -1406,7 +1396,6 @@ bool qmimap4::Imap4ReceiveSession::processRecentResponse(ResponseRecent* pRecent
 
 bool qmimap4::Imap4ReceiveSession::processSearchResponse(ResponseSearch* pSearch)
 {
-	// TODO
 	return true;
 }
 
@@ -1459,7 +1448,6 @@ bool qmimap4::Imap4ReceiveSession::processStateResponse(ResponseState* pState)
 
 bool qmimap4::Imap4ReceiveSession::processStatusResponse(ResponseStatus* pStatus)
 {
-	// TODO
 	return true;
 }
 

@@ -162,6 +162,7 @@ private:
 	bool bReadOnly_;
 	unsigned long nUidStart_;
 	unsigned long nIdStart_;
+	bool bSync_;
 
 friend class CallbackImpl;
 friend class Hook;

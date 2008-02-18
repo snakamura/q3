@@ -71,8 +71,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,115,10
     CONTROL         "BODYSTRUCTUREを信頼(&T)",IDC_TRUSTBODYSTRUCTURE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,75,105,10
-    CONTROL         "&CLOSEを送信",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,5,85,60,10
+    CONTROL         "削除済みメッセージを破棄(&G)",IDC_CLOSEFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,85,100,10
     CONTROL         "&NAMESPACEを使用",IDC_NAMESPACE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,95,75,10
     CONTROL         "個人(&P)",IDC_PERSONAL,"Button",BS_AUTOCHECKBOX | 
@@ -118,11 +118,12 @@ BEGIN
     CONTROL         "&ENVELOPEを使用",IDC_USEENVELOPE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,35,85,10
     CONTROL         "常に&BODYSTRUCTUREを使用",IDC_USEBODYSTRUCTUREALWAYS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,115,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,45,100,10
     CONTROL         "BODYSTRUCTUREを信頼(&T)",IDC_TRUSTBODYSTRUCTURE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,55,105,10
-    CONTROL         "&CLOSEを送信",IDC_CLOSEFOLDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,115,55,60,10
+    CONTROL         "削除済みメッセージを破棄(&G)",IDC_CLOSEFOLDER,"Button",
+                    BS_AUTOCHECKBOX | BS_TOP | BS_MULTILINE | WS_TABSTOP,110,
+                    45,67,20
     CONTROL         "&NAMESPACEを使用",IDC_NAMESPACE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,5,65,75,10
     CONTROL         "個人(&P)",IDC_PERSONAL,"Button",BS_AUTOCHECKBOX | 
