@@ -157,11 +157,11 @@ private:
 	qs::Logger* pLogger_;
 	qm::ReceiveSessionCallback* pSessionCallback_;
 	ProcessHook* pProcessHook_;
-	unsigned long nExists_;
-	unsigned long nUidValidity_;
+	unsigned int nExists_;
+	unsigned int nUidValidity_;
 	bool bReadOnly_;
-	unsigned long nUidStart_;
-	unsigned long nIdStart_;
+	unsigned int nUidStart_;
+	unsigned int nIdStart_;
 	bool bSync_;
 
 friend class CallbackImpl;
@@ -329,14 +329,14 @@ public:
 
 public:
 	const qm::MessagePtr& getMessagePtr() const;
-	unsigned long getId() const;
+	unsigned int getId() const;
 	Type getType() const;
 	FetchDataBodyStructure* getBodyStructure() const;
 	void setBodyStructure(FetchDataBodyStructure* pBodyStructure);
 
 private:
 	qm::MessagePtr ptr_;
-	unsigned long nId_;
+	unsigned int nId_;
 	Type type_;
 	FetchDataBodyStructure* pBodyStructure_;
 };

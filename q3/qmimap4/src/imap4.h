@@ -366,7 +366,7 @@ private:
 class SingleRange : public DefaultRange
 {
 public:
-	SingleRange(unsigned long n,
+	SingleRange(unsigned int n,
 				bool bUid);
 	virtual ~SingleRange();
 
@@ -385,8 +385,8 @@ private:
 class ContinuousRange : public DefaultRange
 {
 public:
-	ContinuousRange(unsigned long nBegin,
-					unsigned long nEnd,
+	ContinuousRange(unsigned int nBegin,
+					unsigned int nEnd,
 					bool bUid);
 	virtual ~ContinuousRange();
 
@@ -405,7 +405,7 @@ private:
 class MultipleRange : public DefaultRange
 {
 public:
-	MultipleRange(const unsigned long* pn,
+	MultipleRange(const unsigned int* pn,
 				  size_t nCount,
 				  bool bUid);
 	virtual ~MultipleRange();
@@ -615,18 +615,18 @@ private:
 class ResponseExists : public Response
 {
 public:
-	ResponseExists(unsigned long nExists);
+	ResponseExists(unsigned int nExists);
 	virtual ~ResponseExists();
 
 public:
-	unsigned long getExists() const;
+	unsigned int getExists() const;
 
 private:
 	ResponseExists(const ResponseExists&);
 	ResponseExists& operator=(const ResponseExists&);
 
 private:
-	unsigned long nExists_;
+	unsigned int nExists_;
 };
 
 
@@ -639,18 +639,18 @@ private:
 class ResponseExpunge : public Response
 {
 public:
-	ResponseExpunge(unsigned long nExpunge);
+	ResponseExpunge(unsigned int nExpunge);
 	virtual ~ResponseExpunge();
 
 public:
-	unsigned long getExpunge() const;
+	unsigned int getExpunge() const;
 
 private:
 	ResponseExpunge(const ResponseExpunge&);
 	ResponseExpunge& operator=(const ResponseExpunge&);
 
 private:
-	unsigned long nExpunge_;
+	unsigned int nExpunge_;
 };
 
 
@@ -666,19 +666,19 @@ public:
 	typedef std::vector<FetchData*> FetchDataList;
 
 public:
-	ResponseFetch(unsigned long nNumber,
-				  unsigned long nUid,
+	ResponseFetch(unsigned int nNumber,
+				  unsigned int nUid,
 				  FetchDataList& listData);
 	virtual ~ResponseFetch();
 
 public:
-	unsigned long getNumber() const;
-	unsigned long getUid() const;
+	unsigned int getNumber() const;
+	unsigned int getUid() const;
 	const FetchDataList& getFetchDataList() const;
 	FetchData* detach(FetchData* pFetchData);
 
 public:
-	static std::auto_ptr<ResponseFetch> create(unsigned long nNumber,
+	static std::auto_ptr<ResponseFetch> create(unsigned int nNumber,
 											   List* pList);
 
 private:
@@ -686,8 +686,8 @@ private:
 	ResponseFetch& operator=(const ResponseFetch&);
 
 private:
-	unsigned long nNumber_;
-	unsigned long nUid_;
+	unsigned int nNumber_;
+	unsigned int nUid_;
 	FetchDataList listData_;
 };
 
@@ -820,18 +820,18 @@ private:
 class ResponseRecent : public Response
 {
 public:
-	explicit ResponseRecent(unsigned long nRecent);
+	explicit ResponseRecent(unsigned int nRecent);
 	virtual ~ResponseRecent();
 
 public:
-	unsigned long getRecent() const;
+	unsigned int getRecent() const;
 
 private:
 	ResponseRecent(const ResponseRecent&);
 	ResponseRecent& operator=(const ResponseRecent&);
 
 private:
-	unsigned long nRecent_;
+	unsigned int nRecent_;
 };
 
 
@@ -844,7 +844,7 @@ private:
 class ResponseSearch : public Response
 {
 public:
-	typedef std::vector<unsigned long> ResultList;
+	typedef std::vector<unsigned int> ResultList;
 
 public:
 	ResponseSearch();
@@ -854,7 +854,7 @@ public:
 	const ResultList& getResult() const;
 
 public:
-	void add(unsigned long n);
+	void add(unsigned int n);
 
 private:
 	ResponseSearch(const ResponseSearch&);
@@ -1055,8 +1055,8 @@ public:
 						   qs::string_ptr strId,
 						   qs::string_ptr strDescription,
 						   qs::string_ptr strEncoding,
-						   unsigned long nSize,
-						   unsigned long nLine,
+						   unsigned int nSize,
+						   unsigned int nLine,
 						   qs::string_ptr strMd5,
 						   qs::string_ptr strDisposition,
 						   ParamList& listDispositionParam,
@@ -1072,8 +1072,8 @@ public:
 	const CHAR* getId() const;
 	const CHAR* getDescription() const;
 	const CHAR* getEncoding() const;
-	unsigned long getSize() const;
-	unsigned long getLine() const;
+	unsigned int getSize() const;
+	unsigned int getLine() const;
 	const CHAR* getMd5() const;
 	const CHAR* getDisposition() const;
 	const ParamList& getDispositionParams() const;
@@ -1107,8 +1107,8 @@ private:
 	qs::string_ptr strId_;
 	qs::string_ptr strDescription_;
 	qs::string_ptr strEncoding_;
-	unsigned long nSize_;
-	unsigned long nLine_;
+	unsigned int nSize_;
+	unsigned int nLine_;
 	qs::string_ptr strMd5_;
 	qs::string_ptr strDisposition_;
 	ParamList listDispositionParam_;
@@ -1244,18 +1244,18 @@ private:
 class FetchDataSize : public FetchData
 {
 public:
-	FetchDataSize(unsigned long nSize);
+	FetchDataSize(unsigned int nSize);
 	virtual ~FetchDataSize();
 
 public:
-	unsigned long getSize() const;
+	unsigned int getSize() const;
 
 private:
 	FetchDataSize(const FetchDataSize&);
 	FetchDataSize& operator=(const FetchDataSize&);
 
 private:
-	unsigned long nSize_;
+	unsigned int nSize_;
 };
 
 
@@ -1430,12 +1430,12 @@ public:
 public:
 	Code getCode() const;
 	const CHAR* getMessage() const;
-	unsigned long getArgNumber() const;
+	unsigned int getArgNumber() const;
 	const List* getArgList() const;
 
 public:
 	void setMessage(qs::string_ptr str);
-	void setArg(unsigned long n);
+	void setArg(unsigned int n);
 	void setArg(std::auto_ptr<List> pList);
 	
 private:
@@ -1445,7 +1445,7 @@ private:
 private:
 	Code code_;
 	qs::string_ptr strMessage_;
-	unsigned long n_;
+	unsigned int n_;
 	std::auto_ptr<List> pList_;
 };
 

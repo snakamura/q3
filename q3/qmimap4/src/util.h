@@ -42,7 +42,7 @@ public:
 public:
 	typedef std::vector<FetchDataBody*> BodyList;
 	typedef std::vector<std::pair<const FetchDataBodyStructure*, unsigned int*> > PartList;
-	typedef std::vector<unsigned long> UidList;
+	typedef std::vector<unsigned int> UidList;
 
 public:
 	class PartListDeleter
@@ -72,7 +72,7 @@ public:
 	static qs::string_ptr getMessageFromEnvelope(const FetchDataEnvelope* pEnvelope);
 	static qs::string_ptr getHeaderFromBodyStructure(const FetchDataBodyStructure* pBodyStructure,
 													 bool bIncludeContentTypeAndDisposition);
-	static unsigned long getTextSizeFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
+	static unsigned int getTextSizeFromBodyStructure(const FetchDataBodyStructure* pBodyStructure);
 	static void getPartsFromBodyStructure(const FetchDataBodyStructure* pBodyStructure,
 										  const unsigned int* pBasePath,
 										  PartList* pListPart);

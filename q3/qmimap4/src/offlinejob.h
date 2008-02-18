@@ -40,7 +40,7 @@ class Range;
 class OfflineJobManager
 {
 public:
-	typedef std::vector<unsigned long> UidList;
+	typedef std::vector<unsigned int> UidList;
 
 public:
 	OfflineJobManager(const WCHAR* pwszPath);
@@ -60,7 +60,7 @@ public:
 private:
 	bool load();
 	OfflineJob* getCreateMessage(const WCHAR* pwszFolder,
-								 unsigned long nId) const;
+								 unsigned int nId) const;
 
 private:
 	OfflineJobManager(const OfflineJobManager&);
@@ -109,7 +109,7 @@ public:
 					   bool* pbClosed) const = 0;
 	virtual bool write(qs::OutputStream* pStream) const = 0;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder,
-								 unsigned long nId) = 0;
+								 unsigned int nId) = 0;
 	virtual bool merge(OfflineJob* pOfflineJob) = 0;
 
 public:
@@ -140,7 +140,7 @@ public:
 						bool* pbClosed) const;
 	virtual bool write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder,
-								 unsigned long nId);
+								 unsigned int nId);
 	virtual bool merge(OfflineJob* pOfflineJob);
 
 public:
@@ -167,12 +167,12 @@ class CopyOfflineJob : public OfflineJob
 public:
 	struct Item
 	{
-		unsigned long nId_;
+		unsigned int nId_;
 		unsigned int nFlags_;
 	};
 
 public:
-	typedef std::vector<unsigned long> UidList;
+	typedef std::vector<unsigned int> UidList;
 	typedef std::vector<Item> ItemList;
 
 public:
@@ -190,7 +190,7 @@ public:
 					   bool* pbClosed) const;
 	virtual bool write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder,
-								 unsigned long nId);
+								 unsigned int nId);
 	virtual bool merge(OfflineJob* pOfflineJob);
 
 public:
@@ -217,7 +217,7 @@ private:
 class SetFlagsOfflineJob : public OfflineJob
 {
 public:
-	typedef std::vector<unsigned long> UidList;
+	typedef std::vector<unsigned int> UidList;
 
 public:
 	SetFlagsOfflineJob(const WCHAR* pwszFolder,
@@ -233,7 +233,7 @@ public:
 					   bool* pbClosed) const;
 	virtual bool write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder,
-								 unsigned long nId);
+								 unsigned int nId);
 	virtual bool merge(OfflineJob* pOfflineJob);
 
 public:
@@ -259,7 +259,7 @@ private:
 class SetLabelOfflineJob : public OfflineJob
 {
 public:
-	typedef std::vector<unsigned long> UidList;
+	typedef std::vector<unsigned int> UidList;
 	typedef std::vector<qs::WSTRING> LabelList;
 
 public:
@@ -277,7 +277,7 @@ public:
 					   bool* pbClosed) const;
 	virtual bool write(qs::OutputStream* pStream) const;
 	virtual bool isCreateMessage(const WCHAR* pwszFolder,
-								 unsigned long nId);
+								 unsigned int nId);
 	virtual bool merge(OfflineJob* pOfflineJob);
 
 public:

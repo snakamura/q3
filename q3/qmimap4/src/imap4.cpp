@@ -1233,7 +1233,7 @@ void qmimap4::DefaultRange::setRange(const CHAR* pszRange)
  *
  */
 
-qmimap4::SingleRange::SingleRange(unsigned long n,
+qmimap4::SingleRange::SingleRange(unsigned int n,
 								  bool bUid) :
 	DefaultRange(bUid)
 {
@@ -1255,16 +1255,16 @@ qmimap4::SingleRange::~SingleRange()
  *
  */
 
-qmimap4::ContinuousRange::ContinuousRange(unsigned long nBegin,
-										  unsigned long nEnd,
+qmimap4::ContinuousRange::ContinuousRange(unsigned int nBegin,
+										  unsigned int nEnd,
 										  bool bUid) :
 	DefaultRange(bUid)
 {
-	assert(nBegin != 0 && nBegin != static_cast<unsigned long>(-1));
-	assert(nEnd == static_cast<unsigned long>(-1) || nBegin <= nEnd);
+	assert(nBegin != 0 && nBegin != static_cast<unsigned int>(-1));
+	assert(nEnd == static_cast<unsigned int>(-1) || nBegin <= nEnd);
 	
 	CHAR szRange[128];
-	if (nEnd == static_cast<unsigned long>(-1))
+	if (nEnd == static_cast<unsigned int>(-1))
 		sprintf(szRange, "%lu:*", nBegin);
 	else if (nBegin == nEnd)
 		sprintf(szRange, "%lu", nBegin);
@@ -1284,7 +1284,7 @@ qmimap4::ContinuousRange::~ContinuousRange()
  *
  */
 
-qmimap4::MultipleRange::MultipleRange(const unsigned long* pn,
+qmimap4::MultipleRange::MultipleRange(const unsigned int* pn,
 									  size_t nCount,
 									  bool bUid) :
 	DefaultRange(bUid)
@@ -1295,12 +1295,12 @@ qmimap4::MultipleRange::MultipleRange(const unsigned long* pn,
 	StringBuffer<STRING> buf;
 	
 	CHAR sz[128];
-	unsigned long nBegin = 0;
-	unsigned long nEnd = 0;
+	unsigned int nBegin = 0;
+	unsigned int nEnd = 0;
 	for (size_t n = 0; n <= nCount; ++n) {
-		unsigned long nId = n != nCount ? *(pn + n) : 0;
+		unsigned int nId = n != nCount ? *(pn + n) : 0;
 		
-		assert(n == nCount || (nId != 0 && nId != static_cast<unsigned long>(-1)));
+		assert(n == nCount || (nId != 0 && nId != static_cast<unsigned int>(-1)));
 		
 		if (nBegin == 0) {
 			nBegin = nId;
@@ -1643,7 +1643,7 @@ const State* qmimap4::ResponseContinue::getState() const
  *
  */
 
-qmimap4::ResponseExists::ResponseExists(unsigned long nExists) :
+qmimap4::ResponseExists::ResponseExists(unsigned int nExists) :
 	Response(TYPE_EXISTS),
 	nExists_(nExists)
 {
@@ -1653,7 +1653,7 @@ qmimap4::ResponseExists::~ResponseExists()
 {
 }
 
-unsigned long qmimap4::ResponseExists::getExists() const
+unsigned int qmimap4::ResponseExists::getExists() const
 {
 	return nExists_;
 }
@@ -1665,7 +1665,7 @@ unsigned long qmimap4::ResponseExists::getExists() const
  *
  */
 
-qmimap4::ResponseExpunge::ResponseExpunge(unsigned long nExpunge) :
+qmimap4::ResponseExpunge::ResponseExpunge(unsigned int nExpunge) :
 	Response(TYPE_EXPUNGE),
 	nExpunge_(nExpunge)
 {
@@ -1675,7 +1675,7 @@ qmimap4::ResponseExpunge::~ResponseExpunge()
 {
 }
 
-unsigned long qmimap4::ResponseExpunge::getExpunge() const
+unsigned int qmimap4::ResponseExpunge::getExpunge() const
 {
 	return nExpunge_;
 }
@@ -1687,8 +1687,8 @@ unsigned long qmimap4::ResponseExpunge::getExpunge() const
  *
  */
 
-qmimap4::ResponseFetch::ResponseFetch(unsigned long nNumber,
-									  unsigned long nUid,
+qmimap4::ResponseFetch::ResponseFetch(unsigned int nNumber,
+									  unsigned int nUid,
 									  FetchDataList& listData) :
 	Response(TYPE_FETCH),
 	nNumber_(nNumber),
@@ -1703,12 +1703,12 @@ qmimap4::ResponseFetch::~ResponseFetch()
 		boost::checked_deleter<FetchData>());
 }
 
-unsigned long qmimap4::ResponseFetch::getNumber() const
+unsigned int qmimap4::ResponseFetch::getNumber() const
 {
 	return nNumber_;
 }
 
-unsigned long qmimap4::ResponseFetch::getUid() const
+unsigned int qmimap4::ResponseFetch::getUid() const
 {
 	return nUid_;
 }
@@ -1730,10 +1730,10 @@ FetchData* qmimap4::ResponseFetch::detach(FetchData* pFetchData)
 	return pFetchData;
 }
 
-std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumber,
+std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned int nNumber,
 															List* pList)
 {
-	unsigned long nUid = -1;
+	unsigned int nUid = -1;
 	FetchDataList listData;
 	CONTAINER_DELETER(deleter, listData);
 	
@@ -1861,7 +1861,7 @@ std::auto_ptr<ResponseFetch> qmimap4::ResponseFetch::create(unsigned long nNumbe
 				
 				std::pair<const CHAR*, size_t> size(
 					static_cast<ListItemText*>(l[n + 1])->getText().get());
-				unsigned long nSize = 0;
+				unsigned int nSize = 0;
 				if (!TokenUtil::string2number(size, &nSize))
 					return std::auto_ptr<ResponseFetch>(0);
 				
@@ -2170,7 +2170,7 @@ std::auto_ptr<ResponseNamespace> qmimap4::ResponseNamespace::create(List* pListP
  *
  */
 
-qmimap4::ResponseRecent::ResponseRecent(unsigned long nRecent) :
+qmimap4::ResponseRecent::ResponseRecent(unsigned int nRecent) :
 	Response(TYPE_RECENT),
 	nRecent_(nRecent)
 {
@@ -2180,7 +2180,7 @@ qmimap4::ResponseRecent::~ResponseRecent()
 {
 }
 
-unsigned long qmimap4::ResponseRecent::getRecent() const
+unsigned int qmimap4::ResponseRecent::getRecent() const
 {
 	return nRecent_;
 }
@@ -2206,7 +2206,7 @@ const ResponseSearch::ResultList& qmimap4::ResponseSearch::getResult() const
 	return listResult_;
 }
 
-void qmimap4::ResponseSearch::add(unsigned long n)
+void qmimap4::ResponseSearch::add(unsigned int n)
 {
 	listResult_.push_back(n);
 }
@@ -2311,7 +2311,7 @@ std::auto_ptr<ResponseStatus> qmimap4::ResponseStatus::create(const CHAR* pszMai
 		if (s != STATUS_UNKNOWN) {
 			std::pair<const CHAR*, size_t> number(
 				static_cast<ListItemText*>(l[n + 1])->getText().get());
-			unsigned long n = 0;
+			unsigned int n = 0;
 			if (!TokenUtil::string2number(number, &n))
 				return std::auto_ptr<ResponseStatus>(0);
 			listStatus.push_back(std::make_pair(s, n));
@@ -2485,8 +2485,8 @@ qmimap4::FetchDataBodyStructure::FetchDataBodyStructure(string_ptr strContentTyp
 														string_ptr strId,
 														string_ptr strDescription,
 														string_ptr strEncoding,
-														unsigned long nSize,
-														unsigned long nLine,
+														unsigned int nSize,
+														unsigned int nLine,
 														string_ptr strMd5,
 														string_ptr strDisposition,
 														ParamList& listDispositionParam,
@@ -2556,12 +2556,12 @@ const CHAR* qmimap4::FetchDataBodyStructure::getEncoding() const
 	return strEncoding_.get();
 }
 
-unsigned long qmimap4::FetchDataBodyStructure::getSize() const
+unsigned int qmimap4::FetchDataBodyStructure::getSize() const
 {
 	return nSize_;
 }
 
-unsigned long qmimap4::FetchDataBodyStructure::getLine() const
+unsigned int qmimap4::FetchDataBodyStructure::getLine() const
 {
 	return nLine_;
 }
@@ -2616,9 +2616,9 @@ std::auto_ptr<FetchDataBodyStructure> qmimap4::FetchDataBodyStructure::create(Li
 		&strDescription,
 		&strEncoding
 	};
-	unsigned long nSize = 0;
-	unsigned long nLine = 0;
-	unsigned long* pn[] = {
+	unsigned int nSize = 0;
+	unsigned int nLine = 0;
+	unsigned int* pn[] = {
 		&nSize,
 		0,
 		0,
@@ -3314,7 +3314,7 @@ std::auto_ptr<FetchDataInternalDate> qmimap4::FetchDataInternalDate::create(cons
  *
  */
 
-qmimap4::FetchDataSize::FetchDataSize(unsigned long nSize) :
+qmimap4::FetchDataSize::FetchDataSize(unsigned int nSize) :
 	FetchData(TYPE_SIZE),
 	nSize_(nSize)
 {
@@ -3324,7 +3324,7 @@ qmimap4::FetchDataSize::~FetchDataSize()
 {
 }
 
-unsigned long qmimap4::FetchDataSize::getSize() const
+unsigned int qmimap4::FetchDataSize::getSize() const
 {
 	return nSize_;
 }
@@ -3512,7 +3512,7 @@ const CHAR* qmimap4::State::getMessage() const
 	return strMessage_.get();
 }
 
-unsigned long qmimap4::State::getArgNumber() const
+unsigned int qmimap4::State::getArgNumber() const
 {
 	return n_;
 }
@@ -3527,7 +3527,7 @@ void qmimap4::State::setMessage(string_ptr str)
 	strMessage_ = str;
 }
 
-void qmimap4::State::setArg(unsigned long n)
+void qmimap4::State::setArg(unsigned int n)
 {
 	n_ = n;
 }

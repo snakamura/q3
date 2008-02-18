@@ -329,7 +329,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	wstring_ptr wstrAdditionalFields(pSubAccount_->getPropertyString(L"Imap4", L"AdditionalFields"));
 	string_ptr strAdditionalFields(wcs2mbs(wstrAdditionalFields.get()));
 	
-	typedef std::vector<unsigned long> UidList;
+	typedef std::vector<unsigned int> UidList;
 	UidList listMakeSeen;
 	UidList listMakeDeleted;
 	
@@ -342,7 +342,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	
 	struct GetMessageDataProcessHook : public ProcessHook
 	{
-		typedef std::vector<unsigned long> UidList;
+		typedef std::vector<unsigned int> UidList;
 		typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
 		
 		GetMessageDataProcessHook(Document* pDocument,
@@ -353,7 +353,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 								  ReceiveSessionCallback* pSessionCallback,
 								  const SyncFilterSet* pFilterSet,
 								  unsigned int nOption,
-								  unsigned long nUidStart,
+								  unsigned int nUidStart,
 								  MessageDataList& listMessageData,
 								  UidList& listMakeSeen,
 								  UidList& listMakeDeleted,
@@ -382,10 +382,10 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		
 		virtual Result processFetchResponse(ResponseFetch* pFetch)
 		{
-			unsigned long nUid = pFetch->getUid();
+			unsigned int nUid = pFetch->getUid();
 			unsigned int nFlags = 0;
 			wstring_ptr wstrLabel;
-			unsigned long nSize = -1;
+			unsigned int nSize = -1;
 			FetchDataBodyStructure* pBodyStructure = 0;
 			string_ptr strEnvelope;
 			std::pair<const CHAR*, size_t> header;
@@ -470,7 +470,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 					listMakeSeen_.push_back(nUid);
 			}
 			
-			unsigned long nTextSize = pBodyStructure ?
+			unsigned int nTextSize = pBodyStructure ?
 				Util::getTextSizeFromBodyStructure(pBodyStructure) : nSize;
 			
 			enum {
@@ -584,7 +584,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		ReceiveSessionCallback* pSessionCallback_;
 		const SyncFilterSet* pFilterSet_;
 		unsigned int nOption_;
-		unsigned long nUidStart_;
+		unsigned int nUidStart_;
 		MessageDataList& listMessageData_;
 		UidList& listMakeSeen_;
 		UidList& listMakeDeleted_;
@@ -604,7 +604,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			listBodyStructure, pImap4_.get(), &globalVariable, this);
 		Hook h(this, &hook);
 		for (unsigned int nId = nIdStart_ + 1; nId <= nExists_; nId += nFetchCount) {
-			unsigned long nEnd = QSMIN(static_cast<unsigned long>(nId + nFetchCount - 1), nExists_);
+			unsigned int nEnd = QSMIN(nId + nFetchCount - 1, nExists_);
 			ContinuousRange range(nId, nEnd, false);
 			if (!pImap4_->getMessageData(range, (nOption & OPTION_USEENVELOPE) == 0,
 				(nOption & OPTION_USEBODYSTRUCTUREALWAYS) != 0, strAdditionalFields.get()))
@@ -682,7 +682,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			}
 			
 		protected:
-			virtual bool setBodyStructure(unsigned long nUid,
+			virtual bool setBodyStructure(unsigned int nUid,
 										  FetchDataBodyStructure* pBodyStructure,
 										  bool* pbSet)
 			{
@@ -764,7 +764,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			return bHeader_;
 		}
 		
-		virtual MessagePtr getMessagePtr(unsigned long nUid)
+		virtual MessagePtr getMessagePtr(unsigned int nUid)
 		{
 			Imap4ReceiveSession::MessageDataList::const_iterator m = std::find_if(
 				it_, listMessageData_.end(),
@@ -849,7 +849,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 				return nPartCount_;
 			}
 			
-			virtual MessagePtr getMessagePtr(unsigned long nUid)
+			virtual MessagePtr getMessagePtr(unsigned int nUid)
 			{
 				Imap4ReceiveSession::MessageDataList::const_iterator m = std::find_if(
 					it_, listMessageData_.end(),
@@ -984,7 +984,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 	
 	unsigned int nOption = pSubAccount_->getPropertyInt(L"Imap4", L"Option");
 	
-	typedef std::vector<unsigned long> UidList;
+	typedef std::vector<unsigned int> UidList;
 	UidList listAll;
 	UidList listText;
 	
@@ -1016,7 +1016,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 		class MessageProcessHook : public AbstractMessageProcessHook
 		{
 		public:
-			typedef std::vector<unsigned long> UidList;
+			typedef std::vector<unsigned int> UidList;
 		
 		public:
 			MessageProcessHook(NormalFolder* pFolder,
@@ -1041,7 +1041,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 				return false;
 			}
 			
-			virtual MessagePtr getMessagePtr(unsigned long nUid)
+			virtual MessagePtr getMessagePtr(unsigned int nUid)
 			{
 				UidList::const_iterator it = std::lower_bound(
 					listUid_.begin(), listUid_.end(), nUid);
@@ -1078,7 +1078,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 		class BodyStructureProcessHook : public AbstractBodyStructureProcessHook
 		{
 		public:
-			typedef std::vector<unsigned long> UidList;
+			typedef std::vector<unsigned int> UidList;
 			typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
 		
 		public:
@@ -1090,7 +1090,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 			}
 		
 		protected:
-			virtual bool setBodyStructure(unsigned long nUid,
+			virtual bool setBodyStructure(unsigned int nUid,
 										  FetchDataBodyStructure* pBodyStructure,
 										  bool* pbSet)
 			{
@@ -1120,7 +1120,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 		class PartialMessageProcessHook : public AbstractPartialMessageProcessHook
 		{
 		public:
-			typedef std::vector<unsigned long> UidList;
+			typedef std::vector<unsigned int> UidList;
 		
 		public:
 			PartialMessageProcessHook(NormalFolder* pFolder,
@@ -1161,7 +1161,7 @@ bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolde
 				return nPartCount_;
 			}
 			
-			virtual qm::MessagePtr getMessagePtr(unsigned long nUid)
+			virtual qm::MessagePtr getMessagePtr(unsigned int nUid)
 			{
 				UidList::const_iterator it = std::lower_bound(
 					listUid_.begin(), listUid_.end(), nUid);
@@ -1800,7 +1800,7 @@ const MessagePtr& qmimap4::MessageData::getMessagePtr() const
 	return ptr_;
 }
 
-unsigned long qmimap4::MessageData::getId() const
+unsigned int qmimap4::MessageData::getId() const
 {
 	return nId_;
 }

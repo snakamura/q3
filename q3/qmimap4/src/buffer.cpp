@@ -208,7 +208,7 @@ bool qmimap4::TokenUtil::isEqualIgnoreCase(const std::pair<const CHAR*, size_t>&
 }
 
 bool qmimap4::TokenUtil::string2number(const std::pair<const CHAR*, size_t>& s,
-									   unsigned long* pn)
+									   unsigned int* pn)
 {
 	assert(s.first);
 	assert(pn);

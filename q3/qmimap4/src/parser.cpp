@@ -346,7 +346,7 @@ std::auto_ptr<Response> qmimap4::Parser::parseResponse()
 		break;
 	}
 	if (flag == ResponseState::FLAG_UNKNOWN && !pResponse.get()) {
-		unsigned long nNumber = 0;
+		unsigned int nNumber = 0;
 		if (!TokenUtil::string2number(value, &nNumber))
 			return std::auto_ptr<Response>(0);
 		
@@ -449,7 +449,7 @@ std::auto_ptr<ResponseContinue> qmimap4::Parser::parseContinueResponse()
 	return std::auto_ptr<ResponseContinue>(new ResponseContinue(pState));
 }
 
-std::auto_ptr<ResponseFetch> qmimap4::Parser::parseFetchResponse(unsigned long nNumber)
+std::auto_ptr<ResponseFetch> qmimap4::Parser::parseFetchResponse(unsigned int nNumber)
 {
 	std::auto_ptr<List> pList(parseList());
 	if (!pList.get())
@@ -545,7 +545,7 @@ std::auto_ptr<ResponseSearch> qmimap4::Parser::parseSearchResponse()
 		if (id.second == 0)
 			break;
 		
-		unsigned long nId = 0;
+		unsigned int nId = 0;
 		if (!TokenUtil::string2number(id, &nId))
 			return std::auto_ptr<ResponseSearch>(0);
 		pSearch->add(nId);
@@ -640,7 +640,7 @@ std::auto_ptr<State> qmimap4::Parser::parseStatus()
 			if (token != TOKEN_ATOM)
 				return std::auto_ptr<State>(0);
 			
-			unsigned long nArg = 0;
+			unsigned int nArg = 0;
 			if (!TokenUtil::string2number(arg, &nArg))
 				return std::auto_ptr<State>(0);
 			pState->setArg(nArg);

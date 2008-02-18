@@ -86,7 +86,7 @@ public:
 protected:
 	virtual qm::Account* getAccount() = 0;
 	virtual bool isHeader() = 0;
-	virtual qm::MessagePtr getMessagePtr(unsigned long nUid) = 0;
+	virtual qm::MessagePtr getMessagePtr(unsigned int nUid) = 0;
 	virtual void processed() = 0;
 
 private:
@@ -119,7 +119,7 @@ protected:
 	virtual bool isAll() = 0;
 	virtual const PartList& getPartList() = 0;
 	virtual unsigned int getPartCount() = 0;
-	virtual qm::MessagePtr getMessagePtr(unsigned long nUid) = 0;
+	virtual qm::MessagePtr getMessagePtr(unsigned int nUid) = 0;
 	virtual unsigned int getOption() = 0;
 	virtual void processed() = 0;
 
@@ -145,7 +145,7 @@ public:
 	virtual Result processFetchResponse(ResponseFetch* pFetch);
 
 protected:
-	virtual bool setBodyStructure(unsigned long nUid,
+	virtual bool setBodyStructure(unsigned int nUid,
 								  FetchDataBodyStructure* pBodyStructure,
 								  bool* pbSet) = 0;
 	virtual void processed() = 0;

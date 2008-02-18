@@ -316,11 +316,11 @@ string_ptr qmimap4::Util::getHeaderFromBodyStructure(const FetchDataBodyStructur
 	return buf.getString();
 }
 
-unsigned long qmimap4::Util::getTextSizeFromBodyStructure(const FetchDataBodyStructure* pBodyStructure)
+unsigned int qmimap4::Util::getTextSizeFromBodyStructure(const FetchDataBodyStructure* pBodyStructure)
 {
 	assert(pBodyStructure);
 	
-	unsigned long nSize = 0;
+	unsigned int nSize = 0;
 	
 	if (isMultipart(pBodyStructure)) {
 		const FetchDataBodyStructure::ChildList& l = pBodyStructure->getChildList();

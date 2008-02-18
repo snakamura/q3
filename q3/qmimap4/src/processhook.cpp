@@ -69,7 +69,7 @@ ProcessHook::Result qmimap4::AbstractMessageProcessHook::processFetchResponse(Re
 {
 	bool bHeader = isHeader();
 	
-	unsigned long nUid = pFetch->getUid();
+	unsigned int nUid = pFetch->getUid();
 	FetchDataBody* pBody = 0;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
@@ -128,7 +128,7 @@ ProcessHook::Result qmimap4::AbstractPartialMessageProcessHook::processFetchResp
 {
 	const PartList& listPart = getPartList();
 	
-	unsigned long nUid = pFetch->getUid();
+	unsigned int nUid = pFetch->getUid();
 	BodyList listBody;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();
@@ -195,7 +195,7 @@ qmimap4::AbstractBodyStructureProcessHook::~AbstractBodyStructureProcessHook()
 
 ProcessHook::Result qmimap4::AbstractBodyStructureProcessHook::processFetchResponse(ResponseFetch* pFetch)
 {
-	unsigned long nUid = pFetch->getUid();
+	unsigned int nUid = pFetch->getUid();
 	FetchDataBodyStructure* pBodyStructure = 0;
 	
 	const ResponseFetch::FetchDataList& l = pFetch->getFetchDataList();

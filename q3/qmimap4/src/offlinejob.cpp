@@ -273,7 +273,7 @@ bool qmimap4::OfflineJobManager::load()
 }
 
 OfflineJob* qmimap4::OfflineJobManager::getCreateMessage(const WCHAR* pwszFolder,
-														 unsigned long nId) const
+														 unsigned int nId) const
 {
 	for (JobList::const_iterator itJ = listJob_.begin(); itJ != listJob_.end(); ++itJ) {
 		if ((*itJ)->isCreateMessage(pwszFolder, nId))
@@ -388,7 +388,7 @@ bool qmimap4::AppendOfflineJob::write(OutputStream* pStream) const
 }
 
 bool qmimap4::AppendOfflineJob::isCreateMessage(const WCHAR* pwszFolder,
-												unsigned long nId)
+												unsigned int nId)
 {
 	return wcscmp(pwszFolder, wstrFolder_.get()) == 0 && nId == nId_;
 }
@@ -511,7 +511,7 @@ bool qmimap4::CopyOfflineJob::write(OutputStream* pStream) const
 }
 
 bool qmimap4::CopyOfflineJob::isCreateMessage(const WCHAR* pwszFolder,
-											  unsigned long nId)
+											  unsigned int nId)
 {
 	return wcscmp(pwszFolder, wstrFolderTo_.get()) == 0 &&
 		std::find_if(listItemTo_.begin(), listItemTo_.end(),
@@ -667,7 +667,7 @@ bool qmimap4::SetFlagsOfflineJob::write(OutputStream* pStream) const
 }
 
 bool qmimap4::SetFlagsOfflineJob::isCreateMessage(const WCHAR* pwszFolder,
-												  unsigned long nId)
+												  unsigned int nId)
 {
 	return false;
 }
@@ -799,7 +799,7 @@ bool qmimap4::SetLabelOfflineJob::write(OutputStream* pStream) const
 }
 
 bool qmimap4::SetLabelOfflineJob::isCreateMessage(const WCHAR* pwszFolder,
-												  unsigned long nId)
+												  unsigned int nId)
 {
 	return false;
 }

@@ -118,7 +118,7 @@ struct TokenUtil
 	static bool isEqualIgnoreCase(const std::pair<const CHAR*, size_t>& s,
 								  const CHAR* psz);
 	static bool string2number(const std::pair<const CHAR*, size_t>& s,
-							  unsigned long* pn);
+							  unsigned int* pn);
 };
 
 }

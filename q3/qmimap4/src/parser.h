@@ -66,7 +66,7 @@ private:
 	std::auto_ptr<Response> parseResponse();
 	std::auto_ptr<ResponseCapability> parseCapabilityResponse();
 	std::auto_ptr<ResponseContinue> parseContinueResponse();
-	std::auto_ptr<ResponseFetch> parseFetchResponse(unsigned long nNumber);
+	std::auto_ptr<ResponseFetch> parseFetchResponse(unsigned int nNumber);
 	std::auto_ptr<ResponseFlags> parseFlagsResponse();
 	std::auto_ptr<ResponseList> parseListResponse(bool bList);
 	std::auto_ptr<ResponseNamespace> parseNamespaceResponse();
