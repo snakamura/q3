@@ -183,9 +183,13 @@ private:
  *
  */
 
-struct container_deleter_base
+class container_deleter_base
 {
-	virtual ~container_deleter_base() = 0 {}
+protected:
+	container_deleter_base() {}
+	~container_deleter_base() {}
+
+public:
 	virtual void release() const = 0;
 };
 
