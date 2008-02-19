@@ -850,6 +850,50 @@ size_t qs::UTF8Converter::decodeImpl(const CHAR* psz,
 	return pSrc - psz;
 }
 
+bool qs::UTF8Converter::isValid(const CHAR* psz,
+								size_t nLen)
+{
+	assert(psz);
+	
+	const CHAR* pSrc = psz;
+	const CHAR* pSrcEnd = psz + nLen;
+	while (pSrc != pSrcEnd) {
+		if ((*pSrc & 0x80) == 0) {
+		}
+		else if ((*pSrc & 0x40) == 0) {
+			return false;
+		}
+		else if ((*pSrc & 0x20) == 0) {
+			if (pSrc + 1 == pSrcEnd)
+				return false;
+			
+			++pSrc;
+			if ((*pSrc & 0xc0) != 0x80)
+				return false;
+		}
+		else if ((*pSrc & 0x10) == 0) {
+			if (pSrc + 1 == pSrcEnd || pSrc + 2 == pSrcEnd)
+				return false;
+			
+			++pSrc;
+			if ((*pSrc & 0xc0) == 0x80) {
+				++pSrc;
+				if ((*pSrc & 0xc0) != 0x80)
+					return false;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
+		++pSrc;
+	}
+	
+	return true;
+}
+
 
 /****************************************************************************
  *

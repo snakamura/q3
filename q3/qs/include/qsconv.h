@@ -450,6 +450,10 @@ protected:
 							  XStringBuffer<WXSTRING>* pBuf)
 							  QNOTHROW();
 
+public:
+	static bool isValid(const CHAR* psz,
+						size_t nLen);
+
 private:
 	UTF8Converter(const UTF8Converter&);
 	UTF8Converter& operator=(const UTF8Converter&);
