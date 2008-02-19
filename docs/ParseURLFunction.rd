@@ -19,7 +19,9 @@ url‚ÅŽw’è‚³‚ê‚½mailto URL‚ðƒp[ƒX‚µ‚Äƒwƒbƒ_Œ`Ž®‚Ì•¶Žš—ñi‚Æ‚ ‚ê‚Î–{•¶j‚ð•Ô‚µ‚Ü‚
  
  Test Body
 
-‚ð•Ô‚µ‚Ü‚·Bˆ—‚³‚ê‚éƒwƒbƒ_‚ÍATo, Cc, Subject, In-Reply-To, References‚Æbody‚Å‚·BURL’†‚Ì”ñASCII•¶Žš—ñ‚ÍUTF-8‚Æ‚µ‚Ä‰ðŽß‚³‚ê‚Ü‚·B
+‚ð•Ô‚µ‚Ü‚·Bˆ—‚³‚ê‚éƒwƒbƒ_‚ÍATo, Cc, Subject, In-Reply-To, References‚Æbody‚Å‚·B
+
+URL’†‚Ì”ñASCII•¶Žš—ñi%xx‚ÅƒGƒXƒP[ƒv‚³‚ê‚½‚à‚Ì‚àŠÜ‚Þj‚ÍUTF-8‚Æ‚µ‚Ä³‚µ‚¢ƒoƒCƒg—ñ‚Å‚ ‚é‚Æ‚«‚É‚ÍUTF-8‚Æ‚µ‚ÄA³‚µ‚­‚È‚¢ƒoƒCƒg—ñ‚Å‚ ‚é‚Æ‚«‚É‚Íƒvƒ‰ƒbƒgƒtƒH[ƒ€‚ÌƒfƒtƒHƒ‹ƒgƒGƒ“ƒR[ƒfƒBƒ“ƒO‚Æ‚µ‚Äˆ—‚³‚ê‚Ü‚·B
 
 url‚ÅŽw’è‚³‚ê‚½•¶Žš—ñ‚ªmailto:‚©‚çŽn‚Ü‚Á‚Ä‚¢‚È‚©‚Á‚½ê‡‚É‚ÍATo‚Æ‚µ‚ÄŽw’è‚³‚ê‚½•¶Žš—ñ‚ðŽ‚Á‚½ƒwƒbƒ_Œ`Ž®‚Ì•¶Žš—ñ‚ð•Ô‚µ‚Ü‚·B‚½‚Æ‚¦‚ÎAtest3@example.org‚ðˆø”‚Æ‚µ‚Ä“n‚·‚ÆA
 

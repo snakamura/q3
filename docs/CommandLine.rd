@@ -70,6 +70,8 @@ QMAIL3に指定可能なコマンドラインは以下の通りです。
 
 そのようなアカウントが存在しない場合には何もしません。
 
+mailto URLの処理は、内部的にはurl.template使った((<MessageCreateアクション|URL:MessageCreateAction.html>))として実装されていますので、url.templateを変更することで処理をカスタマイズすることができます。url.templateについては、((<その他のテンプレート|URL:OtherTemplate.html>))を参照してください。
+
 ===例
  -s mailto:info@example.org
  -s feed://www.example.org/index.rdf
