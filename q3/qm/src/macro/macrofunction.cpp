@@ -29,6 +29,9 @@
 
 #include <algorithm>
 
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+
 #include <tchar.h>
 
 #include "macro.h"
@@ -3915,36 +3918,73 @@ wstring_ptr qm::MacroFunctionParseURL::decode(const WCHAR* p,
 {
 	assert(p);
 	
-	UTF8Converter converter;
+	typedef std::vector<std::pair<STRING, WSTRING> > TokenList;
+	TokenList listToken;
+	CONTAINER_DELETER_D(deleter, listToken,
+		(boost::lambda::bind(&freeString, bind(&TokenList::value_type::first, boost::lambda::_1)),
+		 boost::lambda::bind(&freeWString, bind(&TokenList::value_type::second, boost::lambda::_1))));
 	
-	StringBuffer<STRING> buf;
-	for (; nLen > 0; --nLen, ++p) {
+	StringBuffer<STRING> bufA;
+	bool bUTF8 = true;
+	while (nLen > 0) {
 		if (*p == L'%' && nLen > 2 && isHex(*(p + 1)) && isHex(*(p + 2))) {
 			WCHAR wsz[3] = { *(p + 1), *(p + 2), L'\0' };
 			WCHAR* pEnd = 0;
 			long n = wcstol(wsz, &pEnd, 16);
 			if (n > 0 && n != 0x0d)
-				buf.append(static_cast<CHAR>(n));
-			p += 2;
-			nLen -= 2;
+				bufA.append(static_cast<CHAR>(n));
+			p += 3;
+			nLen -= 3;
 		}
 		else if (*p <= 0x7f) {
-			buf.append(static_cast<CHAR>(*p));
+			bufA.append(static_cast<CHAR>(*p));
+			++p;
+			--nLen;
 		}
 		else {
-			size_t nLen = 1;
-			xstring_size_ptr encoded(converter.encode(p, &nLen));
-			if (!encoded.get())
-				return 0;
-			buf.append(encoded.get());
+			string_ptr str(bufA.getString());
+			if (bUTF8)
+				bUTF8 = UTF8Converter::isValid(str.get(), strlen(str.get()));
+			
+			const WCHAR* pStart = p;
+			while (nLen > 0 && *p >= 0x80) {
+				++p;
+				--nLen;
+			}
+			
+			wstring_ptr wstr(allocWString(pStart, p - pStart));
+			listToken.push_back(std::make_pair(str.get(), wstr.get()));
+			str.release();
+			wstr.release();
 		}
 	}
+	if (bufA.getLength() != 0) {
+		string_ptr str(bufA.getString());
+		if (bUTF8)
+			bUTF8 = UTF8Converter::isValid(str.get(), strlen(str.get()));
+		listToken.push_back(std::make_pair(str.get(), static_cast<WSTRING>(0)));
+		str.release();
+	}
 	
-	size_t n = buf.getLength();
-	wxstring_size_ptr decoded(converter.decode(buf.getCharArray(), &n));
-	if (!decoded.get())
-		return 0;
-	return allocWString(decoded.get(), decoded.size());
+	StringBuffer<WSTRING> buf;
+	for (TokenList::const_iterator it = listToken.begin(); it != listToken.end(); ++it) {
+		if ((*it).first) {
+			if (bUTF8) {
+				size_t nLen = strlen((*it).first);
+				wxstring_size_ptr wstr(UTF8Converter().decode((*it).first, &nLen));
+				if (!wstr.get())
+					return 0;
+				buf.append(wstr.get());
+			}
+			else {
+				wstring_ptr wstr(mbs2wcs((*it).first));
+				buf.append(wstr.get());
+			}
+		}
+		if ((*it).second)
+			buf.append((*it).second);
+	}
+	return buf.getString();
 }
 
 bool qm::MacroFunctionParseURL::isHex(WCHAR c)
