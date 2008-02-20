@@ -109,6 +109,9 @@ private:
 				 UIDList* pList);
 		~UIDSaver();
 	
+	public:
+		void save();
+	
 	private:
 		Pop3ReceiveSession* pSession_;
 		qs::Logger* pLogger_;

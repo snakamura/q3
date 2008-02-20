@@ -100,35 +100,11 @@ void qmpop3::Pop3ReceiveSession::term()
 
 bool qmpop3::Pop3ReceiveSession::connect()
 {
-	assert(!pPop3_.get());
-	
-	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
-	log.debug(L"Connecting to the server...");
-	
-	pPop3_.reset(new Pop3(pSubAccount_->getTimeout(), pCallback_.get(),
-		pCallback_.get(), pCallback_.get(), pLogger_));
-	
-	bool bApop = pSubAccount_->getPropertyInt(L"Pop3", L"Apop") != 0;
-	Pop3::Secure secure = Util::getSecure(pSubAccount_, Account::HOST_RECEIVE);
-	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE), bApop, secure))
-		HANDLE_ERROR_SSL();
-	
-	log.debug(L"Connected to the server.");
-	
 	return true;
 }
 
 void qmpop3::Pop3ReceiveSession::disconnect()
 {
-	assert(pPop3_.get());
-	
-	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
-	log.debug(L"Disconnecting from the server...");
-	
-	pPop3_->disconnect();
-	
-	log.debug(L"Disconnected from the server.");
 }
 
 bool qmpop3::Pop3ReceiveSession::isConnected()
@@ -141,9 +117,6 @@ bool qmpop3::Pop3ReceiveSession::selectFolder(NormalFolder* pFolder,
 {
 	assert(pFolder);
 	assert(nFlags == 0);
-	
-	if (!prepare() || !downloadReservedMessages())
-		return false;
 	
 	pFolder_ = pFolder;
 	
@@ -166,7 +139,27 @@ bool qmpop3::Pop3ReceiveSession::updateMessages()
 
 bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilterSet)
 {
-	UIDSaver saver(this, pLogger_, pUIDList_.get());
+	assert(!pPop3_.get());
+	
+	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
+	
+	log.debug(L"Connecting to the server...");
+	
+	pPop3_.reset(new Pop3(pSubAccount_->getTimeout(), pCallback_.get(),
+		pCallback_.get(), pCallback_.get(), pLogger_));
+	
+	bool bApop = pSubAccount_->getPropertyInt(L"Pop3", L"Apop") != 0;
+	Pop3::Secure secure = Util::getSecure(pSubAccount_, Account::HOST_RECEIVE);
+	if (!pPop3_->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
+		pSubAccount_->getPort(Account::HOST_RECEIVE), bApop, secure))
+		HANDLE_ERROR_SSL();
+	
+	log.debug(L"Connected to the server.");
+	
+	if (!prepare() || !downloadReservedMessages())
+		return false;
+	
+	UIDSaver uidSaver(this, pLogger_, pUIDList_.get());
 	
 	unsigned int nCount = pPop3_->getMessageCount();
 	
@@ -392,6 +385,18 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 			pUIDList_->remove(listIndex);
 		}
 	}
+	
+	if (!pAccount_->saveMessages(false)) {
+		Util::reportError(0, pSessionCallback_, pAccount_,
+			pSubAccount_, pFolder_, POP3ERROR_SAVE, 0, 0);
+		return false;
+	}
+	
+	log.debug(L"Disconnecting from the server...");
+	pPop3_->disconnect();
+	log.debug(L"Disconnected from the server.");
+	
+	uidSaver.save();
 	
 	if (!listDownloaded.empty()) {
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
@@ -783,16 +788,22 @@ qmpop3::Pop3ReceiveSession::UIDSaver::UIDSaver(Pop3ReceiveSession* pSession,
 	pLogger_(pLogger),
 	pUIDList_(pUIDList)
 {
+	assert(pSession_);
+	assert(pLogger_);
+	assert(pUIDList_);
 }
 
 qmpop3::Pop3ReceiveSession::UIDSaver::~UIDSaver()
 {
+	save();
+}
+
+void qmpop3::Pop3ReceiveSession::UIDSaver::save()
+{
 	Log log(pLogger_, L"qmpop3::Pop3ReceiveSession");
 	
-	if (pUIDList_) {
-		if (!pSession_->saveUIDList(pUIDList_))
-			log.error(L"Failed to save uid list.");
-	}
+	if (!pSession_->saveUIDList(pUIDList_))
+		log.error(L"Failed to save uid list.");
 }
 
 	

@@ -49,9 +49,10 @@
 #define IDS_ERROR_RESPONSE              12010
 #define IDS_ERROR_SSL                   12011
 #define IDS_ERROR_OTHER                 12012
-#define IDS_ERROR_APPLYRULES            14000
-#define IDS_ERROR_MANAGEJUNK            14001
-#define IDS_ERROR_FILTERJUNK            14002
+#define IDS_ERROR_SAVE                  14000
+#define IDS_ERROR_APPLYRULES            14001
+#define IDS_ERROR_MANAGEJUNK            14002
+#define IDS_ERROR_FILTERJUNK            14003
 
 // Next default values for new objects
 // 

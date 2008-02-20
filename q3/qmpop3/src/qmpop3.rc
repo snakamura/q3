@@ -133,6 +133,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_ERROR_SAVE          "Error occuered while saving messages."
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
     IDS_ERROR_MANAGEJUNK    "Error occurred while managing junk messages."
     IDS_ERROR_FILTERJUNK    "Error occurred while filtering junk messages."
