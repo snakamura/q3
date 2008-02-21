@@ -110,7 +110,7 @@ public:
 				 short nPort,
 				 bool bApop,
 				 Secure secure);
-	void disconnect();
+	bool disconnect();
 	unsigned int getMessageCount() const;
 	bool getMessage(unsigned int nMsg,
 					unsigned int nMaxLine,

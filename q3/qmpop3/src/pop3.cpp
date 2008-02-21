@@ -187,33 +187,37 @@ bool qmpop3::Pop3::connect(const WCHAR* pwszHost,
 	return true;
 }
 
-void qmpop3::Pop3::disconnect()
+bool qmpop3::Pop3::disconnect()
 {
-	if (pSocket_.get()) {
-		bool bQuit = true;
-		switch (nError_ & POP3_ERROR_MASK_LOWLEVEL) {
-		case POP3_ERROR_CONNECT:
-		case POP3_ERROR_INVALIDSOCKET:
-		case POP3_ERROR_TIMEOUT:
-		case POP3_ERROR_SELECT:
-		case POP3_ERROR_DISCONNECT:
-		case POP3_ERROR_RECEIVE:
-		case POP3_ERROR_SEND:
-			bQuit = false;
-			break;
-		}
-		switch (nError_ & Socket::SOCKET_ERROR_MASK_SOCKET) {
-		case Socket::SOCKET_ERROR_SOCKET:
-		case Socket::SOCKET_ERROR_LOOKUPNAME:
-		case Socket::SOCKET_ERROR_CONNECTTIMEOUT:
-		case Socket::SOCKET_ERROR_CONNECT:
-			bQuit = false;
-			break;
-		}
-		if (bQuit)
-			sendCommand("QUIT\r\n");
-		pSocket_.reset(0);
+	if (!pSocket_.get())
+		return false;
+	
+	bool bQuit = true;
+	switch (nError_ & POP3_ERROR_MASK_LOWLEVEL) {
+	case POP3_ERROR_CONNECT:
+	case POP3_ERROR_INVALIDSOCKET:
+	case POP3_ERROR_TIMEOUT:
+	case POP3_ERROR_SELECT:
+	case POP3_ERROR_DISCONNECT:
+	case POP3_ERROR_RECEIVE:
+	case POP3_ERROR_SEND:
+		bQuit = false;
+		break;
 	}
+	switch (nError_ & Socket::SOCKET_ERROR_MASK_SOCKET) {
+	case Socket::SOCKET_ERROR_SOCKET:
+	case Socket::SOCKET_ERROR_LOOKUPNAME:
+	case Socket::SOCKET_ERROR_CONNECTTIMEOUT:
+	case Socket::SOCKET_ERROR_CONNECT:
+		bQuit = false;
+		break;
+	}
+	
+	bool b = false;
+	if (bQuit)
+		b = sendCommand("QUIT\r\n");
+	pSocket_.reset(0);
+	return b;
 }
 
 unsigned int qmpop3::Pop3::getMessageCount() const

@@ -348,20 +348,20 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 	}
 	
+	UIDList::IndexList listDeleteUIDIndex;
 	const DeleteList::List& l = listDelete.getList();
 	if (!l.empty()) {
-		UIDList::IndexList listIndex;
-		listIndex.reserve(l.size());
+		listDeleteUIDIndex.reserve(l.size());
 		for (DeleteList::List::size_type m = 0; m < l.size(); ++m) {
 			if (l[m].first)
-				listIndex.push_back(static_cast<unsigned int>(m));
+				listDeleteUIDIndex.push_back(static_cast<unsigned int>(m));
 		}
 		
-		if (listIndex.size()) {
+		if (listDeleteUIDIndex.size()) {
 			bool bDeleteLocal = pSubAccount_->getPropertyInt(L"Pop3", L"DeleteLocal") != 0;
 			
 			pCallback_->setMessage(IDS_DELETEMESSAGE);
-			pSessionCallback_->setRange(0, listIndex.size());
+			pSessionCallback_->setRange(0, listDeleteUIDIndex.size());
 			pSessionCallback_->setPos(0);
 			
 			int nPos = 0;
@@ -381,8 +381,6 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					}
 				}
 			}
-			
-			pUIDList_->remove(listIndex);
 		}
 	}
 	
@@ -393,9 +391,11 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 	}
 	
 	log.debug(L"Disconnecting from the server...");
-	pPop3_->disconnect();
+	bool bDisconnect = pPop3_->disconnect();
 	log.debug(L"Disconnected from the server.");
 	
+	if (bDisconnect)
+		pUIDList_->remove(listDeleteUIDIndex);
 	uidSaver.save();
 	
 	if (!listDownloaded.empty()) {

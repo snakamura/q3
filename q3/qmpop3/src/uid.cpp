@@ -186,6 +186,9 @@ void qmpop3::UIDList::add(std::auto_ptr<UID> pUID)
 
 void qmpop3::UIDList::remove(const IndexList& l)
 {
+	if (l.empty())
+		return;
+	
 	for (IndexList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		assert(*it < list_.size());
 		delete list_[*it];
