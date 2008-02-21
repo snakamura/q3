@@ -24,7 +24,8 @@
 #define IDS_ERROR_PARSERESPONSEHEADER   11005
 #define IDS_ERROR_PARSEREDIRECTLOCATION 11006
 #define IDS_ERROR_INVALIDREDIRECTLOCATION 11007
-#define IDS_ERROR_SUBSCRIBE             12000
+#define IDS_ERROR_SUBSCRIBE             11008
+#define IDS_ERROR_SAVE                  11009
 
 // Next default values for new objects
 // 

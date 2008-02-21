@@ -123,6 +123,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_ERROR_SAVE          "メッセージの保存中にエラーが発生しました"
     IDS_ERROR_APPLYRULES    "メッセージの振り分け中にエラーが発生しました"
     IDS_ERROR_SUBSCRIBE     "グループの購読に失敗しました"
     IDS_ERROR_REFRESH       "グループのリストをサーバからダウンロードできません"

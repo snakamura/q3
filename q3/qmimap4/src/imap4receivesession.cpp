@@ -926,6 +926,12 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			HANDLE_ERROR();
 	}
 	
+	if (!pAccount_->saveMessages(false)) {
+		Util::reportError(0, pSessionCallback_, pAccount_,
+			pSubAccount_, pFolder_, IMAP4ERROR_SAVE, 0, 0);
+		return false;
+	}
+	
 	if (!listMessageData.empty()) {
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
 		bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;

@@ -315,6 +315,12 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 	}
 	
+	if (!pAccount_->saveMessages(false)) {
+		Util::reportError(0, pSessionCallback_, pAccount_,
+			pSubAccount_, pFolder_, NNTPERROR_SAVE, 0, 0);
+		return false;
+	}
+	
 	if (!listDownloaded.empty()) {
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
 		bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;

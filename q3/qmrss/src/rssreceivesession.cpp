@@ -256,6 +256,11 @@ bool qmrss::RssReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilter
 	// TODO
 	// Check trackbacks.
 	
+	if (!pAccount_->saveMessages(false)) {
+		reportError(IDS_ERROR_SAVE, 0, 0, 0, 0);
+		return false;
+	}
+	
 	bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;
 	if (bApplyRules) {
 		if (!applyRules(&listDownloaded))

@@ -121,6 +121,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_ERROR_SAVE          "Error occuered while saving messages."
     IDS_ERROR_APPLYRULES    "Error occuered while applying rules."
     IDS_ERROR_SUBSCRIBE     "Could not subscribe to the group."
     IDS_ERROR_REFRESH       "Could not download a group list from a server."

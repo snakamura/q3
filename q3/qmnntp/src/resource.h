@@ -43,11 +43,12 @@
 #define IDS_ERROR_DISCONNECT            12008
 #define IDS_ERROR_SEND                  12009
 #define IDS_ERROR_SSL                   12010
-#define IDS_ERROR_APPLYRULES            14000
-#define IDS_ERROR_SUBSCRIBE             14001
-#define IDS_ERROR_REFRESH               14002
-#define IDS_ERROR_MANAGEJUNK            14003
-#define IDS_ERROR_FILTERJUNK            14004
+#define IDS_ERROR_SAVE                  14000
+#define IDS_ERROR_APPLYRULES            14001
+#define IDS_ERROR_SUBSCRIBE             14002
+#define IDS_ERROR_REFRESH               14003
+#define IDS_ERROR_MANAGEJUNK            14004
+#define IDS_ERROR_FILTERJUNK            14005
 
 // Next default values for new objects
 // 
