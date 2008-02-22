@@ -391,12 +391,17 @@ std::auto_ptr<Channel> qmrss::SubscribeURLPage::getChannel(const WCHAR* pwszURL,
 		if (!wstrBody.get())
 			return std::auto_ptr<Channel>();
 		
-		std::auto_ptr<RegexPattern> pPatternType(RegexCompiler().compile(
-			L"<link [^<>]*type=\"?application/(rss|atom|rdf)\\+xml(\\s*;[^\"<>])*\"?[^<>]*/?>",
-			RegexCompiler::MODE_MULTILINE | RegexCompiler::MODE_DOTALL | RegexCompiler::MODE_CASEINSENSITIVE));
+		const WCHAR* pwszPattern[] = {
+			L"<link [^<>]*type=\"?application/atom\\+xml(\\s*;[^\"<>])*\"?[^<>]*/?>",
+			L"<link [^<>]*type=\"?application/(rss|rdf)\\+xml(\\s*;[^\"<>])*\"?[^<>]*/?>"
+		};
 		const WCHAR* pStart = 0;
 		const WCHAR* pEnd = 0;
-		pPatternType->search(wstrBody.get(), wstrBody.size(), wstrBody.get(), false, &pStart, &pEnd, 0);
+		for (int n = 0; n < countof(pwszPattern) && !pStart; ++n) {
+			std::auto_ptr<RegexPattern> pPatternType(RegexCompiler().compile(pwszPattern[n],
+				RegexCompiler::MODE_MULTILINE | RegexCompiler::MODE_DOTALL | RegexCompiler::MODE_CASEINSENSITIVE));
+			pPatternType->search(wstrBody.get(), wstrBody.size(), wstrBody.get(), false, &pStart, &pEnd, 0);
+		}
 		if (!pStart)
 			return std::auto_ptr<Channel>();
 		
