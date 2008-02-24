@@ -149,9 +149,6 @@ private:
 	unsigned int nUidStart_;
 	unsigned int nIdStart_;
 	bool bSync_;
-
-friend class CallbackImpl;
-friend class Hook;
 };
 
 

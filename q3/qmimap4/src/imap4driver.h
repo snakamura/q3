@@ -344,7 +344,6 @@ private:
 		NamespaceList* pListNamespace_;
 		FolderDataList* pListFolderData_;
 	};
-	friend class CallbackImpl;
 
 private:
 	qm::Account* pAccount_;
