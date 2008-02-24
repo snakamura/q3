@@ -32,6 +32,7 @@
 #include <qsinit.h>
 #include <qsstl.h>
 #include <qsstream.h>
+#include <qstextutil.h>
 #include <qsuiutil.h>
 #include <qswindow.h>
 
@@ -2386,23 +2387,38 @@ bool qm::FilePrintAction::print(MessageEnumerator* pEnum,
 	if (!wstrPath.get())
 		return false;
 	
-	W2T(wstrPath.get(), ptszPath);
-	SHELLEXECUTEINFO sei = {
-		sizeof(sei),
-		0,
-		hwnd_,
-		_T("print"),
-		ptszPath,
-		0,
-		0,
+	wstring_ptr wstrCommand(pProfile_->getString(L"Global", L"PrintCommand"));
+	if (wstrCommand.get() && *wstrCommand.get()) {
+		wstrCommand = TextUtil::replace(wstrCommand.get(), L"%1", wstrPath.get());
+		W2T(wstrCommand.get(), ptszCommand);
+		STARTUPINFO si = { sizeof(si) };
+		PROCESS_INFORMATION pi;
+		if (!::CreateProcess(0, const_cast<LPTSTR>(ptszCommand),
+			0, 0, TRUE, 0, 0, 0, &si, &pi))
+			return false;
+		::CloseHandle(pi.hThread);
+		::WaitForSingleObject(pi.hProcess, INFINITE);
+		::CloseHandle(pi.hProcess);
+	}
+	else {
+		W2T(wstrPath.get(), ptszPath);
+		SHELLEXECUTEINFO sei = {
+			sizeof(sei),
+			0,
+			hwnd_,
+			_T("print"),
+			ptszPath,
+			0,
+			0,
 #ifdef _WIN32_WCE
-		SW_SHOWNORMAL,
+			SW_SHOWNORMAL,
 #else
-		SW_SHOWDEFAULT,
+			SW_SHOWDEFAULT,
 #endif
-	};
-	if (!::ShellExecuteEx(&sei))
-		return false;
+		};
+		if (!::ShellExecuteEx(&sei))
+			return false;
+	}
 	
 	return true;
 }
