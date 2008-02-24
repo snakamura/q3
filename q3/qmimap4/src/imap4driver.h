@@ -468,7 +468,7 @@ public:
 
 public:
 	Imap4* get() const;
-	DriverCallback* getCallback() const;
+	ProcessHookHolder* getProcessHookHolder() const;
 	bool isNew() const;
 	void release();
 	bool retry();

@@ -188,7 +188,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 		bool bFound_;
 	} hook(wstrFullName.get(), folderUtil);
 	
-	Hook h(cacher.getCallback(), &hook);
+	Hook h(cacher.getProcessHookHolder(), &hook);
 	if (!pImap4->list(false, L"", wstrFullName.get()))
 		return std::auto_ptr<NormalFolder>(0);
 	if (!hook.bFound_)
@@ -549,7 +549,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	
 	if (bBodyStructure) {
 		BodyStructureProcessHook hook(pmh->getId());
-		Hook h(cacher.getCallback(), &hook);
+		Hook h(cacher.getProcessHookHolder(), &hook);
 		RETRY_COND(pImap4->getBodyStructure(range), hook.getBodyStructure());
 		FetchDataBodyStructure* pBodyStructure = hook.getBodyStructure();
 		if (pBodyStructure) {
@@ -570,7 +570,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				
 				BodyListProcessHook hook(pmh->getId(), pBodyStructure,
 					listPart, nPartCount, bHtml, pmh, nOption_, pCallback);
-				Hook h(cacher.getCallback(), &hook);
+				Hook h(cacher.getProcessHookHolder(), &hook);
 				
 				if (!pImap4->fetch(range, strArg.get()))
 					return false;
@@ -580,12 +580,12 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	else {
 		if (bHeaderOnly) {
 			BodyProcessHook hook(pmh->getId(), true, pmh, pCallback);
-			Hook h(cacher.getCallback(), &hook);
+			Hook h(cacher.getProcessHookHolder(), &hook);
 			RETRY_COND(pImap4->getHeader(range, (nFlags & Account::GMF_MAKESEEN) == 0), hook.bProcessed_);
 		}
 		else {
 			BodyProcessHook hook(pmh->getId(), false, pmh, pCallback);
-			Hook h(cacher.getCallback(), &hook);
+			Hook h(cacher.getProcessHookHolder(), &hook);
 			RETRY_COND(pImap4->getMessage(range, (nFlags & Account::GMF_MAKESEEN) == 0), hook.bProcessed_);
 		}
 	}
@@ -646,7 +646,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 		if (!pImap4)
 			return false;
 		
-		RETRY(setFlags(pImap4, cacher.getCallback(),
+		RETRY(setFlags(pImap4, cacher.getProcessHookHolder(),
 			*pRange, pFolder, listUpdate, nFlags, nMask));
 		
 		cacher.release();
@@ -727,7 +727,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 			return false;
 		
 		FlagProcessHook hook(pFolder);
-		Hook h(cacher.getCallback(), &hook);
+		Hook h(cacher.getProcessHookHolder(), &hook);
 		
 		std::auto_ptr<MultipleRange> pRange(Util::createRange(listUpdate));
 		std::auto_ptr<Flags> pFlags(Util::getImap4FlagsFromLabels(
@@ -886,7 +886,7 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 		RETRY(pImap4->copy(*pRange, wstrFolderName.get()));
 		
 		if (bMove) {
-			if (!setFlags(pImap4, cacher.getCallback(), *pRange, pFolderFrom,
+			if (!setFlags(pImap4, cacher.getProcessHookHolder(), *pRange, pFolderFrom,
 				listUpdate, MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED))
 				return false;
 		}
@@ -971,7 +971,7 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 			bool bProcessed_;
 		} hook(pFolder, pList);
 		
-		Hook h(cacher.getCallback(), &hook);
+		Hook h(cacher.getProcessHookHolder(), &hook);
 		RETRY_COND(pImap4->search(pwszCondition, pwszCharset, bUseCharset, true), hook.bProcessed_);
 		
 		cacher.release();
@@ -1948,7 +1948,7 @@ Imap4* qmimap4::SessionCacher::get() const
 	return pSession_.get() ? pSession_->getImap4() : 0;
 }
 
-DriverCallback* qmimap4::SessionCacher::getCallback() const
+ProcessHookHolder* qmimap4::SessionCacher::getProcessHookHolder() const
 {
 	return pSession_.get() ? pSession_->getCallback() : 0;
 }
