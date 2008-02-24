@@ -988,7 +988,7 @@ bool qmimap4::Imap4Driver::prepareSessionCache(bool bClear)
 }
 
 bool qmimap4::Imap4Driver::setFlags(Imap4* pImap4,
-									DriverCallback* pCallback,
+									ProcessHookHolder* pProcessHookHolder,
 									const Range& range,
 									NormalFolder* pFolder,
 									const MessageHolderList& l,
@@ -996,14 +996,14 @@ bool qmimap4::Imap4Driver::setFlags(Imap4* pImap4,
 									unsigned int nMask)
 {
 	assert(pImap4);
-	assert(pCallback);
+	assert(pProcessHookHolder);
 	assert(pFolder);
 	assert(!l.empty());
 	
 	Flags flags(Util::getImap4FlagsFromMessageFlags(nFlags));
 	Flags mask(Util::getImap4FlagsFromMessageFlags(nMask));
 	FlagDriverProcessHook hook(pFolder);
-	Hook h(pCallback, &hook);
+	Hook h(pProcessHookHolder, &hook);
 	if (!pImap4->setFlags(range, flags, mask))
 		return false;
 	
@@ -1023,16 +1023,16 @@ bool qmimap4::Imap4Driver::setFlags(Imap4* pImap4,
  *
  */
 
-qmimap4::Imap4Driver::Hook::Hook(DriverCallback* pCallback,
+qmimap4::Imap4Driver::Hook::Hook(ProcessHookHolder* pProcessHookHolder,
 								 DriverProcessHook* pProcessHook) :
-	pCallback_(pCallback)
+	pProcessHookHolder_(pProcessHookHolder)
 {
-	pCallback_->setProcessHook(pProcessHook);
+	pProcessHookHolder_->setProcessHook(pProcessHook);
 }
 
 qmimap4::Imap4Driver::Hook::~Hook()
 {
-	pCallback_->setProcessHook(0);
+	pProcessHookHolder_->setProcessHook(0);
 }
 
 
@@ -1146,6 +1146,17 @@ bool qmimap4::FlagDriverProcessHook::processFetchResponse(ResponseFetch* pFetch)
 	}
 	
 	return true;
+}
+
+
+/****************************************************************************
+ *
+ * ProcessHookHolder
+ *
+ */
+
+qmimap4::ProcessHookHolder::~ProcessHookHolder()
+{
 }
 
 

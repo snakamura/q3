@@ -23,7 +23,8 @@ class Imap4Driver;
 class Imap4Factory;
 class DriverProcessHook;
 	class FlagDriverProcessHook;
-class DriverCallback;
+class ProcessHookHolder;
+	class DriverCallback;
 class FolderUtil;
 class FolderListGetter;
 class Session;
@@ -98,7 +99,7 @@ public:
 private:
 	bool prepareSessionCache(bool bClear);
 	bool setFlags(Imap4* pImap4,
-				  DriverCallback* pCallback,
+				  ProcessHookHolder* pProcessHookHolder,
 				  const Range& range,
 				  qm::NormalFolder* pFolder,
 				  const qm::MessageHolderList& l,
@@ -113,7 +114,7 @@ private:
 	class Hook
 	{
 	public:
-		Hook(DriverCallback* pCallback,
+		Hook(ProcessHookHolder* pProcessHookHolder,
 			 DriverProcessHook* pProcessHook);
 		~Hook();
 	
@@ -122,7 +123,7 @@ private:
 		Hook& operator=(const Hook&);
 	
 	private:
-		DriverCallback* pCallback_;
+		ProcessHookHolder* pProcessHookHolder_;
 	};
 
 private:
@@ -210,11 +211,29 @@ private:
 
 /****************************************************************************
  *
+ * ProcessHookHolder
+ *
+ */
+
+class ProcessHookHolder
+{
+public:
+	virtual ~ProcessHookHolder();
+
+public:
+	virtual void setProcessHook(DriverProcessHook* pProcessHook) = 0;
+};
+
+
+/****************************************************************************
+ *
  * DriverCallback
  *
  */
 
-class DriverCallback : public AbstractCallback
+class DriverCallback :
+	public AbstractCallback,
+	public ProcessHookHolder
 {
 public:
 	DriverCallback(qm::SubAccount* pSubAccount,
@@ -223,10 +242,10 @@ public:
 	virtual ~DriverCallback();
 
 public:
-	void setProcessHook(DriverProcessHook* pProcessHook);
+	virtual bool response(Response* pResponse);
 
 public:
-	virtual bool response(Response* pResponse);
+	virtual void setProcessHook(DriverProcessHook* pProcessHook);
 
 private:
 	DriverCallback(const DriverCallback&);
