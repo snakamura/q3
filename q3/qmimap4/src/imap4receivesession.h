@@ -135,9 +135,6 @@ private:
 			 ProcessHook* pHook);
 		~Hook();
 	
-	public:
-		void unhook();
-	
 	private:
 		Hook(const Hook&);
 		Hook& operator=(const Hook&);

@@ -1576,11 +1576,6 @@ Imap4ReceiveSession::Hook::Hook(Imap4ReceiveSession* pSession, ProcessHook* pHoo
 
 Imap4ReceiveSession::Hook::~Hook()
 {
-	unhook();
-}
-
-void Imap4ReceiveSession::Hook::unhook()
-{
 	pSession_->pProcessHook_ = 0;
 }
 
