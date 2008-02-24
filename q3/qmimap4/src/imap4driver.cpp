@@ -1087,11 +1087,6 @@ bool qmimap4::DriverProcessHook::processListResponse(ResponseList* pList)
 	return true;
 }
 
-bool qmimap4::DriverProcessHook::processExpungeResponse(ResponseExpunge* pExpunge)
-{
-	return true;
-}
-
 bool qmimap4::DriverProcessHook::processSearchResponse(ResponseSearch* pSearch)
 {
 	return true;
@@ -1201,7 +1196,6 @@ bool qmimap4::DriverCallback::response(Response* pResponse)
 		break; \
 	
 	BEGIN_PROCESS_RESPONSE()
-		PROCESS_RESPONSE(EXPUNGE, Expunge)
 		PROCESS_RESPONSE(FETCH, Fetch)
 		PROCESS_RESPONSE(LIST, List)
 		PROCESS_RESPONSE(SEARCH, Search)

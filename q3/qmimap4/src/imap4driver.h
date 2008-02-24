@@ -180,7 +180,6 @@ public:
 public:
 	virtual bool processFetchResponse(ResponseFetch* pFetch);
 	virtual bool processListResponse(ResponseList* pList);
-	virtual bool processExpungeResponse(ResponseExpunge* pExpunge);
 	virtual bool processSearchResponse(ResponseSearch* pSearch);
 };
 
