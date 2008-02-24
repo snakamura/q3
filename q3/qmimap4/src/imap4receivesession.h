@@ -21,6 +21,7 @@
 #include <qslog.h>
 
 #include "imap4.h"
+#include "processhook.h"
 #include "util.h"
 
 namespace qmimap4 {
@@ -31,8 +32,6 @@ class Imap4SyncFilterCallback;
 class Imap4MessageHolder;
 class MessageData;
 
-class ProcessHook;
-
 
 /****************************************************************************
  *
@@ -40,7 +39,9 @@ class ProcessHook;
  *
  */
 
-class Imap4ReceiveSession : public qm::ReceiveSession
+class Imap4ReceiveSession :
+	public qm::ReceiveSession,
+	private ProcessHookHolder
 {
 public:
 	typedef std::vector<MessageData> MessageDataList;
@@ -66,6 +67,9 @@ public:
 	virtual bool updateMessages();
 	virtual bool downloadMessages(const qm::SyncFilterSet* pSyncFilterSet);
 	virtual bool applyOfflineJobs();
+
+public:
+	virtual void setProcessHook(ProcessHook* pProcessHook);
 
 private:
 	bool downloadReservedMessages(qm::NormalFolder* pFolder);
@@ -126,21 +130,6 @@ private:
 	private:
 		Imap4ReceiveSession* pSession_;
 		qm::ReceiveSessionCallback* pSessionCallback_;
-	};
-	
-	class Hook
-	{
-	public:
-		Hook(Imap4ReceiveSession* pSession,
-			 ProcessHook* pHook);
-		~Hook();
-	
-	private:
-		Hook(const Hook&);
-		Hook& operator=(const Hook&);
-	
-	private:
-		Imap4ReceiveSession* pSession_;
 	};
 
 private:

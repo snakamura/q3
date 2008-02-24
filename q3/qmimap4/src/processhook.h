@@ -23,6 +23,8 @@ class ProcessHook;
 		class AbstractMessageProcessHook;
 		class AbstractPartialMessageProcessHook;
 		class AbstractBodyStructureProcessHook;
+class ProcessHookHolder;
+class Hook;
 
 class FetchDataBodyStructure;
 class ResponseFetch;
@@ -48,6 +50,8 @@ public:
 
 public:
 	virtual Result processFetchResponse(ResponseFetch* pFetch) = 0;
+	virtual Result processListResponse(ResponseList* pList) = 0;
+	virtual Result processSearchResponse(ResponseSearch* pSearch) = 0;
 };
 
 
@@ -65,6 +69,8 @@ public:
 
 public:
 	virtual Result processFetchResponse(ResponseFetch* pFetch);
+	virtual Result processListResponse(ResponseList* pList);
+	virtual Result processSearchResponse(ResponseSearch* pSearch);
 };
 
 
@@ -153,6 +159,44 @@ protected:
 private:
 	AbstractBodyStructureProcessHook(const AbstractBodyStructureProcessHook&);
 	AbstractBodyStructureProcessHook& operator=(const AbstractBodyStructureProcessHook&);
+};
+
+
+/****************************************************************************
+ *
+ * ProcessHookHolder
+ *
+ */
+
+class ProcessHookHolder
+{
+public:
+	virtual ~ProcessHookHolder();
+
+public:
+	virtual void setProcessHook(ProcessHook* pProcessHook) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * Hook
+ *
+ */
+
+class Hook
+{
+public:
+	Hook(ProcessHookHolder* pProcessHookHolder,
+		 ProcessHook* pProcessHook);
+	~Hook();
+
+private:
+	Hook(const Hook&);
+	Hook& operator=(const Hook&);
+
+private:
+	ProcessHookHolder* pProcessHookHolder_;
 };
 
 }

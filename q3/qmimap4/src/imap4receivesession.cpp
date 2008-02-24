@@ -224,7 +224,7 @@ bool qmimap4::Imap4ReceiveSession::updateMessages()
 	}
 	
 	if (nUidStart_ != 0) {
-		struct UpdateFlagsProcessHook : public ProcessHook
+		struct UpdateFlagsProcessHook : public DefaultProcessHook
 		{
 			typedef NormalFolder::MessageInfoList MessageInfoList;
 			
@@ -340,7 +340,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	MessageDataList listMessageData;
 	listMessageData.reserve(nExists_ - nIdStart_);
 	
-	struct GetMessageDataProcessHook : public ProcessHook
+	struct GetMessageDataProcessHook : public DefaultProcessHook
 	{
 		typedef std::vector<unsigned int> UidList;
 		typedef std::vector<FetchDataBodyStructure*> BodyStructureList;
@@ -981,6 +981,11 @@ bool qmimap4::Imap4ReceiveSession::applyOfflineJobs()
 	return true;
 }
 
+void qmimap4::Imap4ReceiveSession::setProcessHook(ProcessHook* pProcessHook)
+{
+	pProcessHook_ = pProcessHook;
+}
+
 bool qmimap4::Imap4ReceiveSession::downloadReservedMessages(NormalFolder* pFolder)
 {
 	assert(pFolder);
@@ -1559,24 +1564,6 @@ bool qmimap4::Imap4ReceiveSession::CallbackImpl::response(Response* pResponse)
 	END_PROCESS_RESPONSE()
 	
 	return true;
-}
-
-
-/****************************************************************************
- *
- * Imap4ReceiveSession::Hook
- *
- */
-
-Imap4ReceiveSession::Hook::Hook(Imap4ReceiveSession* pSession, ProcessHook* pHook) :
-	pSession_(pSession)
-{
-	pSession_->pProcessHook_ = pHook;
-}
-
-Imap4ReceiveSession::Hook::~Hook()
-{
-	pSession_->pProcessHook_ = 0;
 }
 
 

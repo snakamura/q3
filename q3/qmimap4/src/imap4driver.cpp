@@ -157,7 +157,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 	
 	FolderUtil folderUtil(pAccount_);
 	
-	struct ListProcessHook : public DriverProcessHook
+	struct ListProcessHook : public DefaultProcessHook
 	{
 		ListProcessHook(const WCHAR* pwszName,
 						const FolderUtil& folderUtil) :
@@ -169,7 +169,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 		{
 		};
 		
-		virtual bool processListResponse(ResponseList* pList)
+		virtual Result processListResponse(ResponseList* pList)
 		{
 			if (Util::isEqualFolderName(pList->getMailbox(), pwszName_, pList->getSeparator())) {
 				bFound_ = true;
@@ -178,7 +178,7 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 					pList->getSeparator(), pList->getAttributes(), &wstrName, &nFlags_);
 				cSeparator_ = pList->getSeparator();
 			}
-			return true;
+			return RESULT_PROCESSED;
 		}
 		
 		const WCHAR* pwszName_;
@@ -337,7 +337,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	if (!pImap4)
 		return false;
 	
-	struct BodyProcessHook : public DriverProcessHook
+	struct BodyProcessHook : public DefaultProcessHook
 	{
 		BodyProcessHook(unsigned int nUid,
 						bool bHeaderOnly,
@@ -351,7 +351,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		{
 		}
 		
-		virtual bool processFetchResponse(ResponseFetch* pFetch)
+		virtual Result processFetchResponse(ResponseFetch* pFetch)
 		{
 			unsigned int nUid = pFetch->getUid();
 			FetchDataBody* pBody = 0;
@@ -383,11 +383,11 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 					std::pair<const CHAR*, size_t> content(pBody->getContent().get());
 					if (!pCallback_->message(content.first, content.second,
 						bHeaderOnly_ ? Message::FLAG_HEADERONLY : Message::FLAG_NONE, true))
-						return false;
+						return RESULT_ERROR;
 				}
 			}
 			
-			return true;
+			return RESULT_PROCESSED;
 		}
 		
 		unsigned int nUid_;
@@ -397,7 +397,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		bool bProcessed_;
 	};
 	
-	struct BodyStructureProcessHook : public DriverProcessHook
+	struct BodyStructureProcessHook : public DefaultProcessHook
 	{
 		BodyStructureProcessHook(unsigned int nUid) :
 			nUid_(nUid),
@@ -410,7 +410,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 			return pBodyStructure_.get();
 		}
 		
-		virtual bool processFetchResponse(ResponseFetch* pFetch)
+		virtual Result processFetchResponse(ResponseFetch* pFetch)
 		{
 			unsigned int nUid = pFetch->getUid();
 			FetchDataBodyStructure* pBodyStructure = 0;
@@ -429,14 +429,14 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				pFetch->detach(pBodyStructure);
 			}
 			
-			return true;
+			return RESULT_PROCESSED;
 		}
 		
 		unsigned int nUid_;
 		std::auto_ptr<FetchDataBodyStructure> pBodyStructure_;
 	};
 	
-	struct BodyListProcessHook : public DriverProcessHook
+	struct BodyListProcessHook : public DefaultProcessHook
 	{
 		typedef Util::BodyList BodyList;
 		typedef Util::PartList PartList;
@@ -460,7 +460,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 		{
 		}
 		
-		virtual bool processFetchResponse(ResponseFetch* pFetch)
+		virtual Result processFetchResponse(ResponseFetch* pFetch)
 		{
 			unsigned int nUid = pFetch->getUid();
 			BodyList listBody;
@@ -504,13 +504,13 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				xstring_size_ptr strContent(Util::getContentFromBodyStructureAndBodies(
 					listPart_, listBody, (nOption_ & OPTION_TRUSTBODYSTRUCTURE) != 0));
 				if (!strContent.get())
-					return false;
+					return RESULT_ERROR;
 				if (!pCallback_->message(strContent.get(), strContent.size(),
 					bHtml_ ? Message::FLAG_HTMLONLY : Message::FLAG_TEXTONLY, true))
-					return false;
+					return RESULT_ERROR;
 			}
 			
-			return true;
+			return RESULT_PROCESSED;
 		}
 		
 		unsigned int nUid_;
@@ -726,7 +726,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 		if (!pImap4)
 			return false;
 		
-		FlagDriverProcessHook hook(pFolder);
+		FlagProcessHook hook(pFolder);
 		Hook h(cacher.getCallback(), &hook);
 		
 		std::auto_ptr<MultipleRange> pRange(Util::createRange(listUpdate));
@@ -937,7 +937,7 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 		if (!pImap4)
 			return false;
 		
-		struct SearchProcessHook : public DriverProcessHook
+		struct SearchProcessHook : public DefaultProcessHook
 		{
 			SearchProcessHook(NormalFolder* pFolder,
 							  MessageHolderList* pList) :
@@ -947,12 +947,12 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 			{
 			}
 			
-			virtual bool processSearchResponse(ResponseSearch* pSearch)
+			virtual Result processSearchResponse(ResponseSearch* pSearch)
 			{
 				assert(pFolder_->getAccount()->isLocked());
 				
 				if (!pFolder_->loadMessageHolders())
-					return false;
+					return RESULT_ERROR;
 				
 				const ResponseSearch::ResultList& l = pSearch->getResult();
 				for (ResponseSearch::ResultList::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -963,7 +963,7 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 				
 				bProcessed_ = true;
 				
-				return true;
+				return RESULT_PROCESSED;
 			}
 			
 			NormalFolder* pFolder_;
@@ -1002,7 +1002,7 @@ bool qmimap4::Imap4Driver::setFlags(Imap4* pImap4,
 	
 	Flags flags(Util::getImap4FlagsFromMessageFlags(nFlags));
 	Flags mask(Util::getImap4FlagsFromMessageFlags(nMask));
-	FlagDriverProcessHook hook(pFolder);
+	FlagProcessHook hook(pFolder);
 	Hook h(pProcessHookHolder, &hook);
 	if (!pImap4->setFlags(range, flags, mask))
 		return false;
@@ -1014,25 +1014,6 @@ bool qmimap4::Imap4Driver::setFlags(Imap4* pImap4,
 		(*it)->setFlags(nFlags, nMask);
 	
 	return true;
-}
-
-
-/****************************************************************************
- *
- * Imap4Driver::Hook
- *
- */
-
-qmimap4::Imap4Driver::Hook::Hook(ProcessHookHolder* pProcessHookHolder,
-								 DriverProcessHook* pProcessHook) :
-	pProcessHookHolder_(pProcessHookHolder)
-{
-	pProcessHookHolder_->setProcessHook(pProcessHook);
-}
-
-qmimap4::Imap4Driver::Hook::~Hook()
-{
-	pProcessHookHolder_->setProcessHook(0);
 }
 
 
@@ -1069,47 +1050,21 @@ std::auto_ptr<ProtocolDriver> qmimap4::Imap4Factory::createDriver(Account* pAcco
 
 /****************************************************************************
  *
- * DriverProcessHook
+ * FlagProcessHook
  *
  */
 
-qmimap4::DriverProcessHook::~DriverProcessHook()
-{
-}
-
-bool qmimap4::DriverProcessHook::processFetchResponse(ResponseFetch* pFetch)
-{
-	return true;
-}
-
-bool qmimap4::DriverProcessHook::processListResponse(ResponseList* pList)
-{
-	return true;
-}
-
-bool qmimap4::DriverProcessHook::processSearchResponse(ResponseSearch* pSearch)
-{
-	return true;
-}
-
-
-/****************************************************************************
- *
- * FlagDriverProcessHook
- *
- */
-
-qmimap4::FlagDriverProcessHook::FlagDriverProcessHook(NormalFolder* pFolder) :
+qmimap4::FlagProcessHook::FlagProcessHook(NormalFolder* pFolder) :
 	pFolder_(pFolder)
 {
 	assert(pFolder_);
 }
 
-qmimap4::FlagDriverProcessHook::~FlagDriverProcessHook()
+qmimap4::FlagProcessHook::~FlagProcessHook()
 {
 }
 
-bool qmimap4::FlagDriverProcessHook::processFetchResponse(ResponseFetch* pFetch)
+ProcessHook::Result qmimap4::FlagProcessHook::processFetchResponse(ResponseFetch* pFetch)
 {
 	unsigned int nUid = pFetch->getUid();
 	unsigned int nFlags = 0;
@@ -1140,18 +1095,7 @@ bool qmimap4::FlagDriverProcessHook::processFetchResponse(ResponseFetch* pFetch)
 		}
 	}
 	
-	return true;
-}
-
-
-/****************************************************************************
- *
- * ProcessHookHolder
- *
- */
-
-qmimap4::ProcessHookHolder::~ProcessHookHolder()
-{
+	return RESULT_PROCESSED;
 }
 
 
@@ -1173,7 +1117,7 @@ qmimap4::DriverCallback::~DriverCallback()
 {
 }
 
-void qmimap4::DriverCallback::setProcessHook(DriverProcessHook* pProcessHook)
+void qmimap4::DriverCallback::setProcessHook(ProcessHook* pProcessHook)
 {
 	pProcessHook_ = pProcessHook;
 }
@@ -1189,18 +1133,21 @@ bool qmimap4::DriverCallback::response(Response* pResponse)
 #define PROCESS_RESPONSE(type, name) \
 	case Response::TYPE_##type: \
 		if (pProcessHook_) { \
-			if (!pProcessHook_->process##name##Response( \
-				static_cast<Response##name*>(pResponse))) \
+			result = pProcessHook_->process##name##Response( \
+				static_cast<Response##name*>(pResponse)); \
+			if (result == ProcessHook::RESULT_ERROR) \
 				return false; \
 		} \
 		break; \
 	
+	ProcessHook::Result result = ProcessHook::RESULT_UNPROCESSED;
 	BEGIN_PROCESS_RESPONSE()
 		PROCESS_RESPONSE(FETCH, Fetch)
 		PROCESS_RESPONSE(LIST, List)
 		PROCESS_RESPONSE(SEARCH, Search)
 	END_PROCESS_RESPONSE()
-	
+	if (result == ProcessHook::RESULT_UNPROCESSED) {
+	}
 	return true;
 }
 

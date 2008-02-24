@@ -50,6 +50,18 @@ ProcessHook::Result qmimap4::DefaultProcessHook::processFetchResponse(ResponseFe
 	return RESULT_UNPROCESSED;
 }
 
+ProcessHook::Result qmimap4::DefaultProcessHook::processListResponse(ResponseList* pList)
+{
+	assert(pList);
+	return RESULT_UNPROCESSED;
+}
+
+ProcessHook::Result qmimap4::DefaultProcessHook::processSearchResponse(ResponseSearch* pSearch)
+{
+	assert(pSearch);
+	return RESULT_UNPROCESSED;
+}
+
 
 /****************************************************************************
  *
@@ -219,4 +231,34 @@ ProcessHook::Result qmimap4::AbstractBodyStructureProcessHook::processFetchRespo
 	processed();
 	
 	return bSet ? RESULT_PROCESSED : RESULT_UNPROCESSED;
+}
+
+
+/****************************************************************************
+ *
+ * ProcessHookHolder
+ *
+ */
+
+qmimap4::ProcessHookHolder::~ProcessHookHolder()
+{
+}
+
+
+/****************************************************************************
+ *
+ * Hook
+ *
+ */
+
+qmimap4::Hook::Hook(ProcessHookHolder* pProcessHookHolder,
+					ProcessHook* pProcessHook) :
+	pProcessHookHolder_(pProcessHookHolder)
+{
+	pProcessHookHolder_->setProcessHook(pProcessHook);
+}
+
+qmimap4::Hook::~Hook()
+{
+	pProcessHookHolder_->setProcessHook(0);
 }

@@ -15,16 +15,15 @@
 #include <qsthread.h>
 
 #include "imap4.h"
+#include "processhook.h"
 #include "util.h"
 
 namespace qmimap4 {
 
 class Imap4Driver;
 class Imap4Factory;
-class DriverProcessHook;
-	class FlagDriverProcessHook;
-class ProcessHookHolder;
-	class DriverCallback;
+class FlagProcessHook;
+class DriverCallback;
 class FolderUtil;
 class FolderListGetter;
 class Session;
@@ -111,22 +110,6 @@ private:
 	Imap4Driver& operator=(const Imap4Driver&);
 
 private:
-	class Hook
-	{
-	public:
-		Hook(ProcessHookHolder* pProcessHookHolder,
-			 DriverProcessHook* pProcessHook);
-		~Hook();
-	
-	private:
-		Hook(const Hook&);
-		Hook& operator=(const Hook&);
-	
-	private:
-		ProcessHookHolder* pProcessHookHolder_;
-	};
-
-private:
 	qm::Account* pAccount_;
 	std::auto_ptr<SessionCache> pSessionCache_;
 	std::auto_ptr<OfflineJobManager> pOfflineJobManager_;
@@ -168,59 +151,25 @@ private:
 
 /****************************************************************************
  *
- * DriverProcessHook
+ * FlagProcessHook
  *
  */
 
-class DriverProcessHook
+class FlagProcessHook : public DefaultProcessHook
 {
 public:
-	virtual ~DriverProcessHook();
+	FlagProcessHook(qm::NormalFolder* pFolder);
+	virtual ~FlagProcessHook();
 
 public:
-	virtual bool processFetchResponse(ResponseFetch* pFetch);
-	virtual bool processListResponse(ResponseList* pList);
-	virtual bool processSearchResponse(ResponseSearch* pSearch);
-};
-
-
-/****************************************************************************
- *
- * FlagDriverProcessHook
- *
- */
-
-class FlagDriverProcessHook : public DriverProcessHook
-{
-public:
-	FlagDriverProcessHook(qm::NormalFolder* pFolder);
-	virtual ~FlagDriverProcessHook();
-
-public:
-	virtual bool processFetchResponse(ResponseFetch* pFetch);
+	virtual Result processFetchResponse(ResponseFetch* pFetch);
 
 private:
-	FlagDriverProcessHook(const FlagDriverProcessHook&);
-	FlagDriverProcessHook& operator=(const FlagDriverProcessHook&);
+	FlagProcessHook(const FlagProcessHook&);
+	FlagProcessHook& operator=(const FlagProcessHook&);
 
 private:
 	qm::NormalFolder* pFolder_;
-};
-
-
-/****************************************************************************
- *
- * ProcessHookHolder
- *
- */
-
-class ProcessHookHolder
-{
-public:
-	virtual ~ProcessHookHolder();
-
-public:
-	virtual void setProcessHook(DriverProcessHook* pProcessHook) = 0;
 };
 
 
@@ -244,14 +193,14 @@ public:
 	virtual bool response(Response* pResponse);
 
 public:
-	virtual void setProcessHook(DriverProcessHook* pProcessHook);
+	virtual void setProcessHook(ProcessHook* pProcessHook);
 
 private:
 	DriverCallback(const DriverCallback&);
 	DriverCallback& operator=(const DriverCallback&);
 
 private:
-	DriverProcessHook* pProcessHook_;
+	ProcessHook* pProcessHook_;
 };
 
 
