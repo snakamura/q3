@@ -594,6 +594,9 @@ ViewNextMessagePageƒAƒNƒVƒ‡ƒ“‚ÅÅŒã‚Ü‚ÅƒXƒNƒ[ƒ‹‚µ‚½‚Æ‚«‚ÉŽŸ‚Ì–¢“ÇƒƒbƒZ[ƒW‚Éƒ
 V’…ƒƒbƒZ[ƒWƒŠƒXƒg‚©‚çƒƒbƒZ[ƒW‚ðŠJ‚­‚Æ‚«‚ÉƒvƒŒƒrƒ…[‚ÅŠJ‚­‚©‚Ç‚¤‚©B
 
 
++PrintCommand
+ˆóü‚·‚é‚Æ‚«‚ÉŽg—p‚·‚éƒRƒ}ƒ“ƒhBŽw’è‚·‚é‚ÆŠÖ˜A•t‚¯‚É‚æ‚éˆóü‚Ì‘ã‚í‚è‚ÉŽw’è‚µ‚½ƒRƒ}ƒ“ƒh‚É‚æ‚Á‚Äˆóü‚³‚ê‚Ü‚·BŽw’è‚µ‚½ƒRƒ}ƒ“ƒh‚ÌA%1‚ªˆóü‚·‚éƒtƒ@ƒCƒ‹‚É’u‚«Š·‚¦‚ç‚ê‚Ü‚·B
+
 +PrintExtension (html)
 ˆóü‚·‚é‚Æ‚«‚É‘‚«o‚·ƒtƒ@ƒCƒ‹‚ÌŠg’£ŽqB
 
