@@ -27,6 +27,7 @@ class DriverCallback;
 class FolderUtil;
 class FolderListGetter;
 class Session;
+class ThreadSession;
 class SessionCacheManager;
 class SessionCache;
 
@@ -89,6 +90,7 @@ public:
 
 public:
 	OfflineJobManager* getOfflineJobManager() const;
+	SessionCacheManager* getSessionCacheManager() const;
 	bool search(qm::NormalFolder* pFolder,
 				const WCHAR* pwszCondition,
 				const WCHAR* pwszCharset,
@@ -399,6 +401,28 @@ private:
 
 /****************************************************************************
  *
+ * ThreadSession
+ *
+ */
+
+class ThreadSession
+{
+public:
+	ThreadSession(Imap4* pImap4,
+				  ProcessHookHolder* pProcessHookHolder);
+
+public:
+	Imap4* getImap4() const;
+	ProcessHookHolder* getProcessHookHolder() const;
+
+private:
+	Imap4* pImap4_;
+	ProcessHookHolder* pProcessHookHolder_;
+};
+
+
+/****************************************************************************
+ *
  * SessionCacheManager
  *
  */
@@ -423,6 +447,12 @@ public:
 									  bool* pbNew);
 	void releaseSession(std::auto_ptr<Session> pSession);
 	void destroyAllSessions();
+
+public:
+	const ThreadSession* getThreadSession() const;
+	void setThreadSession(Imap4* pImap4,
+						  ProcessHookHolder* pProcessHookHolder);
+	void clearThreadSession();
 
 private:
 	std::auto_ptr<Session> getSessionWithoutSelect(qm::NormalFolder* pFolder,
@@ -450,6 +480,7 @@ private:
 	SessionList listSession_;
 	unsigned int nValidity_;
 	qs::CriticalSection cs_;
+	qs::ThreadLocal<ThreadSession*> threadSession_;
 };
 
 
@@ -487,6 +518,7 @@ private:
 	qm::NormalFolder* pFolder_;
 	std::auto_ptr<Session> pSession_;
 	bool bNew_;
+	const ThreadSession* pThreadSession_;
 };
 
 }

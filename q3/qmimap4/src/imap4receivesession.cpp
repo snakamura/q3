@@ -933,6 +933,25 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 	}
 	
 	if (!listMessageData.empty()) {
+		Imap4Driver* pDriver = static_cast<Imap4Driver*>(pAccount_->getProtocolDriver());
+		struct SessionUpdate
+		{
+			SessionUpdate(SessionCacheManager* pSessionCacheManager,
+						  Imap4* pImap4,
+						  ProcessHookHolder* pProcessHookHolder) :
+				pSessionCacheManager_(pSessionCacheManager)
+			{
+				pSessionCacheManager_->setThreadSession(pImap4, pProcessHookHolder);
+			}
+			
+			~SessionUpdate()
+			{
+				pSessionCacheManager_->clearThreadSession();
+			}
+			
+			SessionCacheManager* pSessionCacheManager_;
+		} update(pDriver->getSessionCacheManager(), pImap4_.get(), this);
+		
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
 		bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;
 		

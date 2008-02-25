@@ -918,6 +918,11 @@ OfflineJobManager* qmimap4::Imap4Driver::getOfflineJobManager() const
 	return pOfflineJobManager_.get();
 }
 
+SessionCacheManager* qmimap4::Imap4Driver::getSessionCacheManager() const
+{
+	return pSessionCacheManager_.get();
+}
+
 bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 								  const WCHAR* pwszCondition,
 								  const WCHAR* pwszCharset,
@@ -1718,6 +1723,30 @@ unsigned int qmimap4::Session::getValidity() const
 
 /****************************************************************************
  *
+ * ThreadSession
+ *
+ */
+
+qmimap4::ThreadSession::ThreadSession(Imap4* pImap4,
+									  ProcessHookHolder* pProcessHookHolder) :
+	pImap4_(pImap4),
+	pProcessHookHolder_(pProcessHookHolder)
+{
+}
+
+Imap4* qmimap4::ThreadSession::getImap4() const
+{
+	return pImap4_;
+}
+
+ProcessHookHolder* qmimap4::ThreadSession::getProcessHookHolder() const
+{
+	return pProcessHookHolder_;
+}
+
+
+/****************************************************************************
+ *
  * SessionCacheManager
  *
  */
@@ -1844,6 +1873,23 @@ void qmimap4::SessionCacheManager::destroyAllSessions()
 	++nValidity_;
 }
 
+const ThreadSession* qmimap4::SessionCacheManager::getThreadSession() const
+{
+	return threadSession_.get();
+}
+
+void qmimap4::SessionCacheManager::setThreadSession(Imap4* pImap4,
+													ProcessHookHolder* pProcessHookHolder)
+{
+	threadSession_.set(new ThreadSession(pImap4, pProcessHookHolder));
+}
+
+void qmimap4::SessionCacheManager::clearThreadSession()
+{
+	delete threadSession_.get();
+	threadSession_.set(0);
+}
+
 std::auto_ptr<Session> qmimap4::SessionCacheManager::getSessionWithoutSelect(NormalFolder* pFolder,
 																			 bool* pbNew)
 {
@@ -1933,7 +1979,8 @@ qmimap4::SessionCache::SessionCache(SessionCacheManager* pSessionCacheManager,
 									NormalFolder* pFolder) :
 	pSessionCacheManager_(pSessionCacheManager),
 	pFolder_(pFolder),
-	bNew_(true)
+	bNew_(true),
+	pThreadSession_(0)
 {
 	init();
 	create();
@@ -1946,12 +1993,22 @@ qmimap4::SessionCache::~SessionCache()
 
 Imap4* qmimap4::SessionCache::get() const
 {
-	return pSession_.get() ? pSession_->getImap4() : 0;
+	if (pThreadSession_)
+		return pThreadSession_->getImap4();
+	else if (pSession_.get())
+		return pSession_->getImap4();
+	else
+		return 0;
 }
 
 ProcessHookHolder* qmimap4::SessionCache::getProcessHookHolder() const
 {
-	return pSession_.get() ? pSession_->getCallback() : 0;
+	if (pThreadSession_)
+		return pThreadSession_->getProcessHookHolder();
+	else if (pSession_.get())
+		return pSession_->getCallback();
+	else
+		return 0;
 }
 
 bool qmimap4::SessionCache::isNew() const
@@ -1961,7 +2018,9 @@ bool qmimap4::SessionCache::isNew() const
 
 void qmimap4::SessionCache::release()
 {
-	if (pSession_.get())
+	if (pThreadSession_)
+		pThreadSession_ = 0;
+	else if (pSession_.get())
 		pSessionCacheManager_->releaseSession(pSession_);
 }
 
@@ -1979,12 +2038,17 @@ void qmimap4::SessionCache::init()
 
 bool qmimap4::SessionCache::create()
 {
-	pSession_ = pSessionCacheManager_->getSession(pFolder_, &bNew_);
-	return pSession_.get() != 0;
+	pThreadSession_ = pSessionCacheManager_->getThreadSession();
+	if (pThreadSession_)
+		bNew_ = true;
+	else
+		pSession_ = pSessionCacheManager_->getSession(pFolder_, &bNew_);
+	return pThreadSession_ || pSession_.get();
 }
 
 void qmimap4::SessionCache::destroy()
 {
+	pThreadSession_ = 0;
 	pSession_.reset(0);
 	init();
 }
