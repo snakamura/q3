@@ -294,7 +294,7 @@ public:
 	~DeleteList();
 
 public:
-	const List getList() const;
+	const List& getList() const;
 	void add(size_t n);
 	void add(size_t n,
 			 const qm::MessagePtr& ptr);

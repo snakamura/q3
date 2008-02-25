@@ -304,8 +304,7 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					MessageHolder* pmh = pFolder->getMessage(n);
 					if (pmh->isFlag(MessageHolder::FLAG_DELETED)) {
 						Message msg;
-						if (!pmh->getMessage(Account::GMF_HEADER,
-							0, SECURITYMODE_NONE, &msg))
+						if (!pmh->getMessage(Account::GMF_HEADER, 0, SECURITYMODE_NONE, &msg))
 							return false;
 						
 						if (isSameIdentity(msg, pSubAccount_)) {
@@ -348,6 +347,12 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		}
 	}
 	
+	if (!pAccount_->saveMessages(false)) {
+		Util::reportError(0, pSessionCallback_, pAccount_,
+			pSubAccount_, pFolder_, POP3ERROR_SAVE, 0, 0);
+		return false;
+	}
+	
 	UIDList::IndexList listDeleteUIDIndex;
 	const DeleteList::List& l = listDelete.getList();
 	if (!l.empty()) {
@@ -382,12 +387,6 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 				}
 			}
 		}
-	}
-	
-	if (!pAccount_->saveMessages(false)) {
-		Util::reportError(0, pSessionCallback_, pAccount_,
-			pSubAccount_, pFolder_, POP3ERROR_SAVE, 0, 0);
-		return false;
 	}
 	
 	log.debug(L"Disconnecting from the server...");
@@ -1044,7 +1043,7 @@ qmpop3::DeleteList::~DeleteList()
 {
 }
 
-const DeleteList::List qmpop3::DeleteList::getList() const
+const DeleteList::List& qmpop3::DeleteList::getList() const
 {
 	return list_;
 }
