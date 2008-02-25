@@ -38,13 +38,13 @@ using namespace qs;
 	for (int n = 0; ; ++n) { \
 		if (action) \
 			break; \
-		if (cacher.isNew() || \
+		if (cache.isNew() || \
 			!(pImap4->getLastError() & Socket::SOCKET_ERROR_MASK_SOCKET) || \
 			condition) \
 			return value; \
-		if (!cacher.retry()) \
+		if (!cache.retry()) \
 			return value; \
-		pImap4 = cacher.get(); \
+		pImap4 = cache.get(); \
 	} \
 
 
@@ -69,7 +69,8 @@ qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
 	pAccount_(pAccount),
 	nOption_(0)
 {
-	pSessionCache_.reset(new SessionCache(pAccount, pPasswordCallback, pSecurity));
+	pSessionCacheManager_.reset(new SessionCacheManager(
+		pAccount, pPasswordCallback, pSecurity));
 	pOfflineJobManager_.reset(new OfflineJobManager(pAccount_->getPath()));
 }
 
@@ -91,12 +92,12 @@ bool qmimap4::Imap4Driver::isSupport(Account::Support support)
 
 void qmimap4::Imap4Driver::setOffline(bool bOffline)
 {
-	pSessionCache_->setOffline(bOffline);
+	pSessionCacheManager_->setOffline(bOffline);
 }
 
 void qmimap4::Imap4Driver::setSubAccount(SubAccount* pSubAccount)
 {
-	pSessionCache_->setSubAccount(pSubAccount);
+	pSessionCacheManager_->setSubAccount(pSubAccount);
 	nOption_ = pSubAccount->getPropertyInt(L"Imap4", L"Option");
 }
 
@@ -111,8 +112,8 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 	if (!prepareSessionCache(false))
 		return std::auto_ptr<NormalFolder>(0);
 	
-	SessionCacher cacher(pSessionCache_.get(), 0);
-	Imap4* pImap4 = cacher.get();
+	SessionCache cache(pSessionCacheManager_.get(), 0);
+	Imap4* pImap4 = cache.get();
 	if (!pImap4)
 		return std::auto_ptr<NormalFolder>(0);
 	
@@ -188,13 +189,13 @@ std::auto_ptr<NormalFolder> qmimap4::Imap4Driver::createFolder(const WCHAR* pwsz
 		bool bFound_;
 	} hook(wstrFullName.get(), folderUtil);
 	
-	Hook h(cacher.getProcessHookHolder(), &hook);
+	Hook h(cache.getProcessHookHolder(), &hook);
 	if (!pImap4->list(false, L"", wstrFullName.get()))
 		return std::auto_ptr<NormalFolder>(0);
 	if (!hook.bFound_)
 		return std::auto_ptr<NormalFolder>(0);
 	
-	cacher.release();
+	cache.release();
 	
 	return std::auto_ptr<NormalFolder>(new NormalFolder(
 		pAccount_->generateFolderId(), pwszName, hook.cSeparator_,
@@ -208,8 +209,8 @@ bool qmimap4::Imap4Driver::removeFolder(NormalFolder* pFolder)
 	if (!prepareSessionCache(true))
 		return false;
 	
-	SessionCacher cacher(pSessionCache_.get(), 0);
-	Imap4* pImap4 = cacher.get();
+	SessionCache cache(pSessionCacheManager_.get(), 0);
+	Imap4* pImap4 = cache.get();
 	if (!pImap4)
 		return 0;
 	
@@ -217,7 +218,7 @@ bool qmimap4::Imap4Driver::removeFolder(NormalFolder* pFolder)
 	
 	RETRY(pImap4->remove(wstrName.get()));
 	
-	cacher.release();
+	cache.release();
 	
 	return true;
 }
@@ -231,8 +232,8 @@ bool qmimap4::Imap4Driver::renameFolder(NormalFolder* pFolder,
 	if (!prepareSessionCache(true))
 		return false;
 	
-	SessionCacher cacher(pSessionCache_.get(), 0);
-	Imap4* pImap4 = cacher.get();
+	SessionCache cache(pSessionCacheManager_.get(), 0);
+	Imap4* pImap4 = cache.get();
 	if (!pImap4)
 		return 0;
 	
@@ -246,7 +247,7 @@ bool qmimap4::Imap4Driver::renameFolder(NormalFolder* pFolder,
 	
 	RETRY(pImap4->rename(wstrOldName.get(), wstrNewName.get()));
 	
-	cacher.release();
+	cache.release();
 	
 	return true;
 }
@@ -263,8 +264,8 @@ bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
 	if (!prepareSessionCache(true))
 		return false;
 	
-	SessionCacher cacher(pSessionCache_.get(), 0);
-	Imap4* pImap4 = cacher.get();
+	SessionCache cache(pSessionCacheManager_.get(), 0);
+	Imap4* pImap4 = cache.get();
 	if (!pImap4)
 		return 0;
 	
@@ -289,7 +290,7 @@ bool qmimap4::Imap4Driver::moveFolder(NormalFolder* pFolder,
 	
 	RETRY(pImap4->rename(wstrOldName.get(), wstrNewName.get()));
 	
-	cacher.release();
+	cache.release();
 	
 	return true;
 }
@@ -298,8 +299,8 @@ bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 {
 	assert(pList);
 	
-	FolderListGetter getter(pAccount_, pSessionCache_->getSubAccount(),
-		pSessionCache_->getPasswordCallback(), pSessionCache_->getSecurity());
+	FolderListGetter getter(pAccount_, pSessionCacheManager_->getSubAccount(),
+		pSessionCacheManager_->getPasswordCallback(), pSessionCacheManager_->getSecurity());
 	if (!getter.update())
 		return false;
 	getter.getFolders(pList);
@@ -326,14 +327,14 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	assert(!pmh->getFolder()->isFlag(Folder::FLAG_LOCAL));
 	assert(!pmh->isFlag(MessageHolder::FLAG_LOCAL));
 	
-	if (pSessionCache_->isOffline())
+	if (pSessionCacheManager_->isOffline())
 		return true;
 	
 	if (!prepareSessionCache(false))
 		return false;
 	
-	SessionCacher cacher(pSessionCache_.get(), pmh->getFolder());
-	Imap4* pImap4 = cacher.get();
+	SessionCache cache(pSessionCacheManager_.get(), pmh->getFolder());
+	Imap4* pImap4 = cache.get();
 	if (!pImap4)
 		return false;
 	
@@ -549,7 +550,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	
 	if (bBodyStructure) {
 		BodyStructureProcessHook hook(pmh->getId());
-		Hook h(cacher.getProcessHookHolder(), &hook);
+		Hook h(cache.getProcessHookHolder(), &hook);
 		RETRY_COND(pImap4->getBodyStructure(range), hook.getBodyStructure());
 		FetchDataBodyStructure* pBodyStructure = hook.getBodyStructure();
 		if (pBodyStructure) {
@@ -570,7 +571,7 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 				
 				BodyListProcessHook hook(pmh->getId(), pBodyStructure,
 					listPart, nPartCount, bHtml, pmh, nOption_, pCallback);
-				Hook h(cacher.getProcessHookHolder(), &hook);
+				Hook h(cache.getProcessHookHolder(), &hook);
 				
 				if (!pImap4->fetch(range, strArg.get()))
 					return false;
@@ -580,17 +581,17 @@ bool qmimap4::Imap4Driver::getMessage(MessageHolder* pmh,
 	else {
 		if (bHeaderOnly) {
 			BodyProcessHook hook(pmh->getId(), true, pmh, pCallback);
-			Hook h(cacher.getProcessHookHolder(), &hook);
+			Hook h(cache.getProcessHookHolder(), &hook);
 			RETRY_COND(pImap4->getHeader(range, (nFlags & Account::GMF_MAKESEEN) == 0), hook.bProcessed_);
 		}
 		else {
 			BodyProcessHook hook(pmh->getId(), false, pmh, pCallback);
-			Hook h(cacher.getProcessHookHolder(), &hook);
+			Hook h(cache.getProcessHookHolder(), &hook);
 			RETRY_COND(pImap4->getMessage(range, (nFlags & Account::GMF_MAKESEEN) == 0), hook.bProcessed_);
 		}
 	}
 	
-	cacher.release();
+	cache.release();
 	
 	return true;
 }
@@ -621,7 +622,7 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 	if (listUpdate.empty())
 		return true;
 	
-	if (pSessionCache_->isOffline()) {
+	if (pSessionCacheManager_->isOffline()) {
 		Util::UidList listUid;
 		Util::createUidList(listUpdate, &listUid);
 		
@@ -641,15 +642,15 @@ bool qmimap4::Imap4Driver::setMessagesFlags(NormalFolder* pFolder,
 		if (!prepareSessionCache(false))
 			return false;
 		
-		SessionCacher cacher(pSessionCache_.get(), pFolder);
-		Imap4* pImap4 = cacher.get();
+		SessionCache cache(pSessionCacheManager_.get(), pFolder);
+		Imap4* pImap4 = cache.get();
 		if (!pImap4)
 			return false;
 		
-		RETRY(setFlags(pImap4, cacher.getProcessHookHolder(),
+		RETRY(setFlags(pImap4, cache.getProcessHookHolder(),
 			*pRange, pFolder, listUpdate, nFlags, nMask));
 		
-		cacher.release();
+		cache.release();
 	}
 	
 	return true;
@@ -705,7 +706,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 		}
 	}
 	
-	if (pSessionCache_->isOffline()) {
+	if (pSessionCacheManager_->isOffline()) {
 		Util::UidList listUid;
 		Util::createUidList(l, &listUid);
 		
@@ -721,13 +722,13 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 		if (!prepareSessionCache(false))
 			return false;
 		
-		SessionCacher cacher(pSessionCache_.get(), pFolder);
-		Imap4* pImap4 = cacher.get();
+		SessionCache cache(pSessionCacheManager_.get(), pFolder);
+		Imap4* pImap4 = cache.get();
 		if (!pImap4)
 			return false;
 		
 		FlagProcessHook hook(pFolder);
-		Hook h(cacher.getProcessHookHolder(), &hook);
+		Hook h(cache.getProcessHookHolder(), &hook);
 		
 		std::auto_ptr<MultipleRange> pRange(Util::createRange(listUpdate));
 		std::auto_ptr<Flags> pFlags(Util::getImap4FlagsFromLabels(
@@ -740,7 +741,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 			return false;
 		RETRY(pImap4->setFlags(*pRange, *pFlags, *pMask));
 		
-		cacher.release();
+		cache.release();
 	}
 	for (MessageHolderList::const_iterator it = listUpdate.begin(); it != listUpdate.end(); ++it)
 		(*it)->setLabel(pwszLabel);
@@ -759,7 +760,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 	assert(pAccount_->isLocked());
 	assert(pszMessage);
 	
-	if (pSessionCache_->isOffline()) {
+	if (pSessionCacheManager_->isOffline()) {
 		MessageHolder* pmh = pAccount_->storeMessage(pFolder,
 			pszMessage, nLen, 0, -1, nFlags | MessageHolder::FLAG_LOCAL,
 			pwszLabel, -1, Account::STOREFLAG_NONE, 0);
@@ -775,8 +776,8 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 		if (!prepareSessionCache(false))
 			return false;
 		
-		SessionCacher cacher(pSessionCache_.get(), 0);
-		Imap4* pImap4 = cacher.get();
+		SessionCache cache(pSessionCacheManager_.get(), 0);
+		Imap4* pImap4 = cache.get();
 		if (!pImap4)
 			return false;
 		
@@ -788,7 +789,7 @@ bool qmimap4::Imap4Driver::appendMessage(NormalFolder* pFolder,
 			return false;
 		RETRY(pImap4->append(wstrFolderName.get(), pszMessage, nLen, *pFlags));
 		
-		cacher.release();
+		cache.release();
 	}
 	
 	return true;
@@ -840,7 +841,7 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 	if (listUpdate.empty())
 		return true;
 	
-	if (pSessionCache_->isOffline()) {
+	if (pSessionCacheManager_->isOffline()) {
 		CopyOfflineJob::ItemList listItemTo;
 		listItemTo.reserve(listUpdate.size());
 		
@@ -877,8 +878,8 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 		if (!prepareSessionCache(false))
 			return false;
 		
-		SessionCacher cacher(pSessionCache_.get(), pFolderFrom);
-		Imap4* pImap4 = cacher.get();
+		SessionCache cache(pSessionCacheManager_.get(), pFolderFrom);
+		Imap4* pImap4 = cache.get();
 		if (!pImap4)
 			return false;
 		
@@ -886,12 +887,12 @@ bool qmimap4::Imap4Driver::copyMessages(const MessageHolderList& l,
 		RETRY(pImap4->copy(*pRange, wstrFolderName.get()));
 		
 		if (bMove) {
-			if (!setFlags(pImap4, cacher.getProcessHookHolder(), *pRange, pFolderFrom,
+			if (!setFlags(pImap4, cache.getProcessHookHolder(), *pRange, pFolderFrom,
 				listUpdate, MessageHolder::FLAG_DELETED, MessageHolder::FLAG_DELETED))
 				return false;
 		}
 		
-		cacher.release();
+		cache.release();
 	}
 	
 	return true;
@@ -902,14 +903,14 @@ bool qmimap4::Imap4Driver::prepareFolder(NormalFolder* pFolder)
 	assert(pFolder);
 	assert(!pFolder->isFlag(Folder::FLAG_LOCAL));
 	
-	if (pSessionCache_->isOffline())
+	if (pSessionCacheManager_->isOffline())
 		return true;
 	
 	if (!prepareSessionCache(false))
 		return false;
 	
-	SessionCacher cacher(pSessionCache_.get(), pFolder);
-	return cacher.get() != 0;
+	SessionCache cache(pSessionCacheManager_.get(), pFolder);
+	return cache.get() != 0;
 }
 
 OfflineJobManager* qmimap4::Imap4Driver::getOfflineJobManager() const
@@ -928,12 +929,12 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 	assert(pwszCondition);
 	assert(pList);
 	
-	if (!pSessionCache_->isOffline()) {
+	if (!pSessionCacheManager_->isOffline()) {
 		if (!prepareSessionCache(false))
 			return false;
 		
-		SessionCacher cacher(pSessionCache_.get(), pFolder);
-		Imap4* pImap4 = cacher.get();
+		SessionCache cache(pSessionCacheManager_.get(), pFolder);
+		Imap4* pImap4 = cache.get();
 		if (!pImap4)
 			return false;
 		
@@ -971,10 +972,10 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 			bool bProcessed_;
 		} hook(pFolder, pList);
 		
-		Hook h(cacher.getProcessHookHolder(), &hook);
+		Hook h(cache.getProcessHookHolder(), &hook);
 		RETRY_COND(pImap4->search(pwszCondition, pwszCharset, bUseCharset, true), hook.bProcessed_);
 		
-		cacher.release();
+		cache.release();
 	}
 	
 	return true;
@@ -983,7 +984,7 @@ bool qmimap4::Imap4Driver::search(NormalFolder* pFolder,
 bool qmimap4::Imap4Driver::prepareSessionCache(bool bClear)
 {
 	if (bClear)
-		pSessionCache_->destroyAllSessions();
+		pSessionCacheManager_->destroyAllSessions();
 	return true;
 }
 
@@ -1659,14 +1660,14 @@ qmimap4::Session::Session(NormalFolder* pFolder,
 						  std::auto_ptr<DriverCallback> pCallback,
 						  std::auto_ptr<Imap4> pImap4,
 						  unsigned int nLastSelectedTime,
-						  unsigned int nId) :
+						  unsigned int nValidity) :
 	pFolder_(pFolder),
 	pLogger_(pLogger),
 	pCallback_(pCallback),
 	pImap4_(pImap4),
 	nLastUsedTime_(0),
 	nLastSelectedTime_(nLastSelectedTime),
-	nId_(nId)
+	nValidity_(nValidity)
 {
 }
 
@@ -1709,21 +1710,21 @@ void qmimap4::Session::setLastSelectedTime(unsigned int nLastSelectedTime)
 	nLastSelectedTime_ = nLastSelectedTime;
 }
 
-unsigned int qmimap4::Session::getId() const
+unsigned int qmimap4::Session::getValidity() const
 {
-	return nId_;
+	return nValidity_;
 }
 
 
 /****************************************************************************
  *
- * SessionCache
+ * SessionCacheManager
  *
  */
 
-qmimap4::SessionCache::SessionCache(Account* pAccount,
-									PasswordCallback* pPasswordCallback,
-									const Security* pSecurity) :
+qmimap4::SessionCacheManager::SessionCacheManager(Account* pAccount,
+												  PasswordCallback* pPasswordCallback,
+												  const Security* pSecurity) :
 	pAccount_(pAccount),
 	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity),
@@ -1732,36 +1733,36 @@ qmimap4::SessionCache::SessionCache(Account* pAccount,
 	nMaxSession_(5),
 	bReselect_(true),
 	nForceDisconnect_(0),
-	nSessionId_(0)
+	nValidity_(0)
 {
 }
 
-qmimap4::SessionCache::~SessionCache()
+qmimap4::SessionCacheManager::~SessionCacheManager()
 {
 	destroyAllSessions();
 }
 
-Account* qmimap4::SessionCache::getAccount() const
+Account* qmimap4::SessionCacheManager::getAccount() const
 {
 	return pAccount_;
 }
 
-PasswordCallback* qmimap4::SessionCache::getPasswordCallback() const
+PasswordCallback* qmimap4::SessionCacheManager::getPasswordCallback() const
 {
 	return pPasswordCallback_;
 }
 
-const Security* qmimap4::SessionCache::getSecurity() const
+const Security* qmimap4::SessionCacheManager::getSecurity() const
 {
 	return pSecurity_;
 }
 
-bool qmimap4::SessionCache::isOffline() const
+bool qmimap4::SessionCacheManager::isOffline() const
 {
 	return bOffline_;
 }
 
-void qmimap4::SessionCache::setOffline(bool bOffline)
+void qmimap4::SessionCacheManager::setOffline(bool bOffline)
 {
 	if (bOffline != bOffline_) {
 		destroyAllSessions();
@@ -1769,12 +1770,12 @@ void qmimap4::SessionCache::setOffline(bool bOffline)
 	}
 }
 
-SubAccount* qmimap4::SessionCache::getSubAccount() const
+SubAccount* qmimap4::SessionCacheManager::getSubAccount() const
 {
 	return pSubAccount_;
 }
 
-void qmimap4::SessionCache::setSubAccount(SubAccount* pSubAccount)
+void qmimap4::SessionCacheManager::setSubAccount(SubAccount* pSubAccount)
 {
 	if (pSubAccount != pSubAccount_) {
 		destroyAllSessions();
@@ -1787,8 +1788,8 @@ void qmimap4::SessionCache::setSubAccount(SubAccount* pSubAccount)
 	}
 }
 
-std::auto_ptr<Session> qmimap4::SessionCache::getSession(NormalFolder* pFolder,
-														 bool* pbNew)
+std::auto_ptr<Session> qmimap4::SessionCacheManager::getSession(NormalFolder* pFolder,
+																bool* pbNew)
 {
 	assert(pbNew);
 	
@@ -1815,20 +1816,20 @@ std::auto_ptr<Session> qmimap4::SessionCache::getSession(NormalFolder* pFolder,
 	}
 }
 
-void qmimap4::SessionCache::releaseSession(std::auto_ptr<Session> pSession)
+void qmimap4::SessionCacheManager::releaseSession(std::auto_ptr<Session> pSession)
 {
 	assert(pSession.get());
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (pSession->getId() == nSessionId_) {
+	if (pSession->getValidity() == nValidity_) {
 		assert(listSession_.size() < nMaxSession_);
 		pSession->setLastUsedTime(::GetTickCount());
 		listSession_.push_back(pSession.release());
 	}
 }
 
-void qmimap4::SessionCache::destroyAllSessions()
+void qmimap4::SessionCacheManager::destroyAllSessions()
 {
 	Lock<CriticalSection> lock(cs_);
 	
@@ -1840,11 +1841,11 @@ void qmimap4::SessionCache::destroyAllSessions()
 	}
 	listSession_.clear();
 	
-	++nSessionId_;
+	++nValidity_;
 }
 
-std::auto_ptr<Session> qmimap4::SessionCache::getSessionWithoutSelect(NormalFolder* pFolder,
-																	  bool* pbNew)
+std::auto_ptr<Session> qmimap4::SessionCacheManager::getSessionWithoutSelect(NormalFolder* pFolder,
+																			 bool* pbNew)
 {
 	assert(pbNew);
 	
@@ -1895,15 +1896,15 @@ std::auto_ptr<Session> qmimap4::SessionCache::getSessionWithoutSelect(NormalFold
 			pSubAccount_->getPort(Account::HOST_RECEIVE), secure))
 			return std::auto_ptr<Session>();
 		
-		pSession.reset(new Session(pFolder, pLogger, pCallback, pImap4, 0, nSessionId_));
+		pSession.reset(new Session(pFolder, pLogger, pCallback, pImap4, 0, nValidity_));
 		*pbNew = true;
 	}
 	
 	return pSession;
 }
 
-bool qmimap4::SessionCache::isNeedSelect(NormalFolder* pFolder,
-										 unsigned int nLastSelectedTime)
+bool qmimap4::SessionCacheManager::isNeedSelect(NormalFolder* pFolder,
+												unsigned int nLastSelectedTime)
 {
 	if (bReselect_) {
 		// TODO
@@ -1916,7 +1917,7 @@ bool qmimap4::SessionCache::isNeedSelect(NormalFolder* pFolder,
 	}
 }
 
-bool qmimap4::SessionCache::isForceDisconnect(unsigned int nLastUsedTime) const
+bool qmimap4::SessionCacheManager::isForceDisconnect(unsigned int nLastUsedTime) const
 {
 	return nForceDisconnect_ != 0 && nLastUsedTime + nForceDisconnect_*1000 < ::GetTickCount();
 }
@@ -1924,13 +1925,13 @@ bool qmimap4::SessionCache::isForceDisconnect(unsigned int nLastUsedTime) const
 
 /****************************************************************************
  *
- * SessionCacher
+ * SessionCache
  *
  */
 
-qmimap4::SessionCacher::SessionCacher(SessionCache* pCache,
-									  NormalFolder* pFolder) :
-	pCache_(pCache),
+qmimap4::SessionCache::SessionCache(SessionCacheManager* pSessionCacheManager,
+									NormalFolder* pFolder) :
+	pSessionCacheManager_(pSessionCacheManager),
 	pFolder_(pFolder),
 	bNew_(true)
 {
@@ -1938,51 +1939,51 @@ qmimap4::SessionCacher::SessionCacher(SessionCache* pCache,
 	create();
 }
 
-qmimap4::SessionCacher::~SessionCacher()
+qmimap4::SessionCache::~SessionCache()
 {
 	destroy();
 }
 
-Imap4* qmimap4::SessionCacher::get() const
+Imap4* qmimap4::SessionCache::get() const
 {
 	return pSession_.get() ? pSession_->getImap4() : 0;
 }
 
-ProcessHookHolder* qmimap4::SessionCacher::getProcessHookHolder() const
+ProcessHookHolder* qmimap4::SessionCache::getProcessHookHolder() const
 {
 	return pSession_.get() ? pSession_->getCallback() : 0;
 }
 
-bool qmimap4::SessionCacher::isNew() const
+bool qmimap4::SessionCache::isNew() const
 {
 	return bNew_;
 }
 
-void qmimap4::SessionCacher::release()
+void qmimap4::SessionCache::release()
 {
 	if (pSession_.get())
-		pCache_->releaseSession(pSession_);
+		pSessionCacheManager_->releaseSession(pSession_);
 }
 
-bool qmimap4::SessionCacher::retry()
+bool qmimap4::SessionCache::retry()
 {
 	destroy();
 	return create();
 }
 
-void qmimap4::SessionCacher::init()
+void qmimap4::SessionCache::init()
 {
 	assert(!pSession_.get());
 	bNew_ = true;
 }
 
-bool qmimap4::SessionCacher::create()
+bool qmimap4::SessionCache::create()
 {
-	pSession_ = pCache_->getSession(pFolder_, &bNew_);
+	pSession_ = pSessionCacheManager_->getSession(pFolder_, &bNew_);
 	return pSession_.get() != 0;
 }
 
-void qmimap4::SessionCacher::destroy()
+void qmimap4::SessionCache::destroy()
 {
 	pSession_.reset(0);
 	init();

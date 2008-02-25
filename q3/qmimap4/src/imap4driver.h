@@ -27,8 +27,8 @@ class DriverCallback;
 class FolderUtil;
 class FolderListGetter;
 class Session;
+class SessionCacheManager;
 class SessionCache;
-class SessionCacher;
 
 class OfflineJobManager;
 
@@ -111,7 +111,7 @@ private:
 
 private:
 	qm::Account* pAccount_;
-	std::auto_ptr<SessionCache> pSessionCache_;
+	std::auto_ptr<SessionCacheManager> pSessionCacheManager_;
 	std::auto_ptr<OfflineJobManager> pOfflineJobManager_;
 	unsigned int nOption_;
 
@@ -369,7 +369,7 @@ public:
 			std::auto_ptr<DriverCallback> pCallback,
 			std::auto_ptr<Imap4> pImap4,
 			unsigned int nLastSelectedTime,
-			unsigned int nId);
+			unsigned int nValidity);
 	~Session();
 
 public:
@@ -380,7 +380,7 @@ public:
 	void setLastUsedTime(unsigned int nLastUsedTime);
 	unsigned int getLastSelectedTime() const;
 	void setLastSelectedTime(unsigned int nLastSelectedTime);
-	unsigned int getId() const;
+	unsigned int getValidity() const;
 
 private:
 	Session(const Session&);
@@ -393,23 +393,23 @@ private:
 	std::auto_ptr<Imap4> pImap4_;
 	unsigned int nLastUsedTime_;
 	unsigned int nLastSelectedTime_;
-	unsigned int nId_;
+	unsigned int nValidity_;
 };
 
 
 /****************************************************************************
  *
- * SessionCache
+ * SessionCacheManager
  *
  */
 
-class SessionCache
+class SessionCacheManager
 {
 public:
-	SessionCache(qm::Account* pAccount,
-				 qm::PasswordCallback* pPasswordCallback,
-				 const qm::Security* pSecurity);
-	~SessionCache();
+	SessionCacheManager(qm::Account* pAccount,
+						qm::PasswordCallback* pPasswordCallback,
+						const qm::Security* pSecurity);
+	~SessionCacheManager();
 
 public:
 	qm::Account* getAccount() const;
@@ -432,8 +432,8 @@ private:
 	bool isForceDisconnect(unsigned int nLastUsedTime) const;
 
 private:
-	SessionCache(const SessionCache&);
-	SessionCache& operator=(const SessionCache&);
+	SessionCacheManager(const SessionCacheManager&);
+	SessionCacheManager& operator=(const SessionCacheManager&);
 
 private:
 	typedef std::vector<Session*> SessionList;
@@ -448,23 +448,23 @@ private:
 	bool bReselect_;
 	unsigned int nForceDisconnect_;
 	SessionList listSession_;
-	unsigned int nSessionId_;
+	unsigned int nValidity_;
 	qs::CriticalSection cs_;
 };
 
 
 /****************************************************************************
  *
- * SessionCacher
+ * SessionCache
  *
  */
 
-class SessionCacher
+class SessionCache
 {
 public:
-	SessionCacher(SessionCache* pCache,
-				  qm::NormalFolder* pFolder);
-	~SessionCacher();
+	SessionCache(SessionCacheManager* pSessionCacheManager,
+				 qm::NormalFolder* pFolder);
+	~SessionCache();
 
 public:
 	Imap4* get() const;
@@ -479,11 +479,11 @@ private:
 	void destroy();
 
 private:
-	SessionCacher(const SessionCacher&);
-	SessionCacher& operator=(const SessionCacher&);
+	SessionCache(const SessionCache&);
+	SessionCache& operator=(const SessionCache&);
 
 private:
-	SessionCache* pCache_;
+	SessionCacheManager* pSessionCacheManager_;
 	qm::NormalFolder* pFolder_;
 	std::auto_ptr<Session> pSession_;
 	bool bNew_;
