@@ -35,9 +35,9 @@ T qs::ThreadLocal<T>::get() const
 }
 
 template<class T>
-void qs::ThreadLocal<T>::set(const T& pValue)
+void qs::ThreadLocal<T>::set(const T& value)
 {
-	::TlsSetValue(dwTls_, pValue);
+	::TlsSetValue(dwTls_, value);
 }
 
 

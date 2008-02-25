@@ -124,7 +124,7 @@ public:
 
 public:
 	T get() const;
-	void set(const T& pValue);
+	void set(const T& value);
 
 private:
 	ThreadLocal(const ThreadLocal&);
