@@ -30,6 +30,8 @@
 #include <algorithm>
 
 #include <boost/bind.hpp>
+#include <boost/lambda/construct.hpp>
+#include <boost/lambda/if.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
 
@@ -1707,10 +1709,11 @@ bool qm::Account::updateFolders()
 	if (!pImpl_->pProtocolDriver_->getRemoteFolders(&l))
 		return false;
 	
-	CONTAINER_DELETER_DP(deleter, l,
-		boost::bind(boost::checked_deleter<Folder>(),
-			boost::bind(std::select1st<List::value_type>(), _1)),
-		std::select2nd<List::value_type>());
+	using namespace boost::lambda;
+	using boost::lambda::_1;
+	CONTAINER_DELETER_D(deleter, l,
+		if_(bind(&List::value_type::second, _1))[
+			bind(delete_ptr(), bind(&List::value_type::first, _1))]);
 	
 	pImpl_->listFolder_.reserve(pImpl_->listFolder_.size() + l.size());
 	for (List::const_iterator itR = l.begin(); itR != l.end(); ++itR) {
