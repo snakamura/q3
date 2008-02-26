@@ -46,7 +46,6 @@ using namespace qs;
 	} while (false) \
 
 
-
 /****************************************************************************
  *
  * Imap4ReceiveSession
@@ -938,10 +937,12 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 		{
 			SessionUpdate(SessionCacheManager* pSessionCacheManager,
 						  Imap4* pImap4,
-						  ProcessHookHolder* pProcessHookHolder) :
+						  ProcessHookHolder* pProcessHookHolder,
+						  DefaultSocketCallback* pSocketCallback) :
 				pSessionCacheManager_(pSessionCacheManager)
 			{
-				pSessionCacheManager_->setThreadSession(pImap4, pProcessHookHolder);
+				pSessionCacheManager_->setThreadSession(pImap4,
+					pProcessHookHolder, pSocketCallback);
 			}
 			
 			~SessionUpdate()
@@ -950,7 +951,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			}
 			
 			SessionCacheManager* pSessionCacheManager_;
-		} update(pDriver->getSessionCacheManager(), pImap4_.get(), this);
+		} update(pDriver->getSessionCacheManager(), pImap4_.get(), this, pCallback_.get());
 		
 		bool bJunkFilter = pSubAccount_->isJunkFilterEnabled();
 		bool bApplyRules = (pSubAccount_->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_NEW) != 0;

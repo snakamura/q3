@@ -100,10 +100,8 @@ public:
 
 private:
 	bool prepareSessionCache(bool bClear);
-	bool setFlags(Imap4* pImap4,
-				  ProcessHookHolder* pProcessHookHolder,
+	bool setFlags(SessionCache& cahce,
 				  const Range& range,
-				  qm::NormalFolder* pFolder,
 				  const qm::MessageHolderList& l,
 				  unsigned int nFlags,
 				  unsigned int nMask);
@@ -411,15 +409,18 @@ class ThreadSession
 {
 public:
 	ThreadSession(Imap4* pImap4,
-				  ProcessHookHolder* pProcessHookHolder);
+				  ProcessHookHolder* pProcessHookHolder,
+				  qs::DefaultSocketCallback* pSocketCallback);
 
 public:
 	Imap4* getImap4() const;
 	ProcessHookHolder* getProcessHookHolder() const;
+	qs::DefaultSocketCallback* getSocketCallback() const;
 
 private:
 	Imap4* pImap4_;
 	ProcessHookHolder* pProcessHookHolder_;
+	qs::DefaultSocketCallback* pSocketCallback_;
 };
 
 
@@ -455,7 +456,8 @@ public:
 public:
 	const ThreadSession* getThreadSession() const;
 	void setThreadSession(Imap4* pImap4,
-						  ProcessHookHolder* pProcessHookHolder);
+						  ProcessHookHolder* pProcessHookHolder,
+						  qs::DefaultSocketCallback* pSocketCallback);
 	void clearThreadSession();
 
 private:
@@ -504,7 +506,9 @@ public:
 
 public:
 	Imap4* get() const;
+	qm::NormalFolder* getFolder() const;
 	ProcessHookHolder* getProcessHookHolder() const;
+	qs::DefaultSocketCallback* getSocketCallback() const;
 	bool isNew() const;
 	void release();
 	bool retry();
