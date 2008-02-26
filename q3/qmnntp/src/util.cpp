@@ -25,7 +25,7 @@ using namespace qs;
  */
 
 void qmnntp::Util::reportError(Nntp* pNntp,
-							   SessionCallback* pSessionCallback,
+							   ErrorCallback* pErrorCallback,
 							   Account* pAccount,
 							   SubAccount* pSubAccount,
 							   NormalFolder* pFolder,
@@ -33,7 +33,7 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 							   const WCHAR* pwszSocketErrorMessage,
 							   const WCHAR* pwszSSLErrorMessage)
 {
-	assert(pSessionCallback);
+	assert(pErrorCallback);
 	assert(pAccount);
 	assert(pSubAccount);
 	
@@ -106,7 +106,7 @@ void qmnntp::Util::reportError(Nntp* pNntp,
 	};
 	SessionErrorInfo info(pAccount, pSubAccount, pFolder, wstrMessage.get(),
 		nError, pwszDescription, countof(pwszDescription));
-	pSessionCallback->addError(info);
+	pErrorCallback->addError(info);
 }
 
 PasswordState qmnntp::Util::getUserInfo(SubAccount* pSubAccount,

@@ -33,7 +33,7 @@ class Util
 {
 public:
 	static void reportError(Nntp* pNntp,
-							qm::SessionCallback* pSessionCallback,
+							qm::ErrorCallback* pErrorCallback,
 							qm::Account* pAccount,
 							qm::SubAccount* pSubAccount,
 							qm::NormalFolder* pFolder,
