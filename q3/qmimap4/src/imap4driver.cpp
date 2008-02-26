@@ -28,6 +28,12 @@ using namespace qm;
 using namespace qs;
 
 
+/****************************************************************************
+ *
+ * Imap4Driver
+ *
+ */
+
 #define HANDLE_ERROR(value) \
 	do { \
 		Util::reportError(pImap4, pSessionCacheManager_->getErrorCallback(), pAccount_, \
@@ -52,13 +58,6 @@ using namespace qs;
 			return value; \
 		pImap4 = cache.get(); \
 	} \
-
-
-/****************************************************************************
- *
- * Imap4Driver
- *
- */
 
 const unsigned int qmimap4::Imap4Driver::nSupport__ =
 	Account::SUPPORT_REMOTEFOLDER |
@@ -1027,6 +1026,10 @@ bool qmimap4::Imap4Driver::setFlags(SessionCache& cache,
 }
 
 #undef HANDLE_ERROR
+#undef RETRY
+#undef RETRY_RETURN
+#undef RETRY_COND
+#undef RETRY_COND_RETURN
 
 
 /****************************************************************************
