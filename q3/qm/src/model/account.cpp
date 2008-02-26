@@ -1711,7 +1711,7 @@ bool qm::Account::updateFolders()
 	
 	using namespace boost::lambda;
 	using boost::lambda::_1;
-	CONTAINER_DELETER_D(deleter, l,
+	CONTAINER_DELETER(deleter, l,
 		if_(bind(&List::value_type::second, _1))[
 			bind(delete_ptr(), bind(&List::value_type::first, _1))]);
 	

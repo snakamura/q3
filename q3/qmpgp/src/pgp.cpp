@@ -160,9 +160,9 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::encrypt(Part* pPart,
 		bMime = true;
 	
 	Driver::UserIdList listRecipient;
-	CONTAINER_DELETER_D(freeRecipient, listRecipient, &freeWString);
+	CONTAINER_DELETER(freeRecipient, listRecipient, &freeWString);
 	Driver::UserIdList listHiddenRecipient;
-	CONTAINER_DELETER_D(freeHiddenRecipient, listHiddenRecipient, &freeWString);
+	CONTAINER_DELETER(freeHiddenRecipient, listHiddenRecipient, &freeWString);
 	getRecipients(*pPart, &listRecipient, &listHiddenRecipient);
 	
 	if (bMime) {
@@ -215,9 +215,9 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 		bMime = true;
 	
 	Driver::UserIdList listRecipient;
-	CONTAINER_DELETER_D(freeRecipient, listRecipient, &freeWString);
+	CONTAINER_DELETER(freeRecipient, listRecipient, &freeWString);
 	Driver::UserIdList listHiddenRecipient;
-	CONTAINER_DELETER_D(freeHiddenRecipient, listHiddenRecipient, &freeWString);
+	CONTAINER_DELETER(freeHiddenRecipient, listHiddenRecipient, &freeWString);
 	getRecipients(*pPart, &listRecipient, &listHiddenRecipient);
 	
 	if (bMime) {
@@ -403,7 +403,7 @@ void qmpgp::PGPUtilityImpl::getRecipients(const Part& part,
 	
 	bool bUseHiddenRecipient = pProfile_->getInt(L"PGP", L"HiddenRecipient") != 0;
 	Driver::UserIdList listSelf;
-	CONTAINER_DELETER_D(free, listSelf, &freeWString);
+	CONTAINER_DELETER(free, listSelf, &freeWString);
 	if (bUseHiddenRecipient) {
 		const WCHAR* pwszSelves[] = {
 			L"From",
@@ -421,7 +421,7 @@ void qmpgp::PGPUtilityImpl::getRecipients(const Part& part,
 	};
 	for (int n = 0; n < countof(pwszAddresses); ++n) {
 		Driver::UserIdList l;
-		CONTAINER_DELETER_D(free, l, &freeWString);
+		CONTAINER_DELETER(free, l, &freeWString);
 		getUserIds(part, pwszAddresses[n], pListUserId, bUseHiddenRecipient ? &l : 0);
 		
 		for (Driver::UserIdList::iterator it = l.begin(); it != l.end(); ++it) {

@@ -1930,7 +1930,7 @@ std::auto_ptr<ResponseFlags> qmimap4::ResponseFlags::create(List* pList)
 {
 	unsigned int nSystemFlags = 0;
 	FlagList listCustomFlag;
-	CONTAINER_DELETER_D(deleter, listCustomFlag, &freeString);
+	CONTAINER_DELETER(deleter, listCustomFlag, &freeString);
 	
 	const List::ItemList& l = pList->getList();
 	for (List::ItemList::const_iterator it = l.begin(); it != l.end(); ++it) {
@@ -2398,7 +2398,7 @@ std::auto_ptr<FetchDataBody> qmimap4::FetchDataBody::create(const CHAR* pszSecti
 	PartPath partPath;
 	FieldList listField;
 	
-	CONTAINER_DELETER_D(deleter, listField, &freeString);
+	CONTAINER_DELETER(deleter, listField, &freeString);
 	
 	string_ptr strSection(allocString(pszSection, nSectionLen));
 	const CHAR* p = strSection.get();

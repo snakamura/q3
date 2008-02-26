@@ -878,7 +878,7 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 	ComboBox_AddString(getDlgItem(IDC_TEMPLATE), ptszNone);
 	
 	TemplateManager::NameList listTemplate;
-	CONTAINER_DELETER_D(freeTemplate, listTemplate, &freeWString);
+	CONTAINER_DELETER(freeTemplate, listTemplate, &freeWString);
 	pTemplateManager_->getTemplateNames(pwszClass_, L"export", &listTemplate);
 	for (TemplateManager::NameList::const_iterator it = listTemplate.begin(); it != listTemplate.end(); ++it) {
 		W2T(*it + 7, ptszTemplate);
@@ -887,7 +887,7 @@ LRESULT qm::ExportDialog::onInitDialog(HWND hwndFocus,
 	ComboBox_SetCurSel(getDlgItem(IDC_TEMPLATE), 0);
 	
 	UIUtil::EncodingList listEncoding;
-	CONTAINER_DELETER_D(freeEncoding, listEncoding, &freeWString);
+	CONTAINER_DELETER(freeEncoding, listEncoding, &freeWString);
 	UIUtil::loadEncodings(pProfile_, &listEncoding);
 	for (UIUtil::EncodingList::const_iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
 		W2T(*it, ptszEncoding);
@@ -1210,7 +1210,7 @@ LRESULT qm::ImportDialog::onInitDialog(HWND hwndFocus,
 	
 	ComboBox_AddString(getDlgItem(IDC_ENCODING), _T(""));
 	UIUtil::EncodingList listEncoding;
-	CONTAINER_DELETER_D(freeEncoding, listEncoding, &freeWString);
+	CONTAINER_DELETER(freeEncoding, listEncoding, &freeWString);
 	UIUtil::loadEncodings(pProfile_, &listEncoding);
 	for (UIUtil::EncodingList::const_iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
 		W2T(*it, ptszEncoding);
@@ -2644,7 +2644,7 @@ LRESULT qm::SelectDialupEntryDialog::onInitDialog(HWND hwndFocus,
 	
 	typedef RasConnection::EntryList List;
 	List listEntry;
-	CONTAINER_DELETER_D(free, listEntry, &freeWString);
+	CONTAINER_DELETER(free, listEntry, &freeWString);
 	RasConnection::getEntries(&listEntry);
 	
 	for (List::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {

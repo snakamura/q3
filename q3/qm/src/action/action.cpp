@@ -125,7 +125,7 @@ qm::AttachmentOpenAction::~AttachmentOpenAction()
 void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 {
 	AttachmentSelectionModel::NameList listName;
-	CONTAINER_DELETER_D(freeName, listName, &freeWString);
+	CONTAINER_DELETER(freeName, listName, &freeWString);
 	pAttachmentSelectionModel_->getSelectedAttachment(&listName);
 	if (listName.empty())
 		return;
@@ -208,7 +208,7 @@ void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 	}
 	else {
 		AttachmentSelectionModel::NameList listName;
-		CONTAINER_DELETER_D(freeName, listName, &freeWString);
+		CONTAINER_DELETER(freeName, listName, &freeWString);
 		pAttachmentSelectionModel_->getSelectedAttachment(&listName);
 		
 		AttachmentHelper::NameList l(listName.begin(), listName.end());
@@ -1701,7 +1701,7 @@ bool qm::FileImportAction::importShowDialog(NormalFolder* pFolder,
 	ImportDialog dialog(bufPath.getCharArray(), pProfile);
 	if (dialog.doModal(hwnd) == IDOK) {
 		PathList listPath;
-		CONTAINER_DELETER_D(free, listPath, &freeWString);
+		CONTAINER_DELETER(free, listPath, &freeWString);
 		
 		const WCHAR* pwszPath = dialog.getPath();
 		const WCHAR* pBegin = pwszPath;
@@ -4040,7 +4040,7 @@ void qm::MessageCreateAction::invoke(const ActionEvent& event)
 	
 	TemplateContext::ArgumentList listArg;
 	TemplateActionUtil::ArgList l;
-	CONTAINER_DELETER_D(free, l, &freeWString);
+	CONTAINER_DELETER(free, l, &freeWString);
 	TemplateActionUtil::parseArgs(event.getParam(), 1, &listArg, &l);
 	
 	std::auto_ptr<MessageHolderURI> pURI;
@@ -5195,7 +5195,7 @@ void qm::MessageSearchAction::invoke(const ActionEvent& event)
 	
 	typedef std::vector<std::pair<SearchUI*, SearchPropertyPage*> > UIList;
 	UIList listUI;
-	CONTAINER_DELETER_D(deleter, listUI,
+	CONTAINER_DELETER(deleter, listUI,
 		(boost::lambda::bind(boost::lambda::delete_ptr(), bind(&UIList::value_type::first, boost::lambda::_1)),
 		 boost::lambda::bind(boost::lambda::delete_ptr(), bind(&UIList::value_type::second, boost::lambda::_1))));
 	
@@ -5930,11 +5930,11 @@ void qm::ToolInvokeActionAction::invoke(const ActionEvent& event)
 	}
 	
 	ActionList listAction;
-	CONTAINER_DELETER_D(free, listAction, &freeWString);
+	CONTAINER_DELETER(free, listAction, &freeWString);
 	parseActions(pwszActions, &listAction);
 	for (ActionList::const_iterator it = listAction.begin(); it != listAction.end(); ++it) {
 		ActionParam::ValueList l;
-		CONTAINER_DELETER_D(free, l, &freeWString);
+		CONTAINER_DELETER(free, l, &freeWString);
 		ActionParam::parse(*it, &l);
 		if (!l.empty())
 			pActionInvoker_->invoke(l[0], const_cast<const WCHAR**>(&l[1]), l.size() - 1);

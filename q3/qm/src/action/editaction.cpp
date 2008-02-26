@@ -109,7 +109,7 @@ void qm::EditAttachmentEditDeleteAction::invoke(const ActionEvent& event)
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();
 	
 	AttachmentSelectionModel::NameList l;
-	CONTAINER_DELETER_D(free, l, &freeWString);
+	CONTAINER_DELETER(free, l, &freeWString);
 	pAttachmentSelectionModel_->getSelectedAttachment(&l);
 	
 	for (AttachmentSelectionModel::NameList::const_iterator it = l.begin(); it != l.end(); ++it)
@@ -893,7 +893,7 @@ void qm::EditToolApplyTemplateAction::invoke(const ActionEvent& event)
 	
 	TemplateContext::ArgumentList listArg;
 	TemplateActionUtil::ArgList l;
-	CONTAINER_DELETER_D(free, l, &freeWString);
+	CONTAINER_DELETER(free, l, &freeWString);
 	TemplateActionUtil::parseArgs(event.getParam(), 1, &listArg, &l);
 	
 	EditMessage* pEditMessage = pEditMessageHolder_->getEditMessage();

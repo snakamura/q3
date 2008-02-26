@@ -265,7 +265,7 @@ std::auto_ptr<Template> qm::TemplateParser::parse(Reader* pReader,
 	
 	using namespace boost::lambda;
 	using boost::lambda::_1;
-	CONTAINER_DELETER_D(deleter, listValue,
+	CONTAINER_DELETER(deleter, listValue,
 		(bind(&freeWString, bind(&Template::ValueList::value_type::first, _1)),
 		 bind(delete_ptr(), bind(&Template::ValueList::value_type::second, _1))));
 	

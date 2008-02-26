@@ -460,7 +460,7 @@ bool qm::ApplicationImpl::ensureResources(Resource* pResource,
 	Log log(InitThread::getInitThread().getLogger(), L"qm::ApplicationImpl");
 	
 	ResourceDialog::ResourceList listResource;
-	CONTAINER_DELETER_D(deleter, listResource,
+	CONTAINER_DELETER(deleter, listResource,
 		boost::bind(&freeWString,
 			boost::bind(&ResourceDialog::ResourceList::value_type::first, _1)));
 	

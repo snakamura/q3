@@ -159,7 +159,7 @@ void qm::TemplateManager::getTemplateNames(const WCHAR* pwszClass,
 	assert(pList);
 	
 	NameList l;
-	CONTAINER_DELETER_D(free, l, &freeWString);
+	CONTAINER_DELETER(free, l, &freeWString);
 	
 	StringBuffer<WSTRING> buf;
 	buf.append(wstrPath_.get());

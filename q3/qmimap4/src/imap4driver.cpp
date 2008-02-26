@@ -685,7 +685,7 @@ bool qmimap4::Imap4Driver::setMessagesLabel(NormalFolder* pFolder,
 	
 	typedef std::vector<WSTRING> LabelList;
 	LabelList listLabel;
-	CONTAINER_DELETER_D(free, listLabel, &freeWString);
+	CONTAINER_DELETER(free, listLabel, &freeWString);
 	for (MessageHolderList::const_iterator it = listUpdate.begin(); it != listUpdate.end(); ++it) {
 		MessageHolder* pmh = *it;
 		wstring_ptr wstrLabel(pmh->getLabel());
@@ -1352,7 +1352,7 @@ bool qmimap4::FolderListGetter::update()
 		return false;
 	
 	NamespaceList listNamespace;
-	CONTAINER_DELETER_D(deleter, listNamespace,
+	CONTAINER_DELETER(deleter, listNamespace,
 		boost::bind(&freeWString, boost::bind(&NamespaceList::value_type::first, _1)));
 	if (!listNamespaces(pImap4.get(), pCallback.get(), &listNamespace))
 		return false;
@@ -1404,7 +1404,7 @@ bool qmimap4::FolderListGetter::listFolders(Imap4* pImap4,
 											const NamespaceList& listNamespace)
 {
 	FolderDataList listFolderData;
-	CONTAINER_DELETER_D(deleter, listFolderData,
+	CONTAINER_DELETER(deleter, listFolderData,
 		boost::bind(&freeWString, boost::bind(&FolderData::wstrMailbox_, _1)));
 	pCallback->setFolderDataList(&listFolderData);
 	

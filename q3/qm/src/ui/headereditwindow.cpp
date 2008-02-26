@@ -1622,7 +1622,7 @@ void qm::AttachmentHeaderEditItem::paste()
 		return;
 #endif
 	Util::PathList listPath;
-	CONTAINER_DELETER_D(free, listPath, &freeWString);
+	CONTAINER_DELETER(free, listPath, &freeWString);
 	Util::getFilesOrURIs(pDataObject.get(), &listPath);
 	for (Util::PathList::const_iterator it = listPath.begin(); it != listPath.end(); ++it)
 		pEditMessage_->addAttachment(*it);

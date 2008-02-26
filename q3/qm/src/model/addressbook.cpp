@@ -1970,7 +1970,7 @@ bool qm::PocketOutlookAddressBook::load(AddressBook* pAddressBook)
 	
 	typedef std::vector<std::pair<unsigned int, WSTRING> > CategoryMap;
 	CategoryMap mapCategory;
-	CONTAINER_DELETER_D(deleter, mapCategory,
+	CONTAINER_DELETER(deleter, mapCategory,
 		boost::bind(&freeWString, boost::bind(&Map::value_type::second, _1)));
 	
 	struct LocalFreeCaller

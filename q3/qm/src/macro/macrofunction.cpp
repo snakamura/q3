@@ -451,7 +451,7 @@ MacroValuePtr qm::MacroFunctionAddress::value(MacroContext* pContext) const
 	
 	MacroValueField* pValueField = static_cast<MacroValueField*>(pValue.get());
 	MacroValueAddress::AddressList l;
-	CONTAINER_DELETER_D(free, l, &freeWString);
+	CONTAINER_DELETER(free, l, &freeWString);
 	if (bName_)
 		pValueField->getNames(&l);
 	else
@@ -2998,7 +2998,7 @@ MacroValuePtr qm::MacroFunctionInvokeAction::value(MacroContext* pContext) const
 	
 	typedef std::vector<WSTRING> ArgList;
 	ArgList listArg(nSize - 1);
-	CONTAINER_DELETER_D(free, listArg, &freeWString);
+	CONTAINER_DELETER(free, listArg, &freeWString);
 	for (size_t n = 1; n < nSize; ++n) {
 		ARG(pValue, n);
 		listArg[n - 1] = pValue->string().release().release();
@@ -3920,7 +3920,7 @@ wstring_ptr qm::MacroFunctionParseURL::decode(const WCHAR* p,
 	
 	typedef std::vector<std::pair<STRING, WSTRING> > TokenList;
 	TokenList listToken;
-	CONTAINER_DELETER_D(deleter, listToken,
+	CONTAINER_DELETER(deleter, listToken,
 		(boost::lambda::bind(&freeString, bind(&TokenList::value_type::first, boost::lambda::_1)),
 		 boost::lambda::bind(&freeWString, bind(&TokenList::value_type::second, boost::lambda::_1))));
 	
@@ -4428,7 +4428,7 @@ MacroValuePtr qm::MacroFunctionReferences::value(MacroContext* pContext) const
 	}
 	
 	PartUtil::ReferenceList l;
-	CONTAINER_DELETER_D(free, l, &freeWString);
+	CONTAINER_DELETER(free, l, &freeWString);
 	PartUtil(*pMessage).getReferences(&l);
 	
 	PartUtil::ReferenceList::size_type n = 0;
@@ -4932,7 +4932,7 @@ MacroValuePtr MacroFunctionScript::value(MacroContext* pContext) const
 	
 	typedef std::vector<VARIANT> ArgumentList;
 	ArgumentList listArgs;
-	CONTAINER_DELETER_D(deleter, listArgs,
+	CONTAINER_DELETER(deleter, listArgs,
 		boost::bind(&::VariantClear, boost::bind(&boost::addressof<VARIANT>, _1)));
 	
 	listArgs.resize(nSize - 2);

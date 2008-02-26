@@ -1700,7 +1700,7 @@ void qm::OptionMiscDialog::updateDefaultEncodings()
 	
 	wstring_ptr wstrEncodings(getDlgItemText(IDC_ENCODING));
 	UIUtil::EncodingList listEncoding;
-	CONTAINER_DELETER_D(free, listEncoding, &freeWString);
+	CONTAINER_DELETER(free, listEncoding, &freeWString);
 	UIUtil::parseEncodings(wstrEncodings.get(), &listEncoding);
 	for (UIUtil::EncodingList::const_iterator it = listEncoding.begin(); it != listEncoding.end(); ++it) {
 		W2T(*it, ptszEncoding);
@@ -5009,7 +5009,7 @@ LRESULT qm::GoRoundDialupDialog::onInitDialog(HWND hwndFocus,
 	setDlgItemInt(IDC_WAITBEFOREDISCONNECT, pDialup_->getDisconnectWait());
 	
 	RasConnection::EntryList listEntry;
-	CONTAINER_DELETER_D(free, listEntry, &freeWString);
+	CONTAINER_DELETER(free, listEntry, &freeWString);
 	RasConnection::getEntries(&listEntry);
 	for (RasConnection::EntryList::const_iterator it = listEntry.begin(); it != listEntry.end(); ++it) {
 		W2T(*it, ptszEntry);

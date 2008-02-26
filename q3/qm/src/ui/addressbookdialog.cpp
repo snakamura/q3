@@ -698,7 +698,7 @@ LRESULT qm::SelectAddressDialog::onCategory()
 	std::sort(listCategory.begin(), listCategory.end(), AddressBookCategoryLess());
 	
 	CategoryNameList listName;
-	CONTAINER_DELETER_D(free, listName, &freeWString);
+	CONTAINER_DELETER(free, listName, &freeWString);
 	AutoMenuHandle hmenu(createCategoryMenu(listCategory, &listName));
 	if (hmenu.get()) {
 		unsigned int nFlags = TPM_LEFTALIGN |
@@ -956,7 +956,7 @@ HMENU qm::SelectAddressDialog::createCategoryMenu(const AddressBook::CategoryLis
 	MenuStack stackMenu;
 	stackMenu.push_back(MenuStack::value_type(hmenu.get(), 0));
 	
-	CONTAINER_DELETER_D(deleter, stackMenu,
+	CONTAINER_DELETER(deleter, stackMenu,
 		boost::bind(&freeWString, boost::bind(&MenuStack::value_type::second, _1)));
 	
 	wstring_ptr wstrThisCategory(loadString(getResourceHandle(), IDS_ADDRESSBOOK_THISCATEGORY));

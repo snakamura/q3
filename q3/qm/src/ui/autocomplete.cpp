@@ -213,7 +213,7 @@ void qm::AutoCompleteEditSubclassWindow::showCandidates()
 	wstrText = allocWString(wstrText.get() + input_.first, input_.second);
 	
 	AutoCompleteCallback::CandidateList listCandidate;
-	CONTAINER_DELETER_D(free, listCandidate, &freeWString);
+	CONTAINER_DELETER(free, listCandidate, &freeWString);
 	pCallback_->getCandidates(wstrText.get(), &listCandidate);
 	if (!listCandidate.empty())
 		showCandidates(listCandidate, wstrText.get());

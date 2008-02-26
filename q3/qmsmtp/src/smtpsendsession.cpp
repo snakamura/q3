@@ -174,7 +174,7 @@ bool qmsmtp::SmtpSendSession::sendMessage(Message* pMessage)
 	
 	typedef std::vector<STRING> AddressList;
 	AddressList listAddress;
-	CONTAINER_DELETER_D(deleter, listAddress, &freeString);
+	CONTAINER_DELETER(deleter, listAddress, &freeString);
 	const WCHAR* pwszNormalFields[] = {
 		L"To",
 		L"Cc",

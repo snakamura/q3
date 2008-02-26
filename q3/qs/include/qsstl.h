@@ -200,23 +200,20 @@ public:
  *
  */
 
-template<class Container, class Deleter, class Pred>
+template<class Container, class Deleter>
 class container_deleter_t : public container_deleter_base
 {
 public:
-	container_deleter_t(Container& c, const Deleter& deleter, const Pred& pred) :
-		p_(&c), deleter_(deleter), pred_(pred) {}
+	container_deleter_t(Container& c, const Deleter& deleter) :
+		p_(&c), deleter_(deleter) {}
 	~container_deleter_t()
 	{
 		if (!p_)
 			return;
 		
 		Container::iterator it = p_->begin();
-		while (it != p_->end()) {
-			if (pred_(*it))
-				deleter_(*it);
-			++it;
-		}
+		while (it != p_->end())
+			deleter_(*it++);
 		p_->clear();
 	}
 
@@ -226,37 +223,23 @@ public:
 private:
 	mutable Container* p_;
 	Deleter deleter_;
-	Pred pred_;
 };
 
-template<class Container, class Deleter, class Pred>
-container_deleter_t<Container, Deleter, Pred> container_deleter(Container& c, const Deleter& deleter, const Pred& pred)
-{
-	return container_deleter_t<Container, Deleter, Pred>(c, deleter, pred);
-}
-
 template<class Container, class Deleter>
-container_deleter_t<Container, Deleter, const_function<bool, typename Container::value_type> > container_deleter(Container& c, const Deleter& deleter)
+container_deleter_t<Container, Deleter> container_deleter(Container& c, const Deleter& deleter)
 {
-	return container_deleter_t<Container, Deleter, const_function<bool, typename Container::value_type> >(
-		c, deleter, const_function<bool, typename Container::value_type>(true));
+	return container_deleter_t<Container, Deleter>(c, deleter);
 }
 
 template<class Container>
-container_deleter_t<Container, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type>, const_function<bool, typename Container::value_type> > container_deleter(Container& c)
+container_deleter_t<Container, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type> > container_deleter(Container& c)
 {
-	return container_deleter_t<Container, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type>, const_function<bool, typename Container::value_type> >(
-		c, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type>(), const_function<bool, typename Container::value_type>(true));
+	return container_deleter_t<Container, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type> >(
+		c, boost::checked_deleter<typename boost::remove_pointer<typename Container::value_type>::type>());
 }
 
-#define CONTAINER_DELETER(name, c) \
-	const container_deleter_base& name(container_deleter(c))
-
-#define CONTAINER_DELETER_D(name, c, d) \
-	const container_deleter_base& name(container_deleter(c, d))
-
-#define CONTAINER_DELETER_DP(name, c, d, p) \
-	const container_deleter_base& name(container_deleter(c, d, p))
+#define CONTAINER_DELETER(name, ...) \
+	const container_deleter_base& name(container_deleter(__VA_ARGS__))
 
 
 /****************************************************************************

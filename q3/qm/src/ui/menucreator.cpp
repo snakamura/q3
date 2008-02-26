@@ -258,7 +258,7 @@ UINT qm::EncodingMenuCreator::createMenu(HMENU hmenu,
 	
 	typedef std::vector<WSTRING> StringList;
 	StringList listEncoding;
-	CONTAINER_DELETER_D(free, listEncoding, &freeWString);
+	CONTAINER_DELETER(free, listEncoding, &freeWString);
 	UIUtil::loadEncodings(pProfile_, &listEncoding);
 	
 	UINT nBaseId = bView_ ? IDM_VIEW_ENCODING : IDM_TOOL_ENCODING;
@@ -807,7 +807,7 @@ UINT qm::ScriptMenuCreator::createMenu(HMENU hmenu,
 	helper_.clear();
 	
 	ScriptManager::NameList l;
-	CONTAINER_DELETER_D(free, l, &freeWString);
+	CONTAINER_DELETER(free, l, &freeWString);
 	pScriptManager_->getScriptNames(&l);
 	
 	if (!l.empty()) {
@@ -992,7 +992,7 @@ UINT qm::TemplateMenuCreator::createMenu(HMENU hmenu,
 	Account* pAccount = pAccountSelectionModel_->getAccount();
 	if (pAccount) {
 		TemplateManager::NameList listName;
-		CONTAINER_DELETER_D(free, listName, &freeWString);
+		CONTAINER_DELETER(free, listName, &freeWString);
 		pTemplateManager_->getTemplateNames(pAccount->getClass(), pwszPrefix, &listName);
 		
 		if (!listName.empty()) {

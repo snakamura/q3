@@ -260,7 +260,7 @@ STDMETHODIMP qmscript::AccountListImpl::_newEnum(IUnknown** ppUnk)
 {
 	typedef std::vector<VARIANT> List;
 	List l;
-	CONTAINER_DELETER_D(deleter, l,
+	CONTAINER_DELETER(deleter, l,
 		boost::bind(&::VariantClear, boost::bind(&boost::addressof<VARIANT>, _1)));
 	
 	const Document::AccountList& listAccount = pDocument_->getAccounts();
@@ -517,7 +517,7 @@ STDMETHODIMP qmscript::FolderListImpl::_newEnum(IUnknown** ppUnk)
 {
 	typedef std::vector<VARIANT> List;
 	List l;
-	CONTAINER_DELETER_D(deleter, l,
+	CONTAINER_DELETER(deleter, l,
 		boost::bind(&::VariantClear, boost::bind(&boost::addressof<VARIANT>, _1)));
 	
 	const Account::FolderList& listFolder = pAccount_->getFolders();
