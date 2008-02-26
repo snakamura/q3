@@ -64,13 +64,14 @@ const WCHAR* qmimap4::Imap4Driver::pwszParamNames__[] = {
 };
 
 qmimap4::Imap4Driver::Imap4Driver(Account* pAccount,
+								  const Security* pSecurity,
 								  PasswordCallback* pPasswordCallback,
-								  const Security* pSecurity) :
+								  ErrorCallback* pErrorCallback) :
 	pAccount_(pAccount),
 	nOption_(0)
 {
 	pSessionCacheManager_.reset(new SessionCacheManager(
-		pAccount, pPasswordCallback, pSecurity));
+		pAccount, pSecurity, pPasswordCallback, pErrorCallback));
 	pOfflineJobManager_.reset(new OfflineJobManager(pAccount_->getPath()));
 }
 
@@ -299,8 +300,11 @@ bool qmimap4::Imap4Driver::getRemoteFolders(RemoteFolderList* pList)
 {
 	assert(pList);
 	
-	FolderListGetter getter(pAccount_, pSessionCacheManager_->getSubAccount(),
-		pSessionCacheManager_->getPasswordCallback(), pSessionCacheManager_->getSecurity());
+	FolderListGetter getter(pAccount_,
+		pSessionCacheManager_->getSubAccount(),
+		pSessionCacheManager_->getSecurity(),
+		pSessionCacheManager_->getPasswordCallback(),
+		pSessionCacheManager_->getErrorCallback());
 	if (!getter.update())
 		return false;
 	getter.getFolders(pList);
@@ -1042,15 +1046,17 @@ qmimap4::Imap4Factory::~Imap4Factory()
 }
 
 std::auto_ptr<ProtocolDriver> qmimap4::Imap4Factory::createDriver(Account* pAccount,
+																  const Security* pSecurity,
 																  PasswordCallback* pPasswordCallback,
-																  const Security* pSecurity)
+																  ErrorCallback* pErrorCallback)
 {
 	assert(pAccount);
-	assert(pPasswordCallback);
 	assert(pSecurity);
+	assert(pPasswordCallback);
+	assert(pErrorCallback);
 	
 	return std::auto_ptr<ProtocolDriver>(new Imap4Driver(
-		pAccount, pPasswordCallback, pSecurity));
+		pAccount, pSecurity, pPasswordCallback, pErrorCallback));
 }
 
 
@@ -1315,12 +1321,14 @@ void qmimap4::FolderUtil::saveSpecialFolders(Account* pAccount)
 
 qmimap4::FolderListGetter::FolderListGetter(Account* pAccount,
 											SubAccount* pSubAccount,
+											const Security* pSecurity,
 											PasswordCallback* pPasswordCallback,
-											const Security* pSecurity) :
+											ErrorCallback* pErrorCallback) :
 	pAccount_(pAccount),
 	pSubAccount_(pSubAccount),
+	pSecurity_(pSecurity),
 	pPasswordCallback_(pPasswordCallback),
-	pSecurity_(pSecurity)
+	pErrorCallback_(pErrorCallback)
 {
 	FolderUtil::saveSpecialFolders(pAccount_);
 	pFolderUtil_.reset(new FolderUtil(pAccount_));
@@ -1342,14 +1350,16 @@ bool qmimap4::FolderListGetter::update()
 	std::auto_ptr<qs::Logger> pLogger;
 	if (pSubAccount_->isLog(Account::HOST_RECEIVE))
 		pLogger = pAccount_->openLogger(Account::HOST_RECEIVE);
-	std::auto_ptr<CallbackImpl> pCallback(new CallbackImpl(
-		this, pPasswordCallback_, pSecurity_));
+	std::auto_ptr<CallbackImpl> pCallback(new CallbackImpl(this));
 	std::auto_ptr<Imap4> pImap4(new Imap4(pSubAccount_->getTimeout(),
 		pCallback.get(), pCallback.get(), pCallback.get(), pLogger.get()));
 	Imap4::Secure secure = Util::getSecure(pSubAccount_);
 	if (!pImap4->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
-		pSubAccount_->getPort(Account::HOST_RECEIVE), secure))
+		pSubAccount_->getPort(Account::HOST_RECEIVE), secure)) {
+		Util::reportError(pImap4.get(), pErrorCallback_, pAccount_, pSubAccount_, 0, 0,
+			pCallback->getErrorMessage(), pCallback->getSSLErrorMessage().get());
 		return false;
+	}
 	
 	NamespaceList listNamespace;
 	CONTAINER_DELETER(deleter, listNamespace,
@@ -1541,10 +1551,8 @@ bool qmimap4::FolderListGetter::FolderInfoLess::operator()(const FolderInfo& lhs
  *
  */
 
-qmimap4::FolderListGetter::CallbackImpl::CallbackImpl(FolderListGetter* pGetter,
-													  PasswordCallback* pPasswordCallback,
-													  const Security* pSecurity) :
-	AbstractCallback(pGetter->pSubAccount_, pPasswordCallback, pSecurity),
+qmimap4::FolderListGetter::CallbackImpl::CallbackImpl(FolderListGetter* pGetter) :
+	AbstractCallback(pGetter->pSubAccount_, pGetter->pPasswordCallback_, pGetter->pSecurity_),
 	pGetter_(pGetter),
 	pListNamespace_(0),
 	pListFolderData_(0)
@@ -1752,11 +1760,13 @@ ProcessHookHolder* qmimap4::ThreadSession::getProcessHookHolder() const
  */
 
 qmimap4::SessionCacheManager::SessionCacheManager(Account* pAccount,
+												  const Security* pSecurity,
 												  PasswordCallback* pPasswordCallback,
-												  const Security* pSecurity) :
+												  ErrorCallback* pErrorCallback) :
 	pAccount_(pAccount),
-	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity),
+	pPasswordCallback_(pPasswordCallback),
+	pErrorCallback_(pErrorCallback),
 	bOffline_(true),
 	pSubAccount_(0),
 	nMaxSession_(5),
@@ -1776,14 +1786,19 @@ Account* qmimap4::SessionCacheManager::getAccount() const
 	return pAccount_;
 }
 
+const Security* qmimap4::SessionCacheManager::getSecurity() const
+{
+	return pSecurity_;
+}
+
 PasswordCallback* qmimap4::SessionCacheManager::getPasswordCallback() const
 {
 	return pPasswordCallback_;
 }
 
-const Security* qmimap4::SessionCacheManager::getSecurity() const
+ErrorCallback* qmimap4::SessionCacheManager::getErrorCallback() const
 {
-	return pSecurity_;
+	return pErrorCallback_;
 }
 
 bool qmimap4::SessionCacheManager::isOffline() const

@@ -93,6 +93,38 @@ void qm::SyncDialogManager::save() const
 	}
 }
 
+ErrorCallback* qm::SyncDialogManager::getErrorCallback()
+{
+	if (!pErrorCallback_.get())
+		pErrorCallback_.reset(new ErrorCallbackImpl(this));
+	return pErrorCallback_.get();
+}
+
+
+/****************************************************************************
+ *
+ * SyncDialogManager::ErrorCallbackImpl
+ *
+ */
+
+qm::SyncDialogManager::ErrorCallbackImpl::ErrorCallbackImpl(SyncDialogManager* pManager) :
+	pManager_(pManager)
+{
+}
+
+qm::SyncDialogManager::ErrorCallbackImpl::~ErrorCallbackImpl()
+{
+}
+
+void qm::SyncDialogManager::ErrorCallbackImpl::addError(const SessionErrorInfo& info)
+{
+	// This method may be called from sync threads,
+	// but in that case, SyncDialog should have been created.
+	SyncDialog* pSyncDialog = pManager_->open();
+	if (pSyncDialog)
+		pSyncDialog->addError(info);
+}
+
 
 /****************************************************************************
  *
@@ -198,24 +230,47 @@ void qm::SyncDialog::resetCanceledTime()
 	nCanceledTime_ = 0;
 }
 
+void qm::SyncDialog::addError(const SessionErrorInfo& info)
+{
+	struct RunnableImpl : public Runnable
+	{
+		RunnableImpl(SyncDialog* pSyncDialog,
+					 wstring_ptr wstrError) :
+			pSyncDialog_(pSyncDialog),
+			wstrError_(wstrError)
+		{
+		}
+		
+		virtual void run()
+		{
+			pSyncDialog_->addError(wstrError_.get());
+		}
+		
+		SyncDialog* pSyncDialog_;
+		wstring_ptr wstrError_;
+	};
+	std::auto_ptr<Runnable> pRunnable(new RunnableImpl(this, formatError(info)));
+	getInitThread()->getSynchronizer()->asyncExec(pRunnable);
+}
+
 void qm::SyncDialog::addError(const WCHAR* pwszError)
 {
-	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
 	assert(pwszError);
-	
-	W2T(pwszError, ptszError);
+	assert(::GetCurrentThreadId() == ::GetWindowThreadProcessId(getHandle(), 0));
 	
 	bool bHasError = hasError();
 	
 	sendDlgItemMessage(IDC_ERROR, EM_SETSEL, -1, -1);
-	sendDlgItemMessage(IDC_ERROR, EM_REPLACESEL, FALSE,
-		reinterpret_cast<LPARAM>(ptszError));
+	W2T(pwszError, ptszError);
+	sendDlgItemMessage(IDC_ERROR, EM_REPLACESEL,
+		FALSE, reinterpret_cast<LPARAM>(ptszError));
 	
 	if (!bHasError) {
 		layout();
 		if (!isVisible()) {
 			showWindow(SW_SHOWNA);
-			setWindowPos(HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+			setWindowPos(HWND_BOTTOM, 0, 0, 0, 0,
+				SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 		}
 #ifndef _WIN32_WCE
 		flashWindow(false);
@@ -559,6 +614,66 @@ void qm::SyncDialog::layout(int cx,
 	Window::endDeferWindowPos(hdwp);
 }
 
+wstring_ptr qm::SyncDialog::formatError(const SessionErrorInfo& info)
+{
+	StringBuffer<WSTRING> buf;
+	
+	Account* pAccount = info.getAccount();
+	if (pAccount) {
+		buf.append(L"[");
+		buf.append(pAccount->getName());
+		
+		SubAccount* pSubAccount = info.getSubAccount();
+		if (pSubAccount && *pSubAccount->getName()) {
+			buf.append(L'/');
+			buf.append(pSubAccount->getName());
+		}
+		
+		NormalFolder* pFolder = info.getFolder();
+		if (pFolder) {
+			wstring_ptr wstrName(pFolder->getFullName());
+			buf.append(L" - ");
+			buf.append(wstrName.get());
+		}
+		
+		buf.append(L"] ");
+	}
+	
+	buf.append(info.getMessage());
+	
+	unsigned int nCode = info.getCode();
+	if (nCode != 0) {
+		WCHAR wszCode[32];
+		_snwprintf(wszCode, countof(wszCode), L" (0x%08X)", info.getCode());
+		buf.append(wszCode);
+	}
+	
+	buf.append(L"\r\n");
+	
+	for (size_t n = 0; n < info.getDescriptionCount(); ++n) {
+		const WCHAR* p = info.getDescription(n);
+		if (p) {
+			while (p && *p) {
+				const WCHAR* pNewLine = wcschr(p, L'\n');
+				if (pNewLine) {
+					buf.append(L"  ");
+					buf.append(p, pNewLine - p);
+					buf.append(L"\r\n");
+					p = pNewLine + 1;
+				}
+				else {
+					buf.append(L"  ");
+					buf.append(p);
+					buf.append(L"\r\n");
+					p = 0;
+				}
+			}
+		}
+	}
+	
+	return buf.getString();
+}
+
 
 /****************************************************************************
  *
@@ -795,79 +910,7 @@ void qm::SyncStatusWindow::addError(unsigned int nId,
 	if (pSubAccount && pSubAccount->getPropertyInt(L"Misc", L"IgnoreError"))
 		return;
 	
-	StringBuffer<WSTRING> buf;
-	
-	Account* pAccount = info.getAccount();
-	if (pAccount) {
-		buf.append(L"[");
-		buf.append(pAccount->getName());
-		
-		SubAccount* pSubAccount = info.getSubAccount();
-		if (pSubAccount && *pSubAccount->getName()) {
-			buf.append(L'/');
-			buf.append(pSubAccount->getName());
-		}
-		
-		NormalFolder* pFolder = info.getFolder();
-		if (pFolder) {
-			wstring_ptr wstrName(pFolder->getFullName());
-			buf.append(L" - ");
-			buf.append(wstrName.get());
-		}
-		
-		buf.append(L"] ");
-	}
-	
-	buf.append(info.getMessage());
-	
-	unsigned int nCode = info.getCode();
-	if (nCode != 0) {
-		WCHAR wszCode[32];
-		_snwprintf(wszCode, countof(wszCode), L" (0x%08X)", info.getCode());
-		buf.append(wszCode);
-	}
-	
-	buf.append(L"\r\n");
-	
-	for (size_t n = 0; n < info.getDescriptionCount(); ++n) {
-		const WCHAR* p = info.getDescription(n);
-		if (p) {
-			while (p && *p) {
-				const WCHAR* pNewLine = wcschr(p, L'\n');
-				if (pNewLine) {
-					buf.append(L"  ");
-					buf.append(p, pNewLine - p);
-					buf.append(L"\r\n");
-					p = pNewLine + 1;
-				}
-				else {
-					buf.append(L"  ");
-					buf.append(p);
-					buf.append(L"\r\n");
-					p = 0;
-				}
-			}
-		}
-	}
-	
-	struct RunnableImpl : public Runnable
-	{
-		RunnableImpl(SyncDialog* pSyncDialog,
-					 const WCHAR* pwszError) :
-			pSyncDialog_(pSyncDialog),
-			pwszError_(pwszError)
-		{
-		}
-		
-		virtual void run()
-		{
-			pSyncDialog_->addError(pwszError_);
-		}
-		
-		SyncDialog* pSyncDialog_;
-		const WCHAR* pwszError_;
-	} runnable(pSyncDialog_, buf.getCharArray());
-	pSyncDialog_->getInitThread()->getSynchronizer()->syncExec(&runnable);
+	pSyncDialog_->addError(info);
 }
 
 bool qm::SyncStatusWindow::isCanceled(unsigned int nId,

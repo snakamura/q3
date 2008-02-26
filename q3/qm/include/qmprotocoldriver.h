@@ -23,6 +23,7 @@ namespace qm {
 class ProtocolDriver;
 class ProtocolFactory;
 
+class ErrorCallback;
 class MessageHolder;
 class PasswordCallback;
 class Security;
@@ -116,11 +117,13 @@ public:
 	static std::auto_ptr<ProtocolDriver> getDriver(Account* pAccount,
 												   const Security* pSecurity);
 	static void setPasswordCallback(std::auto_ptr<PasswordCallback> pPasswordCallback);
+	static void setErrorCallback(ErrorCallback* pErrorCallback);
 
 protected:
 	virtual std::auto_ptr<ProtocolDriver> createDriver(Account* pAccount,
+													   const Security* pSecurity,
 													   PasswordCallback* pPasswordCallback,
-													   const Security* pSecurity) = 0;
+													   ErrorCallback* pErrorCallback) = 0;
 
 protected:
 	static void registerFactory(const WCHAR* pwszName,

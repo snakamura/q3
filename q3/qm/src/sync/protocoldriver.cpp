@@ -183,10 +183,12 @@ struct qm::ProtocolFactoryImpl
 	
 	static FactoryList listFactory__;
 	static std::auto_ptr<PasswordCallback> pPasswordCallback_;
+	static ErrorCallback* pErrorCallback_;
 };
 
-qm::ProtocolFactoryImpl::FactoryList qm::ProtocolFactoryImpl::listFactory__;
+ProtocolFactoryImpl::FactoryList qm::ProtocolFactoryImpl::listFactory__;
 std::auto_ptr<PasswordCallback> qm::ProtocolFactoryImpl::pPasswordCallback_;
+ErrorCallback* qm::ProtocolFactoryImpl::pErrorCallback_;
 
 ProtocolFactoryImpl::FactoryList::iterator qm::ProtocolFactoryImpl::getIterator(const WCHAR* pwszName)
 {
@@ -219,13 +221,19 @@ std::auto_ptr<ProtocolDriver> qm::ProtocolFactory::getDriver(Account* pAccount,
 	if (it == ProtocolFactoryImpl::listFactory__.end())
 		return std::auto_ptr<ProtocolDriver>(0);
 	
-	return (*it).second->createDriver(pAccount,
-		ProtocolFactoryImpl::pPasswordCallback_.get(), pSecurity);
+	return (*it).second->createDriver(pAccount, pSecurity,
+		ProtocolFactoryImpl::pPasswordCallback_.get(),
+		ProtocolFactoryImpl::pErrorCallback_);
 }
 
 void qm::ProtocolFactory::setPasswordCallback(std::auto_ptr<PasswordCallback> pPasswordCallback)
 {
 	ProtocolFactoryImpl::pPasswordCallback_ = pPasswordCallback;
+}
+
+void qm::ProtocolFactory::setErrorCallback(ErrorCallback* pErrorCallback)
+{
+	ProtocolFactoryImpl::pErrorCallback_ = pErrorCallback;
 }
 
 void qm::ProtocolFactory::registerFactory(const WCHAR* pwszName,

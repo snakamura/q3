@@ -44,8 +44,9 @@ class Imap4Driver : public qm::ProtocolDriver
 {
 public:
 	Imap4Driver(qm::Account* pAccount,
+				const qm::Security* pSecurity,
 				qm::PasswordCallback* pPasswordCallback,
-				const qm::Security* pSecurity);
+				qm::ErrorCallback* pErrorCallback);
 	virtual ~Imap4Driver();
 
 public:
@@ -139,8 +140,9 @@ public:
 
 protected:
 	virtual std::auto_ptr<qm::ProtocolDriver> createDriver(qm::Account* pAccount,
+														   const qm::Security* pSecurity,
 														   qm::PasswordCallback* pPasswordCallback,
-														   const qm::Security* pSecurity);
+														   qm::ErrorCallback* pErrorCallback);
 
 private:
 	Imap4Factory(const Imap4Factory&);
@@ -256,8 +258,9 @@ class FolderListGetter
 public:
 	FolderListGetter(qm::Account* pAccount,
 					 qm::SubAccount* pSubAccount,
+					 const qm::Security* pSecurity,
 					 qm::PasswordCallback* pPasswordCallback,
-					 const qm::Security* pSecurity);
+					 qm::ErrorCallback* pErrorCallback);
 	~FolderListGetter();
 
 public:
@@ -321,9 +324,7 @@ private:
 	class CallbackImpl : public AbstractCallback
 	{
 	public:
-		CallbackImpl(FolderListGetter* pGetter,
-					 qm::PasswordCallback* pPasswordCallback,
-					 const qm::Security* pSecurity);
+		CallbackImpl(FolderListGetter* pGetter);
 		virtual ~CallbackImpl();
 	
 	public:
@@ -350,8 +351,9 @@ private:
 private:
 	qm::Account* pAccount_;
 	qm::SubAccount* pSubAccount_;
-	qm::PasswordCallback* pPasswordCallback_;
 	const qm::Security* pSecurity_;
+	qm::PasswordCallback* pPasswordCallback_;
+	qm::ErrorCallback* pErrorCallback_;
 	std::auto_ptr<FolderUtil> pFolderUtil_;
 	FolderInfoList listFolderInfo_;
 };
@@ -431,14 +433,16 @@ class SessionCacheManager
 {
 public:
 	SessionCacheManager(qm::Account* pAccount,
+						const qm::Security* pSecurity,
 						qm::PasswordCallback* pPasswordCallback,
-						const qm::Security* pSecurity);
+						qm::ErrorCallback* pErrorCallback);
 	~SessionCacheManager();
 
 public:
 	qm::Account* getAccount() const;
-	qm::PasswordCallback* getPasswordCallback() const;
 	const qm::Security* getSecurity() const;
+	qm::PasswordCallback* getPasswordCallback() const;
+	qm::ErrorCallback* getErrorCallback() const;
 	bool isOffline() const;
 	void setOffline(bool bOffline);
 	qm::SubAccount* getSubAccount() const;
@@ -470,8 +474,9 @@ private:
 
 private:
 	qm::Account* pAccount_;
-	qm::PasswordCallback* pPasswordCallback_;
 	const qm::Security* pSecurity_;
+	qm::PasswordCallback* pPasswordCallback_;
+	qm::ErrorCallback* pErrorCallback_;
 	bool bOffline_;
 	qm::SubAccount* pSubAccount_;
 	size_t nMaxSession_;

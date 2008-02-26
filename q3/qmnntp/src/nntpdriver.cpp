@@ -34,8 +34,8 @@ const unsigned int qmnntp::NntpDriver::nSupport__ =
 	Account::SUPPORT_JUNKFILTER;
 
 qmnntp::NntpDriver::NntpDriver(Account* pAccount,
-							   PasswordCallback* pPasswordCallback,
-							   const Security* pSecurity) :
+							   const Security* pSecurity,
+							   PasswordCallback* pPasswordCallback) :
 	pAccount_(pAccount),
 	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity),
@@ -227,9 +227,15 @@ qmnntp::NntpFactory::~NntpFactory()
 }
 
 std::auto_ptr<ProtocolDriver> qmnntp::NntpFactory::createDriver(Account* pAccount,
+																const Security* pSecurity,
 																PasswordCallback* pPasswordCallback,
-																const Security* pSecurity)
+																ErrorCallback* pErrorCallback)
 {
+	assert(pAccount);
+	assert(pSecurity);
+	assert(pPasswordCallback);
+	assert(pErrorCallback);
+	
 	return std::auto_ptr<ProtocolDriver>(new NntpDriver(
-		pAccount, pPasswordCallback, pSecurity));
+		pAccount, pSecurity, pPasswordCallback));
 }

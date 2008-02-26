@@ -120,12 +120,14 @@ qmrss::RssFactory::~RssFactory()
 }
 
 std::auto_ptr<ProtocolDriver> qmrss::RssFactory::createDriver(Account* pAccount,
+															  const Security* pSecurity,
 															  PasswordCallback* pPasswordCallback,
-															  const Security* pSecurity)
+															  ErrorCallback* pErrorCallback)
 {
 	assert(pAccount);
-	assert(pPasswordCallback);
 	assert(pSecurity);
+	assert(pPasswordCallback);
+	assert(pErrorCallback);
 	
 	return std::auto_ptr<ProtocolDriver>(new RssDriver(pAccount));
 }

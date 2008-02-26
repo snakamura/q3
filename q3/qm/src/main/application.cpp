@@ -849,13 +849,14 @@ bool qm::Application::initialize(int nLogLevel,
 		new DefaultPasswordCallback(pImpl_->pPasswordManager_.get()));
 	ProtocolFactory::setPasswordCallback(pPasswordCallback);
 	
-	pImpl_->pDocument_.reset(new Document(pImpl_->pProfile_.get(),
-		pImpl_->pPasswordManager_.get()));
-	pImpl_->pSyncManager_.reset(new SyncManager(
-		pImpl_->pDocument_->getSyncFilterManager(),
-		pImpl_->pProfile_.get()));
 	pImpl_->pSyncDialogManager_.reset(new SyncDialogManager(
 		pImpl_->pProfile_.get(), pImpl_->pPasswordManager_.get()));
+	ProtocolFactory::setErrorCallback(pImpl_->pSyncDialogManager_->getErrorCallback());
+	
+	pImpl_->pDocument_.reset(new Document(
+		pImpl_->pProfile_.get(), pImpl_->pPasswordManager_.get()));
+	pImpl_->pSyncManager_.reset(new SyncManager(
+		pImpl_->pDocument_->getSyncFilterManager(), pImpl_->pProfile_.get()));
 	pImpl_->pSyncQueue_.reset(new SyncQueue(pImpl_->pSyncManager_.get(),
 		pImpl_->pDocument_.get(), pImpl_->pSyncDialogManager_.get()));
 	pImpl_->pGoRound_.reset(new GoRound(getProfilePath(FileNames::GOROUND_XML).get()));
@@ -953,9 +954,9 @@ void qm::Application::uninitialize()
 	pImpl_->pTempFileCleaner_.reset(0);
 	pImpl_->pGoRound_.reset(0);
 	pImpl_->pSyncQueue_.reset(0);
-	pImpl_->pSyncDialogManager_.reset(0);
 	pImpl_->pSyncManager_.reset(0);
 	pImpl_->pDocument_.reset(0);
+	pImpl_->pSyncDialogManager_.reset(0);
 	pImpl_->pProfile_.reset(0);
 	
 	Part::setDefaultCharset(0);

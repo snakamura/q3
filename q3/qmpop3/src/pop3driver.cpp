@@ -104,12 +104,14 @@ qmpop3::Pop3Factory::~Pop3Factory()
 }
 
 std::auto_ptr<ProtocolDriver> qmpop3::Pop3Factory::createDriver(Account* pAccount,
+																const Security* pSecurity,
 																PasswordCallback* pPasswordCallback,
-																const Security* pSecurity)
+																ErrorCallback* pErrorCallback)
 {
 	assert(pAccount);
-	assert(pPasswordCallback);
 	assert(pSecurity);
+	assert(pPasswordCallback);
+	assert(pErrorCallback);
 	
 	return std::auto_ptr<ProtocolDriver>(new Pop3Driver(pAccount));
 }

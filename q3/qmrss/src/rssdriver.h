@@ -61,8 +61,9 @@ public:
 
 protected:
 	virtual std::auto_ptr<qm::ProtocolDriver> createDriver(qm::Account* pAccount,
+														   const qm::Security* pSecurity,
 														   qm::PasswordCallback* pPasswordCallback,
-														   const qm::Security* pSecurity);
+														   qm::ErrorCallback* pErrorCallback);
 
 private:
 	RssFactory(const RssFactory&);

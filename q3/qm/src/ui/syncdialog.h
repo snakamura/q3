@@ -26,6 +26,7 @@ class SyncDialog;
 class SyncStatusWindow;
 class SyncDialogThread;
 
+class ErrorCallback;
 class PasswordManager;
 
 
@@ -46,15 +47,31 @@ public:
 	SyncDialog* open();
 	void hide();
 	void save() const;
+	ErrorCallback* getErrorCallback();
 
 private:
 	SyncDialogManager(const SyncDialogManager&);
 	SyncDialogManager& operator=(const SyncDialogManager&);
 
 private:
+	class ErrorCallbackImpl : public ErrorCallback
+	{
+	public:
+		ErrorCallbackImpl(SyncDialogManager* pManager);
+		~ErrorCallbackImpl();
+	
+	public:
+		virtual void addError(const SessionErrorInfo& info);
+	
+	private:
+		SyncDialogManager* pManager_;
+	};
+
+private:
 	qs::Profile* pProfile_;
 	PasswordManager* pPasswordManager_;
 	std::auto_ptr<SyncDialogThread> pThread_;
+	std::auto_ptr<ErrorCallback> pErrorCallback_;
 };
 
 
@@ -90,6 +107,7 @@ public:
 	void setMessage(const WCHAR* pwszMessage);
 	unsigned int getCanceledTime() const;
 	void resetCanceledTime();
+	void addError(const SessionErrorInfo& info);
 	void addError(const WCHAR* pwszError);
 	bool hasError() const;
 	void enableCancel(bool bEnable);
@@ -138,6 +156,9 @@ private:
 	void layout();
 	void layout(int cx,
 				int cy);
+
+private:
+	static qs::wstring_ptr formatError(const SessionErrorInfo& info);
 
 private:
 	SyncDialog(const SyncDialog&);
