@@ -28,6 +28,14 @@ using namespace qs;
  *
  */
 
+#define HANDLE_ERROR() \
+	do { \
+		Util::reportError(pNntp_.get(), pErrorCallback_, pAccount_, \
+			pSubAccount_, pFolder, 0, pCallback_->getErrorMessage(), 0); \
+		clearSession(); \
+		return false; \
+	} while (false) \
+
 const unsigned int qmnntp::NntpDriver::nSupport__ =
 	Account::SUPPORT_LOCALFOLDERSYNC |
 	Account::SUPPORT_LOCALFOLDERGETMESSAGE |
@@ -35,10 +43,12 @@ const unsigned int qmnntp::NntpDriver::nSupport__ =
 
 qmnntp::NntpDriver::NntpDriver(Account* pAccount,
 							   const Security* pSecurity,
-							   PasswordCallback* pPasswordCallback) :
+							   PasswordCallback* pPasswordCallback,
+							   ErrorCallback* pErrorCallback) :
 	pAccount_(pAccount),
-	pPasswordCallback_(pPasswordCallback),
 	pSecurity_(pSecurity),
+	pPasswordCallback_(pPasswordCallback),
+	pErrorCallback_(pErrorCallback),
 	pNntp_(0),
 	pCallback_(0),
 	pLogger_(0),
@@ -115,14 +125,14 @@ bool qmnntp::NntpDriver::getMessage(MessageHolder* pmh,
 	
 	Lock<CriticalSection> lock(cs_);
 	
-	if (!prepareSession(pmh->getFolder()))
+	NormalFolder* pFolder = pmh->getFolder();
+	if (!prepareSession(pFolder))
 		return false;
 	
 	xstring_size_ptr strMessage;
 	if (!pNntp_->getMessage(pmh->getId(),
 		Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, pmh->getSize())) {
-		clearSession();
-		return false;
+		HANDLE_ERROR();
 	}
 	if (!strMessage.get())
 		return false;
@@ -170,8 +180,11 @@ bool qmnntp::NntpDriver::prepareSession(NormalFolder* pFolder)
 			pCallback.get(), pCallback.get(), pLogger.get()));
 		if (!pNntp->connect(pSubAccount_->getHost(Account::HOST_RECEIVE),
 			pSubAccount_->getPort(Account::HOST_RECEIVE),
-			pSubAccount_->getSecure(Account::HOST_RECEIVE) == SubAccount::SECURE_SSL))
+			pSubAccount_->getSecure(Account::HOST_RECEIVE) == SubAccount::SECURE_SSL)) {
+			Util::reportError(pNntp.get(), pErrorCallback_, pAccount_, pSubAccount_, pFolder,
+				0, pCallback->getErrorMessage(), pCallback->getSSLErrorMessage().get());
 			return false;
+		}
 		
 		pNntp_ = pNntp;
 		pCallback_ = pCallback;
@@ -185,7 +198,7 @@ bool qmnntp::NntpDriver::prepareSession(NormalFolder* pFolder)
 	const WCHAR* pwszGroup = pNntp_->getGroup();
 	if (!pwszGroup || wcscmp(wstrGroup.get(), pwszGroup) != 0) {
 		if (!pNntp_->group(wstrGroup.get()))
-			return false;
+			HANDLE_ERROR();
 	}
 	
 	nLastUsedTime_ = ::GetTickCount();
@@ -237,5 +250,5 @@ std::auto_ptr<ProtocolDriver> qmnntp::NntpFactory::createDriver(Account* pAccoun
 	assert(pErrorCallback);
 	
 	return std::auto_ptr<ProtocolDriver>(new NntpDriver(
-		pAccount, pSecurity, pPasswordCallback));
+		pAccount, pSecurity, pPasswordCallback, pErrorCallback));
 }

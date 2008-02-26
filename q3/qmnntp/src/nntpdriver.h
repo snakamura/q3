@@ -34,7 +34,8 @@ class NntpDriver : public qm::ProtocolDriver
 public:
 	NntpDriver(qm::Account* pAccount,
 			   const qm::Security* pSecurity,
-			   qm::PasswordCallback* pPasswordCallback);
+			   qm::PasswordCallback* pPasswordCallback,
+			   qm::ErrorCallback* pErrorCallback);
 	virtual ~NntpDriver();
 
 public:
@@ -60,8 +61,9 @@ private:
 
 private:
 	qm::Account* pAccount_;
-	qm::PasswordCallback* pPasswordCallback_;
 	const qm::Security* pSecurity_;
+	qm::PasswordCallback* pPasswordCallback_;
+	qm::ErrorCallback* pErrorCallback_;
 	std::auto_ptr<Nntp> pNntp_;
 	std::auto_ptr<DefaultCallback> pCallback_;
 	std::auto_ptr<qs::Logger> pLogger_;
