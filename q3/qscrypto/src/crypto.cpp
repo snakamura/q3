@@ -101,7 +101,7 @@ qscrypto::GeneralNameImpl::~GeneralNameImpl()
 {
 }
 
-qs::GeneralName::Type qscrypto::GeneralNameImpl::getType() const
+GeneralName::Type qscrypto::GeneralNameImpl::getType() const
 {
 	switch (pGeneralName_->type) {
 	case GEN_DNS:
@@ -202,6 +202,7 @@ bool qscrypto::CertificateImpl::load(const WCHAR* pwszPath,
 									 CryptoPasswordCallback* pCallback)
 {
 	assert(pwszPath);
+	assert(!pX509_);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::CertificateImpl");
 	
@@ -212,9 +213,7 @@ bool qscrypto::CertificateImpl::load(const WCHAR* pwszPath,
 		log.errorf(L"Failed to open file: %s", pwszPath);
 		return false;
 	}
-	BufferedInputStream bufferedStream(&stream, false);
-	
-	return load(&bufferedStream, type, pCallback);
+	return load(&stream, type, pCallback);
 }
 
 bool qscrypto::CertificateImpl::load(InputStream* pStream,
@@ -222,6 +221,7 @@ bool qscrypto::CertificateImpl::load(InputStream* pStream,
 									 CryptoPasswordCallback* pCallback)
 {
 	assert(pStream);
+	assert(!pX509_);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::CertificateImpl");
 	
@@ -250,8 +250,60 @@ bool qscrypto::CertificateImpl::load(InputStream* pStream,
 	return true;
 }
 
+bool qscrypto::CertificateImpl::save(const WCHAR* pwszPath,
+									 FileType type) const
+{
+	assert(pwszPath);
+	assert(pX509_);
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::CertificateImpl");
+	
+	log.debugf(L"Saving a certificate to %s", pwszPath);
+	
+	FileOutputStream stream(pwszPath);
+	if (!stream) {
+		log.errorf(L"Failed to open file: %s", pwszPath);
+		return false;
+	}
+	return save(&stream, type);
+}
+
+bool qscrypto::CertificateImpl::save(OutputStream* pStream,
+									 FileType type) const
+{
+	assert(pStream);
+	assert(pX509_);
+	
+	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::CertificateImpl");
+	
+	BIOPtr pOut(BIO_new(BIO_s_mem()));
+	
+	switch (type) {
+	case FILETYPE_PEM:
+		if (PEM_write_bio_X509(pOut.get(), pX509_) == 0) {
+			Util::logError(log, L"Failed to save a certificate to PEM.");
+			return false;
+		}
+		break;
+	default:
+		assert(false);
+		break;
+	}
+	
+	char* pBuf = 0;
+	int nLen = BIO_get_mem_data(pOut.get(), &pBuf);
+	if (pStream->write(reinterpret_cast<const unsigned char*>(pBuf), nLen) != nLen) {
+		log.error(L"Failed to write to stream.");
+		return false;
+	}
+	
+	return true;
+}
+
 wstring_ptr qscrypto::CertificateImpl::getText() const
 {
+	assert(pX509_);
+	
 	BIOPtr pOut(BIO_new(BIO_s_mem()));
 	if (X509_print(pOut.get(), pX509_) == 0)
 		return 0;
@@ -264,6 +316,8 @@ wstring_ptr qscrypto::CertificateImpl::getText() const
 
 std::auto_ptr<Name> qscrypto::CertificateImpl::getSubject() const
 {
+	assert(pX509_);
+	
 	X509_NAME* pX509Name = X509_get_subject_name(pX509_);
 	if (!pX509Name)
 		return std::auto_ptr<Name>(0);
@@ -272,6 +326,8 @@ std::auto_ptr<Name> qscrypto::CertificateImpl::getSubject() const
 
 std::auto_ptr<Name> qscrypto::CertificateImpl::getIssuer() const
 {
+	assert(pX509_);
+	
 	X509_NAME* pX509Name = X509_get_issuer_name(pX509_);
 	if (!pX509Name)
 		return std::auto_ptr<Name>(0);
@@ -280,6 +336,8 @@ std::auto_ptr<Name> qscrypto::CertificateImpl::getIssuer() const
 
 std::auto_ptr<GeneralNames> qscrypto::CertificateImpl::getSubjectAltNames() const
 {
+	assert(pX509_);
+	
 	GENERAL_NAMES* pGeneralNames = static_cast<GENERAL_NAMES*>(
 		X509_get_ext_d2i(pX509_, NID_subject_alt_name, 0, 0));
 	if (!pGeneralNames)
@@ -289,12 +347,16 @@ std::auto_ptr<GeneralNames> qscrypto::CertificateImpl::getSubjectAltNames() cons
 
 bool qscrypto::CertificateImpl::checkValidity() const
 {
+	assert(pX509_);
+	
 	return X509_cmp_current_time(X509_get_notBefore(pX509_)) < 0 &&
 		X509_cmp_current_time(X509_get_notAfter(pX509_)) > 0;
 }
 
 std::auto_ptr<Certificate> qscrypto::CertificateImpl::clone() const
 {
+	assert(pX509_);
+	
 	return std::auto_ptr<Certificate>(new CertificateImpl(pX509_, true));
 }
 
@@ -326,6 +388,7 @@ bool qscrypto::PrivateKeyImpl::load(const WCHAR* pwszPath,
 									CryptoPasswordCallback* pCallback)
 {
 	assert(pwszPath);
+	assert(!pKey_);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::PrivateKeyImpl");
 	
@@ -346,6 +409,7 @@ bool qscrypto::PrivateKeyImpl::load(InputStream* pStream,
 									CryptoPasswordCallback* pCallback)
 {
 	assert(pStream);
+	assert(!pKey_);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::PrivateKeyImpl");
 	
@@ -402,6 +466,7 @@ bool qscrypto::PublicKeyImpl::load(const WCHAR* pwszPath,
 								   CryptoPasswordCallback* pCallback)
 {
 	assert(pwszPath);
+	assert(!pKey_);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::PublicKeyImpl");
 	
@@ -422,6 +487,7 @@ bool qscrypto::PublicKeyImpl::load(InputStream* pStream,
 								   CryptoPasswordCallback* pCallback)
 {
 	assert(pStream);
+	assert(!pKey_);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qscrypto::PublicKeyImpl");
 	

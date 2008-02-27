@@ -30,6 +30,7 @@ class CryptoFactory;
 
 class ContentTypeParser;
 class InputStream;
+class OutputStream;
 class Part;
 
 
@@ -140,12 +141,35 @@ public:
 	 *
 	 * @param pStream [in] Stream.
 	 * @param type [in] Type.
+	 * @param pCallback [in] Callback which suplies password.
 	 * @return true if success, false otherwise.
 	 * @exception std::bad_alloc Out of memory.
 	 */
 	virtual bool load(InputStream* pStream,
 					  FileType type,
 					  CryptoPasswordCallback* pCallback) = 0;
+	
+	/**
+	 * Save certificate to the specified file.
+	 *
+	 * @param pwszPath [in] Path to the file.
+	 * @param type [in] Type.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual bool save(const WCHAR* pwszPath,
+					  FileType type) const = 0;
+	
+	/**
+	 * Save certificate to the specified stream.
+	 *
+	 * @param pStream [in] Stream.
+	 * @param type [in] Type.
+	 * @return true if success, false otherwise.
+	 * @exception std::bad_alloc Out of memory.
+	 */
+	virtual bool save(OutputStream* pStream,
+					  FileType type) const = 0;
 	
 	/**
 	 * Serialize this certificate to text.

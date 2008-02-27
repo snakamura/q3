@@ -120,6 +120,10 @@ public:
 	virtual bool load(qs::InputStream* pStream,
 					  FileType type,
 					  qs::CryptoPasswordCallback* pCallback);
+	virtual bool save(const WCHAR* pwszPath,
+					  FileType type) const;
+	virtual bool save(qs::OutputStream* pStream,
+					  FileType type) const;
 	virtual qs::wstring_ptr getText() const;
 	virtual std::auto_ptr<qs::Name> getSubject() const;
 	virtual std::auto_ptr<qs::Name> getIssuer() const;
