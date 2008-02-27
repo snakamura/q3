@@ -2791,7 +2791,9 @@ class ToolAddAddressAction : public qs::AbstractAction
 {
 public:
 	ToolAddAddressAction(AddressBook* pAddressBook,
+						 Security* pSecurity,
 						 MessageSelectionModel* pMessageSelectionModel,
+						 SecurityModel* pSecurityModel,
 						 HWND hwnd);
 	virtual ~ToolAddAddressAction();
 
@@ -2805,7 +2807,9 @@ private:
 
 private:
 	AddressBook* pAddressBook_;
+	Security* pSecurity_;
 	MessageSelectionModel* pMessageSelectionModel_;
+	SecurityModel* pSecurityModel_;
 	HWND hwnd_;
 };
 

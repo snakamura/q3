@@ -1053,10 +1053,12 @@ void qm::MainWindowImpl::initActions()
 		pOptionDialogManager_.get(),
 		pProfile_,
 		pThis_->getHandle());
-	ADD_ACTION3(ToolAddAddressAction,
+	ADD_ACTION5(ToolAddAddressAction,
 		IDM_TOOL_ADDADDRESS,
 		pDocument_->getAddressBook(),
+		pDocument_->getSecurity(),
 		pMessageSelectionModel_.get(),
+		pSecurityModel_.get(),
 		pThis_->getHandle());
 	ADD_ACTION1(ToolAddressBookAction,
 		IDM_TOOL_ADDRESSBOOK,

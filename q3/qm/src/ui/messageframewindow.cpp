@@ -421,10 +421,12 @@ void qm::MessageFrameWindowImpl::initActions()
 		this,
 		pDocument_->getUndoManager(),
 		pThis_->getHandle());
-	ADD_ACTION3(ToolAddAddressAction,
+	ADD_ACTION5(ToolAddAddressAction,
 		IDM_TOOL_ADDADDRESS,
 		pDocument_->getAddressBook(),
+		pDocument_->getSecurity(),
 		this,
+		pSecurityModel_.get(),
 		pThis_->getHandle());
 	ADD_ACTION3(ToolInvokeActionAction,
 		IDM_TOOL_INVOKEACTION,

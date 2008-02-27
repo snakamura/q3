@@ -839,8 +839,9 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 	if (!pMessage->create(strMessage.get(), strMessage.size(), Message::FLAG_NONE, nSecurity))
 		return false;
 	
-	wstring_ptr wstrSignedBy = 0;
+	wstring_ptr wstrSignedBy;
 	wstring_ptr wstrCertificate;
+	wstring_ptr wstrPEM;
 	if (!listCertificate.empty()) {
 		if (nSecurity & Message::SECURITY_VERIFIED)
 			wstrSignedBy = listCertificate.front()->getSubject()->getText();
@@ -852,9 +853,14 @@ bool qm::AccountImpl::processSMIME(const SMIMEUtility* pSMIMEUtility,
 			buf.append((*it)->getText().get());
 		}
 		wstrCertificate = buf.getString();
+		
+		ByteOutputStream stream;
+		if (listCertificate.front()->save(&stream, Certificate::FILETYPE_PEM))
+			wstrPEM = mbs2wcs(reinterpret_cast<const char*>(stream.getBuffer()), stream.getLength());
 	}
 	pMessage->setParam(L"SignedBy", wstrSignedBy.get());
 	pMessage->setParam(L"Certificate", wstrCertificate.get());
+	pMessage->setParam(L"CertificatePEM", wstrPEM.get());
 	
 	return true;
 }
@@ -1402,10 +1408,10 @@ Folder* qm::Account::getFolder(Folder* pParent,
 
 Folder* qm::Account::getFolderById(unsigned int nId) const
 {
-	const FolderList& l = pImpl_->listFolder_;
-	FolderList::const_iterator it = std::find_if(l.begin(), l.end(),
+	FolderList::const_iterator it = std::find_if(
+		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
 		boost::bind(&Folder::getId, _1) == nId);
-	return it != l.end() ? *it : 0;
+	return it != pImpl_->listFolder_.end() ? *it : 0;
 }
 
 Folder* qm::Account::getFolderByBoxFlag(unsigned int nBoxFlag) const
@@ -1414,11 +1420,10 @@ Folder* qm::Account::getFolderByBoxFlag(unsigned int nBoxFlag) const
 	
 	using namespace boost::lambda;
 	using boost::lambda::_1;
-	
-	const FolderList& l = pImpl_->listFolder_;
-	FolderList::const_iterator it = std::find_if(l.begin(), l.end(),
+	FolderList::const_iterator it = std::find_if(
+		pImpl_->listFolder_.begin(), pImpl_->listFolder_.end(),
 		bind(&Folder::getFlags, _1) & nBoxFlag);
-	if (it == l.end())
+	if (it == pImpl_->listFolder_.end())
 		return 0;
 	
 	Folder::Type type = nBoxFlag != Folder::FLAG_SEARCHBOX ?

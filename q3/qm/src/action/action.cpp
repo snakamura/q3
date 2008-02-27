@@ -5645,10 +5645,14 @@ bool qm::ToolAccountAction::isEnabled(const ActionEvent& event)
  */
 
 qm::ToolAddAddressAction::ToolAddAddressAction(AddressBook* pAddressBook,
+											   Security* pSecurity,
 											   MessageSelectionModel* pMessageSelectionModel,
+											   SecurityModel* pSecurityModel,
 											   HWND hwnd) :
 	pAddressBook_(pAddressBook),
+	pSecurity_(pSecurity),
 	pMessageSelectionModel_(pMessageSelectionModel),
+	pSecurityModel_(pSecurityModel),
 	hwnd_(hwnd)
 {
 }
@@ -5664,7 +5668,8 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 		return;
 	
 	Message msg;
-	Message* pMessage = pEnum->getMessage(Account::GMF_HEADER, L"From", SECURITYMODE_NONE, &msg);
+	Message* pMessage = pEnum->getMessage(Account::GMF_HEADER,
+		L"From", pSecurityModel_->getSecurityMode(), &msg);
 	if (!pMessage)
 		return;
 	
@@ -5685,13 +5690,24 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 	if (!pwszPhrase)
 		pwszPhrase = wstrAddress.get();
 	
+	wstring_ptr wstrCertificate;
+	const WCHAR* pwszPEM = pMessage->getParam(L"CertificatePEM");
+	if (pwszPEM) {
+		std::auto_ptr<Certificate> pCertificate(Certificate::getInstance());
+		string_ptr strPEM(wcs2mbs(pwszPEM));
+		ByteInputStream stream(reinterpret_cast<unsigned char*>(strPEM.get()), strlen(strPEM.get()), false);
+		if (pCertificate->load(&stream, Certificate::FILETYPE_PEM, 0))
+			wstrCertificate = pSecurity_->addCertificate(pCertificate.get());
+	}
+	
 	switch (dialog.getType()) {
 	case AddAddressDialog::TYPE_NEWENTRY:
 		{
 			std::auto_ptr<AddressBookEntry> pEntry(
 				new AddressBookEntry(pwszPhrase, 0, false));
-			std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(pEntry.get(),
-				wstrAddress.get(), 0, AddressBookAddress::CategoryList(), 0, 0, false));
+			std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(
+				pEntry.get(), wstrAddress.get(), 0, AddressBookAddress::CategoryList(),
+				0, wstrCertificate.get(), false));
 			pEntry->addAddress(pAddress);
 			
 			AddressBookEntryDialog dialog(pAddressBook.get(), pEntry.get());
@@ -5704,8 +5720,9 @@ void qm::ToolAddAddressAction::invoke(const ActionEvent& event)
 	case AddAddressDialog::TYPE_NEWADDRESS:
 		{
 			AddressBookEntry* pEntry = dialog.getEntry();
-			std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(pEntry,
-				wstrAddress.get(), 0, AddressBookAddress::CategoryList(), 0, 0, false));
+			std::auto_ptr<AddressBookAddress> pAddress(new AddressBookAddress(
+				pEntry, wstrAddress.get(), 0, AddressBookAddress::CategoryList(),
+				0, wstrCertificate.get(), false));
 			
 			AddressBookAddressDialog dialog(pAddressBook.get(), pAddress.get());
 			if (dialog.doModal(hwnd_) != IDOK)
