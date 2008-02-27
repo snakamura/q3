@@ -88,6 +88,9 @@ public:
 	bool removePrivateFields();
 
 private:
+	void clearParams();
+
+private:
 	Message(const Message&);
 	Message& operator=(const Message&);
 

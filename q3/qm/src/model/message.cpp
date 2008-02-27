@@ -27,6 +27,8 @@
 
 #include <boost/bind.hpp>
 #include <boost/bind/make_adaptable.hpp>
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
 
 #include "message.h"
 #include "messagecontext.h"
@@ -52,11 +54,7 @@ qm::Message::Message() :
 
 qm::Message::~Message()
 {
-	for (ParamList::const_iterator it = listParam_.begin(); it != listParam_.end(); ++it) {
-		freeWString((*it).first);
-		freeWString((*it).second);
-	}
-	listParam_.clear();
+	clearParams();
 }
 
 bool qm::Message::create(const CHAR* pszMessage,
@@ -94,6 +92,7 @@ void qm::Message::clear()
 {
 	flag_ = FLAG_EMPTY;
 	Part::clear();
+	clearParams();
 }
 
 Message::Flag qm::Message::getFlag() const
@@ -157,6 +156,16 @@ bool qm::Message::removePrivateFields()
 {
 	PrefixFieldFilter filter("x-qmail-");
 	return removeFields(&filter);
+}
+
+void qm::Message::clearParams()
+{
+	using namespace boost::lambda;
+	using boost::lambda::_1;
+	std::for_each(listParam_.begin(), listParam_.end(),
+		(bind(&freeWString, bind(&ParamList::value_type::first, _1)),
+		 bind(&freeWString, bind(&ParamList::value_type::second, _1))));
+	listParam_.clear();
 }
 
 
