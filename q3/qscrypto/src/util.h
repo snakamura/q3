@@ -36,8 +36,8 @@ public:
 	BIO* get() const { return p_; }
 
 private:
-	BIOPtr(BIOPtr&);
-	BIOPtr& operator=(BIOPtr&);
+	BIOPtr(const BIOPtr&);
+	BIOPtr& operator=(const BIOPtr&);
 
 private:
 	BIO* p_;
