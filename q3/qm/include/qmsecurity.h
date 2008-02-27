@@ -39,6 +39,7 @@ public:
 	const qs::Store* getCA() const;
 	const qs::SMIMEUtility* getSMIMEUtility() const;
 	std::auto_ptr<qs::Certificate> getCertificate(const WCHAR* pwszName) const;
+	qs::wstring_ptr addCertificate(const qs::Certificate* pCertificate);
 
 public:
 	const PGPUtility* getPGPUtility() const;

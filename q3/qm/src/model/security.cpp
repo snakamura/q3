@@ -129,6 +129,45 @@ std::auto_ptr<Certificate> qm::Security::getCertificate(const WCHAR* pwszName) c
 	return pCertificate;
 }
 
+wstring_ptr qm::Security::addCertificate(const Certificate* pCertificate)
+{
+	assert(pCertificate);
+	
+	wstring_ptr wstrName;
+	std::auto_ptr<Name> pSubject(pCertificate->getSubject());
+	if (pSubject.get()) {
+		wstrName = pSubject->getEmailAddress();
+		if (!wstrName.get())
+			wstrName = pSubject->getCommonName();
+	}
+	if (!wstrName.get())
+		wstrName = allocWString(L"Unknown");
+	
+	wstring_ptr wstrPath;
+	for (int n = 0; !wstrPath.get(); ++n) {
+		WCHAR wsz[16] = L"";
+		if (n != 0)
+			wsprintf(wsz, L"_%d", n);
+		ConcatW c[] = {
+			{ pImpl_->wstrPath_.get(),	-1	},
+			{ L"\\",					1	},
+			{ wstrName.get(),			-1	},
+			{ wsz,						-1	},
+			{ L".pem",					-1	}
+		};
+		wstring_ptr wstr(concat(c, countof(c)));
+		if (!File::isFileExisting(wstr.get()))
+			wstrPath = wstr;
+	}
+	
+	if (!pCertificate->save(wstrPath.get(), Certificate::FILETYPE_PEM))
+		return 0;
+	
+	const WCHAR* p = wcsrchr(wstrPath.get(), L'\\');
+	assert(p);
+	return allocWString(p + 1);
+}
+
 const PGPUtility* qm::Security::getPGPUtility() const
 {
 	Lock<CriticalSection> lock(pImpl_->cs_);
