@@ -715,7 +715,9 @@ INCLUDES				+= -I"$(BOOSTDIR)"
 
 BOOSTFLAGS				=
 ifeq ($(PLATFORM),win)
-	BOOSTFLAGS			+= -DBOOST_BIND_ENABLE_STDCALL
+	ifneq ($(CPU),x64)
+		BOOSTFLAGS		+= -DBOOST_BIND_ENABLE_STDCALL
+	endif
 endif
 DEFINES					+= $(BOOSTFLAGS)
 #############################################################################
