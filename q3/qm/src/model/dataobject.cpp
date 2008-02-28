@@ -14,6 +14,7 @@
 
 #include <qsassert.h>
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsstl.h>
 #include <qstextutil.h>
 #include <qsthread.h>
@@ -619,10 +620,13 @@ wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
 	assert(pwszName);
 	
 	size_t nLen = wcslen(pwszName);
-	if (nLen + 4 >= MAX_PATH)
-		nLen = MAX_PATH - 5;
+	if (nLen + 5 >= MAX_PATH)
+		nLen = MAX_PATH - 6;
 	
 	wstring_ptr wstrName(concat(pwszName, nLen, L".eml", 4));
+	
+	if (File::isDeviceName(wstrName.get()))
+		wstrName = concat(L"_", wstrName.get());
 	
 	const WCHAR* pwszEscape = L"\\/:*?\"<>|";
 	for (WCHAR* p = wstrName.get(); *p; ++p) {
