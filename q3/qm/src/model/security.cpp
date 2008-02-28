@@ -140,7 +140,7 @@ wstring_ptr qm::Security::addCertificate(const Certificate* pCertificate)
 		if (!wstrBaseName.get())
 			wstrBaseName = pSubject->getCommonName();
 	}
-	if (!wstrBaseName.get())
+	if (!wstrBaseName.get() || File::isDeviceName(wstrBaseName.get()))
 		wstrBaseName = allocWString(L"Unknown");
 	
 	wstring_ptr wstrName;
