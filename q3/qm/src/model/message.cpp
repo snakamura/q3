@@ -2412,7 +2412,7 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	}
 	
 	FileOutputStream stream(wstrPath.get());
-	if (!stream || detach(&stream))
+	if (!stream || !detach(&stream) || !stream.close())
 		return RESULT_FAIL;
 	
 #ifndef _WIN32_WCE
