@@ -36,6 +36,7 @@ public:
 
 public:
 	void add(const WCHAR* pwszPath);
+	void addDirectory(const WCHAR* pwszPath);
 	bool isModified(const WCHAR* pwszPath) const;
 	void clean(TempFileCleanerCallback* pCallback);
 
@@ -44,10 +45,12 @@ private:
 	TempFileCleaner& operator=(const TempFileCleaner&);
 
 private:
-	typedef std::vector<std::pair<qs::WSTRING, FILETIME> > List;
+	typedef std::vector<std::pair<qs::WSTRING, FILETIME> > FileList;
+	typedef std::vector<qs::WSTRING> DirectoryList;
 
 private:
-	List list_;
+	FileList listFile_;
+	DirectoryList listDirectory_;
 };
 
 

@@ -8,6 +8,7 @@
 #pragma warning(disable:4786)
 
 #include <qsconv.h>
+#include <qsfile.h>
 #include <qsosutil.h>
 #include <qsstl.h>
 
@@ -31,18 +32,22 @@ qm::TempFileCleaner::TempFileCleaner()
 
 qm::TempFileCleaner::~TempFileCleaner()
 {
-	std::for_each(list_.begin(), list_.end(),
-		boost::bind(&freeWString, boost::bind(&List::value_type::first, _1)));
+	std::for_each(listFile_.begin(), listFile_.end(),
+		boost::bind(&freeWString, boost::bind(&FileList::value_type::first, _1)));
+	std::for_each(listDirectory_.begin(), listDirectory_.end(), &freeWString);
 }
 
 void qm::TempFileCleaner::add(const WCHAR* pwszPath)
 {
-	List::iterator it = std::find_if(list_.begin(), list_.end(),
+	assert(pwszPath);
+	
+	FileList::iterator it = std::find_if(
+		listFile_.begin(), listFile_.end(),
 		boost::bind(string_equal<WCHAR>(),
-			boost::bind(&List::value_type::first, _1), pwszPath));
-	if (it != list_.end()) {
+			boost::bind(&FileList::value_type::first, _1), pwszPath));
+	if (it != listFile_.end()) {
 		freeWString((*it).first);
-		list_.erase(it);
+		listFile_.erase(it);
 	}
 	
 	W2T(pwszPath, ptszPath);
@@ -50,17 +55,29 @@ void qm::TempFileCleaner::add(const WCHAR* pwszPath)
 	AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
 	if (hFind.get()) {
 		wstring_ptr wstrPath(allocWString(pwszPath));
-		list_.push_back(List::value_type(wstrPath.get(), fd.ftLastWriteTime));
+		listFile_.push_back(FileList::value_type(wstrPath.get(), fd.ftLastWriteTime));
 		wstrPath.release();
 	}
 }
 
+void qm::TempFileCleaner::addDirectory(const WCHAR* pwszPath)
+{
+	assert(pwszPath);
+	
+	wstring_ptr wstrPath(allocWString(pwszPath));
+	listDirectory_.push_back(wstrPath.get());
+	wstrPath.release();
+}
+
 bool qm::TempFileCleaner::isModified(const WCHAR* pwszPath) const
 {
-	List::const_iterator it = std::find_if(list_.begin(), list_.end(),
+	assert(pwszPath);
+	
+	FileList::const_iterator it = std::find_if(
+		listFile_.begin(), listFile_.end(),
 		boost::bind(string_equal<WCHAR>(),
-			boost::bind(&List::value_type::first, _1), pwszPath));
-	if (it == list_.end())
+			boost::bind(&FileList::value_type::first, _1), pwszPath));
+	if (it == listFile_.end())
 		return false;
 	
 	W2T(pwszPath, ptszPath);
@@ -71,7 +88,7 @@ bool qm::TempFileCleaner::isModified(const WCHAR* pwszPath) const
 
 void qm::TempFileCleaner::clean(TempFileCleanerCallback* pCallback)
 {
-	for (List::iterator it = list_.begin(); it != list_.end(); ++it) {
+	for (FileList::iterator it = listFile_.begin(); it != listFile_.end(); ++it) {
 		wstring_ptr wstrPath((*it).first);
 		W2T(wstrPath.get(), ptszPath);
 		WIN32_FIND_DATA fd;
@@ -83,7 +100,13 @@ void qm::TempFileCleaner::clean(TempFileCleanerCallback* pCallback)
 				::DeleteFile(ptszPath);
 		}
 	}
-	list_.clear();
+	listFile_.clear();
+	
+	for (DirectoryList::iterator it = listDirectory_.begin(); it != listDirectory_.end(); ++it) {
+		wstring_ptr wstrPath(*it);
+		File::removeDirectory(wstrPath.get());
+	}
+	listDirectory_.clear();
 }
 
 
