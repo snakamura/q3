@@ -2678,6 +2678,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		pImpl_->pMessageViewModeHolder_,
 		pImpl_->pEncodingModel_.get(),
 		pImpl_->pSecurityModel_.get(),
+		pImpl_->pTempFileCleaner_,
 		pImpl_->pActionInvoker_.get(),
 		pImpl_->pMessageWindowFontManager_.get()
 	};

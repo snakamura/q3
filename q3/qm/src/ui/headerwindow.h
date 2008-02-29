@@ -35,6 +35,7 @@ class TextHeaderItemSite;
 class HeaderWindowContentHandler;
 struct HeaderWindowCreateContext;
 
+class TempFileCleaner;
 class Template;
 class TemplateContext;
 class URIResolver;
@@ -357,7 +358,8 @@ class AttachmentHeaderItem :
 #endif
 {
 public:
-	explicit AttachmentHeaderItem(qs::MenuManager* pMenuManager);
+	AttachmentHeaderItem(qs::MenuManager* pMenuManager,
+						 TempFileCleaner* pTempFileCleaner);
 	virtual ~AttachmentHeaderItem();
 
 public:
@@ -451,6 +453,7 @@ private:
 	std::auto_ptr<Template> pBackground_;
 	AttachmentWindow wnd_;
 	qs::MenuManager* pMenuManager_;
+	TempFileCleaner* pTempFileCleaner_;
 	qs::WindowBase* pParent_;
 	const URIResolver* pURIResolver_;
 	unsigned int nSecurityMode_;
@@ -468,7 +471,8 @@ class HeaderWindowContentHandler : public qs::DefaultHandler
 {
 public:
 	HeaderWindowContentHandler(LineLayout* pLayout,
-							   qs::MenuManager* pMenuManager);
+							   qs::MenuManager* pMenuManager,
+							   TempFileCleaner* pTempFileCleaner);
 	virtual ~HeaderWindowContentHandler();
 
 public:
@@ -508,6 +512,7 @@ private:
 private:
 	LineLayout* pLayout_;
 	qs::MenuManager* pMenuManager_;
+	TempFileCleaner* pTempFileCleaner_;
 	HeaderLine* pCurrentLine_;
 	HeaderItem* pCurrentItem_;
 	State state_;
@@ -525,6 +530,7 @@ private:
 struct HeaderWindowCreateContext
 {
 	qs::MenuManager* pMenuManager_;
+	TempFileCleaner* pTempFileCleaner_;
 };
 
 }

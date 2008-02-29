@@ -29,9 +29,11 @@ class URIDataObject;
 
 class Account;
 class AccountManager;
+class MessageContext;
 class MessageHolder;
 class MessageHolderURI;
 class MessageOperationCallback;
+class TempFileCleaner;
 class UndoManager;
 class URI;
 class URIResolver;
@@ -219,6 +221,7 @@ class URIDataObject : public IDataObject
 {
 public:
 	enum Format {
+		FORMAT_HDROP,
 		FORMAT_FILEDESCRIPTOR,
 		FORMAT_FILECONTENTS
 	};
@@ -228,6 +231,7 @@ public:
 
 public:
 	URIDataObject(const URIResolver* pURIResolver,
+				  TempFileCleaner* pTempFileCleaner,
 				  unsigned int nSecurityMode,
 				  URIList& listURI);
 	~URIDataObject();
@@ -259,14 +263,23 @@ public:
 	STDMETHOD(EnumDAdvise)(IEnumSTATDATA** ppEnum);
 
 private:
+	bool createTempFiles();
+	const qs::Part* getPart(const URI* pURI,
+							std::auto_ptr<MessageContext>* ppContext);
+	qs::wstring_ptr getName(const URI* pURI,
+							int* pnUntitled);
+
+private:
 	URIDataObject(const URIDataObject&);
 	URIDataObject& operator=(const URIDataObject&);
 
 private:
 	ULONG nRef_;
 	const URIResolver* pURIResolver_;
+	TempFileCleaner* pTempFileCleaner_;
 	unsigned int nSecurityMode_;
 	URIList listURI_;
+	qs::wstring_ptr wstrTempDir_;
 
 public:
 	static UINT nFormats__[];

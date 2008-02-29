@@ -53,8 +53,10 @@ public:
 	};
 
 public:
-	bool load(MenuManager* pMenuManager);
-	bool create(MenuManager* pMenuManager);
+	bool load(MenuManager* pMenuManager,
+			  TempFileCleaner* pTempFileCleaner);
+	bool create(MenuManager* pMenuManager,
+				TempFileCleaner* pTempFileCleaner);
 	void reloadProfiles(bool bInitialize);
 
 public:
@@ -76,14 +78,16 @@ public:
 	TextHeaderItemCallbackList listTextHeaderItemCallback_;
 };
 
-bool qm::HeaderWindowImpl::load(MenuManager* pMenuManager)
+bool qm::HeaderWindowImpl::load(MenuManager* pMenuManager,
+								TempFileCleaner* pTempFileCleaner)
 {
 	pLayout_.reset(new LineLayout());
 	
 	wstring_ptr wstrPath(Application::getApplication().getProfilePath(FileNames::HEADER_XML));
 	
 	XMLReader reader;
-	HeaderWindowContentHandler contentHandler(pLayout_.get(), pMenuManager);
+	HeaderWindowContentHandler contentHandler(
+		pLayout_.get(), pMenuManager, pTempFileCleaner);
 	reader.setContentHandler(&contentHandler);
 	if (!reader.parse(wstrPath.get()))
 		return false;
@@ -92,9 +96,10 @@ bool qm::HeaderWindowImpl::load(MenuManager* pMenuManager)
 	return true;
 }
 
-bool qm::HeaderWindowImpl::create(MenuManager* pMenuManager)
+bool qm::HeaderWindowImpl::create(MenuManager* pMenuManager,
+								  TempFileCleaner* pTempFileCleaner)
 {
-	if (!load(pMenuManager))
+	if (!load(pMenuManager, pTempFileCleaner))
 		return false;
 	
 	std::pair<HFONT, HFONT> fonts(hfont_, hfontBold_);
@@ -286,7 +291,7 @@ LRESULT qm::HeaderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	if (::GetClassInfo(pCreateStruct->hInstance, pCreateStruct->lpszClass, &wc))
 		pImpl_->hbrBackground_ = wc.hbrBackground;
 	
-	if (!pImpl_->create(pContext->pMenuManager_))
+	if (!pImpl_->create(pContext->pMenuManager_, pContext->pTempFileCleaner_))
 		return false;
 	
 	return 0;
@@ -1002,9 +1007,11 @@ unsigned int qm::EditHeaderItem::parseMultiline(const WCHAR* pwszMultiline)
  *
  */
 
-qm::AttachmentHeaderItem::AttachmentHeaderItem(MenuManager* pMenuManager) :
+qm::AttachmentHeaderItem::AttachmentHeaderItem(MenuManager* pMenuManager,
+											   TempFileCleaner* pTempFileCleaner) :
 	wnd_(this),
 	pMenuManager_(pMenuManager),
+	pTempFileCleaner_(pTempFileCleaner),
 	pParent_(0),
 	pURIResolver_(0),
 	nSecurityMode_(SECURITYMODE_NONE),
@@ -1243,8 +1250,8 @@ LRESULT qm::AttachmentHeaderItem::onBeginDrag(NMHDR* pnmhdr,
 	if (listURI.empty())
 		return 0;
 	
-	std::auto_ptr<URIDataObject> p(new URIDataObject(
-		pURIResolver_, nSecurityMode_, listURI));
+	std::auto_ptr<URIDataObject> p(new URIDataObject(pURIResolver_,
+		pTempFileCleaner_, nSecurityMode_, listURI));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
@@ -1386,9 +1393,11 @@ LRESULT qm::AttachmentHeaderItem::AttachmentWindow::onSize(UINT nFlags,
  */
 
 qm::HeaderWindowContentHandler::HeaderWindowContentHandler(LineLayout* pLayout,
-														   MenuManager* pMenuManager) :
+														   MenuManager* pMenuManager,
+														   TempFileCleaner* pTempFileCleaner) :
 	pLayout_(pLayout),
 	pMenuManager_(pMenuManager),
+	pTempFileCleaner_(pTempFileCleaner),
 	pCurrentLine_(0),
 	pCurrentItem_(0),
 	state_(STATE_ROOT),
@@ -1511,8 +1520,8 @@ bool qm::HeaderWindowContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 		
 		assert(pCurrentLine_);
 		
-		std::auto_ptr<AttachmentHeaderItem> pItem(
-			new AttachmentHeaderItem(pMenuManager_));
+		std::auto_ptr<AttachmentHeaderItem> pItem(new AttachmentHeaderItem(
+			pMenuManager_, pTempFileCleaner_));
 		
 		for (int n = 0; n < attributes.getLength(); ++n) {
 			const WCHAR* pwszAttrLocalName = attributes.getLocalName(n);

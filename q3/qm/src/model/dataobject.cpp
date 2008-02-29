@@ -6,6 +6,7 @@
  */
 
 #include <qmaccount.h>
+#include <qmapplication.h>
 #include <qmmessage.h>
 #include <qmmessageholder.h>
 #include <qmmessageoperation.h>
@@ -26,6 +27,7 @@
 
 #include "dataobject.h"
 #include "messagecontext.h"
+#include "tempfilecleaner.h"
 #include "undo.h"
 #include "uri.h"
 #include "../util/util.h"
@@ -189,6 +191,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			buf.size()*sizeof(WCHAR));
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
+		
 		LockGlobal lock(hGlobal);
 		memcpy(static_cast<WCHAR*>(lock.get()), &buf[0], buf.size()*sizeof(WCHAR));
 	}
@@ -221,6 +224,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, strContent.size());
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
+		
 		LockGlobal lock(hGlobal);
 		memcpy(static_cast<CHAR*>(lock.get()), strContent.get(), strContent.size());
 	}
@@ -230,28 +234,30 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			(listMessagePtr_.size() - 1)*sizeof(FILEDESCRIPTOR));
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
-		LockGlobal lock(hGlobal);
-		FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
-		pfgd->cItems = static_cast<UINT>(listMessagePtr_.size());
-		MessagePtrList::size_type n = 0;
-		while (n < listMessagePtr_.size()) {
-			MessagePtrLock mpl(listMessagePtr_[n]);
-			if (!mpl)
-				break;
-			pfgd->fgd[n].dwFlags = FD_WRITESTIME;
-			
-			Time time;
-			mpl->getDate(&time);
-			::SystemTimeToFileTime(&time, &pfgd->fgd[n].ftLastWriteTime);
-			
-			wstring_ptr wstrSubject(mpl->getSubject());
-			wstring_ptr wstrName(getFileName(wstrSubject.get()));
-			W2T(wstrName.get(), ptszName);
-			_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
-			
-			++n;
-		}
 		
+		MessagePtrList::size_type n = 0;
+		{
+			LockGlobal lock(hGlobal);
+			FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
+			pfgd->cItems = static_cast<UINT>(listMessagePtr_.size());
+			while (n < listMessagePtr_.size()) {
+				MessagePtrLock mpl(listMessagePtr_[n]);
+				if (!mpl)
+					break;
+				pfgd->fgd[n].dwFlags = FD_WRITESTIME;
+				
+				Time time;
+				mpl->getDate(&time);
+				::SystemTimeToFileTime(&time, &pfgd->fgd[n].ftLastWriteTime);
+				
+				wstring_ptr wstrSubject(mpl->getSubject());
+				wstring_ptr wstrName(getFileName(wstrSubject.get()));
+				W2T(wstrName.get(), ptszName);
+				_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
+				
+				++n;
+			}
+		}
 		if (n != listMessagePtr_.size()) {
 			GlobalFree(hGlobal);
 			return E_FAIL;
@@ -259,7 +265,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 	}
 #endif
 	else {
-		assert(false);
+		return DV_E_FORMATETC;
 	}
 	
 	pMedium->tymed = TYMED_HGLOBAL;
@@ -724,6 +730,9 @@ STDMETHODIMP qm::FolderDataObject::GetData(FORMATETC* pFormat,
 		LockGlobal lock(hGlobal);
 		wcscpy(static_cast<WCHAR*>(lock.get()), wstrName.get());
 	}
+	else {
+		return DV_E_FORMATETC;
+	}
 	
 	pMedium->tymed = TYMED_HGLOBAL;
 	pMedium->hGlobal = hGlobal;
@@ -838,11 +847,19 @@ std::pair<Account*, qm::Folder*> qm::FolderDataObject::get(IDataObject* pDataObj
  */
 
 UINT qm::URIDataObject::nFormats__[] = {
+	CF_HDROP,
 	::RegisterClipboardFormat(CFSTR_FILEDESCRIPTOR),
-	::RegisterClipboardFormat(CFSTR_FILECONTENTS)
+	::RegisterClipboardFormat(CFSTR_FILECONTENTS),
 };
 
 FORMATETC qm::URIDataObject::formats__[] = {
+	{
+		URIDataObject::nFormats__[FORMAT_HDROP],
+		0,
+		DVASPECT_CONTENT,
+		-1,
+		TYMED_HGLOBAL
+	},
 	{
 		URIDataObject::nFormats__[FORMAT_FILEDESCRIPTOR],
 		0,
@@ -860,10 +877,12 @@ FORMATETC qm::URIDataObject::formats__[] = {
 };
 
 qm::URIDataObject::URIDataObject(const URIResolver* pURIResolver,
+								 TempFileCleaner* pTempFileCleaner,
 								 unsigned int nSecurityMode,
 								 URIList& listURI) :
 	nRef_(0),
 	pURIResolver_(pURIResolver),
+	pTempFileCleaner_(pTempFileCleaner),
 	nSecurityMode_(nSecurityMode)
 {
 	listURI_.swap(listURI);
@@ -909,43 +928,54 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 		return hr;
 	
 	HGLOBAL hGlobal = 0;
-	if (pFormat->cfFormat == nFormats__[FORMAT_FILECONTENTS]) {
+	if (pFormat->cfFormat == nFormats__[FORMAT_HDROP]) {
+		if (!createTempFiles())
+			return E_FAIL;
+		
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
+			sizeof(DROPFILES) + listURI_.size()*MAX_PATH*sizeof(WCHAR) + sizeof(WCHAR));
+		if (!hGlobal)
+			return E_OUTOFMEMORY;
+		
+		LockGlobal lock(hGlobal);
+		DROPFILES* pdf = static_cast<DROPFILES*>(lock.get());
+		pdf->pFiles = sizeof(DROPFILES);
+		pdf->fWide = TRUE;
+		
+		WCHAR* p = reinterpret_cast<WCHAR*>(static_cast<CHAR*>(lock.get()) + sizeof(DROPFILES));
+		int nUntitled = 0;
+		for (URIList::const_iterator it = listURI_.begin(); it != listURI_.end(); ++it) {
+			const URI* pURI = *it;
+			
+			wstring_ptr wstrName(getName(pURI, &nUntitled));
+			wstring_ptr wstrPath(concat(wstrTempDir_.get(), L"\\", wstrName.get()));
+			wcscpy(p, wstrPath.get());
+			p += wcslen(wstrPath.get()) + 1;
+		}
+		
+		*p = L'\0';
+	}
+	else if (pFormat->cfFormat == nFormats__[FORMAT_FILECONTENTS]) {
 		if (pFormat->lindex < 0 ||
 			static_cast<LONG>(listURI_.size()) <= pFormat->lindex)
 			return E_FAIL;
 		
 		const URI* pURI = listURI_[pFormat->lindex];
-		std::auto_ptr<MessageContext> pContext(pURI->resolve(pURIResolver_));
-		if (!pContext.get())
-			return E_FAIL;
-		Message* pMessage = pContext->getMessage(Account::GMF_ALL, 0, nSecurityMode_);
-		if (!pMessage)
-			return E_FAIL;
-		const Part* pPart = pURI->getFragment().getPart(pMessage);
+		std::auto_ptr<MessageContext> pContext;
+		const Part* pPart = getPart(pURI, &pContext);
 		if (!pPart)
 			return E_FAIL;
 		
-		const Part* pEnclosedPart = pPart->getEnclosedPart();
-		if (pEnclosedPart) {
-			xstring_size_ptr str(pEnclosedPart->getContent());
-			if (!str.get())
-				return E_FAIL;
-			hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, str.size());
-			if (!hGlobal)
-				return E_OUTOFMEMORY;
-			LockGlobal lock(hGlobal);
-			memcpy(static_cast<CHAR*>(lock.get()), str.get(), str.size());
-		}
-		else {
-			malloc_size_ptr<unsigned char> pBody(pPart->getBodyData());
-			if (!pBody.get())
-				return E_FAIL;
-			hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, pBody.size());
-			if (!hGlobal)
-				return E_OUTOFMEMORY;
-			LockGlobal lock(hGlobal);
-			memcpy(static_cast<CHAR*>(lock.get()), pBody.get(), pBody.size());
-		}
+		BodyData bodyData(PartUtil(*pPart).getBodyData());
+		if (!bodyData.get())
+			return E_FAIL;
+		
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, bodyData.size());
+		if (!hGlobal)
+			return E_OUTOFMEMORY;
+		
+		LockGlobal lock(hGlobal);
+		memcpy(static_cast<CHAR*>(lock.get()), bodyData.get(), bodyData.size());
 	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_FILEDESCRIPTOR]) {
 		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
@@ -953,31 +983,23 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 			(listURI_.size() - 1)*sizeof(FILEDESCRIPTOR));
 		if (!hGlobal)
 			return E_OUTOFMEMORY;
+		
 		LockGlobal lock(hGlobal);
 		FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
 		pfgd->cItems = static_cast<UINT>(listURI_.size());
-		URIList::size_type n = 0;
-		while (n < listURI_.size()) {
+		int nUntitled = 0;
+		for (URIList::size_type n = 0; n < listURI_.size(); ++n) {
 			const URI* pURI = listURI_[n];
 			
 			pfgd->fgd[n].dwFlags = 0;
 			
-			const WCHAR* pwszName = pURI->getFragment().getName();
-			if (!pwszName)
-				pwszName = L"Untitled";
-			W2T(pwszName, ptszName);
+			wstring_ptr wstrName(getName(pURI, &nUntitled));
+			W2T(wstrName.get(), ptszName);
 			_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
-			
-			++n;
-		}
-		
-		if (n != listURI_.size()) {
-			GlobalFree(hGlobal);
-			return E_FAIL;
 		}
 	}
 	else {
-		assert(false);
+		return DV_E_FORMATETC;
 	}
 	
 	pMedium->tymed = TYMED_HGLOBAL;
@@ -1059,6 +1081,87 @@ STDMETHODIMP qm::URIDataObject::DUnadvise(DWORD dwConnection)
 STDMETHODIMP qm::URIDataObject::EnumDAdvise(IEnumSTATDATA** ppEnum)
 {
 	return E_NOTIMPL;
+}
+
+bool qm::URIDataObject::createTempFiles()
+{
+	if (wstrTempDir_.get())
+		return true;
+	
+	Time time(Time::getCurrentTime());
+	WCHAR wszName[128];
+	_snwprintf(wszName, countof(wszName), L"\\uri-%04d%02d%02d%02d%02d%02d%03d-%u",
+		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
+		time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
+	
+	const WCHAR* pwszTempDir = Application::getApplication().getTemporaryFolder();
+	wstring_ptr wstrDir(concat(pwszTempDir, wszName));
+	
+	if (!File::createDirectory(wstrDir.get()))
+		return false;
+	pTempFileCleaner_->addDirectory(wstrDir.get());
+	
+	int nUntitled = 0;
+	for (URIList::const_iterator it = listURI_.begin(); it != listURI_.end(); ++it) {
+		const URI* pURI = *it;
+		
+		std::auto_ptr<MessageContext> pContext;
+		const Part* pPart = getPart(pURI, &pContext);
+		if (!pPart)
+			return false;
+		
+		wstring_ptr wstrName(getName(pURI, &nUntitled));
+		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wstrName.get()));
+		FileOutputStream stream(wstrPath.get());
+		if (!stream)
+			return false;
+		pTempFileCleaner_->add(wstrPath.get());
+		if (!AttachmentParser(*pPart).detach(&stream))
+			return false;
+	}
+	
+	wstrTempDir_ = wstrDir;
+	
+	return true;
+}
+
+const Part* qm::URIDataObject::getPart(const URI* pURI,
+									   std::auto_ptr<MessageContext>* ppContext)
+{
+	assert(pURI);
+	assert(ppContext);
+	
+	std::auto_ptr<MessageContext> pContext(pURI->resolve(pURIResolver_));
+	if (!pContext.get())
+		return 0;
+	Message* pMessage = pContext->getMessage(Account::GMF_ALL, 0, nSecurityMode_);
+	if (!pMessage)
+		return 0;
+	const Part* pPart = pURI->getFragment().getPart(pMessage);
+	if (!pPart)
+		return 0;
+	
+	*ppContext = pContext;
+	return pPart;
+}
+
+wstring_ptr qm::URIDataObject::getName(const URI* pURI,
+									   int* pnUntitled)
+{
+	assert(pURI);
+	assert(pnUntitled);
+	
+	const WCHAR* pwszName = pURI->getFragment().getName();
+	if (pwszName) {
+		return allocWString(pwszName);
+	}
+	else {
+		WCHAR wsz[32] = L"Untitled";
+		if (*pnUntitled != 0)
+			wsprintf(wsz, L"Untitled%d", *pnUntitled);
+		++*pnUntitled;
+		return allocWString(wsz);
+	}
 }
 
 #endif

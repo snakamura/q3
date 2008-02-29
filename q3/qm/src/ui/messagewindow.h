@@ -28,6 +28,7 @@ class Macro;
 class MacroContext;
 class MessageViewModeHolder;
 class SecurityModel;
+class TempFileCleaner;
 class UIManager;
 
 
@@ -64,6 +65,7 @@ struct MessageWindowCreateContext
 	MessageViewModeHolder* pMessageViewModeHolder_;
 	EncodingModel* pEncodingModel_;
 	SecurityModel* pSecurityModel_;
+	TempFileCleaner* pTempFileCleaner_;
 	const ActionInvoker* pActionInvoker_;
 	const MessageWindowFontManager* pFontManager_;
 };

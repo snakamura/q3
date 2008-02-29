@@ -542,6 +542,8 @@ qm::MessageWindow::MessageWindow(MessageModel* pMessageModel,
 	pImpl_->pMessageViewModeHolder_ = 0;
 	pImpl_->pEncodingModel_ = 0;
 	pImpl_->pSecurityModel_ = 0;
+	pImpl_->pActionInvoker_ = 0;
+	pImpl_->pFontManager_ = 0;
 	pImpl_->pHeaderWindow_ = 0;
 	pImpl_->pMessageViewWindow_ = 0;
 	pImpl_->bCreated_ = false;
@@ -764,7 +766,8 @@ LRESULT qm::MessageWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	
 	std::auto_ptr<HeaderWindow> pHeaderWindow(new HeaderWindow(pImpl_->pProfile_));
 	HeaderWindowCreateContext context = {
-		pContext->pUIManager_->getMenuManager()
+		pContext->pUIManager_->getMenuManager(),
+		pContext->pTempFileCleaner_
 	};
 	if (!pHeaderWindow->create(L"QmHeaderWindow", 0, WS_VISIBLE | WS_CHILD,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
