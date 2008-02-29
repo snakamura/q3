@@ -1093,10 +1093,8 @@ bool qm::URIDataObject::createTempFiles()
 	_snwprintf(wszName, countof(wszName), L"\\uri-%04d%02d%02d%02d%02d%02d%03d-%u",
 		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
 		time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
-	
 	const WCHAR* pwszTempDir = Application::getApplication().getTemporaryFolder();
 	wstring_ptr wstrDir(concat(pwszTempDir, wszName));
-	
 	if (!File::createDirectory(wstrDir.get()))
 		return false;
 	pTempFileCleaner_->addDirectory(wstrDir.get());
@@ -1113,11 +1111,11 @@ bool qm::URIDataObject::createTempFiles()
 		wstring_ptr wstrName(getName(pURI, &nUntitled));
 		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wstrName.get()));
 		FileOutputStream stream(wstrPath.get());
-		if (!stream)
+		if (!stream ||
+			!AttachmentParser(*pPart).detach(&stream) ||
+			!stream.close())
 			return false;
-		pTempFileCleaner_->add(wstrPath.get());
-		if (!AttachmentParser(*pPart).detach(&stream))
-			return false;
+		pTempFileCleaner_->addFile(wstrPath.get());
 	}
 	
 	wstrTempDir_ = wstrDir;

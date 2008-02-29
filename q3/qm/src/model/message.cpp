@@ -2412,9 +2412,7 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 	}
 	
 	FileOutputStream stream(wstrPath.get());
-	if (!stream)
-		return RESULT_FAIL;
-	if (!detach(&stream))
+	if (!stream || detach(&stream))
 		return RESULT_FAIL;
 	
 #ifndef _WIN32_WCE
@@ -2469,9 +2467,8 @@ bool qm::AttachmentParser::detach(OutputStream* pStream) const
 		if (pEncoder.get()) {
 			ByteInputStream inputStream(p, nLen, false);
 			BufferedOutputStream bufferedStream(pStream, false);
-			if (!pEncoder->decode(&inputStream, &bufferedStream))
-				return false;
-			if (!bufferedStream.close())
+			if (!pEncoder->decode(&inputStream, &bufferedStream) ||
+				!bufferedStream.close())
 				return false;
 		}
 		else {

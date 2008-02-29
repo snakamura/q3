@@ -317,7 +317,7 @@ AttachmentParser::Result qm::AttachmentHelper::openFile(const Part* pPart,
 		return result;
 	assert(wstrPath.get());
 	
-	pTempFileCleaner_->add(wstrPath.get());
+	pTempFileCleaner_->addFile(wstrPath.get());
 	
 	if (!bOpenWithEditor) {
 		const WCHAR* p = wcsrchr(wstrPath.get(), L'.');

@@ -37,7 +37,7 @@ qm::TempFileCleaner::~TempFileCleaner()
 	std::for_each(listDirectory_.begin(), listDirectory_.end(), &freeWString);
 }
 
-void qm::TempFileCleaner::add(const WCHAR* pwszPath)
+void qm::TempFileCleaner::addFile(const WCHAR* pwszPath)
 {
 	assert(pwszPath);
 	

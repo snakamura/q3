@@ -318,14 +318,12 @@ wstring_ptr qm::UIUtil::writeTemporaryFile(const WCHAR* pwszValue,
 		return 0;
 	BufferedOutputStream bufferedStream(&stream, false);
 	OutputStreamWriter writer(&bufferedStream, false, getSystemEncoding());
-	if (!writer)
-		return 0;
-	if (writer.write(pwszValue, wcslen(pwszValue)) == -1)
-		return 0;
-	if (!writer.close())
+	if (!writer ||
+		writer.write(pwszValue, wcslen(pwszValue)) == -1 ||
+		!writer.close())
 		return 0;
 	
-	pTempFileCleaner->add(wstrPath.get());
+	pTempFileCleaner->addFile(wstrPath.get());
 	
 	return wstrPath;
 }

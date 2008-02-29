@@ -35,7 +35,7 @@ public:
 	~TempFileCleaner();
 
 public:
-	void add(const WCHAR* pwszPath);
+	void addFile(const WCHAR* pwszPath);
 	void addDirectory(const WCHAR* pwszPath);
 	bool isModified(const WCHAR* pwszPath) const;
 	void clean(TempFileCleanerCallback* pCallback);
