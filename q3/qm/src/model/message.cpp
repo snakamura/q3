@@ -1314,6 +1314,43 @@ bool qm::MessageCreator::isAttachmentURI(const WCHAR* pwszAttachment)
 
 /****************************************************************************
  *
+ * BodyData
+ *
+ */
+
+qm::BodyData::BodyData(malloc_size_ptr<unsigned char>& p) :
+	p_(p)
+{
+}
+
+qm::BodyData::BodyData(xstring_size_ptr& str) :
+	str_(str)
+{
+}
+
+qm::BodyData::BodyData(BodyData& bodyData) :
+	p_(bodyData.p_),
+	str_(bodyData.str_)
+{
+}
+
+qm::BodyData::~BodyData()
+{
+}
+
+const unsigned char* qm::BodyData::get() const
+{
+	return p_.get() ? p_.get() : reinterpret_cast<const unsigned char*>(str_.get());
+}
+
+size_t qm::BodyData::size() const
+{
+	return p_.get() ? p_.size() : str_.size();
+}
+
+
+/****************************************************************************
+ *
  * PartUtil
  *
  */
@@ -1735,6 +1772,15 @@ bool qm::PartUtil::getFormattedText(bool bUseSendersTimeZone,
 		return false;
 	
 	return true;
+}
+
+BodyData qm::PartUtil::getBodyData() const
+{
+	const Part* pEnclosedPart = part_.getEnclosedPart();
+	if (pEnclosedPart)
+		return BodyData(pEnclosedPart->getContent());
+	else
+		return BodyData(part_.getBodyData());
 }
 
 bool qm::PartUtil::getDigest(MessageList* pList) const
@@ -2365,50 +2411,10 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 		wstrPath = wstr;
 	}
 	
-	const Part* pEnclosedPart = part_.getEnclosedPart();
-	
-	std::auto_ptr<Encoder> pEncoder;
-	if (!pEnclosedPart) {
-		ContentTransferEncodingParser contentTransferEncoding;
-		if (part_.getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
-			const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
-			if (_wcsicmp(pwszEncoding, L"7bit") != 0 &&
-				_wcsicmp(pwszEncoding, L"8bit") != 0) {
-				pEncoder= EncoderFactory::getInstance(pwszEncoding);
-				if (!pEncoder.get())
-					return RESULT_FAIL;
-			}
-		}
-	}
-	
 	FileOutputStream stream(wstrPath.get());
 	if (!stream)
 		return RESULT_FAIL;
-	BufferedOutputStream bufferedStream(&stream, false);
-	
-	if (pEnclosedPart) {
-		xstring_size_ptr strContent(pEnclosedPart->getContent());
-		size_t nLen = strContent.size();
-		const unsigned char* p = reinterpret_cast<const unsigned char*>(strContent.get());
-		if (bufferedStream.write(p, nLen) != nLen)
-			return RESULT_FAIL;
-	}
-	else {
-		const CHAR* pBody = part_.getBody();
-		size_t nLen = strlen(pBody);
-		const unsigned char* p = reinterpret_cast<const unsigned char*>(pBody);
-		if (pEncoder.get()) {
-			ByteInputStream inputStream(p, nLen, false);
-			if (!pEncoder->decode(&inputStream, &bufferedStream))
-				return RESULT_FAIL;
-		}
-		else {
-			if (bufferedStream.write(p, nLen) != nLen)
-				return RESULT_FAIL;
-		}
-	}
-	
-	if (!bufferedStream.close())
+	if (!detach(&stream))
 		return RESULT_FAIL;
 	
 #ifndef _WIN32_WCE
@@ -2431,6 +2437,50 @@ AttachmentParser::Result qm::AttachmentParser::detach(const WCHAR* pwszDir,
 		*pwstrPath = wstrPath;
 	
 	return RESULT_OK;
+}
+
+bool qm::AttachmentParser::detach(OutputStream* pStream) const
+{
+	const Part* pEnclosedPart = part_.getEnclosedPart();
+	
+	if (pEnclosedPart) {
+		xstring_size_ptr strContent(pEnclosedPart->getContent());
+		size_t nLen = strContent.size();
+		const unsigned char* p = reinterpret_cast<const unsigned char*>(strContent.get());
+		if (pStream->write(p, nLen) != nLen)
+			return false;
+	}
+	else {
+		const CHAR* pBody = part_.getBody();
+		size_t nLen = strlen(pBody);
+		const unsigned char* p = reinterpret_cast<const unsigned char*>(pBody);
+		
+		std::auto_ptr<Encoder> pEncoder;
+		ContentTransferEncodingParser contentTransferEncoding;
+		if (part_.getField(L"Content-Transfer-Encoding", &contentTransferEncoding) == Part::FIELD_EXIST) {
+			const WCHAR* pwszEncoding = contentTransferEncoding.getEncoding();
+			if (_wcsicmp(pwszEncoding, L"7bit") != 0 &&
+				_wcsicmp(pwszEncoding, L"8bit") != 0) {
+				pEncoder= EncoderFactory::getInstance(pwszEncoding);
+				if (!pEncoder.get())
+					return false;
+			}
+		}
+		if (pEncoder.get()) {
+			ByteInputStream inputStream(p, nLen, false);
+			BufferedOutputStream bufferedStream(pStream, false);
+			if (!pEncoder->decode(&inputStream, &bufferedStream))
+				return false;
+			if (!bufferedStream.close())
+				return false;
+		}
+		else {
+			if (pStream->write(p, nLen) != nLen)
+				return false;
+		}
+	}
+	
+	return true;
 }
 
 bool qm::AttachmentParser::isAttachmentDeleted() const

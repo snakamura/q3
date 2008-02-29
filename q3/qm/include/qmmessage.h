@@ -11,6 +11,7 @@
 #include <qm.h>
 
 #include <qsmime.h>
+#include <qsstream.h>
 
 #include <vector>
 #include <utility>
@@ -20,6 +21,7 @@ namespace qm {
 
 class Message;
 class MessageCreator;
+class BodyData;
 class PartUtil;
 class AttachmentParser;
 
@@ -242,6 +244,32 @@ private:
 
 /****************************************************************************
  *
+ * BodyData
+ *
+ */
+
+class BodyData
+{
+public:
+	explicit BodyData(qs::malloc_size_ptr<unsigned char>& p);
+	explicit BodyData(qs::xstring_size_ptr& str);
+	BodyData(BodyData& bodyData);
+	~BodyData();
+
+public:
+	const unsigned char* get() const;
+	size_t size() const;
+
+private:
+	BodyData& operator=(const BodyData&);
+
+private:
+	qs::malloc_size_ptr<unsigned char> p_;
+	qs::xstring_size_ptr str_;
+};
+
+/****************************************************************************
+ *
  * PartUtil
  *
  */
@@ -298,6 +326,7 @@ public:
 						  const WCHAR* pwszCharset,
 						  Rfc822Mode rfc822Mode,
 						  qs::XStringBuffer<qs::WXSTRING>* pBuf) const;
+	BodyData getBodyData() const;
 	bool getDigest(MessageList* pList) const;
 	DigestMode getDigestMode() const;
 	qs::string_ptr getHeader(const WCHAR* pwszName) const;
@@ -402,6 +431,7 @@ public:
 				  bool bAddZoneId,
 				  DetachCallback* pCallback,
 				  qs::wstring_ptr* pwstrPath) const;
+	bool detach(qs::OutputStream* pStream) const;
 	bool isAttachmentDeleted() const;
 
 public:
