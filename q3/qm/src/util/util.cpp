@@ -240,30 +240,6 @@ bool qm::Util::hasFilesOrURIs(IDataObject* pDataObject)
 void qm::Util::getFilesOrURIs(IDataObject* pDataObject,
 							  PathList* pList)
 {
-#ifndef _WIN32_WCE
-	FORMATETC fe = {
-		CF_HDROP,
-		0,
-		DVASPECT_CONTENT,
-		-1,
-		TYMED_HGLOBAL
-	};
-	StgMedium stm;
-	if (pDataObject->GetData(&fe, &stm) == S_OK && stm.tymed == TYMED_HGLOBAL) {
-		HDROP hDrop = reinterpret_cast<HDROP>(stm.hGlobal);
-		UINT nCount = ::DragQueryFile(hDrop, 0xffffffff, 0, 0);
-		for (UINT n = 0; n < nCount; ++n) {
-			TCHAR tszPath[MAX_PATH];
-			::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
-			wstring_ptr wstrPath(tcs2wcs(tszPath));
-			if (File::isFileExisting(wstrPath.get())) {
-				pList->push_back(wstrPath.get());
-				wstrPath.release();
-			}
-		}
-	}
-#endif
-	
 	MessageDataObject::URIList listURI;
 	CONTAINER_DELETER(deleter, listURI);
 	if (MessageDataObject::getURIs(pDataObject, &listURI)) {
@@ -273,4 +249,30 @@ void qm::Util::getFilesOrURIs(IDataObject* pDataObject,
 			wstrURI.release();
 		}
 	}
+#ifndef _WIN32_WCE
+	else {
+		FORMATETC fe = {
+			CF_HDROP,
+			0,
+			DVASPECT_CONTENT,
+			-1,
+			TYMED_HGLOBAL
+		};
+		StgMedium stm;
+		if (pDataObject->GetData(&fe, &stm) == S_OK && stm.tymed == TYMED_HGLOBAL) {
+			HDROP hDrop = reinterpret_cast<HDROP>(stm.hGlobal);
+			UINT nCount = ::DragQueryFile(hDrop, 0xffffffff, 0, 0);
+			for (UINT n = 0; n < nCount; ++n) {
+				TCHAR tszPath[MAX_PATH];
+				::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
+				wstring_ptr wstrPath(tcs2wcs(tszPath));
+				if (File::isFileExisting(wstrPath.get())) {
+					pList->push_back(wstrPath.get());
+					wstrPath.release();
+				}
+			}
+		}
+	}
+#endif
+	
 }
