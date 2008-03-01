@@ -47,6 +47,7 @@ UINT qm::MessageDataObject::nFormats__[] = {
 	::RegisterClipboardFormat(_T("QmMessageDataMessageHolderList")),
 	::RegisterClipboardFormat(_T("QmMessageDataFlag")),
 #ifndef _WIN32_WCE
+	CF_HDROP,
 	::RegisterClipboardFormat(CFSTR_FILEDESCRIPTOR),
 	::RegisterClipboardFormat(CFSTR_FILECONTENTS)
 #endif
@@ -76,6 +77,13 @@ FORMATETC qm::MessageDataObject::formats__[] = {
 	},
 #ifndef _WIN32_WCE
 	{
+		MessageDataObject::nFormats__[FORMAT_HDROP],
+		0,
+		DVASPECT_CONTENT,
+		-1,
+		TYMED_HGLOBAL
+	},
+	{
 		MessageDataObject::nFormats__[FORMAT_FILEDESCRIPTOR],
 		0,
 		DVASPECT_CONTENT,
@@ -93,36 +101,57 @@ FORMATETC qm::MessageDataObject::formats__[] = {
 };
 
 qm::MessageDataObject::MessageDataObject(AccountManager* pAccountManager,
-										 const URIResolver* pURIResolver) :
+										 const URIResolver* pURIResolver,
+										 TempFileCleaner* pTempFileCleaner) :
 	nRef_(0),
 	pAccountManager_(pAccountManager),
 	pURIResolver_(pURIResolver),
+	pTempFileCleaner_(pTempFileCleaner),
 	pFolder_(0),
 	flag_(FLAG_NONE)
 {
 	assert(pAccountManager);
 	assert(pURIResolver);
+	assert(pTempFileCleaner);
 }
 
 qm::MessageDataObject::MessageDataObject(AccountManager* pAccountManager,
 										 const URIResolver* pURIResolver,
+										 TempFileCleaner* pTempFileCleaner,
 										 Folder* pFolder,
 										 const MessageHolderList& l,
 										 Flag flag) :
 	nRef_(0),
 	pAccountManager_(pAccountManager),
 	pURIResolver_(pURIResolver),
+	pTempFileCleaner_(pTempFileCleaner),
 	pFolder_(pFolder),
 	flag_(flag)
 {
 	assert(pAccountManager);
 	assert(pURIResolver);
+	assert(pTempFileCleaner);
 	assert(pFolder);
 	assert(pFolder->getAccount()->isLocked());
 	assert(!l.empty());
 	
 	listMessagePtr_.assign(l.begin(), l.end());
 }
+
+#ifdef _WIN32_WCE
+qm::MessageDataObject::MessageDataObject(AccountManager* pAccountManager,
+										 const URIResolver* pURIResolver) :
+	nRef_(0),
+	pAccountManager_(pAccountManager),
+	pURIResolver_(pURIResolver),
+	pTempFileCleaner_(0),
+	pFolder_(0),
+	flag_(FLAG_NONE)
+{
+	assert(pAccountManager);
+	assert(pURIResolver);
+}
+#endif
 
 qm::MessageDataObject::~MessageDataObject()
 {
@@ -204,6 +233,43 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 		*static_cast<Flag*>(lock.get()) = flag_;
 	}
 #ifndef _WIN32_WCE
+	else if (pFormat->cfFormat == nFormats__[FORMAT_HDROP]) {
+		if (!createTempFiles())
+			return E_FAIL;
+		
+		hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT,
+			sizeof(DROPFILES) + listMessagePtr_.size()*MAX_PATH*sizeof(WCHAR) + sizeof(WCHAR));
+		if (!hGlobal)
+			return E_OUTOFMEMORY;
+		
+		MessagePtrList::size_type n = 0;
+		{
+			LockGlobal lock(hGlobal);
+			DROPFILES* pdf = static_cast<DROPFILES*>(lock.get());
+			pdf->pFiles = sizeof(DROPFILES);
+			pdf->fWide = TRUE;
+			
+			WCHAR* p = reinterpret_cast<WCHAR*>(static_cast<CHAR*>(lock.get()) + sizeof(DROPFILES));
+			int nUntitled = 0;
+			while (n < listMessagePtr_.size()) {
+				MessagePtrLock mpl(listMessagePtr_[n]);
+				if (!mpl)
+					break;
+				
+				wstring_ptr wstrName(getName(mpl, &nUntitled));
+				wstring_ptr wstrPath(concat(wstrTempDir_.get(), L"\\", wstrName.get()));
+				wcscpy(p, wstrPath.get());
+				p += wcslen(wstrPath.get()) + 1;
+				
+				++n;
+			}
+			*p = L'\0';
+		}
+		if (n != listMessagePtr_.size()) {
+			GlobalFree(hGlobal);
+			return E_FAIL;
+		}
+	}
 	else if (pFormat->cfFormat == nFormats__[FORMAT_FILECONTENTS]) {
 		if (pFormat->lindex < 0 ||
 			static_cast<LONG>(listMessagePtr_.size()) <= pFormat->lindex)
@@ -240,6 +306,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			LockGlobal lock(hGlobal);
 			FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
 			pfgd->cItems = static_cast<UINT>(listMessagePtr_.size());
+			int nUntitled = 0;
 			while (n < listMessagePtr_.size()) {
 				MessagePtrLock mpl(listMessagePtr_[n]);
 				if (!mpl)
@@ -250,8 +317,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 				mpl->getDate(&time);
 				::SystemTimeToFileTime(&time, &pfgd->fgd[n].ftLastWriteTime);
 				
-				wstring_ptr wstrSubject(mpl->getSubject());
-				wstring_ptr wstrName(getFileName(wstrSubject.get()));
+				wstring_ptr wstrName(getName(mpl, &nUntitled));
 				W2T(wstrName.get(), ptszName);
 				_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
 				
@@ -621,6 +687,67 @@ bool qm::MessageDataObject::getURIs(IDataObject* pDataObject,
 	return true;
 }
 
+#ifndef _WIN32_WCE
+bool qm::MessageDataObject::createTempFiles()
+{
+	if (wstrTempDir_.get())
+		return true;
+	
+	Time time(Time::getCurrentTime());
+	WCHAR wszName[128];
+	_snwprintf(wszName, countof(wszName), L"\\message-%04d%02d%02d%02d%02d%02d%03d-%u",
+		time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute,
+		time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
+	const WCHAR* pwszTempDir = Application::getApplication().getTemporaryFolder();
+	wstring_ptr wstrDir(concat(pwszTempDir, wszName));
+	if (!File::createDirectory(wstrDir.get()))
+		return false;
+	pTempFileCleaner_->addDirectory(wstrDir.get());
+	
+	int nUntitled = 0;
+	for (MessagePtrList::const_iterator it = listMessagePtr_.begin(); it != listMessagePtr_.end(); ++it) {
+		MessagePtrLock mpl(*it);
+		if (!mpl)
+			return false;
+		
+		Message msg;
+		if (!mpl->getMessage(Account::GMF_ALL, 0, SECURITYMODE_NONE, &msg))
+			return false;
+		xstring_size_ptr strContent(msg.getContent());
+		if (!strContent.get())
+			return false;
+		
+		wstring_ptr wstrName(getName(mpl, &nUntitled));
+		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wstrName.get()));
+		FileOutputStream stream(wstrPath.get());
+		if (!stream ||
+			stream.write(reinterpret_cast<const unsigned char*>(strContent.get()), strContent.size()) != strContent.size() ||
+			!stream.close())
+			return false;
+		pTempFileCleaner_->addFile(wstrPath.get());
+	}
+	
+	wstrTempDir_ = wstrDir;
+	
+	return true;
+}
+
+wstring_ptr qm::MessageDataObject::getName(MessageHolder* pmh,
+										   int* pnUntitled)
+{
+	wstring_ptr wstrSubject(pmh->getSubject());
+	if (*wstrSubject.get()) {
+		return getFileName(wstrSubject.get());
+	}
+	else {
+		WCHAR wsz[32] = L"Untitled";
+		if (*pnUntitled != 0)
+			wsprintf(wsz, L"Untitled%d", *pnUntitled);
+		++*pnUntitled;
+		return allocWString(wsz);
+	}
+}
+
 wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
 {
 	assert(pwszName);
@@ -642,6 +769,7 @@ wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
 	
 	return wstrName;
 }
+#endif
 
 
 /****************************************************************************

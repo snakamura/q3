@@ -171,6 +171,7 @@ public:
 	std::auto_ptr<Accelerator> pAccelerator_;
 	AccountManager* pAccountManager_;
 	const URIResolver* pURIResolver_;
+	TempFileCleaner* pTempFileCleaner_;
 	ViewModelManager* pViewModelManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
@@ -1000,8 +1001,9 @@ void qm::ListWindowImpl::dragGestureRecognized(const DragGestureEvent& event)
 	if (!hImageList)
 		return;
 	
-	std::auto_ptr<MessageDataObject> p(new MessageDataObject(pAccountManager_,
-		pURIResolver_, pViewModel->getFolder(), l, MessageDataObject::FLAG_NONE));
+	std::auto_ptr<MessageDataObject> p(new MessageDataObject(
+		pAccountManager_, pURIResolver_, pTempFileCleaner_,
+		pViewModel->getFolder(), l, MessageDataObject::FLAG_NONE));
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p.release());
 	
@@ -1291,6 +1293,7 @@ qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pAccountManager_ = 0;
 	pImpl_->pURIResolver_ = 0;
+	pImpl_->pTempFileCleaner_ = 0;
 	pImpl_->pViewModelManager_ = pViewModelManager;
 	pImpl_->hfont_ = 0;
 	pImpl_->hfontBold_ = 0;
@@ -1553,6 +1556,7 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		static_cast<ListWindowCreateContext*>(pCreateStruct->lpCreateParams);
 	pImpl_->pAccountManager_ = pContext->pAccountManager_;
 	pImpl_->pURIResolver_ = pContext->pURIResolver_;
+	pImpl_->pTempFileCleaner_ = pContext->pTempFileCleaner_;
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;

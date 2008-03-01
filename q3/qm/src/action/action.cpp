@@ -411,10 +411,12 @@ bool qm::EditClearDeletedAction::isEnabled(const ActionEvent& event)
 
 qm::EditCopyMessageAction::EditCopyMessageAction(AccountManager* pAccountManager,
 												 const URIResolver* pURIResolver,
+												 TempFileCleaner* pTempFileCleaner,
 												 MessageSelectionModel* pMessageSelectionModel,
 												 HWND hwnd) :
 	pAccountManager_(pAccountManager),
 	pURIResolver_(pURIResolver),
+	pTempFileCleaner_(pTempFileCleaner),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
 {
@@ -434,7 +436,7 @@ void qm::EditCopyMessageAction::invoke(const ActionEvent& event)
 		return;
 	
 	MessageDataObject* p = new MessageDataObject(pAccountManager_,
-		pURIResolver_, pFolder, l, MessageDataObject::FLAG_COPY);
+		pURIResolver_, pTempFileCleaner_, pFolder, l, MessageDataObject::FLAG_COPY);
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p);
 	if (!MessageDataObject::setClipboard(pDataObject.get())) {
@@ -457,10 +459,12 @@ bool qm::EditCopyMessageAction::isEnabled(const ActionEvent& event)
 
 qm::EditCutMessageAction::EditCutMessageAction(AccountManager* pAccountManager,
 											   const URIResolver* pURIResolver,
+											   TempFileCleaner* pTempFileCleaner,
 											   MessageSelectionModel* pMessageSelectionModel,
 											   HWND hwnd) :
 	pAccountManager_(pAccountManager),
 	pURIResolver_(pURIResolver),
+	pTempFileCleaner_(pTempFileCleaner),
 	pMessageSelectionModel_(pMessageSelectionModel),
 	hwnd_(hwnd)
 {
@@ -480,7 +484,7 @@ void qm::EditCutMessageAction::invoke(const ActionEvent& event)
 		return;
 	
 	MessageDataObject* p = new MessageDataObject(pAccountManager_,
-		pURIResolver_, pFolder, l, MessageDataObject::FLAG_MOVE);
+		pURIResolver_, pTempFileCleaner_, pFolder, l, MessageDataObject::FLAG_MOVE);
 	p->AddRef();
 	ComPtr<IDataObject> pDataObject(p);
 	if (!MessageDataObject::setClipboard(pDataObject.get())) {

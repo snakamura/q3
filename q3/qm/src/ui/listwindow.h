@@ -23,6 +23,7 @@ struct ListWindowCreateContext;
 class AccountManager;
 class SyncDialogManager;
 class SyncManager;
+class TempFileCleaner;
 class UIManager;
 class URIResolver;
 
@@ -72,6 +73,7 @@ struct ListWindowCreateContext
 {
 	AccountManager* pAccountManager_;
 	const URIResolver* pURIResolver_;
+	TempFileCleaner* pTempFileCleaner_;
 	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;

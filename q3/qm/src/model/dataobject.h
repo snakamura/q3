@@ -59,6 +59,7 @@ public:
 		FORMAT_MESSAGEHOLDERLIST,
 		FORMAT_FLAG,
 #ifndef _WIN32_WCE
+		FORMAT_HDROP,
 		FORMAT_FILEDESCRIPTOR,
 		FORMAT_FILECONTENTS
 #endif
@@ -69,12 +70,22 @@ public:
 
 public:
 	MessageDataObject(AccountManager* pAccountManager,
-					  const URIResolver* pURIResolver);
+					  const URIResolver* pURIResolver,
+					  TempFileCleaner* pTempFileCleaner);
 	MessageDataObject(AccountManager* pAccountManager,
 					  const URIResolver* pURIResolver,
+					  TempFileCleaner* pTempFileCleaner,
 					  Folder* pFolder,
 					  const MessageHolderList& l,
 					  Flag flag);
+
+#ifdef _WIN32_WCE
+private:
+	MessageDataObject(AccountManager* pAccountManager,
+					  const URIResolver* pURIResolver);
+#endif
+
+public:
 	~MessageDataObject();
 
 public:
@@ -124,8 +135,15 @@ public:
 	static bool getURIs(IDataObject* pDataObject,
 						URIList* pList);
 
+#ifndef _WIN32_WCE
 private:
+	bool createTempFiles();
+
+private:
+	static qs::wstring_ptr getName(MessageHolder* pmh,
+								   int* pnUntitled);
 	static qs::wstring_ptr getFileName(const WCHAR* pwszName);
+#endif
 
 private:
 	MessageDataObject(const MessageDataObject&);
@@ -135,9 +153,11 @@ private:
 	ULONG nRef_;
 	AccountManager* pAccountManager_;
 	const URIResolver* pURIResolver_;
+	TempFileCleaner* pTempFileCleaner_;
 	Folder* pFolder_;
 	MessagePtrList listMessagePtr_;
 	Flag flag_;
+	qs::wstring_ptr wstrTempDir_;
 
 public:
 	static UINT nFormats__[];
@@ -266,8 +286,10 @@ private:
 	bool createTempFiles();
 	const qs::Part* getPart(const URI* pURI,
 							std::auto_ptr<MessageContext>* ppContext);
-	qs::wstring_ptr getName(const URI* pURI,
-							int* pnUntitled);
+
+private:
+	static qs::wstring_ptr getName(const URI* pURI,
+								   int* pnUntitled);
 
 private:
 	URIDataObject(const URIDataObject&);

@@ -438,6 +438,7 @@ class EditCopyMessageAction : public qs::AbstractAction
 public:
 	EditCopyMessageAction(AccountManager* pAccountManager,
 						  const URIResolver* pURIResolver,
+						  TempFileCleaner* pTempFileCleaner,
 						  MessageSelectionModel* pMessageSelectionModel,
 						  HWND hwnd);
 	virtual ~EditCopyMessageAction();
@@ -453,6 +454,7 @@ private:
 private:
 	AccountManager* pAccountManager_;
 	const URIResolver* pURIResolver_;
+	TempFileCleaner* pTempFileCleaner_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
 };
@@ -469,6 +471,7 @@ class EditCutMessageAction : public qs::AbstractAction
 public:
 	EditCutMessageAction(AccountManager* pAccountManager,
 						 const URIResolver* pURIResolver,
+						 TempFileCleaner* pTempFileCleaner,
 						 MessageSelectionModel* pMessageSelectionModel,
 						 HWND hwnd);
 	virtual ~EditCutMessageAction();
@@ -484,6 +487,7 @@ private:
 private:
 	AccountManager* pAccountManager_;
 	const URIResolver* pURIResolver_;
+	TempFileCleaner* pTempFileCleaner_;
 	MessageSelectionModel* pMessageSelectionModel_;
 	HWND hwnd_;
 };

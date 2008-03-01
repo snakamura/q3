@@ -408,7 +408,7 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<EditCopyMessageAction> pCopyMessageAction(
 		new EditCopyMessageAction(pDocument_, pDocument_->getURIResolver(),
-			pMessageSelectionModel_.get(), pThis_->getHandle()));
+			pTempFileCleaner_, pMessageSelectionModel_.get(), pThis_->getHandle()));
 	std::auto_ptr<EditCommandAction<MessageWindowItem> > pCopyAction(
 		new EditCommandAction<MessageWindowItem>(pMessageWindow_->getFocusController(),
 		&MessageWindowItem::copy, &MessageWindowItem::canCopy));
@@ -429,7 +429,7 @@ void qm::MainWindowImpl::initActions()
 	
 	std::auto_ptr<EditCutMessageAction> pCutMessageAction(
 		new EditCutMessageAction(pDocument_, pDocument_->getURIResolver(),
-			pMessageSelectionModel_.get(), pThis_->getHandle()));
+			pTempFileCleaner_, pMessageSelectionModel_.get(), pThis_->getHandle()));
 	Action* pEditCutActions[] = {
 		0,
 		0,
@@ -2652,6 +2652,7 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	ListWindowCreateContext listContext = {
 		pContext->pDocument_,
 		pContext->pDocument_->getURIResolver(),
+		pImpl_->pTempFileCleaner_,
 		pContext->pUIManager_,
 		pImpl_->pSyncManager_,
 		pImpl_->pSyncDialogManager_
