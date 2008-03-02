@@ -36,6 +36,42 @@ using namespace qm;
 using namespace qs;
 
 
+#ifndef _WIN32_WCE
+
+/****************************************************************************
+ *
+ * DataObjectUtil
+ *
+ */
+
+wstring_ptr DataObjectUtil::getName(const WCHAR* pwszName,
+									NameList* pListName)
+{
+	assert(pwszName);
+	assert(pListName);
+	
+	wstring_ptr wstrName(allocWString(pwszName));
+	
+	int n = 2;
+	while (std::find_if(pListName->begin(), pListName->end(),
+		boost::bind(string_equal_i<WCHAR>(), _1, wstrName.get())) != pListName->end()) {
+		WCHAR wsz[16];
+		wsprintf(wsz, L" (%d)", n);
+		const WCHAR* p = wcsrchr(pwszName, L'.');
+		if (p)
+			wstrName = concat(pwszName, p - pwszName, wsz, -1, p, -1);
+		else
+			wstrName = concat(pwszName, wsz);
+		++n;
+	}
+	pListName->push_back(allocWString(wstrName.get()).release());
+	
+	return wstrName;
+}
+
+#endif
+
+
 /****************************************************************************
  *
  * MessageDataObject
@@ -250,13 +286,14 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			pdf->fWide = TRUE;
 			
 			WCHAR* p = reinterpret_cast<WCHAR*>(static_cast<CHAR*>(lock.get()) + sizeof(DROPFILES));
-			int nUntitled = 0;
+			DataObjectUtil::NameList listName;
+			CONTAINER_DELETER(deleter, listName, &freeWString);
 			while (n < listMessagePtr_.size()) {
 				MessagePtrLock mpl(listMessagePtr_[n]);
 				if (!mpl)
 					break;
 				
-				wstring_ptr wstrName(getName(mpl, &nUntitled));
+				wstring_ptr wstrName(getName(mpl, &listName));
 				wstring_ptr wstrPath(concat(wstrTempDir_.get(), L"\\", wstrName.get()));
 				wcscpy(p, wstrPath.get());
 				p += wcslen(wstrPath.get()) + 1;
@@ -306,7 +343,8 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 			LockGlobal lock(hGlobal);
 			FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
 			pfgd->cItems = static_cast<UINT>(listMessagePtr_.size());
-			int nUntitled = 0;
+			DataObjectUtil::NameList listName;
+			CONTAINER_DELETER(deleter, listName, &freeWString);
 			while (n < listMessagePtr_.size()) {
 				MessagePtrLock mpl(listMessagePtr_[n]);
 				if (!mpl)
@@ -317,7 +355,7 @@ STDMETHODIMP qm::MessageDataObject::GetData(FORMATETC* pFormat,
 				mpl->getDate(&time);
 				::SystemTimeToFileTime(&time, &pfgd->fgd[n].ftLastWriteTime);
 				
-				wstring_ptr wstrName(getName(mpl, &nUntitled));
+				wstring_ptr wstrName(getName(mpl, &listName));
 				W2T(wstrName.get(), ptszName);
 				_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
 				
@@ -704,7 +742,8 @@ bool qm::MessageDataObject::createTempFiles()
 		return false;
 	pTempFileCleaner_->addDirectory(wstrDir.get());
 	
-	int nUntitled = 0;
+	DataObjectUtil::NameList listName;
+	CONTAINER_DELETER(deleter, listName, &freeWString);
 	for (MessagePtrList::const_iterator it = listMessagePtr_.begin(); it != listMessagePtr_.end(); ++it) {
 		MessagePtrLock mpl(*it);
 		if (!mpl)
@@ -717,7 +756,7 @@ bool qm::MessageDataObject::createTempFiles()
 		if (!strContent.get())
 			return false;
 		
-		wstring_ptr wstrName(getName(mpl, &nUntitled));
+		wstring_ptr wstrName(getName(mpl, &listName));
 		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wstrName.get()));
 		FileOutputStream stream(wstrPath.get());
 		if (!stream ||
@@ -733,19 +772,14 @@ bool qm::MessageDataObject::createTempFiles()
 }
 
 wstring_ptr qm::MessageDataObject::getName(MessageHolder* pmh,
-										   int* pnUntitled)
+										   DataObjectUtil::NameList* pListName)
 {
+	assert(pmh);
+	assert(pListName);
+	
 	wstring_ptr wstrSubject(pmh->getSubject());
-	if (*wstrSubject.get()) {
-		return getFileName(wstrSubject.get());
-	}
-	else {
-		WCHAR wsz[32] = L"Untitled";
-		if (*pnUntitled != 0)
-			wsprintf(wsz, L"Untitled%d", *pnUntitled);
-		++*pnUntitled;
-		return allocWString(wsz);
-	}
+	wstring_ptr wstrName(getFileName(*wstrSubject.get() ? wstrSubject.get() : L"Untitled"));
+	return DataObjectUtil::getName(wstrName.get(), pListName);
 }
 
 wstring_ptr qm::MessageDataObject::getFileName(const WCHAR* pwszName)
@@ -1071,11 +1105,12 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 		pdf->fWide = TRUE;
 		
 		WCHAR* p = reinterpret_cast<WCHAR*>(static_cast<CHAR*>(lock.get()) + sizeof(DROPFILES));
-		int nUntitled = 0;
+		DataObjectUtil::NameList listName;
+		CONTAINER_DELETER(deleter, listName, &freeWString);
 		for (URIList::const_iterator it = listURI_.begin(); it != listURI_.end(); ++it) {
 			const URI* pURI = *it;
 			
-			wstring_ptr wstrName(getName(pURI, &nUntitled));
+			wstring_ptr wstrName(getName(pURI, &listName));
 			wstring_ptr wstrPath(concat(wstrTempDir_.get(), L"\\", wstrName.get()));
 			wcscpy(p, wstrPath.get());
 			p += wcslen(wstrPath.get()) + 1;
@@ -1115,13 +1150,14 @@ STDMETHODIMP qm::URIDataObject::GetData(FORMATETC* pFormat,
 		LockGlobal lock(hGlobal);
 		FILEGROUPDESCRIPTOR* pfgd = static_cast<FILEGROUPDESCRIPTOR*>(lock.get());
 		pfgd->cItems = static_cast<UINT>(listURI_.size());
-		int nUntitled = 0;
+		DataObjectUtil::NameList listName;
+		CONTAINER_DELETER(deleter, listName, &freeWString);
 		for (URIList::size_type n = 0; n < listURI_.size(); ++n) {
 			const URI* pURI = listURI_[n];
 			
 			pfgd->fgd[n].dwFlags = 0;
 			
-			wstring_ptr wstrName(getName(pURI, &nUntitled));
+			wstring_ptr wstrName(getName(pURI, &listName));
 			W2T(wstrName.get(), ptszName);
 			_tcsncpy(pfgd->fgd[n].cFileName, ptszName, MAX_PATH - 1);
 		}
@@ -1227,7 +1263,8 @@ bool qm::URIDataObject::createTempFiles()
 		return false;
 	pTempFileCleaner_->addDirectory(wstrDir.get());
 	
-	int nUntitled = 0;
+	DataObjectUtil::NameList listName;
+	CONTAINER_DELETER(deleter, listName, &freeWString);
 	for (URIList::const_iterator it = listURI_.begin(); it != listURI_.end(); ++it) {
 		const URI* pURI = *it;
 		
@@ -1236,7 +1273,7 @@ bool qm::URIDataObject::createTempFiles()
 		if (!pPart)
 			return false;
 		
-		wstring_ptr wstrName(getName(pURI, &nUntitled));
+		wstring_ptr wstrName(getName(pURI, &listName));
 		wstring_ptr wstrPath(concat(wstrDir.get(), L"\\", wstrName.get()));
 		FileOutputStream stream(wstrPath.get());
 		if (!stream ||
@@ -1272,22 +1309,14 @@ const Part* qm::URIDataObject::getPart(const URI* pURI,
 }
 
 wstring_ptr qm::URIDataObject::getName(const URI* pURI,
-									   int* pnUntitled)
+									   DataObjectUtil::NameList* pListName)
 {
 	assert(pURI);
-	assert(pnUntitled);
+	assert(pListName);
 	
 	const WCHAR* pwszName = pURI->getFragment().getName();
-	if (pwszName) {
-		return allocWString(pwszName);
-	}
-	else {
-		WCHAR wsz[32] = L"Untitled";
-		if (*pnUntitled != 0)
-			wsprintf(wsz, L"Untitled%d", *pnUntitled);
-		++*pnUntitled;
-		return allocWString(wsz);
-	}
+	wstring_ptr wstrName(allocWString(pwszName ? pwszName : L"Untitled"));
+	return DataObjectUtil::getName(wstrName.get(), pListName);
 }
 
 #endif

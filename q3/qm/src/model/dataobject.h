@@ -21,6 +21,9 @@
 
 namespace qm {
 
+#ifndef _WIN32_WCE
+class DataObjectUtil;
+#endif
 class MessageDataObject;
 class FolderDataObject;
 #ifndef _WIN32_WCE
@@ -37,6 +40,27 @@ class TempFileCleaner;
 class UndoManager;
 class URI;
 class URIResolver;
+
+
+#ifndef _WIN32_WCE
+
+/****************************************************************************
+ *
+ * DataObjectUtil
+ *
+ */
+
+class DataObjectUtil
+{
+public:
+	typedef std::vector<qs::WSTRING> NameList;
+
+public:
+	static qs::wstring_ptr getName(const WCHAR* pwszName,
+								   NameList* pListName);
+};
+
+#endif
 
 
 /****************************************************************************
@@ -141,7 +165,7 @@ private:
 
 private:
 	static qs::wstring_ptr getName(MessageHolder* pmh,
-								   int* pnUntitled);
+								   DataObjectUtil::NameList* pListName);
 	static qs::wstring_ptr getFileName(const WCHAR* pwszName);
 #endif
 
@@ -289,7 +313,7 @@ private:
 
 private:
 	static qs::wstring_ptr getName(const URI* pURI,
-								   int* pnUntitled);
+								   DataObjectUtil::NameList* pListName);
 
 private:
 	URIDataObject(const URIDataObject&);
