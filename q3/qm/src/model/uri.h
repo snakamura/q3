@@ -73,6 +73,9 @@ public:
 	const qs::Part* getPart(const Message* pMessage) const;
 
 private:
+	static qs::wstring_ptr getName(const WCHAR* pwszSubject);
+
+private:
 	URIFragment& operator=(const URIFragment&);
 
 private:

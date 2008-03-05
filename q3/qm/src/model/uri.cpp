@@ -48,17 +48,17 @@ qm::URIFragment::URIFragment(MessageHolder* pmh) :
 	type_(TYPE_NONE)
 {
 	wstring_ptr wstrSubject(pmh->getSubject());
-	wstrName_ = concat(wstrSubject.get() ? wstrSubject.get() : L"Untitled" , L".eml");
+	wstrName_ = getName(wstrSubject.get());
 }
 
 qm::URIFragment::URIFragment(const Message* pMessage) :
 	type_(TYPE_NONE)
 {
-	const WCHAR* pwszSubject = L"Untitled";
+	const WCHAR* pwszSubject = 0;
 	UnstructuredParser subject;
 	if (pMessage->getField(L"Subject", &subject) == Part::FIELD_EXIST)
 		pwszSubject = subject.getValue();
-	wstrName_ = concat(pwszSubject , L".eml");
+	wstrName_ = getName(pwszSubject);
 }
 
 qm::URIFragment::URIFragment(const Message* pMessage,
@@ -105,11 +105,11 @@ qm::URIFragment::URIFragment(const Message* pMessage,
 	std::reverse(section_.begin(), section_.end());
 	
 	if (type == TYPE_NONE) {
-		const WCHAR* pwszSubject = L"Untitled";
+		const WCHAR* pwszSubject = 0;
 		UnstructuredParser subject;
 		if (pPartOrg->getField(L"Subject", &subject) == Part::FIELD_EXIST)
 			pwszSubject = subject.getValue();
-		wstrName_ = concat(pwszSubject, L".eml");
+		wstrName_ = getName(pwszSubject);
 	}
 	else if (type == TYPE_BODY) {
 		wstrName_ = AttachmentParser(*pPartOrg).getName();
@@ -227,6 +227,13 @@ const Part* qm::URIFragment::getPart(const Message* pMessage) const
 	}
 	
 	return pPart;
+}
+
+wstring_ptr qm::URIFragment::getName(const WCHAR* pwszSubject)
+{
+	if (!pwszSubject || !*pwszSubject)
+		pwszSubject = L"Untitled";
+	return concat(pwszSubject, L".eml");
 }
 
 bool qm::operator==(const URIFragment& lhs,
