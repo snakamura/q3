@@ -1026,23 +1026,29 @@ void qm::ListWindowImpl::dragEnter(const DropTargetDragEvent& event)
 	IDataObject* pDataObject = event.getDataObject();
 	
 #ifndef _WIN32_WCE
-	FORMATETC fe = {
-		CF_HDROP,
-		0,
-		DVASPECT_CONTENT,
-		-1,
-		TYMED_HGLOBAL
-	};
-	StgMedium stm;
-	if (pDataObject->GetData(&fe, &stm) == S_OK) {
-		if (stm.tymed == TYMED_HGLOBAL) {
-			HDROP hDrop = reinterpret_cast<HDROP>(stm.hGlobal);
-			UINT nCount = ::DragQueryFile(hDrop, 0xffffffff, 0, 0);
-			for (UINT n = 0; n < nCount && !bCanDrop_; ++n) {
-				TCHAR tszPath[MAX_PATH];
-				::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
-				T2W(tszPath, pwszPath);
-				bCanDrop_ = File::isFileExisting(pwszPath);
+	FORMATETC fe = MessageDataObject::formats__[MessageDataObject::FORMAT_MESSAGEHOLDERLIST];
+	if (pDataObject->QueryGetData(&fe) == S_OK) {
+		bCanDrop_ = false;
+	}
+	else {
+		FORMATETC fe = {
+			CF_HDROP,
+			0,
+			DVASPECT_CONTENT,
+			-1,
+			TYMED_HGLOBAL
+		};
+		StgMedium stm;
+		if (pDataObject->GetData(&fe, &stm) == S_OK) {
+			if (stm.tymed == TYMED_HGLOBAL) {
+				HDROP hDrop = reinterpret_cast<HDROP>(stm.hGlobal);
+				UINT nCount = ::DragQueryFile(hDrop, 0xffffffff, 0, 0);
+				for (UINT n = 0; n < nCount && !bCanDrop_; ++n) {
+					TCHAR tszPath[MAX_PATH];
+					::DragQueryFile(hDrop, n, tszPath, countof(tszPath));
+					T2W(tszPath, pwszPath);
+					bCanDrop_ = File::isFileExisting(pwszPath);
+				}
 			}
 		}
 	}
