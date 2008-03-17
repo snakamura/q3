@@ -779,6 +779,7 @@ bool qm::NormalFolder::loadMessageHolders()
 	pImpl_->nMaxId_ = l.empty() ? 0 : l.back()->getId();
 	pImpl_->listMessageHolder_.swap(l);
 	
+	pImpl_->nCount_ = static_cast<unsigned int>(pImpl_->listMessageHolder_.size());
 	pImpl_->nUnseenCount_ = nUnseenCount;
 	pImpl_->nDownloadCount_ = nDownloadCount;
 	pImpl_->nDeletedCount_ = nDeletedCount;
