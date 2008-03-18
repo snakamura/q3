@@ -104,28 +104,22 @@ bool qm::ConfigHelper<Config, Handler, Writer, LoadLock>::load(Config* pConfig,
 	WIN32_FIND_DATA fd;
 	qs::AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
 	if (hFind.get()) {
+		hFind.close();
 		if (::CompareFileTime(&fd.ftLastWriteTime, &ft_) != 0) {
-			qs::AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
-				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-			if (hFile.get()) {
-				log.debugf(L"Loading: %s", wstrPath_.get());
-				
-				Lock lock(pLock_);
-				
-				pConfig->clear();
-				
-				XMLReader reader;
-				reader.setContentHandler(pHandler);
-				if (!reader.parse(wstrPath_.get())) {
-					log.errorf(L"Failed to load: %s", wstrPath_.get());
-					return false;
-				}
-				
-				ft_ = fd.ftLastWriteTime;
+			log.debugf(L"Loading: %s", wstrPath_.get());
+			
+			Lock lock(pLock_);
+			
+			pConfig->clear();
+			
+			XMLReader reader;
+			reader.setContentHandler(pHandler);
+			if (!reader.parse(wstrPath_.get())) {
+				log.errorf(L"Failed to load: %s", wstrPath_.get());
+				return false;
 			}
-			else {
-				log.errorf(L"Could not open file: %s", wstrPath_.get());
-			}
+			
+			ft_ = fd.ftLastWriteTime;
 		}
 	}
 	else {
