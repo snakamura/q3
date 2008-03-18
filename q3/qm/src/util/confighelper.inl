@@ -9,6 +9,8 @@
 #define __CONFIGHELPER_INL__
 
 #include <qsfile.h>
+#include <qsinit.h>
+#include <qslog.h>
 #include <qsosutil.h>
 #include <qsstream.h>
 
@@ -77,6 +79,8 @@ template<class Config, class Handler, class Writer, class LoadLock>
 bool qm::ConfigHelper<Config, Handler, Writer, LoadLock>::load(Config* pConfig,
 															   Handler* pHandler)
 {
+	qs::Log log(qs::InitThread::getInitThread().getLogger(), L"qm::ConfigHelper");
+	
 	struct Lock
 	{
 		Lock(const LoadLock* pLock) :
@@ -96,27 +100,37 @@ bool qm::ConfigHelper<Config, Handler, Writer, LoadLock>::load(Config* pConfig,
 	};
 	
 	W2T(wstrPath_.get(), ptszPath);
-	qs::AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
-		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
-	if (hFile.get()) {
-		FILETIME ft;
-		::GetFileTime(hFile.get(), 0, 0, &ft);
-		hFile.close();
-		
-		if (::CompareFileTime(&ft, &ft_) != 0) {
-			Lock lock(pLock_);
-			
-			pConfig->clear();
-			
-			XMLReader reader;
-			reader.setContentHandler(pHandler);
-			if (!reader.parse(wstrPath_.get()))
-				return false;
-			
-			ft_ = ft;
+	
+	WIN32_FIND_DATA fd;
+	qs::AutoFindHandle hFind(::FindFirstFile(ptszPath, &fd));
+	if (hFind.get()) {
+		if (::CompareFileTime(&fd.ftLastWriteTime, &ft_) != 0) {
+			qs::AutoHandle hFile(::CreateFile(ptszPath, GENERIC_READ, 0, 0,
+				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0));
+			if (hFile.get()) {
+				log.debugf(L"Loading: %s", wstrPath_.get());
+				
+				Lock lock(pLock_);
+				
+				pConfig->clear();
+				
+				XMLReader reader;
+				reader.setContentHandler(pHandler);
+				if (!reader.parse(wstrPath_.get())) {
+					log.errorf(L"Failed to load: %s", wstrPath_.get());
+					return false;
+				}
+				
+				ft_ = fd.ftLastWriteTime;
+			}
+			else {
+				log.errorf(L"Could not open file: %s", wstrPath_.get());
+			}
 		}
 	}
 	else {
+		log.debugf(L"File not found: %s", wstrPath_.get());
+		
 		Lock lock(pLock_);
 		
 		pConfig->clear();
