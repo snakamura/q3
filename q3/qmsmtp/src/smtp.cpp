@@ -179,11 +179,11 @@ bool qmsmtp::Smtp::connect(const WCHAR* pwszHost,
 			*pKey++ = '\0';
 			strcpy(pKey, strPassword.get());
 			pKey += nPasswordLen;
-			*pKey = '\0';
+			*pKey++ = '\0';
 			
 			malloc_size_ptr<unsigned char> p(encoder.encode(
 				reinterpret_cast<unsigned char*>(strKey.get()),
-				strlen(strKey.get())));
+				pKey - strKey.get()));
 			if (!p.get())
 				SMTP_ERROR(SMTP_ERROR_AUTH);
 			string_ptr strCommand(concat("AUTH PLAIN ", -1,
