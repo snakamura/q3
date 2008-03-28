@@ -3506,7 +3506,7 @@ MacroValuePtr qm::MacroFunctionMessageCount::value(MacroContext* pContext) const
 
 const WCHAR* qm::MacroFunctionMessageCount::getName() const
 {
-	return L"MessageCount";
+	return bUnseenOnly_ ? L"UnseenMessageCount" : L"MessageCount";
 }
 
 
