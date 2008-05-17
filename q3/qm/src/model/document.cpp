@@ -151,7 +151,9 @@ qm::Document::Document(Profile* pProfile,
 	
 	JunkFilterFactory* pJunkFilterFactory = JunkFilterFactory::getFactory();
 	if (pJunkFilterFactory) {
-		wstring_ptr wstrJunkPath(concat(pwszMailFolder, L"\\junk"));
+		wstring_ptr wstrJunkPath(pProfile->getString(L"JunkFilter", L"Path"));
+		if (!*wstrJunkPath.get())
+			wstrJunkPath = concat(pwszMailFolder, L"\\junk");
 		pImpl_->pJunkFilter_ = pJunkFilterFactory->createJunkFilter(wstrJunkPath.get(), pProfile);
 	}
 	

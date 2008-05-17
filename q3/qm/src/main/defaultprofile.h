@@ -268,6 +268,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"JunkFilter",	L"Flags",					L"3"									}, /*JunkFilter::FLAG_AUTOLEARN | JunkFilter::FLAG_MANUALLEARN*/
 	{ L"JunkFilter",	L"MaxAttachmentSize",		L"32768"								}, /*32*1024*/
 	{ L"JunkFilter",	L"MaxTextLen",				L"32768"								}, /*32*1024*/
+	{ L"JunkFilter",	L"Path",					L""										},
 	{ L"JunkFilter",	L"ScanAttachment",			L"0"									},
 	{ L"JunkFilter",	L"ThresholdScore",			L"0.95"									},
 	{ L"JunkFilter",	L"WhiteList",				L""										},
