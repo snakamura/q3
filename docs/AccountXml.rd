@@ -241,15 +241,19 @@ IMAP4ƒT[ƒo‚É‚æ‚Á‚Ä‚Íi—á‚¦‚ÎACourier-IMAPƒT[ƒojAƒZƒbƒVƒ‡ƒ“A‚ªƒtƒHƒ‹ƒ_1‚ğ‘I‘
 ŒŸõ‚Ég—p‚·‚é•¶šƒR[ƒhBƒfƒtƒHƒ‹ƒg‚Å‚Í©“®”»’èB
 
 
-+SearchUseCharset (1)
++SearchUseCharset (1 @ 0|1)
 ŒŸõ‚É•¶šƒR[ƒh‚ğw’è‚·‚é‚©‚Ç‚¤‚©B
+
+
++SubscribeOnly (0 @ 0|1)
+ƒtƒHƒ‹ƒ_‚ğƒŠƒXƒg‚·‚é‚Æ‚«‚Éw“Ç‚µ‚Ä‚¢‚éƒtƒHƒ‹ƒ_‚Ì‚İ‚ğƒŠƒXƒg‚·‚é‚©‚Ç‚¤‚©BUseNamespace‚Æ“¯‚Éw’è•s‰ÂB
 
 
 +UseNamespace (0)
 ƒl[ƒ€ƒXƒy[ƒX‚ğg‚¤‚©‚Ç‚¤‚©B
 
 
-+UsePersonal (1), UseShared (1), UseOthers (1)
++UsePersonal (1 @ 0|1), UseShared (1 @ 0|1), UseOthers (1 @ 0|1)
 ƒl[ƒ€ƒXƒy[ƒX‚ğg‚¤‚Æ‚«‚ÉAƒp[ƒ\ƒiƒ‹A‹¤—LA‚»‚Ì‘¼‚ÌƒtƒHƒ‹ƒ_‚ğŒ©‚¹‚é‚©‚Ç‚¤‚©B
 
 
