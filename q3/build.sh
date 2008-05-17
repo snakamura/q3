@@ -190,13 +190,13 @@ zip)
 	DISTDIR=`pwd`/../dist
 	SUFFIX=`printf $VERSION | tr . _`_$REVISION-$DATE
 	
-	mkdir -p $DISTDIR
+	mkdir -p "$DISTDIR"
 	
-#	zip -j $DISTDIR/q3-win-x86-ja-$SUFFIX.zip \
+#	zip -j "$DISTDIR/q3-win-x86-ja-$SUFFIX.zip" \
 #		*/bin/win/x86/ansi/release/*.exe \
 #		*/lib/win/x86/ansi/release/*.dll \
 #		*/lib/win/x86/ansi/release/*.mui
-	zip -j $DISTDIR/q3u-win-x86-ja-$SUFFIX.zip \
+	zip -j "$DISTDIR/q3u-win-x86-ja-$SUFFIX.zip" \
 		*/bin/win/x86/unicode/release/*.exe \
 		*/lib/win/x86/unicode/release/*.dll \
 		*/lib/win/x86/unicode/release/*.mui \
@@ -212,7 +212,7 @@ zip)
 		../misc/THIRDPARTYLICENSE \
 		../misc/README.en.txt \
 		../misc/README.ja.txt
-	zip -j $DISTDIR/q3u-win-x64-ja-$SUFFIX.zip \
+	zip -j "$DISTDIR/q3u-win-x64-ja-$SUFFIX.zip" \
 		*/bin/win/x64/unicode/release/*.exe \
 		*/lib/win/x64/unicode/release/*.dll \
 		*/lib/win/x64/unicode/release/*.mui \
@@ -230,7 +230,7 @@ zip)
 		../misc/README.ja.txt
 	
 	for t in $WCETARGETS; do
-		zip -j $DISTDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip \
+		zip -j "$DISTDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip" \
 			*/bin/`printf $t | tr . /`/release/*.exe \
 			*/lib/`printf $t | tr . /`/release/*.dll \
 			*/lib/`printf $t | tr . /`/release/*.mui \
@@ -245,7 +245,7 @@ zip)
 	done
 	
 	(cd ../docs; make zip)
-	mv $DISTDIR/doc.zip $DISTDIR/q3-doc-$SUFFIX.zip
+	mv "$DISTDIR/doc.zip" "$DISTDIR/q3-doc-$SUFFIX.zip"
 	;;
 
 doc)
@@ -258,7 +258,7 @@ apidoc)
 
 installer)
 	DISTDIR=`pwd`/../dist
-	mkdir -p $DISTDIR
+	mkdir -p "$DISTDIR"
 	
 	"$MAKENSIS" ../installer/q3.nsi
 	"$MAKENSIS" -DX64 ../installer/q3.nsi
@@ -267,9 +267,9 @@ installer)
 	VERSION=`cat version`
 	REVISION=`cat revision`
 	DATE=`date +%Y%m%d`
-	mv $DISTDIR/q3u-win-x86-ja.exe $DISTDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
-	mv $DISTDIR/q3u-win-x64-ja.exe $DISTDIR/q3u-win-x64-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
-#	mv $DISTDIR/q3-win-x86-ja.exe $DISTDIR/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe
+	mv "$DISTDIR/q3u-win-x86-ja.exe" "$DISTDIR/q3u-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe"
+	mv "$DISTDIR/q3u-win-x64-ja.exe" "$DISTDIR/q3u-win-x64-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe"
+#	mv "$DISTDIR/q3-win-x86-ja.exe" "$DISTDIR/q3-win-x86-ja-`printf $VERSION | tr . _`_$REVISION-$DATE.exe"
     ;;
 
 revision)
