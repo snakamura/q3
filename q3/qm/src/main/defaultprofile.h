@@ -597,6 +597,7 @@ const qs::Profile::Default defaultAccountProfiles[] = {
 /*	{ L"Imap4",	L"SearchCharset",		L""			},*/
 	{ L"Imap4",	L"SearchUseCharset",	L"1"		},
 	{ L"Imap4",	L"SentboxFolder",		L"Sentbox"	},
+	{ L"Imap4",	L"SubscribeOnly",		L"0"		},
 	{ L"Imap4",	L"TrashFolder",			L"Trash"	},
 	{ L"Imap4",	L"UseNamespace",		L"0"		},
 	{ L"Imap4",	L"UseOthers",			L"1"		},

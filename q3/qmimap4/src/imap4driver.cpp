@@ -1430,12 +1430,13 @@ bool qmimap4::FolderListGetter::listFolders(Imap4* pImap4,
 		boost::bind(&freeWString, boost::bind(&FolderData::wstrMailbox_, _1)));
 	pCallback->setFolderDataList(&listFolderData);
 	
+	bool bSubscribeOnly = pSubAccount_->getPropertyInt(L"Imap4", L"SubscribeOnly") != 0;
 	for (NamespaceList::const_iterator itNS = listNamespace.begin(); itNS != listNamespace.end(); ++itNS) {
 		if (*(*itNS).first) {
 			if (!pImap4->list(false, L"", (*itNS).first))
 				HANDLE_ERROR();
 		}
-		if (!pImap4->list(false, (*itNS).first, L"*"))
+		if (!pImap4->list(bSubscribeOnly, (*itNS).first, L"*"))
 			HANDLE_ERROR();
 	}
 	
