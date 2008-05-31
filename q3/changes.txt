@@ -7,6 +7,7 @@
 *@UnseenMessageCountを保存すると@MessageCountになってしまうのを修正
 *account.xmlにImap4/SubscribeOnlyを追加
 *qmail.xmlのJunkFilter/PathでスパムフィルタのDBを置くディレクトリを指定できるようにした
+*OpenSSLを0.9.8hに更新
 
 [3.0.4]
 *メインウィンドウのFileOpenアクションで、指定したファイルをメッセージウィンドウで開けるようにした
