@@ -4,7 +4,7 @@
 ==Snapshot
 Snapshots are versions which should be relatively stable. Please check the ((<release notes|URL:releasenotes.html>)) before you download them. Please see the ((<documents|URL:/doc/>)) to see how to install or upgrade.
 
-The current version is 3.0.4.
+The current version is 3.0.5.
 
 ((:<table>
 <tr>

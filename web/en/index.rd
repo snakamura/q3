@@ -17,6 +17,7 @@ QMAIL3 is a mail client which runs on Windows and Windows CE families. It has fe
 *Customizable menus, keyboard shotcuts and toolbars
 
 ==News
+*Jun 14 2008 - Released 3.0.5.
 *Mar 5 2008 - Released 3.0.4.
 *Jan 12 2008 - Released 3.0.3.
 *Oct 31 2007 - Made ((<source code|URL:source.html>)) public.

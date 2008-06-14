@@ -1,6 +1,23 @@
 =begin
 =Release Notes
 
+==3.0.5
+===New features
+*Allow to specify the directory where a junk database is placed by JunkFilter/Path in qmail.xml.
+*Added Imap4/SubscribeOnly to account.xml.
+
+===Changes
+*Prohibit dropping messages dragged from list view to list view.
+*Updated OpenSSL to 0.9.8h
+
+===Bug fixes
+*Fixed a file name became ".eml" when attaching a message whose subject was empty.
+*Fixed a message count was not fixed up after crash.
+*Fixed configuration was reset when it failed to reload a configuration file.
+*Fixed SMTP PLAIN authentication didn't work.
+*Fixed @UnseenMessageCount became @MessageCount after it was saved.
+
+
 ==3.0.4
 ===New features
 *Allow to open a message in message/rfc822 format in message window.
