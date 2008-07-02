@@ -788,7 +788,6 @@ qmpop3::Pop3ReceiveSession::UIDSaver::UIDSaver(Pop3ReceiveSession* pSession,
 	pUIDList_(pUIDList)
 {
 	assert(pSession_);
-	assert(pLogger_);
 	assert(pUIDList_);
 }
 
