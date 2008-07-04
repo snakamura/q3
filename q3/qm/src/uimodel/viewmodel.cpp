@@ -1116,24 +1116,35 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 	bool bSort = false;
 	const MessageHolderList& l = event.getMessageHolders();
 	
-	typedef std::vector<unsigned int> IndexList;
+	typedef std::vector<std::pair<unsigned int, unsigned int> > IndexList;
 	IndexList listIndex;
 	listIndex.reserve(l.size());
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		unsigned int nIndex = getIndex(*it);
-		if (nIndex != -1)
-			listIndex.push_back(nIndex);
+		if (nIndex != -1) {
+			ItemList::const_iterator itEnd = listItem_.end();
+			if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
+				unsigned int nLevel = listItem_[nIndex]->getLevel();
+				itEnd = listItem_.begin() + nIndex + 1;
+				while (itEnd != listItem_.end() && (*itEnd)->getLevel() > nLevel)
+					++itEnd;
+			}
+			listIndex.push_back(std::make_pair(nIndex, itEnd - listItem_.begin()));
+		}
 	}
 	if (listIndex.empty())
 		return;
-	std::sort(listIndex.begin(), listIndex.end(), std::greater<unsigned int>());
+	std::sort(listIndex.begin(), listIndex.end(),
+		boost::bind(std::greater<unsigned int>(),
+			boost::bind(std::select1st<IndexList::value_type>(), _1),
+			boost::bind(std::select1st<IndexList::value_type>(), _2)));
 	
 	typedef std::vector<int> ThreadList;
 	ThreadList listThread;
 	if (isFloatThread(nSort_)) {
 		listThread.resize(listItem_.size());
 		for (IndexList::size_type n = 0; n < listIndex.size(); ++n) {
-			unsigned int nIndex = listIndex[n];
+			unsigned int nIndex = listIndex[n].first;
 			
 			unsigned int nBegin = nIndex;
 			while (nBegin != 0 && listItem_[nBegin]->getParentItem())
@@ -1148,25 +1159,21 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 		}
 		
 		for (IndexList::size_type n = 0; n < listIndex.size(); ++n)
-			listThread.erase(listThread.begin() + listIndex[n]);
+			listThread.erase(listThread.begin() + listIndex[n].first);
 	}
 	
-	for (IndexList::const_iterator itI = listIndex.begin(); itI != listIndex.end(); ++itI) {
-		unsigned int nIndex = *itI;
+	for (IndexList::iterator itI = listIndex.begin(); itI != listIndex.end(); ++itI) {
+		unsigned int nIndex = (*itI).first;
 		ItemList::iterator it = listItem_.begin() + nIndex;
+		ViewModelItem* pItem = *it;
 		
-		MessageHolder* pmh = (*it)->getMessageHolder();
-		bool bHasFocus = ((*it)->getFlags() & ViewModelItem::FLAG_FOCUSED) != 0;
-		bool bSelected = ((*it)->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
+		MessageHolder* pmh = pItem->getMessageHolder();
+		bool bHasFocus = (pItem->getFlags() & ViewModelItem::FLAG_FOCUSED) != 0;
+		bool bSelected = (pItem->getFlags() & ViewModelItem::FLAG_SELECTED) != 0;
 		
 		if ((getSort() & SORT_THREAD_MASK) == SORT_THREAD) {
-			ViewModelItem* pItem = *it;
-			unsigned int nLevel = pItem->getLevel();
-			
-			ItemList::const_iterator itEnd = it + 1;
-			while (itEnd != listItem_.end() && (*itEnd)->getLevel() > nLevel)
-				++itEnd;
-			
+			ItemList::const_iterator itEnd = listItem_.begin() + (*itI).second;
+			assert(it < itEnd && itEnd <= listItem_.end());
 			for (ItemList::const_iterator itC = it + 1; itC != itEnd; ++itC) {
 				if ((*itC)->getParentItem() == pItem) {
 					(*itC)->setParentItem(0);
@@ -1177,8 +1184,13 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 				boost::bind(&ViewModelItem::getParentItem, _1) == pItem) == listItem_.end());
 		}
 		
-		ViewModelItem::deleteItem(*it, nCacheCount_);
+		ViewModelItem::deleteItem(pItem, nCacheCount_);
 		it = listItem_.erase(it);
+		
+		for (IndexList::iterator itL = itI + 1; itL != listIndex.end(); ++itL) {
+			if ((*itL).second > nIndex)
+				--(*itL).second;
+		}
 		
 		if (bHasFocus) {
 			assert(nFocused_ == nIndex);
