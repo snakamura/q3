@@ -6446,7 +6446,15 @@ qm::ViewFilterCustomAction::~ViewFilterCustomAction()
 void qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 {
 	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
-	if (pViewModel) {
+	if (!pViewModel)
+		return;
+	
+	wstring_ptr wstrFilter;
+	const WCHAR* pwszFilter = ActionParamUtil::getString(event.getParam(), 0);
+	if (pwszFilter) {
+		wstrFilter = allocWString(pwszFilter);
+	}
+	else {
 		const WCHAR* pwszCondition = L"";
 		wstring_ptr wstrCondition;
 		const Filter* pFilter = pViewModel->getFilter();
@@ -6455,17 +6463,19 @@ void qm::ViewFilterCustomAction::invoke(const ActionEvent& event)
 			pwszCondition = wstrCondition.get();
 		}
 		CustomFilterDialog dialog(pwszCondition);
-		if (dialog.doModal(hwnd_) == IDOK) {
-			MacroParser parser;
-			std::auto_ptr<Macro> pCondition(parser.parse(dialog.getCondition()));
-			if (!pCondition.get()) {
-				ActionUtil::error(hwnd_, IDS_ERROR_INVALIDMACRO);
-				return;
-			}
-			std::auto_ptr<Filter> pFilter(new Filter(L"", pCondition));
-			pViewModel->setFilter(pFilter.get());
-		}
+		if (dialog.doModal(hwnd_) != IDOK)
+			return;
+		wstrFilter = allocWString(dialog.getCondition());
 	}
+	
+	MacroParser parser;
+	std::auto_ptr<Macro> pCondition(parser.parse(wstrFilter.get()));
+	if (!pCondition.get()) {
+		ActionUtil::error(hwnd_, IDS_ERROR_INVALIDMACRO);
+		return;
+	}
+	std::auto_ptr<Filter> pFilter(new Filter(L"", pCondition));
+	pViewModel->setFilter(pFilter.get());
 }
 
 bool qm::ViewFilterCustomAction::isEnabled(const ActionEvent& event)
