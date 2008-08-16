@@ -2454,51 +2454,13 @@ MacroValuePtr qm::MacroFunctionFunction::value(MacroContext* pContext) const
 	if (!pExpr)
 		return error(*pContext, MacroErrorHandler::CODE_UNKNOWNFUNCTION);
 	
-	MacroContext::ArgumentList listArgument;
-	struct Deleter
-	{
-		Deleter(MacroContext::ArgumentList& l) :
-			l_(l)
-		{
-		}
-		
-		~Deleter()
-		{
-			for (MacroContext::ArgumentList::const_iterator it = l_.begin(); it != l_.end(); ++it)
-				MacroValuePtr pValue(*it);
-			l_.clear();
-		}
-		
-		MacroContext::ArgumentList& l_;
-	} deleter(listArgument);
-	listArgument.reserve(getArgSize() + 1);
-	
-	MacroValuePtr pValueName(MacroValueFactory::getFactory().newString(wstrName_.get()));
-	listArgument.push_back(pValueName.release());
-	
+	MacroExprInvoker invoker(pContext, wstrName_.get());
 	for (size_t n = 0; n < getArgSize(); ++n) {
 		ARG(pValue, n);
-		listArgument.push_back(pValue.release());
+		invoker.pushArgument(pValue);
 	}
-	
-	struct Args
-	{
-		Args(MacroContext* pContext) :
-			pContext_(pContext)
-		{
-		}
-		
-		~Args()
-		{
-			pContext_->popArguments();
-		}
-		
-		MacroContext* pContext_;
-	} args(pContext);
-	
-	pContext->pushArguments(listArgument);
-	
-	return pExpr->value(pContext);
+	invoker.ready();
+	return invoker.invoke(pExpr);
 }
 
 const WCHAR* qm::MacroFunctionFunction::getName() const
@@ -4893,6 +4855,105 @@ const WCHAR* qm::MacroFunctionSave::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionSaveAttachment
+ *
+ */
+
+qm::MacroFunctionSaveAttachment::MacroFunctionSaveAttachment()
+{
+}
+
+qm::MacroFunctionSaveAttachment::~MacroFunctionSaveAttachment()
+{
+}
+
+MacroValuePtr qm::MacroFunctionSaveAttachment::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(SaveAttachment);
+	
+	if (!checkArgSizeRange(pContext, 1, 3))
+		return MacroValuePtr();
+	
+	size_t nSize = getArgSize();
+	
+	Message* pMessage = getMessage(pContext, MacroContext::MESSAGETYPE_ALL, 0);
+	if (!pMessage)
+		return error(*pContext, MacroErrorHandler::CODE_GETMESSAGE);
+	
+	ARG(pValuePath, 0);
+	MacroValue::String wstrPath(pValuePath->string());
+	wstring_ptr wstrAbsolutePath(pContext->resolvePath(wstrPath.get()));
+	
+	const MacroExpr* pExpr = 0;
+	if (nSize > 1)
+		pExpr = getArg(1);
+	
+	const Part* pPart = 0;
+	if (nSize > 2) {
+		pPart = getPart(pContext, 2);
+		if (!pPart)
+			return MacroValuePtr();
+	}
+	else {
+		pPart = pMessage;
+	}
+	
+	AttachmentParser parser(*pPart);
+	typedef AttachmentParser::AttachmentList List;
+	List l;
+	AttachmentParser::AttachmentListFree free(l);
+	parser.getAttachments(AttachmentParser::GAF_NONE, &l);
+	if (l.empty())
+		return MacroValueFactory::getFactory().newString(L"");
+	
+	class DetachCallbackImpl : public AttachmentParser::DetachCallback
+	{
+	public:
+		virtual wstring_ptr confirmOverwrite(const WCHAR* pwszPath)
+		{
+			return allocWString(pwszPath);
+		}
+	} callback;
+	
+	bool bAddZoneId = pContext->getProfile()->getInt(L"Global", L"AddZoneId") != 0;
+	wstring_ptr wstrAttachmentPath;
+	for (List::const_iterator it = l.begin(); it != l.end(); ++it) {
+		AttachmentParser p(*(*it).second);
+		wstring_ptr wstrName(p.getName());
+		if (pExpr) {
+			MacroExprInvoker invoker(pContext, L"");
+			MacroValuePtr pValueName(MacroValueFactory::getFactory().newString(wstrName));
+			invoker.pushArgument(pValueName);
+			MacroValuePtr pValuePart(MacroValueFactory::getFactory().newPart((*it).second));
+			invoker.pushArgument(pValuePart);
+			invoker.ready();
+			MacroValuePtr pValue(invoker.invoke(pExpr));
+			if (!pValue.get())
+				return error(*pContext, MacroErrorHandler::CODE_FAIL);
+			wstrName = pValue->string().release();
+		}
+		AttachmentParser::Result r = p.detach(wstrAbsolutePath.get(),
+			wstrName.get(), bAddZoneId, &callback, &wstrAttachmentPath);
+		if (r != AttachmentParser::RESULT_OK) {
+			if (r == AttachmentParser::RESULT_CANCEL)
+				pContext->setReturnType(MacroContext::RETURNTYPE_CANCEL);
+			return MacroValuePtr();
+		}
+	}
+	
+	return MacroValueFactory::getFactory().newString(wstrAttachmentPath);
+}
+
+const WCHAR* qm::MacroFunctionSaveAttachment::getName() const
+{
+	return L"SaveAttachment";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionScript
  *
  */
@@ -6174,6 +6235,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 		END_BLOCK()
 		BEGIN_BLOCK(L's', L'S')
 			DECLARE_FUNCTION0(		Save,				L"save"														)
+			DECLARE_FUNCTION0(		SaveAttachment,		L"saveattachment"											)
 			DECLARE_FUNCTION1(		Flag,				L"seen",				MessageHolder::FLAG_SEEN			)
 			DECLARE_FUNCTION1(		Flag,				L"sent",				MessageHolder::FLAG_SENT			)
 			DECLARE_FUNCTION0(		Script,				L"script"													)

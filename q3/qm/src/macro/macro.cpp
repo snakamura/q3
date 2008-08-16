@@ -1135,6 +1135,50 @@ void qm::MacroExprPtr::reset(MacroExpr* pExpr)
 
 /****************************************************************************
  *
+ * MacroExprInvoker
+ *
+ */
+
+qm::MacroExprInvoker::MacroExprInvoker(MacroContext* pContext,
+									   const WCHAR* pwszName) :
+	pContext_(pContext)
+{
+	assert(pContext);
+	assert(pwszName);
+	
+	MacroValuePtr pValueName(MacroValueFactory::getFactory().newString(pwszName));
+	pushArgument(pValueName);
+}
+
+qm::MacroExprInvoker::~MacroExprInvoker()
+{
+	pContext_->popArguments();
+	
+	for (ArgumentList::const_iterator it = listArgument_.begin(); it != listArgument_.end(); ++it)
+		MacroValuePtr pValue(*it);
+}
+
+void qm::MacroExprInvoker::pushArgument(MacroValuePtr pValue)
+{
+	assert(pValue.get());
+	listArgument_.push_back(pValue.get());
+	pValue.release();
+}
+
+void qm::MacroExprInvoker::ready()
+{
+	pContext_->pushArguments(listArgument_);
+}
+
+MacroValuePtr qm::MacroExprInvoker::invoke(const MacroExpr* pExpr)
+{
+	assert(pExpr);
+	return pExpr->value(pContext_);
+}
+
+
+/****************************************************************************
+ *
  * MacroConstantFactory
  *
  */
@@ -1907,7 +1951,7 @@ wstring_ptr qm::MacroContext::resolvePath(const WCHAR* pwszPath)
 	
 	if (*pwszPath == L'\\' || *pwszPath == L'/' ||
 		(*pwszPath != L'\0' && *(pwszPath + 1) == L':')) {
-		wstrPath =allocWString(pwszPath);
+		wstrPath = allocWString(pwszPath);
 	}
 	else {
 		const WCHAR* pwszMailFolder =

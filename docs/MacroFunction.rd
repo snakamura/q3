@@ -107,6 +107,7 @@
 *((<@Remove|URL:RemoveFunction.html>))
 *((<@Replied|URL:RepliedFunction.html>))
 *((<@Save|URL:SaveFunction.html>))
+*((<@SaveAttachment|URL:SaveAttachmentFunction.html>))
 *((<@Script|URL:ScriptFunction.html>))
 *((<@Seen|URL:SeenFunction.html>))
 *((<@SelectBox|URL:SelectBoxFunction.html>))

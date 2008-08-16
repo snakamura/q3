@@ -106,6 +106,7 @@ class MacroExpr;
 		class MacroFunctionRelative;
 		class MacroFunctionRemove;
 		class MacroFunctionSave;
+		class MacroFunctionSaveAttachment;
 		class MacroFunctionScript;
 		class MacroFunctionSelectBox;
 		class MacroFunctionSelected;
@@ -122,6 +123,7 @@ class MacroExpr;
 		class MacroFunctionWhile;
 class MacroExprVisitor;
 class MacroExprPtr;
+class MacroExprInvoker;
 class MacroFunctionFactory;
 class MacroConstantFactory;
 
@@ -2539,6 +2541,30 @@ private:
 
 /****************************************************************************
  *
+ * MacroFunctionSaveAttachment
+ *
+ */
+
+class MacroFunctionSaveAttachment : public MacroFunction
+{
+public:
+	MacroFunctionSaveAttachment();
+	virtual ~MacroFunctionSaveAttachment();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionSaveAttachment(const MacroFunctionSaveAttachment&);
+	MacroFunctionSaveAttachment& operator=(const MacroFunctionSaveAttachment&);
+};
+
+
+/****************************************************************************
+ *
  * MacroFunctionScript
  *
  */
@@ -2992,6 +3018,37 @@ public:
 
 private:
 	MacroExpr* pExpr_;
+};
+
+
+/****************************************************************************
+ *
+ * MacroExprInvoker
+ *
+ */
+
+class MacroExprInvoker
+{
+public:
+	MacroExprInvoker(MacroContext* pContext,
+					 const WCHAR* pwszName);
+	~MacroExprInvoker();
+
+public:
+	void pushArgument(MacroValuePtr pValue);
+	void ready();
+	MacroValuePtr invoke(const MacroExpr* pExpr);
+
+private:
+	MacroExprInvoker(const MacroExprInvoker&);
+	MacroExprInvoker& operator=(const MacroExprInvoker&);
+
+private:
+	typedef MacroContext::ArgumentList ArgumentList;
+
+private:
+	MacroContext* pContext_;
+	ArgumentList listArgument_;
 };
 
 
