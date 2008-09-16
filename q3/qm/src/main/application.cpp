@@ -23,6 +23,7 @@
 #include <qsdialog.h>
 #include <qsfile.h>
 #include <qsinit.h>
+#include <qsmd5.h>
 #include <qsmime.h>
 #include <qsosutil.h>
 #include <qsprofile.h>
@@ -101,6 +102,7 @@ public:
 public:
 	bool ensureDirectories();
 	bool loadMainProfile();
+	bool checkLaunchPassword();
 	void initConverterAliases();
 	void initTimeFormat();
 	void initMime();
@@ -212,6 +214,30 @@ bool qm::ApplicationImpl::loadMainProfile()
 		defaultProfiles, countof(defaultProfiles)));
 	if (!pProfile_->load())
 		return false;
+	
+	return true;
+}
+
+bool qm::ApplicationImpl::checkLaunchPassword()
+{
+	assert(pProfile_.get());
+	
+	wstring_ptr wstrPassword(pProfile_->getString(L"Global", L"Password"));
+	if (!*wstrPassword.get())
+		return true;
+	
+	while (true) {
+		LaunchPasswordDialog dialog;
+		if (dialog.doModal(0) != IDOK)
+			return false;
+		
+		string_ptr strPassword(wcs2mbs(dialog.getPassword()));
+		CHAR szDigest[33] = "";
+		MD5::md5ToString(reinterpret_cast<const unsigned char*>(strPassword.get()),
+			strlen(strPassword.get()), szDigest);
+		if (strcmp(wcs2mbs(wstrPassword.get()).get(), szDigest) == 0)
+			break;
+	}
 	
 	return true;
 }
@@ -826,7 +852,8 @@ bool qm::Application::initialize(int nLogLevel,
 {
 	pImpl_->pWinSock_.reset(new Winsock());
 	if (!pImpl_->ensureDirectories() ||
-		!pImpl_->loadMainProfile())
+		!pImpl_->loadMainProfile() ||
+		!pImpl_->checkLaunchPassword())
 		return false;
 	pImpl_->initConverterAliases();
 	pImpl_->initLog(nLogLevel);

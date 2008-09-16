@@ -42,6 +42,7 @@ class DefaultDialog;
 		class SingleLineInputBoxDialog;
 		class MultiLineInputBoxDialog;
 	class LabelDialog;
+	class LaunchPasswordDialog;
 	class MailFolderDialog;
 	class MoveMessageDialog;
 	class PasswordDialog;
@@ -822,6 +823,32 @@ private:
 	qs::ImeWindow wndLabel_;
 };
 
+
+/****************************************************************************
+ *
+ * LaunchPasswordDialog
+ *
+ */
+
+class LaunchPasswordDialog : public DefaultDialog
+{
+public:
+	LaunchPasswordDialog();
+	virtual ~LaunchPasswordDialog();
+
+public:
+	const WCHAR* getPassword() const;
+
+protected:
+	virtual LRESULT onOk();
+
+private:
+	LaunchPasswordDialog(const LaunchPasswordDialog&);
+	LaunchPasswordDialog& operator=(const LaunchPasswordDialog&);
+
+private:
+	qs::wstring_ptr wstrPassword_;
+};
 
 /****************************************************************************
  *

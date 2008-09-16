@@ -92,6 +92,7 @@
 #define IDD_OPTIONSYNC                  224
 #define IDD_ABOUT                       225
 #define IDD_SYNCWAIT                    226
+#define IDD_LAUNCHPASSWORD              228
 #define IDD_SELECTSYNCFILTER_L          611
 #define IDD_CREATEFOLDER_L              612
 #define IDD_PROGRESS_L                  613
@@ -180,6 +181,7 @@
 #define IDD_ABOUT_L                     725
 #define IDD_SYNCWAIT_L                  726
 #define IDD_ACCOUNTDETAIL_L             727
+#define IDD_LAUNCHPASSWORD_L            728
 #define IDC_SYNCSTATUS                  1000
 #define IDC_FILTERSETLIST               1001
 #define IDC_SIZEGRIP                    1003
@@ -603,9 +605,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        227
+#define _APS_NEXT_RESOURCE_VALUE        229
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1570
+#define _APS_NEXT_CONTROL_VALUE         1571
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -1883,6 +1883,17 @@ BEGIN
                     35,180,8
 END
 
+IDD_LAUNCHPASSWORD DIALOG DISCARDABLE  0, 0, 190, 57
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Password"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Password",IDC_STATIC,5,5,40,8
+    EDITTEXT        IDC_PASSWORD,5,20,180,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,80,40,50,12
+    PUSHBUTTON      "Cancel",IDCANCEL,135,40,50,12
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2005,6 +2016,14 @@ BEGIN
         RIGHTMARGIN, 184
         TOPMARGIN, 7
         BOTTOMMARGIN, 73
+    END
+
+    IDD_LAUNCHPASSWORD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 183
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 50
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -215,6 +215,7 @@ const qs::Profile::Default defaultProfiles[] = {
 	{ L"Global",	L"Offline",							L"1"												},
 	{ L"Global",	L"OpenAddressBook",					L"0"												},
 	{ L"Global",	L"OpenRecentInPreview",				L"0"												},
+	{ L"Global",	L"Password",						L""													},
 	{ L"Global",	L"PrintExtension",					L"html"												},
 	{ L"Global",	L"Quote",							L"> "												},
 	{ L"Global",	L"RFC2231",							L"0"												},

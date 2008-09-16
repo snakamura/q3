@@ -1588,6 +1588,33 @@ LRESULT qm::LabelDialog::onOk()
 
 /****************************************************************************
  *
+ * LaunchPasswordDialog
+ *
+ */
+
+qm::LaunchPasswordDialog::LaunchPasswordDialog() :
+	DefaultDialog(IDD_LAUNCHPASSWORD, LANDSCAPE(IDD_LAUNCHPASSWORD))
+{
+}
+
+qm::LaunchPasswordDialog::~LaunchPasswordDialog()
+{
+}
+
+const WCHAR* qm::LaunchPasswordDialog::getPassword() const
+{
+	return wstrPassword_.get();
+}
+
+LRESULT qm::LaunchPasswordDialog::onOk()
+{
+	wstrPassword_ = getDlgItemText(IDC_PASSWORD);
+	return DefaultDialog::onOk();
+}
+
+
+/****************************************************************************
+ *
  * MailFolderDialog
  *
  */
