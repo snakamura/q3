@@ -1602,6 +1602,9 @@ LRESULT qm::FolderWindow::onCreate(CREATESTRUCT* pCreateStruct)
 		TreeView_SetTextColor(getHandle(), pImpl_->crForeground_);
 		TreeView_SetBkColor(getHandle(), pImpl_->crBackground_);
 	}
+	else {
+		TreeView_SetBkColor(getHandle(), ::GetSysColor(COLOR_WINDOW));
+	}
 #endif
 	
 	HIMAGELIST hImageList = ImageList_Duplicate(pImpl_->pFolderImage_->getImageList());
