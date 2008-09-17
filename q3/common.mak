@@ -736,7 +736,7 @@ SVERSION				= $(shell cat version | sed -e 's/\./, /g'), $(REVISION)
 RCDEFINES				= -DNVERSION="$(NVERSION)" -DSVERSION="\"$(SVERSION)\"" -DSUFFIX="\"$(SUFFIX)\""
 RCDEFINES				+= $(CPROJS)
 
-RCHEADER				= $(dir $(subst $(OBJDIR),$(SRCDIR),$(RESES)))resource$(shell echo `basename $(RESES)` | sed -e 's/\(.*\($(BASEPLATFORM)\)\|.*\)\.res/\2/').h
+RCHEADER				= $(dir $(subst $(OBJDIR),$(SRCDIR),$(RESES)))resource$(shell echo `basename "$(RESES)"` | sed -e 's/\(.*\($(BASEPLATFORM)\)\|.*\)\.res/\2/').h
 
 ifneq ($(TLBS),)
 	INCLUDES			+= -I$(TLBDIR)
