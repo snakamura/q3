@@ -1577,6 +1577,10 @@ BEGIN
     LTEXT           "これらの拡張子の添付ファイルを開くときに警告する(&A)",
                     IDC_WARNEXTENSIONLABEL,5,40,127,17
     EDITTEXT        IDC_WARNEXTENSION,5,57,127,12,ES_AUTOHSCROLL
+    CONTROL         "起動時にパスワードをチェック(&C)",IDC_LAUNCHPASSWORD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,75,120,10
+    LTEXT           "パスワード(&S)",IDC_PASSWORDLABEL,15,88,40,8
+    EDITTEXT        IDC_PASSWORD,55,87,77,12,ES_AUTOHSCROLL
 END
 
 IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 137, 119
@@ -2311,6 +2315,10 @@ BEGIN
     LTEXT           "これらの拡張子の添付ファイルを開くときに警告する(&A)",
                     IDC_WARNEXTENSIONLABEL,5,30,172,10
     EDITTEXT        IDC_WARNEXTENSION,5,40,172,12,ES_AUTOHSCROLL
+    CONTROL         "起動時にパスワードをチェック(&C)",IDC_LAUNCHPASSWORD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,55,120,10
+    LTEXT           "パスワード(&S)",IDC_PASSWORDLABEL,15,68,40,8
+    EDITTEXT        IDC_PASSWORD,55,67,122,12,ES_AUTOHSCROLL
 END
 
 #if defined(APSTUDIO_INVOKED) || defined(QMTABWINDOW)

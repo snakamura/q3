@@ -22,6 +22,7 @@
 
 #include <qsdevicecontext.h>
 #include <qsinit.h>
+#include <qsmd5.h>
 #include <qsras.h>
 #include <qsuiutil.h>
 
@@ -1920,6 +1921,15 @@ qm::OptionSecurityDialog::~OptionSecurityDialog()
 {
 }
 
+LRESULT qm::OptionSecurityDialog::onCommand(WORD nCode,
+											WORD nId)
+{
+	BEGIN_COMMAND_HANDLER()
+		HANDLE_COMMAND_ID_CODE(IDC_LAUNCHPASSWORD, BN_CLICKED, onLaunchPassword)
+	END_COMMAND_HANDLER()
+	return DefaultDialog::onCommand(nCode, nId);
+}
+
 LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 											   LPARAM lParam)
 {
@@ -1947,6 +1957,12 @@ LRESULT qm::OptionSecurityDialog::onInitDialog(HWND hwndFocus,
 	wstring_ptr wstrExtensions(pProfile_->getString(L"Global", L"WarnExtensions"));
 	setDlgItemText(IDC_WARNEXTENSION, wstrExtensions.get());
 	
+	wstring_ptr wstrPassword(pProfile_->getString(L"Global", L"Password"));
+	Button_SetCheck(getDlgItem(IDC_LAUNCHPASSWORD),
+		*wstrPassword.get() ? BST_CHECKED : BST_UNCHECKED);
+	
+	updateState();
+	
 	return FALSE;
 }
 
@@ -1967,9 +1983,39 @@ bool qm::OptionSecurityDialog::save(OptionDialogContext* pContext)
 	wstring_ptr wstrExtensions(getDlgItemText(IDC_WARNEXTENSION));
 	pProfile_->setString(L"Global", L"WarnExtensions", wstrExtensions.get());
 	
+	const WCHAR* pwszPassword = L"";
+	wstring_ptr wstrPassword;
+	if (Button_GetCheck(getDlgItem(IDC_LAUNCHPASSWORD)) == BST_CHECKED) {
+		string_ptr str = wcs2mbs(getDlgItemText(IDC_PASSWORD).get());
+		if (*str.get()) {
+			CHAR szDigest[33] = "";
+			MD5::md5ToString(reinterpret_cast<const unsigned char*>(str.get()),
+				strlen(str.get()), szDigest);
+			wstrPassword = mbs2wcs(szDigest);
+			pwszPassword = wstrPassword.get();
+		}
+		else {
+			pwszPassword = 0;
+		}
+	}
+	if (pwszPassword)
+		pProfile_->setString(L"Global", L"Password", pwszPassword);
+	
 	pContext->setFlags(OptionDialogContext::FLAG_RELOADSECURITY);
 	
 	return true;
+}
+
+LRESULT qm::OptionSecurityDialog::onLaunchPassword()
+{
+	updateState();
+	return 0;
+}
+
+void qm::OptionSecurityDialog::updateState()
+{
+	Window(getDlgItem(IDC_PASSWORD)).enableWindow(
+		Button_GetCheck(getDlgItem(IDC_LAUNCHPASSWORD)) == BST_CHECKED);
 }
 
 

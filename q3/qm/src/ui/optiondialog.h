@@ -907,12 +907,22 @@ public:
 						 qs::Profile* pProfile);
 	virtual ~OptionSecurityDialog();
 
+public:
+	virtual LRESULT onCommand(WORD nCode,
+							  WORD nId);
+
 protected:
 	virtual LRESULT onInitDialog(HWND hwndFocus,
 								 LPARAM lParam);
 
 public:
 	virtual bool save(OptionDialogContext* pContext);
+
+private:
+	LRESULT onLaunchPassword();
+
+private:
+	void updateState();
 
 private:
 	OptionSecurityDialog(const OptionSecurityDialog&);

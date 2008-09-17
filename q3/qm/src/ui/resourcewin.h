@@ -440,6 +440,7 @@
 #define IDC_ZONEID                      1465
 #define IDC_AUTOPOPUP                   1466
 #define IDC_SCANATTACHMENT              1467
+#define IDC_LAUNCHPASSWORD              1571
 
 // Next default values for new objects
 // 
@@ -448,7 +449,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        228
 #define _APS_NEXT_COMMAND_VALUE         49000
-#define _APS_NEXT_CONTROL_VALUE         1571
+#define _APS_NEXT_CONTROL_VALUE         1573
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

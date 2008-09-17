@@ -1574,6 +1574,11 @@ BEGIN
     CONTROL         "添付ファイルを保存するときにゾーンIDを設定する(&Z)",
                     IDC_ZONEID,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,105,
                     170,12
+    CONTROL         "起動時にパスワードをチェックする(&C)",
+                    IDC_LAUNCHPASSWORD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    5,120,170,12
+    LTEXT           "パスワード(&S)",IDC_STATIC,15,135,40,9
+    EDITTEXT        IDC_PASSWORD,60,133,115,14,ES_PASSWORD | ES_AUTOHSCROLL
 END
 
 IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 231, 170

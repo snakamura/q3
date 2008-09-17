@@ -1533,6 +1533,10 @@ BEGIN
     LTEXT           "Warn before opening &attachments with these extensions",
                     IDC_WARNEXTENSIONLABEL,5,40,127,17
     EDITTEXT        IDC_WARNEXTENSION,5,57,127,12,ES_AUTOHSCROLL
+    CONTROL         "&Check password upon launch",IDC_LAUNCHPASSWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,120,10
+    LTEXT           "Pa&ssword",IDC_PASSWORDLABEL,15,88,35,8
+    EDITTEXT        IDC_PASSWORD,50,87,82,12,ES_AUTOHSCROLL
 END
 
 IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 137, 119
@@ -2299,6 +2303,10 @@ BEGIN
     LTEXT           "Warn before opening &attachments with these extensions",
                     IDC_WARNEXTENSIONLABEL,5,30,172,17
     EDITTEXT        IDC_WARNEXTENSION,5,50,172,12,ES_AUTOHSCROLL
+    CONTROL         "&Check password upon launch",IDC_LAUNCHPASSWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,120,10
+    LTEXT           "Pa&ssword",IDC_PASSWORDLABEL,15,78,35,8
+    EDITTEXT        IDC_PASSWORD,50,77,127,12,ES_AUTOHSCROLL
 END
 
 #if defined(APSTUDIO_INVOKED) || defined(QMTABWINDOW)
