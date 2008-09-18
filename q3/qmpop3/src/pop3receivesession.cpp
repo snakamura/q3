@@ -461,7 +461,8 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 	unsigned int nGetAll = pSubAccount_->getPropertyInt(L"Pop3", L"GetAll");
 	unsigned int nCount = pPop3_->getMessageCount();
 	unsigned int nUIDCount = pUIDList->getCount();
-	if (nUIDCount == 0 ||
+	if (nCount == 0 ||
+		nUIDCount == 0 ||
 		nCount < nUIDCount ||
 		(nCount != nUIDCount && nCount/(nCount - nUIDCount) > nGetAll) ||
 		bReservedDownload_) {
@@ -481,10 +482,12 @@ bool qmpop3::Pop3ReceiveSession::prepare()
 	std::auto_ptr<UIDList> pNewUIDList;
 	
 	if (bCacheAll_) {
-		if (!pPop3_->getUids(&listUID_))
-			HANDLE_ERROR();
-		if (!pPop3_->getMessageSizes(&listSize_))
-			HANDLE_ERROR();
+		if (nCount != 0) {
+			if (!pPop3_->getUids(&listUID_))
+				HANDLE_ERROR();
+			if (!pPop3_->getMessageSizes(&listSize_))
+				HANDLE_ERROR();
+		}
 		
 		if (nUIDCount != 0 && listUID_.size() >= nUIDCount &&
 			wcscmp(pUIDList->getUID(nUIDCount - 1)->getUID(),
