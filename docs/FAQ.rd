@@ -52,5 +52,6 @@
 *((<リストビューにメッセージの一行目を表示することはできますか?|URL:HowToShowFirstLineInListView.html>))
 *((<アカウントやフォルダの順番を変えることはできますか?|URL:HowToChangeOrderOfAccountsAndFolders.html>))
 *((<スペルチェックはできますか?|URL:HowToCheckSpell.html>))
+*((<なぜメールアドレスの@より前が引用符でくくられてしまうのですか?|URL:WhyQuoteMailbox.html>))
 
 =end
