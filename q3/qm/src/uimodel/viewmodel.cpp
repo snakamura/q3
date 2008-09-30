@@ -1116,7 +1116,7 @@ void qm::ViewModel::messageRemoved(const FolderMessageEvent& event)
 	bool bSort = false;
 	const MessageHolderList& l = event.getMessageHolders();
 	
-	typedef std::vector<std::pair<unsigned int, unsigned int> > IndexList;
+	typedef std::vector<std::pair<unsigned int, ItemList::size_type> > IndexList;
 	IndexList listIndex;
 	listIndex.reserve(l.size());
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
