@@ -129,12 +129,16 @@ bool qmpop3::Pop3::connect(const WCHAR* pwszHost,
 		if (pBegin) {
 			const CHAR* pEnd = strchr(pBegin + 1, '>');
 			if (pEnd) {
-				string_ptr strApop(allocString(pEnd - pBegin + strlen(strPassword.get()) + 2));
-				CHAR* p = strApop.get();
-				strncpy(p, pBegin, pEnd - pBegin + 1);
-				p += pEnd - pBegin + 1;
-				strcpy(p, strPassword.get());
+				string_ptr strChallange(allocString(pBegin, pEnd - pBegin + 1));
 				
+				Part part;
+				if (!part.create(0, concat("Message-Id: ", strChallange.get(), "\r\n").get(), -1))
+					POP3_ERROR(POP3_ERROR_PARSE | POP3_ERROR_APOP);
+				MessageIdParser messageId;
+				if (part.getField(L"Message-Id", &messageId) != Part::FIELD_EXIST)
+					POP3_ERROR(POP3_ERROR_PARSE | POP3_ERROR_APOP);
+				
+				string_ptr strApop(concat(strChallange.get(), strPassword.get()));
 				MD5::md5ToString(reinterpret_cast<const unsigned char*>(strApop.get()),
 					strlen(strApop.get()), szDigestString);
 			}
