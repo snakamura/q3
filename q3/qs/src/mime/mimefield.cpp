@@ -1822,13 +1822,28 @@ qs::AddressParser::AddressParser(const WCHAR* pwszPhrase,
 	if (pwszPhrase && *pwszPhrase)
 		wstrPhrase_ = allocWString(pwszPhrase);
 	
-	const WCHAR* p = wcsrchr(pwszAddress, L'@');
-	if (p) {
-		wstrMailbox_ = allocWString(pwszAddress, p - pwszAddress);
-		wstrHost_ = allocWString(p + 1);
+	Part part(Part::getGlobalOptions() | Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN);
+	if (part.create(0, wcs2mbs(concat(L"To: ", pwszAddress).get()).get(), -1)) {
+		AddressParser address;
+		if (part.getField(L"To", &address) == Part::FIELD_EXIST) {
+			wstrMailbox_ = allocWString(address.getMailbox());
+			const WCHAR* pwszHost = address.getHost();
+			if (pwszHost && *pwszHost)
+				wstrHost_ = allocWString(pwszHost);
+		}
 	}
-	else {
-		wstrMailbox_ = allocWString(pwszAddress);
+	if (!wstrMailbox_.get()) {
+		// Fall back.
+		// This code doesn't care about quoted mailbox part,
+		// so should not be used.
+		const WCHAR* p = wcsrchr(pwszAddress, L'@');
+		if (p) {
+			wstrMailbox_ = allocWString(pwszAddress, p - pwszAddress);
+			wstrHost_ = allocWString(p + 1);
+		}
+		else {
+			wstrMailbox_ = allocWString(pwszAddress);
+		}
 	}
 }
 
