@@ -492,7 +492,7 @@ qm::AddressBookAddress::AddressBookAddress(const AddressBookEntry* pEntry,
 	bRFC2822_(bRFC2822)
 {
 	if (pwszAddress)
-		wstrAddress_ = allocWString(pwszAddress);
+		wstrAddress_ = AddressParser(0, pwszAddress).getAddress();
 	if (pwszAlias)
 		wstrAlias_ = allocWString(pwszAlias);
 	if (pwszComment)
@@ -533,7 +533,7 @@ const WCHAR* qm::AddressBookAddress::getAddress() const
 void qm::AddressBookAddress::setAddress(const WCHAR* pwszAddress)
 {
 	assert(pwszAddress);
-	wstrAddress_ = allocWString(pwszAddress);
+	wstrAddress_ = AddressParser(0, pwszAddress).getAddress();
 }
 
 const WCHAR* qm::AddressBookAddress::getAlias() const
