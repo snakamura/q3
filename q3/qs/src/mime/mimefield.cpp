@@ -1824,7 +1824,7 @@ qs::AddressParser::AddressParser(const WCHAR* pwszPhrase,
 	
 	Part part(Part::getGlobalOptions() | Part::O_ALLOW_ADDRESS_WITHOUT_DOMAIN);
 	if (part.create(0, wcs2mbs(concat(L"To: ", pwszAddress).get()).get(), -1)) {
-		AddressParser address;
+		AddressParser address(FLAG_DISALLOWGROUP);
 		if (part.getField(L"To", &address) == Part::FIELD_EXIST) {
 			wstrMailbox_ = allocWString(address.getMailbox());
 			const WCHAR* pwszHost = address.getHost();
