@@ -2150,7 +2150,7 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 				if (*token.str_.get() == ';' && bInGroup) {
 					if (pbEnd)
 						*pbEnd = true;
-					state = S_END;
+					return Part::FIELD_NOTEXIST;
 				}
 				else if (*token.str_.get() == '<') {
 					state = S_LEFTANGLE;
