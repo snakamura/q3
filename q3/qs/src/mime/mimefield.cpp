@@ -2143,7 +2143,8 @@ Part::Field qs::AddressParser::parseAddress(const Part& part,
 			case Tokenizer::T_END:
 				if (bInGroup)
 					return parseError();
-				state = S_END;
+				else
+					return Part::FIELD_NOTEXIST;
 				break;
 			case Tokenizer::T_SPECIAL:
 				if (*token.str_.get() == ';' && bInGroup) {
@@ -2752,11 +2753,12 @@ Part::Field qs::AddressListParser::parseAddressList(const Part& part,
 		bool bEnd = false;
 		Part::Field field = pParser->parseAddress(part, t,
 			(nFlags_ & FLAG_GROUP) == FLAG_GROUP ? &bEnd : 0);
-		if (field != Part::FIELD_EXIST)
+		if (field == Part::FIELD_ERROR)
 			return Part::FIELD_ERROR;
-		
-		if (!pParser->getMailbox() && !pParser->getGroup())
+		else if (field == Part::FIELD_NOTEXIST)
 			break;
+		
+		assert(pParser->getMailbox() || pParser->getGroup());
 		
 		listAddress_.push_back(pParser.get());
 		pParser.release();
