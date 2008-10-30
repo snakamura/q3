@@ -1,6 +1,23 @@
 =begin
 =Release Notes
 
+==3.0.6
+===New features
+*Added a feature to request password on launch.
+*Added @SaveAttachment.
+
+===Changes
+*Allow to pass argument to ViewFilterCustom action to specify a macro.
+*Don't send UIDL and LIST to POP3 server when it has no message.
+*Updated OpenSSL to 0.9.8i.
+*Normalize an email address when loads it from an address book.
+
+===Bug fixes
+*Fixed it caused crash when moving or deleting messages while they were shown in thread.
+*Fixed the background color of the folder view is different from the system color on Windows Vista.
+*Check the syntax of challenge of APOP.
+
+
 ==3.0.5
 ===New features
 *Allow to specify the directory where a junk database is placed by JunkFilter/Path in qmail.xml.
@@ -8,7 +25,7 @@
 
 ===Changes
 *Prohibit dropping messages dragged from list view to list view.
-*Updated OpenSSL to 0.9.8h
+*Updated OpenSSL to 0.9.8h.
 
 ===Bug fixes
 *Fixed a file name became ".eml" when attaching a message whose subject was empty.
