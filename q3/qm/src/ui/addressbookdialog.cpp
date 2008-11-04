@@ -225,12 +225,11 @@ LRESULT qm::AddressBookAddressDialog::onOk()
 		wstring_ptr wstrComment(getDlgItemText(IDC_COMMENT));
 		wstring_ptr wstrCertificate(getDlgItemText(IDC_CERTIFICATE));
 		
-		pAddress_->setAddress(wstrAddress.get());
+		pAddress_->setAddress(wstrAddress.get(), bRFC2822);
 		pAddress_->setAlias(*wstrAlias.get() ? wstrAlias.get() : 0);
 		pAddress_->setCategories(listCategory);
 		pAddress_->setComment(*wstrComment.get() ? wstrComment.get() : 0);
 		pAddress_->setCertificate(*wstrCertificate.get() ? wstrCertificate.get() : 0);
-		pAddress_->setRFC2822(bRFC2822);
 	}
 	return DefaultDialog::onOk();
 }

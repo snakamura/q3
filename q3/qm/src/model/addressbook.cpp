@@ -492,7 +492,7 @@ qm::AddressBookAddress::AddressBookAddress(const AddressBookEntry* pEntry,
 	bRFC2822_(bRFC2822)
 {
 	if (pwszAddress)
-		wstrAddress_ = AddressParser(0, pwszAddress).getAddress();
+		setAddress(pwszAddress, bRFC2822);
 	if (pwszAlias)
 		wstrAlias_ = allocWString(pwszAlias);
 	if (pwszComment)
@@ -530,10 +530,15 @@ const WCHAR* qm::AddressBookAddress::getAddress() const
 	return wstrAddress_.get();
 }
 
-void qm::AddressBookAddress::setAddress(const WCHAR* pwszAddress)
+void qm::AddressBookAddress::setAddress(const WCHAR* pwszAddress,
+										bool bRFC2822)
 {
 	assert(pwszAddress);
-	wstrAddress_ = AddressParser(0, pwszAddress).getAddress();
+	if (bRFC2822)
+		wstrAddress_ = allocWString(pwszAddress);
+	else
+		wstrAddress_ = AddressParser(0, pwszAddress).getAddress();
+	bRFC2822_ = bRFC2822;
 }
 
 const WCHAR* qm::AddressBookAddress::getAlias() const
@@ -599,11 +604,6 @@ void qm::AddressBookAddress::setCertificate(const WCHAR* pwszCertificate)
 bool qm::AddressBookAddress::isRFC2822() const
 {
 	return bRFC2822_;
-}
-
-void qm::AddressBookAddress::setRFC2822(bool bRFC2822)
-{
-	bRFC2822_ = bRFC2822;
 }
 
 wstring_ptr qm::AddressBookAddress::getValue() const
@@ -834,7 +834,7 @@ bool qm::AddressBookContentHandler::endElement(const WCHAR* pwszNamespaceURI,
 		assert(state_ == STATE_ADDRESS);
 		
 		assert(pAddress_.get());
-		pAddress_->setAddress(buffer_.getCharArray());
+		pAddress_->setAddress(buffer_.getCharArray(), pAddress_->isRFC2822());
 		buffer_.remove();
 		pEntry_->addAddress(pAddress_);
 		

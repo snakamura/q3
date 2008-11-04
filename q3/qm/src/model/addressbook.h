@@ -187,7 +187,8 @@ public:
 public:
 	const AddressBookEntry* getEntry() const;
 	const WCHAR* getAddress() const;
-	void setAddress(const WCHAR* pwszAddress);
+	void setAddress(const WCHAR* pwszAddress,
+					bool bRFC2822);
 	const WCHAR* getAlias() const;
 	void setAlias(const WCHAR* pwszAlias);
 	const CategoryList& getCategories() const;
@@ -198,7 +199,6 @@ public:
 	const WCHAR* getCertificate() const;
 	void setCertificate(const WCHAR* pwszCertificate);
 	bool isRFC2822() const;
-	void setRFC2822(bool bRFC2822);
 	qs::wstring_ptr getValue() const;
 
 private:
