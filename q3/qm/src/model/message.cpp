@@ -1911,7 +1911,8 @@ PartUtil::DigestMode qm::PartUtil::getDigestMode() const
 			const Part::PartList& l = part_.getPartList();
 			Part::PartList::const_iterator it = l.begin();
 			while (it != l.end()) {
-				if ((*it)->isAttachment())
+				const Part* pEnclosedPart = (*it)->getEnclosedPart();
+				if (!pEnclosedPart && !(*it)->isText())
 					break;
 				++it;
 			}
