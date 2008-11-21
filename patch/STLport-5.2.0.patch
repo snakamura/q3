@@ -1,0 +1,12 @@
+diff -ur STLport-5.2.0.orig/src/stdio_streambuf.cpp STLport-5.2.0/src/stdio_streambuf.cpp
+--- STLport-5.2.0.orig/src/stdio_streambuf.cpp	2008-11-22 06:38:28.230464200 +0900
++++ STLport-5.2.0/src/stdio_streambuf.cpp	2008-11-22 00:51:15.871089200 +0900
+@@ -34,7 +34,7 @@
+ 
+ #if defined (_STLP_USE_DEFAULT_FILE_OFFSET) || \
+     (!defined(_LARGEFILE_SOURCE) && !defined(_LARGEFILE64_SOURCE))
+-#  if !defined (_STLP_MSVC) || (_STLP_MSVC < 1400)
++#  if !defined (_STLP_MSVC) || (_STLP_MSVC < 1400) || defined(_STLP_WCE)
+ #    define FSEEK fseek
+ #  else
+ #    define FSEEK _fseeki64
