@@ -14,6 +14,8 @@ VS7DIR					= C:/Program Files/Microsoft Visual Studio .NET 2003
 VC7DIR					= $(VS7DIR)/Vc7
 VS8DIR					= C:/Program Files/Microsoft Visual Studio 8
 VC8DIR					= $(VS8DIR)/VC
+VS9DIR					= C:/Program Files/Microsoft Visual Studio 9.0
+VC9DIR					= $(VS9DIR)/VC
 VCVER					= 8
 EVC3DIR					= C:/Program Files/Microsoft eMbedded Tools/EVC
 EVC4DIR					= C:/Program Files/Microsoft eMbedded C++ 4.0/EVC
@@ -72,6 +74,12 @@ endif
 ifeq ($(PLATFORM),win)
 	# WINDOWS ###############################################################
 	SDKDIR					= $(PLATFORMSDKDIR)
+	ifeq ($(VCVER),9)
+		COMPILERDIR			= $(VC9DIR)
+		COMMONBINDIR		= $(VS9DIR)/common7/ide
+		COMMONTOOLBINDIR	= $(VS9DIR)/common7/tools/bin
+		COMMONTOOL2BINDIR	= $(VC9DIR)/vcpackages
+	endif
 	ifeq ($(VCVER),8)
 		COMPILERDIR			= $(VC8DIR)
 		COMMONBINDIR		= $(VS8DIR)/common7/ide
@@ -109,7 +117,7 @@ ifeq ($(PLATFORM),win)
 		COMPILERLIBDIR		= $(COMPILERDIR)/lib
 	endif
 	ifeq ($(CPU),x64)
-		ifeq ($(VCVER),8)
+		ifeq ($(call vcver,-ge,8),0)
 			COMPILER64BINDIR= $(COMPILERDIR)/bin/x86_amd64
 		else
 			SDKBINDIR		= $(SDKDIR)/bin/win64/x86/amd64
@@ -117,7 +125,7 @@ ifeq ($(PLATFORM),win)
 		
 		SDKINCLUDEDIR		= $(SDKDIR)/include
 		SDKLIBDIR			= $(SDKDIR)/lib/x64
-		ifeq ($(VCVER),8)
+		ifeq ($(call vcver,-ge,8),0)
 			MFCINCLUDEDIR		= $(COMPILERDIR)/atlmfc/include
 			MFCLIBDIR			= $(COMPILERDIR)/atlmfc/lib/amd64
 			ATLINCLUDEDIR		= $(COMPILERDIR)/atlmfc/include
@@ -467,7 +475,7 @@ ifeq ($(PLATFORM),win)
 		DEFINES			+= -DUNICODE -D_UNICODE
 	endif
 	ifeq ($(CPU),x86)
-		ifneq ($(VCVER),8)
+		ifeq ($(call vcver,-lt,8),0)
 			CCFLAGS		+= -GB
 		endif
 		DEFINES			+= -Dx86 -D_X86_
@@ -487,7 +495,7 @@ ifeq ($(PLATFORM),win)
 	ifeq ($(VCVER),7)
 		CCFLAGS			+= -Zc:forScope
 	endif
-	ifeq ($(VCVER),8)
+	ifeq ($(call vcver,-ge,8),0)
 		CCFLAGS			+= -FC
 		DEFINES			+= -D_CRT_SECURE_NO_DEPRECATE
 	endif
@@ -763,7 +771,7 @@ INCLUDES				+= $(EXTERNALINCS)
 LIBS					+= $(EXTERNALLIBS)
 
 export PATH				= /bin:$(call win2unix,$(COMPILER64BINDIR)):$(call win2unix,$(SDKBINDIR)):$(call win2unix,$(SDKCOMMONBINDIR)):$(call win2unix,$(COMPILERBINDIR)):$(call win2unix,$(COMMONBINDIR)):$(call win2unix,$(COMMONTOOLBINDIR)):$(call win2unix,$(COMMONTOOL2BINDIR)):$(call win2unix,$(SVNDIR)/bin)
-ifeq ($(VCVER),8)
+ifeq ($(call vcver,-ge,8),0)
 	export INCLUDE		= $(COMPILERINCLUDEDIR);$(SDKINCLUDEDIR);$(MFCINCLUDEDIR);$(ATLINCLUDEDIR)
 	export LIB			= $(COMPILERLIBDIR);$(SDKLIBDIR);$(MFCLIBDIR);$(ATLLIBDIR)
 else
@@ -838,7 +846,7 @@ $(OBJDIR)/%.d: $(SRCDIR)/%.c
 $(TARGETDIR)/$(TARGETBASE).exe: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(LD) $(LDFLAGS) -OUT:$@ $(OBJS) $(RESES) $(LIBS)
-	if [ "$(PLATFORM)" = "win" -a $(VCVER) -eq 8 ]; then \
+	if [ "$(PLATFORM)" = "win" -a $(VCVER) -ge 8 ]; then \
 		$(MT) -nologo -inputresource:$@ -manifest $@.manifest -outputresource:$@; \
 	fi
 
@@ -852,7 +860,7 @@ $(TARGETDIR)/$(TARGETBASE).dll: $(TLBS) $(OBJS) $(RESES) $(DEPENDLIBS)
 				cat `echo $(EXTRADEFFILE)` >> `echo $(DEFFILE)`; \
 			fi; \
 			$(LD) $(LDFLAGS) -DLL -DEF:$(DEFFILE) -BASE:$(BASEADDRESS) -OUT:$@ $(OBJS) $(RESES) $(LIBS) 2>&1 | grep -v "LNK4197" | cat; \
-			if [ "$(PLATFORM)" = "win" -a $(VCVER) -eq 8 ]; then \
+			if [ "$(PLATFORM)" = "win" -a $(VCVER) -ge 8 ]; then \
 				$(MT) -nologo -manifest $@.manifest -outputresource:$@\;#2; \
 			fi \
 		else \
@@ -867,7 +875,7 @@ $(TARGETDIR)/$(TARGETBASE).lib: $(OBJS)
 $(TARGETDIR)/$(MUITARGET): $(OBJS) $(RESES)
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(LD) $(LDFLAGS) -DLL -OUT:$@ $(OBJS) $(RESES) $(LIBS)
-	if [ "$(PLATFORM)" = "win" -a $(VCVER) -eq 8 ]; then \
+	if [ "$(PLATFORM)" = "win" -a $(VCVER) -ge 8 ]; then \
 		$(MT) -nologo -manifest $@.manifest -outputresource:$@\;#2; \
 	fi
 
