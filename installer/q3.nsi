@@ -76,7 +76,7 @@ Section "Core (required)" Core
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\msvcp80.dll"
   File "${VC8DIR}\redist\${CRTBASE}\Microsoft.VC80.CRT\Microsoft.VC80.CRT.manifest"
 !endif
-  File ..\lib\stlport\lib\win\${CPU}\stlport.5.1.dll
+  File ..\lib\stlport\lib\win\${CPU}\stlport.5.2.dll
   File ..\LICENSE
   File ..\misc\THIRDPARTYLICENSE
   File ..\misc\README.en.txt
@@ -271,7 +271,7 @@ Section "Uninstall"
   Delete $INSTDIR\msvcp80.dll
   Delete $INSTDIR\Microsoft.VC80.CRT.manifest
 !endif
-  Delete $INSTDIR\stlport.5.1.dll
+  Delete $INSTDIR\stlport.5.2.dll
   Delete $INSTDIR\LICENSE
   Delete $INSTDIR\THIRDPARTYLICENSE
   Delete $INSTDIR\README.en.txt
