@@ -1,0 +1,12 @@
+diff -u boost_1_37_0.orig/boost/lambda/detail/operator_return_type_traits.hpp boost_1_37_0/boost/lambda/detail/operator_return_type_traits.hpp
+--- boost_1_37_0.orig/boost/lambda/detail/operator_return_type_traits.hpp	2008-06-28 22:57:20.000000000 +0900
++++ boost_1_37_0/boost/lambda/detail/operator_return_type_traits.hpp	2008-11-24 14:07:52.526250000 +0900
+@@ -59,7 +59,7 @@
+ } // namespace boost
+ 
+ namespace std {
+-  template<class T> class complex;
++  template<class T> struct complex;
+ }
+ 
+ namespace boost { 

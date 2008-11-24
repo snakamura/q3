@@ -1,6 +1,6 @@
 //  operator_return_type_traits.hpp -- Boost Lambda Library ------------------
 
-// Copyright (C) 1999, 2000 Jaakko Järvi (jaakko.jarvi@cs.utu.fi)
+// Copyright (C) 1999, 2000 Jaakko Jarvi (jaakko.jarvi@cs.utu.fi)
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -59,7 +59,7 @@ template <> struct promote_code<long double> { static const int value = 700; };
 } // namespace boost
 
 namespace std {
-  template<class T> class complex;
+  template<class T> struct complex;
 }
 
 namespace boost { 
