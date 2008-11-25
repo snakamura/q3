@@ -199,6 +199,8 @@ xstring_size_ptr qscrypto::SMIMEUtilityImpl::verify(const Part& part,
 	BIOPtr pContent(bMultipart ? BIO_new_mem_buf(strContent.get(), static_cast<int>(nLen)) : 0);
 	
 	if (PKCS7_verify(pPKCS7.get(), 0, pStore, pContent.get(), pOut.get(), 0) != 1) {
+		Util::logError(log, L"Failed to verify PKCS#7.");
+		
 		*pnVerify |= VERIFY_FAILED;
 		BIO_ctrl(pOut.get(), BIO_CTRL_RESET, 0, 0);
 		if (bMultipart) {
