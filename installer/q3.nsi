@@ -100,11 +100,12 @@ Section "Core (required)" Core
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -s $\"%1$\""
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\""
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities" "ApplicationName" "QMAIL3"
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities" "ApplicationDescription" ""
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities\FileAssociations" ".eml" "QMAIL3"
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities\URLAssociations" "mailto" "QMAIL3.Url.mailto"
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities\StartMenu" "Mail" "QMAIL3"
   
-  WriteRegStr HKCR "QMAIL3\shell\open\command" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -o $\"%1$\""
+  WriteRegStr HKCR "QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -o $\"%1$\""
   WriteRegStr HKCR "QMAIL3.Url.mailto" "" "URL:MailTo Protocol"
   WriteRegBin HKCR "QMAIL3.Url.mailto" "EditFlags" 02000000
   WriteRegStr HKCR "QMAIL3.Url.mailto" "URL Protocol" ""
