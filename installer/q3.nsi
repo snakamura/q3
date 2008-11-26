@@ -91,6 +91,7 @@ Section "Core (required)" Core
   
   WriteRegStr HKLM "SOFTWARE\sn\q3" "InstallDir" "$INSTDIR"
   
+  WriteRegStr HKLM "SOFTWARE\RegisteredApplications" "QMAIL3" "Software\Clients\Mail\QMAIL3\Capabilities"
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3" "" "QMAIL3"
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "" "URL:MailTo Protocol"
   WriteRegBin HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto" "EditFlags" 02000000
@@ -98,6 +99,17 @@ Section "Core (required)" Core
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\DefaultIcon" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\",0"
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Protocols\mailto\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -s $\"%1$\""
   WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\""
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities" "ApplicationName" "QMAIL3"
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities\FileAssociations" ".eml" "QMAIL3"
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities\URLAssociations" "mailto" "QMAIL3.Url.mailto"
+  WriteRegStr HKLM "SOFTWARE\Clients\Mail\QMAIL3\Capabilities\StartMenu" "Mail" "QMAIL3"
+  
+  WriteRegStr HKCR "QMAIL3\shell\open\command" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -o $\"%1$\""
+  WriteRegStr HKCR "QMAIL3.Url.mailto" "" "URL:MailTo Protocol"
+  WriteRegBin HKCR "QMAIL3.Url.mailto" "EditFlags" 02000000
+  WriteRegStr HKCR "QMAIL3.Url.mailto" "URL Protocol" ""
+  WriteRegStr HKCR "QMAIL3.Url.mailto\DefaultIcon" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\",0"
+  WriteRegStr HKCR "QMAIL3.Url.mailto\shell\open\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -s $\"%1$\""
   
   WriteRegStr HKCR "Microsoft Internet Mail Message\shell\Open_with_QMAIL3" "" "$(OPEN_WITH_QMAIL3)"
   WriteRegStr HKCR "Microsoft Internet Mail Message\shell\Open_with_QMAIL3\command" "" "$\"$INSTDIR\q3${SUFFIX}.exe$\" -o $\"%1$\""
@@ -236,12 +248,16 @@ Section "Uninstall"
     IntCmp $REMOVE_MAILBOX 0 +2
       RMDir /r $MAILBOX_FOLDER
   
-  DeleteRegKey HKLM SOFTWARE\sn\q3
-  DeleteRegKey /ifempty HKLM SOFTWARE\sn
-  DeleteRegKey HKCU Software\sn\q3
-  DeleteRegKey /ifempty HKCU Software\sn
+  DeleteRegKey HKLM "SOFTWARE\sn\q3"
+  DeleteRegKey /ifempty HKLM "SOFTWARE\sn"
+  DeleteRegKey HKCU "Software\sn\q3"
+  DeleteRegKey /ifempty HKCU "Software\sn"
   
-  DeleteRegKey HKLM SOFTWARE\Clients\Mail\QMAIL3
+  DeleteRegKey HKCR "QMAIL3"
+  DeleteRegKey HKCR "QMAIL3.Url.mailto"
+  
+  DeleteRegKey HKLM "SOFTWARE\Clients\Mail\QMAIL3"
+  DeleteRegValue HKLM "SOFTWARE\RegisteredApplications" "QMAIL3"
   
   Delete $INSTDIR\q3${SUFFIX}.exe
   Delete $INSTDIR\qm${SUFFIX}.dll
