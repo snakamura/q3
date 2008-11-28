@@ -1,7 +1,7 @@
 =begin
 =@SaveAttachment
 
- String @Save(String path, Expr expr?, Part part?)
+ String @SaveAttachment(String path, Expr expr?, Part part?)
 
 
 ==ê‡ñæ
