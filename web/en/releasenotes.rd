@@ -1,6 +1,18 @@
 =begin
 =Release Notes
 
+==3.0.7
+===Changes
+*Updated STLport to5.2.0.
+*Updated boost to 1.37.0
+*Updated Windows SDK to v6.1
+
+===Bug fixes
+*Fixed adresses got broken when checked RFC2822 at the address book.
+*Fixed it couldn't expand digest messages in multipart/digest.
+*Fixed so that QMAIL3 can be selected as the default application on Windows Vista.
+
+
 ==3.0.6
 ===New features
 *Added a feature to request password on launch.
