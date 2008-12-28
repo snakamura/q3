@@ -577,40 +577,54 @@ void qm::SubAccount::setJunkFilterEnabled(bool bEnabled)
 
 bool qm::SubAccount::isSelf(const Message& msg) const
 {
+	if (!pImpl_->bTreatAsSent_)
+		return false;
+	
+	AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
+	if (msg.getField(L"From", &from) != Part::FIELD_EXIST)
+		return false;
+	
+	const AddressListParser::AddressList& listFrom = from.getAddressList();
+	if (listFrom.empty())
+		return false;
+	
 	bool bSelf = false;
 	
-	if (pImpl_->bTreatAsSent_) {
-		AddressListParser from(AddressListParser::FLAG_DISALLOWGROUP);
-		if (msg.getField(L"From", &from) == Part::FIELD_EXIST) {
-			const AddressListParser::AddressList& listFrom = from.getAddressList();
-			if (!listFrom.empty()) {
-				AddressParser* pFrom = listFrom.front();
-				if (isSelf(pFrom->getMailbox(), pFrom->getHost())) {
-					AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
-					if (msg.getField(L"Sender", &sender) == Part::FIELD_EXIST) {
-						const AddressListParser::AddressList& listSender = sender.getAddressList();
-						if (!listSender.empty()) {
-							AddressParser* pSender = listSender.front();
-							bSelf = _wcsicmp(pFrom->getMailbox(), pSender->getMailbox()) == 0 &&
-								_wcsicmp(pFrom->getHost(), pSender->getHost()) == 0;
-						}
-					}
-					else {
-						bSelf = true;
-					}
-				}
+	AddressParser* pFrom = listFrom.front();
+	if (isSelf(pFrom->getMailbox(), pFrom->getHost())) {
+		AddressListParser sender(AddressListParser::FLAG_DISALLOWGROUP);
+		if (msg.getField(L"Sender", &sender) == Part::FIELD_EXIST) {
+			const AddressListParser::AddressList& listSender = sender.getAddressList();
+			if (!listSender.empty()) {
+				const AddressParser* pSender = listSender.front();
+				bSelf = _wcsicmp(pFrom->getMailbox(), pSender->getMailbox()) == 0 &&
+					_wcsicmp(pFrom->getHost(), pSender->getHost()) == 0;
 			}
-			if (bSelf) {
-				const WCHAR* pwszFields[] = {
-					L"Posted",
-					L"X-ML-Name",
-					L"Mailing-List"
-				};
-				for (int n = 0; n < countof(pwszFields) && bSelf; ++n) {
-					if (msg.hasField(pwszFields[n]))
-						bSelf = false;
-				}
+		}
+		else {
+			bSelf = true;
+		}
+	}
+	if (bSelf) {
+		AddressListParser to;
+		if (msg.getField(L"To", &to) == Part::FIELD_EXIST) {
+			const AddressListParser::AddressList& listTo = to.getAddressList();
+			if (listTo.size() == 1) {
+				const AddressParser* pTo = listTo.front();
+				bSelf = pTo->getGroup() ||
+					_wcsicmp(pFrom->getMailbox(), pTo->getMailbox()) != 0 ||
+					_wcsicmp(pFrom->getHost(), pTo->getHost()) != 0;
 			}
+		}
+		
+		const WCHAR* pwszFields[] = {
+			L"Posted",
+			L"X-ML-Name",
+			L"Mailing-List"
+		};
+		for (int n = 0; n < countof(pwszFields) && bSelf; ++n) {
+			if (msg.hasField(pwszFields[n]))
+				bSelf = false;
 		}
 	}
 	
