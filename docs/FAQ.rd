@@ -53,5 +53,6 @@
 *((<アカウントやフォルダの順番を変えることはできますか?|URL:HowToChangeOrderOfAccountsAndFolders.html>))
 *((<スペルチェックはできますか?|URL:HowToCheckSpell.html>))
 *((<なぜメールアドレスの@より前が引用符でくくられてしまうのですか?|URL:WhyQuoteMailbox.html>))
+*((<サーバ側のスパムフィルタと組み合わせることはできますか?|URL:HowToUtilizeSpamFilter.html>))
 
 =end
