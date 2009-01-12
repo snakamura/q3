@@ -333,7 +333,7 @@ BEGIN
     IDS_OFFLINE             "[オフライン]"
     IDS_JUNKREPAIRED        "スパムデータベースを修復しました"
     IDS_SUBJECT             "発行先"
-    IDS_ISSURE              "発行者"
+    IDS_ISSUER              "発行者"
 END
 
 STRINGTABLE DISCARDABLE 

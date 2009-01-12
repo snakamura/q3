@@ -335,7 +335,7 @@ BEGIN
     IDS_OFFLINE             "[Offline]"
     IDS_JUNKREPAIRED        "Junk database was successfully repaired."
     IDS_SUBJECT             "Subject"
-    IDS_ISSURE              "Issure"
+    IDS_ISSUER              "Issuer"
 END
 
 STRINGTABLE DISCARDABLE 

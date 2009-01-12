@@ -472,7 +472,7 @@ wstring_ptr qm::AbstractSSLSocketCallback::getSSLErrorMessage() const
 		buf.append(pCertificate_->getSubject()->getText().get());
 		buf.append(L'\n');
 		buf.append(L' ');
-		buf.append(loadString(getResourceHandle(), IDS_ISSURE).get());
+		buf.append(loadString(getResourceHandle(), IDS_ISSUER).get());
 		buf.append(L": ");
 		buf.append(pCertificate_->getIssuer()->getText().get());
 		buf.append(L'\n');

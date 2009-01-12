@@ -171,7 +171,7 @@
 #define IDS_OFFLINE                     3013
 #define IDS_JUNKREPAIRED                3014
 #define IDS_SUBJECT                     3015
-#define IDS_ISSURE                      3016
+#define IDS_ISSUER                      3016
 #define IDS_MESSAGE_UPDATEFOLDER        5000
 #define IDS_MESSAGE_FINISHED            5001
 #define IDS_MESSAGE_CHECKMESSAGES       5002
