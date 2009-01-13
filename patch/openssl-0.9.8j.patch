@@ -1,0 +1,36 @@
+diff -ur openssl-0.9.8j.orig/crypto/o_str.c openssl-0.9.8j/crypto/o_str.c
+--- openssl-0.9.8j.orig/crypto/o_str.c	2008-03-29 22:22:49.000000000 +0900
++++ openssl-0.9.8j/crypto/o_str.c	2009-01-14 08:25:56.020474900 +0900
+@@ -60,7 +60,7 @@
+ #include <e_os.h>
+ #include "o_str.h"
+ 
+-#if !defined(OPENSSL_IMPLEMENTS_strncasecmp) && !defined(OPENSSL_SYSNAME_WIN32)
++#if !defined(OPENSSL_IMPLEMENTS_strncasecmp) && !defined(OPENSSL_SYSNAME_WIN32) && !defined(OPENSSL_SYSNAME_WINCE)
+ # include <strings.h>
+ #endif
+ 
+diff -ur openssl-0.9.8j.orig/crypto/rand/randfile.c openssl-0.9.8j/crypto/rand/randfile.c
+--- openssl-0.9.8j.orig/crypto/rand/randfile.c	2008-12-30 22:30:56.000000000 +0900
++++ openssl-0.9.8j/crypto/rand/randfile.c	2009-01-14 08:33:01.174003900 +0900
+@@ -81,7 +81,7 @@
+ # include <sys/stat.h>
+ #endif
+ 
+-#ifdef _WIN32
++#if defined _WIN32 && !defined _WIN32_WCE
+ #define stat	_stat
+ #define chmod	_chmod
+ #define open	_open
+diff -ur openssl-0.9.8j.orig/crypto/x509/by_dir.c openssl-0.9.8j/crypto/x509/by_dir.c
+--- openssl-0.9.8j.orig/crypto/x509/by_dir.c	2008-12-30 22:30:57.000000000 +0900
++++ openssl-0.9.8j/crypto/x509/by_dir.c	2009-01-14 08:35:17.360632300 +0900
+@@ -74,7 +74,7 @@
+ #include <openssl/lhash.h>
+ #include <openssl/x509.h>
+ 
+-#ifdef _WIN32
++#if defined _WIN32 && !defined _WIN32_WCE
+ #define stat	_stat
+ #endif
+ 
