@@ -1294,7 +1294,7 @@ BEGIN
     EDITTEXT        IDC_ADDRESS,40,5,170,12,ES_AUTOHSCROLL
     CONTROL         "Address contains &phrases",IDC_RFC2822,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,40,20,92,10
-    LTEXT           "Ai&lias",IDC_STATIC,5,37,35,8
+    LTEXT           "A&lias",IDC_STATIC,5,37,35,8
     EDITTEXT        IDC_ALIAS,40,35,170,12,ES_AUTOHSCROLL
     LTEXT           "&Category",IDC_STATIC,5,57,35,8
     COMBOBOX        IDC_CATEGORY,40,55,170,100,CBS_DROPDOWN | 
