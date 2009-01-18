@@ -1,0 +1,184 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resourceppc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resourceppc.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resourceppc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resourceppc.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""qmpop3.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RECEIVE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "POP3"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Verwende AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,55,10
+    CONTROL         "Nich&t löschen",IDC_DONTDELETE,"Button",
+                    BS_AUTORADIOBUTTON,10,30,60,10
+    CONTROL         "&Löschen",IDC_DELETE,"Button",BS_AUTORADIOBUTTON,10,40,
+                    45,10
+    CONTROL         "Lösche &nach ",IDC_DELETEOLD,"Button",
+                    BS_AUTORADIOBUTTON,10,50,55,10
+    EDITTEXT        IDC_DELETEAFTER,65,49,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Tagen",IDC_DELETEAFTERLABEL,92,50,20,8
+    CONTROL         "Lösche &locale Nachrichten nach dem Löschen vom Server",
+                    IDC_DELETELOCAL,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,10,65,115,20
+    GROUPBOX        "Nachrichten am Server",IDC_MESSAGES,5,20,127,70
+    CONTROL         "&Markiere als Gelesen wenn der Status: RO ist",IDC_HANDLESTATUS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,95,105,10
+    CONTROL         "&Erzwinge das Überspringen bei duplizierter UID",IDC_SKIPDUPLICATEDUID,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,105,125,10
+END
+
+IDD_SEND DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "POP3 (XTND XMIT)"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Verwende AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,55,10
+END
+
+IDD_RECEIVE_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "POP3"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Verwende AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,55,10
+    CONTROL         "Nich&t löschen",IDC_DONTDELETE,"Button",
+                    BS_AUTORADIOBUTTON,10,25,60,10
+    CONTROL         "&Löschen",IDC_DELETE,"Button",BS_AUTORADIOBUTTON,90,25,
+                    45,10
+    CONTROL         "Lösche &nach ",IDC_DELETEOLD,"Button",
+                    BS_AUTORADIOBUTTON,10,37,55,10
+    EDITTEXT        IDC_DELETEAFTER,65,36,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Tagen",IDC_DELETEAFTERLABEL,92,37,20,8
+    CONTROL         "Lösche &locale Nachrichten nach dem Löschen vom Server",
+                    IDC_DELETELOCAL,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,10,50,162,10
+    GROUPBOX        "Nachrichten am Server",IDC_MESSAGES,5,15,172,50
+    CONTROL         "&Markiere als Gelesen wenn der Status: RO ist",IDC_HANDLESTATUS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,70,105,10
+    CONTROL         "&Erzwinge das Überspringen bei duplizierter UID",IDC_SKIPDUPLICATEDUID,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,80,125,10
+END
+
+IDD_SEND_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "POP3 (XTND XMIT)"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Verwende AP&OP",IDC_APOP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,55,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_RECEIVE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SEND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_RECEIVE_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_SEND_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "qmpop3.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

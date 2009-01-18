@@ -1,0 +1,122 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RSS                 "RSS"
+    IDS_RSSSEND             "Blog"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FOLDER_TRASH        "Papierkorb"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_INITIALIZE          "Initialisiere..."
+    IDS_LOOKUP              "Schlage Server nach..."
+    IDS_CONNECTING          "Verbinde..."
+    IDS_CONNECTED           "Verbunden"
+    IDS_REQUESTRSS          "Fordere RSS an..."
+    IDS_PARSERSS            "Analysiere RSS..."
+    IDS_PROCESSRSS          "Arbeite RSS ab..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SUBSCRIBE           "A&bonniere Feed..."
+    IDS_CONTINUE            "Der angegebene Feed konnte nicht gefunden werden.\nWollen sie wirklich fortsetzen?"
+    IDS_DUPLICATEDFEED      "Sie haben den angegebenen Feed bereits abonniert.\nWollen sie wirklich fortsetzen?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_MESSAGE       "RSS Fehler."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_URL           "URL nicht angegeben."
+    IDS_ERROR_GET           "Fehler beim Laden des RSS."
+    IDS_ERROR_PARSE         "Fehler beim Analysieren des RSS."
+    IDS_ERROR_APPLYRULES    "Fehler beim Anwenden der Regeln."
+    IDS_ERROR_EXCEEDMAXREDIRECT "Max. Anzahl an Weiterleitungen überschritten."
+    IDS_ERROR_PARSERESPONSEHEADER 
+                            "Fehler beim Analysieren der Antwort-Kopfzeilen."
+    IDS_ERROR_PARSEREDIRECTLOCATION 
+                            "Fehler beim Laden der Location: Kopfzeile."
+    IDS_ERROR_INVALIDREDIRECTLOCATION
+                            "Ungültige Weiterleitungsadressen-URL."
+    IDS_ERROR_SUBSCRIBE     "Der Feed konnte nicht abonniert werden."
+    IDS_ERROR_SAVE          "Fehler beim Speichern der Nachrichten."
+END
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

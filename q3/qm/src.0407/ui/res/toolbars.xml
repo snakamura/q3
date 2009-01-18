@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<toolbars>
+	<toolbar name="mainframe" showText="true">
+		<button image="0" action="MessageCreate" param="new" text="Neu"/>
+		<button image="1" action="MessageCreate" param="reply" text="Antworten"/>
+		<button image="2" action="MessageCreate" param="reply_all" text="Allen antworten"/>
+		<button image="3" action="MessageCreate" param="forward" text="Weiterleiten"/>
+		<separator/>
+		<button image="5" action="EditDelete" text="Löschen"/>
+		<separator/>
+		<button image="20" action="ViewPrevMessage" text="Vorherige"/>
+		<button image="21" action="ViewNextMessage" text="Nächste"/>
+		<button image="22" action="ViewNextUnseenMessage" text="Ungelesen"/>
+		<separator/>
+		<button image="6" action="MessageSearch" text="Suche"/>
+		<separator/>
+		<button image="7" action="ToolSync" text="Sync" dropdown="sync"/>
+		<button image="8" action="ToolGoround" param="@0" text="Aufträge" dropdown="goround"/>
+	</toolbar>
+	<toolbar name="messageframe" showText="true">
+		<button image="0" action="MessageCreate" param="new" text="Neu"/>
+		<button image="1" action="MessageCreate" param="reply" text="Antworten"/>
+		<button image="2" action="MessageCreate" param="reply_all" text="Allen antworten"/>
+		<button image="3" action="MessageCreate" param="forward" text="Weiterleiten"/>
+		<separator/>
+		<button image="5" action="EditDelete" text="Delete"/>
+		<separator/>
+		<button image="20" action="ViewPrevMessage" text="Vorherige"/>
+		<button image="21" action="ViewNextMessage" text="Nächste"/>
+		<button image="22" action="ViewNextUnseenMessage" text="Ungelesen"/>
+	</toolbar>
+	<toolbar name="editframe" showText="true">
+		<button image="15" action="FileSend" text="Senden"/>
+		<button image="16" action="FileDraft" text="Entwurf"/>
+		<separator/>
+		<button image="10" action="EditCut" text="Ausschneiden"/>
+		<button image="11" action="EditCopy" text="Kopieren"/>
+		<button image="12" action="EditPaste" text="Einfügen"/>
+		<button image="13" action="EditUndo" text="Rückgängig"/>
+		<button image="14" action="EditRedo" text="Wiederholen"/>
+		<separator/>
+		<button image="18" action="ToolSelectAddress" text="Adressbuch"/>
+		<button image="17" action="ToolInsertText" param="@0" text="Text einfügen" dropdown="inserttext"/>
+		<button image="19" action="ToolAttachment" text="Dateianhang"/>
+	</toolbar>
+	<toolbar name="addressbookframe" showText="true">
+		<button image="23" action="AddressNew" text="Neu"/>
+		<button image="24" action="AddressEdit" text="Bearbeiten"/>
+		<button image="5" action="AddressDelete" text="Löschen"/>
+	</toolbar>
+</toolbars>

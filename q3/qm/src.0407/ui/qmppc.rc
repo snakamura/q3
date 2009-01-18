@@ -1,0 +1,4166 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resourceppc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\..\src\ui\resourceppc.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resourceppc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\..\\src\\ui\\resourceppc.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""qm.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SYNC DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_POPUP | WS_CAPTION | WS_THICKFRAME
+CAPTION "Synchronisierung"
+FONT 9, "Tahoma"
+BEGIN
+    DEFPUSHBUTTON   "&Abbrechen",IDC_CANCEL,82,5,50,12,WS_DISABLED
+    PUSHBUTTON      "&Ausblenden",IDC_HIDE,82,20,50,12
+    EDITTEXT        IDC_ERROR,5,125,127,24,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_READONLY | WS_VSCROLL
+    LTEXT           "",IDC_MESSAGE,5,5,70,8
+END
+
+IDD_SELECTSYNCFILTER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sync Filter auswählen"
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_FILTERSETLIST,5,5,127,95,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,105,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,105,50,12
+END
+
+IDD_CREATEFOLDER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Create Folder"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,20,8
+    EDITTEXT        IDC_NAME,30,5,102,12,ES_AUTOHSCROLL
+    CONTROL         "&Lokal",IDC_LOCALFOLDER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,10,30,52,10
+    CONTROL         "&Entfernt",IDC_REMOTEFOLDER,"Button",
+                    BS_AUTORADIOBUTTON,10,40,59,10
+    CONTROL         "&Abfrage",IDC_QUERYFOLDER,"Button",
+                    BS_AUTORADIOBUTTON,10,50,54,10
+    GROUPBOX        "Typ",IDC_TYPE,5,20,127,45
+    DEFPUSHBUTTON   "OK",IDOK,27,70,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,70,50,12
+END
+
+IDD_PROGRESS DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Fortschritt"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "",IDC_MESSAGE,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,5,5,
+                    127,8
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,5,
+                    20,127,12
+    DEFPUSHBUTTON   "Abbrechen",IDCANCEL,44,40,50,12
+END
+
+IDD_DETACH DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Detach"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_ATTACHMENT,"SysListView32",LVS_LIST | 
+                    LVS_SINGLESEL | LVS_NOLABELWRAP | LVS_EDITLABELS | 
+                    LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,5,5,127,65
+    PUSHBUTTON      "&Umbenennen",IDC_RENAME,82,75,50,12
+    LTEXT           "Or&dner",IDC_FOLDERLABEL,5,92,19,8
+    EDITTEXT        IDC_FOLDER,30,90,102,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,82,105,50,12
+    CONTROL         "&Ordner öffnen nachdem die Dateianhänge abgelöst wurden",IDC_OPENFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,120,95,10
+    DEFPUSHBUTTON   "OK",IDOK,27,134,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,134,50,12
+END
+
+IDD_SELECTADDRESS DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Address Book"
+FONT 9, "Tahoma"
+BEGIN
+    PUSHBUTTON      "K&ategorie",IDC_CATEGORY,5,3,127,12
+    CONTROL         "List1",IDC_ADDRESS,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,5,16,127,59
+    CONTROL         "List2",IDC_SELECTEDADDRESS,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,89,127,45
+    DEFPUSHBUTTON   "OK",IDOK,31,136,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,136,50,12
+    PUSHBUTTON      "&An",IDC_TO,5,76,29,12
+    PUSHBUTTON      "&Cc",IDC_CC,34,76,29,12
+    PUSHBUTTON      "&Bcc",IDC_BCC,63,76,29,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,76,40,12
+END
+
+IDD_ATTACHMENT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dateianhang"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_ATTACHMENT,"SysListView32",LVS_LIST | 
+                    LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | 
+                    LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,5,127,85
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,27,95,50,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,82,95,50,12
+    DEFPUSHBUTTON   "OK",IDOK,27,112,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,112,50,12
+END
+
+IDD_MESSAGEPROPERTY DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "General"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Von",IDC_FROMLABEL,5,5,25,8
+    CONTROL         "",IDC_FROM,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,5,97,8
+    LTEXT           "An",IDC_TOLABEL,5,15,25,8
+    CONTROL         "",IDC_TO,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,15,97,8
+    LTEXT           "Betreff",IDC_SUBJECTLABEL,5,25,25,8
+    CONTROL         "",IDC_SUBJECT,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,25,97,8
+    LTEXT           "Datum",IDC_DATELABEL,5,35,25,8
+    CONTROL         "",IDC_DATE,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,35,97,8
+    LTEXT           "Ordner",IDC_FOLDERLABEL,5,45,25,8
+    CONTROL         "",IDC_FOLDER,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,45,97,8
+    LTEXT           "ID",IDC_IDLABEL,5,55,25,8
+    CONTROL         "",IDC_ID,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,55,30,8
+    LTEXT           "Größe",IDC_SIZELABEL,70,55,15,8
+    CONTROL         "",IDC_MESSAGESIZE,"Static",SS_LEFTNOWORDWRAP | 
+                    SS_NOPREFIX | WS_GROUP,90,55,42,8
+    CONTROL         "&Gelesen",IDC_SEEN,"Button",BS_AUTO3STATE | WS_TABSTOP,10,
+                    75,50,10
+    CONTROL         "&Beantwortet",IDC_REPLIED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,11,85,49,10
+    CONTROL         "&Weitergeleitet",IDC_FORWARDED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,11,95,49,10
+    CONTROL         "Ge&sendet",IDC_SENT,"Button",BS_AUTO3STATE | WS_TABSTOP,11,
+                    105,49,10
+    CONTROL         "&Entwurf",IDC_DRAFT,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    11,115,49,10
+    CONTROL         "&Markiert",IDC_MARKED,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    11,125,49,10
+    CONTROL         "Ge&löscht",IDC_DELETED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,11,135,49,10
+    CONTROL         "&Herunterladen",IDC_DOWNLOAD,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,60,75,60,10
+    CONTROL         "Te&xt herunterladen",IDC_DOWNLOADTEXT,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,60,85,60,10
+    CONTROL         "An enthält &mich",IDC_TOME,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,60,95,60,10
+    CONTROL         "Cc ent&hält mich",IDC_CCME,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,60,105,60,10
+    CONTROL         "Benutzer &1",IDC_USER1,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    60,115,30,10
+    CONTROL         "Benutzer &2",IDC_USER2,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    95,115,30,10
+    CONTROL         "Benutzer &3",IDC_USER3,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    60,125,30,10
+    CONTROL         "Benutzer &4",IDC_USER4,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    95,125,30,10
+    GROUPBOX        "Status",IDC_STATUS,5,65,127,83
+END
+
+IDD_EXPORT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Exportieren"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Pfad",IDC_PATHLABEL,5,7,20,8
+    EDITTEXT        IDC_PATH,30,5,102,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,82,20,50,12
+    CONTROL         "Erstelle eine Datei je &Nachricht",IDC_FILEPERMESSAGE,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,30,
+                    35,102,20
+    CONTROL         "Exportiere &Markierungen",IDC_EXPORTFLAGS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,30,55,55,10
+    LTEXT           "&Vorlage",IDC_TEMPLATELABEL,5,77,30,8
+    COMBOBOX        IDC_TEMPLATE,40,75,92,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Zeichencodierung",IDC_ENCODINGLABEL,5,92,35,8
+    COMBOBOX        IDC_ENCODING,40,91,92,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,110,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,110,50,12
+END
+
+IDD_IMPORT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Importieren"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Pfad",IDC_PATHLABEL,5,7,25,8
+    EDITTEXT        IDC_PATH,40,5,92,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,82,20,50,12
+    CONTROL         "Die Datei kann &mehrere Nachrichten enthalten",IDC_MULTIMESSAGES,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,40,
+                    35,90,20
+    LTEXT           "&Zeichencodierung",IDC_ENCODINGLABEL,5,57,30,8
+    COMBOBOX        IDC_ENCODING,40,55,92,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Normal",IDC_NORMAL,"Button",BS_AUTORADIOBUTTON,10,80,
+                    55,10
+    CONTROL         "Kompatibel mit &QMAIL 2.0",IDC_QMAIL20COMPATIBLE,
+                    "Button",BS_AUTORADIOBUTTON,10,90,100,10
+    CONTROL         "&Ignorieren",IDC_IGNORE,"Button",BS_AUTORADIOBUTTON,10,100,
+                    34,10
+    GROUPBOX        "Markierungen",IDC_FLAGS,5,70,127,45
+    DEFPUSHBUTTON   "OK",IDOK,26,120,50,12,WS_GROUP
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,120,50,12
+END
+
+IDD_ACCOUNT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Konto"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Tree1",IDC_ACCOUNT,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | 
+                    WS_BORDER | WS_TABSTOP,5,5,127,100
+    PUSHBUTTON      "&Konto hinzufügen...",IDC_ADDACCOUNT,5,110,65,12
+    PUSHBUTTON      "&Sub-Konto hinzufügen...",IDC_ADDSUBACCOUNT,5,123,65,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,72,110,60,12
+    PUSHBUTTON      "&Umbenennen...",IDC_RENAME,72,123,60,12
+    PUSHBUTTON      "&Eigenschaften...",IDC_PROPERTY,72,136,60,12
+END
+
+IDD_ACCOUNTGENERAL DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Allgemein"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Eingehende Nachrichten",IDC_RECEIVEHOSTLABEL,10,17,30,8
+    EDITTEXT        IDC_RECEIVEHOST,45,15,82,12,ES_AUTOHSCROLL
+    LTEXT           "&Ausgehende Nachrichten",IDC_SENDHOSTLABEL,10,32,30,8
+    EDITTEXT        IDC_SENDHOST,45,30,82,12,ES_AUTOHSCROLL
+    GROUPBOX        "Server-Informationen",IDC_HOST,5,5,127,45
+    LTEXT           "&Name",IDC_NAMELABEL,10,67,30,8
+    EDITTEXT        IDC_NAME,45,65,82,12,ES_AUTOHSCROLL
+    LTEXT           "Mail-&Adresse",IDC_ADDRESSLABEL,10,82,30,8
+    EDITTEXT        IDC_ADDRESS,45,80,82,12,ES_AUTOHSCROLL
+    LTEXT           "&Antwort an",IDC_REPLYTOLABEL,10,97,30,8
+    EDITTEXT        IDC_REPLYTO,45,95,82,12,ES_AUTOHSCROLL
+    GROUPBOX        "Benutzer-Informationen",IDC_USER,5,55,127,60
+END
+
+IDD_ACCOUNTUSER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Benutzer"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Benutzername",IDC_RECEIVEUSERNAMELABEL,10,17,35,8
+    EDITTEXT        IDC_RECEIVEUSERNAME,50,15,77,12,ES_AUTOHSCROLL
+    LTEXT           "&Passwort",IDC_RECEIVEPASSWORDLABEL,10,32,30,8
+    EDITTEXT        IDC_RECEIVEPASSWORD,50,30,77,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    GROUPBOX        "Eingehende Nachrichten",IDC_INCOMING,5,5,127,45
+    CONTROL         "&Authentifizieren",IDC_SENDAUTHENTICATE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,65,53,10
+    LTEXT           "Benutzer&name",IDC_SENDUSERNAMELABEL,10,82,35,8
+    EDITTEXT        IDC_SENDUSERNAME,50,80,77,12,ES_AUTOHSCROLL
+    LTEXT           "Pass&wort",IDC_SENDPASSWORDLABEL,10,97,35,8
+    EDITTEXT        IDC_SENDPASSWORD,50,95,77,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    GROUPBOX        "Ausgehende Nachrichten",IDC_OUTGOING,5,55,127,60
+END
+
+IDD_ACCOUNTDIALUP DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Einwahl"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Keine Verbindung wählen",IDC_NEVER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,5,5,127,10
+    CONTROL         "Einwahl nur wenn keine &Netzwerkverbindung besteht",
+                    IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON | 
+                    BS_TOP | BS_MULTILINE,5,15,127,16
+    CONTROL         "&Immer eine Verbindung wählen",IDC_CONNECT,"Button",
+                    BS_AUTORADIOBUTTON,5,32,127,10
+    LTEXT           "&Einwahl Name",IDC_ENTRYLABEL,15,45,45,8
+    COMBOBOX        IDC_ENTRY,15,55,117,100,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Einwahl Einstellungen...",IDC_DIALPROPERTY,65,70,67,12
+    CONTROL         "&Vor dem Verbinden Dialog anzeigen",IDC_SHOWDIALOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,90,117,10
+    LTEXT           "&Warte",IDC_WAITLABELBEFORE,15,108,20,8
+    EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,107,20,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Sek. vor dem Trennen",IDC_WAITLABELAFTER,55,108,72,8
+END
+
+IDD_ACCOUNTADVANCED DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Erweitert"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Sync Filter",IDC_SYNCFILTERLABEL,5,7,40,8
+    COMBOBOX        IDC_SYNCFILTER,45,5,47,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,97,5,35,12
+    CONTROL         "&Nachrichten-Id hinzufügen",IDC_ADDMESSAGEID,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,125,10
+    CONTROL         "&Verwende Content-Transfer-Encoding: 8bit",IDC_USE8BIT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,35,130,10
+    CONTROL         "&Regeln automatisch anwenden",IDC_AUTOAPPLYRULES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,125,10
+    CONTROL         "Regeln auf e&xistierende Nachrichten anwenden",
+                    IDC_AUTOAPPLYRULESTOEXISTING,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | WS_TABSTOP,15,55,117,10
+    CONTROL         "B&ehandle Nachrichten von meiner Adresse als gesendet",
+                    IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,5,65,120,17
+    LTEXT           "&Identität",IDC_IDENTITYLABEL,5,87,30,8
+    EDITTEXT        IDC_IDENTITY,45,85,87,12,ES_AUTOHSCROLL
+    LTEXT           "&Zeitüberschreitung",IDC_TIMEOUTLABEL,5,102,30,8
+    EDITTEXT        IDC_TIMEOUT,45,100,30,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+END
+
+IDD_CREATEACCOUNT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Konto erstellen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,65,5,67,12,ES_AUTOHSCROLL
+    LTEXT           "&Art",IDC_CLASSLABEL,5,22,18,8
+    COMBOBOX        IDC_CLASS,65,20,67,100,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Eingehendes Protokoll",IDC_INCOMINGPROTOCOLLABEL,5,37,60,8
+    COMBOBOX        IDC_INCOMINGPROTOCOL,65,35,67,100,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ausgehendes Protokoll",IDC_OUTGOINGPROTOCOLLABEL,5,52,60,8
+    COMBOBOX        IDC_OUTGOINGPROTOCOL,65,51,67,100,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Eigene &Datei je Nachricht",IDC_MULTIPLEFILE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,10,74,80,10
+    CONTROL         "Ein&zelne Datei",IDC_SINGLEFILE,"Button",
+                    BS_AUTORADIOBUTTON,10,85,55,10
+    LTEXT           "&Blockgröße",IDC_BLOCKSIZELABEL,20,97,40,8
+    EDITTEXT        IDC_BLOCKSIZE,65,95,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "MB",IDC_BLOCKSIZEAFTERLABEL,90,97,11,8
+    GROUPBOX        "Nachrichtenspeicher",IDC_MESSAGEBOX,5,65,127,45
+    LTEXT           "Blockgröße Inde&x",IDC_INDEXBLOCKSIZELABEL,5,117,60,8
+    EDITTEXT        IDC_INDEXBLOCKSIZE,65,115,25,12,ES_RIGHT | 
+                    ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "MB",IDC_INDEXBLOCKSIZEAFTERLABEL,90,117,11,8
+    DEFPUSHBUTTON   "OK",IDOK,27,135,50,12,WS_GROUP
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_MAILFOLDER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Speicherordner"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Speicherordner",IDC_MAILFOLDERLABEL,5,5,127,8
+    EDITTEXT        IDC_MAILFOLDER,5,15,127,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,82,30,50,12
+    DEFPUSHBUTTON   "OK",IDOK,27,50,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,50,50,12
+END
+
+IDD_FIND DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Suchen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Suchen nach",IDC_FINDLABEL,5,5,127,8
+    COMBOBOX        IDC_FIND,5,15,127,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Groß- und Kleinschreibung unterscheiden",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,127,10
+    CONTROL         "&Reguläre Ausdrücke",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,45,127,10
+    DEFPUSHBUTTON   "Suche &nächste",IDC_FINDNEXT,27,65,50,12
+    PUSHBUTTON      "Suche &vorherige",IDC_FINDPREV,82,65,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,80,50,12
+END
+
+IDD_REPLACE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ersetzen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Suchen nach",IDC_FINDLABEL,5,7,25,8
+    COMBOBOX        IDC_FIND,35,5,97,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ersetzen mit",IDC_REPLACELABEL,5,22,25,8
+    COMBOBOX        IDC_REPLACE,35,20,97,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Groß- und Kleinschreibung unterscheiden",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,40,60,10
+    CONTROL         "&Reguläre Ausdrücke",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,50,85,10
+    DEFPUSHBUTTON   "Ersetze &nächste",IDC_REPLACENEXT,7,65,60,12
+    PUSHBUTTON      "Ersetze &vorherige",IDC_REPLACEPREV,72,65,60,12
+    PUSHBUTTON      "Ersetze &alle",IDC_REPLACEALL,7,80,60,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,72,80,60,12
+END
+
+IDD_CREATESUBACCOUNT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sub-Konto erstellen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,5,25,8
+    COMBOBOX        IDC_NAME,5,15,127,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,26,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,35,50,12
+END
+
+IDD_DIALUP DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Einwahl Verbindung"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_ENTRY,5,5,127,8
+    LTEXT           "&Benutzername",IDC_USERNAMELABEL,5,22,35,8
+    EDITTEXT        IDC_USERNAME,40,20,92,12,ES_AUTOHSCROLL
+    LTEXT           "&Passwort",IDC_PASSWORDLABEL,5,37,35,8
+    EDITTEXT        IDC_PASSWORD,40,35,92,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "&Domain",IDC_DOMAINLABEL,5,52,30,8
+    EDITTEXT        IDC_DOMAIN,40,50,92,12,ES_AUTOHSCROLL
+    LTEXT           "Einwahl von",IDC_DIALFROMLABEL,5,75,35,8
+    LTEXT           "",IDC_DIALFROM,40,75,92,8
+    PUSHBUTTON      "Einwahl &Einstellungen...",IDC_DIALPROPERTY,62,90,70,12
+    DEFPUSHBUTTON   "&Verbinden",IDOK,27,110,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,110,50,12
+END
+
+IDD_SELECTDIALUPENTRY DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Einwahl Eintrag auswählen"
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_ENTRY,5,5,127,85,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,95,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,95,50,12
+END
+
+IDD_FOLDERPROPERTY DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Allgemein"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Name",IDC_NAMELABEL,5,5,25,8
+    LTEXT           "",IDC_NAME,35,5,97,8
+    LTEXT           "ID",IDC_IDLABEL,5,15,25,8
+    LTEXT           "",IDC_ID,35,15,97,8
+    LTEXT           "Typ",IDC_TYPELABEL,5,25,25,8
+    LTEXT           "",IDC_TYPE,35,25,97,8
+    CONTROL         "&Aktiv aktualisieren",IDC_ACTIVEUPDATE,"Button",
+                    BS_AUTO3STATE | BS_TOP | BS_MULTILINE | WS_TABSTOP,10,50,
+                    60,10
+    CONTROL         "&Zwischenspeichern beim lesen",IDC_CACHEWHENREAD,"Button",
+                    BS_AUTO3STATE | BS_TOP | BS_MULTILINE | WS_TABSTOP,10,60,
+                    60,20
+    CONTROL         "Ignoriere &ungelesene",IDC_IGNOREUNSEEN,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,10,80,60,10
+    GROUPBOX        "Markierung",IDC_FLAG,5,40,70,75
+    CONTROL         "&Posteingang",IDC_INBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    85,50,40,10
+    CONTROL         "&Senden",IDC_OUTBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    85,60,40,10
+    CONTROL         "&Gesendet",IDC_SENTBOX,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,85,70,40,10
+    CONTROL         "&Entwürfe",IDC_DRAFTBOX,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,85,80,40,10
+    CONTROL         "&Papierkorb",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,85,90,43,10
+    CONTROL         "&Junk",IDC_JUNKBOX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,100,42,10
+    GROUPBOX        "Ordnertyp",IDC_BOXTYPE,80,40,52,75
+END
+
+IDD_SINGLEINPUTBOX DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_MESSAGE,5,5,127,8
+    EDITTEXT        IDC_VALUE,5,20,127,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,40,50,12
+END
+
+IDD_MULTIINPUTBOX DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_MESSAGE,5,5,127,8
+    EDITTEXT        IDC_VALUE,5,20,127,60,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,85,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,85,50,12
+END
+
+IDD_CUSTOMFILTER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Benutzerdefinierter Filter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,5,127,8
+    EDITTEXT        IDC_CONDITION,5,15,127,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,82,30,50,12
+    DEFPUSHBUTTON   "OK",IDOK,27,50,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,83,50,50,12
+END
+
+IDD_MOVEMESSAGE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Verschiebe Nachrichten"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Tree1",IDC_FOLDER,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,5,5,127,100
+    CONTROL         "&Kopieren",IDC_COPY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    110,31,10
+    CONTROL         "&Zeige versteckte Ordner",IDC_SHOWHIDDEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,120,82,10
+    DEFPUSHBUTTON   "OK",IDOK,26,135,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_RENAME DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Umbenennen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,5,127,8
+    EDITTEXT        IDC_NAME,5,15,127,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,35,50,12
+END
+
+IDD_MACROSEARCH DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Einfach"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Suche nach",IDC_CONDITIONLABEL,5,7,40,8
+    COMBOBOX        IDC_CONDITION,45,5,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,22,30,8
+    COMBOBOX        IDC_FOLDER,45,20,87,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "&Unterordner einschließen",IDC_RECURSIVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,45,35,70,10
+    CONTROL         "&Groß- und Kleinschreibung unterscheiden",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,50,125,10
+    CONTROL         "&Reguläre Ausdrücke",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,60,127,10
+    CONTROL         "&Durchsuche alle Kopfzeilen",IDC_SEARCHHEADER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,70,125,10
+    CONTROL         "Durchsuche &Nachrichtentext",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,81,125,10
+    CONTROL         "&Makro",IDC_MACRO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    5,90,125,10
+    CONTROL         "Erstelle neuen Such&ordner",IDC_NEWFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,105,127,10
+END
+
+IDD_FOLDERCONDITION DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Bedingung"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Typ",IDC_DRIVERLABEL,5,5,127,8
+    COMBOBOX        IDC_DRIVER,5,15,127,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,30,127,8
+    EDITTEXT        IDC_CONDITION,5,40,127,12,ES_AUTOHSCROLL
+    LTEXT           "Or&dner",IDC_FOLDERLABEL,5,55,127,8
+    COMBOBOX        IDC_FOLDER,5,65,127,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "&Include subfolders",IDC_RECURSIVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,80,127,10
+END
+
+IDD_VIEWSCOLUMN DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Spalte"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Titel",IDC_TITLELABEL,5,7,20,8
+    EDITTEXT        IDC_TITLE,30,5,102,12,ES_AUTOHSCROLL
+    LTEXT           "T&yp",IDC_TYPELABEL,5,22,25,8
+    COMBOBOX        IDC_TYPE,30,20,102,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Breite",IDC_WIDTHLABEL,5,37,20,8
+    EDITTEXT        IDC_WIDTH,30,35,45,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "&Makro",IDC_MACROLABEL,5,52,25,8
+    EDITTEXT        IDC_MACRO,30,50,102,12,ES_AUTOHSCROLL
+    CONTROL         "&Einrücken",IDC_INDENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,75,50,10
+    CONTROL         "&Linie zeichnen",IDC_LINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,85,50,10
+    CONTROL         "Als &Symbol",IDC_ASICON,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,95,50,10
+    CONTROL         "&Zwischenspeichern",IDC_CACHE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    10,105,35,10
+    GROUPBOX        "Optionen",IDC_FLAG,5,65,70,55
+    CONTROL         "&Alphabetisch",IDC_SORTTEXT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,85,75,29,10
+    CONTROL         "&Numerisch",IDC_SORTNUMBER,"Button",BS_AUTORADIOBUTTON,85,
+                    85,38,10
+    CONTROL         "&Datum",IDC_SORTDATE,"Button",BS_AUTORADIOBUTTON,85,95,
+                    30,10
+    GROUPBOX        "Sortierung",IDC_SORT,80,65,52,45
+    CONTROL         "&Links",IDC_LEFTALIGN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,10,130,27,10
+    CONTROL         "&Rechts",IDC_RIGHTALIGN,"Button",BS_AUTORADIOBUTTON,40,
+                    130,31,10
+    GROUPBOX        "Ausrichtung",IDC_ALIGN,5,120,70,25
+    DEFPUSHBUTTON   "OK",IDOK,82,119,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,133,50,12
+END
+
+IDD_VIEWS DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Customize View"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_COLUMNS,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,5,5,95,85
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,102,5,30,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,102,18,30,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,102,31,30,12
+    PUSHBUTTON      "&Auf",IDC_UP,102,50,30,12
+    PUSHBUTTON      "A&b",IDC_DOWN,102,63,30,12
+    PUSHBUTTON      "Als &Standard speichern",IDC_ASDEFAULT,5,95,60,12
+    PUSHBUTTON      "Auf Standard &zurücksetzen",IDC_APPLYDEFAULT,5,108,60,12
+    PUSHBUTTON      "&Vom Übergeordneten übernehmen",IDC_INHERIT,67,95,65,12
+    PUSHBUTTON      "Auf A&lle anwenden",IDC_APPLYTOALL,67,108,65,12
+    PUSHBUTTON      "Auf &Unterordner anwenden",IDC_APPLYTOCHILDREN,67,121,65,12
+    DEFPUSHBUTTON   "OK",IDOK,27,135,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_FOLDERPARAMETER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Parameter"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_PARAMETER,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,5,127,110
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,82,120,50,12
+END
+
+IDD_PARAMETER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Parameter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_NAME,5,5,127,8
+    EDITTEXT        IDC_VALUE,5,20,127,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,26,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,40,50,12
+END
+
+IDD_GOROUND DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_COURSE,5,5,82,109,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,63,40,12
+END
+
+IDD_GOROUNDCOURSE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Auftrag"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,30,5,102,12,ES_AUTOHSCROLL
+    LISTBOX         IDC_ENTRY,5,20,82,60,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,90,20,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,90,33,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,90,46,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,90,65,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,90,78,40,12
+    CONTROL         "&Sequentiell",IDC_SEQUENTIAL,"Button",BS_AUTORADIOBUTTON,
+                    10,95,55,10
+    CONTROL         "&Parallel",IDC_PARALLEL,"Button",BS_AUTORADIOBUTTON,10,
+                    105,60,10
+    GROUPBOX        "Typ",IDC_TYPE,5,85,75,35
+    CONTROL         "Bes&tätigen",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,122,40,10
+    PUSHBUTTON      "Ein&wahl...",IDC_DIALUP,92,110,40,12
+    DEFPUSHBUTTON   "OK",IDOK,26,135,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_GOROUNDENTRY DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Auftragsschritt"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Konto",IDC_ACCOUNTLABEL,5,7,30,8
+    COMBOBOX        IDC_ACCOUNT,45,5,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Sub-Konto",IDC_SUBACCOUNTLABEL,5,22,40,8
+    COMBOBOX        IDC_SUBACCOUNT,45,20,87,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,37,35,8
+    COMBOBOX        IDC_FOLDER,45,35,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Ordner &wählen",IDC_SELECTFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,45,48,65,10
+    LTEXT           "Sync F&ilter",IDC_SYNCFILTERLABEL,5,62,35,8
+    COMBOBOX        IDC_SYNCFILTER,45,60,87,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,100,60,32,12,NOT WS_VISIBLE
+    CONTROL         "&Empfangen",IDC_RECEIVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,85,45,10
+    CONTROL         "S&enden",IDC_SEND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    10,95,40,10
+    CONTROL         "&Regeln anwenden",IDC_APPLYRULES,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,105,55,10
+    GROUPBOX        "Typ",IDC_TYPE,5,75,127,45
+    DEFPUSHBUTTON   "OK",IDOK,27,125,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,125,50,12
+END
+
+IDD_GOROUNDDIALUP DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Einwahl"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Keine Verbindung wählen",IDC_NEVER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,5,5,127,10
+    CONTROL         "Einwahl nur wenn keine &Netzwerkverbindung besteht",
+                    IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON | 
+                    BS_TOP | BS_MULTILINE,5,15,127,16
+    CONTROL         "&Immer eine Verbindung wählen",IDC_CONNECT,"Button",
+                    BS_AUTORADIOBUTTON,5,32,127,10
+    LTEXT           "&Einwahl Name",IDC_ENTRYLABEL,15,45,45,8
+    COMBOBOX        IDC_ENTRY,15,55,117,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Einwahl von",IDC_DIALFROMLABEL,15,70,35,8
+    COMBOBOX        IDC_DIALFROM,15,80,117,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Vor dem Verbinden Dialog anzeigen",IDC_SHOWDIALOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,98,117,10
+    LTEXT           "&Warte",IDC_WAITLABELBEFORE,15,117,20,8
+    EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,115,20,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Sek. vor dem Trennen",IDC_WAITLABELAFTER,55,117,72,8
+    DEFPUSHBUTTON   "OK",IDOK,26,135,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_ACCOUNTDETAIL DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Details"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Port",IDC_RECEIVEPORTLABEL,10,17,20,8
+    EDITTEXT        IDC_RECEIVEPORT,35,15,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Protokollieren",IDC_RECEIVELOG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,17,26,10
+    CONTROL         "&Keine",IDC_RECEIVENOSECURE,"Button",BS_AUTORADIOBUTTON,
+                    15,40,35,10
+    CONTROL         "START&TLS",IDC_RECEIVESTARTTLS,"Button",
+                    BS_AUTORADIOBUTTON,15,50,50,10
+    CONTROL         "&SSL",IDC_RECEIVESSL,"Button",BS_AUTORADIOBUTTON,55,40,
+                    35,10
+    GROUPBOX        "Sicherheit",IDC_RECEIVESECURE,10,30,85,35
+    GROUPBOX        "Eingehende Nachrichten",IDC_INCOMING,5,5,127,65
+    LTEXT           "Po&rt",IDC_SENDPORTLABEL,10,87,20,8
+    EDITTEXT        IDC_SENDPORT,35,85,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Protokollieren",IDC_SENDLOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    85,87,26,10
+    CONTROL         "Kein&e",IDC_SENDNOSECURE,"Button",BS_AUTORADIOBUTTON,15,
+                    110,35,10
+    CONTROL         "SS&L",IDC_SENDSSL,"Button",BS_AUTORADIOBUTTON,55,110,35,
+                    10
+    CONTROL         "ST&ARTTLS",IDC_SENDSTARTTLS,"Button",BS_AUTORADIOBUTTON,
+                    15,120,50,10
+    GROUPBOX        "Sicherheit",IDC_SENDSECURE,10,100,85,35
+    GROUPBOX        "Ausgehende Nachrichten",IDC_OUTGOING,5,75,127,65
+END
+
+IDD_RESOURCE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Resourcen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Diese Dateien sind älter als die Standarddateien. Wollen sie sie wirklich überschreiben?",
+                    IDC_MESSAGE,5,5,125,17
+    CONTROL         "List1",IDC_RESOURCE,"SysListView32",LVS_REPORT | 
+                    LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,5,25,127,75
+    PUSHBUTTON      "&Markiere alle",IDC_CHECKALL,27,105,50,12
+    PUSHBUTTON      "&Entferne alle Markierungen",IDC_CLEARALL,82,105,50,12
+    CONTROL         "&Sichern",IDC_BACKUP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,120,45,10
+    PUSHBUTTON      "OK",IDOK,27,135,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_SIGNATURES DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_SIGNATURES,5,5,82,109,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,63,40,12
+END
+
+IDD_SIGNATURE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Signatur"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,97,12,ES_AUTOHSCROLL
+    LTEXT           "&Konto",IDC_ACCOUNTLABEL,5,22,25,8
+    COMBOBOX        IDC_ACCOUNT,35,20,97,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Standard",IDC_DEFAULT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,40,40,10
+    EDITTEXT        IDC_SIGNATURE,5,55,127,65,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,125,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,125,50,12
+END
+
+IDD_FIXEDFORMTEXTS DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_TEXTS,5,5,82,109,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,63,40,12
+END
+
+IDD_FIXEDFORMTEXT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Text"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,97,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_TEXT,5,25,127,80,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,25,110,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,80,110,50,12
+END
+
+IDD_PASSWORD DIALOG DISCARDABLE  0, 0, 137, 155
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Passwort"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Passwort",IDC_PASSWORDLABEL,5,5,35,8
+    LTEXT           "",IDC_HINT,5,15,127,8
+    EDITTEXT        IDC_PASSWORD,5,25,127,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "&Nicht speichern",IDC_DONTSAVE,"Button",BS_AUTORADIOBUTTON,
+                    10,55,70,10
+    CONTROL         "&Erinnern bis zum Ende der Sitzung",IDC_SESSION,"Button",
+                    BS_AUTORADIOBUTTON,10,65,120,10
+    CONTROL         "&Dauerhaft speichern",IDC_SAVE,"Button",BS_AUTORADIOBUTTON,
+                    10,75,100,10
+    GROUPBOX        "",IDC_SAVELABEL,5,45,127,45
+    DEFPUSHBUTTON   "OK",IDOK,26,95,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,95,50,12
+END
+
+IDD_RULECOLORSETS DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_RULECOLORSETS,5,5,82,109,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,63,40,12
+END
+
+IDD_RULESCOLORS DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Konto",IDC_ACCOUNTLABEL,5,7,35,8
+    COMBOBOX        IDC_ACCOUNT,45,5,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,22,35,8
+    COMBOBOX        IDC_FOLDER,45,20,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_RULESCOLORS,5,40,82,80,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,40,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,53,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,66,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,85,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,98,40,12
+    DEFPUSHBUTTON   "OK",IDOK,27,125,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,125,50,12
+END
+
+IDD_RULE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Regel"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Be&dingung",IDC_CONDITIONLABEL,5,5,30,8
+    EDITTEXT        IDC_CONDITION,5,15,97,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,107,15,25,12
+    LTEXT           "&Aktion",IDC_ACTIONLABEL,5,32,20,8
+    COMBOBOX        IDC_ACTION,45,30,87,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Konto",IDC_ACCOUNTLABEL,5,47,30,8,NOT WS_GROUP
+    COMBOBOX        IDC_ACCOUNT,45,45,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,62,30,8,NOT WS_GROUP
+    COMBOBOX        IDC_FOLDER,45,60,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Vorlage...",IDC_TEMPLATE,45,75,50,12
+    LTEXT           "Makr&o",IDC_MACROLABEL,5,47,19,8
+    EDITTEXT        IDC_MACRO,45,45,87,12,ES_AUTOHSCROLL
+    CONTROL         "D&irekt",IDC_DIRECT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,45,45,10
+    LTEXT           "&Kennzeichnung",IDC_LABELLABEL,5,47,25,8
+    EDITTEXT        IDC_LABEL,45,45,87,12,ES_AUTOHSCROLL
+    LTEXT           "T&yp",IDC_LABELTYPELABEL,5,62,20,8
+    COMBOBOX        IDC_LABELTYPE,45,60,50,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Weitere &Regeln anwenden",IDC_CONTINUE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,95,127,10
+    LTEXT           "Verwenden",IDC_USE,5,108,15,8
+    CONTROL         "&Manuell",IDC_MANUAL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,30,107,35,10
+    CONTROL         "A&utomatisch",IDC_AUTO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    68,107,30,10
+    CONTROL         "Akti&v",IDC_ACTIVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,100,107,30,10
+    LTEXT           "&Beschreibung",IDC_DESCRIPTIONLABEL,5,122,35,8
+    EDITTEXT        IDC_DESCRIPTION,45,120,87,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,135,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_COLOR DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Farbe"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Be&dingung",IDC_CONDITIONLABEL,5,5,127,8
+    EDITTEXT        IDC_CONDITION,5,15,97,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,107,15,25,12
+    CONTROL         "&Vordergrund",IDC_FOREGROUND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,30,127,10
+    EDITTEXT        IDC_COLORFOREGROUND,15,40,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Wählen...",IDC_CHOOSEFOREGROUND,82,40,50,12
+    CONTROL         "&Hintergrund",IDC_BACKGROUND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,55,127,10
+    EDITTEXT        IDC_COLORBACKGROUND,15,65,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Wäh&len...",IDC_CHOOSEBACKGROUND,82,65,50,12
+    CONTROL         "Schrif&t",IDC_FONT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    80,127,10
+    CONTROL         "&Fett",IDC_BOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    15,90,117,10
+    LTEXT           "Beschre&ibung",IDC_DESCRIPTIONLABEL,5,100,127,8
+    EDITTEXT        IDC_DESCRIPTION,5,110,127,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,130,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,130,50,12
+END
+
+IDD_COPYRULETEMPLATE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Vorlage"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,97,12,ES_AUTOHSCROLL
+    LTEXT           "Para&meter",IDC_ARGUMENTLABEL,5,23,40,8
+    CONTROL         "List1",IDC_ARGUMENT,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,5,35,82,80
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,35,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,48,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,61,40,12
+    DEFPUSHBUTTON   "OK",IDOK,27,120,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,120,50,12
+END
+
+IDD_ARGUMENT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Parameter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,5,127,8
+    EDITTEXT        IDC_NAME,5,15,127,12,ES_AUTOHSCROLL
+    LTEXT           "&Wert",IDC_VALUELABEL,5,30,127,8
+    EDITTEXT        IDC_VALUE,5,41,127,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,65,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,65,50,12
+END
+
+IDD_CONDITIONS DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bedingung"
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_CONDITIONS,5,5,82,60,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,63,40,12
+    CONTROL         "U&nd",IDC_AND,"Button",BS_AUTORADIOBUTTON,5,67,30,10
+    CONTROL         "&Oder",IDC_OR,"Button",BS_AUTORADIOBUTTON,40,67,23,10
+    CONTROL         "&Benutzerdefiniert",IDC_CUSTOM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,78,40,10
+    EDITTEXT        IDC_MACRO,5,90,127,40,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,135,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_FILTERS DIALOG DISCARDABLE  0, 0, 139, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_FILTERS,5,5,82,109,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,63,40,12
+END
+
+IDD_FILTER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Filter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,5,127,8
+    EDITTEXT        IDC_NAME,5,15,127,12,ES_AUTOHSCROLL
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,30,127,8
+    EDITTEXT        IDC_CONDITION,5,40,127,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,82,55,50,12
+    DEFPUSHBUTTON   "OK",IDOK,27,75,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,75,50,12
+END
+
+IDD_SYNCFILTERSETS DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_FILTERSETS,5,5,82,109,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,63,40,12
+END
+
+IDD_SYNCFILTERS DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sync Filter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,97,12,ES_AUTOHSCROLL
+    LISTBOX         IDC_FILTERS,5,25,82,80,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,25,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,38,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,51,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,70,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,83,40,12
+    DEFPUSHBUTTON   "OK",IDOK,27,110,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,110,50,12
+END
+
+IDD_SYNCFILTER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sync Filter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,5,35,8
+    EDITTEXT        IDC_CONDITION,5,15,97,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,107,15,25,12
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,37,25,8
+    EDITTEXT        IDC_FOLDER,40,35,92,12,ES_AUTOHSCROLL
+    LTEXT           "&Aktion",IDC_ACTIONLABEL,5,52,20,8
+    COMBOBOX        IDC_ACTION,40,50,92,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Max. Zeilen",IDC_MAXLINELABEL,40,67,35,8
+    EDITTEXT        IDC_MAXLINE,75,65,35,12,ES_AUTOHSCROLL
+    LTEXT           "&Typ",IDC_TYPELABEL,40,67,20,8
+    COMBOBOX        IDC_TYPE,75,66,57,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Beschreibung",IDC_DESCRIPTIONLABEL,5,79,40,8
+    EDITTEXT        IDC_DESCRIPTION,5,90,127,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,110,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,110,50,12
+END
+
+IDD_AUTOPILOT DIALOG DISCARDABLE  0, 0, 139, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_ENTRIES,5,5,82,95,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,63,40,12
+    CONTROL         "&Nur wenn verbunden",IDC_ONLYWHENCONNECTED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,105,86,10
+END
+
+IDD_AUTOPILOTENTRY DIALOG DISCARDABLE  0, 0, 137, 155
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AutoPilot Eintrag"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Kurs",IDC_COURSELABEL,5,7,30,8
+    COMBOBOX        IDC_COURSE,40,5,92,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Intervall",IDC_INTERVALLABEL,5,22,30,8
+    EDITTEXT        IDC_INTERVAL,40,20,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,27,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,40,50,12
+END
+
+IDD_CONFIRMSEND DIALOG DISCARDABLE  0, 0, 131, 64
+STYLE WS_POPUP | WS_CAPTION
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Diese Nachricht wurde noch nicht gespeichert oder gesendet.\nWollen sie sie wirklich verwerfen?",
+                    IDC_STATIC,5,10,121,25
+    DEFPUSHBUTTON   "&Senden",IDC_SEND,5,45,25,12
+    PUSHBUTTON      "S&peichern",IDC_SAVE,32,45,25,12
+    PUSHBUTTON      "&Verwerfen",IDC_DISCARD,59,45,35,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,96,45,30,12
+END
+
+IDD_ADDRESSBOOKENTRY DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Entry"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,35,8
+    EDITTEXT        IDC_NAME,40,5,92,12,ES_AUTOHSCROLL
+    LTEXT           "Sor&tierung",IDC_SORTKEYLABEL,5,22,35,8
+    EDITTEXT        IDC_SORTKEY,40,20,92,12,ES_AUTOHSCROLL
+    LTEXT           "Adre&ssen",IDC_ADDRESSESLABEL,5,40,80,8
+    LISTBOX         IDC_ADDRESSES,5,50,82,80,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,50,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,62,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,74,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,92,90,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,92,102,40,12
+    DEFPUSHBUTTON   "OK",IDOK,27,135,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,135,50,12
+END
+
+IDD_ADDRESSBOOKADDRESS DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Adresse"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Adresse",IDC_ADDRESSLABEL,5,7,35,8
+    EDITTEXT        IDC_ADDRESS,40,5,92,12,ES_AUTOHSCROLL
+    CONTROL         "Adresse enthält &Phrasen",IDC_RFC2822,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,40,20,92,10
+    LTEXT           "A&lias",IDC_ALIASLABEL,5,37,30,8
+    EDITTEXT        IDC_ALIAS,40,35,92,12,ES_AUTOHSCROLL
+    LTEXT           "&Kategorie",IDC_CATEGORYLABEL,5,57,30,8
+    COMBOBOX        IDC_CATEGORY,40,55,92,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "K&ommentar",IDC_COMMENTLABEL,5,77,30,8
+    EDITTEXT        IDC_COMMENT,40,75,92,12,ES_AUTOHSCROLL
+    LTEXT           "Zer&tifikat",IDC_CERTIFICATELABEL,5,97,35,8
+    COMBOBOX        IDC_CERTIFICATE,40,95,92,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,115,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,115,50,12
+END
+
+IDD_ADDADDRESS DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Adresse hinzufügen"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Neuen Eintrag anlegen",IDC_NEWENTRY,"Button",
+                    BS_AUTORADIOBUTTON,5,5,80,10
+    CONTROL         "&Adresse zum existierenden Eintrag hinzufügen",IDC_NEWADDRESS,
+                    "Button",BS_AUTORADIOBUTTON,5,15,125,10
+    LISTBOX         IDC_ENTRIES,15,25,117,80,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,110,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,110,50,12
+END
+
+#if defined(APSTUDIO_INVOKED) || defined(QMTABWINDOW)
+#if defined(APSTUDIO_INVOKED)
+IDD_TABTITLE$(QMTABWINDOW) DIALOG DISCARDABLE  0, 0, 137, 153
+#else
+IDD_TABTITLE DIALOG DISCARDABLE  0, 0, 137, 153
+#endif
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Titel"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Titel",IDC_TITLELABEL,5,5,20,8
+    EDITTEXT        IDC_TITLE,5,15,127,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,35,50,12
+END
+#endif
+
+IDD_OPTION DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Option"
+FONT 9, "Tahoma"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,27,136,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,136,50,12
+    COMBOBOX        IDC_SELECTOR,5,5,127,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_OPTIONFOLDER DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Zeige die Anzahl &aller Nachrichten im Account",IDC_ACCOUNTSHOWALL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,105,10
+    CONTROL         "Zeige die Anzahl &ungelesener Nachrichten im Account",IDC_ACCOUNTSHOWUNSEEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,20,115,10
+    CONTROL         "Zeige die Anzahl a&ller Nachrichten im Ordner",IDC_FOLDERSHOWALL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,10
+    CONTROL         "Zeige die Anzahl ungele&sener Nachrichten im Ordner",IDC_FOLDERSHOWUNSEEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,110,10
+    PUSHBUTTON      "&Schrift...",IDC_WINDOWFONT,77,50,50,12
+    GROUPBOX        "Fenster",IDC_WINDOW,5,0,127,65
+    CONTROL         "Zeige die Anzahl aller &Nachrichten",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,75,65,10
+    CONTROL         "Zeige die Anzahl ungel&esener Nachrichten",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,85,85,10
+    PUSHBUTTON      "S&chrift...",IDC_COMBOBOXFONT,77,95,50,12
+    GROUPBOX        "Kombinationsfeld",IDC_COMBOBOX,5,65,127,45
+END
+
+IDD_OPTIONFOLDER_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Zeige die Anzahl &aller Nachrichten im Account",IDC_ACCOUNTSHOWALL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,105,10
+    CONTROL         "Zeige die Anzahl &ungelesener Nachrichten im Account",IDC_ACCOUNTSHOWUNSEEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,20,115,10
+    CONTROL         "Zeige die Anzahl a&ller Nachrichten im Ordner",IDC_FOLDERSHOWALL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,30,105,10
+    CONTROL         "Zeige die Anzahl ungele&sener Nachrichten im Ordner",IDC_FOLDERSHOWUNSEEN,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,40,110,10
+    PUSHBUTTON      "&Schrift...",IDC_WINDOWFONT,127,38,45,12
+    GROUPBOX        "Fenster",IDC_WINDOW,5,0,172,55
+    CONTROL         "Zeige die Anzahl aller &Nachrichten",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,65,65,10
+    CONTROL         "Zeige die Anzahl ungel&esener Nachrichten",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,75,85,10
+    PUSHBUTTON      "S&chrift...",IDC_COMBOBOXFONT,127,73,45,12
+    GROUPBOX        "Kombinationsfeld",IDC_COMBOBOX,5,55,172,35
+END
+
+IDD_OPTIONLIST DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Nachricht mit einzelnem Klick öffnen",IDC_SINGLECLICK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,105,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,5,20,50,12
+    PUSHBUTTON      "&Farben...",IDC_COLORS,60,20,50,12
+END
+
+IDD_OPTIONADDRESSBOOK DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Pocket Outlook",IDC_POCKETOUTLOOK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,65,10
+    CONTROL         "&Nur Adressen einfügen",IDC_ADDRESSONLY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,70,10
+    GROUPBOX        "Externes Adressbuch",IDC_EXTERNAL,5,0,127,40
+    PUSHBUTTON      "&Schrift...",IDC_FONT,5,45,50,12
+END
+
+#if defined(APSTUDIO_INVOKED) || defined(QMTABWINDOW)
+#if defined(APSTUDIO_INVOKED)
+IDD_OPTIONTAB$(QMTABWINDOW) DIALOG DISCARDABLE  0, 0, 137, 119
+#else
+IDD_OPTIONTAB DIALOG DISCARDABLE  0, 0, 137, 119
+#endif
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Mehrzeilig",IDC_MULTILINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,41,10
+    CONTROL         "Tab beim Ö&ffnen wiederverwenden",IDC_REUSEOPEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,86,10
+    CONTROL         "Tab beim &Wechseln wiederverwenden",IDC_REUSECHANGE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,93,10
+    CONTROL         "Zeige die Anzahl &aller Nachrichten",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,65,10
+    CONTROL         "Zeige die Anzahl ungele&sener Nachrichten",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,85,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,5,60,50,12
+END
+#endif
+
+IDD_OPTIONPREVIEW DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "An der Fensterbreite &umbrechen",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "An der &Spalte umbrechen",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Spalte",IDC_COLUMNLABEL,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Wort umbrechen",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,32,47,10
+    GROUPBOX        "Umbrechen",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Breite",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&V Bildlaufleiste",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Bildlaufleiste",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Lineal",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,85,30,10
+    CONTROL         "Zeige &Kopfzeilen",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,65,85,60,10
+    LTEXT           "Wa&rte",IDC_SEENWAITLABELBEFORE,5,102,15,8
+    EDITTEXT        IDC_SEENWAIT,22,100,18,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    LTEXT           "Sek. vor dem Markieren als Gelesen",IDC_SEENWAITLABELAFTER,40,102,
+                    90,8
+    PUSHBUTTON      "&Schrift...",IDC_FONT,82,50,50,12
+    PUSHBUTTON      "F&arben...",IDC_COLORS,82,65,50,12
+END
+
+IDD_OPTIONMESSAGE DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "An der Fensterbreite &umbrechen",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "An der &Spalte umbrechen",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Spalte",IDC_COLUMNLABEL,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Wort umbrechen",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,32,47,10
+    GROUPBOX        "Umbrechen",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Breite",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&V Bildlaufleiste",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Bildlaufleiste",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Lineal",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,85,30,10
+    CONTROL         "Zeige &Kopfzeilen",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,85,60,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,82,50,50,12
+    PUSHBUTTON      "F&arben...",IDC_COLORS,82,65,50,12
+END
+
+IDD_OPTIONEDIT DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "An der Fensterbreite &umbrechen",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "An der &Spalte umbrechen",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Spalte",IDC_COLUMNLABEL,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Wort umbrechen",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,31,47,12
+    GROUPBOX        "Umbrechen",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Breite",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&V Bildlaufleiste",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Bildlaufleiste",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Lineal",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,85,30,10
+    CONTROL         "Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    5,95,30,10
+    CONTROL         "&Neue Zeile",IDC_SHOWNEWLINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,40,95,45,10
+    CONTROL         "Verste&cke Kopfzeilen während der Nachrichtenbearbeitung",
+                    IDC_HIDEHEADERIFNOFOCUS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,105,119,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,82,50,50,12
+    PUSHBUTTON      "F&arben...",IDC_COLORS,82,65,50,12
+    PUSHBUTTON      "Kopf&zeilen Schrift...",IDC_HEADERFONT,82,80,50,12
+END
+
+IDD_OPTIONHEADER DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    PUSHBUTTON      "&Schrift...",IDC_FONT,5,5,50,12
+END
+
+IDD_TEXTCOLOR DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Farbe"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&System Farbe",IDC_SYSTEMCOLOR,"Button",
+                    BS_AUTORADIOBUTTON,5,5,54,10
+    CONTROL         "&Benutzer Farbe",IDC_CUSTOMCOLOR,"Button",
+                    BS_AUTORADIOBUTTON,5,15,54,10
+    EDITTEXT        IDC_COLOR,15,25,47,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Vordergrund...",IDC_CHOOSEFOREGROUND,15,40,50,12
+    PUSHBUTTON      "&Hintergrund...",IDC_CHOOSEBACKGROUND,70,40,50,12
+    LTEXT           "Zitat &1",IDC_LABELQUOTE1,5,62,24,8
+    EDITTEXT        IDC_QUOTE1,35,60,47,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Wählen...",IDC_CHOOSEQUOTE1,87,60,45,12
+    LTEXT           "Zitat &2",IDC_LABELQUOTE2,5,77,24,8
+    EDITTEXT        IDC_QUOTE2,35,75,47,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Wähl&en...",IDC_CHOOSEQUOTE2,87,75,45,12
+    LTEXT           "&Link",IDC_LABELLINK,5,92,18,8
+    EDITTEXT        IDC_LINK,35,90,47,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "Wähle&n...",IDC_CHOOSELINK,87,90,45,12
+    DEFPUSHBUTTON   "OK",IDOK,27,110,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,110,50,12
+END
+
+IDD_OPTIONSECURITY DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Lade Zertifikate aus dem Systemspeicher",IDC_SYSTEMSTORE,
+                    "Button",BS_AUTOCHECKBOX | BS_TOP | BS_MULTILINE | 
+                    WS_TABSTOP,10,10,95,20
+    GROUPBOX        "Zertifikate",IDC_CERTIFICATES,5,0,127,35
+    LTEXT           "Warne vor dem Öffnen eines &Attachments mit dieser Erweiterung",
+                    IDC_WARNEXTENSIONLABEL,5,40,127,17
+    EDITTEXT        IDC_WARNEXTENSION,5,57,127,12,ES_AUTOHSCROLL
+    CONTROL         "&Passwortabfrage beim Starten",IDC_LAUNCHPASSWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,120,10
+    LTEXT           "Pa&sswort",IDC_PASSWORDLABEL,15,88,35,8
+    EDITTEXT        IDC_PASSWORD,50,87,82,12,ES_AUTOHSCROLL
+END
+
+IDD_OPTIONMISC DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Ansichtsplazierung(*)",IDC_VIEWPLACEMENTLABEL,5,7,65,8
+    COMBOBOX        IDC_VIEWPLACEMENT,70,5,62,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Zeige nächste &Ungelesene beim Scrollen zum Ende(*)",
+                    IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,5,20,127,17
+    CONTROL         "&Springe zur nächsten Ungelesenen in anderen Konten(*)",
+                    IDC_UNSEENINOTHERACCOUNTS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,40,129,10
+    CONTROL         "&Leere Papierkorb beim Beenden",IDC_EMPTYTRASHONEXIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,50,127,10
+    CONTROL         "&Speichern wenn das Fenster deaktiviert wird",IDC_SAVEONDEACTIVATE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,127,10
+    LTEXT           "&Codierung",IDC_ENCODINGLABEL,5,77,40,8
+    EDITTEXT        IDC_ENCODING,45,75,87,12,ES_AUTOHSCROLL
+    LTEXT           "&Standard(*)",IDC_DEFAULTENCODINGLABEL,10,92,35,8
+    COMBOBOX        IDC_DEFAULTENCODING,45,90,87,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Protokollstufe",IDC_LOGLABEL,5,107,40,8
+    COMBOBOX        IDC_LOG,45,105,40,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Tem&porärer Ordner",IDC_TEMPORARYFOLDERLABEL,5,125,40,8,NOT 
+                    WS_VISIBLE
+    EDITTEXT        IDC_TEMPORARYFOLDER,5,135,82,12,ES_AUTOHSCROLL | NOT 
+                    WS_VISIBLE
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,92,135,40,12,NOT WS_VISIBLE
+END
+
+IDD_OPTIONEDIT2 DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Spalte",IDC_COLUMNLABEL,10,12,25,8
+    EDITTEXT        IDC_COLUMN,40,10,30,12,ES_AUTOHSCROLL
+    CONTROL         "&Formatiere automatisch",IDC_AUTOREFORM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,80,10
+    GROUPBOX        "Formatierung",IDC_REFORM,5,0,127,40
+    CONTROL         "&Verwende standardmässig den externen Editor",
+                    IDC_USEEXTERNALEDITOR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,50,115,12
+    LTEXT           "&Editor",IDC_EDITORLABEL,10,67,20,8
+    EDITTEXT        IDC_EDITOR,35,65,47,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,87,65,40,12
+    CONTROL         "Nach dem Beenden des Editors eine neue Nachricht erstellen",
+                    IDC_AUTOCREATE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,10,80,115,17
+    GROUPBOX        "Externer Editor",IDC_EXTERNALEDITOR,5,40,127,60
+    PUSHBUTTON      "&Sicherheit...",IDC_SECURITY,92,105,40,12
+END
+
+IDD_SECURITY DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sicherheit"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Standardmässig verschlüsseln",IDC_SMIMEENCRYPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,15,70,10
+    CONTROL         "S&tandardmässig signieren",IDC_SMIMESIGN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,60,10
+    CONTROL         "Verwende &multipart/signed beim signieren einer Nachricht",
+                    IDC_SMIMEMULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,10,35,110,20
+    CONTROL         "&Verschlüssle Nachrichten an mich selbst",IDC_SMIMEENCRYPTFORSELF,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,55,110,10
+    GROUPBOX        "S/MIME",IDC_SMIME,5,5,127,65
+    DEFPUSHBUTTON   "OK",IDOK,27,75,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,75,50,12
+END
+
+IDD_OPTIONMISC2 DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Inkrementelle Suche",IDC_INCREMENTALSEARCH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,127,10
+    CONTROL         "&Speichere Nachrichtenmodus pro Ordner(*)",
+                    IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,127,10
+    CONTROL         "Ü&ber eine neue Version benachrichtigen",IDC_CHECKUPDATE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,127,10
+    CONTROL         "&Bcc an mich selbst",IDC_BCC,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,40,127,10
+    CONTROL         "Kein Bcc wenn die ursprüngliche Nachricht von einer &ML kommt",
+                    IDC_NOBCCFORML,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,15,51,117,17
+    CONTROL         "Verwende message/rfc822 beim &weiterleiten",IDC_FORWARDRFC822,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,70,127,10
+    CONTROL         "Öffne das &Adressbuch beim Erstellen",IDC_OPENADDRESSBOOK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,80,127,10
+    LTEXT           "&Zitieren",IDC_QUOTELABEL,5,97,20,8
+    EDITTEXT        IDC_QUOTE,30,95,40,12,ES_AUTOHSCROLL
+END
+
+IDD_OPTIONCONFIRM DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Das Löschen von &Nachrichten bestätigen",
+                    IDC_CONFIRMDELETEMESSAGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,127,10
+    CONTROL         "Das Leeren von &Ordnern bestätigen",IDC_CONFIRMEMPTYFOLDER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,15,127,10
+    CONTROL         "Das Leeren des &Papierkorbs bestätigen",IDC_CONFIRMEMPTYTRASH,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,127,10
+END
+
+IDD_CONDITION DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bedingung"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,5,127,8
+    COMBOBOX        IDC_CONDITION,5,15,127,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Parameter",IDC_ARGUMENTSLABEL,5,30,127,8
+    CONTROL         "List1",IDC_ARGUMENTS,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,40,127,50
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,82,95,50,12
+    DEFPUSHBUTTON   "OK",IDOK,27,115,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,115,50,12
+END
+
+IDD_CONDITION_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bedingung"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,7,30,8
+    COMBOBOX        IDC_CONDITION,40,5,137,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Parameter",IDC_ARGUMENTSLABEL,5,20,125,8
+    CONTROL         "List1",IDC_ARGUMENTS,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,30,127,55
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,30,40,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_CONDITIONARGUMENT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Parameter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Name",IDC_NAMELABEL,5,5,20,8
+    LTEXT           "",IDC_NAME,35,5,97,8
+    LTEXT           "&Wert",IDC_VALUELABEL,5,17,20,8
+    COMBOBOX        IDC_FIELD,35,15,97,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_TEXT,35,15,97,12,ES_AUTOHSCROLL | NOT WS_VISIBLE
+    EDITTEXT        IDC_NUMBER,35,15,97,12,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_VISIBLE
+    DEFPUSHBUTTON   "OK",IDOK,27,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,35,50,12
+END
+
+IDD_LISTSELECTBOX DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_MESSAGE,5,5,127,8
+    LISTBOX         IDC_VALUE,5,20,127,60,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,85,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,85,50,12
+END
+
+IDD_COMBOSELECTBOX DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_MESSAGE,5,5,127,8
+    COMBOBOX        IDC_VALUE,5,20,127,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_VALUELIST,5,20,127,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,40,50,12
+END
+
+IDD_LABEL DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Kennzeichen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Kennzeichnen",IDC_MESSAGE,5,5,127,8
+    COMBOBOX        IDC_LABEL,5,15,127,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,35,50,12
+END
+
+IDD_CERTIFICATE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Zertifikat"
+FONT 9, "Tahoma"
+BEGIN
+    EDITTEXT        IDC_CERTIFICATE,5,5,127,140,ES_MULTILINE | ES_READONLY | 
+                    WS_VSCROLL | WS_HSCROLL
+END
+
+IDD_OPTIONSEARCH DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Makro",IDC_MACROLABEL,10,10,117,8
+    EDITTEXT        IDC_MACRO,10,20,117,12,ES_AUTOHSCROLL
+    GROUPBOX        "Einfache Suche",IDC_SIMPLE,5,0,127,40
+END
+
+IDD_OPTIONSYNC DIALOG DISCARDABLE  0, 0, 137, 119
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Ö&ffnen",IDC_SYNCDIALOGLABEL,10,12,25,8
+    COMBOBOX        IDC_SYNCDIALOG,40,10,87,100,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Sync Dialog",IDC_SYNCDIALOGS,5,0,127,30
+    LTEXT           "&Wann",IDC_NOTIFICATIONLABEL,10,42,25,8
+    COMBOBOX        IDC_NOTIFICATION,40,41,87,100,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Klang",IDC_SOUNDLABEL,10,57,25,8
+    EDITTEXT        IDC_SOUND,40,55,45,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,90,55,37,12
+    CONTROL         "&Vorschau öffnen",IDC_OPENINPREVIEW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,70,117,10
+    LTEXT           "&Max. Nachrichten in Neuesten",IDC_MAXLABEL,10,82,85,8
+    EDITTEXT        IDC_MAX,100,80,27,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "&Filter",IDC_FILTERLABEL,10,97,16,8
+    EDITTEXT        IDC_FILTER,40,95,45,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,90,95,37,12
+    GROUPBOX        "Benachrichtigung",IDC_NOTIFICATIONS,5,30,127,80
+END
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Über QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_VERSION,5,5,127,8
+    LTEXT           "(C) 1998-2008 Satoshi Nakamura",IDC_COPYRIGHT,5,15,127,
+                    10
+    LTEXT           "http://q3.snak.org/",IDC_URL,5,25,127,8
+    EDITTEXT        IDC_DESCRIPTION,5,40,127,70,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+END
+
+IDD_SYNCWAIT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Warte"
+FONT 9, "Tahoma"
+BEGIN
+    CTEXT           "Warte auf das Beenden der Synchronisierung...",IDC_MESSAGE,5,
+                    35,127,8
+END
+
+IDD_ABOUT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Über QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_VERSION,5,5,172,8
+    LTEXT           "(C) 1998-2008 Satoshi Nakamura.",IDC_COPYRIGHT,5,15,172,
+                    10
+    LTEXT           "http://q3.snak.org/",IDC_URL,5,25,172,8
+    EDITTEXT        IDC_DESCRIPTION,5,40,172,62,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+END
+
+IDD_SELECTADDRESS_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Adressbuch"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_ADDRESS,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,5,5,127,55
+    CONTROL         "List2",IDC_SELECTEDADDRESS,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,65,127,37
+    PUSHBUTTON      "&Kategorie",IDC_CATEGORY,135,5,42,12
+    PUSHBUTTON      "&An",IDC_TO,135,20,42,12
+    PUSHBUTTON      "&Cc",IDC_CC,135,30,42,14
+    PUSHBUTTON      "&Bcc",IDC_BCC,135,44,42,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,135,60,42,12
+    DEFPUSHBUTTON   "OK",IDOK,135,75,42,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,135,90,42,12
+END
+
+IDD_ACCOUNT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Konto"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Tree1",IDC_ACCOUNT,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | 
+                    WS_BORDER | WS_TABSTOP,5,5,100,97
+    PUSHBUTTON      "&Konto hinzufügen...",IDC_ADDACCOUNT,110,5,67,12
+    PUSHBUTTON      "&Sub-Konto hinzufügen...",IDC_ADDSUBACCOUNT,110,20,67,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,110,40,67,12
+    PUSHBUTTON      "&Umbenennen...",IDC_RENAME,110,55,67,12
+    PUSHBUTTON      "&Eigenschaften...",IDC_PROPERTY,110,75,67,12
+END
+
+IDD_RESOURCE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Resourcen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Diese Dateien sind älter als die Standarddateien. Wollen sie sie wirklich überschreiben?",
+                    IDC_MESSAGE,5,5,172,17
+    CONTROL         "List1",IDC_RESOURCE,"SysListView32",LVS_REPORT | 
+                    LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,5,25,115,77
+    PUSHBUTTON      "&Markiere alle",IDC_CHECKALL,125,25,52,12
+    PUSHBUTTON      "&Entferne alle Markierungen",IDC_CLEARALL,125,40,52,12
+    CONTROL         "&Sichern",IDC_BACKUP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,125,55,45,10
+    PUSHBUTTON      "OK",IDOK,125,70,52,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,125,85,52,12
+END
+
+IDD_ATTACHMENT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dateianhang"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_ATTACHMENT,"SysListView32",LVS_LIST | 
+                    LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS | 
+                    LVS_NOCOLUMNHEADER | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,5,115,97
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,125,5,52,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,125,20,52,12
+    DEFPUSHBUTTON   "OK",IDOK,125,40,52,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,125,55,52,12
+END
+
+IDD_DETACH_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ablösen"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_ATTACHMENT,"SysListView32",LVS_LIST | 
+                    LVS_SINGLESEL | LVS_NOLABELWRAP | LVS_EDITLABELS | 
+                    LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,5,5,115,65
+    LTEXT           "Or&dner",IDC_FOLDERLABEL,5,77,19,8
+    EDITTEXT        IDC_FOLDER,30,75,90,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,125,75,52,12
+    CONTROL         "Ö&ffne Ordner nach dem Ablösen",IDC_OPENFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,90,95,10
+    DEFPUSHBUTTON   "OK",IDOK,125,5,52,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,125,20,52,12
+    PUSHBUTTON      "&Umbenennen",IDC_RENAME,125,40,52,12
+END
+
+IDD_MAILFOLDER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Speicherordner"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Speicherordner",IDC_MAILFOLDERLABEL,5,5,172,8
+    EDITTEXT        IDC_MAILFOLDER,5,15,117,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,127,15,50,12
+    DEFPUSHBUTTON   "OK",IDOK,72,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,35,50,12
+END
+
+IDD_ADDADDRESS_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Adresse hinzufügen"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Neuen Eintrag anlegen",IDC_NEWENTRY,"Button",
+                    BS_AUTORADIOBUTTON,5,5,170,10
+    CONTROL         "&Adresse zum existierenden Eintrag hinzufügen",IDC_NEWADDRESS,
+                    "Button",BS_AUTORADIOBUTTON,5,15,170,10
+    LISTBOX         IDC_ENTRIES,15,25,162,60,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,128,90,50,12
+END
+
+IDD_MOVEMESSAGE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Nachrichten verschieben"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Tree1",IDC_FOLDER,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,5,5,172,65
+    CONTROL         "&Kopieren",IDC_COPY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    75,40,10
+    CONTROL         "&Zeige versteckte Ordner",IDC_SHOWHIDDEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,50,75,90,10
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_CERTIFICATE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Zertifikat"
+FONT 9, "Tahoma"
+BEGIN
+    EDITTEXT        IDC_CERTIFICATE,5,5,172,97,ES_MULTILINE | ES_READONLY | 
+                    WS_VSCROLL | WS_HSCROLL
+END
+
+IDD_FIND_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Find"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Suchen nach",IDC_FINDLABEL,5,5,172,8
+    COMBOBOX        IDC_FIND,5,15,172,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Groß- und Kleinschreibung unterscheiden",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,172,10
+    CONTROL         "&Reguläre Ausdrücke",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,45,172,10
+    DEFPUSHBUTTON   "Suche &nächste",IDC_FINDNEXT,17,65,50,12
+    PUSHBUTTON      "Suche &vorherige",IDC_FINDPREV,72,65,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,65,50,12
+END
+
+IDD_REPLACE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ersetzen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Suchen nach",IDC_FINDLABEL,5,7,25,8
+    COMBOBOX        IDC_FIND,35,5,142,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ersetzen mit",IDC_REPLACELABEL,5,22,25,8
+    COMBOBOX        IDC_REPLACE,35,20,142,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Groß- und Kleinschreibung unterscheiden",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,40,172,10
+    CONTROL         "&Reguläre Ausdrücke",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,50,172,10
+    DEFPUSHBUTTON   "Ersetze &nächste",IDC_REPLACENEXT,52,65,60,12
+    PUSHBUTTON      "Ersetze &vorherige",IDC_REPLACEPREV,117,65,60,12
+    PUSHBUTTON      "Ersetze &alle",IDC_REPLACEALL,52,80,60,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,117,80,60,12
+END
+
+IDD_RENAME_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Umbenennen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,5,172,8
+    EDITTEXT        IDC_NAME,5,15,172,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,35,50,12
+END
+
+IDD_ADDRESSBOOKENTRY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Eintrag"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,35,8
+    EDITTEXT        IDC_NAME,40,5,137,12,ES_AUTOHSCROLL
+    LTEXT           "Sor&tierung",IDC_SORTKEYLABEL,5,22,35,8
+    EDITTEXT        IDC_SORTKEY,40,20,137,12,ES_AUTOHSCROLL
+    LTEXT           "Adre&ssen",IDC_ADDRESSESLABEL,5,40,80,8
+    LISTBOX         IDC_ADDRESSES,5,50,82,52,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,92,50,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,92,62,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,92,74,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,62,40,12
+    DEFPUSHBUTTON   "OK",IDOK,92,90,40,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,137,90,40,12
+END
+
+IDD_ADDRESSBOOKADDRESS_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Adresse"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Adresse",IDC_ADDRESSLABEL,5,7,35,8
+    EDITTEXT        IDC_ADDRESS,40,5,137,12,ES_AUTOHSCROLL
+    CONTROL         "Adresse enthält &Phrasen",IDC_RFC2822,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,40,18,135,10
+    LTEXT           "A&lias",IDC_ALIASLABEL,5,32,30,8
+    EDITTEXT        IDC_ALIAS,40,30,137,12,ES_AUTOHSCROLL
+    LTEXT           "&Kategorie",IDC_CATEGORYLABEL,5,47,30,8
+    COMBOBOX        IDC_CATEGORY,40,45,137,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "K&ommentar",IDC_COMMENTLABEL,5,62,30,8
+    EDITTEXT        IDC_COMMENT,40,60,137,12,ES_AUTOHSCROLL
+    LTEXT           "Zer&tifikat",IDC_CERTIFICATELABEL,5,77,35,8
+    COMBOBOX        IDC_CERTIFICATE,40,75,137,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_ARGUMENT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Parameter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,5,172,8
+    EDITTEXT        IDC_NAME,5,15,172,12,ES_AUTOHSCROLL
+    LTEXT           "&Wert",IDC_VALUELABEL,5,30,172,8
+    EDITTEXT        IDC_VALUE,5,41,172,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,65,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,65,50,12
+END
+
+IDD_EXPORT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Exportieren"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Pfad",IDC_PATHLABEL,5,7,20,8
+    EDITTEXT        IDC_PATH,30,5,92,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,127,5,50,12
+    CONTROL         "Erstelle eine Datei je &Nachricht",IDC_FILEPERMESSAGE,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,30,
+                    20,147,10
+    CONTROL         "Exportiere &Markierungen",IDC_EXPORTFLAGS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,30,30,147,10
+    LTEXT           "&Vorlage",IDC_TEMPLATELABEL,5,47,30,8
+    COMBOBOX        IDC_TEMPLATE,40,45,137,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Zeichencodierung",IDC_ENCODINGLABEL,5,62,35,8
+    COMBOBOX        IDC_ENCODING,40,61,137,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,80,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,80,50,12
+END
+
+IDD_IMPORT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Importieren"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Pfad",IDC_PATHLABEL,5,7,25,8
+    EDITTEXT        IDC_PATH,40,5,82,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,127,5,50,12
+    CONTROL         "Die Datei kann &mehrere Nachrichten enthalten",IDC_MULTIMESSAGES,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,40,
+                    20,137,10
+    LTEXT           "&Zeichencodierung",IDC_ENCODINGLABEL,5,37,30,8
+    COMBOBOX        IDC_ENCODING,40,35,137,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Normal",IDC_NORMAL,"Button",BS_AUTORADIOBUTTON,10,60,
+                    55,10
+    CONTROL         "Kompatibel mit &QMAIL 2.0",IDC_QMAIL20COMPATIBLE,
+                    "Button",BS_AUTORADIOBUTTON,10,70,100,10
+    CONTROL         "&Ignorieren",IDC_IGNORE,"Button",BS_AUTORADIOBUTTON,10,80,
+                    34,10
+    GROUPBOX        "Markierungen",IDC_FLAGS,5,50,117,45
+    DEFPUSHBUTTON   "OK",IDOK,127,68,50,12,WS_GROUP
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,83,50,12
+END
+
+IDD_OPTION_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Optionen"
+FONT 9, "Tahoma"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,102,5,35,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,142,5,35,12
+    COMBOBOX        IDC_SELECTOR,5,5,92,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_OPTIONLIST_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Nachricht mit einzelnem Klick öffnen",IDC_SINGLECLICK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,105,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,5,20,50,12
+    PUSHBUTTON      "&Farben...",IDC_COLORS,60,20,50,12
+END
+
+IDD_OPTIONHEADER_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    PUSHBUTTON      "&Schrift...",IDC_FONT,5,5,50,12
+END
+
+IDD_OPTIONPREVIEW_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "An der Fensterbreite &umbrechen",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "An der &Spalte umbrechen",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Spalte",IDC_COLUMNLABEL,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Wort umbrechen",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,32,47,10
+    GROUPBOX        "Umbrechen",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Breite",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Wa&rte",IDC_SEENWAITLABELBEFORE,80,52,15,8
+    EDITTEXT        IDC_SEENWAIT,95,50,18,12,ES_AUTOHSCROLL,WS_EX_RIGHT
+    LTEXT           "Sek. vor dem Markieren als Gelesen",IDC_SEENWAITLABELAFTER,115,52,45,8
+    CONTROL         "&V Bildlaufleiste",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Bildlaufleiste",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Lineal",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,65,30,10
+    CONTROL         "Zeige &Kopfzeilen",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,75,60,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,137,5,40,12
+    PUSHBUTTON      "F&arben...",IDC_COLORS,137,20,40,12
+END
+
+IDD_OPTIONMESSAGE_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "An der Fensterbreite &umbrechen",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "An der &Spalte umbrechen",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Spalte",IDC_COLUMNLABEL,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Wort umbrechen",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,32,47,10
+    GROUPBOX        "Umbrechen",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Breite",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&V Scroll Bar",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Scroll Bar",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Lineal",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,65,30,10
+    CONTROL         "Zeige &Kopfzeilen",IDC_SHOWHEADER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,75,60,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,137,5,40,12
+    PUSHBUTTON      "F&arben...",IDC_COLORS,137,20,40,12
+END
+
+IDD_RULECOLORSETS_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_RULECOLORSETS,5,5,127,82,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,63,40,12
+END
+
+IDD_OPTIONSEARCH_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Makro",IDC_MACROLABEL,10,10,162,8
+    EDITTEXT        IDC_MACRO,10,20,162,12,ES_AUTOHSCROLL
+    GROUPBOX        "Einfache Suche",IDC_SIMPLE,5,0,172,40
+END
+
+IDD_OPTIONCONFIRM_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Das Löschen von &Nachrichten bestätigen",
+                    IDC_CONFIRMDELETEMESSAGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,172,10
+    CONTROL         "Das Leeren von &Ordnern bestätigen",IDC_CONFIRMEMPTYFOLDER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,15,172,10
+    CONTROL         "Das Leeren des &Papierkorbs bestätigen",IDC_CONFIRMEMPTYTRASH,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,172,10
+END
+
+IDD_OPTIONADDRESSBOOK_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Pocket Outlook",IDC_POCKETOUTLOOK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,10,65,10
+    CONTROL         "&Nur Adressen einfügen",IDC_ADDRESSONLY,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,70,10
+    GROUPBOX        "Externes Adressbuch",IDC_EXTERNAL,5,0,172,40
+    PUSHBUTTON      "&Schrift...",IDC_FONT,5,45,50,12
+END
+
+IDD_SYNCFILTERSETS_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_FILTERSETS,5,5,127,82,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,63,40,12
+END
+
+#if defined(APSTUDIO_INVOKED) || defined(QMTABWINDOW)
+#if defined(APSTUDIO_INVOKED)
+IDD_TABTITLE_L$(QMTABWINDOW) DIALOG DISCARDABLE  0, 0, 182, 107
+#else
+IDD_TABTITLE_L DIALOG DISCARDABLE  0, 0, 182, 107
+#endif
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Titel"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Titel",IDC_TITLELABEL,5,5,172,8
+    EDITTEXT        IDC_TITLE,5,15,172,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,35,50,12
+END
+#endif
+
+IDD_SYNCWAIT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Warte"
+FONT 9, "Tahoma"
+BEGIN
+    CTEXT           "Warte auf das Beenden der Synchronisierung...",IDC_MESSAGE,5,
+                    35,172,8
+END
+
+IDD_AUTOPILOT_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_ENTRIES,5,5,127,67,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,63,40,12
+    CONTROL         "&Nur wenn verbunden",IDC_ONLYWHENCONNECTED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,77,86,10
+END
+
+IDD_OPTIONSECURITY_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Lade Zertifikate aus dem Systemspeicher",IDC_SYSTEMSTORE,
+                    "Button",BS_AUTOCHECKBOX | BS_TOP | BS_MULTILINE | 
+                    WS_TABSTOP,10,10,160,10
+    GROUPBOX        "Zertifikate",IDC_CERTIFICATES,5,0,172,25
+    LTEXT           "Warne vor dem Öffnen eines &Attachments mit dieser Erweiterung",
+                    IDC_WARNEXTENSIONLABEL,5,30,172,17
+    EDITTEXT        IDC_WARNEXTENSION,5,50,172,12,ES_AUTOHSCROLL
+    CONTROL         "&Passwortabfrage beim Starten",IDC_LAUNCHPASSWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,120,10
+    LTEXT           "Pa&sswort",IDC_PASSWORDLABEL,15,78,35,8
+    EDITTEXT        IDC_PASSWORD,50,77,127,12,ES_AUTOHSCROLL
+END
+
+#if defined(APSTUDIO_INVOKED) || defined(QMTABWINDOW)
+#if defined(APSTUDIO_INVOKED)
+IDD_OPTIONTAB_L$(QMTABWINDOW) DIALOG DISCARDABLE  0, 0, 182, 92
+#else
+IDD_OPTIONTAB_L DIALOG DISCARDABLE  0, 0, 182, 92
+#endif
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Mehrzeilig",IDC_MULTILINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,5,41,10
+    CONTROL         "Tab beim Ö&ffnen wiederverwenden",IDC_REUSEOPEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,86,10
+    CONTROL         "Tab beim &Wechseln wiederverwenden",IDC_REUSECHANGE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,25,93,10
+    CONTROL         "Zeige die Anzahl &aller Nachrichten",IDC_SHOWALL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,65,10
+    CONTROL         "Zeige die Anzahl ungele&sener Nachrichten",IDC_SHOWUNSEEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,45,85,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,5,60,50,12
+END
+#endif
+
+IDD_OPTIONSYNC_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Ö&ffnen",IDC_SYNCDIALOGLABEL,10,12,25,8
+    COMBOBOX        IDC_SYNCDIALOG,40,10,132,100,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Sync Dialog",IDC_SYNCDIALOGS,5,0,172,30
+    LTEXT           "&Wann",IDC_NOTIFICATIONLABEL,10,42,25,8
+    COMBOBOX        IDC_NOTIFICATION,40,41,90,100,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Klang",IDC_SOUNDLABEL,10,57,25,8
+    EDITTEXT        IDC_SOUND,40,55,50,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,95,55,35,12
+    LTEXT           "&Filter",IDC_FILTERLABEL,10,73,16,8
+    EDITTEXT        IDC_FILTER,40,70,50,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,95,70,35,12
+    CONTROL         "&Vorschau öffnen",IDC_OPENINPREVIEW,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,135,50,40,10
+    LTEXT           "&Max. Nachrichten in Neuesten",IDC_MAXLABEL,135,60,35,8
+    EDITTEXT        IDC_MAX,135,70,27,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    GROUPBOX        "Benachrichtigung",IDC_NOTIFICATIONS,5,30,172,57
+END
+
+IDD_FILTERS_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_FILTERS,5,5,127,82,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,63,40,12
+END
+
+IDD_GOROUND_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_COURSE,5,5,127,82,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,63,40,12
+END
+
+IDD_SIGNATURES_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_SIGNATURES,5,5,127,82,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,63,40,12
+END
+
+IDD_FIXEDFORMTEXTS_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_TEXTS,5,5,127,82,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,50,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,63,40,12
+END
+
+IDD_FILTER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Filter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,5,172,8
+    EDITTEXT        IDC_NAME,5,15,172,12,ES_AUTOHSCROLL
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,30,172,8
+    EDITTEXT        IDC_CONDITION,5,40,172,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,127,55,50,12
+    DEFPUSHBUTTON   "OK",IDOK,72,75,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,75,50,12
+END
+
+IDD_FIXEDFORMTEXT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Text"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,142,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_TEXT,5,25,172,60,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_SYNCFILTERS_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sync Filter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,142,12,ES_AUTOHSCROLL
+    LISTBOX         IDC_FILTERS,5,20,127,65,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,20,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,33,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,46,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,60,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,73,40,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_RULESCOLORS_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Konto",IDC_ACCOUNTLABEL,5,7,35,8
+    COMBOBOX        IDC_ACCOUNT,45,5,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,22,35,8
+    COMBOBOX        IDC_FOLDER,45,20,87,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_RULESCOLORS,5,35,127,50,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,15,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,28,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,41,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,60,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,73,40,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_SELECTSYNCFILTER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sync Filter auswählen"
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_FILTERSETLIST,5,5,172,80,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,128,90,50,12
+END
+
+IDD_SELECTDIALUPENTRY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Einwahl Eintrag auswählen"
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_ENTRY,5,5,172,80,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_SECURITY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sicherheit"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Standardmässig verschlüsseln",IDC_SMIMEENCRYPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,15,162,10
+    CONTROL         "S&tandardmässig signieren",IDC_SMIMESIGN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,25,162,10
+    CONTROL         "Verwende &multipart/signed beim signieren einer Nachricht",
+                    IDC_SMIMEMULTIPARTSIGNED,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,10,35,162,10
+    CONTROL         "&Verschlüssle Nachrichten an mich selbst",IDC_SMIMEENCRYPTFORSELF,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,45,162,10
+    GROUPBOX        "S/MIME",IDC_SMIME,5,5,172,55
+    DEFPUSHBUTTON   "OK",IDOK,72,65,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,65,50,12
+END
+
+IDD_OPTIONEDIT_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "An der Fensterbreite &umbrechen",IDC_WRAPWINDOWWIDTH,"Button",
+                    BS_AUTORADIOBUTTON,10,10,84,10
+    CONTROL         "An der &Spalte umbrechen",IDC_WRAPCOLUMN,"Button",
+                    BS_AUTORADIOBUTTON,10,20,102,10
+    LTEXT           "&Spalte",IDC_COLUMNLABEL,20,32,24,8
+    EDITTEXT        IDC_CHARINLINE,50,30,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Wort umbrechen",IDC_WORDWRAP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,80,31,47,12
+    GROUPBOX        "Umbrechen",IDC_WRAP,5,0,127,45
+    LTEXT           "&Tab Breite",IDC_TABLABEL,5,52,34,8
+    EDITTEXT        IDC_TABWIDTH,45,50,20,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Verste&cke Kopfzeilen während der Nachrichtenbearbeitung",IDC_HIDEHEADERIFNOFOCUS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,80,51,95,10
+    CONTROL         "&V Bildlaufleiste",IDC_SHOWVERTICALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,65,50,10
+    CONTROL         "&H Bildlaufleiste",IDC_SHOWHORIZONTALSCROLLBAR,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,50,10
+    CONTROL         "&Lineal",IDC_SHOWRULER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,65,30,10
+    CONTROL         "Ta&b",IDC_SHOWTAB,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    60,75,30,10
+    CONTROL         "&Neue Zeile",IDC_SHOWNEWLINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,95,65,45,10
+    PUSHBUTTON      "&Schrift...",IDC_FONT,137,5,40,12
+    PUSHBUTTON      "F&arben...",IDC_COLORS,137,20,40,12
+    PUSHBUTTON      "Kopf&zeilen Schrift...",IDC_HEADERFONT,137,35,40,12
+END
+
+IDD_OPTIONEDIT2_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Spalte",IDC_COLUMNLABEL,10,11,25,8
+    EDITTEXT        IDC_COLUMN,40,9,30,12,ES_AUTOHSCROLL
+    CONTROL         "&Formatiere automatisch",IDC_AUTOREFORM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,23,80,10
+    GROUPBOX        "Formatierung",IDC_REFORM,5,0,127,35
+    CONTROL         "&Verwende standardmässig den externen Editor",
+                    IDC_USEEXTERNALEDITOR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,43,115,12
+    LTEXT           "&Editor",IDC_EDITORLABEL,10,60,20,8
+    EDITTEXT        IDC_EDITOR,35,58,92,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,132,58,40,12
+    CONTROL         "Nach dem Beenden des Editors eine neue Nachricht erstellen",
+                    IDC_AUTOCREATE,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,10,73,160,10
+    GROUPBOX        "Externer Editor",IDC_EXTERNALEDITOR,5,35,172,52
+    PUSHBUTTON      "&Sicherheit..",IDC_SECURITY,137,5,40,12
+END
+
+IDD_CREATEFOLDER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ordner anlegen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,20,8
+    EDITTEXT        IDC_NAME,30,5,147,12,ES_AUTOHSCROLL
+    CONTROL         "&Lokal",IDC_LOCALFOLDER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,10,30,52,10
+    CONTROL         "&Entfernt",IDC_REMOTEFOLDER,"Button",
+                    BS_AUTORADIOBUTTON,10,40,59,10
+    CONTROL         "&Abfrage",IDC_QUERYFOLDER,"Button",
+                    BS_AUTORADIOBUTTON,10,50,54,10
+    GROUPBOX        "Typ",IDC_TYPE,5,20,172,45
+    DEFPUSHBUTTON   "OK",IDOK,72,70,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,70,50,12
+END
+
+IDD_CREATESUBACCOUNT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sub-Konto erstellen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,20,8
+    COMBOBOX        IDC_NAME,30,5,147,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,25,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,25,50,12
+END
+
+IDD_CUSTOMFILTER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Benutzerdefinierter Filter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,7,35,8
+    EDITTEXT        IDC_CONDITION,40,5,137,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,127,20,50,12
+    DEFPUSHBUTTON   "OK",IDOK,72,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,40,50,12
+END
+
+IDD_LABEL_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Kennzeichen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Kennzeichen",IDC_MESSAGE,5,7,20,8
+    COMBOBOX        IDC_LABEL,30,5,147,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,25,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,25,50,12
+END
+
+IDD_AUTOPILOTENTRY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AutoPilot Eintrag"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Kurs",IDC_COURSELABEL,5,7,30,8
+    COMBOBOX        IDC_COURSE,40,5,137,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Intervall",IDC_INTERVALLABEL,5,22,30,8
+    EDITTEXT        IDC_INTERVAL,40,20,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,72,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,40,50,12
+END
+
+IDD_SIGNATURE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Signatur"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,142,12,ES_AUTOHSCROLL
+    LTEXT           "&Konto",IDC_ACCOUNTLABEL,5,22,25,8
+    COMBOBOX        IDC_ACCOUNT,35,20,142,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Standard",IDC_DEFAULT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,40,10
+    EDITTEXT        IDC_SIGNATURE,5,50,172,35,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,70,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,125,90,50,12
+END
+
+IDD_CREATEACCOUNT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Konto erstellen"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,20,8
+    EDITTEXT        IDC_NAME,30,5,60,12,ES_AUTOHSCROLL
+    LTEXT           "&Art",IDC_CLASSLABEL,5,22,18,8
+    COMBOBOX        IDC_CLASS,30,20,60,100,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Eingehendes Protokoll",IDC_INCOMINGPROTOCOLLABEL,95,7,30,8
+    COMBOBOX        IDC_INCOMINGPROTOCOL,130,5,47,100,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ausgehendes Protokoll",IDC_OUTGOINGPROTOCOLLABEL,95,22,30,8
+    COMBOBOX        IDC_OUTGOINGPROTOCOL,130,20,47,100,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Eigene &Datei je Nachricht",IDC_MULTIPLEFILE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,10,44,80,10
+    CONTROL         "&Ein&zelne Datei",IDC_SINGLEFILE,"Button",
+                    BS_AUTORADIOBUTTON,10,55,55,10
+    LTEXT           "&Blockgröße",IDC_BLOCKSIZELABEL,90,56,30,8
+    EDITTEXT        IDC_BLOCKSIZE,125,54,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "MB",IDC_BLOCKSIZEAFTERLABEL,150,56,11,8
+    GROUPBOX        "Nachrichtenspeicher",IDC_MESSAGEBOX,5,35,172,35
+    LTEXT           "Blockgröße Inde&x",IDC_INDEXBLOCKSIZELABEL,5,77,55,8
+    EDITTEXT        IDC_INDEXBLOCKSIZE,65,75,25,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "MB",IDC_INDEXBLOCKSIZEAFTERLABEL,90,77,11,8
+    DEFPUSHBUTTON   "OK",IDOK,72,91,50,12,WS_GROUP
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_ACCOUNTGENERAL_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Allgemein"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Eingehende Nachrichten",IDC_RECEIVEHOSTLABEL,10,12,30,8
+    EDITTEXT        IDC_RECEIVEHOST,45,10,127,12,ES_AUTOHSCROLL
+    LTEXT           "&Ausgehende Nachrichten",IDC_SENDHOSTLABEL,10,26,30,8
+    EDITTEXT        IDC_SENDHOST,45,24,127,12,ES_AUTOHSCROLL
+    GROUPBOX        "Server-Informationen information",IDC_HOST,5,0,172,39
+    LTEXT           "&Name",IDC_NAMELABEL,10,51,30,8
+    EDITTEXT        IDC_NAME,45,49,127,12,ES_AUTOHSCROLL
+    LTEXT           "Mail-&Adresse",IDC_ADDRESSLABEL,10,65,30,8
+    EDITTEXT        IDC_ADDRESS,45,63,127,12,ES_AUTOHSCROLL
+    LTEXT           "&Antwort an",IDC_REPLYTOLABEL,10,79,30,8
+    EDITTEXT        IDC_REPLYTO,45,77,127,12,ES_AUTOHSCROLL
+    GROUPBOX        "Benutzer-Informationen",IDC_USER,5,39,172,53
+END
+
+IDD_ACCOUNTUSER_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Benutzer"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Benutzername",IDC_RECEIVEUSERNAMELABEL,10,12,35,8
+    EDITTEXT        IDC_RECEIVEUSERNAME,50,10,122,12,ES_AUTOHSCROLL
+    LTEXT           "&Passwort",IDC_RECEIVEPASSWORDLABEL,10,26,30,8
+    EDITTEXT        IDC_RECEIVEPASSWORD,50,24,122,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    GROUPBOX        "Eingehende Nachrichten",IDC_INCOMING,5,0,172,40
+    CONTROL         "&Authentifizieren",IDC_SENDAUTHENTICATE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,49,53,10
+    LTEXT           "Benutzer&name",IDC_SENDUSERNAMELABEL,10,62,35,8
+    EDITTEXT        IDC_SENDUSERNAME,50,60,122,12,ES_AUTOHSCROLL
+    LTEXT           "Pass&wort",IDC_SENDPASSWORDLABEL,10,76,35,8
+    EDITTEXT        IDC_SENDPASSWORD,50,74,122,12,ES_PASSWORD | 
+                    ES_AUTOHSCROLL
+    GROUPBOX        "Ausgehende Nachrichten",IDC_OUTGOING,5,40,172,50
+END
+
+IDD_ACCOUNTDETAIL_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Details"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Port",IDC_RECEIVEPORTLABEL,10,12,20,8
+    EDITTEXT        IDC_RECEIVEPORT,35,10,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Protokollieren",IDC_RECEIVELOG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,85,12,26,10
+    CONTROL         "&Keine",IDC_RECEIVENOSECURE,"Button",BS_AUTORADIOBUTTON,
+                    15,29,35,10
+    CONTROL         "START&TLS",IDC_RECEIVESTARTTLS,"Button",
+                    BS_AUTORADIOBUTTON,90,29,50,10
+    CONTROL         "&SSL",IDC_RECEIVESSL,"Button",BS_AUTORADIOBUTTON,55,29,
+                    35,10
+    GROUPBOX        "Sicherheit",IDC_RECEIVESECURE,10,21,162,21
+    GROUPBOX        "Eingehende Nachrichten",IDC_INCOMING,5,0,172,45
+    LTEXT           "Po&rt",IDC_SENDPORTLABEL,10,57,20,8
+    EDITTEXT        IDC_SENDPORT,35,55,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "&Protokollieren",IDC_SENDLOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    85,57,26,10
+    CONTROL         "Kein&e",IDC_SENDNOSECURE,"Button",BS_AUTORADIOBUTTON,15,
+                    74,35,10
+    CONTROL         "SS&L",IDC_SENDSSL,"Button",BS_AUTORADIOBUTTON,55,74,35,
+                    10
+    CONTROL         "ST&ARTTLS",IDC_SENDSTARTTLS,"Button",BS_AUTORADIOBUTTON,
+                    90,74,50,10
+    GROUPBOX        "Sicherheit",IDC_SENDSECURE,10,66,162,21
+    GROUPBOX        "Ausgehende Nachrichten",IDC_OUTGOING,5,45,172,45
+END
+
+IDD_ACCOUNTADVANCED_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Erweitert"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Sync Filter",IDC_SYNCFILTERLABEL,5,7,40,8
+    COMBOBOX        IDC_SYNCFILTER,45,5,92,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,142,5,35,12
+    CONTROL         "&Nachrichten-Id hinzufügen",IDC_ADDMESSAGEID,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,20,170,10
+    CONTROL         "&Verwende Content-Transfer-Encoding: 8bit",IDC_USE8BIT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,30,170,10
+    CONTROL         "&Regeln automatisch anwenden",IDC_AUTOAPPLYRULES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,40,170,10
+    CONTROL         "Regeln auf e&xistierende Nachrichten anwenden",
+                    IDC_AUTOAPPLYRULESTOEXISTING,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | WS_TABSTOP,15,50,165,10
+    CONTROL         "B&ehandle Nachrichten von meiner Adresse als gesendet",
+                    IDC_TREATASSENT,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,5,60,175,10
+    LTEXT           "&Identität",IDC_IDENTITYLABEL,5,77,25,8
+    EDITTEXT        IDC_IDENTITY,35,75,75,12,ES_AUTOHSCROLL
+    LTEXT           "&Zeitüberschreitung",IDC_TIMEOUTLABEL,117,77,27,8
+    EDITTEXT        IDC_TIMEOUT,147,75,30,12,ES_RIGHT | ES_AUTOHSCROLL | 
+                    ES_NUMBER
+END
+
+IDD_ACCOUNTDIALUP_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Einwahl"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Keine Verbindung wählen",IDC_NEVER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,5,5,172,10
+    CONTROL         "Einwahl nur wenn keine &Netzwerkverbindung besteht",
+                    IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON | 
+                    BS_TOP | BS_MULTILINE,5,15,172,16
+    CONTROL         "&Immer eine Verbindung wählen",IDC_CONNECT,"Button",
+                    BS_AUTORADIOBUTTON,5,32,172,10
+    LTEXT           "&Einwahl Name",IDC_ENTRYLABEL,15,47,40,8
+    COMBOBOX        IDC_ENTRY,55,45,52,100,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Einwahl Einstellungen...",IDC_DIALPROPERTY,112,45,65,12
+    CONTROL         "&Vor dem Verbinden Dialog anzeigen",IDC_SHOWDIALOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,60,160,10
+    LTEXT           "&Warte",IDC_WAITLABELBEFORE,15,71,20,8
+    EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,70,20,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Sek. vor dem Trennen",IDC_WAITLABELAFTER,55,71,72,8
+END
+
+IDD_MACROSEARCH_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Einfach"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Suche nach",IDC_CONDITIONLABEL,5,7,40,8
+    COMBOBOX        IDC_CONDITION,45,5,132,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,22,30,8
+    COMBOBOX        IDC_FOLDER,45,20,132,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "&Unterordner einschließen",IDC_RECURSIVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,45,35,70,10
+    CONTROL         "&Groß- und Kleinschreibung unterscheiden",IDC_MATCHCASE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,50,75,10
+    CONTROL         "&Reguläre Ausdrücke",IDC_REGEX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,90,50,75,10
+    CONTROL         "&Durchsuche alle Kopfzeilen",IDC_SEARCHHEADER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,60,75,10
+    CONTROL         "Durchsuche &Nachrichtentext",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,90,60,75,10
+    CONTROL         "&Makro",IDC_MACRO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    90,70,75,10
+    CONTROL         "Erstelle neuen Such&ordner",IDC_NEWFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,80,127,10
+END
+
+IDD_PARAMETER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Parameter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_NAME,5,5,172,8
+    EDITTEXT        IDC_VALUE,5,20,172,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,40,50,12
+END
+
+IDD_CONDITIONARGUMENT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Parameter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Name",IDC_NAMELABEL,5,5,20,8
+    LTEXT           "",IDC_NAME,35,5,142,8
+    LTEXT           "&Wert",IDC_VALUELABEL,5,17,20,8
+    COMBOBOX        IDC_FIELD,35,15,142,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_TEXT,35,15,142,12,ES_AUTOHSCROLL | NOT WS_VISIBLE
+    EDITTEXT        IDC_NUMBER,35,15,142,12,ES_AUTOHSCROLL | ES_NUMBER | NOT 
+                    WS_VISIBLE
+    DEFPUSHBUTTON   "OK",IDOK,72,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,35,50,12
+END
+
+IDD_COMBOSELECTBOX_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_MESSAGE,5,5,172,8
+    COMBOBOX        IDC_VALUE,5,20,172,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_VALUELIST,5,20,172,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,40,50,12
+END
+
+IDD_LISTSELECTBOX_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_MESSAGE,5,5,172,8
+    LISTBOX         IDC_VALUE,5,20,172,60,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,85,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,85,50,12
+END
+
+IDD_MULTIINPUTBOX_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_MESSAGE,5,5,172,8
+    EDITTEXT        IDC_VALUE,5,20,172,60,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,85,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,85,50,12
+END
+
+IDD_SINGLEINPUTBOX_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "QMAIL"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_MESSAGE,5,5,172,8
+    EDITTEXT        IDC_VALUE,5,20,172,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,40,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,40,50,12
+END
+
+IDD_COLOR_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Farbe"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Be&dingung",IDC_CONDITIONLABEL,5,7,30,8
+    EDITTEXT        IDC_CONDITION,40,5,102,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,147,5,30,12
+    CONTROL         "&Vordergrund",IDC_FOREGROUND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,21,50,10
+    EDITTEXT        IDC_COLORFOREGROUND,60,20,67,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Wählen...",IDC_CHOOSEFOREGROUND,132,20,45,12
+    CONTROL         "&Hintergrund",IDC_BACKGROUND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,36,50,10
+    EDITTEXT        IDC_COLORBACKGROUND,60,35,67,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Wäh&len...",IDC_CHOOSEBACKGROUND,132,35,45,12
+    CONTROL         "Schrif&t",IDC_FONT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,
+                    50,30,10
+    CONTROL         "&Fett",IDC_BOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    40,50,25,10
+    LTEXT           "Beschre&ibung",IDC_DESCRIPTIONLABEL,5,67,40,8
+    EDITTEXT        IDC_DESCRIPTION,45,65,132,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,85,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,85,50,12
+END
+
+IDD_COPYRULETEMPLATE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Vorlage"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,35,5,142,12,ES_AUTOHSCROLL
+    LTEXT           "Para&meter",IDC_ARGUMENTLABEL,5,20,40,8
+    CONTROL         "List1",IDC_ARGUMENT,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,5,30,127,55
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,30,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,43,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,56,40,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_DIALUP_L DIALOG DISCARDABLE  0, 0, 183, 109
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Einwahl Verbindung"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "",IDC_ENTRY,5,5,172,8
+    LTEXT           "&Benutzername",IDC_USERNAMELABEL,5,22,35,8
+    EDITTEXT        IDC_USERNAME,40,20,137,12,ES_AUTOHSCROLL
+    LTEXT           "&Passwort",IDC_PASSWORDLABEL,5,37,35,8
+    EDITTEXT        IDC_PASSWORD,40,35,137,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "&Domain",IDC_DOMAINLABEL,5,52,30,8
+    EDITTEXT        IDC_DOMAIN,40,50,137,12,ES_AUTOHSCROLL
+    LTEXT           "Einwahl von",IDC_DIALFROMLABEL,5,72,35,8
+    LTEXT           "",IDC_DIALFROM,40,72,77,8
+    PUSHBUTTON      "Einwahl &Einstellungen...",IDC_DIALPROPERTY,122,70,55,12
+    DEFPUSHBUTTON   "&Verbinden",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_PROGRESS_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Fortschritt"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "",IDC_MESSAGE,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,5,5,
+                    172,8
+    CONTROL         "Progress1",IDC_PROGRESS,"msctls_progress32",WS_BORDER,5,
+                    20,172,12
+    DEFPUSHBUTTON   "Abbrechen",IDCANCEL,65,40,50,12
+END
+
+IDD_PASSWORD_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Passwort"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Passwort",IDC_PASSWORDLABEL,5,5,35,8
+    LTEXT           "",IDC_HINT,5,15,172,8
+    EDITTEXT        IDC_PASSWORD,5,25,172,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "&Nicht speichern",IDC_DONTSAVE,"Button",BS_AUTORADIOBUTTON,
+                    10,50,70,10
+    CONTROL         "&Erinnern bis zum Ende der Sitzung",IDC_SESSION,"Button",
+                    BS_AUTORADIOBUTTON,10,60,120,10
+    CONTROL         "&Dauerhaft speichern",IDC_SAVE,"Button",BS_AUTORADIOBUTTON,
+                    10,70,100,10
+    GROUPBOX        "",IDC_SAVELABEL,5,40,172,45
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_FOLDERCONDITION_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Bedingung"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Typ",IDC_DRIVERLABEL,5,7,20,8
+    COMBOBOX        IDC_DRIVER,40,5,137,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,22,35,8
+    EDITTEXT        IDC_CONDITION,40,20,137,12,ES_AUTOHSCROLL
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,37,25,8
+    COMBOBOX        IDC_FOLDER,40,35,137,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "&Unterordner einschließen",IDC_RECURSIVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,40,50,70,10
+END
+
+IDD_FOLDERPARAMETER_L DIALOG DISCARDABLE  0, 0, 183, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Parameter"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_PARAMETER,"SysListView32",LVS_REPORT | 
+                    LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | 
+                    WS_TABSTOP,5,5,172,65
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,127,75,50,12
+END
+
+IDD_FOLDERPROPERTY_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Allgemein"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Name",IDC_NAMELABEL,5,5,25,8
+    LTEXT           "",IDC_NAME,35,5,142,8
+    LTEXT           "ID",IDC_IDLABEL,5,15,25,8
+    LTEXT           "",IDC_ID,35,15,142,8
+    LTEXT           "Typ",IDC_TYPELABEL,5,25,25,8
+    LTEXT           "",IDC_TYPE,35,25,142,8
+    CONTROL         "&Aktiv aktualisieren",IDC_ACTIVEUPDATE,"Button",
+                    BS_AUTO3STATE | BS_TOP | BS_MULTILINE | WS_TABSTOP,10,50,
+                    60,10
+    CONTROL         "&Zwischenspeichern beim lesen",IDC_CACHEWHENREAD,"Button",BS_AUTO3STATE | 
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,10,60,60,10
+    CONTROL         "Ignoriere &ungelesene",IDC_IGNOREUNSEEN,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,10,70,60,10
+    GROUPBOX        "Markierung",IDC_FLAG,5,40,70,45
+    CONTROL         "&Posteingang",IDC_INBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    85,50,40,10
+    CONTROL         "&Senden",IDC_OUTBOX,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    85,60,40,10
+    CONTROL         "&Gesendet",IDC_SENTBOX,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,85,70,40,10
+    CONTROL         "&Entwürfe",IDC_DRAFTBOX,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,130,50,40,10
+    CONTROL         "&Papierkorb",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,130,60,43,10
+    CONTROL         "&Junk",IDC_JUNKBOX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,130,70,42,10
+    GROUPBOX        "Ordnertyp",IDC_BOXTYPE,80,40,97,45
+END
+
+IDD_GOROUNDENTRY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Auftragsschritt"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Konto",IDC_ACCOUNTLABEL,5,7,30,8
+    COMBOBOX        IDC_ACCOUNT,45,5,80,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Sub-Konto",IDC_SUBACCOUNTLABEL,5,22,40,8
+    COMBOBOX        IDC_SUBACCOUNT,45,20,80,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,37,35,8
+    COMBOBOX        IDC_FOLDER,45,35,80,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Ordner &wählen",IDC_SELECTFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,45,48,50,10
+    LTEXT           "Sync F&ilter",IDC_SYNCFILTERLABEL,5,62,35,8
+    COMBOBOX        IDC_SYNCFILTER,45,60,80,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,100,60,32,12,NOT WS_VISIBLE
+    CONTROL         "&Empfangen",IDC_RECEIVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,135,15,35,10
+    CONTROL         "Sen&den",IDC_SEND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    135,25,35,10
+    CONTROL         "&Regeln anwenden",IDC_APPLYRULES,"Button",BS_AUTOCHECKBOX | 
+                    BS_TOP | BS_MULTILINE | WS_TABSTOP,135,35,35,20
+    GROUPBOX        "Typ",IDC_TYPE,130,5,47,50
+    DEFPUSHBUTTON   "OK",IDOK,72,80,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,80,50,12
+END
+
+IDD_GOROUNDDIALUP_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Einwahl"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Keine Verbindung wählen",IDC_NEVER,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,5,5,127,10
+    CONTROL         "Einwahl nur wenn keine &Netzwerkverbindung besteht",
+                    IDC_WHENEVERNOTCONNECTED,"Button",BS_AUTORADIOBUTTON | 
+                    BS_TOP,5,15,175,10
+    CONTROL         "&Immer eine Verbindung wählen",IDC_CONNECT,"Button",
+                    BS_AUTORADIOBUTTON,5,25,127,10
+    LTEXT           "&Einwahl Name",IDC_ENTRYLABEL,15,42,40,8
+    COMBOBOX        IDC_ENTRY,60,40,117,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Einwahl von",IDC_DIALFROMLABEL,15,57,30,8
+    COMBOBOX        IDC_DIALFROM,60,55,47,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Vor dem Verbinden Dialog anzeigen",IDC_SHOWDIALOG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,112,56,65,10
+    LTEXT           "&Warte",IDC_WAITLABELBEFORE,15,73,20,8
+    EDITTEXT        IDC_WAITBEFOREDISCONNECT,35,70,20,12,ES_AUTOHSCROLL | 
+                    ES_NUMBER
+    LTEXT           "Sek. vor dem Trennen",IDC_WAITLABELAFTER,55,73,72,8
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_GOROUNDCOURSE_L DIALOG DISCARDABLE  0, 0, 183, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Auftrag"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Name",IDC_NAMELABEL,5,7,25,8
+    EDITTEXT        IDC_NAME,30,5,102,12,ES_AUTOHSCROLL
+    LISTBOX         IDC_ENTRY,5,20,127,40,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,137,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,137,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,137,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,137,45,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,137,58,40,12
+    CONTROL         "&Sequentiell",IDC_SEQUENTIAL,"Button",BS_AUTORADIOBUTTON,
+                    10,72,45,10
+    CONTROL         "&Parallel",IDC_PARALLEL,"Button",BS_AUTORADIOBUTTON,60,
+                    72,45,10
+    GROUPBOX        "Typ",IDC_TYPE,5,62,127,25
+    CONTROL         "Bes&tätigen",IDC_CONFIRM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,90,40,10
+    PUSHBUTTON      "Ein&wahl...",IDC_DIALUP,137,75,40,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_TEXTCOLOR_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Farbe"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&System Farbe",IDC_SYSTEMCOLOR,"Button",
+                    BS_AUTORADIOBUTTON,5,5,54,10
+    CONTROL         "&Benutzer Farbe",IDC_CUSTOMCOLOR,"Button",
+                    BS_AUTORADIOBUTTON,5,15,54,10
+    EDITTEXT        IDC_COLOR,15,25,52,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "&Vordergrund...",IDC_CHOOSEFOREGROUND,72,25,50,12
+    PUSHBUTTON      "&Hintergrund...",IDC_CHOOSEBACKGROUND,127,25,50,12
+    LTEXT           "Zitat &1",IDC_LABELQUOTE1,5,42,24,8
+    EDITTEXT        IDC_QUOTE1,35,40,47,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Wählen...",IDC_CHOOSEQUOTE1,87,40,45,12
+    LTEXT           "Zitat &2",IDC_LABELQUOTE2,5,57,24,8
+    EDITTEXT        IDC_QUOTE2,35,55,47,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Wähl&en...",IDC_CHOOSEQUOTE2,87,55,45,12
+    LTEXT           "&Link",IDC_LABELLINK,5,72,18,8
+    EDITTEXT        IDC_LINK,35,70,47,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_TABSTOP
+    PUSHBUTTON      "Wähle&n...",IDC_CHOOSELINK,87,70,45,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_CONDITIONS_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bedingung"
+FONT 9, "Tahoma"
+BEGIN
+    LISTBOX         IDC_CONDITIONS,5,5,92,45,LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,102,5,40,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,102,18,40,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,102,31,40,12
+    PUSHBUTTON      "&Auf",IDC_UP,102,45,40,12
+    PUSHBUTTON      "A&b",IDC_DOWN,102,57,40,12
+    CONTROL         "U&nd",IDC_AND,"Button",BS_AUTORADIOBUTTON,5,50,30,10
+    CONTROL         "&Oder",IDC_OR,"Button",BS_AUTORADIOBUTTON,40,50,23,10
+    CONTROL         "&Benutzerdefiniert",IDC_CUSTOM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,63,40,10
+    EDITTEXT        IDC_MACRO,5,75,172,27,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,147,5,30,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,147,20,30,12
+END
+
+IDD_MESSAGEPROPERTY_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "General"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Von",IDC_FROMLABEL,5,5,25,8
+    CONTROL         "",IDC_FROM,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,5,142,8
+    LTEXT           "An",IDC_TOLABEL,5,15,25,8
+    CONTROL         "",IDC_TO,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,15,142,8
+    LTEXT           "Betreff",IDC_SUBJECTLABEL,5,25,25,8
+    CONTROL         "",IDC_SUBJECT,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,25,142,8
+    LTEXT           "Datum",IDC_DATELABEL,5,35,25,8
+    CONTROL         "",IDC_DATE,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,35,65,8
+    LTEXT           "Ordner",IDC_FOLDERLABEL,105,35,20,8
+    CONTROL         "",IDC_FOLDER,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,130,35,47,8
+    LTEXT           "ID",IDC_IDLABEL,5,45,25,8
+    CONTROL         "",IDC_ID,"Static",SS_LEFTNOWORDWRAP | SS_NOPREFIX | 
+                    WS_GROUP,35,45,65,8
+    LTEXT           "Größe",IDC_SIZELABEL,105,45,15,8
+    CONTROL         "",IDC_MESSAGESIZE,"Static",SS_LEFTNOWORDWRAP | 
+                    SS_NOPREFIX | WS_GROUP,130,45,47,8
+    CONTROL         "&Gelesen",IDC_SEEN,"Button",BS_AUTO3STATE | WS_TABSTOP,10,
+                    62,45,10
+    CONTROL         "&Beantwortet",IDC_REPLIED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,11,72,44,10
+    CONTROL         "&Weitergeleitet",IDC_FORWARDED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,11,82,44,10
+    CONTROL         "Ge&sendet",IDC_SENT,"Button",BS_AUTO3STATE | WS_TABSTOP,10,
+                    92,44,10
+    CONTROL         "&Entwurf",IDC_DRAFT,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    60,62,35,10
+    CONTROL         "&Markiert",IDC_MARKED,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    60,72,39,10
+    CONTROL         "Ge&löscht",IDC_DELETED,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,60,82,39,10
+    CONTROL         "&Herunterladen",IDC_DOWNLOAD,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,60,92,45,10
+    CONTROL         "Te&xt herunterladen",IDC_DOWNLOADTEXT,"Button",BS_AUTO3STATE | 
+                    WS_TABSTOP,105,62,60,10
+    CONTROL         "An(&E)",IDC_TOME,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    105,72,30,10
+    CONTROL         "Cc(&I)",IDC_CCME,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,72,30,10
+    CONTROL         "Benutzer &1",IDC_USER1,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    105,82,30,10
+    CONTROL         "Benutzer &2",IDC_USER2,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,82,30,10
+    CONTROL         "Benutzer &3",IDC_USER3,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    105,92,30,10
+    CONTROL         "Benutzer &4",IDC_USER4,"Button",BS_AUTO3STATE | WS_TABSTOP,
+                    140,92,30,10
+    GROUPBOX        "Status",IDC_STATUS,5,54,172,50
+END
+
+IDD_OPTIONMISC_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Ansichtsplazierung(*)",IDC_VIEWPLACEMENTLABEL,5,7,65,8
+    COMBOBOX        IDC_VIEWPLACEMENT,70,5,62,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Zeige nächste &Ungelesene beim Scrollen zum Ende(*)",
+                    IDC_SHOWNEXTUNSEENWHENSCROLLEND,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,20,170,10
+    CONTROL         "&Springe zur nächsten Ungelesenen in anderen Konten(*)",
+                    IDC_UNSEENINOTHERACCOUNTS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,30,170,10
+    CONTROL         "&Leere Papierkorb beim Beenden",IDC_EMPTYTRASHONEXIT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,41,170,10
+    CONTROL         "&Speichern wenn das Fenster deaktiviert wird",IDC_SAVEONDEACTIVATE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,50,170,10
+    LTEXT           "&Codierung",IDC_ENCODINGLABEL,5,65,40,8
+    EDITTEXT        IDC_ENCODING,45,63,55,12,ES_AUTOHSCROLL
+    LTEXT           "&Standard(*)",IDC_DEFAULTENCODINGLABEL,102,65,35,8
+    COMBOBOX        IDC_DEFAULTENCODING,137,63,40,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Protokollstufe",IDC_LOGLABEL,5,80,40,8
+    COMBOBOX        IDC_LOG,45,78,40,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Tem&porärer Ordner",IDC_TEMPORARYFOLDERLABEL,5,125,40,8,NOT 
+                    WS_VISIBLE
+    EDITTEXT        IDC_TEMPORARYFOLDER,5,135,82,12,ES_AUTOHSCROLL | NOT 
+                    WS_VISIBLE
+    PUSHBUTTON      "&Durchsuchen...",IDC_BROWSE,92,135,40,12,NOT WS_VISIBLE
+END
+
+IDD_OPTIONMISC2_L DIALOG DISCARDABLE  0, 0, 182, 92
+STYLE DS_CONTROL | WS_CHILD
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "&Inkrementelle Suche",IDC_INCREMENTALSEARCH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,5,127,10
+    CONTROL         "&Speichere Nachrichtenmodus pro Ordner(*)",
+                    IDC_SAVEMESSAGEVIEWMODEPERFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,15,127,10
+    CONTROL         "Ü&ber eine neue Version benachrichtigen",IDC_CHECKUPDATE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,25,127,10
+    CONTROL         "&Bcc an mich selbst",IDC_BCC,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,127,10
+    CONTROL         "Kein Bcc wenn die ursprüngliche Nachricht von einer &ML kommt",
+                    IDC_NOBCCFORML,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
+                    46,165,9
+    CONTROL         "Verwende message/rfc822 beim &weiterleiten",IDC_FORWARDRFC822,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,55,127,10
+    CONTROL         "Öffne das &Adressbuch beim Erstellen",IDC_OPENADDRESSBOOK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,65,127,10
+    LTEXT           "&Zitieren",IDC_QUOTELABEL,5,79,20,8
+    EDITTEXT        IDC_QUOTE,30,77,40,12,ES_AUTOHSCROLL
+END
+
+IDD_VIEWS_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ansicht anpassen"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "List1",IDC_COLUMNS,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | 
+                    WS_BORDER | WS_TABSTOP,5,5,137,50
+    PUSHBUTTON      "&Hinzufügen...",IDC_ADD,147,5,30,12
+    PUSHBUTTON      "&Entfernen",IDC_REMOVE,147,18,30,12
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,147,31,30,12
+    PUSHBUTTON      "&Auf",IDC_UP,147,45,30,12
+    PUSHBUTTON      "A&b",IDC_DOWN,147,57,30,12
+    PUSHBUTTON      "Als &Standard speichern",IDC_ASDEFAULT,5,60,55,12
+    PUSHBUTTON      "Auf Standard &zurücksetzen",IDC_APPLYDEFAULT,5,75,55,12
+    PUSHBUTTON      "&Vom Übergeordneten übernehmen",IDC_INHERIT,65,60,65,12
+    PUSHBUTTON      "Auf A&lle anwenden",IDC_APPLYTOALL,65,75,45,12
+    PUSHBUTTON      "Auf &Unterordner anwenden",IDC_APPLYTOCHILDREN,115,75,62,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_VIEWSCOLUMN_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Spalte"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Titel",IDC_TITLELABEL,5,7,20,8
+    EDITTEXT        IDC_TITLE,30,5,147,12,ES_AUTOHSCROLL
+    LTEXT           "T&yp",IDC_TYPELABEL,5,22,25,8
+    COMBOBOX        IDC_TYPE,30,20,72,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Breite",IDC_WIDTHLABEL,107,22,20,8
+    EDITTEXT        IDC_WIDTH,132,20,45,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "&Makro",IDC_MACROLABEL,5,37,25,8
+    EDITTEXT        IDC_MACRO,30,35,147,12,ES_AUTOHSCROLL
+    CONTROL         "&Einrücken",IDC_INDENT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,56,40,10
+    CONTROL         "&Linie zeichnen",IDC_LINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,66,45,10
+    CONTROL         "Als &Symbol",IDC_ASICON,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,60,56,35,10
+    CONTROL         "&Zwischenspeichern",IDC_CACHE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    60,66,35,10
+    GROUPBOX        "Optionen",IDC_FLAG,5,46,95,34
+    CONTROL         "&Alphabetisch",IDC_SORTTEXT,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,110,56,29,10
+    CONTROL         "&Numerisch",IDC_SORTNUMBER,"Button",BS_AUTORADIOBUTTON,110,
+                    66,38,10
+    CONTROL         "&Datum",IDC_SORTDATE,"Button",BS_AUTORADIOBUTTON,140,56,
+                    30,10
+    GROUPBOX        "Sortierung",IDC_SORT,105,46,72,34
+    CONTROL         "&Links",IDC_LEFTALIGN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,10,89,27,10
+    CONTROL         "&Rechts",IDC_RIGHTALIGN,"Button",BS_AUTORADIOBUTTON,40,
+                    89,31,10
+    GROUPBOX        "Ausrichtung",IDC_ALIGN,5,80,70,23
+    DEFPUSHBUTTON   "OK",IDOK,82,90,45,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,132,90,45,12
+END
+
+IDD_RULE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Regel"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "Be&dingung",IDC_CONDITIONLABEL,5,7,30,8
+    EDITTEXT        IDC_CONDITION,40,5,107,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,152,5,25,12
+    LTEXT           "&Aktion",IDC_ACTIONLABEL,5,22,20,8
+    COMBOBOX        IDC_ACTION,40,20,90,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Konto",IDC_ACCOUNTLABEL,5,37,30,8,NOT WS_GROUP
+    COMBOBOX        IDC_ACCOUNT,40,35,90,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,52,30,8,NOT WS_GROUP
+    COMBOBOX        IDC_FOLDER,40,50,90,100,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Vorlage...",IDC_TEMPLATE,135,50,42,12
+    LTEXT           "Makr&o",IDC_MACROLABEL,5,37,19,8
+    EDITTEXT        IDC_MACRO,40,35,90,12,ES_AUTOHSCROLL
+    CONTROL         "D&irekt",IDC_DIRECT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,35,45,10
+    LTEXT           "&Kennzeichnung",IDC_LABELLABEL,5,37,25,8
+    EDITTEXT        IDC_LABEL,40,35,90,12,ES_AUTOHSCROLL
+    LTEXT           "T&yp",IDC_LABELTYPELABEL,5,52,20,8
+    COMBOBOX        IDC_LABELTYPE,40,50,50,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Weitere &Regeln anwenden",IDC_CONTINUE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,66,127,10
+    LTEXT           "Verwenden",IDC_USE,5,79,15,8
+    CONTROL         "&Manuell",IDC_MANUAL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,30,78,35,10
+    CONTROL         "A&utomatisch",IDC_AUTO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    65,78,30,10
+    CONTROL         "Akti&v",IDC_ACTIVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,100,78,30,10
+    LTEXT           "&Beschreibung",IDC_DESCRIPTIONLABEL,5,92,35,8
+    EDITTEXT        IDC_DESCRIPTION,45,90,90,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,140,75,37,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,140,90,37,12
+END
+
+IDD_SYNCFILTER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "SyncFilter"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Bedingung",IDC_CONDITIONLABEL,5,7,30,8
+    EDITTEXT        IDC_CONDITION,40,5,105,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Bearbeiten...",IDC_EDIT,150,5,27,12
+    LTEXT           "&Ordner",IDC_FOLDERLABEL,5,22,25,8
+    EDITTEXT        IDC_FOLDER,40,20,95,12,ES_AUTOHSCROLL
+    LTEXT           "&Aktion",IDC_ACTIONLABEL,5,37,20,8
+    COMBOBOX        IDC_ACTION,40,35,95,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Max. Zeilen",IDC_MAXLINELABEL,40,52,35,8
+    EDITTEXT        IDC_MAXLINE,75,50,35,12,ES_AUTOHSCROLL
+    LTEXT           "&Typ",IDC_TYPELABEL,40,52,20,8
+    COMBOBOX        IDC_TYPE,75,51,60,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Beschreibung",IDC_DESCRIPTIONLABEL,5,67,35,8
+    EDITTEXT        IDC_DESCRIPTION,40,65,137,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,85,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,85,50,12
+END
+
+IDD_LAUNCHPASSWORD DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Passwort"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Passwort",IDC_PASSWORDLABEL,5,5,45,8
+    EDITTEXT        IDC_PASSWORD,5,15,127,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,35,50,12
+END
+
+IDD_LAUNCHPASSWORD_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Passwort"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Passwort",IDC_PASSWORDLABEL,5,5,45,8
+    EDITTEXT        IDC_PASSWORD,5,15,172,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,35,50,12
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_SYNC, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SELECTSYNCFILTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_CREATEFOLDER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_DETACH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SELECTADDRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ATTACHMENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_MESSAGEPROPERTY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_EXPORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_IMPORT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ACCOUNT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ACCOUNTGENERAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ACCOUNTUSER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ACCOUNTDIALUP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ACCOUNTADVANCED, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_CREATEACCOUNT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_MAILFOLDER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_FIND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_REPLACE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SELECTDIALUPENTRY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_CUSTOMFILTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_MOVEMESSAGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_RENAME, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_MACROSEARCH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 145
+    END
+
+    IDD_FOLDERCONDITION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_VIEWSCOLUMN, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 83
+    END
+
+    IDD_FOLDERPARAMETER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_PARAMETER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_GOROUND, DIALOG
+    BEGIN
+        RIGHTMARGIN, 136
+        BOTTOMMARGIN, 86
+    END
+
+    IDD_GOROUNDDIALUP, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 85
+    END
+
+    IDD_RESOURCE, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 110
+    END
+
+    IDD_SIGNATURES, DIALOG
+    BEGIN
+        RIGHTMARGIN, 135
+    END
+
+    IDD_FIXEDFORMTEXTS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 136
+    END
+
+    IDD_FILTERS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+    END
+
+    IDD_SYNCFILTERSETS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 135
+    END
+
+    IDD_ADDRESSBOOKADDRESS, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 135
+    END
+
+    IDD_ADDADDRESS, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 130
+    END
+
+    IDD_OPTION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SECURITY, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 134
+    END
+
+    IDD_CONDITION, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 83
+    END
+
+    IDD_CONDITIONARGUMENT, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 54
+    END
+
+    IDD_CERTIFICATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SYNCWAIT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_ABOUT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_SELECTADDRESS_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_ACCOUNT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_RESOURCE_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+        BOTTOMMARGIN, 64
+    END
+
+    IDD_ATTACHMENT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_DETACH_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_MAILFOLDER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_ADDADDRESS_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+        BOTTOMMARGIN, 84
+    END
+
+    IDD_MOVEMESSAGE_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_CERTIFICATE_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_FIND_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_REPLACE_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_RENAME_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_ADDRESSBOOKADDRESS_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+        BOTTOMMARGIN, 89
+    END
+
+    IDD_EXPORT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_IMPORT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_OPTION_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_OPTIONHEADER_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+    END
+
+    IDD_OPTIONMESSAGE_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+    END
+
+    IDD_SYNCFILTERSETS_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 180
+    END
+
+    IDD_SYNCWAIT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_FILTERS_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 180
+    END
+
+    IDD_GOROUND_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 181
+        BOTTOMMARGIN, 59
+    END
+
+    IDD_SIGNATURES_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 180
+    END
+
+    IDD_FIXEDFORMTEXTS_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 181
+    END
+
+    IDD_SELECTSYNCFILTER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_SELECTDIALUPENTRY_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_SECURITY_L, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_CREATEFOLDER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_CUSTOMFILTER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_CREATEACCOUNT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_ACCOUNTGENERAL_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_ACCOUNTUSER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_ACCOUNTADVANCED_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_ACCOUNTDIALUP_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_MACROSEARCH_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
+    END
+
+    IDD_PARAMETER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_CONDITIONARGUMENT_L, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 8
+    END
+
+    IDD_PROGRESS_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_FOLDERCONDITION_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_FOLDERPARAMETER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 176
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_GOROUNDDIALUP_L, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 39
+    END
+
+    IDD_MESSAGEPROPERTY_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_OPTIONMISC_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+    END
+
+    IDD_VIEWSCOLUMN_L, DIALOG
+    BEGIN
+        RIGHTMARGIN, 137
+        BOTTOMMARGIN, 37
+    END
+
+    IDD_LAUNCHPASSWORD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 132
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_LAUNCHPASSWORD_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 177
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// PROFILE
+//
+
+COLORS.XML              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\colors.xml"
+FILTERS.XML             PROFILE DISCARDABLE     "res\\filters.xml"
+HEADER.XML              PROFILE DISCARDABLE     "res\\ppc\\header.xml"
+HEADEREDIT.XML          PROFILE DISCARDABLE     "res\\ppc\\headeredit.xml"
+KEYMAP.XML              PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\ppc\\keymap.xml"
+MENUS.XML               PROFILE DISCARDABLE     "res\\ppc\\menus.xml"
+QMAIL.XML               PROFILE DISCARDABLE     "..\\..\\src\\ui\\res\\qmail.xml"
+SYNCFILTERS.XML         PROFILE DISCARDABLE     "res\\syncfilters.xml"
+TOOLBARS.XML            PROFILE DISCARDABLE     "res\\ppc\\toolbars.xml"
+VIEWS.XML               PROFILE DISCARDABLE     "res\\views.xml"
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "qm.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

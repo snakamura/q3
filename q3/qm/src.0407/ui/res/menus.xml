@@ -1,0 +1,644 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<menus>
+	<menubar name="mainframe">
+		<popupmenu text="&amp;Datei">
+			<menuitem text="&amp;Ausblenden" action="FileHide"/>
+			<menuitem text="&amp;Speichern" action="FileSave"/>
+			<menuitem text="&amp;Drucken" action="FilePrint"/>
+			<separator/>
+			<menuitem text="&amp;Importieren..." action="FileImport"/>
+			<menuitem text="Expor&amp;tieren..." action="FileExport"/>
+			<separator/>
+			<menuitem text="&amp;Offline" action="FileOffline"/>
+			<separator/>
+			<popupmenu text="&amp;Wartung">
+				<menuitem text="&amp;Komprimieren" action="FileCompact"/>
+				<menuitem text="Wiederherste&amp;llen" action="FileSalvage"/>
+				<menuitem text="Über&amp;prüfen" action="FileCheck"/>
+				<separator/>
+				<menuitem text="&amp;Auszüge..." action="FileDump"/>
+				<menuitem text="La&amp;den..." action="FileLoad"/>
+				<separator/>
+				<menuitem text="&amp;Deinstallieren" action="FileUninstall"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="B&amp;eenden" action="FileExit"/>
+		</popupmenu>
+		<popupmenu text="&amp;Ordner">
+			<menuitem text="&amp;Erstellen..." action="FolderCreate"/>
+			<menuitem text="&amp;Löschen" action="FolderDelete"/>
+			<menuitem text="&amp;Umbenennen..." action="FolderRename"/>
+			<menuitem text="&amp;Aktualisieren" action="FolderUpdate"/>
+			<separator/>
+			<menuitem text="A&amp;bonnieren..." action="FolderSubscribe"/>
+			<separator/>
+			<menuitem text="&amp;Leeren" action="FolderEmpty"/>
+			<menuitem text="&amp;Papierkorb leeren" action="FolderEmptyTrash"/>
+			<separator/>
+			<menuitem text="&amp;Zeige Größe" action="FolderShowSize"/>
+			<separator/>
+			<menuitem text="&amp;Eigenschaften..." action="FolderProperty"/>
+		</popupmenu>
+		<popupmenu text="&amp;Bearbeiten">
+			<menuitem text="&amp;Rückgängig" action="EditUndo"/>
+			<separator/>
+			<menuitem text="&amp;Ausschneiden" action="EditCut"/>
+			<menuitem text="&amp;Kopieren" action="EditCopy"/>
+			<menuitem text="&amp;Einfügen" action="EditPaste"/>
+			<menuitem text="Alles &amp;auswählen" action="EditSelectAll"/>
+			<separator/>
+			<menuitem text="&amp;Löschen" action="EditDelete"/>
+			<menuitem text="Löschen als &amp;Junk" action="EditDeleteJunk"/>
+			<menuitem text="Gelö&amp;schte entfernen" action="EditClearDeleted"/>
+			<menuitem text="&amp;Zwischenspeicher leeren" action="EditDeleteCache"/>
+			<separator/>
+			<menuitem text="&amp;Suchen..." action="EditFind"/>
+			<menuitem text="Suche &amp;nächste" action="EditFindNext"/>
+			<menuitem text="Suche &amp;vorherige" action="EditFindPrev"/>
+		</popupmenu>
+		<popupmenu text="&amp;Ansicht">
+			<menuitem text="&amp;Nächste Nachricht" action="ViewNextMessage"/>
+			<menuitem text="&amp;Vorherige Nachricht" action="ViewPrevMessage"/>
+			<menuitem text="Nächste &amp;ungelesene Nachricht" action="ViewNextUnseenMessage"/>
+			<menuitem text="&amp;Wähle Nachricht" action="ViewSelectMessage"/>
+			<separator/>
+			<menuitem text="&amp;Aktualisieren" action="ViewRefresh"/>
+			<separator/>
+			<popupmenu text="&amp;Modus">
+				<menuitem text="&amp;Rohdaten" action="ViewRawMode"/>
+				<menuitem text="&amp;Quelltext" action="ViewSourceMode"/>
+				<menuitem text="&amp;Zitatsmodus" action="ViewQuoteMode"/>
+				<menuitem text="&amp;Auswahl" action="ViewSelectMode"/>
+				<separator/>
+				<menuitem text="S/&amp;MIME Modus" action="ViewSMIMEMode"/>
+				<menuitem text="&amp;PGP Modus" action="ViewPGPMode"/>
+			</popupmenu>
+			<popupmenu text="&amp;Sortierung">
+				<menuitem dynamic="ViewSort"/>
+				<separator/>
+				<menuitem text="&amp;Aufsteigend" action="ViewSortAscending"/>
+				<menuitem text="A&amp;bsteigend" action="ViewSortDescending"/>
+				<separator/>
+				<menuitem text="F&amp;lach" action="ViewSortFlat"/>
+				<menuitem text="&amp;Unterhaltung" action="ViewSortThread"/>
+				<menuitem text="&amp;Schwebendes Thema" action="ViewSortFloatThread"/>
+			</popupmenu>
+			<popupmenu text="&amp;Filter">
+				<menuitem text="&amp;Keiner" action="ViewFilter" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewFilter"/>
+				<separator/>
+				<menuitem text="&amp;Benutzerdefiniert..." action="ViewFilterCustom"/>
+				<separator/>
+				<menuitem text="&amp;Bearbeiten..." action="ConfigFilters"/>
+			</popupmenu>
+			<popupmenu text="&amp;Vorlage">
+				<menuitem text="&amp;Keine" action="ViewTemplate" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewTemplate"/>
+			</popupmenu>
+			<popupmenu text="&amp;Codierung">
+				<menuitem text="Automatisch &amp;erkennen" action="ViewEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<popupmenu text="&amp;HTML">
+				<menuitem text="&amp;HTML Modus" action="ViewHtmlMode"/>
+				<menuitem text="&amp;Online Modus" action="ViewHtmlOnlineMode"/>
+				<menuitem text="&amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="G&amp;rößte" action="ViewZoom" param="4"/>
+				<menuitem text="&amp;Größer" action="ViewZoom" param="3"/>
+				<menuitem text="&amp;Mittel" action="ViewZoom" param="2"/>
+				<menuitem text="&amp;Kleiner" action="ViewZoom" param="1"/>
+				<menuitem text="Am k&amp;leinsten" action="ViewZoom" param="0"/>
+				<menuitem text="&amp;Standard" action="ViewZoom"/>
+				<separator/>
+				<menuitem text="&amp;Zoom +" action="ViewZoom" param="+"/>
+				<menuitem text="Z&amp;oom -" action="ViewZoom" param="-"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="Spalten &amp;anpassen..." action="ConfigViews"/>
+			<separator/>
+			<popupmenu text="Zeige &amp;Steuerelemente">
+				<menuitem text="Zeige &amp;Werkzeugleiste" action="ViewShowToolbar"/>
+				<menuitem text="Zeige &amp;Statusleiste" action="ViewShowStatusBar"/>
+				<menuitem text="Zeige &amp;Ordner" action="ViewShowFolder"/>
+				<menuitem text="Zeige Ta&amp;b" action="ViewShowTab"/>
+				<menuitem text="Zeige &amp;Spaltenkopf" action="ViewShowHeaderColumn"/>
+				<menuitem text="Zeige &amp;Vorschau" action="ViewShowPreview"/>
+				<menuitem text="Zeige &amp;Kopfzeilen" action="ViewShowHeader"/>
+				<menuitem text="Zeige S&amp;ync Dialog" action="ViewShowSyncDialog"/>
+			</popupmenu>
+		</popupmenu>
+		<popupmenu text="&amp;Nachricht">
+			<menuitem text="&amp;Neu" action="MessageCreate" param="new"/>
+			<menuitem text="&amp;Antworten" action="MessageCreate" param="reply"/>
+			<menuitem text="Allen An&amp;tworten" action="MessageCreate" param="reply_all"/>
+			<menuitem text="&amp;Weiterleiten" action="MessageCreate" param="forward"/>
+			<menuitem text="&amp;Bearbeiten" action="MessageCreate" param="edit"/>
+			<popupmenu text="&amp;Vorlage">
+				<menuitem dynamic="MessageCreate"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="Mar&amp;kiere">
+				<menuitem text="als &amp;Gelesen" action="MessageMarkSeen"/>
+				<menuitem text="als &amp;Ungelesen" action="MessageUnmarkSeen"/>
+				<separator/>
+				<menuitem text="&amp;Setze Markierung" action="MessageMark"/>
+				<menuitem text="&amp;Entferne Markierung" action="MessageUnmark"/>
+				<separator/>
+				<menuitem text="zum &amp;Download" action="MessageMarkDownload"/>
+				<menuitem text="zum &amp;Text-Download" action="MessageMarkDownloadText"/>
+				<separator/>
+				<menuitem text="als Ge&amp;löscht" action="MessageMarkDeleted"/>
+			</popupmenu>
+			<menuitem text="&amp;Kennzeichnungen..." action="MessageLabel"/>
+			<separator/>
+			<popupmenu text="&amp;Verschieben">
+				<menuitem dynamic="MessageMove"/>
+				<separator/>
+				<menuitem text="&amp;Andere..." action="MessageMove"/>
+			</popupmenu>
+			<menuitem text="&amp;Kennzeichnungen..." action="MessageLabel"/>
+			<separator/>
+			<menuitem text="Regeln &amp;anwenden" action="MessageApplyRule"/>
+			<menuitem text="Regeln auf alle a&amp;nwenden" action="MessageApplyRuleAll"/>
+			<menuitem text="Regeln auf markierte an&amp;wenden" action="MessageApplyRuleSelected"/>
+			<separator/>
+			<menuitem text="&amp;Suchen..." action="MessageSearch"/>
+			<separator/>
+			<popupmenu text="&amp;Dateianhang">
+				<menuitem text="&amp;Ablösen..." action="MessageDetach"/>
+				<menuitem text="&amp;Löschen" action="MessageDeleteAttachment"/>
+				<separator/>
+				<menuitem dynamic="MessageOpenAttachment"/>
+				<separator/>
+				<menuitem text="&amp;Kurzfassung erweitern" action="MessageExpandDigest"/>
+				<menuitem text="&amp;Zusammenfügen" action="MessageCombine"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="&amp;Eigenschaften..." action="MessageProperty"/>
+		</popupmenu>
+		<popupmenu text="&amp;Extras">
+			<menuitem text="S&amp;enden &amp;&amp; Empfangen" action="ToolSync"/>
+			<menuitem text="&amp;Empfangen" action="ToolReceive"/>
+			<menuitem text="&amp;Senden" action="ToolSend"/>
+			<menuitem text="Ak&amp;tuellen Ordner Sync." action="ToolReceiveFolder"/>
+			<popupmenu text="&amp;Aufträge abarbeiten">
+				<menuitem dynamic="ToolGoround"/>
+				<separator/>
+				<menuitem text="&amp;Bearbeiten..." action="ConfigGoRound"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="&amp;Einwahl Verbindung..." action="ToolDialup"/>
+			<separator/>
+			<menuitem text="Address&amp;buch..." action="ToolAddressBook"/>
+			<menuitem text="Absender &amp;zum Adressbuch hinzufügen..." action="ToolAddAddress"/>
+			<separator/>
+			<popupmenu text="Skri&amp;pt">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="A&amp;utopilot" action="ToolAutoPilot"/>
+			<separator/>
+			<popupmenu text="Su&amp;b-Konto">
+				<menuitem text="(&amp;Standard)" action="ToolSubAccount" param=""/>
+				<separator/>
+				<menuitem dynamic="ToolSubAccount"/>
+			</popupmenu>
+			<menuitem text="&amp;Konto..." action="ToolAccount"/>
+			<menuitem text="&amp;Optionen..." action="ToolOptions"/>
+		</popupmenu>
+		<popupmenu text="&amp;Hilfe">
+			<menuitem text="&amp;Dokumente" action="HelpOpenURL" param="http://q3.snak.org/doc/"/>
+			<menuitem text="&amp;Webseite" action="HelpOpenURL" param="http://q3.snak.org/"/>
+			<separator/>
+			<menuitem text="&amp;Prüfe Aktualisierung" action="HelpCheckUpdate"/>
+			<separator/>
+			<menuitem text="Ü&amp;ber..." action="HelpAbout"/>
+		</popupmenu>
+	</menubar>
+	<menubar name="messageframe">
+		<popupmenu text="&amp;Datei">
+			<menuitem text="&amp;Drucken" action="FilePrint"/>
+			<separator/>
+			<menuitem text="Expor&amp;tieren..." action="FileExport"/>
+			<separator/>
+			<menuitem text="&amp;Schließen" action="FileClose"/>
+		</popupmenu>
+		<popupmenu text="&amp;Bearbeiten">
+			<menuitem text="&amp;Kopieren" action="EditCopy"/>
+			<menuitem text="Alles &amp;auswählen" action="EditSelectAll"/>
+			<separator/>
+			<menuitem text="&amp;Löschen" action="EditDelete"/>
+			<menuitem text="Löschen als &amp;Junk" action="EditDeleteJunk"/>
+			<separator/>
+			<menuitem text="&amp;Suchen..." action="EditFind"/>
+			<menuitem text="Suche &amp;nächste" action="EditFindNext"/>
+			<menuitem text="Suche &amp;vorherige" action="EditFindPrev"/>
+		</popupmenu>
+		<popupmenu text="&amp;Ansicht">
+			<menuitem text="&amp;Nächste Nachricht" action="ViewNextMessage"/>
+			<menuitem text="&amp;Vorherige Nachricht" action="ViewPrevMessage"/>
+			<menuitem text="Nächste &amp;ungelesene Nachricht" action="ViewNextUnseenMessage"/>
+			<separator/>
+			<popupmenu text="&amp;Modus">
+				<menuitem text="&amp;Rohdaten" action="ViewRawMode"/>
+				<menuitem text="&amp;Quelltext" action="ViewSourceMode"/>
+				<menuitem text="&amp;Zitatsmodus" action="ViewQuoteMode"/>
+				<menuitem text="&amp;Auswahl" action="ViewSelectMode"/>
+				<separator/>
+				<menuitem text="S/&amp;MIME Modus" action="ViewSMIMEMode"/>
+				<menuitem text="&amp;PGP Modus" action="ViewPGPMode"/>
+			</popupmenu>
+			<popupmenu text="&amp;Vorlage">
+				<menuitem text="&amp;Keine" action="ViewTemplate" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewTemplate"/>
+			</popupmenu>
+			<popupmenu text="&amp;Codierung">
+				<menuitem text="Automatisch &amp;erkennen" action="ViewEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ViewEncoding"/>
+			</popupmenu>
+			<popupmenu text="&amp;HTML">
+				<menuitem text="&amp;HTML Modus" action="ViewHtmlMode"/>
+				<menuitem text="&amp;Online Modus" action="ViewHtmlOnlineMode"/>
+				<menuitem text="&amp;Internet Zone" action="ViewHtmlInternetZoneMode"/>
+				<separator/>
+				<menuitem text="G&amp;rößte" action="ViewZoom" param="4"/>
+				<menuitem text="&amp;Größer" action="ViewZoom" param="3"/>
+				<menuitem text="&amp;Mittel" action="ViewZoom" param="2"/>
+				<menuitem text="&amp;Kleiner" action="ViewZoom" param="1"/>
+				<menuitem text="Am k&amp;leinsten" action="ViewZoom" param="0"/>
+				<menuitem text="&amp;Standard" action="ViewZoom"/>
+				<separator/>
+				<menuitem text="&amp;Zoom +" action="ViewZoom" param="+"/>
+				<menuitem text="Z&amp;oom -" action="ViewZoom" param="-"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="Show &amp;Steuerelemente">
+				<menuitem text="Show &amp;Werkzeugleiste" action="ViewShowToolbar"/>
+				<menuitem text="Show &amp;Statusleiste" action="ViewShowStatusBar"/>
+				<menuitem text="Show &amp;Kopfzeilen" action="ViewShowHeader"/>
+			</popupmenu>
+		</popupmenu>
+		<popupmenu text="&amp;Nachricht">
+			<menuitem text="&amp;Neu" action="MessageCreate" param="new"/>
+			<menuitem text="&amp;Antworten" action="MessageCreate" param="reply"/>
+			<menuitem text="Allen An&amp;tworten" action="MessageCreate" param="reply_all"/>
+			<menuitem text="&amp;Weiterleiten" action="MessageCreate" param="forward"/>
+			<menuitem text="&amp;Bearbeiten" action="MessageCreate" param="edit"/>
+			<popupmenu text="&amp;Vorlage">
+				<menuitem dynamic="MessageCreate"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="Mar&amp;kiere">
+				<menuitem text="als &amp;Gelesen" action="MessageMarkSeen"/>
+				<menuitem text="als &amp;Ungelesen" action="MessageUnmarkSeen"/>
+				<separator/>
+				<menuitem text="&amp;Setze Markierung" action="MessageMark"/>
+				<menuitem text="&amp;Entferne Markierung" action="MessageUnmark"/>
+				<separator/>
+				<menuitem text="zum &amp;Download" action="MessageMarkDownload"/>
+				<menuitem text="zum &amp;Text-Download" action="MessageMarkDownloadText"/>
+				<separator/>
+				<menuitem text="als Ge&amp;löscht" action="MessageMarkDeleted"/>
+			</popupmenu>
+			<menuitem text="&amp;Kennzeichnungen..." action="MessageLabel"/>
+			<separator/>
+			<popupmenu text="&amp;Verschieben">
+				<menuitem dynamic="MessageMove"/>
+				<separator/>
+				<menuitem text="&amp;Andere..." action="MessageMove"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="&amp;Dateianhang">
+				<menuitem text="&amp;Ablösen..." action="MessageDetach"/>
+				<menuitem text="&amp;Löschen" action="MessageDeleteAttachment"/>
+				<separator/>
+				<menuitem dynamic="MessageOpenAttachment"/>
+				<separator/>
+				<menuitem text="&amp;Kurzfassung erweitern" action="MessageExpandDigest"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="&amp;Eigenschaften..." action="MessageProperty"/>
+		</popupmenu>
+		<popupmenu text="&amp;Extras">
+			<menuitem text="Absender &amp;zum Adressbuch hinzufügen" action="ToolAddAddress"/>
+			<separator/>
+			<popupmenu text="Skri&amp;pt">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
+		</popupmenu>
+	</menubar>
+	<menubar name="editframe">
+		<popupmenu text="&amp;Datei">
+			<menuitem text="S&amp;enden" action="FileSend"/>
+			<menuitem text="&amp;Jetzt Senden" action="FileSendNow"/>
+			<menuitem text="Speichern als E&amp;ntwurf" action="FileDraft"/>
+			<menuitem text="Speichern als Ent&amp;wurf, schließen" action="FileDraftClose"/>
+			<separator/>
+			<menuitem text="Ö&amp;ffnen..." action="FileOpen"/>
+			<menuitem text="&amp;Speichern..." action="FileSave"/>
+			<menuitem text="&amp;Einfügen aus Datei..." action="FileInsert"/>
+			<separator/>
+			<menuitem text="&amp;Schließen" action="FileClose"/>
+		</popupmenu>
+		<popupmenu text="&amp;Bearbeiten">
+			<menuitem text="&amp;Rückgängig" action="EditUndo"/>
+			<menuitem text="&amp;Wiederholen" action="EditRedo"/>
+			<separator/>
+			<menuitem text="&amp;Ausschneiden" action="EditCut"/>
+			<menuitem text="&amp;Kopieren" action="EditCopy"/>
+			<menuitem text="&amp;Einfügen" action="EditPaste"/>
+			<menuitem text="Als &amp;Zitat einfügen" action="EditPasteWithQuote"/>
+			<separator/>
+			<menuitem text="Alles &amp;auswählen" action="EditSelectAll"/>
+			<separator/>
+			<menuitem text="&amp;Suchen..." action="EditFind"/>
+			<menuitem text="Suche &amp;nächste" action="EditFindNext"/>
+			<menuitem text="Suche &amp;vorherige" action="EditFindPrev"/>
+			<menuitem text="&amp;Ersetzen..." action="EditReplace"/>
+		</popupmenu>
+		<popupmenu text="&amp;Ansicht">
+			<popupmenu text="Show &amp;Steuerelemente">
+				<menuitem text="Show &amp;Werkzeugleiste" action="ViewShowToolbar"/>
+				<menuitem text="Show &amp;Statusleiste" action="ViewShowStatusBar"/>
+			</popupmenu>
+		</popupmenu>
+		<popupmenu text="&amp;Extras">
+			<menuitem text="Address&amp;buch..." action="ToolSelectAddress"/>
+			<popupmenu text="Text e&amp;infügen">
+				<menuitem dynamic="ToolInsertText"/>
+				<separator/>
+				<menuitem text="&amp;Bearbeiten..." action="ConfigTexts"/>
+			</popupmenu>
+			<menuitem text="Si&amp;gnatur einfügen" action="ToolInsertSignature"/>
+			<popupmenu text="&amp;Vorlage">
+				<menuitem dynamic="ToolApplyTemplate"/>
+			</popupmenu>
+			<popupmenu text="&amp;Codierung">
+				<menuitem text="&amp;Standard" action="ToolEncoding" param=""/>
+				<separator/>
+				<menuitem dynamic="ToolEncoding"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="&amp;Dateianhang..." action="ToolAttachment"/>
+			<menuitem text="Dateianhänge a&amp;rchivieren" action="ToolArchiveAttachment"/>
+			<separator/>
+			<menuitem text="Neu &amp;Formatieren" action="ToolReform"/>
+			<menuitem text="A&amp;lles formatieren" action="ToolReformAll"/>
+			<menuitem text="&amp;Automatisch formatieren" action="ToolReformAuto"/>
+			<separator/>
+			<menuitem text="&amp;Header bearbeiten" action="ToolHeaderEdit"/>
+			<separator/>
+			<popupmenu text="&amp;S/MIME">
+				<menuitem text="&amp;Verschlüsseln" action="ToolSMIMEEncrypt"/>
+				<menuitem text="&amp;Signieren" action="ToolSMIMESign"/>
+			</popupmenu>
+			<popupmenu text="&amp;PGP">
+				<menuitem text="&amp;Verschlüsseln" action="ToolPGPEncrypt"/>
+				<menuitem text="&amp;Signieren" action="ToolPGPSign"/>
+				<separator/>
+				<menuitem text="&amp;MIME" action="ToolPGPMime"/>
+			</popupmenu>
+			<separator/>
+			<popupmenu text="S&amp;kript">
+				<menuitem dynamic="ToolScript"/>
+			</popupmenu>
+		</popupmenu>
+	</menubar>
+	<menubar name="addressbookframe">
+		<popupmenu text="&amp;Datei">
+			<menuitem text="&amp;Neu..." action="AddressNew"/>
+			<menuitem text="&amp;Bearbeiten..." action="AddressEdit"/>
+			<menuitem text="&amp;Löschen" action="AddressDelete"/>
+			<separator/>
+			<menuitem text="&amp;Speichern" action="FileSave"/>
+			<separator/>
+			<menuitem text="S&amp;chließen" action="FileClose"/>
+		</popupmenu>
+		<popupmenu text="&amp;Ansicht">
+			<popupmenu text="&amp;Sortierung">
+				<menuitem text="&amp;Name" action="ViewSortName"/>
+				<menuitem text="&amp;Adresse" action="ViewSortAddress"/>
+				<menuitem text="&amp;Kommentar" action="ViewSortComment"/>
+				<separator/>
+				<menuitem text="&amp;Aufsteigend" action="ViewSortAscending"/>
+				<menuitem text="A&amp;bsteigend" action="ViewSortDescending"/>
+			</popupmenu>
+			<separator/>
+			<menuitem text="Aktualisie&amp;ren" action="ViewRefresh"/>
+			<separator/>
+			<popupmenu text="Show &amp;Steuerelemente">
+				<menuitem text="Show &amp;Werkzeugleiste" action="ViewShowToolbar"/>
+				<menuitem text="Show &amp;Statusleiste" action="ViewShowStatusBar"/>
+			</popupmenu>
+		</popupmenu>
+	</menubar>
+	<menu name="edit">
+		<menuitem text="&amp;Rückgängig" action="EditUndo"/>
+		<menuitem text="&amp;Wiederholen" action="EditRedo"/>
+		<separator/>
+		<menuitem text="&amp;Ausschneiden" action="EditCut"/>
+		<menuitem text="&amp;Kopieren" action="EditCopy"/>
+		<menuitem text="&amp;Einfügen" action="EditPaste"/>
+		<menuitem text="Als &amp;Zitat einfügen" action="EditPasteWithQuote"/>
+		<separator/>
+		<menuitem text="Alles &amp;auswählen" action="EditSelectAll"/>
+		<separator/>
+		<menuitem text="&amp;Suchen..." action="EditFind"/>
+		<menuitem text="Suche &amp;nächste" action="EditFindNext"/>
+		<menuitem text="Suche &amp;vorherige" action="EditFindPrev"/>
+		<menuitem text="&amp;Ersetzen..." action="EditReplace"/>
+	</menu>
+	<menu name="folder">
+		<menuitem text="In neuem &amp;Fenster öffnen" action="TabCreate"/>
+		<separator/>
+		<menuitem text="&amp;Erstellen..." action="FolderCreate"/>
+		<menuitem text="&amp;Löschen" action="FolderDelete"/>
+		<menuitem text="&amp;Umbenennen..." action="FolderRename"/>
+		<menuitem text="&amp;Aktualisieren" action="FolderUpdate"/>
+		<separator/>
+		<menuitem text="A&amp;bonnieren..." action="FolderSubscribe"/>
+		<separator/>
+		<menuitem text="&amp;Leeren" action="FolderEmpty"/>
+		<menuitem text="&amp;Papierkorb leeren" action="FolderEmptyTrash"/>
+		<separator/>
+		<menuitem text="&amp;Eigenschaften..." action="FolderProperty"/>
+	</menu>
+	<menu name="folderlist">
+		<menuitem text="In &amp;neuem Tab öffnen" action="TabCreate"/>
+		<separator/>
+		<menuitem text="&amp;Erstellen..." action="FolderCreate"/>
+		<menuitem text="&amp;Löschen" action="FolderDelete"/>
+		<menuitem text="&amp;Umbenennen..." action="FolderRename"/>
+		<menuitem text="&amp;Aktualisieren" action="FolderUpdate"/>
+		<separator/>
+		<menuitem text="A&amp;bonnieren..." action="FolderSubscribe"/>
+		<separator/>
+		<menuitem text="&amp;Leeren" action="FolderEmpty"/>
+		<separator/>
+		<menuitem text="&amp;Zeige Größe" action="FolderShowSize"/>
+		<separator/>
+		<menuitem text="&amp;Eigenschaften..." action="FolderProperty"/>
+	</menu>
+	<menu name="list">
+		<menuitem text="&amp;Neu" action="MessageCreate" param="new"/>
+		<menuitem text="&amp;Antworten" action="MessageCreate" param="reply"/>
+		<menuitem text="Allen An&amp;tworten" action="MessageCreate" param="reply_all"/>
+		<menuitem text="&amp;Weiterleiten" action="MessageCreate" param="forward"/>
+		<menuitem text="&amp;Bearbeiten" action="MessageCreate" param="edit"/>
+		<popupmenu text="&amp;Vorlage">
+			<menuitem dynamic="MessageCreate"/>
+		</popupmenu>
+		<separator/>
+		<menuitem text="&amp;Löschen" action="EditDelete"/>
+		<menuitem text="Löschen als &amp;Junk" action="EditDeleteJunk"/>
+		<menuitem text="Alles &amp;auswählen" action="EditSelectAll"/>
+		<separator/>
+		<popupmenu text="&amp;Verschieben">
+			<menuitem dynamic="MessageMove"/>
+			<separator/>
+			<menuitem text="&amp;Andere..." action="MessageMove"/>
+		</popupmenu>
+		<menuitem text="&amp;Kennzeichnungen..." action="MessageLabel"/>
+		<separator/>
+		<menuitem text="Regeln auf markierte an&amp;wenden" action="MessageApplyRuleSelected"/>
+		<separator/>
+		<popupmenu text="&amp;Dateianhang">
+			<menuitem text="&amp;Ablösen..." action="MessageDetach"/>
+			<menuitem text="&amp;Löschen" action="MessageDeleteAttachment"/>
+			<separator/>
+			<menuitem dynamic="MessageOpenAttachment"/>
+			<separator/>
+			<menuitem text="&amp;Kurzfassung erweitern" action="MessageExpandDigest"/>
+			<menuitem text="&amp;Zusammenfügen" action="MessageCombine"/>
+		</popupmenu>
+		<separator/>
+		<popupmenu text="Mar&amp;kiere">
+			<menuitem text="als &amp;Gelesen" action="MessageMarkSeen"/>
+			<menuitem text="als &amp;Ungelesen" action="MessageUnmarkSeen"/>
+			<separator/>
+			<menuitem text="&amp;Setze Markierung" action="MessageMark"/>
+			<menuitem text="&amp;Entferne Markierung" action="MessageUnmark"/>
+			<separator/>
+			<menuitem text="zum &amp;Download" action="MessageMarkDownload"/>
+			<menuitem text="zum &amp;Text-Download" action="MessageMarkDownloadText"/>
+			<separator/>
+			<menuitem text="als Ge&amp;löscht" action="MessageMarkDeleted"/>
+		</popupmenu>
+		<separator/>
+		<menuitem text="&amp;Eigenschaften..." action="MessageProperty"/>
+	</menu>
+	<menu name="message">
+		<menuitem text="&amp;Nächste Nachricht" action="ViewNextMessage"/>
+		<menuitem text="&amp;Vorherige Nachricht" action="ViewPrevMessage"/>
+		<menuitem text="Nächste &amp;ungelesene Nachricht" action="ViewNextUnseenMessage"/>
+		<separator/>
+		<menuitem text="&amp;Löschen" action="EditDelete"/>
+		<menuitem text="Löschen als &amp;Junk" action="EditDeleteJunk"/>
+		<menuitem text="&amp;Kopieren" action="EditCopy"/>
+		<menuitem text="Alles &amp;auswählen" action="EditSelectAll"/>
+		<separator/>
+		<menuitem text="&amp;Suchen..." action="EditFind"/>
+		<separator/>
+		<popupmenu text="&amp;Verschieben">
+			<menuitem dynamic="MessageMove"/>
+			<separator/>
+			<menuitem text="&amp;Andere..." action="MessageMove"/>
+		</popupmenu>
+		<separator/>
+		<popupmenu text="&amp;Dateianhang">
+			<menuitem text="&amp;Ablösen..." action="MessageDetach"/>
+			<menuitem text="&amp;Löschen" action="MessageDeleteAttachment"/>
+			<separator/>
+			<menuitem dynamic="MessageOpenAttachment"/>
+			<separator/>
+			<menuitem text="&amp;Kurzfassung erweitern" action="MessageExpandDigest"/>
+		</popupmenu>
+		<separator/>
+		<popupmenu text="Mar&amp;kiere">
+			<menuitem text="als &amp;Gelesen" action="MessageMarkSeen"/>
+			<menuitem text="als &amp;Ungelesen" action="MessageUnmarkSeen"/>
+			<separator/>
+			<menuitem text="&amp;Setze Markierung" action="MessageMark"/>
+			<menuitem text="&amp;Entferne Markierung" action="MessageUnmark"/>
+			<separator/>
+			<menuitem text="zum &amp;Download" action="MessageMarkDownload"/>
+			<menuitem text="zum &amp;Text-Download" action="MessageMarkDownloadText"/>
+			<separator/>
+			<menuitem text="als Ge&amp;löscht" action="MessageMarkDeleted"/>
+		</popupmenu>
+		<menuitem text="&amp;Kennzeichnungen..." action="MessageLabel"/>
+		<separator/>
+		<menuitem text="&amp;Eigenschaften..." action="MessageProperty"/>
+	</menu>
+	<menu name="attachment">
+		<menuitem text="Ö&amp;ffnen..." action="AttachmentOpen"/>
+		<menuitem text="&amp;Speichern..." action="AttachmentSave"/>
+		<menuitem text="&amp;Alle Speichern..." action="AttachmentSaveAll"/>
+	</menu>
+	<menu name="attachmentedit">
+		<menuitem text="&amp;Hinzufügen..." action="AttachmentEditAdd"/>
+		<menuitem text="&amp;Löschen" action="AttachmentEditDelete"/>
+	</menu>
+	<menu name="tab">
+		<menuitem text="&amp;Schließen" action="TabClose"/>
+		<separator/>
+		<menuitem text="&amp;Titel bearbeiten..." action="TabEditTitle"/>
+		<separator/>
+		<menuitem text="&amp;Sperren" action="TabLock"/>
+	</menu>
+	<menu name="addressbooklist">
+		<menuitem dynamic="AddressCreateMessage"/>
+		<separator/>
+		<menuitem text="&amp;Neu..." action="AddressNew"/>
+		<menuitem text="&amp;Bearbeiten..." action="AddressEdit"/>
+		<menuitem text="&amp;Löschen" action="AddressDelete"/>
+	</menu>
+	<menu name="encoding">
+		<menuitem text="Automatisch &amp;erkennen" action="ViewEncoding" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewEncoding"/>
+	</menu>
+	<menu name="filter">
+		<menuitem text="&amp;Keiner" action="ViewFilter" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewFilter"/>
+		<separator/>
+		<menuitem text="&amp;Benutzerdefiniert..." action="ViewFilterCustom"/>
+		<separator/>
+		<menuitem text="&amp;Bearbeiten..." action="ConfigFilters"/>
+	</menu>
+	<menu name="template">
+		<menuitem text="&amp;Keine" action="ViewTemplate" param=""/>
+		<separator/>
+		<menuitem dynamic="ViewTemplate"/>
+	</menu>
+	<menu name="sync">
+		<menuitem text="S&amp;enden &amp;&amp; Empfangen" action="ToolSync"/>
+		<menuitem text="&amp;Empfangen" action="ToolReceive"/>
+		<menuitem text="&amp;Senden" action="ToolSend"/>
+		<menuitem text="Ak&amp;tuellen Ordner Sync." action="ToolReceiveFolder"/>
+	</menu>
+	<menu name="goround">
+		<menuitem dynamic="ToolGoround"/>
+		<separator/>
+		<menuitem text="&amp;Bearbeiten..." action="ConfigGoRound"/>
+	</menu>
+	<menu name="inserttext">
+		<menuitem dynamic="ToolInsertText"/>
+		<separator/>
+		<menuitem text="&amp;Bearbeiten..." action="ConfigTexts"/>
+	</menu>
+	<menu name="recents">
+		<menuitem dynamic="MessageOpenRecent"/>
+		<separator/>
+		<menuitem text="&amp;Leeren" action="MessageClearRecents"/>
+		<separator/>
+		<menuitem text="&amp;Anzeigen" action="FileShow"/>
+	</menu>
+</menus>

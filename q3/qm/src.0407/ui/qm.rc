@@ -1,0 +1,551 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\..\src\ui\actionid.h"
+#include "..\..\src\ui\resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\..\\src\\ui\\actionid.h""\r\n"
+    "#include ""..\\..\\src\\ui\\resource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE MOVEABLE PURE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "#include ""..\\\\model\\\\model.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_ADDRESSBOOK         BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\addressbook.bmp"
+IDB_HEADER              BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\header.bmp"
+IDB_SYNCNOTIFICATION    BITMAP  MOVEABLE PURE   "..\\..\\src\\ui\\res\\syncnotification.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MAINFRAME           ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\qmail.ico"
+IDI_DECRYPTED           ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\decrypted.ico"
+IDI_OFFLINE             ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\offline.ico"
+IDI_ONLINE              ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\online.ico"
+IDI_UNVERIFIED          ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\unverified.ico"
+IDI_VERIFIED            ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\verified.ico"
+IDI_MESSAGE             ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\message.ico"
+IDI_EDIT                ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\edit.ico"
+IDI_ADDRESSBOOK         ICON    DISCARDABLE     "..\\..\\src\\ui\\res\\addressbook.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_ADDRESSBOOK MENU DISCARDABLE 
+BEGIN
+    POPUP ""
+    BEGIN
+        MENUITEM "Ändern auf &An",               IDM_ADDRESSBOOK_CHANGETO
+        MENUITEM "Ändern auf &Cc",               IDM_ADDRESSBOOK_CHANGECC
+        MENUITEM "Ändern auf &Bcc",              IDM_ADDRESSBOOK_CHANGEBCC
+        MENUITEM SEPARATOR
+        MENUITEM "&Entfernen",                     IDM_ADDRESSBOOK_REMOVE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEMPLATE
+//
+
+MAIL.EDIT               TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.edit.template"
+MAIL.FORWARD            TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.forward.template"
+MAIL.NEW                TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.new.template"
+MAIL.PRINT              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.print.template"
+MAIL.QUOTE              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.quote.template"
+MAIL.REPLY              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.reply.template"
+MAIL.REPLY_ALL          TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.reply_all.template"
+MAIL.URL                TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\mail.url.template"
+NEWS.EDIT               TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.edit.template"
+NEWS.FORWARD            TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.forward.template"
+NEWS.NEW                TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.new.template"
+NEWS.PRINT              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.print.template"
+NEWS.QUOTE              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.quote.template"
+NEWS.REPLY              TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.reply.template"
+NEWS.REPLY_ALL          TEMPLATE MOVEABLE PURE  "..\\..\\src\\ui\\res\\news.reply_all.template"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// IMAGE
+//
+
+ACCOUNT_MAIL.BMP        IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\account_mail.bmp"
+ACCOUNT_NEWS.BMP        IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\account_news.bmp"
+ACCOUNT_RSS.BMP         IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\account_rss.bmp"
+FOLDER.BMP              IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\folder.bmp"
+LIST.BMP                IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\list.bmp"
+LISTDATA.BMP            IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\listdata.bmp"
+NOTIFY.BMP              IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\notify.bmp"
+TOOLBAR.BMP             IMAGE   DISCARDABLE     "..\\..\\src\\ui\\res\\toolbar.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ACTION_SHOWTOOLBAR  "&Werkzeugleiste anzeigen"
+    IDS_ACTION_HIDETOOLBAR  "&Werkzeugleiste verstecken"
+    IDS_ACTION_SHOWSTATUSBAR "&Statusleiste anzeigen"
+    IDS_ACTION_HIDESTATUSBAR "&Statusleiste verstecken"
+    IDS_ACTION_SHOWFOLDER   "&Ordner anzeigen"
+    IDS_ACTION_HIDEFOLDER   "&Ordner verstecken"
+    IDS_ACTION_SHOWHEADERCOLUMN "Spalten&kopf anzeigen"
+    IDS_ACTION_HIDEHEADERCOLUMN "Spalten&kopf verstecken"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ACTION_SHOWPREVIEW  "&Vorschau anzeigen"
+    IDS_ACTION_HIDEPREVIEW  "&Vorschau verstecken"
+    IDS_ACTION_SHOWHEADER   "&Kopf anzeigen"
+    IDS_ACTION_HIDEHEADER   "&Kopf verstecken"
+    IDS_ACTION_SHOWTAB      "&Registerkarte anzeigen"
+    IDS_ACTION_HIDETAB      "&Registerkarte verstecken"
+    IDS_ACTION_SHOWMAIN     "&Anzeigen"
+    IDS_ACTION_HIDEMAIN     "&Ausblenden"
+    IDS_ACTION_DIALUPCONNECT "&Einwahl verbinden..."
+    IDS_ACTION_DIALUPDISCONNECT "&Einwahl trennen"
+    IDS_ACTION_SUBSCRIBE    "&Abonnieren..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_MENU_THISFOLDER     "(Dieser Ordner)"
+    IDS_MENU_NONE           "(Keiner)"
+    IDS_MENU_GOROUND        "&Aufträge abarbeiten"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_PROGRESS_APPLYRULES "Wende Nachrichtenregeln an..."
+    IDS_PROGRESS_CHECK      "Rufe Nachrichten ab..."
+    IDS_PROGRESS_COMPACT    "Komprimiere..."
+    IDS_PROGRESS_COPYMESSAGE "Kopiere Nachrichten..."
+    IDS_PROGRESS_DELETE     "Lösche Nachrichten..."
+    IDS_PROGRESS_DUMP       "Erstelle Auszüge..."
+    IDS_PROGRESS_EMPTYTRASH "Leere Papierkorb..."
+    IDS_PROGRESS_EXPORT     "Exportiere Nachrichten..."
+    IDS_PROGRESS_IMPORT     "Importiere Nachrichten..."
+    IDS_PROGRESS_LOAD       "Lade Nachrichten..."
+    IDS_PROGRESS_MOVEMESSAGE "Verschiebe Nachrichten..."
+    IDS_PROGRESS_PROCESS    "Bearbeite..."
+    IDS_PROGRESS_SALVAGE    "Nachrichten wiederherstellen..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONFIRM_OVERWRITE   "Bereits existierende Datei überschreiben?\n"
+    IDS_CONFIRM_EXECUTEATTACHMENT 
+                            "Wollen sie den Dateianhang wirklich ausführen?"
+    IDS_CONFIRM_DELETETEMPFILE 
+                            "Die temporäre Datei wurde verändert. Wirklich löschen?\n"
+    IDS_CONFIRM_IGNORELOCK  "Der Mail-Ordner ist gesperrt von '%s'.\nDennoch fortsetzen?"
+    IDS_CONFIRM_REMOVEACCOUNT "Wollen sie das Konto wirlich löschen?\n %s"
+    IDS_CONFIRM_REMOVESUBACCOUNT 
+                            "Wollen sie das Sub-Konto wirklich löschen?\n %s"
+    IDS_CONFIRM_REMOVEFOLDER "Wollen sie diese Ordner wirklich löschen?\n %s"
+    IDS_CONFIRM_EMPTYFOLDER "Wollen sie alle Nachrichten in diesen Ordnern löschen?\n %s"
+    IDS_CONFIRM_EMPTYTRASH  "Wollen sie wirklich alle Nachrichten im Papierkorb löschen?"
+    IDS_CONFIRM_DELETEMESSAGE "Wollen sie die gewählten Nachrichten wirklich löschen?"
+    IDS_CONFIRM_SAVEADDRESSBOOK 
+                            "Adressbuch nicht gespeichert.\nWollen sie die Änderungen speichern?"
+    IDS_CONFIRM_EXIT        "Fehler beim Speichern. Wollen sie fortsetzen?\nJa um zu ignorieren, Nein um zu wiederholen, Abbrechen um abzubrechen."
+    IDS_CONFIRM_OPENURL     "Wollen sie die Datei wirklich öffnen?"
+    IDS_CONFIRM_IGNORECHECKERROR 
+                            "Fehler beim Überprüfen des Zwischenspeichers.\nIgnorieren und Nachricht löschen?\nOrdner: %s\nID: %u\nOffset: %u\nLänge: %u"
+    IDS_CONFIRM_UPDATE      "Eine neue Version ist verfügbar.\nWollen sie die neue Version herunterladen?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TITLE_ACCOUNT       "Konto"
+    IDS_TITLE_ADDRESSBOOK   "Adresssbuch - QMAIL"
+    IDS_TITLE_COLORS        "Farben"
+    IDS_TITLE_COLORSETS     "Farbschemen"
+    IDS_TITLE_FULLTEXTSEARCH "Volltext"
+    IDS_TITLE_MACROSEARCH   "Makro"
+    IDS_TITLE_PROPERTY      "Eigenschaft"
+    IDS_TITLE_RULES         "Regeln"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ADDRESSBOOK_ALLCATEGORY "&Alle"
+    IDS_ADDRESSBOOK_THISCATEGORY "(&Diese Kategorie)"
+    IDS_ADDRESSBOOK_CATEGORY "&Kategorie"
+    IDS_ADDRESSBOOK_CATEGORYALL "Alle"
+    IDS_ADDRESSBOOK_COLUMN_NAME "Name"
+    IDS_ADDRESSBOOK_COLUMN_ADDRESS "Adresse"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_MESSAGE_UPDATEFOLDER "Wollen sie die Ordnerliste jetzt aktualisieren?"
+    IDS_MESSAGE_FINISHED    "Abgeschlossen"
+    IDS_MESSAGE_CHECKMESSAGES "Rufe Nachrichten ab..."
+    IDS_MESSAGE_APPLYRULE   "Wende Regeln an..."
+    IDS_MESSAGE_FINDNOTFOUND "Nicht gefunden."
+    IDS_MESSAGE_UPDATED     "Sie verwenden bereits die aktuellste Version."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_CREATEFOLDER  "Der Ordner konnte nicht angelegt werden."
+    IDS_ERROR_EXECUTEATTACHMENT "Der Dateianhang konnte nicht ausgeführt werden."
+    IDS_ERROR_DIALUP        "Fehler beim Einwählen"
+    IDS_ERROR_CLEARDELETED  "Fehler beim Entfernen der gelöschten Nachrichten."
+    IDS_ERROR_COPYMESSAGES  "Fehler beim Kopieren der Nachrichten."
+    IDS_ERROR_CUTMESSAGES   "Fehler beim Ausschneiden der Nachrichten."
+    IDS_ERROR_DELETECACHE   "Fehler beim Leeren des Zwischenspeichers."
+    IDS_ERROR_DELETEMESSAGES "Fehler beim Löschen der Nachrichten."
+    IDS_ERROR_PASTEMESSAGES "Fehler beim Einfügen der Nachrichten."
+    IDS_ERROR_COMPACT       "Fehler beim Komprimieren des Nachrichtenspeichers."
+    IDS_ERROR_SAVE          "Fehler beim Speichern."
+    IDS_ERROR_EXPORT        "Fehler beim Exportieren."
+    IDS_ERROR_IMPORT        "Fehler beim Importieren."
+    IDS_ERROR_PRINT         "Fehler beim Drucken."
+    IDS_ERROR_SALVAGE       "Fehler beim Wiederherstellen."
+    IDS_ERROR_DELETEFOLDER  "Fehler beim Löschen des Ordners."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ADDRESSBOOK_COLUMN_COMMENT "Kommentar"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_TITLE_RULESETS      "Regelsatz"
+    IDS_TITLE_SEARCH        "Suchen"
+    IDS_TITLE_TEMPORARYFOLDER "Temporärer Ordner"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_DEFAULTSUBACCOUNT   "(Standard)"
+    IDS_LOCALFOLDER         "Lokal"
+    IDS_SYNCABLELOCALFOLDER "Lokal (synchronisierbar)"
+    IDS_REMOTEFOLDER        "Entfernt"
+    IDS_QUERYFOLDER         "Abfrage"
+    IDS_OSDEFAULT           "OS Standard"
+    IDS_ALLFOLDER           "(Alle Ordner)"
+    IDS_UNSPECIFIED         "(Unspezifiziert)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_STATUS_VIEWMODELTEMPLATE "%u Nachricht(en), %u Ungelesen, %u Ausgewählt"
+    IDS_STATUS_VIEWMODELTEMPLATESHORT "%uN, %uU, %uA"
+    IDS_STATUS_ONLINE       "O"
+    IDS_STATUS_OFFLINE      "F"
+    IDS_STATUS_CUSTOM       "(benutzerdefiniert)"
+    IDS_STATUS_NONE         "(Keiner)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FILTER_EXPORT       "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*||"
+    IDS_FILTER_IMPORT       "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*||"
+    IDS_FILTER_INSERT       "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*||"
+    IDS_FILTER_OPEN         "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*||"
+    IDS_FILTER_SAVE         "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*||"
+    IDS_FILTER_ATTACHMENT   "Alle Dateien (*.*)|*.*||"
+    IDS_FILTER_SOUND        "Wavedateien (*.wav)|*.wav|Alle Dateien (*.*)|*.*||"
+    IDS_FILTER_EXECUTABLE   "Ausführbare Dateien (*.exe)|*.exe|Alle Dateien (*.*)|*.*||"
+    IDS_FILTER_MESSAGE      "Nachrichten (*.eml)|*.eml|Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*||"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FOLDERLIST_NAME     "Name"
+    IDS_FOLDERLIST_ID       "ID"
+    IDS_FOLDERLIST_COUNT    "Anzahl"
+    IDS_FOLDERLIST_UNSEENCOUNT "Ungelesen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FOLDERLIST_SIZE     "Größe"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RESOURCEPATH        "Pfad"
+    IDS_INVOKEACTION        "Aktion aufrufen"
+    IDS_ACTION              "&Aktion"
+    IDS_EXECUTEMACRO        "Makro ausführen"
+    IDS_MACRO               "&Makro"
+    IDS_OFFLINE             "[Offline]"
+    IDS_JUNKREPAIRED        "Junk-Datenbank erfolgreich repariert."
+    IDS_SUBJECT             "Betreff"
+    IDS_ISSUER              "Herausgeber"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_CREATEACCOUNT "Fehler beim Anlegen des Accounts."
+    IDS_ERROR_MOVEFOLDER    "Fehler beim Verschieben des Ordners."
+    IDS_ERROR_SAVEADDRESSBOOK "Das Adressbuch konnte nicht gespeichert werden."
+    IDS_ERROR_UNDO          "Rückgängig ist fehlgeschlagen."
+    IDS_ERROR_COMPLEXMACRO  "Das Makro ist zu komplex."
+    IDS_ERROR_NOOUTBOX      "Der Senden-Ordner wurde nicht gefunden."
+    IDS_ERROR_LOADOUTBOX    "Fehler beim Laden der Nachrichten aus dem Senden-Ordner."
+    IDS_ERROR_NOSENTBOX     "Der Gesendet-Ordner wurde nicht gefunden."
+    IDS_ERROR_GETMESSAGE    "Eine zu sendende Nachricht konnte nicht geöffnet werden."
+    IDS_ERROR_MOVETOSENTBOX "Die gesendete Nachricht konnte nicht in den Gesendet-Ordner verschoben werden."
+    IDS_ERROR_LABELMESSAGE  "Fehler beim Kennzeichnen der Nachrichten."
+    IDS_ERROR_SYNCHRONIZING "Diese Operation ist während dem synchronisieren nicht möglich."
+    IDS_ERROR_EVALUATEMACRO "Fehler beim Evaluieren des Makros."
+    IDS_ERROR_RENAMEACCOUNT "Fehler beim Umbenennnen des Kontos."
+    IDS_ERROR_RENAMESUBACCOUNT "Fehler beim Umbenennen des Sub-Kontos."
+    IDS_ERROR_CREATESUBACCOUNT "Fehler beim Erstellen des Sub-Kontos."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_OUTBOXHASEXTRAFLAGS 
+                            "Der Senden-Ordner darf keine Markierungen außer Senden-Ordner oder Entwürfe-Ordner haben."
+    IDS_ERROR_OPENMESSAGE   "Das Nachrichten-Fenster konnte nicht geöffnet werden."
+    IDS_ERROR_CHECKUPDATE   "Die aktuellste Version konnte nicht laden werden."
+    IDS_ERROR_REPAIRJUNK    "Die Junk-Datenbank konnte nicht repariert werden."
+    IDS_ERROR_INVALIDACCOUNT "Das angegebene Konto ist ungültig."
+    IDS_ERROR_INVALIDFOLDER "Der angegebene Ordner ist ungültig."
+    IDS_ERROR_INVALIDCOLOR  "Die angegebene Farbe ist ungültig."
+    IDS_ERROR_INSERTSIGNATURE "Fehler beim Einfügen der Signatur."
+    IDS_ERROR_INSERTTEXT    "Fehler beim Einfügen des Texts."
+    IDS_ERROR_INSERTMACRO   "Fehler beim Einfügen des Makros."
+    IDS_ERROR_REFORM        "Fehler beim Formatieren des Texts."
+    IDS_ERROR_VERIFICATIONFAILED "Fehler beim verifizieren des Zertifikats der Gegenstelle."
+    IDS_ERROR_HOSTNAMENOTMATCH "Der Name im Zertifikat entspricht *NICHT* dem Namen der Gegenstelle."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COLUMN_TITLE        "Titel"
+    IDS_COLUMN_TYPE         "Typ"
+    IDS_COLUMN_WIDTH        "Breite"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_EMPTYFOLDER   "Fehler beim Leeren des Ordners."
+    IDS_ERROR_EMPTYTRASH    "Fehler beim Leeren des Papierkorbs."
+    IDS_ERROR_RENAMEFOLDER  "Fehler beim Umbenennen des Ordners."
+    IDS_ERROR_UPDATEFOLDER  "Fehler beim Aktualisieren des Ordners."
+    IDS_ERROR_APPLYRULE     "Fehler beim Anwenden der Regel."
+    IDS_ERROR_APPLYTEMPLATE "Fehler beim Anwenden der Vorlage."
+    IDS_ERROR_COMBINE       "Fehler beim Zusammenfügen der Nachrichten."
+    IDS_ERROR_CREATEMESSAGE "Fehler beim Erstellen der Nachricht."
+    IDS_ERROR_DELETEATTACHMENT "Fehler beim Löschen des Dateianhanges."
+    IDS_ERROR_DETACHATTACHMENT "Fehler beim Ablösen des Dateianhanges."
+    IDS_ERROR_EXPANDDIGEST  "Fehler beim Erweitern der Kurzfassung."
+    IDS_ERROR_MARKMESSAGE   "Fehler beim Markieren der Nachrichten."
+    IDS_ERROR_MOVEMESSAGE   "Fehler beim Verschieben der Nachrichten."
+    IDS_ERROR_COPYMESSAGE   "Fehler beim Kopieren der Nachrichten."
+    IDS_ERROR_OPENURL       "Fehler beim Öffnen der URL."
+    IDS_ERROR_SETFLAGS      "Fehler beim Setzen der Markierung."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_SEARCH        "Fehler beim Suchen."
+    IDS_ERROR_DIALUPCONNECT "Fehler beim Verbinden der Einwahl."
+    IDS_ERROR_DIALUPDISCONNECT "Fehler beim Trennen der Einwahl."
+    IDS_ERROR_GOROUND       "Fehler beim Abarbeiten der Aufträge."
+    IDS_ERROR_SYNC          "Fehler beim Synchronisieren."
+    IDS_ERROR_OPENLINK      "Fehler beim Öffnen des Links."
+    IDS_ERROR_REFRESH       "Fehler beim Aktualisieren."
+    IDS_ERROR_INSERTFILE    "Fehler beim Einfügen der Datei."
+    IDS_ERROR_PASTE         "Fehler beim Einfügen."
+    IDS_ERROR_OPENFILE      "Fehler beim Öffnen der Datei."
+    IDS_ERROR_SAVEFILE      "Fehler beim Speichern der Datei."
+    IDS_ERROR_SEND          "Fehler beim Senden."
+    IDS_ERROR_DUMP          "Fehler beim Erstellen der Auszüge."
+    IDS_ERROR_LOAD          "Fehler beim Laden der Nachrichten."
+    IDS_ERROR_CHECK         "Fehler beim Überprüfen der Nachrichten."
+    IDS_ERROR_INVALIDMACRO  "Fehler beim Analysieren des Makros."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_COLUMNTYPE_ID       "ID"
+    IDS_COLUMNTYPE_DATE     "Datum"
+    IDS_COLUMNTYPE_FROM     "Von"
+    IDS_COLUMNTYPE_TO       "An"
+    IDS_COLUMNTYPE_FROMTO   "Von / An"
+    IDS_COLUMNTYPE_SUBJECT  "Betreff"
+    IDS_COLUMNTYPE_SIZE     "Größe"
+    IDS_COLUMNTYPE_FLAGS    "Markierungen"
+    IDS_COLUMNTYPE_LABEL    "Kennzeichnungen"
+    IDS_COLUMNTYPE_OTHER    "Andere"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ARGUMENT_NAME       "Name"
+    IDS_ARGUMENT_VALUE      "Wert"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_PROPERTY_NAME       "Name"
+    IDS_PROPERTY_VALUE      "Wert"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_PANEL_ADDRESSBOOK   "Adressbuch"
+    IDS_PANEL_AUTOPILOT     "Autopilot"
+    IDS_PANEL_COLORS        "Farben"
+    IDS_PANEL_CONFIRM       "Bestätigungen"
+    IDS_PANEL_EDIT          "Bearbeiten 1"
+    IDS_PANEL_EDIT2         "Bearbeiten 2"
+    IDS_PANEL_FILTERS       "Filter"
+    IDS_PANEL_FIXEDFORMTEXTS "Texte"
+    IDS_PANEL_FOLDER        "Ordner"
+    IDS_PANEL_GOROUND       "Aufträge"
+    IDS_PANEL_HEADER        "Kopfzeilen"
+    IDS_PANEL_JUNK          "Junk Filter"
+    IDS_PANEL_LIST          "Liste"
+    IDS_PANEL_MESSAGE       "Nachrichten"
+    IDS_PANEL_MISC          "Sonstige 1"
+    IDS_PANEL_MISC2         "Sonstige 2"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_PANEL_PREVIEW       "Vorschau"
+    IDS_PANEL_RULES         "Regeln"
+    IDS_PANEL_SEARCH        "Suche"
+    IDS_PANEL_SECURITY      "Sicherheit"
+    IDS_PANEL_SIGNATURES    "Signaturen"
+    IDS_PANEL_SYNC          "Sync"
+    IDS_PANEL_SYNCFILTERS   "Sync Filter"
+    IDS_PANEL_TAB           "Registerkarte"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RULE_NONE           "Keine"
+    IDS_RULE_MOVE           "Verschieben"
+    IDS_RULE_COPY           "Kopieren"
+    IDS_RULE_DELETE         "Löschen"
+    IDS_RULE_LABEL          "Kennzeichnen"
+    IDS_RULE_DELETECACHE    "Zwischenspeicher löschen"
+    IDS_RULE_APPLY          "Übernehmen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_LABEL_SET           "Setzen"
+    IDS_LABEL_ADD           "Hinzufügen"
+    IDS_LABEL_REMOVE        "Entfernen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SIGNATURE_NONE      "Keine"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SYNCFILTERACTION_DOWNLOADPOP3 "Downloaden (POP3)"
+    IDS_SYNCFILTERACTION_DOWNLOADIMAP4 "Downloaden (IMAP4)"
+    IDS_SYNCFILTERACTION_DOWNLOADNNTP "Downloaden (NNTP)"
+    IDS_SYNCFILTERACTION_DELETE "Löschen (POP3, IMAP4)"
+    IDS_SYNCFILTERACTION_IGNORE "Ignorieren (POP3, NNTP)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SYNCFILTERIMAP4DOWNLOADTYPE_ALL "Alles"
+    IDS_SYNCFILTERIMAP4DOWNLOADTYPE_TEXT "Text"
+    IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HTML "Html"
+    IDS_SYNCFILTERIMAP4DOWNLOADTYPE_HEADER "Kopfzeilen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SYNC_ALWAYS         "Immer"
+    IDS_SYNC_NEVER          "Nie"
+    IDS_SYNC_AUTO           "Nur automatisch"
+    IDS_SYNC_MANUAL         "Nur händisch"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RECENTS_SHOW        "&Anzeigen"
+    IDS_RECENTS_CLEAR       "&Löschen"
+END
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+#include "..\\model\\model.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<filters>
+	<filter name="Ungelesen">@Not(@Seen())</filter>
+	<filter name="Neu">@Not(@Passed(14))</filter>
+</filters>

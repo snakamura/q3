@@ -1,0 +1,204 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resourceppc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resourceppc.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resourceppc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resourceppc.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""qmnntp.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RECEIVE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "NNTP"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Initiale Abrufanzahl",IDC_INITIALFETCHCOUNTLABEL,5,7,60,
+                    8
+    EDITTEXT        IDC_INITIALFETCHCOUNT,65,5,40,12,ES_AUTOHSCROLL
+    CONTROL         "Verwende &XOVER",IDC_XOVER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,20,55,10
+    LTEXT           "&Abrufanzahl pro Anfrage",IDC_FETCHCOUNTLABEL,15,32,80,
+                    8
+    EDITTEXT        IDC_FETCHCOUNT,95,30,37,12,ES_AUTOHSCROLL
+END
+
+IDD_SEND DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "NNTP (POST)"
+FONT 9, "Tahoma"
+BEGIN
+END
+
+IDD_SUBSCRIBE DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Gruppe abonieren"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Filter",IDC_FILTERLABEL,5,7,20,8
+    EDITTEXT        IDC_FILTER,30,5,102,12,ES_AUTOHSCROLL
+    CONTROL         "List2",IDC_GROUP,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_OWNERDATA | WS_BORDER | WS_TABSTOP,5,
+                    20,127,60
+    PUSHBUTTON      "&Aktualisieren",IDC_REFRESH,82,85,50,12
+    DEFPUSHBUTTON   "OK",IDOK,27,100,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,100,50,12
+END
+
+IDD_RECEIVE_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "NNTP"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Initiale Abrufanzahl",IDC_INITIALFETCHCOUNTLABEL,5,7,60,
+                    8
+    EDITTEXT        IDC_INITIALFETCHCOUNT,65,5,40,12,ES_AUTOHSCROLL
+    CONTROL         "Verwende &XOVER",IDC_XOVER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,20,55,10
+    LTEXT           "&Abrufanzahl pro Anfrage",IDC_FETCHCOUNTLABEL,15,32,80,
+                    8
+    EDITTEXT        IDC_FETCHCOUNT,95,30,37,12,ES_AUTOHSCROLL
+END
+
+IDD_SEND_L DIALOG DISCARDABLE  0, 0, 182, 94
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "NNTP (POST)"
+FONT 9, "Tahoma"
+BEGIN
+END
+
+IDD_SUBSCRIBE_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Gruppe abonieren"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Filter",IDC_FILTERLABEL,5,7,20,8
+    EDITTEXT        IDC_FILTER,30,5,147,12,ES_AUTOHSCROLL
+    CONTROL         "List2",IDC_GROUP,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_OWNERDATA | WS_BORDER | WS_TABSTOP,5,
+                    20,172,65
+    PUSHBUTTON      "&Aktualisieren",IDC_REFRESH,5,90,50,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_RECEIVE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SEND, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_SUBSCRIBE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_RECEIVE_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_SEND_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+
+    IDD_SUBSCRIBE_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "qmnntp.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

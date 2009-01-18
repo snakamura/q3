@@ -1,0 +1,150 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resourcehpc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resourcehpc.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resourcehpc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resourcehpc.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""qmimap4.rc""\r\n"
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_RECEIVE DIALOG DISCARDABLE  0, 0, 225, 105
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "IMAP4"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Wurzelordner",IDC_STATIC,5,7,40,8
+    EDITTEXT        IDC_ROOTFOLDER,50,5,170,12,ES_AUTOHSCROLL
+    LTEXT           "&Abrufanzahl pro Anfrage",IDC_STATIC,5,22,80,8
+    EDITTEXT        IDC_FETCHCOUNT,90,20,40,12,ES_AUTOHSCROLL
+    LTEXT           "&Max. Sitzung",IDC_STATIC,5,37,45,8
+    EDITTEXT        IDC_MAXSESSION,90,35,40,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Verwende &ENVELOPE",IDC_USEENVELOPE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,50,85,10
+    CONTROL         "Verwende &BODYSTRUCTURE immer",IDC_USEBODYSTRUCTUREALWAYS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,5,60,115,10
+    CONTROL         "&Vertraue BODYSTRUCTURE",IDC_TRUSTBODYSTRUCTURE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,70,105,10
+    CONTROL         "Entferne gelöschte Nachrichten",IDC_CLOSEFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,80,102,10
+    CONTROL         "Verwende &NAMESPACE",IDC_NAMESPACE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,125,50,75,10
+    CONTROL         "&Persönlich",IDC_PERSONAL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,135,60,45,10
+    CONTROL         "&Andere",IDC_OTHERS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,135,70,45,10
+    CONTROL         "&Geteilt",IDC_SHARED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,135,80,45,10
+END
+
+IDD_SEARCH DIALOG DISCARDABLE  0, 0, 190, 95
+STYLE WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "IMAP4"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Suche nach",IDC_STATIC,5,7,40,8
+    COMBOBOX        IDC_CONDITION,45,5,140,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Ordner",IDC_STATIC,5,22,30,8
+    COMBOBOX        IDC_FOLDER,45,20,140,100,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "&Unterordner einschließen",IDC_RECURSIVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,45,35,140,10
+    CONTROL         "Durchsuche &Nachrichtentext",IDC_SEARCHBODY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,5,50,65,10
+    CONTROL         "IMAP4 &Kommando",IDC_IMAP4COMMAND,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,60,70,10
+    CONTROL         "Erstelle neuen Such&ordner",IDC_NEWFOLDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,5,75,95,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_RECEIVE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 218
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
+    END
+
+    IDD_SEARCH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 183
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "qmimap4.rc"
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

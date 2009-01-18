@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<filters>
+	<filterSet name="POP3 Kopfzeilen">
+		<filter match="@True()">
+			<action name="download">
+				<param name="line">0</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="POP3 Max. 100 Zeilen">
+		<filter match="@True()">
+			<action name="download">
+				<param name="line">100</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="IMAP4 Kopfzeilen">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">header</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="IMAP4 Texte">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">text</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="IMAP4 Alles">
+		<filter match="@True()">
+			<action name="download">
+				<param name="type">all</param>
+			</action>
+		</filter>
+	</filterSet>
+	<filterSet name="NNTP Alles">
+		<filter match="@True()">
+			<action name="download"/>
+		</filter>
+	</filterSet>
+</filters>

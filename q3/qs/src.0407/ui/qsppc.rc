@@ -1,0 +1,249 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resourceppc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "commctrl.h"
+#include "..\..\src\ui\resourceppc.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resourceppc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""commctrl.h""\r\n"
+    "#include ""..\\..\\src\\ui\\resourceppc.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""qs.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Data
+//
+
+IDR_EMPTY RCDATA DISCARDABLE 
+BEGIN
+    0x0065, 0x0000
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_BROWSEFOLDER DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ordner durchsuchen"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Tree1",IDC_FOLDER,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,5,5,127,80
+    PUSHBUTTON      "&Neuer Ordner...",IDC_NEWFOLDER,82,90,50,12
+    DEFPUSHBUTTON   "OK",IDOK,27,105,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,105,50,12
+END
+
+IDD_FOLDERNAME DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ordnername"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Ordnername",IDC_FOLDERNAMELABEL,5,5,38,8
+    EDITTEXT        IDC_FOLDERNAME,5,15,127,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,27,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,35,50,12
+END
+
+IDD_FONT DIALOG DISCARDABLE  0, 0, 137, 153
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Schriftart"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Typ",IDC_FONTFACELABEL,5,7,20,8
+    COMBOBOX        IDC_FONTFACE,30,5,65,100,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "St&il",IDC_FONTSTYLELABEL,5,22,20,8
+    COMBOBOX        IDC_FONTSTYLE,30,20,48,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Größe",IDC_FONTSIZELABEL,5,37,20,8
+    COMBOBOX        IDC_FONTSIZE,30,35,25,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,27,55,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,82,55,50,12
+END
+
+IDD_BROWSEFOLDER_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ordner durchsuchen"
+FONT 9, "Tahoma"
+BEGIN
+    CONTROL         "Tree1",IDC_FOLDER,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_HASLINES | TVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,5,5,172,80
+    PUSHBUTTON      "&Neuer Ordner...",IDC_NEWFOLDER,5,90,50,12
+    DEFPUSHBUTTON   "OK",IDOK,72,90,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,90,50,12
+END
+
+IDD_FOLDERNAME_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Ordnername"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Ordnername",IDC_FOLDERNAMELABEL,5,5,38,8
+    EDITTEXT        IDC_FOLDERNAME,5,15,172,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,72,35,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,35,50,12
+END
+
+IDD_FONT_L DIALOG DISCARDABLE  0, 0, 182, 107
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Schriftart"
+FONT 9, "Tahoma"
+BEGIN
+    LTEXT           "&Typ",IDC_FONTFACELABEL,5,7,20,8
+    COMBOBOX        IDC_FONTFACE,30,5,65,100,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "St&il",IDC_FONTSTYLELABEL,5,22,20,8
+    COMBOBOX        IDC_FONTSTYLE,30,20,48,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Größe",IDC_FONTSIZELABEL,5,37,20,8
+    COMBOBOX        IDC_FONTSIZE,30,35,25,100,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,72,55,50,12
+    PUSHBUTTON      "Abbrechen",IDCANCEL,127,55,50,12
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_BROWSEFOLDER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_FOLDERNAME, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_FONT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 130
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 146
+    END
+
+    IDD_BROWSEFOLDER_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_FOLDERNAME_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_FONT_L, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 175
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 100
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menubar
+//
+
+IDR_OK MENU DISCARDABLE 
+BEGIN
+    MENUITEM "OK",                          IDOK
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_CREATEFOLDER  "Fehler beim Anlegen eines neuen Ordners."
+END
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "qs.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

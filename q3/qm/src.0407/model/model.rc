@@ -1,0 +1,133 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "modelresource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\..\src\model\modelresource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "modelresource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\..\\src\\model\\modelresource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONDITION_SEEN_DESCRIPTION "Nachricht ist gelesen"
+    IDS_CONDITION_UNSEEN_DESCRIPTION "Nachricht ist ungelesen"
+    IDS_CONDITION_MARKED_DESCRIPTION "Nachricht ist markiert"
+    IDS_CONDITION_UNMARKED_DESCRIPTION "Nachricht ist nicht markiert"
+    IDS_CONDITION_DELETED_DESCRIPTION "Nachricht ist Nachricht"
+    IDS_CONDITION_UNDELETED_DESCRIPTION "Nachricht ist nicht gelöscht"
+    IDS_CONDITION_MULTIPART_DESCRIPTION "Nachricht ist Multipart"
+    IDS_CONDITION_JUNK_DESCRIPTION "Nachricht ist Junk"
+    IDS_CONDITION_TRUE_DESCRIPTION "Immer"
+    IDS_CONDITION_CONTAIN_DESCRIPTION "<%0> enthält '%1'"
+    IDS_CONDITION_CONTAIN_FIELD "Feld"
+    IDS_CONDITION_CONTAIN_VALUE "Text"
+    IDS_CONDITION_BEGINWITH_DESCRIPTION "<%0> beginnt mit '%1'"
+    IDS_CONDITION_BEGINWITH_FIELD "Feld"
+    IDS_CONDITION_BEGINWITH_VALUE "Text"
+    IDS_CONDITION_EQUAL_DESCRIPTION "<%0> entspricht '%1'"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONDITION_EQUAL_FIELD "Feld"
+    IDS_CONDITION_EQUAL_VALUE "Text"
+    IDS_CONDITION_MATCH_DESCRIPTION "<%0> entspricht '%1'"
+    IDS_CONDITION_MATCH_FIELD "Feld"
+    IDS_CONDITION_MATCH_VALUE "Regex"
+    IDS_CONDITION_LARGER_DESCRIPTION "Größe von mehr als '%0' Bytes"
+    IDS_CONDITION_LARGER_VALUE "Größe"
+    IDS_CONDITION_SMALLER_DESCRIPTION "Größe von weniger als '%0' Bytes"
+    IDS_CONDITION_SMALLER_VALUE "Größe"
+    IDS_CONDITION_OLDER_DESCRIPTION "Älter als '%0' Tage"
+    IDS_CONDITION_OLDER_VALUE "Tage"
+    IDS_CONDITION_NEWER_DESCRIPTION "Neuer als '%0' Tage"
+    IDS_CONDITION_NEWER_VALUE "Tage"
+    IDS_CONDITION_NEW_DESCRIPTION "Nachricht neu empfangen"
+    IDS_CONDITION_OLD_DESCRIPTION "Nachricht ist nicht neu"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_CONDITIONTYPE_AND   " und "
+    IDS_CONDITIONTYPE_OR    " oder "
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RULEACTION_NONE     "Nichts unternehmen"
+    IDS_RULEACTION_MOVE     "Verschieben nach [%0]"
+    IDS_RULEACTION_COPY     "Kopieren nach [%0]"
+    IDS_RULEACTION_DELETE   "Löschen"
+    IDS_RULEACTION_LABEL    "Kennzeichnen: %1'%0'"
+    IDS_RULEACTION_DELETEDIRECT "Endgültig löschen"
+    IDS_RULEACTION_DELETECACHE "Löschen"
+    IDS_RULEACTION_APPLYMACRO "Makro anwenden: '%0'"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_FOLDER_SEARCH       "Suchen"
+END
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

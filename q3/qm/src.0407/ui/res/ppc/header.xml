@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<header>
+	<line class="mail">
+		<static width="auto" style="bold" showAlways="true">An:</static>
+		<edit>{@FormatAddress(To, 3)}</edit>
+	</line>
+	<line class="mail" hideIfEmpty="cc">
+		<static width="auto" style="bold" showAlways="true">Cc:</static>
+		<edit name="cc">{@FormatAddress(Cc, 3)}</edit>
+	</line>
+	<line class="news">
+		<static width="auto" style="bold" showAlways="true">Newsgruppen:</static>
+		<edit>{Newsgroups}</edit>
+	</line>
+	<line class="news" hideIfEmpty="followup-to">
+		<static width="auto" style="bold" showAlways="true">Nachtrag-An:</static>
+		<edit name="followup-to">{FollowUp-To}</edit>
+	</line>
+	<line class="mail|news">
+		<static width="auto" style="bold" showAlways="true">Von:</static>
+		<edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}">{@FormatAddress(From, 3)}</edit>
+	</line>
+	<line class="mail|news">
+		<static width="auto" style="bold" showAlways="true">Datum:</static>
+		<edit>{@FormatDate(@Date(Date), '%Y4/%M0/%D %h:%m:%s')}</edit>
+	</line>
+	<line class="mail|news">
+		<static width="auto" style="bold" showAlways="true">Betreff:</static>
+		<edit>{@Subject()}</edit>
+	</line>
+	<line hideIfEmpty="attachment" class="mail|news">
+		<static width="auto" style="bold" showAlways="true">Dateianhang:</static>
+		<attachment name="attachment" background="{@If(@Equal(X-QMAIL-AttachmentDeleted, 1), 'ccc7ba', '')}"/>
+	</line>
+	<line class="rss">
+		<static width="auto" style="bold" showAlways="true">Titel:</static>
+		<edit>{@Subject()}</edit>
+	</line>
+	<line class="rss">
+		<static width="auto" style="bold" showAlways="true">Datum:</static>
+		<edit>{@FormatDate(@Date(Date), '%Y4/%M0/%D %h:%m:%s')}</edit>
+	</line>
+	<line class="rss" hideIfEmpty="creator">
+		<static width="auto" style="bold" showAlways="true">Ersteller:</static>
+		<edit name="creator">{X-RSS-Creator}</edit>
+	</line>
+	<line class="rss" hideIfEmpty="category">
+		<static width="auto" style="bold" showAlways="true">Kategorie:</static>
+		<edit name="category">{X-RSS-Category}</edit>
+	</line>
+	<line class="rss" hideIfEmpty="subject">
+		<static width="auto" style="bold" showAlways="true">Betreff:</static>
+		<edit name="subject">{X-RSS-Subject}</edit>
+	</line>
+	<line class="rss">
+		<static width="auto" style="bold" showAlways="true">URL:</static>
+		<edit>{X-RSS-Link}</edit>
+	</line>
+	<line hideIfEmpty="label">
+		<static width="auto" style="bold" showAlways="true">Kennzeichnung:</static>
+		<edit name="label">{@Label()}</edit>
+	</line>
+	<line hideIfEmpty="sign">
+		<static width="auto" style="bold" showAlways="true">Signiert von:</static>
+		<edit name="sign" background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'Verified'), 'f5f6be', @Contain(@Param('Verify'), 'VerifyFailed'), 'ec7b95', '')}">{@Param('SignedBy')}</edit>
+	</line>
+</header>

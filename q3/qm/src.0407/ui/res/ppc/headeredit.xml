@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<headerEdit>
+	<line class="mail">
+		<static width="1max" style="bold" align="right">An:</static>
+		<address field="To" number="0"/>
+	</line>
+	<line class="mail" hideIfNoFocus="true">
+		<static width="1max" style="bold" align="right">Cc:</static>
+		<address field="Cc" number="1" initialFocus="false"/>
+	</line>
+	<line class="mail" hideIfNoFocus="true">
+		<static width="1max" style="bold" align="right">Bcc:</static>
+		<address field="Bcc" number="2" initialFocus="false"/>
+	</line>
+	<line class="news">
+		<static width="1max" style="bold" align="right">Gruppen:</static>
+		<edit type="unstructured" field="Newsgroups" number="3"/>
+	</line>
+	<line class="news" hideIfNoFocus="true">
+		<static width="1max" style="bold" align="right">Nt.-An:</static>
+		<edit type="unstructured" field="Followup-To" number="4" initialFocus="false"/>
+	</line>
+	<line hideIfNoFocus="true">
+		<static width="1max" style="bold" align="right">Betreff:</static>
+		<edit type="unstructured" field="Subject" number="5"/>
+	</line>
+	<line hideIfNoFocus="true">
+		<static width="1max" style="bold" align="right">Anhang:</static>
+		<attachment number="6"/>
+	</line>
+	<line hideIfNoFocus="true">
+		<static width="1max" style="bold" align="right">Konto:</static>
+		<account number="7"/>
+	</line>
+	<line hideIfNoFocus="true">
+		<static width="1max" style="bold" align="right">Sign.:</static>
+		<signature number="8"/>
+	</line>
+</headerEdit>

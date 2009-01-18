@@ -1,0 +1,108 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\..\src\ui\resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\..\\src\\ui\\resource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "#include ""..\\\\net\\\\net.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_LINK                CURSOR  DISCARDABLE     "..\\..\\src\\ui\\res\\link.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BROWSEFOLDER        BITMAP  DISCARDABLE     "..\\..\\src\\ui\\res\\browsefolder.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RAS_OPENPORT        "Öffne port..."
+    IDS_RAS_PORTOPENED      "Port geöffnet."
+    IDS_RAS_CONNECTDEVICE   "Verbinde Gerät..."
+    IDS_RAS_DEVICECONNECTED "Gerät verbunden."
+    IDS_RAS_AUTHENTICATE    "Authentifiziere..."
+    IDS_RAS_AUTHENTICATED   "Authentifiziert."
+    IDS_RAS_CONNECTED       "Verbunden."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_RAS_WAITINGBEFOREDISCONNECTING "Trenne..."
+    IDS_RAS_DISCONNECTING   "Trenne..."
+    IDS_REGULAR             "Normal"
+    IDS_BOLD                "Fett"
+    IDS_ITALIC              "Kursiv"
+    IDS_BOLDITALIC          "Fett u. kursiv"
+END
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+#include "..\\net\\net.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

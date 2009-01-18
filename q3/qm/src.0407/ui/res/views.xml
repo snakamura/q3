@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<views>
+	<view class="mail">
+		<columns>
+			<column indent="false" line="false" icon="true" align="left" sort="number">
+				<title></title>
+				<macro>%Flags</macro>
+				<width>28</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="date">
+				<title>Datum</title>
+				<macro>%Date</macro>
+				<width>80</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="text">
+				<title>Von / An</title>
+				<macro>%FromTo</macro>
+				<width>120</width>
+			</column>
+			<column indent="true" line="true" icon="false" align="left" sort="text">
+				<title>Betreff</title>
+				<macro>%Subject</macro>
+				<width>250</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="right" sort="number">
+				<title>Größe</title>
+				<macro>%Size</macro>
+				<width>40</width>
+			</column>
+		</columns>
+		<focus>0</focus>
+		<sort direction="ascending" thread="false">1</sort>
+		<mode quote="true"/>
+		<mode2 quote="true"/>
+	</view>
+	<view class="news">
+		<columns>
+			<column indent="false" line="false" icon="true" align="left" sort="number">
+				<title></title>
+				<macro>%Flags</macro>
+				<width>28</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="date">
+				<title>Datum</title>
+				<macro>%Date</macro>
+				<width>80</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="text">
+				<title>Von / An</title>
+				<macro>%FromTo</macro>
+				<width>120</width>
+			</column>
+			<column indent="true" line="true" icon="false" align="left" sort="text">
+				<title>Betreff</title>
+				<macro>%Subject</macro>
+				<width>250</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="right" sort="number">
+				<title>Größe</title>
+				<macro>%Size</macro>
+				<width>40</width>
+			</column>
+		</columns>
+		<focus>0</focus>
+		<sort direction="ascending" thread="false">1</sort>
+		<mode quote="true"/>
+		<mode2 quote="true"/>
+	</view>
+	<view class="rss">
+		<columns>
+			<column indent="false" line="false" icon="true" align="left" sort="number">
+				<title></title>
+				<macro>%Flags</macro>
+				<width>28</width>
+			</column>
+			<column indent="false" line="false" icon="false" align="left" sort="date">
+				<title>Datum</title>
+				<macro>%Date</macro>
+				<width>80</width>
+			</column>
+			<column indent="true" line="true" icon="false" align="left" sort="text">
+				<title>Titel</title>
+				<macro>%Subject</macro>
+				<width>250</width>
+			</column>
+			<column indent="true" line="true" icon="false" align="left" sort="text">
+				<title>Betreff</title>
+				<macro>X-RSS-Subject</macro>
+				<width>100</width>
+			</column>
+		</columns>
+		<focus>0</focus>
+		<sort direction="ascending" thread="false">1</sort>
+		<mode quote="true" htmlonline="true" internetzone="true"/>
+		<mode2 quote="true" htmlonline="true" internetzone="true"/>
+	</view>
+</views>

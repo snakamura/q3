@@ -1,0 +1,157 @@
+//Microsoft eMbedded Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+#include "..\src\resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_GER)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "#include ""..\\src\\resource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""res\\\\version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_INITIALIZE          "Initialisiere..."
+    IDS_LOOKUP              "Schlage Server nach..."
+    IDS_CONNECTING          "Verbinde..."
+    IDS_CONNECTED           "Verbunden"
+    IDS_AUTHENTICATING      "Authentifiziere..."
+    IDS_SELECTFOLDER        "Wähle Ordner..."
+    IDS_CLOSEFOLDER         "Schließe Ordner..."
+    IDS_UPDATEMESSAGES      "Aktualisiere Nachrichten..."
+    IDS_DOWNLOADMESSAGESDATA "Lade Nachrichtendaten..."
+    IDS_SETFLAGS            "Setze Markierungen..."
+    IDS_DOWNLOADMESSAGES    "Lade Nachrichten..."
+    IDS_APPLYOFFLINEJOBS    "Führe Offline-Aufträge aus..."
+    IDS_DOWNLOADRESERVEDMESSAGES
+                            "Lade belegte Nachrichten..."
+    IDS_IMAP4SEARCH         "IMAP4"
+    IDS_MANAGEJUNK          "Bearbeite Junk Nachrichten..."
+    IDS_FILTERJUNK          "Filtere Junk Nachrichten..."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_IMAP4               "IMAP4"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_MESSAGE       "IMAP4 Fehler."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_GREETING      "Fehler bei der Begrüßung."
+    IDS_ERROR_LOGIN         "Fehler beim LOGIN-Kommando."
+    IDS_ERROR_CAPABILITY    "Fehler beim CAPABILITY-Kommando."
+    IDS_ERROR_FETCH         "Fehler beim FETCH-Kommando."
+    IDS_ERROR_STORE         "Fehler beim STORE-Kommando."
+    IDS_ERROR_SELECT        "Fehler beim SELECT-Kommando."
+    IDS_ERROR_LSUB          "Fehler beim LSUB-Kommando."
+    IDS_ERROR_LIST          "Fehler beim LIST-Kommando."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_COPY          "Fehler beim COPY-Kommando."
+    IDS_ERROR_APPEND        "Fehler beim APPEND-Kommando."
+    IDS_ERROR_NOOP          "Fehler beim NOOP-Kommando."
+    IDS_ERROR_CREATE        "Fehler beim CREATE-Kommando."
+    IDS_ERROR_DELETE        "Fehler beim DELETE-Kommando."
+    IDS_ERROR_RENAME        "Fehler beim RENAME-Kommando."
+    IDS_ERROR_SUBSCRIBE     "Fehler beim SUBSCRIBE-Kommando."
+    IDS_ERROR_UNSUBSCRIBE   "Fehler beim UNSUBSCRIBE-Kommando."
+    IDS_ERROR_CLOSE         "Fehler beim CLOSE-Kommando."
+    IDS_ERROR_EXPUNGE       "Fehler beim EXPUNGE-Kommando."
+    IDS_ERROR_AUTHENTICATE  "Fehler beim AUTHENTICATE-Kommando."
+    IDS_ERROR_SEARCH        "Fehler beim SEARCH-Kommando."
+    IDS_ERROR_NAMESPACE     "Fehler beim NAMESPACE-Kommando."
+    IDS_ERROR_LOGOUT        "Fehler beim LOGOUT-Kommando."
+    IDS_ERROR_STARTTLS      "Fehler beim STARTTLS-Kommando."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_INITIALIZE    "Fehler beim Initialisieren."
+    IDS_ERROR_CONNECT       "Fehler beim Verbinden."
+    IDS_ERROR_SELECTSOCKET  "Fehler beim Socket-Auswählen."
+    IDS_ERROR_TIMEOUT       "Zeitlimit überschritten."
+    IDS_ERROR_DISCONNECT    "Verbindung durch Gegenstelle getrennt."
+    IDS_ERROR_RECEIVE       "Fehler beim Empfangen."
+    IDS_ERROR_PARSE         "Fehler beim analysieren der Antwort."
+    IDS_ERROR_OTHER         "Unspezifizierter Fehler."
+    IDS_ERROR_INVALIDSOCKET "Ungültiger Socket."
+    IDS_ERROR_SEND          "Fehler beim Senden."
+    IDS_ERROR_RESPONSE      "Fehler-Antwort empfangen."
+    IDS_ERROR_SSL           "Fehler beim Initialisieren von SSL."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ERROR_SAVE          "Fehler beim Speichern der Nachrichten."
+    IDS_ERROR_APPLYRULES    "Fehler beim Anwenden der Regeln."
+    IDS_ERROR_MANAGEJUNK    "Fehler beim Bearbeiten der Junk Nachrichten."
+    IDS_ERROR_FILTERJUNK    "Fehler beim Filtern der Junk Nachrichten."
+END
+
+#endif    // German resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "res\\version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
