@@ -140,7 +140,7 @@
 					<separator/>
 					<menuitem text="Largest" action="ViewZoom" param="4"/>
 					<menuitem text="Larger" action="ViewZoom" param="3"/>
-					<menuitem text="Midium" action="ViewZoom" param="2"/>
+					<menuitem text="Medium" action="ViewZoom" param="2"/>
 					<menuitem text="Smaller" action="ViewZoom" param="1"/>
 					<menuitem text="Smallest" action="ViewZoom" param="0"/>
 					<menuitem text="Default" action="ViewZoom"/>
@@ -319,7 +319,7 @@
 					<separator/>
 					<menuitem text="Largest" action="ViewZoom" param="4"/>
 					<menuitem text="Larger" action="ViewZoom" param="3"/>
-					<menuitem text="Midium" action="ViewZoom" param="2"/>
+					<menuitem text="Medium" action="ViewZoom" param="2"/>
 					<menuitem text="Smaller" action="ViewZoom" param="1"/>
 					<menuitem text="Smallest" action="ViewZoom" param="0"/>
 					<menuitem text="Default" action="ViewZoom"/>

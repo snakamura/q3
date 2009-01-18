@@ -99,7 +99,7 @@ BEGIN
                             "Error occurred while getting Location: header."
     IDS_ERROR_INVALIDREDIRECTLOCATION "Invalid redirect location URL."
     IDS_ERROR_SUBSCRIBE     "Could not subscribe to the feed."
-    IDS_ERROR_SAVE          "Error occuered while saving messages."
+    IDS_ERROR_SAVE          "Error occurred while saving messages."
 END
 
 #endif    // âpåÍ (ÉAÉÅÉäÉJ) resources

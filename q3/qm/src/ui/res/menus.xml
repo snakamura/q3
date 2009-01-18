@@ -109,7 +109,7 @@
 				<separator/>
 				<menuitem text="Lar&amp;gest" action="ViewZoom" param="4"/>
 				<menuitem text="&amp;Larger" action="ViewZoom" param="3"/>
-				<menuitem text="&amp;Midium" action="ViewZoom" param="2"/>
+				<menuitem text="&amp;Medium" action="ViewZoom" param="2"/>
 				<menuitem text="&amp;Smaller" action="ViewZoom" param="1"/>
 				<menuitem text="Sm&amp;allest" action="ViewZoom" param="0"/>
 				<menuitem text="&amp;Default" action="ViewZoom"/>
@@ -269,7 +269,7 @@
 				<separator/>
 				<menuitem text="Lar&amp;gest" action="ViewZoom" param="4"/>
 				<menuitem text="&amp;Larger" action="ViewZoom" param="3"/>
-				<menuitem text="&amp;Midium" action="ViewZoom" param="2"/>
+				<menuitem text="&amp;Medium" action="ViewZoom" param="2"/>
 				<menuitem text="&amp;Smaller" action="ViewZoom" param="1"/>
 				<menuitem text="Sm&amp;allest" action="ViewZoom" param="0"/>
 				<menuitem text="&amp;Default" action="ViewZoom"/>
