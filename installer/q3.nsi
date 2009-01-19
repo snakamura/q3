@@ -223,6 +223,21 @@ Section "Japanese" Japanese
 SectionEnd
 
 
+Section "German" German
+
+  SetOutPath $INSTDIR
+  
+  File ..\bin\win\${CPU}\${CODE}\release\qm${SUFFIX}.dll.0407.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qs${SUFFIX}.dll.0407.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmpop3${SUFFIX}.dll.0407.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmsmtp${SUFFIX}.dll.0407.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmimap4${SUFFIX}.dll.0407.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmnntp${SUFFIX}.dll.0407.mui
+  File ..\bin\win\${CPU}\${CODE}\release\qmrss${SUFFIX}.dll.0407.mui
+  
+SectionEnd
+
+
 Section "Uninstall"
   
 !ifdef X64
@@ -348,6 +363,7 @@ LangString DESC_SecJunk ${LANG_ENGLISH} "Junk filter support."
 LangString DESC_SecScript ${LANG_ENGLISH} "Script support."
 LangString DESC_SecZip ${LANG_ENGLISH} "Enable archiving attachments."
 LangString DESC_SecJapanese ${LANG_ENGLISH} "Japanese UI support."
+LangString DESC_SecGerman ${LANG_ENGLISH} "German UI support."
 LangString DOCUMENT ${LANG_ENGLISH} "Document"
 LangString MAILBOXFOLDER_TITLE ${LANG_ENGLISH} "Choose Mailbox Location"
 LangString MAILBOXFOLDER_SUBTITLE ${LANG_ENGLISH} "Choose the folder in which to store mail data."
@@ -367,6 +383,7 @@ LangString DESC_SecJunk ${LANG_JAPANESE} "スパムフィルタのサポート"
 LangString DESC_SecScript ${LANG_JAPANESE} "スクリプトのサポート"
 LangString DESC_SecZip ${LANG_JAPANESE} "添付ファイルの圧縮のサポート"
 LangString DESC_SecJapanese ${LANG_JAPANESE} "日本語UIのサポート"
+LangString DESC_SecGerman ${LANG_JAPANESE} "ドイツ語UIのサポート"
 LangString DOCUMENT ${LANG_JAPANESE} "ドキュメント"
 LangString MAILBOXFOLDER_TITLE ${LANG_JAPANESE} "メールボックスの場所を選んでください"
 LangString MAILBOXFOLDER_SUBTITLE ${LANG_JAPANESE} "メールのデータを置くフォルダを選択してください。"
@@ -387,4 +404,5 @@ LangString OPEN_WITH_QMAIL3 ${LANG_JAPANESE} "&QMAIL3で開く"
   !insertmacro MUI_DESCRIPTION_TEXT ${Script} $(DESC_SecScript)
   !insertmacro MUI_DESCRIPTION_TEXT ${Zip} $(DESC_SecZip)
   !insertmacro MUI_DESCRIPTION_TEXT ${Japanese} $(DESC_SecJapanese)
+  !insertmacro MUI_DESCRIPTION_TEXT ${German} $(DESC_SecGerman)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
