@@ -172,14 +172,11 @@ bool qmsmtp::Smtp::connect(const WCHAR* pwszHost,
 			string_ptr strKey(allocString(nUserNameLen*2 + nPasswordLen + 10));
 			CHAR* pKey = strKey.get();
 			strcpy(pKey, strUserName.get());
-			pKey += nUserNameLen;
-			*pKey++ = '\0';
+			pKey += nUserNameLen + 1;
 			strcpy(pKey, strUserName.get());
-			pKey += nUserNameLen;
-			*pKey++ = '\0';
+			pKey += nUserNameLen + 1;
 			strcpy(pKey, strPassword.get());
 			pKey += nPasswordLen;
-			*pKey++ = '\0';
 			
 			malloc_size_ptr<unsigned char> p(encoder.encode(
 				reinterpret_cast<unsigned char*>(strKey.get()),
