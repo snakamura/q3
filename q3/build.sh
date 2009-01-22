@@ -79,6 +79,7 @@ install)
 	cp ../misc/THIRDPARTYLICENSE "$INSTALLDIR"
 	cp ../misc/README.en.txt "$INSTALLDIR"
 	cp ../misc/README.ja.txt "$INSTALLDIR"
+	cp ../misc/ACKNOWLEDGES "$INSTALLDIR"
 	;;
 
 install-mui)
@@ -211,7 +212,8 @@ zip)
 		../LICENSE \
 		../misc/THIRDPARTYLICENSE \
 		../misc/README.en.txt \
-		../misc/README.ja.txt
+		../misc/README.ja.txt \
+		../misc/ACKNOWLEDGES
 	zip -j "$DISTDIR/q3u-win-x64-ja-$SUFFIX.zip" \
 		*/bin/win/x64/unicode/release/*.exe \
 		*/lib/win/x64/unicode/release/*.dll \
@@ -227,7 +229,8 @@ zip)
 		../LICENSE \
 		../misc/THIRDPARTYLICENSE \
 		../misc/README.en.txt \
-		../misc/README.ja.txt
+		../misc/README.ja.txt \
+		../misc/ACKNOWLEDGES
 	
 	for t in $WCETARGETS; do
 		zip -j "$DISTDIR/q3u-`printf $t | tr . -`-$SUFFIX.zip" \
@@ -241,7 +244,8 @@ zip)
 			../LICENSE \
 			../misc/THIRDPARTYLICENSE \
 			../misc/README.en.txt \
-			../misc/README.ja.txt
+			../misc/README.ja.txt \
+			../misc/ACKNOWLEDGES
 	done
 	
 	(cd ../docs; make zip)

@@ -81,6 +81,7 @@ Section "Core (required)" Core
   File ..\misc\THIRDPARTYLICENSE
   File ..\misc\README.en.txt
   File ..\misc\README.ja.txt
+  File ..\misc\ACKNOWLEDGES
   
 !ifdef X64
   SetRegView 64
@@ -308,6 +309,7 @@ Section "Uninstall"
   Delete $INSTDIR\THIRDPARTYLICENSE
   Delete $INSTDIR\README.en.txt
   Delete $INSTDIR\README.ja.txt
+  Delete $INSTDIR\ACKNOWLEDGES
   Delete $INSTDIR\uninstall.exe
   
   RMDir "$INSTDIR"
