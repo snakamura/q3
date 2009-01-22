@@ -6,14 +6,16 @@
 		<button image="2" action="MessageCreate" param="reply_all" text="Allen antworten"/>
 		<button image="3" action="MessageCreate" param="forward" text="Weiterleiten"/>
 		<separator/>
-		<button image="5" action="EditDelete" text="Löschen"/>
+		<button image="5" action="EditDelete" text="LÃ¶schen"/>
 		<separator/>
+		<button image="20" action="ViewPrevMessage" text="Vorherige"/>
+		<button image="21" action="ViewNextMessage" text="NÃ¤chste"/>
 		<button image="22" action="ViewNextUnseenMessage" text="Ungelesen"/>
 		<separator/>
 		<button image="6" action="MessageSearch" text="Suche"/>
 		<separator/>
 		<button image="7" action="ToolSync" text="Sync"/>
-		<button image="8" action="ToolGoround" param="@0" text="Aufträge"/>
+		<button image="8" action="ToolGoround" param="@0" text="AuftrÃ¤ge"/>
 	</toolbar>
 	<toolbar name="messageframe" showText="false">
 		<button image="0" action="MessageCreate" param="new" text="Neu"/>
@@ -23,8 +25,6 @@
 		<separator/>
 		<button image="5" action="EditDelete" text="Delete"/>
 		<separator/>
-		<button image="20" action="ViewPrevMessage" text="Vorherige"/>
-		<button image="21" action="ViewNextMessage" text="Nächste"/>
 		<button image="22" action="ViewNextUnseenMessage" text="Ungelesen"/>
 	</toolbar>
 	<toolbar name="editframe" showText="false">
@@ -33,17 +33,17 @@
 		<separator/>
 		<button image="10" action="EditCut" text="Ausschneiden"/>
 		<button image="11" action="EditCopy" text="Kopieren"/>
-		<button image="12" action="EditPaste" text="Einfügen"/>
-		<button image="13" action="EditUndo" text="Rückgängig"/>
+		<button image="12" action="EditPaste" text="EinfÃ¼gen"/>
+		<button image="13" action="EditUndo" text="RÃ¼ckgÃ¤ngig"/>
 		<button image="14" action="EditRedo" text="Wiederholen"/>
 		<separator/>
 		<button image="18" action="ToolSelectAddress" text="Adressbuch"/>
-		<button image="17" action="ToolInsertText" param="@0" text="Text einfügen"/>
+		<button image="17" action="ToolInsertText" param="@0" text="Text einfÃ¼gen"/>
 		<button image="19" action="ToolAttachment" text="Dateianhang"/>
 	</toolbar>
 	<toolbar name="addressbookframe" showText="false">
 		<button image="23" action="AddressNew" text="Neu"/>
 		<button image="24" action="AddressEdit" text="Bearbeiten"/>
-		<button image="5" action="AddressDelete" text="Löschen"/>
+		<button image="5" action="AddressDelete" text="LÃ¶schen"/>
 	</toolbar>
 </toolbars>

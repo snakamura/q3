@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <menus>
 	<menubar name="mainframe">
 		<popupmenu text="Nachricht">
@@ -332,10 +332,10 @@
 					<menuitem text="Nichts unternehmen" action="ViewFit" param="none"/>
 				</popupmenu>
 				<separator/>
-			<popupmenu text="Show Steuerelemente">
-				<menuitem text="Show Werkzeugleiste" action="ViewShowToolbar"/>
-				<menuitem text="Show Statusleiste" action="ViewShowStatusBar"/>
-				<menuitem text="Show Kopfzeilen" action="ViewShowHeader"/>
+			<popupmenu text="Zeige Steuerelemente">
+				<menuitem text="Zeige Werkzeugleiste" action="ViewShowToolbar"/>
+				<menuitem text="Zeige Statusleiste" action="ViewShowStatusBar"/>
+				<menuitem text="Zeige Kopfzeilen" action="ViewShowHeader"/>
 				</popupmenu>
 			</popupmenu>
 		<popupmenu text="Nachricht">
@@ -432,9 +432,9 @@
 			<menuitem text="Ersetzen..." action="EditReplace"/>
 		</popupmenu>
 		<popupmenu text="Ansicht">
-			<popupmenu text="Show Steuerelemente">
-				<menuitem text="Show Werkzeugleiste" action="ViewShowToolbar"/>
-				<menuitem text="Show Statusleiste" action="ViewShowStatusBar"/>
+			<popupmenu text="Zeige Steuerelemente">
+				<menuitem text="Zeige Werkzeugleiste" action="ViewShowToolbar"/>
+				<menuitem text="Zeige Statusleiste" action="ViewShowStatusBar"/>
 			</popupmenu>
 		</popupmenu>
 		<popupmenu text="Extras">
@@ -503,9 +503,9 @@
 			<separator/>
 			<menuitem text="Aktualisieren" action="ViewRefresh"/>
 			<separator/>
-			<popupmenu text="Show Steuerelemente">
-				<menuitem text="Show Werkzeugleiste" action="ViewShowToolbar"/>
-				<menuitem text="Show Statusleiste" action="ViewShowStatusBar"/>
+			<popupmenu text="Zeige Steuerelemente">
+				<menuitem text="Zeige Werkzeugleiste" action="ViewShowToolbar"/>
+				<menuitem text="Zeige Statusleiste" action="ViewShowStatusBar"/>
 				</popupmenu>
 			</popupmenu>
 		</popupmenu>
