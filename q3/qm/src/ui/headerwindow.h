@@ -309,6 +309,7 @@ public:
 public:
 	virtual unsigned int getHeight(unsigned int nWidth,
 								   unsigned int nFontHeight) const;
+	virtual unsigned int getPreferredWidth() const;
 
 public:
 	virtual bool isFocusItem() const;

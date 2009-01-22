@@ -900,6 +900,11 @@ unsigned int qm::EditHeaderItem::getHeight(unsigned int nWidth,
 	}
 }
 
+unsigned int qm::EditHeaderItem::getPreferredWidth() const
+{
+	return UIUtil::getPreferredWidth(getHandle(), true);
+}
+
 bool qm::EditHeaderItem::isFocusItem() const
 {
 	return true;
