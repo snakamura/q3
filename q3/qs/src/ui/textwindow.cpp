@@ -3545,6 +3545,15 @@ LRESULT qs::TextWindow::onChar(UINT nChar,
 	}
 #endif
 	
+	if (nChar == 0x08) {
+		DeleteTextFlag flag = DELETETEXTFLAG_DELETEBACKWARDCHAR;
+		if (::GetKeyState(VK_CONTROL) < 0 &&
+			(!pImpl_->bAtok_ || !::ImmGetOpenStatus(pImpl_->hImc_)))
+			flag = DELETETEXTFLAG_DELETEBACKWARDWORD;
+		pImpl_->deleteText(flag);
+		return 0;
+	}
+	
 	if (c == L'\r')
 		c = L'\n';
 	
@@ -3723,15 +3732,7 @@ LRESULT qs::TextWindow::onKeyDown(UINT nKey,
 								  UINT nRepeat,
 								  UINT nFlags)
 {
-	if (nKey == VK_BACK) {
-		DeleteTextFlag flag = DELETETEXTFLAG_DELETEBACKWARDCHAR;
-		if (::GetKeyState(VK_CONTROL) < 0 &&
-			(!pImpl_->bAtok_ || !::ImmGetOpenStatus(pImpl_->hImc_)))
-			flag = DELETETEXTFLAG_DELETEBACKWARDWORD;
-		pImpl_->deleteText(flag);
-		return 0;
-	}
-	else if (nKey == VK_DELETE) {
+	if (nKey == VK_DELETE) {
 		pImpl_->deleteText(::GetKeyState(VK_CONTROL) < 0 ?
 			DELETETEXTFLAG_DELETEWORD : DELETETEXTFLAG_DELETECHAR);
 		return 0;
