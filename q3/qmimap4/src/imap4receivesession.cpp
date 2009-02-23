@@ -483,7 +483,7 @@ bool qmimap4::Imap4ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFi
 			const SyncFilter* pFilter = 0;
 			if (pFilterSet_) {
 				Imap4SyncFilterCallback callback(pDocument_, pAccount_,
-					pFolder_, &msg, nUid, nSize, nTextSize,
+					pSubAccount_, pFolder_, &msg, nUid, nSize, nTextSize,
 					pProfile_, pGlobalVariable_, pSession_);
 				pFilter = pFilterSet_->getFilter(&callback);
 				if (pFilter) {
@@ -1355,7 +1355,7 @@ bool qmimap4::Imap4ReceiveSession::applyRules(const MessageDataList& l,
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
 	return pRuleManager->applyAuto(pFolder_, &listMessagePtr,
-		pDocument_, pProfile_, nFlags, &callback);
+		pSubAccount_, pDocument_, pProfile_, nFlags, &callback);
 }
 
 bool qmimap4::Imap4ReceiveSession::processCapabilityResponse(ResponseCapability* pCapability)
@@ -1664,6 +1664,7 @@ std::auto_ptr<ReceiveSessionUI> qmimap4::Imap4ReceiveSessionFactory::createUI()
 
 qmimap4::Imap4SyncFilterCallback::Imap4SyncFilterCallback(Document* pDocument,
 														  Account* pAccount,
+														  SubAccount* pSubAccount,
 														  NormalFolder* pFolder,
 														  Message* pMessage,
 														  unsigned int nUid,
@@ -1674,6 +1675,7 @@ qmimap4::Imap4SyncFilterCallback::Imap4SyncFilterCallback(Document* pDocument,
 														  Imap4ReceiveSession* pSession) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
+	pSubAccount_(pSubAccount),
 	pFolder_(pFolder),
 	pMessage_(pMessage),
 	nUid_(nUid),
@@ -1708,7 +1710,7 @@ std::auto_ptr<MacroContext> qmimap4::Imap4SyncFilterCallback::getMacroContext()
 			pMessage_, nUid_, nSize_, nTextSize_));
 	
 	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
-		pMessage_, pAccount_, MessageHolderList(), pFolder_,
+		pMessage_, pAccount_, pSubAccount_, MessageHolderList(), pFolder_,
 		pDocument_, 0, 0, pProfile_, 0, MacroContext::FLAG_NONE,
 		SECURITYMODE_NONE, 0, pGlobalVariable_));
 }

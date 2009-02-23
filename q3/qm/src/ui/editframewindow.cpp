@@ -980,7 +980,8 @@ bool qm::EditFrameWindowManager::open(std::auto_ptr<EditMessage> pEditMessage)
 	
 	const Macro* pMacro = pEditMessage2->getEditMacro();
 	if (pMacro) {
-		MacroContext context(0, 0, pEditMessage2->getAccount(), MessageHolderList(),
+		MacroContext context(0, 0, pEditMessage2->getAccount(),
+			pEditMessage2->getSubAccount(), MessageHolderList(),
 			0, pDocument_, pFrame2->getActionInvoker(), pFrame2->getHandle(),
 			pProfile_, 0, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 			pSecurityModel_->getSecurityMode(), 0, 0);

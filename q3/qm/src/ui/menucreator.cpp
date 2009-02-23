@@ -1165,8 +1165,8 @@ wstring_ptr qm::MacroMenuCreator::evalMacro(const Macro* pMacro) const
 	}
 	
 	MacroVariableHolder globalVariable;
-	MacroContext context(pmh, pMessage, pAccount, l, pFolder,
-		pDocument_, 0, 0, pProfile_, 0, MacroContext::FLAG_UITHREAD,
+	MacroContext context(pmh, pMessage, pAccount, pAccount->getCurrentSubAccount(),
+		l, pFolder, pDocument_, 0, 0, pProfile_, 0, MacroContext::FLAG_UITHREAD,
 		nSecurityMode, 0, &globalVariable);
 	MacroValuePtr pValue(pMacro->value(&context));
 	if (!pValue.get())

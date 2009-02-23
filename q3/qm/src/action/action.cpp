@@ -1464,8 +1464,9 @@ bool qm::FileExportAction::writeMessage(OutputStream* pStream,
 	if (!pMessage)
 		return false;
 	
+	Account* pAccount = pEnum->getAccount();
 	TemplateContext context(pmh, pMessage, MessageHolderList(), pEnum->getFolder(),
-		pEnum->getAccount(), pDocument_, pActionInvoker_, hwnd_,
+		pAccount, pAccount->getCurrentSubAccount(), pDocument_, pActionInvoker_, hwnd_,
 		pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 	
@@ -2366,8 +2367,9 @@ bool qm::FilePrintAction::print(MessageEnumerator* pEnum,
 			return false;
 	}
 	
-	TemplateContext context(pmh, pMessage, listSelected, pFolder, pAccount,
-		pDocument_, pActionInvoker_, hwnd_, pEncodingModel_->getEncoding(),
+	TemplateContext context(pmh, pMessage, listSelected, pFolder,
+		pAccount, pAccount->getCurrentSubAccount(), pDocument_,
+		pActionInvoker_, hwnd_, pEncodingModel_->getEncoding(),
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 	
@@ -4534,7 +4536,8 @@ bool qm::MessageMacroAction::eval(const Macro* pMacro,
 			if (!pMessage)
 				return false;
 		}
-		MacroContext context(pmh, pMessage, pEnum->getAccount(),
+		Account* pAccount = pEnum->getAccount();
+		MacroContext context(pmh, pMessage, pAccount, pAccount->getCurrentSubAccount(),
 			listSelected, pEnum->getFolder(), pDocument_, pActionInvoker_, hwnd_, pProfile_, 0,
 			MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD | MacroContext::FLAG_MODIFY,
 			nSecurityMode, 0, pGlobalVariable);

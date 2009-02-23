@@ -418,6 +418,7 @@ public:
 	RuleContext(const MessageHolderList& l,
 				Document* pDocument,
 				Account* pAccount,
+				SubAccount* pSubAccount,
 				Folder* pFolder,
 				const ActionInvoker* pActionInvoker,
 				HWND hwnd,
@@ -433,6 +434,7 @@ public:
 	const MessageHolderList& getMessageHolderList() const;
 	Document* getDocument() const;
 	Account* getAccount() const;
+	SubAccount* getSubAccount() const;
 	Folder* getFolder() const;
 	const ActionInvoker* getActionInvoker() const;
 	HWND getWindow() const;
@@ -454,6 +456,7 @@ private:
 	const MessageHolderList& listMessageHolder_;
 	Document* pDocument_;
 	Account* pAccount_;
+	SubAccount* pSubAccount_;
 	Folder* pFolder_;
 	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;

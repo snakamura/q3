@@ -72,12 +72,14 @@ public:
 					 RuleCallback* pCallback);
 	bool applyAuto(Folder* pFolder,
 				   MessagePtrList* pList,
+				   SubAccount* pSubAccount,
 				   Document* pDocument,
 				   qs::Profile* pProfile,
 				   unsigned int nAutoFlags,
 				   RuleCallback* pCallback);
 	bool applyActive(Folder* pFolder,
 					 const MessageHolderList& l,
+					 SubAccount* pSubAccount,
 					 Document* pDocument,
 					 const ActionInvoker* pActionInvoker,
 					 HWND hwnd,

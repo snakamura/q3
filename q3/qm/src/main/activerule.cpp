@@ -101,10 +101,16 @@ unsigned int qm::ActiveRuleInvoker::applyRules(Folder* pFolder,
 											   const MessageHolderList& listMessageHolder,
 											   bool bBackground)
 {
+	// Use the current subaccount here is not a good idea
+	// because this method may be invoked while applying rules
+	// background, in which case the subaccount which was used to
+	// sync should be used.
+	SubAccount* pSubAccount = pFolder->getAccount()->getCurrentSubAccount();
+	
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	unsigned int nResultFlags = 0;
-	if (!pRuleManager->applyActive(pFolder, listMessageHolder, pDocument_,
-		bBackground ? 0 : pActionInvoker_, hwnd_, pProfile_,
+	if (!pRuleManager->applyActive(pFolder, listMessageHolder, pSubAccount,
+		pDocument_, bBackground ? 0 : pActionInvoker_, hwnd_, pProfile_,
 		pSecurityModel_->getSecurityMode(), bBackground, &nResultFlags))
 		nResultFlags |= Account::RESULTFLAG_ALL;
 	return nResultFlags;

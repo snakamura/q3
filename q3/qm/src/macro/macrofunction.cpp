@@ -254,23 +254,18 @@ MacroValuePtr qm::MacroFunctionAccount::value(MacroContext* pContext) const
 		bSub = pValue->boolean();
 	}
 	
-	if (bSub && !pContext->isFlag(MacroContext::FLAG_UITHREAD))
-		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
-	
-	Account* pAccount = pContext->getAccount();
-	if (!pAccount)
-		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
-	
-	const WCHAR* pwszName = 0;
 	if (bSub) {
-		SubAccount* pSubAccount = pAccount->getCurrentSubAccount();
-		pwszName = pSubAccount->getName();
+		SubAccount* pSubAccount = pContext->getSubAccount();
+		if (!pSubAccount)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
+		return MacroValueFactory::getFactory().newString(pSubAccount->getName());
 	}
 	else {
-		pwszName = pAccount->getName();
+		Account* pAccount = pContext->getAccount();
+		if (!pAccount)
+			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
+		return MacroValueFactory::getFactory().newString(pAccount->getName());
 	}
-	
-	return MacroValueFactory::getFactory().newString(pwszName);
 }
 
 const WCHAR* qm::MacroFunctionAccount::getName() const
@@ -2632,7 +2627,7 @@ MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 	
 	size_t nSize = getArgSize();
 	
-	if (nSize < 2 && !pContext->isFlag(MacroContext::FLAG_UITHREAD))
+	if (nSize == 1 && !pContext->isFlag(MacroContext::FLAG_UITHREAD))
 		return error(*pContext, MacroErrorHandler::CODE_INVALIDTHREAD);
 	
 	ARG_IF(pValueSubAccount, 1, nSize);
@@ -2641,24 +2636,25 @@ MacroValuePtr qm::MacroFunctionI::value(MacroContext* pContext) const
 		wstrSubAccount = pValueSubAccount->string();
 	
 	Account* pAccount = 0;
+	SubAccount* pSubAccount = 0;
 	if (nSize > 0) {
 		ARG(pValue, 0);
 		MacroValue::String wstrAccount(pValue->string());
 		pAccount = pContext->getDocument()->getAccount(wstrAccount.get());
 		if (!pAccount)
 			return error(*pContext, MacroErrorHandler::CODE_UNKNOWNACCOUNT);
+		
+		if (wstrSubAccount.get())
+			pSubAccount = pAccount->getSubAccount(wstrSubAccount.get());
+		if (!pSubAccount)
+			pSubAccount = pAccount->getCurrentSubAccount();
 	}
 	else {
 		pAccount = pContext->getAccount();
 		if (!pAccount)
 			return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
+		pSubAccount = pContext->getSubAccount();
 	}
-	
-	SubAccount* pSubAccount = 0;
-	if (wstrSubAccount.get())
-		pSubAccount = pAccount->getSubAccount(wstrSubAccount.get());
-	if (!pSubAccount)
-		pSubAccount = pAccount->getCurrentSubAccount();
 	
 	AddressParser address(pSubAccount->getSenderName(),
 		pSubAccount->getSenderAddress());
@@ -2738,11 +2734,11 @@ MacroValuePtr qm::MacroFunctionIdentity::value(MacroContext* pContext) const
 	if (!checkArgSize(pContext, 0))
 		return MacroValuePtr();
 	
-	Account* pAccount = pContext->getAccount();
-	if (!pAccount)
+	SubAccount* pSubAccount = pContext->getSubAccount();
+	if (!pSubAccount)
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
 	
-	const WCHAR* pwszIdentity = pAccount->getCurrentSubAccount()->getIdentity();
+	const WCHAR* pwszIdentity = pSubAccount->getIdentity();
 	if (!pwszIdentity)
 		pwszIdentity = L"";
 	
@@ -3233,9 +3229,9 @@ MacroValuePtr qm::MacroFunctionLoad::value(MacroContext* pContext) const
 		
 		TemplateContext context(pContext->getMessageHolder(), pContext->getMessage(),
 			pContext->getSelectedMessageHolders(), pContext->getFolder(),
-			pContext->getAccount(), pContext->getDocument(), pContext->getActionInvoker(),
-			pContext->getWindow(), pContext->getBodyCharset(), pContext->getFlags(),
-			pContext->getSecurityMode(), pContext->getProfile(),
+			pContext->getAccount(), pContext->getSubAccount(), pContext->getDocument(),
+			pContext->getActionInvoker(), pContext->getWindow(), pContext->getBodyCharset(),
+			pContext->getFlags(), pContext->getSecurityMode(), pContext->getProfile(),
 			pContext->getErrorHandler(), TemplateContext::ArgumentList());
 		switch (pTemplate->getValue(context, &wstrText)) {
 		case Template::RESULT_SUCCESS:
@@ -5329,12 +5325,11 @@ MacroValuePtr qm::MacroFunctionSubAccount::value(MacroContext* pContext) const
 	if (!checkArgSize(pContext, 0))
 		return MacroValuePtr();
 	
-	Account* pAccount = pContext->getAccount();
-	if (!pAccount)
+	SubAccount* pSubAccount = pContext->getSubAccount();
+	if (!pSubAccount)
 		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTACCOUNT);
 	
-	return MacroValueFactory::getFactory().newString(
-		pAccount->getCurrentSubAccount()->getName());
+	return MacroValueFactory::getFactory().newString(pSubAccount->getName());
 }
 
 const WCHAR* qm::MacroFunctionSubAccount::getName() const

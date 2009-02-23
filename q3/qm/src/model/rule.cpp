@@ -137,6 +137,7 @@ public:
 				  RuleList* pList) const;
 	bool apply(Folder* pFolder,
 			   Accessor* pAccessor,
+			   SubAccount* pSubAccount,
 			   Document* pDocument,
 			   const ActionInvoker* pActionInvoker,
 			   HWND hwnd,
@@ -196,6 +197,7 @@ void qm::RuleManagerImpl::getRules(const Folder* pFolder,
 
 bool qm::RuleManagerImpl::apply(Folder* pFolder,
 								Accessor* pAccessor,
+								SubAccount* pSubAccount,
 								Document* pDocument,
 								const ActionInvoker* pActionInvoker,
 								HWND hwnd,
@@ -209,6 +211,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 {
 	assert(pFolder);
 	assert(pAccessor);
+	assert(pSubAccount);
 	assert(pDocument);
 	
 	Log log(InitThread::getInitThread().getLogger(), L"qm::RuleManagerImpl");
@@ -281,9 +284,9 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 				unsigned int nMacroFlags = (bBackground ? MacroContext::FLAG_NONE :
 					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI) |
 					(nFlags & FLAG_NEW ? MacroContext::FLAG_NEW : 0);
-				MacroContext context(pmh, &msg, pAccount, MessageHolderList(),
-					pFolder, pDocument, pActionInvoker, hwnd, pProfile, 0,
-					nMacroFlags, nSecurityMode, 0, &globalVariable);
+				MacroContext context(pmh, &msg, pAccount, pSubAccount,
+					MessageHolderList(), pFolder, pDocument, pActionInvoker, hwnd,
+					pProfile, 0, nMacroFlags, nSecurityMode, 0, &globalVariable);
 				bool bMatch = pRule->match(&context);
 				if (bMatch) {
 					ll[nRule].push_back(nMessage);
@@ -329,7 +332,7 @@ bool qm::RuleManagerImpl::apply(Folder* pFolder,
 						l.push_back(pmh);
 				}
 				
-				RuleContext context(l, pDocument, pAccount, pFolder,
+				RuleContext context(l, pDocument, pAccount, pSubAccount, pFolder,
 					pActionInvoker, hwnd, pProfile, &globalVariable, bBackground,
 					(nFlags & FLAG_NEW) != 0, nSecurityMode, pUndoItemList);
 				if (!pRule->apply(&context))
@@ -602,9 +605,10 @@ bool qm::RuleManager::applyManual(Folder* pFolder,
 		return false;
 	
 	RuleManagerImpl::FolderAccessor accessor(pFolder);
-	return pImpl_->apply(pFolder, &accessor, pDocument, pActionInvoker,
-		hwnd, pProfile, Rule::USE_MANUAL, RuleManagerImpl::FLAG_NONE,
-		nSecurityMode, pUndoItemList, pCallback, 0);
+	return pImpl_->apply(pFolder, &accessor,
+		pFolder->getAccount()->getCurrentSubAccount(),
+		pDocument, pActionInvoker, hwnd, pProfile, Rule::USE_MANUAL,
+		RuleManagerImpl::FLAG_NONE, nSecurityMode, pUndoItemList, pCallback, 0);
 }
 
 bool qm::RuleManager::applyManual(Folder* pFolder,
@@ -618,13 +622,15 @@ bool qm::RuleManager::applyManual(Folder* pFolder,
 								  RuleCallback* pCallback)
 {
 	RuleManagerImpl::ConstListAccessor accessor(l);
-	return pImpl_->apply(pFolder, &accessor, pDocument, pActionInvoker,
-		hwnd, pProfile, Rule::USE_MANUAL, RuleManagerImpl::FLAG_NONE,
-		nSecurityMode, pUndoItemList, pCallback, 0);
+	return pImpl_->apply(pFolder, &accessor,
+		pFolder->getAccount()->getCurrentSubAccount(),
+		pDocument, pActionInvoker, hwnd, pProfile, Rule::USE_MANUAL,
+		RuleManagerImpl::FLAG_NONE, nSecurityMode, pUndoItemList, pCallback, 0);
 }
 
 bool qm::RuleManager::applyAuto(Folder* pFolder,
 								MessagePtrList* pList,
+								SubAccount* pSubAccount,
 								Document* pDocument,
 								Profile* pProfile,
 								unsigned int nAutoFlags,
@@ -635,12 +641,13 @@ bool qm::RuleManager::applyAuto(Folder* pFolder,
 		(nAutoFlags & AUTOFLAG_JUNKFILTERONLY ? RuleManagerImpl::FLAG_JUNKONLY : 0) |
 		(nAutoFlags & AUTOFLAG_EXISTING ? 0 : RuleManagerImpl::FLAG_NEW);
 	RuleManagerImpl::ListAccessor accessor(*pList, !(nAutoFlags & AUTOFLAG_EXISTING));
-	return pImpl_->apply(pFolder, &accessor, pDocument, 0, 0, pProfile,
-		Rule::USE_AUTO, nFlags, SECURITYMODE_NONE, 0, pCallback, 0);
+	return pImpl_->apply(pFolder, &accessor, pSubAccount, pDocument, 0, 0,
+		pProfile, Rule::USE_AUTO, nFlags, SECURITYMODE_NONE, 0, pCallback, 0);
 }
 
 bool qm::RuleManager::applyActive(Folder* pFolder,
 								  const MessageHolderList& l,
+								  SubAccount* pSubAccount,
 								  Document* pDocument,
 								  const ActionInvoker* pActionInvoker,
 								  HWND hwnd,
@@ -652,8 +659,8 @@ bool qm::RuleManager::applyActive(Folder* pFolder,
 	unsigned int nFlags = bBackground ?
 		RuleManagerImpl::FLAG_BACKGROUND : RuleManagerImpl::FLAG_NONE;
 	RuleManagerImpl::ConstListAccessor accessor(l);
-	return pImpl_->apply(pFolder, &accessor, pDocument, pActionInvoker, hwnd,
-		pProfile, Rule::USE_ACTIVE, nFlags, nSecurityMode, 0, 0, pnResultFlags);
+	return pImpl_->apply(pFolder, &accessor, pSubAccount, pDocument, pActionInvoker,
+		hwnd, pProfile, Rule::USE_ACTIVE, nFlags, nSecurityMode, 0, 0, pnResultFlags);
 }
 
 bool qm::RuleManager::save() const
@@ -1071,8 +1078,9 @@ bool qm::CopyRuleAction::apply(RuleContext* pContext) const
 			
 			Message msg;
 			TemplateContext templateContext(pmh, &msg, MessageHolderList(),
-				pContext->getFolder(), pContext->getAccount(), pContext->getDocument(),
-				pContext->getActionInvoker(), pContext->getWindow(), 0, pContext->getMacroFlags(),
+				pContext->getFolder(), pContext->getAccount(), pContext->getSubAccount(),
+				pContext->getDocument(), pContext->getActionInvoker(),
+				pContext->getWindow(), 0, pContext->getMacroFlags(),
 				pContext->getSecurityMode(), pContext->getProfile(), 0, listArgument);
 			wstring_ptr wstrValue;
 			if (pTemplate->getValue(templateContext, &wstrValue) != Template::RESULT_SUCCESS) {
@@ -1378,9 +1386,10 @@ bool qm::ApplyRuleAction::apply(RuleContext* pContext) const
 	const MessageHolderList& l = pContext->getMessageHolderList();
 	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 		Message msg;
-		MacroContext c(*it, &msg, pContext->getAccount(), MessageHolderList(),
-			pContext->getFolder(), pContext->getDocument(), pContext->getActionInvoker(),
-			pContext->getWindow(), pContext->getProfile(), 0, pContext->getMacroFlags(),
+		MacroContext c(*it, &msg, pContext->getAccount(), pContext->getSubAccount(),
+			MessageHolderList(), pContext->getFolder(), pContext->getDocument(),
+			pContext->getActionInvoker(), pContext->getWindow(),
+			pContext->getProfile(), 0, pContext->getMacroFlags(),
 			pContext->getSecurityMode(), 0, pContext->getGlobalVariable());
 		MacroValuePtr pValue(pMacro_->value(&c));
 		if (!pValue.get())
@@ -1416,6 +1425,7 @@ std::auto_ptr<RuleAction> qm::ApplyRuleAction::clone() const
 qm::RuleContext::RuleContext(const MessageHolderList& l,
 							 Document* pDocument,
 							 Account* pAccount,
+							 SubAccount* pSubAccount,
 							 Folder* pFolder,
 							 const ActionInvoker* pActionInvoker,
 							 HWND hwnd,
@@ -1428,6 +1438,7 @@ qm::RuleContext::RuleContext(const MessageHolderList& l,
 	listMessageHolder_(l),
 	pDocument_(pDocument),
 	pAccount_(pAccount),
+	pSubAccount_(pSubAccount),
 	pFolder_(pFolder),
 	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
@@ -1465,6 +1476,11 @@ Document* qm::RuleContext::getDocument() const
 Account* qm::RuleContext::getAccount() const
 {
 	return pAccount_;
+}
+
+SubAccount* qm::RuleContext::getSubAccount() const
+{
+	return pSubAccount_;
 }
 
 Folder* qm::RuleContext::getFolder() const

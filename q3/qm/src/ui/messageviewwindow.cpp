@@ -346,6 +346,7 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 	
 	if (pMessage) {
 		Account* pAccount = pmh ? pmh->getAccount() : 0;
+		SubAccount* pSubAccount = pAccount ? pAccount->getCurrentSubAccount() : 0;
 		
 		PartUtil util(*pMessage);
 		wxstring_size_ptr wstrText;
@@ -363,8 +364,8 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 		else if (pTemplate) {
 			// TODO
 			// Pass selected messages
-			TemplateContext context(pmh, pMessage, MessageHolderList(),
-				pFolder, pAccount, pDocument_, pActionInvoker_, getHandle(),
+			TemplateContext context(pmh, pMessage, MessageHolderList(), pFolder,
+				pAccount, pSubAccount, pDocument_, pActionInvoker_, getHandle(),
 				pwszEncoding, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 			if (pTemplate->getValue(context, &wstrText) != Template::RESULT_SUCCESS)
@@ -391,9 +392,9 @@ bool qm::TextMessageViewWindow::setMessage(MessageHolder* pmh,
 			MacroVariableHolder globalVariable;
 			// TODO
 			// Pass selected messages
-			MacroContext context(pmh, pMessage, pAccount, MessageHolderList(),
-				pFolder, pDocument_, pActionInvoker_, getHandle(), pProfile_, pwszEncoding,
-				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+			MacroContext context(pmh, pMessage, pAccount, pSubAccount, MessageHolderList(),
+				pFolder, pDocument_, pActionInvoker_, getHandle(), pProfile_,
+				pwszEncoding, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				nSecurityMode, 0, &globalVariable);
 			const MessageWindowFontSet* pFontSet = pFontGroup_->getFontSet(&context);
 			if (pFontSet && pFontSet != pFontSet_) {

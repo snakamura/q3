@@ -172,8 +172,8 @@ bool qm::TemplateProcessor::process(const WCHAR* pwszTemplateName,
 		pwszBodyCharset = pEncodingModel_->getEncoding();
 	
 	MacroErrorHandlerImpl handler;
-	TemplateContext context(pmh, pMessage, listSelected, pFolder,
-		pAccount, pDocument_, pActionInvoker_, hwnd_, pwszBodyCharset,
+	TemplateContext context(pmh, pMessage, listSelected, pFolder, pAccount,
+		pAccount->getCurrentSubAccount(), pDocument_, pActionInvoker_, hwnd_, pwszBodyCharset,
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI | MacroContext::FLAG_MODIFY,
 		nSecurityMode, pProfile_, &handler, listArgument);
 	

@@ -1695,6 +1695,7 @@ void qm::MacroVariableHolder::removeVariable(const WCHAR* pwszName)
 qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 							   Message* pMessage,
 							   Account* pAccount,
+							   SubAccount* pSubAccount,
 							   const MessageHolderList& listSelected,
 							   Folder* pFolder,
 							   Document* pDocument,
@@ -1709,6 +1710,7 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	pmh_(pmh),
 	pMessage_(pMessage),
 	pAccount_(pAccount),
+	pSubAccount_(pSubAccount),
 	nFlags_(nFlags & FLAG_MESSAGE_MASK),
 	pGlobalContext_(0),
 	bOwnGlobalContext_(true)
@@ -1718,6 +1720,8 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	assert(!pmh || pmh->getAccount() == pAccount);
 	assert(!pmh || pmh->getAccount()->isLocked());
 	assert(!pmh || pAccount);
+	assert(!pAccount || pSubAccount);
+	assert(!pAccount || pSubAccount->getAccount() == pAccount);
 	assert(pDocument);
 	assert(hwnd || !(nFlags & FLAG_UI));
 	assert(pProfile);
@@ -1733,12 +1737,21 @@ qm::MacroContext::MacroContext(MessageHolderBase* pmh,
 	pmh_(pmh),
 	pMessage_(pMessage),
 	pAccount_(pmh->getAccount()),
+	pSubAccount_(0),
 	pGlobalContext_(pContext->pGlobalContext_),
 	bOwnGlobalContext_(false)
 {
 	assert(pmh);
 	assert(pMessage);
 	assert(pContext);
+	
+	if (pAccount_ != pContext->getAccount()) {
+		assert(getFlags() & FLAG_UITHREAD);
+		pSubAccount_ = pAccount_->getCurrentSubAccount();
+	}
+	else {
+		pSubAccount_ = pContext->getSubAccount();
+	}
 }
 
 qm::MacroContext::~MacroContext()
@@ -1808,6 +1821,11 @@ void qm::MacroContext::clearMessage()
 Account* qm::MacroContext::getAccount() const
 {
 	return pAccount_;
+}
+
+SubAccount* qm::MacroContext::getSubAccount() const
+{
+	return pSubAccount_;
 }
 
 const MessageHolderList& qm::MacroContext::getSelectedMessageHolders() const

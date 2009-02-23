@@ -45,11 +45,14 @@ using namespace qs;
  */
 
 qm::SyncDataItem::SyncDataItem(Type type,
-							   Account* pAccount) :
+							   Account* pAccount,
+							   SubAccount* pSubAccount) :
 	type_(type),
-	pAccount_(pAccount)
+	pAccount_(pAccount),
+	pSubAccount_(pSubAccount)
 {
 	assert(pAccount);
+	assert(pSubAccount);
 }
 
 qm::SyncDataItem::~SyncDataItem()
@@ -66,6 +69,11 @@ Account* qm::SyncDataItem::getAccount() const
 	return pAccount_;
 }
 
+SubAccount* qm::SyncDataItem::getSubAccount() const
+{
+	return pSubAccount_;
+}
+
 
 /****************************************************************************
  *
@@ -76,18 +84,12 @@ Account* qm::SyncDataItem::getAccount() const
 qm::SyncItem::SyncItem(Type type,
 					   Account* pAccount,
 					   SubAccount* pSubAccount) :
-	SyncDataItem(type, pAccount),
-	pSubAccount_(pSubAccount)
+	SyncDataItem(type, pAccount, pSubAccount)
 {
 }
 
 qm::SyncItem::~SyncItem()
 {
-}
-
-SubAccount* qm::SyncItem::getSubAccount() const
-{
-	return pSubAccount_;
 }
 
 
@@ -194,8 +196,9 @@ const SyncFilterSet* qm::SendSyncItem::getSyncFilterSet() const
  */
 
 qm::ApplyRulesSyncDataItem::ApplyRulesSyncDataItem(Account* pAccount,
+												   SubAccount* pSubAccount,
 												   Folder* pFolder) :
-	SyncDataItem(TYPE_APPLYRULES, pAccount),
+	SyncDataItem(TYPE_APPLYRULES, pAccount, pSubAccount),
 	pFolder_(pFolder)
 {
 	assert(pFolder);
@@ -433,21 +436,25 @@ void qm::StaticSyncData::addSend(Account* pAccount,
 }
 
 void qm::StaticSyncData::addApplyRulesFolder(Account* pAccount,
+											 SubAccount* pSubAccount,
 											 Folder* pFolder)
 {
 	assert(pAccount);
+	assert(pSubAccount);
 	assert(pFolder);
 	
 	std::auto_ptr<ApplyRulesSyncDataItem> pItem(
-		new ApplyRulesSyncDataItem(pAccount, pFolder));
+		new ApplyRulesSyncDataItem(pAccount, pSubAccount, pFolder));
 	listItem_.push_back(std::make_pair(nSlot_, pItem.get()));
 	pItem.release();
 }
 
 void qm::StaticSyncData::addApplyRulesFolders(Account* pAccount,
+											  SubAccount* pSubAccount,
 											  const Term& folder)
 {
 	assert(pAccount);
+	assert(pSubAccount);
 	
 	Account::FolderList listFolder;
 	
@@ -467,7 +474,7 @@ void qm::StaticSyncData::addApplyRulesFolders(Account* pAccount,
 	
 	std::sort(listFolder.begin(), listFolder.end(), FolderLess());
 	std::for_each(listFolder.begin(), listFolder.end(),
-		boost::bind(&StaticSyncData::addApplyRulesFolder, this, pAccount, _1));
+		boost::bind(&StaticSyncData::addApplyRulesFolder, this, pAccount, pSubAccount, _1));
 }
 
 
@@ -971,11 +978,12 @@ bool qm::SyncManager::syncFolder(unsigned int nId,
 	if (pSyncManagerCallback->isCanceled(nId, false))
 		return true;
 	
+	Account* pAccount = pItem->getAccount();
 	SubAccount* pSubAccount = pItem->getSubAccount();
 	bool bApplyRules = (pSubAccount->getAutoApplyRules() & SubAccount::AUTOAPPLYRULES_EXISTING) != 0;
 	unsigned int nLastId = -1;
 	if (bApplyRules) {
-		Lock<Account> lock(*pFolder->getAccount());
+		Lock<Account> lock(*pAccount);
 		if (!pFolder->loadMessageHolders())
 			return false;
 		unsigned int nCount = pFolder->getCount();
@@ -991,7 +999,7 @@ bool qm::SyncManager::syncFolder(unsigned int nId,
 	if (bApplyRules && nLastId != -1) {
 		MessagePtrList l;
 		{
-			Lock<Account> lock(*pFolder->getAccount());
+			Lock<Account> lock(*pAccount);
 			unsigned int nCount = pFolder->getCount();
 			for (unsigned int n = 0; n < nCount; ++n) {
 				MessageHolder* pmh = pFolder->getMessage(n);
@@ -1002,12 +1010,11 @@ bool qm::SyncManager::syncFolder(unsigned int nId,
 		}
 		RuleManager* pRuleManager = pDocument->getRuleManager();
 		RuleCallbackImpl callback(pSyncManagerCallback, nId);
-		if (!pRuleManager->applyAuto(pFolder, &l, pDocument,
+		if (!pRuleManager->applyAuto(pFolder, &l, pSubAccount, pDocument,
 			pProfile_, RuleManager::AUTOFLAG_EXISTING, &callback))
 			return false;
 	}
 	
-	Account* pAccount = pItem->getAccount();
 	if (!pAccount->saveMessages(false)) {
 		addError(pSyncManagerCallback, nId, pAccount, 0, 0, IDS_ERROR_SAVE, 0);
 		return false;
@@ -1111,7 +1118,7 @@ bool qm::SyncManager::send(unsigned int nId,
 		pLogger = pAccount->openLogger(Account::HOST_SEND);
 	
 	std::auto_ptr<SendSession> pSession(SendSessionFactory::getSession(
-		pItem->getAccount()->getType(Account::HOST_SEND)));
+		pAccount->getType(Account::HOST_SEND)));
 	
 	std::auto_ptr<SendSessionCallbackImpl> pCallback(
 		new SendSessionCallbackImpl(pSyncManagerCallback, nId));
@@ -1219,18 +1226,21 @@ bool qm::SyncManager::applyRules(unsigned int nId,
 	assert(pSyncManagerCallback);
 	assert(pItem);
 	
+	Account* pAccount = pItem->getAccount();
+	SubAccount* pSubAccount = pItem->getSubAccount();
+	
 	Folder* pFolder = pItem->getFolder();
 	MessagePtrList listMessagePtr;
 	{
-		Lock<Account> lock(*pItem->getAccount());
+		Lock<Account> lock(*pAccount);
 		const MessageHolderList& l = pFolder->getMessages();
 		listMessagePtr.resize(l.size());
 		std::copy(l.begin(), l.end(), listMessagePtr.begin());
 	}
 	RuleManager* pRuleManager = pDocument->getRuleManager();
 	RuleCallbackImpl callback(pSyncManagerCallback, nId);
-	if (!pRuleManager->applyAuto(pFolder, &listMessagePtr, pDocument,
-		pProfile_, RuleManager::AUTOFLAG_EXISTING, &callback))
+	if (!pRuleManager->applyAuto(pFolder, &listMessagePtr, pSubAccount,
+		pDocument, pProfile_, RuleManager::AUTOFLAG_EXISTING, &callback))
 		return false;
 	
 	return true;
@@ -1266,7 +1276,7 @@ bool qm::SyncManager::openReceiveSession(unsigned int nId,
 		return false;
 	
 	std::auto_ptr<ReceiveSessionCallbackImpl> pCallback(new ReceiveSessionCallbackImpl(
-		pSyncManagerCallback, nId, pDocument, pProfile_, isNotify(type)));
+		pSyncManagerCallback, nId, pSubAccount, pDocument, pProfile_, isNotify(type)));
 	if (!pSession->init(pDocument, pAccount, pSubAccount,
 		pProfile_, pLogger.get(), pCallback.get()))
 		return false;
@@ -1386,11 +1396,13 @@ void qm::SyncManager::ParallelSyncThread::run()
 
 qm::SyncManager::ReceiveSessionCallbackImpl::ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
 																		unsigned int nId,
+																		SubAccount* pSubAccount,
 																		Document* pDocument,
 																		Profile* pProfile,
 																		bool bNotify) :
 	pCallback_(pCallback),
 	nId_(nId),
+	pSubAccount_(pSubAccount),
 	pDocument_(pDocument),
 	pProfile_(pProfile),
 	bNotify_(bNotify)
@@ -1471,9 +1483,9 @@ void qm::SyncManager::ReceiveSessionCallbackImpl::notifyNewMessage(MessagePtr pt
 			if (pMacro) {
 				Message msg;
 				MacroVariableHolder globalVariable;
-				MacroContext context(mpl, &msg, mpl->getAccount(), MessageHolderList(),
-					mpl->getFolder(), pDocument_, 0, 0, pProfile_, 0,
-					MacroContext::FLAG_NONE, SECURITYMODE_NONE, 0, &globalVariable);
+				MacroContext context(mpl, &msg, mpl->getAccount(), pSubAccount_,
+					MessageHolderList(), mpl->getFolder(), pDocument_, 0, 0, pProfile_,
+					0, MacroContext::FLAG_NONE, SECURITYMODE_NONE, 0, &globalVariable);
 				MacroValuePtr pValue(pMacro->value(&context));
 				if (pValue.get() && pValue->boolean())
 					pURI.reset(new MessageHolderURI(mpl));

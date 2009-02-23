@@ -353,11 +353,12 @@ void qm::EditEditPasteWithQuoteAction::invoke(const ActionEvent& event)
 			MessagePtrLock mpl(ptr);
 			NormalFolder* pFolder = mpl ? mpl->getFolder() : 0;
 			Account* pAccount = pFolder ? pFolder->getAccount() : 0;
+			SubAccount* pSubAccount = pAccount ? pAccount->getCurrentSubAccount() : 0;
 			const TemplateManager* pManager = pDocument_->getTemplateManager();
 			const Template* pTemplate = pManager->getTemplate(pAccount, pFolder, L"quote");
 			if (pTemplate) {
-				TemplateContext context(mpl, pMessage, MessageHolderList(),
-					pFolder, pAccount, pDocument_, pActionInvoker_, hwnd_, 0,
+				TemplateContext context(mpl, pMessage, MessageHolderList(), pFolder,
+					pAccount, pSubAccount, pDocument_, pActionInvoker_, hwnd_, 0,
 					MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 					nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 				switch (pTemplate->getValue(context, &wstrMessage)) {
@@ -912,8 +913,9 @@ void qm::EditToolApplyTemplateAction::invoke(const ActionEvent& event)
 	}
 	
 	TemplateContext context(0, pMessage.get(), MessageHolderList(), 0,
-		pEditMessage->getAccount(), pDocument, pActionInvoker_, hwnd_,
-		0, MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
+		pEditMessage->getAccount(), pEditMessage->getSubAccount(),
+		pDocument, pActionInvoker_, hwnd_, 0,
+		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		SECURITYMODE_NONE, pProfile_, 0, listArg);
 	wstring_ptr wstr;
 	Template::Result r = pTemplate->getValue(context, &wstr);
@@ -1133,8 +1135,9 @@ void qm::EditToolInsertMacroAction::invoke(const ActionEvent& event)
 	
 	MacroVariableHolder globalVariable;
 	MacroContext context(0, pMessage.get(), pEditMessage->getAccount(),
-		MessageHolderList(), 0, pEditMessage->getDocument(), pActionInvoker_,
-		hwnd_, pProfile_, 0, MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD,
+		pEditMessage->getSubAccount(), MessageHolderList(), 0,
+		pEditMessage->getDocument(), pActionInvoker_, hwnd_, pProfile_,
+		0, MacroContext::FLAG_UI | MacroContext::FLAG_UITHREAD,
 		SECURITYMODE_NONE, 0, &globalVariable);
 	MacroValuePtr pValue(pMacro->value(&context));
 	if (pValue.get()) {

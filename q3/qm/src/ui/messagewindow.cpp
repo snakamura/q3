@@ -292,8 +292,8 @@ bool qm::MessageWindowImpl::setMessage(MessageContext* pContext,
 		if (pAccount || pMessage) {
 			// TODO
 			// Get selected
-			TemplateContext context(mpl, pMessage, MessageHolderList(), pFolder,
-				pAccount, pDocument_, pActionInvoker_, pThis_->getHandle(),
+			TemplateContext context(mpl, pMessage, MessageHolderList(), pFolder, pAccount,
+				pAccount->getCurrentSubAccount(), pDocument_, pActionInvoker_, pThis_->getHandle(),
 				pEncodingModel_->getEncoding(), MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 				pSecurityModel_->getSecurityMode(), pProfile_, 0, TemplateContext::ArgumentList());
 			pHeaderWindow_->setMessage(&context);

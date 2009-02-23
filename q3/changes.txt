@@ -4,7 +4,8 @@
 *ドイツ語のリソースを追加
 *SMTPのPLAIN認証が失敗するのを修正
 *header.xmlのeditエレメントのwidth属性にautoを指定すると幅が1pxになるのを修正
-*Windows Mobile 6.0 Standardでバックスペースキーが効かないのを修正
+*Windows Mobile 6.0 Standardでバックスペースキーが効かないことがあるのを修正
+*バックグラウンドでも@Identity, @SubAccount, @Iを使えるようにした
 
 [3.0.7]
 *アドレス帳でRFC2822形式にチェックを入れると、アドレスが正しく保存されないのを修正

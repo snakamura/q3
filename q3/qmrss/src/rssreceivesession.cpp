@@ -466,7 +466,7 @@ bool qmrss::RssReceiveSession::applyRules(MessagePtrList* pList)
 {
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
-	return pRuleManager->applyAuto(pFolder_, pList,
+	return pRuleManager->applyAuto(pFolder_, pList, pSubAccount_,
 		pDocument_, pProfile_, RuleManager::AUTOFLAG_NONE, &callback);
 }
 

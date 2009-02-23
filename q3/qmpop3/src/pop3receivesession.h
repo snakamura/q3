@@ -202,6 +202,7 @@ class Pop3SyncFilterCallback : public qm::SyncFilterCallback
 public:
 	Pop3SyncFilterCallback(qm::Document* pDocument,
 						   qm::Account* pAccount,
+						   qm::SubAccount* pSubAccount,
 						   qm::NormalFolder* pFolder,
 						   qm::Message* pMessage,
 						   unsigned int nSize,
@@ -227,6 +228,7 @@ private:
 private:
 	qm::Document* pDocument_;
 	qm::Account* pAccount_;
+	qm::SubAccount* pSubAccount_;
 	qm::NormalFolder* pFolder_;
 	qm::Message* pMessage_;
 	unsigned int nSize_;

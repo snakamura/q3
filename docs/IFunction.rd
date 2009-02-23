@@ -25,11 +25,11 @@ account‚âsubaccount‚ªŽw’è‚³‚ê‚é‚ÆŽw’è‚³‚ê‚½ƒAƒJƒEƒ“ƒg‚âƒTƒuƒAƒJƒEƒ“ƒg‚ÌŽ©•ª‚Ì–¼‘
 *ˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
 *ƒRƒ“ƒeƒLƒXƒgƒAƒJƒEƒ“ƒg‚ª‚È‚¢ê‡iƒAƒJƒEƒ“ƒg‚ðŽw’è‚µ‚È‚©‚Á‚½ê‡j
 *Žw’è‚³‚ê‚½ƒAƒJƒEƒ“ƒg‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡iƒAƒJƒEƒ“ƒg‚ðŽw’è‚µ‚½ê‡j
-*UIƒXƒŒƒbƒhˆÈŠO‚©‚çŒÄ‚Ño‚µ‚½ê‡iƒAƒJƒEƒ“ƒg‚ÆƒTƒuƒAƒJƒEƒ“ƒg‚ðŽw’è‚µ‚È‚©‚Á‚½ê‡j
+*UIƒXƒŒƒbƒhˆÈŠO‚©‚çŒÄ‚Ño‚µ‚½ê‡iƒAƒJƒEƒ“ƒg‚¾‚¯Žw’è‚µ‚½ê‡j
 
 
 ==ðŒ
-*UIƒXƒŒƒbƒh‚©‚ç‚Ì‚ÝŒÄ‚Ño‚µ‰Â”\iƒAƒJƒEƒ“ƒg‚ÆƒTƒuƒAƒJƒEƒ“ƒg‚ðŽw’è‚µ‚È‚©‚Á‚½ê‡j
+*UIƒXƒŒƒbƒh‚©‚ç‚Ì‚ÝŒÄ‚Ño‚µ‰Â”\iƒAƒJƒEƒ“ƒg‚¾‚¯Žw’è‚µ‚½ê‡j
 
 
 ==—á

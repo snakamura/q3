@@ -584,7 +584,8 @@ const ViewModelItem* qm::ViewModel::getItem(unsigned int n)
 		ColorList::Color color = { 0xff000000, 0xff000000, ColorEntry::FONTSTYLE_NONE };
 		if (pColorList_.get()) {
 			Message msg;
-			MacroContext context(pmh, &msg, pFolder_->getAccount(),
+			Account* pAccount = pFolder_->getAccount();
+			MacroContext context(pmh, &msg, pAccount, pAccount->getCurrentSubAccount(),
 				MessageHolderList(), pFolder_, pDocument_, 0, 0, pProfile_, 0,
 				MacroContext::FLAG_UITHREAD/* | MacroContext::FLAG_GETMESSAGEASPOSSIBLE*/,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
@@ -969,7 +970,8 @@ MacroValuePtr qm::ViewModel::getValue(const Macro* pMacro,
 									  MessageHolder* pmh) const
 {
 	Message msg;
-	MacroContext context(pmh, &msg, pFolder_->getAccount(),
+	Account* pAccount = pFolder_->getAccount();
+	MacroContext context(pmh, &msg, pAccount, pAccount->getCurrentSubAccount(),
 		MessageHolderList(), pFolder_, pDocument_, 0, 0, pProfile_, 0,
 		MacroContext::FLAG_UITHREAD/* | MacroContext::FLAG_GETMESSAGEASPOSSIBLE*/,
 		/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
@@ -993,7 +995,8 @@ void qm::ViewModel::messageAdded(const FolderMessageEvent& event)
 		bool bAdd = true;
 		if (pFilter_.get()) {
 			Message msg;
-			MacroContext context(pmh, &msg, pFolder_->getAccount(),
+			Account* pAccount = pFolder_->getAccount();
+			MacroContext context(pmh, &msg, pAccount, pAccount->getCurrentSubAccount(),
 				MessageHolderList(), pFolder_, pDocument_, 0, 0, pProfile_, 0,
 				MacroContext::FLAG_UITHREAD/* | MacroContext::FLAG_GETMESSAGEASPOSSIBLE*/,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, 0);
@@ -1349,7 +1352,8 @@ void qm::ViewModel::update(bool bRestoreSelection,
 		bool bAdd = true;
 		if (pFilter_.get()) {
 			Message msg;
-			MacroContext context(pmh, &msg, pFolder_->getAccount(),
+			Account* pAccount = pFolder_->getAccount();
+			MacroContext context(pmh, &msg, pAccount, pAccount->getCurrentSubAccount(),
 				MessageHolderList(), pFolder_, pDocument_, 0, 0, pProfile_, 0,
 				MacroContext::FLAG_UITHREAD/* | MacroContext::FLAG_GETMESSAGEASPOSSIBLE*/,
 				/*pSecurityModel_->getSecurityMode()*/SECURITYMODE_NONE, 0, &globalVariable);

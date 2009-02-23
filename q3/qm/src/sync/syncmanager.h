@@ -61,7 +61,8 @@ public:
 
 protected:
 	SyncDataItem(Type type,
-				 Account* pAccount);
+				 Account* pAccount,
+				 SubAccount* pSubAccount);
 
 public:
 	virtual ~SyncDataItem();
@@ -69,6 +70,7 @@ public:
 public:
 	Type getType() const;
 	Account* getAccount() const;
+	SubAccount* getSubAccount() const;
 
 public:
 	virtual const SyncItem* getSyncItem() const = 0;
@@ -80,6 +82,7 @@ private:
 private:
 	Type type_;
 	Account* pAccount_;
+	SubAccount* pSubAccount_;
 };
 
 
@@ -100,9 +103,6 @@ public:
 	virtual ~SyncItem();
 
 public:
-	SubAccount* getSubAccount() const;
-
-public:
 	virtual NormalFolder* getSyncFolder() const = 0;
 	virtual unsigned int getSelectFlags() const = 0;
 	virtual const SyncFilterSet* getSyncFilterSet() const = 0;
@@ -110,9 +110,6 @@ public:
 private:
 	SyncItem(const SyncItem&);
 	SyncItem& operator=(const SyncItem&);
-
-private:
-	SubAccount* pSubAccount_;
 };
 
 
@@ -202,6 +199,7 @@ class ApplyRulesSyncDataItem : public SyncDataItem
 {
 public:
 	ApplyRulesSyncDataItem(Account* pAccount,
+						   SubAccount* pSubAccount,
 						   Folder* pFolder);
 	virtual ~ApplyRulesSyncDataItem();
 
@@ -342,8 +340,10 @@ public:
 				 SubAccount* pSubAccount,
 				 const WCHAR* pwszMessageId);
 	void addApplyRulesFolder(Account* pAccount,
+							 SubAccount* pSubAccount,
 							 Folder* pFolder);
 	void addApplyRulesFolders(Account* pAccount,
+							  SubAccount* pSubAccount,
 							  const Term& folder);
 
 private:
@@ -485,6 +485,7 @@ private:
 	public:
 		explicit ReceiveSessionCallbackImpl(SyncManagerCallback* pCallback,
 											unsigned int nId,
+											SubAccount* pSubAccount,
 											Document* pDocument,
 											qs::Profile* pProfile,
 											bool bNotify);
@@ -522,6 +523,7 @@ private:
 	private:
 		SyncManagerCallback* pCallback_;
 		unsigned int nId_;
+		SubAccount* pSubAccount_;
 		Document* pDocument_;
 		qs::Profile* pProfile_;
 		bool bNotify_;

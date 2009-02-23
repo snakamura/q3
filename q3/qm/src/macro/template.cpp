@@ -66,8 +66,9 @@ Template::Result getTemplateValue(const Template::ValueList& listValue,
 		
 		if ((*itV).second) {
 			MacroContext c(context.getMessageHolder(), context.getMessage(),
-				context.getAccount(), context.getSelectedMessageHolders(),
-				context.getFolder(), context.getDocument(), context.getActionInvoker(),
+				context.getAccount(), context.getSubAccount(),
+				context.getSelectedMessageHolders(), context.getFolder(),
+				context.getDocument(), context.getActionInvoker(),
 				context.getWindow(), context.getProfile(), context.getBodyCharset(),
 				context.getMacroFlags(), context.getSecurityMode(),
 				context.getErrorHandler(), &globalVariable);
@@ -140,6 +141,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 									 const MessageHolderList& listSelected,
 									 Folder* pFolder,
 									 Account* pAccount,
+									 SubAccount* pSubAccount,
 									 Document* pDocument,
 									 const ActionInvoker* pActionInvoker,
 									 HWND hwnd,
@@ -154,6 +156,7 @@ qm::TemplateContext::TemplateContext(MessageHolderBase* pmh,
 	listSelected_(listSelected),
 	pFolder_(pFolder),
 	pAccount_(pAccount),
+	pSubAccount_(pSubAccount),
 	pDocument_(pDocument),
 	pActionInvoker_(pActionInvoker),
 	hwnd_(hwnd),
@@ -194,6 +197,11 @@ Folder* qm::TemplateContext::getFolder() const
 Account* qm::TemplateContext::getAccount() const
 {
 	return pAccount_;
+}
+
+SubAccount* qm::TemplateContext::getSubAccount() const
+{
+	return pSubAccount_;
 }
 
 Document* qm::TemplateContext::getDocument() const

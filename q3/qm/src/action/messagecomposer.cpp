@@ -170,8 +170,8 @@ bool qm::MessageComposer::compose(Message* pMessage,
 			if (!pMacro.get())
 				return false;
 			
-			MacroContext context(0, 0, pAccount, MessageHolderList(),
-				pFolder, pDocument_, 0, hwnd_, pProfile_, 0,
+			MacroContext context(0, 0, pAccount, pSubAccount,
+				MessageHolderList(), pFolder, pDocument_, 0, hwnd_, pProfile_, 0,
 				MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI | MacroContext::FLAG_MODIFY,
 				pSecurityModel_->getSecurityMode(), 0, 0);
 			MacroValuePtr pValue(pMacro->value(&context));

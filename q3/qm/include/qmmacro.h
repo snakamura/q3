@@ -166,6 +166,7 @@ public:
 	MacroContext(MessageHolderBase* pmh,
 				 Message* pMessage,
 				 Account* pAccount,
+				 SubAccount* pSubAccount,
 				 const MessageHolderList& listSelected,
 				 Folder* pFolder,
 				 Document* pDocument,
@@ -189,6 +190,7 @@ public:
 						const WCHAR* pwszField) const;
 	void clearMessage();
 	Account* getAccount() const;
+	SubAccount* getSubAccount() const;
 	const MessageHolderList& getSelectedMessageHolders() const;
 	Folder* getFolder() const;
 	Document* getDocument() const;
@@ -228,6 +230,7 @@ private:
 	MessageHolderBase* pmh_;
 	Message* pMessage_;
 	Account* pAccount_;
+	SubAccount* pSubAccount_;
 	unsigned int nFlags_;
 	MacroGlobalContext* pGlobalContext_;
 	bool bOwnGlobalContext_;

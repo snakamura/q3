@@ -253,8 +253,8 @@ bool qmnntp::NntpReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 					
 					State state = STATE_NONE;
 					NntpSyncFilterCallback callback(pDocument_, pAccount_,
-						pFolder_, &msg, item.nBytes_, pProfile_, &globalVariable,
-						pNntp_.get(), item.nId_, &strMessage, &state);
+						pSubAccount_, pFolder_, &msg, item.nBytes_, pProfile_,
+						&globalVariable, pNntp_.get(), item.nId_, &strMessage, &state);
 					const SyncFilter* pFilter = pSyncFilterSet->getFilter(&callback);
 					if (pFilter) {
 						const SyncFilter::ActionList& listAction = pFilter->getActions();
@@ -547,7 +547,7 @@ bool qmnntp::NntpReceiveSession::applyRules(MessagePtrList* pList,
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
 	return pRuleManager->applyAuto(pFolder_, pList,
-		pDocument_, pProfile_, nFlags, &callback);
+		pSubAccount_, pDocument_, pProfile_, nFlags, &callback);
 }
 
 
@@ -726,6 +726,7 @@ std::auto_ptr<ReceiveSessionUI> qmnntp::NntpReceiveSessionFactory::createUI()
 
 qmnntp::NntpSyncFilterCallback::NntpSyncFilterCallback(Document* pDocument,
 													   Account* pAccount,
+													   SubAccount* pSubAccount,
 													   NormalFolder* pFolder,
 													   Message* pMessage,
 													   unsigned int nSize,
@@ -737,6 +738,7 @@ qmnntp::NntpSyncFilterCallback::NntpSyncFilterCallback(Document* pDocument,
 													   NntpReceiveSession::State* pState) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
+	pSubAccount_(pSubAccount),
 	pFolder_(pFolder),
 	pMessage_(pMessage),
 	nSize_(nSize),
@@ -797,7 +799,7 @@ std::auto_ptr<MacroContext> qmnntp::NntpSyncFilterCallback::getMacroContext()
 		pmh_.reset(new NntpMessageHolder(this, pFolder_, pMessage_, nSize_));
 	
 	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
-		pMessage_, pAccount_, MessageHolderList(), pFolder_,
+		pMessage_, pAccount_, pSubAccount_, MessageHolderList(), pFolder_,
 		pDocument_, 0, 0, pProfile_, 0, MacroContext::FLAG_NONE,
 		SECURITYMODE_NONE, 0, pGlobalVariable_));
 }

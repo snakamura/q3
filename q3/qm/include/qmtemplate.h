@@ -31,6 +31,7 @@ class Macro;
 class MacroErrorHandler;
 class Message;
 class MessageHolderBase;
+class SubAccount;
 
 
 /****************************************************************************
@@ -94,6 +95,7 @@ public:
 					const MessageHolderList& listSelected,
 					Folder* pFolder,
 					Account* pAccount,
+					SubAccount* pSubAccount,
 					Document* pDocument,
 					const ActionInvoker* pActionInvoker,
 					HWND hwnd,
@@ -111,6 +113,7 @@ public:
 	const MessageHolderList& getSelectedMessageHolders() const;
 	Folder* getFolder() const;
 	Account* getAccount() const;
+	SubAccount* getSubAccount() const;
 	Document* getDocument() const;
 	const ActionInvoker* getActionInvoker() const;
 	HWND getWindow() const;
@@ -131,6 +134,7 @@ private:
 	const MessageHolderList& listSelected_;
 	Folder* pFolder_;
 	Account* pAccount_;
+	SubAccount* pSubAccount_;
 	Document* pDocument_;
 	const ActionInvoker* pActionInvoker_;
 	HWND hwnd_;

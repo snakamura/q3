@@ -219,8 +219,8 @@ bool qmpop3::Pop3ReceiveSession::downloadMessages(const SyncFilterSet* pSyncFilt
 		bool bIgnore = false;
 		if (pSyncFilterSet) {
 			Pop3SyncFilterCallback callback(pDocument_, pAccount_,
-				pFolder_, &msg, nSize, pProfile_, &globalVariable,
-				pPop3_.get(), n, &strMessage, &state);
+				pSubAccount_, pFolder_, &msg, nSize, pProfile_,
+				&globalVariable, pPop3_.get(), n, &strMessage, &state);
 			const SyncFilter* pFilter = pSyncFilterSet->getFilter(&callback);
 			if (pFilter) {
 				const SyncFilter::ActionList& listAction = pFilter->getActions();
@@ -698,7 +698,7 @@ bool qmpop3::Pop3ReceiveSession::applyRules(MessagePtrList* pList,
 	RuleManager* pRuleManager = pDocument_->getRuleManager();
 	DefaultReceiveSessionRuleCallback callback(pSessionCallback_);
 	return pRuleManager->applyAuto(pFolder_, pList,
-		pDocument_, pProfile_, nFlags, &callback);
+		pSubAccount_, pDocument_, pProfile_, nFlags, &callback);
 }
 
 std::auto_ptr<UIDList> qmpop3::Pop3ReceiveSession::loadUIDList() const
@@ -885,6 +885,7 @@ std::auto_ptr<ReceiveSessionUI> qmpop3::Pop3ReceiveSessionFactory::createUI()
 
 qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(Document* pDocument,
 													   Account* pAccount,
+													   SubAccount* pSubAccount,
 													   NormalFolder* pFolder,
 													   Message* pMessage,
 													   unsigned int nSize,
@@ -896,6 +897,7 @@ qmpop3::Pop3SyncFilterCallback::Pop3SyncFilterCallback(Document* pDocument,
 													   Pop3ReceiveSession::State* pState) :
 	pDocument_(pDocument),
 	pAccount_(pAccount),
+	pSubAccount_(pSubAccount),
 	pFolder_(pFolder),
 	pMessage_(pMessage),
 	nSize_(nSize),
@@ -958,7 +960,7 @@ std::auto_ptr<MacroContext> qmpop3::Pop3SyncFilterCallback::getMacroContext()
 		pmh_.reset(new Pop3MessageHolder(this, pFolder_, pMessage_, nSize_));
 	
 	return std::auto_ptr<MacroContext>(new MacroContext(pmh_.get(),
-		pMessage_, pAccount_, MessageHolderList(), pFolder_,
+		pMessage_, pAccount_, pSubAccount_, MessageHolderList(), pFolder_,
 		pDocument_, 0, 0, pProfile_, 0, MacroContext::FLAG_NONE,
 		SECURITYMODE_NONE, 0, pGlobalVariable_));
 }
