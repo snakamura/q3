@@ -53,10 +53,10 @@ bool qm::FullTextSearchDriver::search(const SearchContext& context,
 	wstring_ptr wstrIndex(pAccount_->getPropertyString(L"FullTextSearch", L"Index"));
 	if (!*wstrIndex.get())
 		wstrIndex = concat(pAccount_->getPath(), L"\\index");
-	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
-	wstrCommand = TextUtil::replace(wstrCommand.get(),
+	wstrCommand = TextUtil::replaceAll(wstrCommand.get(), L"$index", wstrIndex.get());
+	wstrCommand = TextUtil::replaceAll(wstrCommand.get(),
 		L"$encoding", Init::getInit().getSystemEncoding());
-	wstrCommand = TextUtil::replace(wstrCommand.get(),
+	wstrCommand = TextUtil::replaceAll(wstrCommand.get(),
 		L"$condition", escapeQuote(context.getCondition()).get());
 	
 	wstring_ptr wstrOutput(Process::exec(wstrCommand.get(), 0));
@@ -289,10 +289,10 @@ bool qm::FullTextSearchPage::updateIndex()
 		if (::GetShortPathName(ptszIndex, tszShort, countof(tszShort)))
 			wstrIndex = tcs2wcs(tszShort);
 	}
-	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$index", wstrIndex.get());
+	wstrCommand = TextUtil::replaceAll(wstrCommand.get(), L"$index", wstrIndex.get());
 	wstring_ptr wstrMsg(concat(pAccount_->getMessageStorePath(), L"\\msg"));
-	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$msg", wstrMsg.get());
-	wstrCommand = TextUtil::replace(wstrCommand.get(), L"$encoding", Init::getInit().getSystemEncoding());
+	wstrCommand = TextUtil::replaceAll(wstrCommand.get(), L"$msg", wstrMsg.get());
+	wstrCommand = TextUtil::replaceAll(wstrCommand.get(), L"$encoding", Init::getInit().getSystemEncoding());
 	
 	W2T(wstrCommand.get(), ptszCommand);
 	STARTUPINFO si = { sizeof(si) };
