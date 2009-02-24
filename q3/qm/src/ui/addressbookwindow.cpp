@@ -539,6 +539,8 @@ LRESULT qm::AddressBookFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 
 LRESULT qm::AddressBookFrameWindow::onDestroy()
 {
+	pImpl_->pAddressBookModel_->saveProfiles();
+	
 	Profile* pProfile = pImpl_->pProfile_;
 	
 	pProfile->setInt(L"AddressBookFrameWindow", L"ShowToolbar", pImpl_->bShowToolbar_);

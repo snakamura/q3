@@ -130,20 +130,12 @@ keyƒGƒŒƒƒ“ƒg‚Íˆê‚Â‚ÌƒL[‚ğ•\‚µ‚Ü‚·Bname‘®«‚É‚ÍƒL[‚Ì–¼‘O‚ğw’è‚µ‚Ü‚·Bqƒm[ƒ
 ŠO•”ƒAƒhƒŒƒX’ ‚©‚çƒAƒhƒŒƒX‚ğæ‚è‚Ş‚Æ‚«‚É–¼‘O‚ğæ‚è‚Ü‚¸ƒ[ƒ‹ƒAƒhƒŒƒX‚¾‚¯‚ğæ‚è‚Ş‚©‚Ç‚¤‚©B
 
 
-+Category
-ƒAƒhƒŒƒX‘I‘ğƒ_ƒCƒAƒƒO‚ÅŒ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚éƒJƒeƒSƒŠB
-
-
 +Externals ( @ WAB, Outlook, PocketOutlook)
 æ‚è‚ŞŠO•”ƒAƒhƒŒƒX’ B
 
 
-+AddressWidth (130), NameWidth (120), CommentWidth (60), SelectedAddressWidth (150)
-ƒAƒhƒŒƒX‘I‘ğƒ_ƒCƒAƒƒO‚ÌƒAƒhƒŒƒX—“A–¼‘O—“AƒRƒƒ“ƒg—“A‘I‘ğ‚³‚ê‚½ƒAƒhƒŒƒX—“‚Ì•B
-
-
-+Width (620), Height (450)
-ƒAƒhƒŒƒX‘I‘ğƒ_ƒCƒAƒƒO‚Ì‘å‚«‚³B
++Sort (0)
+ƒ\[ƒg‚Ìİ’èB
 
 
 ===AddressBookFrameWindowƒZƒNƒVƒ‡ƒ“
@@ -178,7 +170,7 @@ URL‚ğŠJ‚­‚Æ‚«‚ÌŠÖ˜A•t‚¯‚Ìİ’è‚ğ‚µ‚Ü‚·B’ÊíAURL‚ğŠJ‚­‚Æ‚«‚É‚ÍƒVƒXƒeƒ€‚ÌŠÖ˜A•t‚¯
 ((<©“®„‰ñ|URL:AutoPilot.html>))‚Ìİ’è‚ğ‚µ‚Ü‚·B
 
 +Enabled (0 @ 0|1)
-©“®„‰ñ‚ª—LŒø‚©‚Ç‚¤‚©
+©“®„‰ñ‚ª—LŒø‚©‚Ç‚¤‚©B
 
 
 +OnlyWhenConnected
@@ -1274,6 +1266,25 @@ Ime‚Ì•ÏŠ·ƒXƒe[ƒ^ƒXB
 
 +LoadSystemStore (1 @ 0|1)
 ƒVƒXƒeƒ€‚ÌØ–¾‘ƒXƒgƒA‚©‚çCA‚ÌØ–¾‘‚ğ“Ç‚İ‚Ş‚©‚Ç‚¤‚©B
+
+
+===SelectAddressDialogƒZƒNƒVƒ‡ƒ“
+ƒAƒhƒŒƒX‘I‘ğƒ_ƒCƒAƒƒOŠÖŒW‚Ìİ’è‚ğ‚µ‚Ü‚·B
+
++Category
+Œ»İ‘I‘ğ‚³‚ê‚Ä‚¢‚éƒJƒeƒSƒŠB
+
+
++AddressWidth (130), NameWidth (120), CommentWidth (60), SelectedAddressWidth (150)
+ƒAƒhƒŒƒX—“A–¼‘O—“AƒRƒƒ“ƒg—“A‘I‘ğ‚³‚ê‚½ƒAƒhƒŒƒX—“‚Ì•B
+
+
++Width (620), Height (450)
+ƒ_ƒCƒAƒƒO‚Ì‘å‚«‚³B
+
+
++Sort
+ƒ\[ƒg‚Ìİ’èB
 
 
 ===SignaturesDialogƒZƒNƒVƒ‡ƒ“

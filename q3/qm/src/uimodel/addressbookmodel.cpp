@@ -24,6 +24,7 @@ using namespace qs;
  */
 
 qm::AddressBookModel::AddressBookModel(Profile* pProfile) :
+	pProfile_(pProfile),
 	nSort_(0),
 	bModified_(false)
 {
@@ -32,7 +33,10 @@ qm::AddressBookModel::AddressBookModel(Profile* pProfile) :
 	
 	initEntries();
 	
-	setSort(SORT_NAME | SORT_ASCENDING, SORT_COLUMN_MASK | SORT_DIRECTION_MASK);
+	int nSort = pProfile->getInt(L"AddressBook", L"Sort");
+	if (nSort == 0)
+		nSort = SORT_NAME | SORT_ASCENDING;
+	setSort(nSort, SORT_COLUMN_MASK | SORT_DIRECTION_MASK);
 }
 
 qm::AddressBookModel::~AddressBookModel()
@@ -142,6 +146,11 @@ bool qm::AddressBookModel::save() const
 bool qm::AddressBookModel::isModified() const
 {
 	return bModified_;
+}
+
+void qm::AddressBookModel::saveProfiles() const
+{
+	pProfile_->setInt(L"AddressBook", L"Sort", nSort_);
 }
 
 void qm::AddressBookModel::addAddressBookModelHandler(AddressBookModelHandler* pHandler)

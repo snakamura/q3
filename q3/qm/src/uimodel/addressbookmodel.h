@@ -66,6 +66,7 @@ public:
 	void refresh();
 	bool save() const;
 	bool isModified() const;
+	void saveProfiles() const;
 	
 	void addAddressBookModelHandler(AddressBookModelHandler* pHandler);
 	void removeAddressBookModelHandler(AddressBookModelHandler* pHandler);
@@ -106,6 +107,7 @@ private:
 	typedef std::vector<AddressBookModelHandler*> HandlerList;
 
 private:
+	qs::Profile* pProfile_;
 	std::auto_ptr<AddressBook> pAddressBook_;
 	EntryList listEntry_;
 	unsigned int nSort_;

@@ -432,10 +432,14 @@ qm::SelectAddressDialog::SelectAddressDialog(AddressBook* pAddressBook,
 	DefaultDialog(IDD_SELECTADDRESS, LANDSCAPE(IDD_SELECTADDRESS)),
 	pAddressBook_(pAddressBook),
 	pProfile_(pProfile),
-	nSort_(SORT_NAME | SORT_ASCENDING),
+	nSort_(0),
 	wndAddressList_(this),
 	wndSelectedAddressList_(this)
 {
+	nSort_ = pProfile->getInt(L"SelectAddressDialog", L"Sort");
+	if (nSort_ == 0)
+		nSort_ = SORT_NAME | SORT_ASCENDING;
+	
 	pAddressBook_->reload();
 	
 	Type types[] = {
@@ -522,23 +526,25 @@ LRESULT qm::SelectAddressDialog::onDestroy()
 	HWND hwndAddress = getDlgItem(IDC_ADDRESS);
 	for (n = 0; n < countof(pwszKeys); ++n) {
 		int nColumnWidth = ListView_GetColumnWidth(hwndAddress, n);
-		pProfile_->setInt(L"AddressBook", pwszKeys[n], nColumnWidth);
+		pProfile_->setInt(L"SelectAddressDialog", pwszKeys[n], nColumnWidth);
 	}
 	
 	int nColumnWidth = ListView_GetColumnWidth(hwndSelected, 0);
-	pProfile_->setInt(L"AddressBook", L"SelectedAddressWidth", nColumnWidth);
+	pProfile_->setInt(L"SelectAddressDialog", L"SelectedAddressWidth", nColumnWidth);
 	
 #ifndef _WIN32_WCE
 	RECT rect;
 	getWindowRect(&rect);
-	pProfile_->setInt(L"AddressBook", L"Width", rect.right - rect.left);
-	pProfile_->setInt(L"AddressBook", L"Height", rect.bottom - rect.top);
+	pProfile_->setInt(L"SelectAddressDialog", L"Width", rect.right - rect.left);
+	pProfile_->setInt(L"SelectAddressDialog", L"Height", rect.bottom - rect.top);
 #endif
 	
 	const WCHAR* pwszCategory = L"";
 	if (wstrCategory_.get())
 		pwszCategory = wstrCategory_.get();
-	pProfile_->setString(L"AddressBook", L"Category", pwszCategory);
+	pProfile_->setString(L"SelectAddressDialog", L"Category", pwszCategory);
+	
+	pProfile_->setInt(L"SelectAddressDialog", L"Sort", nSort_);
 	
 	removeNotifyHandler(this);
 	
@@ -564,7 +570,7 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 		wstring_ptr wstrName(loadString(getResourceHandle(), columns[n].nId_));
 		W2T(wstrName.get(), ptszName);
 		
-		int nWidth = pProfile_->getInt(L"AddressBook", columns[n].pwszKey_);
+		int nWidth = pProfile_->getInt(L"SelectAddressDialog", columns[n].pwszKey_);
 		LVCOLUMN column = {
 			LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 			LVCFMT_LEFT,
@@ -582,7 +588,7 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 		MAKEINTRESOURCE(IDB_ADDRESSBOOK), 16, 0, RGB(255, 255, 255));
 	ListView_SetImageList(hwndSelected, hImageList, LVSIL_SMALL);
 	
-	int nColumnWidth = pProfile_->getInt(L"AddressBook", L"SelectedAddressWidth");
+	int nColumnWidth = pProfile_->getInt(L"SelectAddressDialog", L"SelectedAddressWidth");
 	LVCOLUMN column = {
 		LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH,
 		LVCFMT_LEFT,
@@ -623,7 +629,7 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 	}
 	ListView_SortItems(hwndSelected, &selectedItemComp, 0);
 	
-	wstring_ptr wstrCategory(pProfile_->getString(L"AddressBook", L"Category"));
+	wstring_ptr wstrCategory(pProfile_->getString(L"SelectAddressDialog", L"Category"));
 	setCurrentCategory(*wstrCategory.get() ? wstrCategory.get() : 0);
 	
 #ifdef _WIN32_WCE
@@ -633,8 +639,8 @@ LRESULT qm::SelectAddressDialog::onInitDialog(HWND hwndFocus,
 	int nHeight = rectWorkArea.bottom - rectWorkArea.top;
 	setWindowPos(0, 0, 0, nWidth, nHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 #else
-	int nWidth = pProfile_->getInt(L"AddressBook", L"Width");
-	int nHeight = pProfile_->getInt(L"AddressBook", L"Height");
+	int nWidth = pProfile_->getInt(L"SelectAddressDialog", L"Width");
+	int nHeight = pProfile_->getInt(L"SelectAddressDialog", L"Height");
 	setWindowPos(0, 0, 0, nWidth, nHeight,
 		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #endif

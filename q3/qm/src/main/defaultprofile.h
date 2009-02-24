@@ -15,16 +15,8 @@ namespace qm {
 
 const qs::Profile::Default defaultProfiles[] = {
 	{ L"AddressBook",	L"AddressOnly",				L"0"	},
-	{ L"AddressBook",	L"Category",				L""		},
 	{ L"AddressBook",	L"Externals",				L""		},
-	{ L"AddressBook",	L"AddressWidth",			L"130"	},
-	{ L"AddressBook",	L"CommentWidth",			L"60"	},
-	{ L"AddressBook",	L"NameWidth",				L"120"	},
-	{ L"AddressBook",	L"SelectedAddressWidth",	L"150"	},
-#ifndef _WIN32_WCE
-	{ L"AddressBook",	L"Height",					L"450"	},
-	{ L"AddressBook",	L"Width",					L"620"	},
-#endif
+	{ L"AddressBook",	L"Sort",					L"0"	},
 	
 #ifndef _WIN32_WCE
 	{ L"AddressBookFrameWindow",	L"Height",			L"0"	},
@@ -505,6 +497,17 @@ const qs::Profile::Default defaultProfiles[] = {
 	
 	{ L"Security",	L"DefaultMessageSecurity",	L"4112"	}, /*MESSAGESECURITY_SMIMEMULTIPARTSIGNED | MESSAGESECURITY_PGPMIME*/
 	{ L"Security",	L"LoadSystemStore",			L"1"	},
+	
+	{ L"SelectAddressDialog",	L"Category",				L""		},
+	{ L"SelectAddressDialog",	L"AddressWidth",			L"130"	},
+	{ L"SelectAddressDialog",	L"CommentWidth",			L"60"	},
+	{ L"SelectAddressDialog",	L"NameWidth",				L"120"	},
+	{ L"SelectAddressDialog",	L"SelectedAddressWidth",	L"150"	},
+	{ L"SelectAddressDialog",	L"Sort",					L"0"	},
+#ifndef _WIN32_WCE
+	{ L"SelectAddressDialog",	L"Height",					L"450"	},
+	{ L"SelectAddressDialog",	L"Width",					L"620"	},
+#endif
 	
 #ifndef _WIN32_WCE
 	{ L"SignatureDialog",	L"Height",	L"450"	},
