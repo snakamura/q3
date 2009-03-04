@@ -2947,7 +2947,7 @@ string_ptr qs::LooseMessageIdParser::unparse(const Part& part) const
  *
  */
 
-size_t qs::ReferencesParser::nMax__ = 32;
+size_t qs::ReferencesParser::nMax__ = 128;
 
 qs::ReferencesParser::ReferencesParser() :
 	nMax_(nMax__)
