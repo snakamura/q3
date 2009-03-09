@@ -186,7 +186,6 @@ bool qs::Window::centerWindow(HWND hwnd)
 	assert(hwnd_);
 	
 	RECT rectParent;
-	RECT rectShift = { 0, 0, 0, 0 };
 	if (hwnd) {
 		::GetWindowRect(hwnd, &rectParent);
 	}
@@ -194,15 +193,17 @@ bool qs::Window::centerWindow(HWND hwnd)
 		Window wndParent(getParent());
 		if (wndParent && !wndParent.isIconic()) {
 			wndParent.getWindowRect(&rectParent);
+			hwnd = wndParent.getHandle();
 		}
 		else if (getMainWindow() && !getMainWindow()->isIconic()) {
 			getMainWindow()->getWindowRect(&rectParent);
-			if (rectParent.top < 0)
-				rectParent.top = 0;
+//			if (rectParent.top < 0)
+//				rectParent.top = 0;
+			hwnd = getMainWindow()->getHandle();
 		}
 		else {
 #if !defined _WIN32_WCE && WINVER >= 0x500
-			HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+			HMONITOR hMonitor = MonitorFromWindow(hwnd_, MONITOR_DEFAULTTONEAREST);
 			MONITORINFO info = { sizeof(info) };
 			if (::GetMonitorInfo(hMonitor, &info))
 				rectParent = info.rcWork;
@@ -211,16 +212,30 @@ bool qs::Window::centerWindow(HWND hwnd)
 #else
 			::SystemParametersInfo(SPI_GETWORKAREA, 0, &rectParent, 0);
 #endif
+			hwnd = hwnd_;
 		}
 	}
 	
 	RECT rect;
 	getWindowRect(&rect);
 	
-	int nLeft = (rectParent.left + rectParent.right - (rect.right - rect.left) - rectShift.left)/2;
-	int nTop = (rectParent.top + rectParent.bottom - (rect.bottom - rect.top) - rectShift.top)/2;
+	int nLeft = (rectParent.left + rectParent.right - (rect.right - rect.left))/2;
+	int nTop = (rectParent.top + rectParent.bottom - (rect.bottom - rect.top))/2;
+
+	RECT rectMonitor;
+#if !defined _WIN32_WCE && WINVER >= 0x500
+	HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+	MONITORINFO info = { sizeof(info) };
+	if (::GetMonitorInfo(hMonitor, &info))
+		rectMonitor = info.rcWork;
+	else
+		::SystemParametersInfo(SPI_GETWORKAREA, 0, &rectMonitor, 0);
+#else
+	::SystemParametersInfo(SPI_GETWORKAREA, 0, &rectMonitor, 0);
+#endif
 	
-	return setWindowPos(0, QSMAX(0, nLeft), QSMAX(0, nTop), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+	return setWindowPos(0, QSMAX(rectMonitor.left, nLeft),
+		QSMAX(rectMonitor.top, nTop), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }
 
 HWND qs::Window::getParentFrame() const
