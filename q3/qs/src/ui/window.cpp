@@ -219,8 +219,8 @@ bool qs::Window::centerWindow(HWND hwnd)
 	RECT rect;
 	getWindowRect(&rect);
 	
-	int nLeft = (rectParent.left + rectParent.right - (rect.right - rect.left))/2;
-	int nTop = (rectParent.top + rectParent.bottom - (rect.bottom - rect.top))/2;
+	long nLeft = (rectParent.left + rectParent.right - (rect.right - rect.left))/2;
+	long nTop = (rectParent.top + rectParent.bottom - (rect.bottom - rect.top))/2;
 
 	RECT rectMonitor;
 #if !defined _WIN32_WCE && WINVER >= 0x500
