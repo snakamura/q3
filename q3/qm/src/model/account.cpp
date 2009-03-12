@@ -245,7 +245,7 @@ bool qm::AccountImpl::loadSubAccounts()
 			if (wcscmp(pwszFileName, FileNames::ACCOUNT_XML) == 0)
 				continue;
 			
-			const WCHAR* p = wcschr(pwszFileName, L'.');
+			const WCHAR* p = wcsrchr(pwszFileName, L'.');
 			assert(p);
 			wstring_ptr wstrName(allocWString(
 				pwszFileName + nOffset, p - pwszFileName - nOffset));
