@@ -2051,7 +2051,7 @@ LRESULT qm::ListWindow::onVScroll(UINT nCode,
 {
 	SCROLLINFO si = {
 		sizeof(si),
-		SIF_RANGE | SIF_POS | SIF_PAGE
+		SIF_RANGE | SIF_POS | SIF_PAGE | SIF_TRACKPOS
 	};
 	getScrollInfo(SB_VERT, &si);
 	
@@ -2077,8 +2077,10 @@ LRESULT qm::ListWindow::onVScroll(UINT nCode,
 		nNewPos = si.nMax;
 		break;
 	case SB_THUMBPOSITION:
+		nNewPos = si.nPos;
+		break;
 	case SB_THUMBTRACK:
-		nNewPos = nPos;
+		nNewPos = si.nTrackPos;
 		break;
 	default:
 		bScroll = false;

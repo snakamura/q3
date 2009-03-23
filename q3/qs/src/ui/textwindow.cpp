@@ -4260,7 +4260,15 @@ LRESULT qs::TextWindow::onVScroll(UINT nCode,
 		break;
 	case SB_THUMBPOSITION:
 	case SB_THUMBTRACK:
-		s = SCROLL_VERTICALPOS;
+		{
+			s = SCROLL_VERTICALPOS;
+			SCROLLINFO si = {
+				sizeof(si),
+				SIF_POS | SIF_TRACKPOS
+			};
+			getScrollInfo(SB_VERT, &si);
+			nPos = nCode == SB_THUMBPOSITION ? si.nPos : si.nTrackPos;
+		}
 		break;
 	default:
 		bScroll = false;
