@@ -988,15 +988,18 @@ STDMETHODIMP qmscript::MacroImpl::evaluate(IMessageHolder* pMessageHolder,
 	}
 	
 	Account* pAccountObj = 0;
-	if (pAccount)
+	SubAccount* pSubAccountObj = 0;
+	if (pAccount) {
 		pAccountObj = static_cast<AccountObj*>(pAccount)->getAccount();
+		pSubAccountObj = pAccountObj->getCurrentSubAccount();
+	}
 	
 	// TODO
 	// Get selected?
 	// Get current folder?
-	MacroContext context(pmh, pmh ? &msg : 0, pAccountObj,
-		pAccountObj->getCurrentSubAccount(), MessageHolderList(), 0, pDocument_, 0,
-		hwnd_, pProfile_, 0, MacroContext::FLAG_UI, SECURITYMODE_NONE, 0, &variable);
+	MacroContext context(pmh, pmh ? &msg : 0, pAccountObj, pSubAccountObj,
+		MessageHolderList(), 0, pDocument_, 0, hwnd_, pProfile_, 0,
+		MacroContext::FLAG_UI, SECURITYMODE_NONE, 0, &variable);
 	MacroValuePtr pValue(pMacro_->value(&context));
 	if (!pValue.get())
 		return E_FAIL;
