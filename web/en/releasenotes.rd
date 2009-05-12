@@ -1,11 +1,32 @@
 =begin
 =Release Notes
 
+==3.0.8
+===New features
+*Add German resource.
+
+===Changes
+*Changed not to treat messages whose To contains only my address as a sent message even if 'Treat messages from my address as sent' was checked to improve the accuracy of the SPAM filter.
+*Made @Identity, @SubAccount, @I work in background.
+*Restores sort conditions at the address book.
+*Replaces all appearances of $index, $msg, $encoding, $condition in the search condition.
+*Allowed that more IDs appear in References.
+*Updated OpenSSL to 0.9.8j.
+
+===Bug fixes
+*Fixed PLAIN method of SMTP authentication failed.
+*Fixed it made its width 1px when the width attribute of edit element was set to auto in header.xml.
+*Fixed backspace might not work on Windows Mobile 6.0 Standard
+*Fixed dialogs were positioned inproperly in a multi-monitor environment.
+*Fixed the name of a subaccount whose name contains '.' was wrong.
+*Fixed scrolling didn't work well at the list view when it contains more than 65535 messages.
+
+
 ==3.0.7
 ===Changes
 *Updated STLport to5.2.0.
-*Updated boost to 1.37.0
-*Updated Windows SDK to v6.1
+*Updated boost to 1.37.0.
+*Updated Windows SDK to v6.1.
 
 ===Bug fixes
 *Fixed adresses got broken when checked RFC2822 at the address book.
