@@ -3852,7 +3852,15 @@ LRESULT qs::TextWindow::onLButtonDown(UINT nFlags,
 {
 	setFocus();
 	
-	pImpl_->startSelection(pt, false);
+	if (::GetKeyState(VK_SHIFT) < 0) {
+		if (!isSelected())
+			pImpl_->expandSelection(pImpl_->caret_.nLine_,
+				pImpl_->caret_.nChar_, pImpl_->caret_.nLine_, pImpl_->caret_.nChar_);
+		pImpl_->updateSelection(pt, false);
+	}
+	else {
+		pImpl_->startSelection(pt, false);
+	}
 	pImpl_->ptLastButtonDown_ = pt;
 	setCapture();
 	
