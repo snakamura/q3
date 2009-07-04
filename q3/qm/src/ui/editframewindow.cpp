@@ -58,6 +58,7 @@ using namespace qs;
 
 class qm::EditFrameWindowImpl :
 	public DefaultModalHandler,
+	public EditWindowHandler,
 	public AccountSelectionModel,
 	public MenuCreatorListCallback
 {
@@ -82,6 +83,9 @@ protected:
 								bool bFirst);
 	virtual void postModalDialog(HWND hwndParent,
 								 bool bLast);
+
+public:
+	virtual void titleChanged(const EditWindowTitleEvent& event);
 
 public:
 	virtual Account* getAccount();
@@ -527,6 +531,12 @@ void qm::EditFrameWindowImpl::postModalDialog(HWND hwndParent,
 	}
 }
 
+void qm::EditFrameWindowImpl::titleChanged(const EditWindowTitleEvent& event)
+{
+	wstring_ptr wstrTitle(concat(event.getTitle(), L" - QMAIL"));
+	pThis_->setWindowText(wstrTitle.get());
+}
+
 Account* qm::EditFrameWindowImpl::getAccount()
 {
 	EditMessage* pEditMessage = pEditWindow_->getEditMessageHolder()->getEditMessage();
@@ -867,6 +877,8 @@ LRESULT qm::EditFrameWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->initActions();
 	pImpl_->initMenuCreators();
 	
+	pImpl_->pEditWindow_->addEditWindowHandler(pImpl_);
+	
 #if !defined _WIN32_WCE && _WIN32_WINNT >= 0x500
 	UIUtil::setWindowAlpha(getHandle(), pImpl_->pProfile_, L"EditFrameWindow");
 #endif
@@ -882,8 +894,9 @@ LRESULT qm::EditFrameWindow::onDestroy()
 {
 	InitThread::getInitThread().removeModalHandler(pImpl_);
 	
-	Profile* pProfile = pImpl_->pProfile_;
+	pImpl_->pEditWindow_->removeEditWindowHandler(pImpl_);
 	
+	Profile* pProfile = pImpl_->pProfile_;
 	pProfile->setInt(L"EditFrameWindow", L"ShowToolbar", pImpl_->bShowToolbar_);
 	pProfile->setInt(L"EditFrameWindow", L"ShowStatusBar", pImpl_->bShowStatusBar_);
 	

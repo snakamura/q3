@@ -19,6 +19,8 @@ namespace qm {
 
 class EditFrameWindow;
 class EditWindow;
+class EditWindowHandler;
+class EditWindowTitleEvent;
 class HeaderEditWindow;
 
 class ActionInvoker;
@@ -128,6 +130,9 @@ public:
 	void setHeaderEdit(bool bHeaderEdit);
 	void layout();
 	void reloadProfiles();
+	
+	void addEditWindowHandler(EditWindowHandler* pHandler);
+	void removeEditWindowHandler(EditWindowHandler* pHandler);
 
 public:
 	virtual qs::Accelerator* getAccelerator();
@@ -148,6 +153,46 @@ private:
 
 private:
 	class EditWindowImpl* pImpl_;
+};
+
+
+/****************************************************************************
+ *
+ * EditWindowHandler
+ *
+ */
+
+class EditWindowHandler
+{
+public:
+	virtual ~EditWindowHandler();
+
+public:
+	virtual void titleChanged(const EditWindowTitleEvent& event) = 0;
+};
+
+
+/****************************************************************************
+ *
+ * EditWindowTitleEvent
+ *
+ */
+
+class EditWindowTitleEvent
+{
+public:
+	explicit EditWindowTitleEvent(const WCHAR* pwszTitle);
+	~EditWindowTitleEvent();
+
+public:
+	const WCHAR* getTitle() const;
+
+private:
+	EditWindowTitleEvent(const EditWindowTitleEvent&);
+	EditWindowTitleEvent& operator=(const EditWindowTitleEvent&);
+
+private:
+	qs::wstring_ptr wstrTitle_;
 };
 
 

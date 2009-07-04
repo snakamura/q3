@@ -52,6 +52,9 @@ public:
 	};
 
 public:
+	typedef std::vector<EditWindowHandler*> HandlerList;
+
+public:
 	void layoutChildren();
 	void layoutChildren(int cx,
 						int cy);
@@ -97,12 +100,16 @@ public:
 public:
 	virtual void messageSet(const EditMessageEvent& event);
 	virtual void messageUpdate(const EditMessageEvent& event);
+	virtual void fieldChanged(const EditMessageFieldEvent& event);
 
 public:
 	virtual void dragEnter(const DropTargetDragEvent& event);
 	virtual void dragOver(const DropTargetDragEvent& event);
 	virtual void dragExit(const DropTargetEvent& event);
 	virtual void drop(const DropTargetDropEvent& event);
+
+private:
+	void fireTitleChanged(const WCHAR* pwszTitle) const;
 
 public:
 	EditWindow* pThis_;
@@ -121,6 +128,8 @@ public:
 	bool bHeaderEdit_;
 	EditWindowItem* pLastFocusedItem_;
 	bool bCanDrop_;
+	
+	HandlerList listHandler_;
 };
 
 void qm::EditWindowImpl::layoutChildren()
@@ -368,6 +377,9 @@ bool qm::EditWindowImpl::setEditMessage(EditMessage* pEditMessage)
 			pEditMessage->addEditMessageHandler(this);
 	}
 	
+	wstring_ptr wstrSubject(pEditMessage->getField(L"Subject", EditMessage::FIELDTYPE_UNSTRUCTURED));
+	fireTitleChanged(wstrSubject.get());
+	
 	pEditMessage_ = pEditMessage;
 	
 	layoutChildren();
@@ -395,6 +407,12 @@ void qm::EditWindowImpl::messageUpdate(const EditMessageEvent& event)
 	// TODO
 	// Error handling
 	updateEditMessage();
+}
+
+void qm::EditWindowImpl::fieldChanged(const EditMessageFieldEvent& event)
+{
+	if (_wcsicmp(event.getName(), L"subject") == 0)
+		fireTitleChanged(event.getValue());
 }
 
 void qm::EditWindowImpl::dragEnter(const DropTargetDragEvent& event)
@@ -435,6 +453,13 @@ void qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
 		pEditMessage_->addAttachment(*it);
 	
 	ImageList_DragLeave(pThis_->getHandle());
+}
+
+void qm::EditWindowImpl::fireTitleChanged(const WCHAR* pwszTitle) const
+{
+	EditWindowTitleEvent event(pwszTitle);
+	std::for_each(listHandler_.begin(), listHandler_.end(),
+		boost::bind(&EditWindowHandler::titleChanged, _1, boost::cref(event)));
 }
 
 
@@ -539,6 +564,18 @@ void qm::EditWindow::reloadProfiles()
 	pImpl_->reloadProfiles(false);
 }
 
+void qm::EditWindow::addEditWindowHandler(EditWindowHandler* pHandler)
+{
+	pImpl_->listHandler_.push_back(pHandler);
+}
+
+void qm::EditWindow::removeEditWindowHandler(EditWindowHandler* pHandler)
+{
+	EditWindowImpl::HandlerList::iterator it = std::remove(
+		pImpl_->listHandler_.begin(), pImpl_->listHandler_.end(), pHandler);
+	pImpl_->listHandler_.erase(it, pImpl_->listHandler_.end());
+}
+
 Accelerator* qm::EditWindow::getAccelerator()
 {
 	return pImpl_->pAccelerator_.get();
@@ -623,6 +660,38 @@ LRESULT qm::EditWindow::onSize(UINT nFlags,
 	if (pImpl_->bCreated_ && !pImpl_->bLayouting_)
 		pImpl_->layoutChildren(cx, cy);
 	return DefaultWindowHandler::onSize(nFlags, cx, cy);
+}
+
+
+/****************************************************************************
+ *
+ * EditWindowHandler
+ *
+ */
+
+qm::EditWindowHandler::~EditWindowHandler()
+{
+}
+
+
+/****************************************************************************
+ *
+ * EditWindowTitleEvent
+ *
+ */
+
+qm::EditWindowTitleEvent::EditWindowTitleEvent(const WCHAR* pwszTitle)
+{
+	wstrTitle_ = allocWString(pwszTitle);
+}
+
+qm::EditWindowTitleEvent::~EditWindowTitleEvent()
+{
+}
+
+const WCHAR* qm::EditWindowTitleEvent::getTitle() const
+{
+	return wstrTitle_.get();
 }
 
 
