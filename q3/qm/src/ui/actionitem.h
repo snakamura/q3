@@ -132,6 +132,7 @@ const qs::ActionItem actionItems[] = {
 	{ L"MessageMove",					IDM_MESSAGE_MOVE,					MAX_MESSAGE_MOVE,			0 },
 	{ L"MessageOpen",					IDM_MESSAGE_OPEN,					MAX_MESSAGE_OPEN,			0 },
 	{ L"MessageOpenAttachment",			IDM_MESSAGE_OPENATTACHMENT,			MAX_MESSAGE_OPENATTACHMENT,	0 },
+	{ L"MessageOpenFocused",			IDM_MESSAGE_OPENFOCUSED,			1,							0 },
 	{ L"MessageOpenLink",				IDM_MESSAGE_OPENLINK,				1,							0 },
 	{ L"MessageOpenRecent",				IDM_MESSAGE_OPENRECENT,				MAX_MESSAGE_OPENRECENT,		0 },
 	{ L"MessageOpenURL",				IDM_MESSAGE_OPENURL,				MAX_MESSAGE_OPENURL,		0 },

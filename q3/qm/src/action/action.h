@@ -91,6 +91,7 @@ class MessageMarkAction;
 class MessageMoveAction;
 class MessageOpenAction;
 class MessageOpenAttachmentAction;
+class MessageOpenFocusedAction;
 class MessageOpenLinkAction;
 class MessageOpenRecentAction;
 class MessageOpenURLAction;
@@ -2353,6 +2354,34 @@ private:
 	const URIResolver* pURIResolver_;
 	SecurityModel* pSecurityModel_;
 	AttachmentHelper helper_;
+	HWND hwnd_;
+};
+
+
+/****************************************************************************
+ *
+ * MessageOpenFocusedAction
+ *
+ */
+
+class MessageOpenFocusedAction : public qs::AbstractAction
+{
+public:
+	MessageOpenFocusedAction(ViewModelManager* pViewModelManager,
+							 MessageFrameWindowManager* pMessageFrameWindowManager,
+							 HWND hwnd);
+	virtual ~MessageOpenFocusedAction();
+
+public:
+	virtual void invoke(const qs::ActionEvent& event);
+
+private:
+	MessageOpenFocusedAction(const MessageOpenFocusedAction&);
+	MessageOpenFocusedAction& operator=(const MessageOpenFocusedAction&);
+
+private:
+	ViewModelManager* pViewModelManager_;
+	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	HWND hwnd_;
 };
 

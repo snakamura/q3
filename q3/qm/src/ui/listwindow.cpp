@@ -33,8 +33,8 @@
 #	include <tmschema.h>
 #endif
 
+#include "actionid.h"
 #include "listwindow.h"
-#include "messageframewindow.h"
 #include "resourceinc.h"
 #include "syncdialog.h"
 #include "syncutil.h"
@@ -166,7 +166,6 @@ public:
 	ListWindow* pThis_;
 	
 	Profile* pProfile_;
-	MessageFrameWindowManager* pMessageFrameWindowManager_;
 	MenuManager* pMenuManager_;
 	std::auto_ptr<Accelerator> pAccelerator_;
 	AccountManager* pAccountManager_;
@@ -175,6 +174,7 @@ public:
 	ViewModelManager* pViewModelManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
+	ActionInvoker* pActionInvoker_;
 	
 	HFONT hfont_;
 	HFONT hfontBold_;
@@ -1287,15 +1287,13 @@ int qm::ListWindowImpl::getMessageImage(MessageHolder* pmh,
  */
 
 qm::ListWindow::ListWindow(ViewModelManager* pViewModelManager,
-						   Profile* pProfile,
-						   MessageFrameWindowManager* pMessageFrameWindowManager) :
+						   Profile* pProfile) :
 	WindowBase(true),
 	pImpl_(0)
 {
 	pImpl_ = new ListWindowImpl();
 	pImpl_->pThis_ = this;
 	pImpl_->pProfile_ = pProfile;
-	pImpl_->pMessageFrameWindowManager_ = pMessageFrameWindowManager;
 	pImpl_->pMenuManager_ = 0;
 	pImpl_->pAccountManager_ = 0;
 	pImpl_->pURIResolver_ = 0;
@@ -1566,6 +1564,7 @@ LRESULT qm::ListWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pMenuManager_ = pContext->pUIManager_->getMenuManager();
 	pImpl_->pSyncManager_ = pContext->pSyncManager_;
 	pImpl_->pSyncDialogManager_ = pContext->pSyncDialogManager_;
+	pImpl_->pActionInvoker_ = pContext->pActionInvoker_;
 	
 	CustomAcceleratorFactory acceleratorFactory;
 	pImpl_->pAccelerator_ = pContext->pUIManager_->getKeyMap()->createAccelerator(
@@ -1766,19 +1765,7 @@ LRESULT qm::ListWindow::onKeyDown(UINT nKey,
 			::GetKeyState(VK_SHIFT) < 0, ::GetKeyState(VK_CONTROL) < 0);
 		break;
 	case VK_RETURN:
-		{
-			ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
-			if (pViewModel) {
-				Lock<ViewModel> lock(*pViewModel);
-				unsigned int nItem = pViewModel->getFocused();
-				if (nItem < pViewModel->getCount()) {
-					if (!pImpl_->pMessageFrameWindowManager_->open(
-						pViewModel, pViewModel->getMessageHolder(nItem)))
-						messageBox(getResourceHandle(), IDS_ERROR_OPENMESSAGE,
-							MB_OK | MB_ICONERROR, getParentFrame());
-				}
-			}
-		}
+		pImpl_->pActionInvoker_->invoke(IDM_MESSAGE_OPENFOCUSED, 0, 0);
 		break;
 	default:
 		break;
@@ -1796,20 +1783,8 @@ LRESULT qm::ListWindow::onKillFocus(HWND hwnd)
 LRESULT qm::ListWindow::onLButtonDblClk(UINT nFlags,
 										const POINT& pt)
 {
-	if (!pImpl_->bSingleClickOpen_) {
-		ViewModel* pViewModel = pImpl_->pViewModelManager_->getCurrentViewModel();
-		if (pViewModel) {
-			Lock<ViewModel> lock(*pViewModel);
-			
-			unsigned int nLine = pImpl_->getLineFromPoint(pt);
-			if (nLine != -1) {
-				if (!pImpl_->pMessageFrameWindowManager_->open(
-					pViewModel, pViewModel->getMessageHolder(nLine)))
-					messageBox(getResourceHandle(), IDS_ERROR_OPENMESSAGE,
-						MB_OK | MB_ICONERROR, getParentFrame());
-			}
-		}
-	}
+	if (!pImpl_->bSingleClickOpen_)
+		pImpl_->pActionInvoker_->invoke(IDM_MESSAGE_OPENFOCUSED, 0, 0);
 	
 	return 0;
 }
@@ -1862,12 +1837,8 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 			bTapAndHold = true;
 #endif
 			
-			if (pImpl_->bSingleClickOpen_) {
-				if (!pImpl_->pMessageFrameWindowManager_->open(
-					pViewModel, pViewModel->getMessageHolder(nLine)))
-					messageBox(getResourceHandle(), IDS_ERROR_OPENMESSAGE,
-						MB_OK | MB_ICONERROR, getParentFrame());
-			}
+			if (pImpl_->bSingleClickOpen_)
+				pImpl_->pActionInvoker_->invoke(IDM_MESSAGE_OPENFOCUSED, 0, 0);
 		}
 	}
 	

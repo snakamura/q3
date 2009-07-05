@@ -25,7 +25,6 @@ class ViewColumn;
 class ViewModel;
 class ViewModelManager;
 class FolderSelectionHandler;
-class MessageFrameWindowManager;
 
 
 /****************************************************************************
@@ -52,8 +51,7 @@ public:
 
 public:
 	ListWindow(ViewModelManager* pViewModelManager,
-			   qs::Profile* pProfile,
-			   MessageFrameWindowManager* pMessageFrameWindowManager);
+			   qs::Profile* pProfile);
 	virtual ~ListWindow();
 
 public:

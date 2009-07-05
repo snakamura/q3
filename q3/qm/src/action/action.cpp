@@ -4907,6 +4907,44 @@ bool qm::MessageOpenAttachmentAction::isEnabled(const ActionEvent& event)
 
 /****************************************************************************
  *
+ * MessageOpenFocusedAction
+ *
+ */
+
+qm::MessageOpenFocusedAction::MessageOpenFocusedAction(ViewModelManager* pViewModelManager,
+													   MessageFrameWindowManager* pMessageFrameWindowManager,
+													   HWND hwnd) :
+	pViewModelManager_(pViewModelManager),
+	pMessageFrameWindowManager_(pMessageFrameWindowManager),
+	hwnd_(hwnd)
+{
+}
+
+qm::MessageOpenFocusedAction::~MessageOpenFocusedAction()
+{
+}
+
+void qm::MessageOpenFocusedAction::invoke(const ActionEvent& event)
+{
+	ViewModel* pViewModel = pViewModelManager_->getCurrentViewModel();
+	if (!pViewModel)
+		return;
+	
+	Lock<ViewModel> lock(*pViewModel);
+	
+	unsigned int nItem = pViewModel->getFocused();
+	if (nItem == -1)
+		return;
+	
+	if (!pMessageFrameWindowManager_->open(pViewModel,
+			pViewModel->getMessageHolder(nItem)))
+		messageBox(getResourceHandle(), IDS_ERROR_OPENMESSAGE,
+			MB_OK | MB_ICONERROR, hwnd_);
+}
+
+
+/****************************************************************************
+ *
  * MessageOpenLinkAction
  *
  */

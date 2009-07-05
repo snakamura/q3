@@ -21,6 +21,7 @@ class PaintInfo;
 struct ListWindowCreateContext;
 
 class AccountManager;
+class ActionInvoker;
 class SyncDialogManager;
 class SyncManager;
 class TempFileCleaner;
@@ -77,6 +78,7 @@ struct ListWindowCreateContext
 	UIManager* pUIManager_;
 	SyncManager* pSyncManager_;
 	SyncDialogManager* pSyncDialogManager_;
+	ActionInvoker* pActionInvoker_;
 };
 
 }

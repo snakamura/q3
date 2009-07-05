@@ -967,6 +967,11 @@ void qm::MainWindowImpl::initActions()
 		pTempFileCleaner_,
 		pProfile_,
 		pThis_->getHandle());
+	ADD_ACTION3(MessageOpenFocusedAction,
+		IDM_MESSAGE_OPENFOCUSED,
+		pViewModelManager_.get(),
+		pMessageFrameWindowManager_.get(),
+		pThis_->getHandle());
 	ADD_ACTION3(MessageOpenLinkAction,
 		IDM_MESSAGE_OPENLINK,
 		pMessageSelectionModel_.get(),
@@ -2647,15 +2652,15 @@ LRESULT qm::MainWindow::onCreate(CREATESTRUCT* pCreateStruct)
 	pImpl_->pListContainerWindow_->setFolderListWindow(pImpl_->pFolderListWindow_);
 	
 	std::auto_ptr<ListWindow> pListWindow(new ListWindow(
-		pImpl_->pViewModelManager_.get(), pImpl_->pProfile_,
-		pImpl_->pMessageFrameWindowManager_.get()));
+		pImpl_->pViewModelManager_.get(), pImpl_->pProfile_));
 	ListWindowCreateContext listContext = {
 		pContext->pDocument_,
 		pContext->pDocument_->getURIResolver(),
 		pImpl_->pTempFileCleaner_,
 		pContext->pUIManager_,
 		pImpl_->pSyncManager_,
-		pImpl_->pSyncDialogManager_
+		pImpl_->pSyncDialogManager_,
+		pImpl_->pActionInvoker_.get()
 	};
 	if (!pListWindow->create(L"QmListWindow", 0, dwStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,

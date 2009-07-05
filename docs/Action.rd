@@ -129,6 +129,7 @@
 *((<MessageMoveアクション|URL:MessageMoveAction.html>))
 *((<MessageOpenアクション|URL:MessageOpenAction.html>))
 *((<MessageOpenAttachmentアクション|URL:MessageOpenAttachmentAction.html>))
+*((<MessageOpenFocusedアクション|URL:MessageOpenFocusedAction.html>))
 *((<MessageOpenLinkアクション|URL:MessageOpenLinkAction.html>))
 *((<MessageOpenRecentアクション|URL:MessageOpenRecentAction.html>))
 *((<MessageOpenURLアクション|URL:MessageOpenURLAction.html>))
