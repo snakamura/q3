@@ -98,6 +98,8 @@ protected:
 						 const POINT& pt);
 #endif
 	LRESULT onPaint();
+	LRESULT onRButtonDblClk(UINT nFlags,
+							const POINT& pt);
 	LRESULT onRButtonDown(UINT nFlags,
 						  const POINT& pt);
 	LRESULT onRButtonUp(UINT nFlags,

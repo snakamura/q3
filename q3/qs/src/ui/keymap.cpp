@@ -39,10 +39,11 @@ public:
 	bool load(InputStream* pInputStream,
 			  const ActionItem* pItem,
 			  size_t nItemCount,
-			  ActionParamMap* pActionParamMap);
+			  ActionParamMap* pActionParamMap,
+			  KeyMapCallback* pCallback);
 	void clear();
 
-public:
+private:
 	static WORD getKey(const WCHAR* pwszName);
 	
 public:
@@ -129,10 +130,31 @@ const KeyMapImpl::Name qs::KeyMapImpl::names__[] = {
 bool qs::KeyMapImpl::load(InputStream* pInputStream,
 						  const ActionItem* pItem,
 						  size_t nItemCount,
-						  ActionParamMap* pActionParamMap)
+						  ActionParamMap* pActionParamMap,
+						  KeyMapCallback* pCallback)
 {
+	struct KeyMapCallbackImpl : public KeyMapCallback
+	{
+		KeyMapCallbackImpl(KeyMapCallback* pCallback) :
+			pCallback_(pCallback)
+		{
+		}
+		
+		virtual WORD getKey(const WCHAR* pwszName)
+		{
+			if (pCallback_) {
+				WORD wKey = pCallback_->getKey(pwszName);
+				if (wKey != static_cast<WORD>(-1))
+					return wKey;
+			}
+			return KeyMapImpl::getKey(pwszName);
+		}
+		
+		KeyMapCallback* pCallback_;
+	} callback(pCallback);
+	
 	XMLReader reader;
-	KeyMapContentHandler handler(&listItem_, pItem, nItemCount, pActionParamMap);
+	KeyMapContentHandler handler(&listItem_, pItem, nItemCount, pActionParamMap, &callback);
 	reader.setContentHandler(&handler);
 	InputSource source(pInputStream);
 	if (!reader.parse(&source)) {
@@ -170,7 +192,8 @@ WORD qs::KeyMapImpl::getKey(const WCHAR* pwszName)
 qs::KeyMap::KeyMap(const WCHAR* pwszPath,
 				   const ActionItem* pItem,
 				   size_t nItemCount,
-				   ActionParamMap* pActionParamMap) :
+				   ActionParamMap* pActionParamMap,
+				   KeyMapCallback* pCallback) :
 	pImpl_(0)
 {
 	assert(pwszPath);
@@ -182,7 +205,7 @@ qs::KeyMap::KeyMap(const WCHAR* pwszPath,
 		return;
 	BufferedInputStream stream(&fileStream, false);
 	
-	if (!pImpl_->load(&stream, pItem, nItemCount, pActionParamMap)) {
+	if (!pImpl_->load(&stream, pItem, nItemCount, pActionParamMap, pCallback)) {
 		Log log(InitThread::getInitThread().getLogger(), L"qs::KeyMap");
 		log.error(L"Could not load keymap.");
 	}
@@ -191,14 +214,15 @@ qs::KeyMap::KeyMap(const WCHAR* pwszPath,
 qs::KeyMap::KeyMap(InputStream* pInputStream,
 				   const ActionItem* pItem,
 				   size_t nItemCount,
-				   ActionParamMap* pActionParamMap) :
+				   ActionParamMap* pActionParamMap,
+				   KeyMapCallback* pCallback) :
 	pImpl_(0)
 {
 	assert(pInputStream);
 	
 	pImpl_ = new KeyMapImpl();
 	
-	if (!pImpl_->load(pInputStream, pItem, nItemCount, pActionParamMap)) {
+	if (!pImpl_->load(pInputStream, pItem, nItemCount, pActionParamMap, pCallback)) {
 		Log log(InitThread::getInitThread().getLogger(), L"qs::KeyMap");
 		log.error(L"Could not load keymap.");
 	}
@@ -227,6 +251,17 @@ std::auto_ptr<Accelerator> qs::KeyMap::createAccelerator(AcceleratorFactory* pFa
 	const KeyMapItem::AccelList& l = it != pImpl_->listItem_.end() ?
 		(*it)->getAccelList() : listAccel;
 	return pFactory->createAccelerator(&l[0], l.size());
+}
+
+
+/*****************************************************************************
+ *
+ * KeyMapCallback
+ *
+ */
+
+qs::KeyMapCallback::~KeyMapCallback()
+{
 }
 
 
@@ -272,11 +307,13 @@ void qs::KeyMapItem::add(ACCEL accel)
 qs::KeyMapContentHandler::KeyMapContentHandler(ItemList* pItemList,
 											   const ActionItem* pItem,
 											   size_t nItemCount,
-											   ActionParamMap* pActionParamMap) :
+											   ActionParamMap* pActionParamMap,
+											   KeyMapCallback* pCallback) :
 	pItemList_(pItemList),
 	pActionItem_(pItem),
 	nActionItemCount_(nItemCount),
 	pActionParamMap_(pActionParamMap),
+	pCallback_(pCallback),
 	state_(STATE_ROOT),
 	pKeyMapItem_(0),
 	nActionId_(-1)
@@ -380,8 +417,8 @@ bool qs::KeyMapContentHandler::startElement(const WCHAR* pwszNamespaceURI,
 				else if (wcscmp(pwszAttrName, L"name") == 0) {
 					if (accel.key != 0)
 						return false;
-					WORD nKey = KeyMapImpl::getKey(pwszValue);
-					if (nKey == -1)
+					WORD nKey = pCallback_->getKey(pwszValue);
+					if (nKey == static_cast<WORD>(-1))
 						return false;
 					accel.key = nKey;
 				}

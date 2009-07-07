@@ -61,7 +61,8 @@ public:
 	KeyMapContentHandler(ItemList* pItemList,
 						 const ActionItem* pItem,
 						 size_t nItemCount,
-						 ActionParamMap* pActionParamMap);
+						 ActionParamMap* pActionParamMap,
+						 KeyMapCallback* pCallback);
 	virtual ~KeyMapContentHandler();
 
 public:
@@ -97,6 +98,7 @@ private:
 	const ActionItem* pActionItem_;
 	size_t nActionItemCount_;
 	ActionParamMap* pActionParamMap_;
+	KeyMapCallback* pCallback_;
 	State state_;
 	KeyMapItem* pKeyMapItem_;
 	unsigned int nActionId_;

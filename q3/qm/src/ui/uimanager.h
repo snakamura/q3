@@ -30,6 +30,12 @@ class UIManager;
 class UIManager
 {
 public:
+	enum {
+		KEY_LDBLCLK = VK_F23,
+		KEY_RDBLCLK = VK_F24
+	};
+
+public:
 	UIManager();
 	~UIManager();
 

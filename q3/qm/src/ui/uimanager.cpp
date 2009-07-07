@@ -19,6 +19,50 @@ using namespace qm;
 using namespace qs;
 
 
+namespace {
+
+/****************************************************************************
+ *
+ * KeyMapCallbackImpl
+ *
+ */
+
+class KeyMapCallbackImpl : public qs::KeyMapCallback
+{
+public:
+	struct Name
+	{
+		const WCHAR* pwszName_;
+		WORD nKey_;
+	};
+	
+public:
+	virtual WORD getKey(const WCHAR* pwszName);
+	
+public:
+	static const Name names__[];
+};
+
+}
+
+const KeyMapCallbackImpl::Name KeyMapCallbackImpl::names__[] = {
+	{ L"ldblclk",	UIManager::KEY_LDBLCLK	},
+	{ L"rdblclk",	UIManager::KEY_RDBLCLK	}
+};
+
+WORD KeyMapCallbackImpl::getKey(const WCHAR* pwszName)
+{
+	assert(pwszName);
+	
+	Name name = { pwszName, 0 };
+	const Name* pName = std::lower_bound(names__, endof(names__), name,
+		boost::bind(string_less<WCHAR>(),
+			boost::bind(&Name::pwszName_, _1),
+			boost::bind(&Name::pwszName_, _2)));
+	return pName != endof(names__) && wcscmp(pName->pwszName_, pwszName) == 0 ? pName->nKey_ : -1;
+}
+
+
 /****************************************************************************
  *
  * UIManager
@@ -49,8 +93,9 @@ qm::UIManager::UIManager()
 		actionItems, countof(actionItems), pMenuManager_.get(), pActionParamMap_.get()));
 	
 	wstring_ptr wstrKeyMapPath(app.getProfilePath(FileNames::KEYMAP_XML));
+	KeyMapCallbackImpl callback;
 	pKeyMap_.reset(new KeyMap(wstrKeyMapPath.get(), actionItems,
-		countof(actionItems), pActionParamMap_.get()));
+		countof(actionItems), pActionParamMap_.get(), &callback));
 }
 
 qm::UIManager::~UIManager()

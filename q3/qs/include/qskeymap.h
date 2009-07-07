@@ -15,6 +15,7 @@
 namespace qs {
 
 class KeyMap;
+class KeyMapCallback;
 
 class Accelerator;
 class AcceleratorFactory;
@@ -41,7 +42,8 @@ public:
 	KeyMap(const WCHAR* pwszPath,
 		   const ActionItem* pItem,
 		   size_t nItemCount,
-		   ActionParamMap* pActionParamMap);
+		   ActionParamMap* pActionParamMap,
+		   KeyMapCallback* pCallback);
 	
 	/**
 	 * Create instance.
@@ -52,7 +54,8 @@ public:
 	KeyMap(InputStream* pInputStream,
 		   const ActionItem* pItem,
 		   size_t nItemCount,
-		   ActionParamMap* pActionParamMap);
+		   ActionParamMap* pActionParamMap,
+		   KeyMapCallback* pCallback);
 	
 	~KeyMap();
 
@@ -74,6 +77,22 @@ private:
 
 private:
 	struct KeyMapImpl* pImpl_;
+};
+
+
+/*****************************************************************************
+ *
+ * KeyMapCallback
+ *
+ */
+
+class QSEXPORTCLASS KeyMapCallback
+{
+public:
+	virtual ~KeyMapCallback();
+
+public:
+	virtual WORD getKey(const WCHAR* pwszName) = 0;
 };
 
 }

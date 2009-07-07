@@ -1504,6 +1504,7 @@ LRESULT qm::ListWindow::windowProc(UINT uMsg,
 		HANDLE_MOUSEWHEEL()
 #endif
 		HANDLE_PAINT()
+		HANDLE_RBUTTONDBLCLK()
 		HANDLE_RBUTTONDOWN()
 		HANDLE_RBUTTONUP()
 		HANDLE_SETFOCUS()
@@ -1783,6 +1784,17 @@ LRESULT qm::ListWindow::onKillFocus(HWND hwnd)
 LRESULT qm::ListWindow::onLButtonDblClk(UINT nFlags,
 										const POINT& pt)
 {
+	MSG msg = {
+		getHandle(),
+		WM_KEYDOWN,
+		UIManager::KEY_LDBLCLK,
+		0,
+		0,
+		{ 0, 0 }
+	};
+	if (pImpl_->pAccelerator_->translateAccelerator(getParentFrame(), msg))
+		return 0;
+	
 	if (!pImpl_->bSingleClickOpen_)
 		pImpl_->pActionInvoker_->invoke(IDM_MESSAGE_OPENFOCUSED, 0, 0);
 	
@@ -1936,6 +1948,23 @@ LRESULT qm::ListWindow::onPaint()
 		getClientRect(&rect);
 		dc.fillSolidRect(rect, pImpl_->getColor(COLOR_WINDOW));
 	}
+	
+	return 0;
+}
+
+LRESULT qm::ListWindow::onRButtonDblClk(UINT nFlags,
+										const POINT& pt)
+{
+	MSG msg = {
+		getHandle(),
+		WM_KEYDOWN,
+		UIManager::KEY_RDBLCLK,
+		0,
+		0,
+		{ 0, 0 }
+	};
+	if (pImpl_->pAccelerator_->translateAccelerator(getParentFrame(), msg))
+		return 0;
 	
 	return 0;
 }
