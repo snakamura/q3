@@ -1,7 +1,7 @@
 =begin
 =@DeleteAttachment
 
- Boolean @Delete()
+ Boolean @DeleteAttachment()
 
 
 ==ê‡ñæ
