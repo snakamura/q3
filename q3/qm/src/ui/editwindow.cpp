@@ -457,7 +457,7 @@ void qm::EditWindowImpl::drop(const DropTargetDropEvent& event)
 
 void qm::EditWindowImpl::fireTitleChanged(const WCHAR* pwszTitle) const
 {
-	EditWindowTitleEvent event(pwszTitle);
+	EditWindowTitleEvent event(pwszTitle ? pwszTitle : L"");
 	std::for_each(listHandler_.begin(), listHandler_.end(),
 		boost::bind(&EditWindowHandler::titleChanged, _1, boost::cref(event)));
 }
