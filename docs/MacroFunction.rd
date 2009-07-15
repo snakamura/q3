@@ -40,6 +40,7 @@
 *((<@Decode|URL:DecodeFunction.html>))
 *((<@Defun|URL:DefunFunction.html>))
 *((<@Delete|URL:DeleteFunction.html>))
+*((<@DeleteAttachment|URL:DeleteAttachmentFunction.html>))
 *((<@Deleted|URL:DeletedFunction.html>))
 *((<@Download|URL:DownloadFunction.html>))
 *((<@DownloadText|URL:DownloadTextFunction.html>))

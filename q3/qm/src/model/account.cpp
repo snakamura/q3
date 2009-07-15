@@ -2335,6 +2335,36 @@ bool qm::Account::deleteMessagesCache(const MessageHolderList& l)
 	return true;
 }
 
+bool qm::Account::deleteAttachment(const MessageHolderList& l,
+								   Folder* pFolder,
+								   unsigned int nSecurityMode,
+								   UndoItemList* pUndoItemList)
+{
+	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		MessageHolder* pmh = *it;
+		
+		Message msg;
+		if (!pmh->getMessage(GMF_ALL, 0, nSecurityMode, &msg))
+			return false;
+		
+		AttachmentParser::removeAttachments(&msg);
+		AttachmentParser::setAttachmentDeleted(&msg);
+		
+		NormalFolder* pNormalFolder = pmh->getFolder();
+		unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
+		wstring_ptr wstrLabel(pmh->getLabel());
+		if (!appendMessage(pNormalFolder, msg, nFlags,
+			wstrLabel.get(), OPFLAG_NONE, pUndoItemList, 0))
+			return false;
+		
+		if (!removeMessages(MessageHolderList(1, pmh),
+			pFolder, Account::OPFLAG_ACTIVE, 0, pUndoItemList, 0))
+			return false;
+	}
+	
+	return true;
+}
+
 bool qm::Account::isSeen(const MessageHolder* pmh) const
 {
 	return isSeen(pmh->getFlags());

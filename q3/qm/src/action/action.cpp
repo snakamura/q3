@@ -4182,56 +4182,18 @@ void qm::MessageDeleteAttachmentAction::invoke(const ActionEvent& event)
 	if (l.empty())
 		return;
 	
+	UndoItemList undo;
 	Account* pAccount = lock.get();
-	if (!deleteAttachment(pAccount, pFolder, l)) {
+	if (!pAccount->deleteAttachment(l, pFolder, pSecurityModel_->getSecurityMode(), &undo)) {
 		ActionUtil::error(hwnd_, IDS_ERROR_DELETEATTACHMENT);
 		return;
 	}
+	pUndoManager_->pushUndoItem(undo.getUndoItem());
 }
 
 bool qm::MessageDeleteAttachmentAction::isEnabled(const ActionEvent& event)
 {
 	return pMessageSelectionModel_->hasSelectedMessageHolders();
-}
-
-bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
-														 Folder* pFolder,
-														 const MessageHolderList& l) const
-{
-	UndoItemList undo;
-	for (MessageHolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		if (!deleteAttachment(pAccount, pFolder, *it, &undo))
-			return false;
-	}
-	pUndoManager_->pushUndoItem(undo.getUndoItem());
-	
-	return true;
-}
-
-bool qm::MessageDeleteAttachmentAction::deleteAttachment(Account* pAccount,
-														 Folder* pFolder,
-														 MessageHolder* pmh,
-														 UndoItemList* pUndoItemList) const
-{
-	Message msg;
-	if (!pmh->getMessage(Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode(), &msg))
-		return false;
-	
-	AttachmentParser::removeAttachments(&msg);
-	AttachmentParser::setAttachmentDeleted(&msg);
-	
-	NormalFolder* pNormalFolder = pmh->getFolder();
-	unsigned int nFlags = pmh->getFlags() & MessageHolder::FLAG_USER_MASK;
-	wstring_ptr wstrLabel(pmh->getLabel());
-	if (!pAccount->appendMessage(pNormalFolder, msg, nFlags,
-		wstrLabel.get(), Account::OPFLAG_NONE, pUndoItemList, 0))
-		return false;
-	
-	if (!pAccount->removeMessages(MessageHolderList(1, pmh),
-		pFolder, Account::OPFLAG_ACTIVE, 0, pUndoItemList, 0))
-		return false;
-	
-	return true;
 }
 
 

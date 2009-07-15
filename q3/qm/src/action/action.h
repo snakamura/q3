@@ -2005,15 +2005,6 @@ public:
 	virtual bool isEnabled(const qs::ActionEvent& event);
 
 private:
-	bool deleteAttachment(Account* pAccount,
-						  Folder* pFolder,
-						  const MessageHolderList& l) const;
-	bool deleteAttachment(Account* pAccount,
-						  Folder* pFolder,
-						  MessageHolder* pmh,
-						  UndoItemList* pUndoItemList) const;
-
-private:
 	MessageDeleteAttachmentAction(const MessageDeleteAttachmentAction&);
 	MessageDeleteAttachmentAction& operator=(const MessageDeleteAttachmentAction&);
 

@@ -1391,6 +1391,55 @@ const WCHAR* qm::MacroFunctionDelete::getName() const
 
 /****************************************************************************
  *
+ * MacroFunctionDeleteAttachment
+ *
+ */
+
+qm::MacroFunctionDeleteAttachment::MacroFunctionDeleteAttachment()
+{
+}
+
+qm::MacroFunctionDeleteAttachment::~MacroFunctionDeleteAttachment()
+{
+}
+
+MacroValuePtr qm::MacroFunctionDeleteAttachment::value(MacroContext* pContext) const
+{
+	assert(pContext);
+	
+	LOG(DeleteAttachment);
+	
+	if (!pContext->isFlag(MacroContext::FLAG_MODIFY))
+		return error(*pContext, MacroErrorHandler::CODE_NOTMODIFIABLE);
+	
+	if (!checkArgSize(pContext, 0))
+		return MacroValuePtr();
+	
+	MessageHolderBase* pmh = pContext->getMessageHolder();
+	if (!pmh)
+		return error(*pContext, MacroErrorHandler::CODE_NOCONTEXTMESSAGEHOLDER);
+	assert(pmh->getMessageHolder());
+	
+	Account* pAccount = pmh->getAccount();
+	assert(pAccount->isLocked());
+	
+	MessageHolderList l(1, pmh->getMessageHolder());
+	if (!pAccount->deleteAttachment(l, 0, pContext->getSecurityMode(), 0))
+		return error(*pContext, MacroErrorHandler::CODE_FAIL);
+	
+	pContext->clearMessage();
+	
+	return MacroValueFactory::getFactory().newBoolean(true);
+}
+
+const WCHAR* qm::MacroFunctionDeleteAttachment::getName() const
+{
+	return L"DeleteAttachment";
+}
+
+
+/****************************************************************************
+ *
  * MacroFunctionEqual
  *
  */
@@ -6134,6 +6183,7 @@ std::auto_ptr<MacroFunction> qm::MacroFunctionFactory::newFunction(const WCHAR* 
 			DECLARE_FUNCTION0(		Decode,				L"decode"													)
 			DECLARE_FUNCTION0(		Defun,				L"defun"													)
 			DECLARE_FUNCTION0(		Delete,				L"delete"													)
+			DECLARE_FUNCTION0(		DeleteAttachment,	L"deleteattachment"											)
 			DECLARE_FUNCTION1(		Flag,				L"deleted",				MessageHolder::FLAG_DELETED			)
 			DECLARE_FUNCTION1(		Flag,				L"download",			MessageHolder::FLAG_DOWNLOAD		)
 			DECLARE_FUNCTION1(		Flag,				L"downloadtext",		MessageHolder::FLAG_DOWNLOADTEXT	)

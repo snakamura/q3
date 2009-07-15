@@ -52,6 +52,7 @@ class MacroExpr;
 		class MacroFunctionDecode;
 		class MacroFunctionDefun;
 		class MacroFunctionDelete;
+		class MacroFunctionDeleteAttachment;
 		class MacroFunctionEqual;
 		class MacroFunctionEval;
 		class MacroFunctionExecute;
@@ -1179,6 +1180,30 @@ protected:
 private:
 	MacroFunctionDelete(const MacroFunctionDelete&);
 	MacroFunctionDelete& operator=(const MacroFunctionDelete&);
+};
+
+
+/****************************************************************************
+ *
+ * MacroFunctionDeleteAttachment
+ *
+ */
+
+class MacroFunctionDeleteAttachment : public MacroFunction
+{
+public:
+	MacroFunctionDeleteAttachment();
+	virtual ~MacroFunctionDeleteAttachment();
+
+public:
+	virtual MacroValuePtr value(MacroContext* pContext) const;
+
+protected:
+	virtual const WCHAR* getName() const;
+
+private:
+	MacroFunctionDeleteAttachment(const MacroFunctionDeleteAttachment&);
+	MacroFunctionDeleteAttachment& operator=(const MacroFunctionDeleteAttachment&);
 };
 
 

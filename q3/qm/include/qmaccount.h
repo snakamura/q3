@@ -254,6 +254,10 @@ public:
 						  const WCHAR* pwszLabel,
 						  UndoItemList* pUndoItemList);
 	bool deleteMessagesCache(const MessageHolderList& l);
+	bool deleteAttachment(const MessageHolderList& l,
+						  Folder* pFolder,
+						  unsigned int nSecurityMode,
+						  UndoItemList* pUndoItemList);
 	
 	bool isSeen(const MessageHolder* pmh) const;
 	bool isSeen(unsigned int nFlags) const;
