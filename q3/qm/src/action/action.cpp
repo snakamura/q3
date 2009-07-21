@@ -2367,9 +2367,9 @@ bool qm::FilePrintAction::print(MessageEnumerator* pEnum,
 			return false;
 	}
 	
-	TemplateContext context(pmh, pMessage, listSelected, pFolder,
-		pAccount, pAccount->getCurrentSubAccount(), pDocument_,
-		pActionInvoker_, hwnd_, pEncodingModel_->getEncoding(),
+	SubAccount* pSubAccount = pAccount ? pAccount->getCurrentSubAccount() : 0;
+	TemplateContext context(pmh, pMessage, listSelected, pFolder, pAccount,
+		pSubAccount, pDocument_, pActionInvoker_, hwnd_, pEncodingModel_->getEncoding(),
 		MacroContext::FLAG_UITHREAD | MacroContext::FLAG_UI,
 		nSecurityMode, pProfile_, 0, TemplateContext::ArgumentList());
 	
