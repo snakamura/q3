@@ -35,6 +35,17 @@ public:
 		SIGNFLAG_DETACH
 	};
 
+	enum HashAlgorithm {
+		HASHALGORITHM_NONE = -1,
+		HASHALGORITHM_MD5,
+		HASHALGORITHM_SHA1,
+		HASHALGORITHM_RMD160,
+		HASHALGORITHM_SHA256,
+		HASHALGORITHM_SHA384,
+		HASHALGORITHM_SHA512,
+		HASHALGORITHM_SHA224
+	};
+
 public:
 	typedef std::vector<qs::WSTRING> UserIdList;
 
@@ -46,7 +57,8 @@ public:
 									  size_t nLen,
 									  SignFlag signFlag,
 									  const WCHAR* pwszUserId,
-									  qm::PGPPassphraseCallback* pPassphraseCallback) const = 0;
+									  qm::PGPPassphraseCallback* pPassphraseCallback,
+									  HashAlgorithm* pHashAlgorithm) const = 0;
 	virtual qs::xstring_size_ptr encrypt(const CHAR* pszText,
 										 size_t nLen,
 										 const UserIdList& listRecipient,
@@ -56,7 +68,8 @@ public:
 												const WCHAR* pwszUserId,
 												qm::PGPPassphraseCallback* pPassphraseCallback,
 												const UserIdList& listRecipient,
-												const UserIdList& listHiddenRecipient) const = 0;
+												const UserIdList& listHiddenRecipient,
+												HashAlgorithm* pHashAlgorithm) const = 0;
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
 						const CHAR* pszSignature,

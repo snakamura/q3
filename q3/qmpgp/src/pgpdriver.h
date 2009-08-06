@@ -35,7 +35,8 @@ public:
 									  size_t nLen,
 									  SignFlag signFlag,
 									  const WCHAR* pwszUserId,
-									  qm::PGPPassphraseCallback* pPassphraseCallback) const;
+									  qm::PGPPassphraseCallback* pPassphraseCallback,
+									  HashAlgorithm* pHashAlgorithm) const;
 	virtual qs::xstring_size_ptr encrypt(const CHAR* pszText,
 										 size_t nLen,
 										 const UserIdList& listRecipient,
@@ -45,7 +46,8 @@ public:
 												const WCHAR* pwszUserId,
 												qm::PGPPassphraseCallback* pPassphraseCallback,
 												const UserIdList& listRecipient,
-												const UserIdList& listHiddenRecipient) const;
+												const UserIdList& listHiddenRecipient,
+												HashAlgorithm* pHashAlgorithm) const;
 	virtual bool verify(const CHAR* pszContent,
 						size_t nLen,
 						const CHAR* pszSignature,

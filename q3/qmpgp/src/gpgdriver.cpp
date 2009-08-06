@@ -41,7 +41,8 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 										size_t nLen,
 										SignFlag signFlag,
 										const WCHAR* pwszUserId,
-										PGPPassphraseCallback* pPassphraseCallback) const
+										PGPPassphraseCallback* pPassphraseCallback,
+										HashAlgorithm* pHashAlgorithm) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -98,6 +99,9 @@ xstring_size_ptr qmpgp::GPGDriver::sign(const CHAR* pszText,
 		log.errorf(L"Command exited with: %d", nCode);
 		return xstring_size_ptr();
 	}
+	
+	if (pHashAlgorithm)
+		*pHashAlgorithm = statusHandler.getHashAlgorithm();
 	
 	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(
 		stdoutStream.getBuffer()), stdoutStream.getLength()), stdoutStream.getLength());
@@ -161,7 +165,8 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 												  const WCHAR* pwszUserId,
 												  PGPPassphraseCallback* pPassphraseCallback,
 												  const UserIdList& listRecipient,
-												  const UserIdList& listHiddenRecipient) const
+												  const UserIdList& listHiddenRecipient,
+												  HashAlgorithm* pHashAlgorithm) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::GPGDriver");
 	
@@ -215,6 +220,9 @@ xstring_size_ptr qmpgp::GPGDriver::signAndEncrypt(const CHAR* pszText,
 		log.errorf(L"Command exited with: %d", nCode);
 		return xstring_size_ptr();
 	}
+	
+	if (pHashAlgorithm)
+		*pHashAlgorithm = statusHandler.getHashAlgorithm();
 	
 	return xstring_size_ptr(allocXString(reinterpret_cast<const CHAR*>(
 		stdoutStream.getBuffer()), stdoutStream.getLength()), stdoutStream.getLength());
@@ -474,7 +482,8 @@ qmpgp::GPGDriver::StatusHandler::StatusHandler(const GPGDriver* pDriver,
 	pPassphraseCallback_(pPassphraseCallback),
 	pFrom_(0),
 	pSender_(0),
-	nVerify_(PGPUtility::VERIFY_NONE)
+	nVerify_(PGPUtility::VERIFY_NONE),
+	hashAlgorithm_(HASHALGORITHM_NONE)
 {
 }
 
@@ -486,7 +495,8 @@ qmpgp::GPGDriver::StatusHandler::StatusHandler(const GPGDriver* pDriver,
 	pPassphraseCallback_(pPassphraseCallback),
 	pFrom_(pFrom),
 	pSender_(pSender),
-	nVerify_(PGPUtility::VERIFY_NONE)
+	nVerify_(PGPUtility::VERIFY_NONE),
+	hashAlgorithm_(HASHALGORITHM_NONE)
 {
 }
 
@@ -520,6 +530,11 @@ wstring_ptr qmpgp::GPGDriver::StatusHandler::getUserId() const
 	if (!wstrUserId_.get())
 		return 0;
 	return allocWString(wstrUserId_.get());
+}
+
+Driver::HashAlgorithm qmpgp::GPGDriver::StatusHandler::getHashAlgorithm() const
+{
+	return hashAlgorithm_;
 }
 
 bool qmpgp::GPGDriver::StatusHandler::process(const HANDLE* pHandles,
@@ -634,6 +649,35 @@ bool qmpgp::GPGDriver::StatusHandler::processBuffer(XStringBuffer<STRING>* pBuf)
 		else if (nLen > 18 && strncmp(strLine.get() + 9, "GET_BOOL ", 9) == 0) {
 			if (!writeCommand(L"n"))
 				return false;
+		}
+		else if (nLen > 21 && strncmp(strLine.get() + 9, "SIG_CREATED ", 12) == 0) {
+			hashAlgorithm_ = HASHALGORITHM_NONE;
+			
+			const CHAR* p = strLine.get() + 21;
+			for (int n = 0; n < 2 && p; ++n, ++p)
+				p = strchr(p, ' ');
+			if (p) {
+				CHAR* pEnd = 0;
+				unsigned int n = strtol(p, &pEnd, 10);
+				if (n != 0 && *pEnd == ' ') {
+					const HashAlgorithm algos[] = {
+						HASHALGORITHM_NONE,
+						HASHALGORITHM_MD5,
+						HASHALGORITHM_SHA1,
+						HASHALGORITHM_RMD160,
+						HASHALGORITHM_NONE,
+						HASHALGORITHM_NONE,
+						HASHALGORITHM_NONE,
+						HASHALGORITHM_NONE,
+						HASHALGORITHM_SHA256,
+						HASHALGORITHM_SHA384,
+						HASHALGORITHM_SHA512,
+						HASHALGORITHM_SHA224
+					};
+					if (0 < n && n < countof(algos))
+						hashAlgorithm_ = algos[n];
+				}
+			}
 		}
 	}
 	

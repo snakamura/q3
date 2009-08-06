@@ -126,13 +126,14 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 		if (!strContent.get())
 			return xstring_size_ptr();
 		
-		xstring_size_ptr strSignature(pDriver->sign(strContent.get(),
-			-1, Driver::SIGNFLAG_DETACH, pwszUserId, pPassphraseCallback));
+		Driver::HashAlgorithm hashAlgorithm = Driver::HASHALGORITHM_NONE;
+		xstring_size_ptr strSignature(pDriver->sign(strContent.get(), -1,
+			Driver::SIGNFLAG_DETACH, pwszUserId, pPassphraseCallback, &hashAlgorithm));
 		if (!strSignature.get())
 			return xstring_size_ptr();
 		
 		return createMultipartSignedMessage(strHeader.get(),
-			*pPart, strSignature.get(), strSignature.size());
+			*pPart, strSignature.get(), strSignature.size(), hashAlgorithm);
 	}
 	else {
 		xstring_size_ptr strContent(pPart->getContent());
@@ -141,7 +142,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::sign(Part* pPart,
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
 		xstring_size_ptr strBody(pDriver->sign(pBody, -1,
-			Driver::SIGNFLAG_CLEARTEXT, pwszUserId, pPassphraseCallback));
+			Driver::SIGNFLAG_CLEARTEXT, pwszUserId, pPassphraseCallback, 0));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -234,7 +235,7 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 			return xstring_size_ptr();
 		
 		xstring_size_ptr strBody(pDriver->signAndEncrypt(strContent.get(), -1,
-			pwszUserId, pPassphraseCallback, listRecipient, listHiddenRecipient));
+			pwszUserId, pPassphraseCallback, listRecipient, listHiddenRecipient, 0));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -246,8 +247,9 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::signAndEncrypt(Part* pPart,
 			return xstring_size_ptr();
 		
 		const CHAR* pBody = Part::getBody(strContent.get(), strContent.size());
-		xstring_size_ptr strBody(pDriver->signAndEncrypt(pBody, -1,
-			pwszUserId, pPassphraseCallback, listRecipient, listHiddenRecipient));
+		Driver::HashAlgorithm hashAlgorithm = Driver::HASHALGORITHM_NONE;
+		xstring_size_ptr strBody(pDriver->signAndEncrypt(pBody, -1, pwszUserId,
+			pPassphraseCallback, listRecipient, listHiddenRecipient, 0));
 		if (!strBody.get())
 			return xstring_size_ptr();
 		
@@ -485,7 +487,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::createMessage(const CHAR* pszContent,
 xstring_size_ptr qmpgp::PGPUtilityImpl::createMultipartSignedMessage(const CHAR* pszHeader,
 																	 const Part& part,
 																	 const CHAR* pszSignature,
-																	 size_t nSignatureLen)
+																	 size_t nSignatureLen,
+																	 Driver::HashAlgorithm hashAlgorithm)
 {
 	assert(pszHeader);
 	assert(pszSignature);
@@ -509,7 +512,8 @@ xstring_size_ptr qmpgp::PGPUtilityImpl::createMultipartSignedMessage(const CHAR*
 			time.wSecond, time.wMilliseconds, ::GetCurrentThreadId());
 		contentType.setParameter(L"boundary", wszBoundary);
 		contentType.setParameter(L"protocol", L"application/pgp-signature");
-		contentType.setParameter(L"micalg", L"pgp-sha1");
+		wstring_ptr wstrHash(formatHashAlgorithm(hashAlgorithm));
+		contentType.setParameter(L"micalg", wstrHash.get());
 		if (!msg.setField(L"Content-Type", contentType))
 			return xstring_size_ptr();
 	}
@@ -677,6 +681,28 @@ void qmpgp::PGPUtilityImpl::getUserIds(const Part& part,
 			}
 		}
 	}
+}
+
+wstring_ptr qmpgp::PGPUtilityImpl::formatHashAlgorithm(Driver::HashAlgorithm hashAlgorithm)
+{
+	const struct Algo {
+		Driver::HashAlgorithm algo_;
+		const WCHAR* pwszName_;
+	} algos[] = {
+		{ Driver::HASHALGORITHM_MD5,	L"md5"       },
+		{ Driver::HASHALGORITHM_SHA1,	L"sha1"      },
+		{ Driver::HASHALGORITHM_RMD160,	L"ripemd160" },
+		{ Driver::HASHALGORITHM_SHA256,	L"sha256"    },
+		{ Driver::HASHALGORITHM_SHA384,	L"sha384"    },
+		{ Driver::HASHALGORITHM_SHA512,	L"sha512"    },
+		{ Driver::HASHALGORITHM_SHA224,	L"sha224"    }
+	};
+	const Algo* algo = std::find_if(algos, endof(algos),
+		boost::bind(&Algo::algo_, _1) == hashAlgorithm);
+	if (algo != endof(algos))
+		return concat(L"pgp-", algo->pwszName_);
+	else
+		return allocWString(L"pgp-sha1");
 }
 
 

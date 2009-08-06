@@ -18,8 +18,6 @@ namespace qmpgp {
 class PGPUtilityImpl;
 class PGPFactoryImpl;
 
-class Driver;
-
 
 /****************************************************************************
  *
@@ -75,7 +73,8 @@ private:
 	static qs::xstring_size_ptr createMultipartSignedMessage(const CHAR* pszHeader,
 															 const qs::Part& part,
 															 const CHAR* pszSignature,
-															 size_t nSignatureLen);
+															 size_t nSignatureLen,
+															 Driver::HashAlgorithm hashAlgorithm);
 	static qs::xstring_size_ptr createMultipartEncryptedMessage(const CHAR* pszHeader,
 																const CHAR* pszBody,
 																size_t nBodyLen);
@@ -88,6 +87,7 @@ private:
 						   const WCHAR* pwszField,
 						   Driver::UserIdList* pListUserId,
 						   Driver::UserIdList* pListHiddenUserId);
+	static qs::wstring_ptr formatHashAlgorithm(Driver::HashAlgorithm hashAlgorithm);
 
 private:
 	PGPUtilityImpl(const PGPUtilityImpl&);

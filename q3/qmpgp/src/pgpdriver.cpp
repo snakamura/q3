@@ -39,7 +39,8 @@ xstring_size_ptr qmpgp::PGPDriver::sign(const CHAR* pszText,
 										size_t nLen,
 										SignFlag signFlag,
 										const WCHAR* pwszUserId,
-										PGPPassphraseCallback* pPassphraseCallback) const
+										PGPPassphraseCallback* pPassphraseCallback,
+										HashAlgorithm* pHashAlgorithm) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
 	
@@ -159,7 +160,8 @@ xstring_size_ptr qmpgp::PGPDriver::signAndEncrypt(const CHAR* pszText,
 												  const WCHAR* pwszUserId,
 												  PGPPassphraseCallback* pPassphraseCallback,
 												  const UserIdList& listRecipient,
-												  const UserIdList& listHiddenRecipient) const
+												  const UserIdList& listHiddenRecipient,
+												  HashAlgorithm* pHashAlgorithm) const
 {
 	Log log(InitThread::getInitThread().getLogger(), L"qmpgp::PGPDriver");
 	
