@@ -60,6 +60,7 @@ public:
 
 public:
 	Token getToken();
+	Token getToken(const CHAR* pszSkipSpecials);
 
 public:
 	static bool isCtl(unsigned char c);

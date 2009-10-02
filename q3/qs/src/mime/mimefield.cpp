@@ -55,6 +55,11 @@ qs::Tokenizer::~Tokenizer()
 
 Tokenizer::Token qs::Tokenizer::getToken()
 {
+	return getToken(0);
+}
+
+Tokenizer::Token qs::Tokenizer::getToken(const CHAR* pszSkipSpecials)
+{
 	Token token(T_ERROR);
 	
 	while (isSpace(*p_))
@@ -142,7 +147,7 @@ Tokenizer::Token qs::Tokenizer::getToken()
 	}
 	else {
 		while (*p_ &&
-			!isSpecial(*p_, nFlags_) &&
+			(!isSpecial(*p_, nFlags_) || (pszSkipSpecials && strchr(pszSkipSpecials, *p_))) &&
 			!isCtl(*p_) &&
 			!isSpace(*p_)) {
 			buf.append(*p_);
@@ -3238,8 +3243,9 @@ Part::Field qs::ParameterFieldParser::parseParameter(const Part& part,
 													 State state)
 {
 	string_ptr strName;
+	const CHAR* pszSkipSpecials = part.isOption(Part::O_ALLOW_SLASH_IN_PARAMETER) ? "/" : 0;
 	while (state != S_END) {
-		Tokenizer::Token token(t.getToken());
+		Tokenizer::Token token(t.getToken(pszSkipSpecials));
 		
 		if (token.type_ == Tokenizer::T_COMMENT)
 			continue;
