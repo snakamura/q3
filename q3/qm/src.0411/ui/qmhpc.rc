@@ -521,7 +521,7 @@ BEGIN
                     WS_TABSTOP,115,65,45,10
     CONTROL         "ゴミ箱(&T)",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,115,75,43,10
-    CONTROL         "スパム(&J)",IDC_JUNKBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "スパム(&J)",IDC_JUNKBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,115,85,42,10
     GROUPBOX        "タイプ",IDC_STATIC,110,25,60,75
 END

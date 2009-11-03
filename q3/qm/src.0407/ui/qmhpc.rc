@@ -521,7 +521,7 @@ BEGIN
                     WS_TABSTOP,95,65,40,10
     CONTROL         "&Papierkorb",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,95,75,43,10
-    CONTROL         "&Junk",IDC_JUNKBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Junk",IDC_JUNKBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,95,85,42,10
     GROUPBOX        "Ordnertyp",IDC_STATIC,90,25,80,75
 END

@@ -526,7 +526,7 @@ BEGIN
                     WS_TABSTOP,85,80,40,10
     CONTROL         "&Trashbox",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,85,90,43,10
-    CONTROL         "&Junkbox",IDC_JUNKBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Junkbox",IDC_JUNKBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,85,100,42,10
     GROUPBOX        "Box Type",IDC_BOXTYPE,80,40,52,75
 END
@@ -3067,7 +3067,7 @@ BEGIN
                     WS_TABSTOP,130,50,40,10
     CONTROL         "&Trashbox",IDC_TRASHBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,130,60,43,10
-    CONTROL         "&Junkbox",IDC_JUNKBOX,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "&Junkbox",IDC_JUNKBOX,"Button",BS_AUTO3STATE | 
                     WS_TABSTOP,130,70,42,10
     GROUPBOX        "Box Type",IDC_BOXTYPE,80,40,97,45
 END
