@@ -160,7 +160,6 @@
 				<separator/>
 				<menuitem text="&amp;Others..." action="MessageMove"/>
 			</popupmenu>
-			<menuitem text="La&amp;bel..." action="MessageLabel"/>
 			<separator/>
 			<menuitem text="Appl&amp;y Rules" action="MessageApplyRule"/>
 			<menuitem text="Apply Rules t&amp;o All" action="MessageApplyRuleAll"/>
@@ -504,7 +503,6 @@
 			<separator/>
 			<menuitem text="&amp;Others..." action="MessageMove"/>
 		</popupmenu>
-		<menuitem text="La&amp;bel..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="Apply Ru&amp;les to Selected" action="MessageApplyRuleSelected"/>
 		<separator/>
@@ -530,6 +528,7 @@
 			<separator/>
 			<menuitem text="Mark De&amp;leted" action="MessageMarkDeleted"/>
 		</popupmenu>
+		<menuitem text="La&amp;bel..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="&amp;Property..." action="MessageProperty"/>
 	</menu>

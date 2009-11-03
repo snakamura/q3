@@ -489,7 +489,6 @@
 			<separator/>
 			<menuitem text="その他(&amp;O)..." action="MessageMove"/>
 		</popupmenu>
-		<menuitem text="ラベル(&amp;B)..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="選択されたメッセージを振り分け(&amp;L)" action="MessageApplyRuleSelected"/>
 		<separator/>
@@ -515,6 +514,7 @@
 			<separator/>
 			<menuitem text="削除マークを付ける(&amp;L)" action="MessageMarkDeleted"/>
 		</popupmenu>
+		<menuitem text="ラベル(&amp;B)..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="プロパティ(&amp;P)..." action="MessageProperty"/>
 	</menu>

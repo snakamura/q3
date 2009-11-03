@@ -491,7 +491,6 @@
 			<separator/>
 			<menuitem text="&amp;Andere..." action="MessageMove"/>
 		</popupmenu>
-		<menuitem text="&amp;Kennzeichnungen..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="Regeln auf markierte an&amp;wenden" action="MessageApplyRuleSelected"/>
 		<separator/>
@@ -517,6 +516,7 @@
 			<separator/>
 			<menuitem text="als Ge&amp;löscht" action="MessageMarkDeleted"/>
 		</popupmenu>
+		<menuitem text="&amp;Kennzeichnungen..." action="MessageLabel"/>
 		<separator/>
 		<menuitem text="&amp;Eigenschaften..." action="MessageProperty"/>
 	</menu>
