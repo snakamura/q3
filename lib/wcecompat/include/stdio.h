@@ -48,7 +48,7 @@ extern "C" {
 
 // FILE is an opaque handle in Win CE. Users have no access to the internals
 #ifndef _FILE_DEFINED
-typedef void FILE;
+typedef unsigned char FILE;
 #define _FILE_DEFINED
 #endif
 
@@ -97,6 +97,7 @@ _CRTIMP int    __cdecl ungetc(int, FILE *);
 
 // ANSI functions for general buffered file handling
 _CRTIMP FILE * __cdecl fopen(const char *, const char *);
+_CRTIMP FILE*  __cdecl fdopen(int, const char *);
 _CRTIMP int    __cdecl fscanf(FILE *, const char *, ...);
 _CRTIMP int    __cdecl fprintf(FILE *, const char *, ...);
 _CRTIMP int    __cdecl vfprintf(FILE *, const char *, va_list);
@@ -157,10 +158,22 @@ _CRTIMP int __cdecl vfwprintf(FILE *, const wchar_t *, va_list);
 
 void perror(const char *prefix);
 
+#ifndef _IOFBF
 #define _IOFBF	0
+#endif
+#ifndef _IOLBF
 #define _IOLBF	1
+#endif
+#ifndef _IONBF
 #define _IONBF	2
-int setvbuf(FILE* stream, char* buffer, int mode, size_t size);
+#endif
+
+#ifndef FILENAME_MAX
+#define FILENAME_MAX 260
+#endif
+
+int setbuf (FILE* stream, char* buffer);
+int setvbuf(FILE *stream, char *buffer, int mode, size_t size);
 
 #ifdef __cplusplus
 }

@@ -22,25 +22,33 @@
 #ifndef __wcecompat__TIME_H__
 #define __wcecompat__TIME_H__
 
+#include <stdlib.h>		// time_t defined there
+
+extern size_t wcsftime(wchar_t *, size_t, const char *,const struct tm *);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-#include <stdlib.h>		// time_t defined there
 //typedef int time_t;
 
 #ifndef _CLOCK_T_DEFINED
 typedef unsigned long clock_t;
-#define _CLOCK_T_DEFINED
 #endif
+#ifndef CLOCKS_PER_SEC
 #define CLOCKS_PER_SEC (1000)
+#endif
+
+#ifndef DAYSPERWEEK
+#define DAYSPERWEEK 7
+#endif
 
 time_t time(time_t* t);
 clock_t __cdecl clock(void);
 
 #ifndef _TM_DEFINED
+#define _TM_DEFINED
 struct tm
 {
 	int tm_sec;
@@ -53,12 +61,17 @@ struct tm
 	int tm_yday;
 	int tm_isdst;
 };
-#define _TM_DEFINED
 #endif
 
 struct tm* localtime(const time_t* clock);
 struct tm * __cdecl gmtime(const time_t *clock);
+size_t strftime(char *s, size_t maxs, const char *f, const struct tm *t);
+time_t mktime(struct tm* pt);
 
+void _tzset ();
+
+#define tzset _tzset;
+#define timegm mktime
 
 #ifdef __cplusplus
 }

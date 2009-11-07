@@ -25,9 +25,18 @@
 #include "stddef.h"
 #include "malloc.h"
 #include "memory.h"
+#include "float.h"
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+extern float ceilf(float);  /* inside default stdlib.h */
+extern float fabsf(float);
+extern float floorf(float);
+extern float sqrtf(float);
+#ifdef _X86_
+extern float fmodf(float);
 #endif
 
 extern int _fmode;          /* default file translation mode */
@@ -123,6 +132,8 @@ typedef struct _ldiv_t {
 
 div_t  __cdecl div(int, int);
 ldiv_t __cdecl ldiv(long, long);
+
+unsigned __int64 _strtoui64(const char *nptr, char **endptr, int base);
 
 #ifdef __cplusplus
 }

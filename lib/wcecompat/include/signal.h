@@ -22,5 +22,32 @@
 #ifndef __wcecompat__SIGNAL_H__
 #define __wcecompat__SIGNAL_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef sig_atomic_t
+#define sig_atomic_t char
+#endif
+
+#ifndef NSIG
+#define NSIG 50
+#endif
+
+#ifndef SIGABRT
+#define SIGABRT	22
+#endif
+
+#ifndef SIG_ERR
+#define SIG_ERR (sighandler_t)-1
+#endif
+
+typedef void(* sighandler_t)(int);
+int raise(int sig);
+void* signal(int sig, void* func);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __wcecompat__SIGNAL_H__

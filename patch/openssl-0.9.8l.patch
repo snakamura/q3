@@ -1,0 +1,202 @@
+diff -ur openssl-0.9.8l.orig/INSTALL.WCE openssl-0.9.8l/INSTALL.WCE
+--- openssl-0.9.8l.orig/INSTALL.WCE	2005-10-04 15:35:14.000000000 +0900
++++ openssl-0.9.8l/INSTALL.WCE	2009-11-07 18:45:38.110985400 +0900
+@@ -4,18 +4,15 @@
+ 
+  Building OpenSSL for Windows CE requires the following external tools:
+ 
+-  * Microsoft eMbedded Visual C++ 3.0
+-  * wcecompat compatibility library (www.essemer.com.au)
++  * Microsoft eMbedded Visual C++ 3.0 or Microsoft Visual Studio 2005 and later
++  * wcecompat compatibility library
++      * www.essemer.com.au Windows CE 4.2 and earlier
++      * github.com/mauricek/wcecompat all Windows CE versions
+   * Optionally ceutils for running automated tests (www.essemer.com.au)
+ 
+  You also need Perl for Win32.  You will need ActiveState Perl, available
+- from http://www.activestate.com/ActivePerl.
+-
+- Windows CE support in OpenSSL relies on wcecompat and therefore it's
+- appropriate to check http://www.essemer.com.au/windowsce/ for updates in
+- case of compilation problems. As for the moment of this writing version
+- 1.1 is available and actually required for WCE 4.2 and newer platforms.
+- All Windows CE specific issues should be directed to www.essemer.com.au.
++ from http://www.activestate.com/ActivePerl. Note that perl by MSYS does
++ not create correct makefiles.
+ 
+  The C Runtime Library implementation for Windows CE that is included with
+  Microsoft eMbedded Visual C++ 3.0 is incomplete and in some places
+@@ -26,6 +23,10 @@
+  by the OpenSSL library itself but is used for the tests and openssl.exe.
+  More information is available at www.essemer.com.au.
+ 
++ With Windows CE 5 and following a lot of standard functionality has been
++ added to the core system, making some parts of the wcecompat lib deprecated.
++ More information is available at github.com/mauricek/wcecompat
++
+  Building
+  --------
+ 
+@@ -34,10 +35,18 @@
+ 
+  > "C:\Program Files\Microsoft eMbedded Tools\EVC\WCE300\BIN\WCEARM.BAT"
+ 
++ For Visual Studio 2005 and following there might be similar script depending
++ on the SDK OpenSSL is supposed to be build for. Follow the SDK documentation
++ to get more information how to setup a cross-compiler environment.
++
+  Next indicate where wcecompat is located:
+ 
+  > set WCECOMPAT=C:\wcecompat
+ 
++ OpenSSL for Windows CE uses the same environment variables for compilation
++ as wcecompat does. Thus, there might be more settings needed. For more
++ information follow the wcecompat documentation.
++
+  Next you should run Configure:
+ 
+  > perl Configure VC-CE
+@@ -61,8 +70,9 @@
+    > nmake -f ms\cedll.mak
+ 
+  If all is well it should compile and you will have some static libraries and
+- executables in out32, or some DLLs and executables in out32dll.  If you want
+- to try the tests then make sure the ceutils are in the path and do:
++ executables in out32_xyz, or some DLLs and executables in out32dll_xyz where
++ xyz refers to the target processor architecture of the Windows CE SDK. 
++ If you want to try the tests then make sure the ceutils are in the path and do:
+  
+  > cd out32
+  > ..\ms\testce
+diff -ur openssl-0.9.8l.orig/crypto/des/enc_read.c openssl-0.9.8l/crypto/des/enc_read.c
+--- openssl-0.9.8l.orig/crypto/des/enc_read.c	2008-12-30 22:30:55.000000000 +0900
++++ openssl-0.9.8l/crypto/des/enc_read.c	2009-11-07 19:58:32.091426700 +0900
+@@ -147,7 +147,7 @@
+ 	/* first - get the length */
+ 	while (net_num < HDRSIZE) 
+ 		{
+-#ifndef _WIN32
++#if !defined _WIN32 || defined _WIN32_WCE
+ 		i=read(fd,(void *)&(net[net_num]),HDRSIZE-net_num);
+ #else
+ 		i=_read(fd,(void *)&(net[net_num]),HDRSIZE-net_num);
+diff -ur openssl-0.9.8l.orig/crypto/des/enc_writ.c openssl-0.9.8l/crypto/des/enc_writ.c
+--- openssl-0.9.8l.orig/crypto/des/enc_writ.c	2008-12-30 22:30:55.000000000 +0900
++++ openssl-0.9.8l/crypto/des/enc_writ.c	2009-11-07 19:58:59.754602600 +0900
+@@ -153,7 +153,7 @@
+ 		{
+ 		/* eay 26/08/92 I was not doing writing from where we
+ 		 * got up to. */
+-#ifndef _WIN32
++#if !defined _WIN32 || defined _WIN32_WCE
+ 		i=write(fd,(void *)&(outbuf[j]),outnum-j);
+ #else
+ 		i=_write(fd,(void *)&(outbuf[j]),outnum-j);
+diff -ur openssl-0.9.8l.orig/crypto/o_str.c openssl-0.9.8l/crypto/o_str.c
+--- openssl-0.9.8l.orig/crypto/o_str.c	2008-03-29 22:22:49.000000000 +0900
++++ openssl-0.9.8l/crypto/o_str.c	2009-11-07 18:45:38.122235500 +0900
+@@ -60,7 +60,7 @@
+ #include <e_os.h>
+ #include "o_str.h"
+ 
+-#if !defined(OPENSSL_IMPLEMENTS_strncasecmp) && !defined(OPENSSL_SYSNAME_WIN32)
++#if !defined(OPENSSL_IMPLEMENTS_strncasecmp) && !defined(OPENSSL_SYSNAME_WIN32) && !defined(OPENSSL_SYS_WINCE)
+ # include <strings.h>
+ #endif
+ 
+diff -ur openssl-0.9.8l.orig/crypto/rand/randfile.c openssl-0.9.8l/crypto/rand/randfile.c
+--- openssl-0.9.8l.orig/crypto/rand/randfile.c	2008-12-30 22:30:56.000000000 +0900
++++ openssl-0.9.8l/crypto/rand/randfile.c	2009-11-07 19:54:53.440568300 +0900
+@@ -81,7 +81,7 @@
+ # include <sys/stat.h>
+ #endif
+ 
+-#ifdef _WIN32
++#if defined _WIN32 && !defined _WIN32_WCE
+ #define stat	_stat
+ #define chmod	_chmod
+ #define open	_open
+diff -ur openssl-0.9.8l.orig/crypto/rsa/rsa_pss.c openssl-0.9.8l/crypto/rsa/rsa_pss.c
+--- openssl-0.9.8l.orig/crypto/rsa/rsa_pss.c	2008-11-06 03:36:49.000000000 +0900
++++ openssl-0.9.8l/crypto/rsa/rsa_pss.c	2009-11-07 18:45:38.128485600 +0900
+@@ -66,7 +66,7 @@
+ 
+ static const unsigned char zeroes[] = {0,0,0,0,0,0,0,0};
+ 
+-#if defined(_MSC_VER) && defined(_ARM_)
++#if defined(_MSC_VER) && defined(_ARM_) && (!defined(_WIN32_WCE) || (_WIN32_WCE < 500))
+ #pragma optimize("g", off)
+ #endif
+ 
+diff -ur openssl-0.9.8l.orig/crypto/x509/by_dir.c openssl-0.9.8l/crypto/x509/by_dir.c
+--- openssl-0.9.8l.orig/crypto/x509/by_dir.c	2008-12-30 22:30:57.000000000 +0900
++++ openssl-0.9.8l/crypto/x509/by_dir.c	2009-11-07 19:56:15.074322100 +0900
+@@ -74,7 +74,7 @@
+ #include <openssl/lhash.h>
+ #include <openssl/x509.h>
+ 
+-#ifdef _WIN32
++#if defined _WIN32 && !defined _WIN32_WCE
+ #define stat	_stat
+ #endif
+ 
+diff -ur openssl-0.9.8l.orig/e_os.h openssl-0.9.8l/e_os.h
+--- openssl-0.9.8l.orig/e_os.h	2008-12-30 22:30:54.000000000 +0900
++++ openssl-0.9.8l/e_os.h	2009-11-07 18:45:38.138485800 +0900
+@@ -651,7 +651,7 @@
+ #define IRIX_CC_BUG	/* CDS++ up to V2.0Bsomething suffered from the same bug.*/
+ #endif
+ 
+-#if defined(OPENSSL_SYS_WINDOWS)
++#if defined(OPENSSL_SYS_WINDOWS) || defined(OPENSSL_SYS_WINCE)
+ #  define strcasecmp _stricmp
+ #  define strncasecmp _strnicmp
+ #elif defined(OPENSSL_SYS_VMS)
+diff -ur openssl-0.9.8l.orig/util/pl/VC-32.pl openssl-0.9.8l/util/pl/VC-32.pl
+--- openssl-0.9.8l.orig/util/pl/VC-32.pl	2009-03-09 21:14:08.000000000 +0900
++++ openssl-0.9.8l/util/pl/VC-32.pl	2009-11-07 21:12:34.188414600 +0900
+@@ -55,7 +55,6 @@
+     {
+     # sanity check
+     die '%OSVERSION% is not defined'	if (!defined($ENV{'OSVERSION'}));
+-    die '%PLATFORM% is not defined'	if (!defined($ENV{'PLATFORM'}));
+     die '%TARGETCPU% is not defined'	if (!defined($ENV{'TARGETCPU'}));
+ 
+     #
+@@ -64,11 +63,15 @@
+     $wcevers = $ENV{'OSVERSION'};			# WCENNN
+     die '%OSVERSION% value is insane'	if ($wcevers !~ /^WCE([1-9])([0-9]{2})$/);
+     $wcecdefs = "-D_WIN32_WCE=$1$2 -DUNDER_CE=$1$2";	# -D_WIN32_WCE=NNN
++    $wcevers = substr($wcevers,3);
+     $wcelflag = "/subsystem:windowsce,$1.$2";		# ...,N.NN
+ 
++    if ($wcevers < 500 || defined($ENV{'PLATFORM'})) {
++        die '%PLATFORM% is not defined'	if (!defined($ENV{'PLATFORM'}));
+     $wceplatf =  $ENV{'PLATFORM'};
+     $wceplatf =~ tr/a-z0-9 /A-Z0-9_/d;
+     $wcecdefs .= " -DWCE_PLATFORM_$wceplatf";
++    }
+ 
+     $wcetgt = $ENV{'TARGETCPU'};	# just shorter name...
+     SWITCH: for($wcetgt) {
+@@ -101,9 +104,18 @@
+     $cc='$(CC)';
+     $base_cflags=' /W3 /WX /GF /Gy /nologo -DUNICODE -D_UNICODE -DOPENSSL_SYSNAME_WINCE -DWIN32_LEAN_AND_MEAN -DL_ENDIAN -DDSO_WIN32 -DNO_CHMOD -I$(WCECOMPAT)/include -DOPENSSL_SMALL_FOOTPRINT';
+     $base_cflags.=" $wcecdefs";
+-    $opt_cflags=' /MC /O1i';	# optimize for space, but with intrinsics...
+-    $dbg_clfags=' /MC /Od -DDEBUG -D_DEBUG';
++    $opt_cflags=' /O1i';	# optimize for space, but with intrinsics...
++    $dbg_cflags=' /Od -DDEBUG -D_DEBUG';
+     $lflags="/nologo /opt:ref $wcelflag";
++    if ($wcevers >= 500) {
++        $lflags .=" /NODEFAULTLIB:oldnames.lib /NODEFAULTLIB:libc.lib";
++        if (!($wcetgt eq "X86") || $shlib) {
++            $lflags .=" coredll.lib corelibc.lib ws2.lib";
++        }
++    } else {
++        $opt_cflags .= ' /MC';
++        $dbg_cflags .= ' /MC';
++    }
+     }
+ else	# Win32
+     {
