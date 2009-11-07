@@ -1,6 +1,6 @@
 ; $Id$
 
-!define VC8DIR "C:\Program Files\Microsoft Visual Studio 8\VC"
+!define VC8DIR "C:\Program Files (x86)\Microsoft Visual Studio 8\VC"
 !define DISTDIR "..\dist"
 
 !ifdef ANSI

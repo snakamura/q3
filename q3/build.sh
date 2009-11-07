@@ -4,11 +4,11 @@
 
 
 MAKE=${MAKE:=make}
-VCDIR=${VCDIR:=C:/Program Files/Microsoft Visual Studio 8/VC}
+VCDIR=${VCDIR:=C:/Program Files (x86)/Microsoft Visual Studio 8/VC}
 MSDEV=${MSDEV:=C:/Program Files/Microsoft Visual Studio/Common/MSDev98/Bin/MSDEV.exe}
 PURIFY=${PURIFY:=C:/Program Files/Rational/Purify/purify.exe}
-MAKENSIS=${MAKENSIS:=C:/Program Files/NSIS/makensis.exe}
-DOXYGEN=${DOXYGEN:=C:/Program Files/doxygen/bin/doxygen.exe}
+MAKENSIS=${MAKENSIS:=C:/Program Files (x86)/NSIS/makensis.exe}
+DOXYGEN=${DOXYGEN:=C:/Program Files (x86)/doxygen/bin/doxygen.exe}
 
 INSTALLDIR="C:/Program Files/QMAIL3"
 
