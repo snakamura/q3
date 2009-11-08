@@ -1,18 +1,18 @@
 =begin
-=FolderCreate�A�N�V����
+=FolderCreateアクション
 
-�V�����t�H���_���쐬���܂��B�V�����t�H���_�͌��ݑI������Ă���t�H���_�̎q�t�H���_�Ƃ��č쐬����܂��B�A�J�E���g���I������Ă���ꍇ�ɂ̓��[�g�Ƀt�H���_���쐬����܂��B((<[�t�H���_�̍쐬]�_�C�A���O|URL:CreateFolderDialog.html>))���J���܂��B
+新しいフォルダを作成します。新しいフォルダは現在選択されているフォルダの子フォルダとして作成されます。アカウントが選択されている場合にはルートにフォルダが作成されます。((<[フォルダの作成]ダイアログ|URL:CreateFolderDialog.html>))が開きます。
 
-�����t�H���_���쐬�����ꍇ�A���̌�A((<[��������]�^�u|URL:FolderConditionPage.html>))�Ō����������w�肵�܂��B
+検索フォルダを作成した場合、その後、((<[検索条件]タブ|URL:FolderConditionPage.html>))で検索条件を指定します。
 
-NNTP�ōw�ǂ���O���[�v��ǉ�����ꍇ��ARSS�ōw�ǂ���t�B�[�h��ǉ�����ꍇ�ɂ́A((<FolderSubscribe�A�N�V����|URL:FolderSubscribeAction.html>))���g�p���܂��B
-
-
-==����
-�Ȃ�
+NNTPで購読するグループを追加する場合や、RSSで購読するフィードを追加する場合には、((<FolderSubscribeアクション|URL:FolderSubscribeAction.html>))を使用します。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

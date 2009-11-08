@@ -1,20 +1,20 @@
 =begin
-=NNTP�̐ݒ�
+=NNTPの設定
 
-NNTP�Ń��b�Z�[�W����M���邽�߂̐ݒ���s���܂��B
+NNTPでメッセージを受信するための設定を行います。
 
-((<[NNTP]�^�u|"IMG:images/AccountNntpReceivePage.png">))
-
-
-+[�����擾��]
-���߂ăO���[�v�𓯊�����Ƃ��ɁA�ő�ŉ��ʂ̃��b�Z�[�W����M���邩���w�肵�܂��B�f�t�H���g�ł�300�ʂł��B
+((<[NNTP]タブ|"IMG:images/AccountNntpReceivePage.png">))
 
 
-+[XOVER���g�p]
-���b�Z�[�W�̃��X�g���擾����̂�XOVER�R�}���h���g�p���邩�ǂ������w�肵�܂��B�f�t�H���g�ł͎g�p���܂��B
++[初期取得数]
+初めてグループを同期するときに、最大で何通のメッセージを受信するかを指定します。デフォルトでは300通です。
 
 
-+[1���N�G�X�g������̎擾��]
-XOVER�R�}���h���g�p����Ƃ��Ɉ��̃��N�G�X�g�ŉ��ʂ̃��b�Z�[�W�̃f�[�^���擾���邩���w�肵�܂��B�傫���������������͗ǂ��Ȃ�܂����A�ʐM���������ꍇ�ɂ͏����������ق����ڑ����؂ꂽ�ꍇ�Ȃǂɖ��ʂɂȂ�f�[�^�����Ȃ��Ȃ�܂��B�f�t�H���g�ł�100�ʂł��B
++[XOVERを使用]
+メッセージのリストを取得するのにXOVERコマンドを使用するかどうかを指定します。デフォルトでは使用します。
+
+
++[1リクエストあたりの取得数]
+XOVERコマンドを使用するときに一回のリクエストで何通のメッセージのデータを取得するかを指定します。大きくした方が効率は良くなりますが、通信環境が悪い場合には小さくしたほうが接続が切れた場合などに無駄になるデータが少なくなります。デフォルトでは100通です。
 
 =end

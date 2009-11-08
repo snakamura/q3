@@ -4,39 +4,39 @@
  String @Profile(String path, String section, String key, String default?)
 
 
-==����
-�v���t�@�C���`����XML�t�@�C������l�����o���܂��B�v���t�@�C���`����((<qmail.xml|URL:QmailXml.html>))�Ɠ��l�̌`���ł��B�ڍׂ́A((<qmail.xml|URL:QmailXml.html>))���Q�Ƃ��Ă��������B
+==説明
+プロファイル形式のXMLファイルから値を取り出します。プロファイル形式は((<qmail.xml|URL:QmailXml.html>))と同様の形式です。詳細は、((<qmail.xml|URL:QmailXml.html>))を参照してください。
 
-path�ɋ󕶎�����w�肷��ƃf�t�H���g��((<qmail.xml|URL:QmailXml.html>))����l���擾���܂��B���̏ꍇ�A���łɃ��[�h����Ă���qmail.xml����l�����[�h���邽�ߍ����Ƀ��[�h�ł��܂����A�����I�ɏ����������Ă���ꍇ�ɂ͌��݂̃t�@�C���̓��e�ƈقȂ�\��������܂��B����ȊO�̃p�X���w�肷��Ǝw�肳�ꂽ�t�@�C�����v���t�@�C���`����XML�t�@�C���Ƃ��ēǂݍ��݁A�l��Ԃ��܂��B���΃p�X���w�肷��ƃ��[���{�b�N�X�f�B���N�g������̑��΃p�X�Ƃ��ĉ��߂��܂��B
+pathに空文字列を指定するとデフォルトの((<qmail.xml|URL:QmailXml.html>))から値を取得します。この場合、すでにロードされているqmail.xmlから値をロードするため高速にロードできますが、内部的に書き換えられている場合には現在のファイルの内容と異なる可能性があります。それ以外のパスを指定すると指定されたファイルをプロファイル形式のXMLファイルとして読み込み、値を返します。相対パスを指定するとメールボックスディレクトリからの相対パスとして解釈します。
 
-section��key�ɂ̓Z�N�V�����̖��O�ƃL�[�̖��O���w�肵�܂��Bdefault�ɂ͒l�����݂��Ȃ������ꍇ�ɕԂ��l���w�肵�܂��B�w�肵�Ȃ������ꍇ�ɒl�����݂��Ȃ��Ƌ󕶎����Ԃ��܂��B
+sectionとkeyにはセクションの名前とキーの名前を指定します。defaultには値が存在しなかった場合に返す値を指定します。指定しなかった場合に値が存在しないと空文字列を返します。
 
 
-==����
+==引数
 :String path
-  �t�@�C���̃p�X
+  ファイルのパス
 :String section
-  �Z�N�V�����̖��O
+  セクションの名前
 :String key
-  �L�[�̖��O
+  キーの名前
 :String default
-  �l�����݂��Ȃ������Ƃ��ɕԂ��l
+  値が存在しなかったときに返す値
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�t�@�C���̓ǂݍ��݂Ɏ��s�����ꍇ�ipath�ɋ󕶎���ȊO���w�肵���ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*ファイルの読み込みに失敗した場合（pathに空文字列以外を指定した場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # qmail.xml��Global�Z�N�V������Bcc�̒l���擾�i�f�t�H���g��1�j
+==例
+ # qmail.xmlのGlobalセクションのBccの値を取得（デフォルトは1）
  @Profile('', 'Global', 'Bcc', '1')
  
- # C:\test.xml����Test�Z�N�V������Foo�̒l���擾
+ # C:\test.xmlからTestセクションのFooの値を取得
  @Profile('C:\\test.xml', 'Test', 'Foo')
 
 =end

@@ -1,6 +1,6 @@
 =begin
-=ViewPrevMessagePage�A�N�V����
+=ViewPrevMessagePageアクション
 
-���ݕ\�����Ă��郁�b�Z�[�W��O�̃y�[�W�ɃX�N���[�����܂��B���łɍŏ��܂ŃX�N���[�����Ă���ꍇ�ɂ́A((<ViewPrevMessage�A�N�V����|URL:ViewPrevMessageAction.html>))�Ɠ��l�ɐU�����܂��B
+現在表示しているメッセージを前のページにスクロールします。すでに最初までスクロールしている場合には、((<ViewPrevMessageアクション|URL:ViewPrevMessageAction.html>))と同様に振舞います。
 
 =end

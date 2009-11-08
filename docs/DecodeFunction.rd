@@ -4,31 +4,31 @@
  String @Decode(String s)
 
 
-==����
-�w�肳�ꂽ�������ASCII�����݂̂��܂܂�Ă���Ƃ��ɁA((<RFC2047|URL:http://www.ietf.org/rfc/rfc2047.txt>))�Ɋ�Â��ăf�R�[�h���܂��B��ASCII�������܂܂�Ă���Ƃ��ɂ͉������܂���B
+==説明
+指定された文字列にASCII文字のみが含まれているときに、((<RFC2047|URL:http://www.ietf.org/rfc/rfc2047.txt>))に基づいてデコードします。非ASCII文字が含まれているときには何もしません。
 
-���Ƃ��΁A
+たとえば、
 
  @Decode('=?iso-2022-jp?B?GyRCJUYlOSVIGyhC?=')
 
-�́u�e�X�g�v��Ԃ��܂��B
+は「テスト」を返します。
 
-�ʏ�w�b�_����擾����������̓f�R�[�h����Ă��邽�߁A���̊֐����g���K�v�͂���܂���B
+通常ヘッダから取得した文字列はデコードされているため、この関数を使う必要はありません。
 
 
-==����
+==引数
 :String s
-  ������
+  文字列
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
+==例
 
 =end

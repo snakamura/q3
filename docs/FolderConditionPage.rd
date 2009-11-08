@@ -1,37 +1,37 @@
 =begin
-=��������
+=検索条件
 
-�����t�H���_�̌���������ݒ肵�܂��B
+検索フォルダの検索条件を設定します。
 
-((<[��������]�^�u|"IMG:images/FolderConditionPage.png">))
+((<[検索条件]タブ|"IMG:images/FolderConditionPage.png">))
 
 
-+[�^�C�v]
-�g�p���錟���^�C�v���w�肵�܂��B�w��ł���͈̂ȉ��̂����ꂩ�ł��B
++[タイプ]
+使用する検索タイプを指定します。指定できるのは以下のいずれかです。
 
-*((<��{|URL:MacroSearch.html>))
+*((<基本|URL:MacroSearch.html>))
 *((<IMAP4|URL:Imap4Search.html>))
-*((<�S������|URL:FullTextSearch.html>))
+*((<全文検索|URL:FullTextSearch.html>))
 
-�������AIMAP4��IMAP4�A�J�E���g�ł̂ݎw��ł��܂��B�܂��A�S��������Windows�łł̂ݎw��ł��܂��B
+ただし、IMAP4はIMAP4アカウントでのみ指定できます。また、全文検索はWindows版でのみ指定できます。
 
 
-+[����]
-�����������w�肵�܂��B�w�肷�錟�������͌����^�C�v�ɂ���ĈقȂ�܂��B
++[条件]
+検索条件を指定します。指定する検索条件は検索タイプによって異なります。
 
-:��{
-  �����Ɏg�p����}�N�����w�肵�܂�
+:基本
+  検索に使用するマクロを指定します
 :IMAP4
-  IMAP4�̌����R�}���h���w�肵�܂�
-:�S������
-  �S�������G���W���ɓn��������������w�肵�܂�
+  IMAP4の検索コマンドを指定します
+:全文検索
+  全文検索エンジンに渡す検索文字列を指定します
 
 
-+[�t�H���_]
-�����Ώۂ̃t�H���_���w�肵�܂��B�u(���ׂẴt�H���_)�v��I������ƑS�Ẵt�H���_���猟�����܂��B
++[フォルダ]
+検索対象のフォルダを指定します。「(すべてのフォルダ)」を選択すると全てのフォルダから検索します。
 
 
-+[�T�u�t�H���_������]
-�`�F�b�N�����[�t�H���_]�Ŏw�肵���t�H���_�̑S�ẴT�u�t�H���_�������ΏۂɂȂ�܂��B
++[サブフォルダも検索]
+チェックすると[フォルダ]で指定したフォルダの全てのサブフォルダも検索対象になります。
 
 =end

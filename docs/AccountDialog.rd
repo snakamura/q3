@@ -1,33 +1,33 @@
 =begin
-=[�A�J�E���g]�_�C�A���O
+=[アカウント]ダイアログ
 
-�A�J�E���g�̊Ǘ������邽�߂̃_�C�A���O�ł��B�����̃c���[�r���[�ɂ̓A�J�E���g�̈ꗗ���\������܂��B�A�J�E���g��W�J����ƁA���̃A�J�E���g�̃T�u�A�J�E���g�����X�g����܂��B
+アカウントの管理をするためのダイアログです。左側のツリービューにはアカウントの一覧が表示されます。アカウントを展開すると、そのアカウントのサブアカウントがリストされます。
 
-((<[�A�J�E���g]�_�C�A���O|"IMG:images/AccountDialog.png">))
-
-
-+[����]
-�_�C�A���O����܂��B
+((<[アカウント]ダイアログ|"IMG:images/AccountDialog.png">))
 
 
-+[�A�J�E���g�ǉ�]
-�A�J�E���g���쐬���܂��B((<�A�J�E���g�̍쐬|URL:CreateAccount.html>))���Q�Ƃ��Ă��������B
++[閉じる]
+ダイアログを閉じます。
 
 
-+[�T�u�A�J�E���g�쐬]
-�T�u�A�J�E���g���쐬���܂��B((<[�T�u�A�J�E���g�̍쐬]�_�C�A���O|URL:CreateSubAccountDialog.html>))���J���̂ŁA�쐬����T�u�A�J�E���g�̖��O���w�肵�܂��B
++[アカウント追加]
+アカウントを作成します。((<アカウントの作成|URL:CreateAccount.html>))を参照してください。
 
 
-+[�폜]
-�I�����ꂽ�A�J�E���g�A�܂��̓T�u�A�J�E���g���폜���܂��B�A�J�E���g���폜����ƁA���̃A�J�E���g�̃��b�Z�[�W�Ȃǂ̑S�Ă̏�񂪍폜����܂��B
++[サブアカウント作成]
+サブアカウントを作成します。((<[サブアカウントの作成]ダイアログ|URL:CreateSubAccountDialog.html>))が開くので、作成するサブアカウントの名前を指定します。
 
 
-+[���O��ύX]
-�I�����ꂽ�A�J�E���g�A�܂��̓T�u�A�J�E���g�̖��O��ύX���܂��B((<[���O�̕ύX]�_�C�A���O|URL:RenameDialog.html>))���J���̂ŁA�ύX���������O���w�肵�܂��B
++[削除]
+選択されたアカウント、またはサブアカウントを削除します。アカウントを削除すると、そのアカウントのメッセージなどの全ての情報が削除されます。
 
 
-+[�v���p�e�B]
-�I�����ꂽ�A�J�E���g�A�܂��̓T�u�A�J�E���g�̃v���p�e�B��\���E�ݒ肷�邽�߂̃_�C�A���O���J���܂��B((<�A�J�E���g�̃v���p�e�B|URL:AccountProperty.html>))���Q�Ƃ��Ă��������B
++[名前を変更]
+選択されたアカウント、またはサブアカウントの名前を変更します。((<[名前の変更]ダイアログ|URL:RenameDialog.html>))が開くので、変更したい名前を指定します。
+
+
++[プロパティ]
+選択されたアカウント、またはサブアカウントのプロパティを表示・設定するためのダイアログを開きます。((<アカウントのプロパティ|URL:AccountProperty.html>))を参照してください。
 
 
 =end

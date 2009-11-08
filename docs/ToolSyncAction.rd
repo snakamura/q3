@@ -1,14 +1,14 @@
 =begin
-=ToolSyncƒAƒNƒVƒ‡ƒ“
+=ToolSyncã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<ToolSendƒAƒNƒVƒ‡ƒ“|URL:ToolSendAction.html>))‚Æ((<ToolReceiveƒAƒNƒVƒ‡ƒ“|URL:ToolReceiveAction.html>))‚Ì—¼•û‚ð‚Ü‚Æ‚ß‚Äs‚¢‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<ToolSendã‚¢ã‚¯ã‚·ãƒ§ãƒ³|URL:ToolSendAction.html>))ã¨((<ToolReceiveã‚¢ã‚¯ã‚·ãƒ§ãƒ³|URL:ToolReceiveAction.html>))ã®ä¸¡æ–¹ã‚’ã¾ã¨ã‚ã¦è¡Œã„ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

@@ -1,15 +1,15 @@
 =begin
-=ViewScrollMessagePageUpƒAƒNƒVƒ‡ƒ“
+=ViewScrollMessagePageUpã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒƒbƒZ[ƒWƒrƒ…[‚ðˆêƒy[ƒWã‚ÉƒXƒNƒ[ƒ‹‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ã‚’ä¸€ãƒšãƒ¼ã‚¸ä¸Šã«ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

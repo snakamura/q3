@@ -1,14 +1,14 @@
 =begin
-=ToolAutoPilotƒAƒNƒVƒ‡ƒ“
+=ToolAutoPilotã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<Ž©“®„‰ñ|URL:AutoPilot.html>))‚ÌOn/Off‚ðØ‚è‘Ö‚¦‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<è‡ªå‹•å·¡å›ž|URL:AutoPilot.html>))ã®On/Offã‚’åˆ‡ã‚Šæ›¿ãˆã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

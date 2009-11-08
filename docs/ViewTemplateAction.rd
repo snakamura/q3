@@ -1,16 +1,16 @@
 =begin
-=ViewTemplateƒAƒNƒVƒ‡ƒ“
+=ViewTemplateã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-•\Ž¦—p‚Ìƒeƒ“ƒvƒŒ[ƒg‚ðŽw’è‚µ‚Ü‚·Bˆø”‚ÅŽg—p‚·‚éƒeƒ“ƒvƒŒ[ƒg‚Ì–¼‘O‚ðŽw’è‚µ‚Ü‚·Bˆø”‚É‹ó•¶Žš—ñ‚ðŽw’è‚·‚é‚Æƒeƒ“ƒvƒŒ[ƒg‚ðŽg—p‚µ‚Ü‚¹‚ñB•\Ž¦—p‚Ìƒeƒ“ƒvƒŒ[ƒg‚É‚Â‚¢‚Ä‚Í((<•\Ž¦—pƒeƒ“ƒvƒŒ[ƒg|URL:ViewTemplate.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+è¡¨ç¤ºç”¨ã®ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚’æŒ‡å®šã—ã¾ã™ã€‚å¼•æ•°ã§ä½¿ç”¨ã™ã‚‹ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã®åå‰ã‚’æŒ‡å®šã—ã¾ã™ã€‚å¼•æ•°ã«ç©ºæ–‡å­—åˆ—ã‚’æŒ‡å®šã™ã‚‹ã¨ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚’ä½¿ç”¨ã—ã¾ã›ã‚“ã€‚è¡¨ç¤ºç”¨ã®ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã«ã¤ã„ã¦ã¯((<è¡¨ç¤ºç”¨ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆ|URL:ViewTemplate.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==ˆø”
+==å¼•æ•°
 :1
-  Žg—p‚·‚éƒeƒ“ƒvƒŒ[ƒg‚Ì–¼‘O
+  ä½¿ç”¨ã™ã‚‹ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã®åå‰
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

@@ -1,29 +1,29 @@
 =begin
-=ƒƒjƒ…[
+=ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 
-ŠeƒEƒBƒ“ƒhƒE‚É‚Íƒƒjƒ…[ƒo[‚ª‚ ‚èAŠeƒrƒ…[‚É‚Í‰EƒNƒŠƒbƒN‚·‚é‚Æ•\Ž¦‚³‚ê‚éƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ª—pˆÓ‚³‚ê‚Ä‚¢‚Ü‚·B
-
-
-==ƒƒjƒ…[ƒo[
-
-*((<ƒƒCƒ“ƒEƒBƒ“ƒhƒE‚Ìƒƒjƒ…[ƒo[|URL:MainWindowMenuBar.html>))
-*((<ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE‚Ìƒƒjƒ…[ƒo[|URL:MessageWindowMenuBar.html>))
-*((<ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE‚Ìƒƒjƒ…[ƒo[|URL:EditWindowMenuBar.html>))
-*((<ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE‚Ìƒƒjƒ…[ƒo[|URL:AddressBookWindowMenuBar.html>))
+å„ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ã¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼ãŒã‚ã‚Šã€å„ãƒ“ãƒ¥ãƒ¼ã«ã¯å³ã‚¯ãƒªãƒƒã‚¯ã™ã‚‹ã¨è¡¨ç¤ºã•ã‚Œã‚‹ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒç”¨æ„ã•ã‚Œã¦ã„ã¾ã™ã€‚
 
 
-==ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[
+==ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼
 
-*((<ƒtƒHƒ‹ƒ_ƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:FolderMenu.html>))
-*((<ƒtƒHƒ‹ƒ_ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:FolderMenu.html>))
-*((<ƒtƒHƒ‹ƒ_ƒŠƒXƒgƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:FolderListMenu.html>))
-*((<ƒŠƒXƒgƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:ListMenu.html>))
-*((<ƒ^ƒu‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:TabMenu.html>))
-*((<ƒvƒŒƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:MessageMenu.html>))
-*((<ƒƒbƒZ[ƒWƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:MessageMenu.html>))
-*((<“Y•tƒtƒ@ƒCƒ‹‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:AttachmentMenu.html>))
-*((<“Y•tƒtƒ@ƒCƒ‹•ÒW‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:AttachmentEditMenu.html>))
-*((<ƒGƒfƒBƒbƒgƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:EditMenu.html>))
-*((<ƒAƒhƒŒƒXƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|URL:AddressMenu.html>))
+*((<ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼|URL:MainWindowMenuBar.html>))
+*((<ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼|URL:MessageWindowMenuBar.html>))
+*((<ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼|URL:EditWindowMenuBar.html>))
+*((<ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼|URL:AddressBookWindowMenuBar.html>))
+
+
+==ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼
+
+*((<ãƒ•ã‚©ãƒ«ãƒ€ãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:FolderMenu.html>))
+*((<ãƒ•ã‚©ãƒ«ãƒ€ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:FolderMenu.html>))
+*((<ãƒ•ã‚©ãƒ«ãƒ€ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:FolderListMenu.html>))
+*((<ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:ListMenu.html>))
+*((<ã‚¿ãƒ–ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:TabMenu.html>))
+*((<ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:MessageMenu.html>))
+*((<ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:MessageMenu.html>))
+*((<æ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:AttachmentMenu.html>))
+*((<æ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«ç·¨é›†ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:AttachmentEditMenu.html>))
+*((<ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:EditMenu.html>))
+*((<ã‚¢ãƒ‰ãƒ¬ã‚¹ãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|URL:AddressMenu.html>))
 
 =end

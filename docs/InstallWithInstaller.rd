@@ -1,75 +1,75 @@
 =begin
-=ƒCƒ“ƒXƒg[ƒ‰‚É‚æ‚éƒCƒ“ƒXƒg[ƒ‹
+=ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã«ã‚ˆã‚‹ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 
-ƒCƒ“ƒXƒg[ƒ‰‚É‚æ‚éƒCƒ“ƒXƒg[ƒ‹‚ÍAƒCƒ“ƒXƒg[ƒ‰‚ÌŽÀsƒtƒ@ƒCƒ‹‚ðŽÀs‚·‚é‚±‚Æ‚Ås‚¢‚Ü‚·B
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã«ã‚ˆã‚‹ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã¯ã€ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã®å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ã‚’å®Ÿè¡Œã™ã‚‹ã“ã¨ã§è¡Œã„ã¾ã™ã€‚
 
-ƒCƒ“ƒXƒg[ƒ‰‚É‚æ‚éƒCƒ“ƒXƒg[ƒ‹‚Å‚ÍAƒ[ƒ‹ƒNƒ‰ƒCƒAƒ“ƒg‚Æ‚µ‚Ä‚Ì“o˜^‚È‚Ç‚Ì‚½‚ß‚ÉƒŒƒWƒXƒgƒŠ‚Ö‚Ì‘‚«ž‚Ý‚ðs‚¢‚Ü‚·B‚±‚Ì‚½‚ß“KØ‚ÈŒ ŒÀ‚ðŽ‚Á‚Ä‚¢‚È‚¢ê‡A³í‚ÉƒCƒ“ƒXƒg[ƒ‹‚Å‚«‚È‚¢ê‡‚ª‚ ‚è‚Ü‚·B‚»‚Ì‚æ‚¤‚Èê‡‚É‚ÍA((<Zipƒtƒ@ƒCƒ‹‚É‚æ‚éƒCƒ“ƒXƒg[ƒ‹|URL:InstallWithZip.html>))‚ðs‚Á‚Ä‚­‚¾‚³‚¢B
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã«ã‚ˆã‚‹ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã§ã¯ã€ãƒ¡ãƒ¼ãƒ«ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã¨ã—ã¦ã®ç™»éŒ²ãªã©ã®ãŸã‚ã«ãƒ¬ã‚¸ã‚¹ãƒˆãƒªã¸ã®æ›¸ãè¾¼ã¿ã‚’è¡Œã„ã¾ã™ã€‚ã“ã®ãŸã‚é©åˆ‡ãªæ¨©é™ã‚’æŒã£ã¦ã„ãªã„å ´åˆã€æ­£å¸¸ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã§ããªã„å ´åˆãŒã‚ã‚Šã¾ã™ã€‚ãã®ã‚ˆã†ãªå ´åˆã«ã¯ã€((<Zipãƒ•ã‚¡ã‚¤ãƒ«ã«ã‚ˆã‚‹ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«|URL:InstallWithZip.html>))ã‚’è¡Œã£ã¦ãã ã•ã„ã€‚
 
-ƒCƒ“ƒXƒg[ƒ‰‚ð‹N“®‚·‚é‚ÆˆÈ‰º‚Ì‚æ‚¤‚ÈƒEƒBƒ“ƒhƒE‚ª•\Ž¦‚³‚ê‚Ü‚·‚Ì‚ÅA[ŽŸ‚Ö]‚ðƒNƒŠƒbƒN‚µ‚Ü‚·B
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã‚’èµ·å‹•ã™ã‚‹ã¨ä»¥ä¸‹ã®ã‚ˆã†ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒè¡¨ç¤ºã•ã‚Œã¾ã™ã®ã§ã€[æ¬¡ã¸]ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¾ã™ã€‚
 
-((<QMAIL3ƒZƒbƒgƒAƒbƒvƒEƒBƒU[ƒh‚Ö‚æ‚¤‚±‚»|"IMG:images/InstallerWelcome.png">))
+((<QMAIL3ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ã‚¦ã‚£ã‚¶ãƒ¼ãƒ‰ã¸ã‚ˆã†ã“ã|"IMG:images/InstallerWelcome.png">))
 
 
-ŽŸ‚Ìƒy[ƒW‚Å‚ÍƒCƒ“ƒXƒg[ƒ‹‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ð‘I‘ð‚µ‚Ü‚·BƒfƒtƒHƒ‹ƒg‚Å‚Í‚·‚×‚Ä‚ªƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚Ü‚·B•K—v‚Ì‚È‚¢ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍƒCƒ“ƒXƒg[ƒ‹‚µ‚È‚¢•û‚ªƒfƒBƒXƒNƒXƒy[ƒX‚âŽg—pƒƒ‚ƒŠ‚Ì“_‚Å—L—˜‚Å‚·‚ªA‚æ‚­‚í‚©‚ç‚È‚¢ê‡‚É‚Í‚·‚×‚ÄƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä‚­‚¾‚³‚¢B
+æ¬¡ã®ãƒšãƒ¼ã‚¸ã§ã¯ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é¸æŠžã—ã¾ã™ã€‚ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§ã¯ã™ã¹ã¦ãŒã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¾ã™ã€‚å¿…è¦ã®ãªã„ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã¯ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãªã„æ–¹ãŒãƒ‡ã‚£ã‚¹ã‚¯ã‚¹ãƒšãƒ¼ã‚¹ã‚„ä½¿ç”¨ãƒ¡ãƒ¢ãƒªã®ç‚¹ã§æœ‰åˆ©ã§ã™ãŒã€ã‚ˆãã‚ã‹ã‚‰ãªã„å ´åˆã«ã¯ã™ã¹ã¦ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦ãã ã•ã„ã€‚
 
-((<ƒRƒ“ƒ|[ƒlƒ“ƒg‚ð‘I‚ñ‚Å‚­‚¾‚³‚¢ |"IMG:images/InstallerComponents.png">))
+((<ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é¸ã‚“ã§ãã ã•ã„ |"IMG:images/InstallerComponents.png">))
 
 :Core
-  •K‚¸•K—v‚ÈƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·BPOP3‚ÆSMTPƒTƒ|[ƒg‚ðŠÜ‚Ý‚Ü‚·B
+  å¿…ãšå¿…è¦ãªã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚POP3ã¨SMTPã‚µãƒãƒ¼ãƒˆã‚’å«ã¿ã¾ã™ã€‚
 :IMAP4
-  IMAP4—pƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·BIMAP4‚ðŽg—p‚·‚éê‡‚É‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+  IMAP4ç”¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚IMAP4ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆã«é¸æŠžã—ã¦ãã ã•ã„ã€‚
 :NNTP
-  NNTP—pƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·BNetNews‚ðŽg—p‚·‚éê‡‚É‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+  NNTPç”¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚NetNewsã‚’ä½¿ç”¨ã™ã‚‹å ´åˆã«é¸æŠžã—ã¦ãã ã•ã„ã€‚
 :RSS, Atom
-  RSS‚ÆAtom—pƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·BRSS‚âAtomƒtƒB[ƒh‚ðŽg—p‚·‚éê‡‚É‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+  RSSã¨Atomç”¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚RSSã‚„Atomãƒ•ã‚£ãƒ¼ãƒ‰ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆã«é¸æŠžã—ã¦ãã ã•ã„ã€‚
 :SSL, S/MIME
-  SSL‚âS/MIME—pƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·BSSL‚âS/MIME‚ðŽg—p‚·‚éê‡‚É‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+  SSLã‚„S/MIMEç”¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚SSLã‚„S/MIMEã‚’ä½¿ç”¨ã™ã‚‹å ´åˆã«é¸æŠžã—ã¦ãã ã•ã„ã€‚
 :PGP, GnuPG
-  PGP‚âGnuPG—pƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·BPGP‚âGnuPG‚ðŽg—p‚·‚éê‡‚É‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+  PGPã‚„GnuPGç”¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚PGPã‚„GnuPGã‚’ä½¿ç”¨ã™ã‚‹å ´åˆã«é¸æŠžã—ã¦ãã ã•ã„ã€‚
 :Junk Filter
-  ƒXƒpƒ€ƒtƒBƒ‹ƒ^—pƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·BƒXƒpƒ€ƒtƒBƒ‹ƒ^‚ðŽg—p‚·‚éê‡‚É‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+  ã‚¹ãƒ‘ãƒ ãƒ•ã‚£ãƒ«ã‚¿ç”¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚ã‚¹ãƒ‘ãƒ ãƒ•ã‚£ãƒ«ã‚¿ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆã«é¸æŠžã—ã¦ãã ã•ã„ã€‚
 :Script
-  ƒXƒNƒŠƒvƒg—pƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·BƒXƒNƒŠƒvƒg‚ðŽg—p‚·‚éê‡‚É‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+  ã‚¹ã‚¯ãƒªãƒ—ãƒˆç”¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’ä½¿ç”¨ã™ã‚‹å ´åˆã«é¸æŠžã—ã¦ãã ã•ã„ã€‚
 :Zip
-  Zip—pƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·B“Y•tƒtƒ@ƒCƒ‹‚Ìˆ³k‚ðŽg—p‚·‚éê‡‚É‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+  Zipç”¨ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚æ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«ã®åœ§ç¸®ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆã«é¸æŠžã—ã¦ãã ã•ã„ã€‚
 :Japanese
-  “ú–{ŒêŠÂ‹«‚ÅUI‚ð“ú–{Œê‚É‚·‚é‚½‚ß‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚Å‚·B‘I‘ð‚µ‚È‚¢‚ÆUI‚ª‰pŒê‚É‚È‚è‚Ü‚·B
+  æ—¥æœ¬èªžç’°å¢ƒã§UIã‚’æ—¥æœ¬èªžã«ã™ã‚‹ãŸã‚ã®ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã§ã™ã€‚é¸æŠžã—ãªã„ã¨UIãŒè‹±èªžã«ãªã‚Šã¾ã™ã€‚
 
-•K—v‚ÈƒRƒ“ƒ|[ƒlƒ“ƒg‚ð‘I‘ð‚µ‚½‚ç[ŽŸ‚Ö]ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚µ‚Ü‚·B
-
-
-ŽŸ‚Ìƒy[ƒW‚Å‚ÍƒCƒ“ƒXƒg[ƒ‹æ‚ÌƒfƒBƒŒƒNƒgƒŠ‚ðŽw’è‚µ‚Ü‚·B
-
-((<ƒCƒ“ƒXƒg[ƒ‹æ‚ð‘I‚ñ‚Å‚­‚¾‚³‚¢|"IMG:images/InstallerDirectory.png">))
-
-ƒCƒ“ƒXƒg[ƒ‹‚µ‚½‚¢ƒfƒBƒŒƒNƒgƒŠ‚ðŽw’è‚µ‚Ä[ŽŸ‚Ö]ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚µ‚Ü‚·B
+å¿…è¦ãªã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’é¸æŠžã—ãŸã‚‰[æ¬¡ã¸]ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¾ã™ã€‚
 
 
-ŽŸ‚Ìƒy[ƒW‚Å‚Íƒ[ƒ‹ƒ{ƒbƒNƒXƒfƒBƒŒƒNƒgƒŠ‚ðŽw’è‚µ‚Ü‚·B
+æ¬¡ã®ãƒšãƒ¼ã‚¸ã§ã¯ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«å…ˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
-((<ƒ[ƒ‹ƒ{ƒbƒNƒX‚ÌêŠ‚ð‘I‚ñ‚Å‚­‚¾‚³‚¢|"IMG:images/InstallerMailBoxDirectory.png">))
+((<ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«å…ˆã‚’é¸ã‚“ã§ãã ã•ã„|"IMG:images/InstallerDirectory.png">))
 
-‚±‚±‚ÅŽw’è‚µ‚½ƒfƒBƒŒƒNƒgƒŠ‚Éƒ[ƒ‹‚Ìƒf[ƒ^‚È‚ÇˆêŽ®‚ªŠi”[‚³‚ê‚Ü‚·Bƒ[ƒ‹‚Ìƒf[ƒ^‚ð•Û‘¶‚µ‚½‚¢ƒfƒBƒŒƒNƒgƒŠ‚ðŽw’è‚µ‚Ä[ŽŸ‚Ö]ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚µ‚Ü‚·B
-
-
-ŽŸ‚Ìƒy[ƒW‚Å‚ÍƒXƒ^[ƒgƒƒjƒ…[‚ÌƒtƒHƒ‹ƒ_‚ðŽw’è‚µ‚Ü‚·B
-
-((<ƒXƒ^[ƒgƒƒjƒ…[ƒtƒHƒ‹ƒ_‚ð‘I‚ñ‚Å‚­‚¾‚³‚¢|"IMG:images/InstallerStartMenu.png">))
-
-ƒtƒHƒ‹ƒ_‚ðŽw’è‚µ‚Ä[ƒCƒ“ƒXƒg[ƒ‹]ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚µ‚Ü‚·B
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸã„ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æŒ‡å®šã—ã¦[æ¬¡ã¸]ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¾ã™ã€‚
 
 
-ƒCƒ“ƒXƒg[ƒ‹‚ðŠJŽn‚·‚é‚ÆˆÈ‰º‚Ì‚æ‚¤‚ÈƒEƒBƒ“ƒhƒE‚ª•\Ž¦‚³‚ê‚Ü‚·‚Ì‚ÅA‚µ‚Î‚ç‚­‚¨‘Ò‚¿‚­‚¾‚³‚¢B
+æ¬¡ã®ãƒšãƒ¼ã‚¸ã§ã¯ãƒ¡ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
-((<ƒCƒ“ƒXƒg[ƒ‹|"IMG:images/InstallerInstallFiles.png">))
+((<ãƒ¡ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹ã®å ´æ‰€ã‚’é¸ã‚“ã§ãã ã•ã„|"IMG:images/InstallerMailBoxDirectory.png">))
+
+ã“ã“ã§æŒ‡å®šã—ãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ãƒ¡ãƒ¼ãƒ«ã®ãƒ‡ãƒ¼ã‚¿ãªã©ä¸€å¼ãŒæ ¼ç´ã•ã‚Œã¾ã™ã€‚ãƒ¡ãƒ¼ãƒ«ã®ãƒ‡ãƒ¼ã‚¿ã‚’ä¿å­˜ã—ãŸã„ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æŒ‡å®šã—ã¦[æ¬¡ã¸]ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¾ã™ã€‚
 
 
-ƒCƒ“ƒXƒg[ƒ‹‚ªI—¹‚·‚é‚ÆˆÈ‰º‚Ì‚æ‚¤‚ÈƒEƒBƒ“ƒhƒE‚ª•\Ž¦‚³‚ê‚Ü‚·B
+æ¬¡ã®ãƒšãƒ¼ã‚¸ã§ã¯ã‚¹ã‚¿ãƒ¼ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®ãƒ•ã‚©ãƒ«ãƒ€ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
-((<QMAIL3ƒZƒbƒgƒAƒbƒvƒEƒBƒU[ƒh‚ÍŠ®—¹‚µ‚Ü‚µ‚½|"IMG:images/InstallerFinish.png">))
+((<ã‚¹ã‚¿ãƒ¼ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸ã‚“ã§ãã ã•ã„|"IMG:images/InstallerStartMenu.png">))
 
-’¼‚®‚ÉQMAIL3‚ð‹N“®‚µ‚½‚¢ê‡‚É‚Í[QMAIL3‚ðŽÀs]‚Éƒ`ƒFƒbƒN‚ð“ü‚ê‚ÄA[Š®—¹]ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚µ‚Ü‚·B
+ãƒ•ã‚©ãƒ«ãƒ€ã‚’æŒ‡å®šã—ã¦[ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«]ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¾ã™ã€‚
 
-‚±‚ê‚ÅAƒCƒ“ƒXƒg[ƒ‹‚ÍI—¹‚Å‚·B
+
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã‚’é–‹å§‹ã™ã‚‹ã¨ä»¥ä¸‹ã®ã‚ˆã†ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒè¡¨ç¤ºã•ã‚Œã¾ã™ã®ã§ã€ã—ã°ã‚‰ããŠå¾…ã¡ãã ã•ã„ã€‚
+
+((<ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«|"IMG:images/InstallerInstallFiles.png">))
+
+
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ãŒçµ‚äº†ã™ã‚‹ã¨ä»¥ä¸‹ã®ã‚ˆã†ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒè¡¨ç¤ºã•ã‚Œã¾ã™ã€‚
+
+((<QMAIL3ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ã‚¦ã‚£ã‚¶ãƒ¼ãƒ‰ã¯å®Œäº†ã—ã¾ã—ãŸ|"IMG:images/InstallerFinish.png">))
+
+ç›´ãã«QMAIL3ã‚’èµ·å‹•ã—ãŸã„å ´åˆã«ã¯[QMAIL3ã‚’å®Ÿè¡Œ]ã«ãƒã‚§ãƒƒã‚¯ã‚’å…¥ã‚Œã¦ã€[å®Œäº†]ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¾ã™ã€‚
+
+ã“ã‚Œã§ã€ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã¯çµ‚äº†ã§ã™ã€‚
 
 =end

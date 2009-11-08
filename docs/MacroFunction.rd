@@ -1,24 +1,24 @@
 =begin
-=�֐�
+=関数
 
-@����n�܂镶����͊֐��Ăяo����\���܂��B���Ƃ��΁A
+@から始まる文字列は関数呼び出しを表します。たとえば、
 
  @Seen()
 
-�́A((<@Seen|URL:SeenFunction.html>))�Ƃ����֐��̌Ăяo����\���܂��B�֐����Ăяo���Ƃ��Ɉ�����n���Ƃ��ɂ́A()���Ɉ������w�肵�܂��B�Ⴆ�΁A�ЂƂ̈�����n���ɂ́A
+は、((<@Seen|URL:SeenFunction.html>))という関数の呼び出しを表します。関数を呼び出すときに引数を渡すときには、()内に引数を指定します。例えば、ひとつの引数を渡すには、
 
  @MessageBox('Test')
 
-�̂悤�ɂ��܂��B�܂��A
+のようにします。また、
 
  @Concat('String1', 'String2')
 
-�̂悤�ɕ����̈�����n�����Ƃ��ł��܂��B
+のように複数の引数を渡すこともできます。
 
-��`����Ă���֐��͈ȉ��̃��X�g���Q�Ƃ��Ă��������B((<@Defun|URL:DefunFunction.html>))���g�p����ƓƎ��̊֐����`���邱�Ƃ��ł��܂��B
+定義されている関数は以下のリストを参照してください。((<@Defun|URL:DefunFunction.html>))を使用すると独自の関数を定義することもできます。
 
 
-==�֐��̃��X�g
+==関数のリスト
 *((<@Account|URL:AccountFunction.html>))
 *((<@AccountClass|URL:AccountClassFunction.html>))
 *((<@AccountDirectory|URL:AccountDirectoryFunction.html>))
@@ -135,76 +135,76 @@
 *((<@While|URL:WhileFunction.html>))
 
 
-==�Ăяo���\�Ȋ֐�
-�e�֐��́A�󋵂ɉ����ČĂяo���\�ł��邩�ǂ��������܂��Ă��܂��B�Ⴆ�΁A@AddressBook��UI�����݂��Ȃ��ꍇ�ɂ͌Ăяo���܂���B�Ăяo���\�ł��邩�ǂ��������肷������ɂ́A�ȉ��̂悤�Ȃ��̂�����܂��B
+==呼び出し可能な関数
+各関数は、状況に応じて呼び出し可能であるかどうかが決まっています。例えば、@AddressBookはUIが存在しない場合には呼び出せません。呼び出し可能であるかどうかを決定する条件には、以下のようなものがあります。
 
-*UI���K�v
-*UI�X���b�h����̂݌Ăяo���\
-*���b�Z�[�W�ɑ΂���ύX���\
+*UIが必要
+*UIスレッドからのみ呼び出し可能
+*メッセージに対する変更が可能
 
-�}�N�����Ăяo�����Ƃ̂ł���e��ʂɂ����āA��L�̏����͈ȉ��̂悤�ɐݒ肳��܂��B
+マクロを呼び出すことのできる各場面において、上記の条件は以下のように設定されます。
 
-*((<�쐬�p�̃e���v���[�g|URL:CreateTemplate.html>))
-  *UI����
-  *UI�X���b�h
-  *�ύX�\
-*((<�\���p�̃e���v���[�g|URL:ViewTemplate.html>))
-  *UI����
-  *UI�X���b�h
-  *�ύX�s��
-*((<�G�N�X�|�[�g�E����E���p���t���\��t���̃e���v���[�g|URL:OtherTemplate.html>))
-  *UI����
-  *UI�X���b�h
-  *�ύX�s��
-*((<MessageMacro�A�N�V����|URL:MessageMacroAction.html>))
-  *UI����
-  *UI�X���b�h
-  *�ύX�\
+*((<作成用のテンプレート|URL:CreateTemplate.html>))
+  *UIあり
+  *UIスレッド
+  *変更可能
+*((<表示用のテンプレート|URL:ViewTemplate.html>))
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<エクスポート・印刷・引用符付き貼り付けのテンプレート|URL:OtherTemplate.html>))
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<MessageMacroアクション|URL:MessageMacroAction.html>))
+  *UIあり
+  *UIスレッド
+  *変更可能
 *((<X-QMAIL-Macro, X-QMAIL-DraftMacro|URL:SpecialHeaders.html>))
-  *UI����
-  *UI�X���b�h
-  *�ύX�\
-*((<�蓮�U�蕪���E�A�N�e�B�u�U�蕪��|URL:ApplyRules.html>))�i�蓮�ł̃��b�Z�[�W�ړ���蓮�U�蕪����������N�����ꂽ�ꍇ�j�̏���
-  *UI����
-  *UI�X���b�h
-  *�ύX�s��
-*((<�����U�蕪���E�A�N�e�B�u�U�蕪��|URL:ApplyRules.html>))�i�����U�蕪����������N�����ꂽ�ꍇ�j�̏���
-  *UI�Ȃ�
-  *�o�b�N�O���E���h�X���b�h
-  *�ύX�s��
-*((<�t�B���^|URL:Filter.html>))
-  *UI�Ȃ�
-  *UI�X���b�h
-  *�ύX�s��
-*((<�����t�B���^|URL:SyncFilter.html>))
-  *UI�Ȃ�
-  *�o�b�N�O���E���h�X���b�h
-  *�ύX�s��
-*((<��{����|URL:MacroSearch.html>))�̃}�N��
-  *UI����
-  *UI�X���b�h
-  *�ύX�s��
-*((<�w�b�_�r���[|URL:CustomizeHeaderView.html>))
-  *UI����
-  *UI�X���b�h
-  *�ύX�s��
-*((<���X�g�r���[�̐F|URL:Colors.html>))
-  *UI�Ȃ�
-  *UI�X���b�h
-  *�ύX�s��
-*((<�w�b�_�J����|URL:CustomizeListView.html>))
-  *UI�Ȃ�
-  *UI�X���b�h
-  *�ύX�s��
-*((<���I���j���[|URL:CustomizeMenus.html>))
-  *UI�Ȃ�
-  *UI�X���b�h
-  *�ύX�s��
-*((<�t�H���g|URL:Font.html>))
-  *UI����
-  *UI�X���b�h
-  *�ύX�s��
+  *UIあり
+  *UIスレッド
+  *変更可能
+*((<手動振り分け・アクティブ振り分け|URL:ApplyRules.html>))（手動でのメッセージ移動や手動振り分けから引き起こされた場合）の条件
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<自動振り分け・アクティブ振り分け|URL:ApplyRules.html>))（自動振り分けから引き起こされた場合）の条件
+  *UIなし
+  *バックグラウンドスレッド
+  *変更不可
+*((<フィルタ|URL:Filter.html>))
+  *UIなし
+  *UIスレッド
+  *変更不可
+*((<同期フィルタ|URL:SyncFilter.html>))
+  *UIなし
+  *バックグラウンドスレッド
+  *変更不可
+*((<基本検索|URL:MacroSearch.html>))のマクロ
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<ヘッダビュー|URL:CustomizeHeaderView.html>))
+  *UIあり
+  *UIスレッド
+  *変更不可
+*((<リストビューの色|URL:Colors.html>))
+  *UIなし
+  *UIスレッド
+  *変更不可
+*((<ヘッダカラム|URL:CustomizeListView.html>))
+  *UIなし
+  *UIスレッド
+  *変更不可
+*((<動的メニュー|URL:CustomizeMenus.html>))
+  *UIなし
+  *UIスレッド
+  *変更不可
+*((<フォント|URL:Font.html>))
+  *UIあり
+  *UIスレッド
+  *変更不可
 
-�e�֐����ǂ̏����ŌĂяo���\���͊e�֐��̐������Q�Ƃ��Ă��������B
+各関数がどの条件で呼び出し可能かは各関数の説明を参照してください。
 
 =end

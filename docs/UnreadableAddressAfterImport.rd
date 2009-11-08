@@ -1,20 +1,20 @@
 =begin
-=���b�Z�[�W���C���|�[�g����Ƒ��M�҂∶��Ȃǂ������܂�
+=メッセージをインポートすると送信者や宛先などが化けます
 
-���̃��[�����G�N�X�|�[�g�������b�Z�[�W��((<�C���|�[�g|URL:ImportAndExport.html>))����ƁA���M�҂∶��Ȃǂ������������邱�Ƃ�����܂��B����̓G�N�X�|�[�g����Ƃ��ɂ����̏�񂪐������G���R�[�h����Ă��Ȃ����߂ł��B
+他のメーラがエクスポートしたメッセージを((<インポート|URL:ImportAndExport.html>))すると、送信者や宛先などが文字化けすることがあります。これはエクスポートするときにこれらの情報が正しくエンコードされていないためです。
 
-���Ƃ��΁A���悪�u�e�X�g <test@example.org>�v�̏ꍇ�A
+たとえば、宛先が「テスト <test@example.org>」の場合、
 
  To: =?iso-2022-jp?B?GyRCJUYlOSVIGyhC?= <test@example.org>
 
-�̂悤�ɂȂ��Ă���K�v������܂����A���[���ɂ���ẮA
+のようになっている必要がありますが、メーラによっては、
 
- To: �e�X�g <test@example.org>
+ To: テスト <test@example.org>
 
-�̂悤�ɓ��{��𒼐ڏo�͂��܂��B
+のように日本語を直接出力します。
 
-���̂悤�ȃ��b�Z�[�W��ǂݍ��ނƁA���̕����������������܂��B������������ɂ́A((<�C���|�[�g�_�C�A���O|URL:ImportDialog.html>))��[�G���R�[�f�B���O]�œK�؂ȃG���R�[�f�B���O�i���{��̏ꍇ�ɂ͂قƂ�ǂ̏ꍇ�AISO-2022-JP�j���w�肵�Ă��������B�������A�G���R�[�f�B���O���w�肷��ƁAContent-Type�Ɏw�肳�ꂽ�����R�[�h�𖳎����Ďw�肳�ꂽ�G���R�[�f�B���O�ŕϊ����s�����߁A���{��Ɖp��ȊO�̕������܂܂�Ă���Ƃ��̕�����������������\��������܂��B
+このようなメッセージを読み込むと、この部分が文字化けします。これを回避するには、((<インポートダイアログ|URL:ImportDialog.html>))の[エンコーディング]で適切なエンコーディング（日本語の場合にはほとんどの場合、ISO-2022-JP）を指定してください。ただし、エンコーディングを指定すると、Content-Typeに指定された文字コードを無視して指定されたエンコーディングで変換を行うため、日本語と英語以外の文字が含まれているとその部分が文字化けする可能性があります。
 
-Subject�Ȃǂ̍\�����w�b�_�́A���{�ꂪ���ڏo�͂���Ă��Ă��A���ꂪISO-2022-JP�ŃG���R�[�f�B���O����Ă��āA�C���|�[�g����������{����Ȃ�΁A�����������܂��B�������ATo��From�̂悤�ȍ\�����w�b�_�ł́AISO-2022-JP�̃G�X�P�[�v�V�[�P���X�Ɋ܂܂��u(�v���R�����g�̎n�܂�Ƌ�ʂ��t���Ȃ����߁A�G���R�[�f�B���O���w�肵�Ȃ��Ɛ����������܂���B
+Subjectなどの構造化ヘッダは、日本語が直接出力されていても、それがISO-2022-JPでエンコーディングされていて、インポートする環境が日本語環境ならば、正しく扱えます。しかし、ToやFromのような構造化ヘッダでは、ISO-2022-JPのエスケープシーケンスに含まれる「(」がコメントの始まりと区別が付かないため、エンコーディングを指定しないと正しく扱えません。
 
 =end

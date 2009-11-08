@@ -1,21 +1,21 @@
 =begin
-=���[�g�ؖ���
+=ルート証明書
 
-((<SSL|URL:SSL.html>))��((<"S/MIME"|URL:SMIME.html>))�Ŏg�p���邽�߂̃��[�g�ؖ����̓f�t�H���g�ŃV�X�e���̏ؖ����X�g�A���烍�[�h����܂��B�������AHPC Pro, HPC2000, Pocket PC 2000�ł̓V�X�e���̏ؖ����X�g�A�����p�ł��Ȃ����߁AQMAIL3�̏ؖ����X�g�A�ɏؖ�����ǉ�����K�v������܂��B
+((<SSL|URL:SSL.html>))や((<"S/MIME"|URL:SMIME.html>))で使用するためのルート証明書はデフォルトでシステムの証明書ストアからロードされます。ただし、HPC Pro, HPC2000, Pocket PC 2000ではシステムの証明書ストアが利用できないため、QMAIL3の証明書ストアに証明書を追加する必要があります。
 
-�܂��A�V�X�e���Ƀf�t�H���g�ŃC���X�g�[������Ă��Ȃ����[�g�ؖ������g�p����ꍇ�ɂ́A���̃��[�g�ؖ������V�X�e���̏ؖ����X�g�A�Ɏ�荞�ނ��AQMAIL3�̏ؖ����X�g�A�ɒǉ�����K�v������܂��B
-
-
-==�V�X�e���̏ؖ����X�g�A
-�V�X�e���̏ؖ����X�g�A�́A�R���g���[���p�l����[�C���^�[�l�b�g�I�v�V����]��[�R���e���c]�^�u��[�ؖ���]�{�^���������ƕ\������܂��B�ؖ�����ǉ�����̂͂�������ǉ����Ă��������B
-
-�V�X�e���̏ؖ����X�g�A����ؖ�����ǂݍ��ނ��ǂ����́A((<�Z�L�����e�B�̐ݒ�|URL:OptionSecurity.html>))�Ŏw��ł��܂��B
+また、システムにデフォルトでインストールされていないルート証明書を使用する場合には、そのルート証明書をシステムの証明書ストアに取り込むか、QMAIL3の証明書ストアに追加する必要があります。
 
 
-==QMAIL3�̏ؖ����X�g�A
-�V�X�e���̏ؖ����X�g�A���g���Ȃ��v���b�g�t�H�[������̂��߂ɁAQMAIL3�Ǝ��̏ؖ����X�g�A������܂��BQMAIL3�̏ؖ����X�g�A�̓e�L�X�g�t�@�C���`���Ń��[���{�b�N�X�f�B���N�g����security/ca.pem�Ƃ����t�@�C���ɂȂ�܂��B���̃t�@�C���̓f�t�H���g�ł͍쐬����܂���̂ŕK�v�ɉ����č쐬���܂��B�����āA�K�v��CA�̏ؖ�����PEM�`���Ŋi�[���Ă��������B
+==システムの証明書ストア
+システムの証明書ストアは、コントロールパネルの[インターネットオプション]の[コンテンツ]タブで[証明書]ボタンを押すと表示されます。証明書を追加するのはここから追加してください。
 
-�t�@�C���̓��e�͂��Ƃ��Έȉ��̂悤�Ȍ`���ɂȂ�܂��B
+システムの証明書ストアから証明書を読み込むかどうかは、((<セキュリティの設定|URL:OptionSecurity.html>))で指定できます。
+
+
+==QMAIL3の証明書ストア
+システムの証明書ストアを使えないプラットフォームや環境のために、QMAIL3独自の証明書ストアがあります。QMAIL3の証明書ストアはテキストファイル形式でメールボックスディレクトリのsecurity/ca.pemというファイルになります。このファイルはデフォルトでは作成されませんので必要に応じて作成します。そして、必要なCAの証明書をPEM形式で格納してください。
+
+ファイルの内容はたとえば以下のような形式になります。
 
  -----BEGIN CERTIFICATE-----
  MIICWjCCAcMCAgGlMA0GCSqGSIb3DQEBBAUAMHUxCzAJBgNVBAYTAlVTMRgwFgYD
@@ -53,10 +53,10 @@
  gpUmOIpH
  -----END CERTIFICATE-----
 
-Windows�̏ؖ����X�g�A����PEM�`���ŏؖ������G�N�X�|�[�g����ɂ́A�`���Ƃ���[Base 64 encoded X509 (.CER)]��I�����܂��B�����̏ؖ������܂Ƃ߂ăG�N�X�|�[�g�����PKCS#7�`�������I���ł��܂��񂪁A���̏ꍇ�G�N�X�|�[�g�����t�@�C����OpenSSL�̃R�}���h��PEM�`���ɕϊ����邱�Ƃ��ł��܂��B
+Windowsの証明書ストアからPEM形式で証明書をエクスポートするには、形式として[Base 64 encoded X509 (.CER)]を選択します。複数の証明書をまとめてエクスポートするとPKCS#7形式しか選択できませんが、この場合エクスポートしたファイルをOpenSSLのコマンドでPEM形式に変換することができます。
 
  openssl pkcs7 -inform DER -in export.p7b -outform PEM -out export.pem -print_certs
 
-export.p7b�͏ؖ����X�g�A����G�N�X�|�[�g�����t�@�C���̃t�@�C�����ł��Bexport.pem��PEM�`���̃t�@�C���ɂȂ�܂��B
+export.p7bは証明書ストアからエクスポートしたファイルのファイル名です。export.pemがPEM形式のファイルになります。
 
 =end

@@ -1,15 +1,15 @@
 =begin
-=�p�����[�^
+=パラメータ
 
-�t�H���_�̃p�����[�^��ݒ肵�܂��B
+フォルダのパラメータを設定します。
 
-((<[�p�����[�^]�^�u|"IMG:images/FolderParameterPage.png">))
+((<[パラメータ]タブ|"IMG:images/FolderParameterPage.png">))
 
-�ꕔ�̃t�H���_�͒ǉ��̃p�����[�^��ݒ�ł��܂��B���Ƃ��΁ARSS�A�J�E���g�̃t�H���_�̓t�B�[�h��URL�Ȃǂ��p�����[�^�Ƃ��Đݒ肵�܂��B[�p�����[�^]�^�u�ł͂����̃p�����[�^��ݒ肵�܂��B�p�����[�^���ݒ�ł��Ȃ��t�H���_�̏ꍇ�ɂ͂��̃^�u�͕\������܂���B
+一部のフォルダは追加のパラメータを設定できます。たとえば、RSSアカウントのフォルダはフィードのURLなどをパラメータとして設定します。[パラメータ]タブではこれらのパラメータを設定します。パラメータが設定できないフォルダの場合にはこのタブは表示されません。
 
-�ҏW�������p�����[�^��I������[�ҏW]�{�^�����N���b�N����ƁA((<[�p�����[�^]�_�C�A���O|URL:ParameterDialog.html>))���J���܂��B
+編集したいパラメータを選択して[編集]ボタンをクリックすると、((<[パラメータ]ダイアログ|URL:ParameterDialog.html>))が開きます。
 
-*((<���[���A�J�E���g�̃p�����[�^|URL:FolderPropertyMailParameter.html>))
-*((<RSS�A�J�E���g�̃p�����[�^|URL:FolderPropertyRssParameter.html>))
+*((<メールアカウントのパラメータ|URL:FolderPropertyMailParameter.html>))
+*((<RSSアカウントのパラメータ|URL:FolderPropertyRssParameter.html>))
 
 =end

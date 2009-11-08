@@ -1,19 +1,19 @@
 =begin
-=ToolApplyTemplate�A�N�V����
+=ToolApplyTemplateアクション
 
-1�Ԗڂ̈����Ŏw�肳�ꂽ�e���v���[�g��ҏW���̃��b�Z�[�W�ɓK�p���A���ʂ̃��b�Z�[�W�Ō��݂̃G�f�B�b�g�E�B���h�E�̃��b�Z�[�W��u�������܂��B
+1番目の引数で指定されたテンプレートを編集中のメッセージに適用し、結果のメッセージで現在のエディットウィンドウのメッセージを置き換えます。
 
-2�Ԗڂ̈����ɂ̓e���v���[�g�ɓn���������w�肵�܂��B�����̎w����@�́A((<MessageCreate�A�N�V����|URL:MessageCreateAction.html>))���Q�Ƃ��Ă��������B
+2番目の引数にはテンプレートに渡す引数を指定します。引数の指定方法は、((<MessageCreateアクション|URL:MessageCreateAction.html>))を参照してください。
 
 
-==����
+==引数
 :1
-  �e���v���[�g��
+  テンプレート名
 :2
-  ����
+  引数
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

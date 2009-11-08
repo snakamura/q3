@@ -1,10 +1,10 @@
 =begin
-=“¯Šúƒ_ƒCƒAƒƒO
+=åŒæœŸãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 
-((<“¯Šúƒ_ƒCƒAƒƒO|"IMG:images/SyncDialog.png">))
+((<åŒæœŸãƒ€ã‚¤ã‚¢ãƒ­ã‚°|"IMG:images/SyncDialog.png">))
 
-“¯Šúƒ_ƒCƒAƒƒO‚Í‘—ŽóMŽž‚É•\Ž¦‚³‚êA‘—ŽóM‚Ìisó‹µ‚âƒGƒ‰[‚È‚Ç‚ð•\Ž¦‚µ‚Ü‚·B‘—ŽóMŽž‚É“¯Šúƒ_ƒCƒAƒƒO‚ð•\Ž¦‚·‚é‚©‚Ç‚¤‚©‚ÍA((<“¯Šú‚ÌÝ’è|URL:OptionSync.html>))‚ÅÝ’è‚Å‚«‚Ü‚·B
+åŒæœŸãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã¯é€å—ä¿¡æ™‚ã«è¡¨ç¤ºã•ã‚Œã€é€å—ä¿¡ã®é€²è¡ŒçŠ¶æ³ã‚„ã‚¨ãƒ©ãƒ¼ãªã©ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚é€å—ä¿¡æ™‚ã«åŒæœŸãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤ºã™ã‚‹ã‹ã©ã†ã‹ã¯ã€((<åŒæœŸã®è¨­å®š|URL:OptionSync.html>))ã§è¨­å®šã§ãã¾ã™ã€‚
 
-[ƒLƒƒƒ“ƒZƒ‹]ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚·‚é‚Æ‘—ŽóM‚ð’†’f‚µ‚Ü‚·B‚Ü‚½A[‰B‚·]ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚·‚é‚Æ“¯Šúƒ_ƒCƒAƒƒO‚ð‰B‚µ‚Ü‚·B‰B‚µ‚½“¯Šúƒ_ƒCƒAƒƒO‚ð•\Ž¦‚·‚é‚É‚ÍA((<[•\Ž¦]-[ƒRƒ“ƒgƒ[ƒ‹‚Ì•\Ž¦]-[“¯ŠúƒEƒBƒ“ƒhƒE‚ð•\Ž¦]|URL:ViewShowSyncDialogAction.html>))‚ðŽg—p‚·‚é‚©A‘—ŽóM’†‚ÉƒƒCƒ“ƒEƒBƒ“ƒhƒE‚Ì‰Eã‚É•\Ž¦‚³‚ê‚éƒAƒCƒRƒ“‚ðƒNƒŠƒbƒN‚µ‚Ü‚·B
+[ã‚­ãƒ£ãƒ³ã‚»ãƒ«]ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã™ã‚‹ã¨é€å—ä¿¡ã‚’ä¸­æ–­ã—ã¾ã™ã€‚ã¾ãŸã€[éš ã™]ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã™ã‚‹ã¨åŒæœŸãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’éš ã—ã¾ã™ã€‚éš ã—ãŸåŒæœŸãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤ºã™ã‚‹ã«ã¯ã€((<[è¡¨ç¤º]-[ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®è¡¨ç¤º]-[åŒæœŸã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤º]|URL:ViewShowSyncDialogAction.html>))ã‚’ä½¿ç”¨ã™ã‚‹ã‹ã€é€å—ä¿¡ä¸­ã«ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å³ä¸Šã«è¡¨ç¤ºã•ã‚Œã‚‹ã‚¢ã‚¤ã‚³ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¾ã™ã€‚
 
 =end

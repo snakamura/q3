@@ -1,14 +1,14 @@
 =begin
-=ViewNextAccount�A�N�V����
+=ViewNextAccountアクション
 
-���ݑI������Ă��鎟�̃A�J�E���g��I�����܂��B���̂悤�ȃA�J�E���g���Ȃ��ꍇ�ɂ͉������܂���B
-
-
-==����
-�Ȃ�
+現在選択されている次のアカウントを選択します。そのようなアカウントがない場合には何もしません。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

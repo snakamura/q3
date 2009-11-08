@@ -1,49 +1,49 @@
 =begin
 =autopilot.xml
 
-((<Ž©“®„‰ñ|URL:AutoPilot.html>))‚ÌÝ’è‚ð‚·‚éXMLƒtƒ@ƒCƒ‹‚Å‚·B‚±‚Ìƒtƒ@ƒCƒ‹‚É‚ÍA((<Ž©“®„‰ñ‚ÌÝ’è|URL:OptionAutoPilot.html>))‚ÅÝ’è‚µ‚½î•ñ‚ª•Û‘¶‚³‚ê‚Ü‚·B
+((<è‡ªå‹•å·¡å›ž|URL:AutoPilot.html>))ã®è¨­å®šã‚’ã™ã‚‹XMLãƒ•ã‚¡ã‚¤ãƒ«ã§ã™ã€‚ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã«ã¯ã€((<è‡ªå‹•å·¡å›žã®è¨­å®š|URL:OptionAutoPilot.html>))ã§è¨­å®šã—ãŸæƒ…å ±ãŒä¿å­˜ã•ã‚Œã¾ã™ã€‚
 
 
-==‘Ž®
+==æ›¸å¼
 
-===autoPilotƒGƒŒƒƒ“ƒg
+===autoPilotã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <autoPilot>
   <!-- entry -->
  </autoPilot>
 
-autoPilotƒGƒŒƒƒ“ƒg‚ªƒgƒbƒvƒŒƒxƒ‹ƒGƒŒƒƒ“ƒg‚É‚È‚è‚Ü‚·B‚±‚Ì‰º‚É0ŒÂˆÈã‚ÌentryƒGƒŒƒƒ“ƒg‚ð‚¨‚­‚±‚Æ‚ª‚Å‚«‚Ü‚·B
+autoPilotã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆãŒãƒˆãƒƒãƒ—ãƒ¬ãƒ™ãƒ«ã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã«ãªã‚Šã¾ã™ã€‚ã“ã®ä¸‹ã«0å€‹ä»¥ä¸Šã®entryã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã‚’ãŠãã“ã¨ãŒã§ãã¾ã™ã€‚
 
 
-===entryƒGƒŒƒƒ“ƒg
+===entryã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <entry
   enabled="true|false">
   <!-- course, interval -->
  </entry>
 
-entryƒGƒŒƒƒ“ƒg‚ªŠe„‰ñ‚ÌƒR[ƒX‚ÆƒCƒ“ƒ^[ƒoƒ‹‚ðŽw’è‚µ‚Ü‚·Benabled‘®«‚Éfalse‚ðŽw’è‚·‚é‚Æ–³Œø‚É‚È‚è‚Ü‚·B‚±‚Ì‰º‚ÉAcourseƒGƒŒƒƒ“ƒg‚ÆintervalƒGƒŒƒƒ“ƒg‚ª‚Ð‚Æ‚Â‚¸‚Â’u‚©‚ê‚Ü‚·B
+entryã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆãŒå„å·¡å›žã®ã‚³ãƒ¼ã‚¹ã¨ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«ã‚’æŒ‡å®šã—ã¾ã™ã€‚enabledå±žæ€§ã«falseã‚’æŒ‡å®šã™ã‚‹ã¨ç„¡åŠ¹ã«ãªã‚Šã¾ã™ã€‚ã“ã®ä¸‹ã«ã€courseã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¨intervalã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆãŒã²ã¨ã¤ãšã¤ç½®ã‹ã‚Œã¾ã™ã€‚
 
 
-===courseƒGƒŒƒƒ“ƒg
+===courseã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <course>
-  ƒR[ƒX
+  ã‚³ãƒ¼ã‚¹
  </course>
 
-„‰ñƒR[ƒX‚ðŽw’è‚µ‚Ü‚·B
+å·¡å›žã‚³ãƒ¼ã‚¹ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
 
-===intervalƒGƒŒƒƒ“ƒg
+===intervalã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <interval>
-  „‰ñŠÔŠui•ª’PˆÊj
+  å·¡å›žé–“éš”ï¼ˆåˆ†å˜ä½ï¼‰
  </interval>
 
-Žw’è‚µ‚½ƒR[ƒX‚ð„‰ñ‚·‚éŠÔŠu‚ð•ª’PˆÊ‚ÅŽw’è‚µ‚Ü‚·B
+æŒ‡å®šã—ãŸã‚³ãƒ¼ã‚¹ã‚’å·¡å›žã™ã‚‹é–“éš”ã‚’åˆ†å˜ä½ã§æŒ‡å®šã—ã¾ã™ã€‚
 
 
-==ƒTƒ“ƒvƒ‹
+==ã‚µãƒ³ãƒ—ãƒ«
 
  <?xml version="1.0" encoding="utf-8"?>
  <autoPilot>
@@ -58,20 +58,20 @@ entryƒGƒŒƒƒ“ƒg‚ªŠe„‰ñ‚ÌƒR[ƒX‚ÆƒCƒ“ƒ^[ƒoƒ‹‚ðŽw’è‚µ‚Ü‚·Benabled‘®«‚Éfalse‚ðŽ
  </autoPilot>
 
 
-==ƒXƒL[ƒ}
+==ã‚¹ã‚­ãƒ¼ãƒž
 
  element autoPilot {
    element entry {
-     ## —LŒø‚©‚Ç‚¤‚©
-     ## Žw’è‚³‚ê‚È‚¢ê‡‚É‚Í—LŒø
+     ## æœ‰åŠ¹ã‹ã©ã†ã‹
+     ## æŒ‡å®šã•ã‚Œãªã„å ´åˆã«ã¯æœ‰åŠ¹
      attribute enabled {
        xsd:boolean
      },
-     ## ƒR[ƒX
+     ## ã‚³ãƒ¼ã‚¹
      element course {
        xsd:string
      },
-     ## ŠÔŠui•ª’PˆÊj
+     ## é–“éš”ï¼ˆåˆ†å˜ä½ï¼‰
      element interval {
        xsd:int
      }

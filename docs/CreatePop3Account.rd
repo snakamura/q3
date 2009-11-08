@@ -1,79 +1,79 @@
 =begin
-=�A�J�E���g�̍쐬
+=アカウントの作成
 
-==�A�J�E���g�̍쐬
-POP3�̃A�J�E���g���쐬����ɂ́A���j���[����((<[�c�[��]-[�A�J�E���g]|URL:ToolAccountAction.html>))��I�����A[�A�J�E���g]�_�C�A���O���J���܂��B
+==アカウントの作成
+POP3のアカウントを作成するには、メニューから((<[ツール]-[アカウント]|URL:ToolAccountAction.html>))を選択し、[アカウント]ダイアログを開きます。
 
-((<[�A�J�E���g]�_�C�A���O|"IMG:images/TutorialAccountDialog.png">))
+((<[アカウント]ダイアログ|"IMG:images/TutorialAccountDialog.png">))
 
-[�A�J�E���g]�_�C�A���O��[�A�J�E���g�ǉ�]�{�^�����N���b�N���A[�A�J�E���g�̍쐬]�_�C�A���O���J���܂��B
+[アカウント]ダイアログの[アカウント追加]ボタンをクリックし、[アカウントの作成]ダイアログを開きます。
 
-((<[�A�J�E���g�̍쐬]�_�C�A���O|"IMG:images/TutorialPop3CreateAccountDialog.png">))
+((<[アカウントの作成]ダイアログ|"IMG:images/TutorialPop3CreateAccountDialog.png">))
 
-[���O]�ɂ͔C�ӂ̃A�J�E���g�����w�肵�܂��B�������A�t�@�C�����Ƃ��Ďg���Ȃ������͎g���܂���B
+[名前]には任意のアカウント名を指定します。ただし、ファイル名として使えない文字は使えません。
 
-[�N���X]�́umail�v���A[��M�v���g�R��]�́uPOP3�v��I�����܂��B[���M�v���g�R��]�͒ʏ�uSMTP�v��I�����܂��B�T�[�o�Ǘ��҂���POP3��XTND XMIT���g���悤�Ɏw�肳��Ă���ꍇ�ɂ́uPOP3 (XTND XMIT)�v��I�����܂��B
+[クラス]は「mail」を、[受信プロトコル]は「POP3」を選択します。[送信プロトコル]は通常「SMTP」を選択します。サーバ管理者からPOP3のXTND XMITを使うように指定されている場合には「POP3 (XTND XMIT)」を選択します。
 
-���̑��̐ݒ�̓f�t�H���g�̂܂܂������߂��܂��B�ڍׂɂ��ẮA((<�A�J�E���g�̍쐬|URL:CreateAccount.html>))���Q�Ƃ��Ă��������B�܂��A�����Ŏw�肵�����ڂ̓A�J�E���g���ȊO�͌�ŕύX���邱�Ƃ͂ł��܂���B
+その他の設定はデフォルトのままをお勧めします。詳細については、((<アカウントの作成|URL:CreateAccount.html>))を参照してください。また、ここで指定した項目はアカウント名以外は後で変更することはできません。
 
-[OK]���N���b�N����ƁA�A�J�E���g���쐬����A�J�E���g�̐ݒ�_�C�A���O���J���܂��B�����ŁA�A�J�E���g�̐ݒ���s���܂��B
-
-
-==�A�J�E���g�̐ݒ�
-�܂��́A[���]�^�u�ł��B
-
-((<[���]�^�u|"IMG:images/TutorialPop3GeneralPage.png">))
-
-�͂��߂�[�T�[�o���]���w�肵�܂��B[��M]��POP3�T�[�o�̃z�X�g�����A[���M]��SMTP�T�[�o�̃z�X�g�����w�肵�܂��B�����������z�X�g�̏ꍇ�ł��ȗ������ɗ����w�肵�܂��B
-
-����[���[�U���]���w�肵�܂��B[���O]�Ɏ����̖��O���A[���[���A�h���X]�Ɏg�p���郁�[���A�h���X���w�肵�܂��B�����Ŏw�肵�����O�ƃ��[���A�h���X��From�w�b�_�Ŏg�p����܂��B[���[���A�h���X]�Ƃ͕ʂ̃A�h���X�ɕԐM�����炢�����ꍇ�ɂ́A[�ԐM��A�h���X]�Ƀ��[���A�h���X���w�肵�܂��B�����Ŏw�肵���A�h���X��Reply-To�w�b�_�Ŏg�p����܂��B
+[OK]をクリックすると、アカウントが作成されアカウントの設定ダイアログが開きます。ここで、アカウントの設定を行います。
 
 
-���ɁA[���[�U]�^�u���N���b�N���܂��B
+==アカウントの設定
+まずは、[一般]タブです。
 
-((<[���[�U]�^�u|"IMG:images/TutorialPop3UserPage.png">))
+((<[一般]タブ|"IMG:images/TutorialPop3GeneralPage.png">))
 
-[��M]�̂Ƃ����POP3�T�[�o�̃��O�C������ݒ肵�܂��B[���[�U��]�Ƀ��[�U�����A[�p�X���[�h]�Ƀp�X���[�h���w�肵�܂��B�p�X���[�h��ۑ��������Ȃ��ꍇ�ɂ́A��̂܂܂ɂ��Ă����Ɛڑ�����Ƃ��Ƀp�X���[�h��q�˂��܂��B
+はじめに[サーバ情報]を指定します。[受信]にPOP3サーバのホスト名を、[送信]にSMTPサーバのホスト名を指定します。両方が同じホストの場合でも省略せずに両方指定します。
 
-SMTP�F�؂��g���ꍇ�ɂ�[���M]��[�F��]�Ƀ`�F�b�N�����A[���[�U��]��[�p�X���[�h]�𓯗l�Ɏw�肵�܂��BPOP before SMTP���g���ꍇ�ɂ́A[���M]��[�F��]�ɂ̓`�F�b�N�����܂���B
-
-
-���ɁA[�ڍ�]�^�u���N���b�N���܂��B
-
-((<[�ڍ�]�^�u|"IMG:images/TutorialPop3DetailPage.png">))
-
-[��M], [���M]�Ƃ��|�[�g�ASSL�̎g�p�A���O�̐ݒ���s���܂��B�ʏ�̓f�t�H���g�̂܂܂Ŗ�肠��܂���B�g�p����|�[�g���f�t�H���g�ƈقȂ�ꍇ�ɂ�[�|�[�g]�Ƀ|�[�g�ԍ����w�肵�܂��B�܂��ASSL���g�p����ꍇ�ɂ́A[SSL]�܂���[STARTTLS]��I�����܂��B
-
-[���O]�Ƀ`�F�b�N������ƒʐM�̃��O����邱�Ƃ��ł��܂��B���[���̑���M�����܂��ł��Ȃ��ꍇ�Ȃǂɂ́A�����Ƀ`�F�b�N�����ă��O������Ē��ׂ邱�ƂŖ��̉����ɖ𗧂Ă邱�Ƃ��ł��܂��B
+次に[ユーザ情報]を指定します。[名前]に自分の名前を、[メールアドレス]に使用するメールアドレスを指定します。ここで指定した名前とメールアドレスがFromヘッダで使用されます。[メールアドレス]とは別のアドレスに返信をもらいたい場合には、[返信先アドレス]にメールアドレスを指定します。ここで指定したアドレスがReply-Toヘッダで使用されます。
 
 
-���ɁA[POP3]�^�u���N���b�N���܂��B
+次に、[ユーザ]タブをクリックします。
 
-((<[POP3]�^�u|"IMG:images/TutorialPop3Pop3Page.png">))
+((<[ユーザ]タブ|"IMG:images/TutorialPop3UserPage.png">))
 
-�F�؂�APOP���g���ꍇ�ɂ�[APOP]�Ƀ`�F�b�N�����܂��B
+[受信]のところにPOP3サーバのログイン情報を設定します。[ユーザ名]にユーザ名を、[パスワード]にパスワードを指定します。パスワードを保存したくない場合には、空のままにしておくと接続するときにパスワードを尋ねられます。
 
-��M�������b�Z�[�W���T�[�o����폜����ꍇ�ɂ�[�T�[�o��̃��b�Z�[�W]��[�폜����]��I�����܂��B���邢�́A��M���Ă���������ȏ�o�߂������b�Z�[�W���T�[�o����폜����ꍇ�ɂ́A[�Â����b�Z�[�W���폜]��I�����A[?����]�œ������w�肵�܂��B
-
-���̑��̐ݒ�ɂ��ẮA((<POP3�̐ݒ�|URL:AccountPop3.html>))���Q�Ƃ��Ă��������B
+SMTP認証を使う場合には[送信]の[認証]にチェックを入れ、[ユーザ名]と[パスワード]を同様に指定します。POP before SMTPを使う場合には、[送信]の[認証]にはチェックを入れません。
 
 
-���ɁA[SMTP]�^�u���N���b�N���܂��B
+次に、[詳細]タブをクリックします。
 
-((<[SMTP]�^�u|"IMG:images/TutorialPop3SmtpPage.png">))
+((<[詳細]タブ|"IMG:images/TutorialPop3DetailPage.png">))
 
-POP before SMTP���g�p����ꍇ�ɂ́A[POP before SMTP���g��]�Ƀ`�F�b�N�����܂��B
+[受信], [送信]ともポート、SSLの使用、ログの設定を行います。通常はデフォルトのままで問題ありません。使用するポートがデフォルトと異なる場合には[ポート]にポート番号を指定します。また、SSLを使用する場合には、[SSL]または[STARTTLS]を選択します。
 
-���̑��̐ݒ�ɂ��ẮA((<SMTP�̐ݒ�|URL:AccountSmtp.html>))���Q�Ƃ��Ă��������B
-
-
-�Ō�ɁA[�_�C�A���A�b�v]�^�u���N���b�N���܂��B
-
-((<[�_�C�A���A�b�v]�^�u|"IMG:images/TutorialPop3DialupPage.png">))
-
-����M���Ɏ����I�Ƀ_�C�A���A�b�v�������ꍇ�ɂ́A[�l�b�g���[�N�ɐڑ����Ă��Ȃ��Ƃ��Ƀ_�C�A���A�b�v�ڑ�����]�܂���[��Ƀ_�C�A���A�b�v�ڑ�����]��I�����A[�G���g����]��I�����܂��B
+[ログ]にチェックを入れると通信のログを取ることができます。メールの送受信がうまくできない場合などには、ここにチェックを入れてログを取って調べることで問題の解消に役立てることができます。
 
 
-[OK]���N���b�N���ă_�C�A���O�����΁APOP3�A�J�E���g�̐ݒ�͏I���ł��B
+次に、[POP3]タブをクリックします。
+
+((<[POP3]タブ|"IMG:images/TutorialPop3Pop3Page.png">))
+
+認証にAPOPを使う場合には[APOP]にチェックを入れます。
+
+受信したメッセージをサーバから削除する場合には[サーバ上のメッセージ]の[削除する]を選択します。あるいは、受信してから一定日数以上経過したメッセージをサーバから削除する場合には、[古いメッセージを削除]を選択し、[?日後]で日数を指定します。
+
+その他の設定については、((<POP3の設定|URL:AccountPop3.html>))を参照してください。
+
+
+次に、[SMTP]タブをクリックします。
+
+((<[SMTP]タブ|"IMG:images/TutorialPop3SmtpPage.png">))
+
+POP before SMTPを使用する場合には、[POP before SMTPを使う]にチェックを入れます。
+
+その他の設定については、((<SMTPの設定|URL:AccountSmtp.html>))を参照してください。
+
+
+最後に、[ダイアルアップ]タブをクリックします。
+
+((<[ダイアルアップ]タブ|"IMG:images/TutorialPop3DialupPage.png">))
+
+送受信時に自動的にダイアルアップしたい場合には、[ネットワークに接続していないときにダイアルアップ接続する]または[常にダイアルアップ接続する]を選択し、[エントリ名]を選択します。
+
+
+[OK]をクリックしてダイアログを閉じれば、POP3アカウントの設定は終了です。
 
 =end

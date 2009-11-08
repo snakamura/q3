@@ -1,6 +1,6 @@
 =begin
-=�w�b�_�G�f�B�b�g�r���[�̃J�X�^�}�C�Y
+=ヘッダエディットビューのカスタマイズ
 
-((<headeredit.xml|URL:HeaderEditXml.html>))��ҏW���邱�ƂŃw�b�_�G�f�B�b�g�r���[���J�X�^�}�C�Y�ł��܂��B
+((<headeredit.xml|URL:HeaderEditXml.html>))を編集することでヘッダエディットビューをカスタマイズできます。
 
 =end

@@ -1,18 +1,18 @@
 =begin
-=FileExportƒAƒNƒVƒ‡ƒ“
+=FileExportã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘ÎÛ‚ÌƒƒbƒZ[ƒW‚ðƒGƒNƒXƒ|[ƒg‚µ‚Ü‚·BŽÀs‚·‚é‚Æ((<[‘‚«o‚µ]ƒ_ƒCƒAƒƒO|URL:ExportDialog.html>))‚ªŠJ‚«‚Ü‚·B
+å¯¾è±¡ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚¨ã‚¯ã‚¹ãƒãƒ¼ãƒˆã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨((<[æ›¸ãå‡ºã—]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:ExportDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 <<<selectedMessage.rd
 
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

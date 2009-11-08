@@ -4,32 +4,32 @@
  Boolean @Equal(Value v1, Value v2, Boolean case?)
 
 
-==����
-v1��v2���������ꍇ�ɂ�True�A����ȊO�̏ꍇ�ɂ�False��Ԃ��܂��Bv1��v2���Ƃ��ɐ^�U�l�̏ꍇ�ɂ͐^�U�l�Ƃ��āAv1��v2���Ƃ��ɐ��l�̏ꍇ�ɂ͐��l�Ƃ��āA����ȊO�̏ꍇ�ɂ͕�����Ƃ��Ĕ�r���܂��B������Ƃ��Ĕ�r����ꍇ�ɂ́Acase��True���w�肷��Ƒ啶���Ə���������ʂ��AFalse�̏ꍇ��ȗ����ꂽ�ꍇ�ɂ͋�ʂ��܂���B
+==説明
+v1とv2が等しい場合にはTrue、それ以外の場合にはFalseを返します。v1とv2がともに真偽値の場合には真偽値として、v1とv2がともに数値の場合には数値として、それ以外の場合には文字列として比較します。文字列として比較する場合には、caseにTrueを指定すると大文字と小文字を区別し、Falseの場合や省略された場合には区別しません。
 
 
-==����
+==引数
 :Value v1
-  �l
+  値
 :Value v2
-  ������
+  文字列
 :Boolean case
-  �啶���Ə���������ʂ���ꍇ�ɂ�True�A����ȊO�̏ꍇ�ɂ�False
+  大文字と小文字を区別する場合にはTrue、それ以外の場合にはFalse
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
-  # List-Id��<ml@example.org>
+==例
+  # List-Idが<ml@example.org>
   @Equal(List-Id, '<ml@example.org>')
   
-  # ID��1234
+  # IDが1234
   @Equal(@Id(), 1234)
 
 =end

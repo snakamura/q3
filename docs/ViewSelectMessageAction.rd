@@ -1,20 +1,20 @@
 =begin
-=ViewSelectMessageƒAƒNƒVƒ‡ƒ“
+=ViewSelectMessageã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»Ý‘I‘ð‚µ‚Ä‚¢‚éƒtƒHƒ‹ƒ_‚ªŒŸõƒtƒHƒ‹ƒ_‚Ìê‡‚ÉA‘ÎÛ‚ÌƒƒbƒZ[ƒW‚ª‚ð‚»‚ÌƒƒbƒZ[ƒW‚ª‘¶Ý‚·‚éƒtƒHƒ‹ƒ_‚Ì’†‚Å‘I‘ð‚µ‚Ü‚·B
+ç¾åœ¨é¸æŠžã—ã¦ã„ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ãŒæ¤œç´¢ãƒ•ã‚©ãƒ«ãƒ€ã®å ´åˆã«ã€å¯¾è±¡ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒã‚’ãã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒå­˜åœ¨ã™ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã®ä¸­ã§é¸æŠžã—ã¾ã™ã€‚
 
-ŒŸõ‚ð‚µ‚½Œã‚ÅAƒqƒbƒg‚µ‚½ƒƒbƒZ[ƒW‚Ì‚ ‚éƒtƒHƒ‹ƒ_“à‚É‚ ‚é‘OŒã‚ÌƒƒbƒZ[ƒW‚ðŒ©‚½‚¢ê‡‚È‚Ç‚ÉŽg—p‚µ‚Ü‚·B
+æ¤œç´¢ã‚’ã—ãŸå¾Œã§ã€ãƒ’ãƒƒãƒˆã—ãŸãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ã‚ã‚‹ãƒ•ã‚©ãƒ«ãƒ€å†…ã«ã‚ã‚‹å‰å¾Œã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¦‹ãŸã„å ´åˆãªã©ã«ä½¿ç”¨ã—ã¾ã™ã€‚
 
 <<<focusedMessage.rd
 
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

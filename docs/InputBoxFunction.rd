@@ -4,48 +4,48 @@
  String @InputBox(String message, Boolean multiline?, String default?)
 
 
-==����
-���[�U�ɓ��͂����߂邽�߂̃_�C�A���O��\�����A���͂��ꂽ�������Ԃ��܂��Bmessage�ɂ͕\�����郁�b�Z�[�W���w�肵�܂��Bdefault���w�肷��ƃ_�C�A���O���J�����Ƃ��ɂ��̕����񂪓��͗��ɕ\������܂��B
+==説明
+ユーザに入力を求めるためのダイアログを表示し、入力された文字列を返します。messageには表示するメッセージを指定します。defaultを指定するとダイアログを開いたときにその文字列が入力欄に表示されます。
 
-multiline�ɂ̓_�C�A���O�̃^�C�v���w�肵�܂��B�w��ł���͈̂ȉ��̂Ƃ���ł��B
+multilineにはダイアログのタイプを指定します。指定できるのは以下のとおりです。
 
 ::INPUT-SINGLELINE
-  �P���s�̓��͂����߂�_�C�A���O
+  単数行の入力を求めるダイアログ
   
-  ((<�P���s���̓_�C�A���O|"IMG:images/SingleLineInputBoxDialog.png">))
+  ((<単数行入力ダイアログ|"IMG:images/SingleLineInputBoxDialog.png">))
 ::INPUT-MULTILINE
-  �����s�̓��͂����߂�_�C�A���O
+  複数行の入力を求めるダイアログ
   
-  ((<�����s���̓_�C�A���O|"IMG:images/MultiLineInputBoxDialog.png">))
+  ((<複数行入力ダイアログ|"IMG:images/MultiLineInputBoxDialog.png">))
 
-�w�肵�Ȃ��ꍇ�ɂ́A:INPUT-SINGLELINE���w�肵���̂Ɠ����ɂȂ�܂��B
+指定しない場合には、:INPUT-SINGLELINEを指定したのと同じになります。
 
 
-==����
+==引数
 :String message
-  �\�����郁�b�Z�[�W
+  表示するメッセージ
 :Boolean multiline
-  �_�C�A���O�̃^�C�v
+  ダイアログのタイプ
 :String default
-  �f�t�H���g�̓��͕�����
+  デフォルトの入力文字列
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*UI���Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*UIがない場合
 
-==����
-*UI���K�v
+==条件
+*UIが必要
 
 
-==��
- # �P���s
- @InputBox('���͂��Ă�������')
+==例
+ # 単数行
+ @InputBox('入力してください')
  
- # �P���s�Ńf�t�H���g���w��
- @InputBox('���͂��Ă�������', :INPUT-SINGLELINE, '�e�X�g')
+ # 単数行でデフォルトを指定
+ @InputBox('入力してください', :INPUT-SINGLELINE, 'テスト')
  
- # �����s
- @InputBox('���͂��Ă�������', :INPUT-MULTILINE)
+ # 複数行
+ @InputBox('入力してください', :INPUT-MULTILINE)
 
 =end

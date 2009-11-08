@@ -1,14 +1,14 @@
 =begin
-=ToolReformAll�A�N�V����
+=ToolReformAllアクション
 
-�S�Ă̒i���𐮌`���܂��B���`�ɂ��ẮA((<���`|URL:Reform.html>))���Q�Ƃ��Ă��������B
-
-
-==����
-�Ȃ�
+全ての段落を整形します。整形については、((<整形|URL:Reform.html>))を参照してください。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�r���[
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*エディットビュー
 
 =end

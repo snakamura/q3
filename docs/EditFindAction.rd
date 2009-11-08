@@ -1,16 +1,16 @@
 =begin
-=EditFindƒAƒNƒVƒ‡ƒ“
+=EditFindã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒƒbƒZ[ƒW“à‚ðŒŸõ‚µ‚Ü‚·B((<[ŒŸõ]ƒ_ƒCƒAƒƒO|URL:FindDialog.html>))‚ªŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å†…ã‚’æ¤œç´¢ã—ã¾ã™ã€‚((<[æ¤œç´¢]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:FindDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
-*ƒGƒfƒBƒbƒgƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼
 
 =end

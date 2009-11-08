@@ -1,18 +1,18 @@
 =begin
-=FilePrintƒAƒNƒVƒ‡ƒ“
+=FilePrintã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘ÎÛ‚ÌƒƒbƒZ[ƒW‚ðˆóü‚µ‚Ü‚·Bˆóü‚ÌÚ×‚ÍA((<ˆóü|URL:Printing.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+å¯¾è±¡ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å°åˆ·ã—ã¾ã™ã€‚å°åˆ·ã®è©³ç´°ã¯ã€((<å°åˆ·|URL:Printing.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 <<<selectedMessage.rd
 
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

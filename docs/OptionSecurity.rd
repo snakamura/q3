@@ -1,38 +1,38 @@
 =begin
-=�Z�L�����e�B�̐ݒ�
+=セキュリティの設定
 
-[�I�v�V����]�_�C�A���O��[�Z�L�����e�B]�p�l���ł̓Z�L�����e�B�Ɋւ���ݒ���s���܂��B
+[オプション]ダイアログの[セキュリティ]パネルではセキュリティに関する設定を行います。
 
-((<�Z�L�����e�B�̐ݒ�|"IMG:images/OptionSecurity.png">))
-
-
-====[�ؖ���]
-SSL��S/MIME�Ŏg�p����F�؋ǂ̏ؖ����̐ݒ���s���܂��B((<SSL|URL:SSL.html>))��((<"S/MIME"|URL:SMIME.html>))���Q�Ƃ��Ă��������B
+((<セキュリティの設定|"IMG:images/OptionSecurity.png">))
 
 
-+[Windows�̏ؖ����X�g�A����ؖ�����ǂݍ���]
-Windows�̏ؖ����X�g�A����ǂݍ��ނ��ǂ������w�肵�܂��B�f�t�H���g�ł͓ǂݍ��݂܂��B
+====[証明書]
+SSLやS/MIMEで使用する認証局の証明書の設定を行います。((<SSL|URL:SSL.html>))や((<"S/MIME"|URL:SMIME.html>))も参照してください。
+
+
++[Windowsの証明書ストアから証明書を読み込む]
+Windowsの証明書ストアから読み込むかどうかを指定します。デフォルトでは読み込みます。
 
 
 ====[PGP]
-PGP�̐ݒ���s���܂��B
+PGPの設定を行います。
 
 
 +[PGP], [GnuPG]
-PGP�̏�����PGP���g����GnuPG���g�������w�肵�܂��B�f�t�H���g�ł�GnuPG�ł��BPGP��GnuPG�ɂ��ẮA((<PGP��GnuPG|URL:PGP.html>))���Q�Ƃ��Ă��������B
+PGPの処理にPGPを使うかGnuPGを使うかを指定します。デフォルトではGnuPGです。PGPとGnuPGについては、((<PGPとGnuPG|URL:PGP.html>))を参照してください。
 
 
-+[�����̊g���q�̓Y�t�t�@�C�����J���Ƃ��Ɍx������]
-((<�Y�t�t�@�C��|URL:Attachment.html>))���J���Ƃ��Ƀt�@�C���̊g���q���w�肳�ꂽ�g���q�ł���Όx�����܂��B�g���q���󔒋�؂�ŕ����w��ł��܂��B�f�t�H���g�ł́uexe com pif bat scr htm html hta vbs js�v�ł��B
++[これらの拡張子の添付ファイルを開くときに警告する]
+((<添付ファイル|URL:Attachment.html>))を開くときにファイルの拡張子が指定された拡張子であれば警告します。拡張子を空白区切りで複数指定できます。デフォルトでは「exe com pif bat scr htm html hta vbs js」です。
 
 
-+[�Y�t�t�@�C����ۑ�����Ƃ��Ƀ]�[��ID��ݒ肷��]
-((<�Y�t�t�@�C��|URL:Attachment.html>))��ۑ�����Ƃ��Ƀ]�[��ID��ݒ肷�邩�ǂ������w�肵�܂��B�f�t�H���g�ł̓]�[��ID��ݒ肵�܂��B�ڍׂ́A((<�Y�t�t�@�C��|URL:Attachment.html>))���Q�Ƃ��Ă��������B
++[添付ファイルを保存するときにゾーンIDを設定する]
+((<添付ファイル|URL:Attachment.html>))を保存するときにゾーンIDを設定するかどうかを指定します。デフォルトではゾーンIDを設定します。詳細は、((<添付ファイル|URL:Attachment.html>))を参照してください。
 
 
-+[�N�����Ƀp�X���[�h���`�F�b�N����]
-�N�����Ƀp�X���[�h���`�F�b�N���邩�ǂ������w�肵�܂��B�`�F�b�N����ꂽ�ꍇ�ɂ́A[�p�X���[�h]�Ƀp�X���[�h���w�肵�Ă��������B���Ƀ`�F�b�N�������Ă����ԂŃ_�C�A���O���J���ƁA[�p�X���[�h]����ɂȂ��Ă��܂����A���̂܂܃_�C�A���O�����ƃp�X���[�h�͕ύX����܂���B
++[起動時にパスワードをチェックする]
+起動時にパスワードをチェックするかどうかを指定します。チェックを入れた場合には、[パスワード]にパスワードを指定してください。既にチェックが入っている状態でダイアログを開くと、[パスワード]が空になっていますが、そのままダイアログを閉じるとパスワードは変更されません。
 
-���̐ݒ��[�Z�L�����e�B]�p�l���ɂ���܂����A�Z�L�����e�B��͂قƂ�ǈӖ�������܂���̂ŋC�����Ă��������i�ݒ�t�@�C����ύX����΃p�X���[�h���N���A���邱�Ƃ��ł��܂����A���������f�[�^�t�@�C����QMAIL3���N�����Ȃ��Ă����邱�Ƃ��ł��܂��j�B
+この設定は[セキュリティ]パネルにありますが、セキュリティ上はほとんど意味がありませんので気をつけてください（設定ファイルを変更すればパスワードをクリアすることができますし、そもそもデータファイルはQMAIL3を起動しなくても見ることができます）。
 
 =end

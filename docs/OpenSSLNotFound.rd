@@ -1,20 +1,20 @@
 =begin
-=‹N“®Žž‚ÉLIBEAY32.DLLŠÖŒW‚ÌƒGƒ‰[‚ª‚Å‚Ü‚·
+=èµ·å‹•æ™‚ã«LIBEAY32.DLLé–¢ä¿‚ã®ã‚¨ãƒ©ãƒ¼ãŒã§ã¾ã™
 
-‹N“®Žž‚ÉAuLIBEAY32.DLL‚ªŒ©‚Â‚©‚ç‚È‚©‚Á‚½‚½‚ßA‚±‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ðŠJŽn‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½BƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ðƒCƒ“ƒXƒg[ƒ‹‚µ’¼‚·‚Æ‚±‚Ì–â‘è‚Í‰ðŒˆ‚³‚ê‚éê‡‚ª‚ ‚è‚Ü‚·Bv‚Æ‚¢‚¤ƒGƒ‰[ƒƒbƒZ[ƒW‚ªo‚éê‡AOpenSSL‚ÌDLL‚ðƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä‚¢‚È‚¢‚Ì‚ªŒ´ˆö‚Å‚·B
+èµ·å‹•æ™‚ã«ã€ã€ŒLIBEAY32.DLLãŒè¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸãŸã‚ã€ã“ã®ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‚’é–‹å§‹ã§ãã¾ã›ã‚“ã§ã—ãŸã€‚ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ç›´ã™ã¨ã“ã®å•é¡Œã¯è§£æ±ºã•ã‚Œã‚‹å ´åˆãŒã‚ã‚Šã¾ã™ã€‚ã€ã¨ã„ã†ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒå‡ºã‚‹å ´åˆã€OpenSSLã®DLLã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦ã„ãªã„ã®ãŒåŽŸå› ã§ã™ã€‚
 
-‚Ü‚½Au˜”????‚ªƒ_ƒCƒiƒ~ƒbƒNƒ‰ƒCƒuƒ‰ƒŠLIBEAY32.DLL‚©‚çŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½Bv‚Æ‚¢‚¤ƒGƒ‰[ƒƒbƒZ[ƒW‚ªo‚éê‡AOpenSSL‚ÌDLL‚Ìƒo[ƒWƒ‡ƒ“‚ªŒÃ‚¢‚Ì‚ªŒ´ˆö‚Å‚·BQMAIL3‚ÍAOpenSSL 0.9.8Œn‚ð•K—v‚Æ‚µ‚Ü‚·‚ªAWindows‚ÌƒVƒXƒeƒ€ƒfƒBƒŒƒNƒgƒŠ‚È‚Ç‚É‚±‚ê‚æ‚è‚àŒÃ‚¢ƒo[ƒWƒ‡ƒ“‚ÌOpenSSL‚ÌDLL‚ªƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚Ä‚¢‚é‚Æ‚±‚ÌƒGƒ‰[‚ª”­¶‚µ‚Ü‚·B
+ã¾ãŸã€ã€Œåºæ•°????ãŒãƒ€ã‚¤ãƒŠãƒŸãƒƒã‚¯ãƒ©ã‚¤ãƒ–ãƒ©ãƒªLIBEAY32.DLLã‹ã‚‰è¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸã€‚ã€ã¨ã„ã†ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒå‡ºã‚‹å ´åˆã€OpenSSLã®DLLã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãŒå¤ã„ã®ãŒåŽŸå› ã§ã™ã€‚QMAIL3ã¯ã€OpenSSL 0.9.8ç³»ã‚’å¿…è¦ã¨ã—ã¾ã™ãŒã€Windowsã®ã‚·ã‚¹ãƒ†ãƒ ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãªã©ã«ã“ã‚Œã‚ˆã‚Šã‚‚å¤ã„ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã®OpenSSLã®DLLãŒã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¦ã„ã‚‹ã¨ã“ã®ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã™ã€‚
 
-‚¢‚¸‚ê‚Ìê‡‚àAˆÈ‰º‚Ì‚Ç‚¿‚ç‚©‚Ì‘Îˆ‚ª•K—v‚Å‚·B
+ã„ãšã‚Œã®å ´åˆã‚‚ã€ä»¥ä¸‹ã®ã©ã¡ã‚‰ã‹ã®å¯¾å‡¦ãŒå¿…è¦ã§ã™ã€‚
 
-*SSL‚âS/MIME‚Ì‹@”\‚ðŽg‚í‚È‚¢ê‡
+*SSLã‚„S/MIMEã®æ©Ÿèƒ½ã‚’ä½¿ã‚ãªã„å ´åˆ
  
- ƒCƒ“ƒXƒg[ƒ‹‚µ‚½ƒfƒBƒŒƒNƒgƒŠ‚É‚ ‚éqscryptou.dll‚Æ‚¢‚¤ƒtƒ@ƒCƒ‹‚ðíœ‚µ‚Ä‚­‚¾‚³‚¢B
+ ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ã‚ã‚‹qscryptou.dllã¨ã„ã†ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¦ãã ã•ã„ã€‚
 
-*SSL‚âS/MIME‚Ì‹@”\‚ðŽg‚¤ê‡
+*SSLã‚„S/MIMEã®æ©Ÿèƒ½ã‚’ä½¿ã†å ´åˆ
  
- OpenSSL 0.9.8‚ÌDLL‚ðƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä‚­‚¾‚³‚¢B‹ï‘Ì“I‚É‚ÍALIBEAY32.DLL‚ÆLIBSSL32.DLL‚ðQMAIL3‚ðƒCƒ“ƒXƒg[ƒ‹‚µ‚½ƒfƒBƒŒƒNƒgƒŠ‚ÉƒRƒs[‚µ‚Ü‚·BOpenSSL‚ÌDLL‚Í((<ƒ_ƒEƒ“ƒ[ƒhƒy[ƒW|URL:http://q3.snak.org/download/>))‚©‚ç‚àƒ_ƒEƒ“ƒ[ƒh‚Å‚«‚Ü‚·B
+ OpenSSL 0.9.8ã®DLLã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦ãã ã•ã„ã€‚å…·ä½“çš„ã«ã¯ã€LIBEAY32.DLLã¨LIBSSL32.DLLã‚’QMAIL3ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ã‚³ãƒ”ãƒ¼ã—ã¾ã™ã€‚OpenSSLã®DLLã¯((<ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒšãƒ¼ã‚¸|URL:http://q3.snak.org/download/>))ã‹ã‚‰ã‚‚ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã§ãã¾ã™ã€‚
 
-‚Ü‚½AZip”Å‚Å‚Í‚È‚­ƒCƒ“ƒXƒg[ƒ‰‚ðŽg—p‚µ‚ÄƒCƒ“ƒXƒg[ƒ‹‚·‚é‚ÆOpenSSL‚ÌDLL‚àŽ©“®‚ÅƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚Ü‚·‚Ì‚ÅA‚±‚ÌƒGƒ‰[‚Ío‚È‚­‚È‚è‚Ü‚·B
+ã¾ãŸã€Zipç‰ˆã§ã¯ãªãã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã‚’ä½¿ç”¨ã—ã¦ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹ã¨OpenSSLã®DLLã‚‚è‡ªå‹•ã§ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¾ã™ã®ã§ã€ã“ã®ã‚¨ãƒ©ãƒ¼ã¯å‡ºãªããªã‚Šã¾ã™ã€‚
 
 =end

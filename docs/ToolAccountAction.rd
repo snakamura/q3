@@ -1,13 +1,13 @@
 =begin
-=ToolAccountƒAƒNƒVƒ‡ƒ“
+=ToolAccountã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-[ƒAƒJƒEƒ“ƒg]ƒ_ƒCƒAƒƒO‚ð•\Ž¦‚µ‚Ü‚·BÚ×‚ÍA((<ƒAƒJƒEƒ“ƒg‚ÌŠÇ—|URL:ManageAccount.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+[ã‚¢ã‚«ã‚¦ãƒ³ãƒˆ]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚è©³ç´°ã¯ã€((<ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã®ç®¡ç†|URL:ManageAccount.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

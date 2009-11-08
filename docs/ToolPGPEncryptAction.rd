@@ -1,15 +1,15 @@
 =begin
-=ToolPGPEncrypt�A�N�V����
+=ToolPGPEncryptアクション
 
-((<PGP|URL:PGP.html>))�ňÍ������邩�ǂ�����On/Off���܂��B
+((<PGP|URL:PGP.html>))で暗号化するかどうかをOn/Offします。
 
-�f�t�H���g��On�ɂȂ邩Off�ɂȂ邩�́A((<�G�f�B�b�g�r���[2�̐ݒ�|URL:OptionEdit2.html>))�Őݒ肵�܂��B
+デフォルトでOnになるかOffになるかは、((<エディットビュー2の設定|URL:OptionEdit2.html>))で設定します。
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

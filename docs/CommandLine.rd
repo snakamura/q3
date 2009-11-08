@@ -1,149 +1,149 @@
 =begin
-=�R�}���h���C��
+=コマンドライン
 
-QMAIL3�Ɏw��\�ȃR�}���h���C���͈ȉ��̒ʂ�ł��B
+QMAIL3に指定可能なコマンドラインは以下の通りです。
 
--d��-p��-l�͏�Ɏw��\�ł��B-g, -s, -a, -c, -r, -o, -i�͔r���ł��B�������A-s��-a�͑g�ݍ��킹�Ďw�肷�邱�Ƃ��ł��܂��B-q��-f�́A-g, -c, -r, -i�Ƒg�ݍ��킹�Ďw�肷�邱�Ƃ��ł��܂��B
+-dと-pと-lは常に指定可能です。-g, -s, -a, -c, -r, -o, -iは排他です。ただし、-sと-aは組み合わせて指定することができます。-qと-fは、-g, -c, -r, -iと組み合わせて指定することができます。
 
-�R�}���h���C���I�v�V�����̈����ɋ󔒕������܂܂��ꍇ�ɂ�""�Ŋ���܂��B^��u���Ǝ��̕������G�X�P�[�v����ē���ȈӖ��������܂��B�Ⴆ�΁A
+コマンドラインオプションの引数に空白文字が含まれる場合には""で括ります。^を置くと次の文字がエスケープされて特殊な意味を失います。例えば、
 
  -d "C:\Documents and Settings\test\"
  -i "MessageCreate ^"Test Template^""
 
-�̂悤�Ɏg�p���܂��B
+のように使用します。
 
 
-==-d <���[���{�b�N�X�f�B���N�g��>
+==-d <メールボックスディレクトリ>
 
-===����
-���[���{�b�N�X�f�B���N�g�����w�肵�܂��B�ʏ�A���[���{�b�N�X�f�B���N�g���̃p�X�̓��W�X�g������擾���܂����A���̃I�v�V�������w�肷��Ǝw�肳�ꂽ�p�X�����[���{�b�N�X�f�B���N�g���Ƃ��Ďg�p���܂��B�قȂ郁�[���{�b�N�X�f�B���N�g�����w�肷���QMAIL3�𕡐��N�����邱�Ƃ��ł��܂��iWindows�ł̂݁j�B���[���{�b�N�X�f�B���N�g�����w�肵���ꍇ�A-p�Ńv���t�@�C�������w�肵�Ȃ����背�W�X�g������v���t�@�C������ǂݍ��݂܂���B
+===説明
+メールボックスディレクトリを指定します。通常、メールボックスディレクトリのパスはレジストリから取得しますが、このオプションを指定すると指定されたパスをメールボックスディレクトリとして使用します。異なるメールボックスディレクトリを指定すればQMAIL3を複数起動することができます（Windows版のみ）。メールボックスディレクトリを指定した場合、-pでプロファイル名を指定しない限りレジストリからプロファイル名を読み込みません。
 
-===��
+===例
  -d C:\mail
 
 
-==-p <�v���t�@�C����>
+==-p <プロファイル名>
 
-===����
-�v���t�@�C�������w�肵�܂��B�ʏ�A�v���t�@�C�����̓��W�X�g������擾���܂����A���̃I�v�V�������g�p����Ǝw�肳�ꂽ�v���t�@�C�������g�p���܂��B((<�v���t�@�C��|URL:Profile.html>))���Q�Ƃ��Ă��������B
+===説明
+プロファイル名を指定します。通常、プロファイル名はレジストリから取得しますが、このオプションを使用すると指定されたプロファイル名を使用します。((<プロファイル|URL:Profile.html>))を参照してください。
 
 
-===��
+===例
  -p mobile
 
 
-==-l <���O���x��>
+==-l <ログレベル>
 
-===����
-((<�V�X�e�����O|URL:Log.html>))�̃��O���x�����w�肵�܂��B�ʏ�A���O���x����((<���̑��̐ݒ�|URL:OptionMisc.html>))�Ŏw�肵�܂����A���炩�̃g���u���ŋN�����Ȃ��Ȃ����ꍇ�ȂǂɁA�����Ń��O���x�����w�肷�邱�ƂŃ��O���擾���邱�Ƃ��ł��܂��B�w��ł���̂́A0����4�܂ł̐��l�ł��B�w�肷��l�́A((<qmail.xml|URL:QmailXml.html>))��Global/Log���Q�Ƃ��Ă��������B
+===説明
+((<システムログ|URL:Log.html>))のログレベルを指定します。通常、ログレベルは((<その他の設定|URL:OptionMisc.html>))で指定しますが、何らかのトラブルで起動しなくなった場合などに、ここでログレベルを指定することでログを取得することができます。指定できるのは、0から4までの数値です。指定する値は、((<qmail.xml|URL:QmailXml.html>))のGlobal/Logを参照してください。
 
 
-===��
+===例
  -l 4
 
 
-==-g [<����R�[�X>]
+==-g [<巡回コース>]
 
-===����
-�N������Ɏw�肳�ꂽ�R�[�X�ŏ��񂵂܂��B����R�[�X���w�肳��Ȃ������ꍇ��A�w�肳�ꂽ����R�[�X��������Ȃ��ꍇ�ɂ͂��ׂẴA�J�E���g�̂��ׂẴt�H���_�𑗎�M���܂��B�w�肷�鏄��R�[�X�͂��炩���ߍ쐬���Ă����K�v������܂�((-����R�[�X���̓A�J�E���g���Ƃ͈Ⴂ�܂�-))�B����ɂ��ẮA((<����|URL:GoRound.html>))���Q�Ƃ��Ă��������B
+===説明
+起動直後に指定されたコースで巡回します。巡回コースが指定されなかった場合や、指定された巡回コースが見つからない場合にはすべてのアカウントのすべてのフォルダを送受信します。指定する巡回コースはあらかじめ作成しておく必要があります((-巡回コース名はアカウント名とは違います-))。巡回については、((<巡回|URL:GoRound.html>))を参照してください。
 
-===��
+===例
  -g
  -g "All Inboxes"
 
 
 ==-s <URL>
 
-===����
-�w�肳�ꂽURL���J���܂��BURL��mailto URL�A�܂���feed URL�ł���K�v������܂��B�Ⴆ�΁Amailto:info@example.org��n�����ꍇ�Ainfo@example.org���Ẵ��[���쐬��ʂ��J����܂��B
+===説明
+指定されたURLを開きます。URLはmailto URL、またはfeed URLである必要があります。例えば、mailto:info@example.orgを渡した場合、info@example.org宛てのメール作成画面が開かれます。
 
-���̃I�v�V�������g�p���Ċ֘A�t�����s�����ƂŁA�u���E�U�Ȃǂ�mailto URL��feed URL���N���b�N�����Ƃ���QMAIL3���N�������邱�Ƃ��ł���悤�ɂȂ�܂��B
+このオプションを使用して関連付けを行うことで、ブラウザなどでmailto URLやfeed URLをクリックしたときにQMAIL3を起動させることができるようになります。
 
-��{�I�ɂ́A���ݑI������Ă���A�J�E���g���g�p����܂��B�������A���ݑI�����Ă���A�J�E���g�����[���A�J�E���g�łȂ������ꍇ�ɂ́A�ȉ��̂悤�Ɏg�p����A�J�E���g�����肵�܂��B
+基本的には、現在選択されているアカウントが使用されます。ただし、現在選択しているアカウントがメールアカウントでなかった場合には、以下のように使用するアカウントを決定します。
 
-(1)mailto URL�̏ꍇ
-   (1)((<qmail.xml|URL:QmailXml.html>))��Global/DefaultMailAccount�Ŏw�肳�ꂽ�A�J�E���g
-   (2)�w�肳��Ă��Ȃ������ꍇ�A��ԏ�ɂ��郁�[���A�J�E���g
-(2)feed URL�̏ꍇ
-   (1)((<qmail.xml|URL:QmailXml.html>))��Global/DefaultRssAccount�Ŏw�肳�ꂽ�A�J�E���g
-   (2)�w�肳��Ă��Ȃ������ꍇ�A��ԏ�ɂ���RSS�A�J�E���g
+(1)mailto URLの場合
+   (1)((<qmail.xml|URL:QmailXml.html>))のGlobal/DefaultMailAccountで指定されたアカウント
+   (2)指定されていなかった場合、一番上にあるメールアカウント
+(2)feed URLの場合
+   (1)((<qmail.xml|URL:QmailXml.html>))のGlobal/DefaultRssAccountで指定されたアカウント
+   (2)指定されていなかった場合、一番上にあるRSSアカウント
 
-���̂悤�ȃA�J�E���g�����݂��Ȃ��ꍇ�ɂ͉������܂���B
+そのようなアカウントが存在しない場合には何もしません。
 
-mailto URL�̏����́A�����I�ɂ�url.template�g����((<MessageCreate�A�N�V����|URL:MessageCreateAction.html>))�Ƃ��Ď�������Ă��܂��̂ŁAurl.template��ύX���邱�Ƃŏ������J�X�^�}�C�Y���邱�Ƃ��ł��܂��Burl.template�ɂ��ẮA((<���̑��̃e���v���[�g|URL:OtherTemplate.html>))���Q�Ƃ��Ă��������B
+mailto URLの処理は、内部的にはurl.template使った((<MessageCreateアクション|URL:MessageCreateAction.html>))として実装されていますので、url.templateを変更することで処理をカスタマイズすることができます。url.templateについては、((<その他のテンプレート|URL:OtherTemplate.html>))を参照してください。
 
-===��
+===例
  -s mailto:info@example.org
  -s feed://www.example.org/index.rdf
 
 
-==-a <�t�@�C����>
+==-a <ファイル名>
 
-===����
-�w�肳�ꂽ�t�@�C����Y�t�t�@�C���Ƃ��ēY�t������ԂŃG�f�B�b�g�r���[���J���܂��B-s�ł�mailto URL�̎w��Ɠ����Ɏw��ł��܂��B
+===説明
+指定されたファイルを添付ファイルとして添付した状態でエディットビューを開きます。-sでのmailto URLの指定と同時に指定できます。
 
-===��
+===例
  -a C:\temp\test.png
  -s test@example.org -a "C:\Data Files\Test.doc"
 
 
-==-o <�t�@�C����>
+==-o <ファイル名>
 
-===����
-�w�肳�ꂽ�t�@�C�������b�Z�[�W�E�B���h�E�ŊJ���܂��B
+===説明
+指定されたファイルをメッセージウィンドウで開きます。
 
-===��
+===例
  -o C:\temp\test.eml
 
 
-==-c [<�t�@�C����>]
+==-c [<ファイル名>]
 
-===����
-�w�肳�ꂽ�t�@�C����ǂݍ���Ń��[�����쐬���܂��B�ǂݍ��܂��t�@�C���́A�v���b�g�t�H�[���̃f�t�H���g�̃G���R�[�f�B���O�ŃG���R�[�h����Ă���K�v������܂��B�܂��ARFC2822�Ɋ�Â��`���ɂȂ��Ă���K�v������܂����A�w�b�_�̕������RFC2047��RFC2231�Ɋ�Â��ăG���R�[�h����Ă���K�v�͂���܂���i�G���R�[�h����Ă��Ă��\���܂���j�B�Ⴆ�΁A�ȉ��̂悤�ȓ��e�Ńt�@�C�����쐬���܂��B
+===説明
+指定されたファイルを読み込んでメールを作成します。読み込まれるファイルは、プラットフォームのデフォルトのエンコーディングでエンコードされている必要があります。また、RFC2822に基づく形式になっている必要がありますが、ヘッダの文字列はRFC2047やRFC2231に基づいてエンコードされている必要はありません（エンコードされていても構いません）。例えば、以下のような内容でファイルを作成します。
 
  To: foo@example.com
- Subject: ����̓e�X�g�ł�
+ Subject: これはテストです
  
- �����ɖ{��������܂��B
- �w�b�_�Ɩ{���̊Ԃɂ͋�s���K�v�ł��B
+ ここに本文が入ります。
+ ヘッダと本文の間には空行が必要です。
 
-�t�@�C�������ȗ������ꍇ�ɂ́A�N���b�v�{�[�h����擾������������g�p���ă��[�����쐬���܂��B
+ファイル名を省略した場合には、クリップボードから取得した文字列を使用してメールを作成します。
 
-�O���G�f�B�^�Ȃǂ��烁�[�����쐬����ꍇ�Ɏg�p���܂��B
+外部エディタなどからメールを作成する場合に使用します。
 
-===��
+===例
  -c
  -c "C:\Temp\mail.txt"
 
 
-==-r [<�t�@�C����>]
+==-r [<ファイル名>]
 
-===����
--c�Ɠ��l�ł����A���e�Ƃ��ă��[�����쐬���܂��B
+===説明
+-cと同様ですが、草稿としてメールを作成します。
 
-===��
+===例
  -r
  -r "C:\Temp\mail.txt"
 
 
-==-i <�A�N�V����>
+==-i <アクション>
 
-===����
-�w�肳�ꂽ�A�N�V���������s���܂��B�A�N�V�����̎w��́A((<ToolInvokeAction�A�N�V����|URL:ToolInvokeActionAction.html>))�̈����̎w��Ɠ��l�ɍs���܂��B
+===説明
+指定されたアクションを実行します。アクションの指定は、((<ToolInvokeActionアクション|URL:ToolInvokeActionAction.html>))の引数の指定と同様に行います。
 
-===��
+===例
  -i "MessageCreate new"
  -i "MessageCreate ^"Test Template^""
 
 
 ==-q
 
-===����
-�P�ƂŁA�܂���-g, -c, -r, -i�Ƌ��ɑg�ݍ��킹�Ďw�肵�܂��B����QMAIL3���N�����Ă���ꍇ�ɁA-q��P�ƂŎw�肷��Ɖ����N����܂���B�g�ݍ��킹�Ďw�肵���ꍇ�ɂ́AQMAIL3���őO�ʂɈړ����邱�ƂȂ�������s���܂��B�܂��AQMAIL3���N�����Ă��Ȃ��ꍇ�ɂ́A�^�X�N�g���C�Ɋi�[���ꂽ��ԂŋN�����܂��iPocket PC�łł͍Ŕw�ʂŋN�����܂��j�B
+===説明
+単独で、または-g, -c, -r, -iと共に組み合わせて指定します。既にQMAIL3が起動している場合に、-qを単独で指定すると何も起こりません。組み合わせて指定した場合には、QMAIL3を最前面に移動することなく動作を行います。まだ、QMAIL3が起動していない場合には、タスクトレイに格納された状態で起動します（Pocket PC版では最背面で起動します）。
 
--i�Ƒg�ݍ��킹��ꍇ�ɂ͒��ӂ��K�v�ł��B�ꕔ�̃A�N�V�����̓^�X�N�g���C�Ɋi�[����Ă��Ȃ����Ƃ��O��̂��߁A���̂悤�ȃA�N�V������-i�Ŏw�肵��-q�Ƒg�ݍ��킹��Ɨ\�����Ȃ���������邱�ƂɂȂ�܂��B
+-iと組み合わせる場合には注意が必要です。一部のアクションはタスクトレイに格納されていないことが前提のため、そのようなアクションを-iで指定して-qと組み合わせると予期しない動作をすることになります。
 
-===��
+===例
  -g "All Inboxes" -q
  -c "C:\Temp\mail.txt" -q
  -r -q
@@ -151,10 +151,10 @@ mailto URL�̏����́A�����I�ɂ�url.template�g����((<MessageCreate�A�N�V����|URL:M
 
 ==-f
 
-===����
-�ʏ탁�[���{�b�N�X�Ƀ��b�N�t�@�C�����c���Ă����ꍇ�ɂ́A�N�����ɂ��̂܂ܑ����邩�ǂ�����q�˂�_�C�A���O���\������܂��B����́A�O���������J�[�h�ȂǂɃ��[���{�b�N�X��u���A������PC�Ń��[���{�b�N�X�����L����ꍇ�ɁA����PC��QMAIL3���I�������Ƀ������J�[�h�𔲂��Ă��܂����Ƃ��ɁA�ʂ�PC�ł��̃f�[�^���g���Ă��܂�Ȃ��悤�ɂ��邽�߂ł��B-f���w�肷��Ƃ��̃_�C�A���O��\�������ɋ����I�ɑ��s���܂��B
+===説明
+通常メールボックスにロックファイルが残っていた場合には、起動時にそのまま続けるかどうかを尋ねるダイアログが表示されます。これは、外部メモリカードなどにメールボックスを置き、複数のPCでメールボックスを共有する場合に、あるPCでQMAIL3を終了せずにメモリカードを抜いてしまったときに、別のPCでそのデータを使ってしまわないようにするためです。-fを指定するとこのダイアログを表示せずに強制的に続行します。
 
-===��
+===例
  -f
  -q -f
 

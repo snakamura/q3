@@ -1,44 +1,44 @@
 =begin
-=�A�h���X��
+=アドレス帳
 
-QMAIL3�ɂ͊ȒP�ȃA�h���X�����t���Ă��܂��B�A�h���X�����g�p���邱�ƂŁA���M��̃��[���A�h���X��((<�I��|URL:ToolSelectAddressAction.html>))��((<�����⊮|URL:AddressAutoComplete.html>))�Ȃǂ��ł���悤�ɂȂ�܂��B�܂��A((<�O���A�h���X��|URL:ExternalAddressBook.html>))�Ƃ��āAWindows�łł�Windows�A�h���X����Outlook�̃A�h���X�����AWindows CE�łł�Pocket Outlook�̃A�h���X�����g�p���邱�Ƃ��ł��܂��B
-
-
-==�A�h���X���̎g����
-�A�h���X�����J���ɂ�((<[�c�[��]-[�A�h���X��]|URL:ToolAddressBookAction.html>))��I�����܂��B
-
-((<�A�h���X��|"IMG:images/AddressBook.png">))
-
-�A�h���X���ɐV�����G���g����ǉ�����ɂ́A((<[�t�@�C��]-[�V�K]|URL:AddressNewAction.html>))��I�����܂��B�����̃G���g����ǉ�����ɂ́A((<[�t�@�C��]-[�ҏW]|URL:AddressEditAction.html>))��I�����܂��B�G���g�����폜����ɂ́A((<[�t�@�C��]-[�폜]|URL:AddressDeleteAction.html>))��I�����܂��B
-
-�A�h���X���ɕύX����������ŁA((<[�t�@�C��]-[�ۑ�]|URL:FileSaveAction.html>))��I������ƕύX���ۑ�����܂��B�܂��A�ύX��ۑ������ɃA�h���X�������ƕۑ����邩�ǂ�����q�˂��܂��B
+QMAIL3には簡単なアドレス帳が付いています。アドレス帳を使用することで、送信先のメールアドレスの((<選択|URL:ToolSelectAddressAction.html>))や((<自動補完|URL:AddressAutoComplete.html>))などができるようになります。また、((<外部アドレス帳|URL:ExternalAddressBook.html>))として、Windows版ではWindowsアドレス帳とOutlookのアドレス帳を、Windows CE版ではPocket Outlookのアドレス帳を使用することができます。
 
 
-==�G���g���ƃ��[���A�h���X
-�A�h���X���̃G���g���͈�l�̐l������킵�܂��B�G���g���ɂ͖��O�ƃ\�[�g�L�[������܂��B�\�[�g�L�[�Ƀt���K�i���w�肷�邱�ƂŁA���O�Ń\�[�g�����Ƃ��Ƀt���K�i�Ń\�[�g���邱�Ƃ��ł��܂��B�\�[�g�L�[���w�肵�Ȃ��ꍇ�ɂ́A���O���̂Ń\�[�g����܂��B�e�G���g����1�ȏ�̃��[���A�h���X�������܂��B�e���[���A�h���X�ɂ́A�ʖ��A�J�e�S���A�R�����g�A�ؖ������֘A�t���邱�Ƃ��ł��܂��B
+==アドレス帳の使い方
+アドレス帳を開くには((<[ツール]-[アドレス帳]|URL:ToolAddressBookAction.html>))を選択します。
 
-�܂��A�e���[���A�h���X�͎w�肳�ꂽ������RFC2822�`�����ǂ������w�肷�邱�Ƃ��ł��܂��BRFC2822�`���łȂ��ꍇ�ɂ́A���̃��[���A�h���X��I�������Ƃ��ɁA�u�G���g���̖��O <���[���A�h���X>�v�̌`���ő}������܂��BRFC2822�`���̏ꍇ�ɂ́A�P�Ɂu���[���A�h���X�v�̌`���ő}������܂��B���Ƃ��΁A�A�h���X���Ŏw�肵�Ă��閼�O�𑊎�ɒm��ꂽ���Ȃ��ꍇ�Ȃǂɂ�RFC2822�`���Ǝw�肷�邱�ƂŁA�G���g���̖��O������ɑ����Ȃ��Ȃ�܂��B
+((<アドレス帳|"IMG:images/AddressBook.png">))
 
-�܂��ARFC2822�`���ɂ����ꍇ�ɂ́ARFC2822�̃A�h���X�̌`���Ƃ��Đ�������ΔC�ӂ̕�������w��ł��܂�((-���{��Ȃǂ̔�ASCII�������܂ނ��Ƃ��ł��܂�-))�B���Ƃ��΁A�G���g�������u�R�c���Y�v�̏ꍇ�Ɂu�R�c���Y�l <taro@example.org>�v�̂悤�Ɏw�肷�邱�Ƃ��ł��܂��B�܂��A�O���[�v�A�h���X���g�p�������ꍇ�ɂ́A�G���g�����ɃO���[�v�����w�肵�āA���[���A�h���X�ɂ̓A�h���X��񋓂��܂��B���Ƃ��΁A�G���g�������u�v���W�F�N�gX�v�Ƃ��A���[���A�h���X�Ɂutaro@example.org, jiro@example.com, hanako@example.com�v�̂悤�Ɏw�肷�邱�Ƃ��ł��܂��B�܂��A������RFC2822�̃O���[�v�A�h���X�`�����w�肷��ƁA���M���ɃO���[�v���������c����A��̓I�ȑ��M��A�h���X�͍폜����܂��B���Ƃ��΁A�uProject X: taro@example.org, jiro@example.com, hanako@example.com;�v�̂悤�Ɏw�肷��ƁA��M�������ɂ́uProject X: ;�v�̂悤�ɃA�h���X���Ȃ���Ԃœ͂��܂��B
+アドレス帳に新しいエントリを追加するには、((<[ファイル]-[新規]|URL:AddressNewAction.html>))を選択します。既存のエントリを追加するには、((<[ファイル]-[編集]|URL:AddressEditAction.html>))を選択します。エントリを削除するには、((<[ファイル]-[削除]|URL:AddressDeleteAction.html>))を選択します。
 
-
-===�ʖ�
-�ʖ����w�肷��ƁA���[���̑��M��Ƃ��Ă��̕ʖ����w�肷��Ǝ����I�Ɋ֘A�t����ꂽ���[���A�h���X�ɓW�J����܂��B
+アドレス帳に変更を加えた後で、((<[ファイル]-[保存]|URL:FileSaveAction.html>))を選択すると変更が保存されます。また、変更を保存せずにアドレス帳を閉じると保存するかどうかを尋ねられます。
 
 
-===�J�e�S��
-�J�e�S�����w�肷��ƁA((<[�A�h���X�̑I��]�_�C�A���O|URL:ToolSelectAddressAction.html>))��[�J�e�S��]�{�^�����N���b�N���邱�Ƃɂ��i���݂����邱�Ƃ��ł��܂��B�J�e�S���Ɂu/�v������ƊK�w�����邱�Ƃ��ł��܂��B�K�w�����ꂽ�J�e�S���́A��L�̃_�C�A���O��[�J�e�S��]�{�^�����N���b�N�����Ƃ��ɊK�w�����ꂽ���j���[�Ƃ��ĕ\������܂��B
+==エントリとメールアドレス
+アドレス帳のエントリは一人の人をあらわします。エントリには名前とソートキーがあります。ソートキーにフリガナを指定することで、名前でソートしたときにフリガナでソートすることができます。ソートキーを指定しない場合には、名前自体でソートされます。各エントリは1つ以上のメールアドレスを持ちます。各メールアドレスには、別名、カテゴリ、コメント、証明書を関連付けることができます。
+
+また、各メールアドレスは指定された文字列がRFC2822形式かどうかを指定することができます。RFC2822形式でない場合には、そのメールアドレスを選択したときに、「エントリの名前 <メールアドレス>」の形式で挿入されます。RFC2822形式の場合には、単に「メールアドレス」の形式で挿入されます。たとえば、アドレス帳で指定している名前を相手に知られたくない場合などにはRFC2822形式と指定することで、エントリの名前が相手に送られなくなります。
+
+また、RFC2822形式にした場合には、RFC2822のアドレスの形式として正しければ任意の文字列を指定できます((-日本語などの非ASCII文字を含むこともできます-))。たとえば、エントリ名が「山田太郎」の場合に「山田太郎様 <taro@example.org>」のように指定することができます。また、グループアドレスを使用したい場合には、エントリ名にグループ名を指定して、メールアドレスにはアドレスを列挙します。たとえば、エントリ名を「プロジェクトX」とし、メールアドレスに「taro@example.org, jiro@example.com, hanako@example.com」のように指定することができます。また、ここでRFC2822のグループアドレス形式を指定すると、送信時にグループ名だけが残され、具体的な送信先アドレスは削除されます。たとえば、「Project X: taro@example.org, jiro@example.com, hanako@example.com;」のように指定すると、受信した時には「Project X: ;」のようにアドレスがない状態で届きます。
 
 
-===�R�����g
-�C�ӂ̃R�����g���w�肷�邱�Ƃ��ł��܂��B
+===別名
+別名を指定すると、メールの送信先としてその別名を指定すると自動的に関連付けられたメールアドレスに展開されます。
 
 
-===�ؖ���
-���̃��[���A�h���X��S/MIME�ňÍ����������b�Z�[�W�𑗐M����Ƃ��Ɏg�p����ؖ������w�肵�܂��B�ڍׂ�((<"S/MIME"|URL:SMIME.html>))���Q�Ƃ��Ă��������B
+===カテゴリ
+カテゴリを指定すると、((<[アドレスの選択]ダイアログ|URL:ToolSelectAddressAction.html>))で[カテゴリ]ボタンをクリックすることにより絞込みをすることができます。カテゴリに「/」を入れると階層化することができます。階層化されたカテゴリは、上記のダイアログの[カテゴリ]ボタンをクリックしたときに階層化されたメニューとして表示されます。
 
 
-==�t����
-�A�h���X�����t�������邱�ƂŎ�M�������[���̑��M�҂Ȃǂ��A�h���X���ɓo�^�������O�ŕ\�����邱�Ƃ��ł��܂��B�A�h���X���̋t����������ɂ́A�}�N����((<@LookupAddressBook|URL:LookupAddressBookFunction.html>))���g�p���܂��B�ڍׂɂ��ẮAFAQ��((<��M�������[���̑��M�҂��A�h���X���ɓo�^�������O�ŕ\������ɂ͂ǂ�����Ηǂ��ł���?|URL:HowToShowNameInAddressBook.html>))���Q�Ƃ��Ă��������B
+===コメント
+任意のコメントを指定することができます。
+
+
+===証明書
+このメールアドレスにS/MIMEで暗号化したメッセージを送信するときに使用する証明書を指定します。詳細は((<"S/MIME"|URL:SMIME.html>))を参照してください。
+
+
+==逆引き
+アドレス帳を逆引きすることで受信したメールの送信者などをアドレス帳に登録した名前で表示することができます。アドレス帳の逆引きをするには、マクロで((<@LookupAddressBook|URL:LookupAddressBookFunction.html>))を使用します。詳細については、FAQの((<受信したメールの送信者をアドレス帳に登録した名前で表示するにはどうすれば良いですか?|URL:HowToShowNameInAddressBook.html>))を参照してください。
 
 =end

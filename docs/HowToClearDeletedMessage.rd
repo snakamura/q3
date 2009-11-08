@@ -1,6 +1,6 @@
 =begin
-=IMAP4�A�J�E���g�Ń��b�Z�[�W���ړ��E�폜���Ă��폜�}�[�N���t�������ō폜����܂���
+=IMAP4アカウントでメッセージを移動・削除しても削除マークが付くだけで削除されません
 
-((<�폜�ς݃��b�Z�[�W|URL:Imap4DeletedMessages.html>))���Q�Ƃ��Ă��������B
+((<削除済みメッセージ|URL:Imap4DeletedMessages.html>))を参照してください。
 
 =end

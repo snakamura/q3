@@ -1,12 +1,12 @@
 =begin
-=�X�p���t�B���^���������X�p���𔻒肵�܂���
+=スパムフィルタが正しくスパムを判定しません
 
-QMAIL3�̃X�p���t�B���^�͊w�K���Ȃ̂ŏ�����Ԃł͑S�Ẵ��b�Z�[�W���X�p���ł͂Ȃ����b�Z�[�W�i�N���[���j�Ƃ��Ĕ��肵�܂��B�N���[���Ɣ��肳�ꂽ�X�p�����X�p���t�H���_�Ɉړ����邱�ƂŃX�p���t�B���^���w�K�����Ă����ƁA���X�ɐ��������肷��悤�ɂȂ�܂��B
+QMAIL3のスパムフィルタは学習式なので初期状態では全てのメッセージをスパムではないメッセージ（クリーン）として判定します。クリーンと判定されたスパムをスパムフォルダに移動することでスパムフィルタを学習させていくと、徐々に正しく判定するようになります。
 
-���ɏ�����Ԃł̓N���[���Ɣ��肳�ꂽ���b�Z�[�W�̓N���[���Ȃ��̂Ƃ��Ċw�K����邽�߁A�����Ő������X�p���Ƃ��Ċw�K�����Ȃ����Ȃ��ƁA���̌�X�p�����N���[���Ƃ��Ĕ��肵�Ă��܂��悤�ɂȂ�܂��B���̂��߁A�N���[���Ɣ��肳�ꂽ�X�p���͂��܂߂ɃX�p���t�H���_�Ɉړ����ăX�p���Ƃ��Ċw�K�����Ȃ����Ă��������B
+特に初期状態ではクリーンと判定されたメッセージはクリーンなものとして学習されるため、ここで正しくスパムとして学習させなおさないと、その後スパムをクリーンとして判定してしまうようになります。このため、クリーンと判定されたスパムはこまめにスパムフォルダに移動してスパムとして学習させなおしてください。
 
-���ɃN���[���Ɣ��肳�ꂽ�X�p�����X�p���t�H���_�Ɉړ��������ɍ폜���Ă��܂��ƁA���̌�X�p���Ƃ��Ċw�K�����Ȃ������Ƃ��ł��Ȃ��Ȃ��Ă��܂��܂��B���ɁA�N���[���Ɣ��肳�ꂽ�X�p�����X�p���Ƃ��Ċw�K�������ɑ�ʂɍ폜���Ă��܂����ꍇ�A��x�X�p���t�B���^�̃f�[�^�x�[�X���폜���Ċw�K�����Ȃ������Ƃ������߂��܂��B�X�p���t�B���^�̃f�[�^�x�[�X���폜����ɂ́A���[���{�b�N�X�f�B���N�g���̉���junk�f�B���N�g�����폜���܂��B
+特にクリーンと判定されたスパムをスパムフォルダに移動させずに削除してしまうと、その後スパムとして学習させなおすことができなくなってしまいます。既に、クリーンと判定されたスパムをスパムとして学習させずに大量に削除してしまった場合、一度スパムフィルタのデータベースを削除して学習させなおすことをお勧めします。スパムフィルタのデータベースを削除するには、メールボックスディレクトリの下のjunkディレクトリを削除します。
 
-�܂��A���ɃN���[���ȃ��[����X�p�����R�����Ă���ꍇ�ɂ́A((<�X�p���t�B���^|URL:JunkFilter.html>))�Ő�������Ă���悤�ɁA((<MessageAddClean�A�N�V����|URL:MessageAddCleanAction.html>))��((<MessageAddJunk�A�N�V����|URL:MessageAddJunkAction.html>))���g�p���ăX�p���t�B���^����C�Ɋw�K�����邱�Ƃ��ł��܂��B
+また、既にクリーンなメールやスパムを沢山持っている場合には、((<スパムフィルタ|URL:JunkFilter.html>))で説明されているように、((<MessageAddCleanアクション|URL:MessageAddCleanAction.html>))や((<MessageAddJunkアクション|URL:MessageAddJunkAction.html>))を使用してスパムフィルタを一気に学習させることができます。
 
 =end

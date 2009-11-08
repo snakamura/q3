@@ -1,14 +1,14 @@
 =begin
-=FolderEmptyTrashƒAƒNƒVƒ‡ƒ“
+=FolderEmptyTrashã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»Ý‘I‘ð‚³‚ê‚Ä‚¢‚éƒAƒJƒEƒ“ƒg‚ÌƒSƒ~” ‚ð‹ó‚É‚µ‚Ü‚·BƒSƒ~” “à‚Ì‘S‚Ä‚ÌƒƒbƒZ[ƒW‚ªíœ‚³‚êAƒSƒ~” ‚ÌŽqƒtƒHƒ‹ƒ_‚ª‚ ‚ê‚Î‚»‚ê‚ç‚ÌƒtƒHƒ‹ƒ_‚ªíœ‚³‚ê‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ç¾åœ¨é¸æŠžã•ã‚Œã¦ã„ã‚‹ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã®ã‚´ãƒŸç®±ã‚’ç©ºã«ã—ã¾ã™ã€‚ã‚´ãƒŸç®±å†…ã®å…¨ã¦ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒå‰Šé™¤ã•ã‚Œã€ã‚´ãƒŸç®±ã®å­ãƒ•ã‚©ãƒ«ãƒ€ãŒã‚ã‚Œã°ãã‚Œã‚‰ã®ãƒ•ã‚©ãƒ«ãƒ€ãŒå‰Šé™¤ã•ã‚Œã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

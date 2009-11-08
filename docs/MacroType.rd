@@ -1,105 +1,105 @@
 =begin
-=�^
+=型
 
-�}�N���ł͈ȉ��̌^�������܂��B�S�Ă̌^�͕�����E���l�E�^�U�l�ɕϊ��ł��܂��B
+マクロでは以下の型を扱います。全ての型は文字列・数値・真偽値に変換できます。
 
 
 ==Boolean
-�^�U�l��\���܂��B���l��True�܂���False�ł��B
+真偽値を表します。取る値はTrueまたはFalseです。
 
-:������
-  True�̎��ɂ�'true'�AFalse�̎��ɂ�'false'
-:���l
-  True�̎��ɂ�1�AFalse�̎��ɂ�0
-:�^�U�l
-  �ϊ��Ȃ�
+:文字列
+  Trueの時には'true'、Falseの時には'false'
+:数値
+  Trueの時には1、Falseの時には0
+:真偽値
+  変換なし
 
 
 ==String
-�������\���܂��B
+文字列を表します。
 
-:������
-  �ϊ��Ȃ�
-:���l
-  ���l�Ƃ��ăp�[�X�ł����ꍇ�ɂ͂��̒l�A�ł��Ȃ������Ƃ��ɂ�0
-:�^�U�l
-  �󕶎���̏ꍇ�ɂ�False�A����ȊO�̏ꍇ�ɂ�True
+:文字列
+  変換なし
+:数値
+  数値としてパースできた場合にはその値、できなかったときには0
+:真偽値
+  空文字列の場合にはFalse、それ以外の場合にはTrue
 
 
 ==Number
-32�r�b�g�̕����Ȃ�������\���܂��B
+32ビットの符号なし整数を表します。
 
-:������
-  10�i���Ƃ��ĕ�����\������������
-:���l
-  �ϊ��Ȃ�
-:�^�U�l
-  0�̏ꍇ�ɂ�False�A����ȊO�̏ꍇ�ɂ�False
+:文字列
+  10進数として文字列表現した文字列
+:数値
+  変換なし
+:真偽値
+  0の場合にはFalse、それ以外の場合にはFalse
 
 
 ==Regex
-���K�\����\���܂��B
+正規表現を表します。
 
-:������
-  ���K�\���̃p�^�[��
-:���l
-  ������ɕϊ�������ŁAString�̐��l�Ɠ��l�ɕϊ�
-:�^�U�l
-  ������ɕϊ�������ŁAString�̐^�U�l�Ɠ��l�ɕϊ�
+:文字列
+  正規表現のパターン
+:数値
+  文字列に変換した後で、Stringの数値と同様に変換
+:真偽値
+  文字列に変換した後で、Stringの真偽値と同様に変換
 
 
 ==Field
-�w�b�_��\���܂��B
+ヘッダを表します。
 
-:������
-  �w�b�_�̒l�B�A�h���X�w�b�_�̏ꍇ�ɂ́A�A�h���X�Ƃ��ăp�[�X�����l�BReceived�w�b�_�̏ꍇ�ɂ́A�S�Ă�Received�w�b�_�̒l���u:�v�ŘA�������l�B����ȊO�̏ꍇ�A��\�����w�b�_�Ƃ��ăp�[�X�����l�BRFC2047��RFC2231�ɂ��f�R�[�h���s��ꂽ��̒l�ɂȂ�܂�
-:���l
-  ������ɕϊ�������ŁAString�̐��l�Ɠ��l�ɕϊ�
-:�^�U�l
-  �w�b�_�����݂����True�A���݂��Ȃ����False
+:文字列
+  ヘッダの値。アドレスヘッダの場合には、アドレスとしてパースした値。Receivedヘッダの場合には、全てのReceivedヘッダの値を「:」で連結した値。それ以外の場合、非構造化ヘッダとしてパースした値。RFC2047やRFC2231によるデコードが行われた後の値になります
+:数値
+  文字列に変換した後で、Stringの数値と同様に変換
+:真偽値
+  ヘッダが存在すればTrue、存在しなければFalse
 
 
 ==Address
-�A�h���X�̃��X�g��\���܂��B
+アドレスのリストを表します。
 
-:������
-  �S�ẴA�h���X���u, �v�ŘA������������
-:���l
-  ���X�g���̃A�h���X�̐�
-:�^�U�l
-  ���X�g����̏ꍇ�ɂ�False�A����ȊO�̏ꍇ�ɂ�True
+:文字列
+  全てのアドレスを「, 」で連結した文字列
+:数値
+  リスト中のアドレスの数
+:真偽値
+  リストが空の場合にはFalse、それ以外の場合にはTrue
 
 
 ==Time
-���Ԃ�\���܂��B
+時間を表します。
 
-:������
-  ���Ԃ��t�H�[�}�b�g�����l�B�t�H�[�}�b�g�̓f�t�H���g�ł�yyyy/MM/dd HH:mm:ss�B�^�C���]�[���͌��̃^�C���]�[�����g�p����܂�
-:���l
+:文字列
+  時間をフォーマットした値。フォーマットはデフォルトではyyyy/MM/dd HH:mm:ss。タイムゾーンは元のタイムゾーンが使用されます
+:数値
   0
-:�^�U�l
+:真偽値
   True
 
 
 ==Part
-���b�Z�[�W���̃p�[�g��\���܂��B
+メッセージ中のパートを表します。
 
-:������
-  �p�[�g��MIME�w�b�_���܂߂��S�Ẵe�L�X�g
-:���l
-  �^�U�l�ɕϊ�������ŁABoolean�̐��l�Ɠ��l�ɕϊ�
-:�^�U�l
-  �p�[�g�������True�A�Ȃ����False
+:文字列
+  パートのMIMEヘッダを含めた全てのテキスト
+:数値
+  真偽値に変換した後で、Booleanの数値と同様に変換
+:真偽値
+  パートがあればTrue、なければFalse
 
 
 ==MessageList
-���b�Z�[�W�̃��X�g��\���܂��B
+メッセージのリストを表します。
 
-:������
-  ���X�g���̊e���b�Z�[�W��URI���u, �v�ŘA������������
-:���l
-  ���X�g���̃��b�Z�[�W�̐�
-:�^�U�l
-  ���X�g����̏ꍇ�ɂ�False�A����ȊO�̏ꍇ�ɂ�True
+:文字列
+  リスト中の各メッセージのURIを「, 」で連結した文字列
+:数値
+  リスト中のメッセージの数
+:真偽値
+  リストが空の場合にはFalse、それ以外の場合にはTrue
 
 =end

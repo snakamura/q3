@@ -1,15 +1,15 @@
 =begin
-=ViewOpenLinkƒAƒNƒVƒ‡ƒ“
+=ViewOpenLinkã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒƒbƒZ[ƒWƒrƒ…[‚âƒvƒŒƒrƒ…[‚Å‘I‘ð‚³‚ê‚Ä‚¢‚éURL‚ðƒuƒ‰ƒEƒU‚ÅŠJ‚«‚Ü‚·Bƒuƒ‰ƒEƒU‚ÍŠÖ˜A•t‚¯‚É‚æ‚è‹N“®‚³‚ê‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ã‚„ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ã§é¸æŠžã•ã‚Œã¦ã„ã‚‹URLã‚’ãƒ–ãƒ©ã‚¦ã‚¶ã§é–‹ãã¾ã™ã€‚ãƒ–ãƒ©ã‚¦ã‚¶ã¯é–¢é€£ä»˜ã‘ã«ã‚ˆã‚Šèµ·å‹•ã•ã‚Œã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

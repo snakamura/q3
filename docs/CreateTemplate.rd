@@ -1,11 +1,11 @@
 =begin
-=�쐬�p�̃e���v���[�g
+=作成用のテンプレート
 
-�쐬�p�̃e���v���[�g�̓��b�Z�[�W���쐬����Ƃ��Ɏg�p���܂��B�쐬�p�̃e���v���[�g��]���������ʂ�RFC2822�ŋK�肳��Ă���`���ɂȂ��Ă���K�v������܂��B�܂�A�w�b�_���Ɩ{������s�ŋ�؂��A�w�b�_���͖��O�ƒl���u:�v�ŋ�؂�ꂽ�`���ɂȂ��Ă���K�v������܂��B�������A���{��Ȃǂ�ASCII������ȊO�����̂܂܊܂ނ��Ƃ��ł��܂��B���̂Ƃ��A((<����ȃw�b�_|URL:SpecialHeaders.html>))���g�p���邱�ƂŁA�A�J�E���g�⏐���Ȃǂ��w�肷�邱�Ƃ��ł��܂��B
+作成用のテンプレートはメッセージを作成するときに使用します。作成用のテンプレートを評価した結果はRFC2822で規定されている形式になっている必要があります。つまり、ヘッダ部と本文が空行で区切られ、ヘッダ部は名前と値が「:」で区切られた形式になっている必要があります。ただし、日本語などのASCII文字列以外をそのまま含むことができます。このとき、((<特殊なヘッダ|URL:SpecialHeaders.html>))を使用することで、アカウントや署名などを指定することもできます。
 
-���Ƃ��΁A�ԐM�p�̃e���v���[�g��]������ƁATo�ɕԐM����From�̃A�h���X���Z�b�g����A�{���ɕԐM���̖{�������p���ꂽ���b�Z�[�W�ɂȂ�܂��B���̃��b�Z�[�W���G�f�B�b�g�E�B���h�E�ŊJ���ĕԐM�p�̃��b�Z�[�W���쐬���܂��B
+たとえば、返信用のテンプレートを評価すると、Toに返信元のFromのアドレスがセットされ、本文に返信元の本文を引用されたメッセージになります。このメッセージをエディットウィンドウで開いて返信用のメッセージを作成します。
 
-�f�t�H���g�ł͈ȉ��̍쐬�p�̃e���v���[�g���쐬����܂��B
+デフォルトでは以下の作成用のテンプレートが作成されます。
 
 *new.template
 *reply.template
@@ -13,8 +13,8 @@
 *forward.template
 *edit.template
 
-�����͂��ꂼ��A[���b�Z�[�W]���j���[��[�V�K], [�ԐM], [�S���ɕԐM], [�]��], [�ҏW]�����s�����Ƃ��Ɏg�p����܂��B�܂��A[���b�Z�[�W]-[�e���v���[�g]���j���[�̉��ɂ̓f�t�H���g�ȊO�e���v���[�g�����X�g����܂��B�����Ƀ��X�g���邽�߂ɂ́A�e���v���[�g�̃t�@�C�������ucreate_�v����n�߂܂��B���Ƃ��΁Acreate_Test.template�Ƃ����t�@�C�����Ńe���v���[�g���쐬����ƁA[���b�Z�[�W]-[�e���v���[�g]-[Test]�Ƃ��ĕ\������܂��B
+これらはそれぞれ、[メッセージ]メニューの[新規], [返信], [全員に返信], [転送], [編集]を実行したときに使用されます。また、[メッセージ]-[テンプレート]メニューの下にはデフォルト以外テンプレートがリストされます。ここにリストするためには、テンプレートのファイル名を「create_」から始めます。たとえば、create_Test.templateというファイル名でテンプレートを作成すると、[メッセージ]-[テンプレート]-[Test]として表示されます。
 
-�܂��A���j���[��c�[���o�[���J�X�^�}�C�Y���邱�ƂŁA�Ǝ��̃e���v���[�g�����j���[��c�[���o�[�̍D���ȂƂ���Ɋ��蓖�Ă邱�Ƃ��ł��܂��B�ڍׂ́A((<���j���[�̃J�X�^�}�C�Y|URL:CustomizeMenus.html>))�A((<�c�[���o�[�̃J�X�^�}�C�Y|URL:CustomizeToolbars.html>))�A((<�L�[�{�[�h�V���[�g�J�b�g�̃J�X�^�}�C�Y|URL:CustomizeAccelerators.html>))�ƁA((<MessageCreate�A�N�V����|URL:MessageCreateAction.html>))���Q�Ƃ��Ă��������B
+また、メニューやツールバーをカスタマイズすることで、独自のテンプレートをメニューやツールバーの好きなところに割り当てることができます。詳細は、((<メニューのカスタマイズ|URL:CustomizeMenus.html>))、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))、((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))と、((<MessageCreateアクション|URL:MessageCreateAction.html>))を参照してください。
 
 =end

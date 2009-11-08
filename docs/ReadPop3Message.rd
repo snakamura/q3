@@ -1,40 +1,40 @@
 =begin
-=���[����ǂ�
+=メールを読む
 
-�܂��A�t�H���_�r���[�ō쐬�����A�J�E���g�̎�M����I�����܂��B�t�H���_�r���[�̃A�J�E���g�����_�u���N���b�N���ăc���[��W�J���A��M����I�����܂��B
+まず、フォルダビューで作成したアカウントの受信箱を選択します。フォルダビューのアカウント名をダブルクリックしてツリーを展開し、受信箱を選択します。
 
-((<��M���̑I��|"IMG:images/TutorialPop3SelectInbox.png">))
+((<受信箱の選択|"IMG:images/TutorialPop3SelectInbox.png">))
 
-���̎��_�ł͎�M�ς݂̃��b�Z�[�W������܂���̂ŁA���X�g�r���[�ɂ͉����\������Ă��܂���B
-
-
-==���[������M����
-���[������M����ɂ́A���j���[����((<[�c�[��]-[��M]|URL:ToolReceiveAction.html>))��I�����܂��B
-
-// TODO �摜 �����_�C�A���O
-
-��M���͓����_�C�A���O���\������A��M�̐i���󋵂��m�F�ł��܂��B�G���[���Ȃ���Ύ�M���I������Γ����_�C�A���O�͎����I�ɕ��܂��B
+この時点では受信済みのメッセージがありませんので、リストビューには何も表示されていません。
 
 
-==���[����ǂ�
-��M�������[����ǂނɂ́A���X�g�r���[�œǂ݂������b�Z�[�W���N���b�N���܂��B����ƁA���X�g�r���[�Ń��b�Z�[�W���I������A�v���r���[�Ƀ��b�Z�[�W�̓��e���\������܂��B
+==メールを受信する
+メールを受信するには、メニューから((<[ツール]-[受信]|URL:ToolReceiveAction.html>))を選択します。
 
-((<�v���r���[|"IMG:images/TutorialPop3Preview.png">))
+// TODO 画像 同期ダイアログ
 
-�ʃE�B���h�E�Ń��b�Z�[�W��ǂ݂����ꍇ�ɂ́A���X�g�r���[�ŊJ���������b�Z�[�W���_�u���N���b�N����ƁA���b�Z�[�W�E�B���h�E���J���܂��B
-
-((<���b�Z�[�W�E�B���h�E|"IMG:images/TutorialPop3Message.png">))
-
-���̃��b�Z�[�W��O�̃��b�Z�[�W��ǂ݂����Ƃ��ɂ́A((<[�\��]-[���̃��b�Z�[�W]|URL:ViewNextMessageAction.html>))��((<[�\��]-[�O�̃��b�Z�[�W]|URL:ViewPrevMessageAction.html>))���g�����Ƃ��ł��܂��B((<[�\��]-[���̖��ǃ��b�Z�[�W]|URL:ViewNextUnseenMessageAction.html>))���g���Ǝ��̖��ǃ��b�Z�[�W�ɃW�����v���邱�Ƃ��ł��܂��B
-
-((<�X�y�[�X�L�[|URL:ViewNextMessagePageAction.html>))�������ƈ�y�[�W���X�N���[�����A�Ō�܂ŃX�N���[�����I���Ǝ��̃��b�Z�[�W��\�����܂��B((<Shift�L�[�������Ȃ���X�y�[�X�L�[|URL:ViewPrevMessagePageAction.html>))�������ƈ�y�[�W���O�ɃX�N���[�����A�ŏ��܂ŃX�N���[�����I���ƈ�O�̃��b�Z�[�W��\�����܂��B
+受信中は同期ダイアログが表示され、受信の進捗状況を確認できます。エラーがなければ受信が終了すれば同期ダイアログは自動的に閉じます。
 
 
-===HTML���[����ǂ�
-HTML���[����HTML�\���œǂނɂ́A((<[�\��]-[HTML]-[HTML��\��]|URL:ViewHtmlModeAction.html>))��I�����܂��B
+==メールを読む
+受信したメールを読むには、リストビューで読みたいメッセージをクリックします。すると、リストビューでメッセージが選択され、プレビューにメッセージの内容が表示されます。
 
-HTML���[���ɊO���T�[�o��ɒu���ꂽ�摜���܂܂�Ă���ꍇ�ɂ́A�f�t�H���g�ł͂����̉摜�͕\������܂���B�����̉摜��\������ɂ́A((<[�\��]-[HTML]-[�I�����C���ŕ\��]|URL:ViewHtmlOnlineModeAction.html>))��I�����܂��B���̃I�v�V������L���ɂ���ƁA�O���T�[�o�ɒu���ꂽ�摜���擾���܂��̂ŁA�g�����ɂ���Ă͑��M�҂Ƀ��[�����J�������Ƃ��ʒm�����\�������邱�Ƃɒ��ӂ��Ă��������B
+((<プレビュー|"IMG:images/TutorialPop3Preview.png">))
 
-�܂��f�t�H���g�ł�HTML���[���͐������]�[���ŕ\������܂��̂ŁA�X�N���v�g�Ȃǂ͎��s����܂���B���������s����ɂ́A((<[�\��]-[HTML]-[�C���^�[�l�b�g�]�[���ŕ\��]|URL:ViewHtmlInternetZoneModeAction.html>))��I�����܂��B���̃I�v�V������L���ɂ���ƁA�C���^�[�l�b�g�]�[���ŕ\������܂��B
+別ウィンドウでメッセージを読みたい場合には、リストビューで開きたいメッセージをダブルクリックすると、メッセージウィンドウが開きます。
+
+((<メッセージウィンドウ|"IMG:images/TutorialPop3Message.png">))
+
+次のメッセージや前のメッセージを読みたいときには、((<[表示]-[次のメッセージ]|URL:ViewNextMessageAction.html>))や((<[表示]-[前のメッセージ]|URL:ViewPrevMessageAction.html>))を使うことができます。((<[表示]-[次の未読メッセージ]|URL:ViewNextUnseenMessageAction.html>))を使うと次の未読メッセージにジャンプすることができます。
+
+((<スペースキー|URL:ViewNextMessagePageAction.html>))を押すと一ページずつスクロールし、最後までスクロールし終わると次のメッセージを表示します。((<Shiftキーを押しながらスペースキー|URL:ViewPrevMessagePageAction.html>))を押すと一ページずつ前にスクロールし、最初までスクロールし終わると一つ前のメッセージを表示します。
+
+
+===HTMLメールを読む
+HTMLメールをHTML表示で読むには、((<[表示]-[HTML]-[HTMLを表示]|URL:ViewHtmlModeAction.html>))を選択します。
+
+HTMLメールに外部サーバ上に置かれた画像が含まれている場合には、デフォルトではこれらの画像は表示されません。これらの画像を表示するには、((<[表示]-[HTML]-[オンラインで表示]|URL:ViewHtmlOnlineModeAction.html>))を選択します。このオプションを有効にすると、外部サーバに置かれた画像を取得しますので、使い方によっては送信者にメールを開いたことが通知される可能性があることに注意してください。
+
+またデフォルトではHTMLメールは制限つきゾーンで表示されますので、スクリプトなどは実行されません。これらを実行するには、((<[表示]-[HTML]-[インターネットゾーンで表示]|URL:ViewHtmlInternetZoneModeAction.html>))を選択します。このオプションを有効にすると、インターネットゾーンで表示されます。
 
 =end

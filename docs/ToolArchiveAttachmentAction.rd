@@ -1,16 +1,16 @@
 =begin
-=ToolArchiveAttachment�A�N�V����
+=ToolArchiveAttachmentアクション
 
-((<�Y�t�t�@�C��|URL:Attachment.html>))�����k���邩�ǂ�����On/Off���܂��B�Y�t�t�@�C���̈��k�́AWindows�łł̂ݎg�p���邱�Ƃ��ł��܂��B�f�t�H���g��On�ɂȂ邩Off�ɂȂ邩�́A((<�G�f�B�b�g�r���[2�̐ݒ�|URL:OptionEdit2.html>))�Őݒ肵�܂��B
+((<添付ファイル|URL:Attachment.html>))を圧縮するかどうかをOn/Offします。添付ファイルの圧縮は、Windows版でのみ使用することができます。デフォルトでOnになるかOffになるかは、((<エディットビュー2の設定|URL:OptionEdit2.html>))で設定します。
 
-���k����悤�ɂ���ƁA���b�Z�[�W�𑗐M����Ƃ���((<[���k]�_�C�A���O|URL:ArchiveDialog.html>))���J���āAZIP�t�@�C���̃t�@�C������q�˂��܂��B
-
-
-==����
-�Ȃ�
+圧縮するようにすると、メッセージを送信するときに((<[圧縮]ダイアログ|URL:ArchiveDialog.html>))が開いて、ZIPファイルのファイル名を尋ねられます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

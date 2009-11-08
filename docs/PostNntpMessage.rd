@@ -1,23 +1,23 @@
 =begin
-=�j���[�X�𓊍e����
+=ニュースを投稿する
 
-==�L��������
-�V�K�ɋL���������Ƃ��ɂ́A((<[���b�Z�[�W]-[�V�K]|URL:MessageCreateAction.html>))��I�����܂��B�I������ƁA�G�f�B�b�g�E�B���h�E���J���܂��B
+==記事を書く
+新規に記事を書くときには、((<[メッセージ]-[新規]|URL:MessageCreateAction.html>))を選択します。選択すると、エディットウィンドウが開きます。
 
-((<�G�f�B�b�g�E�B���h�E|"IMG:images/TutorialNntpCreateMessage.png">))
+((<エディットウィンドウ|"IMG:images/TutorialNntpCreateMessage.png">))
 
-[�O���[�v]�ɓ��e��̃j���[�X�O���[�v������͂��܂��B�����̃O���[�v�����w�肷��ɂ́u,�v�ŋ�؂�܂��B[�t�H���[��]�Ƀt�H���[��̃j���[�X�O���[�v������͂��܂��B�K�v���Ȃ���Ύw�肵�Ȃ��Ă��܂��܂���B
+[グループ]に投稿先のニュースグループ名を入力します。複数のグループ名を指定するには「,」で区切ります。[フォロー先]にフォロー先のニュースグループ名を入力します。必要がなければ指定しなくてかまいません。
 
-[����]�Ɩ{������͂�����A((<[�t�@�C��]-[���M]|URL:FileSendAction.html>))��I������ƁA���M���ɓ��e�҂����b�Z�[�W�Ƃ��ĕۑ�����܂��B���M���ɕۑ����ꂽ���b�Z�[�W�͎���̑��M���ɓ��e����܂��B�������ɓ��e�������ꍇ�ɂ́A((<[�t�@�C��]-[�����ɑ��M]|URL:FileSendNowAction.html>))��I������ƁA���M���ɕۑ����A�����Ƀ��b�Z�[�W�𓊍e���܂��B
+[件名]と本文を入力したら、((<[ファイル]-[送信]|URL:FileSendAction.html>))を選択すると、送信箱に投稿待ちメッセージとして保存されます。送信箱に保存されたメッセージは次回の送信時に投稿されます。今すぐに投稿したい場合には、((<[ファイル]-[すぐに送信]|URL:FileSendNowAction.html>))を選択すると、送信箱に保存し、すぐにメッセージを投稿します。
 
-���̑��̑���́APOP3�A�J�E���g�Ń��[���������ꍇ�Ɠ��l�ł��̂ŁAPOP3�A�J�E���g��((<���[��������|URL:WritePop3Message.html>))���Q�Ƃ��Ă��������B
+その他の操作は、POP3アカウントでメールを書く場合と同様ですので、POP3アカウントの((<メールを書く|URL:WritePop3Message.html>))を参照してください。
 
 
-==�L���𓊍e����
-���C���E�B���h�E�ŁA((<[�c�[��]-[���M]|URL:ToolSendAction.html>))��I������ƁA���M���ɕۑ����ꂽ���b�Z�[�W���S�ē��e����܂��B
+==記事を投稿する
+メインウィンドウで、((<[ツール]-[送信]|URL:ToolSendAction.html>))を選択すると、送信箱に保存されたメッセージが全て投稿されます。
 
-// TODO �摜 �����_�C�A���O
+// TODO 画像 同期ダイアログ
 
-���M���͓����_�C�A���O���\������A���M�̐i���󋵂��m�F�ł��܂��B�G���[���Ȃ���Α��M���I������Γ����_�C�A���O�͎����I�ɕ��܂��B
+送信中は同期ダイアログが表示され、送信の進捗状況を確認できます。エラーがなければ送信が終了すれば同期ダイアログは自動的に閉じます。
 
 =end

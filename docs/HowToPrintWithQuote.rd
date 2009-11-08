@@ -1,7 +1,7 @@
 =begin
-=�������Ƃ��ɂ����p����ŕ\������ɂ͂ǂ�����΂悢�ł���?
+=印刷するときにも引用を線で表示するにはどうすればよいですか?
 
-((<����p�e���v���[�g|URL:OtherTemplate.html>))�ň��p��<blockquote>�ɕϊ����āACSS�ō����ɐ�������ƈ��p����ŕ\�����Ĉ���ł��܂��B���Ƃ��Έȉ��̃e���v���[�g��print.template�Ƃ��ĕۑ�����Ƃ���炵���Ȃ�܂��B
+((<印刷用テンプレート|URL:OtherTemplate.html>))で引用を<blockquote>に変換して、CSSで左側に線を入れると引用を線で表示して印刷できます。たとえば以下のテンプレートをprint.templateとして保存するとそれらしくなります。
 
  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
  <html>

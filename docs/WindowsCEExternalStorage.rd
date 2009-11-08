@@ -1,44 +1,44 @@
 =begin
-=Windows CE�ŊO���X�g���[�W�Ɏ��s�t�@�C���⃁�[���{�b�N�X��u���ƃn���O�A�b�v���܂�
+=Windows CEで外部ストレージに実行ファイルやメールボックスを置くとハングアップします
 
-Windows CE�łŎ��s�t�@�C���⃁�[���{�b�N�X���O���������J�[�h�ɒu���AQMAIL3���N�������܂܃T�X�y���h����ƁA�T�X�y���h���畜�A�����Ƃ��Ƀn���O�A�b�v���邱�Ƃ�����܂��B����́AWindows CE�̃o�[�W������g�p����h���C�o�ɂ���ẮA�T�X�y���h����Ƃ��ɊO���t�@�C���̃n���h���������I�ɕ��Ă��܂����߂��Ǝv���܂��B
+Windows CE版で実行ファイルやメールボックスを外部メモリカードに置き、QMAIL3を起動したままサスペンドすると、サスペンドから復帰したときにハングアップすることがあります。これは、Windows CEのバージョンや使用するドライバによっては、サスペンドするときに外部ファイルのハンドルを強制的に閉じてしまうためだと思われます。
 
-���̂悤�ȃP�[�X�ł͈ȉ��̂悤�ȑΏ������邱�Ƃ��ł��܂��B
-
-
-==���s�t�@�C��
-���s�t�@�C���͖{�̃�������ɒu���Ă��������B
+このようなケースでは以下のような対処をすることができます。
 
 
-==���[���{�b�N�X�f�B���N�g��
-
-===�O����������Ƀ��[���{�b�N�X�f�B���N�g����u��
-�\�ł���΃��[���{�b�N�X�f�B���N�g���͖{�̃�������ɒu���Ă��������B�e�ʂȂǂ̊֌W�Ŗ{�̃������ɒu�����Ƃ��ł��Ȃ��ꍇ�A�ȉ��̂��Ƃ�����ĉ^�p���܂��B
-
-(1)((<���̑��̐ݒ�|URL:OptionMisc.html>))��[�E�B���h�E����A�N�e�B�u�ɂȂ�����ۑ�����]�Ƀ`�F�b�N������
-(2)�T�X�y���h����Ƃ��ɂ́AQMAIL3���őO�ʂɂȂ����Ƃ��m�F����
-
-����ɂ���āA�O����������ɂ���t�@�C�����J�����܂܂ɂȂ�̂��ɗ͗}���邱�Ƃ��ł��܂��B�܂��́A�T�X�y���h�O��[�t�@�C��]-[�ۑ�]��I�����Ė����I�Ƀf�[�^���t���b�V�����邱�Ƃ��ł��܂��B
+==実行ファイル
+実行ファイルは本体メモリ上に置いてください。
 
 
-===���b�Z�[�W�̃t�@�C���������O����������ɒu��
-�{�̃������Ƀ��[���{�b�N�X�f�B���N�g����u���A���ۂɈ�ԗe�ʂ�K�v�Ƃ��郁�b�Z�[�W�̃t�@�C���������O���������ɒu�����Ƃ��ł��܂��B���̂悤�Ȑݒ�ɂ���ɂ͈ȉ��̂悤�ȍ�Ƃ��s���܂��B
+==メールボックスディレクトリ
 
-�܂��A((<�A�J�E���g���쐬|URL:CreateAccount.html>))����Ƃ��ɂ́A1���b�Z�[�W1�t�@�C���̐ݒ�ō쐬���܂��B�A�J�E���g���쐬�������xQMAIL3���I�����܂��B�����āA�A�J�E���g�̃f�B���N�g���ɂ���account.xml���G�f�B�^�ŊJ���܂��B�t�@�C���̒��ňȉ��̂悤�ȂƂ����T���܂��B
+===外部メモリ上にメールボックスディレクトリを置く
+可能であればメールボックスディレクトリは本体メモリ上に置いてください。容量などの関係で本体メモリに置くことができない場合、以下のことを守って運用します。
+
+(1)((<その他の設定|URL:OptionMisc.html>))で[ウィンドウが非アクティブになったら保存する]にチェックを入れる
+(2)サスペンドするときには、QMAIL3が最前面にないことを確認する
+
+これによって、外部メモリ上にあるファイルを開いたままになるのを極力抑えることができます。または、サスペンド前に[ファイル]-[保存]を選択して明示的にデータをフラッシュすることもできます。
+
+
+===メッセージのファイルだけを外部メモリ上に置く
+本体メモリにメールボックスディレクトリを置き、実際に一番容量を必要とするメッセージのファイルだけを外部メモリに置くこともできます。このような設定にするには以下のような作業を行います。
+
+まず、((<アカウントを作成|URL:CreateAccount.html>))するときには、1メッセージ1ファイルの設定で作成します。アカウントを作成したら一度QMAIL3を終了します。そして、アカウントのディレクトリにあるaccount.xmlをエディタで開きます。ファイルの中で以下のようなところを探します。
 
  <section name="Global">
    <key name="Class">mail</key>
  </section>
 
-�����Ɉ�s�ǉ����Ĉȉ��̂悤�ɂ��܂��B
+ここに一行追加して以下のようにします。
 
  <section name="Global">
    <key name="Class">mail</key>
-   <key name="MessageStorePath">\�������J�[�h\mail</key>
+   <key name="MessageStorePath">\メモリカード\mail</key>
  </section>
 
-�u\�������J�[�h\mail�v�̕����ɂ͎��ۂɃf�[�^��u�������f�B���N�g�����w�肵�Ă��������B�w�肷��f�B���N�g���͂��炩���ߍ쐬���Ă����K�v������܂��Baccount.xml��ۑ����ăG�f�B�^���I��������AQMAIL3���N�����܂��B���[������M������쐬�����肵�āA�w�肵���f�B���N�g���Ƀ��b�Z�[�W�t�@�C�����쐬����Ă��邱�Ƃ��m�F���Ă��������B
+「\メモリカード\mail」の部分には実際にデータを置きたいディレクトリを指定してください。指定するディレクトリはあらかじめ作成しておく必要があります。account.xmlを保存してエディタを終了したら、QMAIL3を起動します。メールを受信したり作成したりして、指定したディレクトリにメッセージファイルが作成されていることを確認してください。
 
-���̂悤�ɂ���Ɗe��̐ݒ�t�@�C����C���f�b�N�X�t�@�C���͖{�̃������ɒu�����܂܁A���b�Z�[�W�t�@�C�����w�肵���f�B���N�g���ɒu�����Ƃ��ł��܂��B
+このようにすると各種の設定ファイルやインデックスファイルは本体メモリに置いたまま、メッセージファイルを指定したディレクトリに置くことができます。
 
 =end

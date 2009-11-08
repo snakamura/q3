@@ -1,175 +1,175 @@
 =begin
-=���b�Z�[�W�E�B���h�E
+=メッセージウィンドウ
 
-((<���b�Z�[�W�E�B���h�E|"IMG:images/MessageWindow.png">))
+((<メッセージウィンドウ|"IMG:images/MessageWindow.png">))
 
-���b�Z�[�W�E�B���h�E�̓��b�Z�[�W��ʃE�B���h�E�Ƃ��ĕ\�����邽�߂̃E�B���h�E�ł��B���b�Z�[�W�E�B���h�E���J���ɂ́A���X�g�r���[�ŕ\�����������b�Z�[�W��I������Enter���������_�u���N���b�N���܂��B���b�Z�[�W�E�B���h�E�͕����J�����Ƃ��ł��܂�((-Pocket PC�ňȊO�BPocket PC�łł͕����̃��b�Z�[�W�E�B���h�E���J�����Ƃ���Ɗ����̃��b�Z�[�W�E�B���h�E���g���܂�-))�B
-
-
-==���j���[�o�[
-���j���o�[�ɂ��ẮA((<���b�Z�[�W�E�B���h�E�̃��j���[�o�[|URL:MessageWindowMenuBar.html>))���Q�Ƃ��Ă��������B
+メッセージウィンドウはメッセージを別ウィンドウとして表示するためのウィンドウです。メッセージウィンドウを開くには、リストビューで表示したいメッセージを選択してEnterを押すかダブルクリックします。メッセージウィンドウは複数開くことができます((-Pocket PC版以外。Pocket PC版では複数のメッセージウィンドウを開こうとすると既存のメッセージウィンドウが使われます-))。
 
 
-==�c�[���o�[
-�c�[���o�[�̊e�{�^���̋@�\�͈ȉ��̒ʂ�ł��B
-
-+((<[�V�K]|URL:MessageCreateAction.html>))
-�V�K���b�Z�[�W���쐬���܂��B
+==メニューバー
+メニュバーについては、((<メッセージウィンドウのメニューバー|URL:MessageWindowMenuBar.html>))を参照してください。
 
 
-+((<[�ԐM]|URL:MessageCreateAction.html>))
-�\�����Ă��郁�b�Z�[�W�ɕԐM���܂��B
+==ツールバー
+ツールバーの各ボタンの機能は以下の通りです。
+
++((<[新規]|URL:MessageCreateAction.html>))
+新規メッセージを作成します。
 
 
-+((<[�S���ɕԐM]|URL:MessageCreateAction.html>))
-�\�����Ă��郁�b�Z�[�W��S���ɕԐM���܂��B
++((<[返信]|URL:MessageCreateAction.html>))
+表示しているメッセージに返信します。
 
 
-+((<[�]��]|URL:MessageCreateAction.html>))
-�\�����Ă��郁�b�Z�[�W��]�����܂��B
++((<[全員に返信]|URL:MessageCreateAction.html>))
+表示しているメッセージを全員に返信します。
 
 
-+((<[�폜]|URL:EditDeleteAction.html>))
-�\�����Ă��郁�b�Z�[�W���폜���܂��B
++((<[転送]|URL:MessageCreateAction.html>))
+表示しているメッセージを転送します。
 
 
-+((<[�O]|URL:ViewPrevMessageAction.html>))
-��O�̃��b�Z�[�W��\�����܂��B
++((<[削除]|URL:EditDeleteAction.html>))
+表示しているメッセージを削除します。
 
 
-+((<[��]|URL:ViewNextMessageAction.html>))
-���̃��b�Z�[�W��\�����܂��B
++((<[前]|URL:ViewPrevMessageAction.html>))
+一つ前のメッセージを表示します。
 
 
-+((<[���̖���]|URL:ViewNextUnseenMessageAction.html>))
-���̖��ǃ��b�Z�[�W��\�����܂��B
++((<[次]|URL:ViewNextMessageAction.html>))
+一つ後のメッセージを表示します。
 
 
-�c�[���o�[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�c�[���o�[���B��]|URL:ViewShowToolbarAction.html>))��I�����܂��B�c�[���o�[�̃{�^���̃J�X�^�}�C�Y�ɂ��ẮA((<�c�[���o�[�̃J�X�^�}�C�Y|URL:CustomizeToolbars.html>))���Q�Ƃ��Ă��������B
++((<[次の未読]|URL:ViewNextUnseenMessageAction.html>))
+次の未読メッセージを表示します。
 
 
-==�X�e�[�^�X�o�[
-�X�e�[�^�X�o�[��5�̃y�C���ɕ������Ă��܂��B�e�y�C���ɕ\���������͍����珇�ԂɈȉ��̒ʂ�ł��B
+ツールバーを隠すには、メニューから((<[表示]-[コントロールの表示]-[ツールバーを隠す]|URL:ViewShowToolbarAction.html>))を選択します。ツールバーのボタンのカスタマイズについては、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))を参照してください。
+
+
+==ステータスバー
+ステータスバーは5個のペインに分けられています。各ペインに表示される情報は左から順番に以下の通りです。
 
 +1
-��ʓI�ȃ��b�Z�[�W�Ȃǂ��\������܂��B
+一般的なメッセージなどが表示されます。
 
 
 +2
-�\�����Ă��郁�b�Z�[�W�̃G���R�[�f�B���O���\������܂��B�E�N���b�N����ƃ��j���[���\������A((<�G���R�[�f�B���O���w��|URL:ViewEncodingAction.html>))���邱�Ƃ��ł��܂��B�G���R�[�f�B���O�̎�������Ɏ��s���ĕ����������Ă���ꍇ�ɂ́A�G���R�[�f�B���O���w�肷�邱�ƂŃ��b�Z�[�W��\���ł��܂��B
+表示しているメッセージのエンコーディングが表示されます。右クリックするとメニューが表示され、((<エンコーディングを指定|URL:ViewEncodingAction.html>))することができます。エンコーディングの自動判定に失敗して文字化けしている場合には、エンコーディングを指定することでメッセージを表示できます。
 
 
 +3
-�g�p���Ă���((<�\���p�̃e���v���[�g|URL:ViewTemplate.html>))���\������܂��B�E�N���b�N����ƃ��j���[���\������A�\���p�e���v���[�g��ύX���邱�Ƃ��ł��܂��B
+使用している((<表示用のテンプレート|URL:ViewTemplate.html>))が表示されます。右クリックするとメニューが表示され、表示用テンプレートを変更することができます。
 
 
 +4
-���b�Z�[�W��((<"S/MIME"|URL:SMIME.html>))��((<PGP|URL:PGP.html>))�ňÍ�������Ă��āA����𕜍������ꍇ�ɂ̓A�C�R�����\������܂��B
+メッセージが((<"S/MIME"|URL:SMIME.html>))や((<PGP|URL:PGP.html>))で暗号化されていて、それを復号した場合にはアイコンが表示されます。
 
 
 +5
-���b�Z�[�W��((<"S/MIME"|URL:SMIME.html>))��((<PGP|URL:PGP.html>))�ŏ�������Ă��āA��������؂����ꍇ�ɂ̓A�C�R�����\������܂��B���؂ɐ����������ǂ����ŃA�C�R���͈قȂ�܂��B���������؂����ꍇ�A�N���b�N�����((<���،���|URL:MessageCertificateAction.html>))���\������܂��B
+メッセージが((<"S/MIME"|URL:SMIME.html>))や((<PGP|URL:PGP.html>))で署名されていて、それを検証した場合にはアイコンが表示されます。検証に成功したかどうかでアイコンは異なります。署名を検証した場合、クリックすると((<検証結果|URL:MessageCertificateAction.html>))が表示されます。
 
 
-�X�e�[�^�X�o�[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�X�e�[�^�X�o�[���B��]|URL:ViewShowStatusBarAction.html>))��I�����܂��B
+ステータスバーを隠すには、メニューから((<[表示]-[コントロールの表示]-[ステータスバーを隠す]|URL:ViewShowStatusBarAction.html>))を選択します。
 
 
-==�w�b�_�r���[
-�w�b�_�r���[�ɂ̓��b�Z�[�W�̈���⑗�M�ҁA�����A�Y�t�t�@�C���Ȃǂ��\������܂��B
+==ヘッダビュー
+ヘッダビューにはメッセージの宛先や送信者、件名、添付ファイルなどが表示されます。
 
-���[���A�J�E���g�̏ꍇ�A�f�t�H���g�ł͈ȉ��̍��ڂ�����܂��B
+メールアカウントの場合、デフォルトでは以下の項目があります。
 
-+[����]
-���b�Z�[�W�̈����\�����܂��B
++[宛先]
+メッセージの宛先を表示します。
 
 
 +[Cc]
-���b�Z�[�W��Cc��\�����܂��B
+メッセージのCcを表示します。
 
 
-+[���M��]
-���b�Z�[�W�̑��M�҂�\�����܂��B���b�Z�[�W����������Ă��āA���؂ɐ������A�����҂̃��[���A�h���X�Ƒ��M�҂̃��[���A�h���X�������ꍇ�ɂ́A�w�i�F�����F�ɂȂ�܂��B
++[送信者]
+メッセージの送信者を表示します。メッセージが署名されていて、検証に成功し、署名者のメールアドレスと送信者のメールアドレスが同じ場合には、背景色が黄色になります。
 
 
-+[���t]
-���b�Z�[�W�̍쐬������\�����܂��B
++[日付]
+メッセージの作成日時を表示します。
 
 
-+[����]
-���b�Z�[�W�̌�����\�����܂��B
++[件名]
+メッセージの件名を表示します。
 
 
-+[�Y�t�t�@�C��]
-���b�Z�[�W�ɓY�t���ꂽ�t�@�C����\�����܂��B
++[添付ファイル]
+メッセージに添付されたファイルを表示します。
 
 
-+[���x��]
-���b�Z�[�W�ɐݒ肳�ꂽ((<���x��|URL:Label.html>))��\�����܂��B
++[ラベル]
+メッセージに設定された((<ラベル|URL:Label.html>))を表示します。
 
 
-+[������]
-���b�Z�[�W��((<"S/MIME"|URL:SMIME.html>))��((<PGP|URL:PGP.html>))�ŏ�������Ă���ꍇ�ɁA�����҂̏���\�����܂��BS/MIME�̏ꍇ�ɂ͏����҂�DN���APGP�̏ꍇ�ɂ͏����҂̃��[�UID��\�����܂��B�܂��A�����̌��؂ɐ��������ꍇ�ɂ͔w�i�F�����F�ɂȂ�܂��B
++[署名者]
+メッセージが((<"S/MIME"|URL:SMIME.html>))や((<PGP|URL:PGP.html>))で署名されている場合に、署名者の情報を表示します。S/MIMEの場合には署名者のDNを、PGPの場合には署名者のユーザIDを表示します。また、署名の検証に成功した場合には背景色が黄色になります。
 
 
-[Cc], [�Y�t�t�@�C��], [���x��], [������]�͎w�肳��Ă��Ȃ��ꍇ�ɂ͕\������܂���B
+[Cc], [添付ファイル], [ラベル], [署名者]は指定されていない場合には表示されません。
 
 
-�j���[�X�A�J�E���g�ł́A[����], [Cc]�̑���Ɉȉ��̍��ڂ�����܂��B
+ニュースアカウントでは、[宛先], [Cc]の代わりに以下の項目があります。
 
-+[�j���[�X�O���[�v]
-�j���[�X�O���[�v��\�����܂��B
-
-
-+[�t�H���[�A�b�v��]
-�t�H���[�A�b�v���\�����܂��B
++[ニュースグループ]
+ニュースグループを表示します。
 
 
-RSS�A�J�E���g�̏ꍇ�A�f�t�H���g�ł͈ȉ��̍��ڂ�����܂��B
-
-+[�^�C�g��]
-�A�C�e���̃^�C�g����\�����܂��B
++[フォローアップ先]
+フォローアップ先を表示します。
 
 
-+[���t]
-�A�C�e���̓��t��\�����܂��B
+RSSアカウントの場合、デフォルトでは以下の項目があります。
+
++[タイトル]
+アイテムのタイトルを表示します。
 
 
-+[�쐬��]
-�A�C�e���̍쐬�҂�\�����܂��B
++[日付]
+アイテムの日付を表示します。
 
 
-+[�J�e�S��]
-�A�C�e���̃J�e�S����\�����܂��B
++[作成者]
+アイテムの作成者を表示します。
 
 
-+[���]
-�A�C�e���̎���\�����܂��B
++[カテゴリ]
+アイテムのカテゴリを表示します。
+
+
++[主題]
+アイテムの主題を表示します。
 
 
 +[URL]
-�A�C�e����URL��\�����܂��B
+アイテムのURLを表示します。
 
 
-+[���x��]
-���b�Z�[�W�ɐݒ肳�ꂽ((<���x��|URL:Label.html>))��\�����܂��B
++[ラベル]
+メッセージに設定された((<ラベル|URL:Label.html>))を表示します。
 
 
-[�쐬��], [�J�e�S��], [���], [���x��]�͎w�肳��Ă��Ȃ��ꍇ�ɂ͕\������܂���B
+[作成者], [カテゴリ], [主題], [ラベル]は指定されていない場合には表示されません。
 
 
-�e���ڂ��E�N���b�N�����Ƃ��ɂ�Windows�W���̃R���e�L�X�g���j���[���\������܂��B�������A�Y�t�t�@�C���̍��ڂł�((<�Y�t�t�@�C���̃R���e�L�X�g���j���[|URL:AttachmentMenu.html>))���\������܂��B
+各項目を右クリックしたときにはWindows標準のコンテキストメニューが表示されます。ただし、添付ファイルの項目では((<添付ファイルのコンテキストメニュー|URL:AttachmentMenu.html>))が表示されます。
 
-�w�b�_�r���[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�w�b�_���B��]|URL:ViewShowHeaderAction.html>))��I�����܂��B
+ヘッダビューを隠すには、メニューから((<[表示]-[コントロールの表示]-[ヘッダを隠す]|URL:ViewShowHeaderAction.html>))を選択します。
 
-�w�b�_�r���[�̊e��ݒ�́A((<�w�b�_�r���[�̐ݒ�|URL:OptionHeader.html>))�Őݒ�ł��܂��B�܂��A�w�b�_�r���[�ɕ\�����鍀�ڂ̓J�X�^�}�C�Y���邱�Ƃ��ł��܂��B�J�X�^�}�C�Y�ɂ��ẮA((<�w�b�_�r���[�̃J�X�^�}�C�Y|URL:CustomizeHeaderView.html>))���Q�Ƃ��Ă��������B
+ヘッダビューの各種設定は、((<ヘッダビューの設定|URL:OptionHeader.html>))で設定できます。また、ヘッダビューに表示する項目はカスタマイズすることができます。カスタマイズについては、((<ヘッダビューのカスタマイズ|URL:CustomizeHeaderView.html>))を参照してください。
 
 
 
-==���b�Z�[�W�r���[
-���b�Z�[�W�r���[�ɂ̓��b�Z�[�W�̖{�����\������܂��B((<HTML�\��|URL:HtmlView.html>))��L���ɂ��Ă���ꍇ�AHTML���[���̓u���E�U�R���g���[����p���ĕ\������܂��B�܂��A((<�\���p�̃e���v���[�g|URL:ViewTemplate.html>))���g�p���ĕ\��������e���J�X�^�}�C�Y���邱�Ƃ��ł��܂��B
+==メッセージビュー
+メッセージビューにはメッセージの本文が表示されます。((<HTML表示|URL:HtmlView.html>))を有効にしている場合、HTMLメールはブラウザコントロールを用いて表示されます。また、((<表示用のテンプレート|URL:ViewTemplate.html>))を使用して表示する内容をカスタマイズすることもできます。
 
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<���b�Z�[�W�r���[�̃R���e�L�X�g���j���[|URL:MessageMenu.html>))���Q�Ƃ��Ă��������B
+右クリックすると表示されるコンテキストメニューについては、((<メッセージビューのコンテキストメニュー|URL:MessageMenu.html>))を参照してください。
 
-���b�Z�[�W�r���[�̊e��ݒ�́A((<���b�Z�[�W�r���[�̐ݒ�|URL:OptionMessage.html>))�Őݒ�ł��܂��B
+メッセージビューの各種設定は、((<メッセージビューの設定|URL:OptionMessage.html>))で設定できます。
 
 =end

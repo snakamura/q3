@@ -1,6 +1,6 @@
 =begin
-=�O���A�h���X��
+=外部アドレス帳
 
-�O���A�h���X������荞�ނƁA���M��̃��[���A�h���X��((<�I��|URL:ToolSelectAddressAction.html>))��((<�����⊮|URL:AddressAutoComplete.html>))�ȂǂŎg�p���邱�Ƃ��ł��܂��B��荞�߂�A�h���X���́AWindows�łł�Windows�A�h���X����Outlook�̃A�h���X���AWindows CE�łł�Pocket Outlook�̃A�h���X���ł��B�ǂ̊O���A�h���X������荞�ނ��́A((<�A�h���X���̐ݒ�|URL:OptionAddressBook.html>))�Ŏw�肵�܂��B
+外部アドレス帳を取り込むと、送信先のメールアドレスの((<選択|URL:ToolSelectAddressAction.html>))や((<自動補完|URL:AddressAutoComplete.html>))などで使用することができます。取り込めるアドレス帳は、Windows版ではWindowsアドレス帳とOutlookのアドレス帳、Windows CE版ではPocket Outlookのアドレス帳です。どの外部アドレス帳を取り込むかは、((<アドレス帳の設定|URL:OptionAddressBook.html>))で指定します。
 
 =end

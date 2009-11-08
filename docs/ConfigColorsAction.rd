@@ -1,14 +1,14 @@
 =begin
-=ConfigColorsƒAƒNƒVƒ‡ƒ“
+=ConfigColorsã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<F‚ÌÝ’è|URL:OptionColors.html>))‚ðŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<è‰²ã®è¨­å®š|URL:OptionColors.html>))ã‚’é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

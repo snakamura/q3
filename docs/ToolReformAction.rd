@@ -1,14 +1,14 @@
 =begin
-=ToolReformƒAƒNƒVƒ‡ƒ“
+=ToolReformã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒLƒƒƒŒƒbƒg‚Ì‚ ‚é’i—Ž‚ð®Œ`‚µ‚Ü‚·B®Œ`‚É‚Â‚¢‚Ä‚ÍA((<®Œ`|URL:Reform.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+ã‚­ãƒ£ãƒ¬ãƒƒãƒˆã®ã‚ã‚‹æ®µè½ã‚’æ•´å½¢ã—ã¾ã™ã€‚æ•´å½¢ã«ã¤ã„ã¦ã¯ã€((<æ•´å½¢|URL:Reform.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼
 
 =end

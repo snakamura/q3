@@ -1,17 +1,17 @@
 =begin
-=ToolScriptƒAƒNƒVƒ‡ƒ“
+=ToolScriptã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Žw’è‚³‚ê‚½ƒXƒNƒŠƒvƒg‚ðŽÀs‚µ‚Ü‚·BƒXƒNƒŠƒvƒg‚É‚Â‚¢‚Ä‚Í((<ƒXƒNƒŠƒvƒg|URL:Script.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+æŒ‡å®šã•ã‚ŒãŸã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’å®Ÿè¡Œã—ã¾ã™ã€‚ã‚¹ã‚¯ãƒªãƒ—ãƒˆã«ã¤ã„ã¦ã¯((<ã‚¹ã‚¯ãƒªãƒ—ãƒˆ|URL:Script.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==ˆø”
+==å¼•æ•°
 :1
-  ƒXƒNƒŠƒvƒg‚Ì–¼‘O
+  ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®åå‰
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

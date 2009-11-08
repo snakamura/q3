@@ -1,12 +1,12 @@
 =begin
-=�ҏW�p�̃e���v���[�g
+=編集用のテンプレート
 
-�ҏW�p�̃e���v���[�g�́A�G�f�B�b�g�E�B���h�E�Ń��b�Z�[�W��ҏW���Ɏg�p�ł��܂��B�ҏW�p�̃e���v���[�g��]���������ʂ�RFC2822�ŋK�肳��Ă���`���ɂȂ��Ă���K�v������܂��B�܂�A�w�b�_���Ɩ{������s�ŋ�؂��A�w�b�_���͖��O�ƒl���u:�v�ŋ�؂�ꂽ�`���ɂȂ��Ă���K�v������܂��B�������A���{��Ȃǂ�ASCII������ȊO�����̂܂܊܂ނ��Ƃ��ł��܂��B���̂Ƃ��A((<����ȃw�b�_|URL:SpecialHeaders.html>))���g�p���邱�ƂŁA�A�J�E���g�⏐���Ȃǂ��w�肷�邱�Ƃ��ł��܂��B
+編集用のテンプレートは、エディットウィンドウでメッセージを編集中に使用できます。編集用のテンプレートを評価した結果はRFC2822で規定されている形式になっている必要があります。つまり、ヘッダ部と本文が空行で区切られ、ヘッダ部は名前と値が「:」で区切られた形式になっている必要があります。ただし、日本語などのASCII文字列以外をそのまま含むことができます。このとき、((<特殊なヘッダ|URL:SpecialHeaders.html>))を使用することで、アカウントや署名などを指定することもできます。
 
-�ҏW�p�̃e���v���[�g�͌��ݕҏW���̃��b�Z�[�W���R���e�L�X�g���b�Z�[�W�Ƃ��ĕ]������܂��B
+編集用のテンプレートは現在編集中のメッセージをコンテキストメッセージとして評価されます。
 
-�f�t�H���g�ł͕ҏW�p�̃e���v���[�g�͊܂܂�Ă��܂��񂪁A�uedit_�v����n�܂�t�@�C�����Ńe���v���[�g���쐬����ƁA�G�f�B�b�g�E�B���h�E��[�c�[��]-[�e���v���[�g]���j���[�̉��Ƀ��X�g����܂��B���Ƃ��΁Aedit_Test.template�Ƃ����t�@�C�����Ńe���v���[�g���쐬����ƁA[�c�[��]-[�e���v���[�g]-[Test]�Ƃ��ĕ\������܂��B
+デフォルトでは編集用のテンプレートは含まれていませんが、「edit_」から始まるファイル名でテンプレートを作成すると、エディットウィンドウの[ツール]-[テンプレート]メニューの下にリストされます。たとえば、edit_Test.templateというファイル名でテンプレートを作成すると、[ツール]-[テンプレート]-[Test]として表示されます。
 
-�܂��A�ҏW�p�̃e���v���[�g��((<ToolApplyTemplate�A�N�V����|URL:ToolApplyTemplateAction.html>))���g���ēK�p���邱�Ƃ��ł��܂��B���j���[��c�[���o�[�Ȃǂ��J�X�^�}�C�Y���āA���̃A�N�V���������蓖�Ă邱�Ƃɂ��A�C�ӂ̃e���v���[�g��K�p�ł��܂��B�ڍׂ́A((<���j���[�̃J�X�^�}�C�Y|URL:CustomizeMenus.html>))�A((<�c�[���o�[�̃J�X�^�}�C�Y|URL:CustomizeToolbars.html>))�A((<�L�[�{�[�h�V���[�g�J�b�g�̃J�X�^�}�C�Y|URL:CustomizeAccelerators.html>))�ƁA((<MessageCreate�A�N�V����|URL:MessageCreateAction.html>))���Q�Ƃ��Ă��������B
+また、編集用のテンプレートは((<ToolApplyTemplateアクション|URL:ToolApplyTemplateAction.html>))を使って適用することができます。メニューやツールバーなどをカスタマイズして、このアクションを割り当てることにより、任意のテンプレートを適用できます。詳細は、((<メニューのカスタマイズ|URL:CustomizeMenus.html>))、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))、((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))と、((<MessageCreateアクション|URL:MessageCreateAction.html>))を参照してください。
 
 =end

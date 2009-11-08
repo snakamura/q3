@@ -4,34 +4,34 @@
  Boolean @Delete(Boolean direct?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W���폜���܂��B���True��Ԃ��܂��B
+==説明
+コンテキストメッセージを削除します。常にTrueを返します。
 
-direct��True���w�肷��ƃS�~���ɓ��炸���ڍ폜����܂��BFalse���w�肵���ꍇ�A�܂��͎w�肵�Ȃ������ꍇ�ɂ́A�폜���ꂽ���b�Z�[�W���S�~���Ɉړ�����邩�́A((<EditDelete�A�N�V����|URL:EditDeleteAction.html>))�Ɠ��l�ɓ��삵�܂��B
+directにTrueを指定するとゴミ箱に入らず直接削除されます。Falseを指定した場合、または指定しなかった場合には、削除されたメッセージがゴミ箱に移動されるかは、((<EditDeleteアクション|URL:EditDeleteAction.html>))と同様に動作します。
 
-�S�~���ɓ��ꂸ�ɒ��ڍ폜���ꂽ�ꍇ�A�R���e�L�X�g���b�Z�[�W�����݂��Ȃ��Ȃ�܂��B���̂��߁A�ȍ~�̃}�N���ŃR���e�L�X�g���b�Z�[�W���K�v�Ȋ֐��Ȃǂ��Ăяo���ƃG���[�ɂȂ�܂��B
+ゴミ箱に入れずに直接削除された場合、コンテキストメッセージが存在しなくなります。このため、以降のマクロでコンテキストメッセージが必要な関数などを呼び出すとエラーになります。
 
 
-==����
+==引数
 :Boolean direct
-  �S�~�����g�킸�ɒ��ڍ폜���邩�ǂ���
+  ゴミ箱を使わずに直接削除するかどうか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W�z���_���Ȃ��ꍇ
-*�폜�ł��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージホルダがない場合
+*削除できない場合
 
 
-==����
-*���b�Z�[�W�ɑ΂���ύX���\
+==条件
+*メッセージに対する変更が可能
 
 
-==��
- # ���b�Z�[�W���폜
+==例
+ # メッセージを削除
  @Delete()
  
- # ���b�Z�[�W�𒼐ڍ폜
+ # メッセージを直接削除
  @Delete(@True())
 
 =end

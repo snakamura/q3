@@ -1,24 +1,24 @@
 =begin
-=���b�Z�[�W�̈ړ��ƃR�s�[
+=メッセージの移動とコピー
 
-���b�Z�[�W��ʂ̃t�H���_�Ɉړ�������R�s�[����ɂ͊���̕��@������܂��B
-
-
-==�h���b�O�A���h�h���b�v
-���X�g�r���[�ňړ��܂��̓R�s�[���������b�Z�[�W��I�����Ĉړ��E�R�s�[��̃t�H���_�Ƀh���b�O�A���h�h���b�v����ƃ��b�Z�[�W���ړ����邱�Ƃ��ł��܂��B�R�s�[�������ꍇ�ɂ́ACtrl�L�[�������Ȃ���h���b�v���܂��B
+メッセージを別のフォルダに移動したりコピーするには幾つかの方法があります。
 
 
-==���j���[
-((<[���b�Z�[�W]-[�ړ�]|URL:MessageMoveAction.html>))�̎q���j���[�Ƃ��ē���A�J�E���g���̃t�H���_���K�w������ă��X�g�A�b�v����܂��B�ړ��E�R�s�[��̃t�H���_��I������΃��b�Z�[�W���ړ����邱�Ƃ��ł��܂��B�R�s�[�������ꍇ�ɂ́ACtrl�L�[�������Ȃ���I�����܂��B���X�g�r���[�Ƀt�H�[�J�X������Ƃ��ɂ̓��X�g�r���[�őI�����Ă���S�Ẵ��b�Z�[�W���A�v���r���[�܂��̓��b�Z�[�W�r���[�Ƀt�H�[�J�X������Ƃ��ɂ͕\�����Ă��郁�b�Z�[�W���ړ���R�s�[�̑ΏۂɂȂ�܂��B
-
-���j���[�ɂ͉B����Ă���t�H���_�͕\������܂��񂪁AShift�L�[�������Ȃ��烁�j���[��I������ƉB����Ă���t�H���_���\������܂��B
-
-�ʂ̃A�J�E���g�Ɉړ��E�R�s�[�������ꍇ�ɂ́A((<[���b�Z�[�W]-[�ړ�]-[���̑�]|URL:MessageMoveAction.html>))��I������ƁA�_�C�A���O���J���A�ړ��E�R�s�[��̃t�H���_���w�肷�邱�Ƃ��ł��܂��B
+==ドラッグアンドドロップ
+リストビューで移動またはコピーしたいメッセージを選択して移動・コピー先のフォルダにドラッグアンドドロップするとメッセージを移動することができます。コピーしたい場合には、Ctrlキーを押しながらドロップします。
 
 
-==�J�b�g�A���h�y�[�X�g
-((<[�ҏW]-[�؂���]|URL:EditCutAction.html>))��((<[�ҏW]-[�R�s�[]|URL:EditCopyAction.html>))�Ń��b�Z�[�W���N���b�v�{�[�h�ɂ���A�ړ��E�R�s�[��̃t�H���_��((<[�ҏW]-[�\��t��]|URL:EditPasteAction.html>))�����s���邱�ƂŁA���b�Z�[�W���ړ�������R�s�[������ł��܂��B[�؂���]��I�������ꍇ�ɂ͈ړ��ɁA[�R�s�[]��I�������ꍇ�ɂ̓R�s�[�ɂȂ�܂��B
+==メニュー
+((<[メッセージ]-[移動]|URL:MessageMoveAction.html>))の子メニューとして同一アカウント内のフォルダが階層化されてリストアップされます。移動・コピー先のフォルダを選択すればメッセージを移動することができます。コピーしたい場合には、Ctrlキーを押しながら選択します。リストビューにフォーカスがあるときにはリストビューで選択している全てのメッセージが、プレビューまたはメッセージビューにフォーカスがあるときには表示しているメッセージが移動やコピーの対象になります。
 
-���[�J���t�H���_��̃��b�Z�[�W�̈ړ���R�s�[�́A((<[�ҏW]-[���ɖ߂�]|URL:EditUndoAction.html>))�Ō��ɖ߂����Ƃ��ł��܂��B
+メニューには隠されているフォルダは表示されませんが、Shiftキーを押しながらメニューを選択すると隠されているフォルダも表示されます。
+
+別のアカウントに移動・コピーしたい場合には、((<[メッセージ]-[移動]-[その他]|URL:MessageMoveAction.html>))を選択すると、ダイアログが開き、移動・コピー先のフォルダを指定することができます。
+
+
+==カットアンドペースト
+((<[編集]-[切り取り]|URL:EditCutAction.html>))や((<[編集]-[コピー]|URL:EditCopyAction.html>))でメッセージをクリップボードにいれ、移動・コピー先のフォルダで((<[編集]-[貼り付け]|URL:EditPasteAction.html>))を実行することで、メッセージを移動したりコピーしたりできます。[切り取り]を選択した場合には移動に、[コピー]を選択した場合にはコピーになります。
+
+ローカルフォルダ上のメッセージの移動やコピーは、((<[編集]-[元に戻す]|URL:EditUndoAction.html>))で元に戻すことができます。
 
 =end

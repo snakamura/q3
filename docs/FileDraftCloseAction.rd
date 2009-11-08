@@ -1,14 +1,14 @@
 =begin
-=FileDraftClose�A�N�V����
+=FileDraftCloseアクション
 
-�ҏW���̃��b�Z�[�W�𑐍e���ɑ��e�Ƃ��ĕۑ����A�G�f�B�b�g�E�B���h�E����܂��B
-
-
-==����
-�Ȃ�
+編集中のメッセージを草稿箱に草稿として保存し、エディットウィンドウを閉じます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

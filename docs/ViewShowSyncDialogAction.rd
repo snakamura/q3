@@ -1,14 +1,14 @@
 =begin
-=ViewShowSyncDialogƒAƒNƒVƒ‡ƒ“
+=ViewShowSyncDialogã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-“¯Šúƒ_ƒCƒAƒƒO‚ð•\Ž¦‚µ‚Ü‚·B•\Ž¦‚³‚ê‚Ä‚¢‚éê‡‚É‚Í‰½‚à‚µ‚Ü‚¹‚ñB
-
-
-==ˆø”
-‚È‚µ
+åŒæœŸãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚è¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹å ´åˆã«ã¯ä½•ã‚‚ã—ã¾ã›ã‚“ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

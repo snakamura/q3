@@ -1,49 +1,49 @@
 =begin
-=�ێ�
+=保守
 
-==����
-�e�A�J�E���g�̃��b�Z�[�W�̃C���f�b�N�X��index.box��index.map�t�@�C���ɁA���b�Z�[�W�{�b�N�X��1�t�@�C���ɐݒ肵���ꍇ�ɂ̓��b�Z�[�W��msg.box��msg.map�t�@�C���ɕۑ�����܂��B�����̃t�@�C���́A�傫���Ȃ邱�Ƃ͂����Ă��������Ȃ邱�Ƃ͂���܂���B�����̃t�@�C���̒��Ŏg���Ȃ��Ȃ����̈悪�ł����ꍇ�͍ė��p�\�Ƃ��ă}�[�N����A�K�v�ɉ����čė��p����܂��B
+==整理
+各アカウントのメッセージのインデックスはindex.boxとindex.mapファイルに、メッセージボックスを1ファイルに設定した場合にはメッセージはmsg.boxとmsg.mapファイルに保存されます。これらのファイルは、大きくなることはあっても小さくなることはありません。これらのファイルの中で使われなくなった領域ができた場合は再利用可能としてマークされ、必要に応じて再利用されます。
 
-�����̃t�@�C���𐮗����ď������������ꍇ�ɂ́A((<[�t�@�C��]-[�ێ�]-[����]|URL:FileCompactAction.html>))��I�����܂��B
-
-
-==���b�Z�[�W�{�b�N�X����ꂽ�ꍇ
-�s�K�ɂ����b�Z�[�W�{�b�N�X�����Ă��܂����ꍇ�ɂ́A�ȉ��̑�������邱�Ƃŕ����\�ȏꍇ������܂��B�����̑��������O�ɕK���o�b�N�A�b�v������Ă��������B���b�Z�[�W�{�b�N�X�f�B���N�g���ȉ��̃t�@�C����S�ăo�b�N�A�b�v����Ώ��Ȃ��Ƃ����̏�Ԃɖ߂����Ƃ͂ł��܂��B
+これらのファイルを整理して小さくしたい場合には、((<[ファイル]-[保守]-[整理]|URL:FileCompactAction.html>))を選択します。
 
 
-===�Ƃ肠���������Ă݂邱��
-�܂��A((<[�t�@�C��]-[�ێ�]-[����]|URL:FileCheckAction.html>))��I������ƁA���b�Z�[�W�{�̂���C���f�b�N�X���𐶐����Ȃ������Ƃ��ł��܂��B���̌�A((<[�t�@�C��]-[�ێ�]-[�~�o]|URL:FileSalvageAction.html>))��I������ƁA�C���f�b�N�X����Ă��Ȃ����b�Z�[�W�t�@�C�����~���o�����Ƃ��ł��܂�((-1���b�Z�[�W1�t�@�C���̏ꍇ�̂�-))�B
+==メッセージボックスが壊れた場合
+不幸にもメッセージボックスが壊れてしまった場合には、以下の操作をすることで復旧可能な場合があります。これらの操作をする前に必ずバックアップを取ってください。メッセージボックスディレクトリ以下のファイルを全てバックアップすれば少なくとも元の状態に戻すことはできます。
 
 
-===���������ڂ���
-QMAIL3�̃��b�Z�[�W�͈ȉ��̂悤�ɕۑ�����Ă��܂��B�����ł́A�܂�1���b�Z�[�W1�t�@�C���̏ꍇ�ɂ��Đ������܂��B
-
-�܂��A�e�t�H���_�̃��b�Z�[�W�̏��*.idx�t�@�C���ɕۑ�����Ă��܂��B�t�@�C�����́A<�t�H���_ID>.idx�ł��B���̃t�@�C���ɂ́A���b�Z�[�W��ID�Ƌ��ɃC���f�b�N�X���ւ̃|�C���^�ƃ��b�Z�[�W�{�̂ւ̃|�C���^���i�[����Ă��܂��B�C���f�b�N�X���́Aindex.box��index.map�Ƃ����t�@�C���ɕۑ�����Ă��܂��Bidx�t�@�C���ɕۑ�����Ă���C���f�b�N�X���ւ̃|�C���^�͂��̃t�@�C�����̃I�t�Z�b�g���w���Ă��܂��B���b�Z�[�W�{�̂�msg�f�B���N�g���ȉ���1���b�Z�[�W1�t�@�C���Ƃ��ĕۑ�����Ă��܂��Bidx�t�@�C���ɕۑ�����Ă��郁�b�Z�[�W�{�̂ւ̃|�C���^�͂��̃t�@�C���̃t�@�C�����ł��B
+===とりあえず試してみること
+まず、((<[ファイル]-[保守]-[検査]|URL:FileCheckAction.html>))を選択すると、メッセージ本体からインデックス情報を生成しなおすことができます。その後、((<[ファイル]-[保守]-[救出]|URL:FileSalvageAction.html>))を選択すると、インデックスされていないメッセージファイルを救い出すことができます((-1メッセージ1ファイルの場合のみ-))。
 
 
-====index.box����ꂽ�ꍇ
-index.box����ꂽ�ꍇ�A���̃t�@�C�����Đ������邱�Ƃŕ����ł��܂��Bidx�t�@�C�������Ă��Ȃ���΁A���b�Z�[�W�{�̂ւ̃|�C���^�͐������͂��Ȃ̂ŁA���b�Z�[�W�{�̂���index.box���Đ������邱�Ƃ��ł��܂��B�܂��́A((<[�t�@�C��]-[�ێ�]-[����]|URL:FileCheckAction.html>))�����̂܂܎��s���ĕ����ł��邩�ǂ��������Ă݂܂��B
+===もう少し詳しく
+QMAIL3のメッセージは以下のように保存されています。ここでは、まず1メッセージ1ファイルの場合について説明します。
 
-���ۂɂ�index.box���Đ�������Ƃ��ɂ͌���index.box��ǂޕK�v������܂��B����̓��b�Z�[�W�̃��x���̏�񂪂����ɂ��������Ă��Ȃ����߂ł��B�������A����index.box�����S�ɉ��Ă��܂��Ă��邽�߂ɂ��܂������ł��Ȃ����Ƃ�����܂��B���̏ꍇ�ɂ́Aindex.box��index.map���폜���Ă���((<[�t�@�C��]-[�ێ�]-[����]|URL:FileCheckAction.html>))�����邱�Ƃŕ�������\��������܂��B�������A���̏ꍇ���x���̏��͎����܂��B
-
-
-====*.idx���X�V����Ă��Ȃ��ꍇ
-���b�Z�[�W���ǉ����ꂽ�̂�idx�t�@�C�����ۑ������O�Ɏ�����ƁA�ǉ����ꂽ���b�Z�[�W�������Ȃ��Ȃ�܂��B���̏ꍇ�A((<[�t�@�C��]-[�ێ�]-[�~�o]|URL:FileSalvageAction.html>))�����邱�ƂŁAidx�t�@�C���ɓo�^����Ă��Ȃ����b�Z�[�W��T���o�����Ƃ��ł��܂��B
+まず、各フォルダのメッセージの情報が*.idxファイルに保存されています。ファイル名は、<フォルダID>.idxです。このファイルには、メッセージのIDと共にインデックス情報へのポインタとメッセージ本体へのポインタが格納されています。インデックス情報は、index.boxとindex.mapというファイルに保存されています。idxファイルに保存されているインデックス情報へのポインタはこのファイル内のオフセットを指しています。メッセージ本体はmsgディレクトリ以下に1メッセージ1ファイルとして保存されています。idxファイルに保存されているメッセージ本体へのポインタはこのファイルのファイル名です。
 
 
-====*.idx����ꂽ�ꍇ
-idx�t�@�C��������ƃC���f�b�N�X�͂��Ƃ�茳�̃��b�Z�[�W�ւ̃|�C���^�����������Ȃ��Ă���\��������܂��B���̏ꍇ�ɂ́A*.idx��index.box, index.map���폜�������((<[�t�@�C��]-[�ێ�]-[�~�o]|URL:FileSalvageAction.html>))�����邱�ƂŁA���b�Z�[�W���~���o�����Ƃ��ł��܂��B�������A�t�H���_�̏��⃁�b�Z�[�W�̃t���O�A���x���Ȃǂ͎����܂��B
+====index.boxが壊れた場合
+index.boxが壊れた場合、このファイルを再生成することで復旧できます。idxファイルが壊れていなければ、メッセージ本体へのポインタは正しいはずなので、メッセージ本体からindex.boxを再生成することができます。まずは、((<[ファイル]-[保守]-[検査]|URL:FileCheckAction.html>))をそのまま実行して復旧できるかどうか試してみます。
 
-�܂��A���Ƃ��Γ���̃t�H���_��U�蕪����ƕK�������I�����Ă��܂��悤�ȏ󋵂ɂȂ����ꍇ�ɂ́A<���̃t�H���_��ID>.idx�t�@�C�����폜�������((<[�t�@�C��]-[�ێ�]-[�~�o]|URL:FileSalvageAction.html>))���s�����Ƃ��ł��܂��B���̏ꍇ���A�t���O�⃉�x���Ȃǂ͎����܂��B
-
-
-====���b�Z�[�W�{�b�N�X��1�t�@�C���̏ꍇ
-1���b�Z�[�W1�t�@�C���̏ꍇ�ɂ�msg�f�B���N�g���ȉ��Ƀ��b�Z�[�W���ۑ�����Ă��܂����A1�t�@�C���̏ꍇ�ɂ�msg.box��msg.map�Ƃ����t�@�C���Ƀ��b�Z�[�W���ۑ�����Ă��܂��B���̏ꍇ�A((<[�t�@�C��]-[�ێ�]-[�~�o]|URL:FileSalvageAction.html>))�͎g�p�ł��܂���B�������Amsg.box��Unix mbox�t�H�[�}�b�g�ƌ݊��̂���`���ɂȂ��Ă��܂��̂ŁAQMAIL3�ŃC���|�[�g���邱�Ƃ��ł��܂��B�ʂ̃A�J�E���g���쐬���āAmsg.box���C���|�[�g���邱�ƂŁA���b�Z�[�W���~���o�����Ƃ��ł��܂�((-�c���Ă���S�~���b�Z�[�W���C���|�[�g���Ă��܂��\��������܂�-))�B�������A�t�H���_�̏��⃁�b�Z�[�W�̃t���O�A���x���Ȃǂ͎����܂��B
-
-������ɂ��Ă��A1���b�Z�[�W1�t�@�C���̏ꍇ�ɂ�msg�f�B���N�g���ȉ��̃t�@�C�����A1�t�@�C���̏ꍇ�ɂ�msg.box�t�@�C��������΍ň��ł����b�Z�[�W�͕��������邱�Ƃ��ł���\���������ł��B
+実際にはindex.boxを再生成するときには元のindex.boxを読む必要があります。これはメッセージのラベルの情報がここにしか入っていないためです。しかし、元のindex.boxが完全に壊れてしまっているためにうまく復旧できないことがあります。この場合には、index.boxとindex.mapを削除してから((<[ファイル]-[保守]-[検査]|URL:FileCheckAction.html>))をすることで復旧する可能性があります。ただし、この場合ラベルの情報は失われます。
 
 
-==�_���v�ƃ��[�h
-((<[�t�@�C��]-[�ێ�]-[�_���v]|URL:FileDumpAction.html>))��I������ƁA���݂̃A�J�E���g�̑S�Ẵ��b�Z�[�W���t�H���_�̍\����ۂ����܂܎w�肵���f�B���N�g���̉��Ƀt�@�C���Ƃ��ĕۑ����邱�Ƃ��ł��܂��B�_���v�����f�B���N�g������t�H���_�\���ƃ��b�Z�[�W�𕜌�����ɂ�((<[�t�@�C��]-[�ێ�]-[���[�h]|URL:FileLoadAction.html>))��I�����܂��B
+====*.idxが更新されていない場合
+メッセージが追加されたのにidxファイルが保存される前に失われると、追加されたメッセージが見えなくなります。この場合、((<[ファイル]-[保守]-[救出]|URL:FileSalvageAction.html>))をすることで、idxファイルに登録されていないメッセージを探し出すことができます。
+
+
+====*.idxが壊れた場合
+idxファイルが壊れるとインデックスはもとより元のメッセージへのポインタもおかしくなっている可能性があります。この場合には、*.idxとindex.box, index.mapを削除した上で((<[ファイル]-[保守]-[救出]|URL:FileSalvageAction.html>))をすることで、メッセージを救い出すことができます。ただし、フォルダの情報やメッセージのフラグ、ラベルなどは失われます。
+
+また、たとえば特定のフォルダを振り分けると必ず強制終了してしまうような状況になった場合には、<そのフォルダのID>.idxファイルを削除した上で((<[ファイル]-[保守]-[救出]|URL:FileSalvageAction.html>))を行うこともできます。この場合も、フラグやラベルなどは失われます。
+
+
+====メッセージボックスが1ファイルの場合
+1メッセージ1ファイルの場合にはmsgディレクトリ以下にメッセージが保存されていますが、1ファイルの場合にはmsg.boxとmsg.mapというファイルにメッセージが保存されています。この場合、((<[ファイル]-[保守]-[救出]|URL:FileSalvageAction.html>))は使用できません。ただし、msg.boxはUnix mboxフォーマットと互換のある形式になっていますので、QMAIL3でインポートすることができます。別のアカウントを作成して、msg.boxをインポートすることで、メッセージを救い出すことができます((-残っているゴミメッセージもインポートしてしまう可能性があります-))。ただし、フォルダの情報やメッセージのフラグ、ラベルなどは失われます。
+
+いずれにしても、1メッセージ1ファイルの場合にはmsgディレクトリ以下のファイルを、1ファイルの場合にはmsg.boxファイルがあれば最悪でもメッセージは復旧させることができる可能性が高いです。
+
+
+==ダンプとロード
+((<[ファイル]-[保守]-[ダンプ]|URL:FileDumpAction.html>))を選択すると、現在のアカウントの全てのメッセージをフォルダの構造を保ったまま指定したディレクトリの下にファイルとして保存することができます。ダンプしたディレクトリからフォルダ構造とメッセージを復元するには((<[ファイル]-[保守]-[ロード]|URL:FileLoadAction.html>))を選択します。
 
 =end

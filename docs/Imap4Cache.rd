@@ -1,16 +1,16 @@
 =begin
-=�L���b�V��
+=キャッシュ
 
-IMAP4�A�J�E���g�ł̓����[�g�t�H���_�̃��b�Z�[�W�̓T�[�o��ɑ��݂��܂��B�f�t�H���g�ł̓t�H���_�𓯊�����Ƃ��ɂ̓��b�Z�[�W�̃C���f�b�N�X���݂̂��擾�����b�Z�[�W�{�͎̂擾���܂���B��ɃT�[�o���烁�b�Z�[�W���擾����ɂ́A((<���x�̐ݒ�|URL:AccountAdvanced.html>))�œ����t�B���^�Ƃ���[���ׂ� (IMAP4)]��I�����܂��B�܂��A�u�w�b�_�̂� (IMAP4)�v��u�e�L�X�g�̂� (IMAP4)�v��I������ƁA���ꂼ��w�b�_�̂݁A�܂��̓e�L�X�g�����i�Y�t�t�@�C���ȊO�j�݂̂��擾���܂��B
+IMAP4アカウントではリモートフォルダのメッセージはサーバ上に存在します。デフォルトではフォルダを同期するときにはメッセージのインデックス情報のみを取得しメッセージ本体は取得しません。常にサーバからメッセージを取得するには、((<高度の設定|URL:AccountAdvanced.html>))で同期フィルタとして[すべて (IMAP4)]を選択します。また、「ヘッダのみ (IMAP4)」や「テキストのみ (IMAP4)」を選択すると、それぞれヘッダのみ、またはテキスト部分（添付ファイル以外）のみを取得します。
 
-���b�Z�[�W�S�̂��擾���Ȃ������ꍇ�ɂ́A���X�g�r���[�̃��b�Z�[�W�̃A�C�R����������M�p�̂��̂ɂȂ�܂��B�����̃��b�Z�[�W�̑S�̂��_�E�����[�h�������ꍇ�ɂ́A((<�_�E�����[�h�t���O|URL:Flag.html>))�A�܂���((<�{���_�E�����[�h�t���O|URL:Flag.html>))��t���Ă��瓯�����܂��B�_�E�����[�h�t���O��t����ɂ́A((<[���b�Z�[�W]-[�}�[�N]-[�_�E�����[�h�\��]|URL:MessageMarkDownloadAction.html>))���A�{���_�E�����[�h�t���O��t����ɂ́A((<[���b�Z�[�W]-[�}�[�N]-[�{�����_�E�����[�h�\��]|URL:MessageMarkDownloadTextAction.html>))��I�����܂��B�_�E�����[�h�}�[�N�������ɂ́A((<[���b�Z�[�W]-[�v���p�e�B]|URL:MessagePropertyAction.html>))��I�����ă��b�Z�[�W�̃v���p�e�B��((<���|URL:MessagePropertyPage.html>))�y�[�W��[�_�E�����[�h]��[�{���_�E�����[�h]�̃`�F�b�N���O���܂��B
+メッセージ全体を取得しなかった場合には、リストビューのメッセージのアイコンが部分受信用のものになります。これらのメッセージの全体をダウンロードしたい場合には、((<ダウンロードフラグ|URL:Flag.html>))、または((<本文ダウンロードフラグ|URL:Flag.html>))を付けてから同期します。ダウンロードフラグを付けるには、((<[メッセージ]-[マーク]-[ダウンロード予約]|URL:MessageMarkDownloadAction.html>))を、本文ダウンロードフラグを付けるには、((<[メッセージ]-[マーク]-[本文をダウンロード予約]|URL:MessageMarkDownloadTextAction.html>))を選択します。ダウンロードマークを消すには、((<[メッセージ]-[プロパティ]|URL:MessagePropertyAction.html>))を選択してメッセージのプロパティの((<一般|URL:MessagePropertyPage.html>))ページで[ダウンロード]や[本文ダウンロード]のチェックを外します。
 
-��������ƃ_�E�����[�h�t���O�̕t�������b�Z�[�W���T�[�o�ォ��_�E�����[�h���܂��B
+同期するとダウンロードフラグの付いたメッセージをサーバ上からダウンロードします。
 
-���b�Z�[�W���_�E�����[�h����ƃL���b�V���Ƃ��Ĉ����A���񂩂�̓T�[�o���烁�b�Z�[�W���擾�����ɃL���b�V������擾����悤�ɂȂ�܂��B�������A�{�������_�E�����[�h���Ă��Ȃ��ꍇ�ɓY�t�t�@�C�����K�v�ɂȂ����ꍇ�Ȃǂɂ̓T�[�o���烁�b�Z�[�W���擾���܂��B�܂��A�L���b�V�����ꂽ���b�Z�[�W�́A((<�I�t���C��|URL:OnlineOffline.html>))�̏ꍇ�ł��\�����邱�Ƃ��ł��܂��B
+メッセージをダウンロードするとキャッシュとして扱われ、次回からはサーバからメッセージを取得せずにキャッシュから取得するようになります。ただし、本文しかダウンロードしていない場合に添付ファイルが必要になった場合などにはサーバからメッセージを取得します。また、キャッシュされたメッセージは、((<オフライン|URL:OnlineOffline.html>))の場合でも表示することができます。
 
-��x�T�[�o����擾�������b�Z�[�W����ɃL���b�V�����邽�߂ɂ́A((<�t�H���_�̃v���p�e�B|URL:FolderProperty.html>))��((<���|URL:FolderPropertyPage.html>))�y�[�W��[�ǂ񂾂Ƃ��ɃL���b�V������]�Ƀ`�F�b�N�����܂��B���̐ݒ������ƁA�����t�B���^�Ŗ{���𓯊����Ă��Ȃ��ꍇ�ł��A���b�Z�[�W��\��������A�Y�t�t�@�C����ۑ������ꍇ�ȂǂɎ����I�Ɏ擾�������b�Z�[�W���L���b�V�����܂��B
+一度サーバから取得したメッセージを常にキャッシュするためには、((<フォルダのプロパティ|URL:FolderProperty.html>))の((<一般|URL:FolderPropertyPage.html>))ページで[読んだときにキャッシュする]にチェックを入れます。この設定をすると、同期フィルタで本文を同期していない場合でも、メッセージを表示したり、添付ファイルを保存した場合などに自動的に取得したメッセージをキャッシュします。
 
-��x�擾�����L���b�V�����폜����ɂ́A�L���b�V�����폜���������b�Z�[�W��I�����āA((<[�ҏW]-[�L���b�V�����폜]|URL:EditDeleteCacheAction.html>))��I�����܂��B
+一度取得したキャッシュを削除するには、キャッシュを削除したいメッセージを選択して、((<[編集]-[キャッシュを削除]|URL:EditDeleteCacheAction.html>))を選択します。
 
 =end

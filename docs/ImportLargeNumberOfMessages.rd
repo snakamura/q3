@@ -1,10 +1,10 @@
 =begin
-=��ʂ̃��b�Z�[�W���C���|�[�g���悤�Ƃ���ƃG���[�ɂȂ�܂�
+=大量のメッセージをインポートしようとするとエラーになります
 
-((<[�t�@�C��]-[�ǂݍ���]|URL:FileImportAction.html>))�Ń��b�Z�[�W���C���|�[�g����Ƃ��ɂ́A((<[�ǂݍ���]�_�C�A���O|URL:ImportDialog.html>))��[�p�X]�ɕ����̃t�@�C�����w�肷�邱�Ƃ��ł��܂��B
+((<[ファイル]-[読み込み]|URL:FileImportAction.html>))でメッセージをインポートするときには、((<[読み込み]ダイアログ|URL:ImportDialog.html>))の[パス]に複数のファイルを指定することができます。
 
-�Ƃ��낪�A[�Q��]�{�^�����N���b�N���ăt�@�C���_�C�A���O���J���ăt�@�C����I������Ƃ��ɁA��ʂ̃t�@�C����I������ƁA�G���[�ɂȂ邱�Ƃ�����܂��B���̂悤�ȏꍇ�ɂ́A[�p�X]�̗��Ƀ��C���h�J�[�h���g�p���ăt�@�C�������w�肷�邱�Ƃŉ���ł��܂��B���Ƃ��΁AC:\Mail�ɂ���g���q��eml�̃t�@�C����S�ăC���|�[�g����ɂ́A�uC:\Mail\*.eml�v�̂悤�Ɏw�肵�܂��B
+ところが、[参照]ボタンをクリックしてファイルダイアログを開いてファイルを選択するときに、大量のファイルを選択すると、エラーになることがあります。そのような場合には、[パス]の欄にワイルドカードを使用してファイル名を指定することで回避できます。たとえば、C:\Mailにある拡張子がemlのファイルを全てインポートするには、「C:\Mail\*.eml」のように指定します。
 
-�܂��A�G�N�X�v���[���ȂǂŃC���|�[�g�������t�@�C����I�����Ă���A���X�g�r���[��((<�h���b�O�A���h�h���b�v|URL:DragAndDrop.html>))���邱�Ƃ��ł��܂��B
+また、エクスプローラなどでインポートしたいファイルを選択してから、リストビューに((<ドラッグアンドドロップ|URL:DragAndDrop.html>))することもできます。
 
 =end

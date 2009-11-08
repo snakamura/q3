@@ -1,20 +1,20 @@
 =begin
-=[�t�B���^]�_�C�A���O
+=[フィルタ]ダイアログ
 
-[�t�B���^]�_�C�A���O�ł̓t�B���^�̕ҏW���s���܂��B
+[フィルタ]ダイアログではフィルタの編集を行います。
 
-((<[�t�B���^]�_�C�A���O|"IMG:images/FilterDialog.png">))
-
-
-+[���O]
-�t�B���^�̖��O���w�肵�܂��B
+((<[フィルタ]ダイアログ|"IMG:images/FilterDialog.png">))
 
 
-+[����]
-�t�B���^�̏�����((<�}�N��|URL:Macro.html>))�Ŏw�肵�܂��B�Ώۂ̃��b�Z�[�W�ɑ΂��Ďw�肳�ꂽ�}�N����]���������ʂ�True�ɂȂ�ƃt�B���^�̏����𖞂��������ƂɂȂ�܂��B
++[名前]
+フィルタの名前を指定します。
 
 
-+[�ҏW]
-((<[����]�_�C�A���O|URL:ConditionsDialog.html>))���J���ď�����ҏW���܂��B
++[条件]
+フィルタの条件を((<マクロ|URL:Macro.html>))で指定します。対象のメッセージに対して指定されたマクロを評価した結果がTrueになるとフィルタの条件を満たしたことになります。
+
+
++[編集]
+((<[条件]ダイアログ|URL:ConditionsDialog.html>))を開いて条件を編集します。
 
 =end

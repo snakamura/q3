@@ -1,15 +1,15 @@
 =begin
-=EditCutƒAƒNƒVƒ‡ƒ“
+=EditCutã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘I‘ð‚³‚ê‚½ƒIƒuƒWƒFƒNƒg‚ðƒNƒŠƒbƒvƒ{[ƒh‚ÉƒRƒs[‚µ‚Ä‚©‚çíœ‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+é¸æŠžã•ã‚ŒãŸã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ã‚³ãƒ”ãƒ¼ã—ã¦ã‹ã‚‰å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

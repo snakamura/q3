@@ -1,28 +1,28 @@
 =begin
-=����̐ݒ�
+=巡回の設定
 
-[�I�v�V����]�_�C�A���O��[����]�p�l���ł�((<����|URL:GoRound.html>))�̐ݒ���s���܂��B
+[オプション]ダイアログの[巡回]パネルでは((<巡回|URL:GoRound.html>))の設定を行います。
 
-((<����̐ݒ�|"IMG:images/OptionGoRound.png">))
-
-
-+[�ǉ�]
-����R�[�X��ǉ����܂��B((<[����R�[�X]�_�C�A���O|URL:GoRoundCourseDialog.html>))���J���܂��B
+((<巡回の設定|"IMG:images/OptionGoRound.png">))
 
 
-+[�폜]
-�I�����ꂽ����R�[�X���폜���܂��B
++[追加]
+巡回コースを追加します。((<[巡回コース]ダイアログ|URL:GoRoundCourseDialog.html>))が開きます。
 
 
-+[�ҏW]
-�I�����ꂽ����R�[�X��ҏW���܂��B((<[����R�[�X]�_�C�A���O|URL:GoRoundCourseDialog.html>))���J���܂��B
++[削除]
+選択された巡回コースを削除します。
 
 
-+[���]
-�I�����ꂽ����R�[�X���ЂƂ�Ɉړ����܂��B
++[編集]
+選択された巡回コースを編集します。((<[巡回コース]ダイアログ|URL:GoRoundCourseDialog.html>))が開きます。
 
 
-+[����]
-�I�����ꂽ����R�[�X���ЂƂ��Ɉړ����܂��B
++[上へ]
+選択された巡回コースをひとつ上に移動します。
+
+
++[下へ]
+選択された巡回コースをひとつ下に移動します。
 
 =end

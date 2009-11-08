@@ -1,15 +1,15 @@
 =begin
-=MessageSearchƒAƒNƒVƒ‡ƒ“
+=MessageSearchã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒƒbƒZ[ƒW‚ÌŒŸõ‚ð‚µ‚Ü‚·BŽÀs‚·‚é‚Æ[ŒŸõ]ƒ_ƒCƒAƒƒO‚ªŠJ‚«‚Ü‚·BŒŸõ‚É‚Â‚¢‚Ä‚ÍA((<ŒŸõ|URL:Search.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®æ¤œç´¢ã‚’ã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨[æ¤œç´¢]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒé–‹ãã¾ã™ã€‚æ¤œç´¢ã«ã¤ã„ã¦ã¯ã€((<æ¤œç´¢|URL:Search.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

@@ -1,10 +1,10 @@
 =begin
-=�폜�ς݃��b�Z�[�W
+=削除済みメッセージ
 
-IMAP4�A�J�E���g�̃����[�g�t�H���_�ł̓��b�Z�[�W�̍폜���@�����̃��[�J���t�H���_�Ƃ͈قȂ�܂��B�ʏ�̃��[�J���t�H���_�̏ꍇ�ɂ̓��b�Z�[�W���폜����ƁA���̃��b�Z�[�W�̓S�~���Ɉړ����Ă����Ɍ����Ȃ��Ȃ�܂����A�����[�g�t�H���_�̏ꍇ�ɂ̓S�~���Ɉړ�����������̃t�H���_��((<�폜�t���O|URL:Flag.html>))���t������ԂŎc����܂��B
+IMAP4アカウントのリモートフォルダではメッセージの削除方法が他のローカルフォルダとは異なります。通常のローカルフォルダの場合にはメッセージを削除すると、そのメッセージはゴミ箱に移動してすぐに見えなくなりますが、リモートフォルダの場合にはゴミ箱に移動した後も元のフォルダに((<削除フラグ|URL:Flag.html>))が付いた状態で残されます。
 
-�폜�t���O�̕t�������b�Z�[�W��{���ɍ폜����ɂ́A((<[�ҏW]-[�폜�ς݂��N���A]|URL:EditClearDeletedAction.html>))��I�����܂��B�܂��A�A�J�E���g�̐ݒ��((<IMAP4�̐ݒ�|URL:AccountImap4.html>))�ŁA[CLOSE�𑗐M]�Ƀ`�F�b�N������ƃt�H���_�����Ƃ��ɍ폜�t���O�̕t�������b�Z�[�W�������I�ɖ{���ɍ폜���܂��B
+削除フラグの付いたメッセージを本当に削除するには、((<[編集]-[削除済みをクリア]|URL:EditClearDeletedAction.html>))を選択します。また、アカウントの設定の((<IMAP4の設定|URL:AccountImap4.html>))で、[CLOSEを送信]にチェックを入れるとフォルダを閉じるときに削除フラグの付いたメッセージを自動的に本当に削除します。
 
-�܂��A�e�t�H���_�̃v���p�e�B��((<[���]�y�[�W|URL:FolderPropertyPage.html>))��[�����ōX�V����]�Ƀ`�F�b�N������ƃ��b�Z�[�W���폜�����ꍇ�ɂ��̃t�H���_�������œ�������悤�ɂȂ�܂��B[CLOSE�𑗐M]�ƍ��킹�Ă��̃`�F�b�N�������ƁA���b�Z�[�W���폜����Ǝ����Ńt�H���_����������č폜�������b�Z�[�W���{���ɍ폜�����悤�ɂȂ�܂��B
+また、各フォルダのプロパティの((<[一般]ページ|URL:FolderPropertyPage.html>))で[自動で更新する]にチェックを入れるとメッセージを削除した場合にそのフォルダを自動で同期するようになります。[CLOSEを送信]と合わせてこのチェックも入れると、メッセージを削除すると自動でフォルダが同期されて削除したメッセージが本当に削除されるようになります。
 
 =end

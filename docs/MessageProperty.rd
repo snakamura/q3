@@ -1,10 +1,10 @@
 =begin
-=ƒƒbƒZ[ƒW‚ÌƒvƒƒpƒeƒB
+=ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
 
-((<[ƒƒbƒZ[ƒW]-[ƒvƒƒpƒeƒB]|URL:MessagePropertyAction.html>))‚ð‘I‘ð‚·‚é‚ÆƒƒbƒZ[ƒW‚ÌƒvƒƒpƒeƒB‚ª•\Ž¦‚³‚ê‚Ü‚·B
+((<[ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸]-[ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£]|URL:MessagePropertyAction.html>))ã‚’é¸æŠžã™ã‚‹ã¨ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ãŒè¡¨ç¤ºã•ã‚Œã¾ã™ã€‚
 
-ˆÈ‰º‚Ìƒy[ƒW‚ª‚ ‚è‚Ü‚·B
+ä»¥ä¸‹ã®ãƒšãƒ¼ã‚¸ãŒã‚ã‚Šã¾ã™ã€‚
 
-*((<ˆê”Ê|URL:MessagePropertyPage.html>))
+*((<ä¸€èˆ¬|URL:MessagePropertyPage.html>))
 
 =end

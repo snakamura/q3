@@ -1,14 +1,14 @@
 =begin
-=ToolInsertSignatureƒAƒNƒVƒ‡ƒ“
+=ToolInsertSignatureã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»Ý‘I‘ð‚³‚ê‚Ä‚¢‚é–¼‚ðƒLƒƒƒŒƒbƒg‚ÌˆÊ’u‚É‘}“ü‚µA–¼‚Ì‘I‘ð‚ðu‚È‚µv‚É‚µ‚Ü‚·B–¼‚Ì‘I‘ð‚ªu‚È‚µv‚¾‚Á‚½ê‡‚É‚Í‰½‚à‚µ‚Ü‚¹‚ñB
-
-
-==ˆø”
-‚È‚µ
+ç¾åœ¨é¸æŠžã•ã‚Œã¦ã„ã‚‹ç½²åã‚’ã‚­ãƒ£ãƒ¬ãƒƒãƒˆã®ä½ç½®ã«æŒ¿å…¥ã—ã€ç½²åã®é¸æŠžã‚’ã€Œãªã—ã€ã«ã—ã¾ã™ã€‚ç½²åã®é¸æŠžãŒã€Œãªã—ã€ã ã£ãŸå ´åˆã«ã¯ä½•ã‚‚ã—ã¾ã›ã‚“ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼
 
 =end

@@ -1,17 +1,17 @@
 =begin
-=MessageOpenRecent�A�N�V����
+=MessageOpenRecentアクション
 
-�V�����b�Z�[�W���X�g�ɂ��郁�b�Z�[�W���J���܂��B���ۂɂ͈����Ŏw�肳�ꂽURI�̃��b�Z�[�W���J���A�V�����b�Z�[�W���X�g����폜���܂��B�V�����b�Z�[�W���X�g�ɂ��ẮA((<�V���ʒm|URL:Recents.html>))���Q�Ƃ��Ă��������B
+新着メッセージリストにあるメッセージを開きます。実際には引数で指定されたURIのメッセージを開き、新着メッセージリストから削除します。新着メッセージリストについては、((<新着通知|URL:Recents.html>))を参照してください。
 
-((<�����̐ݒ�|URL:OptionSync.html>))��[�v���r���[�ŊJ��]�Ƀ`�F�b�N������ƃv���r���[�ŊJ���A����ȊO�̏ꍇ�ɂ͐V���Ƀ��b�Z�[�W�E�B���h�E���J���܂��B
+((<同期の設定|URL:OptionSync.html>))で[プレビューで開く]にチェックを入れるとプレビューで開き、それ以外の場合には新たにメッセージウィンドウを開きます。
 
 
-==����
+==引数
 :1
-  �J�����b�Z�[�W��URI
+  開くメッセージのURI
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

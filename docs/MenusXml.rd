@@ -1,180 +1,180 @@
 =begin
 =menus.xml
 
-���j���[�̐ݒ������XML�t�@�C���ł��B
+メニューの設定をするXMLファイルです。
 
 
-==����
+==書式
 
-===menus�G�������g
+===menusエレメント
 
  <menus>
   <!-- menubar, menu -->
  </menus>
 
-menus�G�������g���g�b�v���x���G�������g�ɂȂ�܂��Bmenus�G�������g�ȉ��ɂ�0�ȏ��menubar�G�������g�܂���menu�G�������g��u�����Ƃ��ł��܂��B
+menusエレメントがトップレベルエレメントになります。menusエレメント以下には0個以上のmenubarエレメントまたはmenuエレメントを置くことができます。
 
 
-===menubar�G�������g
+===menubarエレメント
 
  <menubar
-  name="���O">
+  name="名前">
   <!-- menuitem, popupmenu, separator -->
  </menubar>
 
-menubar�G�������g�̓��j���[�o�[��\���܂��Bname�����ɂ̓��j���[�o�[�̖��O���w�肵�܂��B
+menubarエレメントはメニューバーを表します。name属性にはメニューバーの名前を指定します。
 
-�ȉ��̖��O�̃��j���o�[����`�ł��܂��B
+以下の名前のメニュバーが定義できます。
 
 :addressbookframe
-  �A�h���X���E�B���h�E
+  アドレス帳ウィンドウ
 :editframe
-  �G�f�B�b�g�E�B���h�E
+  エディットウィンドウ
 :mainframe
-  ���C���E�B���h�E
+  メインウィンドウ
 :messageframe
-  ���b�Z�[�W�E�B���h�E
+  メッセージウィンドウ
 
 
-===menu�G�������g
+===menuエレメント
 
  <menu
-  name="���O">
+  name="名前">
   <!-- menuitem, popupmenu, separator -->
  </menu>
 
-menu�G�������g�̓R���e�L�X�g���j���[��\���܂��Bname�����ɂ̓R���e�L�X�g���j���[�̖��O���w�肵�܂��B
+menuエレメントはコンテキストメニューを表します。name属性にはコンテキストメニューの名前を指定します。
 
-�ȉ��̖��O�̃��j���[����`�ł��܂��B
+以下の名前のメニューが定義できます。
 
 :edit
-  �G�f�B�b�g�r���[�̃R���e�L�X�g���j���[
+  エディットビューのコンテキストメニュー
 :folder
-  �t�H���_�r���[�̃R���e�L�X�g���j���[
+  フォルダビューのコンテキストメニュー
 :folderlist
-  �t�H���_���X�g�r���[�̃R���e�L�X�g���j���[
+  フォルダリストビューのコンテキストメニュー
 :list
-  ���X�g�r���[�̃R���e�L�X�g���j���[
+  リストビューのコンテキストメニュー
 :message
-  ���b�Z�[�W�r���[�̃R���e�L�X�g���j���[
+  メッセージビューのコンテキストメニュー
 :attachment
-  �Y�t�t�@�C���̃R���e�L�X�g���j���[
+  添付ファイルのコンテキストメニュー
 :attachmentedit
-  �Y�t�t�@�C���ҏW�̃R���e�L�X�g���j���[
+  添付ファイル編集のコンテキストメニュー
 :tab
-  �^�u�̃R���e�L�X�g���j���[
+  タブのコンテキストメニュー
 :addressbooklist
-  �A�h���X�r���[�̃R���e�L�X�g���j���[
+  アドレスビューのコンテキストメニュー
 :encoding
-  �X�e�[�^�X�o�[�̃G���R�[�f�B���O���̃R���e�L�X�g���j���[
+  ステータスバーのエンコーディング欄のコンテキストメニュー
 :filter
-  �X�e�[�^�X�o�[�̃t�B���^���̃R���e�L�X�g���j���[
+  ステータスバーのフィルタ欄のコンテキストメニュー
 :template
-  �X�e�[�^�X�o�[�̃e���v���[�g���̃R���e�L�X�g���j���[
+  ステータスバーのテンプレート欄のコンテキストメニュー
 :sync
-  �c�[���o�[�̓����{�^���Ŏg���郁�j���[
+  ツールバーの同期ボタンで使われるメニュー
 :goround
-  �c�[���o�[�̏���{�^���Ŏg���郁�j���[
+  ツールバーの巡回ボタンで使われるメニュー
 :inserttext
-  �c�[���o�[�̒�^���{�^���Ŏg���郁�j���[
+  ツールバーの定型文ボタンで使われるメニュー
 :recents
-  �V�����b�Z�[�W�Ŏg���郁�j���[
+  新着メッセージで使われるメニュー
 
-�܂������ȊO�̖��O�̃��j���[���`���āA((<toolbars.xml|URL:ToolbarsXml.html>))��button�G�������g��dropdown�����Ɏw�肵����A((<ToolPopupMenu�A�N�V����|URL:ToolPopupMenuAction.html>))�Ŏg�p���邱�Ƃ��ł��܂��B
+またこれら以外の名前のメニューを定義して、((<toolbars.xml|URL:ToolbarsXml.html>))のbuttonエレメントのdropdown属性に指定したり、((<ToolPopupMenuアクション|URL:ToolPopupMenuAction.html>))で使用することもできます。
 
 
-===menuitem�G�������g
+===menuitemエレメント
 
  <menuitem
-  text="������"
-  action="�A�N�V����"
-  param="����"
-  dynamic="���I���j���[��"/>
+  text="文字列"
+  action="アクション"
+  param="引数"
+  dynamic="動的メニュー名"/>
 
-menuitem�G�������g�̓��j���[�̃A�C�e����\���܂��B���j���[�̃A�C�e���ɂ͐ÓI�A�C�e���Ɠ��I�ȃA�C�e��������܂��B
+menuitemエレメントはメニューのアイテムを表します。メニューのアイテムには静的アイテムと動的なアイテムがあります。
 
-�ÓI�ȃA�C�e���͒�`���Ɍ��܂��Ă���A�C�e���ŁAtext�����Aaction�����Aparam�������g���Ďw�肵�܂��B
+静的なアイテムは定義時に決まっているアイテムで、text属性、action属性、param属性を使って指定します。
 
-text�����ɂ͕\�����镶������w�肵�܂��B
+text属性には表示する文字列を指定します。
 
-action�����ɂ͂��̃A�C�e�����I�����ꂽ�Ƃ��Ɏ��s�����((<�A�N�V����|URL:Action.html>))���w�肵�܂��B
+action属性にはそのアイテムが選択されたときに実行される((<アクション|URL:Action.html>))を指定します。
 
-param�����ɂ͕K�v������΃A�N�V�����ɓn���������w�肵�܂��B�����̓X�y�[�X�ŋ�؂��ĕ����w�肷�邱�Ƃ��ł��܂��B��̈����ɃX�y�[�X���܂߂����ꍇ�ɂ�""�Ŋ���܂��B""�Ŋ������ꍇ�ɂ́A���̒��Ɋ܂܂��"��\��\�ŃG�X�P�[�v���܂��B�Ⴆ�΁Aparam������@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")���w�肷��ꍇ�ɂ́AXML���ł͈ȉ��̂悤�ɃG�X�P�[�v����܂��B
+param属性には必要があればアクションに渡す引数を指定します。引数はスペースで区切って複数指定することができます。一つの引数にスペースを含めたい場合には""で括ります。""で括った場合には、その中に含まれる"と\を\でエスケープします。例えば、param属性に@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")を指定する場合には、XML中では以下のようにエスケープされます。
 
  param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe\&quot;)&quot;"
 
-���I�ȃA�C�e���͎��s���Ɍ��܂�A�C�e���ŁA�ʏ�͎��s���ɕ����̃A�C�e���ɂȂ�܂��B���I�ȃA�C�e���́Adynamic������param�������g���Ďw�肵�܂��Bdynamic�����ɂ̓A�C�e�����I�����ꂽ�Ƃ��Ɏ��s�����((<�A�N�V����|URL:Action.html>))���w�肵�܂��Bparam�����ɂ̓A�N�V�����ɓn���������𐶐�����}�N�����w�肵�܂��B
+動的なアイテムは実行時に決まるアイテムで、通常は実行時に複数のアイテムになります。動的なアイテムは、dynamic属性とparam属性を使って指定します。dynamic属性にはアイテムが選択されたときに実行される((<アクション|URL:Action.html>))を指定します。param属性にはアクションに渡される引数を生成するマクロを指定します。
 
-param�����Ɏw�肵���}�N����]���������ʂ͈ȉ��̂悤�ȃt�H�[�}�b�g�ɂȂ��Ă���K�v������܂��B
+param属性に指定したマクロを評価した結果は以下のようなフォーマットになっている必要があります。
 
-*��s�Ɉ�A�N�V����
-*��s�̓^�u�ŋ�؂��Ă��āA�^�u���O�ɕ\���p�̕�����A���ɃA�N�V�����ɓn���������w�肷��i���̂Ƃ��A�����̓X�y�[�X�ŋ�؂��ĕ����w�肷�邱�Ƃ��ł��܂��B��̈����ɃX�y�[�X���܂߂����ꍇ�ɂ�""�Ŋ���܂��j
+*一行に一アクション
+*一行はタブで区切られていて、タブより前に表示用の文字列、後ろにアクションに渡す引数を指定する（このとき、引数はスペースで区切って複数指定することができます。一つの引数にスペースを含めたい場合には""で括ります）
 
-�Ⴆ�΁A
+例えば、
 
  <menuitem dynamic="MessageCreate"
-           param="'�V�K\tnew\n�ԐM\treply'"/>
+           param="'新規\tnew\n返信\treply'"/>
 
-�̂悤�ɂ���ƁAMessageCreate�A�N�V�������g���ĐV�K�ƕԐM�̓�̃��j���[���쐬����A���ꂼ��̃A�C�e����I�������Ƃ��ɂ́AMessageCreate�A�N�V������new��reply�������Ƃ��ēn����܂��B
+のようにすると、MessageCreateアクションを使って新規と返信の二つのメニューが作成され、それぞれのアイテムを選択したときには、MessageCreateアクションにnewとreplyが引数として渡されます。
 
-���̗�ł�param�̃}�N������ɓ����l��Ԃ��̂œ��I�ɂ���Ӗ�������܂��񂪁A�󋵂ɉ����ĕԂ������񂪕Ԃ��������ς���悤�ȃ}�N�����w�肷�邱�Ƃœ��I�Ƀ��j���[�𐶐����邱�Ƃ��ł��܂��B
+この例ではparamのマクロが常に同じ値を返すので動的にする意味がありませんが、状況に応じて返す文字列が返す文字列を変えるようなマクロを指定することで動的にメニューを生成することができます。
 
-����ɉ����āA�ȉ��̃A�N�V������dynamic�����Ɏw�肵param�������ȗ�����ƁA�ȉ��̐����ɂ���悤�ȃ��j���[�����I�ɐ�������܂��B
+これに加えて、以下のアクションをdynamic属性に指定しparam属性を省略すると、以下の説明にあるようなメニューが動的に生成されます。
 
 :AddressCreateMessage
-  �I������Ă���A�h���X���̃G���g���ɓo�^����Ă���A�h���X�����X�g���܂�
+  選択されているアドレス帳のエントリに登録されているアドレスをリストします
 :MessageCreate
-  �t�@�C������create_����n�܂�((<�쐬�p�e���v���[�g|URL:CreateTemplate.html>))�����X�g���܂�
+  ファイル名がcreate_から始まる((<作成用テンプレート|URL:CreateTemplate.html>))をリストします
 :MessageCreateExternal
-  �t�@�C������create_����n�܂�((<�쐬�p�e���v���[�g|URL:CreateTemplate.html>))�����X�g���܂�
+  ファイル名がcreate_から始まる((<作成用テンプレート|URL:CreateTemplate.html>))をリストします
 :MessageMove
-  ���݂̃A�J�E���g�̂��ׂẴt�H���_���K�w�I�Ƀ��X�g���܂�
+  現在のアカウントのすべてのフォルダを階層的にリストします
 :MessageOpenAttachment
-  ���݂̃��b�Z�[�W�̓Y�t�t�@�C�������X�g���܂�
+  現在のメッセージの添付ファイルをリストします
 :MessageOpenRecent
-  �V�����b�Z�[�W�����X�g���܂�
+  新着メッセージをリストします
 :ToolApplyTemplate
-  �t�@�C������edit_����n�܂�((<�ҏW�p�e���v���[�g|URL:EditTemplate.html>))�����X�g���܂�
+  ファイル名がedit_から始まる((<編集用テンプレート|URL:EditTemplate.html>))をリストします
 :ToolEncoding
-  �G���R�[�f�B���O�����X�g���܂�
+  エンコーディングをリストします
 :ToolGoround
-  ����R�[�X�����X�g���܂�
+  巡回コースをリストします
 :ToolInsertText
-  ��^�������X�g���܂�
+  定型文をリストします
 :ToolScript
-  �X�N���v�g�����X�g���܂�
+  スクリプトをリストします
 :ToolSubAccount
-  �T�u�A�J�E���g�����X�g���܂�
+  サブアカウントをリストします
 :ViewEncoding
-  �G���R�[�f�B���O�����X�g���܂�
+  エンコーディングをリストします
 :ViewFilter
-  �t�B���^�����X�g���܂�
+  フィルタをリストします
 :ViewFontGroup
-  �t�H���g�O���[�v�����X�g���܂�
+  フォントグループをリストします
 :ViewSort
-  ���X�g�r���[�̃J���������X�g���܂�
+  リストビューのカラムをリストします
 :ViewTemplate
-  �t�@�C������view_����n�܂�((<�\���p�e���v���[�g|URL:ViewTemplate.html>))�����X�g���܂�
+  ファイル名がview_から始まる((<表示用テンプレート|URL:ViewTemplate.html>))をリストします
 
 
-===separator�G�������g
+===separatorエレメント
 
  <separator/>
 
-separator�G�������g�̓Z�p���[�^��\���܂��B
+separatorエレメントはセパレータを表します。
 
 
-===popupmenu�G�������g
+===popupmenuエレメント
 
  <popupmenu
-  text="������">
+  text="文字列">
   <!-- menuitem, popupmenu, separator -->
  </popupmenu>
 
-popupmenu�G�������g�̓|�b�v�A�b�v���j���[��\���܂��Btext�����ɂ͕\�����镶������w�肵�܂��B
+popupmenuエレメントはポップアップメニューを表します。text属性には表示する文字列を指定します。
 
 
-==�X�L�[�}
+==スキーマ
 
  start = element menus {
    (

@@ -4,33 +4,33 @@
  Boolean @Exist(String name)
 
 
-==����
-�w�b�_�Ɏw�肳�ꂽ���O�̃t�B�[���h�����邩�ǂ�����Ԃ��܂��B
+==説明
+ヘッダに指定された名前のフィールドがあるかどうかを返します。
 
-�t�B�[���h��Boolean�ɕϊ�����ƃt�B�[���h�̑��݂����ׂ���̂ňȉ��̎O�͓����Ӗ��ɂȂ�܂��B
+フィールドをBooleanに変換するとフィールドの存在が調べられるので以下の三つは同じ意味になります。
 
  @If(@Exist('X-ML-Name'), 1, 2)
  @If(X-ML-Name, 1, 2)
  @If(@Field('X-ML-Name'), 1, 2)
 
 
-==����
+==引数
 :String name
-  �t�B�[���h��
+  フィールド名
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # X-ML-Name�����邩�ǂ������ׂ�
+==例
+ # X-ML-Nameがあるかどうか調べる
  @Exist('X-ML-Name')
 
 =end

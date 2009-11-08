@@ -1,28 +1,28 @@
 =begin
-=�F�̐ݒ�
+=色の設定
 
-[�I�v�V����]�_�C�A���O��[�F]�p�l���ł�((<���X�g�r���[�̐F|URL:Colors.html>))�̐ݒ���s���܂��B
+[オプション]ダイアログの[色]パネルでは((<リストビューの色|URL:Colors.html>))の設定を行います。
 
-((<�F�̐ݒ�|"IMG:images/OptionColors.png">))
-
-
-+[�ǉ�]
-�F�̐ݒ��ǉ����܂��B((<[�F�̐ݒ�]�_�C�A���O|URL:ColorsDialog.html>))���J���܂��B
+((<色の設定|"IMG:images/OptionColors.png">))
 
 
-+[�폜]
-�I�����ꂽ�F�̐ݒ���폜���܂��B
++[追加]
+色の設定を追加します。((<[色の設定]ダイアログ|URL:ColorsDialog.html>))が開きます。
 
 
-+[�ҏW]
-�I�����ꂽ�F�̐ݒ��ҏW���܂��B((<[�F�̐ݒ�]�_�C�A���O|URL:ColorsDialog.html>))���J���܂��B
++[削除]
+選択された色の設定を削除します。
 
 
-+[���]
-�I�����ꂽ�F�̐ݒ���ЂƂ�Ɉړ����܂��B
++[編集]
+選択された色の設定を編集します。((<[色の設定]ダイアログ|URL:ColorsDialog.html>))が開きます。
 
 
-+[����]
-�I�����ꂽ�F�̐ݒ���ЂƂ��Ɉړ����܂��B
++[上へ]
+選択された色の設定をひとつ上に移動します。
+
+
++[下へ]
+選択された色の設定をひとつ下に移動します。
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=ConfigAutoPilotƒAƒNƒVƒ‡ƒ“
+=ConfigAutoPilotã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<Ž©“®„‰ñ‚ÌÝ’è|URL:OptionAutoPilot.html>))‚ðŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<è‡ªå‹•å·¡å›žã®è¨­å®š|URL:OptionAutoPilot.html>))ã‚’é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

@@ -4,24 +4,24 @@
  String @ProcessName()
 
 
-==à–¾
-ƒvƒƒtƒ@ƒCƒ‹–¼‚ð•Ô‚µ‚Ü‚·B((<ƒvƒƒtƒ@ƒCƒ‹|URL:Profile.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+==èª¬æ˜Ž
+ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«åã‚’è¿”ã—ã¾ã™ã€‚((<ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«|URL:Profile.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
 
-==ƒGƒ‰[
-*ˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
+==ã‚¨ãƒ©ãƒ¼
+*å¼•æ•°ã®æ•°ãŒåˆã£ã¦ã„ãªã„å ´åˆ
 
 
-==ðŒ
-‚È‚µ
+==æ¡ä»¶
+ãªã—
 
 
-==—á
- # ƒvƒƒtƒ@ƒCƒ‹–¼‚ðŽæ“¾
+==ä¾‹
+ # ãƒ—ãƒ­ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å–å¾—
  @ProfileName()
 
 =end

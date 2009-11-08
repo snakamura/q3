@@ -1,34 +1,34 @@
 =begin
 =SSL
 
-QMAIL3�ł�SSL�ɂ��ڑ���STARTTLS�ɂ��SSL�ւ̐؂�ւ����T�|�[�g���Ă��܂��iNNTP�ł�STARTTLS�̓T�|�[�g����܂���j�B
+QMAIL3ではSSLによる接続とSTARTTLSによるSSLへの切り替えをサポートしています（NNTPではSTARTTLSはサポートされません）。
 
 
-==�K�v�ȃ��C�u����
-SSL���g�p����ɂ́AOpenSSL�̃��C�u�������K�v�ł��B�C���X�g�[���ŃC���X�g�[�������ꍇ�A[SSL, S/MIME]�Ƀ`�F�b�N�����Ă����OpenSSL�̃��C�u�����͊��ɃC���X�g�[������Ă��܂��B���̑��̏ꍇ�ɂ́A�_�E�����[�h�y�[�W���烉�C�u�������_�E�����[�h���Alibeay32.dll��libssl32.dll��q3u.exe�Ɠ����f�B���N�g���ɒu���܂��B
+==必要なライブラリ
+SSLを使用するには、OpenSSLのライブラリが必要です。インストーラでインストールした場合、[SSL, S/MIME]にチェックを入れていればOpenSSLのライブラリは既にインストールされています。その他の場合には、ダウンロードページからライブラリをダウンロードし、libeay32.dllとlibssl32.dllをq3u.exeと同じディレクトリに置きます。
 
-�܂��Aqscryptou.dll���Ȃ��ꍇ�ɂ́A�z�z�t�@�C������C���X�g�[������K�v������܂��B
-
-
-==�ؖ���
-SSL�Ŏg�p���邽�߂̃��[�g�ؖ����̓f�t�H���g�ŃV�X�e���̏ؖ����X�g�A���烍�[�h����܂��B�ڍׂɂ��ẮA((<���[�g�ؖ���|URL:RootCertificate.html>))���Q�Ƃ��Ă��������B
+また、qscryptou.dllがない場合には、配布ファイルからインストールする必要があります。
 
 
-==�A�J�E���g�̐ݒ�
-SSL���g�p����ɂ́A�A�J�E���g�̃v���p�e�B��((<�ڍׂ̐ݒ�|URL:AccountDetail.html>))�ŁA[SSL]�܂�[STARTTLS]�̎g�p���������Ƀ`�F�b�N�����܂��BSSL���g�p����悤�ɂ���ƃf�t�H���g�Ń|�[�g�ԍ����ύX����܂��B
+==証明書
+SSLで使用するためのルート証明書はデフォルトでシステムの証明書ストアからロードされます。詳細については、((<ルート証明書|URL:RootCertificate.html>))を参照してください。
 
 
-==�ؖ����̌���
-SSL�ł̐ڑ��Ɏ��s����ꍇ�A�T�[�o�ؖ����̌��؂Ɏ��s���Ă���ꍇ���w�ǂł��B���̏ꍇ�A�A�J�E���g�̃v���p�e�B��((<�ڍׂ̐ݒ�|URL:AccountDetail.html>))��[���O]�Ƀ`�F�b�N�����A���O������ƃG���[�ɂȂ��������𒲂ׂ邱�Ƃ��ł��܂��B���O�ɂ��ẮA((<���O|URL:Log.html>))���Q�Ƃ��Ă��������B
+==アカウントの設定
+SSLを使用するには、アカウントのプロパティの((<詳細の設定|URL:AccountDetail.html>))で、[SSL]また[STARTTLS]の使用したい方にチェックを入れます。SSLを使用するようにするとデフォルトでポート番号が変更されます。
 
-�e�X�g�ړI�ŁA�T�[�o�ؖ����̌��؂𖳌��ɂ������ꍇ�ɂ́A((<account.xml|URL:AccountXml.html>))��Global/SslOption�Ɉȉ��̒l�̑g�ݍ��킹��ݒ肵�܂��B�ݒ�ł���͈̂ȉ��̒l�̃r�b�g�a�ł����A���ۂɎw�肷��Ƃ��ɂ�10�i���Ŏw�肵�܂��B
+
+==証明書の検証
+SSLでの接続に失敗する場合、サーバ証明書の検証に失敗している場合が殆どです。この場合、アカウントのプロパティの((<詳細の設定|URL:AccountDetail.html>))で[ログ]にチェックを入れ、ログを見るとエラーになった原因を調べることができます。ログについては、((<ログ|URL:Log.html>))を参照してください。
+
+テスト目的で、サーバ証明書の検証を無効にしたい場合には、((<account.xml|URL:AccountXml.html>))のGlobal/SslOptionに以下の値の組み合わせを設定します。設定できるのは以下の値のビット和ですが、実際に指定するときには10進数で指定します。
 
 :0x01
-  �T�[�o�ؖ����̌��؂Ɏ��s���Ă����s���܂�
+  サーバ証明書の検証に失敗しても続行します
 
 :0x02
-  �ؖ�����CN��subjectAltName�Ŏw�肳�ꂽ�z�X�g�����ڑ���̃z�X�g���ƈقȂ��Ă��Ă����s���܂��B
+  証明書のCNやsubjectAltNameで指定されたホスト名が接続先のホスト名と異なっていても続行します。
 
-�����̒l��ݒ肵���ꍇ�A�ڑ���̃T�[�o���{���Ɏw�肵���T�[�o�ł��邩�ǂ����̊m�F���ł��Ȃ��Ȃ邽�߁A�Z�L�����e�B�I�ɂ�SSL�Őڑ�����Ӗ����Ȃ��Ȃ�܂��B�����܂ł��e�X�g�p�̗p�r�ɂƂǂ߂Ă��������B
+これらの値を設定した場合、接続先のサーバが本当に指定したサーバであるかどうかの確認ができなくなるため、セキュリティ的にはSSLで接続する意味がなくなります。あくまでもテスト用の用途にとどめてください。
 
 =end

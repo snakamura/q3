@@ -4,31 +4,31 @@
  Boolean @Download(Boolean download?)
 
 
-==����
-�����Ȃ��ŌĂяo���ꂽ�ꍇ�ɂ́A�R���e�L�X�g���b�Z�[�W���_�E�����[�h�\�񂳂�Ă���ꍇ�ɂ�True�A����ȊO�̏ꍇ�ɂ�False��Ԃ��܂��Bdownload��True���w�肳��ČĂяo���ꂽ�ꍇ�ɂ̓R���e�L�X�g���b�Z�[�W���_�E�����[�h�\�񂵁AFalse���w�肳�ꂽ�ꍇ�ɂ̓_�E�����[�h�\����L�����Z�����܂��B((<�t���O|URL:Flag.html>))���Q�Ƃ��Ă��������B
+==説明
+引数なしで呼び出された場合には、コンテキストメッセージがダウンロード予約されている場合にはTrue、それ以外の場合にはFalseを返します。downloadにTrueを指定されて呼び出された場合にはコンテキストメッセージをダウンロード予約し、Falseを指定された場合にはダウンロード予約をキャンセルします。((<フラグ|URL:Flag.html>))を参照してください。
 
 
-==����
+==引数
 :Boolean download
-  �_�E�����[�h�\�񂷂邩�ǂ���
+  ダウンロード予約するかどうか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���ꎞ�I�ȏꍇ�i�����t���ŌĂяo���ꂽ�ꍇ�j
-*�_�E�����[�h�\��A�܂��̓L�����Z���Ɏ��s�����ꍇ�i�����t���ŌĂяo���ꂽ�ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*コンテキストメッセージが一時的な場合（引数付きで呼び出された場合）
+*ダウンロード予約、またはキャンセルに失敗した場合（引数付きで呼び出された場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �_�E�����[�h�\�񂳂�Ă��邩�ǂ������ׂ�
+==例
+ # ダウンロード予約されているかどうか調べる
  @Download()
  
- # �_�E�����[�h�\�񂷂�
+ # ダウンロード予約する
  @Download(@True())
 
 =end

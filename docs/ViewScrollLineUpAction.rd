@@ -1,15 +1,15 @@
 =begin
-=ViewScrollLineUpƒAƒNƒVƒ‡ƒ“
+=ViewScrollLineUpã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒƒCƒ“ƒEƒBƒ“ƒhƒE‚Å‚ÍƒŠƒXƒgƒrƒ…[‚ðAƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE‚Å‚ÍƒGƒfƒBƒbƒgƒrƒ…[‚ðˆêsã‚ÉƒXƒNƒ[ƒ‹‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§ã¯ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚’ã€ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§ã¯ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã‚’ä¸€è¡Œä¸Šã«ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

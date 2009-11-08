@@ -1,15 +1,15 @@
 =begin
-=AttachmentOpen�A�N�V����
+=AttachmentOpenアクション
 
-�I�����ꂽ�Y�t�t�@�C�����J���܂��B�����̓Y�t�t�@�C�����I������Ă���ꍇ�ɂ͑S�Ă̓Y�t�t�@�C�����J���܂��B�Y�t�t�@�C���͊֘A�t���ɏ]���ĊJ����܂��B�������AShift�L�[��������Ă���ꍇ�ɂ́A�w�肳�ꂽ�G�f�B�^�œY�t�t�@�C�����J���܂��B
-
-
-==����
-�Ȃ�
+選択された添付ファイルを開きます。複数の添付ファイルが選択されている場合には全ての添付ファイルを開きます。添付ファイルは関連付けに従って開かれます。ただし、Shiftキーが押されている場合には、指定されたエディタで添付ファイルを開きます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�v���r���[
-*���b�Z�[�W�r���[
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*プレビュー
+*メッセージビュー
 
 =end

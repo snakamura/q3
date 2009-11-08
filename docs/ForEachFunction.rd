@@ -4,32 +4,32 @@
  Boolean @ForEach(MessageList messages, Expr expr)
 
 
-==à–¾
-messages‚ÅŽw’è‚³‚ê‚½ŠeƒƒbƒZ[ƒW‚ðƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚Æ‚µ‚ÄAexpr‚ÅŽw’è‚³‚ê‚½Ž®‚ðŒJ‚è•Ô‚µ•]‰¿‚µ‚Ü‚·Bí‚ÉTrue‚ð•Ô‚µ‚Ü‚·B
+==èª¬æ˜Ž
+messagesã§æŒ‡å®šã•ã‚ŒãŸå„ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¨ã—ã¦ã€exprã§æŒ‡å®šã•ã‚ŒãŸå¼ã‚’ç¹°ã‚Šè¿”ã—è©•ä¾¡ã—ã¾ã™ã€‚å¸¸ã«Trueã‚’è¿”ã—ã¾ã™ã€‚
 
 
-==ˆø”
+==å¼•æ•°
 :MessageList messages
-  ‘ÎÛ‚ÌƒƒbƒZ[ƒWƒŠƒXƒg
+  å¯¾è±¡ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒªã‚¹ãƒˆ
 :Expr expr
-  •]‰¿‚·‚éŽ®
+  è©•ä¾¡ã™ã‚‹å¼
 
 
-==ƒGƒ‰[
-*ˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
-*ˆø”‚ÌŒ^‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
-*Ž®‚ð•]‰¿’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚½ê‡
+==ã‚¨ãƒ©ãƒ¼
+*å¼•æ•°ã®æ•°ãŒåˆã£ã¦ã„ãªã„å ´åˆ
+*å¼•æ•°ã®åž‹ãŒåˆã£ã¦ã„ãªã„å ´åˆ
+*å¼ã‚’è©•ä¾¡ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ãŸå ´åˆ
 
 
-==ðŒ
-‚È‚µ
+==æ¡ä»¶
+ãªã—
 
 
-==—á
- # ŽóM” “à‚Ì‚·‚×‚Ä‚ÌƒƒbƒZ[ƒW‚ðŠù“Ç‚É‚·‚é
- @ForEach(@Messages('ŽóM” '), @Seen(@True()))
+==ä¾‹
+ # å—ä¿¡ç®±å†…ã®ã™ã¹ã¦ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’æ—¢èª­ã«ã™ã‚‹
+ @ForEach(@Messages('å—ä¿¡ç®±'), @Seen(@True()))
  
- # ƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚ª‘®‚·‚éƒXƒŒƒbƒh‚ÌƒƒbƒZ[ƒW‘S‚Ä‚ðƒ}[ƒN‚·‚é
+ # ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒå±žã™ã‚‹ã‚¹ãƒ¬ãƒƒãƒ‰ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å…¨ã¦ã‚’ãƒžãƒ¼ã‚¯ã™ã‚‹
  @ForEach(@Thread(), @Marked(@True()))
 
 =end

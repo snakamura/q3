@@ -4,29 +4,29 @@
  Value @Variable(String name, Value value?, Boolean global?)
 
 
-==����
-name�Ŏw�肳�ꂽ���O�̕ϐ��̒l��Ԃ��܂��B�ϐ������������ꍇ�ɂ�value��global�͖�������܂��B�w�肵�����O�̕ϐ���������Ȃ��ꍇ�ɂ́A((<@Set|URL:SetFunction.html>))�Ɠ��l�ɐU�����܂��B
+==説明
+nameで指定された名前の変数の値を返します。変数が見つかった場合にはvalueとglobalは無視されます。指定した名前の変数が見つからない場合には、((<@Set|URL:SetFunction.html>))と同様に振舞います。
 
 
-==����
+==引数
 :String name
-  �ϐ���
+  変数名
 :Value value
-  �l
+  値
 :Boolean global
-  �O���[�o���ϐ����ǂ���
+  グローバル変数かどうか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # test�Ƃ����ϐ��ɒl�������Ă����炻���Ԃ��B�����Ă��Ȃ�������0���Z�b�g���Ă����Ԃ�
+==例
+ # testという変数に値が入っていたらそれを返す。入っていなかったら0をセットしてそれを返す
  @Variable('test', 0)
 
 =end

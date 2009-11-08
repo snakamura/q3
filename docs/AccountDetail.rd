@@ -1,64 +1,64 @@
 =begin
-=�ڍׂ̐ݒ�
+=詳細の設定
 
-�ڍׂ̐ݒ���s���܂��B
+詳細の設定を行います。
 
-((<[�ڍ�]�^�u|"IMG:images/AccountDetailPage.png">))
-
-
-====[��M]
-��M�T�[�o�iPOP3�T�[�o��IMAP4�T�[�o�Ȃǁj�̐ݒ���s���܂��B
+((<[詳細]タブ|"IMG:images/AccountDetailPage.png">))
 
 
-+[�|�[�g]
-�|�[�g�ԍ����w�肵�܂��B�ʏ�̓f�t�H���g�̐ݒ�Ŗ�肠��܂���B�f�t�H���g��POP3�̏ꍇ�ɂ�110(995)�AIMAP4�̏ꍇ�ɂ�143(993)�ANNTP�̏ꍇ�ɂ�119(563)�ł��i�J�b�R����SSL���g�p����ꍇ�j�B
+====[受信]
+受信サーバ（POP3サーバやIMAP4サーバなど）の設定を行います。
 
 
-====[���S]
-SSL��STARTTLS���g�����ǂ������w�肵�܂��BSSL��STARTTLS�ɂ��ẮA((<SSL|URL:SSL.html>))���Q�Ƃ��Ă��������B
++[ポート]
+ポート番号を指定します。通常はデフォルトの設定で問題ありません。デフォルトはPOP3の場合には110(995)、IMAP4の場合には143(993)、NNTPの場合には119(563)です（カッコ内はSSLを使用する場合）。
 
 
-+[�Ȃ�]
-SSL���g�p���܂���B
+====[安全]
+SSLやSTARTTLSを使うかどうかを指定します。SSLやSTARTTLSについては、((<SSL|URL:SSL.html>))を参照してください。
 
 
-+[SSL]
-SSL���g�p���܂��B
-
-
-+[STARTTLS]
-STARTTLS���g�p���܂��B
-
-
-+[���O]
-�ʐM�̃��O����邩�ǂ������w�肵�܂��B���O�ɂ��ẮA((<���O|URL:Log.html>))���Q�Ƃ��Ă��������B
-
-
-====[���M]
-���M�T�[�o�iSMTP�T�[�o�Ȃǁj�̐ݒ���s���܂��B
-
-
-+[�|�[�g]
-�|�[�g�ԍ����w�肵�܂��B�ʏ�̓f�t�H���g�̐ݒ�Ŗ�肠��܂���B�f�t�H���g��SMTP�̏ꍇ�ɂ�25(465)�APOP3(XTND XMIT)�̏ꍇ�ɂ�110(993)�ANNTP�̏ꍇ�ɂ�119(563)�ł��i�J�b�R����SSL���g�p����ꍇ�j�B
-
-
-====[���S]
-SSL��STARTTLS���g�����ǂ������w�肵�܂��BSSL��STARTTLS�ɂ��ẮA((<SSL|URL:SSL.html>))���Q�Ƃ��Ă��������B
-
-
-+[�Ȃ�]
-SSL���g�p���܂���B
++[なし]
+SSLを使用しません。
 
 
 +[SSL]
-SSL���g�p���܂��B
+SSLを使用します。
 
 
 +[STARTTLS]
-STARTTLS���g�p���܂��B
+STARTTLSを使用します。
 
 
-+[���O]
-�ʐM�̃��O����邩�ǂ������w�肵�܂��B���O�ɂ��ẮA((<���O|URL:Log.html>))���Q�Ƃ��Ă��������B
++[ログ]
+通信のログを取るかどうかを指定します。ログについては、((<ログ|URL:Log.html>))を参照してください。
+
+
+====[送信]
+送信サーバ（SMTPサーバなど）の設定を行います。
+
+
++[ポート]
+ポート番号を指定します。通常はデフォルトの設定で問題ありません。デフォルトはSMTPの場合には25(465)、POP3(XTND XMIT)の場合には110(993)、NNTPの場合には119(563)です（カッコ内はSSLを使用する場合）。
+
+
+====[安全]
+SSLやSTARTTLSを使うかどうかを指定します。SSLやSTARTTLSについては、((<SSL|URL:SSL.html>))を参照してください。
+
+
++[なし]
+SSLを使用しません。
+
+
++[SSL]
+SSLを使用します。
+
+
++[STARTTLS]
+STARTTLSを使用します。
+
+
++[ログ]
+通信のログを取るかどうかを指定します。ログについては、((<ログ|URL:Log.html>))を参照してください。
 
 =end

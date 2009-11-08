@@ -1,14 +1,14 @@
 =begin
-=ConfigFiltersƒAƒNƒVƒ‡ƒ“
+=ConfigFiltersã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<ƒtƒBƒ‹ƒ^‚ÌÝ’è|URL:OptionFilters.html>))‚ðŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<ãƒ•ã‚£ãƒ«ã‚¿ã®è¨­å®š|URL:OptionFilters.html>))ã‚’é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=AddressNewƒAƒNƒVƒ‡ƒ“
+=AddressNewã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒAƒhƒŒƒX’ ‚ÉƒGƒ“ƒgƒŠ‚ð’Ç‰Á‚µ‚Ü‚·BŽÀs‚·‚é‚Æ((<[ƒAƒhƒŒƒX]ƒ_ƒCƒAƒƒO|URL:AddressBookEntryDialog.html>))‚ªŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã«ã‚¨ãƒ³ãƒˆãƒªã‚’è¿½åŠ ã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨((<[ã‚¢ãƒ‰ãƒ¬ã‚¹]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:AddressBookEntryDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

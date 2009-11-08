@@ -1,44 +1,44 @@
 =begin
-=[�Z�L�����e�B]�_�C�A���O
+=[セキュリティ]ダイアログ
 
-�Z�L�����e�B�֌W�̐ݒ���s���܂��B
+セキュリティ関係の設定を行います。
 
-((<�Z�L�����e�B�_�C�A���O|"IMG:images/SecurityDialog.png">))
+((<セキュリティダイアログ|"IMG:images/SecurityDialog.png">))
 
 
 ====[S/MIME]
-S/MIME�̐ݒ���s���܂��BS/MIME�ɂ��ẮA((<"S/MIME"|URL:SMIME.html>))���Q�Ƃ��Ă��������B
+S/MIMEの設定を行います。S/MIMEについては、((<"S/MIME"|URL:SMIME.html>))を参照してください。
 
 
-+[�f�t�H���g�ňÍ�������]
-�f�t�H���g�ňÍ�������悤�ɂȂ�܂��B���ۂɈÍ������邩�̓G�f�B�b�g�r���[�ł��̓s�x�w�肷�邱�Ƃ��ł��܂��B�f�t�H���g�ł͈Í������܂���B
++[デフォルトで暗号化する]
+デフォルトで暗号化するようになります。実際に暗号化するかはエディットビューでその都度指定することができます。デフォルトでは暗号化しません。
 
 
-+[�f�t�H���g�ŏ�������]
-�f�t�H���g�ŏ�������悤�ɂȂ�܂��B���ۂɏ������邩�̓G�f�B�b�g�r���[�ł��̓s�x�w�肷�邱�Ƃ��ł��܂��B�f�t�H���g�ł͏������܂���B
++[デフォルトで署名する]
+デフォルトで署名するようになります。実際に署名するかはエディットビューでその都度指定することができます。デフォルトでは署名しません。
 
 
-+[��������multipart/signed���g��]
-��������multipart/signed�ŃN���A���������邩�ǂ������w�肵�܂��B�f�t�H���g�ł̓N���A�������܂��B
++[署名時にmultipart/signedを使う]
+署名時にmultipart/signedでクリア署名をするかどうかを指定します。デフォルトではクリア署名します。
 
 
-+[�����p�ɈÍ�������]
-�쐬�������[���������p�ɂ��Í������܂��B�����p�ɈÍ������Ȃ��ƁA���M�������b�Z�[�W�������œǂނ��Ƃ��ł��Ȃ��Ȃ�܂��B�f�t�H���g�ł͎����p�ɂ͈Í������܂���B
++[自分用に暗号化する]
+作成したメールを自分用にも暗号化します。自分用に暗号化しないと、送信したメッセージを自分で読むことができなくなります。デフォルトでは自分用には暗号化しません。
 
 
 ====[PGP/GnuPG]
-PGP��GnuPG�̐ݒ���s���܂��BPGP��GnuPG�ɂ��ẮA((<PGP��GnuPG|URL:PGP.html>))���Q�Ƃ��Ă��������B
+PGPとGnuPGの設定を行います。PGPとGnuPGについては、((<PGPとGnuPG|URL:PGP.html>))を参照してください。
 
 
-+[�f�t�H���g�ňÍ�������]
-�f�t�H���g�ňÍ�������悤�ɂȂ�܂��B���ۂɈÍ������邩�̓G�f�B�b�g�r���[�ł��̓s�x�w�肷�邱�Ƃ��ł��܂��B�f�t�H���g�ł͈Í������܂���B
++[デフォルトで暗号化する]
+デフォルトで暗号化するようになります。実際に暗号化するかはエディットビューでその都度指定することができます。デフォルトでは暗号化しません。
 
 
-+[�f�t�H���g�ŏ�������]
-�f�t�H���g�ŏ�������悤�ɂȂ�܂��B���ۂɏ������邩�̓G�f�B�b�g�r���[�ł��̓s�x�w�肷�邱�Ƃ��ł��܂��B�f�t�H���g�ł͏������܂���B
++[デフォルトで署名する]
+デフォルトで署名するようになります。実際に署名するかはエディットビューでその都度指定することができます。デフォルトでは署名しません。
 
 
-+[PGP/MIME���g��]
-�f�t�H���g��PGP/MIME���g�����A�C�����C��PGP���g�������w�肵�܂��B���ۂ�PGP/MIME���g�����ǂ����̓G�f�B�b�g�r���[�ł��̓s�x�w�肷�邱�Ƃ��ł��܂��B�f�t�H���g�ł�PGP/MIME���g�p���܂��B
++[PGP/MIMEを使う]
+デフォルトでPGP/MIMEを使うか、インラインPGPを使うかを指定します。実際にPGP/MIMEを使うかどうかはエディットビューでその都度指定することができます。デフォルトではPGP/MIMEを使用します。
 
 =end

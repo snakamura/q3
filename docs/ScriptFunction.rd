@@ -4,33 +4,33 @@
  Value @Script(String script, String lang, Value args+)
 
 
-==à–¾
-Žw’è‚³‚ê‚½ƒXƒNƒŠƒvƒg‚ðŽÀs‚µ‚Ü‚·B
+==èª¬æ˜Ž
+æŒ‡å®šã•ã‚ŒãŸã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’å®Ÿè¡Œã—ã¾ã™ã€‚
 
 
-==ˆø”
+==å¼•æ•°
 :String script
-  ŽÀs‚·‚éƒXƒNƒŠƒvƒg
+  å®Ÿè¡Œã™ã‚‹ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
 :String lang
-  ƒXƒNƒŠƒvƒgŒ¾Œê‚Ì–¼‘O
+  ã‚¹ã‚¯ãƒªãƒ—ãƒˆè¨€èªžã®åå‰
 :Value args
-  ƒXƒNƒŠƒvƒg‚É“n‚·ˆø”
+  ã‚¹ã‚¯ãƒªãƒ—ãƒˆã«æ¸¡ã™å¼•æ•°
 
 
-==ƒGƒ‰[
-*ˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
-*ƒXƒNƒŠƒvƒg‚Ìƒp[ƒXEŽÀs‚ÉŽ¸”s‚µ‚½ê‡
+==ã‚¨ãƒ©ãƒ¼
+*å¼•æ•°ã®æ•°ãŒåˆã£ã¦ã„ãªã„å ´åˆ
+*ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ãƒ‘ãƒ¼ã‚¹ãƒ»å®Ÿè¡Œã«å¤±æ•—ã—ãŸå ´åˆ
 
 
-==ðŒ
-‚È‚µ
+==æ¡ä»¶
+ãªã—
 
 
-==—á
- # ƒXƒNƒŠƒvƒg‚ðŽÀs
+==ä¾‹
+ # ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’å®Ÿè¡Œ
  @Script('result.value = 1 + 2', 'JScript')
  
- # ƒXƒNƒŠƒvƒg‚Éˆø”‚ð“n‚µ‚ÄŽÀs
+ # ã‚¹ã‚¯ãƒªãƒ—ãƒˆã«å¼•æ•°ã‚’æ¸¡ã—ã¦å®Ÿè¡Œ
  @Script('result.value = arguments(0) + arguments(1)', 'JScript', 1, 2)
 
 =end

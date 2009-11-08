@@ -1,18 +1,18 @@
 =begin
-=�^�u�̃R���e�L�X�g���j���[
+=タブのコンテキストメニュー
 
-((<�^�u�̃R���e�L�X�g���j���[|"IMG:images/TabMenu.png">))
-
-
-+((<[����]|URL:TabCloseAction.html>))
-�^�u����܂��B
+((<タブのコンテキストメニュー|"IMG:images/TabMenu.png">))
 
 
-+((<[�^�C�g����ҏW]|URL:TabEditTitleAction.html>))
-�^�u�̃^�C�g����ҏW���܂��B
++((<[閉じる]|URL:TabCloseAction.html>))
+タブを閉じます。
 
 
-+((<[���b�N]|URL:TabLockAction.html>))
-�^�u�����b�N���܂��B
++((<[タイトルを編集]|URL:TabEditTitleAction.html>))
+タブのタイトルを編集します。
+
+
++((<[ロック]|URL:TabLockAction.html>))
+タブをロックします。
 
 =end

@@ -1,18 +1,18 @@
 =begin
-=�Y�t�t�@�C���̃R���e�L�X�g���j���[
+=添付ファイルのコンテキストメニュー
 
-((<�Y�t�t�@�C���̃R���e�L�X�g���j���[|"IMG:images/AttachmentMenu.png">))
-
-
-+((<[�J��]|URL:AttachmentOpenAction.html>))
-�I�����ꂽ�Y�t�t�@�C�����֘A�t�����ꂽ�A�v���P�[�V�����ŊJ���܂��B
+((<添付ファイルのコンテキストメニュー|"IMG:images/AttachmentMenu.png">))
 
 
-+((<[�ۑ�]|URL:AttachmentSaveAction.html>))
-�I�����ꂽ�Y�t�t�@�C����ۑ����܂��B
++((<[開く]|URL:AttachmentOpenAction.html>))
+選択された添付ファイルを関連付けされたアプリケーションで開きます。
 
 
-+((<[�S�ĕۑ�]|URL:AttachmentSaveAllAction.html>))
-�S�Ă̓Y�t�t�@�C����ۑ����܂��B
++((<[保存]|URL:AttachmentSaveAction.html>))
+選択された添付ファイルを保存します。
+
+
++((<[全て保存]|URL:AttachmentSaveAllAction.html>))
+全ての添付ファイルを保存します。
 
 =end

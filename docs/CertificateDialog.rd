@@ -1,8 +1,8 @@
 =begin
-=[Ø–¾‘]ƒ_ƒCƒAƒƒO
+=[è¨¼æ˜Žæ›¸]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 
-S/MIME‚ÌØ–¾‘‚âAPGP‚Ìˆ—Œ‹‰Ê‚ð•\Ž¦‚µ‚Ü‚·B
+S/MIMEã®è¨¼æ˜Žæ›¸ã‚„ã€PGPã®å‡¦ç†çµæžœã‚’è¡¨ç¤ºã—ã¾ã™ã€‚
 
-((<[Ø–¾‘]ƒ_ƒCƒAƒƒO|"IMG:images/CertificateDialog.png">))
+((<[è¨¼æ˜Žæ›¸]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|"IMG:images/CertificateDialog.png">))
 
 =end

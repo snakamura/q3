@@ -1,77 +1,77 @@
 =begin
 =toolbars.xml
 
-�c�[���o�[�̐ݒ������XML�t�@�C���ł��B
+ツールバーの設定をするXMLファイルです。
 
 
-==����
+==書式
 
-===toolbars�G�������g
+===toolbarsエレメント
 
  <toolbars>
   <!-- toolbar -->
  </toolbars>
 
-toolbars�G�������g���g�b�v���x���G�������g�ɂȂ�܂��Btoolbars�G�������g�ȉ��ɂ�0�ȏ��toolbar�G�������g��u�����Ƃ��ł��܂��B
+toolbarsエレメントがトップレベルエレメントになります。toolbarsエレメント以下には0個以上のtoolbarエレメントを置くことができます。
 
 
-===toolbar�G�������g
+===toolbarエレメント
 
  <toolbar
-  name="���O"
+  name="名前"
   showText="true|false">
   <!-- button, separator -->
  </keymap>
 
-toolbar�G�������g�̓c�[���o�[��\���܂��Bname�����ɂ̓c�[���o�[�̖��O���w�肵�܂��B
+toolbarエレメントはツールバーを表します。name属性にはツールバーの名前を指定します。
 
-�ȉ��̖��O�̃c�[���o�[����`�ł��܂��B
+以下の名前のツールバーが定義できます。
 
 :addressbookframe
-  �A�h���X���E�B���h�E
+  アドレス帳ウィンドウ
 :editframe
-  �G�f�B�b�g�E�B���h�E
+  エディットウィンドウ
 :mainframe
-  ���C���E�B���h�E
+  メインウィンドウ
 :messageframe
-  ���b�Z�[�W�E�B���h�E
+  メッセージウィンドウ
 
-showText�����ɂ�true���w�肷��ƃe�L�X�g���\������Afalse���w�肷��ƕ\������Ȃ��Ȃ�܂��B
+showText属性ににtrueを指定するとテキストが表示され、falseを指定すると表示されなくなります。
 
 
-===button�G�������g
+===buttonエレメント
 
  <button
-  image="�C���[�W"
-  text="�e�L�X�g"
-  tooltip="�c�[���`�b�v"
-  action="�A�N�V����"
-  param="����"
-  dropdown="�h���b�v�_�E�����j���["/>
+  image="イメージ"
+  text="テキスト"
+  tooltip="ツールチップ"
+  action="アクション"
+  param="引数"
+  dropdown="ドロップダウンメニュー"/>
 
-button�G�������g�̓c�[���o�[�̃{�^����\���܂��B
+buttonエレメントはツールバーのボタンを表します。
 
-image�����ɂ́Atoolbar.bmp�Ŏw�肵���C���[�W�̒��ł̃C���f�b�N�X���w�肵�܂��Btext�����ɂ̓e�L�X�g���Atooltip�����ɂ̓c�[���`�b�v���w�肵�܂��B
+image属性には、toolbar.bmpで指定したイメージの中でのインデックスを指定します。text属性にはテキストを、tooltip属性にはツールチップを指定します。
 
-action�����ɂ̓{�^�����N���b�N���ꂽ�Ƃ��Ɏ��s�����A�N�V�������w�肵�܂��B�w��ł���A�N�V�����̈ꗗ�́A((<�A�N�V����|URL:Action.html>))���Q�Ƃ��Ă��������B
+action属性にはボタンがクリックされたときに実行されるアクションを指定します。指定できるアクションの一覧は、((<アクション|URL:Action.html>))を参照してください。
 
-param�����ɂ̓A�N�V�����̃p�����[�^���w�肵�܂��B�����̓X�y�[�X�ŋ�؂��ĕ����w�肷�邱�Ƃ��ł��܂��B��̈����ɃX�y�[�X���܂߂����ꍇ�ɂ�""�Ŋ���܂��B""�Ŋ������ꍇ�ɂ́A���̒��Ɋ܂܂��"��\��\�ŃG�X�P�[�v���܂��B�Ⴆ�΁Aparam������@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")���w�肷��ꍇ�ɂ́AXML���ł͈ȉ��̂悤�ɃG�X�P�[�v����܂��B
+param属性にはアクションのパラメータを指定します。引数はスペースで区切って複数指定することができます。一つの引数にスペースを含めたい場合には""で括ります。""で括った場合には、その中に含まれる"と\を\でエスケープします。例えば、param属性に@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")を指定する場合には、XML中では以下のようにエスケープされます。
 
  param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe\&quot;)&quot;"
 
-dropdown�����ɂ̓{�^�����N���b�N���ꂽ�Ƃ��ɕ\�����郁�j���[���w�肵�܂��B���j���[�͕ʓr�A((<menus.xml|URL:MenusXml.html>))�ō쐬���Ă����܂��B
+dropdown属性にはボタンがクリックされたときに表示するメニューを指定します。メニューは別途、((<menus.xml|URL:MenusXml.html>))で作成しておきます。
 
-action������dropdown�����������w�肳���ƁA�����̃{�^���{�̂��N���b�N����ƃA�N�V���������s����A�E���̉������O�p�`���N���b�N����ƃ��j���[���\������܂��B
+action属性とdropdown属性が両方指定されると、左側のボタン本体をクリックするとアクションが実行され、右側の下向き三角形をクリックするとメニューが表示されます。
 
 
-===separator�G�������g
+===separatorエレメント
 
  <separator/>
 
-separator�G�������g�̓Z�p���[�^��\���܂��B
+separatorエレメントはセパレータを表します。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <toolbars>
@@ -126,7 +126,7 @@ separator�G�������g�̓Z�p���[�^��\���܂��B
  </toolbars>
 
 
-==�X�L�[�}
+==スキーマ
 
  start = element toolbars {
    element toolbar {

@@ -1,164 +1,164 @@
 =begin
-=���C���E�B���h�E
+=メインウィンドウ
 
-((<���C���E�B���h�E|"IMG:images/MainWindow.png">))
+((<メインウィンドウ|"IMG:images/MainWindow.png">))
 
-���C���E�B���h�E�͑傫�������āA�t�H���_�r���[�A���X�g�r���[�A�v���r���[�̎O�̕����ɕ�����܂��B�܂��A((<[�\��]-[�R���g���[���̕\��]-[�t�H���_���B��]|URL:ViewShowFolderAction.html>))��I������ƃt�H���_�r���[���B����A����Ƀt�H���_�R���{�{�b�N�X���\������܂�((-Pocket PC�łł̓f�t�H���g�ł�����̕\���ɂȂ��Ă��܂�-))�B
+メインウィンドウは大きく分けて、フォルダビュー、リストビュー、プレビューの三つの部分に分かれます。また、((<[表示]-[コントロールの表示]-[フォルダを隠す]|URL:ViewShowFolderAction.html>))を選択するとフォルダビューが隠され、代わりにフォルダコンボボックスが表示されます((-Pocket PC版ではデフォルトでこちらの表示になっています-))。
 
-((<�t�H���_�R���{�{�b�N�X|"IMG:images/FolderComboBox.png">))
+((<フォルダコンボボックス|"IMG:images/FolderComboBox.png">))
 
-�܂��A�t�H���_�r���[�ŃA�J�E���g��I�����Ă���Ƃ��ɂ̓��X�g�r���[�̑���Ƀt�H���_���X�g�r���[���\������܂��B
+また、フォルダビューでアカウントを選択しているときにはリストビューの代わりにフォルダリストビューが表示されます。
 
-((<�t�H���_���X�g�r���[|"IMG:images/FolderListView.png">))
+((<フォルダリストビュー|"IMG:images/FolderListView.png">))
 
-�e�r���[�̔z�u��((<���̑��̐ݒ�|URL:OptionMisc.html>))�Ŏ��R�ɕύX�ł��܂��B
-
-
-==���j���[�o�[
-���j���o�[�ɂ��ẮA((<���C���E�B���h�E�̃��j���[�o�[|URL:MainWindowMenuBar.html>))���Q�Ƃ��Ă��������B
+各ビューの配置は((<その他の設定|URL:OptionMisc.html>))で自由に変更できます。
 
 
-==�c�[���o�[
-�c�[���o�[�̊e�{�^���̋@�\�͈ȉ��̒ʂ�ł��B
-
-+((<[�V�K]|URL:MessageCreateAction.html>))
-�V�K���b�Z�[�W���쐬���܂��B
+==メニューバー
+メニュバーについては、((<メインウィンドウのメニューバー|URL:MainWindowMenuBar.html>))を参照してください。
 
 
-+((<[�ԐM]|URL:MessageCreateAction.html>))
-�t�H�[�J�X�̂��郁�b�Z�[�W�ɕԐM���܂��B
+==ツールバー
+ツールバーの各ボタンの機能は以下の通りです。
+
++((<[新規]|URL:MessageCreateAction.html>))
+新規メッセージを作成します。
 
 
-+((<[�S���ɕԐM]|URL:MessageCreateAction.html>))
-�t�H�[�J�X�̂��郁�b�Z�[�W��S���ɕԐM���܂��B
++((<[返信]|URL:MessageCreateAction.html>))
+フォーカスのあるメッセージに返信します。
 
 
-+((<[�]��]|URL:MessageCreateAction.html>))
-�t�H�[�J�X�̂��郁�b�Z�[�W��]�����܂��B
++((<[全員に返信]|URL:MessageCreateAction.html>))
+フォーカスのあるメッセージを全員に返信します。
 
 
-+((<[�폜]|URL:EditDeleteAction.html>))
-�I������Ă��郁�b�Z�[�W���폜���܂��B
++((<[転送]|URL:MessageCreateAction.html>))
+フォーカスのあるメッセージを転送します。
 
 
-+((<[�O]|URL:ViewPrevMessageAction.html>))
-��O�̃��b�Z�[�W��I�����܂��B
++((<[削除]|URL:EditDeleteAction.html>))
+選択されているメッセージを削除します。
 
 
-+((<[��]|URL:ViewNextMessageAction.html>))
-���̃��b�Z�[�W��I�����܂��B
++((<[前]|URL:ViewPrevMessageAction.html>))
+一つ前のメッセージを選択します。
 
 
-+((<[���̖���]|URL:ViewNextUnseenMessageAction.html>))
-���̖��ǃ��b�Z�[�W��I�����܂��B
++((<[次]|URL:ViewNextMessageAction.html>))
+一つ後のメッセージを選択します。
 
 
-+((<[����]|URL:MessageSearchAction.html>))
-���b�Z�[�W��((<����|URL:Search.html>))���܂��B
++((<[次の未読]|URL:ViewNextUnseenMessageAction.html>))
+次の未読メッセージを選択します。
 
 
-+((<[����]|URL:ToolSyncAction.html>))
-�I������Ă���A�J�E���g�𓯊����܂��B�E���̖����N���b�N����ƃ��j���[���\������A((<���M�̂�|URL:ToolSendAction.html>))��((<��M�̂�|URL:ToolReceiveAction.html>))���s�����Ƃ��ł��܂��B
++((<[検索]|URL:MessageSearchAction.html>))
+メッセージを((<検索|URL:Search.html>))します。
 
 
-+((<[����]|URL:ToolGoroundAction.html>))
-((<����|URL:GoRound.html>))���܂��B�E���̖����N���b�N����Ə��񂷂�R�[�X�����j���[����I���ł��܂��B�����̃A�C�R�����N���b�N����Ɛ擪�̏���R�[�X�ŏ��񂵂܂��B
++((<[同期]|URL:ToolSyncAction.html>))
+選択されているアカウントを同期します。右側の矢印をクリックするとメニューが表示され、((<送信のみ|URL:ToolSendAction.html>))や((<受信のみ|URL:ToolReceiveAction.html>))を行うことができます。
 
 
-�c�[���o�[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�c�[���o�[���B��]|URL:ViewShowToolbarAction.html>))��I�����܂��B�c�[���o�[�̃{�^���̃J�X�^�}�C�Y�ɂ��ẮA((<�c�[���o�[�̃J�X�^�}�C�Y|URL:CustomizeToolbars.html>))���Q�Ƃ��Ă��������B
++((<[巡回]|URL:ToolGoroundAction.html>))
+((<巡回|URL:GoRound.html>))します。右側の矢印をクリックすると巡回するコースをメニューから選択できます。左側のアイコンをクリックすると先頭の巡回コースで巡回します。
 
 
-==�X�e�[�^�X�o�[
-�X�e�[�^�X�o�[��7�̃y�C���ɕ������Ă��܂��B�������v���r���[���\���ɂ��Ă���ꍇ�ɂ́A�ŏ���3�y�C�������\������܂���B�e�y�C���ɕ\���������͍����珇�ԂɈȉ��̒ʂ�ł��B
+ツールバーを隠すには、メニューから((<[表示]-[コントロールの表示]-[ツールバーを隠す]|URL:ViewShowToolbarAction.html>))を選択します。ツールバーのボタンのカスタマイズについては、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))を参照してください。
+
+
+==ステータスバー
+ステータスバーは7個のペインに分けられています。ただしプレビューを非表示にしている場合には、最初の3ペインしか表示されません。各ペインに表示される情報は左から順番に以下の通りです。
 
 +1
-��ʓI�ȃ��b�Z�[�W�Ȃǂ��\������܂��B
+一般的なメッセージなどが表示されます。
 
 
 +2
-((<�I�����C�����I�t���C����|URL:OnlineOffline.html>))���A�C�R���ŕ\������܂��B
+((<オンラインかオフラインか|URL:OnlineOffline.html>))がアイコンで表示されます。
 
 
 +3
-�g�p���Ă���((<�t�B���^|URL:Filter.html>))���\������܂��B�E���b�N����ƃ��j���[���\������A�t�B���^��ύX���邱�Ƃ��ł��܂��B
+使用している((<フィルタ|URL:Filter.html>))が表示されます。右リックするとメニューが表示され、フィルタを変更することができます。
 
 
 +4
-�\�����Ă��郁�b�Z�[�W�̃G���R�[�f�B���O���\������܂��B�E�N���b�N����ƃ��j���[���\������A((<�G���R�[�f�B���O���w��|URL:ViewEncodingAction.html>))���邱�Ƃ��ł��܂��B�G���R�[�f�B���O�̎�������Ɏ��s���ĕ����������Ă���ꍇ�ɂ́A�G���R�[�f�B���O���w�肷�邱�ƂŃ��b�Z�[�W��\���ł��܂��B
+表示しているメッセージのエンコーディングが表示されます。右クリックするとメニューが表示され、((<エンコーディングを指定|URL:ViewEncodingAction.html>))することができます。エンコーディングの自動判定に失敗して文字化けしている場合には、エンコーディングを指定することでメッセージを表示できます。
 
 
 +5
-�g�p���Ă���((<�\���p�̃e���v���[�g|URL:ViewTemplate.html>))���\������܂��B�E�N���b�N����ƃ��j���[���\������A�\���p�e���v���[�g��ύX���邱�Ƃ��ł��܂��B
+使用している((<表示用のテンプレート|URL:ViewTemplate.html>))が表示されます。右クリックするとメニューが表示され、表示用テンプレートを変更することができます。
 
 
 +6
-���b�Z�[�W��((<"S/MIME"|URL:SMIME.html>))��((<PGP|URL:PGP.html>))�ňÍ�������Ă��āA����𕜍������ꍇ�ɂ̓A�C�R�����\������܂��B
+メッセージが((<"S/MIME"|URL:SMIME.html>))や((<PGP|URL:PGP.html>))で暗号化されていて、それを復号した場合にはアイコンが表示されます。
 
 
 +7
-���b�Z�[�W��((<"S/MIME"|URL:SMIME.html>))��((<PGP|URL:PGP.html>))�ŏ�������Ă��āA��������؂����ꍇ�ɂ̓A�C�R�����\������܂��B���؂ɐ����������ǂ����ŃA�C�R���͈قȂ�܂��B���������؂����ꍇ�A�N���b�N�����((<���،���|URL:MessageCertificateAction.html>))���\������܂��B
+メッセージが((<"S/MIME"|URL:SMIME.html>))や((<PGP|URL:PGP.html>))で署名されていて、それを検証した場合にはアイコンが表示されます。検証に成功したかどうかでアイコンは異なります。署名を検証した場合、クリックすると((<検証結果|URL:MessageCertificateAction.html>))が表示されます。
 
-�X�e�[�^�X�o�[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�X�e�[�^�X�o�[���B��]|URL:ViewShowStatusBarAction.html>))��I�����܂��B
-
-
-
-==�t�H���_�r���[
-�t�H���_�r���[�ɂ�((<�A�J�E���g|URL:Account.html>))��((<�t�H���_|URL:Folder.html>))���A�c���[�\������܂��B���ǃ��b�Z�[�W�̂���t�H���_��A�J�E���g�͑����ŕ\������܂��B�܂��A�t�H���_���̃��b�Z�[�W���▢�ǃ��b�Z�[�W����\�����邱�Ƃ��ł��܂��B�t�H���_��I������ƃ��X�g�r���[�ɂ��̃t�H���_���̃��b�Z�[�W�ꗗ���\������܂��B�A�J�E���g��I������ƁA�t�H���_���X�g�r���[�ł��̃A�J�E���g���̃t�H���_�ꗗ������܂��B
-
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<�t�H���_�r���[�̃R���e�L�X�g���j���[|URL:FolderMenu.html>))���Q�Ƃ��Ă��������B
-
-�t�H���_�r���[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�t�H���_���B��]|URL:ViewShowFolderAction.html>))��I�����܂��B�t�H���_�r���[���B���ƃt�H���_�R���{�{�b�N�X���\������܂��B
-
-�t�H���_�r���[�̊e��ݒ�́A((<�t�H���_�r���[�̐ݒ�|URL:OptionFolder.html>))�Őݒ�ł��܂��B
+ステータスバーを隠すには、メニューから((<[表示]-[コントロールの表示]-[ステータスバーを隠す]|URL:ViewShowStatusBarAction.html>))を選択します。
 
 
-==�t�H���_�R���{�{�b�N�X
-�t�H���_�r���[�ɂ�((<�A�J�E���g|URL:Account.html>))��((<�t�H���_|URL:Folder.html>))���A���X�g�\������܂��B�t�H���_��I������ƃ��X�g�r���[�ɂ��̃t�H���_���̃��b�Z�[�W�ꗗ���\������܂��B�A�J�E���g��I������ƁA�t�H���_���X�g�r���[�ł��̃A�J�E���g���̃t�H���_�ꗗ������܂��B
 
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<�t�H���_�R���{�{�b�N�X�̃R���e�L�X�g���j���[|URL:FolderMenu.html>))���Q�Ƃ��Ă��������B
+==フォルダビュー
+フォルダビューには((<アカウント|URL:Account.html>))と((<フォルダ|URL:Folder.html>))が、ツリー表示されます。未読メッセージのあるフォルダやアカウントは太字で表示されます。また、フォルダ内のメッセージ数や未読メッセージ数を表示することもできます。フォルダを選択するとリストビューにそのフォルダ内のメッセージ一覧が表示されます。アカウントを選択すると、フォルダリストビューでそのアカウント内のフォルダ一覧がされます。
 
-�t�H���_�R���{�{�b�N�X�̊e��ݒ�́A((<�t�H���_�r���[�̐ݒ�|URL:OptionFolder.html>))�Őݒ�ł��܂��B
+右クリックすると表示されるコンテキストメニューについては、((<フォルダビューのコンテキストメニュー|URL:FolderMenu.html>))を参照してください。
 
+フォルダビューを隠すには、メニューから((<[表示]-[コントロールの表示]-[フォルダを隠す]|URL:ViewShowFolderAction.html>))を選択します。フォルダビューを隠すとフォルダコンボボックスが表示されます。
 
-==�^�u
-�^�u���g�p����ƕ����̃t�H���_��A�J�E���g��f�����؂�ւ��邱�Ƃ��ł��܂��B�V�����^�u���J���ɂ́A�t�H���_�r���[��t�H���_�R���{�{�b�N�X�ŊJ�������t�H���_��I�����āA�R���e�L�X�g���j���[����((<[�V�����^�u�ŊJ��]|URL:TabCreateAction.html>))��I�����܂��B
-
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<�^�u�̃R���e�L�X�g���j���[|URL:TabMenu.html>))���Q�Ƃ��Ă��������B
-
-�^�u�́AAlt+1����Alt+0�܂łŐ؂�ւ��邱�Ƃ��ł��܂��B����̓^�u���B���Ă���Ƃ����L���ł��B�܂��A�^�u�̏��Ԃ����ւ���ɂ́AAlt+Left��Alt+Right���g�p���܂��B
-
-�^�u���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�^�u���B��]|URL:ViewShowTabAction.html>))��I�����܂��B
-
-�^�u�̊e��ݒ�́A((<�^�u�̐ݒ�|URL:OptionTab.html>))�Őݒ�ł��܂��B
+フォルダビューの各種設定は、((<フォルダビューの設定|URL:OptionFolder.html>))で設定できます。
 
 
-==�t�H���_���X�g�r���[
-�t�H���_�r���[��t�H���_�R���{�{�b�N�X�ŃA�J�E���g��I������ƁA�t�H���_���X�g�r���[���\������܂��B�t�H���_���X�g�r���[�ɂ́A�A�J�E���g���̃t�H���_�����X�g�\������܂��B�e�t�H���_�̍��ɂ���`�F�b�N�{�b�N�X�̃`�F�b�N���O�����Ƃł��̃t�H���_���\���ɂ��邱�Ƃ��ł��܂��B
+==フォルダコンボボックス
+フォルダビューには((<アカウント|URL:Account.html>))と((<フォルダ|URL:Folder.html>))が、リスト表示されます。フォルダを選択するとリストビューにそのフォルダ内のメッセージ一覧が表示されます。アカウントを選択すると、フォルダリストビューでそのアカウント内のフォルダ一覧がされます。
 
-�t�H���_�̃T�C�Y�̗��͑I��������Ԃł͕\������܂���B�\������ɂ́A((<[�t�H���_]-[�T�C�Y��\��]|URL:FolderShowSizeAction.html>))��I�����܂��B
+右クリックすると表示されるコンテキストメニューについては、((<フォルダコンボボックスのコンテキストメニュー|URL:FolderMenu.html>))を参照してください。
 
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<�t�H���_���X�g�r���[�̃R���e�L�X�g���j���[|URL:FolderListMenu.html>))���Q�Ƃ��Ă��������B
-
-
-==���X�g�r���[
-�t�H���_�r���[��t�H���_�R���{�{�b�N�X�Ńt�H���_��I������ƁA���X�g�r���[���\������܂��B���X�g�r���[�ɂ́A�t�H���_���̃��b�Z�[�W�����X�g�\������܂��B���b�Z�[�W��((<�X���b�h�\��|URL:Thread.html>))���邱�Ƃ��ł��܂��B���X�g�r���[�Ń��b�Z�[�W��I������ƃv���r���[�ł��̃��b�Z�[�W���\������܂��B���b�Z�[�W���_�u���N���b�N������Enter����͂���ƁA�V����((<���b�Z�[�W�E�B���h�E|URL:MessageWindow.html>))���J���ă��b�Z�[�W���\������܂��B
-
-���X�g�r���[�̏㕔�ɂ̓w�b�_�J�������\������܂��B�w�b�_�J�������N���b�N���邱�Ƃɂ�胁�b�Z�[�W�̃\�[�g���@��ύX���邱�Ƃ��ł��܂��B�w�b�_�J�������B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�w�b�_�J�������B��]|URL:ViewShowHeaderColumnAction.html>))��I�����܂��B�J������ǉ�������\��������e��ύX����ɂ́A((<[�\��]-[�J�������J�X�^�}�C�Y]|URL:ConfigViewsAction.html>))��I�����܂��B�ڍׂɂ��ẮA((<���X�g�r���[�̃J�X�^�}�C�Y|URL:CustomizeListView.html>))���Q�Ƃ��Ă��������B
-
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<���X�g�r���[�̃R���e�L�X�g���j���[|URL:ListMenu.html>))���Q�Ƃ��Ă��������B
-
-���X�g�r���[�̊e��ݒ�́A((<���X�g�r���[�̐ݒ�|URL:OptionList.html>))�Őݒ�ł��܂��B
+フォルダコンボボックスの各種設定は、((<フォルダビューの設定|URL:OptionFolder.html>))で設定できます。
 
 
-==�w�b�_�r���[
-�w�b�_�r���[�ɂ́A���X�g�r���[�Ńt�H�[�J�X�̂��郁�b�Z�[�W�̈���⑗�M�ҁA�����A�Y�t�t�@�C���Ȃǂ��\������܂��B�ڍׂ́A((<���b�Z�[�W�E�B���h�E|URL:MessageWindow.html>))���Q�Ƃ��Ă��������B
+==タブ
+タブを使用すると複数のフォルダやアカウントを素早く切り替えることができます。新しいタブを開くには、フォルダビューやフォルダコンボボックスで開きたいフォルダを選択して、コンテキストメニューから((<[新しいタブで開く]|URL:TabCreateAction.html>))を選択します。
+
+右クリックすると表示されるコンテキストメニューについては、((<タブのコンテキストメニュー|URL:TabMenu.html>))を参照してください。
+
+タブは、Alt+1からAlt+0までで切り替えることもできます。これはタブを隠しているときも有効です。また、タブの順番を入れ替えるには、Alt+LeftやAlt+Rightを使用します。
+
+タブを隠すには、メニューから((<[表示]-[コントロールの表示]-[タブを隠す]|URL:ViewShowTabAction.html>))を選択します。
+
+タブの各種設定は、((<タブの設定|URL:OptionTab.html>))で設定できます。
 
 
-==�v���r���[
-�v���r���[�ɂ́A���X�g�r���[�Ńt�H�[�J�X�̂��郁�b�Z�[�W�̖{�����\������܂��B((<HTML�\��|URL:HtmlView.html>))��L���ɂ��Ă���ꍇ�AHTML���[���̓u���E�U�R���g���[����p���ĕ\������܂��B�܂��A((<�\���p�̃e���v���[�g|URL:ViewTemplate.html>))���g�p���ĕ\��������e���J�X�^�}�C�Y���邱�Ƃ��ł��܂��B
+==フォルダリストビュー
+フォルダビューやフォルダコンボボックスでアカウントを選択すると、フォルダリストビューが表示されます。フォルダリストビューには、アカウント内のフォルダがリスト表示されます。各フォルダの左にあるチェックボックスのチェックを外すことでそのフォルダを非表示にすることができます。
 
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<�v���r���[�̃R���e�L�X�g���j���[|URL:MessageMenu.html>))���Q�Ƃ��Ă��������B
+フォルダのサイズの欄は選択した状態では表示されません。表示するには、((<[フォルダ]-[サイズを表示]|URL:FolderShowSizeAction.html>))を選択します。
 
-�v���r���[�̊e��ݒ�́A((<�v���r���[�̐ݒ�|URL:OptionPreview.html>))�Őݒ�ł��܂��B
+右クリックすると表示されるコンテキストメニューについては、((<フォルダリストビューのコンテキストメニュー|URL:FolderListMenu.html>))を参照してください。
+
+
+==リストビュー
+フォルダビューやフォルダコンボボックスでフォルダを選択すると、リストビューが表示されます。リストビューには、フォルダ内のメッセージがリスト表示されます。メッセージは((<スレッド表示|URL:Thread.html>))することもできます。リストビューでメッセージを選択するとプレビューでそのメッセージが表示されます。メッセージをダブルクリックしたりEnterを入力すると、新たに((<メッセージウィンドウ|URL:MessageWindow.html>))が開いてメッセージが表示されます。
+
+リストビューの上部にはヘッダカラムが表示されます。ヘッダカラムをクリックすることによりメッセージのソート方法を変更することができます。ヘッダカラムを隠すには、メニューから((<[表示]-[コントロールの表示]-[ヘッダカラムを隠す]|URL:ViewShowHeaderColumnAction.html>))を選択します。カラムを追加したり表示する内容を変更するには、((<[表示]-[カラムをカスタマイズ]|URL:ConfigViewsAction.html>))を選択します。詳細については、((<リストビューのカスタマイズ|URL:CustomizeListView.html>))を参照してください。
+
+右クリックすると表示されるコンテキストメニューについては、((<リストビューのコンテキストメニュー|URL:ListMenu.html>))を参照してください。
+
+リストビューの各種設定は、((<リストビューの設定|URL:OptionList.html>))で設定できます。
+
+
+==ヘッダビュー
+ヘッダビューには、リストビューでフォーカスのあるメッセージの宛先や送信者、件名、添付ファイルなどが表示されます。詳細は、((<メッセージウィンドウ|URL:MessageWindow.html>))を参照してください。
+
+
+==プレビュー
+プレビューには、リストビューでフォーカスのあるメッセージの本文が表示されます。((<HTML表示|URL:HtmlView.html>))を有効にしている場合、HTMLメールはブラウザコントロールを用いて表示されます。また、((<表示用のテンプレート|URL:ViewTemplate.html>))を使用して表示する内容をカスタマイズすることもできます。
+
+右クリックすると表示されるコンテキストメニューについては、((<プレビューのコンテキストメニュー|URL:MessageMenu.html>))を参照してください。
+
+プレビューの各種設定は、((<プレビューの設定|URL:OptionPreview.html>))で設定できます。
 
 =end

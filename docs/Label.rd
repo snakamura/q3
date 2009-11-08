@@ -1,20 +1,20 @@
 =begin
-=���x��
+=ラベル
 
-���b�Z�[�W�ɂ̓��x����ݒ肷�邱�Ƃ��ł��܂��B���x���͎蓮�Őݒ肷�邱�Ƃ��ł��܂����A((<�U�蕪��|URL:ApplyRules.html>))�ɂ���Đݒ肷�邱�Ƃ��ł��܂��B���x����((<�����t�H���_|URL:Folder.html>))���g���ƁA�������x����ݒ肵�����b�Z�[�W���ȒP�Ɉꗗ���邱�ƂȂǂ��ł��܂��B
+メッセージにはラベルを設定することができます。ラベルは手動で設定することもできますし、((<振り分け|URL:ApplyRules.html>))によって設定することもできます。ラベルと((<検索フォルダ|URL:Folder.html>))を使うと、同じラベルを設定したメッセージを簡単に一覧することなどができます。
 
-�蓮�Ń��x����ݒ肷��ɂ́A((<[���b�Z�[�W]-[���x��]|URL:MessageLabelAction.html>))���g�p���܂��B�U�蕪���ł̃��x���̐ݒ���@�́A((<�U�蕪���̐ݒ�|URL:OptionRules.html>))���Q�Ƃ��Ă��������B
+手動でラベルを設定するには、((<[メッセージ]-[ラベル]|URL:MessageLabelAction.html>))を使用します。振り分けでのラベルの設定方法は、((<振り分けの設定|URL:OptionRules.html>))を参照してください。
 
-���x�����ݒ肳�ꂽ���b�Z�[�W��\������ƃw�b�_�r���[�Ƀ��x�����\������܂��B
+ラベルが設定されたメッセージを表示するとヘッダビューにラベルが表示されます。
 
-((<���x��|"IMG:images/Label.png">))
+((<ラベル|"IMG:images/Label.png">))
 
-���X�g�r���[�Ƀ��x����\�����邱�Ƃ��ł��܂��B((<���X�g�r���[�̃J�X�^�}�C�Y|URL:CustomizeListView.html>))���Q�Ƃ��Ă��������B
+リストビューにラベルを表示することもできます。((<リストビューのカスタマイズ|URL:CustomizeListView.html>))を参照してください。
 
 
-==IMAP4�A�J�E���g�ł̃��x��
-IMAP4�A�J�E���g�ł̓��x���̓T�[�o��̃t���O�Ƃ��ĕۑ�����܂��B����ĕ����̃N���C�A���g����A�N�Z�X���Ă����x�������L���邱�Ƃ��ł��܂��B�������A�J�X�^���t���O���T�|�[�g���Ă��Ȃ�IMAP4�T�[�o�ł̓��x�����g�����Ƃ��ł��܂���B
+==IMAP4アカウントでのラベル
+IMAP4アカウントではラベルはサーバ上のフラグとして保存されます。よって複数のクライアントからアクセスしてもラベルを共有することができます。ただし、カスタムフラグをサポートしていないIMAP4サーバではラベルを使うことができません。
 
-���x���̃t���O�́Aq3label=<���x����Modified UTF-7�ŃG���R�[�h����������>�Ƃ����`�ŃT�[�o��̃��b�Z�[�W�ɐݒ肳��܂��B
+ラベルのフラグは、q3label=<ラベルをModified UTF-7でエンコードした文字列>という形でサーバ上のメッセージに設定されます。
 
 =end

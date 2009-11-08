@@ -1,35 +1,35 @@
 =begin
-=���O
+=ログ
 
-QMAIL3�ɂ͓��ނ̃��O������܂��B��ڂ̓V�X�e�����O�ł�����͒ʐM���O�ł��B
-
-
-==�V�X�e�����O
-�V�X�e�����O�͎�ɒʐM�ȊO�̕����Ń��O���o�͂���Ƃ��Ɏg�p����܂��B�V�X�e�����O�̓��[���{�b�N�X�f�B���N�g����logs�f�B���N�g���̒��ɃX���b�h���ƂɃ��j�[�N�Ȗ��O�����ďo�͂���܂��B
-
-���O�̃G���g���ɂ�5�̃��x��������܂��B���x���́A����������FATAL, ERROR, WARN, INFO, DEBUG�ł��B((<���̑��̐ݒ�|URL:OptionMisc.html>))��[���O���x��]�ŁA�w�肵�����x���ȏ�̃��O�݂̂��o�͂���悤�ɐݒ肷�邱�Ƃ��ł��܂��B���Ƃ��΁AERROR���w�肷���FATAL��ERROR���x���̃G���g���݂̂��o�͂���ADEBUG���w�肷��ƑS�ẴG���g�����o�͂���܂��B
-
-����̕�������܂ރV�X�e�����O�̂ݏo�͂������ꍇ�ɂ́A((<qmail.xml|URL:QmailXml.html>))��Global/LogFilter�ɐ��K�\�����w�肷�邱�Ƃ��ł��܂��B�����Ŏw�肵�����K�\���Ƀ��O���̃��W���[�����}�b�`�����ꍇ�̂݃��O���o�͂���܂��B�w�肵�Ȃ��ꍇ�ɂ͂��ׂẴ��O���o�͂���܂��B
-
-�܂��AQMAIL3���N�����Ȃ��Ȃ����ꍇ�Ȃǂɂ́A((<�R�}���h���C��|URL:CommandLine.html>))��-l���g�p���ă��O���x�����w�肷�邱�Ƃ��ł��܂��B
-
-�V�X�e�����O�̓o�O�񍐂Ȃǂ��������Ƃ��ɓ���𒲂ׂ邽�߂ɒǉ����邱�Ƃ������̂ŁA�G���[�������Ă��܂��������O���o�͂���Ȃ��ꍇ�������ł��B
+QMAIL3には二種類のログがあります。一つ目はシステムログでもう一つは通信ログです。
 
 
-==�ʐM���O
-�ʐM���O�͒ʐM���ɃT�[�o�Ƃ���肵�����e���L�^���邽�߂Ɏg�p����܂��B�T�[�o�Ƃ��܂��ڑ��ł��Ȃ�������G���[����������Ƃ��Ƀ��O����邱�Ƃɂ��A�G���[�̓��e���ڂ������ׂ邱�Ƃ��ł��܂��B�ʐM���O�̓A�J�E���g�f�B���N�g����log�f�B���N�g���̒��ɃZ�b�V�������ƂɃ��j�[�N�Ȗ��O�����ďo�͂���܂��B
+==システムログ
+システムログは主に通信以外の部分でログを出力するときに使用されます。システムログはメールボックスディレクトリのlogsディレクトリの中にスレッドごとにユニークな名前をつけて出力されます。
 
-�ʐM���O�����ɂ́A((<�A�J�E���g�̃v���p�e�B|URL:AccountProperty.html>))��((<�ڍׂ̐ݒ�|URL:AccountDetail.html>))�ŁA[���O]�Ƀ`�F�b�N�����܂��B��M���̒ʐM���O�����ꍇ�ɂ�[��M]��[���O]�ɁA���M���̒ʐM���O�����ꍇ�ɂ�[���M]��[���O]�Ƀ`�F�b�N�����܂��B
+ログのエントリには5つのレベルがあります。レベルは、高い順からFATAL, ERROR, WARN, INFO, DEBUGです。((<その他の設定|URL:OptionMisc.html>))の[ログレベル]で、指定したレベル以上のログのみを出力するように設定することができます。たとえば、ERRORを指定するとFATALとERRORレベルのエントリのみが出力され、DEBUGを指定すると全てのエントリが出力されます。
 
-�T�[�o�ƒʐM�������e���S�ď������܂�܂��̂ŁA�N���A�e�L�X�g�ŔF�؂��Ă���ꍇ�ɂ̓p�X���[�h���������܂�܂��B�g���u���̉����̂��߂Ƀ��O���J������Ƃ��ɂ͒��ӂ��Ă��������B
+特定の文字列を含むシステムログのみ出力したい場合には、((<qmail.xml|URL:QmailXml.html>))のGlobal/LogFilterに正規表現を指定することができます。ここで指定した正規表現にログ内のモジュールがマッチした場合のみログが出力されます。指定しない場合にはすべてのログが出力されます。
+
+また、QMAIL3が起動しなくなった場合などには、((<コマンドライン|URL:CommandLine.html>))の-lを使用してログレベルを指定することができます。
+
+システムログはバグ報告などがあったときに動作を調べるために追加することが多いので、エラーがあってもまったくログが出力されない場合も多いです。
 
 
-==����
-���O�̏����͈ȉ��̂悤�ɂȂ��Ă��܂��B
+==通信ログ
+通信ログは通信中にサーバとやり取りした内容を記録するために使用されます。サーバとうまく接続できなかったりエラーが発生するときにログを取ることにより、エラーの内容を詳しく調べることができます。通信ログはアカウントディレクトリのlogディレクトリの中にセッションごとにユニークな名前をつけて出力されます。
 
- [���x�� ���� ���W���[��] ���b�Z�[�W
- �ǉ����
+通信ログを取るには、((<アカウントのプロパティ|URL:AccountProperty.html>))の((<詳細の設定|URL:AccountDetail.html>))で、[ログ]にチェックを入れます。受信時の通信ログを取る場合には[受信]の[ログ]に、送信時の通信ログを取る場合には[送信]の[ログ]にチェックを入れます。
 
-����ň�̃G���g���ɂȂ�܂��B���x���͏�ŏq�ׂ��AFATAL, ERROR, WARN, INFO, DEBUG�̂����ꂩ�ł��B�����̓G���g�����o�͂��������A���W���[���͂��̃��O���o�͂������W���[���̖��O�ɂȂ�܂��B���O�̓��t�̃t�H�[�}�b�g�́A�f�t�H���g�ł́uyyyy/MM/dd-HH:mm::ssZ�v�̌`���ɂȂ��Ă��܂����A((<qmail.xml|URL:QmailXml.html>))��Global/LogTimeFormat�Ŏw�肷�邱�Ƃ��ł��܂��B�w�肷��ꍇ�ɂ́A((<@FormatDate|URL:FormatDateFunction.html>))�Ŏw��ł���t�H�[�}�b�g���g�p�ł��܂��B�ǉ����͕����s�ɂȂ邱�Ƃ�����܂��B
+サーバと通信した内容が全て書き込まれますので、クリアテキストで認証している場合にはパスワードも書き込まれます。トラブルの解決のためにログを開示するときには注意してください。
+
+
+==書式
+ログの書式は以下のようになっています。
+
+ [レベル 日時 モジュール] メッセージ
+ 追加情報
+
+これで一つのエントリになります。レベルは上で述べた、FATAL, ERROR, WARN, INFO, DEBUGのいずれかです。日時はエントリを出力した日時、モジュールはそのログを出力したモジュールの名前になります。ログの日付のフォーマットは、デフォルトでは「yyyy/MM/dd-HH:mm::ssZ」の形式になっていますが、((<qmail.xml|URL:QmailXml.html>))のGlobal/LogTimeFormatで指定することもできます。指定する場合には、((<@FormatDate|URL:FormatDateFunction.html>))で指定できるフォーマットが使用できます。追加情報は複数行になることもあります。
 
 =end

@@ -1,50 +1,50 @@
 =begin
-=ƒGƒfƒBƒbƒgƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[
+=ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼
 
-((<ƒGƒfƒBƒbƒgƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|"IMG:images/EditMenu.png">))
-
-
-+((<[Œ³‚É–ß‚·]|URL:EditUndoAction.html>))
-’¼‘O‚Ì‘€ì‚ðŒ³‚É–ß‚µ‚Ü‚·B
+((<ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|"IMG:images/EditMenu.png">))
 
 
-+((<[‚â‚è’¼‚·]|URL:EditRedoAction.html>))
-Œ³‚É–ß‚µ‚½‘€ì‚ð‚â‚è’¼‚µ‚Ü‚·B
++((<[å…ƒã«æˆ»ã™]|URL:EditUndoAction.html>))
+ç›´å‰ã®æ“ä½œã‚’å…ƒã«æˆ»ã—ã¾ã™ã€‚
 
 
-+((<[Ø‚èŽæ‚è]|URL:EditCutAction.html>))
-‘I‘ð‚³‚ê‚½ƒeƒLƒXƒg‚ðØ‚èŽæ‚Á‚ÄƒNƒŠƒbƒvƒ{[ƒh‚É“ü‚ê‚Ü‚·B
++((<[ã‚„ã‚Šç›´ã™]|URL:EditRedoAction.html>))
+å…ƒã«æˆ»ã—ãŸæ“ä½œã‚’ã‚„ã‚Šç›´ã—ã¾ã™ã€‚
 
 
-+((<[ƒRƒs[]|URL:EditCopyAction.html>))
-‘I‘ð‚³‚ê‚½ƒeƒLƒXƒg‚ðƒRƒs[‚µ‚ÄƒNƒŠƒbƒvƒ{[ƒh‚É“ü‚ê‚Ü‚·B
++((<[åˆ‡ã‚Šå–ã‚Š]|URL:EditCutAction.html>))
+é¸æŠžã•ã‚ŒãŸãƒ†ã‚­ã‚¹ãƒˆã‚’åˆ‡ã‚Šå–ã£ã¦ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«å…¥ã‚Œã¾ã™ã€‚
 
 
-+((<[“\‚è•t‚¯]|URL:EditPasteAction.html>))
-ƒNƒŠƒbƒvƒ{[ƒh‚©‚çƒeƒLƒXƒg‚ð“\‚è•t‚¯‚Ü‚·B
++((<[ã‚³ãƒ”ãƒ¼]|URL:EditCopyAction.html>))
+é¸æŠžã•ã‚ŒãŸãƒ†ã‚­ã‚¹ãƒˆã‚’ã‚³ãƒ”ãƒ¼ã—ã¦ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«å…¥ã‚Œã¾ã™ã€‚
 
 
-+((<[ˆø—p•„•t‚«“\‚è•t‚¯]|URL:EditPasteWithQuoteAction.html>))
-ƒNƒŠƒbƒvƒ{[ƒh‚©‚çˆø—p•„•t‚«‚ÅƒeƒLƒXƒg‚ð“\‚è•t‚¯‚Ü‚·B
++((<[è²¼ã‚Šä»˜ã‘]|URL:EditPasteAction.html>))
+ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‹ã‚‰ãƒ†ã‚­ã‚¹ãƒˆã‚’è²¼ã‚Šä»˜ã‘ã¾ã™ã€‚
 
 
-+((<[‚·‚×‚Ä‘I‘ð]|URL:EditSelectAllAction.html>))
-‘S‚Ä‚ÌƒeƒLƒXƒg‚ð‘I‘ð‚µ‚Ü‚·B
++((<[å¼•ç”¨ç¬¦ä»˜ãè²¼ã‚Šä»˜ã‘]|URL:EditPasteWithQuoteAction.html>))
+ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‹ã‚‰å¼•ç”¨ç¬¦ä»˜ãã§ãƒ†ã‚­ã‚¹ãƒˆã‚’è²¼ã‚Šä»˜ã‘ã¾ã™ã€‚
 
 
-+((<[ŒŸõ]|URL:EditFindAction.html>))
-ƒeƒLƒXƒg‚ðŒŸõ‚µ‚Ü‚·B
++((<[ã™ã¹ã¦é¸æŠž]|URL:EditSelectAllAction.html>))
+å…¨ã¦ã®ãƒ†ã‚­ã‚¹ãƒˆã‚’é¸æŠžã—ã¾ã™ã€‚
 
 
-+((<[ŽŸ‚ðŒŸõ]|URL:EditFindNextAction.html>))
-’¼‘O‚ÌŒŸõðŒ‚ÅŽŸ‚ðŒŸõ‚µ‚Ü‚·B
++((<[æ¤œç´¢]|URL:EditFindAction.html>))
+ãƒ†ã‚­ã‚¹ãƒˆã‚’æ¤œç´¢ã—ã¾ã™ã€‚
 
 
-+((<[‘O‚ðŒŸõ]|URL:EditFindPrevAction.html>))
-’¼‘O‚ÌŒŸõðŒ‚Å‘O‚ðŒŸõ‚µ‚Ü‚·B
++((<[æ¬¡ã‚’æ¤œç´¢]|URL:EditFindNextAction.html>))
+ç›´å‰ã®æ¤œç´¢æ¡ä»¶ã§æ¬¡ã‚’æ¤œç´¢ã—ã¾ã™ã€‚
 
 
-+((<[’uŠ·]|URL:EditReplaceAction.html>))
-ƒeƒLƒXƒg‚ð’uŠ·‚µ‚Ü‚·B
++((<[å‰ã‚’æ¤œç´¢]|URL:EditFindPrevAction.html>))
+ç›´å‰ã®æ¤œç´¢æ¡ä»¶ã§å‰ã‚’æ¤œç´¢ã—ã¾ã™ã€‚
+
+
++((<[ç½®æ›]|URL:EditReplaceAction.html>))
+ãƒ†ã‚­ã‚¹ãƒˆã‚’ç½®æ›ã—ã¾ã™ã€‚
 
 =end

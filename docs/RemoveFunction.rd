@@ -4,31 +4,31 @@
  String @Remove(String address, String remove+)
 
 
-==����
-address�Ŏw�肳�ꂽ�A�h���X�̃��X�g����Aremove�Ŏw�肳�ꂽ�A�h���X���폜�������ʂ̃A�h���X�̃��X�g��Ԃ��܂��B
+==説明
+addressで指定されたアドレスのリストから、removeで指定されたアドレスを削除した結果のアドレスのリストを返します。
 
 
-==����
+==引数
 :String address
-  �A�h���X�̃��X�g
+  アドレスのリスト
 :String remove
-  �폜����A�h���X
+  削除するアドレス
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�A�h���X�̃p�[�X�Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*アドレスのパースに失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # Cc�Ɏw�肳�ꂽ�A�h���X���玩���̃A�h���X���폜
+==例
+ # Ccに指定されたアドレスから自分のアドレスを削除
  @Remove(Cc, @Address(@I()))
  
- # To�Ɏw�肳�ꂽ�A�h���X���玩���̃A�h���X��From�Ɏw�肳�ꂽ�A�h���X���폜
+ # Toに指定されたアドレスから自分のアドレスとFromに指定されたアドレスを削除
  @Remove(To, @Address(@I()), @Address(From))
 
 =end

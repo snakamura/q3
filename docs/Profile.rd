@@ -1,17 +1,17 @@
 =begin
-=�v���t�@�C��
+=プロファイル
 
-QMAIL3�ł́A�������J�[�h�Ƀ��[���{�b�N�X��u����Windows��Windows CE�ŋ��p���Ďg�����Ƃ��ł��܂��B���̂Ƃ��A�ꕔ�̐ݒ�͋��L�������Ȃ��ꍇ������܂��B���Ƃ��΁A�c�[���o�[��X�e�[�^�X�o�[���B�����ǂ�����E�B���h�E�̕����ʒu�Ȃǂ̐ݒ�A�w�b�_�r���[�̕\���̎d���Ȃǂ����ꂼ��ňقȂ�ݒ�ɂ������ꍇ�Ȃǂł��B
+QMAIL3では、メモリカードにメールボックスを置いてWindowsとWindows CEで共用して使うことができます。このとき、一部の設定は共有したくない場合もあります。たとえば、ツールバーやステータスバーを隠すかどうかやウィンドウの分割位置などの設定、ヘッダビューの表示の仕方などをそれぞれで異なる設定にしたい場合などです。
 
-�������[���{�b�N�X���g���Ȃ��炱���̐ݒ�����ɂ���Đ؂�ւ���@�\���v���t�@�C���@�\�ł��B�v���t�@�C���@�\��L���ɂ���ɂ͋N������((<�R�}���h���C��|URL:CommandLine.html>))��-p�I�v�V�����Ńv���t�@�C�������w�肷�邩�A���W�X�g���Ƀv���t�@�C��������������ł����܂��B���W�X�g���ɏ������ޏꍇ�ɂ́AHKEY_CURRENT_USER\Software\sn\q3\Setting��Profile�Ƃ������O�ŕ�����l���쐬���Ďw�肵�Ă��������B
+同じメールボックスを使いながらこれらの設定を環境によって切り替える機能がプロファイル機能です。プロファイル機能を有効にするには起動時の((<コマンドライン|URL:CommandLine.html>))の-pオプションでプロファイル名を指定するか、レジストリにプロファイル名を書き込んでおきます。レジストリに書き込む場合には、HKEY_CURRENT_USER\Software\sn\q3\SettingにProfileという名前で文字列値を作成して指定してください。
 
-�v���t�@�C�����w�肷��ƁAprofiles�f�B���N�g���ȉ��ɂ���((<�ݒ�t�@�C��|URL:Files.html>))��ǂݍ��ނƂ��ɓǂݍ��ރt�@�C�����ς��܂��B�Ⴆ�΁A((<header.xml|URL:HeaderXml.html>))��ǂݍ��ނƂ��ɂ͈ȉ��̏����œǂݍ��݂܂��B
+プロファイルを指定すると、profilesディレクトリ以下にある((<設定ファイル|URL:Files.html>))を読み込むときに読み込むファイルが変わります。例えば、((<header.xml|URL:HeaderXml.html>))を読み込むときには以下の順序で読み込みます。
 
-(1)profiles\<�v���t�@�C����>\header.xml
+(1)profiles\<プロファイル名>\header.xml
 (2)profiles\header.xml
 
-�O�҂����݂����ꍇ�ɂ͑O�҂�ǂݍ��݁i�����ĕۑ����j�A���݂��Ȃ��ꍇ�ɂ͌�҂�ǂݍ��݂܂��B�������A((<qmail.xml|URL:QmailXml.html>))�Ɋւ��Ă̓v���t�@�C�������w�肳��Ă���ꍇ�ɂ͕K��profiles\<�v���t�@�C����>\qmail.xml��ǂݍ��݂܂��B���݂��Ȃ��ꍇ�ɂ͎����I�ɍ쐬����܂��B
+前者が存在した場合には前者を読み込み（そして保存し）、存在しない場合には後者を読み込みます。ただし、((<qmail.xml|URL:QmailXml.html>))に関してはプロファイル名が指定されている場合には必ずprofiles\<プロファイル名>\qmail.xmlを読み込みます。存在しない場合には自動的に作成されます。
 
-�����Ƃɐݒ��ς������t�@�C�����������炩����profiles\<�v���t�@�C����>�f�B���N�g���ɃR�s�[���Ă������ƂŁA���̃t�@�C���ɕۑ������ݒ肾�������ɂ���Đ؂�ւ��邱�Ƃ��ł��܂��B
+環境ごとに設定を変えたいファイルだけをあらかじめprofiles\<プロファイル名>ディレクトリにコピーしておくことで、そのファイルに保存される設定だけを環境によって切り替えることができます。
 
 =end

@@ -4,34 +4,34 @@
  String @AddressBook(String to?, String cc?, String bcc?)
 
 
-==����
-((<[�A�h���X�̑I��]�_�C�A���O|URL:SelectAddressDialog.html>))���J���܂��Bto, cc, bcc�̊e������RFC2822�`���̃A�h���X���X�g���w�肷��Ƃ����̃A�h���X���I�����ꂽ��ԂŃ_�C�A���O���J���܂��B�A�h���X�I���_�C�A���O��[OK]���N���b�N���ĕ���ƁA�I�����ꂽ�A�h���X��RFC2822�̃w�b�_�`���ŕԂ���܂��B
+==説明
+((<[アドレスの選択]ダイアログ|URL:SelectAddressDialog.html>))を開きます。to, cc, bccの各引数にRFC2822形式のアドレスリストを指定するとそれらのアドレスが選択された状態でダイアログを開きます。アドレス選択ダイアログで[OK]をクリックして閉じると、選択されたアドレスがRFC2822のヘッダ形式で返されます。
 
 
-==����
+==引数
 :String to
-  To�̃A�h���X
+  Toのアドレス
 :String cc
-  Cc�̃A�h���X
+  Ccのアドレス
 :String bcc
-  Bcc�̃A�h���X
+  Bccのアドレス
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*UI�X���b�h�ȊO����Ăяo�����ꍇ
-*UI���Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*UIスレッド以外から呼び出した場合
+*UIがない場合
 
-==����
-*UI�X���b�h����̂݌Ăяo���\
-*UI���K�v
+==条件
+*UIスレッドからのみ呼び出し可能
+*UIが必要
 
 
-==��
- # [�A�h���X�̑I��]�_�C�A���O���J��
+==例
+ # [アドレスの選択]ダイアログを開く
  @AddressBook()
  
- # Bcc�Ɏ����̃A�h���X��I��������Ԃ�[�A�h���X�̑I��]�_�C�A���O���J��
+ # Bccに自分のアドレスを選択した状態で[アドレスの選択]ダイアログを開く
  @AddressBook('', '', @I())
 
 =end

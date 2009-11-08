@@ -1,18 +1,18 @@
 =begin
-=MessageAddJunk�A�N�V����
+=MessageAddJunkアクション
 
-�Ώۂ̃��b�Z�[�W���X�p���Ƃ��ăX�p���t�B���^�Ɋw�K�����܂��B���łɃX�p���Ƃ��Ċw�K����Ă���ꍇ�ɂ͉������܂���B���łɃX�p���ł͂Ȃ����b�Z�[�W�Ƃ��Ċw�K����Ă���ꍇ���̊w�K���e���L�����Z�����A�X�p���Ƃ��Ċw�K���Ȃ����܂��B
+対象のメッセージをスパムとしてスパムフィルタに学習させます。すでにスパムとして学習されている場合には何もしません。すでにスパムではないメッセージとして学習されている場合その学習内容をキャンセルし、スパムとして学習しなおします。
 
 <<<selectedMessage.rd
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���X�g�r���[
-*�v���r���[
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*リストビュー
+*プレビュー
+*メッセージウィンドウ
 
 =end

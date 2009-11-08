@@ -1,17 +1,17 @@
 =begin
-=EditPasteƒAƒNƒVƒ‡ƒ“
+=EditPasteã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒNƒŠƒbƒvƒ{[ƒh‚©‚çƒIƒuƒWƒFƒNƒg‚ð“\‚è•t‚¯‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‹ã‚‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’è²¼ã‚Šä»˜ã‘ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

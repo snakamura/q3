@@ -1,133 +1,133 @@
 =begin
-=�}�N��
+=マクロ
 
 // TODO
 
-�}�N���͒P��̎�����ł��Ă��܂��B���́A�t�B�[���h�E�t�B�[���h�L���b�V���E�����񃊃e�����E���l���e�����E���K�\�����e�����E�֐��Ăяo���E�萔�Q�ƁE�ϐ��Q�ƁE�q�A�h�L�������g�̂����ꂩ�ł��B
+マクロは単一の式からできています。式は、フィールド・フィールドキャッシュ・文字列リテラル・数値リテラル・正規表現リテラル・関数呼び出し・定数参照・変数参照・ヒアドキュメントのいずれかです。
 
 
-==�t�B�[���h
-�t�B�[���h���������ƃR���e�L�X�g���b�Z�[�W�̎w�肳�ꂽ���O�̃w�b�_�̒l��\���܂��B�Ⴆ�΁A
+==フィールド
+フィールド名を書くとコンテキストメッセージの指定された名前のヘッダの値を表します。例えば、
 
  Subject
 
-�Ƃ�������Subject�w�b�_�̒l��\���܂��B
+という式はSubjectヘッダの値を表します。
 
 
-==�t�B�[���h�L���b�V��
-%�ɑ����Ė��O���w�肷��ƃR���e�L�X�g���b�Z�[�W�̎w�肳�ꂽ���O�̃w�b�_�L���b�V���̒l��\���܂��B�L���b�V���͊�{�I�ɂ̓��X�g�r���[�ɕ\�����邽�߂Ƀ��b�Z�[�W��ۑ�����Ƃ��ɕۑ������l�ł��B�Ⴆ�΁A
+==フィールドキャッシュ
+%に続けて名前を指定するとコンテキストメッセージの指定された名前のヘッダキャッシュの値を表します。キャッシュは基本的にはリストビューに表示するためにメッセージを保存するときに保存される値です。例えば、
 
  %Subject
 
-�Ƃ�������Subject�w�b�_�̃L���b�V�����ꂽ�l��\���܂��B�w��ł��閼�O�͈ȉ��̂Ƃ���ł��B
+という式はSubjectヘッダのキャッシュされた値を表します。指定できる名前は以下のとおりです。
 
 :%ID
-  �R���e�L�X�g���b�Z�[�W��ID��\���܂��BNumber�^�ɂȂ�܂��B
+  コンテキストメッセージのIDを表します。Number型になります。
 :%Date
-  �R���e�L�X�g���b�Z�[�W�̓�����\���܂��BDate�w�b�_����擾����܂����ADate�w�b�_���Ȃ��ꍇ��s���ȏꍇ�ɂ͎�M�����Ƃ��̓����ɂȂ�܂��BDate�^�ɂȂ�܂��B
+  コンテキストメッセージの日時を表します。Dateヘッダから取得されますが、Dateヘッダがない場合や不正な場合には受信したときの日時になります。Date型になります。
 :%From
-  �R���e�L�X�g���b�Z�[�W�̍��o�l��\���܂��B���o�l�̊e�A�h���X�ɑ΂��āA���O���ݒ肳��Ă���ꍇ�ɂ͖��O���A�ݒ肳��Ă��Ȃ��ꍇ�ɂ̓A�h���X���g�p���܂��BString�^�ɂȂ�܂��B
+  コンテキストメッセージの差出人を表します。差出人の各アドレスに対して、名前が設定されている場合には名前を、設定されていない場合にはアドレスを使用します。String型になります。
 :%To
-  �R���e�L�X�g���b�Z�[�W�̈����\���܂��B���o�l�̊e�A�h���X�ɑ΂��āA���O���ݒ肳��Ă���ꍇ�ɂ͖��O���A�ݒ肳��Ă��Ȃ��ꍇ�ɂ̓A�h���X���g�p���܂��BString�^�ɂȂ�܂��B
+  コンテキストメッセージの宛先を表します。差出人の各アドレスに対して、名前が設定されている場合には名前を、設定されていない場合にはアドレスを使用します。String型になります。
 :%FromTo
-  �R���e�L�X�g���b�Z�[�W�̍��o�l�܂��͈����\���܂��B((<���M�ς݃t���O|URL:Flag.html>))�������Ă���ꍇ�ɂ�%To�ƁA�����Ă��Ȃ��ꍇ�ɂ�%From�Ɠ����ɂȂ�܂��BString�^�ɂȂ�܂��B
+  コンテキストメッセージの差出人または宛先を表します。((<送信済みフラグ|URL:Flag.html>))が立っている場合には%Toと、立っていない場合には%Fromと同じになります。String型になります。
 :%Subject
-  �R���e�L�X�g���b�Z�[�W�̌�����\���܂��BString�^�ɂȂ�܂��B
+  コンテキストメッセージの件名を表します。String型になります。
 :%Size
-  �R���e�L�X�g���b�Z�[�W�̃T�C�Y��\���܂��BNumber�^�ɂȂ�܂��B
+  コンテキストメッセージのサイズを表します。Number型になります。
 
 
-===%From��From�A%To��To�A%Subject��Subject�̈Ⴂ
-%From��From�A%To��To�͈ȉ��̓_�ňقȂ�܂��B
+===%FromとFrom、%ToとTo、%SubjectとSubjectの違い
+%FromとFrom、%ToとToは以下の点で異なります。
 
-�܂��AFrom��To, Subject�����b�Z�[�W����擾�����̂ɑ΂��āA%From��%To, %Subject�̓L���b�V������擾����܂��B���̂��߁A%�t���̕��������ɓ��삵�܂��B
+まず、FromやTo, Subjectがメッセージから取得されるのに対して、%Fromや%To, %Subjectはキャッシュから取得されます。このため、%付きの方が高速に動作します。
 
-�܂��A%From��%To�̓A�h���X�̈������قȂ�܂��B�Ⴆ�΁A
+また、%Fromや%Toはアドレスの扱いが異なります。例えば、
 
  From: test1@example.org, Test2 <test2@example.com>
 
-�Ƃ����w�b�_���������ꍇ�AFrom�̒l�́utest1@example.org, Test2 <test2@example.com>�v�ɂȂ�A%From�̒l�́utest1@example.org, Test2�v�ɂȂ�܂��B����ɁAFrom�̌^��Field�^�Ȃ̂ɑ΂��āA%From�̌^��String�^�ɂȂ�܂��B
+というヘッダがあった場合、Fromの値は「test1@example.org, Test2 <test2@example.com>」になり、%Fromの値は「test1@example.org, Test2」になります。さらに、Fromの型がField型なのに対して、%Fromの型はString型になります。
 
 
-==�����񃊃e����
-""�܂���''�Ŋ������l�͕����񃊃e�����ɂȂ�܂��B�Ⴆ�΁A
+==文字列リテラル
+""または''で括った値は文字列リテラルになります。例えば、
 
  "Subject"
 
-�́A�uSubject�v�Ƃ����������\���܂��B�����񃊃e�������ŁA�u"�v���g�p����ɂ́u\"�v�A�u'�v���g�p����ɂ́u\'�v�A�u\�v���g�p����ɂ́u\\�v�ƋL�q���܂��B
+は、「Subject」という文字列を表します。文字列リテラル中で、「"」を使用するには「\"」、「'」を使用するには「\'」、「\」を使用するには「\\」と記述します。
 
 
-==���l���e����
-���l����n�܂�A���l�݂̂��܂ޕ�����͐��l���e�����ɂȂ�܂��B�Ⴆ�΁A
+==数値リテラル
+数値から始まり、数値のみを含む文字列は数値リテラルになります。例えば、
 
  123
 
-�́A10�i��123��\���܂��B
+は、10進の123を表します。
 
 
-==���K�\�����e����
-//�Ŋ���ꂽ������͐��K�\�����e�����ɂȂ�܂��B�Ⴆ�΁A
+==正規表現リテラル
+//で括られた文字列は正規表現リテラルになります。例えば、
 
  /^(R|r)e:.*/
 
-�́uRe:�v�܂��́ure:�v����n�܂镶����Ƀ}�b�`���鐳�K�\����\���܂��B����/�̌��ɂ̓I�v�V�������w��ł��܂��B�w��ł���͈̂ȉ��̕����̑g�ݍ��킹�ł��B
+は「Re:」または「re:」から始まる文字列にマッチする正規表現を表します。後ろの/の後ろにはオプションを指定できます。指定できるのは以下の文字の組み合わせです。
 
 :m
-  �����s���[�h�ɂ��܂��B^��$���e�s�̎n�܂�ƏI���Ƀ}�b�`����悤�ɂȂ�܂��B
+  複数行モードにします。^と$が各行の始まりと終わりにマッチするようになります。
 :s
-  .�����s�����ɂ��}�b�`����悤�ɂ��܂��B
+  .が改行文字にもマッチするようにします。
 :i
-  �啶���Ə���������ʂ��Ȃ��悤�ɂ��܂��B
+  大文字と小文字を区別しないようにします。
 
-�Ⴆ�΁A
+例えば、
 
  /^re:.*/i
 
-��A
+や、
 
  /^.*/ms
 
-�̂悤�Ɏw�肵�܂��B
+のように指定します。
 
 
 
-==�֐��Ăяo��
-@����n�܂镶����͊֐��Ăяo����\���܂��B
+==関数呼び出し
+@から始まる文字列は関数呼び出しを表します。
 
  @Seen()
 
-�́A((<@Seen|URL:SeenFunction.html>))�Ƃ����֐��̌Ăяo����\���܂��B�ڍׂ́A((<�֐�|URL:MacroFunction.html>))���Q�Ƃ��Ă��������B
+は、((<@Seen|URL:SeenFunction.html>))という関数の呼び出しを表します。詳細は、((<関数|URL:MacroFunction.html>))を参照してください。
 
 
-==�萔�Q��
-((:::))����n�܂镶����͒萔�̎Q�ƂɂȂ�܂��B�Ⴆ�΁A
+==定数参照
+((:::))から始まる文字列は定数の参照になります。例えば、
 
- �@:GLOBAL
+ 　:GLOBAL
 
-�́AGLOBAL�Ƃ������O�̒萔�̎Q�Ƃ�\���܂��B�ǂ̂悤�Ȓ萔�����邩�́A���ꂪ�g����e((<�֐�|URL:MacroFunction.html>))�̐������Q�Ƃ��Ă��������B
+は、GLOBALという名前の定数の参照を表します。どのような定数があるかは、それが使われる各((<関数|URL:MacroFunction.html>))の説明を参照してください。
 
 
-==�ϐ��Q��
-$����n�܂镶����͕ϐ��̎Q�ƂɂȂ�܂��B�Ⴆ�΁A
+==変数参照
+$から始まる文字列は変数の参照になります。例えば、
 
  $Subject
 
-�́ASubject�Ƃ������O�̕ϐ��̎Q�Ƃ�\���܂��B�ڍׂ́A((<�ϐ�|URL:MacroVariable.html>))���Q�Ƃ��Ă��������B
+は、Subjectという名前の変数の参照を表します。詳細は、((<変数|URL:MacroVariable.html>))を参照してください。
 
 
-==�q�A�h�L�������g
-<<������ƃq�A�h�L�������g�Ƃ��ĉ��߂���܂��B�q�A�h�L�������g�͈ȉ��̂悤�Ȍ`�ɂȂ�܂��B
+==ヒアドキュメント
+<<があるとヒアドキュメントとして解釈されます。ヒアドキュメントは以下のような形になります。
 
  << END
- �����ɕ�����
- �����s����
+ ここに文字列
+ 複数行も可
  END
 
-<<�̌��̋󔒕�����ǂݔ�΂����ォ��n�܂�s���܂ł̕����񂪃^�O�ƂȂ�A���̃^�O���P�Ƃōs���Ɍ����܂ł̍s���S�ăq�A�h�L�������g�̃R���e���c�ɂȂ�܂��B�Ō�̍s�̓^�O�����ō\�������s�ł���K�v������܂��B
+<<の後ろの空白文字を読み飛ばした後から始まる行末までの文字列がタグとなり、そのタグが単独で行頭に現れるまでの行が全てヒアドキュメントのコンテンツになります。最後の行はタグだけで構成される行である必要があります。
 
-�q�A�h�L�������g�̈����͕����񃊃e�����Ɠ����ł����A�u"�v�u'�v�u\�v���G�X�P�[�v����K�v�͂���܂���B
+ヒアドキュメントの扱いは文字列リテラルと同じですが、「"」「'」「\」をエスケープする必要はありません。
 
-���Ƃ��΁A((<@Script|URL:ScriptFunction.html>))�ŃX�N���v�g�������Ƃ��ȂǂɎg�p����ƕ֗��ł��B
+たとえば、((<@Script|URL:ScriptFunction.html>))でスクリプトを書くときなどに使用すると便利です。
 
  @Script(<< END
  var x = 1;

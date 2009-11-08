@@ -1,17 +1,17 @@
 =begin
-=ViewSortDescendingƒAƒNƒVƒ‡ƒ“
+=ViewSortDescendingã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒƒCƒ“ƒEƒBƒ“ƒhƒE‚ÅŽg‚í‚ê‚½ê‡‚É‚ÍAƒŠƒXƒgƒrƒ…[‚Ìƒ\[ƒg•ûŒü‚ð~‡‚É‚µ‚Ü‚·B
+ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§ä½¿ã‚ã‚ŒãŸå ´åˆã«ã¯ã€ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚½ãƒ¼ãƒˆæ–¹å‘ã‚’é™é †ã«ã—ã¾ã™ã€‚
 
-ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE‚ÅŽg‚í‚ê‚½ê‡‚É‚ÍAƒGƒ“ƒgƒŠ‚Ìƒ\[ƒg•ûŒü‚ð~‡‚É‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§ä½¿ã‚ã‚ŒãŸå ´åˆã«ã¯ã€ã‚¨ãƒ³ãƒˆãƒªã®ã‚½ãƒ¼ãƒˆæ–¹å‘ã‚’é™é †ã«ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
-*ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

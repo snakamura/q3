@@ -1,14 +1,14 @@
 =begin
-=ToolAttachmentƒAƒNƒVƒ‡ƒ“
+=ToolAttachmentã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<“Y•tƒtƒ@ƒCƒ‹|URL:Attachment.html>))‚ð’Ç‰ÁEíœ‚·‚é‚½‚ß‚ÉA((<[“Y•tƒtƒ@ƒCƒ‹]ƒ_ƒCƒAƒƒO|URL:AttachmentDialog.html>))‚ðŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<æ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«|URL:Attachment.html>))ã‚’è¿½åŠ ãƒ»å‰Šé™¤ã™ã‚‹ãŸã‚ã«ã€((<[æ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:AttachmentDialog.html>))ã‚’é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

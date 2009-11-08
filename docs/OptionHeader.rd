@@ -1,12 +1,12 @@
 =begin
-=�w�b�_�r���[�̐ݒ�
+=ヘッダビューの設定
 
-[�I�v�V����]�_�C�A���O��[�w�b�_�r���[]�p�l���ł̓w�b�_�r���[�̐ݒ���s���܂��B
+[オプション]ダイアログの[ヘッダビュー]パネルではヘッダビューの設定を行います。
 
-((<�w�b�_�r���[�̐ݒ�|"IMG:images/OptionHeader.png">))
+((<ヘッダビューの設定|"IMG:images/OptionHeader.png">))
 
 
-+[�t�H���g]
-((<[�t�H���g]�_�C�A���O|URL:FontDialog.html>))���J���āA�w�b�_�r���[�Ŏg�p����t�H���g���w�肵�܂��B
++[フォント]
+((<[フォント]ダイアログ|URL:FontDialog.html>))を開いて、ヘッダビューで使用するフォントを指定します。
 
 =end

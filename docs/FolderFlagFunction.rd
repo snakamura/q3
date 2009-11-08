@@ -4,72 +4,72 @@
  Boolean @FolderFlag(String folder, Number flag)
 
 
-==����
-folder�Ŏw�肳�ꂽ�t�H���_��flag�Ŏw�肵���t���O�������Ă��邩�ǂ�����Ԃ��܂��B
+==説明
+folderで指定されたフォルダがflagで指定したフラグを持っているかどうかを返します。
 
-folder�ɂ̓t���O�𒲂ׂ����t�H���_�̊��S�����w�肵�܂��B�w�肳�ꂽ�t�H���_��������Ȃ��ƃG���[�ɂȂ�܂��B
+folderにはフラグを調べたいフォルダの完全名を指定します。指定されたフォルダが見つからないとエラーになります。
 
-flag�ɂ͒��ׂ����t���O���w�肵�܂��B�w��ł���͈̂ȉ��̂����ꂩ�ł��B
+flagには調べたいフラグを指定します。指定できるのは以下のいずれかです。
 
 ::FF-NOSELECT
-  �I���\���ǂ����B�I���\�ȏꍇ�ɂ�False���A����ȊO�̏ꍇ�ɂ�True���Ԃ���܂��BIMAP4�A�J�E���g�ł̓��b�Z�[�W�������Ȃ��t�H���_�ł͂��̃t���O��True�ɂȂ�܂��B
+  選択可能かどうか。選択可能な場合にはFalseが、それ以外の場合にはTrueが返されます。IMAP4アカウントではメッセージを入れられないフォルダではこのフラグがTrueになります。
 ::FF-NOINFERIORS
-  �q�t�H���_�������Ƃ��ł��邩�ǂ����B�q�t�H���_�������Ƃ��ł���ꍇ�ɂ�False���A����ȊO�̏ꍇ�ɂ�True���Ԃ���܂��BIMAP4�A�J�E���g�ł͎q�t�H���_���쐬���邱�Ƃ��ł��Ȃ��t�H���_�ł͂��̃t���O��True�ɂȂ�܂��B
+  子フォルダを持つことができるかどうか。子フォルダを持つことができる場合にはFalseが、それ以外の場合にはTrueが返されます。IMAP4アカウントでは子フォルダを作成することができないフォルダではこのフラグがTrueになります。
 ::FF-CUSTOMFLAGS
-  �J�X�^���t���O���T�|�[�g���邩�ǂ����BIMAP4�A�J�E���g�ł̓T�[�o��ɔC�ӂ̃t���O��ۑ��ł���ꍇ�ɂ�True���A����ȊO�̏ꍇ�ɂ�False���Ԃ���܂��B
+  カスタムフラグをサポートするかどうか。IMAP4アカウントではサーバ上に任意のフラグを保存できる場合にはTrueが、それ以外の場合にはFalseが返されます。
 ::FF-NORENAME
-  ���O��ύX���邱�Ƃ��ł��邩�ǂ����B���O��ύX�ł���ꍇ�ɂ�False���A����ȊO�̏ꍇ�ɂ�True���Ԃ���܂��B
+  名前を変更することができるかどうか。名前を変更できる場合にはFalseが、それ以外の場合にはTrueが返されます。
 ::FF-LOCAL
-  ���[�J���t�H���_���ǂ����B���[�J���t�H���_�̏ꍇ�ɂ�True���A����ȊO�̏ꍇ�ɂ�False���Ԃ���܂��B
+  ローカルフォルダかどうか。ローカルフォルダの場合にはTrueが、それ以外の場合にはFalseが返されます。
 ::FF-HIDE
-  �B����Ă��邩�ǂ����B�B����Ă���ꍇ�ɂ�True���A����ȊO�̏ꍇ�ɂ�False���Ԃ���܂��B
+  隠されているかどうか。隠されている場合にはTrueが、それ以外の場合にはFalseが返されます。
 ::FF-CHILDOFROOT
-  IMAP4�A�J�E���g�Ŏw�肳�ꂽ���[�g�t�H���_�̎q�t�H���_�̏ꍇ�ɂ�True���A����ȊO�̏ꍇ�ɂ�False���Ԃ���܂��B
+  IMAP4アカウントで指定されたルートフォルダの子フォルダの場合にはTrueが、それ以外の場合にはFalseが返されます。
 ::FF-IGNOREUNSEEN
-  ���ǂ𖳎����邩�ǂ����B���ǂ𖳎�����ꍇ�ɂ�True���A����ȊO�̏ꍇ�ɂ�False���Ԃ���܂��B
+  未読を無視するかどうか。未読を無視する場合にはTrueが、それ以外の場合にはFalseが返されます。
 ::FF-INBOX
-  ��M�����ǂ����B
+  受信箱かどうか。
 ::FF-OUTBOX
-  ���M�����ǂ����B
+  送信箱かどうか。
 ::FF-SENTBOX
-  ���M�T�����ǂ����B
+  送信控えかどうか。
 ::FF-TRASHBOX
-  �S�~�����ǂ����B
+  ゴミ箱かどうか。
 ::FF-DRAFTBOX
-  ���e�����ǂ����B
+  草稿箱かどうか。
 ::FF-SEARCHBOX
-  �������ǂ����B
+  検索かどうか。
 ::FF-JUNKBOX
-  �X�p�����ǂ����B
+  スパムかどうか。
 ::FF-SYNCABLE
-  �����\���ǂ����B
+  同期可能かどうか。
 ::FF-SYNCWHENOPEN
-  �J�����Ƃ��ɓ������邩�ǂ����B
+  開いたときに同期するかどうか。
 ::FF-CACHEWHENREAD
-  �{����ǂ񂾂Ƃ��ɃL���b�V�����邩�ǂ����B
+  本文を読んだときにキャッシュするかどうか。
 
 
-==����
+==引数
 :String folder
-  �t�H���_��
+  フォルダ名
 :Number flag
-  ���ׂ�t���O
+  調べるフラグ
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�w�肳�ꂽ�t�H���_��������Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*指定されたフォルダが見つからない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �I������Ă��郁�b�Z�[�W���i�[����Ă���t�H���_����M�����ǂ����𒲂ׂ�
+==例
+ # 選択されているメッセージが格納されているフォルダが受信箱かどうかを調べる
  @FolderFlag(@Folder(), :FF-INBOX)
  
- # ���݂̃t�H���_�������\���ǂ������ׂ�
+ # 現在のフォルダが同期可能かどうか調べる
  @FolderFlag(@Folder(:FN-FULLNAME, :FT-CURRENT), :FF-SYNCABLE)
 
 =end

@@ -1,10 +1,10 @@
 =begin
-=[“¯ŠúƒtƒBƒ‹ƒ^‚Ì‘I‘ð]ƒ_ƒCƒAƒƒO
+=[åŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã®é¸æŠž]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 
-“¯Šú‚·‚é‚Æ‚«‚É((<“¯ŠúƒtƒBƒ‹ƒ^|URL:SyncFilter.html>))‚ð‘I‘ð‚·‚é‚½‚ß‚Ìƒ_ƒCƒAƒƒO‚Å‚·B((<[ƒc[ƒ‹]-[‘—ŽóM]|URL:ToolSyncAction.html>))‚â((<[ƒc[ƒ‹]-[ŽóM]|URL:ToolReceiveAction.html>))‚ð‘I‘ð‚·‚é‚Æ‚«‚ÉShiftƒL[‚ð‰Ÿ‚µ‚Ä‚¢‚é‚Æ‚±‚Ìƒ_ƒCƒAƒƒO‚ªŠJ‚¢‚Ä“¯ŠúƒtƒBƒ‹ƒ^‚ðŽw’è‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B
+åŒæœŸã™ã‚‹ã¨ãã«((<åŒæœŸãƒ•ã‚£ãƒ«ã‚¿|URL:SyncFilter.html>))ã‚’é¸æŠžã™ã‚‹ãŸã‚ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã§ã™ã€‚((<[ãƒ„ãƒ¼ãƒ«]-[é€å—ä¿¡]|URL:ToolSyncAction.html>))ã‚„((<[ãƒ„ãƒ¼ãƒ«]-[å—ä¿¡]|URL:ToolReceiveAction.html>))ã‚’é¸æŠžã™ã‚‹ã¨ãã«Shiftã‚­ãƒ¼ã‚’æŠ¼ã—ã¦ã„ã‚‹ã¨ã“ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒé–‹ã„ã¦åŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã‚’æŒ‡å®šã™ã‚‹ã“ã¨ãŒã§ãã¾ã™ã€‚
 
-((<[“¯ŠúƒtƒBƒ‹ƒ^‚Ì‘I‘ð]ƒ_ƒCƒAƒƒO|"IMG:images/SelectSyncFilterDialog.png">))
+((<[åŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã®é¸æŠž]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|"IMG:images/SelectSyncFilterDialog.png">))
 
-Žg—p‰Â”\‚È“¯ŠúƒtƒBƒ‹ƒ^‚ªƒŠƒXƒg‚³‚ê‚Ü‚·‚Ì‚ÅAŽg—p‚µ‚½‚¢“¯ŠúƒtƒBƒ‹ƒ^‚ð‘I‘ð‚µ‚Ä[OK]‚ðƒNƒŠƒbƒN‚µ‚Ü‚·B
+ä½¿ç”¨å¯èƒ½ãªåŒæœŸãƒ•ã‚£ãƒ«ã‚¿ãŒãƒªã‚¹ãƒˆã•ã‚Œã¾ã™ã®ã§ã€ä½¿ç”¨ã—ãŸã„åŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã‚’é¸æŠžã—ã¦[OK]ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã¾ã™ã€‚
 
 =end

@@ -4,46 +4,46 @@
  String @Execute(String command, String input?)
 
 
-==����
-command�Ŏw�肳�ꂽ�R�}���h�����s���܂��B
+==説明
+commandで指定されたコマンドを実行します。
 
-command���֘A�t����ꂽ�t�@�C���������ꍇ�ɂ͊֘A�t���Ńt�@�C�����J���܂��B
+commandが関連付けられたファイルだった場合には関連付けでファイルを開きます。
 
-input���w�肳�ꂽ�ꍇ�ɂ́A�w�肳�ꂽ��������V�X�e���̃G���R�[�f�B���O�Ńo�C�g��ɕϊ��������ʂ��R�}���h�̕W�����͂ɓn���܂��B���̏ꍇ�A�W���o�͂���o�͂��ꂽ�o�C�g����V�X�e���̃G���R�[�f�B���O�ŕ�����ɕϊ��������ʂ�Ԃ��܂��Binput�̎w���Windows�łł̂݉\�ł��B
+inputが指定された場合には、指定された文字列をシステムのエンコーディングでバイト列に変換した結果をコマンドの標準入力に渡します。この場合、標準出力から出力されたバイト列をシステムのエンコーディングで文字列に変換した結果を返します。inputの指定はWindows版でのみ可能です。
 
-input���w�肳��Ȃ������ꍇ�ɂ́A�R�}���h�����s���ċ󕶎����Ԃ��܂��B
+inputが指定されなかった場合には、コマンドを実行して空文字列を返します。
 
 
-==����
+==引数
 :String command
-  ���s����R�}���h
+  実行するコマンド
 :String input
-  �R�}���h�̕W�����͂ɓn��������
+  コマンドの標準入力に渡す文字列
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R�}���h�̎��s�Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*コマンドの実行に失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # ���������N��
+==例
+ # メモ帳を起動
  @Execute('notepad.exe')
  
- # �󔒕������܂ނƂ��ɂ�""�Ŋ���
+ # 空白文字を含むときには""で括る
  @Execute('"C:\\Program Files\\Test\\test.exe"')
  
- # ������n��
+ # 引数を渡す
  @Execute('notepad.exe "C:\\Temp\\test.txt"')
  
- # �֘A�t��
+ # 関連付け
  @Execute('C:/Temp/Test.doc')
  
- # �t�B���^
+ # フィルタ
  @Execute('sed.exe -e "s/foo/bar/"', 'foo')
 
 =end

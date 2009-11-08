@@ -1,30 +1,30 @@
 =begin
-=����
+=検索
 
-QMAIL3�ł͈ȉ��̌����@�\���g�p�ł��܂��B
+QMAIL3では以下の検索機能が使用できます。
 
-:((<��{����|URL:MacroSearch.html>))
-  �}�N�����g�p��������
+:((<基本検索|URL:MacroSearch.html>))
+  マクロを使用した検索
 
-:((<IMAP4����|URL:Imap4Search.html>))
-  IMAP4�T�[�o��ł̌���
+:((<IMAP4検索|URL:Imap4Search.html>))
+  IMAP4サーバ上での検索
 
-:((<�S������|URL:FullTextSearch.html>))
-  ((<Namazu|URL:http://www.namazu.org/>))��((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))���g�p�����S������
-
-
-�e�����̎w��ŁA[�V���������t�H���_���쐬����]�Ƀ`�F�b�N������ƁA�w�肵�������Ō����t�H���_���쐬���邱�Ƃ��ł��܂��B�����t�H���_�ɂ��ẮA((<�t�H���_|URL:Folder.html>))���Q�Ƃ��Ă��������B
+:((<全文検索|URL:FullTextSearch.html>))
+  ((<Namazu|URL:http://www.namazu.org/>))や((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))を使用した全文検索
 
 
-==�������̃f�t�H���g�t�H���_
-�������Ƀf�t�H���g�Ō����ΏۂƂȂ�t�H���_�͈ȉ��̂悤�Ɍ��肳��܂��B
+各検索の指定で、[新しい検索フォルダを作成する]にチェックを入れると、指定した条件で検索フォルダを作成することができます。検索フォルダについては、((<フォルダ|URL:Folder.html>))を参照してください。
 
-(1)�A�J�E���g��I�����Ă���ꍇ�ɂ́A���ׂẴt�H���_
-(2)�����t�H���_��I�����Ă���ꍇ
-   (1)�����Ώۂ̃t�H���_�����݂���΁A���̌����t�H���_�̌����Ώۂ̃t�H���_�i�T�u�t�H���_���������邩�ǂ����������t�H���_�̐ݒ�������p���j
-   (2)���݂��Ȃ���΂��ׂẴt�H���_
-(3)�ʏ�t�H���_��I�����Ă���ꍇ
-   (1)�O�񌟍������Ƃ��ɂ��ׂẴt�H���_��Ώۂɂ��Ă���΂��ׂẴt�H���_
-   (2)����ȊO�̏ꍇ�ɂ́A�I������Ă���t�H���_�i�T�u�t�H���_���������邩�ǂ����͑O�񌟍������Ƃ��̎w��������p���j
+
+==検索時のデフォルトフォルダ
+検索時にデフォルトで検索対象となるフォルダは以下のように決定されます。
+
+(1)アカウントを選択している場合には、すべてのフォルダ
+(2)検索フォルダを選択している場合
+   (1)検索対象のフォルダが存在すれば、その検索フォルダの検索対象のフォルダ（サブフォルダも検索するかどうかも検索フォルダの設定を引き継ぐ）
+   (2)存在しなければすべてのフォルダ
+(3)通常フォルダを選択している場合
+   (1)前回検索したときにすべてのフォルダを対象にしていればすべてのフォルダ
+   (2)それ以外の場合には、選択されているフォルダ（サブフォルダも検索するかどうかは前回検索したときの指定を引き継ぐ）
 
 =end

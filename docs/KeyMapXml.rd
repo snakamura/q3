@@ -1,92 +1,92 @@
 =begin
 =keymap.xml
 
-�V���[�g�J�b�g�L�[�̐ݒ������XML�t�@�C���ł��B
+ショートカットキーの設定をするXMLファイルです。
 
 
-==����
+==書式
 
-===keymaps�G�������g
+===keymapsエレメント
 
  <keymaps>
   <!-- keymap -->
  </keymaps>
 
-keymaps�G�������g���g�b�v���x���G�������g�ɂȂ�܂��Bkeymaps�G�������g�ȉ��ɂ�0�ȏ��keymap�G�������g��u�����Ƃ��ł��܂��B
+keymapsエレメントがトップレベルエレメントになります。keymapsエレメント以下には0個以上のkeymapエレメントを置くことができます。
 
 
-===keymap�G�������g
+===keymapエレメント
 
  <keymap
-  name="���O">
+  name="名前">
   <!-- action -->
  </keymap>
 
-keymap�G�������g�̓L�[�}�b�v��\���܂��Bname�����ɂ̓L�[�}�b�v�̖��O���w�肵�܂��B
+keymapエレメントはキーマップを表します。name属性にはキーマップの名前を指定します。
 
-�ȉ��̖��O�̃L�[�}�b�v����`�ł��܂��B
+以下の名前のキーマップが定義できます。
 
 :AddressBookFrameWindow
-  �A�h���X���E�B���h�E
+  アドレス帳ウィンドウ
 :AddressBookListWindow
-  �A�h���X�r���[
+  アドレスビュー
 :EditFrameWindow
-  �G�f�B�b�g�E�B���h�E
+  エディットウィンドウ
 :EditWindow
-  �G�f�B�b�g�r���[
+  エディットビュー
 :HeaderEditWindow
-  �w�b�_�G�f�B�b�g�r���[
+  ヘッダエディットビュー
 :FolderComboBox
-  �t�H���_�R���{�{�b�N�X
+  フォルダコンボボックス
 :FolderListWindow
-  �t�H���_���X�g�r���[
+  フォルダリストビュー
 :FolderWindow
-  �t�H���_�r���[
+  フォルダビュー
 :ListWindow
-  ���X�g�r���[
+  リストビュー
 :MainWindow
-  ���C���E�B���h�E
+  メインウィンドウ
 :MessageFrameWindow
-  ���b�Z�[�W�E�B���h�E
+  メッセージウィンドウ
 :MessageWindow
-  ���b�Z�[�W�r���[
+  メッセージビュー
 :PreviewWindow
-  �v���r���[
+  プレビュー
 
-�ł������̃E�B���h�E�Œ�`���ꂽ�ݒ肪�L���ɂȂ�܂��B�����Œ�`����Ă��Ȃ��ꍇ�ɂ͊O���̒�`���Q�Ƃ��܂��B�Ⴆ�΁AMainWindow�Őݒ肳�ꂽ���e�̓��C���E�B���h�E�S�̂ŗL���ł����A�����L�[�̐ݒ肪ListWindow�ɂ���ꍇ�ɂ́A���X�g�r���[�ł͂�����̐ݒ肪�D�悳��܂��B
+最も内側のウィンドウで定義された設定が有効になります。内側で定義されていない場合には外側の定義を参照します。例えば、MainWindowで設定された内容はメインウィンドウ全体で有効ですが、同じキーの設定がListWindowにある場合には、リストビューではそちらの設定が優先されます。
 
 
-===action�G�������g
+===actionエレメント
 
  <action
-  name="�A�N�V����"
-  param="����">
+  name="アクション"
+  param="引数">
   <!-- key -->
  </action>
 
-action�G�������g�̓A�N�V������\���܂��Bname�����ɃA�N�V�����̖��O���w�肵�܂��B�w��ł���A�N�V�����̈ꗗ�́A((<�A�N�V����|URL:Action.html>))���Q�Ƃ��Ă��������B
+actionエレメントはアクションを表します。name属性にアクションの名前を指定します。指定できるアクションの一覧は、((<アクション|URL:Action.html>))を参照してください。
 
-param�����ɂ̓A�N�V�����̈������w�肵�܂��B�����̓X�y�[�X�ŋ�؂��ĕ����w�肷�邱�Ƃ��ł��܂��B��̈����ɃX�y�[�X���܂߂����ꍇ�ɂ�""�Ŋ���܂��B""�Ŋ������ꍇ�ɂ́A���̒��Ɋ܂܂��"��\��\�ŃG�X�P�[�v���܂��B�Ⴆ�΁Aparam������@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")���w�肷��ꍇ�ɂ́AXML���ł͈ȉ��̂悤�ɃG�X�P�[�v����܂��B
+param属性にはアクションの引数を指定します。引数はスペースで区切って複数指定することができます。一つの引数にスペースを含めたい場合には""で括ります。""で括った場合には、その中に含まれる"と\を\でエスケープします。例えば、param属性に@Execute("C:\\Program Files\\QMAIL3\\q3u.exe")を指定する場合には、XML中では以下のようにエスケープされます。
 
  param="&quot;@Execute(\&quot;C:\\\\Program Files\\\\QMAIL3\\\\q3u.exe\&quot;)&quot;"
 
-action�G�������g�ȉ��ɂ�0�ȏ��key�G�������g��u�����Ƃ��ł��܂��B
+actionエレメント以下には0個以上のkeyエレメントを置くことができます。
 
 
-===key�G�������g
+===keyエレメント
 
  <key
-  key="�L�["
-  code="�L�[�R�[�h"
-  name="�L�[��"
+  key="キー"
+  code="キーコード"
+  name="キー名"
   shift="true|false"
   ctrl="true|false"
   alt="true|false"
   virtual="true|false"/>
 
-key�G�������g�ŃL�[���w�肵�܂��B
+keyエレメントでキーを指定します。
 
-key�����܂���code�����܂���name�����ŃL�[���w�肵�܂��Bkey�����ł�"A"��"1"�Ȃǂ̂悤�Ɏ��ۂ̃L�[���w�肵�܂��Bcode�����ł�16�i���ŃL�[�R�[�h���w�肵�܂��B�Ⴆ�΁A���s�̃L�[�R�[�h��0xD�Ȃ̂�"D"�Ǝw�肵�܂��Bkey�����ł�name�����ł��w��ł��Ȃ��ꍇ�Ɏg�p���܂��Bname�����ɂ̓L�[�̖��O���w�肵�܂��B�w��ł���l�͈ȉ��̒ʂ�ł��B
+key属性またはcode属性またはname属性でキーを指定します。key属性では"A"や"1"などのように実際のキーを指定します。code属性では16進数でキーコードを指定します。例えば、改行のキーコードは0xDなので"D"と指定します。key属性でもname属性でも指定できない場合に使用します。name属性にはキーの名前を指定します。指定できる値は以下の通りです。
 
 
 :escape
@@ -94,7 +94,7 @@ key�����܂���code�����܂���name�����ŃL�[���w�肵�܂��Bkey�����ł�"A"��"1"�Ȃǂ�
 :return
   Enter
 :space
-  �X�y�[�X
+  スペース
 :tab
   Tab
 :back
@@ -114,48 +114,48 @@ key�����܂���code�����܂���name�����ŃL�[���w�肵�܂��Bkey�����ł�"A"��"1"�Ȃǂ�
 :help
   Help
 :convert
-  �ϊ�
+  変換
 :nonconvert
-  ���ϊ�
+  無変換
 :kana
-  �J�^�J�i/�Ђ炪��
+  カタカナ/ひらがな
 :kanji
-  ����
-:f1����f24
-  F1����F24
+  漢字
+:f1からf24
+  F1からF24
 :up
-  �J�[�\���L�[�̏�
+  カーソルキーの上
 :down
-  �J�[�\���L�[�̉�
+  カーソルキーの下
 :left
-  �J�[�\���L�[�̍�
+  カーソルキーの左
 :right
-  �J�[�\���L�[�̉E
-:numpad0����numpad9
-  �e���L�[��0����9
+  カーソルキーの右
+:numpad0からnumpad9
+  テンキーの0から9
 :add
-  �e���L�[��+
+  テンキーの+
 :subtract
-  �e���L�[��-
+  テンキーの-
 :multiply
-  �e���L�[��*
+  テンキーの*
 :divide
-  �e���L�[��/
+  テンキーの/
 :lwin
-  ��Windows
+  左Windows
 :rwin
-  �EWindows
+  右Windows
 :apps
-  �A�v���P�[�V�����L�[
+  アプリケーションキー
 :ldblclk
-  �}�E�X�̍��{�^���_�u���N���b�N�i���X�g�r���[�ł̂ݗL���j
+  マウスの左ボタンダブルクリック（リストビューでのみ有効）
 :rdblclk
-  �}�E�X�̉E�{�^���_�u���N���b�N�i���X�g�r���[�ł̂ݗL���j
+  マウスの右ボタンダブルクリック（リストビューでのみ有効）
 
-shift, ctrl, alt�����ɂ͂��ꂼ��AShift, Ctrl, Alt���������Ƃ��ɗL�����ǂ������w�肵�܂��Bvirtual�����ɂ͎w�肵���L�[�����z�L�[�R�[�h�łȂ��ꍇ��false���w�肵�܂��B�w�肵�Ȃ��ꍇ�ɂ�true�ɂȂ�܂��B
+shift, ctrl, alt属性にはそれぞれ、Shift, Ctrl, Altを押したときに有効かどうかを指定します。virtual属性には指定したキーが仮想キーコードでない場合にfalseを指定します。指定しない場合にはtrueになります。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <keymaps>
@@ -729,7 +729,7 @@ shift, ctrl, alt�����ɂ͂��ꂼ��AShift, Ctrl, Alt���������Ƃ��ɗL�����ǂ������w
  </keymaps>
 
 
-==�X�L�[�}
+==スキーマ
 
  element keymaps {
    element keymap {

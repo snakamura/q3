@@ -1,16 +1,16 @@
 =begin
-=ToolSubAccount�A�N�V����
+=ToolSubAccountアクション
 
-�����Ŏw�肳�ꂽ���O��((<�T�u�A�J�E���g|URL:SubAccount.html>))�����S�ẴA�J�E���g�̌��݂̃T�u�A�J�E���g���A�w�肳�ꂽ�T�u�A�J�E���g�ɐ؂�ւ��܂��B�w�肳�ꂽ���O�̃T�u�A�J�E���g�������Ȃ��A�J�E���g�ɂ͉e����^���܂���B�󕶎��񂪎w�肳���ƃf�t�H���g�̃T�u�A�J�E���g�ɐ؂�ւ��܂��B
+引数で指定された名前の((<サブアカウント|URL:SubAccount.html>))を持つ全てのアカウントの現在のサブアカウントを、指定されたサブアカウントに切り替えます。指定された名前のサブアカウントを持たないアカウントには影響を与えません。空文字列が指定されるとデフォルトのサブアカウントに切り替えます。
 
 
-==����
+==引数
 :1
-  �T�u�A�J�E���g���B
+  サブアカウント名。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*メインウィンドウ
+*メッセージウィンドウ
 
 =end

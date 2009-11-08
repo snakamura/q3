@@ -1,14 +1,14 @@
 =begin
-=ConfigRulesƒAƒNƒVƒ‡ƒ“
+=ConfigRulesã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<U‚è•ª‚¯‚ÌÝ’è|URL:OptionRules.html>))‚ðŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<æŒ¯ã‚Šåˆ†ã‘ã®è¨­å®š|URL:OptionRules.html>))ã‚’é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

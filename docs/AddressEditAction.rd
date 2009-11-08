@@ -1,14 +1,14 @@
 =begin
-=AddressEditƒAƒNƒVƒ‡ƒ“
+=AddressEditã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒtƒH[ƒJƒX‚Ì‚ ‚éƒAƒhƒŒƒX’ ‚ÌƒGƒ“ƒgƒŠ‚ð•ÒW‚µ‚Ü‚·BŽÀs‚·‚é‚Æ[ƒAƒhƒŒƒX]ƒ_ƒCƒAƒƒO‚ªŠJ‚«‚Ü‚·B[ƒAƒhƒŒƒX]ƒ_ƒCƒAƒƒO‚É‚Â‚¢‚Ä‚ÍA((<AddressNewƒAƒNƒVƒ‡ƒ“|URL:AddressNewAction.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã®ã‚ã‚‹ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã®ã‚¨ãƒ³ãƒˆãƒªã‚’ç·¨é›†ã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨[ã‚¢ãƒ‰ãƒ¬ã‚¹]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒé–‹ãã¾ã™ã€‚[ã‚¢ãƒ‰ãƒ¬ã‚¹]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«ã¤ã„ã¦ã¯ã€((<AddressNewã‚¢ã‚¯ã‚·ãƒ§ãƒ³|URL:AddressNewAction.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=FileImportƒAƒNƒVƒ‡ƒ“
+=FileImportã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»Ý‘I‘ð‚³‚ê‚Ä‚¢‚éƒtƒHƒ‹ƒ_‚ÉƒƒbƒZ[ƒW‚ðƒCƒ“ƒ|[ƒg‚µ‚Ü‚·BŽÀs‚·‚é‚Æ((<[“Ç‚Ýž‚Ý]ƒ_ƒCƒAƒƒO|URL:ImportDialog.html>))‚ªŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ç¾åœ¨é¸æŠžã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚¤ãƒ³ãƒãƒ¼ãƒˆã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨((<[èª­ã¿è¾¼ã¿]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:ImportDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

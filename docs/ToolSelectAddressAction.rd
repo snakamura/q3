@@ -1,14 +1,14 @@
 =begin
-=ToolSelectAddressƒAƒNƒVƒ‡ƒ“
+=ToolSelectAddressã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ˆ¶æ‚âCc, Bcc‚ð‘I‘ð‚·‚é‚½‚ß‚Ì((<[ƒAƒhƒŒƒX‚Ì‘I‘ð]ƒ_ƒCƒAƒƒO|URL:SelectAddressDialog.html>))‚ðŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+å®›å…ˆã‚„Cc, Bccã‚’é¸æŠžã™ã‚‹ãŸã‚ã®((<[ã‚¢ãƒ‰ãƒ¬ã‚¹ã®é¸æŠž]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:SelectAddressDialog.html>))ã‚’é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

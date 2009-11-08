@@ -1,12 +1,12 @@
 =begin
-=���ǊǗ�
+=未読管理
 
-RSS�A�J�E���g�ł́A�t�B�[�h���̓����G���g�������x���擾���Ȃ��悤�ɂ��邽�߂Ɉȉ��̂悤�ɊǗ����s���܂��B
+RSSアカウントでは、フィード中の同じエントリを何度も取得しないようにするために以下のように管理を行います。
 
-�܂��A�ǂ̃G���g���𓯂����̂Ƃ݂Ȃ�����((<RSS�A�J�E���g�̃p�����[�^|URL:FolderPropertyRssParameter.html>))��UpdateIfModified�p�����[�^�ɂ�茈�܂�܂��Btrue���w�肵���ꍇ�A�G���g���Ɋ܂܂����̃n�b�V������肻�̃n�b�V�����ς�����ꍇ�i�܂�A������ł���񂪕ς�����ꍇ�j�ɂ͈قȂ�G���g���Ƃ݂Ȃ��܂��Bfalse���w�肵���ꍇ�ɂ́AURL�������G���g���͓����Ƃ݂Ȃ���܂��B
+まず、どのエントリを同じものとみなすかは((<RSSアカウントのパラメータ|URL:FolderPropertyRssParameter.html>))のUpdateIfModifiedパラメータにより決まります。trueを指定した場合、エントリに含まれる情報のハッシュを取りそのハッシュが変わった場合（つまり、何か一つでも情報が変わった場合）には異なるエントリとみなします。falseを指定した場合には、URLが同じエントリは同じとみなされます。
 
-�O�҂̏ꍇ�ɂ̓n�b�V�����L�[�Ƃ��A��҂̏ꍇ�ɂ�URL���L�[�Ƃ��āAfeed.xml�Ɏ擾�ς݂̂��ׂẴL�[��ۑ����܂��B�����āA�����ɃL�[���ۑ�����Ă���G���g���͎���ȍ~�擾���܂���B���̃f�[�^�́A�擾�����G���g�����̂Ƃ͊֌W�Ȃ��ێ�����܂��̂ŁA�擾�����G���g�����폜���Ă��d�����Ď擾���邱�Ƃ͂���܂���B
+前者の場合にはハッシュをキーとし、後者の場合にはURLをキーとして、feed.xmlに取得済みのすべてのキーを保存します。そして、そこにキーが保存されているエントリは次回以降取得しません。このデータは、取得したエントリ自体とは関係なく保持されますので、取得したエントリを削除しても重複して取得することはありません。
 
-��L�̏��̓T�[�o�ɑ��݂��Ȃ��Ȃ��Ă���f�t�H���g��7���ԕێ�����܂��B�����ԕێ����邩�́A((<account.xml|URL:AccountXml.html>))��Rss/KeepDay�Ŏw��ł��܂��B
+上記の情報はサーバに存在しなくなってからデフォルトで7日間保持されます。何日間保持するかは、((<account.xml|URL:AccountXml.html>))のRss/KeepDayで指定できます。
 
 =end

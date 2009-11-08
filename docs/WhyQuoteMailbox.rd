@@ -1,6 +1,6 @@
 =begin
-=�Ȃ����[���A�h���X��@���O�����p���ł������Ă��܂��̂ł���?
+=なぜメールアドレスの@より前が引用符でくくられてしまうのですか?
 
-test..foo@example.com��A.test@example.org�̂悤�ȃ��[���A�h���X����͂�����A���̂悤�ȃ��[���A�h���X���烁�[�����󂯎�����ꍇ�A"test..foo"@example.com��".test"@example.org�̂悤��@���O�����p�{�ł������܂��B����́A���̂悤�ȃs���I�h����n�܂�����A�����̃s���I�h���A������悤�ȃ��[���A�h���X��""�ł�����Ȃ��Ă͂����Ȃ��Ƃ���RFC2822�̋L�q�ɏ]���Ă��܂��B���̂܂܃��[���𑗐M����΁A�Ӑ}�����A�h���X�Ƀ��[���������܂��B
+test..foo@example.comや、.test@example.orgのようなメールアドレスを入力したり、そのようなメールアドレスからメールを受け取った場合、"test..foo"@example.comや".test"@example.orgのように@より前が引用府でくくられます。これは、このようなピリオドから始まったり、複数のピリオドが連続するようなメールアドレスは""でくくらなくてはいけないというRFC2822の記述に従っています。そのままメールを送信すれば、意図したアドレスにメールが送られます。
 
 =end

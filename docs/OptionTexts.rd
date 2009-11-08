@@ -1,28 +1,28 @@
 =begin
-=��^���̐ݒ�
+=定型文の設定
 
-[�I�v�V����]�_�C�A���O��[��^��]�p�l���ł�((<��^��|URL:FixedFormText.html>))�̐ݒ���s���܂��B
+[オプション]ダイアログの[定型文]パネルでは((<定型文|URL:FixedFormText.html>))の設定を行います。
 
-((<��^���̐ݒ�|"IMG:images/OptionFixedFormTexts.png">))
-
-
-+[�ǉ�]
-��^����ǉ����܂��B((<[��^��]�_�C�A���O|URL:FixedFormTextDialog.html>))���J���܂��B
+((<定型文の設定|"IMG:images/OptionFixedFormTexts.png">))
 
 
-+[�폜]
-�I�����ꂽ��^�����폜���܂��B
++[追加]
+定型文を追加します。((<[定型文]ダイアログ|URL:FixedFormTextDialog.html>))が開きます。
 
 
-+[�ҏW]
-�I�����ꂽ��^����ҏW���܂��B((<[��^��]�_�C�A���O|URL:FixedFormTextDialog.html>))���J���܂��B
++[削除]
+選択された定型文を削除します。
 
 
-+[���]
-�I�����ꂽ��^�����ЂƂ�Ɉړ����܂��B
++[編集]
+選択された定型文を編集します。((<[定型文]ダイアログ|URL:FixedFormTextDialog.html>))が開きます。
 
 
-+[����]
-�I�����ꂽ��^�����ЂƂ��Ɉړ����܂��B
++[上へ]
+選択された定型文をひとつ上に移動します。
+
+
++[下へ]
+選択された定型文をひとつ下に移動します。
 
 =end

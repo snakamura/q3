@@ -1,19 +1,19 @@
 =begin
-=MessageOpenURL�A�N�V����
+=MessageOpenURLアクション
 
-�����Ŏw�肳�ꂽURL���J���܂��B
+引数で指定されたURLを開きます。
 
-�w�肳�ꂽURL��feed URL�ifeed:�Ŏn�܂�ꍇ�j�́A���̃t�B�[�h���w�ǂ��邽�߂̃E�B�U�[�h���J�n���܂��B�t�B�[�h�̍w�ǂɂ��ẮA((<�t�B�[�h�̍w��|URL:SubscribeRssFeed.html>))���Q�Ƃ��Ă��������B
+指定されたURLがfeed URL（feed:で始まる場合）は、そのフィードを購読するためのウィザードを開始します。フィードの購読については、((<フィードの購読|URL:SubscribeRssFeed.html>))を参照してください。
 
-����ȊO��URL���w�肳�ꂽ�ꍇ�ɂ́Amailto URL�Ƃ��Ĉ����A((<�R�}���h���C��|URL:CommandLine.html>))�I�v�V������-s�Ŏw�肳�ꂽ�̂Ɠ��l�ɃG�f�B�b�g�r���[���J���܂��B
+それ以外のURLが指定された場合には、mailto URLとして扱い、((<コマンドライン|URL:CommandLine.html>))オプションの-sで指定されたのと同様にエディットビューを開きます。
 
 
-==����
+==引数
 :1
   URL
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

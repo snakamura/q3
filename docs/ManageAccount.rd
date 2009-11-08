@@ -1,8 +1,8 @@
 =begin
-=�A�J�E���g�̊Ǘ�
+=アカウントの管理
 
-((<ToolAccount�A�N�V����|URL:ToolAccountAction.html>))�����s����ƁA((<[�A�J�E���g]�_�C�A���O|URL:AccountDialog.html>))���J���܂��B���̃_�C�A���O���g�p���ăA�J�E���g�̊Ǘ������邱�Ƃ��ł��܂��B
+((<ToolAccountアクション|URL:ToolAccountAction.html>))を実行すると、((<[アカウント]ダイアログ|URL:AccountDialog.html>))が開きます。このダイアログを使用してアカウントの管理をすることができます。
 
-�A�J�E���g�̊Ǘ��ɂ́A((<�A�J�E���g|URL:Account.html>))��((<�T�u�A�J�E���g|URL:SubAccount.html>))�̒ǉ��E�폜�E���O�̕ύX��v���p�e�B�̐ݒ肪�܂܂�܂��B
+アカウントの管理には、((<アカウント|URL:Account.html>))や((<サブアカウント|URL:SubAccount.html>))の追加・削除・名前の変更やプロパティの設定が含まれます。
 
 =end

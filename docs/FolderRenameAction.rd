@@ -1,16 +1,16 @@
 =begin
-=FolderRename�A�N�V����
+=FolderRenameアクション
 
-���ݑI������Ă���t�H���_�̖��O��ύX���܂��B((<[���O�̕ύX]�_�C�A���O|URL:RenameDialog.html>))���J���܂��B
+現在選択されているフォルダの名前を変更します。((<[名前の変更]ダイアログ|URL:RenameDialog.html>))を開きます。
 
-�w�肳�ꂽ�V�������O�̈ꕶ���ڂ��t�H���_�̃Z�p���[�^�i�ꕔ��IMAP4�A�J�E���g�������Ắu/�v�j�̏ꍇ�A�w�肵���t�H���_�̉��Ƀt�H���_���ړ����܂��B���Ƃ��΁A�uTest�v�Ƃ������O�̃t�H���_�̖��O��ύX����Ƃ��ɁuTest1�v�Ǝw�肷��ƃt�H���_�̖��O���̂��uTest1�v�ɕς��A�u/Test1�v�Ǝw�肷���Test�t�H���_��Test1�t�H���_�̎q�t�H���_�ƂȂ�܂��i���̂Ƃ�/Test1�t�H���_���Ȃ��ƃG���[�ɂȂ�܂��j�B�t�H���_�́A((<�h���b�O�A���h�h���b�v|URL:DragAndDrop.html>))�ł��ړ����邱�Ƃ��ł��܂��B
-
-
-==����
-�Ȃ�
+指定された新しい名前の一文字目がフォルダのセパレータ（一部のIMAP4アカウントを除いては「/」）の場合、指定したフォルダの下にフォルダを移動します。たとえば、「Test」という名前のフォルダの名前を変更するときに「Test1」と指定するとフォルダの名前自体が「Test1」に変わり、「/Test1」と指定するとTestフォルダがTest1フォルダの子フォルダとなります（このとき/Test1フォルダがないとエラーになります）。フォルダは、((<ドラッグアンドドロップ|URL:DragAndDrop.html>))でも移動することができます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

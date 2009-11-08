@@ -1,15 +1,15 @@
 =begin
-=ViewPGPModeƒAƒNƒVƒ‡ƒ“
+=ViewPGPModeã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<ƒZƒLƒ…ƒŠƒeƒBƒ‚[ƒh|URL:SecurityMode.html>))‚ÌPGPƒ‚[ƒh‚ðOn/Off‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ãƒ¢ãƒ¼ãƒ‰|URL:SecurityMode.html>))ã®PGPãƒ¢ãƒ¼ãƒ‰ã‚’On/Offã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

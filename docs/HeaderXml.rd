@@ -1,104 +1,104 @@
 =begin
 =header.xml
 
-�w�b�_�r���[�̐ݒ������XML�t�@�C���ł��B
+ヘッダビューの設定をするXMLファイルです。
 
 
-==����
+==書式
 
-===header�G�������g
+===headerエレメント
 
  <header>
   <!-- line -->
  </header>
 
-header�G�������g���g�b�v���x���G�������g�ɂȂ�܂��Bheader�G�������g�ȉ��ɂ�0�ȏ��line�G�������g��u�����Ƃ��ł��܂��B
+headerエレメントがトップレベルエレメントになります。headerエレメント以下には0個以上のlineエレメントを置くことができます。
 
 
-===line�G�������g
+===lineエレメント
 
  <line
-  hideIfEmpty="�A�C�e����"
-  class="�N���X��">
+  hideIfEmpty="アイテム名"
+  class="クラス名">
   <!-- static, edit, attachment -->
  </line>
 
-line�G�������g�̓w�b�_�r���[�̈�s��\���܂��B
+lineエレメントはヘッダビューの一行を表します。
 
-hideIfEmpty�����ɂ̓A�C�e�������w�肵�܂��B�w�肵���A�C�e������̏ꍇ�ɂ͍s���ƉB����܂��B�w�肵�Ȃ��ꍇ�ɂ́A���̍s�͏�ɕ\������܂��B
+hideIfEmpty属性にはアイテム名を指定します。指定したアイテムが空の場合には行ごと隠されます。指定しない場合には、その行は常に表示されます。
 
-class�����ɂ͐��K�\�����w�肵�܂��B�w�肵�����K�\���ɃA�J�E���g�N���X���}�b�`����ꍇ�̂ݍs���\������܂��B�Ⴆ�΁A"mail|news"�Ǝw�肷���mail�A�J�E���g��news�A�J�E���g�ł̂ݕ\�������悤�ɂȂ�܂��B�w�肵�Ȃ��ꍇ�ɂ́A�A�J�E���g�N���X�ɂ�����炸��ɕ\������܂��B
+class属性には正規表現を指定します。指定した正規表現にアカウントクラスがマッチする場合のみ行が表示されます。例えば、"mail|news"と指定するとmailアカウントとnewsアカウントでのみ表示されるようになります。指定しない場合には、アカウントクラスにかかわらず常に表示されます。
 
 
-===static�G�������g
+===staticエレメント
 
  <static
-  name="�A�C�e����"
-  width="��"
-  number="�ԍ�"
+  name="アイテム名"
+  width="幅"
+  number="番号"
   showAlways="true|false"
-  background="�w�i�F"
-  style="�t�H���g�X�^�C��"
+  background="背景色"
+  style="フォントスタイル"
   align="left|center|right">
-  �e���v���[�g
+  テンプレート
  </static>
 
-static�G�������g�̓X�^�e�B�b�N�R���g���[����\���܂��B�R���e���c�Ƀe���v���[�g�����ŕ\�����镶������w�肵�܂��B
+staticエレメントはスタティックコントロールを表します。コンテンツにテンプレート書式で表示する文字列を指定します。
 
-name�����ɂ̓A�C�e�������w�肵�܂��Bline�G�������g��hideIfEmpty�����Ɏw�肷��ꍇ�ɂ͂����Ŗ��O���w�肵�Ă����܂��B
+name属性にはアイテム名を指定します。lineエレメントのhideIfEmpty属性に指定する場合にはここで名前を指定しておきます。
 
-width�����ɂ͕����w�肵�܂��B���̎w��ɂ��Ă͔��l���Q�Ƃ��Ă��������B
+width属性には幅を指定します。幅の指定については備考を参照してください。
 
-number�����ɂ̓R���g���[���̔ԍ����w�肵�܂��B���̔ԍ���((<ViewFocusItem�A�N�V����|URL:ViewFocusItemAction.html>))�̈����Ɏw�肷�邱�ƂŁA�t�H�[�J�X���ړ����邱�Ƃ��ł��܂��B
+number属性にはコントロールの番号を指定します。この番号を((<ViewFocusItemアクション|URL:ViewFocusItemAction.html>))の引数に指定することで、フォーカスを移動することができます。
 
-showAlways�����ɂ�true�܂���false���w�肵�܂��Btrue���w�肷��ƃR���e�L�X�g�A�J�E���g���Ȃ��ꍇ�ł���ɃA�C�e���ɕ������\�����܂��B���̏ꍇ�A�e���v���[�g���Ƀ}�N�����������Ƃ͂ł��܂���B�w�肵�Ȃ��ꍇ�ɂ�false���w�肵���ꍇ�Ɠ����ɂȂ�܂��B
+showAlways属性にはtrueまたはfalseを指定します。trueを指定するとコンテキストアカウントがない場合でも常にアイテムに文字列を表示します。この場合、テンプレート中にマクロを書くことはできません。指定しない場合にはfalseを指定した場合と同じになります。
 
-background�����ɂ͔w�i�F���e���v���[�g�����Ŏw�肵�܂��B�e���v���[�g��]���������ʂ́Arrggbb�`���̕�����ɂȂ�K�v������܂��B�󕶎����Ԃ��ƃw�b�_�r���[�̔w�i�F�Ɠ����ɂȂ�܂��B�w�肵�Ȃ��ꍇ�ɂ̓w�b�_�r���[�̔w�i�F�Ɠ����ɂȂ�܂��B
+background属性には背景色をテンプレート書式で指定します。テンプレートを評価した結果は、rrggbb形式の文字列になる必要があります。空文字列を返すとヘッダビューの背景色と同じになります。指定しない場合にはヘッダビューの背景色と同じになります。
 
-style�����ɂ̓t�H���g�̃X�^�C�����w�肵�܂��B�w��ł���̂�bold��italic�̑g�ݍ��킹�ł��B�����w�肷��ꍇ�ɂ�,�ŋ�؂�܂��B�w�肵�Ȃ��ꍇ�ɂ͒ʏ�̃X�^�C���ɂȂ�܂��B
+style属性にはフォントのスタイルを指定します。指定できるのはboldとitalicの組み合わせです。複数指定する場合には,で区切ります。指定しない場合には通常のスタイルになります。
 
-align�����ɂ�left, center, right�̂����ꂩ���w�肵�܂��B���ꂼ��A���񂹁A�����񂹁A�E�񂹂ɂȂ�܂��B�w�肵�Ȃ��ꍇ�ɂ͍��񂹂ɂȂ�܂��B
+align属性にはleft, center, rightのいずれかを指定します。それぞれ、左寄せ、中央寄せ、右寄せになります。指定しない場合には左寄せになります。
 
 
-===edit�G�������g
+===editエレメント
 
  <edit
-  name="�A�C�e����"
-  width="��"
-  number="�ԍ�"
+  name="アイテム名"
+  width="幅"
+  number="番号"
   showAlways="true|false"
-  background="�w�i�F"
-  style="�X�^�C��"
+  background="背景色"
+  style="スタイル"
   align="left|center|right"
-  multiline="�s��"
+  multiline="行数"
   wrap="true|false">
-  �e���v���[�g
+  テンプレート
  </edit>
 
-edit�G�������g�̓G�f�B�b�g�R���g���[����\���܂��B�������ҏW�ł���킯�ł͂Ȃ��A�X�^�e�B�b�N�R���g���[���Ƃ̎�ȈႢ�́A�t�H�[�J�X�����Ă邩�ǂ����Ǝ����X�N���[�����邩�ǂ����ł��B�R���e���c�Ƀe���v���[�g�����ŕ\�����镶������w�肵�܂��B
+editエレメントはエディットコントロールを表します。ただし編集できるわけではなく、スタティックコントロールとの主な違いは、フォーカスを持てるかどうかと自動スクロールするかどうかです。コンテンツにテンプレート書式で表示する文字列を指定します。
 
-name, width, number, showAlways, background, style, align�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
+name, width, number, showAlways, background, style, align属性についてはstaticエレメントを参照してください。
 
-multiline�����ɂ͕����s�ɂȂ����Ƃ��ɍő剽�s�܂ő傫�����邩���w�肵�܂��B-1���w�肷��ƕ����s�ɂ͂Ȃ�܂���B�܂��A0���w�肷��ƕK�v�Ȃ����s���������܂��B�w�肵�Ȃ��ꍇ�ɂ͕����s�ɂȂ�܂���B
+multiline属性には複数行になったときに最大何行まで大きくするかを指定します。-1を指定すると複数行にはなりません。また、0を指定すると必要なだけ行数が増えます。指定しない場合には複数行になりません。
 
-wrap�����ɂ̓R���g���[���̕��Ŏ����Ő܂�Ԃ����ǂ������w�肵�܂��B�w�肵�Ȃ��ꍇ�ɂ͐܂�Ԃ��܂���B
+wrap属性にはコントロールの幅で自動で折り返すかどうかを指定します。指定しない場合には折り返しません。
 
 
-===attachment�G�������g
+===attachmentエレメント
 
  <attachment
-  name="�A�C�e����"
-  width="��"
-  number="�ԍ�"
+  name="アイテム名"
+  width="幅"
+  number="番号"
   showAlways="true|false"
-  background="�w�i�F"/>
+  background="背景色"/>
 
-attachment�G�������g�͓Y�t�t�@�C���R���g���[����\���܂��B���b�Z�[�W�̓Y�t�t�@�C����\�����܂��B
+attachmentエレメントは添付ファイルコントロールを表します。メッセージの添付ファイルを表示します。
 
-name, width, number, showAlways, background�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
+name, width, number, showAlways, background属性についてはstaticエレメントを参照してください。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <header>
@@ -167,7 +167,7 @@ name, width, number, showAlways, background�����ɂ��Ă�static�G�������g���Q�Ƃ
  </header>
 
 
-==�X�L�[�}
+==スキーマ
 
  start = element header {
    element line {
@@ -222,35 +222,35 @@ name, width, number, showAlways, background�����ɂ��Ă�static�G�������g���Q�Ƃ
  }?
 
 
-==���l
+==備考
 
-width�����ł̕��̎w��ł͈ȉ��̂悤�Ȏw�肪�ł��܂��B
+width属性での幅の指定では以下のような指定ができます。
 
-:�w��Ȃ�
-  �����w�肵�܂���B
+:指定なし
+  幅を指定しません。
 :auto
-  �K�v�ɉ����ĕ������߂܂��B
+  必要に応じて幅を決めます。
 :max
-  1max����9max�܂Ŏw��ł��A�����ԍ�������ꂽ�R���g���[���ōő�̃R���g���[���̕��ɍ��킳��܂��B�R���g���[���̕���auto���w�肵���̂Ɠ��l�Ɍ��߂��܂��B
+  1maxから9maxまで指定でき、同じ番号をつけられたコントロールで最大のコントロールの幅に合わされます。コントロールの幅はautoを指定したのと同様に決められます。
 :min
-  1min����9min�܂Ŏw��ł��A�����ԍ�������ꂽ�R���g���[���ōŏ��̃R���g���[���̕��ɍ��킳��܂��B�R���g���[���̕���auto���w�肵���̂Ɠ��l�Ɍ��߂��܂��B
+  1minから9minまで指定でき、同じ番号をつけられたコントロールで最小のコントロールの幅に合わされます。コントロールの幅はautoを指定したのと同様に決められます。
 :px
-  �s�N�Z���P�ʂŎw�肵�܂��B�����̂ݎw��ł��܂��B
+  ピクセル単位で指定します。整数のみ指定できます。
 :%
-  �p�[�Z���g�Ŏw�肵�܂��B�����̂ݎw��ł��܂��B
+  パーセントで指定します。整数のみ指定できます。
 :em
-  �t�H���g�̍�������Ɏw�肵�܂��B�������w��ł��܂��B
+  フォントの高さを基準に指定します。小数を指定できます。
 
-max��min�͕ʂ̍s�ɂ���A�C�e���̕��𑵂������ꍇ�Ɏg�p���܂��B�Ⴆ�΁A�e�s�̍����Ƀ��x����u���ă��x���̕������킹�����ꍇ�ɁA����炷�ׂẴ��x����width������1max�Ǝw�肵�Ă����ƁA�ł����̍L�����x���̕��ɂ��ׂẴ��x���̕������킳��܂��B
+maxとminは別の行にあるアイテムの幅を揃えたい場合に使用します。例えば、各行の左側にラベルを置いてラベルの幅を合わせたい場合に、それらすべてのラベルのwidth属性に1maxと指定しておくと、最も幅の広いラベルの幅にすべてのラベルの幅が合わされます。
 
-�s���̔z�u�����߂�Ƃ��ɂ͈ȉ��̂悤�Ɍ��߂܂��B
+行内の配置を決めるときには以下のように決めます。
 
-(1)auto, max, min���w�肳�ꂽ�R���g���[���̕����v�Z���A�e�R���g���[�����K�v�Ƃ��镝�����߂�
-(2)px, em���w�肳�ꂽ�R���g���[���̕������߂�
-(3)(1), (2)�Ō��܂����R���g���[���̕������ׂđ���
-(4)(3)�Ōv�Z���������w�b�_�r���[�̕����������ꍇ�ɂ́A�c��̕���%�Ŏw�肳�ꂽ�R���g���[���Ɋ���U��
-(5)%�Ŏw�肳�ꂽ�R���g���[���̕��̍��v��100%�𒴂��Ă��Ȃ��ꍇ�ɂ́A�c��̕��𕝂��w�肵�Ȃ������R���g���[���ŋϓ��Ɋ���
-(6)%�Ŏw�肳�ꂽ�R���g���[���̕��̍��v��100%�𒴂��Ă����ꍇ�ɂ́A�����w�肵�Ȃ������R���g���[���̕���0�ɂ���
-(7)(3)�Ōv�Z���������w�b�_�r���[�̕������L���ꍇ�ɂ́A%�Ŏw�肳�ꂽ�R���g���[���ƕ����w�肵�Ȃ������R���g���[���̕���0�ɂ���
+(1)auto, max, minが指定されたコントロールの幅を計算し、各コントロールが必要とする幅を決める
+(2)px, emが指定されたコントロールの幅を決める
+(3)(1), (2)で決まったコントロールの幅をすべて足す
+(4)(3)で計算した幅がヘッダビューの幅よりも狭い場合には、残りの幅を%で指定されたコントロールに割り振る
+(5)%で指定されたコントロールの幅の合計が100%を超えていない場合には、残りの幅を幅を指定しなかったコントロールで均等に割る
+(6)%で指定されたコントロールの幅の合計が100%を超えていた場合には、幅を指定しなかったコントロールの幅を0にする
+(7)(3)で計算した幅がヘッダビューの幅よりも広い場合には、%で指定されたコントロールと幅を指定しなかったコントロールの幅を0にする
 
 =end

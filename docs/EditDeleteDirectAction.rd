@@ -1,18 +1,18 @@
 =begin
-=EditDeleteDirect�A�N�V����
+=EditDeleteDirectアクション
 
-�Ώۂ̃��b�Z�[�W�𒼐ڍ폜���܂��B�S�~���͎g���܂���B
+対象のメッセージを直接削除します。ゴミ箱は使われません。
 
 <<<selectedMessage.rd
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���X�g�r���[
-*�v���r���[
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*リストビュー
+*プレビュー
+*メッセージウィンドウ
 
 =end

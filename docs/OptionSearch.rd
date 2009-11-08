@@ -1,50 +1,50 @@
 =begin
-=�����̐ݒ�
+=検索の設定
 
-[�I�v�V����]�_�C�A���O��[����]�p�l���ł�((<����|URL:Search.html>))�̐ݒ���s���܂��B
+[オプション]ダイアログの[検索]パネルでは((<検索|URL:Search.html>))の設定を行います。
 
-((<�����̐ݒ�|"IMG:images/OptionSearch.png">))
-
-
-====[��{]
-��{�����̐ݒ���s���܂��B
-
-+[�}�N��]
-��{�����Ŏg����}�N�����w�肵�܂��B@F�́A���K�\�����g�����ǂ����ɂ���āA@Contain��@RegexMatch���Ăяo���֐��ł��B$Search, $Case��$Regex�ɂ͂��ꂼ�ꌟ��������Ƒ啶������������ʂ��邩�ǂ����A���K�\�����g�����ǂ����̒l�����s���Ɋ��蓖�Ă��܂��B�f�t�H���g�ł́u@Or(@F(%Subject, $Search, $Case), @F(%From, $Search, $Case), @F(%To, $Search, $Case), @F(@Label(), $Search, $Case))�v�ł��B�ڍׂɂ��ẮA((<����|URL:Search.html>))���Q�Ƃ��Ă��������B
+((<検索の設定|"IMG:images/OptionSearch.png">))
 
 
-====[�S������]
-�S�������Ŏg���G���W�����w�肵�܂��B
+====[基本]
+基本検索の設定を行います。
+
++[マクロ]
+基本検索で使われるマクロを指定します。@Fは、正規表現を使うかどうかによって、@Containか@RegexMatchを呼び出す関数です。$Search, $Caseと$Regexにはそれぞれ検索文字列と大文字小文字を区別するかどうか、正規表現を使うかどうかの値が実行時に割り当てられます。デフォルトでは「@Or(@F(%Subject, $Search, $Case), @F(%From, $Search, $Case), @F(%To, $Search, $Case), @F(@Label(), $Search, $Case))」です。詳細については、((<検索|URL:Search.html>))を参照してください。
+
+
+====[全文検索]
+全文検索で使うエンジンを指定します。
 
 +[Namazu]
-((<Namazu|URL:http://www.namazu.org/>))���g�p���܂��B
+((<Namazu|URL:http://www.namazu.org/>))を使用します。
 
 +[Hyper Estraier]
-((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))���g�p���܂��B
+((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))を使用します。
 
-+[�J�X�^��]
-�J�X�^����I�������ꍇ�ɂ́A�����E�X�V���ɌĂяo���R�}���h���w�肵�܂��B�R�}���h�̎w��ł͈ȉ��̒u�������񂪎g�p�ł��܂��B
++[カスタム]
+カスタムを選択した場合には、検索・更新時に呼び出すコマンドを指定します。コマンドの指定では以下の置換文字列が使用できます。
 
-*������
+*検索時
   :$index
-    �C���f�b�N�X�̃p�X
+    インデックスのパス
   :$condition
-    ��������
+    検索条件
   :$encoding
-    �V�X�e���̃G���R�[�f�B���O
-*�X�V��
+    システムのエンコーディング
+*更新時
   :$msg
-    ���b�Z�[�W�{�b�N�X�̃p�X
+    メッセージボックスのパス
   :$index
-    �C���f�b�N�X�̃p�X
+    インデックスのパス
   :$encoding
-    �V�X�e���̃G���R�[�f�B���O
+    システムのエンコーディング
 
-�������ɂ͎w�肳�ꂽ�R�}���h�����s���A�W���o�͂��猋�ʂ���荞�݂܂��B�W���o�͂ɏo�͂���錋�ʂ͈ȉ��̂悤�Ȍ`���ł���K�v������܂��B
+検索時には指定されたコマンドを実行し、標準出力から結果を取り込みます。標準出力に出力される結果は以下のような形式である必要があります。
 
-(1)��s�Ɉ�̃q�b�g�����t�@�C�������o�͂����
-(2)��s�̈�ԍŌ�Ɍ����/�̌�낪�t�@�C�����ɂȂ��Ă���
+(1)一行に一つのヒットしたファイル名が出力される
+(2)一行の一番最後に現れる/の後ろがファイル名になっている
 
-((:(2):))�̏����ɍ��v���Ȃ��s�͖�������܂��B
+((:(2):))の条件に合致しない行は無視されます。
 
 =end

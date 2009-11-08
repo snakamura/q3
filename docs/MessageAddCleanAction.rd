@@ -1,18 +1,18 @@
 =begin
-=MessageAddClean�A�N�V����
+=MessageAddCleanアクション
 
-�Ώۂ̃��b�Z�[�W���X�p���ł͂Ȃ����b�Z�[�W�i�N���[���j�Ƃ��ăX�p���t�B���^�Ɋw�K�����܂��B���łɃX�p���Ƃ��Ċw�K����Ă���ꍇ���̊w�K���e���L�����Z�����A�N���[���Ƃ��Ċw�K���Ȃ����܂��B���łɃN���[���Ƃ��Ċw�K����Ă���ꍇ�ɂ͉������܂���B
+対象のメッセージをスパムではないメッセージ（クリーン）としてスパムフィルタに学習させます。すでにスパムとして学習されている場合その学習内容をキャンセルし、クリーンとして学習しなおします。すでにクリーンとして学習されている場合には何もしません。
 
 <<<selectedMessage.rd
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���X�g�r���[
-*�v���r���[
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*リストビュー
+*プレビュー
+*メッセージウィンドウ
 
 =end

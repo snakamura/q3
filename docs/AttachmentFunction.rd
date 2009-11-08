@@ -4,34 +4,34 @@
  String @Attachment(String separator?, Boolean uri?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W�̓Y�t�t�@�C���̖��O��Ԃ��܂��B�����̓Y�t�t�@�C��������ꍇ�ɂ́Aseparator�Ŏw�肵��������ŋ�؂��܂��Bseparator���w�肵�Ȃ������ꍇ�ɂ́A�u, �v�ŋ�؂��܂��Buri��True���w�肷��Ɩ��O�̑����URI���Ԃ���܂��B
+==説明
+コンテキストメッセージの添付ファイルの名前を返します。複数の添付ファイルがある場合には、separatorで指定した文字列で区切られます。separatorを指定しなかった場合には、「, 」で区切られます。uriにTrueを指定すると名前の代わりにURIが返されます。
 
 
-==����
+==引数
 :String separator
-  �Z�p���[�^
+  セパレータ
 :Boolean uri
-  URI��Ԃ����ǂ���
+  URIを返すかどうか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W�z���_���Ȃ��ꍇ�iURI���擾����ꍇ�j
-*�R���e�L�X�g���b�Z�[�W�z���_���ꎞ�I�ȏꍇ�iURI���擾����ꍇ�j
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*コンテキストメッセージホルダがない場合（URIを取得する場合）
+*コンテキストメッセージホルダが一時的な場合（URIを取得する場合）
+*メッセージの取得に失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �Y�t�t�@�C���̖��O���擾
+==例
+ # 添付ファイルの名前を取得
  @Attachment()
  
- # �Y�t�t�@�C����URI���u,�v�ŋ�؂��Ď擾
+ # 添付ファイルのURIを「,」で区切って取得
  @Attachment(',', @True())
 
 =end

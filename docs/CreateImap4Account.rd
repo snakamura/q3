@@ -1,73 +1,73 @@
 =begin
-=�A�J�E���g�̍쐬
+=アカウントの作成
 
-==�A�J�E���g�̍쐬
-IMAP4�̃A�J�E���g�̍쐬�́APOP3�̃A�J�E���g�̍쐬�Ƃقړ����Ȃ̂ŁA�܂���POP3��((<�A�J�E���g�̍쐬|URL:CreatePop3Account.html>))���Q�Ƃ��Ă��������B�����ł́APOP3�A�J�E���g�ƈقȂ镔���̂ݐ������܂��B
+==アカウントの作成
+IMAP4のアカウントの作成は、POP3のアカウントの作成とほぼ同じなので、まずはPOP3の((<アカウントの作成|URL:CreatePop3Account.html>))を参照してください。ここでは、POP3アカウントと異なる部分のみ説明します。
 
-((<[�A�J�E���g�̍쐬]�_�C�A���O|"IMG:images/TutorialImap4CreateAccountDialog.png">))
+((<[アカウントの作成]ダイアログ|"IMG:images/TutorialImap4CreateAccountDialog.png">))
 
-[�A�J�E���g�̍쐬]�_�C�A���O�ł́A[��M�v���g�R��]�Ƃ��āuIMAP4�v���A[���M�v���g�R��]�Ƃ��āuSMTP�v��I�����܂��B
-
-
-==�A�J�E���g�̐ݒ�
-�A�J�E���g�̐ݒ�_�C�A���O�́A[���], [���[�U], [�ڍ�]�^�u��POP3�A�J�E���g�Ɠ��l�Ɏw�肵�܂��B
+[アカウントの作成]ダイアログでは、[受信プロトコル]として「IMAP4」を、[送信プロトコル]として「SMTP」を選択します。
 
 
-[IMAP4]�^�u��IMAP4�̐ݒ���s���܂��B
-
-((<[IMAP4]�^�u|"IMG:images/TutorialImap4Imap4Page.png">))
-
-��{�I�ɂ̓f�t�H���g�̂܂܂Ŗ�肠��܂��񂪁AUW-IMAP�T�[�o���g�p����ꍇ�ɁA����̃f�B���N�g���ȉ������[���{�b�N�X�Ƃ��Ĉ����ꍇ�ɂ́A[���[�g�t�H���_]�Ńf�B���N�g�������w�肵�܂��B
-
-[SMTP], [�_�C�A���A�b�v], [���x]�^�u��POP3�A�J�E���g�Ɠ��l�Ɏw�肵�܂��B
+==アカウントの設定
+アカウントの設定ダイアログの、[一般], [ユーザ], [詳細]タブはPOP3アカウントと同様に指定します。
 
 
-[OK]���N���b�N���ăA�J�E���g�̐ݒ���I����ƁA�t�H���_���X�g���X�V���邩�ǂ�����q�˂��܂��B
+[IMAP4]タブでIMAP4の設定を行います。
 
-((<�t�H���_���X�g���X�V���܂���?|"IMG:images/TutorialImap4UpdateFolderList.png">))
+((<[IMAP4]タブ|"IMG:images/TutorialImap4Imap4Page.png">))
 
-�l�b�g���[�N�Ɍq�����Ă���ꍇ�ɂ�[�͂�]���N���b�N���ăT�[�o����t�H���_�̃��X�g���擾���܂��B�l�b�g���[�N�Ɍq�����Ă��Ȃ��ꍇ�ɂ́A��Ń��j���[����((<[�t�H���_]-[�X�V]|URL:FolderUpdateAction.html>))��I�����邱�ƂŃt�H���_���X�g�̍X�V�����邱�Ƃ��ł��܂��B
+基本的にはデフォルトのままで問題ありませんが、UW-IMAPサーバを使用する場合に、特定のディレクトリ以下をメールボックスとして扱う場合には、[ルートフォルダ]でディレクトリ名を指定します。
+
+[SMTP], [ダイアルアップ], [高度]タブもPOP3アカウントと同様に指定します。
 
 
-�t�H���_�̍X�V���I��������A((<[�t�@�C��]-[�I�t���C��]|URL:FileOfflineAction.html>))��I�����ăI�����C�����[�h�ɂ��܂��B
+[OK]をクリックしてアカウントの設定を終えると、フォルダリストを更新するかどうかを尋ねられます。
+
+((<フォルダリストを更新しますか?|"IMG:images/TutorialImap4UpdateFolderList.png">))
+
+ネットワークに繋がっている場合には[はい]をクリックしてサーバからフォルダのリストを取得します。ネットワークに繋がっていない場合には、後でメニューから((<[フォルダ]-[更新]|URL:FolderUpdateAction.html>))を選択することでフォルダリストの更新をすることができます。
 
 
-==����t�H���_�̐ݒ�
-QMAIL3�Ń��[���������ɂ́A�ȉ��̂悤�Ȋ���̓���t�H���_���K�v�ɂȂ�܂��B
+フォルダの更新が終了したら、((<[ファイル]-[オフライン]|URL:FileOfflineAction.html>))を選択してオンラインモードにします。
 
-:��M��
-  ��M�������[��������t�H���_�ł��BIMAP4�ł͏�ɑ��݂���̂Ńt�H���_�̍X�V������Ύ擾����܂��B
-:���M��
-  ���M���郁�[��������t�H���_�ł��B�쐬���Ȃ��ƃ��[���̑��M���ł��܂���B
-:���M�T��
-  ���M�������[��������t�H���_�ł��B�쐬���Ȃ��ƃ��[���̑��M���ł��܂���B
-:���e��
-  ���e���[��������t�H���_�ł��B�쐬���Ȃ��Ƒ��e���ۑ��ł��܂���B
-:�S�~��
-  �폜�������[��������t�H���_�ł��B�쐬���Ȃ��ꍇ�A���ڃ��[�����폜����܂��B
-:�X�p��
-  �X�p��������t�H���_�ł��B�쐬���Ȃ��ꍇ�A�X�p���t�B���^���g�p�ł��܂���B
 
-IMAP4�A�J�E���g�̏ꍇ�A��M���͏��Inbox�Ƃ������O�ɂȂ�܂��B����ȊO�̃t�H���_�̖��O�ɂ͔C�ӂ̖��O���t�����܂��B
+==特殊フォルダの設定
+QMAIL3でメールを扱うには、以下のような幾つかの特殊フォルダが必要になります。
 
-�܂��́A����t�H���_�Ƃ��Ďg�p����t�H���_���쐬���܂��B���łɃT�[�o��ɂ��̂��߂̃t�H���_������ꍇ�ɂ͂��̎菇�͔�΂��Ă��������B
+:受信箱
+  受信したメールが入るフォルダです。IMAP4では常に存在するのでフォルダの更新をすれば取得されます。
+:送信箱
+  送信するメールを入れるフォルダです。作成しないとメールの送信ができません。
+:送信控え
+  送信したメールを入れるフォルダです。作成しないとメールの送信ができません。
+:草稿箱
+  草稿メールを入れるフォルダです。作成しないと草稿が保存できません。
+:ゴミ箱
+  削除したメールを入れるフォルダです。作成しない場合、直接メールが削除されます。
+:スパム
+  スパムを入れるフォルダです。作成しない場合、スパムフィルタが使用できません。
 
-�t�H���_���쐬����ɂ́A�t�H���_�r���[�ō쐬����t�H���_�̐e�t�H���_�i���[�g�ɍ쐬����ꍇ�ɂ̓A�J�E���g�j��I�����āA((<[�t�H���_]-[�쐬]|URL:FolderCreateAction.html>))��I�����܂��B�ꕔ��IMAP4�T�[�o�ł́A�t�H���_�̉��Ƀt�H���_���쐬�ł��Ȃ�������A���[�g�Ƀt�H���_���쐬�ł��Ȃ�������Ƃ��������������邱�Ƃ�����܂��B�����ł́A���M�����쐬���܂��B
+IMAP4アカウントの場合、受信箱は常にInboxという名前になります。それ以外のフォルダの名前には任意の名前が付けられます。
 
-((<�t�H���_�̍쐬|"IMG:images/TutorialImap4CreateFolder.png">))
+まずは、特殊フォルダとして使用するフォルダを作成します。すでにサーバ上にそのためのフォルダがある場合にはこの手順は飛ばしてください。
 
-[�t�H���_�̍쐬]�_�C�A���O�ŁA�쐬�������t�H���_�̖��O���w�肵�܂��B
+フォルダを作成するには、フォルダビューで作成するフォルダの親フォルダ（ルートに作成する場合にはアカウント）を選択して、((<[フォルダ]-[作成]|URL:FolderCreateAction.html>))を選択します。一部のIMAP4サーバでは、フォルダの下にフォルダが作成できなかったり、ルートにフォルダが作成できなかったりといった制限があることがあります。ここでは、送信箱を作成します。
 
-((<[�t�H���_�̍쐬]�_�C�A���O|"IMG:images/TutorialImap4CreateFolderDialog.png">))
+((<フォルダの作成|"IMG:images/TutorialImap4CreateFolder.png">))
 
-[���O]�ɍ쐬����t�H���_�̖��O���w�肵�܂��B[�^�C�v]�͂��̂܂�[�����[�g�t�H���_]��I�����܂�((-����t�H���_��[���[�J���t�H���_]�Ƃ��č쐬���邱�Ƃ��\�ł����A���܂肨���߂��܂���-))�B[OK]�������ƃt�H���_���쐬����܂��B
+[フォルダの作成]ダイアログで、作成したいフォルダの名前を指定します。
 
-���ɁA�t�H���_�r���[�ō쐬���ꂽ�t�H���_��I�����A((<[�t�H���_]-[�v���p�e�B]|URL:FolderPropertyAction.html>))��I�����܂��B
+((<[フォルダの作成]ダイアログ|"IMG:images/TutorialImap4CreateFolderDialog.png">))
 
-((<[�v���p�e�B]�_�C�A���O|"IMG:images/TutorialImap4FolderPropertyDialog.png">))
+[名前]に作成するフォルダの名前を指定します。[タイプ]はそのまま[リモートフォルダ]を選択します((-特殊フォルダを[ローカルフォルダ]として作成することも可能ですが、あまりお勧めしません-))。[OK]を押すとフォルダが作成されます。
 
-���M���Ƃ��Ďg�p���邽�߂ɁA[�v���p�e�B]�_�C�A���O��[�^�C�v]�ŁA[���M��]�Ƀ`�F�b�N�����܂��B[OK]���N���b�N���ă_�C�A���O�����ƁA�t�H���_�r���[�ł̃A�C�R�����ς���đ��M���Ƃ��ĔF�����ꂽ���Ƃ��킩��܂��B
+次に、フォルダビューで作成されたフォルダを選択し、((<[フォルダ]-[プロパティ]|URL:FolderPropertyAction.html>))を選択します。
 
-���l�̎菇�ŕK�v�ȑS�Ă̓���t�H���_�̐ݒ���s���܂��B����t�H���_�̏ڍׂɂ��ẮA((<�t�H���_|URL:Folder.html>))���Q�Ƃ��Ă��������B
+((<[プロパティ]ダイアログ|"IMG:images/TutorialImap4FolderPropertyDialog.png">))
+
+送信箱として使用するために、[プロパティ]ダイアログの[タイプ]で、[送信箱]にチェックを入れます。[OK]をクリックしてダイアログを閉じると、フォルダビューでのアイコンが変わって送信箱として認識されたことがわかります。
+
+同様の手順で必要な全ての特殊フォルダの設定を行います。特殊フォルダの詳細については、((<フォルダ|URL:Folder.html>))を参照してください。
 
 =end

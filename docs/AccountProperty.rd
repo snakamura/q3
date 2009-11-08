@@ -1,20 +1,20 @@
 =begin
-=�A�J�E���g�̃v���p�e�B
+=アカウントのプロパティ
 
-�A�J�E���g�̃v���p�e�B�͈ȉ��̊e�^�u�Őݒ肵�܂��B
+アカウントのプロパティは以下の各タブで設定します。
 
-*((<��ʂ̐ݒ�|URL:AccountGeneral.html>))
-*((<���[�U�̐ݒ�|URL:AccountUser.html>))
-*((<�ڍׂ̐ݒ�|URL:AccountDetail.html>))
-*((<POP3�̐ݒ�|URL:AccountPop3.html>))
-*((<POP3(XTND XMIT)�̐ݒ�|URL:AccountPop3Send.html>))
-*((<IMAP4�̐ݒ�|URL:AccountImap4.html>))
-*((<SMTP�̐ݒ�|URL:AccountSmtp.html>))
-*((<NNTP�̐ݒ�|URL:AccountNntp.html>))
-*((<NNTP(POST)�̐ݒ�|URL:AccountNntpPost.html>))
-*((<RSS�̐ݒ�|URL:AccountRss.html>))
-*((<Blog�̐ݒ�|URL:AccountBlog.html>))
-*((<�_�C�A���A�b�v�̐ݒ�|URL:AccountDialup.html>))
-*((<���x�̐ݒ�|URL:AccountAdvanced.html>))
+*((<一般の設定|URL:AccountGeneral.html>))
+*((<ユーザの設定|URL:AccountUser.html>))
+*((<詳細の設定|URL:AccountDetail.html>))
+*((<POP3の設定|URL:AccountPop3.html>))
+*((<POP3(XTND XMIT)の設定|URL:AccountPop3Send.html>))
+*((<IMAP4の設定|URL:AccountImap4.html>))
+*((<SMTPの設定|URL:AccountSmtp.html>))
+*((<NNTPの設定|URL:AccountNntp.html>))
+*((<NNTP(POST)の設定|URL:AccountNntpPost.html>))
+*((<RSSの設定|URL:AccountRss.html>))
+*((<Blogの設定|URL:AccountBlog.html>))
+*((<ダイアルアップの設定|URL:AccountDialup.html>))
+*((<高度の設定|URL:AccountAdvanced.html>))
 
 =end

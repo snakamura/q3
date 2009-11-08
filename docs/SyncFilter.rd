@@ -1,36 +1,36 @@
 =begin
-=�����t�B���^
+=同期フィルタ
 
-�����t�B���^�̓T�[�o���烁�b�Z�[�W����M����Ƃ��̓�����R���g���[�����邽�߂Ɏg�p���܂��B�Ⴆ�΁A�ȉ��̂悤�Ȃ��Ƃ��ł��܂��B
+同期フィルタはサーバからメッセージを受信するときの動作をコントロールするために使用します。例えば、以下のようなことができます。
 
-*POP3�ł���T�C�Y�ȏ�̑傫���̃��b�Z�[�W�͍ŏ���100�s������荞��
-*IMAP4�œ���̑��肩�痈�����b�Z�[�W�̓e�L�X�g���������L���b�V������
-*NNTP�Ō����ɓ���̕������܂܂�Ă��郁�b�Z�[�W�����_�E�����[�h����
+*POP3であるサイズ以上の大きさのメッセージは最初の100行だけ取り込む
+*IMAP4で特定の相手から来たメッセージはテキスト部分だけキャッシュする
+*NNTPで件名に特定の文字が含まれているメッセージだけダウンロードする
 
-�f�t�H���g�ł͈ȉ��̂悤�ȓ����t�B���^���p�ӂ���Ă��܂��B
+デフォルトでは以下のような同期フィルタが用意されています。
 
-:�w�b�_�̂� (POP3)
-  POP3�Ńw�b�_�̂݃_�E�����[�h���܂��B
+:ヘッダのみ (POP3)
+  POP3でヘッダのみダウンロードします。
 
-:�ő�100�s (POP3)
-  POP3�Ŗ{���̐擪100�s�܂ł��_�E�����[�h���܂��B
+:最大100行 (POP3)
+  POP3で本文の先頭100行までをダウンロードします。
 
-:�w�b�_�̂� (IMAP4)
-  IMAP4�Ńw�b�_�̂݃L���b�V�����܂��B
+:ヘッダのみ (IMAP4)
+  IMAP4でヘッダのみキャッシュします。
 
-:�e�L�X�g�̂� (IMAP4)
-  IMAP4�Ńe�L�X�g�����̂݃L���b�V�����܂��B
+:テキストのみ (IMAP4)
+  IMAP4でテキスト部分のみキャッシュします。
 
-:���ׂ� (IMAP4)
-  IMAP4�Ń��b�Z�[�W�S�̂��L���b�V�����܂��B
+:すべて (IMAP4)
+  IMAP4でメッセージ全体をキャッシュします。
 
-:���ׂ� (NNTP)
-  NNTP�Ń��b�Z�[�W�S�̂��L���b�V�����܂��B
+:すべて (NNTP)
+  NNTPでメッセージ全体をキャッシュします。
 
-�����̓�����J�X�^�}�C�Y������A����̏����Ƀ}�b�`���郁�b�Z�[�W�ɑ΂��Ă̂ݓ����K�p����ɂ́A�����t�B���^���쐬���܂��B�����t�B���^���쐬����ɂ́A((<[�c�[��]-[�I�v�V����]|URL:ToolOptionsAction.html>))��I������[�I�v�V����]�_�C�A���O���J���A[�����t�B���^]�p�l����I�����܂��B�ݒ���@�ɂ��ẮA((<�����t�B���^�̐ݒ�|URL:OptionSyncFilters.html>))���Q�Ƃ��Ă��������B
+これらの動作をカスタマイズしたり、特定の条件にマッチするメッセージに対してのみ動作を適用するには、同期フィルタを作成します。同期フィルタを作成するには、((<[ツール]-[オプション]|URL:ToolOptionsAction.html>))を選択して[オプション]ダイアログを開き、[同期フィルタ]パネルを選択します。設定方法については、((<同期フィルタの設定|URL:OptionSyncFilters.html>))を参照してください。
 
-��M���ɂǂ̓����t�B���^���g�p���邩�́A((<�A�J�E���g�̐ݒ�|URL:AccountProperty.html>))��((<���x�̐ݒ�|URL:AccountAdvanced.html>))��[�����t�B���^]�Ŏw�肵�܂��B�܂��A((<����|URL:GoRound.html>))���ɂ́A�����Ŏw�肵���̂Ƃ͕ʂ̓����t�B���^���w�肷�邱�Ƃ��ł��܂��B�ڍׂ́A((<����̐ݒ�|URL:OptionGoRound.html>))���Q�Ƃ��Ă��������B
+受信時にどの同期フィルタを使用するかは、((<アカウントの設定|URL:AccountProperty.html>))の((<高度の設定|URL:AccountAdvanced.html>))の[同期フィルタ]で指定します。また、((<巡回|URL:GoRound.html>))時には、ここで指定したのとは別の同期フィルタを指定することができます。詳細は、((<巡回の設定|URL:OptionGoRound.html>))を参照してください。
 
-�����t�B���^���w�肵�Ȃ��ƁAPOP3�̏ꍇ�ɂ̓��b�Z�[�W�S�̂��_�E�����[�h���AIMAP4��NNTP�ł̓C���f�b�N�X�̂ݍ쐬���܂��B
+同期フィルタを指定しないと、POP3の場合にはメッセージ全体をダウンロードし、IMAP4とNNTPではインデックスのみ作成します。
 
 =end

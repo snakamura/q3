@@ -1,70 +1,70 @@
 =begin
 =colors.xml
 
-((<���X�g�r���[�̐F|URL:Colors.html>))�̐ݒ������XML�t�@�C���ł��B���̃t�@�C���ɂ́A((<�F�̐ݒ�|URL:OptionColors.html>))�Őݒ肵����񂪕ۑ�����܂��B
+((<リストビューの色|URL:Colors.html>))の設定をするXMLファイルです。このファイルには、((<色の設定|URL:OptionColors.html>))で設定した情報が保存されます。
 
 
-==����
+==書式
 
-===colors�G�������g
+===colorsエレメント
 
  <colors>
   <! -- colorSet -->
  </colors>
 
-colors�G�������g���g�b�v���x���G�������g�ɂȂ�܂��Bcolors�G�������g�ȉ��ɂ́A0�ȏ��colorSet�G�������g��u�����Ƃ��o���܂��B
+colorsエレメントがトップレベルエレメントになります。colorsエレメント以下には、0個以上のcolorSetエレメントを置くことが出来ます。
 
 
-===colorSet�G�������g
+===colorSetエレメント
 
  <colorSet
-  account="�A�J�E���g��"
-  folder="�t�H���_��">
+  account="アカウント名"
+  folder="フォルダ名">
   <!-- color -->
  </colorSet>
 
-colorSet�G�������g�͐F�������Ɏg�p�����F�Z�b�g���w�肵�܂��Baccount�����ɃA�J�E���g�����Afolder�����Ƀt�H���_�����w�肷�邱�Ƃ��o���܂��B�����Ƃ�//�ň͂ނ��Ƃɂ�萳�K�\�����g�p�ł��܂��B�����̑����͏ȗ��\�ŁA�ȗ����ꂽ�ꍇ�ɂ͂��ꂼ��S�ẴA�J�E���g�E�t�H���_�Ƀ}�b�`���܂��B���Ƃ��΁Aaccount�����݂̂��w�肵��folder�������w�肵�Ȃ��ƁA�w�肵���A�J�E���g�̑S�Ẵt�H���_�Ƀ}�b�`���܂��B
+colorSetエレメントは色分け時に使用される色セットを指定します。account属性にアカウント名を、folder属性にフォルダ名を指定することが出来ます。両方とも//で囲むことにより正規表現が使用できます。これらの属性は省略可能で、省略された場合にはそれぞれ全てのアカウント・フォルダにマッチします。たとえば、account属性のみを指定してfolder属性を指定しないと、指定したアカウントの全てのフォルダにマッチします。
 
 
-===color�G�������g
+===colorエレメント
 
  <color
-  match="�}�N��"
-  description="����">
+  match="マクロ"
+  description="説明">
   <!-- foreground, background, style -->
  </color>
 
-color�G�������g�͐F�ƃt�H���g�̃X�^�C�����w�肵�܂��Bmatch�����ɂ̓}�N�����Adescription�����ɂ͐������w�肵�܂��B
+colorエレメントは色とフォントのスタイルを指定します。match属性にはマクロを、description属性には説明を指定します。
 
 
-===foreground�G�������g
+===foregroundエレメント
 
  <foreground>
-  �F
+  色
  </foreground>
 
-foreground�G�������g�͕����F���w�肵�܂��B�F��RRGGBB�`���Ŏw�肵�܂��B
+foregroundエレメントは文字色を指定します。色はRRGGBB形式で指定します。
 
 
-===background�G�������g
+===backgroundエレメント
 
  <background>
-  �F
+  色
  </background>
 
-background�G�������g�͔w�i�F���w�肵�܂��B�F��RRGGBB�`���Ŏw�肵�܂��B
+backgroundエレメントは背景色を指定します。色はRRGGBB形式で指定します。
 
 
-===style�G�������g
+===styleエレメント
 
  <style>
-  �t�H���g�̃X�^�C��
+  フォントのスタイル
  </style>
 
-style�G�������g�ɂ̓t�H���g�̃X�^�C�����w�肷�邱�Ƃ��ł��܂��B�w��\�Ȃ̂́Aregular��bold�ł��B
+styleエレメントにはフォントのスタイルを指定することができます。指定可能なのは、regularとboldです。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <colors>
@@ -80,28 +80,28 @@ style�G�������g�ɂ̓t�H���g�̃X�^�C�����w�肷�邱�Ƃ��ł��܂��B�w��\�Ȃ̂́Ar
  </colors>
 
 
-==�X�L�[�}
+==スキーマ
 
  element colors {
    element colorSet {
      element color {
-       ## �����F
+       ## 文字色
        element foreground {
          xsd:string {
            pattern = "[0-9a-fA-F]{6}"
          }
        }?,
-       ## �w�i�F
+       ## 背景色
        element background {
          xsd:string {
            pattern = "[0-9a-fA-F]{6}"
          }
        }?,
-       ## �t�H���g�X�^�C��
+       ## フォントスタイル
        element style {
          "regular" | "bold"
        }?,
-       ## �F���K�p���������i�}�N���j
+       ## 色が適用される条件（マクロ）
        attribute match {
          xsd:string
        },
@@ -109,13 +109,13 @@ style�G�������g�ɂ̓t�H���g�̃X�^�C�����w�肷�邱�Ƃ��ł��܂��B�w��\�Ȃ̂́Ar
          xsd:string
        }?
      }*,
-     ## �A�J�E���g
-     ## �w�肳��Ȃ��ꍇ�A�S�ẴA�J�E���g
+     ## アカウント
+     ## 指定されない場合、全てのアカウント
      attribute account {
        xsd:string
      }?,
-     ## �t�H���_
-     ## �w�肳��Ȃ��ꍇ�A�S�Ẵt�H���_
+     ## フォルダ
+     ## 指定されない場合、全てのフォルダ
      attribute folder {
        xsd:string
      }?

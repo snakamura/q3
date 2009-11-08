@@ -1,57 +1,57 @@
 =begin
 =fonts.xml
 
-ƒtƒHƒ“ƒg‚ÌÝ’è‚ð‚·‚éXMLƒtƒ@ƒCƒ‹‚Å‚·B
+ãƒ•ã‚©ãƒ³ãƒˆã®è¨­å®šã‚’ã™ã‚‹XMLãƒ•ã‚¡ã‚¤ãƒ«ã§ã™ã€‚
 
 
-==‘Ž®
+==æ›¸å¼
 
-===fontsƒGƒŒƒƒ“ƒg
+===fontsã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <fonts>
   <!-- group -->
  </fonts>
 
-fontsƒGƒŒƒƒ“ƒg‚ªƒgƒbƒvƒŒƒxƒ‹ƒGƒŒƒƒ“ƒg‚É‚È‚è‚Ü‚·BfontsƒGƒŒƒƒ“ƒgˆÈ‰º‚É‚Í0ŒÂˆÈã‚ÌgroupƒGƒŒƒƒ“ƒg‚ð’u‚­‚±‚Æ‚ª‚Å‚«‚Ü‚·B
+fontsã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆãŒãƒˆãƒƒãƒ—ãƒ¬ãƒ™ãƒ«ã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã«ãªã‚Šã¾ã™ã€‚fontsã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆä»¥ä¸‹ã«ã¯0å€‹ä»¥ä¸Šã®groupã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã‚’ç½®ãã“ã¨ãŒã§ãã¾ã™ã€‚
 
 
-===groupƒGƒŒƒƒ“ƒg
+===groupã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <group
-  name="–¼‘O">
+  name="åå‰">
   <!-- fontSet -->
  </group>
 
-groupƒGƒŒƒƒ“ƒg‚ÍƒtƒHƒ“ƒgƒOƒ‹[ƒv‚ð•\‚µ‚Ü‚·Bname‘®«‚ÉƒOƒ‹[ƒv–¼‚ðŽw’è‚µ‚Ü‚·BgroupƒGƒŒƒƒ“ƒgˆÈ‰º‚É0ŒÂˆÈã‚ÌfontSetƒGƒŒƒƒ“ƒg‚ð’u‚­‚±‚Æ‚ª‚Å‚«‚Ü‚·B
+groupã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¯ãƒ•ã‚©ãƒ³ãƒˆã‚°ãƒ«ãƒ¼ãƒ—ã‚’è¡¨ã—ã¾ã™ã€‚nameå±žæ€§ã«ã‚°ãƒ«ãƒ¼ãƒ—åã‚’æŒ‡å®šã—ã¾ã™ã€‚groupã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆä»¥ä¸‹ã«0å€‹ä»¥ä¸Šã®fontSetã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã‚’ç½®ãã“ã¨ãŒã§ãã¾ã™ã€‚
 
 
-===fontSetƒGƒŒƒƒ“ƒg
+===fontSetã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <fontSet
-  match="ƒ}ƒNƒ"
-  lineSpacing="sŠÔ">
+  match="ãƒžã‚¯ãƒ­"
+  lineSpacing="è¡Œé–“">
   <!-- font -->
  </fontSet>
 
-fontSetƒGƒŒƒƒ“ƒg‚ÍƒtƒHƒ“ƒgƒZƒbƒg‚ð•\‚µ‚Ü‚·B
+fontSetã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¯ãƒ•ã‚©ãƒ³ãƒˆã‚»ãƒƒãƒˆã‚’è¡¨ã—ã¾ã™ã€‚
 
-match‘®«‚Éƒ}ƒNƒ‚ðŽw’è‚µ‚Ü‚·B•\Ž¦‚·‚éƒƒbƒZ[ƒW‚É‘Î‚µ‚Ä‚±‚Ìƒ}ƒNƒ‚ð•]‰¿‚µ‚½Œ‹‰Ê‚ªTrue‚É‚È‚é‚Æ‚±‚ÌƒtƒHƒ“ƒgƒZƒbƒg‚ªŽg‚í‚ê‚Ü‚·B
+matchå±žæ€§ã«ãƒžã‚¯ãƒ­ã‚’æŒ‡å®šã—ã¾ã™ã€‚è¡¨ç¤ºã™ã‚‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾ã—ã¦ã“ã®ãƒžã‚¯ãƒ­ã‚’è©•ä¾¡ã—ãŸçµæžœãŒTrueã«ãªã‚‹ã¨ã“ã®ãƒ•ã‚©ãƒ³ãƒˆã‚»ãƒƒãƒˆãŒä½¿ã‚ã‚Œã¾ã™ã€‚
 
-lineSpacing‘®«‚É‚ÍsŠÔ‚ðƒsƒNƒZƒ‹’PˆÊ‚ÅŽw’è‚µ‚Ü‚·B
+lineSpacingå±žæ€§ã«ã¯è¡Œé–“ã‚’ãƒ”ã‚¯ã‚»ãƒ«å˜ä½ã§æŒ‡å®šã—ã¾ã™ã€‚
 
 
-===fontƒGƒŒƒƒ“ƒg
+===fontã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <font
-  face="ƒtƒHƒ“ƒg–¼"
-  size="ƒTƒCƒY"
-  style="ƒXƒ^ƒCƒ‹"
-  charset="•¶ŽšƒZƒbƒg"/>
+  face="ãƒ•ã‚©ãƒ³ãƒˆå"
+  size="ã‚µã‚¤ã‚º"
+  style="ã‚¹ã‚¿ã‚¤ãƒ«"
+  charset="æ–‡å­—ã‚»ãƒƒãƒˆ"/>
 
-font‘®«‚É‚ÍŽÀÛ‚ÉŽg‚í‚ê‚éƒtƒHƒ“ƒg‚ðŽw’è‚µ‚Ü‚·Bface‘®«‚É‚ÍƒtƒHƒ“ƒg–¼‚ðAsize‘®«‚É‚ÍƒTƒCƒY‚ðƒ|ƒCƒ“ƒg’PˆÊ‚ÅŽw’è‚µ‚Ü‚·Bsize‚ðŽw’è‚µ‚È‚¢ê‡‚É‚Í9ƒ|ƒCƒ“ƒg‚É‚È‚è‚Ü‚·Bstyle‘®«‚É‚Íbold, italic, underline, strikeout‚Ì‘g‚Ý‡‚í‚¹‚ð‹ó”’•¶Žš‹æØ‚è‚ÅŽw’è‚Å‚«‚Ü‚·B•¶ŽšƒZƒbƒg‚É‚ÍƒtƒHƒ“ƒg‚Ì•¶ŽšƒZƒbƒg‚ðŽw’è‚µ‚Ü‚·B
+fontå±žæ€§ã«ã¯å®Ÿéš›ã«ä½¿ã‚ã‚Œã‚‹ãƒ•ã‚©ãƒ³ãƒˆã‚’æŒ‡å®šã—ã¾ã™ã€‚faceå±žæ€§ã«ã¯ãƒ•ã‚©ãƒ³ãƒˆåã‚’ã€sizeå±žæ€§ã«ã¯ã‚µã‚¤ã‚ºã‚’ãƒã‚¤ãƒ³ãƒˆå˜ä½ã§æŒ‡å®šã—ã¾ã™ã€‚sizeã‚’æŒ‡å®šã—ãªã„å ´åˆã«ã¯9ãƒã‚¤ãƒ³ãƒˆã«ãªã‚Šã¾ã™ã€‚styleå±žæ€§ã«ã¯bold, italic, underline, strikeoutã®çµ„ã¿åˆã‚ã›ã‚’ç©ºç™½æ–‡å­—åŒºåˆ‡ã‚Šã§æŒ‡å®šã§ãã¾ã™ã€‚æ–‡å­—ã‚»ãƒƒãƒˆã«ã¯ãƒ•ã‚©ãƒ³ãƒˆã®æ–‡å­—ã‚»ãƒƒãƒˆã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
 
-==ƒTƒ“ƒvƒ‹
+==ã‚µãƒ³ãƒ—ãƒ«
 
  <?xml version="1.0" encoding="utf-8"?>
  <fonts>
@@ -61,49 +61,49 @@ font‘®«‚É‚ÍŽÀÛ‚ÉŽg‚í‚ê‚éƒtƒHƒ“ƒg‚ðŽw’è‚µ‚Ü‚·Bface‘®«‚É‚ÍƒtƒHƒ“ƒg–¼‚ðAsize‘®
                               @Equal($charset, 'us-ascii')))">
     <font face="Tahoma" size="9"/>
    </fontSet>
-   <fontSet match="@Equal(@Folder(), 'ƒƒ‹ƒ}ƒK')">
-    <font face="‚l‚r ƒSƒVƒbƒN" size="9"/>
+   <fontSet match="@Equal(@Folder(), 'ãƒ¡ãƒ«ãƒžã‚¬')">
+    <font face="ï¼­ï¼³ ã‚´ã‚·ãƒƒã‚¯" size="9"/>
    </fontSet>
    <fontSet>
-    <font face="‚l‚r ‚oƒSƒVƒbƒN" size="9"/>
+    <font face="ï¼­ï¼³ ï¼°ã‚´ã‚·ãƒƒã‚¯" size="9"/>
    </fontSet>
   </group>
  </fonts>
 
-==ƒXƒL[ƒ}
+==ã‚¹ã‚­ãƒ¼ãƒž
 
  element fonts {
    element group {
      element fontSet {
        element font {
-         ## ƒtƒHƒ“ƒg–¼
+         ## ãƒ•ã‚©ãƒ³ãƒˆå
          attribute face {
            xsd:string
          },
-         ## ƒTƒCƒYiƒ|ƒCƒ“ƒgj
+         ## ã‚µã‚¤ã‚ºï¼ˆãƒã‚¤ãƒ³ãƒˆï¼‰
          attribute size {
            xsd:float
          }?,
-         ## ƒXƒ^ƒCƒ‹
+         ## ã‚¹ã‚¿ã‚¤ãƒ«
          ## bold, italic, underline, strikeout
          attribute style {
            xsd:string
          }?,
-         ## •¶ŽšƒZƒbƒg
+         ## æ–‡å­—ã‚»ãƒƒãƒˆ
          attribute charset {
            xsd:nonNegativeInteger
          }?
        },
-       ## ƒ}ƒNƒ
+       ## ãƒžã‚¯ãƒ­
        attribute match {
          xsd:string
        }?,
-       ## sŠÔ
+       ## è¡Œé–“
        attribute lineSpacing {
          xsd:nonNegativeInteger
        }?
      }*,
-     ## ƒOƒ‹[ƒv–¼
+     ## ã‚°ãƒ«ãƒ¼ãƒ—å
      attribute name {
        xsd:string
      }

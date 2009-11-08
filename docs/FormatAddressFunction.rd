@@ -4,61 +4,61 @@
  String @FormatAddress(Field field, Number type?, Number lookup?)
 
 
-==����
-�����Ŏw�肳�ꂽ�t�B�[���h���A�h���X���X�g�Ƃ��ăp�[�X���A���̌��ʂ��t�H�[�}�b�g�����������Ԃ��܂��B�p�[�X�Ɏ��s�����ꍇ�ɂ͋󕶎����Ԃ��܂��B
+==説明
+引数で指定されたフィールドをアドレスリストとしてパースし、その結果をフォーマットした文字列を返します。パースに失敗した場合には空文字列を返します。
 
-type�Ɏw�肵���l�Ŋe�A�h���X�̃t�H�[�}�b�g���@������܂��B�ȉ��̂����ꂩ���w��ł��܂��B
+typeに指定した値で各アドレスのフォーマット方法が代わります。以下のいずれかが指定できます。
 
 ::FORMAT-ALL
-  ���O <�A�h���X>
+  名前 <アドレス>
 ::FORMAT-ADDRESS
-  �A�h���X
+  アドレス
 ::FORMAT-NAME
-  ���O�i���O���w�肳�ꂽ���Ȃ��ꍇ�ɂ̓A�h���X�j
+  名前（名前が指定されたいない場合にはアドレス）
 ::FORMAT-VIEW
-  ���O <�A�h���X>�i�������A���O�������G�X�P�[�v���Ȃ��j
+  名前 <アドレス>（ただし、名前部分をエスケープしない）
 
-�w�肵�Ȃ������ꍇ�ɂ�:FORMAT-ALL���w�肵���̂Ɠ����ɂȂ�܂��B:FORMAT-ALL��:FORMAT-VIEW�͎��Ă��܂����A�K�v�ȃG�X�P�[�v�����邩�ǂ������قȂ�܂��B���Ƃ��΁A
+指定しなかった場合には:FORMAT-ALLを指定したのと同じになります。:FORMAT-ALLと:FORMAT-VIEWは似ていますが、必要なエスケープをするかどうかが異なります。たとえば、
 
  To: "Test (Test)" <test@example.org>, "Yamada, Taro" <test2@example.org>
 
-�Ƃ����w�b�_�������b�Z�[�W�ɁA@FormatAddress(To, :FORMAT-ALL)��K�p����Ɓu"Test (Test)" <test@example.org>, "Yamada, Taro" <test2@example.org>�v���Ԃ���܂����A@FormatAddress(To, :FORMAT-VIEW)��K�p����ƁuTest (Test) <test@example.org>, Yamada, Taro <test2@example.org>�v���Ԃ���܂��B���̂悤�ɁA:FORMAT-VIEW���w�肷��ƌ����ڏd���Ńt�H�[�}�b�g����邽�߁A���̕�������p�[�X���邱�Ƃ��ł��Ȃ��Ȃ�\��������܂��B
+というヘッダを持つメッセージに、@FormatAddress(To, :FORMAT-ALL)を適用すると「"Test (Test)" <test@example.org>, "Yamada, Taro" <test2@example.org>」が返されますが、@FormatAddress(To, :FORMAT-VIEW)を適用すると「Test (Test) <test@example.org>, Yamada, Taro <test2@example.org>」が返されます。このように、:FORMAT-VIEWを指定すると見た目重視でフォーマットされるため、その文字列をパースすることができなくなる可能性があります。
 
-lookup�Ɏw�肵���l�Ŏg�p���閼�O���A�h���X������t�������邩�ǂ������w�肵�܂��B�ȉ��̂����ꂩ���w��ł��܂��B
+lookupに指定した値で使用する名前をアドレス帳から逆引きするかどうかを指定します。以下のいずれかが指定できます。
 
 ::LOOKUP-NONE
-  �t���������܂���
+  逆引きをしません
 ::LOOKUP-EMPTY
-  ���O���w�肳��Ă��Ȃ��ꍇ�̂݋t���������܂�
+  名前が指定されていない場合のみ逆引きをします
 ::LOOKUP-FORCE
-  ��ɋt���������܂�
+  常に逆引きをします
 
-�t�����������ꍇ�ɂ́A�t�H�[�}�b�g���ɖ��O�̕������A�h���X������t�����������O�Œu�������܂��B�A�h���X���ɋt���������A�h���X���܂܂�Ă��Ȃ��ꍇ�ɂ͒u�������͍s���܂���B�܂��A�����A�h���X�������̃G���g���ɕ\���ꍇ�ɂ͎n�߂Ɍ��������G���g�����g���܂��Blookup���w�肵�Ȃ������ꍇ�ɂ�:LOOKUP-NONE���w�肵���̂Ɠ����ɂȂ�܂��B
+逆引きをした場合には、フォーマット時に名前の部分をアドレス帳から逆引きした名前で置き換えます。アドレス帳に逆引きしたアドレスが含まれていない場合には置き換えは行われません。また、同じアドレスが複数のエントリに表れる場合には始めに見つかったエントリが使われます。lookupを指定しなかった場合には:LOOKUP-NONEを指定したのと同じになります。
 
 
-==����
+==引数
 :Field field
-  �t�H�[�}�b�g����t�B�[���h
+  フォーマットするフィールド
 :Number type
-  �t�H�[�}�b�g�̌`��
+  フォーマットの形式
 :Number lookup
-  �A�h���X���̋t�������@
+  アドレス帳の逆引き方法
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�����̌^�������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*引数の型が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # From��\���p�ɋt�������ăt�H�[�}�b�g
+==例
+ # Fromを表示用に逆引きしてフォーマット
  @FormatAddress(From, :FORMAT-VIEW, :LOOKUP-FORCE)
  
- # To���t�H�[�}�b�g
+ # Toをフォーマット
  @FormatAddress(To)
 
 =end

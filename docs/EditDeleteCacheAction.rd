@@ -1,18 +1,18 @@
 =begin
-=EditDeleteCache�A�N�V����
+=EditDeleteCacheアクション
 
-�Ώۂ̃��b�Z�[�W�̃L���b�V�����폜���܂��B�����[�g�t�H���_�A�܂��͓����\�ȃ��[�J���t�H���_��̃��b�Z�[�W�ɑ΂��Ă̂ݗL���ł��B
+対象のメッセージのキャッシュを削除します。リモートフォルダ、または同期可能なローカルフォルダ上のメッセージに対してのみ有効です。
 
 <<<selectedMessage.rd
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���X�g�r���[
-*�v���r���[
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*リストビュー
+*プレビュー
+*メッセージウィンドウ
 
 =end

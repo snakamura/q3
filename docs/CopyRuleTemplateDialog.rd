@@ -1,28 +1,28 @@
 =begin
-=[�e���v���[�g]�_�C�A���O
+=[テンプレート]ダイアログ
 
-�e���v���[�g�_�C�A���O�ł͐U�蕪�����̓���Ƃ��āu�ړ��v��u�R�s�[�v��I�������Ƃ��ɓK�p�����e���v���[�g�Ƃ��̃e���v���[�g�ɓn�����������w�肵�܂��B�ړ�����R�s�[���Ƀe���v���[�g��K�p����ƁA�e���v���[�g�K�p��̃��b�Z�[�W���ړ����R�s�[��̃t�H���_�ɒǉ�����܂��B���Ƃ��΁A�K�v�̂Ȃ��w�b�_���폜����e���v���[�g��p�ӂ��Ă����Ă��̃e���v���[�g��K�p���Ĉړ�����ƁA�ړ���̃t�H���_�ɂ̓w�b�_���폜���ꂽ���b�Z�[�W���ǉ�����܂��B
+テンプレートダイアログでは振り分け時の動作として「移動」や「コピー」を選択したときに適用されるテンプレートとそのテンプレートに渡される引数を指定します。移動時やコピー時にテンプレートを適用すると、テンプレート適用後のメッセージが移動先やコピー先のフォルダに追加されます。たとえば、必要のないヘッダを削除するテンプレートを用意しておいてそのテンプレートを適用して移動すると、移動先のフォルダにはヘッダが削除されたメッセージが追加されます。
 
-((<[�e���v���[�g]�_�C�A���O|"IMG:images/CopyRuleTemplateDialog.png">))
-
-
-+[���O]
-�e���v���[�g�����w�肵�܂��B�w�肵�Ȃ��ꍇ�ɂ́A�e���v���[�g�͎g�p����܂���B
+((<[テンプレート]ダイアログ|"IMG:images/CopyRuleTemplateDialog.png">))
 
 
-+[����]
-�e���v���[�g�ɓn���������̃��X�g���\������܂��B�����ɂ��ẮA((<�e���v���[�g|URL:Template.html>))���Q�Ƃ��Ă��������B
++[名前]
+テンプレート名を指定します。指定しない場合には、テンプレートは使用されません。
 
 
-+[�ǉ�]
-�e���v���[�g�ɓn��������ǉ����܂��B((<[����]�_�C�A���O|URL:ArgumentDialog.html>))���J���܂��B
++[引数]
+テンプレートに渡される引数のリストが表示されます。引数については、((<テンプレート|URL:Template.html>))を参照してください。
 
 
-+[�폜]
-�I�����ꂽ�������폜���܂��B
++[追加]
+テンプレートに渡す引数を追加します。((<[引数]ダイアログ|URL:ArgumentDialog.html>))が開きます。
 
 
-+[�ҏW]
-�I�����ꂽ������ҏW���܂��B((<[����]�_�C�A���O|URL:ArgumentDialog.html>))���J���܂��B
++[削除]
+選択された引数を削除します。
+
+
++[編集]
+選択された引数を編集します。((<[引数]ダイアログ|URL:ArgumentDialog.html>))が開きます。
 
 =end

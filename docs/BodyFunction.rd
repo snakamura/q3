@@ -4,47 +4,47 @@
  String @Body(String quote?, Number type?, Part part?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W�̖{����Ԃ��܂��Bpart���w�肳�ꂽ�ꍇ�ɂ͂��̃p�[�g�̖{����Ԃ��܂��B
+==説明
+コンテキストメッセージの本文を返します。partが指定された場合にはそのパートの本文を返します。
 
-quote�ɂ͈��p�����w�肵�܂��B�󕶎���ȊO���w�肷��Ǝw�肳�ꂽ���p���ň��p����܂��B
+quoteには引用符を指定します。空文字列以外を指定すると指定された引用符で引用されます。
 
-type�ɂ͖{���̃t�H�[�}�b�g���@���w�肵�܂��B�w��ł���͈̂ȉ��̂����ꂩ�ł��B
+typeには本文のフォーマット方法を指定します。指定できるのは以下のいずれかです。
 
 ::BODY-ALL
-  �{���S�Ă�Ԃ��܂��B�}���`�p�[�g�̏ꍇ�ɂ̓p�[�g��W�J���ĕԂ��܂��B
+  本文全てを返します。マルチパートの場合にはパートを展開して返します。
 ::BODY-RFC822INLINE
-  :BODY-INLINE�Ɠ����ł����Amessage/rfc822�̃p�[�g��Content-Disposition�Ɋւ�炸�Ԃ���܂��B
+  :BODY-INLINEと同じですが、message/rfc822のパートはContent-Dispositionに関わらず返されます。
 ::BODY-INLINE
-  �C�����C���̖{����Ԃ��܂��B�C�����C���̖{���Ƃ́AContent-Disposition���w�肳��Ă��Ȃ����܂���inline���AContent-Type��text/*�܂���message/rfc822�̂��̂ł��B
+  インラインの本文を返します。インラインの本文とは、Content-Dispositionが指定されていないかまたはinlineかつ、Content-Typeがtext/*またはmessage/rfc822のものです。
 
-�������ȗ����ꂽ�ꍇ�ɂ�:BODY-ALL���w�肵���̂Ɠ����ɂȂ�܂��B
+引数が省略された場合には:BODY-ALLを指定したのと同じになります。
 
-==����
+==引数
 :String quote
-  ���p��
+  引用符
 :Number type
-  �t�H�[�}�b�g���@
+  フォーマット方法
 :Part part
-  �p�[�g
+  パート
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
-*�w�肵���p�[�g���Ȃ��ꍇ�ipart���w�肵���ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
+*指定したパートがない場合（partを指定した場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �{����S�Ď擾
+==例
+ # 本文を全て取得
  @Body()
  
- # �C�����C���̖{�����擾
+ # インラインの本文を取得
  @Body(:BODY-INLINE)
 
 =end

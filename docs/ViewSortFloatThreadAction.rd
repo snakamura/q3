@@ -1,14 +1,14 @@
 =begin
-=ViewSortFloatThreadƒAƒNƒVƒ‡ƒ“
+=ViewSortFloatThreadã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒŠƒXƒgƒrƒ…[‚ðƒtƒ[ƒeƒBƒ“ƒOƒXƒŒƒbƒh•\Ž¦‚µ‚Ü‚·BÚ×‚ÍA((<ƒXƒŒƒbƒh•\Ž¦|URL:Thread.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚’ãƒ•ãƒ­ãƒ¼ãƒ†ã‚£ãƒ³ã‚°ã‚¹ãƒ¬ãƒƒãƒ‰è¡¨ç¤ºã—ã¾ã™ã€‚è©³ç´°ã¯ã€((<ã‚¹ãƒ¬ãƒƒãƒ‰è¡¨ç¤º|URL:Thread.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

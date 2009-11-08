@@ -4,39 +4,39 @@
  String @SaveAttachment(String path, Expr expr?, Part part?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W�̓Y�t�t�@�C����path�Ŏw�肳�ꂽ�f�B���N�g���ɕۑ����܂��Bpart���w�肳�ꂽ�ꍇ�ɂ́A���̃p�[�g�̓Y�t�t�@�C����ۑ����܂��B�ۑ���̃t�@�C�������ɑ��݂���ꍇ�͏㏑�����܂��B
+==説明
+コンテキストメッセージの添付ファイルをpathで指定されたディレクトリに保存します。partが指定された場合には、そのパートの添付ファイルを保存します。保存先のファイルが既に存在する場合は上書きします。
 
-expr���w�肳�ꂽ�ꍇ�ɂ́A�e�Y�t�t�@�C����ۑ�����O�Ɏw�肵�������Ăяo����܂��B���̂Ƃ���Ԗڂ̈����ɓY�t�t�@�C�������A��Ԗڂ̈����ɓY�t�t�@�C���̃p�[�g���n����܂��B���̎����Ԃ��������񂪃t�@�C�����ɂȂ�܂��Bexpr���w�肳��Ȃ��ꍇ�ɂ́A�Y�t�t�@�C���������̂܂܃t�@�C�����ɂȂ�܂��B
+exprが指定された場合には、各添付ファイルを保存する前に指定した式が呼び出されます。このとき一番目の引数に添付ファイル名が、二番目の引数に添付ファイルのパートが渡されます。この式が返した文字列がファイル名になります。exprが指定されない場合には、添付ファイル名がそのままファイル名になります。
 
-�Ō�ɕۑ������Y�t�t�@�C���̃p�X��Ԃ��܂��B
+最後に保存した添付ファイルのパスを返します。
 
 
-==����
+==引数
 :String path
-  �ۑ���̃f�B���N�g���̃p�X
+  保存先のディレクトリのパス
 :Expr expr
-  �t�@�C���������߂鎮
+  ファイル名を決める式
 :Part part
-  �p�[�g
+  パート
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
-*�w�肵���p�[�g���Ȃ��ꍇ�ipart���w�肵���ꍇ�j
-*�ۑ��Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*メッセージの取得に失敗した場合
+*指定したパートがない場合（partを指定した場合）
+*保存に失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # ���ׂĂ̓Y�t�t�@�C����C:\Temp�ɕۑ�����
+==例
+ # すべての添付ファイルをC:\Tempに保存する
  @SaveAttachment('C:\\Temp')
  
- # �t�@�C�����̐擪�ɓ��t�����ĕۑ�����
+ # ファイル名の先頭に日付をつけて保存する
  @SaveAttachment('C:\\Temp',
                  @Concat(@FormatDate(@Date(), '%Y4%M0%D'), '_', $1))
 

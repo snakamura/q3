@@ -1,16 +1,16 @@
 =begin
-=EditFindPrevƒAƒNƒVƒ‡ƒ“
+=EditFindPrevã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-’¼‘O‚ÌŒŸõE’uŠ·‚ÅŽw’è‚µ‚½ŒŸõðŒ‚ÅƒLƒƒƒŒƒbƒgˆÊ’u‚©‚ç‘O‚ðŒŸõE’uŠ·‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ç›´å‰ã®æ¤œç´¢ãƒ»ç½®æ›ã§æŒ‡å®šã—ãŸæ¤œç´¢æ¡ä»¶ã§ã‚­ãƒ£ãƒ¬ãƒƒãƒˆä½ç½®ã‹ã‚‰å‰ã‚’æ¤œç´¢ãƒ»ç½®æ›ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
-*ƒGƒfƒBƒbƒgƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=FileHideƒAƒNƒVƒ‡ƒ“
+=FileHideã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘S‚Ä‚ÌƒEƒBƒ“ƒhƒE‚ð‰B‚µ‚Äƒ^ƒXƒNƒgƒŒƒC‚ÉƒAƒCƒRƒ“‚Æ‚µ‚Ä•\Ž¦‚µ‚Ü‚·BƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE‚Í•Â‚¶‚ç‚ê‚Ü‚·BƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE‚ÆƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE‚Í‰B‚³‚êA((<FileShowƒAƒNƒVƒ‡ƒ“|URL:FileShowAction.html>))‚Å•œŒ³‚³‚ê‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+å…¨ã¦ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’éš ã—ã¦ã‚¿ã‚¹ã‚¯ãƒˆãƒ¬ã‚¤ã«ã‚¢ã‚¤ã‚³ãƒ³ã¨ã—ã¦è¡¨ç¤ºã—ã¾ã™ã€‚ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¯é–‰ã˜ã‚‰ã‚Œã¾ã™ã€‚ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¨ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¯éš ã•ã‚Œã€((<FileShowã‚¢ã‚¯ã‚·ãƒ§ãƒ³|URL:FileShowAction.html>))ã§å¾©å…ƒã•ã‚Œã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

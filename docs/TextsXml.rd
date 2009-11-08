@@ -1,45 +1,45 @@
 =begin
 =texts.xml
 
-((<’èŒ^•¶|URL:FixedFormText.html>))‚ÌÝ’è‚ð‚·‚éXMLƒtƒ@ƒCƒ‹‚Å‚·B‚±‚Ìƒtƒ@ƒCƒ‹‚É‚ÍA((<’èŒ^•¶‚ÌÝ’è|URL:OptionTexts.html>))‚ÅÝ’è‚µ‚½î•ñ‚ª•Û‘¶‚³‚ê‚Ü‚·B
+((<å®šåž‹æ–‡|URL:FixedFormText.html>))ã®è¨­å®šã‚’ã™ã‚‹XMLãƒ•ã‚¡ã‚¤ãƒ«ã§ã™ã€‚ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã«ã¯ã€((<å®šåž‹æ–‡ã®è¨­å®š|URL:OptionTexts.html>))ã§è¨­å®šã—ãŸæƒ…å ±ãŒä¿å­˜ã•ã‚Œã¾ã™ã€‚
 
 
-==‘Ž®
+==æ›¸å¼
 
-===textsƒGƒŒƒƒ“ƒg
+===textsã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <texts>
    <!-- text -->
  </texts>
 
-textsƒGƒŒƒƒ“ƒg‚ªƒgƒbƒvƒŒƒxƒ‹ƒGƒŒƒƒ“ƒg‚É‚È‚è‚Ü‚·BŽqƒGƒŒƒƒ“ƒg‚Æ‚µ‚Ä0ŒÂˆÈã‚ÌtextƒGƒŒƒƒ“ƒg‚ð’u‚­‚±‚Æ‚ªo—ˆ‚Ü‚·B
+textsã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆãŒãƒˆãƒƒãƒ—ãƒ¬ãƒ™ãƒ«ã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã«ãªã‚Šã¾ã™ã€‚å­ã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¨ã—ã¦0å€‹ä»¥ä¸Šã®textã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã‚’ç½®ãã“ã¨ãŒå‡ºæ¥ã¾ã™ã€‚
 
 
-===textƒGƒŒƒƒ“ƒg
+===textã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <text
-  name="–¼‘O">
-  <!-- ƒeƒLƒXƒg -->
+  name="åå‰">
+  <!-- ãƒ†ã‚­ã‚¹ãƒˆ -->
  </text>
 
-textƒGƒŒƒƒ“ƒg‚É‚Í‘}“ü‚·‚é’èŒ`•ª‚ð‹Lq‚µ‚Ü‚·Bname‘®«‚É–¼‘O‚ðŽw’è‚µ‚Ü‚·B
+textã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã«ã¯æŒ¿å…¥ã™ã‚‹å®šå½¢åˆ†ã‚’è¨˜è¿°ã—ã¾ã™ã€‚nameå±žæ€§ã«åå‰ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
 
-==ƒTƒ“ƒvƒ‹
+==ã‚µãƒ³ãƒ—ãƒ«
 
  <?xml version="1.0" encoding="utf-8"?>
  <texts>
-  <text name="hello">‚±‚ñ‚É‚¿‚Í</text>
+  <text name="hello">ã“ã‚“ã«ã¡ã¯</text>
  </texts>
 
 
-==ƒXƒL[ƒ}
+==ã‚¹ã‚­ãƒ¼ãƒž
 
  element texts {
    element text {
-     ## ƒeƒLƒXƒg
+     ## ãƒ†ã‚­ã‚¹ãƒˆ
      xsd:string,
-     ## –¼‘O
+     ## åå‰
      attribute name {
        xsd:string
      }

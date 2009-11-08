@@ -1,14 +1,14 @@
 =begin
-=HelpAboutƒAƒNƒVƒ‡ƒ“
+=HelpAboutã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<[QMAIL‚Ìƒo[ƒWƒ‡ƒ“î•ñ]ƒ_ƒCƒAƒƒO|URL:AboutDialog.html>))‚ðŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<[QMAILã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³æƒ…å ±]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:AboutDialog.html>))ã‚’é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

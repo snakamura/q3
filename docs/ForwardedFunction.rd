@@ -4,31 +4,31 @@
  Boolean @Forwarded(Boolean forwarded?)
 
 
-==����
-�����Ȃ��ŌĂяo���ꂽ�ꍇ�ɂ́A�R���e�L�X�g���b�Z�[�W���]���ς݂̏ꍇ�ɂ�True�A����ȊO�̏ꍇ�ɂ�False��Ԃ��܂��Bforwarded��True���w�肳��ČĂяo���ꂽ�ꍇ�ɂ̓R���e�L�X�g���b�Z�[�W��]���ς݂ɂ��AFalse���w�肳�ꂽ�ꍇ�ɂ͓]���ς݂ł͂Ȃ����܂��B((<�t���O|URL:Flag.html>))���Q�Ƃ��Ă��������B
+==説明
+引数なしで呼び出された場合には、コンテキストメッセージが転送済みの場合にはTrue、それ以外の場合にはFalseを返します。forwardedにTrueを指定されて呼び出された場合にはコンテキストメッセージを転送済みにし、Falseを指定された場合には転送済みではなくします。((<フラグ|URL:Flag.html>))を参照してください。
 
 
-==����
+==引数
 :Boolean forwarded
-  �]���ς݂ɂ��邩�ǂ���
+  転送済みにするかどうか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���ꎞ�I�ȏꍇ�i�����t���ŌĂяo���ꂽ�ꍇ�j
-*�]���ς݁A�܂��͓]���ς݂ł͂Ȃ�����̂Ɏ��s�����ꍇ�i�����t���ŌĂяo���ꂽ�ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*コンテキストメッセージが一時的な場合（引数付きで呼び出された場合）
+*転送済み、または転送済みではなくするのに失敗した場合（引数付きで呼び出された場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �]���ς݂��ǂ������ׂ�
+==例
+ # 転送済みかどうか調べる
  @Forwarded()
  
- # �]���ς݂ɂ���
+ # 転送済みにする
  @Forwarded(@True())
 
 =end

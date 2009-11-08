@@ -1,18 +1,18 @@
 =begin
-=FileDump�A�N�V����
+=FileDumpアクション
 
-�I�����ꂽ�A�J�E���g�̑S�Ẵ��b�Z�[�W���w�肳�ꂽ�f�B���N�g���Ƀ_���v���܂��B�_���v����ƃt�H���_�K�w���f�B���N�g���K�w�Ƃ��č쐬���A�e�f�B���N�g�����Ƀt�H���_���̑S�Ẵ��b�Z�[�W��1���b�Z�[�W1�t�@�C���ŕۑ�����܂��B
+選択されたアカウントの全てのメッセージを指定されたディレクトリにダンプします。ダンプするとフォルダ階層をディレクトリ階層として作成し、各ディレクトリ内にフォルダ内の全てのメッセージが1メッセージ1ファイルで保存されます。
 
-�f�B���N�g���̖��O�́A<�t�H���_��>$<�ʏ�t�H���_�̏ꍇ�ɂ�n�A�����t�H���_�̏ꍇ�ɂ�q><�t�H���_�̃t���O��16�i�\��>�ɂȂ�܂��B���Ƃ��΁ATest�Ƃ������O�̃��[�J���̒ʏ�t�H���_�̏ꍇ�ɂ́A�uTest$n10�v�ɂȂ�܂��B
+ディレクトリの名前は、<フォルダ名>$<通常フォルダの場合にはn、検索フォルダの場合にはq><フォルダのフラグの16進表現>になります。たとえば、Testという名前のローカルの通常フォルダの場合には、「Test$n10」になります。
 
-((<FileLoad�A�N�V����|URL:FileLoadAction.html>))�Ń_���v�����f�B���N�g�����w�肵�ă��[�h���邱�Ƃ��ł��܂��B
-
-
-==����
-�Ȃ�
+((<FileLoadアクション|URL:FileLoadAction.html>))でダンプしたディレクトリを指定してロードすることができます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=MessageApplyRuleBackground�A�N�V����
+=MessageApplyRuleBackgroundアクション
 
-���ݑI������Ă���t�H���_�̕\������Ă��邷�ׂẴ��b�Z�[�W���o�b�N�O���E���h�ŐU�蕪���܂��B�U�蕪���ɂ��ẮA((<�U�蕪��|URL:ApplyRules.html>))���Q�Ƃ��Ă��������B
-
-
-==����
-�Ȃ�
+現在選択されているフォルダの表示されているすべてのメッセージをバックグラウンドで振り分けます。振り分けについては、((<振り分け|URL:ApplyRules.html>))を参照してください。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

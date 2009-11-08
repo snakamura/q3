@@ -1,16 +1,16 @@
 =begin
-=EditUndoƒAƒNƒVƒ‡ƒ“
+=EditUndoã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-’¼‘O‚Ì“®ì‚ðŽæ‚èÁ‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ç›´å‰ã®å‹•ä½œã‚’å–ã‚Šæ¶ˆã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

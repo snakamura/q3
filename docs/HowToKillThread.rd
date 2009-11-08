@@ -1,12 +1,12 @@
 =begin
-=�����X���b�h�̃��b�Z�[�W���܂Ƃ߂Ċ��ǂɂ���ɂ͂ǂ�����Ηǂ��ł���?
+=同じスレッドのメッセージをまとめて既読にするにはどうすれば良いですか?
 
-((<MessageMacro�A�N�V����|URL:MessageMacroAction.html>))���g�p���邱�ƂŌ��ݑI�����Ă��郁�b�Z�[�W�Ɠ����X���b�h�̃��b�Z�[�W���܂Ƃ߂Ċ��ǂɂ��邱�Ƃ��ł��܂��B�g�p����}�N���́A
+((<MessageMacroアクション|URL:MessageMacroAction.html>))を使用することで現在選択しているメッセージと同じスレッドのメッセージをまとめて既読にすることができます。使用するマクロは、
 
  @ForEach(@Thread(), @Seen(@True()))
 
-�ł��B
+です。
 
-���̃A�N�V���������j���[��c�[���o�[�A�L�[�{�[�h�V���[�g�J�b�g�Ɋ��蓖�Ă邱�Ƃ��ł��܂��B�ڍׂ́A((<���j���[�̃J�X�^�}�C�Y|URL:CustomizeMenus.html>))�A((<�c�[���o�[�̃J�X�^�}�C�Y|URL:CustomizeToolbars.html>))�A((<�L�[�{�[�h�V���[�g�J�b�g�̃J�X�^�}�C�Y|URL:CustomizeAccelerators.html>))���Q�Ƃ��Ă��������B
+このアクションをメニューやツールバー、キーボードショートカットに割り当てることもできます。詳細は、((<メニューのカスタマイズ|URL:CustomizeMenus.html>))、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))、((<キーボードショートカットのカスタマイズ|URL:CustomizeAccelerators.html>))を参照してください。
 
 =end

@@ -4,29 +4,29 @@
  Number @MessageCount(String folder?)
 
 
-==����
-���b�Z�[�W����Ԃ��܂��Bfolder���w�肳�ꂽ�ꍇ�ɂ͂��̃t�H���_���̃��b�Z�[�W����Ԃ��܂��B�w�肳��Ȃ������ꍇ�ɂ̓A�J�E���g���̂��ׂẴ��b�Z�[�W����Ԃ��܂��B
+==説明
+メッセージ数を返します。folderが指定された場合にはそのフォルダ内のメッセージ数を返します。指定されなかった場合にはアカウント中のすべてのメッセージ数を返します。
 
 
-==����
+==引数
 :String folder
-  �t�H���_�̊��S��
+  フォルダの完全名
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�w�肳�ꂽ�t�H���_�����݂��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*指定されたフォルダが存在しない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �A�J�E���g���̃��b�Z�[�W�����擾����
+==例
+ # アカウント中のメッセージ数を取得する
  @MessageCount()
  
- # �J�����g�t�H���_�̃��b�Z�[�W�����擾����
+ # カレントフォルダのメッセージ数を取得する
  @MessageCount(@Folder(:FN-FULLNAME, :FT-CURRENT))
 
 =end

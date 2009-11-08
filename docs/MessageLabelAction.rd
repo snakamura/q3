@@ -1,32 +1,32 @@
 =begin
-=MessageLabel�A�N�V����
+=MessageLabelアクション
 
-�Ώۂ̃��b�Z�[�W�̃��x����ݒ肵�܂��B���x���ɂ��ẮA((<���x��|URL:Label.html>))���Q�Ƃ��Ă��������B
+対象のメッセージのラベルを設定します。ラベルについては、((<ラベル|URL:Label.html>))を参照してください。
 
 <<<selectedMessage.rd
 
-�����ɂ́A�ݒ肷�郉�x�����ȉ��̌`���Ŏw�肵�܂��B
+引数には、設定するラベルを以下の形式で指定します。
 
-:=<���x��>
-  �w�肳�ꂽ���x����ݒ肵�܂�
-:+<���x��>
-  �w�肳�ꂽ���x����ǉ����܂��B
-:-<���x��>
-  �w�肳�ꂽ���x�����폜���܂��B
+:=<ラベル>
+  指定されたラベルを設定します
+:+<ラベル>
+  指定されたラベルを追加します。
+:-<ラベル>
+  指定されたラベルを削除します。
 
-���Ƃ��΁A�u+important�v�Ǝw�肷��ƁAimportant�Ƃ������x�����ǉ�����܂��B
+たとえば、「+important」と指定すると、importantというラベルが追加されます。
 
-�������w�肵�Ȃ��ꍇ�A((<[���x��]�_�C�A���O|URL:LabelDialog.html>))���J���܂��̂ŁA���x�����w�肵�܂��B�󕶎�����w�肷��ƃ��x�����폜����܂��B
+引数を指定しない場合、((<[ラベル]ダイアログ|URL:LabelDialog.html>))が開きますので、ラベルを指定します。空文字列を指定するとラベルが削除されます。
 
 
-==����
+==引数
 :1
-  ���x��
+  ラベル
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���X�g�r���[
-*�v���r���[
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*リストビュー
+*プレビュー
+*メッセージウィンドウ
 
 =end

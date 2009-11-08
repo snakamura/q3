@@ -4,45 +4,45 @@
  Boolean @Passed(Number value, Number unit?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W�̓��t����w�肳�ꂽ���Ԃ��o�߂������ǂ�����Ԃ��܂��B
+==説明
+コンテキストメッセージの日付から指定された時間が経過したかどうかを返します。
 
-unit�ɂ�value�Ŏw�肵�����l�̒P�ʂ��w�肵�܂��B�w��ł���͈̂ȉ��̂����ꂩ�ł��B
+unitにはvalueで指定した数値の単位を指定します。指定できるのは以下のいずれかです。
 
 ::PASSED-DAY
-  ��
+  日
 ::PASSED-HOUR
-  ����
+  時間
 ::PASSED-MINUTE
-  ��
+  分
 ::PASSED-SECOND
-  �b
+  秒
 
-�w�肵�Ȃ������ꍇ�ɂ�:PASSED-DAY���w�肵���̂Ɠ����ɂȂ�܂��B
+指定しなかった場合には:PASSED-DAYを指定したのと同じになります。
 
 
 
-==����
+==引数
 :Number value
-  �o�߂�������
+  経過した時間
 :Number unit
-  �o�߂������Ԃ̒P��
+  経過した時間の単位
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W�z���_���Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージホルダがない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # 7���o���Ă��邩�ǂ������ׂ�
+==例
+ # 7日経っているかどうか調べる
  @Passed(7)
  
- # 36���Ԍo���Ă��邩�ǂ������ׂ�
+ # 36時間経っているかどうか調べる
  @Passed(36, :PASSED-HOUR)
 
 =end

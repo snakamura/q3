@@ -1,28 +1,28 @@
 =begin
-=�t�B���^�̐ݒ�
+=フィルタの設定
 
-[�I�v�V����]�_�C�A���O��[�t�B���^]�p�l���ł�((<�t�B���^|URL:Filter.html>))�̐ݒ���s���܂��B
+[オプション]ダイアログの[フィルタ]パネルでは((<フィルタ|URL:Filter.html>))の設定を行います。
 
-((<�t�B���^�̐ݒ�|"IMG:images/OptionFilters.png">))
-
-
-+[�ǉ�]
-�t�B���^��ǉ����܂��B((<[�t�B���^]�_�C�A���O|URL:FilterDialog.html>))���J���܂��B
+((<フィルタの設定|"IMG:images/OptionFilters.png">))
 
 
-+[�폜]
-�I�����ꂽ�t�B���^���폜���܂��B
++[追加]
+フィルタを追加します。((<[フィルタ]ダイアログ|URL:FilterDialog.html>))が開きます。
 
 
-+[�ҏW]
-�I�����ꂽ�t�B���^��ҏW���܂��B((<[�t�B���^]�_�C�A���O|URL:FilterDialog.html>))���J���܂��B
++[削除]
+選択されたフィルタを削除します。
 
 
-+[���]
-�I�����ꂽ�t�B���^���ЂƂ�Ɉړ����܂��B
++[編集]
+選択されたフィルタを編集します。((<[フィルタ]ダイアログ|URL:FilterDialog.html>))が開きます。
 
 
-+[����]
-�I�����ꂽ�t�B���^���ЂƂ��Ɉړ����܂��B
++[上へ]
+選択されたフィルタをひとつ上に移動します。
+
+
++[下へ]
+選択されたフィルタをひとつ下に移動します。
 
 =end

@@ -1,27 +1,27 @@
 =begin
-=�U�蕪�����[���̐ݒ�
+=振り分けルールの設定
 
-[�I�v�V����]�_�C�A���O��[�U�蕪�����[��]�p�l���ł�((<�U�蕪�����[��|URL:ApplyRules.html>))�̐ݒ���s���܂��B
+[オプション]ダイアログの[振り分けルール]パネルでは((<振り分けルール|URL:ApplyRules.html>))の設定を行います。
 
-((<�U�蕪�����[���̐ݒ�|"IMG:images/OptionRules.png">))
+((<振り分けルールの設定|"IMG:images/OptionRules.png">))
 
-+[�ǉ�]
-�U�蕪���̐ݒ��ǉ����܂��B((<[�U�蕪��]�_�C�A���O|URL:RulesDialog.html>))���J���܂��B
-
-
-+[�폜]
-�I�����ꂽ�U�蕪���̐ݒ���폜���܂��B
++[追加]
+振り分けの設定を追加します。((<[振り分け]ダイアログ|URL:RulesDialog.html>))が開きます。
 
 
-+[�ҏW]
-�I�����ꂽ�U�蕪���̐ݒ��ҏW���܂��B((<[�U�蕪��]�_�C�A���O|URL:RulesDialog.html>))���J���܂��B
++[削除]
+選択された振り分けの設定を削除します。
 
 
-+[���]
-�I�����ꂽ�U�蕪���̐ݒ���ЂƂ�Ɉړ����܂��B
++[編集]
+選択された振り分けの設定を編集します。((<[振り分け]ダイアログ|URL:RulesDialog.html>))が開きます。
 
 
-+[����]
-�I�����ꂽ�U�蕪���̐ݒ���ЂƂ��Ɉړ����܂��B
++[上へ]
+選択された振り分けの設定をひとつ上に移動します。
+
+
++[下へ]
+選択された振り分けの設定をひとつ下に移動します。
 
 =end

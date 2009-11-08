@@ -1,18 +1,18 @@
 =begin
-=MessageRemoveJunk�A�N�V����
+=MessageRemoveJunkアクション
 
-�Ώۂ̃��b�Z�[�W���X�p���Ƃ��Ċw�K����Ă����炻�̊w�K���ʂ��L�����Z�����܂��B����ȊO�̏ꍇ�ɂ͉������܂���B
+対象のメッセージがスパムとして学習されていたらその学習結果をキャンセルします。それ以外の場合には何もしません。
 
 <<<selectedMessage.rd
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���X�g�r���[
-*�v���r���[
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*リストビュー
+*プレビュー
+*メッセージウィンドウ
 
 =end

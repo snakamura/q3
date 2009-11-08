@@ -1,15 +1,15 @@
 =begin
-=MessageCertificateƒAƒNƒVƒ‡ƒ“
+=MessageCertificateã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-•\Ž¦‚µ‚Ä‚¢‚éƒƒbƒZ[ƒW‚ªS/MIME‚Å–¼‚³‚ê‚Ä‚¢‚½ê‡‚ÉØ–¾‘‚ð•\Ž¦‚µ‚Ü‚·B‚Ü‚½APGP‚Å–¼‚³‚ê‚Ä‚¢‚½ê‡‚É‚Íˆ—Œ‹‰Ê‚ð•\Ž¦‚µ‚Ü‚·BŽÀs‚·‚é‚ÆA((<[Ø–¾‘]ƒ_ƒCƒAƒƒO|URL:CertificateDialog.html>))‚Å‚±‚ê‚ç‚Ì“à—e‚ª•\Ž¦‚³‚ê‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+è¡¨ç¤ºã—ã¦ã„ã‚‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒS/MIMEã§ç½²åã•ã‚Œã¦ã„ãŸå ´åˆã«è¨¼æ˜Žæ›¸ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚ã¾ãŸã€PGPã§ç½²åã•ã‚Œã¦ã„ãŸå ´åˆã«ã¯å‡¦ç†çµæžœã‚’è¡¨ç¤ºã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨ã€((<[è¨¼æ˜Žæ›¸]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:CertificateDialog.html>))ã§ã“ã‚Œã‚‰ã®å†…å®¹ãŒè¡¨ç¤ºã•ã‚Œã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

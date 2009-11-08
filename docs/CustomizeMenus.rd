@@ -1,8 +1,8 @@
 =begin
-=���j���[�̃J�X�^�}�C�Y
+=メニューのカスタマイズ
 
-((<menus.xml|URL:MenusXml.html>))��ҏW���邱�ƂŃ��j���[���J�X�^�}�C�Y�ł��܂��B
+((<menus.xml|URL:MenusXml.html>))を編集することでメニューをカスタマイズできます。
 
-Windows Mobile 5.0�ȍ~�ł́A�g�b�v���x���̃|�b�v�A�b�v���j���[�̐���2�ȉ��ɂ���ƃ\�t�g�L�[���g�p�ł��܂��B
+Windows Mobile 5.0以降では、トップレベルのポップアップメニューの数を2個以下にするとソフトキーが使用できます。
 
 =end

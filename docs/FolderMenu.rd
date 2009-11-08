@@ -1,42 +1,42 @@
 =begin
-=ƒtƒHƒ‹ƒ_ƒrƒ…[EƒtƒHƒ‹ƒ_ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[
+=ãƒ•ã‚©ãƒ«ãƒ€ãƒ“ãƒ¥ãƒ¼ãƒ»ãƒ•ã‚©ãƒ«ãƒ€ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼
 
-((<ƒtƒHƒ‹ƒ_ƒrƒ…[EƒtƒHƒ‹ƒ_ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|"IMG:images/FolderMenu.png">))
-
-
-+((<[V‚µ‚¢ƒ^ƒu‚ÅŠJ‚­]|URL:TabCreateAction.html>))
-‘I‘ð‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ðV‚µ‚¢ƒ^ƒu‚ÅŠJ‚«‚Ü‚·B
+((<ãƒ•ã‚©ãƒ«ãƒ€ãƒ“ãƒ¥ãƒ¼ãƒ»ãƒ•ã‚©ãƒ«ãƒ€ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|"IMG:images/FolderMenu.png">))
 
 
-+((<[ì¬]|URL:FolderCreateAction.html>))
-V‚µ‚¢ƒtƒHƒ‹ƒ_‚ðì¬‚µ‚Ü‚·B
++((<[æ–°ã—ã„ã‚¿ãƒ–ã§é–‹ã]|URL:TabCreateAction.html>))
+é¸æŠžã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ã‚’æ–°ã—ã„ã‚¿ãƒ–ã§é–‹ãã¾ã™ã€‚
 
 
-+((<[íœ]|URL:FolderDeleteAction.html>))
-‘I‘ð‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ðíœ‚µ‚Ü‚·B
++((<[ä½œæˆ]|URL:FolderCreateAction.html>))
+æ–°ã—ã„ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½œæˆã—ã¾ã™ã€‚
 
 
-+((<[–¼‘O‚Ì•ÏX]|URL:FolderRenameAction.html>))
-‘I‘ð‚³‚ê‚½ƒtƒHƒ‹ƒ_‚Ì–¼‘O‚ð•ÏX‚µ‚Ü‚·B
++((<[å‰Šé™¤]|URL:FolderDeleteAction.html>))
+é¸æŠžã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-+((<[ƒtƒHƒ‹ƒ_ƒŠƒXƒg‚ðXV]|URL:FolderUpdateAction.html>))
-IMAP4ƒAƒJƒEƒ“ƒg‚ÅƒtƒHƒ‹ƒ_ƒŠƒXƒg‚ðXV‚µ‚Ü‚·B
++((<[åå‰ã®å¤‰æ›´]|URL:FolderRenameAction.html>))
+é¸æŠžã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ã®åå‰ã‚’å¤‰æ›´ã—ã¾ã™ã€‚
 
 
-+((<[w“Ç]|URL:FolderSubscribeAction.html>))
-RSSƒAƒJƒEƒ“ƒg‚Å((<V‚µ‚¢ƒtƒB[ƒh‚ðw“Ç|URL:SubscribeRssFeed.html>))‚µ‚½‚èANNTPƒAƒJƒEƒ“ƒg‚Å((<V‚µ‚¢ƒOƒ‹[ƒv‚ðw“Ç|URL:SubscribeNntpGroup.html>))‚µ‚Ü‚·B
++((<[ãƒ•ã‚©ãƒ«ãƒ€ãƒªã‚¹ãƒˆã‚’æ›´æ–°]|URL:FolderUpdateAction.html>))
+IMAP4ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã§ãƒ•ã‚©ãƒ«ãƒ€ãƒªã‚¹ãƒˆã‚’æ›´æ–°ã—ã¾ã™ã€‚
 
 
-+((<[‹ó‚É‚·‚é]|URL:FolderEmptyAction.html>))
-‘I‘ð‚³‚ê‚½ƒtƒHƒ‹ƒ_‚ð‹ó‚É‚µ‚Ü‚·B
++((<[è³¼èª­]|URL:FolderSubscribeAction.html>))
+RSSã‚¢ã‚«ã‚¦ãƒ³ãƒˆã§((<æ–°ã—ã„ãƒ•ã‚£ãƒ¼ãƒ‰ã‚’è³¼èª­|URL:SubscribeRssFeed.html>))ã—ãŸã‚Šã€NNTPã‚¢ã‚«ã‚¦ãƒ³ãƒˆã§((<æ–°ã—ã„ã‚°ãƒ«ãƒ¼ãƒ—ã‚’è³¼èª­|URL:SubscribeNntpGroup.html>))ã—ã¾ã™ã€‚
 
 
-+((<[ƒSƒ~” ‚ð‹ó‚É‚·‚é]|URL:FolderEmptyTrashAction.html>))
-ƒSƒ~” ‚ð‹ó‚É‚µ‚Ü‚·B
++((<[ç©ºã«ã™ã‚‹]|URL:FolderEmptyAction.html>))
+é¸æŠžã•ã‚ŒãŸãƒ•ã‚©ãƒ«ãƒ€ã‚’ç©ºã«ã—ã¾ã™ã€‚
 
 
-+((<[ƒvƒƒpƒeƒB]|URL:FolderPropertyAction.html>))
-((<ƒtƒHƒ‹ƒ_‚ÌƒvƒƒpƒeƒB|URL:FolderProperty.html>))‚ð•\Ž¦‚µ‚Ü‚·B
++((<[ã‚´ãƒŸç®±ã‚’ç©ºã«ã™ã‚‹]|URL:FolderEmptyTrashAction.html>))
+ã‚´ãƒŸç®±ã‚’ç©ºã«ã—ã¾ã™ã€‚
+
+
++((<[ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£]|URL:FolderPropertyAction.html>))
+((<ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£|URL:FolderProperty.html>))ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚
 
 =end

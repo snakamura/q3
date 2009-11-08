@@ -1,15 +1,15 @@
 =begin
-=AttachmentSaveƒAƒNƒVƒ‡ƒ“
+=AttachmentSaveã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘I‘ð‚³‚ê‚½“Y•tƒtƒ@ƒCƒ‹‚ð•Û‘¶‚µ‚Ü‚·BŽÀs‚·‚é‚Æ[•Û‘¶]ƒ_ƒCƒAƒƒO‚ªŠJ‚«‚Ü‚·B[•Û‘¶]ƒ_ƒCƒAƒƒO‚É‚Â‚¢‚Ä‚ÍA((<MessageDetachƒAƒNƒVƒ‡ƒ“|URL:MessageDetachAction.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+é¸æŠžã•ã‚ŒãŸæ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¿å­˜ã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨[ä¿å­˜]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒé–‹ãã¾ã™ã€‚[ä¿å­˜]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«ã¤ã„ã¦ã¯ã€((<MessageDetachã‚¢ã‚¯ã‚·ãƒ§ãƒ³|URL:MessageDetachAction.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

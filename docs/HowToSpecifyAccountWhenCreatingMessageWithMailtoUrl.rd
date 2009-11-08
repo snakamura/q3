@@ -1,15 +1,15 @@
 =begin
-=�֘A�t���ŃG�f�B�b�g�r���[���J�����Ƃ��̃A�J�E���g���Œ肷��ɂ͂ǂ�����΂悢�ł���?
+=関連付けでエディットビューを開いたときのアカウントを固定するにはどうすればよいですか?
 
-mailto URL�Ɋ֘A�t��������ƁA�u���E�U�ȂǂŃ��[���A�h���X���N���b�N�����Ƃ��ɁAQMAIL3�̃G�f�B�b�g�r���[���J���܂��B���̂Ƃ��Ɏg����A�J�E���g�́A((<�R�}���h���C��|URL:CommandLine.html>))�Ő�������Ă���悤�Ɍ��܂�܂��B�܂�A
+mailto URLに関連付けをすると、ブラウザなどでメールアドレスをクリックしたときに、QMAIL3のエディットビューが開きます。このときに使われるアカウントは、((<コマンドライン|URL:CommandLine.html>))で説明されているように決まります。つまり、
 
-(1)���ݑI������Ă��郁�[���A�J�E���g
-(2)�I������Ă���̂����[���A�J�E���g�ł͂Ȃ��ꍇ�ɂ́A((<qmail.xml|URL:QmailXml.html>))��Global/DefaultMailAccount�Ŏw�肳�ꂽ�A�J�E���g
-(3)�w�肳��Ă��Ȃ������ꍇ�A��ԏ�ɂ��郁�[���A�J�E���g
+(1)現在選択されているメールアカウント
+(2)選択されているのがメールアカウントではない場合には、((<qmail.xml|URL:QmailXml.html>))のGlobal/DefaultMailAccountで指定されたアカウント
+(3)指定されていなかった場合、一番上にあるメールアカウント
 
-�̏��Ɍ�������Č��܂�܂��B
+の順に検索されて決まります。
 
-��ɓ���̃A�J�E���g���g�������ꍇ�ɂ́Aurl.template��ҏW���āA
+常に特定のアカウントを使いたい場合には、url.templateを編集して、
 
  X-QMAIL-Account: {@Account()}{
    @If(@Identity(),
@@ -17,10 +17,10 @@ mailto URL�Ɋ֘A�t��������ƁA�u���E�U�ȂǂŃ��[���A�h���X���N���b�N�����Ƃ��ɁA
        '')
  }
 
-�̕������A
+の部分を、
 
  X-QMAIL-Account: Main
 
-�̂悤�ɂ��܂��B�����ŁAMain�͏�Ɏg�p����A�J�E���g�̖��O�ł��B
+のようにします。ここで、Mainは常に使用するアカウントの名前です。
 
 =end

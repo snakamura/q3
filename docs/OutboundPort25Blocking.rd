@@ -1,6 +1,6 @@
 =begin
-=ƒ[ƒ‹‘—MŽž‚Éuˆ¥ŽA’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½v‚Æ‚¢‚¤ƒGƒ‰[‚ª”­¶‚µ‚Ü‚·
+=ãƒ¡ãƒ¼ãƒ«é€ä¿¡æ™‚ã«ã€ŒæŒ¨æ‹¶ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€ã¨ã„ã†ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã™
 
-ƒ[ƒ‹‘—MŽž‚Éuˆ¥ŽA’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½v‚Æ‚¢‚¤ƒGƒ‰[‚ª”­¶‚·‚éê‡AOP25B‚É‚æ‚Á‚ÄƒuƒƒbƒN‚³‚ê‚Ä‚¢‚é‰Â”\«‚ª‚ ‚è‚Ü‚·B‚±‚Ìê‡AƒT[ƒo‚ª‘Î‰ž‚µ‚Ä‚¢‚ê‚ÎA[ƒAƒJƒEƒ“ƒg‚ÌƒvƒƒpƒeƒB]‚Ì((<[Ú×]|URL:AccountDetail.html>))ƒy[ƒW‚Å[‘—M]‚Ì[ƒ|[ƒg]‚ð587‚É‚µA((<[ƒ†[ƒU]|URL:AccountUser.html>))ƒy[ƒW‚Å•K—v‚É‰ž‚¶‚ÄSMTP”FØ‚ð—LŒø‚É‚·‚é‚±‚Æ‚Å‰ñ”ð‚Å‚«‚é‰Â”\«‚ª‚ ‚è‚Ü‚·B
+ãƒ¡ãƒ¼ãƒ«é€ä¿¡æ™‚ã«ã€ŒæŒ¨æ‹¶ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸã€ã¨ã„ã†ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã™ã‚‹å ´åˆã€OP25Bã«ã‚ˆã£ã¦ãƒ–ãƒ­ãƒƒã‚¯ã•ã‚Œã¦ã„ã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚ã“ã®å ´åˆã€ã‚µãƒ¼ãƒãŒå¯¾å¿œã—ã¦ã„ã‚Œã°ã€[ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£]ã®((<[è©³ç´°]|URL:AccountDetail.html>))ãƒšãƒ¼ã‚¸ã§[é€ä¿¡]ã®[ãƒãƒ¼ãƒˆ]ã‚’587ã«ã—ã€((<[ãƒ¦ãƒ¼ã‚¶]|URL:AccountUser.html>))ãƒšãƒ¼ã‚¸ã§å¿…è¦ã«å¿œã˜ã¦SMTPèªè¨¼ã‚’æœ‰åŠ¹ã«ã™ã‚‹ã“ã¨ã§å›žé¿ã§ãã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚
 
 =end

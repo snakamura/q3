@@ -1,15 +1,15 @@
 =begin
-=ViewFilterCustom�A�N�V����
+=ViewFilterCustomアクション
 
-�J�X�^���t�B���^��K�p���܂��B�������w�肳���Ǝw�肳�ꂽ�}�N�����t�B���^�ɐݒ肵�܂��B�������w�肳��Ȃ��ꍇ�ɂ́A((<[�J�X�^���t�B���^]�_�C�A���O|URL:CustomFilterDialog.html>))���J���ăt�B���^���w�肵�܂��B�t�B���^�ɂ��ẮA((<�t�B���^|URL:Filter.html>))���Q�Ƃ��Ă��������B
+カスタムフィルタを適用します。引数が指定されると指定されたマクロをフィルタに設定します。引数が指定されない場合には、((<[カスタムフィルタ]ダイアログ|URL:CustomFilterDialog.html>))を開いてフィルタを指定します。フィルタについては、((<フィルタ|URL:Filter.html>))を参照してください。
 
 
-==����
+==引数
 :1
-  �t�B���^�ɐݒ肷��}�N��
+  フィルタに設定するマクロ
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

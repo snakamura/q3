@@ -1,38 +1,38 @@
 =begin
-=IMAP4ŒŸõ
+=IMAP4æ¤œç´¢
 
-IMAP4ŒŸõ‚Å‚ÍIMAP4ƒT[ƒo‚Å‚ÌŒŸõ‹@”\‚ðŽg—p‚µ‚½ŒŸõ‚ðs‚¢‚Ü‚·B
+IMAP4æ¤œç´¢ã§ã¯IMAP4ã‚µãƒ¼ãƒã§ã®æ¤œç´¢æ©Ÿèƒ½ã‚’ä½¿ç”¨ã—ãŸæ¤œç´¢ã‚’è¡Œã„ã¾ã™ã€‚
 
-((<IMAP4ŒŸõ|"IMG:images/Imap4SearchPage.png">))
-
-
-+[ŒŸõ•¶Žš—ñ]
-ŒŸõ•¶Žš—ñ‚ðŽw’è‚µ‚Ü‚·B
+((<IMAP4æ¤œç´¢|"IMG:images/Imap4SearchPage.png">))
 
 
-+[ƒtƒHƒ‹ƒ_]
-ŒŸõ‘ÎÛ‚ÌƒtƒHƒ‹ƒ_‚ðŽw’è‚µ‚Ü‚·Bu(‚·‚×‚Ä‚ÌƒtƒHƒ‹ƒ_)v‚ð‘I‘ð‚·‚é‚Æ‘S‚Ä‚ÌƒtƒHƒ‹ƒ_‚©‚çŒŸõ‚µ‚Ü‚·B
++[æ¤œç´¢æ–‡å­—åˆ—]
+æ¤œç´¢æ–‡å­—åˆ—ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
 
-+[ƒTƒuƒtƒHƒ‹ƒ_‚àŒŸõ]
-ƒ`ƒFƒbƒN‚·‚é‚Æ[ƒtƒHƒ‹ƒ_]‚ÅŽw’è‚µ‚½ƒtƒHƒ‹ƒ_‚Ì‘S‚Ä‚ÌƒTƒuƒtƒHƒ‹ƒ_‚àŒŸõ‘ÎÛ‚É‚È‚è‚Ü‚·B
++[ãƒ•ã‚©ãƒ«ãƒ€]
+æ¤œç´¢å¯¾è±¡ã®ãƒ•ã‚©ãƒ«ãƒ€ã‚’æŒ‡å®šã—ã¾ã™ã€‚ã€Œ(ã™ã¹ã¦ã®ãƒ•ã‚©ãƒ«ãƒ€)ã€ã‚’é¸æŠžã™ã‚‹ã¨å…¨ã¦ã®ãƒ•ã‚©ãƒ«ãƒ€ã‹ã‚‰æ¤œç´¢ã—ã¾ã™ã€‚
 
 
-+[–{•¶‚ðŒŸõ‚·‚é]
-–{•¶‚ðŒŸõ‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·B
++[ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚‚æ¤œç´¢]
+ãƒã‚§ãƒƒã‚¯ã™ã‚‹ã¨[ãƒ•ã‚©ãƒ«ãƒ€]ã§æŒ‡å®šã—ãŸãƒ•ã‚©ãƒ«ãƒ€ã®å…¨ã¦ã®ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚‚æ¤œç´¢å¯¾è±¡ã«ãªã‚Šã¾ã™ã€‚
 
 
-+[IMAP4ƒRƒ}ƒ“ƒh]
-ŒŸõ•¶Žš—ñ‚ÅŽw’è‚³‚ê‚½•¶Žš—ñ‚ðIMAP4‚ÌŒŸõƒRƒ}ƒ“ƒh‚Æ‚µ‚ÄIMAP4ƒT[ƒo‚É‘—M‚µ‚Ü‚·B
++[æœ¬æ–‡ã‚’æ¤œç´¢ã™ã‚‹]
+æœ¬æ–‡ã‚’æ¤œç´¢ã™ã‚‹ã‹ã©ã†ã‹ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
 
-+[V‚µ‚¢ŒŸõƒtƒHƒ‹ƒ_‚ðì¬‚·‚é]
-’ÊíAŽw’è‚µ‚½ðŒ‚ªƒfƒtƒHƒ‹ƒg‚ÌŒŸõƒtƒHƒ‹ƒ_‚ÉÝ’è‚³‚êA‚»‚ÌŒŸõƒtƒHƒ‹ƒ_‚ðŠJ‚­‚±‚Æ‚ÅŒŸõŒ‹‰Ê‚ð•\Ž¦‚µ‚Ü‚·B‚±‚Ìƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚Éƒ`ƒFƒbƒN‚ð“ü‚ê‚é‚ÆAŽw’è‚µ‚½ðŒ‚ÅV‚½‚ÉŒŸõƒtƒHƒ‹ƒ_‚ðì¬‚µA‚»‚ÌƒtƒHƒ‹ƒ_‚ðŠJ‚«‚Ü‚·BŒŸõƒtƒHƒ‹ƒ_‚É‚Â‚¢‚Ä‚ÍA((<ƒtƒHƒ‹ƒ_|URL:Folder.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
++[IMAP4ã‚³ãƒžãƒ³ãƒ‰]
+æ¤œç´¢æ–‡å­—åˆ—ã§æŒ‡å®šã•ã‚ŒãŸæ–‡å­—åˆ—ã‚’IMAP4ã®æ¤œç´¢ã‚³ãƒžãƒ³ãƒ‰ã¨ã—ã¦IMAP4ã‚µãƒ¼ãƒã«é€ä¿¡ã—ã¾ã™ã€‚
 
 
-==ŒŸõƒRƒ}ƒ“ƒh‚Ì¶¬•û–@
-IMAP4ƒT[ƒo‚É‘—‚éŒŸõƒRƒ}ƒ“ƒh‚ÍˆÈ‰º‚Ì‚æ‚¤‚ÉŒˆ’è‚³‚ê‚Ü‚·B
++[æ–°ã—ã„æ¤œç´¢ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½œæˆã™ã‚‹]
+é€šå¸¸ã€æŒ‡å®šã—ãŸæ¡ä»¶ãŒãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®æ¤œç´¢ãƒ•ã‚©ãƒ«ãƒ€ã«è¨­å®šã•ã‚Œã€ãã®æ¤œç´¢ãƒ•ã‚©ãƒ«ãƒ€ã‚’é–‹ãã“ã¨ã§æ¤œç´¢çµæžœã‚’è¡¨ç¤ºã—ã¾ã™ã€‚ã“ã®ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã«ãƒã‚§ãƒƒã‚¯ã‚’å…¥ã‚Œã‚‹ã¨ã€æŒ‡å®šã—ãŸæ¡ä»¶ã§æ–°ãŸã«æ¤œç´¢ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½œæˆã—ã€ãã®ãƒ•ã‚©ãƒ«ãƒ€ã‚’é–‹ãã¾ã™ã€‚æ¤œç´¢ãƒ•ã‚©ãƒ«ãƒ€ã«ã¤ã„ã¦ã¯ã€((<ãƒ•ã‚©ãƒ«ãƒ€|URL:Folder.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
-‚Ü‚¸A[IMAP4ƒRƒ}ƒ“ƒh]‚Éƒ`ƒFƒbƒN‚ð“ü‚ê‚½ê‡‚É‚ÍAuUID SEARCH CHARSET <•¶ŽšƒR[ƒh> <ŒŸõ•¶Žš—ñ>v‚É‚È‚è‚Ü‚·B‚»‚êˆÈŠO‚Ìê‡‚É‚ÍAuUID SEARCH CHARSET <•¶ŽšƒR[ƒh> SUBJECT <ŒŸõ•¶Žš—ñ> OR FROM <ŒŸõ•¶Žš—ñ> OR TO <ŒŸõ•¶Žš—ñ>v‚É‚È‚è‚Ü‚·B[–{•¶‚ðŒŸõ‚·‚é]‚Éƒ`ƒFƒbƒN‚ð“ü‚ê‚½ê‡‚É‚ÍAuUID SEARCH CHARSET <•¶ŽšƒR[ƒh> SUBJECT <ŒŸõ•¶Žš—ñ> OR FROM <ŒŸõ•¶Žš—ñ> OR TO <ŒŸõ•¶Žš—ñ> OR TEXT <ŒŸõ•¶Žš—ñ>v‚É‚È‚è‚Ü‚·B
+
+==æ¤œç´¢ã‚³ãƒžãƒ³ãƒ‰ã®ç”Ÿæˆæ–¹æ³•
+IMAP4ã‚µãƒ¼ãƒã«é€ã‚‹æ¤œç´¢ã‚³ãƒžãƒ³ãƒ‰ã¯ä»¥ä¸‹ã®ã‚ˆã†ã«æ±ºå®šã•ã‚Œã¾ã™ã€‚
+
+ã¾ãšã€[IMAP4ã‚³ãƒžãƒ³ãƒ‰]ã«ãƒã‚§ãƒƒã‚¯ã‚’å…¥ã‚ŒãŸå ´åˆã«ã¯ã€ã€ŒUID SEARCH CHARSET <æ–‡å­—ã‚³ãƒ¼ãƒ‰> <æ¤œç´¢æ–‡å­—åˆ—>ã€ã«ãªã‚Šã¾ã™ã€‚ãã‚Œä»¥å¤–ã®å ´åˆã«ã¯ã€ã€ŒUID SEARCH CHARSET <æ–‡å­—ã‚³ãƒ¼ãƒ‰> SUBJECT <æ¤œç´¢æ–‡å­—åˆ—> OR FROM <æ¤œç´¢æ–‡å­—åˆ—> OR TO <æ¤œç´¢æ–‡å­—åˆ—>ã€ã«ãªã‚Šã¾ã™ã€‚[æœ¬æ–‡ã‚’æ¤œç´¢ã™ã‚‹]ã«ãƒã‚§ãƒƒã‚¯ã‚’å…¥ã‚ŒãŸå ´åˆã«ã¯ã€ã€ŒUID SEARCH CHARSET <æ–‡å­—ã‚³ãƒ¼ãƒ‰> SUBJECT <æ¤œç´¢æ–‡å­—åˆ—> OR FROM <æ¤œç´¢æ–‡å­—åˆ—> OR TO <æ¤œç´¢æ–‡å­—åˆ—> OR TEXT <æ¤œç´¢æ–‡å­—åˆ—>ã€ã«ãªã‚Šã¾ã™ã€‚
 
 =end

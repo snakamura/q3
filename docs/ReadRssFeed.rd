@@ -1,17 +1,17 @@
 =begin
-=�t�B�[�h��ǂ�
+=フィードを読む
 
-==�t�B�[�h����荞��
-�t�B�[�h����荞�ނɂ́A�t�H���_�r���[�ŃA�J�E���g�܂��͔C�ӂ̃t�H���_��I�����āA((<[�c�[��]-[��M]|URL:ToolReceiveAction.html>))��I�����܂��B����̃t�B�[�h������荞�݂����ꍇ�ɂ́A��荞�݂����t�B�[�h�̃t�H���_��I�����āA((<[�c�[��]-[�t�H���_�𓯊�]|URL:ToolReceiveFolderAction.html>))��I�����܂��B
+==フィードを取り込む
+フィードを取り込むには、フォルダビューでアカウントまたは任意のフォルダを選択して、((<[ツール]-[受信]|URL:ToolReceiveAction.html>))を選択します。特定のフィードだけ取り込みたい場合には、取り込みたいフィードのフォルダを選択して、((<[ツール]-[フォルダを同期]|URL:ToolReceiveFolderAction.html>))を選択します。
 
 
-==�t�B�[�h��ǂ�
-�t�B�[�h��ǂނɂ́A���X�g�r���[�œǂ݂����G���g�����N���b�N���܂��B
+==フィードを読む
+フィードを読むには、リストビューで読みたいエントリをクリックします。
 
-((<RSS�̕\��|"IMG:images/TutorialRssView.png">))
+((<RSSの表示|"IMG:images/TutorialRssView.png">))
 
-((<[�\��]-[HTML]-[HTML��\��]|URL:ViewHtmlModeAction.html>))��I������HTML���[�h�ɂ���ƁA�t�B�[�h��HTML�\�����邱�Ƃ��ł��܂��B���̂Ƃ��A�t�B�[�h���ɃR���e���c���܂܂��ꍇ�ɂ͂��̃R���e���c��\�����A�܂܂�Ȃ��ꍇ�ɂ̓����N��̃y�[�W�𒼐ڕ\�����܂��B
+((<[表示]-[HTML]-[HTMLを表示]|URL:ViewHtmlModeAction.html>))を選択してHTMLモードにすると、フィードをHTML表示することができます。このとき、フィード中にコンテンツが含まれる場合にはそのコンテンツを表示し、含まれない場合にはリンク先のページを直接表示します。
 
-((<RSS��HTML�\��|"IMG:images/TutorialRssHtmlView.png">))
+((<RSSのHTML表示|"IMG:images/TutorialRssHtmlView.png">))
 
 =end

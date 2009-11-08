@@ -1,99 +1,99 @@
 =begin
 =addressbook.xml
 
-((<�A�h���X��|URL:AddressBook.html>))�̏���ۑ�����ݒ������XML�t�@�C���ł��B
+((<アドレス帳|URL:AddressBook.html>))の情報を保存する設定をするXMLファイルです。
 
 
-==����
+==書式
 
-===addressBook�G�������g
+===addressBookエレメント
 
  <addressBook>
   <!-- entry -->
  </addressBook>
 
-addressBook�G�������g���g�b�v���x���G�������g�ɂȂ�܂��B���̃G�������g�ȉ��ɂ́A0�ȏ��entry�G�������g��u�����Ƃ��o���܂��B
+addressBookエレメントがトップレベルエレメントになります。このエレメント以下には、0個以上のentryエレメントを置くことが出来ます。
 
 
-===entry�G�������g
+===entryエレメント
 
  <entry>
   <!-- name, sortKey, addresses -->
  </entry>
 
-entry�G�������g�͈�̃G���g����\���܂��B�ʏ�G���g���͂ЂƂ�̐l�ɑΉ����܂��B�G���g���ɂ͕����̃A�h���X���܂߂邱�Ƃ��o���܂��B
+entryエレメントは一つのエントリを表します。通常エントリはひとりの人に対応します。エントリには複数のアドレスを含めることが出来ます。
 
 
-===name�G�������g
+===nameエレメント
 
  <name>
-  <!-- ���O -->
+  <!-- 名前 -->
  </name>
 
-name�G�������g�ɂ̓G���g���̖��O���w�肵�܂��B����͒ʏ킻�̃G���g���̐l�̖��O�ɂȂ�܂��B
+nameエレメントにはエントリの名前を指定します。これは通常そのエントリの人の名前になります。
 
 
-===sortKey�G�������g
+===sortKeyエレメント
 
  <sortKey>
-  <!-- �\�[�g�L�[ -->
+  <!-- ソートキー -->
  </sortKey>
 
-sortKey�G�������g�ɂ̓G���g���̃\�[�g�L�[���w�肵�܂��B����͒ʏ킻�̃G���g���̂ӂ肪�Ȃ��w�肵�܂��BsortKey���w�肵�Ȃ���name�G�������g�̒l���\�[�g�L�[�ɂȂ�܂��B
+sortKeyエレメントにはエントリのソートキーを指定します。これは通常そのエントリのふりがなを指定します。sortKeyを指定しないとnameエレメントの値がソートキーになります。
 
 
-===addresses�G�������g
+===addressesエレメント
 
  <addresses>
   <!-- address ->
  </addresses>
 
-addresses�G�������g�̓��[���A�h���X�̃��X�g��\���܂��Baddresses�G�������g�́A1�ȏ��address�G�������g���܂݂܂��B
+addressesエレメントはメールアドレスのリストを表します。addressesエレメントは、1個以上のaddressエレメントを含みます。
 
 
-===address�G�������g
+===addressエレメント
 
  <address
-  alias="�G�C���A�X��"
-  category="�J�e�S����"
-  comment="�R�����g"
+  alias="エイリアス名"
+  category="カテゴリ名"
+  comment="コメント"
   rfc2822="boolean"
-  certificate="�ؖ����̖��O">
-  <!-- �A�h���X -->
+  certificate="証明書の名前">
+  <!-- アドレス -->
  </address>
 
-address�G�������g�ň�̃��[���A�h���X���w�肵�܂��B
+addressエレメントで一つのメールアドレスを指定します。
 
-alias�����ŃG�C���A�X�����w�肵�܂��B�����Ŏw�肵���G�C���A�X�����G�f�B�b�g�r���[��To�t�B�[���h�ȂǂɎw�肷��Ǝ����I�ɓW�J����܂��B
+alias属性でエイリアス名を指定します。ここで指定したエイリアス名をエディットビューのToフィールドなどに指定すると自動的に展開されます。
 
-category�����ŃJ�e�S�����w�肵�܂��B�J�e�S���́A�u/�v�ŋ�؂邱�ƂŊK�w���ł��܂��B��̃A�h���X�ɕ����̃J�e�S�����w�肷��ꍇ�ɂ́A�u,�v�ŋ�؂�܂��B
+category属性でカテゴリを指定します。カテゴリは、「/」で区切ることで階層化できます。一つのアドレスに複数のカテゴリを指定する場合には、「,」で区切ります。
 
-comment�����ŃA�h���X�ɃR�����g�����邱�Ƃ��o���܂��B
+comment属性でアドレスにコメントをつけることが出来ます。
 
-rfc2822������true���w�肷��ƁA�w�肳�ꂽ���[���A�h���X�͊���RFC2822�`���ł���Ƃ��ď�������܂��B����ȊO�̏ꍇ�ɂ́A�G���g���̖��O�ƃ��[���A�h���X����RFC2822�`���𐶐����܂��B�f�t�H���g��false�ł��B
+rfc2822属性にtrueを指定すると、指定されたメールアドレスは既にRFC2822形式であるとして処理されます。それ以外の場合には、エントリの名前とメールアドレスからRFC2822形式を生成します。デフォルトはfalseです。
 
-certificate������S/MIME�Ŏg�p����ؖ����̖��O���w�肵�܂��B�ؖ����́Asecurity/<�w�肵�����O>.pem�Ƃ����t�@�C�����烍�[�h����܂��B
+certificate属性でS/MIMEで使用する証明書の名前を指定します。証明書は、security/<指定した名前>.pemというファイルからロードされます。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <addressBook>
   <entry>
    <name>Hogehoge Fuga</name>
    <addresses>
-    <address alias="hoge" comment="����">hoge@foo.com</address>
-    <address category="�����/�ǂ�����" rfc2822="true"
-     >�ق��ق��l &lt;hogefuga@dokosoko.co.jp></address>
+    <address alias="hoge" comment="自宅">hoge@foo.com</address>
+    <address category="取引先/どこそこ" rfc2822="true"
+     >ほげほげ様 &lt;hogefuga@dokosoko.co.jp></address>
    </addresses>
  </addressBook>
 
 
-==�X�L�[�}
+==スキーマ
 
  element addressBook {
    element entry {
-     ## ���O
+     ## 名前
      element name {
        xsd:string
      },
@@ -102,31 +102,31 @@ certificate������S/MIME�Ŏg�p����ؖ����̖��O���w�肵�܂��B�ؖ����́Asecurity/<�
      }?,
      element addresses {
        element address {
-         ## �A�h���X
+         ## アドレス
          xsd:string,
-         ## �G�C���A�X
+         ## エイリアス
          attribute alias {
            xsd:string
          }?,
-         ## �J�e�S���i'/'�ŋ�؂��ĊK�w���j
-         ## �����w�肷��ꍇ�ɂ�','�ŋ�؂�
+         ## カテゴリ（'/'で区切って階層化）
+         ## 複数指定する場合には','で区切る
          attribute category {
            xsd:string {
              pattern = "([^/,]+(/[^/,]+)*)+(,([^/,]+(/[^/,]+)*))*"
            }
          }?,
-         ## �R�����g
+         ## コメント
          attribute comment {
            xsd:string
          }?,
-         ## �A�h���X��RFC2822�`���ɂȂ��Ă��邩�ǂ���
-         ## true�̏ꍇ�A�A�h���X�����̂܂܎g�p�����
-         ## false�̏ꍇ�A���O�ƃA�h���X����RFC2822�`�������������
-         ## �w�肳��Ȃ��ꍇ�Afalse
+         ## アドレスがRFC2822形式になっているかどうか
+         ## trueの場合、アドレスがそのまま使用される
+         ## falseの場合、名前とアドレスからRFC2822形式が生成される
+         ## 指定されない場合、false
          attribute rfc2822 {
            xsd:boolean
          }?,
-         ## �ؖ����̖��O
+         ## 証明書の名前
          attribute certificate {
            xsd:string
          }?

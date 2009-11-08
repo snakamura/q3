@@ -1,14 +1,14 @@
 =begin
-=TabCreateƒAƒNƒVƒ‡ƒ“
+=TabCreateã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘I‘ð‚³‚ê‚Ä‚¢‚éƒtƒHƒ‹ƒ_‚Ü‚½‚ÍƒAƒJƒEƒ“ƒg‚ðV‚µ‚¢ƒ^ƒu‚ÅŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+é¸æŠžã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã¾ãŸã¯ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã‚’æ–°ã—ã„ã‚¿ãƒ–ã§é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

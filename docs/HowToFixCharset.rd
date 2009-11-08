@@ -1,18 +1,18 @@
 =begin
-=���b�Z�[�W�쐬���Ɏg�p���镶���R�[�h���Œ肷��ɂ͂ǂ�����΂悢�ł���?
+=メッセージ作成時に使用する文字コードを固定するにはどうすればよいですか?
 
-���b�Z�[�W�̐V�K�쐬���Ɏg�p����镶���R�[�h�͈ȉ��̂悤�Ɍ��߂��܂��B
+メッセージの新規作成時に使用される文字コードは以下のように決められます。
 
-(1)us-ascii�ŕ\���ł��镶���񂵂��܂܂�Ă��Ȃ�������us-ascii
-(2)((<���̑��̐ݒ�|URL:OptionMisc.html>))�Ŏw�肳�ꂽ�f�t�H���g�̃G���R�[�f�B���O
-(3)(2)�ŕ\���ł��Ȃ��������܂܂�Ă���ꍇ�ɂ�utf-8
+(1)us-asciiで表現できる文字列しか含まれていなかったらus-ascii
+(2)((<その他の設定|URL:OptionMisc.html>))で指定されたデフォルトのエンコーディング
+(3)(2)で表現できない文字が含まれている場合にはutf-8
 
-�ԐM�̏ꍇ�ɂ́A(2)�ŕԐM���̃G���R�[�f�B���O�ƈقȂ�G���R�[�f�B���O�ɂȂ����ꍇ�ɂ�utf-8���g�p����܂��B
+返信の場合には、(2)で返信元のエンコーディングと異なるエンコーディングになった場合にはutf-8が使用されます。
 
-������̏ꍇ�ɂ������I�ɕ����R�[�h���Œ肷��ɂ́Anew.template��reply.template�Ȃǂ̃w�b�_�����Ɉȉ��̋L�q��ǉ����܂��B
+いずれの場合にも強制的に文字コードを固定するには、new.templateやreply.templateなどのヘッダ部分に以下の記述を追加します。
 
  Content-Type: text/plain; charset=iso-2022-jp
 
-���̗�ł́Aiso-2022-jp�ɌŒ肵�Ă��܂��B
+この例では、iso-2022-jpに固定しています。
 
 =end

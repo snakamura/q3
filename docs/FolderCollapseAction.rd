@@ -1,14 +1,14 @@
 =begin
-=FolderCollapseƒAƒNƒVƒ‡ƒ“
+=FolderCollapseã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒtƒHƒ‹ƒ_ƒrƒ…[‚ÌƒcƒŠ[‚ð‘S‚Äô‚Ý‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ãƒ•ã‚©ãƒ«ãƒ€ãƒ“ãƒ¥ãƒ¼ã®ãƒ„ãƒªãƒ¼ã‚’å…¨ã¦ç•³ã¿ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

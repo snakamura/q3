@@ -1,10 +1,10 @@
 =begin
-=ƒtƒHƒ‹ƒ_‚ÌƒvƒƒpƒeƒB
+=ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
 
-ƒtƒHƒ‹ƒ_‚ÌƒvƒƒpƒeƒB‚ðÝ’è‚·‚é‚É‚ÍA((<[ƒtƒHƒ‹ƒ_]-[ƒvƒƒpƒeƒB]|URL:FolderPropertyAction.html>))‚ð‘I‘ð‚µ‚Ü‚·BˆÈ‰º‚Ìƒy[ƒW‚ª‚ ‚è‚Ü‚·B
+ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¨­å®šã™ã‚‹ã«ã¯ã€((<[ãƒ•ã‚©ãƒ«ãƒ€]-[ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£]|URL:FolderPropertyAction.html>))ã‚’é¸æŠžã—ã¾ã™ã€‚ä»¥ä¸‹ã®ãƒšãƒ¼ã‚¸ãŒã‚ã‚Šã¾ã™ã€‚
 
-*((<ˆê”Ê|URL:FolderPropertyPage.html>))
-*((<ŒŸõðŒ|URL:FolderConditionPage.html>))
-*((<ƒpƒ‰ƒ[ƒ^|URL:FolderParameterPage.html>))
+*((<ä¸€èˆ¬|URL:FolderPropertyPage.html>))
+*((<æ¤œç´¢æ¡ä»¶|URL:FolderConditionPage.html>))
+*((<ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿|URL:FolderParameterPage.html>))
 
 =end

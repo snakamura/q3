@@ -1,14 +1,14 @@
 =begin
-=MessageOpenFocusedƒAƒNƒVƒ‡ƒ“
+=MessageOpenFocusedã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»ÝƒtƒH[ƒJƒX‚Ì‚ ‚éƒƒbƒZ[ƒW‚ðƒƒbƒZ[ƒWƒrƒ…[‚ÅŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ç¾åœ¨ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã®ã‚ã‚‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼ã§é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

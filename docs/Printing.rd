@@ -1,14 +1,14 @@
 =begin
-=���
+=印刷
 
-QMAIL3�̈���́A�Ώۂ̃��b�Z�[�W��print.template�Ƃ����e���v���[�g�Ńt�H�[�}�b�g���A�t�H�[�}�b�g�������b�Z�[�W���t�@�C���Ƃ��ĕۑ�������Ŋ֘A�t���ɂ���Ĉ�����܂��B�f�t�H���g�ł́A�ۑ������t�@�C�����̊g���q��html�ɂȂ�܂��B���̂��߁AHTML�t�@�C���ƈ���̊֘A�t��������Ă���A�v���P�[�V�����ɂ���Ĉ������邱�ƂɂȂ�܂��BWindows�̃f�t�H���g�̏�Ԃ���Internet Explorer�ɂ�����ɂȂ�܂��B
+QMAIL3の印刷は、対象のメッセージをprint.templateというテンプレートでフォーマットし、フォーマットしたメッセージをファイルとして保存した上で関連付けによって印刷します。デフォルトでは、保存されるファイル名の拡張子はhtmlになります。このため、HTMLファイルと印刷の関連付けをされているアプリケーションによって印刷されることになります。Windowsのデフォルトの状態だとInternet Explorerによる印刷になります。
 
-�ʂ̃A�v���P�[�V�����ň���������ꍇ�ɂ́A((<qmail.xml|URL:QmailXml.html>))��Global/PrintExtension�ŕۑ������t�@�C���̊g���q���w�肷�邱�Ƃ��ł��܂��B�����Ŋg���q���w�肵����ŁA���̊g���q�ɑ΂��Ĉ���̊֘A�t�����s���Ă��������B�܂��A�f�t�H���g��print.template�̓��b�Z�[�W��HTML�Ƀt�H�[�}�b�g����悤�ɂȂ��Ă��܂��̂ŁA�K�X����������K�v������܂��B�e���v���[�g�ɂ��ẮA((<���̑��̃e���v���[�g|URL:OtherTemplate.html>))���Q�Ƃ��Ă��������B
+別のアプリケーションで印刷したい場合には、((<qmail.xml|URL:QmailXml.html>))のGlobal/PrintExtensionで保存されるファイルの拡張子を指定することができます。ここで拡張子を指定した上で、その拡張子に対して印刷の関連付けを行ってください。また、デフォルトのprint.templateはメッセージをHTMLにフォーマットするようになっていますので、適宜書き換える必要があります。テンプレートについては、((<その他のテンプレート|URL:OtherTemplate.html>))を参照してください。
 
-�܂��A�V�X�e���̊֘A�t�����g�킸�Ɉ���������ꍇ�ɂ́A((<qmail.xml|URL:QmailXml.html>))��Global/PrintCommand�ň���p�̃R�}���h���w�肷�邱�Ƃ��ł��܂��B�w�肷��R�}���h�ɂ́A%1���܂߂�K�v������܂��B%1�͎��ۂɈ�������t�@�C�����ɒu������܂��B�Ⴆ�΁Aeditor.exe��/p��t����ƈ���ł���ꍇ�ɂ͈ȉ��̂悤�Ɏw�肵�܂��B
+また、システムの関連付けを使わずに印刷したい場合には、((<qmail.xml|URL:QmailXml.html>))のGlobal/PrintCommandで印刷用のコマンドを指定することができます。指定するコマンドには、%1を含める必要があります。%1は実際に印刷されるファイル名に置換されます。例えば、editor.exeに/pを付けると印刷できる場合には以下のように指定します。
 
  "C:\Program Files\editor\editor.exe" /p "%1"
 
-�������Ƃ��ɂ́A������������b�Z�[�W��I��������ŁA((<[�t�@�C��]-[���]|URL:FilePrintAction.html>))��I�����܂��B
+印刷するときには、印刷したいメッセージを選択した上で、((<[ファイル]-[印刷]|URL:FilePrintAction.html>))を選択します。
 
 =end

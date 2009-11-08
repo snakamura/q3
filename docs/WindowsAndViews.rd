@@ -1,14 +1,14 @@
 =begin
-=‰æ–Ê\¬
+=ç”»é¢æ§‹æˆ
 
-((<‘S‚Ä‚ÌƒEƒBƒ“ƒhƒE|"IMG:images/AllWindows.png">))
+((<å…¨ã¦ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦|"IMG:images/AllWindows.png">))
 
-ŠeƒEƒBƒ“ƒhƒE‚É‚Â‚¢‚Ä‚ÍˆÈ‰º‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+å„ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«ã¤ã„ã¦ã¯ä»¥ä¸‹ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
-*((<ƒƒCƒ“ƒEƒBƒ“ƒhƒE|URL:MainWindow.html>))
-*((<ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE|URL:MessageWindow.html>))
-*((<ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE|URL:EditWindow.html>))
-*((<ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE|URL:AddressBookWindow.html>))
-*((<“¯Šúƒ_ƒCƒAƒƒO|URL:SyncDialog.html>))
+*((<ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦|URL:MainWindow.html>))
+*((<ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦|URL:MessageWindow.html>))
+*((<ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦|URL:EditWindow.html>))
+*((<ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦|URL:AddressBookWindow.html>))
+*((<åŒæœŸãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:SyncDialog.html>))
 
 =end

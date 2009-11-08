@@ -4,32 +4,32 @@
  Value @If(Boolean condition, Value value, Value otherwise)
 
 
-==����
-condition��]������True�ɂȂ����Ƃ��ɂ�value��Ԃ��܂��BFalse�ɂȂ����Ƃ��ɂ�otherwise��Ԃ��܂��B3�ȏ�̔C�ӂ̊�̈�����n���܂��B���̏ꍇ�A1�Ԗڂ̈�����True�ɂȂ����ꍇ�ɂ�2�Ԗڂ̈������A3�Ԗڂ̈�����True�ɂȂ����ꍇ�ɂ�4�Ԗڂ̈������A�Ƃ����悤�ɕ]�����Ă����A�ǂ̏����ɂ����v���Ȃ������ꍇ�ɂ͍Ō�̈�����Ԃ��܂��B
+==説明
+conditionを評価してTrueになったときにはvalueを返します。Falseになったときにはotherwiseを返します。3個以上の任意の奇数個の引数を渡せます。この場合、1番目の引数がTrueになった場合には2番目の引数を、3番目の引数がTrueになった場合には4番目の引数を、というように評価していき、どの条件にも合致しなかった場合には最後の引数を返します。
 
 
-==����
+==引数
 :Boolean condition
-  ����
+  条件
 :Value value
-  �l
+  値
 :Value otherwise
-  �ǂ̏����ɂ����v���Ȃ������Ƃ��̒l
+  どの条件にも合致しなかったときの値
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # To��example.org���܂�ł�����1�A����ȊO�Ȃ�0
+==例
+ # Toがexample.orgを含んでいたら1、それ以外なら0
  @If(@Contain(To, 'example.org'), 1, 0)
  
- # To��example.org���܂�ł�����1�Aexample���܂�ł�����2�A����ȊO�Ȃ�0
+ # Toがexample.orgを含んでいたら1、exampleを含んでいたら2、それ以外なら0
  @If(@Contain(To, 'example.org'), 1,
      @Contain(To, 'example'), 2, 0)
 

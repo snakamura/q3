@@ -1,12 +1,12 @@
 =begin
-=�V����PC�Ƀf�[�^���ړ�����ɂ͂ǂ�����΂悢�ł���?
+=新しいPCにデータを移動するにはどうすればよいですか?
 
-QMAIL3�̃��[���̃f�[�^��ݒ�͑S�ă��[���{�b�N�X�f�B���N�g�����ɂ���t�@�C���ɕۑ�����Ă��܂��̂ŁA���[���{�b�N�X�f�B���N�g�����R�s�[����ΌÂ�PC����V����PC�Ƀf�[�^���ړ����邱�Ƃ��ł��܂��B
+QMAIL3のメールのデータや設定は全てメールボックスディレクトリ内にあるファイルに保存されていますので、メールボックスディレクトリをコピーすれば古いPCから新しいPCにデータを移動することができます。
 
-(1)�Â�PC��QMAIL3���I�����܂�
-(2)�Â�PC�̃��[���{�b�N�X�f�B���N�g���i�f�t�H���g�ł́AC:\Documents and Settings\<���[�U��>\Application Data\QMAIL3�j��V����PC�̓����f�B���N�g���ɃR�s�[���܂�
-(3)�V����PC��QMAIL3���C���X�g�[�����܂�
-(4)�C���X�g�[�����Ƀ��[���{�b�N�X�f�B���N�g����q�˂��܂��̂ŁA(2)�Ńf�[�^���R�s�[�����f�B���N�g�����w�肵�܂��izip�ł��C���X�g�[�������ꍇ�ɂ͏���N�����ɐq�˂��܂��j
-(5)�V����PC��QMAIL3���N�����܂�
+(1)古いPCでQMAIL3を終了します
+(2)古いPCのメールボックスディレクトリ（デフォルトでは、C:\Documents and Settings\<ユーザ名>\Application Data\QMAIL3）を新しいPCの同じディレクトリにコピーします
+(3)新しいPCにQMAIL3をインストールします
+(4)インストール中にメールボックスディレクトリを尋ねられますので、(2)でデータをコピーしたディレクトリを指定します（zip版をインストールした場合には初回起動時に尋ねられます）
+(5)新しいPCでQMAIL3を起動します
 
 =end

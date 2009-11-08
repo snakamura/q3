@@ -1,15 +1,15 @@
 =begin
-=ToolEncoding�A�N�V����
+=ToolEncodingアクション
 
-�쐬���郁�b�Z�[�W���A�����Ŏw�肳�ꂽ�����G���R�[�f�B���O�ŃG���R�[�h����悤�Ɏw�肵�܂��B�����Ƃ��Ďw�肳���G���R�[�f�B���O���̓V�X�e�����T�|�[�g���Ă���G���R�[�f�B���O���ł���K�v������܂��i�Ⴆ�΁AISO-2022-JP, UTF-8, Windows-1252�Ȃǁj�B�����ɋ󕶎�����w�肷��ƁA�f�t�H���g�̕����G���R�[�f�B���O���g�p���܂��B
+作成するメッセージを、引数で指定された文字エンコーディングでエンコードするように指定します。引数として指定されるエンコーディング名はシステムがサポートしているエンコーディング名である必要があります（例えば、ISO-2022-JP, UTF-8, Windows-1252など）。引数に空文字列を指定すると、デフォルトの文字エンコーディングを使用します。
 
 
-==����
+==引数
 :1
-  �G���R�[�f�B���O��
+  エンコーディング名
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

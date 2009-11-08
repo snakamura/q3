@@ -1,16 +1,16 @@
 =begin
-=�t�H���g
+=フォント
 
-�e�r���[�̃t�H���g��((<�I�v�V�����̐ݒ�|URL:Options.html>))�Ōʂɐݒ肷�邱�Ƃ��ł��܂��B
+各ビューのフォントは((<オプションの設定|URL:Options.html>))で個別に設定することができます。
 
 
-==�t�H���g�O���[�v
+==フォントグループ
 
-����Ƀ��b�Z�[�W�r���[�ƃv���r���[�̓��b�Z�[�W�ɉ����ăt�H���g��؂�ւ��邱�Ƃ��ł��܂��B�Ⴆ�΁A�p��̃��b�Z�[�W��Tahoma�ŁA���[���}�K�W���͓����̂l�r �S�V�b�N�ŁA����ȊO�͂l�r �o�S�V�b�N�ŁA�Ƃ����悤�Ȑݒ肪�ł��܂��B
+さらにメッセージビューとプレビューはメッセージに応じてフォントを切り替えることができます。例えば、英語のメッセージはTahomaで、メールマガジンは等幅のＭＳ ゴシックで、それ以外はＭＳ Ｐゴシックで、というような設定ができます。
 
-���̋@�\��UI����͐ݒ肷�邱�Ƃ��ł��܂���̂ŁA�蓮�Őݒ肷��K�v������܂��B�܂��A((<fonts.xml|URL:FontsXml.html>))�Ńt�H���g�O���[�v���`���܂��B�����āA((<qmail.xml|URL:QmailXml.html>))�Ń��b�Z�[�W�r���[�A�܂��̓v���r���[�Ŏg�p����t�H���g�O���[�v���w�肵�܂��B�w�肷��̂͂��ꂼ��MessageWindow/FontGroup�ƁAPreviewWindow/FontGroup�ł��B
+この機能はUIからは設定することができませんので、手動で設定する必要があります。まず、((<fonts.xml|URL:FontsXml.html>))でフォントグループを定義します。そして、((<qmail.xml|URL:QmailXml.html>))でメッセージビュー、またはプレビューで使用するフォントグループを指定します。指定するのはそれぞれMessageWindow/FontGroupと、PreviewWindow/FontGroupです。
 
-�Ⴆ�΁AContent-Type��charset��us-ascii�܂���iso-8859-x�̏ꍇ�ɂ�Tahoma�ŁA�u�����}�K�v�t�H���_�̃��b�Z�[�W�͂l�r �S�V�b�N�ŁA����ȊO�͂l�r �o�S�V�b�N�ŕ\������ɂ͈ȉ��̂悤��fonts.xml���쐬���܂��B
+例えば、Content-Typeのcharsetがus-asciiまたはiso-8859-xの場合にはTahomaで、「メルマガ」フォルダのメッセージはＭＳ ゴシックで、それ以外はＭＳ Ｐゴシックで表示するには以下のようなfonts.xmlを作成します。
 
  <?xml version="1.0" encoding="utf-8"?>
  <fonts>
@@ -20,17 +20,17 @@
                               @Equal($charset, 'us-ascii')))">
     <font face="Tahoma" size="9"/>
    </fontSet>
-   <fontSet match="@Equal(@Folder(), '�����}�K')">
-    <font face="�l�r �S�V�b�N" size="9"/>
+   <fontSet match="@Equal(@Folder(), 'メルマガ')">
+    <font face="ＭＳ ゴシック" size="9"/>
    </fontSet>
    <fontSet>
-    <font face="�l�r �o�S�V�b�N" size="9"/>
+    <font face="ＭＳ Ｐゴシック" size="9"/>
    </fontSet>
   </group>
  </fonts>
 
-�����āAqmail.xml��PreviewWindow/FontGroup��main�Ǝw�肵�܂��B�܂��A((<ViewFontGroup�A�N�V����|URL:ViewFontGroupAction.html>))���g�p���ăt�H���g�O���[�v��؂�ւ��邱�Ƃ��ł��܂��B
+そして、qmail.xmlのPreviewWindow/FontGroupにmainと指定します。また、((<ViewFontGroupアクション|URL:ViewFontGroupAction.html>))を使用してフォントグループを切り替えることもできます。
 
-�t�H���g�O���[�v�̒�`�̎d���̏ڍׂ́A((<fonts.xml|URL:FontsXml.html>))���Q�Ƃ��Ă��������B
+フォントグループの定義の仕方の詳細は、((<fonts.xml|URL:FontsXml.html>))を参照してください。
 
 =end

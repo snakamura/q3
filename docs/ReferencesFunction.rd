@@ -4,27 +4,27 @@
  String @References(Number size?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W��References��Ԃ��܂��Bsize���w�肳�ꂽ�ꍇ�ɂ́A�ォ��ő�ł��̌���������Ԃ��܂��B
+==説明
+コンテキストメッセージのReferencesを返します。sizeが指定された場合には、後から最大でその個数分だけを返します。
 
 
-==����
+==引数
 :Number size
-  �ő�擾��
+  最大取得数
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �ő�4��References���擾
+==例
+ # 最大4個のReferencesを取得
  @References(4)
 
 =end

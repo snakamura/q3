@@ -1,67 +1,67 @@
 =begin
-=ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE‚Ìƒƒjƒ…[ƒo[
+=ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼
 
-((<ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE‚Ìƒƒjƒ…[ƒo[|"IMG:images/AddressBookWindowMenuBar.png">))
+((<ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼|"IMG:images/AddressBookWindowMenuBar.png">))
 
-====[ƒtƒ@ƒCƒ‹]
+====[ãƒ•ã‚¡ã‚¤ãƒ«]
 
-+((<[V‹K]|URL:AddressNewAction.html>))
-V‚µ‚¢ƒGƒ“ƒgƒŠ‚ð’Ç‰Á‚µ‚Ü‚·B
-
-
-+((<[•ÒW]|URL:AddressEditAction.html>))
-ƒtƒH[ƒJƒX‚Ì‚ ‚éƒGƒ“ƒgƒŠ‚ð•ÒW‚µ‚Ü‚·B
++((<[æ–°è¦]|URL:AddressNewAction.html>))
+æ–°ã—ã„ã‚¨ãƒ³ãƒˆãƒªã‚’è¿½åŠ ã—ã¾ã™ã€‚
 
 
-+((<[íœ]|URL:AddressDeleteAction.html>))
-‘I‘ð‚³‚ê‚½ƒGƒ“ƒgƒŠ‚ðíœ‚µ‚Ü‚·B
++((<[ç·¨é›†]|URL:AddressEditAction.html>))
+ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã®ã‚ã‚‹ã‚¨ãƒ³ãƒˆãƒªã‚’ç·¨é›†ã—ã¾ã™ã€‚
 
 
-+((<[•Û‘¶]|URL:FileSaveAction.html>))
-•ÒW‚µ‚½“à—e‚ð•Û‘¶‚µ‚Ü‚·B
++((<[å‰Šé™¤]|URL:AddressDeleteAction.html>))
+é¸æŠžã•ã‚ŒãŸã‚¨ãƒ³ãƒˆãƒªã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-+((<[•Â‚¶‚é]|URL:FileCloseAction.html>))
-ƒEƒBƒ“ƒhƒE‚ð•Â‚¶‚Ü‚·B
++((<[ä¿å­˜]|URL:FileSaveAction.html>))
+ç·¨é›†ã—ãŸå†…å®¹ã‚’ä¿å­˜ã—ã¾ã™ã€‚
 
 
-====[•\Ž¦]
++((<[é–‰ã˜ã‚‹]|URL:FileCloseAction.html>))
+ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ã¾ã™ã€‚
 
-+[ƒ\[ƒg]
 
-*((<[–¼‘O]|URL:ViewSortNameAction.html>))
+====[è¡¨ç¤º]
+
++[ã‚½ãƒ¼ãƒˆ]
+
+*((<[åå‰]|URL:ViewSortNameAction.html>))
  
- –¼‘O‚Åƒ\[ƒg‚µ‚Ü‚·B
+ åå‰ã§ã‚½ãƒ¼ãƒˆã—ã¾ã™ã€‚
 
-*((<[ƒAƒhƒŒƒX]|URL:ViewSortAddressAction.html>))
+*((<[ã‚¢ãƒ‰ãƒ¬ã‚¹]|URL:ViewSortAddressAction.html>))
  
- ƒAƒhƒŒƒX‚Åƒ\[ƒg‚µ‚Ü‚·B
+ ã‚¢ãƒ‰ãƒ¬ã‚¹ã§ã‚½ãƒ¼ãƒˆã—ã¾ã™ã€‚
 
-*((<[ƒRƒƒ“ƒg]|URL:ViewSortCommentAction.html>))
+*((<[ã‚³ãƒ¡ãƒ³ãƒˆ]|URL:ViewSortCommentAction.html>))
  
- ƒRƒƒ“ƒg‚Åƒ\[ƒg‚µ‚Ü‚·B
+ ã‚³ãƒ¡ãƒ³ãƒˆã§ã‚½ãƒ¼ãƒˆã—ã¾ã™ã€‚
 
-*((<[¸‡]|URL:ViewSortAscendingAction.html>))
+*((<[æ˜‡é †]|URL:ViewSortAscendingAction.html>))
  
- ¸‡‚Åƒ\[ƒg‚µ‚Ü‚·B
+ æ˜‡é †ã§ã‚½ãƒ¼ãƒˆã—ã¾ã™ã€‚
 
-*((<[~‡]|URL:ViewSortDescendingAction.html>))
+*((<[é™é †]|URL:ViewSortDescendingAction.html>))
  
- ~‡‚Åƒ\[ƒg‚µ‚Ü‚·B
+ é™é †ã§ã‚½ãƒ¼ãƒˆã—ã¾ã™ã€‚
 
 
-+((<[Ä“Ç‚Ýž‚Ý]|URL:ViewRefreshAction.html>))
-ƒAƒhƒŒƒX’ ‚ðƒtƒ@ƒCƒ‹‚©‚ç“Ç‚Ý’¼‚µ‚Ü‚·B
++((<[å†èª­ã¿è¾¼ã¿]|URL:ViewRefreshAction.html>))
+ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰èª­ã¿ç›´ã—ã¾ã™ã€‚
 
 
-+[ƒRƒ“ƒgƒ[ƒ‹‚Ì•\Ž¦]
++[ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®è¡¨ç¤º]
 
-*((<[ƒc[ƒ‹ƒo[‚ð•\Ž¦]|URL:ViewShowToolbarAction.html>))
+*((<[ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã‚’è¡¨ç¤º]|URL:ViewShowToolbarAction.html>))
  
- ƒc[ƒ‹ƒo[‚Ì•\Ž¦‚Æ”ñ•\Ž¦‚ðØ‚è‘Ö‚¦‚Ü‚·B
+ ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã®è¡¨ç¤ºã¨éžè¡¨ç¤ºã‚’åˆ‡ã‚Šæ›¿ãˆã¾ã™ã€‚
 
-*((<[ƒXƒe[ƒ^ƒXƒo[‚ð•\Ž¦]|URL:ViewShowStatusBarAction.html>))
+*((<[ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼ã‚’è¡¨ç¤º]|URL:ViewShowStatusBarAction.html>))
  
- ƒXƒe[ƒ^ƒXƒo[‚Ì•\Ž¦‚Æ”ñ•\Ž¦‚ðØ‚è‘Ö‚¦‚Ü‚·B
+ ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼ã®è¡¨ç¤ºã¨éžè¡¨ç¤ºã‚’åˆ‡ã‚Šæ›¿ãˆã¾ã™ã€‚
 
 =end

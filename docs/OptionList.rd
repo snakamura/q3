@@ -1,20 +1,20 @@
 =begin
-=���X�g�r���[�̐ݒ�
+=リストビューの設定
 
-[�I�v�V����]�_�C�A���O��[���X�g�r���[]�p�l���ł̓��X�g�r���[�̐ݒ���s���܂��B
+[オプション]ダイアログの[リストビュー]パネルではリストビューの設定を行います。
 
-((<���X�g�r���[�̐ݒ�|"IMG:images/OptionList.png">))
-
-
-+[�N���b�N�Ń��b�Z�[�W���J��]
-�N���b�N�����Ƃ��Ƀ��b�Z�[�W�r���[�Ń��b�Z�[�W���J�����ǂ������w�肵�܂��B�w�肵�Ȃ��ꍇ�A�N���b�N�őI�����A�_�u���N���b�N�Ń��b�Z�[�W���J���܂��B�f�t�H���g�́APocket PC�łł̓N���b�N�ŁA����ȊO�ł̓_�u���N���b�N�ŊJ���܂��B
+((<リストビューの設定|"IMG:images/OptionList.png">))
 
 
-+[�t�H���g]
-((<[�t�H���g]�_�C�A���O|URL:FontDialog.html>))���J���āA���X�g�r���[�Ŏg�p����t�H���g���w�肵�܂��B
++[クリックでメッセージを開く]
+クリックしたときにメッセージビューでメッセージを開くかどうかを指定します。指定しない場合、クリックで選択し、ダブルクリックでメッセージを開きます。デフォルトは、Pocket PC版ではクリックで、それ以外ではダブルクリックで開きます。
 
 
-+[�F]
-((<[�F]�_�C�A���O|URL:TextColorDialog.html>))���J���āA���X�g�r���[�Ŏg�p����F���w�肵�܂��B
++[フォント]
+((<[フォント]ダイアログ|URL:FontDialog.html>))を開いて、リストビューで使用するフォントを指定します。
+
+
++[色]
+((<[色]ダイアログ|URL:TextColorDialog.html>))を開いて、リストビューで使用する色を指定します。
 
 =end

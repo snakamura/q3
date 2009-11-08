@@ -1,18 +1,18 @@
 =begin
-=ToolAddAddressƒAƒNƒVƒ‡ƒ“
+=ToolAddAddressã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘ÎÛ‚ÌƒƒbƒZ[ƒW‚Ì·ol‚ðƒAƒhƒŒƒX’ ‚É’Ç‰Á‚µ‚Ü‚·BŽÀs‚·‚é‚Æ((<[ƒ[ƒ‹ƒAƒhƒŒƒX‚Ì’Ç‰Á]ƒ_ƒCƒAƒƒO|URL:AddAddressDialog.html>))‚ªŠJ‚«‚Ü‚·B
+å¯¾è±¡ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®å·®å‡ºäººã‚’ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã«è¿½åŠ ã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨((<[ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã®è¿½åŠ ]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:AddAddressDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 <<<focusedMessage.rd
 
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

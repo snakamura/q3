@@ -4,42 +4,42 @@
  String @BodyCharset(Number type?, Part part?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W�̖{���̃G���R�[�f�B���O��Ԃ��܂��Bpart���w�肳�ꂽ�ꍇ�ɂ͂��̃p�[�g�̖{���̃G���R�[�f�B���O��Ԃ��܂��B���̊֐��́A@Body���g�p�����Ƃ��Ɏg�p�����G���R�[�f�B���O��Ԃ��܂��B�G���R�[�f�B���O�𒼐ڎw�肵�Ă���ꍇ�ɂ͂��̃G���R�[�f�B���O���A����ȊO�̏ꍇ�ɂ͎������肳�ꂽ�G���R�[�f�B���O��Ԃ��܂��B�}���`�p�[�g�̏ꍇ�Ɋe�p�[�g�̃G���R�[�f�B���O���قȂ�ꍇ�ɂ�utf-8��Ԃ��܂��B
+==説明
+コンテキストメッセージの本文のエンコーディングを返します。partが指定された場合にはそのパートの本文のエンコーディングを返します。この関数は、@Bodyを使用したときに使用されるエンコーディングを返します。エンコーディングを直接指定している場合にはそのエンコーディングが、それ以外の場合には自動判定されたエンコーディングを返します。マルチパートの場合に各パートのエンコーディングが異なる場合にはutf-8を返します。
 
-type�ɂ͖{���̃t�H�[�}�b�g���@���w�肵�܂��B((<@Body|URL:BodyFunction.html>))��type�����Ɠ����l���w��ł��܂��B�������A�������ȗ����ꂽ�ꍇ�ɂ�:BODY-INLINE���w�肵���̂Ɠ����ɂȂ�܂��B
+typeには本文のフォーマット方法を指定します。((<@Body|URL:BodyFunction.html>))のtype引数と同じ値が指定できます。ただし、引数が省略された場合には:BODY-INLINEを指定したのと同じになります。
 
 
 
-==����
+==引数
 :Number type
-  �t�H�[�}�b�g���@
+  フォーマット方法
 :Part part
-  �p�[�g
+  パート
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
-*�w�肵���p�[�g���Ȃ��ꍇ�ipart���w�肵���ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
+*指定したパートがない場合（partを指定した場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �{����S�Ď擾
+==例
+ # 本文を全て取得
  @Body()
  
- # �C�����C���̖{�����u> �v�ň��p���Ď擾
+ # インラインの本文を「> 」で引用して取得
  @Body('> ', :BODY-INLINE)
  
- # �C�����C���̖{�����擾�i�������Amessage/rfc822�̃p�[�g�͕K���擾�j
+ # インラインの本文を取得（ただし、message/rfc822のパートは必ず取得）
  @Body('', :BODY-RFC822INLINE)
  
- # �}���`�p�[�g���b�Z�[�W�ł͂��߂̃p�[�g�̖{�����擾
+ # マルチパートメッセージではじめのパートの本文を取得
  @Body('', :BODY-ALL, @Part(0))
 
 =end

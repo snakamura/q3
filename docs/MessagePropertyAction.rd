@@ -1,18 +1,18 @@
 =begin
-=MessagePropertyƒAƒNƒVƒ‡ƒ“
+=MessagePropertyã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘ÎÛƒƒbƒZ[ƒW‚ÌƒvƒƒpƒeƒB‚ð•\Ž¦‚µ‚Ü‚·B((<ƒƒbƒZ[ƒW‚ÌƒvƒƒpƒeƒB|URL:MessageProperty.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+å¯¾è±¡ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚((<ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£|URL:MessageProperty.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 <<<selectedMessage.rd
 
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

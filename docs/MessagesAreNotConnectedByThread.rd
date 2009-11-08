@@ -1,8 +1,8 @@
 =begin
-=�X���b�h�\����L���ɂ��Ă����b�Z�[�W�̃X���b�h���Ȃ���܂���
+=スレッド表示を有効にしてもメッセージのスレッドがつながりません
 
-�X���b�h�\���̂��߂Ƀ��b�Z�[�W�̐e�q�֌W����͂���Ƃ��ɂ́A���b�Z�[�W��Message-Id��References�i�y��In-Reply-To�j�w�b�_���g�p���܂��BSubject��{���̉�͂Ȃǂ͍s���܂���B�����̃w�b�_���K�؂ɐݒ肳��Ă��Ȃ��ꍇ�ASubject�Ɋ֘A������悤�Ɍ����Ă��X���b�h�͂Ȃ���܂���B
+スレッド表示のためにメッセージの親子関係を解析するときには、メッセージのMessage-IdとReferences（及びIn-Reply-To）ヘッダを使用します。Subjectや本文の解析などは行いません。これらのヘッダが適切に設定されていない場合、Subjectに関連があるように見えてもスレッドはつながりません。
 
-�܂��A�����̃w�b�_���w�肳��Ă����Ƃ��Ă��A�w�肳�ꂽMessage-Id���̂��s���Ȍ`���̏ꍇ�ɂ̓X���b�h���Ȃ���܂���B
+また、これらのヘッダが指定されていたとしても、指定されたMessage-Id自体が不正な形式の場合にはスレッドがつながりません。
 
 =end

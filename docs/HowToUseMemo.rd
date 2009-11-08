@@ -1,60 +1,60 @@
 =begin
-=���b�Z�[�W�Ƀ�����t���邱�Ƃ͂ł��܂���?
+=メッセージにメモを付けることはできませんか?
 
-�Z�������ł���΁A((<���x��|URL:Label.html>))���g�����Ƃ��ł��܂��B�����ƒ���������t�������ꍇ�ɂ́A�ȉ��̂悤�Ƀ}�N���Ȃǂ�g�ݍ��킹�邱�ƂŁA���b�Z�[�W�Ƀ��������邱�Ƃ��ł��܂��B
+短いメモであれば、((<ラベル|URL:Label.html>))を使うことができます。もっと長いメモを付けたい場合には、以下のようにマクロなどを組み合わせることで、メッセージにメモをつけることができます。
 
-�e���b�Z�[�W�ɕt����ꂽ��������̃t�@�C���Ƃ��ĕۑ�����Ƃ������@�����܂��B�܂��A������ۑ�����f�B���N�g���Ƃ��āA���[���{�b�N�X�t�H���_��memo�Ƃ����f�B���N�g�����쐬���Ă����܂��B
+各メッセージに付けられたメモを一つのファイルとして保存するという方法を取ります。まず、メモを保存するディレクトリとして、メールボックスフォルダにmemoというディレクトリを作成しておきます。
 
-���ꂩ��A���[���{�b�N�X�f�B���N�g���̉���macro�Ƃ����f�B���N�g�����쐬���A�ȉ��̃}�N����memo.macro�Ƃ����t�@�C�����ŕۑ����܂��B
+それから、メールボックスディレクトリの下にmacroというディレクトリを作成し、以下のマクロをmemo.macroというファイル名で保存します。
 
- @Progn(# �����̃t�@�C�������擾���܂��B
+ @Progn(# メモのファイル名を取得します。
         @Defun('GetFileName',
                @Concat('memo/',
                        @RegexReplace(Message-Id,
                                      /[^A-Za-z0-9_.!@#$%^&-]/,
                                      '',
                                      @True()))),
-        # ������ǂݍ���ŕԂ��܂��B�ǂݍ��߂Ȃ��ꍇ�ɂ͋󕶎����Ԃ��܂��B
+        # メモを読み込んで返します。読み込めない場合には空文字列を返します。
         @Defun('LoadMemo',
                @If(@CanMemo(),
                    @Catch(@Load(@GetFileName()), ''),
                    '')),
-        # ������ۑ����܂��B��Ԗڂ̈����ɕۑ����郁�����w�肵�܂��B
+        # メモを保存します。一番目の引数に保存するメモを指定します。
         @Defun('SaveMemo',
                @If(@CanMemo(),
                    @Save(@GetFileName(), $1),
                    @False())),
-        # ���������邩�ǂ������ׂ܂��BMessage-Id�������ƃ����͎��܂���B
+        # メモが取れるかどうか調べます。Message-Idが無いとメモは取れません。
         @Defun('CanMemo',
                Message-Id),
-        # ���̓_�C�A���O���J���ă�������͂��ۑ����܂��B
+        # 入力ダイアログを開いてメモを入力し保存します。
         @Defun('InputMemo',
                @If(@CanMemo(),
-                   @Catch(@SaveMemo(@InputBox('��������͂��Ă�������',
+                   @Catch(@SaveMemo(@InputBox('メモを入力してください',
                                               :INPUT-MULTILINE,
                                               @LoadMemo())),
-                          @MessageBox('�����̕ۑ��Ɏ��s���܂���')),
-                   @MessageBox('Message-Id���Ȃ��̂Ń��������܂���'))))
+                          @MessageBox('メモの保存に失敗しました')),
+                   @MessageBox('Message-Idがないのでメモが取れません'))))
 
-�����āA((<menus.xml|URL:MenusXml.html>))��ҏW���A���j���[��\���������Ƃ���Ɉȉ��̂悤�ȃG���g����ǉ����܂��B
+そして、((<menus.xml|URL:MenusXml.html>))を編集し、メニューを表示したいところに以下のようなエントリを追加します。
 
  <menuitem text="Mem&amp;o..."
            action="MessageMacro"
            param="@Progn(@Include('macro/memo.macro'),@InputMemo())"/>
 
-�K�v�ɉ����āA((<toolbars.xml|URL:ToolbarsXml.html>))�ɃG���g����ǉ����ăc�[���o�[�̃{�^���ɂ��邱�Ƃ��ł��܂��B
+必要に応じて、((<toolbars.xml|URL:ToolbarsXml.html>))にエントリを追加してツールバーのボタンにすることもできます。
 
-����ɁA((<header.xml|URL:HeaderXml.html>))��ҏW���ă��b�Z�[�W�ɕt����������\������悤�ɂ��܂��B�ȉ��̂悤�ȃG���g����������\���������Ƃ���ɒǉ����܂��B
+さらに、((<header.xml|URL:HeaderXml.html>))を編集してメッセージに付けたメモを表示するようにします。以下のようなエントリをメモを表示したいところに追加します。
 
  <line hideIfEmpty="memo">
    <static width="auto" style="bold" showAlways="true">Memo:</static>
    <edit name="memo" multiline="4" wrap="true">{@Progn(@Include('macro/memo.macro'), @LoadMemo())}</edit>
  </line>
 
-�������A���̕��@�ł͈ȉ��̂悤�Ȑ���������܂��B
+ただし、この方法では以下のような制限があります。
 
-*��������͂�������̓r���[���X�V����Ȃ��̂Ńw�b�_�r���[�Ƀ������\������Ȃ�
-*�������폜���Ă��t�@�C�����폜����Ȃ�
-*IMAP4�A�J�E���g�ł��T�[�o���Ƀ��������킯�ł͂Ȃ��̂ŕʂ�PC�ƃ��������L�ł��Ȃ�
+*メモを入力した直後はビューが更新されないのでヘッダビューにメモが表示されない
+*メモを削除してもファイルが削除されない
+*IMAP4アカウントでもサーバ側にメモを持つわけではないので別のPCとメモを共有できない
 
 =end

@@ -4,32 +4,32 @@
  Value @Set(String name, Value value, Boolean global?)
 
 
-==����
-name�Ŏw�肳�ꂽ���O�̕ϐ���value�������܂��Bglobal��:GLOBAL���w�肷��ƃO���[�o���ϐ��ɂȂ�܂��B�w�肳��Ȃ������ꍇ�ɂ̓��[�J���ϐ��ɂȂ�܂��Bvalue�����̂܂ܕԂ��܂��B
+==説明
+nameで指定された名前の変数にvalueを代入します。globalに:GLOBALを指定するとグローバル変数になります。指定されなかった場合にはローカル変数になります。valueをそのまま返します。
 
 
-==����
+==引数
 :String name
-  �ϐ���
+  変数名
 :Value value
-  �l
+  値
 :Boolean global
-  �O���[�o���ϐ����ǂ���
+  グローバル変数かどうか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # test�Ƃ������O�̃��[�J���ϐ���@Address(To)�̌��ʂ���
+==例
+ # testという名前のローカル変数に@Address(To)の結果を代入
  @Set('test', @Address(To))
  
- # bcc�Ƃ������O�̃O���[�o���ϐ���@Profile('', 'Global', 'Bcc', '1')�̌��ʂ���
+ # bccという名前のグローバル変数に@Profile('', 'Global', 'Bcc', '1')の結果を代入
  @Set('bcc', @Profile('', 'Global', 'Bcc', '1'), :GLOBAL)
 
 =end

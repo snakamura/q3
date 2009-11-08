@@ -1,23 +1,23 @@
 =begin
-=ƒXƒyƒ‹ƒ`ƒFƒbƒN‚Í‚Å‚«‚Ü‚·‚©?
+=ã‚¹ãƒšãƒ«ãƒã‚§ãƒƒã‚¯ã¯ã§ãã¾ã™ã‹?
 
-QMAIL3‚É‚ÍƒXƒyƒ‹ƒ`ƒFƒbƒN‹@”\‚Í‚ ‚è‚Ü‚¹‚ñ‚ªA((<aspell|URL:http://aspell.net/>))‚È‚Ç‚ÌƒXƒyƒ‹ƒ`ƒFƒbƒJ‚ðŒÄ‚Ño‚·‚±‚Æ‚ÅƒXƒyƒ‹ƒ`ƒFƒbƒN‚ðs‚¤‚±‚Æ‚ª‚Å‚«‚Ü‚·B‚±‚±‚Å‚ÍAaspell‚ðŽg‚¤•û–@‚ðà–¾‚µ‚Ü‚·B
+QMAIL3ã«ã¯ã‚¹ãƒšãƒ«ãƒã‚§ãƒƒã‚¯æ©Ÿèƒ½ã¯ã‚ã‚Šã¾ã›ã‚“ãŒã€((<aspell|URL:http://aspell.net/>))ãªã©ã®ã‚¹ãƒšãƒ«ãƒã‚§ãƒƒã‚«ã‚’å‘¼ã³å‡ºã™ã“ã¨ã§ã‚¹ãƒšãƒ«ãƒã‚§ãƒƒã‚¯ã‚’è¡Œã†ã“ã¨ãŒã§ãã¾ã™ã€‚ã“ã“ã§ã¯ã€aspellã‚’ä½¿ã†æ–¹æ³•ã‚’èª¬æ˜Žã—ã¾ã™ã€‚
 
-‚Ü‚¸Aaspell‚Æ•K—v‚ÈŽ«‘‚ðƒCƒ“ƒXƒg[ƒ‹‚µA’P‘Ì‚Å³‚µ‚­“®ì‚·‚é‚±‚Æ‚ðŠm”F‚µ‚Ü‚·B
+ã¾ãšã€aspellã¨å¿…è¦ãªè¾žæ›¸ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã€å˜ä½“ã§æ­£ã—ãå‹•ä½œã™ã‚‹ã“ã¨ã‚’ç¢ºèªã—ã¾ã™ã€‚
 
-ŽŸ‚ÉAˆÈ‰º‚Ì‚æ‚¤‚ÈƒXƒNƒŠƒvƒg‚ð—pˆÓ‚µAƒ[ƒ‹ƒ{ƒbƒNƒXƒfƒBƒŒƒNƒgƒŠ‚ÌscriptsƒfƒBƒŒƒNƒgƒŠ‚Ì‰º‚É"Spell Check.js"‚Æ‚¢‚¤ƒtƒ@ƒCƒ‹–¼‚Å•Û‘¶‚µ‚Ü‚·B
+æ¬¡ã«ã€ä»¥ä¸‹ã®ã‚ˆã†ãªã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’ç”¨æ„ã—ã€ãƒ¡ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®scriptsãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ä¸‹ã«"Spell Check.js"ã¨ã„ã†ãƒ•ã‚¡ã‚¤ãƒ«åã§ä¿å­˜ã—ã¾ã™ã€‚
 
  var aspell = "\"C:\\Program Files\\aspell\\bin\\aspell.exe\"";
  var tempFile = "C:\\Documents and Settings\\username\\Application Data\\QMAIL3\\temp\\spellcheck.txt";
  
- // ƒeƒLƒXƒg‚ð‚·‚×‚Ä‘I‘ð‚µ‚ÄƒNƒŠƒbƒvƒ{[ƒh‚É‚¢‚êA
- // ƒNƒŠƒbƒvƒ{[ƒhŒo—R‚ÅƒeƒLƒXƒg‚ðŽæ“¾‚·‚é
+ // ãƒ†ã‚­ã‚¹ãƒˆã‚’ã™ã¹ã¦é¸æŠžã—ã¦ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ã„ã‚Œã€
+ // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰çµŒç”±ã§ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹
  editFrameWindow.invokeAction("EditSelectAll");
  editFrameWindow.invokeAction("EditCopy");
  var getClipboardMacro = macroParser.parse("@Clipboard()");
  var inText = getClipboardMacro.evaluate(application.nothing, document.accounts(0));
  
- // Žæ“¾‚µ‚½ƒeƒLƒXƒg‚ðˆêŽžƒtƒ@ƒCƒ‹‚É‘‚«ž‚Þ
+ // å–å¾—ã—ãŸãƒ†ã‚­ã‚¹ãƒˆã‚’ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãè¾¼ã‚€
  var fs = new ActiveXObject("Scripting.FileSystemObject");
  try {
    var inFile = fs.OpenTextFile(tempFile, 2, true);
@@ -28,11 +28,11 @@ QMAIL3‚É‚ÍƒXƒyƒ‹ƒ`ƒFƒbƒN‹@”\‚Í‚ ‚è‚Ü‚¹‚ñ‚ªA((<aspell|URL:http://aspell.net/>))‚
      inFile.Close();
    }
  
-   // aspell‚ð‹N“®‚µ‚ÄI—¹‚·‚é‚Ü‚Å‘Ò‚Â
+   // aspellã‚’èµ·å‹•ã—ã¦çµ‚äº†ã™ã‚‹ã¾ã§å¾…ã¤
    var shell = new ActiveXObject("WScript.Shell");
    shell.Run(aspell + " -c \"" + tempFile + "\"", 5, true);
  
-   // aspell‚ªC³‚µ‚½ƒtƒ@ƒCƒ‹‚ð“Ç‚Ýž‚Þ
+   // aspellãŒä¿®æ­£ã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã‚€
    var outText = null;
    var outFile = fs.OpenTextFile(tempFile, 1);
    try {
@@ -42,7 +42,7 @@ QMAIL3‚É‚ÍƒXƒyƒ‹ƒ`ƒFƒbƒN‹@”\‚Í‚ ‚è‚Ü‚¹‚ñ‚ªA((<aspell|URL:http://aspell.net/>))‚
      outFile.Close();
    }
  
-   // ƒNƒŠƒbƒvƒ{[ƒh‚ðŒo—R‚µ‚ÄƒGƒfƒBƒbƒgƒrƒ…[‚É“\‚è•t‚¯
+   // ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‚’çµŒç”±ã—ã¦ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã«è²¼ã‚Šä»˜ã‘
    var setClipboardMacro = macroParser.parse("@Clipboard($value)");
    setClipboardMacro.setVariable("value", outText);
    setClipboardMacro.evaluate(application.nothing, document.accounts(0));
@@ -52,11 +52,11 @@ QMAIL3‚É‚ÍƒXƒyƒ‹ƒ`ƒFƒbƒN‹@”\‚Í‚ ‚è‚Ü‚¹‚ñ‚ªA((<aspell|URL:http://aspell.net/>))‚
    fs.DeleteFile(tempFile);
  }
 
-aspell‚âtempFile‚ÅŽw’è‚µ‚Ä‚¢‚éƒpƒX‚Í“K‹X‘‚«Š·‚¦‚Ä‚­‚¾‚³‚¢B
+aspellã‚„tempFileã§æŒ‡å®šã—ã¦ã„ã‚‹ãƒ‘ã‚¹ã¯é©å®œæ›¸ãæ›ãˆã¦ãã ã•ã„ã€‚
 
-ŽÀÛ‚ÉŽg‚¤‚Æ‚«‚É‚ÍAƒGƒfƒBƒbƒgƒrƒ…[‚Ìƒƒjƒ…[‚©‚ç[ƒXƒNƒŠƒvƒg]-[Spell Check]‚ð‘I‘ð‚µ‚Ü‚·B‚·‚é‚ÆAaspell‚ª‹N“®‚µ‚ÄƒXƒyƒ‹ƒ`ƒFƒbƒN‚ªs‚í‚êAI—¹‚·‚é‚Æ‚»‚ÌŒ‹‰Ê‚ªƒGƒfƒBƒbƒgƒrƒ…[‚ÉŽæ‚èž‚Ü‚ê‚Ü‚·B
+å®Ÿéš›ã«ä½¿ã†ã¨ãã«ã¯ã€ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‹ã‚‰[ã‚¹ã‚¯ãƒªãƒ—ãƒˆ]-[Spell Check]ã‚’é¸æŠžã—ã¾ã™ã€‚ã™ã‚‹ã¨ã€aspellãŒèµ·å‹•ã—ã¦ã‚¹ãƒšãƒ«ãƒã‚§ãƒƒã‚¯ãŒè¡Œã‚ã‚Œã€çµ‚äº†ã™ã‚‹ã¨ãã®çµæžœãŒã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼ã«å–ã‚Šè¾¼ã¾ã‚Œã¾ã™ã€‚
 
-((<ƒL[ƒ{[ƒhƒVƒ‡[ƒgƒJƒbƒg‚ÌƒJƒXƒ^ƒ}ƒCƒY|URL:CustomizeAccelerators.html>))‚ðs‚¤‚±‚Æ‚ÅAƒVƒ‡[ƒgƒJƒbƒgƒL[‚ðŠ„‚è“–‚Ä‚é‚±‚Æ‚à‚Å‚«‚Ü‚·B
+((<ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‚·ãƒ§ãƒ¼ãƒˆã‚«ãƒƒãƒˆã®ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚º|URL:CustomizeAccelerators.html>))ã‚’è¡Œã†ã“ã¨ã§ã€ã‚·ãƒ§ãƒ¼ãƒˆã‚«ãƒƒãƒˆã‚­ãƒ¼ã‚’å‰²ã‚Šå½“ã¦ã‚‹ã“ã¨ã‚‚ã§ãã¾ã™ã€‚
 
 
 =end

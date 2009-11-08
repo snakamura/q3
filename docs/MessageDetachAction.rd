@@ -1,18 +1,18 @@
 =begin
-=MessageDetachƒAƒNƒVƒ‡ƒ“
+=MessageDetachã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘ÎÛ‚ÌƒƒbƒZ[ƒW‚Ì“Y•tƒtƒ@ƒCƒ‹‚ð•Û‘¶‚µ‚Ü‚·BŽÀs‚·‚é‚Æ((<[•Û‘¶]ƒ_ƒCƒAƒƒO|URL:DetachDialog.html>))‚ªŠJ‚«‚Ü‚·B
+å¯¾è±¡ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®æ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¿å­˜ã—ã¾ã™ã€‚å®Ÿè¡Œã™ã‚‹ã¨((<[ä¿å­˜]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:DetachDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 <<<selectedMessage.rd
 
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

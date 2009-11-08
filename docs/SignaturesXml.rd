@@ -1,41 +1,41 @@
 =begin
 =signatures.xml
 
-((<����|URL:Signature.html>))�̐ݒ������XML�t�@�C���ł��B���̃t�@�C���ɂ́A((<�����̐ݒ�|URL:OptionSignatures.html>))�Őݒ肵����񂪕ۑ�����܂��B
+((<署名|URL:Signature.html>))の設定をするXMLファイルです。このファイルには、((<署名の設定|URL:OptionSignatures.html>))で設定した情報が保存されます。
 
 
-==����
+==書式
 
-===signatures�G�������g
+===signaturesエレメント
 
  <signatures>
   <!-- signature -->
  </signatures>
 
-signatures�G�������g���g�b�v���x���G�������g�ɂȂ�܂��B0�ȏ��signature�G�������g���q�G�������g�Ƃ��Ă������Ƃ��o���܂��B
+signaturesエレメントがトップレベルエレメントになります。0個以上のsignatureエレメントを子エレメントとしておくことが出来ます。
 
 
-===signature�G�������g
+===signatureエレメント
 
  <signature
-  account="�A�J�E���g��"
-  name="���O"
-  default="�f�t�H���g�ɂ��邩�ǂ���">
-  <!-- ���� -->
+  account="アカウント名"
+  name="名前"
+  default="デフォルトにするかどうか">
+  <!-- 署名 -->
  </signature>
 
-signature�G�������g�Ŏ��ۂ̏������w�肵�܂��Baccount�����ɃA�J�E���g�����w�肷��ƁA���̃A�J�E���g�݂̂Ŏg�p�����悤�ɂȂ�܂��B�w�肵�Ȃ��ꍇ�ɂ͑S�ẴA�J�E���g�Ŏg�p����܂��B//�ň͂ނ��Ƃɂ�萳�K�\�����g�p�ł��܂��B
+signatureエレメントで実際の署名を指定します。account属性にアカウント名を指定すると、そのアカウントのみで使用されるようになります。指定しない場合には全てのアカウントで使用されます。//で囲むことにより正規表現が使用できます。
 
-name�����ɂ͖��O���w�肵�܂��B�����Ŏw�肵�����O���G�f�B�b�g�r���[�Ŏg�p����܂��Bdefault������true���w�肷��ƁA�f�t�H���g�ɂȂ邱�Ƃ��o���܂��B�f�t�H���g�ɂȂ�ƃG�f�B�b�g�r���[�ŊJ�����Ƃ��ɍŏ��ɑI������܂��B�����̃f�t�H���g������ꍇ�ɂ́A�ŏ��Ɍ����������̂��I������܂��B
+name属性には名前を指定します。ここで指定した名前がエディットビューで使用されます。default属性にtrueを指定すると、デフォルトになることが出来ます。デフォルトになるとエディットビューで開いたときに最初に選択されます。複数のデフォルトがある場合には、最初に見つかったものが選択されます。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <signatures>
   <signature account="test1" name="Default"
-   default="true">���̏����ł�</signature>
-  <signature account="/test.*/" name="�e�X�g"><![CDATA[
+   default="true">私の署名です</signature>
+  <signature account="/test.*/" name="テスト"><![CDATA[
  -- 
  Hogehoge Fugafuga <hoge@fuga.com>
  ]]></signature>
@@ -43,23 +43,23 @@ name�����ɂ͖��O���w�肵�܂��B�����Ŏw�肵�����O���G�f�B�b�g�r���[�Ŏg�p����܂�
 
 
 
-==�X�L�[�}
+==スキーマ
 
  element signatures {
    element signature {
-     ## �V�O�j�`��
+     ## シグニチャ
      xsd:string,
-     ## ���O
+     ## 名前
      attribute name {
        xsd:string
      },
-     ## ���̃V�O�j�`�����g�p����A�J�E���g
-     ## �w�肳��Ȃ��ꍇ�A�S�ẴA�J�E���g
+     ## このシグニチャを使用するアカウント
+     ## 指定されない場合、全てのアカウント
      attribute account {
        xsd:string
      }?,
-     ## �f�t�H���g�ɂȂ邩�ǂ���
-     ## �w�肳��Ȃ��ꍇ�Afalse
+     ## デフォルトになるかどうか
+     ## 指定されない場合、false
      attribute default {
        xsd:boolean
      }?

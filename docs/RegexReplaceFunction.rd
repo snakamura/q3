@@ -4,46 +4,46 @@
  String @RegexReplace(String s, Regex regex, String replace, Boolean global?)
 
 
-==����
-s�Ŏw�肵�������񒆂�regex�Ŏw�肵�����K�\���Ƀ}�b�`���镶�����replace�Ŏw�肵��������ɒu�����܂��B�}�b�`���Ȃ������ꍇ�ɂ͉������܂���Bglobal��True�̏ꍇ�ɂ͕����񒆂̑S�Ẵ}�b�`���������񂪒u������܂��BFlase�̏ꍇ��w�肳��Ȃ������ꍇ�ɂ͎n�߂Ɍ�������������݂̂��u������܂��B
+==説明
+sで指定した文字列中のregexで指定した正規表現にマッチする文字列をreplaceで指定した文字列に置換します。マッチしなかった場合には何もしません。globalがTrueの場合には文字列中の全てのマッチした文字列が置換されます。Flaseの場合や指定されなかった場合には始めに見つかった文字列のみが置換されます。
 
-�u�������񒆂Ő��K�\���ɂ���ăL���v�`�����ꂽ��������g�p�������ꍇ�ɂ́A$<���l>���g�p���܂��B$0�̓}�b�`����������S�̂�����킵�A$1�ȍ~�͊e�L���v�`�����ꂽ�����������킵�܂��B
+置換文字列中で正規表現によってキャプチャされた文字列を使用したい場合には、$<数値>を使用します。$0はマッチした文字列全体をあらわし、$1以降は各キャプチャされた文字列をあらわします。
 
-���K�\���ŃL���v�`�����ꂽ������́A�ȍ~�̃}�N����$_<����>�ŃA�N�Z�X�ł��܂��B$_0�̓}�b�`����������S�̂�����킵�A$_1�ȍ~�͊e�L���v�`�����ꂽ�����������킵�܂��B
+正規表現でキャプチャされた文字列は、以降のマクロで$_<数字>でアクセスできます。$_0はマッチした文字列全体をあらわし、$_1以降は各キャプチャされた文字列をあらわします。
 
-regex�ɂ͐��K�\���ȊO���w�肳�ꂽ�ꍇ�ɂ́A������ɕϊ�������Ő��K�\���Ƃ��ăR���p�C������܂��B
+regexには正規表現以外が指定された場合には、文字列に変換した上で正規表現としてコンパイルされます。
 
 
-==����
+==引数
 :String s
-  ������
+  文字列
 :Regex regex
-  ���K�\��
+  正規表現
 :String replace
-  �u��������
+  置換文字列
 :Boolean global
-  �S�Ă�u�����邩�ǂ���
+  全てを置換するかどうか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*���K�\�����s���ȏꍇ�i������Ŏw�肵���ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*正規表現が不正な場合（文字列で指定した場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # ���K�\���Œu��
+==例
+ # 正規表現で置換
  # -> abcz23
  @RegexReplace('abc123', /[0-9]/, 'z')
  
- # �S�̂�u��
+ # 全体を置換
  # -> abczzz
  @RegexReplace('abc123', /[0-9]/, 'z', @True())
  
- # Subject�̐擪����Re:���폜
+ # Subjectの先頭からRe:を削除
  @RegexReplace(Subject, /^Re(?:^[0-9]+)?: *(.*)$/i, '$1')
 
 =end

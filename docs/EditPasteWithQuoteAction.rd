@@ -1,18 +1,18 @@
 =begin
-=EditPasteWithQuote�A�N�V����
+=EditPasteWithQuoteアクション
 
-���p���t���ŃN���b�v�{�[�h����e�L�X�g��\��t���܂��B�g�p������p���́A((<���̑�2�̐ݒ�|URL:OptionMisc2.html>))��[���p��]�Ŏw��ł��܂��B
+引用符付きでクリップボードからテキストを貼り付けます。使用する引用符は、((<その他2の設定|URL:OptionMisc2.html>))の[引用符]で指定できます。
 
-QMAIL3�̃��X�g�r���[��v���r���[�A���b�Z�[�W�r���[��((<[�ҏW]-[�R�s�[]|URL:EditCopyAction.html>))�����s�����ꍇ�ɂ́A�R�s�[�������b�Z�[�W�����p���t���œ\��t�����܂��B�R�s�[�����Ƃ��Ƀv���r���[�⃁�b�Z�[�W�r���[�Ńe�L�X�g��I�����Ă����ꍇ�ɂ͑I�������e�L�X�g�����p���t���œ\��t�����A����ȊO�̏ꍇ�ɂ͖{���S�̂����p���t���œ\��t�����܂��B�܂��A���p������s�ڂɑ}������܂��B�����̓���́Aquote.template�Œ�`����Ă��܂��Bquote.template�ɂ��ẮA((<���̑��̃e���v���[�g|URL:OtherTemplate.html>))���Q�Ƃ��Ă��������B�܂��A���̏ꍇ�ɂ́A�R�s�[����Message-Id��In-Reply-To�w�b�_�ɒǉ�����܂��B
+QMAIL3のリストビューやプレビュー、メッセージビューで((<[編集]-[コピー]|URL:EditCopyAction.html>))を実行した場合には、コピーしたメッセージが引用符付きで貼り付けられます。コピーしたときにプレビューやメッセージビューでテキストを選択していた場合には選択したテキストが引用符付きで貼り付けられ、それ以外の場合には本文全体が引用符付きで貼り付けられます。また、引用元が一行目に挿入されます。これらの動作は、quote.templateで定義されています。quote.templateについては、((<その他のテンプレート|URL:OtherTemplate.html>))を参照してください。また、この場合には、コピー元のMessage-IdがIn-Reply-Toヘッダに追加されます。
 
-����ȊO�̏ꍇ�ɂ́A�N���b�v�{�[�h����擾�����e�L�X�g�����p���t���œ\��t�����܂��B
-
-
-==����
-�Ȃ�
+それ以外の場合には、クリップボードから取得したテキストが引用符付きで貼り付けられます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�r���[
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*エディットビュー
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=FileDraft�A�N�V����
+=FileDraftアクション
 
-�ҏW���̃��b�Z�[�W�𑐍e���ɑ��e�Ƃ��ĕۑ����܂��B
-
-
-==����
-�Ȃ�
+編集中のメッセージを草稿箱に草稿として保存します。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

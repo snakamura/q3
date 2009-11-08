@@ -1,23 +1,23 @@
 =begin
-=�A�h���X���̐ݒ�
+=アドレス帳の設定
 
-[�I�v�V����]�_�C�A���O��[�A�h���X��]�p�l���ł�((<�A�h���X��|URL:AddressBook.html>))�̐ݒ���s���܂��B
+[オプション]ダイアログの[アドレス帳]パネルでは((<アドレス帳|URL:AddressBook.html>))の設定を行います。
 
-((<�A�h���X���̐ݒ�|"IMG:images/OptionAddressBook.png">))
-
-
-====[�O���A�h���X��]
-�ǂݍ��ފO���A�h���X���Ɠǂݍ��ݕ����w�肵�܂��B
+((<アドレス帳の設定|"IMG:images/OptionAddressBook.png">))
 
 
-+[Windows�A�h���X��], [Outlook], [Pocket Outlook]
-Windows�łł�Windows�A�h���X���AOutlook�̂��ꂼ���ǂݍ��ނ��ǂ����w�肵�܂��BWindows CE�łł�Pocket Outlook����ǂݍ��ނ��ǂ������w�肵�܂��B�f�t�H���g�ł͊O���A�h���X���͓ǂݍ��݂܂���B
-
-+[���[���A�h���X�̂ݑ}������]
-�w�肷��ƁA�O���A�h���X������ǂݍ��񂾃��[���A�h���X��I�������Ƃ��Ƀ��[���A�h���X�݂̂�}������悤�ɂȂ�܂��B�w�肵�Ȃ��ꍇ�ɂ́A�u�\�� <���[���A�h���X>�v�̌`���ő}�����܂��B�f�t�H���g�ł͌�҂̌`���ő}�����܂��B
+====[外部アドレス帳]
+読み込む外部アドレス帳と読み込み方を指定します。
 
 
-+[�t�H���g]
-((<[�t�H���g]�_�C�A���O|URL:FontDialog.html>))���J���āA�A�h���X���Ŏg�p����t�H���g���w�肵�܂��B
++[Windowsアドレス帳], [Outlook], [Pocket Outlook]
+Windows版ではWindowsアドレス帳、Outlookのそれぞれを読み込むかどうか指定します。Windows CE版ではPocket Outlookから読み込むかどうかを指定します。デフォルトでは外部アドレス帳は読み込みません。
+
++[メールアドレスのみ挿入する]
+指定すると、外部アドレス帳から読み込んだメールアドレスを選択したときにメールアドレスのみを挿入するようになります。指定しない場合には、「表題 <メールアドレス>」の形式で挿入します。デフォルトでは後者の形式で挿入します。
+
+
++[フォント]
+((<[フォント]ダイアログ|URL:FontDialog.html>))を開いて、アドレス帳で使用するフォントを指定します。
 
 =end

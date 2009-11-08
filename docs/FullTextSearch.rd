@@ -1,64 +1,64 @@
 =begin
-=�S������
+=全文検索
 
-�S�������ł�((<Namazu|URL:http://www.namazu.org/>))��((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))���g�p�����S���������s���܂��BWindows�łł̂ݎg�p�ł��܂��B�S�������̃G���W���Ƃ��ĉ����g�����́A((<�����̐ݒ�|URL:OptionSearch.html>))�Ŏw�肵�܂��B�g�p����G���W���́A���炩���߃C���X�g�[�����Ă����K�v������܂��B
+全文検索では((<Namazu|URL:http://www.namazu.org/>))や((<Hyper Estraier|URL:http://hyperestraier.sourceforge.net/>))を使用した全文検索を行います。Windows版でのみ使用できます。全文検索のエンジンとして何を使うかは、((<検索の設定|URL:OptionSearch.html>))で指定します。使用するエンジンは、あらかじめインストールしておく必要があります。
 
-�S���������s���ɂ́A((<�A�J�E���g�̍쐬|URL:CreateAccount.html>))����[���b�Z�[�W�{�b�N�X]��[1���b�Z�[�W1�t�@�C��]�ō쐬����K�v������܂��B�܂��A�S�������p�̃C���f�b�N�X�͎����ł͍X�V����܂���̂œK�X�X�V����K�v������܂��B
+全文検索を行うには、((<アカウントの作成|URL:CreateAccount.html>))時に[メッセージボックス]を[1メッセージ1ファイル]で作成する必要があります。また、全文検索用のインデックスは自動では更新されませんので適宜更新する必要があります。
 
-((<�S������|"IMG:images/FullTextSearchPage.png">))
-
-
-+[����������]
-������������w�肵�܂��B
+((<全文検索|"IMG:images/FullTextSearchPage.png">))
 
 
-+[�t�H���_]
-�����Ώۂ̃t�H���_���w�肵�܂��B�u(���ׂẴt�H���_)�v��I������ƑS�Ẵt�H���_���猟�����܂��B
++[検索文字列]
+検索文字列を指定します。
 
 
-+[�T�u�t�H���_������]
-�`�F�b�N�����[�t�H���_]�Ŏw�肵���t�H���_�̑S�ẴT�u�t�H���_�������ΏۂɂȂ�܂��B
++[フォルダ]
+検索対象のフォルダを指定します。「(すべてのフォルダ)」を選択すると全てのフォルダから検索します。
 
 
-+[�V���������t�H���_���쐬����]
-�ʏ�A�w�肵���������f�t�H���g�̌����t�H���_�ɐݒ肳��A���̌����t�H���_���J�����ƂŌ������ʂ�\�����܂��B���̃`�F�b�N�{�b�N�X�Ƀ`�F�b�N������ƁA�w�肵�������ŐV���Ɍ����t�H���_���쐬���A���̃t�H���_���J���܂��B�����t�H���_�ɂ��ẮA((<�t�H���_|URL:Folder.html>))���Q�Ƃ��Ă��������B
++[サブフォルダも検索]
+チェックすると[フォルダ]で指定したフォルダの全てのサブフォルダも検索対象になります。
 
 
-+[�C���f�b�N�X�̍X�V]
-�S�������̃C���f�b�N�X���X�V���邽�߂̃R�}���h�����s���܂��B
++[新しい検索フォルダを作成する]
+通常、指定した条件がデフォルトの検索フォルダに設定され、その検索フォルダを開くことで検索結果を表示します。このチェックボックスにチェックを入れると、指定した条件で新たに検索フォルダを作成し、そのフォルダを開きます。検索フォルダについては、((<フォルダ|URL:Folder.html>))を参照してください。
 
 
-==�C���f�b�N�X�̍X�V�ɂ���
-�S�������̃C���f�b�N�X�͎����ł͍X�V����܂���B[�C���f�b�N�X�̍X�V]�{�^���������ƃC���f�b�N�X���X�V���邽�߂̃R�}���h�����s���܂��B�C���f�b�N�X���X�V���邽�߂̃o�b�`�t�@�C�����쐬���AWindows�̃^�X�N�X�P�W���[���ȂǂŒ���I�ɃC���f�b�N�X���X�V���邱�Ƃ������߂��܂��B
++[インデックスの更新]
+全文検索のインデックスを更新するためのコマンドを実行します。
 
-��������уC���f�b�N�X�X�V�̃R�}���h�͈ȉ��̂悤�ɂȂ�܂��B
+
+==インデックスの更新について
+全文検索のインデックスは自動では更新されません。[インデックスの更新]ボタンを押すとインデックスを更新するためのコマンドを実行します。インデックスを更新するためのバッチファイルを作成し、Windowsのタスクスケジューラなどで定期的にインデックスを更新することをお勧めします。
+
+検索およびインデックス更新のコマンドは以下のようになります。
 
 *Namazu
-  :�����R�}���h
+  :検索コマンド
     namazu -l -a "$condition" "$index"
-  :�C���f�b�N�X�X�V�R�}���h
+  :インデックス更新コマンド
     mknmz.bat -a -h -O "$index" "$msg"
 *Hyper Estraier
-  :�����R�}���h
+  :検索コマンド
     estcmd search -ic $encoding -vu -sf -max -1 "$index" "$condition"
-  :�C���f�b�N�X�X�V�R�}���h
+  :インデックス更新コマンド
     estcmd gather -cl -fm -cm -sd "$index" "$msg"
 
-$����͂��܂镶����͈ȉ��̂悤�ɒu������܂��B
+$からはじまる文字列は以下のように置換されます。
 
-*�����R�}���h
+*検索コマンド
   :$index
-    �C���f�b�N�X�̃p�X
+    インデックスのパス
   :$condition
-    ��������
+    検索条件
   :$encoding
-    �V�X�e���̃G���R�[�f�B���O
-*�C���f�b�N�X�X�V�R�}���h
+    システムのエンコーディング
+*インデックス更新コマンド
   :$msg
-    ���b�Z�[�W�{�b�N�X�̃p�X
+    メッセージボックスのパス
   :$index
-    �C���f�b�N�X�̃p�X
+    インデックスのパス
   :$encoding
-    �V�X�e���̃G���R�[�f�B���O
+    システムのエンコーディング
 
 =end

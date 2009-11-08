@@ -4,32 +4,32 @@
  String @HtmlEscape(String s)
 
 
-==à–¾
-s‚ðHTML‚Æ‚µ‚ÄƒGƒXƒP[ƒv‚µ‚½•¶Žš—ñ‚ð•Ô‚µ‚Ü‚·B
+==èª¬æ˜Ž
+sã‚’HTMLã¨ã—ã¦ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã—ãŸæ–‡å­—åˆ—ã‚’è¿”ã—ã¾ã™ã€‚
 
-ˆÈ‰º‚Ì’u‚«Š·‚¦‚ðs‚¢‚Ü‚·B
+ä»¥ä¸‹ã®ç½®ãæ›ãˆã‚’è¡Œã„ã¾ã™ã€‚
 
-*<‚ð&lt;
-*>‚ð&gt;
-*&‚ð&amp;
-*"‚ð&quot;
+*<ã‚’&lt;
+*>ã‚’&gt;
+*&ã‚’&amp;
+*"ã‚’&quot;
 
 
-==ˆø”
+==å¼•æ•°
 :String s
-  ƒGƒXƒP[ƒv‚·‚é•¶Žš—ñ
+  ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã™ã‚‹æ–‡å­—åˆ—
 
 
-==ƒGƒ‰[
-*ˆø”‚Ì”‚ª‡‚Á‚Ä‚¢‚È‚¢ê‡
+==ã‚¨ãƒ©ãƒ¼
+*å¼•æ•°ã®æ•°ãŒåˆã£ã¦ã„ãªã„å ´åˆ
 
 
-==ðŒ
-‚È‚µ
+==æ¡ä»¶
+ãªã—
 
 
-==—á
- # –{•¶‚ðHTML‚Æ‚µ‚ÄƒGƒXƒP[ƒv
+==ä¾‹
+ # æœ¬æ–‡ã‚’HTMLã¨ã—ã¦ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—
  @HtmlEscape(@Body())
 
 =end

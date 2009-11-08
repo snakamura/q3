@@ -1,18 +1,18 @@
 =begin
-=ToolPopupMenuƒAƒNƒVƒ‡ƒ“
+=ToolPopupMenuã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ˆø”‚ÅŽw’è‚³‚ê‚½–¼‘O‚Ìƒ|ƒbƒvƒAƒbƒvƒƒjƒ…[‚ð•\Ž¦‚µ‚Ü‚·B•\Ž¦‚·‚éƒƒjƒ…[‚Í‚ ‚ç‚©‚¶‚ß((<menus.xml|URL:MenusXml.html>))‚Å’è‹`‚µ‚Ä‚¨‚­•K—v‚ª‚ ‚è‚Ü‚·B((<ƒƒjƒ…[‚ÌƒJƒXƒ^ƒ}ƒCƒY|URL:CustomizeMenus.html>))‚àŽQl‚É‚µ‚Ä‚­‚¾‚³‚¢B
+å¼•æ•°ã§æŒ‡å®šã•ã‚ŒãŸåå‰ã®ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚è¡¨ç¤ºã™ã‚‹ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã¯ã‚ã‚‰ã‹ã˜ã‚((<menus.xml|URL:MenusXml.html>))ã§å®šç¾©ã—ã¦ãŠãå¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚((<ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚º|URL:CustomizeMenus.html>))ã‚‚å‚è€ƒã«ã—ã¦ãã ã•ã„ã€‚
 
 
-==ˆø”
+==å¼•æ•°
 :1
-  ƒƒjƒ…[‚Ì–¼‘O
+  ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®åå‰
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
-*ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+*ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

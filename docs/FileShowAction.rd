@@ -1,14 +1,14 @@
 =begin
-=FileShowƒAƒNƒVƒ‡ƒ“
+=FileShowã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒ^ƒXƒNƒgƒŒƒC‚ÉŠi”[‚³‚ê‚½ó‘Ô‚©‚çA((<FileHideƒAƒNƒVƒ‡ƒ“|URL:FileHideAction.html>))‚É‚æ‚Á‚Ä‰B‚³‚ê‚½ƒEƒBƒ“ƒhƒE‚ð•\Ž¦‚µƒ^ƒXƒNƒgƒŒƒC‚ÌƒAƒCƒRƒ“‚ðŽæ‚èœ‚«‚Ü‚·B‚½‚¾‚µA–¢“ÇƒƒbƒZ[ƒW’Ê’m—p‚ÌƒAƒCƒRƒ“‚Íƒ^ƒXƒNƒgƒŒƒC‚ÉŽc‚è‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ã‚¿ã‚¹ã‚¯ãƒˆãƒ¬ã‚¤ã«æ ¼ç´ã•ã‚ŒãŸçŠ¶æ…‹ã‹ã‚‰ã€((<FileHideã‚¢ã‚¯ã‚·ãƒ§ãƒ³|URL:FileHideAction.html>))ã«ã‚ˆã£ã¦éš ã•ã‚ŒãŸã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤ºã—ã‚¿ã‚¹ã‚¯ãƒˆãƒ¬ã‚¤ã®ã‚¢ã‚¤ã‚³ãƒ³ã‚’å–ã‚Šé™¤ãã¾ã™ã€‚ãŸã ã—ã€æœªèª­ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€šçŸ¥ç”¨ã®ã‚¢ã‚¤ã‚³ãƒ³ã¯ã‚¿ã‚¹ã‚¯ãƒˆãƒ¬ã‚¤ã«æ®‹ã‚Šã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

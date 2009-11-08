@@ -1,16 +1,16 @@
 =begin
-=������M�ƃ_�E�����[�h�\��
+=部分受信とダウンロード予約
 
-NNTP�A�J�E���g�ł́A�����w�肵�Ȃ��ƃ��b�Z�[�W�̃C���f�b�N�X�݂̂�XOVER�R�}���h���g�p���Ď擾���A�{���̓_�E�����[�h���܂���((-�������AXOVER�R�}���h���T�|�[�g���ĂȂ��T�[�o�̏ꍇ�ɂ̓w�b�_�݂̂��擾���܂��B-))�B��ɃT�[�o���烁�b�Z�[�W���擾����ɂ́A((<���x�̐ݒ�|URL:AccountAdvanced.html>))�œ����t�B���^�Ƃ���[���ׂ� (NNTP)]��I�����܂��B
+NNTPアカウントでは、何も指定しないとメッセージのインデックスのみをXOVERコマンドを使用して取得し、本文はダウンロードしません((-ただし、XOVERコマンドをサポートしてないサーバの場合にはヘッダのみを取得します。-))。常にサーバからメッセージを取得するには、((<高度の設定|URL:AccountAdvanced.html>))で同期フィルタとして[すべて (NNTP)]を選択します。
 
-���b�Z�[�W�S�̂��擾���Ȃ������ꍇ�ɂ́A���X�g�r���[�̃��b�Z�[�W�̃A�C�R����������M�p�̂��̂ɂȂ�܂��B�����̃��b�Z�[�W�̑S�̂��_�E�����[�h�������ꍇ�ɂ́A((<�_�E�����[�h�t���O|URL:Flag.html>))��t���Ă��瓯�����܂��B�_�E�����[�h�t���O��t����ɂ́A((<[���b�Z�[�W]-[�}�[�N]-[�_�E�����[�h�\��]|URL:MessageMarkDownloadAction.html>))��I�����܂��B�_�E�����[�h�}�[�N�������ɂ́A((<[���b�Z�[�W]-[�v���p�e�B]|URL:MessagePropertyAction.html>))��I�����ă��b�Z�[�W�̃v���p�e�B��((<���|URL:MessagePropertyPage.html>))�y�[�W��[�_�E�����[�h]�̃`�F�b�N���O���܂��B
+メッセージ全体を取得しなかった場合には、リストビューのメッセージのアイコンが部分受信用のものになります。これらのメッセージの全体をダウンロードしたい場合には、((<ダウンロードフラグ|URL:Flag.html>))を付けてから同期します。ダウンロードフラグを付けるには、((<[メッセージ]-[マーク]-[ダウンロード予約]|URL:MessageMarkDownloadAction.html>))を選択します。ダウンロードマークを消すには、((<[メッセージ]-[プロパティ]|URL:MessagePropertyAction.html>))を選択してメッセージのプロパティの((<一般|URL:MessagePropertyPage.html>))ページで[ダウンロード]のチェックを外します。
 
-��������ƃ_�E�����[�h�t���O�̕t�������b�Z�[�W���T�[�o�ォ��_�E�����[�h���܂��B�T�[�o��Ɏw�肳�ꂽ���b�Z�[�W���Ȃ��ꍇ�ɂ̓G���[�ɂȂ�܂��B������̏ꍇ�ł��A�_�E�����[�h�t���O��������܂��B
+同期するとダウンロードフラグの付いたメッセージをサーバ上からダウンロードします。サーバ上に指定されたメッセージがない場合にはエラーになります。いずれの場合でも、ダウンロードフラグが消されます。
 
-���b�Z�[�W���_�E�����[�h����ƃL���b�V���Ƃ��Ĉ����A���񂩂�̓T�[�o���烁�b�Z�[�W���擾�����ɃL���b�V������擾����悤�ɂȂ�܂��B�܂��A�L���b�V�����ꂽ���b�Z�[�W�́A((<�I�t���C��|URL:OnlineOffline.html>))�̏ꍇ�ł��\�����邱�Ƃ��ł��܂��B
+メッセージをダウンロードするとキャッシュとして扱われ、次回からはサーバからメッセージを取得せずにキャッシュから取得するようになります。また、キャッシュされたメッセージは、((<オフライン|URL:OnlineOffline.html>))の場合でも表示することができます。
 
-��x�T�[�o����擾�������b�Z�[�W����ɃL���b�V�����邽�߂ɂ́A((<�t�H���_�̃v���p�e�B|URL:FolderProperty.html>))��((<���|URL:FolderPropertyPage.html>))�y�[�W��[�ǂ񂾂Ƃ��ɃL���b�V������]�Ƀ`�F�b�N�����܂��B���̐ݒ������ƁA�����t�B���^�Ŗ{���𓯊����Ă��Ȃ��ꍇ�ł��A���b�Z�[�W��\��������A�Y�t�t�@�C����ۑ������ꍇ�ȂǂɎ����I�Ɏ擾�������b�Z�[�W���L���b�V�����܂��B
+一度サーバから取得したメッセージを常にキャッシュするためには、((<フォルダのプロパティ|URL:FolderProperty.html>))の((<一般|URL:FolderPropertyPage.html>))ページで[読んだときにキャッシュする]にチェックを入れます。この設定をすると、同期フィルタで本文を同期していない場合でも、メッセージを表示したり、添付ファイルを保存した場合などに自動的に取得したメッセージをキャッシュします。
 
-��x�擾�����L���b�V�����폜����ɂ́A�L���b�V�����폜���������b�Z�[�W��I�����āA((<[�ҏW]-[�L���b�V�����폜]|URL:EditDeleteCacheAction.html>))��I�����܂��B
+一度取得したキャッシュを削除するには、キャッシュを削除したいメッセージを選択して、((<[編集]-[キャッシュを削除]|URL:EditDeleteCacheAction.html>))を選択します。
 
 =end

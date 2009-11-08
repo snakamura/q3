@@ -4,41 +4,41 @@
  String @Load(String path, Boolean template?, String encoding?)
 
 
-==����
-�w�肳�ꂽ�p�X�̃t�@�C������ǂݍ��񂾓��e��Ԃ��܂��B�p�X�ɑ��΃p�X���w�肳�ꂽ�ꍇ�ɂ̓��[���{�b�N�X�f�B���N�g������̑��΃p�X�ɂȂ�܂��B
+==説明
+指定されたパスのファイルから読み込んだ内容を返します。パスに相対パスが指定された場合にはメールボックスディレクトリからの相対パスになります。
 
-template��True���w�肷��Ɠǂݍ��񂾓��e���e���v���[�g�Ƃ��ď������A�������ʂ�Ԃ��܂��B
+templateにTrueを指定すると読み込んだ内容をテンプレートとして処理し、処理結果を返します。
 
-encoding���w�肷��Ǝw�肳�ꂽ�G���R�[�f�B���O�œǂݍ��݂܂��B�w�肳��Ȃ��ꍇ�ɂ̓V�X�e���̃f�t�H���g�̃G���R�[�f�B���O�œǂݍ��݂܂��B
+encodingを指定すると指定されたエンコーディングで読み込みます。指定されない場合にはシステムのデフォルトのエンコーディングで読み込みます。
 
 
-==����
+==引数
 :String path
-  �t�@�C���p�X
+  ファイルパス
 :Boolean template
-  �e���v���[�g�Ƃ��ēǂݍ��ނ��ǂ���
+  テンプレートとして読み込むかどうか
 :String encoding
-  �G���R�[�f�B���O
+  エンコーディング
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�ǂݍ��݂Ɏ��s�����ꍇ
-*�e���v���[�g�̏����Ɏ��s�����ꍇ�i�e���v���[�g�Ƃ��ēǂݍ��񂾏ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*読み込みに失敗した場合
+*テンプレートの処理に失敗した場合（テンプレートとして読み込んだ場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �t�@�C����ǂݍ���
+==例
+ # ファイルを読み込む
  @Load('C:\\Temp\\Test.txt')
  
- # ���΃p�X�ŃG���R�[�f�B���O���w��
+ # 相対パスでエンコーディングを指定
  @Load('profiles/qmail.xml', @False(), 'utf-8')
  
- # �e���v���[�g����������
+ # テンプレートを処理する
  @Load('templates/mail/test.template', @True())
 
 =end

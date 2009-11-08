@@ -4,33 +4,33 @@
  String @Subject(Boolean removeRe?, Boolean removeMl?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W��Subject��Ԃ��܂��B�擾�ł��Ȃ������ꍇ�ɂ͋󕶎����Ԃ��܂��B
+==説明
+コンテキストメッセージのSubjectを返します。取得できなかった場合には空文字列を返します。
 
-removeRe��True���w�肷��Ɛ擪�́uRe:�v�ɗނ�����̂���菜���܂��BremoveMl��True���w�肷��Ɛ擪��ML�ԍ��i[qs:00123]�̂悤�ȕ�����j����菜���܂��B�������w�肵�Ȃ��ꍇ�ɂ́AFalse���w�肵���̂Ɠ����ɂȂ�܂��B
+removeReにTrueを指定すると先頭の「Re:」に類するものを取り除きます。removeMlにTrueを指定すると先頭のML番号（[qs:00123]のような文字列）を取り除きます。これらを指定しない場合には、Falseを指定したのと同じになります。
 
-@Subject()��Subject�Ɠ������ʂ�Ԃ��܂��B
+@Subject()はSubjectと同じ結果を返します。
 
 
-==����
+==引数
 :Boolean removeRe
-  �擪��Re:����菜�����ǂ���
+  先頭のRe:を取り除くかどうか
 :Boolean removeMl
-  �擪��ML�ԍ�����菜�����ǂ���
+  先頭のML番号を取り除くかどうか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # Re:��ML�ԍ�����菜����Subject���擾
+==例
+ # Re:とML番号を取り除いてSubjectを取得
  @Subject(@True(), @True())
 
 =end

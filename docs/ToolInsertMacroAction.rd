@@ -1,17 +1,17 @@
 =begin
-=ToolInsertMacroƒAƒNƒVƒ‡ƒ“
+=ToolInsertMacroã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ˆø”‚ÅŽw’è‚³‚ê‚½((<ƒ}ƒNƒ|URL:Macro.html>))‚ðŽÀs‚µ‚Ü‚·Bˆø”‚ðŽw’è‚µ‚È‚©‚Á‚½ê‡‚É‚ÍA((<[ƒ}ƒNƒ‚ÌŽÀs]ƒ_ƒCƒAƒƒO|URL:MacroDialog.html>))‚ðŠJ‚­‚Ì‚ÅAŽÀs‚·‚éƒ}ƒNƒ‚ðŽw’è‚µ‚Ü‚·B
+å¼•æ•°ã§æŒ‡å®šã•ã‚ŒãŸ((<ãƒžã‚¯ãƒ­|URL:Macro.html>))ã‚’å®Ÿè¡Œã—ã¾ã™ã€‚å¼•æ•°ã‚’æŒ‡å®šã—ãªã‹ã£ãŸå ´åˆã«ã¯ã€((<[ãƒžã‚¯ãƒ­ã®å®Ÿè¡Œ]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:MacroDialog.html>))ã‚’é–‹ãã®ã§ã€å®Ÿè¡Œã™ã‚‹ãƒžã‚¯ãƒ­ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
-•ÒW’†‚ÌƒƒbƒZ[ƒW‚ðƒRƒ“ƒeƒLƒXƒgƒƒbƒZ[ƒW‚Æ‚µ‚Äƒ}ƒNƒ‚ð•]‰¿‚µAŒ‹‰Ê‚Ì•¶Žš—ñ‚ð–{•¶‚ÌƒLƒƒƒŒƒbƒg‚ÌˆÊ’u‚É‘}“ü‚µ‚Ü‚·B
+ç·¨é›†ä¸­ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¨ã—ã¦ãƒžã‚¯ãƒ­ã‚’è©•ä¾¡ã—ã€çµæžœã®æ–‡å­—åˆ—ã‚’æœ¬æ–‡ã®ã‚­ãƒ£ãƒ¬ãƒƒãƒˆã®ä½ç½®ã«æŒ¿å…¥ã—ã¾ã™ã€‚
 
 
-==ˆø”
+==å¼•æ•°
 :1
-  ŽÀs‚·‚éƒ}ƒNƒ
+  å®Ÿè¡Œã™ã‚‹ãƒžã‚¯ãƒ­
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

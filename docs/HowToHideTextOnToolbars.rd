@@ -1,16 +1,16 @@
 =begin
-=�c�[���o�[�̕������\�����Ȃ��悤�ɂ���ɂ͂ǂ�����΂悢�ł���?
+=ツールバーの文字列を表示しないようにするにはどうすればよいですか?
 
-�c�[���o�[�̃{�^���̉��ɕ������\�����邩�ǂ����́A((<toolbars.xml|URL:ToolbarsXml.html>))�Ŏw��ł��܂��B�e�c�[���o�[��showText������false�ɂ���ƃe�L�X�g���\������Ȃ��Ȃ�܂��B
+ツールバーのボタンの下に文字列を表示するかどうかは、((<toolbars.xml|URL:ToolbarsXml.html>))で指定できます。各ツールバーのshowText属性をfalseにするとテキストが表示されなくなります。
 
-�Ⴆ�΁A���C���E�B���h�E�̃c�[���o�[�̏ꍇ�A
+例えば、メインウィンドウのツールバーの場合、
 
  <toolbar name="mainframe" showText="true">
 
-���A
+を、
 
  <toolbar name="mainframe" showText="false">
 
-�ɂ��܂��B
+にします。
 
 =end

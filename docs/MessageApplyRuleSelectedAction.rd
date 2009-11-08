@@ -1,16 +1,16 @@
 =begin
-=MessageApplyRuleSelected�A�N�V����
+=MessageApplyRuleSelectedアクション
 
-�I�����ꂽ���b�Z�[�W��U�蕪���܂��B�U�蕪���ɂ��ẮA((<�U�蕪��|URL:ApplyRules.html>))���Q�Ƃ��Ă��������B
+選択されたメッセージを振り分けます。振り分けについては、((<振り分け|URL:ApplyRules.html>))を参照してください。
 
 <<<selectedMessage.rd
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

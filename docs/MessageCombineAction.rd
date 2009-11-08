@@ -1,14 +1,14 @@
 =begin
-=MessageCombineƒAƒNƒVƒ‡ƒ“
+=MessageCombineã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<"message/partialŒ`Ž®"|URL:http://www.ietf.org/rfc/rfc2046.txt>))‚Å•ªŠ„‚³‚ê‚½ƒƒbƒZ[ƒW‚ðŒ‹‡‚µ‚Ü‚·B•ªŠ„‚³‚ê‚½‘S‚Ä‚ÌƒƒbƒZ[ƒW‚ð‘I‘ð‚·‚é•K—v‚ª‚ ‚è‚Ü‚·BŒ‹‡‚³‚ê‚½ƒƒbƒZ[ƒW‚Í‘I‘ð‚³‚ê‚½æ“ª‚ÌƒƒbƒZ[ƒW‚Æ“¯‚¶ƒtƒHƒ‹ƒ_‚É’Ç‰Á‚³‚ê‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<"message/partialå½¢å¼"|URL:http://www.ietf.org/rfc/rfc2046.txt>))ã§åˆ†å‰²ã•ã‚ŒãŸãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’çµåˆã—ã¾ã™ã€‚åˆ†å‰²ã•ã‚ŒãŸå…¨ã¦ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’é¸æŠžã™ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚çµåˆã•ã‚ŒãŸãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¯é¸æŠžã•ã‚ŒãŸå…ˆé ­ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¨åŒã˜ãƒ•ã‚©ãƒ«ãƒ€ã«è¿½åŠ ã•ã‚Œã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
 
 =end

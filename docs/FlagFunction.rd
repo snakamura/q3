@@ -4,10 +4,10 @@
  Boolean @Flag(Number flag, Boolean value?)
 
 
-==����
-value���w�肳��Ă��Ȃ��ꍇ�ɂ́A�R���e�L�X�g���b�Z�[�W�̃t���O���擾���܂��B�w�肳��Ă���ꍇ�ɂ́A�t���O��ݒ肵�܂��B
+==説明
+valueが指定されていない場合には、コンテキストメッセージのフラグを取得します。指定されている場合には、フラグを設定します。
 
-���̊֐��̑���Ɉȉ��̊֐����g�p���Ă��������B
+この関数の代わりに以下の関数を使用してください。
 *((<@Seen|URL:SeenFunction.html>))
 *((<@Replied|URL:RepliedFunction.html>))
 *((<@Forwarded|URL:ForwardedFunction.html>))
@@ -26,26 +26,26 @@ value���w�肳��Ă��Ȃ��ꍇ�ɂ́A�R���e�L�X�g���b�Z�[�W�̃t���O���擾���܂��B�w�
 
 
 
-==����
+==引数
 :Number flag
-  �t���O
+  フラグ
 :Boolean value
-  �ݒ肷��ꍇ�Ƀt���O�𗧂Ă邩�|����
+  設定する場合にフラグを立てるか倒すか
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W�z���_���Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���ꎞ�I�ȏꍇ�i�t���O��ݒ肷��ꍇ�j
-*�t���O�̐ݒ�Ɏ��s�����ꍇ�i�t���O��ݒ肷��ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージホルダがない場合
+*コンテキストメッセージが一時的な場合（フラグを設定する場合）
+*フラグの設定に失敗した場合（フラグを設定する場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # 0x00000001�̃t���O���擾
+==例
+ # 0x00000001のフラグを取得
  @Flag(1)
 
 =end

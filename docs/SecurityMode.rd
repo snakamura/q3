@@ -1,12 +1,12 @@
 =begin
-=�Z�L�����e�B���[�h
+=セキュリティモード
 
-�Z�L�����e�B���[�h�́A���b�Z�[�W����������Ƃ��ɁAS/MIME��PGP�̕����⏐���̌��؂̏������s�����ǂ�����\�����[�h�ł��B�����̃��[�h�̓��b�Z�[�W��\������Ƃ������łȂ��A�������Ƃ���A�G�N�X�|�[�g����Ƃ��A�}�N���̏������s���Ƃ��Ȃǂɂ��e�����܂��B�ȉ��̂悤�ȃ��[�h������܂��B
+セキュリティモードは、メッセージを処理するときに、S/MIMEやPGPの復号や署名の検証の処理を行うかどうかを表すモードです。これらのモードはメッセージを表示するときだけでなく、印刷するときや、エクスポートするとき、マクロの処理を行うときなどにも影響します。以下のようなモードがあります。
 
-:S/MIME���[�h
-  S/MIME�̏������s���܂��B�ڍׂ́A((<"S/MIME"|URL:SMIME.html>))���Q�Ƃ��Ă��������B
+:S/MIMEモード
+  S/MIMEの処理を行います。詳細は、((<"S/MIME"|URL:SMIME.html>))を参照してください。
 
-:PGP���[�h
-  PGP�̏������s���܂��B�ڍׂ́A((<PGP|URL:PGP.html>))���Q�Ƃ��Ă��������B
+:PGPモード
+  PGPの処理を行います。詳細は、((<PGP|URL:PGP.html>))を参照してください。
 
 =end

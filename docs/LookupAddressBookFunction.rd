@@ -4,51 +4,51 @@
  String @LookupAddressBook(String address, Number type)
 
 
-==����
-�w�肳�ꂽ�A�h���X���A�h���X������t�������܂��B
+==説明
+指定されたアドレスをアドレス帳から逆引きします。
 
-type�ɂ͋t��������l���w�肵�܂��B�ȉ��̂����ꂩ���w��ł��܂��B
+typeには逆引きする値を指定します。以下のいずれかが指定できます。
 
 ::ADDRESS-NAME
-  ���O
+  名前
 ::ADDRESS-SORTKEY
-  �\�[�g�L�[
+  ソートキー
 ::ADDRESS-ADDRESS
-  �A�h���X
+  アドレス
 ::ADDRESS-ALIAS
-  �G�C���A�X
+  エイリアス
 ::ADDRESS-CATEGORY
-  �J�e�S��
+  カテゴリ
 ::ADDRESS-COMMENT
-  �R�����g
+  コメント
 
-�w�肵�Ȃ������ꍇ�ɂ́A:ADDRESS-NAME���w�肵���̂Ɠ����ɂȂ�܂��B�w�肵���A�h���X�̃G���g����������Ȃ������ꍇ�ɂ͋󕶎����Ԃ��܂��B
+指定しなかった場合には、:ADDRESS-NAMEを指定したのと同じになります。指定したアドレスのエントリが見つからなかった場合には空文字列を返します。
 
-:ADDRESS-ADDRESS�͎w�肵���A�h���X�Ɠ����l��Ԃ��܂��i�啶���E�������͕ς��\��������܂��j�B���̂��߁A:ADDRESS-ADDRESS���w�肵�ċt�������ċ󕶎��񂩂ǂ������ׂ邱�ƂŃA�h���X���ɃG���g�������邩�ǂ����𒲂ׂ邱�Ƃ��ł��܂��B
+:ADDRESS-ADDRESSは指定したアドレスと同じ値を返します（大文字・小文字は変わる可能性があります）。このため、:ADDRESS-ADDRESSを指定して逆引きして空文字列かどうか調べることでアドレス帳にエントリがあるかどうかを調べることができます。
 
 
-==����
+==引数
 :Number ltype
-  �t�����^�C�v
+  逆引きタイプ
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # ���O���t����
+==例
+ # 名前を逆引き
  @LookupAddressBook($address)
  
- # �R�����g���t����
+ # コメントを逆引き
  @LookupAddressBook($address, :ADDRESS-COMMENT)
  
- # �A�h���X���ɃG���g�������邩�ǂ����𒲂ׂ�
+ # アドレス帳にエントリがあるかどうかを調べる
  @If(@LookupAddressBook($address, :ADDRESS-ADDRESS),
-     '�A�h���X���ɃG���g������',
-     '�A�h���X���ɃG���g���Ȃ�')
+     'アドレス帳にエントリあり',
+     'アドレス帳にエントリなし')
 =end

@@ -1,14 +1,14 @@
 =begin
-=AttachmentEditDeleteƒAƒNƒVƒ‡ƒ“
+=AttachmentEditDeleteã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘I‘ð‚³‚ê‚½“Y•tƒtƒ@ƒCƒ‹‚ðíœ‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+é¸æŠžã•ã‚ŒãŸæ·»ä»˜ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

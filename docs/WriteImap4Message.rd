@@ -1,9 +1,9 @@
 =begin
-=���[��������
+=メールを書く
 
-IMAP4�A�J�E���g�ł̃��[���̏������͊�{�I��POP3�A�J�E���g�Ɠ����ł��̂ŁAPOP3�A�J�E���g��((<���[��������|URL:WritePop3Message.html>))���Q�Ƃ��Ă��������B
+IMAP4アカウントでのメールの書き方は基本的にPOP3アカウントと同じですので、POP3アカウントの((<メールを書く|URL:WritePop3Message.html>))を参照してください。
 
 
-�쐬�������[�����ۑ��ł��Ȃ�������A���M���ɃG���[�ɂȂ�ꍇ�ɂ́A����t�H���_���쐬����Ă��邩�ǂ������m�F���Ă��������B�쐬����Ă��Ȃ��ꍇ�ɂ́A((<�A�J�E���g�̍쐬|URL:CreateImap4Account.html>))�̓���t�H���_�̐ݒ���Q�l�ɓ���t�H���_���쐬���Ă��������B
+作成したメールが保存できなかったり、送信時にエラーになる場合には、特殊フォルダが作成されているかどうかを確認してください。作成されていない場合には、((<アカウントの作成|URL:CreateImap4Account.html>))の特殊フォルダの設定を参考に特殊フォルダを作成してください。
 
 =end

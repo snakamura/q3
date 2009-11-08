@@ -1,20 +1,20 @@
 =begin
-=�I�����C���ƃI�t���C��
+=オンラインとオフライン
 
-QMAIL3�ɂ̓I�����C�����[�h�ƃI�t���C�����[�h������܂��B���[�h�́A((<[�t�@�C��]-[�I�t���C��]|URL:FileOfflineAction.html>))�Ő؂�ւ��邱�Ƃ��ł��܂��B�f�t�H���g�ł̓I�t���C�����[�h�ɂȂ��Ă��܂��B�������A�������͎����I�ɃI�����C�����[�h�ɂȂ�܂��B
+QMAIL3にはオンラインモードとオフラインモードがあります。モードは、((<[ファイル]-[オフライン]|URL:FileOfflineAction.html>))で切り替えることができます。デフォルトではオフラインモードになっています。ただし、同期中は自動的にオンラインモードになります。
 
-���݃I�����C�����[�h���ǂ����́A�^�C�g���o�[��[�I�t���C��]�ƕ\������Ă��邩�ǂ����Œm�邱�Ƃ��ł��܂��B�܂��A�X�e�[�^�X�o�[�ɂ��I�����C�����[�h���ǂ����������A�C�R�����\������܂��B
+現在オンラインモードかどうかは、タイトルバーに[オフライン]と表示されているかどうかで知ることができます。また、ステータスバーにもオンラインモードかどうかを示すアイコンが表示されます。
 
-:�I�����C�����[�h
-  ((<�I�����C�����[�h|"IMG:images/Online.png">))
+:オンラインモード
+  ((<オンラインモード|"IMG:images/Online.png">))
 
-:�I�t���C�����[�h
-  ((<�I�t���C�����[�h|"IMG:images/Offline.png">))
+:オフラインモード
+  ((<オフラインモード|"IMG:images/Offline.png">))
 
-�I�����C�����[�h�ƃI�t���C�����[�h�ł͈ȉ��̓_���قȂ�܂��B
+オンラインモードとオフラインモードでは以下の点が異なります。
 
-�܂��I�����C�����[�h�ł̓����[�g�̃��b�Z�[�W���擾���܂��BIMAP4��NNTP�̃A�J�E���g�ł́A�C���f�b�N�X�����𓯊����Ė{���͓������Ȃ����Ƃ��ł��܂����A�����̃C���f�b�N�X�����𓯊��������b�Z�[�W��\��������U�蕪�����肷��Ƃ��ȂǂɁA�I�����C�����[�h�ł͕K�v�ɉ����ă��b�Z�[�W�{�̂��T�[�o����擾���܂��B
+まずオンラインモードではリモートのメッセージを取得します。IMAP4やNNTPのアカウントでは、インデックスだけを同期して本文は同期しないことができますが、これらのインデックスだけを同期したメッセージを表示したり振り分けたりするときなどに、オンラインモードでは必要に応じてメッセージ本体をサーバから取得します。
 
-�܂��A((<�t�H���_�̃v���p�e�B|URL:FolderProperty.html>))��[�����ōX�V����]�Ƀ`�F�b�N������ƁA�I�����C�����[�h�ł̓t�H���_���J�����Ƃ��Ȃǂɂ��̃t�H���_�𓯊����܂��B
+また、((<フォルダのプロパティ|URL:FolderProperty.html>))で[自動で更新する]にチェックを入れると、オンラインモードではフォルダを開いたときなどにそのフォルダを同期します。
 
 =end

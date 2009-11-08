@@ -1,14 +1,14 @@
 =begin
-=FolderPropertyƒAƒNƒVƒ‡ƒ“
+=FolderPropertyã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»Ý‘I‘ð‚³‚ê‚Ä‚¢‚éƒtƒHƒ‹ƒ_‚ÌƒvƒƒpƒeƒB‚ð•\Ž¦‚µ‚Ü‚·B((<ƒtƒHƒ‹ƒ_‚ÌƒvƒƒpƒeƒB|URL:FolderProperty.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+ç¾åœ¨é¸æŠžã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚((<ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£|URL:FolderProperty.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

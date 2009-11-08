@@ -1,52 +1,52 @@
 =begin
-=IMAP4�̐ݒ�
+=IMAP4の設定
 
-IMAP4�Ń��b�Z�[�W����M���邽�߂̐ݒ���s���܂��B
+IMAP4でメッセージを受信するための設定を行います。
 
-((<[IMAP4]�^�u|"IMG:images/AccountImap4ReceivePage.png">))
-
-
-+[���[�g�t�H���_]
-�T�[�o��UW-IMAP�̎��Ƀ��[�g�ƂȂ�t�H���_���w�肵�܂��B�f��UW-IMAP�ł͉����w�肵�Ȃ��ƃz�[���f�B���N�g���ȉ��̑S�Ẵt�@�C�����t�H���_�Ƃ��ĕ\������Ă��܂��܂��B�����Ń��[�g�ƂȂ�f�B���N�g�����w�肷�邱�ƂŁA����̃f�B���N�g���ȉ��̃t�H���_������\�����邱�Ƃ��ł��܂��B
+((<[IMAP4]タブ|"IMG:images/AccountImap4ReceivePage.png">))
 
 
-+[1���N�G�X�g������̎擾��]
-ENVELOPE�R�}���h�ȂǂŃ��b�Z�[�W�̃f�[�^���擾����Ƃ��ɁA���̃��N�G�X�g�ŉ��ʂ̃��b�Z�[�W�̃f�[�^���擾���邩���w�肵�܂��B�傫���������������͗ǂ��Ȃ�܂����A�ʐM���������ꍇ�ɂ͏����������ق����ڑ����؂ꂽ�ꍇ�Ȃǂɖ��ʂɂȂ�f�[�^�����Ȃ��Ȃ�܂��B�f�t�H���g�ł�100�ʂł��B
++[ルートフォルダ]
+サーバがUW-IMAPの時にルートとなるフォルダを指定します。素のUW-IMAPでは何も指定しないとホームディレクトリ以下の全てのファイルがフォルダとして表示されてしまいます。ここでルートとなるディレクトリを指定することで、特定のディレクトリ以下のフォルダだけを表示することができます。
 
 
-+[�ő�Z�b�V������]
-�I�����C�����[�h�Ŏg�p����Z�b�V�������̍ő�l���w�肵�܂��B�I�����C�����[�h�ł͊e�t�H���_�ɑ΂��ĕʂ̃Z�b�V�����𒣂�܂����A�����Ŏw�肵���Z�b�V�������𒴂���ƁA�ł��g���Ă��Ȃ��Z�b�V�������ė��p����悤�ɂȂ�܂��B�f�t�H���g��5�ł��B
++[1リクエストあたりの取得数]
+ENVELOPEコマンドなどでメッセージのデータを取得するときに、一回のリクエストで何通のメッセージのデータを取得するかを指定します。大きくした方が効率は良くなりますが、通信環境が悪い場合には小さくしたほうが接続が切れた場合などに無駄になるデータが少なくなります。デフォルトでは100通です。
 
 
-+[ENVELOPE���g�p]
-ENVELOPE�R�}���h�𑗂邩�ǂ������w�肵�܂��B�ꕔ�̃T�[�o�ɂ̓o�O�������āAENVELOPE�R�}���h�̌��ʂ��s���ɂȂ邽�߂ɏ����𑱍s�ł��Ȃ��Ȃ邱�Ƃ�����܂��B�`�F�b�N���O���ƁAENVELOPE�R�}���h�𑗂����ɕK�v�ȃw�b�_���擾���ăN���C�A���g���Ńp�[�X���܂��B�f�t�H���g�ł͎g�p���܂��B
++[最大セッション数]
+オンラインモードで使用するセッション数の最大値を指定します。オンラインモードでは各フォルダに対して別のセッションを張りますが、ここで指定したセッション数を超えると、最も使っていないセッションを再利用するようになります。デフォルトは5です。
 
 
-+[���BODYSTRUCTURE���g�p]
-�S�Ẵ��b�Z�[�W�ɑ΂���BODYSTRUCTURE�R�}���h�𑗂邩�ǂ������w�肵�܂��B�ꕔ�̃T�[�o�ɂ̓o�O�������āABODYSTRUCTURE�̌��ʂ��s���ɂȂ邽�ߏ����𑱍s�ł��Ȃ��Ȃ邱�Ƃ�����܂��B�`�F�b�N���O���ƁA�}���`�p�[�g�̃��b�Z�[�W�ɑ΂��Ă̂�BODYSTRUCTURE�R�}���h�𔭍s����悤�ɂȂ�܂��B�f�t�H���g�ł͏�Ɏg�p���܂��B
++[ENVELOPEを使用]
+ENVELOPEコマンドを送るかどうかを指定します。一部のサーバにはバグがあって、ENVELOPEコマンドの結果が不正になるために処理を続行できなくなることがあります。チェックを外すと、ENVELOPEコマンドを送る代わりに必要なヘッダを取得してクライアント側でパースします。デフォルトでは使用します。
 
 
-+[BODYSTRUCTURE��M��]
-BODYSTRUCTURE�̌��ʂ�M�����邩�ǂ������w�肵�܂��B�ꕔ�̃T�[�o�ɂ̓o�O�������āABODYSTRUCTURE�̌��ʂ���擾�����}���`�p�[�g�̃o�E���_���Ȃǂ��Ԉ���Ă��邱�Ƃ�����܂��B�`�F�b�N���O���Ƃ����̃T�[�o�̃o�O��������邽�߂ɒǉ��̃R�}���h�𑗂�悤�ɂȂ�܂��B�f�t�H���g�ł͐M�����܂��B
++[常にBODYSTRUCTUREを使用]
+全てのメッセージに対してBODYSTRUCTUREコマンドを送るかどうかを指定します。一部のサーバにはバグがあって、BODYSTRUCTUREの結果が不正になるため処理を続行できなくなることがあります。チェックを外すと、マルチパートのメッセージに対してのみBODYSTRUCTUREコマンドを発行するようになります。デフォルトでは常に使用します。
 
 
-+[�폜�ς݃��b�Z�[�W��j��]
-�t�H���_�𓯊�������ō폜�t���O�̕t�������b�Z�[�W�����ۂɔj�����邩�ǂ������w�肵�܂��B�f�t�H���g�ł͔j�����܂���B
++[BODYSTRUCTUREを信頼]
+BODYSTRUCTUREの結果を信頼するかどうかを指定します。一部のサーバにはバグがあって、BODYSTRUCTUREの結果から取得したマルチパートのバウンダリなどが間違っていることがあります。チェックを外すとこれらのサーバのバグを回避するために追加のコマンドを送るようになります。デフォルトでは信頼します。
 
 
-+[NAMESPACE���g�p]
-�t�H���_���X�g�̍X�V������Ƃ���NAMESPACE�R�}���h���g�p����ǂ������w�肵�܂��BNAMESPACE�R�}���h���g�p����ꍇ�ɂ́A����[�l], [���̑�], [���L]�Ƀ`�F�b�N�����邱�Ƃłǂ̃l�[���X�y�[�X�̃t�H���_���g�p���邩���w��ł��܂��B�f�t�H���g�ł͎g�p���܂���B
++[削除済みメッセージを破棄]
+フォルダを同期した後で削除フラグの付いたメッセージを実際に破棄するかどうかを指定します。デフォルトでは破棄しません。
 
 
-+[�l]
-�l�t�H���_���g�p���܂��B
++[NAMESPACEを使用]
+フォルダリストの更新をするときにNAMESPACEコマンドを使用するどうかを指定します。NAMESPACEコマンドを使用する場合には、下の[個人], [その他], [共有]にチェックを入れることでどのネームスペースのフォルダを使用するかを指定できます。デフォルトでは使用しません。
 
 
-+[���̑�]
-���̑��̃t�H���_���g�p���܂��B
++[個人]
+個人フォルダを使用します。
 
 
-+[���L]
-���L�t�H���_���g�p���܂��B
++[その他]
+その他のフォルダを使用します。
+
+
++[共有]
+共有フォルダを使用します。
 
 =end

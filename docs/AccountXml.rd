@@ -1,16 +1,16 @@
 =begin
 =account.xml
 
-�A�J�E���g���Ƃ̐ݒ��ۑ�����XML�t�@�C���ł��B���̃t�@�C���Őݒ�ł��鑽���̍��ڂ�((<�A�J�E���g�̃v���p�e�B|URL:AccountProperty.html>))�ȂǂŐݒ�ł��܂����A�ꕔ�̍��ڂ͒��ڂ��̃t�@�C����ҏW���Ȃ��Ɛݒ�ł��܂���B�ݒ�ł��鍀�ڂ̈ꗗ�͔��l���Q�Ƃ��Ă��������B
+アカウントごとの設定を保存するXMLファイルです。このファイルで設定できる多くの項目は((<アカウントのプロパティ|URL:AccountProperty.html>))などで設定できますが、一部の項目は直接このファイルを編集しないと設定できません。設定できる項目の一覧は備考を参照してください。
 
-���̃t�@�C����ҏW����Ƃ��ɂ�QMAIL3���I�������Ă���ҏW���Ă��������B
-
-
-==����
-������((<qmail.xml|URL:QmailXml.html>))�Ɠ����ł��̂ł�������Q�Ƃ��Ă��������B
+このファイルを編集するときにはQMAIL3を終了させてから編集してください。
 
 
-==�T���v��
+==書式
+書式は((<qmail.xml|URL:QmailXml.html>))と同じですのでそちらを参照してください。
+
+
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <profile>
@@ -33,425 +33,425 @@
  </profile>
 
 
-==�X�L�[�}
-�X�L�[�}��((<qmail.xml|URL:QmailXml.html>))�Ɠ����ł��̂ł�������Q�Ƃ��Ă��������B
+==スキーマ
+スキーマは((<qmail.xml|URL:QmailXml.html>))と同じですのでそちらを参照してください。
 
 
-==���l
-���̃t�@�C���ł̓Z�N�V�����ƃL�[�Œl���w�肵�܂��B�Ⴆ�΁A��̗�ł�Global�Z�N�V������Class�L�[��mail�Ƃ����l���w�肳��Ă��܂��B���̃h�L�������g���ł͂����Global/Class�̂悤�ɋL�q���Ă��邱�Ƃ�����܂��B
+==備考
+このファイルではセクションとキーで値を指定します。例えば、上の例ではGlobalセクションのClassキーにmailという値が指定されています。このドキュメント中ではこれをGlobal/Classのように記述してあることがあります。
 
-���ꂼ��̃L�[�̓f�t�H���g�̒l�������Ă��āA�w�肳��Ă��Ȃ��ꍇ�ɂ͂��̒l���g�p����܂��B�܂��A�l���f�t�H���g�̒l�Ɠ����ꍇ�ɂ̓t�@�C���ɂ͏����o����܂���B���݂��Ȃ��L�[�̒l���w�肷��ꍇ�ɂ́A�V�����Z�N�V������L�[��ǉ����Ă��������B
+それぞれのキーはデフォルトの値を持っていて、指定されていない場合にはその値が使用されます。また、値がデフォルトの値と同じ場合にはファイルには書き出されません。存在しないキーの値を指定する場合には、新しくセクションやキーを追加してください。
 
-�w��ł���Z�N�V�����ƃL�[�͈ȉ��̒ʂ�ł��B
+指定できるセクションとキーは以下の通りです。
 
 
-===Dialup�Z�N�V����
-�_�C�A���A�b�v�̐ݒ�����܂��B
+===Dialupセクション
+ダイアルアップの設定をします。
 
 +DisconnectWait (0)
-�_�C�A���A�b�v��ؒf����܂ł̑҂����ԁB�P�ʂ͕b�B
+ダイアルアップを切断するまでの待ち時間。単位は秒。
 
 
 +Entry
-�_�C�A���A�b�v�̃G���g�����B
+ダイアルアップのエントリ名。
 
 
 +ShowDialog (0 @ 0|1)
-�_�C�A���A�b�v���Ƀ_�C�A���O��\�����邩�ǂ����B
+ダイアルアップ時にダイアログを表示するかどうか。
 
 
 +Type (0 @ 0|1|2)
-�_�C�A���A�b�v�̃^�C�v�B
+ダイアルアップのタイプ。
 
 :0
-  �_�C�A���A�b�v���Ȃ�
+  ダイアルアップしない
 :1
-  �l�b�g���[�N�ڑ�����Ă��Ȃ��Ƃ������_�C�A���A�b�v����
+  ネットワーク接続されていないときだけダイアルアップする
 :2
-  ��Ƀ_�C�A���A�b�v����
+  常にダイアルアップする
 
 
-===FullTextSearch�Z�N�V����
-�S�������̐ݒ�����܂��B
+===FullTextSearchセクション
+全文検索の設定をします。
 
 +Index
-�C���f�b�N�X�̂���f�B���N�g���B��̏ꍇ�ɂ̓A�J�E���g�f�B���N�g����index�f�B���N�g���B
+インデックスのあるディレクトリ。空の場合にはアカウントディレクトリのindexディレクトリ。
 
 
-===Global�Z�N�V����
-�S�ʓI�Ȑݒ�����܂��B
+===Globalセクション
+全般的な設定をします。
 
 +AddMessageId (1 @ 0|1)
-Message-Id��t�����邩�ǂ����B
+Message-Idを付加するかどうか。
 
 
 +AutoApplyRules (0 @ 0|1)
-�����U�蕪����L���ɂ��邩�ǂ����B
+自動振り分けを有効にするかどうか。
 
 
 +BlockSize (0)
-���b�Z�[�W�{�b�N�X�̃u���b�N�T�C�Y�B
+メッセージボックスのブロックサイズ。
 
 :0
-  �ꃁ�b�Z�[�W��t�@�C��
+  一メッセージ一ファイル
 :-1
-  �����Ȃ�
-:����ȊO
-  �w�肳�ꂽ���l�ŕ����i�P�ʂ�MB�j�B�ő�l��4096
+  分割なし
+:それ以外
+  指定された数値で分割（単位はMB）。最大値は4096
 
 
 +Class
-�A�J�E���g�N���X�B
+アカウントクラス。
 
 
 +Identity
-�T�u�A�J�E���g�̓��ꐫ�B
+サブアカウントの同一性。
 
 
 +IndexBlockSize (-1)
-�C���f�b�N�X�̃u���b�N�T�C�Y�B-1�ŕ������Ȃ��B�P�ʂ�MB�B�ő�l��4096�B
+インデックスのブロックサイズ。-1で分割しない。単位はMB。最大値は4096。
 
 
 +IndexMaxSize (-1)
-�������ɃL���b�V������C���f�b�N�X�̐��B-1�Ŗ������B
+メモリにキャッシュするインデックスの数。-1で無制限。
 
 
 +LogTimeFormat (%Y4/%M0%D-%h:%m%s%z)
-�ʐM���O�̓��t�t�H�[�}�b�g�B�w����@�́A((<@FormatDate|URL:FormatDateFunction.html>))���Q�ƁB
+通信ログの日付フォーマット。指定方法は、((<@FormatDate|URL:FormatDateFunction.html>))を参照。
 
 
 +MessageStorePath
-���b�Z�[�W��ۑ�����f�B���N�g���B��̏ꍇ�ɂ̓A�J�E���g�f�B���N�g���B
+メッセージを保存するディレクトリ。空の場合にはアカウントディレクトリ。
 
 
 +ReplyTo
-Reply-To�ɐݒ肷��A�h���X�B
+Reply-Toに設定するアドレス。
 
 
 +SenderAddress
-From�ɐݒ肷��A�h���X�B
+Fromに設定するアドレス。
 
 
 +SenderName
-From�ɐݒ肷�閼�O�B
+Fromに設定する名前。
 
 
 +ShowUnseenCountOnWelcome (1 @ 0|1)
-Windows XP�̂悤������ʂɖ��ǃ��b�Z�[�W����\�����邩�ǂ����B
+Windows XPのようこそ画面に未読メッセージ数を表示するかどうか。
 
 
 +SslOption (0)
-SSL�̃I�v�V�����B�w��ł���l�́A((<SSL|URL:SSL.html>))���Q�ƁB
+SSLのオプション。指定できる値は、((<SSL|URL:SSL.html>))を参照。
 
 
 +StoreDecodedMessage (0 @ 0|1)
-S/MIME��PGP�ŕ����������b�Z�[�W��S�������p�ɕۑ����邩�ǂ����B
+S/MIMEやPGPで復号したメッセージを全文検索用に保存するかどうか。
 
 
 +SubAccount
-���݂̃T�u�A�J�E���g�B
+現在のサブアカウント。
 
 
 +Timeout (60)
-�^�C���A�E�g�B�P�ʂ͕b�B
+タイムアウト。単位は秒。
 
 
 +TrasnferEncodingFor8Bit ( @ 8bit, base64, quoted-printable)
-8bit�̕������G���R�[�h������@�B�w�肵�Ȃ��ꍇ�ɂ͕����R�[�h�ɂ���Č��܂�B
+8bitの文字をエンコードする方法。指定しない場合には文字コードによって決まる。
 
 
 +TreatAsSent (1 @ 0|1)
-��M�������b�Z�[�W��From�������̃A�h���X�������ꍇ�ɑ��M�ς݂Ƃ��Ĉ������ǂ����B
+受信したメッセージのFromが自分のアドレスだった場合に送信済みとして扱うかどうか。
 
 
-===Http�Z�N�V����
-HTTP�Ɋւ���ݒ�����܂��BRSS�A�J�E���g�Ŏg�p����܂��B
+===Httpセクション
+HTTPに関する設定をします。RSSアカウントで使用されます。
 
 +UseProxy (0 @ 0|1)
-�v���L�V���g�����ǂ����B
+プロキシを使うかどうか。
 
 
 +UseInternetSetting
-�C���^�[�l�b�g�̃v���p�e�B�Ŏw�肵���v���L�V�̐ݒ���g�����ǂ����B
+インターネットのプロパティで指定したプロキシの設定を使うかどうか。
 
 
 +ProxyHost, ProxyPort (8080), ProxyUserName, ProxyPassword
-�v���L�V�̃z�X�g���A�|�[�g�A���[�U���A�p�X���[�h�B
+プロキシのホスト名、ポート、ユーザ名、パスワード。
 
 
-===Imap4�Z�N�V����
-IMAP4�Ɋւ���ݒ�����܂��BIMAP4�A�J�E���g�Ŏg�p����܂��B
+===Imap4セクション
+IMAP4に関する設定をします。IMAP4アカウントで使用されます。
 
 +AdditionalFields
-�T�[�o���烁�b�Z�[�W�̃C���f�b�N�X���擾����Ƃ��ɒǉ��Ŏ擾����w�b�_���B�󔒂ŋ�؂��Ďw��B
+サーバからメッセージのインデックスを取得するときに追加で取得するヘッダ名。空白で区切って指定。
 
 
 +AuthMethods
-�g�p��������F�ؕ����B
+使用を許可する認証方式。
 
 
 +CloseFolder (0 @ 0|1)
-�t�H���_�����Ƃ��ɍ폜�}�[�N�̕t�������b�Z�[�W���폜���邩�ǂ����B
+フォルダを閉じるときに削除マークの付いたメッセージを削除するかどうか。
 
 
 +FetchCount (100)
-�C���f�b�N�X���擾����Ƃ��Ɉ��̃��N�G�X�g�Ŏ擾���郁�b�Z�[�W�̐��B
+インデックスを取得するときに一回のリクエストで取得するメッセージの数。
 
 
 +ForceDisconnect (0)
-�����I�ɃZ�b�V������ؒf����܂ł̑҂����ԁB�P�ʂ͕b�B
+強制的にセッションを切断するまでの待ち時間。単位は秒。
 
-�Z�b�V�������g���Ƃ��ɂ����Ŏw�肵�����Ԉȏ�ɃA�C�h����Ԃ��������Z�b�V�����͋����I�ɐؒf����܂��B0���w�肷��Ɛؒf���܂���B�Ⴆ�΁ANAT���g���Ă���ꍇ�AIMAP4�T�[�o���ڑ���؂�O��NAT�̕ϊ��e�[�u�����N���A����Ă��܂��ƁA�ؒf���ꂽ�̂����o�ł��Ȃ����ߕ��ʂɐؒf����̂Ɏ��Ԃ�������܂��B���̏ꍇ�ANAT�̃e�[�u�����N���A����鎞�Ԃ����Z�����Ԃ������Ɏw�肷��ƁA����ȏ�A�C�h����Ԃ�������ڑ��������I�ɐؒf����̂Ŏ��Ԃ������邱�Ƃ��Ȃ��Ȃ�܂��B
+セッションを使うときにここで指定した時間以上にアイドル状態が続いたセッションは強制的に切断されます。0を指定すると切断しません。例えば、NATを使っている場合、IMAP4サーバが接続を切る前にNATの変換テーブルがクリアされてしまうと、切断されたのを検出できないため普通に切断するのに時間がかかります。この場合、NATのテーブルがクリアされる時間よりも短い時間をここに指定すると、それ以上アイドル状態だったら接続を強制的に切断するので時間がかかることがなくなります。
 
 
 +MaxSession (5)
-�I�����C�����[�h�Ŏg�p����Z�b�V�����̍ő吔�B
+オンラインモードで使用するセッションの最大数。
 
 
 +Option (255)
-�I�v�V�����B�ȉ��̑g�ݍ��킹���\�i���Ŏw�肷��B
+オプション。以下の組み合わせを十進数で指定する。
 
 :0x01
-  ENVELOPE���g��
+  ENVELOPEを使う
 :0x02
-  BODYSTRUCTURE����Ɏg��
+  BODYSTRUCTUREを常に使う
 :0x04
-  BODYSTRUCTURE��M������
+  BODYSTRUCTUREを信頼する
 
 
 +OutboxFolder (Outbox), DraftFolder (Outbox), SentboxFolder (Sentbox), TrashFolder (Trash), JunkFolder (Junk)
-���M���A���e���A���M�ς݁A�S�~���A�X�p���t�H���_�Ƃ��Ďg���t�H���_���B
+送信箱、草稿箱、送信済み、ゴミ箱、スパムフォルダとして使うフォルダ名。
 
 
 +Reselect (1 @ 0|1)
-�����������Ԃ����O�Ƀt�H���_��I�����Ă����ꍇ�ɑI�����Ȃ������ǂ����B
+同期した時間よりも前にフォルダを選択していた場合に選択しなおすかどうか。
 
-IMAP4�T�[�o�ɂ���Ắi�Ⴆ�΁ACourier-IMAP�T�[�o�j�A�Z�b�V����A���t�H���_1��I��������ŃZ�b�V����B���t�H���_1�Ƀ��b�Z�[�W��ǉ������肷��ƁA�Z�b�V����A����̓t�H���_��I�����Ȃ����܂Œǉ��������b�Z�[�W�������܂���BReselect��1���w�肷��ƁA�t�H���_��I���������Ԃ������������Ԃ����O�̏ꍇ�ɂ̓t�H���_��I�����Ȃ����܂��B
+IMAP4サーバによっては（例えば、Courier-IMAPサーバ）、セッションAがフォルダ1を選択した後でセッションBがフォルダ1にメッセージを追加したりすると、セッションAからはフォルダを選択しなおすまで追加したメッセージが見えません。Reselectに1を指定すると、フォルダを選択した時間が同期した時間よりも前の場合にはフォルダを選択しなおします。
 
 
 +RootFolder
-���[�g�t�H���_�B
+ルートフォルダ。
 
 
 +RootFolderSeparator (/)
-���[�g�t�H���_�̃Z�p���[�^�B
+ルートフォルダのセパレータ。
 
 
 +SearchCharset
-�������Ɏg�p���镶���R�[�h�B�f�t�H���g�ł͎�������B
+検索時に使用する文字コード。デフォルトでは自動判定。
 
 
 +SearchUseCharset (1 @ 0|1)
-�������ɕ����R�[�h���w�肷�邩�ǂ����B
+検索時に文字コードを指定するかどうか。
 
 
 +SubscribeOnly (0 @ 0|1)
-�t�H���_�����X�g����Ƃ��ɍw�ǂ��Ă���t�H���_�݂̂����X�g���邩�ǂ����BUseNamespace�Ɠ����Ɏw��s�B
+フォルダをリストするときに購読しているフォルダのみをリストするかどうか。UseNamespaceと同時に指定不可。
 
 
 +UseNamespace (0)
-�l�[���X�y�[�X���g�����ǂ����B
+ネームスペースを使うかどうか。
 
 
 +UsePersonal (1 @ 0|1), UseShared (1 @ 0|1), UseOthers (1 @ 0|1)
-�l�[���X�y�[�X���g���Ƃ��ɁA�p�[�\�i���A���L�A���̑��̃t�H���_�������邩�ǂ����B
+ネームスペースを使うときに、パーソナル、共有、その他のフォルダを見せるかどうか。
 
 
-===JunkFilter�Z�N�V����
-�X�p���t�B���^�̐ݒ�����܂��B
+===JunkFilterセクション
+スパムフィルタの設定をします。
 
 +Enabled (0 @ 0|1)
-�X�p���t�B���^���L�����ǂ����B
+スパムフィルタが有効かどうか。
 
 
-===Misc�Z�N�V����
+===Miscセクション
 
 +IgnoreError (0 @ 0|1)
-�G���[���N���Ă��������邩�ǂ����B
+エラーが起きても無視するかどうか。
 
 
-===Nntp�Z�N�V����
-NNTP�Ɋւ���ݒ�����܂��BNNTP�A�J�E���g�Ŏg�p����܂��B
+===Nntpセクション
+NNTPに関する設定をします。NNTPアカウントで使用されます。
 
 +ForceDisconnect (0)
-�����I�ɃZ�b�V������ؒf����܂ł̑҂����ԁB�P�ʂ͕b�B
+強制的にセッションを切断するまでの待ち時間。単位は秒。
 
-�ڍׂ�Imap4�Z�N�V�����̓��������Q�ƁB
+詳細はImap4セクションの同じ項を参照。
 
 
 +InitialFetchCount (300)
-���߂ă��b�Z�[�W���擾����Ƃ��Ɏ擾���郁�b�Z�[�W���B
+初めてメッセージを取得するときに取得するメッセージ数。
 
 
 +UseXOVER (1 @ 0|1)
-XOVER�R�}���h���g�p���邩�ǂ����B
+XOVERコマンドを使用するかどうか。
 
 
 +XOVERStep (100)
-XOVER�R�}���h�ŃC���f�b�N�X���擾����Ƃ��Ɉ��̃��N�G�X�g�Ŏ擾���郁�b�Z�[�W�̐��B
+XOVERコマンドでインデックスを取得するときに一回のリクエストで取得するメッセージの数。
 
 
-===Pop3�Z�N�V����
-POP3�Ɋւ���ݒ�����܂��BPOP3�A�J�E���g�Ŏg�p����܂��B
+===Pop3セクション
+POP3に関する設定をします。POP3アカウントで使用されます。
 
 +Apop (0 @ 0|1)
-APOP���g�p���邩�ǂ����B
+APOPを使用するかどうか。
 
 
 +DeleteBefore (0)
-��M���Ă���T�[�o��̃��b�Z�[�W���폜����܂ł̓����B0�̏ꍇ�ɂ͍폜���Ȃ��B
+受信してからサーバ上のメッセージを削除するまでの日数。0の場合には削除しない。
 
 
 +DeleteLocal (0 @ 0|1)
-�T�[�o��̃��b�Z�[�W���폜����Ƃ��Ƀ��[�J���̃��b�Z�[�W���폜���邩�ǂ����B
+サーバ上のメッセージを削除するときにローカルのメッセージも削除するかどうか。
 
 
 +DeleteOnServer (0 @ 0|1)
-��M�������b�Z�[�W���T�[�o����폜���邩�ǂ����B
+受信したメッセージをサーバから削除するかどうか。
 
 
 +GetAll (20)
-UIDL��LIST�̃��N�G�X�g���܂Ƃ߂ďo��臒l�B
+UIDLやLISTのリクエストをまとめて出す閾値。
 
-UIDL��LIST�́A���ׂẴ��b�Z�[�W�̕����܂Ƃ߂Ď擾������@�ƁA�e���b�Z�[�W�ŌʂɎ擾������@������܂��B�T�[�o��Ɋ��Ɏ�M�ς݂̃��b�Z�[�W�������ꍇ�ɂ͊e���b�Z�[�W�ŌʂɎ擾����ق��������Ȃ�܂��B�T�[�o���x�ʂ̃��b�Z�[�W������A�T�[�o��ɂ�����Ɏ�M�ς݂̃��b�Z�[�W��y�ʂ������ꍇ�ɁAx/(x - y)�������Ŏw�肵�����l�𒴂����ꍇ�ɂ͂܂Ƃ߂Ď擾���܂��B
+UIDLやLISTは、すべてのメッセージの分をまとめて取得する方法と、各メッセージで個別に取得する方法があります。サーバ上に既に受信済みのメッセージが多い場合には各メッセージで個別に取得するほうが速くなります。サーバ上にx通のメッセージがあり、サーバ上にある既に受信済みのメッセージがy通だった場合に、x/(x - y)がここで指定した数値を超えた場合にはまとめて取得します。
 
 
 +HandleStatus (0 @ 0|1)
-���b�Z�[�W��Status: RO�̃w�b�_���t���Ă����Ƃ��Ɋ��ǂɂ��邩�ǂ����B
+メッセージにStatus: ROのヘッダが付いていたときに既読にするかどうか。
 
 
 +SkipDuplicatedUID (0 @ 0|1)
-UIDL���������b�Z�[�W�������I�ɖ������邩�ǂ����B
+UIDLが同じメッセージを強制的に無視するかどうか。
 
-POP3�ŃT�[�o��̃��b�Z�[�W�𖢓ǊǗ�����Ƃ��ɂ́A�O��Ō�Ɏ�M�������b�Z�[�W��UID�������b�Z�[�W��T���A����ȍ~�̃��b�Z�[�W���擾���܂��B���̂��߁A���̃��b�Z�[�W�������Ɋ��Ɏ�M�������b�Z�[�W������Ɠ�d�Ɏ�M���邱�Ƃ�����܂��BSkipDuplicatedUID��1�ɂ���Ɠ���UID�������b�Z�[�W�͂ǂ��Ɍ���Ă��������܂��B���R�قȂ郁�b�Z�[�W��UID���T�[�o��œ����ɂȂ��Ă��܂����ꍇ�ɂ���M���Ȃ��Ȃ�܂��̂Œ��ӂ��Ă��������B
+POP3でサーバ上のメッセージを未読管理するときには、前回最後に受信したメッセージのUIDを持つメッセージを探し、それ以降のメッセージを取得します。このため、そのメッセージよりも後ろに既に受信したメッセージがあると二重に受信することがあります。SkipDuplicatedUIDを1にすると同じUIDを持つメッセージはどこに現れても無視します。偶然異なるメッセージのUIDがサーバ上で同じになってしまった場合にも受信しなくなりますので注意してください。
 
 
-===Pop3Send�Z�N�V����
-���M�p��POP3�Ɋւ���ݒ�����܂��B���M�v���g�R���Ƃ���POP3 (XTND XMIT)��I�񂾏ꍇ�Ɏg�p����܂��B
+===Pop3Sendセクション
+送信用のPOP3に関する設定をします。送信プロトコルとしてPOP3 (XTND XMIT)を選んだ場合に使用されます。
 
 +Apop (0 @ 0|1)
-APOP���g�p���邩�ǂ����B
+APOPを使用するかどうか。
 
 
-===Receive�Z�N�V����
-��M�Ɋւ����ʓI�Ȑݒ�����܂��B
+===Receiveセクション
+受信に関する一般的な設定をします。
 
 +Host
-��M�p�T�[�o�̃z�X�g���B
+受信用サーバのホスト名。
 
 
 +Port
-��M�p�T�[�o�̃|�[�g�B
+受信用サーバのポート。
 
 
 +Log (0 @ 0|1)
-���O����邩�ǂ����B
+ログを取るかどうか。
 
 
 +Secure (0 @ 0|1|2)
-SSL�̐ݒ�B
+SSLの設定。
 
 :0
-  SSL���g�p���Ȃ�
+  SSLを使用しない
 :1
-  SSL���g�p����
+  SSLを使用する
 :2
-  STARTTLS���g�p����
+  STARTTLSを使用する
 
 
 +SyncFilterName
-�����t�B���^�̖��O�B
+同期フィルタの名前。
 
 
 +Type
-��M�v���g�R���B
+受信プロトコル。
 
 
 +UserName
-��M�p�T�[�o�̃��[�U���B
+受信用サーバのユーザ名。
 
 
-===Rss�Z�N�V����
-RSS�Ɋւ���ݒ�����܂��BRSS�A�J�E���g�Ŏg�p����܂��B
+===Rssセクション
+RSSに関する設定をします。RSSアカウントで使用されます。
 
 +KeepDay (7)
-�擾�����G���g���̏����o���Ă��������B
+取得したエントリの情報を覚えておく日数。
 
 
-===Send�Z�N�V����
-���M�Ɋւ����ʓI�Ȑݒ�����܂��B
+===Sendセクション
+送信に関する一般的な設定をします。
 
 +Host
-���M�p�T�[�o�̃z�X�g���B
+送信用サーバのホスト名。
 
 
 +Port
-���M�p�T�[�o�̃|�[�g�B
+送信用サーバのポート。
 
 
 +Log (0 @ 0|1)
-���O����邩�ǂ����B
+ログを取るかどうか。
 
 
 +Secure (0 @ 0|1|2)
-SSL�̐ݒ�B�w��ł���l�́AReceive/Secure�Ɠ����B
+SSLの設定。指定できる値は、Receive/Secureと同じ。
 
 
 +Type
-���M�v���g�R���B
+送信プロトコル。
 
 
 +UserName
-���M�p�T�[�o�̃��[�U���B
+送信用サーバのユーザ名。
 
 
-===Smtp�Z�N�V����
-SMTP�Ɋւ���ݒ�����܂��B���M�v���g�R���Ƃ���SMTP��I�񂾏ꍇ�Ɏg�p����܂��B
+===Smtpセクション
+SMTPに関する設定をします。送信プロトコルとしてSMTPを選んだ場合に使用されます。
 
 +AuthMethods
-SMTP�F�؂Ŏg�p��������F�ؕ����B
+SMTP認証で使用を許可する認証方式。
 
 
 +EnvelopeFrom
-EnvelopeFrom�Ƃ��Ďg�����[���A�h���X�B�w�肵�Ȃ��ꍇ�ɂ�From�܂���Sender�̃A�h���X���g�p�����B
+EnvelopeFromとして使うメールアドレス。指定しない場合にはFromまたはSenderのアドレスが使用される。
 
 
 +LocalHost
-EHLO�܂���HELO�ő�����z�X�g���B�w�肵�Ȃ��ꍇ�ɂ́A���݂̃z�X�g�̖��O�B
+EHLOまたはHELOで送られるホスト名。指定しない場合には、現在のホストの名前。
 
 +PopBeforeSmtp (0 @ 0|1)
-POP before SMTP���g�����ǂ����B
+POP before SMTPを使うかどうか。
 
 
 +PopBeforeSmtpWait
-POP before SMTP��POP3�ŔF�؂������SMTP�ő��M����܂ł̑҂����ԁB�P�ʂ͕b�B
+POP before SMTPでPOP3で認証した後にSMTPで送信するまでの待ち時間。単位は秒。
 
 
 +PopBeforeSmtpCustom (0 @ 0|1)
-POP before SMTP�ŃJ�X�^���ݒ���g�����ǂ����B
+POP before SMTPでカスタム設定を使うかどうか。
 
 
 +PopBeforeSmtpProtocol (pop3 @ pop3|imap4)
-POP before SMTP�ŃJ�X�^���ݒ�̎��̃v���g�R���B
+POP before SMTPでカスタム設定の時のプロトコル。
 
 +PopBeforeSmtpHost
-POP before SMTP�ŃJ�X�^���ݒ�̎��̃z�X�g���܂���IP�A�h���X�B
+POP before SMTPでカスタム設定の時のホスト名またはIPアドレス。
 
 
 +PopBeforeSmtpPort
-POP before SMTP�ŃJ�X�^���ݒ�̎��̃|�[�g�B
+POP before SMTPでカスタム設定の時のポート。
 
 
 +PopBeforeSmtpSecure (0 @ 0|1|2)
-POP before SMTP�ŃJ�X�^���ݒ�̎���SSL���g�����ǂ����B�w��ł���l�́AReceive/Secure�Ɠ����B
+POP before SMTPでカスタム設定の時にSSLを使うかどうか。指定できる値は、Receive/Secureと同じ。
 
 +PopBeforeSmtpApop (0 @ 0|1)
-POP before SMTP�ŃJ�X�^���ݒ�̎���APOP���g�����ǂ����B�v���g�R����pop3�̏ꍇ�̂݁B
+POP before SMTPでカスタム設定の時にAPOPを使うかどうか。プロトコルがpop3の場合のみ。
 
 
-===UI�Z�N�V����
+===UIセクション
 
 +FolderTo
-���b�Z�[�W�̈ړ��_�C�A���O�Ńf�t�H���g�őI�������t�H���_�B
+メッセージの移動ダイアログでデフォルトで選択されるフォルダ。
 
 =end

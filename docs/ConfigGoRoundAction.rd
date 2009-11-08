@@ -1,14 +1,14 @@
 =begin
-=ConfigGoRoundƒAƒNƒVƒ‡ƒ“
+=ConfigGoRoundã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<„‰ñ‚ÌÝ’è|URL:OptionGoRound.html>))‚ðŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<å·¡å›žã®è¨­å®š|URL:OptionGoRound.html>))ã‚’é–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

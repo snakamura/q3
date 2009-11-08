@@ -1,74 +1,74 @@
 =begin
-=�e���v���[�g
+=テンプレート
 
-�e���v���[�g�̓��b�Z�[�W���쐬����Ƃ���\������Ƃ��ȂǂɓK�p����܂��B���Ƃ��΁A�V�������b�Z�[�W���쐬����Ƃ��ɋ�̃��b�Z�[�W���쐬������A�ԐM����Ƃ��ɕԐM���̃��b�Z�[�W�����p�������b�Z�[�W���쐬�����肵�܂��B�\���p�̃e���v���[�g���g�p����ƁA��M�������b�Z�[�W�̕\�����@��ʏ�Ƃ͕ς��邱�Ƃ��ł��܂��B������ȂǁA���̑��̏�ʂŎg�p�����e���v���[�g������܂��B�����̃e���v���[�g��ҏW���邱�ƂŁA���[���쐬���ɒ�^����}��������A�������Ƃ��̃t�H�[�}�b�g��ύX���邱�Ƃ��ł��܂��B
+テンプレートはメッセージを作成するときや表示するときなどに適用されます。たとえば、新しくメッセージを作成するときに空のメッセージを作成したり、返信するときに返信元のメッセージを引用したメッセージを作成したりします。表示用のテンプレートを使用すると、受信したメッセージの表示方法を通常とは変えることもできます。印刷時など、その他の場面で使用されるテンプレートもあります。これらのテンプレートを編集することで、メール作成時に定型文を挿入したり、印刷するときのフォーマットを変更することができます。
 
-�e���v���[�g�̃t�@�C���̓��[���{�b�N�X�f�B���N�g����templates�f�B���N�g���̉��ɒu����Ă��܂��Btemplates�f�B���N�g���ȉ��ɂ̓A�J�E���g�N���X���ƂɃf�B���N�g�������݂��A���̒��Ɋe�e���v���[�g�̃t�@�C�����u����Ă��܂��B�f�t�H���g�ł͈ȉ��̃e���v���[�g���u����Ă��܂��B
+テンプレートのファイルはメールボックスディレクトリのtemplatesディレクトリの下に置かれています。templatesディレクトリ以下にはアカウントクラスごとにディレクトリが存在し、その中に各テンプレートのファイルが置かれています。デフォルトでは以下のテンプレートが置かれています。
 
 :new.template
-  �V�K�쐬�p
+  新規作成用
 :reply.template
-  �ԐM�p
+  返信用
 :reply_all.template
-  �S���ɕԐM�p
+  全員に返信用
 :forward.template
-  �]���p
+  転送用
 :edit.template
-  �ҏW�p
+  編集用
 :print.template
-  ����p
+  印刷用
 :quote.template
-  ���p�p
+  引用用
 :url.template
-  mailto URL�����p
+  mailto URL処理用
 
-�e�e���v���[�g�̎g�����ɂ��Ă͈ȉ����Q�Ƃ��Ă��������B
+各テンプレートの使い方については以下を参照してください。
 
-*((<�쐬�p�̃e���v���[�g|URL:CreateTemplate.html>))
-*((<�\���p�̃e���v���[�g|URL:ViewTemplate.html>))
-*((<�ҏW�p�̃e���v���[�g|URL:EditTemplate.html>))
-*((<���̑��̃e���v���[�g|URL:OtherTemplate.html>))
+*((<作成用のテンプレート|URL:CreateTemplate.html>))
+*((<表示用のテンプレート|URL:ViewTemplate.html>))
+*((<編集用のテンプレート|URL:EditTemplate.html>))
+*((<その他のテンプレート|URL:OtherTemplate.html>))
 
-�e���v���[�g�̃t�@�C���̓v���b�g�t�H�[���̃f�t�H���g�̃G���R�[�f�B���O�ŕۑ�����K�v������܂��B
+テンプレートのファイルはプラットフォームのデフォルトのエンコーディングで保存する必要があります。
 
 
-==�e���v���[�g�̌�����
-�쐬�p��\���p�̃e���v���[�g�͈ȉ��̏��Ɍ�������܂��B���Ƃ��΁Anew.template����������ꍇ�ɂ́A
+==テンプレートの検索順
+作成用や表示用のテンプレートは以下の順に検索されます。たとえば、new.templateを検索する場合には、
 
-(1)<�A�J�E���g�f�B���N�g��>/templates/new_<�t�H���_ID>.template
-(2)<�A�J�E���g�f�B���N�g��>/templates/new.template
-(3)<���[���{�b�N�X�f�B���N�g��>/templates/<�A�J�E���g�N���X>/new.template
+(1)<アカウントディレクトリ>/templates/new_<フォルダID>.template
+(2)<アカウントディレクトリ>/templates/new.template
+(3)<メールボックスディレクトリ>/templates/<アカウントクラス>/new.template
 
-���Ƃ��΁A���[���{�b�N�X�f�B���N�g����C:\Documents and Settings\test\Application Data\QMAIL3�ŁA���O��Main�Ƃ������[���p�̃A�J�E���g�ŁA���݂̃t�H���_����M���iID��1�j�������ꍇ�ɂ͈ȉ��̏��Ɍ�������܂��B
+たとえば、メールボックスディレクトリがC:\Documents and Settings\test\Application Data\QMAIL3で、名前がMainというメール用のアカウントで、現在のフォルダが受信箱（IDは1）だった場合には以下の順に検索されます。
 
 (1)C:\Documents and Settings\test\Application Data\QMAIL3\accounts\Main\templates\new_1.template
 (2)C:\Documents and Settings\test\Application Data\QMAIL3\accounts\Main\templates\new.template
 (3)C:\Documents and Settings\test\Application Data\QMAIL3\templates\mail\new.template
 
-���̂悤�ɁA����̃A�J�E���g��t�H���_�Ŏg�p����e���v���[�g��؂�ւ������ꍇ�ɂ́A�K�؂ȃf�B���N�g���ɓK�؂Ȗ��O�Ńe���v���[�g��u�����Ƃɂ���ăe���v���[�g��؂�ւ��邱�Ƃ��ł��܂��B
+このように、特定のアカウントやフォルダで使用するテンプレートを切り替えたい場合には、適切なディレクトリに適切な名前でテンプレートを置くことによってテンプレートを切り替えることができます。
 
 
-==�e���v���[�g����
-�e���v���[�g�̓e���v���[�g�����ɂ��������ċL�q����Ă��܂��B�e���v���[�g���쐬�E�ҏW����ꍇ�ɂ͂��̏����ɂ��������ċL�q����K�v������܂��B�e���v���[�g�����ŏ������e���v���[�g�́A���s���ɕ]������ĕ�����ɂȂ�܂��B
+==テンプレート書式
+テンプレートはテンプレート書式にしたがって記述されています。テンプレートを作成・編集する場合にはこの書式にしたがって記述する必要があります。テンプレート書式で書いたテンプレートは、実行時に評価されて文字列になります。
 
-�e���v���[�g�����ł́A�e���v���[�g�̓��e�����ƃ}�N���ɕ������܂��B���e�����͂��̂܂ܕ]�����ʂƂȂ�A�}�N���͂��̃}�N����]���������ʂ��]�����ʂɂȂ�܂��B�}�N����{}�Ŋ����ċL�q���܂��B
+テンプレート書式では、テンプレートはリテラルとマクロに分けられます。リテラルはそのまま評価結果となり、マクロはそのマクロを評価した結果が評価結果になります。マクロは{}で括って記述します。
 
-���Ƃ��΁AFrom�Ŏw�肳�ꂽ�������To�w�b�_�Ɏw�肵�����ꍇ�ɂ͈ȉ��̂悤�ɏ������ƂɂȂ�܂��B
+たとえば、Fromで指定された文字列をToヘッダに指定したい場合には以下のように書くことになります。
 
  To: {From}
 
-�uTo: �v�����e�����ŁuFrom�v���}�N���ł��B�}�N����{}�Ŋ����Ă��܂��B
+「To: 」がリテラルで「From」がマクロです。マクロが{}で括られています。
 
-���e�����̒���}�N���̒���{��}���g�������Ƃ��ɂ�{{��}}�̂悤�ɓ�d�ɂ��܂��B���Ƃ��Έȉ��̂悤�ɂȂ�܂��B
+リテラルの中やマクロの中で{や}を使いたいときには{{や}}のように二重にします。たとえば以下のようになります。
 
- {{����̓��e����}}
+ {{これはリテラル}}
  {@RegexMatch(Date, /\d{{4}}/)}
 
-��s�ڂ́u{����̓��e����}�v�Ƃ���������ɕ]������A��s�ڂł́u@RegexMatch(Date, /\d{4}/)�v�Ƃ����}�N����]���������ʂɕ]������܂��B
+一行目は「{これはリテラル}」という文字列に評価され、二行目では「@RegexMatch(Date, /\d{4}/)」というマクロを評価した結果に評価されます。
 
-���̕��@���g�p����ƁA((<@Script|URL:ScriptFunction.html>))��JScript�Ȃǂ��g�p����Ƃ��ɑ�ʂɃG�X�P�[�v������K�v�������ĕs�ւȂ��߁A{-��-}�Ŋ������͈͂��}�N���Ƃ��ĔF������܂��B{-��-}�Ŋ������ꍇ�ɂ͓����Ɍ����P�Ƃ�{��}���d�ɂ��ăG�X�P�[�v����K�v�͂���܂���i���Ă͂����܂���j�B�������A{-��-}���̂��G�X�P�[�v���邱�Ƃ͂ł��܂���̂ŁA�}�N���̒��ɂ��̂悤�ȕ����񂪌����ꍇ�ɂ͎g�p�ł��܂���B
+この方法を使用すると、((<@Script|URL:ScriptFunction.html>))でJScriptなどを使用するときに大量にエスケープをする必要があって不便なため、{-と-}で括った範囲もマクロとして認識されます。{-と-}で括った場合には内部に現れる単独の{や}を二重にしてエスケープする必要はありません（してはいけません）。ただし、{-や-}自体をエスケープすることはできませんので、マクロの中にそのような文字列が現れる場合には使用できません。
 
-���Ƃ��΁A�ȉ��̂悤�ɂ��Ďg���܂��B�X�N���v�g����{}���G�X�P�[�v���Ă��Ȃ����Ƃɒ��ӂ��Ă��������B
+たとえば、以下のようにして使います。スクリプト内の{}をエスケープしていないことに注意してください。
 
  {-@Script(<<END
  function foo() {
@@ -78,10 +78,10 @@
  END
  , 'JScript')-}
 
-�}�N���ɂ��ẮA((<�}�N��|URL:Macro.html>))���Q�Ƃ��Ă��������B
+マクロについては、((<マクロ|URL:Macro.html>))を参照してください。
 
 
-==�e���v���[�g�̈���
-((<�U�蕪��|URL:ApplyRules.html>))�Ńe���v���[�g���g�p����ۂɂ̓e���v���[�g�Ɉ�����n�����Ƃ��ł��܂��B�e���v���[�g�ɓn���ꂽ�����́A�e���v���[�g���̑S�Ẵ}�N���̒�����ϐ��Ƃ��ăA�N�Z�X���邱�Ƃ��ł��܂��B
+==テンプレートの引数
+((<振り分け|URL:ApplyRules.html>))でテンプレートを使用する際にはテンプレートに引数を渡すことができます。テンプレートに渡された引数は、テンプレート中の全てのマクロの中から変数としてアクセスすることができます。
 
 =end

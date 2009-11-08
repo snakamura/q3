@@ -4,36 +4,36 @@
  Boolean @Junk(Boolean white?, Boolean black?)
 
 
-==����
-((<�X�p���t�B���^|URL:JunkFilter.html>))���g�p���āA�X�p�����ǂ����𔻒肵�ĕԂ��܂��B
+==説明
+((<スパムフィルタ|URL:JunkFilter.html>))を使用して、スパムかどうかを判定して返します。
 
-white���w�肳�ꂽ�ꍇ�A���̒l��]������True�ɂȂ�����N���[�����Ɣ��肵�܂��Bblack���w�肳�ꂽ�ꍇ�A���̒l��]������True�ɂȂ�����X�p�����Ɣ��肵�܂��B�������Awhite��]�������l��True�ɂȂ����ꍇ�ɂ́Ablack�͕]������܂���Bwhite��black��False�ɕ]�����ꂽ�ꍇ�i�w�肳��Ȃ������ꍇ���܂ށj�ɂ̓X�p���t�B���^���g�p���ăX�p�����ǂ������肵�܂��B
+whiteが指定された場合、その値を評価してTrueになったらクリーンだと判定します。blackが指定された場合、その値を評価してTrueになったらスパムだと判定します。ただし、whiteを評価した値がTrueになった場合には、blackは評価されません。whiteもblackもFalseに評価された場合（指定されなかった場合も含む）にはスパムフィルタを使用してスパムかどうか判定します。
 
-white��black��]�����ăX�p�����ǂ������肵���ꍇ�ł��A((<�X�p���t�B���^�̐ݒ�|URL:OptionJunkFilter.html>))��[�t�B���^�������ʂ��w�K����]�Ƀ`�F�b�N�������Ă���ꍇ�ɂ́A���茋�ʂ��g�p���ăX�p���t�B���^�Ɋw�K�����܂��B
+whiteやblackを評価してスパムかどうか判定した場合でも、((<スパムフィルタの設定|URL:OptionJunkFilter.html>))で[フィルタした結果を学習する]にチェックが入っている場合には、判定結果を使用してスパムフィルタに学習させます。
 
 
-==����
+==引数
 :Boolean white
-  �N���[�����Ɣ��f��������
+  クリーンだと判断される条件
 :Boolean black
-  �X�p�����Ɣ��f��������
+  スパムだと判断される条件
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �X�p�����ǂ������肷��
+==例
+ # スパムかどうか判定する
  @Junk()
  
- # �X�p�����ǂ������肷��i�������A���ǂ̃��b�Z�[�W�͂��ׂăN���[���j
+ # スパムかどうか判定する（ただし、既読のメッセージはすべてクリーン）
  @Junk(@Seen())
 
 =end

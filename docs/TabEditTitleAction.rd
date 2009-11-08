@@ -1,16 +1,16 @@
 =begin
-=TabEditTitleƒAƒNƒVƒ‡ƒ“
+=TabEditTitleã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»Ý‚Ìƒ^ƒu‚Ìƒ^ƒCƒgƒ‹‚ð•ÒW‚µ‚Ü‚·B
+ç¾åœ¨ã®ã‚¿ãƒ–ã®ã‚¿ã‚¤ãƒˆãƒ«ã‚’ç·¨é›†ã—ã¾ã™ã€‚
 
-ŽÀs‚·‚é‚Æ((<[ƒ^ƒCƒgƒ‹]ƒ_ƒCƒAƒƒO|URL:TabTitleDialog.html>))‚ªŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+å®Ÿè¡Œã™ã‚‹ã¨((<[ã‚¿ã‚¤ãƒˆãƒ«]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:TabTitleDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

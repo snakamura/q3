@@ -1,28 +1,28 @@
 =begin
-=“¯ŠúƒtƒBƒ‹ƒ^‚ÌÝ’è
+=åŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã®è¨­å®š
 
-[ƒIƒvƒVƒ‡ƒ“]ƒ_ƒCƒAƒƒO‚Ì[“¯ŠúƒtƒBƒ‹ƒ^]ƒpƒlƒ‹‚Å‚Í((<“¯ŠúƒtƒBƒ‹ƒ^|URL:SyncFilter.html>))‚ÌÝ’è‚ðs‚¢‚Ü‚·B
+[ã‚ªãƒ—ã‚·ãƒ§ãƒ³]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®[åŒæœŸãƒ•ã‚£ãƒ«ã‚¿]ãƒ‘ãƒãƒ«ã§ã¯((<åŒæœŸãƒ•ã‚£ãƒ«ã‚¿|URL:SyncFilter.html>))ã®è¨­å®šã‚’è¡Œã„ã¾ã™ã€‚
 
-((<“¯ŠúƒtƒBƒ‹ƒ^‚ÌÝ’è|"IMG:images/OptionSyncFilters.png">))
-
-
-+[’Ç‰Á]
-“¯ŠúƒtƒBƒ‹ƒ^ƒZƒbƒg‚ð’Ç‰Á‚µ‚Ü‚·B((<[“¯ŠúƒtƒBƒ‹ƒ^]ƒ_ƒCƒAƒƒO|URL:SyncFiltersDialog.html>))‚ªŠJ‚«‚Ü‚·B
+((<åŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã®è¨­å®š|"IMG:images/OptionSyncFilters.png">))
 
 
-+[íœ]
-‘I‘ð‚³‚ê‚½“¯ŠúƒtƒBƒ‹ƒ^ƒZƒbƒg‚ðíœ‚µ‚Ü‚·B
++[è¿½åŠ ]
+åŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã‚»ãƒƒãƒˆã‚’è¿½åŠ ã—ã¾ã™ã€‚((<[åŒæœŸãƒ•ã‚£ãƒ«ã‚¿]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:SyncFiltersDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-+[•ÒW]
-‘I‘ð‚³‚ê‚½“¯ŠúƒtƒBƒ‹ƒ^ƒZƒbƒg‚ð•ÒW‚µ‚Ü‚·B((<[“¯ŠúƒtƒBƒ‹ƒ^]ƒ_ƒCƒAƒƒO|URL:SyncFiltersDialog.html>))‚ªŠJ‚«‚Ü‚·B
++[å‰Šé™¤]
+é¸æŠžã•ã‚ŒãŸåŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã‚»ãƒƒãƒˆã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-+[ã‚Ö]
-‘I‘ð‚³‚ê‚½“¯ŠúƒtƒBƒ‹ƒ^ƒZƒbƒg‚ð‚Ð‚Æ‚Âã‚ÉˆÚ“®‚µ‚Ü‚·B
++[ç·¨é›†]
+é¸æŠžã•ã‚ŒãŸåŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã‚»ãƒƒãƒˆã‚’ç·¨é›†ã—ã¾ã™ã€‚((<[åŒæœŸãƒ•ã‚£ãƒ«ã‚¿]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:SyncFiltersDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-+[‰º‚Ö]
-‘I‘ð‚³‚ê‚½“¯ŠúƒtƒBƒ‹ƒ^ƒZƒbƒg‚ð‚Ð‚Æ‚Â‰º‚ÉˆÚ“®‚µ‚Ü‚·B
++[ä¸Šã¸]
+é¸æŠžã•ã‚ŒãŸåŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã‚»ãƒƒãƒˆã‚’ã²ã¨ã¤ä¸Šã«ç§»å‹•ã—ã¾ã™ã€‚
+
+
++[ä¸‹ã¸]
+é¸æŠžã•ã‚ŒãŸåŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã‚»ãƒƒãƒˆã‚’ã²ã¨ã¤ä¸‹ã«ç§»å‹•ã—ã¾ã™ã€‚
 
 =end

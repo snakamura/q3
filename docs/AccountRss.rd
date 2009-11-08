@@ -1,44 +1,44 @@
 =begin
-=RSS�̐ݒ�
+=RSSの設定
 
-RSS�Ńt�B�[�h����M���邽�߂̐ݒ���s���܂��B
+RSSでフィードを受信するための設定を行います。
 
-((<[RSS]�^�u|"IMG:images/AccountRssReceivePage.png">))
-
-
-====[HTTP�v���L�V]
-HTTP�v���L�V�̐ݒ���s���܂��B
+((<[RSS]タブ|"IMG:images/AccountRssReceivePage.png">))
 
 
-+[�g�p���Ȃ�]
-�v���L�V���g�p���܂���B
+====[HTTPプロキシ]
+HTTPプロキシの設定を行います。
 
 
-+[�C���^�[�l�b�g�I�v�V�������g�p]
-�C���^�[�l�b�g�I�v�V�����Ŏw�肳�ꂽ�v���L�V���g�p���܂��B
++[使用しない]
+プロキシを使用しません。
 
 
-+[�J�X�^��]
-[�z�X�g]��[�|�[�g]�Ŏw�肳�ꂽ�v���L�V���g�p���܂��B[�F��]�Ƀ`�F�b�N������ƃv���L�V�F�؂��s�����Ƃ��ł��܂��B
++[インターネットオプションを使用]
+インターネットオプションで指定されたプロキシを使用します。
 
 
-+[�z�X�g]
-�v���L�V�̃z�X�g�����w�肵�܂��B
++[カスタム]
+[ホスト]と[ポート]で指定されたプロキシを使用します。[認証]にチェックを入れるとプロキシ認証を行うことができます。
 
 
-+[�|�[�g]
-�v���L�V�̃|�[�g�ԍ����w�肵�܂��B
++[ホスト]
+プロキシのホスト名を指定します。
 
 
-+[�F��]
-�v���L�V�F�؂��s�����ǂ������w�肵�܂��B�`�F�b�N������ƁA�v���L�V�ɑ΂���Basic�F�؂��s���܂��B
++[ポート]
+プロキシのポート番号を指定します。
 
 
-+[���[�U��]
-�v���L�V�F�؂Ɏg�p���郆�[�U�����w�肵�܂��B
++[認証]
+プロキシ認証を行うかどうかを指定します。チェックを入れると、プロキシに対してBasic認証を行います。
 
 
-+[�p�X���[�h]
-�v���L�V�F�؂Ɏg�p����p�X���[�h���w�肵�܂��B
++[ユーザ名]
+プロキシ認証に使用するユーザ名を指定します。
+
+
++[パスワード]
+プロキシ認証に使用するパスワードを指定します。
 
 =end

@@ -1,19 +1,19 @@
 =begin
-=‹N“®
+=èµ·å‹•
 
-==ƒ[ƒ‹ƒ{ƒbƒNƒXƒfƒBƒŒƒNƒgƒŠ‚ÌŽw’è
-ƒCƒ“ƒXƒg[ƒ‰‚ÅƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä‚¢‚È‚¢ê‡‚É‚ÍA‰‰ñ‹N“®Žž‚ÉˆÈ‰º‚Ì‚æ‚¤‚È((<[ƒ[ƒ‹ƒ{ƒbƒNƒX]ƒ_ƒCƒAƒƒO|URL:MailFolderDialog.html>))‚ª•\Ž¦‚³‚êAƒ[ƒ‹ƒ{ƒbƒNƒXƒfƒBƒŒƒNƒgƒŠ‚ðŽw’è‚·‚é‚æ‚¤‚É‹‚ß‚ç‚ê‚Ü‚·Bƒ[ƒ‹‚Ìƒf[ƒ^‚ð•Û‘¶‚µ‚½‚¢ƒfƒBƒŒƒNƒgƒŠ‚ðŽw’è‚µ‚Ä[OK]‚ð‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢B
+==ãƒ¡ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®æŒ‡å®š
+ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ã§ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦ã„ãªã„å ´åˆã«ã¯ã€åˆå›žèµ·å‹•æ™‚ã«ä»¥ä¸‹ã®ã‚ˆã†ãª((<[ãƒ¡ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:MailFolderDialog.html>))ãŒè¡¨ç¤ºã•ã‚Œã€ãƒ¡ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æŒ‡å®šã™ã‚‹ã‚ˆã†ã«æ±‚ã‚ã‚‰ã‚Œã¾ã™ã€‚ãƒ¡ãƒ¼ãƒ«ã®ãƒ‡ãƒ¼ã‚¿ã‚’ä¿å­˜ã—ãŸã„ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æŒ‡å®šã—ã¦[OK]ã‚’æŠ¼ã—ã¦ãã ã•ã„ã€‚
 
-((<[ƒ[ƒ‹ƒ{ƒbƒNƒX]ƒ_ƒCƒAƒƒO|"IMG:images/MailFolderDialog.png">))
+((<[ãƒ¡ãƒ¼ãƒ«ãƒœãƒƒã‚¯ã‚¹]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|"IMG:images/MailFolderDialog.png">))
 
 
-==‰Šú‰æ–Ê
-‹N“®‚·‚é‚ÆˆÈ‰º‚Ì‚æ‚¤‚ÈƒEƒBƒ“ƒhƒE‚ª•\Ž¦‚³‚ê‚Ü‚·B
+==åˆæœŸç”»é¢
+èµ·å‹•ã™ã‚‹ã¨ä»¥ä¸‹ã®ã‚ˆã†ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒè¡¨ç¤ºã•ã‚Œã¾ã™ã€‚
 
-((<‰Šú‰æ–Ê|"IMG:images/InitialWindow.png">))
+((<åˆæœŸç”»é¢|"IMG:images/InitialWindow.png">))
 
-ŠeƒEƒBƒ“ƒhƒE‚âƒrƒ…[‚É‚Â‚¢‚Ä‚ÍA((<‰æ–Ê\¬|URL:WindowsAndViews.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢BˆÈ~‚Ìà–¾‚Å‚ÍA‚»‚±‚Åà–¾‚³‚ê‚½ƒEƒBƒ“ƒhƒE‚âƒrƒ…[‚Ì–¼‘O‚ðŽg—p‚µ‚Ü‚·B
+å„ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚„ãƒ“ãƒ¥ãƒ¼ã«ã¤ã„ã¦ã¯ã€((<ç”»é¢æ§‹æˆ|URL:WindowsAndViews.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚ä»¥é™ã®èª¬æ˜Žã§ã¯ã€ãã“ã§èª¬æ˜Žã•ã‚ŒãŸã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚„ãƒ“ãƒ¥ãƒ¼ã®åå‰ã‚’ä½¿ç”¨ã—ã¾ã™ã€‚
 
-‰Šúó‘Ô‚Å‚Í‚Ü‚¾ˆê‚Â‚àƒAƒJƒEƒ“ƒg‚ª‚È‚¢‚½‚ßA‚Ü‚¸ƒAƒJƒEƒ“ƒg‚ðì¬‚·‚é•K—v‚ª‚ ‚è‚Ü‚·B
+åˆæœŸçŠ¶æ…‹ã§ã¯ã¾ã ä¸€ã¤ã‚‚ã‚¢ã‚«ã‚¦ãƒ³ãƒˆãŒãªã„ãŸã‚ã€ã¾ãšã‚¢ã‚«ã‚¦ãƒ³ãƒˆã‚’ä½œæˆã™ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚
 
 =end

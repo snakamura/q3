@@ -1,28 +1,28 @@
 =begin
-=–¼‚ÌÝ’è
+=ç½²åã®è¨­å®š
 
-[ƒIƒvƒVƒ‡ƒ“]ƒ_ƒCƒAƒƒO‚Ì[–¼]ƒpƒlƒ‹‚Å‚Í((<–¼|URL:Signature.html>))‚ÌÝ’è‚ðs‚¢‚Ü‚·B
+[ã‚ªãƒ—ã‚·ãƒ§ãƒ³]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®[ç½²å]ãƒ‘ãƒãƒ«ã§ã¯((<ç½²å|URL:Signature.html>))ã®è¨­å®šã‚’è¡Œã„ã¾ã™ã€‚
 
-((<–¼‚ÌÝ’è|"IMG:images/OptionSignatures.png">))
-
-
-+[’Ç‰Á]
-–¼‚ð’Ç‰Á‚µ‚Ü‚·B((<[–¼]ƒ_ƒCƒAƒƒO|URL:SignatureDialog.html>))‚ªŠJ‚«‚Ü‚·B
+((<ç½²åã®è¨­å®š|"IMG:images/OptionSignatures.png">))
 
 
-+[íœ]
-‘I‘ð‚³‚ê‚½–¼‚ðíœ‚µ‚Ü‚·B
++[è¿½åŠ ]
+ç½²åã‚’è¿½åŠ ã—ã¾ã™ã€‚((<[ç½²å]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:SignatureDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-+[•ÒW]
-‘I‘ð‚³‚ê‚½–¼‚ð•ÒW‚µ‚Ü‚·B((<[–¼]ƒ_ƒCƒAƒƒO|URL:SignatureDialog.html>))‚ªŠJ‚«‚Ü‚·B
++[å‰Šé™¤]
+é¸æŠžã•ã‚ŒãŸç½²åã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-+[ã‚Ö]
-‘I‘ð‚³‚ê‚½–¼‚ð‚Ð‚Æ‚Âã‚ÉˆÚ“®‚µ‚Ü‚·B
++[ç·¨é›†]
+é¸æŠžã•ã‚ŒãŸç½²åã‚’ç·¨é›†ã—ã¾ã™ã€‚((<[ç½²å]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:SignatureDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-+[‰º‚Ö]
-‘I‘ð‚³‚ê‚½–¼‚ð‚Ð‚Æ‚Â‰º‚ÉˆÚ“®‚µ‚Ü‚·B
++[ä¸Šã¸]
+é¸æŠžã•ã‚ŒãŸç½²åã‚’ã²ã¨ã¤ä¸Šã«ç§»å‹•ã—ã¾ã™ã€‚
+
+
++[ä¸‹ã¸]
+é¸æŠžã•ã‚ŒãŸç½²åã‚’ã²ã¨ã¤ä¸‹ã«ç§»å‹•ã—ã¾ã™ã€‚
 
 =end

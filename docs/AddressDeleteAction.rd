@@ -1,14 +1,14 @@
 =begin
-=AddressDeleteƒAƒNƒVƒ‡ƒ“
+=AddressDeleteã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘I‘ð‚³‚ê‚½ƒAƒhƒŒƒX’ ‚ÌƒGƒ“ƒgƒŠ‚ðíœ‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+é¸æŠžã•ã‚ŒãŸã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã®ã‚¨ãƒ³ãƒˆãƒªã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒAƒhƒŒƒX’ ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

@@ -4,24 +4,24 @@
  String @OSVersion()
 
 
-==����
-OS�̖��O�ƃo�[�W������Ԃ��܂��B�Ⴆ�΁A�uWindows XP Service Pack 2�v�̂悤�ȕ����񂪕Ԃ���܂��B
+==説明
+OSの名前とバージョンを返します。例えば、「Windows XP Service Pack 2」のような文字列が返されます。
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # OS�̖��O�ƃo�[�W�������擾
+==例
+ # OSの名前とバージョンを取得
  @OSVersion()
 
 =end

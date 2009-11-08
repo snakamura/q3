@@ -4,36 +4,36 @@
  Address @Name(Field field)
 
 
-==����
-�����Ŏw�肳�ꂽ�t�B�[���h���A�h���X���X�g�Ƃ��ăp�[�X���A�܂܂�Ă��閼�O�̃��X�g��Ԃ��܂��B�t�B�[���h���A�h���X���w�肷��t�B�[���h�łȂ������ꍇ��p�[�X�Ɏ��s�����ꍇ�ɂ͋�̃��X�g��Ԃ��܂��B
+==説明
+引数で指定されたフィールドをアドレスリストとしてパースし、含まれている名前のリストを返します。フィールドがアドレスを指定するフィールドでなかった場合やパースに失敗した場合には空のリストを返します。
 
-�p�[�X���ꂽ�e�A�h���X�ɑ΂��Ė��O���w�肳��Ă���ꍇ�ɂ͂��̖��O���A�w�肳��Ă��Ȃ��ꍇ�ɂ̓A�h���X��Ԃ��܂��B�O���[�v�A�h���X�̏ꍇ�ɂ́A�O���[�v�̖��O��Ԃ��܂��B
+パースされた各アドレスに対して名前が指定されている場合にはその名前を、指定されていない場合にはアドレスを返します。グループアドレスの場合には、グループの名前を返します。
 
-���Ƃ��΁A
+たとえば、
 
  To: test1@example.org,
   Test2 <test2@example.org>,
   Test3: test3@example.org, Test4 <test4@example.org>;
 
-�Ƃ����w�b�_���܂ރ��b�Z�[�W�ɑ΂��āA@Name(To)��K�p����ƁAtest1@example.org, Test2, Test3���܂ޖ��O�̃��X�g���Ԃ���܂��B
+というヘッダを含むメッセージに対して、@Name(To)を適用すると、test1@example.org, Test2, Test3を含む名前のリストが返されます。
 
 
-==����
+==引数
 :Field field
-  ���O�̃��X�g���擾����t�B�[���h
+  名前のリストを取得するフィールド
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�����̌^�������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*引数の型が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # To�Ŏw�肳�ꂽ���O�̃��X�g���擾
+==例
+ # Toで指定された名前のリストを取得
  @Name(To)
 
 =end

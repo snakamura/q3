@@ -1,41 +1,41 @@
 =begin
-=�A�h���X���E�B���h�E
+=アドレス帳ウィンドウ
 
-((<�A�h���X���E�B���h�E|"IMG:images/AddressBookWindow.png">))
+((<アドレス帳ウィンドウ|"IMG:images/AddressBookWindow.png">))
 
-�A�h���X���E�B���h�E��QMAIL3�̃A�h���X����\���E�ҏW���邽�߂̃E�B���h�E�ł��B�A�h���X���̏ڍׂ́A((<�A�h���X��|URL:AddressBook.html>))���Q�Ƃ��Ă��������B
-
-
-==���j���[�o�[
-���j���o�[�ɂ��ẮA((<�A�h���X���E�B���h�E�̃��j���[�o�[|URL:AddressBookWindowMenuBar.html>))���Q�Ƃ��Ă��������B
+アドレス帳ウィンドウはQMAIL3のアドレス帳を表示・編集するためのウィンドウです。アドレス帳の詳細は、((<アドレス帳|URL:AddressBook.html>))を参照してください。
 
 
-==�c�[���o�[
-�c�[���o�[�̊e�{�^���̋@�\�͈ȉ��̒ʂ�ł��B
+==メニューバー
+メニュバーについては、((<アドレス帳ウィンドウのメニューバー|URL:AddressBookWindowMenuBar.html>))を参照してください。
 
 
-+((<[�V�K]|URL:AddressNewAction.html>))
-�V�����G���g����ǉ����܂��B
+==ツールバー
+ツールバーの各ボタンの機能は以下の通りです。
 
 
-+((<[�ҏW]|URL:AddressEditAction.html>))
-�t�H�[�J�X�̂���G���g����ҏW���܂��B
++((<[新規]|URL:AddressNewAction.html>))
+新しいエントリを追加します。
 
 
-+((<[�폜]|URL:AddressDeleteAction.html>))
-�I�����ꂽ�G���g�����폜���܂��B
++((<[編集]|URL:AddressEditAction.html>))
+フォーカスのあるエントリを編集します。
 
 
-�c�[���o�[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�c�[���o�[���B��]|URL:ViewShowToolbarAction.html>))��I�����܂��B�c�[���o�[�̃{�^���̃J�X�^�}�C�Y�ɂ��ẮA((<�c�[���o�[�̃J�X�^�}�C�Y|URL:CustomizeToolbars.html>))���Q�Ƃ��Ă��������B
++((<[削除]|URL:AddressDeleteAction.html>))
+選択されたエントリを削除します。
 
 
-==�X�e�[�^�X�o�[
-�X�e�[�^�X�o�[�͌��݂̂Ƃ���g���Ă��܂���B
+ツールバーを隠すには、メニューから((<[表示]-[コントロールの表示]-[ツールバーを隠す]|URL:ViewShowToolbarAction.html>))を選択します。ツールバーのボタンのカスタマイズについては、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))を参照してください。
 
 
-==�A�h���X�r���[
-�A�h���X���̃G���g���̃��X�g���\������܂��B
+==ステータスバー
+ステータスバーは現在のところ使われていません。
 
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<�A�h���X�r���[�̃R���e�L�X�g���j���[|URL:AddressMenu.html>))���Q�Ƃ��Ă��������B
+
+==アドレスビュー
+アドレス帳のエントリのリストが表示されます。
+
+右クリックすると表示されるコンテキストメニューについては、((<アドレスビューのコンテキストメニュー|URL:AddressMenu.html>))を参照してください。
 
 =end

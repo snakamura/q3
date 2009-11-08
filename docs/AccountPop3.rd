@@ -1,40 +1,40 @@
 =begin
-=POP3�̐ݒ�
+=POP3の設定
 
-POP3�Ń��b�Z�[�W����M���邽�߂̐ݒ���s���܂��B
+POP3でメッセージを受信するための設定を行います。
 
-((<[POP3]�^�u|"IMG:images/AccountPop3ReceivePage.png">))
-
-
-+[APOP���g�p]
-�F�؎���APOP���g�p���邩�ǂ������w�肵�܂��B�f�t�H���g�ł�APOP���g�p���܂���B
+((<[POP3]タブ|"IMG:images/AccountPop3ReceivePage.png">))
 
 
-====[�T�[�o��̃��b�Z�[�W]
-�T�[�o���烁�b�Z�[�W���폜���邩�ǂ����̎w������܂��B�f�t�H���g�ł͍폜���܂���B
++[APOPを使用]
+認証時にAPOPを使用するかどうかを指定します。デフォルトではAPOPを使用しません。
 
 
-+[�폜���Ȃ�]
-���b�Z�[�W���T�[�o����폜���܂���B
+====[サーバ上のメッセージ]
+サーバからメッセージを削除するかどうかの指定をします。デフォルトでは削除しません。
 
 
-+[�폜����]
-���b�Z�[�W���_�E�����[�h������T�[�o����폜���܂��B
++[削除しない]
+メッセージをサーバから削除しません。
 
 
-+[�Â����b�Z�[�W���폜]
-��M���Ă���A[?����]�Ŏw�肵�������ȏ�o�߂������b�Z�[�W���T�[�o����폜���܂��B
++[削除する]
+メッセージをダウンロードしたらサーバから削除します。
 
 
-+[���b�Z�[�W���T�[�o����폜�����烍�[�J��������폜]
-�T�[�o��̃��b�Z�[�W��((<�I���폜|URL:Pop3DeleteMessagesOnServer.html>))�����Ƃ��ɁA���[�J���̃��b�Z�[�W���폜���邩�ǂ������w�肵�܂��B�f�t�H���g�ł͍폜���܂���B
++[古いメッセージを削除]
+受信してから、[?日後]で指定した日数以上経過したメッセージをサーバから削除します。
 
 
-+[Status:��RO����������ǂɂ���]
-Status�w�b�_�̒l��RO���������M�������b�Z�[�W�����ǂɂ��܂��B
++[メッセージをサーバから削除したらローカルからも削除]
+サーバ上のメッセージを((<選択削除|URL:Pop3DeleteMessagesOnServer.html>))したときに、ローカルのメッセージも削除するかどうかを指定します。デフォルトでは削除しません。
 
 
-+[�d������UID�͋����I�ɖ���]
-�ʏ�AUIDL�R�}���h�ŕԂ����UID�̓��b�Z�[�W���ƂɈقȂ�܂����A�T�[�o�̐ݒ�Ȃǂɂ���Ă͕����̃��b�Z�[�W�ɑ΂��ē���UID��Ԃ����Ƃ�����܂��BQMAIL3�ł͂����̃��b�Z�[�W�𐳂�����荞�ނ��߁A����UID�ł����Ă��قȂ郁�b�Z�[�W�ł���Ɣ��f����Ǝ�M���܂��B���̔��肪���܂��������A�������b�Z�[�W�����x����荞��ł��܂��ꍇ�A���̐ݒ�Ƀ`�F�b�N������Ɠ���UID�̃��b�Z�[�W�͋����I�ɖ�������悤�ɂȂ�܂��B�f�t�H���g�ł͖������܂���B
++[Status:がROだったら既読にする]
+Statusヘッダの値がROだったら受信したメッセージを既読にします。
+
+
++[重複するUIDは強制的に無視]
+通常、UIDLコマンドで返されるUIDはメッセージごとに異なりますが、サーバの設定などによっては複数のメッセージに対して同じUIDを返すことがあります。QMAIL3ではこれらのメッセージを正しく取り込むため、同じUIDであっても異なるメッセージであると判断すると受信します。この判定がうまくいかず、同じメッセージを何度も取り込んでしまう場合、この設定にチェックを入れると同じUIDのメッセージは強制的に無視するようになります。デフォルトでは無視しません。
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=ViewDropDownƒAƒNƒVƒ‡ƒ“
+=ViewDropDownã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒtƒHƒ‹ƒ_ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ðƒhƒƒbƒvƒ_ƒEƒ“‚µ‚Ü‚·B‚·‚Å‚Éƒhƒƒbƒvƒ_ƒEƒ“‚³‚ê‚Ä‚¢‚éê‡‚É‚Í‰B‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ãƒ•ã‚©ãƒ«ãƒ€ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã‚’ãƒ‰ãƒ­ãƒƒãƒ—ãƒ€ã‚¦ãƒ³ã—ã¾ã™ã€‚ã™ã§ã«ãƒ‰ãƒ­ãƒƒãƒ—ãƒ€ã‚¦ãƒ³ã•ã‚Œã¦ã„ã‚‹å ´åˆã«ã¯éš ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

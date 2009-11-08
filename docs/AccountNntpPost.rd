@@ -1,8 +1,8 @@
 =begin
-=NNTP(POST)�̐ݒ�
+=NNTP(POST)の設定
 
-NNTP�Ń��b�Z�[�W�𓊍e���邽�߂̐ݒ���s���܂��B
+NNTPでメッセージを投稿するための設定を行います。
 
-((<[NNTP (POST)]�^�u|"IMG:images/AccountNntpSendPage.png">))
+((<[NNTP (POST)]タブ|"IMG:images/AccountNntpSendPage.png">))
 
 =end

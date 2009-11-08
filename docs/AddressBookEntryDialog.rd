@@ -1,40 +1,40 @@
 =begin
-=[�A�h���X]�_�C�A���O
+=[アドレス]ダイアログ
 
-�A�h���X���̃G���g����ҏW���܂��B�A�h���X���̃G���g���́A���O�A�\�[�g�L�[�ƃ��[���A�h���X�̃��X�g����Ȃ�܂��B�O���A�h���X�������荞�񂾃G���g���̏ꍇ�ɂ́A�\���݂̂ŕҏW�ł��܂���B
+アドレス帳のエントリを編集します。アドレス帳のエントリは、名前、ソートキーとメールアドレスのリストからなります。外部アドレス帳から取り込んだエントリの場合には、表示のみで編集できません。
 
-((<[�A�h���X]�_�C�A���O|"IMG:images/AddressBookEntryDialog.png">))
-
-
-+[���O]
-���O���w�肵�܂��B
+((<[アドレス]ダイアログ|"IMG:images/AddressBookEntryDialog.png">))
 
 
-+[�\�[�g�L�[]
-���O�Ń\�[�g���ꂽ�Ƃ��Ɏg�p�����L�[���w�肵�܂��B���O�ɓ��{����g�p�����ꍇ�A�t���K�i����͂���ƃt���K�i�Ń\�[�g���邱�Ƃ��ł��܂��B�w�肵�Ȃ��ꍇ�A���O�Ń\�[�g����܂��B
++[名前]
+名前を指定します。
 
 
-+[���[���A�h���X]
-�֘A�t����ꂽ���[���A�h���X�̈ꗗ���\������܂��B
++[ソートキー]
+名前でソートされたときに使用されるキーを指定します。名前に日本語を使用した場合、フリガナを入力するとフリガナでソートすることができます。指定しない場合、名前でソートされます。
 
 
-+[�ǉ�]
-���[���A�h���X��ǉ����܂��B((<[���[���A�h���X]�_�C�A���O|URL:AddressBookAddressDialog.html>))���J���܂��B
++[メールアドレス]
+関連付けられたメールアドレスの一覧が表示されます。
 
 
-+[�폜]
-�I�����ꂽ���[���A�h���X���폜���܂��B
++[追加]
+メールアドレスを追加します。((<[メールアドレス]ダイアログ|URL:AddressBookAddressDialog.html>))が開きます。
 
 
-+[�ҏW]
-�I�����ꂽ���[���A�h���X��ҏW���܂��B((<[���[���A�h���X]�_�C�A���O|URL:AddressBookAddressDialog.html>))���J���܂��B
++[削除]
+選択されたメールアドレスを削除します。
 
 
-+[���]
-�I�����ꂽ���[���A�h���X�����Ɉړ����܂��B
++[編集]
+選択されたメールアドレスを編集します。((<[メールアドレス]ダイアログ|URL:AddressBookAddressDialog.html>))が開きます。
 
 
-+[����]
-�I�����ꂽ���[���A�h���X������Ɉړ����܂��B
++[上へ]
+選択されたメールアドレスを一つ上に移動します。
+
+
++[下へ]
+選択されたメールアドレスを一つ下に移動します。
 
 =end

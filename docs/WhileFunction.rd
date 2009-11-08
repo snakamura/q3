@@ -4,29 +4,29 @@
  Value @While(Boolean condition, Value value)
 
 
-==����
-condition�̒l��True�̊ԁAvalue�̒l���J��Ԃ��]�����܂��Bcondition������]������܂��B�Ō�ɕ]�����ꂽcondition���Ԃ���܂��B
+==説明
+conditionの値がTrueの間、valueの値を繰り返し評価します。conditionも毎回評価されます。最後に評価されたconditionが返されます。
 
-�g���������Ɩ������[�v���܂��̂Œ��ӂ��Ă��������B
+使い方を誤ると無限ループしますので注意してください。
 
 
-==����
+==引数
 :Boolean condition
-  �J��Ԃ��̏���
+  繰り返しの条件
 :Value value
-  �]������l
+  評価する値
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �ϐ��ɒl�������Ȃ���10�񃋁[�v����
+==例
+ # 変数に値を代入しながら10回ループを回す
  @While(@Less(@Variable('n', 0), 10),
         @Progn(@MessageBox($n),
                @Set('n', @Add($n, 1))))

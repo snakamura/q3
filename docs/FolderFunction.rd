@@ -4,58 +4,58 @@
  String @Folder(Boolean full?, Boolean current?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W���ۑ�����Ă���t�H���_�A�܂��̓R���e�L�X�g�t�H���_�̖��O��Ԃ��܂��B
+==説明
+コンテキストメッセージが保存されているフォルダ、またはコンテキストフォルダの名前を返します。
 
-full�ɂ͊��S����Ԃ����P�ꖼ��Ԃ������w�肵�܂��B�w��ł���͈̂ȉ��̂����ꂩ�ł��B
+fullには完全名を返すか単一名を返すかを指定します。指定できるのは以下のいずれかです。
 
 ::FN-FULLNAME
-  ���S����Ԃ��܂��B
+  完全名を返します。
 ::FN-NAME
-  �P�ꖼ��Ԃ��܂��B
+  単一名を返します。
 
-�������ȗ����ꂽ�ꍇ�ɂ�:FN-FULLNAME���w�肵���̂Ɠ����ɂȂ�܂��B
+引数が省略された場合には:FN-FULLNAMEを指定したのと同じになります。
 
-�Ⴆ�΁A�u��M���v�̉��ɂ���u�e�X�g�v�t�H���_�Ƀ��b�Z�[�W���ۑ�����Ă���ꍇ�ɂ́A���S���́u��M��/�e�X�g�v�ɂȂ�A�P�ꖼ�́u�e�X�g�v�ɂȂ�܂��B
+例えば、「受信箱」の下にある「テスト」フォルダにメッセージが保存されている場合には、完全名は「受信箱/テスト」になり、単一名は「テスト」になります。
 
-current�ɂ̓t�H���_���̎擾���@���w�肵�܂��B�w��ł���͈̂ȉ��̂����ꂩ�ł��B
+currentにはフォルダ名の取得方法を指定します。指定できるのは以下のいずれかです。
 
 ::FT-MESSAGE
-  �R���e�L�X�g���b�Z�[�W���i�[����Ă���t�H���_��Ԃ��܂��B
+  コンテキストメッセージが格納されているフォルダを返します。
 ::FT-CURRENT
-  �R���e�L�X�g�t�H���_��Ԃ��܂��B
+  コンテキストフォルダを返します。
 
-�������ȗ����ꂽ�ꍇ�ɂ�:FT-MESSAGE���w�肵���̂Ɠ����ɂȂ�܂��B
+引数が省略された場合には:FT-MESSAGEを指定したのと同じになります。
 
-�Ⴆ�΁A�����t�H���_���J���Ă����ꍇ�A:FT-MESSAGE���w�肷��ƃ��b�Z�[�W���i�[����Ă���t�H���_�̖��O���Ԃ���A:FT-CURRENT���w�肷��ƌ����t�H���_�̖��O���Ԃ���܂��B
+例えば、検索フォルダを開いていた場合、:FT-MESSAGEを指定するとメッセージが格納されているフォルダの名前が返され、:FT-CURRENTを指定すると検索フォルダの名前が返されます。
 
-:FT-MESSAGE���w�肵���ꍇ�ɃR���e�L�X�g���b�Z�[�W�z���_���Ȃ��A�܂���:FT-CURRENT���w�肵���ꍇ�ɃR���e�L�X�g�t�H���_���Ȃ��i�A�J�E���g���I������Ă���j�Ƃ��ɂ͋󕶎����Ԃ��܂��B
+:FT-MESSAGEを指定した場合にコンテキストメッセージホルダがない、または:FT-CURRENTを指定した場合にコンテキストフォルダがない（アカウントが選択されている）ときには空文字列を返します。
 
 
-==����
+==引数
 :Boolean full
-  ���S�����擾���邩�ǂ���
+  完全名を取得するかどうか
 :Boolean current
-  �t�H���_���̎擾���@
+  フォルダ名の取得方法
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W�z���_���Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージホルダがない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �t�H���_�������S���Ŏ擾
+==例
+ # フォルダ名を完全名で取得
  @Folder()
  
- # �P�ꖼ�Ŏ擾
+ # 単一名で取得
  @Folder(:FN-NAME)
  
- # ���݂̃t�H���_�������S���Ŏ擾
+ # 現在のフォルダ名を完全名で取得
  @Folder(:FN-FULLNAME, :FT-CURRENT)
 
 =end

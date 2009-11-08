@@ -1,14 +1,14 @@
 =begin
-=ConfigViewsƒAƒNƒVƒ‡ƒ“
+=ConfigViewsã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒŠƒXƒgƒrƒ…[‚ÌƒJƒXƒ^ƒ}ƒCƒY‚ðs‚¤ƒ_ƒCƒAƒƒO‚ðŠJ‚«‚Ü‚·BÚ×‚ÍA((<ƒŠƒXƒgƒrƒ…[‚ÌƒJƒXƒ^ƒ}ƒCƒY|URL:CustomizeListView.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚ºã‚’è¡Œã†ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’é–‹ãã¾ã™ã€‚è©³ç´°ã¯ã€((<ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚º|URL:CustomizeListView.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

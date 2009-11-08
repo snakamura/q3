@@ -1,27 +1,27 @@
 =begin
-=���b�Z�[�W�\�����[�h
+=メッセージ表示モード
 
-���b�Z�[�W���[�h�̓��b�Z�[�W��\������Ƃ��ɂǂ̂悤�ɕ\�����邩��\�����[�h�ł��B�ȉ��̂悤�ȃ��b�Z�[�W���[�h������܂��B���b�Z�[�W���[�h�̓t�H���_���Ƃɕێ�����悤�ɂ��ł��܂����A���ׂẴt�H���_�œ������b�Z�[�W���[�h�ɐݒ肷�邱�Ƃ��ł��܂��B�ǂ���ɂ��邩�́A((<���̑��̐ݒ�|URL:OptionMisc.html>))��[���b�Z�[�W�\�����[�h���t�H���_���Ƃɕۑ�����]�Ŏw�肵�܂��B
+メッセージモードはメッセージを表示するときにどのように表示するかを表すモードです。以下のようなメッセージモードがあります。メッセージモードはフォルダごとに保持するようにもできますし、すべてのフォルダで同じメッセージモードに設定することもできます。どちらにするかは、((<その他の設定|URL:OptionMisc.html>))の[メッセージ表示モードをフォルダごとに保存する]で指定します。
 
-:�����b�Z�[�W���[�h
-  ���̃��b�Z�[�W���w�b�_���܂߂ĕ\�����܂��B�������A�e�L�X�g�p�[�g�Ɋւ��Ă̓f�R�[�h������Ńe�L�X�g�Ƃ��ĕ\�����܂��B�܂��A���ׂẴw�b�_���\�����w�b�_�Ƃ��ăp�[�X���܂��B�\�[�X���[�h��HTML�\�����[�h�Ɣr���ł��B((<[�\��]-[���[�h]-[���ׂĕ\��]|URL:ViewRawModeAction.html>))�ŕύX���܂��B
+:生メッセージモード
+  生のメッセージをヘッダも含めて表示します。ただし、テキストパートに関してはデコードした上でテキストとして表示します。また、すべてのヘッダを非構造化ヘッダとしてパースします。ソースモードやHTML表示モードと排他です。((<[表示]-[モード]-[すべて表示]|URL:ViewRawModeAction.html>))で変更します。
 
-:�\�[�X���[�h
-  ���b�Z�[�W�̃\�[�X��\�����܂��B�e�L�X�g�p�[�g�Ȃǂ��f�R�[�h�����ɕ\�����܂��B�����b�Z�[�W���[�h��HTML�\�����[�h�Ɣr���ł��B((<[�\��]-[���[�h]-[�\�[�X�\��]|URL:ViewSourceModeAction.html>))�ŕύX���܂��B
+:ソースモード
+  メッセージのソースを表示します。テキストパートなどもデコードせずに表示します。生メッセージモードやHTML表示モードと排他です。((<[表示]-[モード]-[ソース表示]|URL:ViewSourceModeAction.html>))で変更します。
 
-:�I�����[�h
-  �L�����b�g��\�����ăL�[�{�[�h�őI���ł���悤�ɂ��܂��B((<[�\��]-[���[�h]-[�L�����b�g��\��]|URL:ViewSelectModeAction.html>))�ŕύX���܂��B
+:選択モード
+  キャレットを表示してキーボードで選択できるようにします。((<[表示]-[モード]-[キャレットを表示]|URL:ViewSelectModeAction.html>))で変更します。
 
-:���p���[�h
-  ���p��������ŕ\�����܂��B���p�Ƃ��Ĉ�����̂́A((<���b�Z�[�W�r���[�̐ݒ�|URL:OptionMessage.html>))��((<�v���r���[�̐ݒ�|URL:OptionPreview.html>))��[�F]�̐ݒ�ŁA[���p1]�Ƃ��Ďw�肳�ꂽ���p������n�܂�s�ł��B((<[�\��]-[���[�h]-[���p����ŕ\��]|URL:ViewQuoteModeAction.html>))�ŕύX���܂��B
+:引用モード
+  引用部分を線で表示します。引用として扱われるのは、((<メッセージビューの設定|URL:OptionMessage.html>))や((<プレビューの設定|URL:OptionPreview.html>))の[色]の設定で、[引用1]として指定された引用符から始まる行です。((<[表示]-[モード]-[引用を線で表示]|URL:ViewQuoteModeAction.html>))で変更します。
 
-:HTML�\�����[�h
-  HTML���b�Z�[�W���u���E�U�R���g���[���ŕ\�����܂��B�ڍׂ́A((<HTML�\��|URL:HtmlView.html>))���Q�Ƃ��Ă��������B((<[�\��]-[HTML]-[HTML��\��]|URL:ViewHtmlModeAction.html>))�ŕύX���܂��B
+:HTML表示モード
+  HTMLメッセージをブラウザコントロールで表示します。詳細は、((<HTML表示|URL:HtmlView.html>))を参照してください。((<[表示]-[HTML]-[HTMLを表示]|URL:ViewHtmlModeAction.html>))で変更します。
 
-:HTML�I�����C�����[�h
-  HTML�\�����[�h�̂Ƃ��ɃI�����C�����[�h�ŕ\�����܂��B�ڍׂ́A((<HTML�\��|URL:HtmlView.html>))���Q�Ƃ��Ă��������B((<[�\��]-[HTML]-[�I�����C���ŕ\��]|URL:ViewHtmlOnlineModeAction.html>))�ŕύX���܂��B
+:HTMLオンラインモード
+  HTML表示モードのときにオンラインモードで表示します。詳細は、((<HTML表示|URL:HtmlView.html>))を参照してください。((<[表示]-[HTML]-[オンラインで表示]|URL:ViewHtmlOnlineModeAction.html>))で変更します。
 
-:HTML�C���^�[�l�b�g�]�[�����[�h
-  HTML�\�����[�h�̂Ƃ��ɃC���^�[�l�b�g�]�[���ŕ\�����܂��B�ڍׂ́A((<HTML�\��|URL:HtmlView.html>))���Q�Ƃ��Ă��������B((<[�\��]-[HTML]-[�C���^�[�l�b�g�]�[���ŕ\��]|URL:ViewHtmlInternetZoneModeAction.html>))�ŕύX���܂��B
+:HTMLインターネットゾーンモード
+  HTML表示モードのときにインターネットゾーンで表示します。詳細は、((<HTML表示|URL:HtmlView.html>))を参照してください。((<[表示]-[HTML]-[インターネットゾーンで表示]|URL:ViewHtmlInternetZoneModeAction.html>))で変更します。
 
 =end

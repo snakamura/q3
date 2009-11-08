@@ -1,107 +1,107 @@
 =begin
-=�v���r���[�E���b�Z�[�W�r���[�̃R���e�L�X�g���j���[
+=プレビュー・メッセージビューのコンテキストメニュー
 
-((<�v���r���[�E���b�Z�[�W�r���[�̃R���e�L�X�g���j���[|"IMG:images/MessageMenu.png">))
-
-
-+((<[���̃��b�Z�[�W]|URL:ViewNextMessageAction.html>))
-�ЂƂ�̃��b�Z�[�W��\�����܂��B
+((<プレビュー・メッセージビューのコンテキストメニュー|"IMG:images/MessageMenu.png">))
 
 
-+((<[�O�̃��b�Z�[�W]|URL:ViewPrevMessageAction.html>))
-�ЂƂO�̃��b�Z�[�W��\�����܂��B
++((<[次のメッセージ]|URL:ViewNextMessageAction.html>))
+ひとつ後のメッセージを表示します。
 
 
-+((<[���̖��ǃ��b�Z�[�W]|URL:ViewNextUnseenMessageAction.html>))
-���̖��ǃ��b�Z�[�W��\�����܂��B
++((<[前のメッセージ]|URL:ViewPrevMessageAction.html>))
+ひとつ前のメッセージを表示します。
 
 
-+((<[�폜]|URL:EditDeleteAction.html>))
-���b�Z�[�W���폜���܂��B
++((<[次の未読メッセージ]|URL:ViewNextUnseenMessageAction.html>))
+次の未読メッセージを表示します。
 
 
-+((<[�X�p���Ƃ��č폜]|URL:EditDeleteJunkAction.html>))
-���b�Z�[�W���X�p���Ƃ��č폜���܂��B
++((<[削除]|URL:EditDeleteAction.html>))
+メッセージを削除します。
 
 
-+((<[�R�s�[]|URL:EditCopyAction.html>))
-���b�Z�[�W���N���b�v�{�[�h�ɃR�s�[���܂��B
++((<[スパムとして削除]|URL:EditDeleteJunkAction.html>))
+メッセージをスパムとして削除します。
 
 
-+((<[�S�đI��]|URL:EditSelectAllAction.html>))
-�e�L�X�g��S�đI�����܂��B
++((<[コピー]|URL:EditCopyAction.html>))
+メッセージをクリップボードにコピーします。
 
 
-+((<[���b�Z�[�W������]|URL:EditFindAction.html>))
-���b�Z�[�W���̃e�L�X�g���������܂��B
++((<[全て選択]|URL:EditSelectAllAction.html>))
+テキストを全て選択します。
 
 
-+[�ړ�]
++((<[メッセージ内検索]|URL:EditFindAction.html>))
+メッセージ内のテキストを検索します。
 
-*((<[<�t�H���_��>]|URL:MessageMoveAction.html>))
+
++[移動]
+
+*((<[<フォルダ名>]|URL:MessageMoveAction.html>))
  
- ���b�Z�[�W��<�t�H���_��>�̃t�H���_�Ɉړ����܂��B
+ メッセージを<フォルダ名>のフォルダに移動します。
 
-*((<[���̑�]|URL:MessageMoveAction.html>))
+*((<[その他]|URL:MessageMoveAction.html>))
  
- ���b�Z�[�W���_�C�A���O�Ŏw�肵���t�H���_�Ɉړ����܂��B
+ メッセージをダイアログで指定したフォルダに移動します。
 
 
-+[�Y�t�t�@�C��]
++[添付ファイル]
 
-*((<[�ۑ�]|URL:MessageDetachAction.html>))
+*((<[保存]|URL:MessageDetachAction.html>))
  
- �Y�t�t�@�C����ۑ����܂��B
+ 添付ファイルを保存します。
 
-*((<[�폜]|URL:MessageDeleteAttachmentAction.html>))
+*((<[削除]|URL:MessageDeleteAttachmentAction.html>))
  
- �Y�t�t�@�C�����폜���܂��B
+ 添付ファイルを削除します。
 
-*((<[<�Y�t�t�@�C����>]|URL:MessageOpenAttachmentAction.html>))
+*((<[<添付ファイル名>]|URL:MessageOpenAttachmentAction.html>))
  
- <�Y�t�t�@�C����>�̓Y�t�t�@�C�����֘A�t���ŊJ���܂��B
+ <添付ファイル名>の添付ファイルを関連付けで開きます。
 
-*((<[�_�C�W�F�X�g��W�J]|URL:MessageExpandDigestAction.html>))
+*((<[ダイジェストを展開]|URL:MessageExpandDigestAction.html>))
  
- ���b�Z�[�W���_�C�W�F�X�g�`���̏ꍇ�ɓW�J���܂��B
+ メッセージがダイジェスト形式の場合に展開します。
 
 
-+[�}�[�N]
++[マーク]
 
-*((<[���ǂɂ���]|URL:MessageMarkSeenAction.html>))
+*((<[既読にする]|URL:MessageMarkSeenAction.html>))
  
- ���b�Z�[�W�����ǂɂ��܂��B
+ メッセージを既読にします。
 
-*((<[���ǂɂ���]|URL:MessageUnmarkSeenAction.html>))
+*((<[未読にする]|URL:MessageUnmarkSeenAction.html>))
  
- ���b�Z�[�W�𖢓ǂɂ��܂��B
+ メッセージを未読にします。
 
-*((<[�}�[�N������]|URL:MessageMarkAction.html>))
+*((<[マークをつける]|URL:MessageMarkAction.html>))
  
- ���b�Z�[�W�Ƀ}�[�N�����܂��B
+ メッセージにマークをつけます。
 
-*((<[�}�[�N������]|URL:MessageUnmarkAction.html>))
+*((<[マークを消す]|URL:MessageUnmarkAction.html>))
  
- ���b�Z�[�W�̃}�[�N�������܂��B
+ メッセージのマークを消します。
 
-*((<[�_�E�����[�h�\��]|URL:MessageMarkDownloadAction.html>))
+*((<[ダウンロード予約]|URL:MessageMarkDownloadAction.html>))
  
- ���b�Z�[�W���_�E�����[�h�\�񂵂܂��B
+ メッセージをダウンロード予約します。
 
-*((<[�{�����_�E�����[�h�\��]|URL:MessageMarkDownloadTextAction.html>))
+*((<[本文をダウンロード予約]|URL:MessageMarkDownloadTextAction.html>))
  
- ���b�Z�[�W�̃e�L�X�g�������_�E�����[�h�\�񂵂܂��B
+ メッセージのテキスト部分をダウンロード予約します。
 
-*((<[�폜�}�[�N������]|URL:MessageMarkDeletedAction.html>))
+*((<[削除マークをつける]|URL:MessageMarkDeletedAction.html>))
  
- ���b�Z�[�W�ɍ폜�}�[�N�����܂��B
+ メッセージに削除マークをつけます。
 
 
-+((<[���x��]|URL:MessageLabelAction.html>))
-���b�Z�[�W�̃��x����ҏW���܂��B
++((<[ラベル]|URL:MessageLabelAction.html>))
+メッセージのラベルを編集します。
 
 
-+((<[�v���p�e�B]|URL:MessagePropertyAction.html>))
-���b�Z�[�W�̃v���p�e�B��\�����܂��B
++((<[プロパティ]|URL:MessagePropertyAction.html>))
+メッセージのプロパティを表示します。
 
 =end

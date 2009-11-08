@@ -1,16 +1,16 @@
 =begin
-=MessageCreateFromClipboardƒAƒNƒVƒ‡ƒ“
+=MessageCreateFromClipboardã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒNƒŠƒbƒvƒ{[ƒh‚©‚çƒeƒLƒXƒg‚ðŽæ“¾‚µ‚ÄƒƒbƒZ[ƒW‚ðì¬‚µ‚Ü‚·Bì¬‚³‚ê‚½ƒƒbƒZ[ƒW‚ÍA‘—M” iOutboxƒtƒ‰ƒO‚Ì•t‚¢‚½ƒtƒHƒ‹ƒ_j‚É‘—M‰Â”\‚Èó‘Ô‚Å’Ç‰Á‚³‚ê‚Ü‚·BƒNƒŠƒbƒvƒ{[ƒh‚ÌƒeƒLƒXƒg‚ÍRFC2822Œ`Ž®‚É‚È‚Á‚Ä‚¢‚é•K—v‚ª‚ ‚è‚Ü‚·i‚½‚¾‚µƒwƒbƒ_‚ÉASCII•¶Žš—ñˆÈŠO‚ðŠÜ‚Þ‚±‚Æ‚ª‚Å‚«A–{•¶‚Íƒvƒ‰ƒbƒgƒtƒH[ƒ€‚ÌƒGƒ“ƒR[ƒfƒBƒ“ƒO‚É‚µ‚Ü‚·jB
+ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã‹ã‚‰ãƒ†ã‚­ã‚¹ãƒˆã‚’å–å¾—ã—ã¦ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ä½œæˆã—ã¾ã™ã€‚ä½œæˆã•ã‚ŒãŸãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¯ã€é€ä¿¡ç®±ï¼ˆOutboxãƒ•ãƒ©ã‚°ã®ä»˜ã„ãŸãƒ•ã‚©ãƒ«ãƒ€ï¼‰ã«é€ä¿¡å¯èƒ½ãªçŠ¶æ…‹ã§è¿½åŠ ã•ã‚Œã¾ã™ã€‚ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã®ãƒ†ã‚­ã‚¹ãƒˆã¯RFC2822å½¢å¼ã«ãªã£ã¦ã„ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ï¼ˆãŸã ã—ãƒ˜ãƒƒãƒ€ã«ASCIIæ–‡å­—åˆ—ä»¥å¤–ã‚’å«ã‚€ã“ã¨ãŒã§ãã€æœ¬æ–‡ã¯ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ ã®ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ã«ã—ã¾ã™ï¼‰ã€‚
 
-‚±‚ÌƒAƒNƒVƒ‡ƒ“‚ÍŠO•”ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚©‚çƒNƒŠƒbƒvƒ{[ƒhŒo—R‚ÅƒƒbƒZ[ƒW‚ðì¬‚µ‚½‚¢ê‡‚ÉŽg—p‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B((<ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“|URL:CommandLine.html>))‚Ì-cƒIƒvƒVƒ‡ƒ“‚àŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+ã“ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã¯å¤–éƒ¨ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‹ã‚‰ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰çµŒç”±ã§ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ä½œæˆã—ãŸã„å ´åˆã«ä½¿ç”¨ã™ã‚‹ã“ã¨ãŒã§ãã¾ã™ã€‚((<ã‚³ãƒžãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³|URL:CommandLine.html>))ã®-cã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚‚å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

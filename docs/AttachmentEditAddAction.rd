@@ -1,14 +1,14 @@
 =begin
-=AttachmentEditAdd�A�N�V����
+=AttachmentEditAddアクション
 
-�Y�t�t�@�C����ǉ����܂��B���s����ƃt�@�C���I���_�C�A���O���J���܂��̂ŁA�Y�t�������t�@�C����I�����܂��B�����̃t�@�C�����܂Ƃ߂Ďw�肷�邱�Ƃ��ł��܂��B
-
-
-==����
-�Ȃ�
+添付ファイルを追加します。実行するとファイル選択ダイアログが開きますので、添付したいファイルを選択します。複数のファイルをまとめて指定することもできます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

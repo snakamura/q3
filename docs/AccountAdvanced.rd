@@ -1,52 +1,52 @@
 =begin
-=���x�̐ݒ�
+=高度の設定
 
-���x�̐ݒ���s���܂��B
+高度の設定を行います。
 
-((<[���x]�^�u|"IMG:images/AccountAdvancedPage.png">))
-
-
-+[�����t�B���^]
-�g�p���铯���t�B���^���w�肵�܂��B�����t�B���^�ɂ��ẮA((<�����t�B���^|URL:SyncFilter.html>))���Q�Ƃ��Ă��������B
+((<[高度]タブ|"IMG:images/AccountAdvancedPage.png">))
 
 
-+[�ҏW]
-�����t�B���^��ҏW���܂��B
++[同期フィルタ]
+使用する同期フィルタを指定します。同期フィルタについては、((<同期フィルタ|URL:SyncFilter.html>))を参照してください。
 
 
-+[Message-Id��t��]
-Message-Id�������ŕt�����邩�ǂ������w�肵�܂��B�f�t�H���g�ł́Amail�N���X�̃A�J�E���g�ł͎����ŕt�����Anews�N���X�̃A�J�E���g�ł͕t�����܂���B
++[編集]
+同期フィルタを編集します。
 
 
-+[Content-Transfer-Encoding: 8bit���g�p]
-8bit�̕����R�[�h���g�p����Ƃ��ɁAContent-Transfer-Encoding��8bit���g�����ǂ������w�肵�܂��B�g��Ȃ��ꍇ�ɂ́A�K�Xbase64�܂���quoted-printable���g�p����܂��B�f�t�H���g�ł͎g�p���܂���B
++[Message-Idを付加]
+Message-Idを自動で付加するかどうかを指定します。デフォルトでは、mailクラスのアカウントでは自動で付加し、newsクラスのアカウントでは付加しません。
 
 
-+[�����ŐU�蕪����]
-��M�������b�Z�[�W�������ŐU�蕪���邩�ǂ������w�肵�܂��B�f�t�H���g�ł͎����ŐU�蕪���܂���B�U�蕪���ɂ��ẮA((<�U�蕪��|URL:ApplyRules.html>))���Q�Ƃ��Ă��������B
++[Content-Transfer-Encoding: 8bitを使用]
+8bitの文字コードを使用するときに、Content-Transfer-Encodingに8bitを使うかどうかを指定します。使わない場合には、適宜base64またはquoted-printableが使用されます。デフォルトでは使用しません。
 
 
-+[�����̃��b�Z�[�W���U�蕪����]
-�����ŐU�蕪����Ƃ��ɁA�t�H���_���̊����̃��b�Z�[�W���U�蕪���邩�ǂ������w�肵�܂��B�`�F�b�N�����Ȃ��ꍇ�A�V�����b�Z�[�W�݂̂��U�蕪�����܂��B�f�t�H���g�ł͊����̃��b�Z�[�W�͐U�蕪���܂���B
++[自動で振り分ける]
+受信したメッセージを自動で振り分けるかどうかを指定します。デフォルトでは自動で振り分けません。振り分けについては、((<振り分け|URL:ApplyRules.html>))を参照してください。
 
 
-+[�X�p���t�B���^��L���ɂ���]
-�X�p���t�B���^��L���ɂ��邩�ǂ������w�肵�܂��B�f�t�H���g�ł͖����ł��B�X�p���t�B���^�ɂ��ẮA((<�X�p���t�B���^|URL:JunkFilter.html>))���Q�Ƃ��Ă��������B
++[既存のメッセージも振り分ける]
+自動で振り分けるときに、フォルダ内の既存のメッセージも振り分けるかどうかを指定します。チェックを入れない場合、新着メッセージのみが振り分けられます。デフォルトでは既存のメッセージは振り分けません。
 
 
-+[�����̃A�h���X����̃��[���͑��M�ς݂Ƃ݂Ȃ�]
-���o�l�������̃A�h���X�̃��[�����󂯎�����ꍇ�ɂ́A���M�ς݃t���O�𗧂Ăđ��M�ς݃��b�Z�[�W�Ƃ��ď������邩�ǂ������w�肵�܂��BBcc�Ɏ����̃��[���A�h���X��ݒ肵�Ă��̐ݒ���`�F�b�N����ƁA�����̃N���C�A���g��POP3���g���Ƃ��Ɏ����̑��������b�Z�[�W���Ǘ��ł��܂��B�f�t�H���g�ł͑��M�ς݂Ƃ݂Ȃ��܂��B
++[スパムフィルタを有効にする]
+スパムフィルタを有効にするかどうかを指定します。デフォルトでは無効です。スパムフィルタについては、((<スパムフィルタ|URL:JunkFilter.html>))を参照してください。
 
 
-+[�S�������p�ɕ����ς݃��b�Z�[�W���L���b�V������]
-((<"S/MIME"|URL:SMIME.html>))��((<PGP|URL:PGP.html>))�ňÍ����E�������ꂽ���b�Z�[�W�𕜍������Ƃ��ɁA�������ꂽ���b�Z�[�W��S�������p�ɃL���b�V�����邩�ǂ������w�肵�܂��B�`�F�b�N����ƑS�������G���W���������ς݂̃��b�Z�[�W�������ł���悤�Ƀt�@�C���Ƃ��ĕۑ����܂��B�f�t�H���g�ł̓L���b�V�����܂���B
++[自分のアドレスからのメールは送信済みとみなす]
+差出人が自分のアドレスのメールを受け取った場合には、送信済みフラグを立てて送信済みメッセージとして処理するかどうかを指定します。Bccに自分のメールアドレスを設定してこの設定をチェックすると、複数のクライアントでPOP3を使うときに自分の送ったメッセージを管理できます。デフォルトでは送信済みとみなします。
 
 
-+[���ꐫ]
-�T�u�A�J�E���g�̓��ꐫ���w�肵�܂��B�ڍׂ�((<�T�u�A�J�E���g|URL:SubAccount.html>))���Q�Ƃ��Ă��������B
++[全文検索用に復号済みメッセージをキャッシュする]
+((<"S/MIME"|URL:SMIME.html>))や((<PGP|URL:PGP.html>))で暗号化・署名されたメッセージを復号したときに、復号されたメッセージを全文検索用にキャッシュするかどうかを指定します。チェックすると全文検索エンジンが復号済みのメッセージを処理できるようにファイルとして保存します。デフォルトではキャッシュしません。
 
 
-+[�^�C���A�E�g]
-�T�[�o�ɐڑ�����Ƃ��̃^�C���A�E�g���w�肵�܂��B�P�ʂ͕b�ł��B�f�t�H���g��20�b�ł��B
++[同一性]
+サブアカウントの同一性を指定します。詳細は((<サブアカウント|URL:SubAccount.html>))を参照してください。
+
+
++[タイムアウト]
+サーバに接続するときのタイムアウトを指定します。単位は秒です。デフォルトは20秒です。
 
 =end

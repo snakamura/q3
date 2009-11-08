@@ -1,26 +1,26 @@
 =begin
-=[�ۑ�]�_�C�A���O
+=[保存]ダイアログ
 
-((<[�ۑ�]�_�C�A���O|"IMG:images/DetachDialog.png">))
+((<[保存]ダイアログ|"IMG:images/DetachDialog.png">))
 
-�Y�t�t�@�C���̕ۑ����@���w�肵�܂��B��ԏ�ɑI�����ꂽ���b�Z�[�W�ɓY�t���ꂽ�Y�t�t�@�C���̃��X�g���\������܂��B�`�F�b�N����Ă���Y�t�t�@�C�����S�ĕۑ�����܂��B
-
-
-+[���O�̕ύX]
-���X�g�őI�����ꂽ�Y�t�t�@�C���̖��O��ύX���܂��B���O��ύX����ƁA�ύX��̖��O�ŕۑ�����܂��B
+添付ファイルの保存方法を指定します。一番上に選択されたメッセージに添付された添付ファイルのリストが表示されます。チェックされている添付ファイルが全て保存されます。
 
 
-+[�t�H���_]
-�Y�t�t�@�C���̕ۑ���̃t�H���_���w�肵�܂��B
++[名前の変更]
+リストで選択された添付ファイルの名前を変更します。名前を変更すると、変更後の名前で保存されます。
 
 
-+[�Q��]
-�Y�t�t�@�C���̕ۑ�����w�肷��t�H���_�I���_�C�A���O��\�����܂��B
++[フォルダ]
+添付ファイルの保存先のフォルダを指定します。
 
 
-+[�Y�t�t�@�C����ۑ�������Ńt�H���_���J��]
-�`�F�b�N����ƓY�t�t�@�C����ۑ�������ŕۑ���̃t�H���_���G�N�X�v���[���ŊJ���܂��B
++[参照]
+添付ファイルの保存先を指定するフォルダ選択ダイアログを表示します。
 
-�t�H���_���J�����߂̃v���O�����́A((<qmail.xml|URL:QmailXml.html>))��Global/Filer�Ŏw��ł��܂��B�󕶎�����w�肷��Ɗ֘A�t���ɂ��t�H���_���J����܂��B����ȊO�̏ꍇ�A�u%d�v���J���t�H���_�ɓW�J���ăR�}���h���N�����܂��B���Ƃ��΁A�ufiler.exe "%d"�v�̂悤�Ɏw�肷�邱�Ƃ��ł��܂��B
+
++[添付ファイルを保存した後でフォルダを開く]
+チェックすると添付ファイルを保存した後で保存先のフォルダをエクスプローラで開きます。
+
+フォルダを開くためのプログラムは、((<qmail.xml|URL:QmailXml.html>))のGlobal/Filerで指定できます。空文字列を指定すると関連付けによりフォルダが開かれます。それ以外の場合、「%d」を開くフォルダに展開してコマンドを起動します。たとえば、「filer.exe "%d"」のように指定することができます。
 
 =end

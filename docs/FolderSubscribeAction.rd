@@ -1,16 +1,16 @@
 =begin
-=FolderSubscribe�A�N�V����
+=FolderSubscribeアクション
 
-�t�H���_���w�ǂ��܂��B����̓A�J�E���g�̎�M�v���g�R���ɂ���ĈقȂ�܂��B���Ƃ��΁ANNTP�ł͍w�ǂ���O���[�v��ǉ����ARSS�ł͍w�ǂ���t�B�[�h��ǉ����܂��B
+フォルダを購読します。動作はアカウントの受信プロトコルによって異なります。たとえば、NNTPでは購読するグループを追加し、RSSでは購読するフィードを追加します。
 
-NNTP�ł̓����((<�O���[�v�̍w��|URL:SubscribeNntpGroup.html>))���ARSS�ł̓����((<�t�B�[�h�̍w��|URL:SubscribeRssFeed.html>))���Q�Ƃ��Ă��������B
-
-
-==����
-�Ȃ�
+NNTPでの動作は((<グループの購読|URL:SubscribeNntpGroup.html>))を、RSSでの動作は((<フィードの購読|URL:SubscribeRssFeed.html>))を参照してください。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

@@ -4,49 +4,49 @@
  String @Param(String name)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W�̃p�����[�^��Ԃ��܂��B�w�肳�ꂽ���O�̃p�����[�^���ݒ肳��Ă��Ȃ��ꍇ�ɂ͋󕶎����Ԃ��܂��B
+==説明
+コンテキストメッセージのパラメータを返します。指定された名前のパラメータが設定されていない場合には空文字列を返します。
 
-�ȉ��̃p�����[�^�����擾�ł��܂��B
+以下のパラメータ名が取得できます。
 
 :SignedBy
-  S/MIME�̏��������؂����Ƃ��Ɏ擾������������DN�A�܂���PGP�̏��������؂����Ƃ��Ɏ擾���������������[�U���B
+  S/MIMEの署名を検証したときに取得した署名したDN、またはPGPの署名を検証したときに取得した署名したユーザ名。
 :Certificate
-  S/MIME�̏��������؂����Ƃ��Ɏ擾�����ؖ����A�܂���PGP�̏��������؂����Ƃ��Ɏ擾�������B
+  S/MIMEの署名を検証したときに取得した証明書、またはPGPの署名を検証したときに取得した情報。
 :Verify
-  S/MIME��PGP�ŏ��������؂����Ƃ��╜���������ʁB�ȉ��̕�������󔒕����ŋ�؂���������ɂȂ�܂��B
+  S/MIMEやPGPで署名を検証したときや復号した結果。以下の文字列を空白文字で区切った文字列になります。
   :Verified
-    ���؂ɐ��������ꍇ
+    検証に成功した場合
   :AddressMatch
-    �A�h���X���}�b�`�����ꍇ�i���؂ɐ��������ꍇ�̂݁j
+    アドレスがマッチした場合（検証に成功した場合のみ）
   :AddressMismatch
-    �A�h���X���}�b�`���Ȃ������ꍇ�i���؂ɐ��������ꍇ�̂݁j
+    アドレスがマッチしなかった場合（検証に成功した場合のみ）
   :VerifyFailed
-    ���؂Ɏ��s�����ꍇ
+    検証に失敗した場合
   :Decrypted
-    ���������ꍇ
+    復号した場合
 
 
-==����
+==引数
 :String name
-  �p�����[�^��
+  パラメータ名
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # SignedBy�p�����[�^���擾
+==例
+ # SignedByパラメータを取得
  @Param('SignedBy')
  
- # ���������؂��ꂽ���ǂ����𒲂ׂ�
+ # 署名が検証されたかどうかを調べる
  @Contain(@Param('Verify'), 'Verified')
 
 =end

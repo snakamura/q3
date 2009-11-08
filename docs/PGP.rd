@@ -1,44 +1,44 @@
 =begin
-=PGP��GnuPGP
+=PGPとGnuPGP
 
-Windows�ł�QMAIL3�ł�PGP/GnuPG���T�|�[�g����Ă��܂��B
-
-
-==�K�v�Ȃ���
-GnuPG�܂���PGP���K�v�ł��BGnuPG��GnuPG 1.4�ȍ~�APGP��PGP 6.5.8ckt-ja�œ�����m�F���Ă��܂��BPGP�ł̓R�}���h���C���ł��g�p���Ă���s����A�����������ł��Ȃ��P�[�X�����邽�߁AGnuPG�̎g�p�������������܂��B�����͂��炩���߃C���X�g�[�����Ă����K�v������܂��B�܂��Agpg.exe�܂���pgp.exe�Ƀp�X���ʂ��Ă���K�v������܂��B
-
-qmpgpu.dll���Ȃ��ꍇ�ɂ́A�z�z�t�@�C������C���X�g�[������K�v������܂��B
+Windows版のQMAIL3ではPGP/GnuPGがサポートされています。
 
 
-==�ݒ�
-GnuPG���g����PGP���g�����́A((<�Z�L�����e�B�̐ݒ�|URL:OptionSecurity.html>))�Ŏw�肵�܂��B�܂��A�f�t�H���g��PGP�̂��Í����E�������s�����APGP/MIME���g�p���邩�ǂ����Ȃǂ́A((<�G�f�B�b�g�r���[2�̐ݒ�|URL:OptionEdit2.html>))�Ŏw�肵�܂��B
+==必要なもの
+GnuPGまたはPGPが必要です。GnuPGはGnuPG 1.4以降、PGPはPGP 6.5.8ckt-jaで動作を確認しています。PGPではコマンドライン版を使用している都合上、正しく処理できないケースがあるため、GnuPGの使用を強く推奨します。これらはあらかじめインストールしておく必要があります。また、gpg.exeまたはpgp.exeにパスが通っている必要があります。
+
+qmpgpu.dllがない場合には、配布ファイルからインストールする必要があります。
 
 
-==�����Ə����̌���
-�����⏐���̌��؂��s���ɂ́A((<[�\��]-[���[�h]-[PGP]|URL:ViewPGPModeAction.html>))�Ƀ`�F�b�N������PGP���[�h��On�ɂ��܂��BPGP���[�h��On�ɂ���ƃ��b�Z�[�W��ǂݍ��ނƂ���PGP�̕����⏐���̌��؂������I�ɍs���܂��B��������((<�p�X���[�h|URL:Password.html>))���K�v�ȏꍇ�ɂ́A[�p�X���[�h]�_�C�A���O���J���܂��B
-
-���b�Z�[�W�𕜍������菐�������؂���ƃX�e�[�^�X�o�[�ɃA�C�R�����\������܂��B
-
-((<�X�e�[�^�X�o�[�̃A�C�R��|"IMG:images/PGPStatusBar.png">))
-
-���������ꍇ�ɂ͌��}�[�N���A���������؂����ꍇ�ɂ̓`�F�b�N�}�[�N���A���؂Ɏ��s�����ꍇ�ɂ́~�}�[�N���\������܂��B�`�F�b�N�}�[�N�܂��́~�}�[�N���N���b�N����ƁA���،��ʂ��\������܂��B
-
-((<���،���|"IMG:images/PGPCertificateDialog.png">))
-
-�܂��A�����̌��؂ɐ��������ꍇ�ɂ́A�w�b�_�r���[��From�̍s�̔w�i�F���������F�ɕς��܂��B�܂��ASigned by�̍s�ɁA��������̂Ɏg�p���ꂽ���̃��[�UID�̓��AFrom��Sender�Ŏw�肳�ꂽ���[���A�h���X�ɓ��������̂��\������܂��B���̂悤�ȃ��[�UID�������ꍇ�ɂ́A�ŏ��̃��[�UID���\������܂��B�܂��A�O�҂̏ꍇ�ɂ͔w�i�F���������F�ɁA��҂̏ꍇ�ɂ͐Ԃɕς��܂��B���[�UID�́A�L������ultimate��fully�̂��̂������g�p����A����ȊO�̃��[�UID�͖�������܂��B�������APGP�̃R�}���h���C���ł��g�p���Ă���ꍇ�ɂ̓��[�UID�̗L�����͕]������܂���B
-
-((<�w�b�_�r���[|"IMG:images/PGPHeaderView.png">))
+==設定
+GnuPGを使うかPGPを使うかは、((<セキュリティの設定|URL:OptionSecurity.html>))で指定します。また、デフォルトでPGPのよる暗号化・署名を行うか、PGP/MIMEを使用するかどうかなどは、((<エディットビュー2の設定|URL:OptionEdit2.html>))で指定します。
 
 
-==�Í����Ə���
-���b�Z�[�W���Í�������ɂ́A�G�f�B�b�g�E�B���h�E�ŁA((<[�c�[��]-[PGP]-[�Í���]|URL:ToolPGPEncryptAction.html>))�Ƀ`�F�b�N�����ĈÍ�������悤�ɐݒ肵�܂��B���l�ɏ�������ɂ́A((<[�c�[��]-[PGP]-[����]|URL:ToolPGPSignAction.html>))�Ƀ`�F�b�N�����ď�������悤�ɐݒ肵�܂��B
+==復号と署名の検証
+復号や署名の検証を行うには、((<[表示]-[モード]-[PGP]|URL:ViewPGPModeAction.html>))にチェックを入れてPGPモードをOnにします。PGPモードをOnにするとメッセージを読み込むときにPGPの復号や署名の検証が自動的に行われます。復号時に((<パスワード|URL:Password.html>))が必要な場合には、[パスワード]ダイアログが開きます。
 
-((<[�c�[��]-[PGP]-[MIME]|URL:ToolPGPMimeAction.html>))�Ƀ`�F�b�N������ƁAPGP/MIME���g�����C�����C����PGP���g������؂�ւ��邱�Ƃ��ł��܂��B�������A�C�����C����PGP���g���悤�Ɏw�肵�Ă���ꍇ�ł��A�Y�t�t�@�C��������ꍇ�ɂ͎����I��PGP/MIME���g�p����܂��B
+メッセージを復号したり署名を検証するとステータスバーにアイコンが表示されます。
 
-�����̃f�t�H���g�l�́A((<�G�f�B�b�g�r���[2�̐ݒ�|URL:OptionEdit2.html>))�Ŏw�肷�邱�Ƃ��ł��܂��B
+((<ステータスバーのアイコン|"IMG:images/PGPStatusBar.png">))
 
-��������((<�p�X���[�h|URL:Password.html>))���K�v�ȏꍇ�ɂ́A[�p�X���[�h]�_�C�A���O���J���܂��B
+復号した場合には鍵マークが、署名を検証した場合にはチェックマークが、検証に失敗した場合には×マークが表示されます。チェックマークまたは×マークをクリックすると、検証結果が表示されます。
 
-GnuPG���g���ꍇ�ɂ́A�Í�������Ƃ���Bcc��ATo��������Cc�ɃO���[�v�A�h���X���܂܂�A���̃A�h���X��From, Sender, Reply-To�̂�����ɂ�����Ȃ��ꍇ�ɂ͓����ňÍ������܂��B
+((<検証結果|"IMG:images/PGPCertificateDialog.png">))
+
+また、署名の検証に成功した場合には、ヘッダビューのFromの行の背景色が薄い黄色に変わります。また、Signed byの行に、署名するのに使用された鍵のユーザIDの内、FromかSenderで指定されたメールアドレスに等しいものが表示されます。そのようなユーザIDが無い場合には、最初のユーザIDが表示されます。また、前者の場合には背景色が薄い黄色に、後者の場合には赤に変わります。ユーザIDは、有効性がultimateかfullyのものだけが使用され、それ以外のユーザIDは無視されます。ただし、PGPのコマンドライン版を使用している場合にはユーザIDの有効性は評価されません。
+
+((<ヘッダビュー|"IMG:images/PGPHeaderView.png">))
+
+
+==暗号化と署名
+メッセージを暗号化するには、エディットウィンドウで、((<[ツール]-[PGP]-[暗号化]|URL:ToolPGPEncryptAction.html>))にチェックを入れて暗号化するように設定します。同様に署名するには、((<[ツール]-[PGP]-[署名]|URL:ToolPGPSignAction.html>))にチェックを入れて署名するように設定します。
+
+((<[ツール]-[PGP]-[MIME]|URL:ToolPGPMimeAction.html>))にチェックを入れると、PGP/MIMEを使うかインラインのPGPを使うかを切り替えることができます。ただし、インラインのPGPを使うように指定している場合でも、添付ファイルがある場合には自動的にPGP/MIMEが使用されます。
+
+これらのデフォルト値は、((<エディットビュー2の設定|URL:OptionEdit2.html>))で指定することができます。
+
+署名時に((<パスワード|URL:Password.html>))が必要な場合には、[パスワード]ダイアログが開きます。
+
+GnuPGを使う場合には、暗号化するときにBccや、ToもしくはCcにグループアドレスが含まれ、そのアドレスがFrom, Sender, Reply-Toのいずれにも現れない場合には匿名で暗号化します。
 
 =end

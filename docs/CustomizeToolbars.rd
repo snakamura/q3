@@ -1,6 +1,6 @@
 =begin
-=�c�[���o�[�̃J�X�^�}�C�Y
+=ツールバーのカスタマイズ
 
-((<toolbars.xml|URL:ToolbarsXml.html>))��ҏW���邱�ƂŃc�[���o�[���J�X�^�}�C�Y�ł��܂��B
+((<toolbars.xml|URL:ToolbarsXml.html>))を編集することでツールバーをカスタマイズできます。
 
 =end

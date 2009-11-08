@@ -1,16 +1,16 @@
 =begin
-=ViewSortToggleThread�A�N�V����
+=ViewSortToggleThreadアクション
 
-���X�g�r���[�̃X���b�h�\����On/Off��؂�Ԃ��܂��B
+リストビューのスレッド表示のOn/Offを切り返します。
 
-�X���b�h�\���ɐ؂�ւ���Ƃ��ɂ́A�Ō�Ɏg�p�����X���b�h�\�����ʏ�̃X���b�h�\���̏ꍇ�ɂ͒ʏ�̃X���b�h�\���ɁA�t���[�e�B���O�X���b�h�\���̏ꍇ�ɂ̓t���[�e�B���O�X���b�h�\���ɐ؂�ւ����܂��B
-
-
-==����
-�Ȃ�
+スレッド表示に切り替えるときには、最後に使用したスレッド表示が通常のスレッド表示の場合には通常のスレッド表示に、フローティングスレッド表示の場合にはフローティングスレッド表示に切り替えられます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

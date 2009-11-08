@@ -1,12 +1,12 @@
 =begin
-=�O���[�v�̍w��
+=グループの購読
 
-�O���[�v���w�ǂ���ɂ́A���j���[����((<[�t�H���_]-[�O���[�v�̍w��]|URL:FolderSubscribeAction.html>))��I�����܂��B���߂Ď��s����ƁA�T�[�o����O���[�v�̃��X�g���擾���邩�ǂ�����q�˂��܂��̂ŁA[�͂�]��I�����ăT�[�o����O���[�v�̃��X�g���擾���܂��B���̌�A�w�ǂ���O���[�v���w�肷�邽�߂�[�O���[�v�̍w��]�_�C�A���O���J���܂��B
+グループを購読するには、メニューから((<[フォルダ]-[グループの購読]|URL:FolderSubscribeAction.html>))を選択します。初めて実行すると、サーバからグループのリストを取得するかどうかを尋ねられますので、[はい]を選択してサーバからグループのリストを取得します。その後、購読するグループを指定するための[グループの購読]ダイアログが開きます。
 
-((<[�O���[�v�̍w��]�_�C�A���O|"IMG:images/TutorialNntpSubscribeDialog.png">))
+((<[グループの購読]ダイアログ|"IMG:images/TutorialNntpSubscribeDialog.png">))
 
-�O���[�v�̃��X�g����w�ǂ������O���[�v��I������[OK]���N���b�N����Ƃ��̃O���[�v���w�ǂ��邽�߂̃t�H���_���쐬����܂��B[�t�B���^]�ɉ�������͂���ƁA���͂�����������܂ރO���[�v�݂̂����X�g����܂��B�T�[�o����V���ɒǉ����ꂽ�O���[�v�̃��X�g���擾����ɂ�[�X�V]���N���b�N���Ă��������B
+グループのリストから購読したいグループを選択して[OK]をクリックするとそのグループを購読するためのフォルダが作成されます。[フィルタ]に何かを入力すると、入力した文字列を含むグループのみがリストされます。サーバから新たに追加されたグループのリストを取得するには[更新]をクリックしてください。
 
-�w�ǂ���O���[�v���ƂɈȏ�̎菇���J��Ԃ��܂��B
+購読するグループごとに以上の手順を繰り返します。
 
 =end

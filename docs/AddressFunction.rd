@@ -4,36 +4,36 @@
  Address @Address(Field field)
 
 
-==����
-�����Ŏw�肳�ꂽ�t�B�[���h���A�h���X���X�g�Ƃ��ăp�[�X���A�܂܂�Ă���A�h���X�̃��X�g��Ԃ��܂��B�t�B�[���h���A�h���X���w�肷��t�B�[���h�łȂ������ꍇ��p�[�X�Ɏ��s�����ꍇ�ɂ͋�̃��X�g��Ԃ��܂��B
+==説明
+引数で指定されたフィールドをアドレスリストとしてパースし、含まれているアドレスのリストを返します。フィールドがアドレスを指定するフィールドでなかった場合やパースに失敗した場合には空のリストを返します。
 
-�p�[�X���ꂽ�e�A�h���X�ɑ΂��ăA�h���X���擾���܂��B�O���[�v�A�h���X�̏ꍇ�ɂ͊܂܂��A�h���X��S�Ď��o���܂��B
+パースされた各アドレスに対してアドレスを取得します。グループアドレスの場合には含まれるアドレスを全て取り出します。
 
-���Ƃ��΁A
+たとえば、
 
  To: test1@example.org,
   Test2 <test2@example.org>,
   Test3: test3@example.org, Test4 <test4@example.org>;
 
-�Ƃ����w�b�_���܂ރ��b�Z�[�W�ɑ΂��āA@Address(To)��K�p����ƁAtest1@example.org, test2@example.org, test3@example.org, test4@example.org���܂ރA�h���X�̃��X�g���Ԃ���܂��B
+というヘッダを含むメッセージに対して、@Address(To)を適用すると、test1@example.org, test2@example.org, test3@example.org, test4@example.orgを含むアドレスのリストが返されます。
 
 
-==����
+==引数
 :Field field
-  �A�h���X�̃��X�g���擾����t�B�[���h
+  アドレスのリストを取得するフィールド
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�����̌^�������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*引数の型が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # To�Ŏw�肳�ꂽ�A�h���X�̃��X�g���擾
+==例
+ # Toで指定されたアドレスのリストを取得
  @Address(To)
 
 =end

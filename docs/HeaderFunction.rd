@@ -4,38 +4,38 @@
  String @Header(String remove?, Part part?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W�̃w�b�_��Ԃ��܂��Bpart���w�肳�ꂽ�ꍇ�ɂ͂��̃p�[�g�̃w�b�_��Ԃ��܂��B
+==説明
+コンテキストメッセージのヘッダを返します。partが指定された場合にはそのパートのヘッダを返します。
 
-remove�ɂ͕Ԃ����w�b�_���珜�O�������w�b�_�̖��O���u,�v��؂�Ŏw�肵�܂��B
+removeには返されるヘッダから除外したいヘッダの名前を「,」区切りで指定します。
 
 
-==����
+==引数
 :String remove
-  ���O����w�b�_�̃��X�g
+  除外するヘッダのリスト
 :Part part
-  �p�[�g
+  パート
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
-*�w�肵���p�[�g���Ȃ��ꍇ�ipart���w�肵���ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
+*指定したパートがない場合（partを指定した場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �w�b�_��S�Ď擾
+==例
+ # ヘッダを全て取得
  @Header()
  
- # To��Message-Id�����O���ăw�b�_���擾
+ # ToとMessage-Idを除外してヘッダを取得
  @Header('To,Message-Id')
  
- # �}���`�p�[�g���b�Z�[�W�ł͂��߂̃p�[�g�̃w�b�_���擾
+ # マルチパートメッセージではじめのパートのヘッダを取得
  @Header('', @Part(0))
 
 =end

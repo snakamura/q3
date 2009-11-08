@@ -1,38 +1,38 @@
 =begin
-=ŽóM‚µ‚½ƒ[ƒ‹‚Ì‘—MŽÒ‚ðƒAƒhƒŒƒX’ ‚É“o˜^‚µ‚½–¼‘O‚Å•\Ž¦‚·‚é‚É‚Í‚Ç‚¤‚·‚ê‚Î—Ç‚¢‚Å‚·‚©?
+=å—ä¿¡ã—ãŸãƒ¡ãƒ¼ãƒ«ã®é€ä¿¡è€…ã‚’ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã«ç™»éŒ²ã—ãŸåå‰ã§è¡¨ç¤ºã™ã‚‹ã«ã¯ã©ã†ã™ã‚Œã°è‰¯ã„ã§ã™ã‹?
 
-==ƒŠƒXƒgƒrƒ…[‚Ì[‘—MŽÒ / ˆ¶æ]‚Ì—“‚ÉƒAƒhƒŒƒX’ ‚É“o˜^‚µ‚½–¼‘O‚Å•\Ž¦‚·‚é
-(1)ƒƒjƒ…[‚©‚ç[•\Ž¦]-[ƒJƒ‰ƒ€‚ðƒJƒXƒ^ƒ}ƒCƒY]‚ð‘I‘ð‚µA((<[ƒJƒ‰ƒ€‚ÌƒJƒXƒ^ƒ}ƒCƒY]ƒ_ƒCƒAƒƒO|URL:ViewsDialog.html>))‚ðŠJ‚«‚Ü‚·B
+==ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®[é€ä¿¡è€… / å®›å…ˆ]ã®æ¬„ã«ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã«ç™»éŒ²ã—ãŸåå‰ã§è¡¨ç¤ºã™ã‚‹
+(1)ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‹ã‚‰[è¡¨ç¤º]-[ã‚«ãƒ©ãƒ ã‚’ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚º]ã‚’é¸æŠžã—ã€((<[ã‚«ãƒ©ãƒ ã®ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚º]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:ViewsDialog.html>))ã‚’é–‹ãã¾ã™ã€‚
 
-(2)ƒŠƒXƒgƒ{ƒbƒNƒX‚Å[‘—MŽÒ / ˆ¶æ]‚Ìs‚ð‘I‘ð‚µA[•ÒW]ƒ{ƒ^ƒ“‚ðƒNƒŠƒbƒN‚µA((<[ƒJƒ‰ƒ€]ƒ_ƒCƒAƒƒO|URL:ViewsColumnDialog.html>))‚ðŠJ‚«‚Ü‚·B
+(2)ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã§[é€ä¿¡è€… / å®›å…ˆ]ã®è¡Œã‚’é¸æŠžã—ã€[ç·¨é›†]ãƒœã‚¿ãƒ³ã‚’ã‚¯ãƒªãƒƒã‚¯ã—ã€((<[ã‚«ãƒ©ãƒ ]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:ViewsColumnDialog.html>))ã‚’é–‹ãã¾ã™ã€‚
 
-(3)[ƒ^ƒCƒv]ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚Åu‚»‚Ì‘¼v‚ð‘I‘ð‚µA[ƒ}ƒNƒ]‚ÉˆÈ‰º‚Ìƒ}ƒNƒ‚ðŽw’è‚µ‚Ü‚·
+(3)[ã‚¿ã‚¤ãƒ—]ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã§ã€Œãã®ä»–ã€ã‚’é¸æŠžã—ã€[ãƒžã‚¯ãƒ­]ã«ä»¥ä¸‹ã®ãƒžã‚¯ãƒ­ã‚’æŒ‡å®šã—ã¾ã™
     @FormatAddress(From, :FORMAT-NAME, :LOOKUP-FORCE)
-   ((<ƒJƒ‰ƒ€‚ÌƒJƒXƒ^ƒ}ƒCƒY|"IMG:images/ShowNameInAddressBook.png">))
+   ((<ã‚«ãƒ©ãƒ ã®ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚º|"IMG:images/ShowNameInAddressBook.png">))
 
-(4)[ƒtƒ‰ƒO]‚Ì[ƒLƒƒƒbƒVƒ…]‚Éƒ`ƒFƒbƒN‚ª“ü‚Á‚Ä‚¢‚é‚±‚Æ‚ðŠm”F‚µ‚Ü‚·B
+(4)[ãƒ•ãƒ©ã‚°]ã®[ã‚­ãƒ£ãƒƒã‚·ãƒ¥]ã«ãƒã‚§ãƒƒã‚¯ãŒå…¥ã£ã¦ã„ã‚‹ã“ã¨ã‚’ç¢ºèªã—ã¾ã™ã€‚
 
-(5)‡‚É[OK]ƒ{ƒ^ƒ“‚ð‰Ÿ‚µ‚Äƒ_ƒCƒAƒƒO‚ð•Â‚¶‚Ü‚·B
+(5)é †ã«[OK]ãƒœã‚¿ãƒ³ã‚’æŠ¼ã—ã¦ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’é–‰ã˜ã¾ã™ã€‚
 
-:FORMAT-NAME‚Ì‘ã‚í‚è‚É:FORMAT-ALL‚ðŽw’è‚·‚é‚±‚Æ‚ÅA–¼‘O‚Æƒ[ƒ‹ƒAƒhƒŒƒX‚Ì—¼•û‚ð•\Ž¦‚·‚é‚±‚Æ‚à‚Å‚«‚Ü‚·BÚ×‚ÍA((<@FormatAddress|URL:FormatAddressFunction.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+:FORMAT-NAMEã®ä»£ã‚ã‚Šã«:FORMAT-ALLã‚’æŒ‡å®šã™ã‚‹ã“ã¨ã§ã€åå‰ã¨ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã®ä¸¡æ–¹ã‚’è¡¨ç¤ºã™ã‚‹ã“ã¨ã‚‚ã§ãã¾ã™ã€‚è©³ç´°ã¯ã€((<@FormatAddress|URL:FormatAddressFunction.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==ƒwƒbƒ_ƒrƒ…[‚Ì[‘—MŽÒ]‚Ì—“‚ÉƒAƒhƒŒƒX’ ‚É“o˜^‚µ‚½–¼‘O‚Å•\Ž¦‚·‚é
-((<header.xml|URL:HeaderXml.html>))‚ð•ÒW‚µ‚Ü‚·BˆÈ‰º‚Ì‚Æ‚±‚ë‚ð’T‚µA
+==ãƒ˜ãƒƒãƒ€ãƒ“ãƒ¥ãƒ¼ã®[é€ä¿¡è€…]ã®æ¬„ã«ã‚¢ãƒ‰ãƒ¬ã‚¹å¸³ã«ç™»éŒ²ã—ãŸåå‰ã§è¡¨ç¤ºã™ã‚‹
+((<header.xml|URL:HeaderXml.html>))ã‚’ç·¨é›†ã—ã¾ã™ã€‚ä»¥ä¸‹ã®ã¨ã“ã‚ã‚’æŽ¢ã—ã€
 
  <line class="mail|news">
-  <static width="auto" style="bold" showAlways="true">‘—MŽÒ:</static>
+  <static width="auto" style="bold" showAlways="true">é€ä¿¡è€…:</static>
   <edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}" number="4">{@FormatAddress(From, 3)}</edit>
-  <static width="auto" style="bold" align="right" showAlways="true">“ú•t:</static>
+  <static width="auto" style="bold" align="right" showAlways="true">æ—¥ä»˜:</static>
   <edit width="10em" number="5">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
  </line>
 
-ˆÈ‰º‚Ì‚æ‚¤‚É‘‚«Š·‚¦‚Ü‚·B
+ä»¥ä¸‹ã®ã‚ˆã†ã«æ›¸ãæ›ãˆã¾ã™ã€‚
 
  <line class="mail|news">
-  <static width="auto" style="bold" showAlways="true">‘—MŽÒ:</static>
+  <static width="auto" style="bold" showAlways="true">é€ä¿¡è€…:</static>
   <edit background="{@If(@Not(@Param('Verify')), '', @Contain(@Param('Verify'), 'AddressMatch'), 'f5f6be', @Contain(@Param('Verify'), 'AddressMismatch'), 'ec7b95', '')}" number="4">{@FormatAddress(From, :FORMAT-ALL, :LOOKUP-FORCE)}</edit>
-  <static width="auto" style="bold" align="right" showAlways="true">“ú•t:</static>
+  <static width="auto" style="bold" align="right" showAlways="true">æ—¥ä»˜:</static>
   <edit width="10em" number="5">{@FormatDate(@Date(Date), @Profile('', 'Global', 'DefaultTimeFormat'))}</edit>
  </line>
 

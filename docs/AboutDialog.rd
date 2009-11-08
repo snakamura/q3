@@ -1,6 +1,6 @@
 =begin
-=[QMAIL‚Ìƒo[ƒWƒ‡ƒ“î•ñ]ƒ_ƒCƒAƒƒO
+=[QMAILã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³æƒ…å ±]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 
-((<[QMAIL‚Ìƒo[ƒWƒ‡ƒ“î•ñ]ƒ_ƒCƒAƒƒO|"IMG:images/AboutDialog.png">))
+((<[QMAILã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³æƒ…å ±]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|"IMG:images/AboutDialog.png">))
 
 =end

@@ -4,32 +4,32 @@
  Boolean @Save(String path, String content, String encoding?)
 
 
-==����
-�w�肳�ꂽ�p�X�Ɏw�肳�ꂽ���e���������݁A�������񂾓��e��Ԃ��܂��B�p�X�ɑ��΃p�X���w�肳�ꂽ�ꍇ�ɂ̓��[���{�b�N�X�f�B���N�g������̑��΃p�X�ɂȂ�܂��B
+==説明
+指定されたパスに指定された内容を書き込み、書き込んだ内容を返します。パスに相対パスが指定された場合にはメールボックスディレクトリからの相対パスになります。
 
-encoding���w�肷��Ǝw�肳�ꂽ�G���R�[�f�B���O�ŏ������݂܂��B�w�肳��Ȃ��ꍇ�ɂ̓V�X�e���̃f�t�H���g�̃G���R�[�f�B���O�ŏ������݂܂��B
+encodingを指定すると指定されたエンコーディングで書き込みます。指定されない場合にはシステムのデフォルトのエンコーディングで書き込みます。
 
 
-==����
+==引数
 :String path
-  �t�@�C���p�X
+  ファイルパス
 :String content
-  ���e
+  内容
 :String encoding
-  �G���R�[�f�B���O
+  エンコーディング
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�������݂Ɏ��s�����ꍇ
+==エラー
+*引数の数が合っていない場合
+*書き込みに失敗した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �{�����t�@�C���ɏ�������
+==例
+ # 本文をファイルに書き込む
  @Save('C:\\Temp\\Test.txt', @Body())
 
 =end

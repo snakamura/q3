@@ -1,16 +1,16 @@
 =begin
-=MessageExpandDigestƒAƒNƒVƒ‡ƒ“
+=MessageExpandDigestã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒ_ƒCƒWƒFƒXƒgŒ`Ž®‚ÌƒƒbƒZ[ƒW‚ð•ªŠ„‚µ‚Ü‚·B‘Î‰ž‚µ‚Ä‚¢‚éƒ_ƒCƒWƒFƒXƒgŒ`Ž®‚ÍA((<"multipart/digestŒ`Ž®"|URL:http://www.ietf.org/rfc/rfc2046.txt>))‚ÆA((<RFC1153Œ`Ž®|URL:http://www.ietf.org/rfc/rfc1153.txt>))‚Å‚·B•ªŠ„‚³‚ê‚½ƒƒbƒZ[ƒW‚ÍAŒ³‚ÌƒƒbƒZ[ƒW‚Æ“¯‚¶ƒtƒHƒ‹ƒ_‚É’Ç‰Á‚³‚ê‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ãƒ€ã‚¤ã‚¸ã‚§ã‚¹ãƒˆå½¢å¼ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’åˆ†å‰²ã—ã¾ã™ã€‚å¯¾å¿œã—ã¦ã„ã‚‹ãƒ€ã‚¤ã‚¸ã‚§ã‚¹ãƒˆå½¢å¼ã¯ã€((<"multipart/digestå½¢å¼"|URL:http://www.ietf.org/rfc/rfc2046.txt>))ã¨ã€((<RFC1153å½¢å¼|URL:http://www.ietf.org/rfc/rfc1153.txt>))ã§ã™ã€‚åˆ†å‰²ã•ã‚ŒãŸãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¯ã€å…ƒã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¨åŒã˜ãƒ•ã‚©ãƒ«ãƒ€ã«è¿½åŠ ã•ã‚Œã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒŠƒXƒgƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ“ãƒ¥ãƒ¼
 
 =end

@@ -1,176 +1,176 @@
 =begin
 =headeredit.xml
 
-�w�b�_�G�f�B�b�g�r���[�̐ݒ������XML�t�@�C���ł��B
+ヘッダエディットビューの設定をするXMLファイルです。
 
 
-==����
+==書式
 
-===headerEdit�G�������g
+===headerEditエレメント
 
  <headerEdit>
   <!-- line -->
  </headerEdit>
 
-headerEdit�G�������g���g�b�v���x���G�������g�ɂȂ�܂��BheaderEdit�G�������g�ȉ��ɂ�0�ȏ��line�G�������g��u�����Ƃ��ł��܂��B
+headerEditエレメントがトップレベルエレメントになります。headerEditエレメント以下には0個以上のlineエレメントを置くことができます。
 
 
-===line�G�������g
+===lineエレメント
 
  <line
   hideIfNoFocus="true|false"
-  class="�N���X��">
+  class="クラス名">
   <!-- static, edit, address, attachment, account, signature -->
  </line>
 
-line�G�������g�̓w�b�_�G�f�B�b�g�r���[�̈�s��\���܂��B
+lineエレメントはヘッダエディットビューの一行を表します。
 
-hideIfNoFocus�����́A�w�b�_�G�f�B�b�g�r���[����t�H�[�J�X���Ȃ��Ȃ����Ƃ��i�Ⴆ�΃G�f�B�b�g�r���[�Ƀt�H�[�J�X���ړ������Ƃ��j�ɂ��̍s���B�����ǂ������w�肵�܂��B�w�肵�Ȃ��ꍇ�ɂ�false���w�肵���̂Ɠ����ɂȂ�܂��B
+hideIfNoFocus属性は、ヘッダエディットビューからフォーカスがなくなったとき（例えばエディットビューにフォーカスが移動したとき）にその行を隠すかどうかを指定します。指定しない場合にはfalseを指定したのと同じになります。
 
-class�����ɂ͐��K�\�����w�肵�܂��B�w�肵�����K�\���ɃA�J�E���g�N���X���}�b�`����ꍇ�̂ݍs���\������܂��B�Ⴆ�΁A"mail|news"�Ǝw�肷���mail�A�J�E���g��news�A�J�E���g�ł̂ݕ\�������悤�ɂȂ�܂��B�w�肵�Ȃ��ꍇ�ɂ́A�A�J�E���g�N���X�ɂ�����炸��ɕ\������܂��B
+class属性には正規表現を指定します。指定した正規表現にアカウントクラスがマッチする場合のみ行が表示されます。例えば、"mail|news"と指定するとmailアカウントとnewsアカウントでのみ表示されるようになります。指定しない場合には、アカウントクラスにかかわらず常に表示されます。
 
 
-===static�G�������g
+===staticエレメント
 
  <static
-  width="��"
-  number="�ԍ�"
+  width="幅"
+  number="番号"
   initialFocus="true|false"
-  style="�t�H���g�X�^�C��"
+  style="フォントスタイル"
   align="left|center|right">
-  ������
+  文字列
  </static>
 
-static�G�������g�̓X�^�e�B�b�N�R���g���[����\���܂��B�R���e���c�ɕ\�����镶������w�肵�܂��B
+staticエレメントはスタティックコントロールを表します。コンテンツに表示する文字列を指定します。
 
-width�����ɂ͕����w�肵�܂��B���̎w��ɂ��ẮA((<header.xml|URL:HeaderXml.html>))�̔��l���Q�Ƃ��Ă��������B
+width属性には幅を指定します。幅の指定については、((<header.xml|URL:HeaderXml.html>))の備考を参照してください。
 
-number�����ɂ̓R���g���[���̔ԍ����w�肵�܂��B���̔ԍ���((<ViewFocusEditItem�A�N�V����|URL:ViewFocusEditItemAction.html>))�̈����Ɏw�肷�邱�ƂŁA�t�H�[�J�X���ړ����邱�Ƃ��ł��܂��B
+number属性にはコントロールの番号を指定します。この番号を((<ViewFocusEditItemアクション|URL:ViewFocusEditItemAction.html>))の引数に指定することで、フォーカスを移動することができます。
 
-initialFocus�����ɂ̓G�f�B�b�g�E�B���h�E���J�����Ƃ��Ƀt�H�[�J�X���󂯎�邩�ǂ������w�肵�܂��B�w�肵�Ȃ��ꍇ�ɂ́Atrue���w�肵���̂Ɠ����ɂȂ�܂��B
+initialFocus属性にはエディットウィンドウを開いたときにフォーカスを受け取るかどうかを指定します。指定しない場合には、trueを指定したのと同じになります。
 
-style�����ɂ̓t�H���g�̃X�^�C�����w�肵�܂��B�w��ł���̂�bold��italic�̑g�ݍ��킹�ł��B�����w�肷��ꍇ�ɂ�,�ŋ�؂�܂��B�w�肵�Ȃ��ꍇ�ɂ͒ʏ�̃X�^�C���ɂȂ�܂��B
+style属性にはフォントのスタイルを指定します。指定できるのはboldとitalicの組み合わせです。複数指定する場合には,で区切ります。指定しない場合には通常のスタイルになります。
 
-align�����ɂ�left, center, right�̂����ꂩ���w�肵�܂��B���ꂼ��A���񂹁A�����񂹁A�E�񂹂ɂȂ�܂��B�w�肵�Ȃ��ꍇ�ɂ͍��񂹂ɂȂ�܂��B
+align属性にはleft, center, rightのいずれかを指定します。それぞれ、左寄せ、中央寄せ、右寄せになります。指定しない場合には左寄せになります。
 
 
-===edit�G�������g
+===editエレメント
 
  <edit
-  width="��"
-  number="�ԍ�"
+  width="幅"
+  number="番号"
   initialFocus="true|false"
-  style="�t�H���g�X�^�C��"
+  style="フォントスタイル"
   align="left|center|right"
-  field="�w�b�_��"
+  field="ヘッダ名"
   type="addressList|references|unstructured"/>
 
-edit�G�������g�̓G�f�B�b�g�R���g���[����\���܂��B
+editエレメントはエディットコントロールを表します。
 
-width, number, initialFocus, style, align�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
+width, number, initialFocus, style, align属性についてはstaticエレメントを参照してください。
 
-field�����ɂ͂��̃G�f�B�b�g�R���g���[���ŕҏW����w�b�_�����w�肵�܂��B�܂��Atype�����ɂ͂��̃w�b�_�̌^���w�肵�܂��B�w��ł���̂́AaddressList, references, unstructured�̂����ꂩ�ł��B
+field属性にはこのエディットコントロールで編集するヘッダ名を指定します。また、type属性にはそのヘッダの型を指定します。指定できるのは、addressList, references, unstructuredのいずれかです。
 
 
-===address�G�������g
+===addressエレメント
 
  <address
-  width="��"
-  number="�ԍ�"
+  width="幅"
+  number="番号"
   initialFocus="true|false"
-  style="�t�H���g�X�^�C��"
+  style="フォントスタイル"
   align="left|center|right"
-  field="�w�b�_��"
+  field="ヘッダ名"
   expandAlias="true|false"
   autoComplete="true|false"/>
 
-address�G�������g�̓A�h���X�p�̃G�f�B�b�g�R���g���[����\���܂��B
+addressエレメントはアドレス用のエディットコントロールを表します。
 
-width, number, initialFocus, style, align�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������Bfield�����ɂ��Ă�edit�G�������g���Q�Ƃ��Ă��������B
+width, number, initialFocus, style, align属性についてはstaticエレメントを参照してください。field属性についてはeditエレメントを参照してください。
 
-expandAlias�����ɂ́A((<�A�h���X��|URL:AddressBook.html>))�̕ʖ���W�J���邩�ǂ������w�肵�܂��Btrue���w�肷��ƃt�H�[�J�X���������Ƃ��ɕʖ���W�J���܂��B�w�肵�Ȃ��ꍇ�ɂ�true���w�肵���̂Ɠ����ɂȂ�܂��B
+expandAlias属性には、((<アドレス帳|URL:AddressBook.html>))の別名を展開するかどうかを指定します。trueを指定するとフォーカスを失ったときに別名を展開します。指定しない場合にはtrueを指定したのと同じになります。
 
-autoComplete�����ɂ́A((<�A�h���X�̎����⊮|URL:AddressAutoComplete.html>))��L���ɂ��邩�ǂ������w�肵�܂��B�w�肵�Ȃ��ꍇ�ɂ�true���w�肵���̂Ɠ����ɂȂ�܂��B
+autoComplete属性には、((<アドレスの自動補完|URL:AddressAutoComplete.html>))を有効にするかどうかを指定します。指定しない場合にはtrueを指定したのと同じになります。
 
 
-===attachment�G�������g
+===attachmentエレメント
 
  <attachment
-  width="��"
-  number="�ԍ�"
+  width="幅"
+  number="番号"
   initialFocus="true|false"/>
 
-attachment�G�������g�͓Y�t�t�@�C���ҏW�R���g���[����\���܂��B
+attachmentエレメントは添付ファイル編集コントロールを表します。
 
-width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
+width, number, initialFocus属性についてはstaticエレメントを参照してください。
 
 
-===account�G�������g
+===accountエレメント
 
  <account
-  width="��"
-  number="�ԍ�"
+  width="幅"
+  number="番号"
   initialFocus="true|false"
   showFrom="true|false"/>
 
-account�G�������g��((<�A�J�E���g|URL:Account.html>))�I���R���g���[����\���܂��B�I���\�ȃA�J�E���g�A�T�u�A�J�E���g���R���{�{�b�N�X�ŕ\������܂��B
+accountエレメントは((<アカウント|URL:Account.html>))選択コントロールを表します。選択可能なアカウント、サブアカウントがコンボボックスで表示されます。
 
-width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
+width, number, initialFocus属性についてはstaticエレメントを参照してください。
 
-showFrom�����ɂ̓A�J�E���g���ׂ̗Ɏg�p�����From�A�h���X��\�����邩�ǂ������w�肵�܂��B�w�肵�Ȃ��ꍇ�ɂ�true���w�肵���̂Ɠ����ɂȂ�܂��B
+showFrom属性にはアカウント名の隣に使用されるFromアドレスを表示するかどうかを指定します。指定しない場合にはtrueを指定したのと同じになります。
 
 
-===signature�G�������g
+===signatureエレメント
 
  <signature
-  width="��"
-  number="�ԍ�"
+  width="幅"
+  number="番号"
   initialFocus="true|false"/>
 
-signature�G�������g��((<����|URL:Signature.html>))�I���R���g���[����\���܂��B�I���\�ȏ������R���{�{�b�N�X�ŕ\������܂��B
+signatureエレメントは((<署名|URL:Signature.html>))選択コントロールを表します。選択可能な署名がコンボボックスで表示されます。
 
-width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
+width, number, initialFocus属性についてはstaticエレメントを参照してください。
 
 
-===combobox�G�������g
+===comboboxエレメント
 
  <combobox
-  width="��"
-  number="�ԍ�"
+  width="幅"
+  number="番号"
   initialFocus="true|false"
-  field="�w�b�_��">
+  field="ヘッダ名">
   <!-- option -->
  </combobox>
 
-combobox�G�������g�̓R���{�{�b�N�X���g�����I���R���g���[����\���܂��B�ЂƂȏ��option�q�G�������g�Ŏw�肵���I���������X�g����܂��B
+comboboxエレメントはコンボボックスを使った選択コントロールを表します。ひとつ以上のoption子エレメントで指定した選択したリストされます。
 
-width, number, initialFocus, field�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B�w�b�_�̌^��unstructured�ɂȂ�܂��B
+width, number, initialFocus, field属性についてはstaticエレメントを参照してください。ヘッダの型はunstructuredになります。
 
 
-===option�G�������g
+===optionエレメント
 
  <option>
-  ������
+  文字列
  </option>
 
-option�G�������g��combobox�G�������g�̎q�G�������g�Ƃ��āA�R���{�{�b�N�X�ɕ\�������I�������w�肵�܂��B
+optionエレメントはcomboboxエレメントの子エレメントとして、コンボボックスに表示される選択肢を指定します。
 
 
-===checkbox�G�������g
+===checkboxエレメント
 
  <checkbox
-  width="��"
-  number="�ԍ�"
+  width="幅"
+  number="番号"
   initialFocus="true|false"
-  field="�w�b�_��"
-  value="�l"/>
+  field="ヘッダ名"
+  value="値"/>
 
-checkbox�G�������g�̓`�F�b�N�{�b�N�X��\���܂��Bfield�����Ŏw�肵���w�b�_�̒l��value�����Ŏw�肵���l�Ɉ�v����ꍇ�Ƀ`�F�b�N����A����ȊO�̏ꍇ�ɂ̓`�F�b�N����܂���B�܂��A�`�F�b�N������Ǝw�肵���w�b�_�Ɏw�肵���l���ݒ肳��܂��B�w�b�_�̌^��unstructured�ɂȂ�܂��B
+checkboxエレメントはチェックボックスを表します。field属性で指定したヘッダの値がvalue属性で指定した値に一致する場合にチェックされ、それ以外の場合にはチェックされません。また、チェックを入れると指定したヘッダに指定した値が設定されます。ヘッダの型はunstructuredになります。
 
-width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
+width, number, initialFocus属性についてはstaticエレメントを参照してください。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <headerEdit>
@@ -211,7 +211,7 @@ width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
  </headerEdit>
 
 
-==�X�L�[�}
+==スキーマ
 
  start = element headerEdit {
    element line {
@@ -224,13 +224,13 @@ width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
        } |
        element address {
          textitem,
-         ## �G�C���A�X��W�J���邩�ǂ���
-         ## �w�肳��Ȃ��ꍇ�Atrue
+         ## エイリアスを展開するかどうか
+         ## 指定されない場合、true
          attribute expandAlias {
            xsd:boolean
          }?,
-         ## �I�[�g�R���v���[�g���g�p���邩�ǂ���
-         ## �w�肳��Ȃ��ꍇ�Atrue
+         ## オートコンプリートを使用するかどうか
+         ## 指定されない場合、true
          attribute autoComplete {
            xsd:boolean
          }?
@@ -240,8 +240,8 @@ width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
        } |
        element account {
          item,
-         ## From�̃A�h���X��\�����邩�ǂ���
-         ## �w�肳��Ȃ��ꍇ�Atrue
+         ## Fromのアドレスを表示するかどうか
+         ## 指定されない場合、true
          attribute showFrom {
            xsd:boolean
          }?
@@ -251,34 +251,34 @@ width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
        } |
        element combobox {
          item,
-         ## �w�b�_��
+         ## ヘッダ名
          attribute field {
            xsd:string
          },
-         ## �I����
+         ## 選択肢
          element option {
            xsd:string
          }+
        }
        element checkbox {
          item,
-         ## �w�b�_��
+         ## ヘッダ名
          attribute field {
            xsd:string
          },
-         ## �`�F�b�N���ꂽ�Ƃ��Ɏg����l
+         ## チェックされたときに使われる値
          attribute value {
            xsd:string
          }
        }
      )*,
-     ## �t�H�[�J�X���Ȃ��ꍇ�ɉB�����ǂ���
-     ## �w�肳��Ȃ��ꍇ�Afalse
+     ## フォーカスがない場合に隠すかどうか
+     ## 指定されない場合、false
      attribute hideIfNoFocus {
        xsd:boolean
      }?,
-     ## �ǂ̃A�J�E���g�N���X�ŕ\�����邩
-     ## �w�肳��Ȃ��ꍇ�ɂ͂��ׂẴN���X�ŕ\��
+     ## どのアカウントクラスで表示するか
+     ## 指定されない場合にはすべてのクラスで表示
      attribute class {
        xsd:string
      }?
@@ -298,9 +298,9 @@ width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
  }?
  
  textitem = item,
- ## �X�^�C��
- ## bold��italic���w��\
- ## �����w�肷��ꍇ�ɂ�,�ŋ�؂�
+ ## スタイル
+ ## boldとitalicが指定可能
+ ## 複数指定する場合には,で区切る
  attribute style {
    xsd:string
  }?,
@@ -310,11 +310,11 @@ width, number, initialFocus�����ɂ��Ă�static�G�������g���Q�Ƃ��Ă��������B
  (
    xsd:string |
    (
-     ## �w�b�_��
+     ## ヘッダ名
      attribute field {
        xsd:string
      },
-     ## �w�b�_�̃^�C�v
+     ## ヘッダのタイプ
      attribute type {
        "addressList" | "references" | "unstructured"
      }?

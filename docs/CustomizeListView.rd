@@ -1,6 +1,6 @@
 =begin
-=���X�g�r���[�̃J�X�^�}�C�Y
+=リストビューのカスタマイズ
 
-���X�g�r���[�ɂǂ̂悤�ȏ���\�����邩�̓J�X�^�}�C�Y���邱�Ƃ��ł��܂��B�J�X�^�}�C�Y�����ݒ�͊e�t�H���_���Ƃɕۑ�����܂��̂ŁA�t�H���_���Ƃɕ\����������w�肷�邱�Ƃ��ł��܂��B���X�g�r���[���J�X�^�}�C�Y����ɂ́A((<[�\��]-[�J�������J�X�^�}�C�Y]|URL:ConfigViewsAction.html>))��I�����܂��B�I������ƁA((<[�J�����̃J�X�^�}�C�Y]�_�C�A���O|URL:ViewsDialog.html>))���J���܂��B
+リストビューにどのような情報を表示するかはカスタマイズすることができます。カスタマイズした設定は各フォルダごとに保存されますので、フォルダごとに表示する情報を指定することができます。リストビューをカスタマイズするには、((<[表示]-[カラムをカスタマイズ]|URL:ConfigViewsAction.html>))を選択します。選択すると、((<[カラムのカスタマイズ]ダイアログ|URL:ViewsDialog.html>))が開きます。
 
 =end

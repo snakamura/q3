@@ -1,6 +1,6 @@
 =begin
-=POP3�A�J�E���g�œY�t�t�@�C���ȊO���_�E�����[�h����ɂ͂ǂ�����Ηǂ��ł���?
+=POP3アカウントで添付ファイル以外をダウンロードするにはどうすれば良いですか?
 
-POP3�̓v���g�R���̎d�l�Ƃ��ēY�t�t�@�C���ȊO�̕������_�E�����[�h�ł��܂���B����ɍs�����w�肵�Đ擪����w�肵���s�������_�E�����[�h���邱�Ƃ͂ł��܂��̂ŁA��������g�p���Ă��������B�s�����w�肵���_�E�����[�h�̕��@�́A((<������M�ƃ_�E�����[�h�\��|URL:Pop3PartialDownload.html>))���Q�Ƃ��Ă��������B
+POP3はプロトコルの仕様として添付ファイル以外の部分をダウンロードできません。代わりに行数を指定して先頭から指定した行数だけダウンロードすることはできますので、そちらを使用してください。行数を指定したダウンロードの方法は、((<部分受信とダウンロード予約|URL:Pop3PartialDownload.html>))を参照してください。
 
 =end

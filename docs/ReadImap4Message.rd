@@ -1,13 +1,13 @@
 =begin
-=���[����ǂ�
+=メールを読む
 
-==���[������M����
-���[������M����ɂ́A�t�H���_�r���[�ŃA�J�E���g�܂��͔C�ӂ̃t�H���_��I�����āA((<[�c�[��]-[��M]|URL:ToolReceiveAction.html>))��I�����܂��B����̃t�H���_������M�������ꍇ�ɂ́A��荞�݂����t�H���_��I�����āA((<[�c�[��]-[�t�H���_�𓯊�]|URL:ToolReceiveFolderAction.html>))��I�����܂��B
+==メールを受信する
+メールを受信するには、フォルダビューでアカウントまたは任意のフォルダを選択して、((<[ツール]-[受信]|URL:ToolReceiveAction.html>))を選択します。特定のフォルダだけ受信したい場合には、取り込みたいフォルダを選択して、((<[ツール]-[フォルダを同期]|URL:ToolReceiveFolderAction.html>))を選択します。
 
 
-==���[����ǂ�
-��M�������[����ǂނɂ́A���X�g�r���[�œǂ݂������b�Z�[�W���N���b�N���܂��B����ƁA���X�g�r���[�Ń��b�Z�[�W���I������A�v���r���[�Ƀ��b�Z�[�W�̓��e���\������܂��B���b�Z�[�W�̓��e���\������Ȃ��ꍇ�ɂ́A�I�t���C�����[�h�ɂȂ��Ă��Ȃ����ǂ������m�F���Ă��������B((<[�t�@�C��]-[�I�t���C��]|URL:FileOfflineAction.html>))��I�����邱�ƂŃI�����C�����[�h�Ɛ؂�ւ��邱�Ƃ��ł��܂��B
+==メールを読む
+受信したメールを読むには、リストビューで読みたいメッセージをクリックします。すると、リストビューでメッセージが選択され、プレビューにメッセージの内容が表示されます。メッセージの内容が表示されない場合には、オフラインモードになっていないかどうかを確認してください。((<[ファイル]-[オフライン]|URL:FileOfflineAction.html>))を選択することでオンラインモードと切り替えることができます。
 
-���̑��̊�{�I�ȓǂݕ���POP3�A�J�E���g�Ɠ��l�ł��̂ŁA((<���[����ǂ�|URL:ReadPop3Message.html>))���Q�Ƃ��Ă��������B
+その他の基本的な読み方はPOP3アカウントと同様ですので、((<メールを読む|URL:ReadPop3Message.html>))を参照してください。
 
 =end

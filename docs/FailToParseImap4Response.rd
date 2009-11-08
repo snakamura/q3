@@ -1,20 +1,20 @@
 =begin
-=IMAP4�A�J�E���g�ŃT�[�o����̃��X�|���X�̃p�[�X�Ɏ��s���܂�
+=IMAP4アカウントでサーバからのレスポンスのパースに失敗します
 
-IMAP4�A�J�E���g�Ńt�H���_�𓯊�����Ƃ��Ɉȉ��̂悤�ȃG���[���������邱�Ƃ�����܂��B
+IMAP4アカウントでフォルダを同期するときに以下のようなエラーが発生することがあります。
 
- [�A�J�E���g�� - �t�H���_��] IMAP4�G���[ (0x00070400)
- FETCH�R�}���h�ŃG���[���������܂���
- ���X�|���X�̃p�[�X�Ɏ��s���܂���
+ [アカウント名 - フォルダ名] IMAP4エラー (0x00070400)
+ FETCHコマンドでエラーが発生しました
+ レスポンスのパースに失敗しました
 
-���̃G���[���o��ꍇ�A�����̏ꍇ�̓T�[�o�Ƀo�O�������ĊԈ�������X�|���X��Ԃ��̂������ł��BQMAIL3�͌����I�ɃT�[�o���烁�b�Z�[�W���擾���邽�߂ɁA���̃��[���ɔ�ׂ�ƃT�[�o�Ɍ������R�}���h�𔭍s����X�������邽�߁A���̃��[���ŃG���[�ɂȂ�Ȃ��P�[�X�ł��G���[�ɂȂ邱�Ƃ�����܂��B
+このエラーが出る場合、多くの場合はサーバにバグがあって間違ったレスポンスを返すのが原因です。QMAIL3は効率的にサーバからメッセージを取得するために、他のメーラに比べるとサーバに厳しいコマンドを発行する傾向があるため、他のメーラでエラーにならないケースでもエラーになることがあります。
 
-���̂悤�ȏꍇ�ɂ́A((<IMAP4�̐ݒ�|URL:AccountImap4.html>))�ňȉ��̃`�F�b�N���O���Ă݂Ă��������B
+このような場合には、((<IMAP4の設定|URL:AccountImap4.html>))で以下のチェックを外してみてください。
 
-*[ENVELOPE���g�p]
-*[���BODYSTRUCTURE���g�p]
-*[BODYSTRUCTURE��M��]
+*[ENVELOPEを使用]
+*[常にBODYSTRUCTUREを使用]
+*[BODYSTRUCTUREを信頼]
 
-�T�[�o�������������X�|���X��Ԃ��Ă���Ǝv����ꍇ�ɂ́A((<�ʐM���O|URL:Log.html>))�Ƌ��Ƀo�O���|�[�g���グ�Ă��������B
+サーバ側が正しいレスポンスを返していると思われる場合には、((<通信ログ|URL:Log.html>))と共にバグレポートを上げてください。
 
 =end

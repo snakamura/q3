@@ -4,24 +4,24 @@
  String @MessageId()
 
 
-==����
-�R���e�L�X�g���b�Z�[�W��Message-Id��Ԃ��܂��B���݂��Ȃ��ꍇ��p�[�X�Ɏ��s�����ꍇ�ɂ͋󕶎����Ԃ��܂��B(({Message-Id}))���g�p����ƁA�R���e�L�X�g���b�Z�[�W��Message-Id���s���ȏꍇ�ł�������Ƃ��Ď擾�ł��Ă��܂��܂����A(({@MessageId()}))���g�p����΁A���̂悤�ȏꍇ�ɂ͋󕶎���ɂȂ�܂��B
+==説明
+コンテキストメッセージのMessage-Idを返します。存在しない場合やパースに失敗した場合には空文字列を返します。(({Message-Id}))を使用すると、コンテキストメッセージのMessage-Idが不正な場合でも文字列として取得できてしまいますが、(({@MessageId()}))を使用すれば、そのような場合には空文字列になります。
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # Message-Id���擾
+==例
+ # Message-Idを取得
  @MessageId()
 
 =end

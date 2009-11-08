@@ -1,8 +1,8 @@
 =begin
-=IMAP4�A�J�E���g�ő��M����ƃG���[�ɂȂ�܂�
+=IMAP4アカウントで送信するとエラーになります
 
-IMAP4�A�J�E���g�Ń��b�Z�[�W���쐬���A�G�f�B�b�g�E�B���h�E��((<[�t�@�C��]-[���M]|URL:FileSendAction.html>))��I������ƃG���[���N����ꍇ�A���M�����w�肵�Ă��Ȃ��̂������ł���\���������ł��BIMAP4�ł͑��M���郁�b�Z�[�W��ۑ����邽�߂̑��M���Ȃǂ������Ŏw�肷��K�v������܂��B
+IMAP4アカウントでメッセージを作成し、エディットウィンドウで((<[ファイル]-[送信]|URL:FileSendAction.html>))を選択するとエラーが起きる場合、送信箱を指定していないのが原因である可能性が高いです。IMAP4では送信するメッセージを保存するための送信箱などを自分で指定する必要があります。
 
-((<�A�J�E���g�̍쐬|URL:CreateImap4Account.html>))�̓���t�H���_�̐ݒ���Q�Ƃ��āA����t�H���_���w�肵�Ă��������B
+((<アカウントの作成|URL:CreateImap4Account.html>))の特殊フォルダの設定を参照して、特殊フォルダを指定してください。
 
 =end

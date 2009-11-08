@@ -1,49 +1,49 @@
 =begin
-=���[��������
+=メールを書く
 
-==�V�K�Ƀ��[��������
-�V�K�Ƀ��[���������Ƃ��ɂ́A((<[���b�Z�[�W]-[�V�K]|URL:MessageCreateAction.html>))��I�����܂��B�I������ƁA�G�f�B�b�g�E�B���h�E���J���܂��B
+==新規にメールを書く
+新規にメールを書くときには、((<[メッセージ]-[新規]|URL:MessageCreateAction.html>))を選択します。選択すると、エディットウィンドウが開きます。
 
-((<�G�f�B�b�g�E�B���h�E|"IMG:images/TutorialPop3CreateMessage.png">))
+((<エディットウィンドウ|"IMG:images/TutorialPop3CreateMessage.png">))
 
-[����], [Cc], [Bcc]�ɂ��ꂼ�ꑗ�M��A�h���X����͂��܂��B�����̃��[���A�h���X���w�肷��ɂ́A�u,�v�ŋ�؂�܂��B((<[�c�[��]-[�A�h���X��]|URL:ToolSelectAddressAction.html>))��I�����A�A�h���X�����炱���̃A�h���X��I�����邱�Ƃ��ł��܂��B
+[宛先], [Cc], [Bcc]にそれぞれ送信先アドレスを入力します。複数のメールアドレスを指定するには、「,」で区切ります。((<[ツール]-[アドレス帳]|URL:ToolSelectAddressAction.html>))を選択し、アドレス帳からこれらのアドレスを選択することもできます。
 
-((<[�A�h���X�I��]�_�C�A���O|"IMG:images/TutorialPop3SelectAddressDialog.png">))
+((<[アドレス選択]ダイアログ|"IMG:images/TutorialPop3SelectAddressDialog.png">))
 
-�f�t�H���g�ł�Bcc�Ɏ����̃A�h���X���ݒ肳���悤�ɂȂ��Ă��܂��B����ɂ��A�����̑��M�������[���̃R�s�[���������g�ɂ������܂��̂ŁA������PC�ő��M�ς݂̃��[�����Ǘ�����̂ɕ֗��ł��B�f�t�H���g��Bcc�Ɏ����̃A�h���X��ݒ肵�����Ȃ��ꍇ�ɂ́A((<[�I�v�V����]�_�C�A���O��[���̑�2]�p�l��|URL:OptionMisc2.html>))��[������Bcc�Ɋ܂߂�]�̃`�F�b�N���O���܂��B
+デフォルトではBccに自分のアドレスが設定されるようになっています。これにより、自分の送信したメールのコピーが自分自身にも送られますので、複数のPCで送信済みのメールを管理するのに便利です。デフォルトでBccに自分のアドレスを設定したくない場合には、((<[オプション]ダイアログの[その他2]パネル|URL:OptionMisc2.html>))で[自分をBccに含める]のチェックを外します。
 
-[����]�Ɩ{������͂�����A((<[�t�@�C��]-[���M]|URL:FileSendAction.html>))��I������ƁA���M���ɑ��M�҂����b�Z�[�W�Ƃ��ĕۑ�����܂��B���M���ɕۑ����ꂽ���b�Z�[�W�͎���̑��M���ɑ��M����܂��B�������ɑ��M�������ꍇ�ɂ́A((<[�t�@�C��]-[�����ɑ��M]|URL:FileSendNowAction.html>))��I������ƁA���M���ɕۑ����A�����Ƀ��b�Z�[�W�𑗐M���܂��B
+[件名]と本文を入力したら、((<[ファイル]-[送信]|URL:FileSendAction.html>))を選択すると、送信箱に送信待ちメッセージとして保存されます。送信箱に保存されたメッセージは次回の送信時に送信されます。今すぐに送信したい場合には、((<[ファイル]-[すぐに送信]|URL:FileSendNowAction.html>))を選択すると、送信箱に保存し、すぐにメッセージを送信します。
 
-���e�Ƃ��ĕۑ��������ꍇ�ɂ́A((<[�t�@�C��]-[���e�Ƃ��ĕۑ�]|URL:FileDraftAction.html>))��I������ƁA���e���ɑ��e�Ƃ��ĕۑ�����܂��B�܂��A((<[�t�@�C��]-[���e�Ƃ��ĕۑ����ĕ���]|URL:FileDraftCloseAction.html>))��I������ƁA���e�Ƃ��ĕۑ����ăG�f�B�b�g�E�B���h�E����܂��B
-
-
-===�t�@�C���̓Y�t
-�t�@�C����Y�t�������ꍇ�ɂ́A�Y�t�������t�@�C�����G�N�X�v���[������G�f�B�b�g�E�B���h�E�Ƀh���b�O�A���h�h���b�v���܂��B����ƁA[�Y�t]�̂Ƃ���ɓY�t���ꂽ�t�@�C�����\������܂��B
-
-�܂��A((<[�c�[��]-[�Y�t�t�@�C��]|URL:ToolAttachmentAction.html>))��I�����A[�Y�t�t�@�C��]�_�C�A���O���g�p���ăt�@�C����Y�t���邱�Ƃ��ł��܂��B
-
-((<[�Y�t�t�@�C��]�_�C�A���O|"IMG:images/TutorialPop3AttachmentDialog.png">))
-
-���b�Z�[�W�ɕʂ̃��b�Z�[�W��Y�t�������ꍇ�ɂ́A�Y�t���������b�Z�[�W�����X�g�r���[����G�f�B�b�g�E�B���h�E�Ƀh���b�O�A���h�h���b�v���܂��B���̂悤�ɂ��邱�ƂŁA���b�Z�[�W��((<"message/rfc822�`��"|URL:http://www.ietf.org/rfc/rfc2046.txt>))�œY�t���邱�Ƃ��ł��܂��B
+草稿として保存したい場合には、((<[ファイル]-[草稿として保存]|URL:FileDraftAction.html>))を選択すると、草稿箱に草稿として保存されます。また、((<[ファイル]-[草稿として保存して閉じる]|URL:FileDraftCloseAction.html>))を選択すると、草稿として保存してエディットウィンドウを閉じます。
 
 
-==���[���𑗐M����
-���C���E�B���h�E�ŁA((<[�c�[��]-[���M]|URL:ToolSendAction.html>))��I������ƁA���M���ɕۑ����ꂽ���b�Z�[�W���S�đ��M����܂��B
+===ファイルの添付
+ファイルを添付したい場合には、添付したいファイルをエクスプローラからエディットウィンドウにドラッグアンドドロップします。すると、[添付]のところに添付されたファイルが表示されます。
 
-// TODO �摜 �����_�C�A���O
+また、((<[ツール]-[添付ファイル]|URL:ToolAttachmentAction.html>))を選択し、[添付ファイル]ダイアログを使用してファイルを添付することもできます。
 
-���M���͓����_�C�A���O���\������A���M�̐i���󋵂��m�F�ł��܂��B�G���[���Ȃ���Α��M���I������Γ����_�C�A���O�͎����I�ɕ��܂��B
+((<[添付ファイル]ダイアログ|"IMG:images/TutorialPop3AttachmentDialog.png">))
 
-
-==�ԐM����
-�ԐM����Ƃ��ɂ́A�ԐM���̃��b�Z�[�W��I������((<[���b�Z�[�W]-[�ԐM]|URL:MessageCreateAction.html>))��I�����܂��B�ԐM�p�Ƀ��b�Z�[�W���쐬����ƁA�ԐM�p�̌������}������A�{�������p���ꂽ��ԂŃG�f�B�b�g�E�B���h�E���J���܂��B�܂��A���̂Ƃ��ɂ͕ԐM���̃��b�Z�[�W����肷�邽�߂̃w�b�_���}������܂��B
-
-((<[���b�Z�[�W]-[�S���ɕԐM]|URL:MessageCreateAction.html>))��I������ƁA�ԐM���̃��b�Z�[�W�̈����Cc�̃A�h���X�������I��Cc�ɐݒ肳��܂��B
+メッセージに別のメッセージを添付したい場合には、添付したいメッセージをリストビューからエディットウィンドウにドラッグアンドドロップします。このようにすることで、メッセージを((<"message/rfc822形式"|URL:http://www.ietf.org/rfc/rfc2046.txt>))で添付することができます。
 
 
-==�]������
-�]������Ƃ��ɂ́A�]�����郁�b�Z�[�W��I������((<[���b�Z�[�W]-[�]��]|URL:MessageCreateAction.html>))��I�����܂��B
+==メールを送信する
+メインウィンドウで、((<[ツール]-[送信]|URL:ToolSendAction.html>))を選択すると、送信箱に保存されたメッセージが全て送信されます。
 
-���[����]������Ƃ��ɂ́A�{���Ƃ��ē]��������@�ƁA((<"message/rfc822�`��"|URL:http://www.ietf.org/rfc/rfc2046.txt>))���g�p���ē]��������@�̓�ʂ肪�I�ׂ܂��Bmessage/rfc822�`�����g�p�����ꍇ�A�����̃��b�Z�[�W���I������Ă���ƑS�Ẵ��b�Z�[�W���]������܂��B�ǂ���̌`�����g�p���邩�́A((<[�I�v�V����]�_�C�A���O��[���̑�2]�p�l��|URL:OptionMisc2.html>))�Ŏw��ł��܂��B
+// TODO 画像 同期ダイアログ
+
+送信中は同期ダイアログが表示され、送信の進捗状況を確認できます。エラーがなければ送信が終了すれば同期ダイアログは自動的に閉じます。
+
+
+==返信する
+返信するときには、返信元のメッセージを選択して((<[メッセージ]-[返信]|URL:MessageCreateAction.html>))を選択します。返信用にメッセージを作成すると、返信用の件名が挿入され、本文が引用された状態でエディットウィンドウが開きます。また、このときには返信元のメッセージを特定するためのヘッダが挿入されます。
+
+((<[メッセージ]-[全員に返信]|URL:MessageCreateAction.html>))を選択すると、返信元のメッセージの宛先やCcのアドレスが自動的にCcに設定されます。
+
+
+==転送する
+転送するときには、転送するメッセージを選択して((<[メッセージ]-[転送]|URL:MessageCreateAction.html>))を選択します。
+
+メールを転送するときには、本文として転送する方法と、((<"message/rfc822形式"|URL:http://www.ietf.org/rfc/rfc2046.txt>))を使用して転送する方法の二通りが選べます。message/rfc822形式を使用した場合、複数のメッセージが選択されていると全てのメッセージが転送されます。どちらの形式を使用するかは、((<[オプション]ダイアログの[その他2]パネル|URL:OptionMisc2.html>))で指定できます。
 
 =end

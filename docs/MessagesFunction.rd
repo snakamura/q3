@@ -4,36 +4,36 @@
  MessageList @Messages(String folder?, Number id?)
 
 
-==����
-���b�Z�[�W�̃��X�g��Ԃ��܂��Bfolder���w�肳�ꂽ�ꍇ�ɂ͂��̃t�H���_���̃��b�Z�[�W�����ׂĕԂ��܂��B�����id���w�肳�ꂽ�ꍇ�ɂ͂���ID�̃��b�Z�[�W��Ԃ��܂��B�����w�肳��Ȃ������ꍇ�ɂ̓A�J�E���g���̂��ׂẴ��b�Z�[�W�̃��X�g��Ԃ��܂��B
+==説明
+メッセージのリストを返します。folderが指定された場合にはそのフォルダ内のメッセージをすべて返します。さらにidが指定された場合にはそのIDのメッセージを返します。何も指定されなかった場合にはアカウント中のすべてのメッセージのリストを返します。
 
-�Ԃ��ꂽ���b�Z�[�W���X�g��((<@ForEach|URL:ForEachFunction.html>))��((<@FindEach|URL:FindEachFunction.html>))�Ȃǂ��g�p���ď������邱�Ƃ��ł��܂��B
+返されたメッセージリストは((<@ForEach|URL:ForEachFunction.html>))や((<@FindEach|URL:FindEachFunction.html>))などを使用して処理することができます。
 
 
-==����
+==引数
 :String folder
-  �t�H���_�̊��S��
+  フォルダの完全名
 :Number id
-  ���b�Z�[�W��ID
+  メッセージのID
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�w�肳�ꂽ�t�H���_�����݂��Ȃ��ꍇ
-*�R���e�L�X�g�A�J�E���g���Ȃ��ꍇ�i�t�H���_���w�肵�Ȃ��������A�t�H���_�̎w��ɃA�J�E���g�����܂܂�Ȃ������ꍇ�j
-*�w�肳�ꂽ�t�H���_���ʏ�t�H���_�ł͂Ȃ��ꍇ�iid���w�肳�ꂽ�ꍇ�j
-*UI�X���b�h�ȊO����Ăяo�����ꍇ�i�w�肵���t�H���_�̃A�J�E���g���R���e�L�X�g�A�J�E���g�ƈقȂ�ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*指定されたフォルダが存在しない場合
+*コンテキストアカウントがない場合（フォルダを指定しなかったか、フォルダの指定にアカウント名が含まれなかった場合）
+*指定されたフォルダが通常フォルダではない場合（idが指定された場合）
+*UIスレッド以外から呼び出した場合（指定したフォルダのアカウントがコンテキストアカウントと異なる場合）
 
 
-==����
-*UI�X���b�h����̂݌Ăяo���\�i�w�肵���t�H���_�̃A�J�E���g���R���e�L�X�g�A�J�E���g�ƈقȂ�ꍇ�j
+==条件
+*UIスレッドからのみ呼び出し可能（指定したフォルダのアカウントがコンテキストアカウントと異なる場合）
 
 
-==��
- # ��M���̂��ׂẴ��b�Z�[�W�����ǂɂ���
- @ForEach(@Messages('��M��'), @Seen(@True()))
+==例
+ # 受信箱のすべてのメッセージを既読にする
+ @ForEach(@Messages('受信箱'), @Seen(@True()))
  
- # ��M����ID��1000�̃��b�Z�[�W���폜����
- @ForEach(@Messages('��M��', 1000), @Delete())
+ # 受信箱のIDが1000のメッセージを削除する
+ @ForEach(@Messages('受信箱', 1000), @Delete())
 
 =end

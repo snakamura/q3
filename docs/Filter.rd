@@ -1,12 +1,12 @@
 =begin
-=�t�B���^
+=フィルタ
 
-�t�B���^���g�p����ƁA���X�g�r���[�ɕ\�����郁�b�Z�[�W���t�B���^���邱�Ƃ��ł��܂��B�Ⴆ�΁A���ǂ̃��b�Z�[�W�̂݁A�}�[�N���ꂽ���b�Z�[�W�݂̂�\������ȂǁA����̏����Ƀ}�b�`���郁�b�Z�[�W�݂̂�\�����邱�Ƃ��ł��܂��B�t�B���^�̓}�N�����g�p���ĔC�ӂ̏����ō쐬���邱�Ƃ��ł��܂��B
+フィルタを使用すると、リストビューに表示するメッセージをフィルタすることができます。例えば、未読のメッセージのみ、マークされたメッセージのみを表示するなど、特定の条件にマッチするメッセージのみを表示することができます。フィルタはマクロを使用して任意の条件で作成することができます。
 
-�K�p����t�B���^�́A[�\��]-[�t�B���^]�Ŏw�肵�܂��B���ݓK�p����Ă���t�B���^�̓X�e�[�^�X�o�[�ɕ\������܂��B�������E�N���b�N���邱�Ƃł��t�B���^���w�肷�邱�Ƃ��ł��܂��B
+適用するフィルタは、[表示]-[フィルタ]で指定します。現在適用されているフィルタはステータスバーに表示されます。ここを右クリックすることでもフィルタを指定することができます。
 
-((<�t�B���^|"IMG:images/Filter.png">))
+((<フィルタ|"IMG:images/Filter.png">))
 
-((<[�Ȃ�]|URL:ViewFilterAction.html>))��I������ƃt�B���^���g�p���܂���B((<[����]|URL:ViewFilterAction.html>)), ((<[�V��]|URL:ViewFilterAction.html>))�Ȃǂ�I������ƑΉ�����t�B���^���K�p����܂��B((<[�J�X�^��]|URL:ViewFilterCustomAction.html>))��I������Ƃ��̏ꂾ���Ŏg�p����t�B���^���쐬���邱�Ƃ��ł��܂��B((<[�ҏW]|URL:OptionFilters.html>))��I������ƃt�B���^��ҏW���邱�Ƃ��ł��܂��B
+((<[なし]|URL:ViewFilterAction.html>))を選択するとフィルタを使用しません。((<[未読]|URL:ViewFilterAction.html>)), ((<[新着]|URL:ViewFilterAction.html>))などを選択すると対応するフィルタが適用されます。((<[カスタム]|URL:ViewFilterCustomAction.html>))を選択するとその場だけで使用するフィルタを作成することができます。((<[編集]|URL:OptionFilters.html>))を選択するとフィルタを編集することができます。
 
 =end

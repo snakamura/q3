@@ -1,20 +1,20 @@
 =begin
-=MessageDeleteAttachment�A�N�V����
+=MessageDeleteAttachmentアクション
 
-�Ώۂ̃��b�Z�[�W�̓Y�t�t�@�C�����폜���܂��B���ۂɂ͓Y�t�t�@�C������菜�����V�������b�Z�[�W�𐶐����A���̃��b�Z�[�W���폜���܂��B�Y�t�t�@�C���̓R���e���c�����݂̂��폜����܂��B�܂�AMIME�̃p�[�g�\���͕ς��Ȃ��܂܁A���ۂ̃f�[�^�������폜����܂��B
+対象のメッセージの添付ファイルを削除します。実際には添付ファイルを取り除いた新しいメッセージを生成し、元のメッセージを削除します。添付ファイルはコンテンツ部分のみが削除されます。つまり、MIMEのパート構成は変えないまま、実際のデータだけが削除されます。
 
-�Y�t�t�@�C�����폜���ꂽ���b�Z�[�W��\������ƁA�w�b�_�r���[�̓Y�t�t�@�C���̗��̔w�i�F���ς��܂��B
+添付ファイルを削除されたメッセージを表示すると、ヘッダビューの添付ファイルの欄の背景色が変わります。
 
 <<<selectedMessage.rd
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���X�g�r���[
-*�v���r���[
-*���b�Z�[�W�r���[
+==有効なウィンドウ・ビュー
+*リストビュー
+*プレビュー
+*メッセージビュー
 
 =end

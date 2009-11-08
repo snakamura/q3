@@ -1,134 +1,134 @@
 =begin
 =rules.xml
 
-((<�U�蕪��|URL:ApplyRules.html>))�̐ݒ������XML�t�@�C���ł��B���̃t�@�C���ɂ́A((<�U�蕪���̐ݒ�|URL:OptionRules.html>))�Őݒ肵����񂪕ۑ�����܂��B
+((<振り分け|URL:ApplyRules.html>))の設定をするXMLファイルです。このファイルには、((<振り分けの設定|URL:OptionRules.html>))で設定した情報が保存されます。
 
 
-==����
+==書式
 
-===rules�G�������g
+===rulesエレメント
 
  <rules>
    <!-- ruleSet -->
  </rules>
 
-rules�G�������g�̓g�b�v���x���G�������g�ɂȂ�܂��Brules�G�������g�ȉ��ɂ́A0�ȏ��ruleSet�G�������g��u�����Ƃ��o���܂��B
+rulesエレメントはトップレベルエレメントになります。rulesエレメント以下には、0個以上のruleSetエレメントを置くことが出来ます。
 
 
-===ruleSet�G�������g
+===ruleSetエレメント
 
  <ruleSet
-  account="�A�J�E���g��"
-  folder="�t�H���_��">
+  account="アカウント名"
+  folder="フォルダ名">
   <!-- rule -->
  </ruleSet>
 
-ruleSet�G�������g�͐U�蕪�����Ɏg�p����郋�[���Z�b�g���w�肵�܂��Baccount�����ɃA�J�E���g�����Afolder�����Ƀt�H���_�����w�肷�邱�Ƃ��o���܂��B�����Ƃ�//�ň͂ނ��Ƃɂ�萳�K�\�����g�p�ł��܂��B�����̑����͏ȗ��\�ŁA�ȗ����ꂽ�ꍇ�ɂ͂��ꂼ��S�ẴA�J�E���g�E�t�H���_�Ƀ}�b�`���܂��B���Ƃ��΁Aaccount�����݂̂��w�肵��folder�������w�肵�Ȃ��ƁA�w�肵���A�J�E���g�̑S�Ẵt�H���_�Ƀ}�b�`���܂��B
+ruleSetエレメントは振り分け時に使用されるルールセットを指定します。account属性にアカウント名を、folder属性にフォルダ名を指定することが出来ます。両方とも//で囲むことにより正規表現が使用できます。これらの属性は省略可能で、省略された場合にはそれぞれ全てのアカウント・フォルダにマッチします。たとえば、account属性のみを指定してfolder属性を指定しないと、指定したアカウントの全てのフォルダにマッチします。
 
-�U�蕪�����ɂ́A�U�蕪���Ώۂ̃t�H���_���ƃA�J�E���g�����g�p���āA�ォ�珇�ԂɃ��[���Z�b�g���������A�ŏ��Ƀ}�b�`�������[���Z�b�g���g�p���܂��B
+振り分け時には、振り分け対象のフォルダ名とアカウント名を使用して、上から順番にルールセットを検索し、最初にマッチしたルールセットを使用します。
 
 
-===rule�G�������g
+===ruleエレメント
 
  <rule
-  match="�}�N��"
+  match="マクロ"
   use="manual|auto|active"
   continue="true|false"
-  description="����",
+  description="説明",
   enabled="true|false">
   <!-- move/copy/delete/label/deleteCache/apply -->
  </rule>
 
-rule�G�������g�́A���[�����̂��w�肵�܂��Bmatch�����ɂ̓}�N�����w�肵�܂��B���[���͏ォ�珇�Ԃɂɕ]�����ꂳ��܂��B���ʂ��ŏ��ɐ^�ɂȂ������[���̃A�N�V���������s���܂��B���s�����A�N�V�����͎q�G�������g�Ƃ��Ďw�肵�܂��B
+ruleエレメントは、ルール自体を指定します。match属性にはマクロを指定します。ルールは上から順番にに評価されされます。結果が最初に真になったルールのアクションを実行します。実行されるアクションは子エレメントとして指定します。
 
-use�����ɂ�manual, auto, active�̑g�ݍ��킹���w�肵�܂��Bmanual���w�肷��Ǝ蓮�U�蕪�����ɁAauto���w�肷��Ǝ����U�蕪�����ɁAactive���w�肷��ƃA�N�e�B�u�U�蕪�����Ɏg�p����܂��B�����w�肷��ꍇ�ɂ͋󔒕����ŋ�؂�܂��B�w�肵�Ȃ��ꍇ�ɂ�"manual auto"���w�肵���̂Ɠ����ɂȂ�܂��B
+use属性にはmanual, auto, activeの組み合わせを指定します。manualを指定すると手動振り分け時に、autoを指定すると自動振り分け時に、activeを指定するとアクティブ振り分け字に使用されます。複数指定する場合には空白文字で区切ります。指定しない場合には"manual auto"を指定したのと同じになります。
 
-continue�����ɂ͂��̃��[���Ƀ}�b�`���ď���������Ō㑱�̃��[�����������邩�ǂ������w�肵�܂��B
+continue属性にはこのルールにマッチして処理した後で後続のルールを処理するかどうかを指定します。
 
-description�����ɂ͐������w�肵�܂��B
+description属性には説明を指定します。
 
-enabled������false���w�肷��ƃ��[���������ɂȂ�܂��B
+enabled属性にfalseを指定するとルールが無効になります。
 
 
-===move�G�������g
+===moveエレメント
 
  <move
-  account="�A�J�E���g��"
-  folder="�t�H���_��">
+  account="アカウント名"
+  folder="フォルダ名">
   <!-- template -->
  </move>
 
-move�G�������g�́A�ړ��R�}���h���w�肵�܂��B���̃A�N�V������account������folder�����Ŏw�肳�ꂽ�t�H���_�Ƀ��b�Z�[�W���ړ����܂��Baccount�𑮐��͏ȗ��\�ŁA���̏ꍇ�U�蕪���Ώۂ̃t�H���_�Ɠ����A�J�E���g�̃t�H���_���ړ���ɂȂ�܂��B
+moveエレメントは、移動コマンドを指定します。このアクションはaccount属性とfolder属性で指定されたフォルダにメッセージを移動します。accountを属性は省略可能で、その場合振り分け対象のフォルダと同じアカウントのフォルダが移動先になります。
 
-�q�G�������g�Ƃ���template�G�������g��u���ƁA�e���v���[�g�ŏ������Ă���ړ����邱�ƂɂȂ�܂��B
+子エレメントとしてtemplateエレメントを置くと、テンプレートで処理してから移動することになります。
 
 
-===copy�G�������g
+===copyエレメント
 
  <copy
-  account="�A�J�E���g��"
-  folder="�t�H���_��">
+  account="アカウント名"
+  folder="フォルダ名">
   <!-- template -->
  </copy>
 
-copy�G�������g�́A���b�Z�[�W���ړ������ɃR�s�[����_��������move�G�������g�Ɠ����ł��B
+copyエレメントは、メッセージを移動せずにコピーする点を除いてmoveエレメントと同じです。
 
 
-===template�G�������g
+===templateエレメント
 
  <template
-  name="�e���v���[�g��">
+  name="テンプレート名">
   <!-- argument -->
  </template>
 
-template�G�������g��copy��move�̎q�G�������g�Ƃ��Ēu���ƁA�ړ��E�R�s�[���Ƀ��b�Z�[�W���e���v���[�g�ŏ������܂��Bname�����Ńe���v���[�g�����w�肵�܂��B�e���v���[�g�Ɉ�����n���Ƃ��ɂ͎q�G�������g�Ƃ��ĔC�ӂ̐���argument�G�������g�������܂��B
+templateエレメントをcopyやmoveの子エレメントとして置くと、移動・コピー時にメッセージをテンプレートで処理します。name属性でテンプレート名を指定します。テンプレートに引数を渡すときには子エレメントとして任意の数のargumentエレメントをおきます。
 
 
-===argument�G�������g
+===argumentエレメント
 
  <argument
-  name="������">
-  �l
+  name="引数名">
+  値
  </argument>
 
-argument�G�������g��template�G�������g�Ŏw�肵���e���v���[�g�Ɉ�����n�����߂Ɏw�肵�܂��Bname�����Ŗ��O���A�e�L�X�g�Ƃ��Ēl���w�肵�܂��B�e���v���[�g�ɓn���������́A�e���v���[�g������}�N���̕ϐ��Ƃ��ăA�N�Z�X�ł��܂��B
+argumentエレメントはtemplateエレメントで指定したテンプレートに引数を渡すために指定します。name属性で名前を、テキストとして値を指定します。テンプレートに渡した引数は、テンプレート中からマクロの変数としてアクセスできます。
 
 
-===delete�G�������g
+===deleteエレメント
 
  <delete
-  direct="�S�~�����g�p���邩�ǂ���"/>
+  direct="ゴミ箱を使用するかどうか"/>
 
-delete�G�������g�́A�폜�R�}���h���w�肵�܂��B���̃A�N�V�����͑Ώۂ̃��b�Z�[�W���폜���܂��Bdirect������true���w�肷��ƃS�~�����g�p�����ɒ��ڃ��b�Z�[�W���폜���܂��B����ȊO�̏ꍇ�ɂ̓S�~���Ƀ��b�Z�[�W���ړ����܂��B
+deleteエレメントは、削除コマンドを指定します。このアクションは対象のメッセージを削除します。direct属性にtrueを指定するとゴミ箱を使用せずに直接メッセージを削除します。それ以外の場合にはゴミ箱にメッセージを移動します。
 
 
-===label�G�������g
+===labelエレメント
 
  <label
   type="add|remove">
-  ���x��
+  ラベル
  </label>
 
-label�G�������g�́A���x���ݒ�R�}���h���w�肵�܂��Btype�������w�肳��Ȃ������ꍇ�ɂ͎w�肳�ꂽ���x����ݒ肵�܂��Btype������add���w�肷��Ǝw�肳�ꂽ���x����ǉ����Aremove���w�肷��ƍ폜���܂��B
+labelエレメントは、ラベル設定コマンドを指定します。type属性が指定されなかった場合には指定されたラベルを設定します。type属性にaddを指定すると指定されたラベルを追加し、removeを指定すると削除します。
 
 
-===deleteCache�G�������g
+===deleteCacheエレメント
 
  <deleteCache/>
 
-deleteCache�G�������g�́A�L���b�V���폜�R�}���h���w�肵�܂��B���̃A�N�V�����̓��b�Z�[�W�̃L���b�V���iIMAP4��NNTP�A�J�E���g�ŃT�[�o����擾�������b�Z�[�W�j���폜���܂��B
+deleteCacheエレメントは、キャッシュ削除コマンドを指定します。このアクションはメッセージのキャッシュ（IMAP4やNNTPアカウントでサーバから取得したメッセージ）を削除します。
 
 
-===apply�G�������g
+===applyエレメント
 
  <apply>
-  ���s����}�N��
+  実行するマクロ
  </apply>
 
-apply�G�������g�̓}�N���̎��s���w�肵�܂��B�Ώۂ̃��b�Z�[�W�ɑ΂��Ďw�肳�ꂽ�}�N�������s���܂��B
+applyエレメントはマクロの実行を指定します。対象のメッセージに対して指定されたマクロを実行します。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <rules>
@@ -152,47 +152,47 @@ apply�G�������g�̓}�N���̎��s���w�肵�܂��B�Ώۂ̃��b�Z�[�W�ɑ΂��Ďw�肳�ꂽ�}�
  </rules>
 
 
-==�X�L�[�}
+==スキーマ
 
  start = element rules {
    element ruleSet {
      element rule {
-       ## �A�N�V����
+       ## アクション
        action?,
-       ## ���[�����K�p���������i�}�N���j
+       ## ルールが適用される条件（マクロ）
        attribute match {
          xsd:string
        },
-       # ���[�����K�p�������
-       # manual�͎蓮�U�蕪��
-       # auto�͎����U�蕪��
-       # active�̓A�N�e�B�u�U�蕪��
-       # �w�肳��Ȃ��ꍇ�ɂ͎蓮�Ǝ���
+       # ルールが適用される場面
+       # manualは手動振り分け
+       # autoは自動振り分け
+       # activeはアクティブ振り分け
+       # 指定されない場合には手動と自動
        attribute use {
          xsd:string
        }?
-       ## ���̃��[���ɐi�ނ��ǂ���
-       ## �w�肳��Ȃ��ꍇ�ɂ�false
+       ## 次のルールに進むかどうか
+       ## 指定されない場合にはfalse
        attribute continue {
          xsd:boolean
        }?,
-       ## ����
+       ## 説明
        attribute description {
          xsd:string
        }?,
-       ## �L�����ǂ���
-       ## �w�肳��Ȃ��ꍇ�ɂ�true
+       ## 有効かどうか
+       ## 指定されない場合にはtrue
        attribute enabled {
          xsd:boolean
        }?
      }*,
-     ## ���[�����K�p�����A�J�E���g
-     ## �w�肳��Ȃ��ꍇ�A�S�ẴA�J�E���g
+     ## ルールが適用されるアカウント
+     ## 指定されない場合、全てのアカウント
      attribute account {
        xsd:string
      }?,
-     ## ���[�����K�p�����t�H���_
-     ## �w�肳��Ȃ��ꍇ�A�S�Ẵt�H���_
+     ## ルールが適用されるフォルダ
+     ## 指定されない場合、全てのフォルダ
      attribute folder {
        xsd:string
      }?
@@ -201,22 +201,22 @@ apply�G�������g�̓}�N���̎��s���w�肵�܂��B�Ώۂ̃��b�Z�[�W�ɑ΂��Ďw�肳�ꂽ�}�
  
  action = element move {
    template?,
-   ## �ړ���A�J�E���g
+   ## 移動先アカウント
    attribute account {
      xsd:string
    }?,
-   ## �ړ���t�H���_
+   ## 移動先フォルダ
    attribute folder {
      xsd:string
    }
  } |
  element copy {
    template?,
-   ## �R�s�[��A�J�E���g
+   ## コピー先アカウント
    attribute account {
      xsd:string
    }?,
-   ## �R�s�[��t�H���_
+   ## コピー先フォルダ
    attribute folder {
      xsd:string
    }
@@ -227,35 +227,35 @@ apply�G�������g�̓}�N���̎��s���w�肵�܂��B�Ώۂ̃��b�Z�[�W�ɑ΂��Ďw�肳�ꂽ�}�
    }?
  } |
  element label {
-   ## �^�C�v
-   ## �w�肵�Ȃ��ꍇ�ɂ͐ݒ�
-   ## add�͒ǉ�
-   ## remove�͍폜
+   ## タイプ
+   ## 指定しない場合には設定
+   ## addは追加
+   ## removeは削除
    attribute type {
      "add|remove"
    }?,
-   ## ���x��
+   ## ラベル
    xsd:string
  } |
  element deleteCache {
    empty
  } |
  element apply {
-   ## ���s����}�N��
+   ## 実行するマクロ
    xsd:string
  }
  
  template = element template {
-   ## ����
+   ## 引数
    element argument {
-     ## �����̒l
+     ## 引数の値
      text,
-     ## �����̖��O
+     ## 引数の名前
      attribute name {
        xsd:string
      }
    }*,
-   ## �e���v���[�g�̖��O
+   ## テンプレートの名前
    attribute name {
      xsd:string
    }

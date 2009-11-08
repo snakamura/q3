@@ -1,8 +1,8 @@
 =begin
-=�p�X���[�h
+=パスワード
 
-((<�A�J�E���g�̃v���p�e�B|URL:AccountProperty.html>))��((<���[�U�̐ݒ�|URL:AccountUser.html>))�Ńp�X���[�h���w�肵�Ȃ������ꍇ��A((<"S/MIME"|URL:SMIME.html>))��((<PGP|URL:PGP.html>))�Ō���ǂݍ��ނ̂Ƀp�X���[�h���K�v�ɂȂ����ꍇ�ɂ́A((<[�p�X���[�h]�_�C�A���O|URL:PasswordDialog.html>))���J���ăp�X���[�h�̓��͂����߂��܂��B���͂����p�X���[�h�͂����ɔj�����邱�Ƃ��A�ۑ����Ă������Ƃ��ł��܂��B�ۑ����ꂽ�p�X���[�h�͎���ȍ~�����Ŏg�p����܂��B
+((<アカウントのプロパティ|URL:AccountProperty.html>))の((<ユーザの設定|URL:AccountUser.html>))でパスワードを指定しなかった場合や、((<"S/MIME"|URL:SMIME.html>))や((<PGP|URL:PGP.html>))で鍵を読み込むのにパスワードが必要になった場合には、((<[パスワード]ダイアログ|URL:PasswordDialog.html>))が開いてパスワードの入力を求められます。入力したパスワードはすぐに破棄することも、保存しておくこともできます。保存されたパスワードは次回以降自動で使用されます。
 
-�p�X���[�h���t�@�C���ɕۑ�����ꍇ�A���ڌ��Ă��킩��Ȃ��悤�ɃG���R�[�h����܂����A�ȒP�Ɍ��ɖ߂����Ƃ��ł��܂��̂Œ��ӂ��Ă��������B
+パスワードをファイルに保存する場合、直接見てもわからないようにエンコードされますが、簡単に元に戻すことができますので注意してください。
 
 =end

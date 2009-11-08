@@ -1,23 +1,23 @@
 =begin
-=�ϐ�
+=変数
 
-�}�N���ł͔C�ӂ̖��O�̕ϐ����쐬���邱�Ƃ��ł��܂��B�ϐ���錾����ɂ́A((<@Set|URL:SetFunction.html>))���g�p���܂��B�Ⴆ�΁ASubject�̓��e��ϐ��ɐݒ肷��ɂ́A
+マクロでは任意の名前の変数を作成することができます。変数を宣言するには、((<@Set|URL:SetFunction.html>))を使用します。例えば、Subjectの内容を変数に設定するには、
 
  @Set('subject', Subject)
 
-�̂悤�ɋL�q���܂��B@Set�̑������Ɏw�肷��ϐ����͕�����Ŏw�肷��K�v������܂��B�}�N�����Q�Ƃ���ɂ́A$�̌��ɕϐ������w�肵�܂��B�Ⴆ�΁A��̗�ō쐬����subject�Ƃ������O�̕ϐ��ɃA�N�Z�X����ɂ́A
+のように記述します。@Setの第一引数に指定する変数名は文字列で指定する必要があります。マクロを参照するには、$の後ろに変数名を指定します。例えば、上の例で作成したsubjectという名前の変数にアクセスするには、
 
  $subject
 
-�̂悤�ɋL�q���܂��B��`����Ă��Ȃ��ϐ����Q�Ƃ���Ƌ󕶎��񂪕Ԃ���܂��B�܂��A��`����Ă��邩�ǂ����킩��Ȃ��ϐ��ɃA�N�Z�X����ɂ́A((<@Variable|URL:VariableFunction.html>))���g�p���邱�Ƃ��ł��܂��B
+のように記述します。定義されていない変数を参照すると空文字列が返されます。また、定義されているかどうかわからない変数にアクセスするには、((<@Variable|URL:VariableFunction.html>))を使用することもできます。
 
-�ϐ��ɂ̓��[�J���ϐ��ƃO���[�o���ϐ�������܂��B((<@Set|URL:SetFunction.html>))�ŕϐ����`����Ƃ��ɑ�O������:GLOBAL���w�肷��ƃO���[�o���ϐ��ɂȂ�܂��B���[�J���ϐ��͒�`�����ȍ~�ł��̃}�N����]�����I���܂ŗL���ł��B�O���[�o���ϐ��͒�`�����ȍ~�ŗL���ł����A�L���Ȕ͈͎͂g����󋵂ɂ���ĈقȂ�܂��B�Ⴆ�΁A�e���v���[�g���̃}�N���ŃO���[�o���ϐ����g�p����ƁA�e���v���[�g���̊e�}�N���ŃO���[�o���ϐ��͋��L����܂��B
+変数にはローカル変数とグローバル変数があります。((<@Set|URL:SetFunction.html>))で変数を定義するときに第三引数に:GLOBALを指定するとグローバル変数になります。ローカル変数は定義した以降でそのマクロを評価し終わるまで有効です。グローバル変数は定義した以降で有効ですが、有効な範囲は使われる状況によって異なります。例えば、テンプレート内のマクロでグローバル変数を使用すると、テンプレート内の各マクロでグローバル変数は共有されます。
 
  {@Progn(@Set('local', Subject),
          @Set('global', Subject, :GLOBAL))}
- {$local}  # �����͋󕶎���
- {$global} # �������Subject�̒l
+ {$local}  # ここは空文字列
+ {$global} # こちらはSubjectの値
 
-�܂��A�U�蕪�����̃}�N���ł́A���̈��̐U�蕪�����ŃO���[�o���ϐ������L����܂��B
+また、振り分け時のマクロでは、その一回の振り分け中でグローバル変数が共有されます。
 
 =end

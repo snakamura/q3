@@ -1,18 +1,18 @@
 =begin
-=MessageOpenLink�A�N�V����
+=MessageOpenLinkアクション
 
-�Ώۂ̃��b�Z�[�W��X-QMAIL-Link�w�b�_�Ɏw�肳�ꂽURL���u���E�U�ŊJ���܂��B�u���E�U�͊֘A�t���ɂ��N������܂��BRSS�A�J�E���g�ȊO�A�܂���X-QMAIL-Link���w�肳��Ă��Ȃ��ꍇ�ɂ͉������܂���B
+対象のメッセージのX-QMAIL-Linkヘッダに指定されたURLをブラウザで開きます。ブラウザは関連付けにより起動されます。RSSアカウント以外、またはX-QMAIL-Linkが指定されていない場合には何もしません。
 
-RSS�A�J�E���g�ŕ\�����Ă���G���g�����u���E�U�ŊJ���Ƃ��Ɏg�p���܂��B
+RSSアカウントで表示しているエントリをブラウザで開くときに使用します。
 
 <<<focusedMessage.rd
 
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

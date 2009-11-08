@@ -1,15 +1,15 @@
 =begin
-=ToolPGPMime�A�N�V����
+=ToolPGPMimeアクション
 
-((<PGP|URL:PGP.html>))�ňÍ����⏐��������Ƃ��ɁAPGP/MIME���g�����C�����C����PGP���g������؂�ւ��܂��B
+((<PGP|URL:PGP.html>))で暗号化や署名をするときに、PGP/MIMEを使うかインラインのPGPを使うかを切り替えます。
 
-�f�t�H���g�łǂ���ɂȂ邩�́A((<�G�f�B�b�g�r���[2�̐ݒ�|URL:OptionEdit2.html>))�Őݒ肵�܂��B
+デフォルトでどちらになるかは、((<エディットビュー2の設定|URL:OptionEdit2.html>))で設定します。
 
-==����
-�Ȃ�
+==引数
+なし
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=ToolReceiveFolderƒAƒNƒVƒ‡ƒ“
+=ToolReceiveFolderã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»Ý‘I‘ð‚³‚ê‚Ä‚¢‚éƒtƒHƒ‹ƒ_‚ð“¯Šú‚µ‚Ü‚·BƒtƒHƒ‹ƒ_‚ª“¯Šú‰Â”\‚Å‚È‚¢ê‡‚É‚Í‰½‚à‚µ‚Ü‚¹‚ñB
-
-
-==ˆø”
-‚È‚µ
+ç¾åœ¨é¸æŠžã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã‚’åŒæœŸã—ã¾ã™ã€‚ãƒ•ã‚©ãƒ«ãƒ€ãŒåŒæœŸå¯èƒ½ã§ãªã„å ´åˆã«ã¯ä½•ã‚‚ã—ã¾ã›ã‚“ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

@@ -1,89 +1,89 @@
 =begin
 =goround.xml
 
-((<����|URL:GoRound.html>))�̐ݒ������XML�t�@�C���ł��B���̃t�@�C���ɂ́A((<����̐ݒ�|URL:OptionGoRound.html>))�Őݒ肵����񂪕ۑ�����܂��B
+((<巡回|URL:GoRound.html>))の設定をするXMLファイルです。このファイルには、((<巡回の設定|URL:OptionGoRound.html>))で設定した情報が保存されます。
 
 
-==����
+==書式
 
-===goround�G�������g
+===goroundエレメント
 
  <goround>
   <!-- course -->
  </goround>
 
-goround�G�������g���g�b�v���x���G�������g�ɂȂ�܂��Bgoround�G�������g�ȉ��ɂ́A0�ȏ��course�G�������g��u�����Ƃ��o���܂��B
+goroundエレメントがトップレベルエレメントになります。goroundエレメント以下には、0個以上のcourseエレメントを置くことが出来ます。
 
 
-===course�G�������g
+===courseエレメント
 
  <course
-  name="�R�[�X��"
-  confirm="�m�F���邩�ǂ���">
+  name="コース名"
+  confirm="確認するかどうか">
   <!-- dialup, sequential, parallel -->
  </course>
 
-course�G�������g�͈�̏���R�[�X��\���܂��Bname�����ŃR�[�X�����w�肵�܂��Bconfirm������true���Ƃ��̃R�[�X�ŏ��񂷂�O�Ɋm�F�̃_�C�A���O���\������܂��B
+courseエレメントは一つの巡回コースを表します。name属性でコース名を指定します。confirm属性がtrueだとそのコースで巡回する前に確認のダイアログが表示されます。
 
-course�G�������g�̎q�G�������g�Ƃ��āAdialup�G�������g����сAsequential, parallel�G�������g�̂ǂ��炩��u�����Ƃ��o���܂��B
+courseエレメントの子エレメントとして、dialupエレメントおよび、sequential, parallelエレメントのどちらかを置くことが出来ます。
 
 
-===dialup�G�������g
+===dialupエレメント
 
  <dialup
-  name="�_�C�A���A�b�v�G���g����"
-  dialFrom="���M��"
-  showDialog="�_�C�A���A�b�v�_�C�A���O��\�����邩�ǂ���"
-  disconnectWait="�ؒf�O�ɑҋ@����b��"
-  wheneverNotConnected="�l�b�g���[�N�ڑ����Ȃ��Ƃ��ɂ̂ݐڑ����邩"/>
+  name="ダイアルアップエントリ名"
+  dialFrom="発信元"
+  showDialog="ダイアルアップダイアログを表示するかどうか"
+  disconnectWait="切断前に待機する秒数"
+  wheneverNotConnected="ネットワーク接続がないときにのみ接続するか"/>
 
-dialup�G�������g��course�G�������g�̍ŏ��̎q�G�������g�Ƃ��Ă������Ƃ��o���܂��B���̃G�������g���Ȃ��ꍇ�ɂ̓_�C�A���A�b�v�͍s���܂���B
+dialupエレメントはcourseエレメントの最初の子エレメントとしておくことが出来ます。このエレメントがない場合にはダイアルアップは行われません。
 
-name�����Ń_�C�A���A�b�v�ڑ��̃G���g�������w�肵�܂��B�w�肵�Ȃ��ꍇ�ɂ͎��s���ɃG���g����I������_�C�A���O���\������܂��BdialFrom�Ŕ��M�����w�肷�邱�Ƃ��o���܂��B�w�肵�Ȃ��ꍇ�ɂ́A���݂̔��M�����g�p���܂��B
+name属性でダイアルアップ接続のエントリ名を指定します。指定しない場合には実行時にエントリを選択するダイアログが表示されます。dialFromで発信元を指定することが出来ます。指定しない場合には、現在の発信元を使用します。
 
-showDialog ������true���w�肷��ƁA�_�C�A���O�Ƀ_�C�A���O��\�����܂��BdisconnectWait�����ɐ������w�肷��ƁA�ؒf�O�Ɏw�肵���b���ҋ@���A���̊Ԃɐؒf���L�����Z�����邱�Ƃ��o���܂��BwheneverNotConnected������true���w�肷��ƃl�b�g���[�N�ڑ������݂��Ȃ��ꍇ�ɂ̂݃_�C�A���A�b�v����悤�ɂȂ�܂��B�Ⴆ�΁ALAN�ɐڑ����Ă���ꍇ�ɂ̓_�C�A���A�b�v���܂���B
+showDialog 属性にtrueを指定すると、ダイアル前にダイアログを表示します。disconnectWait属性に数字を指定すると、切断前に指定した秒数待機し、その間に切断をキャンセルすることが出来ます。wheneverNotConnected属性にtrueを指定するとネットワーク接続が存在しない場合にのみダイアルアップするようになります。例えば、LANに接続している場合にはダイアルアップしません。
 
 
-===sequential�G�������g
+===sequentialエレメント
 
  <sequential>
   <!-- entry -->
  </sequential>
 
-sequential�G�������g���g�p����ƁA�q�G�������g�Ɏw�肵���G���g�������ԂɎ��s���܂��B
+sequentialエレメントを使用すると、子エレメントに指定したエントリを順番に実行します。
 
 
-===parallel�G�������g
+===parallelエレメント
 
  <parallel>
   <!-- entry -->
  </parallel>
 
-parallel�G�������g���g�p����ƁA�q�G�������g�Ɏw�肵���G���g���𓯎��Ɏ��s���܂��B�Ⴆ�΁A�����Ȑڑ����g�p���Ă���ꍇ�ɁAparallel�G�������g���g�p���ĕ����̃A�J�E���g�𓯎��ɓ������邱�Ƃ��o���܂��B
+parallelエレメントを使用すると、子エレメントに指定したエントリを同時に実行します。例えば、高速な接続を使用している場合に、parallelエレメントを使用して複数のアカウントを同時に同期することが出来ます。
 
 
-===entry�G�������g
+===entryエレメント
 
  <entry
-  account="�A�J�E���g��"
-  subaccount="�T�u�A�J�E���g��"
-  send="���M���邩�ǂ���"
-  receive="��M���邩�ǂ���"
-  applyRules="�U�蕪���邩�ǂ���"
-  folder="�t�H���_��"
-  selectFolder="�t�H���_��I�����邩�ǂ���"
-  filter="��M�t�B���^"/>
+  account="アカウント名"
+  subaccount="サブアカウント名"
+  send="送信するかどうか"
+  receive="受信するかどうか"
+  applyRules="振り分けるかどうか"
+  folder="フォルダ名"
+  selectFolder="フォルダを選択するかどうか"
+  filter="受信フィルタ"/>
 
-entry�G�������g�ŃG���g�����w�肵�܂��Baccount�����ŃA�J�E���g�����w�肵�܂��Bsubaccount�������w�肷��ƃT�u�A�J�E���g���w��ł��܂��B�w�肳��Ă��Ȃ��ꍇ�ɂ́A���݂̃T�u�A�J�E���g���g�p����܂��B
+entryエレメントでエントリを指定します。account属性でアカウント名を指定します。subaccount属性を指定するとサブアカウントを指定できます。指定されていない場合には、現在のサブアカウントが使用されます。
 
-send������receive������true���w�肷��ƁA���M�E��M�̂ǂ��炩�݂̂��s�����Ƃ��o���܂��BapplyRules������true���w�肷��ƁA�U�蕪�����s���܂��B��������w�肵�Ȃ��ꍇ�ɂ́A����M���s���܂��B
+send属性とreceive属性にtrueを指定すると、送信・受信のどちらかのみを行うことが出来ます。applyRules属性にtrueを指定すると、振り分けを行います。いずれも指定しない場合には、送受信を行います。
 
-folder�����Ńt�H���_�����w�肷��ƁA���̃t�H���_�݂̂𓯊����܂��B//�ň͂ނ��Ƃɂ�萳�K�\�����g�p�ł��܂��B�܂��AselectFolder������true�ɂ���ƁA��������O�ɂǂ̃t�H���_�𓯊�����̂���q�˂�_�C�A���O���\������܂��B�w�肵�Ȃ��Ɠ����\�Ȃ��ׂẴt�H���_�𓯊����܂��B
+folder属性でフォルダ名を指定すると、そのフォルダのみを同期します。//で囲むことにより正規表現が使用できます。また、selectFolder属性をtrueにすると、同期する前にどのフォルダを同期するのかを尋ねるダイアログが表示されます。指定しないと同期可能なすべてのフォルダを同期します。
 
-filter�����Ŏg�p����((<�����t�B���^|URL:SyncFilter.html>))���w�肷�邱�Ƃ��o���܂��B�w�肵�Ȃ��ꍇ�ɂ́A�����t�B���^�͎g�p����܂���B
+filter属性で使用する((<同期フィルタ|URL:SyncFilter.html>))を指定することが出来ます。指定しない場合には、同期フィルタは使用されません。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <goround>
@@ -101,38 +101,38 @@ filter�����Ŏg�p����((<�����t�B���^|URL:SyncFilter.html>))���w�肷�邱�Ƃ��o����
  </goround>
 
 
-==�X�L�[�}
+==スキーマ
 
  start = element goround {
    element course {
      element dialup {
-       ## �_�C�A���A�b�v��
+       ## ダイアルアップ名
        attribute name {
          xsd:string
        }?,
-       ## ���M��
+       ## 発信元
        attribute dialFrom {
          xsd:string
        }?,
-       ## �_�C�A���O��\�����邩�ǂ���
+       ## ダイアログを表示するかどうか
        attribute showDialog {
          xsd:boolean
        }?,
-       ## �ؒf����܂ł̑҂�����
+       ## 切断するまでの待ち時間
        attribute disconnectWait {
          xsd:int
        }?,
-       ## �l�b�g���[�N���ڑ�����Ă��Ȃ��Ƃ��̂݃_�C�A���A�b�v���邩�ǂ���
+       ## ネットワークが接続されていないときのみダイアルアップするかどうか
        attribute wheneverNotConnected {
          xsd:boolean
        }
      }?,
      method,
-     ## �R�[�X��
+     ## コース名
      attribute name {
        xsd:string
      },
-     ## ���񂷂�O�Ɋm�F���邩�ǂ���
+     ## 巡回する前に確認するかどうか
      attribute confirm {
        xsd:boolean
      }?
@@ -148,37 +148,37 @@ filter�����Ŏg�p����((<�����t�B���^|URL:SyncFilter.html>))���w�肷�邱�Ƃ��o����
  
  entry = element entry {
    empty,
-   ## �A�J�E���g��
+   ## アカウント名
    attribute account {
      xsd:string
    },
-   ## �T�u�A�J�E���g��
+   ## サブアカウント名
    attribute subaccount {
      xsd:string
    }?,
-   ## ���M���邩�ǂ���
+   ## 送信するかどうか
    attribute send {
      xsd:boolean
    }?,
-   ## ��M���邩�ǂ���
+   ## 受信するかどうか
    attribute receive {
      xsd:boolean
    }?,
-   ## �U�蕪���邩�ǂ���
+   ## 振り分けるかどうか
    attribute applyRules {
      xsd:boolean
    }?,
    (
-     ## ��M����t�H���_
+     ## 受信するフォルダ
      attribute folder {
        xsd:string
      } |
-     ## ��M����t�H���_��I�����邩�ǂ���
+     ## 受信するフォルダを選択するかどうか
      attribute selectFolder {
        xsd:boolean
      }
    )?,
-   ## �����t�B���^
+   ## 同期フィルタ
    attribute filter {
      xsd:string
    }?

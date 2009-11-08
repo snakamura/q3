@@ -1,43 +1,43 @@
 =begin
 =qmail.xml
 
-QMAIL3�S�̂Ɋւ���ݒ��ۑ�����XML�t�@�C���ł��B���̃t�@�C���Őݒ�ł��鑽���̍��ڂ�((<�I�v�V�����̐ݒ�|URL:Options.html>))�ȂǂŐݒ�ł��܂����A�ꕔ�̍��ڂ͒��ڂ��̃t�@�C����ҏW���Ȃ��Ɛݒ�ł��܂���B�ݒ�ł��鍀�ڂ̈ꗗ�͔��l���Q�Ƃ��Ă��������B
+QMAIL3全体に関する設定を保存するXMLファイルです。このファイルで設定できる多くの項目は((<オプションの設定|URL:Options.html>))などで設定できますが、一部の項目は直接このファイルを編集しないと設定できません。設定できる項目の一覧は備考を参照してください。
 
-���̃t�@�C����ҏW����Ƃ��ɂ�QMAIL3���I�������Ă���ҏW���Ă��������B
+このファイルを編集するときにはQMAIL3を終了させてから編集してください。
 
 
-==����
+==書式
 
-===profile�G�������g
+===profileエレメント
 
  <profile>
   <!-- section -->
  </profile>
 
-profile�G�������g���g�b�v���x���G�������g�ɂȂ�܂��Bprofile�G�������g�ȉ��ɂ�0�ȏ��section�G�������g��u�����Ƃ��ł��܂��B
+profileエレメントがトップレベルエレメントになります。profileエレメント以下には0個以上のsectionエレメントを置くことができます。
 
 
-===section�G�������g
+===sectionエレメント
 
  <section
-  name="���O">
+  name="名前">
   <!-- key -->
  </filter>
 
-section�G�������g�͈�̃Z�N�V������\���܂��Bname�����ɂ̓Z�N�V�����̖��O���w�肵�܂��B
+sectionエレメントは一つのセクションを表します。name属性にはセクションの名前を指定します。
 
 
-===key�G�������g
+===keyエレメント
 
  <key
-  name="���O">
-  �l
+  name="名前">
+  値
  </key>
 
-key�G�������g�͈�̃L�[��\���܂��Bname�����ɂ̓L�[�̖��O���w�肵�܂��B�q�m�[�h�Ƃ��Ă��̃L�[�̒l���w�肵�܂��B
+keyエレメントは一つのキーを表します。name属性にはキーの名前を指定します。子ノードとしてそのキーの値を指定します。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <profile>
@@ -60,7 +60,7 @@ key�G�������g�͈�̃L�[��\���܂��Bname�����ɂ̓L�[�̖��O���w�肵�܂��B�q�m�[�
    <key name="ExpandedFolders">//Main //News //RSS //Sub //Sub/Inbox</key>
   </section>
   <section name="Global">
-   <key name="CurrentFolder">//Main/�e�X�g</key>
+   <key name="CurrentFolder">//Main/テスト</key>
    <key name="DetachFolder">C:\Temp</key>
    <key name="NextUpdateCheck">2006-08-13T20:40:26+09:00</key>
    <key name="Offline">0</key>
@@ -95,19 +95,19 @@ key�G�������g�͈�̃L�[��\���܂��Bname�����ɂ̓L�[�̖��O���w�肵�܂��B�q�m�[�
  </profile>
 
 
-==�X�L�[�}
+==スキーマ
 
  element profile {
    element section {
      element key {
-       ## �l
+       ## 値
        xsd:string,
-       ## �L�[�̖��O
+       ## キーの名前
        attribute name {
          xsd:string
        }
      }*,
-     ## �Z�N�V�����̖��O
+     ## セクションの名前
      attribute name {
        xsd:string
      }
@@ -115,426 +115,426 @@ key�G�������g�͈�̃L�[��\���܂��Bname�����ɂ̓L�[�̖��O���w�肵�܂��B�q�m�[�
  }
 
 
-==���l
-���̃t�@�C���ł̓Z�N�V�����ƃL�[�Œl���w�肵�܂��B�Ⴆ�΁A��̗�ł�Global�Z�N�V������DetachFolder�L�[��C:\Temp�Ƃ����l���w�肳��Ă��܂��B���̃h�L�������g���ł͂����Global/DetachFolder�̂悤�ɋL�q���Ă��邱�Ƃ�����܂��B�Ⴆ�΁A�u�L������A�h���X�̌���((<qmail.xml|URL:QmailXml.html>))��RecentAddress/Max�Ŏw��ł��܂��B�v�̂悤�ɏ�����Ă�����ARecentAddress�Z�N�V������Max�L�[�Ŏw�肷��Ƃ������ƂɂȂ�܂��B
+==備考
+このファイルではセクションとキーで値を指定します。例えば、上の例ではGlobalセクションのDetachFolderキーにC:\Tempという値が指定されています。このドキュメント中ではこれをGlobal/DetachFolderのように記述してあることがあります。例えば、「記憶するアドレスの個数は((<qmail.xml|URL:QmailXml.html>))のRecentAddress/Maxで指定できます。」のように書かれていたら、RecentAddressセクションのMaxキーで指定するということになります。
 
-���ꂼ��̃L�[�̓f�t�H���g�̒l�������Ă��āA�w�肳��Ă��Ȃ��ꍇ�ɂ͂��̒l���g�p����܂��B�܂��A�l���f�t�H���g�̒l�Ɠ����ꍇ�ɂ̓t�@�C���ɂ͏����o����܂���B���݂��Ȃ��L�[�̒l���w�肷��ꍇ�ɂ́A�V�����Z�N�V������L�[��ǉ����Ă��������B
+それぞれのキーはデフォルトの値を持っていて、指定されていない場合にはその値が使用されます。また、値がデフォルトの値と同じ場合にはファイルには書き出されません。存在しないキーの値を指定する場合には、新しくセクションやキーを追加してください。
 
-�w��ł���Z�N�V�����ƃL�[�͈ȉ��̒ʂ�ł��B
+指定できるセクションとキーは以下の通りです。
 
 
-===AddressBook�Z�N�V����
-�A�h���X���֌W�̐ݒ�����܂��B
+===AddressBookセクション
+アドレス帳関係の設定をします。
 
 +AddressOnly (0 @ 0|1)
-�O���A�h���X������A�h���X����荞�ނƂ��ɖ��O����荞�܂����[���A�h���X��������荞�ނ��ǂ����B
+外部アドレス帳からアドレスを取り込むときに名前を取り込まずメールアドレスだけを取り込むかどうか。
 
 
 +Externals ( @ WAB, Outlook, PocketOutlook)
-��荞�ފO���A�h���X���B
+取り込む外部アドレス帳。
 
 
 +Sort (0)
-�\�[�g�̐ݒ�B
+ソートの設定。
 
 
-===AddressBookFrameWindow�Z�N�V����
-�A�h���X���E�B���h�E�̐ݒ�����܂��B
+===AddressBookFrameWindowセクション
+アドレス帳ウィンドウの設定をします。
 
 +Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
-�E�B���h�E�̈ʒu�Ƒ傫���A�\�����@�Ɠ��ߓx�B
+ウィンドウの位置と大きさ、表示方法と透過度。
 
 
 +ShowToolbar (1 @ 0|1), ShowStatusBar (1 @ 0|1)
-�E�B���h�E�̃c�[���o�[�ƃX�e�[�^�X�o�[��\�����邩�ǂ����B
+ウィンドウのツールバーとステータスバーを表示するかどうか。
 
 
-===AddressBookListWindow�Z�N�V����
-�A�h���X�r���[�̐ݒ�����܂��B
+===AddressBookListWindowセクション
+アドレスビューの設定をします。
 
 +AddressWidth (150), NameWidth (150), CommentWidth (150)
-�r���[�̃A�h���X���A���O���A�R�����g���̕��B
+ビューのアドレス欄、名前欄、コメント欄の幅。
 
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
-===Association�Z�N�V����
-URL���J���Ƃ��̊֘A�t���̐ݒ�����܂��B�ʏ�AURL���J���Ƃ��ɂ̓V�X�e���̊֘A�t���ɏ]���܂����A�V�X�e���̐ݒ��ύX�ł��Ȃ��ꍇ�Ȃǂɂ͂����Ŏw�肷�邱�Ƃ��ł��܂��B���Ƃ��΁Ahttp�v���g�R���Ɋ֘A�t�����s���ɂ́Ahttp�Ƃ����L�[������āA�l�Ƃ��ċN������R�}���h���w�肵�܂��B%1���w�肵���ꏊ��URL���u������܂��B
+===Associationセクション
+URLを開くときの関連付けの設定をします。通常、URLを開くときにはシステムの関連付けに従いますが、システムの設定を変更できない場合などにはここで指定することができます。たとえば、httpプロトコルに関連付けを行うには、httpというキーを作って、値として起動するコマンドを指定します。%1を指定した場所にURLが置換されます。
 
-���Ƃ��΁Ahttp�v���g�R����Internet Explorer�Ɋ֘A�t����ɂ́Ahttp�L�[�Ɂuiexplore.exe "%1"�v�̂悤�Ɏw�肵�܂��B
+たとえば、httpプロトコルをInternet Explorerに関連付けるには、httpキーに「iexplore.exe "%1"」のように指定します。
 
 
-===AutoPilot�Z�N�V����
-((<��������|URL:AutoPilot.html>))�̐ݒ�����܂��B
+===AutoPilotセクション
+((<自動巡回|URL:AutoPilot.html>))の設定をします。
 
 +Enabled (0 @ 0|1)
-�������񂪗L�����ǂ����B
+自動巡回が有効かどうか。
 
 
 +OnlyWhenConnected
-�l�b�g���[�N�ڑ�����Ă���Ƃ��̂ݎ������񂷂邩�ǂ����B
+ネットワーク接続されているときのみ自動巡回するかどうか。
 
 
-===ColorsDialog�Z�N�V����
-�F�̐ݒ�_�C�A���O�̐ݒ�����܂��B
+===ColorsDialogセクション
+色の設定ダイアログの設定をします。
 
 +Width (620), Height (450)
-�_�C�A���O�̑傫���B
+ダイアログの大きさ。
 
 
-===Dialup�Z�N�V����
-�_�C�A���A�b�v�̐ݒ�����܂��B
+===Dialupセクション
+ダイアルアップの設定をします。
 
 +Entry
-�Ō�Ɏw�肵���_�C�A���A�b�v�̃G���g�����B
+最後に指定したダイアルアップのエントリ名。
 
 
-===EditFrameWindow�Z�N�V����
-�G�f�B�b�g�E�B���h�E�̐ݒ�����܂��B
+===EditFrameWindowセクション
+エディットウィンドウの設定をします。
 
 +Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
-�E�B���h�E�̈ʒu�Ƒ傫���A�\�����@�Ɠ��ߓx�B
+ウィンドウの位置と大きさ、表示方法と透過度。
 
 
 +ShowToolbar (1 @ 0|1), ShowStatusBar (1 @ 0|1)
-�E�B���h�E�̃c�[���o�[�ƃX�e�[�^�X�o�[��\�����邩�ǂ����B
+ウィンドウのツールバーとステータスバーを表示するかどうか。
 
 
-===EditWindow�Z�N�V����
-�G�f�B�b�g�r���[�̐ݒ�����܂��B
+===EditWindowセクション
+エディットビューの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +AdjustExtent (0 @ 0|1)
-�������𒲐߂��邩�ǂ����B
+文字幅を調節するかどうか。
 
 
 +UseSystemColor (1 @ 0|1)
-�V�X�e���̔z�F���g�����ǂ����B
+システムの配色を使うかどうか。
 
 
 +ForegroundColor (000000), BackgroundColor (ffffff), LinkColor (0000ff), QuoteColor1 (008000), QuoteColor2 (000080)
-�����F�A�w�i�F�A�����N�̐F�A���p�̐F1, 2�B�`����RRGGBB�B
+文字色、背景色、リンクの色、引用の色1, 2。形式はRRGGBB。
 
 
 +CharInLine (0)
-��s�̕������B0�̏ꍇ�ɂ̓E�B���h�E�̐܂�Ԃ��ʒu�B�w�肵���l�~x�̕������̈ʒu�Ő܂�Ԃ����B
+一行の文字数。0の場合にはウィンドウの折り返し位置。指定した値×xの文字幅の位置で折り返される。
 
 
 +ClickableURL (1 @ 0|1)
-�N���b�J�u��URL���L�����ǂ����B
+クリッカブルURLが有効かどうか。
 
 
 +DragScrollDelay (300), DragScrollInterval (300)
-�h���b�O�őI�𒆂ɃX�N���[������Ƃ��̒x���ƊԊu�B�P�ʂ̓~���b�B
+ドラッグで選択中にスクロールするときの遅延と間隔。単位はミリ秒。
 
 
 +LineQuote (0 @ 0|1)
-���p����ŕ\�����邩�ǂ����B
+引用を線で表示するかどうか。
 
 
 +LineSpacing (2)
-�s�Ԃ̍����B�P�ʂ̓s�N�Z���B
+行間の高さ。単位はピクセル。
 
 
 +MarginLeft (10), MarginTop (10), MarginRight (10), MarginBottom (10)
-�}�[�W���B�P�ʂ̓s�N�Z���B
+マージン。単位はピクセル。
 
 
 +Quote1 (>), Quote2 (#)
-���p����1, 2�B���𕶎���Ŏw��B
+引用文字1, 2。候補を文字列で指定。
 
-Quote1�Ŏw�肵�������̂����ꂩ����n�܂�s��QuoteColor1�Ŏw�肵���F�ɁAQuote2�Ŏw�肵�������̂����ꂩ����n�܂�s��QuoteColor2�Ŏw�肵���F�ɂȂ�BLineQuote��1�̏ꍇ�ɂ́AQuote1�Ŏw�肵�������̂����ꂩ����n�܂�s�͐��ŕ\�������B
+Quote1で指定した文字のいずれかから始まる行がQuoteColor1で指定した色に、Quote2で指定した文字のいずれかから始まる行がQuoteColor2で指定した色になる。LineQuoteが1の場合には、Quote1で指定した文字のいずれかから始まる行は線で表示される。
 
 
 +ReformLineLength (74)
-���`����Ƃ��̈�s�̕������B
+整形するときの一行の文字数。
 
 
 +ReformQuote (>|#)
-���`����Ƃ��Ɉ��p�Ƃ��Ĉ����镶���B
+整形するときに引用として扱われる文字。
 
 
 +ShowCaret (1 @ 0|1), ShowNewLine (1 @ 0|1), ShowTab (1 @ 0|1), ShowRuler (1 @ 0|1), ShowHorizontalScrollBar (0 @ 0|1), ShowVerticalScrollBar (1 @ 0|1)
-�L�����b�g�A���s�����A�^�u�A���[���A�����X�N���[���o�[�A�����X�N���[���o�[��\�����邩�ǂ����B
+キャレット、改行文字、タブ、ルーラ、水平スクロールバー、垂直スクロールバーを表示するかどうか。
 
 
 +URLSchemas (http https ftp file mailto)
-�����N�ɂ���X�L�[�}�B�X�y�[�X�ŋ�؂��Ďw��B
+リンクにするスキーマ。スペースで区切って指定。
 
 
 +WordWrap
-���[�h���b�v�Ƌ֑����L�����ǂ����B
+ワードラップと禁則が有効かどうか。
 
 
 +TabWidth
-�^�u�̕��B�w�肵���l�~x�̕������̈ʒu���^�u�ʒu�ɂȂ�B
+タブの幅。指定した値×xの文字幅の位置がタブ位置になる。
 
 
 +Ime (0)
-Ime�̏�ԁB
+Imeの状態。
 
 
 +ImeStatus (-1)
-Ime�̕ϊ��X�e�[�^�X�B
+Imeの変換ステータス。
 
 
 +ArchiveAttachments (0 @ 0|1)
-�f�t�H���g�œY�t�t�@�C���̈��k���L�����ǂ����B
+デフォルトで添付ファイルの圧縮が有効かどうか。
 
 
 +AutoReform (1 @ 0|1)
-�f�t�H���g�Ŏ������`���L�����ǂ����B
+デフォルトで自動整形が有効かどうか。
 
 
 +HideHeaderIfNoFocus (0 @ 0|1)
-�w�b�_�G�f�B�b�g�r���[���t�H�[�J�X���������Ƃ��Ƀw�b�_�G�f�B�b�g�r���[���B�����ǂ����B
+ヘッダエディットビューがフォーカスを失ったときにヘッダエディットビューを隠すかどうか。
 
 
-===Find�Z�N�V����
-�����̐ݒ�����܂��B
+===Findセクション
+検索の設定をします。
 
 +Histroy?
-�������������B?��0����n�܂鐔���B
+検索した履歴。?は0から始まる数字。
 
 
 +HistorySize (10)
-�ۑ����闚���̍ő吔�B
+保存する履歴の最大数。
 
 
 +Ime (0)
-Ime�̏�ԁB
+Imeの状態。
 
 
 +ImeStatus (-1)
-Ime�̕ϊ��X�e�[�^�X�B
+Imeの変換ステータス。
 
 
 +MatchCase (0 @ 0|1)
-�啶���Ə���������ʂ��邩�ǂ����B
+大文字と小文字を区別するかどうか。
 
 
 +Regex (0 @ 0|1)
-���K�\�����g�����ǂ����B
+正規表現を使うかどうか。
 
 
-===FixedFormTextDialog�Z�N�V����
-��^���_�C�A���O�̐ݒ�����܂��B
+===FixedFormTextDialogセクション
+定型文ダイアログの設定をします。
 
 +Width (620), Height (450)
-�_�C�A���O�̃T�C�Y�B
+ダイアログのサイズ。
 
 
-===FolderComboBox�Z�N�V����
-�t�H���_�R���{�{�b�N�X�̐ݒ�����܂��B
+===FolderComboBoxセクション
+フォルダコンボボックスの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +ShowAllCount (1 @ 0|1)
-���b�Z�[�W����\�����邩�ǂ����B
+メッセージ数を表示するかどうか。
 
 
 +ShowUnseenCount (1 @ 0|1)
-���ǃ��b�Z�[�W����\�����邩�ǂ����B
+未読メッセージ数を表示するかどうか。
 
 
-===FolderListWindow�Z�N�V����
-�t�H���_���X�g�r���[�̐ݒ�����܂��B
+===FolderListWindowセクション
+フォルダリストビューの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +UseSystemColor (1 @ 0|1)
-�V�X�e���̔z�F���g�����ǂ����B
+システムの配色を使うかどうか。
 
 
 +ForegroundColor (000000), BackgroundColor (ffffff)
-�����F�A�w�i�F�B�`����RRGGBB�B
+文字色、背景色。形式はRRGGBB。
 
 
 +NameWidth (150), IdWidth (50), CountWidth (50), UnseenCountWidth (50), SizeWidth (150)
-���O���AID���A���b�Z�[�W�����A���ǃ��b�Z�[�W�����A�T�C�Y���̕��B
+名前欄、ID欄、メッセージ数欄、未読メッセージ数欄、サイズ欄の幅。
 
 
 
-===FolderWindow�Z�N�V����
-�t�H���_�r���[�̐ݒ�����܂��B
+===FolderWindowセクション
+フォルダビューの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +UseSystemColor (1 @ 0|1)
-�V�X�e���̔z�F���g�����ǂ����B
+システムの配色を使うかどうか。
 
 
 +ForegroundColor (000000), BackgroundColor (ffffff)
-�����F�A�w�i�F�B�`����RRGGBB�B
+文字色、背景色。形式はRRGGBB。
 
 
 +AccountShowAllCount (1 @ 0|1)
-�A�J�E���g�Ƀ��b�Z�[�W����\�����邩�ǂ����B
+アカウントにメッセージ数を表示するかどうか。
 
 
 +AccountShowUnseenCount (1 @ 0|1)
-�A�J�E���g�ɖ��ǃ��b�Z�[�W����\�����邩�ǂ����B
+アカウントに未読メッセージ数を表示するかどうか。
 
 
 +FolderShowAllCount (1 @ 0|1)
-�t�H���_�Ƀ��b�Z�[�W����\�����邩�ǂ����B
+フォルダにメッセージ数を表示するかどうか。
 
 
 +FolderShowUnseenCount (1 @ 0|1)
-�t�H���_�ɖ��ǃ��b�Z�[�W����\�����邩�ǂ����B
+フォルダに未読メッセージ数を表示するかどうか。
 
 
 +DragOpenWait (500)
-�h���b�O�A���h�h���b�v�Ńt�H���_�̏�Ƀh���b�O�����Ƃ��Ƀt�H���_���J���܂ł̑҂����ԁB�P�ʂ̓~���b�B
+ドラッグアンドドロップでフォルダの上にドラッグしたときにフォルダが開くまでの待ち時間。単位はミリ秒。
 
 
 +ExpandedFolders
-�W�J����Ă���A�J�E���g�ƃt�H���_�B
+展開されているアカウントとフォルダ。
 
 
-===FullTextSearch�Z�N�V����
-((<�S������|URL:FullTextSearch.html>))�̐ݒ�����܂��B
+===FullTextSearchセクション
+((<全文検索|URL:FullTextSearch.html>))の設定をします。
 
 +Command (namazu -l -a "$condition" "$index")
-�S�������Ŏg�p����R�}���h�B
+全文検索で使用するコマンド。
 
 
 +IndexCommand (mknmz.bat -a -h -O \"$index\" \"$msg\")
-�S�������̃C���f�b�N�X�X�V�Ŏg�p����R�}���h�B
+全文検索のインデックス更新で使用するコマンド。
 
 
-===Global�Z�N�V����
-�S�ʓI�Ȑݒ�����܂��B
+===Globalセクション
+全般的な設定をします。
 
 +Action
-ToolInvokeAction�A�N�V�����ōŌ�ɋN�������A�N�V�����B
+ToolInvokeActionアクションで最後に起動したアクション。
 
 
 +AddZoneId (1 @ 0|1)
-�Y�t�t�@�C����ۑ�����Ƃ���ZoneId��t�����邩�ǂ����B
+添付ファイルを保存するときにZoneIdを付加するかどうか。
 
 
 +AutoUpdateCheck (1 @ 0|1)
-�����o�[�W�����`�F�b�N���L�����ǂ����B
+自動バージョンチェックが有効かどうか。
 
 
 +Bcc (1 @ 0|1)
-�f�t�H���g�Ŏ����̃A�h���X��Bcc�ɓ���邩�ǂ����B
+デフォルトで自分のアドレスをBccに入れるかどうか。
 
 
 +CharsetAliases (windows-31j=shift_jis)
-�����R�[�h���̃G�C���A�X�B
+文字コード名のエイリアス。
 
-�G�C���A�X��=�G���R�[�f�B���O���̌`�ŏ������Ŏw��B�����w�肷��ꍇ�ɂ͋󔒂ŋ�؂�B
+エイリアス名=エンコーディング名の形で小文字で指定。複数指定する場合には空白で区切る。
 
 
 +ConfirmDeleteMessage (0 @ 0|1)
-���b�Z�[�W���폜����Ƃ��Ɋm�F���邩�ǂ����B
+メッセージを削除するときに確認するかどうか。
 
 
 +ConfirmEmptyFolder (1 @ 0|1)
-�t�H���_����ɂ���Ƃ��Ɋm�F���邩�ǂ����B
+フォルダを空にするときに確認するかどうか。
 
 
 +ConfirmEmptyTrash (1 @ 0|1)
-�S�~������ɂ���Ƃ��Ɋm�F���邩�ǂ����B
+ゴミ箱を空にするときに確認するかどうか。
 
 
 +CurrentFolder
-�I������Ă���t�H���_�B
+選択されているフォルダ。
 
 
 +DefaultCharset
-�f�t�H���g�̕����R�[�h�B�w�肳��Ă��Ȃ��ꍇ�ɂ̓v���b�g�t�H�[�����玩���擾�B
+デフォルトの文字コード。指定されていない場合にはプラットフォームから自動取得。
 
 
 +DefaultMailAccount
-�R�}���h���C������-s���g����mailto URL���w�肵�ċN�����ꂽ�Ƃ��Ɏg�p�����A�J�E���g�B
+コマンドラインから-sを使ってmailto URLを指定して起動されたときに使用されるアカウント。
 
 
 +DefaultRssAccount
-�R�}���h���C������-s���g����feed URL���w�肵�ċN�����ꂽ�Ƃ��Ɏg�p�����A�J�E���g�B
+コマンドラインから-sを使ってfeed URLを指定して起動されたときに使用されるアカウント。
 
 
 +DefaultTimeFormat (%Y4/%M0/%D %h:%m:%s)
-�f�t�H���g�̎��Ԃ̃t�H�[�}�b�g�B�w����@�́A((<@FormatDate|URL:FormatDateFunction.html>))���Q�ƁB
+デフォルトの時間のフォーマット。指定方法は、((<@FormatDate|URL:FormatDateFunction.html>))を参照。
 
 
 +DetachFolder
-�f�t�H���g�̓Y�t�t�@�C����ۑ�����t�H���_�B
+デフォルトの添付ファイルを保存するフォルダ。
 
 
 +DetachOpenFolder (0 @ 0|1)
-�Y�t�t�@�C����ۑ�������ŁA�ۑ���̃t�H���_���J�����ǂ����B
+添付ファイルを保存した後で、保存先のフォルダを開くかどうか。
 
 
 +Editor (notepad.exe)
-�O���G�f�B�^�B
+外部エディタ。
 
 
 +EmptyTrashOnExit (0 @ 0|1)
-�I�����ɃS�~������ɂ��邩�ǂ����B
+終了時にゴミ箱を空にするかどうか。
 
 
 +Encodings (iso-8859-1 iso-2022-jp shift_jis euc-jp utf-8)
-�I���\�ȕ����R�[�h�B�����w�肷��Ƃ��ɂ͋󔒋�؂�B
+選択可能な文字コード。複数指定するときには空白区切り。
 
 
 +ExcludeArchive (\.(?:zip|lzh|tgz|gz)$)
-�Y�t�t�@�C�������k����Ƃ��ɏ��O����t�@�C�����w�肷�鐳�K�\���B
+添付ファイルを圧縮するときに除外するファイルを指定する正規表現。
 
 
 +ExternalEditor
-�O���G�f�B�^�BEditor�Ŏw�肵�����̂����D�悳���B
+外部エディタ。Editorで指定したものよりも優先される。
 
-Editor�Ŏw�肵���G�f�B�^�́A�Y�t�t�@�C�����G�f�B�^�ŊJ�����肷��Ƃ��Ȃǂɂ��g�p����܂��B���[���ҏW�p�̊O���G�f�B�^�Ƃ��đ��̃G�f�B�^���g�p�������ꍇ�ɂ͂�����Ɏw�肵�܂��B
+Editorで指定したエディタは、添付ファイルをエディタで開いたりするときなどにも使用されます。メール編集用の外部エディタとして他のエディタを使用したい場合にはこちらに指定します。
 
 
 +ExternalEditorAutoCreate (1 @ 0|1)
-�O���G�f�B�^�Ń��b�Z�[�W���쐬����Ƃ��ɁA�O���G�f�B�^���I�������玩���Ń��b�Z�[�W���쐬���邩�ǂ����B
+外部エディタでメッセージを作成するときに、外部エディタが終了したら自動でメッセージを作成するかどうか。
 
 
 +Filer
-�Y�t�t�@�C����ۑ�������Ńt�H���_���J���Ƃ��Ɏg�p����G�f�B�^�B�w�肵�Ȃ��ꍇ�ɂ͊֘A�t���ŊJ���B
+添付ファイルを保存した後でフォルダを開くときに使用するエディタ。指定しない場合には関連付けで開く。
 
 
 +ForwardRfc822 (0 @ 0|1)
-�]������Ƃ���message/rfc822�`���œ]�����邩�ǂ����B
+転送するときにmessage/rfc822形式で転送するかどうか。
 
 
 +HideWhenMinimized (0 @ 0|1)
-�ŏ������ꂽ�Ƃ��ɉB�����ǂ����B
+最小化されたときに隠すかどうか。
 
 
 +ImeControl (1 @ 0|1)
-IME�������Ő��䂷�邩�ǂ����B
+IMEを自動で制御するかどうか。
 
 
 +IncrementalSearch (0 @ 0|1)
-���b�Z�[�W��������G�f�B�b�g�r���[�̌����ŃC���N�������^���T�[�`���g�����ǂ����B
+メッセージ内検索やエディットビューの検索でインクリメンタルサーチを使うかどうか。
 
 
 +NextUpdateCheck
-���Ƀo�[�W�����`�F�b�N����������B
+次にバージョンチェックをする日時。
 
 
 +Libraries
-���[�h����O�����C�u�����B�����w�肷��Ƃ��ɂ͋󔒋�؂�B
+ロードする外部ライブラリ。複数指定するときには空白区切り。
 
 
 +Log (-1 @ -1|0|1|2|3|4)
-�V�X�e�����O�̃��O���x���B
+システムログのログレベル。
 
 :-1
   None
@@ -551,831 +551,831 @@ IME�������Ő��䂷�邩�ǂ����B
 
 
 +LogFilter
-�V�X�e�����O�����W���[�����Ńt�B���^���邽�߂̐��K�\���B
+システムログをモジュール名でフィルタするための正規表現。
 
 
 +LogTimeFormat (%Y4/%M0/%D-%h:%m:%s%z)
-�V�X�e�����O�̓��t�t�H�[�}�b�g�B�w����@�́A((<@FormatDate|URL:FormatDateFunction.html>))���Q�ƁB
+システムログの日付フォーマット。指定方法は、((<@FormatDate|URL:FormatDateFunction.html>))を参照。
 
 
 +Macro
-MessageMacro�A�N�V�����ōŌ�Ɏw�肵���}�N���B
+MessageMacroアクションで最後に指定したマクロ。
 
 
 +NextUnseenInOtherAccounts (0 @ 0|1)
-ViewNextUnseenMessage�A�N�V�����ő��̃A�J�E���g�̖��ǃ��b�Z�[�W�ɃW�����v���邩�ǂ����B
+ViewNextUnseenMessageアクションで他のアカウントの未読メッセージにジャンプするかどうか。
 
 
 +NextUnseenWhenScrollEnd (0 @ 0|1)
-ViewNextMessagePage�A�N�V�����ōŌ�܂ŃX�N���[�������Ƃ��Ɏ��̖��ǃ��b�Z�[�W�ɃW�����v���邩�ǂ����B
+ViewNextMessagePageアクションで最後までスクロールしたときに次の未読メッセージにジャンプするかどうか。
 
 
 +NoBccForML (0 @ 0|1)
-������Bcc�Ɋ܂߂�ꍇ��ML����̃��b�Z�[�W�炵���Ƃ��ɂ�Bcc��t�����Ȃ����ǂ����B
+自分をBccに含める場合にMLからのメッセージらしいときにはBccを付加しないかどうか。
 
 
 +Offline (1 @ 0|1)
-�I�t���C�����ǂ����B
+オフラインかどうか。
 
 
 +OpenAddressBook (0 @ 0|1)
-���b�Z�[�W�쐬���Ɏ����ŃA�h���X�I���_�C�A���O���J�����ǂ����B
+メッセージ作成時に自動でアドレス選択ダイアログを開くかどうか。
 
 
 +OpenRecentInPreview (0 @ 0|1)
-�V�����b�Z�[�W���X�g���烁�b�Z�[�W���J���Ƃ��Ƀv���r���[�ŊJ�����ǂ����B
+新着メッセージリストからメッセージを開くときにプレビューで開くかどうか。
 
 
 +Password
-�N�����Ƀ`�F�b�N����p�X���[�h�B�p�X���[�h��MD5�Ńn�b�V������16�i�Ńe�L�X�g�ɂ������̂ł��B��̏ꍇ�ɂ̓p�X���[�h�̓`�F�b�N����܂���B
+起動時にチェックするパスワード。パスワードをMD5でハッシュして16進でテキストにしたものです。空の場合にはパスワードはチェックされません。
 
 
 +PrintCommand
-�������Ƃ��Ɏg�p����R�}���h�B�w�肷��Ɗ֘A�t���ɂ�����̑���Ɏw�肵���R�}���h�ɂ���Ĉ������܂��B�w�肵���R�}���h�́A%1���������t�@�C���ɒu���������܂��B
+印刷するときに使用するコマンド。指定すると関連付けによる印刷の代わりに指定したコマンドによって印刷されます。指定したコマンドの、%1が印刷するファイルに置き換えられます。
 
 +PrintExtension (html)
-�������Ƃ��ɏ����o���t�@�C���̊g���q�B
+印刷するときに書き出すファイルの拡張子。
 
 
 +Quote (> )
-EditPasteWithQuote�A�N�V�����ȂǂŎg������p���B
+EditPasteWithQuoteアクションなどで使われる引用符。
 
 
 +RFC2231 (0 @ 0|1)
-�Y�t�t�@�C���̃t�@�C�����Ȃǂ�RFC2231�`���ŃG���R�[�h���邩�ǂ����B
+添付ファイルのファイル名などをRFC2231形式でエンコードするかどうか。
 
 
 +SaveMessageViewModePerFolder (1 @ 0|1)
-���b�Z�[�W���[�h���t�H���_���Ƃɕۑ����邩�ǂ����B
+メッセージモードをフォルダごとに保存するかどうか。
 
 
 +SaveOnDeactivate (1 @ 0|1)
-��A�N�e�B�u�ɂȂ����Ƃ��ɕۑ����邩�ǂ����B
+非アクティブになったときに保存するかどうか。
 
 
 +SaveSentInSameFolder (0 @ 0|1)
-�ԐM���[���𑗐M�����Ƃ��ɑ��M�T����ԐM���̃��b�Z�[�W�Ɠ����t�H���_�ɕۑ����邩�ǂ����B
+返信メールを送信したときに送信控えを返信元のメッセージと同じフォルダに保存するかどうか。
 
 
 +ShowUnseenCountOnWelcome (0 @ 0|1)
-Windows XP�̂悤������ʂɖ��ǃ��b�Z�[�W����\�����邩�ǂ����B
+Windows XPのようこそ画面に未読メッセージ数を表示するかどうか。
 
 
 +TemporaryFolder
-�ꎞ�t�@�C����u���t�H���_�B
+一時ファイルを置くフォルダ。
 
 
 +UseExternalEditor (0 @ 0|1)
-�O���G�f�B�^���g�p���邩�ǂ����B
+外部エディタを使用するかどうか。
 
 
 +WarnExtensions (exe com pif bat scr htm html hta vbs js)
-�Y�t�t�@�C�����J���Ƃ��Ɍx������g���q�B�󔒕����ŋ�؂�B
+添付ファイルを開くときに警告する拡張子。空白文字で区切る。
 
 
 +XMailerWithOSVersion (1 @ 0|1)
-X-Mailer��OS�̃o�[�W�������܂߂邩�ǂ����B
+X-MailerにOSのバージョンを含めるかどうか。
 
 
-===GoRoundCourseDialog�Z�N�V����
-����R�[�X�_�C�A���O�̐ݒ�����܂��B
+===GoRoundCourseDialogセクション
+巡回コースダイアログの設定をします。
 
 +Width (620), Height(450)
-�_�C�A���O�̃T�C�Y�B
+ダイアログのサイズ。
 
 
-===GPG�Z�N�V����
-GnuPG�̐ݒ�����܂��B
+===GPGセクション
+GnuPGの設定をします。
 
 +Command (gpg.exe)
-GnuPG���N������Ƃ��̃R�}���h�B
+GnuPGを起動するときのコマンド。
 
 
-===HeaderEditWindow�Z�N�V����
-�w�b�_�G�f�B�b�g�r���[�̐ݒ�����܂��B
+===HeaderEditWindowセクション
+ヘッダエディットビューの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +ImeTo (0), ImeCc (0), ImeBcc (0), ImeSubject (0)
-To, Cc, Bcc, Subject����Ime�̏�ԁB
+To, Cc, Bcc, Subject欄のImeの状態。
 
 
 +ImeStatusTo (-1), ImeStatusCc (-1), ImeStatusBcc (-1), ImeStatusSubject (-1)
-Ime�̕ϊ��X�e�[�^�X�B
+Imeの変換ステータス。
 
 
-===HeaderWindow�Z�N�V����
-�w�b�_�r���[�̐ݒ�����܂��B
+===HeaderWindowセクション
+ヘッダビューの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
-===Imap4Search�Z�N�V����
-((<IMAP4����|URL:Imap4Search.html>))�̐ݒ�����܂��B
+===Imap4Searchセクション
+((<IMAP4検索|URL:Imap4Search.html>))の設定をします。
 
 +Command (0 @ 0|1)
-IMAP4�����ŃR�}���h���w�肷�邩�ǂ����B
+IMAP4検索でコマンドを指定するかどうか。
 
 
 +SearchBody (0 @ 0|1)
-IMAP4�����Ŗ{�����������邩�ǂ����B
+IMAP4検索で本文を検索するかどうか。
 
 
-===InputBoxDialog�Z�N�V����
-���̓_�C�A���O�̐ݒ�����܂��B
+===InputBoxDialogセクション
+入力ダイアログの設定をします。
 
 +Width (400), Height (300)
-((<@InputBox|URL:InputBoxFunction.html>))�̕����s�_�C�A���O�̃T�C�Y�B
+((<@InputBox|URL:InputBoxFunction.html>))の複数行ダイアログのサイズ。
 
 
-===JunkFilter�Z�N�V����
-((<�X�p���t�B���^|URL:JunkFilter.html>))�̐ݒ�����܂��B
+===JunkFilterセクション
+((<スパムフィルタ|URL:JunkFilter.html>))の設定をします。
 
 +AttachmentExtensions (pdf doc docx xls xlsx ppt pptx rtf)
-�X�L��������Y�t�t�@�C���̊g���q�B�󔒂ŋ�؂�B
+スキャンする添付ファイルの拡張子。空白で区切る。
 
 
 +AttachmentScanCommand (xdoc2txt.exe -n -o=0)
-�Y�t�t�@�C�����X�L��������Ƃ��Ɏg�p����R�}���h�B
+添付ファイルをスキャンするときに使用するコマンド。
 
 
 +BlackList, WhiteList
-�u���b�N���X�g�ƃz���C�g���X�g�B
+ブラックリストとホワイトリスト。
 
 
 +Flags (3)
-�t���O�B�ȉ��̑g�ݍ��킹��10�i�Ŏw��B
+フラグ。以下の組み合わせを10進で指定。
 
 :0x01
-  �����Ŋw�K
+  自動で学習
 :0x02
-  �蓮�Ŋw�K
+  手動で学習
 
 
 +MaxTextLen (32768)
-����Ώۂɂ���e�L�X�g�̍ő�T�C�Y�B�P�ʂ̓o�C�g�B
+判定対象にするテキストの最大サイズ。単位はバイト。
 
 
 +MaxAttachmentSize (32768)
-�X�L��������Y�t�t�@�C���̍ő�T�C�Y�B�P�ʂ̓o�C�g�B
+スキャンする添付ファイルの最大サイズ。単位はバイト。
 
 
 +Path
-�X�p���t�B���^��DB��u���f�B���N�g���̃p�X�B
+スパムフィルタのDBを置くディレクトリのパス。
 
 
 +ScanAttachment (0 @ 0|1)
-�Y�t�t�@�C�����X�L�������邩�ǂ����B
+添付ファイルをスキャンするかどうか。
 
 
 +ThresholdScore (0.95)
-�X�p���Ɣ��肷��臒l�B
+スパムと判定する閾値。
 
 
-===Label�Z�N�V����
-((<���x��|URL:Label.html>))�̐ݒ�����܂��B
+===Labelセクション
+((<ラベル|URL:Label.html>))の設定をします。
 
 +Histroy?
-���x���̗����B?��0����n�܂鐔���B
+ラベルの履歴。?は0から始まる数字。
 
 
 +HistorySize (10)
-�ۑ����郉�x���̍ő吔�B
+保存するラベルの最大数。
 
 
-===ListWindow�Z�N�V����
-���X�g�r���[�̐ݒ�����܂��B
+===ListWindowセクション
+リストビューの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +UseSystemColor (1 @ 0|1)
-�V�X�e���̔z�F���g�����ǂ����B
+システムの配色を使うかどうか。
 
 
 +ForegroundColor, BackgroundColor, SelectedForegroundColor, SelectedBackgroundColor, SelectedNotFocusBackgroundColor
-�����F�A�w�i�F�A�I�𕶎��F�A�I��w�i�F�A�I���t�H�[�J�X�w�i�F�B�`����RRGGBB�B
+文字色、背景色、選択文字色、選択背景色、選択非フォーカス背景色。形式はRRGGBB。
 
 
 +Ellipsis (1 @ 0|1)
-�J�����̕��Ɏ��܂�Ȃ�������̏I�[��...�ɂ��邩�ǂ����B
+カラムの幅に収まらない文字列の終端を...にするかどうか。
 
 
 +ShowHeaderColumn (1 @ 0|1)
-�w�b�_�J������\�����邩�ǂ����B
+ヘッダカラムを表示するかどうか。
 
 
 +SingleClickOpen (0 @ 0|1)
-�V���O���N���b�N�Ń��b�Z�[�W�E�B���h�E���J�����ǂ����B
+シングルクリックでメッセージウィンドウを開くかどうか。
 
 
 +TimeFormat (%Y2/%M0/%D %h:%m)
-���t�t�H�[�}�b�g�B�w����@�́A((<@FormatDate|URL:FormatDateFunction.html>))���Q�ƁB
+日付フォーマット。指定方法は、((<@FormatDate|URL:FormatDateFunction.html>))を参照。
 
 
-===MacroDialog�Z�N�V����
-�}�N���_�C�A���O�̐ݒ�����܂��B
+===MacroDialogセクション
+マクロダイアログの設定をします。
 
 +Width (620), Height(450)
-�}�N���_�C�A���O�̃T�C�Y�B
+マクロダイアログのサイズ。
 
 
-===MacroSearch�Z�N�V����
-((<��{����|URL:MacroSearch.html>))�̐ݒ�����܂��B
+===MacroSearchセクション
+((<基本検索|URL:MacroSearch.html>))の設定をします。
 
 +Macro (0 @ 0|1)
-�����������}�N�����ǂ����B
+検索条件がマクロかどうか。
 
 
 +MatchCase (0 @ 0|1)
-�啶���Ə���������ʂ��邩�ǂ����B
+大文字と小文字を区別するかどうか。
 
 
 +SearchHeader (0 @ 0|1)
-�w�b�_���������邩�ǂ����B
+ヘッダを検索するかどうか。
 
 
 +SearchBody (0 @ 0|1)
-�{�����������邩�ǂ����B
+本文を検索するかどうか。
 
 
 +SearchMacro (@Or(@F(%Subject, $Search, $Case), @F(%From, $Search, $Case), @F(%To, $Search, $Case), @F(@Label(), $Search, $Case)))
-�����Ɏg�p����}�N���B�ڍׂ́A((<��{����|URL:MacroSearch.html>))���Q�ƁB
+検索に使用するマクロ。詳細は、((<基本検索|URL:MacroSearch.html>))を参照。
 
 
-===MainWindow�Z�N�V����
-���C���E�B���h�E�̐ݒ�����܂��B
+===MainWindowセクション
+メインウィンドウの設定をします。
 
 +Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
-�E�B���h�E�̈ʒu�Ƒ傫���A�\�����@�Ɠ��ߓx�B
+ウィンドウの位置と大きさ、表示方法と透過度。
 
 
 +Placement (F|(L-P))
-�E�B���h�E�̔z�u���@�B�w��ł���l�́A((<���̑��̐ݒ�|URL:OptionMisc.html>))��[�r���[�̔z�u]���Q�ƁB
+ウィンドウの配置方法。指定できる値は、((<その他の設定|URL:OptionMisc.html>))の[ビューの配置]を参照。
 
 
 +PrimaryLocation (100)
-�O���̕����E�B���h�E�̕����ʒu�B
+外側の分割ウィンドウの分割位置。
 
 
 +SecondaryLocation (200)
-�����̕����E�B���h�E�̕����ʒu�B
+内側の分割ウィンドウの分割位置。
 
 
 +SecurityMode (0)
-((<�Z�L�����e�B���[�h|URL:SecurityMode.html>))�B�ȉ��̑g�ݍ��킹�B
+((<セキュリティモード|URL:SecurityMode.html>))。以下の組み合わせ。
 
 :0x01
-  S/MIME���[�h
+  S/MIMEモード
 :0x02
-  PGP���[�h
+  PGPモード
 
 
 +ShowToolbar (1 @ 0|1), ShowStatusBar (1 @ 0|1), ShowFolderComboBox (0 @ 0|1), ShowFolderWindow (1 @ 0|1), ShowPreviewWindow (1 @ 0|1)
-�c�[���o�[�A�X�e�[�^�X�o�[�A�t�H���_�R���{�{�b�N�X�A�t�H���_�E�B���h�E�A�v���r���[�����ꂼ��\�����邩�ǂ����B
+ツールバー、ステータスバー、フォルダコンボボックス、フォルダウィンドウ、プレビューをそれぞれ表示するかどうか。
 
 
-===MessageFrameWindow�Z�N�V����
-���b�Z�[�W�E�B���h�E�̐ݒ�����܂��B
+===MessageFrameWindowセクション
+メッセージウィンドウの設定をします。
 
 +Left (0), Top (0), Width (0), Height (0), Show (1), Alpha (0 @ 0-255)
-�E�B���h�E�̈ʒu�Ƒ傫���A�\�����@�Ɠ��ߓx�B
+ウィンドウの位置と大きさ、表示方法と透過度。
 
 
 +SecurityMode (0)
-((<�Z�L�����e�B���[�h|URL:SecurityMode.html>))�B�ȉ��̑g�ݍ��킹�B
+((<セキュリティモード|URL:SecurityMode.html>))。以下の組み合わせ。
 
 :0x01
-  S/MIME���[�h
+  S/MIMEモード
 :0x02
-  PGP���[�h
+  PGPモード
 
 
 +ShowToolbar (1 @ 0|1), ShowStatusBar (1 @ 0|1)
-�c�[���o�[�A�X�e�[�^�X�o�[��\�����邩�ǂ����B
+ツールバー、ステータスバーを表示するかどうか。
 
 
 ===MessageWindow
-���b�Z�[�W�r���[�̐ݒ�����܂��B
+メッセージビューの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +AdjustExtent (0 @ 0|1)
-�������𒲐߂��邩�ǂ����B
+文字幅を調節するかどうか。
 
 
 +UseSystemColor (1 @ 0|1)
-�V�X�e���̔z�F���g�����ǂ����B
+システムの配色を使うかどうか。
 
 
 +ForegroundColor (000000), BackgroundColor (ffffff), LinkColor (0000ff), QuoteColor1 (008000), QuoteColor2 (000080)
-�����F�A�w�i�F�A�����N�̐F�A���p�̐F1, 2�B�`����RRGGBB�B
+文字色、背景色、リンクの色、引用の色1, 2。形式はRRGGBB。
 
 
 +CharInLine (0)
-��s�̕������B0�̏ꍇ�ɂ̓E�B���h�E�̐܂�Ԃ��ʒu�B�w�肵���l�~x�̕������̈ʒu�Ő܂�Ԃ����B
+一行の文字数。0の場合にはウィンドウの折り返し位置。指定した値×xの文字幅の位置で折り返される。
 
 
 +ClickableURL (1 @ 0|1)
-�N���b�J�u��URL���L�����ǂ����B
+クリッカブルURLが有効かどうか。
 
 
 +DragScrollDelay (300), DragScrollInterval (300)
-�h���b�O�őI�𒆂ɃX�N���[������Ƃ��̒x���ƊԊu�B�P�ʂ̓~���b�B
+ドラッグで選択中にスクロールするときの遅延と間隔。単位はミリ秒。
 
 
 +LineQuote (0 @ 0|1)
-���p����ŕ\�����邩�ǂ����B
+引用を線で表示するかどうか。
 
 
 +LineSpacing (2)
-�s�Ԃ̍����B�P�ʂ̓s�N�Z���B
+行間の高さ。単位はピクセル。
 
 
 +MarginLeft (10), MarginTop (10), MarginRight (10), MarginBottom (10)
-�}�[�W���B�P�ʂ̓s�N�Z���B
+マージン。単位はピクセル。
 
 
 +Quote1 (>), Quote2 (#)
-���p����1, 2�B���𕶎���Ŏw��B
+引用文字1, 2。候補を文字列で指定。
 
-Quote1�Ŏw�肵�������̂����ꂩ����n�܂�s��QuoteColor1�Ŏw�肵���F�ɁAQuote2�Ŏw�肵�������̂����ꂩ����n�܂�s��QuoteColor2�Ŏw�肵���F�ɂȂ�BLineQuote��1�̏ꍇ�ɂ́AQuote1�Ŏw�肵�������̂����ꂩ����n�܂�s�͐��ŕ\�������B
+Quote1で指定した文字のいずれかから始まる行がQuoteColor1で指定した色に、Quote2で指定した文字のいずれかから始まる行がQuoteColor2で指定した色になる。LineQuoteが1の場合には、Quote1で指定した文字のいずれかから始まる行は線で表示される。
 
 
 +ReformLineLength (74)
-���`����Ƃ��̈�s�̕������B
+整形するときの一行の文字数。
 
 
 +ReformQuote (>|#)
-���`����Ƃ��Ɉ��p�Ƃ��Ĉ����镶���B
+整形するときに引用として扱われる文字。
 
 
 +ShowCaret (1 @ 0|1), ShowNewLine (1 @ 0|1), ShowTab (1 @ 0|1), ShowRuler (1 @ 0|1), ShowHorizontalScrollBar (0 @ 0|1), ShowVerticalScrollBar (1 @ 0|1)
-�L�����b�g�A���s�����A�^�u�A���[���A�����X�N���[���o�[�A�����X�N���[���o�[��\�����邩�ǂ����B
+キャレット、改行文字、タブ、ルーラ、水平スクロールバー、垂直スクロールバーを表示するかどうか。
 
 
 +URLSchemas (http https ftp file mailto)
-�����N�ɂ���X�L�[�}�B�X�y�[�X�ŋ�؂��Ďw��B
+リンクにするスキーマ。スペースで区切って指定。
 
 
 +WordWrap
-���[�h���b�v�Ƌ֑����L�����ǂ����B
+ワードラップと禁則が有効かどうか。
 
 
 +TabWidth
-�^�u�̕��B�w�肵���l�~x�̕������̈ʒu���^�u�ʒu�ɂȂ�B
+タブの幅。指定した値×xの文字幅の位置がタブ位置になる。
 
 
 +FontGroup
-�t�H���g�O���[�v���B�ڍׂ́A((<�t�H���g|URL:Font.html>))���Q�ƁB
+フォントグループ名。詳細は、((<フォント|URL:Font.html>))を参照。
 
 
 +SeenWait (0)
-���b�Z�[�W��\�����Ă�����ǂɂ���܂ł̑҂����ԁB�P�ʂ͕b�B-1�ɂ���Ɗ��ǂɂ��Ȃ��B
+メッセージを表示してから既読にするまでの待ち時間。単位は秒。-1にすると既読にしない。
 
 
 +ShowHeader (1 @ 0|1)
-�w�b�_�r���[���B�����Ƃ��Ƀ��b�Z�[�W�r���[���Ƀw�b�_��\�����邩�ǂ����B
+ヘッダビューを隠したときにメッセージビュー内にヘッダを表示するかどうか。
 
 
 +ShowHeaderWindow (1 @ 0|1)
-�w�b�_�r���[��\�����邩�ǂ����B
+ヘッダビューを表示するかどうか。
 
 
 +Template
-((<�\���p�e���v���[�g|URL:ViewTemplate.html>))�B
+((<表示用テンプレート|URL:ViewTemplate.html>))。
 
 
 +ViewFit (0 @ 0|1|2)
-HTML�\���̔z�u���@�B((<ViewFit�A�N�V����|URL:ViewFitAction.html>))���Q�ƁB
+HTML表示の配置方法。((<ViewFitアクション|URL:ViewFitAction.html>))を参照。
 
 
 +ViewMode (32)
-((<���b�Z�[�W�\�����[�h|URL:MessageViewMode.html>))�B
+((<メッセージ表示モード|URL:MessageViewMode.html>))。
 
 
 +ViewZoom (-1 @ -1|0|1|2|3|4)
-HTML�\���̕����T�C�Y�B((<ViewZoom�A�N�V����|URL:ViewZoomAction.html>))���Q�ƁB
+HTML表示の文字サイズ。((<ViewZoomアクション|URL:ViewZoomAction.html>))を参照。
 
 
-===MoveMessageDialog�Z�N�V����
-���b�Z�[�W�̈ړ��_�C�A���O�̐ݒ�����܂��B
+===MoveMessageDialogセクション
+メッセージの移動ダイアログの設定をします。
 
 +ShowHidden (0 @ 0|1)
-�B����Ă���t�H���_��\�����邩�ǂ����B
+隠されているフォルダを表示するかどうか。
 
 
-===OptionDialog�Z�N�V����
-�I�v�V�����_�C�A���O�̐ݒ�����܂��B
+===OptionDialogセクション
+オプションダイアログの設定をします。
 
 +Width (620), Height(450)
-�}�N���_�C�A���O�̃T�C�Y�B
+マクロダイアログのサイズ。
 
 
 +Panel (0)
-�I������Ă���p�l���B
+選択されているパネル。
 
 
-===PGP�Z�N�V����
-PGP�̐ݒ�����܂��B
+===PGPセクション
+PGPの設定をします。
 
 +Command (pgp.exe)
-PGP���N������Ƃ��̃R�}���h�B
+PGPを起動するときのコマンド。
 
 
 +HiddenRecipient (1 @ 0|1)
-GnuPG�ňÍ�������Ƃ���Bcc��ATo��������Cc�ɃO���[�v�A�h���X���܂܂�A���̃A�h���X��From, Sender, Reply-To�̂�����ɂ�����Ȃ��ꍇ�ɁA�����̃A�h���X�ɑ΂��ē����ňÍ������邩�ǂ����B
+GnuPGで暗号化するときにBccや、ToもしくはCcにグループアドレスが含まれ、そのアドレスがFrom, Sender, Reply-Toのいずれにも現れない場合に、それらのアドレスに対して匿名で暗号化するかどうか。
 
 
 +UseGPG (1 @ 0|1)
-GnuPG���g�����APGP���g�����B
+GnuPGを使うか、PGPを使うか。
 
 
-===PreviewWindow�Z�N�V����
-�v���r���[�̐ݒ�����܂��B
+===PreviewWindowセクション
+プレビューの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +AdjustExtent (0 @ 0|1)
-�������𒲐߂��邩�ǂ����B
+文字幅を調節するかどうか。
 
 
 +UseSystemColor (1 @ 0|1)
-�V�X�e���̔z�F���g�����ǂ����B
+システムの配色を使うかどうか。
 
 
 +ForegroundColor (000000), BackgroundColor (ffffff), LinkColor (0000ff), QuoteColor1 (008000), QuoteColor2 (000080)
-�����F�A�w�i�F�A�����N�̐F�A���p�̐F1, 2�B�`����RRGGBB�B
+文字色、背景色、リンクの色、引用の色1, 2。形式はRRGGBB。
 
 
 +CharInLine (0)
-��s�̕������B0�̏ꍇ�ɂ̓E�B���h�E�̐܂�Ԃ��ʒu�B�w�肵���l�~x�̕������̈ʒu�Ő܂�Ԃ����B
+一行の文字数。0の場合にはウィンドウの折り返し位置。指定した値×xの文字幅の位置で折り返される。
 
 
 +ClickableURL (1 @ 0|1)
-�N���b�J�u��URL���L�����ǂ����B
+クリッカブルURLが有効かどうか。
 
 
 +DragScrollDelay (300), DragScrollInterval (300)
-�h���b�O�őI�𒆂ɃX�N���[������Ƃ��̒x���ƊԊu�B�P�ʂ̓~���b�B
+ドラッグで選択中にスクロールするときの遅延と間隔。単位はミリ秒。
 
 
 +LineQuote (0 @ 0|1)
-���p����ŕ\�����邩�ǂ����B
+引用を線で表示するかどうか。
 
 
 +LineSpacing (2)
-�s�Ԃ̍����B�P�ʂ̓s�N�Z���B
+行間の高さ。単位はピクセル。
 
 
 +MarginLeft (10), MarginTop (10), MarginRight (10), MarginBottom (10)
-�}�[�W���B�P�ʂ̓s�N�Z���B
+マージン。単位はピクセル。
 
 
 +Quote1 (>), Quote2 (#)
-���p����1, 2�B���𕶎���Ŏw��B
+引用文字1, 2。候補を文字列で指定。
 
-Quote1�Ŏw�肵�������̂����ꂩ����n�܂�s��QuoteColor1�Ŏw�肵���F�ɁAQuote2�Ŏw�肵�������̂����ꂩ����n�܂�s��QuoteColor2�Ŏw�肵���F�ɂȂ�BLineQuote��1�̏ꍇ�ɂ́AQuote1�Ŏw�肵�������̂����ꂩ����n�܂�s�͐��ŕ\�������B
+Quote1で指定した文字のいずれかから始まる行がQuoteColor1で指定した色に、Quote2で指定した文字のいずれかから始まる行がQuoteColor2で指定した色になる。LineQuoteが1の場合には、Quote1で指定した文字のいずれかから始まる行は線で表示される。
 
 
 +ReformLineLength (74)
-���`����Ƃ��̈�s�̕������B
+整形するときの一行の文字数。
 
 
 +ReformQuote (>|#)
-���`����Ƃ��Ɉ��p�Ƃ��Ĉ����镶���B
+整形するときに引用として扱われる文字。
 
 
 +ShowCaret (1 @ 0|1), ShowNewLine (1 @ 0|1), ShowTab (1 @ 0|1), ShowRuler (1 @ 0|1), ShowHorizontalScrollBar (0 @ 0|1), ShowVerticalScrollBar (1 @ 0|1)
-�L�����b�g�A���s�����A�^�u�A���[���A�����X�N���[���o�[�A�����X�N���[���o�[��\�����邩�ǂ����B
+キャレット、改行文字、タブ、ルーラ、水平スクロールバー、垂直スクロールバーを表示するかどうか。
 
 
 +URLSchemas (http https ftp file mailto)
-�����N�ɂ���X�L�[�}�B�X�y�[�X�ŋ�؂��Ďw��B
+リンクにするスキーマ。スペースで区切って指定。
 
 
 +WordWrap
-���[�h���b�v�Ƌ֑����L�����ǂ����B
+ワードラップと禁則が有効かどうか。
 
 
 +TabWidth
-�^�u�̕��B�w�肵���l�~x�̕������̈ʒu���^�u�ʒu�ɂȂ�B
+タブの幅。指定した値×xの文字幅の位置がタブ位置になる。
 
 
 +Delay (300)
-���X�g�r���[�Ń��b�Z�[�W��I�����Ă���v���r���[�ɔ��f������܂ł̑҂����ԁB�P�ʂ̓~���b�B
+リストビューでメッセージを選択してからプレビューに反映させるまでの待ち時間。単位はミリ秒。
 
 
 +FontGroup
-�t�H���g�O���[�v���B�ڍׂ́A((<�t�H���g|URL:Font.html>))���Q�ƁB
+フォントグループ名。詳細は、((<フォント|URL:Font.html>))を参照。
 
 
 +SeenWait (0)
-���b�Z�[�W��\�����Ă�����ǂɂ���܂ł̑҂����ԁB�P�ʂ͕b�B-1�ɂ���Ɗ��ǂɂ��Ȃ��B
+メッセージを表示してから既読にするまでの待ち時間。単位は秒。-1にすると既読にしない。
 
 
 +ShowHeader (1 @ 0|1)
-�w�b�_�r���[���B�����Ƃ��Ƀ��b�Z�[�W�r���[���Ƀw�b�_��\�����邩�ǂ����B
+ヘッダビューを隠したときにメッセージビュー内にヘッダを表示するかどうか。
 
 
 +ShowHeaderWindow (1 @ 0|1)
-�w�b�_�r���[��\�����邩�ǂ����B
+ヘッダビューを表示するかどうか。
 
 
 +Template
-((<�\���p�e���v���[�g|URL:ViewTemplate.html>))�B
+((<表示用テンプレート|URL:ViewTemplate.html>))。
 
 
 +UpdateAlways (0 @ 0|1)
-�o�b�N�O���E���h�Ń��b�Z�[�W���폜���ꂽ�Ȃǂ̏󋵂őI�����ꂽ���b�Z�[�W���ς�����ꍇ�ɂ��A�v���r���[�ɑI�����ꂽ���b�Z�[�W��\�����邩�ǂ����B
+バックグラウンドでメッセージが削除されたなどの状況で選択されたメッセージが変わった場合にも、プレビューに選択されたメッセージを表示するかどうか。
 
 
 +ViewFit (0 @ 0|1|2)
-HTML�\���̔z�u���@�B((<ViewFit�A�N�V����|URL:ViewFitAction.html>))���Q�ƁB
+HTML表示の配置方法。((<ViewFitアクション|URL:ViewFitAction.html>))を参照。
 
 
 +ViewMode (32)
-((<���b�Z�[�W�\�����[�h|URL:MessageViewMode.html>))�B
+((<メッセージ表示モード|URL:MessageViewMode.html>))。
 
 
 +ViewZoom (-1 @ -1|0|1|2|3|4)
-HTML�\���̕����T�C�Y�B((<ViewZoom�A�N�V����|URL:ViewZoomAction.html>))���Q�ƁB
+HTML表示の文字サイズ。((<ViewZoomアクション|URL:ViewZoomAction.html>))を参照。
 
 
-===RecentAddress�Z�N�V����
-((<�A�h���X�̎����⊮|URL:AddressAutoComplete.html>))�Ŏg����ŋߎg�p�������[���A�h���X�̐ݒ�����܂��B
+===RecentAddressセクション
+((<アドレスの自動補完|URL:AddressAutoComplete.html>))で使われる最近使用したメールアドレスの設定をします。
 
 +Address?
-�A�h���X�̗����B?��0����n�܂鐔���B
+アドレスの履歴。?は0から始まる数字。
 
 
 +Max (10)
-�o���Ă����A�h���X�̍ő吔�B
+覚えておくアドレスの最大数。
 
 
-===Recents�Z�N�V����
-((<�V�����b�Z�[�W�ʒm|URL:Recents.html>))�̐ݒ�����܂��B
+===Recentsセクション
+((<新着メッセージ通知|URL:Recents.html>))の設定をします。
 
 +Filter
-���b�Z�[�W��V�����b�Z�[�W�ʒm�̑Ώۂɂ��邩�ǂ��������߂鐳�K�\���B�V�����b�Z�[�W��URI���w�肵�����K�\���Ƀ}�b�`����ƒʒm�����B
+メッセージを新着メッセージ通知の対象にするかどうかを決める正規表現。新着メッセージのURIが指定した正規表現にマッチすると通知される。
 
 
 +HotKey (65)
-�V�����b�Z�[�W�ꗗ��\�����邽�߂̃z�b�g�L�[�B���z�L�[�R�[�h�Ŏw��B�f�t�H���g��'A'�B
+新着メッセージ一覧を表示するためのホットキー。仮想キーコードで指定。デフォルトは'A'。
 
 
 +HotKeyModifiers (5)
-�V�����b�Z�[�W�ꗗ��\�����邽�߂̃z�b�g�L�[�̑����L�[�B���z�L�[�R�[�h�Ŏw��B�f�t�H���g�́AAlt+Shift�B
+新着メッセージ一覧を表示するためのホットキーの装飾キー。仮想キーコードで指定。デフォルトは、Alt+Shift。
 
 
 +Max (20)
-�ő�̐V�����b�Z�[�W���B
+最大の新着メッセージ数。
 
 
 +MacroFilter
-���b�Z�[�W��V�����b�Z�[�W�ʒm�̑Ώۂɂ��邩�ǂ��������߂�}�N���B
+メッセージを新着メッセージ通知の対象にするかどうかを決めるマクロ。
 
 
-===RecentsWindow�Z�N�V����
-�V�����b�Z�[�W�ʒm�E�B���h�E�̐ݒ�����܂��B
+===RecentsWindowセクション
+新着メッセージ通知ウィンドウの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�ʒm�E�B���h�E�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+通知ウィンドウのフォント。フォントサイズはポイント。
 
 
 +Alpha (224 @ 0-255)
-�E�B���h�E�̓��ߓx�B
+ウィンドウの透過度。
 
 
 +ForegroundColor, BackgroundColor, SelectedForegroundColor, SelectedBackgroundColor
-�����F�A�w�i�F�A�I�𕶎��F�A�I��w�i�F�B�`����RRGGBB�B
+文字色、背景色、選択文字色、選択背景色。形式はRRGGBB。
 
 
 +AutoPopup (1 @ 0|1)
-�����Ń|�b�v�A�b�v���邩�ǂ����B
+自動でポップアップするかどうか。
 
 
 +HideTimeout (20)
-�����Ń|�b�v�A�b�v�����Ƃ��ɏ�����܂ł̎��ԁB�P�ʂ͕b�B
+自動でポップアップしたときに消えるまでの時間。単位は秒。
 
 
 +Width (400)
-�E�B���h�E�̕��B
+ウィンドウの幅。
 
 
 +Use (1 @ 0|1)
-�V�����b�Z�[�W�ʒm�E�B���h�E���g�����ǂ����B�V�����b�Z�[�W�ʒm�E�B���h�E���g��Ȃ��ꍇ�ɂ̓��j���[�ŕ\������܂��B
+新着メッセージ通知ウィンドウを使うかどうか。新着メッセージ通知ウィンドウを使わない場合にはメニューで表示されます。
 
 
-===Replace�Z�N�V����
-�u���̐ݒ�����܂��B
+===Replaceセクション
+置換の設定をします。
 
 +Histroy?
-�u�����������B?��0����n�܂鐔���B
+置換した履歴。?は0から始まる数字。
 
 
 +HistorySize (10)
-�ۑ����闚���̍ő吔�B
+保存する履歴の最大数。
 
 
 +Ime (0)
-Ime�̏�ԁB
+Imeの状態。
 
 
 +ImeStatus (-1)
-Ime�̕ϊ��X�e�[�^�X�B
+Imeの変換ステータス。
 
 
-===RulesDialog�Z�N�V����
-�U�蕪���̐ݒ�_�C�A���O�̐ݒ�����܂��B
+===RulesDialogセクション
+振り分けの設定ダイアログの設定をします。
 
 +Width (620), Height (450)
-�_�C�A���O�̑傫���B
+ダイアログの大きさ。
 
 
-===Search�Z�N�V����
-�����̐ݒ�����܂��B
+===Searchセクション
+検索の設定をします。
 
 +All (0 @ 0|1)
-���ׂẴt�H���_��ΏۂɌ������邩�ǂ����B
+すべてのフォルダを対象に検索するかどうか。
 
 
 +Condition
-��������
+検索条件
 
 
 +Histroy?
-�������������B?��0����n�܂鐔���B
+検索した履歴。?は0から始まる数字。
 
 
 +HistorySize (10)
-�ۑ����闚���̍ő吔�B
+保存する履歴の最大数。
 
 
 +Ime (0)
-Ime�̏�ԁB
+Imeの状態。
 
 
 +ImeStatus (-1)
-Ime�̕ϊ��X�e�[�^�X�B
+Imeの変換ステータス。
 
 
 +NewFolder (0)
-���������Ƃ��ɐV���������t�H���_����邩�ǂ����B
+検索したときに新しい検索フォルダを作るかどうか。
 
 
 +Page
-�����_�C�A���O�̃y�[�W�B
+検索ダイアログのページ。
 
 
 +Recursive (0 @ 0|1)
-�t�H���_���ċA�I�Ɍ������邩�ǂ����B
+フォルダを再帰的に検索するかどうか。
 
 
-===Security�Z�N�V����
-�Z�L�����e�B�̐ݒ�����܂��B
+===Securityセクション
+セキュリティの設定をします。
 
 +DefaultMessageSecurity (4112)
-�f�t�H���g�̃Z�L�����e�B�ݒ�B�ȉ��̑g�ݍ��킹�B
+デフォルトのセキュリティ設定。以下の組み合わせ。
 
 :0x0000
-  �Ȃ�
+  なし
 :0x0001
-  S/MIME�ŏ���
+  S/MIMEで署名
 :0x0002
-  S/MIME�ňÍ���
+  S/MIMEで暗号化
 :0x0010
-  S/MIME�Ń}���`�p�[�g�������g�p
+  S/MIMEでマルチパート署名を使用
 :0x0020
-  S/MIME�Ŏ����̃A�h���X�ł��Í�������
+  S/MIMEで自分のアドレスでも暗号化する
 :0x0100
-  PGP�ŏ���
+  PGPで署名
 :0x0200
-  PGP�ňÍ���
+  PGPで暗号化
 :0x1000
-  PGP/MIME���g�p
+  PGP/MIMEを使用
 
 
 +LoadSystemStore (1 @ 0|1)
-�V�X�e���̏ؖ����X�g�A����CA�̏ؖ�����ǂݍ��ނ��ǂ����B
+システムの証明書ストアからCAの証明書を読み込むかどうか。
 
 
-===SelectAddressDialog�Z�N�V����
-�A�h���X�I���_�C�A���O�֌W�̐ݒ�����܂��B
+===SelectAddressDialogセクション
+アドレス選択ダイアログ関係の設定をします。
 
 +Category
-���ݑI������Ă���J�e�S���B
+現在選択されているカテゴリ。
 
 
 +AddressWidth (130), NameWidth (120), CommentWidth (60), SelectedAddressWidth (150)
-�A�h���X���A���O���A�R�����g���A�I�����ꂽ�A�h���X���̕��B
+アドレス欄、名前欄、コメント欄、選択されたアドレス欄の幅。
 
 
 +Width (620), Height (450)
-�_�C�A���O�̑傫���B
+ダイアログの大きさ。
 
 
 +Sort
-�\�[�g�̐ݒ�B
+ソートの設定。
 
 
-===SignaturesDialog�Z�N�V����
-�����̐ݒ�_�C�A���O�̐ݒ�����܂��B
+===SignaturesDialogセクション
+署名の設定ダイアログの設定をします。
 
 +Width (620), Height (450)
-�_�C�A���O�̑傫���B
+ダイアログの大きさ。
 
 
-===Sync�Z�N�V����
-�����̐ݒ�����܂��B
+===Syncセクション
+同期の設定をします。
 
 +Command
-�V�����b�Z�[�W���������Ƃ��Ɏ��s����R�}���h�B
+新着メッセージがあったときに実行するコマンド。
 
 
 +Notify (0 @ 0|1|2)
-�V�����b�Z�[�W��ʒm���邩�ǂ����B
+新着メッセージを通知するかどうか。
 
 :0
-  ��ɒʒm����
+  常に通知する
 :1
-  ��ɒʒm���Ȃ�
+  常に通知しない
 :2
-  �����œ��������Ƃ������ʒm����
+  自動で同期したときだけ通知する
 
 
 +Sound (C:\Windows\Media\notify.wav)
-�V�����b�Z�[�W���������Ƃ��ɖ炷�T�E���h�t�@�C���B
+新着メッセージがあったときに鳴らすサウンドファイル。
 
 
-===SyncDialog�Z�N�V����
+===SyncDialogセクション
 
 +Left (0), Top (0), Width (0), Height (0), Alpha (0 @ 0-255)
-�_�C�A���O�̈ʒu�Ƒ傫���Ɠ��ߓx�B
+ダイアログの位置と大きさと透過度。
 
 
 +Show (2)
-�_�C�A���O��\����������B�ȉ��̂����ꂩ�B
+ダイアログを表示する条件。以下のいずれか。
 
 :0
-  ��ɕ\������
+  常に表示する
 :1
-  ��ɕ\�����Ȃ�
+  常に表示しない
 :2
-  �蓮�œ��������Ƃ������\������
+  手動で同期したときだけ表示する
 
 
-===SyncFiltersDialog�Z�N�V����
-�����t�B���^�̐ݒ�_�C�A���O�̐ݒ�����܂��B
+===SyncFiltersDialogセクション
+同期フィルタの設定ダイアログの設定をします。
 
 +Width (620), Height (450)
-�_�C�A���O�̑傫���B
+ダイアログの大きさ。
 
 
-===TabWindow�Z�N�V����
-�^�u�̐ݒ�����܂��B
+===TabWindowセクション
+タブの設定をします。
 
 +FontFace, FontSize (9), FontStyle (0), FontCharset (0)
-�r���[�̃t�H���g�B�t�H���g�T�C�Y�̓|�C���g�B
+ビューのフォント。フォントサイズはポイント。
 
 
 +CurrentTab (0)
-���݂̃^�u�B
+現在のタブ。
 
 
 +Multiline (0 @ 0|1)
-�^�u�𕡐��s�ɂ��邩�ǂ����B
+タブを複数行にするかどうか。
 
 
 +Reuse (0 @ 0|1|2)
-�^�u���ė��p���邩�ǂ����B�ȉ��̑g�ݍ��킹�B
+タブを再利用するかどうか。以下の組み合わせ。
 
 :0x00
-  �ė��p���Ȃ�
+  再利用しない
 :0x01
-  �V�����^�u���J���Ƃ��ɍė��p
+  新しいタブを開くときに再利用
 :0x02
-  �^�u�ŕ\������t�H���_��ύX����Ƃ��ɍė��p
+  タブで表示するフォルダを変更するときに再利用
 
 
 +Show (0 @ 0|1)
-�^�u��\�����邩�ǂ����B
+タブを表示するかどうか。
 
 
 +ShowAllCount (1 @ 0|1)
-���b�Z�[�W����\�����邩�ǂ����B
+メッセージ数を表示するかどうか。
 
 
 +ShowUnseenCount (1 @ 0|1)
-���ǃ��b�Z�[�W����\�����邩�ǂ����B
+未読メッセージ数を表示するかどうか。
 
 
 =end

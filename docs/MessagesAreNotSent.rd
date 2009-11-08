@@ -1,19 +1,19 @@
 =begin
-=���M���Ă����b�Z�[�W�����M����܂���
+=送信してもメッセージが送信されません
 
-QMAIL3�ł̓G�f�B�b�g�E�B���h�E�ŁA���j���[����((<[�t�@�C��]-[���M]|URL:FileSendAction.html>))��I��������A�c�[���o�[��((<[���M]|URL:FileSendAction.html>))���N���b�N���Ă��A�쐬�������b�Z�[�W�����M���ɕۑ�����邾���ŁA�����Ƀ��b�Z�[�W���T�[�o�ɑ��M�����킯�ł͂���܂���B���M���ɕۑ����ꂽ���b�Z�[�W�͎���A����M�⏄��Ȃǂ��s�����Ƃ��ɃT�[�o�ɑ��M����܂��B���C���E�B���h�E��((<[�c�[��]-[���M]|URL:ToolSendAction.html>))��I������Ƒ��M���ɕۑ����ꂽ���b�Z�[�W���T�[�o�ɑ��M���邱�Ƃ��ł��܂��B
+QMAIL3ではエディットウィンドウで、メニューから((<[ファイル]-[送信]|URL:FileSendAction.html>))を選択したり、ツールバーの((<[送信]|URL:FileSendAction.html>))をクリックしても、作成したメッセージが送信箱に保存されるだけで、すぐにメッセージがサーバに送信されるわけではありません。送信箱に保存されたメッセージは次回、送受信や巡回などを行ったときにサーバに送信されます。メインウィンドウで((<[ツール]-[送信]|URL:ToolSendAction.html>))を選択すると送信箱に保存されたメッセージをサーバに送信することができます。
 
-�܂��A�G�f�B�b�g�E�B���h�E��((<[�t�@�C��]-[�����ɑ��M]|URL:FileSendNowAction.html>))��I������Ƒ��M���Ƀ��b�Z�[�W��ۑ�������ł����ɂ��̃��b�Z�[�W���T�[�o�ɑ��M���邱�Ƃ��ł��܂��B
+また、エディットウィンドウで((<[ファイル]-[すぐに送信]|URL:FileSendNowAction.html>))を選択すると送信箱にメッセージを保存した後ですぐにそのメッセージをサーバに送信することができます。
 
-�c�[���o�[��[���M]�{�^�����N���b�N�����Ƃ��ɂ����ɑ��M����悤�ɂ��邽�߂ɂ́A((<toolbars.xml|URL:ToolbarsXml.html>))�����������܂��B
+ツールバーの[送信]ボタンをクリックしたときにすぐに送信するようにするためには、((<toolbars.xml|URL:ToolbarsXml.html>))を書き換えます。
 
  <button image="15" action="FileSend" text="Send"/>
 
-�Ƃ����s��T���āA�ȉ��̂悤�ɏ��������܂��B
+という行を探して、以下のように書き換えます。
 
  <button image="15" action="FileSendNow" text="Send"/>
 
-�ڂ����́A((<�c�[���o�[�̃J�X�^�}�C�Y|URL:CustomizeToolbars.html>))���Q�Ƃ��Ă��������B
+詳しくは、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))を参照してください。
 
 
 =end

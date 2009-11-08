@@ -1,20 +1,20 @@
 =begin
-=�m�F�̐ݒ�
+=確認の設定
 
-[�I�v�V����]�_�C�A���O��[�m�F]�p�l���ł́A���삵���Ƃ��Ɋm�F�����邩�ǂ����̐ݒ���s���܂��B
+[オプション]ダイアログの[確認]パネルでは、操作したときに確認をするかどうかの設定を行います。
 
-((<�m�F�̐ݒ�|"IMG:images/OptionConfirm.png">))
-
-
-+[���b�Z�[�W���폜����O�Ɋm�F����]
-���b�Z�[�W���폜����O�Ɋm�F���邩�ǂ������w�肵�܂��B�f�t�H���g�ł͊m�F���܂���B
+((<確認の設定|"IMG:images/OptionConfirm.png">))
 
 
-+[�t�H���_����ɂ���O�Ɋm�F����]
-((<�t�H���_����ɂ���|URL:FolderEmptyAction.html>))�O�Ɋm�F���邩�ǂ������w�肵�܂��B�f�t�H���g�ł͊m�F���܂��B
++[メッセージを削除する前に確認する]
+メッセージを削除する前に確認するかどうかを指定します。デフォルトでは確認しません。
 
 
-+[�S�~������ɂ���O�Ɋm�F����]
-((<�S�~������ɂ���|URL:FolderEmptyTrashAction.html>))�O�Ɋm�F���邩�ǂ������w�肵�܂��B�f�t�H���g�ł͊m�F���܂��B
++[フォルダを空にする前に確認する]
+((<フォルダを空にする|URL:FolderEmptyAction.html>))前に確認するかどうかを指定します。デフォルトでは確認します。
+
+
++[ゴミ箱を空にする前に確認する]
+((<ゴミ箱を空にする|URL:FolderEmptyTrashAction.html>))前に確認するかどうかを指定します。デフォルトでは確認します。
 
 =end

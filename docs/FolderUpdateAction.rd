@@ -1,14 +1,14 @@
 =begin
-=FolderUpdateƒAƒNƒVƒ‡ƒ“
+=FolderUpdateã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-Œ»Ý‘I‘ð‚³‚ê‚Ä‚¢‚éƒAƒJƒEƒ“ƒg‚ÌƒtƒHƒ‹ƒ_‚ÌƒŠƒXƒg‚ðXV‚µ‚Ü‚·BIMAP4ƒAƒJƒEƒ“ƒg‚Ì‚Ý‚Å—LŒø‚Å‚·BIMAP4ƒT[ƒo‚©‚çƒtƒHƒ‹ƒ_‚ÌƒŠƒXƒg‚ðŽæ“¾‚µAƒŠƒ‚[ƒgƒtƒHƒ‹ƒ_‚ÌƒŠƒXƒg‚ðXV‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ç¾åœ¨é¸æŠžã•ã‚Œã¦ã„ã‚‹ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã®ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒªã‚¹ãƒˆã‚’æ›´æ–°ã—ã¾ã™ã€‚IMAP4ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã®ã¿ã§æœ‰åŠ¹ã§ã™ã€‚IMAP4ã‚µãƒ¼ãƒã‹ã‚‰ãƒ•ã‚©ãƒ«ãƒ€ã®ãƒªã‚¹ãƒˆã‚’å–å¾—ã—ã€ãƒªãƒ¢ãƒ¼ãƒˆãƒ•ã‚©ãƒ«ãƒ€ã®ãƒªã‚¹ãƒˆã‚’æ›´æ–°ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

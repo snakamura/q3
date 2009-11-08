@@ -1,50 +1,50 @@
 =begin
-=Zip�t�@�C���ɂ��C���X�g�[��
+=Zipファイルによるインストール
 
-Zip�t�@�C���ɂ��C���X�g�[���́A�ȉ��̎菇�ōs���܂��B
+Zipファイルによるインストールは、以下の手順で行います。
 
-(1)Zip�t�@�C����C�ӂ̃f�B���N�g���ɓW�J���܂�
-(2)UI����{�ꉻ�������ꍇ�ɂ͓��{��UI��Zip�t�@�C���𓯂��f�B���N�g���ɓW�J���܂�
-(3)Windows CE�ł̏ꍇ�ɂ́A���ׂẴt�@�C�����f�o�C�X�ɃR�s�[���܂�
+(1)Zipファイルを任意のディレクトリに展開します
+(2)UIを日本語化したい場合には日本語UIのZipファイルを同じディレクトリに展開します
+(3)Windows CE版の場合には、すべてのファイルをデバイスにコピーします
 
-((<�C���X�g�[���f�B���N�g��|"IMG:images/InstallDirectory.png">))
+((<インストールディレクトリ|"IMG:images/InstallDirectory.png">))
 
 
-�܂܂��t�@�C���̓R���|�[�l���g�ʂ�DLL�ɕ������Ă��܂��B�K�v�̂Ȃ�DLL�͍폜���Ă��\���܂���B�ȉ����e�R���|�[�l���g�̋@�\�ł��B�v���b�g�t�H�[���ɂ���Ĉ�ȏ��DLL���܂܂�Ă��Ȃ��\��������܂��B���Ƃ��΁AWindows CE�łł�PGP, GnuPG�̓T�|�[�g����Ă��Ȃ��̂ŁAqmpgpu.dll�͊܂܂�܂���B
+含まれるファイルはコンポーネント別にDLLに分けられています。必要のないDLLは削除しても構いません。以下が各コンポーネントの機能です。プラットフォームによって一つ以上のDLLが含まれていない可能性があります。たとえば、Windows CE版ではPGP, GnuPGはサポートされていないので、qmpgpu.dllは含まれません。
 
 :q3u.exe, qmu.dll, qsu.dll
-  �K���K�v�ł�
+  必ず必要です
 :qmpop3u.dll
-  POP3�R���|�[�l���g
+  POP3コンポーネント
 :qmsmtpu.dll
-  SMTP�R���|�[�l���g
+  SMTPコンポーネント
 :qmimap4u.dll
-  IMAP4�R���|�[�l���g
+  IMAP4コンポーネント
 :qmnntpu.dll
-  NNTP�R���|�[�l���g
+  NNTPコンポーネント
 :qmrssu.dll
-  RSS, Atom�R���|�[�l���g
+  RSS, Atomコンポーネント
 :qmscriptu.dll
-  �X�N���v�g�R���|�[�l���g
+  スクリプトコンポーネント
 :qmpgpu.dll
-  PGP, GnuPG�R���|�[�l���g
+  PGP, GnuPGコンポーネント
 :qscryptou.dll
-  SSL, S/MIME�R���|�[�l���g
+  SSL, S/MIMEコンポーネント
 :qsconvjau.dll
-  �p����œ��{����g�p���邽�߂̃R���|�[�l���g
+  英語環境で日本語を使用するためのコンポーネント
 
 
-���{��UI��Zip�t�@�C���Ɋ܂܂��t�@�C���́A�eEXE, DLL�̖��O�̌��Ɂu.0411.mui�v���t������Ă��܂��B
+日本語UIのZipファイルに含まれるファイルは、各EXE, DLLの名前の後ろに「.0411.mui」が付加されています。
 
 
-�@�\�ɂ���Ă͒ǉ���DLL���K�v�ȏꍇ������܂��B
+機能によっては追加のDLLが必要な場合があります。
 
-*SSL��S/MIME�̋@�\���g���ꍇ�ɂ�((<OpenSSL|URL:http://www.openssl.org/>))��DLL (libeay32.dll��libssl32.dll)���K�v�ł�
-*�iWindows�łŁj�Y�t�t�@�C���̈��k�@�\���g���ꍇ�ɂ�((<zip32.dll|URL:http://www.info-zip.org>))���K�v�ł�
+*SSLやS/MIMEの機能を使う場合には((<OpenSSL|URL:http://www.openssl.org/>))のDLL (libeay32.dllとlibssl32.dll)が必要です
+*（Windows版で）添付ファイルの圧縮機能を使う場合には((<zip32.dll|URL:http://www.info-zip.org>))が必要です
 
-OpenSSL��DLL�𓱓����Ȃ��ƋN�����ɃG���[�ɂȂ�ꍇ������܂��B���̏ꍇ�ASSL��S/MIME�̋@�\���g�p���Ȃ��Ȃ�΁Aqscryptou.dll���폜���Ă��������B
+OpenSSLのDLLを導入しないと起動時にエラーになる場合があります。この場合、SSLやS/MIMEの機能を使用しないならば、qscryptou.dllを削除してください。
 
 
-Windows�łŃ����^�C�����C�u�������Ȃ��ċN�����Ȃ��ꍇ�ɂ́A((<Microsoft Visual C++ 2005 �ĔЕz�\�p�b�P�[�W (x86)|URL:http://www.microsoft.com/downloads/details.aspx?FamilyID=32bc1bee-a3f9-4c13-9c99-220b62a191ee&DisplayLang=ja>))���C���X�g�[�����Ă��������B�C���X�g�[���ł��Ȃ��ꍇ�ɂ́A((<�_�E�����[�h�y�[�W|URL:http://q3.snak.org/download/>))���烉���^�C�����C�u������Zip�t�@�C�����_�E�����[�h���A�܂܂��msvcr80.dll��Microsoft.VC80.CRT.manifest�̗������C���X�g�[����̃f�B���N�g���ɓ���Ă��������B
+Windows版でランタイムライブラリがなくて起動しない場合には、((<Microsoft Visual C++ 2005 再頒布可能パッケージ (x86)|URL:http://www.microsoft.com/downloads/details.aspx?FamilyID=32bc1bee-a3f9-4c13-9c99-220b62a191ee&DisplayLang=ja>))をインストールしてください。インストールできない場合には、((<ダウンロードページ|URL:http://q3.snak.org/download/>))からランタイムライブラリのZipファイルをダウンロードし、含まれるmsvcr80.dllとMicrosoft.VC80.CRT.manifestの両方をインストール先のディレクトリに入れてください。
 
 =end

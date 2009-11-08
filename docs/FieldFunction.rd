@@ -4,33 +4,33 @@
  Field @Field(String name, Part part?)
 
 
-==����
-�R���e�L�X�g���b�Z�[�W�̎w�肳�ꂽ���O�̃w�b�_��Ԃ��܂��Bpart���w�肳�ꂽ�ꍇ�ɂ͂��̃p�[�g�̎w�肵�����O�̃w�b�_��Ԃ��܂��B
+==説明
+コンテキストメッセージの指定された名前のヘッダを返します。partが指定された場合にはそのパートの指定した名前のヘッダを返します。
 
 
-==����
+==引数
 :String name
-  �w�b�_��
+  ヘッダ名
 :Part part
-  �p�[�g
+  パート
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g���b�Z�[�W���Ȃ��ꍇ
-*���b�Z�[�W�̎擾�Ɏ��s�����ꍇ
-*�w�肵���p�[�g���Ȃ��ꍇ�ipart���w�肵���ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*コンテキストメッセージがない場合
+*メッセージの取得に失敗した場合
+*指定したパートがない場合（partを指定した場合）
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # To���擾
+==例
+ # Toを取得
  @Field('To')
  
- # �}���`�p�[�g���b�Z�[�W�ł͂��߂̃p�[�g��Content-ID���擾
+ # マルチパートメッセージではじめのパートのContent-IDを取得
  @Field('Content-ID', @Part(0))
 
 =end

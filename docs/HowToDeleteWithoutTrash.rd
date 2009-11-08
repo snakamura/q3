@@ -1,8 +1,8 @@
 =begin
-=���b�Z�[�W���폜����Ƃ��ɃS�~�����g��Ȃ��悤�ɂ���ɂ͂ǂ�����΂悢�ł���?
+=メッセージを削除するときにゴミ箱を使わないようにするにはどうすればよいですか?
 
-���b�Z�[�W���폜����ƃS�~���Ɉړ�����܂����A�S�~���t�H���_���Ȃ��ꍇ�ɂ̓S�~�����g�킸�ɍ폜����܂��B
+メッセージを削除するとゴミ箱に移動されますが、ゴミ箱フォルダがない場合にはゴミ箱を使わずに削除されます。
 
-�S�~�����g��Ȃ��悤�ɂ���ɂ́A�S�~����((<�t�H���_�̃v���p�e�B|URL:FolderProperty.html>))��((<���|URL:FolderPropertyPage.html>))�y�[�W��[�S�~��]�̃`�F�b�N���O�����A�S�~���t�H���_���̂�((<[�t�H���_]-[�폜]|URL:FolderDeleteAction.html>))��I�����č폜���Ă��������B
+ゴミ箱を使わないようにするには、ゴミ箱の((<フォルダのプロパティ|URL:FolderProperty.html>))の((<一般|URL:FolderPropertyPage.html>))ページで[ゴミ箱]のチェックを外すか、ゴミ箱フォルダ自体を((<[フォルダ]-[削除]|URL:FolderDeleteAction.html>))を選択して削除してください。
 
 =end

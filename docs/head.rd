@@ -3,5 +3,5 @@
 <meta name="keywords" content="QMAIL,QMAIL3" />
 =end
 =begin html
-<div class="nav"><a href="Contents.html">–ÚŽŸ</a></div>
+<div class="nav"><a href="Contents.html">ç›®æ¬¡</a></div>
 =end

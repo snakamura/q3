@@ -1,12 +1,12 @@
 =begin
-=������M�ƃ_�E�����[�h�\��
+=部分受信とダウンロード予約
 
-POP3�A�J�E���g�ł́A�T�[�o���烁�b�Z�[�W���擾����Ƃ��ɁA�w�b�_�݂̂��擾������A�{���̐擪����w�肵���s���������擾���A�K�v������Όォ��S�̂��擾���邱�Ƃ��ł��܂��B
+POP3アカウントでは、サーバからメッセージを取得するときに、ヘッダのみを取得したり、本文の先頭から指定した行数分だけ取得し、必要があれば後から全体を取得することができます。
 
-�T�[�o���烁�b�Z�[�W���擾����Ƃ��Ƀw�b�_�݂̂��擾����ɂ́A((<���x�̐ݒ�|URL:AccountAdvanced.html>))�œ����t�B���^�Ƃ���[�w�b�_�̂� (POP3)]��I�����܂��B�܂��A[�ő�100�s (POP3)]��I������Ɛ擪100�s�������擾���܂��B100�s�ȊO�̍s�����w�肵�����ꍇ�ɂ́A((<�����t�B���^|URL:SyncFilter.html>))���쐬���܂��B
+サーバからメッセージを取得するときにヘッダのみを取得するには、((<高度の設定|URL:AccountAdvanced.html>))で同期フィルタとして[ヘッダのみ (POP3)]を選択します。また、[最大100行 (POP3)]を選択すると先頭100行だけを取得します。100行以外の行数を指定したい場合には、((<同期フィルタ|URL:SyncFilter.html>))を作成します。
 
-���b�Z�[�W�S�̂��擾���Ȃ������ꍇ�ɂ́A���X�g�r���[�̃��b�Z�[�W�̃A�C�R����������M�p�̂��̂ɂȂ�܂��B�����̃��b�Z�[�W�̑S�̂��_�E�����[�h�������ꍇ�ɂ́A((<�_�E�����[�h�t���O|URL:Flag.html>))��t���Ă��瓯�����܂��B�_�E�����[�h�t���O��t����ɂ́A((<[���b�Z�[�W]-[�}�[�N]-[�_�E�����[�h�\��]|URL:MessageMarkDownloadAction.html>))��I�����܂��B�_�E�����[�h�}�[�N�������ɂ́A((<[���b�Z�[�W]-[�v���p�e�B]|URL:MessagePropertyAction.html>))��I�����ă��b�Z�[�W�̃v���p�e�B��((<���|URL:MessagePropertyPage.html>))�y�[�W��[�_�E�����[�h]�̃`�F�b�N���O���܂��B
+メッセージ全体を取得しなかった場合には、リストビューのメッセージのアイコンが部分受信用のものになります。これらのメッセージの全体をダウンロードしたい場合には、((<ダウンロードフラグ|URL:Flag.html>))を付けてから同期します。ダウンロードフラグを付けるには、((<[メッセージ]-[マーク]-[ダウンロード予約]|URL:MessageMarkDownloadAction.html>))を選択します。ダウンロードマークを消すには、((<[メッセージ]-[プロパティ]|URL:MessagePropertyAction.html>))を選択してメッセージのプロパティの((<一般|URL:MessagePropertyPage.html>))ページで[ダウンロード]のチェックを外します。
 
-��������ƃ_�E�����[�h�t���O�̕t�������b�Z�[�W���T�[�o�ォ��_�E�����[�h���܂��B�T�[�o��Ɏw�肳�ꂽ���b�Z�[�W���Ȃ��ꍇ�ɂ͉������܂���B������̏ꍇ�ł��A�_�E�����[�h�t���O��������܂��B
+同期するとダウンロードフラグの付いたメッセージをサーバ上からダウンロードします。サーバ上に指定されたメッセージがない場合には何もしません。いずれの場合でも、ダウンロードフラグが消されます。
 
 =end

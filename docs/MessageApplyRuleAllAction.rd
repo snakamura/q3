@@ -1,14 +1,14 @@
 =begin
-=MessageApplyRuleAll�A�N�V����
+=MessageApplyRuleAllアクション
 
-���݂̃A�J�E���g�̂��ׂĂ̒ʏ�t�H���_�̂��ׂẴ��b�Z�[�W��U�蕪���܂��B�������A�B����Ă���t�H���_�͐U�蕪���ΏۂɂȂ�܂���B�U�蕪���ɂ��ẮA((<�U�蕪��|URL:ApplyRules.html>))���Q�Ƃ��Ă��������B
-
-
-==����
-�Ȃ�
+現在のアカウントのすべての通常フォルダのすべてのメッセージを振り分けます。ただし、隠されているフォルダは振り分け対象になりません。振り分けについては、((<振り分け|URL:ApplyRules.html>))を参照してください。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

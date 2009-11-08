@@ -1,14 +1,14 @@
 =begin
-=EditRedoƒAƒNƒVƒ‡ƒ“
+=EditRedoã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-((<EditUndoƒAƒNƒVƒ‡ƒ“|URL:EditUndoAction.html>))‚É‚æ‚Á‚ÄŽæ‚èÁ‚³‚ê‚½ƒAƒNƒVƒ‡ƒ“‚ð‚â‚è’¼‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+((<EditUndoã‚¢ã‚¯ã‚·ãƒ§ãƒ³|URL:EditUndoAction.html>))ã«ã‚ˆã£ã¦å–ã‚Šæ¶ˆã•ã‚ŒãŸã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã‚’ã‚„ã‚Šç›´ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

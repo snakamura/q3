@@ -1,66 +1,66 @@
 =begin
 =syncfilters.xml
 
-((<“¯ŠúƒtƒBƒ‹ƒ^|URL:SyncFilter.html>))‚ÌÝ’è‚ð‚·‚éXMLƒtƒ@ƒCƒ‹‚Å‚·B‚±‚Ìƒtƒ@ƒCƒ‹‚É‚ÍA((<“¯ŠúƒtƒBƒ‹ƒ^‚ÌÝ’è|URL:OptionSyncFilters.html>))‚ÅÝ’è‚µ‚½î•ñ‚ª•Û‘¶‚³‚ê‚Ü‚·B
+((<åŒæœŸãƒ•ã‚£ãƒ«ã‚¿|URL:SyncFilter.html>))ã®è¨­å®šã‚’ã™ã‚‹XMLãƒ•ã‚¡ã‚¤ãƒ«ã§ã™ã€‚ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã«ã¯ã€((<åŒæœŸãƒ•ã‚£ãƒ«ã‚¿ã®è¨­å®š|URL:OptionSyncFilters.html>))ã§è¨­å®šã—ãŸæƒ…å ±ãŒä¿å­˜ã•ã‚Œã¾ã™ã€‚
 
 
-==‘Ž®
+==æ›¸å¼
 
-===filtersƒGƒŒƒƒ“ƒg
+===filtersã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <filters>
   <!-- filterSet -->
  </filters>
 
-filtersƒGƒŒƒƒ“ƒg‚ªƒgƒbƒvƒŒƒxƒ‹ƒGƒŒƒƒ“ƒg‚É‚È‚è‚Ü‚·B‚±‚Ì‰º‚É0ŒÂˆÈã‚ÌfilterSet‚ð’u‚­‚±‚Æ‚ªo—ˆ‚Ü‚·B
+filtersã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆãŒãƒˆãƒƒãƒ—ãƒ¬ãƒ™ãƒ«ã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã«ãªã‚Šã¾ã™ã€‚ã“ã®ä¸‹ã«0å€‹ä»¥ä¸Šã®filterSetã‚’ç½®ãã“ã¨ãŒå‡ºæ¥ã¾ã™ã€‚
 
 
-===filterSetƒGƒŒƒƒ“ƒg
+===filterSetã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <filterSet
-  name="–¼‘O">
+  name="åå‰">
   <!-- filter -->
  </filterSet>
 
-filterSetƒGƒŒƒƒ“ƒg‚ÍƒtƒBƒ‹ƒ^‚ÌƒZƒbƒg‚ðŽw’è‚µ‚Ü‚·Bname‘®«‚ÅƒtƒBƒ‹ƒ^ƒZƒbƒg‚Ì–¼‘O‚ðŽw’è‚µ‚Ü‚·B
+filterSetã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¯ãƒ•ã‚£ãƒ«ã‚¿ã®ã‚»ãƒƒãƒˆã‚’æŒ‡å®šã—ã¾ã™ã€‚nameå±žæ€§ã§ãƒ•ã‚£ãƒ«ã‚¿ã‚»ãƒƒãƒˆã®åå‰ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
 
-===filterƒGƒŒƒƒ“ƒg
+===filterã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <filter
-  folder="ƒtƒHƒ‹ƒ_–¼"
-  match="ƒ}ƒNƒ">
+  folder="ãƒ•ã‚©ãƒ«ãƒ€å"
+  match="ãƒžã‚¯ãƒ­">
   <!-- action -->
  </filter>
 
-filterƒGƒŒƒƒ“ƒg‚ÅƒtƒBƒ‹ƒ^‚ðŽw’è‚µ‚Ü‚·Bmatch‘®«‚Éƒ}ƒNƒ‚ðŽw’è‚µ‚Ü‚·B‚±‚Ìƒ}ƒNƒ‚ð•]‰¿‚µ‚½Œ‹‰Ê‚ª^‚É‚È‚éƒtƒBƒ‹ƒ^‚ÌƒAƒNƒVƒ‡ƒ“‚ªŽÀs‚³‚ê‚Ü‚·Bfolder‘®«‚ðŽw’è‚·‚é‚ÆAŽw’è‚µ‚½ƒtƒHƒ‹ƒ_‚ð“¯Šú‚·‚é‚Æ‚«‚É‚Ì‚ÝŽg—p‚³‚ê‚Ü‚·B//‚ÅˆÍ‚Þ‚±‚Æ‚É‚æ‚è³‹K•\Œ»‚ªŽg—p‚Å‚«‚Ü‚·B
+filterã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã§ãƒ•ã‚£ãƒ«ã‚¿ã‚’æŒ‡å®šã—ã¾ã™ã€‚matchå±žæ€§ã«ãƒžã‚¯ãƒ­ã‚’æŒ‡å®šã—ã¾ã™ã€‚ã“ã®ãƒžã‚¯ãƒ­ã‚’è©•ä¾¡ã—ãŸçµæžœãŒçœŸã«ãªã‚‹ãƒ•ã‚£ãƒ«ã‚¿ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãŒå®Ÿè¡Œã•ã‚Œã¾ã™ã€‚folderå±žæ€§ã‚’æŒ‡å®šã™ã‚‹ã¨ã€æŒ‡å®šã—ãŸãƒ•ã‚©ãƒ«ãƒ€ã‚’åŒæœŸã™ã‚‹ã¨ãã«ã®ã¿ä½¿ç”¨ã•ã‚Œã¾ã™ã€‚//ã§å›²ã‚€ã“ã¨ã«ã‚ˆã‚Šæ­£è¦è¡¨ç¾ãŒä½¿ç”¨ã§ãã¾ã™ã€‚
 
-filterƒGƒŒƒƒ“ƒg‚Íã‚©‚ç‡”Ô‚É•]‰¿‚³‚êAÅ‰‚Éƒ}ƒNƒ‚ª^‚É‚È‚Á‚½ƒtƒBƒ‹ƒ^‚ªŽg—p‚³‚ê‚Ü‚·B
+filterã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¯ä¸Šã‹ã‚‰é †ç•ªã«è©•ä¾¡ã•ã‚Œã€æœ€åˆã«ãƒžã‚¯ãƒ­ãŒçœŸã«ãªã£ãŸãƒ•ã‚£ãƒ«ã‚¿ãŒä½¿ç”¨ã•ã‚Œã¾ã™ã€‚
 
-ˆê‚Â‚ÌfilterƒGƒŒƒƒ“ƒg‚Ì‰º‚É‚Íˆê‚ÂˆÈã‚ÌactionƒGƒŒƒƒ“ƒg‚ð’u‚­‚±‚Æ‚ªo—ˆ‚Ü‚·BƒAƒNƒVƒ‡ƒ“ƒGƒŒƒƒ“ƒg‚Íã‚©‚ç‡”Ô‚É•]‰¿‚³‚êAŽÀs‚³‚ê‚Ü‚·B
+ä¸€ã¤ã®filterã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã®ä¸‹ã«ã¯ä¸€ã¤ä»¥ä¸Šã®actionã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã‚’ç½®ãã“ã¨ãŒå‡ºæ¥ã¾ã™ã€‚ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¯ä¸Šã‹ã‚‰é †ç•ªã«è©•ä¾¡ã•ã‚Œã€å®Ÿè¡Œã•ã‚Œã¾ã™ã€‚
 
 
-===actionƒGƒŒƒƒ“ƒg
+===actionã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <action
-  name="–¼‘O">
+  name="åå‰">
   <!-- param -->
  </action>
 
-actionƒGƒŒƒƒ“ƒg‚ÍƒtƒBƒ‹ƒ^‚ª‚Ç‚Ì‚æ‚¤‚È“®ì‚ð‚·‚é‚Ì‚©‚ðŽw’è‚µ‚Ü‚·Bname‘®«‚ÅƒAƒNƒVƒ‡ƒ“‚Ì–¼‘O‚ðŽw’è‚µ‚Ü‚·B‚Ç‚Ì‚æ‚¤‚ÈƒAƒNƒVƒ‡ƒ“‚ª‚ ‚é‚Ì‚©‚Í”õl‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+actionã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¯ãƒ•ã‚£ãƒ«ã‚¿ãŒã©ã®ã‚ˆã†ãªå‹•ä½œã‚’ã™ã‚‹ã®ã‹ã‚’æŒ‡å®šã—ã¾ã™ã€‚nameå±žæ€§ã§ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã®åå‰ã‚’æŒ‡å®šã—ã¾ã™ã€‚ã©ã®ã‚ˆã†ãªã‚¢ã‚¯ã‚·ãƒ§ãƒ³ãŒã‚ã‚‹ã®ã‹ã¯å‚™è€ƒã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-===paramƒGƒŒƒƒ“ƒg
+===paramã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆ
 
  <param
-  name="–¼‘O">
-  ’l
+  name="åå‰">
+  å€¤
  </param>
 
-paramƒGƒŒƒƒ“ƒg‚ÍƒAƒNƒVƒ‡ƒ“‚Ìƒpƒ‰ƒ[ƒ^‚ðŽw’è‚µ‚Ü‚·Bname‘®«‚Åƒpƒ‰ƒ[ƒ^‚Ì–¼‘O‚ðŽw’è‚µAŽqƒm[ƒh‚Æ‚µ‚Ä’l‚ðŽw’è‚µ‚Ü‚·BƒAƒNƒVƒ‡ƒ“‚É‚Ç‚Ì‚æ‚¤‚Èƒpƒ‰ƒ[ƒ^‚ª‚ ‚é‚Ì‚©‚Í”õl‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+paramã‚¨ãƒ¬ãƒ¡ãƒ³ãƒˆã¯ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æŒ‡å®šã—ã¾ã™ã€‚nameå±žæ€§ã§ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®åå‰ã‚’æŒ‡å®šã—ã€å­ãƒŽãƒ¼ãƒ‰ã¨ã—ã¦å€¤ã‚’æŒ‡å®šã—ã¾ã™ã€‚ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã«ã©ã®ã‚ˆã†ãªãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãŒã‚ã‚‹ã®ã‹ã¯å‚™è€ƒã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==ƒTƒ“ƒvƒ‹
+==ã‚µãƒ³ãƒ—ãƒ«
 
  <?xml version="1.0" encoding="utf-8"?>
  <filters>
@@ -101,36 +101,36 @@ paramƒGƒŒƒƒ“ƒg‚ÍƒAƒNƒVƒ‡ƒ“‚Ìƒpƒ‰ƒ[ƒ^‚ðŽw’è‚µ‚Ü‚·Bname‘®«‚Åƒpƒ‰ƒ[ƒ^‚Ì–¼‘O‚
  </filters>
 
 
-==ƒXƒL[ƒ}
+==ã‚¹ã‚­ãƒ¼ãƒž
 
  element filters {
    element filterSet {
      element filter {
        element action {
          element param {
-           ## ƒpƒ‰ƒ[ƒ^‚Ì’l
+           ## ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å€¤
            xsd:string,
-           ## ƒpƒ‰ƒ[ƒ^‚Ì–¼‘O
+           ## ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®åå‰
            attribute name {
              xsd:string
            }
          }*,
-         ## ƒAƒNƒVƒ‡ƒ“‚Ì–¼‘O
+         ## ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã®åå‰
          attribute name {
            xsd:string
          }
        }+,
-       ## ƒtƒBƒ‹ƒ^‚ª“K—p‚³‚ê‚éƒtƒHƒ‹ƒ_
-       ## Žw’è‚³‚ê‚È‚¢ê‡A‘S‚Ä‚ÌƒtƒHƒ‹ƒ_
+       ## ãƒ•ã‚£ãƒ«ã‚¿ãŒé©ç”¨ã•ã‚Œã‚‹ãƒ•ã‚©ãƒ«ãƒ€
+       ## æŒ‡å®šã•ã‚Œãªã„å ´åˆã€å…¨ã¦ã®ãƒ•ã‚©ãƒ«ãƒ€
        attribute folder {
          xsd:string
        }?,
-       ## ƒtƒBƒ‹ƒ^‚ªƒ}ƒbƒ`‚·‚éðŒiƒ}ƒNƒj
+       ## ãƒ•ã‚£ãƒ«ã‚¿ãŒãƒžãƒƒãƒã™ã‚‹æ¡ä»¶ï¼ˆãƒžã‚¯ãƒ­ï¼‰
        attribute match {
          xsd:string
        }
      }*,
-     ## ƒtƒBƒ‹ƒ^ƒZƒbƒg‚Ì–¼‘O
+     ## ãƒ•ã‚£ãƒ«ã‚¿ã‚»ãƒƒãƒˆã®åå‰
      attribute name {
        xsd:string
      }
@@ -138,51 +138,51 @@ paramƒGƒŒƒƒ“ƒg‚ÍƒAƒNƒVƒ‡ƒ“‚Ìƒpƒ‰ƒ[ƒ^‚ðŽw’è‚µ‚Ü‚·Bname‘®«‚Åƒpƒ‰ƒ[ƒ^‚Ì–¼‘O‚
  }
 
 
-==”õl
-Œ»ÝŽw’è‚Å‚«‚éƒAƒNƒVƒ‡ƒ“‚ÍˆÈ‰º‚Ì‚Æ‚¨‚è‚Å‚·BƒAƒNƒVƒ‡ƒ“‚ÍƒvƒƒgƒRƒ‹‚²‚Æ‚ÉˆÙ‚È‚è‚Ü‚·B
+==å‚™è€ƒ
+ç¾åœ¨æŒ‡å®šã§ãã‚‹ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã¯ä»¥ä¸‹ã®ã¨ãŠã‚Šã§ã™ã€‚ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã¯ãƒ—ãƒ­ãƒˆã‚³ãƒ«ã”ã¨ã«ç•°ãªã‚Šã¾ã™ã€‚
 
 ===POP3
 
-====downloadƒAƒNƒVƒ‡ƒ“
-ƒƒbƒZ[ƒW‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚Ü‚·Blineƒpƒ‰ƒ[ƒ^‚ÉÅ‘ås”‚ðŽw’è‚µ‚Ü‚·B
+====downloadã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã€‚lineãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã«æœ€å¤§è¡Œæ•°ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
 
-====deleteƒAƒNƒVƒ‡ƒ“
-ƒƒbƒZ[ƒW‚ðƒT[ƒoã‚©‚çíœ‚µ‚Ü‚·B
+====deleteã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚µãƒ¼ãƒä¸Šã‹ã‚‰å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-====ignoreƒAƒNƒVƒ‡ƒ“
-ƒƒbƒZ[ƒW‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚Ü‚¹‚ñBignoreƒAƒNƒVƒ‡ƒ“‚ðŽw’è‚·‚é‚ÆƒŠƒXƒg‚É‚à•\Ž¦‚³‚ê‚È‚­‚È‚è‚Ü‚·B
+====ignoreã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¾ã›ã‚“ã€‚ignoreã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã‚’æŒ‡å®šã™ã‚‹ã¨ãƒªã‚¹ãƒˆã«ã‚‚è¡¨ç¤ºã•ã‚Œãªããªã‚Šã¾ã™ã€‚
 
 
 ===IMAP4
 
-====downloadƒAƒNƒVƒ‡ƒ“
-ƒƒbƒZ[ƒW‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚Ü‚·Btypeƒpƒ‰ƒ[ƒ^‚Åƒ^ƒCƒv‚ðŽw’è‚µ‚Ü‚·B
+====downloadã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã€‚typeãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã§ã‚¿ã‚¤ãƒ—ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
-Žw’è‚Å‚«‚éƒ^ƒCƒv‚ÍˆÈ‰º‚Ì‚Æ‚¨‚è‚Å‚·B
+æŒ‡å®šã§ãã‚‹ã‚¿ã‚¤ãƒ—ã¯ä»¥ä¸‹ã®ã¨ãŠã‚Šã§ã™ã€‚
 
 :all
-  ‘S‚Ä
+  å…¨ã¦
 :text
-  ƒeƒLƒXƒg‚Æ‚µ‚Ä•\Ž¦‚·‚é‚Ì‚É•K—v‚È•”•ª‚Ì‚Ý
+  ãƒ†ã‚­ã‚¹ãƒˆã¨ã—ã¦è¡¨ç¤ºã™ã‚‹ã®ã«å¿…è¦ãªéƒ¨åˆ†ã®ã¿
 :html
-  HTMLƒ[ƒ‹‚Æ‚µ‚Ä•\Ž¦‚·‚é‚Ì‚É•K—v‚È•”•ª‚Ì‚Ý
+  HTMLãƒ¡ãƒ¼ãƒ«ã¨ã—ã¦è¡¨ç¤ºã™ã‚‹ã®ã«å¿…è¦ãªéƒ¨åˆ†ã®ã¿
 :header
-  ƒwƒbƒ_‚Ì‚Ý
+  ãƒ˜ãƒƒãƒ€ã®ã¿
 
 
-====deleteƒAƒNƒVƒ‡ƒ“
-ƒƒbƒZ[ƒW‚ðƒT[ƒoã‚©‚çíœ‚µ‚Ü‚·iíœƒtƒ‰ƒO‚ð—§‚Ä‚Ü‚·jB
+====deleteã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ã‚µãƒ¼ãƒä¸Šã‹ã‚‰å‰Šé™¤ã—ã¾ã™ï¼ˆå‰Šé™¤ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã¾ã™ï¼‰ã€‚
 
 
 ===NNTP
 
-====downloadƒAƒNƒVƒ‡ƒ“
-ƒƒbƒZ[ƒW‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚Ü‚·B
+====downloadã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¾ã™ã€‚
 
 
-====ignoreƒAƒNƒVƒ‡ƒ“
-ƒƒbƒZ[ƒW‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚Ü‚¹‚ñBignoreƒAƒNƒVƒ‡ƒ“‚ðŽw’è‚·‚é‚ÆƒŠƒXƒg‚É‚à•\Ž¦‚³‚ê‚È‚­‚È‚è‚Ü‚·B
+====ignoreã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¾ã›ã‚“ã€‚ignoreã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã‚’æŒ‡å®šã™ã‚‹ã¨ãƒªã‚¹ãƒˆã«ã‚‚è¡¨ç¤ºã•ã‚Œãªããªã‚Šã¾ã™ã€‚
 
 =end

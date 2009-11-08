@@ -1,25 +1,25 @@
 =begin
-=[�����o��]�_�C�A���O
+=[書き出し]ダイアログ
 
-((<[�����o��]�_�C�A���O|"IMG:images/ExportDialog.png">))
+((<[書き出し]ダイアログ|"IMG:images/ExportDialog.png">))
 
-+[�p�X]
-�G�N�X�|�[�g��̃t�@�C�����w�肵�܂��B
-
-
-+[���b�Z�[�W���ƂɃt�@�C�������]
-�����̃��b�Z�[�W���G�N�X�|�[�g����Ƃ��ɁA��̃��b�Z�[�W�ɑ΂��Ĉ�̃t�@�C������邩�ǂ������w�肵�܂��B�`�F�b�N������ƁA[�p�X]�Ŏw�肵���t�@�C���������Ɏ����I�ɘA�ԕt���̃t�@�C������������A�e���b�Z�[�W���e�t�@�C���ɃG�N�X�|�[�g����܂��B�`�F�b�N�����Ȃ��ꍇ�Ambox�`���ŃG�N�X�|�[�g����܂��B
++[パス]
+エクスポート先のファイルを指定します。
 
 
-+[�t���O�������o��]
-X-QMAIL-Flags�w�b�_�Ƀt���O�̏��������o���܂��B�t���O�̏��������o���ƁA((<�C���|�[�g|URL:FileImportAction.html>))����Ƃ��Ƀt���O�𕜌����邱�Ƃ��ł��܂��B
++[メッセージごとにファイルを作る]
+複数のメッセージをエクスポートするときに、一つのメッセージに対して一つのファイルを作るかどうかを指定します。チェックを入れると、[パス]で指定したファイル名を元に自動的に連番付きのファイルが生成され、各メッセージが各ファイルにエクスポートされます。チェックを入れない場合、mbox形式でエクスポートされます。
 
 
-+[�e���v���[�g]
-�G�N�X�|�[�g����Ƃ��ɓK�p����e���v���[�g���w�肵�܂��B�u�i�Ȃ��j�v�ȊO���w�肷��ƁA�e���b�Z�[�W�ɑ΂��Ďw�肳�ꂽ�e���v���[�g��K�p�������ʂ������o���܂��B���̏ꍇ�ɂ́A�����o���G���R�[�f�B���O��[�G���R�[�f�B���O]�Ŏw�肷��K�v������܂��B�u�i�Ȃ��j�v���w�肵���ꍇ�ɂ́A���b�Z�[�W���̂�((<"message/rfc822�`��"|URL:http://www.ietf.org/rfc/rfc2046.txt>))�ŃG�N�X�|�[�g����܂��B�g�p�ł���e���v���[�g�ɂ��ẮA((<���̑��̃e���v���[�g|URL:OtherTemplate.html>))���Q�Ƃ��Ă��������B
++[フラグを書き出す]
+X-QMAIL-Flagsヘッダにフラグの情報を書き出します。フラグの情報を書き出すと、((<インポート|URL:FileImportAction.html>))するときにフラグを復元することができます。
 
 
-+[�G���R�[�f�B���O]
-�e���v���[�g��K�p����ꍇ�ɁA�K�p��̕�����������o���G���R�[�f�B���O���w�肵�܂��B�V�X�e�����T�|�[�g���Ă���S�ẴG���R�[�f�B���O���w�肷�邱�Ƃ��ł��܂��B�h���b�v�_�E���Ƀ��X�g�����G���R�[�f�B���O�́A((<[�I�v�V����]�_�C�A���O��[���̑�]�p�l��|URL:OptionMisc.html>))��[�G���R�[�f�B���O]�Ŏw��ł��܂��B
++[テンプレート]
+エクスポートするときに適用するテンプレートを指定します。「（なし）」以外を指定すると、各メッセージに対して指定されたテンプレートを適用した結果を書き出します。この場合には、書き出すエンコーディングを[エンコーディング]で指定する必要があります。「（なし）」を指定した場合には、メッセージ自体が((<"message/rfc822形式"|URL:http://www.ietf.org/rfc/rfc2046.txt>))でエクスポートされます。使用できるテンプレートについては、((<その他のテンプレート|URL:OtherTemplate.html>))を参照してください。
+
+
++[エンコーディング]
+テンプレートを適用する場合に、適用後の文字列を書き出すエンコーディングを指定します。システムがサポートしている全てのエンコーディングを指定することができます。ドロップダウンにリストされるエンコーディングは、((<[オプション]ダイアログの[その他]パネル|URL:OptionMisc.html>))の[エンコーディング]で指定できます。
 
 =end

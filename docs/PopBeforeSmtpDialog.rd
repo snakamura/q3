@@ -1,50 +1,50 @@
 =begin
-=[POP before SMTP]�_�C�A���O
+=[POP before SMTP]ダイアログ
 
-POP before SMTP�̏ڍׂ�ݒ肵�܂��B�f�t�H���g�̐ݒ�ł͎�M���Őݒ肵���T�[�o�ɐڑ����܂����A�����ŕʂ̃T�[�o���w�肷�邱�Ƃ��ł��܂��B�Ⴆ�΁AIMAP4�A�J�E���g�Ȃ̂�SMTP�̔F�؂�����POP before SMTP��POP3�T�[�o�ɐڑ����Ȃ��Ă͂����Ȃ��Ƃ����悤�ȏꍇ�Ɏw�肵�܂��B
+POP before SMTPの詳細を設定します。デフォルトの設定では受信側で設定したサーバに接続しますが、ここで別のサーバを指定することができます。例えば、IMAP4アカウントなのにSMTPの認証だけはPOP before SMTPでPOP3サーバに接続しなくてはいけないというような場合に指定します。
 
-���̃_�C�A���O�ŁA[�J�X�^���ݒ���g�p]��I�񂾏ꍇ�ɂ́A�w�肵���T�[�o�ɐڑ�����Ƃ��̔F�؏��i���[�U���ƃp�X���[�h�j�́A((<���[�U�̐ݒ�|URL:AccountUser.html>))��[���M]���Ŏw�肵����񂪎g���܂��B[�F��]�Ƀ`�F�b�N�����A���[�U�����w�肵�Ă��������B
+このダイアログで、[カスタム設定を使用]を選んだ場合には、指定したサーバに接続するときの認証情報（ユーザ名とパスワード）は、((<ユーザの設定|URL:AccountUser.html>))の[送信]側で指定した情報が使われます。[認証]にチェックを入れ、ユーザ名を指定してください。
 
-((<[POP before SMTP]�_�C�A���O|"IMG:images/PopBeforeSmtpDialog.png">))
-
-
-+[�f�t�H���g�̐ݒ���g�p]
-�f�t�H���g�̐ݒ���g�p���܂��B
+((<[POP before SMTP]ダイアログ|"IMG:images/PopBeforeSmtpDialog.png">))
 
 
-+[�J�X�^���ݒ���g�p]
-�ڑ�����T�[�o�Ȃǂ��w�肵�܂��B
++[デフォルトの設定を使用]
+デフォルトの設定を使用します。
 
 
-+[�v���g�R��]
-�v���g�R����I�����܂��BPOP3��IMAP4���I���ł��܂��B
++[カスタム設定を使用]
+接続するサーバなどを指定します。
 
 
-+[�z�X�g]
-�ڑ�����T�[�o�̃z�X�g���܂���IP�A�h���X���w�肵�܂��B
++[プロトコル]
+プロトコルを選択します。POP3とIMAP4が選択できます。
 
 
-+[�|�[�g]
-�ڑ�����T�[�o�̃|�[�g���w�肵�܂��B
++[ホスト]
+接続するサーバのホスト名またはIPアドレスを指定します。
 
 
-====[���S]
-SSL��STARTTLS���g�����ǂ������w�肵�܂��BSSL��STARTTLS�ɂ��ẮA((<SSL|URL:SSL.html>))���Q�Ƃ��Ă��������B
++[ポート]
+接続するサーバのポートを指定します。
 
 
-+[�Ȃ�]
-SSL���g�p���܂���B
+====[安全]
+SSLやSTARTTLSを使うかどうかを指定します。SSLやSTARTTLSについては、((<SSL|URL:SSL.html>))を参照してください。
+
+
++[なし]
+SSLを使用しません。
 
 
 +[SSL]
-SSL���g�p���܂��B
+SSLを使用します。
 
 
 +[STARTTLS]
-STARTTLS���g�p���܂��B
+STARTTLSを使用します。
 
 
-+[APOP���g�p]
-�v���g�R���Ƃ���POP3��I�񂾏ꍇ�ɁA�F�؂�APOP���g�p���邩�ǂ������w�肵�܂��B
++[APOPを使用]
+プロトコルとしてPOP3を選んだ場合に、認証でAPOPを使用するかどうかを指定します。
 
 =end

@@ -4,10 +4,10 @@
 
 UNAME	= $(shell uname | sed -e 's/_.*//')
 ifeq ($(UNAME),CYGWIN)
-	RD2	= /usr/local/bin/rd2
+	RD2	= /usr/bin/rd2
 endif
 ifeq ($(UNAME),MINGW32)
-	RD2	= C:/ruby/bin/rd2
+	RD2	= "C:/Program Files (x86)/ruby-1.8/bin/rd2"
 endif
 
 HTMLDIR	= html
@@ -18,8 +18,9 @@ HEAD	= head.rd
 FOOT	= foot.rd
 IMGS	= $(patsubst images/%.png, $(HTMLDIR)/images/%.png, $(wildcard images/*.png))
 CSSS	= $(patsubst %.css, $(HTMLDIR)/%.css, $(wildcard *.css))
+HT		= $(HTMLDIR)/.htaccess
 
-all: $(HTMLS) $(IMGS) $(CSSS)
+all: $(HTMLS) $(IMGS) $(CSSS) $(HT)
 
 zip: all
 	if [ ! -d $(DISTDIR) ]; then mkdir -p $(DISTDIR); fi
@@ -30,12 +31,16 @@ clean:
 
 $(HTMLDIR)/%.html: %.rd
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	cat $(HEAD) $< $(FOOT) | ruby -W0 -Ks $(RD2) -r rd/rd2html-ext-lib.rb --ref-extension --headline-title --head-element --with-part=head --with-part=html:include > $@
+	cat $(HEAD) $< $(FOOT) | ruby -W0 -Ku $(RD2) -r rd/rd2html-ext-lib.rb --ref-extension --headline-title --head-element --with-part=head --with-part=html:include > $@
 
 $(HTMLDIR)/%.css: %.css
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	cp $< $@
 
 $(HTMLDIR)/images/%.png: images/%.png
+	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	cp $< $@
+
+$(HTMLDIR)/.htaccess: .htaccess
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	cp $< $@

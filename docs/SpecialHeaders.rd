@@ -1,108 +1,108 @@
 =begin
-=����ȃw�b�_
+=特殊なヘッダ
 
-QMAIL3�����Ŏg�p��������ȃw�b�_�ł��B�ꕔ�̃w�b�_�͍쐬�p�̃e���v���[�g�Ŏg�p���邱�Ƃ��ł��܂��B�܂��A�O���G�f�B�^���g�p���ă��b�Z�[�W���쐬����ꍇ�ɂ́A�t���I�ȏ����O���G�f�B�^����QMAIL3�ɓn�����߂ɂ����̃w�b�_�̈ꕔ���g�p���邱�Ƃ��ł��܂��B
+QMAIL3内部で使用される特殊なヘッダです。一部のヘッダは作成用のテンプレートで使用することができます。また、外部エディタを使用してメッセージを作成する場合には、付加的な情報を外部エディタからQMAIL3に渡すためにこれらのヘッダの一部を使用することができます。
 
-�����Œ�`����Ă���w�b�_���܂߁AX-QMAIL-����n�܂�w�b�_�͑��M���O�ɍ폜����܂��B�Ǝ��Ƀw�b�_�ɕۑ����Ă���������񂪂���ꍇ�ɂ́AX-QMAIL-����n�܂閼�O���g�p���邱�ƂŁA���̏�񂪑��M����Ă��܂����Ƃ�h�����Ƃ��ł��܂��B
+ここで定義されているヘッダを含め、X-QMAIL-から始まるヘッダは送信直前に削除されます。独自にヘッダに保存しておきたい情報がある場合には、X-QMAIL-から始まる名前を使用することで、その情報が送信されてしまうことを防ぐことができます。
 
 
 ==X-QMAIL-Account
-�A�J�E���g�����w�肵�܂��B
+アカウント名を指定します。
 
-�e���v���[�g�ł��̃w�b�_���w�肷��ƁA�G�f�B�b�g�r���[�ŊJ�����Ƃ��Ɏw�肳�ꂽ�A�J�E���g���I������܂��B
+テンプレートでこのヘッダを指定すると、エディットビューで開いたときに指定されたアカウントが選択されます。
 
-�O���G�f�B�^���烁�b�Z�[�W���쐬����Ƃ��Ɏw�肷��ƁA�w�肳�ꂽ�A�J�E���g�̑��M���Ƀ��b�Z�[�W���쐬����܂��B
+外部エディタからメッセージを作成するときに指定すると、指定されたアカウントの送信箱にメッセージが作成されます。
 
 
 ==X-QMAIL-SubAccount
-�T�u�A�J�E���g�����w�肵�܂��B
+サブアカウント名を指定します。
 
-�e���v���[�g�ł��̃w�b�_���w�肷��ƁA�G�f�B�b�g�r���[���J�����Ƃ��Ɏw�肳�ꂽ�T�u�A�J�E���g���I������܂��B
+テンプレートでこのヘッダを指定すると、エディットビューを開いたときに指定されたサブアカウントが選択されます。
 
-���b�Z�[�W�쐬���Ɏw�肷��ƁA�w�肵���T�u�A�J�E���g�Ɠ������ꐫ�����T�u�A�J�E���g�ȊO���瑗�M����Ȃ��Ȃ�܂��B�ڂ����́A((<�}���`�A�J�E���g|URL:MultiAccount.html>))���Q�Ƃ��Ă��������B
+メッセージ作成時に指定すると、指定したサブアカウントと同じ同一性を持つサブアカウント以外から送信されなくなります。詳しくは、((<マルチアカウント|URL:MultiAccount.html>))を参照してください。
 
 
 ==X-QMAIL-Signature
-�����̖��O���w�肵�܂��B
+署名の名前を指定します。
 
-�e���v���[�g�ł��̃w�b�_���w�肷��ƁA�G�f�B�b�g�r���[���J�����Ƃ��Ɏw�肳�ꂽ�������I������܂��B���̂Ƃ��󕶎�����w�肷��ƁA�����Ƃ��āu(�Ȃ�)�v���I������܂��B���b�Z�[�W���쐬�����Ƃ��ɂ́A�ēx���b�Z�[�W��ҏW�����Ƃ��ɓ�d�ɏ������t���Ȃ��悤�ɁA�����I�ɋ󕶎��񂪎w�肳��܂��B
+テンプレートでこのヘッダを指定すると、エディットビューを開いたときに指定された署名が選択されます。このとき空文字列を指定すると、署名として「(なし)」が選択されます。メッセージを作成したときには、再度メッセージを編集したときに二重に署名が付かないように、自動的に空文字列が指定されます。
 
-�O���G�f�B�^���烁�b�Z�[�W���쐬����Ƃ��Ɏw�肷��ƁA�w�肳�ꂽ�����������I�ɑ}������܂��B
+外部エディタからメッセージを作成するときに指定すると、指定された署名が自動的に挿入されます。
 
 
 ==X-QMAIL-Attachment
-�Y�t����t�@�C���̃p�X�܂��̓��b�Z�[�W��URI���w�肵�܂��B�����̃p�X�܂���URI���w�肷��Ƃ��ɂ́u,�v�ŋ�؂�܂��B�p�X�Ɂu,�v��u\�v���܂߂�ɂ́u\�v�ŃG�X�P�[�v���܂��B�Ⴆ�΁A
+添付するファイルのパスまたはメッセージのURIを指定します。複数のパスまたはURIを指定するときには「,」で区切ります。パスに「,」や「\」を含めるには「\」でエスケープします。例えば、
 
  X-QMAIL-Attachment: C:\\Temp\\test.png, C:\\Program Files\\QMAIL3\\q3u.exe
 
-�̂悤�Ɏw�肵�܂��B
+のように指定します。
 
-�e���v���[�g�ł��̃w�b�_���w�肷��ƁA�G�f�B�b�g�r���[���J�����Ƃ��Ɏw�肵���t�@�C�����Y�t�t�@�C���Ƃ��Ďw�肳�ꂽ��ԂɂȂ�܂��B
+テンプレートでこのヘッダを指定すると、エディットビューを開いたときに指定したファイルが添付ファイルとして指定された状態になります。
 
-�O���G�f�B�^���烁�b�Z�[�W���쐬����Ƃ��Ɏw�肷��ƁA�w�肳�ꂽ�t�@�C�����Y�t����܂��B
+外部エディタからメッセージを作成するときに指定すると、指定されたファイルが添付されます。
 
 
 ==X-QMAIL-ArchiveAttachment
-((<�Y�t�t�@�C��|URL:Attachment.html>))�����k����Ƃ��̃t�@�C�������w�肵�܂��B
+((<添付ファイル|URL:Attachment.html>))を圧縮するときのファイル名を指定します。
 
-�O���G�f�B�^���烁�b�Z�[�W���쐬����Ƃ��Ɏw�肷��ƁA�w�肳�ꂽ�t�@�C�����œY�t�t�@�C�������k����܂��B
+外部エディタからメッセージを作成するときに指定すると、指定されたファイル名で添付ファイルが圧縮されます。
 
 
 ==X-QMAIL-AttachmentDeleted
-((<�Y�t�t�@�C��|URL:Attachment.html>))���폜�����Ƃ��Ɏ����I�ɕt������܂��B10�i�Ő��l���w�肵�Ēl��0�ȊO���ƓY�t�t�@�C�����폜���ꂽ�Ƃ݂Ȃ���܂��B
+((<添付ファイル|URL:Attachment.html>))を削除したときに自動的に付加されます。10進で数値を指定して値が0以外だと添付ファイルが削除されたとみなされます。
 
 
 ==X-QMAIL-OriginalCharset
-�ԐM���̃��b�Z�[�W�̕����R�[�h���w�肵�܂��B
+返信元のメッセージの文字コードを指定します。
 
-�O���G�f�B�^���烁�b�Z�[�W���쐬����Ƃ��Ɏw�肷��ƁA���̕����R�[�h���f�t�H���g�̕����R�[�h�ƌ݊������Ȃ��ꍇ�ɂ́A�쐬����郁�b�Z�[�W��utf-8�ŃG���R�[�h����܂��B
+外部エディタからメッセージを作成するときに指定すると、その文字コードがデフォルトの文字コードと互換性がない場合には、作成されるメッセージがutf-8でエンコードされます。
 
 
 ==X-QMAIL-Flags
-���b�Z�[�W�̃t���O��10�i���Ŏw�肵�܂��B
+メッセージのフラグを10進数で指定します。
 
-���b�Z�[�W��((<�G�N�X�|�[�g|URL:FileExportAction.html>))����Ƃ���[�t���O�������o��]�Ƀ`�F�b�N������ƃt���O�����̃w�b�_�ɐݒ肳��܂��B
+メッセージを((<エクスポート|URL:FileExportAction.html>))するときに[フラグを書き出す]にチェックを入れるとフラグがこのヘッダに設定されます。
 
-���b�Z�[�W��((<�C���|�[�g|URL:FileImportAction.html>))����Ƃ��ɁA���̃w�b�_������Ɠǂݍ��񂾃��b�Z�[�W�Ƀt���O�𔽉f���܂��B
+メッセージを((<インポート|URL:FileImportAction.html>))するときに、このヘッダがあると読み込んだメッセージにフラグを反映します。
 
 
 ==X-QMAIL-Link
-URL���w�肵�܂��B
+URLを指定します。
 
-((<MessageOpenLink�A�N�V����|URL:MessageOpenLinkAction.html>))�����s���ꂽ�Ƃ��ɊJ��URL���w�肵�܂��BRSS�A�J�E���g�Ńt�B�[�h����荞�񂾂Ƃ��Ɏ����I�ɐݒ肳��܂��B
+((<MessageOpenLinkアクション|URL:MessageOpenLinkAction.html>))が実行されたときに開くURLを指定します。RSSアカウントでフィードを取り込んだときに自動的に設定されます。
 
 
 ==X-QMAIL-Macro
-���b�Z�[�W�����M���ɓ����ꂽ�Ƃ��Ɏ��s�����}�N�����w�肵�܂��B���̃}�N���̓R���e�L�X�g���b�Z�[�W��������ԂŎ��s����܂��B
+メッセージが送信箱に入れられたときに実行されるマクロを指定します。このマクロはコンテキストメッセージが無い状態で実行されます。
 
-�Ⴆ�΁A�W����reply.template�ł́A���b�Z�[�W�����M���ɓ����ꂽ�Ƃ��ɕԐM���̃��b�Z�[�W�ɕԐM�t���O�𗧂Ă邽�߂̃}�N����ݒ肵�܂��B
+例えば、標準のreply.templateでは、メッセージが送信箱に入れられたときに返信元のメッセージに返信フラグを立てるためのマクロを設定します。
 
 
 ==X-QMAIL-DraftMacro
-���b�Z�[�W�����e�Ƃ��đ��e���ɕۑ����ꂽ�Ƃ��Ɏ��s�����}�N�����w�肵�܂��B���̃}�N���̓R���e�L�X�g���b�Z�[�W��������ԂŎ��s����܂��B
+メッセージが草稿として草稿箱に保存されたときに実行されるマクロを指定します。このマクロはコンテキストメッセージが無い状態で実行されます。
 
-�Ⴆ�΁A�W����edit.template�ł́A���b�Z�[�W�����e�Ƃ��ĕۑ����ꂽ�Ƃ��Ɍ��̃��b�Z�[�W���폜���邽�߂̃}�N����ݒ肵�܂��B
+例えば、標準のedit.templateでは、メッセージが草稿として保存されたときに元のメッセージを削除するためのマクロを設定します。
 
 
 ==X-QMAIL-EditMacro
-���b�Z�[�W���G�f�B�b�g�E�B���h�E�ŊJ���ꂽ�Ƃ��Ɏ��s�����}�N�����w�肵�܂��B���̃}�N���̓R���e�L�X�g���b�Z�[�W�A�R���e�L�X�g�t�H���_�Ƃ�������ԂŎ��s����܂��B�w�肵���}�N���̓G�f�B�b�g�E�B���h�E���\������钼�O�Ɏ��s����܂��B((<@InvokeAction|URL:InvokeActionFunction.html>))���g�p���ăG�f�B�b�g�E�B���h�E�����悤�ȃA�N�V�����i((<FileSend�A�N�V����|URL:FileSendAction.html>))�Ȃǁj���g�p�����ꍇ�A�G�f�B�b�g�E�B���h�E�͕\������邱�Ɩ����j������܂��B
+メッセージがエディットウィンドウで開かれたときに実行されるマクロを指定します。このマクロはコンテキストメッセージ、コンテキストフォルダとも無い状態で実行されます。指定したマクロはエディットウィンドウが表示される直前に実行されます。((<@InvokeAction|URL:InvokeActionFunction.html>))を使用してエディットウィンドウを閉じるようなアクション（((<FileSendアクション|URL:FileSendAction.html>))など）を使用した場合、エディットウィンドウは表示されること無く破棄されます。
 
 
 ==X-QMAIL-EnvelopeFrom
-SMTP�T�[�o�ɑ��M����Envelope From���w�肵�܂��B�ʏ�AFrom�w�b�_�Ŏw�肵���A�h���X���g�p����܂����A����Ƃ͈قȂ�A�h���X��Envelope From�Ƃ��Ďg�p�������ꍇ�ɂ͎w�肷�邱�Ƃ��ł��܂��B
+SMTPサーバに送信するEnvelope Fromを指定します。通常、Fromヘッダで指定したアドレスが使用されますが、それとは異なるアドレスをEnvelope Fromとして使用したい場合には指定することができます。
 
-�A�J�E���g�P�ʂ�Envelope From���w�肵�����ꍇ�ɂ́A((<account.xml|URL:AccountXml.html>))��Smtp/EnvelopeFrom�Ŏw�肷�邱�Ƃ��ł��܂��B
+アカウント単位でEnvelope Fromを指定したい場合には、((<account.xml|URL:AccountXml.html>))のSmtp/EnvelopeFromで指定することもできます。
 
 
 ==X-QMAIL-Sentbox
-���b�Z�[�W�����M���ꂽ��Ɉړ������t�H���_���w�肵�܂��B�ʏ�͑��M���ꂽ���b�Z�[�W�͑��M�����瑗�M�T���Ɉړ�����܂����A���̃w�b�_���w�肳��Ă���ꍇ�ɂ͎w�肳�ꂽ�t�H���_�Ɉړ�����܂��B�������A�w�肳�ꂽ�t�H���_��������Ȃ�������A�ʏ�t�H���_�łȂ������ꍇ�ɂ́A���M�T���Ɉړ�����܂��B
+メッセージが送信された後に移動されるフォルダを指定します。通常は送信されたメッセージは送信箱から送信控えに移動されますが、このヘッダが指定されている場合には指定されたフォルダに移動されます。ただし、指定されたフォルダが見つからなかったり、通常フォルダでなかった場合には、送信控えに移動されます。
 
-���Ƃ��΁Areply.template�ŕԐM���̃��b�Z�[�W�̃t�H���_�������̃w�b�_�ɐݒ肷�邱�ƂŁA���M�T����ԐM���̃��b�Z�[�W�Ɠ����t�H���_�ɕۑ����邱�Ƃ��ł��܂��B
+たとえば、reply.templateで返信元のメッセージのフォルダ名をこのヘッダに設定することで、送信控えを返信元のメッセージと同じフォルダに保存することができます。
 
 
 ==X-QMAIL-Outbox
-���b�Z�[�W���쐬�����Ƃ��ɕۑ������t�H���_���w�肵�܂��B�ʏ�͍쐬���ꂽ���b�Z�[�W�͑��M���i�h���t�g�̏ꍇ�ɂ͑��e���j�ɕۑ�����܂����A���̃w�b�_���w�肳��Ă���ꍇ�ɂ͎w�肳�ꂽ�t�H���_�ɕۑ�����܂��B�������A�w�肳�ꂽ�t�H���_��������Ȃ�������A�ʏ�t�H���_�łȂ������ꍇ�ɂ́A���M���i�܂��͑��e���j�ɕۑ�����܂��B
+メッセージを作成したときに保存されるフォルダを指定します。通常は作成されたメッセージは送信箱（ドラフトの場合には草稿箱）に保存されますが、このヘッダが指定されている場合には指定されたフォルダに保存されます。ただし、指定されたフォルダが見つからなかったり、通常フォルダでなかった場合には、送信箱（または草稿箱）に保存されます。
 
-�w�肳�ꂽ�t�H���_�����M���łȂ������ꍇ�ɂ́A�ۑ����ꂽ���b�Z�[�W�͑��M����܂���̂Œ��ӂ��Ă��������B���̃w�b�_�́A���Ƃ��΃�����ۑ��������ꍇ�ȂǂɎg�p���邱�Ƃ��ł��܂��B
+指定されたフォルダが送信箱でなかった場合には、保存されたメッセージは送信されませんので注意してください。このヘッダは、たとえばメモを保存したい場合などに使用することができます。
 
 =end

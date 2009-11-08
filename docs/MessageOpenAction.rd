@@ -1,20 +1,20 @@
 =begin
-=MessageOpen�A�N�V����
+=MessageOpenアクション
 
-�w�肳�ꂽURI�̃��b�Z�[�W���J���܂��B
+指定されたURIのメッセージを開きます。
 
-��Ԗڂ̈������w�肳��Ă��Ȃ��ꍇ�ɂ́A���C���E�B���h�E������s�����ꍇ�ɂ̓v���r���[�ŁA���b�Z�[�W�E�B���h�E������s�����ꍇ�ɂ͂��̃��b�Z�[�W�r���[�ŊJ���܂��B��������new���w�肵���ꍇ�ɂ͐V�������b�Z�[�W�E�B���h�E���쐬���A���̃��b�Z�[�W�r���[�ŊJ���܂��B
+二番目の引数が指定されていない場合には、メインウィンドウから実行した場合にはプレビューで、メッセージウィンドウから実行した場合にはそのメッセージビューで開きます。第二引数にnewを指定した場合には新しいメッセージウィンドウを作成し、そのメッセージビューで開きます。
 
 
-==����
+==引数
 :1
-  �J�����b�Z�[�W��URI
+  開くメッセージのURI
 :2
-  �V�K���b�Z�[�W�E�B���h�E�ŊJ���ꍇ�ɂ�new���w��
+  新規メッセージウィンドウで開く場合にはnewを指定
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*メインウィンドウ
+*メッセージウィンドウ
 
 =end

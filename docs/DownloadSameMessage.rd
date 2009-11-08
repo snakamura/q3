@@ -1,6 +1,6 @@
 =begin
-=“¯‚¶ƒ[ƒ‹‚ð‰½“x‚àŽóM‚µ‚Ä‚µ‚Ü‚¢‚Ü‚·
+=åŒã˜ãƒ¡ãƒ¼ãƒ«ã‚’ä½•åº¦ã‚‚å—ä¿¡ã—ã¦ã—ã¾ã„ã¾ã™
 
-POP3ƒAƒJƒEƒ“ƒg‚Å“¯‚¶ƒ[ƒ‹‚ð‰½“x‚àŽóM‚µ‚Ä‚µ‚Ü‚¤ê‡A((<POP3‚ÌÝ’è|URL:AccountPop3.html>))‚Å[d•¡‚·‚éUID‚Í‹­§“I‚É–³Ž‹]‚Éƒ`ƒFƒbƒN‚ð“ü‚ê‚é‚Æ‰ðŒˆ‚·‚é‰Â”\«‚ª‚ ‚è‚Ü‚·BÚ×‚ÍA((<–¢“ÇŠÇ—|URL:Pop3UnseenManagement.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+POP3ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã§åŒã˜ãƒ¡ãƒ¼ãƒ«ã‚’ä½•åº¦ã‚‚å—ä¿¡ã—ã¦ã—ã¾ã†å ´åˆã€((<POP3ã®è¨­å®š|URL:AccountPop3.html>))ã§[é‡è¤‡ã™ã‚‹UIDã¯å¼·åˆ¶çš„ã«ç„¡è¦–]ã«ãƒã‚§ãƒƒã‚¯ã‚’å…¥ã‚Œã‚‹ã¨è§£æ±ºã™ã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚è©³ç´°ã¯ã€((<æœªèª­ç®¡ç†|URL:Pop3UnseenManagement.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 =end

@@ -1,36 +1,36 @@
 =begin
-=MessageCreate�A�N�V����
+=MessageCreateアクション
 
-1�Ԗڂ̈����Ŏw�肳�ꂽ�e���v���[�g���g�p���ĐV�K���b�Z�[�W���쐬���܂��B�e���v���[�g��]���������ʂ�p���ăG�f�B�b�g�E�B���h�E���J���܂��B((<�쐬�p�̃e���v���[�g|URL:CreateTemplate.html>))���Q�Ƃ��Ă��������B�e���v���[�g��]������Ƃ��̃R���e�L�X�g���b�Z�[�W�́A���X�g�r���[�Ƀt�H�[�J�X������ꍇ�ɂ̓t�H�[�J�X�̂��郁�b�Z�[�W�A�v���r���[�⃁�b�Z�[�W�r���[�Ƀt�H�[�J�X������ꍇ�ɂ͊J���Ă��郁�b�Z�[�W�ɂȂ�܂��B�܂��A�R���e�L�X�g�A�J�E���g�ƃR���e�L�X�g�t�H���_�́A���C���E�B���h�E������s�����ꍇ�ɂ͌��ݑI�����Ă���A�J�E���g�E�t�H���_�ɁA���b�Z�[�W�E�B���h�E������s�����ꍇ�ɂ́A�R���e�L�X�g���b�Z�[�W�̂���A�J�E���g�ƁA�E�B���h�E���J�����t�H���_�ɂȂ�܂��B
+1番目の引数で指定されたテンプレートを使用して新規メッセージを作成します。テンプレートを評価した結果を用いてエディットウィンドウを開きます。((<作成用のテンプレート|URL:CreateTemplate.html>))を参照してください。テンプレートを評価するときのコンテキストメッセージは、リストビューにフォーカスがある場合にはフォーカスのあるメッセージ、プレビューやメッセージビューにフォーカスがある場合には開いているメッセージになります。また、コンテキストアカウントとコンテキストフォルダは、メインウィンドウから実行した場合には現在選択しているアカウント・フォルダに、メッセージウィンドウから実行した場合には、コンテキストメッセージのあるアカウントと、ウィンドウを開いたフォルダになります。
 
-2�Ԗڂ̈����ɂ̓e���v���[�g�ɓn���������w�肵�܂��B�����͈ȉ��̂悤�Ɋe�������u;�v�ŁA�����̖��O�ƒl���u=�v�ŋ�؂��Ďw�肵�܂��B
+2番目の引数にはテンプレートに渡す引数を指定します。引数は以下のように各引数を「;」で、引数の名前と値を「=」で区切って指定します。
 
  name1=value1;name2=value2;...
 
-�l�Ɂu;�v���܂܂��ꍇ�ɂ́A�u\�v���g���ăG�X�P�[�v���܂��B�܂��A�u\�v���̂��u\�v�ŃG�X�P�[�v���܂��B�Ⴆ�΁Afoo�Ƃ��������Ɂu123;456�v���Abar�Ƃ����ϐ��Ɂua\b�v���w�肵�����ꍇ�ɂ́A
+値に「;」が含まれる場合には、「\」を使ってエスケープします。また、「\」自体も「\」でエスケープします。例えば、fooという引数に「123;456」を、barという変数に「a\b」を指定したい場合には、
 
  foo=123\;456;bar=a\\b
 
-�̂悤�Ɏw�肵�܂��B
+のように指定します。
 
-3�Ԗڂ̈����Ƀ��b�Z�[�W��URI���w�肷��Ǝw�肳�ꂽ���b�Z�[�W���R���e�L�X�g���b�Z�[�W�Ƃ��Ĉ����A���̃��b�Z�[�W�̂���A�J�E���g���R���e�L�X�g�A�J�E���g�Ƃ��Ĉ����܂��B�R���e�L�X�g�t�H���_�͂���܂���B�w�肳�ꂽ���b�Z�[�W��������Ȃ��ꍇ�ɂ̓G���[�ɂȂ�܂��B
+3番目の引数にメッセージのURIを指定すると指定されたメッセージをコンテキストメッセージとして扱い、そのメッセージのあるアカウントをコンテキストアカウントとして扱います。コンテキストフォルダはありません。指定されたメッセージが見つからない場合にはエラーになります。
 
-���j���[������s�����ꍇ�ɂ́AShift�L�[�������Ȃ�����s����ƃG�f�B�b�g�E�B���h�E���J�������((<�O���G�f�B�^|URL:ExternalEditor.html>))���J���܂��B
+メニューから実行した場合には、Shiftキーを押しながら実行するとエディットウィンドウを開く代わりに((<外部エディタ|URL:ExternalEditor.html>))を開きます。
 
-((<�G�f�B�b�g�r���[2�̐ݒ�|URL:OptionEdit2.html>))��[�f�t�H���g�ŊO���G�f�B�^���g�p����]�Ƀ`�F�b�N������Ƃ��̃A�N�V������((<MessageCreateExternal�A�N�V����|URL:MessageCreateExternalAction.html>))�̓��삪����ւ��܂��B�܂�A���̃A�N�V�����͊O���G�f�B�^���J���悤�ɂȂ�܂��B
+((<エディットビュー2の設定|URL:OptionEdit2.html>))で[デフォルトで外部エディタを使用する]にチェックを入れるとこのアクションと((<MessageCreateExternalアクション|URL:MessageCreateExternalAction.html>))の動作が入れ替わります。つまり、このアクションは外部エディタを開くようになります。
 
 
-==����
+==引数
 :1
-  �e���v���[�g��
+  テンプレート名
 :2
-  ����
+  引数
 :3
-  ���b�Z�[�W��URI
+  メッセージのURI
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
-*���b�Z�[�W�E�B���h�E
+==有効なウィンドウ・ビュー
+*メインウィンドウ
+*メッセージウィンドウ
 
 =end

@@ -1,13 +1,13 @@
 =begin
-=�t�B�[�h�̍w��
+=フィードの購読
 
-�t�B�[�h��ǉ�����ɂ̓��j���[����((<[�t�H���_]-[�t�B�[�h�̍w��]|URL:FolderSubscribeAction.html>))��I�����܂��B����ƍw�ǂ���t�B�[�h��ǉ����邽�߂̃E�B�U�[�h���J���܂��B
+フィードを追加するにはメニューから((<[フォルダ]-[フィードの購読]|URL:FolderSubscribeAction.html>))を選択します。すると購読するフィードを追加するためのウィザードが開きます。
 
-((<[�t�B�[�h�̍w�� - URL]�y�[�W|"IMG:images/TutorialRssSubscribeURLPage.png">))
+((<[フィードの購読 - URL]ページ|"IMG:images/TutorialRssSubscribeURLPage.png">))
 
-�܂��A�t�B�[�h��URL���w�肵�܂��BRSS AutoDiscovery�ɑΉ����Ă���Web�y�[�W��URL���w�肷�邱�Ƃ��ł��܂��B[����]���N���b�N����ƁA�w�肳�ꂽ�t�B�[�h���擾���Ď��̃y�[�W�֐i�݂܂��B�t�B�[�h���擾�ł��Ȃ������ꍇ�ɂ́A���̂܂ܑ��s���邩�ǂ�����q�˂��܂��B
+まず、フィードのURLを指定します。RSS AutoDiscoveryに対応しているWebページのURLを指定することもできます。[次へ]をクリックすると、指定されたフィードを取得して次のページへ進みます。フィードが取得できなかった場合には、そのまま続行するかどうかを尋ねられます。
 
-�t�B�[�h�̃t�H�[�}�b�g�Ƃ��āA�ȉ��̃t�H�[�}�b�g���T�|�[�g����Ă��܂��B
+フィードのフォーマットとして、以下のフォーマットがサポートされています。
 *RSS 0.91
 *RSS 0.92
 *RSS 1.0
@@ -15,20 +15,20 @@
 *Atom 0.3
 *Atom 1.0
 
-((<[�t�B�[�h�̍w�� - �ݒ�]�y�[�W|"IMG:images/TutorialRssSubscribePropertyPage.png">))
+((<[フィードの購読 - 設定]ページ|"IMG:images/TutorialRssSubscribePropertyPage.png">))
 
-���Ɋe��̐ݒ���s���܂��B
+次に各種の設定を行います。
 
-[���O]�ɂ̓t�B�[�h�̖��O���w�肵�܂��B���̖��O�Ńt�B�[�h����荞�ނ��߂̃t�H���_���쐬����܂��B�f�t�H���g�ł̓t�B�[�h�̃^�C�g�����ݒ肳��܂��B
+[名前]にはフィードの名前を指定します。この名前でフィードを取り込むためのフォルダが作成されます。デフォルトではフィードのタイトルが設定されます。
 
-[�R���e���c��ۑ�����]�Ƀ`�F�b�N������ƁA<content:encoded>�Ŏw�肳�ꂽHTML��ۑ����ĕ\������悤�ɂȂ�܂��B�`�F�b�N�����Ȃ��ꍇ�ɂ́A�\������Ƃ��ɂ̓����N���Web�y�[�W��\�����܂��B[<description>��<content:encoded>�̑���Ɏg�p����]�Ƀ`�F�b�N������ƁA<content:encoded>�̑����<description>�Ŏw�肳�ꂽ���e��ۑ����ĕ\������悤�ɂȂ�܂��B<description>�̒��ɖ{����HTML���܂܂��ꍇ�Ƀ`�F�b�N�����܂��B
+[コンテンツを保存する]にチェックを入れると、<content:encoded>で指定されたHTMLを保存して表示するようになります。チェックを入れない場合には、表示するときにはリンク先のWebページを表示します。[<description>を<content:encoded>の代わりに使用する]にチェックを入れると、<content:encoded>の代わりに<description>で指定された内容を保存して表示するようになります。<description>の中に本文のHTMLが含まれる場合にチェックを入れます。
 
-�f�t�H���g�ł͓���URL�̃A�C�e���͈�x������荞�݂܂���B�������A[�A�C�e�����ύX����Ă�����X�V����]�Ƀ`�F�b�N������ƁA�A�C�e�����̂����ꂩ�̒l���ς�����Ƃ��ɂ���荞�܂��悤�ɂȂ�܂��B�ύX�����������Ƃ�m�肽���ꍇ�Ƀ`�F�b�N�����܂��B
+デフォルトでは同じURLのアイテムは一度しか取り込みません。しかし、[アイテムが変更されていたら更新する]にチェックを入れると、アイテム内のいずれかの値が変わったときにも取り込まれるようになります。変更があったことを知りたい場合にチェックを入れます。
 
-�t�B�[�h�Ƀx�[�V�b�N�F�؂��������Ă���ꍇ�ɂ́A[�F��]�Ƀ`�F�b�N�����āA[���[�U��]��[�p�X���[�h]���w�肵�܂��B
+フィードにベーシック認証がかかっている場合には、[認証]にチェックを入れて、[ユーザ名]と[パスワード]を指定します。
 
-[����]���N���b�N���ăE�B�U�[�h���I������ƁA�w�肵�����O�̃t�H���_���쐬����A���̃t�H���_�Ɏw�肵���t�B�[�h����荞�܂��悤�ɐݒ肳��܂��B�w�ǂ���t�B�[�h���ƂɈȏ�̎菇���J��Ԃ��܂��B
+[完了]をクリックしてウィザードを終了すると、指定した名前のフォルダが作成され、そのフォルダに指定したフィードが取り込まれるように設定されます。購読するフィードごとに以上の手順を繰り返します。
 
-�����ł̐ݒ����ŕύX�������ꍇ�ɂ́A((<[�t�H���_]-[�v���p�e�B]|URL:FolderPropertyAction.html>))�ŕύX���邱�Ƃ��ł��܂��B���̂Ƃ��Ɏw��ł���p�����[�^�ɂ��ẮA((<RSS�̃p�����[�^|URL:FolderPropertyRssParameter.html>))���Q�Ƃ��Ă��������B
+ここでの設定を後で変更したい場合には、((<[フォルダ]-[プロパティ]|URL:FolderPropertyAction.html>))で変更することができます。そのときに指定できるパラメータについては、((<RSSのパラメータ|URL:FolderPropertyRssParameter.html>))を参照してください。
 
 =end

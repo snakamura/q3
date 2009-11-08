@@ -1,14 +1,14 @@
 =begin
-=�\���p�̃e���v���[�g
+=表示用のテンプレート
 
-�\���p�̃e���v���[�g�̓��b�Z�[�W��\������Ƃ��Ɏg�p���邱�Ƃ��ł��܂��B�\���p�̃e���v���[�g��]���������ʂ͒P�ɕ�����Ƃ��ĉ�ʏ�ɕ\������邾���Ȃ̂ŁA�]�����ʂ̌`���͓��ɂ���܂���B
+表示用のテンプレートはメッセージを表示するときに使用することができます。表示用のテンプレートを評価した結果は単に文字列として画面上に表示されるだけなので、評価結果の形式は特にありません。
 
-�f�t�H���g�ł͕\���p�̃e���v���[�g�͊܂܂�Ă��܂��񂪁A�uview_�v����n�܂�t�@�C�����Ńe���v���[�g���쐬�����[�\��]-[�e���v���[�g]���j���[�̉��Ƀ��X�g����܂��B���Ƃ��΁Aview_Test.template�Ƃ����t�@�C�����Ńe���v���[�g���쐬����ƁA[�\��]-[�e���v���[�g]-[Test]�Ƃ��ĕ\������܂��B
+デフォルトでは表示用のテンプレートは含まれていませんが、「view_」から始まるファイル名でテンプレートを作成すると[表示]-[テンプレート]メニューの下にリストされます。たとえば、view_Test.templateというファイル名でテンプレートを作成すると、[表示]-[テンプレート]-[Test]として表示されます。
 
-���ݎg�p���Ă���e���v���[�g�́A�X�e�[�^�X�o�[�ɕ\������܂��B�������E�N���b�N���邱�Ƃł��g�p����e���v���[�g���w�肷�邱�Ƃ��ł��܂��B
+現在使用しているテンプレートは、ステータスバーに表示されます。ここを右クリックすることでも使用するテンプレートを指定することができます。
 
-((<�\���e���v���[�g|"IMG:images/ViewTemplate.png">))
+((<表示テンプレート|"IMG:images/ViewTemplate.png">))
 
-((<[�Ȃ�]|URL:ViewTemplateAction.html>))��I������ƃe���v���[�g���g�p���܂���B���̑��̃e���v���[�g���w�肷��Ǝw�肵���e���v���[�g���g�p����܂��B
+((<[なし]|URL:ViewTemplateAction.html>))を選択するとテンプレートを使用しません。その他のテンプレートを指定すると指定したテンプレートが使用されます。
 
 =end

@@ -1,14 +1,14 @@
 =begin
-=ViewPrevFolder�A�N�V����
+=ViewPrevFolderアクション
 
-���ݑI������Ă���O�̃t�H���_��I�����܂��B���̂悤�ȃt�H���_���Ȃ��ꍇ�ɂ͉������܂���B
-
-
-==����
-�Ȃ�
+現在選択されている前のフォルダを選択します。そのようなフォルダがない場合には何もしません。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

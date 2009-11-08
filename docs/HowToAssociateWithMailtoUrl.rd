@@ -1,17 +1,17 @@
 =begin
-=‚Ç‚¤‚â‚Á‚½‚çmailto URL‚ÖŠÖ˜A•t‚¯‚ç‚ê‚Ü‚·‚©?
+=ã©ã†ã‚„ã£ãŸã‚‰mailto URLã¸é–¢é€£ä»˜ã‘ã‚‰ã‚Œã¾ã™ã‹?
 
-==ƒCƒ“ƒXƒg[ƒ‰”Å‚ÅƒCƒ“ƒXƒg[ƒ‹‚µ‚½ê‡
+==ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©ç‰ˆã§ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸå ´åˆ
 
-ƒRƒ“ƒgƒ[ƒ‹ƒpƒlƒ‹‚Ì[ƒCƒ“ƒ^[ƒlƒbƒgƒIƒvƒVƒ‡ƒ“]‚ðŠJ‚«A[ƒvƒƒOƒ‰ƒ€]ƒ^ƒu‚ð‘I‘ð‚µ‚Ü‚·B[“dŽqƒ[ƒ‹]‚ÌƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÉuQMAIL3v‚ªƒŠƒXƒg‚³‚ê‚Ä‚¢‚Ü‚·‚Ì‚Å‚»‚ê‚ð‘I‘ð‚µ‚Ä‚­‚¾‚³‚¢B
+ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ãƒ‘ãƒãƒ«ã®[ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒƒãƒˆã‚ªãƒ—ã‚·ãƒ§ãƒ³]ã‚’é–‹ãã€[ãƒ—ãƒ­ã‚°ãƒ©ãƒ ]ã‚¿ãƒ–ã‚’é¸æŠžã—ã¾ã™ã€‚[é›»å­ãƒ¡ãƒ¼ãƒ«]ã®ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã«ã€ŒQMAIL3ã€ãŒãƒªã‚¹ãƒˆã•ã‚Œã¦ã„ã¾ã™ã®ã§ãã‚Œã‚’é¸æŠžã—ã¦ãã ã•ã„ã€‚
 
 
-==Zip”Å‚ÅƒCƒ“ƒXƒg[ƒ‹‚µ‚½ê‡
+==Zipç‰ˆã§ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸå ´åˆ
 
-ƒGƒNƒXƒvƒ[ƒ‰‚Ì[ƒtƒHƒ‹ƒ_ƒIƒvƒVƒ‡ƒ“]‚ðŠJ‚«A[ƒtƒ@ƒCƒ‹‚ÌŽí—Þ]ƒ^ƒu‚ð‘I‘ð‚µ‚Ü‚·B[“o˜^‚³‚ê‚Ä‚¢‚éƒtƒ@ƒCƒ‹‚ÌŽí—Þ]‚©‚çAURL:MailTo Protocol‚ð‘I‘ð‚µAŠÖ˜A•t‚¯‚ðˆÈ‰º‚Ì‚æ‚¤‚É•ÏX‚µ‚Ü‚·B
+ã‚¨ã‚¯ã‚¹ãƒ—ãƒ­ãƒ¼ãƒ©ã®[ãƒ•ã‚©ãƒ«ãƒ€ã‚ªãƒ—ã‚·ãƒ§ãƒ³]ã‚’é–‹ãã€[ãƒ•ã‚¡ã‚¤ãƒ«ã®ç¨®é¡ž]ã‚¿ãƒ–ã‚’é¸æŠžã—ã¾ã™ã€‚[ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®ç¨®é¡ž]ã‹ã‚‰ã€URL:MailTo Protocolã‚’é¸æŠžã—ã€é–¢é€£ä»˜ã‘ã‚’ä»¥ä¸‹ã®ã‚ˆã†ã«å¤‰æ›´ã—ã¾ã™ã€‚
 
  "C:\Program Files\QMAIL3\q3u.exe" -s "%1"
 
-ƒpƒX‚ÍƒCƒ“ƒXƒg[ƒ‹‚µ‚½ƒfƒBƒŒƒNƒgƒŠ‚É‚ ‚í‚¹‚Ä‘‚«Š·‚¦‚Ä‚­‚¾‚³‚¢B
+ãƒ‘ã‚¹ã¯ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ã‚ã‚ã›ã¦æ›¸ãæ›ãˆã¦ãã ã•ã„ã€‚
 
 =end

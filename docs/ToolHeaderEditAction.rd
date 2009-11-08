@@ -1,14 +1,14 @@
 =begin
-=ToolHeaderEdit�A�N�V����
+=ToolHeaderEditアクション
 
-�w�b�_�ҏW���[�h��On/Off���܂��B�w�b�_�ҏW���[�h�ł́A���̃w�b�_��ҏW���邱�Ƃ��ł��܂��B
-
-
-==����
-�Ȃ�
+ヘッダ編集モードをOn/Offします。ヘッダ編集モードでは、生のヘッダを編集することができます。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*�G�f�B�b�g�E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*エディットウィンドウ
 
 =end

@@ -1,16 +1,16 @@
 =begin
-=[��������]�_�C�A���O
+=[自動巡回]ダイアログ
 
-��������̃G���g����ݒ肵�܂��B
+自動巡回のエントリを設定します。
 
-((<[��������]�_�C�A���O|"IMG:images/AutoPilotEntryDialog.png">))
-
-
-+[�R�[�X]
-�������񂷂鏄��R�[�X���w�肵�܂��B�w�肷��R�[�X�́A((<����̐ݒ�|URL:OptionGoRound.html>))�ō쐬���܂��B
+((<[自動巡回]ダイアログ|"IMG:images/AutoPilotEntryDialog.png">))
 
 
-+[�Ԋu]
-�w�肵���R�[�X�����񂷂�Ԋu�𕪒P�ʂŎw�肵�܂��B
++[コース]
+自動巡回する巡回コースを指定します。指定するコースは、((<巡回の設定|URL:OptionGoRound.html>))で作成します。
+
+
++[間隔]
+指定したコースを巡回する間隔を分単位で指定します。
 
 =end

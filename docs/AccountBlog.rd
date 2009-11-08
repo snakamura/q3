@@ -1,8 +1,8 @@
 =begin
-=Blog�̐ݒ�
+=Blogの設定
 
-Blog�Ń��b�Z�[�W�𓊍e���邽�߂̐ݒ���s���܂��B���̋@�\�͎�������Ă��Ȃ��̂Őݒ肷�邱�Ƃ͂ł��܂���B
+Blogでメッセージを投稿するための設定を行います。この機能は実装されていないので設定することはできません。
 
-((<[Blog]�^�u|"IMG:images/AccountRssSendPage.png">))
+((<[Blog]タブ|"IMG:images/AccountRssSendPage.png">))
 
 =end

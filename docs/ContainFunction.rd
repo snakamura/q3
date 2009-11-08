@@ -4,32 +4,32 @@
  Boolean @Contain(String s1, String s2, Boolean case?)
 
 
-==����
-s1��s2���܂܂�Ă���ꍇ�ɂ�True�A����ȊO�̏ꍇ�ɂ�False��Ԃ��܂��Bcase��True���w�肷��Ƒ啶���Ə���������ʂ��AFalse�̏ꍇ��ȗ����ꂽ�ꍇ�ɂ͋�ʂ��܂���B
+==説明
+s1にs2が含まれている場合にはTrue、それ以外の場合にはFalseを返します。caseにTrueを指定すると大文字と小文字を区別し、Falseの場合や省略された場合には区別しません。
 
 
-==����
+==引数
 :String s1
-  ������
+  文字列
 :String s2
-  ������
+  文字列
 :Boolean case
-  �啶���Ə���������ʂ���ꍇ�ɂ�True�A����ȊO�̏ꍇ�ɂ�False
+  大文字と小文字を区別する場合にはTrue、それ以外の場合にはFalse
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # %Subject��Qs���܂܂��i�啶���Ə���������ʁj
+==例
+ # %SubjectにQsが含まれる（大文字と小文字を区別）
  @Contain(%Subject, 'Qs', @True())
  
- # From��@example.org���܂܂��
+ # Fromに@example.orgが含まれる
  @Contain(From, '@example.org')
 
 =end

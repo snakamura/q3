@@ -1,13 +1,13 @@
 =begin
-=ViewFocusPrevƒAƒNƒVƒ‡ƒ“
+=ViewFocusPrevã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-‘O‚Ìƒrƒ…[‚ÉƒtƒH[ƒJƒX‚ðˆÚ“®‚µ‚Ü‚·B
+å‰ã®ãƒ“ãƒ¥ãƒ¼ã«ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’ç§»å‹•ã—ã¾ã™ã€‚
 
 
-==ˆø”
-‚È‚µ
+==å¼•æ•°
+ãªã—
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

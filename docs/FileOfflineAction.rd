@@ -1,16 +1,16 @@
 =begin
-=FileOfflineƒAƒNƒVƒ‡ƒ“
+=FileOfflineã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒIƒ“ƒ‰ƒCƒ“EƒIƒtƒ‰ƒCƒ“‚ðØ‚è‘Ö‚¦‚Ü‚·B
+ã‚ªãƒ³ãƒ©ã‚¤ãƒ³ãƒ»ã‚ªãƒ•ãƒ©ã‚¤ãƒ³ã‚’åˆ‡ã‚Šæ›¿ãˆã¾ã™ã€‚
 
-ƒIƒ“ƒ‰ƒCƒ“EƒIƒtƒ‰ƒCƒ“‚É‚Â‚¢‚Ä‚Í((<ƒIƒ“ƒ‰ƒCƒ“‚ÆƒIƒtƒ‰ƒCƒ“|URL:OnlineOffline.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+ã‚ªãƒ³ãƒ©ã‚¤ãƒ³ãƒ»ã‚ªãƒ•ãƒ©ã‚¤ãƒ³ã«ã¤ã„ã¦ã¯((<ã‚ªãƒ³ãƒ©ã‚¤ãƒ³ã¨ã‚ªãƒ•ãƒ©ã‚¤ãƒ³|URL:OnlineOffline.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

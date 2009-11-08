@@ -1,188 +1,188 @@
 =begin
-=�G�f�B�b�g�E�B���h�E�̃��j���[�o�[
+=エディットウィンドウのメニューバー
 
-((<�G�f�B�b�g�E�B���h�E�̃��j���[�o�[|"IMG:images/EditWindowMenuBar.png">))
-
-
-====[�t�@�C��]
-
-+((<[���M]|URL:FileSendAction.html>))
-���b�Z�[�W�𑗐M���ɕۑ����܂��B
+((<エディットウィンドウのメニューバー|"IMG:images/EditWindowMenuBar.png">))
 
 
-+((<[�����ɑ��M]|URL:FileSendNowAction.html>))
-���b�Z�[�W�������ɑ��M���܂��B
+====[ファイル]
+
++((<[送信]|URL:FileSendAction.html>))
+メッセージを送信箱に保存します。
 
 
-+((<[���e�Ƃ��ĕۑ�]|URL:FileDraftAction.html>))
-���b�Z�[�W�𑐍e�Ƃ��đ��e���ɕۑ����܂��B
++((<[すぐに送信]|URL:FileSendNowAction.html>))
+メッセージをすぐに送信します。
 
 
-+((<[���e�Ƃ��ĕۑ����ĕ���]|URL:FileDraftCloseAction.html>))
-���b�Z�[�W�𑐍e�Ƃ��đ��e���ɕۑ����āA�G�f�B�b�g�E�B���h�E����܂��B
++((<[草稿として保存]|URL:FileDraftAction.html>))
+メッセージを草稿として草稿箱に保存します。
 
 
-+((<[�t�@�C�����J��]|URL:FileOpenAction.html>))
-�t�@�C�����烁�b�Z�[�W���J���܂��B
++((<[草稿として保存して閉じる]|URL:FileDraftCloseAction.html>))
+メッセージを草稿として草稿箱に保存して、エディットウィンドウを閉じます。
 
 
-+((<[�t�@�C���ɕۑ�]|URL:FileSaveAction.html>))
-�t�@�C���Ƀ��b�Z�[�W��ۑ����܂��B
++((<[ファイルを開く]|URL:FileOpenAction.html>))
+ファイルからメッセージを開きます。
 
 
-+((<[�t�@�C������}��]|URL:FileInsertAction.html>))
-�L�����b�g�̈ʒu�Ƀt�@�C���̓��e��}�����܂��B
++((<[ファイルに保存]|URL:FileSaveAction.html>))
+ファイルにメッセージを保存します。
 
 
-+((<[����]|URL:FileCloseAction.html>))
-�G�f�B�b�g�E�B���h�E����܂��B
++((<[ファイルから挿入]|URL:FileInsertAction.html>))
+キャレットの位置にファイルの内容を挿入します。
 
 
-====[�ҏW]
-
-+((<[���ɖ߂�]|URL:EditUndoAction.html>))
-���O�̑�������ɖ߂��܂��B
++((<[閉じる]|URL:FileCloseAction.html>))
+エディットウィンドウを閉じます。
 
 
-+((<[��蒼��]|URL:EditRedoAction.html>))
-���ɖ߂����������蒼���܂��B
+====[編集]
+
++((<[元に戻す]|URL:EditUndoAction.html>))
+直前の操作を元に戻します。
 
 
-+((<[�؂���]|URL:EditCutAction.html>))
-�I�����ꂽ�e�L�X�g��؂����ăN���b�v�{�[�h�ɓ���܂��B
++((<[やり直す]|URL:EditRedoAction.html>))
+元に戻した操作をやり直します。
 
 
-+((<[�R�s�[]|URL:EditCopyAction.html>))
-�I�����ꂽ�e�L�X�g���R�s�[���ăN���b�v�{�[�h�ɓ���܂��B
++((<[切り取り]|URL:EditCutAction.html>))
+選択されたテキストを切り取ってクリップボードに入れます。
 
 
-+((<[�\��t��]|URL:EditPasteAction.html>))
-�N���b�v�{�[�h����e�L�X�g��\��t���܂��B
++((<[コピー]|URL:EditCopyAction.html>))
+選択されたテキストをコピーしてクリップボードに入れます。
 
 
-+((<[���p���t���\��t��]|URL:EditPasteAction.html>))
-�N���b�v�{�[�h������p���t���Ńe�L�X�g��\��t���܂��B
++((<[貼り付け]|URL:EditPasteAction.html>))
+クリップボードからテキストを貼り付けます。
 
 
-+((<[���ׂđI��]|URL:EditSelectAllAction.html>))
-�S�Ẵe�L�X�g��I�����܂��B
++((<[引用符付き貼り付け]|URL:EditPasteAction.html>))
+クリップボードから引用符付きでテキストを貼り付けます。
 
 
-+((<[����]|URL:EditFindAction.html>))
-�e�L�X�g���������܂��B
++((<[すべて選択]|URL:EditSelectAllAction.html>))
+全てのテキストを選択します。
 
 
-+((<[��������]|URL:EditFindNextAction.html>))
-���O�̌��������Ŏ����������܂��B
++((<[検索]|URL:EditFindAction.html>))
+テキストを検索します。
 
 
-+((<[�O������]|URL:EditFindPrevAction.html>))
-���O�̌��������őO���������܂��B
++((<[次を検索]|URL:EditFindNextAction.html>))
+直前の検索条件で次を検索します。
 
 
-+((<[�u��]|URL:EditReplaceAction.html>))
-�e�L�X�g��u�����܂��B
++((<[前を検索]|URL:EditFindPrevAction.html>))
+直前の検索条件で前を検索します。
 
 
-====[�\��]
++((<[置換]|URL:EditReplaceAction.html>))
+テキストを置換します。
 
-+[�R���g���[���̕\��]
 
-*((<[�c�[���o�[��\��]|URL:ViewShowToolbarAction.html>))
+====[表示]
+
++[コントロールの表示]
+
+*((<[ツールバーを表示]|URL:ViewShowToolbarAction.html>))
  
- �c�[���o�[�̕\���Ɣ�\����؂�ւ��܂��B
+ ツールバーの表示と非表示を切り替えます。
 
-*((<[�X�e�[�^�X�o�[��\��]|URL:ViewShowStatusBarAction.html>))
+*((<[ステータスバーを表示]|URL:ViewShowStatusBarAction.html>))
  
- �X�e�[�^�X�o�[�̕\���Ɣ�\����؂�ւ��܂��B
+ ステータスバーの表示と非表示を切り替えます。
 
 
-====[�c�[��]
+====[ツール]
 
-+((<[�A�h���X��]|URL:ToolSelectAddressAction.html>))
-[�A�h���X�̑I��]�_�C�A���O���J���܂��B
++((<[アドレス帳]|URL:ToolSelectAddressAction.html>))
+[アドレスの選択]ダイアログを開きます。
 
 
-+[��^��]
++[定型文]
 
-*((<[<��^����>]|URL:ToolInsertTextAction.html>))
+*((<[<定型文名>]|URL:ToolInsertTextAction.html>))
  
- ((<��^��|URL:FixedFormText.html>))���L�����b�g�̈ʒu�ɑ}�����܂��B
+ ((<定型文|URL:FixedFormText.html>))をキャレットの位置に挿入します。
 
-*((<[�ҏW]|URL:ConfigTextsAction.html>))
+*((<[編集]|URL:ConfigTextsAction.html>))
  
- ��^����ҏW���܂��B
+ 定型文を編集します。
 
 
-+((<[������}��]|URL:ToolInsertSignatureAction.html>))
-���ݑI������Ă���((<����|URL:Signature.html>))���L�����b�g�̈ʒu�ɑ}�����܂��B
++((<[署名を挿入]|URL:ToolInsertSignatureAction.html>))
+現在選択されている((<署名|URL:Signature.html>))をキャレットの位置に挿入します。
 
 
-+[�G���R�[�f�B���O]
++[エンコーディング]
 
-*((<[�f�t�H���g]|URL:ToolEncodingAction.html>))
+*((<[デフォルト]|URL:ToolEncodingAction.html>))
  
- �f�t�H���g�̃G���R�[�f�B���O���g�p����悤�Ɏw�肵�܂��B
+ デフォルトのエンコーディングを使用するように指定します。
 
-*((<[<�G���R�[�f�B���O��>]|URL:ToolEncodingAction.html>))
+*((<[<エンコーディング名>]|URL:ToolEncodingAction.html>))
  
- <�G���R�[�f�B���O��>�̃G���R�[�f�B���O���g�p����悤�Ɏw�肵�܂��B
+ <エンコーディング名>のエンコーディングを使用するように指定します。
 
 
-+((<[�Y�t�t�@�C��]|URL:ToolAttachmentAction.html>))
-((<�Y�t�t�@�C��|URL:Attachment.html>))��ǉ��E�폜���邽�߂ɁA[�Y�t�t�@�C��]�_�C�A���O���J���܂��B
++((<[添付ファイル]|URL:ToolAttachmentAction.html>))
+((<添付ファイル|URL:Attachment.html>))を追加・削除するために、[添付ファイル]ダイアログを開きます。
 
 
-+((<[�Y�t�t�@�C�������k]|URL:ToolArchiveAttachmentAction.html>))
-((<�Y�t�t�@�C��|URL:Attachment.html>))�����k���邩�ǂ������w�肵�܂��B
++((<[添付ファイルを圧縮]|URL:ToolArchiveAttachmentAction.html>))
+((<添付ファイル|URL:Attachment.html>))を圧縮するかどうかを指定します。
 
 
-+((<[���`]|URL:ToolReformAction.html>))
-���݃L�����b�g�̂���i����((<���`|URL:Reform.html>))���܂��B
++((<[整形]|URL:ToolReformAction.html>))
+現在キャレットのある段落を((<整形|URL:Reform.html>))します。
 
 
-+((<[���ׂĂ𐮌`]|URL:ToolReformAllAction.html>))
-�S�Ẵe�L�X�g��((<���`|URL:Reform.html>))���܂��B
++((<[すべてを整形]|URL:ToolReformAllAction.html>))
+全てのテキストを((<整形|URL:Reform.html>))します。
 
 
-+((<[�����Ő��`]|URL:ToolReformAutoAction.html>))
-�����Ő��`���邩�ǂ������w�肵�܂��B
++((<[自動で整形]|URL:ToolReformAutoAction.html>))
+自動で整形するかどうかを指定します。
 
 
-+((<[�w�b�_��ҏW]|URL:ToolHeaderEditAction.html>))
-�w�b�_�𒼐ڕҏW���邩�ǂ�����؂�ւ��܂��B
++((<[ヘッダを編集]|URL:ToolHeaderEditAction.html>))
+ヘッダを直接編集するかどうかを切り替えます。
 
 
 +[S/MIME]
 
-*((<[�Í���]|URL:ToolSMIMEEncryptAction.html>))
+*((<[暗号化]|URL:ToolSMIMEEncryptAction.html>))
  
- ((<"S/MIME"|URL:SMIME.html>))�ňÍ�������悤�Ɏw�肵�܂��B
+ ((<"S/MIME"|URL:SMIME.html>))で暗号化するように指定します。
 
-*((<[����]|URL:ToolSMIMESignAction.html>))
+*((<[署名]|URL:ToolSMIMESignAction.html>))
  
- ((<"S/MIME"|URL:SMIME.html>))�ŏ�������悤�Ɏw�肵�܂��B
+ ((<"S/MIME"|URL:SMIME.html>))で署名するように指定します。
 
 
 +[PGP]
 
-*((<[�Í���]|URL:ToolPGPEncryptAction.html>))
+*((<[暗号化]|URL:ToolPGPEncryptAction.html>))
  
- ((<PGP|URL:PGP.html>))�ňÍ�������悤�Ɏw�肵�܂��B
+ ((<PGP|URL:PGP.html>))で暗号化するように指定します。
 
-*((<[����]|URL:ToolPGPSignAction.html>))
+*((<[署名]|URL:ToolPGPSignAction.html>))
  
- ((<PGP|URL:PGP.html>))�ŏ�������悤�Ɏw�肵�܂��B
+ ((<PGP|URL:PGP.html>))で署名するように指定します。
 
 *((<[MIME]|URL:ToolPGPMimeAction.html>))
  
- ((<PGP|URL:PGP.html>))�ňÍ����⏐��������Ƃ���PGP/MIME�`���ɂ��邩�ǂ������w�肵�܂��B
+ ((<PGP|URL:PGP.html>))で暗号化や署名をするときにPGP/MIME形式にするかどうかを指定します。
 
 
-+[�X�N���v�g]
++[スクリプト]
 
-*((<[<�X�N���v�g��>]|URL:ToolScriptAction.html>))
+*((<[<スクリプト名>]|URL:ToolScriptAction.html>))
  
- <�X�N���v�g��>�̃X�N���v�g�����s���܂��B
+ <スクリプト名>のスクリプトを実行します。
 
 =end

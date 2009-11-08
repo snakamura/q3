@@ -1,14 +1,14 @@
 =begin
-=MessageApplyRule�A�N�V����
+=MessageApplyRuleアクション
 
-���ݑI������Ă���t�H���_�̕\������Ă��邷�ׂẴ��b�Z�[�W��U�蕪���܂��B((<�t�B���^|URL:Filter.html>))�ɂ���ď��O����Ă��郁�b�Z�[�W�͐U�蕪���ΏۂɂȂ�܂���B�U�蕪���ɂ��ẮA((<�U�蕪��|URL:ApplyRules.html>))���Q�Ƃ��Ă��������B
-
-
-==����
-�Ȃ�
+現在選択されているフォルダの表示されているすべてのメッセージを振り分けます。((<フィルタ|URL:Filter.html>))によって除外されているメッセージは振り分け対象になりません。振り分けについては、((<振り分け|URL:ApplyRules.html>))を参照してください。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

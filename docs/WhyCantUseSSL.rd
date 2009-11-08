@@ -1,8 +1,8 @@
 =begin
-=�Ȃ�SSL�̐ݒ荀�ڂ��O���[�A�E�g���Ă���̂ł���?
+=なぜSSLの設定項目がグレーアウトしているのですか?
 
-�A�J�E���g�̐ݒ��((<�ڍׂ̐ݒ�|URL:AccountDetail.html>))��SSL�̃��W�I�{�^�����O���[�A�E�g���đI���ł��Ȃ��ꍇ�AOpenSSL���������C���X�g�[������Ă��܂���B�C���X�g�[���ŃC���X�g�[�������ꍇ�ɂ�OpenSSL��DLL�͎����ŃC���X�g�[������܂���((-[SSL, S/MIME]�̃`�F�b�N���͂����Ȃ������ꍇ-))�AZip�ŃC���X�g�[�������ꍇ�ɂ͕ʓrOpenSSL��DLL���C���X�g�[������K�v������܂��B
+アカウントの設定の((<詳細の設定|URL:AccountDetail.html>))でSSLのラジオボタンがグレーアウトして選択できない場合、OpenSSLが正しくインストールされていません。インストーラでインストールした場合にはOpenSSLのDLLは自動でインストールされますが((-[SSL, S/MIME]のチェックをはずさなかった場合-))、Zipでインストールした場合には別途OpenSSLのDLLをインストールする必要があります。
 
-�ڍׂ́A((<SSL|URL:SSL.html>))���Q�Ƃ��Ă��������B
+詳細は、((<SSL|URL:SSL.html>))を参照してください。
 
 =end

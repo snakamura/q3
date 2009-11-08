@@ -1,14 +1,14 @@
 =begin
-=EditDeleteBackwardCharƒAƒNƒVƒ‡ƒ“
+=EditDeleteBackwardCharã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ƒLƒƒƒŒƒbƒgˆÊ’u‚Ì‘O‚Ì•¶Žš‚ðíœ‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ã‚­ãƒ£ãƒ¬ãƒƒãƒˆä½ç½®ã®å‰ã®æ–‡å­—ã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

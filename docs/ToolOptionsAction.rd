@@ -1,14 +1,14 @@
 =begin
-=ToolOptions�A�N�V����
+=ToolOptionsアクション
 
-[�I�v�V����]�_�C�A���O���J���܂��B���̃_�C�A���O�Őݒ�ł��邱�Ƃɂ��ẮA((<�ݒ�|URL:Options.html>))���Q�Ƃ��Ă��������B
-
-
-==����
-�Ȃ�
+[オプション]ダイアログを開きます。このダイアログで設定できることについては、((<設定|URL:Options.html>))を参照してください。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

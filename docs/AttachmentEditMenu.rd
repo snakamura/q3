@@ -1,14 +1,14 @@
 =begin
-=�Y�t�t�@�C���ҏW�̃R���e�L�X�g���j���[
+=添付ファイル編集のコンテキストメニュー
 
-((<�Y�t�t�@�C���ҏW�̃R���e�L�X�g���j���[|"IMG:images/AttachmentEditMenu.png">))
-
-
-+((<[�ǉ�]|URL:AttachmentEditAddAction.html>))
-�Y�t�t�@�C����ǉ����܂��B
+((<添付ファイル編集のコンテキストメニュー|"IMG:images/AttachmentEditMenu.png">))
 
 
-+((<[�폜]|URL:AttachmentEditDeleteAction.html>))
-�I������Ă���Y�t�t�@�C�����폜���܂��B
++((<[追加]|URL:AttachmentEditAddAction.html>))
+添付ファイルを追加します。
+
+
++((<[削除]|URL:AttachmentEditDeleteAction.html>))
+選択されている添付ファイルを削除します。
 
 =end

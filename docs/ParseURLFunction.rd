@@ -4,14 +4,14 @@
  String @ParseURL(String url)
 
 
-==����
-url�Ŏw�肳�ꂽmailto URL���p�[�X���ăw�b�_�`���̕�����i�Ƃ���Ζ{���j��Ԃ��܂��B
+==説明
+urlで指定されたmailto URLをパースしてヘッダ形式の文字列（とあれば本文）を返します。
 
-���Ƃ��΁A<mailto:test@example.org>����́A
+たとえば、<mailto:test@example.org>からは、
 
  To: test@example.org
 
-���A<mailto:test@example.org?Cc=test2@example.org?Subject=Test&Body=Test%20Body>����́A
+を、<mailto:test@example.org?Cc=test2@example.org?Subject=Test&Body=Test%20Body>からは、
 
  To: test@example.org
  Cc: test2@example.org
@@ -19,32 +19,32 @@ url�Ŏw�肳�ꂽmailto URL���p�[�X���ăw�b�_�`���̕�����i�Ƃ���Ζ{���j��Ԃ��܂
  
  Test Body
 
-��Ԃ��܂��B���������w�b�_�́ATo, Cc, Subject, In-Reply-To, References��body�ł��B
+を返します。処理されるヘッダは、To, Cc, Subject, In-Reply-To, Referencesとbodyです。
 
-URL���̔�ASCII������i%xx�ŃG�X�P�[�v���ꂽ���̂��܂ށj��UTF-8�Ƃ��Đ������o�C�g��ł���Ƃ��ɂ�UTF-8�Ƃ��āA�������Ȃ��o�C�g��ł���Ƃ��ɂ̓v���b�g�t�H�[���̃f�t�H���g�G���R�[�f�B���O�Ƃ��ď�������܂��B
+URL中の非ASCII文字列（%xxでエスケープされたものも含む）はUTF-8として正しいバイト列であるときにはUTF-8として、正しくないバイト列であるときにはプラットフォームのデフォルトエンコーディングとして処理されます。
 
-url�Ŏw�肳�ꂽ������mailto:����n�܂��Ă��Ȃ������ꍇ�ɂ́ATo�Ƃ��Ďw�肳�ꂽ��������������w�b�_�`���̕������Ԃ��܂��B���Ƃ��΁Atest3@example.org�������Ƃ��ēn���ƁA
+urlで指定された文字列がmailto:から始まっていなかった場合には、Toとして指定された文字列を持ったヘッダ形式の文字列を返します。たとえば、test3@example.orgを引数として渡すと、
 
  To: test3@example.org
 
-��Ԃ��܂��B
+を返します。
 
 
-==����
+==引数
 :String url
-  �p�[�X����mailto URL
+  パースするmailto URL
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # url�Ƃ����ϐ��ɐݒ肳�ꂽURL���p�[�X
+==例
+ # urlという変数に設定されたURLをパース
  @ParseUrl($url)
 
 =end

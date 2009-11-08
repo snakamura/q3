@@ -1,16 +1,16 @@
 =begin
-=�_�C�A���A�b�v
+=ダイアルアップ
 
-QMAIL3����_�C�A���A�b�v����ɂ�OS�̋@�\�Ń_�C�A���A�b�v�̐ݒ�����O�ɍs���Ă����K�v������܂��B
-
-
-==�����_�C�A���A�b�v
-����M����Ƃ��Ɏ����Ń_�C�A���A�b�v����ɂ́A((<�A�J�E���g�̃v���p�e�B|URL:AccountProperty.html>))��((<�_�C�A���A�b�v�̐ݒ�|URL:AccountDialup.html>))�Ń_�C�A���A�b�v����悤�Ɏw�肵�܂��B
-
-�܂��A((<����|URL:GoRound.html>))����Ƃ��Ƀ_�C�A���A�b�v������ꍇ�ɂ́A((<����̐ݒ�|URL:OptionGoRound.html>))�Ń_�C�A���A�b�v�̐ݒ�����܂��B
+QMAIL3からダイアルアップするにはOSの機能でダイアルアップの設定を事前に行っておく必要があります。
 
 
-==�蓮�_�C�A���A�b�v
-�蓮�Ń_�C�A���A�b�v����ɂ́A((<[�c�[��]-[�_�C�A���A�b�v�ڑ�]|URL:ToolDialupAction.html>))��I�����܂��B�_�C�A���A�b�v���̓��j���[��((<[�c�[��]-[�_�C�A���A�b�v�ؒf]|URL:ToolDialupAction.html>))�ɑ���A�蓮�Ń_�C�A���A�b�v��ؒf���邱�Ƃ��ł��܂��B
+==自動ダイアルアップ
+送受信するときに自動でダイアルアップするには、((<アカウントのプロパティ|URL:AccountProperty.html>))の((<ダイアルアップの設定|URL:AccountDialup.html>))でダイアルアップするように指定します。
+
+また、((<巡回|URL:GoRound.html>))するときにダイアルアップをする場合には、((<巡回の設定|URL:OptionGoRound.html>))でダイアルアップの設定をします。
+
+
+==手動ダイアルアップ
+手動でダイアルアップするには、((<[ツール]-[ダイアルアップ接続]|URL:ToolDialupAction.html>))を選択します。ダイアルアップ中はメニューが((<[ツール]-[ダイアルアップ切断]|URL:ToolDialupAction.html>))に代わり、手動でダイアルアップを切断することができます。
 
 =end

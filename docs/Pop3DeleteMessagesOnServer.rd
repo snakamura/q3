@@ -1,10 +1,10 @@
 =begin
-=�I���폜
+=選択削除
 
-�A�J�E���g�̐ݒ������Ƃ���((<POP3�̐ݒ�|URL:AccountPop3.html>))�ŃT�[�o��̃��b�Z�[�W���폜���Ȃ��悤�ɂ����ꍇ�A���b�Z�[�W��I�����ăT�[�o����폜���邱�Ƃ��ł��܂��B�T�[�o���烁�b�Z�[�W���폜����ɂ́A�폜���������b�Z�[�W��((<�폜�t���O|URL:Flag.html>))��t���Ă��瓯�����܂��B�폜�t���O��t����ɂ́A((<[���b�Z�[�W]-[�}�[�N]-[�폜�}�[�N������]|URL:MessageMarkDeletedAction.html>))��I�����܂��B�폜�}�[�N�������ɂ́A((<[���b�Z�[�W]-[�v���p�e�B]|URL:MessagePropertyAction.html>))��I�����ă��b�Z�[�W�̃v���p�e�B��((<���|URL:MessagePropertyPage.html>))�y�[�W��[�폜]�̃`�F�b�N���O���܂��B
+アカウントの設定をするときに((<POP3の設定|URL:AccountPop3.html>))でサーバ上のメッセージを削除しないようにした場合、メッセージを選択してサーバから削除することができます。サーバからメッセージを削除するには、削除したいメッセージに((<削除フラグ|URL:Flag.html>))を付けてから同期します。削除フラグを付けるには、((<[メッセージ]-[マーク]-[削除マークをつける]|URL:MessageMarkDeletedAction.html>))を選択します。削除マークを消すには、((<[メッセージ]-[プロパティ]|URL:MessagePropertyAction.html>))を選択してメッセージのプロパティの((<一般|URL:MessagePropertyPage.html>))ページで[削除]のチェックを外します。
 
-��������ƍ폜�t���O�̕t�������b�Z�[�W���T�[�o�ォ��폜���܂��B�T�[�o��Ɏw�肳�ꂽ���b�Z�[�W���Ȃ��ꍇ�ɂ͉������܂���B������̏ꍇ�ł��A�폜�t���O��������܂��B
+同期すると削除フラグの付いたメッセージをサーバ上から削除します。サーバ上に指定されたメッセージがない場合には何もしません。いずれの場合でも、削除フラグが消されます。
 
-�T�[�o�ォ��폜�������b�Z�[�W�����[�J���̃f�[�^������폜�������ꍇ�ɂ́A((<POP3�̐ݒ�|URL:AccountPop3.html>))��[���b�Z�[�W���T�[�o����폜�����烍�[�J��������폜]�Ƀ`�F�b�N�����܂��B
+サーバ上から削除したメッセージをローカルのデータからも削除したい場合には、((<POP3の設定|URL:AccountPop3.html>))で[メッセージをサーバから削除したらローカルからも削除]にチェックを入れます。
 
 =end

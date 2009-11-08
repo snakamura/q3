@@ -1,12 +1,12 @@
 =begin
-=POP3(XTND XMIT)�̐ݒ�
+=POP3(XTND XMIT)の設定
 
-POP3��XTND XMIT�g���Ń��b�Z�[�W�𑗐M���邽�߂̐ݒ���s���܂��B
+POP3のXTND XMIT拡張でメッセージを送信するための設定を行います。
 
-((<[POP3 (XTND XMIT)]�^�u|"IMG:images/AccountPop3SendPage.png">))
+((<[POP3 (XTND XMIT)]タブ|"IMG:images/AccountPop3SendPage.png">))
 
 
-+[APOP���g�p]
-�F�؎���APOP���g�p���邩�ǂ������w�肵�܂��B�f�t�H���g�ł�APOP���g�p���܂���B
++[APOPを使用]
+認証時にAPOPを使用するかどうかを指定します。デフォルトではAPOPを使用しません。
 
 =end

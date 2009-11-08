@@ -1,20 +1,20 @@
 =begin
-=HTML�\��
+=HTML表示
 
-�ȉ��̃v���b�g�t�H�[����QMAIL3��HTML�̕\�����T�|�[�g���Ă��܂��B
+以下のプラットフォームのQMAIL3はHTMLの表示をサポートしています。
 
-*Windows��
-*Windows Mobile 6, Windows Mobile 5.0, Pocket PC 2003 SE, Pocket PC 2003, Pocket PC 2002��
-*sigmarion III��
+*Windows版
+*Windows Mobile 6, Windows Mobile 5.0, Pocket PC 2003 SE, Pocket PC 2003, Pocket PC 2002版
+*sigmarion III版
 
-Windows�ł����sigmarion III�łł�WebBrowser�R���g���[�����g�p���AWindows Mobile��Pocket PC�łł�HTML�R���g���[�����g�p���Ă��܂��B���̂��߁A�\���͂͂����̃R���g���[���̕\���͂Ɉˑ����܂��B
+Windows版およびsigmarion III版ではWebBrowserコントロールを使用し、Windows MobileとPocket PC版ではHTMLコントロールを使用しています。このため、表現力はこれらのコントロールの表現力に依存します。
 
-HTML�\��������ɂ́A���X�g�r���[�ŕ\��������HTML���[����I�����āA((<[�\��]-[HTML]-[HTML��\��]|URL:ViewHtmlModeAction.html>))��On�ɂ��܂��B���b�Z�[�W��HTML�p�[�g���܂܂�Ă���ꍇ�ɂ́A���̃p�[�g��HTML�Ƃ��ĕ\�����܂��BHTML�p�[�g���܂܂�Ă��Ȃ��ꍇ�ɂ͉������܂���B
+HTML表示をするには、リストビューで表示したいHTMLメールを選択して、((<[表示]-[HTML]-[HTMLを表示]|URL:ViewHtmlModeAction.html>))をOnにします。メッセージにHTMLパートが含まれている場合には、そのパートをHTMLとして表示します。HTMLパートが含まれていない場合には何もしません。
 
-RSS�A�J�E���g�ł́A��L�ɉ�����X-QMAIL-Link�Ƃ����w�b�_�̎w�肷��URL��\�����܂��B���̃w�b�_��RSS�A�J�E���g�Ńt�B�[�h����荞�񂾂Ƃ��Ɏ����I�ɕt������܂��BRSS�A�J�E���g�ȊO�̃A�J�E���g�ł͂��̃w�b�_�͖�������܂��B
+RSSアカウントでは、上記に加えてX-QMAIL-Linkというヘッダの指定するURLを表示します。このヘッダはRSSアカウントでフィードを取り込んだときに自動的に付加されます。RSSアカウント以外のアカウントではこのヘッダは無視されます。
 
-((<[�\��]-[HTML]-[�I�����C���ŕ\��]|URL:ViewHtmlOnlineModeAction.html>))��I������HTML�I�����C�����[�h�ɂ���ƁA�O���̃��\�[�X����荞�ނ悤�ɂȂ�܂��B���Ƃ��΁AWeb�T�[�o��ɒu���ꂽ�摜�Ȃǂ��擾����悤�ɂȂ�܂��B����ɂ��A�擾���Web�T�[�o�Ɏ��������[����\���������Ƃ�ʒm���Ă��܂����Ƃ����邱�Ƃɒ��ӂ��Ă��������B���Ƃ��΁A�X�p���Ȃǂł͌����Ȃ��摜�𖄂ߍ��ނ��Ƃɂ��A����̃��[���A�h���X�ɑ��M�������b�Z�[�W���\�����ꂽ���ǂ�����ǐՂ��Ă��邱�Ƃ�����܂��B���̃��[�h��Off�ɂ��Ă��Ă��A���b�Z�[�W�{�̂ɓY�t����Ă���摜��A���ɃL���b�V������Ă���摜�͕\������܂��B
+((<[表示]-[HTML]-[オンラインで表示]|URL:ViewHtmlOnlineModeAction.html>))を選択してHTMLオンラインモードにすると、外部のリソースを取り込むようになります。たとえば、Webサーバ上に置かれた画像などを取得するようになります。これにより、取得先のWebサーバに自分がメールを表示したことを通知してしまうことがあることに注意してください。たとえば、スパムなどでは見えない画像を埋め込むことにより、特定のメールアドレスに送信したメッセージが表示されたかどうかを追跡していることがあります。このモードをOffにしていても、メッセージ本体に添付されている画像や、既にキャッシュされている画像は表示されます。
 
-((<[�\��]-[HTML]-[�C���^�[�l�b�g�]�[���ŕ\��]|URL:ViewHtmlInternetZoneModeAction.html>))��I�����ăC���^�[�l�b�g�]�[�����[�h�ɂ���ƁAHTML��\������Ƃ��ɃC���^�[�l�b�g�]�[���Ŏ��s����܂��B����ȊO�̏ꍇ�ɂ́A�������]�[���Ŏ��s����܂��B�����̃]�[���ɑ΂��ĉ��������邩�̓C���^�[�l�b�g�v���p�e�B�Őݒ肳�ꂽ���e�Ɉˑ����܂����A���Ƃ��΃C���^�[�l�b�g�]�[���ł̓X�N���v�g�����s���邱�Ƃ��ł���̂ɑ΂��A�������]�[���ł͎��s�ł��Ȃ��Ƃ������Ⴂ������܂��BPocket PC�łł͂��̐ݒ�͒P�ɃX�N���v�g�����s���邩���Ȃ�����؂�ւ��܂�((-Pocket PC��HTML�R���g���[���ɂ̓]�[���̋@�\����������-))�B�ʏ�̃��[���A�J�E���g�ł͐������]�[���Ŏg�����Ƃ������߂��܂��BRSS�A�J�E���g�ł̓C���^�[�l�b�g�]�[���Ŏg�p����Ɨǂ��ł��傤�B
+((<[表示]-[HTML]-[インターネットゾーンで表示]|URL:ViewHtmlInternetZoneModeAction.html>))を選択してインターネットゾーンモードにすると、HTMLを表示するときにインターネットゾーンで実行されます。それ以外の場合には、制限つきゾーンで実行されます。これらのゾーンに対して何を許可するかはインターネットプロパティで設定された内容に依存しますが、たとえばインターネットゾーンではスクリプトを実行することができるのに対し、制限つきゾーンでは実行できないといった違いがあります。Pocket PC版ではこの設定は単にスクリプトを実行するかしないかを切り替えます((-Pocket PCのHTMLコントロールにはゾーンの機能が無いため-))。通常のメールアカウントでは制限つきゾーンで使うことをお勧めします。RSSアカウントではインターネットゾーンで使用すると良いでしょう。
 
 =end

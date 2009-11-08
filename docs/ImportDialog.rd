@@ -1,38 +1,38 @@
 =begin
-=[�ǂݍ���]�_�C�A���O
+=[読み込み]ダイアログ
 
-((<[�ǂݍ���]�_�C�A���O|"IMG:images/ImportDialog.png">))
-
-
-+[�p�X]
-�ǂݍ��ރt�@�C�����w�肵�܂��B�����̃t�@�C�����w�肷��ꍇ�ɂ́A�u;�v�ŋ�؂�܂��B�t�@�C�����̕����ɂ̂݃��C���h�J�[�h�i*��?�j���g���܂��B
+((<[読み込み]ダイアログ|"IMG:images/ImportDialog.png">))
 
 
-+[�Q��]
-�ǂݍ��ރt�@�C�����w�肷�邽�߂̃t�@�C���I���_�C�A���O���J���܂��B
++[パス]
+読み込むファイルを指定します。複数のファイルを指定する場合には、「;」で区切ります。ファイル名の部分にのみワイルドカード（*と?）が使えます。
 
 
-+[�����̃��b�Z�[�W���܂�]
-�ǂݍ��ރt�@�C���������̃��b�Z�[�W���܂ޏꍇ�Ƀ`�F�b�N���܂��B�����̃��b�Z�[�W���܂ޏꍇ�ɂ�mbox�`���ł���K�v������܂��B�`�F�b�N���Ȃ��ꍇ�A��̃t�@�C���Ɉ�̃��b�Z�[�W��((<"message/rfc822�`��"|URL:http://www.ietf.org/rfc/rfc2046.txt>))�ŕۑ�����Ă���K�v������܂��B
++[参照]
+読み込むファイルを指定するためのファイル選択ダイアログを開きます。
 
 
-+[�G���R�[�f�B���O]
-����̃G���R�[�f�B���O�Ńt�@�C����ǂ݂����ꍇ�Ɏw�肵�܂��B�w�肵�Ȃ��ꍇ�A�eMIME�p�[�g�ɑ΂���Content-Type�Ŏw�肳�ꂽ�G���R�[�f�B���O���g�p����܂��B�w�肳���ƁAContent-Type�̎w��𖳎����Ďw�肳�ꂽ�G���R�[�f�B���O�œǂݍ��݂܂��BQMAIL2��QMAIL3����G�N�X�|�[�g�������b�Z�[�W���C���|�[�g����ꍇ�ɂ͎w�肷��K�v�͂���܂���B
++[複数のメッセージを含む]
+読み込むファイルが複数のメッセージを含む場合にチェックします。複数のメッセージを含む場合にはmbox形式である必要があります。チェックしない場合、一つのファイルに一つのメッセージが((<"message/rfc822形式"|URL:http://www.ietf.org/rfc/rfc2046.txt>))で保存されている必要があります。
 
 
-====[�t���O]
-���b�Z�[�W��X-QMAIL-Flags�w�b�_���t���Ă����ꍇ�ɂǂ̂悤�ɏ������邩���w�肵�܂��B[�ʏ�]�܂���[QMAIL 2.0�݊�]���w�肷��ƁAX-QMAIL-Flags�Ŏw�肳�ꂽ�t���O���C���|�[�g���ꂽ���b�Z�[�W�ɓK�p����܂��B
++[エンコーディング]
+特定のエンコーディングでファイルを読みたい場合に指定します。指定しない場合、各MIMEパートに対してContent-Typeで指定されたエンコーディングが使用されます。指定されると、Content-Typeの指定を無視して指定されたエンコーディングで読み込みます。QMAIL2やQMAIL3からエクスポートしたメッセージをインポートする場合には指定する必要はありません。
 
 
-+[�ʏ�]
-QMAIL3�ŃG�N�X�|�[�g�����Ƃ��ɕt�����ꂽ�Ƃ݂Ȃ��ď������܂��B
+====[フラグ]
+メッセージにX-QMAIL-Flagsヘッダが付いていた場合にどのように処理するかを指定します。[通常]または[QMAIL 2.0互換]を指定すると、X-QMAIL-Flagsで指定されたフラグがインポートされたメッセージに適用されます。
 
 
-+[QMAIL 2.0�݊�]
-QMAIL2�ŃG�N�X�|�[�g�����Ƃ��ɕt�����ꂽ�Ƃ݂Ȃ��ď������܂��B
++[通常]
+QMAIL3でエクスポートしたときに付加されたとみなして処理します。
 
 
-+[����]
-�������܂��B
++[QMAIL 2.0互換]
+QMAIL2でエクスポートしたときに付加されたとみなして処理します。
+
+
++[無視]
+無視します。
 
 =end

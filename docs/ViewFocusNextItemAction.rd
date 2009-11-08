@@ -1,15 +1,15 @@
 =begin
-=ViewFocusNextItemƒAƒNƒVƒ‡ƒ“
+=ViewFocusNextItemã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-ŽŸ‚ÌƒAƒCƒeƒ€‚ÉƒtƒH[ƒJƒX‚ðˆÚ“®‚µ‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+æ¬¡ã®ã‚¢ã‚¤ãƒ†ãƒ ã«ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’ç§»å‹•ã—ã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒvƒŒƒrƒ…[
-*ƒƒbƒZ[ƒWƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

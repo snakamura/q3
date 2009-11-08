@@ -1,14 +1,14 @@
 =begin
-=EditReplaceƒAƒNƒVƒ‡ƒ“
+=EditReplaceã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-•ÒW’†‚ÌƒƒbƒZ[ƒW‚ð’uŠ·‚µ‚Ü‚·B((<[’uŠ·]ƒ_ƒCƒAƒƒO|URL:ReplaceDialog.html>))‚ªŠJ‚«‚Ü‚·B
-
-
-==ˆø”
-‚È‚µ
+ç·¨é›†ä¸­ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ç½®æ›ã—ã¾ã™ã€‚((<[ç½®æ›]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:ReplaceDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒGƒfƒBƒbƒgƒrƒ…[
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ã‚¨ãƒ‡ã‚£ãƒƒãƒˆãƒ“ãƒ¥ãƒ¼
 
 =end

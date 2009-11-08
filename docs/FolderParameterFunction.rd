@@ -4,30 +4,30 @@
  String @FolderParameter(String folder, String name)
 
 
-==����
-folder�Ŏw�肳�ꂽ�t�H���_��name�Ŏw�肳�ꂽ�p�����[�^�̒l��Ԃ��܂��B
+==説明
+folderで指定されたフォルダのnameで指定されたパラメータの値を返します。
 
-folder�ɂ̓t���O�𒲂ׂ����t�H���_�̊��S�����w�肵�܂��B�w�肳�ꂽ�t�H���_��������Ȃ��ƃG���[�ɂȂ�܂��Bname�ɂ͎擾����p�����[�^�̖��O���w�肵�܂��B�w�肳�ꂽ�p�����[�^���ݒ肳��Ă��Ȃ������ꍇ�ɂ͋󕶎����Ԃ��܂��B
+folderにはフラグを調べたいフォルダの完全名を指定します。指定されたフォルダが見つからないとエラーになります。nameには取得するパラメータの名前を指定します。指定されたパラメータが設定されていなかった場合には空文字列を返します。
 
 
-==����
+==引数
 :String folder
-  �t�H���_��
+  フォルダ名
 :String name
-  �p�����[�^��
+  パラメータ名
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�w�肳�ꂽ�t�H���_��������Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*指定されたフォルダが見つからない場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # ���݂̃t�H���_��To�p�����[�^���擾
+==例
+ # 現在のフォルダのToパラメータを取得
  @FolderParameter(@Folder(:FN-FULLNAME, :FT-CURRENT), 'To')
 
 =end

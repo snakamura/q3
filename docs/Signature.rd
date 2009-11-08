@@ -1,12 +1,12 @@
 =begin
-=����
+=署名
 
-�쐬�������b�Z�[�W�̍Ō�ɑ}�����鏐���͕����쐬���邱�Ƃ��ł��A���b�Z�[�W�쐬���ɑI�����đ}�����邱�Ƃ��ł��܂��B�������g�p����ɂ͂܂��������쐬����K�v������܂��B�����̍쐬���@�́A((<�����̐ݒ�|URL:OptionSignatures.html>))���Q�Ƃ��Ă��������B
+作成したメッセージの最後に挿入する署名は複数作成することができ、メッセージ作成時に選択して挿入することができます。署名を使用するにはまず署名を作成する必要があります。署名の作成方法は、((<署名の設定|URL:OptionSignatures.html>))を参照してください。
 
-�������쐬����ƁA���b�Z�[�W�쐬���̏����̗��Ɍ��Ƃ��ĕ\������܂��B
+署名を作成すると、メッセージ作成時の署名の欄に候補として表示されます。
 
-((<����|"IMG:images/Signature.png">))
+((<署名|"IMG:images/Signature.png">))
 
-�I�����ꂽ�����́A���b�Z�[�W���쐬�����Ƃ��Ɏ����I�ɑ}������܂��B�܂��A((<[�c�[��]-[������}��]|URL:ToolInsertSignatureAction.html>))��I������ƁA���ݑI������Ă��鏐�����L�����b�g�̈ʒu�ɑ}������܂��B
+選択された署名は、メッセージが作成されるときに自動的に挿入されます。また、((<[ツール]-[署名を挿入]|URL:ToolInsertSignatureAction.html>))を選択すると、現在選択されている署名がキャレットの位置に挿入されます。
 
 =end

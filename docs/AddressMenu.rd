@@ -1,18 +1,18 @@
 =begin
-=ƒAƒhƒŒƒXƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[
+=ã‚¢ãƒ‰ãƒ¬ã‚¹ãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼
 
-((<ƒAƒhƒŒƒXƒrƒ…[‚ÌƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[|"IMG:images/AddressMenu.png">))
-
-
-+((<[V‹K]|URL:AddressNewAction.html>))
-V‚µ‚¢ƒGƒ“ƒgƒŠ‚ð’Ç‰Á‚µ‚Ü‚·B
+((<ã‚¢ãƒ‰ãƒ¬ã‚¹ãƒ“ãƒ¥ãƒ¼ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼|"IMG:images/AddressMenu.png">))
 
 
-+((<[•ÒW]|URL:AddressEditAction.html>))
-ƒtƒH[ƒJƒX‚Ì‚ ‚éƒGƒ“ƒgƒŠ‚ð•ÒW‚µ‚Ü‚·B
++((<[æ–°è¦]|URL:AddressNewAction.html>))
+æ–°ã—ã„ã‚¨ãƒ³ãƒˆãƒªã‚’è¿½åŠ ã—ã¾ã™ã€‚
 
 
-+((<[íœ]|URL:AddressDeleteAction.html>))
-‘I‘ð‚³‚ê‚½ƒGƒ“ƒgƒŠ‚ðíœ‚µ‚Ü‚·B
++((<[ç·¨é›†]|URL:AddressEditAction.html>))
+ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã®ã‚ã‚‹ã‚¨ãƒ³ãƒˆãƒªã‚’ç·¨é›†ã—ã¾ã™ã€‚
+
+
++((<[å‰Šé™¤]|URL:AddressDeleteAction.html>))
+é¸æŠžã•ã‚ŒãŸã‚¨ãƒ³ãƒˆãƒªã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 =end

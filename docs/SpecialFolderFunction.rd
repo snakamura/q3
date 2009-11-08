@@ -4,52 +4,52 @@
  String @SpecialFolder(Number type, String account?)
 
 
-==����
-����t�H���_�̊��S�����擾���܂��B
+==説明
+特殊フォルダの完全名を取得します。
 
-type�ɂ͎擾����������t�H���_�̃^�C�v���w�肵�܂��B�ȉ��̂����ꂩ���w��ł��܂��B
+typeには取得したい特殊フォルダのタイプを指定します。以下のいずれかが指定できます。
 
 ::SF-INBOX
-  ��M��
+  受信箱
 ::SF-OUTBOX
-  ���M��
+  送信箱
 ::SF-SENTBOX
-  ���M�ς�
+  送信済み
 ::SF-TRASHBOX
-  �S�~��
+  ゴミ箱
 ::SF-DRAFTBOX
-  ���e��
+  草稿箱
 ::SF-SEARCHBOX
-  ����
+  検索
 ::SF-JUNKBOX
-  �X�p��
+  スパム
 
-account�ɃA�J�E���g�����w�肷��Ǝw�肵���A�J�E���g�̓���t�H���_���擾���܂��B����ȊO�̏ꍇ�ɂ̓R���e�L�X�g�A�J�E���g�̓���t�H���_���擾���܂��B
+accountにアカウント名を指定すると指定したアカウントの特殊フォルダを取得します。それ以外の場合にはコンテキストアカウントの特殊フォルダを取得します。
 
 
-==����
+==引数
 :Number type
-  �擾�������t�H���_�̃^�C�v
+  取得する特殊フォルダのタイプ
 :String account
-  �A�J�E���g
+  アカウント
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g�A�J�E���g���Ȃ��ꍇ�i�A�J�E���g���w�肵�Ȃ������ꍇ�j
-*�w�肳�ꂽ�A�J�E���g��������Ȃ��ꍇ�i�A�J�E���g���w�肵���ꍇ�j
-*�w�肳�ꂽ�^�C�v���s���ȏꍇ
+==エラー
+*引数の数が合っていない場合
+*コンテキストアカウントがない場合（アカウントを指定しなかった場合）
+*指定されたアカウントが見つからない場合（アカウントを指定した場合）
+*指定されたタイプが不正な場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # ��M���̃t�H���_�����擾
+==例
+ # 受信箱のフォルダ名を取得
  @Folder(:SF-INBOX)
  
- # Test�Ƃ������O�̃A�J�E���g�̃X�p���t�H���_�̖��O���擾
+ # Testという名前のアカウントのスパムフォルダの名前を取得
  @Folder(:SF-JUNKBOX, 'Test')
 
 =end

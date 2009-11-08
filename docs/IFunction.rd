@@ -4,39 +4,39 @@
  Field @I(String account?, String subaccount?)
 
 
-==����
-����������킷���z�I�ȃw�b�_��Ԃ��܂��B���̃w�b�_�̓A�J�E���g�Ŏw�肵�����O�ƃ��[���A�h���X���g�p���āA
+==説明
+自分をあらわす仮想的なヘッダを返します。このヘッダはアカウントで指定した名前とメールアドレスを使用して、
 
- I: ���O <���[���A�h���X>
+ I: 名前 <メールアドレス>
 
-�Ƃ����悤�ȃw�b�_������Ɖ��肵�Ď擾���ꂽ�w�b�_�ł��B
+というようなヘッダがあると仮定して取得されたヘッダです。
 
-account��subaccount���w�肳���Ǝw�肳�ꂽ�A�J�E���g��T�u�A�J�E���g�̎����̖��O��A�h���X���擾���܂��B�w�肳��Ȃ��ꍇ�ɂ́A�R���e�L�X�g�A�J�E���g�ƌ��݂̃T�u�A�J�E���g���g�p���܂��B
+accountやsubaccountが指定されると指定されたアカウントやサブアカウントの自分の名前やアドレスを取得します。指定されない場合には、コンテキストアカウントと現在のサブアカウントを使用します。
 
 
-==����
+==引数
 :String account
-  �A�J�E���g��
+  アカウント名
 :String subaccount
-  �T�u�A�J�E���g��
+  サブアカウント名
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*�R���e�L�X�g�A�J�E���g���Ȃ��ꍇ�i�A�J�E���g���w�肵�Ȃ������ꍇ�j
-*�w�肳�ꂽ�A�J�E���g��������Ȃ��ꍇ�i�A�J�E���g���w�肵���ꍇ�j
-*UI�X���b�h�ȊO����Ăяo�����ꍇ�i�A�J�E���g�����w�肵���ꍇ�j
+==エラー
+*引数の数が合っていない場合
+*コンテキストアカウントがない場合（アカウントを指定しなかった場合）
+*指定されたアカウントが見つからない場合（アカウントを指定した場合）
+*UIスレッド以外から呼び出した場合（アカウントだけ指定した場合）
 
 
-==����
-*UI�X���b�h����̂݌Ăяo���\�i�A�J�E���g�����w�肵���ꍇ�j
+==条件
+*UIスレッドからのみ呼び出し可能（アカウントだけ指定した場合）
 
 
-==��
- # �����̖��O�ƃA�h���X����w�b�_���擾
+==例
+ # 自分の名前とアドレスからヘッダを取得
  @I()
  
- # X-QMAIL-SubAccount�Ŏw�肳�ꂽ�T�u�A�J�E���g�̃A�h���X���擾
+ # X-QMAIL-SubAccountで指定されたサブアカウントのアドレスを取得
  @I(@Account(), X-QMAIL-SubAccount)
 
 =end

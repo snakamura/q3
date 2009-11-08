@@ -4,32 +4,32 @@
  Value @Catch(Expr expr, Expr handler)
 
 
-==����
-expr��]�������̌��ʂ�Ԃ��܂��B���̊ԂɃG���[�����������ꍇ�ɂ�handler��]�����Ă��̌��ʂ�Ԃ��܂��B
+==説明
+exprを評価しその結果を返します。その間にエラーが発生した場合にはhandlerを評価してその結果を返します。
 
 
-==����
+==引数
 :Expr expr
-  �]�����鎮
+  評価する式
 :Expr handler
-  �G���[���N�����Ƃ��ɕ]������鎮
+  エラーが起きたときに評価される式
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*handler��]�����ɃG���[�����������ꍇ
+==エラー
+*引数の数が合っていない場合
+*handlerを評価中にエラーが発生した場合
 
 
-==����
-�Ȃ�
+==条件
+なし
 
 
-==��
- # �t�@�C����ǂݍ���ŕԂ����A�G���[���N������󕶎����Ԃ�
+==例
+ # ファイルを読み込んで返すが、エラーが起きたら空文字列を返す
  @Catch(@Load('C:\\Temp\\test.txt'), '')
  
- # �R���e�L�X�g���b�Z�[�W�Ɋ��ǃt���O��ݒ肷�邪�A
- # �R���e�L�X�g���b�Z�[�W���Ȃ������牽�����Ȃ�
+ # コンテキストメッセージに既読フラグを設定するが、
+ # コンテキストメッセージがなかったら何もしない
  @Catch(@Seen(@True()), @True())
 
 =end

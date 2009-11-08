@@ -1,46 +1,46 @@
 =begin
 =filters.xml
 
-((<�t�B���^|URL:Filter.html>))�̐ݒ������XML�t�@�C���ł��B���̃t�@�C���ɂ́A((<�t�B���^�̐ݒ�|URL:OptionFilters.html>))�Őݒ肵����񂪕ۑ�����܂��B
+((<フィルタ|URL:Filter.html>))の設定をするXMLファイルです。このファイルには、((<フィルタの設定|URL:OptionFilters.html>))で設定した情報が保存されます。
 
 
-==����
+==書式
 
-===filters�G�������g
+===filtersエレメント
 
  <filters>
   <!-- filter -->
  </filters>
 
-filters�G�������g���g�b�v���x���G�������g�ɂȂ�܂��Bfilters�G�������g�ȉ��ɂ�0�ȏ��filter�G�������g��u�����Ƃ��ł��܂��B
+filtersエレメントがトップレベルエレメントになります。filtersエレメント以下には0個以上のfilterエレメントを置くことができます。
 
 
-===filter�G�������g
+===filterエレメント
 
  <filter
-  name="���O">
-  �}�N��
+  name="名前">
+  マクロ
  </filter>
 
-filter�G�������g�ɂ̓t�B���^�̖��O�ƃt�B���^����̂Ɏg�p����}�N�����w�肵�܂��Bname�����ɂ̓t�B���^�̖��O���w�肵�܂��B
+filterエレメントにはフィルタの名前とフィルタするのに使用するマクロを指定します。name属性にはフィルタの名前を指定します。
 
 
-==�T���v��
+==サンプル
 
  <?xml version="1.0" encoding="utf-8"?>
  <filters>
-  <filter name="���ǂ̂�">@Not(@Seen())</filter>
-  <filter name="10KB�ȏ�">@Greater(@Size(), 10240)</filter>
+  <filter name="未読のみ">@Not(@Seen())</filter>
+  <filter name="10KB以上">@Greater(@Size(), 10240)</filter>
  </filters>
 
 
-==�X�L�[�}
+==スキーマ
 
  element filters {
    element filter {
-     ## �}�N��
+     ## マクロ
      xsd:string,
-     ## ���O
+     ## 名前
      attribute name {
        xsd:string
      }

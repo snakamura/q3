@@ -1,14 +1,14 @@
 =begin
-=MessageClearRecentsƒAƒNƒVƒ‡ƒ“
+=MessageClearRecentsã‚¢ã‚¯ã‚·ãƒ§ãƒ³
 
-V’…ƒƒbƒZ[ƒWƒŠƒXƒg‚ðƒNƒŠƒA‚µ‚Ü‚·BV’…ƒƒbƒZ[ƒWƒŠƒXƒg‚É‚Â‚¢‚Ä‚ÍA((<V’…’Ê’m|URL:Recents.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
-
-
-==ˆø”
-‚È‚µ
+æ–°ç€ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒªã‚¹ãƒˆã‚’ã‚¯ãƒªã‚¢ã—ã¾ã™ã€‚æ–°ç€ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒªã‚¹ãƒˆã«ã¤ã„ã¦ã¯ã€((<æ–°ç€é€šçŸ¥|URL:Recents.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 
-==—LŒø‚ÈƒEƒBƒ“ƒhƒEEƒrƒ…[
-*ƒƒCƒ“ƒEƒBƒ“ƒhƒE
+==å¼•æ•°
+ãªã—
+
+
+==æœ‰åŠ¹ãªã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ»ãƒ“ãƒ¥ãƒ¼
+*ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
 
 =end

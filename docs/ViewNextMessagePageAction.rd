@@ -1,16 +1,16 @@
 =begin
-=ViewNextMessagePage�A�N�V����
+=ViewNextMessagePageアクション
 
-���ݕ\�����Ă��郁�b�Z�[�W�����̃y�[�W�ɃX�N���[�����܂��B���łɍŌ�܂ŃX�N���[�����Ă���ꍇ�ɂ́A((<ViewNextMessage�A�N�V����|URL:ViewNextMessageAction.html>))�Ɠ��l�ɐU�����܂��B�������A((<[�I�v�V����]�_�C�A���O��[���̑�]�p�l��|URL:OptionMisc.html>))��[�Ō�܂ŃX�N���[�������玟�̖��ǂ�\��]�Ƀ`�F�b�N�������Ă���ꍇ�ɂ́A((<ViewNextUnseenMessage�A�N�V����|URL:ViewNextUnseenMessageAction.html>))�Ɠ��l�ɐU�����܂��B
-
-
-==����
-�Ȃ�
+現在表示しているメッセージを次のページにスクロールします。すでに最後までスクロールしている場合には、((<ViewNextMessageアクション|URL:ViewNextMessageAction.html>))と同様に振舞います。ただし、((<[オプション]ダイアログの[その他]パネル|URL:OptionMisc.html>))で[最後までスクロールしたら次の未読を表示]にチェックが入っている場合には、((<ViewNextUnseenMessageアクション|URL:ViewNextUnseenMessageAction.html>))と同様に振舞います。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���X�g�r���[
-*�v���r���[
-*���b�Z�[�W�E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*リストビュー
+*プレビュー
+*メッセージウィンドウ
 
 =end

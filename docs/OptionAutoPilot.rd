@@ -1,44 +1,44 @@
 =begin
-=Ž©“®„‰ñ‚ÌÝ’è
+=è‡ªå‹•å·¡å›žã®è¨­å®š
 
-[ƒIƒvƒVƒ‡ƒ“]ƒ_ƒCƒAƒƒO‚Ì[Ž©“®„‰ñ]ƒpƒlƒ‹‚Å‚Í((<Ž©“®„‰ñ|URL:AutoPilot.html>))‚ÌÝ’è‚ðs‚¢‚Ü‚·B
+[ã‚ªãƒ—ã‚·ãƒ§ãƒ³]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®[è‡ªå‹•å·¡å›ž]ãƒ‘ãƒãƒ«ã§ã¯((<è‡ªå‹•å·¡å›ž|URL:AutoPilot.html>))ã®è¨­å®šã‚’è¡Œã„ã¾ã™ã€‚
 
-((<Ž©“®„‰ñ‚ÌÝ’è|"IMG:images/OptionAutoPilot.png">))
-
-
-+[’Ç‰Á]
-ƒGƒ“ƒgƒŠ‚ð’Ç‰Á‚µ‚Ü‚·B((<[Ž©“®„‰ñ]ƒ_ƒCƒAƒƒO|URL:AutoPilotEntryDialog.html>))‚ªŠJ‚«‚Ü‚·B
+((<è‡ªå‹•å·¡å›žã®è¨­å®š|"IMG:images/OptionAutoPilot.png">))
 
 
-+[íœ]
-‘I‘ð‚³‚ê‚½ƒGƒ“ƒgƒŠ‚ðíœ‚µ‚Ü‚·B
++[è¿½åŠ ]
+ã‚¨ãƒ³ãƒˆãƒªã‚’è¿½åŠ ã—ã¾ã™ã€‚((<[è‡ªå‹•å·¡å›ž]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:AutoPilotEntryDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-+[•ÒW]
-‘I‘ð‚³‚ê‚½ƒGƒ“ƒgƒŠ‚ð•ÒW‚µ‚Ü‚·B((<[Ž©“®„‰ñ]ƒ_ƒCƒAƒƒO|URL:AutoPilotEntryDialog.html>))‚ªŠJ‚«‚Ü‚·B
++[å‰Šé™¤]
+é¸æŠžã•ã‚ŒãŸã‚¨ãƒ³ãƒˆãƒªã‚’å‰Šé™¤ã—ã¾ã™ã€‚
 
 
-+[ã‚Ö]
-‘I‘ð‚³‚ê‚½ƒGƒ“ƒgƒŠ‚ð‚Ð‚Æ‚Âã‚ÉˆÚ“®‚µ‚Ü‚·B
++[ç·¨é›†]
+é¸æŠžã•ã‚ŒãŸã‚¨ãƒ³ãƒˆãƒªã‚’ç·¨é›†ã—ã¾ã™ã€‚((<[è‡ªå‹•å·¡å›ž]ãƒ€ã‚¤ã‚¢ãƒ­ã‚°|URL:AutoPilotEntryDialog.html>))ãŒé–‹ãã¾ã™ã€‚
 
 
-+[‰º‚Ö]
-‘I‘ð‚³‚ê‚½ƒGƒ“ƒgƒŠ‚ð‚Ð‚Æ‚Â‰º‚ÉˆÚ“®‚µ‚Ü‚·B
++[ä¸Šã¸]
+é¸æŠžã•ã‚ŒãŸã‚¨ãƒ³ãƒˆãƒªã‚’ã²ã¨ã¤ä¸Šã«ç§»å‹•ã—ã¾ã™ã€‚
 
 
-+[ƒTƒEƒ“ƒh]
-Ž©“®„‰ñ‚µ‚½‚Æ‚«‚ÉV’…ƒƒbƒZ[ƒW‚ª‚ ‚Á‚½ê‡‚É–Â‚ç‚·ƒTƒEƒ“ƒhƒtƒ@ƒCƒ‹‚ðŽw’è‚µ‚Ü‚·B
++[ä¸‹ã¸]
+é¸æŠžã•ã‚ŒãŸã‚¨ãƒ³ãƒˆãƒªã‚’ã²ã¨ã¤ä¸‹ã«ç§»å‹•ã—ã¾ã™ã€‚
 
 
-+[ŽQÆ]
-ƒTƒEƒ“ƒhƒtƒ@ƒCƒ‹‚ðŽw’è‚·‚éƒtƒ@ƒCƒ‹ƒ_ƒCƒAƒƒO‚ðŠJ‚«‚Ü‚·B
++[ã‚µã‚¦ãƒ³ãƒ‰]
+è‡ªå‹•å·¡å›žã—ãŸã¨ãã«æ–°ç€ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒã‚ã£ãŸå ´åˆã«é³´ã‚‰ã™ã‚µã‚¦ãƒ³ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æŒ‡å®šã—ã¾ã™ã€‚
 
 
-+[ƒlƒbƒgƒ[ƒNÚ‘±Žž‚Ì‚Ý]
-ƒlƒbƒgƒ[ƒNÚ‘±Žž‚Ì‚ÝŽ©“®„‰ñ‚ðs‚¤‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·B
++[å‚ç…§]
+ã‚µã‚¦ãƒ³ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æŒ‡å®šã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’é–‹ãã¾ã™ã€‚
 
 
-+[V’…ƒƒbƒZ[ƒWˆê——‚Ì’Ç‰Á]
-Ž©“®„‰ñŽž‚ÉŽóM‚µ‚½V’…ƒƒbƒZ[ƒW‚ðV’…ƒƒbƒZ[ƒWˆê——‚É’Ç‰Á‚·‚é‚©‚Ç‚¤‚©‚ðŽw’è‚µ‚Ü‚·BV’…ƒƒbƒZ[ƒWˆê——‚É‚Â‚¢‚Ä‚ÍA((<V’…’Ê’m|URL:Recents.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
++[ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯æŽ¥ç¶šæ™‚ã®ã¿]
+ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯æŽ¥ç¶šæ™‚ã®ã¿è‡ªå‹•å·¡å›žã‚’è¡Œã†ã‹ã©ã†ã‹ã‚’æŒ‡å®šã—ã¾ã™ã€‚
+
+
++[æ–°ç€ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ä¸€è¦§ã®è¿½åŠ ]
+è‡ªå‹•å·¡å›žæ™‚ã«å—ä¿¡ã—ãŸæ–°ç€ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’æ–°ç€ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ä¸€è¦§ã«è¿½åŠ ã™ã‚‹ã‹ã©ã†ã‹ã‚’æŒ‡å®šã—ã¾ã™ã€‚æ–°ç€ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ä¸€è¦§ã«ã¤ã„ã¦ã¯ã€((<æ–°ç€é€šçŸ¥|URL:Recents.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
 =end

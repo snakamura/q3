@@ -1,121 +1,121 @@
 =begin
-=�G�f�B�b�g�E�B���h�E
+=エディットウィンドウ
 
-((<�G�f�B�b�g�E�B���h�E|"IMG:images/EditWindow.png">))
-
-
-==���j���[�o�[
-���j���o�[�ɂ��ẮA((<�G�f�B�b�g�E�B���h�E�̃��j���[�o�[|URL:EditWindowMenuBar.html>))���Q�Ƃ��Ă��������B
+((<エディットウィンドウ|"IMG:images/EditWindow.png">))
 
 
-==�c�[���o�[
-�c�[���o�[�̊e�{�^���̋@�\�͈ȉ��̒ʂ�ł��B
-
-+((<[���M]|URL:FileSendAction.html>))
-���b�Z�[�W�𑗐M���ɕۑ����܂��B
+==メニューバー
+メニュバーについては、((<エディットウィンドウのメニューバー|URL:EditWindowMenuBar.html>))を参照してください。
 
 
-+((<[���e]|URL:FileDraftAction.html>))
-���b�Z�[�W�𑐍e�Ƃ��đ��e���ɕۑ����܂��B
+==ツールバー
+ツールバーの各ボタンの機能は以下の通りです。
+
++((<[送信]|URL:FileSendAction.html>))
+メッセージを送信箱に保存します。
 
 
-+((<[�؂���]|URL:EditCutAction.html>))
-�I�����ꂽ�e�L�X�g��؂����ăN���b�v�{�[�h�ɓ���܂��B
++((<[草稿]|URL:FileDraftAction.html>))
+メッセージを草稿として草稿箱に保存します。
 
 
-+((<[�R�s�[]|URL:EditCopyAction.html>))
-�I�����ꂽ�e�L�X�g���R�s�[���ăN���b�v�{�[�h�ɓ���܂��B
++((<[切り取り]|URL:EditCutAction.html>))
+選択されたテキストを切り取ってクリップボードに入れます。
 
 
-+((<[�\��t��]|URL:EditPasteAction.html>))
-�N���b�v�{�[�h����e�L�X�g��\��t���܂��B
++((<[コピー]|URL:EditCopyAction.html>))
+選択されたテキストをコピーしてクリップボードに入れます。
 
 
-+((<[���ɖ߂�]|URL:EditUndoAction.html>))
-���O�̑�������ɖ߂��܂��B
++((<[貼り付け]|URL:EditPasteAction.html>))
+クリップボードからテキストを貼り付けます。
 
 
-+((<[��蒼��]|URL:EditRedoAction.html>))
-���ɖ߂����������蒼���܂��B
++((<[元に戻す]|URL:EditUndoAction.html>))
+直前の操作を元に戻します。
 
 
-+((<[�A�h���X��]|URL:ToolSelectAddressAction.html>))
-[�A�h���X�̑I��]�_�C�A���O���J���܂��B
++((<[やり直す]|URL:EditRedoAction.html>))
+元に戻した操作をやり直します。
 
 
-+((<[��^��]|URL:ToolInsertTextAction.html>))
-��^����}�����܂��B�E���̖����N���b�N����Ƒ}���ł����^�������j���[����I���ł��܂��B�����̃A�C�R�����N���b�N����Ɛ擪�̒�^�����}������܂��B
++((<[アドレス帳]|URL:ToolSelectAddressAction.html>))
+[アドレスの選択]ダイアログを開きます。
 
 
-+((<[�Y�t�t�@�C��]|URL:ToolAttachmentAction.html>))
-�Y�t�t�@�C����ǉ��E�폜���邽�߂ɁA[�Y�t�t�@�C��]�_�C�A���O���J���܂��B
++((<[定型文]|URL:ToolInsertTextAction.html>))
+定型文を挿入します。右側の矢印をクリックすると挿入できる定型文をメニューから選択できます。左側のアイコンをクリックすると先頭の定型文が挿入されます。
 
 
-�c�[���o�[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�c�[���o�[���B��]|URL:ViewShowToolbarAction.html>))��I�����܂��B�c�[���o�[�̃{�^���̃J�X�^�}�C�Y�ɂ��ẮA((<�c�[���o�[�̃J�X�^�}�C�Y|URL:CustomizeToolbars.html>))���Q�Ƃ��Ă��������B
++((<[添付ファイル]|URL:ToolAttachmentAction.html>))
+添付ファイルを追加・削除するために、[添付ファイル]ダイアログを開きます。
 
 
-==�X�e�[�^�X�o�[
-�X�e�[�^�X�o�[�͌��݂̂Ƃ���g���Ă��܂���B
-
-�X�e�[�^�X�o�[���B���ɂ́A���j���[����((<[�\��]-[�R���g���[���̕\��]-[�X�e�[�^�X�o�[���B��]|URL:ViewShowStatusBarAction.html>))��I�����܂��B
+ツールバーを隠すには、メニューから((<[表示]-[コントロールの表示]-[ツールバーを隠す]|URL:ViewShowToolbarAction.html>))を選択します。ツールバーのボタンのカスタマイズについては、((<ツールバーのカスタマイズ|URL:CustomizeToolbars.html>))を参照してください。
 
 
-==�w�b�_�G�f�B�b�g�r���[
-�w�b�_�G�f�B�b�g�r���[�ł́A����⌏���A�Y�t�t�@�C���Ȃǂ�ҏW���܂��B
+==ステータスバー
+ステータスバーは現在のところ使われていません。
 
-���[���A�J�E���g�̏ꍇ�A�f�t�H���g�ňȉ��̍��ڂ�����܂��B
+ステータスバーを隠すには、メニューから((<[表示]-[コントロールの表示]-[ステータスバーを隠す]|URL:ViewShowStatusBarAction.html>))を選択します。
 
-+[����]
-���b�Z�[�W�̈�����w�肵�܂��B
+
+==ヘッダエディットビュー
+ヘッダエディットビューでは、宛先や件名、添付ファイルなどを編集します。
+
+メールアカウントの場合、デフォルトで以下の項目があります。
+
++[宛先]
+メッセージの宛先を指定します。
 
 
 +[Cc]
-���b�Z�[�W��Cc���w�肵�܂��B
+メッセージのCcを指定します。
 
 
 +[Bcc]
-���b�Z�[�W��Bcc���w�肵�܂��B
+メッセージのBccを指定します。
 
 
-+[����]
-���b�Z�[�W�̌������w�肵�܂��B
++[件名]
+メッセージの件名を指定します。
 
 
-+[�Y�t�t�@�C��]
-���b�Z�[�W�ɓY�t����t�@�C�����w�肵�܂��B
++[添付ファイル]
+メッセージに添付するファイルを指定します。
 
 
-+[�A�J�E���g]
-���b�Z�[�W�𑗐M����A�J�E���g���w�肵�܂��B
++[アカウント]
+メッセージを送信するアカウントを指定します。
 
 
-+[����]
-���b�Z�[�W�ɑ}�����鏐�����w�肵�܂��B
++[署名]
+メッセージに挿入する署名を指定します。
 
 
-[����], [Cc], [Bcc]�ł�((<�A�h���X�̎����⊮|URL:AddressAutoComplete.html>))���@�\���܂��B
+[宛先], [Cc], [Bcc]では((<アドレスの自動補完|URL:AddressAutoComplete.html>))が機能します。
 
 
-�j���[�X�A�J�E���g�ł́A[����], [Cc], [Bcc]�̑���Ɉȉ����w�肵�܂��B
+ニュースアカウントでは、[宛先], [Cc], [Bcc]の代わりに以下を指定します。
 
-+[�j���[�X�O���[�v]
-���e����j���[�X�O���[�v���w�肵�܂��B
-
-
-+[�t�H���[�A�b�v��]
-�t�H���[�A�b�v��̃j���[�X�O���[�v���w�肵�܂��B
++[ニュースグループ]
+投稿するニュースグループを指定します。
 
 
-�w�b�_�G�f�B�b�g�r���[�ŕҏW���鍀�ڂ̓J�X�^�}�C�Y���邱�Ƃ��ł��܂��B�J�X�^�}�C�Y�ɂ��ẮA((<�w�b�_�G�f�B�b�g�r���[�̃J�X�^�}�C�Y|URL:CustomizeHeaderEditView.html>))���Q�Ƃ��Ă��������B
++[フォローアップ先]
+フォローアップ先のニュースグループを指定します。
 
-�e���ڂ��E�N���b�N�����Ƃ��ɂ�Windows�W���̃R���e�L�X�g���j���[���\������܂��B�������A�Y�t�t�@�C���̍��ڂł�((<�Y�t�t�@�C���ҏW�̃R���e�L�X�g���j���[|URL:AttachmentEditMenu.html>))���\������܂��B
+
+ヘッダエディットビューで編集する項目はカスタマイズすることができます。カスタマイズについては、((<ヘッダエディットビューのカスタマイズ|URL:CustomizeHeaderEditView.html>))を参照してください。
+
+各項目を右クリックしたときにはWindows標準のコンテキストメニューが表示されます。ただし、添付ファイルの項目では((<添付ファイル編集のコンテキストメニュー|URL:AttachmentEditMenu.html>))が表示されます。
 
 
-==�G�f�B�b�g�r���[
-�G�f�B�b�g�r���[�ł̓��b�Z�[�W�̖{����ҏW���܂��B
+==エディットビュー
+エディットビューではメッセージの本文を編集します。
 
-�E�N���b�N����ƕ\�������R���e�L�X�g���j���[�ɂ��ẮA((<�G�f�B�b�g�r���[�̃R���e�L�X�g���j���[|URL:EditMenu.html>))���Q�Ƃ��Ă��������B
+右クリックすると表示されるコンテキストメニューについては、((<エディットビューのコンテキストメニュー|URL:EditMenu.html>))を参照してください。
 
-�G�f�B�b�g�E�B���h�E�̊e��ݒ�́A((<�G�f�B�b�g�r���[�̐ݒ�|URL:OptionEdit.html>))�Őݒ�ł��܂��B
+エディットウィンドウの各種設定は、((<エディットビューの設定|URL:OptionEdit.html>))で設定できます。
 
 =end

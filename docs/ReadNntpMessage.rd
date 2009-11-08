@@ -1,13 +1,13 @@
 =begin
-=�j���[�X��ǂ�
+=ニュースを読む
 
-==�j���[�X����荞��
-�j���[�X����荞�ނɂ́A�t�H���_�r���[�ŃA�J�E���g�܂��͔C�ӂ̃t�H���_��I�����āA((<[�c�[��]-[��M]|URL:ToolReceiveAction.html>))��I�����܂��B����̃j���[�X�O���[�v������荞�݂����ꍇ�ɂ́A��荞�݂����j���[�X�O���[�v�̃t�H���_��I�����āA((<[�c�[��]-[�t�H���_�𓯊�]|URL:ToolReceiveFolderAction.html>))��I�����܂��B
+==ニュースを取り込む
+ニュースを取り込むには、フォルダビューでアカウントまたは任意のフォルダを選択して、((<[ツール]-[受信]|URL:ToolReceiveAction.html>))を選択します。特定のニュースグループだけ取り込みたい場合には、取り込みたいニュースグループのフォルダを選択して、((<[ツール]-[フォルダを同期]|URL:ToolReceiveFolderAction.html>))を選択します。
 
 
-==�j���[�X��ǂ�
-��荞�񂾂������b�Z�[�W��ǂނɂ́A���X�g�r���[�œǂ݂������b�Z�[�W���N���b�N���܂��B����ƁA���X�g�r���[�Ń��b�Z�[�W���I������A�v���r���[�Ƀ��b�Z�[�W�̓��e���\������܂��B���b�Z�[�W�̓��e���\������Ȃ��ꍇ�ɂ́A�I�t���C�����[�h�ɂȂ��Ă��Ȃ����ǂ������m�F���Ă��������B((<[�t�@�C��]-[�I�t���C��]|URL:FileOfflineAction.html>))��I�����邱�ƂŃI�����C�����[�h�Ɛ؂�ւ��邱�Ƃ��ł��܂��B
+==ニュースを読む
+取り込んだしたメッセージを読むには、リストビューで読みたいメッセージをクリックします。すると、リストビューでメッセージが選択され、プレビューにメッセージの内容が表示されます。メッセージの内容が表示されない場合には、オフラインモードになっていないかどうかを確認してください。((<[ファイル]-[オフライン]|URL:FileOfflineAction.html>))を選択することでオンラインモードと切り替えることができます。
 
-���̑��̊�{�I�ȓǂݕ���POP3�A�J�E���g�Ɠ��l�ł��̂ŁA((<���[����ǂ�|URL:ReadPop3Message.html>))���Q�Ƃ��Ă��������B
+その他の基本的な読み方はPOP3アカウントと同様ですので、((<メールを読む|URL:ReadPop3Message.html>))を参照してください。
 
 =end

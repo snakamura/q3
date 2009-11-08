@@ -1,14 +1,14 @@
 =begin
-=ToolAddressBook�A�N�V����
+=ToolAddressBookアクション
 
-((<�A�h���X���E�B���h�E|URL:AddressBookWindow.html>))���J���܂��B���łɊJ���Ă���ꍇ�ɂ̓A�h���X���E�B���h�E���őO�ʂɈړ����܂��B
-
-
-==����
-�Ȃ�
+((<アドレス帳ウィンドウ|URL:AddressBookWindow.html>))を開きます。すでに開いている場合にはアドレス帳ウィンドウを最前面に移動します。
 
 
-==�L���ȃE�B���h�E�E�r���[
-*���C���E�B���h�E
+==引数
+なし
+
+
+==有効なウィンドウ・ビュー
+*メインウィンドウ
 
 =end

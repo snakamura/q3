@@ -4,56 +4,56 @@
  String @SelectBox(String message, String candidates, Number type?, String default?)
 
 
-==����
-���[�U�ɑI�������߂邽�߂̃_�C�A���O��\�����A�I�����ꂽ�������Ԃ��܂��Bmessage�ɂ͕\�����郁�b�Z�[�W���w�肵�܂��Bcandidates�ɂ̓��X�g�Ɍ��Ƃ��ĕ\�����镶��������s��؂�Ŏw�肵�܂��B���Ƃ��΁Afoo, bar, baz�����ɂ���ꍇ�ɂ́A'foo\nbar\nbaz'�̂悤�Ɏw�肵�܂��B
+==説明
+ユーザに選択を求めるためのダイアログを表示し、選択された文字列を返します。messageには表示するメッセージを指定します。candidatesにはリストに候補として表示する文字列を改行区切りで指定します。たとえば、foo, bar, bazを候補にする場合には、'foo\nbar\nbaz'のように指定します。
 
-type�ɂ̓��X�g�̃^�C�v���w�肵�܂��B�w��ł���͈̂ȉ��̂Ƃ���ł��B
+typeにはリストのタイプを指定します。指定できるのは以下のとおりです。
 
 ::SELECT-LIST
-  ���X�g�\��
+  リスト表示
   
-  ((<���X�g�I���_�C�A���O|"IMG:images/ListSelectBoxDialog.png">))
+  ((<リスト選択ダイアログ|"IMG:images/ListSelectBoxDialog.png">))
 
 ::SELECT-DROPDOWNLIST
-  �h���b�v�_�E�����X�g�\��
+  ドロップダウンリスト表示
   
-  ((<�h���b�v�_�E�����X�g�I���_�C�A���O|"IMG:images/DropDownListSelectBoxDialog.png">))
+  ((<ドロップダウンリスト選択ダイアログ|"IMG:images/DropDownListSelectBoxDialog.png">))
 
 ::SELECT-DROPDOWN
-  �h���b�v�_�E���\��
+  ドロップダウン表示
   
-  ((<�h���b�v�_�E���I���_�C�A���O|"IMG:images/DropDownSelectBoxDialog.png">))
+  ((<ドロップダウン選択ダイアログ|"IMG:images/DropDownSelectBoxDialog.png">))
 
-�w�肵�Ȃ��ꍇ�ɂ́ASELECT-LIST���w�肵���̂Ɠ����ɂȂ�܂��B
+指定しない場合には、SELECT-LISTを指定したのと同じになります。
 
-default���w�肷��ƃf�t�H���g�ł��̌�₪�I������܂��B���ɂȂ��l���w�肷��ƁA�w�肵�Ȃ��̂Ɠ����ɂȂ�܂����Atype��:SELECT-DROPDOWN�̏ꍇ�ɂ͂��̒l�����͂��ꂽ��ԂɂȂ�܂��B�w�肵�Ȃ��ꍇ�ɂ͐擪�̌�₪�I������܂��B
+defaultを指定するとデフォルトでその候補が選択されます。候補にない値を指定すると、指定しないのと同じになりますが、typeが:SELECT-DROPDOWNの場合にはその値が入力された状態になります。指定しない場合には先頭の候補が選択されます。
 
 
 
-==����
+==引数
 :String message
-  �\�����郁�b�Z�[�W
+  表示するメッセージ
 :String candidates
-  ���X�g�ɕ\��������
+  リストに表示する候補
 :Number type
-  ���X�g�̃^�C�v
+  リストのタイプ
 :String default
-  �f�t�H���g�̓��͕�����
+  デフォルトの入力文字列
 
 
-==�G���[
-*�����̐��������Ă��Ȃ��ꍇ
-*UI���Ȃ��ꍇ
+==エラー
+*引数の数が合っていない場合
+*UIがない場合
 
-==����
-*UI���K�v
+==条件
+*UIが必要
 
 
-==��
- # foo, bar, baz���烊�X�g�őI��
- @SelectBox('�I�����Ă�������', 'foo\nbar\nbaz')
+==例
+ # foo, bar, bazからリストで選択
+ @SelectBox('選択してください', 'foo\nbar\nbaz')
  
- # us-ascii, iso-2022-jp, utf-8����h���b�v�_�E���őI���i�f�t�H���g��iso-2022-jp�j
- @SelectBox('�G���R�[�f�B���O', 'us-ascii\niso-2022-jp\nutf-8', :SELECT-DROPDOWN, 'iso-2022-jp')
+ # us-ascii, iso-2022-jp, utf-8からドロップダウンで選択（デフォルトはiso-2022-jp）
+ @SelectBox('エンコーディング', 'us-ascii\niso-2022-jp\nutf-8', :SELECT-DROPDOWN, 'iso-2022-jp')
 
 =end
