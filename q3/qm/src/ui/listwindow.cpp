@@ -1891,7 +1891,7 @@ LRESULT qm::ListWindow::onMouseWheel(UINT nFlags,
 #ifdef _WIN32_WCE
 #	define WHEEL_DELTA 120
 #endif
-	pImpl_->scrollVertical(getScrollPos(SB_VERT) - nDelta/WHEEL_DELTA*3);
+	pImpl_->scrollVertical(getScrollPos(SB_VERT) - nDelta*5/WHEEL_DELTA);
 	
 	return 0;
 }
