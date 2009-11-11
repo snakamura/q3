@@ -3927,7 +3927,7 @@ LRESULT qs::TextWindow::onMouseWheel(UINT nFlags,
 #ifdef _WIN32_WCE
 #	define WHEEL_DELTA 120
 #endif
-	scroll(SCROLL_VERTICALPOS, pImpl_->scrollPos_.nLine_ - nDelta*3/WHEEL_DELTA, false);
+	scroll(SCROLL_VERTICALPOS, pImpl_->scrollPos_.nLine_ - nDelta*5/WHEEL_DELTA, false);
 	
 	return DefaultWindowHandler::onMouseWheel(nFlags, nDelta, pt);
 }
