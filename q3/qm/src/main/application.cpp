@@ -1158,8 +1158,19 @@ wstring_ptr qm::Application::getOSVersion() const
 			}
 			break;
 		case 6:
-			pwszPlatform = L"Windows Vista";
-			bAddVersion = false;
+			switch (ovi.dwMinorVersion) {
+			case 0:
+				pwszPlatform = L"Windows Vista";
+				bAddVersion = false;
+				break;
+			case 1:
+				pwszPlatform = L"Windows 7";
+				bAddVersion = false;
+				break;
+			default:
+				pwszPlatform = L"Windows NT";
+				break;
+			}
 			break;
 		default:
 			pwszPlatform = L"Windows NT";
