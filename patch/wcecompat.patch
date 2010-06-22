@@ -1,0 +1,12 @@
+diff --git a/makefile b/makefile
+index ed71d53..0b51a51 100644
+--- a/makefile
++++ b/makefile
+@@ -1,6 +1,6 @@
+ !INCLUDE <wceconfig.mak>
+ 
+-CFLAGS=/W3 /WX /Ox /O2 /Ob2 /GF /Gy /nologo $(WCETARGETDEFS) -Zc:wchar_t- -DUNICODE -D_UNICODE -DWIN32 -DWIN32_LEAN_AND_MEAN -Iinclude -D_WINDLL -D_DLL /Foobj/ -D_MSC_VER=1200
++CFLAGS=/W3 /WX /GS- /Ox /O2 /Ob2 /GF /Gy /nologo $(WCETARGETDEFS) -Zc:wchar_t- -DUNICODE -D_UNICODE -DWIN32 -DWIN32_LEAN_AND_MEAN -Iinclude -D_WINDLL -D_DLL /Foobj/ -D_MSC_VER=1200
+ 
+ SRC =							\
+ 	src/args.cpp				\

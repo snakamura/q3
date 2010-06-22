@@ -1,0 +1,48 @@
+diff -ur openssl-1.0.0a.orig/e_os.h openssl-1.0.0a/e_os.h
+--- openssl-1.0.0a.orig/e_os.h	2010-05-31 22:18:08.000000000 +0900
++++ openssl-1.0.0a/e_os.h	2010-06-22 08:49:22.307842500 +0900
+@@ -271,7 +271,7 @@
+ 	*/
+ #      define _WIN32_WINNT 0x0400
+ #    endif
+-#    if !defined(OPENSSL_NO_SOCK) && defined(_WIN32_WINNT)
++#    if !defined(OPENSSL_NO_SOCK) && (defined(_WIN32_WINNT) || defined(_WIN32_WCE))
+        /*
+         * Just like defining _WIN32_WINNT including winsock2.h implies
+         * certain "discipline" for maintaining [broad] binary compatibility.
+diff -ur openssl-1.0.0a.orig/util/pl/VC-32.pl openssl-1.0.0a/util/pl/VC-32.pl
+--- openssl-1.0.0a.orig/util/pl/VC-32.pl	2010-06-01 15:03:20.000000000 +0900
++++ openssl-1.0.0a/util/pl/VC-32.pl	2010-06-22 10:15:48.673485700 +0900
+@@ -103,12 +103,12 @@
+     }
+ 
+     $cc='$(CC)';
+-    $base_cflags=' /W3 /WX /GF /Gy /nologo -DUNICODE -D_UNICODE -DOPENSSL_SYSNAME_WINCE -DWIN32_LEAN_AND_MEAN -DL_ENDIAN -DDSO_WIN32 -DNO_CHMOD -DOPENSSL_SMALL_FOOTPRINT';
++    $base_cflags=' /W3 /GF /Gy /GS- /nologo -DUNICODE -D_UNICODE -DOPENSSL_SYSNAME_WINCE -DWIN32_LEAN_AND_MEAN -DL_ENDIAN -DDSO_WIN32 -DNO_CHMOD -DOPENSSL_SMALL_FOOTPRINT';
+     $base_cflags.=" $wcecdefs";
+     $base_cflags.=' -I$(WCECOMPAT)/include'		if (defined($ENV{'WCECOMPAT'}));
+     $base_cflags.=' -I$(PORTSDK_LIBPATH)/../../include'	if (defined($ENV{'PORTSDK_LIBPATH'}));
+-    $opt_cflags=' /MC /O1i';	# optimize for space, but with intrinsics...
+-    $dbg_clfags=' /MC /Od -DDEBUG -D_DEBUG';
++    $opt_cflags=' /MD /O1i';	# optimize for space, but with intrinsics...
++    $dbg_clfags=' /MDd /Od -DDEBUG -D_DEBUG';
+     $lflags="/nologo /opt:ref $wcelflag";
+     }
+ else	# Win32
+@@ -152,14 +152,14 @@
+ $efile="/out:";
+ $exep='.exe';
+ if ($no_sock)		{ $ex_libs=''; }
+-elsif ($FLAVOR =~ /CE/)	{ $ex_libs='winsock.lib'; }
++elsif ($FLAVOR =~ /CE/)	{ $ex_libs='ws2.lib'; }
+ else			{ $ex_libs='ws2_32.lib'; }
+ 
+ if ($FLAVOR =~ /CE/)
+ 	{
+ 	$ex_libs.=' $(WCECOMPAT)/lib/wcecompatex.lib'	if (defined($ENV{'WCECOMPAT'}));
+ 	$ex_libs.=' $(PORTSDK_LIBPATH)/portlib.lib'	if (defined($ENV{'PORTSDK_LIBPATH'}));
+-	$ex_libs.=' /nodefaultlib:oldnames.lib coredll.lib corelibc.lib' if ($ENV{'TARGETCPU'} eq "X86");
++	$ex_libs.=' /nodefaultlib coredll.lib corelibc.lib crypt32.lib';
+ 	}
+ else
+ 	{
