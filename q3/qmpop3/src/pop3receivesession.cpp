@@ -604,6 +604,11 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 				return false;
 			
 			if (isSameIdentity(msg, pSubAccount_)) {
+				unsigned int nMask = MessageHolder::FLAG_SEEN |
+					MessageHolder::FLAG_DOWNLOAD |
+					MessageHolder::FLAG_DOWNLOADTEXT |
+					MessageHolder::FLAG_PARTIAL_MASK;
+				bool bUpdated = false;
 				UnstructuredParser uid;
 				if (msg.getField(L"X-UIDL", &uid) == Part::FIELD_EXIST) {
 					unsigned int nIndex = pUIDList_->getIndex(uid.getValue());
@@ -617,18 +622,17 @@ bool qmpop3::Pop3ReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 						if (!setSubAccount(&msg, pSubAccount_))
 							return false;
 						
-						if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size(), &msg))
+						if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size(), &msg, 0, nMask))
 							return false;
 						
 						UID* pUID = pUIDList_->getUID(nIndex);
 						pUID->update(UID::FLAG_NONE, time.wYear, time.wMonth, time.wDay);
+						
+						bUpdated = true;
 					}
 				}
-				mpl->setFlags(0,
-					MessageHolder::FLAG_SEEN |
-					MessageHolder::FLAG_DOWNLOAD |
-					MessageHolder::FLAG_DOWNLOADTEXT |
-					MessageHolder::FLAG_PARTIAL_MASK);
+				if (!bUpdated)
+					mpl->setFlags(0, nMask);
 			}
 		}
 	}

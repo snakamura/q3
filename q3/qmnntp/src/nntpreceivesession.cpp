@@ -428,13 +428,18 @@ bool qmnntp::NntpReceiveSession::downloadReservedMessages(NormalFolder* pFolder,
 				Nntp::GETMESSAGEFLAG_ARTICLE, &strMessage, mpl->getSize()))
 				HANDLE_ERROR();
 			
-			unsigned int nMask = MessageHolder::FLAG_DOWNLOAD | MessageHolder::FLAG_DOWNLOADTEXT;
 			if (strMessage.get()) {
-				if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size(), 0))
+				unsigned int nMask = MessageHolder::FLAG_DOWNLOAD |
+					MessageHolder::FLAG_DOWNLOADTEXT |
+					MessageHolder::FLAG_SEEN |
+					MessageHolder::FLAG_PARTIAL_MASK;
+				if (!pAccount_->updateMessage(mpl, strMessage.get(), strMessage.size(), 0, 0, nMask))
 					return false;
-				nMask |=  MessageHolder::FLAG_SEEN | MessageHolder::FLAG_PARTIAL_MASK;
 			}
-			mpl->setFlags(0, nMask);
+			else {
+				mpl->setFlags(0, MessageHolder::FLAG_DOWNLOAD |
+					MessageHolder::FLAG_DOWNLOADTEXT);
+			}
 		}
 	}
 	

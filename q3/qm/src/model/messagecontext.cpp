@@ -101,6 +101,29 @@ std::auto_ptr<URI> qm::MessagePtrMessageContext::getURI(const qs::Part* pPart,
 		mpl, &msg_, pPart, URIFragment::TYPE_BODY));
 }
 
+std::auto_ptr<MessageContext> qm::MessagePtrMessageContext::safeCopy() const
+{
+	// If this message has not been fully loaded,
+	// and the associated folder has FLAG_CACHEWHENREAD flag,
+	// MessageContext hold by MessageModel would be changed
+	// while calling getMessage, which will delete the MessageContext.
+	// To avoid being deleted in getMessage, we have to call this
+	// method to copy MessageContext before calling getMessage.
+	// Actually, it's not a good idea to check these conditions here
+	// because MessageContext doesn't need to know about MessageModel.
+	// But for performance reasons, we check them here.
+	if (msg_.getFlag() == Message::FLAG_NONE) {
+		return std::auto_ptr<MessageContext>();
+	}
+	else {
+		MessagePtrLock mpl(ptr_);
+		if (!mpl || !mpl->getFolder()->isFlag(Folder::FLAG_CACHEWHENREAD))
+			return std::auto_ptr<MessageContext>();
+		else
+			return std::auto_ptr<MessageContext>(new MessagePtrMessageContext(ptr_));
+	}
+}
+
 
 /****************************************************************************
  *
@@ -185,4 +208,9 @@ std::auto_ptr<URI> qm::MessageMessageContext::getURI(const qs::Part* pPart,
 	if (nURIId_ == -1)
 		return std::auto_ptr<URI>();
 	return std::auto_ptr<URI>(new TemporaryURI(nURIId_, &msg_, pPart, type));
+}
+
+std::auto_ptr<MessageContext> qm::MessageMessageContext::safeCopy() const
+{
+	return std::auto_ptr<MessageContext>();
 }

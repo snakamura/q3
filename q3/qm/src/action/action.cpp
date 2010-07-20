@@ -131,8 +131,9 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 		return;
 	
 	MessageContext* pContext = pMessageModel_->getCurrentMessage();
-	if (!pContext)
-		return;
+	std::auto_ptr<MessageContext> pContextCopy(pContext->safeCopy());
+	if (pContextCopy.get())
+		pContext = pContextCopy.get();
 	
 	const Message* pMessage = pContext->getMessage(
 		Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode());
@@ -197,8 +198,9 @@ qm::AttachmentSaveAction::~AttachmentSaveAction()
 void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 {
 	MessageContext* pContext = pMessageModel_->getCurrentMessage();
-	if (!pContext)
-		return;
+	std::auto_ptr<MessageContext> pContextCopy(pContext->safeCopy());
+	if (pContextCopy.get())
+		pContext = pContextCopy.get();
 	
 	if (bAll_) {
 		if (helper_.detach(pContext, 0) == AttachmentParser::RESULT_FAIL) {

@@ -45,6 +45,7 @@ public:
 	virtual std::auto_ptr<URI> getURI() const = 0;
 	virtual std::auto_ptr<URI> getURI(const qs::Part* pPart,
 									  URIFragment::Type type) const = 0;
+	virtual std::auto_ptr<MessageContext> safeCopy() const = 0;
 };
 
 
@@ -71,6 +72,7 @@ public:
 	virtual std::auto_ptr<URI> getURI() const;
 	virtual std::auto_ptr<URI> getURI(const qs::Part* pPart,
 									  URIFragment::Type type) const;
+	virtual std::auto_ptr<MessageContext> safeCopy() const;
 
 private:
 	MessagePtrMessageContext(const MessagePtrMessageContext&);
@@ -112,6 +114,7 @@ public:
 	virtual std::auto_ptr<URI> getURI() const;
 	virtual std::auto_ptr<URI> getURI(const qs::Part* pPart,
 									  URIFragment::Type type) const;
+	virtual std::auto_ptr<MessageContext> safeCopy() const;
 
 private:
 	MessageMessageContext& operator=(const MessageMessageContext&);

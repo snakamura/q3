@@ -382,23 +382,23 @@ bool qm::AccountImpl::getMessage(MessageHolder* pmh,
 					
 					NormalFolder* pFolder = pmh_->getFolder();
 					if (pFolder->isFlag(Folder::FLAG_CACHEWHENREAD)) {
-						Account* pAccount = pFolder->getAccount();
-						if (!pAccount->updateMessage(pmh_, pszMessage, nLen, 0))
-							return false;
-						
-						unsigned int nFlag = 0;
+						unsigned int nFlags = 0;
 						switch (flag) {
 						case Message::FLAG_HEADERONLY:
-							nFlag = MessageHolder::FLAG_HEADERONLY;
+							nFlags = MessageHolder::FLAG_HEADERONLY;
 							break;
 						case Message::FLAG_TEXTONLY:
-							nFlag = MessageHolder::FLAG_TEXTONLY;
+							nFlags = MessageHolder::FLAG_TEXTONLY;
 							break;
 						case Message::FLAG_HTMLONLY:
-							nFlag = MessageHolder::FLAG_HTMLONLY;
+							nFlags = MessageHolder::FLAG_HTMLONLY;
 							break;
 						}
-						pmh_->setFlags(nFlag, MessageHolder::FLAG_PARTIAL_MASK);
+						
+						Account* pAccount = pFolder->getAccount();
+						if (!pAccount->updateMessage(pmh_, pszMessage, nLen,
+							0, nFlags, MessageHolder::FLAG_PARTIAL_MASK))
+							return false;
 					}
 				}
 				bMadeSeen_ = bMadeSeen;
@@ -2855,7 +2855,9 @@ MessageHolder* qm::Account::cloneMessage(MessageHolder* pmh,
 bool qm::Account::updateMessage(MessageHolder* pmh,
 								const CHAR* pszMessage,
 								size_t nLen,
-								const Message* pHeader)
+								const Message* pHeader,
+								unsigned int nFlags,
+								unsigned int nMask)
 {
 	assert(pmh);
 	assert(pszMessage);
@@ -2868,6 +2870,8 @@ bool qm::Account::updateMessage(MessageHolder* pmh,
 		pmh->getLabel().get(), false, &boxKey.nOffset_, &boxKey.nLength_,
 		&boxKey.nHeaderLength_, &indexKey.nKey_, &indexKey.nLength_))
 		return false;
+	
+	pmh->setFlags(nFlags, nMask);
 	
 	MessageHolder::MessageIndexKey oldIndexKey = pmh->getMessageIndexKey();
 	pImpl_->pMessageIndex_->remove(oldIndexKey.nKey_);
