@@ -1124,7 +1124,6 @@ qm::MessageWindowFontSet::~MessageWindowFontSet()
 bool qm::MessageWindowFontSet::match(MacroContext* pContext) const
 {
 	assert(pContext);
-	assert(pContext->getMessageHolder());
 	
 	if (!pCondition_.get())
 		return true;
