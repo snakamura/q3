@@ -3180,6 +3180,9 @@ LRESULT qm::ViewsDialog::onRemove()
 	if (ListView_GetItemCount(hwndList) > 1) {
 		int nItem = ListView_GetNextItem(hwndList, -1, LVNI_ALL | LVNI_SELECTED);
 		if (nItem != -1) {
+			if ((nSort_ & ViewModel::SORT_INDEX_MASK) >= static_cast<unsigned int>(nItem))
+				nSort_ = (nSort_ & ~ViewModel::SORT_INDEX_MASK) | ((nSort_ & ViewModel::SORT_INDEX_MASK) - 1);
+			
 			ViewColumnList::iterator it = listColumn_.begin() + nItem;
 			delete *it;
 			listColumn_.erase(it);
