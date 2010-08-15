@@ -2,7 +2,13 @@
 #
 # Makefile for doc
 
-RD2		= /usr/local/bin/rd2
+UNAME	= $(shell uname | sed -e 's/_.*//')
+ifeq ($(UNAME),CYGWIN)
+	RD2	= /usr/bin/rd2
+endif
+ifeq ($(UNAME),MINGW32)
+	RD2	= "C:/Program Files (x86)/ruby-1.8/bin/rd2"
+endif
 
 HTMLDIR	= html
 ZIPDIR	= ../zip

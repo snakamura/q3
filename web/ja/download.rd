@@ -14,13 +14,13 @@
 <th>Zip</th>
 </tr>
 <tr>
-<td>Windows Vista/XP/2000</td>
+<td>Windows 7/Vista/XP/2000</td>
 <td>x86</td>
 <td><a href="/q3/nph-snapshot.cgi?q3u-win-x86-ja.exe">インストーラ</a></td>
 <td><a href="/q3/nph-snapshot.cgi?q3u-win-x86-ja.zip">Zip</a></td>
 </tr>
 <tr>
-<td>Windows Vista/XP</td>
+<td>Windows 7/Vista/XP</td>
 <td>x64</td>
 <td><a href="/q3/nph-snapshot.cgi?q3u-win-x64-ja.exe">インストーラ</a></td>
 <td><a href="/q3/nph-snapshot.cgi?q3u-win-x64-ja.zip">Zip</a></td>
@@ -45,13 +45,13 @@ Nightly Buildは自動的に作成されるバージョンで、不安定なこともあります。
 <th>Zip</th>
 </tr>
 <tr>
-<td>Windows Vista/XP/2000</td>
+<td>Windows 7/Vista/XP/2000</td>
 <td>x86</td>
 <td><a href="/q3/nph-nightly.cgi?q3u-win-x86-ja.exe">インストーラ</a></td>
 <td><a href="/q3/nph-nightly.cgi?q3u-win-x86-ja.zip">Zip</a></td>
 </tr>
 <tr>
-<td>Windows Vista/XP</td>
+<td>Windows 7/Vista/XP</td>
 <td>x64</td>
 <td><a href="/q3/nph-nightly.cgi?q3u-win-x64-ja.exe">インストーラ</a></td>
 <td><a href="/q3/nph-nightly.cgi?q3u-win-x64-ja.zip">Zip</a></td>
