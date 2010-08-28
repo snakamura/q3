@@ -1,6 +1,31 @@
 =begin
 =Release Notes
 
+==3.0.9
+===New features
+*Added 'ldblck' and 'rdblclk' to the keys used in keymap.xml, which allowed users to map an action to double click in the list view.
+*Added @DeleteAttachment
+
+===Changes
+*Made the edit window to show a subject in its title bar.
+*Changed to select from the clicked position when a user clicks with a shift key down in message views and edit views.
+*Allowed an invalid slash appears as a parameter value.
+*Adjusted position of MessageLabel action in menu.
+*Use Windows SDK v7.0.
+*Updated OpenSSL to 1.0.0a (Windows only)
+
+===Bug fixes
+*Fixed it caused a crash on saving an attachment when [Cache when read] is checked in a property of an IMAP4 folder.
+*Fixed the list view didn't scroll properly by mouse wheel.
+*Adjusted speed of scroll by mouse wheel in a text view.
+*Fixed it caused a crash on removing a column which is used to sort the list view.
+*Fixed it used Windows Vista as X-Mailer on Windows 7.
+*Fixed it caused a crash on opening an attachment of message/rfc822.
+*Fixed it caused a crash on printing an attachment of message/rfc822.
+*Fixed multiple folders may have spam-folder flag.
+*Fixed it used pgp-sha1 as micalg parameter of Content-Type even when GnuPG used a digest algorithm other than SHA-1.
+
+
 ==3.0.8
 ===New features
 *Add German resource.
