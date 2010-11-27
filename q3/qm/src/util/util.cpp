@@ -117,13 +117,22 @@ std::pair<Account*, Folder*> qm::Util::getAccountOrFolder(AccountManager* pAccou
 	return p;
 }
 
-unsigned int qm::Util::getMessageCount(Account* pAccount)
+BOOL qm::Util::isIgnoreUnseen(const Folder *pFolder)
+{
+	unsigned int nFlags = pFolder->getFlags();
+	return pFolder->getType() != Folder::TYPE_NORMAL ||
+		(nFlags & Folder::FLAG_IGNOREUNSEEN) != 0 ||
+		((nFlags & Folder::FLAG_INBOX) == 0 &&
+		(nFlags & (Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX)) != 0);
+}
+
+unsigned int qm::Util::getMessageCount(const Account* pAccount)
 {
 	unsigned int nCount = 0;
 	
 	const Account::FolderList& l = pAccount->getFolders();
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		Folder* pFolder = *it;
+		const Folder* pFolder = *it;
 		if (pFolder->getType() == Folder::TYPE_NORMAL)
 			nCount += pFolder->getCount();
 	}
@@ -131,18 +140,14 @@ unsigned int qm::Util::getMessageCount(Account* pAccount)
 	return nCount;
 }
 
-unsigned int qm::Util::getUnseenMessageCount(Account* pAccount)
+unsigned int qm::Util::getUnseenMessageCount(const Account* pAccount)
 {
 	unsigned int nCount = 0;
 	
-	const unsigned int nIgnore =
-		(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
-		Folder::FLAG_IGNOREUNSEEN;
 	const Account::FolderList& l = pAccount->getFolders();
 	for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
-		Folder* pFolder = *it;
-		if (pFolder->getType() == Folder::TYPE_NORMAL &&
-			(pFolder->getFlags() & nIgnore) == 0)
+		const Folder* pFolder = *it;
+		if (!isIgnoreUnseen(pFolder))
 			nCount += pFolder->getUnseenCount();
 	}
 	

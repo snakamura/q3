@@ -51,8 +51,10 @@ public:
 														   Account* pAccount,
 														   const WCHAR* pwsz);
 	
-	static unsigned int getMessageCount(Account* pAccount);
-	static unsigned int getUnseenMessageCount(Account* pAccount);
+	static BOOL isIgnoreUnseen(const Folder *pFolder);
+	
+	static unsigned int getMessageCount(const Account* pAccount);
+	static unsigned int getUnseenMessageCount(const Account* pAccount);
 	
 	static bool setMessagesLabel(Account* pAccount,
 								 const MessageHolderList& l,

@@ -1369,14 +1369,10 @@ bool qm::FolderWindowImpl::isUnseen(const Folder* pFolder,
 		return true;
 	
 	if (!bExpanded) {
-		const unsigned int nIgnore =
-			(Folder::FLAG_BOX_MASK & ~Folder::FLAG_INBOX) |
-			Folder::FLAG_IGNOREUNSEEN;
-		
 		const Account::FolderList& l = pFolder->getAccount()->getFolders();
 		for (Account::FolderList::const_iterator it = l.begin(); it != l.end(); ++it) {
 			Folder* p = *it;
-			if ((p->getFlags() & nIgnore) == 0 &&
+			if (!Util::isIgnoreUnseen(p) &&
 				p->getUnseenCount() != 0 &&
 				pFolder->isAncestorOf(p))
 				return true;
@@ -1396,7 +1392,7 @@ bool qm::FolderWindowImpl::isUnseen(const Account* pAccount)
 	Account::FolderList::const_iterator it = l.begin();
 	while (it != l.end()) {
 		const Folder* p = *it;
-		if (((p->getFlags() & nIgnore) == 0 && p->getUnseenCount() != 0))
+		if (!Util::isIgnoreUnseen(p) && p->getUnseenCount() != 0)
 			break;
 		++it;
 	}
