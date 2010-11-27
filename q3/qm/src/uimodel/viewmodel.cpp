@@ -688,8 +688,8 @@ void qm::ViewModel::addSelection(unsigned int nStart,
 	if (nStart > nEnd)
 		std::swap(nStart, nEnd);
 	
-	while (nStart <= nEnd)
-		addSelection(nStart);
+	for (unsigned int n = nStart; n <= nEnd; ++n)
+		addSelection(n);
 }
 
 void qm::ViewModel::removeSelection(unsigned int n)

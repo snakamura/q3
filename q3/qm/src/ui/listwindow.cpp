@@ -1825,7 +1825,12 @@ LRESULT qm::ListWindow::onLButtonDown(UINT nFlags,
 			
 			if (nFlags & MK_SHIFT) {
 				unsigned int nLast = pViewModel->getLastSelection();
-				pViewModel->setSelection(nLast, nLine);
+				if (nFlags & MK_CONTROL) {
+					pViewModel->addSelection(nLast, nLine);
+				}
+				else {
+					pViewModel->setSelection(nLast, nLine);
+				}
 			}
 			else {
 				if (nFlags & MK_CONTROL) {
