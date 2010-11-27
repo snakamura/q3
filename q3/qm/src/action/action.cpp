@@ -4897,7 +4897,7 @@ void qm::MessageOpenFocusedAction::invoke(const ActionEvent& event)
 	Lock<ViewModel> lock(*pViewModel);
 	
 	unsigned int nItem = pViewModel->getFocused();
-	if (nItem == -1)
+	if (nItem == -1 || nItem >= pViewModel->getCount())
 		return;
 	
 	if (!pMessageFrameWindowManager_->open(pViewModel,
