@@ -2539,7 +2539,7 @@ string_ptr qs::AddressParser::getMailboxFromPhrases(const Phrases& phrases,
  *
  */
 
-size_t qs::AddressListParser::nMax__ = 128;
+size_t qs::AddressListParser::nMax__ = 1024;
 
 qs::AddressListParser::AddressListParser() :
 	nFlags_(0),
