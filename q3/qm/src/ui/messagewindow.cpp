@@ -441,12 +441,8 @@ void qm::MessageWindowImpl::modeChanged(const MessageViewModeEvent& event)
 	unsigned int nAdded = event.getAddedMode();
 	unsigned int nRemoved = event.getRemovedMode();
 	if (nAdded & nSetMode || nRemoved & nSetMode) {
-		MessageContext *pContext = pMessageModel_->getCurrentMessage();
-		std::auto_ptr<MessageContext> pContextCopy(pContext->safeCopy());
-		if (pContextCopy.get())
-			pContext = pContextCopy.get();
-		
-		setMessage(pContext, false);
+		MessageContextPtr pContext(pMessageModel_->getCurrentMessage()->safeCopy());
+		setMessage(pContext.get(), false);
 	}
 	
 	if (nAdded & MessageViewMode::MODE_SELECT)

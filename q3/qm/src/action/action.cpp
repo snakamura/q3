@@ -130,10 +130,7 @@ void qm::AttachmentOpenAction::invoke(const ActionEvent& event)
 	if (listName.empty())
 		return;
 	
-	MessageContext* pContext = pMessageModel_->getCurrentMessage();
-	std::auto_ptr<MessageContext> pContextCopy(pContext->safeCopy());
-	if (pContextCopy.get())
-		pContext = pContextCopy.get();
+	MessageContextPtr pContext(pMessageModel_->getCurrentMessage()->safeCopy());
 	
 	const Message* pMessage = pContext->getMessage(
 		Account::GMF_ALL, 0, pSecurityModel_->getSecurityMode());
@@ -197,13 +194,10 @@ qm::AttachmentSaveAction::~AttachmentSaveAction()
 
 void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 {
-	MessageContext* pContext = pMessageModel_->getCurrentMessage();
-	std::auto_ptr<MessageContext> pContextCopy(pContext->safeCopy());
-	if (pContextCopy.get())
-		pContext = pContextCopy.get();
+	MessageContextPtr pContext(pMessageModel_->getCurrentMessage()->safeCopy());
 	
 	if (bAll_) {
-		if (helper_.detach(pContext, 0) == AttachmentParser::RESULT_FAIL) {
+		if (helper_.detach(pContext.get(), 0) == AttachmentParser::RESULT_FAIL) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
 			return;
 		}
@@ -214,7 +208,7 @@ void qm::AttachmentSaveAction::invoke(const ActionEvent& event)
 		pAttachmentSelectionModel_->getSelectedAttachment(&listName);
 		
 		AttachmentHelper::NameList l(listName.begin(), listName.end());
-		if (helper_.detach(pContext, &l) == AttachmentParser::RESULT_FAIL) {
+		if (helper_.detach(pContext.get(), &l) == AttachmentParser::RESULT_FAIL) {
 			ActionUtil::error(hwnd_, IDS_ERROR_DETACHATTACHMENT);
 			return;
 		}

@@ -20,6 +20,7 @@ namespace qm {
 class MessageContext;
 	class MessagePtrMessageContext;
 	class MessageMessageContext;
+class MessageContextPtr;
 
 class Account;
 
@@ -45,7 +46,7 @@ public:
 	virtual std::auto_ptr<URI> getURI() const = 0;
 	virtual std::auto_ptr<URI> getURI(const qs::Part* pPart,
 									  URIFragment::Type type) const = 0;
-	virtual std::auto_ptr<MessageContext> safeCopy() const = 0;
+	virtual MessageContextPtr safeCopy() const = 0;
 };
 
 
@@ -72,7 +73,7 @@ public:
 	virtual std::auto_ptr<URI> getURI() const;
 	virtual std::auto_ptr<URI> getURI(const qs::Part* pPart,
 									  URIFragment::Type type) const;
-	virtual std::auto_ptr<MessageContext> safeCopy() const;
+	virtual MessageContextPtr safeCopy() const;
 
 private:
 	MessagePtrMessageContext(const MessagePtrMessageContext&);
@@ -114,7 +115,7 @@ public:
 	virtual std::auto_ptr<URI> getURI() const;
 	virtual std::auto_ptr<URI> getURI(const qs::Part* pPart,
 									  URIFragment::Type type) const;
-	virtual std::auto_ptr<MessageContext> safeCopy() const;
+	virtual MessageContextPtr safeCopy() const;
 
 private:
 	MessageMessageContext& operator=(const MessageMessageContext&);
@@ -125,6 +126,37 @@ private:
 	bool bSuccess_;
 	URIResolver* pURIResolver_;
 	unsigned int nURIId_;
+};
+
+
+/*****************************************************************************
+ *
+ * MessageContextPtr
+ *
+ */
+
+class MessageContextPtr
+{
+public:
+	MessageContextPtr(MessageContext *pContext,
+					  bool bDelete);
+	MessageContextPtr(const MessageContext *pContext);
+	MessageContextPtr(MessageContextPtr& ptr);
+	~MessageContextPtr();
+
+public:
+	bool operator!() const;
+	MessageContext* operator->() const;
+
+public:
+	MessageContext* get() const;
+
+private:
+	MessageContextPtr& operator=(const MessageContextPtr&);
+
+private:
+	MessageContext* pContext_;
+	bool bDelete_;
 };
 
 }

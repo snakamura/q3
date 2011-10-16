@@ -101,7 +101,7 @@ std::auto_ptr<URI> qm::MessagePtrMessageContext::getURI(const qs::Part* pPart,
 		mpl, &msg_, pPart, URIFragment::TYPE_BODY));
 }
 
-std::auto_ptr<MessageContext> qm::MessagePtrMessageContext::safeCopy() const
+MessageContextPtr qm::MessagePtrMessageContext::safeCopy() const
 {
 	// If this message has not been fully loaded,
 	// and the associated folder has FLAG_CACHEWHENREAD flag,
@@ -113,14 +113,14 @@ std::auto_ptr<MessageContext> qm::MessagePtrMessageContext::safeCopy() const
 	// because MessageContext doesn't need to know about MessageModel.
 	// But for performance reasons, we check them here.
 	if (msg_.getFlag() == Message::FLAG_NONE) {
-		return std::auto_ptr<MessageContext>();
+		return MessageContextPtr(this);
 	}
 	else {
 		MessagePtrLock mpl(ptr_);
 		if (!mpl || !mpl->getFolder()->isFlag(Folder::FLAG_CACHEWHENREAD))
-			return std::auto_ptr<MessageContext>();
+			return MessageContextPtr(this);
 		else
-			return std::auto_ptr<MessageContext>(new MessagePtrMessageContext(ptr_));
+			return MessageContextPtr(new MessagePtrMessageContext(ptr_), true);
 	}
 }
 
@@ -210,7 +210,57 @@ std::auto_ptr<URI> qm::MessageMessageContext::getURI(const qs::Part* pPart,
 	return std::auto_ptr<URI>(new TemporaryURI(nURIId_, &msg_, pPart, type));
 }
 
-std::auto_ptr<MessageContext> qm::MessageMessageContext::safeCopy() const
+MessageContextPtr qm::MessageMessageContext::safeCopy() const
 {
-	return std::auto_ptr<MessageContext>();
+	return MessageContextPtr(this);
+}
+
+
+/*****************************************************************************
+ *
+ * MessageContextPtr
+ *
+ */
+
+qm::MessageContextPtr::MessageContextPtr(MessageContext *pContext,
+                                         bool bDelete)
+{
+	pContext_ = pContext;
+	bDelete_ = bDelete;
+}
+
+qm::MessageContextPtr::MessageContextPtr(const MessageContext *pContext)
+{
+	pContext_ = const_cast<MessageContext*>(pContext);
+	bDelete_ = false;
+}
+
+qm::MessageContextPtr::MessageContextPtr(MessageContextPtr& ptr)
+{
+	pContext_ = ptr.pContext_;
+	bDelete_ = ptr.bDelete_;
+	
+	ptr.pContext_ = 0;
+	ptr.bDelete_ = false;
+}
+
+qm::MessageContextPtr::~MessageContextPtr()
+{
+	if (bDelete_)
+		delete pContext_;
+}
+
+bool qm::MessageContextPtr::operator!() const
+{
+	return pContext_ == 0;
+}
+
+MessageContext* qm::MessageContextPtr::operator->() const
+{
+	return pContext_;
+}
+
+MessageContext* qm::MessageContextPtr::get() const
+{
+	return pContext_;
 }
