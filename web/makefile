@@ -3,6 +3,7 @@
 # Makefile for doc
 
 UNAME	= $(shell uname | sed -e 's/_.*//')
+RD2     = rd2
 ifeq ($(UNAME),CYGWIN)
 	RD2	= /usr/bin/rd2
 endif
@@ -30,7 +31,7 @@ clean:
 
 $(HTMLDIR)/%.html: %.rd
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	cat $(HEAD) `if [ -f $(dir $<)_nav.rd ]; then echo $(dir $<)_nav.rd; else echo ""; fi` $< $(FOOT) | ruby -W0 -Ks $(RD2) -r rd/rd2html-ext-lib.rb --native-inline --ref-extension --headline-title --head-element --with-part=head --with-part=html:include > $@
+	cat $(HEAD) `if [ -f $(dir $<)_nav.rd ]; then echo $(dir $<)_nav.rd; else echo ""; fi` $< $(FOOT) | $(RD2) -r rd/rd2html-ext-lib.rb --native-inline --ref-extension --headline-title --head-element --with-part=head --with-part=html:include > $@
 
 $(HTMLDIR)/%.css: %.css
 	if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi

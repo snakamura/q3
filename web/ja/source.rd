@@ -1,10 +1,10 @@
 =begin
-=�\�[�X�R�[�h
+=ソースコード
 
-�\�[�X�R�[�h��Subversion�Ō��J����Ă��܂��̂ŁA�ȉ��̃R�}���h�Ŏ擾���Ă��������B
+ソースコードはSubversionで公開されていますので、以下のコマンドで取得してください。
 
  svn co http://svn.snak.org/svn/q3/trunk
 
-�r���h����ɂ́AVisual Studio 2005 Service Pack 1��SDK�ɉ�����Cygwin�܂���MinGW+MSYS���K�v�ł��B
+ビルドするには、Visual Studio 2005 Service Pack 1とSDKに加えてCygwinまたはMinGW+MSYSが必要です。
 
 =end

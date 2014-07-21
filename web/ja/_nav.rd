@@ -1,3 +1,3 @@
 =begin
-((<QMAIL3|URL:./>))|((<ƒ_ƒEƒ“ƒ[ƒh|URL:download.html>))|((<ƒŠƒŠ[ƒXƒm[ƒg|URL:releasenotes.html>))|((<ƒhƒLƒ…ƒƒ“ƒg|URL:/doc/>))|((<FAQ|URL:/doc/FAQ.html>))|((<ML|URL:http://qs.snak.org/cgi-bin/mailman/listinfo/qs>))|((<BTS|URL:/bts/guest.cgi?project=Q3&action=top>))|((<ƒƒ‚|URL:http://snak.tdiary.net/>))|((<ƒ\[ƒXƒR[ƒh|URL:source.html>))|((<ƒ‰ƒCƒZƒ“ƒX|URL:license.html>))|((<English|URL:../en/>))
+((<QMAIL3|URL:./>))|((<ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰|URL:download.html>))|((<ãƒªãƒªãƒ¼ã‚¹ãƒŽãƒ¼ãƒˆ|URL:releasenotes.html>))|((<ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ|URL:/doc/>))|((<FAQ|URL:/doc/FAQ.html>))|((<ML|URL:http://qs.snak.org/cgi-bin/mailman/listinfo/qs>))|((<BTS|URL:/bts/guest.cgi?project=Q3&action=top>))|((<ãƒ¡ãƒ¢|URL:http://snak.tdiary.net/>))|((<ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰|URL:source.html>))|((<ãƒ©ã‚¤ã‚»ãƒ³ã‚¹|URL:license.html>))|((<English|URL:../en/>))
 =end

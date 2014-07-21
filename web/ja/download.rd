@@ -1,28 +1,28 @@
 =begin
-=ƒ_ƒEƒ“ƒ[ƒh
+=ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰
 
-==ƒXƒiƒbƒvƒVƒ‡ƒbƒg”Å
-ƒXƒiƒbƒvƒVƒ‡ƒbƒg”Å‚Í‚ ‚é’ö“xˆÀ’è‚µ‚Ä‚¢‚éƒo[ƒWƒ‡ƒ“‚Å‚·Bƒ_ƒEƒ“ƒ[ƒh‚·‚é‘O‚ÉA((<•ÏX—š—ð|URL:releasenotes.html>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢BƒCƒ“ƒXƒg[ƒ‹‚âƒo[ƒWƒ‡ƒ“ƒAƒbƒv‚Ì•û–@‚ÍA((<ƒhƒLƒ…ƒƒ“ƒg|URL:/doc/>))‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+==ã‚¹ãƒŠãƒƒãƒ—ã‚·ãƒ§ãƒƒãƒˆç‰ˆ
+ã‚¹ãƒŠãƒƒãƒ—ã‚·ãƒ§ãƒƒãƒˆç‰ˆã¯ã‚ã‚‹ç¨‹åº¦å®‰å®šã—ã¦ã„ã‚‹ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã§ã™ã€‚ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã™ã‚‹å‰ã«ã€((<å¤‰æ›´å±¥æ­´|URL:releasenotes.html>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã‚„ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã‚¢ãƒƒãƒ—ã®æ–¹æ³•ã¯ã€((<ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ|URL:/doc/>))ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
-Œ»Ý‚Ìƒo[ƒWƒ‡ƒ“‚ÍA3.0.9‚Å‚·B
+ç¾åœ¨ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã¯ã€3.0.9ã§ã™ã€‚
 
 ((:<table>
 <tr>
-<th>ƒvƒ‰ƒbƒgƒtƒH[ƒ€</th>
+<th>ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ </th>
 <th>CPU</th>
-<th>ƒCƒ“ƒXƒg[ƒ‰</th>
+<th>ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©</th>
 <th>Zip</th>
 </tr>
 <tr>
 <td>Windows 7/Vista/XP/2000</td>
 <td>x86</td>
-<td><a href="/q3/nph-snapshot.cgi?q3u-win-x86-ja.exe">ƒCƒ“ƒXƒg[ƒ‰</a></td>
+<td><a href="/q3/nph-snapshot.cgi?q3u-win-x86-ja.exe">ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©</a></td>
 <td><a href="/q3/nph-snapshot.cgi?q3u-win-x86-ja.zip">Zip</a></td>
 </tr>
 <tr>
 <td>Windows 7/Vista/XP</td>
 <td>x64</td>
-<td><a href="/q3/nph-snapshot.cgi?q3u-win-x64-ja.exe">ƒCƒ“ƒXƒg[ƒ‰</a></td>
+<td><a href="/q3/nph-snapshot.cgi?q3u-win-x64-ja.exe">ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©</a></td>
 <td><a href="/q3/nph-snapshot.cgi?q3u-win-x64-ja.zip">Zip</a></td>
 </tr>
 <tr>
@@ -35,25 +35,25 @@
 
 
 ==Nightly Build
-Nightly Build‚ÍŽ©“®“I‚Éì¬‚³‚ê‚éƒo[ƒWƒ‡ƒ“‚ÅA•sˆÀ’è‚È‚±‚Æ‚à‚ ‚è‚Ü‚·B
+Nightly Buildã¯è‡ªå‹•çš„ã«ä½œæˆã•ã‚Œã‚‹ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã§ã€ä¸å®‰å®šãªã“ã¨ã‚‚ã‚ã‚Šã¾ã™ã€‚
 
 ((:<table>
 <tr>
-<th>ƒvƒ‰ƒbƒgƒtƒH[ƒ€</th>
+<th>ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ </th>
 <th>CPU</th>
-<th>ƒCƒ“ƒXƒg[ƒ‰</th>
+<th>ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©</th>
 <th>Zip</th>
 </tr>
 <tr>
 <td>Windows 7/Vista/XP/2000</td>
 <td>x86</td>
-<td><a href="/q3/nph-nightly.cgi?q3u-win-x86-ja.exe">ƒCƒ“ƒXƒg[ƒ‰</a></td>
+<td><a href="/q3/nph-nightly.cgi?q3u-win-x86-ja.exe">ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©</a></td>
 <td><a href="/q3/nph-nightly.cgi?q3u-win-x86-ja.zip">Zip</a></td>
 </tr>
 <tr>
 <td>Windows 7/Vista/XP</td>
 <td>x64</td>
-<td><a href="/q3/nph-nightly.cgi?q3u-win-x64-ja.exe">ƒCƒ“ƒXƒg[ƒ‰</a></td>
+<td><a href="/q3/nph-nightly.cgi?q3u-win-x64-ja.exe">ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©</a></td>
 <td><a href="/q3/nph-nightly.cgi?q3u-win-x64-ja.zip">Zip</a></td>
 </tr>
 <tr>
@@ -71,7 +71,7 @@ Nightly Build‚ÍŽ©“®“I‚Éì¬‚³‚ê‚éƒo[ƒWƒ‡ƒ“‚ÅA•sˆÀ’è‚È‚±‚Æ‚à‚ ‚è‚Ü‚·B
 </table>:))
 
 
-==((<ŒÃ‚¢ƒo[ƒWƒ‡ƒ“|URL:old.html>))
+==((<å¤ã„ãƒãƒ¼ã‚¸ãƒ§ãƒ³|URL:old.html>))
 
 
 =end

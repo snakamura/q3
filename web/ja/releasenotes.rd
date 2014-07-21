@@ -1,209 +1,209 @@
 =begin
-=�����[�X�m�[�g
+=リリースノート
 
 ==3.0.9
-===�V�@�\
-*keymap.xml�̃L�[�̖��O�Ƃ���ldblclk��rdblclk���g�p�ł���悤�ɂ��āA���X�g�r���[�ł̃_�u���N���b�N���A�N�V�����Ɋ��蓖�Ă���悤�ɂ���
-*@DeleteAttachment��ǉ�
+===新機能
+*keymap.xmlのキーの名前としてldblclkとrdblclkを使用できるようにして、リストビューでのダブルクリックをアクションに割り当てられるようにした
+*@DeleteAttachmentを追加
 
-===�ύX
-*�G�f�B�b�g�E�B���h�E�̃^�C�g���o�[��Subject��\������悤�ɂ���
-*���b�Z�[�W�r���[�E�G�f�B�b�g�r���[�ȂǂŁAShift�L�[�������Ȃ���}�E�X�ŃN���b�N�����ꍇ�ɂ́A���X�L�����b�g�̂������ꏊ����I������悤�ɕύX
-*�w�b�_�̃p�����[�^�̒l�ɕs����/������̂�������悤�ɂ���
-*���j���[�̒��ł�MessageLabel�A�N�V�����̈ʒu�𒲐�
-*Windows SDK v7.0���g���悤�ɂ���
-*OpenSSL��1.0.0a�ɍX�V�iWindows�ł̂݁j
+===変更
+*エディットウィンドウのタイトルバーにSubjectを表示するようにした
+*メッセージビュー・エディットビューなどで、Shiftキーを押しながらマウスでクリックした場合には、元々キャレットのあった場所から選択するように変更
+*ヘッダのパラメータの値に不正な/があるのを許せるようにした
+*メニューの中でのMessageLabelアクションの位置を調整
+*Windows SDK v7.0を使うようにした
+*OpenSSLを1.0.0aに更新（Windows版のみ）
 
-===�C��
-*�t�H���_�̃v���p�e�B��[�ǂ񂾂Ƃ��ɃL���b�V������]�Ƀ`�F�b�N�������Ă���ƁAIMAP4�A�J�E���g�ɂ��郁�b�Z�[�W�̓Y�t�t�@�C����ۑ������Ƃ��ɃN���b�V�����邱�Ƃ�����̂��C��
-*���X�g�r���[���z�C�[���Ő������X�N���[�����Ȃ����Ƃ�����̂��C��
-*�e�L�X�g�r���[�̃z�C�[���ł̃X�N���[���X�s�[�h�𒲐�
-*�Ō�̃J�����Ń\�[�g���Ă���Ƃ��ɁA���̃J�������폜����ƃN���b�V������̂��C��
-*Windows 7���X-Mailer�̕\�L��Windows Vista�ɂȂ�̂��C��
-*message/rfc822�̓Y�t�t�@�C�����J���ƃN���b�V������̂��C��
-*message/rfc822�̓Y�t�t�@�C�����J���Ĉ������ƃN���b�V������̂��C��
-*�X�p���t�H���_���܂ޕ����̃t�H���_��I�����ăt�H���_�v���p�e�B��ݒ肷��ƁA�I���������ׂẴt�H���_�ɃX�p���t�H���_�̃t���O�������Ă��܂��̂��C��
-*GnuPG�Ń_�C�W�F�X�g�A���S���Y����SHA-1�ȊO�ɂ����Ƃ��ɂ��AContent-Type��micalg�p�����[�^�̒l��pgp-sha1�ɂȂ�̂��C��
+===修正
+*フォルダのプロパティの[読んだときにキャッシュする]にチェックが入っていると、IMAP4アカウントにあるメッセージの添付ファイルを保存したときにクラッシュすることがあるのを修正
+*リストビューがホイールで正しくスクロールしないことがあるのを修正
+*テキストビューのホイールでのスクロールスピードを調整
+*最後のカラムでソートしているときに、そのカラムを削除するとクラッシュするのを修正
+*Windows 7上でX-Mailerの表記がWindows Vistaになるのを修正
+*message/rfc822の添付ファイルを開くとクラッシュするのを修正
+*message/rfc822の添付ファイルを開いて印刷するとクラッシュするのを修正
+*スパムフォルダを含む複数のフォルダを選択してフォルダプロパティを設定すると、選択したすべてのフォルダにスパムフォルダのフラグが立ってしまうのを修正
+*GnuPGでダイジェストアルゴリズムをSHA-1以外にしたときにも、Content-Typeのmicalgパラメータの値がpgp-sha1になるのを修正
 
 
 ==3.0.8
-===�V�@�\
-*�h�C�c��̃��\�[�X��ǉ�
+===新機能
+*ドイツ語のリソースを追加
 
-===�ύX
-*[�����̃A�h���X����̃��[���͑��M�ς݂Ƃ݂Ȃ�]�̃`�F�b�N������Ă��Ă��ATo�����������̏ꍇ�ɂ͑��M�ς݂̃��[���Ƃ݂͂Ȃ��Ȃ��悤�ɕύX�i�X�p���t�B���^�̐��x����̂��߁j
-*�o�b�N�O���E���h�ł�@Identity, @SubAccount, @I���g����悤�ɂ���
-*�A�h���X���ƃA�h���X�I���_�C�A���O�̃\�[�g�̐ݒ��ێ�����悤�ɂ���
-*�S�������̃R�}���h���w�肳�ꂽ�Ƃ��ɁA$index, $msg, $encoding, $condition���������ꂽ�炷�ׂĒu������悤�ɂ���
-*References���p�[�X���鎞��ID�̍ő�l�𑝂₵��
-*OpenSSL��0.9.8j�ɍX�V
+===変更
+*[自分のアドレスからのメールは送信済みとみなす]のチェックがされていても、Toが自分だけの場合には送信済みのメールとはみなさないように変更（スパムフィルタの精度向上のため）
+*バックグラウンドでも@Identity, @SubAccount, @Iを使えるようにした
+*アドレス帳とアドレス選択ダイアログのソートの設定を保持するようにした
+*全文検索のコマンドを指定されたときに、$index, $msg, $encoding, $conditionが複数現れたらすべて置換するようにした
+*Referencesをパースする時のIDの最大値を増やした
+*OpenSSLを0.9.8jに更新
 
-===�C��
-*SMTP��PLAIN�F�؂����s����̂��C��
-*header.xml��edit�G�������g��width������auto���w�肷��ƕ���1px�ɂȂ�̂��C��
-*Windows Mobile 6.0 Standard�Ńo�b�N�X�y�[�X�L�[�������Ȃ����Ƃ�����̂��C��
-*�}���`���j�^���Ń_�C�A���O���ςȈʒu�ɏo�邱�Ƃ�����̂��C��
-*�T�u�A�J�E���g���Ɂu.�v���܂܂��ƁA���O���u.�v�̑O�܂łɂȂ��Ă��܂��̂��C��
-*���X�g�r���[�ɕ\������郁�b�Z�[�W����65535�𒴂���ƃX�N���[���o�[�̂܂݂��h���b�O�����Ƃ��ɐ������ʒu�ɃX�N���[������Ȃ��Ȃ�̂��C��
+===修正
+*SMTPのPLAIN認証が失敗するのを修正
+*header.xmlのeditエレメントのwidth属性にautoを指定すると幅が1pxになるのを修正
+*Windows Mobile 6.0 Standardでバックスペースキーが効かないことがあるのを修正
+*マルチモニタ環境でダイアログが変な位置に出ることがあるのを修正
+*サブアカウント名に「.」が含まれると、名前が「.」の前までになってしまうのを修正
+*リストビューに表示されるメッセージ数が65535を超えるとスクロールバーのつまみをドラッグしたときに正しい位置にスクロールされなくなるのを修正
 
 
 ==3.0.7
-===�ύX
-*STLport��5.2.0�ɍX�V
-*boost��1.37.0�ɍX�V
-*Windows SDK��v6.1�ɍX�V
+===変更
+*STLportを5.2.0に更新
+*boostを1.37.0に更新
+*Windows SDKをv6.1に更新
 
-===�C��
-*�A�h���X����RFC2822�`���Ƀ`�F�b�N������ƁA�A�h���X���������ۑ�����Ȃ��̂��C��
-*multipart/digest�`���̃_�C�W�F�X�g���[����W�J�ł��Ȃ��Ȃ��Ă����̂��C��
-*Windows Vista�Ŋ���̃A�v���P�[�V�����Ƃ��đI���ł��Ȃ��̂��C��
+===修正
+*アドレス帳でRFC2822形式にチェックを入れると、アドレスが正しく保存されないのを修正
+*multipart/digest形式のダイジェストメールを展開できなくなっていたのを修正
+*Windows Vistaで既定のアプリケーションとして選択できないのを修正
 
 
 ==3.0.6
-===�V�@�\
-*�N�����Ƀp�X���[�h���`�F�b�N����@�\��ǉ�
-*@SaveAttachment��ǉ�
+===新機能
+*起動時にパスワードをチェックする機能を追加
+*@SaveAttachmentを追加
 
-===�ύX
-*ViewFilterCustom�A�N�V�����Ɉ����Ńt�B���^�̃}�N�����w��ł���悤�ɂ���
-*POP3�T�[�o��Ƀ��b�Z�[�W�������ꍇ�ɂ́AUIDL��LIST�𑗂�Ȃ��悤�ɂ���
-*OpenSSL��0.9.8i�ɍX�V
-*�A�h���X�����烁�[���A�h���X��ǂݍ��ނƂ��ɐ��K������悤�ɂ���
+===変更
+*ViewFilterCustomアクションに引数でフィルタのマクロを指定できるようにした
+*POP3サーバ上にメッセージが無い場合には、UIDLやLISTを送らないようにした
+*OpenSSLを0.9.8iに更新
+*アドレス帳からメールアドレスを読み込むときに正規化するようにした
 
-===�C��
-*�X���b�h�\�����Ă����ԂŁA�X���b�h�̈ꕔ�̃��b�Z�[�W���폜�E�ړ��E�U�蕪���Ȃǂ���ƃN���b�V�����邱�Ƃ�����̂��C��
-*Windows Vista�Ńt�H���_�r���[�̔w�i�F���V�X�e���̔w�i�F�ƈقȂ�̂��C��
-*APOP�̃`�������W������̏������`�F�b�N����悤�ɂ���
+===修正
+*スレッド表示している状態で、スレッドの一部のメッセージを削除・移動・振り分けなどするとクラッシュすることがあるのを修正
+*Windows Vistaでフォルダビューの背景色がシステムの背景色と異なるのを修正
+*APOPのチャレンジ文字列の書式をチェックするようにした
 
 
 ==3.0.5
-===�V�@�\
-*qmail.xml��JunkFilter/Path�ŃX�p���t�B���^��DB��u���f�B���N�g�����w��ł���悤�ɂ���
-*account.xml��Imap4/SubscribeOnly��ǉ�
+===新機能
+*qmail.xmlのJunkFilter/PathでスパムフィルタのDBを置くディレクトリを指定できるようにした
+*account.xmlにImap4/SubscribeOnlyを追加
 
-===�ύX
-*���X�g�r���[����h���b�O�������b�Z�[�W�̓��X�g�r���[�ɂ̓h���b�v�ł��Ȃ��悤�ɂ���
-*OpenSSL��0.9.8h�ɍX�V
+===変更
+*リストビューからドラッグしたメッセージはリストビューにはドロップできないようにした
+*OpenSSLを0.9.8hに更新
 
-===�C��
-*Subject����̃��b�Z�[�W��Y�t����ƃt�@�C������".eml"�ɂȂ��Ă��܂��̂��C��
-*�N���b�V��������ȂǂɁA�t�H���_���̎��ۂ̃��b�Z�[�W���ƊǗ����Ă��郁�b�Z�[�W�������ꂽ�܂ܖ߂�Ȃ��Ȃ�̂��C��
-*�ݒ�t�@�C���������œǂݍ��݂Ȃ������ɁA�t�@�C�����ꎞ�I�ɊJ���Ȃ��ƃf�[�^���N���A����Ă��܂��̂��C��
-*SMTP�F�؂�PLAIN�������������Ă��Ȃ������̂��C��
-*@UnseenMessageCount��ۑ������@MessageCount�ɂȂ��Ă��܂��̂��C��
+===修正
+*Subjectが空のメッセージを添付するとファイル名が".eml"になってしまうのを修正
+*クラッシュした後などに、フォルダ内の実際のメッセージ数と管理しているメッセージ数がずれたまま戻らなくなるのを修正
+*設定ファイルを自動で読み込みなおす時に、ファイルが一時的に開けないとデータがクリアされてしまうのを修正
+*SMTP認証でPLAINが正しく動いていなかったのを修正
+*@UnseenMessageCountを保存すると@MessageCountになってしまうのを修正
 
 
 ==3.0.4
-===�V�@�\
-*message/rfc822�`���œY�t���ꂽ���b�Z�[�W�����b�Z�[�W�E�B���h�E�ŊJ����悤�ɂ���
-*���C���E�B���h�E��FileOpen�A�N�V�����ŁA�w�肵���t�@�C�������b�Z�[�W�E�B���h�E�ŊJ����悤�ɂ���
-*�R�}���h���C���I�v�V������-o��ǉ�
-*ToolInsertMacro�A�N�V������ǉ�
-*ToolApplyTemplate�A�N�V������ǉ�
-*ToolAddAddress�A�N�V�����ŃA�h���X���ɃA�h���X��ǉ�����Ƃ��ɁA���݂̃��b�Z�[�W��S/MIME�̏��������؂���Ă�����A�ؖ������A�h���X���ɒǉ�����悤�ɂ���
-*��{�����ɁA[���K�\��]�`�F�b�N�{�b�N�X��ǉ�
-*�d�b�ԍ��������N�ɂȂ�悤�ɂ���
-*���b�Z�[�W��Y�t�t�@�C���̃h���b�O�A���h�h���b�v�ŃG�N�X�v���[���ȊO�̃A�v���P�[�V�����ɂ��h���b�v�ł���悤�ɂ���
-*qmail.xml��Global/PrintCommand��ǉ����āA������Ɏg�p����R�}���h���w��ł���悤�ɂ���
-*�\�P�b�g��SSL�ŃG���[�����������Ƃ��ɁA�����_�C�A���O�ɂ��ڍׂȃG���[���b�Z�[�W��\������悤�ɂ���
-*IMAP4��NNTP�̃A�J�E���g�ŁA�����ȊO�̑���ŃG���[�����������Ƃ��ɂ��A�����_�C�A���O�ɃG���[����\������悤�ɂ���
+===新機能
+*message/rfc822形式で添付されたメッセージをメッセージウィンドウで開けるようにした
+*メインウィンドウのFileOpenアクションで、指定したファイルをメッセージウィンドウで開けるようにした
+*コマンドラインオプションに-oを追加
+*ToolInsertMacroアクションを追加
+*ToolApplyTemplateアクションを追加
+*ToolAddAddressアクションでアドレス帳にアドレスを追加するときに、現在のメッセージのS/MIMEの署名が検証されていたら、証明書をアドレス帳に追加するようにした
+*基本検索に、[正規表現]チェックボックスを追加
+*電話番号もリンクになるようにした
+*メッセージや添付ファイルのドラッグアンドドロップでエクスプローラ以外のアプリケーションにもドロップできるようにした
+*qmail.xmlにGlobal/PrintCommandを追加して、印刷時に使用するコマンドを指定できるようにした
+*ソケットやSSLでエラーが発生したときに、同期ダイアログにより詳細なエラーメッセージを表示するようにした
+*IMAP4とNNTPのアカウントで、同期以外の操作でエラーが発生したときにも、同期ダイアログにエラー情報を表示するようにした
 
-===�ύX
-*POP3�Ŏ�M�����Ƃ��ɁA�X�p���t�B���^�⎩���U�蕪�������s����O�ɃT�[�o����ؒf����悤�ɂ���
-*IMAP4�̎����U�蕪�����ɓ����p�̃Z�b�V�������g���܂킷�悤�ɂ���
-*mailto URL����������Ƃ��ɁA�G�X�P�[�v���ꂽ������UTF-8�Ƃ��ĕs���ȏꍇ�ɂ̓v���b�g�t�H�[���̃f�t�H���g�G���R�[�f�B���O�Ńf�R�[�h����悤�ɂ���
-*�A�J�E���g�_�C�A���O�������A�ǂ̃A�J�E���g���I������Ă��Ȃ��ꍇ�ɂ͍ŏ��̃A�J�E���g��I������悤�ɂ���
-*UI�X���b�h�ȊO����A@Messages���g���ăR���e�L�X�g�A�J�E���g�ȊO�̃��b�Z�[�W���擾�������ɂ̓G���[�ɂȂ�悤�ɂ���
-*RSS Auto Discovery�����s����Ƃ��ɁARSS��Atom������������Atom��D�悷��悤�ɂ���
+===変更
+*POP3で受信したときに、スパムフィルタや自動振り分けを実行する前にサーバから切断するようにした
+*IMAP4の自動振り分け時に同期用のセッションを使いまわすようにした
+*mailto URLを処理するときに、エスケープされた文字列がUTF-8として不正な場合にはプラットフォームのデフォルトエンコーディングでデコードするようにした
+*アカウントダイアログを閉じた後、どのアカウントも選択されていない場合には最初のアカウントを選択するようにした
+*UIスレッド以外から、@Messagesを使ってコンテキストアカウント以外のメッセージを取得した時にはエラーになるようにした
+*RSS Auto Discoveryを実行するときに、RSSとAtomが見つかったらAtomを優先するようにした
 
-===�C��
-*POP3�ŃT�[�o���烁�b�Z�[�W���폜����ݒ�̏ꍇ�ɁAQUIT�ŃG���[����������Ǝ��񃁃b�Z�[�W���d����M���Ă��܂����Ƃ�����̂��C��
-*IMAP4�Ŏ��X�t�H���_���̂��ׂẴ��b�Z�[�W�𓯊����Ȃ����Ă��܂����Ƃ�����̂��C��
-*�G�f�B�b�g�E�B���h�E�Ń��b�Z�[�W���t�@�C���ɕۑ������Ƃ��ɁAX-QMAIL-Account���t���Ȃ��̂��C��
-*������ݒ肵�Ă��Ȃ��Ƃ��ɁA�s����X-QMAIL-Signature���t���̂��C��
-*�O���G�f�B�^���烁�b�Z�[�W���쐬����Ƃ��ɁAX-QMAIL-Signature����������Ȃ��̂��C��
-*�o�b�N�O���E���h�Ńt�H���_���̃��b�Z�[�W�̐����ς�����Ƃ��ɁAUI���u���b�N���Ă��܂����Ƃ�����̂����
-*���b�Z�[�W�r���[��G�f�B�b�g�r���[�̃J�[�\�����X�N���[�������Ƃ��ȂǂɍX�V����Ȃ��̂��C��
-*�I�v�V�����_�C�A���O�ŕҏW�\�ȃR���{�{�b�N�X�Ƀt�H�[�J�X������Ƃ���Tab�������Ȃ��̂��C��
-*�I�v�V�����_�C�A���O�ŕ����̃f�t�H���g�{�^�������݂��Ă��܂����Ƃ�����̂��C��
-*���b�Z�[�W��DnD�ŃG�N�X�|�[�g�����Ƃ��ɁA�t�@�C�������f�o�C�X���ɂȂ�Ȃ��悤�ɂ���
+===修正
+*POP3でサーバからメッセージを削除する設定の場合に、QUITでエラーが発生すると次回メッセージを重複受信してしまうことがあるのを修正
+*IMAP4で時々フォルダ内のすべてのメッセージを同期しなおしてしまうことがあるのを修正
+*エディットウィンドウでメッセージをファイルに保存したときに、X-QMAIL-Accountが付かないのを修正
+*署名を設定していないときに、不正なX-QMAIL-Signatureが付くのを修正
+*外部エディタからメッセージを作成するときに、X-QMAIL-Signatureが処理されないのを修正
+*バックグラウンドでフォルダ内のメッセージの数が変わったときに、UIがブロックしてしまうことがあるのを回避
+*メッセージビューやエディットビューのカーソルがスクロールしたときなどに更新されないのを修正
+*オプションダイアログで編集可能なコンボボックスにフォーカスがあるときにTabが効かないのを修正
+*オプションダイアログで複数のデフォルトボタンが存在してしまうことがあるのを修正
+*メッセージをDnDでエクスポートしたときに、ファイル名がデバイス名にならないようにした
 
 
 ==3.0.3
-===�V�@�\
-*ViewSelectFolder�A�N�V������ǉ�
-*@MessageCount, @UnseenMessageCount��ǉ�
-*�R�}���h���C���Ń��O���x�����w��ł���悤�ɂ���
-*qmail.xml�Ŋ֘A�t�����w�肷�邱�Ƃɂ��AURL���J���Ƃ��ɃV�X�e���̊֘A�t�����㏑���ł���悤�ɂ���
+===新機能
+*ViewSelectFolderアクションを追加
+*@MessageCount, @UnseenMessageCountを追加
+*コマンドラインでログレベルを指定できるようにした
+*qmail.xmlで関連付けを指定することにより、URLを開くときにシステムの関連付けを上書きできるようにした
 
-===�ύX
-*���ׂĂ�\������Ƃ��Ƀ}���`�p�[�g�̃v���A���u���ƃG�s���[�O���\������悤�ɂ���
-*HTML�ɖ��ߍ��܂ꂽ�摜�Ȃǂ���������Ƃ��ɁA������x�s����Content-ID�̏ꍇ�ł������悤�ɂ���
-*�G�f�B�b�g�r���[���J���Ă���Ƃ��ɂ͎������񂵂Ȃ��悤�ɂ���
-*�_�C�A���O�Ȃǂ��J���Ă��Ď�������ł��Ȃ������Ƃ��ɂ́A�ł���悤�ɂȂ莟�揄�񂷂�悤�ɂ���
-*�U�蕪���Ń��b�Z�[�W���R�s�[������ŁA���̃��[����K�p�ł���悤�ɂ���
-*@I()�œ�̈��������Ɏw�肳��Ă���ꍇ�ɂ́A�o�b�N�O���E���h����Ăׂ�悤�ɂ���
-*�X�p���t�B���^�Ńg�[�N���𕪊�����Ƃ��ɁA�啶���Ə��������������Ă��镶����͑啶���̑O�ŕ�������悤�ɂ���
+===変更
+*すべてを表示するときにマルチパートのプリアンブルとエピローグも表示するようにした
+*HTMLに埋め込まれた画像などを処理するときに、ある程度不正なContent-IDの場合でも扱うようにした
+*エディットビューが開いているときには自動巡回しないようにした
+*ダイアログなどが開いていて自動巡回できなかったときには、できるようになり次第巡回するようにした
+*振り分けでメッセージをコピーした後で、次のルールを適用できるようにした
+*@I()で二つの引数が共に指定されている場合には、バックグラウンドから呼べるようにした
+*スパムフィルタでトークンを分割するときに、大文字と小文字が混じっている文字列は大文字の前で分割するようにした
 
-===�C��
-*�}���`�p�[�g�̃��b�Z�[�W���p�[�X���鎞�ɃN���b�V�����邱�Ƃ�����̂��C��
-*@FormatDate��%W2��%W3���Ԉ�����j���ɂȂ�̂��C��
-*account.xml��Global/IndexMaxSize���w�肵�Ă���Ƃ��ɁA�w�肵������葽���̃��b�Z�[�W���폜����ƁA���̌�C���f�b�N�X�̕\�������������Ȃ�̂��C��
-*HTML�\�������鎞�ɁAMETA�^�O�ŕ����R�[�h���w�肳��Ă���ƁAMETA�^�O�̎��̈ꕶ���������Ă��܂��̂��C��
+===修正
+*マルチパートのメッセージをパースする時にクラッシュすることがあるのを修正
+*@FormatDateの%W2と%W3が間違った曜日になるのを修正
+*account.xmlのGlobal/IndexMaxSizeを指定しているときに、指定した数より多くのメッセージを削除すると、その後インデックスの表示がおかしくなるのを修正
+*HTML表示をする時に、METAタグで文字コードが指定されていると、METAタグの次の一文字が消えてしまうのを修正
 
 
 ==3.0.2
-===���ӓ_
-���C�Z���X���ύX����܂����B�ύX��̃��C�Z���X�́A((<���C�Z���X|URL:license.html>))���Q�Ƃ��Ă��������B
+===注意点
+ライセンスが変更されました。変更後のライセンスは、((<ライセンス|URL:license.html>))を参照してください。
 
-===�V�@�\
-*����̐ݒ���g���ăo�b�N�O���E���h�ŐU�蕪���邱�Ƃ��ł���悤�ɂ���
-*MessageApplyRuleBackground�A�N�V������MessageApplyRuleBackgroundAll�A�N�V������ǉ�
+===新機能
+*巡回の設定を使ってバックグラウンドで振り分けることができるようにした
+*MessageApplyRuleBackgroundアクションとMessageApplyRuleBackgroundAllアクションを追加
 
-===�ύX
-*STLport-5.1.4�ɍX�V
-*OpenSSL 0.9.8g�ɍX�V
+===変更
+*STLport-5.1.4に更新
+*OpenSSL 0.9.8gに更新
 
-===�C��
-*�����I������folders.xml�̕ۑ��ŃG���[���������邱�Ƃ�����̂��C��
-*�����t�H���_�𓯎��ɓ������Ȃ����߂̎d�g�݂������������Ă��Ȃ������̂��C��
-*msvcp80.dll���C���X�g�[�����ꂸ�A�N���ł��Ȃ����Ƃ��������̂��C��
+===修正
+*同期終了時のfolders.xmlの保存でエラーが発生することがあるのを修正
+*同じフォルダを同時に同期しないための仕組みが正しく動いていなかったのを修正
+*msvcp80.dllがインストールされず、起動できないことがあったのを修正
 
 
 ==3.0.1
-===���ӓ_
-���̃o�[�W�����ŁAWindows�ł̎��s�ɕK�v�ȃ����^�C�����C�u�������X�V����Ă��܂��B((<�_�E�����[�h�y�[�W|URL:download.html>))���烉���^�C�����C�u�������_�E�����[�h���ăC���X�g�[�����Ă��������B
+===注意点
+このバージョンで、Windows版の実行に必要なランタイムライブラリが更新されています。((<ダウンロードページ|URL:download.html>))からランタイムライブラリをダウンロードしてインストールしてください。
 
-===�V�@�\
-*Windows Mobile�łɃ����h�X�P�[�v�p�̃_�C�A���O��ǉ�����
-*�R�}���h���C����-f���w�肳�ꂽ�ꍇ�ɂ́A���b�N�t�@�C�������o����Ă����̂܂ܑ��s����悤�ɂ���
-*GnuPG�Ńp�X���[�h��q�˂�Ƃ��Ƀ��[�UID��\������悤�ɂ���
-*GnuPG�ňÍ�������Ƃ���Bcc��ATo��������Cc�ɃO���[�v�A�h���X���܂܂�A���̃A�h���X��From, Sender, Reply-To�̂�����ɂ�����Ȃ��ꍇ�ɂ͓����ňÍ�������悤�ɂ����iPGP/HiddenRecipient�ŗL���E������؂�ւ��\�j
-*�X�p���t�B���^�ňꕔ�̓Y�t�t�@�C���̒��g���X�L�����ł���悤�ɂ����ixdoc2txt���K�v�j
-*��������̃G���g�����ꎞ�I�ɖ����ɂł���悤�ɂ���
-*�U�蕪�����[���̃G���g�����ꎞ�I�ɖ����ɂł���悤�ɂ���
-*ToolSubAccount�A�N�V���������b�Z�[�W�E�B���h�E������g����悤�ɂ���
-*���I���j���[��ToolSubAccount�����b�Z�[�W�E�B���h�E������g����悤�ɂ���
+===新機能
+*Windows Mobile版にランドスケープ用のダイアログを追加した
+*コマンドラインで-fが指定された場合には、ロックファイルが検出されてもそのまま続行するようにした
+*GnuPGでパスワードを尋ねるときにユーザIDを表示するようにした
+*GnuPGで暗号化するときにBccや、ToもしくはCcにグループアドレスが含まれ、そのアドレスがFrom, Sender, Reply-Toのいずれにも現れない場合には匿名で暗号化するようにした（PGP/HiddenRecipientで有効・無効を切り替え可能）
+*スパムフィルタで一部の添付ファイルの中身もスキャンできるようにした（xdoc2txtが必要）
+*自動巡回のエントリを一時的に無効にできるようにした
+*振り分けルールのエントリを一時的に無効にできるようにした
+*ToolSubAccountアクションをメッセージウィンドウからも使えるようにした
+*動的メニューのToolSubAccountをメッセージウィンドウからも使えるようにした
 
-===�ύX
-*Windows Mobile 5.0�ł̃��j���[���\�t�g�L�[�Ή��ɂ���
-*�E�B���h�E���B������Ԃ��畜�A����Ƃ��Ƀ��b�Z�[�W�E�B���h�E�����A������悤�ɂ���
-*multipart/appledouble�̉��ɂ���application/applefile�͓Y�t�t�@�C���Ƃ��Ĉ���Ȃ��悤�ɂ���
-*�����I������folders.xml���ۑ�����悤�ɂ���
-*�X�p���t�B���^��message/rfc822�p�[�g�̓������X�L��������悤�ɂ���
-*STLport-5.1.3�ɍX�V�istlport.5.1.dll�ƁiWindows Mobile 5.0�łł́jmsvcr80.dll���K�v�j
-*boost-1.34.0�ɍX�V
+===変更
+*Windows Mobile 5.0版のメニューをソフトキー対応にした
+*ウィンドウを隠した状態から復帰するときにメッセージウィンドウも復帰させるようにした
+*multipart/appledoubleの下にあるapplication/applefileは添付ファイルとして扱わないようにした
+*同期終了時にfolders.xmlも保存するようにした
+*スパムフィルタでmessage/rfc822パートの内部もスキャンするようにした
+*STLport-5.1.3に更新（stlport.5.1.dllと（Windows Mobile 5.0版では）msvcr80.dllが必要）
+*boost-1.34.0に更新
 
-===�C��
-*�w�b�_�r���[�̕\���E��\����؂�ւ����Ƃ��Ƀ��b�Z�[�W��\�����Ȃ����悤�ɂ���
-*RSS��Atom�����������Ƃ��Ƀ����N���URL��ID���󂾂ƁA����N�������Ƃ��ɑS�Ẵt�B�[�h���擾���Ȃ����Ă��܂���������̂��C��
-*IMAP4�A�J�E���g�Ŗ{�����L���b�V�����Ă��Ȃ��Ƃ��ɁA�l�X�g�����}���`�p�[�g�𐳂��������ł��Ȃ����Ƃ�����̂��C��
-*�Y�t�t�@�C�����J���Ƃ��ɁA�x������ݒ�̊g���q�ł��x�����o�Ȃ����Ƃ�����̂��C��
+===修正
+*ヘッダビューの表示・非表示を切り替えたときにメッセージを表示しなおすようにした
+*RSSやAtomを処理したときにリンク先のURLやIDが空だと、次回起動したときに全てのフィードを取得しなおしてしまう事があるのを修正
+*IMAP4アカウントで本文をキャッシュしていないときに、ネストしたマルチパートを正しく復元できないことがあるのを修正
+*添付ファイルを開くときに、警告する設定の拡張子でも警告が出ないことがあるのを修正
 
 
 ==3.0.0
-*2.9.33����̕ύX�_�͂���܂���B
-*���̃o�[�W�����ňȉ��̃v���b�g�t�H�[���̃T�|�[�g�͏I�����܂��B
+*2.9.33からの変更点はありません。
+*このバージョンで以下のプラットフォームのサポートは終了します。
   *Windows 95/98/98SE/Me/NT 4.0
   *Windows Mobile 2003 SE
   *Windows Mobile 2003

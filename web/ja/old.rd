@@ -1,19 +1,19 @@
 =begin
-=ŒÃ‚¢ƒo[ƒWƒ‡ƒ“
-ˆÈ‰º‚ÍŒ»ÝƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚È‚¢ƒvƒ‰ƒbƒgƒtƒH[ƒ€‚ÌÅŒã‚Ìƒo[ƒWƒ‡ƒ“‚Å‚·B
+=å¤ã„ãƒãƒ¼ã‚¸ãƒ§ãƒ³
+ä»¥ä¸‹ã¯ç¾åœ¨ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ãªã„ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ ã®æœ€å¾Œã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã§ã™ã€‚
 
 ((:<table>
 <tr>
-<th>ƒvƒ‰ƒbƒgƒtƒH[ƒ€</th>
+<th>ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ </th>
 <th>CPU</th>
-<th>ƒCƒ“ƒXƒg[ƒ‰</th>
+<th>ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©</th>
 <th>Zip</th>
-<th>“ú–{ŒêUI</th>
+<th>æ—¥æœ¬èªžUI</th>
 </tr>
 <tr>
 <td>Windows 95/98/98SE/Me/NT 4.0</td>
 <td>x86</td>
-<td><a href="/download/snapshot/q3-win-x86-ja-3_0_0.exe">ƒCƒ“ƒXƒg[ƒ‰</a></td>
+<td><a href="/download/snapshot/q3-win-x86-ja-3_0_0.exe">ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ©</a></td>
 <td><a href="/download/snapshot/q3-win-x86-ja-3_0_0.zip">Zip</a></td>
 <td><a href="/download/snapshot/q3-win-x86-ja-mui0411-3_0_0.zip">Zip</a></td>
 </tr>
@@ -111,25 +111,25 @@
 </table>:))
 
 
-==ƒhƒLƒ…ƒƒ“ƒg
-‚±‚ê‚ç‚Ìƒo[ƒWƒ‡ƒ“‚ðƒŠƒŠ[ƒX‚µ‚½‚Æ‚«‚ÌƒhƒLƒ…ƒƒ“ƒg‚Å‚·Bƒ_ƒEƒ“ƒ[ƒh‚µ‚ÄŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+==ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ
+ã“ã‚Œã‚‰ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ãŸã¨ãã®ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã§ã™ã€‚ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¦å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
-*((<ƒhƒLƒ…ƒƒ“ƒg|URL:/download/snapshot/q3-doc-3_0_0.zip">))
+*((<ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ|URL:/download/snapshot/q3-doc-3_0_0.zip">))
 
 
-==ƒ‰ƒ“ƒ^ƒCƒ€ƒ‰ƒCƒuƒ‰ƒŠ
-Windows”Å‚Åƒ‰ƒ“ƒ^ƒCƒ€ƒ‰ƒCƒuƒ‰ƒŠ‚ª‚È‚­‚Ä‹N“®‚µ‚È‚¢ê‡‚É‚ÍAˆÈ‰º‚©‚çMicrosoft Visual C++ 2005 SP1 Ä”Ð•z‰Â”\ƒpƒbƒP[ƒW‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚ÄƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä‚­‚¾‚³‚¢B
+==ãƒ©ãƒ³ã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ–ãƒ©ãƒª
+Windowsç‰ˆã§ãƒ©ãƒ³ã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ–ãƒ©ãƒªãŒãªãã¦èµ·å‹•ã—ãªã„å ´åˆã«ã¯ã€ä»¥ä¸‹ã‹ã‚‰Microsoft Visual C++ 2005 SP1 å†é ’å¸ƒå¯èƒ½ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¦ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦ãã ã•ã„ã€‚
 
-*((<Microsoft Visual C++ 2005 SP1 Ä”Ð•z‰Â”\ƒpƒbƒP[ƒW (x86)|URL:http://www.microsoft.com/downloads/details.aspx?FamilyID=200b2fd9-ae1a-4a14-984d-389c36f85647&DisplayLang=ja>))
-*((<Microsoft Visual C++ 2005 SP1 Ä”Ð•z‰Â”\ƒpƒbƒP[ƒW (x64)|URL:http://www.microsoft.com/downloads/details.aspx?FamilyID=eb4ebe2d-33c0-4a47-9dd4-b9a6d7bd44da&DisplayLang=ja>))
+*((<Microsoft Visual C++ 2005 SP1 å†é ’å¸ƒå¯èƒ½ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ (x86)|URL:http://www.microsoft.com/downloads/details.aspx?FamilyID=200b2fd9-ae1a-4a14-984d-389c36f85647&DisplayLang=ja>))
+*((<Microsoft Visual C++ 2005 SP1 å†é ’å¸ƒå¯èƒ½ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ (x64)|URL:http://www.microsoft.com/downloads/details.aspx?FamilyID=eb4ebe2d-33c0-4a47-9dd4-b9a6d7bd44da&DisplayLang=ja>))
 
-‚Ü‚½‚ÍAˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚ÄA“WŠJ‚µ‚Ä‚Å‚«‚émsvcr80.dll‚ÆMicrosoft.VC80.CRT.manifest‚ð‘¼‚ÌEXE‚âDLL‚Æ“¯‚¶ƒfƒBƒŒƒNƒgƒŠ‚É“ü‚ê‚Ä‚­‚¾‚³‚¢B
+ã¾ãŸã¯ã€ä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¦ã€å±•é–‹ã—ã¦ã§ãã‚‹msvcr80.dllã¨Microsoft.VC80.CRT.manifestã‚’ä»–ã®EXEã‚„DLLã¨åŒã˜ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«å…¥ã‚Œã¦ãã ã•ã„ã€‚
 
 ((:<table>
 <tr>
-<th>ƒvƒ‰ƒbƒgƒtƒH[ƒ€</th>
+<th>ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ </th>
 <th>CPU</th>
-<th>ƒ_ƒEƒ“ƒ[ƒh</th>
+<th>ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰</th>
 </tr>
 <tr>
 <td>Windows</td>
@@ -145,13 +145,13 @@ Windows”Å‚Åƒ‰ƒ“ƒ^ƒCƒ€ƒ‰ƒCƒuƒ‰ƒŠ‚ª‚È‚­‚Ä‹N“®‚µ‚È‚¢ê‡‚É‚ÍAˆÈ‰º‚©‚çMicrosoft Vis
 
 
 ==OpenSSL
-SSL‚âS/MIME‚Ì‹@”\‚ðŽg—p‚·‚é‚½‚ß‚É‚ÍOpenSSL‚Ìƒ‰ƒCƒuƒ‰ƒŠ‚ª•K—v‚Å‚·B((<OpenSSL‚Ìƒy[ƒW|URL:http://www.openssl.org>))‚©‚çƒ\[ƒX‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚Äƒrƒ‹ƒh‚·‚é‚±‚Æ‚ªo—ˆ‚Ü‚·‚ªA‚±‚±‚©‚çƒoƒCƒiƒŠ‚ðƒ_ƒEƒ“ƒ[ƒh‚·‚é‚±‚Æ‚ào—ˆ‚Ü‚·BŒ»Ýƒ_ƒEƒ“ƒ[ƒh‰Â”\‚È‚Ì‚ÍA OpenSSL 0.9.8e‚Å‚·BPocket PC 2002, HPC2000, Pocket PC, HPC Pro‚ÅŽg—p‚·‚éê‡‚É‚Í‘S‚ÄWindows CE”Å‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚Ä‚­‚¾‚³‚¢B
+SSLã‚„S/MIMEã®æ©Ÿèƒ½ã‚’ä½¿ç”¨ã™ã‚‹ãŸã‚ã«ã¯OpenSSLã®ãƒ©ã‚¤ãƒ–ãƒ©ãƒªãŒå¿…è¦ã§ã™ã€‚((<OpenSSLã®ãƒšãƒ¼ã‚¸|URL:http://www.openssl.org>))ã‹ã‚‰ã‚½ãƒ¼ã‚¹ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¦ãƒ“ãƒ«ãƒ‰ã™ã‚‹ã“ã¨ãŒå‡ºæ¥ã¾ã™ãŒã€ã“ã“ã‹ã‚‰ãƒã‚¤ãƒŠãƒªã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ã“ã¨ã‚‚å‡ºæ¥ã¾ã™ã€‚ç¾åœ¨ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰å¯èƒ½ãªã®ã¯ã€ OpenSSL 0.9.8eã§ã™ã€‚Pocket PC 2002, HPC2000, Pocket PC, HPC Proã§ä½¿ç”¨ã™ã‚‹å ´åˆã«ã¯å…¨ã¦Windows CEç‰ˆã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¦ãã ã•ã„ã€‚
 
 ((:<table>
 <tr>
-<th>ƒvƒ‰ƒbƒgƒtƒH[ƒ€</th>
+<th>ãƒ—ãƒ©ãƒƒãƒˆãƒ•ã‚©ãƒ¼ãƒ </th>
 <th>CPU</th>
-<th>ƒ_ƒEƒ“ƒ[ƒh</th>
+<th>ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰</th>
 </tr>
 <tr>
 <td>Windows</td>
@@ -185,6 +185,6 @@ SSL‚âS/MIME‚Ì‹@”\‚ðŽg—p‚·‚é‚½‚ß‚É‚ÍOpenSSL‚Ìƒ‰ƒCƒuƒ‰ƒŠ‚ª•K—v‚Å‚·B((<OpenSSL‚Ìƒy
 </tr>
 </table>:))
 
-‚±‚±‚©‚çƒ_ƒEƒ“ƒ[ƒh‚Å‚«‚éOpenSSL‚ÌDLL‚ÍWindows 95‚âWindows NT 4.0‚Å‚ÍVC8‚Ìƒ‰ƒ“ƒ^ƒCƒ€‚ª‘Î‰ž‚µ‚Ä‚¢‚È‚¢‚½‚ß‚É“®ì‚µ‚Ü‚¹‚ñB‚©‚í‚è‚É((<Win32 OpenSSL|URL:http://www.slproweb.com/products/Win32OpenSSL.html>))‚È‚Ç‚©‚ç“üŽè‚µ‚Ä‚­‚¾‚³‚¢B
+ã“ã“ã‹ã‚‰ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã§ãã‚‹OpenSSLã®DLLã¯Windows 95ã‚„Windows NT 4.0ã§ã¯VC8ã®ãƒ©ãƒ³ã‚¿ã‚¤ãƒ ãŒå¯¾å¿œã—ã¦ã„ãªã„ãŸã‚ã«å‹•ä½œã—ã¾ã›ã‚“ã€‚ã‹ã‚ã‚Šã«((<Win32 OpenSSL|URL:http://www.slproweb.com/products/Win32OpenSSL.html>))ãªã©ã‹ã‚‰å…¥æ‰‹ã—ã¦ãã ã•ã„ã€‚
 
 =end

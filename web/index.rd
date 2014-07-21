@@ -1,7 +1,7 @@
 =begin
 =QMAIL3
 
-*((<“ú–{Œê|URL:ja/>))
+*((<æ—¥æœ¬èªž|URL:ja/>))
 *((<English|URL:en/>))
 
 =end

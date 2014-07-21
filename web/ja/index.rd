@@ -1,57 +1,57 @@
 =begin
 =QMAIL3
 
-==QMAIL3‚Æ‚Í
-QMAIL3‚ÍAWindows‚¨‚æ‚ÑWindows CEŒn‚ÌOS‚Å“®ì‚·‚éƒ[ƒ‰‚Å‚·BˆÈ‰º‚Ì‚æ‚¤‚È“Á’¥‚ª‚ ‚è‚Ü‚·B
+==QMAIL3ã¨ã¯
+QMAIL3ã¯ã€WindowsãŠã‚ˆã³Windows CEç³»ã®OSã§å‹•ä½œã™ã‚‹ãƒ¡ãƒ¼ãƒ©ã§ã™ã€‚ä»¥ä¸‹ã®ã‚ˆã†ãªç‰¹å¾´ãŒã‚ã‚Šã¾ã™ã€‚
 
-*POP3, SMTP, IMAP4, NNTP, RSS, Atom‚ðƒTƒ|[ƒg
-*ŠeŽí”FØ(APOP, SMTP”FØ)‚ÌƒTƒ|[ƒg
-*SSL/STARTTLS‚ÌƒTƒ|[ƒg
-*S/MIME‚ÌƒTƒ|[ƒg
-*PGP/GnuPG‚ÌƒTƒ|[ƒg(Windows”Å‚Ì‚Ý)
-*HTMLƒ[ƒ‹•\Ž¦‹@”\
-*ƒ}ƒNƒ‚ðŽg—p‚µ‚½U‚è•ª‚¯AF‚Ã‚¯AƒtƒBƒ‹ƒ^‹@”\
-*ƒeƒ“ƒvƒŒ[ƒg‚ðŽg—p‚µ‚½ƒƒbƒZ[ƒW‚Ì•\Ž¦A•ÒW‹@”\
-*namazu, Hyper Estraier‚Æ˜A“®‚µ‚½‘S•¶ŒŸõ‹@”\(Windows”Å‚Ì‚Ý)
-*ŠwKŒ^ƒXƒpƒ€ƒtƒBƒ‹ƒ^(Windows”Å‚Ì‚Ý)
-*ƒJƒXƒ^ƒ}ƒCƒY‰Â”\‚È‰æ–Ê•\Ž¦Aƒƒjƒ…[AƒL[ƒAƒTƒCƒ“Aƒc[ƒ‹ƒo[
+*POP3, SMTP, IMAP4, NNTP, RSS, Atomã‚’ã‚µãƒãƒ¼ãƒˆ
+*å„ç¨®èªè¨¼(APOP, SMTPèªè¨¼)ã®ã‚µãƒãƒ¼ãƒˆ
+*SSL/STARTTLSã®ã‚µãƒãƒ¼ãƒˆ
+*S/MIMEã®ã‚µãƒãƒ¼ãƒˆ
+*PGP/GnuPGã®ã‚µãƒãƒ¼ãƒˆ(Windowsç‰ˆã®ã¿)
+*HTMLãƒ¡ãƒ¼ãƒ«è¡¨ç¤ºæ©Ÿèƒ½
+*ãƒžã‚¯ãƒ­ã‚’ä½¿ç”¨ã—ãŸæŒ¯ã‚Šåˆ†ã‘ã€è‰²ã¥ã‘ã€ãƒ•ã‚£ãƒ«ã‚¿æ©Ÿèƒ½
+*ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚’ä½¿ç”¨ã—ãŸãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®è¡¨ç¤ºã€ç·¨é›†æ©Ÿèƒ½
+*namazu, Hyper Estraierã¨é€£å‹•ã—ãŸå…¨æ–‡æ¤œç´¢æ©Ÿèƒ½(Windowsç‰ˆã®ã¿)
+*å­¦ç¿’åž‹ã‚¹ãƒ‘ãƒ ãƒ•ã‚£ãƒ«ã‚¿(Windowsç‰ˆã®ã¿)
+*ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚ºå¯èƒ½ãªç”»é¢è¡¨ç¤ºã€ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã€ã‚­ãƒ¼ã‚¢ã‚µã‚¤ãƒ³ã€ãƒ„ãƒ¼ãƒ«ãƒãƒ¼
 
-==ƒjƒ…[ƒX
-*2010/8/28 - 3.0.9‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
-*2009/5/13 - 3.0.8‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
-*2008/12/28 - 3.0.7‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
-*2008/10/31 - 3.0.6‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
-*2008/6/14 - 3.0.5‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
-*2008/3/5 - 3.0.4‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
-*2008/1/12 - 3.0.3‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
-*2007/10/31 - ((<ƒ\[ƒXƒR[ƒh|URL:source.html>))‚ðŒöŠJ‚µ‚Ü‚µ‚½B
-*2007/10/25 - 3.0.2‚ðƒŠƒŠ[ƒX‚µ‚Ü‚µ‚½B
+==ãƒ‹ãƒ¥ãƒ¼ã‚¹
+*2010/8/28 - 3.0.9ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ã¾ã—ãŸã€‚
+*2009/5/13 - 3.0.8ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ã¾ã—ãŸã€‚
+*2008/12/28 - 3.0.7ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ã¾ã—ãŸã€‚
+*2008/10/31 - 3.0.6ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ã¾ã—ãŸã€‚
+*2008/6/14 - 3.0.5ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ã¾ã—ãŸã€‚
+*2008/3/5 - 3.0.4ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ã¾ã—ãŸã€‚
+*2008/1/12 - 3.0.3ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ã¾ã—ãŸã€‚
+*2007/10/31 - ((<ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰|URL:source.html>))ã‚’å…¬é–‹ã—ã¾ã—ãŸã€‚
+*2007/10/25 - 3.0.2ã‚’ãƒªãƒªãƒ¼ã‚¹ã—ã¾ã—ãŸã€‚
 
-==((<ƒ_ƒEƒ“ƒ[ƒh|URL:download.html>))
+==((<ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰|URL:download.html>))
 
-==((<ƒŠƒŠ[ƒXƒm[ƒg|URL:releasenotes.html>))
+==((<ãƒªãƒªãƒ¼ã‚¹ãƒŽãƒ¼ãƒˆ|URL:releasenotes.html>))
 
-==((<ƒhƒLƒ…ƒƒ“ƒg|URL:/doc/>))
+==((<ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ|URL:/doc/>))
 
-==((<—Ç‚­‚ ‚éŽ¿–â|URL:/doc/FAQ.html>))
+==((<è‰¯ãã‚ã‚‹è³ªå•|URL:/doc/FAQ.html>))
 
-==((<ƒ[ƒŠƒ“ƒOƒŠƒXƒg|URL:http://qs.snak.org/cgi-bin/mailman/listinfo/qs>))
-Ž¿–â‚È‚Ç‚Íƒ[ƒŠƒ“ƒOƒŠƒXƒg‚É“Še‚µ‚Ä‚­‚¾‚³‚¢Bƒ[ƒŠƒ“ƒOƒŠƒXƒg‚ÉŽQ‰Á‚·‚é‚Æ‰ß‹Ž‚Ì“Še‚àŒ©‚ê‚é‚æ‚¤‚É‚È‚è‚Ü‚·B
+==((<ãƒ¡ãƒ¼ãƒªãƒ³ã‚°ãƒªã‚¹ãƒˆ|URL:http://qs.snak.org/cgi-bin/mailman/listinfo/qs>))
+è³ªå•ãªã©ã¯ãƒ¡ãƒ¼ãƒªãƒ³ã‚°ãƒªã‚¹ãƒˆã«æŠ•ç¨¿ã—ã¦ãã ã•ã„ã€‚ãƒ¡ãƒ¼ãƒªãƒ³ã‚°ãƒªã‚¹ãƒˆã«å‚åŠ ã™ã‚‹ã¨éŽåŽ»ã®æŠ•ç¨¿ã‚‚è¦‹ã‚Œã‚‹ã‚ˆã†ã«ãªã‚Šã¾ã™ã€‚
 
-==((<ƒoƒOƒgƒ‰ƒbƒLƒ“ƒOƒVƒXƒeƒ€|URL:/bts/guest.cgi?project=Q3&action=top>))
-ƒoƒO•ñ‚â—v–]‚È‚Ç‚ÍƒoƒOƒgƒ‰ƒbƒLƒ“ƒOƒVƒXƒeƒ€‚É‘‚«ž‚ñ‚Å‚­‚¾‚³‚¢B
+==((<ãƒã‚°ãƒˆãƒ©ãƒƒã‚­ãƒ³ã‚°ã‚·ã‚¹ãƒ†ãƒ |URL:/bts/guest.cgi?project=Q3&action=top>))
+ãƒã‚°å ±å‘Šã‚„è¦æœ›ãªã©ã¯ãƒã‚°ãƒˆãƒ©ãƒƒã‚­ãƒ³ã‚°ã‚·ã‚¹ãƒ†ãƒ ã«æ›¸ãè¾¼ã‚“ã§ãã ã•ã„ã€‚
 
 ==((<Lingr|URL:http://www.lingr.com/room/bJETSwHp1e5>))
-Webƒ`ƒƒƒbƒg‚Å‚·BƒRƒƒ“ƒg—“‘ã‚í‚è‚ÉŽg‚Á‚Ä‚¢‚½‚¾‚¢‚Ä‚àŒ‹\‚Å‚·B
+Webãƒãƒ£ãƒƒãƒˆã§ã™ã€‚ã‚³ãƒ¡ãƒ³ãƒˆæ¬„ä»£ã‚ã‚Šã«ä½¿ã£ã¦ã„ãŸã ã„ã¦ã‚‚çµæ§‹ã§ã™ã€‚
 
-==((<ƒƒ‚|URL:http://snak.tdiary.net/>))
-Nightly Build‚Å‚Ì•ÏX‚Í‚±‚¿‚ç‚Ìƒƒ‚‚É‘‚©‚ê‚é‚±‚Æ‚ª‘½‚¢‚Å‚·B
+==((<ãƒ¡ãƒ¢|URL:http://snak.tdiary.net/>))
+Nightly Buildã§ã®å¤‰æ›´ã¯ã“ã¡ã‚‰ã®ãƒ¡ãƒ¢ã«æ›¸ã‹ã‚Œã‚‹ã“ã¨ãŒå¤šã„ã§ã™ã€‚
 
-==((<ƒ\[ƒXƒR[ƒh|URL:source.html>))
+==((<ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰|URL:source.html>))
 
-==((<ƒ‰ƒCƒZƒ“ƒX|URL:license.html>))
+==((<ãƒ©ã‚¤ã‚»ãƒ³ã‚¹|URL:license.html>))
 
-==˜A—æ
-ìŽÒ‚ÉŒÂ•Ê‚É˜A—‚ðŽæ‚è‚½‚¢ê‡‚É‚ÍA<snak at snak dot org>‚Ü‚Åƒ[ƒ‹‚ð‘—‚Á‚Ä‚­‚¾‚³‚¢B
+==é€£çµ¡å…ˆ
+ä½œè€…ã«å€‹åˆ¥ã«é€£çµ¡ã‚’å–ã‚ŠãŸã„å ´åˆã«ã¯ã€<snak at snak dot org>ã¾ã§ãƒ¡ãƒ¼ãƒ«ã‚’é€ã£ã¦ãã ã•ã„ã€‚
 
 =end
