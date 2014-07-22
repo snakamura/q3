@@ -35,15 +35,6 @@ QMAIL3は、WindowsおよびWindows CE系のOSで動作するメーラです。�
 
 ==((<良くある質問|URL:/doc/FAQ.html>))
 
-==((<メーリングリスト|URL:http://qs.snak.org/cgi-bin/mailman/listinfo/qs>))
-質問などはメーリングリストに投稿してください。メーリングリストに参加すると過去の投稿も見れるようになります。
-
-==((<バグトラッキングシステム|URL:/bts/guest.cgi?project=Q3&action=top>))
-バグ報告や要望などはバグトラッキングシステムに書き込んでください。
-
-==((<Lingr|URL:http://www.lingr.com/room/bJETSwHp1e5>))
-Webチャットです。コメント欄代わりに使っていただいても結構です。
-
 ==((<メモ|URL:http://snak.tdiary.net/>))
 Nightly Buildでの変更はこちらのメモに書かれることが多いです。
 

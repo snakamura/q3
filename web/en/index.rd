@@ -41,15 +41,6 @@ QMAIL3 is a mail client which runs on Windows and Windows CE families. It has fe
 *((<Translation by Excite|URL:http://www.excite.co.jp/world/english/web/?wb_lp=JAEN&wb_dis=2&wb_url=http%3A%2F%2Fq3.snak.org%2Fdoc%2FFAQ.html>))
 *((<Translation by Windows Live|URL:http://www.windowslivetranslator.com/BV.aspx?MKT=ja-JP&lp=ja_en&a=http%3A%2F%2Fq3.snak.org%2Fdoc%2FFAQ.html>))
 
-==((<Mailing List|URL:http://qs.snak.org/cgi-bin/mailman/listinfo/qs>)) (in Japanese)
-Please post your questions to the mailing list. Once you become a member, you can view its archives.
-
-==((<Bug Tracking System|URL:/bts/guest.cgi?project=Q3&action=top>))
-Please post your bug reports and requests to the bug tracking system.
-
-==((<Lingr|URL:http://www.lingr.com/room/bJETSwHp1e5>))
-Linger is a web chat system. Please use freely to talk about QMAIL3.
-
 ==((<Memos|URL:http://snak.tdiary.net/>)) (in Japanese)
 
 ==((<Source Code|URL:source.html>))
